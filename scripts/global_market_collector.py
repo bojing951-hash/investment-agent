@@ -164,9 +164,15 @@ def calc_metrics(asset_id, hist):
     vs_50d = "🟢" if (ma50 and today > ma50) else ("🔴" if ma50 else "—")
     vs_200d = "🟢" if (ma200 and today > ma200) else ("🔴" if ma200 else "—")
 
+    # 当日盘中高/低(第四轮P0-6): touch预测盘中触及判定需要,收盘价不能证明盘中未触及
+    high = round(float(hist['High'].iloc[-1]), 2) if 'High' in hist else None
+    low = round(float(hist['Low'].iloc[-1]), 2) if 'Low' in hist else None
+
     return {
         "asset_id": asset_id,
         "close": round(float(today), 2),
+        "high": high,
+        "low": low,
         "week_chg": round(float(week_chg), 2),
         "mtd_chg": round(float(mtd_chg), 2),
         "ytd_chg": round(float(ytd_chg), 2),

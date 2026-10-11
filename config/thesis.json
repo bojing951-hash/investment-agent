@@ -30,6 +30,33 @@
         "4/4 维持 4★ 黄金受实际利率下降支撑",
         "4/12 降至3★ 油价回落削弱通胀对冲需求，短期方向不明",
         "10/11 待观察 1★ 实际利率2.92>2.5%连续两周,金价4165<4200,差一周触发失效,降级"
+      ],
+      "quant_triggers": [
+        {
+          "trig_id": "T1-INV1",
+          "direction": "invalidation",
+          "metric": "macro.data.TIPS_10Y.value",
+          "op": ">=",
+          "target": 2.5,
+          "sustain_weeks": 3,
+          "note": "实际利率回升至2.5%以上并维持三周"
+        },
+        {
+          "trig_id": "T1-INV3",
+          "direction": "invalidation",
+          "metric": "global_market.data.GOLD.close",
+          "op": "<=",
+          "target": 4200,
+          "note": "黄金跌破4200(且无地缘避险支撑,后半句由研究判断)"
+        },
+        {
+          "trig_id": "T1-UP1",
+          "direction": "upgrade",
+          "metric": "macro.data.TIPS_10Y.value",
+          "op": "<=",
+          "target": 1.7,
+          "note": "实际利率跌破1.7%"
+        }
       ]
     },
     {
@@ -58,6 +85,24 @@
         "3/28 创建 4★",
         "4/4 升至5★ CCC OAS 988bp 距恐慌线12bp + Blue Owl赎回限制",
         "4/12 维持5★ CCC OAS 946bp 小幅改善但仍在危险区间"
+      ],
+      "quant_triggers": [
+        {
+          "trig_id": "T2-UP1",
+          "direction": "upgrade",
+          "metric": "macro.data.CCC_OAS.value",
+          "op": ">=",
+          "target": 10.0,
+          "note": "CCC OAS突破1000bp(=10%)"
+        },
+        {
+          "trig_id": "T2-DN1",
+          "direction": "invalidation",
+          "metric": "macro.data.CCC_OAS.value",
+          "op": "<=",
+          "target": 8.5,
+          "note": "CCC OAS回落至850bp以下(降级观察,原条件含降息配合)"
+        }
       ]
     },
     {
@@ -86,6 +131,41 @@
         "3/28 创建 2★",
         "4/4 维持 2★",
         "4/12 升至3★ DXY跌破100, risk-on中美元反而走弱强化逻辑"
+      ],
+      "quant_triggers": [
+        {
+          "trig_id": "T3-INV1",
+          "direction": "invalidation",
+          "all": [
+            {
+              "metric": "global_market.data.DXY.close",
+              "op": ">=",
+              "target": 105
+            },
+            {
+              "metric": "macro.data.UST_30Y.value",
+              "op": "<=",
+              "target": 4.5
+            }
+          ],
+          "note": "DXY回升至105以上且30Y收益率回落至4.5%以下"
+        },
+        {
+          "trig_id": "T3-UP1",
+          "direction": "upgrade",
+          "metric": "global_market.data.DXY.close",
+          "op": "<=",
+          "target": 97,
+          "note": "DXY跌破97"
+        },
+        {
+          "trig_id": "T3-UP2",
+          "direction": "upgrade",
+          "metric": "macro.data.UST_30Y.value",
+          "op": ">=",
+          "target": 5.0,
+          "note": "30Y收益率突破5%"
+        }
       ]
     },
     {
@@ -113,7 +193,8 @@
         "3/28 创建 3★",
         "4/4 降至2★ 美股-中国相关性+0.741 未脱钩",
         "4/12 维持2★ 转为待观察 全球risk-on中同步反弹属β驱动 不构成失效证据"
-      ]
+      ],
+      "quant_triggers": []
     },
     {
       "id": 5,
@@ -144,7 +225,8 @@
         "4/4 维持 5★",
         "4/12 降至4★ 油价从$111回落至$96 地缘溢价部分消退 但通胀基础仍在 体制未切换",
         "10/11 待观察 2★ 连续两周非滞胀,降级条件触发;再通胀若再持续一周则判失效"
-      ]
+      ],
+      "quant_triggers": []
     },
     {
       "id": 6,
@@ -173,6 +255,24 @@
         "3/28 创建 4★",
         "4/4 升至5★ WTI飙至$111 霍尔木兹海峡封锁",
         "4/12 降至3★ 油价-13.4% 航道重开消息 地缘溢价证明可快速收缩"
+      ],
+      "quant_triggers": [
+        {
+          "trig_id": "T6-INV2",
+          "direction": "invalidation",
+          "metric": "global_market.data.WTI.close",
+          "op": "<=",
+          "target": 75,
+          "note": "油价回落至$75以下(原条件另含OPEC+恢复配额)"
+        },
+        {
+          "trig_id": "T6-UP3",
+          "direction": "upgrade",
+          "metric": "global_market.data.WTI.close",
+          "op": ">=",
+          "target": 110,
+          "note": "油价重返$110+"
+        }
       ]
     },
     {
@@ -202,7 +302,8 @@
         "3/28 创建 4★",
         "4/4 维持 4★",
         "4/12 维持 4★ 全球联动性持续高位 美股-欧股+0.931"
-      ]
+      ],
+      "quant_triggers": []
     },
     {
       "id": 8,
@@ -231,7 +332,8 @@
         "3/28 创建 3★",
         "4/4 升至4★ 油价+18%→CCC OAS逼近1000bp 传导链验证",
         "4/12 维持4★ 油价-13.4%→CCC OAS从988降至946 双向传导确认"
-      ]
+      ],
+      "quant_triggers": []
     },
     {
       "id": 9,
@@ -261,6 +363,16 @@
         "3/28 创建 4★",
         "4/4 维持 4★",
         "4/12 降至3★ 地缘消退后需观察资金多极化是否为结构性趋势而非事件驱动"
+      ],
+      "quant_triggers": [
+        {
+          "trig_id": "T9-INV1",
+          "direction": "invalidation",
+          "metric": "global_market.data.DXY.close",
+          "op": ">=",
+          "target": 106,
+          "note": "DXY回升至106以上(美元强势回归)"
+        }
       ]
     }
   ]

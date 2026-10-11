@@ -48,10 +48,103 @@ CREDIT_THRESHOLDS = {
     "CCC_PANIC": 10.0,
 }
 
+# 指标发布频率(第四轮P0-3): 变化计算口径由频率决定,不得统一用"第6个观测值之差"冒充周变化
+SERIES_FREQ = {
+    "FED_FUNDS": "monthly", "CPI": "monthly", "CORE_PCE": "monthly",
+    "UNEMPLOYMENT": "monthly", "NFP": "monthly", "CORE_CPI": "monthly",
+    "AHE": "monthly", "WTI": "monthly",
+    "ICSA": "weekly",
+    # 其余(BAML利差/DGS收益率/DFII/T5YIE/T10Y2Y)=daily
+}
+
+
+def compute_series_changes(dates, values, freq):
+    """按频率计算变化(纯函数,离线可测)。
+
+    daily:   week_chg = 最新值 − 约1周前(5~10个自然日内最近的)观测值
+    weekly:  week_chg = 最新值 − 上一期(≥5天前最近)观测值
+    monthly: mom_chg = 最新值 − 上一期月度观测; yoy_chg = 最新值 − 约12个月前观测
+             (不产week_chg — 月度序列没有"周变化"这个口径)
+    所有变化附窗口元数据: {chg_field}_from = 起始观测日, formula=计算式说明。
+    dates为'YYYY-MM-DD'字符串列表(升序), values为对应float列表。"""
+    from datetime import date
+    out = {}
+    if not dates or len(values) < 2 or len(dates) != len(values):
+        return out
+    latest_d, latest_v = dates[-1], float(values[-1])
+    d_last = date.fromisoformat(latest_d)
+
+    def _pick(days_min, days_max):
+        """取距最新观测 days_min~days_max 自然日内最近的那个观测(索引,日期,值)。"""
+        best = None
+        for i in range(len(dates) - 2, -1, -1):
+            lag = (d_last - date.fromisoformat(dates[i])).days
+            if days_min <= lag <= days_max:
+                return i, dates[i], float(values[i])
+            if lag > days_max:
+                break
+        return best
+
+    if freq == "monthly":
+        prev = _pick(21, 45)     # 上一期月度观测
+        yoy = _pick(330, 400)    # 约12个月前
+        if prev:
+            i, d0, v0 = prev
+            out["prev"] = round(v0, 4)
+            out["mom_chg"] = round(latest_v - v0, 4)
+            out["mom_chg_from"] = d0
+            out["mom_chg_formula"] = f"{latest_d}值−{d0}值(月度环比)"
+        if yoy:
+            i, d0, v0 = yoy
+            out["yoy_chg"] = round(latest_v - v0, 4)
+            out["yoy_chg_from"] = d0
+            out["yoy_chg_formula"] = f"{latest_d}值−{d0}值(同比)"
+    elif freq == "weekly":
+        prev = _pick(5, 14)      # 上一期周度观测
+        if prev:
+            i, d0, v0 = prev
+            out["prev"] = round(v0, 4)
+            out["week_chg"] = round(latest_v - v0, 4)
+            out["week_chg_from"] = d0
+            out["week_chg_formula"] = f"{latest_d}值−{d0}值(周度环比)"
+    else:  # daily
+        prev = _pick(5, 10)      # 约1周前(5个交易日的自然日近似)
+        if prev:
+            i, d0, v0 = prev
+            out["prev"] = round(v0, 4)
+            out["week_chg"] = round(latest_v - v0, 4)
+            out["week_chg_from"] = d0
+            out["week_chg_formula"] = f"{latest_d}值−{d0}值(约一周,交易日口径)"
+    return out
+
+
+def detect_revisions(name, results, today_str):
+    """历史数据修订检测(第四轮P0-3): 与上一采集日文件比对 — 同一观测日数值变化即修订,
+    记录{obs_date, prev_value, value, detected}; 无历史文件时标注数据限制,不伪造。"""
+    import glob as _glob
+    prev_files = sorted(_glob.glob(os.path.join(DATA_DIR, "daily", "macro_*.json")))
+    prev_files = [p for p in prev_files if os.path.basename(p) != f"macro_{today_str}.json"]
+    if not prev_files:
+        return None
+    try:
+        with open(prev_files[-1], 'r', encoding='utf-8') as f:
+            old = json.load(f)
+        old_item = (old.get('data') or {}).get(name) or {}
+    except Exception:
+        return None
+    new_item = results.get(name) or {}
+    old_d, new_d = old_item.get('date'), new_item.get('date')
+    old_v, new_v = old_item.get('value'), new_item.get('value')
+    if old_d and new_d == old_d and isinstance(old_v, (int, float)) and isinstance(new_v, (int, float)) \
+            and abs(new_v - old_v) > 1e-9:
+        return {"obs_date": new_d, "prev_value": old_v, "value": new_v, "detected": today_str}
+    return None
+
 
 def fetch_all_macro():
-    """采集所有FRED数据"""
+    """采集所有FRED数据(第四轮P0-3: 按系列频率分别计算变化,附窗口元数据与修订检测)"""
     results = {}
+    today_str = datetime.now().strftime('%Y%m%d')
     for name, series_id in FRED_SERIES.items():
         try:
             data = fred.get_series(series_id, observation_start='2025-01-01')
@@ -59,21 +152,18 @@ def fetch_all_macro():
             if len(clean) > 0:
                 latest = float(clean.iloc[-1])
                 latest_date = clean.index[-1].strftime('%Y-%m-%d')
-
-                # 计算周变化（对比5个数据点前）
-                prev = float(clean.iloc[-6]) if len(clean) > 5 else float(clean.iloc[0])
-                if prev != 0:
-                    week_chg = latest - prev
-                else:
-                    week_chg = 0.0
-
-                results[name] = {
-                    "value": round(latest, 4),
-                    "prev": round(prev, 4),
-                    "week_chg": round(week_chg, 4),
-                    "date": latest_date,
-                }
-                print(f"  ✅ {name:15s}: {latest:.4f} (变化{week_chg:+.4f})")
+                freq = SERIES_FREQ.get(name, 'daily')
+                dates = [d.strftime('%Y-%m-%d') for d in clean.index]
+                values = [float(v) for v in clean.values]
+                item = {"value": round(latest, 4), "date": latest_date, "frequency": freq}
+                item.update(compute_series_changes(dates, values, freq))
+                rev = detect_revisions(name, {name: item}, today_str)
+                if rev:
+                    item["revision"] = rev
+                results[name] = item
+                chg_disp = item.get('week_chg', item.get('mom_chg'))
+                print(f"  ✅ {name:15s}: {latest:.4f} ({freq},变化{chg_disp:+.4f})" if isinstance(chg_disp, (int, float))
+                      else f"  ✅ {name:15s}: {latest:.4f} ({freq})")
             else:
                 print(f"  ⚠️ {name}: 空数据")
         except Exception as e:

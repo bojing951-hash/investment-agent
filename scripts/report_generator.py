@@ -354,7 +354,7 @@ def generate_report(data_pack, framework=None, theses=None, prev_report=None, te
 触发器纪律: 只有上方观点库标注"✅已触发"的引擎核验条件才可写成已触发,"❓待验证"的条件必须标注待验证,不得当作已发生,"⏳持续确认中"的条件须待连续周数满额才算触发；
 若本周该资产的升降级条件被引擎核验为已触发，才输出"调整提案"：动作与理由、证据及反证、风险与最大容忍损失、失效条件、下一复核日；未触发则只维持原评级；
 【研究链路要求】每个资产小节不得从体制评分直接跳到配置建议，须依次回答:
-当前宏观环境对该资产产生什么影响→传导机制是什么(无法量化的机制明确标注"研究假设",不得伪装成已证实事实)→这些影响是已经发生还是未来可能发生→市场价格是否已反映相关预期→有哪些相反力量(反证)→为什么当前评级合理(无充分新增证据时允许维持原观点)→什么新数据会改变评级。
+当前宏观环境对该资产产生什么影响→传导机制是什么(无法量化的机制明确标注"研究假设",不得伪装成已证实事实)→这些影响是已经发生还是未来可能发生→市场价格是否已反映相关预期→有哪些相反力量(反证)→为什么当前评级合理(无充分新增证据时允许维持原观点)→什么新数据会改变评级→调整及失效条件(当前配置的调整触发器、失效条件与下一复核日,无充分新证据时输出"维持原观点+复核日"也是合法结论,不得为生成报告制造配置变化)。
 不得直接从资产相关性推断因果关系。)
 
 #### 5.1 美股
@@ -410,17 +410,22 @@ def generate_report(data_pack, framework=None, theses=None, prev_report=None, te
 请根据本周数据，对每个论点进行以下判断：
 1. 确信度是否需要调整（升/降/维持）
 2. 是否触发了升级或降级条件
-3. 状态是否需要变更（进行中/已验证/已失效/观察中）
+3. 状态是否需要变更（进行中/待观察/已验证/已失效）
 4. 用一句话说明本周证据
 5. 报告正文全部结束后，必须另起一行输出"论点状态块"（HTML注释包裹，渲染时不可见，供脚本解析回写thesis.json），
    格式严格如下，每个论点一行、共9行、一行一个JSON对象、不得包裹代码块围栏：
 
 <!--THESIS_STATUS
-{{"id":1,"status":"进行中","confidence":3,"note":"≤40字本周证据"}}
+{{"id":1,"status":"进行中","confidence":3,"note":"≤40字本周证据","evidence":[{{"metric":"macro.data.TIPS_10Y.value","value":2.1,"obs_date":"2026-10-09","mechanism":"利率与流动性"}}]}}
 {{"id":2,"status":"待观察","confidence":2,"note":"..."}}
 THESIS_STATUS-->
 
 status只能取: 进行中/待观察/已验证/已失效；confidence为1-5整数；id与thesis.json一致。
+evidence数组可选但强烈建议提供，格式与配置观点块相同(锚点指标ID+数值+观测日+机制类别)，程序按同一套证据分级v2规则核验：
+- 【状态终态门禁】→已失效/→已验证为终态判定：须该论点的失效/升级触发器被引擎核验为已触发，或本周≥2项新增独立支持证据通过程序验证；否则保留原状态，模型判断降级为提案留档。
+- 【确信度门禁】上调不得超过程序验证星级；下调不受限。
+- 论点引用历史数值时必须在note中带原始观测日期(如"实际利率2.5%(2026-09-30观测)")——同一指标旧值再次引用不算新增证据。
+- 论点失效不自动改变关联资产评级：关联观点须各自过证据门禁。
 
 6. 紧跟THESIS_STATUS块之后，输出"配置观点块"（HTML注释，同格式，每个资产一行、共9行）：
 
@@ -434,12 +439,12 @@ rating只能取: 超配/标配/低配/观望（不用"中性"，中性=标配）
 【证据分级v2程序校验】evidence数组为结构化证据，每项含metric(锚点指标ID)/value(数值,须与观点块或数据包中该指标的锚点值一致)/obs_date(观测日,须与锚点一致)/mechanism(机制类别:增长/通胀/利率与流动性/信用/避险与估值/供应与库存/资金流)；可加"contrary":true表示反证、"explained":true表示反证已解释。
 程序按以下规则核验并执行门禁（不满足会被拒写）：
 - 同一底层指标多次引用只计1项独立证据；同一月度指标连续四周重复引用不等于多次独立观察。
-- 星级门槛: 1★=1项 / 2★=2项 / 3★=3项且覆盖2类机制 / 4★=4项且3类机制且跨2个观察期 / 5★=5项且3类机制且跨3个观察期且含已解释反证；存在未解释反证封顶3★。
+- 星级门槛: 1★=1项 / 2★=2项 / 3★=3项且覆盖2类机制 / 4★=4项且3类机制且跨2个观察期 / 5★=5项且3类机制且跨3个观察期（5★不要求必须存在反证；但若存在重大反证，必须已解释——存在未解释反证时封顶3★）。反对证据(contrary)不计入支持数量，只参与反证校验。
 - 【评级变更门禁】新评级须满足: 引擎核验为"✅已触发"的同向触发器，或≥2项通过程序验证的新增evidence；否则保留原评级、提案留档。被拒提案会在观点块公示，勿无新证据重复提交。
 - 【确信度门禁】上调不得超过程序验证星级；下调不受限。评级变更/确信度上调必须走上述门禁，评级变化是需证据支持的研究判断修正，不是数值状态更新。
 仅当本周发生评级变更时，在该行附加预测字段（方向+期限+可计算规格）：
 {{"id":5,"rating":"标配","confidence":3,"note":"...","pred":"若XXX则两周内YYY","pred_weeks":2,"pred_metric":"macro.data.CCC_OAS.value","pred_op":">=","pred_target":10.0,"pred_mode":"expiry"}}
-pred_metric/pred_op/pred_target为可选的机器可校验规格（锚点指标ID、比较符>=/<=/>/<、目标值）；pred_mode取expiry(截止日达到,默认)或touch(观察期内触及,两者不得混淆)；还可附前提规格pred_premise_metric/pred_premise_op/pred_premise_target(条件预测: 前提兑现才开始结果观察期,截止日不顺延)。带完整规格的预测到期由程序按观察记录自动裁决。
+pred_metric/pred_op/pred_target为可选的机器可校验规格（锚点指标ID、比较符>=/<=/>/<、目标值）；pred_mode取expiry(截止日达到,默认)或touch(观察期内触及,两者不得混淆)；价格类touch预测可附pred_basis指定比较口径: close(收盘价达到,默认)/high(盘中最高触及)/low(盘中最低触及)——"盘中触及"必须写high/low口径，收盘价不能证明盘中未触及；还可附前提规格pred_premise_metric/pred_premise_op/pred_premise_target(条件预测: 前提兑现才开始结果观察期,截止日不顺延)。带完整规格的预测到期由程序按每日观察记录自动裁决。
 
 7. 若观点库中有"⏰已到期"的预测，先在报告第七节给出裁决，并在最后输出预测裁决块：
 
@@ -578,9 +583,20 @@ def _has_numeric_errors(warnings):
             return True
     return False
 
-def update_thesis_status(report_text, thesis_path=None, today_str=None):
-    """解析报告末尾的THESIS_STATUS块,回写 config/thesis.json 的 status/confidence/history
-    (thesis_path/today_str参数供E2E测试隔离注入)"""
+def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=None):
+    """解析报告末尾的THESIS_STATUS块,回写 config/thesis.json(第四轮P0-4: 与配置观点共用证据门禁)。
+
+    门禁(与allocation_engine统一):
+    - 状态→已失效: 须引擎核验"已触发"的失效触发器(thesis.quant_triggers
+      direction=invalidation),或≥2项本周新增独立支持证据; 否则保留原状态+提案留档。
+    - 状态→已验证: 同上(upgrade触发器或≥2项新增支持证据)。
+    - 进行中↔待观察等过程状态: 允许(记录审计)。
+    - 确信度上调: 不得超过程序验证星级(证据分级v2,只计支持证据); 下调自由。
+    - 每次变化记录 last_change{date,from,to,via,evidence} 审计;
+      证据台账 evidence_ledger 与配置观点同构(新增判定用)。
+    - 论点失效落地时提示检查关联论点(不自动改任何配置观点评级)。
+    (thesis_path/today_str/anchors参数供E2E测试隔离注入)"""
+    import allocation_engine as ae
     m = re.search(r'<!--\s*THESIS_STATUS\s*(.*?)\s*THESIS_STATUS\s*-->', report_text, re.DOTALL)
     if not m:
         print("⚠️ 报告中未找到THESIS_STATUS块,论点状态未回写(下期仍以上期报告散文衔接)")
@@ -592,11 +608,19 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None):
         parsed = json.loads(block.strip())
         objs = parsed if isinstance(parsed, list) else [parsed]
     except Exception:
-        for mm in re.finditer(r'\{[^{}]*\}', block):
-            try:
-                objs.append(json.loads(mm.group(0)))
-            except Exception:
-                pass
+        for line in block.split('\n'):
+            line = line.strip().rstrip(',')
+            if line.startswith('{') and line.endswith('}'):
+                try:
+                    objs.append(json.loads(line))
+                except Exception:
+                    pass
+        if not objs:
+            for mm in re.finditer(r'\{[^{}]*\}', block):
+                try:
+                    objs.append(json.loads(mm.group(0)))
+                except Exception:
+                    pass
 
     if not objs:
         print("⚠️ THESIS_STATUS块解析失败(无有效JSON),论点状态未回写")
@@ -607,8 +631,22 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None):
         data = json.load(f)
 
     today = datetime.strptime(today_str, '%Y-%m-%d') if today_str else datetime.now()
+    today_iso = today.strftime('%Y-%m-%d')
     tag = f"{today.month}/{today.day}"
     updates = []
+
+    # 每周核验全部论点触发器(与配置观点同构): sustain类连续周数在thesis.json逐周累积,
+    # 不依赖模型是否恰好提出终态变更 — 无结构化触发器的论点跳过
+    trig_data = {'views': [{'id': t['id'],
+                            'quant_triggers': t.get('quant_triggers') or [],
+                            'trigger_state': t.get('trigger_state') or {}}
+                           for t in data['theses'] if t.get('quant_triggers')]}
+    all_trig_rows = ae.evaluate_quant_triggers(
+        trig_data, anchors, today_str=today_iso, persist=True)
+    for v in trig_data['views']:
+        t = next(x for x in data['theses'] if x['id'] == v['id'])
+        t['trigger_state'] = v.get('trigger_state') or {}
+
     for o in objs:
         tid = o.get('id')
         t = next((x for x in data['theses'] if x.get('id') == tid), None)
@@ -619,18 +657,93 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None):
         conf = o.get('confidence')
         note = str(o.get('note', '')).strip()[:60]
 
+        # 证据程序验证(与配置观点同构)
+        verified, ev_rejects = ae.verify_evidence_items(o.get('evidence'), anchors, today_iso)
+        supporting, contrary, unexplained = ae.split_evidence_direction(verified)
+        star_max, star_desc = ae.star_level_from_evidence(verified)
+        new_support = ae.new_supporting_metrics(t, supporting, today_iso)
+        if verified:
+            ledger = t.setdefault('evidence_ledger', [])
+            ledger.append({'date': today_iso, 'verified': len(verified),
+                           'supporting': len(supporting), 'contrary': len(contrary),
+                           'unexplained': len(unexplained), 'new_support': sorted(new_support),
+                           'star_max': star_max, 'desc': star_desc[:200],
+                           'obs_pairs': sorted({(i['metric'], str(i.get('obs_date'))[:10])
+                                                for i in verified})})
+            t['evidence_ledger'] = ledger[-12:]
+
+        # 状态变更门禁: 终态(已失效/已验证)须触发器或新增证据
         if new_status in ALLOWED_STATUS and new_status != t.get('status'):
-            t['status'] = new_status
-            updates.append(f"#{tid}{t.get('name', '')[:10]}: 状态→{new_status}")
+            if new_status in ('已失效', '已验证'):
+                want_dir = 'invalidation' if new_status == '已失效' else 'upgrade'
+                trig_rows = all_trig_rows.get(tid, [])
+                fired = [r for r in trig_rows if r['direction'] == want_dir and r['status'] == 'triggered']
+                if fired:
+                    old = t.get('status')
+                    t['status'] = new_status
+                    via = f"{want_dir}触发器{'+'.join(r['trig_id'] for r in fired)}(引擎核验已触发)"
+                    t['last_change'] = {'date': today_iso, 'from': old, 'to': new_status,
+                                        'via': via, 'evidence': supporting[:5], 'note': note}
+                    updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old}→{new_status} (经{via})")
+                elif len(new_support) >= 2:
+                    old = t.get('status')
+                    t['status'] = new_status
+                    via = f"新增独立支持证据{len(new_support)}项经验证({star_desc[:60]})"
+                    t['last_change'] = {'date': today_iso, 'from': old, 'to': new_status,
+                                        'via': via, 'evidence': supporting[:5], 'note': note}
+                    updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old}→{new_status} (经{via})")
+                else:
+                    reason = (f"'{new_status}'为终态判定,须invalidation/upgrade触发器已触发"
+                              f"或≥2项本周新增独立支持证据(本周新增{len(new_support)}项;"
+                              f"{star_desc[:60]})")
+                    if ev_rejects:
+                        reason += "; 证据拒收: " + "; ".join(rj for rj, _ in ev_rejects[:3])
+                    ae._record_proposal(t, new_status, reason,
+                                        json.dumps(o.get('evidence'), ensure_ascii=False)[:160],
+                                        today_iso)
+                    updates.append(f"论点#{tid}{t.get('name', '')[:10]}: 状态→{new_status}被拒"
+                                   f"[{reason[:60]}],保留{t.get('status')}")
+                    print(f"   🚫 论点#{tid}状态变更被拒: {reason}")
+            else:
+                # 过程状态(进行中/待观察): 允许,仍记录审计
+                old = t.get('status')
+                t['status'] = new_status
+                t['last_change'] = {'date': today_iso, 'from': old, 'to': new_status,
+                                    'via': '过程状态调整(非终态)', 'evidence': supporting[:5], 'note': note}
+                updates.append(f"#{tid}{t.get('name', '')[:10]}: 状态→{new_status}")
+
+        # 确信度门禁: 上调须星级支撑,下调自由
         if isinstance(conf, (int, float)) and conf == int(conf) and 1 <= int(conf) <= 5:
-            t['confidence'] = int(conf)
+            conf = int(conf)
+            if conf > (t.get('confidence') or 0) and conf > star_max:
+                reason = f"证据仅支撑{star_max}★({star_desc[:60]}),不足以授予{conf}★"
+                ae._record_proposal(t, f"确信度{conf}★", reason,
+                                    json.dumps(o.get('evidence'), ensure_ascii=False)[:160],
+                                    today_iso)
+                updates.append(f"论点#{tid}: 确信度→{conf}★被拒[{reason[:60]}],保留{t.get('confidence')}★")
+                print(f"   🚫 论点#{tid}确信度上调被拒: {reason}")
+            else:
+                t['confidence'] = conf
+
+        # 论点失效 → 提示检查关联论点(不自动改任何配置观点)
+        if t.get('status') == '已失效' and t.get('last_change', {}).get('date') == today_iso:
+            rel = t.get('related_theses') or []
+            if rel:
+                updates.append(f"论点#{tid}已失效 — 请检查关联论点{rel}及对应资产观点"
+                               f"(失效不自动推导评级变更,须各自过证据门禁)")
 
         # history追加(同日重复运行不重复记)
         hist = t.setdefault('history', [])
-        if hist and hist[-1].startswith(f"{tag} "):
-            hist[-1] = f"{tag} {t.get('status', '进行中')} {t.get('confidence', 0)}★ {note}".rstrip()
+        lc = t.get('last_change') or {}
+        if lc.get('date') == today_iso and lc.get('from') != lc.get('to'):
+            line = f"{tag} {t.get('status', '进行中')} {t.get('confidence', 0)}★ " \
+                   f"[{lc.get('from')}→{lc.get('to')} {str(lc.get('via', ''))[:40]}] {note}".rstrip()
         else:
-            hist.append(f"{tag} {t.get('status', '进行中')} {t.get('confidence', 0)}★ {note}".rstrip())
+            line = f"{tag} {t.get('status', '进行中')} {t.get('confidence', 0)}★ {note}".rstrip()
+        if hist and hist[-1].startswith(f"{tag} "):
+            hist[-1] = line
+        else:
+            hist.append(line)
         t['history'] = hist[-12:]  # 每论点只留最近12条
 
     data['last_updated'] = today.strftime('%Y-%m-%d')
@@ -705,6 +818,23 @@ def _append_validation_note(md_path, date_str, summary):
     with open(md_path, 'a', encoding='utf-8') as f:
         f.write(f"\n<!-- 校验{date_str}: {summary} 详情: logs/validation_{date_str}.log -->\n")
 
+def apply_status_updates(report, classification, anchors=None, today_str=None,
+                         thesis_path=None, views_path=None):
+    """校验分级后的状态回写调度(第四轮P0-4/测试#19):
+    PASS/DEGRADED → 论点回写 + 配置观点回写(共用同一批锚点,统一研究截止时间);
+    FAIL → 两类长期状态都不修改(基于错误数字的升降级不得污染thesis.json/allocation_views.json)。
+    (thesis_path/views_path供E2E测试隔离注入)返回 (thesis_updates, fail_blocked)。"""
+    if classification == "FAIL":
+        print("⛔ 校验分级FAIL(无锚点/锚点过期/数值错误),本轮跳过thesis.json与allocation_views.json回写(请人工核对后再决定)")
+        return [], True
+    _today = today_str or datetime.now().strftime('%Y-%m-%d')
+    thesis_updates = update_thesis_status(report, today_str=_today, anchors=anchors,
+                                          thesis_path=thesis_path)
+    allocation_engine.update_allocation_status(report, views_path=views_path,
+                                               anchors=anchors, today_str=_today)
+    return thesis_updates, False
+
+
 # ============ 主程序 ============
 if __name__ == '__main__':
     print("=" * 60)
@@ -776,13 +906,8 @@ if __name__ == '__main__':
 
     # 第3.6步：论点状态回写 — 校验分级FAIL则禁止回写,
     # 防止基于错误数字的升降级污染thesis.json/allocation_views.json
-    if classification == "FAIL":
-        print("⛔ 校验分级FAIL(无锚点/锚点过期/数值错误),本轮跳过thesis.json与allocation_views.json回写(请人工核对后再决定)")
-    else:
-        _today = datetime.now().strftime('%Y-%m-%d')
-        update_thesis_status(report, today_str=_today)
-        # 第三轮: 统一研究截止时间(as_of=报告日),同一批已验证锚点驱动全部状态更新
-        allocation_engine.update_allocation_status(report, anchors=latest_anchors, today_str=_today)
+    # (第四轮P0-4: 两类长期状态共用同一批已验证锚点与统一研究截止时间)
+    apply_status_updates(report, classification, anchors=latest_anchors)
 
     # 第4步：预览前30行
     print("\n" + "=" * 60)

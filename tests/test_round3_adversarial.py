@@ -106,7 +106,7 @@ saved, ups = run_update(base_views(), alloc_block([
 v1 = saved['views'][0]
 check("1a 评级保留标配(未被模型直觉改写)", v1['rating'] == '标配')
 check("1b 被拒提案留档公示(含原因,供下期防重复提交)",
-      any(p['status'] == 'rejected' and p['to'] == '超配' and '验证证据0项' in p['reason']
+      any(p['status'] == 'rejected' and p['to'] == '超配' and '新增独立支持证据0项' in p['reason']
           for p in v1.get('proposals', [])), str(v1.get('proposals')))
 check("1c 确信度未被顺带上调", v1['confidence'] == 2)
 check("1d 历史记录为维持而非评级变化",

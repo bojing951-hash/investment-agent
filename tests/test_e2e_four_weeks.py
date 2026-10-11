@@ -77,8 +77,9 @@ def run_week(week, td, views, thesis):
         True, True, warnings, _has_numeric_errors(warnings))
     if classification == 'FAIL':
         return classification, warnings, anchors
+    # 第四轮P0-4: 论点回写与配置观点共用同一批锚点(与主流程apply_status_updates一致)
     quiet(update_thesis_status, open(report_path).read(), thesis_path=thesis,
-          today_str=dict(WEEKS)[week])
+          anchors=anchors, today_str=dict(WEEKS)[week])
     quiet(ae.update_allocation_status, open(report_path).read(),
           views_path=views, anchors=anchors, today_str=dict(WEEKS)[week])
     return classification, warnings, anchors

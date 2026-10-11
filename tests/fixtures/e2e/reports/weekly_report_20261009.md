@@ -21,13 +21,16 @@ SPX 7650(-1.0%);NDX 24380;黄金4180美元(-0.7%);DXY 99.2;VIX 21.5;BTC 79900(-2
 {"id":2,"status":"进行中","confidence":5,"note":"CCC 10.12破恐慌线"}
 THESIS_STATUS-->
 <!--ALLOCATION_STATUS
-{"id":1,"rating":"低配","confidence":3,"note":"触发器T1(CCC≥10.0)引擎核验已触发+类滞胀确认","pred":"若CCC OAS回落至9.5下方,SPX两周内收复7700","pred_weeks":1,"pred_metric":"global_market.data.SPX.close","pred_op":">=","pred_target":7700}
+{"id":1,"rating":"低配","confidence":3,"note":"触发器T1(CCC≥10.0)引擎核验已触发,降级","pred":"信用压制下SPX两周内触及7600下方","pred_weeks":2,"pred_metric":"global_market.data.SPX.close","pred_op":"<=","pred_target":7600,"pred_mode":"touch"}
 {"id":2,"rating":"低配","confidence":3,"note":"30Y 4.95逼近5%"}
 {"id":3,"rating":"低配","confidence":4,"note":"T1触发,维持低配"}
 {"id":4,"rating":"低配","confidence":3,"note":"DXY 99.2"}
-{"id":5,"rating":"标配","confidence":2,"note":"类滞胀确认,通胀对冲需求回归(定性升级,待验证)"}
+{"id":5,"rating":"标配","confidence":2,"note":"类滞胀确认,通胀对冲需求回归(定性升级,未附结构化证据)"}
 {"id":6,"rating":"标配","confidence":3,"note":"区间内"}
 {"id":7,"rating":"标配","confidence":2,"note":"外围压制"}
 {"id":8,"rating":"标配","confidence":2,"note":"β承压"}
 {"id":9,"rating":"超配","confidence":3,"note":"T1触发强化期权价值"}
 ALLOCATION_STATUS-->
+<!--PREDICTION_STATUS
+{"pred_id":1,"status":"observing","note":"类滞胀10-08获跨周确认(定性前提兑现),观察期自今日起,截止日不变"}
+PREDICTION_STATUS-->

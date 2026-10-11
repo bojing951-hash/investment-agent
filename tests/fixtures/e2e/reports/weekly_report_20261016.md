@@ -28,7 +28,7 @@ THESIS_STATUS-->
 {"id":2,"rating":"低配","confidence":3,"note":"30Y破5%"}
 {"id":3,"rating":"低配","confidence":4,"note":"维持"}
 {"id":4,"rating":"低配","confidence":3,"note":"DXY 98.7"}
-{"id":5,"rating":"标配","confidence":2,"note":"金价4310验证通胀对冲逻辑"}
+{"id":5,"rating":"标配","confidence":3,"note":"通胀对冲逻辑获证据支撑,补交升级证据","evidence":[{"metric":"global_market.data.GOLD.close","value":4310,"obs_date":"2026-10-16","mechanism":"避险与估值"},{"metric":"macro.data.CCC_OAS.value","value":10.30,"obs_date":"2026-10-15","mechanism":"信用"},{"metric":"global_market.data.DXY.close","value":98.7,"obs_date":"2026-10-16","mechanism":"资金流"},{"metric":"macro.data.TIPS_10Y.value","value":2.87,"obs_date":"2026-10-15","mechanism":"利率与流动性"}]}
 {"id":6,"rating":"标配","confidence":3,"note":"区间内"}
 {"id":7,"rating":"标配","confidence":2,"note":"外围压制"}
 {"id":8,"rating":"标配","confidence":2,"note":"β企稳"}

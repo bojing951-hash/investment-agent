@@ -351,8 +351,11 @@ def generate_report(data_pack, framework=None, theses=None, prev_report=None, te
 
 ### 五、分资产深度分析
 （每个资产小节末尾加一行"配置观点: 评级|确信度★"，评级只能取: 超配/标配/低配/观望(标配=与理论基准一致的中性仓位,不用"中性"一词)；
-触发器纪律: 只有上方观点库标注"✅已触发"的引擎核验条件才可写成已触发,"❓待验证"的条件必须标注待验证,不得当作已发生；
-若本周该资产的升降级条件被引擎核验为已触发，才输出"调整提案"：动作与理由、证据及反证、风险与最大容忍损失、失效条件、下一复核日；未触发则只维持原评级）
+触发器纪律: 只有上方观点库标注"✅已触发"的引擎核验条件才可写成已触发,"❓待验证"的条件必须标注待验证,不得当作已发生,"⏳持续确认中"的条件须待连续周数满额才算触发；
+若本周该资产的升降级条件被引擎核验为已触发，才输出"调整提案"：动作与理由、证据及反证、风险与最大容忍损失、失效条件、下一复核日；未触发则只维持原评级；
+【研究链路要求】每个资产小节不得从体制评分直接跳到配置建议，须依次回答:
+当前宏观环境对该资产产生什么影响→传导机制是什么(无法量化的机制明确标注"研究假设",不得伪装成已证实事实)→这些影响是已经发生还是未来可能发生→市场价格是否已反映相关预期→有哪些相反力量(反证)→为什么当前评级合理(无充分新增证据时允许维持原观点)→什么新数据会改变评级。
+不得直接从资产相关性推断因果关系。)
 
 #### 5.1 美股
 - 指数表现与技术位置
@@ -422,15 +425,21 @@ status只能取: 进行中/待观察/已验证/已失效；confidence为1-5整�
 6. 紧跟THESIS_STATUS块之后，输出"配置观点块"（HTML注释，同格式，每个资产一行、共9行）：
 
 <!--ALLOCATION_STATUS
-{{"id":1,"rating":"标配","confidence":2,"note":"≤40字本周理由"}}
+{{"id":1,"rating":"标配","confidence":2,"note":"≤40字本周理由","evidence":[{{"metric":"macro.data.CCC_OAS.value","value":10.30,"obs_date":"2026-10-15","mechanism":"信用"}}]}}
 {{"id":2,"rating":"低配","confidence":3,"note":"..."}}
 ALLOCATION_STATUS-->
 
 rating只能取: 超配/标配/低配/观望（不用"中性"，中性=标配）；id与allocation_views.json一致（1美股/2利率久期/3信用/4美元/5贵金属/6能源/7A股港股/8加密/9现金短债）。
 确信度变化与评级变化相互独立：评级未变但证据增减时应调confidence（1-5整数），二者程序会分别记录。
+【证据分级v2程序校验】evidence数组为结构化证据，每项含metric(锚点指标ID)/value(数值,须与观点块或数据包中该指标的锚点值一致)/obs_date(观测日,须与锚点一致)/mechanism(机制类别:增长/通胀/利率与流动性/信用/避险与估值/供应与库存/资金流)；可加"contrary":true表示反证、"explained":true表示反证已解释。
+程序按以下规则核验并执行门禁（不满足会被拒写）：
+- 同一底层指标多次引用只计1项独立证据；同一月度指标连续四周重复引用不等于多次独立观察。
+- 星级门槛: 1★=1项 / 2★=2项 / 3★=3项且覆盖2类机制 / 4★=4项且3类机制且跨2个观察期 / 5★=5项且3类机制且跨3个观察期且含已解释反证；存在未解释反证封顶3★。
+- 【评级变更门禁】新评级须满足: 引擎核验为"✅已触发"的同向触发器，或≥2项通过程序验证的新增evidence；否则保留原评级、提案留档。被拒提案会在观点块公示，勿无新证据重复提交。
+- 【确信度门禁】上调不得超过程序验证星级；下调不受限。评级变更/确信度上调必须走上述门禁，评级变化是需证据支持的研究判断修正，不是数值状态更新。
 仅当本周发生评级变更时，在该行附加预测字段（方向+期限+可计算规格）：
-{{"id":5,"rating":"标配","confidence":3,"note":"...","pred":"若XXX则两周内YYY","pred_weeks":2,"pred_metric":"macro.data.CCC_OAS.value","pred_op":">=","pred_target":10.0}}
-pred_metric/pred_op/pred_target为可选的机器可校验规格（锚点指标ID、比较符>=/<=/>/<、目标值），三者在且合法时到期由程序按锚点自动裁决；不提供则到期须你在报告中附证据裁决。
+{{"id":5,"rating":"标配","confidence":3,"note":"...","pred":"若XXX则两周内YYY","pred_weeks":2,"pred_metric":"macro.data.CCC_OAS.value","pred_op":">=","pred_target":10.0,"pred_mode":"expiry"}}
+pred_metric/pred_op/pred_target为可选的机器可校验规格（锚点指标ID、比较符>=/<=/>/<、目标值）；pred_mode取expiry(截止日达到,默认)或touch(观察期内触及,两者不得混淆)；还可附前提规格pred_premise_metric/pred_premise_op/pred_premise_target(条件预测: 前提兑现才开始结果观察期,截止日不顺延)。带完整规格的预测到期由程序按观察记录自动裁决。
 
 7. 若观点库中有"⏰已到期"的预测，先在报告第七节给出裁决，并在最后输出预测裁决块：
 
@@ -439,7 +448,12 @@ pred_metric/pred_op/pred_target为可选的机器可校验规格（锚点指标I
 PREDICTION_STATUS-->
 
 status只能取: hit(已命中)/miss(已证伪)/inconclusive(无法裁决)/not_yet_triggered(前提未发生,预测未生效)。
-裁决纪律: note必须引用具体数值与观测日作为证据；无证据或无数值的hit/miss会被程序拒绝回写。前提条件未兑现的预测应判not_yet_triggered或inconclusive并说明，不得判hit。
+裁决纪律:
+- note必须引用具体数值与观测日作为证据；无证据或无数值的hit/miss会被程序拒绝回写。
+- 引用的数值与观测日必须落在该预测的观察窗内(观察起点~截止日)且与已记录的观测吻合；窗口结束后的数据不得用于裁决。
+- expiry模式在截止日未到时不得提前裁决；touch模式触及即可判hit。
+- 引擎已按观察记录自动裁决的预测，你的裁决只能与之一致，不得用自然语言说明覆盖程序客观结果。
+- 前提条件未兑现的预测应判not_yet_triggered或inconclusive并说明，不得判hit。
 
 注意：
 - 所有数字精确到小数点后两位
@@ -714,7 +728,9 @@ if __name__ == '__main__':
                 latest_anchors = json.load(f)
         except Exception as e:
             print(f"⚠️ 锚点JSON读取失败({e}),触发器按'待验证'处理")
-    views_block = allocation_engine.render_views_block(views_data, anchors=latest_anchors) if views_data else ""
+    views_block = allocation_engine.render_views_block(
+        views_data, today_str=datetime.now().strftime('%Y-%m-%d'),
+        anchors=latest_anchors) if views_data else ""
     if views_data:
         print(f"   配置观点: {len(views_data.get('views', []))} 资产 / "
               f"{len(views_data.get('predictions', []))} 预测"
@@ -763,8 +779,10 @@ if __name__ == '__main__':
     if classification == "FAIL":
         print("⛔ 校验分级FAIL(无锚点/锚点过期/数值错误),本轮跳过thesis.json与allocation_views.json回写(请人工核对后再决定)")
     else:
-        update_thesis_status(report)
-        allocation_engine.update_allocation_status(report, anchors=latest_anchors)
+        _today = datetime.now().strftime('%Y-%m-%d')
+        update_thesis_status(report, today_str=_today)
+        # 第三轮: 统一研究截止时间(as_of=报告日),同一批已验证锚点驱动全部状态更新
+        allocation_engine.update_allocation_status(report, anchors=latest_anchors, today_str=_today)
 
     # 第4步：预览前30行
     print("\n" + "=" * 60)

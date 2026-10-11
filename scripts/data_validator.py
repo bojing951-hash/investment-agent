@@ -373,6 +373,64 @@ def find_anchor_value(anchors, key_pattern):
 DAILY_SOURCES = ('global_market', 'china')
 MAX_STALE_DAYS = 5
 
+# ── 逐指标新鲜度规则(第三轮P0-4): 不得对所有指标用统一过期天数 ──────────────
+# 时点口径(如实声明): 本系统可得 observation_date(观测日)与 as_of(采集日=研究截止);
+# release_date(发布时间)采集端无此字段 — 月度序列的max_lag已含正常发布滞后(如UNRATE
+# 次月初发布→45天上限),即以 lag=as_of−obs_date 的上界近似发布延迟。
+# 规则按指标key模式匹配,先命中先用; 未命中者默认14天。
+FRESHNESS_RULES = [
+    (re.compile(r'\.close$|\.pct_change$|\.change$'), 5, '日频行情'),
+    (re.compile(r'^macro\.data\.'), 7, '日频宏观(FRED)'),
+    (re.compile(r'^rate_economy\.'), 45, '月度序列(含发布滞后)'),
+    (re.compile(r'^china\.'), 7, 'A股日频'),
+    (re.compile(r'^scorecard\.'), 10, '周度评分卡'),
+]
+DEFAULT_MAX_LAG_DAYS = 14
+
+
+def freshness_rule_for(anchor_key):
+    """返回(最大滞后天数, 规则名); 按key模式逐指标匹配。"""
+    for pat, max_lag, name in FRESHNESS_RULES:
+        if pat.search(anchor_key):
+            return max_lag, name
+    return DEFAULT_MAX_LAG_DAYS, '默认'
+
+
+def is_fresh_anchor(anchor_key, info, as_of_date):
+    """逐指标新鲜度判定: 观测日距研究截止日(as_of)不超过该指标的规则上限。
+    无观测日的锚点无法判龄 → 返回True(新鲜),由数值/观测日联合校验另行把关。
+    过期指标不得作为当前有效证据驱动配置观点变化(引擎侧调用)。"""
+    if not isinstance(info, dict):
+        return True
+    obs = info.get('obs_date')
+    if not obs or not as_of_date:
+        return True
+    try:
+        from datetime import date
+        o = date(int(str(obs)[:4]), int(str(obs)[5:7]), int(str(obs)[8:10]))
+        a = date(int(str(as_of_date)[:4]), int(str(as_of_date)[5:7]), int(str(as_of_date)[8:10]))
+    except (ValueError, TypeError, IndexError):
+        return True
+    max_lag, _ = freshness_rule_for(anchor_key)
+    return (a - o).days <= max_lag
+
+
+def stale_anchor_warning(anchor_key, info, as_of_date):
+    """过期锚点警告(⚠️级): 供校验报告与引擎证据核验共用。"""
+    if is_fresh_anchor(anchor_key, info, as_of_date):
+        return None
+    obs = info.get('obs_date')
+    from datetime import date
+    try:
+        o = date(int(str(obs)[:4]), int(str(obs)[5:7]), int(str(obs)[8:10]))
+        a = date(int(str(as_of_date)[:4]), int(str(as_of_date)[5:7]), int(str(as_of_date)[8:10]))
+        lag = (a - o).days
+    except (ValueError, TypeError, IndexError):
+        return None
+    max_lag, name = freshness_rule_for(anchor_key)
+    return (f"⚠️ 数据过期 {anchor_key}: 观测日{obs}距研究截止{as_of_date}滞后{lag}天"
+            f" 超过{name}规则上限{max_lag}天 — 不得作为当前有效证据")
+
 def _obs_staleness_warning(anchor_key, info, report_date):
     """P1(2026-10-11): 时点检查 — 日频行情锚点的观测日若明显滞后于报告日,提示风险。
 

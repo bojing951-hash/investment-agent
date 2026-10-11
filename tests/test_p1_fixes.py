@@ -57,15 +57,20 @@ if sc_files:
 else:
     check("评分卡文件存在", False, "无scorecard_*.json")
 
-# ── 测试2: 提示词配置化 ──────────────────
+# ── 测试2: 提示词配置化(2026-10-11晚 证据分级v2/禁语v2正式版) ──────────────────
 print("\n[2] 提示词热加载")
 from report_generator import load_prompt
 
 sp = load_prompt('system_prompt.md')
-check("系统提示词含v2角色", "首席宏观研究员兼投资委员会秘书" in sp, sp[:50])
-check("系统提示词含四步流程", "①核对锚点" in sp and "④比对组合目标" in sp)
+check("系统提示词为v2角色(首席研究员兼跨资产策略师)", "全球宏观首席研究员兼跨资产策略师" in sp, sp[:60])
+check("含研究流程链", "核对时点" in sp and "检查反证" in sp and "配置倾向" in sp)
+check("含证据分级v2门槛", "【证据分级v2】" in sp and "5★" in sp and "3类机制" in sp)
+check("含反证封顶与缺失不评级", "最高3★" in sp and "不评级" in sp)
+check("含禁止用语v2清单", "【禁止用语v2】" in sp and "板上钉钉" in sp and "risk-free" in sp)
+check("保留输出语言/格式尾部", "输出语言：中文" in sp and "输出格式：Markdown" in sp)
 sc_txt = load_prompt('style_constraints.md')
 check("硬性约束10条完整", "完美验证" in sc_txt and "30Y收益率" in sc_txt and "10." in sc_txt)
+check("硬约束挂接证据分级v2", "证据分级v2" in sc_txt and "禁止用语v2" in sc_txt)
 
 # ── 测试3: 校验时点检查 ──────────────────
 print("\n[3] data_validator时点检查")
@@ -81,6 +86,21 @@ check("日频滞后14天→警告", w is not None and '时点滞后' in w and '1
 check("月度FRED序列免检", _obs_staleness_warning('rate_economy.real_economy.UNRATE.value', monthly, rd) is None)
 check("无obs_date免检", _obs_staleness_warning('global_market.data.SPX.close', {'value': 1}, rd) is None)
 check("文件名解析报告日", _report_date_from_path('/x/weekly_report_20261009.md') == rd)
+
+# ── 测试4: 禁止用语v2校验(绝对/必然豁免逻辑) ──────────────────
+print("\n[4] data_validator禁语v2")
+from data_validator import forbidden_phrases_in
+
+def _phrases(text):
+    return [p for p, _ in forbidden_phrases_in(text)]
+
+check("v1禁语仍在清单", "完美验证" in _phrases("完美验证"))
+check("v2新增词命中", "板上钉钉" in _phrases("板上钉钉") and "零风险" in _phrases("零风险套利"))
+check("英文禁语命中", "guaranteed" in _phrases("this is guaranteed"))
+check("'绝对收益'豁免", _phrases("黄金是绝对收益资产,绝对估值偏低") == [])
+check("裸'绝对'命中", any(p.startswith("绝对") for p in _phrases("这是绝对的机会")))
+check("'必然'命中", "必然" in _phrases("必然上涨"))
+check("干净文本零命中", _phrases("本周SPX上涨2%,有一定支撑(3★),绝对收益策略跑赢") == [])
 
 # 警告为⚠️级,不得触发回写拦截(_has_numeric_errors只认🚨和❌数值类)
 from report_generator import _has_numeric_errors

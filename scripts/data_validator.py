@@ -203,6 +203,26 @@ SANITY_CHECKS = {
 }
 
 
+# 禁止用语v2(2026-10-11, 与系统提示词【禁止用语v2】同步)
+FORBIDDEN_V2 = ["完美验证", "教科书式", "毫无疑问", "铁板钉钉", "板上钉钉",
+                "稳赚", "必涨", "必跌", "零风险", "百分百", "完全证实", "唯一解释",
+                "perfectly validated", "textbook", "guaranteed", "inevitable",
+                "risk-free", "no doubt", "100% certain"]
+# "绝对""必然"是高频字面词,裸匹配会误伤"绝对收益/绝对估值"等合法术语:
+# "绝对"仅当其后不接金融惯用名词时计为绝对化表述;"必然"在克制行文中本不应出现,直接计
+ABS_RE = re.compile(r"绝对(?!(?:收益|回报|估值|值|水平|金额|数量|仓位|占比|占优|优势|涨幅|跌幅|龙头|超额))")
+
+def forbidden_phrases_in(text):
+    """扫描禁止用语v2,返回[(短语,次数)]"""
+    found = [(p, text.count(p)) for p in FORBIDDEN_V2 if text.count(p)]
+    n_abs = len(ABS_RE.findall(text))
+    if n_abs:
+        found.append(("绝对(绝对化用法)", n_abs))
+    if text.count("必然"):
+        found.append(("必然", text.count("必然")))
+    return found
+
+
 def find_anchor_value(anchors, key_pattern):
     """根据正则模式在锚点中查找匹配的值"""
     import re as _re
@@ -378,22 +398,22 @@ def validate_report(report_path, anchors):
                 except ValueError:
                     pass
 
-    # === 4. 禁止用语检查 ===
-    print("\n🚫 禁止用语检查:")
-    forbidden = ["完美验证", "教科书式", "毫无疑问", "铁板钉钉"]
-    for phrase in forbidden:
-        count = report_text.count(phrase)
-        if count > 0:
-            msg = f"⚠️ 禁止用语 \"{phrase}\" 出现 {count} 次"
-            warnings.append(msg)
-            print(f"  {msg}")
-    if not any(report_text.count(p) > 0 for p in forbidden):
+    # === 4. 禁止用语检查(2026-10-11 v2: 与系统提示词【禁止用语v2】同步) ===
+    print("\n🚫 禁止用语检查(v2):")
+    found = forbidden_phrases_in(report_text)
+    for phrase, count in found:
+        msg = f"⚠️ 禁止用语v2 \"{phrase}\" 出现 {count} 次"
+        warnings.append(msg)
+        print(f"  {msg}")
+    if not found:
         print(f"  ✅ 未发现禁止用语")
 
     # === 5. 自动标注版报告 ===
     annotated = report_text
-    for phrase in forbidden:
+    for phrase in FORBIDDEN_V2:
         annotated = annotated.replace(phrase, f"⚠️【禁止用语: {phrase}】")
+    annotated = ABS_RE.sub("⚠️【禁止用语: 绝对】", annotated)
+    annotated = annotated.replace("必然", "⚠️【禁止用语: 必然】")
 
     if annotated != report_text:
         annotated_path = report_path.replace('.md', '_annotated.md')

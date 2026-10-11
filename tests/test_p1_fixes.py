@@ -57,16 +57,18 @@ if sc_files:
 else:
     check("评分卡文件存在", False, "无scorecard_*.json")
 
-# ── 测试2: 提示词配置化(2026-10-11晚 证据分级v2/禁语v2正式版) ──────────────────
+# ── 测试2: 提示词配置化(2026-10-11晚 证据分级v2/禁语v2正式清单已接入) ──────────────────
 print("\n[2] 提示词热加载")
 from report_generator import load_prompt
 
 sp = load_prompt('system_prompt.md')
-check("系统提示词为v2角色(首席研究员兼跨资产策略师)", "全球宏观首席研究员兼跨资产策略师" in sp, sp[:60])
-check("含研究流程链", "核对时点" in sp and "检查反证" in sp and "配置倾向" in sp)
-check("含证据分级v2门槛", "【证据分级v2】" in sp and "5★" in sp and "3类机制" in sp)
-check("含反证封顶与缺失不评级", "最高3★" in sp and "不评级" in sp)
-check("含禁止用语v2清单", "【禁止用语v2】" in sp and "板上钉钉" in sp and "risk-free" in sp)
+check("系统提示词仍为秘书角色(用户指定不变)", "首席宏观研究员兼投资委员会秘书" in sp, sp[:60])
+check("含四步分析流程", "①核对锚点" in sp and "④比对组合目标" in sp)
+check("V2清单以规则附录接入而非替换角色", "全球宏观首席研究员兼跨资产策略师" not in sp)
+check("附录含证据分级v2门槛", "【证据分级v2】" in sp and "5★" in sp and "3类机制" in sp)
+check("附录含反证封顶与缺失不评级", "最高3★" in sp and "不评级" in sp)
+check("附录含禁止用语v2清单", "【禁止用语v2】" in sp and "板上钉钉" in sp and "risk-free" in sp)
+check("附录含数值绑定纪律", "指标ID" in sp and "不得将相关性直接解释为因果关系" in sp)
 check("保留输出语言/格式尾部", "输出语言：中文" in sp and "输出格式：Markdown" in sp)
 sc_txt = load_prompt('style_constraints.md')
 check("硬性约束10条完整", "完美验证" in sc_txt and "30Y收益率" in sc_txt and "10." in sc_txt)

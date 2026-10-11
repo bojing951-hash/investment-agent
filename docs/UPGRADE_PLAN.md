@@ -168,3 +168,98 @@ system_prompt/monthly/quarterly三提示词统一策略师角色+六步流程+�
 - 真实FRED/Tushare月度序列的整月回溯依赖data/daily历史文件留存;若历史被清理,月报自动降级fixture口径测试所示结构。
 - 预测自动裁决仅覆盖单指标规格(带metric/comparator/target);复合条件预测到期仍需GLM/人工裁决(引擎标inconclusive)。
 - GLM输出质量属模型遵从性问题,程序门禁只保证"非法值/无证据/量表外"必被拒,不保证研究结论正确。
+
+---
+
+# 第三轮: 研究决策可靠性与长期闭环验证(2026-10-11, dev/round3-reliability)
+
+目标: 不新增功能,提高现有系统的研究可靠性。核心=研究观点的长期维持与按真实新增证据修正,
+不因模型改变想法而擅自改变评级;过去的预测被客观检验;每次观点变化能解释机制/定价/反证。
+
+## P0-1 评级变更门禁(allocation_engine.py)
+
+模型输出的新评级不再直接落盘,须满足二选一: (a) 引擎核验为"已触发"的同向触发器;
+(b) ≥MIN_EVIDENCE_FOR_RATING_CHANGE(2)项通过程序验证的结构化证据; 转/自"观望"放宽为1项。
+不满足→保留原评级+proposals留档(被拒原因+证据拒收明细),同向21天去重(只累计repeat);
+后续同向变更落地时旧提案标superseded(反向不标,留21天公示)。变更经触发器路径/证据路径
+均写last_change审计(date/from/to/via/evidence/note)与独立history条目("评级:"前缀)。
+_change_direction: 观望→任何表态=resume(须证据,不得借降级触发器直接放行)。
+
+## P0-2 预测全生命周期(P0-2)
+
+字段: pred_id/date_made/asset/direction/horizon_weeks/deadline/status/verify_mode/
+observe_from/observations[]/premise{metric,op,target}/premise_triggered_date/resolved_*。
+- verify_mode双模式: touch(观察期内触及,可提前hit) vs expiry(截止日水平,不得提前裁决),不混用。
+- record_observations每期回写: 前提规格程序判定(兑现→转观察中,observe_from=前提观测日,
+  截止日不顺延); 观察中预测按观测日去重记录锚点值(同观测日最新采集覆盖)。
+- evaluate_predictions引擎裁决: 只用观察窗[observe_from|date_made, deadline]内观测(禁未来数据);
+  窗内无记录回退锚点(锚点obs_date须落窗内); touch到期未触及→miss; expiry按窗内最后观测;
+  前提至截止日未成立→not_yet_triggered终态; 无数据→inconclusive不硬判。
+- 裁决权威序: 引擎hit/miss > GLM。GLM不得覆盖; engine inconclusive允许GLM附窗内引用补位
+  (引用数值/观测日须与窗内记录吻合); expiry未到期拒绝GLM提前裁决; 前提已程序触发时
+  拒绝GLM改判未触发; 引擎终态后拒绝GLM转观察中。
+
+## P0-3 证据分级v2程序校验
+
+evidence[]每项{metric,value,obs_date,mechanism,contrary?,explained?}逐项验证:
+指标在锚点中(虚构嫌疑拒)/数值容差(相对0.2%或绝对0.005,bp形态归一)/观测日与锚点一致/
+逐指标新鲜度(过期不作当前证据)。星级STAR_RULES: 1★1项→5★5项3类机制3观察期+反证已解释;
+同指标只计一次(distinct metric); 同ISO周=1个观察期(月度值连引四周≠4期); 未解释重大反证
+封顶3★; key_metrics缺失封顶2★。确信度上调不得超过程序星级,下调自由;被拒记录为
+"确信度N★"提案。星级≠预测概率≠资金比例。
+
+## P0-4 数据新鲜度(data_validator.py)
+
+区分obs_date(观测日)/as_of(采集日); FRESHNESS_RULES按指标频率: 行情5天/macro 7天/
+rate_economy月度45天/china 7天(.close仍5天)/scorecard 10天/默认14天。
+is_fresh_anchor逐指标判龄; stale_anchor_warning明示"不得作为当前有效证据";
+verify_evidence_items对过期证据拒收(第三轮新增)。FAIL分级禁止一切研究记忆回写(第二轮保留)。
+
+## P1-5 研究链路(report_generator.py prompt)
+
+观点输出须按链路作答: 宏观事实→变化驱动→经济金融传导机制→资产价格影响→市场定价
+→风险与反证→理论配置倾向; 不可量化机制标注"研究假设"; 禁止评分卡→配置跳步、
+相关性→因果。周报八节结构不变。
+
+## P1-6 触发器v3
+
+单指标/all(且)/any(或)复合; sustain_weeks连续N周确认(观点库存trigger_state{consec,last_eval},
+断档>10天重置为首次跨越; 中途回落清零); 状态triggered/not_triggered/unverifiable/sustaining;
+渲染与回写同函数(persist=False不改动状态)。
+
+## 测试(第六步)
+
+| 套件 | 结果 | 性质 |
+|------|------|------|
+| test_p0_fixes | 22/0 | 离线回归 |
+| test_p1_fixes | 36/0 | 离线回归 |
+| test_p2_fixes | 81/0 | 离线(v3语义重写,临时副本) |
+| test_p4_fixes | 42/0 | 离线回归 |
+| test_round3_p0 | 89/0 | 第三轮P0单元: 新鲜度/证据分级/触发器/门禁/生命周期/裁决权威 |
+| test_round3_adversarial | 24/0 | 任务书9个对抗用例+or-True源码自查 |
+| test_e2e_four_weeks | 59/0 | 连续四周同一状态: W1初始化→W2证据增厚仅确信度变化→W3触发降级+被拒提案+新预测→W4证据升级superseded+预测裁决 |
+| test_glm_live | 8/8 | 真实GLM API(RUN_GLM_LIVE=1; 实测GLM提交非日期obs_date的证据被程序拒收,台账为空) |
+
+离线合计353项检查全通过; test_glm_live单独统计。旧test_glm_live.py:89的`or True`恒真断言已删除,
+S0源码扫描(scripts/)确认无恒真短路。
+
+## 修复前后能力对比(交付①)
+
+| 能力 | 第二轮(修复前) | 第三轮(修复后) |
+|------|----------------|----------------|
+| 评级变更 | 模型输出直接落盘 | 门禁: 同向触发器已触发或≥2项验证证据; 否则保留+提案留档21天去重 |
+| 确信度 | 模型说几星就几星 | 上调≤程序星级(证据分级v2); 关键证据缺失封顶2★ |
+| 证据 | note自由文本 | 结构化evidence逐项程序验证(指标/数值/观测日/新鲜度),台账留档 |
+| 预测裁决 | GLM说hit就hit | 引擎按观察窗记录权威裁决; GLM仅补位且引用须吻合; expiry不得提前 |
+| 观察窗 | 无 | [observe_from,deadline]窗过滤; 禁止窗后未来数据; 同观测日去重 |
+| 前提预测 | 文本描述 | 前提规格程序判定; 未兑现不启动观察; 至期未成立=终态,不顺延 |
+| 触发器 | 单指标瞬时 | AND/OR复合+连续N周确认+断档重置+首次跨越标注 |
+| 数据时效 | 无逐指标规则 | obs_date/as_of分离; 频率规则判龄; 过期不作当前证据 |
+
+## 尚未解决的研究质量问题(交付⑥,如实)
+
+1. 触发器数值本身(阈值/方向/持续周数)仍是人工配置,程序只验证"是否触发",不评估阈值合理性。
+2. 证据星级衡量"证据充分性"而非"结论正确性"; 程序门禁不保证研究判断对,只保证变更可审计可复核。
+3. 复合条件预测(多指标)到期仍标inconclusive留人工; 引擎自动裁决仅覆盖单指标规格。
+4. 机制类别mechanism_of按指标名正则推断,新指标可能归错类(可用显式mechanism覆盖)。
+5. GLM对非结构化输出的遵从性依赖prompt; 门禁是最后防线而非第一道。

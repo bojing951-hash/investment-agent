@@ -21,7 +21,7 @@ SPX 7730(+0.4%);NDX 24580;黄金4210美元(+1.1%);DXY 99.9;VIX 16.8;BTC 82010(+0
 {"id":5,"status":"进行中","confidence":3,"note":"通胀粘性证据累积"}
 THESIS_STATUS-->
 <!--ALLOCATION_STATUS
-{"id":1,"rating":"标配","confidence":3,"note":"CCC边际走高但黄金企稳,证据增厚,仅上调确信度"}
+{"id":1,"rating":"标配","confidence":3,"note":"证据增厚,仅上调确信度","evidence":[{"metric":"macro.data.CCC_OAS.value","value":9.60,"obs_date":"2026-10-01","mechanism":"信用"},{"metric":"global_market.data.SPX.close","value":7730,"obs_date":"2026-10-02","mechanism":"增长"},{"metric":"macro.data.TIPS_10Y.value","value":2.90,"obs_date":"2026-10-01","mechanism":"利率与流动性"}]}
 {"id":2,"rating":"低配","confidence":3,"note":"30Y高位"}
 {"id":3,"rating":"低配","confidence":4,"note":"CCC 9.60继续走阔"}
 {"id":4,"rating":"低配","confidence":3,"note":"DXY<100"}

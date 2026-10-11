@@ -1,0 +1,10 @@
+{
+ "date": "2026-10-08",
+ "regime": "类滞胀",
+ "regime_status": "已确认",
+ "confirmed_regime": "类滞胀",
+ "growth_total": 1,
+ "inflation_total": 5,
+ "regime_drivers": [],
+ "regime_counterfactuals": []
+}

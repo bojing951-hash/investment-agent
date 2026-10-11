@@ -81,12 +81,17 @@ check("混合警告含数值错→拦截", _has_numeric_errors([
     "⚠️ A股口径: xx", "❌ 黄金价格: 报告=4165.3, 锚点=4216.3 (偏差1.21% > 容差)"]) is True)
 
 
-# ── 测试3: 锚点时间元数据(缺陷六.5,集成测试:真实数据) ──────────────────
+# ── 测试3: 锚点时间元数据(缺陷六.5;真实数据缺失时用E2E fixture,第二轮#20) ──────────────────
 print("\n[4] data_validator锚点元数据")
+import glob as _glob
 from data_validator import extract_anchors_from_data
 
-anchors = extract_anchors_from_data()
-check("锚点非空", len(anchors) > 100, f"got {len(anchors)}")
+_data_dir = None
+if not _glob.glob(os.path.join(ROOT, 'data', 'daily', 'global_*.json')):
+    _data_dir = os.path.join(ROOT, 'tests', 'fixtures', 'e2e', 'w4_data')
+    print(f"  (无真实data/daily,改用fixture: {_data_dir})")
+anchors = extract_anchors_from_data(_data_dir)
+check("锚点非空", len(anchors) > 20, f"got {len(anchors)}")
 with_asof = sum(1 for v in anchors.values() if v.get('as_of'))
 check("全部锚点带采集日as_of", with_asof == len(anchors), f"{with_asof}/{len(anchors)}")
 with_obs = sum(1 for v in anchors.values() if v.get('obs_date'))

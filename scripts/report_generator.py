@@ -350,8 +350,9 @@ def generate_report(data_pack, framework=None, theses=None, prev_report=None, te
 （整理为表格，包含资产名称、收盘价、周涨跌幅、关键信号）
 
 ### 五、分资产深度分析
-（每个资产小节末尾加一行"配置观点: 评级|确信度★"，评级取自上方配置观点库的超配/标配/中性/低配/观望；
-若本周触发该资产的升降级条件，才输出"调整提案"：动作与理由、证据及反证、风险与最大容忍损失、失效条件、下一复核日；未触发则只维持原评级）
+（每个资产小节末尾加一行"配置观点: 评级|确信度★"，评级只能取: 超配/标配/低配/观望(标配=与理论基准一致的中性仓位,不用"中性"一词)；
+触发器纪律: 只有上方观点库标注"✅已触发"的引擎核验条件才可写成已触发,"❓待验证"的条件必须标注待验证,不得当作已发生；
+若本周该资产的升降级条件被引擎核验为已触发，才输出"调整提案"：动作与理由、证据及反证、风险与最大容忍损失、失效条件、下一复核日；未触发则只维持原评级）
 
 #### 5.1 美股
 - 指数表现与技术位置
@@ -421,21 +422,24 @@ status只能取: 进行中/待观察/已验证/已失效；confidence为1-5整�
 6. 紧跟THESIS_STATUS块之后，输出"配置观点块"（HTML注释，同格式，每个资产一行、共9行）：
 
 <!--ALLOCATION_STATUS
-{{"id":1,"rating":"中性","confidence":2,"note":"≤40字本周理由"}}
+{{"id":1,"rating":"标配","confidence":2,"note":"≤40字本周理由"}}
 {{"id":2,"rating":"低配","confidence":3,"note":"..."}}
 ALLOCATION_STATUS-->
 
-rating只能取: 超配/标配/中性/低配/观望；id与allocation_views.json一致（1美股/2利率久期/3信用/4美元/5贵金属/6能源/7A股港股/8加密/9现金短债）。
-仅当本周发生评级变更时，在该行附加预测字段（方向+期限）：
-{{"id":5,"rating":"标配","confidence":3,"note":"...","pred":"若XXX则两周内YYY","pred_weeks":2}}
+rating只能取: 超配/标配/低配/观望（不用"中性"，中性=标配）；id与allocation_views.json一致（1美股/2利率久期/3信用/4美元/5贵金属/6能源/7A股港股/8加密/9现金短债）。
+确信度变化与评级变化相互独立：评级未变但证据增减时应调confidence（1-5整数），二者程序会分别记录。
+仅当本周发生评级变更时，在该行附加预测字段（方向+期限+可计算规格）：
+{{"id":5,"rating":"标配","confidence":3,"note":"...","pred":"若XXX则两周内YYY","pred_weeks":2,"pred_metric":"macro.data.CCC_OAS.value","pred_op":">=","pred_target":10.0}}
+pred_metric/pred_op/pred_target为可选的机器可校验规格（锚点指标ID、比较符>=/<=/>/<、目标值），三者在且合法时到期由程序按锚点自动裁决；不提供则到期须你在报告中附证据裁决。
 
-7. 若观点库中有"⏰已到期"的预测，先在报告第七节给出命中/证伪判断，并在最后输出预测裁决块：
+7. 若观点库中有"⏰已到期"的预测，先在报告第七节给出裁决，并在最后输出预测裁决块：
 
 <!--PREDICTION_STATUS
-{{"pred_id":1,"status":"hit","note":"≤30字裁决依据"}}
+{{"pred_id":1,"status":"hit","note":"GOLD 4310≥4300(观测日2026-10-16)"}}
 PREDICTION_STATUS-->
 
-status只能取: hit/miss/expired。
+status只能取: hit(已命中)/miss(已证伪)/inconclusive(无法裁决)/not_yet_triggered(前提未发生,预测未生效)。
+裁决纪律: note必须引用具体数值与观测日作为证据；无证据或无数值的hit/miss会被程序拒绝回写。前提条件未兑现的预测应判not_yet_triggered或inconclusive并说明，不得判hit。
 
 注意：
 - 所有数字精确到小数点后两位
@@ -528,18 +532,29 @@ def save_report(report_text, date_str=None):
 
 ALLOWED_STATUS = {'进行中', '待观察', '已验证', '已失效'}
 
-# ============ 月报/季报触发(P4, 2026-10-11) ============
-def is_last_friday_of_month(d=None):
-    """月末最后一个周五(月报触发条件)。非周五直接False。"""
+# ============ 月报/季报触发(P4 v2, 2026-10-11第二轮审查#3.2/#3.4) ============
+# v1缺陷: "月末最后一个周五"在期间结束前生成月报(如10-30出10月报,10月还剩1天);
+# 更严重的是12-25(12月最后一个周五)会提前生成Q4季报——Q4还剩6天。
+# v2: 只在期间**自然结束之后**的第一个周五触发,复盘对象是已完结的上一期间。
+def pending_completed_month(d=None):
+    """今天是否为"上个自然月结束后的第一个周五"。是→返回上月YYYYMM,否则None。"""
     d = d or datetime.now()
-    if d.weekday() != 4:
-        return False
-    return (d + timedelta(days=7)).month != d.month
+    if d.weekday() != 4 or d.day > 7:   # 周五且在当月第一周
+        return None
+    y, m = (d.year - 1, 12) if d.month == 1 else (d.year, d.month - 1)
+    return f"{y}{m:02d}"
 
-def is_last_friday_of_quarter(d=None):
-    """季末月(3/6/9/12)的最后一个周五(季报触发条件)。"""
+def pending_completed_quarter(d=None):
+    """今天是否为"上个自然季结束后的第一个周五"。是→返回上季'YYYYQn',否则None。
+    只可能在1/4/7/10月的第一周周五出现(自然季结束后)。"""
     d = d or datetime.now()
-    return is_last_friday_of_month(d) and d.month in (3, 6, 9, 12)
+    if d.weekday() != 4 or d.day > 7:
+        return None
+    if d.month not in (1, 4, 7, 10):
+        return None
+    q = ((d.month - 4) // 3) % 4 + 1    # 上一季的季号: 1月→Q4, 4月→Q1, 7月→Q2, 10月→Q3
+    y = d.year - 1 if d.month == 1 else d.year
+    return f"{y}Q{q}"
 
 def _has_numeric_errors(warnings):
     """P0修复(六.7): 数值类错误(严重错误/偏差超容差)应阻止论点状态回写。
@@ -549,8 +564,9 @@ def _has_numeric_errors(warnings):
             return True
     return False
 
-def update_thesis_status(report_text):
-    """解析报告末尾的THESIS_STATUS块,回写 config/thesis.json 的 status/confidence/history"""
+def update_thesis_status(report_text, thesis_path=None, today_str=None):
+    """解析报告末尾的THESIS_STATUS块,回写 config/thesis.json 的 status/confidence/history
+    (thesis_path/today_str参数供E2E测试隔离注入)"""
     m = re.search(r'<!--\s*THESIS_STATUS\s*(.*?)\s*THESIS_STATUS\s*-->', report_text, re.DOTALL)
     if not m:
         print("⚠️ 报告中未找到THESIS_STATUS块,论点状态未回写(下期仍以上期报告散文衔接)")
@@ -572,11 +588,11 @@ def update_thesis_status(report_text):
         print("⚠️ THESIS_STATUS块解析失败(无有效JSON),论点状态未回写")
         return []
 
-    thesis_path = os.path.join(CONFIG_DIR, 'thesis.json')
+    thesis_path = thesis_path or os.path.join(CONFIG_DIR, 'thesis.json')
     with open(thesis_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    today = datetime.now()
+    today = datetime.strptime(today_str, '%Y-%m-%d') if today_str else datetime.now()
     tag = f"{today.month}/{today.day}"
     updates = []
     for o in objs:
@@ -618,12 +634,21 @@ def update_thesis_status(report_text):
     return updates
 
 def validate_generated_report(md_path):
-    """用最新锚点(与报告同日生成)校验刚生成的报告,结果落 logs/validation_*.log 并附注到报告尾部"""
+    """用最新锚点(与报告同日生成)校验刚生成的报告,结果落 logs/validation_*.log 并附注到报告尾部。
+
+    第二轮审查#4: 返回 (classification, warnings),classification ∈ PASS/DEGRADED/FAIL。
+    FAIL = 无锚点/锚点非同日/数值类错误 → 调用方禁止一切长期状态回写。"""
     ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     anchor_files = sorted(glob.glob(os.path.join(ROOT_DIR, 'data', 'daily', 'anchors_*.json')))
+    date_str = datetime.now().strftime('%Y%m%d')
+
     if not anchor_files:
-        print("⚠️ 无锚点文件,跳过校验")
-        return []
+        classification, warnings = "FAIL", []
+        print("⛔ 无锚点文件 — 数字未经证实,校验分级FAIL,禁止状态回写")
+        _append_validation_note(md_path, date_str, "FAIL(无锚点)")
+        return classification, warnings
+
+    anchors_same_day = date_str in os.path.basename(anchor_files[-1])
 
     with open(anchor_files[-1], 'r', encoding='utf-8') as f:
         anchors = json.load(f)
@@ -635,12 +660,16 @@ def validate_generated_report(md_path):
     with contextlib.redirect_stdout(buf):
         warnings = data_validator.validate_report(md_path, anchors)
 
-    date_str = datetime.now().strftime('%Y%m%d')
+    classification, reason = data_validator.classify_result(
+        has_anchors=True, anchors_same_day=anchors_same_day,
+        warnings=warnings, numeric_errors=_has_numeric_errors(warnings))
+
     log_path = os.path.join(PROJECT_DIR, 'logs', f'validation_{date_str}.log')
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     with open(log_path, 'w', encoding='utf-8') as f:
         f.write(f"报告校验 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         f.write(f"报告: {md_path}\n锚点: {anchor_files[-1]}\n")
+        f.write(f"校验分级: {classification} ({reason})\n")
         f.write("=" * 60 + "\n")
         f.write(buf.getvalue())
         if warnings:
@@ -648,17 +677,19 @@ def validate_generated_report(md_path):
             for w in warnings:
                 f.write(f"  {w}\n")
 
-    # 报告尾部附一行不可见的校验摘要
-    with open(md_path, 'a', encoding='utf-8') as f:
-        f.write(f"\n<!-- 校验{date_str}: {'全部通过' if not warnings else f'{len(warnings)}项警告'}"
-                f"{' | ' + '; '.join(w.replace(chr(10), ' ')[:80] for w in warnings[:3]) if warnings else ''}"
-                f" 详情: logs/validation_{date_str}.log -->\n")
-
-    print(f"✅ 生成后校验完成: {'全部通过' if not warnings else f'{len(warnings)}项警告'}"
-          f"(详情: {log_path})")
+    _append_validation_note(md_path, date_str,
+                            f"{classification}" + (f"({len(warnings)}项警告)" if warnings else ""))
+    print(f"✅ 生成后校验完成: 分级={classification} {reason}"
+          f"{' | 全部通过' if not warnings else f' | {len(warnings)}项警告'} (详情: {log_path})")
     for w in warnings:
         print(f"   {w[:100]}")
-    return warnings
+    return classification, warnings
+
+
+def _append_validation_note(md_path, date_str, summary):
+    """报告尾部附一行不可见的校验摘要"""
+    with open(md_path, 'a', encoding='utf-8') as f:
+        f.write(f"\n<!-- 校验{date_str}: {summary} 详情: logs/validation_{date_str}.log -->\n")
 
 # ============ 主程序 ============
 if __name__ == '__main__':
@@ -673,9 +704,17 @@ if __name__ == '__main__':
     # 第0.5步：加载论点
     theses = load_theses()
 
-    # 第0.55步：加载配置观点库(P2)
+    # 第0.55步：加载配置观点库(P2) — 连同最新锚点一并喂给引擎做触发器核验
     views_data = allocation_engine.load_views()
-    views_block = allocation_engine.render_views_block(views_data) if views_data else ""
+    latest_anchors = {}
+    _anchor_json = sorted(glob.glob(os.path.join(DATA_DIR, 'daily', 'anchors_*.json')))
+    if _anchor_json:
+        try:
+            with open(_anchor_json[-1], 'r', encoding='utf-8') as f:
+                latest_anchors = json.load(f)
+        except Exception as e:
+            print(f"⚠️ 锚点JSON读取失败({e}),触发器按'待验证'处理")
+    views_block = allocation_engine.render_views_block(views_data, anchors=latest_anchors) if views_data else ""
     if views_data:
         print(f"   配置观点: {len(views_data.get('views', []))} 资产 / "
               f"{len(views_data.get('predictions', []))} 预测"
@@ -716,16 +755,16 @@ if __name__ == '__main__':
     md_path = save_report(report)
 
     # 第3.5步：同日锚点校验(2026-10-11) — 必须先于论点回写
-    warnings = validate_generated_report(md_path)
+    # 第二轮#2/#4: 无锚点/锚点非同日/数值错误 → FAIL,禁止一切长期状态回写
+    classification, warnings = validate_generated_report(md_path)
 
-    # 第3.6步：论点状态回写(2026-10-11) — 数值校验不过关则禁止回写,
-    # 防止基于错误数字的升降级污染thesis.json(升级提示词缺陷清单第7条)
-    # P2(2026-10-11): 观点库回写同门禁
-    if _has_numeric_errors(warnings):
-        print("⛔ 存在数值类校验错误,本轮跳过thesis.json与allocation_views.json回写(请人工核对后再决定)")
+    # 第3.6步：论点状态回写 — 校验分级FAIL则禁止回写,
+    # 防止基于错误数字的升降级污染thesis.json/allocation_views.json
+    if classification == "FAIL":
+        print("⛔ 校验分级FAIL(无锚点/锚点过期/数值错误),本轮跳过thesis.json与allocation_views.json回写(请人工核对后再决定)")
     else:
         update_thesis_status(report)
-        allocation_engine.update_allocation_status(report)
+        allocation_engine.update_allocation_status(report, anchors=latest_anchors)
 
     # 第4步：预览前30行
     print("\n" + "=" * 60)
@@ -737,23 +776,28 @@ if __name__ == '__main__':
     if len(lines) > 30:
         print(f"\n... 共 {len(lines)} 行，完整报告请查看输出文件")
 
-    # 第5步(P4, 2026-10-11): 月末/季末最后一个周五 → 追加月报/季报
+    # 第5步(P4 v2, 第二轮#3.2/#3.4): 上个自然月/季**结束后**的第一个周五 → 追加月报/季报
+    # (v1在月末最后一个周五触发,会在期间结束前生成,如12-25提前生成Q4季报——已废除)
     # 周报已完成并落盘,附加报告失败不影响周报(独立进程,失败仅记日志)
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    if is_last_friday_of_month():
-        print("\n📅 今天是月末最后一个周五,启动月度复盘(monthly_review.py)...")
+    done_month = pending_completed_month()
+    if done_month:
+        print(f"\n📅 {done_month}已完结(今天是其后第一个周五),启动月度复盘(monthly_review.py)...")
         try:
-            r = subprocess.run([sys.executable, os.path.join(script_dir, 'monthly_review.py')],
+            r = subprocess.run([sys.executable, os.path.join(script_dir, 'monthly_review.py'),
+                                '--month', done_month],
                                timeout=1800, capture_output=True, text=True)
             print(r.stdout[-800:] if r.stdout else "", end="")
             if r.returncode != 0:
                 print(f"⚠️ 月度复盘失败(exit {r.returncode}): {r.stderr[-300:]}")
         except subprocess.TimeoutExpired:
             print("⚠️ 月度复盘超时30分钟,已终止(周报不受影响)")
-    if is_last_friday_of_quarter():
-        print("\n📅 今天是季末最后一个周五,启动季度展望(quarterly_outlook.py)...")
+    done_quarter = pending_completed_quarter()
+    if done_quarter:
+        print(f"\n📅 {done_quarter}已完结(今天是其后第一个周五),启动季度展望(quarterly_outlook.py)...")
         try:
-            r = subprocess.run([sys.executable, os.path.join(script_dir, 'quarterly_outlook.py')],
+            r = subprocess.run([sys.executable, os.path.join(script_dir, 'quarterly_outlook.py'),
+                                '--quarter', done_quarter],
                                timeout=1800, capture_output=True, text=True)
             print(r.stdout[-800:] if r.stdout else "", end="")
             if r.returncode != 0:

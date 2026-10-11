@@ -1,0 +1,40 @@
+{
+ "data": {
+  "UST_10Y": {
+   "value": 4.1,
+   "prev": 4.12,
+   "week_chg": -0.02,
+   "date": "2026-09-24"
+  },
+  "UST_30Y": {
+   "value": 4.88,
+   "prev": 4.9,
+   "week_chg": -0.02,
+   "date": "2026-09-24"
+  },
+  "HY_OAS": {
+   "value": 3.17,
+   "prev": 3.24,
+   "week_chg": -0.07,
+   "date": "2026-09-24"
+  },
+  "CCC_OAS": {
+   "value": 9.46,
+   "prev": 9.4,
+   "week_chg": 0.06,
+   "date": "2026-09-24"
+  },
+  "TIPS_10Y": {
+   "value": 2.92,
+   "prev": 2.93,
+   "week_chg": -0.01,
+   "date": "2026-09-24"
+  },
+  "TIPS_5Y": {
+   "value": 2.68,
+   "prev": 2.7,
+   "week_chg": -0.01,
+   "date": "2026-09-24"
+  }
+ }
+}

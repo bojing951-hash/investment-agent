@@ -61,25 +61,26 @@ def flatten_json(data, prefix=''):
     return items
 
 
-def find_latest_file(pattern):
-    full_pattern = os.path.join(ROOT_DIR, pattern)
-    files = sorted(glob.glob(full_pattern))
+def find_latest_file(pattern, data_dir=None):
+    base = data_dir or os.path.join(ROOT_DIR, 'data', 'daily')
+    files = sorted(glob.glob(os.path.join(base, pattern)))
     return files[-1] if files else None
 
 
-def extract_anchors_from_data():
+def extract_anchors_from_data(data_dir=None):
+    """data_dir参数供离线fixture测试注入(第二轮#20);默认实时项目目录。"""
     anchors = {}
 
     data_sources = {
-        'global_market': 'data/daily/global_*.json',
-        'macro': 'data/daily/macro_*.json',
-        'rate_economy': 'data/daily/rate_economy_*.json',
-        'china': 'data/daily/china_*.json',
-        'scorecard': 'data/daily/scorecard_*.json',
+        'global_market': 'global_*.json',
+        'macro': 'macro_*.json',
+        'rate_economy': 'rate_economy_*.json',
+        'china': 'china_*.json',
+        'scorecard': 'scorecard_*.json',
     }
 
     for source_name, pattern in data_sources.items():
-        filepath = find_latest_file(pattern)
+        filepath = find_latest_file(pattern, data_dir)
         if not filepath:
             print(f"⚠️ 未找到数据源: {pattern}")
             continue
@@ -223,6 +224,141 @@ def forbidden_phrases_in(text):
     return found
 
 
+# ============================================================================
+# 指标ID级联合校验(第二轮审查#6/#8, 2026-10-11)
+# 核心数字须"指标ID+观测日+单位+数值"联合验证,并专项拦截"前值当现值"
+# (实战事故: 2026-10-09周报把TIPS 10Y上周2.93写成本周2.92当期值方向搞反)
+# ============================================================================
+INDICATOR_SPECS = [
+    # id: 指标ID; alias: 报告提法(正则); cur/prev: 锚点key(精确); unit; tol: 数值容差
+    {"id": "TIPS_10Y", "alias": r"(?:TIPS\s*10Y|10Y\s*TIPS|10年(?:期)?TIPS|10年(?:期)?实际利率)",
+     "cur": "macro.data.TIPS_10Y.value", "prev": "macro.data.TIPS_10Y.prev",
+     "unit": "%", "tol": 0.005},
+    {"id": "TIPS_5Y", "alias": r"(?:TIPS\s*5Y|5Y\s*TIPS|5年(?:期)?TIPS|5年(?:期)?实际利率)",
+     "cur": "macro.data.TIPS_5Y.value", "prev": "macro.data.TIPS_5Y.prev",
+     "unit": "%", "tol": 0.005},
+    {"id": "UST_10Y", "alias": r"(?:UST\s*10Y|10Y(?:美债)?(?:收益率|国债)|10年期美债(?:收益率)?)",
+     "cur": "macro.data.UST_10Y.value", "prev": "macro.data.UST_10Y.prev",
+     "unit": "%", "tol": 0.005},
+    {"id": "UST_30Y", "alias": r"(?:UST\s*30Y|30Y(?:美债)?(?:收益率|国债)|30年期美债(?:收益率)?)",
+     "cur": "macro.data.UST_30Y.value", "prev": "macro.data.UST_30Y.prev",
+     "unit": "%", "tol": 0.005},
+    {"id": "HY_OAS", "alias": r"(?:HY\s*OAS|高收益(?:债)?利差|高收益OAS)",
+     "cur": "macro.data.HY_OAS.value", "prev": "macro.data.HY_OAS.prev",
+     "unit": "%", "tol": 0.10},
+    {"id": "CCC_OAS", "alias": r"(?:CCC\s*OAS|CCC利差|CCC(?:评级)?利差)",
+     "cur": "macro.data.CCC_OAS.value", "prev": "macro.data.CCC_OAS.prev",
+     "unit": "%", "tol": 0.10},
+    {"id": "UNRATE", "alias": r"失业率",
+     "cur": "rate_economy.real_economy.UNRATE.value", "prev": "rate_economy.real_economy.UNRATE.prev_value",
+     "unit": "%", "tol": 0.05},
+    {"id": "UMCSENT", "alias": r"(?:消费者信心|密歇根信心|Michigan指数)",
+     "cur": "rate_economy.real_economy.UMCSENT.value", "prev": "rate_economy.real_economy.UMCSENT.prev_value",
+     "unit": "指数", "tol": 0.5},
+]
+
+# 报告引用前值的合法话术: 窗口内出现这些词时,引用prev不算"前值当现值"
+_PREV_CONTEXT_RE = re.compile(r"上周|前值|前期|上一?期|previous|prior|prev\b|较[^。；\n]{0,6}变动|变化|环比|同比|从")
+# 阈值/条件句语境: "CCC OAS≥10.0""若回落至9.5下方"等引用的是触发器规格而非市场观测值,
+# 不参与现值/前值判定(只在既非现值又非前值时豁免报错,不影响✅路径)
+_SPEC_CONTEXT_RE = re.compile(r"[≥≤<>]|若|假设|回落|突破|跌破|升破|回升|升至|高于|低于|超过|不及|收复|回到|触及|上方|下方|以内|以上|以下|目标|阈值|触发")
+
+
+def _indicator_report_values(report_text, spec):
+    """返回[(数值, 前值/变化语境, 阈值/条件语境)] — 逐数值判定语境(局部前视12字符)。
+
+    语境随数值走,不整窗共享: "周变化-0.01%中,实际利率(TIPS 2.93%,-0.01%)"里
+    2.93是水平断言(不得因句中"变化"二字豁免), -0.01才是变化值。
+    """
+    hits = []
+    for m in re.finditer(spec["alias"], report_text):
+        # 取别名后40字符窗口(约到句读),遇相邻指标名截断(防串到BEI/30Y等的数值)
+        win = report_text[m.end():m.end() + 40]
+        stop = re.search(r"[。；;\n]", win)
+        if stop:
+            win = win[:stop.start()]
+        stop2 = re.search(r"BEI|CPI|PCE|TIPS|CCC|OAS|UNRATE|UMCSENT|VIX|SPX|GOLD|WTI|非农|失业率|消费者信心|密歇根|[0-9]+Y", win)
+        if stop2:
+            win = win[:stop2.start()]
+        for nm in re.finditer(r"[0-9]+\.[0-9]+", win):
+            v = float(nm.group())
+            if abs(v) >= 10000:
+                continue
+            local = win[max(0, nm.start() - 12):nm.start()]
+            hits.append((v,
+                         bool(_PREV_CONTEXT_RE.search(local)),
+                         bool(_SPEC_CONTEXT_RE.search(local))))
+    return hits
+
+
+def check_indicators(report_text, anchors):
+    """指标ID联合校验: 报告数值 ↔ 锚点(现值/前值)逐数值比对(语境随数值走)。
+    规则:
+      - 数值(或bp归一后) ≈ cur → ✅(观测日附注)
+      - 数值 ≈ prev 且该数值局部前值语境 → ✅(前值引用正确)
+      - 只命中 prev、非前值语境、非阈值语境 → 🚨前值当现值(FAIL级)
+      - 阈值/条件语境(≥目标值、"若回落至X") → ⬜跳过(引用的是触发器规格)
+      - 变化/前值语境(环比、3月变化)引用变化值 → ⬜跳过(非水平值断言)
+      - 都不命中且非任何豁免语境 → ❌偏差
+    """
+    warnings = []
+    for spec in INDICATOR_SPECS:
+        cur_info = anchors.get(spec["cur"])
+        prev_info = anchors.get(spec["prev"])
+        if not cur_info:
+            continue  # 锚点侧无此指标,跳过(不误报)
+        cur, prev = cur_info["value"], (prev_info or {}).get("value")
+        obs = cur_info.get("obs_date", "?")
+        for num, is_prev_ctx, is_spec_ctx in _indicator_report_values(report_text, spec):
+            # bp形态归一: "1229bp"式引用 ↔ 锚点12.29(%)
+            bp = num / 100 if (spec["unit"] == "%" and num > 60) else num
+            near_cur = abs(num - cur) <= spec["tol"] or abs(bp - cur) <= spec["tol"]
+            near_prev = prev is not None and (
+                abs(num - prev) <= spec["tol"] or abs(bp - prev) <= spec["tol"])
+            if near_cur:
+                print(f"  ✅ [{spec['id']}] 报告值≈现值{cur}{spec['unit']} (观测日{obs})")
+            elif near_prev and is_prev_ctx:
+                print(f"  ✅ [{spec['id']}] 前值语境引用{prev}{spec['unit']}正确 (现值应为{cur})")
+            elif is_spec_ctx:
+                print(f"  ⬜ [{spec['id']}] 阈值/条件语境引用[{num}],跳过现值判定")
+            elif near_prev:
+                msg = (f"🚨 前值当现值 [{spec['id']}]: 报告引用{num}{spec['unit']}为上周前值{prev}"
+                       f" — 本周现值是{cur}{spec['unit']}(观测日{obs}),当期值引用错误")
+                warnings.append(msg)
+                print(f"  {msg}")
+            elif is_prev_ctx:
+                print(f"  ⬜ [{spec['id']}] 变化/前值语境引用[{num}],非水平值断言,跳过")
+            elif prev is not None and abs(abs(num) - abs(cur - prev)) <= max(spec["tol"], 0.05):
+                print(f"  ⬜ [{spec['id']}] 周变化值[{num}](=|现值-前值|),非水平断言,跳过")
+            elif spec["unit"] == "%" and abs(num) <= 0.5:
+                print(f"  ⬜ [{spec['id']}] 小幅变化值[{num}](如周环比),非水平断言,跳过")
+            else:
+                msg = (f"❌ [{spec['id']}] 偏差: 报告值{num}{spec['unit']} vs 锚点现值{cur}"
+                       f"/前值{prev} 均不匹配(容差{spec['tol']})")
+                warnings.append(msg)
+                print(f"  {msg}")
+    return warnings
+
+
+# ============================================================================
+# 校验分级(第二轮审查#4): PASS / DEGRADED / FAIL
+#   FAIL     → 禁止一切长期状态回写(thesis/allocation/prediction)
+#   DEGRADED → 数字已验证但存在样式类警告(口径标注/禁语/时点提示),允许回写
+#   PASS     → 干净
+# ============================================================================
+def classify_result(has_anchors, anchors_same_day, warnings, numeric_errors):
+    """返回 (classification, reason)。numeric_errors由调用方按其门禁谓词计算。"""
+    if not has_anchors:
+        return "FAIL", "无锚点文件,数字未经证实"
+    if not anchors_same_day:
+        return "FAIL", "锚点非报告同日,数字未经证实"
+    if numeric_errors:
+        return "FAIL", "存在数值类错误(严重错误/偏差/前值当现值)"
+    if warnings:
+        return "DEGRADED", f"{len(warnings)}项非数值警告(口径/禁语/时点提示)"
+    return "PASS", ""
+
+
 def find_anchor_value(anchors, key_pattern):
     """根据正则模式在锚点中查找匹配的值"""
     import re as _re
@@ -326,6 +462,10 @@ def validate_report(report_path, anchors):
             warnings.append(msg)
             print(f"  {msg}")
             print(f"     锚点来源: {anchor_key}")
+
+    # === 1.5 指标ID联合校验(第二轮#6/#8: 现值/前值区分) ===
+    print("\n🔎 指标ID联合校验(现值/前值):")
+    warnings.extend(check_indicators(report_text, anchors))
 
     # === 2. 周变化率比对 ===
     print("\n📈 周变化率比对:")

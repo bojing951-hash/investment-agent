@@ -1,0 +1,22 @@
+{
+ "real_economy": {
+  "UNRATE": {
+   "name": "失业率",
+   "value": 4.2,
+   "prev_value": 4.1,
+   "change": 0.1,
+   "unit": "%",
+   "freq": "Monthly",
+   "date": "2026-09-01"
+  },
+  "UMCSENT": {
+   "name": "消费者信心",
+   "value": 68.2,
+   "prev_value": 67.4,
+   "change": 0.8,
+   "unit": "指数",
+   "freq": "Monthly",
+   "date": "2026-09-01"
+  }
+ }
+}

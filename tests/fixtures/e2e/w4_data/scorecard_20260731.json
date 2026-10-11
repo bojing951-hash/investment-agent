@@ -1,0 +1,10 @@
+{
+ "date": "2026-07-31",
+ "regime": "再通胀",
+ "regime_status": "已确认",
+ "confirmed_regime": "再通胀",
+ "growth_total": 3,
+ "inflation_total": 2,
+ "regime_drivers": [],
+ "regime_counterfactuals": []
+}

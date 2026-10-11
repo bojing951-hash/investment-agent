@@ -113,8 +113,13 @@ check("A8 日频行情滞后6天=过期",
 check("A9 日频行情滞后4天=新鲜",
       dv.is_fresh_anchor('global_market.data.SPX.close',
                          {'obs_date': '2026-10-05'}, '2026-10-09'))
-check("A10 无观测日的锚点不判龄(由数值/观测日联合校验把关)",
-      dv.is_fresh_anchor('x.y', {'value': 1}, '2026-10-09'))
+check("A10 无观测日的锚点不判新鲜(第四轮修正: 缺观测日→待验证,不得默认通过)",
+      not dv.is_fresh_anchor('x.y', {'value': 1}, '2026-10-09'))
+check("A10b 观测日在未来(研究截止之后)→不新鲜(待验证)",
+      not dv.is_fresh_anchor('global_market.data.SPX.close',
+                             {'obs_date': '2026-10-20'}, '2026-10-09'))
+check("A10c 月度CPI滞后30天仍新鲜(第四轮修正: 不再套macro统一7天规则)",
+      dv.is_fresh_anchor('macro.data.CPI.value', {'obs_date': '2026-09-10'}, '2026-10-09'))
 w = dv.stale_anchor_warning('global_market.data.SPX.close', {'obs_date': '2026-10-01'}, '2026-10-09')
 check("A11 过期警告含规则上限与不得作当前证据", w and '不得作为当前有效证据' in w and '5天' in w, str(w))
 check("A12 新鲜锚点无警告", dv.stale_anchor_warning('global_market.data.SPX.close',
@@ -143,9 +148,9 @@ s, _ = ae.star_level_from_evidence(FIVE[:4])
 check("B4 4项3类跨2观察期→4★", s == 4, f"star={s}")
 FIVE_X = FIVE + [ev('macro.data.CCC_OAS.value', 10.12, '2026-10-09', contrary=True, explained=True)]
 s, d = ae.star_level_from_evidence(FIVE_X[:5] + [FIVE_X[5]])
-check("B5 5项3类跨3期+已解释反证→5★", s == 5, f"{s} {d}")
+check("B5 5项3类跨3期+含已解释反证→5★", s == 5, f"{s} {d}")
 s, _ = ae.star_level_from_evidence(FIVE)
-check("B6 5项跨3期但无反证→4★(5★须含已解释反证)", s == 4, f"star={s}")
+check("B6 5项3类跨3期无反证→5★(第四轮修正: 5★不要求存在反证)", s == 5, f"star={s}")
 s, d = ae.star_level_from_evidence(FIVE + [ev('macro.data.TIPS_10Y.value', 2.89, '2026-10-09', contrary=True)])
 check("B7 存在未解释重大反证→封顶3★", s == 3 and '未解释反证' in d, f"{s} {d}")
 s, _ = ae.star_level_from_evidence([FIVE[0]] * 4)
@@ -254,7 +259,7 @@ v1 = saved['views'][0]
 check("D1 模型无条件改变评级→保留原评级", v1['rating'] == '标配')
 pr = v1['proposals'][-1]
 check("D1b 候选提案留档(含被拒原因)", pr['status'] == 'rejected' and pr['to'] == '超配'
-      and '验证证据0项' in pr['reason'], str(pr))
+      and '新增独立支持证据0项' in pr['reason'], str(pr))
 
 # D2 同向触发器已触发→放行
 saved, ups = run_update(base_views(), alloc_block([{'id': 1, 'rating': '低配', 'confidence': 2, 'note': 'CCC破线'}]))

@@ -373,50 +373,92 @@ def find_anchor_value(anchors, key_pattern):
 DAILY_SOURCES = ('global_market', 'china')
 MAX_STALE_DAYS = 5
 
-# ── 逐指标新鲜度规则(第三轮P0-4): 不得对所有指标用统一过期天数 ──────────────
-# 时点口径(如实声明): 本系统可得 observation_date(观测日)与 as_of(采集日=研究截止);
-# release_date(发布时间)采集端无此字段 — 月度序列的max_lag已含正常发布滞后(如UNRATE
-# 次月初发布→45天上限),即以 lag=as_of−obs_date 的上界近似发布延迟。
-# 规则按指标key模式匹配,先命中先用; 未命中者默认14天。
-FRESHNESS_RULES = [
-    (re.compile(r'\.close$|\.pct_change$|\.change$'), 5, '日频行情'),
-    (re.compile(r'^macro\.data\.'), 7, '日频宏观(FRED)'),
-    (re.compile(r'^rate_economy\.'), 45, '月度序列(含发布滞后)'),
-    (re.compile(r'^china\.'), 7, 'A股日频'),
-    (re.compile(r'^scorecard\.'), 10, '周度评分卡'),
-]
-DEFAULT_MAX_LAG_DAYS = 14
+# ── 指标级频率注册表(第四轮P0-3): 频率由指标本身决定,不凭JSON目录 ──────────────
+# macro.data.*为FRED系列,须逐系列区分: 月度CPI/就业等不能套7天规则(7天会把上月CPI判过期),
+# 日频利差/收益率不能放宽到45天。rate_economy.*全部月度。行情/评分卡按原规则。
+MACRO_MONTHLY_SERIES = {'FED_FUNDS', 'CPI', 'CORE_PCE', 'UNEMPLOYMENT', 'NFP',
+                        'CORE_CPI', 'AHE', 'WTI'}          # FRED月度(发布滞后次月初~月中)
+MACRO_WEEKLY_SERIES = {'ICSA'}                              # FRED周度(每周四发布)
+# 其余macro.data.*(BAML利差/DGS收益率/DFII实际利率/T5YIE通胀预期/T10Y2Y曲线)=日频
+_MONTHLY_MAX_LAG, _WEEKLY_MAX_LAG, _DAILY_MACRO_MAX_LAG = 45, 16, 7
+
+
+def metric_frequency(anchor_key):
+    """指标频率注册查询: 返回(freq, max_lag_days, 说明)。
+    freq ∈ daily/weekly/monthly/unknown; 按指标身份(系列名)判定,非目录名。"""
+    m = re.match(r'^macro\.data\.([A-Za-z0-9_]+)\.', anchor_key)
+    if m:
+        name = m.group(1)
+        if name in MACRO_MONTHLY_SERIES:
+            return 'monthly', _MONTHLY_MAX_LAG, f'FRED月度系列{name}(含发布滞后)'
+        if name in MACRO_WEEKLY_SERIES:
+            return 'weekly', _WEEKLY_MAX_LAG, f'FRED周度系列{name}'
+        return 'daily', _DAILY_MACRO_MAX_LAG, f'FRED日频系列{name}'
+    if anchor_key.startswith('rate_economy.'):
+        return 'monthly', 45, 'rate_economy月度序列(含发布滞后)'
+    if re.search(r'\.close$|\.pct_change$|\.change$|\.high$|\.low$', anchor_key):
+        return 'daily', 5, '日频行情'
+    if anchor_key.startswith('china.'):
+        return 'daily', 7, 'A股日频'
+    if anchor_key.startswith('scorecard.'):
+        return 'weekly', 10, '周度评分卡'
+    return 'unknown', 14, '未注册指标(默认)'
+
+
+def metric_registry_info(anchor_key, info=None):
+    """指标元数据注册表条目(供校验日志/证据核验披露):
+    {metric_id, source, frequency, max_lag_days, observation_date, as_of, retrieved_at}。
+    release_date采集端不可得 — 如实标注None,不伪造。"""
+    freq, max_lag, desc = metric_frequency(anchor_key)
+    info = info or {}
+    return {'metric_id': anchor_key,
+            'source': anchor_key.split('.')[0],
+            'frequency': freq,
+            'max_lag_days': max_lag,
+            'observation_date': str(info.get('obs_date') or '')[:10] or None,
+            'release_date': None,  # 采集端无此字段,不得伪造
+            'retrieved_at': str(info.get('as_of') or '')[:10] or None,
+            'as_of': str(info.get('as_of') or '')[:10] or None,
+            'note': desc}
+
+
+# 兼容旧接口: 逐指标新鲜度规则(第三轮P0-4) — 现由metric_frequency驱动
+FRESHNESS_RULES = []  # 保留符号避免旧引用报错; 逻辑已并入metric_frequency
 
 
 def freshness_rule_for(anchor_key):
-    """返回(最大滞后天数, 规则名); 按key模式逐指标匹配。"""
-    for pat, max_lag, name in FRESHNESS_RULES:
-        if pat.search(anchor_key):
-            return max_lag, name
-    return DEFAULT_MAX_LAG_DAYS, '默认'
+    """返回(最大滞后天数, 规则名); 按指标频率注册表逐指标匹配。"""
+    _freq, max_lag, desc = metric_frequency(anchor_key)
+    return max_lag, desc
 
 
 def is_fresh_anchor(anchor_key, info, as_of_date):
-    """逐指标新鲜度判定: 观测日距研究截止日(as_of)不超过该指标的规则上限。
-    无观测日的锚点无法判龄 → 返回True(新鲜),由数值/观测日联合校验另行把关。
-    过期指标不得作为当前有效证据驱动配置观点变化(引擎侧调用)。"""
+    """逐指标新鲜度判定(第四轮P0-3修正): 观测日距研究截止日(as_of)不超过该指标频率规则上限。
+    - 缺少有效观测日 → False(待验证,不得默认新鲜)
+    - 非法/无法解析日期 → False
+    - 观测日在研究截止日之后(未来数据) → False
+    - 月度指标按45天上限(不因本周未发布新一期而判旧一期无效);
+      日频按5~7天。过期指标不得作为当前有效证据。"""
     if not isinstance(info, dict):
-        return True
+        return False
     obs = info.get('obs_date')
     if not obs or not as_of_date:
-        return True
+        return False
     try:
         from datetime import date
         o = date(int(str(obs)[:4]), int(str(obs)[5:7]), int(str(obs)[8:10]))
         a = date(int(str(as_of_date)[:4]), int(str(as_of_date)[5:7]), int(str(as_of_date)[8:10]))
     except (ValueError, TypeError, IndexError):
-        return True
+        return False
+    if o > a:
+        return False  # 未来日期: 不得作为已发生观测
     max_lag, _ = freshness_rule_for(anchor_key)
     return (a - o).days <= max_lag
 
 
 def stale_anchor_warning(anchor_key, info, as_of_date):
-    """过期锚点警告(⚠️级): 供校验报告与引擎证据核验共用。"""
+    """过期/无法判龄锚点警告(⚠️级): 供校验报告与引擎证据核验共用。
+    第四轮P0-3: 缺观测日/非法日期/未来日期 → 待验证警告(不得默认新鲜)。"""
     if is_fresh_anchor(anchor_key, info, as_of_date):
         return None
     obs = info.get('obs_date')
@@ -424,10 +466,12 @@ def stale_anchor_warning(anchor_key, info, as_of_date):
     try:
         o = date(int(str(obs)[:4]), int(str(obs)[5:7]), int(str(obs)[8:10]))
         a = date(int(str(as_of_date)[:4]), int(str(as_of_date)[5:7]), int(str(as_of_date)[8:10]))
-        lag = (a - o).days
     except (ValueError, TypeError, IndexError):
-        return None
+        return f"⚠️ 无法判龄 {anchor_key}: 观测日缺失或非法('{obs}') — 待验证,不得默认作为当前有效证据"
+    if o > a:
+        return f"⚠️ 未来数据 {anchor_key}: 观测日{obs}晚于研究截止{as_of_date} — 非法时点,不得使用"
     max_lag, name = freshness_rule_for(anchor_key)
+    lag = (a - o).days
     return (f"⚠️ 数据过期 {anchor_key}: 观测日{obs}距研究截止{as_of_date}滞后{lag}天"
             f" 超过{name}规则上限{max_lag}天 — 不得作为当前有效证据")
 

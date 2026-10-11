@@ -96,6 +96,8 @@ if o5 is not None:
     v5_before = next(v for v in views_before['views'] if v['id'] == 5)
     # 门禁的确定性预测(与update路径同函数计算,但断言的是不变式而非循环)
     verified, _rej = ae.verify_evidence_items(o5.get('evidence'), anchors, today)
+    supporting, _ctry, _unexp = ae.split_evidence_direction(verified)
+    new_support = ae.new_supporting_metrics(v5_before, supporting, today)
     trig = {r['trig_id']: r for r in ae.evaluate_quant_triggers(views_before, anchors, today)[5]}
     proposed = str(o5.get('rating', ''))
     old_rating = v5_before['rating']
@@ -111,11 +113,11 @@ if o5 is not None:
                 ae.update_allocation_status(md, views_path=tmp_views, anchors=anchors, today_str=today)
             saved = json.load(open(tmp_views))
             v5 = next(v for v in saved['views'] if v['id'] == 5)
-            if fired or len(verified) >= min_ev:
-                check(f"门禁条件满足(触发器{fired}/证据{len(verified)}项)→提议评级被采纳",
+            if fired or len(new_support) >= min_ev:
+                check(f"门禁条件满足(触发器{fired}/新增独立证据{len(new_support)}项)→提议评级被采纳",
                       v5['rating'] == proposed, f"{v5['rating']} vs {proposed}")
             else:
-                check(f"门禁条件不足(触发器{fired}/证据{len(verified)}项)→评级保留+提案留档",
+                check(f"门禁条件不足(触发器{fired}/新增独立证据{len(new_support)}项)→评级保留+提案留档",
                       v5['rating'] == old_rating
                       and any(p['status'] == 'rejected' for p in v5.get('proposals', [])),
                       f"{v5['rating']} {v5.get('proposals')}")

@@ -50,17 +50,20 @@ if __name__ == '__main__':
     print("=" * 60)
 
     steps = [
-        ("1/9 全球市场数据采集", "global_market_collector.py"),
-        ("2/9 A股港股数据采集", "china_market_collector.py"),
-        ("3/9 宏观数据采集", "macro_collector.py"),
-        ("4/9 新闻采集与分析", "news_collector.py"),
-        ("5/9 利率预期与实体经济", "rate_expectations.py"),
-        ("6/9 宏观体制评分卡", "macro_scorecard.py"),
+        ("1/10 全球市场数据采集", "global_market_collector.py"),
+        ("2/10 A股港股数据采集", "china_market_collector.py"),
+        ("3/10 宏观数据采集", "macro_collector.py"),
+        ("4/10 新闻采集与分析", "news_collector.py"),
+        ("5/10 利率预期与实体经济", "rate_expectations.py"),
+        ("6/10 宏观体制评分卡", "macro_scorecard.py"),
         # 相关性计算器2026-10-11接线:此前脚本存在但从未进流水线,相关性数据停在2026-04-09。
         # 必须在data_assembler(第8步)之前跑,汇编器会读取correlation_*.md拼进数据包第五节。
-        ("7/9 跨资产相关性计算", "correlation_calculator.py"),
-        ("8/9 数据汇总打包", "data_assembler.py"),
-        ("9/9 数据校验与锚点生成", "data_validator.py"),
+        ("7/10 跨资产相关性计算", "correlation_calculator.py"),
+        ("8/10 数据汇总打包", "data_assembler.py"),
+        ("9/10 数据校验与锚点生成", "data_validator.py"),
+        # 每日预测观察(第四轮P0-6): 锚点生成后用Python记录观察期内预测的当期数据,
+        # 幂等不调GLM — 周内价格触及事件不再依赖周报时点。
+        ("10/10 预测观察记录", "daily_prediction_observer.py"),
     ]
 
     results = []

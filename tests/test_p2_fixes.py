@@ -142,8 +142,8 @@ ALLOCATION_STATUS-->"""
         check("新预测状态=观察中且当周已记观测", np['status'] == 'observing'
               and len(np.get('observations', [])) == 1)
 
-# ── 测试3d: 定性预测到期由GLM附证据裁决(引擎无规格时补位) ──────────
-print("\n[3d] 定性预测到期GLM补位裁决(附数值证据)")
+# ── 测试3d: 定性预测到期只能研究性回顾(第四轮P0-6: 不入客观命中率) ──────────
+print("\n[3d] 定性预测: GLM判hit被拒,只能inconclusive研究回顾")
 with tempfile.TemporaryDirectory() as td:
     tmp_views = os.path.join(td, 'allocation_views.json')
     shutil.copy(os.path.join(ROOT, 'config', 'allocation_views.json'), tmp_views)
@@ -156,8 +156,24 @@ PREDICTION_STATUS-->"""
     ae.update_allocation_status(report, views_path=tmp_views, today_str='2026-11-08')
     saved = json.load(open(tmp_views))
     p2 = next(p for p in saved['predictions'] if p['pred_id'] == 2)
-    check("定性预测#2到期hit裁决回写(无规格,引擎留给GLM,证据含数值)",
-          p2['status'] == 'hit' and '1.2' in p2['resolved_note'], str(p2.get('resolved_note')))
+    check("定性预测#2(无规格)GLM判hit被拒(文字说明≠观察记录)",
+          p2['status'] == 'observing', p2['status'])
+with tempfile.TemporaryDirectory() as td:
+    tmp_views = os.path.join(td, 'allocation_views.json')
+    shutil.copy(os.path.join(ROOT, 'config', 'allocation_views.json'), tmp_views)
+    report = """<!--ALLOCATION_STATUS
+{"id":1,"rating":"标配","confidence":2,"note":"m"}
+ALLOCATION_STATUS-->
+<!--PREDICTION_STATUS
+{"pred_id":2,"status":"inconclusive","note":"研究回顾: HY利差全周期抬升约60bp,方向与预判一致但幅度依赖口径"}
+PREDICTION_STATUS-->"""
+    ae.update_allocation_status(report, views_path=tmp_views, today_str='2026-11-08')
+    saved = json.load(open(tmp_views))
+    p2 = next(p for p in saved['predictions'] if p['pred_id'] == 2)
+    pp = ae.predictions_in_period(saved, '20261101', '20261130')
+    check("定性预测inconclusive研究回顾被接受(单列qualitative,不计命中率)",
+          p2['status'] == 'inconclusive' and pp['counts']['qualitative'] == 1
+          and pp['counts']['hit'] == 0, f"{p2['status']} {pp['counts']}")
 
 # ── 测试3b: 仅确信度变化(第三轮: 上调须星级支撑) ──────────
 print("\n[3b] 仅确信度变化回写(上调过星级被拒/证据支撑通过)")
@@ -311,7 +327,10 @@ check("主流程加载观点库", "allocation_engine.load_views()" in rg)
 check("渲染时传入锚点+研究截止时间核验触发器",
       "render_views_block(" in rg and "anchors=latest_anchors" in rg
       and "today_str=datetime.now()" in rg)
-check("回写统一研究截止时间(today_str)", "allocation_engine.update_allocation_status(report, anchors=latest_anchors, today_str=_today)" in rg)
+check("回写统一研究截止时间(today_str,经apply_status_updates调度)",
+      "allocation_engine.update_allocation_status(report, views_path=views_path," in rg
+      and "anchors=anchors, today_str=_today" in rg
+      and "apply_status_updates(report, classification, anchors=latest_anchors)" in rg)
 check("prompt含配置观点库节", "## 配置观点库" in rg)
 check("prompt含量表v2规范", "rating只能取" in rg and "不用\"中性\"" in rg)
 check("prompt含结构化预测规格", "pred_metric" in rg and "pred_op" in rg)

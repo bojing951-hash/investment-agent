@@ -263,3 +263,98 @@ S0源码扫描(scripts/)确认无恒真短路。
 3. 复合条件预测(多指标)到期仍标inconclusive留人工; 引擎自动裁决仅覆盖单指标规格。
 4. 机制类别mechanism_of按指标名正则推断,新指标可能归错类(可用显式mechanism覆盖)。
 5. GLM对非结构化输出的遵从性依赖prompt; 门禁是最后防线而非第一道。
+
+---
+
+# 第四轮: 研究可靠性修复(2026-10-12)
+
+基线: main bc62a41(第三轮合并版)。本轮为修复,不扩产品范围: 无新券商接口/账户/交易执行/前端/多Agent。
+
+## P0-1 连续观察周数(ISO周唯一标识)
+
+`allocation_engine.evaluate_quant_triggers` v4: 观察周标识=ISO year-week元组(`_iso_week_key`/`_prev_iso_week`)。
+- 同一ISO周无论运行多少次最多贡献1个观察周(允许修正本周观察,不增加consec);
+- 仅当本次评估周恰为存储周的下一个ISO周时consec+1; 跳周(中间观察周缺失)或首次→重置为1;
+- 条件明确不满足→清零; 无可核验数据→不推进不重置(数据缺失≠条件失效);
+- 跨年正确(2026-W53→2027-W01为相邻周; 2026-12-28锚定法);
+- persist=False完全无副作用(渲染路径); trigger_state={consec,last_week,last_eval}含v3状态迁移。
+
+## P0-2 证据去重/方向/新增判定 + 评级门禁
+
+- `split_evidence_direction`: 支持/反对/未解释三分; 反对证据不计入升级支持数量。
+- `_base_metric`: 同一底层指标的不同字段口径(.value/.prev/.week_chg…)按基底去重 → 星级与新增判定都数"独立指标"。
+- `new_supporting_metrics`: 与该观点证据台账(obs_pairs)比对, (指标,观测日)已记录不算新增; 新一期观测才算新信息; 当周台账重跑不当作历史。
+- 评级变更门禁: 同向触发器已触发 或 ≥2项**新增独立**支持证据(MIN_EVIDENCE_FOR_RATING_CHANGE=2按new_support计); 否则保留原评级+提案留档。
+- 论点与配置观点统一: 见P0-4。
+
+## P0-3 频率/新鲜度/变化口径统一
+
+- `data_validator`指标频率注册表: 月频(FED_FUNDS/CPI/CORE_PCE/UNEMPLOYMENT/NFP/CORE_CPI/AHE/WTI)45天、周频(ICSA)16天、macro其余日频7天、.close/.high等5天、china 7天、scorecard 10天、未知14天。
+- `is_fresh_anchor(key, info, as_of)`: 缺失/非法/未来观测日→False(不默认新鲜); `metric_registry_info`输出指标级元数据(source/frequency/unit/observation_date/release_date如实为null/…), 不伪造发布日。
+- `macro_collector.compute_series_changes`(纯函数): 变化按频率计算——日频week_chg(5~10自然日窗口取最近)、周频上一期、月频mom_chg(21~45天)+yoy_chg(330~400天)**不产伪week_chg**; 全部附`_from`起始观测日与formula。
+- `detect_revisions`: 与上一采集日文件比对同观测日数值变化,记录{obs_date,prev_value,value,detected}; 无历史文件不伪造。
+- `global_market_collector`采集当日盘中High/Low(供touch盘中口径)。
+
+## P0-4 论点与配置观点统一证据验证
+
+`report_generator.update_thesis_status(report_text, thesis_path, today_str, anchors)`重写:
+- 论点证据与配置观点共用同一套程序验证(verify_evidence_items/split/star/new_support);
+- **终态门禁**: →已失效/→已验证须该论点quant_triggers中invalidation/upgrade触发器被引擎核验已触发,或≥2项本周新增独立支持证据; 否则保留原状态+提案留档(proposals,21天去重);
+- 每周对全部论点核验触发器(sustain连续周数在thesis.json累积,与views同构);
+- 确信度上调≤程序星级; 下调自由; 整笔拒绝不静默改判;
+- 每次变化记录last_change{date,from,to,via,evidence,note}; 论点evidence_ledger台账与views同构;
+- 论点失效→提示检查关联论点/资产观点,但不自动改任何评级;
+- history行带[from→to via]审计; 9论点及完整历史保留,新增quant_triggers结构化字段;
+- `apply_status_updates`调度: 校验FAIL→thesis.json与allocation_views.json都不修改。
+- prompt: THESIS_STATUS支持evidence[]并写明门禁; 历史数值须带原始观测日; 5★措辞修正(见P0-5); 研究链路补第8环"调整及失效条件"; pred规格增加pred_basis(close/high/low)。
+
+## P0-5 证据星级逻辑修正
+
+- 5★不要求必须存在反证(5项/3类机制/3观察期即可); 但存在未解释重大反证时封顶3★(MAX_STAR_UNEXPLAINED_COUNTER);
+- explained=true不构成"充分解释"的充分条件——封顶只看"是否存在未解释反证";
+- 支持证据/反对证据/未解决重大反证分别记录(台账三列); 星级表达证据充分性,不是预测概率。
+
+## P0-6 每日预测观察 + 严格裁决
+
+- `scripts/daily_prediction_observer.py`(新): 接入每日流水线(run_weekly第10步),幂等记录观察期内预测的当期数据(含metric/value/obs_date/retrieved_at/source),不调GLM; 锚点带兄弟.high/.low一并记录;
+- record_observations: 新观测/更新观测产生变更消息(修订与补采可追溯),同批重跑零变更;
+- 价格口径price_basis: close(收盘达到)/high(盘中最高触及)/low(盘中最低触及); **touch判miss须全窗口都有该口径数据**——只有收盘价不得证明盘中未触及→inconclusive;
+- expiry按截止日附近(≤4天容差)最后一个有效观测判定,非交易日按最近收盘; 
+- touch窗内任一观测按其口径满足即hit(可提前); 周中盘中触及+周五收盘回落不推翻hit;
+- GLM不能凭含数字文本宣布命中: 引用数值须与观察窗内记录吻合,引擎已裁决的以引擎为准;
+- 定性预测(无可计算规格)只能inconclusive研究性回顾,predictions_in_period单列qualitative不计入客观命中率;
+- 观察窗外/未来数据一律拒绝。
+
+## 测试(全部离线fixture; 真实GLM单独执行)
+
+| 套件 | 覆盖 | 结果 |
+|------|------|------|
+| test_round4.py(新,82项) | 任务书第九节20项+跨年/非交易日截止+四周端到端(同一状态,正确+错误案例) | 82/82 |
+| test_round3_p0 | 91/91 | 回归通过 |
+| test_round3_adversarial | 24/24 | 回归通过 |
+| test_p0/p1/p2/p4 | 22+36+82+42 | 回归通过 |
+| test_e2e_four_weeks | 59/59 | 回归通过(论点路径补传锚点) |
+| test_glm_live(真实API,单独执行) | 8/8 | GLM输出obs_date不合规→证据被程序拒收,门禁对真实模型输出有效 |
+
+## 第四轮能力对照(交付④)
+
+| 能力 | 第三轮 | 第四轮 |
+|------|--------|--------|
+| 连续观察周 | "两次运行≤10天就累计",同周重跑可刷满 | ISO周唯一标识,同周至多+1,跳周重置,跨年正确 |
+| 证据独立数 | len(verified),同指标衍生值可凑数 | 按底层指标基底去重,只数独立指标 |
+| 证据方向 | 不分支持/反对 | 三分; 反对证据不进支持数量 |
+| 新增证据 | 不区分新旧 | 台账比对; 旧值重引不算新增 |
+| 论点状态 | 模型输出直接回写 | 与配置观点同门禁(触发器/≥2新增),审计留档 |
+| 新鲜度 | 统一7天 | 指标级频率规则; 月度CPI不受7天限制; 缺观测日不默认新鲜 |
+| 变化口径 | 第6个观测值之差冒充周变化 | 按频率分口径,附窗口元数据; 修订检测 |
+| 盘中触及 | 只看收盘 | close/high/low三口径; 缺盘中数据不判miss |
+| 预测观察 | 周报时点 | 每日幂等记录 |
+| 定性预测 | 可文本宣布hit | 只能研究性回顾,不计入命中率 |
+
+## 第四轮遗留(交付⑤,如实)
+
+1. 触发器阈值/持续周数与论点quant_triggers映射为人工配置(本轮按原文条件保守映射11条,相关性/评分卡类条件未锚点化,仍走文本+证据门禁);
+2. 复合(多指标)预测到期仍inconclusive留人工;
+3. FRED发布日(release_date)采集端不可得,注册表如实null;
+4. 观察记录的数据源以锚点文件为单位,尚无逐指标来源交叉验证;
+5. GLM结构化输出遵从性仍依赖prompt+程序门禁(实测GLM会输出"本期观测"类非日期obs_date,已被程序拒收)。

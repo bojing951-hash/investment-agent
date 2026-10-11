@@ -1,0 +1,10 @@
+{
+ "date": "2026-09-24",
+ "regime": "类滞胀",
+ "regime_status": "待确认",
+ "confirmed_regime": "再通胀",
+ "growth_total": 1,
+ "inflation_total": 4,
+ "regime_drivers": [],
+ "regime_counterfactuals": []
+}

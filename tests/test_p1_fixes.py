@@ -36,7 +36,8 @@ g = {'retail': {'name': '零售', 'score': 1}}
 i = {'cpi': {'name': '核心CPI', 'score': 2}, 'bei': {'name': 'BEI', 'score': 2}}
 drivers, cfs = attribute_regime(g, 1, i, 4)
 # 基准: i=4>=3, g=1>0 → 类滞胀。剔除核心CPI→i=2,仍>0 → 再通胀(翻转→关键驱动)
-check("基准体制为类滞胀", all('类滞胀' not in d or d.startswith('核心CPI') for d in drivers) or True)
+# (第二轮#18修复: 原"或True"恒真断言已删除,改为可证伪断言)
+check("单指标可翻转→识别出关键驱动", len(drivers) >= 1, str(drivers))
 check("核心CPI(+2)是关键驱动", any('核心CPI' in d and '再通胀' in d for d in drivers), str(drivers))
 check("反事实清单覆盖全部指标", len(cfs) == len(g) + len(i), f"got {len(cfs)}")
 
@@ -48,28 +49,40 @@ i2 = {'a': {'name': 'A', 'score': 1}, 'b': {'name': 'B', 'score': 1},
 drivers2, _ = attribute_regime(g2, 2, i2, 4)
 check("多指标共同支撑→无关键驱动", drivers2 == [], str(drivers2))
 
-# 真实数据冒烟: 今天的评分卡JSON应含regime_drivers字段
+# 真实数据冒烟: 今天的评分卡JSON应含regime_drivers字段(无真实数据时用E2E fixture,第二轮#20)
 import json, glob
 sc_files = sorted(glob.glob(os.path.join(ROOT, 'data', 'daily', 'scorecard_*.json')))
+if not sc_files:
+    sc_files = sorted(glob.glob(os.path.join(ROOT, 'tests', 'fixtures', 'e2e', 'w4_data', 'scorecard_*.json')))
 if sc_files:
     sc = json.load(open(sc_files[-1]))
     check("最新评分卡含归因字段", 'regime_drivers' in sc, sc_files[-1])
 else:
     check("评分卡文件存在", False, "无scorecard_*.json")
 
-# ── 测试2: 提示词配置化(2026-10-11晚 证据分级v2/禁语v2正式清单已接入) ──────────────────
+# ── 测试2: 提示词配置化(2026-10-11第二轮: 角色统一为跨资产策略师,删除账户管理职责) ──────────────────
 print("\n[2] 提示词热加载")
 from report_generator import load_prompt
 
 sp = load_prompt('system_prompt.md')
-check("系统提示词仍为秘书角色(用户指定不变)", "首席宏观研究员兼投资委员会秘书" in sp, sp[:60])
-check("含四步分析流程", "①核对锚点" in sp and "④比对组合目标" in sp)
-check("V2清单以规则附录接入而非替换角色", "全球宏观首席研究员兼跨资产策略师" not in sp)
-check("附录含证据分级v2门槛", "【证据分级v2】" in sp and "5★" in sp and "3类机制" in sp)
-check("附录含反证封顶与缺失不评级", "最高3★" in sp and "不评级" in sp)
-check("附录含禁止用语v2清单", "【禁止用语v2】" in sp and "板上钉钉" in sp and "risk-free" in sp)
-check("附录含数值绑定纪律", "指标ID" in sp and "不得将相关性直接解释为因果关系" in sp)
+check("系统提示词为跨资产策略师角色(第二轮#4)", "全球宏观首席研究员兼跨资产策略师" in sp, sp[:60])
+check("声明不管理真实账户不执行交易", "不管理真实账户" in sp and "不执行交易" in sp)
+check("含六步研究流程", "核对时点" in sp and "检查反证" in sp and "提出配置倾向" in sp)
+check("秘书角色与账户职责已移除", "秘书" not in sp and "下单" not in sp and "未获取用户确认" not in sp)
+check("含证据分级v2门槛", "【证据分级v2】" in sp and "5★" in sp and "3类机制" in sp)
+check("含反证封顶与缺失不评级", "最高3★" in sp and "不评级" in sp)
+check("含禁止用语v2清单", "【禁止用语v2】" in sp and "板上钉钉" in sp and "risk-free" in sp)
+check("含数值绑定纪律", "指标ID" in sp and "不得将相关性直接解释为因果关系" in sp)
+check("含配置建议要素", "宏观依据" in sp and "传导机制" in sp and "无充分新增证据时允许维持原观点" in sp)
 check("保留输出语言/格式尾部", "输出语言：中文" in sp and "输出格式：Markdown" in sp)
+mp = load_prompt('monthly_review_prompt.md')
+qp = load_prompt('quarterly_outlook_prompt.md')
+check("月报提示词同为策略师+显式免责", "跨资产策略师" in mp and "不管理真实账户" in mp and "不执行交易" in mp)
+check("月报提示词无下单/审批类指令", "下单" not in mp and "审批" not in mp)
+check("月报提示词含bp/pp单位纪律", "bp" in mp and "pp" in mp)
+check("月报提示词含预览纪律", "【预览】" in mp)
+check("季报提示词同为策略师+显式免责", "跨资产策略师" in qp and "不管理真实账户" in qp and "不执行交易" in qp)
+check("季报提示词无下单/审批类指令", "下单" not in qp and "审批" not in qp)
 sc_txt = load_prompt('style_constraints.md')
 check("硬性约束10条完整", "完美验证" in sc_txt and "30Y收益率" in sc_txt and "10." in sc_txt)
 check("硬约束挂接证据分级v2", "证据分级v2" in sc_txt and "禁止用语v2" in sc_txt)

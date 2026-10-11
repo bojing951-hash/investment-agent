@@ -124,17 +124,19 @@ def fetch_real_economy_data():
     print("\n📊 采集实体经济指标...")
 
     series_map = {
-        'UMCSENT': ('密歇根消费者信心', 'index'),
-        'RSAFS': ('零售销售(十亿美元)', 'billions'),
-        'PAYEMS': ('非农就业(千人)', 'thousands'),
-        'INDPRO': ('工业生产指数', 'index'),
-        'UNRATE': ('失业率', 'pct'),
-        'JTSJOL': ('职位空缺(千个)', 'thousands'),
+        # (名称, 单位, 频率) — P0修复: 以下FRED序列全部为月度发布,
+        # change是"上一月度观测→最新月度观测"的跨度,不得当作周变化解读
+        'UMCSENT': ('密歇根消费者信心', 'index', 'Monthly'),
+        'RSAFS': ('零售销售(十亿美元)', 'billions', 'Monthly'),
+        'PAYEMS': ('非农就业(千人)', 'thousands', 'Monthly'),
+        'INDPRO': ('工业生产指数', 'index', 'Monthly'),
+        'UNRATE': ('失业率', 'pct', 'Monthly'),
+        'JTSJOL': ('职位空缺(千个)', 'thousands', 'Monthly'),
     }
 
     results = {}
 
-    for series_id, (name, unit) in series_map.items():
+    for series_id, (name, unit, freq) in series_map.items():
         try:
             url = f"https://api.stlouisfed.org/fred/series/observations"
             params = {
@@ -170,7 +172,9 @@ def fetch_real_economy_data():
                         'date': latest['date'],
                         'prev_value': prev['value'] if prev else None,
                         'change': change,
-                        'unit': unit
+                        'change_period': f"{prev['date']}→{latest['date']}" if prev else None,
+                        'unit': unit,
+                        'freq': freq
                     }
 
                     change_str = f" (变化: {'+' if change > 0 else ''}{change})" if change else ""
@@ -301,8 +305,13 @@ def save_results(futures, current_rate, real_economy, expectations):
     if real_economy:
         md_lines.append(f"\n## 实体经济指标")
         for k, v in real_economy.items():
-            change_str = f" (变化: {'+' if v['change'] > 0 else ''}{v['change']})" if v.get('change') else ""
-            md_lines.append(f"- {v['name']}: {v['value']}{change_str} ({v['date']})")
+            freq_tag = f"[{v.get('freq', '?')}]" if v.get('freq') else ""
+            if v.get('change'):
+                change_str = (f" (变化: {'+' if v['change'] > 0 else ''}{v['change']}"
+                              + (f", 区间{v['change_period']}" if v.get('change_period') else "") + ")")
+            else:
+                change_str = ""
+            md_lines.append(f"- {v['name']}{freq_tag}: {v['value']}{change_str} (观测日: {v['date']})")
 
     md_path = os.path.join(output_dir, f'rate_economy_{today}.md')
     with open(md_path, 'w', encoding='utf-8') as f:

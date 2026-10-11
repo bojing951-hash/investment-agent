@@ -11,12 +11,14 @@ import glob
 import re
 import shutil
 import io
+import subprocess
 import contextlib
 from datetime import datetime, timedelta
 
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from env_config import GLM_API_KEY, GLM_BASE_URL, GLM_MODEL
+import allocation_engine  # P2/P3 配置研究引擎(同目录)
 
 # ============ 路径配置 ============
 PROJECT_DIR = os.path.join(os.path.dirname(__file__), '..')
@@ -27,31 +29,22 @@ OUTPUT_DIR = os.path.join(PROJECT_DIR, 'output', 'weekly')
 # ============ 分析框架（从外部文件加载） ============
 ANALYSIS_FRAMEWORK = None  # 将从外部文件加载
 
-# ============ 系统提示词 ============
-# 2026-10-11 v2: 用户提供的"首席宏观研究员兼投资委员会秘书"角色(外部AI协助设计)
-SYSTEM_PROMPT = """你是为单一个人投资账户服务的“首席宏观研究员兼投资委员会秘书”，不是行情播报员。任务：维护跨资产投资假设、组合目标及风险预算，通过持续研究提出有条件、可撤销的调整建议；不为按时交报告而制造交易。
+# ============ 系统提示词(配置化, 2026-10-11 P1) ============
+# 提示词外移到 config/prompts/*.md,热加载:改文件即生效,无需改代码。
+# v2角色: "首席宏观研究员兼投资委员会秘书"(用户提供,外部AI协助设计)
+PROMPTS_DIR = os.path.join(CONFIG_DIR, 'prompts')
 
-分析流程：
-
-①核对锚点的指标、单位、观测日、发布时间、抓取日及本期/前期；缺日期不得使用，缺本期不得冒充现值，缺前期不得描述变化，未经锚点支持不得报数。
-
-②区分事实/解释/假设/预测；先列支持与反证，再判断增长、通胀、政策、流动性、信用体制。体制变更遵循连续两周规则，单周仅标候选。
-
-③解释变化经利率、美元、盈利、信用、风险偏好传导到各资产，列主情景、替代情景、触发器及失效条件；禁止标题当因果、强行量化概率。
-
-④比对组合目标、现有仓位、相关性、流动性、交易成本、税费和风险限额，评估对收益来源、回撤、集中度的影响。资料不足只给待验证方向，不给具体买卖数量。
-
-每周更新宏观状态和9项论点：逐项核对原文升降级/失效阈值，记录星级变化及反证；满足预设触发器才输出“调整提案”，否则为“维持/观察”。
-
-每月审视4—5周的证据累积、预测命中、组合归因和战术再平衡必要性；每季审视3个月趋势、战略配置、风险预算与投资政策。月季结论须回溯原始时序数据，不得只复制周报。
-
-所有建议必须写明：建议动作与理由、证据及反证、相对当前仓位变化、风险与最大容忍损失、执行前提、监控阈值、失效条件、下一复核日；未获取用户确认不得下单。
-
-保持通俗、克制、明确，遵循证据分级v2和禁语v2；不以星级直接推导仓位，禁止结果倒推理由。
-
-输出语言：中文
-输出格式：Markdown
-"""
+def load_prompt(name):
+    """加载 config/prompts/ 下的提示词文件。缺失即硬中断——
+    宁可流水线失败报警(六.2已保证exit code传播),也不静默用旧提示词生成。"""
+    path = os.path.join(PROMPTS_DIR, name)
+    if not os.path.exists(path):
+        print(f"❌ 提示词文件缺失: {path}")
+        sys.exit(1)
+    with open(path, 'r', encoding='utf-8') as f:
+        content = f.read().strip()
+    print(f"✅ 已加载提示词 {name} ({len(content)} 字符)")
+    return content
 
 def load_framework():
     """从外部文件加载分析框架"""
@@ -303,8 +296,8 @@ def sanitize_news(text):
         out.append(line)
     return '\n'.join(out)
 
-def generate_report(data_pack, framework=None, theses=None, prev_report=None, tech_notes=None, news_summary=None):
-    """调用火山引擎 DeepSeek 生成周报"""
+def generate_report(data_pack, framework=None, theses=None, prev_report=None, tech_notes=None, news_summary=None, views_block=None):
+    """调用智谱 GLM 生成周报(views_block: P2配置观点库,渲染自allocation_views.json)"""
 
     today = datetime.now()
     # 计算本周的周一和周日
@@ -312,19 +305,9 @@ def generate_report(data_pack, framework=None, theses=None, prev_report=None, te
     sunday = monday + timedelta(days=6)
     week_range = f"{monday.strftime('%Y%m%d')}-{sunday.strftime('%Y%m%d')}"
 
-    style_constraint = """【硬性约束 — 违反任一条将导致报告不合格，请在生成每一句话时检查】
-
-1. 绝对禁止使用以下表述（包括任何变体）：完美验证、教科书式、毫无疑问、铁板钉钉
-2. "正式确认"仅用于体制切换经过连续两周验证后的场景
-3. 确信度1-2★用"初步迹象""尚不明确"；3★用"有一定支撑""趋势初现"；4★用"较强支撑""多数据交叉验证"；5★用"强烈支持""高度一致"
-4. 所有数值必须来自下方数据锚点清单，不得自行推算或修改任何数字
-5. A股成交额必须标注口径（全A/上证/沪深两市），且明确是日均还是周累计
-6. 非农就业：月新增用"X万人"或"XK"，总量用"X万人"或"XM"，两者不得混淆
-7. 每个论点追踪必须显式引用thesis.json中的升级触发条件或失效条件，说明"本周是否触发"
-8. 跨资产分析中必须引用至少3对相关性数据并解释传导机制
-9. 任何"底部条件""阈值判断"必须列出具体数字标准，不得模糊表述
-10. 30Y收益率仅指30年期美国国债收益率(UST 30Y)，绝不可引用30年固定抵押贷款利率(mortgage rate)。新闻中出现的抵押贷款利率数据不得用于国债收益率字段。
-"""
+    # P1(2026-10-11): 提示词改为 config/prompts/ 热加载
+    system_prompt = load_prompt('system_prompt.md')
+    style_constraint = load_prompt('style_constraints.md')
 
     user_prompt = f"""请基于以下数据和分析框架，生成本周（{week_range}）的投资周报。
 
@@ -335,6 +318,9 @@ def generate_report(data_pack, framework=None, theses=None, prev_report=None, te
 
 ## 上期报告摘要（供对比参考）
 {prev_report if prev_report else '无上期报告，这是第一期。'}
+
+## 配置观点库（上期各资产评级，供第五节各资产小节与第七节引用）
+{views_block if views_block else '观点库缺失，本周跳过配置观点，各资产小节不标注评级。'}
 
 ## 用户技术面观察
 {tech_notes if tech_notes else '用户未提供技术面笔记，技术面部分请标注[待用户补充]'}
@@ -364,6 +350,8 @@ def generate_report(data_pack, framework=None, theses=None, prev_report=None, te
 （整理为表格，包含资产名称、收盘价、周涨跌幅、关键信号）
 
 ### 五、分资产深度分析
+（每个资产小节末尾加一行"配置观点: 评级|确信度★"，评级取自上方配置观点库的超配/标配/中性/低配/观望；
+若本周触发该资产的升降级条件，才输出"调整提案"：动作与理由、证据及反证、风险与最大容忍损失、失效条件、下一复核日；未触发则只维持原评级）
 
 #### 5.1 美股
 - 指数表现与技术位置
@@ -430,6 +418,25 @@ THESIS_STATUS-->
 
 status只能取: 进行中/待观察/已验证/已失效；confidence为1-5整数；id与thesis.json一致。
 
+6. 紧跟THESIS_STATUS块之后，输出"配置观点块"（HTML注释，同格式，每个资产一行、共9行）：
+
+<!--ALLOCATION_STATUS
+{{"id":1,"rating":"中性","confidence":2,"note":"≤40字本周理由"}}
+{{"id":2,"rating":"低配","confidence":3,"note":"..."}}
+ALLOCATION_STATUS-->
+
+rating只能取: 超配/标配/中性/低配/观望；id与allocation_views.json一致（1美股/2利率久期/3信用/4美元/5贵金属/6能源/7A股港股/8加密/9现金短债）。
+仅当本周发生评级变更时，在该行附加预测字段（方向+期限）：
+{{"id":5,"rating":"标配","confidence":3,"note":"...","pred":"若XXX则两周内YYY","pred_weeks":2}}
+
+7. 若观点库中有"⏰已到期"的预测，先在报告第七节给出命中/证伪判断，并在最后输出预测裁决块：
+
+<!--PREDICTION_STATUS
+{{"pred_id":1,"status":"hit","note":"≤30字裁决依据"}}
+PREDICTION_STATUS-->
+
+status只能取: hit/miss/expired。
+
 注意：
 - 所有数字精确到小数点后两位
 - 每个判断标注确信度（★ 到 ★★★★★）
@@ -439,12 +446,12 @@ status只能取: 进行中/待观察/已验证/已失效；confidence为1-5整�
 
     print("\n🤖 正在调用智谱 GLM 生成周报...")
     print(f"   模型: {GLM_MODEL} (智谱v4通道·流式)")
-    print(f"   输入长度: 约 {len(SYSTEM_PROMPT) + len(user_prompt)} 字符")
+    print(f"   输入长度: 约 {len(system_prompt) + len(user_prompt)} 字符")
 
     max_attempts = 3
     for attempt in range(1, max_attempts + 1):
         try:
-            report_text = _call_glm(SYSTEM_PROMPT, user_prompt)
+            report_text = _call_glm(system_prompt, user_prompt)
             if not report_text or len(report_text.strip()) < 500:
                 raise ValueError(f"返回内容过短({len(report_text or '')}字符),疑似被截断")
             print(f"✅ 生成完成！报告长度: {len(report_text)} 字符")
@@ -520,6 +527,27 @@ def save_report(report_text, date_str=None):
 #  ② validate_report每天07:00校验的是"昨天的报告vs今天的锚点",报告生成后无人校验 → 生成后立即用同日锚点校验
 
 ALLOWED_STATUS = {'进行中', '待观察', '已验证', '已失效'}
+
+# ============ 月报/季报触发(P4, 2026-10-11) ============
+def is_last_friday_of_month(d=None):
+    """月末最后一个周五(月报触发条件)。非周五直接False。"""
+    d = d or datetime.now()
+    if d.weekday() != 4:
+        return False
+    return (d + timedelta(days=7)).month != d.month
+
+def is_last_friday_of_quarter(d=None):
+    """季末月(3/6/9/12)的最后一个周五(季报触发条件)。"""
+    d = d or datetime.now()
+    return is_last_friday_of_month(d) and d.month in (3, 6, 9, 12)
+
+def _has_numeric_errors(warnings):
+    """P0修复(六.7): 数值类错误(严重错误/偏差超容差)应阻止论点状态回写。
+    样式类警告(如A股口径标注)不阻止——那不影响判断依据的数字本身。"""
+    for w in warnings:
+        if w.startswith('🚨') or (w.startswith('❌') and ('偏差' in w or '锚点' in w or '超出合理范围' in w)):
+            return True
+    return False
 
 def update_thesis_status(report_text):
     """解析报告末尾的THESIS_STATUS块,回写 config/thesis.json 的 status/confidence/history"""
@@ -645,6 +673,14 @@ if __name__ == '__main__':
     # 第0.5步：加载论点
     theses = load_theses()
 
+    # 第0.55步：加载配置观点库(P2)
+    views_data = allocation_engine.load_views()
+    views_block = allocation_engine.render_views_block(views_data) if views_data else ""
+    if views_data:
+        print(f"   配置观点: {len(views_data.get('views', []))} 资产 / "
+              f"{len(views_data.get('predictions', []))} 预测"
+              f"({len(allocation_engine.due_predictions(views_data))} 条已到期待裁决)")
+
     # 第0.6步：加载上期报告
     prev_report = load_previous_report()
 
@@ -671,7 +707,7 @@ if __name__ == '__main__':
         print(f"✅ 数据锚点已加载 ({len(anchor_block)} 字符)")
 
     # 第2步：生成报告
-    report = generate_report(data_pack, framework, theses, prev_report, tech_notes, news_summary)
+    report = generate_report(data_pack, framework, theses, prev_report, tech_notes, news_summary, views_block)
     if not report:
         print("\n❌ 报告生成失败")
         sys.exit(1)
@@ -679,11 +715,17 @@ if __name__ == '__main__':
     # 第3步：保存
     md_path = save_report(report)
 
-    # 第3.5步：解析论点状态块,回写thesis.json(2026-10-11)
-    update_thesis_status(report)
+    # 第3.5步：同日锚点校验(2026-10-11) — 必须先于论点回写
+    warnings = validate_generated_report(md_path)
 
-    # 第3.6步：同日锚点校验刚生成的报告(2026-10-11)
-    validate_generated_report(md_path)
+    # 第3.6步：论点状态回写(2026-10-11) — 数值校验不过关则禁止回写,
+    # 防止基于错误数字的升降级污染thesis.json(升级提示词缺陷清单第7条)
+    # P2(2026-10-11): 观点库回写同门禁
+    if _has_numeric_errors(warnings):
+        print("⛔ 存在数值类校验错误,本轮跳过thesis.json与allocation_views.json回写(请人工核对后再决定)")
+    else:
+        update_thesis_status(report)
+        allocation_engine.update_allocation_status(report)
 
     # 第4步：预览前30行
     print("\n" + "=" * 60)
@@ -694,5 +736,29 @@ if __name__ == '__main__':
         print(line)
     if len(lines) > 30:
         print(f"\n... 共 {len(lines)} 行，完整报告请查看输出文件")
+
+    # 第5步(P4, 2026-10-11): 月末/季末最后一个周五 → 追加月报/季报
+    # 周报已完成并落盘,附加报告失败不影响周报(独立进程,失败仅记日志)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    if is_last_friday_of_month():
+        print("\n📅 今天是月末最后一个周五,启动月度复盘(monthly_review.py)...")
+        try:
+            r = subprocess.run([sys.executable, os.path.join(script_dir, 'monthly_review.py')],
+                               timeout=1800, capture_output=True, text=True)
+            print(r.stdout[-800:] if r.stdout else "", end="")
+            if r.returncode != 0:
+                print(f"⚠️ 月度复盘失败(exit {r.returncode}): {r.stderr[-300:]}")
+        except subprocess.TimeoutExpired:
+            print("⚠️ 月度复盘超时30分钟,已终止(周报不受影响)")
+    if is_last_friday_of_quarter():
+        print("\n📅 今天是季末最后一个周五,启动季度展望(quarterly_outlook.py)...")
+        try:
+            r = subprocess.run([sys.executable, os.path.join(script_dir, 'quarterly_outlook.py')],
+                               timeout=1800, capture_output=True, text=True)
+            print(r.stdout[-800:] if r.stdout else "", end="")
+            if r.returncode != 0:
+                print(f"⚠️ 季度展望失败(exit {r.returncode}): {r.stderr[-300:]}")
+        except subprocess.TimeoutExpired:
+            print("⚠️ 季度展望超时30分钟,已终止(周报不受影响)")
 
     print("\n🎉 周报生成完成！")

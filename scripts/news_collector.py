@@ -12,7 +12,7 @@ import feedparser
 from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from env_config import FINNHUB_API_KEY, DEEPSEEK_API_KEY, DEEPSEEK_BASE_URL, DEEPSEEK_MODEL
+from env_config import FINNHUB_API_KEY, GLM_API_KEY, GLM_BASE_URL, GLM_MODEL
 
 import finnhub
 from openai import OpenAI
@@ -302,46 +302,43 @@ def generate_news_summary(classified):
 {news_text}
 """
 
-    client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url=DEEPSEEK_BASE_URL)
+    # 2026-10-11 P0修复(缺陷六.1/六.10): 此处原调用火山引擎DeepSeek(responses.create),
+    # 模型已下线(ModelNotOpen)导致每日"AI摘要失败"降级为原始标题噪音。
+    # 迁移到智谱GLM(与周报同通道,流式防断连,见 glm-api-pitfalls)。
+    client = OpenAI(api_key=GLM_API_KEY, base_url=GLM_BASE_URL)
 
     try:
-        response = client.responses.create(
-            model=DEEPSEEK_MODEL,
-            input=[
+        stream = client.chat.completions.create(
+            model=GLM_MODEL,
+            messages=[
                 {"role": "system", "content": "你是金融市场新闻分析师，擅长从大量新闻中提取关键信息和市场影响。输出简洁、精准。"},
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            max_tokens=4000,
+            temperature=0.3,
+            extra_body={"reasoning_effort": "low"},
+            stream=True,
         )
-        summary = response.output[0].content[0].text
-        print(f"  ✅ 摘要生成完成: {len(summary)} 字符")
+        chunks = []
+        for ev in stream:
+            if ev.choices and ev.choices[0].delta and ev.choices[0].delta.content:
+                chunks.append(ev.choices[0].delta.content)
+        summary = "".join(chunks)
+        if not summary.strip():
+            raise RuntimeError("流式返回为空")
+        print(f"  ✅ 摘要生成完成(GLM): {len(summary)} 字符")
         return summary
     except Exception as e:
-        print(f"  ❌ responses.create 失败: {e}")
-        # 备用接口
-        try:
-            response = client.chat.completions.create(
-                model=DEEPSEEK_MODEL,
-                messages=[
-                    {"role": "system", "content": "你是金融市场新闻分析师。输出简洁中文摘要。"},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=3000,
-                temperature=0.3
-            )
-            summary = response.choices[0].message.content
-            print(f"  ✅ 备用接口成功: {len(summary)} 字符")
-            return summary
-        except Exception as e2:
-            print(f"  ❌ 备用接口也失败: {e2}")
-            # 最后手段：直接输出分类标题
-            fallback = "## 本周新闻摘要（AI摘要失败，以下为原始标题）\n\n"
-            for cat, articles in classified.items():
-                if articles:
-                    fallback += f"### {cat}\n"
-                    for a in articles[:5]:
-                        fallback += f"- {a.get('headline', '')}\n"
-                    fallback += "\n"
-            return fallback
+        print(f"  ❌ GLM摘要失败: {e}")
+        # 最后手段：直接输出分类标题
+        fallback = "## 本周新闻摘要（AI摘要失败，以下为原始标题）\n\n"
+        for cat, articles in classified.items():
+            if articles:
+                fallback += f"### {cat}\n"
+                for a in articles[:5]:
+                    fallback += f"- {a.get('headline', '')}\n"
+                fallback += "\n"
+        return fallback
 
 def save_news(classified, summary):
     """保存新闻数据"""

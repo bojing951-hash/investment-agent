@@ -57,4 +57,22 @@ python3 scripts/report_generator.py  # 手动生成一份周报
 
 ## 已知短板
 
-新闻日摘要的 AI 精简步骤失败中（降级为原始标题，含噪音）；framework 要求的 EIA 库存/HY 到期高峰/TIC/ETF 持仓等数据尚无采集器；融资余额接口偶发静默失败。
+framework 要求的 EIA 库存/HY 到期高峰/TIC/ETF 持仓等数据尚无采集器；融资余额接口偶发静默失败。（新闻 AI 摘要的 DeepSeek 死接口问题已于 2026-10-11 迁移 GLM 修复）
+
+## 2026-10-11 升级（P0–P4）
+
+按"Global Macro Research & Allocation Agent"升级规范完成四个阶段，周报八节结构保持不变。详细差距矩阵与路线图见 `docs/UPGRADE_PLAN.md`，回归测试 `tests/`（89 项断言，纯 Python 无需 pytest）。
+
+- **P0 缺陷修复（9 项）**：新闻 AI 摘要迁移 GLM；流水线失败传播 exit code；月度 FRED 序列标注频率与观测区间；体制切换"连续两周"改用 ISO 周去重（同周每日文件视为回声）；数据锚点带采集日/观测日双时间戳；数值校验不过关禁止回写论点状态；framework.md 体制映射同步 v2.0
+- **P1 研究增强**：校验显示观测日+日频行情滞后提示；**提示词全部外移 `config/prompts/` 热加载**；评分卡体制归因（反事实分解：剔除单指标后体制翻转者=关键驱动）
+- **P2 配置研究引擎**：`config/allocation_views.json` 九资产观点库（评级/确信度/触发器/失效条件/历史），`allocation_engine.py` 渲染进周报第五节并解析 ALLOCATION_STATUS 块回写
+- **P3 预测追踪**：观点库 predictions[] 记录方向/期限/deadline，评级变更自动登记预测，到期由 PREDICTION_STATUS 块裁决 hit/miss/expired，命中统计进季报
+- **P4 月报季报**：月末/季末最后一个周五在周报后自动触发 `monthly_review.py` / `quarterly_outlook.py`（子进程，失败不影响周报），回溯整月/整季原始 JSON 时序而非拼接周报，产出 `output/monthly/`、`output/quarterly/`
+
+```bash
+# 新增可单独运行
+python3 scripts/allocation_engine.py              # 渲染观点库(冒烟)
+python3 scripts/monthly_review.py --dry-run       # 装配月度数据块(不调GLM)
+python3 scripts/monthly_review.py                 # 生成月度复盘
+python3 tests/test_p0_fixes.py                    # 回归测试(另有 p1/p2/p4)
+```

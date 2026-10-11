@@ -1,0 +1,194 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-10-11",
+  "note": "配置观点库(P2): 记录各资产相对评级与条件观点。评级≠仓位指令,星级不直接推导仓位(提示词v2)。评级/确信度由周报ALLOCATION_STATUS块每周回写,预测由PREDICTION_STATUS块裁决。",
+  "ratings_scale": ["超配", "标配", "中性", "低配", "观望"],
+  "views": [
+    {
+      "id": 1,
+      "asset": "美股",
+      "section": "5.1",
+      "rating": "中性",
+      "confidence": 2,
+      "horizon": "1-3个月",
+      "rationale": "已确认体制仍为再通胀(利于股),但类滞胀信号待跨周确认+信用墙5★压制风险偏好,两侧力量拉锯",
+      "evidence_for": ["增长总分+1(零售+2贡献)", "SPX 7811高位,盈利仍有支撑"],
+      "evidence_against": ["类滞胀候选: 通胀总分+4", "CCC OAS 946bp逼近1000bp恐慌线(论点#2)"],
+      "triggers": {
+        "upgrade": "类滞胀证伪(回归再通胀确认)且CCC OAS回落至850bp以下",
+        "downgrade": "类滞胀获跨周确认,或CCC OAS突破1000bp"
+      },
+      "invalidation": ["体制切换为衰退(增长总分≤0且通胀≤+2)时评级框架整体重估"],
+      "related_theses": [2, 5],
+      "history": ["2026-10-11 初始化: 中性 2★(体制切换待决+信用风险高位)"]
+    },
+    {
+      "id": 2,
+      "asset": "利率与久期(美债)",
+      "section": "5.2",
+      "rating": "低配",
+      "confidence": 3,
+      "horizon": "1-3个月",
+      "rationale": "类滞胀环境下央行难宽松,30Y 4.88%逼近5%红线,期限溢价上行压力未解除;短端确定性高于长端",
+      "evidence_for": ["30Y UST 4.88%(距5%红线12bp)", "通胀总分+4压制降息空间"],
+      "evidence_against": ["若增长快速转负,衰退交易将快速利多久期"],
+      "triggers": {
+        "upgrade": "体制切换为衰退获确认,或30Y突破5%后出现期限溢价极端回归信号",
+        "downgrade": "类滞胀确认+30Y站稳5%以上"
+      },
+      "invalidation": ["美联储重启降息且通胀总分回落至+2以下"],
+      "related_theses": [5],
+      "history": ["2026-10-11 初始化: 低配 3★(长端供给+通胀粘性)"]
+    },
+    {
+      "id": 3,
+      "asset": "信用(高收益债)",
+      "section": "5.3",
+      "rating": "低配",
+      "confidence": 4,
+      "horizon": "1-3个月",
+      "rationale": "论点#2信用墙5★: CCC 946bp距恐慌线54bp,高利率再融资压力向低评级扩散,私募信贷流动性收紧",
+      "evidence_for": ["CCC OAS 946bp(恐慌线1000bp)", "Blue Owl赎回上限5%"],
+      "evidence_against": ["CCC OAS已从988bp小幅回落", "HY一级市场尚未冻结"],
+      "triggers": {
+        "upgrade": "CCC OAS回落至850bp以下且HY新发行恢复",
+        "downgrade": "CCC OAS突破1000bp或出现中型企业违约"
+      },
+      "invalidation": ["美联储降息50bp以上且CCC回落至800bp以下"],
+      "related_theses": [2, 8],
+      "history": ["2026-10-11 初始化: 低配 4★(承接论点#2信用墙)"]
+    },
+    {
+      "id": 4,
+      "asset": "美元",
+      "section": "5.4",
+      "rating": "低配",
+      "confidence": 3,
+      "horizon": "1-3个月",
+      "rationale": "论点#3 Sell America 3★: DXY 99.8跌破100,结构性信任弱化而非基本面走弱;但利率高位限制跌幅",
+      "evidence_for": ["DXY 99.8(<100)", "30Y 4.88%显示外资要求补偿"],
+      "evidence_against": ["类滞胀环境下美联储偏鹰,利差支撑美元"],
+      "triggers": {
+        "upgrade": "DXY回升至103以上维持两周",
+        "downgrade": "DXY跌破98且资金多极化证据累积(论点#9)"
+      },
+      "invalidation": ["DXY站上105且30Y回落至4.5%以下"],
+      "related_theses": [3, 9],
+      "history": ["2026-10-11 初始化: 低配 3★(承接论点#3)"]
+    },
+    {
+      "id": 5,
+      "asset": "贵金属(黄金)",
+      "section": "5.5",
+      "rating": "观望",
+      "confidence": 2,
+      "horizon": "1-3个月",
+      "rationale": "论点#1已降级待观察1★: 实际利率2.92%>2.5%阈值、金价4165<4200,距失效仅一周;短期不参与,等类滞胀确认或实际利率回落再介入",
+      "evidence_for": ["金价4165回调后企稳", "央行购金与多极化配置长期逻辑未破(论点#9)"],
+      "evidence_against": ["实际利率2.92%连续两周超2.5%", "DXY若反弹进一步压制"],
+      "triggers": {
+        "upgrade": "类滞胀获跨周确认(通胀对冲需求回归),或实际利率回落至2.2%以下",
+        "downgrade": "论点#1失效触发(实际利率2.5%以上三周+金价破4200无避险支撑)"
+      },
+      "invalidation": ["黄金跌破3900(中期趋势破坏)"],
+      "related_theses": [1, 5, 9],
+      "history": ["2026-10-11 初始化: 观望 2★(承接论点#1降级)"]
+    },
+    {
+      "id": 6,
+      "asset": "能源(原油)",
+      "section": "5.6",
+      "rating": "标配",
+      "confidence": 3,
+      "horizon": "1-3个月",
+      "rationale": "WTI 91.85处85-100偏紧区间,地缘溢价(论点#6)支撑但>90已推升通胀、需求破坏风险积聚,不追高",
+      "evidence_for": ["WTI 91.85(通胀推升区)", "地缘风险成为定价主导因子之一"],
+      "evidence_against": ["高油价反噬需求(消费者减少驾驶等信号)", "通胀总分+4部分源于油价,若回落将带动评分下行"],
+      "triggers": {
+        "upgrade": "地缘冲突实质性升级且供应中断证据出现",
+        "downgrade": "WTI跌破85(地缘溢价消退)或需求破坏信号明确"
+      },
+      "invalidation": ["WTI跌破70(需求坍塌,转入衰退交易)"],
+      "related_theses": [6, 8],
+      "history": ["2026-10-11 初始化: 标配 3★(持有不追高)"]
+    },
+    {
+      "id": 7,
+      "asset": "A股与港股",
+      "section": "5.7",
+      "rating": "中性",
+      "confidence": 2,
+      "horizon": "1-3个月",
+      "rationale": "论点#4待观察2★: 上证3811修复但成交量与南向资金未满足底部三条件,外围类滞胀风险压制估值修复空间",
+      "evidence_for": ["上证3813.79,成交回暖", "政策面偏暖"],
+      "evidence_against": ["全A成交额未连续5日破万亿", "南向资金5日累计未达100亿港元阈值", "类滞胀若确认压制全球风险资产"],
+      "triggers": {
+        "upgrade": "底部三条件满足≥2项(万亿成交+政策共振+南向持续流入)",
+        "downgrade": "类滞胀确认+美元流动性收紧传导至港股"
+      },
+      "invalidation": ["上证跌破前低且成交萎缩(β下跌中继)"],
+      "related_theses": [4],
+      "history": ["2026-10-11 初始化: 中性 2★(底部条件未齐)"]
+    },
+    {
+      "id": 8,
+      "asset": "加密货币(BTC)",
+      "section": "5.8",
+      "rating": "中性",
+      "confidence": 2,
+      "horizon": "1-3个月",
+      "rationale": "BTC 83017随风险资产波动,资金多极化叙事(论点#9)提供长期边际买盘但短期受美元流动性主导",
+      "evidence_for": ["多极化资金配置叙事", "BTC守住80000上方"],
+      "evidence_against": ["与美股高β联动,类滞胀确认则承压", "无现金流,通胀对冲属性未经周期验证"],
+      "triggers": {
+        "upgrade": "类滞胀确认+资金多极化证据强化(稳定币市值/非美交易所份额)",
+        "downgrade": "BTC跌破75000(β坍塌)或美元流动性明显收紧"
+      },
+      "invalidation": ["与黄金的相关性转为持续同跌(风险资产属性固化,配置逻辑重估)"],
+      "related_theses": [9],
+      "history": ["2026-10-11 初始化: 中性 2★(β主导,α未现)"]
+    },
+    {
+      "id": 9,
+      "asset": "现金与短债",
+      "section": "总览",
+      "rating": "超配",
+      "confidence": 3,
+      "horizon": "1-3个月",
+      "rationale": "体制切换待决窗口(再通胀→类滞胀待确认)+信用墙逼近恐慌线,现金期权价值高;短端利率仍提供正收益",
+      "evidence_for": ["体制状态=待确认(3★上限)", "CCC OAS 946bp", "等待成本低于误配成本"],
+      "evidence_against": ["类滞胀环境下现金实际购买力受损"],
+      "triggers": {
+        "upgrade": "类滞胀获确认且信用利差走破恐慌线",
+        "downgrade": "体制回归再通胀确认+CCC回落至850bp以下,减现金加风险资产"
+      },
+      "invalidation": ["快速衰退情景下应转久期而非持现金"],
+      "related_theses": [2, 5],
+      "history": ["2026-10-11 初始化: 超配 3★(不确定性窗口的期权价值)"]
+    }
+  ],
+  "predictions": [
+    {
+      "pred_id": 1,
+      "date_made": "2026-10-11",
+      "asset": "贵金属(黄金)",
+      "direction": "若类滞胀体制下周获跨周确认,通胀对冲买盘推动金价两周内收复4300",
+      "horizon_weeks": 2,
+      "deadline": "2026-10-25",
+      "trigger": "评分卡confirmed_regime=类滞胀",
+      "status": "open",
+      "resolved_note": ""
+    },
+    {
+      "pred_id": 2,
+      "date_made": "2026-10-11",
+      "asset": "信用(高收益债)",
+      "direction": "CCC OAS突破1000bp恐慌线前,HY指数不会出现单周>3%回撤(利差走阔但缓慢)",
+      "horizon_weeks": 4,
+      "deadline": "2026-11-08",
+      "trigger": "CCC OAS周观测值",
+      "status": "open",
+      "resolved_note": ""
+    }
+  ]
+}

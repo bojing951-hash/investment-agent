@@ -88,6 +88,12 @@ def extract_anchors_from_data():
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
 
+            # P0修复(六.5): 锚点补时间元数据 — as_of=采集日(源自文件名),obs_date=观测日(源自兄弟.date字段)
+            as_of = '未知'
+            m = re.search(r'(\d{8})', os.path.basename(filepath))
+            if m:
+                as_of = f"{m.group(1)[:4]}-{m.group(1)[4:6]}-{m.group(1)[6:]}"
+
             flat = flatten_json(data)
             count = 0
             for key, value in flat.items():
@@ -95,10 +101,38 @@ def extract_anchors_from_data():
                     anchors[f"{source_name}.{key}"] = {
                         'value': value,
                         'source_file': os.path.basename(filepath),
+                        'as_of': as_of,
                         'tolerance_pct': 1.0
                     }
                     count += 1
-            print(f"✅ {source_name}: 提取 {count} 个数值锚点")
+
+            # 把形如 xxx.date 的观测日挂到同一父节点下的所有数值锚点上
+            # (区分"数据是哪天的"与"哪天抓的")。兼容两种日期格式:
+            # ISO "2026-10-09"(FRED/yfinance) 和紧凑 "20261009"(akshare)。
+            # 匹配方式: 父节点前缀匹配 — data.SPX.date 覆盖 data.SPX.close/.change等全部兄弟数值
+            def _norm_date(s):
+                if re.match(r'\d{4}-\d{2}-\d{2}', s):
+                    return s[:10]
+                m8 = re.match(r'^(\d{4})(\d{2})(\d{2})$', s.strip())
+                if m8:
+                    return f"{m8.group(1)}-{m8.group(2)}-{m8.group(3)}"
+                return None
+
+            dated = 0
+            for key, value in flat.items():
+                if not (isinstance(value, str) and key.endswith('.date')):
+                    continue
+                obs = _norm_date(value)
+                if not obs:
+                    continue
+                parent = key[:-5]
+                for akey in anchors:
+                    if akey in (parent, f"{source_name}.{parent}") \
+                       or akey.startswith((f"{parent}.", f"{source_name}.{parent}.")):
+                        if 'obs_date' not in anchors[akey]:
+                            anchors[akey]['obs_date'] = obs
+                            dated += 1
+            print(f"✅ {source_name}: 提取 {count} 个数值锚点 (采集日 {as_of}, {dated} 个含观测日)")
 
         except Exception as e:
             print(f"❌ {source_name} 读取失败: {e}")
@@ -179,6 +213,43 @@ def find_anchor_value(anchors, key_pattern):
     return matches
 
 
+# 日频行情源: 观测日不应明显滞后于报告日(月度FRED序列天然滞后,免检)
+DAILY_SOURCES = ('global_market', 'china')
+MAX_STALE_DAYS = 5
+
+def _obs_staleness_warning(anchor_key, info, report_date):
+    """P1(2026-10-11): 时点检查 — 日频行情锚点的观测日若明显滞后于报告日,提示风险。
+
+    ⚠️提示级,不进_has_numeric_errors拦截;月度序列(UNRATE/CPILFESL等)不做此检查。
+    防的是"周三的行情数据被周五报告当作现值引用"这类时点错位。
+    """
+    source = anchor_key.split('.')[0]
+    if source not in DAILY_SOURCES:
+        return None
+    obs = info.get('obs_date')
+    if not obs or not report_date:
+        return None
+    from datetime import date
+    try:
+        lag = (report_date - date(int(obs[:4]), int(obs[5:7]), int(obs[8:10]))).days
+    except (ValueError, TypeError):
+        return None
+    if lag > MAX_STALE_DAYS:
+        return (f"⚠️ 时点滞后 {anchor_key.split('.', 1)[1]}: 观测日{obs}落后报告日{lag}天"
+                f" — 报告引用时须标注数据时点")
+    return None
+
+def _report_date_from_path(report_path):
+    """从 weekly_report_YYYYMMDD.md 文件名解析报告日,失败返回今天"""
+    m = re.search(r'(\d{8})', os.path.basename(report_path or ''))
+    ref = m.group(1) if m else datetime.now().strftime('%Y%m%d')
+    try:
+        from datetime import date
+        return date(int(ref[:4]), int(ref[4:6]), int(ref[6:8]))
+    except ValueError:
+        return None
+
+
 def validate_report(report_path, anchors):
     if not os.path.exists(report_path):
         print(f"❌ 报告文件不存在: {report_path}")
@@ -188,6 +259,7 @@ def validate_report(report_path, anchors):
         report_text = f.read()
 
     warnings = []
+    report_date = _report_date_from_path(report_path)
 
     # === 1. 核心数值比对 ===
     print("\n🔍 核心数值比对:")
@@ -218,7 +290,13 @@ def validate_report(report_path, anchors):
         deviation_pct = abs(report_val - anchor_val) / abs(anchor_val) * 100
 
         if deviation_pct <= tolerance_pct:
-            print(f"  ✅ {name}: 报告={report_val}, 锚点={anchor_val} (偏差{deviation_pct:.2f}% ≤ {tolerance_pct}%)")
+            obs = anchors.get(anchor_key, {}).get('obs_date', '?')
+            print(f"  ✅ {name}: 报告={report_val}, 锚点={anchor_val} (观测日{obs}, 偏差{deviation_pct:.2f}% ≤ {tolerance_pct}%)")
+            # P1: 时点滞后检查(仅日频行情源,提示级)
+            stale = _obs_staleness_warning(anchor_key, anchors.get(anchor_key, {}), report_date)
+            if stale:
+                warnings.append(stale)
+                print(f"  {stale}")
         elif deviation_pct > 20:
             msg = f"🚨 严重错误 {name}: 报告={report_val}, 锚点={anchor_val} (偏差{deviation_pct:.2f}% — 疑似指标混淆)"
             warnings.append(msg)
@@ -333,10 +411,15 @@ def save_anchors(anchors):
 
     serializable = {}
     for k, v in anchors.items():
-        serializable[k] = {
+        entry = {
             'value': v['value'],
             'source_file': v['source_file'],
         }
+        if v.get('as_of'):
+            entry['as_of'] = v['as_of']
+        if v.get('obs_date'):
+            entry['obs_date'] = v['obs_date']
+        serializable[k] = entry
 
     path = os.path.join(data_dir, f'anchors_{today}.json')
     with open(path, 'w', encoding='utf-8') as f:

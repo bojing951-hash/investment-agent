@@ -93,6 +93,13 @@ if __name__ == '__main__':
     print("\n" + "=" * 60)
     print("📝 下一步：生成周报")
     print("=" * 60)
+
+    # 2026-10-11 P0修复: 任一步骤失败必须以非零退出,否则run_daily.sh拿到RESULT=0,
+    # 失败被静默吞掉(此前无论成败永远exit 0)
+    if success_count < len(steps):
+        failed = [n for n, s in results if not s]
+        print(f"\n❌ {len(steps) - success_count} 步失败: {', '.join(failed)}")
+        sys.exit(1)
     print("  数据已就绪，请单独运行以下命令生成报告：")
     print("  python3 scripts/report_generator.py")
     print("")

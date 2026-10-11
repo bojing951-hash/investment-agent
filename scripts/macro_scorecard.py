@@ -260,6 +260,70 @@ def determine_regime(g_total, i_total):
 
     return regime, desc
 
+def resolve_transition(prev_confirmed, prev_pending, prev_status, current_regime):
+    """体制切换裁决(2026-10-11 P0修复: 提取为纯函数,可单元测试)
+
+    规则不变: 新体制须在两个不同观察周被独立计算出来才确认。
+    调用方必须保证 prev_* 来自上一个不同的ISO周(见 _prev_distinct_week_file)。
+    """
+    if not prev_confirmed:
+        return current_regime, "confirmed", 5                      # 首次运行
+
+    if prev_status == 'pending_confirmation':
+        if current_regime == prev_pending:
+            return current_regime, "confirmed", 5                  # 连续两周一致→确认
+        elif current_regime == prev_confirmed:
+            return prev_confirmed, "confirmed", 5                  # 回归原体制→取消
+        else:
+            return prev_confirmed, "pending_confirmation", 3       # 第三种→重新待确认
+    elif current_regime != prev_confirmed:
+        return prev_confirmed, "pending_confirmation", 3           # 首次出现切换信号
+    else:
+        return current_regime, "confirmed", 5                      # 维持
+
+
+def _prev_distinct_week_file(files, today_str):
+    """从按时间排序的评分卡文件里,找最近一个"不同ISO周"的文件。
+
+    P0修复核心: 流水线每天跑,评分卡每日一份。原逻辑取"上一个文件",
+    周一出现信号、周二同样的月度数据重复计算同一体制,即被当作"连续两周一致"→
+    两个自然日就完成"两周验证"。现在同周文件一律视为回声,只与上周(或更早)比对。
+    """
+    from datetime import date
+    t = date(int(today_str[:4]), int(today_str[4:6]), int(today_str[6:8]))
+    t_week = t.isocalendar()[1]
+    t_year = t.isocalendar()[0]
+    for f in reversed(files):
+        try:
+            d = date(int(f[-13:-9]), int(f[-9:-7]), int(f[-7:-5]))
+            iso = d.isocalendar()
+            if (iso[0], iso[1]) != (t_year, t_week):
+                return f
+        except ValueError:
+            continue
+    return None
+
+
+def attribute_regime(g_scores, g_total, i_scores, i_total):
+    """体制归因(P1, 2026-10-11): 反事实分解 — 逐项剔除单个指标后重算体制,
+    体制发生翻转的指标即为"关键驱动"。返回(驱动列表, 全部反事实列表)。
+
+    用途: 周报"体制判断依据"不再只有总分,还能回答"是哪个指标把总分推过线"。
+    """
+    base_regime, _ = determine_regime(g_total, i_total)
+    drivers, counterfactuals = [], []
+    for dim, scores, total in (('增长', g_scores, g_total), ('通胀', i_scores, i_total)):
+        for key, s in scores.items():
+            ng = total - s['score'] if dim == '增长' else g_total
+            ni = total - s['score'] if dim == '通胀' else i_total
+            cf, _ = determine_regime(ng, ni)
+            counterfactuals.append({'indicator': s['name'], 'dimension': dim,
+                                    'score': s['score'], 'regime_without': cf})
+            if cf != base_regime:
+                drivers.append(f"{s['name']}({s['score']:+d}): 剔除后体制变为[{cf}] — 关键驱动")
+    return drivers, counterfactuals
+
+
 def save_scorecard(g_scores, g_total, i_scores, i_total, regime, desc):
     today = datetime.now().strftime('%Y%m%d')
     data_dir = os.path.join(ROOT_DIR, 'data', 'daily')
@@ -275,72 +339,44 @@ def save_scorecard(g_scores, g_total, i_scores, i_total, regime, desc):
     prev_pending_regime = None     # 上一期待确认的新体制
     prev_status = "confirmed"
 
-    # 查找最近一期的 scorecard JSON（排除今天）
+    # 查找上一观察周(不同ISO周)的评分卡;同周文件视为回声,不参与"连续两周"判定
     existing = sorted(glob.glob(os.path.join(data_dir, 'scorecard_*.json')))
     prev_files = [f for f in existing if not f.endswith(f'scorecard_{today}.json')]
+    prev_file = _prev_distinct_week_file(prev_files, today)
 
-    if prev_files:
+    if prev_file:
         try:
-            with open(prev_files[-1], 'r', encoding='utf-8') as f:
+            with open(prev_file, 'r', encoding='utf-8') as f:
                 prev_data = json.load(f)
             prev_confirmed_regime = prev_data.get('confirmed_regime', prev_data.get('regime'))
             prev_pending_regime = prev_data.get('pending_regime')
             prev_status = prev_data.get('regime_status', 'confirmed')
-            print(f"📋 上期已确认体制: {prev_confirmed_regime}")
-            if prev_status == 'pending_confirmation':
-                print(f"   上期待确认体制: {prev_pending_regime}")
+            print(f"📋 上观察周({os.path.basename(prev_file)[-13:-5]}): 已确认={prev_confirmed_regime}"
+                  + (f", 待确认={prev_pending_regime}" if prev_status == 'pending_confirmation' else ""))
         except Exception as e:
             print(f"⚠️ 读取上期评分卡失败: {e}")
-
-    # 切换判断逻辑
-    confirmed_regime = prev_confirmed_regime  # 默认继承
-    regime_status = "confirmed"
-    max_confidence = 5
-
-    if not prev_confirmed_regime:
-        # 首次运行，无历史数据
-        confirmed_regime = regime
-        regime_status = "confirmed"
-        print(f"🆕 首次评分: {regime}")
-
-    elif prev_status == 'pending_confirmation':
-        # 上期处于待确认状态
-        if regime == prev_pending_regime:
-            # 连续两周指向同一新体制 → 正式确认切换
-            confirmed_regime = regime
-            regime_status = "confirmed"
-            max_confidence = 5
-            print(f"✅ 体制切换确认: {prev_confirmed_regime} → {regime} (连续两周一致)")
-        elif regime == prev_confirmed_regime:
-            # 回归原体制 → 取消切换，恢复原体制
-            confirmed_regime = prev_confirmed_regime
-            regime_status = "confirmed"
-            max_confidence = 5
-            print(f"↩️ 体制切换取消: 回归 {prev_confirmed_regime} (待确认的{prev_pending_regime}未获连续验证)")
-        else:
-            # 出现第三种体制 → 重置为新的待确认
-            confirmed_regime = prev_confirmed_regime  # 仍维持旧体制
-            regime_status = "pending_confirmation"
-            max_confidence = 3
-            print(f"⏳ 新切换信号: 当期计算={regime}, 但上期待确认={prev_pending_regime}")
-            print(f"   已确认体制仍为: {prev_confirmed_regime}, 新待确认: {regime}")
-
-    elif regime != prev_confirmed_regime:
-        # 上期已确认，本期计算出不同体制 → 进入待确认
-        confirmed_regime = prev_confirmed_regime  # 保持旧体制不变
-        regime_status = "pending_confirmation"
-        max_confidence = 3
-        print(f"⏳ 体制切换待确认: {prev_confirmed_regime} → {regime} (首次出现，确信度上限3★)")
-        print(f"   已确认体制仍为: {prev_confirmed_regime}")
-        print(f"   需下周继续指向 [{regime}] 才能正式确认切换")
-
     else:
-        # 体制未变
-        confirmed_regime = regime
-        regime_status = "confirmed"
+        print("📋 无上周评分卡(同周回声文件已忽略),按首次运行处理")
+
+    # 切换判断(纯函数,规则见 resolve_transition 文档)
+    confirmed_regime, regime_status, max_confidence = resolve_transition(
+        prev_confirmed_regime, prev_pending_regime, prev_status, regime)
+
+    if not prev_file or not prev_confirmed_regime:
+        print(f"🆕 首次评分: {regime}")
+    elif regime_status == 'confirmed' and regime != prev_confirmed_regime:
+        print(f"✅ 体制切换确认: {prev_confirmed_regime} → {regime} (两个不同观察周一致)")
+    elif regime_status == 'confirmed' and prev_status == 'pending_confirmation':
+        print(f"↩️ 体制切换取消: 回归 {prev_confirmed_regime} (待确认体制未获跨周验证)")
+    elif regime_status == 'pending_confirmation':
+        print(f"⏳ 体制切换待确认: {prev_confirmed_regime} → {regime} (确信度上限3★,需下一观察周验证)")
+    else:
         print(f"📌 体制维持: {regime}")
 
     # 构建结果
+    # 体制归因(P1): 反事实分解,标注哪些指标是当前体制的关键驱动
+    drivers, counterfactuals = attribute_regime(g_scores, g_total, i_scores, i_total)
+
     result = {
         'date': today,
         'growth_scores': g_scores,
@@ -353,6 +389,8 @@ def save_scorecard(g_scores, g_total, i_scores, i_total, regime, desc):
         'regime_description': desc,
         'max_confidence': max_confidence,
         'pending_regime': regime if regime_status == 'pending_confirmation' else None,
+        'regime_drivers': drivers,               # P1: 关键驱动指标(剔除后体制翻转)
+        'regime_counterfactuals': counterfactuals,  # P1: 全部"剔除单指标"反事实结果
         'regime_switch_rule': '体制切换需连续两周数据支持。首次出现切换信号时标记为待确认(max 3★)，已确认体制保持不变，连续两周一致后正式切换。'
     }
 
@@ -376,6 +414,16 @@ def save_scorecard(g_scores, g_total, i_scores, i_total, regime, desc):
 ### 切换规则
 {result['regime_switch_rule']}
 
+### 体制归因（反事实分解：剔除单指标后体制是否翻转）
+"""
+    if drivers:
+        for d in drivers:
+            md += f"- {d}\n"
+    else:
+        md += "- 无单一指标足以单独决定当前体制（体制由多指标共同支撑，稳健性较高）\n"
+    md += "\n"
+
+    md += f"""
 ## 增长维度 (总分: {g_total})
 | 指标 | 当前值 | 变化 | 评分 | 阈值说明 |
 |------|--------|------|------|----------|
@@ -412,6 +460,8 @@ def save_scorecard(g_scores, g_total, i_scores, i_total, regime, desc):
     print(f"增长总分: {g_total:+d}  |  通胀总分: {i_total:+d}")
     print(f"当期计算: {regime}")
     print(f"已确认体制: {confirmed_regime} ({status_label})")
+    if drivers:
+        print(f"关键驱动: {'; '.join(drivers)}")
     if regime_status == 'pending_confirmation':
         print(f"⏳ 待确认体制: {regime} (需下周验证)")
     if max_confidence < 5:

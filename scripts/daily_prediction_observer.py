@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""每日预测观察记录(第四轮P0-6)
+"""每日预测观察记录(第四轮P0-6 + 第五轮P1-2数据质量门禁)
 
 接入每日数据采集流水线(数据校验/锚点生成之后):
 - 用Python把"观察期内预测"所需的当期市场数据记入 allocation_views.json 的
@@ -9,7 +9,16 @@
 - 前提规格同样每日程序判定(兑现→转观察中,观察期自前提观测日起);
 - 不调用GLM — 裁决仍由周报路径的引擎/受核验GLM执行,本脚本只做数据记录。
 
-CLI(离线测试): --views PATH --anchors PATH --today YYYY-MM-DD
+第五轮P1-2 数据质量门禁(区分关键/非关键采集失败):
+- 锚点文件不存在或非当日(采集失败/未运行) → 关键失败: 今日不记录任何观察,
+  不得以旧数据冒充本期观察;exit 2(流水线据此判关键步骤失败);
+- 个别资产本轮缺指标/观测日未来/数据陈旧(超该指标新鲜度窗) → 只跳过受影响
+  预测并留日志,其余预测照常记录(部分资产缺失不得阻断全部观察);
+- 观察记录绑定实际观测日(obs_date)与本轮采集(retrieved_at=as_of,source),
+  与锚点采集批次一一对应。
+
+CLI(离线测试): --views PATH --anchors PATH --today YYYY-MM-DD [--anchors-date YYYYMMDD]
+exit: 0=正常(含部分跳过) / 2=关键失败(无当日有效锚点)
 """
 import os
 import sys
@@ -24,33 +33,87 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_VIEWS = os.path.join(ROOT_DIR, 'config', 'allocation_views.json')
 
+# 数据陈旧判定兜底窗口(自然日): 日频行情观测日距今日超过该值视为本轮采集失败。
+# 月度宏观序列另有频率注册表口径,兜底窗只用于注册表不可用时。
+_STALE_FALLBACK_DAYS = 5
+
+
+def latest_anchors_info(anchors_path=None):
+    """(最新锚点dict, 锚点文件日期YYYYMMDD)。文件日期=采集批次。"""
+    if anchors_path:
+        with open(anchors_path, 'r', encoding='utf-8') as f:
+            return json.load(f), os.path.basename(anchors_path)[8:16]
+    files = sorted(glob.glob(os.path.join(ROOT_DIR, 'data', 'daily', 'anchors_*.json')))
+    if not files:
+        return None, None
+    with open(files[-1], 'r', encoding='utf-8') as f:
+        return json.load(f), os.path.basename(files[-1])[8:16]
+
 
 def load_latest_anchors(anchors_path=None):
     """最新锚点文件(数据校验器产物,含obs_date/as_of/兄弟high/low)。"""
-    if anchors_path:
-        with open(anchors_path, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    files = sorted(glob.glob(os.path.join(ROOT_DIR, 'data', 'daily', 'anchors_*.json')))
-    if not files:
-        return None
-    with open(files[-1], 'r', encoding='utf-8') as f:
-        return json.load(f)
+    anchors, _date = latest_anchors_info(anchors_path)
+    return anchors
 
 
-def observe(views_path=None, anchors=None, today_str=None):
-    """记录当期观察(幂等)。返回(变更说明列表, 观察中的预测数)。"""
+def _metric_problem(metric, anchors, today_iso):
+    """单指标本轮有效性检查: 返回问题描述或None(有效)。
+    不得仅因指标存在就认定有效 — 须观测日可解析、不晚于今日、未超新鲜度窗。"""
+    info = (anchors or {}).get(metric)
+    if not info or not isinstance(info.get('value'), (int, float)):
+        return '本轮锚点缺该指标(采集失败或资产缺失)'
+    od = str(info.get('obs_date') or '')[:10]
+    if not od:
+        return '锚点无观测日,无法绑定实际观察日'
+    try:
+        from datetime import date
+        d_obs, d_today = date.fromisoformat(od), date.fromisoformat(today_iso)
+    except ValueError:
+        return f'观测日不可解析({od})'
+    if d_obs > d_today:
+        return f'观测日{od}晚于今日(未来数据,不得记录)'
+    lag = (d_today - d_obs).days
+    try:
+        from data_validator import is_fresh_anchor
+        if not is_fresh_anchor(metric, info, today_iso):
+            return f'观测日{od}距今日{lag}天,超出该指标新鲜度窗(疑本轮采集失败,不得以旧数据充当本期观察)'
+    except ImportError:
+        if lag > _STALE_FALLBACK_DAYS:
+            return f'观测日{od}距今日{lag}天(数据陈旧,疑本轮采集失败)'
+    return None
+
+
+def observe(views_path=None, anchors=None, today_str=None, anchors_date=None):
+    """记录当期观察(幂等)。返回(变更说明列表, 观察中预测数, 状态PASS/PARTIAL/FAIL)。
+    FAIL=关键失败(无当日有效锚点): 今日不写任何观察记录。"""
     import allocation_engine as ae
     views_path = views_path or DEFAULT_VIEWS
     if anchors is None:
-        anchors = load_latest_anchors()
+        anchors, anchors_date = latest_anchors_info()
+    today_iso = (today_str or datetime.now().strftime('%Y-%m-%d'))[:10]
     if anchors is None:
-        print("⚠️ 无锚点文件,今日不记录预测观察")
-        return [], 0
+        print("⛔ 无锚点文件 — 本轮无有效观察数据,不记录预测观察(关键失败)")
+        return [], 0, 'FAIL'
+    if anchors_date and anchors_date != today_iso.replace('-', ''):
+        print(f"⛔ 锚点文件日期{anchors_date}≠今日{today_iso.replace('-', '')} — "
+              f"本轮采集失败或未运行,不得以旧数据充当本期观察(关键失败)")
+        return [], 0, 'FAIL'
+
     with open(views_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
     watching = [p for p in data.get('predictions', [])
                 if p.get('status') in ('observing', 'not_yet_triggered')]
-    changes = ae.record_observations(data, anchors, today_str)
+
+    # 逐预测检查本轮数据有效性: 受影响预测跳过并留日志,其余照常(部分缺失不阻断全部)
+    skipped = []
+    for p in watching:
+        if p.get('status') == 'observing' and p.get('metric'):
+            problem = _metric_problem(p['metric'], anchors, today_iso)
+            if problem:
+                skipped.append(p['pred_id'])
+                print(f"⚠️ 预测#{p['pred_id']}: 本轮跳过 — {problem}")
+
+    changes = ae.record_observations(data, anchors, today_iso)
     if changes:
         shutil_copy(views_path)
         tmp = views_path + '.tmp'
@@ -61,8 +124,10 @@ def observe(views_path=None, anchors=None, today_str=None):
         for c in changes:
             print(f"   {c}")
     else:
-        print("✅ 预测观察无变更(幂等: 当期观测已记录)")
-    return changes, len(watching)
+        print("✅ 预测观察无变更(幂等: 当期观测已记录)"
+              + (f";另{len(skipped)}项预测因数据缺失本轮跳过" if skipped else ""))
+    status = 'PARTIAL' if skipped else 'PASS'
+    return changes, len(watching), status
 
 
 def shutil_copy(path):
@@ -74,12 +139,21 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description='每日预测观察记录(不调用GLM)')
     ap.add_argument('--views', default=None, help='观点库路径(默认config/allocation_views.json)')
     ap.add_argument('--anchors', default=None, help='锚点JSON路径(默认最新data/daily/anchors_*)')
+    ap.add_argument('--anchors-date', default=None, help='锚点采集批次YYYYMMDD(默认取自文件名;'
+                                                         '显式传入可模拟陈旧锚点)')
     ap.add_argument('--today', default=None, help='研究截止日YYYY-MM-DD(默认今天)')
     args = ap.parse_args()
-    print(f"预测观察记录 - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"预测观察记录 - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 50)
-    changes, n = observe(views_path=args.views, anchors=None if not args.anchors else
-                         json.load(open(args.anchors, encoding='utf-8')),
-                         today_str=args.today)
-    print(f"观察期内预测: {n} 条")
-    sys.exit(0)
+    anchors = None
+    anchors_date = args.anchors_date
+    if args.anchors:
+        with open(args.anchors, encoding='utf-8') as f:
+            anchors = json.load(f)
+        if not anchors_date:
+            anchors_date = os.path.basename(args.anchors)[8:16]
+    changes, n, status = observe(views_path=args.views, anchors=anchors,
+                                 today_str=args.today, anchors_date=anchors_date)
+    print(f"观察期内预测: {n} 条; 状态: {status}")
+    # 关键失败必须反映在退出码: 采集失败时受影响预测的正式状态不得被更新
+    sys.exit(2 if status == 'FAIL' else 0)

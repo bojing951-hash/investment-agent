@@ -112,7 +112,8 @@ check("结果含change_period", "change_period" in src)
 # ── 测试5: 流水线失败传播(缺陷六.2,源码级检查) ──────────────────
 print("\n[6] run_weekly失败退出码")
 rw = open(os.path.join(ROOT, 'run_weekly.py')).read()
-check("存在sys.exit(1)失败分支", "sys.exit(1)" in rw and "success_count < len(steps)" in rw)
+check("存在sys.exit(1)失败分支(第五轮P1-2: 关键步骤失败才exit 1,非关键降级)",
+      "sys.exit(1)" in rw and "critical_failed" in rw and "run_pipeline" in rw)
 
 
 # ── 测试6: 新闻摘要已迁GLM(缺陷六.1,源码级检查) ──────────────────

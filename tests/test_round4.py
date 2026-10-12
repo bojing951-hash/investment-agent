@@ -230,12 +230,13 @@ check("非法obs_date→不新鲜", dv.is_fresh_anchor('macro.data.CCC_OAS.value
       {'value': 10.12, 'obs_date': 'not-a-date', 'as_of': '2026-10-12'}, '2026-10-12') is False)
 check("未来obs_date→不新鲜(进待验证)", dv.is_fresh_anchor('macro.data.CCC_OAS.value',
       {'value': 10.12, 'obs_date': '2026-10-20', 'as_of': '2026-10-12'}, '2026-10-12') is False)
-# 缺观测日期的证据项: 观测日由锚点程序补全(锚点obs_date),不采信模型口径
+# 缺观测日期的证据项: 第五轮P0-3收紧 — obs_date必填,缺失整项拒收,
+# 不得省略后由程序以锚点观测日补全(日期引用是模型责任)
 day = '2026-10-12'
 ev = [{'metric': 'macro.data.CCC_OAS.value', 'value': 10.12, 'mechanism': '信用'}]
 verified, rejects = quiet(ae.verify_evidence_items, ev, anchors_at(day), day)
-check("缺观测日的证据项以锚点观测日补全(程序口径,非模型口径)",
-      len(verified) == 1 and verified[0]['obs_date'] == day and not rejects,
+check("缺obs_date的证据项整项拒收(第五轮P0-3收紧,不再程序补全)",
+      len(verified) == 0 and len(rejects) == 1 and '缺obs_date' in rejects[0][0],
       f"{verified} {rejects}")
 ev2 = [{'metric': 'macro.data.CCC_OAS.value', 'value': 10.12, 'obs_date': '2026-10-11', 'mechanism': '信用'}]
 v2, r2 = quiet(ae.verify_evidence_items, ev2, anchors_at(day), day)
@@ -348,15 +349,29 @@ v2 = quiet(ae.evaluate_predictions, {'predictions': [dict(pred)]}, today_str='20
 check("到期日(10-16)裁决仍hit,周五回落不推翻盘中触及",
       v2 and v2[0][2] == 'hit' and v2[0][3].find('触及') >= 0, str(v2))
 # 反例: 全窗口盘中从未触及(有完整high数据)→miss
+# 第五轮P0-2: 判miss须窗口覆盖充分 — 补齐10-05~10-16全部10个交易日观测
 pred_no = dict(pred)
 pred_no['observations'] = [
     {'obs_date': '2026-10-05', 'value': 4250.0, 'high': 4262.0, 'low': 4241.0},
     {'obs_date': '2026-10-06', 'value': 4280.0, 'high': 4295.0, 'low': 4270.0},
+    {'obs_date': '2026-10-07', 'value': 4260.0, 'high': 4275.0, 'low': 4252.0},
+    {'obs_date': '2026-10-08', 'value': 4270.0, 'high': 4288.0, 'low': 4261.0},
     {'obs_date': '2026-10-09', 'value': 4255.0, 'high': 4284.0, 'low': 4249.0},
+    {'obs_date': '2026-10-12', 'value': 4240.0, 'high': 4256.0, 'low': 4233.0},
+    {'obs_date': '2026-10-13', 'value': 4245.0, 'high': 4260.0, 'low': 4238.0},
+    {'obs_date': '2026-10-14', 'value': 4250.0, 'high': 4268.0, 'low': 4242.0},
+    {'obs_date': '2026-10-15', 'value': 4248.0, 'high': 4264.0, 'low': 4240.0},
+    {'obs_date': '2026-10-16', 'value': 4252.0, 'high': 4270.0, 'low': 4245.0},
 ]
 v3 = quiet(ae.evaluate_predictions, {'predictions': [pred_no]}, today_str='2026-10-16')
-check("有完整high数据且从未盘中触及→miss(可证明)",
+check("有完整high数据+窗口覆盖充分且从未盘中触及→miss(可证明)",
       v3 and v3[0][2] == 'miss', str(v3))
+# 第五轮P0-2反例: 同样从未触及,但只取得3个交易日观测→覆盖不足,不得判miss
+pred_sparse = dict(pred_no)
+pred_sparse['observations'] = pred_sparse['observations'][:3]
+v3s = quiet(ae.evaluate_predictions, {'predictions': [pred_sparse]}, today_str='2026-10-16')
+check("仅3个交易日观测(缺7天)→覆盖不足inconclusive,不判miss",
+      v3s and v3s[0][2] == 'inconclusive' and '覆盖不足' in v3s[0][3], str(v3s))
 
 # ════════ 测试14: 只有收盘价不能证明盘中未触及 (P0-6) ════════
 print("\n── 14. 只有收盘价(无盘中high/low)→high口径不判miss")
@@ -369,13 +384,14 @@ pred_only_close['observations'] = [
 v4 = quiet(ae.evaluate_predictions, {'predictions': [pred_only_close]}, today_str='2026-10-16')
 check("缺盘中数据→inconclusive不判miss",
       v4 and v4[0][2] == 'inconclusive' and '无法证明盘中未触及' in v4[0][3], str(v4))
-# close口径不受影响: 收盘价数据完整即可判
+# close口径不受影响: 收盘价数据完整(第五轮P0-2: 仍须窗口覆盖充分)即可判
 pred_close_basis = dict(pred)
 pred_close_basis['price_basis'] = 'close'
 pred_close_basis['comparator'] = '>='
 pred_close_basis['target'] = 4300.0
+pred_close_basis['observations'] = [dict(o) for o in pred_no['observations']]
 v5 = quiet(ae.evaluate_predictions, {'predictions': [pred_close_basis]}, today_str='2026-10-16')
-check("close口径只看收盘价(4280<4300全程未达→miss)",
+check("close口径只看收盘价(全程<4300且覆盖充分→miss)",
       v5 and v5[0][2] == 'miss', str(v5))
 
 # ════════ 测试15: 观察期外数据必须拒绝 (P0-6) ════════
@@ -570,7 +586,7 @@ anch_b['macro.data.CCC_OAS.value'] = {'value': 10.12, 'obs_date': '2026-10-10', 
 ev_b = [{'metric': 'macro.data.CCC_OAS.value', 'value': 10.12, 'obs_date': day, 'mechanism': '信用'}]
 v_b, r_b = quiet(ae.verify_evidence_items, ev_b, anch_b, day)
 check("模型引用采集日(10-12)冒充观测日(锚点真值10-10)→拒",
-      len(v_b) == 0 and '采集日不得替代观测日' in r_b[0][0], f"{v_b} {r_b}")
+      len(v_b) == 0 and '观测日不符' in r_b[0][0] and '采集日' in r_b[0][0], f"{v_b} {r_b}")
 ev_ok = [{'metric': 'macro.data.CCC_OAS.value', 'value': 10.12, 'obs_date': '2026-10-10', 'mechanism': '信用'}]
 v_ok, _r2 = quiet(ae.verify_evidence_items, ev_ok, anch_b, day)
 check("引用锚点真观测日(10-10)→过,且台账记录真观测日",
@@ -594,11 +610,23 @@ with tempfile.TemporaryDirectory() as td:
           and any('关键传导指标' in str(pr.get('reason', '')) for pr in v3.get('proposals', [])),
           f"{v3['rating']} {v3.get('proposals')}")
     onkey = offkey + [{'metric': 'macro.data.CCC_OAS.value', 'value': 10.12, 'obs_date': day, 'mechanism': '信用'}]
-    rep2 = status_block([{'id': 3, 'rating': '标配', 'confidence': 3,
-                          'note': '含关键指标', 'evidence': onkey}], 'ALLOCATION_STATUS')
-    quiet(ae.update_allocation_status, rep2, views_path=vp, anchors=anchors_at(day), today_str=day)
-    v3b = json.load(open(vp))['views'][0]
-    check("含关键传导指标(CCC)的足量证据→变更通过", v3b['rating'] == '标配', v3b['rating'])
+    # 第五轮P1-1: 同日重跑时早前已计入的(指标,观测日)不再是新增 —
+    # 正向路径用全新沙盒验证(同批3项证据一次计入)
+    with tempfile.TemporaryDirectory() as td2:
+        vp2 = os.path.join(td2, 'allocation_views.json')
+        json.dump(views_k, open(vp2, 'w', encoding='utf-8'), ensure_ascii=False)
+        rep2 = status_block([{'id': 3, 'rating': '标配', 'confidence': 3,
+                              'note': '含关键指标', 'evidence': onkey}], 'ALLOCATION_STATUS')
+        quiet(ae.update_allocation_status, rep2, views_path=vp2, anchors=anchors_at(day), today_str=day)
+        v3b = json.load(open(vp2))['views'][0]
+        check("含关键传导指标(CCC)的足量证据→变更通过", v3b['rating'] == '标配', v3b['rating'])
+    # 反例(第五轮P1-1): 同日第二次运行,同批证据不重复计入 — 只剩CCC新增1项<2→被拒
+    rep3 = status_block([{'id': 3, 'rating': '标配', 'confidence': 3,
+                          'note': '同日重跑', 'evidence': onkey}], 'ALLOCATION_STATUS')
+    quiet(ae.update_allocation_status, rep3, views_path=vp, anchors=anchors_at(day), today_str=day)
+    v3c = json.load(open(vp))['views'][0]
+    check("同日重跑同批证据不再重复计为新增(维持低配)",
+          v3c['rating'] == '低配', v3c['rating'])
     check("未定义key_metrics的观点不受该规则限制(由星级门禁把关)",
           ae._key_engaged({'key_metrics': None}, set()) is True)
 

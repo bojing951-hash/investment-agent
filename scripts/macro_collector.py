@@ -57,20 +57,56 @@ SERIES_FREQ = {
     # 其余(BAML利差/DGS收益率/DFII/T5YIE/T10Y2Y)=daily
 }
 
+# 指标单位语义(第五轮P1-3): kind决定变化口径 — 指数点变化与百分比变化是两个不同
+# 的量(CPI 300→303是3点,环比1.0%是另一含义),不得混用或互相冒充:
+#   index  水平值(指数/小时薪): 同时给点数变化(chg)与百分比变化(pct),各自标注
+#   rate   利率/利差/失业率(%): 变化用百分点(1百分点=100bp),不给百分比变化
+#   count  就业人数/申请人数:   变化用人数(千人/人),百分比变化无意义不给
+#   price  价格序列(油价):     同时给价格变化与百分比变化
+SERIES_UNITS = {
+    "CPI": ("index", "指数点(1982-84=100)"),
+    "CORE_CPI": ("index", "指数点(1982-84=100)"),
+    "CORE_PCE": ("index", "指数点(2012=100)"),
+    "AHE": ("index", "美元/小时"),
+    "FED_FUNDS": ("rate", "%"),
+    "UNEMPLOYMENT": ("rate", "%(失业率)"),
+    "HY_OAS": ("rate", "%(利差)"), "BB_OAS": ("rate", "%(利差)"),
+    "B_OAS": ("rate", "%(利差)"), "CCC_OAS": ("rate", "%(利差)"),
+    "IG_OAS": ("rate", "%(利差)"),
+    "UST_2Y": ("rate", "%"), "UST_10Y": ("rate", "%"), "UST_30Y": ("rate", "%"),
+    "TIPS_5Y": ("rate", "%"), "TIPS_10Y": ("rate", "%"),
+    "BEI_5Y": ("rate", "%"), "BEI_10Y": ("rate", "%"),
+    "CURVE_2S10S": ("rate", "百分点(2s10s斜率)"),
+    "NFP": ("count", "千人(非农就业)"),
+    "ICSA": ("count", "人(初请失业金)"),
+    "WTI": ("price", "美元/桶"),
+}
+# 各kind的变化单位标签(chg字段附_chg_unit,程序与报告据此区分口径)
+_CHG_UNIT_BY_KIND = {
+    "index": "点", "rate": "百分点(1个百分点=100bp)",
+    "count": "人数", "price": "美元",
+}
 
-def compute_series_changes(dates, values, freq):
-    """按频率计算变化(纯函数,离线可测)。
+
+def compute_series_changes(dates, values, freq, unit=None):
+    """按频率计算变化(纯函数,离线可测)。unit=(kind, label)来自SERIES_UNITS。
 
     daily:   week_chg = 最新值 − 约1周前(5~10个自然日内最近的)观测值
     weekly:  week_chg = 最新值 − 上一期(≥5天前最近)观测值
     monthly: mom_chg = 最新值 − 上一期月度观测; yoy_chg = 最新值 − 约12个月前观测
              (不产week_chg — 月度序列没有"周变化"这个口径)
-    所有变化附窗口元数据: {chg_field}_from = 起始观测日, formula=计算式说明。
+    单位语义(第五轮P1-3): 所有派生指标标注 unit/chg_unit/from/formula;
+    index/price类同时产百分比变化(mom_pct/yoy_pct/week_pct=(v/v0−1)×100),
+    rate类变化一律百分点(不给百分比变化),count类变化一律人数。
     dates为'YYYY-MM-DD'字符串列表(升序), values为对应float列表。"""
     from datetime import date
     out = {}
     if not dates or len(values) < 2 or len(dates) != len(values):
         return out
+    kind, ulabel = unit if unit else (None, None)
+    chg_unit = _CHG_UNIT_BY_KIND.get(kind)
+    if ulabel:
+        out["unit"] = ulabel
     latest_d, latest_v = dates[-1], float(values[-1])
     d_last = date.fromisoformat(latest_d)
 
@@ -85,36 +121,41 @@ def compute_series_changes(dates, values, freq):
                 break
         return best
 
+    def _emit(chg_field, d0, v0, period_cn):
+        """写入一条变化记录: 点数/水平变化(+百分比变化,仅index/price)+窗口元数据。"""
+        out[chg_field] = round(latest_v - v0, 4)
+        out[f"{chg_field}_from"] = d0
+        out[f"{chg_field}_formula"] = f"{latest_d}值−{d0}值({period_cn})"
+        if chg_unit:
+            out[f"{chg_field}_unit"] = chg_unit
+        if kind in ("index", "price") and abs(v0) > 1e-12:
+            pf = f"{chg_field.rsplit('_chg', 1)[0]}_pct" if chg_field.endswith('_chg') else f"{chg_field}_pct"
+            out[pf] = round((latest_v / v0 - 1.0) * 100.0, 4)
+            out[f"{pf}_from"] = d0
+            out[f"{pf}_formula"] = f"({latest_d}值/{d0}值−1)×100({period_cn}百分比)"
+
     if freq == "monthly":
         prev = _pick(21, 45)     # 上一期月度观测
         yoy = _pick(330, 400)    # 约12个月前
         if prev:
             i, d0, v0 = prev
             out["prev"] = round(v0, 4)
-            out["mom_chg"] = round(latest_v - v0, 4)
-            out["mom_chg_from"] = d0
-            out["mom_chg_formula"] = f"{latest_d}值−{d0}值(月度环比)"
+            _emit("mom_chg", d0, v0, "月度环比")
         if yoy:
             i, d0, v0 = yoy
-            out["yoy_chg"] = round(latest_v - v0, 4)
-            out["yoy_chg_from"] = d0
-            out["yoy_chg_formula"] = f"{latest_d}值−{d0}值(同比)"
+            _emit("yoy_chg", d0, v0, "同比")
     elif freq == "weekly":
         prev = _pick(5, 14)      # 上一期周度观测
         if prev:
             i, d0, v0 = prev
             out["prev"] = round(v0, 4)
-            out["week_chg"] = round(latest_v - v0, 4)
-            out["week_chg_from"] = d0
-            out["week_chg_formula"] = f"{latest_d}值−{d0}值(周度环比)"
+            _emit("week_chg", d0, v0, "周度环比")
     else:  # daily
         prev = _pick(5, 10)      # 约1周前(5个交易日的自然日近似)
         if prev:
             i, d0, v0 = prev
             out["prev"] = round(v0, 4)
-            out["week_chg"] = round(latest_v - v0, 4)
-            out["week_chg_from"] = d0
-            out["week_chg_formula"] = f"{latest_d}值−{d0}值(约一周,交易日口径)"
+            _emit("week_chg", d0, v0, "约一周,交易日口径")
     return out
 
 
@@ -156,7 +197,8 @@ def fetch_all_macro():
                 dates = [d.strftime('%Y-%m-%d') for d in clean.index]
                 values = [float(v) for v in clean.values]
                 item = {"value": round(latest, 4), "date": latest_date, "frequency": freq}
-                item.update(compute_series_changes(dates, values, freq))
+                item.update(compute_series_changes(dates, values, freq,
+                                                   unit=SERIES_UNITS.get(name)))
                 rev = detect_revisions(name, {name: item}, today_str)
                 if rev:
                     item["revision"] = rev

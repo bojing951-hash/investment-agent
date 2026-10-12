@@ -372,3 +372,88 @@ S0源码扫描(scripts/)确认无恒真短路。
    传导指标,否则"只能证明宏观事实,不能充分支持该配置方向"→降为候选提案留档;
    未定义key_metrics的资产不适用(由星级门禁把关); 触发器路径不受影响
    (触发器本身即该资产既定传导条件的引擎核验)。
+
+# 第五轮: 可靠性终验与正式运行验收(2026-10-12, dev/round5-reliability)
+
+基线: 1a22af8(main)。原则: 不扩架构,只收纪律; 最小必要修改; JSON状态与周报八节格式兼容。
+
+## P0-1 GLM裁决引用核验(allocation_engine.py)
+
+原缺陷: `cited_ok = (not obs) or any(...)` — **空观察记录反而放行**GLM文字裁决。
+重写为配对扫描: note中的数值与观测日必须与观察窗内**同一条**实际记录吻合
+(仅数值对日期错→拒; 仅日期对数值错→拒; as_of采集日不算观测日)。
+复审加严3处: ① hit引用的记录还须实际满足comparator(拿不满足的记录宣hit→拒);
+② miss须window_coverage充分(GLM与引擎同口径); ③ expiry引用须落在有效截止交易日
+前4天内(不得拿窗内早期值证明截止水平)。inconclusive裁决不要求引用。
+
+## P0-2 市场日历与观察窗覆盖(新增日历注册表)
+
+每项预测可确定: 观察起止/资产市场/预期有效观察日/已取得观测/缺失日期/覆盖是否充分
+(window_coverage)。市场映射: BTC→crypto(7×24), china.*→cn(仅2026长假核心块保守),
+.HK→hk(最小集), 其余→us(NYSE规则程序计算节假日,周末休市顺延观测)。
+无法可靠确定日历时**保守视为交易日**(宁可inconclusive不假miss)。
+- touch: 窗内一项有效触及即hit(单调证据,不看覆盖); 判miss须覆盖充分
+  +对应口径数据完整(黄金high>4400仅3个交易日→inconclusive不判失败);
+- expiry: settlement_date=截止日(含)**回溯**最近有效交易日,规则预定义不事后挑
+  (周六10-31→10-30; crypto不回溯); 截止前4天无观测→inconclusive;
+- 渲染层: 覆盖缺口的观察中预测标注⚠️提示"裁决将从严,不得假设未触及"。
+
+## P0-3 证据obs_date必填(三项缺一不可)
+
+metric+value+obs_date整项拒收制: 缺obs_date/不可解析/锚点无观测日/与锚点观测日
+不符(采集日as_of不得替代)的证据不得参与评级/星级/状态变更,台账不写。
+thesis.json与allocation_views.json共用verify_evidence_items同一套规则。
+prompt侧同步: 证据规格明示"obs_date必填且须与锚点观测日完全一致"。
+
+## P0-4 终态退出门禁(report_generator.update_thesis_status)
+
+进入终态有门禁,退出终态同样有: 已失效→进行中/待观察须 (a)原失效条件经引擎复核
+不再触发 **且** (b)≥2项新增独立证据; 已验证→重开须invalidation触发器已触发
+或≥2项新增独立反证(new_contrary_metrics,与支持证据同一套基底/观测日身份)。
+不满足→proposal留档并提示"实质新假设应创建关联新版本论点"; 审计完整
+(from/to/via/evidence)。9论点及历史不删不改旧判断。
+
+## P1-1 同日重跑不虚增新增证据
+
+新增判定改为与台账已知(指标,观测日)集合比对(_seen_obs_pairs含同日早前条目,
+_new_metrics_vs_seen): 完全相同对不算新增; 仅**更新观测日**算新一期; 修订(同观测日)
+只记录不算新观察。台账append移到门禁判定**之后**(update_allocation_status与
+update_thesis_status双侧)。_METRIC_FIELD_SUFFIXES补mom_pct/yoy_pct/week_pct
+(派生百分比字段不构成独立证据)。
+
+## P1-2 采集失败不更新预测观察(daily_prediction_observer.py重写)
+
+observe()返回(changes,n,PASS/PARTIAL/FAIL): 锚点文件缺失或文件日≠今日→FAIL
+("不得以旧数据充当本期观察"),CLI exit 2; 部分资产缺失→只跳过受影响预测→PARTIAL;
+逐预测_metric_problem(缺metric/缺obs_date/未来/超频过期)跳过并留日志; 原子写+bak。
+run_weekly流水线改(name,script,critical)三元组: 新闻/相关性为非关键(失败降级,
+不阻止观察不挂退出码),其余关键(失败exit 1); run_pipeline抽出可测。
+
+## P1-3 宏观变化单位语义(macro_collector.py)
+
+SERIES_UNITS注册表(index/rate/count/price×单位标签)+_CHG_UNIT_BY_KIND:
+指数点变化与百分比变化分离(CPI 300→303=mom_chg 3.0点 + 另列mom_pct 1.0%附公式);
+利率/利差/失业率=百分点(不产百分比变化); 就业=人数; 每个chg字段附_from/_formula/
+_unit,公式含起止观测日。
+
+## 测试(第九节20项+验收模拟, test_round5.py 64项)
+
+20项任务书用例全部落盘断言(非仅返回值),含正例/反例: R1~R3b裁决引用、R4~R8
+覆盖/日历/截止、R9~R10证据日期、R11~R12终态门禁(含3组正反例)、R13同日10次
+(含阶梯攻击)、R14~R15旧值/修订、R16~R17采集失败(含CLI exit 2与关键/非关键分流)、
+R18单位、R19双侧共用规则、R20 FAIL不落盘; 加第十节正式运行验收模拟
+(单沙盒连续状态: 每日观察5天→幂等→采集失败隔离→周五PASS周报→GLM虚构hit被拒
+→时间一致→FAIL不污染)。
+
+全部套件(2026-10-12): p0=22 p1=36 p2=82 p4=42 round3_p0=91 adversarial=24
+round4=94 round5=64 e2e=59,合计514断言0失败; 真实GLM冒烟8/0(RUN_GLM_LIVE=1,
+临时副本,真实观点库未动; GLM实测已按新规格附obs_date)。
+
+## 第五轮遗留(如实)
+
+1. 中国日历仅2026年长假块,2027+回退为"周末以外均交易日"(保守方向: 多预期→
+   覆盖判定更严,不产生假miss);
+2. 港币日历为最小集{元旦,圣诞};
+3. launchd每日07:00真实调度与本轮改动兼容性经代码路径验证(观察器CLI退出码
+   语义新增exit 2),真实定时任务行为标注"未验证";
+4. GLM在长prompt下偶发省略obs_date——程序门禁拒收兜底,依赖prompt纪律+程序核验双保险。

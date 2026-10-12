@@ -423,6 +423,7 @@ THESIS_STATUS-->
 status只能取: 进行中/待观察/已验证/已失效；confidence为1-5整数；id与thesis.json一致。
 evidence数组可选但强烈建议提供，格式与配置观点块相同(锚点指标ID+数值+观测日+机制类别)，程序按同一套证据分级v2规则核验：
 - 【状态终态门禁】→已失效/→已验证为终态判定：须该论点的失效/升级触发器被引擎核验为已触发，或本周≥2项新增独立支持证据通过程序验证；否则保留原状态，模型判断降级为提案留档。
+- 【终态退出门禁】已失效/已验证论点不得直接改回进行中/待观察：重新启用须≥2项新增独立证据且原失效条件经引擎复核未触发；已验证重新开启须invalidation触发器已触发或≥2项新增独立反证。实质上形成新假设时应建议创建关联新版本论点（在note中标注），不得改写原论点历史结论。
 - 【确信度门禁】上调不得超过程序验证星级；下调不受限。
 - 论点引用历史数值时必须在note中带原始观测日期(如"实际利率2.5%(2026-09-30观测)")——同一指标旧值再次引用不算新增证据。
 - 论点失效不自动改变关联资产评级：关联观点须各自过证据门禁。
@@ -436,7 +437,7 @@ ALLOCATION_STATUS-->
 
 rating只能取: 超配/标配/低配/观望（不用"中性"，中性=标配）；id与allocation_views.json一致（1美股/2利率久期/3信用/4美元/5贵金属/6能源/7A股港股/8加密/9现金短债）。
 确信度变化与评级变化相互独立：评级未变但证据增减时应调confidence（1-5整数），二者程序会分别记录。
-【证据分级v2程序校验】evidence数组为结构化证据，每项含metric(锚点指标ID)/value(数值,须与观点块或数据包中该指标的锚点值一致)/obs_date(观测日,须与锚点一致)/mechanism(机制类别:增长/通胀/利率与流动性/信用/避险与估值/供应与库存/资金流)；可加"contrary":true表示反证、"explained":true表示反证已解释、"neutral":true表示相关但不能直接支持方向(数值照常核验,但不计入支持数量)。
+【证据分级v2程序校验】evidence数组为结构化证据，每项含metric(锚点指标ID)/value(数值,须与观点块或数据包中该指标的锚点值一致)/obs_date(观测日,必填且须与锚点观测日完全一致——缺失、不可解析、与锚点不符或以采集日as_of替代的证据整项拒收,不参与星级与评级)/mechanism(机制类别:增长/通胀/利率与流动性/信用/避险与估值/供应与库存/资金流)；可加"contrary":true表示反证、"explained":true表示反证已解释、"neutral":true表示相关但不能直接支持方向(数值照常核验,但不计入支持数量)。
 程序按以下规则核验并执行门禁（不满足会被拒写）：
 - 同一底层指标多次引用只计1项独立证据；同一月度指标连续四周重复引用不等于多次独立观察。
 - 星级门槛: 1★=1项 / 2★=2项 / 3★=3项且覆盖2类机制 / 4★=4项且3类机制且跨2个观察期 / 5★=5项且3类机制且跨3个观察期（5★不要求必须存在反证；但若存在重大反证，必须已解释——存在未解释反证时封顶3★）。反对证据(contrary)不计入支持数量，只参与反证校验。
@@ -662,20 +663,79 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
         supporting, contrary, unexplained, neutral_ev = ae.split_evidence_direction(verified)
         star_max, star_desc = ae.star_level_from_evidence(verified)
         new_support = ae.new_supporting_metrics(t, supporting, today_iso)
-        if verified:
-            ledger = t.setdefault('evidence_ledger', [])
-            ledger.append({'date': today_iso, 'verified': len(verified),
-                           'supporting': len(supporting), 'contrary': len(contrary),
-                           'unexplained': len(unexplained), 'neutral': len(neutral_ev),
-                           'new_support': sorted(new_support),
-                           'star_max': star_max, 'desc': star_desc[:200],
-                           'obs_pairs': sorted({(i['metric'], str(i.get('obs_date'))[:10])
-                                                for i in verified})})
-            t['evidence_ledger'] = ledger[-12:]
 
-        # 状态变更门禁: 终态(已失效/已验证)须触发器或新增证据
-        if new_status in ALLOWED_STATUS and new_status != t.get('status'):
-            if new_status in ('已失效', '已验证'):
+        # 状态变更门禁(第四轮P0-4进入终态门禁 + 第五轮P0-4终态退出门禁):
+        # 进入已失效/已验证: 须invalidation/upgrade触发器引擎核验已触发,或≥2项新增独立支持证据;
+        # 退出终态(已失效/已验证→进行中/待观察): 重新启用/重新开启同样有门禁,不得宽松放行。
+        old_status = t.get('status')
+        if new_status in ALLOWED_STATUS and new_status != old_status:
+            if old_status in ('已失效', '已验证') and new_status in ('进行中', '待观察'):
+                # ── 终态退出: 重新启用(自已失效)/重新开启(自已验证) ──
+                trig_rows = all_trig_rows.get(tid, [])
+                if old_status == '已失效':
+                    orig_fired = [r for r in trig_rows
+                                  if r['direction'] == 'invalidation' and r['status'] == 'triggered']
+                    if orig_fired:
+                        reason = (f"原失效条件经引擎复核仍在触发"
+                                  f"({'+'.join(r['trig_id'] for r in orig_fired)}) — "
+                                  f"重新启用须先否定原失效依据;实质新假设应创建关联新版本论点")
+                        ae._record_proposal(t, new_status, reason,
+                                            json.dumps(o.get('evidence'), ensure_ascii=False)[:160],
+                                            today_iso)
+                        updates.append(f"论点#{tid}{t.get('name', '')[:10]}: 重新启用被拒"
+                                       f"[{reason[:70]}],保留已失效")
+                        print(f"   🚫 论点#{tid}重新启用被拒: {reason}")
+                    elif len(new_support) >= 2:
+                        t['status'] = new_status
+                        via = (f"重新启用: 新增独立证据{len(new_support)}项经验证"
+                               f"+原失效条件复核未触发({star_desc[:40]})")
+                        t['last_change'] = {'date': today_iso, 'from': old_status, 'to': new_status,
+                                            'via': via, 'evidence': supporting[:5], 'note': note}
+                        updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old_status}→{new_status} (经{via})")
+                    else:
+                        reason = (f"已失效论点重新启用须同时满足: 重新启用原因+≥2项独立新增证据"
+                                  f"(本周{len(new_support)}项)+原失效条件重新评估(未触发),"
+                                  f"并给出新的有效条件与观察期限;实质上已形成新假设时应创建"
+                                  f"关联新版本论点,不得改写原论点历史结论")
+                        if ev_rejects:
+                            reason += "; 证据拒收: " + "; ".join(rj for rj, _ in ev_rejects[:3])
+                        ae._record_proposal(t, new_status, reason,
+                                            json.dumps(o.get('evidence'), ensure_ascii=False)[:160],
+                                            today_iso)
+                        updates.append(f"论点#{tid}{t.get('name', '')[:10]}: 重新启用被拒"
+                                       f"[{reason[:70]}],保留已失效")
+                        print(f"   🚫 论点#{tid}重新启用被拒: {reason}")
+                else:  # 已验证 → 重新开启
+                    inv_fired = [r for r in trig_rows
+                                 if r['direction'] == 'invalidation' and r['status'] == 'triggered']
+                    new_contrary = ae.new_contrary_metrics(t, contrary, today_iso)
+                    if inv_fired:
+                        t['status'] = new_status
+                        via = (f"重新开启: invalidation触发器"
+                               f"{'+'.join(r['trig_id'] for r in inv_fired)}(引擎核验已触发)")
+                        t['last_change'] = {'date': today_iso, 'from': old_status, 'to': new_status,
+                                            'via': via, 'evidence': contrary[:5], 'note': note}
+                        updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old_status}→{new_status} (经{via})")
+                    elif len(new_contrary) >= 2:
+                        t['status'] = new_status
+                        via = f"重新开启: 新增独立反证{len(new_contrary)}项经验证({star_desc[:40]})"
+                        t['last_change'] = {'date': today_iso, 'from': old_status, 'to': new_status,
+                                            'via': via, 'evidence': contrary[:5], 'note': note}
+                        updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old_status}→{new_status} (经{via})")
+                    else:
+                        reason = (f"已验证论点重新开启须invalidation触发器引擎核验已触发,"
+                                  f"或≥2项本周新增独立反证(本周新增反证{len(new_contrary)}项) — "
+                                  f"终态退出不得绕过门禁;实质新假设应创建关联新版本论点")
+                        if ev_rejects:
+                            reason += "; 证据拒收: " + "; ".join(rj for rj, _ in ev_rejects[:3])
+                        ae._record_proposal(t, new_status, reason,
+                                            json.dumps(o.get('evidence'), ensure_ascii=False)[:160],
+                                            today_iso)
+                        updates.append(f"论点#{tid}{t.get('name', '')[:10]}: 重新开启被拒"
+                                       f"[{reason[:70]}],保留已验证")
+                        print(f"   🚫 论点#{tid}重新开启被拒: {reason}")
+            elif new_status in ('已失效', '已验证'):
+                # ── 进入终态(自过程状态或对侧终态) ──
                 want_dir = 'invalidation' if new_status == '已失效' else 'upgrade'
                 trig_rows = all_trig_rows.get(tid, [])
                 fired = [r for r in trig_rows if r['direction'] == want_dir and r['status'] == 'triggered']
@@ -706,7 +766,7 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
                                    f"[{reason[:60]}],保留{t.get('status')}")
                     print(f"   🚫 论点#{tid}状态变更被拒: {reason}")
             else:
-                # 过程状态(进行中/待观察): 允许,仍记录审计
+                # 过程状态(进行中↔待观察): 允许,仍记录审计
                 old = t.get('status')
                 t['status'] = new_status
                 t['last_change'] = {'date': today_iso, 'from': old, 'to': new_status,
@@ -725,6 +785,19 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
                 print(f"   🚫 论点#{tid}确信度上调被拒: {reason}")
             else:
                 t['confidence'] = conf
+
+        # 证据台账写入(第五轮P1-1: 放在门禁判定**之后** — 同日重跑时,
+        # 早前运行写入的(指标,观测日)已在已知集合内,同批数据不会再次计为新增)
+        if verified:
+            ledger = t.setdefault('evidence_ledger', [])
+            ledger.append({'date': today_iso, 'verified': len(verified),
+                           'supporting': len(supporting), 'contrary': len(contrary),
+                           'unexplained': len(unexplained), 'neutral': len(neutral_ev),
+                           'new_support': sorted(new_support),
+                           'star_max': star_max, 'desc': star_desc[:200],
+                           'obs_pairs': sorted({(i['metric'], str(i.get('obs_date'))[:10])
+                                                for i in verified})})
+            t['evidence_ledger'] = ledger[-12:]
 
         # 论点失效 → 提示检查关联论点(不自动改任何配置观点)
         if t.get('status') == '已失效' and t.get('last_change', {}).get('date') == today_iso:

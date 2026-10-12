@@ -460,15 +460,17 @@ vd4 = pred_views([{'pred_id': 14, 'date_made': '2026-10-02', 'asset': '股', 'de
 v14 = ae.evaluate_predictions(vd4, today_str='2026-10-16')[0]
 check("E8 窗前6900与窗后6800都不算→touch到期miss(区间仅窗内7630~7650)",
       v14[2] == 'miss' and '7650' in v14[3] and '6900' not in v14[3] and '6800' not in v14[3], str(v14))
-# expiry版本: 窗内最后观测决定,窗后未来值不覆盖
+# expiry版本: 第六轮P0-3严格口径 — 只认有效截止交易日(10-16)当日观测,
+# 窗后未来值(10-20暴跌5000)不参与
 vd5 = pred_views([{'pred_id': 15, 'date_made': '2026-10-02', 'asset': '股', 'deadline': '2026-10-16',
                    'direction': 'SPX收7000上', 'status': 'observing', 'observe_from': '2026-10-02',
                    'metric': 'global_market.data.SPX.close', 'comparator': '>=', 'target': 7000,
                    'verify_mode': 'expiry',
-                   'observations': [{'obs_date': '2026-10-15', 'value': 7600, 'as_of': '2026-10-15'},
+                   'observations': [{'obs_date': '2026-10-15', 'value': 7500, 'as_of': '2026-10-15'},
+                                    {'obs_date': '2026-10-16', 'value': 7600, 'as_of': '2026-10-16'},
                                     {'obs_date': '2026-10-20', 'value': 5000, 'as_of': '2026-10-20'}]}])
 v15 = ae.evaluate_predictions(vd5, today_str='2026-10-16')[0]
-check("E9 expiry裁决用窗内最后观测(7600),窗后暴跌5000不算→hit",
+check("E9 expiry只认截止交易日10-16当日观测(7600),窗后暴跌5000不算→hit",
       v15[2] == 'hit' and '7600' in v15[3] and '5000' not in v15[3], str(v15))
 
 # E10 前提至截止日未成立→终态未触发

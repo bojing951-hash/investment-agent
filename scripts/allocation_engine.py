@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""配置研究引擎 v4.0 (第四轮可靠性修复, 2026-10-12)
+"""配置研究引擎 v4.0+第六轮最终可靠性补丁 (2026-10-12)
+
+第六轮(正式版冻结前最终补丁,不改架构):
+1. P0-1 观察写入与数据验证严格隔离: record_observations对目标/前提锚点做防御性
+   校验(观测日缺失/不可解析/未来/超新鲜度窗一律不写入正式观察历史,不得以采集日
+   替代实际观测日);观察器侧先过滤无效锚点再传入 — 双侧防线,其他调用路径无法绕过。
+2. P0-2 条件预测到期封存: 终态预测加final标记(向后兼容迁移: 旧hit/miss/inconclusive
+   记录自动补final;到期未触发终态在引擎落地时写入) — 每日观察任务不得重开终态预测,
+   前提只能在有效期内激活(触发观测日须≤截止日,截止日不顺延);GLM不得翻案终态。
+3. P0-3 expiry严格结算口径: 裁决只认预定义有效截止交易日(settlement_date,非交易日
+   回溯)当日的观测,该日缺失→inconclusive,不得回退用前一交易日价格;GLM引用核验
+   与引擎同一结算日(不得拿前一日满足值把inconclusive裁成hit)。
 
 相对v3.0的修复(第四轮P0):
 1. 连续观察周数按ISO year-week累计(P0-1): 同一ISO周重复运行最多贡献1个观察周
@@ -12,7 +23,7 @@
    才封顶3★。台账分别记录支持/反对/未解释数量。
 4. 预测观察与裁决强化(P0-6): 每日观察记录(幂等,含盘中高/低与数据来源);
    price_basis区分close/high/low口径 — 只有收盘价不得证明盘中未触及(缺→无法裁决);
-   expiry按截止日附近(≤4天容差)最后有效观测判定(非交易日顺延取最近收盘);
+   expiry按预定义有效截止交易日当日观测判定(第六轮P0-3严格化,无容差回退);
    定性预测GLM只能inconclusive研究回顾,不计入客观命中率(qualitative单列)。
 
 相对v2.0的修复(第三轮P0):
@@ -67,7 +78,8 @@ VERIFY_MODE_CN = {'touch': '观察期内触及', 'expiry': '截止日达到'}
 # 只有收盘数据时不得证明"盘中未触及"(判miss须有对应口径数据,缺→无法裁决)。
 PRICE_BASES = {'close', 'high', 'low'}
 PRICE_BASIS_CN = {'close': '收盘价', 'high': '盘中最高', 'low': '盘中最低'}
-_EXPIRY_OBS_TOLERANCE_DAYS = 4  # expiry裁决: 截止日附近有效观测窗口(非交易日顺延取最近收盘)
+# (第六轮P0-3已移除截止日±4天容差: expiry只认预定义有效截止交易日当日观测,
+#  结算日数据缺失→inconclusive,不得回退用前一交易日价格裁决)
 _PRED_STATUS_MAP = {
     '命中': 'hit', '已命中': 'hit', '验证': 'hit',
     '证伪': 'miss', '已证伪': 'miss', '落空': 'miss', '未命中': 'miss',
@@ -150,6 +162,11 @@ def _migrate_views(data):
             changed = True
         if 'data_source' not in p:
             p['data_source'] = 'anchors'
+            changed = True
+        # 第六轮P0-2向后兼容: 旧终态预测(hit/miss/inconclusive)补final标记 —
+        # 不改变任何既有字段,只加布尔标记,旧JSON可无损升级
+        if p.get('status') in ('hit', 'miss', 'inconclusive') and 'final' not in p:
+            p['final'] = True
             changed = True
     return changed
 
@@ -523,35 +540,94 @@ def _premise_spec(p):
     return False
 
 
+def _is_final_prediction(p, today_iso=None):
+    """预测是否已形成正式终态(第六轮P0-2): 终态预测不得被每日观察任务重新开启,
+    也不得被GLM重复裁决或翻案。判定(按序):
+    1. 显式 final 标记(新记录,裁决落地时由引擎写入);
+    2. status ∈ hit/miss/inconclusive(三态即终态);
+    3. 旧版记录兼容: not_yet_triggered 且已带 resolved_date(到期未触发曾被周报
+       终态化)且截止日已过 — 视为终态,不再重开。
+    注意: not_yet_triggered + resolved_date 但截止日未到(周报未触发说明注记,
+    非终态)不算 — 前提仍可能在有效期内兑现。"""
+    if p.get('final'):
+        return True
+    if p.get('status') in ('hit', 'miss', 'inconclusive'):
+        return True
+    if p.get('status') == 'not_yet_triggered' and p.get('resolved_date'):
+        dl = str(p.get('deadline', ''))[:10]
+        today = _iso(today_iso or datetime.now().strftime('%Y-%m-%d'))
+        if dl and dl < today:
+            return True
+    return False
+
+
+def _anchor_obs_date_valid(info, today_iso):
+    """锚点观测日防御检查(第六轮P0-1): 返回(有效观测日 or None, 拒绝原因 or None)。
+    观测日缺失/不可解析/晚于今日 → 无效 — 不得以采集日today替代实际观测日写入历史。"""
+    od = str(info.get('obs_date') or '')[:10]
+    if not od:
+        return None, '锚点无观测日(obs_date),无法绑定实际观察日'
+    try:
+        if date.fromisoformat(od) > date.fromisoformat(today_iso):
+            return None, f'观测日{od}晚于今日{today_iso}(未来数据,不得记录)'
+    except ValueError:
+        return None, f'观测日不可解析({od})'
+    return od, None
+
+
 def record_observations(views_data, anchors, today_str=None):
-    """数据持续记录(每期回写时/每日观察任务调用,第四轮P0-6增强):
+    """数据持续记录(每期回写时/每日观察任务调用;第四轮P0-6 + 第六轮P0-1/P0-2):
     1) 带前提规格的未触发预测: 前提按锚点程序判定,兑现→转观察中并盖observe_from
-       (观察期自此起算,截止日不变,不顺延);
+       (观察期自前提兑现日起,截止日不变,不顺延)。第六轮P0-2前提激活守卫:
+       - 终态预测(第六轮_is_final_prediction)不再参与前提判定,不得重开;
+       - 前提观测日须可解析且不晚于今日、不超新鲜度窗(过期数据不得激活前提);
+       - 前提观测日须≤截止日 — 截止日后才兑现的前提不得激活(截止日不顺延)。
     2) 观察中且带结果规格的预测: 把本期锚点值记入 observations(按观测日去重,
        同观测日留最新采集),并附盘中高/低(锚点存在兄弟.high/.low键时)与数据来源。
-       幂等: 同一批锚点重复运行不增加记录。
+       第六轮P0-1防御: 观测日缺失/不可解析/未来/超新鲜度窗的锚点一律不写入
+       正式观察历史(不得以采集日today替代实际观测日) — 即使调用方(观察器)
+       已过滤,引擎侧也不放行(其他调用路径不得绕过观察器污染历史)。
+    幂等: 同一批锚点重复运行不增加记录(changes只含真实状态变化,跳过说明仅打印,
+    重复运行不虚增变更)。
     返回变更说明列表。"""
     today_iso = _iso(today_str or datetime.now().strftime('%Y-%m-%d'))
     changes = []
     for p in views_data.get('predictions', []):
         # 前提程序判定
-        if p.get('status') == 'not_yet_triggered' and _premise_spec(p):
+        if p.get('status') == 'not_yet_triggered' and _premise_spec(p) \
+                and not _is_final_prediction(p, today_iso):
             prem = p['premise']
             info = (anchors or {}).get(prem['metric'])
             if info and isinstance(info.get('value'), (int, float)):
-                if COMPARATORS[prem['op']](float(info['value']), float(prem['target'])):
-                    trig_date = str(info.get('obs_date') or today_iso)[:10]
-                    p['premise_triggered_date'] = trig_date
-                    p['status'] = 'observing'
-                    p['observe_from'] = trig_date   # 观察期自前提兑现日起
-                    changes.append(f"预测#{p['pred_id']}: 前提已程序确认"
-                                   f"({prem['metric']}={info['value']:g} {prem['op']} {prem['target']:g},"
-                                   f"观测日{trig_date})→转观察中")
+                od, why_bad = _anchor_obs_date_valid(info, today_iso)
+                deadline = str(p.get('deadline', ''))[:10]
+                if od and _anchor_fresh(prem['metric'], info, today_iso) \
+                        and COMPARATORS[prem['op']](float(info['value']), float(prem['target'])):
+                    if deadline and od > deadline:
+                        print(f"⚠️ 预测#{p['pred_id']}: 前提{od}才兑现,晚于截止日{deadline}"
+                              f" — 预测不激活,截止日不顺延(到期未触发)")
+                    else:
+                        p['premise_triggered_date'] = od
+                        p['status'] = 'observing'
+                        p['observe_from'] = od   # 观察期自前提兑现日起
+                        changes.append(f"预测#{p['pred_id']}: 前提已程序确认"
+                                       f"({prem['metric']}={info['value']:g} {prem['op']} "
+                                       f"{prem['target']:g},观测日{od})→转观察中")
+                elif why_bad:
+                    print(f"⚠️ 预测#{p['pred_id']}: 前提锚点无效本轮跳过 — {why_bad}")
         # 结果观察记录
         if p.get('status') == 'observing' and _pred_spec(p):
             info = (anchors or {}).get(p['metric'])
             if info and isinstance(info.get('value'), (int, float)):
-                obs_date = str(info.get('obs_date') or today_iso)[:10]
+                obs_date, why_bad = _anchor_obs_date_valid(info, today_iso)
+                if not obs_date:
+                    if why_bad:
+                        print(f"⚠️ 预测#{p['pred_id']}: 本轮锚点无效不写入观察历史 — {why_bad}")
+                    continue
+                if not _anchor_fresh(p['metric'], info, today_iso):
+                    print(f"⚠️ 预测#{p['pred_id']}: 本轮锚点观测日{obs_date}超出新鲜度窗"
+                          f"(疑采集失败),不写入观察历史")
+                    continue
                 obs = {'obs_date': obs_date,
                        'value': float(info['value']),
                        'as_of': str(info.get('as_of') or today_iso)[:10],
@@ -758,8 +834,8 @@ def evaluate_predictions(views_data, today_str=None, anchors=None):
       touch判miss须整个窗口都有该口径数据 — 只有收盘价不得证明"盘中未触及",
       缺盘中高低价→inconclusive(数据不足不硬判)。
     - touch模式: 窗内任一观测按其口径满足即hit(可提前);全不满足且已到期→miss
-    - expiry模式: 已到期,按截止日附近(≤_EXPIRY_OBS_TOLERANCE_DAYS天)最后一个观测判定
-      (截止日为非交易日时按市场日历顺延取最近收盘);截止日附近无有效观测→inconclusive
+    - expiry模式: 已到期,按预定义有效截止交易日(settlement_date,非交易日回溯)
+      **当日**的观测判定(第六轮P0-3: 无容差回退);该日无有效观测→inconclusive
     - 前提到截止日未成立 → 未触发(终态)
     - 窗内无数据 → 无法裁决(不硬判)
     返回 [(pred_id, old, new, note)]; 由调用方写回。"""
@@ -841,24 +917,27 @@ def evaluate_predictions(views_data, today_str=None, anchors=None):
                                      f"(共{len(usable)}个观测,覆盖{len(cov['expected'])}个交易日完整),"
                                      f"从未满足{p['comparator']}{p['target']:g}"))
         else:
-            # expiry(第五轮P0-2): 截止口径=预定义规则 — 按市场日历取截止日(含)往前
-            # 最后一个有效交易日,数据滞后容差≤4天内取最后一个观测;不得事后挑选有利日期
+            # expiry(第五轮P0-2预定义截止口径 + 第六轮P0-3严格化):
+            # 截止口径=按市场日历预先确定的有效截止交易日(settlement_date,非交易日
+            # 截止一律回溯,规则事先固定不事后挑)。裁决**只认该日当日的观测** —
+            # 结算日数据缺失判inconclusive,不得回退用前一交易日价格裁决
+            # (防止拿截止日前较早的满足值冒充截止水平);crypto 7×24按自然日自洽。
             mkt = market_of_metric(p.get('metric'))
             settle = settlement_date(deadline, mkt)
-            near = [o for o in obs if 0 <= _days_between(settle, o['obs_date']) <= _EXPIRY_OBS_TOLERANCE_DAYS]
-            if not near:
+            same_day = [o for o in obs if str(o.get('obs_date', ''))[:10] == settle
+                        and _obs_field_value(o, 'close') is not None]
+            if not same_day:
                 verdicts.append((p['pred_id'], status, 'inconclusive',
                                  f"截止日{deadline}按{mkt}日历的有效截止交易日{settle}"
-                                 f"前{_EXPIRY_OBS_TOLERANCE_DAYS}天内无{p['metric']}"
-                                 f"有效观测(最近观测{obs[-1]['obs_date']}),无法按截止日水平裁决"))
+                                 f"当日无{p['metric']}有效观测(最近观测{obs[-1]['obs_date']}),"
+                                 f"截止时点价格缺失不得以前一交易日价格代替,无法按截止日水平裁决"))
                 continue
-            last = near[-1]
+            last = same_day[-1]
             lv = _obs_field_value(last, 'close')
             fired = COMPARATORS[p['comparator']](lv, float(p['target']))
-            settle_note = '' if last['obs_date'] == settle else f"有效截止日{settle}附近"
             verdicts.append((p['pred_id'], status, 'hit' if fired else 'miss',
                              f"引擎自动裁决(截止日水平): {p['metric']}={lv:g}"
-                             f"(观测日{last['obs_date']}{settle_note})"
+                             f"(观测日{last['obs_date']}即有效截止交易日{settle})"
                              f" {p['comparator']} {p['target']:g} → {'满足' if fired else '不满足'}"))
     return verdicts
 
@@ -1282,6 +1361,16 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
         deadline = str(p.get('deadline', '9999-12-31'))[:10]
         today_iso_ = today_iso
 
+        # 第六轮P0-2: 已形成正式终态的预测,每日/每周回写路径都不得重开或翻案 —
+        # GLM不得对final预测改判或重复注记(hit/miss/inconclusive三态终局,
+        # 重复运行不随意改变;重复注记会刷新原始裁决日期,破坏审计)
+        if _is_final_prediction(p, today_iso_):
+            if status != p.get('status'):
+                updates.append(f"预测#{pid}: GLM裁决'{status}'被拒 — 该预测已形成正式终态"
+                               f"({p.get('status')}),不得重复裁决或翻案")
+                print(f"   🚫 预测#{pid}: 终态预测({p.get('status')})不得被GLM重新裁决")
+            continue
+
         if status in ALLOWED_PRED_VERDICTS and p.get('status') != status:
             # 引擎已有客观裁决(hit/miss) → 模型只能附和,不得覆盖;
             # inconclusive是"无数据"而非客观结果,允许GLM附窗内证据补位(仍走引用核验)
@@ -1334,8 +1423,10 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
                         break
                 if cited and (p.get('verify_mode') or 'expiry') == 'expiry':
                     settle = settlement_date(deadline, market_of_metric(p['metric']))
-                    if not (0 <= _days_between(settle, cited[1]) <= _EXPIRY_OBS_TOLERANCE_DAYS):
-                        cited = None   # 非截止口径附近的数据不能证明截止水平
+                    if cited[1] != settle:
+                        cited = None   # 第六轮P0-3: 只认有效截止交易日**当日**的记录
+                        # (与引擎同一结算口径 — Python判inconclusive时GLM不得拿
+                        #  前一交易日的满足值把同批数据裁成hit)
                 if status in ('hit', 'miss'):
                     if cited is None:
                         why = (f"观察窗{start}~{end}内无{p['metric']}有效观察记录,不得仅凭文字宣判"
@@ -1363,6 +1454,7 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
             p['status'] = status
             p['resolved_note'] = note[:120]
             p['resolved_date'] = today_iso_
+            p['final'] = True   # 第六轮P0-2: 终态落地即封存,后续运行不得重开/翻案
             glm_resolved_today.add(pid)
             updates.append(f"预测#{pid}: {old}→{status} ({note[:40]})")
         elif status == 'not_yet_triggered' and p.get('status') in ('observing', 'not_yet_triggered'):
@@ -1414,11 +1506,16 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
         p = next(x for x in data['predictions'] if x.get('pred_id') == pid)
         old = p.get('status')
         if old == new:
+            # 第六轮P0-2: not_yet_triggered到期未触发终态(状态不变但已终局) —
+            # 落final标记,此后每日观察任务不得重开(前提迟到兑现也不再激活)
+            p['final'] = True
             p.setdefault('resolved_note', '')
             p['resolved_note'] = note[:120]
             p['resolved_date'] = today_iso
+            updates.append(f"预测#{pid}: 到期未触发终态落盘(截止日不顺延,不再重开)")
             continue
         p['status'], p['resolved_note'], p['resolved_date'] = new, note[:120], today_iso
+        p['final'] = True   # 第六轮P0-2: 终态封存
         updates.append(f"预测#{pid}: {old}→{new} (引擎自动: {note[:50]})")
 
     if not valid_alloc_lines and not updates:

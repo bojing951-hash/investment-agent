@@ -237,7 +237,7 @@ p7 = gold_pred(24, verify_mode='expiry', observations=[
     {'obs_date': d, 'value': 4300 + i} for i, d in enumerate(
         ['2026-10-02', '2026-10-05', '2026-10-06'])])   # 最近观测10-06,距截止10-16>4天
 v7 = quiet(ae.evaluate_predictions, {'predictions': [p7]}, today_str=DAY2)
-check("R7 截止日前4天窗口无观测→inconclusive不硬判",
+check("R7 有效截止交易日当日无观测→inconclusive不硬判(第六轮P0-3严格口径)",
       v7 and v7[0][2] == 'inconclusive' and '无' in v7[0][3] and '有效观测' in v7[0][3], str(v7))
 
 # ════════ 8. 非交易日截止按事先确定规则 (P0-2) ════════

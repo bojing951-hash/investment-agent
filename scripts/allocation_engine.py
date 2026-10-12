@@ -350,10 +350,24 @@ def verify_evidence_items(items, anchors, as_of_date=None):
             continue
         obs = str(info.get('obs_date') or '')[:10]
         as_of = str(info.get('as_of') or '')[:10]
-        claimed_obs = str(it.get('obs_date') or '')[:10]
-        if claimed_obs and obs and claimed_obs != obs:
+        claimed_obs = str(it.get('obs_date') or '').strip()[:10]
+        # 第五轮P0-3: 观测日为必填(metric+value+obs_date三项缺一不可) —
+        # 缺失/不可解析的证据整项拒收,不得省略后由程序以锚点观测日补全
+        # (锚点数值核对是程序责任,日期引用是模型责任;as_of采集日不得替代obs_date)
+        if not claimed_obs:
+            rejects.append((f"{metric}证据缺obs_date(观测日必填,缺失不得参与评级/星级)", it))
+            continue
+        try:
+            date.fromisoformat(claimed_obs)
+        except ValueError:
+            rejects.append((f"{metric}证据obs_date不可解析('{claimed_obs}')", it))
+            continue
+        if not obs:
+            rejects.append((f"{metric}锚点无有效观测日,证据无法对齐", it))
+            continue
+        if claimed_obs != obs:
             rejects.append((f"{metric}观测日不符(引用{claimed_obs} vs 锚点{obs};"
-                            f"采集日不得替代观测日)", it))
+                            f"采集日as_of不得替代经济观测日)", it))
             continue
         if as_of_date and not _anchor_fresh(metric, info, as_of_date):
             if not obs:
@@ -393,7 +407,8 @@ def _obs_period_bucket(obs_date):
 
 # 指标的数值字段后缀: 同一底层指标的不同字段(value/prev/各变化口径)不构成独立证据
 _METRIC_FIELD_SUFFIXES = {'value', 'prev', 'close', 'high', 'low', 'change', 'pct_change',
-                          'week_chg', 'mom_chg', 'yoy_chg', 'chg'}
+                          'week_chg', 'mom_chg', 'yoy_chg', 'mom_pct', 'yoy_pct', 'week_pct',
+                          'chg'}
 
 
 def _base_metric(metric):
@@ -442,26 +457,42 @@ def star_level_from_evidence(verified_items):
     return star, desc
 
 
-def new_supporting_metrics(v, supporting, today_iso):
-    """本周"新增"独立支持证据的底层指标集合(第四轮P0-2):
-    与该观点历史证据台账相比 — (指标,观测日)已记录过的不算新增;
-    指标出现过但本次观测日更新(新一期数据)算新增信息;
-    同一指标的旧值本周再次引用不构成新增证据。
-    同一底层指标的不同字段口径按基底去重。"""
+def _seen_obs_pairs(ledger):
+    """证据台账中已知的(底层指标, 观测日)集合 — 含同日早前运行的条目。"""
     seen = {}
-    for led in v.get('evidence_ledger') or []:
-        if led.get('date') == today_iso:
-            continue  # 当周台账重跑不当作历史
+    for led in ledger or []:
         for m, od in led.get('obs_pairs') or []:
             seen.setdefault(_base_metric(m), set()).add(str(od)[:10])
+    return seen
+
+
+def _new_metrics_vs_seen(items, seen):
+    """items中相对已知信息集合为"新增"的底层指标 — (指标,观测日)已记录过不算;
+    同一指标仅当本次观测日**更新**(新一期数据)才算新增;
+    同一观测期的数值修订不算新观察期;首次引用算新增。"""
     new_metrics = set()
-    for i in supporting:
+    for i in items:
         base, od = _base_metric(i.get('metric')), str(i.get('obs_date'))[:10]
         if base in seen and od in seen[base]:
-            continue  # 完全相同的(指标,观测日)已记录过
+            continue      # 完全相同的(指标,观测日)已记录过(旧值重引/修订重引)
         if any(od > old for old in seen.get(base, {''})):
             new_metrics.add(base)   # 新观测期(新一期数据)或首次引用
     return new_metrics
+
+
+def new_supporting_metrics(v, supporting, today_iso=None):
+    """本周"新增"独立支持证据的底层指标集合(第四轮P0-2 + 第五轮P1-1):
+    与该观点历史证据台账(含同日早前运行写入的条目)相比。
+    同批数据同日重跑10次不得产生10次新增: 台账在门禁判定**之后**写入,
+    同日早前已计入的(指标,观测日)再次出现时已在已知集合内,不再是新增;
+    修订(同一观测期的数值变化)只记录,不算新的经济观察。"""
+    return _new_metrics_vs_seen(supporting, _seen_obs_pairs(v.get('evidence_ledger')))
+
+
+def new_contrary_metrics(v, contrary, today_iso=None):
+    """本周新增独立**反证**的底层指标集合(第五轮P0-4: 已验证论点重新开启的门禁口径,
+    与支持证据同一套基底/观测日身份规则 — 新增判定与星级用一致的指标身份)。"""
+    return _new_metrics_vs_seen(contrary, _seen_obs_pairs(v.get('evidence_ledger')))
 
 
 def _key_engaged(v, new_support):
@@ -575,6 +606,150 @@ def _days_between(d1, d2):
         return 999
 
 
+# ════════════════════════════════════════════════════════════════════
+# 市场交易日历与观察窗覆盖(第五轮P0-2)
+# ════════════════════════════════════════════════════════════════════
+# 安全原则: 只把"确定不交易"的日子排除出预期观察日 —
+# 宁可多预期一天(判inconclusive),绝不漏掉真实交易日(防止假miss)。
+# 美国(含全球期货GOLD/WTI与FRED宏观序列)按NYSE规则计算节假日;
+# 中国仅2026年按长假核心块保守列入,其余年份/港股保守只除周末 —
+# 无法可靠确定市场日历时,不得假装覆盖完整(覆盖判定从严)。
+import calendar as _calmod
+
+_CN_HOLIDAY_BLOCKS = {
+    2026: {'01-01', '01-02',                # 元旦
+           '02-16', '02-17', '02-18', '02-19', '02-20',  # 春节核心周(除夕2-16,初一2-17)
+           '04-06',                          # 清明(4-5为周日,顺延观测)
+           '05-01', '05-04', '05-05',        # 劳动节
+           '06-19',                          # 端午
+           '09-25',                          # 中秋
+           '10-01', '10-02', '10-05', '10-06', '10-07'},  # 国庆(10-03/04为周末)
+}
+_US_HOLIDAY_CACHE = {}
+
+
+def _nth_weekday(y, m, weekday, n):
+    """当月第n个星期weekday(0=周一…6=周日)"""
+    first = date(y, m, 1)
+    return first + timedelta(days=(weekday - first.weekday()) % 7 + 7 * (n - 1))
+
+
+def _last_weekday(y, m, weekday):
+    last = date(y, m, _calmod.monthrange(y, m)[1])
+    return last - timedelta(days=(last.weekday() - weekday) % 7)
+
+
+def _easter(y):
+    """复活节周日(匿名格雷高利算法,只用于推耶稣受难日=复活节-2天)"""
+    a = y % 19
+    b, c = divmod(y, 100)
+    d, e = divmod(b, 4)
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = divmod(c, 4)
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    return date(y, (h + l - 7 * m + 114) // 31, ((h + l - 7 * m + 114) % 31) + 1)
+
+
+def _us_holidays(y):
+    if y in _US_HOLIDAY_CACHE:
+        return _US_HOLIDAY_CACHE[y]
+    raw = {date(y, 1, 1), _nth_weekday(y, 1, 0, 3), _nth_weekday(y, 2, 0, 3),
+           _easter(y) - timedelta(days=2), _last_weekday(y, 5, 0), date(y, 6, 19),
+           date(y, 7, 4), _nth_weekday(y, 9, 0, 1), _nth_weekday(y, 11, 3, 4),
+           date(y, 12, 25)}
+    out = set()
+    for d in raw:                      # 周六→周五休市,周日→周一休市(NYSE惯例)
+        out.add(d - timedelta(days=1) if d.weekday() == 5
+                else d + timedelta(days=1) if d.weekday() == 6 else d)
+    _US_HOLIDAY_CACHE[y] = out
+    return out
+
+
+def market_of_metric(metric):
+    """指标→市场日历: crypto(BTC等7×24)/cn(A股, china.*前缀)/hk(港股代码)/
+    us(global_market的SPX/DXY/ETF/GOLD/WTI期货与macro.data的FRED序列)。"""
+    m = str(metric or '')
+    if m.startswith('china.'):
+        return 'hk' if '.HK' in m else 'cn'
+    if 'BTC' in m:
+        return 'crypto'
+    return 'us'
+
+
+def is_trading_day(d, market):
+    """d为date或'YYYY-MM-DD'。crypto全天候;其余周末一律非交易日;
+    节假日按市场日历;无法确定的(日,市场)组合保守视为交易日(宁可inconclusive不假miss)。"""
+    try:
+        dt = d if isinstance(d, date) else date.fromisoformat(str(d)[:10])
+    except ValueError:
+        return True
+    if market == 'crypto':
+        return True
+    if dt.weekday() >= 5:
+        return False
+    md = dt.strftime('%m-%d')
+    if market in ('us', 'futures'):
+        return dt not in _us_holidays(dt.year)
+    if market == 'cn':
+        return md not in _CN_HOLIDAY_BLOCKS.get(dt.year, set())
+    if market == 'hk':
+        return md not in ('01-01', '12-25')
+    return True
+
+
+def expected_trading_days(start, end, market, upto=None):
+    """观察窗[start,end]内该市场的预期交易日清单(upto: 只统计到该日,渲染用)。
+    返回None表示窗口本身无法确定 → 覆盖不可判(不得假装完整)。"""
+    try:
+        s = date.fromisoformat(str(start)[:10])
+        e = date.fromisoformat(str(end)[:10])
+        if upto:
+            e = min(e, date.fromisoformat(str(upto)[:10]))
+    except ValueError:
+        return None
+    if e < s:
+        return []
+    days, cur = [], s
+    while cur <= e:
+        if is_trading_day(cur, market):
+            days.append(cur.isoformat())
+        cur += timedelta(days=1)
+    return days
+
+
+def settlement_date(deadline, market):
+    """预定义截止口径(第五轮P0-2): 截止日(含)往前的最后一个有效交易日 —
+    非交易日截止一律**回溯**取前一有效交易日,规则事先固定,不得事后挑选有利日期。"""
+    try:
+        d = date.fromisoformat(str(deadline)[:10])
+    except ValueError:
+        return str(deadline)[:10]
+    for _ in range(10):
+        if is_trading_day(d, market):
+            return d.isoformat()
+        d -= timedelta(days=1)
+    return str(deadline)[:10]
+
+
+def window_coverage(p, today_str=None):
+    """观察窗覆盖体检(第五轮P0-2): 每项预测可确定观察起始/截止/市场/预期有效
+    观察日期/已取得观测/缺失日期/覆盖是否充分。判miss须 sufficient 且对应口径
+    数据完整;关键日期缺失 → inconclusive(数据缺失≠失败)。"""
+    obs, start, end = _window_obs(p)
+    market = market_of_metric(p.get('metric'))
+    basis = p.get('price_basis', 'close')
+    got = {str(o.get('obs_date', ''))[:10] for o in obs
+           if _obs_field_value(o, basis) is not None}
+    expected = expected_trading_days(start, end, market, upto=today_str)
+    missing = sorted(set(expected) - got) if expected is not None else None
+    return {'start': start, 'end': end, 'market': market, 'basis': basis,
+            'expected': expected, 'got': sorted(got), 'missing': missing,
+            'sufficient': expected is not None and not missing}
+
+
 def evaluate_predictions(views_data, today_str=None, anchors=None):
     """到期/触及裁决(引擎权威;第三轮P0-2 + 第四轮P0-6价格口径/截止日窗口)。
 
@@ -642,32 +817,48 @@ def evaluate_predictions(views_data, today_str=None, anchors=None):
                                  f"引擎自动裁决(观察期内触及): {p['metric']}({PRICE_BASIS_CN[basis]})"
                                  f"于{h['obs_date']}达{hv:g} {p['comparator']} {p['target']:g}"
                                  f"(窗内区间{min(vals):g}~{max(vals):g},共{len(usable)}个观测)"))
-            elif basis != 'close' and len(usable) < len(obs):
-                # 盘中口径缺数据: 只有收盘价不能证明盘中未触及
-                missing = len(obs) - len(usable)
-                verdicts.append((p['pred_id'], status, 'inconclusive',
-                                 f"观察窗{start}~{end}内{missing}/{len(obs)}个观测缺{PRICE_BASIS_CN[basis]}"
-                                 f"数据,无法证明盘中未触及{p['comparator']}{p['target']:g} — 数据不足不判miss"))
             else:
-                vals = [_obs_field_value(o, basis) for o in usable]
-                verdicts.append((p['pred_id'], status, 'miss',
-                                 f"引擎自动裁决(到期未触及): 观察窗{start}~{end}内{p['metric']}"
-                                 f"({PRICE_BASIS_CN[basis]})区间{min(vals):g}~{max(vals):g}"
-                                 f"(共{len(usable)}个观测),从未满足{p['comparator']}{p['target']:g}"))
+                cov = window_coverage(p)
+                if basis != 'close' and len(usable) < len(obs):
+                    # 盘中口径缺数据: 只有收盘价不能证明盘中未触及
+                    missing = len(obs) - len(usable)
+                    verdicts.append((p['pred_id'], status, 'inconclusive',
+                                     f"观察窗{start}~{end}内{missing}/{len(obs)}个观测缺{PRICE_BASIS_CN[basis]}"
+                                     f"数据,无法证明盘中未触及{p['comparator']}{p['target']:g} — 数据不足不判miss"))
+                elif not cov['sufficient']:
+                    # 第五轮P0-2: 触及判miss须窗口覆盖充分 — 预期交易日有缺失时,
+                    # 缺失日期无法证明未触及(如仅取得3个交易日最高价且都低于目标≠失败)
+                    miss_list = ','.join(cov['missing'] or [])
+                    verdicts.append((p['pred_id'], status, 'inconclusive',
+                                     f"观察窗{start}~{end}({cov['market']}日历)预期{len(cov['expected'] or [])}"
+                                     f"个交易日,缺{len(cov['missing'] or [])}天({miss_list[:60]})该口径观测 — "
+                                     f"覆盖不足,缺失日期无法证明未{p['comparator']}{p['target']:g},不判miss"))
+                else:
+                    vals = [_obs_field_value(o, basis) for o in usable]
+                    verdicts.append((p['pred_id'], status, 'miss',
+                                     f"引擎自动裁决(到期未触及): 观察窗{start}~{end}内{p['metric']}"
+                                     f"({PRICE_BASIS_CN[basis]})区间{min(vals):g}~{max(vals):g}"
+                                     f"(共{len(usable)}个观测,覆盖{len(cov['expected'])}个交易日完整),"
+                                     f"从未满足{p['comparator']}{p['target']:g}"))
         else:
-            # expiry: 截止日对应的有效市场观察点 = 截止日附近(容差窗口)最后一个观测
-            near = [o for o in obs if 0 <= _days_between(deadline, o['obs_date']) <= _EXPIRY_OBS_TOLERANCE_DAYS]
+            # expiry(第五轮P0-2): 截止口径=预定义规则 — 按市场日历取截止日(含)往前
+            # 最后一个有效交易日,数据滞后容差≤4天内取最后一个观测;不得事后挑选有利日期
+            mkt = market_of_metric(p.get('metric'))
+            settle = settlement_date(deadline, mkt)
+            near = [o for o in obs if 0 <= _days_between(settle, o['obs_date']) <= _EXPIRY_OBS_TOLERANCE_DAYS]
             if not near:
                 verdicts.append((p['pred_id'], status, 'inconclusive',
-                                 f"截止日{deadline}前{_EXPIRY_OBS_TOLERANCE_DAYS}天内无{p['metric']}"
+                                 f"截止日{deadline}按{mkt}日历的有效截止交易日{settle}"
+                                 f"前{_EXPIRY_OBS_TOLERANCE_DAYS}天内无{p['metric']}"
                                  f"有效观测(最近观测{obs[-1]['obs_date']}),无法按截止日水平裁决"))
                 continue
             last = near[-1]
             lv = _obs_field_value(last, 'close')
             fired = COMPARATORS[p['comparator']](lv, float(p['target']))
+            settle_note = '' if last['obs_date'] == settle else f"有效截止日{settle}附近"
             verdicts.append((p['pred_id'], status, 'hit' if fired else 'miss',
                              f"引擎自动裁决(截止日水平): {p['metric']}={lv:g}"
-                             f"(观测日{last['obs_date']},{'' if last['obs_date'] == deadline else '截止日附近'})"
+                             f"(观测日{last['obs_date']}{settle_note})"
                              f" {p['comparator']} {p['target']:g} → {'满足' if fired else '不满足'}"))
     return verdicts
 
@@ -744,6 +935,12 @@ def render_views_block(views_data, today_str=None, anchors=None):
                 lo = min(o['value'] for o in obs)
                 hi = max(o['value'] for o in obs)
                 obs_note = f" [已记录{len(obs)}个观测,区间{lo:g}~{hi:g}]"
+            if p.get('status') == 'observing' and p.get('metric'):
+                cov = window_coverage(p, today_str)
+                if cov['missing']:
+                    obs_note += (f" [⚠️观察窗覆盖不足: {cov['market']}日历预期"
+                                 f"{len(cov['expected'])}个交易日,缺{len(cov['missing'])}天"
+                                 f"({cov['missing'][0]}起)观察 — 裁决将从严,不得假设未触及]")
             prem = ""
             if p.get('status') == 'not_yet_triggered':
                 prem = " [前提未兑现,不启动结果观察期]"
@@ -916,16 +1113,6 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
         new_support = new_supporting_metrics(v, supporting, today_iso)
         for rj, _item in ev_rejects[:3]:
             print(f"   ⚠️ #{vid}证据被拒: {rj}")
-        if verified:
-            ledger = v.setdefault('evidence_ledger', [])
-            ledger.append({'date': today_iso, 'verified': len(verified),
-                           'supporting': len(supporting), 'contrary': len(contrary),
-                           'unexplained': len(unexplained), 'neutral': len(neutral_ev),
-                           'new_support': sorted(new_support),
-                           'star_max': star_max, 'desc': star_desc[:200],
-                           'obs_pairs': sorted({(i['metric'], str(i.get('obs_date'))[:10])
-                                                for i in verified})})
-            v['evidence_ledger'] = ledger[-12:]
 
         rating_changed = False
         if new_rating in ALLOWED_RATINGS and new_rating != v.get('rating'):
@@ -1011,6 +1198,19 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
         if not rating_changed and not conf_changed:
             v['history'] = _hist_append(v.setdefault('history', []), tag, '维持',
                                         f"{v.get('rating','?')} {v.get('confidence',0)}★ {note}".rstrip())
+
+        # 证据台账写入(第五轮P1-1: 放在门禁判定**之后** — 同日重跑时,
+        # 早前运行写入的(指标,观测日)已在已知集合内,同批数据不会再次计为新增)
+        if verified:
+            ledger = v.setdefault('evidence_ledger', [])
+            ledger.append({'date': today_iso, 'verified': len(verified),
+                           'supporting': len(supporting), 'contrary': len(contrary),
+                           'unexplained': len(unexplained), 'neutral': len(neutral_ev),
+                           'new_support': sorted(new_support),
+                           'star_max': star_max, 'desc': star_desc[:200],
+                           'obs_pairs': sorted({(i['metric'], str(i.get('obs_date'))[:10])
+                                                for i in verified})})
+            v['evidence_ledger'] = ledger[-12:]
 
         # 评级变更行附带pred → 登记新预测(生命周期字段)
         if rating_changed and o.get('pred') and o.get('pred_weeks'):
@@ -1110,21 +1310,55 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
                 updates.append(f"预测#{pid}: GLM裁决'{status}'被拒 — 截止日{deadline}未到(expiry模式不得提前裁决)")
                 print(f"   🚫 预测#{pid}: expiry模式未到期(截止{deadline}),拒绝提前裁决")
                 continue
-            # 引擎无法裁决(无规格/无记录/数据不足)时GLM补位: 引用数值/观测日须落在观察窗内
+            # 引擎无法裁决(无规格/无记录/数据不足)时GLM补位 — 第五轮P0-1:
+            # 可量化预测的hit/miss必须有有效观察记录支撑,空观察记录不得放行GLM裁决;
+            # note引用的数值与观测日必须与观察窗内**同一条**实际记录吻合 —
+            # 仅数值正确而日期错误→拒;仅日期正确而数值错误→拒;as_of采集日不算观测日;
+            # hit引用的记录还须实际满足预测条件;miss须窗口覆盖充分(与引擎同口径);
+            # expiry引用须落在有效截止交易日附近(不得拿窗内早期值证明截止水平)
             if (eng is None or eng[0] == 'inconclusive') and p.get('metric'):
                 obs, start, end = _window_obs(p)
-                cited_ok = (not obs) or any(
-                    _value_close(float(x), ov)
-                    for o in obs for x in re.findall(r'[0-9]+(?:\.[0-9]+)?', note)
-                    if abs(float(x)) < 1e7
-                    for ov in [_obs_field_value(o, p.get('price_basis', 'close'))]
-                    if ov is not None
-                ) or any(
-                    str(o['obs_date'])[:10] in note for o in obs)
-                if not cited_ok and obs:
-                    updates.append(f"预测#{pid}: GLM裁决被拒 — note引用的数值/观测日不在观察窗{start}~{end}的记录内")
-                    print(f"   🚫 预测#{pid}: 裁决引用与观察窗记录不符(窗内{len(obs)}个观测)")
-                    continue
+                basis_pb = p.get('price_basis', 'close')
+                nums = [float(x) for x in re.findall(r'[0-9]+(?:\.[0-9]+)?', note)
+                        if abs(float(x)) < 1e7]
+                cited = None          # (数值, 观测日) — 与窗内同一条记录吻合的引用
+                for o in obs:
+                    od = str(o['obs_date'])[:10]
+                    if od not in note:
+                        continue      # 该记录的观测日未被引用 → 不是有效配对
+                    ov = _obs_field_value(o, basis_pb)
+                    if ov is None:
+                        continue
+                    if any(_value_close(x, ov) for x in nums):
+                        cited = (ov, od)
+                        break
+                if cited and (p.get('verify_mode') or 'expiry') == 'expiry':
+                    settle = settlement_date(deadline, market_of_metric(p['metric']))
+                    if not (0 <= _days_between(settle, cited[1]) <= _EXPIRY_OBS_TOLERANCE_DAYS):
+                        cited = None   # 非截止口径附近的数据不能证明截止水平
+                if status in ('hit', 'miss'):
+                    if cited is None:
+                        why = (f"观察窗{start}~{end}内无{p['metric']}有效观察记录,不得仅凭文字宣判"
+                               if not obs else
+                               f"note引用的数值与观测日未同时与观察窗{start}~{end}内同一条记录吻合"
+                               f"(数值与观测日须来自同一条实际记录)")
+                        updates.append(f"预测#{pid}: GLM裁决被拒 — {why}")
+                        print(f"   🚫 预测#{pid}: GLM裁决引用核验不通过(窗内{len(obs)}个观测)")
+                        continue
+                    if status == 'hit' and not COMPARATORS[p['comparator']](cited[0], float(p['target'])):
+                        updates.append(f"预测#{pid}: GLM裁决hit被拒 — 引用记录{cited[0]:g}(观测日{cited[1]})"
+                                       f"并未满足{p['comparator']}{p['target']:g},不能判命中")
+                        print(f"   🚫 预测#{pid}: GLM引用记录不满足预测条件却判hit,已拒绝")
+                        continue
+                    if status == 'miss':
+                        cov = window_coverage(p)
+                        if not cov['sufficient']:
+                            updates.append(f"预测#{pid}: GLM裁决miss被拒 — "
+                                           f"观察窗覆盖不足({cov['market']}日历预期"
+                                           f"{len(cov['expected'] or [])}个交易日缺{len(cov['missing'] or [])}天),"
+                                           f"GLM与引擎同口径: 缺失日期无法证明未触及,不得判miss")
+                            print(f"   🚫 预测#{pid}: 覆盖不足,GLM miss被拒(数据缺失≠失败)")
+                            continue
             old = p.get('status')
             p['status'] = status
             p['resolved_note'] = note[:120]

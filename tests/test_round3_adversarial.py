@@ -173,13 +173,17 @@ check("5b 拒收原因明示数据过期", not v and '过期' in r[0][0])
 
 # ════════ 用例6: 观察期外价格触及目标 ════════
 print("\n[6] 观察期外价格触及目标(窗后未来数据/窗前旧数据)")
+# 第五轮P0-2: touch判miss须窗口覆盖充分 — 窗内10-02~10-16共11个交易日全部给观测
+_W6 = ['2026-10-02', '2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09',
+       '2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16']
 vd = base_views()
 vd['predictions'] = [{'pred_id': 30, 'date_made': '2026-10-02', 'asset': '金', 'deadline': '2026-10-16',
                       'direction': '两周内金价触及4400', 'status': 'observing', 'observe_from': '2026-10-02',
                       'metric': 'global_market.data.GOLD.close', 'comparator': '>=', 'target': 4400,
                       'verify_mode': 'touch',
-                      'observations': [{'obs_date': '2026-10-09', 'value': 4180, 'as_of': '2026-10-09'},
-                                       {'obs_date': '2026-10-20', 'value': 4450, 'as_of': '2026-10-20'}]}]
+                      'observations': [{'obs_date': d, 'value': 4180 + (i % 4) * 20, 'as_of': d}
+                                       for i, d in enumerate(_W6)]
+                                       + [{'obs_date': '2026-10-20', 'value': 4450, 'as_of': '2026-10-20'}]}]
 v30 = ae.evaluate_predictions(vd, today_str='2026-10-16')[0]
 check("6a 截止日后(10-20)的4450触及不算→touch到期miss",
       v30[2] == 'miss' and '4450' not in v30[3] and '从未满足' in v30[3], str(v30))
@@ -188,8 +192,9 @@ vd2['predictions'] = [{'pred_id': 31, 'date_made': '2026-10-02', 'asset': '金',
                        'direction': '两周内金价触及4400', 'status': 'observing', 'observe_from': '2026-10-02',
                        'metric': 'global_market.data.GOLD.close', 'comparator': '>=', 'target': 4400,
                        'verify_mode': 'touch',
-                       'observations': [{'obs_date': '2026-09-20', 'value': 4450, 'as_of': '2026-09-20'},  # 观察起点前
-                                        {'obs_date': '2026-10-09', 'value': 4180, 'as_of': '2026-10-09'}]}]
+                       'observations': [{'obs_date': '2026-09-20', 'value': 4450, 'as_of': '2026-09-20'}]  # 观察起点前
+                                       + [{'obs_date': d, 'value': 4180 + (i % 4) * 20, 'as_of': d}
+                                          for i, d in enumerate(_W6)]}]
 v31 = ae.evaluate_predictions(vd2, today_str='2026-10-16')[0]
 check("6b 观察起点前(09-20)的旧触及不算→miss", v31[2] == 'miss', str(v31))
 # GLM用窗后数据裁决→引用核验拒绝
@@ -198,8 +203,9 @@ vd3['predictions'] = [{'pred_id': 32, 'date_made': '2026-10-02', 'asset': '金',
                        'direction': '两周内金价触及4400', 'status': 'observing', 'observe_from': '2026-10-02',
                        'metric': 'global_market.data.GOLD.close', 'comparator': '>=', 'target': 4400,
                        'verify_mode': 'touch',
-                       'observations': [{'obs_date': '2026-10-09', 'value': 4180, 'as_of': '2026-10-09'},
-                                        {'obs_date': '2026-10-15', 'value': 4250, 'as_of': '2026-10-15'}]}]
+                       'observations': [{'obs_date': d, 'value': 4250 if d in ('2026-10-09', '2026-10-15')
+                                         else 4180 + (i % 4) * 20, 'as_of': d}
+                                        for i, d in enumerate(_W6)]}]
 report = alloc_block([{'id': 1, 'rating': '标配', 'confidence': 2, 'note': 'm'}]) + '\n' + \
     pred_block([{'pred_id': 32, 'status': 'hit', 'note': '金价4450已触及4400(观测日2026-10-20)'}])
 saved, ups = run_update(vd3, report, today='2026-10-16')

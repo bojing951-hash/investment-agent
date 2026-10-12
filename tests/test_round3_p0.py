@@ -419,11 +419,15 @@ vd2 = pred_views([{'pred_id': 12, 'date_made': '2026-10-02', 'asset': '股', 'de
                    'direction': 'SPX跌破7000', 'status': 'observing', 'observe_from': '2026-10-02',
                    'metric': 'global_market.data.SPX.close', 'comparator': '<=', 'target': 7000,
                    'verify_mode': 'touch',
-                   'observations': [{'obs_date': '2026-10-09', 'value': 7650, 'as_of': '2026-10-09'},
-                                    {'obs_date': '2026-10-16', 'value': 7620, 'as_of': '2026-10-16'}]}])
+                   # 第五轮P0-2: touch判miss须窗口覆盖充分 — 补齐窗内全部11个交易日
+                   'observations': [{'obs_date': d, 'value': 7620 + (i % 3) * 15, 'as_of': d}
+                                    for i, d in enumerate(['2026-10-02', '2026-10-05', '2026-10-06',
+                                                           '2026-10-07', '2026-10-08', '2026-10-09',
+                                                           '2026-10-12', '2026-10-13', '2026-10-14',
+                                                           '2026-10-15', '2026-10-16'])]}])
 verdicts = ae.evaluate_predictions(vd2, today_str='2026-10-16')
 v12 = next(v for v in verdicts if v[0] == 12)
-check("E5 touch到期从未触及→miss(按原标准)", v12[2] == 'miss' and '从未满足' in v12[3])
+check("E5 touch到期从未触及(窗口覆盖充分)→miss", v12[2] == 'miss' and '从未满足' in v12[3], str(v12))
 
 # E6 expiry未到期→不裁决
 vd3 = pred_views([{'pred_id': 13, 'date_made': '2026-10-02', 'asset': '股', 'deadline': '2026-10-23',
@@ -445,12 +449,17 @@ vd4 = pred_views([{'pred_id': 14, 'date_made': '2026-10-02', 'asset': '股', 'de
                    'direction': 'SPX两周内触及7000下', 'status': 'observing', 'observe_from': '2026-10-02',
                    'metric': 'global_market.data.SPX.close', 'comparator': '<=', 'target': 7000,
                    'verify_mode': 'touch',
-                   'observations': [{'obs_date': '2026-09-25', 'value': 6900, 'as_of': '2026-09-25'},   # 窗前
-                                    {'obs_date': '2026-10-09', 'value': 7650, 'as_of': '2026-10-09'},
-                                    {'obs_date': '2026-10-20', 'value': 6800, 'as_of': '2026-10-20'}]}])  # 窗后(未来)
+                   # 第五轮P0-2: 窗内补齐全部11个交易日(覆盖充分),窗前/窗后数据仍不参与
+                   'observations': [{'obs_date': '2026-09-25', 'value': 6900, 'as_of': '2026-09-25'}]   # 窗前
+                                    + [{'obs_date': d, 'value': 7630 + (i % 3) * 10, 'as_of': d}
+                                       for i, d in enumerate(['2026-10-02', '2026-10-05', '2026-10-06',
+                                                              '2026-10-07', '2026-10-08', '2026-10-09',
+                                                              '2026-10-12', '2026-10-13', '2026-10-14',
+                                                              '2026-10-15', '2026-10-16'])]
+                                    + [{'obs_date': '2026-10-20', 'value': 6800, 'as_of': '2026-10-20'}]}])  # 窗后(未来)
 v14 = ae.evaluate_predictions(vd4, today_str='2026-10-16')[0]
-check("E8 窗前6900与窗后6800都不算→touch到期miss(区间仅窗内7650)",
-      v14[2] == 'miss' and '7650' in v14[3] and '6800' not in v14[3], str(v14))
+check("E8 窗前6900与窗后6800都不算→touch到期miss(区间仅窗内7630~7650)",
+      v14[2] == 'miss' and '7650' in v14[3] and '6900' not in v14[3] and '6800' not in v14[3], str(v14))
 # expiry版本: 窗内最后观测决定,窗后未来值不覆盖
 vd5 = pred_views([{'pred_id': 15, 'date_made': '2026-10-02', 'asset': '股', 'deadline': '2026-10-16',
                    'direction': 'SPX收7000上', 'status': 'observing', 'observe_from': '2026-10-02',

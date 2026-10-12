@@ -156,7 +156,7 @@ ev = [
     {'metric': 'macro.data.HY_OAS.value', 'value': 5.20, 'obs_date': day, 'mechanism': '信用', 'contrary': True},
 ]
 verified, _ = quiet(ae.verify_evidence_items, ev, anchors_at(day), day)
-supporting, contrary, unexplained = ae.split_evidence_direction(verified)
+supporting, contrary, unexplained, neutral_ev = ae.split_evidence_direction(verified)
 check("支持证据=1项,反对证据=1项", len(supporting) == 1 and len(contrary) == 1)
 check("new_supporting_metrics不含反对证据",
       'macro.data.HY_OAS' not in ae.new_supporting_metrics({'views': []} if False else {}, supporting, day))
@@ -309,13 +309,13 @@ with tempfile.TemporaryDirectory() as td:
 # ════════ 测试12: 重大反证未解决时执行星级限制 (P0-5) ════════
 print("\n── 12. 存在未解释重大反证→封顶3★")
 ev_c = ev + [{'metric': 'macro.data.IG_OAS.value', 'value': 1.42,
-              'obs_date': '2026-10-12', 'mechanism': '信用', 'contrary': True}]
+              'obs_date': '2026-10-09', 'mechanism': '信用', 'contrary': True}]
 verified, _ = quiet(ae.verify_evidence_items, ev_c, multi, '2026-10-12')
 star2, _ = ae.star_level_from_evidence(verified)
 check("同上证据+未解释反证→封顶3★", star2 == 3, f"star={star2}")
 # 反证被解释(explained=true)不触发封顶
 ev_e = ev + [{'metric': 'macro.data.IG_OAS.value', 'value': 1.42,
-              'obs_date': '2026-10-12', 'mechanism': '信用', 'contrary': True, 'explained': True}]
+              'obs_date': '2026-10-09', 'mechanism': '信用', 'contrary': True, 'explained': True}]
 verified3, _ = quiet(ae.verify_evidence_items, ev_e, multi, '2026-10-12')
 star3, _ = ae.star_level_from_evidence(verified3)
 check("反证已解释→不封顶(仍5★)", star3 == 5, f"star={star3}")
@@ -533,6 +533,74 @@ views_cfg = json.load(open(os.path.join(ROOT, 'config', 'allocation_views.json')
 block = quiet(ae.render_views_block, views_cfg, '2026-10-12', anchors=anchors_at('2026-10-12'))
 check("render_views_block仍渲染全部资产观点",
       block and all(v['asset'][:2] in block for v in views_cfg['views'][:9]))
+
+# ════════ 附加B: 中立证据/采集日替代观测日/关键传导指标(第四轮复审补) ════════
+print("\n── 附加B1. 中立证据(neutral)不计入支持数量")
+day = '2026-10-12'
+ev_n = [
+    {'metric': 'macro.data.CCC_OAS.value', 'value': 10.12, 'obs_date': day, 'mechanism': '信用'},
+    {'metric': 'macro.data.HY_OAS.value', 'value': 5.20, 'obs_date': day, 'mechanism': '信用', 'neutral': True},
+    {'metric': 'macro.data.TIPS_10Y.value', 'value': 2.89, 'obs_date': day, 'mechanism': '利率与流动性', 'stance': 'neutral'},
+]
+verified, _r = quiet(ae.verify_evidence_items, ev_n, anchors_at(day), day)
+supporting, contrary, unexplained, neutral_ev = ae.split_evidence_direction(verified)
+check("中立项数值真实性照常验证(3项全过)", len(verified) == 3 and not _r, f"{verified} {_r}")
+check("中立项不计入支持(支持=1,中立=2)", len(supporting) == 1 and len(neutral_ev) == 2,
+      f"supporting={len(supporting)} neutral={len(neutral_ev)}")
+star, _ = ae.star_level_from_evidence(verified)
+check("中立项不抬高星级(1支持项→1★)", star == 1, f"star={star}")
+with tempfile.TemporaryDirectory() as td:
+    vp = os.path.join(td, 'allocation_views.json')
+    views_n = {'version': '4.0', 'views': [
+        {'id': 1, 'asset': '美股', 'rating': '标配', 'confidence': 2, 'history': [],
+         'quant_triggers': [], 'key_metrics': []}]}
+    json.dump(views_n, open(vp, 'w'), ensure_ascii=False)
+    rep = status_block([{'id': 1, 'rating': '低配', 'confidence': 2,
+                         'note': '1支持+2中立', 'evidence': ev_n}], 'ALLOCATION_STATUS')
+    quiet(ae.update_allocation_status, rep, views_path=vp, anchors=anchors_at(day), today_str=day)
+    v1 = json.load(open(vp))['views'][0]
+    check("1项支持+2项中立不能过≥2项新增门禁,评级维持", v1['rating'] == '标配', v1['rating'])
+    led = v1.get('evidence_ledger', [])
+    check("台账分别记录支持数与中立数", led and led[-1]['supporting'] == 1 and led[-1]['neutral'] == 2,
+          str(led[-1] if led else None))
+
+print("\n── 附加B2. 采集日(as_of)不得替代观测日被模型引用")
+anch_b = anchors_at(day)  # CCC obs_date=10-12 as_of=10-12 → 构造 obs≠as_of 的锚点
+anch_b['macro.data.CCC_OAS.value'] = {'value': 10.12, 'obs_date': '2026-10-10', 'as_of': day}
+ev_b = [{'metric': 'macro.data.CCC_OAS.value', 'value': 10.12, 'obs_date': day, 'mechanism': '信用'}]
+v_b, r_b = quiet(ae.verify_evidence_items, ev_b, anch_b, day)
+check("模型引用采集日(10-12)冒充观测日(锚点真值10-10)→拒",
+      len(v_b) == 0 and '采集日不得替代观测日' in r_b[0][0], f"{v_b} {r_b}")
+ev_ok = [{'metric': 'macro.data.CCC_OAS.value', 'value': 10.12, 'obs_date': '2026-10-10', 'mechanism': '信用'}]
+v_ok, _r2 = quiet(ae.verify_evidence_items, ev_ok, anch_b, day)
+check("引用锚点真观测日(10-10)→过,且台账记录真观测日",
+      len(v_ok) == 1 and v_ok[0]['obs_date'] == '2026-10-10', f"{v_ok}")
+
+print("\n── 附加B3. 证据未触及资产关键传导指标→保留候选提案(P0-2.4)")
+with tempfile.TemporaryDirectory() as td:
+    vp = os.path.join(td, 'allocation_views.json')
+    views_k = {'version': '4.0', 'views': [
+        {'id': 3, 'asset': '信用', 'rating': '低配', 'confidence': 3, 'history': [],
+         'quant_triggers': [], 'key_metrics': ['macro.data.CCC_OAS.value']}]}
+    json.dump(views_k, open(vp, 'w'), ensure_ascii=False)
+    offkey = [{'metric': 'macro.data.TIPS_10Y.value', 'value': 2.89, 'obs_date': day, 'mechanism': '利率与流动性'},
+              {'metric': 'macro.data.HY_OAS.value', 'value': 5.20, 'obs_date': day, 'mechanism': '信用'}]
+    rep = status_block([{'id': 3, 'rating': '标配', 'confidence': 3,
+                         'note': '宏观事实≠配置方向', 'evidence': offkey}], 'ALLOCATION_STATUS')
+    quiet(ae.update_allocation_status, rep, views_path=vp, anchors=anchors_at(day), today_str=day)
+    v3 = json.load(open(vp))['views'][0]
+    check("2项新增证据但均未触及CCC(信用关键传导指标)→降为候选提案,评级维持低配",
+          v3['rating'] == '低配'
+          and any('关键传导指标' in str(pr.get('reason', '')) for pr in v3.get('proposals', [])),
+          f"{v3['rating']} {v3.get('proposals')}")
+    onkey = offkey + [{'metric': 'macro.data.CCC_OAS.value', 'value': 10.12, 'obs_date': day, 'mechanism': '信用'}]
+    rep2 = status_block([{'id': 3, 'rating': '标配', 'confidence': 3,
+                          'note': '含关键指标', 'evidence': onkey}], 'ALLOCATION_STATUS')
+    quiet(ae.update_allocation_status, rep2, views_path=vp, anchors=anchors_at(day), today_str=day)
+    v3b = json.load(open(vp))['views'][0]
+    check("含关键传导指标(CCC)的足量证据→变更通过", v3b['rating'] == '标配', v3b['rating'])
+    check("未定义key_metrics的观点不受该规则限制(由星级门禁把关)",
+          ae._key_engaged({'key_metrics': None}, set()) is True)
 
 # ════════ 附加: 非交易日截止日按最近收盘裁决 ════════
 print("\n── 附加A. 截止日为周六→按最近(周五)收盘裁决")

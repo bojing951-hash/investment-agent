@@ -96,7 +96,7 @@ if o5 is not None:
     v5_before = next(v for v in views_before['views'] if v['id'] == 5)
     # 门禁的确定性预测(与update路径同函数计算,但断言的是不变式而非循环)
     verified, _rej = ae.verify_evidence_items(o5.get('evidence'), anchors, today)
-    supporting, _ctry, _unexp = ae.split_evidence_direction(verified)
+    supporting, _ctry, _unexp, _neu = ae.split_evidence_direction(verified)
     new_support = ae.new_supporting_metrics(v5_before, supporting, today)
     trig = {r['trig_id']: r for r in ae.evaluate_quant_triggers(views_before, anchors, today)[5]}
     proposed = str(o5.get('rating', ''))

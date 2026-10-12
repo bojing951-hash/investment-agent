@@ -325,10 +325,12 @@ def _value_close(claimed, anchor_val):
 
 
 def verify_evidence_items(items, anchors, as_of_date=None):
-    """逐项验证结构化证据 [{metric, value, obs_date, mechanism?, contrary?, explained?}]。
+    """逐项验证结构化证据 [{metric, value, obs_date, mechanism?, contrary?, explained?, neutral?}]。
 
-    验证内容: 指标存在于锚点 / 数值吻合 / 观测日与锚点一致(或等于采集日as_of) /
-    逐指标新鲜度(过期不得作当前证据)。
+    验证内容: 指标存在于锚点 / 数值吻合 / 观测日必须与锚点观测日一致(采集日as_of
+    不得替代观测日,第四轮P0-3) / 逐指标新鲜度(过期不得作当前证据)。
+    neutral=true(或stance=neutral)表示"相关但不能直接支持方向": 数值真实性照常
+    验证,但不计入支持证据数量(第四轮P0-2)。
     返回 (verified, rejects): verified为通过项(同指标去重后仍全部保留,计数时按
     distinct metric),rejects为(原因, 原始项)列表。anchors为空→全部拒(无锚点即无证据)。"""
     verified, rejects = [], []
@@ -349,8 +351,9 @@ def verify_evidence_items(items, anchors, as_of_date=None):
         obs = str(info.get('obs_date') or '')[:10]
         as_of = str(info.get('as_of') or '')[:10]
         claimed_obs = str(it.get('obs_date') or '')[:10]
-        if claimed_obs and claimed_obs not in (obs, as_of):
-            rejects.append((f"{metric}观测日不符(引用{claimed_obs} vs 锚点{obs or as_of})", it))
+        if claimed_obs and obs and claimed_obs != obs:
+            rejects.append((f"{metric}观测日不符(引用{claimed_obs} vs 锚点{obs};"
+                            f"采集日不得替代观测日)", it))
             continue
         if as_of_date and not _anchor_fresh(metric, info, as_of_date):
             if not obs:
@@ -360,11 +363,13 @@ def verify_evidence_items(items, anchors, as_of_date=None):
             else:
                 rejects.append((f"{metric}数据过期(观测日{obs}),不得作为当前有效证据", it))
             continue
+        neutral = bool(it.get('neutral')) or str(it.get('stance', '')).lower() == 'neutral'
         verified.append({'metric': metric, 'value': float(info['value']),
-                         'obs_date': obs or as_of, 'as_of': as_of,
+                         'obs_date': obs, 'as_of': as_of,
                          'mechanism': mechanism_of(metric, it.get('mechanism')),
                          'contrary': bool(it.get('contrary')),
-                         'explained': bool(it.get('explained'))})
+                         'explained': bool(it.get('explained')),
+                         'neutral': neutral})
     return verified, rejects
 
 
@@ -402,12 +407,14 @@ def _base_metric(metric):
 
 def split_evidence_direction(verified_items):
     """按方向切分已验证证据(第四轮P0-2):
-    supporting=非反证项; contrary=反证项(再分已解释/未解释)。
-    反对证据不得计入支持证据数量 — 星级与评级门禁只用supporting。"""
-    supporting = [i for i in verified_items if not i.get('contrary')]
+    supporting=非反证且非中立项; contrary=反证项(再分已解释/未解释);
+    中立项(相关但不能直接支持方向)经验证但不计入支持数量。
+    反对证据与中立项都不得计入支持证据数量 — 星级、评级门禁与新增判定只用supporting。"""
+    supporting = [i for i in verified_items if not i.get('contrary') and not i.get('neutral')]
     contrary = [i for i in verified_items if i.get('contrary')]
     unexplained = [i for i in contrary if not i.get('explained')]
-    return supporting, contrary, unexplained
+    neutral = [i for i in verified_items if i.get('neutral') and not i.get('contrary')]
+    return supporting, contrary, unexplained, neutral
 
 
 def star_level_from_evidence(verified_items):
@@ -416,7 +423,7 @@ def star_level_from_evidence(verified_items):
     4★=4项/3类/2期; 3★=3项/2类; 2★=2项; 1★=1项。
     只计支持证据(非反证项),同一底层指标去重; 同ISO周=1个观察期。
     返回 (max_star, 说明)。星级衡量证据充分性,≠预测概率,≠资金比例。"""
-    supporting, contrary, unexplained = split_evidence_direction(verified_items)
+    supporting, contrary, unexplained, _neutral = split_evidence_direction(verified_items)
     metrics = {_base_metric(i.get('metric')) for i in supporting if i.get('metric')}
     n = len(metrics)
     cats = {i.get('mechanism') or mechanism_of(i.get('metric', '')) for i in supporting}
@@ -455,6 +462,17 @@ def new_supporting_metrics(v, supporting, today_iso):
         if any(od > old for old in seen.get(base, {''})):
             new_metrics.add(base)   # 新观测期(新一期数据)或首次引用
     return new_metrics
+
+
+def _key_engaged(v, new_support):
+    """P0-2.4: 证据路径的评级变更须触及该资产关键传导指标(key_metrics,按基底比对)。
+    证据只能证明宏观事实、未触及该资产既定传导通道时,不足以支持具体配置方向
+    (保留候选提案)。未定义key_metrics的观点不适用(无既定传导通道,由星级门禁把关)。"""
+    keys = v.get('key_metrics') or []
+    if not keys:
+        return True
+    key_bases = {_base_metric(k) for k in keys}
+    return any(m in key_bases for m in new_support)
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -886,7 +904,7 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
 
         # 证据程序验证(第三轮P0-3 + 第四轮P0-2方向切分/新增判定)
         verified, ev_rejects = verify_evidence_items(o.get('evidence'), anchors, today_iso)
-        supporting, contrary, unexplained = split_evidence_direction(verified)
+        supporting, contrary, unexplained, neutral_ev = split_evidence_direction(verified)
         star_max, star_desc = star_level_from_evidence(verified)
         key_metrics = v.get('key_metrics') or []
         support_metrics = {_base_metric(i['metric']) for i in supporting}
@@ -902,7 +920,8 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
             ledger = v.setdefault('evidence_ledger', [])
             ledger.append({'date': today_iso, 'verified': len(verified),
                            'supporting': len(supporting), 'contrary': len(contrary),
-                           'unexplained': len(unexplained), 'new_support': sorted(new_support),
+                           'unexplained': len(unexplained), 'neutral': len(neutral_ev),
+                           'new_support': sorted(new_support),
                            'star_max': star_max, 'desc': star_desc[:200],
                            'obs_pairs': sorted({(i['metric'], str(i.get('obs_date'))[:10])
                                                 for i in verified})})
@@ -926,7 +945,7 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
                 updates.append(f"#{vid}{v['asset']}: 评级 {old}→{new_rating} (经{via})")
                 v['history'] = _hist_append(v.setdefault('history', []), tag, '评级',
                                             f"{old}→{new_rating} [{via}] {note}".rstrip())
-            elif len(new_support) >= min_ev:
+            elif len(new_support) >= min_ev and _key_engaged(v, new_support):
                 old = v.get('rating')
                 v['rating'] = new_rating
                 rating_changed = True
@@ -937,6 +956,18 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
                 updates.append(f"#{vid}{v['asset']}: 评级 {old}→{new_rating} (经{via})")
                 v['history'] = _hist_append(v.setdefault('history', []), tag, '评级',
                                             f"{old}→{new_rating} [新增证据{len(new_support)}项] {note}".rstrip())
+            elif len(new_support) >= min_ev:
+                # P0-2.4: 证据足量但未触及关键传导指标 — 只能证明宏观事实,
+                # 不能充分支持该资产的配置方向 → 保留候选提案
+                reason = (f"新增独立支持证据{len(new_support)}项均未触及资产关键传导指标"
+                          f"{key_metrics}(证据只能证明宏观事实,不能充分支持该配置方向;"
+                          f"{star_desc[:60]})")
+                pr = _record_proposal(v, new_rating, reason,
+                                      json.dumps(o.get('evidence'), ensure_ascii=False)[:160],
+                                      today_iso)
+                updates.append(f"#{vid}{v['asset']}: 评级→{new_rating}降为候选提案"
+                               f"[{reason[:70]}],保留{v.get('rating')}")
+                print(f"   🚫 #{vid}评级变更保留为候选提案: {reason}")
             else:
                 reason = (f"无引擎核验已触发的{direction}条件,本周新增独立支持证据{len(new_support)}项"
                           f"<{min_ev}项(支持{len(supporting)}/反对{len(contrary)},"

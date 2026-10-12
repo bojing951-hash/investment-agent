@@ -358,3 +358,17 @@ S0源码扫描(scripts/)确认无恒真短路。
 3. FRED发布日(release_date)采集端不可得,注册表如实null;
 4. 观察记录的数据源以锚点文件为单位,尚无逐指标来源交叉验证;
 5. GLM结构化输出遵从性仍依赖prompt+程序门禁(实测GLM会输出"本期观测"类非日期obs_date,已被程序拒收)。
+
+## 第四轮复审补充(同日,提交于af9f5fd之后)
+
+对照任务书逐条复审发现3处残留,已修复并加测试(test_round4附加B1~B3,套件92项):
+1. **中立证据(P0-2.2)**: verify_evidence_items接受neutral=true/stance=neutral,
+   数值真实性照常验证但不计入支持数量; split_evidence_direction返回4元组
+   (supporting/contrary/unexplained/neutral); 台账分别记录supporting与neutral数。
+2. **采集日不得替代观测日(P0-3.5)**: 证据引用的obs_date必须与锚点观测日完全一致,
+   原先"等于采集日as_of也可"的容差已删除(锚点缺观测日本就整体拒绝)。
+3. **关键传导指标参与(P0-2.4)**: 证据路径的评级变更新增_key_engaged门禁——
+   定义了key_metrics的资产(当前id3信用/id5贵金属),新增证据须至少触及一项关键
+   传导指标,否则"只能证明宏观事实,不能充分支持该配置方向"→降为候选提案留档;
+   未定义key_metrics的资产不适用(由星级门禁把关); 触发器路径不受影响
+   (触发器本身即该资产既定传导条件的引擎核验)。

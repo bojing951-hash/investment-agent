@@ -436,7 +436,7 @@ ALLOCATION_STATUS-->
 
 rating只能取: 超配/标配/低配/观望（不用"中性"，中性=标配）；id与allocation_views.json一致（1美股/2利率久期/3信用/4美元/5贵金属/6能源/7A股港股/8加密/9现金短债）。
 确信度变化与评级变化相互独立：评级未变但证据增减时应调confidence（1-5整数），二者程序会分别记录。
-【证据分级v2程序校验】evidence数组为结构化证据，每项含metric(锚点指标ID)/value(数值,须与观点块或数据包中该指标的锚点值一致)/obs_date(观测日,须与锚点一致)/mechanism(机制类别:增长/通胀/利率与流动性/信用/避险与估值/供应与库存/资金流)；可加"contrary":true表示反证、"explained":true表示反证已解释。
+【证据分级v2程序校验】evidence数组为结构化证据，每项含metric(锚点指标ID)/value(数值,须与观点块或数据包中该指标的锚点值一致)/obs_date(观测日,须与锚点一致)/mechanism(机制类别:增长/通胀/利率与流动性/信用/避险与估值/供应与库存/资金流)；可加"contrary":true表示反证、"explained":true表示反证已解释、"neutral":true表示相关但不能直接支持方向(数值照常核验,但不计入支持数量)。
 程序按以下规则核验并执行门禁（不满足会被拒写）：
 - 同一底层指标多次引用只计1项独立证据；同一月度指标连续四周重复引用不等于多次独立观察。
 - 星级门槛: 1★=1项 / 2★=2项 / 3★=3项且覆盖2类机制 / 4★=4项且3类机制且跨2个观察期 / 5★=5项且3类机制且跨3个观察期（5★不要求必须存在反证；但若存在重大反证，必须已解释——存在未解释反证时封顶3★）。反对证据(contrary)不计入支持数量，只参与反证校验。
@@ -659,14 +659,15 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
 
         # 证据程序验证(与配置观点同构)
         verified, ev_rejects = ae.verify_evidence_items(o.get('evidence'), anchors, today_iso)
-        supporting, contrary, unexplained = ae.split_evidence_direction(verified)
+        supporting, contrary, unexplained, neutral_ev = ae.split_evidence_direction(verified)
         star_max, star_desc = ae.star_level_from_evidence(verified)
         new_support = ae.new_supporting_metrics(t, supporting, today_iso)
         if verified:
             ledger = t.setdefault('evidence_ledger', [])
             ledger.append({'date': today_iso, 'verified': len(verified),
                            'supporting': len(supporting), 'contrary': len(contrary),
-                           'unexplained': len(unexplained), 'new_support': sorted(new_support),
+                           'unexplained': len(unexplained), 'neutral': len(neutral_ev),
+                           'new_support': sorted(new_support),
                            'star_max': star_max, 'desc': star_desc[:200],
                            'obs_pairs': sorted({(i['metric'], str(i.get('obs_date'))[:10])
                                                 for i in verified})})

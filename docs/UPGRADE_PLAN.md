@@ -457,3 +457,55 @@ round4=94 round5=64 e2e=59,合计514断言0失败; 真实GLM冒烟8/0(RUN_GLM_LI
 3. launchd每日07:00真实调度与本轮改动兼容性经代码路径验证(观察器CLI退出码
    语义新增exit 2),真实定时任务行为标注"未验证";
 4. GLM在长prompt下偶发省略obs_date——程序门禁拒收兜底,依赖prompt纪律+程序核验双保险。
+
+---
+
+# 第六轮: 最终可靠性补丁与正式版冻结(2026-10-12, dev/round6-final)
+
+主题=正式版冻结前最后一轮,只修可靠性缺陷、不加任何新功能。三个P0全部在
+d798286基线独立复现后修复,旧用例按新口径更新(不降低验证标准):
+
+## P0-1 观察跳过后仍写入数据(验证与写入未隔离)
+- 缺陷: 观察器`observe()`对problem预测只打日志,`record_observations(data, anchors,
+  today)`仍收到未过滤锚点→无效数据可进入长期观察历史;只查目标指标不查前提指标;
+  引擎侧`obs_date or today_iso`缺观测日时用采集日冒充。
+- 修复(`daily_prediction_observer.py`+`allocation_engine.py`):
+  - 观察器: 观察中预测查目标指标、未触发预测查前提指标(分别校验,一个有效不得
+    放行另一个);problem指标从`valid_anchors`剔除后才交给record_observations;
+  - 引擎防御(双侧防线): `_anchor_obs_date_valid`统一校验(缺失/不可解析/未来→拒),
+    目标与前提锚点均须过新鲜度窗;不再以today补盖观测日;
+  - 跳过说明只打印不进changes(保持幂等信号干净)。
+
+## P0-2 条件预测到期后重新激活(无终态封存)
+- 缺陷: record_observations前提分支无截止日检查→截止日后前提兑现仍把
+  not_yet_triggered翻成observing;无持久终态标记,GLM可跨周翻案已裁决预测。
+- 修复: `_is_final_prediction`(final标记/hit-miss-inconclusive三态/旧记录
+  not_yet_triggered+resolved_date+截止已过);`_migrate_views`向后兼容补final
+  (旧hit/miss/inconclusive,只加字段不改内容);前提激活须od≤deadline(否则打印
+  "截止日不顺延"不激活);引擎裁决落地(含到期未触发终态)与GLM合法裁决均写
+  final=True;GLM块对final预测整体跳过(不得改判也不得重复注记刷新审计日期)。
+
+## P0-3 Expiry用截止日前旧数据裁决(±4天容差)
+- 缺陷: `_EXPIRY_OBS_TOLERANCE_DAYS=4`让结算日缺数据的案例回退用前一日价格;
+  GLM引用核验同容差→Python判inconclusive时GLM可拿前一日满足值裁成hit。
+- 修复: 删除容差常量与全部引用;expiry裁决只认`settlement_date`(预定义,非交易日
+  回溯,crypto自然日)**当日**观测,缺失→inconclusive并明示"不得以前一交易日价格
+  代替";GLM引用须`cited[1]==settle`(与引擎同一结算口径)。
+
+## 旧用例更新(新口径,非放松)
+- test_round3_p0 E9: 补10-16结算日观测4350→7600序列改造(断言仍查hit+窗后不算);
+- test_round4 #15: pred_out/pred_fut补10-09结算日观测,断言按当日值判;
+- test_round5 R7: 标签措辞更新(断言子串本就兼容)。
+
+## 测试与验收
+- 新增tests/test_round6.py(48断言): 任务书20项用例+对抗X1-X5(crypto自然日结算/
+  GLM终态翻案被拒/绕过观察器直调引擎防御/未触发终态跨周封存/连续状态端到端:
+  前提触发→观察→采集失败隔离→到期裁决→final封存→重跑不变);
+- 10套离线562断言全过(514基线+48新增);真实GLM冒烟8/8(临时副本);
+- 正式版标记v1.0.0-rc,核心架构冻结。
+
+## 第六轮遗留(如实)
+1. launchd真实定时任务长期行为未连续观察(代码路径已验证);
+2. 窗内前提触发但数据迟到多日才发现的边缘情形: 终态化后不再重开(保守取舍,
+   审计以周报裁决为准);
+3. 触发器阈值/复合预测裁决边界同第四轮记录,属后续真实运行驱动项,不新增开发。

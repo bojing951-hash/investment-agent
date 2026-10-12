@@ -404,16 +404,18 @@ pred_out['deadline'] = '2026-10-09'
 pred_out['observations'] = [
     {'obs_date': '2026-10-02', 'value': 4350.0},   # 窗口前(达标也不算)
     {'obs_date': '2026-10-08', 'value': 4250.0},   # 窗口内
+    {'obs_date': '2026-10-09', 'value': 4255.0},   # 有效截止交易日当日
 ]
 v6 = quiet(ae.evaluate_predictions, {'predictions': [pred_out]}, today_str='2026-10-09')
-check("窗口前4350≥4300不得判hit,按窗口内10-08收盘判miss",
-      v6 and v6[0][2] == 'miss' and '4350' not in v6[0][3], str(v6))
+check("窗口前4350≥4300不得判hit,按截止交易日10-09收盘判miss",
+      v6 and v6[0][2] == 'miss' and '4350' not in v6[0][3] and '4255' in v6[0][3], str(v6))
 pred_fut = dict(pred_out)
 pred_fut['observations'] = [{'obs_date': '2026-10-08', 'value': 4250.0},
+                            {'obs_date': '2026-10-09', 'value': 4255.0},
                             {'obs_date': '2026-10-15', 'value': 4360.0}]  # 截止日后
 v7 = quiet(ae.evaluate_predictions, {'predictions': [pred_fut]}, today_str='2026-10-09')
-check("截止日后的数据不得用于裁决(仍按10-08判miss)",
-      v7 and v7[0][2] == 'miss', str(v7))
+check("截止日后的数据不得用于裁决(仍按截止日10-09判miss)",
+      v7 and v7[0][2] == 'miss' and '4360' not in v7[0][3], str(v7))
 
 # ════════ 测试16: GLM虚构数字不能覆盖程序裁决 (P0-6) ════════
 print("\n── 16. GLM引用观察记录中不存在的数值→裁决被拒")

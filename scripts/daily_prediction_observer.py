@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""每日预测观察记录(第四轮P0-6 + 第五轮P1-2数据质量门禁)
+"""每日预测观察记录(第四轮P0-6 + 第五轮P1-2数据质量门禁 + 第六轮P0-1写入隔离)
 
 接入每日数据采集流水线(数据校验/锚点生成之后):
 - 用Python把"观察期内预测"所需的当期市场数据记入 allocation_views.json 的
@@ -7,7 +7,14 @@
 - 记录含 metric/value/obs_date/retrieved_at/source,锚点带兄弟.high/.low时一并记录
   (盘中触及判定需要);
 - 前提规格同样每日程序判定(兑现→转观察中,观察期自前提观测日起);
+  第六轮P0-2: 终态预测不参与;前提触发观测日须≤截止日(引擎侧守卫);
 - 不调用GLM — 裁决仍由周报路径的引擎/受核验GLM执行,本脚本只做数据记录。
+
+第六轮P0-1 验证与写入严格隔离:
+- 观察中预测校验目标指标,未触发预测校验前提指标,二者分别判定;
+- 未通过校验的指标从本轮写入用的锚点集中剔除(valid_anchors)后才交给
+  record_observations — 跳过预测的无效数据不得进入长期观察历史;
+  引擎侧另有同口径防御校验(其他调用路径无法绕过观察器)。
 
 第五轮P1-2 数据质量门禁(区分关键/非关键采集失败):
 - 锚点文件不存在或非当日(采集失败/未运行) → 关键失败: 今日不记录任何观察,
@@ -105,15 +112,29 @@ def observe(views_path=None, anchors=None, today_str=None, anchors_date=None):
                 if p.get('status') in ('observing', 'not_yet_triggered')]
 
     # 逐预测检查本轮数据有效性: 受影响预测跳过并留日志,其余照常(部分缺失不阻断全部)
+    # 第六轮P0-1: 观察中预测查目标指标,未触发预测查前提指标 — 二者分别校验,
+    # 一个有效不得放行另一个;验证与写入严格隔离(见下valid_anchors)
     skipped = []
+    bad_metrics = set()
     for p in watching:
+        checks = []   # [(指标名, 该轮是否须有效)]
         if p.get('status') == 'observing' and p.get('metric'):
-            problem = _metric_problem(p['metric'], anchors, today_iso)
+            checks.append(p['metric'])
+        elif p.get('status') == 'not_yet_triggered' and isinstance(p.get('premise'), dict) \
+                and p['premise'].get('metric'):
+            checks.append(p['premise']['metric'])
+        for metric in checks:
+            problem = _metric_problem(metric, anchors, today_iso)
             if problem:
                 skipped.append(p['pred_id'])
+                bad_metrics.add(metric)
                 print(f"⚠️ 预测#{p['pred_id']}: 本轮跳过 — {problem}")
 
-    changes = ae.record_observations(data, anchors, today_iso)
+    # 第六轮P0-1: 数据验证与状态写入严格隔离 — 只把通过验证的锚点交给
+    # record_observations,被跳过预测的无效数据(缺指标/观测日缺失/未来/过期)
+    # 不得进入长期观察历史(引擎侧另有防御性校验兜底,双侧防线)
+    valid_anchors = {k: v for k, v in (anchors or {}).items() if k not in bad_metrics}
+    changes = ae.record_observations(data, valid_anchors, today_iso)
     if changes:
         shutil_copy(views_path)
         tmp = views_path + '.tmp'

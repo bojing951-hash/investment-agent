@@ -582,6 +582,45 @@ with tempfile.TemporaryDirectory() as td:
           after['status'] == 'hit' and after['resolved_date'] == '2026-10-16'
           and len(after['observations']) == 4, str({k: after.get(k) for k in ('status', 'resolved_date')}))
 
+print("\n── X6. run_weekly汇总路径回归(2026-10-13真实调度发现的解包崩溃)")
+import run_weekly as rw
+# launchd真实运行发现: run_pipeline改3元组(第五轮P1-2)后,汇总计数行仍按2元组
+# 解包→ValueError→exit 1 — 10步全部成功却报关键失败。本用例锁死汇总路径行为。
+fake = [('1/10 a', True, True), ('4/10 b', False, False), ('9/10 c', True, True)]
+_orig_rp = rw.run_pipeline
+rw.run_pipeline = lambda steps, script_dir=None: fake
+try:
+    buf = io.StringIO()
+    code = 'no-exit'
+    with contextlib.redirect_stdout(buf):
+        try:
+            rw.main()
+        except SystemExit as e:
+            code = e.code
+    out = buf.getvalue()
+    check("X6a 非关键失败: 汇总完成不崩溃(2/10),降级公示,不判失败退出",
+          '2/10' in out and '非关键步骤降级运行' in out and code != 1,
+          f"exit={code} | {out[-160:]}")
+    rw.run_pipeline = lambda steps, script_dir=None: [('1/10 a', False, True),
+                                                      ('4/10 b', True, False)]
+    code2 = 'no-exit'
+    with contextlib.redirect_stdout(io.StringIO()):
+        try:
+            rw.main()
+        except SystemExit as e:
+            code2 = e.code
+    check("X6b 关键失败: exit 1(失败不被静默吞掉)", code2 == 1, str(code2))
+    rw.run_pipeline = lambda steps, script_dir=None: [('1/10 a', True, True)]
+    code3 = 'no-exit'
+    with contextlib.redirect_stdout(io.StringIO()):
+        try:
+            rw.main()
+        except SystemExit as e:
+            code3 = e.code
+    check("X6c 全部成功: 正常完成不异常退出", code3 == 'no-exit' or code3 == 0, str(code3))
+finally:
+    rw.run_pipeline = _orig_rp
+
 print("\n" + "=" * 64)
 print(f"结果: {PASS}通过 / {FAIL}失败")
 print("=" * 64)

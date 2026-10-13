@@ -52,7 +52,7 @@ def run_pipeline(steps, script_dir=None):
         results.append((step_name, success, critical))
     return results
 
-if __name__ == '__main__':
+def main():
     start_time = datetime.now()
 
     print("=" * 60)
@@ -94,7 +94,7 @@ if __name__ == '__main__':
         status = "✅" if success else ("❌" if critical else "⚠️(非关键)")
         print(f"  {status} {step_name}")
 
-    success_count = sum(1 for _, s in results if s)
+    success_count = sum(1 for _, s, _c in results if s)
     print(f"\n  结果: {success_count}/{len(steps)} 步骤成功")
     print(f"  总耗时: {duration:.1f} 秒")
 
@@ -126,3 +126,7 @@ if __name__ == '__main__':
     print("  分开运行可避免超时中断问题。")
 
     print("\n🎉 完成！")
+
+
+if __name__ == '__main__':
+    main()

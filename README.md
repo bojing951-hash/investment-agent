@@ -95,7 +95,8 @@ python3 scripts/report_generator.py  # 手动生成一份周报
 
 ## 排障
 
-- **yfinance 429**：launchd 的 `NO_PROXY=*` 禁代理所致，采集脚本内置 127.0.0.1:7890 代理探测（`global_market_collector.py` 的 `_setup_proxy`）。
+- **yfinance 429**：launchd 的 `NO_PROXY=*` 禁代理所致，采集脚本内置 127.0.0.1:7890 代理探测（`global_market_collector.py` 的 `_setup_proxy`）。港股指数（恒指/国企）已改腾讯 ifzq 日K直连为主通道、yfinance 降级备用（2026-10-17 修复连续 4 日 429 断供）。
+- **东财 push2 不可达**：当前网络直连/经代理均被断连（SSLError/ProxyError）；AH 溢价（HSAHP）已改新浪 rt 直连为主通道，akshare 新浪日K/东财（均禁代理）为备用。境内源一律 `trust_env=False` 直连，不经 macOS 系统代理（`china_market_collector.py` 的 `_direct_session`/`_no_proxy`）。
 - **周报没生成**：看 `logs/weekly_report.log`；不要在 run_daily.sh 里 nohup 后台启动报告生成（launchd 会收割进程组，10-02 周报因此丢失）。
 - **观察器 exit 2**：当日锚点缺失（上游采集失败），属预期行为——不得以旧数据充当本期观察；修复采集后重跑即可（幂等）。
 - **GLM 偶发省略 obs_date**：程序门禁会拒收该证据/裁决（预期行为），重跑周报回写即可。

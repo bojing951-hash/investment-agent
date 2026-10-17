@@ -509,3 +509,24 @@ d798286基线独立复现后修复,旧用例按新口径更新(不降低验证�
 2. 窗内前提触发但数据迟到多日才发现的边缘情形: 终态化后不再重开(保守取舍,
    审计以周报裁决为准);
 3. 触发器阈值/复合预测裁决边界同第四轮记录,属后续真实运行驱动项,不新增开发。
+
+## 数据通道热修（2026-10-17，v1.0.0-rc冻结期）
+现象：恒生指数/恒生国企 yfinance 连续4日 429 限流（代理出口IP被Yahoo限制）；
+东财 push2（akshare HSAHP通道）连续 SSLError/ProxyError——本机直连与经系统代理双双被断，
+该端点在当前网络已整体不可用。根因：requests 默认读取 macOS 系统代理（scutil --proxy
+→ 127.0.0.1:7890），launchd 无环境变量时同样命中。
+
+修复（china_market_collector.py v2.1，仅数据通道，不动架构）：
+1. 港股指数：腾讯 ifzq 日K直连为主通道（320根，收盘与yfinance逐分核对一致），
+   yfinance 降级备用（重试1次）；指标口径不变（week=倒数第5根，YTD=当年首个收盘）。
+2. AH溢价(HSAHP)：新浪 rt_hkHSAHP 直连为主通道（需Referer/GBK），
+   akshare 新浪日K、东财（均 _no_proxy 禁代理）为备用；原新浪spot方案列表里
+   根本没有AH溢价行（从未生效），已移除。
+3. 境内源策略：raw HTTP 用 _direct_session()（trust_env=False，无视环境变量与
+   系统代理）；akshare 调用用 _no_proxy() 上下文临时 patch requests 代理读取。
+   境外源（yfinance）保持走代理不动。
+4. 输出 schema 不变（hk_indices/ah_premium 字段与日期格式原样），下游
+   data_assembler/data_validator 零改动。
+
+验证：新增 tests/test_datafix_20261017.py 13断言全过；11套离线 578/0；
+采集器实跑：恒指24186.83/国企8128.25（腾讯直连）、HSAHP 128.56（新浪直连）。

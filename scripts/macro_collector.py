@@ -38,6 +38,12 @@ FRED_SERIES = {
     "AHE": "CES0500000003",
     "ICSA": "ICSA",
     "WTI": "WTISPLC",
+    # 第七轮: 评分卡/利率通道输入统一由macro采集器供给(单一来源), 评分卡不再自采FRED
+    "UST_5Y": "DGS5",
+    "UMCSENT": "UMCSENT",
+    "RSAFS": "RSAFS",
+    "INDPRO": "INDPRO",
+    "JTSJOL": "JTSJOL",
 }
 
 # 信用阈值配置（来自分析框架）
@@ -53,6 +59,8 @@ SERIES_FREQ = {
     "FED_FUNDS": "monthly", "CPI": "monthly", "CORE_PCE": "monthly",
     "UNEMPLOYMENT": "monthly", "NFP": "monthly", "CORE_CPI": "monthly",
     "AHE": "monthly", "WTI": "monthly",
+    "UST_5Y": "daily",
+    "UMCSENT": "monthly", "RSAFS": "monthly", "INDPRO": "monthly", "JTSJOL": "monthly",
     "ICSA": "weekly",
     # 其余(BAML利差/DGS收益率/DFII/T5YIE/T10Y2Y)=daily
 }
@@ -80,6 +88,10 @@ SERIES_UNITS = {
     "NFP": ("count", "千人(非农就业)"),
     "ICSA": ("count", "人(初请失业金)"),
     "WTI": ("price", "美元/桶"),
+    "UMCSENT": ("index", "指数点(1966=100)"),
+    "RSAFS": ("index", "百万美元"),
+    "INDPRO": ("index", "指数点(2017=100)"),
+    "JTSJOL": ("count", "千人(职位空缺)"),
 }
 # 各kind的变化单位标签(chg字段附_chg_unit,程序与报告据此区分口径)
 _CHG_UNIT_BY_KIND = {
@@ -197,6 +209,8 @@ def fetch_all_macro():
                 dates = [d.strftime('%Y-%m-%d') for d in clean.index]
                 values = [float(v) for v in clean.values]
                 item = {"value": round(latest, 4), "date": latest_date, "frequency": freq}
+                # 第七轮Layer2: 附加原始序列(事实引擎统一计算收益/环比,替代各处自带口径)
+                item["series"] = {"dates": dates, "values": values}
                 item.update(compute_series_changes(dates, values, freq,
                                                    unit=SERIES_UNITS.get(name)))
                 rev = detect_revisions(name, {name: item}, today_str)

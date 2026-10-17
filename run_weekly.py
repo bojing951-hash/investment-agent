@@ -72,13 +72,16 @@ def main():
         # 相关性计算器2026-10-11接线:此前脚本存在但从未进流水线,相关性数据停在2026-04-09。
         # 必须在data_assembler(第8步)之前跑,汇编器会读取correlation_*.md拼进数据包第五节。
         # 非关键: 相关性缺失只降级周报第五节,不影响观察记录。
-        ("7/10 跨资产相关性计算", "correlation_calculator.py", False),
-        ("8/10 数据汇总打包", "data_assembler.py", True),
-        ("9/10 数据校验与锚点生成", "data_validator.py", True),
+        ("7/11 跨资产相关性计算", "correlation_calculator.py", False),
+        # 第七轮重构: 采集层之后先建研究快照(唯一数据入口/Gate A),装配器与校验器
+        # 均消费快照,不再各自glob"最新文件"(文件最新≠数据最新)。
+        ("8/11 研究快照构建(Gate A)", "snapshot_builder.py", True),
+        ("9/11 数据汇总打包", "data_assembler.py", True),
+        ("10/11 数据校验与锚点生成", "data_validator.py", True),
         # 每日预测观察(第四轮P0-6 + 第五轮P1-2): 锚点生成后用Python记录观察期内
         # 预测的当期数据,幂等不调GLM;数据质量门禁FAIL(无当日锚点)时exit 2,
         # 作为关键失败向上传播——采集失败时受影响预测的正式状态不得被更新。
-        ("10/10 预测观察记录", "daily_prediction_observer.py", True),
+        ("11/11 预测观察记录", "daily_prediction_observer.py", True),
     ]
 
     results = run_pipeline(steps)

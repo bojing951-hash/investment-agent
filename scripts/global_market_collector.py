@@ -168,6 +168,13 @@ def calc_metrics(asset_id, hist):
     high = round(float(hist['High'].iloc[-1]), 2) if 'High' in hist else None
     low = round(float(hist['Low'].iloc[-1]), 2) if 'Low' in hist else None
 
+    # 第七轮Layer2(2026-10-17): 附加原始收盘序列 — 事实引擎统一计算
+    # 周变化/MTD/YTD(期前收盘基准+交易日历口径),替代本函数的固定偏移口径。
+    # 旧字段保留以兼容既有消费者,但快照以下游事实引擎输出为准。
+    tail = close.tail(400)
+    series = {"dates": [str(d.date()) for d in tail.index],
+              "values": [round(float(v), 6) for v in tail.values]}
+
     return {
         "asset_id": asset_id,
         "close": round(float(today), 2),
@@ -179,6 +186,7 @@ def calc_metrics(asset_id, hist):
         "vs_50d": vs_50d,
         "vs_200d": vs_200d,
         "date": str(today_date.date()),
+        "series": series,
     }
 
 def save_results(results):

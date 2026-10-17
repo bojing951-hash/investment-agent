@@ -681,6 +681,10 @@ def save_anchors(anchors):
             entry['as_of'] = v['as_of']
         if v.get('obs_date'):
             entry['obs_date'] = v['obs_date']
+        if v.get('high') is not None:
+            entry['high'] = v['high']
+        if v.get('low') is not None:
+            entry['low'] = v['low']
         serializable[k] = entry
 
     path = os.path.join(data_dir, f'anchors_{today}.json')
@@ -735,8 +739,18 @@ if __name__ == '__main__':
     print("=" * 60)
 
     # Step 1: 提取数据锚点
+    # 第七轮重构: 优先使用研究快照产出的当日锚点(单一来源,含质量与obs_date/high/low;
+    # 采集JSON拍平的同源自证锚点仅在快照缺席的旧路径使用)。
     print("\n--- Step 1: 提取数据锚点 ---")
-    anchors = extract_anchors_from_data()
+    data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'daily')
+    today_str = datetime.now().strftime('%Y%m%d')
+    snap_anchor_path = os.path.join(data_dir, f'anchors_{today_str}.json')
+    if os.path.exists(snap_anchor_path):
+        with open(snap_anchor_path, 'r', encoding='utf-8') as f:
+            anchors = json.load(f)
+        print(f"✅ 使用研究快照锚点: {snap_anchor_path} ({len(anchors)} 个)")
+    else:
+        anchors = extract_anchors_from_data()
 
     # 硬中断检查
     if len(anchors) < MIN_ANCHOR_COUNT:

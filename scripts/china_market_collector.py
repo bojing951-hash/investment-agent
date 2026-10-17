@@ -96,13 +96,13 @@ def fetch_a_share_indices():
 
     for code, name in A_SHARE_INDICES.items():
         try:
-            # 获取近10天日线（算周变化）
-            df = pro.index_daily(ts_code=code, start_date=start_week, end_date=end_date)
-            if df is None or len(df) == 0:
+            # 第七轮: 单次拉取年初至今全序列(原为近10天+年初两次调用),
+            # 附加原始series供事实引擎统一口径计算(周/MTD/YTD=期前收盘基准)
+            df_year = pro.index_daily(ts_code=code, start_date=start_year, end_date=end_date)
+            if df_year is None or len(df_year) == 0:
                 print(f"  ⚠️ {name}({code}): 无数据")
                 continue
-
-            df = df.sort_values('trade_date')
+            df = df_year.sort_values('trade_date')
             latest = df.iloc[-1]
             close = float(latest['close'])
 
@@ -117,15 +117,11 @@ def fetch_a_share_indices():
 
             # YTD：获取年初数据
             ytd_chg = None
-            try:
-                df_year = pro.index_daily(ts_code=code, start_date=start_year, end_date=end_date)
-                if df_year is not None and len(df_year) > 0:
-                    df_year = df_year.sort_values('trade_date')
-                    year_start = float(df_year.iloc[0]['close'])
-                    ytd_chg = round((close - year_start) / year_start * 100, 2)
-            except:
-                pass
+            year_start = float(df.iloc[0]['close'])
+            ytd_chg = round((close - year_start) / year_start * 100, 2)
 
+            dates = [f"{str(d)[:4]}-{str(d)[4:6]}-{str(d)[6:]}" for d in df['trade_date']]
+            closes = [float(v) for v in df['close']]
             results[code] = {
                 'name': name,
                 'close': close,
@@ -135,6 +131,7 @@ def fetch_a_share_indices():
                 'volume': float(latest.get('vol', 0)),
                 'amount': float(latest.get('amount', 0)),
                 'date': str(latest['trade_date']),
+                'series': {'dates': dates, 'values': closes},
             }
             print(f"  ✅ {name}: {close} (周{week_chg:+.2f}%)" if week_chg else f"  ✅ {name}: {close}")
 
@@ -185,6 +182,9 @@ def _fetch_hk_tencent(ticker, name):
     if not rows:
         return None
     m = _hk_metrics_from_daily([d for d, _ in rows], [c for _, c in rows])
+    # 第七轮Layer2: 附加原始序列(事实引擎统一口径)
+    m['series'] = {'dates': [str(d)[:10] for d, _ in rows],
+                   'values': [float(c) for _, c in rows]}
     m['name'] = name
     return m
 
@@ -210,8 +210,11 @@ def _fetch_hk_yfinance(ticker, name, retries=1):
                     ytd_chg = round((close - year_start) / year_start * 100, 2)
             except Exception:
                 pass
+            tail = hist['Close'].tail(400)
             return {'name': name, 'close': close, 'week_chg': week_chg,
-                    'ytd_chg': ytd_chg, 'date': str(hist.index[-1].date())}
+                    'ytd_chg': ytd_chg, 'date': str(hist.index[-1].date()),
+                    'series': {'dates': [str(d.date()) for d in tail.index],
+                               'values': [round(float(v), 6) for v in tail.values]}}
         except Exception as e:
             last_err = e
             time.sleep(15)

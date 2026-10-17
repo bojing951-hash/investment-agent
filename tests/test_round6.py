@@ -598,8 +598,8 @@ try:
         except SystemExit as e:
             code = e.code
     out = buf.getvalue()
-    check("X6a 非关键失败: 汇总完成不崩溃(2/10),降级公示,不判失败退出",
-          '2/10' in out and '非关键步骤降级运行' in out and code != 1,
+    check("X6a 非关键失败: 汇总完成不崩溃,降级公示,不判失败退出",  # 第七轮: 步数10→11,不再硬编码
+          '2/1' in out and '步骤成功' in out and '非关键步骤降级运行' in out and code != 1,
           f"exit={code} | {out[-160:]}")
     rw.run_pipeline = lambda steps, script_dir=None: [('1/10 a', False, True),
                                                       ('4/10 b', True, False)]

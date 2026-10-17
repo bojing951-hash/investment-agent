@@ -143,8 +143,8 @@ def compute_period_returns(dates, values, unit, calendar, as_of=None):
     else:
         out["ytd"] = {"available": False, "reason": "序列不含上年末观测"}
 
-    # m1/m3/m6: 日历月锚定
-    for n, key in ((1, "m1"), (3, "m3"), (6, "m6")):
+    # m1/m3/m6/m12: 日历月锚定(m12=同比基准)
+    for n, key in ((1, "m1"), (3, "m3"), (6, "m6"), (12, "m12")):
         target = tc.months_before(date.fromisoformat(end_d), n)
         # ≤target 的最后观测(含当日)
         cands = [i for i in range(end_i + 1) if ds[i] <= target.isoformat()]
@@ -210,6 +210,10 @@ def normalize_global(data, as_of, source_file="global_*.json"):
         f = make_fact(mid, item.get('close'), item.get('date'), as_of, source_file,
                       "global_market_collector",
                       series=item.get('series'), retrieved_at=data.get('time'))
+        if item.get('high') is not None:
+            f['high'] = item['high']
+        if item.get('low') is not None:
+            f['low'] = item['low']
         f['issues'].extend(validate_fact(f, item, m, as_of_date=str(as_of)[:10]))
         f['quality_status'] = grade_issues(f['issues'])
         facts.append(f)
@@ -307,6 +311,57 @@ def normalize_china(data, as_of, source_file="china_*.json"):
 
 
 # ══ 派生指标计算(期限严格匹配,公式入calculation_ref) ═════════════
+
+def _iso(d):
+    """'YYYYMMDD'→'YYYY-MM-DD'(其他格式原样截断)。"""
+    s = str(d)
+    if len(s) == 8 and s.isdigit():
+        return f"{s[:4]}-{s[4:6]}-{s[6:]}"
+    return s[:10]
+
+
+def normalize_rate(data, as_of, source_file="rate_economy_*.json"):
+    """rate_economy_YYYYMMDD.json → 事实 + 对账输入。
+
+    身份纪律: registry指定macro_collector为权威的FRED系列(UNRATE/PAYEMS/UMCSENT…)
+    不在本通道重复立事实 —— real_economy数值转为reconciliation对照(与macro事实同
+    metric_id比对,差异>容差记待确认);rate通道独有指标(DFF/目标区间/ZQ)立事实。
+    返回(facts, recon_inputs)。
+    """
+    facts, recon_inputs = [], []
+    if not isinstance(data, dict):
+        return facts, recon_inputs
+    as_of_date = str(as_of)[:10]
+    for key, item in (data.get('current_rates') or {}).items():
+        mid = key if metric(key) else {'DFF': 'DFF', 'DFEDTARU': 'DFEDTARU', 'DFEDTARL': 'DFEDTARL'}.get(key)
+        if not mid:
+            continue
+        f = make_fact(mid, item.get('value'), _iso(item.get('date')), as_of, source_file, "rate_expectations")
+        f['issues'] = validate_fact(f, {"close": item.get('value'), "date": item.get('date')},
+                                    metric(mid), as_of_date=as_of_date)
+        f['quality_status'] = grade_issues(f['issues'])
+        facts.append(f)
+    for name, item in (data.get('real_economy') or {}).items():
+        mid = {'UNRATE': 'UNEMPLOYMENT', 'PAYEMS': 'NFP', 'UMCSENT': 'UMCSENT',
+               'RSAFS': 'RSAFS', 'INDPRO': 'INDPRO', 'JTSJOL': 'JTSJOL'}.get(name)
+        if mid:
+            recon_inputs.append({"metric_id": mid, "value": item.get('value'),
+                                 "observation_date": item.get('date'),
+                                 "channel": "rate_expectations",
+                                 "change": item.get('change'), "unit": item.get('unit')})
+    curve = []
+    for c in (data.get('fed_funds_futures') or []):
+        curve.append({"ticker": c.get('ticker'), "name": c.get('name'),
+                      "price": c.get('price'), "implied_avg_rate": c.get('implied_rate')})
+        if str(c.get('ticker')) == 'ZQ=F' and isinstance(c.get('price'), (int, float)):
+            f = make_fact("ZQ_F1_PRICE", c['price'], _iso(data.get('date')), as_of, source_file,
+                          "rate_expectations")
+            f['issues'] = validate_fact(f, {"close": c['price'], "date": data.get('date')},
+                                        metric("ZQ_F1_PRICE"), as_of_date=as_of_date)
+            f['quality_status'] = grade_issues(f['issues'])
+            facts.append(f)
+    return facts, {"recon_inputs": recon_inputs, "fed_futures_curve": curve}
+
 
 def compute_derived(facts, as_of, source_file="derived"):
     """从已规范化事实计算派生指标。返回新事实列表(含REAL_10Y/REAL_5Y/HY_IG_DIFF/ZQ)。"""

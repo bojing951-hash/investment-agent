@@ -2292,6 +2292,35 @@
    "freshness": {
     "max_calendar_lag_days": 5
    }
+  },
+  {
+   "metric_id": "JTSJOL",
+   "display_name": "职位空缺数(JOLTS)",
+   "source": "macro_collector",
+   "source_symbol": "JTSJOL",
+   "asset_class": "macro_count",
+   "frequency": "monthly",
+   "unit": "persons_thousands",
+   "calendar": "us_rates",
+   "criticality": "context",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none(SA)"
+   },
+   "value_type": "level",
+   "calc": "JOLTS职位空缺总数(千人,非农部门)",
+   "validation": {
+    "range": [
+     2000,
+     16000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:发布滞后约5周"
+   },
+   "release_semantics": "发布日不可得;按观测月保守处理"
   }
  ]
 }

@@ -892,7 +892,22 @@ if __name__ == '__main__':
     if report_files:
         latest_report = report_files[-1]
         print(f"📄 校验报告: {latest_report}")
-        warnings = validate_report(latest_report, anchors)
+        # 日期匹配: 报告记录的是其生成日观测,须用同日锚点比对;用"今日锚点vs上周报告"
+        # 会把正常的数据推进误判为偏差(实战: 周六晨报(周五收盘)vs下周一锚点(周五后
+        # 又有新收盘)→SPX/WTI/VIX全误报)。无同日锚点才降级用当前锚点并显式标注跨日。
+        rep_anchors = anchors
+        m_day = re.search(r'weekly_report_(\d{8})\.md', latest_report)
+        if m_day and m_day.group(1) != today_str:
+            rep_anchor_path = os.path.join(data_dir, f'anchors_{m_day.group(1)}.json')
+            if os.path.exists(rep_anchor_path):
+                with open(rep_anchor_path, 'r', encoding='utf-8') as f:
+                    rep_anchors = json.load(f)
+                print(f"📅 报告日({m_day.group(1)})≠今日 — 改用报告当日锚点: "
+                      f"anchors_{m_day.group(1)}.json ({len(rep_anchors)}个)")
+            else:
+                print(f"⚠️ 报告日({m_day.group(1)})锚点缺席 — 跨日比对,数值漂移≠报告错误,"
+                      f"偏差告警仅供漂移监控参考")
+        warnings = validate_report(latest_report, rep_anchors)
 
         print(f"\n{'='*50}")
         critical_errors = [w for w in warnings if w.startswith("🚨")]

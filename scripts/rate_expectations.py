@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-利率预期采集模块 v1.0
+利率预期采集模块 v2.0(Layer 1采集器,2026-10-17第七轮重构)
 - 联邦基金期货隐含利率（yfinance）
 - 当前联邦基金利率（FRED）
-- 计算市场降息/加息预期
+- 语义修正(spec §5): 期货价格隐含的是**合约日历月的月均**有效利率(100−价格),
+  与当前时点利率之差只作方向性参考;**不得**将差值除以0.25换算为"降息次数"
+  (月均含会议日历结构与概率加权,整除换算在数学上不成立——v1的cuts_25bp已删除)。
 """
 
 import os
@@ -212,7 +214,8 @@ def calculate_rate_expectations(futures, current_rate):
         'current_effective_rate': effective,
         'target_midpoint': target_mid,
         'forward_rates': [],
-        'implied_cuts_25bp': 0,
+        'basis_note': '期货隐含=合约日历月月均有效利率(100-价格);对比基准为当前时点利率;'
+                      '月均口径vs时点口径,不得换算为降息/加息次数',
         'market_view': ''
     }
 
@@ -225,37 +228,36 @@ def calculate_rate_expectations(futures, current_rate):
             seen.add(key)
             unique_futures.append(f)
 
-    # 计算每个月的隐含变化
+    # 计算每个月的隐含水平与方向性差异
+    # (第七轮: 删除cuts_25bp=diff/0.25的伪精确换算——隐含为月均口径,不可折算次数)
     for f in unique_futures:
         implied = f['implied_rate_pct']
         diff_from_current = round(implied - (effective or target_mid), 4)
-        cuts_25bp = round(diff_from_current / 0.25, 1)
 
         entry = {
             'month': f['label'],
-            'implied_rate': implied,
+            'implied_avg_rate': implied,
             'diff_from_current': diff_from_current,
-            'implied_moves_25bp': cuts_25bp,
-            'signal': '降息' if diff_from_current < -0.10 else '加息' if diff_from_current > 0.10 else '维持'
+            'direction': ('隐含低于当前' if diff_from_current < -0.10
+                          else '隐含高于当前' if diff_from_current > 0.10 else '与当前相当')
         }
         expectations['forward_rates'].append(entry)
-        print(f"  {f['label']}: 隐含 {implied:.2f}% (vs当前 {diff_from_current:+.2f}%, ≈{cuts_25bp:+.1f}次25bp) → {entry['signal']}")
+        print(f"  {f['label']}: 月均隐含 {implied:.2f}% (vs当前 {diff_from_current:+.2f}pp) → {entry['direction']}")
 
-    # 计算最远期的累计变化
+    # 最远月隐含水平 vs 当前的方向性描述(仅描述,不折算次数)
     if expectations['forward_rates']:
         furthest = expectations['forward_rates'][-1]
-        expectations['implied_cuts_25bp'] = furthest['implied_moves_25bp']
 
         if furthest['diff_from_current'] < -0.50:
-            expectations['market_view'] = '市场预期显著降息'
+            expectations['market_view'] = '远月隐含显著低于当前(月均口径)'
         elif furthest['diff_from_current'] < -0.10:
-            expectations['market_view'] = '市场预期温和降息'
+            expectations['market_view'] = '远月隐含温和低于当前(月均口径)'
         elif furthest['diff_from_current'] > 0.50:
-            expectations['market_view'] = '市场预期显著加息'
+            expectations['market_view'] = '远月隐含显著高于当前(月均口径)'
         elif furthest['diff_from_current'] > 0.10:
-            expectations['market_view'] = '市场预期温和加息'
+            expectations['market_view'] = '远月隐含温和高于当前(月均口径)'
         else:
-            expectations['market_view'] = '市场预期利率维持不变'
+            expectations['market_view'] = '远月隐含与当前基本持平(月均口径)'
 
     print(f"\n  📌 市场总体判断: {expectations['market_view']}")
 
@@ -294,13 +296,15 @@ def save_results(futures, current_rate, real_economy, expectations):
             md_lines.append(f"- {v['name']}: {v['value']}% ({v['date']})")
 
     if expectations:
-        md_lines.append(f"\n## 利率预期")
+        md_lines.append(f"\n## 利率预期(月均口径)")
         md_lines.append(f"- 当前目标区间: {expectations['current_target_range']}")
-        md_lines.append(f"- 市场判断: **{expectations['market_view']}**")
+        md_lines.append(f"- 远月方向: **{expectations['market_view']}**")
+        md_lines.append(f"- 口径注记: {expectations.get('basis_note', '')}")
         if expectations['forward_rates']:
-            md_lines.append(f"- 远期隐含:")
+            md_lines.append(f"- 各月隐含(合约=该日历月月均有效利率):")
             for fr in expectations['forward_rates']:
-                md_lines.append(f"  - {fr['month']}: {fr['implied_rate']:.2f}% ({fr['diff_from_current']:+.2f}%, {fr['signal']})")
+                md_lines.append(f"  - {fr['month']}: 月均 {fr['implied_avg_rate']:.2f}% "
+                                f"({fr['diff_from_current']:+.2f}pp, {fr['direction']})")
 
     if real_economy:
         md_lines.append(f"\n## 实体经济指标")

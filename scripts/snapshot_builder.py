@@ -272,6 +272,15 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
         'notes': ['全部事实含metric_id/单位/观测日/来源/质量;派生值附calculation_ref',
                   '本快照为唯一研究数据入口;下游不得自行查找最新采集文件'],
     }
+    # series_store: 相关性等配对序列研究用(仅全球行情资产,新metric_id为键)
+    if 'global' in raw:
+        inv_map = {v: k for k, v in _GLOBAL_OLD_ID.items()}
+        store = {}
+        for aid, item in (raw['global'].get('data') or {}).items():
+            mid = inv_map.get(aid, aid)
+            if isinstance(item, dict) and isinstance(item.get('series'), dict):
+                store[mid] = item['series']
+        snapshot['series_store'] = store
 
     if not write:
         return snapshot

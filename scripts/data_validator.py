@@ -142,29 +142,31 @@ def extract_anchors_from_data(data_dir=None):
 
 
 # === 核心比对引擎 ===
+# 第七轮Gate B: 第6字段=canonical身份标记(锚点key须包含的指标身份子串);
+# 仅与canonical锚点比对,贴近同族其他锚点=疑似指标混淆。
 REPORT_CHECKS = [
-    # (名称, 报告中的正则, 锚点key的匹配模式, 容差%, 是否为百分比值)
-    ("SPX收盘", r'(?:SPX|标普500)[^0-9%]*?([0-9]{3,5}(?:\.[0-9]+)?)', r'global_market.*(?:SPX|SPY|sp500).*(?:close|price|收盘)', 0.5, False),
-    ("WTI油价", r'(?:WTI|油价)\s*(?:收于|收盘|价格|现价|为|至)?\s*\$?([0-9]{2,3}\.[0-9]+)(?!\s*%)', r'global_market.*(?:WTI|CL|oil|原油).*(?:close|price|收盘)', 1.0, False),
-    ("黄金价格", r'(?:黄金|GOLD|XAU)[^0-9%]*?([0-9]{3,5}(?:\.[0-9]+)?)(?!\s*%)', r'global_market.*(?:GOLD|GC|gold|黄金).*(?:close|price|收盘)', 0.5, False),
-    ("DXY", r'(?:DXY|美元指数)[^0-9%]*?([0-9]{2,3}\.[0-9]+)(?!\s*%)', r'global_market.*(?:DXY|美元).*(?:close|price|收盘)', 0.5, False),
-    ("VIX", r'VIX[^0-9%]*?([0-9]{1,3}\.[0-9]+)(?!\s*%)', r'global_market.*VIX.*(?:close|price|收盘)', 2.0, False),
-    ("BTC", r'(?:BTC|比特币)[^0-9%]*?([0-9]{4,6}(?:\.[0-9]+)?)(?!\s*%)', r'global_market.*(?:BTC|bitcoin).*(?:close|price|收盘)', 1.0, False),
-    ("10Y收益率", r'(?:UST\s*10Y|10Y\s*(?:收益率|利率|国债))[^0-9]*?([0-9]\.[0-9]{2,3})\s*%', r'macro.*(?:UST_10Y|10Y|GS10|DGS10).*(?:value|收益率)', 3.5, True),
-    ("30Y收益率", r'(?:UST\s*30Y|30Y\s*(?:收益率|利率|国债))[^0-9]*?([0-9]\.[0-9]{2,3})\s*%', r'macro.*(?:UST_30Y|30Y|GS30|DGS30).*(?:value|收益率)', 2.0, True),
-    ("CCC_OAS", r'CCC[^0-9]*?([0-9]{1,2}\.?[0-9]{0,3})\s*%?', r'macro.*(?:CCC|ccc).*(?:value|OAS|利差)', 2.0, True),
-    ("HY_OAS", r'(?:HY\s*OAS|高收益利差)[^0-9]*?(?<!-)([0-9]\.[0-9]{2,3})\s*%', r'macro.*(?:HY|high.yield|高收益).*(?:value|OAS|利差)', 2.0, True),
-    ("失业率", r'失业率(?!\s*(?:变动|变化|change|delta))[^0-9%]*?([3-9]\.[0-9])\s*%', r'rate_economy.*(?:UNRATE|失业率|unemployment).*(?:value|latest)', 0, True),
-    ("消费者信心", r'(?:消费者信心|Michigan|密歇根)[^0-9]*?([0-9]{2,3}\.[0-9])', r'rate_economy.*(?:UMCSENT|消费者信心|michigan|confidence).*(?:value|latest)', 1.0, False),
-    ("上证指数", r'(?:上证|上证指数|SSE)[^0-9%]*?([0-9]{3,4}\.[0-9]+)(?!\s*%)', r'china.*(?:上证|SSE|000001).*(?:close|收盘)', 5.0, False),
+    # (名称, 报告中的正则, 锚点key的匹配模式, 容差%, 是否为百分比值, canonical)
+    ("SPX收盘", r'(?:SPX|标普500)[^0-9%]*?([0-9]{3,5}(?:\.[0-9]+)?)', r'global_market.*(?:SPX|SPY|sp500).*(?:close|price|收盘)', 0.5, False, 'SPX'),
+    ("WTI油价", r'(?:WTI|油价)\s*(?:收于|收盘|价格|现价|为|至)?\s*\$?([0-9]{2,3}\.[0-9]+)(?!\s*%)', r'global_market.*(?:WTI|CL|oil|原油).*(?:close|price|收盘)', 1.0, False, 'WTI'),
+    ("黄金价格", r'(?:黄金|GOLD|XAU)[^0-9%]*?([0-9]{3,5}(?:\.[0-9]+)?)(?!\s*%)', r'global_market.*(?:GOLD|GC|gold|黄金).*(?:close|price|收盘)', 0.5, False, 'GOLD'),
+    ("DXY", r'(?:DXY|美元指数)[^0-9%]*?([0-9]{2,3}\.[0-9]+)(?!\s*%)', r'global_market.*(?:DXY|美元).*(?:close|price|收盘)', 0.5, False, 'DXY'),
+    ("VIX", r'VIX[^0-9%]*?([0-9]{1,3}\.[0-9]+)(?!\s*%)', r'global_market.*VIX.*(?:close|price|收盘)', 2.0, False, 'VIX'),
+    ("BTC", r'(?:BTC|比特币)[^0-9%]*?([0-9]{4,6}(?:\.[0-9]+)?)(?!\s*%)', r'global_market.*(?:BTC|bitcoin).*(?:close|price|收盘)', 1.0, False, 'BTC'),
+    ("10Y收益率", r'(?:UST\s*10Y|10Y\s*(?:收益率|利率|国债))[^0-9]*?([0-9]\.[0-9]{2,3})\s*%', r'macro.*(?:UST_10Y|10Y|GS10|DGS10).*(?:value|收益率)', 3.5, True, 'UST_10Y'),
+    ("30Y收益率", r'(?:UST\s*30Y|30Y\s*(?:收益率|利率|国债))[^0-9]*?([0-9]\.[0-9]{2,3})\s*%', r'macro.*(?:UST_30Y|30Y|GS30|DGS30).*(?:value|收益率)', 2.0, True, 'UST_30Y'),
+    ("CCC_OAS", r'CCC[^0-9]*?([0-9]{1,2}\.?[0-9]{0,3})\s*%?', r'macro.*(?:CCC|ccc).*(?:value|OAS|利差)', 2.0, True, 'CCC_OAS'),
+    ("HY_OAS", r'(?:HY\s*OAS|高收益利差)[^0-9]*?(?<!-)([0-9]\.[0-9]{2,3})\s*%', r'macro.*(?:HY|high.yield|高收益).*(?:value|OAS|利差)', 2.0, True, 'HY_OAS'),
+    ("失业率", r'失业率(?!\s*(?:变动|变化|change|delta))[^0-9%]*?([3-9]\.[0-9])\s*%', r'rate_economy.*(?:UNRATE|失业率|unemployment).*(?:value|latest)', 0, True, 'UNRATE'),
+    ("消费者信心", r'(?:消费者信心|Michigan|密歇根)[^0-9]*?([0-9]{2,3}\.[0-9])', r'rate_economy.*(?:UMCSENT|消费者信心|michigan|confidence).*(?:value|latest)', 1.0, False, 'UMCSENT'),
+    ("上证指数", r'(?:上证|上证指数|SSE)[^0-9%]*?([0-9]{3,4}\.[0-9]+)(?!\s*%)', r'china.*(?:上证|SSE|000001).*(?:close|收盘)', 5.0, False, ('上证指数', '000001')),
 ]
 
-# 周变化率检查
+# 周变化率检查(第5字段=canonical;锚点取.week_chg=引擎统一口径的周变化)
 CHANGE_CHECKS = [
-    # (名称, 报告中变化率正则, 锚点key模式, 容差绝对值pp)
-    ("WTI周涨跌", r'(?:WTI|油价)[^)]*?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:WTI|CL|oil).*(?:change|涨跌|pct)', 0.6),
-    ("黄金周涨跌", r'(?:黄金|GOLD)[^)]*?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:GOLD|GC|gold|黄金).*(?:change|涨跌|pct)', 0.6),
-    ("BTC周涨跌", r'(?:BTC|比特币)[^)]*?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:BTC|bitcoin).*(?:change|涨跌|pct)', 0.5),
+    # (名称, 报告中变化率正则, 锚点key模式, 容差绝对值pp, canonical)
+    ("WTI周涨跌", r'(?:WTI|油价)[^)]*?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:WTI|CL|oil).*(?:change|涨跌|pct|week_chg)', 0.6, 'WTI'),
+    ("黄金周涨跌", r'(?:黄金|GOLD)[^)]*?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:GOLD|GC|gold|黄金).*(?:change|涨跌|pct|week_chg)', 0.6, 'GOLD'),
+    ("BTC周涨跌", r'(?:BTC|比特币)[^)]*?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:BTC|bitcoin).*(?:change|涨跌|pct|week_chg)', 0.5, 'BTC'),
 ]
 
 # 量级合理性
@@ -306,7 +308,14 @@ def check_indicators(report_text, anchors):
         cur_info = anchors.get(spec["cur"])
         prev_info = anchors.get(spec["prev"])
         if not cur_info:
-            continue  # 锚点侧无此指标,跳过(不误报)
+            # 第七轮Gate B: 报告确实引用了该指标数值但锚点缺席 → 待复核(不静默跳过)
+            hits = _indicator_report_values(report_text, spec)
+            if hits:
+                msg = (f"⚠️ 待复核 [{spec['id']}]: 报告引用{len(hits)}处数值,当日锚点缺该指标"
+                       f"(不可核验,发布前须人工对照独立来源)")
+                warnings.append(msg)
+                print(f"  {msg}")
+            continue
         cur, prev = cur_info["value"], (prev_info or {}).get("value")
         obs = cur_info.get("obs_date", "?")
         for num, is_prev_ctx, is_spec_ctx in _indicator_report_values(report_text, spec):
@@ -367,6 +376,41 @@ def find_anchor_value(anchors, key_pattern):
         if _re.search(key_pattern, key, _re.IGNORECASE):
             matches.append((key, info['value']))
     return matches
+
+
+# ── Gate B身份解析(第七轮P0) ─────────────────────────────────────────
+# 旧实现取"与报告值最接近的锚点"再判容差 → 数值碰巧贴近同族错误指标(如SPY/前值/
+# 盘中值)也会通过。身份纪律: 每个校验项声明canonical标记(指标身份),只与canonical
+# 锚点比对;贴近非canonical锚点=疑似指标混淆(🚨),绝不放行。
+def resolve_check_anchors(anchors, key_pattern, canonical, require=None,
+                          exclude=('prev', 'high', 'low', 'mom_', 'yoy_', 'mtd_', 'ytd_',
+                                   'week_chg')):
+    """返回(primary_tuple, others)。
+
+    primary = 匹配key_pattern且含canonical标记的当期水平锚点(排除前值/派生/盘中);
+    others = 同pattern下非canonical锚点(仅用于"疑似混淆"判定,不作通过依据)。
+    canonical/require均可是str或tuple(任一子串命中即可 — 兼容旧采集格式键名)。
+    """
+    import re as _re
+
+    def _any(tok):
+        toks = tok if isinstance(tok, tuple) else (tok,)
+        return any(t.lower() in key.lower() for t in toks)
+
+    prim, others = None, []
+    for key, info in anchors.items():
+        if not _re.search(key_pattern, key, _re.IGNORECASE):
+            continue
+        if require and not _any(require):
+            continue
+        if not require and any(t in key for t in exclude):
+            continue
+        entry = (key, info['value'])
+        if _any(canonical):
+            prim = entry
+        else:
+            others.append(entry)
+    return prim, others
 
 
 # 日频行情源: 观测日不应明显滞后于报告日(月度FRED序列天然滞后,免检)
@@ -519,79 +563,114 @@ def validate_report(report_path, anchors):
     warnings = []
     report_date = _report_date_from_path(report_path)
 
-    # === 1. 核心数值比对 ===
-    print("\n🔍 核心数值比对:")
-    for name, report_pattern, anchor_pattern, tolerance_pct, is_pct in REPORT_CHECKS:
-        report_matches = re.findall(report_pattern, report_text, re.IGNORECASE)
-        if not report_matches:
+    # Gate B全量覆盖后暴露的边界: 报告正文混有<!--ALLOCATION/PREDICTION_STATUS-->机器块,
+    # 状态块中的JSON字段(id/confidence数字)不是散文数值断言,且其数值一致性由
+    # 回写门禁(allocation_engine)按锚点另行核验 — 水平值/变化率扫描只针对散文。
+    prose = re.sub(r'<!--.*?-->', '', report_text, flags=re.DOTALL)
+
+    # === 1. 核心数值比对(第七轮Gate B: 全量覆盖+身份解析,不再"取最接近锚点") ===
+    print("\n🔍 核心数值比对(全量覆盖: 报告每一处提及均核验):")
+    for name, report_pattern, anchor_pattern, tolerance_pct, is_pct, canonical in REPORT_CHECKS:
+        report_hits = list(re.finditer(report_pattern, prose, re.IGNORECASE))
+        if not report_hits:
             print(f"  ⬜ {name}: 报告中未提及")
             continue
 
-        anchor_matches = find_anchor_value(anchors, anchor_pattern)
-        if not anchor_matches:
-            print(f"  ⬜ {name}: 报告值={report_matches[0]}, 无对应锚点可比对")
-            continue
-
-        try:
-            report_val = float(report_matches[0].replace(',', ''))
-        except ValueError:
-            continue
-
-        # 取最接近的锚点值
-        closest_anchor = min(anchor_matches, key=lambda x: abs(x[1] - report_val))
-        anchor_val = closest_anchor[1]
-        anchor_key = closest_anchor[0]
-
-        if anchor_val == 0:
-            continue
-
-        deviation_pct = abs(report_val - anchor_val) / abs(anchor_val) * 100
-
-        if deviation_pct <= tolerance_pct:
-            obs = anchors.get(anchor_key, {}).get('obs_date', '?')
-            print(f"  ✅ {name}: 报告={report_val}, 锚点={anchor_val} (观测日{obs}, 偏差{deviation_pct:.2f}% ≤ {tolerance_pct}%)")
-            # P1: 时点滞后检查(仅日频行情源,提示级)
-            stale = _obs_staleness_warning(anchor_key, anchors.get(anchor_key, {}), report_date)
-            if stale:
-                warnings.append(stale)
-                print(f"  {stale}")
-        elif deviation_pct > 20:
-            msg = f"🚨 严重错误 {name}: 报告={report_val}, 锚点={anchor_val} (偏差{deviation_pct:.2f}% — 疑似指标混淆)"
+        prim, others = resolve_check_anchors(anchors, anchor_pattern, canonical)
+        if prim is None:
+            # 不可核验 → 待复核(如实披露,不静默跳过,不冒充通过)
+            msg = (f"⚠️ 待复核 {name}: 报告提及{len(report_hits)}处数值,当日锚点缺该指标"
+                   f"当期值(不可核验,发布前须人工对照独立来源)")
             warnings.append(msg)
             print(f"  {msg}")
-        else:
-            msg = f"❌ {name}: 报告={report_val}, 锚点={anchor_val} (偏差{deviation_pct:.2f}% > 容差{tolerance_pct}%)"
-            warnings.append(msg)
-            print(f"  {msg}")
-            print(f"     锚点来源: {anchor_key}")
+            continue
+
+        anchor_key, anchor_val = prim
+        a_info = anchors.get(anchor_key, {})
+        obs = a_info.get('obs_date', '?')
+        fid = a_info.get('fact_id') or a_info.get('metric_id') or ''
+
+        for m in report_hits:
+            # 语境豁免: 阈值/目标/条件句(如"SPX收复7700""若回落至X")引用的是
+            # 触发器/预测规格,不是当期水平断言 — 跳过水平值判定(与check_indicators同口径)
+            ctx = prose[max(0, m.start() - 12):m.start()] + m.group()
+            if _SPEC_CONTEXT_RE.search(ctx):
+                print(f"  ⬜ {name}: 阈值/目标语境[{m.group(1)}],非水平断言,跳过")
+                continue
+            try:
+                report_val = float(m.group(1).replace(',', ''))
+            except ValueError:
+                continue
+            if anchor_val == 0:
+                continue
+
+            deviation_pct = abs(report_val - anchor_val) / abs(anchor_val) * 100
+
+            if deviation_pct <= tolerance_pct:
+                print(f"  ✅ {name}: 报告={report_val} ≈ 锚点{anchor_val} ({anchor_key}"
+                      + (f", 事实{fid}" if fid else "")
+                      + f", 观测日{obs}, 偏差{deviation_pct:.2f}% ≤ {tolerance_pct}%)")
+                # P1: 时点滞后检查(仅日频行情源,提示级)
+                stale = _obs_staleness_warning(anchor_key, a_info, report_date)
+                if stale:
+                    warnings.append(stale)
+                    print(f"  {stale}")
+            else:
+                # 身份判定: 与canonical不符,却贴近同族其他锚点 → 疑似指标混淆(不按最接近放行)
+                near_other = [k for k, v in others
+                              if v and abs(report_val - v) / abs(v) * 100 <= tolerance_pct]
+                if near_other:
+                    msg = (f"🚨 疑似指标混淆 {name}: 报告={report_val} 与[{canonical}]锚点{anchor_val}"
+                           f"偏差{deviation_pct:.2f}%>容差{tolerance_pct}%,却贴近同族锚点"
+                           f"{near_other[0]}={anchors[near_other[0]]['value']} — 身份不符"
+                           f"(SPX≠SPY/期货≠现货/前值≠现值),不得按'最接近锚点'放行")
+                    warnings.append(msg)
+                    print(f"  {msg}")
+                elif deviation_pct > 20:
+                    msg = (f"🚨 严重错误 {name}: 报告={report_val}, 锚点={anchor_val}"
+                           f"({anchor_key}) (偏差{deviation_pct:.2f}% — 疑似指标混淆)")
+                    warnings.append(msg)
+                    print(f"  {msg}")
+                else:
+                    msg = (f"❌ {name}: 报告={report_val}, 锚点={anchor_val}({anchor_key}) "
+                           f"(偏差{deviation_pct:.2f}% > 容差{tolerance_pct}%)")
+                    warnings.append(msg)
+                    print(f"  {msg}")
 
     # === 1.5 指标ID联合校验(第二轮#6/#8: 现值/前值区分) ===
     print("\n🔎 指标ID联合校验(现值/前值):")
     warnings.extend(check_indicators(report_text, anchors))
 
-    # === 2. 周变化率比对 ===
+    # === 2. 周变化率比对(全量覆盖+canonical;兼容新.week_chg与旧.change键名) ===
     print("\n📈 周变化率比对:")
-    for name, report_pattern, anchor_pattern, tolerance_pp in CHANGE_CHECKS:
-        report_matches = re.findall(report_pattern, report_text, re.IGNORECASE)
-        anchor_matches = find_anchor_value(anchors, anchor_pattern)
-
-        if not report_matches or not anchor_matches:
-            print(f"  ⬜ {name}: {'报告无数据' if not report_matches else '锚点无数据'}")
+    for name, report_pattern, anchor_pattern, tolerance_pp, canonical in CHANGE_CHECKS:
+        report_hits = list(re.finditer(report_pattern, prose, re.IGNORECASE))
+        if not report_hits:
+            print(f"  ⬜ {name}: 报告无数据")
             continue
 
-        try:
-            report_val = float(report_matches[0])
-            anchor_val = min(anchor_matches, key=lambda x: abs(x[1] - report_val))[1]
-            deviation = abs(report_val - anchor_val)
+        prim, others = resolve_check_anchors(anchors, anchor_pattern, canonical,
+                                             require=('.week_chg', '.change'))
+        if prim is None:
+            msg = (f"⚠️ 待复核 {name}: 报告提及{len(report_hits)}处变化值,当日锚点缺"
+                   f"该指标周变化(不可核验,发布前人工对照)")
+            warnings.append(msg)
+            print(f"  {msg}")
+            continue
 
+        anchor_key, anchor_val = prim
+        for m in report_hits:
+            try:
+                report_val = float(m.group(1))
+            except ValueError:
+                continue
+            deviation = abs(report_val - anchor_val)
             if deviation <= tolerance_pp:
-                print(f"  ✅ {name}: 报告={report_val:+.2f}%, 锚点={anchor_val:+.2f}% (偏差{deviation:.2f}pp ≤ {tolerance_pp}pp)")
+                print(f"  ✅ {name}: 报告={report_val:+.2f}%, 锚点={anchor_val:+.2f}% ({anchor_key}, 偏差{deviation:.2f}pp ≤ {tolerance_pp}pp)")
             else:
-                msg = f"❌ {name}: 报告={report_val:+.2f}%, 锚点={anchor_val:+.2f}% (偏差{deviation:.2f}pp > 容差{tolerance_pp}pp)"
+                msg = (f"❌ {name}: 报告={report_val:+.2f}%, 锚点={anchor_val:+.2f}% ({anchor_key}, 偏差{deviation:.2f}pp > 容差{tolerance_pp}pp)")
                 warnings.append(msg)
                 print(f"  {msg}")
-        except (ValueError, IndexError):
-            pass
 
     # === 3. 量级合理性检查 ===
     print("\n📏 量级合理性检查:")
@@ -685,6 +764,10 @@ def save_anchors(anchors):
             entry['high'] = v['high']
         if v.get('low') is not None:
             entry['low'] = v['low']
+        # Gate B溯源(第七轮): 事实标识/指标身份/质量随锚点落盘,校验日志可回指快照事实
+        for extra in ('fact_id', 'metric_id', 'quality', 'tolerance_pct'):
+            if v.get(extra) is not None:
+                entry[extra] = v[extra]
         serializable[k] = entry
 
     path = os.path.join(data_dir, f'anchors_{today}.json')

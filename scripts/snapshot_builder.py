@@ -98,7 +98,8 @@ def build_anchors(snapshot, ymd):
             return
         rec = {'value': value, 'source_file': f"research_snapshot_{ymd}.json",
                'as_of': as_of, 'tolerance_pct': 1.0,
-               'metric_id': fact.get('metric_id'), 'quality': fact.get('quality_status')}
+               'metric_id': fact.get('metric_id'), 'quality': fact.get('quality_status'),
+               'fact_id': fact.get('fact_id')}
         obs = obs or fact.get('observation_date')
         if obs:
             rec['obs_date'] = str(obs)[:10]

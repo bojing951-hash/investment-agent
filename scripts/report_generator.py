@@ -160,19 +160,25 @@ def load_previous_report():
         return ""
 
 def load_data_pack(date_str=None):
-    """加载最新的数据包"""
+    """加载当日数据包(第七轮: 报告输入仅限当日研究快照渲染的数据包)。
+
+    缺当日包即失败——不得静默回退"最新文件"(文件最新≠数据最新,旧包冒充当日
+    输入正是第七轮根因B)。需重生成历史报告时显式传date_str。
+    """
     weekly_dir = os.path.join(DATA_DIR, 'weekly')
 
-    if date_str:
-        filepath = os.path.join(weekly_dir, f'data_pack_{date_str}.md')
-    else:
-        # 找最新的数据包
-        files = [f for f in os.listdir(weekly_dir) if f.startswith('data_pack_')]
-        if not files:
-            print("❌ 未找到数据包，请先运行 data_assembler.py")
-            return None
-        files.sort(reverse=True)
-        filepath = os.path.join(weekly_dir, files[0])
+    if not date_str:
+        date_str = datetime.now().strftime('%Y%m%d')
+    filepath = os.path.join(weekly_dir, f'data_pack_{date_str}.md')
+
+    if not os.path.exists(filepath):
+        others = sorted([f for f in os.listdir(weekly_dir)
+                         if f.startswith('data_pack_')], reverse=True) \
+            if os.path.exists(weekly_dir) else []
+        hint = f"(目录里最新的是 {others[0]})" if others else "(目录为空)"
+        print(f"❌ 当日数据包不存在: data_pack_{date_str}.md {hint}")
+        print("   报告输入仅限当日研究快照渲染的数据包,不得回退旧包 — 请先运行 run_weekly.py")
+        return None
 
     if not os.path.exists(filepath):
         print(f"❌ 文件不存在: {filepath}")

@@ -26,12 +26,14 @@ RESULT=$?
 echo "====== 采集结束: $(date), 退出码: $RESULT ======" >> "$LOG_FILE" 2>&1
 
 # 周报生成说明(2026-10-03修正):
-# 此前方案是周五在本文本内 nohup 后台启动 report_generator.py —— 实测在 launchd 下失败:
+# 此前方案是在本文本内 nohup 后台启动 report_generator.py —— 实测在 launchd 下失败:
 # 主脚本退出时 launchd 收割整个进程组,nohup+disown 救不了(report_20261002.log 只有启动横幅,报告没生成)。
-# 现改为独立 launchd 任务 com.investment.weekly.plist(每周五 08:00 直接跑 report_generator.py)。
+# 现改为独立 launchd 任务 com.investment.weekly.plist(每周六 08:00 直接跑 report_generator.py)。
+# 2026-10-17: 周五08:00改为周六08:00——周五生成时美股/商品只有周四收盘、A股周五未开盘,
+# 周六生成才覆盖完整一周(周六07:00每日采集先跑完,含周五美股收盘)。
 # 手动出报告随时可跑: python3 scripts/report_generator.py
 if [ $RESULT -eq 0 ]; then
-    echo "采集完成。周报由 com.investment.weekly 于每周五08:00独立生成。" >> "$LOG_FILE" 2>&1
+    echo "采集完成。周报由 com.investment.weekly 于每周六08:00独立生成。" >> "$LOG_FILE" 2>&1
 fi
 
 exit $RESULT

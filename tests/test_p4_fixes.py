@@ -27,29 +27,30 @@ print("=" * 60)
 print("P4回归测试v2: 月报/季报(期间结束后触发)")
 print("=" * 60)
 
-# ── 测试1: 触发条件判定(v2: 期间自然结束后第一个周五) ──────────────────
+# ── 测试1: 触发条件判定(v3 2026-10-17: 期间自然结束后第一个周六; v2为第一个周五) ──────────────────
 print("\n[1] pending_completed_month/quarter")
 from report_generator import pending_completed_month, pending_completed_quarter
 
 def d(y, m, dd):
     return datetime(y, m, dd)
 
-# 2026年10月周五: 2,9,16,23,30
-check("10-02(9月后第一个周五)→月报202609", pending_completed_month(d(2026, 10, 2)) == '202609')
-check("10-02(Q3后第一个周五)→季报2026Q3", pending_completed_quarter(d(2026, 10, 2)) == '2026Q3')
-check("10-09(第二周)→None(9月已复盘过)", pending_completed_month(d(2026, 10, 9)) is None)
-check("10-30(10月未结束)→None(不再月末提前出报)", pending_completed_month(d(2026, 10, 30)) is None)
-check("10-30→季报None", pending_completed_quarter(d(2026, 10, 30)) is None)
-check("10-31(周六)→None", pending_completed_month(d(2026, 10, 31)) is None)
-check("10-16(月中周五)→None", pending_completed_month(d(2026, 10, 16)) is None)
-# 第二轮专项: 2026-12-25是12月最后一个周五,Q4还剩6天 → 不得提前生成Q4季报/12月月报
-check("12-25(2026)月报→None(12月未完结)", pending_completed_month(d(2026, 12, 25)) is None)
-check("12-25(2026)季报→None(Q4未完结,原缺陷提前出Q4季报)", pending_completed_quarter(d(2026, 12, 25)) is None)
-check("2027-01-01→月报202612+季报2026Q4(期间后第一个周五)",
-      pending_completed_month(d(2027, 1, 1)) == '202612'
-      and pending_completed_quarter(d(2027, 1, 1)) == '2026Q4')
-check("11-06→月报202610(10月已完结)", pending_completed_month(d(2026, 11, 6)) == '202610')
-check("11-06→季报None(11月非季初月)", pending_completed_quarter(d(2026, 11, 6)) is None)
+# 2026年10月周六: 3,10,17,24,31
+check("10-03(9月后第一个周六)→月报202609", pending_completed_month(d(2026, 10, 3)) == '202609')
+check("10-03(Q3后第一个周六)→季报2026Q3", pending_completed_quarter(d(2026, 10, 3)) == '2026Q3')
+check("10-10(第二周)→None(9月已复盘过)", pending_completed_month(d(2026, 10, 10)) is None)
+check("10-31(10月未结束,最后一个周六)→None(不再月末提前出报)", pending_completed_month(d(2026, 10, 31)) is None)
+check("10-31→季报None", pending_completed_quarter(d(2026, 10, 31)) is None)
+check("10-02(周五,旧触发日)→None", pending_completed_month(d(2026, 10, 2)) is None)
+check("10-17(月中周六)→None", pending_completed_month(d(2026, 10, 17)) is None)
+# 第二轮专项: 2026-12-26是12月最后一个周六,Q4还剩5天 → 不得提前生成Q4季报/12月月报
+check("12-26(2026)月报→None(12月未完结)", pending_completed_month(d(2026, 12, 26)) is None)
+check("12-26(2026)季报→None(Q4未完结,原缺陷提前出Q4季报)", pending_completed_quarter(d(2026, 12, 26)) is None)
+check("2027-01-02→月报202612+季报2026Q4(期间后第一个周六)",
+      pending_completed_month(d(2027, 1, 2)) == '202612'
+      and pending_completed_quarter(d(2027, 1, 2)) == '2026Q4')
+check("2027-01-01(周五,旧触发日)→None", pending_completed_month(d(2027, 1, 1)) is None)
+check("11-07→月报202610(10月已完结)", pending_completed_month(d(2026, 11, 7)) == '202610')
+check("11-07→季报None(11月非季初月)", pending_completed_quarter(d(2026, 11, 7)) is None)
 
 # ── 测试2: 月度数据装配(真实数据优先,缺失用E2E fixture,第二轮#20) ──────────────────
 print("\n[2] monthly_review.build_data_block")

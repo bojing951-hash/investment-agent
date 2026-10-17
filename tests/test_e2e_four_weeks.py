@@ -251,14 +251,14 @@ with tempfile.TemporaryDirectory() as td:
     check("Q3整季区间表(非3时点)", "整季区间" in qblock and "季内最低" in qblock)
     check("Q3各月末水平表", "各月末水平" in qblock and "202607" in qblock and "202609" in qblock)
     check("Q3预测统计按周期", "本季预测到期与裁决" in qblock)
-    check("12-25不再触发季报(Q4未完结)", pending_completed_quarter(datetime(2026, 12, 25)) is None)
-    check("12-25也不触发月报(12月未完结)", pending_completed_month(datetime(2026, 12, 25)) is None)
-    check("2027-01-01(季末后第一个周五)→2026Q4+202612双触发",
-          pending_completed_quarter(datetime(2027, 1, 1)) == '2026Q4'
-          and pending_completed_month(datetime(2027, 1, 1)) == '202612')
-    check("10-02→9月月报+Q3季报双触发",
-          pending_completed_month(datetime(2026, 10, 2)) == '202609'
-          and pending_completed_quarter(datetime(2026, 10, 2)) == '2026Q3')
+    check("12-26不再触发季报(Q4未完结)", pending_completed_quarter(datetime(2026, 12, 26)) is None)
+    check("12-26也不触发月报(12月未完结)", pending_completed_month(datetime(2026, 12, 26)) is None)
+    check("2027-01-02(季末后第一个周六)→2026Q4+202612双触发",
+          pending_completed_quarter(datetime(2027, 1, 2)) == '2026Q4'
+          and pending_completed_month(datetime(2027, 1, 2)) == '202612')
+    check("10-03→9月月报+Q3季报双触发",
+          pending_completed_month(datetime(2026, 10, 3)) == '202609'
+          and pending_completed_quarter(datetime(2026, 10, 3)) == '2026Q3')
 
     # 当季未完结 → 季报预览
     qb_now, qprev_now = quiet(qo.build_data_block, '2026Q4', None, views)

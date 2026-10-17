@@ -556,19 +556,21 @@ ALLOWED_STATUS = {'进行中', '待观察', '已验证', '已失效'}
 # v1缺陷: "月末最后一个周五"在期间结束前生成月报(如10-30出10月报,10月还剩1天);
 # 更严重的是12-25(12月最后一个周五)会提前生成Q4季报——Q4还剩6天。
 # v2: 只在期间**自然结束之后**的第一个周五触发,复盘对象是已完结的上一期间。
+# v3(2026-10-17): 周报改为周六生成(覆盖完整一周含周五收盘——原周五08:00生成时
+# 美股/商品只有周四收盘),触发日同步改为"期间结束后第一个周六"(自然结束后更晚,更安全)。
 def pending_completed_month(d=None):
-    """今天是否为"上个自然月结束后的第一个周五"。是→返回上月YYYYMM,否则None。"""
+    """今天是否为"上个自然月结束后的第一个周六"。是→返回上月YYYYMM,否则None。"""
     d = d or datetime.now()
-    if d.weekday() != 4 or d.day > 7:   # 周五且在当月第一周
+    if d.weekday() != 5 or d.day > 7:   # 周六且在当月第一周
         return None
     y, m = (d.year - 1, 12) if d.month == 1 else (d.year, d.month - 1)
     return f"{y}{m:02d}"
 
 def pending_completed_quarter(d=None):
-    """今天是否为"上个自然季结束后的第一个周五"。是→返回上季'YYYYQn',否则None。
-    只可能在1/4/7/10月的第一周周五出现(自然季结束后)。"""
+    """今天是否为"上个自然季结束后的第一个周六"。是→返回上季'YYYYQn',否则None。
+    只可能在1/4/7/10月的第一周周六出现(自然季结束后)。"""
     d = d or datetime.now()
-    if d.weekday() != 4 or d.day > 7:
+    if d.weekday() != 5 or d.day > 7:
         return None
     if d.month not in (1, 4, 7, 10):
         return None
@@ -993,13 +995,14 @@ if __name__ == '__main__':
     if len(lines) > 30:
         print(f"\n... 共 {len(lines)} 行，完整报告请查看输出文件")
 
-    # 第5步(P4 v2, 第二轮#3.2/#3.4): 上个自然月/季**结束后**的第一个周五 → 追加月报/季报
+    # 第5步(P4 v2, 第二轮#3.2/#3.4; v3 2026-10-17随周报改周六): 上个自然月/季
+    # **结束后**的第一个周六 → 追加月报/季报
     # (v1在月末最后一个周五触发,会在期间结束前生成,如12-25提前生成Q4季报——已废除)
     # 周报已完成并落盘,附加报告失败不影响周报(独立进程,失败仅记日志)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     done_month = pending_completed_month()
     if done_month:
-        print(f"\n📅 {done_month}已完结(今天是其后第一个周五),启动月度复盘(monthly_review.py)...")
+        print(f"\n📅 {done_month}已完结(今天是其后第一个周六),启动月度复盘(monthly_review.py)...")
         try:
             r = subprocess.run([sys.executable, os.path.join(script_dir, 'monthly_review.py'),
                                 '--month', done_month],
@@ -1011,7 +1014,7 @@ if __name__ == '__main__':
             print("⚠️ 月度复盘超时30分钟,已终止(周报不受影响)")
     done_quarter = pending_completed_quarter()
     if done_quarter:
-        print(f"\n📅 {done_quarter}已完结(今天是其后第一个周五),启动季度展望(quarterly_outlook.py)...")
+        print(f"\n📅 {done_quarter}已完结(今天是其后第一个周六),启动季度展望(quarterly_outlook.py)...")
         try:
             r = subprocess.run([sys.executable, os.path.join(script_dir, 'quarterly_outlook.py'),
                                 '--quarter', done_quarter],

@@ -518,18 +518,18 @@ with tempfile.TemporaryDirectory() as td:
 print("\n── 20. 周报/月报/季报功能不退化")
 import monthly_review as mr
 import quarterly_outlook as qo
-check("月报触发: 10月第一个周五(10-02)复盘9月",
-      rg.pending_completed_month(datetime(2026, 10, 2)) == '202609',
-      str(rg.pending_completed_month(datetime(2026, 10, 2))))
-check("季报触发: 10月第一个周五复盘Q3",
-      rg.pending_completed_quarter(datetime(2026, 10, 2)) == '2026Q3')
-check("第二周五不触发月报", rg.pending_completed_month(datetime(2026, 10, 9)) is None)
-check("月末最后一个周五不提前触发(10-30仍None)",
-      rg.pending_completed_month(datetime(2026, 10, 30)) is None
-      and rg.pending_completed_quarter(datetime(2026, 10, 30)) is None)
-check("1月第一周五复盘上季Q4跨年",
-      rg.pending_completed_quarter(datetime(2027, 1, 1)) == '2026Q4',
-      str(rg.pending_completed_quarter(datetime(2027, 1, 1))))
+check("月报触发: 10月第一个周六(10-03)复盘9月",
+      rg.pending_completed_month(datetime(2026, 10, 3)) == '202609',
+      str(rg.pending_completed_month(datetime(2026, 10, 3))))
+check("季报触发: 10月第一个周六复盘Q3",
+      rg.pending_completed_quarter(datetime(2026, 10, 3)) == '2026Q3')
+check("第二周六不触发月报", rg.pending_completed_month(datetime(2026, 10, 10)) is None)
+check("月末最后一个周六不提前触发(10-31仍None)",
+      rg.pending_completed_month(datetime(2026, 10, 31)) is None
+      and rg.pending_completed_quarter(datetime(2026, 10, 31)) is None)
+check("1月第一周六复盘上季Q4跨年",
+      rg.pending_completed_quarter(datetime(2027, 1, 2)) == '2026Q4',
+      str(rg.pending_completed_quarter(datetime(2027, 1, 2))))
 for mod, fn in ((mr, 'gather_month_series'), (mr, 'coverage_report'),
                 (qo, 'gather_quarter_series'), (qo, 'build_data_block')):
     check(f"{mod.__name__}.{fn}仍存在且可调用", callable(getattr(mod, fn, None)))

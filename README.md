@@ -1,6 +1,6 @@
 # investment-agent — AI 全球宏观策略研究员
 
-一套无人值守的个人投研系统：每日自动采集全球宏观与市场数据并记录预测观察，每周五调用大模型（智谱 GLM）生成中文全球宏观周报，生成后自动校验数字、按门禁回写论点与观点状态、裁决到期预测；月末/季末后的第一个周五追加月度复盘与季度展望。
+一套无人值守的个人投研系统：每日自动采集全球宏观与市场数据并记录预测观察，每周六调用大模型（智谱 GLM）生成中文全球宏观周报（覆盖完整一周、含周五全部收盘），生成后自动校验数字、按门禁回写论点与观点状态、裁决到期预测；月末/季末后的第一个周六追加月度复盘与季度展望。
 
 > 本仓库是**净化开源版**：已移除全部 API key（改由环境变量注入）与个人数据历史。样例产物见 `output/weekly/`。
 >
@@ -18,7 +18,7 @@
   (* 非关键步骤: 失败降级不阻断,不影响观察记录)
   关键步骤失败 → exit 1；第10步无当日锚点 → exit 2（不得以旧数据充当本期观察）
 
-每周五 08:00（report_generator.py,独立launchd任务）
+每周六 08:00（report_generator.py,独立launchd任务;2026-10-17由周五08:00改——周五生成时美股/商品只有周四收盘,A股/港股周五未开盘,周六生成才含完整一周）
   prompt = 系统提示词(全球宏观首席研究员兼跨资产策略师)
          + framework.md(阈值体系) + thesis.json(9论点) + allocation_views.json(9观点)
          + 上期报告 + 手工笔记 + 近7天新闻 + 数据包 + 锚点清单
@@ -27,9 +27,9 @@
   → 解析 ALLOCATION_STATUS/THESIS_STATUS/PREDICTION_STATUS 块
   → 观点评级变更门禁 + 论点终态门禁 + 预测裁决(引擎权威>受核验GLM)
 
-月度/季度（由周报在期间结束后第一个周五触发,不新增launchd任务）
-  自然月结束后第一个周五 → monthly_review.py(读整月原始JSON,非拼接周报)
-  自然季结束后第一个周五 → quarterly_outlook.py(整季聚合,非3时点)
+月度/季度（由周报在期间结束后第一个周六触发,不新增launchd任务）
+  自然月结束后第一个周六 → monthly_review.py(读整月原始JSON,非拼接周报)
+  自然季结束后第一个周六 → quarterly_outlook.py(整季聚合,非3时点)
 ```
 
 ## 研究记忆（三个状态文件，全部带门禁回写）
@@ -91,7 +91,7 @@ python3 run_weekly.py                # 跑一遍完整10步采集
 python3 scripts/report_generator.py  # 手动生成一份周报
 ```
 
-定时调度（macOS launchd）：`com.investment.daily` 每天 07:00 跑 `run_daily.sh`；`com.investment.weekly` 每周五 08:00 直接跑 `scripts/report_generator.py`（plist 在 `~/Library/LaunchAgents/`）。
+定时调度（macOS launchd）：`com.investment.daily` 每天 07:00 跑 `run_daily.sh`；`com.investment.weekly` 每周六 08:00 直接跑 `scripts/report_generator.py`（plist 在 `~/Library/LaunchAgents/`）。
 
 ## 排障
 

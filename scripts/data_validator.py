@@ -147,26 +147,30 @@ def extract_anchors_from_data(data_dir=None):
 REPORT_CHECKS = [
     # (名称, 报告中的正则, 锚点key的匹配模式, 容差%, 是否为百分比值, canonical)
     ("SPX收盘", r'(?:SPX|标普500)[^0-9%]*?([0-9]{3,5}(?:\.[0-9]+)?)', r'global_market.*(?:SPX|SPY|sp500).*(?:close|price|收盘)', 0.5, False, 'SPX'),
-    ("WTI油价", r'(?:WTI|油价)\s*(?:收于|收盘|价格|现价|为|至)?\s*\$?([0-9]{2,3}\.[0-9]+)(?!\s*%)', r'global_market.*(?:WTI|CL|oil|原油).*(?:close|price|收盘)', 1.0, False, 'WTI'),
-    ("黄金价格", r'(?:黄金|GOLD|XAU)[^0-9%]*?([0-9]{3,5}(?:\.[0-9]+)?)(?!\s*%)', r'global_market.*(?:GOLD|GC|gold|黄金).*(?:close|price|收盘)', 0.5, False, 'GOLD'),
-    ("DXY", r'(?:DXY|美元指数)[^0-9%]*?([0-9]{2,3}\.[0-9]+)(?!\s*%)', r'global_market.*(?:DXY|美元).*(?:close|price|收盘)', 0.5, False, 'DXY'),
-    ("VIX", r'VIX[^0-9%]*?([0-9]{1,3}\.[0-9]+)(?!\s*%)', r'global_market.*VIX.*(?:close|price|收盘)', 2.0, False, 'VIX'),
-    ("BTC", r'(?:BTC|比特币)[^0-9%]*?([0-9]{4,6}(?:\.[0-9]+)?)(?!\s*%)', r'global_market.*(?:BTC|bitcoin).*(?:close|price|收盘)', 1.0, False, 'BTC'),
+    ("WTI油价", r'(?:WTI(?![a-zA-Z])|油价)\s*(?:收于|收盘|价格|现价|为|至)?\s*\$?([0-9]{2,3}\.[0-9]+)(?!\s*%)', r'global_market.*(?:WTI|CL|oil|原油).*(?:close|price|收盘)', 1.0, False, 'WTI'),
+    ("黄金价格", r'(?:黄金|GOLD(?![a-zA-Z])|XAU)[^0-9%]*?([0-9]{3,5}(?:\.[0-9]+)?)(?!\s*[%年])', r'global_market.*(?:GOLD|GC|gold|黄金).*(?:close|price|收盘)', 0.5, False, 'GOLD'),
+    ("DXY", r'(?:DXY(?![a-zA-Z])|美元指数)[^0-9%]*?([0-9]{2,3}\.[0-9]+)(?!\s*%)', r'global_market.*(?:DXY|美元).*(?:close|price|收盘)', 0.5, False, 'DXY'),
+    ("VIX", r'VIX(?![a-zA-Z])[^0-9%]*?([0-9]{1,3}\.[0-9]+)(?!\s*%)', r'global_market.*VIX.*(?:close|price|收盘)', 2.0, False, 'VIX'),
+    ("BTC", r'(?:BTC(?![a-zA-Z])|比特币)[^0-9%]*?([0-9]{4,6}(?:\.[0-9]+)?)(?!\s*%)', r'global_market.*(?:BTC|bitcoin).*(?:close|price|收盘)', 1.0, False, 'BTC'),
     ("10Y收益率", r'(?:UST\s*10Y|10Y\s*(?:收益率|利率|国债))[^0-9]*?([0-9]\.[0-9]{2,3})\s*%', r'macro.*(?:UST_10Y|10Y|GS10|DGS10).*(?:value|收益率)', 3.5, True, 'UST_10Y'),
     ("30Y收益率", r'(?:UST\s*30Y|30Y\s*(?:收益率|利率|国债))[^0-9]*?([0-9]\.[0-9]{2,3})\s*%', r'macro.*(?:UST_30Y|30Y|GS30|DGS30).*(?:value|收益率)', 2.0, True, 'UST_30Y'),
-    ("CCC_OAS", r'CCC[^0-9]*?([0-9]{1,2}\.?[0-9]{0,3})\s*%?', r'macro.*(?:CCC|ccc).*(?:value|OAS|利差)', 2.0, True, 'CCC_OAS'),
+    # CCC水平断言须带单位(%或bp) — 无单位裸数字多为行文元数据(星级/置信/论点编号),
+    # 误纳即产生"疑似指标混淆"假阳性。bp形态由两捕获组区分,取值时÷100归一为%
+    ("CCC_OAS", r'CCC(?![a-zA-Z])[^0-9%.。；;\n]*?(?:([0-9]{1,2}\.[0-9]+)\s*%|([0-9]{3,5})\s*bp)', r'macro.*(?:CCC|ccc).*(?:value|OAS|利差)', 2.0, True, 'CCC_OAS'),
     ("HY_OAS", r'(?:HY\s*OAS|高收益利差)[^0-9]*?(?<!-)([0-9]\.[0-9]{2,3})\s*%', r'macro.*(?:HY|high.yield|高收益).*(?:value|OAS|利差)', 2.0, True, 'HY_OAS'),
     ("失业率", r'失业率(?!\s*(?:变动|变化|change|delta))[^0-9%]*?([3-9]\.[0-9])\s*%', r'rate_economy.*(?:UNRATE|失业率|unemployment).*(?:value|latest)', 0, True, 'UNRATE'),
     ("消费者信心", r'(?:消费者信心|Michigan|密歇根)[^0-9]*?([0-9]{2,3}\.[0-9])', r'rate_economy.*(?:UMCSENT|消费者信心|michigan|confidence).*(?:value|latest)', 1.0, False, 'UMCSENT'),
-    ("上证指数", r'(?:上证|上证指数|SSE)[^0-9%]*?([0-9]{3,4}\.[0-9]+)(?!\s*%)', r'china.*(?:上证|SSE|000001).*(?:close|收盘)', 5.0, False, ('上证指数', '000001')),
+    ("上证指数", r'(?:上证|上证指数|SSE(?![a-zA-Z]))[^0-9%]*?([0-9]{3,4}\.[0-9]+)(?!\s*%)', r'china.*(?:上证|SSE|000001).*(?:close|收盘)', 5.0, False, ('上证指数', '000001')),
 ]
 
 # 周变化率检查(第5字段=canonical;锚点取.week_chg=引擎统一口径的周变化)
+# 间隔类排除句读(，。；、)与%, 变化值须与指标同小句 — 防跨小句串到相邻资产数值
+# (实战: "WTI周+5.12%...；美股分化(SPX -0.27%但NDX -2.57%)"旧式把NDX当WTI周变化)
 CHANGE_CHECKS = [
     # (名称, 报告中变化率正则, 锚点key模式, 容差绝对值pp, canonical)
-    ("WTI周涨跌", r'(?:WTI|油价)[^)]*?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:WTI|CL|oil).*(?:change|涨跌|pct|week_chg)', 0.6, 'WTI'),
-    ("黄金周涨跌", r'(?:黄金|GOLD)[^)]*?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:GOLD|GC|gold|黄金).*(?:change|涨跌|pct|week_chg)', 0.6, 'GOLD'),
-    ("BTC周涨跌", r'(?:BTC|比特币)[^)]*?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:BTC|bitcoin).*(?:change|涨跌|pct|week_chg)', 0.5, 'BTC'),
+    ("WTI周涨跌", r'(?:WTI(?![a-zA-Z])|油价)[^)。，；、%]{0,40}?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:WTI|CL|oil).*(?:change|涨跌|pct|week_chg)', 0.6, 'WTI'),
+    ("黄金周涨跌", r'(?:黄金|GOLD(?![a-zA-Z]))[^)。，；、%]{0,40}?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:GOLD|GC|gold|黄金).*(?:change|涨跌|pct|week_chg)', 0.6, 'GOLD'),
+    ("BTC周涨跌", r'(?:BTC(?![a-zA-Z])|比特币)[^)。，；、%]{0,40}?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:BTC|bitcoin).*(?:change|涨跌|pct|week_chg)', 0.5, 'BTC'),
 ]
 
 # 量级合理性
@@ -183,17 +187,17 @@ SANITY_CHECKS = {
         "error_msg": "非农月新增不应超过1,000K (100万人)"
     },
     "SPX范围": {
-        "patterns": [r'(?:SPX|标普500)[^0-9%]*?([0-9]{3,5}(?:\.[0-9]+)?)(?!\s*%)'],
+        "patterns": [r'(?:SPX(?![a-zA-Z])|标普500)[^0-9%]*?([0-9]{3,5}(?:\.[0-9]+)?)(?!\s*%)'],
         "min_value": 2000, "max_value": 10000,
         "error_msg": "SPX收盘价应在2000-10000范围"
     },
     "WTI范围": {
-        "patterns": [r'(?:WTI|油价)\s*(?:收于|收盘|价格|现价|为)?\s*\$?([0-9]{2,3}\.[0-9]+)(?!\s*%)'],
+        "patterns": [r'(?:WTI(?![a-zA-Z])|油价)\s*(?:收于|收盘|价格|现价|为)?\s*\$?([0-9]{2,3}\.[0-9]+)(?!\s*%)'],
         "min_value": 20, "max_value": 200,
         "error_msg": "WTI价格应在$20-$200范围"
     },
     "VIX范围": {
-        "patterns": [r'VIX[^0-9%]*?([0-9]{1,3}\.[0-9]+)(?!\s*%)'],
+        "patterns": [r'VIX(?![a-zA-Z])[^0-9%]*?([0-9]{1,3}\.[0-9]+)(?!\s*%)'],
         "min_value": 8, "max_value": 90,
         "error_msg": "VIX应在8-90范围"
     },
@@ -263,7 +267,7 @@ INDICATOR_SPECS = [
 _PREV_CONTEXT_RE = re.compile(r"上周|前值|前期|上一?期|previous|prior|prev\b|较[^。；\n]{0,6}变动|变化|环比|同比|从")
 # 阈值/条件句语境: "CCC OAS≥10.0""若回落至9.5下方"等引用的是触发器规格而非市场观测值,
 # 不参与现值/前值判定(只在既非现值又非前值时豁免报错,不影响✅路径)
-_SPEC_CONTEXT_RE = re.compile(r"[≥≤<>]|若|假设|回落|突破|跌破|升破|回升|升至|高于|低于|超过|不及|收复|回到|触及|上方|下方|以内|以上|以下|目标|阈值|触发")
+_SPEC_CONTEXT_RE = re.compile(r"[≥≤<>]|若|假设|回落|突破|跌破|升破|回升|升至|高于|低于|超过|不及|收复|回到|触及|上方|下方|以内|以上|以下|目标|阈值|触发|站上|站稳|关口|恐慌线|警戒线|红线|支撑|阻力|维持|概率|破[0-9]")
 
 
 def _indicator_report_values(report_text, spec):
@@ -593,13 +597,20 @@ def validate_report(report_path, anchors):
         for m in report_hits:
             # 语境豁免: 阈值/目标/条件句(如"SPX收复7700""若回落至X")引用的是
             # 触发器/预测规格,不是当期水平断言 — 跳过水平值判定(与check_indicators同口径)
+            # 后视仅认"紧邻"的位置词/动词("4.1%回升至""1000bp上方"),隔标点不豁免
+            # ("12.52%,已远超恐慌线"中恐慌线是评述,12.52仍是水平断言)
             ctx = prose[max(0, m.start() - 12):m.start()] + m.group()
-            if _SPEC_CONTEXT_RE.search(ctx):
+            after = prose[m.end():m.end() + 8]
+            if _SPEC_CONTEXT_RE.search(ctx) or re.match(
+                    r'\s*(?:回升|回落|升至|跌至|上方|下方|以上|以下|以内|关口|恐慌线|警戒线|红线)', after):
                 print(f"  ⬜ {name}: 阈值/目标语境[{m.group(1)}],非水平断言,跳过")
                 continue
             try:
-                report_val = float(m.group(1).replace(',', ''))
-            except ValueError:
+                raw = m.group(1) if m.group(1) is not None else m.group(2)
+                report_val = float(raw.replace(',', ''))
+                if m.group(1) is None:      # bp形态(第二捕获组) → ÷100归一为%
+                    report_val = report_val / 100.0
+            except (ValueError, IndexError):
                 continue
             if anchor_val == 0:
                 continue
@@ -617,6 +628,16 @@ def validate_report(report_path, anchors):
                     print(f"  {stale}")
             else:
                 # 身份判定: 与canonical不符,却贴近同族其他锚点 → 疑似指标混淆(不按最接近放行)
+                # 合并写法"X/Y"(如表格行"HY/CCC | OAS 3.25%/12.82%"):
+                # 本臂为同族相邻指标值,另一臂与锚点一致 → 两值各自正确,判通过
+                m_next = re.match(r'\s*/\s*([0-9]{1,2}\.[0-9]+)\s*%',
+                                  prose[m.end():m.end() + 14])
+                if m_next:
+                    other_arm = float(m_next.group(1))
+                    if abs(other_arm - anchor_val) / abs(anchor_val) * 100 <= tolerance_pct:
+                        print(f"  ✅ {name}: 合并写法 报告={report_val}/{other_arm},"
+                              f"另一臂≈锚点{anchor_val} ({anchor_key})")
+                        continue
                 near_other = [k for k, v in others
                               if v and abs(report_val - v) / abs(v) * 100 <= tolerance_pct]
                 if near_other:
@@ -660,6 +681,18 @@ def validate_report(report_path, anchors):
 
         anchor_key, anchor_val = prim
         for m in report_hits:
+            # 异周期守卫: 数值前10字符含年初/同比等周期词 → 引用的是其他期间收益,
+            # 非本周变化断言(如"WTI现货(YTD +70.85%)""WTI同比+59.81%"),不参与周变化比对
+            pre = prose[max(0, m.start(1) - 10):m.start(1)]
+            if re.search(r'YTD|ytd|MTD|mtd|YOY|yoy|MoM|mom|年初|今年|月度|当月|上月|同比|环比|三个月|六个月|3个月|6个月', pre):
+                print(f"  ⬜ {name}: 异周期语境[{m.group(1)}%],非周变化断言,跳过")
+                continue
+            # 条件/阈值语境豁免(与水平检查同口径): "WTI 96美元若传导至BEI>2.6%"
+            # 引用的是情景规格而非本周变化断言
+            cctx = prose[max(0, m.start() - 12):m.start()] + m.group()
+            if _SPEC_CONTEXT_RE.search(cctx):
+                print(f"  ⬜ {name}: 阈值/条件语境[{m.group(1)}%],非周变化断言,跳过")
+                continue
             try:
                 report_val = float(m.group(1))
             except ValueError:

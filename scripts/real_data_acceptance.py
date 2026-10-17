@@ -175,8 +175,8 @@ def independent_period_returns(dates, values, obs_date):
     if wk:
         out['week_pct'] = (cur / wk[1] - 1) * 100 if wk[1] else None
         out['week_basis'] = wk[0]
-    mtd = last_before(month_start, strict=False)   # 前月末(含)
-    if mtd and mtd[0] < cur_d[:8] + '01':
+    mtd = last_before(month_start, strict=True)   # 严格期前: <当月1日→前一月最后观测
+    if mtd:
         out['mtd_pct'] = (cur / mtd[1] - 1) * 100 if mtd[1] else None
         out['mtd_basis'] = mtd[0]
     ytd = last_before(year_start, strict=True)     # 上年末(严格期前)

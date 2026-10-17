@@ -273,14 +273,30 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
         'notes': ['全部事实含metric_id/单位/观测日/来源/质量;派生值附calculation_ref',
                   '本快照为唯一研究数据入口;下游不得自行查找最新采集文件'],
     }
-    # series_store: 相关性等配对序列研究用(仅全球行情资产,新metric_id为键)
+    # series_store: 相关性等配对序列研究用(全球行情资产+中国/港股指数,新metric_id为键)
+    store = {}
     if 'global' in raw:
         inv_map = {v: k for k, v in _GLOBAL_OLD_ID.items()}
-        store = {}
         for aid, item in (raw['global'].get('data') or {}).items():
             mid = inv_map.get(aid, aid)
             if isinstance(item, dict) and isinstance(item.get('series'), dict):
                 store[mid] = item['series']
+    if 'china' in raw:
+        # 新旧两代采集格式的指数序列(代码/中文名→注册表metric_id)
+        _CN_CODE = {"000001.SH": "SHCOMP", "399001.SZ": "SZCI", "399006.SZ": "CHINEXT"}
+        _CN_NAME = {"上证指数": "SHCOMP", "深证成指": "SZCI", "创业板指": "CHINEXT",
+                    "恒生指数": "HSI", "恒生国企指数": "HSCEI"}
+        _HK_CODE = {"^HSI": "HSI", "^HSCE": "HSCEI", "^HSCEI": "HSCEI"}
+        pools = []
+        pools.extend((raw['china'].get('a_share_indices') or {}).items())
+        pools.extend((raw['china'].get('hk_indices') or {}).items())
+        pools.extend((raw['china'].get('indices') or {}).items())
+        for key, item in pools:
+            mid = _CN_CODE.get(key) or _HK_CODE.get(key) or _CN_NAME.get(key)
+            if mid and isinstance(item, dict) and isinstance(item.get('series'), dict) \
+                    and mid not in store:
+                store[mid] = item['series']
+    if store:
         snapshot['series_store'] = store
 
     if not write:

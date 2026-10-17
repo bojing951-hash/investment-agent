@@ -367,20 +367,20 @@ def fetch_turnover():
                 latest2 = df2.sort_values('trade_date').iloc[-1]
                 sz_amount = float(latest2.get('amount', 0))
 
-            total_billion = round((sh_amount + sz_amount) / 1e4, 2)  # 千元→亿元 (÷1000再×10=÷1e4... 不对)
-            # 千元 → 亿元: ÷ 1e5
+            total_billion = round((sh_amount + sz_amount) / 1e5, 2)  # 千元→亿元: ÷1e5
             sh_billion = round(sh_amount / 1e5, 2)
             sz_billion = round(sz_amount / 1e5, 2)
-            total_billion = round((sh_amount + sz_amount) / 1e5, 2)
 
             result = {
                 'date': sh_date,
-                'scope': '沪深两市',
+                # 2026-10-17口径修正: 深侧来自399001.SZ深证成指(成分口径),
+                # 非深市全市场(全市场须399106.SZ) — scope如实标注,不得写"沪深两市"
+                'scope': '沪市全市场+深证成指成分(近似沪深两市)',
                 'sh_amount_billion': sh_billion,
                 'sz_amount_billion': sz_billion,
                 'total_amount_billion': total_billion,
                 'volume_billion': total_billion,  # 兼容旧字段名
-                'label': f'沪深两市成交额: {total_billion:.0f}亿 (沪{sh_billion:.0f}+深{sz_billion:.0f})',
+                'label': f'成交额(近似两市): {total_billion:.0f}亿 (沪{sh_billion:.0f}全市场+深{sz_billion:.0f}成指成分)',
             }
             print(f"  ✅ 沪深两市成交额: {total_billion:.2f} 亿 (沪{sh_billion:.0f}+深{sz_billion:.0f})")
             return result

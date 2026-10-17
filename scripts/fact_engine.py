@@ -225,8 +225,10 @@ def normalize_macro(data, as_of, source_file="macro_*.json"):
     if isinstance(data, dict) and isinstance(data.get('data'), dict):
         data = data['data']
     facts = []
+    # 采集JSON键名 → 注册表metric_id别名(通道键名≠注册表身份时显式映射,不静默)
+    _MACRO_ALIAS = {'WTI': 'WTI_SPOT_M'}
     for name, item in (data or {}).items():
-        mid = name
+        mid = _MACRO_ALIAS.get(name, name)
         m = metric(mid)
         if m is None:
             facts.append({"metric_id": name, "quality_status": "FAIL",
@@ -273,12 +275,39 @@ def normalize_china(data, as_of, source_file="china_*.json"):
         if mid:
             add(mid, item.get('close'), item.get('date'), sub=item.get('via'),
                 series=item.get('series'))
+
+    # 新采集格式(2026-10-17): a_share_indices按代码键控, hk_indices按^代码;
+    # 新浪/腾讯通道数值为字符串 → float转换;未注册代码(300/500/1000等)如实跳过不造事实
+    def _num(x):
+        try:
+            return float(x) if x is not None else None
+        except (TypeError, ValueError):
+            return None
+
+    _CODE_MAP = {"000001.SH": "SHCOMP", "399001.SZ": "SZCI", "399006.SZ": "CHINEXT"}
+    for code, item in (data.get('a_share_indices') or {}).items():
+        mid = _CODE_MAP.get(code)
+        if not mid:
+            print(f"  ⚠️ A股代码{code}({item.get('name', '?')})未入注册表,跳过(不造事实)")
+            continue
+        add(mid, _num(item.get('close')), str(item.get('date')), sub='sina',
+            series=item.get('series'))
+    _HK_MAP = {"^HSI": "HSI", "^HSCE": "HSCEI", "^HSCEI": "HSCEI"}
+    for code, item in (data.get('hk_indices') or {}).items():
+        mid = _HK_MAP.get(code)
+        if mid:
+            add(mid, _num(item.get('close')), str(item.get('date')), sub=item.get('via'),
+                series=item.get('series'))
     ah = data.get('ah_premium') or {}
     if ah.get('close') is not None:
         add("HSAHP", ah.get('close'), ah.get('date'), sub=ah.get('via'))
     sb = data.get('southbound') or {}
     if sb.get('net_buy') is not None:
         add("SB_FLOW", sb.get('net_buy'), sb.get('date'), calc="当日净买入(亿港元)")
+    elif sb.get('south_money') is not None:
+        # 新通道(东财): south_money单位=百万港元 → 亿港元;口径=南向当日净流入
+        add("SB_FLOW", round(_num(sb.get('south_money')) / 100.0, 2), sb.get('date'),
+            sub='eastmoney', calc="东财南向当日净流入(百万港元→亿港元)")
     mg = data.get('margin') or {}
     if mg.get('balance') is not None:
         add("MARGIN_BAL", mg.get('balance'), mg.get('date'))
@@ -442,11 +471,12 @@ def validate_fact(fact, raw_item, m, as_of_date=None):
         except ValueError:
             pass
     # 频率新鲜度: 月频未发布≠无效,超窗→DEGRADED披露。
-    # 月频有效窗=75天: FRED月度观测戳记为月首(如9月CPI=09-01),发布在月末后≤45天,
-    # 故从月首戳记算75天(45+30)内均属正常发布节奏,不得判旧。
+    # 月频有效窗=92天: FRED月度观测戳记为月首(如8月PCE=08-01),发布在次月末前后,
+    # 到下一次发布前as_of−月首最长可达~92天(真实数据2026-10-17复验: 08-01观测
+    # 对10-17=77天,75天窗误报DEGRADED)。仍拦截连缺两期以上的真过期(>3个月)。
     fr = (m.get('freshness') or {}).get('max_calendar_lag_days')
     freq = m.get('frequency')
-    eff_window = 7 if freq == 'daily' else (16 if freq == 'weekly' else 75)
+    eff_window = 7 if freq == 'daily' else (16 if freq == 'weekly' else 92)
     if as_of_date:
         try:
             lag = (date.fromisoformat(as_of_date) - d_obs).days

@@ -1,0 +1,2297 @@
+{
+ "version": "2.0.0",
+ "created": "2026-10-17",
+ "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
+ "field_semantics": {
+  "unit": {
+   "percent": "百分比水平(收益率/通胀率)",
+   "percentage_point": "百分点(利差/利率变化的正确单位)",
+   "index_point": "指数点位(无量纲)",
+   "usd": "美元",
+   "cny_100m": "亿元人民币",
+   "hkd_100m": "亿港元",
+   "persons": "人",
+   "persons_thousands": "千人",
+   "ratio": "倍数/比率",
+   "points": "期货点位(百分制价格)"
+  },
+  "freshness.max_calendar_lag_days": "观测日距研究截止的最大自然日滞后,超出→DEGRADED并披露,不得静默使用",
+  "release_semantics": "发布时间语义;不可得时按观测日保守处理并在快照披露发布滞后风险"
+ },
+ "notes": [
+  "YTD/MTD/周变化等收益率派生值不单独注册——由事实引擎统一收益引擎计算并附带calculation_ref",
+  "月频指标未发布≠缺失/无效;新鲜度窗按月频45天",
+  "同一指标多来源时以source为权威,对账差异写入快照reconciliation节"
+ ],
+ "metrics": [
+  {
+   "metric_id": "SPX",
+   "display_name": "标普500指数",
+   "source": "global_market_collector",
+   "source_symbol": "^GSPC",
+   "asset_class": "equity_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "us_equity",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "指数官方收盘点位(未复权,非ETF;SPY为独立指标)",
+   "validation": {
+    "range": [
+     1000,
+     30000
+    ],
+    "max_week_pct_move": 25
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "NDX",
+   "display_name": "纳斯达克100指数",
+   "source": "global_market_collector",
+   "source_symbol": "^NDX",
+   "asset_class": "equity_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "us_equity",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "指数收盘点位",
+   "validation": {
+    "range": [
+     3000,
+     60000
+    ],
+    "max_week_pct_move": 30
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "RUT",
+   "display_name": "罗素2000指数",
+   "source": "global_market_collector",
+   "source_symbol": "^RUT",
+   "asset_class": "equity_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "指数收盘点位",
+   "validation": {
+    "range": [
+     800,
+     4000
+    ],
+    "max_week_pct_move": 25
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "VIX",
+   "display_name": "CBOE波动率指数",
+   "source": "global_market_collector",
+   "source_symbol": "^VIX",
+   "asset_class": "volatility_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "us_equity",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "VIX指数收盘(年化波动率预期,非价格)",
+   "validation": {
+    "range": [
+     5,
+     100
+    ],
+    "max_week_abs_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "NVDA",
+   "display_name": "英伟达",
+   "source": "global_market_collector",
+   "source_symbol": "NVDA",
+   "asset_class": "single_stock",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
+   },
+   "value_type": "level",
+   "calc": "auto_adjust复权收盘价(含分红再投资,近似全收益;与交易所裸价有差异)",
+   "validation": {
+    "range": [
+     10,
+     2000
+    ],
+    "max_week_pct_move": 30
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "AAPL",
+   "display_name": "苹果",
+   "source": "global_market_collector",
+   "source_symbol": "AAPL",
+   "asset_class": "single_stock",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
+   },
+   "value_type": "level",
+   "calc": "auto_adjust复权收盘价(含分红再投资,近似全收益;与交易所裸价有差异)",
+   "validation": {
+    "range": [
+     50,
+     500
+    ],
+    "max_week_pct_move": 30
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "MSFT",
+   "display_name": "微软",
+   "source": "global_market_collector",
+   "source_symbol": "MSFT",
+   "asset_class": "single_stock",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
+   },
+   "value_type": "level",
+   "calc": "auto_adjust复权收盘价(含分红再投资,近似全收益;与交易所裸价有差异)",
+   "validation": {
+    "range": [
+     100,
+     1000
+    ],
+    "max_week_pct_move": 30
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "TLT",
+   "display_name": "20+年美国国债ETF",
+   "source": "global_market_collector",
+   "source_symbol": "TLT",
+   "asset_class": "bond_etf",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘价",
+   "validation": {
+    "range": [
+     40,
+     250
+    ],
+    "max_week_pct_move": 12
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   },
+   "notes": "价格指标;收益率/利差结论须引用FRED的UST_*/OAS系列,不得以ETF价格变化直接表述收益率变化"
+  },
+  {
+   "metric_id": "IEF",
+   "display_name": "7-10年美国国债ETF",
+   "source": "global_market_collector",
+   "source_symbol": "IEF",
+   "asset_class": "bond_etf",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘价",
+   "validation": {
+    "range": [
+     40,
+     250
+    ],
+    "max_week_pct_move": 12
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   },
+   "notes": "价格指标;收益率/利差结论须引用FRED的UST_*/OAS系列,不得以ETF价格变化直接表述收益率变化"
+  },
+  {
+   "metric_id": "SHY",
+   "display_name": "1-3年美国国债ETF",
+   "source": "global_market_collector",
+   "source_symbol": "SHY",
+   "asset_class": "bond_etf",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘价",
+   "validation": {
+    "range": [
+     40,
+     250
+    ],
+    "max_week_pct_move": 12
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   },
+   "notes": "价格指标;收益率/利差结论须引用FRED的UST_*/OAS系列,不得以ETF价格变化直接表述收益率变化"
+  },
+  {
+   "metric_id": "HYG",
+   "display_name": "iBoxx高收益债ETF",
+   "source": "global_market_collector",
+   "source_symbol": "HYG",
+   "asset_class": "bond_etf",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘价",
+   "validation": {
+    "range": [
+     40,
+     250
+    ],
+    "max_week_pct_move": 12
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   },
+   "notes": "价格指标;收益率/利差结论须引用FRED的UST_*/OAS系列,不得以ETF价格变化直接表述收益率变化"
+  },
+  {
+   "metric_id": "LQD",
+   "display_name": "投资级公司债ETF",
+   "source": "global_market_collector",
+   "source_symbol": "LQD",
+   "asset_class": "bond_etf",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘价",
+   "validation": {
+    "range": [
+     40,
+     250
+    ],
+    "max_week_pct_move": 12
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   },
+   "notes": "价格指标;收益率/利差结论须引用FRED的UST_*/OAS系列,不得以ETF价格变化直接表述收益率变化"
+  },
+  {
+   "metric_id": "DXY",
+   "display_name": "美元指数",
+   "source": "global_market_collector",
+   "source_symbol": "DX-Y.NYB",
+   "asset_class": "fx_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "fx",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "ICE美元指数期货结算近似",
+   "validation": {
+    "range": [
+     70,
+     130
+    ],
+    "max_week_pct_move": 8
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "EURUSD",
+   "display_name": "欧元兑美元",
+   "source": "global_market_collector",
+   "source_symbol": "EURUSD=X",
+   "asset_class": "fx_rate",
+   "frequency": "daily",
+   "unit": "usd_per_eur",
+   "calendar": "fx",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "level",
+   "calc": "即期汇率(上涨=欧元升值/美元贬值)",
+   "validation": {
+    "range": [
+     0.7,
+     1.7
+    ],
+    "max_week_pct_move": 8
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "GBPUSD",
+   "display_name": "英镑兑美元",
+   "source": "global_market_collector",
+   "source_symbol": "GBPUSD=X",
+   "asset_class": "fx_rate",
+   "frequency": "daily",
+   "unit": "usd_per_gbp",
+   "calendar": "fx",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "level",
+   "calc": "即期汇率",
+   "validation": {
+    "range": [
+     1.0,
+     2.2
+    ],
+    "max_week_pct_move": 8
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "USDJPY",
+   "display_name": "美元兑日元",
+   "source": "global_market_collector",
+   "source_symbol": "JPY=X",
+   "asset_class": "fx_rate",
+   "frequency": "daily",
+   "unit": "jpy_per_usd",
+   "calendar": "fx",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "level",
+   "calc": "即期汇率(上涨=美元升值;与EURUSD方向语义相反,表述须注意)",
+   "validation": {
+    "range": [
+     60,
+     250
+    ],
+    "max_week_pct_move": 10
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "USDCNY",
+   "display_name": "美元兑人民币",
+   "source": "global_market_collector",
+   "source_symbol": "CNY=X",
+   "asset_class": "fx_rate",
+   "frequency": "daily",
+   "unit": "cny_per_usd",
+   "calendar": "fx",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "level",
+   "calc": "即期汇率(上涨=人民币贬值)",
+   "validation": {
+    "range": [
+     5.5,
+     9.0
+    ],
+    "max_week_pct_move": 5
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "GOLD_F",
+   "display_name": "COMEX黄金期货(主力连续)",
+   "source": "global_market_collector",
+   "source_symbol": "GC=F",
+   "asset_class": "commodity_futures",
+   "frequency": "daily",
+   "unit": "usd_per_oz",
+   "calendar": "commodity",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "futures_front_continuous",
+    "adjustment": "none(主力连续,含展期跳空可能)"
+   },
+   "value_type": "level",
+   "calc": "主力合约连续收盘(期货价格,非现货金价;伦敦金现为另一口径)",
+   "validation": {
+    "range": [
+     500,
+     8000
+    ],
+    "max_week_pct_move": 15
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "SILVER_F",
+   "display_name": "COMEX白银期货(主力连续)",
+   "source": "global_market_collector",
+   "source_symbol": "SI=F",
+   "asset_class": "commodity_futures",
+   "frequency": "daily",
+   "unit": "usd_per_oz",
+   "calendar": "commodity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "futures_front_continuous",
+    "adjustment": "none(主力连续,含展期跳空可能)"
+   },
+   "value_type": "level",
+   "calc": "主力合约连续收盘(期货非现货)",
+   "validation": {
+    "range": [
+     5,
+     200
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "WTI_F",
+   "display_name": "NYMEX WTI原油期货(主力连续)",
+   "source": "global_market_collector",
+   "source_symbol": "CL=F",
+   "asset_class": "commodity_futures",
+   "frequency": "daily",
+   "unit": "usd_per_barrel",
+   "calendar": "commodity",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "futures_front_continuous",
+    "adjustment": "none(主力连续,含展期跳空可能)"
+   },
+   "value_type": "level",
+   "calc": "主力合约连续收盘(期货非现货;与FRED WTISPLC月度现货为两个指标)",
+   "validation": {
+    "range": [
+     10,
+     300
+    ],
+    "max_week_pct_move": 25
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "BRENT_F",
+   "display_name": "ICE布伦特原油期货(主力连续)",
+   "source": "global_market_collector",
+   "source_symbol": "BZ=F",
+   "asset_class": "commodity_futures",
+   "frequency": "daily",
+   "unit": "usd_per_barrel",
+   "calendar": "commodity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "futures_front_continuous",
+    "adjustment": "none(主力连续,含展期跳空可能)"
+   },
+   "value_type": "level",
+   "calc": "主力合约连续收盘",
+   "validation": {
+    "range": [
+     15,
+     300
+    ],
+    "max_week_pct_move": 25
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "GLD",
+   "display_name": "SPDR黄金ETF",
+   "source": "global_market_collector",
+   "source_symbol": "GLD",
+   "asset_class": "spot_commodity_etf",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权)",
+    "is_proxy": true,
+    "proxy_of": "黄金现货价格(经由ETF持有成本跟踪)"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘",
+   "validation": {
+    "range": [
+     80,
+     600
+    ],
+    "max_week_pct_move": 15
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "USO",
+   "display_name": "美国原油ETF",
+   "source": "global_market_collector",
+   "source_symbol": "USO",
+   "asset_class": "commodity_futures_etf",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权)",
+    "is_proxy": true,
+    "proxy_of": "WTI期货近期合约(含展期损耗,长期偏离油价)"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘",
+   "validation": {
+    "range": [
+     20,
+     300
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "EEM",
+   "display_name": "iShares新兴市场ETF",
+   "source": "global_market_collector",
+   "source_symbol": "EEM",
+   "asset_class": "country_etf_proxy",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权)",
+    "is_proxy": true,
+    "proxy_of": "MSCI新兴市场指数"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+   "validation": {
+    "range": [
+     10,
+     200
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "EZU",
+   "display_name": "iShares欧元区ETF",
+   "source": "global_market_collector",
+   "source_symbol": "EZU",
+   "asset_class": "country_etf_proxy",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权)",
+    "is_proxy": true,
+    "proxy_of": "欧元区股市指数"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+   "validation": {
+    "range": [
+     10,
+     200
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "FEZ",
+   "display_name": "SPDR欧元区ETF",
+   "source": "global_market_collector",
+   "source_symbol": "FEZ",
+   "asset_class": "country_etf_proxy",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权)",
+    "is_proxy": true,
+    "proxy_of": "欧元区STOXX50"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+   "validation": {
+    "range": [
+     10,
+     200
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "EWU",
+   "display_name": "iShares英国ETF",
+   "source": "global_market_collector",
+   "source_symbol": "EWU",
+   "asset_class": "country_etf_proxy",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权)",
+    "is_proxy": true,
+    "proxy_of": "英国股市指数"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+   "validation": {
+    "range": [
+     10,
+     200
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "EWG",
+   "display_name": "iShares德国ETF",
+   "source": "global_market_collector",
+   "source_symbol": "EWG",
+   "asset_class": "country_etf_proxy",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权)",
+    "is_proxy": true,
+    "proxy_of": "德国DAX"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+   "validation": {
+    "range": [
+     10,
+     200
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "EWJ",
+   "display_name": "iShares日本ETF",
+   "source": "global_market_collector",
+   "source_symbol": "EWJ",
+   "asset_class": "country_etf_proxy",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权)",
+    "is_proxy": true,
+    "proxy_of": "日本股市指数"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+   "validation": {
+    "range": [
+     10,
+     200
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "INDA",
+   "display_name": "iShares印度ETF",
+   "source": "global_market_collector",
+   "source_symbol": "INDA",
+   "asset_class": "country_etf_proxy",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权)",
+    "is_proxy": true,
+    "proxy_of": "印度Nifty50"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+   "validation": {
+    "range": [
+     10,
+     200
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "FXI",
+   "display_name": "iShares中国大盘ETF",
+   "source": "global_market_collector",
+   "source_symbol": "FXI",
+   "asset_class": "country_etf_proxy",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "us_equity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "etf",
+    "adjustment": "auto_adjust(分红复权)",
+    "is_proxy": true,
+    "proxy_of": "中国大盘股(成分含港股上市中资股,非A股指数)"
+   },
+   "value_type": "level",
+   "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+   "validation": {
+    "range": [
+     10,
+     200
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "BTC",
+   "display_name": "比特币(美元)",
+   "source": "global_market_collector",
+   "source_symbol": "BTC-USD",
+   "asset_class": "crypto",
+   "frequency": "daily",
+   "unit": "usd",
+   "calendar": "crypto",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "spot_crypto",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "BTC-USD现货指数(7×24,自然日观测)",
+   "validation": {
+    "range": [
+     1000,
+     1000000
+    ],
+    "max_week_pct_move": 40
+   },
+   "freshness": {
+    "max_calendar_lag_days": 2
+   }
+  },
+  {
+   "metric_id": "UST_2Y",
+   "display_name": "2年期美债收益率",
+   "source": "macro_collector",
+   "source_symbol": "DGS2",
+   "asset_class": "rates_yield",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     0,
+     15
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "UST_5Y",
+   "display_name": "5年期美债收益率",
+   "source": "macro_collector",
+   "source_symbol": "DGS5",
+   "asset_class": "rates_yield",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     0,
+     15
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "UST_10Y",
+   "display_name": "10年期美债收益率",
+   "source": "macro_collector",
+   "source_symbol": "DGS10",
+   "asset_class": "rates_yield",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     0,
+     15
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "UST_30Y",
+   "display_name": "30年期美债收益率",
+   "source": "macro_collector",
+   "source_symbol": "DGS30",
+   "asset_class": "rates_yield",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     0,
+     18
+    ],
+    "max_week_abs_move": 1.2
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "HY_OAS",
+   "display_name": "高收益债OAS利差",
+   "source": "macro_collector",
+   "source_symbol": "BAMLH0A0HYM2",
+   "asset_class": "credit_spread",
+   "frequency": "daily",
+   "unit": "percentage_point",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     1.5,
+     30
+    ],
+    "max_week_abs_move": 3.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "BB_OAS",
+   "display_name": "BB级OAS利差",
+   "source": "macro_collector",
+   "source_symbol": "BAMLH0A1HYBB",
+   "asset_class": "credit_spread",
+   "frequency": "daily",
+   "unit": "percentage_point",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     1.5,
+     30
+    ],
+    "max_week_abs_move": 3.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "B_OAS",
+   "display_name": "B级OAS利差",
+   "source": "macro_collector",
+   "source_symbol": "BAMLH0A2HYB",
+   "asset_class": "credit_spread",
+   "frequency": "daily",
+   "unit": "percentage_point",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     2,
+     35
+    ],
+    "max_week_abs_move": 4.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "CCC_OAS",
+   "display_name": "CCC级OAS利差",
+   "source": "macro_collector",
+   "source_symbol": "BAMLH0A3HYC",
+   "asset_class": "credit_spread",
+   "frequency": "daily",
+   "unit": "percentage_point",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     3,
+     45
+    ],
+    "max_week_abs_move": 6.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "IG_OAS",
+   "display_name": "投资级OAS利差",
+   "source": "macro_collector",
+   "source_symbol": "BAMLC0A0CM",
+   "asset_class": "credit_spread",
+   "frequency": "daily",
+   "unit": "percentage_point",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     0.8,
+     12
+    ],
+    "max_week_abs_move": 2.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "TIPS_5Y",
+   "display_name": "5年期TIPS实际收益率",
+   "source": "macro_collector",
+   "source_symbol": "DFII5",
+   "asset_class": "real_rate",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     -2,
+     6
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "TIPS_10Y",
+   "display_name": "10年期TIPS实际收益率",
+   "source": "macro_collector",
+   "source_symbol": "DFII10",
+   "asset_class": "real_rate",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     -2,
+     6
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "BEI_5Y",
+   "display_name": "5年期盈亏平衡通胀",
+   "source": "macro_collector",
+   "source_symbol": "T5YIE",
+   "asset_class": "inflation_expectation",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     0,
+     6
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "BEI_10Y",
+   "display_name": "10年期盈亏平衡通胀",
+   "source": "macro_collector",
+   "source_symbol": "T10YIE",
+   "asset_class": "inflation_expectation",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     0,
+     6
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "CURVE_2S10S",
+   "display_name": "2s10s期限利差",
+   "source": "macro_collector",
+   "source_symbol": "T10Y2Y",
+   "asset_class": "curve_slope",
+   "frequency": "daily",
+   "unit": "percentage_point",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+   "validation": {
+    "range": [
+     -2,
+     5
+    ],
+    "max_week_abs_move": 0.8
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "FED_FUNDS",
+   "display_name": "有效联邦基金利率(月均)",
+   "source": "macro_collector",
+   "source_symbol": "FEDFUNDS",
+   "asset_class": "policy_rate",
+   "frequency": "monthly",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "monthly_avg_rate",
+   "calc": "当月有效联邦基金利率月均值(NYFed日频DFF的月均;与DFF某日时点值口径不同)",
+   "validation": {
+    "range": [
+     0,
+     15
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "CPI",
+   "display_name": "CPI物价指数(SA)",
+   "source": "macro_collector",
+   "source_symbol": "CPIAUCSL",
+   "asset_class": "macro_index",
+   "frequency": "monthly",
+   "unit": "index_point_1982_84",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "CPI指数水平(季节调整);MoM%/YoY%由事实引擎按系列计算并附公式",
+   "validation": {
+    "range": [
+     250,
+     420
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "CORE_CPI",
+   "display_name": "核心CPI(SA,剔除食品能源)",
+   "source": "macro_collector",
+   "source_symbol": "CPILFESL",
+   "asset_class": "macro_index",
+   "frequency": "monthly",
+   "unit": "index_point_1982_84",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "FRED系列最新月度观测",
+   "validation": {
+    "range": [
+     250,
+     400
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "CORE_PCE",
+   "display_name": "核心PCE(SA)",
+   "source": "macro_collector",
+   "source_symbol": "PCEPILFE",
+   "asset_class": "macro_index",
+   "frequency": "monthly",
+   "unit": "index_point_2012",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "FRED系列最新月度观测",
+   "validation": {
+    "range": [
+     90,
+     150
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "UNEMPLOYMENT",
+   "display_name": "失业率(U-3)",
+   "source": "macro_collector",
+   "source_symbol": "UNRATE",
+   "asset_class": "macro_rate",
+   "frequency": "monthly",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "月度失业率(家庭调查);变化以百分点表述,禁止表述为百分比变化",
+   "validation": {
+    "range": [
+     2,
+     15
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "NFP",
+   "display_name": "非农就业人数(存量)",
+   "source": "macro_collector",
+   "source_symbol": "PAYEMS",
+   "asset_class": "macro_count",
+   "frequency": "monthly",
+   "unit": "persons_thousands",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "非农就业总人数(机构调查,存量水平,千人);媒体'新增非农'=本指标月度差(NFP_MOM_K),两者不可混用",
+   "validation": {
+    "range": [
+     120000,
+     170000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "NFP_MOM_K",
+   "display_name": "新增非农就业(月度差,千人)",
+   "source": "macro_collector",
+   "source_symbol": "PAYEMS(derived)",
+   "asset_class": "macro_count_derived",
+   "frequency": "monthly",
+   "unit": "persons_thousands",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "NFP本月−上月(千人);由事实引擎计算",
+   "validation": {
+    "range": [
+     -2500,
+     1500
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数",
+   "notes": "媒体口径的'非农新增就业'"
+  },
+  {
+   "metric_id": "AHE",
+   "display_name": "平均时薪",
+   "source": "macro_collector",
+   "source_symbol": "CES0500000003",
+   "asset_class": "macro_index",
+   "frequency": "monthly",
+   "unit": "usd_per_hour",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "私营非农平均时薪(名义,美元/小时)",
+   "validation": {
+    "range": [
+     20,
+     60
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "WTI_SPOT_M",
+   "display_name": "WTI原油现货价(月均)",
+   "source": "macro_collector",
+   "source_symbol": "WTISPLC",
+   "asset_class": "macro_price",
+   "frequency": "monthly",
+   "unit": "usd_per_barrel",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "EIA WTI现货月度均价(与WTI_F期货日频为两个不同指标,对账须注明口径差)",
+   "validation": {
+    "range": [
+     10,
+     200
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "UMCSENT",
+   "display_name": "密歇根消费者信心指数",
+   "source": "macro_collector",
+   "source_symbol": "UMCSENT",
+   "asset_class": "sentiment",
+   "frequency": "monthly",
+   "unit": "index_point_1966",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "月度信心指数(1966Q1=100)",
+   "validation": {
+    "range": [
+     40,
+     120
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "RSAFS",
+   "display_name": "零售销售(SA)",
+   "source": "macro_collector",
+   "source_symbol": "RSAFS",
+   "asset_class": "macro_index",
+   "frequency": "monthly",
+   "unit": "million_usd",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "Advance零售销售额(SA,百万美元)",
+   "validation": {
+    "range": [
+     400000,
+     850000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "INDPRO",
+   "display_name": "工业生产指数(SA)",
+   "source": "macro_collector",
+   "source_symbol": "INDPRO",
+   "asset_class": "macro_index",
+   "frequency": "monthly",
+   "unit": "index_point_2017",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(如系列本身为SA)"
+   },
+   "value_type": "level",
+   "calc": "工业生产指数(2017=100)",
+   "validation": {
+    "range": [
+     80,
+     120
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45,
+    "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "ICSA",
+   "display_name": "初请失业金人数",
+   "source": "macro_collector",
+   "source_symbol": "ICSA",
+   "asset_class": "macro_count",
+   "frequency": "weekly",
+   "unit": "persons",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none(SA)"
+   },
+   "value_type": "level",
+   "calc": "当周初请(周四发布,SA,人)",
+   "validation": {
+    "range": [
+     150000,
+     900000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 16,
+    "note": "周频:滞后1周属正常"
+   },
+   "release_semantics": "每周四发布上周数据"
+  },
+  {
+   "metric_id": "DFF",
+   "display_name": "有效联邦基金利率(日频)",
+   "source": "rate_expectations",
+   "source_symbol": "DFF",
+   "asset_class": "policy_rate",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "daily_effective_rate",
+   "calc": "NYFed每日有效联邦基金利率(交易加权实际成交利率)",
+   "validation": {
+    "range": [
+     0,
+     15
+    ],
+    "max_week_abs_move": 0.75
+   },
+   "freshness": {
+    "max_calendar_lag_days": 10
+   },
+   "release_semantics": "次日发布前一日DFF"
+  },
+  {
+   "metric_id": "DFEDTARU",
+   "display_name": "联邦基金目标区间上限",
+   "source": "rate_expectations",
+   "source_symbol": "DFEDTARU",
+   "asset_class": "policy_rate",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "value_type": "target_band",
+   "calc": "FOMC目标区间上限",
+   "validation": {
+    "range": [
+     0,
+     15
+    ],
+    "max_week_abs_move": 0.75
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45
+   },
+   "notes": "与DFEDTARL配合:区间=[下限,上限]"
+  },
+  {
+   "metric_id": "DFEDTARL",
+   "display_name": "联邦基金目标区间下限",
+   "source": "rate_expectations",
+   "source_symbol": "DFEDTARL",
+   "asset_class": "policy_rate",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "value_type": "target_band",
+   "calc": "FOMC目标区间下限",
+   "validation": {
+    "range": [
+     0,
+     15
+    ],
+    "max_week_abs_move": 0.75
+   },
+   "freshness": {
+    "max_calendar_lag_days": 45
+   }
+  },
+  {
+   "metric_id": "ZQ_F1_PRICE",
+   "display_name": "30天联邦基金期货主力价格",
+   "source": "rate_expectations",
+   "source_symbol": "ZQ=F",
+   "asset_class": "fed_futures",
+   "frequency": "daily",
+   "unit": "points",
+   "calendar": "commodity",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "futures_front_continuous",
+    "adjustment": "none(主力连续,含展期跳空可能)"
+   },
+   "value_type": "level",
+   "calc": "CME 30日联邦基金期货价格(100−价格=该月日均利率隐含)",
+   "validation": {
+    "range": [
+     88,
+     100
+    ],
+    "max_week_abs_move": 2
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   },
+   "notes": "合约语义=对应日历月联邦基金利率的算术平均;隐含值(100−价)与当日DFF直接相减无概率意义,降息次数须另行按FOMC日期概率计算"
+  },
+  {
+   "metric_id": "SHCOMP",
+   "display_name": "上证指数",
+   "source": "china_market_collector",
+   "source_symbol": "000001.SH",
+   "asset_class": "equity_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "cn",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "指数收盘点位",
+   "validation": {
+    "range": [
+     1500,
+     8000
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "SZCI",
+   "display_name": "深证成指",
+   "source": "china_market_collector",
+   "source_symbol": "399001.SZ",
+   "asset_class": "equity_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "cn",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "指数收盘点位",
+   "validation": {
+    "range": [
+     3000,
+     30000
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   },
+   "notes": "成分指数(约500只),非深市全市场;深市全市场口径用成交额须另采399106"
+  },
+  {
+   "metric_id": "CHINEXT",
+   "display_name": "创业板指",
+   "source": "china_market_collector",
+   "source_symbol": "399006.SZ",
+   "asset_class": "equity_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "cn",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "指数收盘点位",
+   "validation": {
+    "range": [
+     800,
+     6000
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "HSI",
+   "display_name": "恒生指数",
+   "source": "china_market_collector",
+   "source_symbol": "hkHSI",
+   "asset_class": "equity_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "hk",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "恒指收盘(腾讯日K主通道/yfinance备用)",
+   "validation": {
+    "range": [
+     8000,
+     50000
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "HSCEI",
+   "display_name": "恒生中国企业指数",
+   "source": "china_market_collector",
+   "source_symbol": "hkHSCEI",
+   "asset_class": "equity_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "hk",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "国企指数收盘",
+   "validation": {
+    "range": [
+     2500,
+     20000
+    ],
+    "max_week_pct_move": 20
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "HSAHP",
+   "display_name": "恒生AH溢价指数",
+   "source": "china_market_collector",
+   "source_symbol": "HSAHP",
+   "asset_class": "spread_index",
+   "frequency": "daily",
+   "unit": "index_point",
+   "calendar": "hk",
+   "criticality": "core",
+   "status": "active",
+   "identity": {
+    "instrument": "index",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "AH溢价指数(>100=A股相对H股溢价)",
+   "validation": {
+    "range": [
+     80,
+     220
+    ],
+    "max_week_pct_move": 10
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "SB_FLOW",
+   "display_name": "港股通南向净流入",
+   "source": "china_market_collector",
+   "source_symbol": "southbound",
+   "asset_class": "flow",
+   "frequency": "daily",
+   "unit": "hkd_100m",
+   "calendar": "hk",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "daily_net_flow",
+   "calc": "当日南向净买入(亿港元;单日流量非存量)",
+   "validation": {
+    "range": [
+     -800,
+     800
+    ],
+    "max_week_abs_move": 1500
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  },
+  {
+   "metric_id": "MARGIN_BAL",
+   "display_name": "两融余额(沪深)",
+   "source": "china_market_collector",
+   "source_symbol": "margin",
+   "asset_class": "leverage",
+   "frequency": "daily",
+   "unit": "cny_100m",
+   "calendar": "cn",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "outstanding_balance",
+   "calc": "融资融券余额存量(亿元)",
+   "validation": {
+    "range": [
+     8000,
+     45000
+    ],
+    "max_week_abs_move": 3000
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   }
+  },
+  {
+   "metric_id": "SH_PE",
+   "display_name": "上证市盈率",
+   "source": "china_market_collector",
+   "source_symbol": "valuation",
+   "asset_class": "valuation",
+   "frequency": "daily",
+   "unit": "ratio",
+   "calendar": "cn",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "level",
+   "calc": "上证指数整体PE(TTM)",
+   "validation": {
+    "range": [
+     8,
+     40
+    ],
+    "max_week_abs_move": 5
+   },
+   "freshness": {
+    "max_calendar_lag_days": 10
+   }
+  },
+  {
+   "metric_id": "SH_AMOUNT",
+   "display_name": "沪市成交额(全市场)",
+   "source": "china_market_collector",
+   "source_symbol": "000001.SH.amount",
+   "asset_class": "volume_amount",
+   "frequency": "daily",
+   "unit": "cny_100m",
+   "calendar": "cn",
+   "criticality": "core",
+   "status": "active",
+   "value_type": "daily_turnover",
+   "calc": "上交所全部成交金额(亿元;Tushare 000001.SH amount,千元→亿)",
+   "validation": {
+    "range": [
+     1500,
+     25000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   },
+   "notes": "成交额(金额)≠成交量(股数);单位亿元"
+  },
+  {
+   "metric_id": "SZ_COMPONENT_AMOUNT",
+   "display_name": "深证成指成分成交额",
+   "source": "china_market_collector",
+   "source_symbol": "399001.SZ.amount",
+   "asset_class": "volume_amount",
+   "frequency": "daily",
+   "unit": "cny_100m",
+   "calendar": "cn",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "daily_turnover",
+   "calc": "深证成指成分股成交金额(亿元;非深市全市场,全市场须用399106.SZ)",
+   "validation": {
+    "range": [
+     500,
+     20000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   },
+   "notes": "口径=成分股;当前旧字段名sz_amount_billion实为此口径,标签不得写'深市'"
+  },
+  {
+   "metric_id": "CN_TOTAL_TURNOVER",
+   "display_name": "沪深两市成交额(近似口径)",
+   "source": "china_market_collector",
+   "source_symbol": "000001.SH+399001.SZ",
+   "asset_class": "volume_amount",
+   "frequency": "daily",
+   "unit": "cny_100m",
+   "calendar": "cn",
+   "criticality": "core",
+   "status": "active",
+   "value_type": "daily_turnover",
+   "calc": "沪市全市场+深证成指成分(亿元)——注意:现口径非严格沪深全市场(深市全市场需399106.SZ),标注为近似",
+   "validation": {
+    "range": [
+     3000,
+     45000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   },
+   "identity": {
+    "instrument": "aggregate",
+    "adjustment": "none",
+    "is_proxy": true,
+    "proxy_of": "沪深两市全市场成交额(深市部分以成分近似)"
+   },
+   "notes": "待Layer 1补采399106.SZ后升级为全市场口径并解除proxy标注;akshare降级通道仅沪市,须另行标注scope收窄"
+  },
+  {
+   "metric_id": "REAL_10Y",
+   "display_name": "10年期实际利率(近似)",
+   "source": "fact_engine(derived)",
+   "source_symbol": "UST_10Y−BEI_10Y",
+   "asset_class": "real_rate",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "core",
+   "status": "active",
+   "value_type": "derived_rate",
+   "identity": {
+    "instrument": "derived",
+    "adjustment": "none"
+   },
+   "calc": "UST_10Y − BEI_10Y(10Y−10Y期限匹配;与TIPS_10Y市场价差口径略有差异,标'近似')",
+   "validation": {
+    "range": [
+     -2,
+     8
+    ],
+    "max_week_abs_move": 0.8
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   }
+  },
+  {
+   "metric_id": "REAL_5Y",
+   "display_name": "5年期实际利率(近似)",
+   "source": "fact_engine(derived)",
+   "source_symbol": "UST_5Y−BEI_5Y",
+   "asset_class": "real_rate",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "derived_rate",
+   "identity": {
+    "instrument": "derived",
+    "adjustment": "none"
+   },
+   "calc": "UST_5Y − BEI_5Y(5Y−5Y期限匹配)",
+   "validation": {
+    "range": [
+     -2,
+     8
+    ],
+    "max_week_abs_move": 0.8
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   }
+  },
+  {
+   "metric_id": "REAL_SHORT",
+   "display_name": "短端实际利率(旧口径,已弃用)",
+   "source": "macro_collector(derived)",
+   "source_symbol": "UST_2Y−BEI_5Y",
+   "asset_class": "real_rate",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "deprecated",
+   "value_type": "derived_rate",
+   "calc": "UST_2Y − BEI_5Y(期限错配2Y/5Y!第七轮判定为口径错误,改用REAL_5Y/REAL_10Y;仅为向后兼容保留)",
+   "validation": {
+    "range": [
+     -2,
+     8
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "notes": "replaced_by: REAL_5Y",
+   "identity": {
+    "instrument": "derived",
+    "adjustment": "none",
+    "is_proxy": true,
+    "proxy_of": "2Y实际利率(无BEI_2Y采集的近似)"
+   }
+  },
+  {
+   "metric_id": "HY_IG_DIFF",
+   "display_name": "高收益−投资级利差差",
+   "source": "fact_engine(derived)",
+   "source_symbol": "HY_OAS−IG_OAS",
+   "asset_class": "credit_spread",
+   "frequency": "daily",
+   "unit": "percentage_point",
+   "calendar": "us_rates",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "derived_spread",
+   "calc": "HY_OAS − IG_OAS(评级档间利差差,百分点)",
+   "validation": {
+    "range": [
+     0,
+     25
+    ],
+    "max_week_abs_move": 3
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "identity": {
+    "instrument": "derived",
+    "adjustment": "none"
+   }
+  },
+  {
+   "metric_id": "ZQ_IMPLIED_AVG",
+   "display_name": "联邦基金期货隐含当月日均利率",
+   "source": "fact_engine(derived)",
+   "source_symbol": "100−ZQ价格",
+   "asset_class": "fed_futures",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "commodity",
+   "criticality": "core",
+   "status": "active",
+   "value_type": "contract_implied_monthly_average",
+   "identity": {
+    "instrument": "derived",
+    "adjustment": "none"
+   },
+   "calc": "100 − 合约价格 = 合约对应日历月的日均联邦基金利率隐含值;**不得**以(隐含−当日DFF)/0.25换算'降息次数'(月均vs时点口径错配,且无FOMC日期概率语义)",
+   "validation": {
+    "range": [
+     0,
+     15
+    ],
+    "max_week_abs_move": 1
+   },
+   "freshness": {
+    "max_calendar_lag_days": 5
+   }
+  }
+ ]
+}

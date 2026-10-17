@@ -684,64 +684,11 @@ def _days_between(d1, d2):
 
 # ════════════════════════════════════════════════════════════════════
 # 市场交易日历与观察窗覆盖(第五轮P0-2)
-# ════════════════════════════════════════════════════════════════════
-# 安全原则: 只把"确定不交易"的日子排除出预期观察日 —
-# 宁可多预期一天(判inconclusive),绝不漏掉真实交易日(防止假miss)。
-# 美国(含全球期货GOLD/WTI与FRED宏观序列)按NYSE规则计算节假日;
-# 中国仅2026年按长假核心块保守列入,其余年份/港股保守只除周末 —
-# 无法可靠确定市场日历时,不得假装覆盖完整(覆盖判定从严)。
-import calendar as _calmod
-
-_CN_HOLIDAY_BLOCKS = {
-    2026: {'01-01', '01-02',                # 元旦
-           '02-16', '02-17', '02-18', '02-19', '02-20',  # 春节核心周(除夕2-16,初一2-17)
-           '04-06',                          # 清明(4-5为周日,顺延观测)
-           '05-01', '05-04', '05-05',        # 劳动节
-           '06-19',                          # 端午
-           '09-25',                          # 中秋
-           '10-01', '10-02', '10-05', '10-06', '10-07'},  # 国庆(10-03/04为周末)
-}
-_US_HOLIDAY_CACHE = {}
-
-
-def _nth_weekday(y, m, weekday, n):
-    """当月第n个星期weekday(0=周一…6=周日)"""
-    first = date(y, m, 1)
-    return first + timedelta(days=(weekday - first.weekday()) % 7 + 7 * (n - 1))
-
-
-def _last_weekday(y, m, weekday):
-    last = date(y, m, _calmod.monthrange(y, m)[1])
-    return last - timedelta(days=(last.weekday() - weekday) % 7)
-
-
-def _easter(y):
-    """复活节周日(匿名格雷高利算法,只用于推耶稣受难日=复活节-2天)"""
-    a = y % 19
-    b, c = divmod(y, 100)
-    d, e = divmod(b, 4)
-    f = (b + 8) // 25
-    g = (b - f + 1) // 3
-    h = (19 * a + b - d - g + 15) % 30
-    i, k = divmod(c, 4)
-    l = (32 + 2 * e + 2 * i - h - k) % 7
-    m = (a + 11 * h + 22 * l) // 451
-    return date(y, (h + l - 7 * m + 114) // 31, ((h + l - 7 * m + 114) % 31) + 1)
-
-
-def _us_holidays(y):
-    if y in _US_HOLIDAY_CACHE:
-        return _US_HOLIDAY_CACHE[y]
-    raw = {date(y, 1, 1), _nth_weekday(y, 1, 0, 3), _nth_weekday(y, 2, 0, 3),
-           _easter(y) - timedelta(days=2), _last_weekday(y, 5, 0), date(y, 6, 19),
-           date(y, 7, 4), _nth_weekday(y, 9, 0, 1), _nth_weekday(y, 11, 3, 4),
-           date(y, 12, 25)}
-    out = set()
-    for d in raw:                      # 周六→周五休市,周日→周一休市(NYSE惯例)
-        out.add(d - timedelta(days=1) if d.weekday() == 5
-                else d + timedelta(days=1) if d.weekday() == 6 else d)
-    _US_HOLIDAY_CACHE[y] = out
-    return out
+# 2026-10-17第七轮重构: 日历实现抽取至 trading_calendar.py(全系统唯一日历权威,
+# 金融事实引擎Layer 2组件); 本模块转发以保持既有接口与全部测试兼容。
+from trading_calendar import (  # noqa: F401  (转发导出)
+    is_trading_day, expected_trading_days, months_before,
+)
 
 
 def market_of_metric(metric):
@@ -753,47 +700,6 @@ def market_of_metric(metric):
     if 'BTC' in m:
         return 'crypto'
     return 'us'
-
-
-def is_trading_day(d, market):
-    """d为date或'YYYY-MM-DD'。crypto全天候;其余周末一律非交易日;
-    节假日按市场日历;无法确定的(日,市场)组合保守视为交易日(宁可inconclusive不假miss)。"""
-    try:
-        dt = d if isinstance(d, date) else date.fromisoformat(str(d)[:10])
-    except ValueError:
-        return True
-    if market == 'crypto':
-        return True
-    if dt.weekday() >= 5:
-        return False
-    md = dt.strftime('%m-%d')
-    if market in ('us', 'futures'):
-        return dt not in _us_holidays(dt.year)
-    if market == 'cn':
-        return md not in _CN_HOLIDAY_BLOCKS.get(dt.year, set())
-    if market == 'hk':
-        return md not in ('01-01', '12-25')
-    return True
-
-
-def expected_trading_days(start, end, market, upto=None):
-    """观察窗[start,end]内该市场的预期交易日清单(upto: 只统计到该日,渲染用)。
-    返回None表示窗口本身无法确定 → 覆盖不可判(不得假装完整)。"""
-    try:
-        s = date.fromisoformat(str(start)[:10])
-        e = date.fromisoformat(str(end)[:10])
-        if upto:
-            e = min(e, date.fromisoformat(str(upto)[:10]))
-    except ValueError:
-        return None
-    if e < s:
-        return []
-    days, cur = [], s
-    while cur <= e:
-        if is_trading_day(cur, market):
-            days.append(cur.isoformat())
-        cur += timedelta(days=1)
-    return days
 
 
 def settlement_date(deadline, market):

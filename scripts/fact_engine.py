@@ -79,7 +79,7 @@ def compute_period_returns(dates, values, unit, calendar, as_of=None):
     out = {}
     if not dates or not values or len(dates) != len(values):
         return {"available": False, "reason": "无观测序列"}
-    ds = [str(d)[:10] for d in dates]
+    ds = [_iso(d) for d in dates]
     vs = [float(v) for v in values]
     pairs = sorted(zip(ds, vs))
     ds = [p[0] for p in pairs]
@@ -165,14 +165,19 @@ def make_fact(metric_id, value, observation_date, as_of, source_file, collector,
     if m is None:
         return None
     calendar = calendar or m['calendar']
+    # 日期归一: 紧凑YYYYMMDD(采集器新格式)→ISO, validate_fact/fromisoformat方可解析
+    od = str(observation_date)
+    if len(od) == 8 and od.isdigit():
+        od = f"{od[:4]}-{od[4:6]}-{od[6:8]}"
+    od = od[:10]
     fact = {
-        "fact_id": f"{metric_id}@{str(observation_date)[:10]}",
+        "fact_id": f"{metric_id}@{od}",
         "metric_id": metric_id,
         "display_name": m['display_name'],
         "value": value,
         "unit": m['unit'],
         "value_type": m.get('value_type', 'level'),
-        "observation_date": str(observation_date)[:10],
+        "observation_date": od,
         "as_of": as_of,
         "source": {"collector": collector, "file": source_file, "retrieved_at": retrieved_at},
         "calculation_ref": calculation_ref,

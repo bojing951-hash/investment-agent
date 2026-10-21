@@ -385,8 +385,16 @@ def normalize_rate(data, as_of, source_file="rate_economy_*.json"):
                                  "change": item.get('change'), "unit": item.get('unit')})
     curve = []
     for c in (data.get('fed_funds_futures') or []):
-        curve.append({"ticker": c.get('ticker'), "name": c.get('name'),
-                      "price": c.get('price'), "implied_avg_rate": c.get('implied_rate')})
+        # 2026-10-21修复: 真实采集行字段是label/implied_rate_pct,此前按name/implied_rate
+        # 取值恒为None,导致曲线锚点implied_rate一档从未生成、摘要表退化为ticker。
+        # 兼容旧fixture的name/implied_rate写法。
+        curve.append({"ticker": c.get('ticker'),
+                      "name": c.get('label') or c.get('name'),
+                      "price": c.get('price'),
+                      "implied_avg_rate": (c.get('implied_rate_pct')
+                                           if c.get('implied_rate_pct') is not None
+                                           else c.get('implied_rate')),
+                      "source": c.get('source')})
         if str(c.get('ticker')) == 'ZQ=F' and isinstance(c.get('price'), (int, float)):
             f = make_fact("ZQ_F1_PRICE", c['price'], _iso(data.get('date')), as_of, source_file,
                           "rate_expectations")

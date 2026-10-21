@@ -1,6 +1,7 @@
 # 遗留问题清单(交付物G) — 2026-10-17
 
 > 第七轮重构后仍开放的问题,按优先级。均不阻塞周报生产(Gate A/B已真实数据验收)。
+> 2026-10-21补充: 运维监控发现的两项已当场修复,见文末"已修复(2026-10-21)"。
 
 ## P0(下一周内)
 
@@ -35,6 +36,22 @@
    RSS偶发整体缺失时报告如实标"本周缺失",不编造。
 5. **老daily_report_generator.py**: 不在流水线的遗留脚本仍引用已下线DeepSeek,
    标记弃用未删(删除属清理项,待用户确认无本地依赖)。
+
+## 已修复(2026-10-21,第八轮运维修复)
+
+1. **ZQ期货yfinance 429(连续3日11合约全灭)**: `rate_expectations.py`三层防御 —
+   ①主力ZQ=F优先采集(Gate A核心唯一依赖它);②整轮退避重试(20s/45s,只补缺失
+   合约,逐合约1s间隔);③主力仍缺→7日内缓存曲线兜底(整条曲线同源同日,不与当日
+   部分合约混搭,各行`source=cache:日期`可追溯;无缓存则如实缺失)。
+2. **FRED单序列瞬时失败(10-20 PAYEMS/NFP)**: `_fred_observations`指数退避重试×3
+   (3s/6s),瞬时抖动不再直接变成Gate A core缺失。
+3. **Gate A FAIL静默exit 0**: `snapshot_builder.py` Gate A FAIL→退出码2(快照仍写盘,
+   只上报失败;DEGRADED属已披露降级保持0)→run_weekly关键步骤失败→launchd可见
+   非零退出,不再连续多日FAIL而无感。
+4. **fact_engine曲线字段映射(隐性bug)**: 采集行实为`label/implied_rate_pct`,
+   此前按`name/implied_rate`取值恒None→期货曲线implied_rate锚点一档从未生成、
+   摘要表退化为ticker。已修复并对旧fixture键名保持兼容。
+   回归: tests/test_p7_fixes.py 25断言(含真实数据子进程: PASS日rc=0/FAIL日rc=2)。
 
 ## 明确不做(规格§19,重申)
 

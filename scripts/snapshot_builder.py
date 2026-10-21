@@ -429,4 +429,14 @@ if __name__ == '__main__':
     args = ap.parse_args()
     snap = build_snapshot(target_ymd=args.date, data_dir=args.data_dir, out_dir=args.out_dir,
                           allow_revision=args.allow_revision, revision_reason=args.revision_reason)
-    sys.exit(0 if snap else 3)
+    if not snap:
+        sys.exit(3)
+    # 2026-10-21 P1修复: Gate A FAIL不得再静默exit 0——此前连续多日FAIL但流水线
+    # 退出码为0,launchd侧完全无感。FAIL→退出码2(快照仍写盘,只上报失败);
+    # DEGRADED是已披露降级,保持0。
+    status = (snap.get('gate_a') or {}).get('status')
+    if status == 'FAIL':
+        print(f"⚠️ Gate A FAIL(core_missing={snap['gate_a'].get('core_missing')}, "
+              f"core_fail={snap['gate_a'].get('core_fail')})——快照已保存,本步骤以退出码2上报")
+        sys.exit(2)
+    sys.exit(0)

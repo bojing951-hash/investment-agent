@@ -22,9 +22,11 @@ sys.path.insert(0, ROOT_DIR)
 
 from env_config import FRED_API_KEY
 
-def _load_cached_futures(max_age_days=7, data_dir=None):
+def _load_cached_futures(max_age_days=7, row_max_age_days=14, data_dir=None):
     """429限流兜底: 从最近的rate_economy_*.json读取上次成功的期货曲线。
-    只接受7日内带有效价格的行;返回(rows, 原始日期)或(None, None)。"""
+    文件须在max_age_days内;曲线行最旧真实观测须在row_max_age_days内——
+    防止冻结晶体(如10-16曲线)借每日转存无限续命: 14天窗内事实层按真实观测日
+    降级DEGRADED披露,超窗拒绝兜底→Gate A如实FAIL。返回(rows, 原始日期)或(None, None)。"""
     daily_dir = data_dir or os.path.join(ROOT_DIR, 'data', 'daily')
     candidates = sorted(glob.glob(os.path.join(daily_dir, 'rate_economy_*.json')), reverse=True)
     for path in candidates[:14]:
@@ -42,6 +44,17 @@ def _load_cached_futures(max_age_days=7, data_dir=None):
                 continue
             if age < 0 or age > max_age_days:
                 continue
+            # 行级真实观测日背书: 最新行(主力ZQ=F,流动性最好)超窗→曲线冻结过久,拒绝。
+            # 用max不用min: 远月合约流动性差,行日期天然滞后,最旧行会误杀健康曲线。
+            row_dates = [str(r.get('date'))[:10] for r in rows if r.get('date')]
+            if row_dates:
+                try:
+                    newest_row = max(row_dates)
+                    row_age = (datetime.now() - datetime.strptime(newest_row, '%Y-%m-%d')).days
+                except ValueError:
+                    row_age = None
+                if row_age is not None and (row_age < 0 or row_age > row_max_age_days):
+                    continue
             return rows, gen_date
         except Exception:
             continue

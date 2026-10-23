@@ -69,11 +69,13 @@ def _run_fetch(fake_ticker_factory, cache=None):
         return re_mod.fetch_fed_funds_futures()
 
 
+# 行日期相对now生成(2026-10-23起行龄检查上线,硬编码日期会随时间腐化用例)
+_ROW_D = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
 CACHE_ROWS = [
     {'ticker': 'ZQ=F', 'label': '近月(活跃月)', 'price': 95.6,
-     'implied_rate_pct': 4.4, 'date': '2026-10-20', 'source': 'yfinance'},
+     'implied_rate_pct': 4.4, 'date': _ROW_D, 'source': 'yfinance'},
     {'ticker': 'ZQZ26.CBT', 'label': '2026年12月', 'price': 95.7,
-     'implied_rate_pct': 4.3, 'date': '2026-10-20', 'source': 'yfinance'},
+     'implied_rate_pct': 4.3, 'date': _ROW_D, 'source': 'yfinance'},
 ]
 
 print("=" * 60)
@@ -176,6 +178,22 @@ rows3, src3 = re_mod._load_cached_futures(data_dir=td2)
 check("全部过期→(None,None)不兜底", rows3 is None and src3 is None)
 shutil.rmtree(td); shutil.rmtree(td2)
 
+# 行龄背书(2026-10-23): 文件新但曲线行冻结过久→拒绝;窗内→放行
+td3 = tempfile.mkdtemp()
+_rows_fresh_file_old_rows = [dict(CACHE_ROWS[0], date=(datetime.now() - timedelta(days=20)).strftime('%Y-%m-%d'))]
+with open(os.path.join(td3, f'rate_economy_{fresh}.json'), 'w') as f:
+    json.dump({'date': fresh, 'fed_funds_futures': _rows_fresh_file_old_rows}, f)
+rows4, src4 = re_mod._load_cached_futures(data_dir=td3)
+check("文件新但行龄20天(>14)→拒绝冻结晶体", rows4 is None and src4 is None,
+      f"got=({rows4},{src4})")
+
+_rows_ok = [dict(CACHE_ROWS[0], date=(datetime.now() - timedelta(days=10)).strftime('%Y-%m-%d'))]
+with open(os.path.join(td3, f'rate_economy_{fresh}.json'), 'w') as f:
+    json.dump({'date': fresh, 'fed_funds_futures': _rows_ok}, f)
+rows5, src5 = re_mod._load_cached_futures(data_dir=td3)
+check("行龄10天(≤14窗内)→放行(事实层按真实观测日降级披露)", rows5 == _rows_ok and src5 == fresh)
+shutil.rmtree(td3)
+
 # ══ [4] fact_engine曲线字段映射 ════════════════════════════════
 print("\n[4] 曲线label/implied_rate_pct映射(修复恒None)")
 
@@ -197,6 +215,25 @@ _, recon_old = fe.normalize_rate(data_old, '2026-10-21T00:00:00')
 check("旧fixture键名兼容(name/implied_rate)",
       recon_old['fed_futures_curve'][0]['name'] == 'FF期货主力'
       and recon_old['fed_futures_curve'][0]['implied_avg_rate'] == 4.2)
+
+# 诚实性(2026-10-23): 缓存行观测日不得被文件生成日冒充
+data_cache = {'date': '20261023', 'fed_funds_futures': [
+    {'ticker': 'ZQ=F', 'label': '近月(活跃月)', 'price': 96.115,
+     'implied_rate_pct': 3.885, 'date': '2026-10-15', 'source': 'cache:20261022'}]}
+facts_c, _ = fe.normalize_rate(data_cache, '2026-10-23T07:20:00')
+f1 = next((f for f in facts_c if f.get('metric_id') == 'ZQ_F1_PRICE'), None)
+check("缓存行事实观测日=行真实日期(非文件日)",
+      f1 and f1.get('observation_date') == '2026-10-15',
+      f"obs={f1 and f1.get('observation_date')}")
+lag_ok = f1 and any('滞后8天' in (i.get('message') or '') for i in (f1.get('issues') or []))
+check("滞后8天(>日频7天窗)如实披露issue", bool(lag_ok),
+      f"issues={[i.get('message') for i in (f1 or {}).get('issues', [])]}")
+
+data_nodate = {'date': '20261023', 'fed_funds_futures': [
+    {'ticker': 'ZQ=F', 'label': '近月(活跃月)', 'price': 96.0, 'implied_rate_pct': 4.0}]}
+facts_n, _ = fe.normalize_rate(data_nodate, '2026-10-23T07:20:00')
+f1n = next((f for f in facts_n if f.get('metric_id') == 'ZQ_F1_PRICE'), None)
+check("行无日期→回退文件日", f1n and f1n.get('observation_date') == '2026-10-23')
 
 # ══ [5] Gate A退出码(真实数据,只读live data,写临时目录) ════════
 print("\n[5] Gate A FAIL→退出码2(子进程,真实数据)")

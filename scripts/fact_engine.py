@@ -396,9 +396,13 @@ def normalize_rate(data, as_of, source_file="rate_economy_*.json"):
                                            else c.get('implied_rate')),
                       "source": c.get('source')})
         if str(c.get('ticker')) == 'ZQ=F' and isinstance(c.get('price'), (int, float)):
-            f = make_fact("ZQ_F1_PRICE", c['price'], _iso(data.get('date')), as_of, source_file,
+            # 2026-10-23诚实性修复: 缓存兜底行的date=真实旧观测日(如2026-10-16),
+            # 不得用文件生成日冒充当日观测——否则旧价被当成现价,还绕过新鲜度校验。
+            # 观测日滞后由validate_fact按日频7天窗如实降级DEGRADED并披露。
+            zq_obs = str(c.get('date') or data.get('date'))
+            f = make_fact("ZQ_F1_PRICE", c['price'], _iso(zq_obs), as_of, source_file,
                           "rate_expectations")
-            f['issues'] = validate_fact(f, {"close": c['price'], "date": data.get('date')},
+            f['issues'] = validate_fact(f, {"close": c['price'], "date": zq_obs},
                                         metric("ZQ_F1_PRICE"), as_of_date=as_of_date)
             f['quality_status'] = grade_issues(f['issues'])
             facts.append(f)

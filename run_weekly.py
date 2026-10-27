@@ -118,6 +118,11 @@ def main():
     _critical_collectors = ["global_market_collector.py", "china_market_collector.py",
                             "macro_collector.py", "rate_expectations.py"]
     _formal_research_deps = ["snapshot_builder.py"] + _critical_collectors
+    # FIX2-03(IA-DEF-003): 评分卡是**关键步骤**且其产物(当日评分)被装配进正式
+    # 数据包——数据装配与校验不仅依赖快照+关键采集,还依赖评分卡成功;评分卡
+    # 失败 → 装配/校验SKIPPED(不得用旧评分冒充当日成功批次,装配器对旧评分
+    # 只作"历史参考"标注且报告入口按pack meta拒绝)。
+    _pack_deps = ["macro_scorecard.py"] + list(_formal_research_deps)
     steps = [
         ("1/11 全球市场数据采集", "global_market_collector.py", True),
         ("2/11 A股港股数据采集", "china_market_collector.py", True),
@@ -136,9 +141,9 @@ def main():
         ("8/11 跨资产相关性(消费快照)", "correlation_calculator.py", False,
          list(_formal_research_deps)),
         ("9/11 数据汇总打包", "data_assembler.py", True,
-         list(_formal_research_deps)),
+         list(_pack_deps)),
         ("10/11 数据校验与锚点生成", "data_validator.py", True,
-         ["data_assembler.py"] + list(_formal_research_deps)),
+         ["data_assembler.py"] + list(_pack_deps)),
         # 每日预测观察(第四轮P0-6 + 第五轮P1-2): 锚点生成后用Python记录观察期内
         # 预测的当期数据,幂等不调GLM;数据质量门禁FAIL(无当日锚点)时exit 2,
         # 作为关键失败向上传播——采集失败时受影响预测的正式状态不得被更新。
@@ -192,31 +197,37 @@ def main():
                                  'snapshot_id': None, 'snapshot_unavailable_reason': why}
     except Exception as e:
         ledger_provenance = {'snapshot_id': None, 'ledger_provenance_error': str(e)[:200]}
-    # 台账放行标志: 正式报告/回写须=快照可用+Gate A允许+装配与校验两步成功
-    # (步骤名按尾缀匹配,避免硬编码序号)
+    # 台账放行标志: 正式报告/回写须=快照可用+Gate A允许+**关键步骤全部成功**
+    # (FIX2-03: 评分卡是关键步骤,其失败必须传导——评分卡失败而装配/校验因故
+    # 仍执行时,allow不得为True;步骤名按尾缀匹配,避免硬编码序号)
     def _step_ok(suffix):
         return any(n.endswith(suffix) and s for n, s, _c in results)
     ledger_provenance['allow_formal_report'] = bool(
         ledger_provenance.get('snapshot_id')
         and ledger_provenance.get('gate_a') in ('PASS', 'DEGRADED')
+        and _step_ok('宏观体制评分卡(消费快照)')
         and _step_ok('数据汇总打包') and _step_ok('数据校验与锚点生成'))
     ledger_provenance['allow_state_writeback'] = ledger_provenance['allow_formal_report']
     try:
         log_dir = os.path.join(PROJECT_DIR, 'logs')
         os.makedirs(log_dir, exist_ok=True)
         log_path = os.path.join(log_dir, f"pipeline_run_{start_time.strftime('%Y%m%d')}.json")
-        with open(log_path, 'w', encoding='utf-8') as f:
-            json.dump({
-                'run_at': start_time.isoformat(timespec='seconds'),
-                'run_date': start_time.strftime('%Y-%m-%d'),
-                'duration_sec': round(duration, 1),
-                'steps': [{'name': n, 'ok': bool(s), 'critical': bool(c),
-                           'skipped': n in skips,
-                           'skip_reason': (skips or {}).get(n)}
-                          for n, s, c in results],
-                'success_count': success_count,
-                **ledger_provenance,
-            }, f, ensure_ascii=False, indent=1)
+        # FIX2-01: 台账原子写(先完整序列化后tmp+replace)——异常不截断既有台账
+        _blob = json.dumps({
+            'run_at': start_time.isoformat(timespec='seconds'),
+            'run_date': start_time.strftime('%Y-%m-%d'),
+            'duration_sec': round(duration, 1),
+            'steps': [{'name': n, 'ok': bool(s), 'critical': bool(c),
+                       'skipped': n in skips,
+                       'skip_reason': (skips or {}).get(n)}
+                      for n, s, c in results],
+            'success_count': success_count,
+            **ledger_provenance,
+        }, ensure_ascii=False, indent=1)
+        _tmp = log_path + '.tmp'
+        with open(_tmp, 'w', encoding='utf-8') as f:
+            f.write(_blob)
+        os.replace(_tmp, log_path)
     except OSError as e:
         print(f"⚠️ 流水线台账写入失败(不影响退出码): {e}")
 

@@ -70,74 +70,63 @@ class _FakeDT:
 
 
 # ═══════════ fixture: 快照级研究日(与生产同构的生成路径) ═══════════
+# FIX2重构: 手写10指标快照→fixt共享fixture真实构建(注册表32核心齐备,Gate A
+# 由recompute_gate_a从事实重算——FIX2-02"不得少量指标+手写声明PASS"纪律)。
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import fixt   # noqa: E402
+
+_BREAK_FOR_GATE = {'DEGRADED': 'UMCSENT', 'FAIL': 'SPX'}
+
 
 def synth_snapshot(ymd=DAY, gate='PASS', rev=None, fail_fact=False, sid=None):
-    sid = sid or (f"research_snapshot_{ymd}" + (f"_v{rev}" if rev else ""))
-    obs = f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}"
-    glob_facts = [('SPX', '标普500', 7659.44), ('NDX', '纳斯达克100', 25631.51),
-                  ('VIX', 'VIX恐慌指数', 15.82), ('DXY', '美元指数', 103.21),
-                  ('GOLD_F', '黄金期货', 4300.0), ('WTI_F', 'WTI原油期货', 71.28)]
-    monthly = [('CPI', 'CPI同比', 2.4), ('CORE_CPI', '核心CPI同比', 2.8),
-               ('UNEMPLOYMENT', '失业率', 4.1), ('UMCSENT', '密歇根消费者信心', 68.2)]
-    facts = []
-    for mid, name, val in glob_facts:
-        q = 'FAIL' if (fail_fact and mid == 'GOLD_F') else 'PASS'
-        facts.append({'metric_id': mid, 'display_name': name, 'value': val,
-                      'unit': '指数点', 'observation_date': obs, 'quality_status': q,
-                      'high': round(val * 1.01, 2), 'low': round(val * 0.99, 2),
-                      'derived': {'week': {'pct_change': 0.52},
-                                  'mtd': {'pct_change': 1.31},
-                                  'ytd': {'pct_change': 12.04}},
-                      'issues': []})
-    for mid, name, val in monthly:
-        facts.append({'metric_id': mid, 'display_name': name, 'value': val,
-                      'unit': '%', 'observation_date': obs, 'quality_status': 'PASS',
-                      'derived': {'m1': {'basis_value': round(val * 0.99, 3),
-                                         'pct_change': 0.4, 'pp_change': 0.1},
-                                  'm12': {'basis_value': round(val * 0.95, 3),
-                                          'pct_change': 2.1, 'pp_change': 0.3}},
-                      'issues': []})
-    counts = {'PASS': sum(1 for f in facts if f['quality_status'] == 'PASS'),
-              'DEGRADED': 0,
-              'FAIL': sum(1 for f in facts if f['quality_status'] == 'FAIL')}
-    return {
-        'snapshot_id': sid, 'research_as_of': AS_OF, 'target_date': ymd,
-        'timezone': 'Asia/Shanghai',
-        'sources_status': {'global': {'status': 'EXACT', 'file': f"global_{ymd}.json",
-                                      'file_date': ymd}},
-        'fed_futures_curve': [], 'facts': facts, 'reconciliation': [],
-        'quality': {'counts': counts, 'missing_core': [],
-                    'fail_metrics': ['GOLD_F'] if fail_fact else []},
-        'gate_a': {'status': gate, 'core_missing': [],
-                   'core_fail': ['GOLD_F'] if fail_fact else [], 'note': 'synthetic'},
-    }
+    """真实构建的全注册表快照。fail_fact→核心GOLD值坏;gate='DEGRADED'→非核心
+    UMCSENT值坏(真实降级);gate='FAIL'→核心SPX值坏。sid覆盖身份(冲突场景)。"""
+    bm = 'GOLD' if fail_fact else _BREAK_FOR_GATE.get(gate)
+    snap = quiet(fixt.real_snapshot, ymd, break_metric=bm, rev=rev)
+    if sid:
+        snap['snapshot_id'] = sid
+    return snap
 
 
 def build_research_day(base, ymd=DAY, gate='PASS', rev=None, fail_fact=False):
-    """构造一天完整研究产物(快照/数据包+meta/锚点+meta/prompt),全部真实生成路径。"""
+    """构造一天完整研究产物(采集JSON→build_snapshot→build_anchors→
+    build_markdown→generate_anchor_prompt_block,全真实路径);当日评分卡+
+    pack meta携带scorecard_*状态(FIX2-03预检依赖)。"""
     daily = os.path.join(base, 'daily')
     weekly = os.path.join(base, 'weekly')
     os.makedirs(daily, exist_ok=True)
     os.makedirs(weekly, exist_ok=True)
-    snap = synth_snapshot(ymd, gate=gate, rev=rev, fail_fact=fail_fact)
+    bm = 'GOLD' if fail_fact else _BREAK_FOR_GATE.get(gate)
+    fixt.write_collectors(daily, ymd, break_metric=bm)
+    fixt.write_scorecard(daily, ymd)
+    snap = quiet(sb.build_snapshot, target_ymd=ymd, data_dir=daily, out_dir=daily,
+                 as_of=AS_OF)
     snap_path = os.path.join(daily, snap['snapshot_id'] + '.json')
-    with open(snap_path, 'w', encoding='utf-8') as f:
-        json.dump(snap, f, ensure_ascii=False)
+    if rev:
+        snap['snapshot_id'] = f'research_snapshot_{ymd}_v{rev}'
+        snap['revision_reason'] = 'fixture revision'
+        snap_path = os.path.join(daily, snap['snapshot_id'] + '.json')
+        with open(snap_path, 'w', encoding='utf-8') as f:
+            json.dump(snap, f, ensure_ascii=False)
     anchors = sb.build_anchors(snap, ymd)
     packfile = os.path.join(weekly, f'data_pack_{ymd}.md')
     with open(packfile, 'w', encoding='utf-8') as f:
-        f.write(da.build_markdown(snap, ymd) if gate != 'FAIL' else '# pack')
+        f.write(da.build_markdown(snap, ymd, data_dir=base) if gate != 'FAIL'
+                else '# pack')
+    sc_date, sc_cur = da.scorecard_state(ymd, data_dir=base)
     rp.write_meta(packfile, {'source': 'snapshot', 'generated_by': 'data_assembler',
                              'pack_file': os.path.basename(packfile),
                              'pack_digest': rp.digest_file(packfile),
-                             **rp.provenance_of(snap, snap_path)})
+                             'scorecard_date': sc_date, 'scorecard_current': bool(sc_cur),
+                             **rp.provenance_of(snap, os.path.basename(snap_path))})
     apath = os.path.join(daily, f'anchors_{ymd}.json')
     with open(apath, 'w', encoding='utf-8') as f:
         json.dump(anchors, f, ensure_ascii=False, indent=1)
     rp.write_meta(apath, {'source': 'snapshot', 'generated_by': 'snapshot_builder',
                           'anchor_count': len(anchors),
                           'anchors_digest': rp.digest_file(apath),
-                          **rp.provenance_of(snap, snap_path)})
+                          **rp.provenance_of(snap, os.path.basename(snap_path))})
     from data_validator import generate_anchor_prompt_block
     ppath = os.path.join(daily, f'anchor_prompt_{ymd}.md')
     with open(ppath, 'w', encoding='utf-8') as f:
@@ -301,8 +290,11 @@ with tempfile.TemporaryDirectory() as td:
     json.dump(other, open(os.path.join(td, 'research_snapshot_20261017_v02.json'), 'w',
                           encoding='utf-8'), ensure_ascii=False)
     snap, why = rp.select_snapshot(DAY, td)
-    check("同日重复版本(_v2与_v02同为v2)→整日拒绝(不猜测取哪个)",
-          snap is None and '重复版本' in why, why)
+    # FIX2-04: _v02非规范十进制→非法版本整日拒绝(严格规范化后,"重复版本"
+    # 只能经非法表示出现,拒绝语义不变: 不猜测取哪个)
+    check("同日重复版本(_v2与_v02)→整日拒绝(非法表示,不猜测取哪个)",
+          snap is None and ('非法版本' in why or '重复版本' in why)
+          and '拒绝猜测' in why, why)
 with tempfile.TemporaryDirectory() as td:
     # 非法版本号_v0
     s0 = synth_snapshot(sid='research_snapshot_20261017_v0')
@@ -363,18 +355,26 @@ snap = synth_snapshot()
 snap['quality']['overall'] = 'FAIL'
 got, why = rp.gate_status(snap)
 check("声明PASS但quality.overall=FAIL→拒绝(状态冲突)", got is None and 'overall' in why, why)
-snap = synth_snapshot()
+snap = synth_snapshot(gate='DEGRADED')   # 真实降级(非核心UMCSENT值坏)
 snap['gate_a'] = {'status': 'DEGRADED', 'core_fail': ['GOLD_F'], 'core_missing': []}
 got, why = rp.gate_status(snap)
 check("声明DEGRADED但core_fail非空→拒绝(核心问题必须判FAIL)",
       got is None and 'core_fail' in why, why)
 snap = synth_snapshot()
-snap['gate_a'] = {'status': 'PASS', 'core_fail': [], 'core_missing': []}
-# 非核心事实FAIL+声明PASS: overall为FAIL时拒绝;overall缺省时核心复核通过
-snap['facts'].append({'metric_id': 'UMCSENT_X', 'value': 1, 'quality_status': 'FAIL'})
+# FIX2-02语义收紧: 非核心事实FAIL→重算effective=DEGRADED,声明PASS=矛盾→拒绝;
+# 声明DEGRADED(与重算一致)→合法降级放行(§8用真实构建覆盖完整链)
+_um = next(f for f in snap['facts'] if f['metric_id'] == 'UMCSENT')
+_um['quality_status'] = 'FAIL'
+snap['quality']['counts'] = {'PASS': 33, 'DEGRADED': 0, 'FAIL': 1}
+if 'overall' in snap['quality']:
+    snap['quality']['overall'] = 'FAIL'
 got, why = rp.gate_status(snap)
-check("非核心事实FAIL不触发核心复核拒绝(降级由builder层裁决)",
-      got == 'PASS', f"{got} {why}")
+check("非核心事实FAIL+声明PASS→拒绝(重算=DEGRADED,矛盾)",
+      got is None, f"{got} {why}")
+snap['gate_a']['status'] = 'DEGRADED'
+got, why = rp.gate_status(snap)
+check("非核心事实FAIL+声明DEGRADED(一致)→合法降级",
+      got == 'DEGRADED', f"{got} {why}")
 for bad in ({'gate_a': {'status': 'maybe'}}, {'gate_a': {'status': ''}},
             {'gate_a': None}, {'gate_a': {'status': None}}):
     got, _ = rp.gate_status(bad)
@@ -385,98 +385,10 @@ print("\n── 8. 非核心单项FAIL→DEGRADED(注册表为权威,FIX-05)")
 
 
 def collector_day(td, break_metric=None):
-    """全核心齐备的SYNTHETIC采集日(全部注册表core指标在场,经真实build_snapshot)。"""
-    OBS = '2026-10-16'
-    YMD = DAY
-
-    def series(d):
-        ds = sorted(d)
-        return {"dates": ds, "values": [d[k] for k in ds]}
-
-    def _brk(v):
-        return "N/A" if break_metric else v
-
-    glob = {"date": YMD, "time": "07:12:00", "count": 7, "data": {
-        "SPX": {"close": _brk(7659.44) if break_metric == 'SPX' else 7659.44,
-                "high": 7680.0, "low": 7601.0, "date": OBS,
-                "series": series({"2026-10-09": 7500.0, "2026-10-16": 7659.44})},
-        "NDX": {"close": 25631.5, "high": 25700.0, "low": 25400.0, "date": OBS,
-                "series": series({"2026-10-09": 25400.0, "2026-10-16": 25631.5})},
-        "VIX": {"close": 15.82, "high": 16.4, "low": 15.2, "date": OBS,
-                "series": series({"2026-10-09": 16.0, "2026-10-16": 15.82})},
-        "DXY": {"close": 103.21, "high": 103.5, "low": 102.9, "date": OBS,
-                "series": series({"2026-10-09": 103.0, "2026-10-16": 103.21})},
-        "GOLD": {"close": 4300.0, "date": OBS,
-                 "series": series({"2026-10-09": 4250.0, "2026-10-16": 4300.0})},
-        "WTI": {"close": 71.28, "date": OBS,
-                "series": series({"2026-10-09": 70.5, "2026-10-16": 71.28})},
-        "BTC": {"close": 108000.0, "date": OBS,
-                "series": series({"2026-10-09": 106000.0, "2026-10-16": 108000.0})},
-    }}
-    mdates = ['2026-10-08', '2026-10-09', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16']
-
-    def dser(vals):
-        return {"dates": mdates, "values": vals}
-
-    cpi_dates = ['2025-%02d-01' % m for m in range(1, 13)] + ['2026-%02d-01' % m for m in range(1, 10)]
-    cpi_vals = [300.0 + i * 0.8 for i in range(len(cpi_dates))]
-    macro = {"date": YMD, "data": {
-        "CCC_OAS": {"value": 10.18, "date": OBS, "frequency": "daily",
-                    "series": dser([10.12, 10.12, 10.20, 10.30, 10.25, 10.18])},
-        "HY_OAS": {"value": 5.20, "date": OBS, "frequency": "daily",
-                   "series": dser([5.18, 5.19, 5.21, 5.22, 5.21, 5.20])},
-        "TIPS_10Y": {"value": 2.31, "date": OBS, "frequency": "daily",
-                     "series": dser([2.30, 2.31, 2.32, 2.31, 2.30, 2.31])},
-        "UST_2Y": {"value": 3.98, "date": OBS, "frequency": "daily",
-                   "series": dser([3.99, 3.98, 3.98, 3.97, 3.98, 3.98])},
-        "UST_10Y": {"value": 4.28, "date": OBS, "frequency": "daily",
-                    "series": dser([4.26, 4.27, 4.28, 4.29, 4.28, 4.28])},
-        "BEI_10Y": {"value": 1.97, "date": OBS, "frequency": "daily"},
-        "FED_FUNDS": {"value": 4.33, "date": OBS, "frequency": "daily"},
-        "CPI": {"value": cpi_vals[-1], "date": "2026-09-01", "frequency": "monthly",
-                "series": {"dates": cpi_dates, "values": cpi_vals}},
-        "CORE_CPI": {"value": 306.0, "date": "2026-09-01", "frequency": "monthly"},
-        "CORE_PCE": {"value": 118.5, "date": "2026-09-01", "frequency": "monthly"},
-        "UNEMPLOYMENT": {"value": 4.2, "date": "2026-09-01", "frequency": "monthly"},
-        "NFP": {"value": 160000.0, "date": "2026-09-01", "frequency": "monthly"},
-        "NFP_MOM_K": {"value": 160.0, "date": "2026-09-01", "frequency": "monthly"},
-        "ICSA": {"value": 221000.0, "date": "2026-10-15", "frequency": "weekly"},
-        "UMCSENT": {"value": _brk(68.0) if break_metric == 'UMCSENT' else 68.0,
-                    "date": "2026-09-01", "frequency": "monthly"},
-    }, "derived": {}}
-    cn_dates = ['2026-09-30', '2026-10-09', '2026-10-15', '2026-10-16']
-
-    def cnser(v):
-        return {"dates": cn_dates, "values": v}
-
-    china = {"date": YMD, "data": {}, "indices": {
-        "上证指数": {"name": "上证指数", "close": 3716.28, "date": OBS,
-                    "series": cnser([3800.0, 3790.0, 3797.0, 3716.28])},
-        "深证成指": {"name": "深证成指", "close": 12256.3, "date": OBS,
-                    "series": cnser([12400.0, 12380.0, 12350.0, 12256.3])},
-        "恒生指数": {"name": "恒生指数", "close": 24186.83, "date": OBS, "via": "tencent",
-                    "series": cnser([24400.0, 24380.0, 24350.0, 24186.83])},
-        "恒生国企指数": {"name": "恒生国企指数", "close": 8735.2, "date": OBS,
-                    "series": cnser([8800.0, 8790.0, 8770.0, 8735.2])},
-    }, "ah_premium": {"close": 128.56, "date": OBS},
-       "turnover": {"date": YMD, "sh_amount_billion": 8000.0, "sz_amount_billion": 9000.0,
-                    "total_amount_billion": 17000.0}}
-    rate = {"date": YMD, "current_rates": {
-        "DFF": {"name": "有效联邦基金利率", "value": 4.33, "date": OBS},
-        "DFEDTARU": {"name": "目标区间上限", "value": 4.50, "date": OBS},
-        "DFEDTARL": {"name": "目标区间下限", "value": 4.25, "date": OBS}},
-        "fed_funds_futures": [
-            {"ticker": "ZQ=F", "name": "FF期货主力", "price": 95.80, "implied_rate": 4.20},
-            {"ticker": "ZQZ26.CBT", "name": "2026-12", "price": 95.90, "implied_rate": 4.10}],
-        "real_economy": {
-            "UNRATE": {"name": "失业率", "value": 4.2, "date": "2026-09-01", "freq": "月度"},
-            "UMCSENT": {"name": "消费者信心", "value": 71.0, "date": "2026-09-01", "freq": "月度"}},
-    }
-    for name, obj in (("global", glob), ("macro", macro), ("china", china),
-                      ("rate_economy", rate)):
-        json.dump(obj, open(os.path.join(td, f"{name}_{DAY}.json"), 'w',
-                            encoding='utf-8'), ensure_ascii=False)
-
+    """全核心齐备的SYNTHETIC采集日(注册表全部core指标在场)——FIX2起由共享
+    fixture模块fixt.write_collectors真实生成(与test_gate_chain/test_p01_fix2
+    同源,值坏/缺失参数化),不再各套件自行复制粘贴payload。"""
+    fixt.write_collectors(td, DAY, break_metric=break_metric)
 
 with tempfile.TemporaryDirectory() as td:
     collector_day(td)
@@ -501,14 +413,13 @@ with tempfile.TemporaryDirectory() as td:
           ga['status'] == 'FAIL' and ga['core_fail'] == ['SPX'], str(ga))
     check("核心FAIL日禁止正式研究",
           not rp.gate_allows_formal_research(rp.gate_status(snap)[0]))
-# 非核心FAIL快照经gate_status声明一致性: DEGRADED+非核心清单→合法
-snap = synth_snapshot()
-snap['facts'].append({'metric_id': 'UMCSENT', 'value': 'N/A',
-                      'quality_status': 'FAIL', 'issues': []})
-snap['gate_a'] = {'status': 'DEGRADED', 'core_missing': [], 'core_fail': [],
-                  'noncore_fail': ['UMCSENT']}
+# 非核心FAIL快照经gate_status声明一致性(FIX2: 真实构建,不再手拼重复事实——
+# 重复metric_id本身就是FAIL项,无法构造"非核心失败合法降级"场景)
+snap = synth_snapshot(gate='DEGRADED')   # 真实构建: UMCSENT值坏→noncore_fail
 got, why = rp.gate_status(snap)
-check("声明DEGRADED+非核心失败→合法降级(与注册表权威一致)", got == 'DEGRADED', why)
+check("真实降级构建: 声明DEGRADED+noncore_fail清单→合法降级(注册表权威)",
+      got == 'DEGRADED' and snap['gate_a'].get('noncore_fail') == ['UMCSENT'],
+      f"{got} {snap['gate_a'].get('noncore_fail')} {why}")
 
 # ═══ 9. 关键采集失败→下游正式步骤SKIPPED+台账 ═════════════════════
 print("\n── 9. 关键采集失败传播(FIX-03)")
@@ -573,8 +484,7 @@ with tempfile.TemporaryDirectory() as td:
           ledger.get('allow_formal_report') is False, str(ledger.get('allow_formal_report')))
 with tempfile.TemporaryDirectory() as td:
     # 全部成功+当日权威快照在场(DEGRADED披露)→台账放行正式报告
-    snap = synth_snapshot(gate='DEGRADED')
-    snap['facts'][4]['quality_status'] = 'DEGRADED'   # GOLD_F降级披露
+    snap = synth_snapshot(gate='DEGRADED')   # 真实降级构建(UMCSENT非核心值坏)
     code, executed, ledger = run_pipeline_main(td, snapshot=snap)
     check("全步骤成功+快照DEGRADED→退出码0+allow_formal_report=True",
           code == 0 and ledger.get('allow_formal_report') is True,
@@ -699,10 +609,12 @@ with tempfile.TemporaryDirectory() as td:
           f"{st} {ch}")
 with tempfile.TemporaryDirectory() as td:
     # 无效指标仅影响其所属预测: 其余预测照常(隔离性)
-    build_research_day(td, gate='FAIL', fail_fact=True)
+    # FIX2: 核心FAIL会使整批不可验证——改用非核心UMCSENT值坏(DEGRADED批次可
+    # 验证放行),该指标锚点缺失→其预测跳过;真实路径下值FAIL事实不产生锚点
+    build_research_day(td, gate='DEGRADED')
     apath = os.path.join(td, 'daily', f'anchors_{DAY}.json')
     anchors = json.load(open(apath, encoding='utf-8'))
-    vp = views_file(td, [obs_pred(91, 'global_market.data.GOLD.close'),
+    vp = views_file(td, [obs_pred(91, 'macro.data.UMCSENT.value'),
                          obs_pred(92, 'global_market.data.SPX.close')])
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
                       today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath)

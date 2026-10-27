@@ -262,12 +262,18 @@ def generate_daily_report(snapshot, news, theses):
             return None
 
 def save_daily_report(report_text):
-    """保存日报"""
+    """保存日报(遗留入口产物)"""
     date_str = datetime.now().strftime('%Y%m%d')
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     filepath = os.path.join(OUTPUT_DIR, f'daily_{date_str}.md')
     with open(filepath, 'w', encoding='utf-8') as f:
+        # IA-P0-1-FIX2: 产物自证身份——遗留日报未接入Gate A/B,文件本身携带
+        # UNVALIDATED标注,不得被任何读取方误认为合格正式研究报告
+        f.write("<!-- UNVALIDATED legacy: 本文件由遗留日报入口生成,未经研究快照链"
+                "(Gate A)与数值校验(Gate B),不得作为合格正式研究产出引用 -->\n\n")
+        f.write("> ⚠️ **UNVALIDATED 遗留日报**: 未经验证的研究草稿,"
+                "非正式合格报告(正式路径: run_weekly.py → report_generator.py)\n\n")
         f.write(f"# 每日投资简报 {date_str}\n\n")
         f.write(f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
         f.write("---\n\n")

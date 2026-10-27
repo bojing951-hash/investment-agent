@@ -260,21 +260,21 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
     facts += fe.compute_derived(facts, as_of)
     recon = fe.cross_metric_checks(facts) + rate_recon_extra
     quality = fe.snapshot_quality_grade(facts)
-    by_id = {f.get('metric_id'): f for f in facts}
-    # IA-P0-1-FIX5(IA-DEF-006): 核心与否以注册表criticality为唯一权威——
-    # 非核心指标FAIL不再等同全局FAIL(旧实现单个非核心失败即整批FAIL),
-    # 按质量规则降级披露(DEGRADED);核心缺失/失败才判FAIL。
-    core_ids = rp.core_metric_ids()
-    fail_ids = [mid for mid, f in by_id.items() if f.get('quality_status') == 'FAIL']
-    core_fail = sorted(mid for mid in fail_ids if mid in core_ids)
-    noncore_fail = sorted(mid for mid in fail_ids if mid not in core_ids)
-    gate_a = {'status': 'FAIL' if (quality['missing_core'] or core_fail) else
-                     ('DEGRADED' if (quality['counts'].get('DEGRADED') or noncore_fail)
-                      else 'PASS'),
-              'core_missing': quality['missing_core'], 'core_fail': core_fail,
-              'noncore_fail': noncore_fail,
+    # IA-P0-1-FIX5(IA-DEF-006)+FIX2-02(IA-DEF-002): 核心与否以注册表criticality
+    # 为唯一权威,且Gate A在写入时即按recompute_gate_a**从事实重算**——
+    # 非核心指标FAIL按质量规则降级披露(DEGRADED);核心缺失/失败才判FAIL;
+    # 重复metric_id=数据身份冲突判FAIL。写入裁决与下游核验(research_provenance.
+    # gate_status)同源同口径,快照声明与事实不可能在构建时就矛盾。
+    rec = rp.recompute_gate_a({'facts': facts})
+    gate_a = {'status': rec['effective'],
+              'core_missing': rec['core_missing'], 'core_fail': rec['core_fail'],
+              'noncore_fail': rec['noncore_fail'],
               'note': '缺失/失败数据已披露,不得进入研究结论;单个资产缺失不阻断其余研究;'
                       '非核心FAIL按降级披露(注册表criticality为权威)'}
+    if rec['duplicates']:
+        gate_a['note'] += f';重复metric_id按FAIL处置: {",".join(rec["duplicates"][:6])}'
+    gate_a['noncore_degraded'] = rec['noncore_degraded']
+    gate_a['illegal_quality'] = rec['illegal_quality']
 
     snapshot = {
         'snapshot_id': f"research_snapshot_{ymd}",

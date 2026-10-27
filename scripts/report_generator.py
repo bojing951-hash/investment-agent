@@ -601,7 +601,7 @@ def verify_research_inputs(ymd=None):
         # 改包内数字后同步改meta摘要也难逃: 以权威快照重算包内容比对
         try:
             import data_assembler as _dasm
-            expected_pack = _dasm.build_markdown(snap, ymd)
+            expected_pack = _dasm.build_markdown(snap, ymd, data_dir=DATA_DIR)
             with open(pack_path, 'r', encoding='utf-8') as f:
                 actual_pack = f.read()
             if actual_pack != expected_pack:
@@ -609,6 +609,16 @@ def verify_research_inputs(ymd=None):
                                 '(包内数字被改/包内容陈旧/快照批次已变更)')
         except Exception as e:
             problems.append(f'数据包重建比对失败(无法证明内容一致): {e}')
+        # FIX2-03(IA-DEF-003): 本期关键研究状态检查——数据包文件存在本身不足以
+        # 放行: 评分卡是关键步骤,正式报告须基于**当日**评分(scorecard_current);
+        # 仅历史参考评分/评分缺失 → 拒绝正式生成。
+        if pack_meta.get('scorecard_current') is not True \
+                or str(pack_meta.get('scorecard_date')) != str(ymd):
+            problems.append(
+                f"本期评分卡状态不合格: pack meta记录 scorecard_date="
+                f"{pack_meta.get('scorecard_date')}, current="
+                f"{pack_meta.get('scorecard_current')}(评分是关键步骤,"
+                f"仅历史参考评分/评分缺失不得生成正式报告;须当日评分成功后重新装配)")
 
     # 3) 当日锚点 + 批次核验(FIX-01: 实际内容与权威快照确定性重建比对;
     #    FIX-04: 无meta/legacy批次一律拒绝,不再回退旧格式规则)
@@ -655,16 +665,71 @@ def _append_degraded_footer(md_path, gate_a, gate_b, snapshot_desc):
                 ">   不得作为全质量结论引用。\n")
 
 
+def _atomic_write_json(path, obj):
+    """原子写JSON(FIX2-01): 先**完整序列化**(失败→原文件字节不动),再写tmp后
+    os.replace。任何序列化/写入异常都不会截断/破坏既有文件。返回bool。"""
+    try:
+        blob = json.dumps(obj, ensure_ascii=False, indent=1)
+    except Exception as e:
+        print(f"⛔ JSON序列化失败({os.path.basename(path)}原内容未动): "
+              f"{type(e).__name__}: {e}")
+        return False
+    tmp = path + '.tmp'
+    try:
+        os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
+        with open(tmp, 'w', encoding='utf-8') as f:
+            f.write(blob)
+        os.replace(tmp, path)
+        return True
+    except OSError as e:
+        print(f"⛔ 写入失败({os.path.basename(path)}原内容未动): {e}")
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+        return False
+
+
+def _status_body(ymd, md_path, gate_a, gate_b, final_quality, ctx,
+                 published, failure_reason, digest_of):
+    """构造report_status正文(dict)——先构造后序列化,序列化失败不产生半写文件。"""
+    try:
+        digest = rp.digest_file(digest_of or md_path) if os.path.exists(digest_of or md_path) else None
+    except OSError:
+        digest = None
+    return {
+        'report_file': os.path.basename(md_path),
+        'report_path': md_path,
+        'report_digest': digest,
+        'gate_a': gate_a, 'gate_b': gate_b, 'final_quality': final_quality,
+        'published': bool(published),
+        'snapshot_id': (ctx.get('snapshot') or {}).get('snapshot_id'),
+        'snapshot_file': os.path.basename(ctx['snapshot_path'])
+                         if ctx.get('snapshot_path') else None,
+        'snapshot_digest': (rp.digest_snapshot(ctx['snapshot'])
+                            if ctx.get('snapshot') else None),
+        'anchors_file': os.path.basename(ctx['anchors_path'])
+                        if ctx.get('anchors_path') else None,
+        'failure_reason': failure_reason,
+        'generated_at': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+    }
+
+
 def write_report_status(ymd, md_path, gate_a, gate_b, final_quality, ctx,
                         published=False, failure_reason=None, digest_of=None):
     """report_status_{ymd}.json: 报告最终质量与来源链快照(AC-04/AC-06/FIX-08可追溯)。
 
-    FIX-02/08:
+    FIX-02/08 + FIX2-01(IA-DEF-001):
+    - **原子写**(先完整序列化后tmp+replace): 序列化/写入异常时原状态文件字节
+      完整保留,不再可能被截断为零字节/半写文件;
     - 记录**实际存在**的报告文件路径与内容摘要(digest_of给出则从该文件实际
       字节重算——候选与发布内容一致,发布后摘要不变);
     - 返回bool(写入成功与否),失败不再静默——调用方据此决定**不得发布**;
     - final_quality=FAIL且当日已存在已发布合格记录时不覆盖主状态(失败详情写入
-      report_status_{ymd}_UNVALIDATED.json),已有合格报告的有效状态不被失败尝试破坏。
+      report_status_{ymd}_UNVALIDATED.json),已有合格报告的有效状态不被失败尝试破坏;
+    - 主状态只承载**已完成发布**的结果(published=True)或无合格先例时的FAIL记录;
+      发布前中间状态一律走write_candidate_status独立文件,绝不先把主状态
+      改成published=False。
     """
     status_path = os.path.join(OUTPUT_DIR, f'report_status_{ymd}.json')
     target = status_path
@@ -679,33 +744,81 @@ def write_report_status(ymd, md_path, gate_a, gate_b, final_quality, ctx,
             target = os.path.join(OUTPUT_DIR, f'report_status_{ymd}_UNVALIDATED.json')
             print(f"ℹ️ 当日已有已发布合格状态记录——失败详情改写 {os.path.basename(target)}"
                   f"(合格状态不被失败尝试覆盖)")
+    body = _status_body(ymd, md_path, gate_a, gate_b, final_quality, ctx,
+                        published, failure_reason, digest_of)
+    return _atomic_write_json(target, body)
+
+
+def write_candidate_status(ymd, cand_path, gate_a, gate_b, final_quality, ctx,
+                           digest_of=None):
+    """候选报告状态**独立文件** report_status_{ymd}_candidate.json(FIX2-01)。
+
+    尚未完成发布的状态记录与正式发布状态分离: 该文件只是"已生成待发布候选"
+    的过程记录,任何读取合格报告的逻辑都不得把它当作发布状态;发布成功后由
+    reconcile_publication清理,失败后保留作诊断。返回bool。"""
+    body = _status_body(ymd, cand_path, gate_a, gate_b, final_quality, ctx,
+                        published=False, failure_reason=None, digest_of=digest_of)
+    body['awaiting_publish'] = True
+    return _atomic_write_json(
+        os.path.join(OUTPUT_DIR, f'report_status_{ymd}_candidate.json'), body)
+
+
+def reconcile_publication(ymd):
+    """发布中断恢复(FIX2-01): 校正"替换已执行、主状态未写"的中间态。
+
+    发布事务顺序 = 备份旧正式文件(.prev.bak) → 原子替换 → 原子写主状态;
+    若进程在替换后、写状态前中断,正式文件为新报告B而主状态仍指向旧报告A
+    (摘要失配)。本函数以主状态为权威恢复: 状态published且其digest与正式文件
+    不一致、而.prev.bak与状态digest一致 → 用备份恢复旧报告(旧报告+旧状态
+    双双回到有效一致);无备份可恢复时保留现状——读取入口将以摘要失配拒绝
+    把正式文件认作已发布(不得留下被错误认定为已发布的候选)。
+    同时清理已完成发布后遗留的候选状态文件。返回actions列表(供日志)。"""
+    actions = []
+    status_path = os.path.join(OUTPUT_DIR, f'report_status_{ymd}.json')
+    final_md = os.path.join(OUTPUT_DIR, f'weekly_report_{ymd}.md')
+    bak = final_md + '.prev.bak'
+    cand_status = os.path.join(OUTPUT_DIR, f'report_status_{ymd}_candidate.json')
     try:
-        digest = rp.digest_file(digest_of or md_path) if os.path.exists(digest_of or md_path) else None
-    except OSError:
-        digest = None
-    try:
-        os.makedirs(OUTPUT_DIR, exist_ok=True)
-        with open(target, 'w', encoding='utf-8') as f:
-            json.dump({
-                'report_file': os.path.basename(md_path),
-                'report_path': md_path,
-                'report_digest': digest,
-                'gate_a': gate_a, 'gate_b': gate_b, 'final_quality': final_quality,
-                'published': bool(published),
-                'snapshot_id': (ctx.get('snapshot') or {}).get('snapshot_id'),
-                'snapshot_file': os.path.basename(ctx['snapshot_path'])
-                                 if ctx.get('snapshot_path') else None,
-                'snapshot_digest': (rp.digest_snapshot(ctx['snapshot'])
-                                    if ctx.get('snapshot') else None),
-                'anchors_file': os.path.basename(ctx['anchors_path'])
-                                if ctx.get('anchors_path') else None,
-                'failure_reason': failure_reason,
-                'generated_at': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-            }, f, ensure_ascii=False, indent=1)
-        return True
-    except OSError as e:
-        print(f"⛔ report_status写入失败: {e}")
-        return False
+        st = json.load(open(status_path, encoding='utf-8')) \
+            if os.path.exists(status_path) else None
+    except Exception:
+        st = None
+    if isinstance(st, dict) and st.get('published') and os.path.exists(final_md):
+        want = st.get('report_digest')
+        try:
+            actual = rp.digest_file(final_md)
+        except OSError:
+            actual = None
+        if want and actual and want != actual:
+            if os.path.exists(bak):
+                try:
+                    if rp.digest_file(bak) == want:
+                        # 中断的未完成发布产物(B)隔离为_UNVALIDATED草稿(保留但
+                        # 独立标识),旧报告A自备份恢复——旧报告+旧状态重新一致
+                        unval = final_md.replace('.md', '_UNVALIDATED.md')
+                        try:
+                            os.replace(final_md, unval)
+                        except OSError:
+                            pass   # 隔离失败不阻断旧报告恢复
+                        os.replace(bak, final_md)
+                        actions.append('发布中断恢复: 未完成发布产物隔离为'
+                                       f'{os.path.basename(unval)},正式文件自备份回滚')
+                    else:
+                        actions.append('⚠️ 发布中断且备份与主状态摘要不一致——'
+                                       '保留现状,读取入口按摘要失配拒绝认作已发布')
+                except OSError as e:
+                    actions.append(f'⚠️ 发布中断恢复失败({e})——读取入口按摘要失配'
+                                   '拒绝认作已发布')
+            else:
+                actions.append('⚠️ 正式文件与已发布主状态摘要不一致且无备份——'
+                               '读取入口按摘要失配拒绝认作已发布')
+    if isinstance(st, dict) and st.get('published') and os.path.exists(cand_status):
+        try:
+            os.remove(cand_status)
+            actions.append('清理已完成发布的候选状态文件')
+        except OSError:
+            pass
+    return actions
 
 
 def save_candidate_report(report_text, date_str=None):
@@ -1135,11 +1248,17 @@ def generate_weekly_report():
     # 第0.55步：加载配置观点库(P2) — 连同**当日**锚点一并喂给引擎做触发器核验
     views_data = allocation_engine.load_views()
 
+    # 第0.85步(FIX2-01): 发布中断恢复——上次运行若中断于"正式文件已替换、
+    # 主状态未写"的中间态,以主状态(权威)自备份恢复,未完成发布产物隔离为
+    # _UNVALIDATED草稿(不会留下被错误认定为已发布的候选)。
+    today_ymd = datetime.now().strftime('%Y%m%d')
+    for act in reconcile_publication(today_ymd):
+        print(f"🛠️  {act}")
+
     # 第0.9步(IA-P0-1,任务5): 生成前置核验——调GLM之前核验当日四件套
     # (权威快照/Gate A/数据包绑定/锚点批次/锚点prompt)。本入口由launchd独立调度
     # (周六08:00),无流水线内存状态可依赖,一切以磁盘上的可验证产物为准:
     # 预检失败 → 不调用GLM、不覆盖任何已有合格报告、不更新研究状态,exit 2。
-    today_ymd = datetime.now().strftime('%Y%m%d')
     ok, problems, pfx = verify_research_inputs(today_ymd)
     if not ok:
         print(f"\n⛔ 预检失败({len(problems)}项) — 拒绝生成正式周报(不调用GLM,退出码2):")
@@ -1239,22 +1358,71 @@ def generate_weekly_report():
         print(f"⚠️ 最终质量DEGRADED(Gate A={gate_a}, Gate B={classification}) — "
               f"报告尾部已附降级披露,回写按既有规则继续")
 
-    # 第3.58步(FIX-02/08): **状态先行**——先写report_status(指向将发布的正式
-    # 文件+候选实际内容摘要),写入失败则不发布(不得出现无有效状态记录的正式报告)
-    if not write_report_status(today_ymd, final_md, gate_a, classification, final_quality,
-                               pfx, published=False, digest_of=cand_path):
-        _quarantine_candidate('report_status写入失败——不得发布无状态记录的正式报告')
+    # 第3.58步(FIX2-01/IA-DEF-001): 候选状态**独立文件**落盘——绝不先动主状态。
+    # 旧实现先把主report_status改成published=False再发布,若os.replace失败,
+    # 已有合格报告的权威PASS状态已被破坏,隔离还会再覆盖成FAIL。
+    # 现主状态在正式文件发布成功之前**字节不变**;尚未完成发布的状态记录
+    # (report_status_{ymd}_candidate.json)与正式发布状态彻底分离。
+    if not write_candidate_status(today_ymd, cand_path, gate_a, classification,
+                                  final_quality, pfx, digest_of=cand_path):
+        _quarantine_candidate('候选状态记录失败——不得发布无过程记录的正式报告')
         sys.exit(3)
-    # 发布: 候选原子替换为正式文件(同日重跑成功视为刷新,允许替换;失败路径永不触及)
+
+    # 发布事务(FIX2-01): 备份旧正式文件 → 原子替换 → 原子写主状态(published=True)。
+    # 两个普通文件的os.replace不天然构成跨文件事务,以"主状态=权威指针 +
+    # .prev.bak可回滚 + reconcile_publication中断恢复"保证失败安全:
+    # - 替换失败: os.replace原子性保证旧正式文件未动,隔离候选,旧状态有效;
+    # - 主状态写入失败: 已验证新报告隔离为_UNVALIDATED(真实文件),旧报告自
+    #   备份恢复,旧报告+旧状态双双保持字节级有效;
+    # - 进程中断于替换与写状态之间: 主状态仍指向旧报告(权威),下次运行
+    #   reconcile_publication按状态摘要恢复,中断产物不会被认作已发布;
+    # - 同日重跑全成功: 视为刷新,新报告替换旧版本(旧版本在备份清理前可回滚)。
+    bak_path = final_md + '.prev.bak'
+    had_old = os.path.exists(final_md)
+    if had_old:
+        try:
+            shutil.copyfile(final_md, bak_path)
+        except OSError as e:
+            _quarantine_candidate(f'发布前备份旧正式文件失败,取消发布: {e}')
+            sys.exit(3)
     try:
         os.replace(cand_path, final_md)
     except OSError as e:
+        try:
+            if os.path.exists(bak_path):
+                os.remove(bak_path)
+        except OSError:
+            pass
         _quarantine_candidate(f'正式发布失败: {e}')
         sys.exit(3)
-    # 发布完成: 补记published状态(失败仅告警——主状态已指向真实存在的正式文件)
     if not write_report_status(today_ymd, final_md, gate_a, classification, final_quality,
                                pfx, published=True, digest_of=final_md):
-        print(f"⚠️ 发布后状态补记失败(报告已发布,状态仍指向正式文件,下次运行将刷新)")
+        # 主状态写入失败: 隔离已验证新报告(真实文件),恢复旧报告与旧状态
+        unval_path = final_md.replace('.md', '_UNVALIDATED.md')
+        restored = False
+        try:
+            os.replace(final_md, unval_path)
+            if had_old:
+                os.replace(bak_path, final_md)
+            restored = True
+        except OSError as e2:
+            print(f"⚠️ 发布回滚失败({e2})——主状态与正式文件可能失配,"
+                  f"读取入口将以摘要失配拒绝认作已发布")
+        write_report_status(today_ymd, unval_path if os.path.exists(unval_path) else final_md,
+                            gate_a, classification, 'FAIL', pfx, published=False,
+                            failure_reason=('发布后主状态写入失败'
+                                            + ('——新报告已隔离,旧报告与旧状态保持有效'
+                                               if restored else '')),
+                            digest_of=unval_path if os.path.exists(unval_path) else final_md)
+        sys.exit(3)
+    # 发布成功: 清理备份与候选过程状态
+    for leftover in (bak_path,
+                     os.path.join(OUTPUT_DIR, f'report_status_{today_ymd}_candidate.json')):
+        try:
+            if os.path.exists(leftover):
+                os.remove(leftover)
+        except OSError:
+            pass
     print(f"\n📄 正式报告已发布: {final_md} (最终质量={final_quality})")
 
     # 第3.6步：论点状态回写 — 校验分级FAIL则禁止回写,

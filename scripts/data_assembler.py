@@ -44,10 +44,13 @@ def load_snapshot(date_str=None):
     return snap, ymd, path_or_reason
 
 
-def latest_before(pattern, ymd, max_lag=10):
-    """指定日期(含)之前最新的匹配文件;返回(路径,滞后天数)或None。替代旧盲取glob最新。"""
+def latest_before(pattern, ymd, max_lag=10, data_dir=None):
+    """指定日期(含)之前最新的匹配文件;返回(路径,滞后天数)或None。替代旧盲取glob最新。
+    data_dir: 显式数据根目录(默认模块DATA_DIR)——报告入口重建比对时传入当日
+    DATA_DIR,测试传沙箱目录,不依赖模块全局。"""
+    dd = data_dir or DATA_DIR
     cands = []
-    for p in glob.glob(os.path.join(DATA_DIR, pattern)):
+    for p in glob.glob(os.path.join(dd, pattern)):
         m = re.search(r'(\d{8})', os.path.basename(p))
         if m and m.group(1) <= ymd:
             cands.append((m.group(1), p))
@@ -56,6 +59,24 @@ def latest_before(pattern, ymd, max_lag=10):
     fd, p = sorted(cands)[-1]
     lag = (datetime.strptime(ymd, '%Y%m%d') - datetime.strptime(fd, '%Y%m%d')).days
     return (p, lag) if lag <= max_lag else None
+
+
+def _lag_days(fd, ymd):
+    return (datetime.strptime(ymd, '%Y%m%d') - datetime.strptime(fd, '%Y%m%d')).days
+
+
+def scorecard_state(ymd, data_dir=None):
+    """评分卡状态(FIX2-03): 返回(scorecard_date, is_current)。
+
+    - 当日评分存在 → (ymd, True)——本期有效研究;
+    - 仅旧评分(10天内) → (旧日期, False)——只能作历史参考,不冒充当日成功评分;
+    - 无 → (None, False)。pack meta记录该状态,报告入口据此核验。"""
+    got = latest_before('daily/scorecard_*.md', ymd, data_dir=data_dir)
+    if not got:
+        return None, False
+    p, lag = got
+    fd = re.search(r'(\d{8})', os.path.basename(p)).group(1)
+    return fd, (lag == 0)
 
 
 # ══ 渲染 ══════════════════════════════════════════════════════════
@@ -71,6 +92,16 @@ def _wk(f):
     if 'abs_change' in d:
         return f"{d['abs_change']:+,.1f}"
     return '—'
+
+
+def _fv(f, spec=',.2f'):
+    """数值安全格式化(FIX2-03): DEGRADED/FAIL事实的value可能是非数值
+    (如采集器'N/A'字符串,事实引擎如实保留并判FAIL)——降级日仍须正常装配,
+    不得因渲染格式化崩溃;数值路径输出与原格式完全一致。"""
+    try:
+        return f"{f.get('value'):{spec}}"
+    except (TypeError, ValueError):
+        return '—(不合格)'
 
 
 def _rows(facts, classes, source=None):
@@ -89,7 +120,7 @@ def _rows(facts, classes, source=None):
     return out
 
 
-def build_markdown(snapshot, ymd):
+def build_markdown(snapshot, ymd, data_dir=None):
     facts = snapshot.get('facts', [])
     L = [f"# 投资数据包 {ymd}",
          "",
@@ -137,7 +168,7 @@ def build_markdown(snapshot, ymd):
         if f.get('quality_status') != 'PASS':
             note += f" {f['quality_status']}"
         v = f.get('value')
-        L.append(f"| {f.get('display_name')} | {v:,.2f} | {_wk(f)} | {f.get('unit')} | "
+        L.append(f"| {f.get('display_name')} | {_fv(f)} | {_wk(f)} | {f.get('unit')} | "
                  f"{f.get('observation_date')} | {note} |")
 
     # 汇率与商品
@@ -146,7 +177,7 @@ def build_markdown(snapshot, ymd):
     L.append("| 资产 | 最新 | 周变化 | 观测日 | 口径 |")
     L.append("|---|---|---|---|---|")
     for f in _rows(facts, ('fx_index', 'fx_rate', 'commodity_futures')):
-        L.append(f"| {f.get('display_name')} | {f.get('value'):,.2f} | {_wk(f)} | "
+        L.append(f"| {f.get('display_name')} | {_fv(f)} | {_wk(f)} | "
                  f"{f.get('observation_date')} | {(f.get('calc') or '')[:30]} |")
 
     # 利率与信用
@@ -156,11 +187,11 @@ def build_markdown(snapshot, ymd):
     L.append("|---|---|---|---|")
     for f in _rows(facts, ('rates_yield', 'credit_spread', 'real_rate', 'inflation_expectation',
                            'curve_slope', 'policy_rate', 'fed_futures')):
-        L.append(f"| {f.get('display_name')} | {f.get('value'):.2f} | {_wk(f)} | "
+        L.append(f"| {f.get('display_name')} | {_fv(f, '.2f')} | {_wk(f)} | "
                  f"{f.get('observation_date')} |")
     for f in _rows(facts, ()):
         if isinstance(f.get('metric_id'), str) and f['metric_id'] in ('REAL_10Y', 'REAL_5Y', 'HY_IG_DIFF'):
-            L.append(f"| {f.get('display_name')}(派生) | {f.get('value'):.2f} | {_wk(f)} | "
+            L.append(f"| {f.get('display_name')}(派生) | {_fv(f, '.2f')} | {_wk(f)} | "
                      f"{f.get('observation_date')} |")
 
     # 宏观月频
@@ -179,7 +210,7 @@ def build_markdown(snapshot, ymd):
             return (f"{rec['pct_change']:+.2f}%" if 'pct_change' in rec
                     else f"{rec['pp_change']:+.2f}pp" if 'pp_change' in rec
                     else f"{rec['abs_change']:+,.1f}")
-        L.append(f"| {f.get('display_name')} | {f.get('value'):,.2f} | {c(m1)} | {c(m12)} | "
+        L.append(f"| {f.get('display_name')} | {_fv(f)} | {c(m1)} | {c(m12)} | "
                  f"{f.get('observation_date')} |")
 
     # 中国
@@ -190,12 +221,12 @@ def build_markdown(snapshot, ymd):
     for f in _rows(facts, ('spread_index', 'flow', 'leverage', 'valuation', 'volume_amount')):
         issues = ' '.join(i.get('message', '')[:28] for i in f.get('issues', [])
                           if i.get('severity') in ('DEGRADED', 'FAIL'))
-        L.append(f"| {f.get('display_name')} | {f.get('value'):,.2f} | {_wk(f)} | "
+        L.append(f"| {f.get('display_name')} | {_fv(f)} | {_wk(f)} | "
                  f"{f.get('observation_date')} | {issues} |")
     cn_idx = [f for f in facts if f.get('metric_id') in
               ('SHCOMP', 'SZCI', 'CHINEXT', 'HSI', 'HSCEI')]
     for f in cn_idx:
-        L.append(f"| {f.get('display_name')} | {f.get('value'):,.2f} | {_wk(f)} | "
+        L.append(f"| {f.get('display_name')} | {_fv(f)} | {_wk(f)} | "
                  f"{f.get('observation_date')} | 指数点位 |")
 
     # 联邦基金期货
@@ -217,17 +248,37 @@ def build_markdown(snapshot, ymd):
             if r.get('result') != 'consistent':
                 L.append(f"- [{r.get('result')}] {r.get('check')}: {r.get('detail')}")
 
-    # 研究上下文(嵌入最近文件,附日期披露)
-    for title, pattern, kind in (("跨资产相关性(研究上下文)", 'daily/correlation_*.md', 'md'),
-                                 ("宏观体制评分卡(模型观点,非客观事实)", 'daily/scorecard_*.md', 'md')):
-        got = latest_before(pattern, ymd)
-        if got:
-            p, lag = got
-            body = open(p, 'r', encoding='utf-8').read()
-            L.append("")
-            L.append(f"## {title}(文件日期滞后{lag}天)")
-            L.append(body.rstrip())
-    ns = latest_before('news/news_summary_*.md', ymd, max_lag=8)
+    # 研究上下文: 相关性(非关键,滞后披露)
+    got = latest_before('daily/correlation_*.md', ymd, data_dir=data_dir)
+    if got:
+        p, lag = got
+        body = open(p, 'r', encoding='utf-8').read()
+        L.append("")
+        L.append(f"## 跨资产相关性(研究上下文,文件日期滞后{lag}天)")
+        L.append(body.rstrip())
+
+    # FIX2-03(IA-DEF-003): 评分卡为**关键步骤**产物——只有**当日**评分卡可作为
+    # 本期有效研究;旧评分卡仅可作"历史参考"明确标注(不得冒充当日成功评分);
+    # 当日缺失时显式披露缺失。报告入口按pack meta.scorecard_*拒绝非当日评分批次,
+    # 数据包文件存在本身不再绕过本期关键研究状态检查。
+    sc_date, sc_current = scorecard_state(ymd, data_dir=data_dir)
+    if sc_date:
+        p = os.path.join(data_dir or DATA_DIR, 'daily', f'scorecard_{sc_date}.md')
+        body = open(p, 'r', encoding='utf-8').read()
+        L.append("")
+        if sc_current:
+            L.append(f"## 宏观体制评分卡(本期{sc_date};模型观点,非客观事实)")
+        else:
+            lag = _lag_days(sc_date, ymd)
+            L.append(f"## 宏观体制评分卡【历史参考】(⚠️非本期评分——本期评分缺失/未成功;"
+                     f"以下为{sc_date}旧评分,滞后{lag}天,不得当作当日成功评分)")
+        L.append(body.rstrip())
+    else:
+        L.append("")
+        L.append("## ⚠️ 本期宏观体制评分卡缺失(当日评分文件不存在;评分步骤失败或未运行;"
+                 "正式报告生成将被拒绝,直至当日评分可用)")
+
+    ns = latest_before('news/news_summary_*.md', ymd, max_lag=8, data_dir=data_dir)
     if ns:
         p, lag = ns
         body = open(p, 'r', encoding='utf-8').read()
@@ -255,8 +306,10 @@ def main():
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, 'w', encoding='utf-8') as f:
         f.write(build_markdown(snapshot, ymd))
+    sc_date, sc_current = scorecard_state(ymd)
     # IA-P0-1: 数据包meta sidecar——包↔快照绑定(报告入口核验),旧包/混版自动失配;
-    # FIX-01: 附数据包实际内容摘要——下游读取实际文件重算比对,声明值不被信任
+    # FIX-01: 附数据包实际内容摘要——下游读取实际文件重算比对,声明值不被信任;
+    # FIX2-03: 附评分卡状态——报告入口拒绝"仅历史参考评分/评分缺失"的正式生成
     rp.write_meta(out, {
         'source': 'snapshot',
         'generated_by': 'data_assembler',
@@ -264,6 +317,8 @@ def main():
         **rp.provenance_of(snapshot, path),
         'pack_file': os.path.basename(out),
         'pack_digest': rp.digest_file(out),
+        'scorecard_date': sc_date,
+        'scorecard_current': bool(sc_current),
     })
     print(f"✅ 数据包: {out} ({os.path.getsize(out)} bytes)"
           + (" [DEGRADED-已披露]" if status == 'DEGRADED' else ''))

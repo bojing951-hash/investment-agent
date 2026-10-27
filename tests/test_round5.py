@@ -39,7 +39,9 @@ import contextlib
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
-PY = os.path.expanduser('~/AI内容/venv/bin/python3')
+# FIX3-04 CI可移植性: 子进程用当前解释器(CI=runner python,本地=venv)。
+# 原硬编码~/AI内容/venv路径在干净环境(CI)不存在→子进程直接失败。
+PY = sys.executable
 
 PASS, FAIL = 0, 0
 

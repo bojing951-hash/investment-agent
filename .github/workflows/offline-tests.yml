@@ -34,6 +34,7 @@ jobs:
       - name: 运行全部离线测试套件(排除test_glm_live,记录每套退出码)
         run: |
           fail=0
+          mkdir -p /tmp/suite-logs
           for t in tests/test_*.py; do
             name=$(basename "$t" .py)
             if [ "$name" = "test_glm_live" ]; then
@@ -41,13 +42,22 @@ jobs:
               continue
             fi
             echo "== $name"
-            if python3 "$t"; then
+            if python3 "$t" > "/tmp/suite-logs/$name.log" 2>&1; then
               echo "$name exit=0"
             else
               rc=$?
-              echo "::error file=$t::套件 $name 失败 exit=$rc"
+              cat "/tmp/suite-logs/$name.log"
+              # 失败摘要进annotation(::error对公开仓库可经API读取,便于无日志权限时定位)
+              msg=$(tail -4 "/tmp/suite-logs/$name.log" | tr '\n' '|' | tr -cd '\11\12\40-\176' | cut -c1-400)
+              echo "::error file=$t::套件 $name 失败 exit=$rc :: $msg"
               echo "$name exit=$rc"
               fail=1
             fi
           done
           exit $fail
+      - name: 失败套件日志打包上传(仅失败时)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suite-logs
+          path: /tmp/suite-logs/

@@ -25,7 +25,18 @@ import yfinance as yf
 PROJECT_DIR = os.path.join(os.path.dirname(__file__), '..')
 DATA_DIR = os.path.join(PROJECT_DIR, 'data')
 
-pro = ts.pro_api(TUSHARE_TOKEN)
+# tushare pro客户端**惰性初始化**(FIX3-04 CI可移植性): pro_api对空token会回退读
+# 本地凭证文件(~/.tushare.yaml),干净机器(CI/新clone)无凭证→模块导入即
+# raise 'api init error',离线测试连import都被阻断。改为采集调用点经_pro()取用;
+# token在场时行为与原模块级初始化完全一致(同一pro_api同一token)。
+_pro_client = None
+
+
+def _pro():
+    global _pro_client
+    if _pro_client is None:
+        _pro_client = ts.pro_api(TUSHARE_TOKEN)
+    return _pro_client
 
 # A股指数列表
 A_SHARE_INDICES = {
@@ -98,7 +109,7 @@ def fetch_a_share_indices():
         try:
             # 第七轮: 单次拉取年初至今全序列(原为近10天+年初两次调用),
             # 附加原始series供事实引擎统一口径计算(周/MTD/YTD=期前收盘基准)
-            df_year = pro.index_daily(ts_code=code, start_date=start_year, end_date=end_date)
+            df_year = _pro().index_daily(ts_code=code, start_date=start_year, end_date=end_date)
             if df_year is None or len(df_year) == 0:
                 print(f"  ⚠️ {name}({code}): 无数据")
                 continue
@@ -250,7 +261,7 @@ def fetch_southbound():
     end_date, start_week, _ = get_trade_dates()
 
     try:
-        df = pro.moneyflow_hsgt(start_date=start_week, end_date=end_date)
+        df = _pro().moneyflow_hsgt(start_date=start_week, end_date=end_date)
         if df is None or len(df) == 0:
             print("  ⚠️ 无南向资金数据")
             return None
@@ -294,7 +305,7 @@ def fetch_margin():
     for days_back in range(0, 5):
         try:
             date = (datetime.now() - timedelta(days=days_back)).strftime('%Y%m%d')
-            df = pro.margin(trade_date=date)
+            df = _pro().margin(trade_date=date)
             if df is not None and len(df) > 0:
                 # 汇总所有交易所
                 total_rzye = df['rzye'].sum()  # 融资余额
@@ -322,7 +333,7 @@ def fetch_valuation():
 
     for code, name in VALUATION_INDICES.items():
         try:
-            df = pro.index_dailybasic(ts_code=code, start_date=start_week, end_date=end_date)
+            df = _pro().index_dailybasic(ts_code=code, start_date=start_week, end_date=end_date)
             if df is None or len(df) == 0:
                 print(f"  ⚠️ {name}: 无估值数据")
                 continue
@@ -351,17 +362,16 @@ def fetch_turnover():
 
     # 方案1: Tushare指数日线 — amount字段单位千元
     try:
-        pro = ts.pro_api(TUSHARE_TOKEN)
         today = datetime.now().strftime('%Y%m%d')
         # 查最近5个交易日
-        df = pro.index_daily(ts_code='000001.SH', start_date=(datetime.now() - timedelta(days=10)).strftime('%Y%m%d'), end_date=today)
+        df = _pro().index_daily(ts_code='000001.SH', start_date=(datetime.now() - timedelta(days=10)).strftime('%Y%m%d'), end_date=today)
         if df is not None and len(df) > 0:
             latest = df.sort_values('trade_date').iloc[-1]
             sh_amount = float(latest.get('amount', 0))  # 千元
             sh_date = str(latest['trade_date'])
 
             # 同时获取深证成指成交额
-            df2 = pro.index_daily(ts_code='399001.SZ', start_date=(datetime.now() - timedelta(days=10)).strftime('%Y%m%d'), end_date=today)
+            df2 = _pro().index_daily(ts_code='399001.SZ', start_date=(datetime.now() - timedelta(days=10)).strftime('%Y%m%d'), end_date=today)
             sz_amount = 0
             if df2 is not None and len(df2) > 0:
                 latest2 = df2.sort_values('trade_date').iloc[-1]

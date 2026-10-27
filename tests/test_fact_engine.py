@@ -256,7 +256,14 @@ g9 = fe.snapshot_quality_grade(gf)
 check("core缺失可识别(SPX在但NDX/VIX等缺)", 'NDX' in g9['missing_core'] or 'VIX' in g9['missing_core'],
       str(g9['missing_core'][:5]))
 g10 = fe.snapshot_quality_grade(gf + mf + cf + derived)
-check("含FAIL→整体DEGRADED以上", g10['overall'] in ('DEGRADED', 'FAIL'))
+check("无注册表active FAIL(仅未注册UNKNOWN_X诊断)→overall=PASS(诊断不冒充研究事实)",
+      g10['overall'] == 'PASS')
+# FIX4-01: 注册表active指标的合法FAIL照旧计入分级(未注册FAIL诊断不计)
+umc_fail = fe.normalize_macro({"data": {"UMCSENT": {"value": "N/A", "date": "2026-09-01",
+                                                    "frequency": "monthly"}}},
+                              AS_OF, "macro_20261017.json")
+g11 = fe.snapshot_quality_grade(gf + mf + cf + derived + umc_fail)
+check("含FAIL→整体DEGRADED以上(注册指标合法FAIL计入)", g11['overall'] in ('DEGRADED', 'FAIL'))
 
 # ══ [8] build_all一站式 ══════════════════════════════════════════
 facts, recon = fe.build_all(global_data=gdata, macro_data=mdata, china_data=cdata, as_of=AS_OF)

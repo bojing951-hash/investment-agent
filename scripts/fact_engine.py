@@ -624,13 +624,20 @@ def build_all(global_data=None, macro_data=None, china_data=None, as_of=None):
 
 
 def snapshot_quality_grade(facts):
-    """快照整体分级: 含core-FAIL→FAIL; 含DEGRADED→DEGRADED; 否则PASS。缺失core另计missing。"""
+    """快照整体分级: 含core-FAIL→FAIL; 含DEGRADED→DEGRADED; 否则PASS。缺失core另计missing。
+
+    FIX4-01(FIX3-NEW-001): 计数/分级只统计注册表**active**指标的有效研究事实——
+    未注册/已弃用输入的FAIL诊断记录(normalize_*对游离序列的既有标注)保留在
+    facts中披露,但不冒充研究事实计数(与research_provenance.recompute_gate_a
+    口径一致,quality.counts ↔ 重算counts恒可互证)。"""
     reg = load_registry()
+    active = {m['metric_id'] for m in reg['metrics'] if m.get('status') == 'active'}
     by_id = {f.get('metric_id'): f for f in facts if isinstance(f, dict)}
     missing_core = [m['metric_id'] for m in reg['metrics']
                     if m.get('criticality') == 'core' and m.get('status') == 'active'
                     and m['metric_id'] not in by_id]
-    grades = [f.get('quality_status') for f in facts if isinstance(f, dict)]
+    grades = [f.get('quality_status') for f in facts
+              if isinstance(f, dict) and f.get('metric_id') in active]
     overall = 'FAIL' if 'FAIL' in grades else ('DEGRADED' if 'DEGRADED' in grades else 'PASS')
     return {"overall": overall, "missing_core": missing_core,
             "counts": {g: grades.count(g) for g in ('PASS', 'DEGRADED', 'FAIL')}}

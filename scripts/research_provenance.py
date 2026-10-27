@@ -38,14 +38,17 @@ IA-P0-1-FIX2(2026-10-27第三轮整改)收紧:
 import glob
 import hashlib
 import json
+import math
 import os
 import re
+from datetime import date as _date_cls
 
 GATES = ('PASS', 'DEGRADED', 'FAIL')
 # 锚点指标合法质量状态(事实引擎词汇表): WARN为轻度提示,可记录
 ANCHOR_QUALITY_OK = ('PASS', 'DEGRADED', 'WARN')
 
 _CORE_CACHE = None
+_ACTIVE_CACHE = None
 
 
 def core_metric_ids():
@@ -65,6 +68,123 @@ def core_metric_ids():
     return _CORE_CACHE
 
 
+def active_registry_metrics():
+    """注册表active指标定义(metric_id→metric dict,缓存)——FIX4-01事实身份/
+    单位/口径校验与FIX4-03非核心缺失判定的共同权威。加载失败→空dict
+    (宁可无法证明,不可虚报)。"""
+    global _ACTIVE_CACHE
+    if _ACTIVE_CACHE is None:
+        try:
+            import fact_engine as fe
+            reg = fe.load_registry()
+            _ACTIVE_CACHE = {m['metric_id']: m for m in reg['metrics']
+                             if m.get('status') == 'active'}
+        except Exception:
+            _ACTIVE_CACHE = {}
+    return _ACTIVE_CACHE
+
+
+# 注册表source → 采集输入通道(snapshot_builder.SOURCES的键)。
+# FIX4-03非核心缺失判定边界: 指标"本期应有数据"以**其来源采集文件是否在场**为准
+# ——来源文件在场而指标缺席=采集遗漏(计缺失);来源文件整体缺失=来源级缺失
+# (同样披露;若该源含core指标则当日已因core_missing判FAIL)。
+_SOURCE_TO_INPUT = {
+    'global_market_collector': 'global',
+    'macro_collector': 'macro',
+    'macro_collector(derived)': 'macro',
+    'china_market_collector': 'china',
+    'rate_expectations': 'rate_economy',
+}
+
+# 派生指标输入依赖(与fact_engine.compute_derived一致): 派生缺席在**输入缺席**
+# 时属归因性缺席(不计非核心缺失——输入自身已按其规则披露);输入齐全而派生
+# 缺席才是异常(计缺失)。NFP_MOM_K额外要求NFP序列m1可算(镜像compute_derived条件)。
+_DERIVED_DEPS = {
+    'REAL_10Y': ('UST_10Y', 'BEI_10Y'),
+    'REAL_5Y': ('UST_5Y', 'BEI_5Y'),
+    'HY_IG_DIFF': ('HY_OAS', 'IG_OAS'),
+    'ZQ_IMPLIED_AVG': ('ZQ_F1_PRICE',),
+    'NFP_MOM_K': ('NFP',),
+}
+
+
+def fact_structure_problems(fact, m, cutoff):
+    """FIX4-01(FIX3-NEW-001): 声明有效的注册表事实**必要字段/口径**完整性校验。
+
+    以make_fact()实际结构为基准(与既有事实引擎完全兼容,不新造结构):
+    对准备作为有效数值证据的事实(quality_status∈PASS/WARN/DEGRADED)要求——
+    - value: 存在且为有限实数(None/NaN/±Infinity/布尔/不可解析字符串=非法);
+    - unit: 非空且与注册表该指标定义一致(换单位=口径冲突,不能按原状态使用);
+    - value_type: 与注册表一致;
+    - observation_date: 存在、可解析、不晚于研究截止(未来观测不得冒充已发布;
+      采集日/生成日/文件修改日不得自动充当观测日——只认事实自带观测日);
+    - source: 对象且collector/file来源身份非空(retrieved_at按现有采集器实况
+      可为None,不强制——不得未经核查就误伤合法事实);派生指标须有非空
+      calculation_ref(计算来源可追溯)。
+    合法FAIL事实**不在此判非法**: 异常原始值与诊断按既有质量体系降级隔离
+    (已被隔离,不会作为有效数值证据)——"已识别并标注的合法质量失败"与
+    "事实结构本身不可证明"是两种语义,不得混同。
+    返回问题列表(空=结构完整);cutoff=None表示研究截止不可得(该子项跳过)。"""
+    mid = m['metric_id']
+    probs = []
+    v = fact.get('value', _MISSING)
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        probs.append(f"{mid}=value非法:{_short(v)}(须有限实数)")
+    elif not math.isfinite(v):
+        probs.append(f"{mid}=value非有限实数:{_short(v)}")
+    unit = fact.get('unit')
+    if not isinstance(unit, str) or not unit.strip():
+        probs.append(f"{mid}=unit缺失/为空:{_short(unit)}")
+    elif unit != m.get('unit'):
+        probs.append(f"{mid}=unit与注册表不一致:{_short(unit)}"
+                     f"(注册表={m.get('unit')!r})")
+    if fact.get('value_type', _MISSING) != m.get('value_type', 'level'):
+        probs.append(f"{mid}=value_type与注册表不一致:{_short(fact.get('value_type'))}")
+    od = fact.get('observation_date')
+    if not isinstance(od, str) or not od.strip():
+        probs.append(f"{mid}=observation_date缺失:{_short(od)}")
+    else:
+        try:
+            d_obs = _date_cls.fromisoformat(od[:10])
+        except ValueError:
+            probs.append(f"{mid}=observation_date不可解析:{_short(od)}")
+        else:
+            if cutoff is not None and d_obs > cutoff:
+                probs.append(f"{mid}=观测日{d_obs.isoformat()}晚于研究截止"
+                             f"{cutoff.isoformat()}(未来观测不得冒充已发布)")
+    src = fact.get('source')
+    if not isinstance(src, dict):
+        probs.append(f"{mid}=source非对象:{_short(src)}")
+    else:
+        col = src.get('collector')
+        if not isinstance(col, str) or not col.strip():
+            probs.append(f"{mid}=source.collector缺失/非法:{_short(col)}")
+        fil = src.get('file')
+        if not isinstance(fil, str) or not fil.strip():
+            probs.append(f"{mid}=source.file缺失(来源文件身份不可追溯)")
+        # retrieved_at不强制: 部分既有采集器合法地为None(发布日≠观测日亦不混同)
+    if (mid in _DERIVED_DEPS or '(derived)' in str(m.get('source', ''))) \
+            and (not isinstance(fact.get('calculation_ref'), str)
+                 or not fact.get('calculation_ref', '').strip()):
+        probs.append(f"{mid}=派生事实缺calculation_ref(计算来源不可追溯)")
+    return probs
+
+
+class _MissingType:
+    """哨兵: 与None区分'字段被删除'与'字段值为null'。"""
+
+    def __repr__(self):
+        return '<字段缺失>'
+
+
+_MISSING = _MissingType()
+
+
+def _short(v, n=40):
+    s = repr(v)
+    return s if len(s) <= n else s[:n] + '…'
+
+
 # ══ Gate A 三态语义 ═══════════════════════════════════════════════
 
 # 事实质量合法词汇表(事实引擎grade_issues产出;WARN为轻度提示,counts不计)
@@ -73,30 +193,42 @@ FACT_QUALITY = ('PASS', 'WARN', 'DEGRADED', 'FAIL')
 
 def recompute_gate_a(snapshot):
     """从**真实事实+注册表**重算Gate A裁决(IA-P0-1-FIX2/FIX2-02权威口径;
-    IA-P0-1-FIX3 FIX3-01/F2-NEW-001: 非法事实结构fail-closed)。
+    FIX3-01/F2-NEW-001: 非法事实结构fail-closed;FIX4-01/FIX3-NEW-001:
+    事实必要字段与注册表身份完整校验;FIX4-03/FIX3-NEW-003: active非核心指标
+    完全缺失识别)。
 
-    不信任快照内任何声明字段——以注册表status=active且criticality=core集合与
-    facts实际内容重算:
-    - core_missing: 核心指标无事实记录;
-    - core_fail: 核心事实quality=FAIL;
+    不信任快照内任何声明字段——以注册表active集合与facts实际内容重算:
+    - core_missing/core_fail: 核心指标无事实/事实FAIL;
     - noncore_fail/noncore_degraded: 非核心事实**合法**FAIL/DEGRADED(按既有
       规则降级披露——合法降级语义不变,不得一律升级FAIL);
-    - duplicates: 同一metric_id出现多条事实(数据身份冲突→FAIL);
-    - illegal_quality: **任何**非法/不可证明的事实结构——非对象事实(字符串/
-      null/数组)、metric_id缺失或非字符串、quality_status缺失或不在合法词汇表
-      (FACT_QUALITY)。FIX3-01: 非法≠合法的非核心FAIL——事实集合结构一旦存在
-      非法条目,整套事实的可数性/身份/质量即不可证明,快照**不得作为合格快照
-      放行正式研究**: effective=None(无法证明任何状态),调用方一律拒绝;
-    - counts: 按事实引擎口径重计(仅PASS/DEGRADED/FAIL三键,WARN不计——与
-      fact_engine.snapshot_quality_grade完全同构);
-    - effective: None(结构非法/不可证明)>FAIL(core缺失/失败/身份冲突)>
-      DEGRADED(非核心合法失败/降级)>PASS。
+    - noncore_missing(+detail): FIX4-03——active非核心指标本期**完全无事实**:
+      来源采集文件在场而指标缺席=采集遗漏;来源文件整体缺失=来源级缺失;
+      派生指标在输入缺席时属归因性缺席(不计),输入齐全而缺席才计;
+      deprecated/未注册指标不要求(不被错误要求);月频"尚未发布新期"≠缺失
+      (旧期观测仍应在场——真正未发布表现为**在场事实的观测日滞后**,由既有
+      新鲜度窗口降级披露,不在此伪造发布日历);缺失不补零、不伪造数据,
+      只进清单并使Gate A至少DEGRADED;
+    - duplicates: 同一metric_id多条事实(数据身份冲突→FAIL);
+    - non_research_facts: 未注册/已弃用指标的FAIL**诊断记录**(事实引擎
+      normalize_*对游离序列的既有标注)——保留披露但**不计入有效研究事实**
+      (counts/noncore清单);同一指标若自报PASS/WARN/DEGRADED则属**无注册表
+      身份自宣有效**→illegal(FIX4-01: 未注册指标不得自行声明PASS进入正式研究);
+    - illegal_quality: 任何非法/不可证明结构——非对象事实/身份缺失/质量缺失
+      或非法,以及FIX4-01新增: 声明有效(PASS/WARN/DEGRADED)的注册表事实缺
+      value/value非法/单位与注册表不一致/观测日缺失·不可解析·晚于研究截止/
+      source无collector·file身份/派生缺calculation_ref。存在即effective=None
+      (结构不可证明≠合法非核心FAIL,不得以降级放行);
+    - counts: 仅统计注册表active指标事实(与fact_engine.snapshot_quality_grade
+      同构改造: 非研究事实诊断记录不冒充研究事实计数);
+    - effective: None(非法/不可证明)>FAIL(core缺失/失败/身份冲突)>
+      DEGRADED(非核心合法失败/降级/完全缺失)>PASS。
 
     返回dict;snapshot结构损坏、事实结构非法或注册表不可用时 effective=None
-    并在reasons说明(调用方不得当作任何放行状态)。
-    """
+    并在reasons说明(调用方不得当作任何放行状态)。"""
     out = {'core_missing': [], 'core_fail': [], 'noncore_fail': [],
-           'noncore_degraded': [], 'duplicates': [], 'illegal_quality': [],
+           'noncore_degraded': [], 'noncore_missing': [],
+           'noncore_missing_detail': {}, 'duplicates': [],
+           'non_research_facts': [], 'illegal_quality': [],
            'counts': {'PASS': 0, 'DEGRADED': 0, 'FAIL': 0}, 'overall': 'PASS',
            'effective': None, 'reasons': []}
     if not isinstance(snapshot, dict):
@@ -107,9 +239,29 @@ def recompute_gate_a(snapshot):
         out['reasons'].append(f'facts非列表: {type(facts).__name__}')
         return out
     core_ids = core_metric_ids()
-    if not core_ids:
+    actives = active_registry_metrics()
+    if not core_ids or not actives:
         # 注册表不可用→无法证明核心集合(宁可无法证明,不可虚报)
         out['reasons'].append('注册表不可用——无法重算核心集合(不得放行)')
+        return out
+    # FIX4-01: 研究截止(观测日不得晚于它)。取research_as_of日期部分;
+    # 缺失时退target_date;两者皆缺→截止不可核验(fail-closed,不得放行)。
+    cutoff = None
+    as_of = snapshot.get('research_as_of')
+    tgt = snapshot.get('target_date')
+    if isinstance(as_of, str) and as_of.strip():
+        try:
+            cutoff = _date_cls.fromisoformat(as_of[:10])
+        except ValueError:
+            cutoff = None
+    if cutoff is None and isinstance(tgt, str) and len(tgt) >= 8 and tgt[:8].isdigit():
+        try:
+            cutoff = _date_cls.fromisoformat(f"{tgt[:4]}-{tgt[4:6]}-{tgt[6:8]}")
+        except ValueError:
+            cutoff = None
+    if cutoff is None:
+        out['reasons'].append('快照缺research_as_of/target_date——研究截止不可得,'
+                              '观测日合法性不可核验(不得放行)')
         return out
     by_id, seen_dup = {}, set()
     for f in facts:
@@ -123,16 +275,79 @@ def recompute_gate_a(snapshot):
             # FIX3-01: 事实缺少可识别指标身份→无法归类核缺/核败,整套事实不可证明
             out['illegal_quality'].append(f'<身份缺失事实:metric_id={mid!r}>')
             continue
+        m = actives.get(mid)
+        qs = f.get('quality_status')
+        if m is None:
+            # FIX4-01: 未注册/已弃用指标——可保留FAIL诊断记录(不冒充研究事实),
+            # 但自报任何有效状态=无注册表身份自宣有效→非法
+            if qs == 'FAIL':
+                out['non_research_facts'].append(
+                    f"{mid}(FAIL诊断记录,未注册/非active,不入有效研究事实)")
+            else:
+                out['illegal_quality'].append(
+                    f"{mid}=未注册/非active指标自报{qs!r}(无注册表身份不得自宣有效)")
+            continue
         if mid in by_id:
             seen_dup.add(mid)
             continue
         by_id[mid] = f
-        qs = f.get('quality_status')
         if qs not in FACT_QUALITY:
             out['illegal_quality'].append(f"{mid}={qs!r}")
-        elif qs in ('PASS', 'DEGRADED', 'FAIL'):
+            continue
+        # FIX4-01: 声明有效的事实须通过必要字段/口径结构校验(合法FAIL保留
+        # 异常原始值与诊断——已被质量体系隔离,不在此判非法)
+        if qs in ('PASS', 'WARN', 'DEGRADED'):
+            out['illegal_quality'].extend(fact_structure_problems(f, m, cutoff))
+        if qs in ('PASS', 'DEGRADED', 'FAIL'):
             out['counts'][qs] += 1
     out['duplicates'] = sorted(seen_dup)
+
+    # FIX4-03: active非核心指标完全缺失识别(注册表驱动,非硬编码特例)
+    sources_status = snapshot.get('sources_status')
+    boundary = []
+    if not isinstance(sources_status, dict):
+        # 显式判断边界: 无来源状态可判时不虚报缺失(快照构建器恒写入该字段;
+        # 手工构造的部分dict无此字段→缺失判定不可执行,如实记录)
+        boundary.append('快照缺sources_status——非核心缺失判定不可执行(显式边界)')
+        sources_status = None
+    for mid, m in actives.items():
+        if mid in core_ids or mid in by_id:
+            continue
+        deps = _DERIVED_DEPS.get(mid)
+        if deps is not None:
+            # 派生: 输入缺席→归因性缺席(不计);输入齐全而缺席→计缺失。
+            # 数值条件镜像compute_derived(仅输入有数值才可能生成派生);
+            # NFP_MOM_K还须NFP序列m1可算(镜像compute_derived条件)。
+            inputs_ok = all(
+                d in by_id and isinstance(by_id[d].get('value'), (int, float))
+                and not isinstance(by_id[d].get('value'), bool)
+                for d in deps)
+            if mid == 'NFP_MOM_K' and inputs_ok:
+                m1 = (by_id['NFP'].get('derived') or {}).get('m1') or {}
+                inputs_ok = m1.get('abs_change') is not None
+            if not inputs_ok:
+                continue   # 归因于输入缺席(输入自身已按其规则披露)
+            reason = '派生输入齐全而派生事实未生成'
+        else:
+            src_input = _SOURCE_TO_INPUT.get(m.get('source'))
+            if src_input is None:
+                # 显式判断边界: 注册表来源无法映射到采集通道——不编造预期
+                boundary.append(f"{mid}:来源{m.get('source')!r}无法映射采集通道,"
+                                '不入缺失判定(边界如实记录)')
+                continue
+            if sources_status is None:
+                continue   # 边界已在上方整体记录
+            st = sources_status.get(src_input)
+            if isinstance(st, dict) and st.get('status') in ('EXACT', 'FALLBACK'):
+                reason = '来源文件在场而指标缺席(采集遗漏)'
+            else:
+                reason = f'来源文件缺失({src_input}:{(st or {}).get("status", "无状态")})'
+        out['noncore_missing'].append(mid)
+        out['noncore_missing_detail'][mid] = reason
+    out['noncore_missing'].sort()
+    if boundary:
+        out['noncore_missing_boundary'] = boundary
+
     for mid in core_ids:
         f = by_id.get(mid)
         if f is None:
@@ -156,7 +371,7 @@ def recompute_gate_a(snapshot):
     c = out['counts']
     out['overall'] = ('FAIL' if c['FAIL'] else 'DEGRADED' if c['DEGRADED'] else 'PASS')
     if out['illegal_quality']:
-        # FIX3-01(F2-NEW-001)fail-closed: 非法/不可证明结构不得放行任何正式状态
+        # FIX3-01/FIX4-01 fail-closed: 非法/不可证明结构不得放行任何正式状态
         out['effective'] = None
         out['reasons'].append(
             f"存在非法/不可证明事实结构{len(out['illegal_quality'])}条——"
@@ -164,7 +379,8 @@ def recompute_gate_a(snapshot):
             + '; '.join(out['illegal_quality'][:5]))
     elif out['core_missing'] or out['core_fail'] or out['duplicates']:
         out['effective'] = 'FAIL'
-    elif c['DEGRADED'] or out['noncore_fail'] or out['noncore_degraded']:
+    elif c['DEGRADED'] or out['noncore_fail'] or out['noncore_degraded'] \
+            or out['noncore_missing']:
         out['effective'] = 'DEGRADED'
     else:
         out['effective'] = 'PASS'
@@ -222,7 +438,10 @@ def gate_status(snapshot):
                       + '; '.join(why))
     if isinstance(ga, dict):
         for field, actual, label in (('core_missing', rec['core_missing'], '核心缺失'),
-                                     ('core_fail', rec['core_fail'], '核心失败')):
+                                     ('core_fail', rec['core_fail'], '核心失败'),
+                                     # FIX4-03: 非核心缺失清单同样声明↔重算一致
+                                     ('noncore_missing', rec['noncore_missing'],
+                                      '非核心缺失')):
             declared = ga.get(field)
             if declared is None:
                 continue
@@ -263,6 +482,9 @@ def gate_reason_desc(snapshot):
         parts.append('core缺失: ' + ','.join(ga['core_missing'][:8]))
     if ga.get('core_fail'):
         parts.append('core失败: ' + ','.join(ga['core_fail'][:8]))
+    if ga.get('noncore_missing'):
+        # FIX4-03: 非核心完全缺失进入降级/拒绝原因(进入周报降级披露)
+        parts.append('非核心缺失: ' + ','.join(ga['noncore_missing'][:8]))
     q = (snapshot.get('quality') or {}).get('counts') or {}
     if q.get('DEGRADED'):
         parts.append(f"DEGRADED事实{q['DEGRADED']}项")
@@ -483,7 +705,8 @@ def read_report_status(status_path):
 
 
 def formal_report_view(md_path):
-    """FIX3-02(F2-NEW-002)权威正式周报读取入口——所有正式消费者的统一读法。
+    """FIX3-02(F2-NEW-002)+FIX4-02(FIX3-NEW-002)权威正式周报读取入口——
+    所有正式消费者的统一读法。
 
     校验链(任一不满足 → (None, 原因),不得作为已合格正式周报使用):
     1. 文件名为规范正式名 weekly_report_YYYYMMDD.md(候选/未验证/标注/备份/
@@ -491,10 +714,18 @@ def formal_report_view(md_path):
     2. 同目录存在对应发布状态 report_status_{ymd}.json 且可解析;
     3. published 明确为 True;
     4. final_quality ∈ (PASS, DEGRADED)(已明确允许的降级);
-    5. 状态记录的报告文件身份(report_file)与实际文件一致;
-    6. 状态target_date(如记录)与文件名日期一致;
-    7. 实际报告内容摘要(重算)与状态记录report_digest一致——发布中途被替换
+    5. FIX4-02: 状态报告身份**必需字段一律强制**——report_file必须存在且与
+       实际文件名一致(缺失=身份不完整,不再容忍None);
+    6. FIX4-02: target_date必须存在且与文件名日期一致(缺失=身份不完整);
+    7. FIX4-02: report_path必须存在,且经realpath标准化后与实际读取路径一致
+       ——指向其他目录/另一报告/被移动的报告在此被拒;同一文件的相对/绝对/
+       ".."别名等价路径经标准化后放行(不得因路径别名误拒,亦不得借别名冒充)。
+       路径兼容规则以_status_body真实写入行为为准:发布时写入的就是正式文件
+       的完整路径(os.path.join(OUTPUT_DIR, weekly_report_ymd.md));
+    8. 实际报告内容摘要(重算)与状态记录report_digest一致——发布中途被替换
        /中断窗口内的未发布产物在此被拒。
+    旧状态若缺身份字段,只能走latest_archive_weekly_report未验证档案机制,
+    不得冒充正式合格产物(本轮不为兼容不完整旧状态默认放行)。
     返回({'ymd','path','status'}, '') 或 (None, reason)。"""
     md_path = str(md_path)
     fname = os.path.basename(md_path)
@@ -514,12 +745,19 @@ def formal_report_view(md_path):
     if st.get('final_quality') not in FORMAL_FINAL_QUALITIES:
         return None, (f"final_quality={st.get('final_quality')!r}∉"
                       f"{FORMAL_FINAL_QUALITIES}——非合格正式报告")
-    if st.get('report_file') not in (None, fname):
-        return None, (f"状态记录报告身份({st.get('report_file')!r})"
-                      f'与实际文件({fname})不一致')
-    if st.get('target_date') is not None and str(st.get('target_date')) != ymd:
-        return None, (f"状态target_date={st.get('target_date')}与文件名日期"
-                      f'{ymd}不一致')
+    # FIX4-02: 身份字段强制(缺失即拒,不再把None当作"未记录则跳过")
+    if st.get('report_file') != fname:
+        return None, (f"状态报告身份缺失或不符: report_file={st.get('report_file')!r}"
+                      f',实际文件={fname!r}')
+    td = st.get('target_date')
+    if td is None or str(td) != ymd:
+        return None, (f"状态target_date缺失或与文件名日期不一致: {td!r} vs {ymd}")
+    rp_path = st.get('report_path')
+    if not isinstance(rp_path, str) or not rp_path.strip():
+        return None, '状态缺report_path(报告路径身份不可核验)'
+    if os.path.realpath(rp_path) != os.path.realpath(md_path):
+        return None, (f'状态report_path({rp_path})与实际读取路径({md_path})'
+                      '不一致(指向其他目录/另一报告/报告已被移动)')
     try:
         digest = digest_file(md_path)
     except OSError as e:

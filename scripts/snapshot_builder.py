@@ -265,22 +265,33 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
     # 非核心指标FAIL按质量规则降级披露(DEGRADED);核心缺失/失败才判FAIL;
     # 重复metric_id=数据身份冲突判FAIL。写入裁决与下游核验(research_provenance.
     # gate_status)同源同口径,快照声明与事实不可能在构建时就矛盾。
-    rec = rp.recompute_gate_a({'facts': facts})
+    rec = rp.recompute_gate_a({'facts': facts, 'sources_status': sources_status,
+                               'research_as_of': as_of, 'target_date': ymd})
     gate_a = {'status': rec['effective'],
               'core_missing': rec['core_missing'], 'core_fail': rec['core_fail'],
               'noncore_fail': rec['noncore_fail'],
+              'noncore_missing': rec['noncore_missing'],
               'note': '缺失/失败数据已披露,不得进入研究结论;单个资产缺失不阻断其余研究;'
                       '非核心FAIL按降级披露(注册表criticality为权威)'}
     if rec['duplicates']:
         gate_a['note'] += f';重复metric_id按FAIL处置: {",".join(rec["duplicates"][:6])}'
     if rec['effective'] is None:
         # FIX3-01(F2-NEW-001)fail-closed: 事实集合存在非法/不可证明结构
-        # (非对象/身份缺失/质量缺失或非法)——快照如实写入非法状态(不可变存证),
-        # 但不得作为合格快照放行: status=None,下游gate_status/装配/报告全部拒绝
+        # (非对象/身份缺失/质量缺失或非法/FIX4-01必要字段或注册表身份不符)
+        # ——快照如实写入非法状态(不可变存证),但不得作为合格快照放行:
+        # status=None,下游gate_status/装配/报告全部拒绝
         gate_a['note'] = ('事实结构非法/不可证明('
                           + '; '.join(rec['reasons'][:2])
                           + ')——本快照不得用于正式研究')
         gate_a['illegal_quality'] = rec['illegal_quality']
+    # FIX4-03(FIX3-NEW-003): 非核心完全缺失的结构化披露(快照JSON保存缺失
+    # 信息+原因;MD另行渲染;Gate A因此至少DEGRADED——见recompute_gate_a)
+    if rec['noncore_missing']:
+        gate_a['noncore_missing_detail'] = rec['noncore_missing_detail']
+    if rec.get('noncore_missing_boundary'):
+        gate_a['noncore_missing_boundary'] = rec['noncore_missing_boundary']
+    if rec['non_research_facts']:
+        gate_a['non_research_facts'] = rec['non_research_facts']
     gate_a['noncore_degraded'] = rec['noncore_degraded']
     gate_a['illegal_quality'] = rec['illegal_quality']
 
@@ -372,7 +383,11 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
     print(f"   MD:   {md_path}")
     print(f"   锚点: {anchors_path} ({len(anchors)}个)")
     print(f"   Gate A: {gate_a['status']} | 事实 {len(facts)} | "
-          f"质量 {quality['counts']} | core缺失 {len(quality['missing_core'])}")
+          f"质量 {quality['counts']} | core缺失 {len(quality['missing_core'])}"
+          + (f" | 非核心缺失 {len(gate_a['noncore_missing'])}项"
+             f"({','.join(gate_a['noncore_missing'][:5])})"
+             f"{'' if len(gate_a['noncore_missing']) <= 5 else '…'}"
+             if gate_a.get('noncore_missing') else ''))
     return snapshot
 
 
@@ -411,6 +426,14 @@ def render_markdown(snap):
         L.append(f"**⚠️ core指标缺失**: {', '.join(snap['gate_a']['core_missing'])} — 相关结论不得生成")
     if snap['gate_a']['core_fail']:
         L.append(f"**❌ core指标FAIL**: {', '.join(snap['gate_a']['core_fail'])}")
+    # FIX4-03: 非核心完全缺失披露(本期无事实,采集遗漏/来源缺失——已降级,
+    # 未补零未伪造;有效数据继续研究)
+    if snap['gate_a'].get('noncore_missing'):
+        det = snap['gate_a'].get('noncore_missing_detail') or {}
+        L.append('')
+        L.append("**⚠️ 非核心指标缺失(本期无事实,Gate A已降级披露)**:")
+        for mid in snap['gate_a']['noncore_missing']:
+            L.append(f"- {mid}: {det.get(mid, '原因未注明')}")
 
     fams = [('权益/波动率', ('equity_index', 'single_stock', 'volatility_index', 'crypto')),
             ('ETF(代理已标注)', ('bond_etf', 'country_etf_proxy', 'spot_commodity_etf',

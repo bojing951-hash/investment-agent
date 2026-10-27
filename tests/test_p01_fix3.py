@@ -412,7 +412,10 @@ with tempfile.TemporaryDirectory() as td:
     dg = rp.digest_file(fpath)
 
     def st(**kw):
+        # FIX4-02: report_path为必需身份字段(真实_status_body恒写入)——
+        # 手工构造的合法基线须带上(缺失分支的负向覆盖在test_p01_fix4矩阵)
         base = {'report_file': 'weekly_report_20261024.md', 'target_date': '20261024',
+                'report_path': fpath,
                 'report_digest': dg, 'published': True, 'final_quality': 'PASS'}
         base.update(kw)
         json.dump(base, open(os.path.join(td, 'report_status_20261024.json'), 'w'))

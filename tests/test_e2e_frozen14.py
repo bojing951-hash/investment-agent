@@ -75,6 +75,7 @@ import data_validator as dv               # noqa: E402
 import report_generator as rg             # noqa: E402
 import run_weekly                         # noqa: E402
 import macro_scorecard as ms              # noqa: E402
+import daily_prediction_observer as dpo    # noqa: E402
 import fixt                               # noqa: E402
 
 DAY = '20261024'        # 本场景日(周六,day>7→pending_month/quarter自然为None)
@@ -119,10 +120,13 @@ print("=" * 64)
 
 
 def chain_build(td, ymd=DAY, gate='PASS', break_metric=None, missing=(),
-                with_pack=True):
+                with_pack=True, post_collectors=None):
     """链路前段(全真实): 采集JSON → snapshot_builder CLI(真实子进程) →
     macro_scorecard.main → data_assembler.main → 锚点prompt。
-    Gate FAIL日sb CLI仍落盘快照(exit≠0属合法记录),装配器exit 2不产正式包。"""
+    Gate FAIL日sb CLI仍落盘快照(exit≠0属合法记录),装配器exit 2不产正式包。
+    post_collectors: 写完采集JSON后的注入回调(daily, ymd)——用于构造
+    数值型区间外等"合法链路内"的数据形态(如E2E-12的UMCSENT区间外数值,
+    经真实事实引擎判FAIL,而非事后人工篡改锚点)。"""
     daily = os.path.join(td, 'data', 'daily')
     weekly = os.path.join(td, 'data', 'weekly')
     os.makedirs(daily, exist_ok=True)
@@ -130,6 +134,8 @@ def chain_build(td, ymd=DAY, gate='PASS', break_metric=None, missing=(),
     if break_metric is None:
         break_metric = {'DEGRADED': 'UMCSENT', 'FAIL': 'SPX'}.get(gate)
     fixt.write_collectors(daily, ymd, break_metric=break_metric, missing=missing)
+    if post_collectors:
+        post_collectors(daily, ymd)
     code, out = cli([os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
                      '--date', ymd, '--data-dir', daily, '--out-dir', daily])
     snap_file = os.path.join(daily, f'research_snapshot_{ymd}.json')
@@ -284,13 +290,15 @@ with tempfile.TemporaryDirectory() as td:
 # ────────────────────────────────────────────────────────────────────
 # 真实入口: 同E2E-01全链(真实CLI+真实main+真实周报入口)
 # 合成输入: 非核心指标UMCSENT两种"缺失"形态——(甲)值坏'N/A'(采集到但不可用)
-#   (乙)指标整体缺席(不出现在采集文件)
+#   (乙)指标整体缺席(FIX4-03原始场景B:不出现在任何采集文件)
 # mock范围: 付费GLM与Gate B裁决值('PASS')
-# 执行模块: 同E2E-01(recompute_gate_a真实分级裁决)
-# 文件副作用: 沙箱内同E2E-01(甲形态发布DEGRADED周报)
+# 执行模块: 同E2E-01(recompute_gate_a真实分级裁决+FIX4-03缺席清单)
+# 文件副作用: 沙箱内同E2E-01(甲/乙形态各发布DEGRADED周报)
 # 预期与断言: (甲)Gate A=DEGRADED(非核心FAIL→合理降级,不阻断)→装配产包
 #   →周报exit0→真实formal_view认定final_quality='DEGRADED';
-#   (乙)完全缺席按注册表语义披露(锚点减少),Gate A保持PASS不虚报降级
+#   (乙)整体缺席→缺席进noncore_missing清单+快照MD/数据包meta逐级披露,
+#   Gate A=DEGRADED(不再无声PASS),未补零未伪造UMCSENT事实,其余有效数据
+#   继续装配研究,正式周报保留可见降级解释(点名缺席指标)
 # ════════════════════════════════════════════════════════════════════
 print("\n── E2E-02 部分非核心数据缺失，合理降级")
 with tempfile.TemporaryDirectory() as td:
@@ -310,12 +318,32 @@ with tempfile.TemporaryDirectory() as td:
           code == 0 and v is not None and v['status']['final_quality'] == 'DEGRADED',
           f"exit={code}")
 with tempfile.TemporaryDirectory() as td:
-    snap, snap_path, p2 = fixt.build_full_day(td, DAY, missing=('UMCSENT',))  # (乙)整体缺席
-    check("E2E-02d 非核心整体缺席→如实披露(事实/锚点减少)且Gate A保持PASS(不虚报降级)",
-          snap['gate_a']['status'] == 'PASS'
-          and len(snap['facts']) < 36
-          and len(json.load(open(p2['anchors'], encoding='utf-8'))) < 61,
-          f"gate={snap['gate_a']['status']} facts={len(snap['facts'])}")
+    # (乙)整体缺席(FIX4-03原始场景B,不得偷换成"值坏"场景甲)
+    paths, c = chain_build(td, DAY, missing=('UMCSENT',))
+    snap = json.load(open(paths['snapshot'], encoding='utf-8'))
+    ga = snap['gate_a']
+    fake = [f for f in snap['facts'] if f.get('metric_id') == 'UMCSENT']
+    md = open(paths['snapshot'].replace('.json', '.md'), encoding='utf-8').read()
+    check("E2E-02d 非核心整体缺席→noncore_missing点名+Gate A=DEGRADED(不再无声PASS)",
+          c == 0 and ga['status'] == 'DEGRADED'
+          and ga.get('noncore_missing') == ['UMCSENT']
+          and 'UMCSENT' not in ga.get('core_fail', [])
+          and fake == [],
+          f"gate={ga['status']} missing={ga.get('noncore_missing')}")
+    check("E2E-02d2 未补零未伪造(无UMCSENT事实)且其余有效数据继续装配研究",
+          os.path.exists(paths['pack']) and paths['pack_code'] == 0
+          and len(snap['facts']) >= 78
+          and '非核心指标缺失' in md and 'UMCSENT' in md
+          and 'UMCSENT' in open(paths['pack'], encoding='utf-8').read()
+          and rp.load_meta(paths['pack']).get('noncore_missing') == ['UMCSENT'],
+          f"facts={len(snap['facts'])} pack={paths['pack_code']}")
+    code, out, applied, glm = report_run(td, gate_b='PASS')
+    rmd = open(os.path.join(out, f'weekly_report_{DAY}.md'), encoding='utf-8').read() \
+        if code == 0 else ''
+    check("E2E-02d3 缺席降级可发布(exit0)+正式周报保留可见降级解释(点名缺席指标)",
+          code == 0 and formal(out, DAY) is not None
+          and '非核心缺失' in rmd and 'UMCSENT' in rmd,
+          f"exit={code}")
 
 # ════════════════════════════════════════════════════════════════════
 # E2E-03 核心失败导致Gate A FAIL
@@ -564,18 +592,116 @@ with tempfile.TemporaryDirectory() as td:
           code == 2 and glm.calls == 0, f"exit={code} glm={glm.calls}")
 
 # ════════════════════════════════════════════════════════════════════
-# E2E-12 有效、无效预测指标混合
+# E2E-12 有效、无效预测指标混合(FIX4-04按原始语义重建)
 # ────────────────────────────────────────────────────────────────────
-# 真实入口: 真实装配链→锚点文件混入1个无效锚点(剥离quality字段,旧schema/
-#   伪造锚点特征)并同步meta摘要→真实批次核验+真实周报入口
-# 合成输入: 其余锚点全部有效;单锚点缺质量字段
-# mock范围: 付费GLM(计数)
-# 执行模块: verify_anchor_batch权威重建比对(真实)——无效锚点不得被静默
-#   忽略后放行其余
-# 文件副作用: 锚点被改写(沙箱);无周报产出
-# 预期与断言: 对照组(未混入)批次通过;混入后批次False+预检False+exit2+GLM=0
+# 真实入口: 真实装配链(采集JSON内UMCSENT数值型区间外9999.9→事实引擎区间
+#   校验FAIL→合法Gate A=DEGRADED;非人工篡改锚点/快照)→真实批次核验
+#   verify_anchor_batch→真实观察器daily_prediction_observer.observe()
+#   +真实状态引擎allocation_engine.record_observations
+# 合成输入: 同一可追溯批次内≥2条有效状态预测——A观察中/目标=合法PASS指标
+#   (SPX),B观察中/目标=本轮质量FAIL指标(UMCSENT区间外);另有终态预测
+#   (hit)与未触发预测(前提合法未兑现+前提无效两种)
+# mock范围: 零mock(纯前段+观察器,无GLM调用)
+# 执行模块: fact_engine区间校验→snapshot_builder→verify_anchor_batch权威
+#   重建比对→observe指标级质量门禁(rp.anchor_quality_problem同口径)
+#   →record_observations真实写入长期观察历史(幂等)
+# 文件副作用: 沙箱内快照/锚点+meta/数据包;views.json观察记录真实落盘
+# 预期与断言: 批次核验通过(合法批次);A记入观察(值/观测日/来源),B因质量
+#   FAIL跳过且不进长期历史,终态预测不重开,未触发前提不激活;重复运行
+#   幂等(无新增观察/文件不变)
 # ════════════════════════════════════════════════════════════════════
 print("\n── E2E-12 有效、无效预测指标混合")
+with tempfile.TemporaryDirectory() as td:
+    def _umc_out_of_range(daily, ymd):
+        # 合法链路内构造: 数值型超注册表区间[40,120]→事实引擎区间校验FAIL
+        # (锚点仍带数值与quality=FAIL,区别于字符串'N/A'的完全无锚点)
+        p = os.path.join(daily, f'macro_{ymd}.json')
+        with open(p, encoding='utf-8') as f:
+            obj = json.load(f)
+        obj['data']['UMCSENT']['value'] = 9999.9
+        with open(p, 'w', encoding='utf-8') as f:
+            json.dump(obj, f, ensure_ascii=False)
+    paths, c = chain_build(td, DAY, post_collectors=_umc_out_of_range)
+    snap = json.load(open(paths['snapshot'], encoding='utf-8'))
+    anchors = json.load(open(paths['anchors'], encoding='utf-8'))
+    check("E2E-12a 合法可追溯批次: Gate A=DEGRADED(UMCSENT区间外→非核心FAIL)"
+          "+批次核验通过(锚点为快照确定性重建,非篡改)",
+          c == 0 and snap['gate_a']['status'] == 'DEGRADED'
+          and 'UMCSENT' in snap['gate_a'].get('noncore_fail', [])
+          and anchors['macro.data.UMCSENT.value']['quality'] == 'FAIL'
+          and anchors['global_market.data.SPX.close']['quality'] == 'PASS'
+          and rp.verify_anchor_batch(paths['anchors'], anchors_date=DAY,
+                                     daily_dir=paths['daily'])[0] is True,
+          f"gate={snap['gate_a']['status']}")
+    views_path = os.path.join(td, 'config', 'views.json')
+    ensure_state_sandbox(td)
+    preds = {'views': [], 'predictions': [
+        # A: 观察中,目标=合法PASS指标(SPX)
+        {'pred_id': 'P-A', 'status': 'observing',
+         'metric': 'global_market.data.SPX.close', 'comparator': '>=',
+         'target': 7000.0, 'observe_from': '2026-10-10',
+         'deadline': '2026-12-31', 'observations': []},
+        # B: 观察中,目标=本轮质量FAIL指标(UMCSENT区间外)
+        {'pred_id': 'P-B', 'status': 'observing',
+         'metric': 'macro.data.UMCSENT.value', 'comparator': '<=',
+         'target': 80.0, 'observe_from': '2026-10-10',
+         'deadline': '2026-12-31', 'observations': []},
+        # C: 已终态预测(hit)——不得被每日观察重新开启/追记
+        {'pred_id': 'P-C', 'status': 'hit',
+         'metric': 'global_market.data.GOLD.close', 'comparator': '>=',
+         'target': 4000.0,
+         'observations': [{'obs_date': '2026-10-09', 'value': 4210.0}]},
+        # D: 未触发预测,前提=合法PASS指标且未兑现(VIX 15.82<30)→保持未触发
+        {'pred_id': 'P-D', 'status': 'not_yet_triggered',
+         'premise': {'metric': 'global_market.data.VIX.close', 'op': '>=',
+                     'target': 30.0},
+         'metric': 'global_market.data.SPX.close', 'comparator': '<=',
+         'target': 7000.0, 'deadline': '2026-12-31'},
+        # E: 未触发预测,前提=本轮质量FAIL指标(UMCSENT)→无效前提不得激活
+        {'pred_id': 'P-E', 'status': 'not_yet_triggered',
+         'premise': {'metric': 'macro.data.UMCSENT.value', 'op': '<=',
+                     'target': 80.0},
+         'metric': 'macro.data.CPI.value', 'comparator': '>=',
+         'target': 300.0, 'deadline': '2026-12-31'}]}
+    with open(views_path, 'w', encoding='utf-8') as f:
+        json.dump(preds, f, ensure_ascii=False)
+    changes, nwatch, status = dpo.observe(
+        views_path=views_path, anchors=anchors, today_str='2026-10-24',
+        anchors_date=DAY, anchors_path=paths['anchors'])
+    with open(views_path, encoding='utf-8') as f:
+        after = json.load(f)
+    got = {p['pred_id']: p for p in after['predictions']}
+    obs_a = got['P-A'].get('observations') or []
+    check("E2E-12b 批次内混合预测: A(合法PASS指标)记入观察(值/观测日/来源真实)",
+          any('P-A' in ch for ch in changes)
+          and len(obs_a) == 1 and obs_a[0]['value'] == 7659.44
+          and obs_a[0]['obs_date'] == '2026-10-23'
+          and obs_a[0]['source'] == 'research_snapshot_20261024.json',
+          f"changes={changes}")
+    check("E2E-12c B(质量FAIL指标)本轮跳过不进长期历史(观察列表保持空)",
+          status == 'PARTIAL' and got['P-B'].get('observations') == []
+          and not any('P-B' in ch for ch in changes),
+          f"status={status} obsB={got['P-B'].get('observations')}")
+    check("E2E-12d 终态预测不重开+无效前提不激活+合法未触发前提保持未触发",
+          got['P-C']['status'] == 'hit'
+          and len(got['P-C']['observations']) == 1
+          and got['P-E']['status'] == 'not_yet_triggered'
+          and 'premise_triggered_date' not in got['P-E']
+          and got['P-D']['status'] == 'not_yet_triggered'
+          and 'premise_triggered_date' not in got['P-D'],
+          f"C={got['P-C']['status']} D={got['P-D']['status']} "
+          f"E={got['P-E']['status']}")
+    bytes_after = open(views_path, 'rb').read()
+    changes2, _, status2 = dpo.observe(
+        views_path=views_path, anchors=anchors, today_str='2026-10-24',
+        anchors_date=DAY, anchors_path=paths['anchors'])
+    check("E2E-12e 同批次重复运行幂等(零新增变更,长期状态文件字节不变)",
+          changes2 == [] and open(views_path, 'rb').read() == bytes_after,
+          f"changes2={len(changes2)}")
+
+# E2E-12x(附加源对抗测试,FIX4-04保留自旧E2E-12实现——不再冒充E2E-12,
+# 作为批次来源完整性的额外对抗用例): 锚点文件被剥离quality字段后即便
+# 同步meta摘要,权威重建比对仍须整批拒绝。
 with tempfile.TemporaryDirectory() as td:
     paths, c = chain_build(td, DAY)
     ok_clean, why_clean = rp.verify_anchor_batch(paths['anchors'], anchors_date=DAY,
@@ -592,8 +718,8 @@ with tempfile.TemporaryDirectory() as td:
                                        daily_dir=paths['daily'])
     ok, problems = run_verify(td)
     code, out, applied, glm = report_run(td, gate_b='PASS')
-    check("E2E-12 有效+无效锚点混合→批次整体拒(无效不静默放行)+对照有效批次通过"
-          "+入口exit2+GLM=0",
+    check("E2E-12x [附加]锚点篡改(剥离quality+同步摘要)→批次整体拒+对照批次通过"
+          "+预检拒+入口exit2+GLM=0",
           ok_clean and okb is False and ok is False and code == 2 and glm.calls == 0,
           f"clean={ok_clean} mixed={okb}:{whyb[:40]} exit={code}")
 

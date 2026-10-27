@@ -365,7 +365,10 @@ snap = synth_snapshot()
 # 声明DEGRADED(与重算一致)→合法降级放行(§8用真实构建覆盖完整链)
 _um = next(f for f in snap['facts'] if f['metric_id'] == 'UMCSENT')
 _um['quality_status'] = 'FAIL'
-snap['quality']['counts'] = {'PASS': 33, 'DEGRADED': 0, 'FAIL': 1}
+# FIX4: fixture自真实快照计数推导(UMCSENT PASS→FAIL),不再硬编码旧34事实时代数字
+_c = dict(snap['quality']['counts'])
+_c['PASS'], _c['FAIL'] = _c.get('PASS', 0) - 1, _c.get('FAIL', 0) + 1
+snap['quality']['counts'] = _c
 if 'overall' in snap['quality']:
     snap['quality']['overall'] = 'FAIL'
 got, why = rp.gate_status(snap)

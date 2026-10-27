@@ -464,7 +464,8 @@ bad['quality'] = {'overall': 'PASS'}
 got, why = rp.gate_status(bad)
 check("FIX3-01 quality.counts缺失→拒绝", got is None and 'counts' in why, f"{got} {why}")
 bad = copy.deepcopy(RE_PASS)
-bad['quality'] = {'counts': {'PASS': 34, 'DEGRADED': 0, 'FAIL': 0}}
+# FIX4: counts取自真实快照(不再硬编码旧34事实时代数字;负向检查"缺overall→拒"不变)
+bad['quality'] = {'counts': dict(RE_PASS['quality']['counts'])}
 got, why = rp.gate_status(bad)
 check("FIX3-01 quality.overall缺失→拒绝", got is None and 'overall' in why, f"{got} {why}")
 
@@ -494,9 +495,14 @@ snap_unknown = copy.deepcopy(RE_PASS)
 snap_unknown['facts'].append({'metric_id': 'ZZZ_UNKNOWN', 'value': 1,
                               'quality_status': 'FAIL'})
 rec = rp.recompute_gate_a(snap_unknown)
-check("注册表外指标→不进入核心分级(注册表为权威;按非核心口径处置)",
-      'ZZZ_UNKNOWN' in rec['noncore_fail'] and 'ZZZ_UNKNOWN' not in rec['core_fail']
-      and 'ZZZ_UNKNOWN' not in rec['core_missing'] and rec['effective'] == 'DEGRADED',
+_rec_pass = rp.recompute_gate_a(RE_PASS)
+# FIX4-01语义: 未注册指标不进核心分级,也不冒充非核心研究事实——FAIL仅留
+# 诊断桶(non_research_facts)披露,不入counts,不降级不阻断
+check("注册表外指标→不进核心分级也不冒充非核心研究事实(FAIL诊断桶,不计数不降级)",
+      any('ZZZ_UNKNOWN' in s for s in rec['non_research_facts'])
+      and 'ZZZ_UNKNOWN' not in rec['core_fail'] + rec['core_missing']
+      and 'ZZZ_UNKNOWN' not in rec['noncore_fail'] + rec['noncore_degraded']
+      and rec['counts'] == _rec_pass['counts'] and rec['effective'] == 'PASS',
       str(rec))
 
 # 裁决层(gate_status: 声明↔重算矛盾一律拒绝)

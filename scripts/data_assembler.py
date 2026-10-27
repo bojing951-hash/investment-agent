@@ -140,6 +140,12 @@ def build_markdown(snapshot, ymd, data_dir=None):
         L.append(f"- ⚠️ core指标缺失(相关结论不得生成): {', '.join(gm['core_missing'])}")
     if gm.get('core_fail'):
         L.append(f"- ❌ core指标FAIL: {', '.join(gm['core_fail'])}")
+    # FIX4-03(FIX3-NEW-003): 非核心完全缺失进数据包披露(未补零未伪造;
+    # Gate A因此DEGRADED——缺的是"本期应观测而缺席",非数值坏)
+    if gm.get('noncore_missing'):
+        det = gm.get('noncore_missing_detail') or {}
+        L.append("- ⚠️ 非核心指标缺失(本期无事实,采集遗漏/来源缺失,Gate A降级): "
+                 + '; '.join(f"{m}({det.get(m, '?')})" for m in gm['noncore_missing']))
     L.append("")
 
     # IA-P0-1: Gate A=DEGRADED → 显式降级披露(不合格指标逐项点名,进入报告正文)
@@ -319,6 +325,9 @@ def main():
         'pack_digest': rp.digest_file(out),
         'scorecard_date': sc_date,
         'scorecard_current': bool(sc_current),
+        # FIX4-03: 数据包记录非核心完全缺失(与快照gate_a一致;报告入口的
+        # verify_meta_gate_a仍以gate_a为权威,此为披露性冗余记录)
+        'noncore_missing': (snapshot.get('gate_a') or {}).get('noncore_missing') or [],
     })
     print(f"✅ 数据包: {out} ({os.path.getsize(out)} bytes)"
           + (" [DEGRADED-已披露]" if status == 'DEGRADED' else ''))

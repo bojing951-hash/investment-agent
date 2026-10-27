@@ -325,11 +325,19 @@ with tempfile.TemporaryDirectory() as td:
     apath = os.path.join(td, 'daily', f'anchors_{DAY}.json')
     with open(apath, 'w', encoding='utf-8') as f:
         json.dump(anchors, f, ensure_ascii=False, indent=1)
+    # FIX5-01: 真实"旧base批次meta"在其生成时点是完整合法的(含gate_a等全部
+    # provenance字段)——此处按真实旧meta形态显式构造(沙箱无采集文件,不能借
+    # provenance_of现场核验;本用例检验的是批次身份链,不是meta字段完整性)
+    _old_snap = synth_snapshot()
     rp.write_meta(apath, {'source': 'snapshot', 'generated_by': 'snapshot_builder',
                           'anchor_count': len(anchors),
                           'anchors_digest': rp.digest_file(apath),
-                          **rp.provenance_of(synth_snapshot(),
-                                             os.path.join(td, 'research_snapshot_20261017.json'))})
+                          'snapshot_id': _old_snap['snapshot_id'],
+                          'snapshot_file': 'research_snapshot_20261017.json',
+                          'target_date': _old_snap['target_date'],
+                          'research_as_of': _old_snap['research_as_of'],
+                          'gate_a': 'PASS',
+                          'snapshot_digest': rp.digest_snapshot(_old_snap)})
     ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
     check("同日修订_v3后,旧base锚点批次→核验拒绝", ok is False and '批次' in reason,
           reason)
@@ -365,6 +373,10 @@ snap = synth_snapshot()
 # 声明DEGRADED(与重算一致)→合法降级放行(§8用真实构建覆盖完整链)
 _um = next(f for f in snap['facts'] if f['metric_id'] == 'UMCSENT')
 _um['quality_status'] = 'FAIL'
+# FIX5-02: 合法非核心FAIL事实必带FAIL issue(真实引擎行为,同E2E-12值坏路径)
+# ——只改状态不带依据的输入自FIX5-02起按声明矛盾拒绝,属fixture合法化修复
+_um['issues'] = _um.get('issues', []) + [
+    {'category': 'fixture', 'severity': 'FAIL', 'message': 'UMCSENT模拟合法非核心FAIL(值坏)'}]
 # FIX4: fixture自真实快照计数推导(UMCSENT PASS→FAIL),不再硬编码旧34事实时代数字
 _c = dict(snap['quality']['counts'])
 _c['PASS'], _c['FAIL'] = _c.get('PASS', 0) - 1, _c.get('FAIL', 0) + 1

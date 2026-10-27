@@ -33,6 +33,23 @@ IA-P0-1-FIX2(2026-10-27第三轮整改)收紧:
   meta日期↔请求日期↔文件名日期一致、必需摘要存在且与实际字节一致、
   meta.gate_a与权威重算一致——缺失即拒绝,不再"缺字段跳过校验"。
 
+IA-P0-1-FIX5(2026-10-28第五轮整改)收紧(DEF-F4-001/002):
+- FIX5-01 来源一致性: 事实source.collector必须符合指标**注册表权威来源定义**
+  (compute_derived产出的派生指标合法collector=fact_engine——含注册表source标记为
+  macro_collector但由事实引擎派生的NFP_MOM_K,以_DERIVED_DEPS=compute_derived
+  输出集为显式兼容映射);source.file必须与快照sources_status记录的**当次采集
+  批次文件**一致(MISSING/READ_FAIL通道不得出事实);声明EXACT但file_date≠当日、
+  FALLBACK但不早于当日/缺真实回退窗口=批次身份不可证明;data_dir给出时还须
+  来源文件在采集目录实际存在;派生事实须可追踪输入事实在场且数值可算;
+- FIX5-02 quality/issues一致: 声明质量必须与issues按fact_engine.grade_issues
+  **同一分级函数**重算一致(FAIL问题不得声明PASS/DEGRADED;反向虚报同样不可);
+  issues结构非法(非列表/非对象/severity非法)=质量依据不可核验;
+- FIX5-03 观测日期严格化: observation_date必须是**完整YYYY-MM-DD真实日历日期**
+  (规范化由make_fact完成;下游不再[:10]截断猜测——带后缀/非规范格式=非法);
+- FIX5-04 来源状态fail-closed: sources_status缺失/非对象/通道缺失/通道状态非对象
+  /状态值非法/EXACT缺file/FALLBACK缺真实文件日期→整份快照不可证明(effective=None,
+  阻断正式链路),不静默跳过非核心缺失判断,不产生AttributeError等未受控异常。
+
 设计约束: 纯本地文件实现,不引入数据库/服务/多Agent(约束九);轻量可离线测试。
 """
 import glob
@@ -107,6 +124,38 @@ _DERIVED_DEPS = {
     'NFP_MOM_K': ('NFP',),
 }
 
+# FIX5-01: 注册表source → 事实合法的source.collector取值。原始通道指标
+# collector==注册表source;compute_derived产出的派生指标(=DERIVED_DEPS键集,
+# 与fact_engine.compute_derived输出集一致)collector='fact_engine'——含注册表
+# source标为macro_collector但实际由事实引擎自NFP序列派生的NFP_MOM_K(显式
+# 兼容映射,以代码事实为权威,不接受任意字符串绕过)。
+_AUTHORIZED_COLLECTORS = {
+    'global_market_collector': frozenset({'global_market_collector'}),
+    'macro_collector': frozenset({'macro_collector'}),
+    'china_market_collector': frozenset({'china_market_collector'}),
+    'rate_expectations': frozenset({'rate_expectations'}),
+    'fact_engine(derived)': frozenset({'fact_engine'}),
+}
+
+# FIX5-04: 必需采集通道(snapshot_builder.SOURCES全集——真实构建器恒写入4通道)
+# 与合法来源状态值(resolve_inputs/build_snapshot实际产出词汇表)。
+SOURCE_CHANNELS = ('global', 'macro', 'china', 'rate_economy')
+SOURCE_STATUSES = ('EXACT', 'FALLBACK', 'MISSING', 'READ_FAIL')
+
+_ISO_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+
+
+def parse_iso_date(s):
+    """FIX5-03共享原语: 完整YYYY-MM-DD**真实日历日期**才返回date,否则None。
+    不做[:10]前缀截断——'2026-10-23INVALID'/'2026-02-30'/非字符串一律None
+    (与fact_engine.parse_iso_date同口径,构建端与核验端同一规则)。"""
+    if not isinstance(s, str) or not _ISO_DATE_RE.fullmatch(s):
+        return None
+    try:
+        return _date_cls.fromisoformat(s)
+    except ValueError:
+        return None   # 格式对但日历上不存在(如2026-02-30)
+
 
 def fact_structure_problems(fact, m, cutoff):
     """FIX4-01(FIX3-NEW-001): 声明有效的注册表事实**必要字段/口径**完整性校验。
@@ -144,14 +193,16 @@ def fact_structure_problems(fact, m, cutoff):
     if not isinstance(od, str) or not od.strip():
         probs.append(f"{mid}=observation_date缺失:{_short(od)}")
     else:
-        try:
-            d_obs = _date_cls.fromisoformat(od[:10])
-        except ValueError:
-            probs.append(f"{mid}=observation_date不可解析:{_short(od)}")
-        else:
-            if cutoff is not None and d_obs > cutoff:
-                probs.append(f"{mid}=观测日{d_obs.isoformat()}晚于研究截止"
-                             f"{cutoff.isoformat()}(未来观测不得冒充已发布)")
+        # FIX5-03: 只认完整YYYY-MM-DD真实日历日期(不做[:10]截断猜测——
+        # '2026-10-23INVALID'/'2026-02-30'/带时间戳等一律非法;规范化责任在
+        # make_fact,下游只验证规范化结果)
+        d_obs = parse_iso_date(od)
+        if d_obs is None:
+            probs.append(f"{mid}=observation_date非法:{_short(od)}"
+                         "(须完整YYYY-MM-DD真实日期,不得携带后缀/其他格式)")
+        elif cutoff is not None and d_obs > cutoff:
+            probs.append(f"{mid}=观测日{d_obs.isoformat()}晚于研究截止"
+                         f"{cutoff.isoformat()}(未来观测不得冒充已发布)")
     src = fact.get('source')
     if not isinstance(src, dict):
         probs.append(f"{mid}=source非对象:{_short(src)}")
@@ -167,6 +218,195 @@ def fact_structure_problems(fact, m, cutoff):
             and (not isinstance(fact.get('calculation_ref'), str)
                  or not fact.get('calculation_ref', '').strip()):
         probs.append(f"{mid}=派生事实缺calculation_ref(计算来源不可追溯)")
+    return probs
+
+
+def fact_issues_problems(fact, mid):
+    """FIX5-02(DEF-F4-001): quality_status必须与issues按**fact_engine.grade_issues
+    同一分级函数**重算一致——不存在第二套等级判断。
+
+    make_fact恒写入issues列表(可空),故合法事实的issues必须是列表且逐条为对象、
+    severity属既有合法词汇(FAIL/DEGRADED/WARN/INFO);声明状态≠grade_issues(issues)
+    =质量声明与依据矛盾(FAIL问题声明PASS/DEGRADED、DEGRADED问题声明PASS、以及
+    无FAIL依据却虚报FAIL),一律非法——不得靠删改quality_status或issues掩盖。"""
+    probs = []
+    iss = fact.get('issues', _MISSING)
+    if iss is _MISSING or not isinstance(iss, list):
+        return [f"{mid}=issues缺失/非列表:{_short(iss)}(质量依据不可核验)"]
+    for it in iss:
+        if not isinstance(it, dict):
+            probs.append(f"{mid}=issue非对象:{_short(it)}")
+            continue
+        sev = it.get('severity', _MISSING)
+        if sev not in ('FAIL', 'DEGRADED', 'WARN', 'INFO'):
+            probs.append(f"{mid}=issue.severity非法:{_short(sev)}"
+                         "(合法值FAIL/DEGRADED/WARN/INFO)")
+    if probs:
+        return probs   # 结构已非法,分级重算无意义
+    try:
+        import fact_engine as fe
+        expected = fe.grade_issues(iss)
+    except Exception as e:   # 注册表/引擎不可用=无法证明(宁可拒绝)
+        return probs + [f"{mid}=质量分级重算失败:{e}"]
+    declared = fact.get('quality_status')
+    if declared != expected:
+        probs.append(f"{mid}=quality_status={declared!r}与issues重算{expected!r}不一致"
+                     "(声明与质量依据矛盾,不得靠改状态掩盖严重问题)")
+    return probs
+
+
+def sources_status_problems(sources_status, target_ymd=None, data_dir=None):
+    """FIX5-04(DEF-F4-002): 来源状态结构统一校验(fail-closed)。
+
+    以snapshot_builder真实产出结构为准(resolve_inputs+SOURCES全集):
+    - sources_status必须是对象且**4条必需通道齐全**(真实构建器恒写入);
+    - 每通道状态必须是对象,status∈{EXACT,FALLBACK,MISSING,READ_FAIL};
+    - EXACT: file+file_date必填且file_date==当日(EXACT=当日文件,旧文件不得
+      冒充当日采集成功);
+    - FALLBACK: file+file_date必填,file_date必须真实早于当日且lag_days与
+      日期差一致(真实回退批次可证明,不得伪装);
+    - READ_FAIL: 必须保留error失败原因;MISSING: 不得声明file;
+    - data_dir给出时(当前本地正式流程,原始文件可访问): EXACT/FALLBACK声明的
+      来源文件必须在采集目录实际存在(纯历史重验场景不传data_dir,以快照内
+      持久化来源状态为准——结构矛盾仍拒)。
+    返回问题列表(空=结构可证明)。调用方对非空必须按不可证明处理,不得跳过
+    检查后继续PASS。"""
+    probs = []
+    if not isinstance(sources_status, dict):
+        return [f'sources_status缺失/非对象:{_short(sources_status)}'
+                '(采集批次完整性不可核验,fail-closed)']
+    tgt = str(target_ymd) if target_ymd is not None else None
+    tgt_date = None
+    if tgt and len(tgt) >= 8 and tgt[:8].isdigit():
+        try:
+            tgt_date = _date_cls.fromisoformat(f"{tgt[:4]}-{tgt[4:6]}-{tgt[6:8]}")
+        except ValueError:
+            tgt_date = None
+    for ch in SOURCE_CHANNELS:
+        if ch not in sources_status:
+            probs.append(f'sources_status缺必需来源通道:{ch}'
+                         '(真实构建器恒写入4通道——缺失=非构建器产出/被删改)')
+            continue
+        st = sources_status[ch]
+        if not isinstance(st, dict):
+            probs.append(f'sources_status[{ch!r}]非对象:{_short(st)}'
+                         '(通道状态不可核验)')
+            continue
+        status = st.get('status')
+        if status not in SOURCE_STATUSES:
+            probs.append(f'sources_status[{ch!r}].status非法:{status!r}'
+                         f'(合法值{SOURCE_STATUSES})')
+            continue
+        if status in ('EXACT', 'FALLBACK'):
+            fil = st.get('file')
+            if not isinstance(fil, str) or not fil.strip():
+                probs.append(f'sources_status[{ch!r}]声明{status}但缺file'
+                             '(来源文件身份不可验证)')
+                continue
+            fd = st.get('file_date')
+            if not isinstance(fd, str) or not re.fullmatch(r'\d{8}', fd):
+                probs.append(f'sources_status[{ch!r}]声明{status}但缺/非法file_date:'
+                             f'{fd!r}(真实原始文件日期不可证明)')
+                continue
+            if tgt_date is not None:
+                try:
+                    fd_date = _date_cls.fromisoformat(
+                        f"{fd[:4]}-{fd[4:6]}-{fd[6:8]}")
+                except ValueError:
+                    fd_date = None
+                if fd_date is None:
+                    probs.append(f'sources_status[{ch!r}]file_date非真实日期:{fd!r}')
+                elif status == 'EXACT' and fd != tgt:
+                    probs.append(f'sources_status[{ch!r}]声明EXACT但file_date='
+                                 f'{fd}≠当日{tgt}(旧文件不得冒充当日采集成功)')
+                elif status == 'FALLBACK':
+                    if fd >= tgt:
+                        probs.append(f'sources_status[{ch!r}]声明FALLBACK但'
+                                     f'file_date={fd}不早于当日{tgt}(回退批次身份矛盾)')
+                    else:
+                        ld = st.get('lag_days')
+                        lag = (tgt_date - fd_date).days
+                        if not isinstance(ld, int) or isinstance(ld, bool) \
+                                or ld <= 0 or ld != lag:
+                            probs.append(f'sources_status[{ch!r}]FALLBACK缺/不自洽'
+                                         f'lag_days:{ld!r}(按日期差应为{lag})——'
+                                         '真实回退窗口不可证明')
+            if data_dir is not None \
+                    and not os.path.exists(os.path.join(str(data_dir), fil)):
+                probs.append(f'sources_status[{ch!r}]声明{status}但来源文件在采集'
+                             f'目录不存在:{fil}(声明批次不可证明)')
+        elif status == 'MISSING':
+            if isinstance(st.get('file'), str) and st.get('file').strip():
+                probs.append(f'sources_status[{ch!r}]声明MISSING但携带file'
+                             f':{st.get("file")!r}(来源缺失不得伪装为在场)')
+        elif status == 'READ_FAIL':
+            err = st.get('error')
+            if not isinstance(err, str) or not err.strip():
+                probs.append(f'sources_status[{ch!r}]READ_FAIL缺error'
+                             '(失败原因不可追溯)')
+    return probs
+
+
+def fact_source_problems(fact, m, batch, by_id):
+    """FIX5-01(DEF-F4-001): 单事实**来源一致性**(跨字段)校验。
+
+    第一层(指标身份→采集器): collector必须属于该指标注册表权威来源的合法
+    collector集(_AUTHORIZED_COLLECTORS;compute_derived输出集=_DERIVED_DEPS键
+    →fact_engine)——任意非空字符串不得绕过;
+    第二层(采集器→当次采集批次): 原始通道事实的source.file必须与快照
+    sources_status记录的该通道批次文件**完全一致**;通道MISSING/READ_FAIL而事实
+    在场=批次冲突;
+    第三层(派生): compute_derived产出的派生事实须calculation_ref可追溯且输入
+    事实**在场且数值可算**(镜像compute_derived生成条件)——指标身份→计算模块→
+    计算依据→输入事实全链可追踪,但不机械要求派生source.file为行情JSON。
+    batch: 该指标通道的{'status','file'}(已经sources_status_problems验证),
+    派生指标传None。对注册表active事实统一适用(合法FAIL事实同样不得伪造来源
+    身份——其数值异常由质量体系隔离,来源身份是另一语义)。"""
+    mid = m['metric_id']
+    probs = []
+    src = fact.get('source')
+    col = src.get('collector') if isinstance(src, dict) else None
+    reg_src = str(m.get('source'))
+    if mid in _DERIVED_DEPS:
+        allowed = _AUTHORIZED_COLLECTORS['fact_engine(derived)']
+        if col not in allowed:
+            probs.append(f"{mid}=collector非法:{_short(col)}"
+                         f"(compute_derived派生指标合法collector={sorted(allowed)})")
+        if not isinstance(fact.get('calculation_ref'), str) \
+                or not fact.get('calculation_ref', '').strip():
+            probs.append(f"{mid}=派生事实缺calculation_ref(计算模块/依据不可追溯)")
+        deps = _DERIVED_DEPS[mid]
+        for d in deps:
+            df = by_id.get(d)
+            dv = df.get('value') if isinstance(df, dict) else None
+            if not isinstance(dv, (int, float)) or isinstance(dv, bool):
+                probs.append(f"{mid}=派生输入事实{d}不在场/无有效数值"
+                             "(计算依据不可追踪——compute_derived不可能产出该派生)")
+                continue
+            if d == 'NFP':
+                m1 = ((df.get('derived') or {}).get('m1') or {})
+                if m1.get('abs_change') is None:
+                    probs.append(f"{mid}=派生输入NFP缺月度差分m1.abs_change"
+                                 "(NFP_MOM_K计算依据不可追踪)")
+        return probs
+    allowed = _AUTHORIZED_COLLECTORS.get(reg_src)
+    if allowed is None:
+        return probs   # 注册表来源无法映射(如deprecated)——由缺失判定边界记录
+    if col not in allowed:
+        probs.append(f"{mid}=collector与指标权威来源不符:{_short(col)}"
+                     f"(注册表source={reg_src!r},合法值{sorted(allowed)})")
+    if batch is None:
+        return probs
+    status, bfile = batch.get('status'), batch.get('file')
+    fil = src.get('file') if isinstance(src, dict) else None
+    if status in ('EXACT', 'FALLBACK'):
+        if fil != bfile:
+            probs.append(f"{mid}=source.file与当次采集批次不一致:{_short(fil)}"
+                         f"(通道批次={_short(bfile)}——与快照采集无关的文件名"
+                         '不得作为已验证来源)')
+    elif status in ('MISSING', 'READ_FAIL'):
+        probs.append(f"{mid}=来源通道声明{status}而事实在场(批次冲突——"
+                     '该通道当日无可信采集,不得出具事实)')
     return probs
 
 
@@ -191,11 +431,16 @@ def _short(v, n=40):
 FACT_QUALITY = ('PASS', 'WARN', 'DEGRADED', 'FAIL')
 
 
-def recompute_gate_a(snapshot):
+def recompute_gate_a(snapshot, data_dir=None):
     """从**真实事实+注册表**重算Gate A裁决(IA-P0-1-FIX2/FIX2-02权威口径;
     FIX3-01/F2-NEW-001: 非法事实结构fail-closed;FIX4-01/FIX3-NEW-001:
     事实必要字段与注册表身份完整校验;FIX4-03/FIX3-NEW-003: active非核心指标
-    完全缺失识别)。
+    完全缺失识别;FIX5-01/02/04: 来源一致性+quality/issues一致+来源状态
+    fail-closed)。
+
+    data_dir(FIX5-01): 给出时=当前本地正式流程(原始采集文件可访问),额外验证
+    sources_status声明的来源文件在采集目录实际存在;不给出时(纯历史重验/诊断)
+    以快照内持久化来源状态为准——结构矛盾仍拒,文件迁移不虚报。
 
     不信任快照内任何声明字段——以注册表active集合与facts实际内容重算:
     - core_missing/core_fail: 核心指标无事实/事实FAIL;
@@ -263,6 +508,16 @@ def recompute_gate_a(snapshot):
         out['reasons'].append('快照缺research_as_of/target_date——研究截止不可得,'
                               '观测日合法性不可核验(不得放行)')
         return out
+    # FIX5-04(DEF-F4-002): 来源状态结构统一校验(fail-closed)——sources_status
+    # 缺失/非对象/通道缺失/状态非法等一律不可证明(effective=None,阻断正式链路),
+    # 不再"无来源状态可判就跳过非核心缺失判断后照常PASS"
+    sources_status = snapshot.get('sources_status')
+    src_probs = sources_status_problems(sources_status,
+                                        snapshot.get('target_date'), data_dir)
+    if src_probs:
+        out['sources_problems'] = src_probs
+        out['illegal_quality'].extend(src_probs)
+        sources_status = None   # 结构不可证明→缺失判定不执行(整份快照已None)
     by_id, seen_dup = {}, set()
     for f in facts:
         if not isinstance(f, dict):
@@ -294,6 +549,9 @@ def recompute_gate_a(snapshot):
         if qs not in FACT_QUALITY:
             out['illegal_quality'].append(f"{mid}={qs!r}")
             continue
+        # FIX5-02: 声明质量必须与issues按grade_issues同一分级函数重算一致
+        # (合法FAIL同样适用——无FAIL依据的虚报与FAIL问题报PASS同样不可证明)
+        out['illegal_quality'].extend(fact_issues_problems(f, mid))
         # FIX4-01: 声明有效的事实须通过必要字段/口径结构校验(合法FAIL保留
         # 异常原始值与诊断——已被质量体系隔离,不在此判非法)
         if qs in ('PASS', 'WARN', 'DEGRADED'):
@@ -302,14 +560,22 @@ def recompute_gate_a(snapshot):
             out['counts'][qs] += 1
     out['duplicates'] = sorted(seen_dup)
 
-    # FIX4-03: active非核心指标完全缺失识别(注册表驱动,非硬编码特例)
-    sources_status = snapshot.get('sources_status')
+    # FIX5-01: 事实来源一致性(第二遍——派生输入追踪需要by_id全集):
+    # 指标身份→采集器(注册表权威)→当次采集批次(sources_status)/派生计算链
+    for mid, f in by_id.items():
+        m = actives[mid]
+        if mid in _DERIVED_DEPS:
+            batch = None
+        else:
+            ch = _SOURCE_TO_INPUT.get(m.get('source'))
+            st = sources_status.get(ch) if (ch and sources_status) else None
+            batch = st if isinstance(st, dict) else None
+        out['illegal_quality'].extend(fact_source_problems(f, m, batch, by_id))
+
+    # FIX4-03: active非核心指标完全缺失识别(注册表驱动,非硬编码特例)。
+    # sources_status已在上方经FIX5-04结构验证: 合法→用于缺失判定;
+    # 不可证明(None)→整份快照已effective=None,此处不再执行缺失判定
     boundary = []
-    if not isinstance(sources_status, dict):
-        # 显式判断边界: 无来源状态可判时不虚报缺失(快照构建器恒写入该字段;
-        # 手工构造的部分dict无此字段→缺失判定不可执行,如实记录)
-        boundary.append('快照缺sources_status——非核心缺失判定不可执行(显式边界)')
-        sources_status = None
     for mid, m in actives.items():
         if mid in core_ids or mid in by_id:
             continue
@@ -336,7 +602,7 @@ def recompute_gate_a(snapshot):
                                 '不入缺失判定(边界如实记录)')
                 continue
             if sources_status is None:
-                continue   # 边界已在上方整体记录
+                continue   # 来源状态不可证明——整份快照已None(FIX5-04),不再判缺失
             st = sources_status.get(src_input)
             if isinstance(st, dict) and st.get('status') in ('EXACT', 'FALLBACK'):
                 reason = '来源文件在场而指标缺席(采集遗漏)'
@@ -371,11 +637,14 @@ def recompute_gate_a(snapshot):
     c = out['counts']
     out['overall'] = ('FAIL' if c['FAIL'] else 'DEGRADED' if c['DEGRADED'] else 'PASS')
     if out['illegal_quality']:
-        # FIX3-01/FIX4-01 fail-closed: 非法/不可证明结构不得放行任何正式状态
+        # FIX3-01/FIX4-01/FIX5 fail-closed: 非法/不可证明结构(含FIX5-04来源
+        # 状态问题,记于sources_problems并汇入illegal_quality)不得放行任何正式状态
         out['effective'] = None
         out['reasons'].append(
-            f"存在非法/不可证明事实结构{len(out['illegal_quality'])}条——"
-            '事实集合不可证明,不得作为合格快照放行正式研究: '
+            f"存在非法/不可证明事实结构{len(out['illegal_quality'])}条"
+            + (f"(其中来源状态问题{len(out.get('sources_problems', []))}条)"
+               if out.get('sources_problems') else '')
+            + '——事实集合不可证明,不得作为合格快照放行正式研究: '
             + '; '.join(out['illegal_quality'][:5]))
     elif out['core_missing'] or out['core_fail'] or out['duplicates']:
         out['effective'] = 'FAIL'
@@ -387,10 +656,11 @@ def recompute_gate_a(snapshot):
     return out
 
 
-def gate_status(snapshot):
+def gate_status(snapshot, data_dir=None):
     """读取快照Gate A状态并以**事实重算**裁决声明一致性
-    (IA-P0-1-FIX1 FIX-05 + IA-P0-1-FIX2 FIX2-02收紧)。
+    (IA-P0-1-FIX1 FIX-05 + IA-P0-1-FIX2 FIX2-02收紧;FIX5-04来源状态fail-closed)。
 
+    data_dir(FIX5-01): 给出时按当前本地正式流程验证来源文件实际在场;
     返回(status, reason);status=None 表示不可用——调用方不得将其当作PASS。
     裁决链(任一环失败→None):
     1. 格式: 缺gate_a/状态非法/快照不可解析 → None;
@@ -420,7 +690,7 @@ def gate_status(snapshot):
     status = ga.get('status') if isinstance(ga, dict) else ga
     if status not in GATES:
         return None, f'Gate A状态非法: {status!r}(合法值{GATES})'
-    rec = recompute_gate_a(snapshot)
+    rec = recompute_gate_a(snapshot, data_dir=data_dir)
     if rec['effective'] is None:
         return None, '; '.join(rec['reasons']) or '重算不可用'
     if status != rec['effective']:
@@ -619,9 +889,17 @@ def anchor_quality_problem(info):
     return None
 
 
-def provenance_of(snapshot, path=None):
-    """快照来源元数据(写入数据包/锚点/报告status sidecar)。"""
-    status, _reason = gate_status(snapshot)
+def provenance_of(snapshot, path=None, data_dir=None):
+    """快照来源元数据(写入数据包/锚点/报告status sidecar)。
+
+    FIX5-01: data_dir给出时按当前正式流程核验来源文件在场(默认取path所在
+    目录——快照与采集文件同住data/daily;裸文件名无目录部分=不猜目录,按纯
+    重验口径);无path且未给data_dir时按纯重验口径(结构矛盾仍拒,文件迁移
+    不虚报)。"""
+    d = data_dir
+    if d is None and path:
+        d = os.path.dirname(str(path)) or None
+    status, _reason = gate_status(snapshot, data_dir=d)
     return {
         'snapshot_id': snapshot.get('snapshot_id') if isinstance(snapshot, dict) else None,
         'snapshot_file': os.path.basename(path) if path else None,
@@ -823,7 +1101,7 @@ def combine_gates(gate_a, gate_b):
 
 # ══ 锚点批次核验(观察器/报告入口共用) ═══════════════════════════
 
-def verify_meta_gate_a(meta, snap, label='meta'):
+def verify_meta_gate_a(meta, snap, label='meta', data_dir=None):
     """FIX3-03(F2-NEW-003): 来源meta声明的gate_a必须与**权威快照重算**Gate A一致。
 
     统一口径(锚点端verify_anchor_batch与数据包端verify_research_inputs共用,
@@ -831,16 +1109,17 @@ def verify_meta_gate_a(meta, snap, label='meta'):
     1. 字段必须存在且非空(缺必需来源字段=无法验证,不得跳过);
     2. 必须属于合法状态(GATES);
     3. 权威=gate_status(snap)——内部以recompute_gate_a从真实facts+注册表重算,
-       **不信任快照声明值,更不信任meta自报值**;快照不可重算(含事实结构非法,
-       FIX3-01)→声明值不得作为权威;
+       **不信任快照声明值,更不信任meta自报值**;快照不可重算(含事实结构非法
+       FIX3-01/来源状态不可证明FIX5-04)→声明值不得作为权威;
     4. 声明==权威;且权威∈(PASS,DEGRADED)才允许正式链路。
+    data_dir(FIX5-01): 给出时按当前正式流程核验来源文件在场。
     返回(True, '')或(False, reason)。"""
     declared = meta.get('gate_a')
     if declared in (None, ''):
         return False, f'{label}缺gate_a声明(必需来源字段,缺失即拒——无法验证批次质量口径)'
     if declared not in GATES:
         return False, f'{label}.gate_a非法: {declared!r}(合法值{GATES})'
-    auth, why = gate_status(snap)
+    auth, why = gate_status(snap, data_dir=data_dir)
     if auth is None:
         return False, (f'{label}.gate_a={declared!r}对应权威快照Gate A不可重算'
                        f'({why})——非法/不可证明快照的声明值不得作为权威')
@@ -904,8 +1183,10 @@ def verify_anchor_batch(anchors_path, anchors_date=None, daily_dir=None):
     if snap.get('snapshot_id') != meta.get('snapshot_id'):
         return False, (f"数据批次不一致: 锚点绑定{meta.get('snapshot_id')},"
                        f"当日权威快照为{snap.get('snapshot_id')}(同日修订后旧锚点不得续用)")
-    # FIX3-03: gate_a声明核验收敛到统一口径verify_meta_gate_a(与数据包端同规则)
-    ok_gate, gate_reason = verify_meta_gate_a(meta, snap, label='锚点meta')
+    # FIX3-03: gate_a声明核验收敛到统一口径verify_meta_gate_a(与数据包端同规则);
+    # FIX5-01: dd=快照/采集文件同住目录——按当前正式流程核验来源文件在场
+    ok_gate, gate_reason = verify_meta_gate_a(meta, snap, label='锚点meta',
+                                              data_dir=dd)
     if not ok_gate:
         return False, gate_reason
     if meta.get('snapshot_digest') != digest_snapshot(snap):

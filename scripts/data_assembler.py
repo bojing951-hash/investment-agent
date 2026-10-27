@@ -149,7 +149,10 @@ def build_markdown(snapshot, ymd, data_dir=None):
     L.append("")
 
     # IA-P0-1: Gate A=DEGRADED → 显式降级披露(不合格指标逐项点名,进入报告正文)
-    gate_a_status = rp.gate_status(snapshot)[0]
+    # FIX5-01: 与主入口同口径(带采集目录,按当前正式流程核验来源文件在场——
+    # 构建端与消费端不出现两套结论)
+    gate_a_status = rp.gate_status(
+        snapshot, data_dir=os.path.join(data_dir or DATA_DIR, 'daily'))[0]
     if gate_a_status == 'DEGRADED':
         L.append("## ⚠️ 数据质量降级披露(Gate A=DEGRADED)")
         L.append("本数据包基于**已验证但部分降级**的数据生成;以下指标质量不合格,"
@@ -300,7 +303,7 @@ def main():
     if snapshot is None:
         print(f"❌ {ymd}无有效研究快照,数据包未生成({path};先跑snapshot_builder)")
         sys.exit(1)
-    status, reason = rp.gate_status(snapshot)
+    status, reason = rp.gate_status(snapshot, data_dir=os.path.dirname(path))
     if not rp.gate_allows_formal_research(status):
         # FAIL / None(缺gate_a字段/状态非法): 均不得生成正式数据包(不得默认PASS)
         print(f"⛔ Gate A {'FAIL' if status == 'FAIL' else '不可用'}"

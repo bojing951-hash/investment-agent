@@ -148,8 +148,8 @@ ILLEGAL_CASES = [
     ('#08 unit与注册表不一致', 'SPX', {'unit': 'pt'}, 'unit与注册表不一致'),
     ('#09 删除observation_date', 'SPX', {'observation_date': _DEL},
      'observation_date缺失'),
-    ('#10 observation_date不可解析', 'SPX', {'observation_date': '2026-13-99'},
-     'observation_date不可解析'),
+    ('#10 observation_date不可解析(日历不存在)', 'SPX', {'observation_date': '2026-13-99'},
+     'observation_date非法'),
     ('#11 观测日晚于研究截止(未来观测)', 'SPX', {'observation_date': '2026-10-25'},
      '晚于研究截止'),
     ('#12 删除source', 'SPX', {'source': _DEL}, 'source非对象'),
@@ -542,12 +542,18 @@ check("F4-03#D deprecated指标(REAL_SHORT)不追责: 不入缺失清单,FAIL仅
       f"eff={rec_dep['effective']}")
 
 snap_nb = copy.deepcopy(base)
-snap_nb.pop('sources_status', None)      # 无来源状态可判(显式判断边界)
+snap_nb.pop('sources_status', None)      # 来源状态整体缺失
 rec_nb = rp.recompute_gate_a(snap_nb)
-check("F4-03#N 无sources_status→显式边界记录,不虚报缺失不编造发布日历",
-      rec_nb['effective'] == 'PASS' and rec_nb['noncore_missing'] == []
-      and any('sources_status' in b for b in rec_nb.get('noncore_missing_boundary', [])),
-      f"eff={rec_nb['effective']} b={rec_nb.get('noncore_missing_boundary')}")
+# FIX5-04(DEF-F4-002)语义取代FIX4时"显式边界+继续PASS": sources_status缺失
+# =采集批次完整性不可证明→fail-closed(effective=None),不得静默跳过非核心
+# 缺失判断后照常PASS;失败原因可查(sources_problems),且快照级拒绝不依赖
+# 任何单指标缺席——比原边界行为严格,无删除任何负向检查
+check("F4-03#N(_FIX5-04收紧) 无sources_status→fail-closed不可证明,原因可查",
+      rec_nb['effective'] is None
+      and rec_nb.get('sources_problems')
+      and 'sources_status' in rec_nb['sources_problems'][0]
+      and any('sources_status' in s for s in rec_nb['illegal_quality']),
+      f"eff={rec_nb['effective']} probs={rec_nb.get('sources_problems')}")
 
 # ═══ 汇总 ═══════════════════════════════════════════════════════════
 print("\n" + "=" * 64)

@@ -575,7 +575,7 @@ def verify_research_inputs(ymd=None):
     if snap is None:
         problems.append(f"当日研究快照不可用: {snap_path}")
     else:
-        gate_a, reason = rp.gate_status(snap)
+        gate_a, reason = rp.gate_status(snap, data_dir=daily_dir)
         if not rp.gate_allows_formal_research(gate_a):
             problems.append(
                 f"Gate A {gate_a if gate_a else '不可用(' + reason + ')'} — "
@@ -605,7 +605,8 @@ def verify_research_inputs(ymd=None):
         # 一致(rp.verify_meta_gate_a统一口径,与锚点端同规则)——权威状态由
         # recompute_gate_a从真实facts+注册表重算,快照声明与meta自报都不作为权威;
         # 真实DEGRADED+meta声称PASS等任何矛盾→拒绝正式生成
-        ok_gate, gate_reason = rp.verify_meta_gate_a(pack_meta, snap, label='数据包meta')
+        ok_gate, gate_reason = rp.verify_meta_gate_a(pack_meta, snap, label='数据包meta',
+                                                     data_dir=daily_dir)
         if not ok_gate:
             problems.append(f"数据包Gate A声明核验失败: {gate_reason}")
         # FIX-01: 数据包内容确定性重建比对(build_markdown为权威快照纯函数)——
@@ -657,7 +658,7 @@ def verify_research_inputs(ymd=None):
         if not ok_prompt:
             problems.append(f"锚点prompt核验失败: {prompt_reason}")
 
-    gate_a = rp.gate_status(snap)[0] if snap is not None else None
+    gate_a = rp.gate_status(snap, data_dir=daily_dir)[0] if snap is not None else None
     ctx = {'snapshot': snap, 'snapshot_path': snap_path, 'gate_a': gate_a,
            'anchors': anchors, 'anchors_path': anchors_path if anchors is not None else None,
            'anchor_prompt_path': prompt_path if os.path.exists(prompt_path) else None}

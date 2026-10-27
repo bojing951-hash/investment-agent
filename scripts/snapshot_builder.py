@@ -266,7 +266,8 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
     # 重复metric_id=数据身份冲突判FAIL。写入裁决与下游核验(research_provenance.
     # gate_status)同源同口径,快照声明与事实不可能在构建时就矛盾。
     rec = rp.recompute_gate_a({'facts': facts, 'sources_status': sources_status,
-                               'research_as_of': as_of, 'target_date': ymd})
+                               'research_as_of': as_of, 'target_date': ymd},
+                              data_dir=dd)
     gate_a = {'status': rec['effective'],
               'core_missing': rec['core_missing'], 'core_fail': rec['core_fail'],
               'noncore_fail': rec['noncore_fail'],
@@ -374,7 +375,7 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
         'source': 'snapshot',
         'generated_by': 'snapshot_builder',
         'generated_at': as_of,
-        **rp.provenance_of(snapshot, json_path),
+        **rp.provenance_of(snapshot, json_path, data_dir=dd),
         'anchor_count': len(anchors),
         'anchors_digest': rp.digest_file(anchors_path),
     })

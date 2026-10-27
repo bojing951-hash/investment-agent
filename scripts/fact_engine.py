@@ -15,6 +15,7 @@
 """
 import json
 import os
+import re
 from datetime import date, datetime, timezone, timedelta
 
 import trading_calendar as tc
@@ -89,6 +90,10 @@ def compute_period_returns(dates, values, unit, calendar, as_of=None):
         return {"available": False, "reason": f"as_of({as_of})之前无观测"}
     end_i = ds.index(end_d)
     end_v = vs[end_i]
+    if parse_iso_date(end_d) is None:
+        # FIX5-03: 序列末端日期非规范ISO——窗口计算所依赖的日期解析不可执行,
+        # 如实返回不可用(不截断洗白,不让ValueError未受控上抛)
+        return {"available": False, "reason": f"序列末端日期非法:{end_d!r}(须YYYY-MM-DD)"}
     out["end"] = {"date": end_d, "value": end_v, "sessions_available": end_i + 1}
 
     def basis_last_before(bound_iso):
@@ -158,6 +163,23 @@ def compute_period_returns(dates, values, unit, calendar, as_of=None):
 
 # ══ 事实构造 ══════════════════════════════════════════════════════
 
+_ISO_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+
+
+def parse_iso_date(s):
+    """IA-P0-1-FIX5(DEF-F4-001)严格日期原语: 仅**完整YYYY-MM-DD真实日历日期**
+    返回date;其余(带后缀'2026-10-23INVALID'/日历上不存在'2026-02-30'/非字符串/
+    带时间戳)一律None——不做[:10]前缀截断猜测。规范化在make_fact完成,
+    下游(本引擎validate_fact与research_provenance.fact_structure_problems)
+    用同一原语只验证规范化结果。"""
+    if not isinstance(s, str) or not _ISO_DATE_RE.fullmatch(s):
+        return None
+    try:
+        return date.fromisoformat(s)
+    except ValueError:
+        return None
+
+
 def make_fact(metric_id, value, observation_date, as_of, source_file, collector,
               series=None, calendar=None, retrieved_at=None, calculation_ref=None,
               quality_status=None, issues=None):
@@ -165,11 +187,13 @@ def make_fact(metric_id, value, observation_date, as_of, source_file, collector,
     if m is None:
         return None
     calendar = calendar or m['calendar']
-    # 日期归一: 紧凑YYYYMMDD(采集器新格式)→ISO, validate_fact/fromisoformat方可解析
+    # 日期归一(IA-P0-1-FIX5严格化): 紧凑YYYYMMDD(采集器新格式)→ISO。
+    # 除此之外**不再截断**——'2026-10-23INVALID'等非法输入原样保留,
+    # 由validate_fact/fact_structure_problems按完整ISO日期拒绝(不得借
+    # [:10]截断洗白);采集端语义不变(合法输入仅上述两种形态)
     od = str(observation_date)
     if len(od) == 8 and od.isdigit():
         od = f"{od[:4]}-{od[4:6]}-{od[6:8]}"
-    od = od[:10]
     fact = {
         "fact_id": f"{metric_id}@{od}",
         "metric_id": metric_id,
@@ -349,11 +373,12 @@ def normalize_china(data, as_of, source_file="china_*.json"):
 # ══ 派生指标计算(期限严格匹配,公式入calculation_ref) ═════════════
 
 def _iso(d):
-    """'YYYYMMDD'→'YYYY-MM-DD'(其他格式原样截断)。"""
+    """'YYYYMMDD'→'YYYY-MM-DD'。FIX5-03: 不再对其他格式做[:10]截断——
+    非规范输入原样保留,由严格日期校验拒绝(截断会把垃圾后缀洗白成合法日期)。"""
     s = str(d)
     if len(s) == 8 and s.isdigit():
         return f"{s[:4]}-{s[4:6]}-{s[6:]}"
-    return s[:10]
+    return s
 
 
 def normalize_rate(data, as_of, source_file="rate_economy_*.json"):
@@ -476,10 +501,11 @@ def validate_fact(fact, raw_item, m, as_of_date=None):
         issues.append({"category": "outlier", "severity": "FAIL",
                        "message": f"{mid}={v}超出合理区间{rng}"})
     od = fact.get('observation_date')
-    try:
-        d_obs = date.fromisoformat(str(od)[:10])
-    except (ValueError, TypeError):
-        issues.append({"category": "time", "severity": "FAIL", "message": f"{mid}观测日不可解析:{od!r}"})
+    # FIX5-03: 严格完整ISO日期(parse_iso_date)——与下游fact_structure_problems
+    # 同一原语,构建端与核验端同一结论;'2026-10-23INVALID'在此即FAIL
+    d_obs = parse_iso_date(od)
+    if d_obs is None:
+        issues.append({"category": "time", "severity": "FAIL", "message": f"{mid}观测日非法:{od!r}(须完整YYYY-MM-DD真实日期)"})
         return issues
     # 时间: 观测日不得晚于研究截止(as_of日期部分)
     if as_of_date:
@@ -526,7 +552,9 @@ def validate_fact(fact, raw_item, m, as_of_date=None):
     if fact.get('derived') and isinstance(raw_item, dict) and raw_item.get('series'):
         dates = raw_item['series'].get('dates') or []
         if dates and len(dates) > 30:
-            end_d = date.fromisoformat(str(dates[-1])[:10])
+            end_d = parse_iso_date(str(dates[-1]))   # FIX5-03: 严格完整日期,不截断
+            if end_d is None:
+                return issues   # 序列日期非法——覆盖率检查不可执行(不作未受控异常)
             start = end_d - timedelta(days=20)
             expd = tc.expected_trading_days(start.isoformat(), dates[-1], m['calendar']) or []
             have = sum(1 for x in dates if str(start)[:10] <= str(x)[:10])
@@ -549,7 +577,8 @@ def validate_derived(fact, by_id, deps):
                            "message": f"输入{d}质量DEGRADED,派生{fact['metric_id']}传导降级"})
         so = str(src.get('observation_date', ''))
         fo = str(fact.get('observation_date', ''))
-        if so and fo and abs((date.fromisoformat(fo) - date.fromisoformat(so)).days) > 5:
+        so_d, fo_d = parse_iso_date(so), parse_iso_date(fo)   # FIX5-03: 不截断不硬解
+        if so_d and fo_d and abs((fo_d - so_d).days) > 5:
             issues.append({"category": "time", "severity": "DEGRADED",
                            "message": f"{d}观测日{so}与派生观测日{fo}差>5天(混期风险)"})
     return issues

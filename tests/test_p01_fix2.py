@@ -440,7 +440,12 @@ check("FIX3-01 metric_id空白串→身份不可识别→None",
 
 # FIX3-01: 合法WARN事实语义保持(轻度提示,counts不计,不降级)
 snap_warn = copy.deepcopy(RE_PASS)
-_fact(snap_warn, 'BEI_10Y')['quality_status'] = 'WARN'
+_wf = _fact(snap_warn, 'BEI_10Y')
+_wf['quality_status'] = 'WARN'
+# FIX5-02: 合法WARN必带WARN issue(真实引擎路径,如release-limit提示)
+# ——只改状态不带依据自FIX5-02起按声明矛盾拒绝,属fixture合法化修复
+_wf['issues'] = _wf.get('issues', []) + [
+    {'category': 'fixture', 'severity': 'WARN', 'message': 'BEI_10Y模拟合法WARN提示'}]
 _base_counts = dict(rp.recompute_gate_a(RE_PASS)['counts'])
 # 快照由builder从facts重计counts——WARN不计入,合法变更须同步声明counts
 snap_warn['quality']['counts']['PASS'] = _base_counts['PASS'] - 1
@@ -480,7 +485,11 @@ check("结构损坏(facts非列表)→effective None+原因(不猜测)",
       rec['effective'] is None and rec['reasons'], str(rec['reasons']))
 
 snap_cd = copy.deepcopy(RE_PASS)
-_fact(snap_cd, 'SPX')['quality_status'] = 'DEGRADED'
+_cf = _fact(snap_cd, 'SPX')
+_cf['quality_status'] = 'DEGRADED'
+# FIX5-02: 合法DEGRADED必带DEGRADED issue(真实引擎路径,如新鲜度窗口降级)
+_cf['issues'] = _cf.get('issues', []) + [
+    {'category': 'fixture', 'severity': 'DEGRADED', 'message': 'SPX模拟合法降级(观测滞后)'}]
 rec = rp.recompute_gate_a(snap_cd)
 check("核心事实DEGRADED→counts.DEGRADED计入+effective DEGRADED",
       rec['counts']['DEGRADED'] == 1 and rec['effective'] == 'DEGRADED'

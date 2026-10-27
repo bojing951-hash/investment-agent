@@ -1,0 +1,41 @@
+name: offline-tests
+# IA-P0-1-FIX2 激活的离线测试工作流(2026-10-27):
+# - 触发: push/PR到main + 手动workflow_dispatch
+# - 只跑本地离线套件(全部SYNTHETIC fixture + GLM全程mock):
+#   零网络依赖、零API密钥、零付费调用——CI环境无需任何secret;
+# - test_glm_live.py 为真实GLM验收套件,按契约不得进入CI,显式排除;
+# - 依赖: 仅Python标准库(被测模块不引入第三方包);显式固定Python 3.11;
+# - 任一套件失败→工作流失败(exit非零),不得以删除失败用例换取绿色。
+# FIX1轮该文件曾因推送凭据缺workflow scope无法创建而留档于docs/;
+# FIX2轮按指令正式启用。
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 运行全部离线测试套件(排除test_glm_live)
+        run: |
+          fail=0
+          for t in tests/test_*.py; do
+            name=$(basename "$t" .py)
+            if [ "$name" = "test_glm_live" ]; then
+              echo "== $name: SKIPPED(真实GLM付费调用,不进CI)"
+              continue
+            fi
+            echo "== $name"
+            if ! python3 "$t"; then
+              echo "::error file=$t::套件 $name 失败"
+              fail=1
+            fi
+          done
+          exit $fail

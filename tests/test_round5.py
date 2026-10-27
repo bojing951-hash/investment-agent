@@ -458,14 +458,17 @@ obs_pred_spx = {'pred_id': 32, 'date_made': '2026-10-19', 'asset': '股', 'deadl
                 'direction': 'SPX两周内跌破7600', 'status': 'observing', 'observe_from': '2026-10-19',
                 'metric': 'global_market.data.SPX.close', 'comparator': '<=', 'target': 7600,
                 'verify_mode': 'touch', 'observations': []}
+# IA-P0-1-FIX1: 锚点schema新增quality字段(FIX-04)——fixture补quality='PASS',
+# 不改变既有断言语义(被测行为是观察幂等/部分缺失,不是质量门禁本身)。
 day_anchors = lambda d, gold=None, spx=None: {
     'global_market.data.GOLD.close': {'value': (gold or (4210.0, 4240.0, 4180.0))[0],
-                                      'obs_date': d, 'as_of': d},
+                                      'obs_date': d, 'as_of': d, 'quality': 'PASS'},
     'global_market.data.GOLD.high': {'value': (gold or (4210.0, 4240.0, 4180.0))[1],
-                                     'obs_date': d, 'as_of': d},
+                                     'obs_date': d, 'as_of': d, 'quality': 'PASS'},
     'global_market.data.GOLD.low': {'value': (gold or (4210.0, 4240.0, 4180.0))[2],
-                                    'obs_date': d, 'as_of': d},
-    'global_market.data.SPX.close': {'value': (spx or (7640.0,))[0], 'obs_date': d, 'as_of': d},
+                                    'obs_date': d, 'as_of': d, 'quality': 'PASS'},
+    'global_market.data.SPX.close': {'value': (spx or (7640.0,))[0], 'obs_date': d, 'as_of': d,
+                                     'quality': 'PASS'},
 }
 with tempfile.TemporaryDirectory() as td:
     vp = views_file(td, preds=[dict(obs_pred_gold), dict(obs_pred_spx)])
@@ -479,7 +482,8 @@ with tempfile.TemporaryDirectory() as td:
     ch, n, st = quiet(dpo.observe, views_path=vp,
                       anchors={'global_market.data.SPX.close': {'value': 7640.0,
                                                                 'obs_date': '2026-10-20',
-                                                                'as_of': '2026-10-20'}},
+                                                                'as_of': '2026-10-20',
+                                                                'quality': 'PASS'}},
                       today_str='2026-10-20', anchors_date='20261020')
     saved = json.load(open(vp))
     pg = next(p for p in saved['predictions'] if p['pred_id'] == 31)

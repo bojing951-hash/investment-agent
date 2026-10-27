@@ -77,15 +77,19 @@ TODAY = '2026-10-20'   # 周二
 
 
 def anchors(**over):
+    # IA-P0-1-FIX1: 锚点schema新增quality字段(FIX-04引擎侧校验)——fixture统一
+    # 补quality='PASS'(含覆盖项自动补齐),不改变既有断言语义(被测行为是预测
+    # 生命周期/日期规则,不是质量门禁本身;质量FAIL场景由test_p01_fix1.py覆盖)。
     a = {
-        'global_market.data.GOLD.close': {'value': 4240.0, 'obs_date': TODAY, 'as_of': TODAY},
-        'global_market.data.GOLD.high': {'value': 4262.0, 'obs_date': TODAY, 'as_of': TODAY},
-        'global_market.data.GOLD.low': {'value': 4218.0, 'obs_date': TODAY, 'as_of': TODAY},
-        'global_market.data.SPX.close': {'value': 7620.0, 'obs_date': TODAY, 'as_of': TODAY},
-        'macro.data.CCC_OAS.value': {'value': 9.2, 'obs_date': TODAY, 'as_of': TODAY},
-        'macro.data.TIPS_10Y.value': {'value': 2.89, 'obs_date': TODAY, 'as_of': TODAY},
+        'global_market.data.GOLD.close': {'value': 4240.0, 'obs_date': TODAY, 'as_of': TODAY, 'quality': 'PASS'},
+        'global_market.data.GOLD.high': {'value': 4262.0, 'obs_date': TODAY, 'as_of': TODAY, 'quality': 'PASS'},
+        'global_market.data.GOLD.low': {'value': 4218.0, 'obs_date': TODAY, 'as_of': TODAY, 'quality': 'PASS'},
+        'global_market.data.SPX.close': {'value': 7620.0, 'obs_date': TODAY, 'as_of': TODAY, 'quality': 'PASS'},
+        'macro.data.CCC_OAS.value': {'value': 9.2, 'obs_date': TODAY, 'as_of': TODAY, 'quality': 'PASS'},
+        'macro.data.TIPS_10Y.value': {'value': 2.89, 'obs_date': TODAY, 'as_of': TODAY, 'quality': 'PASS'},
     }
-    a.update(over)
+    for k, v in over.items():
+        a[k] = dict(v, quality='PASS') if isinstance(v, dict) and 'quality' not in v else v
     return a
 
 

@@ -205,10 +205,12 @@ def gather_month_context(ym, views_path=None):
         ctx['predictions'] = ['(无预测记录)']
 
     wk_dir = os.path.join(ROOT_DIR, 'output', 'weekly')
-    # IA-P0-1: _annotated/_UNVALIDATED均非合格正式报告,不得进入月度摘要索引
+    # IA-P0-1: _annotated/_UNVALIDATED均非合格正式报告,不得进入月度摘要索引;
+    # FIX-02: _CANDIDATE(发布前候选)同样排除
     wk_files = sorted(f for f in (os.listdir(wk_dir) if os.path.isdir(wk_dir) else [])
                       if f.startswith(f'weekly_report_{ym}')
-                      and not f.endswith('_annotated.md') and not f.endswith('_UNVALIDATED.md'))
+                      and not f.endswith('_annotated.md') and not f.endswith('_UNVALIDATED.md')
+                      and not f.endswith('_CANDIDATE.md'))
     wk_lines = []
     for wf in wk_files:
         text = open(os.path.join(wk_dir, wf), encoding='utf-8').read()
@@ -346,12 +348,21 @@ def main():
         print(f"❌ 返回过短({len(md)}字符),放弃")
         sys.exit(1)
 
-    out_path = os.path.join(OUTPUT_DIR, f'monthly_review_{ym}.md')
+    # IA-P0-1-FIX7(IA-DEF-004): 月报数据来源为历史原始采集序列直读,当前架构
+    # 无法证明**整个月**每一交易日快照链的数据质量(逐日Gate A结论并不随月聚合)。
+    # 保守处置: 输出一律为UNVALIDATED研究草稿——文件名显式标记,不占用正式合格
+    # 文件名(不覆盖既有合格报告),下游以文件名即可区分,不得作为合格正式研究
+    # 产出引用。历史分析能力(数据装配/预览/期间完结判定)保持不变。
+    out_path = os.path.join(OUTPUT_DIR, f'monthly_review_{ym}_UNVALIDATED.md')
     with open(out_path, 'w', encoding='utf-8') as f:
-        f.write(f"<!-- {tag}月度复盘 {datetime.now().strftime('%Y-%m-%d %H:%M')} | investment-agent P4v2"
-                + (" | PREVIEW_PERIOD_INCOMPLETE" if preview else "") + " -->\n\n")
+        f.write(f"<!-- {tag}月度复盘(研究草稿) {datetime.now().strftime('%Y-%m-%d %H:%M')} | investment-agent"
+                + (" | PREVIEW_PERIOD_INCOMPLETE" if preview else "")
+                + " | UNVALIDATED: 历史原始序列直读,未经完整期间快照链质量验证 -->\n\n")
+        f.write("> ⚠️ **UNVALIDATED 研究草稿**: 数据来源为历史原始采集序列直读,"
+                "未经研究快照链(Gate A)对整个期间的完整质量验证,不得作为合格正式"
+                "研究报告引用或作为长期状态回写依据。\n\n")
         f.write(md)
-    print(f"✅ 月报已保存: {out_path} ({os.path.getsize(out_path)} bytes)")
+    print(f"✅ 月报草稿已保存(UNVALIDATED): {out_path} ({os.path.getsize(out_path)} bytes)")
 
 if __name__ == '__main__':
     main()

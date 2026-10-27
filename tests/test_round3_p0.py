@@ -43,14 +43,17 @@ print("第三轮P0单元测试")
 print("=" * 60)
 
 # ════════ 测试用公共fixture ════════
+# IA-P0-1-FIX1: 锚点schema新增quality字段(事实质量随锚点下传)——正式观察与
+# 状态回写按FIX-04校验quality;fixture补quality='PASS'与本轮新增schema对齐,
+# 不改变任何既有断言语义(被测行为是预测生命周期,不是质量门禁本身)。
 ANCHORS = {
-    'macro.data.CCC_OAS.value': {'value': 10.12, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'},
-    'macro.data.TIPS_10Y.value': {'value': 2.89, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'},
-    'macro.data.HY_OAS.value': {'value': 5.20, 'obs_date': '2026-10-08', 'as_of': '2026-10-09'},
-    'global_market.data.SPX.close': {'value': 7650, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'},
-    'global_market.data.GOLD.close': {'value': 4180, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'},
-    'global_market.data.DXY.close': {'value': 99.9, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'},
-    'rate_economy.real_economy.UNRATE.value': {'value': 4.2, 'obs_date': '2026-09-01', 'as_of': '2026-10-09'},
+    'macro.data.CCC_OAS.value': {'value': 10.12, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
+    'macro.data.TIPS_10Y.value': {'value': 2.89, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
+    'macro.data.HY_OAS.value': {'value': 5.20, 'obs_date': '2026-10-08', 'as_of': '2026-10-09', 'quality': 'PASS'},
+    'global_market.data.SPX.close': {'value': 7650, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
+    'global_market.data.GOLD.close': {'value': 4180, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
+    'global_market.data.DXY.close': {'value': 99.9, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
+    'rate_economy.real_economy.UNRATE.value': {'value': 4.2, 'obs_date': '2026-09-01', 'as_of': '2026-10-09', 'quality': 'PASS'},
 }
 
 def base_views():
@@ -177,7 +180,7 @@ check("B17 观测日不符→拒", not v and '观测日不符' in r[0][0])
 v, r = ae.verify_evidence_items([ev('macro.data.FAKE.value', 1.0)], ANCHORS, '2026-10-09')
 check("B18 指标不在锚点中→拒(虚构证据嫌疑)", not v and '虚构' in r[0][0])
 stale_anchors = dict(ANCHORS)
-stale_anchors['global_market.data.SPX.close'] = {'value': 7650, 'obs_date': '2026-09-25', 'as_of': '2026-10-09'}
+stale_anchors['global_market.data.SPX.close'] = {'value': 7650, 'obs_date': '2026-09-25', 'as_of': '2026-10-09', 'quality': 'PASS'}
 v, r = ae.verify_evidence_items(
     [ev('global_market.data.SPX.close', 7650, obs='2026-09-25')], stale_anchors, '2026-10-09')
 check("B19 数据过期(日频滞后14天>5天)→不得作当前证据", not v and '过期' in r[0][0], str(r))
@@ -312,9 +315,9 @@ check("D8 同向提案21天内去重(只累计repeat不新增条目)", len(same)
 
 # D9 同向提案在后续通过门禁时标记superseded; 反向旧提案不标
 # (证据用10-16当周新鲜锚点: 上周的日频行情观测日已过期,不得作当前证据)
-d9_anchors = {'macro.data.CCC_OAS.value': {'value': 10.12, 'obs_date': '2026-10-16', 'as_of': '2026-10-16'},
-              'global_market.data.SPX.close': {'value': 7650, 'obs_date': '2026-10-16', 'as_of': '2026-10-16'},
-              'global_market.data.GOLD.close': {'value': 4180, 'obs_date': '2026-10-16', 'as_of': '2026-10-16'}}
+d9_anchors = {'macro.data.CCC_OAS.value': {'value': 10.12, 'obs_date': '2026-10-16', 'as_of': '2026-10-16', 'quality': 'PASS'},
+              'global_market.data.SPX.close': {'value': 7650, 'obs_date': '2026-10-16', 'as_of': '2026-10-16', 'quality': 'PASS'},
+              'global_market.data.GOLD.close': {'value': 4180, 'obs_date': '2026-10-16', 'as_of': '2026-10-16', 'quality': 'PASS'}}
 saved3, _ = run_update(saved2, alloc_block([{'id': 1, 'rating': '超配', 'confidence': 2, 'note': '补证据升级',
     'evidence': [ev('macro.data.CCC_OAS.value', 10.12, obs='2026-10-16'),
                  ev('global_market.data.SPX.close', 7650, obs='2026-10-16'),
@@ -498,7 +501,7 @@ print("\n[F] 裁决权威序: 引擎>GLM (P0-2,经update路径)")
 # F1 GLM把引擎客观miss改判hit→拒
 # (锚点SPX=7450: record_observations补录当天观测后,窗内最后观测7450<7500→引擎客观miss)
 f1_anchors = dict(ANCHORS)
-f1_anchors['global_market.data.SPX.close'] = {'value': 7450, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'}
+f1_anchors['global_market.data.SPX.close'] = {'value': 7450, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'}
 vd = pred_views([{'pred_id': 20, 'date_made': '2026-10-02', 'asset': '股', 'deadline': '2026-10-09',
                   'direction': 'SPX收7500上', 'status': 'observing', 'observe_from': '2026-10-02',
                   'metric': 'global_market.data.SPX.close', 'comparator': '>=', 'target': 7500,

@@ -54,12 +54,15 @@ print("=" * 60)
 print("第三轮对抗性测试(9个点名用例)")
 print("=" * 60)
 
+# IA-P0-1-FIX1: 锚点schema新增quality字段(FIX-04引擎侧校验)——fixture补
+# quality='PASS'与新schema对齐,不改变既有断言语义(被测行为是GLM裁决核验,
+# 不是质量门禁本身)。
 ANCHORS = {
-    'macro.data.CCC_OAS.value': {'value': 10.12, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'},
-    'macro.data.TIPS_10Y.value': {'value': 2.89, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'},
-    'global_market.data.SPX.close': {'value': 7650, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'},
-    'global_market.data.GOLD.close': {'value': 4180, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'},
-    'global_market.data.DXY.close': {'value': 99.9, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'},
+    'macro.data.CCC_OAS.value': {'value': 10.12, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
+    'macro.data.TIPS_10Y.value': {'value': 2.89, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
+    'global_market.data.SPX.close': {'value': 7650, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
+    'global_market.data.GOLD.close': {'value': 4180, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
+    'global_market.data.DXY.close': {'value': 99.9, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
 }
 
 def base_views():
@@ -233,7 +236,7 @@ check("7b 前提未兑现时结果观察期未启动(无观察记录)", p40.get(
 # ════════ 用例8: 模型将客观未命中预测判为命中 ════════
 print("\n[8] 模型将客观未命中预测判为命中")
 a8 = dict(ANCHORS)
-a8['global_market.data.GOLD.close'] = {'value': 4250, 'obs_date': '2026-10-09', 'as_of': '2026-10-09'}
+a8['global_market.data.GOLD.close'] = {'value': 4250, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'}
 vd = base_views()
 vd['predictions'] = [{'pred_id': 41, 'date_made': '2026-10-02', 'asset': '金', 'deadline': '2026-10-09',
                       'direction': '金收4400上', 'status': 'observing', 'observe_from': '2026-10-02',

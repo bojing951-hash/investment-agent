@@ -589,7 +589,11 @@ def record_observations(views_data, anchors, today_str=None):
        已过滤,引擎侧也不放行(其他调用路径不得绕过观察器污染历史)。
     幂等: 同一批锚点重复运行不增加记录(changes只含真实状态变化,跳过说明仅打印,
     重复运行不虚增变更)。
+    IA-P0-1-FIX4(IA-DEF-005)引擎侧质量防御: 质量状态为FAIL/缺失/非法的锚点
+    一律不写入正式观察历史、不激活前提——与观察器同口径(rp.anchor_quality_problem),
+    其他调用路径不得绕过观察器污染长期状态。
     返回变更说明列表。"""
+    import research_provenance as _rp
     today_iso = _iso(today_str or datetime.now().strftime('%Y-%m-%d'))
     changes = []
     for p in views_data.get('predictions', []):
@@ -599,7 +603,11 @@ def record_observations(views_data, anchors, today_str=None):
             prem = p['premise']
             info = (anchors or {}).get(prem['metric'])
             if info and isinstance(info.get('value'), (int, float)):
+                q_problem = _rp.anchor_quality_problem(info)
                 od, why_bad = _anchor_obs_date_valid(info, today_iso)
+                if q_problem:
+                    print(f"⚠️ 预测#{p['pred_id']}: 前提锚点{q_problem} — 不激活,本轮跳过")
+                    continue
                 deadline = str(p.get('deadline', ''))[:10]
                 if od and _anchor_fresh(prem['metric'], info, today_iso) \
                         and COMPARATORS[prem['op']](float(info['value']), float(prem['target'])):
@@ -623,6 +631,10 @@ def record_observations(views_data, anchors, today_str=None):
                 if not obs_date:
                     if why_bad:
                         print(f"⚠️ 预测#{p['pred_id']}: 本轮锚点无效不写入观察历史 — {why_bad}")
+                    continue
+                q_problem = _rp.anchor_quality_problem(info)
+                if q_problem:
+                    print(f"⚠️ 预测#{p['pred_id']}: 本轮锚点{q_problem} — 不写入观察历史")
                     continue
                 if not _anchor_fresh(p['metric'], info, today_iso):
                     print(f"⚠️ 预测#{p['pred_id']}: 本轮锚点观测日{obs_date}超出新鲜度窗"

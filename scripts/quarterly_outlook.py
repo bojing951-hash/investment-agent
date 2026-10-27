@@ -163,8 +163,10 @@ def build_data_block(q, data_dir=None, views_path=None):
             lines.append(f"- [#{p['pred_id']}][{cn.get(p['status'], p['status'])}] {p['asset']}: {p['direction'][:60]}{mark}")
 
     mdir = os.path.join(ROOT_DIR, 'output', 'monthly')
+    # FIX-7: UNVALIDATED草稿不得混入月报索引冒充合格正式报告
     mfiles = sorted(f for f in (os.listdir(mdir) if os.path.isdir(mdir) else [])
-                    if f.startswith('monthly_review_') and f[15:21] in months)
+                    if f.startswith('monthly_review_') and f[15:21] in months
+                    and not f.endswith('_UNVALIDATED.md'))
     if mfiles:
         lines.append("\n## 本季月报索引(参考,结论须回溯原始数据)")
         lines.extend(f"- {f}" for f in mfiles)
@@ -238,12 +240,19 @@ def main():
         print(f"❌ 返回过短({len(md)}字符),放弃")
         sys.exit(1)
 
-    out_path = os.path.join(OUTPUT_DIR, f'quarterly_outlook_{q}.md')
+    # IA-P0-1-FIX7(IA-DEF-004): 季报数据来源为历史原始采集序列直读,当前架构
+    # 无法证明整个季度快照链质量 → 输出一律为UNVALIDATED研究草稿(文件名显式
+    # 标记,不覆盖既有文件,不得作为合格正式产出引用);历史分析能力保持不变。
+    out_path = os.path.join(OUTPUT_DIR, f'quarterly_outlook_{q}_UNVALIDATED.md')
     with open(out_path, 'w', encoding='utf-8') as f:
-        f.write(f"<!-- {tag}季度展望 {datetime.now().strftime('%Y-%m-%d %H:%M')} | investment-agent P4v2"
-                + (" | PREVIEW_PERIOD_INCOMPLETE" if preview else "") + " -->\n\n")
+        f.write(f"<!-- {tag}季度展望(研究草稿) {datetime.now().strftime('%Y-%m-%d %H:%M')} | investment-agent"
+                + (" | PREVIEW_PERIOD_INCOMPLETE" if preview else "")
+                + " | UNVALIDATED: 历史原始序列直读,未经完整期间快照链质量验证 -->\n\n")
+        f.write("> ⚠️ **UNVALIDATED 研究草稿**: 数据来源为历史原始采集序列直读,"
+                "未经研究快照链(Gate A)对整个季度的完整质量验证,不得作为合格正式"
+                "研究报告引用或作为长期状态回写依据。\n\n")
         f.write(md)
-    print(f"✅ 季报已保存: {out_path} ({os.path.getsize(out_path)} bytes)")
+    print(f"✅ 季报草稿已保存(UNVALIDATED): {out_path} ({os.path.getsize(out_path)} bytes)")
 
 if __name__ == '__main__':
     main()

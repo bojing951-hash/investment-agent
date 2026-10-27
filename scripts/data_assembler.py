@@ -255,13 +255,15 @@ def main():
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, 'w', encoding='utf-8') as f:
         f.write(build_markdown(snapshot, ymd))
-    # IA-P0-1: 数据包meta sidecar——包↔快照绑定(报告入口核验),旧包/混版自动失配
+    # IA-P0-1: 数据包meta sidecar——包↔快照绑定(报告入口核验),旧包/混版自动失配;
+    # FIX-01: 附数据包实际内容摘要——下游读取实际文件重算比对,声明值不被信任
     rp.write_meta(out, {
         'source': 'snapshot',
         'generated_by': 'data_assembler',
         'generated_at': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
         **rp.provenance_of(snapshot, path),
         'pack_file': os.path.basename(out),
+        'pack_digest': rp.digest_file(out),
     })
     print(f"✅ 数据包: {out} ({os.path.getsize(out)} bytes)"
           + (" [DEGRADED-已披露]" if status == 'DEGRADED' else ''))

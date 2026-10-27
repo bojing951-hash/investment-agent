@@ -128,9 +128,11 @@ def load_previous_report():
     # 都不是合格正式报告,不得作为"上期报告"喂给GLM续写
     # (旧缺陷: '_'>'.'排序使 weekly_report_1024_annotated.md 排在 weekly_report_1031.md
     #  之后,上期报告会错拿标注版)
+    # FIX-02: _CANDIDATE(发布前候选)同样不是正式报告,排除
     files = sorted([f for f in os.listdir(output_dir)
                     if f.startswith('weekly_report_')
-                    and '_annotated' not in f and '_UNVALIDATED' not in f], reverse=True)
+                    and '_annotated' not in f and '_UNVALIDATED' not in f
+                    and '_CANDIDATE' not in f], reverse=True)
 
     if len(files) < 1:
         print("⚠️ 无历史报告")
@@ -548,13 +550,16 @@ def _call_glm(system_prompt, user_prompt, max_tokens=32000, timeout=900):
 def verify_research_inputs(ymd=None):
     """报告生成前置核验(调GLM之前)。返回(ok, 问题列表, 上下文dict)。
 
-    核验项(全部须当日且互相绑定,缺一即拒):
-    1. 当日研究快照存在且可解析,Gate A ∈ {PASS, DEGRADED}(FAIL/缺字段/非法→拒);
+    核验项(全部须当日且互相绑定,缺一即拒;FIX-01: 实际内容摘要重算+确定性重建):
+    1. 当日研究快照存在且可解析,Gate A ∈ {PASS, DEGRADED}(FAIL/缺字段/非法/
+       声明与事实矛盾→拒);
     2. 当日数据包 data_pack_{ymd}.md 存在,meta sidecar来源=snapshot,
-       snapshot_id/digest/研究日期与当日权威快照(最高修订版)一致;
-    3. 当日锚点 anchors_{ymd}.json 存在,meta来源=snapshot且snapshot_id一致
-       (同日修订后旧批次自动失配→拒,不猜测);
-    4. 当日锚点prompt anchor_prompt_{ymd}.md 存在。
+       snapshot_id/digest/研究日期与当日权威快照(最高修订版)一致,包实际字节
+       摘要与meta声明一致,且与权威快照确定性重建比对一致(改包内数字→拒);
+    3. 当日锚点 anchors_{ymd}.json 存在,meta来源=snapshot且与权威快照一致,
+       并通过对权威快照的确定性重建比对(改锚点数字/残留旧指标/批次混用→拒);
+    4. 当日锚点prompt anchor_prompt_{ymd}.md 存在,且从已核验锚点确定性重建
+       比对一致(替换prompt数字→拒)。
     上下文dict: {'snapshot','snapshot_path','gate_a','anchors','anchors_path',
     'anchor_prompt_path'}——main据此使用**当日**输入(替代glob最新)。"""
     ymd = ymd or datetime.now().strftime('%Y%m%d')
@@ -572,13 +577,17 @@ def verify_research_inputs(ymd=None):
                 f"Gate A {gate_a if gate_a else '不可用(' + reason + ')'} — "
                 f"{rp.gate_reason_desc(snap)};FAIL/未知不得生成正式报告")
 
-    # 2) 当日数据包 + 绑定核验
+    # 2) 当日数据包 + 绑定核验(FIX-01: 含实际内容摘要重算)
     pack_path = os.path.join(DATA_DIR, 'weekly', f'data_pack_{ymd}.md')
     pack_meta = rp.load_meta(pack_path) if os.path.exists(pack_path) else None
     if not os.path.exists(pack_path):
         problems.append(f"当日数据包不存在: data_pack_{ymd}.md(先跑流水线)")
     elif not pack_meta or pack_meta.get('source') != 'snapshot':
         problems.append("数据包无来源meta或非快照渲染(来源不可证明,拒绝)")
+    elif not pack_meta.get('pack_digest'):
+        problems.append("数据包meta缺内容摘要(旧版产物,来源不可证明——须重新装配)")
+    elif rp.digest_file(pack_path) != pack_meta.get('pack_digest'):
+        problems.append("数据包实际内容与meta声明摘要不一致(疑被篡改/写入不完整)")
     elif snap is not None and (
             pack_meta.get('snapshot_id') != snap.get('snapshot_id')
             or pack_meta.get('snapshot_digest') != rp.digest_snapshot(snap)
@@ -587,8 +596,22 @@ def verify_research_inputs(ymd=None):
             f"数据包与当日权威快照不绑定: 包meta={pack_meta.get('snapshot_id')}"
             f"/{pack_meta.get('target_date')}, 权威快照={snap.get('snapshot_id')}"
             f"(旧包残留或同日修订后未重打包)")
+    elif snap is not None:
+        # FIX-01: 数据包内容确定性重建比对(build_markdown为权威快照纯函数)——
+        # 改包内数字后同步改meta摘要也难逃: 以权威快照重算包内容比对
+        try:
+            import data_assembler as _dasm
+            expected_pack = _dasm.build_markdown(snap, ymd)
+            with open(pack_path, 'r', encoding='utf-8') as f:
+                actual_pack = f.read()
+            if actual_pack != expected_pack:
+                problems.append('数据包实际内容与权威快照重建结果不一致'
+                                '(包内数字被改/包内容陈旧/快照批次已变更)')
+        except Exception as e:
+            problems.append(f'数据包重建比对失败(无法证明内容一致): {e}')
 
-    # 3) 当日锚点 + 批次核验
+    # 3) 当日锚点 + 批次核验(FIX-01: 实际内容与权威快照确定性重建比对;
+    #    FIX-04: 无meta/legacy批次一律拒绝,不再回退旧格式规则)
     anchors_path = os.path.join(daily_dir, f'anchors_{ymd}.json')
     anchors = None
     if not os.path.exists(anchors_path):
@@ -598,18 +621,20 @@ def verify_research_inputs(ymd=None):
                                                         daily_dir=daily_dir)
         if ok_batch is False:
             problems.append(f"锚点批次核验失败: {batch_reason}")
-        elif ok_batch is None:
-            problems.append("锚点无来源meta(须由snapshot_builder产出,legacy批次拒绝)")
         else:
             with open(anchors_path, 'r', encoding='utf-8') as f:
                 anchors = json.load(f)
             if snap is not None and len(anchors) < 20:
                 problems.append(f"当日锚点数量不足: {len(anchors)} < 20")
 
-    # 4) 当日锚点prompt
+    # 4) 当日锚点prompt + 实际内容核验(FIX-01: 从已核验锚点确定性重建比对)
     prompt_path = os.path.join(daily_dir, f'anchor_prompt_{ymd}.md')
     if not os.path.exists(prompt_path):
         problems.append(f"当日锚点prompt不存在: anchor_prompt_{ymd}.md(先跑data_validator)")
+    elif anchors is not None:
+        ok_prompt, prompt_reason = rp.verify_anchor_prompt(prompt_path, anchors)
+        if not ok_prompt:
+            problems.append(f"锚点prompt核验失败: {prompt_reason}")
 
     gate_a = rp.gate_status(snap)[0] if snap is not None else None
     ctx = {'snapshot': snap, 'snapshot_path': snap_path, 'gate_a': gate_a,
@@ -630,27 +655,77 @@ def _append_degraded_footer(md_path, gate_a, gate_b, snapshot_desc):
                 ">   不得作为全质量结论引用。\n")
 
 
-def write_report_status(ymd, md_path, gate_a, gate_b, final_quality, ctx):
-    """report_status_{ymd}.json: 报告最终质量与来源链快照(AC-04/AC-06可追溯)。"""
+def write_report_status(ymd, md_path, gate_a, gate_b, final_quality, ctx,
+                        published=False, failure_reason=None, digest_of=None):
+    """report_status_{ymd}.json: 报告最终质量与来源链快照(AC-04/AC-06/FIX-08可追溯)。
+
+    FIX-02/08:
+    - 记录**实际存在**的报告文件路径与内容摘要(digest_of给出则从该文件实际
+      字节重算——候选与发布内容一致,发布后摘要不变);
+    - 返回bool(写入成功与否),失败不再静默——调用方据此决定**不得发布**;
+    - final_quality=FAIL且当日已存在已发布合格记录时不覆盖主状态(失败详情写入
+      report_status_{ymd}_UNVALIDATED.json),已有合格报告的有效状态不被失败尝试破坏。
+    """
     status_path = os.path.join(OUTPUT_DIR, f'report_status_{ymd}.json')
+    target = status_path
+    if final_quality == 'FAIL':
+        try:
+            existing = json.load(open(status_path, encoding='utf-8')) \
+                if os.path.exists(status_path) else None
+        except Exception:
+            existing = None
+        if isinstance(existing, dict) and existing.get('published') \
+                and existing.get('final_quality') in ('PASS', 'DEGRADED'):
+            target = os.path.join(OUTPUT_DIR, f'report_status_{ymd}_UNVALIDATED.json')
+            print(f"ℹ️ 当日已有已发布合格状态记录——失败详情改写 {os.path.basename(target)}"
+                  f"(合格状态不被失败尝试覆盖)")
     try:
-        with open(status_path, 'w', encoding='utf-8') as f:
+        digest = rp.digest_file(digest_of or md_path) if os.path.exists(digest_of or md_path) else None
+    except OSError:
+        digest = None
+    try:
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        with open(target, 'w', encoding='utf-8') as f:
             json.dump({
                 'report_file': os.path.basename(md_path),
+                'report_path': md_path,
+                'report_digest': digest,
                 'gate_a': gate_a, 'gate_b': gate_b, 'final_quality': final_quality,
+                'published': bool(published),
                 'snapshot_id': (ctx.get('snapshot') or {}).get('snapshot_id'),
+                'snapshot_file': os.path.basename(ctx['snapshot_path'])
+                                 if ctx.get('snapshot_path') else None,
                 'snapshot_digest': (rp.digest_snapshot(ctx['snapshot'])
                                     if ctx.get('snapshot') else None),
                 'anchors_file': os.path.basename(ctx['anchors_path'])
                                 if ctx.get('anchors_path') else None,
+                'failure_reason': failure_reason,
                 'generated_at': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
             }, f, ensure_ascii=False, indent=1)
+        return True
     except OSError as e:
-        print(f"⚠️ report_status写入失败(不影响报告): {e}")
+        print(f"⛔ report_status写入失败: {e}")
+        return False
+
+
+def save_candidate_report(report_text, date_str=None):
+    """FIX-02(IA-DEF-002): 报告一律先落**候选文件**(weekly_report_{ymd}_CANDIDATE.md),
+    Gate B校验通过且状态记录成功后才发布(原子替换)为正式文件——生成/校验/发布
+    事务化,任何失败路径都不触碰既有合格报告。"""
+    if not date_str:
+        date_str = datetime.now().strftime('%Y%m%d')
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    cand_path = os.path.join(OUTPUT_DIR, f'weekly_report_{date_str}_CANDIDATE.md')
+    with open(cand_path, 'w', encoding='utf-8') as f:
+        f.write(f"<!-- 生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {GLM_MODEL} | investment-agent -->\n\n")
+        f.write(report_text)
+    print(f"\n📄 候选报告: {cand_path} ({os.path.getsize(cand_path)} 字节,验证通过后发布)")
+    return cand_path
 
 
 def save_report(report_text, date_str=None):
-    """保存报告"""
+    """保存报告(旧入口,保留兼容)。主流程已改走候选→验证→发布事务(FIX-02),
+    直接写正式文件仅限人工明确调用,不得用于自动化发布路径。"""
     if not date_str:
         date_str = datetime.now().strftime('%Y%m%d')
 
@@ -1119,33 +1194,68 @@ def generate_weekly_report():
         print("\n❌ 报告生成失败")
         sys.exit(1)
 
-    # 第3步：保存
-    md_path = save_report(report)
+    # 第3步(FIX-02, IA-DEF-002): 报告先进入**候选文件**——Gate B对候选执行校验,
+    # PASS/DEGRADED且状态记录成功后才发布为正式报告。旧顺序"先保存正式文件→
+    # 校验→FAIL改名"存在窗口: 新的错误报告会先覆盖同名合格报告,之后即使改名
+    # 原合格报告也已丢失。候选机制下任何失败路径都不触碰正式文件。
+    cand_path = save_candidate_report(report, today_ymd)
+    final_md = os.path.join(OUTPUT_DIR, f'weekly_report_{today_ymd}.md')
 
-    # 第3.5步：同日锚点校验(2026-10-11) — 必须先于论点回写
+    def _quarantine_candidate(reason):
+        """候选→_UNVALIDATED隔离(不触碰正式文件);失败状态记录指向真实存在的文件。"""
+        unval_path = cand_path.replace('_CANDIDATE.md', '_UNVALIDATED.md')
+        try:
+            os.replace(cand_path, unval_path)
+        except OSError:
+            unval_path = cand_path   # 改名失败至少保留候选文件,状态指向真实路径
+        write_report_status(today_ymd, unval_path, gate_a, classification, 'FAIL', pfx,
+                            published=False, failure_reason=reason, digest_of=unval_path)
+        return unval_path
+
+    # 第3.5步：同日锚点校验(2026-10-11) — 必须先于论点回写,且对**候选**执行
     # 第二轮#2/#4: 无锚点/锚点非同日/数值错误 → FAIL,禁止一切长期状态回写
     # IA-P0-1: 用预检核验过的**当日**锚点(批次一致),不再glob最新
-    classification, warnings = validate_generated_report(
-        md_path, anchors=latest_anchors, anchors_file=pfx['anchors_path'])
+    # FIX-02: 校验器异常 → 候选按未验证隔离,不得遗留伪装为合格的正式文件
+    try:
+        classification, warnings = validate_generated_report(
+            cand_path, anchors=latest_anchors, anchors_file=pfx['anchors_path'])
+    except Exception as e:
+        classification, warnings = 'FAIL', []
+        print(f"⛔ Gate B校验器异常({type(e).__name__}: {e}) — 候选报告按未验证处置,不发布")
 
     # 第3.55步(IA-P0-1,任务6): Gate A + Gate B 合成报告最终质量
     # 任一FAIL→FAIL;无FAIL有DEGRADED→DEGRADED;双PASS→PASS;未知按FAIL。
-    # FAIL: 报告改名 *_UNVALIDATED.md(与合格报告文件名可区分)、不回写任何
-    # 长期状态、退出码3——不得冒充合格正式报告。
     final_quality = rp.combine_gates(gate_a, classification)
-    write_report_status(today_ymd, md_path, gate_a, classification, final_quality, pfx)
     if final_quality == 'FAIL':
-        unval_path = md_path.replace('.md', '_UNVALIDATED.md')
-        os.replace(md_path, unval_path)
+        unval_path = _quarantine_candidate(
+            f'Gate A={gate_a}, Gate B={classification}(最终质量FAIL)')
         print(f"\n⛔ 最终质量FAIL(Gate A={gate_a}, Gate B={classification}) — "
-              f"报告已标记为未验证: {os.path.basename(unval_path)}")
+              f"报告已标记为未验证: {os.path.basename(unval_path)}(正式文件未受影响)")
         print("   不回写thesis.json/allocation_views.json;处置后重跑(数值错误须修复数据或重新生成)")
         sys.exit(3)
     if final_quality == 'DEGRADED':
-        _append_degraded_footer(md_path, gate_a, classification,
+        _append_degraded_footer(cand_path, gate_a, classification,
                                 rp.gate_reason_desc(pfx['snapshot']))
         print(f"⚠️ 最终质量DEGRADED(Gate A={gate_a}, Gate B={classification}) — "
               f"报告尾部已附降级披露,回写按既有规则继续")
+
+    # 第3.58步(FIX-02/08): **状态先行**——先写report_status(指向将发布的正式
+    # 文件+候选实际内容摘要),写入失败则不发布(不得出现无有效状态记录的正式报告)
+    if not write_report_status(today_ymd, final_md, gate_a, classification, final_quality,
+                               pfx, published=False, digest_of=cand_path):
+        _quarantine_candidate('report_status写入失败——不得发布无状态记录的正式报告')
+        sys.exit(3)
+    # 发布: 候选原子替换为正式文件(同日重跑成功视为刷新,允许替换;失败路径永不触及)
+    try:
+        os.replace(cand_path, final_md)
+    except OSError as e:
+        _quarantine_candidate(f'正式发布失败: {e}')
+        sys.exit(3)
+    # 发布完成: 补记published状态(失败仅告警——主状态已指向真实存在的正式文件)
+    if not write_report_status(today_ymd, final_md, gate_a, classification, final_quality,
+                               pfx, published=True, digest_of=final_md):
+        print(f"⚠️ 发布后状态补记失败(报告已发布,状态仍指向正式文件,下次运行将刷新)")
+    print(f"\n📄 正式报告已发布: {final_md} (最终质量={final_quality})")
 
     # 第3.6步：论点状态回写 — 校验分级FAIL则禁止回写,
     # 防止基于错误数字的升降级污染thesis.json/allocation_views.json

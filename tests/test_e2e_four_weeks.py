@@ -70,6 +70,13 @@ def run_week(week, td, views, thesis):
     连续性关键: views/thesis为同一沙盒文件,每周在其上周状态上继续更新。"""
     data_dir = os.path.join(FIX, f'{week}_data')
     anchors = quiet(data_validator.extract_anchors_from_data, data_dir)
+    # IA-P0-1-FIX1: 旧版提取路径(extract_anchors_from_data)无quality字段——本套件
+    # 被测对象是四周状态连续性,fixture统一注入quality='PASS'对齐新schema
+    # (真实生产锚点由快照链携带quality;此处不注入会让FIX-04引擎防御把全部
+    # 预测观察误判为质量不明而跳过,偏离本套件的测试意图)。
+    for _a in anchors.values():
+        if isinstance(_a, dict) and 'quality' not in _a:
+            _a['quality'] = 'PASS'
     report_path = os.path.join(td, REPORTS[week])
     shutil.copy(os.path.join(FIX, 'reports', REPORTS[week]), report_path)
     warnings = quiet(data_validator.validate_report, report_path, anchors)

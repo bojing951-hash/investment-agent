@@ -910,14 +910,27 @@ if __name__ == '__main__':
                                 f'anchor_prompt_{datetime.now().strftime("%Y%m%d")}.md')
     with open(prompt_path, 'w', encoding='utf-8') as f:
         f.write(prompt_block)
+    # FIX-01: prompt来源meta——记录渲染所用锚点批次与prompt实际内容摘要,
+    # 报告预检读取实际文件重算并从已核验锚点确定性重建比对
+    _pm = {'source': 'snapshot' if from_snapshot else 'legacy',
+           'generated_by': 'data_validator', 'target_date': today_str,
+           'anchors_file': os.path.basename(anchor_path),
+           'prompt_digest': rp.digest_file(prompt_path)}
+    if from_snapshot:
+        _am = rp.load_meta(anchor_path) or {}
+        _pm.update({k: _am.get(k) for k in ('snapshot_id', 'snapshot_digest', 'gate_a')})
+        _pm['anchors_digest'] = rp.digest_file(anchor_path)
+    rp.write_meta(prompt_path, _pm)
     print(f"💾 Prompt锚点块: {prompt_path} ({os.path.getsize(prompt_path)} bytes)")
 
     # Step 3: 校验最新报告
     print("\n--- Step 3: 校验最新报告 ---")
     # IA-P0-1: _annotated(禁语标注版)与_UNVALIDATED(Gate B FAIL待验证版)
-    # 都不是合格正式报告,不得作为"最新报告"参与比对/续写/上月报索引
+    # 都不是合格正式报告,不得作为"最新报告"参与比对/续写/上月报索引;
+    # FIX-02: _CANDIDATE为发布前候选文件(未过Gate B/未发布),同样排除
     report_files = sorted([f for f in glob.glob(os.path.join(ROOT_DIR, 'output', 'weekly', 'weekly_report_*.md'))
-                           if '_annotated' not in f and '_UNVALIDATED' not in f])
+                           if '_annotated' not in f and '_UNVALIDATED' not in f
+                           and '_CANDIDATE' not in f])
     if report_files:
         latest_report = report_files[-1]
         print(f"📄 校验报告: {latest_report}")

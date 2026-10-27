@@ -188,7 +188,9 @@ def make_fact(metric_id, value, observation_date, as_of, source_file, collector,
         fact["derived"] = compute_period_returns(
             series.get('dates', []), series.get('values', []),
             m['unit'], calendar, as_of=None if as_of is None else str(as_of)[:10])
-    fact["quality_status"] = quality_status or "PASS"
+    # IA-P0-1-FIX5(IA-DEF-006): 缺失质量标记不得默认PASS——由已附issues按
+    # 既有分级规则推导(无issue才得PASS);显式传入quality_status仍优先。
+    fact["quality_status"] = quality_status or grade_issues(issues or [])
     fact["issues"] = issues or []
     return fact
 

@@ -24,12 +24,14 @@
 - 观察记录绑定实际观测日(obs_date)与本轮采集(retrieved_at=as_of,source),
   与锚点采集批次一一对应。
 
-IA-P0-1(2026-10-27,任务7)长期状态保护收紧:
-- 指标级质量门禁: 锚点quality=FAIL的指标不得进入长期观察历史(该预测本轮跳过);
-  DEGRADED=已验证+披露,可记录(与Gate A语义一致);
-- 批次一致性: 锚点文件带meta sidecar(source=snapshot+快照ID)时,核验其与
-  当日确定性选择的权威快照一致——legacy拍平锚点/同日修订后旧批次一律关键FAIL,
-  不写任何观察;无meta(旧格式/直连调用)维持既有日期规则,离线测试路径不变。
+IA-P0-1(2026-10-27,任务7)+FIX-04(2026-10-27整改)长期状态保护收紧:
+- 指标级质量门禁(rp共享原语,与状态引擎同口径): 锚点quality为FAIL/缺失/非法
+  的指标一律不得进入长期观察历史(该预测本轮跳过);PASS/DEGRADED/WARN可按
+  既有规则处理(DEGRADED=已验证+披露);
+- 批次一致性+实际内容核验: 锚点文件须有meta(source=snapshot)且与当日权威
+  快照一致,并通过对权威快照的确定性重建比对(数值被改/残留旧指标/版本混用
+  均拒)——无meta/legacy拍平锚点/同日修订后旧批次一律关键FAIL,不写任何观察
+  (FIX-04: 无来源证明的数据不得进入正式长期观察)。
 
 CLI(离线测试): --views PATH --anchors PATH --today YYYY-MM-DD [--anchors-date YYYYMMDD]
 exit: 0=正常(含部分跳过) / 2=关键失败(无当日有效锚点)
@@ -85,13 +87,15 @@ def load_latest_anchors(anchors_path=None):
 def _metric_problem(metric, anchors, today_iso):
     """单指标本轮有效性检查: 返回问题描述或None(有效)。
     不得仅因指标存在就认定有效 — 须质量合格、观测日可解析、不晚于今日、未超新鲜度窗。"""
+    import research_provenance as rp
     info = (anchors or {}).get(metric)
     if not info or not isinstance(info.get('value'), (int, float)):
         return '本轮锚点缺该指标(采集失败或资产缺失)'
-    # IA-P0-1(任务7): 事实引擎判FAIL的指标不得进入长期观察历史;
-    # DEGRADED=已验证+披露,允许记录(与Gate A语义一致)。旧锚点无quality字段→不拦。
-    if str(info.get('quality') or '').upper() == 'FAIL':
-        return '锚点指标质量FAIL(事实引擎校验未通过,不得进入长期观察历史)'
+    # IA-P0-1-FIX4(IA-DEF-005): 质量状态与状态引擎同口径(rp共享原语)——
+    # FAIL/缺失/非法一律拒绝进入正式长期观察;PASS/DEGRADED/WARN可按既有规则处理
+    q_problem = rp.anchor_quality_problem(info)
+    if q_problem:
+        return q_problem + '(不得进入长期观察历史)'
     od = str(info.get('obs_date') or '')[:10]
     if not od:
         return '锚点无观测日,无法绑定实际观察日'
@@ -132,9 +136,11 @@ def observe(views_path=None, anchors=None, today_str=None, anchors_date=None, an
         print(f"⛔ 锚点文件日期{anchors_date}≠今日{today_iso.replace('-', '')} — "
               f"本轮采集失败或未运行,不得以旧数据充当本期观察(关键失败)")
         return [], 0, 'FAIL'
-    # IA-P0-1(任务7): 批次一致性核验——只在能定位锚点**文件**时执行。
-    # meta缺失(None)=旧格式/直连调用: 按既有日期规则处理(离线测试路径不变);
-    # meta存在且source=legacy或快照ID与当日权威快照不符 → 关键FAIL,不写任何观察。
+    # IA-P0-1(任务7)+FIX-04(IA-DEF-005): 批次一致性+实际内容核验——锚点文件
+    # 必须可证明来源(meta.source=snapshot)且与当日权威快照一致(确定性重建比对)。
+    # 无meta/legacy/批次失配/内容不一致 → 关键FAIL,不写任何观察:
+    # 无来源证明的数据不得进入正式长期观察(直传anchors dict的离线注入路径无
+    # 文件可核,由状态引擎侧同口径质量防御兜底,见allocation_engine)。
     if anchors_path and os.path.exists(anchors_path):
         ok, reason = rp.verify_anchor_batch(anchors_path, anchors_date=anchors_date)
         if ok is False:

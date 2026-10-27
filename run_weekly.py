@@ -106,11 +106,18 @@ def main():
     print(f"🕐 开始时间: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
-    # IA-P0-1依赖图(第4元=依赖脚本名,前置须成功否则本步骤SKIPPED):
-    # 快照构建无依赖——采集失败时仍构建快照(如实fallback/降级/FAIL评级),
-    # 让Gate A对数据质量做显式裁决,而不是流水线替它隐式跳过;
-    # 预测观察无依赖(自持门禁): 采集失败当日锚点缺失,观察器自行exit 2,
-    # 不得由上游依赖阻止其余资产观察(R17既有约定)。
+    # IA-P0-1依赖图(第4元=依赖脚本名,前置须成功否则本步骤SKIPPED)+FIX-03收紧:
+    # - 快照构建无依赖——采集失败时仍构建快照(如实fallback/降级/FAIL评级),
+    #   让Gate A对数据质量做显式裁决,而不是流水线替它隐式跳过;
+    # - FIX-03(IA-DEF-003): 正式研究计算/正式数据包/锚点校验不仅依赖快照构建,
+    #   还依赖**全部关键采集器**成功——关键采集失败后不得因旧采集文件存在就
+    #   自动放行下游正式产物(旧文件回退属快照层的已披露降级能力,须人工/显式
+    #   处置,不在自动流水线内冒充当日成功批次);受影响步骤SKIPPED并记录上游名;
+    # - 预测观察无依赖(自持门禁): 采集失败当日锚点缺失,观察器自行exit 2,
+    #   不得由上游依赖阻止其余资产观察(R17既有约定)。
+    _critical_collectors = ["global_market_collector.py", "china_market_collector.py",
+                            "macro_collector.py", "rate_expectations.py"]
+    _formal_research_deps = ["snapshot_builder.py"] + _critical_collectors
     steps = [
         ("1/11 全球市场数据采集", "global_market_collector.py", True),
         ("2/11 A股港股数据采集", "china_market_collector.py", True),
@@ -123,15 +130,15 @@ def main():
         # 装配器/校验器均消费快照,不再各自glob"最新文件"或自行拉数(文件最新≠数据最新)。
         ("6/11 研究快照构建(Gate A)", "snapshot_builder.py", True),
         ("7/11 宏观体制评分卡(消费快照)", "macro_scorecard.py", True,
-         ["snapshot_builder.py"]),
+         list(_formal_research_deps)),
         # 相关性计算器2026-10-11接线:必须在data_assembler之前跑,汇编器会读取
         # correlation_*.md拼进数据包第五节。非关键: 相关性缺失只降级周报第五节。
         ("8/11 跨资产相关性(消费快照)", "correlation_calculator.py", False,
-         ["snapshot_builder.py"]),
+         list(_formal_research_deps)),
         ("9/11 数据汇总打包", "data_assembler.py", True,
-         ["snapshot_builder.py"]),
+         list(_formal_research_deps)),
         ("10/11 数据校验与锚点生成", "data_validator.py", True,
-         ["data_assembler.py"]),
+         ["data_assembler.py"] + list(_formal_research_deps)),
         # 每日预测观察(第四轮P0-6 + 第五轮P1-2): 锚点生成后用Python记录观察期内
         # 预测的当期数据,幂等不调GLM;数据质量门禁FAIL(无当日锚点)时exit 2,
         # 作为关键失败向上传播——采集失败时受影响预测的正式状态不得被更新。
@@ -161,7 +168,39 @@ def main():
     print(f"\n  结果: {success_count}/{len(steps)} 步骤成功")
     print(f"  总耗时: {duration:.1f} 秒")
 
-    # IA-P0-1(AC-11): 流水线运行台账(状态/失败/跳过原因),供事后追溯
+    # IA-P0-1(AC-11)+FIX-08(IA-DEF-008): 流水线运行台账——步骤状态/失败与SKIPPED
+    # 原因/**所使用的研究快照身份(版本+摘要+Gate A)**/是否允许正式报告与回写。
+    # 台账为诊断记录: 写入失败仅告警,不改变退出码判定,也不得据此把失败静默记成功。
+    ledger_provenance = None
+    try:
+        sys.path.insert(0, SCRIPTS_DIR)
+        import research_provenance as rp
+        ymd = start_time.strftime('%Y%m%d')
+        snap, why = rp.select_snapshot(ymd, os.path.join(PROJECT_DIR, 'data', 'daily'))
+        if snap is not None:
+            gate_a, _r = rp.gate_status(snap)
+            ledger_provenance = {
+                'research_target_date': ymd,
+                'snapshot_id': snap.get('snapshot_id'),
+                'snapshot_file': os.path.basename(why),
+                'snapshot_digest': rp.digest_snapshot(snap),
+                'gate_a': gate_a,
+                'gate_a_reason': _r or None,
+            }
+        else:
+            ledger_provenance = {'research_target_date': ymd,
+                                 'snapshot_id': None, 'snapshot_unavailable_reason': why}
+    except Exception as e:
+        ledger_provenance = {'snapshot_id': None, 'ledger_provenance_error': str(e)[:200]}
+    # 台账放行标志: 正式报告/回写须=快照可用+Gate A允许+装配与校验两步成功
+    # (步骤名按尾缀匹配,避免硬编码序号)
+    def _step_ok(suffix):
+        return any(n.endswith(suffix) and s for n, s, _c in results)
+    ledger_provenance['allow_formal_report'] = bool(
+        ledger_provenance.get('snapshot_id')
+        and ledger_provenance.get('gate_a') in ('PASS', 'DEGRADED')
+        and _step_ok('数据汇总打包') and _step_ok('数据校验与锚点生成'))
+    ledger_provenance['allow_state_writeback'] = ledger_provenance['allow_formal_report']
     try:
         log_dir = os.path.join(PROJECT_DIR, 'logs')
         os.makedirs(log_dir, exist_ok=True)
@@ -169,12 +208,14 @@ def main():
         with open(log_path, 'w', encoding='utf-8') as f:
             json.dump({
                 'run_at': start_time.isoformat(timespec='seconds'),
+                'run_date': start_time.strftime('%Y-%m-%d'),
                 'duration_sec': round(duration, 1),
                 'steps': [{'name': n, 'ok': bool(s), 'critical': bool(c),
                            'skipped': n in skips,
                            'skip_reason': (skips or {}).get(n)}
                           for n, s, c in results],
                 'success_count': success_count,
+                **ledger_provenance,
             }, f, ensure_ascii=False, indent=1)
     except OSError as e:
         print(f"⚠️ 流水线台账写入失败(不影响退出码): {e}")

@@ -120,9 +120,9 @@ with tempfile.TemporaryDirectory() as td:
     report = """<!--ALLOCATION_STATUS
 {"id":5,"rating":"标配","confidence":3,"note":"避险与通胀对冲证据齐","evidence":[{"metric":"macro.data.CCC_OAS.value","value":10.30,"obs_date":"2026-10-15","mechanism":"信用"},{"metric":"global_market.data.GOLD.close","value":4310,"obs_date":"2026-10-16","mechanism":"避险与估值"},{"metric":"global_market.data.SPX.close","value":7580,"obs_date":"2026-10-16","mechanism":"增长"}],"pred":"若CCC回落至850bp下方则两周内金价回调2%","pred_weeks":2,"pred_metric":"macro.data.CCC_OAS.value","pred_op":"<=","pred_target":8.5,"pred_mode":"touch"}
 ALLOCATION_STATUS-->"""
-    anchors = {"macro.data.CCC_OAS.value": {"value": 10.30, "obs_date": "2026-10-15"},
-               "global_market.data.GOLD.close": {"value": 4310, "obs_date": "2026-10-16"},
-               "global_market.data.SPX.close": {"value": 7580, "obs_date": "2026-10-16"}}
+    anchors = {"macro.data.CCC_OAS.value": {"value": 10.30, "obs_date": "2026-10-15", "quality": "PASS"},
+               "global_market.data.GOLD.close": {"value": 4310, "obs_date": "2026-10-16", "quality": "PASS"},
+               "global_market.data.SPX.close": {"value": 7580, "obs_date": "2026-10-16", "quality": "PASS"}}
     ae.update_allocation_status(report, views_path=tmp_views, anchors=anchors, today_str='2026-10-16')
     saved = json.load(open(tmp_views))
     v5 = next(v for v in saved['views'] if v['id'] == 5)

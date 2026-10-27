@@ -47,16 +47,19 @@ print("第四轮研究可靠性修复测试(20项 + 端到端)")
 print("=" * 60)
 
 # ════════ 公共fixture ════════
+# IA-P0-1-FIX1: 锚点schema新增quality字段(FIX-04状态引擎侧校验)——fixture补
+# quality='PASS'与新schema对齐,不改变任何既有断言语义(被测行为是观察幂等/
+# 触发评估,不是质量门禁本身)。
 def anchors_at(day, **over):
     a = {
-        'macro.data.CCC_OAS.value': {'value': 10.12, 'obs_date': day, 'as_of': day},
-        'macro.data.CPI.value': {'value': 328.4, 'obs_date': '2026-09-15', 'as_of': day},
-        'macro.data.TIPS_10Y.value': {'value': 2.89, 'obs_date': day, 'as_of': day},
-        'macro.data.HY_OAS.value': {'value': 5.20, 'obs_date': day, 'as_of': day},
-        'macro.data.IG_OAS.value': {'value': 1.42, 'obs_date': day, 'as_of': day},
-        'global_market.data.GOLD.close': {'value': 4180, 'obs_date': day, 'as_of': day},
-        'global_market.data.SPX.close': {'value': 7650, 'obs_date': day, 'as_of': day},
-        'global_market.data.DXY.close': {'value': 99.9, 'obs_date': day, 'as_of': day},
+        'macro.data.CCC_OAS.value': {'value': 10.12, 'obs_date': day, 'as_of': day, 'quality': 'PASS'},
+        'macro.data.CPI.value': {'value': 328.4, 'obs_date': '2026-09-15', 'as_of': day, 'quality': 'PASS'},
+        'macro.data.TIPS_10Y.value': {'value': 2.89, 'obs_date': day, 'as_of': day, 'quality': 'PASS'},
+        'macro.data.HY_OAS.value': {'value': 5.20, 'obs_date': day, 'as_of': day, 'quality': 'PASS'},
+        'macro.data.IG_OAS.value': {'value': 1.42, 'obs_date': day, 'as_of': day, 'quality': 'PASS'},
+        'global_market.data.GOLD.close': {'value': 4180, 'obs_date': day, 'as_of': day, 'quality': 'PASS'},
+        'global_market.data.SPX.close': {'value': 7650, 'obs_date': day, 'as_of': day, 'quality': 'PASS'},
+        'global_market.data.DXY.close': {'value': 99.9, 'obs_date': day, 'as_of': day, 'quality': 'PASS'},
     }
     a.update(over)
     return a
@@ -468,9 +471,9 @@ views_obs = {'version': '4.0', 'views': [], 'predictions': [
      'date_made': '2026-10-05', 'deadline': '2026-10-30', 'status': 'observing',
      'observations': []}]}
 anch = anchors_at('2026-10-12',
-                  **{'global_market.data.GOLD.close': {'value': 4260.0, 'obs_date': '2026-10-12', 'as_of': '2026-10-12'},
-                     'global_market.data.GOLD.high': {'value': 4272.0, 'obs_date': '2026-10-12', 'as_of': '2026-10-12'},
-                     'global_market.data.GOLD.low': {'value': 4248.0, 'obs_date': '2026-10-12', 'as_of': '2026-10-12'}})
+                  **{'global_market.data.GOLD.close': {'value': 4260.0, 'obs_date': '2026-10-12', 'as_of': '2026-10-12', 'quality': 'PASS'},
+                     'global_market.data.GOLD.high': {'value': 4272.0, 'obs_date': '2026-10-12', 'as_of': '2026-10-12', 'quality': 'PASS'},
+                     'global_market.data.GOLD.low': {'value': 4248.0, 'obs_date': '2026-10-12', 'as_of': '2026-10-12', 'quality': 'PASS'}})
 quiet(ae.record_observations, views_obs, anch, '2026-10-12')
 n1 = len(views_obs['predictions'][0]['observations'])
 quiet(ae.record_observations, views_obs, anch, '2026-10-12')   # 同批重跑
@@ -479,9 +482,9 @@ check("同批锚点重跑记录数不变", n1 == 1 and n2 == 1, f"{n1}->{n2}")
 check("观察记录带盘中高低与来源", all(
     k in views_obs['predictions'][0]['observations'][0] for k in ('value', 'high', 'low', 'obs_date')), str(views_obs['predictions'][0]['observations']))
 quiet(ae.record_observations, views_obs, anchors_at(
-    '2026-10-13', **{'global_market.data.GOLD.close': {'value': 4255.0, 'obs_date': '2026-10-13', 'as_of': '2026-10-13'},
-                     'global_market.data.GOLD.high': {'value': 4266.0, 'obs_date': '2026-10-13', 'as_of': '2026-10-13'},
-                     'global_market.data.GOLD.low': {'value': 4250.0, 'obs_date': '2026-10-13', 'as_of': '2026-10-13'}}),
+    '2026-10-13', **{'global_market.data.GOLD.close': {'value': 4255.0, 'obs_date': '2026-10-13', 'as_of': '2026-10-13', 'quality': 'PASS'},
+                     'global_market.data.GOLD.high': {'value': 4266.0, 'obs_date': '2026-10-13', 'as_of': '2026-10-13', 'quality': 'PASS'},
+                     'global_market.data.GOLD.low': {'value': 4250.0, 'obs_date': '2026-10-13', 'as_of': '2026-10-13', 'quality': 'PASS'}}),
     '2026-10-13')
 n3 = len(views_obs['predictions'][0]['observations'])
 check("新一观测日新增记录(不因幂等而丢数据)", n3 == 2, f"n3={n3}")

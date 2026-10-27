@@ -61,50 +61,69 @@ DAY_ISO = '2026-10-17'
 
 
 # ══ fixture构造 ═══════════════════════════════════════════════════
+# FIX1升级: 锚点/prompt一律由真实生成路径确定性产出(sb.build_anchors /
+# dv.generate_anchor_prompt_block),数据包meta带实际内容摘要——fixture与生产
+# 同构,预检的"实际内容绑定/确定性重建比对"才有真实意义。
 
-def synth_snapshot(ymd=DAY, gate='PASS', rev=None, degraded_fact=False, sid=None):
-    """SYNTHETIC研究快照(结构=真实快照;metric_id用注册表真实ID保证渲染路径真实)。"""
+def synth_snapshot(ymd=DAY, gate='PASS', rev=None, degraded_fact=False, sid=None,
+                   fail_fact=False):
+    """SYNTHETIC研究快照(结构=真实快照;metric_id用注册表真实ID保证渲染路径真实)。
+    6个全球资产×(close/week/mtd/ytd)派生→build_anchors可产出24+锚点。
+    fail_fact: GOLD_F事实质量FAIL(§8观察器fixture——该指标预测须跳过,同批照常)。"""
     sid = sid or (f"research_snapshot_{ymd}" + (f"_v{rev}" if rev else ""))
     obs = f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}"
-    facts = [
-        {'metric_id': 'SPX', 'display_name': '标普500', 'value': 7659.44, 'unit': '指数点',
-         'observation_date': obs, 'quality_status': 'PASS', 'derived': {}, 'issues': []},
-        {'metric_id': 'GOLD', 'display_name': '黄金期货', 'value': 4300.0, 'unit': '美元/盎司',
-         'observation_date': obs,
-         'quality_status': 'DEGRADED' if degraded_fact else 'PASS', 'derived': {},
-         'issues': [{'severity': 'DEGRADED', 'message': '观测滞后2天(回退窗口内)'}]
-                   if degraded_fact else []},
-    ]
+    glob = [('SPX', '标普500', 7659.44), ('NDX', '纳斯达克100', 25631.51),
+            ('VIX', 'VIX恐慌指数', 15.82), ('DXY', '美元指数', 103.21),
+            ('GOLD_F', '黄金期货', 4300.0), ('WTI_F', 'WTI原油期货', 71.28)]
+    monthly = [('CPI', 'CPI同比', 2.4), ('CORE_CPI', '核心CPI同比', 2.8),
+               ('UNEMPLOYMENT', '失业率', 4.1), ('UMCSENT', '密歇根消费者信心', 68.2)]
+    facts = []
+    for mid, name, val in glob:
+        q = 'FAIL' if (fail_fact and mid == 'GOLD_F') else \
+            ('DEGRADED' if (degraded_fact and mid == 'GOLD_F') else 'PASS')
+        issues = ([{'severity': 'FAIL', 'message': '数值校验未通过(合成fixture)'}]
+                  if q == 'FAIL' else
+                  ([{'severity': 'DEGRADED', 'message': '观测滞后2天(回退窗口内)'}]
+                   if q == 'DEGRADED' else []))
+        facts.append({'metric_id': mid, 'display_name': name, 'value': val,
+                      'unit': '指数点', 'observation_date': obs, 'quality_status': q,
+                      'high': round(val * 1.01, 2), 'low': round(val * 0.99, 2),
+                      'derived': {'week': {'pct_change': 0.52},
+                                  'mtd': {'pct_change': 1.31},
+                                  'ytd': {'pct_change': 12.04}},
+                      'issues': issues})
+    for mid, name, val in monthly:
+        facts.append({'metric_id': mid, 'display_name': name, 'value': val,
+                      'unit': '%', 'observation_date': obs, 'quality_status': 'PASS',
+                      'derived': {'m1': {'basis_value': round(val * 0.99, 3),
+                                         'pct_change': 0.4, 'pp_change': 0.1},
+                                  'm12': {'basis_value': round(val * 0.95, 3),
+                                          'pct_change': 2.1, 'pp_change': 0.3}},
+                      'issues': []})
+    counts = {'PASS': sum(1 for f in facts if f['quality_status'] == 'PASS'),
+              'DEGRADED': sum(1 for f in facts if f['quality_status'] == 'DEGRADED'),
+              'FAIL': 0}
     return {
         'snapshot_id': sid, 'research_as_of': f"{obs}T08:00:00+08:00", 'target_date': ymd,
         'timezone': 'Asia/Shanghai',
         'sources_status': {'global': {'status': 'EXACT', 'file': f"global_{ymd}.json",
                                       'file_date': ymd}},
         'fed_futures_curve': [], 'facts': facts, 'reconciliation': [],
-        'quality': {'counts': {'PASS': 1, 'DEGRADED': 1 if degraded_fact else 0, 'FAIL': 0},
-                    'missing_core': [], 'fail_metrics': []},
-        'gate_a': {'status': gate, 'core_missing': [], 'core_fail': [], 'note': 'synthetic'},
+        'quality': {'counts': counts, 'missing_core': [],
+                    'fail_metrics': ['GOLD_F'] if fail_fact else []},
+        'gate_a': {'status': gate, 'core_missing': [],
+                   'core_fail': ['GOLD_F'] if fail_fact else [], 'note': 'synthetic'},
     }
 
 
-def synth_anchors(n=25):
-    """SYNTHETIC当日锚点(≥20个,观察器/预检数量门槛)。"""
-    a = {'global_market.data.GOLD.close': {
-        'value': 4300.0, 'obs_date': DAY_ISO, 'as_of': DAY_ISO, 'tolerance_pct': 1.0,
-        'high': 4322.0, 'low': 4282.0, 'metric_id': 'GOLD', 'quality': 'PASS',
-        'source_file': f"research_snapshot_{DAY}.json"},
-        'global_market.data.SPX.close': {
-            'value': 7659.44, 'obs_date': DAY_ISO, 'as_of': DAY_ISO,
-            'metric_id': 'SPX', 'quality': 'PASS', 'source_file': f"research_snapshot_{DAY}.json"}}
-    for i in range(n - 2):
-        a[f"macro.data.FILLER_{i}.value"] = {
-            'value': float(i), 'obs_date': DAY_ISO, 'as_of': DAY_ISO,
-            'source_file': f"research_snapshot_{DAY}.json"}
-    return a
+def synth_anchors_for(snap, ymd=DAY):
+    """由快照经真实路径确定性生成锚点(FIX1: fixture与生产同构)。"""
+    return sb.build_anchors(snap, ymd)
 
 
 def build_research_day(base, ymd=DAY, gate='PASS', rev=None, pack_bound_rev='__same__',
-                       degraded_fact=False, skip=(), tamper_snapshot=False):
+                       degraded_fact=False, skip=(), tamper_snapshot=False,
+                       fail_fact=False):
     """构造一天的完整研究产物(快照/数据包+meta/锚点+meta/锚点prompt)。
 
     pack_bound_rev: 数据包meta绑定的快照版本('__same__'=与权威快照一致;
@@ -114,30 +133,40 @@ def build_research_day(base, ymd=DAY, gate='PASS', rev=None, pack_bound_rev='__s
     weekly = os.path.join(base, 'weekly')
     os.makedirs(daily, exist_ok=True)
     os.makedirs(weekly, exist_ok=True)
-    snap = synth_snapshot(ymd, gate=gate, rev=rev, degraded_fact=degraded_fact)
+    snap = synth_snapshot(ymd, gate=gate, rev=rev, degraded_fact=degraded_fact,
+                          fail_fact=fail_fact)
     snap_path = os.path.join(daily, snap['snapshot_id'] + '.json')
     with open(snap_path, 'w', encoding='utf-8') as f:
         json.dump(snap, f, ensure_ascii=False)
 
+    anchors = synth_anchors_for(snap, ymd)
     if 'pack' not in skip:
-        with open(os.path.join(weekly, f'data_pack_{ymd}.md'), 'w', encoding='utf-8') as f:
+        packfile = os.path.join(weekly, f'data_pack_{ymd}.md')
+        with open(packfile, 'w', encoding='utf-8') as f:
             f.write(da.build_markdown(snap, ymd) if gate != 'FAIL' else '# pack')
         if 'pack_meta' not in skip:
             bound_rev = rev if pack_bound_rev == '__same__' else pack_bound_rev
             bound = synth_snapshot(ymd, rev=bound_rev) if bound_rev else snap
-            rp.write_meta(os.path.join(weekly, f'data_pack_{ymd}.md'), {
+            rp.write_meta(packfile, {
                 'source': 'snapshot', 'generated_by': 'data_assembler',
+                'pack_file': os.path.basename(packfile),
+                'pack_digest': rp.digest_file(packfile),
                 **rp.provenance_of(bound, snap_path)})
     if 'anchors' not in skip:
         apath = os.path.join(daily, f'anchors_{ymd}.json')
         with open(apath, 'w', encoding='utf-8') as f:
-            json.dump(synth_anchors(), f, ensure_ascii=False)
+            json.dump(anchors, f, ensure_ascii=False, indent=1)
         if 'anchors_meta' not in skip:
             rp.write_meta(apath, {'source': 'snapshot', 'generated_by': 'snapshot_builder',
+                                  'anchor_count': len(anchors),
+                                  'anchors_digest': rp.digest_file(apath),
                                   **rp.provenance_of(snap, snap_path)})
     if 'prompt' not in skip:
-        with open(os.path.join(daily, f'anchor_prompt_{ymd}.md'), 'w', encoding='utf-8') as f:
-            f.write('## 数据锚点清单(SYNTHETIC)\n')
+        ppath = os.path.join(daily, f'anchor_prompt_{ymd}.md')
+        with open(ppath, 'w', encoding='utf-8') as f:
+            f.write(dv.generate_anchor_prompt_block(anchors))
+        rp.write_meta(ppath, {'source': 'snapshot', 'generated_by': 'data_validator',
+                              'target_date': ymd, 'prompt_digest': rp.digest_file(ppath)})
     if tamper_snapshot:
         snap['facts'][0]['value'] = 9999.99   # 绑定建立后篡改快照
         with open(snap_path, 'w', encoding='utf-8') as f:
@@ -552,10 +581,15 @@ def obs_pred(pid, metric):
 
 
 with tempfile.TemporaryDirectory() as td:
-    anchors = synth_anchors()
-    anchors['global_market.data.GOLD.close']['quality'] = 'FAIL'   # 该指标质量FAIL
-    apath = os.path.join(td, f'anchors_{DAY}.json')
-    json.dump(anchors, open(apath, 'w'), ensure_ascii=False)
+    # FIX-04: 指标质量FAIL仅影响其所属预测,同批合格指标照常记录
+    build_research_day(td, gate='FAIL', fail_fact=True)   # GOLD_F事实质量FAIL
+    apath = os.path.join(td, 'daily', f'anchors_{DAY}.json')
+    anchors = json.load(open(apath, encoding='utf-8'))
+    check("fixture: GOLD锚点quality=FAIL/SPX=PASS(批次其余有效)",
+          anchors.get('global_market.data.GOLD.close', {}).get('quality') == 'FAIL'
+          and anchors.get('global_market.data.SPX.close', {}).get('quality') == 'PASS',
+          str({k: v.get('quality') for k, v in anchors.items()
+               if 'GOLD' in k or 'SPX' in k}))
     vp = views_file(td, [obs_pred(91, 'global_market.data.GOLD.close'),
                          obs_pred(92, 'global_market.data.SPX.close')])
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
@@ -570,10 +604,13 @@ with tempfile.TemporaryDirectory() as td:
           str(p92['observations']))
 
 with tempfile.TemporaryDirectory() as td:
-    anchors = synth_anchors()
-    apath = os.path.join(td, f'anchors_{DAY}.json')
-    json.dump(anchors, open(apath, 'w'), ensure_ascii=False)
-    rp.write_meta(apath, {'source': 'legacy', 'anchor_count': len(anchors)})
+    # legacy批次(原始采集JSON拍平,未经Gate A快照链) → 关键FAIL
+    build_research_day(td)
+    apath = os.path.join(td, 'daily', f'anchors_{DAY}.json')
+    anchors = json.load(open(apath, encoding='utf-8'))
+    meta = rp.load_meta(apath)
+    meta['source'] = 'legacy'
+    rp.write_meta(apath, meta)
     vp = views_file(td, [obs_pred(91, 'global_market.data.GOLD.close')])
     before = open(vp).read()
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
@@ -589,7 +626,7 @@ with tempfile.TemporaryDirectory() as td:
     meta['snapshot_id'] = 'research_snapshot_20261017'   # 篡改为旧批次
     rp.write_meta(apath, meta)
     vp = views_file(td, [obs_pred(91, 'global_market.data.GOLD.close')])
-    anchors = json.load(open(apath))
+    anchors = json.load(open(apath, encoding='utf-8'))
     before = open(vp).read()
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
                       today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath)
@@ -597,15 +634,18 @@ with tempfile.TemporaryDirectory() as td:
           st == 'FAIL' and open(vp).read() == before, f"{st} {ch}")
 
 with tempfile.TemporaryDirectory() as td:
-    # 无meta(旧格式直连,离线路径) → 维持既有日期规则,可记录
-    anchors = synth_anchors()
-    apath = os.path.join(td, f'anchors_{DAY}.json')
-    json.dump(anchors, open(apath, 'w'), ensure_ascii=False)
+    # 无meta(旧格式) → FIX-04语义: 来源不可证明,拒绝进入正式长期观察
+    # (旧测试预期"放行(兼容)"与IA-P0-1-FIX1-AC-v1.0 FIX-04"无meta→拒绝"冲突,
+    #  按整改指令修正测试预期——未降低验收标准,反而是收紧;理由见整改文档§7)
+    build_research_day(td, skip=('anchors_meta',))
+    apath = os.path.join(td, 'daily', f'anchors_{DAY}.json')
+    anchors = json.load(open(apath, encoding='utf-8'))
     vp = views_file(td, [obs_pred(91, 'global_market.data.GOLD.close')])
+    before = open(vp).read()
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
                       today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath)
-    check("无meta旧格式→既有规则放行(兼容)", st in ('PASS', 'PARTIAL') and len(ch) >= 1,
-          f"{st} {ch}")
+    check("无meta旧格式→关键FAIL(FIX-04收紧: 来源不可证明)",
+          st == 'FAIL' and ch == [] and open(vp).read() == before, f"{st} {ch}")
     # 陈旧锚点日期→关键FAIL(既有行为不回归)
     ch2, _, st2 = quiet(dpo.observe, views_path=vp, anchors=anchors,
                         today_str='2026-10-20', anchors_date='20261017', anchors_path=apath)

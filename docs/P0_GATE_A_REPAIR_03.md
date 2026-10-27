@@ -18,8 +18,9 @@
 | 项 | 值 |
 |---|---|
 | 实现Commit(代码+测试+工作流修订) | `043d4ca2e814d82bb285eb49204c241d08e80777` |
-| 文档Commit(本文件) | `docs(p0): FIX3 repair report`(即包含本文件的提交,SHA见git log/最终回复) |
-| 最终GitHub HEAD | 推送后=文档Commit(CI运行须与此对应,见§9) |
+| 文档Commit(本文件) | `1683f46528ff8dd8aa7bc40d2b58fe2cc393a6fc` |
+| CI依赖修正Commit(工作流补真实依赖安装+本文件§9更新) | 见git log(`ci(p0): install real deps in offline-tests workflow`) |
+| 最终GitHub HEAD | 推送后=CI依赖修正Commit(CI运行须与此对应,见§9) |
 | 推送方式 | SSH(`git@github.com:bojing951-hash/investment-agent.git`,普通授权通道,无权限规避) |
 
 ## 3. F2-NEW-001~005 整改矩阵
@@ -110,11 +111,12 @@ for t in tests/test_*.py; do ~/AI内容/venv/bin/python3 "$t"; done   # test_glm
 
 | 项 | 值 |
 |---|---|
-| 工作流文件 | `.github/workflows/offline-tests.yml`(push/PR main+dispatch;Python 3.11;全离线套件;per-suite退出码;失败即红;零secret) |
-| 提交 | `334664f`(首次激活)+`043d4ca`(退出码记录修订) |
+| 工作流文件 | `.github/workflows/offline-tests.yml`(push/PR main+dispatch;Python 3.11;安装真实第三方依赖;全离线套件;per-suite退出码;失败即红;零secret) |
+| 提交 | `334664f`(首次激活)+`043d4ca`(退出码记录)+依赖安装修正(见下,SHA见git log) |
 | 推送 | SSH正常授权通道(`git@github.com:bojing951-hash/investment-agent.git`);PAT workflow scope缺失的历史阻断对SSH不适用 |
 | Actions页 | https://github.com/bojing951-hash/investment-agent/actions |
-| 实际运行核验 | 最终HEAD推送后逐项核验:远程工作流文件在/运行发生/运行对应最终Commit/日志可查/失败传递。**核验结果以最终回复与推送后证据为准;若无法确认将如实呈报,不宣称CI通过** |
+| 首两轮运行(真实记录) | `334664f`→run 40496826156 **failure**;`1683f46`→run 40502286165 **failure**。根因:FIX2轮工作流误标"仅标准库",未安装被测模块import面的第三方依赖(requests/openai/pandas/fredapi等),CI干净环境8套件import失败(test_datafix/test_e2e_orig14/test_p01_fix2/test_p0_fixes/test_p7_fixes/test_phase3/test_round4/test_round5)。**该失败同时构成"失败状态正确传递"的真实证据**(工作流exit非零,run标红) |
+| 修正 | 干净clone+真实依赖+Python 3.12本地复现:23套件0失败(与3.9本地一致)。工作流补`pip install requests openai pandas fredapi feedparser finnhub-python tushare yfinance`并纠正注释。修正后运行结果以Actions页为准(若非绿将如实呈报,不宣称CI通过) |
 
 ## 10. 未完成或受权限阻断的事项
 

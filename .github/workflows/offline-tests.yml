@@ -1,13 +1,17 @@
 name: offline-tests
-# IA-P0-1-FIX2 激活的离线测试工作流(2026-10-27):
+# IA-P0-1-FIX3 激活的离线测试工作流(2026-10-27):
 # - 触发: push/PR到main + 手动workflow_dispatch
 # - 只跑本地离线套件(全部SYNTHETIC fixture + GLM全程mock):
-#   零网络依赖、零API密钥、零付费调用——CI环境无需任何secret;
+#   零API密钥、零付费调用、零真实采集——CI环境无需任何secret;
 # - test_glm_live.py 为真实GLM验收套件,按契约不得进入CI,显式排除;
-# - 依赖: 仅Python标准库(被测模块不引入第三方包);显式固定Python 3.11;
-# - 任一套件失败→工作流失败(exit非零),不得以删除失败用例换取绿色。
+# - FIX3-04修正: 被测模块import面含第三方库(requests/openai/pandas/
+#   fredapi/feedparser/finnhub/tushare/yfinance),CI必须**安装真实依赖**
+#   (此前"仅标准库"的假设错误,导致首轮8套件import失败——测试本身对依赖的
+#   使用均为离线mock,不发起任何真实API调用);
+# - 显式固定Python 3.11;任一套件失败→工作流失败(exit非零)并记录每套退出码,
+#   不得以删除失败用例换取绿色。
 # FIX1轮该文件曾因推送凭据缺workflow scope无法创建而留档于docs/;
-# FIX2轮按指令正式启用。
+# FIX2轮经SSH正常授权通道首次推送激活(334664f)。
 on:
   push:
     branches: [main]
@@ -23,6 +27,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: 安装被测模块import面所需的真实第三方依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests openai pandas fredapi feedparser finnhub-python tushare yfinance
       - name: 运行全部离线测试套件(排除test_glm_live,记录每套退出码)
         run: |
           fail=0

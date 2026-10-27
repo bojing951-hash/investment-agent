@@ -112,15 +112,18 @@ for t in tests/test_*.py; do ~/AI内容/venv/bin/python3 "$t"; done   # test_glm
 | 项 | 值 |
 |---|---|
 | 工作流文件 | `.github/workflows/offline-tests.yml`(push/PR main+dispatch;Python 3.11;安装真实第三方依赖;全离线套件;per-suite退出码;失败即红;零secret) |
-| 提交 | `334664f`(首次激活)+`043d4ca`(退出码记录)+依赖安装修正(见下,SHA见git log) |
+| 提交 | `334664f`(首次激活)→`043d4ca`(退出码记录)→`2d81f6f`(安装真实依赖)→`e4f22a8`(可移植解释器+annotation诊断)→`98e1419`(tushare懒初始化,最终HEAD) |
 | 推送 | SSH正常授权通道(`git@github.com:bojing951-hash/investment-agent.git`);PAT workflow scope缺失的历史阻断对SSH不适用 |
 | Actions页 | https://github.com/bojing951-hash/investment-agent/actions |
 | 首两轮运行(真实记录) | `334664f`→run 40496826156 **failure**;`1683f46`→run 40502286165 **failure**。根因:FIX2轮工作流误标"仅标准库",未安装被测模块import面的第三方依赖(requests/openai/pandas/fredapi等),CI干净环境8套件import失败(test_datafix/test_e2e_orig14/test_p01_fix2/test_p0_fixes/test_p7_fixes/test_phase3/test_round4/test_round5)。**该失败同时构成"失败状态正确传递"的真实证据**(工作流exit非零,run标红) |
-| 修正 | 干净clone+真实依赖+Python 3.12本地复现:23套件0失败(与3.9本地一致)。工作流补`pip install requests openai pandas fredapi feedparser finnhub-python tushare yfinance`并纠正注释。修正后运行结果以Actions页为准(若非绿将如实呈报,不宣称CI通过) |
+| 修正 | 干净clone+真实依赖+Python 3.12本地复现:23套件0失败(与3.9本地一致)。工作流补`pip install requests openai pandas fredapi feedparser finnhub-python tushare yfinance`并纠正注释 |
+| 第三轮run(`2d81f6f`) | **failure**。根因1:test_round5硬编码`~/AI内容/venv/bin/python3`→改`sys.executable`;根因2经`::error`annotation(公开check-runs API可读)定位:test_datafix在CI无tushare凭据时`ts.pro_api('')`回退读`~/.tushare.yaml`失败,module级初始化`data_pro.py:212 raise Exception('api init error.')` |
+| 第四轮run(`e4f22a8`) | **failure**(仅剩tushare根因,印证round5修复生效) |
+| 最终run(`98e1419`) | https://github.com/bojing951-hash/investment-agent/actions/runs/40505879881 **success**(job 33s)。核验:①run对应commit `98e1419`(推送前远端HEAD经`git ls-remote`确认)②结论Success且零`::error` annotation(仅setup-python的Node无害警告)③循环结构`exit $fail`保证Success⇒全部22套件exit=0;glob活性由run3/4同工作流产出的套件级annotation证明④时长一致性:干净clone本地同循环22套件实测9.8s,CI 33s≈checkout+setup-python+pip install+测试循环,时长足以容纳全部套件真实执行 |
 
 ## 10. 未完成或受权限阻断的事项
 
-- 无功能项BLOCKED。CI运行核验(§9)依赖推送后的真实运行记录;推送前不得预填,如实留待。
+- 无功能项BLOCKED。CI运行核验已完成:`98e1419`→run 40505879881 success(§9),失败传递由run 40496826156/40502286165及第三、四轮红run真实证明。
 - PAT(HTTPS)缺workflow scope未解决——非本轮必需(SSH通道完成交付);若未来HTTPS推送工作流变更仍需用户为PAT加workflow scope或继续用SSH。
 
 ## 11. 生产兼容性与历史报告处理

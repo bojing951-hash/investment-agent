@@ -23,18 +23,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: 运行全部离线测试套件(排除test_glm_live)
+      - name: 运行全部离线测试套件(排除test_glm_live,记录每套退出码)
         run: |
           fail=0
           for t in tests/test_*.py; do
             name=$(basename "$t" .py)
             if [ "$name" = "test_glm_live" ]; then
-              echo "== $name: SKIPPED(真实GLM付费调用,不进CI)"
+              echo "== $name: SKIPPED(真实GLM付费调用,不进CI) exit=skipped"
               continue
             fi
             echo "== $name"
-            if ! python3 "$t"; then
-              echo "::error file=$t::套件 $name 失败"
+            if python3 "$t"; then
+              echo "$name exit=0"
+            else
+              rc=$?
+              echo "::error file=$t::套件 $name 失败 exit=$rc"
+              echo "$name exit=$rc"
               fail=1
             fi
           done

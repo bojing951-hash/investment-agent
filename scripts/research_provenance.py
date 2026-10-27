@@ -72,21 +72,28 @@ FACT_QUALITY = ('PASS', 'WARN', 'DEGRADED', 'FAIL')
 
 
 def recompute_gate_a(snapshot):
-    """从**真实事实+注册表**重算Gate A裁决(IA-P0-1-FIX2/FIX2-02权威口径)。
+    """从**真实事实+注册表**重算Gate A裁决(IA-P0-1-FIX2/FIX2-02权威口径;
+    IA-P0-1-FIX3 FIX3-01/F2-NEW-001: 非法事实结构fail-closed)。
 
     不信任快照内任何声明字段——以注册表status=active且criticality=core集合与
     facts实际内容重算:
-    - core_missing: 核心指标无事实记录(含质量非法——不可证明≠有效存在);
+    - core_missing: 核心指标无事实记录;
     - core_fail: 核心事实quality=FAIL;
-    - noncore_fail/noncore_degraded: 非核心事实FAIL/DEGRADED(按既有规则降级披露);
+    - noncore_fail/noncore_degraded: 非核心事实**合法**FAIL/DEGRADED(按既有
+      规则降级披露——合法降级语义不变,不得一律升级FAIL);
     - duplicates: 同一metric_id出现多条事实(数据身份冲突→FAIL);
-    - illegal_quality: 质量状态缺失/非法(不得默认有效;核心→FAIL,非核心→降级);
+    - illegal_quality: **任何**非法/不可证明的事实结构——非对象事实(字符串/
+      null/数组)、metric_id缺失或非字符串、quality_status缺失或不在合法词汇表
+      (FACT_QUALITY)。FIX3-01: 非法≠合法的非核心FAIL——事实集合结构一旦存在
+      非法条目,整套事实的可数性/身份/质量即不可证明,快照**不得作为合格快照
+      放行正式研究**: effective=None(无法证明任何状态),调用方一律拒绝;
     - counts: 按事实引擎口径重计(仅PASS/DEGRADED/FAIL三键,WARN不计——与
       fact_engine.snapshot_quality_grade完全同构);
-    - effective: FAIL(core缺失/失败/身份冲突)>DEGRADED(非核心失败/降级)>PASS。
+    - effective: None(结构非法/不可证明)>FAIL(core缺失/失败/身份冲突)>
+      DEGRADED(非核心合法失败/降级)>PASS。
 
-    返回dict;snapshot结构损坏或注册表不可用时 effective=None并在reasons说明
-    (调用方不得当作任何放行状态)。
+    返回dict;snapshot结构损坏、事实结构非法或注册表不可用时 effective=None
+    并在reasons说明(调用方不得当作任何放行状态)。
     """
     out = {'core_missing': [], 'core_fail': [], 'noncore_fail': [],
            'noncore_degraded': [], 'duplicates': [], 'illegal_quality': [],
@@ -107,11 +114,17 @@ def recompute_gate_a(snapshot):
     by_id, seen_dup = {}, set()
     for f in facts:
         if not isinstance(f, dict):
-            out['illegal_quality'].append('<非对象事实>')
+            # FIX3-01: 非对象事实(字符串/null/数组)不得被静默跳过后仍当作
+            # 完整合格快照——记入illegal_quality并最终判None
+            out['illegal_quality'].append(f'<非对象事实:{type(f).__name__}>')
             continue
         mid = f.get('metric_id')
+        if not isinstance(mid, str) or not mid.strip():
+            # FIX3-01: 事实缺少可识别指标身份→无法归类核缺/核败,整套事实不可证明
+            out['illegal_quality'].append(f'<身份缺失事实:metric_id={mid!r}>')
+            continue
         if mid in by_id:
-            seen_dup.add(str(mid))
+            seen_dup.add(mid)
             continue
         by_id[mid] = f
         qs = f.get('quality_status')
@@ -127,12 +140,14 @@ def recompute_gate_a(snapshot):
         elif f.get('quality_status') == 'FAIL':
             out['core_fail'].append(mid)
         elif f.get('quality_status') not in FACT_QUALITY:
-            out['core_fail'].append(mid)   # 核心质量不可证明=不可放行(并入core_fail口径)
+            out['core_fail'].append(mid)   # 记录性点名(结构非法已同时判None)
     for mid, f in by_id.items():
         if mid in core_ids:
             continue
         qs = f.get('quality_status')
-        if qs == 'FAIL' or qs not in FACT_QUALITY:
+        # FIX3-01: 非法质量只进illegal_quality(→None);不再混入noncore_fail
+        # 冒充"合法非核心FAIL降级"——那是两种不同语义
+        if qs == 'FAIL':
             out['noncore_fail'].append(str(mid))
         elif qs == 'DEGRADED':
             out['noncore_degraded'].append(str(mid))
@@ -140,7 +155,14 @@ def recompute_gate_a(snapshot):
     out['noncore_fail'].sort(); out['noncore_degraded'].sort()
     c = out['counts']
     out['overall'] = ('FAIL' if c['FAIL'] else 'DEGRADED' if c['DEGRADED'] else 'PASS')
-    if out['core_missing'] or out['core_fail'] or out['duplicates']:
+    if out['illegal_quality']:
+        # FIX3-01(F2-NEW-001)fail-closed: 非法/不可证明结构不得放行任何正式状态
+        out['effective'] = None
+        out['reasons'].append(
+            f"存在非法/不可证明事实结构{len(out['illegal_quality'])}条——"
+            '事实集合不可证明,不得作为合格快照放行正式研究: '
+            + '; '.join(out['illegal_quality'][:5]))
+    elif out['core_missing'] or out['core_fail'] or out['duplicates']:
         out['effective'] = 'FAIL'
     elif c['DEGRADED'] or out['noncore_fail'] or out['noncore_degraded']:
         out['effective'] = 'DEGRADED'
@@ -156,15 +178,20 @@ def gate_status(snapshot):
     返回(status, reason);status=None 表示不可用——调用方不得将其当作PASS。
     裁决链(任一环失败→None):
     1. 格式: 缺gate_a/状态非法/快照不可解析 → None;
-    2. 重算: recompute_gate_a从真实事实+注册表重算权威裁决;结构损坏/注册表
+    2. 重算: recompute_gate_a从真实事实+注册表重算权威裁决;结构损坏/事实结构
+       非法(FIX3-01: 非对象事实/身份缺失/质量缺失或非法→不可证明)/注册表
        不可用 → None;
     3. 一致性(声明↔重算,任何矛盾=声明不可信→拒绝放行):
        - 声明状态 ≠ 重算effective(如声明DEGRADED但核心实际FAIL、声明PASS但
          核心实际缺失) → None;
        - 声明core_missing/core_fail清单与重算清单不一致(如核心缺失未写入
          core_missing) → None;
-       - quality.counts(如存在)与按事实重计不一致 → None;
-       - quality.overall(如存在)与重计不一致 → None。
+       - quality.counts与按事实重计不一致 → None;
+       - quality.overall与重计不一致 → None。
+    4. 必需质量汇总(FIX3-01/F2-NEW-001: "缺失必要质量汇总字段"不得放行):
+       快照必须带quality质量汇总且counts为对象、overall为合法状态——正式
+       快照由snapshot_builder+fact_engine生成,汇总恒存在;缺汇总=事实质量
+       不可核验,不得放行。
     语义说明(不机械要求overall==status): quality.overall=**全部事实中最严重的
     原始质量等级**(fact_engine.snapshot_quality_grade,非核心FAIL也会拉高它),
     gate_a.status=**是否允许正式研究**(非核心FAIL仅降级)——二者语义不同,
@@ -204,15 +231,19 @@ def gate_status(snapshot):
                               f'声明{sorted(map(str, declared))[:6]} '
                               f'实际{actual[:6]}')
     q = snapshot.get('quality')
-    if isinstance(q, dict):
-        if isinstance(q.get('counts'), dict):
-            recounted = {k: q['counts'].get(k) for k in ('PASS', 'DEGRADED', 'FAIL')}
-            if recounted != rec['counts']:
-                return None, (f"quality.counts与事实重计不一致: 声明{q['counts']} "
-                              f"实际{rec['counts']}")
-        if q.get('overall') in GATES and q['overall'] != rec['overall']:
-            return None, (f"quality.overall声明{q['overall']}与事实重计"
-                          f"{rec['overall']}不一致")
+    if not isinstance(q, dict):
+        return None, '快照缺quality质量汇总(事实质量不可核验,不得放行)'
+    if not isinstance(q.get('counts'), dict):
+        return None, f"quality.counts缺失/非法(事实质量计数不可核验): {q.get('counts')!r}"
+    recounted = {k: q['counts'].get(k) for k in ('PASS', 'DEGRADED', 'FAIL')}
+    if recounted != rec['counts']:
+        return None, (f"quality.counts与事实重计不一致: 声明{q['counts']} "
+                      f"实际{rec['counts']}")
+    if q.get('overall') not in GATES:
+        return None, f"quality.overall缺失/非法: {q.get('overall')!r}(合法值{GATES})"
+    if q['overall'] != rec['overall']:
+        return None, (f"quality.overall声明{q['overall']}与事实重计"
+                      f"{rec['overall']}不一致")
     return status, ''
 
 
@@ -411,6 +442,132 @@ def load_meta(json_path):
         return None
 
 
+# ══ 正式周报权威读取(IA-P0-1-FIX3 FIX3-02/F2-NEW-002) ═════════════
+# 报告的正式性由**可验证的已发布状态**决定,不得由文件存在/文件名决定:
+# 发布事务=候选→Gate B→候选状态(独立文件)→备份→原子替换→原子写主状态,
+# "替换已完成、主状态未写入"的中断窗口内,正式文件名下是**未发布**产物。
+
+# 文件名级排除标记: 候选/未验证/标注版/发布备份/临时文件——所有周报目录扫描
+# 的唯一口径(不得在各消费点用os.listdir/glob自行手写筛选)
+FORMAL_REPORT_EXCLUDES = ('_CANDIDATE', '_UNVALIDATED', '_annotated',
+                          '.prev.bak', '.tmp')
+_WEEKLY_REPORT_RE = re.compile(r'^weekly_report_(\d{8})\.md$')
+FORMAL_FINAL_QUALITIES = ('PASS', 'DEGRADED')
+
+
+def weekly_report_files(output_dir):
+    """列出周报目录下**规范正式文件名**的周报文件(sorted升序)。
+
+    只认 weekly_report_YYYYMMDD.md 精确命名——_CANDIDATE/_UNVALIDATED/
+    _annotated/.prev.bak/.tmp 及一切非规范名一律排除(单一口径,消费者共用)。"""
+    if not os.path.isdir(output_dir):
+        return []
+    out = []
+    for f in os.listdir(output_dir):
+        if not _WEEKLY_REPORT_RE.match(f):
+            continue
+        out.append(f)
+    return sorted(out)
+
+
+def read_report_status(status_path):
+    """读报告发布状态JSON;不存在/损坏/非对象 → None。"""
+    if not os.path.exists(status_path):
+        return None
+    try:
+        with open(status_path, 'r', encoding='utf-8') as f:
+            st = json.load(f)
+        return st if isinstance(st, dict) else None
+    except Exception:
+        return None
+
+
+def formal_report_view(md_path):
+    """FIX3-02(F2-NEW-002)权威正式周报读取入口——所有正式消费者的统一读法。
+
+    校验链(任一不满足 → (None, 原因),不得作为已合格正式周报使用):
+    1. 文件名为规范正式名 weekly_report_YYYYMMDD.md(候选/未验证/标注/备份/
+       临时文件天然不匹配);
+    2. 同目录存在对应发布状态 report_status_{ymd}.json 且可解析;
+    3. published 明确为 True;
+    4. final_quality ∈ (PASS, DEGRADED)(已明确允许的降级);
+    5. 状态记录的报告文件身份(report_file)与实际文件一致;
+    6. 状态target_date(如记录)与文件名日期一致;
+    7. 实际报告内容摘要(重算)与状态记录report_digest一致——发布中途被替换
+       /中断窗口内的未发布产物在此被拒。
+    返回({'ymd','path','status'}, '') 或 (None, reason)。"""
+    md_path = str(md_path)
+    fname = os.path.basename(md_path)
+    m = _WEEKLY_REPORT_RE.match(fname)
+    if not m:
+        return None, f'非规范正式周报文件名: {fname}'
+    ymd = m.group(1)
+    if not os.path.exists(md_path):
+        return None, f'报告文件不存在: {fname}'
+    st = read_report_status(os.path.join(os.path.dirname(md_path),
+                                         f'report_status_{ymd}.json'))
+    if st is None:
+        return None, f'无有效发布状态 report_status_{ymd}.json(未发布/状态损坏)'
+    if st.get('published') is not True:
+        return None, (f"发布状态published={st.get('published')!r}"
+                      f"(final={st.get('final_quality')!r})——未完成发布")
+    if st.get('final_quality') not in FORMAL_FINAL_QUALITIES:
+        return None, (f"final_quality={st.get('final_quality')!r}∉"
+                      f"{FORMAL_FINAL_QUALITIES}——非合格正式报告")
+    if st.get('report_file') not in (None, fname):
+        return None, (f"状态记录报告身份({st.get('report_file')!r})"
+                      f'与实际文件({fname})不一致')
+    if st.get('target_date') is not None and str(st.get('target_date')) != ymd:
+        return None, (f"状态target_date={st.get('target_date')}与文件名日期"
+                      f'{ymd}不一致')
+    try:
+        digest = digest_file(md_path)
+    except OSError as e:
+        return None, f'报告内容不可读: {e}'
+    if not st.get('report_digest') or digest != st.get('report_digest'):
+        return None, ('实际内容摘要与发布状态记录不一致'
+                      '(发布中途被替换/写入不完整/中断产物)')
+    return {'ymd': ymd, 'path': md_path, 'status': st}, ''
+
+
+def scan_formal_weekly_reports(output_dir):
+    """扫描目录内全部**已发布合格**正式周报(逐个过formal_report_view),
+    返回views列表(按日期降序)。任何未发布/损坏/中断产物不入列。"""
+    views = []
+    for f in weekly_report_files(output_dir):
+        view, _r = formal_report_view(os.path.join(output_dir, f))
+        if view:
+            views.append(view)
+    views.sort(key=lambda v: v['ymd'], reverse=True)
+    return views
+
+
+def latest_formal_weekly_report(output_dir, exclude_ymd=None):
+    """最新一份**已发布合格**正式周报(排除exclude_ymd当日)。
+    返回(view, '')或(None, 原因)。"""
+    for view in scan_formal_weekly_reports(output_dir):
+        if exclude_ymd and view['ymd'] == str(exclude_ymd):
+            continue
+        return view, ''
+    return None, '无已发布合格正式周报'
+
+
+def latest_archive_weekly_report(output_dir, exclude_ymd=None):
+    """历史档案回退(FIX3-02): 无任何已发布合格报告时的**未验证档案**最新一份。
+
+    仅做规范文件名筛选(排除候选/未验证/标注/备份/临时);返回文件名或None。
+    调用方必须将结果显式标注为"未验证历史档案",不得静默赋予合格认证。"""
+    cands = [f for f in weekly_report_files(output_dir)
+             if not (exclude_ymd and _WEEKLY_REPORT_RE.match(f)
+                     and _WEEKLY_REPORT_RE.match(f).group(1) == str(exclude_ymd))]
+    for f in reversed(cands):
+        view, _r = formal_report_view(os.path.join(output_dir, f))
+        if not view:
+            # 已排除formal(否则直接用formal)——档案仅剩无有效状态者
+            return f
+    return None
+
+
 # ══ Gate A / Gate B 合成(任务6) ═════════════════════════════════
 
 def combine_gates(gate_a, gate_b):
@@ -428,6 +585,35 @@ def combine_gates(gate_a, gate_b):
 
 # ══ 锚点批次核验(观察器/报告入口共用) ═══════════════════════════
 
+def verify_meta_gate_a(meta, snap, label='meta'):
+    """FIX3-03(F2-NEW-003): 来源meta声明的gate_a必须与**权威快照重算**Gate A一致。
+
+    统一口径(锚点端verify_anchor_batch与数据包端verify_research_inputs共用,
+    不得两套标准):
+    1. 字段必须存在且非空(缺必需来源字段=无法验证,不得跳过);
+    2. 必须属于合法状态(GATES);
+    3. 权威=gate_status(snap)——内部以recompute_gate_a从真实facts+注册表重算,
+       **不信任快照声明值,更不信任meta自报值**;快照不可重算(含事实结构非法,
+       FIX3-01)→声明值不得作为权威;
+    4. 声明==权威;且权威∈(PASS,DEGRADED)才允许正式链路。
+    返回(True, '')或(False, reason)。"""
+    declared = meta.get('gate_a')
+    if declared in (None, ''):
+        return False, f'{label}缺gate_a声明(必需来源字段,缺失即拒——无法验证批次质量口径)'
+    if declared not in GATES:
+        return False, f'{label}.gate_a非法: {declared!r}(合法值{GATES})'
+    auth, why = gate_status(snap)
+    if auth is None:
+        return False, (f'{label}.gate_a={declared!r}对应权威快照Gate A不可重算'
+                       f'({why})——非法/不可证明快照的声明值不得作为权威')
+    if declared != auth:
+        return False, (f'{label}.gate_a={declared!r}与权威快照Gate A={auth!r}'
+                       '不一致(批次生成后被改写或meta陈旧)')
+    if auth not in ('PASS', 'DEGRADED'):
+        return False, f'权威快照Gate A={auth!r}不允许正式链路({label})'
+    return True, ''
+
+
 def verify_anchor_batch(anchors_path, anchors_date=None, daily_dir=None):
     """核验锚点文件批次一致性+**实际内容**(FIX-01/FIX-04,IA-DEF-001/005;
     FIX2-05必需字段完整一致)。
@@ -441,7 +627,7 @@ def verify_anchor_batch(anchors_path, anchors_date=None, daily_dir=None):
     3. 必需来源字段完整(FIX2-05): snapshot_id/snapshot_digest/anchors_digest/
        gate_a缺一即拒——必需摘要缺失=无法验证内容,不得"缺字段跳过校验";
     4. 声明批次 = 当日确定性选择的权威快照(snapshot_id一致,同日修订后旧批次失配);
-       meta.gate_a与权威快照重算Gate A一致;
+       meta.gate_a与权威快照重算Gate A一致(FIX3-03统一口径verify_meta_gate_a);
     5. meta声明的快照digest与权威快照实际内容digest一致;
        meta声明的锚点内容摘要与锚点文件**实际字节**摘要一致(重算,不信任声明值);
     6. 锚点实际内容与权威快照**确定性重建**结果一致(build_anchors为快照纯函数:
@@ -480,13 +666,10 @@ def verify_anchor_batch(anchors_path, anchors_date=None, daily_dir=None):
     if snap.get('snapshot_id') != meta.get('snapshot_id'):
         return False, (f"数据批次不一致: 锚点绑定{meta.get('snapshot_id')},"
                        f"当日权威快照为{snap.get('snapshot_id')}(同日修订后旧锚点不得续用)")
-    auth_gate, gate_reason = gate_status(snap)
-    if meta.get('gate_a') != auth_gate:
-        return False, (f'锚点meta.gate_a={meta.get("gate_a")!r}与权威快照Gate A='
-                       f'{auth_gate!r}不一致(批次生成后被改写或meta陈旧)'
-                       + (f';{gate_reason}' if gate_reason else ''))
-    if auth_gate not in ('PASS', 'DEGRADED'):
-        return False, f'权威快照Gate A={auth_gate!r}不允许正式观察({gate_reason})'
+    # FIX3-03: gate_a声明核验收敛到统一口径verify_meta_gate_a(与数据包端同规则)
+    ok_gate, gate_reason = verify_meta_gate_a(meta, snap, label='锚点meta')
+    if not ok_gate:
+        return False, gate_reason
     if meta.get('snapshot_digest') != digest_snapshot(snap):
         return False, ('锚点meta声明的快照digest与权威快照实际内容不一致'
                        '(快照被改写或meta陈旧)')

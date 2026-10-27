@@ -384,6 +384,22 @@ def classify_result(has_anchors, anchors_same_day, warnings, numeric_errors):
     return "PASS", ""
 
 
+def find_latest_report_for_validation(weekly_dir):
+    """FIX3-02(F2-NEW-002): 校验对象发现——正式性由可验证的已发布状态决定。
+
+    先取最新**已发布合格**正式周报(rp.latest_formal_weekly_report: 发布状态
+    published=True+final_quality∈(PASS,DEGRADED)+身份一致+内容摘要重算一致);
+    无合格正式报告时降级最新**未验证档案**(规范文件名;调用方须显式标注——校验
+    结果不构成合格认证)。返回(path, 'formal'|'archive')或(None, 原因)。"""
+    view, reason = rp.latest_formal_weekly_report(weekly_dir)
+    if view is not None:
+        return view['path'], 'formal'
+    arch = rp.latest_archive_weekly_report(weekly_dir)
+    if arch:
+        return os.path.join(weekly_dir, arch), 'archive'
+    return None, reason
+
+
 def find_anchor_value(anchors, key_pattern):
     """根据正则模式在锚点中查找匹配的值"""
     import re as _re
@@ -925,15 +941,18 @@ if __name__ == '__main__':
 
     # Step 3: 校验最新报告
     print("\n--- Step 3: 校验最新报告 ---")
-    # IA-P0-1: _annotated(禁语标注版)与_UNVALIDATED(Gate B FAIL待验证版)
-    # 都不是合格正式报告,不得作为"最新报告"参与比对/续写/上月报索引;
-    # FIX-02: _CANDIDATE为发布前候选文件(未过Gate B/未发布),同样排除
-    report_files = sorted([f for f in glob.glob(os.path.join(ROOT_DIR, 'output', 'weekly', 'weekly_report_*.md'))
-                           if '_annotated' not in f and '_UNVALIDATED' not in f
-                           and '_CANDIDATE' not in f])
-    if report_files:
-        latest_report = report_files[-1]
-        print(f"📄 校验报告: {latest_report}")
+    # IA-P0-1-FIX3(FIX3-02/F2-NEW-002): 校验对象发现走find_latest_report_for_validation
+    # ——正式性由发布状态决定,不由文件名决定;档案模式须显式标注未验证。
+    _weekly_dir = os.path.join(ROOT_DIR, 'output', 'weekly')
+    latest_report, _mode = find_latest_report_for_validation(_weekly_dir)
+    if latest_report and _mode == 'formal':
+        print(f"📄 校验报告(已发布合格): {latest_report}")
+    elif latest_report:
+        print(f"⚠️ 校验报告(未验证历史档案,无发布状态): {latest_report}")
+        print("   校验结果仅供漂移监控参考,不构成合格正式认证(FIX3-02)")
+    else:
+        print(f"⚠️ 无可校验周报({_mode})")
+    if latest_report:
         # 日期匹配: 报告记录的是其生成日观测,须用同日锚点比对;用"今日锚点vs上周报告"
         # 会把正常的数据推进误判为偏差(实战: 周六晨报(周五收盘)vs下周一锚点(周五后
         # 又有新收盘)→SPX/WTI/VIX全误报)。无同日锚点才降级用当前锚点并显式标注跨日。

@@ -26,6 +26,8 @@ from datetime import datetime, date
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+import research_provenance as rp   # FIX3-02: 周报索引按发布状态认定正式性
+
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT_DIR, 'data', 'daily')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'output', 'monthly')
@@ -205,17 +207,20 @@ def gather_month_context(ym, views_path=None):
         ctx['predictions'] = ['(无预测记录)']
 
     wk_dir = os.path.join(ROOT_DIR, 'output', 'weekly')
-    # IA-P0-1: _annotated/_UNVALIDATED均非合格正式报告,不得进入月度摘要索引;
-    # FIX-02: _CANDIDATE(发布前候选)同样排除
-    wk_files = sorted(f for f in (os.listdir(wk_dir) if os.path.isdir(wk_dir) else [])
-                      if f.startswith(f'weekly_report_{ym}')
-                      and not f.endswith('_annotated.md') and not f.endswith('_UNVALIDATED.md')
-                      and not f.endswith('_CANDIDATE.md'))
+    # IA-P0-1-FIX3(FIX3-02): 月度摘要索引按**发布状态**区分——已发布合格正式
+    # 周报(rp.formal_report_view: published+质量+身份+摘要一致)直接列出;
+    # 无有效发布状态的历史文件标注"(未验证档案)",不得静默冒充合格正式报告;
+    # 候选/未验证/标注/备份(.prev.bak)/临时文件经规范文件名筛选一律排除。
     wk_lines = []
-    for wf in wk_files:
+    for wf in rp.weekly_report_files(wk_dir):
+        if not wf.startswith(f'weekly_report_{ym}'):
+            continue
+        view, _vr = rp.formal_report_view(os.path.join(wk_dir, wf))
+        tag = '' if view else ' *(未验证档案)*'
         text = open(os.path.join(wk_dir, wf), encoding='utf-8').read()
         m = re.search(r'###?\s*一、本周摘要[^\n]*\n(.{0,150})', text, re.DOTALL)
-        wk_lines.append(f"- {wf[13:21]}: {(m.group(1).strip().replace(chr(10),' ') if m else '(未找到摘要节)')[:150]}")
+        # FIX3: 日期取自规范文件名wf[14:22](原wf[13:21]差一位,索引日期恒错)
+        wk_lines.append(f"- {wf[14:22]}{tag}: {(m.group(1).strip().replace(chr(10),' ') if m else '(未找到摘要节)')[:150]}")
     ctx['weekly_reports'] = wk_lines or ['(本月无周报)']
 
     sc_files = sorted(glob.glob(os.path.join(DATA_DIR, f'scorecard_{ym}*.json')))

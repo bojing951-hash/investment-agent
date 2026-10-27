@@ -645,11 +645,34 @@ with tempfile.TemporaryDirectory() as td:
           'UNVALIDATED 研究草稿' in qtext
           and os.path.exists(os.path.join(qdir, 'quarterly_data_2026Q3.md'))
           and not os.path.exists(os.path.join(qdir, 'quarterly_outlook_2026Q3.md')))
-    # 月度索引不得收录UNVALIDATED草稿(mr gather排除规则)
-    idx_src = open(os.path.join(ROOT, 'scripts', 'monthly_review.py'),
-                   encoding='utf-8').read()
-    check("S14c 月度摘要索引排除_UNVALIDATED/_annotated/_CANDIDATE",
-          idx_src.count("_UNVALIDATED.md") >= 2 and '_annotated.md' in idx_src)
+    # 月度索引排除规则改为**行为**断言(FIX3: 不得只扫源码字符串判断功能实现):
+    # 沙箱周报目录混入候选/未验证/标注/备份文件+1份带发布状态的合格正式周报
+    # +1份无状态档案 → gather_month_context索引只列规范名,档案带未验证标注
+    wkdir = os.path.join(td, 'output', 'weekly')
+    os.makedirs(wkdir, exist_ok=True)
+    _open_w = lambda n, c='# 周报\n\n### 一、本周摘要\nSYNTHETIC摘要。\n': \
+        open(os.path.join(wkdir, n), 'w', encoding='utf-8').write(c)
+    _open_w('weekly_report_20260905_UNVALIDATED.md')
+    _open_w('weekly_report_20260912_annotated.md')
+    _open_w('weekly_report_20260919_CANDIDATE.md')
+    _open_w('weekly_report_20260926.md.prev.bak', '# 备份残留\n')
+    _open_w('weekly_report_20260926.md')     # 无状态→档案
+    _open_w('weekly_report_20260919.md')     # 带发布状态→合格正式
+    _st = {'report_file': 'weekly_report_20260919.md',
+           'report_path': os.path.join(wkdir, 'weekly_report_20260919.md'),
+           'report_digest': rp.digest_file(os.path.join(wkdir, 'weekly_report_20260919.md')),
+           'gate_a': 'PASS', 'gate_b': 'PASS', 'final_quality': 'PASS',
+           'published': True, 'target_date': '20260919'}
+    json.dump(_st, open(os.path.join(wkdir, 'report_status_20260919.json'), 'w',
+                        encoding='utf-8'), ensure_ascii=False)
+    with mock.patch.object(mr, 'ROOT_DIR', td):
+        _ctx = quiet(mr.gather_month_context, '202609')
+    _idx = '\n'.join(_ctx['weekly_reports'])
+    check("S14c 月度索引行为: 排除UNVALIDATED/annotated/CANDIDATE/.bak,档案带未验证标注",
+          all(m not in _idx for m in ('_UNVALIDATED', '_annotated', '_CANDIDATE',
+                                      '.prev.bak', '20260926: '))
+          and '20260919:' in _idx and '未验证档案' in _idx
+          and _idx.index('20260919') < _idx.index('未验证档案'), _idx)
     dout = os.path.join(td, 'daily')
     with mock.patch.object(drg, 'OUTPUT_DIR', dout), \
          mock.patch.object(drg, 'datetime', _FakeDT):

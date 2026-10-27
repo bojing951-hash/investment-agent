@@ -168,23 +168,11 @@ def run_pub_flow(td, gate_b='PASS', validator_exc=None, cand_status_false=False,
 
 
 def formal_view(out_dir, ymd=DAY):
-    """模拟读取方对"已发布合格报告"的认定: 主status为权威指针(published+真实
-    文件+摘要一致+非UNVALIDATED名)——任何一环缺失即不认定。"""
-    sp = os.path.join(out_dir, f'report_status_{ymd}.json')
-    if not os.path.exists(sp):
-        return None
-    try:
-        st = json.load(open(sp, encoding='utf-8'))
-    except (ValueError, OSError):
-        return None
-    if not isinstance(st, dict) or not st.get('published'):
-        return None
-    path = st.get('report_path')
-    if not path or not os.path.exists(path) or str(path).endswith('_UNVALIDATED.md'):
-        return None
-    if st.get('report_digest') != rp.digest_file(path):
-        return None
-    return st
+    """FIX3-02: 认定逻辑**直接委托生产读取器** rp.formal_report_view(不再自造
+    formal_view——独立验收要求以真实消费者口径断言)。权威=发布状态published
+    +final_quality∈(PASS,DEGRADED)+身份一致+内容摘要重算一致。"""
+    view, _reason = rp.formal_report_view(os.path.join(out_dir, f'weekly_report_{ymd}.md'))
+    return view['status'] if view else None
 
 
 def no_fake_qualified(out_dir, ymd=DAY):
@@ -402,16 +390,83 @@ check("重复metric_id→duplicates点名+effective FAIL(不可确定性分级)"
 snap_illegal_core = copy.deepcopy(RE_PASS)
 _fact(snap_illegal_core, 'SPX')['quality_status'] = 'BOGUS'
 rec = rp.recompute_gate_a(snap_illegal_core)
-check("核心质量值非法→illegal_quality+core_fail点名+FAIL",
-      _illegal_has(rec, 'SPX') and 'SPX' in rec['core_fail']
-      and rec['effective'] == 'FAIL', str(rec['illegal_quality']))
+check("FIX3-01 核心质量值非法→illegal_quality点名+effective None(fail-closed)",
+      _illegal_has(rec, 'SPX') and rec['effective'] is None and rec['reasons'],
+      str(rec['illegal_quality']))
+got, why = rp.gate_status(snap_illegal_core)
+check("FIX3-01 核心质量非法快照→gate_status拒绝(不得放行任何状态)",
+      got is None and '非法' in why, f"{got} {why}")
 
+# FIX3-01(F2-NEW-001)反向回归: 本用例在FIX2轮曾错误预期"非核心质量非法→
+# noncore_fail→DEGRADED"——独立验收判定该预期与冻结契约冲突(非法≠合法非核心
+# FAIL,不得以降级放行非法结构)。按FIX3-01语义修正为fail-closed并保留。
 snap_illegal_non = copy.deepcopy(RE_PASS)
 _fact(snap_illegal_non, 'BEI_10Y')['quality_status'] = 'WEIRD'
 rec = rp.recompute_gate_a(snap_illegal_non)
-check("非核心质量值非法→illegal_quality+noncore_fail点名+DEGRADED",
-      _illegal_has(rec, 'BEI_10Y') and 'BEI_10Y' in rec['noncore_fail']
-      and rec['effective'] == 'DEGRADED', str(rec['illegal_quality']))
+check("FIX3-01 非核心质量值非法→illegal_quality点名+effective None(不再冒充降级)",
+      _illegal_has(rec, 'BEI_10Y') and 'BEI_10Y' not in rec['noncore_fail']
+      and rec['effective'] is None and rec['reasons'], str(rec['illegal_quality']))
+got, why = rp.gate_status(snap_illegal_non)
+check("FIX3-01 非核心质量非法→gate_status拒绝(非法结构不得进入正式研究)",
+      got is None and '非法' in why, f"{got} {why}")
+
+snap_illegal_missing_qs = copy.deepcopy(RE_PASS)
+_fact(snap_illegal_missing_qs, 'BEI_10Y').pop('quality_status')
+rec = rp.recompute_gate_a(snap_illegal_missing_qs)
+check("FIX3-01 非核心缺quality_status→illegal_quality(缺失≠有效)+None",
+      _illegal_has(rec, 'BEI_10Y') and rec['effective'] is None,
+      str(rec['illegal_quality']))
+
+# FIX3-01: 非对象事实(字符串/null/数组)与身份缺失——不得静默跳过后当作完整合格快照
+for _label, _badfact in (('字符串', '"garbage"'), ('null', 'None'), ('数组', '[1,2]')):
+    snap_bad = copy.deepcopy(RE_PASS)
+    snap_bad['facts'].append(_badfact)
+    rec = rp.recompute_gate_a(snap_bad)
+    check(f"FIX3-01 facts含{_label}→非对象事实点名+effective None",
+          any('非对象事实' in s for s in rec['illegal_quality'])
+          and rec['effective'] is None, str(rec['illegal_quality']))
+
+snap_noid = copy.deepcopy(RE_PASS)
+snap_noid['facts'].append({'value': 42, 'quality_status': 'PASS'})
+rec = rp.recompute_gate_a(snap_noid)
+check("FIX3-01 事实缺metric_id(身份不可识别)→illegal_quality+None",
+      any('身份缺失' in s for s in rec['illegal_quality'])
+      and rec['effective'] is None, str(rec['illegal_quality']))
+snap_emptyid = copy.deepcopy(RE_PASS)
+snap_emptyid['facts'].append({'metric_id': '   ', 'value': 1, 'quality_status': 'PASS'})
+rec = rp.recompute_gate_a(snap_emptyid)
+check("FIX3-01 metric_id空白串→身份不可识别→None",
+      rec['effective'] is None, str(rec['illegal_quality']))
+
+# FIX3-01: 合法WARN事实语义保持(轻度提示,counts不计,不降级)
+snap_warn = copy.deepcopy(RE_PASS)
+_fact(snap_warn, 'BEI_10Y')['quality_status'] = 'WARN'
+_base_counts = dict(rp.recompute_gate_a(RE_PASS)['counts'])
+# 快照由builder从facts重计counts——WARN不计入,合法变更须同步声明counts
+snap_warn['quality']['counts']['PASS'] = _base_counts['PASS'] - 1
+rec = rp.recompute_gate_a(snap_warn)
+check("FIX3-01 合法WARN保持原语义(WARN不计counts,effective不变)",
+      rec['counts'] == {'PASS': _base_counts['PASS'] - 1, 'DEGRADED': 0, 'FAIL': 0}
+      and rec['effective'] == 'PASS'
+      and 'BEI_10Y' not in rec['noncore_fail'] + rec['noncore_degraded'],
+      str(rec['counts']))
+got, why = rp.gate_status(snap_warn)
+check("FIX3-01 合法WARN快照gate_status仍PASS(原有语义不变)", got == 'PASS', f"{got} {why}")
+
+# FIX3-01: 缺失必要质量汇总字段→gate_status拒绝("必需字段缺失不得放行")
+bad = copy.deepcopy(RE_PASS)
+bad.pop('quality')
+got, why = rp.gate_status(bad)
+check("FIX3-01 快照缺quality汇总→拒绝(事实质量不可核验)",
+      got is None and 'quality' in why, f"{got} {why}")
+bad = copy.deepcopy(RE_PASS)
+bad['quality'] = {'overall': 'PASS'}
+got, why = rp.gate_status(bad)
+check("FIX3-01 quality.counts缺失→拒绝", got is None and 'counts' in why, f"{got} {why}")
+bad = copy.deepcopy(RE_PASS)
+bad['quality'] = {'counts': {'PASS': 34, 'DEGRADED': 0, 'FAIL': 0}}
+got, why = rp.gate_status(bad)
+check("FIX3-01 quality.overall缺失→拒绝", got is None and 'overall' in why, f"{got} {why}")
 
 snap_mix = quiet(fixt.real_snapshot, DAY, missing=('VIX',), break_metric='UMCSENT')
 rec = rp.recompute_gate_a(snap_mix)

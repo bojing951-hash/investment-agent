@@ -552,7 +552,7 @@ with tempfile.TemporaryDirectory() as td:
                  'weekly_report_20261012_UNVALIDATED.md', f'weekly_report_{DAY}.md'):
         with open(os.path.join(td, name), 'w', encoding='utf-8') as f:
             f.write(f'# {name}\n')
-    with mock.patch.object(rg, 'PROJECT_DIR', td), \
+    with mock.patch.object(rg, 'OUTPUT_DIR', os.path.join(td, 'output', 'weekly')), \
          mock.patch.object(rg, 'datetime', _FakeDT):
         # PROJECT_DIR拼output/weekly → 造到td/output/weekly
         os.makedirs(os.path.join(td, 'output', 'weekly'), exist_ok=True)

@@ -117,36 +117,34 @@ def load_theses():
         return ""
 
 def load_previous_report():
-    """加载上一期周报摘要，供AI对比"""
-    output_dir = os.path.join(PROJECT_DIR, 'output', 'weekly')
+    """加载上一期周报摘要，供AI对比。
+
+    IA-P0-1-FIX3(FIX3-02/F2-NEW-002): 正式性由**可验证的已发布状态**决定,
+    不由文件存在/文件名决定——发布事务"替换已完成、主状态未写入"的中断窗口内,
+    正式文件名下是未发布产物,不得被当作"上期报告"喂给GLM续写。
+    读取链(rp.latest_formal_weekly_report): 规范文件名+发布状态published=True
+    +final_quality∈(PASS,DEGRADED)+身份一致+内容摘要重算一致,任一不满足即拒。
+    无任何已发布合格报告时降级为**历史档案**模式(规范文件名筛选,排除候选/
+    未验证/标注/备份/临时),摘录末尾显式标注"未验证",不得静默赋予合格认证。"""
+    output_dir = OUTPUT_DIR   # FIX3: 与发布事务同用模块OUTPUT_DIR(不再自行拼路径)
 
     if not os.path.exists(output_dir):
         print("⚠️ 无历史报告")
         return ""
 
-    # IA-P0-1: _annotated(禁语标注版)与_UNVALIDATED(未通过Gate B的待验证版)
-    # 都不是合格正式报告,不得作为"上期报告"喂给GLM续写
-    # (旧缺陷: '_'>'.'排序使 weekly_report_1024_annotated.md 排在 weekly_report_1031.md
-    #  之后,上期报告会错拿标注版)
-    # FIX-02: _CANDIDATE(发布前候选)同样不是正式报告,排除
-    files = sorted([f for f in os.listdir(output_dir)
-                    if f.startswith('weekly_report_')
-                    and '_annotated' not in f and '_UNVALIDATED' not in f
-                    and '_CANDIDATE' not in f], reverse=True)
-
-    if len(files) < 1:
-        print("⚠️ 无历史报告")
-        return ""
-
-    # 2026-10-11修复: 原逻辑"多份时取第二新"假设最新的是本次要覆盖的,但正常周节奏下
-    # 最新一份就是上期报告(本次的还没生成),导致下周五会跳过上期、加载两周前的。
-    # 正确逻辑: 排除今天将生成/覆盖的同名文件后,取最新一份。
-    today_name = f"weekly_report_{datetime.now().strftime('%Y%m%d')}.md"
-    candidates = [f for f in files if f != today_name]
-    if not candidates:
-        print("⚠️ 无历史报告(仅有今日文件)")
-        return ""
-    target_file = candidates[0]
+    # 正式读取: 只认已发布合格正式周报(排除今天将生成/覆盖的同名文件)
+    today = datetime.now().strftime('%Y%m%d')
+    view, reason = rp.latest_formal_weekly_report(output_dir, exclude_ymd=today)
+    if view is not None:
+        target_file = os.path.basename(view['path'])
+        archive_mode = False
+    else:
+        # 无合格正式报告→历史档案回退(未验证,须显式标注)
+        target_file = rp.latest_archive_weekly_report(output_dir, exclude_ymd=today)
+        archive_mode = True
+        if not target_file:
+            print(f"⚠️ 无历史报告(无已发布合格正式周报,亦无可读档案: {reason})")
+            return ""
 
     filepath = os.path.join(output_dir, target_file)
 
@@ -161,7 +159,13 @@ def load_previous_report():
         if len(lines) > 60:
             summary += f"\n\n... [上期报告共{len(lines)}行，此处截取前60行]"
 
-        print(f"✅ 已加载上期报告: {target_file}")
+        if archive_mode:
+            # FIX3-02: 历史档案必须明确标记为未验证资料,不得静默当作合格报告
+            summary += ("\n\n> ⚠️ 【未验证历史档案】以上摘自发布状态机制上线前的"
+                        "历史报告(无发布状态记录,未经Gate B发布认证),仅作背景参考。")
+            print(f"⚠️ 已加载上期报告(未验证历史档案): {target_file}")
+        else:
+            print(f"✅ 已加载上期报告(已发布合格): {target_file}")
         print(f"   原始 {len(lines)} 行，截取 {min(60, len(lines))} 行")
         return summary
 
@@ -597,6 +601,13 @@ def verify_research_inputs(ymd=None):
             f"/{pack_meta.get('target_date')}, 权威快照={snap.get('snapshot_id')}"
             f"(旧包残留或同日修订后未重打包)")
     elif snap is not None:
+        # FIX3-03(F2-NEW-003): 数据包meta声明的gate_a必须与权威快照重算Gate A
+        # 一致(rp.verify_meta_gate_a统一口径,与锚点端同规则)——权威状态由
+        # recompute_gate_a从真实facts+注册表重算,快照声明与meta自报都不作为权威;
+        # 真实DEGRADED+meta声称PASS等任何矛盾→拒绝正式生成
+        ok_gate, gate_reason = rp.verify_meta_gate_a(pack_meta, snap, label='数据包meta')
+        if not ok_gate:
+            problems.append(f"数据包Gate A声明核验失败: {gate_reason}")
         # FIX-01: 数据包内容确定性重建比对(build_markdown为权威快照纯函数)——
         # 改包内数字后同步改meta摘要也难逃: 以权威快照重算包内容比对
         try:
@@ -699,6 +710,7 @@ def _status_body(ymd, md_path, gate_a, gate_b, final_quality, ctx,
         digest = None
     return {
         'report_file': os.path.basename(md_path),
+        'target_date': ymd,
         'report_path': md_path,
         'report_digest': digest,
         'gate_a': gate_a, 'gate_b': gate_b, 'final_quality': final_quality,

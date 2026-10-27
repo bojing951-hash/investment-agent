@@ -273,6 +273,14 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
                       '非核心FAIL按降级披露(注册表criticality为权威)'}
     if rec['duplicates']:
         gate_a['note'] += f';重复metric_id按FAIL处置: {",".join(rec["duplicates"][:6])}'
+    if rec['effective'] is None:
+        # FIX3-01(F2-NEW-001)fail-closed: 事实集合存在非法/不可证明结构
+        # (非对象/身份缺失/质量缺失或非法)——快照如实写入非法状态(不可变存证),
+        # 但不得作为合格快照放行: status=None,下游gate_status/装配/报告全部拒绝
+        gate_a['note'] = ('事实结构非法/不可证明('
+                          + '; '.join(rec['reasons'][:2])
+                          + ')——本快照不得用于正式研究')
+        gate_a['illegal_quality'] = rec['illegal_quality']
     gate_a['noncore_degraded'] = rec['noncore_degraded']
     gate_a['illegal_quality'] = rec['illegal_quality']
 
@@ -464,9 +472,16 @@ if __name__ == '__main__':
     # 2026-10-21 P1修复: Gate A FAIL不得再静默exit 0——此前连续多日FAIL但流水线
     # 退出码为0,launchd侧完全无感。FAIL→退出码2(快照仍写盘,只上报失败);
     # DEGRADED是已披露降级,保持0。
+    # IA-P0-1-FIX3(FIX3-01): status=None(事实结构非法/不可证明)同按退出码2
+    # 上报——非法结构快照不得以exit 0冒充正常产出。
     status = (snap.get('gate_a') or {}).get('status')
     if status == 'FAIL':
         print(f"⚠️ Gate A FAIL(core_missing={snap['gate_a'].get('core_missing')}, "
               f"core_fail={snap['gate_a'].get('core_fail')})——快照已保存,本步骤以退出码2上报")
+        sys.exit(2)
+    if status not in ('PASS', 'DEGRADED'):
+        print(f"⛔ Gate A非法/不可证明(status={status!r},"
+              f"illegal_quality={len(snap['gate_a'].get('illegal_quality') or [])}条)"
+              "——快照已存证,本步骤以退出码2上报(FIX3-01 fail-closed)")
         sys.exit(2)
     sys.exit(0)

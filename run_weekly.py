@@ -231,12 +231,13 @@ def main():
     except OSError as e:
         print(f"⚠️ 流水线台账写入失败(不影响退出码): {e}")
 
-    # 提示输出文件位置
+    # 提示输出文件位置(FIX3-02: 规范文件名口径,排除候选/备份/状态JSON等)
     output_dir = os.path.join(PROJECT_DIR, 'output', 'weekly')
     if os.path.exists(output_dir):
-        files = sorted(os.listdir(output_dir), reverse=True)
+        import research_provenance as rp
+        files = rp.weekly_report_files(output_dir)
         if files:
-            print(f"\n📄 最新报告: {os.path.join(output_dir, files[0])}")
+            print(f"\n📄 最新报告: {os.path.join(output_dir, files[-1])}")
 
     print("\n" + "=" * 60)
     print("📝 下一步：生成周报")

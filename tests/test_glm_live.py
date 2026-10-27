@@ -55,7 +55,8 @@ from report_generator import load_prompt, _call_glm
 buf = io.StringIO()
 with contextlib.redirect_stdout(buf):
     anchors = extract_anchors_from_data()
-anchor_files = sorted(glob.glob(os.path.join(ROOT, 'data', 'daily', 'anchors_*.json')))
+anchor_files = sorted(p for p in glob.glob(os.path.join(ROOT, 'data', 'daily', 'anchors_*.json'))
+                      if not p.endswith('.meta.json'))   # IA-P0-1: 排除来源meta侧挂
 if anchor_files:
     with open(anchor_files[-1], encoding='utf-8') as f:
         anchors = json.load(f)   # 用保存的完整锚点(带obs_date)更真实

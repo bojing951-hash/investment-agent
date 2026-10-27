@@ -37,15 +37,17 @@ DISCLAIMER = ("评分卡=内部模型观点(阈值为模型假设),非客观事�
 # ══════════════════════════════════════════════════════════════════
 
 def load_snapshot(date_str=None, data_dir=None):
-    """读取当日研究快照;缺失则退出(缺数据不得喂结论)。"""
+    """读取当日研究快照;缺失则退出(缺数据不得喂结论)。
+    IA-P0-1: 改用research_provenance确定性版本选择——同日多版本取最高修订版
+    (_vN),候选损坏明确拒绝;不再盲拼base文件名(旧实现修订版在场时仍读base)。"""
+    import research_provenance as rp
     ymd = date_str or datetime.now().strftime('%Y%m%d')
     d = data_dir or os.path.join(ROOT_DIR, 'data', 'daily')
-    path = os.path.join(d, f"research_snapshot_{ymd}.json")
-    if not os.path.exists(path):
-        print(f"❌ 无当日研究快照: {path}(先跑snapshot_builder)")
+    snap, path_or_reason = rp.select_snapshot(ymd, d)
+    if snap is None:
+        print(f"❌ 当日研究快照不可用: {path_or_reason}(先跑snapshot_builder)")
         sys.exit(1)
-    with open(path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    return snap
 
 
 def fact_of(facts, metric_id):

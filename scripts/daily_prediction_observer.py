@@ -24,6 +24,13 @@
 - 观察记录绑定实际观测日(obs_date)与本轮采集(retrieved_at=as_of,source),
   与锚点采集批次一一对应。
 
+IA-P0-1(2026-10-27,任务7)长期状态保护收紧:
+- 指标级质量门禁: 锚点quality=FAIL的指标不得进入长期观察历史(该预测本轮跳过);
+  DEGRADED=已验证+披露,可记录(与Gate A语义一致);
+- 批次一致性: 锚点文件带meta sidecar(source=snapshot+快照ID)时,核验其与
+  当日确定性选择的权威快照一致——legacy拍平锚点/同日修订后旧批次一律关键FAIL,
+  不写任何观察;无meta(旧格式/直连调用)维持既有日期规则,离线测试路径不变。
+
 CLI(离线测试): --views PATH --anchors PATH --today YYYY-MM-DD [--anchors-date YYYYMMDD]
 exit: 0=正常(含部分跳过) / 2=关键失败(无当日有效锚点)
 """
@@ -45,16 +52,28 @@ DEFAULT_VIEWS = os.path.join(ROOT_DIR, 'config', 'allocation_views.json')
 _STALE_FALLBACK_DAYS = 5
 
 
+def _anchors_files():
+    """data/daily下锚点文件(IA-P0-1: 排除*.meta.json来源侧挂,防误当锚点集加载)。"""
+    return sorted(p for p in glob.glob(os.path.join(ROOT_DIR, 'data', 'daily',
+                                                    'anchors_*.json'))
+                  if not p.endswith('.meta.json'))
+
+
 def latest_anchors_info(anchors_path=None):
     """(最新锚点dict, 锚点文件日期YYYYMMDD)。文件日期=采集批次。"""
     if anchors_path:
         with open(anchors_path, 'r', encoding='utf-8') as f:
             return json.load(f), os.path.basename(anchors_path)[8:16]
-    files = sorted(glob.glob(os.path.join(ROOT_DIR, 'data', 'daily', 'anchors_*.json')))
+    files = _anchors_files()
     if not files:
         return None, None
     with open(files[-1], 'r', encoding='utf-8') as f:
         return json.load(f), os.path.basename(files[-1])[8:16]
+
+
+def _latest_anchors_file():
+    files = _anchors_files()
+    return files[-1] if files else None
 
 
 def load_latest_anchors(anchors_path=None):
@@ -65,10 +84,14 @@ def load_latest_anchors(anchors_path=None):
 
 def _metric_problem(metric, anchors, today_iso):
     """单指标本轮有效性检查: 返回问题描述或None(有效)。
-    不得仅因指标存在就认定有效 — 须观测日可解析、不晚于今日、未超新鲜度窗。"""
+    不得仅因指标存在就认定有效 — 须质量合格、观测日可解析、不晚于今日、未超新鲜度窗。"""
     info = (anchors or {}).get(metric)
     if not info or not isinstance(info.get('value'), (int, float)):
         return '本轮锚点缺该指标(采集失败或资产缺失)'
+    # IA-P0-1(任务7): 事实引擎判FAIL的指标不得进入长期观察历史;
+    # DEGRADED=已验证+披露,允许记录(与Gate A语义一致)。旧锚点无quality字段→不拦。
+    if str(info.get('quality') or '').upper() == 'FAIL':
+        return '锚点指标质量FAIL(事实引擎校验未通过,不得进入长期观察历史)'
     od = str(info.get('obs_date') or '')[:10]
     if not od:
         return '锚点无观测日,无法绑定实际观察日'
@@ -90,13 +113,17 @@ def _metric_problem(metric, anchors, today_iso):
     return None
 
 
-def observe(views_path=None, anchors=None, today_str=None, anchors_date=None):
+def observe(views_path=None, anchors=None, today_str=None, anchors_date=None, anchors_path=None):
     """记录当期观察(幂等)。返回(变更说明列表, 观察中预测数, 状态PASS/PARTIAL/FAIL)。
-    FAIL=关键失败(无当日有效锚点): 今日不写任何观察记录。"""
+    FAIL=关键失败(无当日有效锚点): 今日不写任何观察记录。
+    anchors_path(IA-P0-1): 锚点文件路径——提供时执行批次核验(meta sidecar);
+    直传anchors dict(离线测试)无文件可核,维持既有日期规则。"""
     import allocation_engine as ae
+    import research_provenance as rp
     views_path = views_path or DEFAULT_VIEWS
     if anchors is None:
         anchors, anchors_date = latest_anchors_info()
+        anchors_path = anchors_path or _latest_anchors_file()
     today_iso = (today_str or datetime.now().strftime('%Y-%m-%d'))[:10]
     if anchors is None:
         print("⛔ 无锚点文件 — 本轮无有效观察数据,不记录预测观察(关键失败)")
@@ -105,6 +132,14 @@ def observe(views_path=None, anchors=None, today_str=None, anchors_date=None):
         print(f"⛔ 锚点文件日期{anchors_date}≠今日{today_iso.replace('-', '')} — "
               f"本轮采集失败或未运行,不得以旧数据充当本期观察(关键失败)")
         return [], 0, 'FAIL'
+    # IA-P0-1(任务7): 批次一致性核验——只在能定位锚点**文件**时执行。
+    # meta缺失(None)=旧格式/直连调用: 按既有日期规则处理(离线测试路径不变);
+    # meta存在且source=legacy或快照ID与当日权威快照不符 → 关键FAIL,不写任何观察。
+    if anchors_path and os.path.exists(anchors_path):
+        ok, reason = rp.verify_anchor_batch(anchors_path, anchors_date=anchors_date)
+        if ok is False:
+            print(f"⛔ {reason} — 不记录预测观察(关键失败)")
+            return [], 0, 'FAIL'
 
     with open(views_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
@@ -174,7 +209,8 @@ if __name__ == '__main__':
         if not anchors_date:
             anchors_date = os.path.basename(args.anchors)[8:16]
     changes, n, status = observe(views_path=args.views, anchors=anchors,
-                                 today_str=args.today, anchors_date=anchors_date)
+                                 today_str=args.today, anchors_date=anchors_date,
+                                 anchors_path=args.anchors)
     print(f"观察期内预测: {n} 条; 状态: {status}")
     # 关键失败必须反映在退出码: 采集失败时受影响预测的正式状态不得被更新
     sys.exit(2 if status == 'FAIL' else 0)

@@ -217,7 +217,10 @@ with tempfile.TemporaryDirectory() as td:
         out = rg.load_data_pack()
     check("无当日包→拒绝(不回退旧包)", out is None)
     open(os.path.join(weekly, 'data_pack_20261017.md'), 'w').write('TODAY')
-    with mock.patch.object(rg, 'DATA_DIR', td):
+    # IA-P0-1修复: 原用例只在首次调用mock datetime,"当日"随真实日期漂移
+    # (2026-10-17写死的用例10天后自然腐坏)——三次调用统一固定today=20261017
+    with mock.patch.object(rg, 'DATA_DIR', td), \
+         mock.patch.object(rg, 'datetime', _FakeDT2):
         out = rg.load_data_pack()
     check("当日包正常加载", out == 'TODAY')
     with mock.patch.object(rg, 'DATA_DIR', td):

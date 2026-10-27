@@ -17,8 +17,10 @@ from datetime import datetime, timedelta
 
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from env_config import GLM_API_KEY, GLM_BASE_URL, GLM_MODEL
 import allocation_engine  # P2/P3 配置研究引擎(同目录)
+import research_provenance as rp  # IA-P0-1: 来源链核验/门禁合成
 
 # ============ 路径配置 ============
 PROJECT_DIR = os.path.join(os.path.dirname(__file__), '..')
@@ -122,7 +124,13 @@ def load_previous_report():
         print("⚠️ 无历史报告")
         return ""
 
-    files = sorted([f for f in os.listdir(output_dir) if f.startswith('weekly_report_')], reverse=True)
+    # IA-P0-1: _annotated(禁语标注版)与_UNVALIDATED(未通过Gate B的待验证版)
+    # 都不是合格正式报告,不得作为"上期报告"喂给GLM续写
+    # (旧缺陷: '_'>'.'排序使 weekly_report_1024_annotated.md 排在 weekly_report_1031.md
+    #  之后,上期报告会错拿标注版)
+    files = sorted([f for f in os.listdir(output_dir)
+                    if f.startswith('weekly_report_')
+                    and '_annotated' not in f and '_UNVALIDATED' not in f], reverse=True)
 
     if len(files) < 1:
         print("⚠️ 无历史报告")
@@ -532,6 +540,115 @@ def _call_glm(system_prompt, user_prompt, max_tokens=32000, timeout=900):
         raise RuntimeError("流式返回正文为空(疑似思考耗尽或风控拦截)")
     return text
 
+# ============ IA-P0-1 预检与报告质量(任务5/6, 2026-10-27) ============
+# 独立launchd入口(周六08:00直接跑report_generator.py)此前只查"当日数据包存在",
+# 无Gate A检查、无来源核验: Gate A FAIL日照常调GLM、旧包/旧锚点/跨批次混用均可
+# 通过。预检在**调用GLM之前**核验四件套,失败→不调GLM/不覆盖合格报告/不写状态。
+
+def verify_research_inputs(ymd=None):
+    """报告生成前置核验(调GLM之前)。返回(ok, 问题列表, 上下文dict)。
+
+    核验项(全部须当日且互相绑定,缺一即拒):
+    1. 当日研究快照存在且可解析,Gate A ∈ {PASS, DEGRADED}(FAIL/缺字段/非法→拒);
+    2. 当日数据包 data_pack_{ymd}.md 存在,meta sidecar来源=snapshot,
+       snapshot_id/digest/研究日期与当日权威快照(最高修订版)一致;
+    3. 当日锚点 anchors_{ymd}.json 存在,meta来源=snapshot且snapshot_id一致
+       (同日修订后旧批次自动失配→拒,不猜测);
+    4. 当日锚点prompt anchor_prompt_{ymd}.md 存在。
+    上下文dict: {'snapshot','snapshot_path','gate_a','anchors','anchors_path',
+    'anchor_prompt_path'}——main据此使用**当日**输入(替代glob最新)。"""
+    ymd = ymd or datetime.now().strftime('%Y%m%d')
+    daily_dir = os.path.join(DATA_DIR, 'daily')
+    problems = []
+
+    # 1) 当日权威快照 + Gate A
+    snap, snap_path = rp.select_snapshot(ymd, daily_dir)
+    if snap is None:
+        problems.append(f"当日研究快照不可用: {snap_path}")
+    else:
+        gate_a, reason = rp.gate_status(snap)
+        if not rp.gate_allows_formal_research(gate_a):
+            problems.append(
+                f"Gate A {gate_a if gate_a else '不可用(' + reason + ')'} — "
+                f"{rp.gate_reason_desc(snap)};FAIL/未知不得生成正式报告")
+
+    # 2) 当日数据包 + 绑定核验
+    pack_path = os.path.join(DATA_DIR, 'weekly', f'data_pack_{ymd}.md')
+    pack_meta = rp.load_meta(pack_path) if os.path.exists(pack_path) else None
+    if not os.path.exists(pack_path):
+        problems.append(f"当日数据包不存在: data_pack_{ymd}.md(先跑流水线)")
+    elif not pack_meta or pack_meta.get('source') != 'snapshot':
+        problems.append("数据包无来源meta或非快照渲染(来源不可证明,拒绝)")
+    elif snap is not None and (
+            pack_meta.get('snapshot_id') != snap.get('snapshot_id')
+            or pack_meta.get('snapshot_digest') != rp.digest_snapshot(snap)
+            or str(pack_meta.get('target_date')) != str(ymd)):
+        problems.append(
+            f"数据包与当日权威快照不绑定: 包meta={pack_meta.get('snapshot_id')}"
+            f"/{pack_meta.get('target_date')}, 权威快照={snap.get('snapshot_id')}"
+            f"(旧包残留或同日修订后未重打包)")
+
+    # 3) 当日锚点 + 批次核验
+    anchors_path = os.path.join(daily_dir, f'anchors_{ymd}.json')
+    anchors = None
+    if not os.path.exists(anchors_path):
+        problems.append(f"当日锚点不存在: anchors_{ymd}.json(先跑流水线)")
+    else:
+        ok_batch, batch_reason = rp.verify_anchor_batch(anchors_path, anchors_date=ymd,
+                                                        daily_dir=daily_dir)
+        if ok_batch is False:
+            problems.append(f"锚点批次核验失败: {batch_reason}")
+        elif ok_batch is None:
+            problems.append("锚点无来源meta(须由snapshot_builder产出,legacy批次拒绝)")
+        else:
+            with open(anchors_path, 'r', encoding='utf-8') as f:
+                anchors = json.load(f)
+            if snap is not None and len(anchors) < 20:
+                problems.append(f"当日锚点数量不足: {len(anchors)} < 20")
+
+    # 4) 当日锚点prompt
+    prompt_path = os.path.join(daily_dir, f'anchor_prompt_{ymd}.md')
+    if not os.path.exists(prompt_path):
+        problems.append(f"当日锚点prompt不存在: anchor_prompt_{ymd}.md(先跑data_validator)")
+
+    gate_a = rp.gate_status(snap)[0] if snap is not None else None
+    ctx = {'snapshot': snap, 'snapshot_path': snap_path, 'gate_a': gate_a,
+           'anchors': anchors, 'anchors_path': anchors_path if anchors is not None else None,
+           'anchor_prompt_path': prompt_path if os.path.exists(prompt_path) else None}
+    return (not problems), problems, ctx
+
+
+def _append_degraded_footer(md_path, gate_a, gate_b, snapshot_desc):
+    """DEGRADED报告尾部**可见**披露(区别于不可见校验注释)——最终报告须保留
+    降级状态与原因,不得伪装成全PASS报告。"""
+    with open(md_path, 'a', encoding='utf-8') as f:
+        f.write("\n---\n\n"
+                "> ⚠️ **数据质量降级披露(自动追加)**\n"
+                f"> - Gate A(数据质量): {gate_a} — {snapshot_desc}\n"
+                f"> - Gate B(数值校验): {gate_b}(存在警告,详见logs/validation_*.log)\n"
+                "> - 本报告基于已验证但部分降级的数据生成;涉及降级指标的结论可靠性受限,\n"
+                ">   不得作为全质量结论引用。\n")
+
+
+def write_report_status(ymd, md_path, gate_a, gate_b, final_quality, ctx):
+    """report_status_{ymd}.json: 报告最终质量与来源链快照(AC-04/AC-06可追溯)。"""
+    status_path = os.path.join(OUTPUT_DIR, f'report_status_{ymd}.json')
+    try:
+        with open(status_path, 'w', encoding='utf-8') as f:
+            json.dump({
+                'report_file': os.path.basename(md_path),
+                'gate_a': gate_a, 'gate_b': gate_b, 'final_quality': final_quality,
+                'snapshot_id': (ctx.get('snapshot') or {}).get('snapshot_id'),
+                'snapshot_digest': (rp.digest_snapshot(ctx['snapshot'])
+                                    if ctx.get('snapshot') else None),
+                'anchors_file': os.path.basename(ctx['anchors_path'])
+                                if ctx.get('anchors_path') else None,
+                'generated_at': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+            }, f, ensure_ascii=False, indent=1)
+    except OSError as e:
+        print(f"⚠️ report_status写入失败(不影响报告): {e}")
+
+
 def save_report(report_text, date_str=None):
     """保存报告"""
     if not date_str:
@@ -842,25 +959,34 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
         print(f"   {u}")
     return updates
 
-def validate_generated_report(md_path):
-    """用最新锚点(与报告同日生成)校验刚生成的报告,结果落 logs/validation_*.log 并附注到报告尾部。
+def validate_generated_report(md_path, anchors=None, anchors_file=None):
+    """用与报告**同日**的锚点校验刚生成的报告,结果落 logs/validation_*.log 并附注到报告尾部。
 
     第二轮审查#4: 返回 (classification, warnings),classification ∈ PASS/DEGRADED/FAIL。
-    FAIL = 无锚点/锚点非同日/数值类错误 → 调用方禁止一切长期状态回写。"""
+    FAIL = 无锚点/锚点非同日/数值类错误 → 调用方禁止一切长期状态回写。
+    IA-P0-1: main传入预检核验过的当日锚点(anchors/anchors_file);
+    未传时回退glob当日→最新(排除*.meta.json来源侧挂),保持独立可用。"""
     ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    anchor_files = sorted(glob.glob(os.path.join(ROOT_DIR, 'data', 'daily', 'anchors_*.json')))
     date_str = datetime.now().strftime('%Y%m%d')
 
-    if not anchor_files:
-        classification, warnings = "FAIL", []
-        print("⛔ 无锚点文件 — 数字未经证实,校验分级FAIL,禁止状态回写")
-        _append_validation_note(md_path, date_str, "FAIL(无锚点)")
-        return classification, warnings
+    if anchors is None:
+        anchor_files = sorted(p for p in glob.glob(os.path.join(ROOT_DIR, 'data', 'daily',
+                                                                'anchors_*.json'))
+                              if not p.endswith('.meta.json'))
+        # 当日锚点优先(IA-P0-1);无当日文件才降级取最新并按跨日分级
+        same_day = [p for p in anchor_files if f'anchors_{date_str}.json' in os.path.basename(p)]
+        anchor_files = same_day or anchor_files
+        if not anchor_files:
+            classification, warnings = "FAIL", []
+            print("⛔ 无锚点文件 — 数字未经证实,校验分级FAIL,禁止状态回写")
+            _append_validation_note(md_path, date_str, "FAIL(无锚点)")
+            return classification, warnings
+        anchors_file = anchor_files[-1]
+        with open(anchors_file, 'r', encoding='utf-8') as f:
+            anchors = json.load(f)
 
-    anchors_same_day = date_str in os.path.basename(anchor_files[-1])
-
-    with open(anchor_files[-1], 'r', encoding='utf-8') as f:
-        anchors = json.load(f)
+    anchors_same_day = (anchors_file is not None
+                        and f'anchors_{date_str}.json' in os.path.basename(anchors_file))
 
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import data_validator
@@ -877,7 +1003,7 @@ def validate_generated_report(md_path):
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
     with open(log_path, 'w', encoding='utf-8') as f:
         f.write(f"报告校验 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"报告: {md_path}\n锚点: {anchor_files[-1]}\n")
+        f.write(f"报告: {md_path}\n锚点: {anchors_file or '(调用方传入,未注明文件)'}\n")
         f.write(f"校验分级: {classification} ({reason})\n")
         f.write("=" * 60 + "\n")
         f.write(buf.getvalue())
@@ -918,7 +1044,8 @@ def apply_status_updates(report, classification, anchors=None, today_str=None,
 
 
 # ============ 主程序 ============
-if __name__ == '__main__':
+def generate_weekly_report():
+    """周报主流程(IA-P0-1抽出为可调用函数,便于行为测试;CLI入口见文件尾)。"""
     print("=" * 60)
     print("📊 投资周报生成器")
     print(f"🕐 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -930,16 +1057,29 @@ if __name__ == '__main__':
     # 第0.5步：加载论点
     theses = load_theses()
 
-    # 第0.55步：加载配置观点库(P2) — 连同最新锚点一并喂给引擎做触发器核验
+    # 第0.55步：加载配置观点库(P2) — 连同**当日**锚点一并喂给引擎做触发器核验
     views_data = allocation_engine.load_views()
-    latest_anchors = {}
-    _anchor_json = sorted(glob.glob(os.path.join(DATA_DIR, 'daily', 'anchors_*.json')))
-    if _anchor_json:
-        try:
-            with open(_anchor_json[-1], 'r', encoding='utf-8') as f:
-                latest_anchors = json.load(f)
-        except Exception as e:
-            print(f"⚠️ 锚点JSON读取失败({e}),触发器按'待验证'处理")
+
+    # 第0.9步(IA-P0-1,任务5): 生成前置核验——调GLM之前核验当日四件套
+    # (权威快照/Gate A/数据包绑定/锚点批次/锚点prompt)。本入口由launchd独立调度
+    # (周六08:00),无流水线内存状态可依赖,一切以磁盘上的可验证产物为准:
+    # 预检失败 → 不调用GLM、不覆盖任何已有合格报告、不更新研究状态,exit 2。
+    today_ymd = datetime.now().strftime('%Y%m%d')
+    ok, problems, pfx = verify_research_inputs(today_ymd)
+    if not ok:
+        print(f"\n⛔ 预检失败({len(problems)}项) — 拒绝生成正式周报(不调用GLM,退出码2):")
+        for p in problems:
+            print(f"   - {p}")
+        print("   处置: 先运行 run_weekly.py 完整流水线;Gate A FAIL须修复采集后"
+              "--allow-revision生成修订版快照并重打包")
+        sys.exit(2)
+    gate_a = pfx['gate_a']
+    latest_anchors = pfx['anchors'] or {}
+    if gate_a == 'DEGRADED':
+        print(f"⚠️ Gate A=DEGRADED — 继续生成,降级原因将进入报告披露")
+    print(f"✅ 预检通过: 快照={os.path.basename(pfx['snapshot_path'])} "
+          f"Gate A={gate_a} | 锚点/数据包/锚点prompt均为当日且与权威快照绑定")
+
     views_block = allocation_engine.render_views_block(
         views_data, today_str=datetime.now().strftime('%Y-%m-%d'),
         anchors=latest_anchors) if views_data else ""
@@ -963,15 +1103,15 @@ if __name__ == '__main__':
         print("\n请先运行: python3 scripts/data_assembler.py")
         sys.exit(1)
 
-    # 第1.5步：读取数据锚点（如果存在）
+    # 第1.5步：读取数据锚点(IA-P0-1: 只用**当日**锚点prompt——预检已确认存在;
+    # 旧glob取最新会把上周prompt混入本周输入)
     ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    anchor_prompt_files = sorted(glob.glob(os.path.join(ROOT_DIR, 'data', 'daily', 'anchor_prompt_*.md')))
-    if anchor_prompt_files:
-        with open(anchor_prompt_files[-1], 'r', encoding='utf-8') as f:
+    if pfx['anchor_prompt_path']:
+        with open(pfx['anchor_prompt_path'], 'r', encoding='utf-8') as f:
             anchor_block = f.read()
         # 在发送给AI的prompt中，将锚点块插入数据包之前
         data_pack = anchor_block + "\n\n---\n\n" + data_pack
-        print(f"✅ 数据锚点已加载 ({len(anchor_block)} 字符)")
+        print(f"✅ 数据锚点已加载 ({len(anchor_block)} 字符, 当日{today_ymd})")
 
     # 第2步：生成报告
     report = generate_report(data_pack, framework, theses, prev_report, tech_notes, news_summary, views_block)
@@ -984,7 +1124,28 @@ if __name__ == '__main__':
 
     # 第3.5步：同日锚点校验(2026-10-11) — 必须先于论点回写
     # 第二轮#2/#4: 无锚点/锚点非同日/数值错误 → FAIL,禁止一切长期状态回写
-    classification, warnings = validate_generated_report(md_path)
+    # IA-P0-1: 用预检核验过的**当日**锚点(批次一致),不再glob最新
+    classification, warnings = validate_generated_report(
+        md_path, anchors=latest_anchors, anchors_file=pfx['anchors_path'])
+
+    # 第3.55步(IA-P0-1,任务6): Gate A + Gate B 合成报告最终质量
+    # 任一FAIL→FAIL;无FAIL有DEGRADED→DEGRADED;双PASS→PASS;未知按FAIL。
+    # FAIL: 报告改名 *_UNVALIDATED.md(与合格报告文件名可区分)、不回写任何
+    # 长期状态、退出码3——不得冒充合格正式报告。
+    final_quality = rp.combine_gates(gate_a, classification)
+    write_report_status(today_ymd, md_path, gate_a, classification, final_quality, pfx)
+    if final_quality == 'FAIL':
+        unval_path = md_path.replace('.md', '_UNVALIDATED.md')
+        os.replace(md_path, unval_path)
+        print(f"\n⛔ 最终质量FAIL(Gate A={gate_a}, Gate B={classification}) — "
+              f"报告已标记为未验证: {os.path.basename(unval_path)}")
+        print("   不回写thesis.json/allocation_views.json;处置后重跑(数值错误须修复数据或重新生成)")
+        sys.exit(3)
+    if final_quality == 'DEGRADED':
+        _append_degraded_footer(md_path, gate_a, classification,
+                                rp.gate_reason_desc(pfx['snapshot']))
+        print(f"⚠️ 最终质量DEGRADED(Gate A={gate_a}, Gate B={classification}) — "
+              f"报告尾部已附降级披露,回写按既有规则继续")
 
     # 第3.6步：论点状态回写 — 校验分级FAIL则禁止回写,
     # 防止基于错误数字的升降级污染thesis.json/allocation_views.json
@@ -1032,3 +1193,7 @@ if __name__ == '__main__':
             print("⚠️ 季度展望超时30分钟,已终止(周报不受影响)")
 
     print("\n🎉 周报生成完成！")
+
+
+if __name__ == '__main__':
+    generate_weekly_report()

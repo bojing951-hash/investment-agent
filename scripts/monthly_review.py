@@ -205,8 +205,10 @@ def gather_month_context(ym, views_path=None):
         ctx['predictions'] = ['(无预测记录)']
 
     wk_dir = os.path.join(ROOT_DIR, 'output', 'weekly')
+    # IA-P0-1: _annotated/_UNVALIDATED均非合格正式报告,不得进入月度摘要索引
     wk_files = sorted(f for f in (os.listdir(wk_dir) if os.path.isdir(wk_dir) else [])
-                      if f.startswith(f'weekly_report_{ym}') and not f.endswith('_annotated.md'))
+                      if f.startswith(f'weekly_report_{ym}')
+                      and not f.endswith('_annotated.md') and not f.endswith('_UNVALIDATED.md'))
     wk_lines = []
     for wf in wk_files:
         text = open(os.path.join(wk_dir, wf), encoding='utf-8').read()
@@ -243,7 +245,9 @@ def build_data_block(ym, data_dir=None, views_path=None):
     series = gather_month_series(ym, data_dir)
     ctx = gather_month_context(ym, views_path)
     preview = not month_is_complete(ym)
-    header = f"# {ym[:4]}年{int(ym[4:6])}月 月度原始数据汇总(自动提取自daily JSON,非周报拼接)\n"
+    header = (f"# {ym[:4]}年{int(ym[4:6])}月 月度原始数据汇总(自动提取自daily JSON,非周报拼接)\n"
+              "> 数据来源: 原始采集序列直读(IA-P0-1标注: 非研究快照链产物;"
+              "月度聚合为历史路径复盘,当日研究结论仍以快照链为准)\n")
     if preview:
         header = ("# 【预览】" + header.lstrip('# ')
                   + "\n> ⚠️ 本报告生成于**期间结束前**,数据覆盖不完整。所有结论为预览性质,"

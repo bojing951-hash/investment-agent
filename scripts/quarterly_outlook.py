@@ -94,7 +94,9 @@ def gather_quarter_series(months, data_dir=None):
 def build_data_block(q, data_dir=None, views_path=None):
     months = quarter_months(q)
     preview = not quarter_is_complete(q)
-    header = f"# {q} 季度数据汇总(整季逐日序列聚合,自动提取)\n"
+    header = (f"# {q} 季度数据汇总(整季逐日序列聚合,自动提取)\n"
+              "> 数据来源: 原始采集序列直读(IA-P0-1标注: 非研究快照链产物;"
+              "季度聚合为历史路径复盘,当日研究结论仍以快照链为准)\n")
     if preview:
         header = ("# 【预览】" + header.lstrip('# ')
                   + "\n> ⚠️ 本报告生成于**季度结束前**,数据覆盖不完整。所有结论为预览性质,"

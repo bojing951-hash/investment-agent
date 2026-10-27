@@ -3,9 +3,19 @@
 
 2026-10-17第七轮重写: 原实现glob取各源"最新文件"自行拼装(文件最新≠数据最新,
 且派生值沿用采集器各自口径)。现改为: 读取当日研究快照(research_snapshot_*.json,
-唯一数据入口) → 渲染 data_pack_YYYYMMDD.md。快照缺失时现场构建(经snapshot_builder,
-其解析逻辑负责新鲜度窗与fallback披露)。
+唯一数据入口) → 渲染 data_pack_YYYYMMDD.md。
 
+IA-P0-1(2026-10-27)收紧:
+1. 不再"快照缺失时现场构建"——装配器只消费**已存在且可验证**的快照批次
+   (research_provenance.select_snapshot确定性版本选择: 同日多版取最高修订版,
+   候选损坏/日期不符一律拒绝),不代行构建职责;
+2. Gate A FAIL或状态不可用(缺字段/非法)→拒绝生成正式数据包,退出码2;
+   旧实现无任何Gate检查,FAIL快照也照常打包;
+3. DEGRADED→继续装配,数据包内显式降级披露(来源fallback+不合格指标逐项列出);
+4. 数据包旁挂 data_pack_YYYYMMDD.meta.json(来源快照ID/digest/Gate A状态),
+   报告入口据此核验"包↔快照"绑定,杜绝旧包残留冒充与同日版本混用。
+
+退出码: 0=成功 | 1=无有效快照 | 2=Gate A拒绝。
 数值表全部程序确定性生成;相关性/评分卡/新闻作为研究上下文嵌入,附文件日期披露。
 """
 import glob
@@ -18,22 +28,20 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import fact_engine as fe
+import research_provenance as rp
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
 
 
 def load_snapshot(date_str=None):
-    """读取(必要时构建)目标日期研究快照。"""
+    """读取目标日期研究快照(确定性版本选择,不自动构建)。
+
+    返回(snapshot, ymd, path);无候选/候选损坏/日期不符 → (None, ymd, 拒绝原因),
+    由调用方拒绝——数据包必须绑定一个已存在、可验证的快照批次。"""
     ymd = date_str or datetime.now().strftime('%Y%m%d')
-    path = os.path.join(DATA_DIR, 'daily', f"research_snapshot_{ymd}.json")
-    if not os.path.exists(path):
-        import snapshot_builder as sb
-        sb.build_snapshot(target_ymd=ymd)
-        if not os.path.exists(path):
-            return None, ymd
-    with open(path, 'r', encoding='utf-8') as f:
-        return json.load(f), ymd
+    snap, path_or_reason = rp.select_snapshot(ymd, os.path.join(DATA_DIR, 'daily'))
+    return snap, ymd, path_or_reason
 
 
 def latest_before(pattern, ymd, max_lag=10):
@@ -102,6 +110,20 @@ def build_markdown(snapshot, ymd):
     if gm.get('core_fail'):
         L.append(f"- ❌ core指标FAIL: {', '.join(gm['core_fail'])}")
     L.append("")
+
+    # IA-P0-1: Gate A=DEGRADED → 显式降级披露(不合格指标逐项点名,进入报告正文)
+    gate_a_status = rp.gate_status(snapshot)[0]
+    if gate_a_status == 'DEGRADED':
+        L.append("## ⚠️ 数据质量降级披露(Gate A=DEGRADED)")
+        L.append("本数据包基于**已验证但部分降级**的数据生成;以下指标质量不合格,"
+                 "相关数值仅供参考,涉及这些指标的结论必须注明降级:")
+        degraded = [f for f in facts if isinstance(f, dict)
+                    and f.get('quality_status') not in (None, 'PASS')]
+        for f in degraded:
+            msgs = '; '.join(i.get('message', '') for i in f.get('issues', [])
+                             if i.get('severity') in ('DEGRADED', 'FAIL'))
+            L.append(f"- {f.get('display_name')}({f.get('quality_status')}): {msgs}")
+        L.append("")
 
     # 全球权益/波动率/加密
     L.append("## 全球市场")
@@ -217,15 +239,32 @@ def build_markdown(snapshot, ymd):
 
 
 def main():
-    snapshot, ymd = load_snapshot()
+    snapshot, ymd, path = load_snapshot()
     if snapshot is None:
-        print("❌ 无研究快照,数据包未生成(先跑snapshot_builder)")
+        print(f"❌ {ymd}无有效研究快照,数据包未生成({path};先跑snapshot_builder)")
         sys.exit(1)
+    status, reason = rp.gate_status(snapshot)
+    if not rp.gate_allows_formal_research(status):
+        # FAIL / None(缺gate_a字段/状态非法): 均不得生成正式数据包(不得默认PASS)
+        print(f"⛔ Gate A {'FAIL' if status == 'FAIL' else '不可用'}"
+              f"{'(' + reason + ')' if reason else ''}——拒绝生成正式数据包(退出码2)")
+        print(f"   快照: {os.path.basename(path)} | 诊断: {rp.gate_reason_desc(snapshot)}")
+        print("   处置: 数据缺失已在快照中披露;修复采集后以--allow-revision生成修订版快照")
+        sys.exit(2)
     out = os.path.join(DATA_DIR, 'weekly', f"data_pack_{ymd}.md")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, 'w', encoding='utf-8') as f:
         f.write(build_markdown(snapshot, ymd))
-    print(f"✅ 数据包: {out} ({os.path.getsize(out)} bytes)")
+    # IA-P0-1: 数据包meta sidecar——包↔快照绑定(报告入口核验),旧包/混版自动失配
+    rp.write_meta(out, {
+        'source': 'snapshot',
+        'generated_by': 'data_assembler',
+        'generated_at': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+        **rp.provenance_of(snapshot, path),
+        'pack_file': os.path.basename(out),
+    })
+    print(f"✅ 数据包: {out} ({os.path.getsize(out)} bytes)"
+          + (" [DEGRADED-已披露]" if status == 'DEGRADED' else ''))
 
 
 if __name__ == '__main__':

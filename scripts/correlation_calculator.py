@@ -143,12 +143,17 @@ def generate_markdown(results, missing, as_of_str):
 
 def main(snapshot_path=None, out_path=None):
     today = datetime.now().strftime('%Y%m%d')
-    p = snapshot_path or os.path.join(DATA_DIR, f"research_snapshot_{today}.json")
-    if not os.path.exists(p):
-        print(f"❌ 无当日研究快照: {p}(先跑snapshot_builder)")
-        sys.exit(1)
-    with open(p, 'r', encoding='utf-8') as f:
-        snapshot = json.load(f)
+    if snapshot_path:
+        # 显式指定(测试/回填): 直接加载
+        with open(snapshot_path, 'r', encoding='utf-8') as f:
+            snapshot = json.load(f)
+    else:
+        # IA-P0-1: 确定性版本选择——同日多版本取最高修订版(_vN),候选损坏拒绝
+        import research_provenance as rp
+        snapshot, reason = rp.select_snapshot(today, DATA_DIR)
+        if snapshot is None:
+            print(f"❌ 当日研究快照不可用: {reason}(先跑snapshot_builder)")
+            sys.exit(1)
     results, missing = compute_all(snapshot)
     md = generate_markdown(results, missing, snapshot.get('research_as_of', today))
     out = out_path or os.path.join(DATA_DIR, f"correlation_{today}.md")

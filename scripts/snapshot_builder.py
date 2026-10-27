@@ -7,7 +7,9 @@
 2. 经事实引擎规范化为事实记录(注册表身份/统一收益/12类校验/Gate A分级);
 3. 产出不可变 research_snapshot_YYYYMMDD.json + 人读版.md(数值表程序确定性生成);
 4. 产出旧格式锚点 anchors_YYYYMMDD.json(兼容桥: allocation_engine触发器/预测、
-   每日观察器、Gate B校验继续工作;锚点源自快照事实而非重新拍平采集JSON);
+   每日观察器、Gate B校验继续工作;锚点源自快照事实而非重新拍平采集JSON)
+   + anchors_YYYYMMDD.meta.json来源侧挂(source=snapshot/快照ID/digest/Gate A状态),
+   并整体替换旧锚点(不与上一版merge,防残留键)——IA-P0-1来源链;
 
 不可变性: 同日已存在快照时拒绝覆盖(退出码3);--allow-revision 生成 _v2 并留修订原因,
 原版保留。快照文件不修改、不删除。
@@ -26,6 +28,7 @@ from datetime import datetime, date, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import fact_engine as fe
+import research_provenance as rp
 from trading_calendar import expected_trading_days
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -88,15 +91,20 @@ def _chg_from_derived(d, prefer):
 
 
 def build_anchors(snapshot, ymd):
-    """从快照事实生成旧格式锚点(单一来源=快照;不再拍平采集JSON)。"""
+    """从快照事实生成旧格式锚点(单一来源=快照;不再拍平采集JSON)。
+
+    IA-P0-1: source_file记录**实际快照版本文件名**(含_vN后缀),锚点与其来源
+    快照精确绑定;修订版生成时旧base锚点会被整体替换(见写入段)。"""
     anchors = {}
     as_of = f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}"
     reg = fe.load_registry()
+    # 实际版本文件名: 修订时snapshot_id已带_vN(build_anchors在版本号确定后调用)
+    snap_file = f"{snapshot.get('snapshot_id') or 'research_snapshot_' + ymd}.json"
 
     def emit(key, value, fact, obs=None):
         if value is None or not isinstance(value, (int, float)):
             return
-        rec = {'value': value, 'source_file': f"research_snapshot_{ymd}.json",
+        rec = {'value': value, 'source_file': snap_file,
                'as_of': as_of, 'tolerance_pct': 1.0,
                'metric_id': fact.get('metric_id'), 'quality': fact.get('quality_status'),
                'fact_id': fact.get('fact_id')}
@@ -180,11 +188,11 @@ def build_anchors(snapshot, ymd):
         if isinstance(c.get('price'), (int, float)):
             anchors[f"rate_economy.fed_funds_futures.{i}.price"] = {
                 'value': c['price'], 'as_of': as_of, 'tolerance_pct': 1.0,
-                'source_file': f"research_snapshot_{ymd}.json", 'metric_id': 'ZQ_F1_PRICE'}
+                'source_file': snap_file, 'metric_id': 'ZQ_F1_PRICE'}
         if isinstance(c.get('implied_avg_rate'), (int, float)):
             anchors[f"rate_economy.fed_funds_futures.{i}.implied_rate"] = {
                 'value': c['implied_avg_rate'], 'as_of': as_of, 'tolerance_pct': 1.0,
-                'source_file': f"research_snapshot_{ymd}.json", 'metric_id': 'ZQ_IMPLIED_AVG'}
+                'source_file': snap_file, 'metric_id': 'ZQ_IMPLIED_AVG'}
     return anchors
 
 
@@ -314,21 +322,32 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
         json_path = os.path.join(od, f"research_snapshot_{ymd}_v{n}.json")
         snapshot['snapshot_id'] = f"research_snapshot_{ymd}_v{n}"
         snapshot['revision_reason'] = revision_reason or '未注明'
-    with open(json_path, 'w', encoding='utf-8') as f:
+    # IA-P0-1: 原子写(tmp+replace)——中途崩溃不留半写快照被误当有效版本
+    _tmp = json_path + '.tmp'
+    with open(_tmp, 'w', encoding='utf-8') as f:
         json.dump(snapshot, f, ensure_ascii=False, indent=1)
+    os.replace(_tmp, json_path)
     md_path = json_path.replace('.json', '.md')
     with open(md_path, 'w', encoding='utf-8') as f:
         f.write(render_markdown(snapshot))
 
+    # IA-P0-1: 锚点整体替换(不再与旧文件merge)——旧实现old.update(anchors)会把
+    # 上一版残留键(当日已剔除的指标/旧观测)留在anchors_{ymd}.json里被下游误用。
+    # 锚点唯一来源=本次快照,快照可追溯则锚点可追溯。
     anchors = build_anchors(snapshot, ymd)
     anchors_path = os.path.join(od, f"anchors_{ymd}.json")
-    if os.path.exists(anchors_path):
-        with open(anchors_path, 'r', encoding='utf-8') as f:
-            old = json.load(f)
-        old.update(anchors)
-        anchors = old
-    with open(anchors_path, 'w', encoding='utf-8') as f:
+    _tmpa = anchors_path + '.tmp'
+    with open(_tmpa, 'w', encoding='utf-8') as f:
         json.dump(anchors, f, ensure_ascii=False, indent=1)
+    os.replace(_tmpa, anchors_path)
+    # 锚点meta sidecar: 声明批次来源,供观察器(任务7)与报告入口(任务5)核验
+    rp.write_meta(anchors_path, {
+        'source': 'snapshot',
+        'generated_by': 'snapshot_builder',
+        'generated_at': as_of,
+        **rp.provenance_of(snapshot, json_path),
+        'anchor_count': len(anchors),
+    })
 
     print(f"✅ 快照: {json_path}")
     print(f"   MD:   {md_path}")

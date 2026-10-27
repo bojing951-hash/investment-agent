@@ -6,9 +6,21 @@
 - 单位归一化：15.8万/158K/158,000 → 统一为基础数值
 - 变化率校验：周涨跌幅也作为锚点
 - 空锚点硬中断：锚点不足时中断流水线
+
+IA-P0-1(2026-10-27)锚点来源分层:
+- 主路径: 消费研究快照产出的当日锚点(anchors_YYYYMMDD.json + .meta.json,
+  source=snapshot)——不重写该文件及其meta(快照构建器是唯一写入方);
+- 遗留路径: 快照缺席时拍平采集JSON自证锚点(legacy)——写入时meta sidecar
+  显式标注source=legacy,观察器/报告入口据此拒绝其进入正式研究批次
+  (legacy锚点未经Gate A快照链验证,不得产出合格正式输出);
+- 报告glob排除 _annotated(标注版)与 _UNVALIDATED(IA-P0-1未通过Gate B的
+  待验证报告),二者均非合格正式报告,不得作为"最新报告"被比对/续写。
 """
 import os, sys, re, json, glob
 from datetime import datetime
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import research_provenance as rp
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MIN_ANCHOR_COUNT = 20  # 最低锚点数量阈值
@@ -778,7 +790,10 @@ def validate_report(report_path, anchors):
     return warnings
 
 
-def save_anchors(anchors):
+def save_anchors(anchors, source='legacy'):
+    """落盘锚点(遗留路径专用: 拍平采集JSON的自证锚点)。
+    IA-P0-1: meta sidecar标注source=legacy——未经Gate A快照链验证的锚点批次,
+    观察器/报告入口据此拒绝其进入正式研究(可作诊断,不得冒充合格批次)。"""
     today = datetime.now().strftime('%Y%m%d')
     data_dir = os.path.join(ROOT_DIR, 'data', 'daily')
     os.makedirs(data_dir, exist_ok=True)
@@ -806,7 +821,15 @@ def save_anchors(anchors):
     path = os.path.join(data_dir, f'anchors_{today}.json')
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(serializable, f, ensure_ascii=False, indent=2)
-    print(f"\n💾 数据锚点: {path} ({os.path.getsize(path)} bytes, {len(anchors)} 个锚点)")
+    rp.write_meta(path, {
+        'source': source,
+        'generated_by': 'data_validator(legacy)',
+        'generated_at': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
+        'anchor_count': len(serializable),
+        'note': '原始采集JSON拍平锚点,未经Gate A快照链验证,不得用于正式研究批次',
+    })
+    print(f"\n💾 数据锚点: {path} ({os.path.getsize(path)} bytes, {len(anchors)} 个锚点)"
+          + (" [⚠️ legacy批次-已标注]" if source == 'legacy' else ""))
     return path
 
 
@@ -857,14 +880,17 @@ if __name__ == '__main__':
     # Step 1: 提取数据锚点
     # 第七轮重构: 优先使用研究快照产出的当日锚点(单一来源,含质量与obs_date/high/low;
     # 采集JSON拍平的同源自证锚点仅在快照缺席的旧路径使用)。
+    # IA-P0-1: 快照锚点不重写(快照构建器是anchors_*.json唯一写入方,meta随之保留);
+    # legacy路径落盘时meta标注source=legacy,不得冒充快照批次。
     print("\n--- Step 1: 提取数据锚点 ---")
     data_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'daily')
     today_str = datetime.now().strftime('%Y%m%d')
     snap_anchor_path = os.path.join(data_dir, f'anchors_{today_str}.json')
-    if os.path.exists(snap_anchor_path):
+    from_snapshot = os.path.exists(snap_anchor_path)
+    if from_snapshot:
         with open(snap_anchor_path, 'r', encoding='utf-8') as f:
             anchors = json.load(f)
-        print(f"✅ 使用研究快照锚点: {snap_anchor_path} ({len(anchors)} 个)")
+        print(f"✅ 使用研究快照锚点: {snap_anchor_path} ({len(anchors)} 个)(不重写)")
     else:
         anchors = extract_anchors_from_data()
 
@@ -875,7 +901,7 @@ if __name__ == '__main__':
         print(f"   请检查 data/daily/ 目录下的数据文件是否存在")
         sys.exit(1)
 
-    anchor_path = save_anchors(anchors)
+    anchor_path = snap_anchor_path if from_snapshot else save_anchors(anchors)
 
     # Step 2: 生成prompt插入块
     print("\n--- Step 2: 生成Prompt锚点块 ---")
@@ -888,7 +914,10 @@ if __name__ == '__main__':
 
     # Step 3: 校验最新报告
     print("\n--- Step 3: 校验最新报告 ---")
-    report_files = sorted([f for f in glob.glob(os.path.join(ROOT_DIR, 'output', 'weekly', 'weekly_report_*.md')) if '_annotated' not in f])
+    # IA-P0-1: _annotated(禁语标注版)与_UNVALIDATED(Gate B FAIL待验证版)
+    # 都不是合格正式报告,不得作为"最新报告"参与比对/续写/上月报索引
+    report_files = sorted([f for f in glob.glob(os.path.join(ROOT_DIR, 'output', 'weekly', 'weekly_report_*.md'))
+                           if '_annotated' not in f and '_UNVALIDATED' not in f])
     if report_files:
         latest_report = report_files[-1]
         print(f"📄 校验报告: {latest_report}")

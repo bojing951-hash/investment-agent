@@ -116,7 +116,7 @@ AS_OF = "2026-10-17T08:00:00+08:00"
 # ══ [1] 完整当日 → EXACT四源 ══
 with tempfile.TemporaryDirectory() as td:
     build_fixture_day(td)
-    snap = sb.build_snapshot(target_ymd='20261017', data_dir=td, out_dir=td, as_of=AS_OF)
+    snap = sb.build_snapshot(target_ymd='20261017', data_dir=td, trusted_root=td, out_dir=td, as_of=AS_OF)
     check("快照构建成功", snap is not None)
     check("四源EXACT", all(snap['sources_status'][n]['status'] == 'EXACT'
                            for n in ('global', 'macro', 'china', 'rate_economy')))
@@ -179,11 +179,11 @@ with tempfile.TemporaryDirectory() as td:
     check("MD披露成交额近似口径", '近似' in md or '成分' in md)
 
     # 不可变 + 修订
-    r2 = sb.build_snapshot(target_ymd='20261017', data_dir=td, out_dir=td, as_of=AS_OF)
+    r2 = sb.build_snapshot(target_ymd='20261017', data_dir=td, trusted_root=td, out_dir=td, as_of=AS_OF)
     check("同日重建被拒(不可变)", r2 is None)
     check("原快照未被覆盖", json.load(open(os.path.join(td, 'research_snapshot_20261017.json')))
           ['snapshot_id'] == 'research_snapshot_20261017')
-    r3 = sb.build_snapshot(target_ymd='20261017', data_dir=td, out_dir=td, as_of=AS_OF,
+    r3 = sb.build_snapshot(target_ymd='20261017', data_dir=td, trusted_root=td, out_dir=td, as_of=AS_OF,
                            allow_revision=True, revision_reason='补充采集')
     check("--allow-revision生成_v2且原版保留", r3 is not None
           and os.path.exists(os.path.join(td, 'research_snapshot_20261017_v2.json'))
@@ -193,7 +193,7 @@ with tempfile.TemporaryDirectory() as td:
 # ══ [1b] 装配器从快照渲染数据包 ══
 with tempfile.TemporaryDirectory() as td:
     build_fixture_day(td)
-    snap = sb.build_snapshot(target_ymd='20261017', data_dir=td, out_dir=td, as_of=AS_OF)
+    snap = sb.build_snapshot(target_ymd='20261017', data_dir=td, trusted_root=td, out_dir=td, as_of=AS_OF)
     import data_assembler as da
     md = da.build_markdown(snap, '20261017')
     check("数据包含研究截止与Gate A", '研究截止' in md and 'Gate A' in md)
@@ -210,7 +210,7 @@ with tempfile.TemporaryDirectory() as td:
     build_fixture_day(td, ymd='20261016', obs='2026-10-15')
     os.rename(os.path.join(td, 'china_20261016.json'), os.path.join(td, 'china_20261015.json'))
     # 10-17构建: 无任何10-17文件 → 全部fallback(1-2天,窗内)
-    snap = sb.build_snapshot(target_ymd='20261017', data_dir=td, out_dir=td, as_of=AS_OF)
+    snap = sb.build_snapshot(target_ymd='20261017', data_dir=td, trusted_root=td, out_dir=td, as_of=AS_OF)
     st = snap['sources_status']
     check("无当日文件→新鲜窗内fallback", st['global']['status'] == 'FALLBACK'
           and st['global']['lag_days'] == 1)
@@ -219,7 +219,7 @@ with tempfile.TemporaryDirectory() as td:
 
 with tempfile.TemporaryDirectory() as td:
     build_fixture_day(td, ymd='20261001', obs='2026-09-30')
-    snap = sb.build_snapshot(target_ymd='20261017', data_dir=td, out_dir=td, as_of=AS_OF)
+    snap = sb.build_snapshot(target_ymd='20261017', data_dir=td, trusted_root=td, out_dir=td, as_of=AS_OF)
     check("超窗文件→MISSING(不冒充当日)", snap['sources_status']['global']['status'] == 'MISSING')
     check("MISSING不产该源事实", not any(f.get('source', {}).get('collector') == 'global_market_collector'
                                          for f in snap['facts'] if isinstance(f, dict)))

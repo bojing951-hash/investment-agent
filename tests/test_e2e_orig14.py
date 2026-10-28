@@ -112,7 +112,8 @@ def chain_build(td, ymd=DAY, gate='PASS', break_metric=None, missing=(),
         break_metric = {'DEGRADED': 'UMCSENT', 'FAIL': 'SPX'}.get(gate)
     fixt.write_collectors(daily, ymd, break_metric=break_metric, missing=missing)
     code, out = cli([os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
-                     '--date', ymd, '--data-dir', daily, '--out-dir', daily])
+                     '--date', ymd, '--data-dir', daily, '--out-dir', daily,
+                     '--trusted-root', td])
     snap_file = os.path.join(daily, f'research_snapshot_{ymd}.json')
     if not os.path.exists(snap_file):
         return {'sb_exit': code, 'sb_out': out, 'daily': daily, 'weekly': weekly}, code
@@ -349,7 +350,7 @@ with tempfile.TemporaryDirectory() as td:
           code == 2 and glm.calls == 0 and state_files(td) == before,
           f"exit={code}")
     ok, reason = rp.verify_anchor_batch(paths['anchors'], anchors_date=DAY,
-                                        daily_dir=paths['daily'])
+                                        daily_dir=paths['daily'], trusted_root=td)
     check("S5 批次核验拒绝且原因可定位残留", ok is False and stale_key in reason,
           reason)
 
@@ -360,14 +361,17 @@ with tempfile.TemporaryDirectory() as td:
     daily = paths['daily']
     # 6a 同日重建base→CLI exit 3(不可变)
     c6a, _o = cli([os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
-                   '--date', DAY, '--data-dir', daily, '--out-dir', daily])
+                   '--date', DAY, '--data-dir', daily, '--out-dir', daily,
+                   '--trusted-root', td])
     check("S6a 同日重建base→snapshot_builder CLI exit 3", c6a == 3, f"exit={c6a}")
     # 6b 合法修订链v2→v3
     c62, _o = cli([os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
                    '--date', DAY, '--data-dir', daily, '--out-dir', daily,
+                   '--trusted-root', td,
                    '--allow-revision', '--revision-reason', 'E2E修订v2'])
     c63, _o = cli([os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
                    '--date', DAY, '--data-dir', daily, '--out-dir', daily,
+                   '--trusted-root', td,
                    '--allow-revision', '--revision-reason', 'E2E修订v3'])
     snap, why = rp.select_snapshot(DAY, daily)
     check("S6b --allow-revision×2→v2+v3在场,选择器确定性取_v3",
@@ -515,7 +519,7 @@ with tempfile.TemporaryDirectory() as td:
     rp.write_meta(paths['anchors'],
                   dict(meta, anchors_digest=rp.digest_file(paths['anchors'])))
     ok, reason = rp.verify_anchor_batch(paths['anchors'], anchors_date=DAY,
-                                        daily_dir=paths['daily'])
+                                        daily_dir=paths['daily'], trusted_root=td)
     check("S10 锚点缺quality字段→批次核验拒绝(与权威重建不一致,质量不可证明)",
           ok is False and ('不一致' in reason or 'quality' in reason.lower()
                            or '质量' in reason), reason)

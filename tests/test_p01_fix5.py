@@ -154,7 +154,7 @@ print("=" * 64)
 # ════════════════════════════════════════════════════════════════════
 print("\n── A. 来源一致性(FIX5-01)")
 
-rec = rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY)
+rec = rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY, trusted_root=BASE)
 check("A0 对照: 真实全active构建(带采集目录)→PASS零非法",
       rec['effective'] == 'PASS' and rec['illegal_quality'] == []
       and rec['counts']['PASS'] >= 78,
@@ -198,7 +198,7 @@ with tempfile.TemporaryDirectory() as tdf:
     fixt.write_collectors(tdf, PREV_D)      # 前一日文件名→当日目标回退
     # 目标日无精确文件,但payload观测日=obs_for(DAY)=前一日收盘
     os.makedirs(os.path.join(tdf, 'out'), exist_ok=True)
-    snap_fb = sb.build_snapshot(target_ymd=DAY, data_dir=tdf,
+    snap_fb = sb.build_snapshot(target_ymd=DAY, data_dir=tdf, trusted_root=tdf,
                                 out_dir=os.path.join(tdf, 'out'),
                                 as_of=fixt.as_of_for(DAY))
 r = rp.recompute_gate_a(snap_fb)
@@ -268,7 +268,7 @@ for f in s['facts']:
         f['source']['file'] = 'global_20261020.json'
         _n += 1
 r_pure = rp.recompute_gate_a(s)                     # 纯重验(无目录)
-r_formal = rp.recompute_gate_a(s, data_dir=BASE_DAILY)   # 当前正式流程
+r_formal = rp.recompute_gate_a(s, data_dir=BASE_DAILY, trusted_root=BASE)   # 当前正式流程
 check("A11 内部自洽的幽灵批次: 纯重验口径结构通过;正式口径核出文件不存在→拒"
       "(两级口径职责差异显式可验,不矛盾: 后者多验'文件在场'这一事实)",
       _n >= 30 and r_pure['effective'] == 'PASS'
@@ -419,7 +419,7 @@ check("D1 对照: 合法完整sources_status→PASS",
 with tempfile.TemporaryDirectory() as tdm:
     fixt.write_collectors(tdm, DAY, missing=('UMCSENT',))
     os.makedirs(os.path.join(tdm, 'out'), exist_ok=True)
-    snap_m = sb.build_snapshot(target_ymd=DAY, data_dir=tdm,
+    snap_m = sb.build_snapshot(target_ymd=DAY, data_dir=tdm, trusted_root=tdm,
                                out_dir=os.path.join(tdm, 'out'),
                                as_of=fixt.as_of_for(DAY))
 r = rp.recompute_gate_a(snap_m)
@@ -433,7 +433,7 @@ with tempfile.TemporaryDirectory() as tdc:
     fixt.write_collectors(tdc, DAY)
     os.remove(os.path.join(tdc, f'china_{DAY}.json'))   # china来源级缺失
     os.makedirs(os.path.join(tdc, 'out'), exist_ok=True)
-    snap_c = sb.build_snapshot(target_ymd=DAY, data_dir=tdc,
+    snap_c = sb.build_snapshot(target_ymd=DAY, data_dir=tdc, trusted_root=tdc,
                                out_dir=os.path.join(tdc, 'out'),
                                as_of=fixt.as_of_for(DAY))
 r = rp.recompute_gate_a(snap_c)
@@ -451,7 +451,7 @@ with tempfile.TemporaryDirectory() as tdr:
     with open(os.path.join(tdr, f'china_{DAY}.json'), 'w', encoding='utf-8') as f:
         f.write('{broken json')      # 解析失败→READ_FAIL
     os.makedirs(os.path.join(tdr, 'out'), exist_ok=True)
-    snap_rf = sb.build_snapshot(target_ymd=DAY, data_dir=tdr,
+    snap_rf = sb.build_snapshot(target_ymd=DAY, data_dir=tdr, trusted_root=tdr,
                                 out_dir=os.path.join(tdr, 'out'),
                                 as_of=fixt.as_of_for(DAY))
 r = rp.recompute_gate_a(snap_rf)
@@ -660,10 +660,10 @@ with tempfile.TemporaryDirectory() as td10:
     apath = os.path.join(td10, 'data', 'daily', f'anchors_{DAY}.json')
     vbytes = open(views_path, 'rb').read()
     anchors = json.load(open(apath, encoding='utf-8'))
-    ok_batch, _ = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok_batch, _ = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td10)
     _disk_tamper(os.path.join(td10, 'data', 'daily', f'research_snapshot_{DAY}.json'),
                  lambda d: d.update(sources_status='unknown'))
-    ok_batch2, why2 = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok_batch2, why2 = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td10)
     ch, n, st = dpo.observe(views_path=views_path, anchors=anchors,
                             today_str='2026-10-24', anchors_date=DAY,
                             anchors_path=apath)

@@ -151,8 +151,11 @@ def build_markdown(snapshot, ymd, data_dir=None):
     # IA-P0-1: Gate A=DEGRADED → 显式降级披露(不合格指标逐项点名,进入报告正文)
     # FIX5-01: 与主入口同口径(带采集目录,按当前正式流程核验来源文件在场——
     # 构建端与消费端不出现两套结论)
+    # FIX7-01: 可信根=数据根的上级目录(生产=代码位置推导的项目根;调用方
+    # 显式传入沙箱数据根时=调用方授权的采集结构根),独立于被校验daily目录
     gate_a_status = rp.gate_status(
-        snapshot, data_dir=os.path.join(data_dir or DATA_DIR, 'daily'))[0]
+        snapshot, data_dir=os.path.join(data_dir or DATA_DIR, 'daily'),
+        trusted_root=os.path.dirname(os.path.normpath(str(data_dir or DATA_DIR))))[0]
     if gate_a_status == 'DEGRADED':
         L.append("## ⚠️ 数据质量降级披露(Gate A=DEGRADED)")
         L.append("本数据包基于**已验证但部分降级**的数据生成;以下指标质量不合格,"
@@ -303,7 +306,12 @@ def main():
     if snapshot is None:
         print(f"❌ {ymd}无有效研究快照,数据包未生成({path};先跑snapshot_builder)")
         sys.exit(1)
-    status, reason = rp.gate_status(snapshot, data_dir=os.path.dirname(path))
+    # FIX7-01: 可信根=快照路径的祖父目录(生产布局PROJECT/data/daily→PROJECT;
+    # 沙箱td/daily或td/data/daily同样成立),独立于被校验daily目录——祖先
+    # 符号链接重定向(data→/outside等)在此被拒,不以realpath(data_dir)自证
+    status, reason = rp.gate_status(
+        snapshot, data_dir=os.path.dirname(path),
+        trusted_root=os.path.dirname(os.path.dirname(os.path.abspath(path))))
     if not rp.gate_allows_formal_research(status):
         # FAIL / None(缺gate_a字段/状态非法): 均不得生成正式数据包(不得默认PASS)
         print(f"⛔ Gate A {'FAIL' if status == 'FAIL' else '不可用'}"
@@ -323,7 +331,11 @@ def main():
         'source': 'snapshot',
         'generated_by': 'data_assembler',
         'generated_at': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-        **rp.provenance_of(snapshot, path),
+        # FIX7-01: 与上方gate_status同一可信根锚(快照路径祖父目录)
+        **rp.provenance_of(
+            snapshot, path,
+            trusted_root=os.path.dirname(os.path.dirname(
+                os.path.abspath(path)))),
         'pack_file': os.path.basename(out),
         'pack_digest': rp.digest_file(out),
         'scorecard_date': sc_date,

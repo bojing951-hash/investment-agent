@@ -101,7 +101,7 @@ def build_research_day(base, ymd=DAY, gate='PASS', rev=None, fail_fact=False):
     fixt.write_collectors(daily, ymd, break_metric=bm)
     fixt.write_scorecard(daily, ymd)
     snap = quiet(sb.build_snapshot, target_ymd=ymd, data_dir=daily, out_dir=daily,
-                 as_of=AS_OF)
+                 trusted_root=base, as_of=AS_OF)
     snap_path = os.path.join(daily, snap['snapshot_id'] + '.json')
     if rev:
         snap['snapshot_id'] = f'research_snapshot_{ymd}_v{rev}'
@@ -338,7 +338,7 @@ with tempfile.TemporaryDirectory() as td:
                           'research_as_of': _old_snap['research_as_of'],
                           'gate_a': 'PASS',
                           'snapshot_digest': rp.digest_snapshot(_old_snap)})
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
     check("同日修订_v3后,旧base锚点批次→核验拒绝", ok is False and '批次' in reason,
           reason)
 
@@ -407,12 +407,12 @@ def collector_day(td, break_metric=None):
 
 with tempfile.TemporaryDirectory() as td:
     collector_day(td)
-    snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, as_of=AS_OF)
+    snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, trusted_root=td, as_of=AS_OF)
     check("全核心齐备+无失败→Gate A PASS(基线)",
           snap['gate_a']['status'] == 'PASS', str(snap['gate_a']))
 with tempfile.TemporaryDirectory() as td:
     collector_day(td, break_metric='UMCSENT')   # 非核心(信心指数)值坏
-    snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, as_of=AS_OF)
+    snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, trusted_root=td, as_of=AS_OF)
     ga = snap['gate_a']
     check("非核心单项FAIL→DEGRADED而非FAIL",
           ga['status'] == 'DEGRADED' and ga['noncore_fail'] == ['UMCSENT']
@@ -422,7 +422,7 @@ with tempfile.TemporaryDirectory() as td:
           rp.gate_allows_formal_research(rp.gate_status(snap)[0]))
 with tempfile.TemporaryDirectory() as td:
     collector_day(td, break_metric='SPX')   # 核心资产值坏
-    snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, as_of=AS_OF)
+    snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, trusted_root=td, as_of=AS_OF)
     ga = snap['gate_a']
     check("核心指标FAIL→Gate A FAIL(不降阈值放行)",
           ga['status'] == 'FAIL' and ga['core_fail'] == ['SPX'], str(ga))
@@ -535,7 +535,7 @@ with tempfile.TemporaryDirectory() as td:
     collector_day(td)
     os.rename(os.path.join(td, f'global_{DAY}.json'),
               os.path.join(td, 'global_20261014.json'))
-    snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, as_of=AS_OF)
+    snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, trusted_root=td, as_of=AS_OF)
     gs = snap['sources_status']['global']
     check("回退数据→sources_status=FALLBACK+滞后天数+披露语",
           gs['status'] == 'FALLBACK' and gs.get('lag_days') == 3
@@ -548,7 +548,7 @@ with tempfile.TemporaryDirectory() as td:
     collector_day(td)
     os.rename(os.path.join(td, f'global_{DAY}.json'),
               os.path.join(td, 'global_20261006.json'))
-    snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, as_of=AS_OF)
+    snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, trusted_root=td, as_of=AS_OF)
     check("无效回退(超出回退窗口)→来源MISSING+核心缺失→Gate A FAIL",
           snap['gate_a']['status'] == 'FAIL'
           and 'SPX' in snap['gate_a']['core_missing']

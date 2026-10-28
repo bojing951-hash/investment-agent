@@ -764,12 +764,15 @@ with tempfile.TemporaryDirectory() as td:
     daily = os.path.join(td, 'daily')
     os.makedirs(daily)
     fixt.write_collectors(daily, DAY)
-    quiet(sb.build_snapshot, target_ymd=DAY, data_dir=daily, out_dir=daily, as_of=AS_OF)
+    quiet(sb.build_snapshot, target_ymd=DAY, data_dir=daily, out_dir=daily,
+          trusted_root=td, as_of=AS_OF)
     r = subprocess_run([PY, os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
-                        '--date', DAY, '--data-dir', daily, '--out-dir', daily])
+                        '--date', DAY, '--data-dir', daily, '--out-dir', daily,
+                        '--trusted-root', td])
     check("同日重建base→exit 3(不可变,不覆盖)", r == 3, f"exit={r}")
     r2 = subprocess_run([PY, os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
                          '--date', DAY, '--data-dir', daily, '--out-dir', daily,
+                         '--trusted-root', td,
                          '--allow-revision', '--revision-reason', 'FIX2测试修订'])
     check("--allow-revision→exit 0且产_v2(base保留)",
           r2 == 0 and os.path.exists(os.path.join(daily, f'research_snapshot_{DAY}_v2.json'))
@@ -783,7 +786,7 @@ print("\n── 5. 来源元数据完整一致(FIX2-05/IA-DEF-005)")
 with tempfile.TemporaryDirectory() as td:
     fixt.build_full_day(td, DAY)
     apath = os.path.join(td, 'data', 'daily', f'anchors_{DAY}.json')
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
     check("基线: 真实构建锚点批次核验通过", ok, reason)
     meta0 = rp.load_meta(apath)
     for field in ('target_date', 'snapshot_id', 'snapshot_digest', 'anchors_digest',
@@ -791,40 +794,40 @@ with tempfile.TemporaryDirectory() as td:
         meta = dict(meta0)
         meta.pop(field, None)
         rp.write_meta(apath, meta)
-        ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+        ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
         check(f"meta缺{field}→拒绝(必需字段完整性)", ok is False and field in reason,
               reason)
     meta = dict(meta0, target_date='20261010')
     rp.write_meta(apath, meta)
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
     check("meta.target_date≠请求日期→拒绝(日期三方一致)", ok is False
           and ('冲突' in reason or '不一致' in reason), reason)
     rp.write_meta(apath, meta0)
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date='20261023')
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date='20261023', trusted_root=td)
     check("请求日期≠锚点文件名日期→拒绝", ok is False
           and ('文件名' in reason or '日期' in reason), reason)
     rp.write_meta(apath, meta0)
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
     check("基线复归: 恢复meta后核验通过", ok, reason)
 with tempfile.TemporaryDirectory() as td:
     fixt.build_full_day(td, DAY, gate='DEGRADED')
     apath = os.path.join(td, 'data', 'daily', f'anchors_{DAY}.json')
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
     check("DEGRADED批次(权威一致)→核验通过", ok, reason)
     meta = rp.load_meta(apath)
     rp.write_meta(apath, dict(meta, gate_a='PASS'))
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
     check("meta.gate_a谎报PASS(权威DEGRADED)→拒绝", ok is False, reason)
     rp.write_meta(apath, dict(meta, gate_a='FAIL'))
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
     check("meta.gate_a=FAIL(即便与权威一致)→拒绝(FAIL批次不入正式链)",
           ok is False, reason)
     rp.write_meta(apath, dict(meta, snapshot_digest='deadbeefdeadbeef'))
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
     check("meta快照digest与权威快照实际内容不符→拒绝(无条件重算)",
           ok is False, reason)
     rp.write_meta(apath, dict(meta, anchors_digest='deadbeefdeadbeef'))
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
     check("meta锚点digest与锚点文件实际字节不符→拒绝", ok is False, reason)
     rp.write_meta(apath, meta)
     anchors = json.load(open(apath, encoding='utf-8'))
@@ -834,7 +837,7 @@ with tempfile.TemporaryDirectory() as td:
     with open(apath, 'w', encoding='utf-8') as f:
         json.dump(anchors, f, ensure_ascii=False, indent=1)
     rp.write_meta(apath, dict(meta, anchors_digest=rp.digest_file(apath)))
-    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok, reason = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td)
     check("锚点数字被改+meta摘要同步改→仍拒绝(权威快照确定性重建)",
           ok is False, reason)
 

@@ -19,6 +19,7 @@ Gate A: 事实层校验结果写入快照quality节。core指标FAIL/缺失→ga
 """
 import argparse
 import glob
+import hashlib
 import json
 import os
 import re
@@ -43,13 +44,28 @@ SOURCES = [(ch, f"{r['prefix']}*.json", r['max_fallback_days'])
            for ch, r in rp.SOURCE_FILE_RULES.items()]
 
 
-def resolve_inputs(target_ymd, data_dir=None):
+def resolve_inputs(target_ymd, data_dir=None, trusted_root=None):
     """按目标日期解析采集文件: 精确匹配优先;否则新鲜度窗内最新早于目标日的文件(fallback)。
 
     FIX6-01: 只接受**通道规范普通文件**({prefix}YYYYMMDD.json真实日历日期、
     非目录、非符号链接)——目录冒充/伪装前后缀/其他扩展名/链接一律不选,
-    构建端与research_provenance验证端同一规范,避免下游验证才发现异常。"""
+    构建端与research_provenance验证端同一规范,避免下游验证才发现异常。
+    FIX7-01/02(IA-F6-DEF-001): 选取任何文件前先经rp.trusted_dir_problems
+    核验**采集目录祖先路径可信边界**(与验证端共用同一原语,§6.3不两处
+    漂移)——可信根缺省=rp.default_trusted_root()(可信代码位置推导,
+    独立于data_dir,绝不由被校验目录或其realpath自证);祖先符号链接重
+    定向/越界路径一律不读取该目录任何文件(全部按缺源处理,快照Gate A
+    随之fail-closed),构建端不得先从链接重定向目录选出文件构成PASS快照、
+    把发现异常推迟到下游。测试按FIX7-AC §5.3显式传入fixture控制的临时
+    可信根(沙箱授权缝,生产入口不传该参数——不构成生产绕过后门)。"""
     dd = data_dir or DATA_DIR
+    trust_probs = rp.trusted_dir_problems(dd, trusted_root)
+    if trust_probs:
+        for _p in trust_probs:
+            print(f"⛔ [FIX7信任边界] {_p}")
+        print(f"⛔ [FIX7信任边界] 采集目录不可信,不读取其任何文件"
+              f"(全部按缺源处理): {dd}")
+        return {name: None for name, _pat, _w in SOURCES}
     out = {}
     for name, pattern, window in SOURCES:
         exact = os.path.join(dd, pattern.replace('*', target_ymd))
@@ -203,14 +219,19 @@ def build_anchors(snapshot, ymd):
 # ══ 快照构建 ══════════════════════════════════════════════════════
 
 def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
-                   write=True, allow_revision=False, revision_reason=None):
+                   write=True, allow_revision=False, revision_reason=None,
+                   trusted_root=None):
+    """trusted_root(FIX7-01): 采集目录可信根(缺省=rp.default_trusted_root(),
+    可信代码位置推导);测试显式传入fixture控制的可信根。祖先符号链接重
+    定向的采集目录构建即fail-closed(全通道缺源+Gate A不可证明),不得先
+    构建PASS快照再由下游发现(§6.3)。"""
     now = datetime.now(TZ_BJ)
     ymd = target_ymd or now.strftime('%Y%m%d')
     as_of = as_of or now.isoformat(timespec='seconds')
     dd = data_dir or DATA_DIR
     od = out_dir or dd
 
-    inputs = resolve_inputs(ymd, dd)
+    inputs = resolve_inputs(ymd, dd, trusted_root=trusted_root)
     sources_status = {}
     raw = {}
     for name, info in inputs.items():
@@ -224,8 +245,13 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
             st['disclosure'] = f"当日文件缺失,回退{info['lag_days']}天前文件(数据非当日,不得当作当日观测)"
         sources_status[name] = st
         try:
-            with open(info['file'], 'r', encoding='utf-8') as f:
-                raw[name] = json.load(f)
+            # FIX7-05(IA-F6-RISK-002最小整改): 以字节读取并记录sha256内容
+            # 摘要——快照与原始采集**内容**绑定,下游正式核验(data_dir口径)
+            # 重算比对,构建后被替换/篡改的文件以摘要失配拒绝
+            with open(info['file'], 'rb') as f:
+                _bytes = f.read()
+            st['sha256'] = hashlib.sha256(_bytes).hexdigest()
+            raw[name] = json.loads(_bytes.decode('utf-8'))
         except Exception as e:
             sources_status[name] = {'status': 'READ_FAIL', 'error': str(e)[:100]}
 
@@ -271,7 +297,7 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
     # gate_status)同源同口径,快照声明与事实不可能在构建时就矛盾。
     rec = rp.recompute_gate_a({'facts': facts, 'sources_status': sources_status,
                                'research_as_of': as_of, 'target_date': ymd},
-                              data_dir=dd)
+                              data_dir=dd, trusted_root=trusted_root)
     gate_a = {'status': rec['effective'],
               'core_missing': rec['core_missing'], 'core_fail': rec['core_fail'],
               'noncore_fail': rec['noncore_fail'],
@@ -379,7 +405,8 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
         'source': 'snapshot',
         'generated_by': 'snapshot_builder',
         'generated_at': as_of,
-        **rp.provenance_of(snapshot, json_path, data_dir=dd),
+        **rp.provenance_of(snapshot, json_path, data_dir=dd,
+                           trusted_root=trusted_root),
         'anchor_count': len(anchors),
         'anchors_digest': rp.digest_file(anchors_path),
     })
@@ -489,11 +516,16 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser(description='研究快照构建器(Layer 3, Gate A)')
     ap.add_argument('--date', default=None, help='目标日期YYYYMMDD(默认今天)')
     ap.add_argument('--data-dir', default=None, help='采集数据目录(默认data/daily)')
+    ap.add_argument('--trusted-root', default=None,
+                    help='采集目录可信根(FIX7;默认=代码位置推导的项目根;'
+                         '沙箱/诊断显式传入,生产不传。祖先符号链接重定向'
+                         '的采集目录一律fail-closed)')
     ap.add_argument('--out-dir', default=None, help='输出目录(默认data/daily)')
     ap.add_argument('--allow-revision', action='store_true', help='同日已存在时生成_v2修订版(原版保留)')
     ap.add_argument('--revision-reason', default=None)
     args = ap.parse_args()
     snap = build_snapshot(target_ymd=args.date, data_dir=args.data_dir, out_dir=args.out_dir,
+                          trusted_root=args.trusted_root,
                           allow_revision=args.allow_revision, revision_reason=args.revision_reason)
     if not snap:
         sys.exit(3)

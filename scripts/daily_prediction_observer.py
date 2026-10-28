@@ -142,7 +142,13 @@ def observe(views_path=None, anchors=None, today_str=None, anchors_date=None, an
     # 无来源证明的数据不得进入正式长期观察(直传anchors dict的离线注入路径无
     # 文件可核,由状态引擎侧同口径质量防御兜底,见allocation_engine)。
     if anchors_path and os.path.exists(anchors_path):
-        ok, reason = rp.verify_anchor_batch(anchors_path, anchors_date=anchors_date)
+        # FIX7-01: 可信根=锚点路径的祖父目录(生产布局PROJECT/data/daily→
+        # PROJECT;沙箱td/daily或平铺目录同样成立),独立于被校验路径——
+        # 祖先符号链接重定向的锚点批次在此被拒,不由被校验路径自证
+        ok, reason = rp.verify_anchor_batch(
+            anchors_path, anchors_date=anchors_date,
+            trusted_root=os.path.dirname(os.path.dirname(
+                os.path.abspath(str(anchors_path)))))
         if ok is False:
             print(f"⛔ {reason} — 不记录预测观察(关键失败)")
             return [], 0, 'FAIL'

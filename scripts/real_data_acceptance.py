@@ -207,6 +207,8 @@ def main():
     # 快照构建到临时目录(不污染真实数据目录)
     with tempfile.TemporaryDirectory() as td:
         snap = sb.build_snapshot(target_ymd=day, data_dir=args.data_dir, out_dir=td,
+                                 trusted_root=os.path.dirname(os.path.dirname(
+                                     os.path.abspath(str(args.data_dir)))),
                                  as_of=datetime.now().astimezone().isoformat(timespec='seconds'))
         if snap is None:
             snap_path = os.path.join(td, f'research_snapshot_{day}.json')

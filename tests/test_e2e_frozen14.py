@@ -137,7 +137,8 @@ def chain_build(td, ymd=DAY, gate='PASS', break_metric=None, missing=(),
     if post_collectors:
         post_collectors(daily, ymd)
     code, out = cli([os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
-                     '--date', ymd, '--data-dir', daily, '--out-dir', daily])
+                     '--date', ymd, '--data-dir', daily, '--out-dir', daily,
+                     '--trusted-root', td])
     snap_file = os.path.join(daily, f'research_snapshot_{ymd}.json')
     if not os.path.exists(snap_file):
         return {'sb_exit': code, 'sb_out': out, 'daily': daily, 'weekly': weekly}, code
@@ -488,7 +489,7 @@ with tempfile.TemporaryDirectory() as td:
     rp.write_meta(p8['anchors'],
                   dict(meta, anchors_digest=rp.digest_file(p8['anchors'])))
     okb, whyb = rp.verify_anchor_batch(p8['anchors'], anchors_date=DAY,
-                                       daily_dir=p8['daily'])
+                                       daily_dir=p8['daily'], trusted_root=td)
     ok, problems = run_verify(td)
     code, out, applied, glm = report_run(td, gate_b='PASS')
     check("E2E-08 锚点来源=另日快照(摘要已同步)→批次核验拒+预检拒+exit2+GLM=0",
@@ -631,7 +632,7 @@ with tempfile.TemporaryDirectory() as td:
           and anchors['macro.data.UMCSENT.value']['quality'] == 'FAIL'
           and anchors['global_market.data.SPX.close']['quality'] == 'PASS'
           and rp.verify_anchor_batch(paths['anchors'], anchors_date=DAY,
-                                     daily_dir=paths['daily'])[0] is True,
+                                     daily_dir=paths['daily'], trusted_root=td)[0] is True,
           f"gate={snap['gate_a']['status']}")
     views_path = os.path.join(td, 'config', 'views.json')
     ensure_state_sandbox(td)
@@ -705,7 +706,7 @@ with tempfile.TemporaryDirectory() as td:
 with tempfile.TemporaryDirectory() as td:
     paths, c = chain_build(td, DAY)
     ok_clean, why_clean = rp.verify_anchor_batch(paths['anchors'], anchors_date=DAY,
-                                                 daily_dir=paths['daily'])
+                                                 daily_dir=paths['daily'], trusted_root=td)
     anchors = json.load(open(paths['anchors'], encoding='utf-8'))
     k0 = sorted(anchors)[0]
     anchors[k0].pop('quality', None)
@@ -715,7 +716,7 @@ with tempfile.TemporaryDirectory() as td:
     rp.write_meta(paths['anchors'],
                   dict(meta, anchors_digest=rp.digest_file(paths['anchors'])))
     okb, whyb = rp.verify_anchor_batch(paths['anchors'], anchors_date=DAY,
-                                       daily_dir=paths['daily'])
+                                       daily_dir=paths['daily'], trusted_root=td)
     ok, problems = run_verify(td)
     code, out, applied, glm = report_run(td, gate_b='PASS')
     check("E2E-12x [附加]锚点篡改(剥离quality+同步摘要)→批次整体拒+对照批次通过"
@@ -747,7 +748,7 @@ with tempfile.TemporaryDirectory() as td:
     rp.write_meta(paths['anchors'],
                   dict(meta, anchors_digest=rp.digest_file(paths['anchors'])))
     okb, whyb = rp.verify_anchor_batch(paths['anchors'], anchors_date=DAY,
-                                       daily_dir=paths['daily'])
+                                       daily_dir=paths['daily'], trusted_root=td)
     ok, problems = run_verify(td)
     code, out, applied, glm = report_run(td, gate_b='PASS')
     check("E2E-13 旧锚点残留→批次拒(点名残留键)+预检拒+exit2+GLM=0",

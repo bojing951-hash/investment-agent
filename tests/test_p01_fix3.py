@@ -214,7 +214,8 @@ for label, mutate in ILLEGAL_VARIANTS:
         ok, problems = run_verify(td)
         # 锚点批次核验: 权威快照不可重算 → 拒绝
         okb, whyb = rp.verify_anchor_batch(paths['anchors'], anchors_date=DAY,
-                                           daily_dir=os.path.dirname(snap_path))
+                                           daily_dir=os.path.dirname(snap_path),
+                                           trusted_root=td)
         check(f"{label}→装配器拒产包(exit2)+预检拒+锚点批次拒",
               code == 2 and not pack_made and ok is False and okb is False
               and any('Gate A' in p or '非法' in p or '不可' in p for p in problems),

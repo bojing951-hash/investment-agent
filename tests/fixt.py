@@ -232,6 +232,7 @@ def real_snapshot(ymd, gate='PASS', break_metric=None, missing=(), rev=None,
     with tempfile.TemporaryDirectory() as tdd:
         write_collectors(tdd, ymd, break_metric=break_metric, missing=missing)
         snap = sb.build_snapshot(target_ymd=ymd, data_dir=tdd, out_dir=tdd,
+                                 trusted_root=tdd,
                                  as_of=as_of or as_of_for(ymd))
     if rev:
         snap['snapshot_id'] = f"research_snapshot_{ymd}_v{rev}"
@@ -260,7 +261,7 @@ def build_full_day(root, ymd, gate='PASS', break_metric=None, missing=(),
     if 'scorecard' not in skip:
         write_scorecard(daily, stale_scorecard_date or ymd)
     snap = sb.build_snapshot(target_ymd=ymd, data_dir=daily, out_dir=daily,
-                             as_of=as_of_for(ymd))
+                             trusted_root=root, as_of=as_of_for(ymd))
     snap_path = os.path.join(daily, snap['snapshot_id'] + '.json')
 
     paths = {'daily': daily, 'weekly': weekly, 'snapshot': snap_path}
@@ -277,7 +278,7 @@ def build_full_day(root, ymd, gate='PASS', break_metric=None, missing=(),
                 'pack_digest': rp.digest_file(packfile),
                 'scorecard_date': sc_date,
                 'scorecard_current': bool(sc_current),
-                **rp.provenance_of(snap, snap_path)})
+                **rp.provenance_of(snap, snap_path, trusted_root=root)})
         paths['pack'] = packfile
     if 'pack' not in skip and gate_now == 'FAIL':
         # Gate A FAIL日装配器不会运行——只留一个无效残留包(预检须拒绝)

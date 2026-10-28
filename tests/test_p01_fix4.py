@@ -102,7 +102,7 @@ def snap_with(mutator=None, ymd=DAY, **kw):
                               missing=kw.get('missing', ()))
         if mutator:
             mutator(tdd, ymd)
-        return sb.build_snapshot(target_ymd=ymd, data_dir=tdd, out_dir=tdd,
+        return sb.build_snapshot(target_ymd=ymd, data_dir=tdd, trusted_root=tdd, out_dir=tdd,
                                  as_of=fixt.as_of_for(ymd))
 
 

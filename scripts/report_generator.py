@@ -567,6 +567,10 @@ def verify_research_inputs(ymd=None):
     上下文dict: {'snapshot','snapshot_path','gate_a','anchors','anchors_path',
     'anchor_prompt_path'}——main据此使用**当日**输入(替代glob最新)。"""
     ymd = ymd or datetime.now().strftime('%Y%m%d')
+    # FIX7-01: 可信根=数据根的上级目录(生产=代码位置推导的项目根;测试
+    # patch DATA_DIR=沙箱data根时=fixture授权的沙箱结构根),独立于被校验
+    # daily目录——祖先符号链接重定向在此被拒,不由data_dir/realpath自证
+    _trusted_root = os.path.dirname(os.path.normpath(str(DATA_DIR)))
     daily_dir = os.path.join(DATA_DIR, 'daily')
     problems = []
 
@@ -575,7 +579,8 @@ def verify_research_inputs(ymd=None):
     if snap is None:
         problems.append(f"当日研究快照不可用: {snap_path}")
     else:
-        gate_a, reason = rp.gate_status(snap, data_dir=daily_dir)
+        gate_a, reason = rp.gate_status(snap, data_dir=daily_dir,
+                                        trusted_root=_trusted_root)
         if not rp.gate_allows_formal_research(gate_a):
             problems.append(
                 f"Gate A {gate_a if gate_a else '不可用(' + reason + ')'} — "
@@ -606,7 +611,8 @@ def verify_research_inputs(ymd=None):
         # recompute_gate_a从真实facts+注册表重算,快照声明与meta自报都不作为权威;
         # 真实DEGRADED+meta声称PASS等任何矛盾→拒绝正式生成
         ok_gate, gate_reason = rp.verify_meta_gate_a(pack_meta, snap, label='数据包meta',
-                                                     data_dir=daily_dir)
+                                                     data_dir=daily_dir,
+                                                     trusted_root=_trusted_root)
         if not ok_gate:
             problems.append(f"数据包Gate A声明核验失败: {gate_reason}")
         # FIX-01: 数据包内容确定性重建比对(build_markdown为权威快照纯函数)——
@@ -640,7 +646,8 @@ def verify_research_inputs(ymd=None):
         problems.append(f"当日锚点不存在: anchors_{ymd}.json(先跑流水线)")
     else:
         ok_batch, batch_reason = rp.verify_anchor_batch(anchors_path, anchors_date=ymd,
-                                                        daily_dir=daily_dir)
+                                                        daily_dir=daily_dir,
+                                                        trusted_root=_trusted_root)
         if ok_batch is False:
             problems.append(f"锚点批次核验失败: {batch_reason}")
         else:
@@ -658,7 +665,8 @@ def verify_research_inputs(ymd=None):
         if not ok_prompt:
             problems.append(f"锚点prompt核验失败: {prompt_reason}")
 
-    gate_a = rp.gate_status(snap, data_dir=daily_dir)[0] if snap is not None else None
+    gate_a = rp.gate_status(snap, data_dir=daily_dir,
+                            trusted_root=_trusted_root)[0] if snap is not None else None
     ctx = {'snapshot': snap, 'snapshot_path': snap_path, 'gate_a': gate_a,
            'anchors': anchors, 'anchors_path': anchors_path if anchors is not None else None,
            'anchor_prompt_path': prompt_path if os.path.exists(prompt_path) else None}

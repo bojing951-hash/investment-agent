@@ -244,7 +244,8 @@ if os.path.isdir(LIVE):
     def _build(date_ymd):
         out = tempfile.mkdtemp()
         r = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
-                            '--date', date_ymd, '--data-dir', LIVE, '--out-dir', out],
+                            '--date', date_ymd, '--data-dir', LIVE, '--out-dir', out,
+                            '--trusted-root', os.path.dirname(os.path.dirname(LIVE))],
                            capture_output=True, text=True, timeout=120)
         return r, out
 

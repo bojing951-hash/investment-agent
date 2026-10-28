@@ -103,7 +103,7 @@ def build_research_day(base, ymd=DAY, gate='PASS', rev=None, pack_bound_rev='__s
     fixt.write_collectors(daily, ymd, break_metric=bm)
     fixt.write_scorecard(daily, ymd)
     snap = quiet(sb.build_snapshot, target_ymd=ymd, data_dir=daily, out_dir=daily,
-                 as_of=fixt.as_of_for(ymd))
+                 trusted_root=base, as_of=fixt.as_of_for(ymd))
     snap_path = os.path.join(daily, snap['snapshot_id'] + '.json')
     apath = os.path.join(daily, f'anchors_{ymd}.json')
     if rev:
@@ -119,7 +119,8 @@ def build_research_day(base, ymd=DAY, gate='PASS', rev=None, pack_bound_rev='__s
         rp.write_meta(apath, {'source': 'snapshot', 'generated_by': 'snapshot_builder',
                               'anchor_count': len(anchors),
                               'anchors_digest': rp.digest_file(apath),
-                              **rp.provenance_of(snap, snap_path)})
+                              **rp.provenance_of(snap, snap_path,
+                                                 trusted_root=base)})
     anchors = json.load(open(apath, encoding='utf-8'))
     if 'pack' not in skip:
         packfile = os.path.join(weekly, f'data_pack_{ymd}.md')
@@ -257,7 +258,7 @@ def build_fixture_day(td, ymd='20261018', obs='2026-10-17'):
 with tempfile.TemporaryDirectory() as td:
     build_fixture_day(td)
     quiet(sb.build_snapshot, target_ymd='20261018', data_dir=td, out_dir=td,
-          as_of="2026-10-18T08:00:00+08:00")
+          trusted_root=td, as_of="2026-10-18T08:00:00+08:00")
     apath = os.path.join(td, 'anchors_20261018.json')
     check("base锚点+meta产出", os.path.exists(apath)
           and os.path.exists(rp.meta_path_for(apath)))
@@ -287,11 +288,13 @@ with tempfile.TemporaryDirectory() as td:
           meta2.get('snapshot_id') == 'research_snapshot_20261018_v2', str(meta2))
     # CLI退出码: Gate A FAIL(fixture缺32个core指标)→exit 2;重跑覆盖→exit 3
     r = subprocess.run([PY, os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
-                        '--date', '20261018', '--data-dir', td, '--out-dir', td],
+                        '--date', '20261018', '--data-dir', td, '--out-dir', td,
+                        '--trusted-root', td],
                        capture_output=True, text=True)
     check("CLI: 已存在且不可变→exit 3", r.returncode == 3, f"exit={r.returncode}")
     r2 = subprocess.run([PY, os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
-                         '--date', '20261019', '--data-dir', td, '--out-dir', td],
+                         '--date', '20261019', '--data-dir', td, '--out-dir', td,
+                         '--trusted-root', td],
                         capture_output=True, text=True)
     check("CLI: Gate A FAIL→exit 2(快照仍落盘)",
           r2.returncode == 2 and os.path.exists(os.path.join(td, 'research_snapshot_20261019.json')),

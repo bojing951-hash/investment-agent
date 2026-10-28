@@ -134,8 +134,10 @@ _OK_SS = {ch: {'status': 'EXACT', 'file': f'{ch}_{DAY}.json', 'file_date': DAY}
           for ch in rp.SOURCE_CHANNELS}
 
 
-def ssp(status_dict, data_dir=None, target=DAY):
-    return rp.sources_status_problems(status_dict, target, data_dir)
+def ssp(status_dict, data_dir=None, target=DAY, trusted_root=None):
+    # FIX7: 带data_dir的正式口径统一传fixture可信根BASE(沙箱授权,§5.3)
+    return rp.sources_status_problems(status_dict, target, data_dir,
+                                      trusted_root=trusted_root or (BASE if data_dir else None))
 
 
 def _snap_with_ss(ss):
@@ -233,9 +235,9 @@ check("A1-A4 四通道规范文件名+实体在场(直调/纯/正式三口径全
       all(rp.canonical_source_file(ch, f'{ch}_{DAY}.json') == DAY
           for ch in rp.SOURCE_CHANNELS)
       and ssp(_OK_SS) == []
-      and ssp(_OK_SS, data_dir=BASE_DAILY) == []
-      and rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY)['effective'] == 'PASS',
-      str(ssp(_OK_SS, data_dir=BASE_DAILY)[:1]))
+      and ssp(_OK_SS, data_dir=BASE_DAILY, trusted_root=BASE) == []
+      and rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY, trusted_root=BASE)['effective'] == 'PASS',
+      str(ssp(_OK_SS, data_dir=BASE_DAILY, trusted_root=BASE)[:1]))
 
 _A_BAD = [
     ('A5 global声明macro文件', {'file': f'macro_{DAY}.json', 'file_date': DAY},
@@ -304,7 +306,7 @@ with tempfile.TemporaryDirectory() as tds:
 check("A15 对照: 规范文件+sources_status+fact.source三者匹配→全链PASS"
       "(不能只比字符串相等——身份层先行)",
       rp.recompute_gate_a(SNAP)['effective'] == 'PASS'
-      and rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY)['effective'] == 'PASS'
+      and rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY, trusted_root=BASE)['effective'] == 'PASS'
       and next(f for f in SNAP['facts'] if f['metric_id'] == 'SPX')['source']['file']
       == SNAP['sources_status']['global']['file'])
 
@@ -318,7 +320,7 @@ with tempfile.TemporaryDirectory() as tdr:
     open(os.path.join(tdr, f'global_{_fd(1)}.txt'), 'w').write('{}')   # 非JSON
     os.symlink(os.path.join(tdr, f'macro_{_fd(1)}.json'),
                os.path.join(tdr, f'global_{_fd(2)}.json'))             # 链接
-    ri, ok = no_exception(sb.resolve_inputs, DAY, tdr)
+    ri, ok = no_exception(sb.resolve_inputs, DAY, tdr, trusted_root=tdr)
     check("A16 构建端同规: 目录/伪装前缀/非JSON/链接全不选,真实规范回退文件照选"
           "(global回退到真实global_20261023.json,FALLBACK lag=1)",
           ok and isinstance(ri, dict) and ri['global'] is not None
@@ -339,11 +341,11 @@ for ch, rule in rp.SOURCE_FILE_RULES.items():
         with tempfile.TemporaryDirectory() as tdb:
             fixt.write_collectors(tdb, _fd(lag))
             os.makedirs(os.path.join(tdb, 'out'), exist_ok=True)
-            snap_b = sb.build_snapshot(target_ymd=DAY, data_dir=tdb,
+            snap_b = sb.build_snapshot(target_ymd=DAY, data_dir=tdb, trusted_root=tdb,
                                        out_dir=os.path.join(tdb, 'out'),
                                        as_of=fixt.as_of_for(DAY))
             r_pure = rp.recompute_gate_a(snap_b)
-            r_form = rp.recompute_gate_a(snap_b, data_dir=tdb)
+            r_form = rp.recompute_gate_a(snap_b, data_dir=tdb, trusted_root=tdb)
             st_ok = (snap_b['sources_status'][ch]['status'] == 'FALLBACK'
                      and snap_b['sources_status'][ch]['lag_days'] == lag)
             no_window = (not r_pure.get('sources_problems')
@@ -424,7 +426,7 @@ check("B对照: 观测日(周五收盘2026-10-23)与采集批次日(20261024)合
       "(周六研究用周五收盘,不机械强制相等)",
       spx['observation_date'] == '2026-10-23'
       and SNAP['sources_status']['global']['file_date'] == DAY
-      and rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY)['effective'] == 'PASS')
+      and rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY, trusted_root=BASE)['effective'] == 'PASS')
 
 # ════════════════════════════════════════════════════════════════════
 print("\n── C. collector类型安全(FIX6-03)")
@@ -569,7 +571,7 @@ for tag, st, legal, kw in _D_CASES:
 with tempfile.TemporaryDirectory() as tdm:
     fixt.write_collectors(tdm, DAY, missing=('UMCSENT',))
     os.makedirs(os.path.join(tdm, 'out'), exist_ok=True)
-    sm = sb.build_snapshot(target_ymd=DAY, data_dir=tdm,
+    sm = sb.build_snapshot(target_ymd=DAY, data_dir=tdm, trusted_root=tdm,
                            out_dir=os.path.join(tdm, 'out'), as_of=fixt.as_of_for(DAY))
 r = rp.recompute_gate_a(sm)
 check("D对照: 真实合法非核心缺失(UMCSENT)→DEGRADED披露(fail-closed不误伤)",
@@ -580,7 +582,7 @@ with tempfile.TemporaryDirectory() as tdc2:
     fixt.write_collectors(tdc2, DAY)
     os.remove(os.path.join(tdc2, f'china_{DAY}.json'))
     os.makedirs(os.path.join(tdc2, 'out'), exist_ok=True)
-    sc = sb.build_snapshot(target_ymd=DAY, data_dir=tdc2,
+    sc = sb.build_snapshot(target_ymd=DAY, data_dir=tdc2, trusted_root=tdc2,
                            out_dir=os.path.join(tdc2, 'out'), as_of=fixt.as_of_for(DAY))
 r = rp.recompute_gate_a(sc)
 check("D对照: 核心通道真正缺失(china)→核心质量规则阻断(FAIL),状态仅{'status'}",
@@ -706,10 +708,10 @@ with tempfile.TemporaryDirectory() as td10:
     apath = os.path.join(td10, 'data', 'daily', f'anchors_{DAY}.json')
     vbytes = open(views_path, 'rb').read()
     anchors = json.load(open(apath, encoding='utf-8'))
-    ok1, _ = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok1, _ = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td10)
     _disk_tamper(os.path.join(td10, 'data', 'daily',
                               f'research_snapshot_{DAY}.json'), _cross_channel)
-    ok2, _w = rp.verify_anchor_batch(apath, anchors_date=DAY)
+    ok2, _w = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td10)
     ch, n, st = dpo.observe(views_path=views_path, anchors=anchors,
                             today_str='2026-10-24', anchors_date=DAY,
                             anchors_path=apath)

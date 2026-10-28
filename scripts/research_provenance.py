@@ -58,6 +58,7 @@ import json
 import math
 import os
 import re
+import sys
 from datetime import date as _date_cls
 
 GATES = ('PASS', 'DEGRADED', 'FAIL')
@@ -247,9 +248,61 @@ def _raw_path_and_problems(data_dir):
     return data_dir, []
 
 
+# FIX9-02(IA-F8-DEF-001): 受限的**操作系统级根前缀别名表**——封闭常量,
+# 绝不运行时从文件系统/被验证路径"发现"新别名。仅macOS存在该惯例(系统在
+# 文件系统根级建立指向/private/*的符号链接);Linux无此惯例,表不适用。
+# 用户/进程在根级以下自建的任何符号链接都不在本表内,永不能借本机制取得
+# 可信入口身份;根级符号链接的创建属于系统管理员权限行为,是操作系统级
+# 授权边界的合理定义(与"用户随手ln -s"有本质区别)。
+_SYSTEM_PREFIX_ALIASES = (
+    # (别名形式, 物理形式);仅 sys.platform == 'darwin' 时参与入口推导
+    ('/tmp', '/private/tmp'),
+    ('/var', '/private/var'),
+    ('/etc', '/private/etc'),
+)
+
+
+def _trusted_entry_forms(rt):
+    """FIX9-01: 预先确定的**可信入口集合**——只由可信根物理锚+可信代码
+    位置+封闭系统别名表推导,**独立于被验证data_dir**(IA-F8-DEF-001:
+    绝不遍历data_dir前缀动态发现/授信新入口——realpath(某前缀)==可信根
+    不构成该前缀的授权证明)。
+
+    入口来源(全部与data_dir无关):
+    1. 可信根物理路径rt本身;
+    2. 代码位置推导的项目根**词法形式**(realpath==rt时才加入)——代码
+       自身被调用的路径形态是天然合法入口;
+    3. _SYSTEM_PREFIX_ALIASES封闭表对rt做系统级前缀变换得到的形式,且
+       运行时验证realpath(形式)==rt(别名实际不存在/不回指rt则不加入)。
+    """
+    entries = {rt}
+    try:
+        cr = os.path.normpath(os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))))
+        if cr != rt and os.path.realpath(cr) == rt:
+            entries.add(cr)
+    except OSError:
+        pass
+    if sys.platform == 'darwin':
+        for alias, phys in _SYSTEM_PREFIX_ALIASES:
+            for a, b in ((alias, phys), (phys, alias)):
+                if rt == b:
+                    cand = a
+                elif rt.startswith(b + os.sep):
+                    cand = a + rt[len(b):]
+                else:
+                    continue
+                try:
+                    if cand != rt and os.path.realpath(cand) == rt:
+                        entries.add(cand)
+                except OSError:
+                    continue
+    return entries
+
+
 def trusted_dir_problems(data_dir, trusted_root=None):
-    """FIX7-01/02+FIX8-01/02: 采集目录**祖先路径可信边界**核验——统一实体
-    核查原语,构建端(snapshot_builder.resolve_inputs)与验证端
+    """FIX7-01/02+FIX8-01/02+FIX9-01: 采集目录**祖先路径可信边界**核验
+    ——统一实体核查原语,构建端(snapshot_builder.resolve_inputs)与验证端
     (sources_status_problems)共用同一函数,不得两处漂移(§6.3)。
 
     锚定: trusted_root缺省=default_trusted_root()(可信代码位置推导);
@@ -262,13 +315,14 @@ def trusted_dir_problems(data_dir, trusted_root=None):
        重定向位置不得被当作可信项目根,§6.2),并以realpath形成**物理锚**
        (可信根建立时吸收其之上的系统级别名——macOS /var→/private/var,
        §6.2);
-    2. 采集目录词法路径(abspath形态,..已拒故折叠无链接语义)必须位于
-       可信根物理锚之内;词法不匹配时唯一允许的前缀形态差异=**可信根
-       之上的系统级别名**(寻找采集目录的组件前缀P使realpath(P)==可信
-       根物理锚)。FIX8-02: **禁止词法越界后以realpath(采集目录)整体
-       回落自动重新授信**——外部符号链接(external-link→project/data)
-       虽物理落点在根内,原始路径未经批准从根外进入,仍拒;
-    3. 从可信根到采集目录的**每个受保护路径组件逐级核验**:任一组件是
+    2. FIX9-01: 采集目录词法路径(abspath形态,..已拒故折叠无链接语义)
+       必须经**预先确定的可信入口集合**(_trusted_entry_forms,独立于
+       data_dir推导)之一进入——入口集合=可信根物理路径/代码位置词法
+       形式/封闭系统别名表变换。FIX8-02: 禁止词法越界后以realpath
+       (采集目录)整体回落自动重新授信;FIX9-01(IA-F8-DEF-001): 禁止遍历
+       data_dir前缀动态发现入口——未经批准的外部符号链接即使恰好指向
+       项目根(或project/data),也不取得可信入口身份;
+    3. 从匹配入口到采集目录的**每个受保护路径组件逐级核验**:任一组件是
        符号链接即拒绝——祖先符号链接重定向不得自动跟随,须显式拒绝;
     4. 物理包含锚(纵深防御): realpath(采集目录)必须仍在可信根物理锚
        之内,兜底其他重定向机制;
@@ -299,32 +353,23 @@ def trusted_dir_problems(data_dir, trusted_root=None):
         if not os.path.isdir(rt_raw):
             return [f'可信项目根不是目录:{rt_raw}(可信边界不可建立)']
         rt = os.path.realpath(rt_raw)   # 可信根建立时物理锚定(§6.2)
+        # FIX9-01: 入口集合先行(独立于data_dir),再做前缀匹配——不遍历
+        # dd的前缀"寻找"realpath==rt的任何候选
         entry, tail = None, []
-        if _under(dd, rt):
-            entry, tail = rt, os.path.relpath(dd, rt).split(os.sep)
-        else:
-            # FIX8-02: 词法不在根内→只认"经可信根之上的系统级别名进入":
-            # 采集目录的组件前缀P(含整体——data_dir与可信根为同一目录的
-            # 前缀形态差异)其realpath恰为可信根物理锚,且P以下的词法组件
-            # 逐级核验无符号链接。不存在这样的P(纯外部路径/链接直接跳入
-            # 根内或根内子目录)→拒,绝不以realpath(dd)落点在根内自动授信
-            parts = dd.split(os.sep)
-            cur = os.sep
-            for j, p in enumerate(parts):
-                cur = os.path.join(cur, p)
-                if not p:
-                    continue
-                try:
-                    if os.path.realpath(cur) == rt:
-                        entry = cur
-                        tail = parts[j + 1:]
-                        break
-                except OSError:
-                    continue
-            if entry is None:
-                return [f'采集目录不在可信项目根之内:{raw}(可信根={rt_raw})——'
-                        '未经批准的外部/越界路径不得作为正式采集来源;'
-                        'realpath落点在根内不自动授信(FIX8-02)']
+        for e in sorted(_trusted_entry_forms(rt), key=len, reverse=True):
+            if dd == e:
+                entry, tail = e, []
+                break
+            if dd.startswith(e + os.sep):
+                entry = e
+                tail = dd[len(e) + 1:].split(os.sep)
+                break
+        if entry is None:
+            return [f'采集目录不在可信项目根之内:{raw}(可信根={rt_raw})——'
+                    '未经批准的外部/越界路径不得作为正式采集来源;'
+                    'realpath落点在根内不自动授信(FIX8-02);未经批准的外部'
+                    '入口链接不因指向项目根取得可信身份(FIX9-01/'
+                    'IA-F8-DEF-001)']
         probs = []
         c = entry
         for part in tail:

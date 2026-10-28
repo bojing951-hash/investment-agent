@@ -394,57 +394,125 @@ with tempfile.TemporaryDirectory(prefix='fix8-F5-') as td:
           snapD['gate_a']['status'] == 'DEGRADED', snapD['gate_a']['status'])
 
 # ════════════════════════════════════════════════════════════════════
-print("\n── G. 完整正式链路(§8-06: symlink/..越界来源全链阻断)")
+print("\n── G. 完整正式链路(§8-06+FIX9-04: 真实发布保护对象+执行前基线)")
+
+PUB_DAY, ATK_DAY = DAY, '20261025'   # 固定研究日(§9.6): 已发布日<攻击日
+
+
+class _DT:
+    """固定时钟(§9.6): 不依赖机器当天日期;strptime转发真实datetime。"""
+    def __init__(self, ymd):
+        self._ymd = ymd
+
+    @staticmethod
+    def strptime(s, f):
+        return datetime.strptime(s, f)
+
+    def now(self, tz=None):
+        return datetime(int(self._ymd[:4]), int(self._ymd[4:6]),
+                        int(self._ymd[6:]), 8, 0, 0)
+
+
+class _GLM:
+    """GLM计数器(仅mock外部LLM;发布正文为SYNTHETIC占位)。"""
+    def __init__(self):
+        self.calls = 0
+
+    def __call__(self, system_prompt, user_prompt, max_tokens=32000, timeout=900):
+        self.calls += 1
+        # ≥500字符: 过短返回按失败处理(真实行为约束,与gate_chain同口径)
+        return ('# 投资周报(SYNTHETIC测试文本·FIX9真实发布事务)\n\n'
+                + '本周市场综述与分资产回顾。' * 60)
+
 
 PROOT = tempfile.mkdtemp(prefix='fix8-G-')
-fixt.build_full_day(PROOT, DAY)                               # 合格日(DAY)
-TODAY = datetime.now().strftime('%Y%m%d')
-# 在档保护对象: 已发布合格报告+发布状态+论点+资产观点
 OUTW = os.path.join(PROOT, 'output', 'weekly')
-os.makedirs(OUTW, exist_ok=True)
-REP = os.path.join(OUTW, f'weekly_report_{DAY}.md')
-open(REP, 'w', encoding='utf-8').write('# 已发布合格报告(SYNTHETIC保护对象)\n')
-STATUS = os.path.join(OUTW, f'report_status_{DAY}.json')
-json.dump({'report_file': os.path.basename(REP), 'target_date': DAY,
-           'final_quality': 'PASS', 'publication': 'published',
-           'report_path': REP,
-           'snapshot_id': f'research_snapshot_{DAY}'},
-          open(STATUS, 'w', encoding='utf-8'))
 CFGD = os.path.join(PROOT, 'config')
+os.makedirs(OUTW, exist_ok=True)
 os.makedirs(CFGD, exist_ok=True)
 THESIS = os.path.join(CFGD, 'thesis.json')
-open(THESIS, 'w', encoding='utf-8').write('{"theses": []}')
 VIEWS = os.path.join(CFGD, 'allocation_views.json')
-open(VIEWS, 'w', encoding='utf-8').write('{"views": [], "predictions": []}')
+open(THESIS, 'w', encoding='utf-8').write(
+    '{"version": 1, "theses": [], "updated_at": "2026-10-24T08:00:00"}')
+open(VIEWS, 'w', encoding='utf-8').write(
+    '{"version": 2, "views": [], "predictions": []}')
 
-# 攻击: outside含当日(TODAY)四通道文件(SPX篡改99999);project/alias→outside/child
+# G0a 合格研究日(项目布局,全真实产物)
+fixt.build_full_day(PROOT, PUB_DAY)
+
+# G0b 保护对象经**真实发布事务**产生(真generate_weekly_report+真
+# write_report_status,非手拼状态fixture——FIX9-04缺陷B)
+glm_pub = _GLM()
+applied_pub = []
+with mock.patch.object(rg, 'DATA_DIR', os.path.join(PROOT, 'data')), \
+        mock.patch.object(rg, 'OUTPUT_DIR', OUTW), \
+        mock.patch.object(rg, 'datetime', _DT(PUB_DAY)), \
+        mock.patch.object(rg, '_call_glm', glm_pub), \
+        mock.patch.object(rg, 'apply_status_updates',
+                          lambda *a, **k: applied_pub.append(1)), \
+        mock.patch.object(rg, 'validate_generated_report',
+                          lambda md, anchors=None, anchors_file=None:
+                          ('PASS', ['SYNTHETIC警告'])), \
+        mock.patch.object(rg.allocation_engine, 'load_views',
+                          lambda *a, **k: {'views': [], 'predictions': []}), \
+        mock.patch.object(rg, 'pending_completed_month', lambda d=None: None), \
+        mock.patch.object(rg, 'pending_completed_quarter', lambda d=None: None), \
+        mock.patch.object(rg, 'load_framework', lambda: '框架'), \
+        mock.patch.object(rg, 'load_theses', lambda: '论点'), \
+        mock.patch.object(rg, 'load_technical_notes', lambda: ''), \
+        mock.patch.object(rg, 'load_news_summary', lambda: ''), \
+        mock.patch.object(rg, 'load_previous_report', lambda: ''):
+    try:
+        quiet(rg.generate_weekly_report)
+        rc_pub = 0
+    except SystemExit as e:
+        rc_pub = e.code
+REP = os.path.join(OUTW, f'weekly_report_{PUB_DAY}.md')
+STATUS = os.path.join(OUTW, f'report_status_{PUB_DAY}.json')
+check("G0 真实发布事务: exit=0+GLM恰1次+报告与状态落盘",
+      rc_pub == 0 and os.path.exists(REP) and os.path.exists(STATUS)
+      and glm_pub.calls == 1,
+      f"rc={rc_pub} glm={glm_pub.calls}")
+
+# G0c 前置断言(§9.2): formal_report_view必须接受该报告,否则本测试FAIL,
+# 不得把不合格对象当保护对象
+view0, reason0 = rp.formal_report_view(REP)
+check("G0b 前置: formal_report_view接受真实发布报告(合格保护对象)",
+      view0 is not None, reason0)
+scan0 = rp.scan_formal_weekly_reports(OUTW)
+
+# G0d **执行前基线**(§9.3: 一切被测危险操作之前采集)
+baseline_before = {p: sha(p) for p in (REP, STATUS, THESIS, VIEWS)}
+
+# 攻击: outside含ATK日四通道文件(SPX篡改99999);project/alias→outside/child
 GOUT = os.path.join(PROOT, 'outside-data')
 os.makedirs(os.path.join(GOUT, 'child'))
 os.makedirs(os.path.join(GOUT, 'data', 'daily'))
-fixt.write_collectors(os.path.join(GOUT, 'data', 'daily'), TODAY)
-_t = os.path.join(GOUT, 'data', 'daily', f'global_{TODAY}.json')
+fixt.write_collectors(os.path.join(GOUT, 'data', 'daily'), ATK_DAY)
+_t = os.path.join(GOUT, 'data', 'daily', f'global_{ATK_DAY}.json')
 _g = json.load(open(_t, encoding='utf-8'))
 _g['data']['SPX']['close'] = 99999.0
 json.dump(_g, open(_t, 'w', encoding='utf-8'))
 os.symlink(os.path.join(GOUT, 'child'), os.path.join(PROOT, 'alias'))
 MAL_DD = os.path.join(PROOT, 'alias', '..', 'data', 'daily')
 
-# 真实snapshot_builder: 从越界路径构建当日快照(写入正式daily目录)
+# 真实snapshot_builder: 从越界路径构建ATK日快照(写入正式daily目录)
 buf = io.StringIO()
 with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(io.StringIO()):
-    _gsnap = sb.build_snapshot(target_ymd=TODAY, data_dir=MAL_DD,
+    _gsnap = sb.build_snapshot(target_ymd=ATK_DAY, data_dir=MAL_DD,
                                out_dir=os.path.join(PROOT, 'data', 'daily'),
                                trusted_root=PROOT,
-                               as_of=fixt.as_of_for(TODAY))
+                               as_of=fixt.as_of_for(ATK_DAY))
 check("G1 真实snapshot_builder经symlink/..路径构建: Gate A≠PASS(诊断快照"
       "允许,失败原因可诊断,不得形成合格正式产物)",
       _gsnap is not None and _gsnap['gate_a']['status'] != 'PASS'
       and '..' in buf.getvalue(), _gsnap and _gsnap['gate_a']['status'])
 
-# 真实data_assembler.main: 当日权威快照=恶意来源FAIL快照→exit2不产包
-_pack_today = os.path.join(PROOT, 'data', 'weekly', f'data_pack_{TODAY}.md')
+# 真实data_assembler.main(时钟固定ATK日): 权威快照=恶意来源FAIL快照→exit2不产包
+_pack_atk = os.path.join(PROOT, 'data', 'weekly', f'data_pack_{ATK_DAY}.md')
 buf2 = io.StringIO()
 with mock.patch.object(da, 'DATA_DIR', os.path.join(PROOT, 'data')), \
+        mock.patch.object(da, 'datetime', _DT(ATK_DAY)), \
         contextlib.redirect_stdout(buf2):
     try:
         da.main()
@@ -452,21 +520,22 @@ with mock.patch.object(da, 'DATA_DIR', os.path.join(PROOT, 'data')), \
     except SystemExit as e:
         rc_da = e.code
 check("G2 真实data_assembler: 拒绝生成正式数据包(exit=2,无包文件,原因留痕)",
-      rc_da == 2 and not os.path.exists(_pack_today)
+      rc_da == 2 and not os.path.exists(_pack_atk)
       and ('FAIL' in buf2.getvalue() or '不可用' in buf2.getvalue()),
-      f"rc={rc_da} pack={os.path.exists(_pack_today)}")
+      f"rc={rc_da} pack={os.path.exists(_pack_atk)}")
 
-# 真实report_generator预检+全入口(GLM计数器): 预检拒→GLM=0→exit2
-glm_calls = []
-applied = []
+# 真实report_generator全入口(时钟固定ATK日,GLM计数器): 预检拒→GLM=0→exit2
+glm_atk = _GLM()
+applied_atk = []
 with mock.patch.object(rg, 'DATA_DIR', os.path.join(PROOT, 'data')), \
         mock.patch.object(rg, 'OUTPUT_DIR', OUTW), \
-        mock.patch.object(rg, '_call_glm',
-                          lambda *a, **k: glm_calls.append(1) or 'DUMMY'), \
+        mock.patch.object(rg, 'datetime', _DT(ATK_DAY)), \
+        mock.patch.object(rg, '_call_glm', glm_atk), \
         mock.patch.object(rg, 'apply_status_updates',
-                          lambda *a, **k: applied.append(1)), \
+                          lambda *a, **k: applied_atk.append(1)), \
         mock.patch.object(rg, 'validate_generated_report',
-                          lambda md, anchors=None, anchors_file=None: ('PASS', [])), \
+                          lambda md, anchors=None, anchors_file=None:
+                          ('PASS', ['SYNTHETIC警告'])), \
         mock.patch.object(rg.allocation_engine, 'load_views',
                           lambda *a, **k: {'views': [], 'predictions': []}), \
         mock.patch.object(rg, 'pending_completed_month', lambda d=None: None), \
@@ -482,17 +551,41 @@ with mock.patch.object(rg, 'DATA_DIR', os.path.join(PROOT, 'data')), \
     except SystemExit as e:
         rc_rg = e.code
 check("G3 真实report_generator: 预检拒绝→exit=2且GLM调用0次(不产新正式报告)",
-      rc_rg == 2 and glm_calls == [], f"rc={rc_rg} glm={len(glm_calls)}")
+      rc_rg == 2 and glm_atk.calls == 0,
+      f"rc={rc_rg} glm={glm_atk.calls}")
 
-_before = {p: sha(p) for p in (REP, STATUS, THESIS, VIEWS)}
-_after = {p: sha(p) for p in (REP, STATUS, THESIS, VIEWS)}
-_new_reports = [f for f in os.listdir(OUTW)
-                if f.startswith('weekly_report_') and f != os.path.basename(REP)]
-check("G4 保护对象字节不变: 已合格报告/发布状态/thesis/views前后摘要一致"
-      "且无新正式报告产生",
-      _before == _after and not _new_reports,
-      str({'changed': [k for k in _before if _before[k] != _after[k]],
-           'new': _new_reports}))
+# G4 执行后核验(§9.4): 摘要比较+正式身份仍在+无新发布+无误标published
+actual_after = {p: sha(p) for p in (REP, STATUS, THESIS, VIEWS)}
+view1, reason1 = rp.formal_report_view(REP)
+_new_reports = sorted(f for f in os.listdir(OUTW)
+                      if (f.startswith('weekly_report_')
+                          or f.startswith('report_status_'))
+                      and PUB_DAY not in f)
+_pub_true = sorted(
+    f for f in os.listdir(OUTW)
+    if f.startswith('report_status_')
+    and isinstance(json.load(open(os.path.join(OUTW, f))), dict)
+    and json.load(open(os.path.join(OUTW, f))).get('published') is True)
+check("G4 保护对象核验: 4对象摘要=执行前基线;报告仍被formal_report_view"
+      "接受;无新报告/状态;published=true仅已发布日;无长期状态回写",
+      baseline_before == actual_after and view1 is not None
+      and not _new_reports and _pub_true == [f'report_status_{PUB_DAY}.json']
+      and applied_atk == [],
+      str({'changed': [k for k in baseline_before
+                       if baseline_before[k] != actual_after[k]],
+           'new': _new_reports, 'pub_true': _pub_true,
+           'formal': reason1, 'applied': len(applied_atk)}))
+
+# G5 比较机制自检(§9.5,独立夹具): 篡改必须能被摘要比较发现
+with tempfile.TemporaryDirectory(prefix='fix8-G5-') as td5:
+    a5, b5 = os.path.join(td5, 'a.json'), os.path.join(td5, 'b.json')
+    open(a5, 'w').write('{"v": 1}')
+    open(b5, 'w').write('{"v": 2}')
+    base5 = {p: sha(p) for p in (a5, b5)}
+    open(b5, 'w').write('{"v": 999}')          # 有意篡改其中一个
+    after5 = {p: sha(p) for p in (a5, b5)}
+    check("G5 自检: 摘要比较能发现被篡改对象且不误报未动对象",
+          after5[a5] == base5[a5] and after5[b5] != base5[b5])
 
 # ════════════════════════════════════════════════════════════════════
 print("\n── H. 内容绑定回归(§11: FIX7-05 sha256不削弱)")

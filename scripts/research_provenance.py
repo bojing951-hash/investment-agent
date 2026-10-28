@@ -142,6 +142,45 @@ _AUTHORIZED_COLLECTORS = {
 SOURCE_CHANNELS = ('global', 'macro', 'china', 'rate_economy')
 SOURCE_STATUSES = ('EXACT', 'FALLBACK', 'MISSING', 'READ_FAIL')
 
+# FIX6-01(IA-F5-DEF-001): 采集通道**规范文件身份**单一权威定义——
+# snapshot_builder.SOURCES自本表推导(验证端与构建端同一规则源,禁止两处
+# 独立维护漂移)。规范文件名={prefix}YYYYMMDD.json;max_fallback_days=
+# 该通道既有回退窗(自然日,resolve_inputs既有约束,非本轮新设阈值)。
+SOURCE_FILE_RULES = {
+    'global':       {'prefix': 'global_',       'max_fallback_days': 5},
+    'macro':        {'prefix': 'macro_',        'max_fallback_days': 7},
+    'china':        {'prefix': 'china_',        'max_fallback_days': 5},
+    'rate_economy': {'prefix': 'rate_economy_', 'max_fallback_days': 7},
+}
+_SOURCE_FILE_RE = {ch: re.compile(rf'^{re.escape(r["prefix"])}(\d{{8}})\.json$')
+                   for ch, r in SOURCE_FILE_RULES.items()}
+
+
+def canonical_source_file(channel, file):
+    """FIX6-01: 通道规范采集文件名核验(纯字符串身份层,不碰文件系统)。
+
+    规范名={prefix}YYYYMMDD.json且文件名日期为真实日历日期;不含任何路径
+    成分(绝对路径/../子目录一律非规范)。返回文件名内YYYYMMDD日期字符串;
+    非该通道规范文件名返回None。跨通道文件/伪装前后缀/非JSON扩展名/路径
+    越界/文件名日期日历不存在(如20261399)均不可作为来源身份——"两个来源
+    字符串自报一致"不构成合法来源证明,先过本身份层。"""
+    if not isinstance(file, str) or not file.strip():
+        return None
+    if '/' in file or '\\' in file or os.path.isabs(file):
+        return None
+    rex = _SOURCE_FILE_RE.get(channel)
+    if rex is None:
+        return None
+    mm = rex.fullmatch(file)
+    if mm is None:
+        return None
+    d8 = mm.group(1)
+    try:
+        _date_cls.fromisoformat(f"{d8[:4]}-{d8[4:6]}-{d8[6:8]}")
+    except ValueError:
+        return None
+    return d8
+
 _ISO_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
 
 
@@ -256,19 +295,28 @@ def fact_issues_problems(fact, mid):
 
 
 def sources_status_problems(sources_status, target_ymd=None, data_dir=None):
-    """FIX5-04(DEF-F4-002): 来源状态结构统一校验(fail-closed)。
+    """FIX5-04(DEF-F4-002)+FIX6(IA-F5-DEF-001/003): 来源状态结构统一校验
+    (fail-closed)。
 
-    以snapshot_builder真实产出结构为准(resolve_inputs+SOURCES全集):
+    以snapshot_builder真实产出结构为准(resolve_inputs+SOURCE_FILE_RULES全集):
     - sources_status必须是对象且**4条必需通道齐全**(真实构建器恒写入);
     - 每通道状态必须是对象,status∈{EXACT,FALLBACK,MISSING,READ_FAIL};
-    - EXACT: file+file_date必填且file_date==当日(EXACT=当日文件,旧文件不得
-      冒充当日采集成功);
-    - FALLBACK: file+file_date必填,file_date必须真实早于当日且lag_days与
-      日期差一致(真实回退批次可证明,不得伪装);
-    - READ_FAIL: 必须保留error失败原因;MISSING: 不得声明file;
+    - EXACT/FALLBACK的file必须**符合该通道规范文件名**{prefix}YYYYMMDD.json
+      (FIX6-01: 文件名日期为真实日历日期、==file_date、无路径成分——跨通道
+      文件/伪装前后缀/绝对路径/../越界/非JSON扩展名一律不可作为来源身份);
+    - EXACT: file_date==当日且不得携带lag_days/error(FIX6-02/04语义互斥);
+    - FALLBACK: file_date必须真实早于当日,lag_days与日期差一致**且不超过
+      该通道既有回退窗**(FIX6-02: global/china=5,macro/rate_economy=7自然日
+      ——resolve_inputs同源约束,自报一致的115天旧文件不豁免);
+    - MISSING: 不得携带file/file_date/lag_days任何成功来源字段(FIX6-04:
+      构建器产物仅{'status'},字段缺失与None等价;list/dict同样拒);
+    - READ_FAIL: 必须保留error,且不得携带file/file_date/lag_days(失败状态
+      不得冒充成功来源身份);
     - data_dir给出时(当前本地正式流程,原始文件可访问): EXACT/FALLBACK声明的
-      来源文件必须在采集目录实际存在(纯历史重验场景不传data_dir,以快照内
-      持久化来源状态为准——结构矛盾仍拒)。
+      来源文件必须是采集目录内**真实普通文件**(FIX6-01: isfile+非符号链接+
+      实际规范路径一致——目录冒充/链接逃逸/越界别名一律不可证明)。纯历史
+      重验场景不传data_dir,以快照内持久化来源状态为准(可证范围=结构/规范
+      名/日期/窗口/一致性,不含实体存在——两种口径证据范围显式区分,不冒充)。
     返回问题列表(空=结构可证明)。调用方对非空必须按不可证明处理,不得跳过
     检查后继续PASS。"""
     probs = []
@@ -303,11 +351,34 @@ def sources_status_problems(sources_status, target_ymd=None, data_dir=None):
                 probs.append(f'sources_status[{ch!r}]声明{status}但缺file'
                              '(来源文件身份不可验证)')
                 continue
+            # FIX6-01: 规范文件名身份——通道前缀+YYYYMMDD真实日期+.json;
+            # 路径成分(绝对路径/../子目录)/跨通道文件/伪装前后缀/非JSON
+            # 扩展名一律不得作为来源身份(字符串自报一致≠合法来源)
+            if '/' in fil or '\\' in fil or os.path.isabs(fil):
+                probs.append(f'sources_status[{ch!r}]file含路径成分(绝对路径/目录'
+                             f'穿越):{fil}(越界路径不得作为采集文件身份)')
+                continue
+            d8 = canonical_source_file(ch, fil)
+            if d8 is None:
+                rule = SOURCE_FILE_RULES[ch]
+                probs.append(f'sources_status[{ch!r}]file不符通道规范文件名'
+                             f'{rule["prefix"]}YYYYMMDD.json:{fil}'
+                             '(跨通道文件/伪装前后缀/非JSON扩展名不得冒充来源)')
+                continue
             fd = st.get('file_date')
             if not isinstance(fd, str) or not re.fullmatch(r'\d{8}', fd):
                 probs.append(f'sources_status[{ch!r}]声明{status}但缺/非法file_date:'
                              f'{fd!r}(真实原始文件日期不可证明)')
                 continue
+            # FIX6-01: 文件名日期必须与file_date完全一致(身份与声明日期互证)
+            if d8 != fd:
+                probs.append(f'sources_status[{ch!r}]文件名日期{d8}≠file_date'
+                             f'{fd}(文件身份与声明采集日期矛盾)')
+                continue
+            # FIX6-04: 成功来源不得携带失败诊断字段(语义互斥)
+            if st.get('error') is not None:
+                probs.append(f'sources_status[{ch!r}]声明{status}但携带error'
+                             f':{_short(st.get("error"))}(成功来源与失败诊断互斥)')
             if tgt_date is not None:
                 try:
                     fd_date = _date_cls.fromisoformat(
@@ -316,43 +387,92 @@ def sources_status_problems(sources_status, target_ymd=None, data_dir=None):
                     fd_date = None
                 if fd_date is None:
                     probs.append(f'sources_status[{ch!r}]file_date非真实日期:{fd!r}')
-                elif status == 'EXACT' and fd != tgt:
-                    probs.append(f'sources_status[{ch!r}]声明EXACT但file_date='
-                                 f'{fd}≠当日{tgt}(旧文件不得冒充当日采集成功)')
-                elif status == 'FALLBACK':
+                elif status == 'EXACT':
+                    if fd != tgt:
+                        probs.append(f'sources_status[{ch!r}]声明EXACT但file_date='
+                                     f'{fd}≠当日{tgt}(旧文件不得冒充当日采集成功)')
+                    # FIX6-04: EXACT=当日成功采集,与回退语义互斥
+                    if st.get('lag_days') is not None:
+                        probs.append(f'sources_status[{ch!r}]EXACT携带回退字段'
+                                     f'lag_days:{st.get("lag_days")!r}'
+                                     '(当日成功与回退声明互斥)')
+                else:  # FALLBACK
                     if fd >= tgt:
                         probs.append(f'sources_status[{ch!r}]声明FALLBACK但'
                                      f'file_date={fd}不早于当日{tgt}(回退批次身份矛盾)')
                     else:
                         ld = st.get('lag_days')
                         lag = (tgt_date - fd_date).days
+                        window = SOURCE_FILE_RULES[ch]['max_fallback_days']
                         if not isinstance(ld, int) or isinstance(ld, bool) \
                                 or ld <= 0 or ld != lag:
                             probs.append(f'sources_status[{ch!r}]FALLBACK缺/不自洽'
                                          f'lag_days:{ld!r}(按日期差应为{lag})——'
                                          '真实回退窗口不可证明')
-            if data_dir is not None \
-                    and not os.path.exists(os.path.join(str(data_dir), fil)):
-                probs.append(f'sources_status[{ch!r}]声明{status}但来源文件在采集'
-                             f'目录不存在:{fil}(声明批次不可证明)')
+                        elif ld > window:
+                            # FIX6-02: 通道既有新鲜度窗(resolve_inputs同源约束)——
+                            # 自报一致的115天旧文件不因自洽而豁免
+                            probs.append(f'sources_status[{ch!r}]FALLBACK lag_days='
+                                         f'{ld}超{ch}通道回退窗口{window}自然日'
+                                         '(超出既有新鲜度约束,过期文件不得作为回退来源)')
+            # FIX6-01: 文件实体核验——仅当前正式流程(data_dir给出,原始文件可
+            # 访问)执行;必须是采集目录内的真实普通文件,目录/符号链接/越界
+            # 别名一律不可证明。纯历史重验模式不虚报"已验证实体"(证据范围=
+            # 持久化元数据可证部分,见docstring两级口径)
+            if data_dir is not None:
+                full = os.path.join(str(data_dir), fil)
+                if os.path.islink(full):
+                    probs.append(f'sources_status[{ch!r}]声明{status}但来源文件是'
+                                 f'符号链接:{fil}(不得经链接逃逸采集目录)')
+                elif os.path.isdir(full):
+                    probs.append(f'sources_status[{ch!r}]声明{status}但来源文件是'
+                                 f'目录:{fil}(目录不得冒充JSON采集文件)')
+                elif not os.path.isfile(full):
+                    probs.append(f'sources_status[{ch!r}]声明{status}但来源文件在'
+                                 f'采集目录不存在:{fil}(声明批次不可证明)')
+                elif os.path.realpath(full) != os.path.join(
+                        os.path.realpath(str(data_dir)), fil):
+                    probs.append(f'sources_status[{ch!r}]来源文件实际路径与采集目录'
+                                 f'内规范文件名不一致:{fil}(越界/别名不可作为授权来源)')
         elif status == 'MISSING':
-            if isinstance(st.get('file'), str) and st.get('file').strip():
-                probs.append(f'sources_status[{ch!r}]声明MISSING但携带file'
-                             f':{st.get("file")!r}(来源缺失不得伪装为在场)')
+            # FIX6-04(IA-F5-DEF-003): MISSING=无可用来源文件——不得同时声明任何
+            # 成功来源字段。真实构建器产物仅{'status'}(字段缺失与值None等价合法,
+            # 与构建器口径一致);file为字符串/列表/字典或file_date/lag_days在场
+            # 均为"缺失伪装在场",类型不设假设(拒list/dict不抛异常)
+            for fld in ('file', 'file_date', 'lag_days'):
+                v = st.get(fld)
+                if v is not None:
+                    probs.append(f'sources_status[{ch!r}]声明MISSING但携带{fld}'
+                                 f':{_short(v)}(来源缺失不得伪装为在场)')
         elif status == 'READ_FAIL':
             err = st.get('error')
             if not isinstance(err, str) or not err.strip():
                 probs.append(f'sources_status[{ch!r}]READ_FAIL缺error'
                              '(失败原因不可追溯)')
+            # FIX6-04: READ_FAIL=读取/解析失败——不得携带成功来源身份字段
+            # (失败时尝试的文件名如需留痕应放独立诊断字段,不得复用file授予
+            # 来源身份);类型不设假设,拒list/dict/file_date/lag_days伪装
+            for fld in ('file', 'file_date', 'lag_days'):
+                v = st.get(fld)
+                if v is not None:
+                    probs.append(f'sources_status[{ch!r}]READ_FAIL携带{fld}:'
+                                 f'{_short(v)}(失败状态不得冒充成功来源身份)')
     return probs
 
 
 def fact_source_problems(fact, m, batch, by_id):
-    """FIX5-01(DEF-F4-001): 单事实**来源一致性**(跨字段)校验。
+    """FIX5-01(DEF-F4-001)+FIX6(IA-F5-DEF-001/002): 单事实**来源一致性**
+    (跨字段)校验。
 
+    第零层(FIX6-03): collector类型安全——非字符串(None/空/列表/字典/数字/
+    布尔)给可诊断拒绝,绝不进入集合成员测试(防unhashable TypeError未受控
+    崩溃),也不吞异常放行;source.file非字符串同样显式拒;
     第一层(指标身份→采集器): collector必须属于该指标注册表权威来源的合法
     collector集(_AUTHORIZED_COLLECTORS;compute_derived输出集=_DERIVED_DEPS键
     →fact_engine)——任意非空字符串不得绕过;
+    第一层半(FIX6-01): 通道批次文件自身必须符合通道规范名{prefix}YYYYMMDD
+    .json——两个来源字符串"自报相等"不构成合法来源(跨通道/伪装文件直调
+    本函数同样拒);
     第二层(采集器→当次采集批次): 原始通道事实的source.file必须与快照
     sources_status记录的该通道批次文件**完全一致**;通道MISSING/READ_FAIL而事实
     在场=批次冲突;
@@ -366,10 +486,17 @@ def fact_source_problems(fact, m, batch, by_id):
     probs = []
     src = fact.get('source')
     col = src.get('collector') if isinstance(src, dict) else None
+    # FIX6-03(IA-F5-DEF-002): collector类型安全——非字符串(list/dict/int/bool/
+    # None/空串)先拒并给出可诊断原因,**不进入frozenset成员测试**(unhashable
+    # 会TypeError未受控崩溃;也不得吞异常默认放行)。原始/派生两分支共用。
+    if not isinstance(col, str) or not col.strip():
+        probs.append(f"{mid}=collector非法类型/空:{_short(col)}"
+                     '(必须是该指标授权采集器非空字符串——类型即不可证明)')
+        col = None
     reg_src = str(m.get('source'))
     if mid in _DERIVED_DEPS:
         allowed = _AUTHORIZED_COLLECTORS['fact_engine(derived)']
-        if col not in allowed:
+        if col is not None and col not in allowed:
             probs.append(f"{mid}=collector非法:{_short(col)}"
                          f"(compute_derived派生指标合法collector={sorted(allowed)})")
         if not isinstance(fact.get('calculation_ref'), str) \
@@ -392,15 +519,25 @@ def fact_source_problems(fact, m, batch, by_id):
     allowed = _AUTHORIZED_COLLECTORS.get(reg_src)
     if allowed is None:
         return probs   # 注册表来源无法映射(如deprecated)——由缺失判定边界记录
-    if col not in allowed:
+    if col is not None and col not in allowed:
         probs.append(f"{mid}=collector与指标权威来源不符:{_short(col)}"
                      f"(注册表source={reg_src!r},合法值{sorted(allowed)})")
-    if batch is None:
-        return probs
+    if not isinstance(src, dict) or batch is None:
+        return probs   # source非对象已由collector类型问题+fact_structure记录
     status, bfile = batch.get('status'), batch.get('file')
-    fil = src.get('file') if isinstance(src, dict) else None
+    fil = src.get('file')
+    ch = _SOURCE_TO_INPUT.get(reg_src)
     if status in ('EXACT', 'FALLBACK'):
-        if fil != bfile:
+        # FIX6-01: 批次文件自身必须符合通道规范名(直调本函数同样自洽——
+        # 不能只比对两个字符串相等就把跨通道/伪装文件当作已验证来源)
+        if ch is not None and canonical_source_file(ch, bfile) is None:
+            probs.append(f"{mid}=通道批次文件不符{ch}规范名:{_short(bfile)}"
+                         '(来源批次身份本身不可证明)')
+        if not isinstance(fil, str):
+            # FIX6-03: file类型同样不设假设(list/dict给可诊断拒绝,不崩溃)
+            probs.append(f"{mid}=source.file非字符串:{_short(fil)}"
+                         '(来源文件身份不可核验)')
+        elif fil != bfile:
             probs.append(f"{mid}=source.file与当次采集批次不一致:{_short(fil)}"
                          f"(通道批次={_short(bfile)}——与快照采集无关的文件名"
                          '不得作为已验证来源)')

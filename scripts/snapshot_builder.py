@@ -36,30 +36,34 @@ DATA_DIR = os.path.join(ROOT_DIR, 'data', 'daily')
 TZ_BJ = timezone(timedelta(hours=8))
 
 # 各源文件与其新鲜度窗(自然日): 回退取旧文件时超出窗口视为缺源(不冒充当日)
-SOURCES = [
-    ('global', 'global_*.json', 5),
-    ('macro', 'macro_*.json', 7),
-    ('china', 'china_*.json', 5),
-    ('rate_economy', 'rate_economy_*.json', 7),
-]
+# FIX6-01(IA-F5-DEF-001): 规范文件身份/回退窗口**单一权威定义**在
+# research_provenance.SOURCE_FILE_RULES——本模块自此推导SOURCES,构建端选择
+# 与验证端(research_provenance)同一规则源,不两处独立维护漂移。
+SOURCES = [(ch, f"{r['prefix']}*.json", r['max_fallback_days'])
+           for ch, r in rp.SOURCE_FILE_RULES.items()]
 
 
 def resolve_inputs(target_ymd, data_dir=None):
-    """按目标日期解析采集文件: 精确匹配优先;否则新鲜度窗内最新早于目标日的文件(fallback)。"""
+    """按目标日期解析采集文件: 精确匹配优先;否则新鲜度窗内最新早于目标日的文件(fallback)。
+
+    FIX6-01: 只接受**通道规范普通文件**({prefix}YYYYMMDD.json真实日历日期、
+    非目录、非符号链接)——目录冒充/伪装前后缀/其他扩展名/链接一律不选,
+    构建端与research_provenance验证端同一规范,避免下游验证才发现异常。"""
     dd = data_dir or DATA_DIR
     out = {}
     for name, pattern, window in SOURCES:
         exact = os.path.join(dd, pattern.replace('*', target_ymd))
-        if os.path.exists(exact):
+        if os.path.isfile(exact) and not os.path.islink(exact):
             out[name] = {'file': exact, 'file_date': target_ymd, 'exact': True, 'fallback': False}
             continue
         cands = sorted(glob.glob(os.path.join(dd, pattern)))
         usable = []
         for p in cands:
-            m = re.search(r'(\d{8})', os.path.basename(p))
-            if not m:
-                continue
-            fd = m.group(1)
+            fd = rp.canonical_source_file(name, os.path.basename(p))
+            if fd is None:
+                continue   # 非规范文件名(伪装前后缀/非法日期/其他通道样式)
+            if os.path.islink(p) or not os.path.isfile(p):
+                continue   # 目录/符号链接不是规范采集文件
             if fd < target_ymd:
                 lag = (date.fromisoformat(f"{target_ymd[:4]}-{target_ymd[4:6]}-{target_ymd[6:]}")
                        - date.fromisoformat(f"{fd[:4]}-{fd[4:6]}-{fd[6:]}")).days

@@ -253,16 +253,19 @@ check("A10c NFP_MOM_K缺输入事实NFP(计算依据不可追踪)→拒",
       illegal_has(r, '派生输入事实NFP不在场'),
       str([x for x in r['illegal_quality'] if '派生输入' in x][:1]))
 
-# A11 data_dir两级口径: 假批次内部完全自洽(状态+该通道全部事实同改)——纯重验
-# 口径下结构通过(快照内持久化证据自洽),当前正式流程口径(data_dir)下文件不
-# 存在→拒。部分篡改(只改个别事实)在两种口径下都会被批次一致性核出(A3/A16)
+# A11 data_dir两级口径: 假批次内部完全自洽(**规范文件名**FALLBACK——FIX6后
+# 非规范名在两种口径都被身份层拒,ghost_20261024.json已不可构造此对照)——
+# 纯重验口径下结构通过(持久化证据自洽),当前正式流程口径(data_dir)下文件
+# 不存在→拒。部分篡改(只改个别事实)在两种口径下都会被批次一致性核出(A3/A16)
 s = copy.deepcopy(SNAP)
 _real_g = s['sources_status']['global']['file']
-s['sources_status']['global']['file'] = 'ghost_20261024.json'
+s['sources_status']['global'] = {'status': 'FALLBACK',
+                                 'file': 'global_20261020.json',
+                                 'file_date': '20261020', 'lag_days': 4}
 _n = 0
 for f in s['facts']:
     if isinstance(f.get('source'), dict) and f['source'].get('file') == _real_g:
-        f['source']['file'] = 'ghost_20261024.json'
+        f['source']['file'] = 'global_20261020.json'
         _n += 1
 r_pure = rp.recompute_gate_a(s)                     # 纯重验(无目录)
 r_formal = rp.recompute_gate_a(s, data_dir=BASE_DAILY)   # 当前正式流程
@@ -504,7 +507,11 @@ check("D15 FALLBACK lag_days与日期差不自洽→真实回退窗口不可证�
       str(r.get('sources_problems', [])[:1]))
 
 s = copy.deepcopy(SNAP)
-s['sources_status']['global']['file'] = 'other_global_20261024.json'   # 批次改名,事实未跟
+# 批次改名(规范名FALLBACK自洽——FIX6后非规范名会先被来源身份层拒,
+# 用规范名才能直达事实层失配路径),事实未跟
+s['sources_status']['global'] = {'status': 'FALLBACK',
+                                 'file': 'global_20261023.json',
+                                 'file_date': '20261023', 'lag_days': 1}
 r = rp.recompute_gate_a(s)
 check("D16 sources_status与事实source.file不一致→事实批次不一致拒",
       illegal_has(r, 'source.file与当次采集批次不一致'),

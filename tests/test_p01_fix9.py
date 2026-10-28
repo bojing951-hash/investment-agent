@@ -191,11 +191,14 @@ if sys.platform == 'darwin':
           and any(e.startswith('/var/') for e in _ents), str(sorted(_ents)))
 else:
     _td = tempfile.mkdtemp(prefix='fix9-B3-')
-    _ents = rp._trusted_entry_forms(os.path.realpath(_td))
-    check("B3(Linux CI) 无系统别名表条目: 入口=物理锚(+代码形式),"
-          "/tmp别名不适用",
-          os.path.realpath(_td) in _ents
-          and not any(e.startswith('/tmp/') for e in _ents), str(sorted(_ents)))
+    _rt = os.path.realpath(_td)
+    _ents = rp._trusted_entry_forms(_rt)
+    check("B3(Linux CI) 封闭别名表不适用: 入口集合仅物理锚(+代码词法形式)"
+          "——CI临时目录虽位于/tmp之下,/tmp在Linux是真实目录非别名,"
+          "不得出现任何额外入口形态",
+          _ents <= {_rt, os.path.normpath(_code_root)}
+          and all(os.path.realpath(e) == _rt for e in _ents),
+          str(sorted(_ents)))
 # B4: 用户级模拟别名不得冒充系统别名——fixture里自建fakePrivate/fakeTmp
 # 复刻/macOS目录结构,证明封闭表不认任何非表内形态
 FB = tempfile.mkdtemp(prefix='fix9-B4-')

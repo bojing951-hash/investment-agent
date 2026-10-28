@@ -263,26 +263,26 @@ _SYSTEM_PREFIX_ALIASES = (
 
 
 def _trusted_entry_forms(rt):
-    """FIX9-01: 预先确定的**可信入口集合**——只由可信根物理锚+可信代码
-    位置+封闭系统别名表推导,**独立于被验证data_dir**(IA-F8-DEF-001:
-    绝不遍历data_dir前缀动态发现/授信新入口——realpath(某前缀)==可信根
-    不构成该前缀的授权证明)。
+    """FIX9-01+FIX10-01: 预先确定的**可信入口集合**——只由可信根物理锚+
+    封闭系统别名表推导,**独立于被验证data_dir**(IA-F8-DEF-001: 绝不遍历
+    data_dir前缀动态发现/授信新入口——realpath(某前缀)==可信根不构成该
+    前缀的授权证明)。
 
-    入口来源(全部与data_dir无关):
+    入口来源(全部与data_dir无关,封闭两类):
     1. 可信根物理路径rt本身;
-    2. 代码位置推导的项目根**词法形式**(realpath==rt时才加入)——代码
-       自身被调用的路径形态是天然合法入口;
-    3. _SYSTEM_PREFIX_ALIASES封闭表对rt做系统级前缀变换得到的形式,且
+    2. _SYSTEM_PREFIX_ALIASES封闭表对rt做系统级前缀变换得到的形式,且
        运行时验证realpath(形式)==rt(别名实际不存在/不回指rt则不加入)。
+
+    FIX10-01(IA-F9-DEF-001): **代码导入词法形式不再是授权依据**——本模块
+    的__file__词法路径(及其上溯的项目根)一律不加入入口集合。若代码经
+    未批准的外部符号链接导入(如 sys.path 含 external-link/scripts),
+    __file__词法上穿过该链接,realpath(__file__上溯根)仍等于物理根——
+    "代码恰好从那里被导入"不构成对该链接的批准。同一物理可信目录的
+    授权结论必须在物理导入与别名导入下完全一致。default_trusted_root()
+    用realpath确定**物理根**的行为保持不变——abspath(__file__)的词法
+    形态本身永不构成授权。
     """
     entries = {rt}
-    try:
-        cr = os.path.normpath(os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))))
-        if cr != rt and os.path.realpath(cr) == rt:
-            entries.add(cr)
-    except OSError:
-        pass
     if sys.platform == 'darwin':
         for alias, phys in _SYSTEM_PREFIX_ALIASES:
             for a, b in ((alias, phys), (phys, alias)):
@@ -317,11 +317,14 @@ def trusted_dir_problems(data_dir, trusted_root=None):
        §6.2);
     2. FIX9-01: 采集目录词法路径(abspath形态,..已拒故折叠无链接语义)
        必须经**预先确定的可信入口集合**(_trusted_entry_forms,独立于
-       data_dir推导)之一进入——入口集合=可信根物理路径/代码位置词法
-       形式/封闭系统别名表变换。FIX8-02: 禁止词法越界后以realpath
+       data_dir推导)之一进入——入口集合=可信根物理路径/封闭系统别名表
+       变换(仅此两类;FIX10-01: 代码导入的__file__词法形式不再属于入口
+       来源)。FIX8-02: 禁止词法越界后以realpath
        (采集目录)整体回落自动重新授信;FIX9-01(IA-F8-DEF-001): 禁止遍历
        data_dir前缀动态发现入口——未经批准的外部符号链接即使恰好指向
-       项目根(或project/data),也不取得可信入口身份;
+       项目根(或project/data),也不取得可信入口身份;FIX10-01
+       (IA-F9-DEF-001): 经未批准外部链接**导入代码**同样不给该链接
+       可信入口身份;
     3. 从匹配入口到采集目录的**每个受保护路径组件逐级核验**:任一组件是
        符号链接即拒绝——祖先符号链接重定向不得自动跟随,须显式拒绝;
     4. 物理包含锚(纵深防御): realpath(采集目录)必须仍在可信根物理锚
@@ -369,7 +372,8 @@ def trusted_dir_problems(data_dir, trusted_root=None):
                     '未经批准的外部/越界路径不得作为正式采集来源;'
                     'realpath落点在根内不自动授信(FIX8-02);未经批准的外部'
                     '入口链接不因指向项目根取得可信身份(FIX9-01/'
-                    'IA-F8-DEF-001)']
+                    'IA-F8-DEF-001),亦不因代码经其导入而取得可信身份'
+                    '(FIX10-01/IA-F9-DEF-001)']
         probs = []
         c = entry
         for part in tail:

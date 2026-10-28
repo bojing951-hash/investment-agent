@@ -170,12 +170,27 @@ print("\n── B. 系统级路径兼容(§十.B)")
 
 check("B1 正常可信项目路径放行(兼容逻辑不误伤)",
       rp.trusted_dir_problems(DAILY, PROJECT) == [])
-# B2: 代码位置词法形式(真实本仓库根,词法/tmp形态 vs 物理/private形态)
+# B2: FIX10-01修正fixture——原断言"代码位置词法形式在可信入口集合"依赖
+# 已删除的__file__词法自动授信(IA-F9-DEF-001缺陷本体);收紧后代码词法
+# 形式仅当它恰为封闭表系统别名变换(macOS /tmp↔/private/tmp)或物理相等
+# (Linux)时才出现在入口集合,不得作为独立授权来源
 _code_root = os.path.dirname(os.path.dirname(os.path.abspath(
     rp.__file__)))
 _entries = rp._trusted_entry_forms(os.path.realpath(_code_root))
-check("B2 代码位置词法形式在可信入口集合(realpath回指物理锚)",
-      os.path.normpath(_code_root) in _entries, str(sorted(_entries)))
+_table_forms = {os.path.realpath(_code_root)}
+if sys.platform == 'darwin':
+    for _a, _b in rp._SYSTEM_PREFIX_ALIASES:
+        for _x, _y in ((_a, _b), (_b, _a)):
+            _rtb = os.path.realpath(_code_root)
+            if _rtb == _y:
+                _table_forms.add(_x)
+            elif _rtb.startswith(_y + os.sep):
+                _table_forms.add(_x + _rtb[len(_y):])
+check("B2(FIX10-01修正) 代码词法形式不再自动入集: 入口集合⊆物理锚+封闭表"
+      "变换形式, 无任何额外来源",
+      _entries <= _table_forms
+      and all(os.path.realpath(e) == os.path.realpath(_code_root)
+              for e in _entries), str(sorted(_entries)))
 # B3: macOS系统级前缀别名真实双向(本机darwin实测;Linux CI无/private,
 # 断言按平台分流——非darwin时该真实别名不存在,检查表不产生入口)
 if sys.platform == 'darwin':
@@ -193,12 +208,10 @@ else:
     _td = tempfile.mkdtemp(prefix='fix9-B3-')
     _rt = os.path.realpath(_td)
     _ents = rp._trusted_entry_forms(_rt)
-    check("B3(Linux CI) 封闭别名表不适用: 入口集合仅物理锚(+代码词法形式)"
+    check("B3(Linux CI,FIX10-01收紧) 封闭别名表不适用: 入口集合恰=物理锚"
           "——CI临时目录虽位于/tmp之下,/tmp在Linux是真实目录非别名,"
-          "不得出现任何额外入口形态",
-          _ents <= {_rt, os.path.normpath(_code_root)}
-          and all(os.path.realpath(e) == _rt for e in _ents),
-          str(sorted(_ents)))
+          "亦无代码词法/别名来源(FIX10-01)",
+          _ents == {_rt}, str(sorted(_ents)))
 # B4: 用户级模拟别名不得冒充系统别名——fixture里自建fakePrivate/fakeTmp
 # 复刻/macOS目录结构,证明封闭表不认任何非表内形态
 FB = tempfile.mkdtemp(prefix='fix9-B4-')

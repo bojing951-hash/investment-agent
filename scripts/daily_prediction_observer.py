@@ -117,11 +117,16 @@ def _metric_problem(metric, anchors, today_iso):
     return None
 
 
-def observe(views_path=None, anchors=None, today_str=None, anchors_date=None, anchors_path=None):
+def observe(views_path=None, anchors=None, today_str=None, anchors_date=None,
+            anchors_path=None, trusted_root=None):
     """记录当期观察(幂等)。返回(变更说明列表, 观察中预测数, 状态PASS/PARTIAL/FAIL)。
     FAIL=关键失败(无当日有效锚点): 今日不写任何观察记录。
     anchors_path(IA-P0-1): 锚点文件路径——提供时执行批次核验(meta sidecar);
-    直传anchors dict(离线测试)无文件可核,维持既有日期规则。"""
+    直传anchors dict(离线测试)无文件可核,维持既有日期规则。
+    trusted_root(FIX8-03): 锚点批次核验可信根,缺省=rp.default_trusted_root()
+    (可信代码位置推导)——生产锚点文件位于项目数据目录之下,天然在其内;
+    **不从anchors_path参数推导父目录作为授权依据**(被校验路径不得自证),
+    沙箱测试显式传入fixture控制的可信根。"""
     import allocation_engine as ae
     import research_provenance as rp
     views_path = views_path or DEFAULT_VIEWS
@@ -142,13 +147,13 @@ def observe(views_path=None, anchors=None, today_str=None, anchors_date=None, an
     # 无来源证明的数据不得进入正式长期观察(直传anchors dict的离线注入路径无
     # 文件可核,由状态引擎侧同口径质量防御兜底,见allocation_engine)。
     if anchors_path and os.path.exists(anchors_path):
-        # FIX7-01: 可信根=锚点路径的祖父目录(生产布局PROJECT/data/daily→
-        # PROJECT;沙箱td/daily或平铺目录同样成立),独立于被校验路径——
-        # 祖先符号链接重定向的锚点批次在此被拒,不由被校验路径自证
+        # FIX7-01: 可信根独立于被校验路径——祖先符号链接重定向的锚点批次
+        # 在此被拒,不由被校验路径自证。
+        # FIX8-03(IA-F7-DEF-001): 锚定=缺省可信代码位置/显式trusted_root参数
+        # ——不再从anchors_path自身推导父目录作授权依据
         ok, reason = rp.verify_anchor_batch(
             anchors_path, anchors_date=anchors_date,
-            trusted_root=os.path.dirname(os.path.dirname(
-                os.path.abspath(str(anchors_path)))))
+            trusted_root=trusted_root)
         if ok is False:
             print(f"⛔ {reason} — 不记录预测观察(关键失败)")
             return [], 0, 'FAIL'

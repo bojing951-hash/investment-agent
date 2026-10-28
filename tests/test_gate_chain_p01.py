@@ -125,7 +125,8 @@ def build_research_day(base, ymd=DAY, gate='PASS', rev=None, pack_bound_rev='__s
     if 'pack' not in skip:
         packfile = os.path.join(weekly, f'data_pack_{ymd}.md')
         with open(packfile, 'w', encoding='utf-8') as f:
-            f.write(da.build_markdown(snap, ymd, data_dir=base) if gate != 'FAIL'
+            f.write(da.build_markdown(snap, ymd, data_dir=base,
+                                      trusted_root=base) if gate != 'FAIL'
                     else '# pack')
         if 'pack_meta' not in skip and gate != 'FAIL':
             bound_rev = rev if pack_bound_rev == '__same__' else pack_bound_rev
@@ -603,7 +604,8 @@ with tempfile.TemporaryDirectory() as td:
     vp = views_file(td, [obs_pred(91, 'macro.data.UMCSENT.value'),
                          obs_pred(92, 'global_market.data.SPX.close')])
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
-                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath)
+                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath,
+                      trusted_root=td)
     saved = json.load(open(vp))
     p91 = next(p for p in saved['predictions'] if p['pred_id'] == 91)
     p92 = next(p for p in saved['predictions'] if p['pred_id'] == 92)
@@ -626,7 +628,8 @@ with tempfile.TemporaryDirectory() as td:
     vp = views_file(td, [obs_pred(91, 'global_market.data.GOLD.close')])
     before = open(vp).read()
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
-                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath)
+                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath,
+                      trusted_root=td)
     check("legacy批次→关键FAIL不写观察",
           st == 'FAIL' and ch == [] and open(vp).read() == before, f"{st} {ch}")
 
@@ -641,7 +644,8 @@ with tempfile.TemporaryDirectory() as td:
     anchors = json.load(open(apath, encoding='utf-8'))
     before = open(vp).read()
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
-                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath)
+                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath,
+                      trusted_root=td)
     check("批次失配(旧锚点vs权威_v2)→关键FAIL",
           st == 'FAIL' and open(vp).read() == before, f"{st} {ch}")
 
@@ -655,12 +659,14 @@ with tempfile.TemporaryDirectory() as td:
     vp = views_file(td, [obs_pred(91, 'global_market.data.GOLD.close')])
     before = open(vp).read()
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
-                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath)
+                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath,
+                      trusted_root=td)
     check("无meta旧格式→关键FAIL(FIX-04收紧: 来源不可证明)",
           st == 'FAIL' and ch == [] and open(vp).read() == before, f"{st} {ch}")
     # 陈旧锚点日期→关键FAIL(既有行为不回归)
     ch2, _, st2 = quiet(dpo.observe, views_path=vp, anchors=anchors,
-                        today_str='2026-10-20', anchors_date='20261017', anchors_path=apath)
+                        today_str='2026-10-20', anchors_date='20261017', anchors_path=apath,
+                        trusted_root=td)
     check("陈旧锚点日期→FAIL(既有)", st2 == 'FAIL')
 
 # ══ 9. 流水线依赖与SKIPPED(AC-02/AC-11) ════════════════════════

@@ -714,7 +714,7 @@ with tempfile.TemporaryDirectory() as td10:
     ok2, _w = rp.verify_anchor_batch(apath, anchors_date=DAY, trusted_root=td10)
     ch, n, st = dpo.observe(views_path=views_path, anchors=anchors,
                             today_str='2026-10-24', anchors_date=DAY,
-                            anchors_path=apath)
+                            anchors_path=apath, trusted_root=td10)
     check("E10 长期状态防御: 破坏前批次核验过;破坏后拒+观察器关键FAIL"
           "+views字节不变(未验证数据不进长期观察)",
           ok1 and ok2 is False and ch == [] and st == 'FAIL'

@@ -211,72 +211,157 @@ def _under(path, base):
         return False
 
 
+def _raw_path_and_problems(data_dir):
+    """FIX8-01(IA-F7-DEF-001): 原始路径**类型与..组件前置审查**。
+
+    在任何词法规范化(normpath/abspath等会折叠路径的操作)之前执行:
+    - 原始路径含`..`组件(按路径组件精确判定,非字符串查找连续两点——
+      普通文件名`a..b.json`不误判)→ 立即拒绝。`alias/..`词法折叠后
+      指向可信位置、文件系统解析却经链接落到可信根之外——normpath
+      会先消掉`alias/..`再检查,导致检查对象(折叠后TRUSTED)与真实
+      访问对象(原始路径经链接解析到UNTRUSTED)分叉,故穿越组件必须在
+      折叠前拒;
+    - `.`组件词法恒等(无符号链接语义交互),由后续abspath安全折叠;
+    - 非法类型(None/bytes/非str非PathLike/空)→ 拒绝并说明,不抛异常。
+    返回(原始字符串|None, problems)。"""
+    if data_dir is None:
+        return None, ['采集目录缺失/非路径——可信边界不可建立(fail-closed)']
+    if isinstance(data_dir, bytes):
+        return None, ['采集目录为bytes(非法路径类型,fail-closed)']
+    if isinstance(data_dir, os.PathLike):
+        try:
+            data_dir = os.fspath(data_dir)
+        except TypeError:
+            return None, [f'采集目录为不可转换的PathLike:'
+                          f'{type(data_dir).__name__}(fail-closed)']
+    if not isinstance(data_dir, str):
+        return None, [f'采集目录为非法类型:{type(data_dir).__name__}'
+                      '(须str/PathLike,fail-closed)']
+    if not data_dir.strip():
+        return None, ['采集目录为空——可信边界不可建立(fail-closed)']
+    for part in data_dir.replace('\\', '/').split('/'):
+        if part == '..':
+            return None, [f'原始路径含..组件:{data_dir}'
+                          '(词法折叠前的穿越组件一律拒绝——symlink/..的真实'
+                          '文件系统语义不得被normpath消除,FIX8-01/IA-F7-DEF-001)']
+    return data_dir, []
+
+
 def trusted_dir_problems(data_dir, trusted_root=None):
-    """FIX7-01/02: 采集目录**祖先路径可信边界**核验——统一实体核查原语,
-    构建端(snapshot_builder.resolve_inputs)与验证端(sources_status_problems)
-    共用同一函数,不得两处漂移(§6.3)。
+    """FIX7-01/02+FIX8-01/02: 采集目录**祖先路径可信边界**核验——统一实体
+    核查原语,构建端(snapshot_builder.resolve_inputs)与验证端
+    (sources_status_problems)共用同一函数,不得两处漂移(§6.3)。
 
     锚定: trusted_root缺省=default_trusted_root()(可信代码位置推导);
     测试/工具可显式传入fixture控制的临时可信根。可信根身份独立于被校验
     data_dir——不以data_dir自身或其realpath自证。
     核验链(fail-closed,任一环不过即返回该环问题,不抛未受控异常):
+    0. FIX8-01: 原始路径类型核验+**..组件在任何词法规范化之前拒绝**
+       (normpath会先消掉alias/..再检查=检查对象与访问对象分叉);
     1. 可信根必须存在、为真实目录且**自身不是符号链接**(未经批准的
-       重定向位置不得被当作可信项目根,§6.2——B8反例中PROJECT/data
-       若作为锚即在此被拒);
-    2. 采集目录词法路径必须位于可信根之内(commonpath;../穿越与可信根
-       之外的绝对路径拒绝——未经批准的外部路径不得视为已验证正式采集
-       来源,不建立外部存储白名单,§5.4);
-    3. 从可信根到采集目录的**每个受保护路径组件逐级核验**(PROJECT_ROOT/
-       data/daily及中间任何组件):任一组件是符号链接即拒绝——祖先符号
-       链接重定向不得自动跟随,须显式拒绝并说明边界;
-    4. 物理包含锚(纵深防御): realpath(采集目录)必须仍在realpath(可信根)
+       重定向位置不得被当作可信项目根,§6.2),并以realpath形成**物理锚**
+       (可信根建立时吸收其之上的系统级别名——macOS /var→/private/var,
+       §6.2);
+    2. 采集目录词法路径(abspath形态,..已拒故折叠无链接语义)必须位于
+       可信根物理锚之内;词法不匹配时唯一允许的前缀形态差异=**可信根
+       之上的系统级别名**(寻找采集目录的组件前缀P使realpath(P)==可信
+       根物理锚)。FIX8-02: **禁止词法越界后以realpath(采集目录)整体
+       回落自动重新授信**——外部符号链接(external-link→project/data)
+       虽物理落点在根内,原始路径未经批准从根外进入,仍拒;
+    3. 从可信根到采集目录的**每个受保护路径组件逐级核验**:任一组件是
+       符号链接即拒绝——祖先符号链接重定向不得自动跟随,须显式拒绝;
+    4. 物理包含锚(纵深防御): realpath(采集目录)必须仍在可信根物理锚
        之内,兜底其他重定向机制;
     5. 采集目录必须真实存在且为目录。
-    词法包含失败但物理包含成立时(调用方传入已解析路径等前缀形态差异),
-    以解析形态重试包含与组件审计——解析形态下组件审计不可能被符号链接
-    欺骗(规范路径按定义无链接组件),该分支只为兼容合法前缀形态差异,
-    不放松任何攻击面(词法形态下的链接组件在分支3已逐级核验)。"""
+    配套FIX8-03: 实际文件访问路径一律取trusted_source_dir()返回的
+    **已验证物理路径**,不以原始传入路径访问文件。"""
     try:
-        if data_dir is None or not isinstance(data_dir, (str, os.PathLike)) \
-                or not str(data_dir).strip():
-            return ['采集目录缺失/非路径——可信边界不可建立(fail-closed)']
-        dd = os.path.normpath(str(data_dir))
-        rt = os.path.normpath(str(trusted_root)) if trusted_root is not None \
-            else default_trusted_root()
-        if not os.path.exists(rt):
-            return [f'可信项目根不存在:{rt}(可信边界不可建立,fail-closed)']
-        if os.path.islink(rt):
-            return [f'可信项目根本身是符号链接:{rt}'
+        raw, probs0 = _raw_path_and_problems(data_dir)
+        if probs0:
+            return probs0
+        dd = os.path.abspath(raw)   # ..已拒,'.'折叠无符号链接语义,安全
+        if trusted_root is None:
+            rt_raw = default_trusted_root()
+        else:
+            rt_raw = trusted_root
+        if isinstance(rt_raw, os.PathLike):
+            try:
+                rt_raw = os.fspath(rt_raw)
+            except TypeError:
+                rt_raw = None
+        if not isinstance(rt_raw, str) or not rt_raw.strip():
+            return ['可信根参数非法——可信边界不可建立(fail-closed)']
+        if not os.path.exists(rt_raw):
+            return [f'可信项目根不存在:{rt_raw}(可信边界不可建立,fail-closed)']
+        if os.path.islink(rt_raw):
+            return [f'可信项目根本身是符号链接:{rt_raw}'
                     '(未经批准的重定向位置不得作为可信项目根——FIX7-01)']
-        if not os.path.isdir(rt):
-            return [f'可信项目根不是目录:{rt}(可信边界不可建立)']
-        lex_under = _under(dd, rt)
-        if not lex_under:
-            rdd, rrt = os.path.realpath(dd), os.path.realpath(rt)
-            if not _under(rdd, rrt):
-                return [f'采集目录不在可信项目根之内:{dd}(可信根={rt})——'
-                        '未经批准的外部/越界路径不得作为正式采集来源(FIX7-01)']
-            dd, rt = rdd, rrt   # 词法前缀形态差异,按已解析形态继续组件审计
+        if not os.path.isdir(rt_raw):
+            return [f'可信项目根不是目录:{rt_raw}(可信边界不可建立)']
+        rt = os.path.realpath(rt_raw)   # 可信根建立时物理锚定(§6.2)
+        entry, tail = None, []
+        if _under(dd, rt):
+            entry, tail = rt, os.path.relpath(dd, rt).split(os.sep)
+        else:
+            # FIX8-02: 词法不在根内→只认"经可信根之上的系统级别名进入":
+            # 采集目录的组件前缀P(含整体——data_dir与可信根为同一目录的
+            # 前缀形态差异)其realpath恰为可信根物理锚,且P以下的词法组件
+            # 逐级核验无符号链接。不存在这样的P(纯外部路径/链接直接跳入
+            # 根内或根内子目录)→拒,绝不以realpath(dd)落点在根内自动授信
+            parts = dd.split(os.sep)
+            cur = os.sep
+            for j, p in enumerate(parts):
+                cur = os.path.join(cur, p)
+                if not p:
+                    continue
+                try:
+                    if os.path.realpath(cur) == rt:
+                        entry = cur
+                        tail = parts[j + 1:]
+                        break
+                except OSError:
+                    continue
+            if entry is None:
+                return [f'采集目录不在可信项目根之内:{raw}(可信根={rt_raw})——'
+                        '未经批准的外部/越界路径不得作为正式采集来源;'
+                        'realpath落点在根内不自动授信(FIX8-02)']
         probs = []
-        rel = os.path.relpath(dd, rt)
-        cur = rt
-        for part in rel.split(os.sep):
+        c = entry
+        for part in tail:
             if part in ('', '.'):
                 continue
-            cur = os.path.join(cur, part)
-            if os.path.islink(cur):
-                probs.append(f'受保护路径组件是符号链接:{cur}'
+            c = os.path.join(c, part)
+            if os.path.islink(c):
+                probs.append(f'受保护路径组件是符号链接:{c}'
                              '(祖先符号链接重定向不得自动跟随——FIX7-02;'
                              '如需外部存储须显式配置可信根,不得以链接越界)')
-        rdd, rrt = os.path.realpath(dd), os.path.realpath(rt)
-        if not _under(rdd, rrt):
+        rdd = os.path.realpath(dd)
+        if not _under(rdd, rt):
             probs.append(f'采集目录物理路径逃逸可信项目根:{rdd}'
-                         f'(可信根物理路径={rrt})')
+                         f'(可信根物理路径={rt})')
         if not os.path.isdir(dd):
             probs.append(f'采集目录不存在/非目录:{dd}(声明来源不可证明)')
         return probs
-    except OSError as e:
-        return [f'可信边界核验IO异常({type(e).__name__}:{e})——fail-closed拒绝']
+    except (OSError, ValueError) as e:
+        return [f'可信边界核验异常({type(e).__name__}:{e})——fail-closed拒绝']
+
+
+def trusted_source_dir(data_dir, trusted_root=None):
+    """FIX8-03(IA-F7-DEF-001): 采集目录核验+**已验证访问路径**(单一事实源)。
+
+    返回(verified|None, problems):
+    - problems非空 → verified=None(fail-closed,原因可诊断);
+    - 全部核验通过 → verified=该目录的**物理形态绝对路径**(realpath)。
+    调用端(snapshot_builder.resolve_inputs/sources_status_problems)的
+    检查对象与文件读取对象自此为**同一条路径**——消除"安全函数检查
+    normpath(dd)/实际IO继续用原始data_dir"的验证/访问分叉。
+    verified与可信根物理锚同级形态(无链接前缀),后续join(verified,
+    filename)即规范物理位;文件名本身仍须过canonical_source_file。"""
+    probs = trusted_dir_problems(data_dir, trusted_root)
+    if probs:
+        return None, probs
+    raw, _ = _raw_path_and_problems(data_dir)
+    return os.path.realpath(os.path.abspath(raw)), []
 
 
 _ISO_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
@@ -431,11 +516,15 @@ def sources_status_problems(sources_status, target_ymd=None, data_dir=None,
     if not isinstance(sources_status, dict):
         return [f'sources_status缺失/非对象:{_short(sources_status)}'
                 '(采集批次完整性不可核验,fail-closed)']
-    # FIX7-01/02: 采集目录祖先路径可信边界(整目录级,一次核验)——可信根
-    # 独立于data_dir(缺省=可信代码位置推导;测试显式传入)。祖先符号链接
-    # 重定向在此整目录层面即拒绝,不等到逐文件实体核验
+    # FIX7-01/02+FIX8-01/02/03: 采集目录祖先路径可信边界(整目录级,一次
+    # 核验)并取得**已验证访问路径**——可信根独立于data_dir(缺省=可信代码
+    # 位置推导;测试显式传入)。祖先符号链接重定向/原始路径含../词法越界
+    # 后realpath自动重新授信一律在此整目录层面拒绝;逐文件实体核验与内容
+    # 摘要重算一律经由verified物理路径执行(检查对象=访问对象,FIX8-03)
+    verified_dir = None
     if data_dir is not None:
-        probs.extend(trusted_dir_problems(data_dir, trusted_root))
+        verified_dir, dprobs = trusted_source_dir(data_dir, trusted_root)
+        probs.extend(dprobs)
     tgt = str(target_ymd) if target_ymd is not None else None
     tgt_date = None
     if tgt and len(tgt) >= 8 and tgt[:8].isdigit():
@@ -528,44 +617,54 @@ def sources_status_problems(sources_status, target_ymd=None, data_dir=None,
                             probs.append(f'sources_status[{ch!r}]FALLBACK lag_days='
                                          f'{ld}超{ch}通道回退窗口{window}自然日'
                                          '(超出既有新鲜度约束,过期文件不得作为回退来源)')
-            # FIX6-01+FIX7: 文件实体核验——仅当前正式流程(data_dir给出,原始
-            # 文件可访问)执行。FIX7-02前置条件:采集目录本身已过可信边界核验
-            # (见函数顶部trusted_dir_problems——FIX6以realpath(data_dir)自证
-            # 的缺陷不再存在),此处再核验文件层:必须是采集目录内的真实普通
-            # 文件,目录/符号链接/越界别名一律不可证明。纯历史重验模式不虚报
-            # "已验证实体"(证据范围=持久化元数据可证部分,见docstring两级口径)
+            # FIX6-01+FIX7+FIX8-03: 文件实体核验——当前正式流程(data_dir
+            # 给出)执行;核验通过时一律经由**已验证物理路径**访问(与构建端
+            # resolve_inputs同一访问对象,不得检查normpath(dd)却读原始
+            # data_dir)。目录不可信时以realpath(str(data_dir))作**诊断探测
+            # 路径**继续产出文件级拒绝原因(结论已由目录级fail-closed,诊断
+            # 不授予任何信任);realpath解析失败(OSError/值异常)则跳过文件级
+            # 诊断。纯历史重验模式(data_dir=None)不虚报"已验证实体"
+            # (证据范围=持久化元数据可证部分,见docstring两级口径)
             if data_dir is not None:
-                full = os.path.join(str(data_dir), fil)
-                if os.path.islink(full):
-                    probs.append(f'sources_status[{ch!r}]声明{status}但来源文件是'
-                                 f'符号链接:{fil}(不得经链接逃逸采集目录)')
-                elif os.path.isdir(full):
-                    probs.append(f'sources_status[{ch!r}]声明{status}但来源文件是'
-                                 f'目录:{fil}(目录不得冒充JSON采集文件)')
-                elif not os.path.isfile(full):
-                    probs.append(f'sources_status[{ch!r}]声明{status}但来源文件在'
-                                 f'采集目录不存在:{fil}(声明批次不可证明)')
-                elif os.path.realpath(full) != os.path.join(
-                        os.path.realpath(str(data_dir)), fil):
-                    probs.append(f'sources_status[{ch!r}]来源文件实际路径与采集目录'
-                                 f'内规范文件名不一致:{fil}(越界/别名不可作为授权来源)')
-                # FIX7-05(IA-F6-RISK-002最小整改): 构建时sha256内容摘要重算
-                # 比对——快照构建后原始采集文件被替换为非JSON/其他内容时,
-                # 文件名/日期/实体核验全绿但内容已变,须以摘要失配拒绝。
-                # 历史快照(无sha256字段)不虚报内容核验,按两级口径处理
-                dig = st.get('sha256')
-                if isinstance(dig, str) and dig.strip():
+                if verified_dir is not None:
+                    probe = verified_dir
+                else:
                     try:
-                        with open(full, 'rb') as _fh:
-                            _actual = hashlib.sha256(_fh.read()).hexdigest()
-                        if _actual != dig:
-                            probs.append(
-                                f'sources_status[{ch!r}]来源文件内容与构建时摘要'
-                                f'不一致:{fil}(原始采集文件在快照构建后被变更'
-                                '——FIX7-05内容绑定)')
-                    except OSError as _e:
-                        probs.append(f'sources_status[{ch!r}]来源文件内容摘要不可'
-                                     f'读取:{fil}({_e})')
+                        probe = os.path.realpath(str(data_dir))
+                    except (OSError, ValueError):
+                        probe = None
+                if probe is not None:
+                    full = os.path.join(probe, fil)
+                    if os.path.islink(full):
+                        probs.append(f'sources_status[{ch!r}]声明{status}但来源文件是'
+                                     f'符号链接:{fil}(不得经链接逃逸采集目录)')
+                    elif os.path.isdir(full):
+                        probs.append(f'sources_status[{ch!r}]声明{status}但来源文件是'
+                                     f'目录:{fil}(目录不得冒充JSON采集文件)')
+                    elif not os.path.isfile(full):
+                        probs.append(f'sources_status[{ch!r}]声明{status}但来源文件在'
+                                     f'采集目录不存在:{fil}(声明批次不可证明)')
+                    elif os.path.realpath(full) != full:
+                        # verified_dir为物理形态,任何再解析偏差=文件层别名/越界
+                        probs.append(f'sources_status[{ch!r}]来源文件实际路径与采集目录'
+                                     f'内规范文件名不一致:{fil}(越界/别名不可作为授权来源)')
+                    # FIX7-05(IA-F6-RISK-002最小整改): 构建时sha256内容摘要重算
+                    # 比对——快照构建后原始采集文件被替换为非JSON/其他内容时,
+                    # 文件名/日期/实体核验全绿但内容已变,须以摘要失配拒绝。
+                    # 历史快照(无sha256字段)不虚报内容核验,按两级口径处理
+                    dig = st.get('sha256')
+                    if isinstance(dig, str) and dig.strip():
+                        try:
+                            with open(full, 'rb') as _fh:
+                                _actual = hashlib.sha256(_fh.read()).hexdigest()
+                            if _actual != dig:
+                                probs.append(
+                                    f'sources_status[{ch!r}]来源文件内容与构建时摘要'
+                                    f'不一致:{fil}(原始采集文件在快照构建后被变更'
+                                    '——FIX7-05内容绑定)')
+                        except OSError as _e:
+                            probs.append(f'sources_status[{ch!r}]来源文件内容摘要不可'
+                                         f'读取:{fil}({_e})')
         elif status == 'MISSING':
             # FIX6-04(IA-F5-DEF-003): MISSING=无可用来源文件——不得同时声明任何
             # 成功来源字段。真实构建器产物仅{'status'}(字段缺失与值None等价合法,

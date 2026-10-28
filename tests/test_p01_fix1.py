@@ -112,7 +112,8 @@ def build_research_day(base, ymd=DAY, gate='PASS', rev=None, fail_fact=False):
     anchors = sb.build_anchors(snap, ymd)
     packfile = os.path.join(weekly, f'data_pack_{ymd}.md')
     with open(packfile, 'w', encoding='utf-8') as f:
-        f.write(da.build_markdown(snap, ymd, data_dir=base) if gate != 'FAIL'
+        f.write(da.build_markdown(snap, ymd, data_dir=base,
+                                trusted_root=base) if gate != 'FAIL'
                 else '# pack')
     sc_date, sc_cur = da.scorecard_state(ymd, data_dir=base)
     rp.write_meta(packfile, {'source': 'snapshot', 'generated_by': 'data_assembler',
@@ -268,7 +269,8 @@ with tempfile.TemporaryDirectory() as td:
     vp = os.path.join(td, 'views.json')
     json.dump({'version': 2, 'views': [], 'predictions': []}, open(vp, 'w'))
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
-                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath)
+                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath,
+                      trusted_root=td)
     check("观察器: 残留锚点批次→关键FAIL不写观察", st == 'FAIL' and ch == [],
           f"{st} {ch}")
 
@@ -619,7 +621,8 @@ with tempfile.TemporaryDirectory() as td:
     vp = views_file(td, [obs_pred(91, 'global_market.data.GOLD.close')])
     before = open(vp).read()
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
-                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath)
+                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath,
+                      trusted_root=td)
     check("观察器: 无meta→关键FAIL不写观察", st == 'FAIL' and open(vp).read() == before,
           f"{st} {ch}")
 with tempfile.TemporaryDirectory() as td:
@@ -632,7 +635,8 @@ with tempfile.TemporaryDirectory() as td:
     vp = views_file(td, [obs_pred(91, 'macro.data.UMCSENT.value'),
                          obs_pred(92, 'global_market.data.SPX.close')])
     ch, n, st = quiet(dpo.observe, views_path=vp, anchors=anchors,
-                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath)
+                      today_str=DAY_ISO, anchors_date=DAY, anchors_path=apath,
+                      trusted_root=td)
     saved = json.load(open(vp))
     p91 = next(p for p in saved['predictions'] if p['pred_id'] == 91)
     p92 = next(p for p in saved['predictions'] if p['pred_id'] == 92)

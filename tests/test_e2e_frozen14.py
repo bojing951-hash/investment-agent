@@ -668,7 +668,7 @@ with tempfile.TemporaryDirectory() as td:
         json.dump(preds, f, ensure_ascii=False)
     changes, nwatch, status = dpo.observe(
         views_path=views_path, anchors=anchors, today_str='2026-10-24',
-        anchors_date=DAY, anchors_path=paths['anchors'])
+        anchors_date=DAY, anchors_path=paths['anchors'], trusted_root=td)
     with open(views_path, encoding='utf-8') as f:
         after = json.load(f)
     got = {p['pred_id']: p for p in after['predictions']}
@@ -695,7 +695,7 @@ with tempfile.TemporaryDirectory() as td:
     bytes_after = open(views_path, 'rb').read()
     changes2, _, status2 = dpo.observe(
         views_path=views_path, anchors=anchors, today_str='2026-10-24',
-        anchors_date=DAY, anchors_path=paths['anchors'])
+        anchors_date=DAY, anchors_path=paths['anchors'], trusted_root=td)
     check("E2E-12e 同批次重复运行幂等(零新增变更,长期状态文件字节不变)",
           changes2 == [] and open(views_path, 'rb').read() == bytes_after,
           f"changes2={len(changes2)}")

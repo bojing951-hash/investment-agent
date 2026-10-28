@@ -189,6 +189,10 @@ def independent_period_returns(dates, values, obs_date):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--data-dir', required=True, help='真实采集data/daily目录')
+    ap.add_argument('--trusted-root', default=None,
+                    help='采集可信项目根(缺省=代码位置推导的本仓库根;从克隆'
+                         '目录验收线上数据时须显式传入线上项目根——FIX8-03:'
+                         '不由--data-dir自身推导父目录作授权依据)')
     ap.add_argument('--out-dir', default=os.path.join(ROOT_DIR, 'output', 'acceptance'))
     ap.add_argument('--skip-external', action='store_true', help='跳过外部源(离线复算验收)')
     args = ap.parse_args()
@@ -204,11 +208,13 @@ def main():
         sys.exit(1)
     print(f"\n📌 验收数据日: {day}(真实采集,来源目录{args.data_dir})")
 
-    # 快照构建到临时目录(不污染真实数据目录)
+    # 快照构建到临时目录(不污染真实数据目录)。
+    # FIX8-03(IA-F7-DEF-001): 可信根=--trusted-root显式参数(缺省=代码位置
+    # 推导的仓库根)——不从--data-dir参数推导父目录自证;从克隆目录验收
+    # 线上数据时显式传线上项目根(显式授权,留痕可审计)
     with tempfile.TemporaryDirectory() as td:
         snap = sb.build_snapshot(target_ymd=day, data_dir=args.data_dir, out_dir=td,
-                                 trusted_root=os.path.dirname(os.path.dirname(
-                                     os.path.abspath(str(args.data_dir)))),
+                                 trusted_root=args.trusted_root,
                                  as_of=datetime.now().astimezone().isoformat(timespec='seconds'))
         if snap is None:
             snap_path = os.path.join(td, f'research_snapshot_{day}.json')
@@ -217,6 +223,15 @@ def main():
         if snap is None:
             print("❌ 快照构建失败(该日快照已存在→不可变,读取现有)")
             sys.exit(1)
+        # FIX8-03(IA-F7-DEF-001): 采集目录不可信时gate_a.status=None/FAIL——
+        # 此前D段只把Gate A状态记为一条判定(非FAIL值不计入n_fail),不可信
+        # 目录全SKIP场景会以exit 0"验收通过"放行。验收是正式结论入口,与报告
+        # 预检同规: 非PASS/DEGRADED快照不得通过真实数据验收。
+        _ga_status = (snap.get('gate_a') or {}).get('status')
+        if _ga_status not in ('PASS', 'DEGRADED'):
+            print(f"❌ 当日研究快照Gate A={_ga_status}(采集目录不可信或核心来源"
+                  "缺失)——该数据集不得通过真实数据验收(信任边界: FIX8-03)")
+            sys.exit(2)
         facts = {f['metric_id']: f for f in snap.get('facts', []) if isinstance(f, dict)}
         store = snap.get('series_store') or {}
         as_of = snap.get('research_as_of', '')

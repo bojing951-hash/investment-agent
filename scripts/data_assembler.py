@@ -120,7 +120,7 @@ def _rows(facts, classes, source=None):
     return out
 
 
-def build_markdown(snapshot, ymd, data_dir=None):
+def build_markdown(snapshot, ymd, data_dir=None, trusted_root=None):
     facts = snapshot.get('facts', [])
     L = [f"# 投资数据包 {ymd}",
          "",
@@ -151,11 +151,16 @@ def build_markdown(snapshot, ymd, data_dir=None):
     # IA-P0-1: Gate A=DEGRADED → 显式降级披露(不合格指标逐项点名,进入报告正文)
     # FIX5-01: 与主入口同口径(带采集目录,按当前正式流程核验来源文件在场——
     # 构建端与消费端不出现两套结论)
-    # FIX7-01: 可信根=数据根的上级目录(生产=代码位置推导的项目根;调用方
-    # 显式传入沙箱数据根时=调用方授权的采集结构根),独立于被校验daily目录
+    # FIX7-01: 可信根独立于被校验daily目录。
+    # FIX8-03(IA-F7-DEF-001): 可信根缺省=**模块DATA_DIR的上级目录**(模块
+    # 可信配置:生产DATA_DIR由代码位置推导,测试patch DATA_DIR=fixture授权
+    # 缝)——**绝不从data_dir参数自身推导父目录作为授权依据**(待校验路径
+    # 不得自证可信);显式trusted_root参数=测试/工具唯一覆盖途径
+    _tr = trusted_root if trusted_root is not None \
+        else os.path.dirname(str(DATA_DIR))
     gate_a_status = rp.gate_status(
         snapshot, data_dir=os.path.join(data_dir or DATA_DIR, 'daily'),
-        trusted_root=os.path.dirname(os.path.normpath(str(data_dir or DATA_DIR))))[0]
+        trusted_root=_tr)[0]
     if gate_a_status == 'DEGRADED':
         L.append("## ⚠️ 数据质量降级披露(Gate A=DEGRADED)")
         L.append("本数据包基于**已验证但部分降级**的数据生成;以下指标质量不合格,"
@@ -306,12 +311,15 @@ def main():
     if snapshot is None:
         print(f"❌ {ymd}无有效研究快照,数据包未生成({path};先跑snapshot_builder)")
         sys.exit(1)
-    # FIX7-01: 可信根=快照路径的祖父目录(生产布局PROJECT/data/daily→PROJECT;
-    # 沙箱td/daily或td/data/daily同样成立),独立于被校验daily目录——祖先
-    # 符号链接重定向(data→/outside等)在此被拒,不以realpath(data_dir)自证
+    # FIX7-01: 可信根独立于被校验daily目录——祖先符号链接重定向
+    # (data→/outside等)在此被拒,不以realpath(data_dir)自证。
+    # FIX8-03(IA-F7-DEF-001): 可信根=**模块DATA_DIR的上级目录**(模块可信
+    # 配置;生产DATA_DIR由代码位置推导)——不从磁盘发现的快照路径推导授权
+    # (快照路径本身属被校验对象,其父目录不得作为唯一授信依据)
+    _anchor = os.path.dirname(str(DATA_DIR))
     status, reason = rp.gate_status(
         snapshot, data_dir=os.path.dirname(path),
-        trusted_root=os.path.dirname(os.path.dirname(os.path.abspath(path))))
+        trusted_root=_anchor)
     if not rp.gate_allows_formal_research(status):
         # FAIL / None(缺gate_a字段/状态非法): 均不得生成正式数据包(不得默认PASS)
         print(f"⛔ Gate A {'FAIL' if status == 'FAIL' else '不可用'}"
@@ -331,11 +339,9 @@ def main():
         'source': 'snapshot',
         'generated_by': 'data_assembler',
         'generated_at': datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-        # FIX7-01: 与上方gate_status同一可信根锚(快照路径祖父目录)
-        **rp.provenance_of(
-            snapshot, path,
-            trusted_root=os.path.dirname(os.path.dirname(
-                os.path.abspath(path)))),
+        # FIX7-01: 与上方gate_status同一可信根锚。
+        # FIX8-03: 锚=模块DATA_DIR上级(模块可信配置),不从快照路径推导
+        **rp.provenance_of(snapshot, path, trusted_root=_anchor),
         'pack_file': os.path.basename(out),
         'pack_digest': rp.digest_file(out),
         'scorecard_date': sc_date,

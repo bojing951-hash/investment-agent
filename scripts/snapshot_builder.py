@@ -56,16 +56,24 @@ def resolve_inputs(target_ymd, data_dir=None, trusted_root=None):
     独立于data_dir,绝不由被校验目录或其realpath自证);祖先符号链接重
     定向/越界路径一律不读取该目录任何文件(全部按缺源处理,快照Gate A
     随之fail-closed),构建端不得先从链接重定向目录选出文件构成PASS快照、
-    把发现异常推迟到下游。测试按FIX7-AC §5.3显式传入fixture控制的临时
-    可信根(沙箱授权缝,生产入口不传该参数——不构成生产绕过后门)。"""
+    把发现异常推迟到下游。
+    FIX8-01/02/03(IA-F7-DEF-001): 边界核验含**原始路径..组件拒绝**(词法
+    折叠前)与**词法越界后realpath自动重新授信禁止**;核验通过后本函数
+    一切文件访问(精确匹配/glob/读取)一律改用rp.trusted_source_dir返回的
+    **已验证物理路径**——安全检查对象与实际读取对象为同一条路径,不再
+    "检查normpath(dd)/IO用原始data_dir"分叉(验收反例:project/alias/..
+    折叠后指向TRUSTED、经链接实际读取UNTRUSTED)。
+    测试按FIX7-AC §5.3显式传入fixture控制的临时可信根(沙箱授权缝,
+    生产入口不传该参数——不构成生产绕过后门)。"""
     dd = data_dir or DATA_DIR
-    trust_probs = rp.trusted_dir_problems(dd, trusted_root)
+    verified, trust_probs = rp.trusted_source_dir(dd, trusted_root)
     if trust_probs:
         for _p in trust_probs:
             print(f"⛔ [FIX7信任边界] {_p}")
         print(f"⛔ [FIX7信任边界] 采集目录不可信,不读取其任何文件"
               f"(全部按缺源处理): {dd}")
         return {name: None for name, _pat, _w in SOURCES}
+    dd = verified   # FIX8-03: 后续一切文件访问=已验证物理路径
     out = {}
     for name, pattern, window in SOURCES:
         exact = os.path.join(dd, pattern.replace('*', target_ymd))

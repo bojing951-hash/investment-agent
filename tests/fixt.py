@@ -269,7 +269,8 @@ def build_full_day(root, ymd, gate='PASS', break_metric=None, missing=(),
     if 'pack' not in skip and gate_now != 'FAIL':
         packfile = os.path.join(weekly, f'data_pack_{ymd}.md')
         with open(packfile, 'w', encoding='utf-8') as f:
-            f.write(da.build_markdown(snap, ymd, data_dir=data_root))
+            f.write(da.build_markdown(snap, ymd, data_dir=data_root,
+                                      trusted_root=root))
         if 'pack_meta' not in skip:
             sc_date, sc_current = da.scorecard_state(ymd, data_dir=data_root)
             rp.write_meta(packfile, {

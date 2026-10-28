@@ -418,7 +418,8 @@ anchors_e = json.load(open(p8['anchors'], encoding='utf-8'))
 ch_e, n_e, st_e = dpo.observe(views_path=views_e, anchors=anchors_e,
                               today_str='2026-10-24', anchors_date=DAY,
                               anchors_path=os.path.join(TR8, 'data', 'daily',
-                                                        f'anchors_{DAY}.json'))
+                                                        f'anchors_{DAY}.json'),
+                              trusted_root=TR8)
 check("E2 观察器: 祖先链接采集目录的锚点批次→关键FAIL,长期状态字节不变",
       st_e == 'FAIL' and ch_e == [] and open(views_e, 'rb').read() == views_bytes,
       f"st={st_e} ch={len(ch_e)}")

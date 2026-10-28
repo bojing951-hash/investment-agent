@@ -569,8 +569,11 @@ def verify_research_inputs(ymd=None):
     ymd = ymd or datetime.now().strftime('%Y%m%d')
     # FIX7-01: 可信根=数据根的上级目录(生产=代码位置推导的项目根;测试
     # patch DATA_DIR=沙箱data根时=fixture授权的沙箱结构根),独立于被校验
-    # daily目录——祖先符号链接重定向在此被拒,不由data_dir/realpath自证
-    _trusted_root = os.path.dirname(os.path.normpath(str(DATA_DIR)))
+    # daily目录——祖先符号链接重定向在此被拒,不由data_dir/realpath自证。
+    # FIX8-01/02/03(IA-F7-DEF-001): 模块DATA_DIR=可信配置常量(生产由代码
+    # 位置推导);其上级为可信根锚——normpath不再用于锚定推导,路径词法
+    # 折叠/..拒绝/realpath重授信禁止由rp.trusted_dir_problems统一执行
+    _trusted_root = os.path.dirname(str(DATA_DIR))
     daily_dir = os.path.join(DATA_DIR, 'daily')
     problems = []
 
@@ -619,7 +622,10 @@ def verify_research_inputs(ymd=None):
         # 改包内数字后同步改meta摘要也难逃: 以权威快照重算包内容比对
         try:
             import data_assembler as _dasm
-            expected_pack = _dasm.build_markdown(snap, ymd, data_dir=DATA_DIR)
+            # FIX8-03: 与预检同一可信根锚传给装配器重建(模块可信配置,
+            # 不让build_markdown退回其自身模块锚造成两套边界)
+            expected_pack = _dasm.build_markdown(snap, ymd, data_dir=DATA_DIR,
+                                                 trusted_root=_trusted_root)
             with open(pack_path, 'r', encoding='utf-8') as f:
                 actual_pack = f.read()
             if actual_pack != expected_pack:

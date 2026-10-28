@@ -23,7 +23,13 @@ import allocation_engine  # P2/P3 配置研究引擎(同目录)
 import research_provenance as rp  # IA-P0-1: 来源链核验/门禁合成
 
 # ============ 路径配置 ============
-PROJECT_DIR = os.path.join(os.path.dirname(__file__), '..')
+# FIX11-01(IA-F10-DEF-001): 原join(dirname(__file__),'..')推导的DATA_DIR词法
+# 含'scripts/..'组件,自FIX8-01起被trusted_dir_problems的..拒绝规则一律
+# fail-closed——生产周报链(run_weekly以绝对脚本路径子进程启动rg)将在预检
+# 确定性exit 2。统一为与data_assembler/snapshot_builder/daily_prediction_
+# observer一致的绝对双dirname形态(纯路径配置推导,不含'..';授权判断仍全部
+# 由rp.trusted_dir_problems执行,本行不构成任何授权)。
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(PROJECT_DIR, 'data')
 CONFIG_DIR = os.path.join(PROJECT_DIR, 'config')
 OUTPUT_DIR = os.path.join(PROJECT_DIR, 'output', 'weekly')

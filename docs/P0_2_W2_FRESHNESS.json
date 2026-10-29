@@ -2102,7 +2102,7 @@
    "policy_status": "APPROVED_FIX2_ROUND4",
    "approval_basis": "第四轮(2026-10-29T14:31:53.712Z, FIX2-05)收紧10→7: 恒指官方方法确认AH指数在内地和/或香港任一开市期间计算发布→观测日历=两地并集,原round-2'春节/国庆8~9天'前提不成立; 正常缺口≈5天+2天采集缓冲(用户亲选'缩短至7天(推荐)', 见P0_2_W2_FIX2_POLICY_HSAHP.md §5); round-2曾以错误前提批准10(历史保留)",
    "gate_a_impact": "收紧10→7天: 滞后8~10天的事实从有效变DEGRADED披露(采集异常暴露提前3天); 相对旧Gate A(5)仍为放宽5→7",
-   "gate_b_impact": "旧7天/daily(china前缀=7(无.close字段))→新10天/daily: 身份经canonical映射+注册表策略,频率误判消除",
+   "gate_b_impact": "三版本口径(FIX3-05厘清,不得混同): W2开发前Gate B旧规则≈7天/daily(china前缀=7,无.close字段); FIX1阶段曾达10天/daily(round-2批准,身份经canonical映射+注册表策略,频率误判消除); FIX2以后实际7天/daily(第四轮10→7,与Gate A一致)——现行生效=7天(registry approved)",
    "production_impact": "日度生产快照Gate A按新窗口计算; 历史快照/报告/采集文件一律不改写(§十一)"
   },
   {

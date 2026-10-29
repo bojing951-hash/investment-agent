@@ -31,7 +31,7 @@
 import json
 import os
 import re
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 
 # ══ 政策审批记录(单一事实源,政策矩阵docs/P0_2_W2_FRESHNESS.*与此一致) ══
 POLICY_APPROVAL = {
@@ -192,33 +192,72 @@ def _delta_hours(later, earlier):
     return f"{h:+g}小时"
 
 
+# FIX3-01(IA-P02-W2-FIX2-DEF-001): 现实时区UTC偏移界——tz数据库在用极值
+# −12:00(贝克岛/豪兰岛)~+14:00(基里巴斯线岛)。由此推出**可验证时间范围**:
+#   无时区墙钟W: 真实UTC时刻=W−offset,offset∈[−12:00,+14:00]
+#     → UTC∈[W−14h, W+12h];
+#   日历日D(任何时刻在任何时区): UTC∈[D 00:00−14h, D 23:59:59.999999+12h]。
+# 这是混合精度下唯一允许的确定性依据(指令§5.5第5条)——**区间无交**才可
+# 判先后;区间有交则任何名义日差(含|dd|≥2)都不得作认证依据(DEF-001
+# 组二反例: naive 10-24T23:59×aware 10-26T00:00+14:00 名义差2日仍可翻转)。
+_TZ_EAST_BOUND = timedelta(hours=14)   # 最高偏移+14:00(墙钟对应UTC最早)
+_TZ_WEST_BOUND = timedelta(hours=12)   # 最低偏移−12:00(墙钟对应UTC最晚)
+
+
+def _utc_bounds(tv):
+    """时点输入的可能UTC时刻闭区间(lo,hi)(FIX3-01;统一naive-UTC坐标):
+      aware DATETIME → [instant(转UTC), instant](精确单点);
+      naive DATETIME → 墙钟W−offset,offset∈[−12,+14] → [W−14h, W+12h];
+      DATE_ONLY     → 日历日D在任何时区的任何时刻
+                       → [D 00:00−14h, D 23:59:59.999999+12h]。
+    只在现实时区界内成立;绝不假设UTC/HKT/本机时区(§5.4 TIMEZONE_UNSPECIFIED
+    不得自行定区)。"""
+    if tv['precision'] == 'DATETIME':
+        inst = tv['instant']
+        if tv['tz_aware']:
+            u = inst.astimezone(timezone.utc).replace(tzinfo=None)
+            return u, u
+        return inst - _TZ_EAST_BOUND, inst + _TZ_WEST_BOUND
+    lo = datetime.combine(tv['date'], datetime.min.time()) - _TZ_EAST_BOUND
+    hi = datetime.combine(tv['date'], datetime.max.time()) + _TZ_WEST_BOUND
+    return lo, hi
+
+
 def compare_release_availability(release, as_of):
-    """发布时刻 vs 研究截止的统一可得性比较(FIX2-02核心原语;Gate A/Gate B/
-    事实引擎共用,不得各自降精度重比)。
+    """发布时刻 vs 研究截止的统一可得性比较(FIX2-02核心原语+FIX3-01混合
+    精度区间证明;Gate A/Gate B/事实引擎共用,不得各自降精度重比)。
 
     返回{verdict, granularity, release, as_of, detail}:
-      RELEASED_BEFORE      发布先于截止,可作点时证据——granularity='INSTANT'
-                           (双方aware时刻,绝对先后已证)或'DAY'(跨日,仅证
-                           "截止日之前已发布",不证同日内具体时刻先后)
+      RELEASED_BEFORE      发布先于截止,可作点时证据——granularity:
+                           'INSTANT'(双方aware时刻,绝对先后已证)/
+                           'DAY'(双date-only日粒度,仅证"截止日之前已发布")/
+                           'RANGE'(FIX3-01区间证明: 现实时区界[−12,+14]下
+                           发布侧全部可能UTC时刻均先于截止侧,先后已证但
+                           发布具体时刻未知——不冒充精确时刻认证)
       RELEASED_AFTER       发布晚于截止(NOT_AVAILABLE_AT_AS_OF,硬拒)——
-                           INSTANT(绝对时刻已证晚于)/DAY(跨日,任何时区解释
-                           下均晚于)
+                           INSTANT/DAY/RANGE同上三种证明强度
       UNVERIFIED_SAME_DAY  同一名义日且精度不足以证明先后: 按日粒度视为可得
                            (历史兼容,不FAIL既有数据)但**不得认证点时可得**
-      UNVERIFIED_TZ        涉及无时区时刻且名义日期相邻: 任何时区解释下先后
-                           均可能翻转——同样不认证(不硬拒亦不认证)
+      UNVERIFIED_TZ        含无时区时刻,且可能UTC区间有交(任何现实时区
+                           解释下先后均可能)——不认证(不硬拒亦不认证)
+      UNVERIFIED_PRECISION date-only×完整时间戳的纯精度失配(无naive时刻),
+                           可能UTC区间有交——信息不足,同样不认证
       INVALID_RELEASE / INVALID_AS_OF  输入非法(整串验证口径同parse_instant)
 
-    语义(IA-P0-2-W2-FIX2 §5.4):
+    语义(IA-P0-2-W2-FIX3 §5.4/§5.5):
       A 双aware完整时间戳→转绝对时刻比较,正确处理不同UTC偏移;
-      B 双日期级→保留历史日粒度比较并标明DAY(不证明同日时刻先后);
-      C 一日期一时间戳→跨日可保守判定;同日=精度不足→UNVERIFIED_SAME_DAY;
-      D aware/naive混合或含naive时刻→绝不把naive当UTC/HKT/本机时区:
-        名义日期相同→UNVERIFIED_SAME_DAY;相差≥2日(任何±14h时区解释都
-        无法翻转先后)→DAY判定并披露时区未定义;相邻→UNVERIFIED_TZ;
+      B 双date-only→保留历史日粒度比较并标明DAY(不证明同日时刻先后);
+      C 同一名义日(至少一侧带时刻)→UNVERIFIED_SAME_DAY(同日精度不足);
+      D 其余混合精度(date-only×时间戳,或含naive时刻)→**唯一允许的确定性
+        依据是现实时区界UTC区间证明(_utc_bounds,offset∈[−12:00,+14:00])**:
+        区间无交→RELEASED_BEFORE/AFTER(RANGE,披露区间与缺时刻/时区事实);
+        区间有交→UNVERIFIED_TZ/UNVERIFIED_PRECISION。绝不再以名义日差
+        (含|dd|≥2)作确定性依据——DEF-001组二证明naive×+14:00偏移下
+        名义差2日仍可翻转先后;
       E 非法输入→INVALID_*。
-    保守映射契约(§5.5): UNVERIFIED_*不得默认当PASS认证点时可得,亦不得把
-    全部既有数据判FAIL——它是"可得但未认证"的显式披露态。"""
+    保守映射契约(§5.5/§5.6): UNVERIFIED_*不得默认当PASS认证点时可得,亦不
+    得把全部既有数据判FAIL——它是"可得但未认证"的显式披露态;fresh=True
+    仅表示观测新鲜(滞后窗内),绝不表示"已证明在研究截止前发布"。"""
     r = parse_temporal_value(release)
     a = parse_temporal_value(as_of)
     out = {'verdict': None, 'granularity': None,
@@ -243,7 +282,6 @@ def compare_release_availability(release, as_of):
                        detail=f"绝对时刻比较: 发布{r['raw']} 晚于 截止{a['raw']}"
                               f"(差{_delta_hours(r['instant'], a['instant'])})")
         return out
-    # B/C/D: 至少一侧非aware时刻——只能按名义日期作日粒度判断
     tz_undefined = (r['precision'] == 'DATETIME' and not r['tz_aware']) \
         or (a['precision'] == 'DATETIME' and not a['tz_aware'])
     dd = (a['date'] - r['date']).days
@@ -253,22 +291,45 @@ def compare_release_availability(release, as_of):
                    detail=f"同一名义日{r['date'].isoformat()}: {why},不能证明"
                           f"发布先于研究截止——按日粒度可得(历史兼容),不认证点时可得")
         return out
-    if tz_undefined and abs(dd) == 1:
-        out.update(verdict='UNVERIFIED_TZ', granularity='DAY',
-                   detail=f"名义日期相邻({r['date'].isoformat()} vs "
-                          f"{a['date'].isoformat()})且含无时区时刻——任何时区"
-                          f"解释下先后均可能,不可证明亦不可硬拒(不认证点时可得)")
+    # B: 双date-only→历史日粒度比较(日级陈述,标明DAY,不冒充点时认证)
+    if r['precision'] == 'DATE_ONLY' and a['precision'] == 'DATE_ONLY':
+        rel_desc, as_desc = f"发布{r['date'].isoformat()}", f"截止{a['date'].isoformat()}"
+        if dd > 0:
+            out.update(verdict='RELEASED_BEFORE', granularity='DAY',
+                       detail=f"日粒度比较(双方仅日期级): {rel_desc} 早于 {as_desc}"
+                              f"——证明截止日之前已发布,不证明日内具体时刻先后")
+        else:
+            out.update(verdict='RELEASED_AFTER', granularity='DAY',
+                       detail=f"日粒度比较(双方仅日期级): {rel_desc} 晚于 {as_desc}"
+                              f"——截止日之前未发布")
         return out
-    rel_desc = f"发布{r['date'].isoformat()}" + (f"({r['raw']})" if r['precision'] == 'DATETIME' else '')
-    as_desc = f"截止{a['date'].isoformat()}" + (f"({a['raw']})" if a['precision'] == 'DATETIME' else '')
-    if dd > 0:
-        out.update(verdict='RELEASED_BEFORE', granularity='DAY',
-                   detail=f"日粒度比较: {rel_desc} 早于 {as_desc}"
-                          + (';涉无时区时刻,按名义日期判定' if tz_undefined else ''))
+    # D(FIX3-01): 混合精度(date-only×时间戳或含naive时刻)——现实时区界
+    # UTC区间证明是唯一确定性依据;区间有交=信息不足,不认证亦不硬拒。
+    rlo, rhi = _utc_bounds(r)
+    alo, ahi = _utc_bounds(a)
+    gap_note = (f"发布侧可能UTC区间[{rlo.isoformat()}Z,{rhi.isoformat()}Z]"
+                f"×截止侧[{alo.isoformat()}Z,{ahi.isoformat()}Z]"
+                f"(现实时区界−12:00~+14:00;发布缺具体时刻"
+                + ("或时区" if tz_undefined else "")
+                + ",不假设UTC/HKT/本机时区)")
+    if rhi < alo:
+        out.update(verdict='RELEASED_BEFORE', granularity='RANGE',
+                   detail=f"区间证明(混合精度): 发布侧全部可能UTC时刻均早于"
+                          f"截止侧——{gap_note}")
+    elif rlo > ahi:
+        out.update(verdict='RELEASED_AFTER', granularity='RANGE',
+                   detail=f"区间证明(混合精度): 发布侧全部可能UTC时刻均晚于"
+                          f"截止侧——{gap_note}")
+    elif tz_undefined:
+        out.update(verdict='UNVERIFIED_TZ', granularity='DAY',
+                   detail=f"含无时区时刻且可能UTC区间有交(名义日差{dd}日不足为凭,"
+                          f"任何现实时区解释下先后均可能)——{gap_note}"
+                          f"——不认证点时可得")
     else:
-        out.update(verdict='RELEASED_AFTER', granularity='DAY',
-                   detail=f"日粒度比较: {rel_desc} 晚于 {as_desc}"
-                          + (';涉无时区时刻,按名义日期判定' if tz_undefined else ''))
+        out.update(verdict='UNVERIFIED_PRECISION', granularity='DAY',
+                   detail=f"date-only×时间戳精度失配且可能UTC区间有交(名义日差"
+                          f"{dd}日不足为凭,发布日期缺时刻与时区)——{gap_note}"
+                          f"——信息不足,不认证点时可得")
     return out
 
 
@@ -581,12 +642,15 @@ def assess(metric_id, obs_date, as_of, release_date=None):
                  reasons=[f"观测日{o}晚于研究截止{a}(未来数据,非法时点)"])
         return v
     # B问: 点时可得性——只对真实携带的release_date作答,缺失即如实UNKNOWN。
-    # FIX2-02: 先后比较统一经compare_release_availability(精度保持原语):
-    #   双aware完整时间戳→绝对时刻比较(UTC偏移正确处理);
-    #   同日且精度不足/涉无时区时刻相邻→UNVERIFIED(按日粒度可得,历史兼容,
-    #     但**不认证点时可得**——绝不虚报"已验证在研究截止前发布");
-    #   跨日→日粒度判定。绝不把完整时间戳先降成date再比先后(同日
-    #   08:00截止/20:00发布不再被洗白为"发布不晚于截止")。
+    # FIX2-02+FIX3-01: 先后比较统一经compare_release_availability(精度保持原语):
+    #   双aware完整时间戳→绝对时刻比较(UTC偏移正确处理,granularity=INSTANT);
+    #   双date-only→日粒度比较(DAY,历史兼容,不证明日内时刻先后);
+    #   混合精度(date-only×时间戳/含naive)→现实时区界UTC区间证明:区间无交
+    #     =RANGE(先后已证,不冒充精确时刻);区间有交=UNVERIFIED_*(按日粒度
+    #     可得,历史兼容,但**不认证点时可得**——绝不虚报"已验证在研究截止前
+    #     发布",亦绝不再以名义日差作认证依据[FIX2 DEF-001]);
+    #   绝不把完整时间戳先降成date再比先后(同日08:00截止/20:00发布不再被
+    #   洗白为"发布不晚于截止")。
     if release_date is not None:
         cmp = compare_release_availability(release_date, as_of)
         rtv = parse_temporal_value(release_date)
@@ -619,7 +683,8 @@ def assess(metric_id, obs_date, as_of, release_date=None):
             v['point_in_time'] = {'status': 'OK', 'release_date': rel_raw,
                                   'granularity': cmp['granularity'],
                                   'detail': cmp['detail']}
-        else:   # UNVERIFIED_SAME_DAY / UNVERIFIED_TZ(§5.5保守映射: 披露非失败)
+        else:   # UNVERIFIED_SAME_DAY / UNVERIFIED_TZ / UNVERIFIED_PRECISION
+                # (§5.5/§5.6保守映射: 披露非失败;fresh仅观测新鲜维度)
             v['point_in_time'] = {'status': 'POINT_IN_TIME_UNCERTIFIED',
                                   'release_date': rel_raw, 'granularity': 'DAY',
                                   'detail': cmp['detail']}

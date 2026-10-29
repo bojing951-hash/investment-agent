@@ -543,16 +543,21 @@ def validate_fact(fact, raw_item, m, as_of_date=None):
     if a_d and d_obs > a_d:
         issues.append({"category": "time", "severity": "FAIL",
                        "message": f"{mid}观测日{d_obs}晚于研究截止{a_d}"})
-    # FIX1-02(IA-P02-W2-DEF-002)+FIX2-02/03(IA-P02-W2-FIX1-DEF-002续)点时
-    # 可得性——事实真实携带release_date时,**消费fp.compare_release_availability
-    # 统一时刻可得性判定**(不再各自把release/as_of降成date后独立比较):
-    #   RELEASED_AFTER(绝对时刻或跨日判定发布晚于截止)→FAIL
+    # FIX1-02(IA-P02-W2-DEF-002)+FIX2-02/03(IA-P02-W2-FIX1-DEF-002续)
+    # +FIX3-01/02(IA-P02-W2-FIX2-DEF-001)点时可得性——事实真实携带
+    # release_date时,**消费fp.compare_release_availability统一时刻可得性
+    # 判定**(不再各自把release/as_of降成date后独立比较):
+    #   RELEASED_AFTER(绝对时刻/日粒度/区间证明发布晚于截止)→FAIL
     #     (NOT_AVAILABLE_AT_AS_OF: as_of时点该值不可得;核心事实经既有Gate A
-    #     核心FAIL规则阻断;同日"截止08:00/发布20:00"按绝对时刻正确拒绝);
+    #     核心FAIL规则阻断;同日"截止08:00/发布20:00"按绝对时刻正确拒绝;
+    #     混合精度下仅当现实时区界UTC区间证明"全部可能时刻晚于截止"才FAIL
+    #     ——date-only发布×时间戳截止不再按名义日差硬拒或放行);
     #   发布先于观测/非法→FAIL(语义非法);
-    #   RELEASED_BEFORE→通过(granularity披露INSTANT/DAY);
-    #   UNVERIFIED_SAME_DAY/UNVERIFIED_TZ→按日粒度可得(历史兼容,不FAIL既有
-    #     数据)但INFO披露"点时未认证"——绝不虚报已验证点时可得;
+    #   RELEASED_BEFORE→通过(granularity披露INSTANT/DAY/RANGE;RANGE=区间
+    #     证明先后已证但发布具体时刻未知,不冒充精确时刻认证);
+    #   UNVERIFIED_SAME_DAY/UNVERIFIED_TZ/UNVERIFIED_PRECISION→按日粒度可得
+    #     (历史兼容,不FAIL既有数据)但INFO披露"点时未认证"——绝不虚报已
+    #     验证点时可得;
     #   无release_date→RELEASE_UNKNOWN: 不伪造点时认证,月频(存在"观测在窗内
     #     但尚未发布"真实风险区)按WARN披露"发布时间未验证"。
     rel = fact.get('release_date')
@@ -573,7 +578,8 @@ def validate_fact(fact, raw_item, m, as_of_date=None):
                                            f"{as_of_date!r}({cmpv['detail']})"
                                            f"(NOT_AVAILABLE_AT_AS_OF)——as_of时点"
                                            f"该值不可得,不得作为当前研究证据")})
-            elif cmpv['verdict'] in ('UNVERIFIED_SAME_DAY', 'UNVERIFIED_TZ'):
+            elif cmpv['verdict'] in ('UNVERIFIED_SAME_DAY', 'UNVERIFIED_TZ',
+                                     'UNVERIFIED_PRECISION'):
                 issues.append({"category": "release", "severity": "INFO",
                                "message": (f"{mid}点时未认证({cmpv['verdict']}): "
                                            f"{cmpv['detail']}——按日粒度可得,"

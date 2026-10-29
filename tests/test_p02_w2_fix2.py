@@ -495,13 +495,23 @@ fE2 = fe.make_fact('CPI', 316.0, CPI_OBS, '2026-10-25T08:00:00+08:00',
 issE2 = fe.validate_fact(fE2, {'value': 316.0, 'date': CPI_OBS},
                          fe.metric('CPI'),
                          as_of_date='2026-10-25T08:00:00+08:00')
-check("E2 naive release×aware as_of相邻日: UNVERIFIED_TZ(任何时区解释下先后"
-      "均可能)→同样'可得但未认证'(INFO非FAIL, fresh按日粒度True)——不假设"
-      "UTC/HKT/本地时区",
-      cE2['verdict'] == 'UNVERIFIED_TZ'
-      and vE2['point_in_time']['status'] == 'POINT_IN_TIME_UNCERTIFIED'
-      and vE2['fresh'] is True and fe.grade_issues(issE2) != 'FAIL',
-      f"{cE2['verdict']} {vE2['point_in_time'].get('status')}")
+# [FIX3-01期望变更·逐项说明] 原断言UNVERIFIED_TZ(FIX2"相邻日一律不可证")
+# 是**欠声称**: naive墙钟10-24T08:00在任何现实时区(−12:00~+14:00)解释下
+# 最晚UTC=10-24T20:00Z,严格早于截止10-25T08:00+08:00=10-25T00:00Z——
+# FIX3指令§5.5第5条明示"可验证时间范围证明"允许确定性结论。FIX3起该组
+# 合判RELEASED_BEFORE(RANGE): 先后已证(区间无交),不冒充精确时刻;粒度
+# RANGE区别于INSTANT(组二同名义差2日仍UNVERIFIED_TZ,见test_p02_w2_fix3)。
+check("E2 naive release×aware as_of相邻日(FIX3-01区间证明): naive墙钟最晚"
+      "可能UTC(10-24T20:00Z)严格早于截止(10-25T00:00Z)→RELEASED_BEFORE"
+      "(RANGE)——先后已证但非精确时刻;点时OK(RANGE粒度)+fresh按日粒度True"
+      "+fe不FAIL亦无'点时未认证'INFO",
+      cE2['verdict'] == 'RELEASED_BEFORE' and cE2['granularity'] == 'RANGE'
+      and vE2['point_in_time']['status'] == 'OK'
+      and vE2['point_in_time']['granularity'] == 'RANGE'
+      and vE2['fresh'] is True and fe.grade_issues(issE2) != 'FAIL'
+      and not any('点时未认证' in i['message'] for i in issE2),
+      f"{cE2['verdict']}/{cE2['granularity']} "
+      f"{vE2['point_in_time'].get('status')}")
 cE3 = fp.compare_release_availability('2026-10-25T08:00:00+08:00',
                                       '2026-10-24T20:00:00')
 check("E3 aware release×naive as_of相邻日(反向混合): 同样UNVERIFIED_TZ, "

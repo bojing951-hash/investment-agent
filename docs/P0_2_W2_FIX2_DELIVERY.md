@@ -13,14 +13,22 @@
 
 ## 2. 最终提交
 
-- FIX2 实现提交: 见 git log (本文档首次随实现提交入库)
-- FIX2 最终固定提交: 本交付文档最后一次提交即最终提交(其SHA见§18 CI head_sha
-  与 `git log -1 dev/p0-2-w2`; 交付文档无法含自身哈希, 以CI运行记录为准)
+- FIX2 实现提交: `1aafdb820594df94bed7481171eaec402dd336dc`
+  "W2-FIX2: 严格截止三态+发布时间精度UTC+HSAHP第四轮批准(10→7)"
+  (13文件 1501+/62-, CI运行#1即此SHA, 见§18)
+- FIX2 最终固定提交: 本交付文档的CI/隔离核验补录提交(§16.1/§18回填)即
+  最终提交, 其SHA见§18运行#2 head_sha 与 `git log -1 dev/p0-2-w2`;
+  交付文档无法含自身哈希, 以CI运行记录为准(补录仅改docs, 不改代码/测试)。
 
 ## 3. 变更范围
 
-- 增量 diff(124a266→FIX2最终): §18 CI 页面 diff 链接与统计
-- 累计 W2 diff(69d7fc7→FIX2最终): 同上 base 版本切换
+- 增量 diff(124a266→实现1aafdb8): **13文件 1501+/62-**(代码+测试+政策文档);
+  最终固定提交在其上仅追加本交付文档回填(docs-only)。
+  页面: https://github.com/bojing951-hash/investment-agent/compare/124a266...dev/p0-2-w2
+- 累计 W2 diff(69d7fc7→实现1aafdb8): **30文件 6713+/199-**。
+  页面: https://github.com/bojing951-hash/investment-agent/compare/69d7fc7...dev/p0-2-w2
+  (两链接以分支名解析到最终提交; 本机同源命令
+  `git diff --shortstat 124a266..dev/p0-2-w2` 可复核)
 - 改动文件(实现): scripts/freshness_policy.py(新增解析/比较原语+assess点时重写),
   scripts/research_provenance.py(研究截止三态), scripts/fact_engine.py(发布分支
   统一消费瞬时判断), scripts/data_validator.py(警示披露绝对时刻关系),
@@ -206,15 +214,31 @@ SB_FLOW(南向净买入)观测日历=沪深港通**通道开放日=两地开市�
 
 | 项 | DEV | LIVE |
 |---|---|---|
-| realpath | /Users/cast/investment-agent-dev | /Users/cast/AI内容/📕_AI投资项目/每周宏观追踪/investment-agent |
+| realpath | /Users/cast/investment-agent-dev | /Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent |
 | inode | 60895116 | 22199716 |
-| Git | dev/p0-2-w2 @ FIX2最终SHA(§18 CI head_sha) | 纯消费目录, 无.git, 不在版本管理内 |
+| Git | dev/p0-2-w2 @ 实现SHA 1aafdb8(本文档补录提交=最终, §2) | 纯消费目录, 无.git, 不在版本管理内 |
 | origin/main | 50b5d13(未合并main) | — |
-| launchd | 无引用(dev路径) | com.user.investment.*指向LIVE路径(本轮零改动) |
-| 关键源文件 | — | 6-8个关键文件SHA-256与P0-1固定版本(50b5d13 blob)一致(见§16.1) |
+| launchd | 无引用(dev路径) | com.investment.daily/weekly 指向LIVE路径(本轮零改动) |
+| 关键源文件 | — | 7/8 关键文件 git-blob == 50b5d13, 第8个(freshness_policy.py)LIVE不存在(见§16.1) |
 
-§16.1 最终核验输出(LIVE 8文件 hash-object 对比 50b5d13): 见最终提交后
-回填段(§18 附注); 任何不一致将如实报告并停止。
+§16.1 最终核验输出(实现提交1aafdb8后、只读执行; LIVE 8文件
+`git hash-object` 对比 50b5d13 blob):
+
+| LIVE文件 | 50b5d13 blob | 结果 |
+|---|---|---|
+| scripts/fact_engine.py | 存在 | **MATCH** |
+| scripts/data_validator.py | 存在 | **MATCH** |
+| scripts/research_provenance.py | 存在 | **MATCH** |
+| scripts/snapshot_builder.py | 存在 | **MATCH** |
+| scripts/report_generator.py | 存在 | **MATCH** |
+| scripts/daily_prediction_observer.py | 存在 | **MATCH** |
+| scripts/china_market_collector.py | 存在 | **MATCH** |
+| scripts/freshness_policy.py | **不存在** | LIVE不存在 — 该文件为W2新增模块(50b5d13与LIVE均无, 仅DEV有)→ **LIVE从未接收任何W2代码, 本身即隔离证明** |
+
+- launchd 实测: com.investment.weekly.plist→LIVE report_generator.py;
+  com.investment.daily.plist→LIVE run_daily.sh; 均未指向DEV, 本轮零改动。
+- LIVE 祖先目录无symlink(realpath==原路径); DEV同(inode 60895116, 无符号链)。
+- 任何不一致将如实报告并停止 — 本轮无不一致。
 GitHub侧可验证: 本报告+diff+CI; Mac本地只读可验证: 上表; 不可证明: 历史
 瞬态(取证时点的文件系统状态一致性属只读快照声明)。
 
@@ -230,11 +254,22 @@ RC=0(真实GLM按指令跳过)。除A6a(§14, 第四轮批准所致)外**零期�
 ## 18. 最新 GitHub Actions(CI 证据)
 
 - 工作流: offline-tests.yml, workflow_dispatch, ref=dev/p0-2-w2
-- 本报告首次提交后dispatch运行#1(head_sha=实现提交), 最终提交后dispatch
-  运行#2(head_sha=最终提交): **以运行#2为准**——须显示 test_p02_w2_fix2
-  exit=0(43/0), test_p02_w2_fix1 exit=0(53/0), test_p02_w2 exit=0(44/0),
-  E2E 14+四周, W1/W1-FIX1, P0-1 FIX1~11, GLM skipped; 旧34套件绿CI不作为
-  FIX2证据。运行链接与head_sha: 最终提交后回填。
+- **运行#1(实现提交)**: run `40896751332`,
+  head_sha=`1aafdb820594df94bed7481171eaec402dd336dc`,
+  conclusion=**success**(2026-10-29T14:58:01Z→14:58:45Z),
+  https://github.com/bojing951-hash/investment-agent/actions/runs/40896751332
+  逐套退出码(取自run日志): 36套全绿——test_p02_w2_fix2 **exit=0**(43/0),
+  test_p02_w2_fix1 exit=0(53/0), test_p02_w2 exit=0(44/0),
+  test_e2e_frozen14/orig14/four_weeks exit=0, test_p02_w1/w1_fix1 exit=0,
+  test_p01_fix1~fix11(11套) exit=0, gate_chain/fact_engine/snapshot/
+  round3-6/p0~p7/phase3-4/datafix exit=0, test_glm_live
+  **SKIPPED**(真实GLM付费调用不进CI, 设计内)。零失败套件(日志无
+  ::error annotation, 失败打包步骤skipped)。
+- **运行#2(最终提交)**: 本文档补录提交push后dispatch, head_sha=最终提交
+  SHA(=运行#1的SHA之上仅docs-only差异, 代码/测试零改动→结论与运行#1
+  同源)。验收入口: Actions→offline-tests→dev/p0-2-w2 最新运行, 其
+  head_sha 须等于 `git log -1 dev/p0-2-w2`; 运行#1为此前的中间形态,
+  旧34套件绿CI(≤124a266)不作为FIX2证据。
 
 ## 19. 未解决事项与证据等级
 
@@ -245,7 +280,7 @@ RC=0(真实GLM按指令跳过)。除A6a(§14, 第四轮批准所致)外**零期�
 | 恒指官方方法事实 | 指令交付(Agent 4已确认)+官方URL佐证; PDF存档不可提取 | 指令确认根, 外部文本佐证不完整(如实) |
 | 采集源更新间隔统计 | 不可得(禁读LIVE; DEV为合成) → 7天窗含2天缓冲属业务批准值 | 用户批准(§14), 非统计测量 |
 | 四轮批准原始证据 | 取证文档已交付 | C+D; U级升级=Agent 4读原始JSONL(§13) |
-| CI 最终运行 | 最终提交后dispatch(§18回填) | GitHub公开可验证 |
-| DEV-LIVE 隔离 | 最终提交后只读核验(§16回填) | Mac本地只读 |
+| CI 最终运行 | 运行#1已回填(§18); 运行#2=最终提交后dispatch, 链接在会话最终报告 | GitHub公开可验证 |
+| DEV-LIVE 隔离 | 已核验回填(§16.1): 7 MATCH+freshness_policy.py不存在于LIVE | Mac本地只读 |
 
 — 最终裁决权: Agent 4 独立工程验收。

@@ -21,6 +21,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import research_provenance as rp
+import freshness_policy as fp
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MIN_ANCHOR_COUNT = 20  # 最低锚点数量阈值
@@ -449,53 +450,66 @@ def resolve_check_anchors(anchors, key_pattern, canonical, require=None,
 DAILY_SOURCES = ('global_market', 'china')
 MAX_STALE_DAYS = 5
 
-# ── 指标级频率注册表(第四轮P0-3): 频率由指标本身决定,不凭JSON目录 ──────────────
-# macro.data.*为FRED系列,须逐系列区分: 月度CPI/就业等不能套7天规则(7天会把上月CPI判过期),
-# 日频利差/收益率不能放宽到45天。rate_economy.*全部月度。行情/评分卡按原规则。
-MACRO_MONTHLY_SERIES = {'FED_FUNDS', 'CPI', 'CORE_PCE', 'UNEMPLOYMENT', 'NFP',
-                        'CORE_CPI', 'AHE', 'WTI'}          # FRED月度(发布滞后次月初~月中)
-MACRO_WEEKLY_SERIES = {'ICSA'}                              # FRED周度(每周四发布)
-# 其余macro.data.*(BAML利差/DGS收益率/DFII实际利率/T5YIE通胀预期/T10Y2Y曲线)=日频
-_MONTHLY_MAX_LAG, _WEEKLY_MAX_LAG, _DAILY_MACRO_MAX_LAG = 45, 16, 7
+# ── IA-P0-2-W2: 统一时效规则(单一来源=注册表已批准策略,经freshness_policy) ──
+# 旧prefix规则废除(W2-DEF-002): macro月度枚举表(漏INDPRO/JTSJOL/RSAFS/UMCSENT,
+# 'WTI'键从未匹配实际键WTI_SPOT_M)、rate_economy.*一律月度45(把日频DFF/DFEDTARU/
+# DFEDTARL误判月频)、china一律7(与注册表5/10分叉)、未映射默认14信任。
+# 现行规则: 锚点身份由canonical键映射(镜像snapshot_builder构造规则)+锚点自带
+# metric_id交叉核验决定(冲突以canonical为准,caller身份不得授权放宽);窗口与频率
+# 由注册表已批准策略决定(与Gate A/fact_engine同一份)。未映射锚点fail-closed,
+# 14仅作为freshness_rule_for的遗留诊断兼容值保留(非时效认证)。
+UNMAPPED_LEGACY_DIAGNOSTIC = 14   # 第三轮P0-4遗留诊断值:仅诊断兼容,非认证
 
 
-def metric_frequency(anchor_key):
-    """指标频率注册查询: 返回(freq, max_lag_days, 说明)。
-    freq ∈ daily/weekly/monthly/unknown; 按指标身份(系列名)判定,非目录名。"""
-    m = re.match(r'^macro\.data\.([A-Za-z0-9_]+)\.', anchor_key)
-    if m:
-        name = m.group(1)
-        if name in MACRO_MONTHLY_SERIES:
-            return 'monthly', _MONTHLY_MAX_LAG, f'FRED月度系列{name}(含发布滞后)'
-        if name in MACRO_WEEKLY_SERIES:
-            return 'weekly', _WEEKLY_MAX_LAG, f'FRED周度系列{name}'
-        return 'daily', _DAILY_MACRO_MAX_LAG, f'FRED日频系列{name}'
-    if anchor_key.startswith('rate_economy.'):
-        return 'monthly', 45, 'rate_economy月度序列(含发布滞后)'
-    if re.search(r'\.close$|\.pct_change$|\.change$|\.high$|\.low$', anchor_key):
-        return 'daily', 5, '日频行情'
-    if anchor_key.startswith('china.'):
-        return 'daily', 7, 'A股日频'
-    if anchor_key.startswith('scorecard.'):
-        return 'weekly', 10, '周度评分卡'
-    return 'unknown', 14, '未注册指标(默认)'
+def metric_frequency(anchor_key, info=None):
+    """指标频率查询(W2统一): 返回(freq, max_lag_days, 说明)。
+    身份: 锚点键canonical映射→注册表已批准策略;info.metric_id仅交叉核验。
+    scorecard为报告内部推导(非注册表指标),维持周度10天遗留规则并显式标注。
+    未映射锚点返回('unknown', 14, UNMAPPED说明)——诊断兼容值,fail-closed
+    (is_fresh_anchor对未映射锚点直接False,见下)。"""
+    ident = fp.verify_anchor_identity(anchor_key, info)
+    if ident['status'] == 'MAPPED':
+        pol = fp.policy_for(ident['metric_id'])
+        if pol is not None:
+            note = f"注册表已批准窗口({ident['metric_id']};{ident['basis']})"
+            if ident.get('conflict'):
+                note += f";{ident['conflict']}"
+            return pol['frequency'], pol['window'], note
+    elif ident['family'] == 'scorecard' or (isinstance(anchor_key, str)
+                                            and anchor_key.startswith('scorecard.')):
+        return 'weekly', 10, '周度评分卡(报告内部推导,非注册表指标;遗留规则)'
+    return 'unknown', UNMAPPED_LEGACY_DIAGNOSTIC, \
+        'UNMAPPED:锚点未映射到注册表指标(遗留诊断值,非时效认证)'
 
 
 def metric_registry_info(anchor_key, info=None):
     """指标元数据注册表条目(供校验日志/证据核验披露):
-    {metric_id, source, frequency, max_lag_days, observation_date, as_of, retrieved_at}。
-    release_date采集端不可得 — 如实标注None,不伪造。"""
-    freq, max_lag, desc = metric_frequency(anchor_key)
+    {metric_id, source, frequency, max_lag_days, observation_date, as_of, retrieved_at,
+     identity_status, identity_basis, caller_metric_id_conflict}。
+    release_date采集端不可得 — 如实标注None,不伪造(W2-DEF-003三问分离,
+    点时可得性仅对真实release_date作答,见freshness_policy.assess)。"""
+    ident = fp.verify_anchor_identity(anchor_key, info)
     info = info or {}
-    return {'metric_id': anchor_key,
-            'source': anchor_key.split('.')[0],
-            'frequency': freq,
-            'max_lag_days': max_lag,
-            'observation_date': str(info.get('obs_date') or '')[:10] or None,
+    base = {'observation_date': str(info.get('obs_date') or '')[:10] or None,
             'release_date': None,  # 采集端无此字段,不得伪造
             'retrieved_at': str(info.get('as_of') or '')[:10] or None,
             'as_of': str(info.get('as_of') or '')[:10] or None,
-            'note': desc}
+            'metric_id': anchor_key,
+            'source': anchor_key.split('.')[0] if isinstance(anchor_key, str) else None,
+            'identity_status': ident['status'],
+            'identity_basis': ident['basis'],
+            'caller_metric_id_conflict': ident.get('conflict')}
+    pol = fp.policy_for(ident['metric_id']) if ident['metric_id'] else None
+    if ident['status'] == 'MAPPED' and pol is not None:
+        base.update({'metric_id': ident['metric_id'],
+                     'source': 'metric_registry',
+                     'frequency': pol['frequency'],
+                     'max_lag_days': pol['window'],
+                     'note': f"{ident['basis']};已批准窗口{pol['window']}天({pol['frequency']}频)"})
+    else:
+        freq, max_lag, desc = metric_frequency(anchor_key, info)
+        base.update({'frequency': freq, 'max_lag_days': max_lag, 'note': desc})
+    return base
 
 
 # 兼容旧接口: 逐指标新鲜度规则(第三轮P0-4) — 现由metric_frequency驱动
@@ -509,13 +523,18 @@ def freshness_rule_for(anchor_key):
 
 
 def is_fresh_anchor(anchor_key, info, as_of_date):
-    """逐指标新鲜度判定(第四轮P0-3修正): 观测日距研究截止日(as_of)不超过该指标频率规则上限。
-    - 缺少有效观测日 → False(待验证,不得默认新鲜)
-    - 非法/无法解析日期 → False
-    - 观测日在研究截止日之后(未来数据) → False
-    - 月度指标按45天上限(不因本周未发布新一期而判旧一期无效);
-      日频按5~7天。过期指标不得作为当前有效证据。"""
+    """逐指标新鲜度判定(W2统一): 观测日距研究截止日(as_of)不超过该指标
+    注册表已批准窗口(fp单一来源,与Gate A一致)。
+    - 未映射锚点 → False(W2 fail-closed: 不得默认视为具有可信时效;
+      scorecard等报告内部推导项除外,维持遗留周度规则)
+    - 调用方info.metric_id与canonical冲突 → 以canonical判窗(身份不得授权放宽)
+    - 缺少有效观测日/非法日期/未来观测 → False(待验证,不得默认新鲜)
+    过期指标不得作为当前有效证据。"""
     if not isinstance(info, dict):
+        return False
+    # W2: 未映射锚点fail-closed(旧默认14天信任废除)
+    if not (isinstance(anchor_key, str) and anchor_key.startswith('scorecard.')) \
+            and fp.verify_anchor_identity(anchor_key, info)['status'] == 'UNMAPPED':
         return False
     obs = info.get('obs_date')
     if not obs or not as_of_date:
@@ -537,6 +556,11 @@ def stale_anchor_warning(anchor_key, info, as_of_date):
     第四轮P0-3: 缺观测日/非法日期/未来日期 → 待验证警告(不得默认新鲜)。"""
     if is_fresh_anchor(anchor_key, info, as_of_date):
         return None
+    # W2: 未映射锚点单独披露(与is_fresh_anchor的fail-closed同口径)
+    if not (isinstance(anchor_key, str) and anchor_key.startswith('scorecard.')) \
+            and fp.verify_anchor_identity(anchor_key, info)['status'] == 'UNMAPPED':
+        return (f"⚠️ 无法认证时效 {anchor_key}: 锚点未映射到注册表指标(UNMAPPED)"
+                f" — 不得默认作为当前有效证据")
     obs = info.get('obs_date')
     from datetime import date
     try:

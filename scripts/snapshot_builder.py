@@ -531,10 +531,17 @@ if __name__ == '__main__':
     ap.add_argument('--out-dir', default=None, help='输出目录(默认data/daily)')
     ap.add_argument('--allow-revision', action='store_true', help='同日已存在时生成_v2修订版(原版保留)')
     ap.add_argument('--revision-reason', default=None)
+    # IA-P0-2-W2: 可选研究截止时点(默认仍为当前时间,生产不传,行为零变化)——
+    # 供测试注入确定性as_of。此前测试以CLI子进程构建快照时只能用真实墙钟,
+    # 快照事实的时效判定随运行日期漂移(观测日固定,W2批准窗口收紧至5天后,
+    # 场景日+6天起即误触DEGRADED)——时点语义测试须可显式钉定研究截止。
+    ap.add_argument('--as-of', default=None,
+                    help='研究截止时刻ISO(默认当前时间;测试注入确定性时点,生产不传)')
     args = ap.parse_args()
     snap = build_snapshot(target_ymd=args.date, data_dir=args.data_dir, out_dir=args.out_dir,
                           trusted_root=args.trusted_root,
-                          allow_revision=args.allow_revision, revision_reason=args.revision_reason)
+                          allow_revision=args.allow_revision, revision_reason=args.revision_reason,
+                          as_of=args.as_of)
     if not snap:
         sys.exit(3)
     # 2026-10-21 P1修复: Gate A FAIL不得再静默exit 0——此前连续多日FAIL但流水线

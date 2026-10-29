@@ -20,6 +20,7 @@ from datetime import date, datetime, timezone, timedelta
 
 import trading_calendar as tc
 import registry_semantics as rsem
+import freshness_policy as fp
 
 REGISTRY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                              'config', 'metric_registry.json')
@@ -61,6 +62,11 @@ def load_registry(path=None, force=False):
     # calendar断言保持不变;合法历史兼容结构(统计序列可选identity等)不受影响
     # (规则集详见registry_semantics.INSTRUMENT_BY_CLASS/UNIT_BY_CLASS)。
     rsem.assert_registry_semantics(reg, source_desc=str(p))
+    # IA-P0-2-W2: 注册表freshness窗口(已批准政策,见fp.POLICY_APPROVAL)构建为
+    # 唯一生效时效策略并注入共享缓存(validate_fact与Gate B消费同一份)。
+    # 缺失/非法窗口→FreshnessPolicyError fail-loud,不得静默回退旧7/16/92硬编码
+    # (W2-DEF-001: 注册表freshness曾是声明性死配置,本行起为实际生效政策)。
+    fp.set_policy(fp.build_policy(reg))
     reg['by_id'] = by_id
     _REGISTRY_CACHE = reg
     return reg
@@ -522,19 +528,23 @@ def validate_fact(fact, raw_item, m, as_of_date=None):
                                "message": f"{mid}观测日{d_obs}晚于研究截止{as_of_date}"})
         except ValueError:
             pass
-    # 频率新鲜度: 月频未发布≠无效,超窗→DEGRADED披露。
-    # 月频有效窗=92天: FRED月度观测戳记为月首(如8月PCE=08-01),发布在次月末前后,
-    # 到下一次发布前as_of−月首最长可达~92天(真实数据2026-10-17复验: 08-01观测
-    # 对10-17=77天,75天窗误报DEGRADED)。仍拦截连缺两期以上的真过期(>3个月)。
-    fr = (m.get('freshness') or {}).get('max_calendar_lag_days')
+    # 频率新鲜度(W2-DEF-001修复): 窗口消费注册表已批准策略(fp单一来源,
+    # fact_engine与Gate B同一份;两轮审批记录见freshness_policy.POLICY_APPROVAL)。
+    # 旧硬编码7/16/92废除——其中月频92为历史宽松值(容忍连缺两期);现行月频窗
+    # =60天: FRED月度观测戳记为月首、发布在次月中下旬至月末(BLS系~38天,
+    # BEA/EIA/G.17系可达~60天),窗口须覆盖按时发布的最慢情形(45天会在每月
+    # 下旬把按时发布的CORE_PCE/WTI_SPOT_M误判过期)。超窗=连缺一期以上→DEGRADED。
     freq = m.get('frequency')
-    eff_window = 7 if freq == 'daily' else (16 if freq == 'weekly' else 92)
+    pol = fp.policy_for(mid)
     if as_of_date:
         try:
             lag = (date.fromisoformat(as_of_date) - d_obs).days
-            if lag > eff_window:
+            if pol is None:
+                issues.append({"category": "freshness_policy", "severity": "DEGRADED",
+                               "message": f"{mid}无已批准时效窗口(注册表freshness缺失或策略未加载)——不得默认按任意窗口视为新鲜"})
+            elif lag > pol['window']:
                 issues.append({"category": "frequency", "severity": "DEGRADED",
-                               "message": f"{mid}观测日滞后{lag}天(>{eff_window}天有效窗,{freq}频;未发布或采集失败,不得当作最新一期)"})
+                               "message": f"{mid}观测日滞后{lag}天(>{pol['window']}天有效窗,{freq}频;未发布或采集失败,不得当作最新一期)"})
         except ValueError:
             pass
     # 发布滞后合理性(月频): 观测月即当前月且当前月未过半 → 可疑(通常发布滞后)

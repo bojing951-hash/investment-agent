@@ -1360,7 +1360,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1390,7 +1390,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1420,7 +1420,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1450,7 +1450,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1480,7 +1480,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1510,7 +1510,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1540,7 +1540,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数",
@@ -1571,7 +1571,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1601,7 +1601,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1631,7 +1631,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1661,7 +1661,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1691,7 +1691,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
@@ -1857,7 +1857,7 @@
     "max_week_pct_move": 20
    },
    "freshness": {
-    "max_calendar_lag_days": 5
+    "max_calendar_lag_days": 10
    }
   },
   {
@@ -1885,7 +1885,7 @@
     "max_week_pct_move": 20
    },
    "freshness": {
-    "max_calendar_lag_days": 5
+    "max_calendar_lag_days": 10
    },
    "notes": "成分指数(约500只),非深市全市场;深市全市场口径用成交额须另采399106"
   },
@@ -1914,7 +1914,7 @@
     "max_week_pct_move": 20
    },
    "freshness": {
-    "max_calendar_lag_days": 5
+    "max_calendar_lag_days": 10
    }
   },
   {
@@ -1998,7 +1998,7 @@
     "max_week_pct_move": 10
    },
    "freshness": {
-    "max_calendar_lag_days": 5
+    "max_calendar_lag_days": 10
    }
   },
   {
@@ -2022,7 +2022,7 @@
     "max_week_abs_move": 1500
    },
    "freshness": {
-    "max_calendar_lag_days": 5
+    "max_calendar_lag_days": 10
    }
   },
   {
@@ -2046,7 +2046,7 @@
     "max_week_abs_move": 3000
    },
    "freshness": {
-    "max_calendar_lag_days": 7
+    "max_calendar_lag_days": 10
    }
   },
   {
@@ -2093,7 +2093,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 5
+    "max_calendar_lag_days": 10
    },
    "notes": "成交额(金额)≠成交量(股数);单位亿元"
   },
@@ -2117,7 +2117,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 5
+    "max_calendar_lag_days": 10
    },
    "notes": "口径=成分股;当前旧字段名sz_amount_billion实为此口径,标签不得写'深市'"
   },
@@ -2141,7 +2141,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 5
+    "max_calendar_lag_days": 10
    },
    "identity": {
     "instrument": "aggregate",
@@ -2317,7 +2317,7 @@
     ]
    },
    "freshness": {
-    "max_calendar_lag_days": 45,
+    "max_calendar_lag_days": 60,
     "note": "月频:发布滞后约5周"
    },
    "release_semantics": "发布日不可得;按观测月保守处理"

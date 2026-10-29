@@ -100,14 +100,22 @@ print("\n[A] 数据新鲜度与状态更新门禁 (P0-4)")
 # ════════════════════════════════════════════════════════════
 check("A1 逐指标频率规则: .close=5天", dv.freshness_rule_for('global_market.data.SPX.close')[0] == 5)
 check("A2 macro.data=7天", dv.freshness_rule_for('macro.data.TIPS_10Y.value')[0] == 7)
-check("A3 rate_economy=45天(月度含发布滞后)",
-      dv.freshness_rule_for('rate_economy.real_economy.UNRATE.value')[0] == 45)
-check("A4 china非收盘键=7天(收盘价由.close规则覆盖为5天)",
-      dv.freshness_rule_for('china.data.南向资金净流入')[0] == 7
-      and dv.freshness_rule_for('china.data.上证.close')[0] == 5)
+check("A3 rate_economy=UNRATE按注册表月频已批准窗口60天"
+      "(IA-P0-2-W2统一: 旧45为Gate B分叉值;月频观测戳月首、发布次月中下旬~月末,"
+      "60天覆盖BEA/EIA系最慢正常发布,超窗=连缺一期以上;审批记录见"
+      "freshness_policy.POLICY_APPROVAL)",
+      dv.freshness_rule_for('rate_economy.real_economy.UNRATE.value')[0] == 60)
+check("A4 china锚点按注册表指标身份判定(IA-P0-2-W2统一,废除prefix一律7天): "
+      "大陆日频10天(春节/国庆休市8~9天)/HK 5天/真实南向键10天/"
+      "虚构label键UNMAPPED(遗留诊断值14,非认证)",
+      dv.freshness_rule_for('china.data.上证指数.close')[0] == 10
+      and dv.freshness_rule_for('china.data.恒生指数.close')[0] == 5
+      and dv.freshness_rule_for('china.southbound.net_buy')[0] == 10
+      and dv.freshness_rule_for('china.data.南向资金净流入')[0] == 14
+      and dv.freshness_rule_for('china.data.上证.close')[0] == 14)
 check("A5 scorecard=10天", dv.freshness_rule_for('scorecard.total')[0] == 10)
 check("A6 未命中模式默认14天", dv.freshness_rule_for('other.foo')[0] == 14)
-check("A7 月度指标滞后38天仍新鲜(≤45)",
+check("A7 月度指标滞后38天仍新鲜(≤60,W2已批准月频窗)",
       dv.is_fresh_anchor('rate_economy.real_economy.UNRATE.value',
                          {'obs_date': '2026-09-01'}, '2026-10-09'))
 check("A8 日频行情滞后6天=过期",

@@ -138,7 +138,11 @@ def chain_build(td, ymd=DAY, gate='PASS', break_metric=None, missing=(),
         post_collectors(daily, ymd)
     code, out = cli([os.path.join(ROOT, 'scripts', 'snapshot_builder.py'),
                      '--date', ymd, '--data-dir', daily, '--out-dir', daily,
-                     '--trusted-root', td])
+                     '--trusted-root', td,
+                     # IA-P0-2-W2: 钉定研究截止=场景日08:00(此前用真实墙钟,
+                     # 时效判定随运行日期漂移——场景日本身的语义即"以该日为
+                     # 研究截止",非放松任何门禁;期望语义不变,仅消除时间炸弹)
+                     '--as-of', fixt.as_of_for(ymd)])
     snap_file = os.path.join(daily, f'research_snapshot_{ymd}.json')
     if not os.path.exists(snap_file):
         return {'sb_exit': code, 'sb_out': out, 'daily': daily, 'weekly': weekly}, code

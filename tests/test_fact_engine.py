@@ -50,8 +50,10 @@ check("NFP存量与月差双注册", by_id['NFP']['value_type'] == 'level'
       and by_id['NFP_MOM_K']['asset_class'] == 'macro_count_derived')
 check("沪深成交额近似口径显式proxy", by_id['CN_TOTAL_TURNOVER']['identity'].get('is_proxy') is True)
 check("深证成指标注非全市场", '非深市全市场' in by_id['SZCI'].get('notes', '') + by_id['SZ_COMPONENT_AMOUNT'].get('notes', ''))
-check("日频/月频新鲜度窗区分", by_id['SPX']['freshness']['max_calendar_lag_days'] == 5
-      and by_id['CPI']['freshness']['max_calendar_lag_days'] == 45)
+check("日频/月频新鲜度窗区分(IA-P0-2-W2批准政策: 月频45→60,覆盖BEA/EIA系"
+      "次月中下旬~月末正常发布;详见freshness_policy.POLICY_APPROVAL)",
+      by_id['SPX']['freshness']['max_calendar_lag_days'] == 5
+      and by_id['CPI']['freshness']['max_calendar_lag_days'] == 60)
 
 # ══ [2] 统一收益引擎(合成序列) ════════════════════════════════════
 print("\n[2] 统一收益引擎 — SYNTHETIC序列验证数学口径")

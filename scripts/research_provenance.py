@@ -911,24 +911,44 @@ def recompute_gate_a(snapshot, data_dir=None, trusted_root=None):
         # 注册表不可用→无法证明核心集合(宁可无法证明,不可虚报)
         out['reasons'].append('注册表不可用——无法重算核心集合(不得放行)')
         return out
-    # FIX4-01: 研究截止(观测日不得晚于它)。取research_as_of日期部分;
-    # 缺失时退target_date;两者皆缺→截止不可核验(fail-closed,不得放行)。
-    # FIX1-01: research_as_of须为完整ISO日期或完整时间戳——整串先验证再取
-    # 日期('2026-10-24INVALID'不再经[:10]截断洗白,非法即无截止→fail-closed)。
+    # FIX4-01: 研究截止(观测日不得晚于它)。
+    # FIX2-01(IA-P02-W2-FIX1-DEF-001续): 研究截止三态语义——缺失≠非法:
+    #   A research_as_of合法(完整ISO日期/完整时间戳,整串验证)→取其研究日期;
+    #   B research_as_of**键真正缺席**→受控历史兼容回退: target_date须为严格
+    #     YYYYMMDD八位**真实日历日期**(整串匹配,'20261024INVALID'/'2026102400'/
+    #     '20260230'/非字符串一律不可用),并记录cutoff_source诊断;
+    #   C research_as_of显式存在但非法(非法后缀/假日历/非字符串/空字符串/
+    #     无法解释的时间类型)→直接fail-closed,**绝不经target_date回退洗白**
+    #     ('2026-10-24INVALID'+target_date=20261024不得形成有效Gate A裁决)。
+    # 合法完整时间戳取其研究日期供"观测日≤截止"日粒度校验;发布时刻的点时
+    # 先后判断由fp.compare_release_availability在事实层以全精度进行(FIX2-02)。
+    _ABSENT = object()
+    as_of_val = snapshot.get('research_as_of', _ABSENT)
     cutoff = None
-    as_of = snapshot.get('research_as_of')
-    tgt = snapshot.get('target_date')
-    if isinstance(as_of, str) and as_of:
-        cutoff = freshness_policy.parse_instant(as_of)
-    if cutoff is None and isinstance(tgt, str) and len(tgt) >= 8 and tgt[:8].isdigit():
-        try:
-            cutoff = _date_cls.fromisoformat(f"{tgt[:4]}-{tgt[4:6]}-{tgt[6:8]}")
-        except ValueError:
-            cutoff = None
-    if cutoff is None:
-        out['reasons'].append('快照缺research_as_of/target_date——研究截止不可得,'
-                              '观测日合法性不可核验(不得放行)')
-        return out
+    if as_of_val is not _ABSENT:
+        tv = freshness_policy.parse_temporal_value(as_of_val)
+        if not tv['ok']:
+            out['reasons'].append(
+                f"research_as_of显式存在但非法:{as_of_val!r}({tv['error']})"
+                f"——非法研究截止不得经target_date回退洗白,研究截止不可用"
+                f"(不得放行)")
+            return out
+        cutoff = tv['date']
+        out['cutoff_source'] = 'research_as_of'
+    else:
+        tgt = snapshot.get('target_date')
+        if isinstance(tgt, str) and re.fullmatch(r'\d{8}', tgt):
+            try:
+                cutoff = _date_cls(int(tgt[:4]), int(tgt[4:6]), int(tgt[6:8]))
+            except ValueError:
+                cutoff = None
+        if cutoff is None:
+            out['reasons'].append(
+                f"research_as_of缺失且回退不可用: target_date={tgt!r}"
+                f"(受控回退要求严格YYYYMMDD八位真实日历日期)——研究截止不可得,"
+                f"观测日合法性不可核验(不得放行)")
+            return out
+        out['cutoff_source'] = 'target_date_fallback'
     # FIX5-04(DEF-F4-002): 来源状态结构统一校验(fail-closed)——sources_status
     # 缺失/非对象/通道缺失/状态非法等一律不可证明(effective=None,阻断正式链路),
     # 不再"无来源状态可判就跳过非核心缺失判断后照常PASS"

@@ -32,6 +32,13 @@
      "政策目标区间DFEDTARU/DFEDTARL 45→10(W2-FIX1-04复决策:FRED官方Daily,7-Day逐日发布当日生效值——45天窗仅掩盖采集中断;与同族DFF对齐)"
     ],
     "note": "第三轮批准(W2-FIX1整改,2026-10-29): Agent4验收引入官方逐日发布语义后复决策,批复方案A(45→10);证据docs/P0_2_W2_FIX1_APPROVAL_EVIDENCE.md §5"
+   },
+   {
+    "round": 4,
+    "decisions": [
+     "HSAHP 10→7(W2-FIX2-05再审批:恒指官方方法确认AH指数在内地和/或香港任一开市期间计算发布→观测日历=两地并集,round-2'春节/国庆8~9天'前提不成立;正常缺口≈5天+2天采集缓冲;SB_FLOW=交集日历不受影响维持10)"
+    ],
+    "note": "第四轮批准(W2-FIX2整改,2026-10-29T14:31:53.712Z): 用户亲选'缩短至7天(推荐)';证据docs/P0_2_W2_FIX2_POLICY_HSAHP.md §5"
    }
   ],
   "unchanged_no_conflict": [
@@ -52,7 +59,8 @@
    "APPROVED_ROUND2_CORRECTED": "第一轮批准值经第二轮修正(推荐依据算术错误,见approval.rounds)",
    "APPROVED_ROUND2": "第二轮一致化批准",
    "NO_CONFLICT": "无冲突,窗口维持",
-   "APPROVED_FIX1_ROUND3": "W2-FIX1整改复决策批准(2026-10-29,第三轮;DFEDTARU/L 45→10)"
+   "APPROVED_FIX1_ROUND3": "W2-FIX1整改复决策批准(2026-10-29,第三轮;DFEDTARU/L 45→10)",
+   "APPROVED_FIX2_ROUND4": "W2-FIX2整改再审批批准(2026-10-29T14:31:53.712Z,第四轮;HSAHP 10→7,恒指官方方法修正日历前提)"
   },
   "severity_note": "超窗=DEGRADED披露(非FAIL);月频当月观测未过半=release-limit WARN(validate_fact保留)"
  },
@@ -61,8 +69,9 @@
   "by_policy_status": {
    "APPROVED_ROUND1": 5,
    "APPROVED_ROUND2": 1,
-   "APPROVED_ROUND2_CORRECTED": 21,
+   "APPROVED_ROUND2_CORRECTED": 20,
    "APPROVED_FIX1_ROUND3": 2,
+   "APPROVED_FIX2_ROUND4": 1,
    "NO_CONFLICT": 52
   },
   "gate_a_changes": {
@@ -2086,13 +2095,13 @@
     "engine_legacy_effective_pre_w2": 7,
     "gate_b_legacy_pre_w2": 7,
     "gate_b_legacy_freq_pre_w2": "daily",
-    "effective_now": 10,
+    "effective_now": 7,
     "source_now": "registry(approved)"
    },
    "conflict_pre_w2": "注册表5/引擎生效7/Gate B 7(daily)",
-   "policy_status": "APPROVED_ROUND2_CORRECTED",
-   "approval_basis": "中国大陆日频族: 第一轮批准5(未计入春节/国庆8~9天休市簇,节后首日必误报),第二轮修正为10",
-   "gate_a_impact": "放宽7→10天: 滞后8~10天的事实从DEGRADED恢复有效(误报消除)",
+   "policy_status": "APPROVED_FIX2_ROUND4",
+   "approval_basis": "第四轮(2026-10-29T14:31:53.712Z, FIX2-05)收紧10→7: 恒指官方方法确认AH指数在内地和/或香港任一开市期间计算发布→观测日历=两地并集,原round-2'春节/国庆8~9天'前提不成立; 正常缺口≈5天+2天采集缓冲(用户亲选'缩短至7天(推荐)', 见P0_2_W2_FIX2_POLICY_HSAHP.md §5); round-2曾以错误前提批准10(历史保留)",
+   "gate_a_impact": "收紧10→7天: 滞后8~10天的事实从有效变DEGRADED披露(采集异常暴露提前3天); 相对旧Gate A(5)仍为放宽5→7",
    "gate_b_impact": "旧7天/daily(china前缀=7(无.close字段))→新10天/daily: 身份经canonical映射+注册表策略,频率误判消除",
    "production_impact": "日度生产快照Gate A按新窗口计算; 历史快照/报告/采集文件一律不改写(§十一)"
   },

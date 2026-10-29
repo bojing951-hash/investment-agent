@@ -83,9 +83,15 @@ _ISO_INSTANT_RE = re.compile(
 
 
 def parse_instant(value):
-    """严格时点解析: date→自身; datetime→date部分; str须为完整ISO日期或完整
-    ISO时间戳(YYYY-MM-DD[T ]HH:MM:SS[.ffffff][Z|±HH:MM])。其余(带任意后缀/
-    前缀空白/部分时间/非字符串)一律None——不得截断救活非法输入。"""
+    """严格时点解析(日期级兼容接口): date→自身; datetime→date部分; str须为
+    完整ISO日期或完整ISO时间戳(YYYY-MM-DD[T ]HH:MM:SS[.ffffff][Z|±HH:MM])。
+    其余(带任意后缀/前缀空白/部分时间/非字符串)一律None——不得截断救活非法输入。
+
+    FIX2-02注意: 本函数返回date,天然丢失时分秒与UTC偏移——只可用于
+    "研究日期/观测日"等日粒度语义;**发布时刻vs研究截止的点时先后判断**
+    必须用parse_temporal_value+compare_release_availability(精度保持原语),
+    不得先经本函数降精度后再比较(那会把同日08:00截止/20:00发布误判为
+    "发布不晚于截止")。"""
     if isinstance(value, datetime):
         return value.date()
     if isinstance(value, date):
@@ -104,6 +110,166 @@ def parse_instant(value):
         except ValueError:
             return None
     return None
+
+
+# FIX2-02(IA-P02-W2-FIX1-DEF-002)精度保持时点原语: parse_instant返回date,
+# 完整时间戳的时分秒与UTC偏移被丢弃——同日"研究截止08:00/发布20:00"经日期
+# 比较会被错误判为"发布不晚于截止"。本组原语在parse_instant同一整串验证
+# 口径之上**保留精度**再作点时比较,绝不把datetime降级成date后比先后。
+_ISO_INSTANT_TZ_RE = re.compile(
+    r'^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(\.\d{1,6})?(?P<tz>Z|[+-]\d{2}:\d{2})?$')
+
+
+def _tv_bad(raw, error):
+    return {'ok': False, 'raw': raw, 'date': None, 'precision': None,
+            'tz_aware': None, 'utc_offset': None, 'instant': None,
+            'error': error}
+
+
+def _fmt_offset(td):
+    """timedelta UTC偏移→'+HH:MM'字符串(整分粒度;ISO偏移无秒级)。"""
+    total = int(td.total_seconds())
+    sign = '+' if total >= 0 else '-'
+    total = abs(total)
+    return f"{sign}{total // 3600:02d}:{(total % 3600) // 60:02d}"
+
+
+def parse_temporal_value(value):
+    """精度保持时点解析(FIX2-02): 与parse_instant同一整串验证口径(绝不
+    [:10]截断洗白),但**不丢精度**。返回dict:
+      ok            解析成功与否(False=非法输入,绝不猜/补/洗白)
+      raw           原始输入(原样保留)
+      date          日历日期部分(date|None)
+      precision     'DATE_ONLY' | 'DATETIME'
+      tz_aware      是否携带明确时区(datetime实例/字符串时间戳按tz后缀)
+      utc_offset    '+HH:MM'/'Z'→'+00:00'(tz_aware时) | None
+      instant       datetime本体(DATETIME时;naive=无时区定义,不得假设时区)
+      error         非法原因(ok=False时)
+    合法形态: date实例(DATE_ONLY)/datetime实例(DATETIME)/完整ISO日期/
+    完整ISO时间戳(T或空格分隔,±HH:MM须带冒号,Z=UTC,时区可省=naive)。"""
+    if isinstance(value, bool):
+        return _tv_bad(value, f'非日期类型:{type(value).__name__}')
+    if isinstance(value, datetime):
+        aware = value.tzinfo is not None and value.utcoffset() is not None
+        return {'ok': True, 'raw': value, 'date': value.date(),
+                'precision': 'DATETIME', 'tz_aware': aware,
+                'utc_offset': _fmt_offset(value.utcoffset()) if aware else None,
+                'instant': value, 'error': None}
+    if isinstance(value, date):
+        return {'ok': True, 'raw': value, 'date': value, 'precision': 'DATE_ONLY',
+                'tz_aware': False, 'utc_offset': None, 'instant': None,
+                'error': None}
+    if not isinstance(value, str):
+        return _tv_bad(value, f'非字符串/日期类型:{type(value).__name__}')
+    s = value
+    if _ISO_DATE_RE.fullmatch(s):
+        try:
+            return {'ok': True, 'raw': s, 'date': date.fromisoformat(s),
+                    'precision': 'DATE_ONLY', 'tz_aware': False,
+                    'utc_offset': None, 'instant': None, 'error': None}
+        except ValueError:
+            return _tv_bad(value, f'假日历日期:{s}')
+    m = _ISO_INSTANT_TZ_RE.fullmatch(s)
+    if m:
+        try:
+            dt = datetime.fromisoformat(s.replace('Z', '+00:00'))
+        except ValueError:
+            return _tv_bad(value, f'非法时刻(假日历/时刻越界):{s}')
+        tz_sfx = m.group('tz')
+        aware = tz_sfx is not None
+        return {'ok': True, 'raw': s, 'date': dt.date(), 'precision': 'DATETIME',
+                'tz_aware': aware,
+                'utc_offset': ('+00:00' if tz_sfx == 'Z' else tz_sfx)
+                if aware else None,
+                'instant': dt, 'error': None}
+    return _tv_bad(value, '非完整ISO日期/时间戳(带后缀/前后缀空白/部分时间/'
+                          '无冒号时差)——整串验证,不得截断救活')
+
+
+def _delta_hours(later, earlier):
+    """两个aware时刻的差(later−earlier),人读"+12.5小时"式。"""
+    h = (later - earlier).total_seconds() / 3600.0
+    return f"{h:+g}小时"
+
+
+def compare_release_availability(release, as_of):
+    """发布时刻 vs 研究截止的统一可得性比较(FIX2-02核心原语;Gate A/Gate B/
+    事实引擎共用,不得各自降精度重比)。
+
+    返回{verdict, granularity, release, as_of, detail}:
+      RELEASED_BEFORE      发布先于截止,可作点时证据——granularity='INSTANT'
+                           (双方aware时刻,绝对先后已证)或'DAY'(跨日,仅证
+                           "截止日之前已发布",不证同日内具体时刻先后)
+      RELEASED_AFTER       发布晚于截止(NOT_AVAILABLE_AT_AS_OF,硬拒)——
+                           INSTANT(绝对时刻已证晚于)/DAY(跨日,任何时区解释
+                           下均晚于)
+      UNVERIFIED_SAME_DAY  同一名义日且精度不足以证明先后: 按日粒度视为可得
+                           (历史兼容,不FAIL既有数据)但**不得认证点时可得**
+      UNVERIFIED_TZ        涉及无时区时刻且名义日期相邻: 任何时区解释下先后
+                           均可能翻转——同样不认证(不硬拒亦不认证)
+      INVALID_RELEASE / INVALID_AS_OF  输入非法(整串验证口径同parse_instant)
+
+    语义(IA-P0-2-W2-FIX2 §5.4):
+      A 双aware完整时间戳→转绝对时刻比较,正确处理不同UTC偏移;
+      B 双日期级→保留历史日粒度比较并标明DAY(不证明同日时刻先后);
+      C 一日期一时间戳→跨日可保守判定;同日=精度不足→UNVERIFIED_SAME_DAY;
+      D aware/naive混合或含naive时刻→绝不把naive当UTC/HKT/本机时区:
+        名义日期相同→UNVERIFIED_SAME_DAY;相差≥2日(任何±14h时区解释都
+        无法翻转先后)→DAY判定并披露时区未定义;相邻→UNVERIFIED_TZ;
+      E 非法输入→INVALID_*。
+    保守映射契约(§5.5): UNVERIFIED_*不得默认当PASS认证点时可得,亦不得把
+    全部既有数据判FAIL——它是"可得但未认证"的显式披露态。"""
+    r = parse_temporal_value(release)
+    a = parse_temporal_value(as_of)
+    out = {'verdict': None, 'granularity': None,
+           'release': release, 'as_of': as_of, 'detail': ''}
+    if not r['ok']:
+        out.update(verdict='INVALID_RELEASE',
+                   detail=f"release非法:{r['error']}")
+        return out
+    if not a['ok']:
+        out.update(verdict='INVALID_AS_OF', detail=f"as_of非法:{a['error']}")
+        return out
+    # A: 双aware完整时间戳→绝对时刻比较(UTC偏移已包含在instant内)
+    if r['precision'] == 'DATETIME' and a['precision'] == 'DATETIME' \
+            and r['tz_aware'] and a['tz_aware']:
+        if r['instant'] <= a['instant']:
+            rel_txt = '等于' if r['instant'] == a['instant'] else \
+                f"早于(差{_delta_hours(a['instant'], r['instant'])})"
+            out.update(verdict='RELEASED_BEFORE', granularity='INSTANT',
+                       detail=f"绝对时刻比较: 发布{r['raw']} {rel_txt} 截止{a['raw']}")
+        else:
+            out.update(verdict='RELEASED_AFTER', granularity='INSTANT',
+                       detail=f"绝对时刻比较: 发布{r['raw']} 晚于 截止{a['raw']}"
+                              f"(差{_delta_hours(r['instant'], a['instant'])})")
+        return out
+    # B/C/D: 至少一侧非aware时刻——只能按名义日期作日粒度判断
+    tz_undefined = (r['precision'] == 'DATETIME' and not r['tz_aware']) \
+        or (a['precision'] == 'DATETIME' and not a['tz_aware'])
+    dd = (a['date'] - r['date']).days
+    if dd == 0:
+        why = '时刻精度不足' if not tz_undefined else '时刻精度不足且时区未定义'
+        out.update(verdict='UNVERIFIED_SAME_DAY', granularity='DAY',
+                   detail=f"同一名义日{r['date'].isoformat()}: {why},不能证明"
+                          f"发布先于研究截止——按日粒度可得(历史兼容),不认证点时可得")
+        return out
+    if tz_undefined and abs(dd) == 1:
+        out.update(verdict='UNVERIFIED_TZ', granularity='DAY',
+                   detail=f"名义日期相邻({r['date'].isoformat()} vs "
+                          f"{a['date'].isoformat()})且含无时区时刻——任何时区"
+                          f"解释下先后均可能,不可证明亦不可硬拒(不认证点时可得)")
+        return out
+    rel_desc = f"发布{r['date'].isoformat()}" + (f"({r['raw']})" if r['precision'] == 'DATETIME' else '')
+    as_desc = f"截止{a['date'].isoformat()}" + (f"({a['raw']})" if a['precision'] == 'DATETIME' else '')
+    if dd > 0:
+        out.update(verdict='RELEASED_BEFORE', granularity='DAY',
+                   detail=f"日粒度比较: {rel_desc} 早于 {as_desc}"
+                          + (';涉无时区时刻,按名义日期判定' if tz_undefined else ''))
+    else:
+        out.update(verdict='RELEASED_AFTER', granularity='DAY',
+                   detail=f"日粒度比较: {rel_desc} 晚于 {as_desc}"
+                          + (';涉无时区时刻,按名义日期判定' if tz_undefined else ''))
+    return out
 
 
 # ══ 策略构建与缓存 ═══════════════════════════════════════════════
@@ -379,6 +545,8 @@ def assess(metric_id, obs_date, as_of, release_date=None):
     C 是否新鲜? lag=as_of−obs ≤ 已批准窗口(registry(approved))。
     FIX1-01: as_of与release_date接受date/datetime/完整ISO日期/**完整**ISO时间戳
     (整串先验证再取日期,绝不[:10]截断);obs_date仍须纯日期(经济观测日语义)。
+    FIX2-02: B问先后比较经compare_release_availability精度保持判定——双aware
+    时刻比绝对先后;同日精度不足=POINT_IN_TIME_UNCERTIFIED(可得但不认证点时)。
     返回verdict dict(fresh=bool;status∈FRESH/STALE/NOT_OBSERVED/INVALID_DATE/
     FUTURE_DATE/UNREGISTERED/NOT_AVAILABLE_AT_AS_OF/INVALID_RELEASE)。"""
     v = {'metric_id': metric_id, 'obs_date': None, 'as_of': None,
@@ -412,25 +580,49 @@ def assess(metric_id, obs_date, as_of, release_date=None):
         v.update(status='FUTURE_DATE', fresh=False,
                  reasons=[f"观测日{o}晚于研究截止{a}(未来数据,非法时点)"])
         return v
-    # B问: 点时可得性——只对真实携带的release_date作答,缺失即如实UNKNOWN
+    # B问: 点时可得性——只对真实携带的release_date作答,缺失即如实UNKNOWN。
+    # FIX2-02: 先后比较统一经compare_release_availability(精度保持原语):
+    #   双aware完整时间戳→绝对时刻比较(UTC偏移正确处理);
+    #   同日且精度不足/涉无时区时刻相邻→UNVERIFIED(按日粒度可得,历史兼容,
+    #     但**不认证点时可得**——绝不虚报"已验证在研究截止前发布");
+    #   跨日→日粒度判定。绝不把完整时间戳先降成date再比先后(同日
+    #   08:00截止/20:00发布不再被洗白为"发布不晚于截止")。
     if release_date is not None:
-        r = parse_instant(release_date)
-        if r is None:
+        cmp = compare_release_availability(release_date, as_of)
+        rtv = parse_temporal_value(release_date)
+        if cmp['verdict'] == 'INVALID_RELEASE':
             v['point_in_time'] = {'status': 'INVALID', 'release_date': release_date}
             v.update(status='INVALID_RELEASE', fresh=False,
-                     reasons=[f"release_date非完整ISO日期:{release_date!r}"])
+                     reasons=[f"release_date非完整ISO日期:{release_date!r}"
+                              f"({cmp['detail']})"])
             return v
-        v['point_in_time'] = {'status': 'OK' if r <= a else 'RELEASE_AFTER_AS_OF',
-                              'release_date': r.isoformat()}
-        if r < o:
-            v['point_in_time'] = {'status': 'RELEASE_BEFORE_OBS', 'release_date': r.isoformat()}
+        rel_raw = release_date if isinstance(release_date, str) else \
+            release_date.isoformat()
+        if rtv['date'] < o:
+            v['point_in_time'] = {'status': 'RELEASE_BEFORE_OBS',
+                                  'release_date': rel_raw}
             v.update(status='INVALID_RELEASE', fresh=False,
-                     reasons=[f"release_date{r}早于观测日{o}(发布先于观测,语义非法)"])
+                     reasons=[f"release_date{rtv['date']}早于观测日{o}"
+                              f"(发布先于观测,语义非法)"])
             return v
-        if r > a:
+        if cmp['verdict'] == 'RELEASED_AFTER':
+            v['point_in_time'] = {'status': 'RELEASE_AFTER_AS_OF',
+                                  'release_date': rel_raw,
+                                  'granularity': cmp['granularity'],
+                                  'detail': cmp['detail']}
             v.update(status='NOT_AVAILABLE_AT_AS_OF', fresh=False,
-                     reasons=[f"已知发布日{r}晚于研究截止{a}——as_of时点该值不可得,不得作当前证据"])
+                     reasons=[f"已知发布{rel_raw}晚于研究截止{as_of!r}"
+                              f"({cmp['detail']})——as_of时点该值不可得,"
+                              f"不得作当前证据"])
             return v
+        if cmp['verdict'] == 'RELEASED_BEFORE':
+            v['point_in_time'] = {'status': 'OK', 'release_date': rel_raw,
+                                  'granularity': cmp['granularity'],
+                                  'detail': cmp['detail']}
+        else:   # UNVERIFIED_SAME_DAY / UNVERIFIED_TZ(§5.5保守映射: 披露非失败)
+            v['point_in_time'] = {'status': 'POINT_IN_TIME_UNCERTIFIED',
+                                  'release_date': rel_raw, 'granularity': 'DAY',
+                                  'detail': cmp['detail']}
     else:
         v['point_in_time'] = {'status': 'RELEASE_UNKNOWN',
                               'note': '采集端不携带release_date——如实标注未知,不伪造点时证据;新鲜度按观测滞后窗判定'}

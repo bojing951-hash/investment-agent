@@ -111,9 +111,13 @@ for i in items:
     recount[i['policy_status']] = recount.get(i['policy_status'], 0) + 1
 check("A5 分类计数与逐项重算一致(总数由items推导)", tot['by_policy_status'] == recount,
       f"{tot['by_policy_status']} vs {recount}")
-check("A6a 审批记录三轮在场(第一轮批准+第二轮修正算术错误+FIX1第三轮DFEDTAR复决策)",
-      len(MAT['approval']['rounds']) == 3 and '45→60' in MAT['approval']['rounds'][1]['decisions'][0]
-      and '45→10' in MAT['approval']['rounds'][2]['decisions'][0])
+check("A6a 审批记录四轮在场(第一轮批准+第二轮修正算术错误+FIX1第三轮DFEDTAR复决策+FIX2第四轮HSAHP再审批)",
+      len(MAT['approval']['rounds']) == 4 and '45→60' in MAT['approval']['rounds'][1]['decisions'][0]
+      and '45→10' in MAT['approval']['rounds'][2]['decisions'][0]
+      and 'HSAHP 10→7' in MAT['approval']['rounds'][3]['decisions'][0])
+# A6a期望变更说明(W2-FIX2-05, 2026-10-29T14:32:07Z): 用户第四轮亲选HSAHP 10→7
+# (恒指官方方法确认AH指数观测日历=两地并集, round-2前提不成立)。三轮→四轮,
+# 前三轮断言原文保留; 证据 docs/P0_2_W2_FIX2_POLICY_HSAHP.md §5。
 FOCUS = ['BTC', 'SPX', 'DFF', 'DFEDTARU', 'DFEDTARL', 'CPI', 'CORE_PCE', 'UNEMPLOYMENT',
          'NFP', 'ICSA', 'SH_PE', 'UST_10Y', 'ZQ_F1_PRICE', 'SHCOMP', 'MARGIN_BAL']
 check("A6b 指令§5.2强制15项焦点指标全部在场",

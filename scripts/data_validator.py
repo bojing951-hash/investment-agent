@@ -601,8 +601,14 @@ def stale_anchor_warning(anchor_key, info, as_of_date):
         return (f"⚠️ 未来数据 {anchor_key}: 观测日{v['obs_date']}晚于研究截止{v['as_of']}"
                 f" — 非法时点,不得使用")
     if st == 'NOT_AVAILABLE_AT_AS_OF':
-        r = v['point_in_time'].get('release_date')
-        return (f"⚠️ 点时不可得 {anchor_key}: 已知发布日{r}晚于研究截止{v['as_of']}"
+        pit = v['point_in_time']
+        # FIX2-02: 披露**实际时间关系**(完整时刻+粒度+差值),不得只显示两个
+        # 相同日期——同日"截止08:00/发布20:00"必须能看出先后依据
+        r = pit.get('release_date')
+        gran = pit.get('granularity') or 'DAY'
+        det = pit.get('detail') or ''
+        return (f"⚠️ 点时不可得 {anchor_key}: 已知发布{r}晚于研究截止"
+                f"{as_of_date!r}[{gran}{';' + det if det else ''}]"
                 f"(NOT_AVAILABLE_AT_AS_OF) — as_of时点该值不可得,不得作为当前研究证据")
     if st == 'INVALID_RELEASE':
         return (f"⚠️ 发布时间非法 {anchor_key}: release_date={info.get('release_date')!r}"

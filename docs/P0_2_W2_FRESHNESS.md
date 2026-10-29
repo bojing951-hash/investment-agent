@@ -11,8 +11,9 @@
 | 第1轮(2026-10-29) | 月频13项=45; 行情与日频风险资产44项=5; 特殊日频BTC=2/DFF=10/SH_PE=10; 政策目标区间DFEDTARU/DFEDTARL=45 |
 | 第2轮(2026-10-29) | 月频13项45→60(修正:BEA/EIA/G.17系正常发布滞后可达~60天,45会误判按时数据过期); 中国大陆日频8项5→10(修正:春节/国庆休市8~9天,5/7天在节后首日必误报);HK 2项维持5; MARGIN_BAL 7→10(与大陆日频同一休市日历,一致化) |
 | 第3轮(2026-10-29, W2-FIX1) | 政策目标区间DFEDTARU/DFEDTARL 45→10(FRED官方Daily,7-Day逐日发布当日生效值——45天窗仅掩盖8~44天采集中断;方案A对齐同族DFF;证据P0_2_W2_FIX1_POLICY_DFEDTARL.md) |
+| 第4轮(2026-10-29T14:31:53.712Z, W2-FIX2-05) | HSAHP 10→7(恒指官方方法确认AH指数在内地和/或香港任一开市期间计算发布→观测日历=两地并集,round-2"春节/国庆8~9天"前提不成立;正常缺口≈5天+2天采集缓冲;SB_FLOW=交集日历不受影响维持10;证据P0_2_W2_FIX2_POLICY_HSAHP.md §5) |
 
-**总量**: 81项 | 政策分类: APPROVED_ROUND1=5 / APPROVED_ROUND2=1 / APPROVED_ROUND2_CORRECTED=21 / APPROVED_FIX1_ROUND3=2 / NO_CONFLICT=52(第三轮: DFEDTARU/L 45→10) | Gate A窗口: 收紧49/放宽13/不变19 | Gate B规则纠正(窗口或频率误判): 33项
+**总量**: 81项 | 政策分类: APPROVED_ROUND1=5 / APPROVED_ROUND2=1 / APPROVED_ROUND2_CORRECTED=20 / APPROVED_FIX1_ROUND3=2 / APPROVED_FIX2_ROUND4=1 / NO_CONFLICT=52(第三轮: DFEDTARU/L 45→10; 第四轮: HSAHP 10→7) | Gate A窗口: 收紧49/放宽13/不变19(第四轮HSAHP终值7相对旧Gate A=5仍计入放宽) | Gate B规则纠正(窗口或频率误判): 33项
 
 ## 2. 修正的两处第一轮算术错误(为何45/5不成立)
 
@@ -111,7 +112,7 @@
 | CHINEXT | daily | 5/7/5(daily) | **10** | APPROVED_ROUND2_CORRECTED | 放宽7→10天: 滞后8~10天的事实从DEGRADED恢复有效(误报消除) |
 | HSI | daily | 5/7/5(daily) | **5** | APPROVED_ROUND1 | 收紧7→5天: 滞后6~7天的事实从有效变为DEGRADED披露 |
 | HSCEI | daily | 5/7/5(daily) | **5** | APPROVED_ROUND1 | 收紧7→5天: 滞后6~7天的事实从有效变为DEGRADED披露 |
-| HSAHP | daily | 5/7/7(daily) | **10** | APPROVED_ROUND2_CORRECTED | 放宽7→10天: 滞后8~10天的事实从DEGRADED恢复有效(误报消除) |
+| HSAHP | daily | 5/7/7(daily) | **7** | APPROVED_FIX2_ROUND4 | 收紧10→7天(FIX2-05再审批, 2026-10-29T14:31:53.712Z): 官方方法确认观测日历=两地并集→原"大陆长假簇8~9天"前提不成立, 正常缺口≈5天+2天采集缓冲; 滞后8~10天的事实从有效变DEGRADED披露(采集异常暴露提前3天)。历史: round-2曾批10(基于被官方方法否定的前提, 见 FIX2_POLICY_HSAHP §5) |
 | SB_FLOW | daily | 5/7/7(daily) | **10** | APPROVED_ROUND2_CORRECTED | 放宽7→10天: 滞后8~10天的事实从DEGRADED恢复有效(误报消除) |
 | MARGIN_BAL | daily | 7/7/7(daily) | **10** | APPROVED_ROUND2 | 放宽7→10天: 滞后8~10天的事实从DEGRADED恢复有效(误报消除) |
 | SH_PE | daily | 10/7/7(daily) | **10** | APPROVED_ROUND1 | 放宽7→10天: 滞后8~10天的事实从DEGRADED恢复有效(误报消除) |

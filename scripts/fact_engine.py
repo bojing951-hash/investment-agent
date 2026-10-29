@@ -543,28 +543,41 @@ def validate_fact(fact, raw_item, m, as_of_date=None):
     if a_d and d_obs > a_d:
         issues.append({"category": "time", "severity": "FAIL",
                        "message": f"{mid}观测日{d_obs}晚于研究截止{a_d}"})
-    # FIX1-02(IA-P02-W2-DEF-002)点时可得性——事实真实携带release_date时,
-    # 消费fp.assess同一判定(不只读窗口数字):
-    #   已知发布日晚于研究截止→FAIL(NOT_AVAILABLE_AT_AS_OF: as_of时点该值
-    #     不可得,不得作为当前研究证据;核心事实经既有Gate A核心FAIL规则阻断);
-    #   发布日早于观测日/非法→FAIL(语义非法);
+    # FIX1-02(IA-P02-W2-DEF-002)+FIX2-02/03(IA-P02-W2-FIX1-DEF-002续)点时
+    # 可得性——事实真实携带release_date时,**消费fp.compare_release_availability
+    # 统一时刻可得性判定**(不再各自把release/as_of降成date后独立比较):
+    #   RELEASED_AFTER(绝对时刻或跨日判定发布晚于截止)→FAIL
+    #     (NOT_AVAILABLE_AT_AS_OF: as_of时点该值不可得;核心事实经既有Gate A
+    #     核心FAIL规则阻断;同日"截止08:00/发布20:00"按绝对时刻正确拒绝);
+    #   发布先于观测/非法→FAIL(语义非法);
+    #   RELEASED_BEFORE→通过(granularity披露INSTANT/DAY);
+    #   UNVERIFIED_SAME_DAY/UNVERIFIED_TZ→按日粒度可得(历史兼容,不FAIL既有
+    #     数据)但INFO披露"点时未认证"——绝不虚报已验证点时可得;
     #   无release_date→RELEASE_UNKNOWN: 不伪造点时认证,月频(存在"观测在窗内
-    #     但尚未发布"真实风险区)按WARN披露"发布时间未验证",不得把全部无
-    #     release_date的现有金融数据判FAIL(仅披露,不影响质量档位)。
+    #     但尚未发布"真实风险区)按WARN披露"发布时间未验证"。
     rel = fact.get('release_date')
     if rel is not None:
-        r = fp.parse_instant(rel)
-        if r is None:
+        rtv = fp.parse_temporal_value(rel)
+        if not rtv['ok']:
             issues.append({"category": "release", "severity": "FAIL",
-                           "message": f"{mid}release_date非法:{rel!r}(须完整ISO日期/时间戳,不得截断)"})
-        elif r < d_obs:
+                           "message": f"{mid}release_date非法:{rel!r}"
+                                      f"({rtv['error']};须完整ISO日期/时间戳,不得截断)"})
+        elif rtv['date'] < d_obs:
             issues.append({"category": "release", "severity": "FAIL",
-                           "message": f"{mid}发布日{r.isoformat()}早于观测日{d_obs}(发布先于观测,语义非法)"})
-        elif a_d and r > a_d:
-            issues.append({"category": "release", "severity": "FAIL",
-                           "message": (f"{mid}已知发布日{r.isoformat()}晚于研究截止{a_d}"
-                                       f"(NOT_AVAILABLE_AT_AS_OF)——as_of时点该值不可得,"
-                                       f"不得作为当前研究证据")})
+                           "message": f"{mid}发布日{rtv['date'].isoformat()}早于观测日{d_obs}(发布先于观测,语义非法)"})
+        elif a_d is not None:
+            cmpv = fp.compare_release_availability(rel, as_of_date)
+            if cmpv['verdict'] == 'RELEASED_AFTER':
+                issues.append({"category": "release", "severity": "FAIL",
+                               "message": (f"{mid}已知发布{rel!r}晚于研究截止"
+                                           f"{as_of_date!r}({cmpv['detail']})"
+                                           f"(NOT_AVAILABLE_AT_AS_OF)——as_of时点"
+                                           f"该值不可得,不得作为当前研究证据")})
+            elif cmpv['verdict'] in ('UNVERIFIED_SAME_DAY', 'UNVERIFIED_TZ'):
+                issues.append({"category": "release", "severity": "INFO",
+                               "message": (f"{mid}点时未认证({cmpv['verdict']}): "
+                                           f"{cmpv['detail']}——按日粒度可得,"
+                                           f"不构成已验证点时可得证据")})
     elif m.get('frequency') == 'monthly':
         issues.append({"category": "release", "severity": "WARN",
                        "message": f"{mid}发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"})

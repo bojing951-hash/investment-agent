@@ -89,7 +89,9 @@
 
 ## 16. GitHub Actions（离线 CI）
 
-workflow_dispatch 于 `dev/p0-2-w2` 触发 offline-tests.yml（提交+推送后执行）；**head_sha 必须等于§3 最终交付提交**（旧 run 40848606583 不作数）；须执行 fix1+W2+W1+W1-FIX1+原始 14 项 E2E+P0-1 FIX1~11 全量、GLM skipped、任一失败即 job 失败。结果补录于提交后。
+workflow_dispatch 于 `dev/p0-2-w2` 触发 offline-tests.yml；**head_sha 必须等于§3 最终交付提交**（旧 run 40848606583/40867101337 分别对应整改前后中间形态，以本文件最终提交的 run 为准）；须执行 fix1+W2+W1+W1-FIX1+原始 14 项 E2E+P0-1 FIX1~11 全量、GLM skipped、任一失败即 job 失败。
+
+**已核验 run 40867101337（head_sha=1dc8ac3，2026-10-29T11:39Z）**：conclusion=success；日志逐套件核验——34 套件全部 `exit=0`（含 test_p02_w2_fix1/test_p02_w2/test_p02_w1/test_p02_w1_fix1/test_e2e_frozen14/test_e2e_orig14/test_e2e_four_weeks/test_p01_fix1~11），`test_glm_live: SKIPPED(真实GLM付费调用,不进CI) exit=skipped`，无任何非零退出。本文件为随后 CI 结果补录提交（§3 最终交付提交即本提交，CI 以本提交 head_sha 复跑核验）。
 
 ## 17. DEV/LIVE 隔离证据 + 未解决事项与证据等级
 

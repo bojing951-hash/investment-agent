@@ -25,6 +25,13 @@
      "MARGIN_BAL 7→10(与大陆日频同一休市日历,一致化)"
     ],
     "note": "第二轮修正第一轮推荐依据中的算术错误后复核批准"
+   },
+   {
+    "round": 3,
+    "decisions": [
+     "政策目标区间DFEDTARU/DFEDTARL 45→10(W2-FIX1-04复决策:FRED官方Daily,7-Day逐日发布当日生效值——45天窗仅掩盖采集中断;与同族DFF对齐)"
+    ],
+    "note": "第三轮批准(W2-FIX1整改,2026-10-29): Agent4验收引入官方逐日发布语义后复决策,批复方案A(45→10);证据docs/P0_2_W2_FIX1_APPROVAL_EVIDENCE.md §5"
    }
   ],
   "unchanged_no_conflict": [
@@ -44,17 +51,19 @@
    "APPROVED_ROUND1": "第一轮批准(2026-10-29)",
    "APPROVED_ROUND2_CORRECTED": "第一轮批准值经第二轮修正(推荐依据算术错误,见approval.rounds)",
    "APPROVED_ROUND2": "第二轮一致化批准",
-   "NO_CONFLICT": "无冲突,窗口维持"
+   "NO_CONFLICT": "无冲突,窗口维持",
+   "APPROVED_FIX1_ROUND3": "W2-FIX1整改复决策批准(2026-10-29,第三轮;DFEDTARU/L 45→10)"
   },
   "severity_note": "超窗=DEGRADED披露(非FAIL);月频当月观测未过半=release-limit WARN(validate_fact保留)"
  },
  "totals": {
   "items": 81,
   "by_policy_status": {
-   "NO_CONFLICT": 52,
-   "APPROVED_ROUND1": 7,
+   "APPROVED_ROUND1": 5,
+   "APPROVED_ROUND2": 1,
    "APPROVED_ROUND2_CORRECTED": 21,
-   "APPROVED_ROUND2": 1
+   "APPROVED_FIX1_ROUND3": 2,
+   "NO_CONFLICT": 52
   },
   "gate_a_changes": {
    "tightened": 49,
@@ -1838,16 +1847,18 @@
     "engine_legacy_effective_pre_w2": 7,
     "gate_b_legacy_pre_w2": 45,
     "gate_b_legacy_freq_pre_w2": "monthly",
-    "effective_now": 45,
-    "source_now": "registry(approved)"
+    "effective_now": 10,
+    "source_now": "registry(approved)",
+    "registry_w2_fix1": 10
    },
    "conflict_pre_w2": "注册表45/引擎生效7/Gate B 45(monthly)",
-   "policy_status": "APPROVED_ROUND1",
-   "approval_basis": "政策目标区间45(FOMC ~6-7周会期间隔),第一轮批准",
-   "gate_a_impact": "放宽7→45天: 滞后8~45天的事实从DEGRADED恢复有效(误报消除)",
-   "gate_b_impact": "旧45天/monthly(rate_economy前缀一律月度45(日频被误判月频))→新45天/daily: 身份经canonical映射+注册表策略,频率误判消除",
+   "policy_status": "APPROVED_FIX1_ROUND3",
+   "approval_basis": "第三轮复决策批准(2026-10-29): FRED官方Daily,7-Day+逐日发布当日生效值→观测戳逐日推进,45窗仅延迟采集中断检测;方案A对齐同族DFF=10;证据P0_2_W2_FIX1_APPROVAL_EVIDENCE.md §5",
+   "gate_a_impact": "收紧45→10天: 滞后11~45天的事实从有效变DEGRADED披露(采集中断检测从45天提前到10天;假日簇最长~9自然日零误报);第一轮7→45的误报消除不回退(10>7)",
+   "gate_b_impact": "旧45天/monthly(rate_economy前缀一律月度45(日频被误判月频))→新10天/daily(FIX1第三轮): 身份经canonical映射+注册表策略,频率误判消除",
    "production_impact": "日度生产快照Gate A按新窗口计算; 历史快照/报告/采集文件一律不改写(§十一)",
-   "focus_note": "FOMC目标区间上限: 8次会议/年(~6-7周间隔),区间仅会后变动;45天≈会期间隔,超期=跨会议未更新采集(旧日频7频繁误报DEGRADED)"
+   "focus_note": "FRED官方Daily,7-Day:'The data updated each day is the data effective as of that day'——值在FOMC会期不变但观测戳逐日推进,窗口度量采集连续性而非政策状态;10天对齐DFF(旧45仅掩盖8~44天采集中断)",
+   "fix1_revision": "W2-FIX1-04: 45→10, 用户2026-10-29批复方案A(P0_2_W2_FIX1_POLICY_DFEDTARL.md)"
   },
   {
    "metric_id": "DFEDTARL",
@@ -1868,16 +1879,18 @@
     "engine_legacy_effective_pre_w2": 7,
     "gate_b_legacy_pre_w2": 45,
     "gate_b_legacy_freq_pre_w2": "monthly",
-    "effective_now": 45,
-    "source_now": "registry(approved)"
+    "effective_now": 10,
+    "source_now": "registry(approved)",
+    "registry_w2_fix1": 10
    },
    "conflict_pre_w2": "注册表45/引擎生效7/Gate B 45(monthly)",
-   "policy_status": "APPROVED_ROUND1",
-   "approval_basis": "政策目标区间45(FOMC ~6-7周会期间隔),第一轮批准",
-   "gate_a_impact": "放宽7→45天: 滞后8~45天的事实从DEGRADED恢复有效(误报消除)",
-   "gate_b_impact": "旧45天/monthly(rate_economy前缀一律月度45(日频被误判月频))→新45天/daily: 身份经canonical映射+注册表策略,频率误判消除",
+   "policy_status": "APPROVED_FIX1_ROUND3",
+   "approval_basis": "第三轮复决策批准(2026-10-29): FRED官方Daily,7-Day+逐日发布当日生效值→观测戳逐日推进,45窗仅延迟采集中断检测;方案A对齐同族DFF=10;证据P0_2_W2_FIX1_APPROVAL_EVIDENCE.md §5",
+   "gate_a_impact": "收紧45→10天: 滞后11~45天的事实从有效变DEGRADED披露(采集中断检测从45天提前到10天;假日簇最长~9自然日零误报);第一轮7→45的误报消除不回退(10>7)",
+   "gate_b_impact": "旧45天/monthly(rate_economy前缀一律月度45(日频被误判月频))→新10天/daily(FIX1第三轮): 身份经canonical映射+注册表策略,频率误判消除",
    "production_impact": "日度生产快照Gate A按新窗口计算; 历史快照/报告/采集文件一律不改写(§十一)",
-   "focus_note": "同DFEDTARU(区间下限)"
+   "focus_note": "FRED官方Daily,7-Day:'The data updated each day is the data effective as of that day'——值在FOMC会期不变但观测戳逐日推进,窗口度量采集连续性而非政策状态;10天对齐DFF(旧45仅掩盖8~44天采集中断)",
+   "fix1_revision": "W2-FIX1-04: 45→10, 用户2026-10-29批复方案A(P0_2_W2_FIX1_POLICY_DFEDTARL.md)"
   },
   {
    "metric_id": "ZQ_F1_PRICE",

@@ -379,9 +379,15 @@ _um['quality_status'] = 'FAIL'
 # ——只改状态不带依据的输入自FIX5-02起按声明矛盾拒绝,属fixture合法化修复
 _um['issues'] = _um.get('issues', []) + [
     {'category': 'fixture', 'severity': 'FAIL', 'message': 'UMCSENT模拟合法非核心FAIL(值坏)'}]
-# FIX4: fixture自真实快照计数推导(UMCSENT PASS→FAIL),不再硬编码旧34事实时代数字
+# FIX4: fixture自真实快照计数推导,不再硬编码旧34事实时代数字
+# W2-FIX1(§6.4)修订: 无release_date的月频事实(UMCSENT)现为WARN档(独立合法
+# 档位,不计入counts桶)——PASS→FAIL的计数调整只在原档位为PASS时递减,
+# WARN档本就不在PASS计数内(原fixture硬编码"UMCSENT=PASS"假设,按实际档位
+# 动态推导,断言语义不变)
 _c = dict(snap['quality']['counts'])
-_c['PASS'], _c['FAIL'] = _c.get('PASS', 0) - 1, _c.get('FAIL', 0) + 1
+if _um.get('quality_status') == 'PASS':
+    _c['PASS'] = _c.get('PASS', 0) - 1
+_c['FAIL'] = _c.get('FAIL', 0) + 1
 snap['quality']['counts'] = _c
 if 'overall' in snap['quality']:
     snap['quality']['overall'] = 'FAIL'

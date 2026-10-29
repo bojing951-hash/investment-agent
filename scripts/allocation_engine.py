@@ -54,6 +54,8 @@ import json
 import shutil
 from datetime import datetime, timedelta, date
 
+import freshness_policy as _fp   # FIX1-01: 共享严格时点原语(无环)
+
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_VIEWS_PATH = os.path.join(ROOT_DIR, 'config', 'allocation_views.json')
 
@@ -367,29 +369,39 @@ def verify_evidence_items(items, anchors, as_of_date=None):
             continue
         obs = str(info.get('obs_date') or '')[:10]
         as_of = str(info.get('as_of') or '')[:10]
-        claimed_obs = str(it.get('obs_date') or '').strip()[:10]
+        # FIX1-01(IA-P02-W2-DEF-001): 证据与锚点日期严格解析——'2026-10-23INVALID'
+        # 不得经[:10]截断洗白后当合法观测日通过(整串先验证;合法形态=完整ISO日期
+        # 或完整时间戳取日期)。证据obs_date为模型声明字段,缺失/不可解析整项拒收
+        # (第五轮P0-3既有语义,此处堵住截断洗白绕道)。
+        obs_d = _fp.parse_instant(info.get('obs_date'))
+        as_of_d = _fp.parse_instant(info.get('as_of'))
+        obs = obs_d.isoformat() if obs_d else None
+        as_of = as_of_d.isoformat() if as_of_d else None
+        claimed_raw = it.get('obs_date')
+        claimed_d = _fp.parse_instant(claimed_raw) if claimed_raw not in (None, '') else None
+        claimed_obs = claimed_d.isoformat() if claimed_d else None
         # 第五轮P0-3: 观测日为必填(metric+value+obs_date三项缺一不可) —
         # 缺失/不可解析的证据整项拒收,不得省略后由程序以锚点观测日补全
         # (锚点数值核对是程序责任,日期引用是模型责任;as_of采集日不得替代obs_date)
-        if not claimed_obs:
+        if claimed_raw in (None, ''):
             rejects.append((f"{metric}证据缺obs_date(观测日必填,缺失不得参与评级/星级)", it))
             continue
-        try:
-            date.fromisoformat(claimed_obs)
-        except ValueError:
-            rejects.append((f"{metric}证据obs_date不可解析('{claimed_obs}')", it))
+        if claimed_obs is None:
+            rejects.append((f"{metric}证据obs_date不可解析('{claimed_raw}';须完整ISO日期,"
+                            f"不得带后缀)", it))
             continue
         if not obs:
-            rejects.append((f"{metric}锚点无有效观测日,证据无法对齐", it))
+            rejects.append((f"{metric}锚点无有效观测日(缺失或不可解析),证据无法对齐", it))
             continue
         if claimed_obs != obs:
             rejects.append((f"{metric}观测日不符(引用{claimed_obs} vs 锚点{obs};"
                             f"采集日as_of不得替代经济观测日)", it))
             continue
         if as_of_date and not _anchor_fresh(metric, info, as_of_date):
-            if not obs:
-                rejects.append((f"{metric}无有效观测日(待验证),不得默认作为当前证据", it))
-            elif str(obs)[:10] > str(as_of_date)[:10]:
+            a_cmp = _fp.parse_instant(as_of_date)
+            if a_cmp is None:
+                rejects.append((f"{metric}研究截止非法('{as_of_date}'),无法认证时效", it))
+            elif obs_d > a_cmp:
                 rejects.append((f"{metric}观测日{obs}晚于研究截止{as_of_date}(未来数据),不得使用", it))
             else:
                 rejects.append((f"{metric}数据过期(观测日{obs}),不得作为当前有效证据", it))

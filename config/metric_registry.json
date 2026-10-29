@@ -1775,7 +1775,7 @@
     "max_week_abs_move": 0.75
    },
    "freshness": {
-    "max_calendar_lag_days": 45
+    "max_calendar_lag_days": 10
    },
    "notes": "与DFEDTARL配合:区间=[下限,上限]"
   },
@@ -1800,7 +1800,7 @@
     "max_week_abs_move": 0.75
    },
    "freshness": {
-    "max_calendar_lag_days": 45
+    "max_calendar_lag_days": 10
    }
   },
   {

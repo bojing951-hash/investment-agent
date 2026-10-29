@@ -96,14 +96,16 @@ def _metric_problem(metric, anchors, today_iso):
     q_problem = rp.anchor_quality_problem(info)
     if q_problem:
         return q_problem + '(不得进入长期观察历史)'
-    od = str(info.get('obs_date') or '')[:10]
-    if not od:
-        return '锚点无观测日,无法绑定实际观察日'
-    try:
-        from datetime import date
-        d_obs, d_today = date.fromisoformat(od), date.fromisoformat(today_iso)
-    except ValueError:
-        return f'观测日不可解析({od})'
+    # FIX1-01: 观测日/今日严格解析(fp共享原语,整串验证)——'2026-10-23INVALID'
+    # 不得经[:10]截断洗白后当合法观测日记录
+    import freshness_policy as _fp
+    d_obs = _fp.parse_instant(info.get('obs_date'))
+    d_today = _fp.parse_instant(today_iso)
+    if d_obs is None:
+        return f'锚点观测日缺失或不可解析({info.get("obs_date")!r}),无法绑定实际观察日'
+    if d_today is None:
+        return f'研究截止(今日)非法({today_iso!r}),不得记录观察'
+    od = d_obs.isoformat()
     if d_obs > d_today:
         return f'观测日{od}晚于今日(未来数据,不得记录)'
     lag = (d_today - d_obs).days

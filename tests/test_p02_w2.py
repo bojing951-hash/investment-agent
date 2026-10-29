@@ -111,17 +111,21 @@ for i in items:
     recount[i['policy_status']] = recount.get(i['policy_status'], 0) + 1
 check("A5 分类计数与逐项重算一致(总数由items推导)", tot['by_policy_status'] == recount,
       f"{tot['by_policy_status']} vs {recount}")
-check("A6a 审批记录两轮在场(第一轮批准+第二轮修正算术错误)",
-      len(MAT['approval']['rounds']) == 2 and '45→60' in MAT['approval']['rounds'][1]['decisions'][0])
+check("A6a 审批记录三轮在场(第一轮批准+第二轮修正算术错误+FIX1第三轮DFEDTAR复决策)",
+      len(MAT['approval']['rounds']) == 3 and '45→60' in MAT['approval']['rounds'][1]['decisions'][0]
+      and '45→10' in MAT['approval']['rounds'][2]['decisions'][0])
 FOCUS = ['BTC', 'SPX', 'DFF', 'DFEDTARU', 'DFEDTARL', 'CPI', 'CORE_PCE', 'UNEMPLOYMENT',
          'NFP', 'ICSA', 'SH_PE', 'UST_10Y', 'ZQ_F1_PRICE', 'SHCOMP', 'MARGIN_BAL']
 check("A6b 指令§5.2强制15项焦点指标全部在场",
       all(m in mat_by for m in FOCUS), str([m for m in FOCUS if m not in mat_by]))
-check("A7 已批准窗口关键值在场: BTC=2/月频=60/大陆=10/DFEDTAR=45/行情=5",
+# W2-FIX1-04(用户第三轮批复2026-10-29): DFEDTARU/L 45→10(FRED官方Daily,7-Day
+# 逐日发布当日生效值;45窗仅掩盖采集中断)。原预期45已被批准修订取代;
+# 新预期=注册表驱动10天,与P0_2_W2_FIX1_POLICY_DFEDTARL.md/APPROVAL_EVIDENCE §5一致。
+check("A7 已批准窗口关键值在场: BTC=2/月频=60/大陆=10/DFEDTAR=10(FIX1第三轮)/行情=5",
       mat_by['BTC']['windows']['effective_now'] == 2
       and all(mat_by[m]['windows']['effective_now'] == 60 for m in FOCUS if mat_by[m]['frequency'] == 'monthly')
       and mat_by['SHCOMP']['windows']['effective_now'] == 10
-      and mat_by['DFEDTARU']['windows']['effective_now'] == 45
+      and mat_by['DFEDTARU']['windows']['effective_now'] == 10
       and mat_by['SPX']['windows']['effective_now'] == 5)
 
 # 锚点族完整回环: 真实sb.build_anchors输出 ↔ canonical映射逐键锁定
@@ -210,8 +214,10 @@ D_CASES = [  # (metric, anchor_key, value, collector, 正常lag, 过期lag)
     ('CORE_PCE', 'macro.data.CORE_PCE.value', 118.5, 'macro_collector', 45, 65),
     ('ICSA', 'macro.data.ICSA.value', 221000.0, 'macro_collector', 16, 18),
     ('DFF', 'rate_economy.current_rates.DFF.value', 4.33, 'rate_expectations', 9, 12),
-    ('DFEDTARU', 'rate_economy.current_rates.DFEDTARU.value', 4.5, 'rate_expectations', 44, 47),
-    ('DFEDTARL', 'rate_economy.current_rates.DFEDTARL.value', 4.25, 'rate_expectations', 44, 47),
+    # W2-FIX1-04: DFEDTARU/L窗口45→10(用户第三轮批复),正常/过期lag随之改
+    # 9/12(原44/47按已废止的45天窗设定)
+    ('DFEDTARU', 'rate_economy.current_rates.DFEDTARU.value', 4.5, 'rate_expectations', 9, 12),
+    ('DFEDTARL', 'rate_economy.current_rates.DFEDTARL.value', 4.25, 'rate_expectations', 9, 12),
     ('SH_PE', 'china.valuation.pe', 16.4, 'china_collector', 9, 12),
     ('UST_10Y', 'macro.data.UST_10Y.value', 4.28, 'macro_collector', 6, 8)]
 mismatch = []
@@ -229,16 +235,17 @@ check("D1 10项指标×正常+过期: 三路判定完全一致且符合批准窗
 check("D2 BTC按批准2天窗(lag3即过期,非旧7天)",
       fp.assess('BTC', lag_days(3), AS_OF)['fresh'] is False
       and fp.assess('BTC', lag_days(2), AS_OF)['fresh'] is True)
-check("D3 DFEDTARU按45天(旧Gate B月度45误频/旧引擎7误紧→现日频45)",
-      fp.assess('DFEDTARU', lag_days(44), AS_OF)['fresh'] is True
-      and dv.metric_frequency('rate_economy.current_rates.DFEDTARU.value')[:2] == ('daily', 45))
+check("D3 DFEDTARU按10天(W2-FIX1第三轮批复45→10;旧Gate B月度45误频/旧引擎7误紧→现日频10)",
+      fp.assess('DFEDTARU', lag_days(9), AS_OF)['fresh'] is True
+      and fp.assess('DFEDTARU', lag_days(44), AS_OF)['fresh'] is False
+      and dv.metric_frequency('rate_economy.current_rates.DFEDTARU.value')[:2] == ('daily', 10))
 check("D4 rate_economy.current_rates.DFF.value不得自动月度(W2-DEF-002)",
       dv.metric_frequency('rate_economy.current_rates.DFF.value')[0] == 'daily')
 
 # ══ E. 身份伪装拒绝 ═══════════════════════════════════════════════
 print("\n[E] 身份伪装与子串授权拒绝")
 obs30 = lag_days(30)
-check("E1 窄窗指标(SPX,5天)冒充宽窗(DFEDTARU,45天): lag30按SPX判过期",
+check("E1 键位身份优先: SPX键冒称DFEDTARU身份→冲突不可认证(False)",
       dv.is_fresh_anchor('global_market.data.SPX.close',
                          {'obs_date': obs30, 'metric_id': 'DFEDTARU'}, AS_OF) is False)
 info = dv.metric_registry_info('global_market.data.SPX.close',
@@ -253,9 +260,19 @@ check("E4 子串伪装不授权: 'SPXevil'不得借SPX身份/窗口",
       fp.verify_anchor_identity('global_market.data.SPXevil.close')['status'] == 'UNMAPPED'
       and dv.is_fresh_anchor('global_market.data.SPXevil.close',
                              {'obs_date': lag_days(1)}, AS_OF) is False)
-check("E5 宽窗指标如实保留宽判: DFEDTARU锚lag44新鲜(冒充SPX也不收紧)",
+# W2-FIX1(§7.4)修订: 原E5断言"冲突caller metric_id下仍True"——该语义被
+# 独立验收判为IA-P02-W2-DEF-003: 冲突=身份无法认证(UNVERIFIED),不得仅记录
+# conflict后继续授予时效认证。宽度保留语义改由无冲突对照(E5a)锁定。
+# W2-FIX1-04: DFEDTARU窗45→10后,无冲突caller的合法锚点以lag9锁定"宽判保留"
+# 语义(原lag44按已废止的45天窗设定)
+check("E5a 合法锚点无冲突caller照常认证: DFEDTARU锚lag9(≤10)→新鲜",
       dv.is_fresh_anchor('rate_economy.current_rates.DFEDTARU.value',
-                         {'obs_date': lag_days(44), 'metric_id': 'SPX'}, AS_OF) is True)
+                         {'obs_date': lag_days(9)}, AS_OF) is True)
+check("E5b 冲突caller metric_id→UNVERIFIED不再认证(FIX1-03 §7.4)",
+      dv.is_fresh_anchor('rate_economy.current_rates.DFEDTARU.value',
+                         {'obs_date': lag_days(44), 'metric_id': 'SPX'}, AS_OF) is False
+      and fp.verify_anchor_identity('rate_economy.current_rates.DFEDTARU.value',
+                                    {'metric_id': 'SPX'})['status'] == 'UNVERIFIED')
 
 # ══ F. 非法输入 ═══════════════════════════════════════════════════
 print("\n[F] 非法输入(未知不得转为有效)")

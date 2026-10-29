@@ -10,8 +10,9 @@
 |---|---|
 | 第1轮(2026-10-29) | 月频13项=45; 行情与日频风险资产44项=5; 特殊日频BTC=2/DFF=10/SH_PE=10; 政策目标区间DFEDTARU/DFEDTARL=45 |
 | 第2轮(2026-10-29) | 月频13项45→60(修正:BEA/EIA/G.17系正常发布滞后可达~60天,45会误判按时数据过期); 中国大陆日频8项5→10(修正:春节/国庆休市8~9天,5/7天在节后首日必误报);HK 2项维持5; MARGIN_BAL 7→10(与大陆日频同一休市日历,一致化) |
+| 第3轮(2026-10-29, W2-FIX1) | 政策目标区间DFEDTARU/DFEDTARL 45→10(FRED官方Daily,7-Day逐日发布当日生效值——45天窗仅掩盖8~44天采集中断;方案A对齐同族DFF;证据P0_2_W2_FIX1_POLICY_DFEDTARL.md) |
 
-**总量**: 81项 | 政策分类: APPROVED_ROUND1=7 / APPROVED_ROUND2=1 / APPROVED_ROUND2_CORRECTED=21 / NO_CONFLICT=52 | Gate A窗口: 收紧49/放宽13/不变19 | Gate B规则纠正(窗口或频率误判): 33项
+**总量**: 81项 | 政策分类: APPROVED_ROUND1=5 / APPROVED_ROUND2=1 / APPROVED_ROUND2_CORRECTED=21 / APPROVED_FIX1_ROUND3=2 / NO_CONFLICT=52(第三轮: DFEDTARU/L 45→10) | Gate A窗口: 收紧49/放宽13/不变19 | Gate B规则纠正(窗口或频率误判): 33项
 
 ## 2. 修正的两处第一轮算术错误(为何45/5不成立)
 
@@ -31,8 +32,8 @@
 | NFP | monthly | 60(92→) | 45/monthly | BLS就业形势报告: 次月第一个周五(~31-37天) |
 | ICSA | weekly | 16(16→) | 16/weekly | DOL初请失业金: 周四发布当周观测(发布滞后~0-3天) |
 | DFF | daily | 10(7→) | 45/monthly | 日度有效利率T+1发布(FR纽约联储);10天覆盖多假日簇(旧7在假日簇+单次采集故障时误报) |
-| DFEDTARU | daily | 45(7→) | 45/monthly | FOMC目标区间上限: 8次会议/年(~6-7周间隔),区间仅会后变动;45天≈会期间隔,超期=跨会议未更新采集(旧日频7频繁误报DEGRADED) |
-| DFEDTARL | daily | 45(7→) | 45/monthly | 同DFEDTARU(区间下限) |
+| DFEDTARU | daily | 10(7→45→) | 45/monthly | FRED官方Daily,7-Day:值在FOMC会期不变但观测戳逐日推进(逐日发布当日生效值),窗口度量采集连续性而非政策状态;10天对齐同族DFF(W2-FIX1第三轮复决策,旧45仅掩盖8~44天采集中断) |
+| DFEDTARL | daily | 10(7→45→) | 45/monthly | 同DFEDTARU(区间下限,W2-FIX1第三轮复决策45→10) |
 | ZQ_F1_PRICE | daily | 5(7→) | 45/monthly | 30天联邦基金期货: 日频交易价格;窗口5;注意曲线点锚点(rate_economy.fed_funds_futures.<i>.price)由sb直接构造、不带obs_date=无法判龄(如实警告,非本轮修复项) |
 | SHCOMP | daily | 10(7→) | 5/daily | 交易日观测(收盘价/当日值) |
 | MARGIN_BAL | daily | 10(7→) | 7/daily | 交易日观测(收盘价/当日值) |
@@ -102,8 +103,8 @@
 | INDPRO | monthly | 45/92/7(daily) | **60** | APPROVED_ROUND2_CORRECTED | 收紧92→60天: 滞后61~92天的事实从有效变为DEGRADED披露 |
 | ICSA | weekly | 16/16/16(weekly) | **16** | NO_CONFLICT | 不变(16天) |
 | DFF | daily | 10/7/45(monthly) | **10** | APPROVED_ROUND1 | 放宽7→10天: 滞后8~10天的事实从DEGRADED恢复有效(误报消除) |
-| DFEDTARU | daily | 45/7/45(monthly) | **45** | APPROVED_ROUND1 | 放宽7→45天: 滞后8~45天的事实从DEGRADED恢复有效(误报消除) |
-| DFEDTARL | daily | 45/7/45(monthly) | **45** | APPROVED_ROUND1 | 放宽7→45天: 滞后8~45天的事实从DEGRADED恢复有效(误报消除) |
+| DFEDTARU | daily | 45/7/45(monthly) | **10** | APPROVED_FIX1_ROUND3 | 第三轮复决策45→10: 滞后11~45天的事实从有效变DEGRADED披露(采集中断检测从45天提前到10天;假日簇~9自然日零误报;7→45的误报消除不回退,10>7) |
+| DFEDTARL | daily | 45/7/45(monthly) | **10** | APPROVED_FIX1_ROUND3 | 同DFEDTARU(第三轮复决策45→10) |
 | ZQ_F1_PRICE | daily | 5/7/45(monthly) | **5** | NO_CONFLICT | 收紧7→5天: 滞后6~7天的事实从有效变为DEGRADED披露 |
 | SHCOMP | daily | 5/7/5(daily) | **10** | APPROVED_ROUND2_CORRECTED | 放宽7→10天: 滞后8~10天的事实从DEGRADED恢复有效(误报消除) |
 | SZCI | daily | 5/7/5(daily) | **10** | APPROVED_ROUND2_CORRECTED | 放宽7→10天: 滞后8~10天的事实从DEGRADED恢复有效(误报消除) |

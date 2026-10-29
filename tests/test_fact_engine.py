@@ -174,7 +174,14 @@ mdata = {"data": {
 mf = fe.normalize_macro(mdata, AS_OF, "macro_20261017.json")
 mby = {f.get('metric_id'): f for f in mf}
 check("CPI月频事实带发布语义披露", 'release_note' in mby['CPI'] and '10月发布属正常' in mby['CPI']['release_note'])
-check("月频观测滞后不判错(9月观测10月研究)", mby['CPI']['quality_status'] == 'PASS', str(mby['CPI']['issues']))
+# W2-FIX1(§6.4)修订: 无release_date的月频事实必须披露"发布时间未验证"
+# (WARN档,独立合法档位不降级不计counts)——原断言==PASS改为: 无FAIL/DEGRADED
+# 且release披露在场(原预期漏掉点时披露义务,非放松)
+check("月频观测滞后不判错(9月观测10月研究;发布时间未验证按WARN披露)",
+      mby['CPI']['quality_status'] in ('PASS', 'WARN')
+      and not [i for i in mby['CPI']['issues'] if i['severity'] in ('FAIL', 'DEGRADED')]
+      and any(i['category'] == 'release' and 'RELEASE_UNKNOWN' in i['message']
+              for i in mby['CPI']['issues']), str(mby['CPI']['issues']))
 
 # china成交额口径(§4.5)
 cdata = {"indices": {"上证指数": {"close": 3716.28, "date": "2026-10-16"},

@@ -61,6 +61,8 @@ import re
 import sys
 from datetime import date as _date_cls
 
+import freshness_policy   # FIX1-01: 共享严格时点原语(无环: fp模块级不import rp)
+
 GATES = ('PASS', 'DEGRADED', 'FAIL')
 # 锚点指标合法质量状态(事实引擎词汇表): WARN为轻度提示,可记录
 ANCHOR_QUALITY_OK = ('PASS', 'DEGRADED', 'WARN')
@@ -911,14 +913,13 @@ def recompute_gate_a(snapshot, data_dir=None, trusted_root=None):
         return out
     # FIX4-01: 研究截止(观测日不得晚于它)。取research_as_of日期部分;
     # 缺失时退target_date;两者皆缺→截止不可核验(fail-closed,不得放行)。
+    # FIX1-01: research_as_of须为完整ISO日期或完整时间戳——整串先验证再取
+    # 日期('2026-10-24INVALID'不再经[:10]截断洗白,非法即无截止→fail-closed)。
     cutoff = None
     as_of = snapshot.get('research_as_of')
     tgt = snapshot.get('target_date')
-    if isinstance(as_of, str) and as_of.strip():
-        try:
-            cutoff = _date_cls.fromisoformat(as_of[:10])
-        except ValueError:
-            cutoff = None
+    if isinstance(as_of, str) and as_of:
+        cutoff = freshness_policy.parse_instant(as_of)
     if cutoff is None and isinstance(tgt, str) and len(tgt) >= 8 and tgt[:8].isdigit():
         try:
             cutoff = _date_cls.fromisoformat(f"{tgt[:4]}-{tgt[4:6]}-{tgt[6:8]}")

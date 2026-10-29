@@ -137,8 +137,15 @@ def build_anchors(snapshot, ymd):
                'metric_id': fact.get('metric_id'), 'quality': fact.get('quality_status'),
                'fact_id': fact.get('fact_id')}
         obs = obs or fact.get('observation_date')
-        if obs:
-            rec['obs_date'] = str(obs)[:10]
+        if obs is not None:
+            # FIX1-01: 严格解析——非法观测日原样保留(不[:10]截断洗白),
+            # 由Gate B共享严格原语拒绝(fail-closed),证据链保留原始形态
+            d = fe.parse_iso_date(str(obs))
+            rec['obs_date'] = d.isoformat() if d else str(obs)
+        # FIX1-02: 事实真实携带release_date时透传进锚点元数据(点时判断消费);
+        # 未携带不写键(RELEASE_UNKNOWN,不以任何其他时间冒充发布日)
+        if fact.get('release_date') is not None:
+            rec['release_date'] = fact['release_date']
         if fact.get('high') is not None:
             rec['high'] = fact['high']
         if fact.get('low') is not None:

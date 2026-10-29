@@ -31,7 +31,7 @@
 import json
 import os
 import re
-from datetime import date
+from datetime import date, datetime
 
 # ══ 政策审批记录(单一事实源,政策矩阵docs/P0_2_W2_FRESHNESS.*与此一致) ══
 POLICY_APPROVAL = {
@@ -74,6 +74,38 @@ def _parse_iso_date(s):
         return None
 
 
+# FIX1-01(IA-P02-W2-DEF-001)严格时点原语: 研究截止/发布时间允许三种合法形态——
+# date/datetime实例、完整ISO日期(YYYY-MM-DD)、**完整**ISO时间戳(整体必须合法,
+# 先验证整串再提取日期部分)。绝不以[:10]前缀截断把'2026-10-24INVALID'/
+# '2026-10-24T08:00:00垃圾'洗白成合法日期。返回date|None。
+_ISO_INSTANT_RE = re.compile(
+    r'^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(\.\d{1,6})?(Z|[+-]\d{2}:\d{2})?$')
+
+
+def parse_instant(value):
+    """严格时点解析: date→自身; datetime→date部分; str须为完整ISO日期或完整
+    ISO时间戳(YYYY-MM-DD[T ]HH:MM:SS[.ffffff][Z|±HH:MM])。其余(带任意后缀/
+    前缀空白/部分时间/非字符串)一律None——不得截断救活非法输入。"""
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if not isinstance(value, str):
+        return None
+    s = value
+    if _ISO_DATE_RE.fullmatch(s):
+        try:
+            return date.fromisoformat(s)
+        except ValueError:
+            return None
+    if _ISO_INSTANT_RE.fullmatch(s):
+        try:
+            return datetime.fromisoformat(s.replace('Z', '+00:00')).date()
+        except ValueError:
+            return None
+    return None
+
+
 # ══ 策略构建与缓存 ═══════════════════════════════════════════════
 
 _POLICY = None
@@ -97,7 +129,9 @@ def build_policy(registry):
             problems.append(f"{mid}:frequency={freq!r}非法(无法解释时效窗)")
             continue
         out[mid] = {'window': w, 'frequency': freq,
-                    'calendar': m.get('calendar'), 'basis': 'registry(approved)'}
+                    'calendar': m.get('calendar'),
+                    'source': m.get('source'),   # FIX1-03: 锚点家族↔权威来源绑定用
+                    'basis': 'registry(approved)'}
     if problems:
         raise FreshnessPolicyError(
             "W2-FRESHNESS-POLICY-INVALID: 注册表时效窗口不完整/非法 — "
@@ -164,6 +198,43 @@ _DERIVED_KEYS = {'macro.derived.REAL_10Y': 'REAL_10Y',
 _CUR_RATE = {'DFF', 'DFEDTARU', 'DFEDTARL'}
 _REAL_ECO_FIELDS = ('value', 'prev_value')
 
+# FIX1-03(IA-P02-W2-DEF-003)锚点家族↔注册表权威来源绑定: 指标在注册表中存在
+# ≠该指标可从任意采集通道生成。每个锚点家族只授权其对应权威来源的指标
+# (依据sb.build_anchors实际构造分支+metric_registry.source字段):
+#   global_market → global_market_collector(yfinance行情族)
+#   china_index/china_special → china_market_collector
+#   macro → macro_collector(NFP_MOM_K虽source=macro_collector但asset_class=
+#     macro_count_derived,sb从不为它发macro.data锚点,不在授权内)
+#   derived → fact_engine(derived)(REAL_10Y/REAL_5Y/HY_IG_DIFF/ZQ_IMPLIED_AVG)
+#   rate_current → rate_expectations(DFF/DFEDTARU/DFEDTARL)
+#   rate_real_economy → macro_collector(经_RATE_OLD_NAME显式兼容映射的宏观事实,
+#     sb取macro事实挂旧键名,单一来源仍是macro_collector)
+#   futures_curve → rate_expectations(ZQ_F1_PRICE)/fact_engine(derived)
+#     (ZQ_IMPLIED_AVG,sb从快照曲线直接构造)
+# 匹配失败→SOURCE_MISMATCH→UNVERIFIED(身份不可认证,fail-closed)。
+_FAMILY_SOURCES = {
+    'global_market': frozenset({'global_market_collector'}),
+    'china_index': frozenset({'china_market_collector'}),
+    'china_special': frozenset({'china_market_collector'}),
+    'macro': frozenset({'macro_collector'}),
+    'derived': frozenset({'fact_engine(derived)'}),
+    'rate_current': frozenset({'rate_expectations'}),
+    'rate_real_economy': frozenset({'macro_collector'}),
+    'futures_curve': frozenset({'rate_expectations', 'fact_engine(derived)'}),
+}
+
+
+def _source_mismatch_note(pol, mid, family):
+    """指标已注册但注册表权威来源不属于该锚点家族→SOURCE_MISMATCH说明
+    (canonical_anchor_metric返回mid=None,verify_anchor_identity判UNVERIFIED)。"""
+    allowed = _FAMILY_SOURCES.get(family)
+    src = (pol.get(mid) or {}).get('source')
+    if allowed is None or src in allowed:
+        return None
+    return (f"SOURCE_MISMATCH: {mid}注册表权威来源={src!r}不属于锚点家族{family!r}"
+            f"的授权来源{sorted(allowed)}——指标在注册表存在≠该通道可生成,"
+            f"跨通道锚点身份不可认证")
+
 
 def _sb_tables():
     import snapshot_builder as sb   # lazy: 避免模块级环(fe→fp, sb→fe)
@@ -187,73 +258,112 @@ def canonical_anchor_metric(anchor_key):
             and parts[3] in _GM_FIELDS:
         rev = {v: k for k, v in gm.items()}
         mid = rev.get(parts[2], parts[2])
-        if mid in pol:
-            return mid, 'global_market', f"global_market数据键{parts[2]!r}→注册表{mid}"
-        return None, 'global_market', f"global_market数据键{parts[2]!r}未注册"
+        if mid not in pol:
+            return None, 'global_market', f"global_market数据键{parts[2]!r}未注册"
+        mm = _source_mismatch_note(pol, mid, 'global_market')
+        if mm:
+            return None, 'global_market', mm
+        return mid, 'global_market', f"global_market数据键{parts[2]!r}→注册表{mid}"
     # china.data.<中文label>.<字段> — label经_CHINA_LABEL反查
     if len(parts) == 4 and parts[0] == 'china' and parts[1] == 'data' \
             and parts[3] in _CN_DATA_FIELDS:
         rev = {v: k for k, v in cn_label.items()}
         mid = rev.get(parts[2])
-        if mid and mid in pol:
-            return mid, 'china_index', f"china指数label{parts[2]!r}→注册表{mid}"
-        return None, 'china_index', f"china指数label{parts[2]!r}未注册"
+        if not mid or mid not in pol:
+            return None, 'china_index', f"china指数label{parts[2]!r}未注册"
+        mm = _source_mismatch_note(pol, mid, 'china_index')
+        if mm:
+            return None, 'china_index', mm
+        return mid, 'china_index', f"china指数label{parts[2]!r}→注册表{mid}"
     # china特殊键(镜像sb._CN_ANCHOR_KEY构造)
     if anchor_key in _CN_SPECIAL:
         mid = _CN_SPECIAL[anchor_key]
-        if mid in pol:
-            return mid, 'china_special', f"china特殊锚点→注册表{mid}"
-        return None, 'china_special', f"{anchor_key}目标{mid}未注册"
+        if mid not in pol:
+            return None, 'china_special', f"{anchor_key}目标{mid}未注册"
+        mm = _source_mismatch_note(pol, mid, 'china_special')
+        if mm:
+            return None, 'china_special', mm
+        return mid, 'china_special', f"china特殊锚点→注册表{mid}"
     # macro.data.<metric_id>.<字段>
     if len(parts) == 4 and parts[0] == 'macro' and parts[1] == 'data' \
             and parts[3] in _MACRO_FIELDS:
-        if parts[2] in pol:
-            return parts[2], 'macro', "macro序列键=注册表ID"
-        return None, 'macro', f"macro序列{parts[2]!r}未注册"
+        if parts[2] not in pol:
+            return None, 'macro', f"macro序列{parts[2]!r}未注册"
+        mm = _source_mismatch_note(pol, parts[2], 'macro')
+        if mm:
+            return None, 'macro', mm
+        return parts[2], 'macro', "macro序列键=注册表ID"
     # macro.derived.<id>
     if anchor_key in _DERIVED_KEYS:
         mid = _DERIVED_KEYS[anchor_key]
-        if mid in pol:
-            return mid, 'derived', f"派生锚点→注册表{mid}"
-        return None, 'derived', f"派生锚点目标{mid}未注册"
+        if mid not in pol:
+            return None, 'derived', f"派生锚点目标{mid}未注册"
+        mm = _source_mismatch_note(pol, mid, 'derived')
+        if mm:
+            return None, 'derived', mm
+        return mid, 'derived', f"派生锚点→注册表{mid}"
     # rate_economy.current_rates.<DFF|DFEDTARU|DFEDTARL>.value (日频!非月度)
     if len(parts) == 4 and parts[0] == 'rate_economy' and parts[1] == 'current_rates' \
             and parts[2] in _CUR_RATE and parts[3] == 'value':
-        if parts[2] in pol:
-            return parts[2], 'rate_current', "current_rates=注册表ID(日频)"
-        return None, 'rate_current', f"current_rates目标{parts[2]}未注册"
+        if parts[2] not in pol:
+            return None, 'rate_current', f"current_rates目标{parts[2]}未注册"
+        mm = _source_mismatch_note(pol, parts[2], 'rate_current')
+        if mm:
+            return None, 'rate_current', mm
+        return parts[2], 'rate_current', "current_rates=注册表ID(日频)"
     # rate_economy.real_economy.<旧名>.<value|prev_value> — 经_RATE_OLD_NAME反查
     if len(parts) == 4 and parts[0] == 'rate_economy' and parts[1] == 'real_economy' \
             and parts[3] in _REAL_ECO_FIELDS:
         rev = {v: k for k, v in rate_old.items()}
         mid = rev.get(parts[2], parts[2])
-        if mid in pol:
-            return mid, 'rate_real_economy', f"real_economy旧名{parts[2]!r}→注册表{mid}"
-        return None, 'rate_real_economy', f"real_economy旧名{parts[2]!r}未注册"
+        if mid not in pol:
+            return None, 'rate_real_economy', f"real_economy旧名{parts[2]!r}未注册"
+        mm = _source_mismatch_note(pol, mid, 'rate_real_economy')
+        if mm:
+            return None, 'rate_real_economy', mm
+        return mid, 'rate_real_economy', f"real_economy旧名{parts[2]!r}→注册表{mid}"
     # rate_economy.fed_funds_futures.<i>.<price|implied_rate> — 期货曲线点
     # (sb直接构造,无obs_date;映射到对应注册表ID但时间元数据缺失=无法判龄)
     if len(parts) == 4 and parts[0] == 'rate_economy' and parts[1] == 'fed_funds_futures' \
             and parts[2].isdigit() and parts[3] in ('price', 'implied_rate'):
         mid = 'ZQ_F1_PRICE' if parts[3] == 'price' else 'ZQ_IMPLIED_AVG'
-        if mid in pol:
-            return mid, 'futures_curve', f"曲线点锚点→{mid}(sb构造无obs_date,判龄须补元数据)"
-        return None, 'futures_curve', f"曲线点目标{mid}未注册"
+        if mid not in pol:
+            return None, 'futures_curve', f"曲线点目标{mid}未注册"
+        mm = _source_mismatch_note(pol, mid, 'futures_curve')
+        if mm:
+            return None, 'futures_curve', mm
+        return mid, 'futures_curve', f"曲线点锚点→{mid}(sb构造无obs_date,判龄须补元数据)"
     return None, 'unmapped', '锚点键不匹配任何已注册构造语法'
 
 
 def verify_anchor_identity(anchor_key, info=None):
-    """锚点身份核验: canonical键映射为准,info.metric_id仅交叉核验不作授权。
-    返回{status: MAPPED|UNMAPPED, metric_id, family, basis,
-         caller_metric_id, conflict}。MAPPED且caller声称ID不一致→仍MAPPED
-    但conflict披露(以canonical判窗,不得借caller身份放宽)。"""
+    """锚点身份核验(FIX1-03收紧): canonical键映射+**来源家族绑定**为准,
+    info.metric_id仅交叉核验不作授权。返回{status, reason, metric_id, family,
+    basis, caller_metric_id, conflict}:
+      MAPPED     键语法匹配+指标注册+注册表权威来源属于该锚点家族+无身份冲突;
+      UNMAPPED   键不匹配任何已注册构造语法/指标未注册;
+      UNVERIFIED 身份不可认证——SOURCE_MISMATCH(指标注册但权威来源不属于该
+                 锚点家族,如global_market.data.CPI.close)或IDENTITY_CONFLICT
+                 (caller声称metric_id与canonical不符)。二者均fail-closed,
+                 不得仅记录conflict后继续返回可认证身份(W2-FIX1 §7.4)。"""
     mid, family, note = canonical_anchor_metric(anchor_key)
     caller = (info or {}).get('metric_id') if isinstance(info, dict) else None
-    out = {'status': 'MAPPED' if mid else 'UNMAPPED', 'metric_id': mid,
+    out = {'status': None, 'reason': None, 'metric_id': mid,
            'family': family, 'basis': note, 'caller_metric_id': caller,
            'conflict': None}
-    if mid and caller and caller != mid:
-        out['conflict'] = (f"caller声称metric_id={caller!r}与canonical={mid!r}不符,"
-                           f"以canonical为准判窗(caller身份不得授权放宽)")
+    if mid is None:
+        if isinstance(note, str) and note.startswith('SOURCE_MISMATCH'):
+            out.update(status='UNVERIFIED', reason='source_mismatch')
+        else:
+            out.update(status='UNMAPPED', reason='unmapped')
+        return out
+    if caller and caller != mid:
+        out.update(status='UNVERIFIED', reason='identity_conflict')
+        out['conflict'] = (f"caller声称metric_id={caller!r}与canonical={mid!r}不符"
+                           f"——锚点键与声明身份冲突,身份无法认证(FIX1-03: 冲突=UNVERIFIED,"
+                           f"不再以canonical继续授予时效认证)")
+        return out
+    out.update(status='MAPPED', reason='mapped')
     return out
 
 
@@ -267,6 +377,8 @@ def assess(metric_id, obs_date, as_of, release_date=None):
                 release>as_of=RELEASE_AFTER_AS_OF(点时不可得,不得作当前证据);
                 缺失=RELEASE_UNKNOWN(如实标注,不伪造); release<obs=INVALID;
     C 是否新鲜? lag=as_of−obs ≤ 已批准窗口(registry(approved))。
+    FIX1-01: as_of与release_date接受date/datetime/完整ISO日期/**完整**ISO时间戳
+    (整串先验证再取日期,绝不[:10]截断);obs_date仍须纯日期(经济观测日语义)。
     返回verdict dict(fresh=bool;status∈FRESH/STALE/NOT_OBSERVED/INVALID_DATE/
     FUTURE_DATE/UNREGISTERED/NOT_AVAILABLE_AT_AS_OF/INVALID_RELEASE)。"""
     v = {'metric_id': metric_id, 'obs_date': None, 'as_of': None,
@@ -279,7 +391,7 @@ def assess(metric_id, obs_date, as_of, release_date=None):
                  reasons=[f"指标{metric_id!r}不在已批准时效策略(未注册或策略未加载)——未知策略不得视为有效"])
         return v
     v['window'], v['frequency'] = pol['window'], pol['frequency']
-    a = _parse_iso_date(as_of) if as_of is not None else None
+    a = parse_instant(as_of) if as_of is not None else None
     if a is None:
         v.update(status='INVALID_DATE', fresh=False, reasons=['as_of缺失或非完整ISO日期'])
         return v
@@ -293,13 +405,16 @@ def assess(metric_id, obs_date, as_of, release_date=None):
         return v
     v['obs_date'] = o.isoformat()
     v['observed'] = {'status': 'OK'}
+    # FIX1-02可追踪性: 滞后天数在B问前先算好——点时不可得早退时也能看到
+    # "lag≤窗但as_of时点不可得"的完整对照(Agent4反例的叙事结构)
+    v['lag_days'] = (a - o).days
     if o > a:
         v.update(status='FUTURE_DATE', fresh=False,
                  reasons=[f"观测日{o}晚于研究截止{a}(未来数据,非法时点)"])
         return v
     # B问: 点时可得性——只对真实携带的release_date作答,缺失即如实UNKNOWN
     if release_date is not None:
-        r = _parse_iso_date(release_date)
+        r = parse_instant(release_date)
         if r is None:
             v['point_in_time'] = {'status': 'INVALID', 'release_date': release_date}
             v.update(status='INVALID_RELEASE', fresh=False,
@@ -320,8 +435,7 @@ def assess(metric_id, obs_date, as_of, release_date=None):
         v['point_in_time'] = {'status': 'RELEASE_UNKNOWN',
                               'note': '采集端不携带release_date——如实标注未知,不伪造点时证据;新鲜度按观测滞后窗判定'}
     # C问: 观测滞后 vs 已批准窗口
-    lag = (a - o).days
-    v['lag_days'] = lag
+    lag = v['lag_days']
     if lag > pol['window']:
         v.update(status='STALE', fresh=False,
                  reasons=[f"观测日滞后{lag}天>{pol['window']}天已批准窗口({pol['frequency']}频;未发布或采集失败,不得当作最新一期)"])

@@ -148,7 +148,7 @@
    "criticality": "important",
    "status": "active",
    "identity": {
-    "instrument": "etf",
+    "instrument": "single_stock",
     "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
    },
    "value_type": "level",
@@ -176,7 +176,7 @@
    "criticality": "important",
    "status": "active",
    "identity": {
-    "instrument": "etf",
+    "instrument": "single_stock",
     "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
    },
    "value_type": "level",
@@ -204,7 +204,7 @@
    "criticality": "important",
    "status": "active",
    "identity": {
-    "instrument": "etf",
+    "instrument": "single_stock",
     "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)"
    },
    "value_type": "level",

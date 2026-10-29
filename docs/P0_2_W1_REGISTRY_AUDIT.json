@@ -1,0 +1,1627 @@
+{
+ "package": "IA-P0-2-W1",
+ "baseline_sha": "50b5d13db6c477084c6f4b3944b7bd08a8e329d6",
+ "branch": "dev/p0-2-w1",
+ "generated_at": "2026-10-29T10:06:39+08:00",
+ "registry_version": "2.0.0",
+ "totals": {
+  "metrics": 81,
+  "unique_metric_ids": 81,
+  "active": 80,
+  "active_core": 32,
+  "deprecated": 1,
+  "results": {
+   "VERIFIED_CONSISTENT": 77,
+   "FIXED": 3,
+   "REVIEW": 1,
+   "BLOCKED": 0
+  }
+ },
+ "collector_symbol_crosscheck": {
+  "method": "开发期(2026-10-29)从固定Commit实读采集器符号表快照(WATCHLIST/FRED_SERIES/rate/china通道键)与注册表source_symbol逐项比对",
+  "mismatches": [],
+  "all_match": true,
+  "frozen_tables": {
+   "WATCHLIST": {
+    "SPX": "^GSPC",
+    "NDX": "^NDX",
+    "RUT": "^RUT",
+    "NVDA": "NVDA",
+    "AAPL": "AAPL",
+    "MSFT": "MSFT",
+    "TLT": "TLT",
+    "HYG": "HYG",
+    "DXY": "DX-Y.NYB",
+    "EURUSD": "EURUSD=X",
+    "GOLD": "GC=F",
+    "SILVER": "SI=F",
+    "WTI": "CL=F",
+    "BRENT": "BZ=F",
+    "EEM": "EEM",
+    "BTC": "BTC-USD",
+    "VIX": "^VIX",
+    "EZU": "EZU",
+    "FEZ": "FEZ",
+    "EWU": "EWU",
+    "EWG": "EWG",
+    "EWJ": "EWJ",
+    "INDA": "INDA",
+    "FXI": "FXI",
+    "GBPUSD=X": "GBPUSD=X",
+    "JPY=X": "JPY=X",
+    "CNY=X": "CNY=X",
+    "IEF": "IEF",
+    "SHY": "SHY",
+    "LQD": "LQD",
+    "GLD": "GLD",
+    "USO": "USO"
+   },
+   "FRED_SERIES": {
+    "HY_OAS": "BAMLH0A0HYM2",
+    "BB_OAS": "BAMLH0A1HYBB",
+    "B_OAS": "BAMLH0A2HYB",
+    "CCC_OAS": "BAMLH0A3HYC",
+    "IG_OAS": "BAMLC0A0CM",
+    "UST_2Y": "DGS2",
+    "UST_5Y": "DGS5",
+    "UST_10Y": "DGS10",
+    "UST_30Y": "DGS30",
+    "TIPS_5Y": "DFII5",
+    "TIPS_10Y": "DFII10",
+    "BEI_5Y": "T5YIE",
+    "BEI_10Y": "T10YIE",
+    "CURVE_2S10S": "T10Y2Y",
+    "FED_FUNDS": "FEDFUNDS",
+    "CPI": "CPIAUCSL",
+    "CORE_PCE": "PCEPILFE",
+    "UNEMPLOYMENT": "UNRATE",
+    "NFP": "PAYEMS",
+    "CORE_CPI": "CPILFESL",
+    "AHE": "CES0500000003",
+    "ICSA": "ICSA",
+    "WTI": "WTISPLC",
+    "UMCSENT": "UMCSENT",
+    "RSAFS": "RSAFS",
+    "INDPRO": "INDPRO",
+    "JTSJOL": "JTSJOL"
+   },
+   "RATE_SYMBOLS": {
+    "DFF": "DFF",
+    "DFEDTARU": "DFEDTARU",
+    "DFEDTARL": "DFEDTARL",
+    "ZQ_F1_PRICE": "ZQ=F"
+   },
+   "CHINA_SYMBOLS": {
+    "SHCOMP": "000001.SH",
+    "SZCI": "399001.SZ",
+    "CHINEXT": "399006.SZ",
+    "HSI": "hkHSI",
+    "HSCEI": "hkHSCEI",
+    "HSAHP": "HSAHP",
+    "SB_FLOW": "southbound",
+    "MARGIN_BAL": "margin",
+    "SH_PE": "valuation",
+    "SH_AMOUNT": "000001.SH.amount",
+    "SZ_COMPONENT_AMOUNT": "399001.SZ.amount",
+    "CN_TOTAL_TURNOVER": "000001.SH+399001.SZ"
+   }
+  }
+ },
+ "fixes": [
+  {
+   "metric_id": "NVDA",
+   "field": "identity.instrument",
+   "before": "etf",
+   "after": "single_stock",
+   "other_fields_unchanged": true
+  },
+  {
+   "metric_id": "AAPL",
+   "field": "identity.instrument",
+   "before": "etf",
+   "after": "single_stock",
+   "other_fields_unchanged": true
+  },
+  {
+   "metric_id": "MSFT",
+   "field": "identity.instrument",
+   "before": "etf",
+   "after": "single_stock",
+   "other_fields_unchanged": true
+  }
+ ],
+ "systemic_findings": [
+  {
+   "id": "S1",
+   "severity": "P2(W2交接)",
+   "title": "注册表freshness窗为声明性元数据,运行时未按其执行",
+   "detail": "fact_engine.validate_fact读取freshness.max_calendar_lag_days至局部变量fr后未使用,实际生效窗为按频率硬编码(日7/周16/月92)。注册表声明值(BTC 2/SPX 5/UST 7/月频45/DFEDTAR 45/ICSA 16)与执行窗存在差异(BTC 2vs7、月频45vs92、DFEDTAR 45vs7)。",
+   "action": "W1未修改时效政策与窗口(指令§5.2明令归W2);本轮仅在registry_semantics校验freshness结构合法性。登记移交W2。"
+  },
+  {
+   "id": "S2",
+   "severity": "P2(说明)",
+   "title": "china通道source_symbol语义=采集器通道键/真实指数代码",
+   "detail": "china类source_symbol(HSI=hkHSI/SB_FLOW=southbound/SH_PE=valuation等)为china_market_collector输出JSON键/通道键而非交易所符号;normalize_china以显式映射消费,语义一致。",
+   "action": "无需修改;审计报告显式记录该通道符号语义。"
+  },
+  {
+   "id": "S3",
+   "severity": "P2(说明)",
+   "title": "ZQ联邦基金期货calendar=commodity",
+   "detail": "trading_calendar.MARKETS无独立利率期货日历;ZQ(CME/Globex)归入commodity桶,两个fed_futures指标一致使用,新鲜度窗5天按日频采集校验。",
+   "action": "桶选择为既有设计,两指标一致;如后续需要精确CME日历属W2+议题,本轮不动。"
+  },
+  {
+   "id": "S4",
+   "severity": "P2(说明)",
+   "title": "派生指标source标注存在两种惯例",
+   "detail": "REAL_*/HY_IG_DIFF/ZQ_IMPLIED_AVG标注source='fact_engine(derived)'(计算模块),NFP_MOM_K标注source='macro_collector'(数据通道);实际collector均为fact_engine。rp._DERIVED_DEPS分支按依赖集授权(先于source查找),sb锚点分支显式排除macro_count_derived——两惯例行为一致,无冲突。",
+   "action": "记录惯例差异;统一命名属后续清理项,不影响正确性,本轮不改(最小修改原则)。"
+  }
+ ],
+ "not_verified_statements": [
+  "本审计只覆盖注册表字段一致性与已确认金融语义矛盾;不构成\"81项金融数据真实准确\"的认证",
+  "真实价格/利率/计数与外部市场的一致性核验不在W1范围",
+  "时效窗口政策语义(W2)、新闻情绪模块(W3)、W4/W5业务模块未审计未修改",
+  "采集器运行时符号表以开发期快照为准(冻结于本报告);采集器后续演进需重新比对",
+  "真实金融数值准确性(价格/利率/计数与外部市场的一致性)——W1范围外",
+  "时效政策与有效期窗口数值(freshness仅查结构合法性;语义归W2)",
+  "采集器运行时实际符号表与source_symbol的一致性(开发期人工核验,见审计报告)",
+  "未确认asset_class/instrument组合的金融正当性(标review,待人工或后续工作包)",
+  "新闻/情绪与业务模块口径(W3~W5范围)"
+ ],
+ "items": [
+  {
+   "metric_id": "SPX",
+   "asset_class": "equity_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "global_market_collector",
+   "source_symbol": "^GSPC",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "指数身份instrument=index与收盘点位单位/交易日历一致;未伪装为ETF或个股",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[SPX]='^GSPC' vs 注册表source_symbol='^GSPC'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: calc显式'非ETF;SPY为独立指标'——指数与代理ETF双身份分离声明"
+   ],
+   "notes": "calc显式'非ETF;SPY为独立指标'——指数与代理ETF双身份分离声明"
+  },
+  {
+   "metric_id": "NDX",
+   "asset_class": "equity_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "global_market_collector",
+   "source_symbol": "^NDX",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "指数身份instrument=index与收盘点位单位/交易日历一致;未伪装为ETF或个股",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[NDX]='^NDX' vs 注册表source_symbol='^NDX'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "RUT",
+   "asset_class": "equity_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "global_market_collector",
+   "source_symbol": "^RUT",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "指数身份instrument=index与收盘点位单位/交易日历一致;未伪装为ETF或个股",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[RUT]='^RUT' vs 注册表source_symbol='^RUT'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "VIX",
+   "asset_class": "volatility_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "global_market_collector",
+   "source_symbol": "^VIX",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "VIX为年化波动率预期统计量(instrument=index),calc注明非价格",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[VIX]='^VIX' vs 注册表source_symbol='^VIX'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "NVDA",
+   "asset_class": "single_stock",
+   "instrument": "single_stock",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "NVDA",
+   "result": "FIXED",
+   "issues_found": [
+    "identity.instrument='etf'与asset_class=single_stock矛盾(个股被标成ETF)"
+   ],
+   "basis": "个股是发行人权益凭证而非基金份额;W1-02指令确认为确定性身份错误",
+   "impact": "字段级:identity进入事实对象(make_fact逐键复制)误导下游工具身份理解;运行时无代码分支依赖旧值(scripts/tests对instrument零消费,W1-03前)——无历史行为破坏",
+   "action": "instrument: 'etf' → 'single_stock';其余字段(display_name/source/source_symbol/asset_class/unit/validation/freshness/数值口径)逐字节未动",
+   "evidence": [
+    "WATCHLIST[NVDA]='NVDA' vs 注册表source_symbol='NVDA'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "修复前后对照: git show 50b5d13db:config/metric_registry.json 同条目instrument='etf' → 当前'single_stock'",
+    "test_p02_w1.py A3/D/E节机器复核"
+   ]
+  },
+  {
+   "metric_id": "AAPL",
+   "asset_class": "single_stock",
+   "instrument": "single_stock",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "AAPL",
+   "result": "FIXED",
+   "issues_found": [
+    "identity.instrument='etf'与asset_class=single_stock矛盾(个股被标成ETF)"
+   ],
+   "basis": "个股是发行人权益凭证而非基金份额;W1-02指令确认为确定性身份错误",
+   "impact": "字段级:identity进入事实对象(make_fact逐键复制)误导下游工具身份理解;运行时无代码分支依赖旧值(scripts/tests对instrument零消费,W1-03前)——无历史行为破坏",
+   "action": "instrument: 'etf' → 'single_stock';其余字段(display_name/source/source_symbol/asset_class/unit/validation/freshness/数值口径)逐字节未动",
+   "evidence": [
+    "WATCHLIST[AAPL]='AAPL' vs 注册表source_symbol='AAPL'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "修复前后对照: git show 50b5d13db:config/metric_registry.json 同条目instrument='etf' → 当前'single_stock'",
+    "test_p02_w1.py A3/D/E节机器复核"
+   ]
+  },
+  {
+   "metric_id": "MSFT",
+   "asset_class": "single_stock",
+   "instrument": "single_stock",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "MSFT",
+   "result": "FIXED",
+   "issues_found": [
+    "identity.instrument='etf'与asset_class=single_stock矛盾(个股被标成ETF)"
+   ],
+   "basis": "个股是发行人权益凭证而非基金份额;W1-02指令确认为确定性身份错误",
+   "impact": "字段级:identity进入事实对象(make_fact逐键复制)误导下游工具身份理解;运行时无代码分支依赖旧值(scripts/tests对instrument零消费,W1-03前)——无历史行为破坏",
+   "action": "instrument: 'etf' → 'single_stock';其余字段(display_name/source/source_symbol/asset_class/unit/validation/freshness/数值口径)逐字节未动",
+   "evidence": [
+    "WATCHLIST[MSFT]='MSFT' vs 注册表source_symbol='MSFT'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "修复前后对照: git show 50b5d13db:config/metric_registry.json 同条目instrument='etf' → 当前'single_stock'",
+    "test_p02_w1.py A3/D/E节机器复核"
+   ]
+  },
+  {
+   "metric_id": "TLT",
+   "asset_class": "bond_etf",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "TLT",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "债券ETF份额身份instrument=etf;复权口径显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[TLT]='TLT' vs 注册表source_symbol='TLT'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "IEF",
+   "asset_class": "bond_etf",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "IEF",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "债券ETF份额身份instrument=etf;复权口径显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[IEF]='IEF' vs 注册表source_symbol='IEF'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "SHY",
+   "asset_class": "bond_etf",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "SHY",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "债券ETF份额身份instrument=etf;复权口径显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[SHY]='SHY' vs 注册表source_symbol='SHY'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "HYG",
+   "asset_class": "bond_etf",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "HYG",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "债券ETF份额身份instrument=etf;复权口径显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[HYG]='HYG' vs 注册表source_symbol='HYG'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "LQD",
+   "asset_class": "bond_etf",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "LQD",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "债券ETF份额身份instrument=etf;复权口径显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[LQD]='LQD' vs 注册表source_symbol='LQD'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "DXY",
+   "asset_class": "fx_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "global_market_collector",
+   "source_symbol": "DX-Y.NYB",
+   "result": "REVIEW",
+   "issues_found": [
+    "instrument=index而calc注明'ICE美元指数期货结算近似'——DX-Y.NYB报价口径(ICE美元指数计算值 vs 期货结算价)需外部来源核实,W1离线环境无法确认"
+   ],
+   "basis": "字段间自洽(index身份+index_point单位+fx日历+符号DX-Y.NYB一致);唯一未能离线确认项为报价源口径本身",
+   "impact": "低:字段自洽且calc已诚实披露'近似';风险仅在于外部表述时口径误读",
+   "action": "不修改(无确定性错误);留REVIEW待外部来源核实后定案",
+   "evidence": [
+    "WATCHLIST[DXY]='DX-Y.NYB' vs 注册表source_symbol='DX-Y.NYB'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "EURUSD",
+   "asset_class": "fx_rate",
+   "instrument": null,
+   "unit": "usd_per_eur",
+   "source": "global_market_collector",
+   "source_symbol": "EURUSD=X",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "即期汇率;单位名内嵌报价方向(usd_per_eur/jpy_per_usd等),方向语义在calc显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[EURUSD]='EURUSD=X' vs 注册表source_symbol='EURUSD=X'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "GBPUSD",
+   "asset_class": "fx_rate",
+   "instrument": null,
+   "unit": "usd_per_gbp",
+   "source": "global_market_collector",
+   "source_symbol": "GBPUSD=X",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "即期汇率;单位名内嵌报价方向(usd_per_eur/jpy_per_usd等),方向语义在calc显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[GBPUSD=X]='GBPUSD=X' vs 注册表source_symbol='GBPUSD=X'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "USDJPY",
+   "asset_class": "fx_rate",
+   "instrument": null,
+   "unit": "jpy_per_usd",
+   "source": "global_market_collector",
+   "source_symbol": "JPY=X",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "即期汇率;单位名内嵌报价方向(usd_per_eur/jpy_per_usd等),方向语义在calc显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[JPY=X]='JPY=X' vs 注册表source_symbol='JPY=X'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: calc标注与EURUSD方向语义相反(上涨=美元升值)——防方向倒置误读"
+   ],
+   "notes": "calc标注与EURUSD方向语义相反(上涨=美元升值)——防方向倒置误读"
+  },
+  {
+   "metric_id": "USDCNY",
+   "asset_class": "fx_rate",
+   "instrument": null,
+   "unit": "cny_per_usd",
+   "source": "global_market_collector",
+   "source_symbol": "CNY=X",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "即期汇率;单位名内嵌报价方向(usd_per_eur/jpy_per_usd等),方向语义在calc显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[CNY=X]='CNY=X' vs 注册表source_symbol='CNY=X'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: calc标注上涨=人民币贬值"
+   ],
+   "notes": "calc标注上涨=人民币贬值"
+  },
+  {
+   "metric_id": "GOLD_F",
+   "asset_class": "commodity_futures",
+   "instrument": "futures_front_continuous",
+   "unit": "usd_per_oz",
+   "source": "global_market_collector",
+   "source_symbol": "GC=F",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "主力连续期货instrument=futures_front_continuous,非现货披露、单位为商品计价单位",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[GOLD]='GC=F' vs 注册表source_symbol='GC=F'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "SILVER_F",
+   "asset_class": "commodity_futures",
+   "instrument": "futures_front_continuous",
+   "unit": "usd_per_oz",
+   "source": "global_market_collector",
+   "source_symbol": "SI=F",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "主力连续期货instrument=futures_front_continuous,非现货披露、单位为商品计价单位",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[SILVER]='SI=F' vs 注册表source_symbol='SI=F'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "WTI_F",
+   "asset_class": "commodity_futures",
+   "instrument": "futures_front_continuous",
+   "unit": "usd_per_barrel",
+   "source": "global_market_collector",
+   "source_symbol": "CL=F",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "主力连续期货instrument=futures_front_continuous,非现货披露、单位为商品计价单位",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[WTI]='CL=F' vs 注册表source_symbol='CL=F'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 与WTI_SPOT_M构成期货/现货月均双身份,cross_metric_checks有口径差异披露"
+   ],
+   "notes": "与WTI_SPOT_M构成期货/现货月均双身份,cross_metric_checks有口径差异披露"
+  },
+  {
+   "metric_id": "BRENT_F",
+   "asset_class": "commodity_futures",
+   "instrument": "futures_front_continuous",
+   "unit": "usd_per_barrel",
+   "source": "global_market_collector",
+   "source_symbol": "BZ=F",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "主力连续期货instrument=futures_front_continuous,非现货披露、单位为商品计价单位",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[BRENT]='BZ=F' vs 注册表source_symbol='BZ=F'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "GLD",
+   "asset_class": "spot_commodity_etf",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "GLD",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "商品现货代理ETF(GLD),proxy_of黄金现货,持有成本跟踪语义显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[GLD]='GLD' vs 注册表source_symbol='GLD'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: ETF代理现货黄金:is_proxy+proxy_of,未冒充现货指数"
+   ],
+   "notes": "ETF代理现货黄金:is_proxy+proxy_of,未冒充现货指数"
+  },
+  {
+   "metric_id": "USO",
+   "asset_class": "commodity_futures_etf",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "USO",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "期货ETF(USO),proxy_of=WTI近月合约,展期损耗/长期偏离披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[USO]='USO' vs 注册表source_symbol='USO'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: ETF代理WTI期货近月:展期损耗披露,未与期货本体混同"
+   ],
+   "notes": "ETF代理WTI期货近月:展期损耗披露,未与期货本体混同"
+  },
+  {
+   "metric_id": "EEM",
+   "asset_class": "country_etf_proxy",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "EEM",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "国家/地区代理ETF:is_proxy+proxy_of完备,美元计价含汇率影响在calc披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[EEM]='EEM' vs 注册表source_symbol='EEM'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "EZU",
+   "asset_class": "country_etf_proxy",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "EZU",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "国家/地区代理ETF:is_proxy+proxy_of完备,美元计价含汇率影响在calc披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[EZU]='EZU' vs 注册表source_symbol='EZU'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "FEZ",
+   "asset_class": "country_etf_proxy",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "FEZ",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "国家/地区代理ETF:is_proxy+proxy_of完备,美元计价含汇率影响在calc披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[FEZ]='FEZ' vs 注册表source_symbol='FEZ'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "EWU",
+   "asset_class": "country_etf_proxy",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "EWU",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "国家/地区代理ETF:is_proxy+proxy_of完备,美元计价含汇率影响在calc披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[EWU]='EWU' vs 注册表source_symbol='EWU'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "EWG",
+   "asset_class": "country_etf_proxy",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "EWG",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "国家/地区代理ETF:is_proxy+proxy_of完备,美元计价含汇率影响在calc披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[EWG]='EWG' vs 注册表source_symbol='EWG'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "EWJ",
+   "asset_class": "country_etf_proxy",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "EWJ",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "国家/地区代理ETF:is_proxy+proxy_of完备,美元计价含汇率影响在calc披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[EWJ]='EWJ' vs 注册表source_symbol='EWJ'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "INDA",
+   "asset_class": "country_etf_proxy",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "INDA",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "国家/地区代理ETF:is_proxy+proxy_of完备,美元计价含汇率影响在calc披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[INDA]='INDA' vs 注册表source_symbol='INDA'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "FXI",
+   "asset_class": "country_etf_proxy",
+   "instrument": "etf",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "FXI",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "国家/地区代理ETF:is_proxy+proxy_of完备,美元计价含汇率影响在calc披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[FXI]='FXI' vs 注册表source_symbol='FXI'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: proxy_of注明成分含港股上市中资股、非A股指数"
+   ],
+   "notes": "proxy_of注明成分含港股上市中资股、非A股指数"
+  },
+  {
+   "metric_id": "BTC",
+   "asset_class": "crypto",
+   "instrument": "spot_crypto",
+   "unit": "usd",
+   "source": "global_market_collector",
+   "source_symbol": "BTC-USD",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "现货指数化报价instrument=spot_crypto;7×24自然日观测",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "WATCHLIST[BTC]='BTC-USD' vs 注册表source_symbol='BTC-USD'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 7×24自然日观测,freshness窗2天(结构合法)"
+   ],
+   "notes": "7×24自然日观测,freshness窗2天(结构合法)"
+  },
+  {
+   "metric_id": "UST_2Y",
+   "asset_class": "rates_yield",
+   "instrument": "index_rate_series",
+   "unit": "percent",
+   "source": "macro_collector",
+   "source_symbol": "DGS2",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "FRED日频国债收益率水平:unit=percent(水平),instrument=index_rate_series;日历日发布语义披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[UST_2Y]='DGS2' vs 注册表source_symbol='DGS2'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "UST_5Y",
+   "asset_class": "rates_yield",
+   "instrument": "index_rate_series",
+   "unit": "percent",
+   "source": "macro_collector",
+   "source_symbol": "DGS5",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "FRED日频国债收益率水平:unit=percent(水平),instrument=index_rate_series;日历日发布语义披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[UST_5Y]='DGS5' vs 注册表source_symbol='DGS5'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "UST_10Y",
+   "asset_class": "rates_yield",
+   "instrument": "index_rate_series",
+   "unit": "percent",
+   "source": "macro_collector",
+   "source_symbol": "DGS10",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "FRED日频国债收益率水平:unit=percent(水平),instrument=index_rate_series;日历日发布语义披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[UST_10Y]='DGS10' vs 注册表source_symbol='DGS10'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "UST_30Y",
+   "asset_class": "rates_yield",
+   "instrument": "index_rate_series",
+   "unit": "percent",
+   "source": "macro_collector",
+   "source_symbol": "DGS30",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "FRED日频国债收益率水平:unit=percent(水平),instrument=index_rate_series;日历日发布语义披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[UST_30Y]='DGS30' vs 注册表source_symbol='DGS30'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "HY_OAS",
+   "asset_class": "credit_spread",
+   "instrument": "index_rate_series",
+   "unit": "percentage_point",
+   "source": "macro_collector",
+   "source_symbol": "BAMLH0A0HYM2",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "OAS利差:unit=percentage_point(利差正确单位);评级-利差次序另有跨指标校验",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[HY_OAS]='BAMLH0A0HYM2' vs 注册表source_symbol='BAMLH0A0HYM2'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "BB_OAS",
+   "asset_class": "credit_spread",
+   "instrument": "index_rate_series",
+   "unit": "percentage_point",
+   "source": "macro_collector",
+   "source_symbol": "BAMLH0A1HYBB",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "OAS利差:unit=percentage_point(利差正确单位);评级-利差次序另有跨指标校验",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[BB_OAS]='BAMLH0A1HYBB' vs 注册表source_symbol='BAMLH0A1HYBB'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "B_OAS",
+   "asset_class": "credit_spread",
+   "instrument": "index_rate_series",
+   "unit": "percentage_point",
+   "source": "macro_collector",
+   "source_symbol": "BAMLH0A2HYB",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "OAS利差:unit=percentage_point(利差正确单位);评级-利差次序另有跨指标校验",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[B_OAS]='BAMLH0A2HYB' vs 注册表source_symbol='BAMLH0A2HYB'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "CCC_OAS",
+   "asset_class": "credit_spread",
+   "instrument": "index_rate_series",
+   "unit": "percentage_point",
+   "source": "macro_collector",
+   "source_symbol": "BAMLH0A3HYC",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "OAS利差:unit=percentage_point(利差正确单位);评级-利差次序另有跨指标校验",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[CCC_OAS]='BAMLH0A3HYC' vs 注册表source_symbol='BAMLH0A3HYC'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "IG_OAS",
+   "asset_class": "credit_spread",
+   "instrument": "index_rate_series",
+   "unit": "percentage_point",
+   "source": "macro_collector",
+   "source_symbol": "BAMLC0A0CM",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "OAS利差:unit=percentage_point(利差正确单位);评级-利差次序另有跨指标校验",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[IG_OAS]='BAMLC0A0CM' vs 注册表source_symbol='BAMLC0A0CM'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "TIPS_5Y",
+   "asset_class": "real_rate",
+   "instrument": "index_rate_series",
+   "unit": "percent",
+   "source": "macro_collector",
+   "source_symbol": "DFII5",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "实际利率(TIPS市场序列/名义−BEI派生):unit=percent",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[TIPS_5Y]='DFII5' vs 注册表source_symbol='DFII5'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "TIPS_10Y",
+   "asset_class": "real_rate",
+   "instrument": "index_rate_series",
+   "unit": "percent",
+   "source": "macro_collector",
+   "source_symbol": "DFII10",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "实际利率(TIPS市场序列/名义−BEI派生):unit=percent",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[TIPS_10Y]='DFII10' vs 注册表source_symbol='DFII10'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "BEI_5Y",
+   "asset_class": "inflation_expectation",
+   "instrument": "index_rate_series",
+   "unit": "percent",
+   "source": "macro_collector",
+   "source_symbol": "T5YIE",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "盈亏平衡通胀:unit=percent,与名义/实际利率期限匹配关系成立",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[BEI_5Y]='T5YIE' vs 注册表source_symbol='T5YIE'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "BEI_10Y",
+   "asset_class": "inflation_expectation",
+   "instrument": "index_rate_series",
+   "unit": "percent",
+   "source": "macro_collector",
+   "source_symbol": "T10YIE",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "盈亏平衡通胀:unit=percent,与名义/实际利率期限匹配关系成立",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[BEI_10Y]='T10YIE' vs 注册表source_symbol='T10YIE'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "CURVE_2S10S",
+   "asset_class": "curve_slope",
+   "instrument": "index_rate_series",
+   "unit": "percentage_point",
+   "source": "macro_collector",
+   "source_symbol": "T10Y2Y",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "期限利差斜率:unit=percentage_point",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[CURVE_2S10S]='T10Y2Y' vs 注册表source_symbol='T10Y2Y'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "FED_FUNDS",
+   "asset_class": "policy_rate",
+   "instrument": "macro_series",
+   "unit": "percent",
+   "source": "macro_collector",
+   "source_symbol": "FEDFUNDS",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "政策利率族:FED_FUNDS月均口径/DFF日度有效/DFEDTAR目标区间,value_type区分口径",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[FED_FUNDS]='FEDFUNDS' vs 注册表source_symbol='FEDFUNDS'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 月均值口径(与DFF某日时点值区别)写入calc"
+   ],
+   "notes": "月均值口径(与DFF某日时点值区别)写入calc"
+  },
+  {
+   "metric_id": "CPI",
+   "asset_class": "macro_index",
+   "instrument": "macro_series",
+   "unit": "index_point_1982_84",
+   "source": "macro_collector",
+   "source_symbol": "CPIAUCSL",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[CPI]='CPIAUCSL' vs 注册表source_symbol='CPIAUCSL'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: SA指数,1982-84=100基期编码单位;MoM/YoY由引擎按系列计算"
+   ],
+   "notes": "SA指数,1982-84=100基期编码单位;MoM/YoY由引擎按系列计算"
+  },
+  {
+   "metric_id": "CORE_CPI",
+   "asset_class": "macro_index",
+   "instrument": "macro_series",
+   "unit": "index_point_1982_84",
+   "source": "macro_collector",
+   "source_symbol": "CPILFESL",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[CORE_CPI]='CPILFESL' vs 注册表source_symbol='CPILFESL'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 核心CPI(食品能源剔除),SA,1982-84基期"
+   ],
+   "notes": "核心CPI(食品能源剔除),SA,1982-84基期"
+  },
+  {
+   "metric_id": "CORE_PCE",
+   "asset_class": "macro_index",
+   "instrument": "macro_series",
+   "unit": "index_point_2012",
+   "source": "macro_collector",
+   "source_symbol": "PCEPILFE",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[CORE_PCE]='PCEPILFE' vs 注册表source_symbol='PCEPILFE'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 2012=100链式指数"
+   ],
+   "notes": "2012=100链式指数"
+  },
+  {
+   "metric_id": "UNEMPLOYMENT",
+   "asset_class": "macro_rate",
+   "instrument": "macro_series",
+   "unit": "percent",
+   "source": "macro_collector",
+   "source_symbol": "UNRATE",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "失业率百分比水平;变化以百分点表述的禁令写入calc",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[UNEMPLOYMENT]='UNRATE' vs 注册表source_symbol='UNRATE'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "NFP",
+   "asset_class": "macro_count",
+   "instrument": "macro_series",
+   "unit": "persons_thousands",
+   "source": "macro_collector",
+   "source_symbol": "PAYEMS",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "就业/初请计数:persons/persons_thousands显式;存量与月差分立指标",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[NFP]='PAYEMS' vs 注册表source_symbol='PAYEMS'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 存量水平(千人);媒体'新增非农'=NFP_MOM_K月差,两者注册分离"
+   ],
+   "notes": "存量水平(千人);媒体'新增非农'=NFP_MOM_K月差,两者注册分离"
+  },
+  {
+   "metric_id": "NFP_MOM_K",
+   "asset_class": "macro_count_derived",
+   "instrument": "macro_series",
+   "unit": "persons_thousands",
+   "source": "macro_collector",
+   "source_symbol": "PAYEMS(derived)",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "NFP月度差(千人):由事实引擎按NFP序列m1.abs_change计算,calculation_ref可追溯",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "派生(NFP月差):source_symbol='PAYEMS(derived)'为公式表述,非采集符号;计算由fact_engine.compute_derived执行",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: source=macro_collector(数据通道语义)而collector=fact_engine(计算模块)——两组派生标注惯例已在rp._DERIVED_DEPS分支/sb锚点排除显式处理,行为一致(系统性说明S4)"
+   ],
+   "notes": "source=macro_collector(数据通道语义)而collector=fact_engine(计算模块)——两组派生标注惯例已在rp._DERIVED_DEPS分支/sb锚点排除显式处理,行为一致(系统性说明S4)"
+  },
+  {
+   "metric_id": "AHE",
+   "asset_class": "macro_index",
+   "instrument": "macro_series",
+   "unit": "usd_per_hour",
+   "source": "macro_collector",
+   "source_symbol": "CES0500000003",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[AHE]='CES0500000003' vs 注册表source_symbol='CES0500000003'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 名义时薪(美元/小时)"
+   ],
+   "notes": "名义时薪(美元/小时)"
+  },
+  {
+   "metric_id": "WTI_SPOT_M",
+   "asset_class": "macro_price",
+   "instrument": "macro_series",
+   "unit": "usd_per_barrel",
+   "source": "macro_collector",
+   "source_symbol": "WTISPLC",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "EIA现货月度均价:与WTI_F期货日频双身份分离并有对账披露",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[WTI]='WTISPLC' vs 注册表source_symbol='WTISPLC'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 月度现货均价,与WTI_F日频期货为两个指标(对账仅披露不判错)"
+   ],
+   "notes": "月度现货均价,与WTI_F日频期货为两个指标(对账仅披露不判错)"
+  },
+  {
+   "metric_id": "UMCSENT",
+   "asset_class": "sentiment",
+   "instrument": "macro_series",
+   "unit": "index_point_1966",
+   "source": "macro_collector",
+   "source_symbol": "UMCSENT",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "密歇根信心指数:基期编码单位(1966Q1=100)",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[UMCSENT]='UMCSENT' vs 注册表source_symbol='UMCSENT'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 1966Q1=100"
+   ],
+   "notes": "1966Q1=100"
+  },
+  {
+   "metric_id": "RSAFS",
+   "asset_class": "macro_index",
+   "instrument": "macro_series",
+   "unit": "million_usd",
+   "source": "macro_collector",
+   "source_symbol": "RSAFS",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[RSAFS]='RSAFS' vs 注册表source_symbol='RSAFS'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "INDPRO",
+   "asset_class": "macro_index",
+   "instrument": "macro_series",
+   "unit": "index_point_2017",
+   "source": "macro_collector",
+   "source_symbol": "INDPRO",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[INDPRO]='INDPRO' vs 注册表source_symbol='INDPRO'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 2017=100工业生产指数"
+   ],
+   "notes": "2017=100工业生产指数"
+  },
+  {
+   "metric_id": "ICSA",
+   "asset_class": "macro_count",
+   "instrument": "macro_series",
+   "unit": "persons",
+   "source": "macro_collector",
+   "source_symbol": "ICSA",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "就业/初请计数:persons/persons_thousands显式;存量与月差分立指标",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[ICSA]='ICSA' vs 注册表source_symbol='ICSA'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 周频周四发布,16天窗结构合法"
+   ],
+   "notes": "周频周四发布,16天窗结构合法"
+  },
+  {
+   "metric_id": "DFF",
+   "asset_class": "policy_rate",
+   "instrument": "index_rate_series",
+   "unit": "percent",
+   "source": "rate_expectations",
+   "source_symbol": "DFF",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "政策利率族:FED_FUNDS月均口径/DFF日度有效/DFEDTAR目标区间,value_type区分口径",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "rate通道current_rates/期货键='DFF' vs 注册表source_symbol='DFF'",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "DFEDTARU",
+   "asset_class": "policy_rate",
+   "instrument": null,
+   "unit": "percent",
+   "source": "rate_expectations",
+   "source_symbol": "DFEDTARU",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "政策利率族:FED_FUNDS月均口径/DFF日度有效/DFEDTAR目标区间,value_type区分口径",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "rate通道current_rates/期货键='DFEDTARU' vs 注册表source_symbol='DFEDTARU'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: identity缺省=历史兼容(统计系列可选身份);value_type=target_band口径显式"
+   ],
+   "notes": "identity缺省=历史兼容(统计系列可选身份);value_type=target_band口径显式"
+  },
+  {
+   "metric_id": "DFEDTARL",
+   "asset_class": "policy_rate",
+   "instrument": null,
+   "unit": "percent",
+   "source": "rate_expectations",
+   "source_symbol": "DFEDTARL",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "政策利率族:FED_FUNDS月均口径/DFF日度有效/DFEDTAR目标区间,value_type区分口径",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "rate通道current_rates/期货键='DFEDTARL' vs 注册表source_symbol='DFEDTARL'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 同DFEDTARU"
+   ],
+   "notes": "同DFEDTARU"
+  },
+  {
+   "metric_id": "ZQ_F1_PRICE",
+   "asset_class": "fed_futures",
+   "instrument": "futures_front_continuous",
+   "unit": "points",
+   "source": "rate_expectations",
+   "source_symbol": "ZQ=F",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "30日联邦基金期货:价格points与隐含月均利率percent派生分离,禁换算降息次数写入calc",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "rate通道current_rates/期货键='ZQ=F' vs 注册表source_symbol='ZQ=F'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: calendar=commodity(CME/Globex交易时段桶,MARKETS无独立利率期货日历——桶选择见系统性说明S3)"
+   ],
+   "notes": "calendar=commodity(CME/Globex交易时段桶,MARKETS无独立利率期货日历——桶选择见系统性说明S3)"
+  },
+  {
+   "metric_id": "SHCOMP",
+   "asset_class": "equity_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "china_market_collector",
+   "source_symbol": "000001.SH",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "指数身份instrument=index与收盘点位单位/交易日历一致;未伪装为ETF或个股",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='000001.SH' vs 注册表source_symbol='000001.SH'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "SZCI",
+   "asset_class": "equity_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "china_market_collector",
+   "source_symbol": "399001.SZ",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "指数身份instrument=index与收盘点位单位/交易日历一致;未伪装为ETF或个股",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='399001.SZ' vs 注册表source_symbol='399001.SZ'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "CHINEXT",
+   "asset_class": "equity_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "china_market_collector",
+   "source_symbol": "399006.SZ",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "指数身份instrument=index与收盘点位单位/交易日历一致;未伪装为ETF或个股",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='399006.SZ' vs 注册表source_symbol='399006.SZ'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "HSI",
+   "asset_class": "equity_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "china_market_collector",
+   "source_symbol": "hkHSI",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "指数身份instrument=index与收盘点位单位/交易日历一致;未伪装为ETF或个股",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='hkHSI' vs 注册表source_symbol='hkHSI'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: source_symbol=hkHSI为采集器通道键(腾讯主通道/yfinance备用),非yfinance符号——通道键语义"
+   ],
+   "notes": "source_symbol=hkHSI为采集器通道键(腾讯主通道/yfinance备用),非yfinance符号——通道键语义"
+  },
+  {
+   "metric_id": "HSCEI",
+   "asset_class": "equity_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "china_market_collector",
+   "source_symbol": "hkHSCEI",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "指数身份instrument=index与收盘点位单位/交易日历一致;未伪装为ETF或个股",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='hkHSCEI' vs 注册表source_symbol='hkHSCEI'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: source_symbol=hkHSCEI通道键语义同HSI"
+   ],
+   "notes": "source_symbol=hkHSCEI通道键语义同HSI"
+  },
+  {
+   "metric_id": "HSAHP",
+   "asset_class": "spread_index",
+   "instrument": "index",
+   "unit": "index_point",
+   "source": "china_market_collector",
+   "source_symbol": "HSAHP",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "AH溢价指数(>100=A股相对H股溢价),真实指数代码HSAHP",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='HSAHP' vs 注册表source_symbol='HSAHP'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 恒生AH溢价指数真实代码"
+   ],
+   "notes": "恒生AH溢价指数真实代码"
+  },
+  {
+   "metric_id": "SB_FLOW",
+   "asset_class": "flow",
+   "instrument": null,
+   "unit": "hkd_100m",
+   "source": "china_market_collector",
+   "source_symbol": "southbound",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "南向资金日流量(亿港元):单位与日净流量value_type一致,通道换算(百万→亿)在规范化层显式",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='southbound' vs 注册表source_symbol='southbound'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "MARGIN_BAL",
+   "asset_class": "leverage",
+   "instrument": null,
+   "unit": "cny_100m",
+   "source": "china_market_collector",
+   "source_symbol": "margin",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "两融余额存量(亿元):value_type=outstanding_balance",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='margin' vs 注册表source_symbol='margin'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "SH_PE",
+   "asset_class": "valuation",
+   "instrument": null,
+   "unit": "ratio",
+   "source": "china_market_collector",
+   "source_symbol": "valuation",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "上证整体PE(TTM):unit=ratio,通道键valuation",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='valuation' vs 注册表source_symbol='valuation'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "SH_AMOUNT",
+   "asset_class": "volume_amount",
+   "instrument": null,
+   "unit": "cny_100m",
+   "source": "china_market_collector",
+   "source_symbol": "000001.SH.amount",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "成交金额(亿元):沪市全市场/深证成指成分/两市合成三档口径分离,近似口径显式WARN",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='000001.SH.amount' vs 注册表source_symbol='000001.SH.amount'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "SZ_COMPONENT_AMOUNT",
+   "asset_class": "volume_amount",
+   "instrument": null,
+   "unit": "cny_100m",
+   "source": "china_market_collector",
+   "source_symbol": "399001.SZ.amount",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "成交金额(亿元):沪市全市场/深证成指成分/两市合成三档口径分离,近似口径显式WARN",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='399001.SZ.amount' vs 注册表source_symbol='399001.SZ.amount'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: 成分口径(非深市全市场)在normalize与notes双披露"
+   ],
+   "notes": "成分口径(非深市全市场)在normalize与notes双披露"
+  },
+  {
+   "metric_id": "CN_TOTAL_TURNOVER",
+   "asset_class": "volume_amount",
+   "instrument": "aggregate",
+   "unit": "cny_100m",
+   "source": "china_market_collector",
+   "source_symbol": "000001.SH+399001.SZ",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "成交金额(亿元):沪市全市场/深证成指成分/两市合成三档口径分离,近似口径显式WARN",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "china通道键='000001.SH+399001.SZ' vs 注册表source_symbol='000001.SH+399001.SZ'(china类source_symbol语义=采集器通道键/真实指数代码)",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: is_proxy=true:沪市全市场+深证成指成分近似口径,DEGRADED/WARN披露链完备"
+   ],
+   "notes": "is_proxy=true:沪市全市场+深证成指成分近似口径,DEGRADED/WARN披露链完备"
+  },
+  {
+   "metric_id": "REAL_10Y",
+   "asset_class": "real_rate",
+   "instrument": "derived",
+   "unit": "percent",
+   "source": "fact_engine(derived)",
+   "source_symbol": "UST_10Y−BEI_10Y",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "实际利率(TIPS市场序列/名义−BEI派生):unit=percent",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "派生指标(fact_engine(derived)):source_symbol为公式表述('UST_10Y−BEI_10Y'),依赖与公式见calc/rp._DERIVED_DEPS",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "REAL_5Y",
+   "asset_class": "real_rate",
+   "instrument": "derived",
+   "unit": "percent",
+   "source": "fact_engine(derived)",
+   "source_symbol": "UST_5Y−BEI_5Y",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "实际利率(TIPS市场序列/名义−BEI派生):unit=percent",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "派生指标(fact_engine(derived)):source_symbol为公式表述('UST_5Y−BEI_5Y'),依赖与公式见calc/rp._DERIVED_DEPS",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "REAL_SHORT",
+   "asset_class": "real_rate",
+   "instrument": "derived",
+   "unit": "percent",
+   "source": "macro_collector(derived)",
+   "source_symbol": "UST_2Y−BEI_5Y",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "实际利率(TIPS市场序列/名义−BEI派生):unit=percent",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "派生指标(macro_collector(derived)):source_symbol为公式表述('UST_2Y−BEI_5Y'),依赖与公式见calc/rp._DERIVED_DEPS",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: deprecated:2Y/5Y期限错配由第七轮判定,notes指明替代(REAL_5Y/REAL_10Y);引擎不再产出(rp/fe双侧确认)"
+   ],
+   "notes": "deprecated:2Y/5Y期限错配由第七轮判定,notes指明替代(REAL_5Y/REAL_10Y);引擎不再产出(rp/fe双侧确认)"
+  },
+  {
+   "metric_id": "HY_IG_DIFF",
+   "asset_class": "credit_spread",
+   "instrument": "derived",
+   "unit": "percentage_point",
+   "source": "fact_engine(derived)",
+   "source_symbol": "HY_OAS−IG_OAS",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "OAS利差:unit=percentage_point(利差正确单位);评级-利差次序另有跨指标校验",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "派生指标(fact_engine(derived)):source_symbol为公式表述('HY_OAS−IG_OAS'),依赖与公式见calc/rp._DERIVED_DEPS",
+    "registry_semantics: 0条问题(error/review均计入)"
+   ]
+  },
+  {
+   "metric_id": "ZQ_IMPLIED_AVG",
+   "asset_class": "fed_futures",
+   "instrument": "derived",
+   "unit": "percent",
+   "source": "fact_engine(derived)",
+   "source_symbol": "100−ZQ价格",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "30日联邦基金期货:价格points与隐含月均利率percent派生分离,禁换算降息次数写入calc",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "派生指标(fact_engine(derived)):source_symbol为公式表述('100−ZQ价格'),依赖与公式见calc/rp._DERIVED_DEPS",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: calc含'不得换算降息次数'纪律"
+   ],
+   "notes": "calc含'不得换算降息次数'纪律"
+  },
+  {
+   "metric_id": "JTSJOL",
+   "asset_class": "macro_count",
+   "instrument": "macro_series",
+   "unit": "persons_thousands",
+   "source": "macro_collector",
+   "source_symbol": "JTSJOL",
+   "result": "VERIFIED_CONSISTENT",
+   "issues_found": [],
+   "basis": "就业/初请计数:persons/persons_thousands显式;存量与月差分立指标",
+   "impact": "—",
+   "action": "无需修改",
+   "evidence": [
+    "FRED_SERIES[JTSJOL]='JTSJOL' vs 注册表source_symbol='JTSJOL'",
+    "registry_semantics: 0条问题(error/review均计入)",
+    "专项注记: criticality=context(非core),JOLTS职位空缺千人"
+   ],
+   "notes": "criticality=context(非core),JOLTS职位空缺千人"
+  }
+ ]
+}

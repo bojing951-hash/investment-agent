@@ -19,6 +19,7 @@ import re
 from datetime import date, datetime, timezone, timedelta
 
 import trading_calendar as tc
+import registry_semantics as rsem
 
 REGISTRY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                              'config', 'metric_registry.json')
@@ -54,6 +55,12 @@ def load_registry(path=None, force=False):
         assert m.get('unit'), f"{mid}缺unit"
         assert m.get('calendar') in tc.MARKETS, f"{mid}日历非法: {m.get('calendar')}"
         by_id[mid] = m
+    # IA-P0-2-W1-03: 金融语义一致性纳入生产加载——已确认非法配置(工具身份
+    # 矛盾/量纲混淆/来源枚举外值等,error级)一律RegistrySemanticsError拒绝,
+    # 不静默使用;review级(未确认组合)不拦截(未确认≠非法)。既有ID/unit/
+    # calendar断言保持不变;合法历史兼容结构(统计序列可选identity等)不受影响
+    # (规则集详见registry_semantics.INSTRUMENT_BY_CLASS/UNIT_BY_CLASS)。
+    rsem.assert_registry_semantics(reg, source_desc=str(p))
     reg['by_id'] = by_id
     _REGISTRY_CACHE = reg
     return reg

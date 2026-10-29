@@ -74,7 +74,7 @@ SERIES_FREQ = {
 SERIES_UNITS = {
     "CPI": ("index", "指数点(1982-84=100)"),
     "CORE_CPI": ("index", "指数点(1982-84=100)"),
-    "CORE_PCE": ("index", "指数点(2012=100)"),
+    "CORE_PCE": ("index", "指数点(2017=100)"),
     "AHE": ("index", "美元/小时"),
     "FED_FUNDS": ("rate", "%"),
     "UNEMPLOYMENT": ("rate", "%(失业率)"),

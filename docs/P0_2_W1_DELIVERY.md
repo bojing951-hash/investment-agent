@@ -27,7 +27,7 @@
 
 - 总量：81 指标 / 81 唯一 metric_id / 80 active / 32 active+core / 1 deprecated（REAL_SHORT）——与指令给定基线一致。
 - 分类：**VERIFIED_CONSISTENT 77 · FIXED 3 · REVIEW 1（DXY：DX-Y.NYB 报价口径需外部来源核实，字段自洽、calc 已诚实披露"近似"）· BLOCKED 0**。
-- 采集器符号交叉核验：global WATCHLIST 38 项 / FRED_SERIES 27 项 / rate 4 项 / china 通道 12 项与注册表 source_symbol **全部一致**（开发期从固定 Commit 实读快照比对，冻结于审计 JSON）。
+- 采集器符号交叉核验：global WATCHLIST 32 项（**FIX1 更正**：首轮本文误计 38，实为 32 键，已逐键复核 global_market_collector.py 源码）/ FRED_SERIES 27 项 / rate 4 项 / china 通道 12 项与注册表 source_symbol **全部一致**（开发期从固定 Commit 实读快照比对，冻结于审计 JSON）。
 - 系统性发现（非单指标错误，均记录未擅改）：S1 注册表 freshness 窗为声明性元数据、validate_fact 实际按频率硬编码窗执行（BTC 2vs7、月频 45vs92、DFEDTAR 45vs7）——**移交 W2**（指令§5.2 禁改时效政策）；S2 china 通道 source_symbol=通道键语义；S3 ZQ 日历归 commodity 桶；S4 派生 source 两惯例（fact_engine(derived) vs macro_collector）行为一致。
 - 完整 81 项逐条（issues_found/basis/impact/action/evidence）见 `docs/P0_2_W1_REGISTRY_AUDIT.json` 与 `.md`。
 

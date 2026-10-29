@@ -175,11 +175,41 @@ VALUE_TYPE_VALUES = frozenset({
 })
 FREQUENCY_VALUES = frozenset({'daily', 'weekly', 'monthly'})
 
+# ── IA-P02-W1-FIX1-02: 已确认官方序列身份→单位(独立权威映射) ──
+# 本映射独立于被验证的注册表(绝不从当前配置生成"期望值",否则注册表与校验
+# 会共同携带同一错误——W1首轮CORE_PCE误标index_point_2012即为实例)。
+# 证据:FRED官方序列页2026-10-29核验(docs/P0_2_W1_REGISTRY_AUDIT.json
+# official_units_evidence);范围仅限已获权威依据的序列,不为扩规则做81项外部研究。
+OFFICIAL_FRED_INDEX_UNITS = {
+    # FRED series → 官方单位(注册表unit词汇)
+    'PCEPILFE': 'index_point_2017',    # BEA链式核心PCE物价指数 Index 2017=100 SA Monthly
+    'CPIAUCSL': 'index_point_1982_84',  # BLS CPI-U全项 Index 1982-1984=100 SA Monthly
+    'CPILFESL': 'index_point_1982_84',  # BLS CPI-U除食品能源 Index 1982-1984=100 SA Monthly
+    'INDPRO': 'index_point_2017',      # Fed G.17工业生产总指数 Index 2017=100 SA Monthly
+    'UMCSENT': 'index_point_1966',     # 密歇根大学消费者信心 Index 1966:Q1=100 NSA Monthly
+}
+# 指标身份绑定:已确认 metric_id ↔ 官方序列。更换source_symbol属身份变更,
+# 需独立授权并同步更新本映射——不得仅因新序列自身单位合法而自动放行。
+OFFICIAL_METRIC_SERIES = {
+    'CORE_PCE': 'PCEPILFE',
+    'CPI': 'CPIAUCSL',
+    'CORE_CPI': 'CPILFESL',
+    'INDPRO': 'INDPRO',
+    'UMCSENT': 'UMCSENT',
+}
+# 采集器单位说明须包含的基期子串(注册表unit ↔ 采集器SERIES_UNITS标签同步约束)。
+OFFICIAL_UNIT_LABELS = {
+    'index_point_2017': '2017=100',
+    'index_point_1982_84': '1982-84=100',
+    'index_point_1966': '1966=100',
+}
+
 # 如实声明本模块**不**验证的内容(供审计报告引用,不伪造覆盖):
 NOT_VERIFIED_HERE = [
     '真实金融数值准确性(价格/利率/计数与外部市场的一致性)——W1范围外',
     '时效政策与有效期窗口数值(freshness仅查结构合法性;语义归W2)',
-    '采集器运行时实际符号表与source_symbol的一致性(开发期人工核验,见审计报告)',
+    '采集器运行时实际符号表与source_symbol的一致性(开发期人工核验;FIX1后5项'
+    '官方指数序列的基期标签已有机器同步检查collector_official_unit_problems,其余仍人工)',
     '未确认asset_class/instrument组合的金融正当性(标review,待人工或后续工作包)',
     '新闻/情绪与业务模块口径(W3~W5范围)',
 ]
@@ -235,6 +265,7 @@ def validate_registry(reg):
                 f"asset_class缺失/非非空字符串:{m.get('asset_class')!r}")
         # ── 封闭集合(确定性) ──
         unit, source = m.get('unit'), m.get('source')
+        source_symbol = m.get('source_symbol')
         if isinstance(unit, str) and unit not in KNOWN_UNITS:
             add(mid, 'R-UNIT-ENUM', 'error', 'unit',
                 f"unit={unit!r}不在引擎单位纪律全集内(价格/利率/计数三类量纲之外)")
@@ -245,17 +276,38 @@ def validate_registry(reg):
         if isinstance(source, str) and source not in KNOWN_SOURCES:
             add(mid, 'R-SOURCE-ENUM', 'error', 'source',
                 f"source={source!r}不是已授权采集通道/派生来源(无法解释的来源)")
-        status, crit = m.get('status'), m.get('criticality')
-        if isinstance(status, str) and status not in STATUS_VALUES:
-            add(mid, 'R-STATUS-ENUM', 'error', 'status',
-                f"status={status!r}非法(须active/deprecated;'active'为Gate A过滤字面值)")
-        if isinstance(crit, str) and crit not in CRITICALITY_VALUES:
-            add(mid, 'R-CRITICALITY-ENUM', 'error', 'criticality',
-                f"criticality={crit!r}非法(核心度未知=Gate A静默降级风险)")
-        freq = m.get('frequency')
-        if isinstance(freq, str) and freq not in FREQUENCY_VALUES:
-            add(mid, 'R-FREQUENCY-ENUM', 'error', 'frequency',
-                f"frequency={freq!r}非法(须daily/weekly/monthly)")
+        # ── IA-P02-W1-FIX1-03: 关键字段类型拦截 ──
+        # 非字符串/空串/缺失曾在isinstance(str)守卫下静默绕过枚举判断
+        # (status=123等)——Gate A按字面'active'过滤,类型违规会把核心指标
+        # 静默逐出统计,必须确定性error。类型检查先于语义使用。
+        for fld, allowed, tname in (('status', STATUS_VALUES, 'R-STATUS-TYPE'),
+                                    ('criticality', CRITICALITY_VALUES, 'R-CRITICALITY-TYPE'),
+                                    ('frequency', FREQUENCY_VALUES, 'R-FREQUENCY-TYPE')):
+            v = m.get(fld)
+            if not isinstance(v, str) or not v.strip():
+                add(mid, tname, 'error', fld,
+                    f"{fld}缺失/非非空字符串:{v!r}(类型{type(v).__name__};"
+                    f'须为非空字符串且∈{sorted(allowed)})')
+            elif v not in allowed:
+                add(mid, tname.replace('-TYPE', '-ENUM'), 'error', fld,
+                    f"{fld}={v!r}非法(须∈{sorted(allowed)};status='active'为Gate A过滤字面值,"
+                    'criticality未知=Gate A静默降级风险)')
+        # ── IA-P02-W1-FIX1-02: 官方序列身份与单位(独立权威映射,期望值不由注册表生成) ──
+        if mid in OFFICIAL_METRIC_SERIES:
+            official_sym = OFFICIAL_METRIC_SERIES[mid]
+            sym = m.get('source_symbol')
+            if sym != official_sym:
+                add(mid, 'R-OFFICIAL-SERIES', 'error', 'source_symbol',
+                    f"{mid}已确认官方身份绑定source_symbol={official_sym!r},"
+                    f'实际={sym!r}——更换底层序列属指标身份变更,需独立授权并同步'
+                    '更新OFFICIAL_METRIC_SERIES,不得仅因新序列自身单位合法而放行')
+        if isinstance(source_symbol, str) and source_symbol in OFFICIAL_FRED_INDEX_UNITS:
+            official_unit = OFFICIAL_FRED_INDEX_UNITS[source_symbol]
+            if unit != official_unit:
+                add(mid, 'R-OFFICIAL-UNIT', 'error', 'unit',
+                    f'source_symbol={source_symbol}官方单位期望={official_unit!r},'
+                    f'实际unit={unit!r}(FRED官方基期2026-10-29核验;'
+                    '标注修复≠数值重新定基)')
         # ── identity(工具身份) ──
         ident = m.get('identity')
         cls = m.get('asset_class') if isinstance(m.get('asset_class'), str) else None
@@ -337,13 +389,50 @@ def validate_registry(reg):
                 if not isinstance(lag, int) or isinstance(lag, bool) or lag <= 0:
                     add(mid, 'R-FRESHNESS-STRUCT', 'error', 'freshness.max_calendar_lag_days',
                         f'max_calendar_lag_days须为正整数:{lag!r}(时效窗口政策本身归W2,本规则只查结构)')
+        # IA-P02-W1-FIX1-03: value_type——在场则必须为非空字符串(非法类型=确定性
+        # 结构error);合法字符串但未确认词汇→维持review(不擅自升error)。
+        # 允许缺失的历史兼容依据:fact_engine.make_fact第210行 m.get('value_type','level')
+        # 缺省'level'——"可选字段"不等于"允许显式提供非法类型"。
         vt = m.get('value_type')
-        if isinstance(vt, str) and vt not in VALUE_TYPE_VALUES:
+        if 'value_type' in m and (not isinstance(vt, str) or not vt.strip()):
+            add(mid, 'R-VALUETYPE-TYPE', 'error', 'value_type',
+                f'value_type非非空字符串:{vt!r}(类型{type(vt).__name__};'
+                '该字段可选,但在场即须为非空字符串;缺失时make_fact缺省level)')
+        elif isinstance(vt, str) and vt not in VALUE_TYPE_VALUES:
             add(mid, 'R-VALUETYPE-ENUM', 'review', 'value_type',
                 f"value_type={vt!r}不在已确认词汇内(新增语义需人工核定,不拦截)")
         if cls is not None and cls not in INSTRUMENT_BY_CLASS:
             add(mid, 'R-ASSETCLASS-UNCONFIRMED', 'review', 'asset_class',
                 f"asset_class={cls!r}未建立语义规则(需人工核定类别正当性)")
+    return probs
+
+
+def collector_official_unit_problems(reg, series_units):
+    """IA-P02-W1-FIX1-02: 注册表官方指数单位 ↔ 采集器SERIES_UNITS标签同步校验。
+
+    纯函数(采集器单位表由调用方传入,本模块不import采集器,保持零第三方依赖)。
+    对每个官方身份绑定指标:注册表unit映射的基期子串必须出现在采集器单位说明中。
+    返回结构化问题列表(非空=采集器说明与已确认官方口径脱节,如2012标签残留)。
+    """
+    probs = []
+    by_id = {m.get('metric_id'): m for m in reg.get('metrics', [])
+             if isinstance(m, dict)}
+    for mid, sym in OFFICIAL_METRIC_SERIES.items():
+        m = by_id.get(mid)
+        if m is None:
+            continue
+        label_frag = OFFICIAL_UNIT_LABELS.get(m.get('unit'))
+        if label_frag is None:
+            continue  # 非指数基期保护范围(注册表侧R-OFFICIAL-UNIT另行拦截)
+        entry = series_units.get(mid)
+        label = entry[1] if isinstance(entry, tuple) and len(entry) > 1 else entry
+        if not isinstance(label, str) or label_frag not in label:
+            probs.append({
+                'metric_id': mid, 'rule': 'R-OFFICIAL-UNIT-SYNC',
+                'severity': 'error', 'field': 'SERIES_UNITS[unit_label]',
+                'message': (f'{mid}注册表unit={m.get("unit")!r}要求采集器单位说明含'
+                            f'{label_frag!r},实际SERIES_UNITS标签={label!r}'
+                            '——与已确认官方口径脱节')})
     return probs
 
 

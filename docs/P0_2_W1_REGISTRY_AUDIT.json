@@ -2,7 +2,7 @@
  "package": "IA-P0-2-W1",
  "baseline_sha": "50b5d13db6c477084c6f4b3944b7bd08a8e329d6",
  "branch": "dev/p0-2-w1",
- "generated_at": "2026-10-29T10:06:39+08:00",
+ "generated_at": "2026-10-29T13:56:52+08:00",
  "registry_version": "2.0.0",
  "totals": {
   "metrics": 81,
@@ -11,14 +11,21 @@
   "active_core": 32,
   "deprecated": 1,
   "results": {
-   "VERIFIED_CONSISTENT": 77,
-   "FIXED": 3,
+   "VERIFIED_CONSISTENT": 76,
+   "FIXED": 4,
    "REVIEW": 1,
    "BLOCKED": 0
   }
  },
  "collector_symbol_crosscheck": {
   "method": "开发期(2026-10-29)从固定Commit实读采集器符号表快照(WATCHLIST/FRED_SERIES/rate/china通道键)与注册表source_symbol逐项比对",
+  "counts": {
+   "WATCHLIST": 32,
+   "FRED_SERIES": 27,
+   "rate": 4,
+   "china": 12
+  },
+  "count_correction_note": "FIX1更正: 首轮文档误计WATCHLIST=38,实为32键(与global_market_collector源码逐键复核)",
   "mismatches": [],
   "all_match": true,
   "frozen_tables": {
@@ -128,6 +135,82 @@
    "before": "etf",
    "after": "single_stock",
    "other_fields_unchanged": true
+  },
+  {
+   "metric_id": "CORE_PCE",
+   "field": "unit",
+   "before": "index_point_2012",
+   "after": "index_point_2017",
+   "collector_label_before": "指数点(2012=100)",
+   "collector_label_after": "指数点(2017=100)",
+   "other_fields_unchanged": true,
+   "round": "IA-P02-W1-FIX1"
+  }
+ ],
+ "official_units_evidence": {
+  "verified_date": "2026-10-29",
+  "source_page": "https://fred.stlouisfed.org/series/{series}",
+  "rule_scope": "registry_semantics.OFFICIAL_FRED_INDEX_UNITS/OFFICIAL_METRIC_SERIES → R-OFFICIAL-SERIES(身份绑定)/R-OFFICIAL-UNIT(单位)/collector_official_unit_problems(采集器标签同步R-OFFICIAL-UNIT-SYNC);范围仅5项已获权威依据序列,非81项全面外部研究",
+  "series": {
+   "PCEPILFE": {
+    "title": "Personal Consumption Expenditures Excluding Food and Energy (Chain-Type Price Index)",
+    "unit": "index_point_2017",
+    "official_units": "Index 2017=100, Seasonally Adjusted",
+    "frequency": "Monthly",
+    "seasonal_adjustment": "Seasonally Adjusted",
+    "data_source": "U.S. Bureau of Economic Analysis",
+    "bound_metric": "CORE_PCE"
+   },
+   "CPIAUCSL": {
+    "title": "Consumer Price Index for All Urban Consumers: All Items in U.S. City Average",
+    "unit": "index_point_1982_84",
+    "official_units": "Index 1982-1984=100, Seasonally Adjusted",
+    "frequency": "Monthly",
+    "seasonal_adjustment": "Seasonally Adjusted",
+    "data_source": "U.S. Bureau of Labor Statistics",
+    "bound_metric": "CPI"
+   },
+   "CPILFESL": {
+    "title": "Consumer Price Index for All Urban Consumers: All Items Less Food and Energy",
+    "unit": "index_point_1982_84",
+    "official_units": "Index 1982-1984=100",
+    "frequency": "Monthly",
+    "seasonal_adjustment": "Seasonally Adjusted",
+    "data_source": "U.S. Bureau of Labor Statistics",
+    "bound_metric": "CORE_CPI"
+   },
+   "INDPRO": {
+    "title": "Industrial Production: Total Index",
+    "unit": "index_point_2017",
+    "official_units": "Index 2017=100, Seasonally Adjusted",
+    "frequency": "Monthly",
+    "seasonal_adjustment": "Seasonally Adjusted",
+    "data_source": "Board of Governors of the Federal Reserve System (G.17)",
+    "bound_metric": "INDPRO"
+   },
+   "UMCSENT": {
+    "title": "University of Michigan: Consumer Sentiment",
+    "unit": "index_point_1966",
+    "official_units": "Index 1966:Q1=100, Not Seasonally Adjusted",
+    "frequency": "Monthly",
+    "seasonal_adjustment": "Not Seasonally Adjusted",
+    "data_source": "University of Michigan",
+    "bound_metric": "UMCSENT"
+   }
+  }
+ },
+ "revision_history": [
+  {
+   "round": "IA-P0-2-W1(初版)",
+   "date": "2026-10-29",
+   "change": "首轮审计;CORE_PCE误标VERIFIED_CONSISTENT(\"2012=100链式指数\")——未核官方基期,审计方法缺陷",
+   "accepted_by": "Agent 4判定FAIL(阻断性缺陷IA-P02-W1-DEF-001)"
+  },
+  {
+   "round": "IA-P02-W1-FIX1",
+   "date": "2026-10-29",
+   "change": "CORE_PCE改判FIXED并保留原错误+官方证据;新增5项官方序列身份/单位/采集器同步机器校验;修正WATCHLIST计数38→32(首轮文档计数错误);分类总数由程序按81项记录重算(76/4/1/0)",
+   "accepted_by": "待Agent 4独立验收"
   }
  ],
  "systemic_findings": [
@@ -167,7 +250,7 @@
   "采集器运行时符号表以开发期快照为准(冻结于本报告);采集器后续演进需重新比对",
   "真实金融数值准确性(价格/利率/计数与外部市场的一致性)——W1范围外",
   "时效政策与有效期窗口数值(freshness仅查结构合法性;语义归W2)",
-  "采集器运行时实际符号表与source_symbol的一致性(开发期人工核验,见审计报告)",
+  "采集器运行时实际符号表与source_symbol的一致性(开发期人工核验;FIX1后5项官方指数序列的基期标签已有机器同步检查collector_official_unit_problems,其余仍人工)",
   "未确认asset_class/instrument组合的金融正当性(标review,待人工或后续工作包)",
   "新闻/情绪与业务模块口径(W3~W5范围)"
  ],
@@ -1012,7 +1095,7 @@
    "source_symbol": "CPIAUCSL",
    "result": "VERIFIED_CONSISTENT",
    "issues_found": [],
-   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2017/1966Q1),SA标注,月频发布语义;基期由官方序列核验(FIX1)",
    "impact": "—",
    "action": "无需修改",
    "evidence": [
@@ -1031,7 +1114,7 @@
    "source_symbol": "CPILFESL",
    "result": "VERIFIED_CONSISTENT",
    "issues_found": [],
-   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2017/1966Q1),SA标注,月频发布语义;基期由官方序列核验(FIX1)",
    "impact": "—",
    "action": "无需修改",
    "evidence": [
@@ -1045,20 +1128,24 @@
    "metric_id": "CORE_PCE",
    "asset_class": "macro_index",
    "instrument": "macro_series",
-   "unit": "index_point_2012",
+   "unit": "index_point_2017",
    "source": "macro_collector",
    "source_symbol": "PCEPILFE",
-   "result": "VERIFIED_CONSISTENT",
-   "issues_found": [],
-   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
-   "impact": "—",
-   "action": "无需修改",
+   "result": "FIXED",
+   "issues_found": [
+    "unit='index_point_2012'错误:FRED PCEPILFE官方单位为Index 2017=100(BEA链式核心PCE物价指数,SA,Monthly);首轮审计未查官方基期即标VERIFIED,该结论已被权威来源证伪"
+   ],
+   "basis": "FRED官方序列页2026-10-29核验: PCEPILFE Units=Index 2017=100, Seasonally Adjusted;来源U.S. Bureau of Economic Analysis;频率Monthly(IA-P0-2-W1-FIX1-DEV §四确认缺陷,FIX1轮独立复核)",
+   "impact": "标注级:unit为元数据标签,事实数值链(fact_engine按注册表unit透传)不因此改变;采集器直读FRED原始数值,无重新定基;首轮回归于VERIFIED属审计结论错误,非数值错误。下游(rp.fact_structure_problems按注册表比对unit)修复后自洽",
+   "action": "注册表unit: 'index_point_2012' → 'index_point_2017';采集器SERIES_UNITS标签: '指数点(2012=100)' → '指数点(2017=100)';新增R-OFFICIAL-UNIT/R-OFFICIAL-SERIES/R-OFFICIAL-UNIT-SYNC机器拦截同类回归;metric_id/source/source_symbol/frequency/calendar/criticality/status/validation.range/freshness(45天,W2范围未动)/观测数值与历史序列逐字节未动",
    "evidence": [
     "FRED_SERIES[CORE_PCE]='PCEPILFE' vs 注册表source_symbol='PCEPILFE'",
     "registry_semantics: 0条问题(error/review均计入)",
-    "专项注记: 2012=100链式指数"
-   ],
-   "notes": "2012=100链式指数"
+    "修复前后对照: git show 50b5d13db:config/metric_registry.json 同条目unit='index_point_2012' → 当前'index_point_2017'",
+    "官方来源: https://fred.stlouisfed.org/series/PCEPILFE (Index 2017=100, SA, Monthly, BEA;核验2026-10-29)",
+    "负向注入复核: unit改回index_point_2012→R-OFFICIAL-UNIT确定性error;source_symbol改他系列→R-OFFICIAL-SERIES;采集器标签改回2012→R-OFFICIAL-UNIT-SYNC(test_p02_w1_fix1 A节)",
+    "未证明的影响范围: 存量历史快照/已发布报告中的旧单位标签未回写(历史产物保护,见兼容性说明)"
+   ]
   },
   {
    "metric_id": "UNEMPLOYMENT",
@@ -1124,7 +1211,7 @@
    "source_symbol": "CES0500000003",
    "result": "VERIFIED_CONSISTENT",
    "issues_found": [],
-   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2017/1966Q1),SA标注,月频发布语义;基期由官方序列核验(FIX1)",
    "impact": "—",
    "action": "无需修改",
    "evidence": [
@@ -1181,7 +1268,7 @@
    "source_symbol": "RSAFS",
    "result": "VERIFIED_CONSISTENT",
    "issues_found": [],
-   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2017/1966Q1),SA标注,月频发布语义;基期由官方序列核验(FIX1)",
    "impact": "—",
    "action": "无需修改",
    "evidence": [
@@ -1198,7 +1285,7 @@
    "source_symbol": "INDPRO",
    "result": "VERIFIED_CONSISTENT",
    "issues_found": [],
-   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2012/2017),SA标注,月频发布语义",
+   "basis": "FRED宏观指数:单位内嵌指数基期(1982-84/2017/1966Q1),SA标注,月频发布语义;基期由官方序列核验(FIX1)",
    "impact": "—",
    "action": "无需修改",
    "evidence": [

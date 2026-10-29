@@ -1,0 +1,132 @@
+{
+ "package": "IA-P02-W1-FIX1",
+ "evidence_kind": "DEV/LIVE只读隔离核验",
+ "verified_at": "2026-10-29T13:58:47+08:00",
+ "os": "Darwin 24.6.0 (arm64)",
+ "dev": {
+  "path": "/Users/cast/investment-agent-dev",
+  "realpath": "/Users/cast/investment-agent-dev",
+  "git_root_realpath": "/Users/cast/investment-agent-dev/.git",
+  "dir_identity": {
+   "st_dev": 16777231,
+   "st_ino": 60895116
+  }
+ },
+ "live": {
+  "path": "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent",
+  "realpath": "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent",
+  "dir_identity": {
+   "st_dev": 16777231,
+   "st_ino": 22199716
+  },
+  "note": "生产运行目录,属上层monorepo;本轮零写入(见limits)"
+ },
+ "same_directory": false,
+ "ancestor_relation": {
+  "dev_ancestor_of_live": false,
+  "live_ancestor_of_dev": false
+ },
+ "symlink_checks": {
+  "dev_path_resolves_into_live": false,
+  "live_path_resolves_into_dev": false,
+  "symlinks_inside_dev_tree": []
+ },
+ "git_state": {
+  "branch": "dev/p0-2-w1",
+  "HEAD": "704cd5903349989fa4e3cca86a51c7b4ca78554d",
+  "origin_main": "50b5d13db6c477084c6f4b3944b7bd08a8e329d6",
+  "working_tree_dirty": true
+ },
+ "live_vs_p0_1_commit_sha256": {
+  "run_daily.sh": {
+   "live_sha256": "8a82092d3e336d63a7fce90ff798db6e7c48a76e0e17add65696838927f4a55e",
+   "p0_1_commit_sha256": "8a82092d3e336d63a7fce90ff798db6e7c48a76e0e17add65696838927f4a55e",
+   "match": true
+  },
+  "run_weekly.py": {
+   "live_sha256": "27f43da1832be0f4b24aa2fb275b07be663cd2166e482f92ddad3906b6e5d27e",
+   "p0_1_commit_sha256": "27f43da1832be0f4b24aa2fb275b07be663cd2166e482f92ddad3906b6e5d27e",
+   "match": true
+  },
+  "scripts/fact_engine.py": {
+   "live_sha256": "de80116b2fd4a325cd633a24d4b79cae8ec7be7fc5af4f4f65fdded2ed03d6ec",
+   "p0_1_commit_sha256": "de80116b2fd4a325cd633a24d4b79cae8ec7be7fc5af4f4f65fdded2ed03d6ec",
+   "match": true
+  },
+  "scripts/report_generator.py": {
+   "live_sha256": "ddea94699e210fe55a650072195654ed0e100af9925a77717428bb745c0c2968",
+   "p0_1_commit_sha256": "ddea94699e210fe55a650072195654ed0e100af9925a77717428bb745c0c2968",
+   "match": true
+  },
+  "scripts/research_provenance.py": {
+   "live_sha256": "1cf4e635ca3fe40377a05823c0f54e6ae13c69644d440ce01fa995ca91b5e15b",
+   "p0_1_commit_sha256": "1cf4e635ca3fe40377a05823c0f54e6ae13c69644d440ce01fa995ca91b5e15b",
+   "match": true
+  },
+  "config/metric_registry.json": {
+   "live_sha256": "55cfbc179e4b20ae4274a5fde3025df8169e5ccaa8886f18eaf25dadc8ef6744",
+   "p0_1_commit_sha256": "55cfbc179e4b20ae4274a5fde3025df8169e5ccaa8886f18eaf25dadc8ef6744",
+   "match": true
+  }
+ },
+ "launchd_readonly_check": {
+  "com.investment.daily": {
+   "plist": "/Users/cast/Library/LaunchAgents/com.investment.daily.plist",
+   "program": [
+    "/bin/bash",
+    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/run_daily.sh"
+   ],
+   "path_like_args": [
+    "/bin/bash",
+    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/run_daily.sh"
+   ],
+   "any_arg_points_to_live": true,
+   "any_arg_points_to_dev": false,
+   "points_to_live": true,
+   "points_to_dev": false,
+   "calendar": {
+    "Hour": 7,
+    "Minute": 0
+   }
+  },
+  "com.investment.weekly": {
+   "plist": "/Users/cast/Library/LaunchAgents/com.investment.weekly.plist",
+   "program": [
+    "/Users/cast/AI内容/venv/bin/python3",
+    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/scripts/report_generator.py"
+   ],
+   "path_like_args": [
+    "/Users/cast/AI内容/venv/bin/python3",
+    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/scripts/report_generator.py"
+   ],
+   "any_arg_points_to_live": true,
+   "any_arg_points_to_dev": false,
+   "points_to_live": true,
+   "points_to_dev": false,
+   "calendar": {
+    "Weekday": 6,
+    "Hour": 8,
+    "Minute": 0
+   }
+  }
+ },
+ "findings": {
+  "dev_live_physically_distinct": true,
+  "no_ancestor_descendant": true,
+  "no_symlink_cross_pointing": true,
+  "live_matches_p0_1_sealed_commit": true,
+  "launchd_runs_live_not_dev": true,
+  "github_main_untouched": true
+ },
+ "limits_of_evidence": [
+  "文件SHA-256一致仅证明核验时刻状态一致;缺少开发前基线快照,不能绝对证明历史上从未发生短暂改写",
+  "本轮未对LIVE做任何写入;该否定性结论以本轮操作记录为据,不主张超出会话可见范围的历史证明",
+  "完整shell历史不构成'绝对零写入'的数学证明;独立方可按下方命令只读复跑核验"
+ ],
+ "rerun_commands": [
+  "python3 -c \"import os;print(os.path.realpath('/Users/cast/investment-agent-dev'), os.path.realpath('/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent'))\"",
+  "cd /Users/cast/investment-agent-dev && git rev-parse HEAD origin/main && git status --porcelain",
+  "shasum -a 256 '/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/scripts/fact_engine.py' && cd /Users/cast/investment-agent-dev && git show 50b5d13:scripts/fact_engine.py | shasum -a 256",
+  "plutil -p /Users/cast/Library/LaunchAgents/com.investment.daily.plist | grep -A2 Program"
+ ]
+}

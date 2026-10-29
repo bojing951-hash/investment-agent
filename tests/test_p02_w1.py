@@ -92,8 +92,10 @@ with open(os.path.join(ROOT, 'docs', 'P0_2_W1_REGISTRY_AUDIT.json'), encoding='u
 aud_ids = [i['metric_id'] for i in audit['items']]
 check("A5 审计报告覆盖全部81项,不重复不遗漏",
       len(aud_ids) == 81 and set(aud_ids) == set(by_id) and len(set(aud_ids)) == 81)
-check("A5b 审计分类计数一致(77 VERIFIED/3 FIXED/1 REVIEW/0 BLOCKED)",
-      audit['totals']['results'] == {'VERIFIED_CONSISTENT': 77, 'FIXED': 3,
+check("A5b 审计分类计数一致(FIX1修订后: 76 VERIFIED/4 FIXED/1 REVIEW/0 BLOCKED;"
+      "CORE_PCE基期经官方来源证伪由VERIFIED改判FIXED,总数与逐项重算一致性另由"
+      "test_p02_w1_fix1 E3/E4锁定)",
+      audit['totals']['results'] == {'VERIFIED_CONSISTENT': 76, 'FIXED': 4,
                                      'REVIEW': 1, 'BLOCKED': 0},
       str(audit['totals']['results']))
 # 镜像集合同步(防两处漂移)

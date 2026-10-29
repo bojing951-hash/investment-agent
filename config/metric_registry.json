@@ -1432,7 +1432,7 @@
    "source_symbol": "PCEPILFE",
    "asset_class": "macro_index",
    "frequency": "monthly",
-   "unit": "index_point_2012",
+   "unit": "index_point_2017",
    "calendar": "us_rates",
    "criticality": "core",
    "status": "active",

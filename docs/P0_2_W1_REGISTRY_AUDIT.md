@@ -1,7 +1,9 @@
 # P0-2 W1 指标注册表金融语义审计报告(81项)
 
-- 契约: IA-P0-2-W1-AC-v1.0 / 总冻结: IA-P0-2-AC-v1.0 / 开发指令: IA-P0-2-W1-DEV-v1.0
-- 固定基线: `50b5d13db6c477084c6f4b3944b7bd08a8e329d6`(P0-1验收Commit) | 分支: dev/p0-2-w1 | 生成: 2026-10-29T10:06:39+08:00
+(本版为 **IA-P02-W1-FIX1 修订版**: 首轮CORE_PCE基期结论被权威来源证伪并改判FIXED、WATCHLIST计数38→32更正、新增官方序列单位机器校验;修订历史见文末。)
+
+- 契约: IA-P0-2-W1-FIX1-AC-v1.0 / IA-P0-2-W1-AC-v1.0 / 总冻结: IA-P0-2-AC-v1.0 / 开发指令: IA-P0-2-W1-DEV-v1.0 + IA-P02-W1-FIX1-DEV
+- 固定基线: `50b5d13db6c477084c6f4b3944b7bd08a8e329d6`(P0-1验收Commit) | 分支: dev/p0-2-w1 | 生成: 2026-10-29T13:56:52+08:00
 - 角色: 开发自检;独立验收由 Agent 4 执行
 
 ## 1. 总量与分类
@@ -10,26 +12,36 @@
 |---|---|
 | 指标总数/唯一ID | 81 / 81 |
 | active / active+core / deprecated | 80 / 32 / 1 |
-| VERIFIED_CONSISTENT | 77 |
-| FIXED | 3(NVDA/AAPL/MSFT) |
+| VERIFIED_CONSISTENT | 76 |
+| FIXED | 4(NVDA/AAPL/MSFT身份 + CORE_PCE基期单位[FIX1]) |
 | REVIEW | 1(DXY) |
 | BLOCKED | 0 |
 
 ## 2. 审计方法与证据分级
 
 1. **程序字段一致性**: 逐项字段在场性/类型/封闭集合/结构(registry_semantics,当前error=0/review=0);事实链消费点通读(fe.make_fact/rp.fact_structure_problems/rp.fact_source_problems/sb.build_anchors/rp.core_metric_ids)。
-2. **来源/工具语义确认**: 采集器符号表快照(WATCHLIST 38项/FRED_SERIES 27项/rate 4项/china通道12项)与注册表source_symbol逐项比对——全部一致;identity.instrument在scripts/tests/run_weekly零消费(W1-03前),修复无运行时行为影响。
+2. **来源/工具语义确认**: 采集器符号表快照(WATCHLIST 32/FRED_SERIES 27/rate 4/china通道12)与注册表source_symbol逐项比对——全部一致;identity.instrument在scripts/tests/run_weekly零消费(W1-03前),修复无运行时行为影响。FIX1更正: 首轮文档误计WATCHLIST=38,实为32键(逐键复核scripts/global_market_collector.py);5项官方指数序列(PCEPILFE/CPIAUCSL/CPILFESL/INDPRO/UMCSENT)基期自FIX1起由OFFICIAL_FRED_INDEX_UNITS机器校验(注册表单位+采集器标签同步),不再依赖人工快照。
 3. **真实金融数据准确性**: **不在W1范围,未认证**(见not_verified_statements)。
 
-## 3. 确认修复(W1-02)
+## 3. 确认修复(W1-02 + FIX1-01)
 
-| metric_id | 字段 | 修复前 | 修复后 | 其他字段 |
-|---|---|---|---|---|
-| NVDA | identity.instrument | `etf` | `single_stock` | 逐字节未动 |
-| AAPL | identity.instrument | `etf` | `single_stock` | 逐字节未动 |
-| MSFT | identity.instrument | `etf` | `single_stock` | 逐字节未动 |
+| metric_id | 字段 | 修复前 | 修复后 | 其他字段 | 轮次 |
+|---|---|---|---|---|---|
+| NVDA | identity.instrument | `etf` | `single_stock` | 逐字节未动 | W1 |
+| AAPL | identity.instrument | `etf` | `single_stock` | 逐字节未动 | W1 |
+| MSFT | identity.instrument | `etf` | `single_stock` | 逐字节未动 | W1 |
+| CORE_PCE | unit | `index_point_2012` | `index_point_2017` | 逐字节未动 | IA-P02-W1-FIX1 |
 
 依据: 个股(single_stock)是发行人权益凭证,不是基金份额(ETF);指令确认为确定性身份错误。修复后由registry_semantics规则R-STOCK-NOT-ETF/R-ETF-EXCLUSIVITY/R-INSTRUMENT-CLASS机器拦截同类回归。
+
+### 3.1 CORE_PCE基期修复(FIX1-01,首轮审计结论已被证伪)
+
+- **原错误结论**: 首轮将CORE_PCE标为VERIFIED_CONSISTENT并注"2012=100链式指数"——未核验官方基期即下结论,属审计方法缺陷(Agent 4阻断性缺陷IA-P02-W1-DEF-001)。
+- **官方事实**: FRED系列PCEPILFE(核心PCE链式物价指数,BEA,Monthly,Seasonally Adjusted)官方单位=**Index 2017=100**;来源页fred.stlouisfed.org/series/PCEPILFE(核验2026-10-29)。
+- **修复**: 注册表unit `index_point_2012`→`index_point_2017`;采集器SERIES_UNITS标签"指数点(2012=100)"→"指数点(2017=100)"。**仅修语义标注,不做数值重新定基**(采集器直读FRED原始值);metric_id/source/source_symbol/frequency/calendar/criticality/status/数值/历史序列/freshness(45天,W2范围未动)全部未动。
+- **机器拦截**: R-OFFICIAL-UNIT(注册表单位≠官方)/R-OFFICIAL-SERIES(身份绑定序列被更换)/R-OFFICIAL-UNIT-SYNC(采集器标签脱节)——同类错误此后自动发现,不再依赖人工比对。
+- **实际影响**: 标注级;存量历史快照/已发布报告中的旧标签未回写(历史产物保护)。
+- **未证明范围**: 数值本身准确性仍非W1认证对象;其余76项VERIFIED的基期中仅上表5项获官方机器保护,其余单位标签仍属首轮人工核验层面。
 
 ## 4. REVIEW项(1)
 
@@ -100,7 +112,7 @@
 | 47 | FED_FUNDS | policy_rate | macro_series | percent | macro_collector | ✓ | VERIFIED | 月均值口径(与DFF某日时点值区别)写入calc |
 | 48 | CPI | macro_index | macro_series | index_point_1982_84 | macro_collector | ✓ | VERIFIED | SA指数,1982-84=100基期编码单位;MoM/YoY由引擎按系列计算 |
 | 49 | CORE_CPI | macro_index | macro_series | index_point_1982_84 | macro_collector | ✓ | VERIFIED | 核心CPI(食品能源剔除),SA,1982-84基期 |
-| 50 | CORE_PCE | macro_index | macro_series | index_point_2012 | macro_collector | ✓ | VERIFIED | 2012=100链式指数 |
+| 50 | CORE_PCE | macro_index | macro_series | index_point_2017 | macro_collector | ✓ | **FIXED** |  |
 | 51 | UNEMPLOYMENT | macro_rate | macro_series | percent | macro_collector | ✓ | VERIFIED |  |
 | 52 | NFP | macro_count | macro_series | persons_thousands | macro_collector | ✓ | VERIFIED | 存量水平(千人);媒体'新增非农'=NFP_MOM_K月差,两者注册分离 |
 | 53 | NFP_MOM_K | macro_count_derived | macro_series | persons_thousands | macro_collector | — | VERIFIED | source=macro_collector(数据通道语义)而collector=fact_engine(计算模块)——两组派生标注惯例已在rp._DERIVED_DEPS分支/sb锚点排除显式处理,行为一致(系统性说明S4) |
@@ -144,7 +156,14 @@
 - 采集器运行时符号表以开发期快照为准(冻结于本报告);采集器后续演进需重新比对
 - 真实金融数值准确性(价格/利率/计数与外部市场的一致性)——W1范围外
 - 时效政策与有效期窗口数值(freshness仅查结构合法性;语义归W2)
-- 采集器运行时实际符号表与source_symbol的一致性(开发期人工核验,见审计报告)
+- 采集器运行时实际符号表与source_symbol的一致性(开发期人工核验;FIX1后5项官方指数序列的基期标签已有机器同步检查collector_official_unit_problems,其余仍人工)
 - 未确认asset_class/instrument组合的金融正当性(标review,待人工或后续工作包)
 - 新闻/情绪与业务模块口径(W3~W5范围)
+
+## 8. 修订历史
+
+- **IA-P0-2-W1(初版)**(2026-10-29): 首轮审计;CORE_PCE误标VERIFIED_CONSISTENT("2012=100链式指数")——未核官方基期,审计方法缺陷 — Agent 4判定FAIL(阻断性缺陷IA-P02-W1-DEF-001)
+- **IA-P02-W1-FIX1**(2026-10-29): CORE_PCE改判FIXED并保留原错误+官方证据;新增5项官方序列身份/单位/采集器同步机器校验;修正WATCHLIST计数38→32(首轮文档计数错误);分类总数由程序按81项记录重算(76/4/1/0) — 待Agent 4独立验收
+
+官方单位证据明细(5序列:title/official_units/frequency/SA/来源/绑定指标/核验日期)见机器可读清单 `official_units_evidence` 字段。
 

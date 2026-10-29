@@ -15,7 +15,8 @@
 
 ## 2. 最终提交
 
-- FIX3 实现提交: 见 git log(本文档首次随实现提交入库; SHA见§14 CI运行#1 head_sha)
+- FIX3 实现提交: `da235c5ff9de2c5a7b8988336d05f0eb815878cf`
+  (6文件 1012+/57-, CI运行#1即此SHA, 见§14)
 - FIX3 最终交付提交: 本文档CI/隔离核验补录提交(仅docs)即最终提交,
   其SHA见§14运行#2 head_sha 与 `git log -1 dev/p0-2-w2`。
 
@@ -235,17 +236,36 @@ test_p02_w2_fix3.py/必要既有W2测试(仅fix2 E2一处)/FRESHNESS.json/.md核
 - 开发前(只读): DEV git根=/Users/cast/investment-agent-dev(独立仓库, 无
   symlink), branch=dev/p0-2-w2, HEAD=d1ceac6, 工作树clean(无未提交修改
   需核实保留), origin/main=50b5d13;
-- 最终核验(FIX3提交后只读): 见§14回填(DEV HEAD=FIX3最终SHA; LIVE inode/
-  blob对比/launchd目标与FIX2轮一致未动)。
+- **最终核验**(实现提交da235c5后、只读执行):
+  - DEV: HEAD=da235c5, branch=dev/p0-2-w2, inode=60895116,
+    origin/main=50b5d13(未合并);
+  - LIVE: realpath=/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/
+    investment-agent, inode=22199716, 无.git, 祖先目录无symlink;
+  - LIVE 8关键文件`git hash-object`对比50b5d13 blob: **7 MATCH**
+    (fact_engine/data_validator/research_provenance/snapshot_builder/
+    report_generator/daily_prediction_observer/china_market_collector);
+    第8个freshness_policy.py在LIVE与50b5d13**均不存在**(经
+    `git cat-file -e`复核; W2新增模块仅DEV有)→LIVE从未接收任何W2代码;
+  - launchd: com.investment.daily→LIVE run_daily.sh,
+    com.investment.weekly→LIVE report_generator.py, 均未指向DEV, 零改动。
 
 ## 14. GitHub CI与版本交付
 
 - 工作流: offline-tests.yml, workflow_dispatch, ref=dev/p0-2-w2
-- 运行#1(实现提交): 最终提交后回填(run id/head_sha/逐套退出码);
-- 运行#2(最终交付提交): 本文档补录push后dispatch, head_sha=最终提交
+- **运行#1(实现提交)**: run `40910583111`, job `123577150435`(tests),
+  head_sha=`da235c5ff9de2c5a7b8988336d05f0eb815878cf`,
+  conclusion=**success**(2026-10-29T16:20:27Z→16:21:01Z),
+  https://github.com/bojing951-hash/investment-agent/actions/runs/40910583111
+  逐套退出码(取自run日志): 36套全绿——**test_p02_w2_fix3 exit=0**(39/0),
+  test_p02_w2_fix2 exit=0(43/0, 含E2新期望), test_p02_w2_fix1 exit=0(53/0),
+  test_p02_w2 exit=0(44/0), E2E三套/W1两套/P0-1十一套/其余全 exit=0,
+  test_glm_live SKIPPED(设计内); 0 error annotation, 失败打包步骤skipped。
+- **运行#2(最终交付提交)**: 本文档补录push后dispatch, head_sha=最终提交
   (代码/测试与运行#1零差异, 仅docs)。验收入口: Actions→offline-tests→
   dev/p0-2-w2最新运行, head_sha须等于`git log -1 dev/p0-2-w2`;
-- 增量diff: d1ceac6→dev/p0-2-w2; 累积diff: 69d7fc7→dev/p0-2-w2
+- 增量diff(d1ceac6→实现da235c5): 6文件 1012+/57-
+  (https://github.com/bojing951-hash/investment-agent/compare/d1ceac6...dev/p0-2-w2);
+- 累积diff(69d7fc7→实现da235c5): 32文件 7703+/199-
   (https://github.com/bojing951-hash/investment-agent/compare/69d7fc7...dev/p0-2-w2)。
 
 ## 15. 未解决事项与证据等级
@@ -256,5 +276,5 @@ test_p02_w2_fix3.py/必要既有W2测试(仅fix2 E2一处)/FRESHNESS.json/.md核
 | 历史四轮政策批准 | 原始记录未改+前缀哈希复现+四轮配对复现(§8) | C+D(开发者复现); U级=Agent4/用户读JSONL |
 | 当前政策授权(如需) | 用户可在Agent 4对话直接确认现行窗口(§8清单) | 用户当场确认=新批准记录(不伪称已核历史) |
 | 恒指官方方法事实 | 指令交付(Agent 4已确认)+URL佐证 | 承FIX2轮结论不变 |
-| CI 最终运行 | 运行#2=最终提交后dispatch(§14回填) | GitHub公开可验证 |
-| DEV-LIVE 隔离 | 最终提交后只读核验(§13/§14回填) | Mac本地只读 |
+| CI 最终运行 | 运行#1已回填(§14: 40910583111全绿); 运行#2=最终提交后dispatch, 链接在会话最终报告 | GitHub公开可验证 |
+| DEV-LIVE 隔离 | 已核验回填(§13): 7 MATCH+freshness_policy.py双缺席 | Mac本地只读 |

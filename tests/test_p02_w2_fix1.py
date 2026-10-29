@@ -343,11 +343,13 @@ ver7, rej7 = ae.verify_evidence_items(
     anc7, AS_OF)
 check("B7 Agent4精确反例(CPI obs=2026-09-01/as_of=2026-10-24/release="
       "2026-10-28): lag53≤60窗内**但**NOT_AVAILABLE_AT_AS_OF不得作当前证据"
-      "(assess+dv+ae三入口同拒)",
+      "(assess+dv+ae三入口同拒;W2-FIX4起ae拒收原因如实分流为'点时不可得'"
+      "而非误导性'数据过期'——观测并不滞后,不可得的是as_of时点)",
       v7['lag_days'] == 53 and v7['window'] == 60
       and v7['status'] == 'NOT_AVAILABLE_AT_AS_OF' and v7['fresh'] is False
       and dv.is_fresh_anchor(CPI_KEY, anc7[CPI_KEY], AS_OF) is False
-      and ver7 == [] and rej7 and '过期' in rej7[0][0],
+      and ver7 == [] and rej7 and '点时不可得' in rej7[0][0]
+      and '晚于研究截止' in rej7[0][0],
       f"lag={v7['lag_days']} win={v7['window']} {v7['status']} "
       f"dv={dv.is_fresh_anchor(CPI_KEY, anc7[CPI_KEY], AS_OF)} "
       f"ae={str(rej7)[:60]}")

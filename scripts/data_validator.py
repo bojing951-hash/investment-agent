@@ -542,6 +542,84 @@ def freshness_rule_for(anchor_key):
     return max_lag, desc
 
 
+def anchor_time_qualification(anchor_key, info, as_of_date):
+    """锚点结构化时间资格(W2-FIX4-01: 轻量适配接口,非第二套时间比较器):
+    观测新鲜度(A/C问)与点时认证(B问)**分离返回**,全部复用fp共享原语
+    (verify_anchor_identity+assess)与同一份已批准时效策略——数值/观测核验
+    与历史点时认证两个维度不得相互冒充。
+    返回:
+      identity                {status: MAPPED/UNMAPPED/UNVERIFIED, metric_id, reason}
+      observation_freshness   {fresh: bool, status, lag_days, window}
+                              (status: FRESH/STALE/FUTURE_DATE/NOT_OBSERVED/
+                               INVALID_DATE/UNREGISTERED/NOT_AVAILABLE_AT_AS_OF/
+                               INVALID_RELEASE;UNMAPPED/身份不可认证时为
+                               UNMAPPED/IDENTITY_UNVERIFIED)
+      point_in_time           {status, granularity, release_date, reason}
+                              OK/POINT_IN_TIME_UNCERTIFIED/RELEASE_UNKNOWN/
+                              RELEASE_AFTER_AS_OF/INVALID/RELEASE_BEFORE_OBS;
+                              身份不可认证时NOT_ASSESSABLE
+      point_in_time_certified bool — 仅point_in_time.status==OK;且OK只证明
+                              "锚点元数据声明的发布时间不晚于研究截止"
+                              (release_date未独立核验,见reason),不冒充外部独立认证
+    is_fresh_anchor为本接口观测维度的布尔投影(同一判定,单一来源)。"""
+    out = {'identity': {'status': 'NOT_ASSESSABLE', 'metric_id': None,
+                        'reason': None},
+           'observation_freshness': {'fresh': False, 'status': None,
+                                     'lag_days': None, 'window': None},
+           'point_in_time': {'status': 'NOT_ASSESSABLE', 'granularity': None,
+                             'release_date': None, 'reason': None},
+           'point_in_time_certified': False}
+    if not isinstance(info, dict):
+        out['observation_freshness']['status'] = 'INVALID_INFO'
+        out['point_in_time']['reason'] = '锚点信息非法(非对象),无法判定时间资格'
+        return out
+    # scorecard: 报告内部推导(非注册表指标)——遗留周度10天规则,日期同样严格;
+    # 无外部发布事实→点时如实RELEASE_UNKNOWN,绝不认证
+    if isinstance(anchor_key, str) and anchor_key.startswith('scorecard.'):
+        o = fp.parse_instant(info.get('obs_date'))
+        a = fp.parse_instant(as_of_date)
+        ok = bool(o and a and o <= a and (a - o).days <= 10)
+        out['identity'] = {'status': 'MAPPED', 'metric_id': anchor_key,
+                           'reason': 'scorecard报告内部推导项(遗留周度规则)'}
+        out['observation_freshness'] = {
+            'fresh': ok, 'status': 'FRESH' if ok else 'STALE',
+            'lag_days': (a - o).days if (o and a) else None, 'window': 10}
+        out['point_in_time'] = {
+            'status': 'RELEASE_UNKNOWN', 'granularity': None,
+            'release_date': None,
+            'reason': '报告内部推导项,无外部发布事实,点时不可认证'}
+        return out
+    ident = fp.verify_anchor_identity(anchor_key, info)
+    out['identity'] = {'status': ident['status'], 'metric_id': ident['metric_id'],
+                       'reason': ident['reason']}
+    if ident['status'] != 'MAPPED':
+        # UNMAPPED与UNVERIFIED均fail-closed(FIX1-03): 不授予任何时间资格
+        out['observation_freshness']['status'] = (
+            'UNMAPPED' if ident['status'] == 'UNMAPPED' else 'IDENTITY_UNVERIFIED')
+        out['point_in_time']['reason'] = (
+            f"锚点身份不可认证({ident['reason']}"
+            + (f":{ident['conflict']}" if ident.get('conflict') else '')
+            + "),不得授予任何时间资格")
+        return out
+    v = fp.assess(ident['metric_id'], info.get('obs_date'), as_of_date,
+                  release_date=info.get('release_date'))
+    pit = v['point_in_time']
+    if pit.get('status') == 'OK':
+        reason = (f"发布{pit.get('release_date')}不晚于研究截止"
+                  f"({pit.get('detail')});锚点元数据声明,未独立核验")
+    else:
+        reason = (pit.get('detail') or pit.get('note')
+                  or (v['reasons'][0] if v.get('reasons') else None))
+    out['observation_freshness'] = {
+        'fresh': bool(v['fresh']), 'status': v['status'],
+        'lag_days': v.get('lag_days'), 'window': v.get('window')}
+    out['point_in_time'] = {
+        'status': pit.get('status'), 'granularity': pit.get('granularity'),
+        'release_date': pit.get('release_date'), 'reason': reason}
+    out['point_in_time_certified'] = pit.get('status') == 'OK'
+    return out
+
+
 def is_fresh_anchor(anchor_key, info, as_of_date):
     """逐指标新鲜度判定(W2统一+FIX1-01/02/03): 完全消费fp共享原语——
     身份(canonical键映射+来源家族绑定)→三问分离assess(已观测/点时已发布/新鲜),
@@ -554,20 +632,11 @@ def is_fresh_anchor(anchor_key, info, as_of_date):
       (FIX1-02: 锚点元数据携带release_date时进入点时判断——仅拒绝性消费:
       该字段只可能使判定更严(发布在未来→拒),缺失时与既有RELEASE_UNKNOWN
       路径一致,调用方伪造发布日期无法借此放宽认证)
-    过期指标不得作为当前有效证据。"""
-    if not isinstance(info, dict):
-        return False
-    # scorecard: 报告内部推导(非注册表指标)——遗留周度10天规则,日期同样严格
-    if isinstance(anchor_key, str) and anchor_key.startswith('scorecard.'):
-        o = fp.parse_instant(info.get('obs_date'))
-        a = fp.parse_instant(as_of_date)
-        return bool(o and a and o <= a and (a - o).days <= 10)
-    ident = fp.verify_anchor_identity(anchor_key, info)
-    if ident['status'] != 'MAPPED':
-        return False   # UNMAPPED与UNVERIFIED均fail-closed
-    v = fp.assess(ident['metric_id'], info.get('obs_date'), as_of_date,
-                  release_date=info.get('release_date'))
-    return bool(v['fresh'])
+    过期指标不得作为当前有效证据。
+    W2-FIX4-01: 判定本体在anchor_time_qualification(单一来源),此处为观测
+    新鲜维度的布尔投影——点时认证状态须经结构化接口获取,布尔不得冒充。"""
+    return anchor_time_qualification(anchor_key, info,
+                                     as_of_date)['observation_freshness']['fresh']
 
 
 def stale_anchor_warning(anchor_key, info, as_of_date):

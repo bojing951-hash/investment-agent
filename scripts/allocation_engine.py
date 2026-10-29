@@ -346,12 +346,19 @@ def _value_close(claimed, anchor_val):
 def verify_evidence_items(items, anchors, as_of_date=None):
     """逐项验证结构化证据 [{metric, value, obs_date, mechanism?, contrary?, explained?, neutral?}]。
 
-    验证内容: 指标存在于锚点 / 数值吻合 / 观测日必须与锚点观测日一致(采集日as_of
-    不得替代观测日,第四轮P0-3) / 逐指标新鲜度(过期不得作当前证据)。
+    验证内容: 指标存在于锚点 / 锚点身份/来源家族合法 / 数值吻合 / 观测日必须与
+    锚点观测日一致(采集日as_of不得替代观测日,第四轮P0-3) / 研究截止合法 /
+    逐指标新鲜度(过期不得作当前证据) / 点时判断(发布已知时)。
     neutral=true(或stance=neutral)表示"相关但不能直接支持方向": 数值真实性照常
     验证,但不计入支持证据数量(第四轮P0-2)。
     返回 (verified, rejects): verified为通过项(同指标去重后仍全部保留,计数时按
-    distinct metric),rejects为(原因, 原始项)列表。anchors为空→全部拒(无锚点即无证据)。"""
+    distinct metric),rejects为(原因, 原始项)列表。anchors为空→全部拒(无锚点即无证据)。
+    W2-FIX4: 每项verified附结构化时间资格{observation_freshness, point_in_time
+    {status,granularity,release_date,reason}, point_in_time_certified}——数值/观测
+    核验通过与点时认证分离: 已知发布晚于截止→整项拒收;精度不足未证明→保留为
+    观测层证据并如实标注POINT_IN_TIME_UNCERTIFIED,永不计入"已证实截止时可得";
+    缺release_date→RELEASE_UNKNOWN(历史兼容,不伪造认证);未提供as_of(诊断路径)
+    →AS_OF_UNKNOWN且不授予认证;时间校验模块不可用→fail-closed拒收。"""
     verified, rejects = [], []
     if not isinstance(items, list):
         return verified, rejects
@@ -363,6 +370,18 @@ def verify_evidence_items(items, anchors, as_of_date=None):
         info = (anchors or {}).get(metric)
         if not metric or not info:
             rejects.append((f"指标{metric}不在锚点中(虚构证据嫌疑)", it))
+            continue
+        # W2-FIX4-02步骤2: 锚点身份/来源家族合法性(数值比对之前)——身份不可
+        # 认证的引用连数值比对资格都没有;结构化时间资格(身份/新鲜度/点时)
+        # 经dv共享适配接口一次取齐(复用fp.assess,不新建第二套比较器)
+        tq = _anchor_time_qualification(metric, info, as_of_date) \
+            if as_of_date else None
+        if as_of_date and tq is None:
+            rejects.append((f"{metric}时间校验模块不可用,fail-closed不得核验为正式证据", it))
+            continue
+        if tq is not None and tq['identity']['status'] != 'MAPPED':
+            rejects.append((f"{metric}锚点身份不可认证({tq['identity']['status']}:"
+                            f"{tq['point_in_time']['reason']}),不得作正式证据", it))
             continue
         if not _value_close(it.get('value'), info.get('value')):
             rejects.append((f"{metric}数值不符(报告{it.get('value')} vs 锚点{info.get('value')})", it))
@@ -397,31 +416,71 @@ def verify_evidence_items(items, anchors, as_of_date=None):
             rejects.append((f"{metric}观测日不符(引用{claimed_obs} vs 锚点{obs};"
                             f"采集日as_of不得替代经济观测日)", it))
             continue
-        if as_of_date and not _anchor_fresh(metric, info, as_of_date):
-            a_cmp = _fp.parse_instant(as_of_date)
-            if a_cmp is None:
-                rejects.append((f"{metric}研究截止非法('{as_of_date}'),无法认证时效", it))
-            elif obs_d > a_cmp:
-                rejects.append((f"{metric}观测日{obs}晚于研究截止{as_of_date}(未来数据),不得使用", it))
-            else:
-                rejects.append((f"{metric}数据过期(观测日{obs}),不得作为当前有效证据", it))
-            continue
+        # W2-FIX4-02步骤5-7: 研究截止合法→逐指标新鲜度政策→点时判断(发布已知时);
+        # 拒收原因按结构化状态如实分流(未来发布≠数据过期,不得误导性归因)
+        if tq is not None:
+            of = tq['observation_freshness']
+            if not of['fresh']:
+                if of['status'] == 'NOT_AVAILABLE_AT_AS_OF':
+                    rejects.append((f"{metric}点时不可得:已知发布"
+                                    f"{tq['point_in_time']['release_date']}晚于研究截止"
+                                    f"{as_of_date}({tq['point_in_time']['reason']})"
+                                    f"——as_of时点该值不可得,不得作当前证据", it))
+                elif of['status'] == 'FUTURE_DATE':
+                    rejects.append((f"{metric}观测日{obs}晚于研究截止{as_of_date}(未来数据),不得使用", it))
+                elif of['status'] == 'STALE':
+                    rejects.append((f"{metric}数据过期(观测日{obs},滞后{of['lag_days']}>"
+                                    f"{of['window']}天已批准窗),不得作为当前有效证据", it))
+                elif of['status'] == 'INVALID_DATE':
+                    rejects.append((f"{metric}研究截止非法('{as_of_date}'),无法认证时效", it))
+                else:
+                    rejects.append((f"{metric}时间资格不成立({of['status']}:"
+                                    f"{tq['point_in_time']['reason']}),不得作当前证据", it))
+                continue
+            pit, certified = tq['point_in_time'], tq['point_in_time_certified']
+        else:
+            # 诊断路径(未提供研究截止as_of): 不做时效门禁(既有语义);但绝不
+            # 默认授予点时认证——截止未定,认证无从谈起(W2-FIX4-02)
+            pit = {'status': 'AS_OF_UNKNOWN', 'granularity': None,
+                   'release_date': info.get('release_date'),
+                   'reason': '未提供研究截止(as_of),仅数值/观测诊断核验,不授予点时认证'}
+            certified = False
         neutral = bool(it.get('neutral')) or str(it.get('stance', '')).lower() == 'neutral'
+        # W2-FIX4-01/02步骤8: 结构化时间资格随verified传递——数值/观测核验
+        # (进入verified即已通过)与点时认证两维度分离;未认证项按观测层证据
+        # 参与下游计数,但永不计入"已证实研究截止时可得",下游按
+        # point_in_time_certified区分,缺失字段按False(不推定已认证)
         verified.append({'metric': metric, 'value': float(info['value']),
                          'obs_date': obs, 'as_of': as_of,
                          'mechanism': mechanism_of(metric, it.get('mechanism')),
                          'contrary': bool(it.get('contrary')),
                          'explained': bool(it.get('explained')),
-                         'neutral': neutral})
+                         'neutral': neutral,
+                         'observation_freshness': 'FRESH',
+                         'point_in_time': dict(pit),
+                         'point_in_time_certified': certified})
     return verified, rejects
 
 
+def _anchor_time_qualification(metric, info, as_of_date):
+    """经dv共享适配接口取锚点结构化时间资格(W2-FIX4-02):
+    身份/观测新鲜度/点时认证三段一次取齐,复用fp共享原语,不新建比较器。
+    时间校验模块不可用→None(fail-closed: 校验缺席不得授权正式证据)。"""
+    try:
+        from data_validator import anchor_time_qualification
+    except ImportError:
+        return None
+    return anchor_time_qualification(metric, info, as_of_date)
+
+
 def _anchor_fresh(metric, info, as_of_date):
+    """W2-FIX4-02: 时间校验模块不可用时fail-closed——旧ImportError分支返回
+    True会在校验缺席时把证据静默放行为"已核验",废除;不可用即不新鲜(拒)。"""
     try:
         from data_validator import is_fresh_anchor
-        return is_fresh_anchor(metric, info, as_of_date)
     except ImportError:
-        return True
+        return False
+    return is_fresh_anchor(metric, info, as_of_date)
 
 
 def _obs_period_bucket(obs_date):
@@ -461,12 +520,24 @@ def split_evidence_direction(verified_items):
     return supporting, contrary, unexplained, neutral
 
 
+def uncertified_note(items):
+    """W2-FIX4-03: 证据集中未完成点时认证的项数说明(状态变更理由可见性)。
+    缺失point_in_time_certified字段的旧记录按未认证计(不推定已认证);
+    全部已认证时返回空串(不虚报限制)。"""
+    n = sum(1 for i in items or [] if not i.get('point_in_time_certified'))
+    return (f";其中{n}项未完成点时认证,按观测层证据参与(非已证实研究截止时可得)"
+            if n else '')
+
+
 def star_level_from_evidence(verified_items):
     """按证据分级v2计算可授予的最高星级(第四轮P0-5修正)。
     规则: 5★=5项/3类机制/3观察期(无重大反证即足;存在未解释重大反证封顶3★);
     4★=4项/3类/2期; 3★=3项/2类; 2★=2项; 1★=1项。
     只计支持证据(非反证项),同一底层指标去重; 同ISO周=1个观察期。
-    返回 (max_star, 说明)。星级衡量证据充分性,≠预测概率,≠资金比例。"""
+    返回 (max_star, 说明)。星级衡量证据充分性,≠预测概率,≠资金比例。
+    W2-FIX4-03: 说明披露点时认证分解(已认证x·未认证y)——星级门槛不变,
+    未认证项仍按观测层证据参与计数,但正式记录可见其未认证,不得表述为
+    "已证实研究截止时可得"。"""
     supporting, contrary, unexplained, _neutral = split_evidence_direction(verified_items)
     metrics = {_base_metric(i.get('metric')) for i in supporting if i.get('metric')}
     n = len(metrics)
@@ -481,8 +552,13 @@ def star_level_from_evidence(verified_items):
     if star > MAX_STAR_UNEXPLAINED_COUNTER and unexplained:
         star = MAX_STAR_UNEXPLAINED_COUNTER
         capped = f',存在未解释反证{len(unexplained)}项封顶3★'
+    uncert = sum(1 for i in supporting if not i.get('point_in_time_certified'))
+    cert_n = len(supporting) - uncert
+    _pit_desc = (f"/点时认证: 支持项{len(supporting)}中已认证{cert_n}·未认证{uncert}"
+                 + ("(未认证按观测层证据参与)" if uncert else ""))
     desc = (f"独立支持证据{n}项({', '.join(sorted(metrics))})/机制{len(cats)}类/"
-            f"观察期{len(periods)}个/反对证据{len(contrary)}项(未解释{len(unexplained)}){capped}")
+            f"观察期{len(periods)}个/反对证据{len(contrary)}项(未解释{len(unexplained)})"
+            f"{_pit_desc}{capped}")
     return star, desc
 
 
@@ -1145,7 +1221,8 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
                 old = v.get('rating')
                 v['rating'] = new_rating
                 rating_changed = True
-                via = (f"新增独立支持证据{len(new_support)}项经验证({star_desc[:60]})")
+                via = (f"新增独立支持证据{len(new_support)}项经验证({star_desc[:60]})"
+                       + uncertified_note(supporting))
                 v['last_change'] = {'date': today_iso, 'from': old, 'to': new_rating,
                                     'via': via, 'evidence': supporting[:5], 'note': note}
                 _mark_proposals_superseded(v, new_rating, today_iso)
@@ -1211,11 +1288,17 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
         # 证据台账写入(第五轮P1-1: 放在门禁判定**之后** — 同日重跑时,
         # 早前运行写入的(指标,观测日)已在已知集合内,同批数据不会再次计为新增)
         if verified:
+            # W2-FIX4-03: 台账持久化点时认证计数(verified全集口径;desc内为支持
+            # 集口径)——旧台账记录无此字段=当时未认证维度的如实缺席,读取侧
+            # 一律按未认证处理,不回填不推定,不批量改写历史台账
+            _cert_n = sum(1 for i in verified if i.get('point_in_time_certified'))
             ledger = v.setdefault('evidence_ledger', [])
             ledger.append({'date': today_iso, 'verified': len(verified),
                            'supporting': len(supporting), 'contrary': len(contrary),
                            'unexplained': len(unexplained), 'neutral': len(neutral_ev),
                            'new_support': sorted(new_support),
+                           'point_time_certified': _cert_n,
+                           'point_time_uncertified': len(verified) - _cert_n,
                            'star_max': star_max, 'desc': star_desc[:200],
                            'obs_pairs': sorted({(i['metric'], str(i.get('obs_date'))[:10])
                                                 for i in verified})})

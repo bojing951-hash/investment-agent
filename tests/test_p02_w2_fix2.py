@@ -386,7 +386,8 @@ check("B5 正式产物与消费入口: 数据包拒(exit2无包)+周报预检拒
       _rcB_da == 2 and not os.path.exists(os.path.join(
           tdB, 'data', 'weekly', f'data_pack_{DAY}.md'))
       and _rcB == 2 and _glmB.calls == 0 and _appB == []
-      and verB == [] and rejB and '过期' in rejB[0][0]
+      and verB == [] and rejB and '点时不可得' in rejB[0][0]
+      and '晚于研究截止' in rejB[0][0]
       and probB and '不得进入长期观察' in probB,
       f"da={_rcB_da} rg={_rcB} glm={_glmB.calls} ae={len(rejB)} "
       f"dpo={str(probB)[:40]}")

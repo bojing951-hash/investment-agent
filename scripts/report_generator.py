@@ -1034,7 +1034,8 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
                     elif len(new_support) >= 2:
                         t['status'] = new_status
                         via = (f"重新启用: 新增独立证据{len(new_support)}项经验证"
-                               f"+原失效条件复核未触发({star_desc[:40]})")
+                               f"+原失效条件复核未触发({star_desc[:40]})"
+                               + ae.uncertified_note(supporting))
                         t['last_change'] = {'date': today_iso, 'from': old_status, 'to': new_status,
                                             'via': via, 'evidence': supporting[:5], 'note': note}
                         updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old_status}→{new_status} (经{via})")
@@ -1064,7 +1065,8 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
                         updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old_status}→{new_status} (经{via})")
                     elif len(new_contrary) >= 2:
                         t['status'] = new_status
-                        via = f"重新开启: 新增独立反证{len(new_contrary)}项经验证({star_desc[:40]})"
+                        via = (f"重新开启: 新增独立反证{len(new_contrary)}项经验证"
+                               f"({star_desc[:40]})" + ae.uncertified_note(contrary))
                         t['last_change'] = {'date': today_iso, 'from': old_status, 'to': new_status,
                                             'via': via, 'evidence': contrary[:5], 'note': note}
                         updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old_status}→{new_status} (经{via})")
@@ -1095,7 +1097,8 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
                 elif len(new_support) >= 2:
                     old = t.get('status')
                     t['status'] = new_status
-                    via = f"新增独立支持证据{len(new_support)}项经验证({star_desc[:60]})"
+                    via = (f"新增独立支持证据{len(new_support)}项经验证({star_desc[:60]})"
+                           + ae.uncertified_note(supporting))
                     t['last_change'] = {'date': today_iso, 'from': old, 'to': new_status,
                                         'via': via, 'evidence': supporting[:5], 'note': note}
                     updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old}→{new_status} (经{via})")
@@ -1135,11 +1138,16 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
         # 证据台账写入(第五轮P1-1: 放在门禁判定**之后** — 同日重跑时,
         # 早前运行写入的(指标,观测日)已在已知集合内,同批数据不会再次计为新增)
         if verified:
+            # W2-FIX4-03: 台账持久化点时认证计数(与配置观点同构;旧记录无字段
+            # =如实缺席,读取按未认证,不回填不推定,不批量改写历史台账)
+            _cert_n = sum(1 for i in verified if i.get('point_in_time_certified'))
             ledger = t.setdefault('evidence_ledger', [])
             ledger.append({'date': today_iso, 'verified': len(verified),
                            'supporting': len(supporting), 'contrary': len(contrary),
                            'unexplained': len(unexplained), 'neutral': len(neutral_ev),
                            'new_support': sorted(new_support),
+                           'point_time_certified': _cert_n,
+                           'point_time_uncertified': len(verified) - _cert_n,
                            'star_max': star_max, 'desc': star_desc[:200],
                            'obs_pairs': sorted({(i['metric'], str(i.get('obs_date'))[:10])
                                                 for i in verified})})

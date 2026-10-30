@@ -293,18 +293,35 @@ def load_news_summary():
     if len(merged) > 9000:  # 单日也超长的极端情况,控制长度防GLM 1301风控
         merged = merged[:9000] + "\n... [本周新闻过长已截断]"
 
-    # IA-P0-2-W3-05 + W3-FIX1-02: 确定性来源索引附录——摘要中实际引用的
-    # [art_xxx]逐一认证。FIX1-02起**不以历史news_refs_*.json为可信依据**
+    # IA-P0-2-W3-05 + W3-FIX1-02 + W3-FIX3-03: 确定性来源索引附录——
+    # 仅对**最终保留文本**(脱敏/去重/裁剪之后)中处于新闻条目行首引用
+    # 槽位的ID逐一认证(严格引用位置解析parse_news_item_references;
+    # 正文/标题/不合格条目行中的ID不取得引用资格,只作确定性诊断)——
+    # 引用集合与实际进入周报新闻输入的内容严格对应,被裁剪掉的新闻
+    # 引用不得进入附录。FIX1-02起**不以历史news_refs_*.json为可信依据**
     # (索引是派生视图,可被伪造/过期): 消费时用load_trusted_articles_since
     # 从原始来源档案实时重建可信集合(档案→清单→文件SHA-256→逐记录摘要→
     # ID映射),仅通过认证的来源进入附录;档案缺失/损坏的引用→如实标注
     # 未通过来源认证。无URL来源明确标记不可提供,不编造链接。旧摘要无
     # 引用ID→零引用→不追加附录(完全向后兼容);附录不进入长度竞争。
-    cited = news_provenance.extract_citations(merged)
+    parsed = news_provenance.parse_news_item_references(merged)
+    cited = parsed['legal_ids']
+    if parsed['illegal_ids']:
+        print(f"⚠️ 新闻文本含{len(parsed['illegal_ids'])}个非行首槽位"
+              f"[art_]ID,不作为可信引用(仅诊断): "
+              f"{','.join(parsed['illegal_ids'])}")
     if cited:
         trusted = news_provenance.load_trusted_articles_since(
             news_dir, cutoff)
         appendix = news_provenance.summarize_for_prompt(trusted, cited)
+        if parsed['illegal_ids']:
+            # 诊断行不含方括号(不可被再提取为引用),明示未列入来源索引
+            appendix += ('\n⚠️ 诊断: 检测到'
+                         + str(len(parsed['illegal_ids']))
+                         + '个不在新闻条目行首槽位的ID('
+                         + ','.join(parsed['illegal_ids'])
+                         + '),不构成可信引用,未列入来源索引'
+                         '(确定性代码诊断,非模型生成)')
         merged = merged + '\n\n' + appendix
         arts_t = trusted.get('articles') or {}
         print(f"✅ 新闻来源索引: {len(cited)}个引用经原始档案核验"

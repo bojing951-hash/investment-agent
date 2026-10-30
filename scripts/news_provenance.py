@@ -69,6 +69,10 @@ RECORD_DIGEST_EXCLUDE = ('record_sha256', 'batch_id', 'retrieved_at_utc')
 # 稳定引用ID提取模型/报告文本中的 [art_xxxxxxxxxxxxxxxx]
 CITATION_RE = re.compile(r'\[(art_[0-9a-f]{16})\]')
 
+# FIX3-01: 正式新闻条目行首引用槽位——单行以'- [art_xxx]'开头且ID后
+# 紧跟空白或行尾(^\s*不允许:条目必须顶格;ID后必须断词)
+NEWS_ITEM_RE = re.compile(r'^-\s+\[(art_[0-9a-f]{16})\](?=\s|$)')
+
 
 # ───────────────────────── 时间语义(UTC确定性) ─────────────────────────
 
@@ -478,7 +482,14 @@ def load_records_since(news_dir, cutoff_ymd):
 # ───────────────────────── W3-05 引用与来源索引 ─────────────────────────
 
 def extract_citations(text):
-    """从文本提取实际引用的article_id(去重保序)。"""
+    """【诊断级宽松文本搜索,非认证】从全文任意位置提取[art_]ID(去重保序)。
+
+    FIX3-01起明确限定: 本函数**不区分引用位置**——正文/标题/不合格条目行
+    中的ID同样被搜出,因此**不得作为正式周报可信引用判定入口**(FIX3-03),
+    也不得用于模型摘要格式校验(FIX3-02)。正式判定必须用
+    parse_news_item_references(严格行首引用槽位);可信认证用
+    verify_citation_trusted(以原始档案为可信根实时核验)。
+    """
     seen, out = set(), []
     for m in CITATION_RE.finditer(text or ''):
         aid = m.group(1)
@@ -486,6 +497,86 @@ def extract_citations(text):
             seen.add(aid)
             out.append(aid)
     return out
+
+
+def _uniq_ids(seq):
+    """ID列表去重且保序(确定性,供解析器内部使用)。"""
+    seen, out = set(), []
+    for x in seq:
+        if x not in seen:
+            seen.add(x)
+            out.append(x)
+    return out
+
+
+def parse_news_item_references(text):
+    """FIX3-01: 正式新闻条目引用位置解析器(严格行首引用槽位,逐行解析)。
+
+    合法新闻条目=单行顶格以'- [art_xxx]'开头且ID后紧跟空白或行尾:
+        - [art_aaaaaaaaaaaaaaaa] Fed holds rates
+    仅该行首槽位ID取得新闻引用资格;以下位置的ID**不取得**引用资格:
+      * 类别标题/普通正文(如'### 美联储/利率 [art_b]'或叙述句);
+      * 不合格条目行的行内任意位置(如'- Fed holds rates [art_b]');
+      * 合法条目的正文夹带(如'- [art_a] Fed holds rates [art_b]'→
+        A合法/B为body_extra_ids,§4.3固定反例)。
+    生成端(news_collector.validate_summary_citations)与正式消费端
+    (report_generator.load_news_summary)共用本判定基础;不引入数据库,
+    不改变新闻原始档案结构。
+    返回dict:
+      items        逐条目{line_no,line,article_id,body,extra_body_ids,
+                   status('ok'|'body_extra_ids')}
+      legal_ids    合法槽位ID(去重保序)
+      illegal_ids  非法位置ID(正文夹带+非槽位行,去重保序)
+      anomalies    逐异常{line_no,kind('body_extra_ids'|'illegal_position'),
+                   ids,reason,line,action}
+      ok           无任何异常(严格格式口径)
+    """
+    items, anomalies = [], []
+    for lineno, raw in enumerate(str(text or '').splitlines(), 1):
+        line = raw.rstrip()
+        if not line.strip():
+            continue
+        m = NEWS_ITEM_RE.match(line)
+        if m:
+            aid = m.group(1)
+            body = line[m.end():].lstrip()
+            extras = _uniq_ids(CITATION_RE.findall(body))
+            items.append({
+                'line_no': lineno,
+                'line': line,
+                'article_id': aid,
+                'body': body,
+                'extra_body_ids': extras,
+                'status': 'ok' if not extras else 'body_extra_ids',
+            })
+            if extras:
+                anomalies.append({
+                    'line_no': lineno, 'kind': 'body_extra_ids',
+                    'article_id': aid, 'ids': extras,
+                    'reason': ('条目正文夹带额外[art_]ID(仅行首槽位为合法'
+                               '引用位置): ') + ','.join(extras),
+                    'line': line[:80],
+                    'action': ('夹带ID不取得引用资格;模型输出校验按格式'
+                              '失败,正式消费端仅认证行首ID'),
+                })
+            continue
+        loose = _uniq_ids(CITATION_RE.findall(line))
+        if loose:
+            anomalies.append({
+                'line_no': lineno, 'kind': 'illegal_position',
+                'ids': loose,
+                'reason': ('ID不在新闻条目行首引用槽位(标题/正文/不合格'
+                           '条目行中的ID不取得引用资格): ') + ','.join(loose),
+                'line': line[:80],
+                'action': '不作为可信引用认证,仅确定性诊断记录',
+            })
+    return {
+        'items': items,
+        'legal_ids': _uniq_ids([it['article_id'] for it in items]),
+        'illegal_ids': _uniq_ids([i for a in anomalies for i in a['ids']]),
+        'anomalies': anomalies,
+        'ok': not anomalies,
+    }
 
 
 def verify_citation(article_id, refs_index):

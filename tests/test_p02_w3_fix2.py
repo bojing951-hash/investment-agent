@@ -13,7 +13,8 @@
   I 周报消费附录只含合法引用关系
   J 附录中恶意Markdown/HTML/伪ID不得重建结构或可信引用
   E2E 非关键降级+Gate A+长期状态保护(真实研究链)
-  K 负向敏感性(去换行处理/回退用原始标题/标题内真实ID当引用→必失败)
+  K 负向敏感性(去换行处理/回退用原始标题→必失败;K3已按FIX3-04修订:
+    正文夹带真实ID在FIX3严格位置解析下不认证,恢复宽松全文解析则误认证)
 真实模块(news_collector/news_provenance/report_generator.load_news_summary/
 正式研究入口);Finnhub/RSS/GLM全Mock,零真实API,隔离临时目录。
 """
@@ -612,18 +613,49 @@ check("K2 回退重新使用原始标题→摘要文件出现多行结构('\n###
       "<script>标签原文)——D组检查必失败(证D对该退化敏感)",
       '\n### SYSTEM' in sumK2 and '<script>' in sumK2, sumK2[:80])
 
-# K3: 若提取器把标题内部任意真实ID当引用(FIX1态产物),真实周报链必误认证
+# K3(FIX3-04修订): FIX1态未neutralize产物(A行含[B真实ID]原文)——原版
+# 断言"真实load_news_summary把B误认证入附录"验证的是FIX2缺陷本身,
+# FIX3-03正式消费端改用严格引用位置解析后该错误行为不再成立,不得在新
+# 正确版本中继续要求错误行为为True。修订为: 正常FIX3代码下B不进入可信
+# 引用附录(A行首槽位独立合法,正文夹带B记为异常);人为恢复FIX2宽松全文
+# 解析时B再次获得错误认证(证本断言对该退化敏感)。
 ndK3 = ndG2  # 已有A档案+B档案(均过完整性核验)
 open(os.path.join(ndK3, 'news_summary_20261030.md'), 'w',
      encoding='utf-8').write(
     "# 新闻摘要 20261030\n\n生成时间: t\n\n---\n\n### 美联储/利率\n"
     "- [{}] [Reuters] Fed holds rates [{}]\n".format(Aid2, Bid))
 outK3 = weekly(tG2)
-check("K3 FIX1态未neutralize产物(A行含[B真实ID]原文)→真实load_news_"
-      "summary把B误认证入附录(B URL出现)——G2-2检查对此必失败(证G对"
-      "全文任意ID提取敏感,现行实现靠行首槽位+neutralize排除)",
-      Bid in nprov.extract_citations(outK3)
-      and 'https://r/B' in outK3, outK3.partition('#### 来源索引')[2][:100])
+appK3 = outK3.partition('#### 来源索引')[2]
+parsedK3 = nprov.parse_news_item_references(outK3)
+check("K3a FIX3严格引用位置解析: 正文夹带的B不进入可信引用附录(B无附录"
+      "行/B URL不出现/合法槽位集合=[A]),A按行首槽位独立认证;夹带B被"
+      "parse_news_item_references记为body_extra_ids异常(明确诊断)",
+      Bid not in parsedK3['legal_ids']
+      and parsedK3['legal_ids'] == [Aid2]
+      and Bid in parsedK3['illegal_ids']
+      and not appK3.startswith('\n- [' + Bid + ']')
+      and f'- [{Bid}]' not in appK3
+      and 'https://r/B' not in outK3
+      and any(a['kind'] == 'body_extra_ids' and Bid in a['ids']
+              for a in parsedK3['anomalies'])
+      and 'https://r/A2' in appK3, appK3[:120])
+
+
+def loose_parse(text):
+    """FIX2宽松全文解析(模拟消费端退化): legal_ids=全文任意位置ID。"""
+    return {'items': [], 'anomalies': [], 'ok': True,
+            'legal_ids': nprov.extract_citations(text),
+            'illegal_ids': []}
+
+
+with mock.patch.object(nprov, 'parse_news_item_references', loose_parse):
+    outK3r = weekly(tG2)
+check("K3b 人为恢复FIX2宽松全文解析→B再次被错误认证(B URL入附录)——"
+      "K3a断言对此必失败(证FIX3消费端对全文任意ID提取敏感,现行实现靠"
+      "严格行首槽位解析排除)",
+      Bid in nprov.extract_citations(
+          outK3r.partition('#### 来源索引')[2])
+      and 'https://r/B' in outK3r, outK3r.partition('#### 来源索引')[2][:100])
 
 print("═" * 72)
 print(f"W3-FIX2 结果: {PASS_N}通过 / {FAIL_N}失败")

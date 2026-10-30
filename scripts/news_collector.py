@@ -442,28 +442,40 @@ def _allowed_citation_ids(classified):
 
 
 def validate_summary_citations(summary, allowed_ids):
-    """FIX1-03: 模型成功输出的确定性引用校验(纯函数,可独立测试)。
+    """FIX1-03+FIX3-02: 模型成功输出的确定性引用校验(纯函数,可独立测试)。
 
-    规则(全部满足才通过):
-      1. 输出至少含一个[art_]来源引用(整篇无引用→未溯源摘要);
-      2. 所有引用都属于本次模型输入的允许集合(虚构ID/超出输入集→失败
-         ——即使ID在当日其他档案存在,也无依据认定模型用过该来源);
-      3. 每条'-'开头的新闻条目行必须携带至少一个允许引用(无引用的
-         新闻主张不得按已溯源摘要保存)。
+    规则(全部满足才通过;FIX3-02起以parse_news_item_references的
+    正式引用位置解析为共同判定基础,不再做全文任意位置ID搜索):
+      1. 输出至少含一个合法行首引用槽位ID(整篇无有效引用→未溯源摘要);
+      2. 输出中出现的全部[art_]ID(含正文夹带/非槽位位置)都属于本次模型
+         输入的允许集合(虚构ID/超出输入集→失败——即使ID在当日其他档案
+         存在,也无依据认定模型用过该来源);
+      3. 每条'-'开头的新闻条目行必须符合正式条目语法'- [art_xxx] …'
+         (行首引用槽位;'- Fed … [art_x]'位置错误→失败;无引用条目行→
+         失败——无来源的新闻主张不得按已溯源摘要保存);
+      4. 条目正文不得夹带额外[art_]ID——即使夹带ID确属允许集合,也不得
+         因正文出现而成为该条目的第二来源(§5.2固定反例:A行首合法+
+         B正文夹带→该输出不符合模型摘要格式要求,整体不通过)。
     返回 (ok, problems)。
     """
     allowed = set(allowed_ids)
-    cited = nprov.extract_citations(summary)
+    parsed = nprov.parse_news_item_references(summary)
     problems = []
-    fictional = [c for c in cited if c not in allowed]
+    all_ids = list(parsed['legal_ids']) + list(parsed['illegal_ids'])
+    fictional = sorted({c for c in all_ids if c not in allowed})
     if fictional:
-        problems.append('含不允许的引用ID: ' + ','.join(sorted(fictional)))
-    if not cited:
-        problems.append('输出不含任何[art_]来源引用')
+        problems.append('含不允许的引用ID: ' + ','.join(fictional))
+    if not parsed['legal_ids']:
+        problems.append('输出不含任何行首[art_]来源引用(合法引用槽位为空)')
+    for a in parsed['anomalies']:
+        prefix = ('引用ID不在行首槽位: ' if a['kind'] == 'illegal_position'
+                  else '条目正文夹带额外引用ID: ')
+        problems.append(prefix + a['reason'])
     for line in summary.split('\n'):
         s = line.strip()
-        if s.startswith('- ') and len(s) > 8:
-            if not any(c in allowed for c in nprov.extract_citations(s)):
+        if s.startswith('- ') and len(s) > 8 \
+                and not nprov.NEWS_ITEM_RE.match(line.rstrip()):
+            if not nprov.CITATION_RE.search(s):
                 problems.append('存在无引用的新闻条目行: ' + s[:40])
                 break
     return (not problems), problems

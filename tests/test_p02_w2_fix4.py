@@ -193,16 +193,22 @@ print("\n[A] 接口完备性+固定反例: 结构化时间资格随证据传递,
 
 anc1 = {CPI_KEY: {'value': 316.0, 'obs_date': CPI_OBS, 'release_date': REL1}}
 q1 = dv.anchor_time_qualification(CPI_KEY, anc1[CPI_KEY], AS_OF1)
-check("A0 dv适配接口结构(FIX4-01): 四段返回(identity/observation_freshness/"
-      "point_in_time/point_in_time_certified),pit四键齐备,身份MAPPED——"
-      "全部复用fp共享原语,无第二套比较器",
+check("A0 dv适配接口结构(FIX4-01+FIX5-01结构调整): 五段返回(identity/"
+      "observation_freshness/point_in_time/point_in_time_certified/"
+      "evidence_eligibility)——FIX5新增evidence_eligibility{usable,status,"
+      "reason}综合资格段(原因: DEF-001整改后纯观测/点时/综合资格三维度独立"
+      "返回;负向断言: 段键集精确匹配,多余/缺失任一段即失败);pit四键齐备,"
+      "身份MAPPED,UNCERTIFIED情形usable=True(观测层兼容)——全部复用fp共享"
+      "原语,无第二套比较器",
       set(q1) == {'identity', 'observation_freshness', 'point_in_time',
-                  'point_in_time_certified'}
+                  'point_in_time_certified', 'evidence_eligibility'}
       and set(q1['point_in_time']) == {'status', 'granularity',
                                        'release_date', 'reason'}
+      and set(q1['evidence_eligibility']) == {'usable', 'status', 'reason'}
       and q1['identity']['status'] == 'MAPPED'
       and q1['point_in_time']['status'] == 'POINT_IN_TIME_UNCERTIFIED'
-      and q1['point_in_time_certified'] is False,
+      and q1['point_in_time_certified'] is False
+      and q1['evidence_eligibility']['usable'] is True,
       str(q1)[:90])
 
 ev1 = [{'metric': CPI_KEY, 'value': 316.0, 'obs_date': CPI_OBS,
@@ -245,11 +251,19 @@ q3 = dv.anchor_time_qualification(CPI_KEY, anc3[CPI_KEY], AS_OF3)
 check("A3 反例3(aware发布10-24T20:00+08=12:00Z晚于aware截止10-24T08:00+08="
       "00:00Z): NOT_AVAILABLE_AT_AS_OF→**整项拒收**(不进verified,不得入"
       "qualified支持集,不能支撑评级/星级/论点升级);拒收原因如实为'点时不可得"
-      "…晚于研究截止',适配接口fresh=False",
+      "…晚于研究截止'。FIX5-01预期调整(原因: DEF-001整改——本情形观测本身在窗内,"
+      "适配接口observation_freshness为**纯观测维度**=FRESH/fresh=True,不可得的是"
+      "as_of时点;综合拒绝迁移至evidence_eligibility(usable=False,"
+      "NOT_AVAILABLE_AT_AS_OF)。负向断言: 综合资格不为True、is_fresh_anchor"
+      "保持综合语义为False、拒收不消失)",
       ver3 == [] and len(rej3) == 1
       and '点时不可得' in rej3[0][0] and '晚于研究截止' in rej3[0][0]
-      and q3['observation_freshness']['fresh'] is False
-      and q3['observation_freshness']['status'] == 'NOT_AVAILABLE_AT_AS_OF',
+      and q3['observation_freshness']['fresh'] is True
+      and q3['observation_freshness']['status'] == 'FRESH'
+      and q3['observation_freshness']['lag_days'] == 53
+      and q3['evidence_eligibility']['usable'] is False
+      and q3['evidence_eligibility']['status'] == 'NOT_AVAILABLE_AT_AS_OF'
+      and dv.is_fresh_anchor(CPI_KEY, anc3[CPI_KEY], AS_OF3) is False,
       f"ver={len(ver3)} rej={rej3[0][0][:60] if rej3 else None}")
 
 anc4 = {UNE_KEY: {'value': 4.2, 'obs_date': CPI_OBS,

@@ -343,6 +343,24 @@ def _value_close(claimed, anchor_val):
     return any(abs(c - b) <= tol for c in cands)
 
 
+def _as_of_mode(as_of_date):
+    """W2-FIX5-02(DEF-002): as_of存在性与合法性三态判定——
+      'diagnostic': as_of_date is None(调用方未提供→受限诊断路径,DIAGNOSTIC_ONLY);
+      'formal'    : 显式提供的合法研究截止(date/datetime实例/完整ISO日期/
+                    完整ISO时间戳;同一套fp.parse_instant严格解析,无第二标准);
+      'invalid'   : 显式提供的非法值——''/纯空白/0/False/[]/{}/带后缀
+                    ('2026-10-24INVALID')/非法日历('2026-13-01')/非法时刻
+                    ('2026-10-24T25:00:00')等一律拒收,**绝不因falsy被当成
+                    None落入诊断兼容路径**(旧真值判断`if as_of_date`的缺陷)。"""
+    if as_of_date is None:
+        return 'diagnostic'
+    if isinstance(as_of_date, (date, datetime)):
+        return 'formal'
+    if isinstance(as_of_date, str) and _fp.parse_instant(as_of_date) is not None:
+        return 'formal'
+    return 'invalid'
+
+
 def verify_evidence_items(items, anchors, as_of_date=None):
     """逐项验证结构化证据 [{metric, value, obs_date, mechanism?, contrary?, explained?, neutral?}]。
 
@@ -358,7 +376,13 @@ def verify_evidence_items(items, anchors, as_of_date=None):
     核验通过与点时认证分离: 已知发布晚于截止→整项拒收;精度不足未证明→保留为
     观测层证据并如实标注POINT_IN_TIME_UNCERTIFIED,永不计入"已证实截止时可得";
     缺release_date→RELEASE_UNKNOWN(历史兼容,不伪造认证);未提供as_of(诊断路径)
-    →AS_OF_UNKNOWN且不授予认证;时间校验模块不可用→fail-closed拒收。"""
+    →AS_OF_UNKNOWN且不授予认证;时间校验模块不可用→fail-closed拒收。
+    W2-FIX5(DEF-002): as_of_date用存在性判断(is None)区分——None=受限诊断路径
+    (DIAGNOSTIC_ONLY,不做时效门禁但**身份核验照常**);''/0/False/[]/{}/纯空白/
+    非法后缀/非法日历等显式非法值一律整项拒收,绝不因falsy被吞成诊断路径。
+    W2-FIX5(DEF-001): 正式路径消费**综合证据资格**(evidence_eligibility.usable)
+    ——纯观测FRESH但已知未来发布仍整项拒(NOT_AVAILABLE_AT_AS_OF),观测新鲜与
+    点时可得/证据资格三维度不得相互冒充。"""
     verified, rejects = [], []
     if not isinstance(items, list):
         return verified, rejects
@@ -371,18 +395,38 @@ def verify_evidence_items(items, anchors, as_of_date=None):
         if not metric or not info:
             rejects.append((f"指标{metric}不在锚点中(虚构证据嫌疑)", it))
             continue
-        # W2-FIX4-02步骤2: 锚点身份/来源家族合法性(数值比对之前)——身份不可
-        # 认证的引用连数值比对资格都没有;结构化时间资格(身份/新鲜度/点时)
-        # 经dv共享适配接口一次取齐(复用fp.assess,不新建第二套比较器)
-        tq = _anchor_time_qualification(metric, info, as_of_date) \
-            if as_of_date else None
-        if as_of_date and tq is None:
-            rejects.append((f"{metric}时间校验模块不可用,fail-closed不得核验为正式证据", it))
+        # W2-FIX5-02/03步骤2: as_of存在性与合法性先行(DEF-002)——None=受限诊断
+        # 路径;其余显式值必须合法,非法即整项拒收(先于身份核验: 截止非法时
+        # 一切时间资格无从谈起,rejects必须含非法研究截止原因,不得落入诊断
+        # 兼容路径,也不得跳过拒收借道获得任何认证)。
+        mode = _as_of_mode(as_of_date)
+        tq = None
+        if mode == 'invalid':
+            rejects.append((f"{metric}研究截止非法({as_of_date!r}),显式非法输入"
+                            "不得进入诊断兼容路径,不得核验为正式证据", it))
             continue
-        if tq is not None and tq['identity']['status'] != 'MAPPED':
-            rejects.append((f"{metric}锚点身份不可认证({tq['identity']['status']}:"
-                            f"{tq['point_in_time']['reason']}),不得作正式证据", it))
-            continue
+        if mode == 'formal':
+            # 结构化时间资格(身份/纯观测/点时/综合资格)经dv共享适配接口一次
+            # 取齐(复用fp共享原语,不新建第二套比较器);锚点身份/来源家族合法
+            # 性先于数值比对——身份不可认证的引用连数值比对资格都没有
+            tq = _anchor_time_qualification(metric, info, as_of_date)
+            if tq is None:
+                rejects.append((f"{metric}时间校验模块不可用,fail-closed不得核验为正式证据", it))
+                continue
+            if tq['identity']['status'] != 'MAPPED':
+                rejects.append((f"{metric}锚点身份不可认证({tq['identity']['status']}:"
+                                f"{tq['point_in_time']['reason']}),不得作正式证据", it))
+                continue
+        else:
+            # 受限诊断路径(as_of=None,DIAGNOSTIC_ONLY): 不做时效门禁,但身份/
+            # 来源家族核验照常(W2-FIX5-03)——不能因缺研究截止接受跨来源伪装
+            ident = _fp.verify_anchor_identity(metric, info)
+            if ident['status'] != 'MAPPED':
+                rejects.append((f"{metric}锚点身份不可认证({ident['status']}:"
+                                f"{ident['basis']}"
+                                + (f";{ident['conflict']}" if ident.get('conflict') else '')
+                                + "),诊断模式同样不得作正式证据", it))
+                continue
         if not _value_close(it.get('value'), info.get('value')):
             rejects.append((f"{metric}数值不符(报告{it.get('value')} vs 锚点{info.get('value')})", it))
             continue
@@ -416,34 +460,41 @@ def verify_evidence_items(items, anchors, as_of_date=None):
             rejects.append((f"{metric}观测日不符(引用{claimed_obs} vs 锚点{obs};"
                             f"采集日as_of不得替代经济观测日)", it))
             continue
-        # W2-FIX4-02步骤5-7: 研究截止合法→逐指标新鲜度政策→点时判断(发布已知时);
-        # 拒收原因按结构化状态如实分流(未来发布≠数据过期,不得误导性归因)
+        # W2-FIX5-04步骤5-7: 研究截止合法→**综合证据资格**(evidence_eligibility)
+        # 门禁——纯观测维度(fresh)只描述观测新鲜,绝不单独放行: 观测FRESH但已知
+        # 未来发布(NOT_AVAILABLE_AT_AS_OF)仍整项拒;拒收原因按综合状态如实分流
+        # (未来发布≠数据过期,不得误导性归因)
         if tq is not None:
-            of = tq['observation_freshness']
-            if not of['fresh']:
-                if of['status'] == 'NOT_AVAILABLE_AT_AS_OF':
+            el = tq['evidence_eligibility']
+            if not el['usable']:
+                st = el['status']
+                if st == 'NOT_AVAILABLE_AT_AS_OF':
                     rejects.append((f"{metric}点时不可得:已知发布"
                                     f"{tq['point_in_time']['release_date']}晚于研究截止"
                                     f"{as_of_date}({tq['point_in_time']['reason']})"
                                     f"——as_of时点该值不可得,不得作当前证据", it))
-                elif of['status'] == 'FUTURE_DATE':
+                elif st == 'FUTURE_DATE':
                     rejects.append((f"{metric}观测日{obs}晚于研究截止{as_of_date}(未来数据),不得使用", it))
-                elif of['status'] == 'STALE':
+                elif st == 'STALE':
+                    of = tq['observation_freshness']
                     rejects.append((f"{metric}数据过期(观测日{obs},滞后{of['lag_days']}>"
                                     f"{of['window']}天已批准窗),不得作为当前有效证据", it))
-                elif of['status'] == 'INVALID_DATE':
+                elif st == 'INVALID_DATE':
                     rejects.append((f"{metric}研究截止非法('{as_of_date}'),无法认证时效", it))
                 else:
-                    rejects.append((f"{metric}时间资格不成立({of['status']}:"
-                                    f"{tq['point_in_time']['reason']}),不得作当前证据", it))
+                    rejects.append((f"{metric}时间资格不成立({st}:"
+                                    f"{el['reason']}),不得作当前证据", it))
                 continue
             pit, certified = tq['point_in_time'], tq['point_in_time_certified']
         else:
-            # 诊断路径(未提供研究截止as_of): 不做时效门禁(既有语义);但绝不
-            # 默认授予点时认证——截止未定,认证无从谈起(W2-FIX4-02)
+            # 受限诊断路径(未提供研究截止as_of,DIAGNOSTIC_ONLY): 不做时效门禁
+            # (既有语义);但绝不默认授予点时认证——截止未定,认证无从谈起
+            # (W2-FIX4-02);诊断结论不得claim任何形式时效认证(W2-FIX5-03)
             pit = {'status': 'AS_OF_UNKNOWN', 'granularity': None,
                    'release_date': info.get('release_date'),
-                   'reason': '未提供研究截止(as_of),仅数值/观测诊断核验,不授予点时认证'}
+                   'reason': '未提供研究截止(as_of),受限诊断模式(DIAGNOSTIC_ONLY): '
+                             '仅数值/观测对齐+身份核验,不做时效门禁,不授予点时认证,'
+                             '不得作为已认证正式证据'}
             certified = False
         neutral = bool(it.get('neutral')) or str(it.get('stance', '')).lower() == 'neutral'
         # W2-FIX4-01/02步骤8: 结构化时间资格随verified传递——数值/观测核验

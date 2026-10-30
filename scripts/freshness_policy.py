@@ -596,6 +596,55 @@ def verify_anchor_identity(anchor_key, info=None):
 
 # ══ 三问分离判定原语 ═════════════════════════════════════════════
 
+def assess_observation_freshness(metric_id, obs_date, as_of):
+    """纯观测时效判定(W2-FIX5-01 / DEF-001): 只回答A已观测+C滞后窗两问,
+    **绝不消费release_date**——发布时间属于B点时维度,不得改变纯观测新鲜度结论
+    (反例: CPI观测2026-09-01/as_of 2026-10-24/发布2026-10-28/窗60——纯观测
+    =FRESH(lag53≤60),即使as_of时点尚未发布)。
+    综合判定assess()复用本函数(同一份解析与已批准窗口,无第二套政策分叉)。
+    输入契约与返回键同assess()的观测维度部分(fresh/status/lag_days/window/
+    frequency/observed/reasons;status∈FRESH/STALE/NOT_OBSERVED/INVALID_DATE/
+    FUTURE_DATE/UNREGISTERED),无point_in_time键。"""
+    o = {'metric_id': metric_id, 'obs_date': None, 'as_of': None,
+         'lag_days': None, 'window': None, 'frequency': None,
+         'observed': {'status': 'MISSING'}, 'fresh': False, 'status': None,
+         'reasons': []}
+    pol = policy_for(metric_id)
+    if pol is None:
+        o.update(status='UNREGISTERED', fresh=False,
+                 reasons=[f"指标{metric_id!r}不在已批准时效策略(未注册或策略未加载)——未知策略不得视为有效"])
+        return o
+    o['window'], o['frequency'] = pol['window'], pol['frequency']
+    a = parse_instant(as_of) if as_of is not None else None
+    if a is None:
+        o.update(status='INVALID_DATE', fresh=False, reasons=['as_of缺失或非完整ISO日期'])
+        return o
+    o['as_of'] = a.isoformat()
+    od = _parse_iso_date(obs_date) if obs_date is not None else None
+    if od is None:
+        o['observed'] = {'status': 'INVALID' if obs_date is not None else 'MISSING'}
+        o.update(status='NOT_OBSERVED' if obs_date is None else 'INVALID_DATE',
+                 fresh=False,
+                 reasons=[f"观测日缺失或非完整ISO真实日期:{obs_date!r}(不得以当前日期替代非法输入)"])
+        return o
+    o['obs_date'] = od.isoformat()
+    o['observed'] = {'status': 'OK'}
+    # FIX1-02可追踪性: 滞后天数先行算好——调用方在点时早退时也能看到
+    # "lag≤窗但as_of时点不可得"的完整对照(Agent4反例的叙事结构)
+    o['lag_days'] = (a - od).days
+    if od > a:
+        o.update(status='FUTURE_DATE', fresh=False,
+                 reasons=[f"观测日{od}晚于研究截止{a}(未来数据,非法时点)"])
+        return o
+    if o['lag_days'] > pol['window']:
+        o.update(status='STALE', fresh=False,
+                 reasons=[f"观测日滞后{o['lag_days']}天>{pol['window']}天已批准窗口({pol['frequency']}频;未发布或采集失败,不得当作最新一期)"])
+        return o
+    o.update(status='FRESH', fresh=True, reasons=[
+        f"观测日滞后{o['lag_days']}天≤{pol['window']}天已批准窗口({pol['frequency']}频)"])
+    return o
+
+
 def assess(metric_id, obs_date, as_of, release_date=None):
     """统一时效判定(纯函数): 三问分离,结构化诊断,未知绝不转为有效。
 
@@ -608,39 +657,22 @@ def assess(metric_id, obs_date, as_of, release_date=None):
     (整串先验证再取日期,绝不[:10]截断);obs_date仍须纯日期(经济观测日语义)。
     FIX2-02: B问先后比较经compare_release_availability精度保持判定——双aware
     时刻比绝对先后;同日精度不足=POINT_IN_TIME_UNCERTIFIED(可得但不认证点时)。
+    W2-FIX5-01: A/C两问已抽取为assess_observation_freshness(纯观测维度,
+    不消费release_date),本综合判定**复用**该函数作基底并在其上叠加B问——
+    单一解析与窗口来源。为保持既有综合语义(发布非法/点时不可得的早退优先于
+    STALE落定,FIX1~FIX4判定顺序冻结),obs∈{FRESH,STALE}时先答B问再落定C问。
     返回verdict dict(fresh=bool;status∈FRESH/STALE/NOT_OBSERVED/INVALID_DATE/
     FUTURE_DATE/UNREGISTERED/NOT_AVAILABLE_AT_AS_OF/INVALID_RELEASE)。"""
-    v = {'metric_id': metric_id, 'obs_date': None, 'as_of': None,
-         'lag_days': None, 'window': None, 'frequency': None,
-         'observed': {'status': 'MISSING'}, 'point_in_time': {'status': 'RELEASE_UNKNOWN'},
-         'fresh': False, 'status': None, 'reasons': []}
-    pol = policy_for(metric_id)
-    if pol is None:
-        v.update(status='UNREGISTERED', fresh=False,
-                 reasons=[f"指标{metric_id!r}不在已批准时效策略(未注册或策略未加载)——未知策略不得视为有效"])
+    v = assess_observation_freshness(metric_id, obs_date, as_of)
+    v['point_in_time'] = {'status': 'RELEASE_UNKNOWN'}
+    if v['status'] in ('UNREGISTERED', 'INVALID_DATE', 'NOT_OBSERVED',
+                       'FUTURE_DATE'):
+        # 非法/未注册/未观测/未来观测: 综合结论=纯观测结论(与既有语义一致,
+        # B问无release在场也不作答)
         return v
-    v['window'], v['frequency'] = pol['window'], pol['frequency']
-    a = parse_instant(as_of) if as_of is not None else None
-    if a is None:
-        v.update(status='INVALID_DATE', fresh=False, reasons=['as_of缺失或非完整ISO日期'])
-        return v
-    v['as_of'] = a.isoformat()
-    o = _parse_iso_date(obs_date) if obs_date is not None else None
-    if o is None:
-        v['observed'] = {'status': 'INVALID' if obs_date is not None else 'MISSING'}
-        v.update(status='NOT_OBSERVED' if obs_date is None else 'INVALID_DATE',
-                 fresh=False,
-                 reasons=[f"观测日缺失或非完整ISO真实日期:{obs_date!r}(不得以当前日期替代非法输入)"])
-        return v
-    v['obs_date'] = o.isoformat()
-    v['observed'] = {'status': 'OK'}
-    # FIX1-02可追踪性: 滞后天数在B问前先算好——点时不可得早退时也能看到
-    # "lag≤窗但as_of时点不可得"的完整对照(Agent4反例的叙事结构)
-    v['lag_days'] = (a - o).days
-    if o > a:
-        v.update(status='FUTURE_DATE', fresh=False,
-                 reasons=[f"观测日{o}晚于研究截止{a}(未来数据,非法时点)"])
-        return v
+    # obs ∈ {FRESH, STALE}: B问先行(既有顺序冻结)
+    a = parse_instant(as_of)
+    o = _parse_iso_date(obs_date)
     # B问: 点时可得性——只对真实携带的release_date作答,缺失即如实UNKNOWN。
     # FIX2-02+FIX3-01: 先后比较统一经compare_release_availability(精度保持原语):
     #   双aware完整时间戳→绝对时刻比较(UTC偏移正确处理,granularity=INSTANT);
@@ -691,12 +723,6 @@ def assess(metric_id, obs_date, as_of, release_date=None):
     else:
         v['point_in_time'] = {'status': 'RELEASE_UNKNOWN',
                               'note': '采集端不携带release_date——如实标注未知,不伪造点时证据;新鲜度按观测滞后窗判定'}
-    # C问: 观测滞后 vs 已批准窗口
-    lag = v['lag_days']
-    if lag > pol['window']:
-        v.update(status='STALE', fresh=False,
-                 reasons=[f"观测日滞后{lag}天>{pol['window']}天已批准窗口({pol['frequency']}频;未发布或采集失败,不得当作最新一期)"])
-        return v
-    v.update(status='FRESH', fresh=True, reasons=[
-        f"观测日滞后{lag}天≤{pol['window']}天已批准窗口({pol['frequency']}频)"])
+    # C问: 观测滞后 vs 已批准窗口——结论已由assess_observation_freshness在基底
+    # 写好(STALE/FRESH及理由与既有文案逐字一致);B问未早退即照此落定。
     return v

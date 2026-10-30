@@ -2,7 +2,8 @@
 
 指令: IA-P0-2-W2-FIX6-DEV-v1.0 · 任务 IA-P0-2-W2-FIX6(W2-FIX5独立验收失败后的最小增量整改)
 分支: dev/p0-2-w2(远程 git@github.com:bojing951-hash/investment-agent.git)
-状态: 待回填CI与隔离证据后给出(仅允许 "READY FOR W2 INDEPENDENT ACCEPTANCE" 或 "FAILED / NOT VERIFIED")
+状态: **READY FOR W2 INDEPENDENT ACCEPTANCE**(本地39套件+CI run#1全绿;
+run#2与最终只读隔离证据按§9/§10以Git外验收附件交付;最终验收权属Agent 4)
 
 ## 基线固定(不可变)
 
@@ -24,8 +25,8 @@
 
 | 提交 | SHA | 内容 |
 |---|---|---|
-| FIX6实现提交 | 待回填(commit后填) | scripts/allocation_engine.py(+15/−6) + tests/test_p02_w2_fix6.py(新增468行) + docs/P0_2_W2_FIX6_DELIVERY.md |
-| FIX6最终提交 | 待回填(CI后docs-only回填) | 本文档CI/隔离数字回填 |
+| FIX6实现提交 | e091d288cd3cff910e4894fabe2d426db7aa1475 | scripts/allocation_engine.py(+15/−6) + tests/test_p02_w2_fix6.py(新增468行) + docs/P0_2_W2_FIX6_DELIVERY.md |
+| FIX6最终提交 | 即本提交(docs-only回填run#1) | run#2于本提交推送后触发,head_sha=本提交,run#/job#以Git外验收附件为准(防预写) |
 
 - 增量差异 `2c36cf9 → FIX6实现`: `scripts/allocation_engine.py | 15 insertions(+), 6 deletions(-)` + 新增 `tests/test_p02_w2_fix6.py`(468行)。
 - 累计差异 `69d7fc7 → FIX6实现`: 37文件,9952+/218−(W1封印后全部W2轮次)。
@@ -108,8 +109,13 @@ D1 合法CPI + None → 受限诊断允许(NOT_ASSESSED)。FIX5语义原样保�
 
 ## 9. 全量CI(GitHub Actions,dev/p0-2-w2,workflow_dispatch)
 
-待回填: 实现提交CI run#/job#/head_sha + 最终提交CI run#/job#/head_sha +
-各套件exit码(38离线套件+新增fix6=39,全0)+ 0 Traceback。
+**实现提交 run#1**: run `41005413020` / job `123899087846` / head_sha
+`e091d288cd3cff910e4894fabe2d426db7aa1475` → **success**。逐套件exit码:
+39套件全部 `exit=0`(38历史套件+新增test_p02_w2_fix6),`Traceback`计数0,
+`test_glm_live: SKIPPED(真实GLM付费调用,不进CI)`。
+
+**最终提交 run#2**: 本提交推送后触发,head_sha=本提交(验算于Git外验收附件:
+run#/job#/conclusion/逐套件exit码/Traceback计数——不预写任何未发生的数字)。
 
 ## 10. 最终DEV/LIVE只读隔离证据(§十二,最终提交固定后执行)
 

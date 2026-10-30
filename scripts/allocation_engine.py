@@ -376,7 +376,9 @@ def verify_evidence_items(items, anchors, as_of_date=None):
     核验通过与点时认证分离: 已知发布晚于截止→整项拒收;精度不足未证明→保留为
     观测层证据并如实标注POINT_IN_TIME_UNCERTIFIED,永不计入"已证实截止时可得";
     缺release_date→RELEASE_UNKNOWN(历史兼容,不伪造认证);未提供as_of(诊断路径)
-    →AS_OF_UNKNOWN且不授予认证;时间校验模块不可用→fail-closed拒收。
+    →AS_OF_UNKNOWN且不授予认证,observation_freshness=NOT_ASSESSED
+    (W2-FIX6-01: 诊断模式未评估观测时效,未知≠新鲜≠过期,不得claim FRESH);
+    时间校验模块不可用→fail-closed拒收。
     W2-FIX5(DEF-002): as_of_date用存在性判断(is None)区分——None=受限诊断路径
     (DIAGNOSTIC_ONLY,不做时效门禁但**身份核验照常**);''/0/False/[]/{}/纯空白/
     非法后缀/非法日历等显式非法值一律整项拒收,绝不因falsy被吞成诊断路径。
@@ -486,28 +488,35 @@ def verify_evidence_items(items, anchors, as_of_date=None):
                                     f"{el['reason']}),不得作当前证据", it))
                 continue
             pit, certified = tq['point_in_time'], tq['point_in_time_certified']
+            # 正式路径: 纯观测时效已真实计算(usable⇒纯观测必为FRESH),如实携带
+            obs_fresh_status = 'FRESH'
         else:
             # 受限诊断路径(未提供研究截止as_of,DIAGNOSTIC_ONLY): 不做时效门禁
             # (既有语义);但绝不默认授予点时认证——截止未定,认证无从谈起
             # (W2-FIX4-02);诊断结论不得claim任何形式时效认证(W2-FIX5-03)
             pit = {'status': 'AS_OF_UNKNOWN', 'granularity': None,
                    'release_date': info.get('release_date'),
-                   'reason': '未提供研究截止(as_of),受限诊断模式(DIAGNOSTIC_ONLY): '
-                             '仅数值/观测对齐+身份核验,不做时效门禁,不授予点时认证,'
-                             '不得作为已认证正式证据'}
+                   'reason': 'DIAGNOSTIC_ONLY: 未提供研究截止(as_of),无法验证'
+                             '观测新鲜度及点时可得性——仅数值/观测对齐+身份核验,'
+                             '不做时效门禁,不授予任何时效认证,不得作为已认证正式'
+                             '证据;verified.as_of仅为锚点元数据透传,非正式研究截止'}
             certified = False
+            # W2-FIX6-01(IA-P02-W2-FIX5-DEF-001): 观测时效在诊断模式下**未评估**
+            # ——不得写FRESH(未计算不得claim新鲜),亦不得写STALE(未知≠过期)
+            obs_fresh_status = 'NOT_ASSESSED'
         neutral = bool(it.get('neutral')) or str(it.get('stance', '')).lower() == 'neutral'
         # W2-FIX4-01/02步骤8: 结构化时间资格随verified传递——数值/观测核验
         # (进入verified即已通过)与点时认证两维度分离;未认证项按观测层证据
         # 参与下游计数,但永不计入"已证实研究截止时可得",下游按
-        # point_in_time_certified区分,缺失字段按False(不推定已认证)
+        # point_in_time_certified区分,缺失字段按False(不推定已认证);
+        # 诊断模式observation_freshness=NOT_ASSESSED(W2-FIX6-01: 未知≠新鲜≠过期)
         verified.append({'metric': metric, 'value': float(info['value']),
                          'obs_date': obs, 'as_of': as_of,
                          'mechanism': mechanism_of(metric, it.get('mechanism')),
                          'contrary': bool(it.get('contrary')),
                          'explained': bool(it.get('explained')),
                          'neutral': neutral,
-                         'observation_freshness': 'FRESH',
+                         'observation_freshness': obs_fresh_status,
                          'point_in_time': dict(pit),
                          'point_in_time_certified': certified})
     return verified, rejects

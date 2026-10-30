@@ -426,64 +426,84 @@ print("\n[K] 虚构引用: 不存在的article_id认证失败")
 refsA = refs_of(ndA)
 real_id = mA['article_id']
 fake_id = 'art_deadbeefdeadbeef'
-check("K1 verify_citation: 真实ID通过,虚构ID拒绝",
+# FIX1-02变更: verify_citation降级为索引成员诊断(不得冒充档案认证);
+# 可信认证走verify_citation_trusted(以原始档案为可信根实时核验)。
+check("K1 verify_citation(诊断级索引成员检查,非认证): 真实ID在索引,"
+      "虚构ID不在——该函数仅诊断,可信认证见K3",
       nprov.verify_citation(real_id, refsA)
       and not nprov.verify_citation(fake_id, refsA), '')
-outK = nprov.summarize_for_prompt(refsA, [real_id, fake_id])
-check("K2 索引说明: 虚构ID行如实标注'未通过来源认证(来源索引中不存在,"
-      "不得作为已引用来源)';真实ID行含URL/发布方/UTC发布时间",
+check("K3 FIX1-02 verify_citation_trusted(原始档案为可信根): 真实ID"
+      "通过档案链核验,虚构ID拒绝——索引成员判断不再构成认证",
+      nprov.verify_citation_trusted(real_id, ndA, '20261023')
+      and not nprov.verify_citation_trusted(fake_id, ndA, '20261023'), '')
+outK = nprov.summarize_for_prompt(
+    nprov.load_trusted_articles_since(ndA, '20261023'), [real_id, fake_id])
+check("K2 索引说明: 虚构ID行如实标注'未通过来源认证(原始来源档案缺失或"
+      "未通过完整性验证)';真实ID行含URL/发布方/UTC发布时间",
       '未通过来源认证' in outK and fake_id in outK
       and 'https://reuters.com/fed' in outK
       and '2026-10-28T12:00:00Z' in outK, outK[:120])
 
 # ══ L. 七天周报消费 ═════════════════════════════════════════════════
 print("\n[L] 七天周报: 来源身份经真实load_news_summary保留")
+# FIX1-02变更理由: 原L组以手工伪造news_refs索引(无原始档案)为正向预期
+# ——DEF-002判定索引不可作为认证依据。改为真实save_batch原始档案正向
+# 测试(消费端从档案实时重建可信集合),并保留伪造索引负向断言(伪造URL
+# 不得进入周报)。业务含义(7天聚合/去重/截断兼容/无URL不编造/虚构ID
+# 拒绝)全部保留。
 tL = tempfile.mkdtemp(prefix='w3L-', dir=_TMPD)
+ndL = os.path.join(tL, 'rgdata', 'news')
 rg.DATA_DIR = os.path.join(tL, 'rgdata')
-os.makedirs(os.path.join(rg.DATA_DIR, 'news'), exist_ok=True)
-aid_d1 = nprov.stable_article_id({'provider': 'Finnhub', 'channel':
-                                  'market_news', 'provider_article_id': '1'})
-aid_d2 = nprov.stable_article_id({'provider': 'RSS', 'channel': 'rss',
-                                  'url_original': 'https://x/d2'})
-aid_d3 = nprov.stable_article_id({'provider': 'Finnhub', 'channel':
-                                  'market_news', 'provider_article_id': '3'})
+os.makedirs(ndL, exist_ok=True)
+raw_d1 = {'provider': 'Finnhub', 'channel': 'market_news',
+          'provider_article_id': '1', 'publisher': 'Reuters',
+          'headline_original': 'H1', 'summary_original': 'S',
+          'url_original': 'https://r.com/1',
+          'published_raw': calendar.timegm(
+              (2026, 10, 27, 12, 0, 0, 0, 0, 0))}
+raw_d2 = {'provider': 'RSS', 'channel': 'rss', 'feed_name': 'CNBC_Economy',
+          'feed_url': 'https://feed/2', 'entry_id': 'e2',
+          'headline_original': 'H2', 'summary_original': 'S',
+          'url_original': None, 'published_raw': 'Wed, 29 Oct 2026',
+          'published_parsed_utc': None}
+raw_d3 = {'provider': 'Finnhub', 'channel': 'market_news',
+          'provider_article_id': '3', 'publisher': 'Reuters',
+          'headline_original': 'H3', 'summary_original': 'S',
+          'url_original': 'https://r.com/3',
+          'published_raw': calendar.timegm(
+              (2026, 10, 29, 12, 0, 0, 0, 0, 0))}
+aid_d1 = nprov.stable_article_id(raw_d1)
+aid_d2 = nprov.stable_article_id(raw_d2)
+aid_d3 = nprov.stable_article_id(raw_d3)
+nprov.save_batch([raw_d1], ndL, now_utc='2026-10-27T08:00:00Z')
+nprov.save_batch([raw_d2], ndL, now_utc='2026-10-29T08:00:00Z')
+nprov.save_batch([raw_d3], ndL, now_utc='2026-10-30T08:00:00Z')
 for day, aids in (('20261027', [aid_d1, aid_d1]),      # d1重复出现(持续性)
                   ('20261029', [aid_d2]),
                   ('20261030', [aid_d3, 'art_ffffffffffffffff'])):
     body = "# 新闻摘要 {}\n\n生成时间: t\n\n---\n\n### 美联储/利率\n".format(day)
     for a in aids:
         body += "- [{}] 联储相关新闻标题\n".format(a)
-    open(os.path.join(rg.DATA_DIR, 'news', 'news_summary_{}.md'.format(day)),
+    open(os.path.join(ndL, 'news_summary_{}.md'.format(day)),
          'w', encoding='utf-8').write(body)
+# 负向材料: 手工伪造索引(aid_d1对应伪造URL/伪造标题)——FIX1-02后消费端
+# 不以news_refs_*.json为可信依据,伪造内容不得出现在输出中
 idxL = {'schema_version': 1, 'kind': 'news_refs_index', 'ymd': '20261030',
         'built_at_utc': '2026-10-30T08:00:00Z',
         'integrity': {'checked_batches': 1, 'failed_batches': []},
         'articles': {
             aid_d1: {'article_id': aid_d1, 'provider': 'Finnhub',
-                     'channel': 'market_news', 'publisher': 'Reuters',
-                     'headline_original': 'H1',
-                     'url_original': 'https://r.com/1', 'url_available': True,
-                     'published_at_utc': '2026-10-27T12:00:00Z',
+                     'channel': 'market_news', 'publisher': 'Forge',
+                     'headline_original': 'FORGED',
+                     'url_original': 'https://forged.example/1',
+                     'url_available': True,
+                     'published_at_utc': '2026-01-01T00:00:00Z',
                      'published_status': 'UTC', 'provenance_status':
-                     'COMPLETE', 'batch_id': 'b1'},
-            aid_d2: {'article_id': aid_d2, 'provider': 'RSS', 'channel':
-                     'rss', 'publisher': 'CNBC_Economy',
-                     'headline_original': 'H2', 'url_original': None,
-                     'url_available': False, 'published_at_utc': None,
-                     'published_status': 'UNKNOWN', 'provenance_status':
-                     'PARTIAL:url,published_at', 'batch_id': 'b2'},
-            aid_d3: {'article_id': aid_d3, 'provider': 'Finnhub',
-                     'channel': 'market_news', 'publisher': 'Reuters',
-                     'headline_original': 'H3',
-                     'url_original': 'https://r.com/3', 'url_available': True,
-                     'published_at_utc': '2026-10-29T12:00:00Z',
-                     'published_status': 'UTC', 'provenance_status':
-                     'COMPLETE', 'batch_id': 'b3'}}}
-open(os.path.join(rg.DATA_DIR, 'news', 'news_refs_20261030.json'), 'w',
+                     'COMPLETE', 'batch_id': 'b1'}}}
+open(os.path.join(ndL, 'news_refs_20261030.json'), 'w',
      encoding='utf-8').write(json.dumps(idxL, ensure_ascii=False))
-open(os.path.join(rg.DATA_DIR, 'news',
-                  'news_refs_20261029.json'), 'w', encoding='utf-8') \
-    .write(json.dumps(idxL, ensure_ascii=False))
+open(os.path.join(ndL, 'news_refs_20261029.json'), 'w',
+     encoding='utf-8').write(json.dumps(idxL, ensure_ascii=False))
 with mock.patch.object(rg, 'datetime',
                        type('DT', (), {'now': staticmethod(
                            lambda tz=None: datetime(2026, 10, 30, 8))})):
@@ -496,14 +516,20 @@ check("L1 三天文件聚合+同条目跨天去重([{}]两天出现仅计一次)
       bodyL.count('[' + aid_d1 + ']') == 1 and aid_d2 in bodyL
       and aid_d3 in outL and len(linesL) == 4 and len(appx_lines) == 4,
       'lines={}'.format(len(linesL)))
-check("L2 末尾追加确定性来源索引(代码构造): 真实引用逐条含原始标题/URL/"
-      "发布方/UTC发布时间;无URL来源明确'无直接文章链接(不可提供)'不编造",
+check("L2 末尾追加确定性来源索引(代码构造): 认证依据=真实原始档案"
+      "(save_batch产物,消费端实时核验),真实引用逐条含原始标题/URL/发布方/"
+      "UTC发布时间;无URL来源明确'无直接文章链接(不可提供)'不编造",
       '来源索引(确定性代码构造' in outL
       and 'https://r.com/1' in outL and 'CNBC_Economy' in outL
       and '无直接文章链接' in outL and 'UNKNOWN' in outL, outL[-300:])
 check("L3 虚构引用(art_ffffffffffffffff)在周报消费端被标注'未通过来源"
       "认证'——模型/加工文本中的不存在ID不得计为有效来源",
       '未通过来源认证' in outL and 'art_ffffffffffffffff' in outL, '')
+check("L4 FIX1-02伪造索引不得作为认证依据: 手工写入的news_refs(aid_d1="
+      "伪造URL/伪造标题FORGED)被无视——输出用档案真实URL,伪造URL与"
+      "FORGED均不出现(仅凭索引成员资格≠认证)",
+      'https://forged.example/1' not in outL and 'FORGED' not in outL
+      and 'https://r.com/1' in outL, '')
 
 # ══ M. 来源全部失败(非关键降级) ══════════════════════════════════════
 print("\n[M] 来源失败: 全败降级不造假,部分失败保真实+披露")
@@ -533,10 +559,11 @@ ndM2 = newsdir_of(tM2)
 docM2 = json.load(open(archive_of(ndM2), encoding='utf-8'))
 check("M2 部分源失败: 其余真实来源保留入档(Market新闻在档,RSS零条);"
       "失败源逐feed记入批次source_status明确披露(如RSS:CNBC_Economy="
-      "fail),不伪造失败源文章",
+      "fail),不伪造失败源文章(FIX1-04变更: Finnhub状态来自实际请求结果"
+      "OK_WITH_ITEMS,不再以非None真值推断'ok')",
       len(docM2['records']) == 1
       and docM2['records'][0]['channel'] == 'market_news'
-      and docM2['source_status'].get('Finnhub/general') == 'ok'
+      and docM2['source_status'].get('Finnhub/general') == 'OK_WITH_ITEMS'
       and docM2['source_status'].get('RSS:CNBC_Economy') == 'fail',
       str(docM2['source_status']))
 
@@ -601,29 +628,26 @@ open(VWG, 'w', encoding='utf-8').write(
     '{"version": 2, "views": [], "predictions": []}')
 fixt.build_full_day(GROOT, DAY)
 
-# 周报DATA_DIR下放置真实新闻文件(摘要含[art_]+来源索引),不mock
-# load_news_summary——验证真实消费链
+# 周报DATA_DIR下放置真实新闻文件(摘要含[art_]+**真实原始档案**),不mock
+# load_news_summary——验证真实消费链。FIX1-02变更理由: 原O组手工伪造
+# news_refs索引(无原始档案)为正向预期,DEF-002后不可作认证依据——改为
+# 真实save_batch档案,消费端实时核验(业务含义不变)。
 ndO = os.path.join(GROOT, 'data', 'news')
 os.makedirs(ndO, exist_ok=True)
 aidO = nprov.stable_article_id({'provider': 'Finnhub', 'channel':
                                 'market_news', 'provider_article_id': 'w3'})
+nprov.save_batch(
+    [{'provider': 'Finnhub', 'channel': 'market_news',
+      'provider_article_id': 'w3', 'publisher': 'Reuters',
+      'headline_original': 'H', 'summary_original': 'S',
+      'url_original': 'https://r.com/w3',
+      'published_raw': calendar.timegm((2026, 10, 23, 12, 0, 0, 0, 0, 0))}],
+    ndO, retrieved_at_utc='2026-10-24T08:00:00Z',
+    now_utc='2026-10-24T08:00:00Z')
 open(os.path.join(ndO, f'news_summary_{DAY}.md'), 'w',
      encoding='utf-8').write(
     "# 新闻摘要 {}\n\n生成时间: t\n\n---\n\n### 美联储/利率\n"
     "- [{}] 联储新闻\n".format(DAY, aidO))
-open(os.path.join(ndO, f'news_refs_{DAY}.json'), 'w',
-     encoding='utf-8').write(json.dumps({
-         'schema_version': 1, 'kind': 'news_refs_index', 'ymd': DAY,
-         'built_at_utc': '2026-10-24T08:00:00Z',
-         'integrity': {'checked_batches': 0, 'failed_batches': []},
-         'articles': {aidO: {'article_id': aidO, 'provider': 'Finnhub',
-                             'channel': 'market_news', 'publisher': 'Reuters',
-                             'headline_original': 'H', 'url_original':
-                             'https://r.com/w3', 'url_available': True,
-                             'published_at_utc': '2026-10-23T12:00:00Z',
-                             'published_status': 'UTC',
-                             'provenance_status': 'COMPLETE',
-                             'batch_id': 'b'}}}, ensure_ascii=False))
 
 # O0: 新闻文件加入后未重打包——P0-1包完整性预检必须拒绝陈旧包
 # (重建包含新闻节≠磁盘旧包→预检失败,证明W3未触碰P0-1保护)

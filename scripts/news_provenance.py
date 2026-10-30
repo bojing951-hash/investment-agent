@@ -28,6 +28,22 @@ W3目标: 任何进入新闻摘要或周报引用链的真实文章,都能追溯
 
 本模块只用Python标准库,不导入网络客户端/密钥——离线测试可直接使用。
 
+IA-P0-2-W3-FIX1(独立验收失败后增量整改):
+  * FIX1-01 批次不可覆盖: 批次身份追加全局唯一段(uuid4),档案文件排他
+    创建('x'=O_CREAT|O_EXCL),碰撞→换新身份重试,绝不覆盖;日清单在
+    flock排他锁下读取-修改-写入并以tmp+os.replace原子落盘;清单损坏→
+    先原样保全为.corrupt-*副本再重建(记recovery_note),绝不静默当空
+    清单覆盖;清单阶段失败→保留已写档案并抛明确诊断,不自动销毁批次。
+  * FIX1-02 引用以原始档案为可信根: verify_citation降级为索引成员诊断;
+    新增verify_citation_trusted/load_trusted_articles_since——消费时逐
+    批次实际核验(档案存在→清单条目→文件SHA-256→逐记录摘要→ID映射),
+    仅通过认证的记录进入可信来源集合;build_refs_index同样验证门控
+    (坏批次记录不进入articles,不只留告警)。索引是派生视图非原始证据。
+  * FIX1-05 跨通道同文章关联: 新增logical_article_id(供应商文章ID>URL,
+    标题不参与防误并);article_id规则不变(旧引用不失效),新字段纯增量。
+  * FIX1-06 模型可见派生文本数据化: sanitize_model_text只作用于发往
+    模型的派生副本(标题/发布方/URL),原始档案永不处理。
+
 序列化与摘要规则(W3-03 §7.3,确定性):
   * record_sha256 = SHA-256( json.dumps(record剔除record_sha256/batch_id/
     retrieved_at_utc后, sort_keys=True, ensure_ascii=False,
@@ -37,10 +53,12 @@ W3目标: 任何进入新闻摘要或周报引用链的真实文章,都能追溯
 """
 
 import calendar
+import fcntl
 import hashlib
 import json
 import os
 import re
+import uuid
 from datetime import datetime, timezone
 
 SCHEMA_VERSION = 1
@@ -135,6 +153,7 @@ def normalize_record(raw, retrieved_at_utc=None):
     rec = {
         'schema_version': SCHEMA_VERSION,
         'article_id': stable_article_id(raw),
+        'logical_article_id': logical_article_id(raw),
         'provider': provider,
         'channel': channel,
         'publisher': publisher,
@@ -183,6 +202,48 @@ def stable_article_id(raw):
     return 'art_' + h[:16]
 
 
+def logical_article_id(raw):
+    """跨通道底层文章身份(FIX1-05): lart_+SHA-256(逻辑键)[:16]。
+
+    逻辑键: 供应商文章ID > URL(均含provider前缀);**标题不参与**(防同题
+    误并)。同一Finnhub文章从market_news与company_news两通道返回时,
+    article_id(含通道,不变)不同但logical_article_id相同→确定性关联;
+    不同真实文章(不同pid/URL)不会误并。无pid且无URL→None(不强行关联)。
+    """
+    provider = raw.get('provider') or 'UNKNOWN'
+    pid = str(raw.get('provider_article_id') or '')
+    url = (raw.get('url_original') or '').strip()
+    if pid:
+        key = f'{provider}|pid:{pid}'
+    elif url:
+        key = f'{provider}|url:{url}'
+    else:
+        return None
+    return 'lart_' + hashlib.sha256(key.encode('utf-8')).hexdigest()[:16]
+
+
+# ──────────── FIX1-06: 模型可见派生文本的数据化处理 ────────────
+
+_TAG_RE = re.compile(r'<[^>]{0,200}>')
+_CTRL_RE = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]')
+
+
+def sanitize_model_text(s):
+    """不可信来源文本→模型可见派生副本的数据化处理(FIX1-06)。
+
+    仅作用于发往模型的派生内容(标题/发布方/URL行),**原始档案永不处理**:
+      * 剥离控制字符与HTML标签(不执行、不渲染);
+      * '[' ']'→'(' ')'——阻断伪造[art_]引用编号/Markdown链接语法;
+      * 反引号→单引号,剥行首Markdown结构符(#/>/-)——防标题伪造结构;
+    供本机审计的原始档案保持逐字原样,二者严格分离。
+    """
+    s = _CTRL_RE.sub('', str(s or ''))
+    s = _TAG_RE.sub('', s)
+    s = s.replace('[', '(').replace(']', ')').replace('`', "'")
+    s = re.sub(r'^[#>\-]{1,10}\s*', '', s)
+    return s.strip()
+
+
 def record_digest(record):
     """逐记录确定性SHA-256(文档化字段集与序列化规则,见模块docstring)。"""
     payload = {k: v for k, v in record.items()
@@ -206,61 +267,119 @@ def _ymd_of(ts_iso):
     return ts_iso[:10].replace('-', '')
 
 
+def _batch_identity(now_iso, count):
+    """批次身份: HHMMSSZr{N}x{uuid8}(FIX1-01)。
+
+    时间段保留可读性;追加uuid4全局唯一段——同秒同记录数的两次采集
+    批次身份不同,文件名不碰撞(历史实现仅HHMMSS+r{N},同秒同数量即覆盖)。
+    """
+    hhmmss = now_iso.replace('-', '').replace(':', '').replace('T', '')[8:14]
+    return f'{hhmmss}Zr{count}x{uuid.uuid4().hex[:8]}'
+
+
 def save_batch(raw_records, news_dir, retrieved_at_utc=None,
                source_status=None, now_utc=None):
     """原始来源归档(采集→归档→分类→GLM→输出;GLM失败不丢原始档案)。
 
+    FIX1-01不可覆盖保证:
+      * 档案文件以排他模式'x'(O_CREAT|O_EXCL)创建——命名碰撞(同秒同
+        记录数)→换新批次身份重试(≤8次),**绝不覆盖既有档案**;仍碰撞→
+        明确失败且原文件保留;
+      * 日清单flock排他锁下读取-修改-写入,tmp+os.replace原子落盘
+        (并发批次不丢失登记、不互相覆盖);
+      * 清单损坏→先原样保全为manifest.corrupt-*.json副本再重建,
+        recovery_note记录经过,绝不静默当空清单覆盖;
+      * 清单阶段失败→保留已写档案并抛RuntimeError明确诊断(未登记档案
+        可由verify_archive检出),不自动销毁任何批次。
+
     返回 (batch_id, archive文件路径, records)。同日重跑产生新批次,
-    旧批次与清单条目永不删除。source_status: 各来源通道成败披露
-    (部分源失败保留其余真实来源,明确披露失败源)。
+    旧批次与清单条目永不删除。source_status: 各来源通道成败披露。
     """
     retrieved = retrieved_at_utc or now_utc_iso()
     now = now_utc or now_utc_iso()
     ymd = _ymd_of(now)
-    batch_id = now.replace('-', '').replace(':', '').replace('T', '')[8:14] \
-        + 'Z' + f'r{len(raw_records)}'
     os.makedirs(news_dir, exist_ok=True)
 
     records = [normalize_record(r, retrieved_at_utc=retrieved)
                for r in raw_records]
-    for r in records:
-        r['batch_id'] = batch_id
-        r['record_sha256'] = record_digest(r)
 
-    doc = {
-        'schema_version': SCHEMA_VERSION,
-        'kind': 'news_sources_batch',
-        'batch_id': batch_id,
-        'ymd': ymd,
-        'created_at_utc': now,
-        'source_status': source_status or {},
-        'records': records,
-    }
-    apath = archive_path(news_dir, ymd, batch_id)
-    with open(apath, 'w', encoding='utf-8') as f:
-        json.dump(doc, f, ensure_ascii=False, indent=1)
+    apath = None
+    batch_id = None
+    for _attempt in range(8):
+        batch_id = _batch_identity(now, len(records))
+        apath = archive_path(news_dir, ymd, batch_id)
+        for r in records:
+            r['batch_id'] = batch_id
+            r['record_sha256'] = record_digest(r)
+        doc = {
+            'schema_version': SCHEMA_VERSION,
+            'kind': 'news_sources_batch',
+            'batch_id': batch_id,
+            'ymd': ymd,
+            'created_at_utc': now,
+            'source_status': source_status or {},
+            'records': records,
+        }
+        try:
+            with open(apath, 'x', encoding='utf-8') as f:
+                json.dump(doc, f, ensure_ascii=False, indent=1)
+            break
+        except FileExistsError:
+            continue   # 命名碰撞: 换新批次身份重试,不覆盖既有档案
+    else:
+        raise RuntimeError(
+            f'批次命名冲突: 8次排他创建均碰撞({apath});已放弃,未覆盖任何'
+            '既有档案——请检查目录写入状态后重试')
+
     file_sha = _file_sha256(apath)
 
-    # 独立日清单(追加式): 档案文件SHA-256入册,档案自改可被verify检出
+    # 独立日清单: flock排他锁下原子更新;损坏先保全再重建(FIX1-01)
     mpath = manifest_path(news_dir, ymd)
-    manifest = {'schema_version': SCHEMA_VERSION, 'ymd': ymd, 'batches': []}
-    if os.path.exists(mpath):
+    lock_path = mpath + '.lock'
+    entry = {'batch_id': batch_id, 'file': os.path.basename(apath),
+             'file_sha256': file_sha, 'count': len(records),
+             'created_at_utc': now}
+    with open(lock_path, 'w', encoding='utf-8') as lf:
+        fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
         try:
-            with open(mpath, 'r', encoding='utf-8') as f:
-                loaded = json.load(f)
-            if isinstance(loaded, dict) and isinstance(loaded.get('batches'),
-                                                       list):
-                manifest = loaded
-        except Exception:
-            pass  # 清单损坏不阻断归档;verify/索引构建会如实披露
-    if not any(b.get('batch_id') == batch_id for b in manifest['batches']):
-        manifest['batches'].append({
-            'batch_id': batch_id, 'file': os.path.basename(apath),
-            'file_sha256': file_sha, 'count': len(records),
-            'created_at_utc': now,
-        })
-    with open(mpath, 'w', encoding='utf-8') as f:
-        json.dump(manifest, f, ensure_ascii=False, indent=1)
+            manifest, recovery = None, None
+            if os.path.exists(mpath):
+                try:
+                    with open(mpath, 'r', encoding='utf-8') as f:
+                        loaded = json.load(f)
+                    if isinstance(loaded, dict) and isinstance(
+                            loaded.get('batches'), list):
+                        manifest = loaded
+                    else:
+                        recovery = '清单结构异常(非{batches:[…]}对象)'
+                except Exception as e:
+                    recovery = f'清单JSON损坏({e})'
+                if recovery:
+                    keep = (mpath[:-5]
+                            + f'.corrupt-{uuid.uuid4().hex[:8]}.json')
+                    os.replace(mpath, keep)
+                    recovery += (f';原损坏清单已原样保全为'
+                                 f'{os.path.basename(keep)}(不静默丢弃)')
+            if manifest is None:
+                manifest = {'schema_version': SCHEMA_VERSION, 'ymd': ymd,
+                            'batches': []}
+                if recovery:
+                    manifest['recovery_note'] = recovery
+            if not any(b.get('batch_id') == batch_id
+                       for b in manifest['batches']):
+                manifest['batches'].append(entry)
+            tmp = mpath + f'.tmp-{uuid.uuid4().hex[:8]}'
+            with open(tmp, 'w', encoding='utf-8') as f:
+                json.dump(manifest, f, ensure_ascii=False, indent=1)
+            os.replace(tmp, mpath)
+        except Exception as e:
+            raise RuntimeError(
+                f'档案已写入但清单更新失败(未销毁档案,不自动删除批次): '
+                f'{apath};清单={mpath};错误={e};该未登记批次可由'
+                f'verify_archive检出(清单中无此批次条目),可事后补登记'
+            ) from e
+        finally:
+            fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
     return batch_id, apath, records
 
 
@@ -361,56 +480,128 @@ def extract_citations(text):
 
 
 def verify_citation(article_id, refs_index):
-    """引用认证: article_id必须存在于确定性代码构造的来源索引。"""
+    """【诊断级,非认证】article_id是否为索引成员(FIX1-02降级限定)。
+
+    仅证明ID存在于传入索引字典——不证明档案存在/清单一致/摘要匹配,
+    **不得作为可信来源认证使用**。可信认证必须用verify_citation_trusted
+    (以原始档案为可信根实时核验)。
+    """
     return article_id in (refs_index.get('articles') or {})
+
+
+def _article_view(r):
+    """原始记录→索引/可信集合的来源视图(article_id→可核验来源信息)。"""
+    url = r.get('url_original')
+    return {
+        'article_id': r['article_id'],
+        'logical_article_id': r.get('logical_article_id'),
+        'provider': r.get('provider'),
+        'channel': r.get('channel'),
+        'publisher': r.get('publisher') or '(发布方缺失)',
+        'headline_original': r.get('headline_original'),
+        'url_original': url,
+        'url_available': bool(url),
+        'url_note': None if url else '来源未提供直接文章链接(不可提供,不编造)',
+        'published_at_utc': r.get('published_at_utc'),
+        'published_status': r.get('published_status'),
+        'retrieved_at_utc': r.get('retrieved_at_utc'),
+        'provenance_status': r.get('provenance_status'),
+        'batch_id': r.get('batch_id'),
+    }
+
+
+def _verified_batches(news_dir, day_filter=None, cutoff_ymd=None):
+    """枚举并逐批次实际核验(FIX1-02可信链: 档案→清单→文件SHA→记录摘要)。
+
+    返回 (verified_docs, failed, problems, checked)。day_filter='20261030'
+    限定单日;cutoff_ymd='20261023'取≥该日全部。坏批次只进failed/problems,
+    其记录一概不进入verified_docs(不得先入articles再仅留告警)。
+    """
+    verified, failed, problems, checked = [], [], {}, 0
+    if not os.path.isdir(news_dir):
+        return verified, failed, problems, checked
+    for fname in sorted(os.listdir(news_dir)):
+        m = re.match(r'news_sources_(\d{8})_', fname)
+        if not m or not fname.endswith('.json'):
+            continue
+        if day_filter is not None and m.group(1) != day_filter:
+            continue
+        if cutoff_ymd is not None and m.group(1) < cutoff_ymd:
+            continue
+        checked += 1
+        path = os.path.join(news_dir, fname)
+        ok, probs = verify_archive(path, news_dir)
+        if not ok:
+            failed.append(fname)
+            problems[fname] = probs
+            continue
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                verified.append(json.load(f))
+        except Exception as e:
+            failed.append(fname)
+            problems[fname] = [f'重读失败: {e}']
+    return verified, failed, problems, checked
+
+
+def load_trusted_articles_since(news_dir, cutoff_ymd):
+    """FIX1-02: 消费时从原始档案实时重建可信来源集合(不信任历史索引)。
+
+    链路: 原始档案→清单核验→文件SHA-256→逐记录摘要→文章ID映射。
+    仅通过认证批次的记录进入articles(按article_id去重,批次序首见为准);
+    失败批次进integrity.failed_batches+batch_problems。news_refs_*.json
+    是派生视图——即使其integrity声称通过,也不作为认证依据。
+    """
+    verified, failed, problems, checked = _verified_batches(
+        news_dir, cutoff_ymd=cutoff_ymd)
+    articles = {}
+    for doc in verified:
+        for r in doc.get('records', []):
+            aid = r.get('article_id')
+            if not aid or aid in articles:
+                continue
+            articles[aid] = _article_view(r)
+    return {'articles': articles,
+            'integrity': {'checked_batches': checked,
+                          'failed_batches': failed,
+                          'batch_problems': problems}}
+
+
+def verify_citation_trusted(article_id, news_dir, cutoff_ymd):
+    """FIX1-02可信引用认证: 以原始档案为根实时核验,非索引成员判断。"""
+    trusted = load_trusted_articles_since(news_dir, cutoff_ymd)
+    return article_id in trusted['articles']
 
 
 def build_refs_index(news_dir, ymd=None, now_utc=None):
     """构造某日(或来源中最新日)来源索引: article_id→可核验来源信息。
 
-    同日多批次按article_id去重(重跑不产生虚假重复来源身份);
-    逐批次做完整性验证,失败批次如实计入integrity,不标记为已验证。
+    FIX1-02验证门控: 逐批次实际核验(档案/清单/文件SHA/记录摘要),
+    **仅通过认证批次的记录进入articles**;坏批次只进integrity.failed_
+    batches+batch_problems(不得先入articles再仅留告警)。同日多批次按
+    article_id去重(重跑不产生虚假重复来源身份)。
     """
     if ymd is None:
         ymd = _latest_sources_ymd(news_dir)
         if ymd is None:
             return None
-    records = load_day_records(news_dir, ymd)
-    articles, failed_batches, checked = {}, [], 0
-    for fname in sorted(os.listdir(news_dir or '')) \
-            if os.path.isdir(news_dir) else []:
-        if fname.startswith(f'news_sources_{ymd}_') and fname.endswith('.json'):
-            checked += 1
-            ok, _ = verify_archive(os.path.join(news_dir, fname), news_dir)
-            if not ok:
-                failed_batches.append(fname)
-    for r in records:                      # 批次时间序→首见为准
-        aid = r['article_id']
-        if aid in articles:
-            continue
-        url = r.get('url_original')
-        articles[aid] = {
-            'article_id': aid,
-            'provider': r.get('provider'),
-            'channel': r.get('channel'),
-            'publisher': r.get('publisher') or '(发布方缺失)',
-            'headline_original': r.get('headline_original'),
-            'url_original': url,
-            'url_available': bool(url),
-            'url_note': None if url else '来源未提供直接文章链接(不可提供,不编造)',
-            'published_at_utc': r.get('published_at_utc'),
-            'published_status': r.get('published_status'),
-            'retrieved_at_utc': r.get('retrieved_at_utc'),
-            'provenance_status': r.get('provenance_status'),
-            'batch_id': r.get('batch_id'),
-        }
+    verified, failed, problems, checked = _verified_batches(
+        news_dir, day_filter=ymd)
+    articles = {}
+    for doc in verified:
+        for r in doc.get('records', []):
+            aid = r.get('article_id')
+            if not aid or aid in articles:
+                continue
+            articles[aid] = _article_view(r)
     return {
         'schema_version': SCHEMA_VERSION,
         'kind': 'news_refs_index',
         'ymd': ymd,
         'built_at_utc': now_utc or now_utc_iso(),
         'integrity': {'checked_batches': checked,
-                      'failed_batches': failed_batches},
+                      'failed_batches': failed,
+                      'batch_problems': problems},
         'articles': articles,
     }
 
@@ -462,29 +653,34 @@ def derive_display(record, limit=200):
     return s
 
 
-def summarize_for_prompt(refs_index, cited_ids):
+def summarize_for_prompt(trusted, cited_ids):
     """确定性来源索引说明(代码构造,非模型生成)——供周报/摘要消费端。
 
-    模型或加工文本引用了索引中不存在的article_id时,如实标注未通过
-    来源认证(K: 虚构引用不可被认作有效来源)。无URL来源明确标记
-    不可提供直接链接,不编造外部链接。
+    FIX1-02: 入参trusted应为load_trusted_articles_since产物(以原始档案
+    为可信根实时核验)——引用了可信集合外的article_id时,如实标注未通过
+    来源认证(原始来源档案缺失或未通过完整性验证),不得计为有效来源。
+    FIX1-06: 本文本进入模型输入——标题/发布方/URL经sanitize_model_text
+    数据化(原始档案保持逐字原样,仅派生副本处理,恶意标题不得借附录
+    绕过模型输入保护)。无URL来源明确标记不可提供,不编造外部链接。
     """
-    arts = refs_index.get('articles') or {}
+    arts = trusted.get('articles') or {}
     lines = []
     for aid in cited_ids:
         a = arts.get(aid)
         if a is None:
-            lines.append(f'- [{aid}] ⚠️未通过来源认证(来源索引中不存在,'
-                         '不得作为已引用来源)')
+            lines.append(f'- [{aid}] ⚠️未通过来源认证(原始来源档案缺失或'
+                         '未通过完整性验证,不得作为已引用来源)')
             continue
-        url = a['url_original'] if a['url_available'] \
-            else '无直接文章链接(不可提供)'
+        url = (sanitize_model_text(a['url_original'])
+               if a['url_available'] else '无直接文章链接(不可提供)')
         pub = a['published_at_utc'] or '发布时间UNKNOWN(未造假)'
-        lines.append(f"- [{aid}] {a['publisher']}({a['provider']}/"
-                     f"{a['channel']}) | {a['headline_original']} | {url} | "
-                     f"发布:{pub} | 完整性:{a['provenance_status']}")
-    integ = refs_index.get('integrity') or {}
-    head = '#### 来源索引(确定性代码构造,非模型生成;引用经来源档案核验)'
+        lines.append(f"- [{aid}] {sanitize_model_text(a['publisher'])}"
+                     f"({a['provider']}/{a['channel']}) | "
+                     f"{sanitize_model_text(a['headline_original'])} | "
+                     f"{url} | 发布:{pub} | 完整性:{a['provenance_status']}")
+    integ = trusted.get('integrity') or {}
+    head = ('#### 来源索引(确定性代码构造,非模型生成;引用经原始来源'
+            '档案完整性核验)')
     if integ.get('failed_batches'):
         head += (f"\n⚠️ 完整性告警: {len(integ['failed_batches'])}个来源批次"
                  '未通过完整性验证,其记录不作为已认证来源')

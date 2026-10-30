@@ -293,28 +293,23 @@ def load_news_summary():
     if len(merged) > 9000:  # 单日也超长的极端情况,控制长度防GLM 1301风控
         merged = merged[:9000] + "\n... [本周新闻过长已截断]"
 
-    # IA-P0-2-W3-05: 确定性来源索引附录——摘要中实际引用的[art_xxx]逐一经
-    # 来源索引核验(索引由代码从原始来源档案构造,非模型生成);引用了索引中
-    # 不存在的ID→如实标注未通过来源认证(虚构引用不得计为有效来源);无URL
-    # 来源明确标记不可提供,不编造链接。旧摘要无引用ID→零引用→不追加附录
-    # (完全向后兼容)。索引不进入长度竞争(置于截断之后,独立附录)。
+    # IA-P0-2-W3-05 + W3-FIX1-02: 确定性来源索引附录——摘要中实际引用的
+    # [art_xxx]逐一认证。FIX1-02起**不以历史news_refs_*.json为可信依据**
+    # (索引是派生视图,可被伪造/过期): 消费时用load_trusted_articles_since
+    # 从原始来源档案实时重建可信集合(档案→清单→文件SHA-256→逐记录摘要→
+    # ID映射),仅通过认证的来源进入附录;档案缺失/损坏的引用→如实标注
+    # 未通过来源认证。无URL来源明确标记不可提供,不编造链接。旧摘要无
+    # 引用ID→零引用→不追加附录(完全向后兼容);附录不进入长度竞争。
     cited = news_provenance.extract_citations(merged)
     if cited:
-        refs_files = news_provenance.load_refs_indexes_since(
+        trusted = news_provenance.load_trusted_articles_since(
             news_dir, cutoff)
-        articles = {}
-        for _d, idx in refs_files.items():
-            articles.update(idx.get('articles') or {})
-        failed = sorted({f for idx in refs_files.values()
-                         for f in (idx.get('integrity') or {}).get(
-                             'failed_batches', [])})
-        appendix = news_provenance.summarize_for_prompt(
-            {'articles': articles,
-             'integrity': {'failed_batches': failed}}, cited)
+        appendix = news_provenance.summarize_for_prompt(trusted, cited)
         merged = merged + '\n\n' + appendix
-        print(f"✅ 新闻来源索引: {len(cited)}个引用经核验"
-              f"({sum(1 for a in cited if a in articles)}通过/"
-              f"{sum(1 for a in cited if a not in articles)}未通过)")
+        arts_t = trusted.get('articles') or {}
+        print(f"✅ 新闻来源索引: {len(cited)}个引用经原始档案核验"
+              f"({sum(1 for a in cited if a in arts_t)}通过/"
+              f"{sum(1 for a in cited if a not in arts_t)}未通过)")
 
     print(f"✅ 已加载近7天新闻: {total}天文件, 去重{dup}条重复, {len(merged)}字符")
     return merged

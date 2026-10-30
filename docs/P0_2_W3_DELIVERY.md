@@ -31,7 +31,7 @@
 
 | 提交 | SHA | 内容 |
 |---|---|---|
-| W3实现提交 | (本提交) | 新增 scripts/news_provenance.py(491行) + tests/test_p02_w3.py(728行) + docs/P0_2_W3_DELIVERY.md;修改 scripts/news_collector.py(+193/−49)、scripts/report_generator.py(+24/−0,仅新闻输入) |
+| W3实现提交 | c80c016d520feec841359b017c867f50038fe95b | 新增 scripts/news_provenance.py(491行) + tests/test_p02_w3.py(728行) + docs/P0_2_W3_DELIVERY.md;修改 scripts/news_collector.py(+193/−49)、scripts/report_generator.py(+24/−0,仅新闻输入) |
 | W3最终提交 | 即本提交(docs-only回填run#1) | run#2于本提交推送后触发,head_sha=本提交;run#/job#以Git外验收附件为准(防预写) |
 
 - 增量差异 `14fe6e5 → W3`: `news_collector.py | 193+/49−`、`report_generator.py | 24+/0−` + 新增 `news_provenance.py`、`test_p02_w3.py`。
@@ -178,7 +178,9 @@ Gate A/B、报告保护、论点观点、预测生命周期、月报季报)。�
 
 ## 9. CI实证(防预写: run#1于实现提交推送后回填,run#2以附件为准)
 
-- 实现提交CI run#1: **待回填(实现提交推送后触发)** ← docs-only最终提交回填
+- 实现提交CI run#1: **run 41034149331 / job 123990751320 / head_sha
+  c80c016d520feec841359b017c867f50038fe95b / conclusion=success**,
+  逐套件日志核验40套件全部exit=0(test_p02_w3含在内),零非零,glm_live跳过。
 - 最终提交CI run#2: 以Git外验收附件为准(head_sha=最终提交SHA)
 - workflow: .github/workflows/offline-tests.yml(workflow_dispatch,
   与W2同口径,逐tests/test_*.py执行,glm_live排除)

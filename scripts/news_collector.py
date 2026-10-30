@@ -470,10 +470,13 @@ def validate_summary_citations(summary, allowed_ids):
 
 
 def _fallback_headlines(classified, header):
-    """确定性标题回退(FIX1-03/W3-06): 代码核发真实[art_]ID,可追溯。
+    """确定性标题回退(FIX1-03/W3-06+FIX2-02): 代码核发真实[art_]ID。
 
     GLM失败/引用校验二次失败时使用——不保存无引用或含虚构引用的模型
     输出;回退行ID由确定性代码从原始档案核发,不编造链接。
+    FIX2-02: 回退标题与模型输入(_build_news_text)共用同一
+    sanitize_model_text安全派生——多行/HTML/伪ID标题在回退中同样
+    只能成为单行数据,不得凭回退路径重新注入结构或伪造引用关系。
     """
     fallback = header
     for cat, articles in classified.items():
@@ -482,7 +485,8 @@ def _fallback_headlines(classified, header):
             for a in articles[:5]:
                 art = a.get('article_id', '')
                 ref = f"[{art}] " if art else ""
-                fallback += f"- {ref}{a.get('headline', '')}\n"
+                headline = nprov.sanitize_model_text(a.get('headline', ''))
+                fallback += f"- {ref}{headline}\n"
             fallback += "\n"
     return fallback
 

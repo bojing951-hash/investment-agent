@@ -226,21 +226,30 @@ def logical_article_id(raw):
 
 _TAG_RE = re.compile(r'<[^>]{0,200}>')
 _CTRL_RE = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]')
+# FIX2-01: str.splitlines()覆盖LF/CR/CRLF/VT/FF/NEL(U+0085)/U+2028/U+2029
+# 及U+001C~001E等一切Python行边界——换行折叠不逐个枚举字符,直接用
+# 语言级行语义,避免"只处理\n漏掉\r与Unicode换行"的枚举遗漏。
 
 
 def sanitize_model_text(s):
-    """不可信来源文本→模型可见派生副本的数据化处理(FIX1-06)。
+    """不可信来源文本→安全单行派生文本(FIX1-06+FIX2-01)。
 
-    仅作用于发往模型的派生内容(标题/发布方/URL行),**原始档案永不处理**:
+    仅作用于发往模型的派生内容(标题/发布方/URL行)与确定性回退/来源
+    附录,**原始档案永不处理**:
+      * 行边界折叠: 一切实际换行与Unicode换行(LF/CR/CRLF/VT/FF/NEL/
+        U+2028/U+2029…)先归一为单空格——不可信字段永远只能派生**一条
+        物理行**,不允许标题内部伪造第二条新闻行/Markdown标题/代码围栏;
       * 剥离控制字符与HTML标签(不执行、不渲染);
       * '[' ']'→'(' ')'——阻断伪造[art_]引用编号/Markdown链接语法;
-      * 反引号→单引号,剥行首Markdown结构符(#/>/-)——防标题伪造结构;
+      * 反引号→单引号,剥行首Markdown结构符(#/>/-),折叠空白串;
     供本机审计的原始档案保持逐字原样,二者严格分离。
     """
-    s = _CTRL_RE.sub('', str(s or ''))
+    s = ' '.join(str(s or '').splitlines())     # FIX2-01: 单行化
+    s = _CTRL_RE.sub('', s)
     s = _TAG_RE.sub('', s)
     s = s.replace('[', '(').replace(']', ')').replace('`', "'")
     s = re.sub(r'^[#>\-]{1,10}\s*', '', s)
+    s = re.sub(r'[ \t]{2,}', ' ', s)
     return s.strip()
 
 

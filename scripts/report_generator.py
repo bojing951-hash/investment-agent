@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from env_config import GLM_API_KEY, GLM_BASE_URL, GLM_MODEL
 import allocation_engine  # P2/P3 配置研究引擎(同目录)
 import research_provenance as rp  # IA-P0-1: 来源链核验/门禁合成
+import news_provenance  # IA-P0-2-W3: 新闻来源档案/确定性引用索引
 
 # ============ 路径配置 ============
 # FIX11-01(IA-F10-DEF-001): 原join(dirname(__file__),'..')推导的DATA_DIR词法
@@ -291,6 +292,29 @@ def load_news_summary():
     merged = '\n\n'.join(blocks)
     if len(merged) > 9000:  # 单日也超长的极端情况,控制长度防GLM 1301风控
         merged = merged[:9000] + "\n... [本周新闻过长已截断]"
+
+    # IA-P0-2-W3-05: 确定性来源索引附录——摘要中实际引用的[art_xxx]逐一经
+    # 来源索引核验(索引由代码从原始来源档案构造,非模型生成);引用了索引中
+    # 不存在的ID→如实标注未通过来源认证(虚构引用不得计为有效来源);无URL
+    # 来源明确标记不可提供,不编造链接。旧摘要无引用ID→零引用→不追加附录
+    # (完全向后兼容)。索引不进入长度竞争(置于截断之后,独立附录)。
+    cited = news_provenance.extract_citations(merged)
+    if cited:
+        refs_files = news_provenance.load_refs_indexes_since(
+            news_dir, cutoff)
+        articles = {}
+        for _d, idx in refs_files.items():
+            articles.update(idx.get('articles') or {})
+        failed = sorted({f for idx in refs_files.values()
+                         for f in (idx.get('integrity') or {}).get(
+                             'failed_batches', [])})
+        appendix = news_provenance.summarize_for_prompt(
+            {'articles': articles,
+             'integrity': {'failed_batches': failed}}, cited)
+        merged = merged + '\n\n' + appendix
+        print(f"✅ 新闻来源索引: {len(cited)}个引用经核验"
+              f"({sum(1 for a in cited if a in articles)}通过/"
+              f"{sum(1 for a in cited if a not in articles)}未通过)")
 
     print(f"✅ 已加载近7天新闻: {total}天文件, 去重{dup}条重复, {len(merged)}字符")
     return merged

@@ -513,11 +513,14 @@ def _uniq_ids(seq):
 
 
 def _fence_open(line):
-    """FIX4-01: 识别代码围栏开始行;返回(围栏字符,长度)或None。
+    """FIX4-01+FIX5-01: 识别代码围栏开始行;返回(围栏字符,长度)或None。
 
     CommonMark最小子集: 0-3个前导空格+≥3个连续反引号或波浪号(可带
-    语言标签info串);反引号围栏的info串不得再含反引号,波浪围栏的info串
-    不得再含波浪号;缩进>3空格或制表符开头不构成围栏(属缩进代码块)。
+    语言标签info串)。info串约束仅限反引号围栏: 反引号围栏的info串不得
+    再含反引号(CommonMark规定,防与行内代码歧义);波浪围栏的info串
+    按CommonMark**允许**含波浪号与反引号(规范示例"~~~ aa ``` ~~"即
+    合法,FIX4曾错误禁止波浪info含波浪号→FIX5-01修正)。缩进>3空格或
+    制表符开头不构成围栏(属缩进代码块)。
     不得只靠line.startswith('```')判断(无法覆盖波浪号/长度/缩进)。
     """
     s = str(line or '')
@@ -531,24 +534,26 @@ def _fence_open(line):
     info = s[m.end():].strip()
     ch = marker[0]
     if ch == '`' and '`' in info:
-        return None
-    if ch == '~' and '~' in info:
-        return None
+        return None          # 仅反引号围栏有此限制(CommonMark)
     return (ch, len(marker))
 
 
 def _fence_close(line, ch, length):
-    """FIX4-01: 是否为匹配的关闭围栏行。
+    """FIX4-01+FIX5-02: 是否为匹配的关闭围栏行。
 
-    同字符且长度≥开栏长度;仅允许0-3空格前导与尾随空白;关栏行不得带
-    info串。字符不匹配(反引号↔波浪号)或长度不足都不是关栏(围栏继续)。
+    同字符且长度≥开栏长度;仅允许0-3个普通空格前导,行尾允许普通空格
+    **与制表符**(尾随空白混合亦合法;FIX4曾只strip(' ')漏掉尾随\\t→
+    "\`\`\`+TAB"无法关栏,FIX5-02修正——行首缩进与行尾空白分别独立
+    处理,不得对整行strip(' \\t')(那会错误移除行首制表符,接受非法
+    前导TAB缩进的关栏)。关栏行不得带info串;字符不匹配(反引号↔波浪号)
+    或长度不足都不是关栏(围栏继续)。
     """
     s = str(line or '')
-    n_lead = len(s) - len(s.lstrip(' '))
-    if n_lead > 3:
+    lead = len(s) - len(s.lstrip(' '))
+    if lead > 3:
         return False
-    body = s.strip(' ')
-    return (body != '' and set(body) == {ch} and len(body) >= length)
+    body = s[lead:].rstrip(' \t')
+    return bool(body) and set(body) == {ch} and len(body) >= length
 
 
 def markdown_fence_map(text):

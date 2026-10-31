@@ -142,7 +142,13 @@ IA-P0-2-W4-FIX4-REAL-AUDIT-*.txt与IA-P0-2-W4-FIX4-POSTCOMMIT-ISOLATION-
 跑FIX4最终SHA;不合并main(50b5d13)。
 
 ### CI实证(回填区)
-- run#1(实现Commit): 见下
+- **run#1(实现Commit `73065ee1f871c49a7f958bd93b903db5a839067d`)**:
+  Actions Run ID=**41219621123** | Job ID=**124591260146**(tests) |
+  event=workflow_dispatch | head_branch=dev/p0-2-w4 | head_sha=73065ee…
+  conclusion=**success** | **50套件全部exit=0**(test_glm_live按契约排除;
+  逐套件test_<name> exit=N自Job日志逐行提取,非零数=0;W4五套件:
+  test_p02_w4=0 / fix1=0 / fix2=0 / fix3=0 / **fix4=0**;
+  test_e2e_four_weeks=0含§9.3时钟钉住)
 - run#2(最终固定Commit): 见Git外附件
 
 ## 11. 正式真实数据审计(§十,最终固定Commit后实际执行)

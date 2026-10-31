@@ -30,10 +30,11 @@ FIX1/FIX2已通过的语义全部保留(槽位连续段/重复拆分/MARGIN_BAL�
 
 ## 2. FIX3实现(修改限于允许清单)
 
-增量Diff(`94fb144→FIX3实现Commit`): scripts/historical_coverage_audit.py
-(约1350→1507行,纯增量修复);tests/test_p02_w4_fix3.py(新增34检查);
-tests/test_p02_w4_fix1.py(1处schema字面量,§9);tests/test_p02_w4_fix2.py
-(1处schema字面量,§9);docs/P0_2_W4_FIX3_DELIVERY.md(本文件)。
+增量Diff(`94fb144→FIX3最终SHA`): scripts/historical_coverage_audit.py
+(约1350→1507行,纯增量修复);tests/test_p02_w4_fix3.py(新增34检查,
+实现Commit 62a2af0+跨OS修正62b125c);tests/test_p02_w4_fix1.py(1处schema
+字面量,§9);tests/test_p02_w4_fix2.py(1处schema字面量,§9);
+docs/P0_2_W4_FIX3_DELIVERY.md(本文件)。
 **未触碰**: 采集器/fact_engine/snapshot_builder/trading_calendar/
 metric_registry.json/新闻原始来源及W3/Gate A/B/P0-1~W3代码/Mac LIVE/
 launchd/生产data/daily/GitHub main;不实施W5或P0-3。
@@ -199,10 +200,20 @@ ACCEPTANCE**;确定性阻断→FAILED;缺真实审计或隔离材料→NOT VERIF
 
 ## CI实证(workflow_dispatch, dev/p0-2-w4, offline-tests.yml)
 
-### CI run#1 — FIX3实现Commit `<实现Commit SHA占位,推送后回填>`
-- Actions Run ID: `<占位>` | Job ID: `<占位>`
-- conclusion=success | 48套件全部exit=0(test_glm_live按契约排除;
-  含新增test_p02_w4_fix3.py=34检查)
+### CI run#1a — FIX3实现Commit 62a2af0(失败,如实记录)
+- Actions Run ID: **41212180096** | Job ID: 124569285436 | conclusion=failure
+- 47/48套件exit=0;唯一失败=test_p02_w4_fix3 B5: 测试环境假设错误
+  (依赖macOS /tmp→/private/tmp符号链接前缀,Linux上/tmp为真实目录,
+  realpath==原路径致前置断言不成立)——**实现无缺陷,纯测试构造缺陷**,
+  由Commit 62b125c改为显式符号链接入口(跨OS确定性,断言语义不变)。
+
+### CI run#1b — FIX3实现轮通过Commit 62b125c044cad2ead9ef7c23b72dd5dc26a04afa
+- Actions Run ID: **41212743974** | Job ID: **124570972031**(tests)
+- event=workflow_dispatch | head_branch=dev/p0-2-w4 | head_sha=62b125c…
+- conclusion=**success** | **48套件全部exit=0**(test_glm_live按契约排除;
+  含新增test_p02_w4_fix3.py=34检查;W4四套件: test_p02_w4=0 /
+  test_p02_w4_fix1=0 / test_p02_w4_fix2=0 / test_p02_w4_fix3=0,
+  逐套件test_<name> exit=N自Job日志逐行提取,非零数=0)
 
 ### CI run#2 — FIX3最终固定Commit(本Commit)
 - 按防预写纪律不入Git,见Git外附件IA-P0-2-W4-FIX3-REAL-AUDIT-*.txt与

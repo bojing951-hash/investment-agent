@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""历史覆盖只读审计器(IA-P0-2-W4) — 81项注册指标在已存档数据中的真实历史覆盖
+"""历史覆盖只读审计器(IA-P0-2-W4,含W4-FIX1修订) — 81项注册指标在已存档数据中的真实历史覆盖
 
 性质(W4-DEV-v1.0 §一): 调查已有数据事实,不采集/不回补/不修改任何输入。
 - 只读 --data-dir(授权数据集),只写 --out-dir(必须在数据根之外);
@@ -14,6 +14,26 @@
 - 去重纪律(§7.3): 同一 observation_date 跨文件重复采集只计一次观测日;
   快照(series_store/单点事实)与同源每日文件不重复计数(非权威通道)。
 
+W4-FIX1修订(IA-P0-2-W4-FIX1-AC-v1.0,针对W4首轮独立验收四项缺陷):
+- FIX1-01 连续覆盖按预期观测槽位: 连续段=相邻实际槽位在expected_slots预期
+  序列中相邻;中间任何缺失槽位必须断段;不再用自然日间隔阈值判定连续性
+  (max_internal_gap_days保留为描述性自然日统计);weekly/monthly的
+  SINGLE_OBSERVATION/最长连续段/usable_intervals均按独立观测槽位;
+  unique_observation_dates(原始日期数)与unique_observation_slots(槽位数)
+  两个计数并存不混淆;预期槽位无法确定时不虚构连续覆盖。
+- FIX1-02 重复按真实文件身份拆分: 以权威观测为范围,同文件同观测日每多一条
+  权威记录计一次same_file_extra;同一观测日出现在多个不同文件按不同文件
+  额外出现次数计cross_file(不变量: 权威原始=唯一观测日+同文件额外+跨文件额外)。
+- FIX1-03 MARGIN_BAL身份: rzye_billion=融资余额(亿元)≠注册口径(两融余额合计),
+  缺同口径证据不作为MARGIN_BAL权威观测,经unmapped独立披露(不删原始记录);
+  合法同口径balance字段继续按既有注册语义。
+- FIX1-04 输入发现: daily/子目录进入条件=五通道任一模式命中(不再只看
+  global/macro);输入根与daily/同时有合法输入时固定选daily/(生产布局,
+  规则公开)并披露未选目录,不暗中混合。
+- FIX1-05 审计元数据: audit_commit=真实git rev-parse HEAD(工作区脏则如实
+  披露,不冒充干净已提交版本);generated_at=真实UTC执行时间;相同输入+
+  相同代码⇒相同覆盖统计(执行时间除外)。
+
 audit_status: COMPLETED(≥1可读文件且输入未变) / NO_INPUT / ALL_UNREADABLE /
 INPUT_CHANGED / INVALID_PATH。退出码: 0=COMPLETED; 2=不可宣布完成; 3=输入变化。
 """
@@ -24,6 +44,7 @@ import json
 import math
 import os
 import re
+import subprocess
 import sys
 from collections import OrderedDict, deque
 from datetime import date, datetime, timedelta, timezone
@@ -34,7 +55,7 @@ import fact_engine as fe          # _GLOBAL_ID_MAP/_MACRO_ALIAS/parse_iso_date/_
 import trading_calendar as tc     # 全系统唯一日历权威
 
 TOOL_NAME = 'historical_coverage_audit'
-SCHEMA_VERSION = 'w4-coverage-audit/1.0'
+SCHEMA_VERSION = 'w4-coverage-audit/1.1'
 
 # ── 通道文件模式(金融指标机器输入;同前缀.md人读镜像与anchors/scorecard/
 #    anchor_prompt/correlation/news等非本审计对象,计数见报告excluded节) ──
@@ -161,7 +182,8 @@ def _iso_week_monday(iso):
 
 
 def segment_split(sorted_dates, freq):
-    """连续段划分: 相邻观测日自然日间隔>频率阈值(公开工程阈值)即断段。"""
+    """自然日连续段划分(FIX1-01后仅作描述性参考,不再决定覆盖连续性):
+    相邻观测日自然日间隔>频率阈值即断段。"""
     if not sorted_dates:
         return []
     brk = THRESHOLDS['segment_break_natural_days'].get(freq, 10)
@@ -176,25 +198,81 @@ def segment_split(sorted_dates, freq):
     return [{'start': s[0], 'end': s[-1], 'slots': len(s)} for s in segs]
 
 
+def split_slots(auth_dates, freq, calendar):
+    """FIX1-01 槽位连续段(权威连续覆盖的唯一判据): 以expected_slots预期槽位
+    序列为坐标——实际观测→槽位键→去重;相邻实际槽位在预期序列中索引相邻才属
+    同一连续段,中间任何缺失预期槽位必须断段(月频跨缺失月份不得判连续;
+    同月多个日期只算1个槽位)。返回(segments, extra_keys, reason):
+      segments: [{start_slot,end_slot,slots,start,end}](start/end=该段内实际
+      观测日首末,兼容既有Schema;slots=段内独立槽位数);
+      extra_keys: 不属于已知预期日历的额外观测槽位键(单独披露,不入段);
+      reason: 预期槽位无法确定时的原因(此时不虚构连续覆盖,segments=[])。"""
+    if not auth_dates:
+        return [], [], None
+    exp_list, keyfn, _lim, reason = expected_slots(freq, auth_dates[0], auth_dates[-1], calendar)
+    if exp_list is None or keyfn is None:
+        return [], [], reason or '预期槽位无法确定(不虚构连续覆盖)'
+    idx = {k: i for i, k in enumerate(exp_list)}
+    by_slot = OrderedDict()
+    for d in auth_dates:
+        by_slot.setdefault(keyfn(d), []).append(d)
+    known = sorted((k for k in by_slot if k in idx), key=lambda k: idx[k])
+    extras = sorted(k for k in by_slot if k not in idx)
+    segs, cur, prev_i = [], [], None
+    for k in known:
+        i = idx[k]
+        if prev_i is not None and i != prev_i + 1:
+            segs.append(cur)
+            cur = []
+        ds = sorted(by_slot[k])
+        cur.append({'slot': k, 'start': ds[0], 'end': ds[-1]})
+        prev_i = i
+    if cur:
+        segs.append(cur)
+    return ([{'start_slot': s[0]['slot'], 'end_slot': s[-1]['slot'], 'slots': len(s),
+              'start': s[0]['start'], 'end': s[-1]['end']} for s in segs],
+            extras, None)
+
+
 def max_internal_gap(sorted_dates):
-    """相邻观测日最大自然日间隔(0=单点/无间隔)。"""
+    """相邻观测日最大自然日间隔(0=单点/无间隔)。
+    FIX1-01: 仅作描述性自然日统计,不判定连续覆盖(连续性由split_slots决定)。"""
     if len(sorted_dates) < 2:
         return 0
     return max((date.fromisoformat(b) - date.fromisoformat(a)).days
                for a, b in zip(sorted_dates, sorted_dates[1:]))
 
 
-def classify(metric, auth_dates, coverage_ratio, all_channel_unreadable):
-    """状态分类(语义公开):
+def split_duplicates(auth_records):
+    """FIX1-02 重复按真实文件身份拆分(以权威观测为范围,负向敏感性注入缝):
+    先按(file, obs_date)计数——same_file_extra=同一文件同一观测日每多一条
+    权威记录计一次;cross_file_extra=同一观测日出现在多个不同文件按不同文件
+    额外出现次数计。不变量: 权威原始记录数=唯一观测日+同文件额外+跨文件额外。
+    (W4旧实现把全部重复计入cross_file——文件内重复被冒充跨文件重复,已废。)"""
+    per_file_date = OrderedDict()
+    for r in auth_records:
+        k = (r['file'], r['obs_date'])
+        per_file_date[k] = per_file_date.get(k, 0) + 1
+    same_extra = sum(c - 1 for c in per_file_date.values())
+    files_per_date = OrderedDict()
+    for (_f, d) in per_file_date:
+        files_per_date[d] = files_per_date.get(d, 0) + 1
+    cross_extra = sum(c - 1 for c in files_per_date.values())
+    return same_extra, cross_extra
+
+
+def classify(metric, auth_dates, n_slots, coverage_ratio, all_channel_unreadable):
+    """状态分类(语义公开;FIX1-01: SINGLE_OBSERVATION按独立观测槽位数,
+    不按自然日日期数——同月两个日期不是两个独立月度样本):
     DERIVED_ONLY=仅存在于派生计算; MISSING=未找到权威观测; UNREADABLE=权威通道
-    输入存在但全部不可读; SINGLE_OBSERVATION=仅1个观测日;
-    SPARSE=槽位覆盖率<0.5; OBSERVED=其余(≥2观测日)。"""
+    输入存在但全部不可读; SINGLE_OBSERVATION=仅1个独立观测槽位;
+    SPARSE=槽位覆盖率<0.5; OBSERVED=其余(≥2独立槽位)。"""
     src = str(metric.get('source')) + str(metric.get('source_symbol'))
     if '(derived)' in src:
         return 'DERIVED_ONLY'
     if not auth_dates:
         return 'UNREADABLE' if all_channel_unreadable else 'MISSING'
-    if len(auth_dates) == 1:
+    if n_slots <= 1:
         return 'SINGLE_OBSERVATION'
     if coverage_ratio is not None and coverage_ratio < THRESHOLDS['sparse_coverage_ratio_below']:
         return 'SPARSE'
@@ -228,23 +306,37 @@ _FILE_DATE_RE = re.compile(r'_(\d{8})(?:_v\d+)?\.json$')
 
 def discover_files(data_dir):
     """发现5通道机器输入文件(非递归;daily/子目录或data-dir本身)。
+    FIX1-04: daily/进入条件=五通道任一模式命中(此前只查global/macro——
+    china-only等合法输入会被误判NO_INPUT)。输入根与daily/同时有合法输入时
+    固定选daily/(生产采集布局;规则公开可复核)并披露未选的根层通道文件数,
+    不与根层暗中混合;不以其他路径旧数据补齐缺失通道。
     符号链接文件不入清单(防越界,记录于excluded);文件日期取自文件名
     (仅用于观测日前瞻性核对,绝不作为观测日来源)。"""
     root = os.path.realpath(data_dir)
-    base = root
+    base, selection_rule = root, '输入根本身(daily/不存在或五通道均无命中)'
+    unselected_root = {}
     sub = os.path.join(root, 'daily')
-    if os.path.isdir(sub) and (glob.glob(os.path.join(sub, 'global_*.json'))
-                               or glob.glob(os.path.join(sub, 'macro_*.json'))):
+    daily_exists = os.path.isdir(sub)
+    daily_has_channel = daily_exists and any(glob.glob(os.path.join(sub, pat))
+                                             for pat in CHANNEL_PATTERNS.values())
+    if daily_has_channel:
         base = sub
+        selection_rule = ('daily/子目录五通道任一命中→选daily/(生产采集布局,'
+                          '固定规则可复核);不与输入根其他层级文件混合')
+        for ch, pat in CHANNEL_PATTERNS.items():   # 披露未选目录(根层命中,只数不读)
+            n = len(glob.glob(os.path.join(root, pat)))
+            if n:
+                unselected_root[ch] = n
     files, symlink_skipped, by_channel = [], [], {}
     for ch, pat in CHANNEL_PATTERNS.items():
         hits = sorted(glob.glob(os.path.join(base, pat)))
-        by_channel[ch] = len(hits)
+        by_channel[ch] = 0   # 只计实际入清单文件(跳过的symlink计入excluded披露)
         for p in hits:
             if os.path.islink(p) or not os.path.isfile(p):
                 if os.path.islink(p):
                     symlink_skipped.append(os.path.relpath(p, root))
                 continue
+            by_channel[ch] += 1
             m = _FILE_DATE_RE.search(os.path.basename(p))
             fd = m.group(1) if m else None
             if fd and fe.parse_iso_date(fe._iso(fd)) is None:
@@ -257,6 +349,10 @@ def discover_files(data_dir):
                 'anchor_prompt_files': len(glob.glob(os.path.join(base, 'anchor_prompt_*'))),
                 'correlation_files': len(glob.glob(os.path.join(base, 'correlation_*'))),
                 'symlink_skipped': symlink_skipped,
+                'unselected_root_files': unselected_root,
+                'selection_rule': selection_rule,
+                'daily_present_without_channel_files':
+                    daily_exists and not daily_has_channel,
                 'note': ('同前缀.md为采集器人读镜像,anchors/scorecard/anchor_prompt/'
                          'correlation为研究产物或上下文,news属W3新闻域——均非本审计'
                          '金融指标机器输入,未读入')}
@@ -511,15 +607,37 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
                           '最旧代南向latest字段语义未注册(不入SB_FLOW)')
         mg = obj.get('margin') or {}
         if isinstance(mg, dict):
+            # FIX1-03身份纪律: 只有同口径balance(两融余额合计,注册语义)才是
+            # MARGIN_BAL权威观测;rzye_billion=融资余额(亿元)/rzye=融资余额(元)/
+            # rqye=融券余额(元)均≠两融余额合计,缺同口径证据不得写入MARGIN_BAL
+            # 权威历史(不用于earliest/latest/coverage/continuous_segments);
+            # 原始字段存在事实逐键经unmapped独立披露(不删除原始记录让统计干净,
+            # 也不把融资余额自动解释成两融总余额;未来重建合计须单独确认来源/
+            # 单位/公式,不在本轮自动推算)。
             if mg.get('balance') is not None:
                 _add_point(acc('MARGIN_BAL'), mg.get('date'), mg.get('balance'),
                            ch, True, rel, fd_iso, 'point')
-            elif mg.get('rzye_billion') is not None:
-                a = acc('MARGIN_BAL')
-                a.note('field_semantics',
-                       'rzye_billion=融资余额(亿元);注册语义=两融余额存量;且'
-                       'fe.normalize_china期望balance键(新格式不被消费→快照缺该事实)')
-                _add_point(a, mg.get('date'), mg.get('rzye_billion'), ch, True, rel, fd_iso, 'point')
+            for mk, mv in mg.items():
+                if mk == 'date' or mv is None:
+                    continue
+                if mk == 'rzye_billion':
+                    _unmapped(unmapped, ch, 'margin:rzye_billion', rel,
+                              'identity_mismatch: rzye_billion=融资余额(亿元),与注册'
+                              'MARGIN_BAL口径(两融余额合计)不一致——仅披露字段存在,'
+                              '不作为MARGIN_BAL权威观测')
+                elif mk == 'rzye':
+                    _unmapped(unmapped, ch, 'margin:rzye', rel,
+                              'identity_mismatch: rzye=融资余额(元),与注册MARGIN_BAL'
+                              '口径(两融余额合计)不一致——仅披露字段存在,不作为'
+                              'MARGIN_BAL权威观测')
+                elif mk == 'rqye':
+                    _unmapped(unmapped, ch, 'margin:rqye', rel,
+                              'identity_mismatch: rqye=融券余额(元),与注册MARGIN_BAL'
+                              '口径(两融余额合计)不一致——仅披露字段存在;两融合计'
+                              '重建须另行确认来源/单位/公式(不自动以rzye+rqye推算)')
+                else:
+                    _unmapped(unmapped, ch, 'margin:%s' % mk, rel,
+                              'margin块字段未注册(独立披露,不入MARGIN_BAL任何覆盖)')
         val = obj.get('valuation') or {}
         if isinstance(val, dict):
             if isinstance(val.get('pe'), (int, float)):
@@ -619,17 +737,19 @@ def build_metric_record(m, accs, channel_unreadable, by_channel):
             'raw_records', 'valid_records', 'invalid_date_records', 'invalid_value_records',
             'length_mismatch_series', 'authority_raw_records', 'non_authority_records',
             'unique_observation_dates', 'authority_unique_observation_dates',
-            'cross_file_duplicate_records', 'same_file_duplicate_dates',
+            'cross_file_duplicate_records', 'same_file_extra_duplicate_records',
+            'same_file_duplicate_dates',
             'out_of_order_records', 'future_dated_observations',
             'distinct_value_conflict_dates', 'revision_events_detected')}
         rec['coverage'] = {'first_observation_date': None, 'last_observation_date': None,
                            'observation_span_days': None, 'total_unique_observations': 0,
                            'expected_observation_slots': None, 'observed_slots': None,
+                           'unique_observation_slots': 0,
                            'missing_slots_count': None, 'coverage_ratio': None,
                            'longest_continuous_segment_slots': 0, 'continuous_segments': [],
                            'usable_intervals': [], 'calendar_limitations': None,
                            'max_internal_gap_days': None}
-        rec['status'] = classify(m, [], None, all_unread)
+        rec['status'] = classify(m, [], 0, None, all_unread)
         return rec
 
     dates = dedup_by_date(a.records)
@@ -637,22 +757,34 @@ def build_metric_record(m, accs, channel_unreadable, by_channel):
     conflicts = [{'obs_date': d, 'distinct_values': list(e['values'].keys()),
                   'first_files': list(e['values'].values())}
                  for d, e in dates.items() if len(e['values']) > 1]
+    # FIX1-02重复按真实文件身份拆分(以权威观测为范围;见split_duplicates):
+    #   不变量: 权威原始记录=唯一观测日+同文件额外+跨文件额外(逐指标成立)。
+    same_file_extra, cross_file_extra = split_duplicates(
+        [r for r in a.records if r['auth']])
     expected = observed_slots = coverage_ratio = None
     missing_slots, extra_slots, lim_note, slot_reason = [], [], None, None
-    segs, longest, gap, span = [], 0, None, None
+    segs, longest, gap, span, n_slots = [], 0, None, None, 0
     if auth_dates:
         first, last = auth_dates[0], auth_dates[-1]
         span = (date.fromisoformat(last) - date.fromisoformat(first)).days
         exp_list, keyfn, lim, reason = expected_slots(m['frequency'], first, last, m['calendar'])
         lim_note, slot_reason = lim, reason
-        if exp_list is not None:
+        if exp_list is not None and keyfn is not None:
             expected = len(exp_list)
             obs_keys = {keyfn(d) for d in auth_dates}
             observed_slots = len(obs_keys & set(exp_list))
             missing_slots = [k for k in exp_list if k not in obs_keys]
             extra_slots = sorted(obs_keys - set(exp_list))
             coverage_ratio = (observed_slots / expected) if expected else None
-        segs = segment_split(auth_dates, m['frequency'])
+            n_slots = len(obs_keys)   # 独立观测槽位数(含日历外观测;日频=唯一日期数)
+        else:
+            n_slots = len(auth_dates)  # 槽位键不可得→按唯一观测日数(不虚构槽位)
+        # FIX1-01: 连续段=相邻实际槽位在预期序列中相邻(缺失预期槽位必断段)
+        segs, extra_keys, seg_reason = split_slots(auth_dates, m['frequency'], m['calendar'])
+        if seg_reason and not slot_reason:
+            slot_reason = seg_reason
+        if extra_keys and not extra_slots:
+            extra_slots = extra_keys  # 日历外观测槽位键(split_slots同口径)
         longest = max((s['slots'] for s in segs), default=0)
         gap = max_internal_gap(auth_dates)
     rec['discovery'] = {
@@ -672,7 +804,8 @@ def build_metric_record(m, accs, channel_unreadable, by_channel):
         'authority_raw_records': a.auth_raw, 'non_authority_records': a.nonauth_raw,
         'unique_observation_dates': len(dates),
         'authority_unique_observation_dates': len(auth_dates),
-        'cross_file_duplicate_records': max(a.auth_raw - len(auth_dates), 0),
+        'cross_file_duplicate_records': cross_file_extra,
+        'same_file_extra_duplicate_records': same_file_extra,
         'same_file_duplicate_dates': a.same_file_dup,
         'out_of_order_records': a.out_of_order,
         'future_dated_observations': a.future_obs,
@@ -685,8 +818,10 @@ def build_metric_record(m, accs, channel_unreadable, by_channel):
         'observation_span_days': span,
         'total_unique_observations': len(auth_dates),
         'expected_observation_slots': expected, 'observed_slots': observed_slots,
+        'unique_observation_slots': n_slots,
         'missing_slots_count': len(missing_slots), 'missing_slots_sample': missing_slots[:10],
         'extra_observations_beyond_calendar': len(extra_slots),
+        'extra_slot_keys_sample': extra_slots[:10],
         'coverage_ratio': round(coverage_ratio, 4) if coverage_ratio is not None else None,
         'longest_continuous_segment_slots': longest,
         'continuous_segments': segs,
@@ -697,7 +832,7 @@ def build_metric_record(m, accs, channel_unreadable, by_channel):
     rec['conflict_candidates'] = conflicts[:10]
     rec['revision_events'] = a.revision_events[:10]
     rec['input_degraded'] = ch_unread > 0
-    rec['status'] = classify(m, auth_dates, coverage_ratio, all_unread)
+    rec['status'] = classify(m, auth_dates, n_slots, coverage_ratio, all_unread)
     rec['sufficiency_note'] = ('无既定最小样本阈值;W4不判定"足够支持N年研究"(属W5/研究层),'
                                '仅报告可从本地数据证明的覆盖事实')
     return rec
@@ -727,10 +862,19 @@ def summarize(metrics, unmapped_list=()):
         if uniq >= 1 and span is not None and span < t['recent_only_span_days_max']:
             recent_only.append(r['metric_id'])
         brk = t['serious_break_days'].get(r['frequency'], 10)
-        if uniq >= 2 and c['max_internal_gap_days'] is not None \
+        # FIX1-01: 断点结论与连续段同一口径——连续段≥2段=预期槽位序列中存在
+        # 缺失槽位断段;槽位不可用(预期无法确定)时才回退自然日间隔>阈值判据。
+        if len(c['continuous_segments']) >= 2:
+            serious.append({'metric_id': r['metric_id'],
+                            'segments': len(c['continuous_segments']),
+                            'max_internal_gap_days': c['max_internal_gap_days']})
+        elif not c['continuous_segments'] and uniq >= 2 \
+                and c['max_internal_gap_days'] is not None \
                 and c['max_internal_gap_days'] > brk:
             serious.append({'metric_id': r['metric_id'],
-                            'max_internal_gap_days': c['max_internal_gap_days']})
+                            'segments': 0,
+                            'max_internal_gap_days': c['max_internal_gap_days'],
+                            'criterion': 'slots_unavailable_natural_day_fallback'})
     with_series = [r['metric_id'] for r in metrics if r['discovery'].get('series_available')]
     point_only = [r['metric_id'] for r in metrics
                   if r['status'] in ('OBSERVED', 'SPARSE', 'SINGLE_OBSERVATION')
@@ -746,9 +890,11 @@ def summarize(metrics, unmapped_list=()):
         'definition': '首末跨度<%d自然日(工程描述阈值)' % t['recent_only_span_days_max'],
         'metrics': recent_only}
     findings['3_哪些指标中间存在严重断点'] = {
-        'definition': '相邻观测日最大间隔>频率断段阈值(日%d/周%d/月%d自然日,工程描述阈值)'
-                      % (t['serious_break_days']['daily'], t['serious_break_days']['weekly'],
-                         t['serious_break_days']['monthly']),
+        'definition': ('连续段≥2段=预期槽位序列中存在缺失槽位断段(FIX1-01槽位口径,'
+                       '与longest_continuous_segment_slots/usable_intervals同源;'
+                       '槽位不可用时回退自然日间隔>阈值: 日%d/周%d/月%d,工程描述阈值)'
+                       % (t['serious_break_days']['daily'], t['serious_break_days']['weekly'],
+                          t['serious_break_days']['monthly'])),
         'metrics': serious}
     findings['4_哪些指标未保存历史'] = {
         'definition': 'MISSING=未找到权威观测;UNREADABLE=输入全不可读;DERIVED_ONLY=仅派生计算',
@@ -790,12 +936,23 @@ def render_markdown(result):
     unmapped, excluded = result['unmapped_records'], result['input']['excluded']
     L = ['# 历史覆盖审计报告 %s' % rid, '',
          '- 工具: %s / %s(只读审计;输出位于数据根之外)' % (TOOL_NAME, SCHEMA_VERSION),
+         '- 审计代码Commit(audit_commit): %s' % (result.get('audit_commit')
+                                                  or '(git HEAD不可得,见audit_commit_note——不声称对应已提交版本)'),
+         '- 报告生成时间(generated_at,UTC): %s' % result.get('generated_at'),
+         '- 审计结果状态: %s' % result.get('audit_status'),
+         '- 实际输入数据根目录(realpath): %s' % result['input'].get('data_dir_realpath'),
+         '- 输入清单摘要: %d文件(%s) manifest_digest=%s'
+         % (result['input'].get('files', 0),
+            json.dumps(result['input'].get('by_channel', {}), ensure_ascii=False),
+            integ.get('manifest_digest', '—')),
          '- 数据来源说明: %s' % (result['input'].get('source_note') or '(未提供--source-note)'),
          '- 输入完整性: %s' % ('逐文件SHA-256复检一致(审计期间输入未变化)'
                              if not integ['input_changed_during_audit']
                              else '**INPUT_CHANGED_DURING_AUDIT(%d文件变化,结论按非冻结数据集对待)**'
                              % len(integ['changed_files'])),
          '- 阈值定义公开于文末(工程描述约定,非金融事实)', '']
+    if result.get('audit_commit_disclosure'):
+        L.insert(8, '- %s' % result['audit_commit_disclosure'])
     L += ['## 总体', '| 项 | 数 |', '|---|---|']
     for k, lab in (('registered_metrics', '已注册指标'),
                    ('with_authority_observations', '有权威历史观测(OBSERVED+SPARSE+SINGLE)'),
@@ -812,18 +969,19 @@ def render_markdown(result):
           % (result['input']['files'], json.dumps(result['input']['by_channel']),
              json.dumps({k: v for k, v in excluded.items() if k != 'note'}, ensure_ascii=False)),
          '', '## 逐项覆盖(全部%d项注册指标,无数据者也输出)' % len(metrics),
-         '| 指标 | 名称 | 状态 | 频率 | 最早 | 最晚 | 独立观测日 | 覆盖率 | 缺槽 | 最长连续段 | 限制 |',
-         '|---|---|---|---|---|---|---|---|---|---|---|']
+         '| 指标 | 名称 | 状态 | 频率 | 最早 | 最晚 | 独立观测日 | 独立槽位 | 覆盖率 | 缺槽 | 最长连续段 | 限制 |',
+         '|---|---|---|---|---|---|---|---|---|---|---|---|']
     for r in metrics:
         c, d = r['coverage'], r['discovery']
         ratio = c['coverage_ratio']
         lim = c['calendar_limitations'] or ''
         lim = (lim[:16] + '…') if len(lim) > 18 else lim
-        L.append('| %s | %s | %s%s | %s | %s | %s | %d | %s | %s | %s | %s |' % (
+        L.append('| %s | %s | %s%s | %s | %s | %s | %d | %d | %s | %s | %s | %s |' % (
             r['metric_id'], r['display_name'], r['status'],
             '⚠️输入降级' if r.get('input_degraded') else '',
             r['frequency'], c['first_observation_date'] or '—',
             c['last_observation_date'] or '—', c['total_unique_observations'],
+            c.get('unique_observation_slots', 0),
             ('%.0f%%' % (ratio * 100)) if ratio is not None else '—',
             c['missing_slots_count'] if c['missing_slots_count'] is not None else '—',
             c['longest_continuous_segment_slots'], lim or '—'))
@@ -863,6 +1021,47 @@ def render_markdown(result):
 
 # ════════════════ 主流程 ════════════════
 
+def _git_state(repo_dir):
+    """真实Git状态(只读子进程,FIX1-05): 返回(HEAD完整40位SHA或None,
+    工作区脏项数或None)。取不到(非仓库/git不可用/超时)→(None,None)如实
+    披露,不得虚构,也不得把开发提示词中的预期SHA直接写入。"""
+    def _run(args):
+        try:
+            r = subprocess.run(['git', '-C', repo_dir] + args,
+                               capture_output=True, text=True, timeout=15)
+            return r.stdout.strip() if r.returncode == 0 else None
+        except Exception:
+            return None
+    head = _run(['rev-parse', 'HEAD'])
+    if not head or not re.fullmatch(r'[0-9a-f]{40}', head):
+        head = None
+    status = _run(['status', '--porcelain'])
+    dirty = None if status is None else len(status.splitlines())
+    return head, dirty
+
+
+def _audit_metadata():
+    """审计执行元数据(FIX1-05): audit_commit=真实git HEAD;generated_at=真实
+    UTC系统时钟。相同输入数据+相同代码版本⇒相同覆盖统计(run_id仍由输入
+    Manifest决定);generated_at随执行时间变化,确定性比较须剔除该字段。"""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    head, dirty = _git_state(repo)
+    meta = {
+        'audit_commit': head,
+        'audit_commit_note': ('git rev-parse HEAD于代码仓库%s实际取得' % repo) if head
+        else ('git HEAD不可得(%s非git仓库或git不可用)——本报告不声称对应任何'
+              '已提交代码版本' % repo),
+        'audit_commit_worktree_dirty_files': dirty,
+        'generated_at': datetime.now(timezone.utc).isoformat(timespec='seconds'),
+    }
+    if dirty:
+        meta['audit_commit_disclosure'] = (
+            '⚠️ Git工作树存在%d项未提交变更: 本报告统计对应当前工作树代码,'
+            '不完全对应干净已提交版本%s——不得声称报告完全对应该已提交代码版本'
+            % (dirty, head or '(未知)'))
+    return meta
+
+
 def run_audit(data_dir, out_dir, registry_path, source_note=None, log=None):
     """执行审计。返回(result_dict, log_lines, exit_code)。"""
     log = log if log is not None else []
@@ -870,8 +1069,14 @@ def run_audit(data_dir, out_dir, registry_path, source_note=None, log=None):
     def wmsg(s):
         log.append('[%s] %s' % (datetime.now(timezone.utc).isoformat(timespec='seconds'), s))
 
+    meta = _audit_metadata()
+    wmsg('audit_commit=%s(工作区脏项=%s) generated_at=%s'
+         % (meta.get('audit_commit') or '不可得',
+            meta.get('audit_commit_worktree_dirty_files'),
+            meta.get('generated_at')))
     base_result = {'tool': TOOL_NAME, 'schema_version': SCHEMA_VERSION,
                    'input': {'data_dir': data_dir, 'source_note': source_note}}
+    base_result.update(meta)
     probs = validate_paths(data_dir, out_dir)
     if probs:
         for p in probs:

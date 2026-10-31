@@ -316,14 +316,25 @@ class TestACoverageAndIdentity(unittest.TestCase):
         self.assertEqual(['2026-07', '2026-08'], n['coverage']['missing_slots_sample'])
 
     # 用例9: 真实内部缺口(BTC 20天断点;SHCOMP跨半年断点)
+    # [W4-FIX1修订] 原预期SHCOMP连续段=2: 自然日间隔阈值(4天<10)把10-16(周五)
+    # →10-20(周二)误判连续,违反FIX1-01(中间缺失预期交易日2026-10-19必须断段);
+    # 槽位口径下SHCOMP=3段([03-26]/[10-12..10-16]/[10-20])。场景保留,预期修正。
     def test_a09_real_internal_gap(self):
         b = by_id(self.result, 'BTC')
         self.assertEqual(len(b['coverage']['continuous_segments']), 2)
-        self.assertEqual(b['coverage']['max_internal_gap_days'], 20)
+        self.assertEqual(b['coverage']['max_internal_gap_days'], 20)  # 描述性自然日统计(FIX1-01保留)
         self.assertEqual(b['coverage']['longest_continuous_segment_slots'], 3)
         sc = by_id(self.result, 'SHCOMP')
-        self.assertEqual(len(sc['coverage']['continuous_segments']), 2)
+        self.assertEqual(len(sc['coverage']['continuous_segments']), 3)
         self.assertEqual(sc['coverage']['max_internal_gap_days'], 200)
+        # 断段处必有缺失预期槽位: 第2段末槽10-16(周五)与第3段首槽10-20(周二)
+        # 之间缺2026-10-19(周一)预期交易日→断段(missing_slots_sample只存前10
+        # 个即3月日期,故以段边界证明断点)
+        seg_starts = [s['start_slot'] for s in sc['coverage']['continuous_segments']]
+        self.assertEqual(seg_starts, ['2026-03-26', '2026-10-12', '2026-10-20'])
+        seg_ends = [s['end_slot'] for s in sc['coverage']['continuous_segments']]
+        self.assertEqual(seg_ends, ['2026-03-26', '2026-10-16', '2026-10-20'])
+        self.assertGreater(sc['coverage']['missing_slots_count'], 100)
         breaks = {m['metric_id']: m['max_internal_gap_days']
                   for m in self.result['findings']['3_哪些指标中间存在严重断点']['metrics']}
         self.assertIn('BTC', breaks)
@@ -427,9 +438,24 @@ class TestACoverageAndIdentity(unittest.TestCase):
         sb = by_id(self.result, 'SB_FLOW')  # south_money百万→亿(/100,同fe口径)
         self.assertEqual(sb['coverage']['first_observation_date'], '2026-10-20')
         self.assertIn('unit_transform', sb['discovery']['notes'])
-        mb = by_id(self.result, 'MARGIN_BAL')  # rzye_billion语义漂移如实注记
-        self.assertEqual(mb['coverage']['first_observation_date'], '2026-10-20')
-        self.assertIn('field_semantics', mb['discovery']['notes'])
+        # [W4-FIX1修订] 原预期MARGIN_BAL first=2026-10-20+field_semantics注记:
+        # 把rzye_billion(融资余额,亿元)当注册MARGIN_BAL(两融余额合计)权威观测,
+        # 违反FIX1-03身份纪律(缺同口径证据不得写入权威历史)。场景保留(fixture
+        # 仍只有rzye_billion),预期修正为: 无权威观测(MISSING)+unmapped独立披露
+        # identity_mismatch(原始字段存在事实不丢失,不删除原始记录)。
+        mb = by_id(self.result, 'MARGIN_BAL')
+        self.assertEqual(mb['status'], 'MISSING')
+        self.assertFalse(mb['discovery']['found'])
+        self.assertIsNone(mb['coverage']['first_observation_date'])
+        self.assertEqual(mb['coverage']['unique_observation_slots'], 0)
+        self.assertEqual(mb['coverage']['continuous_segments'], [])
+        mg_unmapped = {(u['channel'], u['raw_key']): u
+                       for u in self.result['unmapped_records']}
+        self.assertIn(('china', 'margin:rzye_billion'), mg_unmapped)
+        self.assertIn('identity_mismatch', mg_unmapped[('china', 'margin:rzye_billion')]['note'])
+        self.assertIn('融资余额', mg_unmapped[('china', 'margin:rzye_billion')]['note'])
+        self.assertIn('daily/china_20261020.json',
+                      mg_unmapped[('china', 'margin:rzye_billion')]['files'])
         for mid in ('SH_AMOUNT', 'SZ_COMPONENT_AMOUNT', 'CN_TOTAL_TURNOVER'):
             r = by_id(self.result, mid)
             self.assertEqual(r['coverage']['first_observation_date'], '2026-10-20', mid)
@@ -605,17 +631,37 @@ class TestCIntegrityDeterminism(unittest.TestCase):
         self.assertFalse(self.res1['integrity']['input_changed_during_audit'])
 
     # 用例22: 重复执行一致(run_id/JSON/MD/manifest字节级一致;同输入同输出)
+    # [W4-FIX1修订] FIX1-05新增generated_at(真实UTC执行时间)后,完整JSON/MD
+    # 字节随执行时间变化(两次执行跨秒即不同——原字节级断言变为时序运气);
+    # 按FIX1-05§8.3改为: manifest仍字节级一致(不含运行时元数据)+
+    # JSON/MD剔除generated_at后字节级一致。覆盖统计确定性语义不变:
+    # 相同输入数据+相同代码版本⇒相同覆盖统计(不要求执行时间相同)。
     def test_c22_repeat_execution_identical(self):
         self.assertEqual(self.ec2, 0)
         self.assertEqual(self.res1['run_id'], self.res2['run_id'])
-        for pat in ('coverage_audit_%s.json', 'coverage_audit_%s.md',
-                    'input_manifest_%s.json'):
-            rid = self.res1['run_id']
-            with open(os.path.join(self.out1, pat % rid), 'rb') as f:
-                b1 = f.read()
-            with open(os.path.join(self.out2, pat % rid), 'rb') as f:
-                b2 = f.read()
-            self.assertEqual(b1, b2, pat)
+        # audit_commit=代码版本元数据,两次执行必须一致;generated_at字段必须
+        # 存在(真实UTC执行时间),比较时剔除
+        self.assertEqual(self.res1['audit_commit'], self.res2['audit_commit'])
+        for r in (self.res1, self.res2):
+            self.assertIn('generated_at', r)
+        rid = self.res1['run_id']
+        with open(os.path.join(self.out1, 'input_manifest_%s.json' % rid), 'rb') as f:
+            b1 = f.read()
+        with open(os.path.join(self.out2, 'input_manifest_%s.json' % rid), 'rb') as f:
+            b2 = f.read()
+        self.assertEqual(b1, b2, 'manifest字节级一致')
+        # JSON: 剔除运行时元数据generated_at后字节级一致
+        j1 = {k: v for k, v in self.res1.items() if k != 'generated_at'}
+        j2 = {k: v for k, v in self.res2.items() if k != 'generated_at'}
+        self.assertEqual(json.dumps(j1, sort_keys=True, ensure_ascii=False),
+                         json.dumps(j2, sort_keys=True, ensure_ascii=False))
+        # MD: 剔除生成时间行后字节级一致
+        def _strip_md(path):
+            with open(path, 'r', encoding='utf-8') as f:
+                return [ln for ln in f.read().splitlines()
+                        if not ln.startswith('- 报告生成时间')]
+        self.assertEqual(_strip_md(os.path.join(self.out1, 'coverage_audit_%s.md' % rid)),
+                         _strip_md(os.path.join(self.out2, 'coverage_audit_%s.md' % rid)))
 
     # 用例24: 只读零副作用(数据根零新增;代码库关键文件mtime+SHA不变)
     def test_c24_readonly_no_side_effects(self):
@@ -807,14 +853,16 @@ class TestENegativeSensitivity(unittest.TestCase):
         self.assertTrue(detect)
 
     # E5: 漏掉/洗白无数据指标(MISSING→OBSERVED)→用例16断言失败
+    # [W4-FIX1修订] classify签名增加n_slots位(FIX1-01: SINGLE_OBSERVATION按
+    # 独立观测槽位);本负向mock同步新签名,注入语义不变(MISSING→OBSERVED洗白)。
     def test_e5_missing_whitewash_detected(self):
         s = by_id(self.res, 'SILVER_F')
         correct = s['status'] == 'MISSING'
         self.assertTrue(correct)
         orig = hca.classify
 
-        def whitewash(m, dates, ratio, unreadable):
-            st = orig(m, dates, ratio, unreadable)
+        def whitewash(m, dates, n_slots, ratio, unreadable):
+            st = orig(m, dates, n_slots, ratio, unreadable)
             return 'OBSERVED' if st == 'MISSING' else st
 
         mut = self._mutated(classify=whitewash)

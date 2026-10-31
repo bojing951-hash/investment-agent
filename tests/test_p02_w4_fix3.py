@@ -359,17 +359,20 @@ class TestBPathBoundary(unittest.TestCase):
         self.assertEqual(ec, 2)
         self.assertFalse(os.path.exists(out))
 
-    # B5: 正常daily(输入根含符号路径前缀,如macOS /tmp→/private/tmp)不误拒
+    # B5: 正常daily+输入根经符号链接给出(授权边界=realpath口径)不误拒
     def test_b5_normal_daily_completes(self):
-        t = self._mk('w4fix3_b5_')       # tempfile根本身位于符号链接前缀之下
-        daily = os.path.join(t, 'data', 'daily')
+        t = self._mk('w4fix3_b5_')
+        real = os.path.join(t, 'real_data')          # 真实数据根
+        daily = os.path.join(real, 'daily')
         os.makedirs(daily)
         with open(os.path.join(daily, 'global_20261020.json'), 'w') as f:
             json.dump({"date": "2026-10-20",
                        "data": {"SPX": {"close": 5700.0, "date": "2026-10-16"}}}, f)
-        self.assertNotEqual(os.path.realpath(t), t)   # 前提: 根确经符号路径
+        entry = os.path.join(t, 'entry')             # 符号路径入口(跨OS确定性)
+        os.symlink(real, entry)
+        self.assertNotEqual(os.path.realpath(entry), entry)   # 前提: 经符号路径
         out = os.path.join(t, 'out')
-        ec, _ = self._run_main(os.path.join(t, 'data'), out)
+        ec, _ = self._run_main(entry, out)
         self.assertEqual(ec, 0)
         res = _load(glob.glob(os.path.join(out, 'coverage_audit_*.json'))[0])
         self.assertEqual(res['audit_status'], 'COMPLETED')

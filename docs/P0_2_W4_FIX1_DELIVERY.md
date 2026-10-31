@@ -166,9 +166,10 @@ Gate A/B、来源内容摘要、正式报告及长期状态保护、月报季报
 (逐套件退出码见§13 CI实证,CI清单与本地一致)。
 
 ## 13. GitHub最终CI(workflow_dispatch,dev/p0-2-w4)
-实现Commit/最终固定Commit/Actions Run/Job ID/checkout head_sha/逐套件退出码:
-见本文末"CI实证"节(最终固定Commit后回填;两轮CI均46+1套件,新增
-test_p02_w4_fix1.py)。**W4首轮的46套绿色CI不作为FIX1验收结果**。
+实现Commit(c0bbeb5,run 41196099068/job 124522460892,47/47 exit=0)实证
+与最终固定Commit轮(run#2,Git外附件)说明: 见本文末"CI实证"节。
+两轮CI均为46旧套件+新增test_p02_w4_fix1.py=47套件。
+**W4首轮的46套绿色CI不作为FIX1验收结果**。
 
 ## 14. 正式真实数据审计(FIX1-07,最终Commit后执行)
 - 数据: 优先复用W4已授权冻结副本/Users/cast/audit/w4-real-data(848文件);
@@ -209,6 +210,26 @@ launchd两服务路径/LIVE核心源码SHA-256 vs P0-1封印/W4+FIX1产物未部
 
 ---
 
-## CI实证(最终固定Commit后回填)
+## CI实证(workflow_dispatch, dev/p0-2-w4, offline-tests.yml)
 
-(待回填: 实现Commit+CI run#1/最终Commit+CI run#2的Run/Job ID/head_sha/逐套件退出码)
+### CI run#1 — FIX1实现Commit c0bbeb5bfa71d8d592b4ed40bdfed31baf1cff3a
+- Actions Run ID: **41196099068** | Job ID: **124522460892**(tests)
+- event=workflow_dispatch | head_branch=dev/p0-2-w4 | head_sha=c0bbeb5…(=实现Commit)
+- run_started_at=2026-10-31T11:15:29Z | completed=11:16:26Z | conclusion=**success**
+- **47套件全部exit=0**(47/47;含test_p02_w4.py修订版36检查+test_p02_w4_fix1.py
+  新增40检查;test_glm_live按workflow契约排除未执行):
+  test_datafix_20261017 / test_e2e_four_weeks / test_e2e_frozen14 / test_e2e_orig14 /
+  test_fact_engine / test_gate_chain_p01 / test_p01_fix1~fix11(11套) /
+  test_p02_w1 / test_p02_w1_fix1 / test_p02_w2 / test_p02_w2_fix1~fix6(6套) /
+  test_p02_w3 / test_p02_w3_fix1~fix5(5套) / test_p02_w4 / **test_p02_w4_fix1** /
+  test_p0_fixes / test_p1_fixes / test_p2_fixes / test_p4_fixes / test_p7_fixes /
+  test_phase3 / test_phase4 / test_round3_adversarial / test_round3_p0 /
+  test_round4 / test_round5 / test_round6 / test_snapshot —— 逐套件退出码
+  自Job 124522460892日志逐行提取(`test_<name> exit=N`),全部=0。
+
+### CI run#2 — FIX1最终固定Commit(本Commit)
+- 本文档所在Commit即最终固定Commit;其CI(run#2)的Actions Run/Job ID/
+  head_sha核对/逐套件退出码按防预写纪律**不入Git**,见Git外附件
+  IA-P0-2-W4-FIX1-REAL-AUDIT-*.txt与IA-P0-2-W4-FIX1-POSTCOMMIT-ISOLATION-*.txt
+  及对话交付报告(数字以附件为准,预期同样47/47 exit=0)。
+- W4首轮CI(46套,run 41186509449)**不作为FIX1验收结果**。

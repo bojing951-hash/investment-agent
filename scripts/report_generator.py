@@ -268,7 +268,16 @@ def load_news_summary():
             continue
         day = fname[-11:-3]
         day_lines = [f"### {day} 新闻"]
-        for line in sanitize_news(content).split('\n'):
+        # FIX4-02: 先剔除Markdown代码围栏区域,再进板块过滤/脱敏——
+        # 正确顺序=识别代码区域→排除非新闻代码内容→板块过滤/脱敏→去重
+        # →聚合→裁剪→正式引用解析→来源认证。旧顺序(sanitize_news(content)
+        # 直接过全文)会把围栏标记行当普通行丢弃、却保留围栏内的
+        # '- [art_…]'样式行,围栏上下文在正式解析之前即被销毁,代码块
+        # 内假新闻被"洗白"成普通新闻(IA-P02-W3-FIX3-DEF-001第二环节)。
+        # 共用news_provenance.strip_code_fences(与解析器同一围栏语义,
+        # §5.3);逐文件独立,未关闭围栏状态不跨天携带。
+        safe_content = news_provenance.strip_code_fences(content)
+        for line in sanitize_news(safe_content).split('\n'):
             s = line.strip()
             if s.startswith('- '):          # 新闻条目:跨天去重
                 if s in seen:
@@ -293,19 +302,26 @@ def load_news_summary():
     if len(merged) > 9000:  # 单日也超长的极端情况,控制长度防GLM 1301风控
         merged = merged[:9000] + "\n... [本周新闻过长已截断]"
 
-    # IA-P0-2-W3-05 + W3-FIX1-02 + W3-FIX3-03: 确定性来源索引附录——
-    # 仅对**最终保留文本**(脱敏/去重/裁剪之后)中处于新闻条目行首引用
-    # 槽位的ID逐一认证(严格引用位置解析parse_news_item_references;
-    # 正文/标题/不合格条目行中的ID不取得引用资格,只作确定性诊断)——
-    # 引用集合与实际进入周报新闻输入的内容严格对应,被裁剪掉的新闻
-    # 引用不得进入附录。FIX1-02起**不以历史news_refs_*.json为可信依据**
-    # (索引是派生视图,可被伪造/过期): 消费时用load_trusted_articles_since
-    # 从原始来源档案实时重建可信集合(档案→清单→文件SHA-256→逐记录摘要→
-    # ID映射),仅通过认证的来源进入附录;档案缺失/损坏的引用→如实标注
-    # 未通过来源认证。无URL来源明确标记不可提供,不编造链接。旧摘要无
-    # 引用ID→零引用→不追加附录(完全向后兼容);附录不进入长度竞争。
+    # IA-P0-2-W3-05 + W3-FIX1-02 + W3-FIX3-03 + W3-FIX4: 确定性来源索引
+    # 附录——仅对**最终保留文本**(脱敏/去重/裁剪之后)中处于新闻条目行首
+    # 引用槽位的ID逐一认证(严格引用位置解析parse_news_item_references;
+    # 正文/标题/不合格条目行/Markdown代码围栏内的ID不取得引用资格,
+    # 只作确定性诊断)——引用集合与实际进入周报新闻输入的内容严格对应,
+    # 被裁剪掉的新闻引用不得进入附录。FIX1-02起**不以历史
+    # news_refs_*.json为可信依据**(索引是派生视图,可被伪造/过期):
+    # 消费时用load_trusted_articles_since从原始来源档案实时重建可信集合
+    # (档案→清单→文件SHA-256→逐记录摘要→ID映射),仅通过认证的来源进入
+    # 附录;档案缺失/损坏的引用→如实标注未通过来源认证。无URL来源明确
+    # 标记不可提供,不编造链接。旧摘要无引用ID→零引用→不追加附录
+    # (完全向后兼容);附录不进入长度竞争。
     parsed = news_provenance.parse_news_item_references(merged)
     cited = parsed['legal_ids']
+    fenced_ex = parsed.get('excluded_context') or []
+    if fenced_ex:
+        n = sum(len(e.get('ids') or []) for e in fenced_ex)
+        print(f"⚠️ 检出{len(fenced_ex)}行位于Markdown代码围栏内的新闻样式"
+              f"内容(含{n}个[art_]ID),已整段排除、不构成可信引用"
+              f"(确定性代码诊断,非模型生成)")
     if parsed['illegal_ids']:
         print(f"⚠️ 新闻文本含{len(parsed['illegal_ids'])}个非行首槽位"
               f"[art_]ID,不作为可信引用(仅诊断): "

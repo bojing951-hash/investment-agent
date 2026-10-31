@@ -73,6 +73,9 @@ CITATION_RE = re.compile(r'\[(art_[0-9a-f]{16})\]')
 # 紧跟空白或行尾(^\s*不允许:条目必须顶格;ID后必须断词)
 NEWS_ITEM_RE = re.compile(r'^-\s+\[(art_[0-9a-f]{16})\](?=\s|$)')
 
+# FIX4-01: Markdown代码围栏识别(CommonMark最小确定性子集;共享单一实现)
+FENCE_OPEN_RE = re.compile(r'^ {0,3}(`{3,}|~{3,})')
+
 
 # ───────────────────────── 时间语义(UTC确定性) ─────────────────────────
 
@@ -509,12 +512,93 @@ def _uniq_ids(seq):
     return out
 
 
+def _fence_open(line):
+    """FIX4-01: 识别代码围栏开始行;返回(围栏字符,长度)或None。
+
+    CommonMark最小子集: 0-3个前导空格+≥3个连续反引号或波浪号(可带
+    语言标签info串);反引号围栏的info串不得再含反引号,波浪围栏的info串
+    不得再含波浪号;缩进>3空格或制表符开头不构成围栏(属缩进代码块)。
+    不得只靠line.startswith('```')判断(无法覆盖波浪号/长度/缩进)。
+    """
+    s = str(line or '')
+    n_lead = len(s) - len(s.lstrip(' '))
+    if n_lead > 3:
+        return None
+    m = FENCE_OPEN_RE.match(s)
+    if not m:
+        return None
+    marker = m.group(1)
+    info = s[m.end():].strip()
+    ch = marker[0]
+    if ch == '`' and '`' in info:
+        return None
+    if ch == '~' and '~' in info:
+        return None
+    return (ch, len(marker))
+
+
+def _fence_close(line, ch, length):
+    """FIX4-01: 是否为匹配的关闭围栏行。
+
+    同字符且长度≥开栏长度;仅允许0-3空格前导与尾随空白;关栏行不得带
+    info串。字符不匹配(反引号↔波浪号)或长度不足都不是关栏(围栏继续)。
+    """
+    s = str(line or '')
+    n_lead = len(s) - len(s.lstrip(' '))
+    if n_lead > 3:
+        return False
+    body = s.strip(' ')
+    return (body != '' and set(body) == {ch} and len(body) >= length)
+
+
+def markdown_fence_map(text):
+    """FIX4-01/02共用: 逐行标注Markdown代码围栏区域。
+
+    返回List[bool]与splitlines()等长,True=该行属于围栏区域(开栏行/
+    内容行/关栏行)。开栏/关栏遵循CommonMark最小子集(_fence_open/
+    _fence_close);未关闭围栏状态持续到文档结束。**文档级状态**: 每个
+    news_summary_YYYYMMDD.md必须独立调用本函数,不得把前一天文件结尾的
+    未关闭围栏状态带入下一天文件(§5.3)。parse_news_item_references与
+    周报新闻过滤(report_generator.load_news_summary)共用本围栏语义,
+    不得在两个模块各写一套不一致的围栏正则(IA-P02-W3-FIX3-DEF-001)。
+    """
+    lines = str(text or '').splitlines()
+    flags = [False] * len(lines)
+    state = None                     # None=围栏外;(字符,长度)=已开栏
+    for i, line in enumerate(lines):
+        if state is None:
+            state = _fence_open(line)
+            flags[i] = state is not None
+        else:
+            flags[i] = True
+            if _fence_close(line, state[0], state[1]):
+                state = None
+    return flags
+
+
+def strip_code_fences(text):
+    """FIX4-02: 剔除Markdown代码围栏区域(开栏/内容/关栏行)后的文本。
+
+    供周报新闻消费端在板块过滤/脱敏**之前**调用: 先识别并排除非新闻
+    代码区域,再sanitize_news——否则围栏标记行被过滤器丢弃而围栏内的
+    '- [art_…]'样式行被当普通新闻保留,围栏上下文在正式解析之前已被
+    销毁(IA-P02-W3-FIX3-DEF-001第二环节,围栏内条目被'洗白'成正常
+    新闻)。逐文档独立(未关闭围栏状态不跨文件)。
+    """
+    lines = str(text or '').splitlines()
+    flags = markdown_fence_map(text)
+    return '\n'.join(l for l, f in zip(lines, flags) if not f)
+
+
 def parse_news_item_references(text):
-    """FIX3-01: 正式新闻条目引用位置解析器(严格行首引用槽位,逐行解析)。
+    """FIX3-01+FIX4-01: 正式新闻条目引用位置解析器(行首槽位+代码围栏上下文)。
 
     合法新闻条目=单行顶格以'- [art_xxx]'开头且ID后紧跟空白或行尾:
         - [art_aaaaaaaaaaaaaaaa] Fed holds rates
     仅该行首槽位ID取得新闻引用资格;以下位置的ID**不取得**引用资格:
+      * Markdown代码围栏内(开栏/内容/关栏行,如围栏中的'- [art_b] 代码
+        示例'——围栏内容不是新闻上下文,FIX4-01/IA-P02-W3-FIX3-DEF-001
+        第一环节;共用markdown_fence_map围栏语义);
       * 类别标题/普通正文(如'### 美联储/利率 [art_b]'或叙述句);
       * 不合格条目行的行内任意位置(如'- Fed holds rates [art_b]');
       * 合法条目的正文夹带(如'- [art_a] Fed holds rates [art_b]'→
@@ -525,15 +609,40 @@ def parse_news_item_references(text):
     返回dict:
       items        逐条目{line_no,line,article_id,body,extra_body_ids,
                    status('ok'|'body_extra_ids')}
-      legal_ids    合法槽位ID(去重保序)
-      illegal_ids  非法位置ID(正文夹带+非槽位行,去重保序)
+      legal_ids    合法槽位ID(去重保序;围栏内ID绝不进入)
+      illegal_ids  非法位置ID(正文夹带+非槽位行,去重保序;围栏内ID
+                   不属"非法位置"而是排除上下文,不进入本列表)
       anomalies    逐异常{line_no,kind('body_extra_ids'|'illegal_position'),
-                   ids,reason,line,action}
-      ok           无任何异常(严格格式口径)
+                   ids,reason,line,action};围栏内容不产生异常
+      excluded_context  围栏内含[art_]ID或新闻条目样式的行(仅确定性
+                   诊断,绝不参与认证;kind='fenced')
+      fenced_lines     全部围栏区域行号(开栏/内容/关栏)
+      ok           无任何异常(严格格式口径;围栏内容不影响)
     """
-    items, anomalies = [], []
-    for lineno, raw in enumerate(str(text or '').splitlines(), 1):
+    raw_lines = str(text or '').splitlines()
+    fence = markdown_fence_map(text)
+    items, anomalies, excluded, fenced_lines = [], [], [], []
+    for lineno, raw in enumerate(raw_lines, 1):
         line = raw.rstrip()
+        if fence[lineno - 1]:
+            # FIX4-01: 代码围栏区域(开栏/内容/关栏)非新闻上下文——
+            # 围栏内'- [art_…]'样式行不构成新闻条目,其ID不进入
+            # legal_ids/illegal_ids,不产生异常,仅记确定性排除诊断。
+            fenced_lines.append(lineno)
+            if not line.strip():
+                continue
+            ids = _uniq_ids(CITATION_RE.findall(line))
+            if ids or NEWS_ITEM_RE.match(line):
+                excluded.append({
+                    'line_no': lineno, 'kind': 'fenced', 'ids': ids,
+                    'reason': ('行位于Markdown代码围栏内,非新闻条目'
+                               '上下文,不参与引用资格判定: ')
+                              + ','.join(ids),
+                    'line': line[:80],
+                    'action': ('围栏内ID一律不作可信引用认证,仅确定性'
+                               '诊断记录'),
+                })
+            continue
         if not line.strip():
             continue
         m = NEWS_ITEM_RE.match(line)
@@ -575,6 +684,8 @@ def parse_news_item_references(text):
         'legal_ids': _uniq_ids([it['article_id'] for it in items]),
         'illegal_ids': _uniq_ids([i for a in anomalies for i in a['ids']]),
         'anomalies': anomalies,
+        'excluded_context': excluded,
+        'fenced_lines': fenced_lines,
         'ok': not anomalies,
     }
 

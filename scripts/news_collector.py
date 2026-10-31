@@ -442,26 +442,37 @@ def _allowed_citation_ids(classified):
 
 
 def validate_summary_citations(summary, allowed_ids):
-    """FIX1-03+FIX3-02: 模型成功输出的确定性引用校验(纯函数,可独立测试)。
+    """FIX1-03+FIX3-02+FIX4-03: 模型成功输出的确定性引用校验(纯函数)。
 
     规则(全部满足才通过;FIX3-02起以parse_news_item_references的
-    正式引用位置解析为共同判定基础,不再做全文任意位置ID搜索):
-      1. 输出至少含一个合法行首引用槽位ID(整篇无有效引用→未溯源摘要);
-      2. 输出中出现的全部[art_]ID(含正文夹带/非槽位位置)都属于本次模型
-         输入的允许集合(虚构ID/超出输入集→失败——即使ID在当日其他档案
-         存在,也无依据认定模型用过该来源);
+    正式引用位置解析为共同判定基础,不再做全文任意位置ID搜索;
+    FIX4-03起同一解析器自带Markdown代码围栏上下文):
+      1. 输出至少含一个合法行首引用槽位ID(整篇无有效引用→未溯源摘要;
+         仅有代码围栏内的'- [art_…]'示例同样不算——围栏不是新闻上下文);
+      2. 输出中出现的全部[art_]ID(含正文夹带/非槽位位置/代码围栏内)
+         都属于本次模型输入的允许集合(虚构ID/超出输入集→失败——即使
+         ID在当日其他档案存在,也无依据认定模型用过该来源);
       3. 每条'-'开头的新闻条目行必须符合正式条目语法'- [art_xxx] …'
          (行首引用槽位;'- Fed … [art_x]'位置错误→失败;无引用条目行→
-         失败——无来源的新闻主张不得按已溯源摘要保存);
+         失败——无来源的新闻主张不得按已溯源摘要保存;围栏内行不是
+         新闻条目,不参与本判定);
       4. 条目正文不得夹带额外[art_]ID——即使夹带ID确属允许集合,也不得
          因正文出现而成为该条目的第二来源(§5.2固定反例:A行首合法+
          B正文夹带→该输出不符合模型摘要格式要求,整体不通过)。
+    代码围栏内的允许ID(如模型摘要在围栏中引用真实输入文章B作示例)
+    不取得来源资格,但也不单独构成失败;真正的合法A仍可正常认证
+    (FIX4-03)。失败路径不变: 一次受控重试→二次失败→确定性回退。
     返回 (ok, problems)。
     """
     allowed = set(allowed_ids)
     parsed = nprov.parse_news_item_references(summary)
     problems = []
-    all_ids = list(parsed['legal_ids']) + list(parsed['illegal_ids'])
+    # FIX4-03: 围栏内ID不取得引用资格,但虚构检测仍覆盖全文ID——
+    # 围栏中出现的不允许ID同样说明模型输出了无依据的来源标记
+    excluded_ids = [i for e in (parsed.get('excluded_context') or [])
+                    for i in (e.get('ids') or [])]
+    all_ids = (list(parsed['legal_ids']) + list(parsed['illegal_ids'])
+               + excluded_ids)
     fictional = sorted({c for c in all_ids if c not in allowed})
     if fictional:
         problems.append('含不允许的引用ID: ' + ','.join(fictional))
@@ -471,7 +482,10 @@ def validate_summary_citations(summary, allowed_ids):
         prefix = ('引用ID不在行首槽位: ' if a['kind'] == 'illegal_position'
                   else '条目正文夹带额外引用ID: ')
         problems.append(prefix + a['reason'])
-    for line in summary.split('\n'):
+    fence = nprov.markdown_fence_map(summary)
+    for idx, line in enumerate(str(summary or '').split('\n')):
+        if idx < len(fence) and fence[idx]:
+            continue          # 围栏行不是新闻条目,不按"无引用条目"计
         s = line.strip()
         if s.startswith('- ') and len(s) > 8 \
                 and not nprov.NEWS_ITEM_RE.match(line.rstrip()):

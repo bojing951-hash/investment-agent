@@ -184,8 +184,20 @@ SHA)→正式审计→隔离核查→附件交付;此后不再新Commit(再出Co
 
 ## CI实证(workflow_dispatch, dev/p0-2-w4, offline-tests.yml)
 
-### CI run#1 — FIX2实现Commit(回填于最终固定Commit)
-- (推送后回填: Actions Run/Job ID/head_sha/逐套件退出码,47套件预期exit=0)
+### CI run#1 — FIX2实现Commit 5572cfd518fdacc86c5095207d7c56c9648579d2
+- Actions Run ID: **41205021727** | Job ID: **124548242147**(tests)
+- event=workflow_dispatch | head_branch=dev/p0-2-w4 | head_sha=5572cfd…(=实现Commit)
+- conclusion=**success** | **48套件全部exit=0**(FIX1的47套件+新增
+  test_p02_w4_fix2.py=48;test_glm_live按workflow契约排除未执行):
+  test_datafix_20261017 / test_e2e_four_weeks / test_e2e_frozen14 /
+  test_e2e_orig14 / test_fact_engine / test_gate_chain_p01 /
+  test_p01_fix1~fix11(11套) / test_p02_w1 / test_p02_w1_fix1 / test_p02_w2 /
+  test_p02_w2_fix1~fix6(6套) / test_p02_w3 / test_p02_w3_fix1~fix5(5套) /
+  test_p02_w4 / test_p02_w4_fix1 / **test_p02_w4_fix2** / test_p0_fixes /
+  test_p1_fixes / test_p2_fixes / test_p4_fixes / test_p7_fixes / test_phase3 /
+  test_phase4 / test_round3_adversarial / test_round3_p0 / test_round4 /
+  test_round5 / test_round6 / test_snapshot——逐套件退出码自Job
+  124548242147日志逐行提取(`test_<name> exit=N`),全部=0。
 
 ### CI run#2 — FIX2最终固定Commit(本Commit)
 - 按防预写纪律不入Git,见Git外附件IA-P0-2-W4-FIX2-REAL-AUDIT-*.txt与

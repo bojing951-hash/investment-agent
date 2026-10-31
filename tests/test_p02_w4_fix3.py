@@ -45,7 +45,7 @@ sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 import historical_coverage_audit as hca   # 被审计的真实审计器(FIX3版)
 
 REGISTRY = os.path.join(ROOT, 'config', 'metric_registry.json')
-SCHEMA_V = 'w4-coverage-audit/1.3'
+SCHEMA_V = 'w4-coverage-audit/1.4'   # FIX4最小语义修正: 1.3→1.4(输入根symlink拒绝+extract_status+新失败状态)
 
 
 # ════════════════ fixture构造器(合成数据,与真实Schema同构) ════════════════
@@ -239,7 +239,7 @@ class TestASchemaAttribution(unittest.TestCase):
         self.assertIn('record_schema:not_object', hits[0]['invalid_reasons'])
         self.assertEqual(r['status'], 'MISSING')
 
-    # A9: 保留Manifest关联(SHA/size/mtime齐备+关联零问题)+schema 1.3
+    # A9: 保留Manifest关联(SHA/size/mtime齐备+关联零问题)+schema 1.4
     def test_a9_manifest_association_kept(self):
         mfile = glob.glob(os.path.join(self.out, 'input_manifest_*.json'))[0]
         sha_by_rel = {e['relpath']: e['sha256']
@@ -359,8 +359,15 @@ class TestBPathBoundary(unittest.TestCase):
         self.assertEqual(ec, 2)
         self.assertFalse(os.path.exists(out))
 
-    # B5: 正常daily+输入根经符号链接给出(授权边界=realpath口径)不误拒
-    def test_b5_normal_daily_completes(self):
+    # B5(FIX4修订): 输入根本身为符号链接→默认拒绝+正向对照(直接传真实目录)。
+    # 旧FIX3版预期(exit=0经symlink入口COMPLETED)违反冻结契约F3-AC-03——
+    # FIX3的授权边界定义"数据根realpath"会把用户未经确认的symlink目标自动
+    # 纳入授权(FIX4-01判定的缺陷: data_dir本身为symlink时未确认目标即读取);
+    # 旧B5恰以"自动跟随symlink入口并成功"为期望,等于把该缺陷固化为断言。
+    # 修订依据=IA-P0-2-W4-FIX4 §4.5: 保留场景(输入根=显式symlink),断言改为
+    # 默认fail-closed拒绝;另设正向对照证明"明确授权后直接传真实目录"不受
+    # 影响(不误拒合法用法)。场景与构造不变,仅安全预期反转,非删负例。
+    def test_b5_input_root_symlink_default_rejected(self):
         t = self._mk('w4fix3_b5_')
         real = os.path.join(t, 'real_data')          # 真实数据根
         daily = os.path.join(real, 'daily')
@@ -372,9 +379,17 @@ class TestBPathBoundary(unittest.TestCase):
         os.symlink(real, entry)
         self.assertNotEqual(os.path.realpath(entry), entry)   # 前提: 经符号路径
         out = os.path.join(t, 'out')
-        ec, _ = self._run_main(entry, out)
-        self.assertEqual(ec, 0)
-        res = _load(glob.glob(os.path.join(out, 'coverage_audit_*.json'))[0])
+        ec, printed = self._run_main(entry, out)
+        self.assertEqual(ec, 2)                      # FIX4-01: 默认拒绝,非零退出
+        self.assertFalse(os.path.exists(out))        # 不写任何输出
+        self.assertEqual(glob.glob(os.path.join(t, '**', 'coverage_audit_*'),
+                                   recursive=True), [])
+        self.assertIn('输入数据根为符号链接', printed)
+        # 正向对照(§4.3): 已确认授权后直接传真实目录→正常完成,不误拒
+        out2 = os.path.join(t, 'out2')
+        ec2, _ = self._run_main(real, out2)
+        self.assertEqual(ec2, 0)
+        res = _load(glob.glob(os.path.join(out2, 'coverage_audit_*.json'))[0])
         self.assertEqual(res['audit_status'], 'COMPLETED')
         self.assertEqual(by_id(res, 'SPX')['status'], 'SINGLE_OBSERVATION')
 

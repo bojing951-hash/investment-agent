@@ -756,9 +756,10 @@ class TestEAuditMetadata(unittest.TestCase):
         self.assertEqual(self.ec2, 0)
         self.assertEqual(self.res1['audit_commit'], self.res2['audit_commit'])
         self.assertEqual(self.res1['run_id'], self.res2['run_id'])
-        # FIX3最小语义修正: 1.2→1.3(findings2合法槽位口径+input_files含
-        # schema事件+INVALID_PATH新子类;场景与断言结构不变,仅版本字面量随实现升级)
-        self.assertEqual(self.res1['schema_version'], 'w4-coverage-audit/1.3')
+        # FIX3最小语义修正: 1.2→1.3;FIX4最小语义修正: 1.3→1.4(输入根symlink
+        # 拒绝+逐文件extract_status+EXTRACTION_FAILED/PARTIAL_EXTRACTION新失败
+        # 状态;场景与断言结构不变,仅版本字面量随实现升级)
+        self.assertEqual(self.res1['schema_version'], 'w4-coverage-audit/1.4')
 
     # E4: 未提交修改不得冒充干净版本(脏工作区→披露;git不可得→不声称已提交)
     def test_e4_dirty_worktree_disclosed(self):

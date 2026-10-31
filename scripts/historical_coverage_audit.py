@@ -54,8 +54,23 @@ W4-FIX2修订(IA-P0-2-W4-FIX2-AC-v1.0,针对FIX1独立验收两项缺陷):
   但不增加权威覆盖。Markdown样例字段保留仅作展示,不替代机器溯源。
 
 
-audit_status: COMPLETED(≥1可读文件且输入未变) / NO_INPUT / ALL_UNREADABLE /
-INPUT_CHANGED / INVALID_PATH。退出码: 0=COMPLETED; 2=不可宣布完成; 3=输入变化。
+- FIX4-01 输入根符号链接授权保护(fail-closed): 用户实际提供的输入根路径
+  本身是符号链接时,目标目录授权未经确认——在把输入路径realpath解析为授权
+  根**之前**检查(不先realpath再检查,realpath会解析掉原路径的symlink身份),
+  拒绝执行并提示直接传入已确认授权的真实目录;错误进INVALID_PATH退出码2,
+  不自动跟随读取目标、不生成成功报告。已确认授权后直接传真实目录正常完成。
+- FIX4-02 文件提取失败状态传播: Manifest逐文件extract_status(SUCCESS/
+  FAILED/SKIPPED)与readable(JSON可解析能力)独立——JSON合法但主容器形态
+  非法(如data为数组/字符串,含空串/False等falsy垃圾不得视为合法空对象)时
+  readable=True而extract_status=FAILED。文件级原子性: 每文件先在隔离累积器
+  提取,成功才合并入正式聚合,失败文件的中途部分结果全部丢弃(不污染)。全部
+  可解析文件提取失败→EXTRACTION_FAILED;部分失败→PARTIAL_EXTRACTION;两者
+  退出码均非零,不冒充完全成功,但保留机器可读失败报告(含文件级错误清单)。
+
+audit_status: COMPLETED(≥1可读文件且全部提取成功且输入未变) / NO_INPUT /
+ALL_UNREADABLE / INPUT_CHANGED / EXTRACTION_FAILED(全部可解析文件提取失败) /
+PARTIAL_EXTRACTION(部分文件提取失败,非完全成功) / INVALID_PATH。
+退出码: 0=COMPLETED; 2=不可宣布完成(含EXTRACTION_FAILED/PARTIAL_EXTRACTION); 3=输入变化。
 """
 import argparse
 import glob
@@ -75,7 +90,7 @@ import fact_engine as fe          # _GLOBAL_ID_MAP/_MACRO_ALIAS/parse_iso_date/_
 import trading_calendar as tc     # 全系统唯一日历权威
 
 TOOL_NAME = 'historical_coverage_audit'
-SCHEMA_VERSION = 'w4-coverage-audit/1.3'   # FIX3: findings2合法槽位口径+input_files含schema事件+INVALID_PATH新子类
+SCHEMA_VERSION = 'w4-coverage-audit/1.4'   # FIX4: 输入根symlink拒绝+逐文件extract_status+EXTRACTION_FAILED/PARTIAL_EXTRACTION(1.3=FIX3口径)
 
 # ── 通道文件模式(金融指标机器输入;同前缀.md人读镜像与anchors/scorecard/
 #    anchor_prompt/correlation/news等非本审计对象,计数见报告excluded节) ──
@@ -338,12 +353,27 @@ class PathBoundaryError(Exception):
     错误经run_audit向上传播为INVALID_PATH。"""
 
 
+class ExtractionError(Exception):
+    """FIX4-02: 文件级提取失败(顶层记录/主容器形态非法等)——该文件在异常
+    前已产生的部分结果不得计入正式聚合(文件级原子性,见run_audit隔离累积),
+    状态经Manifest的extract_status=FAILED与EXTRACTION_FAILED/PARTIAL_
+    EXTRACTION向上传播,不冒充完全成功。"""
+
+
 def validate_paths(data_dir, out_dir):
     probs = []
     if not os.path.exists(data_dir):
         return ['数据目录不存在: %s' % data_dir]
     if not os.path.isdir(data_dir):
         probs.append('数据路径不是目录: %s' % data_dir)
+    # FIX4-01: 输入根本身为符号链接=目标目录授权未经确认。必须在realpath
+    # 解析授权根之前检查用户实际提供的路径(先realpath会解析掉原路径的
+    # symlink身份,变成自动授权目标)——fail-closed拒绝,提示直接传真实目录。
+    input_path = os.path.normpath(os.path.abspath(data_dir))
+    if os.path.islink(input_path):
+        probs.append('输入数据根为符号链接(%s→%s): 目标目录授权未经确认——'
+                     '请直接传入已确认授权的真实目录路径,fail-closed拒绝执行'
+                     % (input_path, os.path.realpath(input_path)))
     dr = os.path.realpath(data_dir)
     orp = os.path.realpath(out_dir)
     if dr == orp:
@@ -373,7 +403,17 @@ def discover_files(data_dir):
     symlink目标不自动获授权;②daily/本身是symlink即整体拒绝(父目录逃逸,
     不逐文件补救);③每候选文件realpath必须在授权根内(os.path.commonpath,
     禁用startswith前缀比较);越界→raise PathBoundaryError,run_audit转为
-    INVALID_PATH退出码2,不读越界文件字节/不入Manifest/不输出COMPLETED。"""
+    INVALID_PATH退出码2,不读越界文件字节/不入Manifest/不输出COMPLETED。
+    FIX4-01(输入根symlink授权保护): 用户实际提供的输入根本身是symlink时,
+    在realpath解析授权根**之前**检查并raise(不先realpath再检查——那会把
+    symlink身份解析掉,等于自动授权未经确认的目标);系统级路径别名祖先
+    (如测试沙箱基础路径)不影响——islink只查用户给定路径的末组件。"""
+    input_path = os.path.normpath(os.path.abspath(data_dir))
+    if os.path.islink(input_path):   # FIX4-01: 输入根symlink≠已确认授权
+        raise PathBoundaryError(
+            '输入数据根为符号链接(%s→%s): 目标目录授权未经确认——请直接传入'
+            '已确认授权的真实目录路径,fail-closed拒绝执行'
+            % (input_path, os.path.realpath(input_path)))
     root = os.path.realpath(data_dir)
     base, selection_rule = root, '输入根本身(daily/不存在或五通道均无命中)'
     unselected_root = {}
@@ -436,7 +476,9 @@ def discover_files(data_dir):
 
 def build_manifest(files):
     """输入清单: 相对路径/大小/mtime_ns/SHA-256/采集器/文件日期/可读性。
-    坏JSON不静默: readable=false+error记入清单并进入报告。"""
+    坏JSON不静默: readable=false+error记入清单并进入报告。
+    FIX4-02: 逐文件extract_status与readable独立——不可读文件从未进入提取
+    (extract_status=SKIPPED);可读文件由run_audit置SUCCESS/FAILED。"""
     manifest = []
     for f in files:
         entry = {'relpath': f['relpath'], 'channel': f['channel'],
@@ -454,9 +496,11 @@ def build_manifest(files):
             except Exception as e:
                 entry['readable'] = False
                 entry['error'] = str(e)[:120]
+                entry['extract_status'] = 'SKIPPED'   # 不可读→从未尝试提取
         except Exception as e:
             entry['readable'] = False
             entry['error'] = 'read_fail:%s' % str(e)[:100]
+            entry['extract_status'] = 'SKIPPED'
         manifest.append(entry)
     return manifest
 
@@ -526,6 +570,26 @@ def _is_auth(metric_source, channel):
     if channel == 'research_snapshot':
         return False
     return REGISTRY_SOURCE_CHANNEL.get(metric_source) == channel
+
+
+def _merge_acc(dst, src):
+    """FIX4-02 5.6: 文件级隔离累积器合并(该文件提取成功后调用一次)。
+    字段逐一合并,文件按清单顺序处理且即时合并,与旧顺序直写全局累积在
+    结果上等价;examples为有界样例(deque maxlen=5),按文件顺序extend后
+    自然截断保留最近样例,与原顺序累积一致。失败文件不调用本函数——其
+    隔离累积器整体丢弃(文件级原子性,不污染正式聚合)。"""
+    for k in ('raw', 'valid', 'auth_raw', 'nonauth_raw', 'invalid_date',
+              'invalid_value', 'length_mismatch', 'same_file_dup',
+              'out_of_order', 'future_obs'):
+        setattr(dst, k, getattr(dst, k) + getattr(src, k))
+    dst.series_files |= src.series_files
+    dst.point_files |= src.point_files
+    dst.records.extend(src.records)
+    dst.revision_events.extend(src.revision_events)
+    # relpath每文件唯一,src.file_contrib只含本文件条目,update不触碰他文件
+    dst.file_contrib.update(src.file_contrib)
+    for k, dq in src.examples.items():
+        dst.examples.setdefault(k, deque(maxlen=5)).extend(dq)
 
 
 def _add_series(acc, series, channel, auth, relpath, fd_iso, kind):
@@ -637,10 +701,36 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
     FIX3-01: "未注册"与"已注册但外层记录结构错误"显式拆分——后者经
     record_schema_bad归到指标身份+input_files(文件级schema事件),不再混入
     unmapped;无法确定metric_id的元素级非对象(fed_funds_futures列表元素/
-    facts列表元素)不分配给任何指标,保持跳过。"""
+    facts列表元素)不分配给任何指标,保持跳过。
+    FIX4-02: 顶层记录与各通道主容器形态非法时raise ExtractionError→该文件
+    extract_status=FAILED(readable仍=True,JSON可解析与提取成功是两回事);
+    非对象容器(含空串/False等falsy垃圾)不得经`or {}`被当成合法空对象。
+    调用方(run_audit)以隔离累积器保证文件级原子性——本函数异常前写入的
+    部分结果由调用方整体丢弃,不会污染正式聚合。"""
     rel, ch = entry['relpath'], entry['channel']
     fd_iso = fe._iso(entry['file_date']) if entry['file_date'] else None
     obj = entry['_parsed']
+    if not isinstance(obj, dict):
+        raise ExtractionError('顶层记录非对象(%s),不得视为合法输入' % type(obj).__name__)
+
+    def _map(key):
+        """FIX4-02主容器严格校验: 键缺失/值为None=合法空容器(零观测,成功);
+        值非对象(字符串/列表/数字/布尔,含falsy垃圾)=提取失败,不得静默归零。"""
+        v = obj.get(key)
+        if v is None:
+            return {}
+        if not isinstance(v, dict):
+            raise ExtractionError('%s字段非对象(%s),不得视为合法空对象'
+                                  % (key, type(v).__name__))
+        return v
+
+    def _seq(key):
+        v = obj.get(key)
+        if v is None:
+            return []
+        if not isinstance(v, list):
+            raise ExtractionError('%s字段非列表(%s)' % (key, type(v).__name__))
+        return v
 
     def acc(mid):
         return accs.setdefault(mid, MetricAcc())
@@ -660,7 +750,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
         _file_event_bad(a, rel, ch, auth, 'record', 'record_schema:not_object')
 
     if ch == 'global':
-        for aid, item in (obj.get('data') or {}).items():
+        for aid, item in _map('data').items():
             mid = GLOBAL_ID_MAP.get(aid, aid)
             if mid not in registry_ids:
                 _unmapped(unmapped, ch, aid, rel, 'global通道资产未注册')
@@ -675,7 +765,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
         return
 
     if ch == 'macro':
-        for name, item in (obj.get('data') or {}).items():
+        for name, item in _map('data').items():
             mid = MACRO_ALIAS.get(name, name)
             if mid not in registry_ids:
                 _unmapped(unmapped, ch, name, rel, 'macro通道序列未注册')
@@ -692,7 +782,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
                 a.revision_events.append({'obs_date': rev.get('obs_date'),
                                           'prev_value': rev.get('prev_value'),
                                           'value': rev.get('value'), 'file': rel})
-        for dmid, dv in (obj.get('derived') or {}).items():
+        for dmid, dv in _map('derived').items():
             if dmid in registry_ids:
                 # derived块只有当日计算值,无observation_date字段——不以文件日补造,
                 # 如实记为不可用观测日(派生指标本无独立原始历史)。
@@ -715,7 +805,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
                 _unmapped(unmapped, ch, key, rel, note)
                 return None
             return mid
-        for code, item in (obj.get('a_share_indices') or {}).items():
+        for code, item in _map('a_share_indices').items():
             mid = mapped(code, CHINA_A_CODE, 'A股代码未注册(采集但不入注册表)')
             if mid is None:
                 continue
@@ -726,7 +816,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
             _add_point(a, item.get('date'), item.get('close'), ch, True, rel, fd_iso, 'point')
             if item.get('series') is not None:
                 _add_series(a, item.get('series'), ch, True, rel, fd_iso, 'series')
-        for code, item in (obj.get('hk_indices') or {}).items():
+        for code, item in _map('hk_indices').items():
             mid = mapped(code, CHINA_HK_CODE, '港股键未注册')
             if mid is None:
                 continue
@@ -740,7 +830,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
         for label_key, table, note in (('indices', CHINA_LEGACY_LABEL, '标签代指数未注册'),
                                        ('a_share', CHINA_LEGACY_LABEL, '最旧代a_share标签未注册'),
                                        ('hk', CHINA_LEGACY_LABEL, '最旧代hk标签未注册')):
-            for label, item in (obj.get(label_key) or {}).items():
+            for label, item in _map(label_key).items():
                 mid = mapped(label, table, note)
                 if mid is None:
                     continue
@@ -830,7 +920,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
 
     if ch == 'rate_economy':
         rate_cur_map = {'FEDFUNDS': 'FED_FUNDS'}  # 通道原始键→注册id(FED_FUNDS权威=macro)
-        for key, item in (obj.get('current_rates') or {}).items():
+        for key, item in _map('current_rates').items():
             mid = rate_cur_map.get(key, key)
             if mid not in registry_ids:
                 _unmapped(unmapped, ch, 'current_rates:' + str(key), rel, 'rate通道current_rates键未注册')
@@ -841,7 +931,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
             # FED_FUNDS注册权威=macro_collector→本通道记录为非权威(不新增覆盖)
             _add_point(acc(mid), item.get('date'), item.get('value'), ch,
                        auth_of(mid), rel, fd_iso, 'point')
-        for name, item in (obj.get('real_economy') or {}).items():
+        for name, item in _map('real_economy').items():
             mid = RATE_REAL_ECONOMY_MAP.get(name)
             if mid is None:
                 _unmapped(unmapped, ch, 'real_economy:' + name, rel, 'rate通道real_economy键未注册')
@@ -851,7 +941,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
                 continue
             _add_point(acc(mid), item.get('date'), item.get('value'),
                        ch, False, rel, fd_iso, 'recon_point')
-        for r in (obj.get('fed_funds_futures') or []):
+        for r in _seq('fed_funds_futures'):
             if not isinstance(r, dict):
                 continue
             tk = str(r.get('ticker'))
@@ -864,7 +954,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
         return
 
     if ch == 'research_snapshot':
-        for f in obj.get('facts') or []:
+        for f in _seq('facts'):
             if not isinstance(f, dict):
                 continue
             mid = f.get('metric_id')
@@ -873,7 +963,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
                 continue
             _add_point(acc(mid), f.get('observation_date'), f.get('value'),
                        ch, False, rel, fd_iso, 'snapshot_point')
-        for mid, series in (obj.get('series_store') or {}).items():
+        for mid, series in _map('series_store').items():
             if mid not in registry_ids:
                 _unmapped(unmapped, ch, 'series_store:' + str(mid), rel, '快照series_store键未注册')
                 continue
@@ -1169,8 +1259,31 @@ def render_markdown(result):
                              else '**INPUT_CHANGED_DURING_AUDIT(%d文件变化,结论按非冻结数据集对待)**'
                              % len(integ['changed_files'])),
          '- 阈值定义公开于文末(工程描述约定,非金融事实)', '']
+    if result.get('exit_code') is not None:
+        L.insert(-1, '- 退出码(exit_code): %d' % result['exit_code'])
     if result.get('audit_commit_disclosure'):
         L.insert(8, '- %s' % result['audit_commit_disclosure'])
+    ex = result.get('extraction')
+    if ex is not None:
+        L += ['## 提取执行状态(FIX4-02)',
+              '- 可解析文件(readable)=%d | 提取成功=%d | 提取失败=%d'
+              % (ex['files_attempted'], ex['files_extracted'], ex['files_failed']),
+              '- readable(JSON可解析)与extract_status(提取执行)独立判定;'
+              '失败文件按文件级原子性整体不计入正式聚合(含中途已产生的部分结果),'
+              '不影响其余成功文件的正常计入', '']
+        if ex['files_failed']:
+            L += ['**⚠️ 提取不完整: %d文件提取失败——audit_status=%s(退出码%d,'
+                  '非完全成功,不得当COMPLETED使用)**'
+                  % (ex['files_failed'], result.get('audit_status'),
+                     result.get('exit_code', 2)),
+                  '| 提取失败文件 | 通道 | 提取错误 |', '|---|---|---|']
+            for fe in ex['failed_files'][:50]:
+                L.append('| %s | %s | %s |' % (fe['relpath'], fe['channel'],
+                                               (fe.get('extract_error') or '')[:120]))
+            if len(ex['failed_files']) > 50:
+                L.append('…(另%d个见JSON报告extraction.failed_files,不截断)'
+                         % (len(ex['failed_files']) - 50))
+            L.append('')
     L += ['## 总体', '| 项 | 数 |', '|---|---|']
     for k, lab in (('registered_metrics', '已注册指标'),
                    ('with_authority_observations', '有权威历史观测(OBSERVED+SPARSE+SINGLE)'),
@@ -1382,12 +1495,34 @@ def run_audit(data_dir, out_dir, registry_path, source_note=None, log=None):
 
     accs, unmapped = {}, {}
     for e in readable:
+        # FIX4-02 5.6文件级原子性: 先在隔离累积器上提取,成功才经_merge_acc
+        # 合并入正式聚合;失败文件(含异常前已写入隔离累积器的部分指标结果)
+        # 整体丢弃,不污染正式覆盖数据——失败文件的事实由extract_status=FAILED
+        # +extract_error+extraction.failed_files如实披露,不靠部分数据冒充。
+        e['extract_status'] = 'PENDING'
         try:
-            extract_file(e, accs, unmapped, registry_ids, registry_by_id)
+            tmp_accs, tmp_unmapped = {}, {}
+            extract_file(e, tmp_accs, tmp_unmapped, registry_ids, registry_by_id)
         except Exception as ex:
-            wmsg('  ⚠️ 提取异常(%s): %s' % (e['relpath'], str(ex)[:100]))
+            wmsg('  ⚠️ 提取失败(%s): %s' % (e['relpath'], str(ex)[:100]))
+            e['extract_status'] = 'FAILED'
             e['extract_error'] = str(ex)[:160]
-    wmsg('观测提取完成: 出现过的指标%d个, 未注册键%d组' % (len(accs), len(unmapped)))
+            continue
+        for mid, ta in tmp_accs.items():
+            _merge_acc(accs.setdefault(mid, MetricAcc()), ta)
+        for ukey, u in tmp_unmapped.items():
+            gu = unmapped.setdefault(ukey, {'channel': u['channel'],
+                                            'raw_key': u['raw_key'],
+                                            'files': set(), 'note': u['note']})
+            gu['files'] |= u['files']
+        e['extract_status'] = 'SUCCESS'
+    extract_ok = [e for e in readable if e.get('extract_status') == 'SUCCESS']
+    extract_failed = [e for e in readable if e.get('extract_status') == 'FAILED']
+    wmsg('观测提取完成: 出现过的指标%d个, 未注册键%d组; 提取成功%d文件, 提取失败%d文件'
+         % (len(accs), len(unmapped), len(extract_ok), len(extract_failed)))
+    if extract_failed:
+        wmsg('⚠️ 提取失败文件%d个(文件级原子性: 其部分结果未计入正式聚合): %s'
+             % (len(extract_failed), [e['relpath'] for e in extract_failed][:5]))
 
     metric_records = [build_metric_record(m, accs, channel_unreadable, by_channel)
                       for m in metrics_reg]
@@ -1426,15 +1561,37 @@ def run_audit(data_dir, out_dir, registry_path, source_note=None, log=None):
         audit_status, exit_code = 'ALL_UNREADABLE', 2
     elif input_changed:
         audit_status, exit_code = 'INPUT_CHANGED', 3
+    elif not extract_ok:
+        # FIX4-02 5.4: 全部可解析文件提取失败——不得以COMPLETED冒充成功
+        audit_status, exit_code = 'EXTRACTION_FAILED', 2
+    elif extract_failed:
+        # FIX4-02 5.5: 部分提取失败——非完全成功,退出码不冒充完全成功;
+        # 成功文件数据正常保留(不因部分失败整体报废),失败文件可追溯。
+        audit_status, exit_code = 'PARTIAL_EXTRACTION', 2
     else:
         audit_status, exit_code = 'COMPLETED', 0
     manifest_dump = [{k: e.get(k) for k in ('relpath', 'channel', 'collector', 'file_date',
                                             'size', 'mtime_ns', 'sha256', 'readable',
-                                            'error', 'extract_error')}
+                                            'error', 'extract_status', 'extract_error')}
                      for e in manifest]
     result = dict(base_result)
     result.update({
         'audit_status': audit_status,
+        'exit_code': exit_code,
+        'extraction': {
+            'files_attempted': len(readable),
+            'files_extracted': len(extract_ok),
+            'files_failed': len(extract_failed),
+            'failed_files': [{'relpath': e['relpath'], 'channel': e['channel'],
+                              'sha256': e.get('sha256'),
+                              'extract_error': e.get('extract_error')}
+                             for e in extract_failed],
+            'definition': ('readable=JSON可解析能力;extract_status=提取执行结果'
+                           '(SUCCESS/FAILED/SKIPPED),二者独立——JSON合法但主容器'
+                           '形态非法(如data为数组/字符串)时readable=True而'
+                           'extract_status=FAILED;失败文件按文件级原子性整体不'
+                           '计入正式聚合,经failed_files可追溯(SHA-256/原因)'),
+        },
         'registry': {'path': registry_path, 'version': reg.get('version'),
                      'metric_count': len(metrics_reg)},
         'input': dict(base_result['input'],
@@ -1470,9 +1627,13 @@ def main(argv=None):
     log = []
     result, log, exit_code = run_audit(args.data_dir, args.out_dir, registry,
                                        source_note=args.source_note, log=log)
-    if result['audit_status'] in ('COMPLETED', 'INPUT_CHANGED', 'ALL_UNREADABLE'):
+    if result['audit_status'] in ('COMPLETED', 'INPUT_CHANGED', 'ALL_UNREADABLE',
+                                  'EXTRACTION_FAILED', 'PARTIAL_EXTRACTION'):
         # 只有拿到run_id的完成类状态才写输出;INVALID_PATH/NO_INPUT不向
         # (可能非法的)out-dir写入任何文件,只打印日志。
+        # FIX4-02 5.8: EXTRACTION_FAILED/PARTIAL_EXTRACTION同样已形成合法输入
+        # Manifest(run_id存在)——必须保留机器可读失败报告(文件级错误清单/
+        # 逐文件extract_status),不得只控制台打印后丢失正式结果。
         os.makedirs(args.out_dir, exist_ok=True)
         rid = result['run_id']
         manifest_path = os.path.join(args.out_dir, 'input_manifest_%s.json' % rid)
@@ -1495,7 +1656,8 @@ def main(argv=None):
         wline = '输出: ' + json.dumps(outputs, ensure_ascii=False)
         log.append(wline)
     log.append('audit_status=%s exit_code=%d' % (result['audit_status'], exit_code))
-    if result['audit_status'] in ('COMPLETED', 'INPUT_CHANGED', 'ALL_UNREADABLE'):
+    if result['audit_status'] in ('COMPLETED', 'INPUT_CHANGED', 'ALL_UNREADABLE',
+                                  'EXTRACTION_FAILED', 'PARTIAL_EXTRACTION'):
         log_path = os.path.join(args.out_dir, 'audit_execution_%s.log' % result['run_id'])
         with open(log_path, 'w', encoding='utf-8') as f:
             f.write('\n'.join(log) + '\n')

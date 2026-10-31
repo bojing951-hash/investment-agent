@@ -577,7 +577,9 @@ class TestCHistoricalContract(unittest.TestCase):
         for key in ('MISSING', 'UNREADABLE', 'DERIVED_ONLY',
                     'NO_VALID_SLOTS', 'UNDETERMINED'):
             self.assertIn(key, f4)
-        self.assertEqual(self.result['schema_version'], 'w4-coverage-audit/1.2')
+        # FIX3最小语义修正: 1.2→1.3(findings2合法槽位口径+input_files含
+        # schema事件+INVALID_PATH新子类;场景与断言结构不变,仅版本字面量随实现升级)
+        self.assertEqual(self.result['schema_version'], 'w4-coverage-audit/1.3')
 
 
 # ════════════════ D组: 负向敏感性(5退化必被检出) ════════════════

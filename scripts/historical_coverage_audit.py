@@ -75,7 +75,7 @@ import fact_engine as fe          # _GLOBAL_ID_MAP/_MACRO_ALIAS/parse_iso_date/_
 import trading_calendar as tc     # 全系统唯一日历权威
 
 TOOL_NAME = 'historical_coverage_audit'
-SCHEMA_VERSION = 'w4-coverage-audit/1.2'
+SCHEMA_VERSION = 'w4-coverage-audit/1.3'   # FIX3: findings2合法槽位口径+input_files含schema事件+INVALID_PATH新子类
 
 # ── 通道文件模式(金融指标机器输入;同前缀.md人读镜像与anchors/scorecard/
 #    anchor_prompt/correlation/news等非本审计对象,计数见报告excluded节) ──
@@ -332,6 +332,12 @@ def classify(metric, auth_dates, n_slots, coverage_ratio, all_channel_unreadable
 
 # ════════════════ 路径与输入安全(W4-02 §5.1) ════════════════
 
+class PathBoundaryError(Exception):
+    """FIX3-02: 输入真实路径越出授权数据根(父目录符号链接逃逸等)——
+    fail-closed拒绝: 不读取越界文件字节/不入Manifest/不输出COMPLETED,
+    错误经run_audit向上传播为INVALID_PATH。"""
+
+
 def validate_paths(data_dir, out_dir):
     probs = []
     if not os.path.exists(data_dir):
@@ -362,11 +368,20 @@ def discover_files(data_dir):
     固定选daily/(生产采集布局;规则公开可复核)并披露未选的根层通道文件数,
     不与根层暗中混合;不以其他路径旧数据补齐缺失通道。
     符号链接文件不入清单(防越界,记录于excluded);文件日期取自文件名
-    (仅用于观测日前瞻性核对,绝不作为观测日来源)。"""
+    (仅用于观测日前瞻性核对,绝不作为观测日来源)。
+    FIX3-02(父目录符号链接越界,fail-closed): ①授权边界=数据根realpath,
+    symlink目标不自动获授权;②daily/本身是symlink即整体拒绝(父目录逃逸,
+    不逐文件补救);③每候选文件realpath必须在授权根内(os.path.commonpath,
+    禁用startswith前缀比较);越界→raise PathBoundaryError,run_audit转为
+    INVALID_PATH退出码2,不读越界文件字节/不入Manifest/不输出COMPLETED。"""
     root = os.path.realpath(data_dir)
     base, selection_rule = root, '输入根本身(daily/不存在或五通道均无命中)'
     unselected_root = {}
     sub = os.path.join(root, 'daily')
+    if os.path.islink(sub):   # FIX3-02: 父目录symlink逃逸,fail-closed整体拒绝
+        raise PathBoundaryError(
+            'daily/子目录是符号链接(→%s): 输入父目录真实路径越出授权数据根'
+            '(%s),fail-closed拒绝执行' % (os.path.realpath(sub), root))
     daily_exists = os.path.isdir(sub)
     daily_has_channel = daily_exists and any(glob.glob(os.path.join(sub, pat))
                                              for pat in CHANNEL_PATTERNS.values())
@@ -387,6 +402,15 @@ def discover_files(data_dir):
                 if os.path.islink(p):
                     symlink_skipped.append(os.path.relpath(p, root))
                 continue
+            rp = os.path.realpath(p)   # FIX3-02: 逐文件realpath必须在授权根内
+            try:
+                in_root = os.path.commonpath([rp, root]) == root
+            except ValueError:          # 不同卷等无法取公共路径→必在界外
+                in_root = False
+            if not in_root:
+                raise PathBoundaryError(
+                    '输入文件真实路径越出授权数据根: %s(realpath=%s,授权根=%s)'
+                    % (p, rp, root))
             by_channel[ch] += 1
             m = _FILE_DATE_RE.search(os.path.basename(p))
             fd = m.group(1) if m else None
@@ -609,7 +633,11 @@ def _unmapped(unmapped, channel, raw_key, relpath, note):
 
 
 def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
-    """单个采集文件→观测/未注册记录。不静默跳过任何发现。"""
+    """单个采集文件→观测/未注册记录。不静默跳过任何发现。
+    FIX3-01: "未注册"与"已注册但外层记录结构错误"显式拆分——后者经
+    record_schema_bad归到指标身份+input_files(文件级schema事件),不再混入
+    unmapped;无法确定metric_id的元素级非对象(fed_funds_futures列表元素/
+    facts列表元素)不分配给任何指标,保持跳过。"""
     rel, ch = entry['relpath'], entry['channel']
     fd_iso = fe._iso(entry['file_date']) if entry['file_date'] else None
     obj = entry['_parsed']
@@ -620,11 +648,25 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
     def auth_of(mid):
         return _is_auth(registry_by_id[mid]['source'], ch)
 
+    def record_schema_bad(mid, key, auth):
+        """FIX3-01: 已注册指标的外层记录非对象——与"未注册"显式拆分:
+        取得MetricAcc/登记文件到file_contrib(保留Manifest关联)/文件级schema
+        事件;不生成有效observation_date与数值,不增权威历史。文件级Schema异常
+        不一定对应一条可识别观测记录,不能伪造observation_date,故不进记录级
+        raw计数(与series_shape文件级事件同口径)。"""
+        a = acc(mid)
+        a.invalid_date += 1
+        a.note('schema', '%s外层记录非对象(%s)' % (key, rel))
+        _file_event_bad(a, rel, ch, auth, 'record', 'record_schema:not_object')
+
     if ch == 'global':
         for aid, item in (obj.get('data') or {}).items():
             mid = GLOBAL_ID_MAP.get(aid, aid)
-            if mid not in registry_ids or not isinstance(item, dict):
-                _unmapped(unmapped, ch, aid, rel, 'global通道资产未注册或形态异常')
+            if mid not in registry_ids:
+                _unmapped(unmapped, ch, aid, rel, 'global通道资产未注册')
+                continue
+            if not isinstance(item, dict):   # FIX3-01: 已注册但结构错误≠未注册
+                record_schema_bad(mid, aid, auth_of(mid))
                 continue
             a = acc(mid)
             _add_point(a, item.get('date'), item.get('close'), ch, auth_of(mid), rel, fd_iso, 'point')
@@ -635,8 +677,11 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
     if ch == 'macro':
         for name, item in (obj.get('data') or {}).items():
             mid = MACRO_ALIAS.get(name, name)
-            if mid not in registry_ids or not isinstance(item, dict):
-                _unmapped(unmapped, ch, name, rel, 'macro通道序列未注册或形态异常')
+            if mid not in registry_ids:
+                _unmapped(unmapped, ch, name, rel, 'macro通道序列未注册')
+                continue
+            if not isinstance(item, dict):   # FIX3-01: 已注册但结构错误≠未注册
+                record_schema_bad(mid, name, auth_of(mid))
                 continue
             a = acc(mid)
             _add_point(a, item.get('date'), item.get('value'), ch, auth_of(mid), rel, fd_iso, 'point')
@@ -672,30 +717,42 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
             return mid
         for code, item in (obj.get('a_share_indices') or {}).items():
             mid = mapped(code, CHINA_A_CODE, 'A股代码未注册(采集但不入注册表)')
-            if mid and isinstance(item, dict):
-                a = acc(mid)
-                _add_point(a, item.get('date'), item.get('close'), ch, True, rel, fd_iso, 'point')
-                if item.get('series') is not None:
-                    _add_series(a, item.get('series'), ch, True, rel, fd_iso, 'series')
+            if mid is None:
+                continue
+            if not isinstance(item, dict):   # FIX3-01: 已注册但结构错误≠未注册
+                record_schema_bad(mid, code, True)
+                continue
+            a = acc(mid)
+            _add_point(a, item.get('date'), item.get('close'), ch, True, rel, fd_iso, 'point')
+            if item.get('series') is not None:
+                _add_series(a, item.get('series'), ch, True, rel, fd_iso, 'series')
         for code, item in (obj.get('hk_indices') or {}).items():
             mid = mapped(code, CHINA_HK_CODE, '港股键未注册')
-            if mid and isinstance(item, dict):
-                a = acc(mid)
-                _add_point(a, item.get('date'), item.get('close'), ch, True, rel, fd_iso, 'point')
-                if item.get('series') is not None:
-                    _add_series(a, item.get('series'), ch, True, rel, fd_iso, 'series')
+            if mid is None:
+                continue
+            if not isinstance(item, dict):   # FIX3-01: 已注册但结构错误≠未注册
+                record_schema_bad(mid, code, True)
+                continue
+            a = acc(mid)
+            _add_point(a, item.get('date'), item.get('close'), ch, True, rel, fd_iso, 'point')
+            if item.get('series') is not None:
+                _add_series(a, item.get('series'), ch, True, rel, fd_iso, 'series')
         for label_key, table, note in (('indices', CHINA_LEGACY_LABEL, '标签代指数未注册'),
                                        ('a_share', CHINA_LEGACY_LABEL, '最旧代a_share标签未注册'),
                                        ('hk', CHINA_LEGACY_LABEL, '最旧代hk标签未注册')):
             for label, item in (obj.get(label_key) or {}).items():
                 mid = mapped(label, table, note)
-                if mid and isinstance(item, dict):
-                    a = acc(mid)
-                    if label_key != 'indices':
-                        a.note('legacy_format',
-                               '最旧代格式(当前fact_engine不消费该格式,历史覆盖仍如实计入)')
-                    _add_point(a, item.get('date'), item.get('close'), ch, True, rel, fd_iso,
-                               'legacy_point')
+                if mid is None:
+                    continue
+                if not isinstance(item, dict):   # FIX3-01: 已注册但结构错误≠未注册
+                    record_schema_bad(mid, label, True)
+                    continue
+                a = acc(mid)
+                if label_key != 'indices':
+                    a.note('legacy_format',
+                           '最旧代格式(当前fact_engine不消费该格式,历史覆盖仍如实计入)')
+                _add_point(a, item.get('date'), item.get('close'), ch, True, rel, fd_iso,
+                           'legacy_point')
         ah = obj.get('ah_premium') or {}
         if isinstance(ah, dict) and ah.get('close') is not None:
             _add_point(acc('HSAHP'), ah.get('date'), ah.get('close'), ch, True, rel, fd_iso, 'point')
@@ -775,16 +832,22 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
         rate_cur_map = {'FEDFUNDS': 'FED_FUNDS'}  # 通道原始键→注册id(FED_FUNDS权威=macro)
         for key, item in (obj.get('current_rates') or {}).items():
             mid = rate_cur_map.get(key, key)
-            if mid not in registry_ids or not isinstance(item, dict):
+            if mid not in registry_ids:
                 _unmapped(unmapped, ch, 'current_rates:' + str(key), rel, 'rate通道current_rates键未注册')
+                continue
+            if not isinstance(item, dict):   # FIX3-01: 已注册但结构错误≠未注册
+                record_schema_bad(mid, 'current_rates:' + str(key), auth_of(mid))
                 continue
             # FED_FUNDS注册权威=macro_collector→本通道记录为非权威(不新增覆盖)
             _add_point(acc(mid), item.get('date'), item.get('value'), ch,
                        auth_of(mid), rel, fd_iso, 'point')
         for name, item in (obj.get('real_economy') or {}).items():
             mid = RATE_REAL_ECONOMY_MAP.get(name)
-            if mid is None or not isinstance(item, dict):
+            if mid is None:
                 _unmapped(unmapped, ch, 'real_economy:' + name, rel, 'rate通道real_economy键未注册')
+                continue
+            if not isinstance(item, dict):   # FIX3-01: 已注册但结构错误≠未注册
+                record_schema_bad(mid, 'real_economy:' + name, False)
                 continue
             _add_point(acc(mid), item.get('date'), item.get('value'),
                        ch, False, rel, fd_iso, 'recon_point')
@@ -984,13 +1047,25 @@ def summarize(metrics, unmapped_list=()):
         # 观测日数——日历外观测不得撑大"完整历史"(summary与逐项同口径)。
         slots_ok = c['observed_slots']
         uniq = c['total_unique_observations']
-        span = c['observation_span_days']
         if r['status'] == 'OBSERVED' and ratio is not None and slots_ok is not None \
                 and ratio >= t['complete_history_min_ratio'] \
                 and slots_ok >= t['complete_history_min_unique_obs']:
             complete.append(r['metric_id'])
-        if uniq >= 1 and span is not None and span < t['recent_only_span_days_max']:
-            recent_only.append(r['metric_id'])
+        # FIX3-03: 近期历史(findings2)判据统一为合法槽位口径——①状态属有效
+        # 历史类(SINGLE_OBSERVATION/SPARSE/OBSERVED;NO_VALID_SLOTS/
+        # UNDETERMINED/MISSING/UNREADABLE/DERIVED_ONLY不得进入近期历史);
+        # ②短跨度由有效覆盖槽位对应的实际观测范围计算(continuous_segments
+        # 只含预期日历内槽位,start/end=段内实际观测日首末)——日历外远端
+        # 异常日期不得无依据扩大正式跨度,coverage.observation_span_days/
+        # total_unique_observations保留为描述性原始字段,不作为判据。
+        if r['status'] in ('OBSERVED', 'SPARSE', 'SINGLE_OBSERVATION'):
+            seg_dates = [d for sg in c['continuous_segments']
+                         for d in (sg['start'], sg['end'])]
+            if seg_dates:
+                span_valid = (date.fromisoformat(max(seg_dates))
+                              - date.fromisoformat(min(seg_dates))).days
+                if span_valid < t['recent_only_span_days_max']:
+                    recent_only.append(r['metric_id'])
         brk = t['serious_break_days'].get(r['frequency'], 10)
         # FIX1-01: 断点结论与连续段同一口径——连续段≥2段=预期槽位序列中存在
         # 缺失槽位断段;槽位不可用(预期无法确定)时才回退自然日间隔>阈值判据
@@ -1020,7 +1095,9 @@ def summarize(metrics, unmapped_list=()):
                       % (t['complete_history_min_ratio'] * 100, t['complete_history_min_unique_obs']),
         'metrics': complete}
     findings['2_哪些指标只有最近数据'] = {
-        'definition': '首末跨度<%d自然日(工程描述阈值)' % t['recent_only_span_days_max'],
+        'definition': ('有效历史类状态(OBSERVED/SPARSE/SINGLE_OBSERVATION)且有效'
+                       '覆盖槽位对应观测首末跨度<%d自然日(工程描述阈值;日历外'
+                       '远端异常日期不扩大正式跨度)' % t['recent_only_span_days_max']),
         'metrics': recent_only}
     findings['3_哪些指标中间存在严重断点'] = {
         'definition': ('连续段≥2段=预期槽位序列中存在缺失槽位断段(FIX1-01槽位口径,'
@@ -1272,7 +1349,13 @@ def run_audit(data_dir, out_dir, registry_path, source_note=None, log=None):
     registry_by_id = {m['metric_id']: m for m in metrics_reg}
     wmsg('注册表: %s (%d指标)' % (registry_path, len(metrics_reg)))
 
-    files, _base, excluded, by_channel = discover_files(data_dir)
+    try:
+        files, _base, excluded, by_channel = discover_files(data_dir)
+    except PathBoundaryError as e:   # FIX3-02: 越界fail-closed,不读字节不入Manifest
+        wmsg('路径边界拒绝: %s' % e)
+        base_result['audit_status'] = 'INVALID_PATH'
+        base_result['problems'] = [str(e)]
+        return base_result, log, 2
     wmsg('发现输入文件%d个: %s' % (len(files), json.dumps(by_channel)))
     if excluded['symlink_skipped']:
         wmsg('⚠️ 跳过符号链接文件%d个(防越界读取): %s'

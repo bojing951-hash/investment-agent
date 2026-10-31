@@ -260,7 +260,13 @@ class TestASlotContinuity(unittest.TestCase):
             self.assertEqual(c['continuous_segments'], [])       # 不虚构
             self.assertEqual(c['longest_continuous_segment_slots'], 0)
             self.assertIn('观察窗不可解析(测试注入)', c['slots_unavailable_reason'])
-            self.assertEqual(g['status'], 'OBSERVED')            # 回退唯一观测日数
+            # [W4-FIX2修订] 槽位不可确定时状态=UNDETERMINED(FIX2-01§4.3:
+            # 不以len(auth_dates)冒充已认证槽位数,不冒充OBSERVED确定性结论;
+            # 原断言'OBSERVED(回退唯一观测日数)'即FIX2所指缺陷,场景与注入
+            # 不变,预期改为身份正确行为)
+            self.assertEqual(g['status'], 'UNDETERMINED')
+            self.assertIsNone(c['unique_observation_slots'])      # 不以日期数冒充
+            self.assertFalse(c['slots_certified'])
             # 槽位不可用→findings3按自然日回退判据(crypto 21天>10)
             brk3 = [m for m in res['findings']['3_哪些指标中间存在严重断点']['metrics']
                     if m['metric_id'] == 'BTC']
@@ -743,11 +749,14 @@ class TestEAuditMetadata(unittest.TestCase):
             _cleanup(tmp)
 
     # E3: 固定代码版本一致(两次执行audit_commit相同+run_id相同)
+    # [W4-FIX2修订] SCHEMA_VERSION 1.1→1.2(FIX2-01/02语义变更:合法槽位口径
+    # +NO_VALID_SLOTS/UNDETERMINED状态+逐指标input_files;场景不变,仅同步
+    # 版本字面量)
     def test_e3_same_code_same_commit(self):
         self.assertEqual(self.ec2, 0)
         self.assertEqual(self.res1['audit_commit'], self.res2['audit_commit'])
         self.assertEqual(self.res1['run_id'], self.res2['run_id'])
-        self.assertEqual(self.res1['schema_version'], 'w4-coverage-audit/1.1')
+        self.assertEqual(self.res1['schema_version'], 'w4-coverage-audit/1.2')
 
     # E4: 未提交修改不得冒充干净版本(脏工作区→披露;git不可得→不声称已提交)
     def test_e4_dirty_worktree_disclosed(self):

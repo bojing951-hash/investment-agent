@@ -34,6 +34,26 @@ W4-FIX1修订(IA-P0-2-W4-FIX1-AC-v1.0,针对W4首轮独立验收四项缺陷):
   披露,不冒充干净已提交版本);generated_at=真实UTC执行时间;相同输入+
   相同代码⇒相同覆盖统计(执行时间除外)。
 
+W4-FIX2修订(IA-P0-2-W4-FIX2-AC-v1.0,针对FIX1独立验收两项缺陷):
+- FIX2-01 统一合法覆盖槽位统计: unique_observation_slots/observed_slots=
+  落在预期槽位序列内的独立槽位数(eligible=raw∩expected);日历外观测
+  (extra_slot_keys)完整保留但只披露、不入正式覆盖统计、不影响状态分类
+  ——修复旧实现n_slots=len(obs_keys)把非交易日观测计入导致状态虚增;
+  有权威观测日但无一合法槽位→NO_VALID_SLOTS(与MISSING=数据完全不存在
+  区分);预期槽位无法确定→不以len(auth_dates)冒充槽位数(unique_
+  observation_slots=None)且状态=UNDETERMINED(不冒充OBSERVED等确定性
+  覆盖结论)。槽位可靠时不变量: unique_observation_slots==observed_slots,
+  sum(continuous_segments.slots)==observed_slots,
+  longest_continuous_segment_slots<=observed_slots。
+- FIX2-02 逐指标完整input_files: 每指标输出全部实际贡献文件(去重不截断,
+  每文件一条: relpath/channel/record_types/raw·valid·invalid计数/权威与
+  非权威角色/invalid_reasons/valid_observation_contributed),并与全局输入
+  Manifest逐文件关联(manifest_sha256/size/mtime_ns/channel一致;无法关联=
+  显式完整性错误input_files_association_problems,不静默省略);无效记录
+  文件如实登记(file被发现事实保留,有效样本不虚增);非权威通道文件在列
+  但不增加权威覆盖。Markdown样例字段保留仅作展示,不替代机器溯源。
+
+
 audit_status: COMPLETED(≥1可读文件且输入未变) / NO_INPUT / ALL_UNREADABLE /
 INPUT_CHANGED / INVALID_PATH。退出码: 0=COMPLETED; 2=不可宣布完成; 3=输入变化。
 """
@@ -55,7 +75,7 @@ import fact_engine as fe          # _GLOBAL_ID_MAP/_MACRO_ALIAS/parse_iso_date/_
 import trading_calendar as tc     # 全系统唯一日历权威
 
 TOOL_NAME = 'historical_coverage_audit'
-SCHEMA_VERSION = 'w4-coverage-audit/1.1'
+SCHEMA_VERSION = 'w4-coverage-audit/1.2'
 
 # ── 通道文件模式(金融指标机器输入;同前缀.md人读镜像与anchors/scorecard/
 #    anchor_prompt/correlation/news等非本审计对象,计数见报告excluded节) ──
@@ -234,6 +254,28 @@ def split_slots(auth_dates, freq, calendar):
             extras, None)
 
 
+def eligible_slots(auth_dates, freq, calendar):
+    """FIX2-01 统一合法覆盖槽位统计(纯函数,负向敏感性注入缝):
+    合法槽位=权威观测槽位键∩expected_slots预期槽位序列——日历外观测
+    (extra)完整保留只披露,不入正式覆盖统计/连续段/状态分类,修复旧实现
+    n_slots=len(obs_keys)把非交易日观测计入导致状态虚增(如仅周末采集的
+    日频观测被当成2个独立样本)。预期槽位无法确定→certified=False且不以
+    len(auth_dates)冒充已认证槽位数。返回(expected数, observed数,
+    missing键列表, extra键列表, certified, 日历限制note, 原因或None);
+    无法认证时expected/observed=None。不变量(槽位可靠时):
+    unique_observation_slots==observed_slots==sum(segments.slots)。"""
+    exp_list, keyfn, lim, reason = expected_slots(
+        freq, auth_dates[0], auth_dates[-1], calendar)
+    if exp_list is None or keyfn is None:
+        return None, None, [], [], False, lim, reason
+    expected_keys = set(exp_list)
+    raw_slot_keys = {keyfn(d) for d in auth_dates}
+    eligible_slot_keys = raw_slot_keys & expected_keys
+    missing = [k for k in exp_list if k not in eligible_slot_keys]
+    return (len(exp_list), len(eligible_slot_keys), missing,
+            sorted(raw_slot_keys - expected_keys), True, lim, None)
+
+
 def max_internal_gap(sorted_dates):
     """相邻观测日最大自然日间隔(0=单点/无间隔)。
     FIX1-01: 仅作描述性自然日统计,不判定连续覆盖(连续性由split_slots决定)。"""
@@ -261,17 +303,26 @@ def split_duplicates(auth_records):
     return same_extra, cross_extra
 
 
-def classify(metric, auth_dates, n_slots, coverage_ratio, all_channel_unreadable):
+def classify(metric, auth_dates, n_slots, coverage_ratio, all_channel_unreadable,
+             slots_certified=True):
     """状态分类(语义公开;FIX1-01: SINGLE_OBSERVATION按独立观测槽位数,
-    不按自然日日期数——同月两个日期不是两个独立月度样本):
+    不按自然日日期数——同月两个日期不是两个独立月度样本;FIX2-01:
+    n_slots=落在预期槽位内的合法独立槽位数,日历外观测不计入,不得虚增状态):
     DERIVED_ONLY=仅存在于派生计算; MISSING=未找到权威观测; UNREADABLE=权威通道
-    输入存在但全部不可读; SINGLE_OBSERVATION=仅1个独立观测槽位;
-    SPARSE=槽位覆盖率<0.5; OBSERVED=其余(≥2独立槽位)。"""
+    输入存在但全部不可读; NO_VALID_SLOTS=有权威观测日但无一落在预期槽位
+    (如仅周末采集的日频观测——与MISSING=原始数据完全不存在区分);
+    UNDETERMINED=预期槽位无法确定(不虚构槽位也不冒充OBSERVED等确定性
+    覆盖结论); SINGLE_OBSERVATION=仅1个合法独立观测槽位;
+    SPARSE=槽位覆盖率<0.5; OBSERVED=其余(≥2合法独立槽位)。"""
     src = str(metric.get('source')) + str(metric.get('source_symbol'))
     if '(derived)' in src:
         return 'DERIVED_ONLY'
     if not auth_dates:
         return 'UNREADABLE' if all_channel_unreadable else 'MISSING'
+    if not slots_certified:
+        return 'UNDETERMINED'
+    if n_slots == 0:
+        return 'NO_VALID_SLOTS'
     if n_slots <= 1:
         return 'SINGLE_OBSERVATION'
     if coverage_ratio is not None and coverage_ratio < THRESHOLDS['sparse_coverage_ratio_below']:
@@ -396,10 +447,13 @@ def manifest_digest(manifest):
 # ════════════════ 观测提取(W4-04) ════════════════
 
 class MetricAcc:
-    """单指标累积器: 只留计数/日期聚合键/有界样例,不保留全量记录(内存可控)。"""
+    """单指标累积器: 只留计数/日期聚合键/有界样例,不保留全量记录(内存可控)。
+    FIX2-02: file_contrib=逐文件贡献登记(relpath→计数/角色/类型/无效原因),
+    完整保留不截断(W4合同: 每指标实际贡献文件全量可追溯)。"""
     __slots__ = ('raw', 'valid', 'auth_raw', 'nonauth_raw', 'invalid_date', 'invalid_value',
                  'length_mismatch', 'same_file_dup', 'out_of_order', 'future_obs',
-                 'series_files', 'point_files', 'records', 'examples', 'revision_events')
+                 'series_files', 'point_files', 'records', 'examples', 'revision_events',
+                 'file_contrib')
 
     def __init__(self):
         self.raw = self.valid = self.auth_raw = self.nonauth_raw = 0
@@ -409,9 +463,38 @@ class MetricAcc:
         self.records = []
         self.examples = {}
         self.revision_events = []
+        self.file_contrib = {}
 
     def note(self, key, text):
         self.examples.setdefault(key, deque(maxlen=5)).append(text)
+
+
+def _file_entry(acc, relpath, channel, kind):
+    """FIX2-02: 取/建该指标的文件贡献条目(同文件只一条,record_types聚合)。"""
+    e = acc.file_contrib.get(relpath)
+    if e is None:
+        e = acc.file_contrib[relpath] = {
+            'relpath': relpath, 'channel': channel, 'record_types': set(),
+            'raw_records': 0, 'valid_records': 0, 'invalid_records': 0,
+            'authority_records': 0, 'non_authority_records': 0,
+            'invalid_reasons': [], 'valid_observation_contributed': False}
+    e['record_types'].add(kind)
+    return e
+
+
+def _file_record_bad(entry, reason):
+    """单条记录级无效(计入该文件invalid_records;有效样本不增加)。"""
+    entry['invalid_records'] += 1
+    if reason not in entry['invalid_reasons'][-3:]:
+        entry['invalid_reasons'].append(reason)
+
+
+def _file_event_bad(acc, relpath, channel, auth, kind, reason):
+    """文件级无效事件(series形态/长度不一致等整体不入观测): 登记文件被
+    发现的事实,但不计入记录级raw计数(与指标级acc计数口径一致)。"""
+    e = _file_entry(acc, relpath, channel, kind)
+    _file_record_bad(e, reason)
+    return e
 
 
 def _is_auth(metric_source, channel):
@@ -423,35 +506,44 @@ def _is_auth(metric_source, channel):
 
 def _add_series(acc, series, channel, auth, relpath, fd_iso, kind):
     """series{dates,values}→观测。长度不一致如实记录且该series整体不入观测
-    (无法安全配对);同文件重复日期/乱序/非法日/非法值逐项记录。"""
+    (无法安全配对);同文件重复日期/乱序/非法日/非法值逐项记录。
+    FIX2-02: 逐文件贡献登记贯穿全部路径(含整体不入观测的文件级无效)。"""
     if not isinstance(series, dict):
         acc.invalid_date += 1
         acc.note('series_shape', '%s series字段非对象' % relpath)
+        _file_event_bad(acc, relpath, channel, auth, kind, 'series_shape:not_dict')
         return
     dates, values = series.get('dates'), series.get('values')
     if not isinstance(dates, list) or not isinstance(values, list):
         acc.invalid_date += 1
         acc.note('series_shape', '%s series.dates/values非列表' % relpath)
+        _file_event_bad(acc, relpath, channel, auth, kind, 'series_shape:not_list')
         return
     if len(dates) != len(values):
         acc.length_mismatch += 1
         acc.note('length_mismatch',
                  'dates=%d values=%d 不等长,整条不入观测' % (len(dates), len(values)))
+        _file_event_bad(acc, relpath, channel, auth, kind,
+                        'length_mismatch:%d_vs_%d' % (len(dates), len(values)))
         return
     acc.series_files.add(relpath)
     seen, prev_iso = set(), None
     for d_raw, v_raw in zip(dates, values):
         acc.raw += 1
+        fce = _file_entry(acc, relpath, channel, kind)
+        fce['raw_records'] += 1
         od, _rsn = to_obs_date(d_raw)
         val, _vsn = to_value(v_raw)
         if od is None:
             acc.invalid_date += 1
             acc.note('invalid_date', 'series %r' % (str(d_raw)[:32]))
             prev_iso = None
+            _file_record_bad(fce, 'invalid_date')
             continue
         if val is None:
             acc.invalid_value += 1
             acc.note('invalid_value', 'series %s %r' % (od, str(v_raw)[:24]))
+            _file_record_bad(fce, 'invalid_value')
             continue
         if od in seen:
             acc.same_file_dup += 1
@@ -466,23 +558,31 @@ def _add_series(acc, series, channel, auth, relpath, fd_iso, kind):
         acc.valid += 1
         if auth:
             acc.auth_raw += 1
+            fce['authority_records'] += 1
         else:
             acc.nonauth_raw += 1
+            fce['non_authority_records'] += 1
+        fce['valid_records'] += 1
+        fce['valid_observation_contributed'] = True
         acc.records.append({'obs_date': od, 'value': val, 'kind': kind,
                             'channel': channel, 'auth': auth, 'file': relpath})
 
 
 def _add_point(acc, d_raw, v_raw, channel, auth, relpath, fd_iso, kind):
     acc.raw += 1
+    fce = _file_entry(acc, relpath, channel, kind)
+    fce['raw_records'] += 1
     od, _rsn = to_obs_date(d_raw)
     val, _vsn = to_value(v_raw)
     if od is None:
         acc.invalid_date += 1
         acc.note('invalid_date', 'point %r' % (str(d_raw)[:32]))
+        _file_record_bad(fce, 'invalid_date')
         return
     if val is None:
         acc.invalid_value += 1
         acc.note('invalid_value', 'point %s %r' % (od, str(v_raw)[:24]))
+        _file_record_bad(fce, 'invalid_value')
         return
     if fd_iso and od > fd_iso:
         acc.future_obs += 1
@@ -490,8 +590,12 @@ def _add_point(acc, d_raw, v_raw, channel, auth, relpath, fd_iso, kind):
     acc.valid += 1
     if auth:
         acc.auth_raw += 1
+        fce['authority_records'] += 1
     else:
         acc.nonauth_raw += 1
+        fce['non_authority_records'] += 1
+    fce['valid_records'] += 1
+    fce['valid_observation_contributed'] = True
     acc.point_files.add(relpath)
     acc.records.append({'obs_date': od, 'value': val, 'kind': kind,
                         'channel': channel, 'auth': auth, 'file': relpath})
@@ -551,6 +655,10 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
                 a.raw += 1
                 a.invalid_date += 1
                 a.note('invalid_date', 'derived块%s无观测日字段(不以文件日补造)' % dmid)
+                # FIX2-02: 该文件对该派生指标的存在事实仍可追溯(有效样本不增加)
+                fce = _file_entry(a, rel, ch, 'derived')
+                fce['raw_records'] += 1
+                _file_record_bad(fce, 'derived_no_observation_date')
             else:
                 _unmapped(unmapped, ch, 'derived:' + str(dmid), rel, 'macro derived块键未注册')
         return
@@ -733,6 +841,7 @@ def build_metric_record(m, accs, channel_unreadable, by_channel):
                             'note': ('派生指标:无独立原始历史存档(由输入序列计算)'
                                      if '(derived)' in str(m['source']) + str(m.get('source_symbol'))
                                      else '数据集中未发现该指标任何记录(含非权威通道)')}
+        rec['input_files'] = []   # FIX2-02: 逐指标字段恒在(无贡献=空表,不缺字段)
         rec['counts'] = {k: 0 for k in (
             'raw_records', 'valid_records', 'invalid_date_records', 'invalid_value_records',
             'length_mismatch_series', 'authority_raw_records', 'non_authority_records',
@@ -763,22 +872,23 @@ def build_metric_record(m, accs, channel_unreadable, by_channel):
         [r for r in a.records if r['auth']])
     expected = observed_slots = coverage_ratio = None
     missing_slots, extra_slots, lim_note, slot_reason = [], [], None, None
-    segs, longest, gap, span, n_slots = [], 0, None, None, 0
+    segs, longest, gap, span = [], 0, None, None
+    n_slots = None          # FIX2-01: 槽位不可认证时为None(不以日期数冒充)
+    slots_certified = False
     if auth_dates:
         first, last = auth_dates[0], auth_dates[-1]
         span = (date.fromisoformat(last) - date.fromisoformat(first)).days
-        exp_list, keyfn, lim, reason = expected_slots(m['frequency'], first, last, m['calendar'])
-        lim_note, slot_reason = lim, reason
-        if exp_list is not None and keyfn is not None:
-            expected = len(exp_list)
-            obs_keys = {keyfn(d) for d in auth_dates}
-            observed_slots = len(obs_keys & set(exp_list))
-            missing_slots = [k for k in exp_list if k not in obs_keys]
-            extra_slots = sorted(obs_keys - set(exp_list))
+        # FIX2-01: 合法槽位=观测槽位键∩预期槽位序列(eligible_slots纯函数,
+        # 日历外观测只披露不入正式统计);§4.3槽位无法认证→observed=None,
+        # 不以len(auth_dates)冒充已认证独立槽位数量。
+        (expected, observed_slots, missing_slots, extra_slots,
+         slots_certified, lim_note, slot_reason) = eligible_slots(
+            auth_dates, m['frequency'], m['calendar'])
+        if slots_certified:
             coverage_ratio = (observed_slots / expected) if expected else None
-            n_slots = len(obs_keys)   # 独立观测槽位数(含日历外观测;日频=唯一日期数)
+            n_slots = observed_slots
         else:
-            n_slots = len(auth_dates)  # 槽位键不可得→按唯一观测日数(不虚构槽位)
+            n_slots = None
         # FIX1-01: 连续段=相邻实际槽位在预期序列中相邻(缺失预期槽位必断段)
         segs, extra_keys, seg_reason = split_slots(auth_dates, m['frequency'], m['calendar'])
         if seg_reason and not slot_reason:
@@ -787,6 +897,8 @@ def build_metric_record(m, accs, channel_unreadable, by_channel):
             extra_slots = extra_keys  # 日历外观测槽位键(split_slots同口径)
         longest = max((s['slots'] for s in segs), default=0)
         gap = max_internal_gap(auth_dates)
+    else:
+        n_slots = 0   # 无权威观测日→0合法槽位(状态走MISSING/UNREADABLE/DERIVED_ONLY)
     rec['discovery'] = {
         'found': True,
         'authority_channel_records': a.auth_raw,
@@ -818,7 +930,8 @@ def build_metric_record(m, accs, channel_unreadable, by_channel):
         'observation_span_days': span,
         'total_unique_observations': len(auth_dates),
         'expected_observation_slots': expected, 'observed_slots': observed_slots,
-        'unique_observation_slots': n_slots,
+        'unique_observation_slots': n_slots,      # FIX2-01: 合法槽位数(不可认证=None)
+        'slots_certified': slots_certified,        # FIX2-01: 槽位结论可认证性
         'missing_slots_count': len(missing_slots), 'missing_slots_sample': missing_slots[:10],
         'extra_observations_beyond_calendar': len(extra_slots),
         'extra_slot_keys_sample': extra_slots[:10],
@@ -829,10 +942,23 @@ def build_metric_record(m, accs, channel_unreadable, by_channel):
         'calendar_limitations': lim_note, 'slots_unavailable_reason': slot_reason,
         'max_internal_gap_days': gap,
     }
+    # FIX2-02: 逐指标完整贡献文件清单(去重不截断;权威/非权威/无效文件全量可追溯,
+    # 不复制原始数值只存身份+计数;Manifest关联字段由run_audit统一补齐)。
+    rec['input_files'] = [
+        {'relpath': rp, 'channel': e['channel'],
+         'record_types': sorted(e['record_types']),
+         'raw_records': e['raw_records'], 'valid_records': e['valid_records'],
+         'invalid_records': e['invalid_records'],
+         'authority_records': e['authority_records'],
+         'non_authority_records': e['non_authority_records'],
+         'invalid_reasons': list(dict.fromkeys(e['invalid_reasons']))[:5],
+         'valid_observation_contributed': e['valid_observation_contributed']}
+        for rp, e in sorted(a.file_contrib.items())]
     rec['conflict_candidates'] = conflicts[:10]
     rec['revision_events'] = a.revision_events[:10]
     rec['input_degraded'] = ch_unread > 0
-    rec['status'] = classify(m, auth_dates, n_slots, coverage_ratio, all_unread)
+    rec['status'] = classify(m, auth_dates, n_slots, coverage_ratio, all_unread,
+                             slots_certified)
     rec['sufficiency_note'] = ('无既定最小样本阈值;W4不判定"足够支持N年研究"(属W5/研究层),'
                                '仅报告可从本地数据证明的覆盖事实')
     return rec
@@ -853,22 +979,29 @@ def summarize(metrics, unmapped_list=()):
     complete, recent_only, serious = [], [], []
     for r in metrics:
         c = r['coverage']
-        ratio, uniq = c['coverage_ratio'], c['total_unique_observations']
+        ratio = c['coverage_ratio']
+        # FIX2-01§4.4: 完整历史判据用合法槽位数(observed_slots)而非原始唯一
+        # 观测日数——日历外观测不得撑大"完整历史"(summary与逐项同口径)。
+        slots_ok = c['observed_slots']
+        uniq = c['total_unique_observations']
         span = c['observation_span_days']
-        if r['status'] == 'OBSERVED' and ratio is not None \
+        if r['status'] == 'OBSERVED' and ratio is not None and slots_ok is not None \
                 and ratio >= t['complete_history_min_ratio'] \
-                and uniq >= t['complete_history_min_unique_obs']:
+                and slots_ok >= t['complete_history_min_unique_obs']:
             complete.append(r['metric_id'])
         if uniq >= 1 and span is not None and span < t['recent_only_span_days_max']:
             recent_only.append(r['metric_id'])
         brk = t['serious_break_days'].get(r['frequency'], 10)
         # FIX1-01: 断点结论与连续段同一口径——连续段≥2段=预期槽位序列中存在
-        # 缺失槽位断段;槽位不可用(预期无法确定)时才回退自然日间隔>阈值判据。
+        # 缺失槽位断段;槽位不可用(预期无法确定)时才回退自然日间隔>阈值判据
+        # (FIX2-01: 以unique_observation_slots is None判定槽位不可用,NO_VALID_
+        # SLOTS等槽位已认证情形不冒用自然日回退判据)。
         if len(c['continuous_segments']) >= 2:
             serious.append({'metric_id': r['metric_id'],
                             'segments': len(c['continuous_segments']),
                             'max_internal_gap_days': c['max_internal_gap_days']})
-        elif not c['continuous_segments'] and uniq >= 2 \
+        elif not c['continuous_segments'] and c['unique_observation_slots'] is None \
+                and uniq >= 2 \
                 and c['max_internal_gap_days'] is not None \
                 and c['max_internal_gap_days'] > brk:
             serious.append({'metric_id': r['metric_id'],
@@ -897,10 +1030,15 @@ def summarize(metrics, unmapped_list=()):
                           t['serious_break_days']['monthly'])),
         'metrics': serious}
     findings['4_哪些指标未保存历史'] = {
-        'definition': 'MISSING=未找到权威观测;UNREADABLE=输入全不可读;DERIVED_ONLY=仅派生计算',
+        'definition': ('MISSING=未找到权威观测;UNREADABLE=输入全不可读;'
+                       'DERIVED_ONLY=仅派生计算;NO_VALID_SLOTS=有权威观测日但'
+                       '无一落在预期槽位(如仅周末采集,与MISSING=数据完全不存在'
+                       '区分);UNDETERMINED=预期槽位无法确定(不冒充确定性覆盖结论)'),
         'MISSING': by_status.get('MISSING', []),
         'UNREADABLE': by_status.get('UNREADABLE', []),
-        'DERIVED_ONLY': by_status.get('DERIVED_ONLY', [])}
+        'DERIVED_ONLY': by_status.get('DERIVED_ONLY', []),
+        'NO_VALID_SLOTS': by_status.get('NO_VALID_SLOTS', []),
+        'UNDETERMINED': by_status.get('UNDETERMINED', [])}
     findings['5_哪些数据无法支持研究区间判断'] = (
         '全部指标research_sufficiency=UNDETERMINED(无既定最小样本阈值,不判定'
         '"足够支持N年研究");日历近似限制(cn/hk/fx等)见逐项coverage.calendar_limitations')
@@ -922,6 +1060,9 @@ def summarize(metrics, unmapped_list=()):
         'no_data': len(by_status.get('MISSING', [])),
         'unreadable': len(by_status.get('UNREADABLE', [])),
         'derived_only': len(by_status.get('DERIVED_ONLY', [])),
+        # FIX2-01: 新状态显式计数(不与MISSING混同)
+        'no_valid_slots': len(by_status.get('NO_VALID_SLOTS', [])),
+        'undetermined': len(by_status.get('UNDETERMINED', [])),
         'by_status': {k: len(v) for k, v in sorted(by_status.items())},
         'core_by_status': {k: len(v) for k, v in sorted(core_by_status.items())},
         'core_missing_or_unreadable': [m for s in ('MISSING', 'UNREADABLE')
@@ -959,7 +1100,9 @@ def render_markdown(result):
                    ('series_backed', '其中带原始序列(series)'),
                    ('single_observation_only', '仅单点观测'),
                    ('no_data', '无数据(MISSING)'), ('unreadable', '不可读(UNREADABLE)'),
-                   ('derived_only', '仅派生(DERIVED_ONLY)')):
+                   ('derived_only', '仅派生(DERIVED_ONLY)'),
+                   ('no_valid_slots', '无合法槽位(NO_VALID_SLOTS,FIX2-01)'),
+                   ('undetermined', '槽位不可判定(UNDETERMINED,FIX2-01)')):
         L.append('| %s | %d |' % (lab, summary[k]))
     L += ['', '状态分布: `%s`' % json.dumps(summary['by_status'], ensure_ascii=False),
           'core(active)分布: `%s`' % json.dumps(summary['core_by_status'], ensure_ascii=False)]
@@ -969,22 +1112,25 @@ def render_markdown(result):
           % (result['input']['files'], json.dumps(result['input']['by_channel']),
              json.dumps({k: v for k, v in excluded.items() if k != 'note'}, ensure_ascii=False)),
          '', '## 逐项覆盖(全部%d项注册指标,无数据者也输出)' % len(metrics),
-         '| 指标 | 名称 | 状态 | 频率 | 最早 | 最晚 | 独立观测日 | 独立槽位 | 覆盖率 | 缺槽 | 最长连续段 | 限制 |',
-         '|---|---|---|---|---|---|---|---|---|---|---|---|']
+         '| 指标 | 名称 | 状态 | 频率 | 最早 | 最晚 | 独立观测日 | 合法槽位 | 覆盖率 | 缺槽 | 最长连续段 | 贡献文件 | 限制 |',
+         '|---|---|---|---|---|---|---|---|---|---|---|---|---|']
     for r in metrics:
         c, d = r['coverage'], r['discovery']
         ratio = c['coverage_ratio']
         lim = c['calendar_limitations'] or ''
         lim = (lim[:16] + '…') if len(lim) > 18 else lim
-        L.append('| %s | %s | %s%s | %s | %s | %s | %d | %d | %s | %s | %s | %s |' % (
+        slots_disp = c.get('unique_observation_slots')
+        slots_disp = slots_disp if slots_disp is not None else '—'
+        L.append('| %s | %s | %s%s | %s | %s | %s | %d | %s | %s | %s | %s | %d | %s |' % (
             r['metric_id'], r['display_name'], r['status'],
             '⚠️输入降级' if r.get('input_degraded') else '',
             r['frequency'], c['first_observation_date'] or '—',
             c['last_observation_date'] or '—', c['total_unique_observations'],
-            c.get('unique_observation_slots', 0),
+            slots_disp,
             ('%.0f%%' % (ratio * 100)) if ratio is not None else '—',
             c['missing_slots_count'] if c['missing_slots_count'] is not None else '—',
-            c['longest_continuous_segment_slots'], lim or '—'))
+            c['longest_continuous_segment_slots'],
+            len(r.get('input_files', [])), lim or '—'))
     L += ['', '## 审计发现']
     for k, v in findings.items():
         L.append('**%s**' % k)
@@ -1015,7 +1161,10 @@ def render_markdown(result):
           '- 单次快照式审计;生产目录若由计划任务持续更新,应在冻结副本上复核(见输入清单)。',
           '- 全部指标 research_sufficiency=UNDETERMINED。',
           '- 逐指标异常明细(非法日/非法值/乱序/冲突/修订/长度不一致)见JSON'
-            ' counts/notes/conflict_candidates字段,可由输入文件逐条复算。']
+            ' counts/notes/conflict_candidates字段,可由输入文件逐条复算。',
+          '- 逐指标完整贡献文件清单见JSON input_files字段(FIX2-02: 全量去重'
+            '不截断,含权威/非权威/仅无效记录文件,逐条关联输入Manifest的'
+            'sha256/size/mtime_ns;Markdown中样例仅展示不替代机器溯源)。']
     return '\n'.join(L) + '\n'
 
 
@@ -1060,6 +1209,35 @@ def _audit_metadata():
             '不完全对应干净已提交版本%s——不得声称报告完全对应该已提交代码版本'
             % (dirty, head or '(未知)'))
     return meta
+
+
+def _associate_input_files(metric_records, manifest):
+    """FIX2-02§5.5 逐指标input_files与全局输入Manifest逐文件关联:
+    relpath唯一匹配→补manifest_sha256/size/mtime_ns;channel一致性核验。
+    无法关联=显式完整性错误(不静默省略该文件,也不留无法追溯的路径)。
+    返回关联问题列表(空=全部关联ok;逐条{metric_id,relpath,problem})。"""
+    manifest_by_rel = {e['relpath']: e for e in manifest}
+    assoc_problems = []
+    for rec in metric_records:
+        for fce in rec.get('input_files', []):
+            me = manifest_by_rel.get(fce['relpath'])
+            if me is None:
+                assoc_problems.append({'metric_id': rec['metric_id'],
+                                       'relpath': fce['relpath'],
+                                       'problem': 'not_in_manifest'})
+                fce['manifest_association'] = 'not_in_manifest'
+                continue
+            fce['manifest_sha256'] = me.get('sha256')
+            fce['size'] = me.get('size')
+            fce['mtime_ns'] = me.get('mtime_ns')
+            if me.get('channel') != fce['channel']:
+                assoc_problems.append({'metric_id': rec['metric_id'],
+                                       'relpath': fce['relpath'],
+                                       'problem': 'channel_mismatch'})
+                fce['manifest_association'] = 'channel_mismatch'
+            else:
+                fce['manifest_association'] = 'ok'
+    return assoc_problems
 
 
 def run_audit(data_dir, out_dir, registry_path, source_note=None, log=None):
@@ -1130,6 +1308,13 @@ def run_audit(data_dir, out_dir, registry_path, source_note=None, log=None):
 
     metric_records = [build_metric_record(m, accs, channel_unreadable, by_channel)
                       for m in metrics_reg]
+
+    # FIX2-02§5.5: 逐指标input_files与全局输入Manifest逐文件关联(见
+    # _associate_input_files;负向敏感性注入缝=删映射即被检出)。
+    assoc_problems = _associate_input_files(metric_records, manifest)
+    if assoc_problems:
+        wmsg('⚠️ input_files与Manifest关联问题%d条(显式披露): %s'
+             % (len(assoc_problems), assoc_problems[:3]))
     unmapped_list = sorted((dict(v, files=sorted(v['files'])) for v in unmapped.values()),
                            key=lambda x: (x['channel'], x['raw_key']))
     summary, findings = summarize(metric_records, unmapped_list)
@@ -1181,6 +1366,7 @@ def run_audit(data_dir, out_dir, registry_path, source_note=None, log=None):
         'integrity': {'input_changed_during_audit': input_changed,
                       'changed_files': changed,
                       'manifest_digest': manifest_digest(manifest),
+                      'input_files_association_problems': assoc_problems,
                       'recheck': '审计结束后逐文件SHA-256重算比对清单初值'},
         'manifest': manifest_dump,
     })

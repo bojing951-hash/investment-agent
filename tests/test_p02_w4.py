@@ -855,14 +855,16 @@ class TestENegativeSensitivity(unittest.TestCase):
     # E5: 漏掉/洗白无数据指标(MISSING→OBSERVED)→用例16断言失败
     # [W4-FIX1修订] classify签名增加n_slots位(FIX1-01: SINGLE_OBSERVATION按
     # 独立观测槽位);本负向mock同步新签名,注入语义不变(MISSING→OBSERVED洗白)。
+    # [W4-FIX2修订] classify签名再增slots_certified位(FIX2-01§4.3: 槽位
+    # 不可认证→UNDETERMINED);mock同步第6参,注入语义不变。
     def test_e5_missing_whitewash_detected(self):
         s = by_id(self.res, 'SILVER_F')
         correct = s['status'] == 'MISSING'
         self.assertTrue(correct)
         orig = hca.classify
 
-        def whitewash(m, dates, n_slots, ratio, unreadable):
-            st = orig(m, dates, n_slots, ratio, unreadable)
+        def whitewash(m, dates, n_slots, ratio, unreadable, slots_certified=True):
+            st = orig(m, dates, n_slots, ratio, unreadable, slots_certified)
             return 'OBSERVED' if st == 'MISSING' else st
 
         mut = self._mutated(classify=whitewash)

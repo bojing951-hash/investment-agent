@@ -115,17 +115,43 @@
   不可达如实NOT_VERIFIED;Gate A失败不绕过;重大差异不放宽阈值按原契约FAIL。
 - 产物: 9件正式输出(JSON/MD/LOG/外部raw/SHA256SUMS等)入证据包。
 
-## 5. CI实证(回填区)
-(最终固定Commit推送后workflow_dispatch offline-tests.yml,回填Run/Job ID/
-checkout SHA/52套件逐套件退出码。)
+## 5. CI实证
+- **实现Commit f1b6e42+交付文档Commit 4a19619e → Run 41279559970**
+  (Job 124768507198,workflow_dispatch offline-tests.yml,ref=dev/p0-2-w5)
+- checkout实证: job日志 `git fetch origin
+  +4a19619e450cbf8699b6df4b088d2058b351ff2b` + `checkout -B dev/p0-2-w5`
+- **52套件全部exit=0**(test_glm_live按契约排除;新增
+  test_p02_w5_fix1.py 32用例入列)——逐套件退出码见证据包
+  IA-P0-2-W5-FIX1-CI-SUMMARY-4a19619.txt与job日志。
+- 本回填Commit(最终固定Commit)的CI实证同样入证据包(不能用
+  4a19619e的CI冒充最终SHA的CI)。
 
-## 6. 隔离取证(§十三,回填区)
-(最终DEV/LIVE只读取证: HEAD SHA/远程同步/main与W4封版未动/DEV≠LIVE。)
+## 6. 隔离取证(§十三,已执行)
+见证据包 IA-P0-2-W5-FIX1-POSTCOMMIT-ISOLATION-4a19619.txt:
+- DEV HEAD=4a19619e→本回填Commit,工作区干净,远程同步;
+- main=50b5d13d未动;W4封版7c004c65为HEAD祖先未改写;
+- LIVE real_data_acceptance.py sha256=f9ca189c5248199b(≠DEV FIX1
+  62b2ed82d7dbbcdb),FIX1标记出现0次——**FIX1代码零进入LIVE**;
+- launchd两plist全参数只指LIVE路径,零DEV引用。
 
-## 7. 证据包(§十四,回填区)
-IA-P0-2-W5-FIX1-ACCEPTANCE-EVIDENCE.zip(实际交付路径+SHA256)。
+## 7. 正式真实数据验收结果(§十二,已实际执行)
+- acceptance_id=real_acceptance_20261101_1428,formal_external_verification,
+  数据日20261030,输入848json冻结副本(新鲜复核与LIVE零漂移),
+  输出独立目录(FIX1-05路径检查通过),最终SHA下worktree_dirty=0。
+- 外部8项真实API: UST三期限PASS(0.0bp);**BTC FAIL 1.34%**(与W5基线
+  同一真实差异,容差不放宽按原契约FAIL);GOLD_F NOT_COMPARABLE;
+  SHCOMP/SPX/WTI_F NOT_VERIFIED(新浪快照日期≠观测日/FRED无同日观测/
+  参考源不可达——如实,不Mock冒充)。
+- 独立复算: SPX/GOLD_F/HSI完整三期PASS(complete_recompute=True);
+  SHCOMP部分复核2/3期INSUFFICIENT_HISTORY(不冒充)。
+- 综合**FAIL/exit 2**(BTC真实数值差异)——如实交付,裁决权在Agent 4。
+- 全部产物零密钥泄漏;摘要见IA-P0-2-W5-FIX1-REAL-AUDIT-4a19619.txt。
 
-## 8. 版本
-- FIX1实现Commit: f1b6e42(本文件之前)
-- 最终固定Commit: (回填)
-- 增量Diff: 78f4c9a→(回填最终SHA)
+## 8. 证据包(§十四,已实际交付)
+IA-P0-2-W5-FIX1-ACCEPTANCE-EVIDENCE.zip(路径与SHA256见交付说明)。
+
+## 9. 版本
+- FIX1实现Commit: f1b6e42
+- CI实证Commit: 4a19619e(Run 41279559970,52套件全绿)
+- 最终固定Commit: 本回填Commit(见git log;其CI实证入证据包)
+- 增量Diff: 78f4c9a→最终SHA(f1b6e42七项修复+4a19619交付文档+本回填)

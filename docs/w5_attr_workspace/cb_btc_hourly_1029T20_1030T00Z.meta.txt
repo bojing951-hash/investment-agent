@@ -1,0 +1,6 @@
+url=https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=3600&start=2026-10-29T20%3A00%3A00Z&end=2026-10-30T00%3A00%3A00Z
+fetched_utc=2026-11-01T09:59:16Z
+http_status=200
+body_sha256=76d9a63459bf222ae85fdf80fe3c5fc6d67ce51a386022bd103a068bf0af0ac8
+body_bytes=305
+saved=cb_btc_hourly_1029T20_1030T00Z__2026-11-01T095916Z.body

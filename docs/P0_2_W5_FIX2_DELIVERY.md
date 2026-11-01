@@ -46,7 +46,7 @@
 3. **双侧完结性**: ①D 须在运行时刻(UTC)前已完整结束(`btc_utc_day_completed`,real_data_acceptance.py:180-188,实现为纯日期比较 D+1 ≤ now(UTC).date);在途 UTC 日→NOT_COMPARABLE(任何时点/截断价不得冒充完结收盘,R003 实证 1.34%);②我侧若携带 close_meta,须满足 `completed_through_utc == D`(不一致→NOT_COMPARABLE);无 close_meta(旧产物)→如实披露不阻断(此时在途截断价与外部完结收盘的真实差异会如实 FAIL)。
 4. **容差 0.5% 不变**;门槛/判定规则常量/资产分类零改动(§1 文件:行证据)。
 5. **错日反例单测固化**(tests/test_p02_w5_fix2.py W组): D vs D±1 值相等也判 NOT_VERIFIED,不静默 PASS;close_meta 不一致→NOT_COMPARABLE。
-6. **真实数据级行为(工程诊断,非正式产物)**: 对数据日20261102快照 BTC(77434.75@2026-10-31,close_meta完备)直接驱动 check_btc vs Coinbase 同UTC日K → **PASS,偏差0.01%**(完结vs完结;证据包 DIAG-EXT-BTC-20261102.txt)。
+6. **真实数据级行为(工程诊断,非正式产物;W5-FIX3 证据链更正,详见 docs/P0_2_W5_FIX3_DELIVERY.md)**: 对数据日20261102快照 BTC(77434.75@2026-10-31,close_meta完备)驱动 check_btc vs Coinbase 同UTC日K。**原始诊断档 DIAG-EXT-BTC-20261102.txt(2026-11-01T16:44Z 运行)实际记录 check_btc=NOT_VERIFIED**(Coinbase 当时不可达: status_code=null、candles=[];00:50 另由 capture_coinbase_raw.py 取回真实 body,系手动取证非 check_btc 输出)。**FIX3 轮 R2 重跑(DIAG-EXT-BTC-20261102-R2.txt,Coinbase 真实 candles 可达)check_btc=PASS、偏差0.01%**(脚本口径四舍五入;未舍入 0.0139% = 77434.75 vs 77423.98;body SHA256 `9235918b…`,与 FIX2 手动捕获 body 逐字节一致;start_ts=1793404800=UTC日界;完结vs完结)。
 
 ## 4. T3 真实重跑策略与时点(F2-AC-03)
 
@@ -63,8 +63,8 @@
 - **运行记录**: 2026-11-01T16:44:43Z(2026-11-02 00:44 HKT),HEAD=`9e6fe71c85353bc0ef906471ef76b9227e75a37c`(worktree clean),脚本SHA256=`01e3f890793f09b86f1e885da9a4eb9fc143a1638cb4a56e80e2f34a5bcb331b`(与DEV-LIVE-ISOLATION登记的DEV版一致),`--data-day 20261102` 显式指定,完整console与退出码=**2**(证据包 FORMAL-RUN-RECORD.txt)。
 - **结果(如实FAIL)**: 快照构建成功(事实70,质量PASS57/DEGRADED12/FAIL0,锚点165)后,**Gate A=FAIL(core缺失5: CN_TOTAL_TURNOVER/FED_FUNDS/SHCOMP/SZCI缺失源于china通道tushare结构性限流;FED_FUNDS缺失源于FRED DFF单次网络瞬断)**→脚本信任边界阻断(real_data_acceptance.py:1190-1195)"该数据集不得通过真实数据验收"→exit 2,**八项外部核验与门槛计数未产生(零外部调用)**。
 - **F2-AC-03 如实判定: 不满足**——EXT-BTC/UST/门槛计数(总PASS≥4、市场类≥2)在正式流程均未产生判定(非"计数未达标",而是"数据集被Gate A拒绝,验收不可达计数");overall/exit 如实(阻断即2,未放宽、未绕过)。
-- **BLK-1 修复的真实数据级验证(工程诊断,非正式)**: §3.6——快照BTC(已完结UTC日2026-10-31+close_meta)vs Coinbase同日完整日K=PASS/0.01%(完结vs完结);R003 原场景(在途截断价78822.59)在新逻辑下不可产生(R2单测+负向敏感性实证)。
-- **BLK-2 状态**: 未消除——正式计数未产生;工程探针显示既有源在数据日的预期状态(UST 0bp同日行/BTC 0.01%/SHCOMP同日冻结收盘/SPX滞后NV)本可支撑门槛,但均因Gate A阻断未在正式流程兑现。
+- **BLK-1 修复的真实数据级验证(工程诊断,非正式;FIX3更正表述)**: §3.6 原始诊断档 DIAG-EXT-BTC-20261102.txt 实际记录 check_btc=NOT_VERIFIED(Coinbase当时不可达,candles=[]);FIX3 轮 R2 重跑(check_btc 真实输出)快照BTC(已完结UTC日2026-10-31+close_meta)vs Coinbase同日完整日K=**PASS/0.01%**(未舍入0.0139%;证据: FIX3证据包 DIAG-EXT-BTC-20261102-R2.txt);R003 原场景(在途截断价78822.59)在新逻辑下不可产生(FIX2套件R2组单测+负向敏感性实证)。
+- **BLK-2 状态**: 未消除——正式计数未产生;既有源在数据日的预期状态(UST 0bp同日行/BTC 手动复算0.0139%(FIX3 R2重跑check_btc实证PASS/0.01%)/SHCOMP同日冻结收盘/SPX滞后NV)本可支撑门槛,但均因Gate A阻断未在正式流程兑现(BTC该值非当日check_btc输出——原始诊断档NOT_VERIFIED,见§3.6更正)。
 
 ## 6. 测试与CI(F2-AC-04)
 
@@ -84,7 +84,7 @@
 
 1. **BTC采集口径**: yfinance BTC-USD 日K(UTC),仅取已完结UTC日;close=完结日Close;本轮比较日=2026-10-31。
 2. **BTC外部口径**: Coinbase Exchange BTC-USD candles granularity=86400,UTC日K起点=日界00:00Z,USD计价。
-3. **两源身份不同**(yfinance聚合 vs Coinbase交易所): 0.5%容差覆盖跨源微小差异(本轮真实数据实证完结vs完结=0.01%,工程诊断)。
+3. **两源身份不同**(yfinance聚合 vs Coinbase交易所): 0.5%容差覆盖跨源微小差异(真实数据完结vs完结差异=0.0139%未舍入——FIX3 R2重跑check_btc输出0.01%为四舍五入口径;原始诊断档当时NOT_VERIFIED,见§3.6更正)。
 4. **UST**: 采集侧FRED DGS系列(obs 2026-10-29,percent)vs外部home.treasury.gov官方收益率曲线同日行(percent),百分点差×100≤3bp。
 5. **SHCOMP**: 采集侧tushare index_daily(收盘点位)vs外部新浪hq.sinajs.cn同日快照(周末冻结=周五收盘,time≥15:30:00收盘口径可证),≤0.3%。
 6. **SPX**: 采集侧yfinance ^GSPC(obs 2026-10-30)vs FRED SP500——**无同日观测(FRED最新2026-10-29,发布滞后)→NOT_VERIFIED如实**,不以最近一条冒充。
@@ -109,6 +109,6 @@
 
 ## 10. 结论与遗留(如实)
 
-- **已完成**: F2-AC-01(BLK-1采集器UTC完整收盘语义,含真实产物close_meta实证)、F2-AC-02(EXT-BTC完结vs完结口径+错日反例固化,含真实数据级工程诊断PASS/0.01%)、F2-AC-04(测试纪律+负向敏感性+CI等效本地全绿;gh本会话被拦,CI由Agent 4独立确证)、F2-AC-05(范围⊆A~E、隔离与冻结纪律)、F2-AC-06(运行次序与证据链,正式运行如实FAIL记录+证据包)。
+- **已完成**: F2-AC-01(BLK-1采集器UTC完整收盘语义,含真实产物close_meta实证)、F2-AC-02(EXT-BTC完结vs完结口径+错日反例固化;真实数据级行为——原始诊断档NOT_VERIFIED(Coinbase当时不可达),FIX3 R2重跑check_btc=PASS/0.01%(未舍入0.0139%),见§3.6更正与FIX3交付文档)、F2-AC-04(测试纪律+负向敏感性+CI等效本地全绿;gh本会话被拦,CI由Agent 4独立确证)、F2-AC-05(范围⊆A~E、隔离与冻结纪律)、F2-AC-06(运行次序与证据链,正式运行如实FAIL记录+证据包)。
 - **F2-AC-03 不满足(如实)**: 正式重跑被 Gate A 信任边界阻断(exit 2),八项外部核验与BLK-2门槛计数未产生;根因为 china 通道 tushare index_daily 外部限流(结构性,本轮修改范围内无解)+ FRED DFF 瞬断,非本修复缺陷(BTC侧新语义与EXT新口径的真实数据级行为已由工程诊断与23用例+三注入负向敏感性证明正确)。
 - **待用户批准事项(不自行扩权)**: ①china采集通道备源/限流改造(超出本轮范围A,需新授权);②择期(tushare配额窗口恢复后)重跑正式验收;③任何数据回补。

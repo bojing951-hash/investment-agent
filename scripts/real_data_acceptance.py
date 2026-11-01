@@ -86,7 +86,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, date, timedelta, timezone
+from datetime import datetime, date, time, timedelta, timezone
 
 import requests
 
@@ -148,6 +148,44 @@ CHECK_IDS = {
 }
 # 复算对象单位纪律: 仅价格类可用 (期末/基准−1)×100 收益公式
 PRICE_UNITS = {'index_point', 'usd', 'usd_per_oz', 'usd_per_barrel'}
+
+# ══ F2-AC-02(IA-P0-2-W5-FIX2-AC-v1.0): EXT-BTC比较口径同源 ══════════════
+# 比较日机械规则(固定,无人工挑选空间;随报告输出披露):
+#   1. 比较日D = 快照BTC事实observation_date[:10](源=采集记录date字段→事实
+#      观测日,机械透传;不接受任何人工指定/漂移的比较日);
+#   2. 外部侧 = Coinbase同UTC日K(candles严格按D键取;D±1错日不进入比较,
+#      缺D即NOT_VERIFIED;K线起点须UTC日界start_ts%86400==0);
+#   3. 双侧完结性: ①D须在运行时刻(UTC)前已完整结束(now_utc ≥ D+1T00:00:00Z;
+#      在途UTC日两侧都不存在"完结收盘"→NOT_COMPARABLE,不得以任何时点价
+#      冒充完结vs完结);②我侧若携带采集收词元数据close_meta(W5-FIX2修复后
+#      采集器随global_*.json持久化),须满足completed_through_utc==D(采集器
+#      只产出已完结UTC日收盘;不一致→NOT_COMPARABLE);无close_meta(旧采集
+#      产物)→如实披露,我侧完结性仅由①完结窗+0.5%容差比较约束(在途截断价
+#      与外部完结收盘的真实差异会如实FAIL——R003实证1.34%)。
+BTC_COMPARISON_DAY_RULE = (
+    'EXT-BTC比较日D=快照BTC事实observation_date(机械透传,无人工挑选);'
+    '外部=Coinbase同UTC日K(严格按D取,D±1错日即NOT_VERIFIED);'
+    '双侧完结性: D须于运行时刻(UTC)前完整结束(否则NOT_COMPARABLE),'
+    '我侧采集收词元数据close_meta.completed_through_utc须==D(否则NOT_COMPARABLE)')
+
+
+def _now_utc(now=None):
+    """运行时刻(UTC, aware);naive按UTC解释(测试注入确定性时点)。"""
+    t = datetime.now(timezone.utc) if now is None else now
+    if t.tzinfo is None:
+        t = t.replace(tzinfo=timezone.utc)
+    return t.astimezone(timezone.utc)
+
+
+def btc_utc_day_completed(day_iso, now=None):
+    """UTC日D在运行时刻前是否已完整结束: D+1T00:00:00Z ≤ now(UTC)。
+
+    F2-AC-02: 在途UTC日不存在"完结收盘",完结vs完结比较不可满足——比较前
+    机械判定,任何一侧的时点/截断价不得冒充该UTC日日收盘。
+    实现为纯日期比较(D+1的ISO日期≤now(UTC)日期),不经datetime.combine/
+    time——tests既有mock只替换datetime类,保持该路径可注入确定性时点。"""
+    d = date.fromisoformat(str(day_iso)[:10])
+    return (d + timedelta(days=1)) <= _now_utc(now).date()
 
 # 指标身份与价格口径(注册表unit交叉核验后写入报告)
 PRICE_BASIS = {
@@ -522,8 +560,18 @@ def check_shcomp(fact, quote, today_ymd, spec):
                verdict, f'{qd}同日收盘口径(报价时间{qt});偏差{dev}%')
 
 
-def check_btc(fact, candles, spec):
-    """BTC: Coinbase UTC日K(起点=00:00Z)+USD计价同日比对。"""
+def check_btc(fact, candles, spec, now_utc=None, close_meta=None):
+    """BTC: Coinbase UTC日K(起点=00:00Z)+USD计价同日比对。
+
+    F2-AC-02(IA-P0-2-W5-FIX2-AC-v1.0): 完结收盘vs完结收盘——比较日D=快照
+    BTC事实observation_date(机械透传,无人工挑选);双侧须同为已完结UTC日:
+    ①D在运行时刻(UTC)前已完整结束(btc_utc_day_completed;在途UTC日双侧都
+    不存在完结收盘→NOT_COMPARABLE,任何时点/截断价不得冒充);②采集元数据
+    close_meta(W5-FIX2采集器随global_*.json持久化)的completed_through_utc
+    须==D(不一致→NOT_COMPARABLE);无close_meta(旧采集产物)→如实披露,
+    不阻断(此时我侧完结性仅由①约束,在途截断价与外部完结收盘的真实差异
+    会如实FAIL——R003实证1.34%)。Coinbase侧严格按D取K线,D±1错日不进入
+    比较(缺D即NOT_VERIFIED)。容差0.5%不变。"""
     mid = 'BTC'
     o = _ours(fact)
     if o is None or o['value'] is None:
@@ -535,6 +583,23 @@ def check_btc(fact, candles, spec):
         return _mk(f'{mid}外部核验', mid, o, None, None, 'NOT_VERIFIED',
                    'Coinbase日K不可达/无数据(诊断见外部证据)')
     od = o['observation_date']
+    if not btc_utc_day_completed(od, now_utc):
+        return _mk(f'{mid}外部核验', mid, o,
+                   {'observation_date': od, 'in_flight_utc_day': True},
+                   None, 'NOT_COMPARABLE',
+                   f'{od}为运行时刻({_now_utc(now_utc).isoformat(timespec="seconds")})'
+                   '前未完整结束的UTC日——双侧均不存在该日完结收盘,在途时点价'
+                   '不得冒充完结vs完结(R003实证: 在途23:00Z截断价vs完整UTC日收'
+                   '盘差1.34%)')
+    if close_meta is not None and close_meta.get('completed_through_utc') != od:
+        return _mk(f'{mid}外部核验', mid, o,
+                   {'observation_date': od,
+                    'collector_completed_through_utc':
+                        close_meta.get('completed_through_utc')},
+                   None, 'NOT_COMPARABLE',
+                   f"采集close_meta.completed_through_utc="
+                   f"{close_meta.get('completed_through_utc')}≠比较日{od}"
+                   '——采集侧完结口径与快照事实观测日不一致,不可比')
     c = candles.get(od)
     if c is None:
         return _mk(f'{mid}外部核验', mid, o,
@@ -549,20 +614,31 @@ def check_btc(fact, candles, spec):
     ext = c['close']
     dev = round(abs(o['value'] - ext) / ext * 100, 2)
     verdict = 'PASS' if dev <= spec['tol'] else 'FAIL'
+    meta_note = (f";采集close_meta: completed_through="
+                 f"{close_meta.get('completed_through_utc')},retrieved_at="
+                 f"{close_meta.get('retrieved_at_utc')},source="
+                 f"{close_meta.get('source')}"
+                 if close_meta is not None else
+                 ';采集产物无close_meta(旧采集器产物)——我侧完结性未经采集'
+                 '元数据独立证明,如实披露')
     return _mk(f'{mid}外部核验', mid, o,
                {'value': ext, 'observation_date': od, 'utc_window':
                 f"{od}T00:00:00Z–{od}T23:59:59Z(Coinbase Exchange,USD)"},
                {'metric': 'relative_pct', 'ours_value': o['value'], 'external_value': ext,
                 'difference_pct': dev, 'tolerance_pct': spec['tol'],
                 'tolerance_rule': spec['rule'], 'rounding': spec['rounding']},
-               verdict, f'{od} UTC日K收盘(Coinbase Exchange现货,USD);偏差{dev}%')
+               verdict, f'{od}完结UTC日收盘vs同日完结UTC日K(Coinbase Exchange现货,'
+               f'USD);偏差{dev}%{meta_note}')
 
 
-def run_external_checks(facts, fetchers, today_ymd, log=None):
+def run_external_checks(facts, fetchers, today_ymd, log=None, btc_close_meta=None):
     """执行八项外部对照。fetchers={'treasury','coinbase','sina','fred'(可None)}。
     返回(results, evidences, raw_bodies)。外部获取失败→NOT_VERIFIED+诊断,
     不冒充、不编造。
 
+    F2-AC-02: btc_close_meta=采集器随global_*.json持久化的BTC收盘元数据
+    (main()从数据日global文件读取;旧产物无close_meta→None,如实披露),
+    透传check_btc作我侧完结性核验(completed_through_utc==比较日)。
     FIX1-06: 每检查稳定check_id+来源绑定(external_source/source_identity/
     evidence_ids): 三UST共享年度官方CSV证据;FRED SPX/WTI各自证据;
     Coinbase BTC/PAXG按真实请求各自记录;无来源明确为空([]/None),不构造
@@ -625,10 +701,14 @@ def run_external_checks(facts, fetchers, today_ymd, log=None):
                                       TOLERANCES['treasury_ust']),
                             mid, ust_src, tsy_identity, tsy_ids))
 
-    # A2 BTC: Coinbase UTC日K
+    # A2 BTC: Coinbase UTC日K(F2-AC-02: 完结vs完结+close_meta透传)
     o = _ours(fv('BTC')) or {}
     od = o.get('observation_date')
     P(f"  [A2] Coinbase BTC-USD日K (目标{od})")
+    _ct = (btc_close_meta or {}).get('completed_through_utc')
+    P(f"  [A2-meta] 比较日规则: {BTC_COMPARISON_DAY_RULE}")
+    P(f"  [A2-meta] 我侧采集close_meta: completed_through="
+      f"{_ct if _ct else '(无close_meta——旧采集器产物,如实披露)'}")
     if od:
         end = (date.fromisoformat(od) + timedelta(days=1)).isoformat()
         candles, ev, raw = fetchers['coinbase']('BTC-USD', od, end)
@@ -636,7 +716,8 @@ def run_external_checks(facts, fetchers, today_ymd, log=None):
         candles, ev, raw = {}, None, None
     btc_id = rec(ev, raw, 'coinbase_BTC-USD', 'EV-CB-BTC-USD',
                  'products/BTC-USD/candles?granularity=86400')
-    results.append(bind(check_btc(fv('BTC'), candles, TOLERANCES['coinbase_btc']),
+    results.append(bind(check_btc(fv('BTC'), candles, TOLERANCES['coinbase_btc'],
+                                  close_meta=btc_close_meta),
                         'BTC', 'Coinbase Exchange BTC-USD(UTC日K)',
                         'products/BTC-USD/candles?granularity=86400', [btc_id]))
 
@@ -1117,13 +1198,37 @@ def main():
         as_of = snap.get('research_as_of', '')
         ga = snap.get('gate_a') or {}
 
+        # F2-AC-02: 读采集器随数据日global_*.json持久化的BTC收盘元数据
+        # (sources_status.global.file=快照实际引用的输入文件名;旧采集产物
+        # 无close_meta→None——如实披露,不构造)
+        btc_close_meta = None
+        _gfile = ((snap.get('sources_status') or {}).get('global') or {}).get('file')
+        if _gfile:
+            try:
+                with open(os.path.join(args.data_dir, _gfile),
+                          encoding='utf-8') as _gf:
+                    btc_close_meta = (((json.load(_gf)).get('data') or {})
+                                      .get('BTC') or {}).get('close_meta')
+            except Exception:
+                btc_close_meta = None
+        if btc_close_meta:
+            P(f"  [A2-meta] 读取global输入{_gfile}: BTC close_meta "
+              f"source={btc_close_meta.get('source')}, "
+              f"completed_through={btc_close_meta.get('completed_through_utc')}, "
+              f"retrieved_at={btc_close_meta.get('retrieved_at_utc')}, "
+              f"dropped={btc_close_meta.get('dropped_incomplete_utc_days')}")
+        else:
+            P(f"  [A2-meta] global输入{_gfile or '(未知)'}无BTC close_meta"
+              "——旧采集器产物,我侧完结性无采集元数据证明,如实披露")
+
         results_ext, evidences, raws = [], [], []
         if args.skip_external:
             P("\n── A. 独立外部来源核验: 跳过(--skip-external离线诊断) ──")
         else:
             P("\n── A. 独立外部来源核验 ──")
             results_ext, evidences, raws = run_external_checks(
-                facts, default_fetchers(fred_api_key), today_ymd, log=LOG)
+                facts, default_fetchers(fred_api_key), today_ymd, log=LOG,
+                btc_close_meta=btc_close_meta)
 
         P("\n── B. 金融计算独立复算(周/MTD/YTD,期前收盘基准) ──")
         results_rc = []
@@ -1197,6 +1302,13 @@ def main():
                                     ('status', 'core_missing', 'core_fail',
                                      'noncore_missing', 'noncore_fail')},
                          'sources_status': snap.get('sources_status')},
+            'btc_close_caliber': {
+                'comparison_day_rule': BTC_COMPARISON_DAY_RULE,
+                'close_meta': btc_close_meta,
+                'close_meta_provenance': (
+                    f'data_dir/{_gfile} → data.BTC.close_meta'
+                    if _gfile else '(global输入文件名未知)'),
+            },
             'inputs': {'metric_registry': {
                 'path': os.path.join(ROOT_DIR, 'config', 'metric_registry.json'),
                 'sha256': hashlib.sha256(

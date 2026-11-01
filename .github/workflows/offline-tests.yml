@@ -30,7 +30,7 @@ jobs:
       - name: 安装被测模块import面所需的真实第三方依赖
         run: |
           python -m pip install --upgrade pip
-          pip install requests openai pandas fredapi feedparser finnhub-python tushare yfinance
+          pip install requests openai pandas fredapi feedparser finnhub-python tushare yfinance six
       - name: 运行全部离线测试套件(排除test_glm_live,记录每套退出码)
         run: |
           fail=0

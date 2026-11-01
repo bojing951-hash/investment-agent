@@ -169,9 +169,16 @@ class W5AExternalChecks(unittest.TestCase):
         r = rda.check_shcomp(f, {'close': 3300.0, 'date': '2026-10-29',
                                  'time': '15:30:00'}, '20261029', spec)
         self.assertEqual(r['verdict'], 'FAIL')
-        # 历史日(非当日)同日收盘 → 正常比较
+        # 历史日(非当日)同日但时间00:00:00 → NOT_VERIFIED(FIX1-04修订旧预期:
+        # 收盘口径可证性对任意报价日期一律要求,历史日期不再豁免——无收盘
+        # 时间戳不能证明是收盘价,即使差值在容差内也不得判PASS)
         r = rda.check_shcomp(f, {'close': 3272.0, 'date': '2026-10-29',
                                  'time': '00:00:00'}, '20261030', spec)
+        self.assertEqual(r['verdict'], 'NOT_VERIFIED')
+        self.assertIn('收盘口径', r['note'])
+        # 历史日且收盘口径可证(≥15:30) → 正常比较(历史报价比较能力保留)
+        r = rda.check_shcomp(f, {'close': 3272.0, 'date': '2026-10-29',
+                                 'time': '15:31:00'}, '20261030', spec)
         self.assertEqual(r['verdict'], 'PASS')
 
     def test_a7_btc_utc_daily_boundary(self):
@@ -351,19 +358,26 @@ class W5BRecompute(unittest.TestCase):
             snap.get('series_store') or {}
 
     def test_b4_real_fixture_recompute_pass(self):
-        # 真实fixture快照: 引擎derived与独立复算逐期一致(含基准日期核对);
-        # fixture序列仅2观测(10-16/10-23)→mtd/ytd双方均无期前基准=INSUFFICIENT
+        # 真实fixture快照: 引擎derived与独立复算逐期一致(含基准日期/价格核对);
+        # fixture序列仅2观测(10-16/10-23)→mtd/ytd双方均无期前基准。
+        # FIX1-03修订旧预期: 仅week可核=部分复核→整体verdict=INSUFFICIENT_HISTORY
+        # (complete_recompute=False),不得冒充完整三期复算PASS(原预期PASS为缺陷)
         snap, facts, store = self._snap_fixture()
         r = rda.recompute_check('SPX', facts['SPX'], store['SPX'])
-        self.assertEqual(r['verdict'], 'PASS')
+        self.assertEqual(r['verdict'], 'INSUFFICIENT_HISTORY')
+        self.assertFalse(r['complete_recompute'])
+        self.assertEqual(r['verified_periods'], ['week'])
         self.assertEqual(r['periods']['week']['status'], 'PASS')
         eng = facts['SPX']['derived']['week']
         self.assertEqual(r['periods']['week']['independent']['basis_date'],
                          eng['basis_date'])
+        self.assertAlmostEqual(r['periods']['week']['independent']['basis_value'],
+                               eng['basis_value'], places=6)
         for p in ('mtd', 'ytd'):
             self.assertEqual(r['periods'][p]['status'], 'INSUFFICIENT_HISTORY',
                              f'{p}: {r["periods"][p]}')
-        self.assertIn('独立复算与引擎一致', r['note'])
+        self.assertIn('部分复核', r['note'])
+        self.assertIn('不冒充完整PASS', r['note'])
 
     def test_b5_tamper_detection(self):
         snap, facts, store = self._snap_fixture()
@@ -388,8 +402,15 @@ class W5BRecompute(unittest.TestCase):
         r4 = rda.recompute_check('SPX', f4, store['SPX'])
         self.assertEqual(r4['verdict'], 'FAIL')
         self.assertIn('期末不一致', r4['note'])
-        # 基线本身PASS(对照)
-        self.assertEqual(r0['verdict'], 'PASS')
+        # ④ FIX1-02: 篡改期末价格字段(fact.value≠独立close,pct仍对) → FAIL
+        f5 = copy.deepcopy(f)
+        f5['value'] = f5['value'] + 100.0
+        r5 = rda.recompute_check('SPX', f5, store['SPX'])
+        self.assertEqual(r5['verdict'], 'FAIL')
+        self.assertIn('期末价格不一致', r5['note'])
+        # 基线本身=部分复核INSUFFICIENT_HISTORY(FIX1-03修订;对照,篡改才FAIL)
+        self.assertEqual(r0['verdict'], 'INSUFFICIENT_HISTORY')
+        self.assertEqual(r0['periods']['week']['status'], 'PASS')
 
     def test_b6_unit_discipline_and_sided_availability(self):
         # 单位纪律: 利率类(percent)不得机械套用价格百分比公式 → FAIL拒算
@@ -575,26 +596,44 @@ class W5DNegativeSensitivity(unittest.TestCase):
                             '不得获得真实外部核验通过结论']}""")
         self.assertEqual(m.evaluate_overall([], rc, True)['exit_code'], 0)
 
-    def test_d6_recompute_without_basis_date_check_caught(self):
-        # 退化: 复算不核对基准日期 → 基准日期不一致仍PASS
+    def test_d6_recompute_without_basis_price_check_caught(self):
+        # 退化: 复算不核对基准价格字段(FIX1-02锚点) → 基准值篡改+pct正确的
+        # 反例被洗白。原W5-D6锚点(基准日期核对)已被FIX1-02重构吸收为
+        # 必检字段(缺失即FAIL,见B5②),本锚点改守"百分比一致不得替代
+        # 基准价格一致"这一FIX1-02核心语义。
         snap = fixt.real_snapshot(DAY)
         import copy
         facts = {f['metric_id']: f for f in snap['facts']}
         f = copy.deepcopy(facts['SPX'])
         store = snap.get('series_store') or {}
-        self.assertEqual(rda.recompute_check('SPX', f, store['SPX'])['verdict'],
-                         'PASS')
         f2 = copy.deepcopy(f)
-        f2['derived']['week']['basis_date'] = '2099-12-31'
+        f2['derived']['week']['basis_value'] = 999.0    # pct保持正确
         self.assertEqual(rda.recompute_check('SPX', f2, store['SPX'])['verdict'],
                          'FAIL')
         m = load_variant(
             'd6',
-            """            if er.get('basis_date') and iv.get('basis_date') \\
-                    and er['basis_date'] != iv['basis_date']:""",
-            "            if False:")
-        self.assertEqual(m.recompute_check('SPX', f2, store['SPX'])['verdict'],
-                         'PASS')
+            "                _bv_dev = _price_mismatch_pct(er.get('basis_value'),\n"
+            "                                              iv.get('basis_value'))",
+            "                _bv_dev = 0.0")
+        r = m.recompute_check('SPX', f2, store['SPX'])
+        self.assertNotEqual(r['verdict'], 'FAIL')     # 退化版洗白为非FAIL
+        self.assertEqual(r['periods']['week']['status'], 'PASS')
+
+
+def _extend_global_history(daily_dir, ymd, extras):
+    """向global采集文件指定指标的series追加更早观测(FIX1-03 E2E数据前提:
+    构造WEEK/MTD/YTD三期完整历史——上年末2025-12-31+前月末2026-09-30;
+    不改当日close/obs,仅扩展序列前身,当日值与快照事实不受影响)。"""
+    p = os.path.join(daily_dir, f'global_{ymd}.json')
+    obj = json.load(open(p))
+    for mid, extra in extras.items():
+        item = obj['data'][mid]
+        merged = dict(zip(item['series']['dates'], item['series']['values']))
+        merged.update(extra)
+        keys = sorted(merged)
+        item['series'] = {'dates': keys, 'values': [merged[k] for k in keys]}
+    with open(p, 'w', encoding='utf-8') as f:
+        json.dump(obj, f, ensure_ascii=False)
 
 
 class W5EMainE2E(unittest.TestCase):
@@ -608,8 +647,12 @@ class W5EMainE2E(unittest.TestCase):
             def now(cls, tz=None):
                 return cls.fromisoformat(fake_now)
 
+        # FIX1-05必要修订: 输出目录必须在数据目录**之外**(原out-dir设在td内
+        # 属FIX1-05明令拒绝的"输出位于输入内部"模式,旧用法随路径安全检查失效)
+        outroot = tempfile.mkdtemp(prefix='w5-e-out-')
+        outdir = os.path.join(outroot, out_sub)
         out = io.StringIO()
-        argv = ['rda', '--data-dir', td, '--out-dir', os.path.join(td, out_sub),
+        argv = ['rda', '--data-dir', td, '--out-dir', outdir,
                 '--data-day', day, '--trusted-root', td] + extra
         patches = [mock.patch.object(sys, 'argv', argv),
                    mock.patch.object(rda, 'datetime', _DT),
@@ -625,9 +668,8 @@ class W5EMainE2E(unittest.TestCase):
                 rc = 0
             except SystemExit as e:
                 rc = e.code
-        j = sorted(glob.glob(os.path.join(td, out_sub, 'real_acceptance_*.json')))
-        return rc, out.getvalue(), (json.load(open(j[-1])) if j else None), \
-            os.path.join(td, out_sub)
+        j = sorted(glob.glob(os.path.join(outdir, 'real_acceptance_*.json')))
+        return rc, out.getvalue(), (json.load(open(j[-1])) if j else None), outdir
 
     def test_e1_skip_external_offline_diagnostic(self):
         with tempfile.TemporaryDirectory(prefix='w5-e1-') as td:
@@ -640,9 +682,15 @@ class W5EMainE2E(unittest.TestCase):
             self.assertIn('离线诊断', rep['reasons'][0])
             checks = {c['check']: c['verdict'] for c in rep['checks']}
             self.assertEqual(checks.get('Gate A状态'), 'PASS')   # 历史合同
-            self.assertGreaterEqual(
-                sum(1 for c in rep['checks'] if c['verdict'] == 'PASS'
-                    and c['category'] == 'recompute'), 2)
+            # FIX1-03修订旧预期: fixture序列无2026年前观测→复算全部为部分复核
+            # (INSUFFICIENT_HISTORY,complete_recompute=False,week已核),
+            # 零完整三期PASS——部分复核不得冒充完整复算(原断言≥2 PASS作废)
+            rcs = [c for c in rep['checks'] if c['category'] == 'recompute']
+            self.assertTrue(rcs)
+            for c in rcs:
+                self.assertEqual(c['verdict'], 'INSUFFICIENT_HISTORY', c['check'])
+                self.assertFalse(c['complete_recompute'])
+                self.assertTrue(c['verified_periods'])
             # 外部结果为空+证据为空(离线不产生外部结论)
             self.assertEqual(rep['external_results'], [])
             self.assertEqual(rep['external_evidence'], [])
@@ -682,7 +730,12 @@ class W5EMainE2E(unittest.TestCase):
     def test_e3_full_match_pass_with_evidence(self):
         with tempfile.TemporaryDirectory(prefix='w5-e3-') as td:
             fixt.write_collectors(td, DAY)
-            snap = fixt.real_snapshot(DAY)          # 同一确定性fixture取基准
+            # FIX1-03: 扩展SPX/GOLD序列至三期完整(否则fixture week-only→复算
+            # 全为部分复核,整体PASS门槛"≥1条三期完整复算"不可能满足)
+            _extend_global_history(td, DAY, {
+                'SPX': {'2025-12-31': 6800.0, '2026-09-30': 7300.0},
+                'GOLD': {'2025-12-31': 3300.0, '2026-09-30': 3550.0}})
+            snap = fixt.real_snapshot(DAY)          # 同一确定性fixture取基准(close/obs不变)
             facts = {f['metric_id']: f for f in snap['facts']}
 
             def factory(key):
@@ -738,6 +791,7 @@ class W5EMainE2E(unittest.TestCase):
             self.assertGreaterEqual(rep['coverage']['market_pass'], 2)
             self.assertGreaterEqual(rep['coverage']['external_pass_total'], 4)
             self.assertGreaterEqual(rep['coverage']['recompute_pass'], 2)
+            self.assertGreaterEqual(rep['coverage']['recompute_complete'], 2)  # FIX1-03
             verdicts = {r['check']: r['verdict'] for r in rep['external_results']}
             self.assertEqual(verdicts.get('GOLD_F外部核验'), 'NOT_COMPARABLE')
             self.assertEqual(verdicts.get('WTI_F外部核验'), 'NOT_COMPARABLE')

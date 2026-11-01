@@ -27,6 +27,37 @@ W5重构(IA-P0-2-W5-DEV-v1.0)八项要点:
   /外部观测日与实际返回值/获取时间UTC/容差与舍入规则/逐项结果/综合/未验证清单;
   外部历史若已修订,如实注明核验当前取得值。
 
+FIX1(IA-P0-2-W5-FIX1-DEV-v1.0,自失败基线78f4c9a增量,只修七项确定性缺陷):
+- FIX1-01 FRED密钥失败路径脱敏: 统一sanitize_text(api_key=查询参数模式+运行时
+  已知密钥明文登记,含URL编码形式);异常字符串进结构化证据前先全量脱敏再
+  截断(截断边界不得截出密钥片段),保留异常类型/HTTP状态码等必要诊断;
+  JSON/MD/LOG/外部原始正文写盘前最终密钥清扫(纵深防御)。
+- FIX1-02 收益复算价格字段校验: 期末价格(事实value vs 独立复算close,相对容差
+  RECOMPUTE_PRICE_TOL_PCT=0.01%金融数值精度,覆盖采集显示值2位小数舍入)+
+  基准价格(引擎basis_value vs 独立basis_value)逐期核对;独立有基准时引擎
+  必须提供basis_date与basis_value(缺失即FAIL);收益率百分点一致不得替代
+  价格字段一致。
+- FIX1-03 完整复算门槛: WEEK/MTD/YTD三期全部独立一致才算完整复算PASS
+  (complete_recompute=True);部分成功→INSUFFICIENT_HISTORY+部分复核明细
+  (不冒充完整PASS);整体PASS另要求≥1条真实资产序列完成三期完整独立复算
+  (原覆盖门槛UST/市场/外部总数/复算数量不降低)。
+- FIX1-04 SHCOMP历史盘中价阻断: 取消"仅执行当日才检查收盘时间"的历史日期
+  豁免——任意报价日期,无时间字段或时间<15:30:00(北京时间)均无法证明收盘
+  口径,一律NOT_VERIFIED;历史报价比较能力保留(日期匹配且收盘口径可证时
+  正常进入价格比较)。
+- FIX1-05 输出路径安全: --data-dir与--out-dir路径关系检查(相同/输出在输入
+  内部/输出为输入祖先/..或符号链接真实路径重叠一律拒绝;realpath+commonpath,
+  绝非字符串前缀比较),在任何输出写入/快照构建/真实外部API调用之前执行;
+  非法→明确拒绝+exit 2+零写入+零网络请求+不修改输入。
+- FIX1-06 八项检查来源绑定: 每检查稳定check_id(EXT-UST-2Y/EXT-UST-10Y/
+  EXT-UST-30Y/EXT-BTC/EXT-GOLD-F/EXT-SHCOMP/EXT-SPX/EXT-WTI-F,不重复不
+  缺失);ours保留fact既有source;外部侧绑定external_source/source_identity/
+  evidence_ids(三UST共享年度官方CSV证据;FRED SPX/WTI各自证据;Coinbase
+  BTC/PAXG按真实请求各自记录);无来源明确为空,不构造虚假ID;所有引用的
+  evidence_id均可在external_evidence中定位。
+- FIX1-07 Treasury跨年度查询: 三期限观测日按年度分组,每年请求官方CSV,
+  合并年度日期索引并逐年保留证据;某年失败不抹掉其他年已取得的数据。
+
 数据纪律:
 - 本脚本只接受**真实采集数据**(global/macro/china/rate_economy_*.json),
   SYNTHETIC fixture测试在tests/目录,二者严格分离;
@@ -106,6 +137,15 @@ TOLERANCES = {
 }
 RECOMPUTE_TOL_PP = 0.01   # 期间收益复算: 独立值与引擎值差≤0.01个百分点
 RECOMPUTE_ROUNDING = '差值取绝对值不四舍五入直接与0.01pp比较(报告值保留4位)'
+# FIX1-02: 价格字段校验容差(金融数值精度口径——相对0.01%,覆盖采集显示值
+# 2位小数舍入;收益率百分点一致不能替代价格字段本身一致)
+RECOMPUTE_PRICE_TOL_PCT = 0.01
+# FIX1-06: 八项外部对照的稳定检查标识(不得重复/缺失)
+CHECK_IDS = {
+    'UST_2Y': 'EXT-UST-2Y', 'UST_10Y': 'EXT-UST-10Y', 'UST_30Y': 'EXT-UST-30Y',
+    'BTC': 'EXT-BTC', 'GOLD_F': 'EXT-GOLD-F', 'SHCOMP': 'EXT-SHCOMP',
+    'SPX': 'EXT-SPX', 'WTI_F': 'EXT-WTI-F',
+}
 # 复算对象单位纪律: 仅价格类可用 (期末/基准−1)×100 收益公式
 PRICE_UNITS = {'index_point', 'usd', 'usd_per_oz', 'usd_per_barrel'}
 
@@ -131,8 +171,91 @@ def sha256_text(t):
     return hashlib.sha256(t.encode('utf-8', 'replace')).hexdigest()
 
 
+# ── 密钥脱敏(FIX1-01: 统一脱敏函数+运行时已知密钥登记+写盘前最终清扫) ──
+# 运行时已知密钥明文登记处(自动含URL编码形式;正式运行由main()登记FRED key;
+# 测试只用**虚构**密钥验证机制,绝不用真实密钥做测试)
+_KNOWN_SECRETS = []
+_UNREDACTED_KEY_PAT = re.compile(r"(?i)(api_key=)(?!\*\*\*REDACTED\*\*\*)[^&\s'\"]+")
+
+
+def _register_secret(s):
+    """登记运行时已知密钥明文(自动补percent-quote/plus编码形式)。"""
+    if not s or not isinstance(s, str):
+        return
+    import urllib.parse as _up
+    for cand in {s, _up.quote(s, safe=''), _up.quote_plus(s)}:
+        if cand and cand not in _KNOWN_SECRETS:
+            _KNOWN_SECRETS.append(cand)
+
+
+def sanitize_text(s):
+    """统一脱敏: api_key=…查询参数模式 + 已登记密钥明文(含URL编码形式)。
+    幂等: 已脱敏文本再过一遍不变;非字符串原样返回。"""
+    if not isinstance(s, str):
+        return s
+    out = _UNREDACTED_KEY_PAT.sub(r'\1***REDACTED***', s)
+    for k in _KNOWN_SECRETS:
+        if k in out:
+            out = out.replace(k, '***REDACTED***')
+    return out
+
+
 def redact_url(u):
-    return re.sub(r'(api_key=)[^&]+', r'\1***REDACTED***', u)
+    """兼容入口: URL脱敏统一走sanitize_text(同一规则,含已知密钥明文)。"""
+    return sanitize_text(u)
+
+
+def _clip_safe(s, clip=200):
+    """截断(仅在**全量脱敏后**调用);截断边界不得截出已知密钥片段——
+    尾部若与任一已登记密钥的前缀重叠,回退截断点避开。"""
+    if len(s) <= clip:
+        return s
+    cut = s[:clip]
+    for k in _KNOWN_SECRETS:
+        for _L in range(min(len(k) - 1, len(cut)), 1, -1):
+            if cut.endswith(k[:_L]):
+                cut = cut[:len(cut) - _L]
+                break
+    return cut
+
+
+def _safe_error(err, clip=200):
+    """异常→结构化证据安全文本(FIX1-01): 保留异常类型与HTTP状态码等必要
+    诊断;先全量脱敏→再截断→截断后复核,仍残留密钥则整条降级为类型+状态。"""
+    if err is None:
+        return None
+    status = getattr(getattr(err, 'response', None), 'status_code', None)
+    head = f"{type(err).__name__}(HTTP {status})" if status is not None \
+        else type(err).__name__
+    safe = sanitize_text(_clip_safe(sanitize_text(f"{head}: {err}"), clip))
+    if find_secret(safe) is not None:
+        return f"{head}: (消息含敏感内容,已整体脱敏)"
+    return safe
+
+
+def find_secret(text):
+    """最终密钥检查: 返回文本中残留的未脱敏密钥线索(None=干净)。
+    匹配api_key=未脱敏模式或任一已登记密钥明文(含编码形式)。"""
+    if not isinstance(text, str):
+        return None
+    m = _UNREDACTED_KEY_PAT.search(text)
+    if m:
+        return m.group(0)
+    for k in _KNOWN_SECRETS:
+        if k and k in text:
+            return k
+    return None
+
+
+def sweep_secrets(obj):
+    """递归净化dict/list/str(写JSON/MD/LOG/ZIP前纵深防御,幂等)。"""
+    if isinstance(obj, str):
+        return sanitize_text(obj)
+    if isinstance(obj, list):
+        return [sweep_secrets(v) for v in obj]
+    if isinstance(obj, dict):
+        return {k: sweep_secrets(v) for k, v in obj.items()}
+    return obj
 
 
 def _num(x):
@@ -151,7 +274,7 @@ def _evidence(source, url, resp=None, err=None):
         ev['body_sha256'] = sha256_text(body)
         ev['body_bytes'] = len(body.encode('utf-8', 'replace'))
     if err is not None:
-        ev['error'] = str(err)[:200]
+        ev['error'] = _safe_error(err)   # FIX1-01: 先全量脱敏再截断,保类型/HTTP状态
     return ev
 
 
@@ -249,10 +372,13 @@ def _mk(check, mid, ours, ext, comp, verdict, note):
 def _ours(fact):
     if not fact:
         return None
+    # FIX1-06: 保留fact已有source(collector/file/检索时间)——不得只输出
+    # value/date/unit而丢弃来源身份
     return {'value': _num(fact.get('value')),
             'observation_date': str(fact.get('observation_date') or '')[:10] or None,
             'unit': fact.get('unit'),
-            'price_basis': PRICE_BASIS.get(fact.get('metric_id'))}
+            'price_basis': PRICE_BASIS.get(fact.get('metric_id')),
+            'source': fact.get('source') or None}
 
 
 def check_ust(mid, fact, rows, col, spec):
@@ -373,16 +499,18 @@ def check_shcomp(fact, quote, today_ymd, spec):
                    None, 'NOT_VERIFIED',
                    f'新浪快照日期{qd}≠目标观测日{od}——实时快照无法证明历史日期收盘,'
                    '日期不匹配不得判PASS')
-    today_iso = f"{today_ymd[:4]}-{today_ymd[4:6]}-{today_ymd[6:]}" \
-        if len(today_ymd) == 8 and today_ymd.isdigit() else today_ymd
-    if qd == today_iso:
-        # 当日快照: 须收盘后(≥15:30:00北京时间)才为收盘口径
-        if not qt or qt < '15:30:00':
-            return _mk(f'{mid}外部核验', mid, o,
-                       {'value': quote['close'], 'observation_date': qd, 'quote_time': qt},
-                       None, 'NOT_VERIFIED',
-                       f'当日{qt or "无时间字段"}为盘中/未证实收盘口径——实时价非收盘价,'
-                       '不得直接判PASS')
+    # FIX1-04: 收盘口径可证性对**任意报价日期**一律要求——取消"仅执行当日
+    # 才检查时间"的历史日期豁免。新浪为实时快照接口: 无时间字段或时间
+    # <15:30:00(北京时间收盘后)都无法证明该价格为收盘口径,当日与历史日期
+    # 一律NOT_VERIFIED(历史报价比较能力保留: 日期匹配且收盘口径可证时
+    # 正常进入价格比较;today_ymd参数保留仅为签名兼容,判定不依赖执行日)
+    if not qt or qt < '15:30:00':
+        return _mk(f'{mid}外部核验', mid, o,
+                   {'value': quote['close'], 'observation_date': qd, 'quote_time': qt},
+                   None, 'NOT_VERIFIED',
+                   f'快照时间{qt or "无时间字段"}未证实收盘口径(收盘须≥15:30:00'
+                   '北京时间)——实时/盘中价或无时间戳不能证明收盘价,'
+                   '任意报价日期均不得判PASS')
     ext = quote['close']
     dev = round(abs(o['value'] - ext) / ext * 100, 2)
     verdict = 'PASS' if dev <= spec['tol'] else 'FAIL'
@@ -433,7 +561,14 @@ def check_btc(fact, candles, spec):
 def run_external_checks(facts, fetchers, today_ymd, log=None):
     """执行八项外部对照。fetchers={'treasury','coinbase','sina','fred'(可None)}。
     返回(results, evidences, raw_bodies)。外部获取失败→NOT_VERIFIED+诊断,
-    不冒充、不编造。"""
+    不冒充、不编造。
+
+    FIX1-06: 每检查稳定check_id+来源绑定(external_source/source_identity/
+    evidence_ids): 三UST共享年度官方CSV证据;FRED SPX/WTI各自证据;
+    Coinbase BTC/PAXG按真实请求各自记录;无来源明确为空([]/None),不构造
+    虚假ID;所有引用的evidence_id均可在external_evidence中定位。
+    FIX1-07: UST三期限观测日按**年度分组逐年请求**官方CSV并合并日期索引,
+    逐年保留证据;某年失败不抹掉其他年已取得的数据。"""
     def P(msg):
         if log is not None:
             log.append(msg)
@@ -444,23 +579,51 @@ def run_external_checks(facts, fetchers, today_ymd, log=None):
 
     results, evidences, raws = [], [], []
 
-    def rec(ev, raw, name):
+    def rec(ev, raw, name, ev_id, identity=None):
+        """证据登记: 赋稳定evidence_id(无证据=fetcher未执行→不登记不造ID)。"""
         if ev:
+            ev = dict(ev, evidence_id=ev_id)
+            if identity:
+                ev['source_identity'] = identity
             evidences.append(ev)
         if raw is not None:
             raws.append((name, raw))
+        return ev_id if ev else None
 
-    # A1 UST 2Y/10Y/30Y: 三个观测日的并集一次取官方CSV(各期限日期独立匹配)
+    def bind(result, mid, ext_source, identity, ev_ids):
+        """检查行来源绑定: check_id+external_source/source_identity/evidence_ids
+        (external为dict时同步镜像,外部结构化字段完整)。"""
+        ids = [i for i in ev_ids if i]
+        result['check_id'] = CHECK_IDS[mid]
+        result['external_source'] = ext_source
+        result['source_identity'] = identity
+        result['evidence_ids'] = ids
+        if isinstance(result.get('external'), dict):
+            result['external'].setdefault('external_source', ext_source)
+            result['external'].setdefault('source_identity', identity)
+            result['external']['evidence_ids'] = ids
+        return result
+
+    # A1 UST 2Y/10Y/30Y(FIX1-07: 按年度分组逐年请求+合并;FIX1-06: 共享年度证据)
     ust_ids = ('UST_2Y', 'UST_10Y', 'UST_30Y')
     cols = {'UST_2Y': '2 Yr', 'UST_10Y': '10 Yr', 'UST_30Y': '30 Yr'}
+    ust_src = 'home.treasury.gov官方收益率曲线'
     want = {_ours(fv(m))['observation_date'] for m in ust_ids
             if _ours(fv(m)) and _ours(fv(m))['observation_date']}
-    year = int(sorted(want)[0][:4]) if want else date.today().year
-    P(f"  [A1] Treasury.gov官方曲线 {sorted(want)}")
-    rows, ev, raw = fetchers['treasury'](year, want)
-    rec(ev, raw, f'treasury_{year}')
+    years = sorted({d[:4] for d in want}) or [str(date.today().year)]
+    P(f"  [A1] Treasury.gov官方曲线 {sorted(want)} → 年度{years}(逐年请求,合并索引)")
+    rows, tsy_ids = {}, []
+    for year in years:
+        yr_want = {d for d in want if d[:4] == year}
+        r_, ev, raw = fetchers['treasury'](int(year), yr_want)
+        tsy_ids.append(rec(ev, raw, f'treasury_{year}', f'EV-TSY-{year}',
+                           f'daily_treasury_yield_curve/{year}.csv'))
+        rows.update(r_ or {})   # 某年失败→该年无行,其他年已合并数据不受影响
+    tsy_identity = ','.join(f'daily_treasury_yield_curve/{y}.csv' for y in years)
     for mid in ust_ids:
-        results.append(check_ust(mid, fv(mid), rows, cols[mid], TOLERANCES['treasury_ust']))
+        results.append(bind(check_ust(mid, fv(mid), rows, cols[mid],
+                                      TOLERANCES['treasury_ust']),
+                            mid, ust_src, tsy_identity, tsy_ids))
 
     # A2 BTC: Coinbase UTC日K
     o = _ours(fv('BTC')) or {}
@@ -471,8 +634,11 @@ def run_external_checks(facts, fetchers, today_ymd, log=None):
         candles, ev, raw = fetchers['coinbase']('BTC-USD', od, end)
     else:
         candles, ev, raw = {}, None, None
-    rec(ev, raw, 'coinbase_BTC-USD')
-    results.append(check_btc(fv('BTC'), candles, TOLERANCES['coinbase_btc']))
+    btc_id = rec(ev, raw, 'coinbase_BTC-USD', 'EV-CB-BTC-USD',
+                 'products/BTC-USD/candles?granularity=86400')
+    results.append(bind(check_btc(fv('BTC'), candles, TOLERANCES['coinbase_btc']),
+                        'BTC', 'Coinbase Exchange BTC-USD(UTC日K)',
+                        'products/BTC-USD/candles?granularity=86400', [btc_id]))
 
     # A3 GOLD_F vs PAXG(参考源,恒NOT_COMPARABLE)
     o = _ours(fv('GOLD_F')) or {}
@@ -483,31 +649,44 @@ def run_external_checks(facts, fetchers, today_ymd, log=None):
         paxg, ev, raw = fetchers['coinbase']('PAXG-USD', od, end)
     else:
         paxg, ev, raw = {}, None, None
-    rec(ev, raw, 'coinbase_PAXG-USD')
-    results.append(check_gold_f(fv('GOLD_F'), paxg, TOLERANCES['paxg_gold']))
+    paxg_id = rec(ev, raw, 'coinbase_PAXG-USD', 'EV-CB-PAXG-USD',
+                  'products/PAXG-USD/candles?granularity=86400')
+    results.append(bind(check_gold_f(fv('GOLD_F'), paxg, TOLERANCES['paxg_gold']),
+                        'GOLD_F', 'Coinbase Exchange PAXG-USD(现货代理,参考)',
+                        'products/PAXG-USD/candles?granularity=86400', [paxg_id]))
 
     # A4 SHCOMP: 新浪实时/收盘快照
     P("  [A4] hq.sinajs.cn sh000001")
     quote, ev, raw = fetchers['sina']('sh000001')
-    rec(ev, raw, 'sina_sh000001')
-    results.append(check_shcomp(fv('SHCOMP'), quote, today_ymd, TOLERANCES['sina_shcomp']))
+    sina_id = rec(ev, raw, 'sina_sh000001', 'EV-SINA-SH000001',
+                  'hq.sinajs.cn/list=sh000001(实时/收盘快照)')
+    results.append(bind(check_shcomp(fv('SHCOMP'), quote, today_ymd,
+                                     TOLERANCES['sina_shcomp']),
+                        'SHCOMP', 'hq.sinajs.cn sh000001(实时/收盘快照)',
+                        'hq.sinajs.cn/list=sh000001', [sina_id]))
 
     # A5/A6 FRED SP500/DCOILWTICO
     if fetchers.get('fred') is None:
         P("  [A5/A6] FRED: 无API密钥——SPX/WTI_F外部核验NOT_VERIFIED(密钥不写入证据)")
-        results.append(_mk('SPX外部核验', 'SPX', _ours(fv('SPX')), None, None,
-                           'NOT_VERIFIED', '无FRED API密钥——外部核验未执行,不得计PASS'))
-        results.append(_mk('WTI_F外部核验', 'WTI_F', _ours(fv('WTI_F')), None, None,
-                           'NOT_VERIFIED', '无FRED API密钥——外部核验未执行,不得计PASS'))
+        results.append(bind(_mk('SPX外部核验', 'SPX', _ours(fv('SPX')), None, None,
+                                'NOT_VERIFIED', '无FRED API密钥——外部核验未执行,不得计PASS'),
+                            'SPX', None, None, []))       # 无来源明确为空,不造ID
+        results.append(bind(_mk('WTI_F外部核验', 'WTI_F', _ours(fv('WTI_F')), None, None,
+                                'NOT_VERIFIED', '无FRED API密钥——外部核验未执行,不得计PASS'),
+                            'WTI_F', None, None, []))
     else:
         P("  [A5] FRED SP500(同观测日检索)")
         obs, ev, raw = fetchers['fred']('SP500')
-        rec(ev, raw, 'fred_SP500')
-        results.append(check_spx(fv('SPX'), obs, TOLERANCES['fred_spx']))
+        spx_id = rec(ev, raw, 'fred_SP500', 'EV-FRED-SP500', 'FRED SP500序列观测')
+        results.append(bind(check_spx(fv('SPX'), obs, TOLERANCES['fred_spx']),
+                            'SPX', 'FRED SP500', 'FRED SP500序列观测', [spx_id]))
         P("  [A6] FRED DCOILWTICO(现货参考,恒NOT_COMPARABLE)")
         obs, ev, raw = fetchers['fred']('DCOILWTICO')
-        rec(ev, raw, 'fred_DCOILWTICO')
-        results.append(check_wti_f(fv('WTI_F'), obs, TOLERANCES['fred_wti_spot']))
+        wti_id = rec(ev, raw, 'fred_DCOILWTICO', 'EV-FRED-DCOILWTICO',
+                     'FRED DCOILWTICO序列观测')
+        results.append(bind(check_wti_f(fv('WTI_F'), obs, TOLERANCES['fred_wti_spot']),
+                            'WTI_F', 'FRED DCOILWTICO(现货)',
+                            'FRED DCOILWTICO序列观测', [wti_id]))
     return results, evidences, raws
 
 
@@ -575,20 +754,42 @@ def independent_period_returns(dates, values, obs_date):
     return out
 
 
+def _price_mismatch_pct(a, b):
+    """两价格相对差%(任一非严格数值→None)。FIX1-02金融数值精度口径:
+    相对容差RECOMPUTE_PRICE_TOL_PCT(0.01%),覆盖采集显示值2位小数舍入,
+    但绝不容忍基准/期末价格字段的真实不一致。"""
+    a, b = _num(a), _num(b)
+    if a is None or b is None:
+        return None
+    return abs(a - b) / max(abs(b), 1e-12) * 100
+
+
 def recompute_check(mid, fact, series, tol_pp=RECOMPUTE_TOL_PP):
-    """单指标周/MTD/YTD独立复算对照(逐期: 期末/独立基准/引擎基准/公式/两值/差异/判定)。"""
+    """单指标周/MTD/YTD独立复算对照(逐期: 期末/独立基准/引擎基准/公式/两值/差异/判定)。
+
+    FIX1-02: 价格字段本身逐期核对——期末价格(事实value vs 独立复算close)
+    与基准价格(引擎basis_value vs 独立basis_value);独立有基准时引擎**必须**
+    提供basis_date与basis_value(缺失即FAIL,不得跳过);收益率百分点一致
+    不得替代价格字段一致。
+    FIX1-03: WEEK/MTD/YTD三期全部独立一致才算完整复算PASS
+    (complete_recompute=True);部分成功→INSUFFICIENT_HISTORY+部分复核
+    明细(verified_periods),不冒充完整PASS;任一期确定性错误→FAIL。"""
     check_name = f'{mid}周/MTD/YTD独立复算'
     if not fact or not isinstance(series, dict) \
             or 'dates' not in series or 'values' not in series:
         return {'check': check_name, 'metric_id': mid, 'category': 'recompute',
                 'ours': None, 'verdict': 'SKIPPED', 'periods': {},
-                'note': '快照无该事实/序列'}
+                'complete_recompute': False, 'verified_periods': [],
+                'insufficient_periods': [], 'note': '快照无该事实/序列'}
     unit = fact.get('unit')
     base = {'check': check_name, 'metric_id': mid, 'category': 'recompute',
             'unit': unit, 'formula': '(期末值/基准值−1)×100(价格收益,期前收盘基准)',
-            'tolerance_pp': tol_pp, 'rounding': RECOMPUTE_ROUNDING}
+            'tolerance_pp': tol_pp, 'price_tolerance_pct': RECOMPUTE_PRICE_TOL_PCT,
+            'rounding': RECOMPUTE_ROUNDING}
     if unit not in PRICE_UNITS:
         return dict(base, ours=_ours(fact), verdict='FAIL', periods={},
+                    complete_recompute=False, verified_periods=[],
+                    insufficient_periods=[],
                     note=f'单位{unit}非价格类——利率/点差/计数类不得机械套用'
                          '价格百分比公式(单位纪律),拒绝复算')
     try:
@@ -596,20 +797,29 @@ def recompute_check(mid, fact, series, tol_pp=RECOMPUTE_TOL_PP):
                                          fact.get('observation_date'))
     except ValueError as e:
         return dict(base, ours=_ours(fact), verdict='FAIL', periods={},
+                    complete_recompute=False, verified_periods=[],
+                    insufficient_periods=[],
                     note=f'序列异常拒绝复算:{e}')
     eng = fact.get('derived') or {}
     eng_end = eng.get('end') or {}
     obs = fact.get('observation_date')
-    close = fact.get('value')
-    problems, computed = [], 0
-    periods = {}
+    close = _num(fact.get('value'))
+    problems, periods = [], {}
     pkey = {'week': ('week', 'week'), 'mtd': ('mtd', 'mtd'), 'ytd': ('ytd', 'ytd')}
 
-    # 期末语义: 事实观测日 == 独立期末 == 引擎期末
+    # 期末语义: 事实观测日 == 独立期末 == 引擎期末(引擎提供end时才核对;
+    # china通道事实不填end为既有数据契约,不因FIX1扩为强制)
     if ind.get('obs') != str(obs)[:10]:
         problems.append(f"期末不一致: 独立{ind.get('obs')} vs 事实{obs}")
     if eng_end.get('date') and str(eng_end['date'])[:10] != str(obs)[:10]:
         problems.append(f"期末不一致: 引擎{eng_end.get('date')} vs 事实{obs}")
+    # FIX1-02A: 结束价格校验——事实value须与独立复算期末close一致
+    # (收益率正确不能掩盖期末价格字段错误,如独立110而事实111)
+    _end_dev = _price_mismatch_pct(close, ind.get('close'))
+    if _end_dev is not None and _end_dev > RECOMPUTE_PRICE_TOL_PCT:
+        problems.append(f"期末价格不一致: 事实{close} vs 独立复算{ind.get('close')}"
+                        f"(相对差{round(_end_dev, 4)}%"
+                        f">{RECOMPUTE_PRICE_TOL_PCT}%)")
 
     for period, (ik, ek) in pkey.items():
         iv = ind.get(ik) or {}
@@ -623,20 +833,35 @@ def recompute_check(mid, fact, series, tol_pp=RECOMPUTE_TOL_PP):
                            'basis_value': er.get('basis_value'),
                            'pct_change': er.get('pct_change')} if er else None)}
         if eng_avail and ind_pct is not None:
-            # 基准日期必须一致(不核对基准日期的复算不是复算)
-            if er.get('basis_date') and iv.get('basis_date') \
-                    and er['basis_date'] != iv['basis_date']:
-                problems.append(f"{period}基准日期不一致: 引擎{er.get('basis_date')}"
-                                f" vs 独立{iv.get('basis_date')}")
-                row['status'] = 'FAIL'
+            pfail = []
+            # FIX1-02B/C: 基准日期+基准价格双校验——独立有基准时引擎必须提供
+            # basis_date与basis_value(缺失即FAIL),百分比一致不得跳过价格核对
+            if not er.get('basis_date'):
+                pfail.append(f"{period}引擎缺基准日期(独立基准{iv.get('basis_date')})"
+                             '——缺字段不得当一致')
+            elif str(er.get('basis_date'))[:10] != str(iv.get('basis_date'))[:10]:
+                pfail.append(f"{period}基准日期不一致: 引擎{er.get('basis_date')}"
+                             f" vs 独立{iv.get('basis_date')}")
+            if er.get('basis_value') is None:
+                pfail.append(f"{period}引擎缺基准值(独立基准值{iv.get('basis_value')})"
+                             '——缺字段不得当一致')
             else:
-                diff = abs(er['pct_change'] - ind_pct)
-                row['difference_pp'] = round(diff, 4)
-                row['status'] = 'PASS' if diff <= tol_pp else 'FAIL'
-                if row['status'] == 'FAIL':
-                    problems.append(f"{period}差异{diff:.4f}pp>容差{tol_pp}pp"
-                                    f"(引擎{er['pct_change']} vs 独立{ind_pct})")
-                computed += 1
+                _bv_dev = _price_mismatch_pct(er.get('basis_value'),
+                                              iv.get('basis_value'))
+                if _bv_dev is not None and _bv_dev > RECOMPUTE_PRICE_TOL_PCT:
+                    pfail.append(f"{period}基准价格不一致: 引擎{er.get('basis_value')}"
+                                 f" vs 独立{iv.get('basis_value')}"
+                                 f"(相对差{round(_bv_dev, 4)}%)")
+            diff = abs(_num(er.get('pct_change')) - ind_pct)
+            row['difference_pp'] = round(diff, 4)
+            if diff > tol_pp:
+                pfail.append(f"{period}差异{diff:.4f}pp>容差{tol_pp}pp"
+                             f"(引擎{er.get('pct_change')} vs 独立{ind_pct})")
+            if pfail:
+                row['status'] = 'FAIL'
+                problems.extend(pfail)
+            else:
+                row['status'] = 'PASS'
         elif not eng_avail and ind_pct is None:
             row['status'] = 'INSUFFICIENT_HISTORY'
             row['reason'] = er.get('reason') or '双方均无期前基准观测'
@@ -646,19 +871,34 @@ def recompute_check(mid, fact, series, tol_pp=RECOMPUTE_TOL_PP):
             problems.append(f"{period}单侧可算({which}有值,对方无)——双方均未计算的"
                             '情况不得写为成功复算,单侧缺失为不一致')
         periods[period] = row
+
+    verified = [p for p in ('week', 'mtd', 'ytd') if periods[p]['status'] == 'PASS']
+    insufficient = [p for p in ('week', 'mtd', 'ytd')
+                    if periods[p]['status'] == 'INSUFFICIENT_HISTORY']
     if problems:
-        verdict = 'FAIL'
-    elif computed == 0:
-        verdict = 'INSUFFICIENT_HISTORY'
+        verdict = 'FAIL'                       # 任一期确定性计算/字段错误
+    elif len(verified) == 3:
+        verdict = 'PASS'                       # 完整复算: 三期全部独立一致
     else:
-        verdict = 'PASS'
+        verdict = 'INSUFFICIENT_HISTORY'       # 部分复核/全缺: 不冒充完整PASS
+    if problems:
+        note = '; '.join(problems)
+    elif verdict == 'PASS':
+        note = ('WEEK/MTD/YTD三期全部独立复算一致(含基准日期/基准价格/期末价格'
+                '逐项核对)——完整复算')
+    elif verified:
+        note = (f"部分复核: {'/'.join(verified).upper()}与引擎一致,"
+                f"{'/'.join(insufficient).upper()}历史不足"
+                f"(已核{len(verified)}/3期)——非完整三期复算,不冒充完整PASS")
+    else:
+        note = '双方均无期前基准(历史不足,如实标注)'
     return dict(base, ours={'value': close, 'observation_date': obs,
                             'engine_end': eng_end or None, 'independent_end':
                             {'date': ind.get('obs'), 'value': ind.get('close')}},
                 periods=periods, verdict=verdict,
-                note='; '.join(problems) if problems else
-                     (f'{computed}个期间独立复算与引擎一致(含基准日期核对)'
-                      if verdict == 'PASS' else '双方均无期前基准(历史不足,如实标注)'))
+                complete_recompute=(verdict == 'PASS'),
+                verified_periods=verified, insufficient_periods=insufficient,
+                note=note)
 
 
 # ══ 综合结果与退出码(W5-04) ══════════════════════════════════════
@@ -686,10 +926,17 @@ def evaluate_overall(ext_results, recompute_results, skip_external):
                    if r.get('verdict') == 'PASS'
                    and (ids is None or r.get('metric_id') in ids)
                    and (cat is None or r.get('category') == cat))
+
+    # FIX1-03: recompute_check仅在WEEK/MTD/YTD三期全部独立一致时给verdict=PASS
+    # (完整复算);外部构造行缺complete_recompute字段时按verdict==PASS视为完整(兼容)
+    complete_rc = sum(1 for r in recompute_results
+                      if r.get('verdict') == 'PASS'
+                      and r.get('complete_recompute', True) is not False)
     cov = {'ust_pass': npass(ust_ids, 'external'),
            'market_pass': npass(mkt_ids, 'external'),
            'external_pass_total': npass(cat='external'),
-           'recompute_pass': npass(cat='recompute')}
+           'recompute_pass': npass(cat='recompute'),
+           'recompute_complete': complete_rc}
     reasons = []
     if cov['ust_pass'] < 1:
         reasons.append('利率类(UST)无任何真实同日可比PASS——利率证据缺失')
@@ -702,13 +949,19 @@ def evaluate_overall(ext_results, recompute_results, skip_external):
     if cov['recompute_pass'] < 2:
         reasons.append(f"收益复算PASS{cov['recompute_pass']}<2——实际历史基准上的"
                        '独立复算不足')
+    if cov['recompute_complete'] < 1:
+        reasons.append('无任何资产完成WEEK/MTD/YTD三期完整独立复算'
+                       f"(完整复算{cov['recompute_complete']}条)——部分复核/"
+                       '历史不足不得冒充完整复算证据(至少需1条真实资产序列'
+                       '三期全部独立复算一致)')
     if reasons:
         return {'overall': 'NOT_VERIFIED', 'exit_code': 3, 'distribution': dist,
                 'coverage': cov, 'reasons': reasons}
     return {'overall': 'PASS', 'exit_code': 0, 'distribution': dist, 'coverage': cov,
             'reasons': [f"真实独立核验覆盖达标: UST×{cov['ust_pass']}/市场×"
                         f"{cov['market_pass']}/外部总PASS×{cov['external_pass_total']}"
-                        f"/复算×{cov['recompute_pass']},零FAIL"]}
+                        f"/复算×{cov['recompute_pass']}(完整三期×"
+                        f"{cov['recompute_complete']}),零FAIL"]}
 
 
 # ══ 代码版本/输入证据(W5-05) ════════════════════════════════════
@@ -745,6 +998,32 @@ def latest_real_day(data_dir, today_ymd):
     return None
 
 
+def path_conflict(data_dir, out_dir):
+    """FIX1-05: --data-dir与--out-dir路径关系安全检查(在任何输出写入/快照
+    构建/真实外部API调用之前执行)。返回冲突描述(None=安全)。
+
+    拒绝: 完全相同 / 输出位于输入内部 / 输出是输入的祖先(数据位于输出内部)
+    / ..路径重叠 / 符号链接真实路径重叠。用realpath+commonpath做真实路径
+    归一化比较,绝不做字符串前缀比较。"""
+    try:
+        d = os.path.realpath(os.path.abspath(data_dir))
+        o = os.path.realpath(os.path.abspath(out_dir))
+    except OSError as e:
+        return f'路径解析失败:{e}'
+    if d == o:
+        return '输出目录与数据目录完全相同'
+    try:
+        cp = os.path.commonpath([d, o])
+    except ValueError:
+        return None    # 不同盘符等无法比较——不构成包含关系
+    if cp == d:
+        return '输出目录位于数据目录内部(验收产物会写进输入树)'
+    if cp == o:
+        return ('输出目录是数据目录的祖先(数据目录位于输出内部,产物写入会'
+                '覆盖输入树的父层级)')
+    return None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--data-dir', required=True, help='真实采集data/daily目录')
@@ -766,6 +1045,15 @@ def main():
     def P(msg):
         LOG.append(msg)
         print(msg)
+
+    # FIX1-05: 输出路径安全前置检查——在任何输出写入/快照构建/真实外部API
+    # 调用之前;非法→明确拒绝+exit 2+零写入+零网络请求+不修改输入
+    _conflict = path_conflict(args.data_dir, args.out_dir)
+    if _conflict:
+        P(f"❌ 输出路径安全检查未通过: {_conflict} "
+          f"(data-dir={args.data_dir}, out-dir={args.out_dir})"
+          "——拒绝执行: 不写任何文件/不构建快照/不触发外部请求/不修改输入")
+        sys.exit(2)
 
     P("=" * 60)
     P("✅ 真实数据验收(W5版) — 独立外部来源 + 独立复算 + 三态综合")
@@ -803,6 +1091,9 @@ def main():
             fred_api_key = _K or None
         except ImportError:
             fred_api_key = None
+    # FIX1-01: 运行时已知密钥明文登记(含URL编码形式)——进入一切脱敏/清扫路径
+    if fred_api_key:
+        _register_secret(fred_api_key)
 
     with tempfile.TemporaryDirectory() as td:
         snap = sb.build_snapshot(target_ymd=day, data_dir=args.data_dir, out_dir=td,
@@ -848,6 +1139,8 @@ def main():
         for _ev in evidences:
             if isinstance(_ev, dict) and _ev.get('url'):
                 _ev['url'] = redact_url(_ev['url'])
+            if isinstance(_ev, dict) and _ev.get('error'):
+                _ev['error'] = sanitize_text(_ev['error'])
 
         # Gate A行(历史兼容: 报告含'Gate A状态'检查行)
         gate_row = {'check': 'Gate A状态', 'metric_id': None, 'category': 'gate',
@@ -867,6 +1160,10 @@ def main():
             evdir = os.path.join(args.out_dir, 'evidence')
             os.makedirs(evdir, exist_ok=True)
             for i, (name, body) in enumerate(raws, 1):
+                # FIX1-01: 外部原始正文写盘前密钥检查(命中→脱敏后落盘并留痕)
+                if find_secret(body) is not None:
+                    body = sanitize_text(body)
+                    P(f"  ⚠ 外部原始正文含密钥残留,已脱敏后落盘: {name}")
                 fn = f"{stamp}_{i:02d}_{name}.txt"
                 with open(os.path.join(evdir, fn), 'w', encoding='utf-8') as fh:
                     fh.write(body)
@@ -911,7 +1208,13 @@ def main():
             'tolerances': dict(TOLERANCES, recompute={
                 'kind': 'pp', 'tol': RECOMPUTE_TOL_PP,
                 'rule': f'|引擎pct_change − 独立pct_change| ≤ {RECOMPUTE_TOL_PP}个百分点'
-                        '(基准日期必须一致,不核对基准日期的复算不算复算)',
+                        '(基准日期必须一致,不核对基准日期的复算不算复算);'
+                        f'FIX1-02价格字段: 期末价格(事实value vs 独立close)与基准价格'
+                        f'(引擎basis_value vs 独立basis_value)相对差≤'
+                        f'{RECOMPUTE_PRICE_TOL_PCT}%(金融数值精度),独立有基准时'
+                        '引擎必须提供basis_date/basis_value(缺失即FAIL);'
+                        'FIX1-03: 仅WEEK/MTD/YTD三期全部独立一致算完整复算PASS'
+                        '(complete_recompute),部分复核=INSUFFICIENT_HISTORY不冒充',
                 'rounding': RECOMPUTE_ROUNDING}),
             'checks': checks,
             'external_results': results_ext,
@@ -929,6 +1232,9 @@ def main():
                       '密钥不写入任何证据文件',
                       '新浪为实时快照接口: 仅同日收盘口径可比较,历史日期无法经该接口证明'],
         }
+        # FIX1-01: JSON/MD写盘前最终密钥清扫(纵深防御,幂等;MD由清扫后的
+        # summary值构建,LOG在写盘时逐行再清扫)
+        summary = sweep_secrets(summary)
         jpath = os.path.join(args.out_dir, f'real_acceptance_{stamp}.json')
         with open(jpath, 'w', encoding='utf-8') as fh:
             json.dump(summary, fh, ensure_ascii=False, indent=2)
@@ -954,7 +1260,10 @@ def main():
                      f"| — | **{r['verdict']}** | {(r.get('note') or '')[:160]} |")
         L += ["", "## B. 周/MTD/YTD独立复算", ""]
         for r in results_rc:
-            L.append(f"### {r['check']} — **{r['verdict']}**")
+            _comp = '完整三期复算' if r.get('complete_recompute') else \
+                (f"部分复核({','.join(r.get('verified_periods') or [])}已核)"
+                 if r.get('verified_periods') else '非完整复算')
+            L.append(f"### {r['check']} — **{r['verdict']}**({_comp})")
             L.append(f"- {r.get('note') or ''}")
             for p, row in (r.get('periods') or {}).items():
                 ind = (row or {}).get('independent') or {}
@@ -978,12 +1287,14 @@ def main():
               "- INSUFFICIENT_HISTORY: 双方均无期前基准(历史不足,非成功复算);",
               "- SKIPPED: 快照侧缺该指标;",
               "- 综合: FAIL>NOT_VERIFIED>PASS;覆盖门槛(UST≥1真PASS+市场≥2真PASS+"
-              "外部总PASS≥4+复算PASS≥2)不满足→NOT_VERIFIED;--skip-external恒NOT_VERIFIED。"]
+              "外部总PASS≥4+复算PASS≥2,且≥1条真实资产序列完成WEEK/MTD/YTD三期"
+              "完整独立复算)不满足→NOT_VERIFIED;--skip-external恒NOT_VERIFIED;"
+              "部分复算=INSUFFICIENT_HISTORY不冒充完整PASS。"]
         with open(mpath, 'w', encoding='utf-8') as fh:
             fh.write('\n'.join(L) + '\n')
         lpath = os.path.join(args.out_dir, f'real_acceptance_{stamp}.log')
         with open(lpath, 'w', encoding='utf-8') as fh:
-            fh.write('\n'.join(LOG) + '\n')
+            fh.write('\n'.join(sanitize_text(x) for x in LOG) + '\n')
         P(f"\n💾 验收报告: {mpath}")
         P(f"💾 JSON: {jpath}")
         P(f"💾 执行日志: {lpath}")

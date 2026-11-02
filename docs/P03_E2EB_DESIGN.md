@@ -14,7 +14,7 @@
 
 **模式B定义**: 用户以自然语言提问 → 系统映射为对**事实层/快照层**的结构化查询 → 复用 fact_engine 统一口径**独立计算** → 接地作答。禁止模型直叙无数据支撑的结论;数据缺席=如实「无数据」;禁编造;禁「数据不足填0」。
 
-**验证场景 E2E-B = 美日政策分化与 USDJPY**: 用户问美日政策利率差/收益率差变化与USDJPY走势关系类问题。数据在场性(INVENTORY实测): 美端政策利率与收益率**在场**(DFEDTARU/DFEDTARL/DFF/UST_2Y/UST_10Y等13条注册身份);USDJPY**在场**(注册L445-467+global通道260观测序列);**日端利率缺席**(JGB/日银目标不在81指标,INVENTORY G-01)——缺席是差距清单合法内容,不是设计障碍。
+**验证场景 E2E-B = 美日政策分化与 USDJPY**: 用户问美日政策利率差/收益率差变化与USDJPY走势关系类问题。数据在场性(INVENTORY实测): 美端政策利率与收益率**在场**(DFEDTARU/DFEDTARL/DFF/UST_2Y/UST_10Y等13条注册身份 [实取: INVENTORY 层② E2E-B场景相关条目表实测计数, 2026-11-02]);USDJPY**在场**(注册L445-467 [实取: INVENTORY 层② USDJPY条目行号登记, 2026-11-02]+global通道260观测序列 [实取: INVENTORY 层④ global_20261102.json USDJPY series实测, 2026-11-02]);**日端利率缺席**(JGB/日银目标不在81指标 [实取: INVENTORY 层② registry v2.0.0实测指标总数, 2026-11-02],INVENTORY G-01)——缺席是差距清单合法内容,不是设计障碍。
 
 **In-scope(本设计覆盖)**: ①中间表示(IR)字段级schema ②NL→IR映射层架构 ③查询执行器(快照绑定+引擎口径复用+查询期派生) ④接地规则与缺席路径 ⑤E2E-B端到端走查 ⑥E2E-A对齐与共享研究档案衔接 ⑦差距→工作包映射。
 
@@ -27,7 +27,7 @@
 ### 2.1 盘点引用
 
 - 事实引擎查询面: INVENTORY §一层①(E1-E17, fact_engine.py)
-- 注册表结构与实测81指标: INVENTORY §一层②
+- 注册表结构与实测81指标 [实取: INVENTORY 层② registry v2.0.0实测指标总数, 2026-11-02]: INVENTORY §一层②
 - 快照构建/读取面与不可变语义: INVENTORY §一层③(S1-S5, R1-R7)
 - data/daily命名/字段/时区口径: INVENTORY §一层④
 - 装配/评分/相关性层: INVENTORY §一层⑤(A1-A5, M1-M7, C1-C6)
@@ -41,7 +41,7 @@
 | D1 | 查询数据入口 | (a)直读data/daily (b)快照/事实层 | **(b)** | 架构v2红线"新研究模块必须走快照+门禁,禁止绕开直读原始文件";E2E-A research_history_query同款禁直读约束;机制落点=R1 `select_snapshot`+R3 `gate_allows_formal_research` |
 | D2 | 数值计算口径 | (a)GLM自行从数据叙述 (b)复用fact_engine统一口径独立计算 | **(b)** | 模式B定义"真实数据+独立计算,非模型直叙";落点=E3 `compute_period_returns`/E11 `compute_derived` |
 | D3 | 跨指标求差(利率差类) | (a)预先注册每个组合为派生指标 (b)查询期计算+calculation_ref | **(b)为主,(a)用于高频稳定组合** | (a)随组合数爆炸且需注册表变更流程;(b)对齐引擎派生纪律(E11同款calculation_ref);落点=IR `derived_operations[]`(§三(a));承接GAP-03 |
-| D4 | USDJPY数据来源 | (a)global通道既有series(INVENTORY层④实测在场) (b)新采集通道 | **(a)** | `_GLOBAL_ID_MAP`"JPY=X"→USDJPY(fact_engine.py L244-245)既有身份;日端利率缺席走差距GAP-01而非绕道 |
+| D4 | USDJPY数据来源 | (a)global通道既有series(INVENTORY层④实测在场) (b)新采集通道 | **(a)** | `_GLOBAL_ID_MAP`"JPY=X"→USDJPY(fact_engine.py L244-245 [实取: INVENTORY 层① E6行号登记, 2026-11-02])既有身份;日端利率缺席走差距GAP-01而非绕道 |
 | D5 | 缺席输出 | (a)空值/0 (b)结构化NO_DATA(available:false+reason) | **(b)** | 对齐引擎E3数据不足语义(`{"available": False, "reason": ...}`绝不回退0.0)与macro_scorecard `DATA_INSUFFICIENT`(M1);承接GAP-08 |
 | D6 | 历史时点查询 | (a)拒绝一切历史问题 (b)显式as_of透传+快照时点锚定 | **(b)** | S1/E3/E5既有as_of注入面;只读锚定对齐E2E-A真实历史回放纪律;承接GAP-07 |
 | D7 | 查询历史存储 | (a)可变数据库 (b)append-only日志 | **(b)** | 对齐研究任务append-only语义(E2E-A摘要);落点=§四`query_history` |
@@ -81,7 +81,7 @@ MetricBinding = {
 Provenance = {
   metric_id:        string    # 与binding一致
   snapshot_id:      string    # 值来源快照(不可变批次)
-  fact_id:          string    # 格式 metric_id@YYYY-MM-DD(E5 L211)
+  fact_id:          string    # 格式 metric_id@YYYY-MM-DD(E5 L211 [实取: INVENTORY 层① E5行号登记, 2026-11-02])
   observation_date: string    # ISO观测日
   source_file:      string    # 采集文件名(披露用;查询器不直接读它——D1)
   quality_status:   string    # PASS|DEGRADED|WARN|FAIL(事实质量,E13)
@@ -126,7 +126,7 @@ UnresolvedEntity = {
 | A3 数据缺席 | `"ABSENT_DATA"` | 快照facts无该metric_id(如FED_FUNDS某日缺席,跨分支覆盖审计已见同类) | "本期无该指标事实" |
 | A4 窗口不足 | `"ABSENT_WINDOW"` | E3返回`{"available": False, "reason": ...}`(如序列不足N个月) | 原样转述引擎reason |
 
-派生操作任一operand缺席→`DerivedOperation.status="NO_DATA"`,`result=null`,**不部分计算不近似**。回答文本对缺席项显式声明「无数据」;禁止以相近指标冒充、禁止内插、禁止填0。此口径与E3 L90/L94-95、M1 `DATA_INSUFFICIENT`、C5 missing清单三处既有实现同源。
+派生操作任一operand缺席→`DerivedOperation.status="NO_DATA"`,`result=null`,**不部分计算不近似**。回答文本对缺席项显式声明「无数据」;禁止以相近指标冒充、禁止内插、禁止填0。此口径与E3 L90/L94-95 [实取: INVENTORY 层① E3行号登记, 2026-11-02]、M1 `DATA_INSUFFICIENT`、C5 missing清单三处既有实现同源。
 
 ### (d) E2E-B端到端走查(美日政策分化与USDJPY)
 
@@ -174,12 +174,12 @@ UnresolvedEntity = {
 | 4 | 研究任务schema最低字段集 | **沿用(引用不重定义)** | 模式B不另立任务schema;升级为任务时**整体采用**E2E-A最低字段集;落点=共享档案任务记录外键 `task_id`(格式见§4.1) |
 | 5 | `falsifiable_conditions` | **分歧(查询记录不带)+升级承接** | 模式B查询记录(QB-*)无预测语义,不设`falsifiable_conditions`;一旦升级为任务(E2E-A),该字段按E2E-A schema强制在场——分歧边界=是否预测型研究对象 |
 | 6 | append-only(仅追加) | **沿用** | 模式B查询历史`query_history`同语义仅追加: `query_id`单调、记录不可变不可删改;落点=§4.1共享档案 `query_history`集合 + IR `query_id` |
-| 7 | 真实历史回放只读锚定 | **沿用** | 模式B as_of时点查询(D6)同款纪律: 只读锚定既有快照/离线构建(write=False,S1 L384-385);对应禁令=禁调窗口/口径/容差凑答案(对应E2E-A"禁调参凑触发");落点=IR `as_of`+`target_snapshot_id`绑定后不可变 |
+| 7 | 真实历史回放只读锚定 | **沿用** | 模式B as_of时点查询(D6)同款纪律: 只读锚定既有快照/离线构建(write=False,S1 L384-385 [实取: INVENTORY 层③/§二 G-05行号登记, 2026-11-02]);对应禁令=禁调窗口/口径/容差凑答案(对应E2E-A"禁调参凑触发");落点=IR `as_of`+`target_snapshot_id`绑定后不可变 |
 | 8 | 两模式共享可信事实与研究档案 | **沿用** | 唯一事实源=注册表+fact_engine+快照(两模式同一入口,R1/E2);共享档案=§4.1 |
 
 ### 4.1 共享研究档案衔接设计(快照ID/任务ID引用约定)
 
-- **快照ID引用约定**: 两模式一切记录引用快照时**必须用完整`snapshot_id`**(`research_snapshot_{YYYYMMDD}[_vN]`,S1 L345/L397),并附`digest_snapshot`16位指纹(R5)实现内容级绑定(防同名篡改,对齐数据包meta绑定纪律A5)。
+- **快照ID引用约定**: 两模式一切记录引用快照时**必须用完整`snapshot_id`**(`research_snapshot_{YYYYMMDD}[_vN]`,S1 L345/L397 [实取: INVENTORY 层③快照字段行号登记, 2026-11-02]),并附`digest_snapshot`16位指纹(R5)实现内容级绑定(防同名篡改,对齐数据包meta绑定纪律A5)。
 - **任务ID引用约定**: E2E-A任务 `task_id` 格式 `RT-YYYYMMDD-NNN`;模式B查询 `query_id` 格式 `QB-YYYYMMDD-NNN`(同日序列各自独立计数)。
 - **交叉引用字段**: 任务记录可携 `origin_query_id: string|null`(由模式B升级而来的任务回链);查询记录可携 `promoted_to_task_id: string|null`(升级结果回链);两字段由append-only写入后不可改。
 - **档案载体(设计层)**: 单一共享档案文件族(如`research_archive/`下分集合),集合含 `query_history`(模式B查询IR+作答摘要)/ `research_tasks`(E2E-A任务)/ `anomaly_events`(E2E-A异常);所有记录必携 `snapshot_id`+digest;实现与路径最终由实现包定,本设计固定**引用约定**。
@@ -190,10 +190,10 @@ UnresolvedEntity = {
 
 | 编号 | 差距(来源) | 内容 | 承接包 |
 |---|---|---|---|
-| GAP-01 | INVENTORY G-01 | 日本政策利率与JGB各期限收益率不在注册表(81指标实测零命中),E2E-B场景日端缺席 | WP-B3 |
+| GAP-01 | INVENTORY G-01 | 日本政策利率与JGB各期限收益率不在注册表(81指标实测零命中 [实取: INVENTORY 层② 日本侧在场性实测+G-01, 2026-11-02]),E2E-B场景日端缺席 | WP-B3 |
 | GAP-02 | INVENTORY G-02 | 无NL查询面/中间表示/映射层 | WP-B1 |
-| GAP-03 | INVENTORY G-03 | 无查询期通用配对派生机制(compute_derived硬编码五族) | WP-B2 |
-| GAP-04 | INVENTORY G-04 | 相关性PAIRS固定10对无USDJPY配对、无按需配对面(序列数据在场) | WP-B2 |
+| GAP-03 | INVENTORY G-03 | 无查询期通用配对派生机制(compute_derived硬编码五族 [实取: INVENTORY §二 G-03/E11实测, fact_engine.py L478-499, 2026-11-02]) | WP-B2 |
+| GAP-04 | INVENTORY G-04 | 相关性PAIRS固定10对 [实取: INVENTORY 层⑤ C1实测, correlation_calculator.py L28-46, 2026-11-02]无USDJPY配对、无按需配对面(序列数据在场) | WP-B2 |
 | GAP-05 | INVENTORY G-05 | DEV侧无持久化快照,查询执行器测试需离线构建(write=False)路径固化 | WP-B5 |
 | GAP-06 | INVENTORY G-06 | 无共享研究档案/查询历史存储与ID引用约定落点 | WP-B4 |
 | GAP-07 | INVENTORY G-07 | 历史as_of时点查询语义部分在场、无模式B显式规格与测试 | WP-B2 |
@@ -220,10 +220,10 @@ UnresolvedEntity = {
 - 验收要点草案: ①离线单测以DEV授权副本(data/daily 20261101/20261102)构建write=False快照并执行OP-3(工件: 测试文件+数据档引用 data/daily/macro_20261102.json) ②NO_DATA传导用例(OP-1/OP-2 result=null,工件: 测试文件) ③as_of历史锚定用例: 同一问题两个as_of,输出随快照时点不同且不混入期后数据(工件: 测试文件+as_of字符串) ④引擎口径一致性: 执行器输出与fact_engine直算逐值相等(硬编码预期值,对齐E2E-A"测试预期值硬编码"纪律;工件: 测试文件) ⑤CI零回归(工件: GitHub Actions run ID)。
 
 **WP-B3 日本利率数据身份与获取(JGB/日银政策利率入注册表+采集)**
-- 目标: 消除GAP-01: 注册表新增日本政策利率与JGB关键期限(至10Y)身份(81→新增N条,registry版本升级走既有变更纪律),采集通道落地(免费公开源规则循预授权③于本包适用)。
+- 目标: 消除GAP-01: 注册表新增日本政策利率与JGB关键期限(至10Y)身份(81 [实取: INVENTORY 层② registry v2.0.0实测指标总数, 2026-11-02]→新增N条,registry版本升级走既有变更纪律),采集通道落地(免费公开源规则循预授权③于本包适用)。
 - 范围: registry变更+采集器扩展+通道SOURCE_FILE_RULES登记;**不含**模式B其余面。
 - 依赖: 无硬依赖(可与WP-B1/B2并行);完成后E2E-B场景双端闭合。
-- 验收要点草案: ①注册表计数实测断言(81+N,工件: 测试文件+registry文件SHA) ②身份语义校验通过(registry_semantics既有校验,工件: 测试) ③真实采集样本落data/daily且经快照Gate A(工件: 数据档文件+快照digest) ④文档口径登记(单位percent/日历/来源,工件: registry diff)。
+- 验收要点草案: ①注册表计数实测断言(81 [实取: INVENTORY 层② registry v2.0.0实测指标总数, 2026-11-02]+N,工件: 测试文件+registry文件SHA) ②身份语义校验通过(registry_semantics既有校验,工件: 测试) ③真实采集样本落data/daily且经快照Gate A(工件: 数据档文件+快照digest) ④文档口径登记(单位percent/日历/来源,工件: registry diff)。
 
 **WP-B4 共享研究档案与查询历史(append-only)**
 - 目标: 落地§4.1: query_history集合、ID引用约定(query_id/task_id/origin_query_id/promoted_to_task_id)、snapshot_id+digest内容级绑定。

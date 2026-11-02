@@ -38,6 +38,29 @@ def _pro():
         _pro_client = ts.pro_api(TUSHARE_TOKEN)
     return _pro_client
 
+
+# ============ 方案A限流间隔(W5-RERUN T1/范围D, 2026-11-03) ============
+# 实证(FIX3 §六附则/操作者2026-11-01实测): tushare index_daily 对同账号相邻
+# 快速连发按"1次/分钟"限流——A_SHARE_INDICES 字典序第2只(399001.SZ)在无
+# 间隔连发下必然"频率超限",且SZCI无备源→结构性死路(任何零代码重跑必缺SZCI
+# →Gate A core FAIL)。本模块所有 index_daily 调用统一经 _index_daily 发起:
+# 全局单调时钟保证任意相邻两次调用(无论成败、无论所在函数)间隔
+# ≥ INDEX_DAILY_MIN_INTERVAL_SECONDS;已超出间隔的调用不额外等待。
+# 清单/字典序/接口选择/参数/备源回落/import 依赖零变化(仅加间隔)。
+INDEX_DAILY_MIN_INTERVAL_SECONDS = 61
+_index_daily_last_ts = 0.0
+
+
+def _index_daily(**kwargs):
+    """index_daily 调用闸门(方案A): 相邻调用间隔≥61s;接口与参数零变化。"""
+    global _index_daily_last_ts
+    wait = INDEX_DAILY_MIN_INTERVAL_SECONDS - (time.monotonic() - _index_daily_last_ts)
+    if wait > 0:
+        print(f"  ⏳ tushare index_daily 限流间隔(方案A≥61s): 等待{wait:.1f}s")
+        time.sleep(wait)
+    _index_daily_last_ts = time.monotonic()
+    return _pro().index_daily(**kwargs)
+
 # A股指数列表
 A_SHARE_INDICES = {
     '000001.SH': '上证指数',
@@ -109,7 +132,7 @@ def fetch_a_share_indices():
         try:
             # 第七轮: 单次拉取年初至今全序列(原为近10天+年初两次调用),
             # 附加原始series供事实引擎统一口径计算(周/MTD/YTD=期前收盘基准)
-            df_year = _pro().index_daily(ts_code=code, start_date=start_year, end_date=end_date)
+            df_year = _index_daily(ts_code=code, start_date=start_year, end_date=end_date)
             if df_year is None or len(df_year) == 0:
                 print(f"  ⚠️ {name}({code}): 无数据")
                 continue
@@ -364,14 +387,14 @@ def fetch_turnover():
     try:
         today = datetime.now().strftime('%Y%m%d')
         # 查最近5个交易日
-        df = _pro().index_daily(ts_code='000001.SH', start_date=(datetime.now() - timedelta(days=10)).strftime('%Y%m%d'), end_date=today)
+        df = _index_daily(ts_code='000001.SH', start_date=(datetime.now() - timedelta(days=10)).strftime('%Y%m%d'), end_date=today)
         if df is not None and len(df) > 0:
             latest = df.sort_values('trade_date').iloc[-1]
             sh_amount = float(latest.get('amount', 0))  # 千元
             sh_date = str(latest['trade_date'])
 
             # 同时获取深证成指成交额
-            df2 = _pro().index_daily(ts_code='399001.SZ', start_date=(datetime.now() - timedelta(days=10)).strftime('%Y%m%d'), end_date=today)
+            df2 = _index_daily(ts_code='399001.SZ', start_date=(datetime.now() - timedelta(days=10)).strftime('%Y%m%d'), end_date=today)
             sz_amount = 0
             if df2 is not None and len(df2) > 0:
                 latest2 = df2.sort_values('trade_date').iloc[-1]

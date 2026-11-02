@@ -34,7 +34,7 @@
 
 ### (a) 扩展数据结构(字段级 schema;字段名/类型/语义逐项)
 
-**a-1 registry 条目扩展(在既有 17 字段 [实取·INVENTORY K-1] 之上新增 3 字段,81 条目全量回填 + 新条目沿用)**
+**a-1 registry 条目扩展(在既有 17 字段 [实取·INVENTORY K-1] 之上新增 3 字段,81 [实取·INVENTORY b.1 registry 实测计数,2026-11-02] 条目全量回填 + 新条目沿用)**
 
 | 字段名 | 类型 | 语义 |
 |---|---|---|
@@ -70,7 +70,7 @@
 ### (b) 数据策略(逐缺口候选源/频率/配额)
 
 逐缺口候选源与频率=INVENTORY (c) 表 G-P1-01..19(此处不复制,以该表为准)。配额约束与纪律:
-- **免费公开源循预授权③直用**: ECB Data Portal / BOJ 时系列 / Bundesbank / BEA(均免费无凭证);设计采集频率=每日 1 次,并入既有 11 步流水线(run_weekly.py L126-L151 [实取])新增步骤,公共 API 合理使用量级 [示意·非实取·频率设计值]
+- **免费公开源循预授权③直用**: ECB Data Portal / BOJ 时系列 / Bundesbank / BEA(均免费无凭证);设计采集频率=每日 1 次,并入既有 11 步流水线(run_weekly.py L126-L151 [实取·steps 列表实测恰 11 步,2026-11-02])新增步骤,公共 API 合理使用量级 [示意·非实取·频率设计值]
 - **yfinance 并批**: DAX/CAC40/NIKKEI225 并入 global 通道**同一采集批次**,不新增调用轮次、不增请求结构 [示意·非实取·策略]
 - **付费/凭证源只登记 PENDING 候选,禁直接依赖**: S&P PMI(付费)、e-Stat(appId)、tushare 积分接口、FRED 超既有凭证范围扩量——均 PENDING 报批,任何 WP 不得将其设为唯一路径
 - **依赖用户授权**: G-P1-10..18 全部 china 通道改动(采集器冻结在案),独立拆包 WP-P1-E(DP-4),不阻塞 JP/EA 主线
@@ -79,7 +79,7 @@
 ### (c) 降级路径(与「数据不足不填0」一致)
 
 1. **采集/源层**: 源不可得→`sources_status` 记 MISSING/READ_FAIL [实取·snapshot_builder.py L253-L254, L270-L271]→当日档该节键缺席(非0);备源次序按 DP-2(如 e-Stat 不可达→BOJ 镜像)。
-2. **引擎层**: 序列不足→`{"available": false, "reason": …}` 绝不回填0 [实取·fact_engine.py L90, L94-L95];月频未发布≠缺失(92天/45天有效窗沿既有新鲜度规则)。
+2. **引擎层**: 序列不足→`{"available": false, "reason": …}` 绝不回填0 [实取·fact_engine.py L90, L94-L95];月频未发布≠缺失(月频窗=60天,沿既有新鲜度规则 [实取·config/metric_registry.json L1393(CPI条目 freshness.max_calendar_lag_days=60)、scripts/fact_engine.py L592-595(现行月频窗=60天;92=已废除旧硬编码、45=被否决候选,均非现行),实测2026-11-02])。
 3. **快照/Gate A 层**: 新经济体指标按注册表 criticality 进入裁决——核心缺失→Gate A FAIL 如实暴露,非核心缺失→DEGRADED 结构化披露 [实取·snapshot_builder.py L308-L321 注释与实现,recompute_gate_a]。
 4. **查询/报告层**: 缺席→「无数据」如实输出+差距登记(E2E-B 缺席路径沿用;禁编造禁填0);评分维度可用指标<2→`DATA_INSUFFICIENT`「数据不足不可判」 [实取·macro_scorecard.py L11-L12, L30]。
 
@@ -122,7 +122,7 @@
 | 要素(注入摘要) | 处置 | 字段/机制级落点 |
 |---|---|---|
 | L1 采集层 | 扩展 | 新增 `scripts/jp_market_collector.py`/`ea_market_collector.py`(候选名);档名 `jp_/ea_YYYYMMDD.json`(a-2);`run_weekly.py` steps 列表 [实取·L126-L151] 增步骤;既有四通道零改动 |
-| L2 金融事实引擎 | 扩展 | registry 增 `economy/economy_rule/market_seat` 三字段+12候选条目;`normalize_jp/normalize_ea` 新函数;`trading_calendar` 增 jp_equity/ea_euro;`compute_period_returns`/`RATE_UNITS`/`validate_fact` 零改动沿用 |
+| L2 金融事实引擎 | 扩展 | registry 增 `economy/economy_rule/market_seat` 三字段+12候选条目 [示意·候选·§三(a-3) 候选清单,非实取];`normalize_jp/normalize_ea` 新函数;`trading_calendar` 增 jp_equity/ea_euro;`compute_period_returns`/`RATE_UNITS`/`validate_fact` 零改动沿用 |
 | L3 不可变研究快照+Gate A | 沿用(机制)/扩展(通道面) | `build_snapshot`、不可变拒写、`--allow-revision`、原子写、锚点整体替换全部零改动 [实取·snapshot_builder.py L388-L427];扩展仅 `resolve_inputs` 增通道 glob 与 `sources_status` 新键 |
 | L4 研究引擎(装配层) | 扩展 | `build_markdown` 增经济体节;scorecard 维度函数 economy 参数化(DP-3);`compute_all` 增新对;`DATA_INSUFFICIENT` 沿用 |
 | L5 GLM 报告 | 扩展 | `generate_report` prompt 输入=数据包新节自动进入;「只解释」「当日纪律」(无当日包拒绝生成)沿用 [实取·docs/ARCHITECTURE_V2.md L48] |
@@ -166,7 +166,7 @@
 
 | 包 | 目标 | 范围 | 依赖 | 验收要点草案(可核验工件) |
 |---|---|---|---|---|
-| WP-P1-A 注册表与 JP/EA 采集面 | 81+12 条目经济体化+JP/EA 通道落地 | registry 三字段回填与12候选条目、jp_/ea_ 采集脚本与数据档、run_weekly 步骤接入 | 免费 public API 循预授权③(DP-2);不依赖 P0-3 | ① 单测: registry economy 字段与 P1-P8 规则一致性(逐条断言)+负向(规则未命中条目拒入)【测试】② 首份 `data/daily/jp_/ea_YYYYMMDD.json` 真实档在场【数据档引用】③ 新采集器离线测试(源失败→MISSING 不填0)【测试/CI】④ offline-tests 全套件零回归【CI】 |
+| WP-P1-A 注册表与 JP/EA 采集面 | 81 [实取·INVENTORY b.1 registry 实测计数,2026-11-02] + 12 [示意·候选·§三(a-3) 候选清单,非实取] 条目经济体化+JP/EA 通道落地 | registry 三字段回填与12候选条目 [示意·候选·§三(a-3) 候选清单,非实取]、jp_/ea_ 采集脚本与数据档、run_weekly 步骤接入 | 免费 public API 循预授权③(DP-2);不依赖 P0-3 | ① 单测: registry economy 字段与 P1-P8 规则一致性(逐条断言)+负向(规则未命中条目拒入)【测试】② 首份 `data/daily/jp_/ea_YYYYMMDD.json` 真实档在场【数据档引用】③ 新采集器离线测试(源失败→MISSING 不填0)【测试/CI】④ offline-tests 全套件零回归【CI】 |
 | WP-P1-B 事实引擎与快照贯通 | 新通道进引擎与快照,缺席合法登记 | normalize_jp/ea、jp/ea 日历、build_all/resolve_inputs 扩展、Gate A 对新指标裁决 | WP-A | ① 单测: 新通道事实构造+口径(week/MTD/YTD 对 jp/ea 日历)+数据不足路径【测试】② 快照 sources_status 含 jp/ea 键的构建测试(含缺源 MISSING)【测试】③ 既有 US 面输出零回归(W-3 对照)【测试/CI】 |
 | WP-P1-C 经济体评分·装配·报告 | 评分/数据包/报告经济体化 | scorecard economy 参数化(DP-3)、数据包经济体节、相关性新对、报告模板与 Gate B 锚点 | WP-B | ① 维度扩展单测+DATA_INSUFFICIENT 负向【测试】② 数据包经济体节渲染快照测试【测试】③ Gate B 对新锚点全量核验用例【测试/CI】 |
 | WP-P1-D 查询面与共享档案衔接 | 四经济体 NL 查询与档案 ID 衔接 | IR economy 字段、QB-/RT- 引用约定落地、W-1/W-2 场景实现化 | **依赖 P0-3 落地**(E2E-A/B 实现) | ① IR schema 扩展单测(economy 过滤+接地标识强制)【测试】② W-1/W-2 端到端用例: 缺席→「无数据」+差距登记断言【测试】③ 档案记录附 snapshot_id+digest 的校验【测试】 |

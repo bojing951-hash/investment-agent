@@ -57,3 +57,11 @@
 ---
 
 *证据与自述: `/tmp/p2-design-evidence/`(zip+staging)+ 本轮 stdout 自述报告(四段,存 result.md)。设计未冻结任何 AC;WP-P2-A..D 验收要点为草案,正式 AC 由主 Agent 后续轮拟定。*
+
+---
+
+## 补登行(第 3 提交;zip 装配后字面值登记)
+
+- **证据包整体 sha256** = `1acf28256a8342858bf7d5996e9fcbf244962d55c9e3ab1dc7b184d9dba31bc6`——对象 `/tmp/p2-design-evidence/IA-P2-DESIGN-EVIDENCE.zip`(421,124 字节;zip 成员 137 = SHA256SUMS 清单项 136 + SHA256SUMS 自身;双通道计算一致: python hashlib + shasum;SHA256SUMS 136 项独立复算零不符、零未覆盖成员)。
+- **装配时点与口径**: 装配时 UTC=2026-11-02T15:21:50Z(取证件 `02-git-forensics/00-context.txt`);装配时尖端 = 第 2 提交 `e8adcba62b965bbe0f1f59b13bdbf8436e06c779`;zip 内 `P2_DELIVERY.md` 双源副本 = v1(补登前),与本提交版差异仅本补登块——「zip 含自身哈希不可行」的诚实处置,依 §③ 机制声明。
+- **交付时跨支尖端复核**(2026-11-02T15:2xZ ls-remote,与 INVENTORY 登记一致零漂移): `dev/p1-design@049ec978523dec659ba47f140bf41669604de24f` / `dev/p03-w2-glm-design@0c8de3c3bece78dd2d9f0d8928a817b597e3104e` / `dev/data-inventory@7cbef4c9bd25586ef03fc02819ae6792d0929fa0` / `dev/data-coverage@06f715b6be34dedd69f6776b1947238708de0563` / 基线 `dev/p03-e2eb-design@f1fe593faa0f1754e6a6ab14c39f39fc0848550a`。

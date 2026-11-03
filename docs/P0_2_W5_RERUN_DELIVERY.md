@@ -225,4 +225,15 @@ index 19d5db7..ab626f6 100644
 - 自指环处置(历轮既定做法): 包内 `P0_2_W5_RERUN_DELIVERY.md` 为本登记行
   补登前的装配版(v2);本行与最终尖端补登行为仓内终版(v3)内容,不入 zip;
   zip 本身不因补登重建(SHA 以上值为准)。
-- 交付文档回填 commit(最终尖端): 见下
+- 交付文档回填 commit #1(zip 与本节登记载体): `1001df6258aeabdb2442157d0d2497ea7343aef9`
+- 最终尖端(本行所在 commit = 交付文档回填 commit #2,唯一目的=闭合 #1 遗留的
+  "见下"悬空引用并声明最终尖端归属;其后再无任何 commit): commit 无法自含自身
+  全SHA,最终尖端全SHA 以 `git rev-parse dev/p0-2-w5-rerun`(=origin 同名分支,
+  非 force 推送)实取为准,并登记于 stdout 自述报告显著位置(合同 T3)。
+  判定件运行时刻 HEAD=`50be9c7d19b66f29a305449e84f2cd436fd7a3d2`(§4/R-AC-02.3);
+  #1/#2 两笔均为其后合法的交付文档回填 commit。
+- 收尾会话(UTC 2026-11-03T01:5xZ 前后)第三次 DEV/LIVE 隔离三项只读取证:
+  LIVE 脚本 SHA=`f9ca189c…`(≠DEV,与开/收轮一致)、"RERUN"在 LIVE 0 命中、
+  launchd 零 DEV 引用(散件 `DEV-LIVE-ISOLATION-FINAL.txt` 于证据目录,zip 已
+  封配不重建,故不入 zip);`data/daily` 12 个 json 收轮后复扫与收轮清单逐字
+  一致(`data_daily_final_check.txt`,同上散件属性)。

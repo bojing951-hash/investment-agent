@@ -69,3 +69,18 @@
 - **装配后跨支尖端复验**(显式 refspec ls-remote,UTC 2026-11-03T04:51Z 前后;取证件为证据包外散件 `10-ls-remote-post-assembly.txt`,zip 已封不重建,散件不入包、由本行与 stdout 自述引用): `dev/p03-w2-glm-design`=`0c8de3c3…`、`dev/p1-design`=`049ec978…`、`dev/p2-design`=`f8ed401…`(=BASE)——与 05/07 号(包内)取证件一致,零漂移;`main`=`50b5d13d…` 未动。
 - **DELIVERY 层更正登记(叙述层,区别于 §② 所登记内容层 4 处)**: §⑤ AC-04 行原文「17 文件行号边界机械复核零越界」中 17 为提交前人工点数;证据包成员⑤附件 05b 机械去重重跑结果 = **19 文件 / 82 锚点 / 零越界**,以 05b 为准,据实更正登记,非静默保留。
 - 本块为第 3 提交全部改动;本提交后最终尖端以推送后显式 refspec `ls-remote` 取证为准(stdout 终版自述落全 SHA)。
+
+---
+
+## ⑦ R034 补登块(IA-P3-DESIGN-FIX1 · 更正登记;append-only)
+
+> 包: R034 · R030(IA-P3-DESIGN)最小整改轮。分支 `dev/p3-design-fix1`(自 `f93adb5d0338e42250668039f1788e5e7ea6df86` 切出;`dev/p3-design` 保持 f93adb5 不前进)。docs-only 恰 2 文件限定性修改+证据包再装配。本块为 DELIVERY 本轮唯一新增补登块,既有行零删改。
+
+1. **事实登记**: R030(IA-P3-DESIGN)独立审计结论 = FAIL(2026-11-03),唯一阻断 = `docs/P3_DESIGN.md` L51(O-3 行)登记「predictions **19** 字段结构」,与实读矛盾——`config/allocation_views.json` predictions 逐键清点 = **18 字段**,该行所引 INVENTORY(a.2/c.2)登记值亦 = 18 字段。
+2. **R030 期失实事实(如实登记)**: R030 期数值纪律更正声明(本文件 §②「自查发现并当场更正 4 处:predictions 字段数 19→18…」及当时自述/证据成员)声称「19→18 当场更正」,但该更正只落 INVENTORY 本体、未落 DESIGN 本体(L51 仍存「19 字段」)——证据链自相矛盾,审计判失实。本轮承接审计处方「最小整改(禁扩范围): DESIGN L51『19』→『18』单token修正+更正登记,证据面同步登记;其余零触碰」。
+3. **本轮整改动作登记(改动范围恰=白名单三类)**:
+   - F1 · `docs/P3_DESIGN.md` 单 token 修正: L51「predictions 19 字段结构」→「predictions 18 字段结构」。恰 1 hunk 恰 1 行对,唯一差异 = 该 token;行内其余字符(含 `[实取·INVENTORY a.2/c.2,2026-11-03]` 标注)逐字保留;整改后 DESIGN 全文 grep「19 字段」「19字段」零命中。commit 定位 = 本支第 1 提交 `86f9c9bc1596e9aaba1149383b14f7ecbf94c66d`(两段提交: DESIGN 修正先行,本补登块随后)。
+   - F2 · 本补登块(DELIVERY append-only 纯新增,零删改既有行)。
+   - F3 · 证据包再装配: 新目录 `/tmp/p3-design-fix1-evidence/`(旧包 `/tmp/p3-design-evidence/` 全目录只读零改);含成员⑥两处记账更正(①「21 天/20 条」行标注 `[示意·非实取]`→`[实取·文件常量]`;②「18 字段」行位置指针→整改后 DESIGN 实存位置)。zip sha256 登记行依 R030 §④-3 同机制于装配后补入本块(见块内末行)。
+   - 零 INVENTORY 改动(其登记本就=18,非修复面,只读);零代码/零测试/零 workflow/零配置改动;无多处更正、无重构。
+4. **补登日期**: 2026-11-03(UTC;块首写定时点 2026-11-03T06:16:51Z,git 提交时间为准)。

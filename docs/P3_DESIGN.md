@@ -48,7 +48,7 @@
 |---|---|---|---|
 | O-1 | 研究档案(快照/正式周报/月度复盘/季度展望) | 不可变快照 `scripts/snapshot_builder.py` L8/L14/L390-398;正式周报发布事务 `scripts/report_generator.py` L909-924;月度/季度 `scripts/monthly_review.py` L33 / `scripts/quarterly_outlook.py` [实取·INVENTORY a.3/a.4,2026-11-03] | 检索索引(§3.2) |
 | O-2 | 论点与资产观点(含评级与证据) | `config/thesis.json` L5-378(9 条 [实取·INVENTORY a.1,2026-11-03])、`config/allocation_views.json` L17-391(9 条 [实取·同上])及其门禁保护 | 结论版本链(§3.3)+关联(§4) |
-| O-3 | 预测记录与裁决(含观察序列) | predictions 19 字段结构 + observations 载体(`record_observations` 实义定义 = `scripts/allocation_engine.py` L726) [实取·INVENTORY a.2/c.2,2026-11-03] | 错误模式复盘(§5) |
+| O-3 | 预测记录与裁决(含观察序列) | predictions 18 字段结构 + observations 载体(`record_observations` 实义定义 = `scripts/allocation_engine.py` L726) [实取·INVENTORY a.2/c.2,2026-11-03] | 错误模式复盘(§5) |
 | O-4 | 报告与复盘产物 | output/weekly、output/monthly(`scripts/report_generator.py` L36/月度 L1543/季度 L1555) [实取·INVENTORY a.4,2026-11-03] | 质量评价循环(§6.1) |
 | O-5 | 深研任务档案(停泊载体,接口预留) | 共享研究档案集合族 = E2E-B DESIGN §4.1 设计定稿,**实现停泊**(WP-B4);P2 任务模型挂同一档案族 [实取·INVENTORY a.3,2026-11-03] | 检索/版本/关联对 O-5 仅接口预留,P0-3 落地后接入(§7 依赖声明) |
 

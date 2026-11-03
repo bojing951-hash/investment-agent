@@ -57,3 +57,15 @@
 ---
 
 *证据与自述: `/tmp/p3-design-evidence/`(zip+staging)+ 本轮 stdout 自述报告(四段,存 result.md)。设计未冻结任何 AC;WP-P3-A..F 验收要点为草案,正式 AC 由主 Agent 后续轮拟定。*
+
+---
+
+## ⑥ 补登行(v2 · 第 3 提交)
+
+- **证据包 zip**: `/tmp/p3-design-evidence/IA-P3-DESIGN-EVIDENCE.zip`
+  - **sha256(双通道一致: python3 hashlib 与 `shasum -a 256` 逐字同值)**: `d28b6d29e6aec7363352eea1d1d6b49521b8ad813d9a8f3f3090176d1b9d2907`
+  - 大小 389,235 字节 `[实取]`;成员文件 132 `[实取·SHA256SUMS 清点]`;八类成员齐备(①双源交付物+交叉哈希一致 ②git 取证 00-09 号 ③本地 CI 逐套件[CI 同构+工作区双份] ④全文扫描清单 ⑤引用清单+05b 边界机械输出 ⑥数值逐值清单 ⑦自述快照 ⑧SHA256SUMS 逐成员·显式豁免自身)。
+  - 装配时点尖端 = 第 2 提交 `46d0f718db9fffef6c0b8ded9509c52ee76d8fcc`;zip 内 `P3_DELIVERY.md` 副本 = v1(本补登块之前),与第 3 提交版差异仅本块——与 §④-3 声明一致,如实登记。
+- **装配后跨支尖端复验**(显式 refspec ls-remote,UTC 2026-11-03T04:51Z 前后;取证件为证据包外散件 `10-ls-remote-post-assembly.txt`,zip 已封不重建,散件不入包、由本行与 stdout 自述引用): `dev/p03-w2-glm-design`=`0c8de3c3…`、`dev/p1-design`=`049ec978…`、`dev/p2-design`=`f8ed401…`(=BASE)——与 05/07 号(包内)取证件一致,零漂移;`main`=`50b5d13d…` 未动。
+- **DELIVERY 层更正登记(叙述层,区别于 §② 所登记内容层 4 处)**: §⑤ AC-04 行原文「17 文件行号边界机械复核零越界」中 17 为提交前人工点数;证据包成员⑤附件 05b 机械去重重跑结果 = **19 文件 / 82 锚点 / 零越界**,以 05b 为准,据实更正登记,非静默保留。
+- 本块为第 3 提交全部改动;本提交后最终尖端以推送后显式 refspec `ls-remote` 取证为准(stdout 终版自述落全 SHA)。

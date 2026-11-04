@@ -41,8 +41,10 @@ AC-01 PASS(规格逐字抄录L216-220+清单k=4零重合)/AC-02 PASS(要点①-�
 - 模块SHA与提交SHA登记: REPORT §五;zip整体sha256实测值(装配后追加行,自指豁免沿G1/G2/B1先例):
 
 ```
-(zip sha256 占位: 证据包装配后以实测值追加于下一行,固定点不可内含自身哈希)
+IA-P03-E2EB-WP-B2-EVIDENCE.zip sha256 = 14d8e80b054a5a6df711d66916e35d52fdf62cae434a98eb52c9129096145235 (91成员/301343字节, 装配后实测)
 ```
+
+> 自指豁免: zip内DELIVERY副本(成员②)=c2d473f版无本行, 固定点不可内含自身哈希; 推送终态(最终尖端/最终ls-remote)见证据目录08-sidecar/final-state.txt(zip外), B1/G1/G2同款先例。
 
 ---
 

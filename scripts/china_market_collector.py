@@ -12,7 +12,7 @@ import re
 import time
 import requests
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from contextlib import contextmanager
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -79,7 +79,23 @@ A_SHARE_INDICES = {
 # 一致;旧回落 amount=0 的根因=新浪端点 stock_zh_index_daily 根本没有 amount 列
 # (结构性缺陷,非数据源不可用)→旧新浪回落删除,唯一新增通道=东财公开免费端点。
 # 纪律: tushare 调用参数/61s 闸门/A_SHARE_INDICES 清单与顺序零变化;零新 token。
-EM_FALLBACK_MAX_DATE = '2026-11-03'  # 合同级截止: 取值行 date≤此日,在途行禁用
+# W5-EMWIN(R051, 2026-11-04): 原常量 EM_FALLBACK_MAX_DATE='2026-11-03'(R049 冻结)
+# 把 EM 取值行永久钉死 11-03,收盘守卫(要求取值行=运行日)结构性不可满足(R050
+# 判定 NV 根因之一,操作者裁定属合同设计缺陷)——经用户方案 B 实批(免费 EM 端点
+# 换路,通道后续交易日正常出数=授权固有内容)+操作者裁定动态化: 常量→本函数。
+# 阈值 16:10:00 HKT=A股 15:00 收盘后的固定缓冲;前 1 **自然**日(非交易日,周六→周五)。
+def _em_max_date(now=None):
+    """EM 取值行截止(动态): HKT 已完结交易日——时刻≥16:10:00→当日 ISO,
+    否则前 1 自然日 ISO。now 缺省读真实 HKT 钟(UTC+8 无夏令时);仅供测试
+    冻结注入。行选择语义(date≤截止,在途行禁用)与 R049 完全一致,仅截止
+    随钟动态。"""
+    hkt = timezone(timedelta(hours=8))
+    if now is None:
+        now = datetime.now(hkt)
+    elif now.tzinfo is not None:
+        now = now.astimezone(hkt)  # aware 输入(任意时区)一律折算 HKT 判定
+    cutoff = now.replace(hour=16, minute=10, second=0, microsecond=0)
+    return (now.date() if now >= cutoff else now.date() - timedelta(days=1)).isoformat()
 EM_MAP = {
     '000001.SH': 'sh000001',
     '399001.SZ': 'sz399001',
@@ -91,17 +107,17 @@ EM_MAP = {
 
 
 def _em_settled_pairs(df):
-    """东财日K完结行选择: [(date_str, 原表行号)] 升序,date≤EM_FALLBACK_MAX_DATE
+    """东财日K完结行选择: [(date_str, 原表行号)] 升序,date≤_em_max_date()
     (在途行禁用)。date 一律字符串化[:10],与端点返回 dtype 无关。"""
     if df is None or len(df) == 0:
         return []
     pairs = sorted(((str(d)[:10], i) for i, d in enumerate(df['date'])),
                    key=lambda p: p[0])
-    return [p for p in pairs if p[0] <= EM_FALLBACK_MAX_DATE]
+    return [p for p in pairs if p[0] <= _em_max_date()]
 
 
 def _em_last_settled(df):
-    """东财日K取值行: date≤EM_FALLBACK_MAX_DATE 的最后一行;无完结行→None。
+    """东财日K取值行: date≤_em_max_date() 的最后一行;无完结行→None。
     返回 (date_str, 行Series)。"""
     settled = _em_settled_pairs(df)
     if not settled:
@@ -113,7 +129,7 @@ def _em_last_settled(df):
 def _fetch_index_em(code, name):
     """F1 指数回落(东财,仅 tushare 异常时经 fetch_a_share_indices 进入):
     返回与 tushare 路径同 schema 的 item + 恰一新增键 via='akshare_em';
-    取值行=date≤EM_FALLBACK_MAX_DATE 最后一行(在途行禁用);东财失败/无完结行
+    取值行=date≤_em_max_date() 最后一行(在途行禁用);东财失败/无完结行
     →None(该指数如实缺失)。单位披露: EM amount 单位=元(tushare 千元),
     volume 语义=成交量;经 _no_proxy 禁代理直连。"""
     try:
@@ -122,7 +138,7 @@ def _fetch_index_em(code, name):
             df = ak.stock_zh_index_daily_em(symbol=EM_MAP[code])
         settled = _em_settled_pairs(df)
         if not settled:
-            print(f"  ⚠️ {name}({code}) 东财回落无完结行(date≤{EM_FALLBACK_MAX_DATE})")
+            print(f"  ⚠️ {name}({code}) 东财回落无完结行(date≤{_em_max_date()})")
             return None
         # 与 tushare 路径同窗语义: df_year=当年序列(start_date=年初)→ 周变化/YTD/
         # pct/series 全部取**取值行当年**窗口(跨年历史不入计算,与 tushare item 同构)
@@ -523,7 +539,7 @@ def fetch_turnover():
 
     # 方案2: 东财EM双取(R049 B-AC-02)——旧新浪回落(ak.stock_zh_index_daily)已删除:
     # 该端点根本没有 amount 列,回落 amount 恒=0(结构性缺陷,非数据源不可用)。
-    # 本方案双取 sh000001+sz399001(禁代理直连),取值行 date≤EM_FALLBACK_MAX_DATE
+    # 本方案双取 sh000001+sz399001(禁代理直连),取值行 date≤_em_max_date()
     # (在途行禁用),amount 单位=元 → ÷1e8 round2 得亿元;source 标记=akshare_em
     # (禁冒充 tushare);口径与方案1一致(沪市全市场+深证成指成分)。
     try:
@@ -534,7 +550,7 @@ def fetch_turnover():
         sh_row = _em_last_settled(df_sh)
         sz_row = _em_last_settled(df_sz)
         if sh_row is None or sz_row is None:
-            print(f"  ⚠️ 东财成交额回落无完结行(date≤{EM_FALLBACK_MAX_DATE})")
+            print(f"  ⚠️ 东财成交额回落无完结行(date≤{_em_max_date()})")
             return None
         sh_date, sh_last = sh_row
         sz_date, sz_last = sz_row

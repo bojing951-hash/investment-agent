@@ -13,19 +13,28 @@ scripts/fact_engine.py(F3 恰两处诚实标签)的真实函数——不复制�
 
 锁清单:
 T1 F1 tushare先行零变化(成功路径 via='tushare'+EM不触发;空数据无异常仍不回落)
-T2 F1 EM回落契约(在途行 date>2026-11-03 禁用/无完结行→None/失败→None/
-   schema= tushare键∪{via}恰一新增/week·ytd·pct推导/截止日常量锁)
+T2 F1 EM回落契约(在途行 date>_em_max_date() 禁用/无完结行→None/失败→None/
+   schema= tushare键∪{via}恰一新增/week·ytd·pct推导/截止函数冻结时钟四向量锁)
 T3 F2 成交额(方案1零变化: 千元÷1e5且无source键;方案2 EM双取: 元÷1e8 round2/
    在途行禁用/source='akshare_em'/EM失败→None旧新浪回落已删无第三方案)
 T4 F3 诚实标签(via透传akshare_em·缺省sina/东财calc分支/缺source原字符串保留/
    旧elif降级分支不变)
 T5 源级冻结锁(旧新浪回落调用已删/A_SHARE_INDICES成员顺序不变/61s闸门不变/
    EM_MAP全覆盖)
+
+R051 W5-EMWIN 升级(IA-P0-2-W5-EMWIN-AC): 常量 EM_FALLBACK_MAX_DATE='2026-11-03'
+→函数 _em_max_date(now=None)(HKT已完结交易日截止,≥16:10:00→当日,否则前1自然日)。
+行选择测试一律经 freeze_clock() 冻结时钟注入(monkeypatch cmc.datetime 为冻结
+子类,被测 _em_max_date/_em_settled_pairs/_fetch_index_em/fetch_turnover 全程
+真实代码,仅钟被冻结)——测试与时钟无关;FROZEN_AM(11-04 10:00 HKT→截止
+2026-11-03)保留R049全部行为断言原值,FROZEN_POST(11-04 16:10 HKT→截止
+2026-11-04)新增窗口动态推进锁(t2g/t3e)。只强不弱: 既有断言零删改。
 """
 import io
 import sys
 import unittest
 from contextlib import redirect_stdout
+from datetime import datetime, timedelta, timezone
 from unittest import mock
 
 import pandas as pd
@@ -71,6 +80,22 @@ def em_df(rows):
                          'amount': [r[2] for r in rows]})
 
 
+# R051 W5-EMWIN: 冻结时钟注入(两锚点+monkeypatch助手)——行选择测试时钟无关化。
+_HKT = timezone(timedelta(hours=8))
+FROZEN_AM = datetime(2026, 11, 4, 10, 0, 0, tzinfo=_HKT)    # 盘中→截止=2026-11-03(R049语义)
+FROZEN_POST = datetime(2026, 11, 4, 16, 10, 0, tzinfo=_HKT)  # 收盘后阈值点→截止=2026-11-04
+
+
+def freeze_clock(moment):
+    """monkeypatch cmc.datetime 为冻结子类: now()/now(tz)恒返同一时刻(aware 原样,
+    naive 去tzinfo)——被测模块内所有真实 datetime.now 调用同钟冻结,零代码打桩。"""
+    class _FrozenDT(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return moment if tz is not None else moment.replace(tzinfo=None)
+    return mock.patch.object(cmc, 'datetime', _FrozenDT)
+
+
 class T1TushareFirst(unittest.TestCase):
     """F1: tushare 先行路径零变化;EM 仅在 tushare 抛异常时进入。"""
 
@@ -106,8 +131,9 @@ class T1TushareFirst(unittest.TestCase):
                                  ('2026-11-04', 999.0, 3.0)])
         self.addCleanup(mock.patch.stopall)
         with mock.patch.object(cmc, '_index_daily', side_effect=RuntimeError('频率超限')):
-            with redirect_stdout(io.StringIO()):
-                res = cmc.fetch_a_share_indices()
+            with freeze_clock(FROZEN_AM):
+                with redirect_stdout(io.StringIO()):
+                    res = cmc.fetch_a_share_indices()
         # 全部6只指数 tushare 异常→逐只恰一次 EM 回落,顺序=A_SHARE_INDICES 字典序
         self.assertEqual([c[1]['symbol'] for c in em.call_args_list],
                          ['sh000001', 'sz399001', 'sz399006',
@@ -118,10 +144,11 @@ class T1TushareFirst(unittest.TestCase):
 
 
 class T2IndexEmFallbackContract(unittest.TestCase):
-    """F1: 东财回落契约——行选择/标记/schema/推导/常量。"""
+    """F1: 东财回落契约——行选择/标记/schema/推导/截止函数四向量。"""
 
-    def _fallback(self, rows):
-        with mock.patch('akshare.stock_zh_index_daily_em', return_value=em_df(rows)):
+    def _fallback(self, rows, moment=FROZEN_AM):
+        with freeze_clock(moment), \
+             mock.patch('akshare.stock_zh_index_daily_em', return_value=em_df(rows)):
             return cmc._fetch_index_em('000001.SH', '上证指数')
 
     def test_t2a_inflight_row_excluded(self):
@@ -169,8 +196,29 @@ class T2IndexEmFallbackContract(unittest.TestCase):
         self.assertEqual(item['pct_chg'], 42.86)
         self.assertEqual(item['series']['dates'][0], '2026-01-05')  # 年窗序列
 
-    def test_t2f_cutoff_constant_frozen(self):
-        self.assertEqual(cmc.EM_FALLBACK_MAX_DATE, '2026-11-03')
+    def test_t2f_cutoff_function_four_vectors_frozen_clock(self):
+        # R051 W5-EMWIN: 常量锁→函数冻结时钟四向量锁(EM-AC-03 语义规格)
+        self.assertFalse(hasattr(cmc, 'EM_FALLBACK_MAX_DATE'))  # 常量已函数化,零残留
+        v = cmc._em_max_date
+        # 四向量(合同§三逐字): HKT已完结交易日截止,≥16:10:00→当日ISO,否则前1自然日ISO
+        self.assertEqual(v(datetime(2026, 11, 4, 15, 59, 0, tzinfo=_HKT)), '2026-11-03')
+        self.assertEqual(v(datetime(2026, 11, 4, 16, 9, 59, tzinfo=_HKT)), '2026-11-03')
+        self.assertEqual(v(datetime(2026, 11, 4, 16, 10, 0, tzinfo=_HKT)), '2026-11-04')
+        self.assertEqual(v(datetime(2026, 11, 7, 10, 0, 0, tzinfo=_HKT)), '2026-11-06')  # 周六→前1自然日=周五
+        # 加强: aware输入(任意时区)一律折算HKT判定;naive输入按HKT墙钟
+        self.assertEqual(v(datetime(2026, 11, 4, 8, 9, 59, tzinfo=timezone.utc)), '2026-11-03')
+        self.assertEqual(v(datetime(2026, 11, 4, 8, 10, 0, tzinfo=timezone.utc)), '2026-11-04')
+        self.assertEqual(v(datetime(2026, 11, 4, 16, 9, 59)), '2026-11-03')
+
+    def test_t2g_post_cutoff_window_advances(self):
+        # R051加强: 同一fixture冻结至16:10:00——11-04在途行转为取值行(窗口动态推进)
+        item = self._fallback([('2026-10-31', 100.0, 1.0), ('2026-11-03', 105.0, 2.5),
+                               ('2026-11-04', 999.0, 9.9)], moment=FROZEN_POST)
+        self.assertEqual(item['date'], '20261104')
+        self.assertEqual(item['close'], 999.0)
+        self.assertEqual(item['via'], 'akshare_em')
+        self.assertEqual(item['series']['dates'][-1], '2026-11-04')
+        self.assertIn('2026-11-03', item['series']['dates'])  # 前完结行仍在年窗序列
 
 
 class T3TurnoverContract(unittest.TestCase):
@@ -201,10 +249,11 @@ class T3TurnoverContract(unittest.TestCase):
         sz_rows = [('2026-11-02', 11010.0, 9.362363e11), ('2026-11-03', 10876.99, 100000000000.0),
                    ('2026-11-04', 9999.0, 9.9e11)]
         with mock.patch.object(cmc, '_index_daily', side_effect=RuntimeError('频率超限')):
-            with mock.patch('akshare.stock_zh_index_daily_em',
-                            side_effect=self._em_side_effect(sh_rows, sz_rows)) as em:
-                with redirect_stdout(io.StringIO()) as out:
-                    r = cmc.fetch_turnover()
+            with freeze_clock(FROZEN_AM):
+                with mock.patch('akshare.stock_zh_index_daily_em',
+                                side_effect=self._em_side_effect(sh_rows, sz_rows)) as em:
+                    with redirect_stdout(io.StringIO()) as out:
+                        r = cmc.fetch_turnover()
         self.assertEqual([c[1]['symbol'] for c in em.call_args_list],
                          ['sh000001', 'sz399001'])      # 双取
         self.assertEqual(r['source'], 'akshare_em')
@@ -224,10 +273,27 @@ class T3TurnoverContract(unittest.TestCase):
     def test_t3d_all_inflight_returns_none(self):
         rows = [('2026-11-04', 1.0, 1.0)]
         with mock.patch.object(cmc, '_index_daily', side_effect=RuntimeError('频率超限')):
-            with mock.patch('akshare.stock_zh_index_daily_em',
-                            side_effect=self._em_side_effect(rows, rows)):
-                with redirect_stdout(io.StringIO()):
-                    self.assertIsNone(cmc.fetch_turnover())
+            with freeze_clock(FROZEN_AM):
+                with mock.patch('akshare.stock_zh_index_daily_em',
+                                side_effect=self._em_side_effect(rows, rows)):
+                    with redirect_stdout(io.StringIO()):
+                        self.assertIsNone(cmc.fetch_turnover())
+
+    def test_t3e_scheme2_post_cutoff_window_advances(self):
+        # R051加强: 冻结至16:10:00——11-04行转为取值行,成交额取自11-04(窗口动态推进)
+        sh_rows = [('2026-11-03', 3608.1, 1.0e11), ('2026-11-04', 4000.0, 2.5e11)]
+        sz_rows = [('2026-11-03', 10876.99, 5.0e10), ('2026-11-04', 11000.0, 1.0e12)]
+        with mock.patch.object(cmc, '_index_daily', side_effect=RuntimeError('频率超限')):
+            with freeze_clock(FROZEN_POST):
+                with mock.patch('akshare.stock_zh_index_daily_em',
+                                side_effect=self._em_side_effect(sh_rows, sz_rows)):
+                    with redirect_stdout(io.StringIO()):
+                        r = cmc.fetch_turnover()
+        self.assertEqual(r['date'], '20261104')
+        self.assertEqual(r['sh_amount_billion'], 2500.0)    # 2.5e11元 ÷1e8 round2
+        self.assertEqual(r['sz_amount_billion'], 10000.0)   # 1.0e12元 ÷1e8 round2
+        self.assertEqual(r['total_amount_billion'], 12500.0)
+        self.assertEqual(r['source'], 'akshare_em')
 
 
 class T4HonestLabels(unittest.TestCase):

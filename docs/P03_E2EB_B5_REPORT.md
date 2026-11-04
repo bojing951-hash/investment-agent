@@ -93,7 +93,7 @@ WP-B5 验收要点(L238①-④)工件全部为离线测试文件/CI run 登记�
 
 ### tests/test_p03_e2eb_b5.py(约810行,纯新增)
 
-- fixture 层(L40-278): 合成注册表八条(与 B1/B2 场景同构、数值身份独立)/DESIGN §三(d) 问题文本逐字复用(L77)/场景字面量 DAY(全发明数值,L80-91)/预期值全字面量(L93-119: V_GOLDEN 九值+OP3+八条行文本,/tmp/b5_precalc.py 真实管线预演核验誊写)/`write_day_files` 生成器(L139,注册表驱动四通道核心覆盖,tests/test_snapshot.py 同构范式)/`quiet_build`(L232,S1 write=False)/`hfact`/`hsnap`/`_pb`/`hand_ir`(L248-281,注入面手造构造器)。
+- fixture 层(L40-278): 合成注册表八条(与 B1/B2 场景同构、数值身份独立)/DESIGN §三(d) 问题文本逐字复用(L65)/场景字面量 DAY(全发明数值,L73-90)/预期值全字面量(L93-119: V_GOLDEN 九值+OP3+八条行文本,/tmp/b5_precalc.py 真实管线预演核验誊写)/`write_day_files` 生成器(L139,注册表驱动四通道核心覆盖,tests/test_snapshot.py 同构范式)/`quiet_build`(L232,S1 write=False)/`hfact`/`hsnap`/`_pb`/`hand_ir`(L248-281,注入面手造构造器)。
 - 八类 56 用例: T0 fixture 自检(5,L284)/T1 fail-closed 接地负向(13,L327;要点①主战场: provenance=None/三形态全破/单形态放行对照/派生缺 calc_ref/真实管线拷贝定向篡改/bool与字符串拒收/values键集=RESOLVED集/防御断言/refusal 无接地错误)/T2 缺席文本化(8,L471;A1-A4 逐字+NO_DATA+footer 计数+缺席零编造)/T3 质量披露(4,L552;DEGRADED/WARN/PASS/门禁展示)/T4 黄金端到端(12,L592;要点②: 美端九值字面量+9节点全接地+日端 MB-8/9 无数据+OP-1/OP-2 NO_DATA+OP-3=0.41+行文本字面量+executed schema+确定性+**GAP-05 write=False 零持久化**+**B4 append/verify 复用调用衔接**)/T5 daily_dir 自取+边界(4,L689;自取=注入逐值相等+零持久化/OOS 问题如实披露/refusal/空 IR)/T6 禁语守卫(4,L749;建议行拒/豁免行过/**21 词逐一命中拒**)/T7 复用纯度锁(6,L776;零文件IO零网络/零采集档路径/import 面恰 qir+eqm+os+sys/无 B1-B4 逻辑副本/词表复用无本地副本/公共 API 白名单恰5)。
 
 ---
@@ -128,7 +128,7 @@ WP-B5 验收要点(L238①-④)工件全部为离线测试文件/CI run 登记�
 | 要点 | (a)实现落点 | (b)证据指针 | (c)自检结论 |
 |---|---|---|---|
 | ① 无provenance数值注入→渲染fail-closed负向测试(工件: 测试文件) | 机制: scripts/e2eb_answer_renderer.py:77-92(validate_value_node)+L95-115(validate_derived_node)+L36(GroundingError)+render_answer issues 聚集抛出;用例: tests/test_p03_e2eb_b5.py T1 十三用例(L327-,点名 test_resolved_without_provenance_fails/test_tampered_real_pipeline_fails/test_all_three_forms_broken_fails) | 证据包④ 本套件 log(56 OK)+④ injections/ D1 定向 5 红 | **过**——负向注入真实定向红;fail-closed 零部分输出(渲染函数无降级路径) |
-| ② 端到端黄金用例: DEV授权副本上全链路,断言美端值+日端「无数据」+OP-1 NO_DATA(工件: 测试文件+数据档引用) | tests/test_p03_e2eb_b5.py T4 十二用例(L592-;全链=B1 map_question→B2 execute_query[S1 write=False 快照]→B5 render_answer);美端值=V_GOLDEN 九值字面量(L93-94);日端=test_jp_side_no_data;OP-1=test_op1_no_data;数据档引用=fixture 结构注记(L74-76,§七.1 差异登记);GAP-05 固化=test_write_false_no_persistence+T5 自取路径;B4 衔接=test_archive_append_and_verify | 证据包④ 本套件 log+⑥ 零运行产物声明+① 抄录件 | **过**(数据源差异按 AC-03 合成 fixture 纪律处理,§七.1 如实登记——B2 §七.1 审计 PASS 同款先例) |
+| ② 端到端黄金用例: DEV授权副本上全链路,断言美端值+日端「无数据」+OP-1 NO_DATA(工件: 测试文件+数据档引用) | tests/test_p03_e2eb_b5.py T4 十二用例(L592-;全链=B1 map_question→B2 execute_query[S1 write=False 快照]→B5 render_answer);美端值=V_GOLDEN 九值字面量(L93-94);日端=test_jp_side_no_data;OP-1=test_op1_no_data;数据档引用=fixture 结构注记(L70-72,§七.1 差异登记);GAP-05 固化=test_write_false_no_persistence+T5 自取路径;B4 衔接=test_archive_append_and_verify | 证据包④ 本套件 log+⑥ 零运行产物声明+① 抄录件 | **过**(数据源差异按 AC-03 合成 fixture 纪律处理,§七.1 如实登记——B2 §七.1 审计 PASS 同款先例) |
 | ③ WP-B3完成后同用例升级为双端闭合版(工件: 测试+新数据档) | **B3 条件款**: B3 三段(d)停泊中(v1.3 处置待用户,注入摘要,非工作树实读;工作树无 B3 交付件实取核验于开工步)——本包**登记不实施**(D-B5-16);日端「无数据」如实=当前事实(要点②断言面);渲染层 COMPUTED 数值行通用能力由黄金 OP-3 覆盖 | 证据包① §零(i) 抄录+⑤ 本表 | **情形(c)如实登记**: 升级版待 B3 落定,由后续轮承接;禁静默跳过=本行在场即证,不构成情形(d)(冻结合同 §0 生效前置段处置) |
 | ④ CI零回归(工件: run ID) | 本地 CI 同构全量: REPORT §三(64 文件/63 运行/62 绿+1 基线红);Actions run 由操作者 CHECKPOINT 派发,登记件将落 rounds/025/E2EB-WP-B5-CI-dispatch-evidence.md(执行Agent 禁自行 dispatch,合同 §六.5) | 证据包④ ci-runner/ 全量逐套件记录+操作者登记件(派发后落) | **操作者面 NOT VERIFIED(执行Agent 侧)**: 本地侧零回归成立(§三);Actions run ID 属操作者 CHECKPOINT 段,本包不自评 PASS |
 
@@ -172,7 +172,7 @@ commit 链(纯线性,零 merge): 开工登记 fd5c92c(REPORT §零/§一/§六)�
 
 ## §七 偏离与如实声明
 
-1. **要点②测试数据源差异**(§零(iv)已登记,此处展开): DESIGN L238②草案要求「DEV授权副本上全链路」,冻结合同 AC-03 承接 R014-D3 要求合成 fixture 为唯一数据源+预期值字面量硬编码;依 DESIGN L206 标题自注(「验收要点=草案,正式AC由主Agent后续轮拟定」)以冻结合同为准(**B2 §七.1 审计 PASS 同款先例**)。实现=一日四通道合成采集档(结构复刻采集器输出,数值全发明)+「数据档引用」以测试文件内 fixture 结构注记承接(tests/test_p03_e2eb_b5.py:74-76),非数据依赖。真实 data/daily 零读取(渲染器零文件IO,T7 源码锁;数据面锚定清单见证据包⑥)。时刻: 2026-11-05T0x:xxZ UTC(证据包④ timestamps,终版提交时点)。
+1. **要点②测试数据源差异**(§零(iv)已登记,此处展开): DESIGN L238②草案要求「DEV授权副本上全链路」,冻结合同 AC-03 承接 R014-D3 要求合成 fixture 为唯一数据源+预期值字面量硬编码;依 DESIGN L206 标题自注(「验收要点=草案,正式AC由主Agent后续轮拟定」)以冻结合同为准(**B2 §七.1 审计 PASS 同款先例**)。实现=一日四通道合成采集档(结构复刻采集器输出,数值全发明)+「数据档引用」以测试文件内 fixture 结构注记承接(tests/test_p03_e2eb_b5.py:70-72),非数据依赖。真实 data/daily 零读取(渲染器零文件IO,T7 源码锁;数据面锚定清单见证据包⑥)。时刻: 2026-11-05T0x:xxZ UTC(证据包④ timestamps,终版提交时点)。
 2. **要点③=B3 条件款情形(c)登记**(§零(i)/§四/D-B5-16): B3 三段(d)停泊(v1.3 处置待用户,注入摘要,非工作树实读);「升级版待 B3 落定,由后续轮承接」——非静默跳过(本 REPORT §四映射行在场即证),不构成情形(d)(冻结合同 §0 生效前置段明文处置)。
 3. **commit 信息中 T1 用例数笔误如实登记**: 实现提交 a0c0039 信息写「T1 fail-closed接地负向12」,实测 T1=13 用例(5+13+8+4+12+4+4+6=56;python3 枚举类内 def test_ 计数实取,证据包④ log)。git commit 信息不可原地改(禁 amend),以本 REPORT 为准。
 4. **D4 注入器首试语法缺陷**(§三已展开): 注入文本删空 if 体→IndentationError 收集期崩溃(非定向红);系注入器缺陷非被测件缺陷,修正后 D4=合法定向 2 红;首试输出原样留存证据包④ injections/(禁修剪纪律)。
@@ -187,7 +187,7 @@ commit 链(纯线性,零 merge): 开工登记 fd5c92c(REPORT §零/§一/§六)�
 |---|---|---|
 | AC-01 规格抄录与登记正确性 | **PASS** | §零(i) 逐字抄录(L234-238,基线工作树实读)可直读对照;清单 k=4 逐条附依据;与 git ls-files 零重合(§零(iii));要点③ B3 条件款按合同 §0 处置非擅自补写 |
 | AC-02 验收要点逐条交付与证据映射 | **PASS** | §四映射表四行齐(要点①② 过+③ 情形(c)登记+④ 操作者面 NV);参数登记=常量=echo 三者一致(D-B5-01..16 先登记后实现,模板常量与测试断言字面量逐一对照);真实运行类=零运行产物(§零(iv))无锚定违背面,数据面锚定清单在证据包⑥ |
-| AC-03 测试与确定性验证 | **PASS** | 56 用例全绿(证据包④);零网络(T7 源码锁)/全合成 fixture 唯一数据源(结构注记 L74-76)/预期值字面量硬编码(/tmp/b5_precalc.py 真实管线预演誊写,禁自证恒真)/D1-D4 注入定向红(§三)/漂移维护策略专节+fixture→预期值映射=DELIVERY §六/§七 |
+| AC-03 测试与确定性验证 | **PASS** | 56 用例全绿(证据包④);零网络(T7 源码锁)/全合成 fixture 唯一数据源(结构注记 L70-72)/预期值字面量硬编码(/tmp/b5_precalc.py 真实管线预演誊写,禁自证恒真)/D1-D4 注入定向红(§三)/漂移维护策略专节+fixture→预期值映射=DELIVERY §六/§七 |
 | AC-04 引用真实性与注入边界 | **PASS** | §一 file:line 登记逐条基线工作树实取;注入内容凡引用标「注入摘要,非工作树实读」(§七.2 B3 停泊);零跨支引用(DESIGN 三件=基线工作树实读);/tmp 仅证据包不构成交付依赖(测试零 /tmp 引用,源码锁) |
 | AC-05 范围/分支/生产隔离 | **PASS** | diff ac01d072..HEAD=M/D 0+A 恰 4 行=白名单 k=4(§五 commit 链;终态复核入证据包③);纯线性零 merge+reflog 无 reset/amend;ls-remote 35 支尖端不变唯一新增本支(终态 ls-remote 入证据包③);零网络;LIVE 零写入(grep [R025\|E2EB-WP-B5\|IA-P03-E2EB-WP-B5] 零命中+real_data_acceptance.py sha256 不变,取证入证据包③);LaunchAgents 零改动;E2E-A/B1/B2/B4 在场件零改动(A 行恰白名单可反证);复用禁复制分叉(T7 正向锁+词表复用无本地副本+无逻辑副本函数名);档案不 commit(data/ gitignored);.gitignore 零改动 |
 | AC-06 CI 与证据包 | **本地侧 PASS/Actions 面=操作者 NV** | 证据包八类最低集齐(DELIVERY §三+SHA256SUMS);DELIVERY 五节+漂移维护专节(AC-03 生效);result.md 四段=stdout 自述;CI dispatch 登记件 rounds/025/…(操作者 CHECKPOINT 落档后闭合;§七.6 如实登记) |

@@ -11,7 +11,7 @@
 
 | 动作 | 文件 | 摘要 |
 |---|---|---|
-| M | scripts/china_market_collector.py | 5 修复实体(+58/-6 行): ①fetch_margin 成功响应契约键映射 `margin.balance`=(Σrzye+Σrqye)÷1e8 亿元(L464-476);②全文件裸 except 清零+5 处静默异常路径留日志(L326-332/L366-373/L479-483/L495-499/L585-588);③fetch_valuation 双形态(pe/pe_ttm)兼容+扁平桥接 `valuation.pe`+`valuation.date`(L488-500/L503-547);④VALUATION_INDICES 纳入 000001.SH 上证身份对齐(L219-231);⑤估值逐只失败留痕补代码+类型(L540-541)。**零触碰**: 61s 闸门(L50/L54-62 原样)/A_SHARE_INDICES/EM_MAP/EM 回落/fetch_turnover 逻辑/macro_collector/registry/fact_engine/snapshot_builder/workflow |
+| M | scripts/china_market_collector.py | 5 修复实体(+58/-6 行): ①fetch_margin 成功响应契约键映射 `margin.balance`=(Σrzye+Σrqye)÷1e8 亿元(L464-476);②全文件裸 except 清零+5 处静默异常路径留日志(L326-332/L366-373/L479-483/L495-499/L644-648);③fetch_valuation 双形态(pe/pe_ttm)兼容+扁平桥接 `valuation.pe`+`valuation.date`(L488-500/L503-547);④VALUATION_INDICES 纳入 000001.SH 上证身份对齐(L219-231);⑤估值逐只失败留痕补代码+类型(L540-541)。**零触碰**: 61s 闸门(L50/L54-62 原样)/A_SHARE_INDICES/EM_MAP/EM 回落/fetch_turnover 逻辑/macro_collector/registry/fact_engine/snapshot_builder/workflow |
 | A | tests/test_data_w3_fixes.py | 19 用例离线行为锁(4 组),全合成 fixture、零网络(tushare/akshare/yfinance 全 mock)、零新增依赖(import 面=pandas+unittest.mock+标准库),CI `tests/test_*.py` 通配自动发现 |
 | A | docs/DATA_W3_FIX_REPORT.md | 逐指标表(10+FED_FUNDS 列齐全: W2 状态/断点诊断行级/处置分类/修复行级/离线测试名/真实结果指针)+修复面总览+字段契约登记+裸except明细 |
 | A | docs/DATA_W3_DELIVERY.md | 本文档(五节+勘误声明) |

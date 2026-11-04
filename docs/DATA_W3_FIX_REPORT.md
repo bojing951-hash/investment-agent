@@ -15,7 +15,7 @@
 | # | 修复实体 | 现行行级引用 | 内容 |
 |---|---|---|---|
 | F1 | MARGIN_BAL 契约键映射 | L464-476(键 `balance` 在 L475) | 成功响应(实含 rzye/rqye)→ `margin.balance`=(Σrzye+Σrqye)÷1e8 亿元 round2;原键 rzye/rqye/rzye_billion 原样保留 |
-| F2 | 裸 except 清零(全文件) | L326-332(腾讯日K)/L366-373(yfinance YTD)/L479-483(fetch_margin)/L495-499(_pe_value)/L585-588(新浪rt行解析) | 5 处静默/裸异常路径全部改具体异常类型+留日志(指标标识+类型+摘要);重试/返回语义零变化 |
+| F2 | 裸 except 清零(全文件) | L326-332(腾讯日K)/L366-373(yfinance YTD)/L479-483(fetch_margin)/L495-499(_pe_value)/L644-648(新浪rt行解析) | 5 处静默/裸异常路径全部改具体异常类型+留日志(指标标识+类型+摘要);重试/返回语义零变化 |
 | F3 | fetch_valuation 双形态+扁平桥接 | L488-500(`_pe_value`)/L503-547(桥接 L534-537,flat 落键 L543-545) | 载荷 pe 双形态(扁平 `pe`/嵌套 `pe_ttm`)兼容;产物并存嵌套 per-index 对象+扁平 `valuation.pe`+`valuation.date`(引擎/快照契约键) |
 | F4 | 上证身份对齐 | L219-231(`000001.SH` 在 L225,`SH_PE_IDENTITY` L231) | VALUATION_INDICES 首位纳入 000001.SH(与 A_SHARE_INDICES 对齐);既有 300/500/1000 成员与顺序零变化 |
 | F5 | 估值逐只失败留痕 | L540-541 | except 补指数代码+异常类型(原仅名称+消息) |
@@ -52,7 +52,7 @@
 修复前(基点 09bdd93)全文件异常路径清点: 裸 `except:` ×1(fetch_margin 基点 L462-463)+ 静默 `except Exception`(仅 continue/pass/return None 无日志)×3(基点 _tx_kline_rows L322-324 / _fetch_hk_yfinance 内层 YTD L362-363 / _parse_sina_rt_line L595-596)+ 数值 coercion 无日志 ×0(本轮新增 _pe_value 的 L497-499 自带日志)。已全部修复,修复后:
 
 - 裸 `except:` 计数=0(t3a 源级锁: 行首正则 `^\s*except\s*:` 零命中;grep 可复核);
-- 全文件 15 个 except 句柄逐一路径留日志(标识+类型/摘要)——本轮改动 5 处(L326-332/L366-373/L479-483/L495-499/L585-588),其余 10 处基点已有日志未动;
+- 全文件 15 个 except 句柄逐一路径留日志(标识+类型/摘要)——本轮改动 5 处(L326-332/L366-373/L479-483/L495-499/L644-648),其余 10 处基点已有日志未动;
 - 真实运行验证: 采集日志中 margin×5 日期/估值×4 指数/南向/指数×6/成交额 全部失败均带类型与摘要(collection_run.log L11-52)——W2 时代「失败不可归因」(R008 U-1/U-4)由本轮修复终结。
 
 ## 三、离线测试清单(tests/test_data_w3_fixes.py,19 用例,全绿 exit=0)

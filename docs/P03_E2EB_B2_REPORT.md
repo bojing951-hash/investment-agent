@@ -82,19 +82,86 @@ WP-B2 验收要点(L220①-⑤)工件全部为离线测试文件/as_of字符串/
 
 ## §二 实现(逐文件)
 
-(实现后回填;开工登记版占位——本节于实现提交后填写,见 §五 commit 链)
+**实现提交见 §五 commit 链;以下行号为实现提交版工作树实取(2026-11-05)。**
+
+### scripts/e2eb_query_executor.py(359 行,纯新增)
+
+- 常量层: `CHANNEL_OF_SOURCE`(L40-45,注册表 source→通道,D-B2-07)/`_SNAPSHOT_FILE_RE`(L47,快照层文件名,D-B2-12)/缺席理由模板 5 条(L50-54,DESIGN L124-127 措辞)/`REASON_ABSENT_REGISTRY`(L56,D-B2-08)/期限匹配与 calculation_ref 模板 6 条(L58-67,E11 纪律+NO_DATA 后缀)。
+- `_refusal`(L70-73,D-B2-03 结构化拒绝: IR 原样 mapped 态+零数值+如实原因)。
+- `_ymd_from_as_of`(L76-83,D-B2-02: E4 严格校验,非法→ValueError fail-loud)。
+- `_latest_snapshot_ymd`(L86-97,D-B2-12: os.listdir 枚举快照层文件名取最大 ymd,零采集档 IO,禁墙钟)。
+- `_acquire_snapshot`(L100-116,D-B2-01: as_of 路径 R1 既有快照优先→无则 S1 `build_snapshot(write=False)` 离线构建;as_of=None 路径 latest-ymd 枚举+R1;两路均无→refusal)。
+- `_mark_resolved`(L119-131,D-B2-05: provenance 七字段装配,source_file 仅披露)。
+- `_mark_channel_absent`(L134-145,D-B2-07: A2(通道 MISSING/READ_FAIL)优先,否则 A3;`fact_engine(derived)` 族无通道→归因性缺席措辞)。
+- `_resolve_binding`(L148-181,D-B2-04: derived_window 四级缺席链(无事实→A2/A3;无 derived 键;available:False;字段缺席)与 level 族(事实值+fact_id+数值类型守卫)。
+- `_execute_spread`(L188-199,D-B2-09: result=round(v[0]−mean(v[1:]),4);观测日一致/不一致的期限匹配披露)。
+- `_execute_level_diff`(L202-230,D-B2-10: 恰 2 operand+同指标+level/derived_window 角色组合守卫(违规 ValueError);result=level 值−E3 basis_value;两时点 calculation_ref;基准值缺席→NO_DATA)。
+- `_execute_correlation`(L233-264,D-B2-11: series_store 两序列→`cc.paired_returns`(C3)+`cc.pearson`(C4)复用零复制;store 缺席/样本<3/零方差→NO_DATA 如实)。
+- `execute_query`(L267-359 主入口): mapped 校验 fail-loud(L285-288)→registry 缺省 E1(L289-292)→输入 IR 深拷贝(L293-297,D-B2-06)→快照获取(注入优先→daily_dir 自取;L299-307)→R3 门禁(L309-313)→`target_snapshot_id` 绑定(L315)→绑定循环(ABSENT 终态保留;执行器侧 A1 防御 L326-331;四级解析 L332-333)→派生循环(NO_DATA 终态保留;operand 非 RESOLVED 传导 NO_DATA L340-344;三 op_type 分派 L345-352)→executed 校验 fail-loud(L354-357,D-B2-13)→返回四键结构。
+
+### tests/test_p03_e2eb_b2.py(1065 行,纯新增)
+
+- fixture 注册表(L34-87): 基 8 条(带 source 字段)/CCC+GOLD_F 扩展 10 条/JP 在场变体 10 条——执行器绑定身份唯一数据源(D-B2-14)。
+- 场景字面量(L89-136): 两日(D1=20261101/D2=20261102)四通道发明数值+预期值全字面量(手算,/tmp/b2_precalc.py 引擎原语预演核验后誊写,零自证)。
+- 核心覆盖生成器 `write_day_files`(L159-243,D-B2-14: 运行时枚举真实 registry 按 source 路由;通用值=range 中点;场景指标显式覆写;CURVE_2S10S 蓄意缺席=A3 场景;NFP_MOM_K 等派生不在文件层重复立事实)。
+- 手工快照/事实/IR 构造器(L248-309): hfact/hsnap/_pb/_pop/hand_ir/golden_ir/write_snapshot_file/quiet_build。
+- 十个测试类 63 用例: T0 fixture 自检(6)/T1 黄金 E2E(11)/T2 as_of 锚定(5)/T3 引擎一致性(5)/T4 四级缺席(7)/T5 快照获取(7)/T6 门禁(5)/T7 派生操作(10)/T8 纯度接线(5)/T9 fail-loud(2)。逐类行号: T0 L313/T1 L369/T2 L472/T3 L531/T4 L615/T5 L713/T6 L804/T7 L847/T8 L1001/T9 L1040。
 
 ## §三 测试与本地CI
 
-(实现后回填)
+**本地运行(2026-11-05,python3 tests/test_p03_e2eb_b2.py): Ran 63 tests — OK(exit=0),证据包④ log。**
+
+- 黄金路径(要点①/④): `test_values_all_literals`(D2 全 8 绑定值=V_D2 字面量: 4.25/4.50/4.33/4.58/5.04/152.75/0.8251/1.8333)/`test_op3_computed_with_maturity_disclosure`(OP-3=0.46+期限匹配披露)/`test_usdjpy_windows_equal_engine_direct`(week/mtd/ytd 三窗口=fe 直算=字面量 0.8251/1.0251/1.8333)/`test_ust_week_pp_equal_engine_direct`(+0.03/−0.08)/`test_gold_week_pct_and_level_diff_basis`(0.4098 与 basis 路径 10.0 区分)/`test_spread_equal_engine_free_literal`(=round(5.04−4.58,4))/`test_correlation_equal_cc_direct`(=cc.paired_returns+pearson=0.4675)。
+- as_of 锚定(要点③): `test_d1_anchored_values`(D1 全值=V_D1,OP-3=0.40)/`test_d1_d2_no_period_mixing`(同目录两日档,值随锚点切换+观测日证明不混期)/`test_usdjpy_mtd_window_d2`(mtd=1.0251)/`test_as_of_before_any_files_refused`(早于全部文件→gate FAIL refusal)/`test_invalid_as_of_fail_loud`(垃圾日期→ValueError)。
+- NO_DATA 传导(要点②): `test_op1_op2_no_data_preserved`(mapper 期 NO_DATA 终态原样保留,calc_ref 零追加)/`test_a1_executor_side_registry_defense`(注册表漂移→执行器 A1+OP-3 NO_DATA 传导)/`test_jp_present_spread_computed`(JP 在场→OP-1=−3.625/OP-2=−3.34 转 COMPUTED,B1 对照面)/`test_spread_maturity_mismatch_disclosed`(观测日不一致如实披露不混同)。
+- 四级缺席: `test_mb6_curve_absent_data`(A3)/`test_mb8_mb9_absent_registry_preserved`(A1 mapper 期)/`test_a2_channel_missing_via_r1_file`+`test_a2_read_fail_variant`(A2 通道级)/`test_a4_fact_without_series`+`test_a4_window_unavailable`+`test_a4_window_field_missing`(A4 三变体)/`test_values_keys_exactly_resolved`(零填 0: values 键集=RESOLVED 集)。
+- 快照获取: `test_r1_file_wins_over_s1_build`(R1 优先,S1 值 4.25≠文件值 9.99)/`test_r1_highest_revision_selected`(_v2)/`test_injected_snapshot_wins_over_daily_dir`/`test_as_of_none_binds_latest_ymd_no_wallclock`/`test_as_of_none_empty_dir_refused_no_wallclock`(禁墙钟 refusal)/`test_no_snapshot_no_dir_refused`/`test_r1_corrupt_falls_back_to_s1`(候选损坏→S1 接管)。
+- 门禁: `test_gate_fail_refused_zero_partial`(FAIL→refusal+9 绑定零部分执行)/`test_gate_none_refused`/`test_gate_degraded_and_pass_allowed`/`test_injected_snapshot_not_mutated`/`test_non_dict_snapshot_refused`。
+- 纯度接线(T8): `test_no_network_surface`/`test_no_collector_file_io`(零 open()/零 glob,唯一 IO=os.listdir;「global」不误伤=词边界正则)/`test_no_wall_clock`/`test_wiring_reuses_established_interfaces`(R1/R3/S1/E1/C3/C4/qir 八接线正向锁+不 import 映射器)/`test_absence_reason_no_invented_numbers`。
+- fail-loud(T9): `test_invalid_mapped_ir_rejected`/`test_executed_output_sabotage_detected`(mock 注入枚举外终态→executed schema ValueError,D-B2-13)。
+
+**负向敏感性注入(D1-D4,注入→定向红→还原→sha256 逐字节一致)**:
+
+| 注入 | 缺陷内容 | 红(定向) | 还原核验 |
+|---|---|---|---|
+| D1 | `_ymd_from_as_of` 绕过 E4 严格校验(垃圾日期静默拼接) | 1 红: test_invalid_as_of_fail_loud | sha 还原一致 |
+| D2 | operand 缺席传导拆除(守卫恒假) | 15 红(全部 COMPUTED 路径失效: 黄金 OP-3/JP spread/level_diff/correlation/引擎一致性等) | sha 还原一致 |
+| D3 | R3 门禁旁路(`if False:`) | 3 红: test_gate_fail_refused_zero_partial/test_gate_none_refused/test_as_of_before_any_files_refused | sha 还原一致 |
+| D4 | latest-ymd 枚举硬编码(锚定漂移) | 1 红: test_as_of_none_binds_latest_ymd_no_wallclock | sha 还原一致 |
+
+模块 sha256(注入前=每次还原后): `54d1fe0c4259eb26657df37a4c20db78069839f5bf6f1cc745a7894842eba4ba`;注入中 sha 逐次漂移(c07ba2b2…/4c368233…/eea1daa2…/199bf546…),还原后 4 次均回到原值;最终全量 63 用例复跑 OK(证据包④ injections/)。
+
+**本地CI(步骤9,.github/workflows/offline-tests.yml 同构: 全部 tests/test_*.py 排除 test_glm_live,逐套退出码)**:
+
+- 文件总数 59(既有 58+本包新增 1);运行套件 58(排除 test_glm_live=skipped);**57 套 exit=0 + 1 套 exit=1(test_p4_fixes)= B1 基线既有红原样归因**(其日志尾部「39通过 / 4失败」,与 B1 REPORT §九登记的基线实值完全一致,零新增失败);本包新套件 test_p03_e2eb_b2 exit=0(Ran 63 tests OK)。
+- 逐套退出码全表落证据包④ suite-summary.txt;要点⑤「CI 零回归」的 GitHub Actions run 证据=操作者 CHECKPOINT 派发后落 rounds/022/E2EB-WP-B2-CI-dispatch-evidence.md(执行Agent 不自行派发,合同 §五)。
 
 ## §四 逐要点证据映射表(AC-02)
 
-(实现后回填)
+| DESIGN L220 要点 | 实现/测试证据(file:line) | 运行证据 | 结论 |
+|---|---|---|---|
+| ① 离线单测构建 write=False 快照并执行 OP-3 | 执行器 `_acquire_snapshot` scripts/e2eb_query_executor.py:100-116(R1→S1 write=False);tests/test_p03_e2eb_b2.py:369-470(T1 黄金 E2E 经 daily_dir+trusted_root 两日合成采集档)/`test_r1_file_wins_over_s1_build`:736-745(R1/S1 分径) | T1 全绿(Ran 63 OK;证据包④ log) | 过 |
+| ② OP-1/OP-2 NO_DATA result=null | 执行器 NO_DATA 终态保留(L337-338)+operand 传导(L340-344);tests `test_op1_op2_no_data_preserved`:395-403/`test_a1_executor_side_registry_defense`:625-639 | 同上 log;schema 锁 NO_DATA→result=None(qir L220-221) | 过 |
+| ③ as_of 两时点锚定不混期后数据 | `_ymd_from_as_of`(L76-83)+`_acquire_snapshot`(L100-116);tests T2(L472-529): `test_d1_anchored_values`:489/`test_d1_d2_no_period_mixing`:495 D1/D2 双锚定值集 V_D1/V_D2 全字面量+观测日证明 | 同上 log | 过 |
+| ④ 执行器输出与 fact_engine 直算逐值相等(硬编码预期值) | tests T3(L531-613): `test_usdjpy_windows_equal_engine_direct`:545/`test_ust_week_pp_equal_engine_direct`:560/`test_gold_week_pct_and_level_diff_basis`:575/`test_spread_equal_engine_free_literal`:590/`test_correlation_equal_cc_direct`:600(E3 三窗口/UST pp/GOLD pct+level_diff/correlation vs fe/cc 直算 vs 字面量);预演脚本 /tmp/b2_precalc.py(证据包④ precalc/) | 同上 log(7 组数值逐值相等断言) | 过 |
+| ⑤ CI 零回归 | 本地 CI 同构 59 文件/58 套/57 绿+1 既有红归因(§三);GitHub Actions run=操作者 CHECKPOINT 派发(执行Agent 禁自行派发) | 证据包④ suite-summary.txt;派发证据=操作者落档 | 过(本地侧);Actions run 待派发后登记 |
+| 补: R3 门禁拒绝零部分执行 | D-B2-03;tests T6(L804-845) | 同上 log | 过 |
+| 补: 四级缺席 A1-A4 落位 | D-B2-04/07/08;tests T4(L615-712) | 同上 log | 过 |
+| 补: 禁墙钟/纯度/接线 | D-B2-01/12;tests T5+T8(L713-802/L1001-1038) | 同上 log;D4 注入定向红 | 过 |
+| 补: 输入零变异/产出 fail-loud | D-B2-06/13;tests `test_input_ir_zero_mutation`:445-453/`test_executed_output_sabotage_detected`:1048-1063 | 同上 log | 过 |
 
 ## §五 模块SHA登记
 
-(实现后回填)
+| 文件 | sha256(实现提交工作树实取,2026-11-05) |
+|---|---|
+| scripts/e2eb_query_executor.py | 54d1fe0c4259eb26657df37a4c20db78069839f5bf6f1cc745a7894842eba4ba |
+| tests/test_p03_e2eb_b2.py | 39b4c42e3cbe0b5888b45a33173f42a677492d9159c885c50416bbae45ac5181 |
+| docs/P03_E2EB_B2_REPORT.md | (本文件自身;提交前终值以工作树 sha 为准,自指豁免同 B1 先例——zip 整体 sha 于 DELIVERY §五追加行落档) |
+| docs/P03_E2EB_B2_DELIVERY.md | (同上,DELIVERY §五) |
+
+commit 链(纯线性,零 merge): 开工登记 8312889(REPORT §零/§一/§六)→ 实现提交(本 REPORT §二-§五 回填+两实现文件,SHA 见下行)→ REPORT/DELIVERY 终版提交(§七-§九 回填+DELIVERY)→ zip sha 追加提交(DELIVERY §五 zip 实测值追加行,自指豁免沿 B1/3e7c300 先例;见 git log dev/p03-e2eb-b2,证据包③+08-sidecar)。
+
+实现提交SHA: (实现提交落盘后回填)
 
 ## §六 实现参数与决策点登记(先登记后运行,运行后禁回改)
 

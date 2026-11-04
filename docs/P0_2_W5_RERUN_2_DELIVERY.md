@@ -82,3 +82,25 @@ CI 由操作者 CHECKPOINT 侧对最终尖端 workflow_dispatch `offline-tests`(
 ## 附:data/daily 本轮痕迹(R2-AC-03.6)
 
 采集前 18 件→采集后 24 件;新增 6 件(全 20261104): china_20261104.json(275a489e…)、global_20261104.json(774b389a…)、global_20261104.md(0f2d1045…)、macro_20261104.json(8531cdb2…)、rate_economy_20261104.json(26e7f11b…)、rate_economy_20261104.md(07b3c0a0…);零删除、零改写、**同日覆盖件数=0**(既有 18 件哈希逐一不变;全量 SHA256 见 data_daily_{prerun,postrun}_inventory.txt 机器件)。
+
+---
+
+## 补登块(R049/IA-P0-2-W5-DATASRC-B,2026-11-04;append-only)
+
+本块登记 R032 审计 DEFERRED-1/2 两处更正,每处四要素(旧文→新文映射/依据/定位/日期);上方原文一字未动。证据包 zip 已封口不重建(R048 T4 先例),更正以本块为准;所引散件留档于 /tmp/w5rerun2-evidence/(存续期内可复核)。
+
+### 更正①(R032 DEFERRED-1): index_daily 调数叙事
+
+- **旧文→新文映射**:
+  - 本文档 §③ 表 attempt1-china 行: 「index_daily 8 调全拒(逐调报文见⑤)」→「index_daily 7 调全拒(逐调报文见⑤);全轮含判别合计 8 次」。即修正后调数口径=**采集段 7 调/全轮 8 次**(合同更正指令「7→8」之两数)。
+  - 证据包散件 CLOSING-REGISTRATION.md L21 调用台账: 「tushare index_daily: 判别 1 + 采集 8 = 9 次(全被拒;报文逐字在档)」→「判别 1 + 采集 7 = 8 次(全被拒;报文逐字在档)」。
+- **依据**(机器件 attempts/attempt1_china_20261104.log 逐行): 本采集器每次 `_index_daily` 调用恰对应一行「⏳ tushare index_daily 限流间隔…等待Ns」(首调亦有等待行——进程 `time.monotonic()` 初值≈1s,61−1≈60.0s 与 L8 实测吻合)。等待行 L8/10/12/14/16/18(指数段 6 调,60.0/60.6/60.8/60.5/60.8/60.8s)+L37(成交额方案1首调,58.8s)=**7 调**;被拒报文行 L9/11/13/15/17/19(`❌`×6)+L38(`⚠️`×1)=7 拒,另 L39 为 akshare 回落「amount为0」行(非 index_daily 调用)。时长自洽: 7×≈60.5s≈423.5s+其余采集段开销≈meta 登记的 427.0s;若为 8 调则闸门等待下界≈7×60.5+1×0≈484s>427.0s,矛盾。§⑤ 表「T1 闸门 7 次等待 58.8–60.8s 全程生效」(嵌于指数行)实为全 china 运行 7 次等待之总数(SCRIPT-SHA-CONSISTENCY.txt L27-28 同口径含 L37),置于指数行内致 scope 误读,此处一并澄清: 指数段等待=6 次(60.0–60.8s),第 7 次等待(58.8s)属成交额段。
+- **定位**: docs/P0_2_W5_RERUN_2_DELIVERY.md §③ 表 attempt1-china 行「index_daily 8 调全拒」与 §⑤ 表第二行(7 次等待表述);证据包散件 CLOSING-REGISTRATION.md L21、SCRIPT-SHA-CONSISTENCY.txt L27-28(后者表述本身无误,澄清其计数口径)。
+- **日期**: 2026-11-04(R049 补登)。
+
+### 更正②(R032 DEFERRED-2): 采集器 blob 引用尾笔误
+
+- **旧文→新文映射**: 证据包散件 OPENING-REGISTRATION.md L37 「(git blob=ab626f68b4d61f18b2cba93cf78e728dc3a18b3**s**@58d0cc1;」→「(git blob=ab626f68b4d61f18b2cba93cf78e728dc3a18b3**c**@58d0cc1;」——git blob 40 位十六进制尾字符 `s`→`c`(笔误,非合法 hex)。
+- **依据**: `git rev-parse 58d0cc1:scripts/china_market_collector.py` 实取=ab626f68b4d61f18b2cba93cf78e728dc3a18b3c(2026-11-04 R049 开轮前复演;该文件自 50be9c7(W5-RERUN T1)后零改动,58d0cc1 与 cebc4af 同 blob)。同文件 L35-36 的文件级 SHA256=a1599ab992ef87d61811c7b2f6d5723399a68114662c17437ded79e064176784 无误,仅 L37 的 git blob 尾字符笔误。
+- **定位**: 证据包散件 /tmp/w5rerun2-evidence/OPENING-REGISTRATION.md L37(副本随 zip 内 OPENING-REGISTRATION.md 同文)。
+- **日期**: 2026-11-04(R049 补登)。

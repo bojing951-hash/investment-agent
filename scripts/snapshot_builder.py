@@ -137,8 +137,15 @@ def build_anchors(snapshot, ymd):
                'metric_id': fact.get('metric_id'), 'quality': fact.get('quality_status'),
                'fact_id': fact.get('fact_id')}
         obs = obs or fact.get('observation_date')
-        if obs:
-            rec['obs_date'] = str(obs)[:10]
+        if obs is not None:
+            # FIX1-01: 严格解析——非法观测日原样保留(不[:10]截断洗白),
+            # 由Gate B共享严格原语拒绝(fail-closed),证据链保留原始形态
+            d = fe.parse_iso_date(str(obs))
+            rec['obs_date'] = d.isoformat() if d else str(obs)
+        # FIX1-02: 事实真实携带release_date时透传进锚点元数据(点时判断消费);
+        # 未携带不写键(RELEASE_UNKNOWN,不以任何其他时间冒充发布日)
+        if fact.get('release_date') is not None:
+            rec['release_date'] = fact['release_date']
         if fact.get('high') is not None:
             rec['high'] = fact['high']
         if fact.get('low') is not None:
@@ -531,10 +538,17 @@ if __name__ == '__main__':
     ap.add_argument('--out-dir', default=None, help='输出目录(默认data/daily)')
     ap.add_argument('--allow-revision', action='store_true', help='同日已存在时生成_v2修订版(原版保留)')
     ap.add_argument('--revision-reason', default=None)
+    # IA-P0-2-W2: 可选研究截止时点(默认仍为当前时间,生产不传,行为零变化)——
+    # 供测试注入确定性as_of。此前测试以CLI子进程构建快照时只能用真实墙钟,
+    # 快照事实的时效判定随运行日期漂移(观测日固定,W2批准窗口收紧至5天后,
+    # 场景日+6天起即误触DEGRADED)——时点语义测试须可显式钉定研究截止。
+    ap.add_argument('--as-of', default=None,
+                    help='研究截止时刻ISO(默认当前时间;测试注入确定性时点,生产不传)')
     args = ap.parse_args()
     snap = build_snapshot(target_ymd=args.date, data_dir=args.data_dir, out_dir=args.out_dir,
                           trusted_root=args.trusted_root,
-                          allow_revision=args.allow_revision, revision_reason=args.revision_reason)
+                          allow_revision=args.allow_revision, revision_reason=args.revision_reason,
+                          as_of=args.as_of)
     if not snap:
         sys.exit(3)
     # 2026-10-21 P1修复: Gate A FAIL不得再静默exit 0——此前连续多日FAIL但流水线

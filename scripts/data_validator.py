@@ -21,6 +21,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import research_provenance as rp
+import freshness_policy as fp
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MIN_ANCHOR_COUNT = 20  # 最低锚点数量阈值
@@ -123,13 +124,16 @@ def extract_anchors_from_data(data_dir=None):
             # (区分"数据是哪天的"与"哪天抓的")。兼容两种日期格式:
             # ISO "2026-10-09"(FRED/yfinance) 和紧凑 "20261009"(akshare)。
             # 匹配方式: 父节点前缀匹配 — data.SPX.date 覆盖 data.SPX.close/.change等全部兄弟数值
+            # FIX1-01(DEF-001): 严格解析——'2026-10-23INVALID'等带任意后缀的
+            # 字符串不得经[:10]截断洗白成合法观测日(完整时间戳合法则取日期部分)。
             def _norm_date(s):
-                if re.match(r'\d{4}-\d{2}-\d{2}', s):
-                    return s[:10]
-                m8 = re.match(r'^(\d{4})(\d{2})(\d{2})$', s.strip())
-                if m8:
-                    return f"{m8.group(1)}-{m8.group(2)}-{m8.group(3)}"
-                return None
+                if not isinstance(s, str):
+                    return None
+                t = s.strip()
+                if len(t) == 8 and t.isdigit():
+                    t = f"{t[:4]}-{t[4:6]}-{t[6:]}"
+                d = fp.parse_instant(t)
+                return d.isoformat() if d else None
 
             dated = 0
             for key, value in flat.items():
@@ -449,53 +453,83 @@ def resolve_check_anchors(anchors, key_pattern, canonical, require=None,
 DAILY_SOURCES = ('global_market', 'china')
 MAX_STALE_DAYS = 5
 
-# ── 指标级频率注册表(第四轮P0-3): 频率由指标本身决定,不凭JSON目录 ──────────────
-# macro.data.*为FRED系列,须逐系列区分: 月度CPI/就业等不能套7天规则(7天会把上月CPI判过期),
-# 日频利差/收益率不能放宽到45天。rate_economy.*全部月度。行情/评分卡按原规则。
-MACRO_MONTHLY_SERIES = {'FED_FUNDS', 'CPI', 'CORE_PCE', 'UNEMPLOYMENT', 'NFP',
-                        'CORE_CPI', 'AHE', 'WTI'}          # FRED月度(发布滞后次月初~月中)
-MACRO_WEEKLY_SERIES = {'ICSA'}                              # FRED周度(每周四发布)
-# 其余macro.data.*(BAML利差/DGS收益率/DFII实际利率/T5YIE通胀预期/T10Y2Y曲线)=日频
-_MONTHLY_MAX_LAG, _WEEKLY_MAX_LAG, _DAILY_MACRO_MAX_LAG = 45, 16, 7
+# ── IA-P0-2-W2: 统一时效规则(单一来源=注册表已批准策略,经freshness_policy) ──
+# 旧prefix规则废除(W2-DEF-002): macro月度枚举表(漏INDPRO/JTSJOL/RSAFS/UMCSENT,
+# 'WTI'键从未匹配实际键WTI_SPOT_M)、rate_economy.*一律月度45(把日频DFF/DFEDTARU/
+# DFEDTARL误判月频)、china一律7(与注册表5/10分叉)、未映射默认14信任。
+# 现行规则: 锚点身份由canonical键映射(镜像snapshot_builder构造规则)+锚点自带
+# metric_id交叉核验决定(冲突以canonical为准,caller身份不得授权放宽);窗口与频率
+# 由注册表已批准策略决定(与Gate A/fact_engine同一份)。未映射锚点fail-closed,
+# 14仅作为freshness_rule_for的遗留诊断兼容值保留(非时效认证)。
+UNMAPPED_LEGACY_DIAGNOSTIC = 14   # 第三轮P0-4遗留诊断值:仅诊断兼容,非认证
 
 
-def metric_frequency(anchor_key):
-    """指标频率注册查询: 返回(freq, max_lag_days, 说明)。
-    freq ∈ daily/weekly/monthly/unknown; 按指标身份(系列名)判定,非目录名。"""
-    m = re.match(r'^macro\.data\.([A-Za-z0-9_]+)\.', anchor_key)
-    if m:
-        name = m.group(1)
-        if name in MACRO_MONTHLY_SERIES:
-            return 'monthly', _MONTHLY_MAX_LAG, f'FRED月度系列{name}(含发布滞后)'
-        if name in MACRO_WEEKLY_SERIES:
-            return 'weekly', _WEEKLY_MAX_LAG, f'FRED周度系列{name}'
-        return 'daily', _DAILY_MACRO_MAX_LAG, f'FRED日频系列{name}'
-    if anchor_key.startswith('rate_economy.'):
-        return 'monthly', 45, 'rate_economy月度序列(含发布滞后)'
-    if re.search(r'\.close$|\.pct_change$|\.change$|\.high$|\.low$', anchor_key):
-        return 'daily', 5, '日频行情'
-    if anchor_key.startswith('china.'):
-        return 'daily', 7, 'A股日频'
-    if anchor_key.startswith('scorecard.'):
-        return 'weekly', 10, '周度评分卡'
-    return 'unknown', 14, '未注册指标(默认)'
+def metric_frequency(anchor_key, info=None):
+    """指标频率查询(W2统一): 返回(freq, max_lag_days, 说明)。
+    身份: 锚点键canonical映射+来源家族绑定→注册表已批准策略;info.metric_id仅交叉核验。
+    scorecard为报告内部推导(非注册表指标),维持周度10天遗留规则并显式标注。
+    未映射(UNMAPPED)或身份不可认证(UNVERIFIED: 来源家族不符/身份冲突)锚点
+    返回('unknown', 14, 说明)——诊断兼容值,fail-closed(is_fresh_anchor直接False)。"""
+    ident = fp.verify_anchor_identity(anchor_key, info)
+    if ident['status'] == 'MAPPED':
+        pol = fp.policy_for(ident['metric_id'])
+        if pol is not None:
+            note = f"注册表已批准窗口({ident['metric_id']};{ident['basis']})"
+            return pol['frequency'], pol['window'], note
+    elif ident['family'] == 'scorecard' or (isinstance(anchor_key, str)
+                                            and anchor_key.startswith('scorecard.')):
+        return 'weekly', 10, '周度评分卡(报告内部推导,非注册表指标;遗留规则)'
+    if ident['status'] == 'UNVERIFIED':
+        return 'unknown', UNMAPPED_LEGACY_DIAGNOSTIC, \
+            f"UNVERIFIED:{ident['basis']}" + (f";{ident['conflict']}" if ident.get('conflict') else "")
+    return 'unknown', UNMAPPED_LEGACY_DIAGNOSTIC, \
+        'UNMAPPED:锚点未映射到注册表指标(遗留诊断值,非时效认证)'
 
 
 def metric_registry_info(anchor_key, info=None):
     """指标元数据注册表条目(供校验日志/证据核验披露):
-    {metric_id, source, frequency, max_lag_days, observation_date, as_of, retrieved_at}。
-    release_date采集端不可得 — 如实标注None,不伪造。"""
-    freq, max_lag, desc = metric_frequency(anchor_key)
+    {metric_id, source, frequency, max_lag_days, observation_date, as_of, retrieved_at,
+     release_date, release_provenance, identity_status, identity_basis,
+     caller_metric_id_conflict}。
+    FIX1-01: 全部日期严格解析(fp.parse_instant,整串验证;不[:10]截断洗白),
+    非法输入如实披露为非法,不得转成合法日期。
+    FIX1-02: release_date仅披露锚点元数据实际携带的值(采集端目前不携带→
+    RELEASE_UNKNOWN,不伪造);披露值标注provenance——Gate B不做来源证明,
+    未独立核验,不得表述为已认证发布时间。"""
+    ident = fp.verify_anchor_identity(anchor_key, info)
     info = info or {}
-    return {'metric_id': anchor_key,
-            'source': anchor_key.split('.')[0],
-            'frequency': freq,
-            'max_lag_days': max_lag,
-            'observation_date': str(info.get('obs_date') or '')[:10] or None,
-            'release_date': None,  # 采集端无此字段,不得伪造
-            'retrieved_at': str(info.get('as_of') or '')[:10] or None,
-            'as_of': str(info.get('as_of') or '')[:10] or None,
-            'note': desc}
+    od = fp.parse_instant(info.get('obs_date'))
+    ao = fp.parse_instant(info.get('as_of'))
+    rel_raw = info.get('release_date')
+    rel = fp.parse_instant(rel_raw) if rel_raw is not None else None
+    base = {'observation_date': od.isoformat() if od else None,
+            'release_date': rel.isoformat() if rel else None,
+            'release_provenance': ('anchor_metadata(未独立核验;仅拒绝性消费)'
+                                   if rel else
+                                   'RELEASE_UNKNOWN(采集端未携带release_date,不伪造发布日期)'),
+            'retrieved_at': ao.isoformat() if ao else None,
+            'as_of': ao.isoformat() if ao else None,
+            'metric_id': ident['metric_id'] or anchor_key,
+            'source': anchor_key.split('.')[0] if isinstance(anchor_key, str) else None,
+            'identity_status': ident['status'],
+            'identity_reason': ident.get('reason'),
+            'identity_basis': ident['basis'],
+            'caller_metric_id_conflict': ident.get('conflict')}
+    if rel_raw is not None and rel is None:
+        base['note'] = f"release_date非法:{rel_raw!r}(不截断洗白)"
+    pol = fp.policy_for(ident['metric_id']) if ident['metric_id'] else None
+    if ident['status'] == 'MAPPED' and pol is not None:
+        base.update({'source': 'metric_registry',
+                     'frequency': pol['frequency'],
+                     'max_lag_days': pol['window'],
+                     'note': (base.get('note', '') + ';'
+                              if base.get('note') else '')
+                             + f"{ident['basis']};已批准窗口{pol['window']}天({pol['frequency']}频)"})
+    else:
+        freq, max_lag, desc = metric_frequency(anchor_key, info)
+        base.update({'frequency': freq, 'max_lag_days': max_lag,
+                     'note': (base.get('note', '') + ';' if base.get('note') else '') + desc})
+    return base
 
 
 # 兼容旧接口: 逐指标新鲜度规则(第三轮P0-4) — 现由metric_frequency驱动
@@ -508,48 +542,182 @@ def freshness_rule_for(anchor_key):
     return max_lag, desc
 
 
-def is_fresh_anchor(anchor_key, info, as_of_date):
-    """逐指标新鲜度判定(第四轮P0-3修正): 观测日距研究截止日(as_of)不超过该指标频率规则上限。
-    - 缺少有效观测日 → False(待验证,不得默认新鲜)
-    - 非法/无法解析日期 → False
-    - 观测日在研究截止日之后(未来数据) → False
-    - 月度指标按45天上限(不因本周未发布新一期而判旧一期无效);
-      日频按5~7天。过期指标不得作为当前有效证据。"""
+def anchor_time_qualification(anchor_key, info, as_of_date):
+    """锚点结构化时间资格(W2-FIX5-01: **三维度独立**适配接口,非第二套时间比较器):
+    观测新鲜度/点时可得性/综合证据资格**分离返回**,全部复用fp共享原语
+    (verify_anchor_identity+assess_observation_freshness+assess)与同一份
+    已批准时效策略——三个维度不得相互冒充。
+    返回:
+      identity                {status: MAPPED/UNMAPPED/UNVERIFIED, metric_id, reason}
+      observation_freshness   {fresh: bool, status, lag_days, window} — **纯观测维度**
+                              (fp.assess_observation_freshness,**绝不消费
+                              release_date**: 发布时间属于点时维度,不得改变观测
+                              新鲜结论[FIX5 DEF-001];status: FRESH/STALE/
+                              FUTURE_DATE/NOT_OBSERVED/INVALID_DATE/UNREGISTERED;
+                              身份不可认证时为UNMAPPED/IDENTITY_UNVERIFIED)
+      point_in_time           {status, granularity, release_date, reason} — B问原样
+                              OK/POINT_IN_TIME_UNCERTIFIED/RELEASE_UNKNOWN/
+                              RELEASE_AFTER_AS_OF/INVALID/RELEASE_BEFORE_OBS;
+                              身份不可认证时NOT_ASSESSABLE
+      point_in_time_certified bool — 仅point_in_time.status==OK;且OK只证明
+                              "锚点元数据声明的发布时间不晚于研究截止"
+                              (release_date未独立核验,见reason),不冒充外部独立认证
+      evidence_eligibility    {usable: bool, status, reason} — **综合正式资格**
+                              (身份MAPPED ∧ fp.assess三问综合): 已知未来发布→
+                              usable=False[NOT_AVAILABLE_AT_AS_OF],**即使纯观测
+                              FRESH**;STALE/未来观测/非法日期→False;
+                              RELEASE_UNKNOWN/POINT_IN_TIME_UNCERTIFIED→
+                              usable=True(观测层兼容,认证状态另见上两段)。
+    is_fresh_anchor为本接口**综合资格**的布尔投影(FIX5-02: 消费
+    evidence_eligibility.usable,语义不变——未来发布仍False,不改判纯观测)。"""
+    out = {'identity': {'status': 'NOT_ASSESSABLE', 'metric_id': None,
+                        'reason': None},
+           'observation_freshness': {'fresh': False, 'status': None,
+                                     'lag_days': None, 'window': None},
+           'point_in_time': {'status': 'NOT_ASSESSABLE', 'granularity': None,
+                             'release_date': None, 'reason': None},
+           'point_in_time_certified': False,
+           'evidence_eligibility': {'usable': False, 'status': None,
+                                    'reason': None}}
     if not isinstance(info, dict):
-        return False
-    obs = info.get('obs_date')
-    if not obs or not as_of_date:
-        return False
-    try:
-        from datetime import date
-        o = date(int(str(obs)[:4]), int(str(obs)[5:7]), int(str(obs)[8:10]))
-        a = date(int(str(as_of_date)[:4]), int(str(as_of_date)[5:7]), int(str(as_of_date)[8:10]))
-    except (ValueError, TypeError, IndexError):
-        return False
-    if o > a:
-        return False  # 未来日期: 不得作为已发生观测
-    max_lag, _ = freshness_rule_for(anchor_key)
-    return (a - o).days <= max_lag
+        out['observation_freshness']['status'] = 'INVALID_INFO'
+        out['point_in_time']['reason'] = '锚点信息非法(非对象),无法判定时间资格'
+        out['evidence_eligibility'].update(
+            status='INVALID_INFO', reason='锚点信息非法(非对象),无时间资格')
+        return out
+    # scorecard: 报告内部推导(非注册表指标)——遗留周度10天规则,日期同样严格;
+    # 无外部发布事实→点时如实RELEASE_UNKNOWN,绝不认证
+    if isinstance(anchor_key, str) and anchor_key.startswith('scorecard.'):
+        o = fp.parse_instant(info.get('obs_date'))
+        a = fp.parse_instant(as_of_date)
+        ok = bool(o and a and o <= a and (a - o).days <= 10)
+        out['identity'] = {'status': 'MAPPED', 'metric_id': anchor_key,
+                           'reason': 'scorecard报告内部推导项(遗留周度规则)'}
+        out['observation_freshness'] = {
+            'fresh': ok, 'status': 'FRESH' if ok else 'STALE',
+            'lag_days': (a - o).days if (o and a) else None, 'window': 10}
+        out['point_in_time'] = {
+            'status': 'RELEASE_UNKNOWN', 'granularity': None,
+            'release_date': None,
+            'reason': '报告内部推导项,无外部发布事实,点时不可认证'}
+        out['evidence_eligibility'].update(
+            usable=ok, status='FRESH' if ok else 'STALE',
+            reason='scorecard报告内部推导项(遗留周度10天规则)')
+        return out
+    ident = fp.verify_anchor_identity(anchor_key, info)
+    out['identity'] = {'status': ident['status'], 'metric_id': ident['metric_id'],
+                       'reason': ident['reason']}
+    if ident['status'] != 'MAPPED':
+        # UNMAPPED与UNVERIFIED均fail-closed(FIX1-03): 不授予任何时间资格
+        out['observation_freshness']['status'] = (
+            'UNMAPPED' if ident['status'] == 'UNMAPPED' else 'IDENTITY_UNVERIFIED')
+        out['point_in_time']['reason'] = (
+            f"锚点身份不可认证({ident['reason']}"
+            + (f":{ident['conflict']}" if ident.get('conflict') else '')
+            + "),不得授予任何时间资格")
+        out['evidence_eligibility'].update(
+            status=out['observation_freshness']['status'],
+            reason=('锚点身份不可认证(' + ident['reason']
+                    + (f":{ident['conflict']}" if ident.get('conflict') else '')
+                    + '),不得授予任何时间资格'))
+        return out
+    # FIX5-01: 纯观测维度先行——release_date绝不进入本段
+    obs = fp.assess_observation_freshness(ident['metric_id'],
+                                          info.get('obs_date'), as_of_date)
+    out['observation_freshness'] = {
+        'fresh': bool(obs['fresh']), 'status': obs['status'],
+        'lag_days': obs.get('lag_days'), 'window': obs.get('window')}
+    # B问+综合: fp.assess(内部复用同一纯观测函数,无政策分叉)
+    v = fp.assess(ident['metric_id'], info.get('obs_date'), as_of_date,
+                  release_date=info.get('release_date'))
+    pit = v['point_in_time']
+    if pit.get('status') == 'OK':
+        reason = (f"发布{pit.get('release_date')}不晚于研究截止"
+                  f"({pit.get('detail')});锚点元数据声明,未独立核验")
+    else:
+        reason = (pit.get('detail') or pit.get('note')
+                  or (v['reasons'][0] if v.get('reasons') else None))
+    out['point_in_time'] = {
+        'status': pit.get('status'), 'granularity': pit.get('granularity'),
+        'release_date': pit.get('release_date'), 'reason': reason}
+    out['point_in_time_certified'] = pit.get('status') == 'OK'
+    out['evidence_eligibility'] = {
+        'usable': bool(v['fresh']), 'status': v['status'],
+        'reason': (v['reasons'][0] if v.get('reasons') else None)}
+    return out
+
+
+def is_fresh_anchor(anchor_key, info, as_of_date):
+    """逐指标新鲜度判定(W2统一+FIX1-01/02/03): 完全消费fp共享原语——
+    身份(canonical键映射+来源家族绑定)→三问分离assess(已观测/点时已发布/新鲜),
+    与Gate A同一份政策与同一套严格日期解析。
+    - 未映射(UNMAPPED)或身份不可认证(UNVERIFIED: 来源家族不符/身份冲突)
+      → False(fail-closed;scorecard等报告内部推导项除外,维持遗留周度规则)
+    - 非法日期('2026-10-23INVALID'/'2026-02-30'/缺观测/非法研究截止)→ False
+      (FIX1-01: 不再[:10]截断洗白;错误原因见stale_anchor_warning)
+    - 未来观测 → False;已知发布日晚于研究截止(NOT_AVAILABLE_AT_AS_OF)→ False
+      (FIX1-02: 锚点元数据携带release_date时进入点时判断——仅拒绝性消费:
+      该字段只可能使判定更严(发布在未来→拒),缺失时与既有RELEASE_UNKNOWN
+      路径一致,调用方伪造发布日期无法借此放宽认证)
+    过期指标不得作为当前有效证据。
+    W2-FIX4-01: 判定本体在anchor_time_qualification(单一来源)。
+    W2-FIX5-02: 此处为**综合证据资格**(evidence_eligibility.usable)的布尔投影,
+    不是纯观测新鲜度——若改判纯观测,已知未来发布数据将返回True被正式消费方
+    误用(见FIX5敏感性测试);点时认证状态与纯观测维度须经结构化接口获取。"""
+    return anchor_time_qualification(anchor_key, info,
+                                     as_of_date)['evidence_eligibility']['usable']
 
 
 def stale_anchor_warning(anchor_key, info, as_of_date):
-    """过期/无法判龄锚点警告(⚠️级): 供校验报告与引擎证据核验共用。
-    第四轮P0-3: 缺观测日/非法日期/未来日期 → 待验证警告(不得默认新鲜)。"""
+    """过期/无法判龄/身份不可认证锚点警告(⚠️级): 供校验报告与引擎证据核验共用。
+    FIX1-01: 日期严格解析,非法输入如实披露为非法(不截断洗白);
+    FIX1-02: 已知发布日晚于研究截止→点时不可得警告;
+    FIX1-03: 来源家族不符/身份冲突→身份不可认证(UNVERIFIED)警告。"""
     if is_fresh_anchor(anchor_key, info, as_of_date):
         return None
-    obs = info.get('obs_date')
-    from datetime import date
-    try:
-        o = date(int(str(obs)[:4]), int(str(obs)[5:7]), int(str(obs)[8:10]))
-        a = date(int(str(as_of_date)[:4]), int(str(as_of_date)[5:7]), int(str(as_of_date)[8:10]))
-    except (ValueError, TypeError, IndexError):
-        return f"⚠️ 无法判龄 {anchor_key}: 观测日缺失或非法('{obs}') — 待验证,不得默认作为当前有效证据"
-    if o > a:
-        return f"⚠️ 未来数据 {anchor_key}: 观测日{obs}晚于研究截止{as_of_date} — 非法时点,不得使用"
-    max_lag, name = freshness_rule_for(anchor_key)
-    lag = (a - o).days
-    return (f"⚠️ 数据过期 {anchor_key}: 观测日{obs}距研究截止{as_of_date}滞后{lag}天"
-            f" 超过{name}规则上限{max_lag}天 — 不得作为当前有效证据")
+    if not isinstance(info, dict):
+        return f"⚠️ 无法判龄 {anchor_key}: 锚点信息非法(非对象) — 不得默认作为当前有效证据"
+    if isinstance(anchor_key, str) and anchor_key.startswith('scorecard.'):
+        return (f"⚠️ 数据过期 {anchor_key}: 评分卡锚点观测日缺失/非法/超出遗留周度10天窗"
+                f" — 报告内部推导项,待验证")
+    ident = fp.verify_anchor_identity(anchor_key, info)
+    if ident['status'] == 'UNMAPPED':
+        return (f"⚠️ 无法认证时效 {anchor_key}: 锚点未映射到注册表指标(UNMAPPED)"
+                f" — 不得默认作为当前有效证据")
+    if ident['status'] == 'UNVERIFIED':
+        why = ('身份冲突' if ident.get('reason') == 'identity_conflict' else '来源家族不符')
+        return (f"⚠️ 无法认证时效 {anchor_key}: {why}({ident['basis']}"
+                + (f";{ident['conflict']}" if ident.get('conflict') else "")
+                + f") — 指标注册≠该通道可生成,不得默认作为当前有效证据")
+    v = fp.assess(ident['metric_id'], info.get('obs_date'), as_of_date,
+                  release_date=info.get('release_date'))
+    st = v['status']
+    if st in ('NOT_OBSERVED', 'INVALID_DATE'):
+        return (f"⚠️ 无法判龄 {anchor_key}: 观测日缺失或非法('{info.get('obs_date')}')"
+                f"或研究截止非法('{as_of_date}') — 待验证,不得默认作为当前有效证据")
+    if st == 'FUTURE_DATE':
+        return (f"⚠️ 未来数据 {anchor_key}: 观测日{v['obs_date']}晚于研究截止{v['as_of']}"
+                f" — 非法时点,不得使用")
+    if st == 'NOT_AVAILABLE_AT_AS_OF':
+        pit = v['point_in_time']
+        # FIX2-02: 披露**实际时间关系**(完整时刻+粒度+差值),不得只显示两个
+        # 相同日期——同日"截止08:00/发布20:00"必须能看出先后依据
+        r = pit.get('release_date')
+        gran = pit.get('granularity') or 'DAY'
+        det = pit.get('detail') or ''
+        return (f"⚠️ 点时不可得 {anchor_key}: 已知发布{r}晚于研究截止"
+                f"{as_of_date!r}[{gran}{';' + det if det else ''}]"
+                f"(NOT_AVAILABLE_AT_AS_OF) — as_of时点该值不可得,不得作为当前研究证据")
+    if st == 'INVALID_RELEASE':
+        return (f"⚠️ 发布时间非法 {anchor_key}: release_date={info.get('release_date')!r}"
+                f"(非完整ISO日期/时间戳或早于观测日) — 不得作为当前研究证据")
+    # STALE(或UNREGISTERED等其余不可新鲜态)
+    if st == 'STALE':
+        return (f"⚠️ 数据过期 {anchor_key}: 观测日{v['obs_date']}距研究截止{v['as_of']}"
+                f"滞后{v['lag_days']}天 超过注册表已批准窗口{v['window']}天"
+                f"({v['frequency']}频) — 不得作为当前有效证据")
+    return (f"⚠️ 无法认证时效 {anchor_key}: {v['status']}({';'.join(v['reasons'])})"
+            f" — 不得默认作为当前有效证据")
 
 def _obs_staleness_warning(anchor_key, info, report_date):
     """P1(2026-10-11): 时点检查 — 日频行情锚点的观测日若明显滞后于报告日,提示风险。

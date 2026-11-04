@@ -156,8 +156,13 @@ print("\n── A. 来源一致性(FIX5-01)")
 
 rec = rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY, trusted_root=BASE)
 check("A0 对照: 真实全active构建(带采集目录)→PASS零非法",
+      # W2-FIX1(§6.4)修订: 月频事实WARN档不计入counts桶——全active零FAIL/零
+      # DEGRADED且PASS+WARN总数覆盖全部active(78)即"全部合格"
       rec['effective'] == 'PASS' and rec['illegal_quality'] == []
-      and rec['counts']['PASS'] >= 78,
+      and rec['counts']['PASS'] + sum(
+          1 for f in SNAP['facts']
+          if f.get('quality_status') == 'WARN') >= 78
+      and rec['counts']['FAIL'] == 0 and rec['counts']['DEGRADED'] == 0,
       f"eff={rec['effective']} illegal={rec['illegal_quality'][:2]}")
 
 s = mutated(SNAP, 'SPX', **{'source': {'collector': 'fictitious_collector',
@@ -301,16 +306,26 @@ check("B3 DEGRADED+FAIL issue(应为FAIL)→拒",
 
 s = mutated(SNAP, 'BEI_10Y', quality_status='WARN', issues=_WARN_ISSUE)
 r = rp.recompute_gate_a(s)
+# W2-FIX1(§6.4)修订: 基线SNAP的13个月频事实已为WARN档(不计入counts桶),
+# 期望计数自SNAP实际counts推导(BEI_10Y原为PASS→WARN则PASS-1),不再硬编码77
+_b4_pass = SNAP['quality']['counts']['PASS'] - (
+    1 if next(f for f in SNAP['facts']
+              if f['metric_id'] == 'BEI_10Y').get('quality_status') == 'PASS' else 0)
 check("B4 对照: WARN+WARN issue→合法(WARN为独立档位不计入counts不降级,"
       "声明与重算一致,既有语义)",
-      r['effective'] == 'PASS' and r['counts'] == {'PASS': 77, 'DEGRADED': 0, 'FAIL': 0}
+      r['effective'] == 'PASS'
+      and r['counts'] == {'PASS': _b4_pass, 'DEGRADED': 0, 'FAIL': 0}
       and 'BEI_10Y' not in r['noncore_fail'] + r['noncore_degraded']
       and not r['illegal_quality'],
       f"eff={r['effective']} counts={r['counts']}")
 
 s = mutated(SNAP, 'UMCSENT', quality_status='FAIL', issues=_FAIL_ISSUE)
 _c = copy.deepcopy(SNAP['quality']['counts'])
-_c['PASS'], _c['FAIL'] = _c['PASS'] - 1, _c['FAIL'] + 1
+# W2-FIX1(§6.4)修订: UMCSENT(月频)基线已为WARN档(不在PASS计数桶内),
+# 仅当原档位为PASS时才递减(同fix1套件§7修正,断言语义不变)
+if next(f for f in SNAP['facts'] if f['metric_id'] == 'UMCSENT').get('quality_status') == 'PASS':
+    _c['PASS'] -= 1
+_c['FAIL'] += 1
 s['quality']['counts'] = _c
 s['quality']['overall'] = 'FAIL'
 s['gate_a']['status'] = 'DEGRADED'
@@ -401,9 +416,15 @@ check("C9 构建端同一结论: make_fact不截断原样保留+validate_fact按
 
 m = next(f for f in SNAP['facts'] if f['metric_id'] == 'UMCSENT')
 w = next(f for f in SNAP['facts'] if f['metric_id'] == 'ICSA')
-check("C10 对照: 月频(观测日=上月)/周频(滞后2日)既有语义不破坏",
+# W2-FIX1(§6.4)修订: 无release_date的月频事实现为WARN档(发布时间未验证披露,
+# 独立合法档位不降级)——"既有语义不破坏"=无FAIL/DEGRADED;周频ICSA无此披露
+check("C10 对照: 月频(观测日=上月)/周频(滞后2日)既有语义不破坏"
+      "(月频按W2-FIX1以WARN披露发布时间未验证)",
       m['observation_date'] == '2026-09-01' and w['observation_date'] == '2026-10-22'
-      and m['quality_status'] == 'PASS' and w['quality_status'] == 'PASS')
+      and m['quality_status'] == 'WARN'
+      and any(i['category'] == 'release' and 'RELEASE_UNKNOWN' in i['message']
+              for i in m['issues'])
+      and w['quality_status'] == 'PASS')
 
 f8 = fe.make_fact('SPX', 7659.44, '20261023', fixt.as_of_for(DAY),
                   'global_20261024.json', 'global_market_collector')

@@ -248,8 +248,22 @@ with tempfile.TemporaryDirectory() as td:
           unrate and unrate['obs_count'] == 1, str(unrate))
 
     # 当月未完结 → 预览模式
-    block_now, _, _, preview_now = mr.build_data_block('202610', data_dir=os.path.join(FIX, 'w4_data'),
-                                                       views_path=views)
+    # (IA-P0-2-W4-FIX4最小语义修订,场景与断言不变: 旧写法依赖真实时钟把
+    #  '202610'当作"当前未完结月"——2026-11-01起 month_is_complete('202610')
+    #  恒为True,该断言在任何晚于10月的时刻必假(纯日历时滞,与被测逻辑无关)。
+    #  修订=把评估时钟固定在期间内(2026-10-31),使"期间未完结→预览"场景
+    #  确定性可复现;依据见docs/P0_2_W4_FIX4_DELIVERY.md回归节。)
+    from unittest import mock as _mock
+    from datetime import date as _date
+
+    class _FixedDate(_date):
+        @classmethod
+        def today(cls):
+            return cls(2026, 10, 31)
+
+    with _mock.patch.object(mr, 'date', _FixedDate):
+        block_now, _, _, preview_now = mr.build_data_block('202610', data_dir=os.path.join(FIX, 'w4_data'),
+                                                           views_path=views)
     check("当月未完结→预览模式", preview_now is True and "【预览】" in block_now)
 
     # ── Q3季报(整季聚合) ──

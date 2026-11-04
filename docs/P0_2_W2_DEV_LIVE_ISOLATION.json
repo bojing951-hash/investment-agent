@@ -1,0 +1,121 @@
+{
+ "round": "IA-P0-2-W2",
+ "verified_at": "2026-10-29T17:10:50+08:00",
+ "nature": "全部只读核验(stat/realpath/git/sha256/plistlib)",
+ "dev": {
+  "path": "/Users/cast/investment-agent-dev",
+  "realpath": "/Users/cast/investment-agent-dev",
+  "st_dev": 16777231,
+  "st_ino": 60895116,
+  "branch": "dev/p0-2-w2",
+  "HEAD_pre_impl": "69d7fc71f4ac05d3e5323cb5e270585ec48d6f97",
+  "origin_main": "50b5d13db6c477084c6f4b3944b7bd08a8e329d6"
+ },
+ "live": {
+  "path": "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent",
+  "realpath": "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent",
+  "st_dev": 16777231,
+  "st_ino": 22199716
+ },
+ "isolation": {
+  "same_dir": false,
+  "dev_ancestor_of_live": false,
+  "note": "inode不同且realpath互非祖先 → 物理隔离"
+ },
+ "live_vs_p01": {
+  "run_daily.sh": {
+   "live_exists": true,
+   "blob_sha256": "8a82092d3e336d63a7fce90ff798db6e7c48a76e0e17add65696838927f4a55e",
+   "live_sha256": "8a82092d3e336d63a7fce90ff798db6e7c48a76e0e17add65696838927f4a55e",
+   "equals_p01": true
+  },
+  "run_weekly.py": {
+   "live_exists": true,
+   "blob_sha256": "27f43da1832be0f4b24aa2fb275b07be663cd2166e482f92ddad3906b6e5d27e",
+   "live_sha256": "27f43da1832be0f4b24aa2fb275b07be663cd2166e482f92ddad3906b6e5d27e",
+   "equals_p01": true
+  },
+  "scripts/fact_engine.py": {
+   "live_exists": true,
+   "blob_sha256": "de80116b2fd4a325cd633a24d4b79cae8ec7be7fc5af4f4f65fdded2ed03d6ec",
+   "live_sha256": "de80116b2fd4a325cd633a24d4b79cae8ec7be7fc5af4f4f65fdded2ed03d6ec",
+   "equals_p01": true
+  },
+  "scripts/report_generator.py": {
+   "live_exists": true,
+   "blob_sha256": "ddea94699e210fe55a650072195654ed0e100af9925a77717428bb745c0c2968",
+   "live_sha256": "ddea94699e210fe55a650072195654ed0e100af9925a77717428bb745c0c2968",
+   "equals_p01": true
+  },
+  "scripts/research_provenance.py": {
+   "live_exists": true,
+   "blob_sha256": "1cf4e635ca3fe40377a05823c0f54e6ae13c69644d440ce01fa995ca91b5e15b",
+   "live_sha256": "1cf4e635ca3fe40377a05823c0f54e6ae13c69644d440ce01fa995ca91b5e15b",
+   "equals_p01": true
+  },
+  "scripts/data_validator.py": {
+   "live_exists": true,
+   "blob_sha256": "1d6bfc446e3bc9054e0e8dd3eec7d0ab8e5a1e8109d96e0fc2b69c59dc006a6a",
+   "live_sha256": "1d6bfc446e3bc9054e0e8dd3eec7d0ab8e5a1e8109d96e0fc2b69c59dc006a6a",
+   "equals_p01": true
+  },
+  "scripts/snapshot_builder.py": {
+   "live_exists": true,
+   "blob_sha256": "931d4f618acb1ceffe90c27ed205a163224a271b54064e0280d85acac7d076e5",
+   "live_sha256": "931d4f618acb1ceffe90c27ed205a163224a271b54064e0280d85acac7d076e5",
+   "equals_p01": true
+  },
+  "config/metric_registry.json": {
+   "live_exists": true,
+   "blob_sha256": "55cfbc179e4b20ae4274a5fde3025df8169e5ccaa8886f18eaf25dadc8ef6744",
+   "live_sha256": "55cfbc179e4b20ae4274a5fde3025df8169e5ccaa8886f18eaf25dadc8ef6744",
+   "equals_p01": true
+  },
+  "scripts/freshness_policy.py": {
+   "live_exists": false,
+   "blob_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "equals_p01": null,
+   "note": "W2新增文件,LIVE不存在(未部署)"
+  }
+ },
+ "launchd": {
+  "com.investment.daily": {
+   "ProgramArguments": [
+    "/bin/bash",
+    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/run_daily.sh"
+   ],
+   "path_args_realpath": [
+    "/bin/bash",
+    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/run_daily.sh"
+   ],
+   "any_in_live": true,
+   "any_in_dev": false
+  },
+  "com.investment.weekly": {
+   "ProgramArguments": [
+    "/Users/cast/AI内容/venv/bin/python3",
+    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/scripts/report_generator.py"
+   ],
+   "path_args_realpath": [
+    "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/bin/python3.9",
+    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/scripts/report_generator.py"
+   ],
+   "any_in_live": true,
+   "any_in_dev": false
+  }
+ },
+ "rerun_commands": [
+  "stat -f \"%d %i\" /Users/cast/investment-agent-dev /Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent",
+  "realpath /Users/cast/investment-agent-dev /Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent",
+  "git -C /Users/cast/investment-agent-dev rev-parse HEAD origin/main",
+  "git -C /Users/cast/investment-agent-dev show 50b5d13db6c477084c6f4b3944b7bd08a8e329d6d:scripts/fact_engine.py | shasum -a 256",
+  "shasum -a 256 /Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/scripts/fact_engine.py",
+  "plutil -p ~/Library/LaunchAgents/com.investment.daily.plist"
+ ],
+ "epistemic_limits": [
+  "哈希一致仅证明核验时刻状态一致;不能绝对证明历史上从未发生短暂改写",
+  "\"本轮零写入LIVE\"以本轮会话实际操作为据",
+  "独立方可按rerun_commands只读复跑核对"
+ ],
+ "live_vs_p01_note": "blob对比以git cat-file原始字节计算(初版脚本误用strip()截断尾部换行导致假性不一致,已修正;W1轮六文件结论不变=全部一致,W2新增的data_validator/snapshot_builder亦与P0-1封版一致,freshness_policy.py为W2新文件不在LIVE)"
+}

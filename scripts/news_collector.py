@@ -2,17 +2,48 @@
 新闻采集模块
 数据源：Finnhub（市场新闻+个股新闻）+ RSS（CNBC+Bloomberg）
 输出：分类新闻摘要，供AI生成报告使用
+
+IA-P0-2-W3(新闻原始来源保全):
+- 采集顺序固定: 采集 → 原始来源归档(news_provenance.save_batch) → 分类
+  → GLM摘要 → 输出——GLM失败原始来源已保全(W3-03 §7.2);
+- 原始保全字段: 供应商文章ID/标题/摘要全文/URL/发布时间原文/related/
+  请求证券代码/Feed身份/entry.id——URL不再在合并时丢失(W3问题1),
+  summary_original归档前禁止[:200]截断(W3问题2,截断只在派生视图);
+- RSS时间: published_parsed按UTC解释(calendar.timegm),不再用time.mktime
+  受进程本地时区影响(W3问题3);来源发布时间/采集时间独立保存;
+  缺发布时间→UNKNOWN,不用采集时间冒充;
+- 脱敏只发生在派生模型输入副本(sanitize_for_api),原始档案永不脱敏
+  (W3问题4);模型输入行携带实际存在的[art_xxx]引用ID(W3-04 §8.4);
+- 周报引用链: 每日写news_refs_YYYYMMDD.json确定性来源索引(W3-05)。
+
+IA-P0-2-W3-FIX1(首轮独立验收失败后增量整改):
+- FIX1-03 GLM成功摘要引用保全: 模型输入行携带[art_]引用ID+提示词要求
+  每条摘要条目以对应ID开头;成功输出做**确定性引用校验**(至少一个引用/
+  全部属于本次输入允许集合/每条'-'新闻条目行必须携带允许引用)——未过
+  校验→一次受控重试→仍失败→确定性标题回退(代码核发真实ID),绝不把
+  无引用/虚构引用的模型输出按已溯源摘要保存;
+- FIX1-04 采集状态真实: fetch_market_news/fetch_company_news返回
+  (条目,状态)——状态来自实际请求执行结果(OK_WITH_ITEMS/OK_EMPTY/
+  ERROR/PARTIAL_ERROR),不由空数组/非None真值推断;个股逐symbol状态
+  入source_status;全部成功但零条=合法空结果(明确披露,不误报失败,
+  不造假新闻);
+- FIX1-06 模型输入数据化: 标题/发布方经sanitize_model_text处理(HTML
+  标签剥离/方括号 neutral 化阻断伪造[art_]注入/Markdown结构符剥离),
+  原始档案永不处理;system角色内容固定,不因新闻内容改变。
 """
 
 import os
 import sys
 import json
 import time
+import calendar
 import feedparser
 from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.dirname(__file__))
 from env_config import FINNHUB_API_KEY, GLM_API_KEY, GLM_BASE_URL, GLM_MODEL
+import news_provenance as nprov
 
 import finnhub
 from openai import OpenAI
@@ -89,27 +120,40 @@ CATEGORY_KEYWORDS = {
     ],
 }
 
+# ── FIX1-04: 采集请求执行状态(来自真实请求结果,非空数组/真值推断) ──
+ST_OK_ITEMS = 'OK_WITH_ITEMS'    # 请求成功且有文章
+ST_OK_EMPTY = 'OK_EMPTY'         # 请求成功但零条(合法空结果)
+ST_ERROR = 'ERROR'               # 请求异常
+ST_PARTIAL = 'PARTIAL_ERROR'     # 通道内部分symbol失败
+
 def fetch_market_news():
-    """获取Finnhub市场综合新闻"""
+    """获取Finnhub市场综合新闻(FIX1-04: 返回(条目,状态,错误信息))"""
     print("\n📰 采集市场综合新闻...")
     try:
         news = fh_client.general_news('general', min_id=0)
         # 只取最近7天
         cutoff = int((datetime.now() - timedelta(days=7)).timestamp())
         recent = [n for n in news if n.get('datetime', 0) > cutoff]
-        print(f"  ✅ 获取 {len(recent)} 条（最近7天）")
-        return recent
+        status = ST_OK_ITEMS if recent else ST_OK_EMPTY
+        print(f"  ✅ 获取 {len(recent)} 条（最近7天）[{status}]")
+        return recent, status, None
     except Exception as e:
         print(f"  ❌ 市场新闻失败: {e}")
-        return []
+        return [], ST_ERROR, str(e)
 
 def fetch_company_news():
-    """获取关注个股的新闻"""
+    """获取关注个股的新闻(FIX1-04: 返回(条目,逐symbol状态))
+
+    symbol状态: {'status': OK_WITH_ITEMS|OK_EMPTY|ERROR, 'items': n,
+    'error': str|None}——同一通道内各symbol请求结果独立可追踪,不因少数
+    成功把失败symbol记作成功,反之亦然。
+    """
     print("\n📰 采集个股新闻...")
     today = datetime.now().strftime('%Y-%m-%d')
     week_ago = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
 
     all_news = []
+    symbol_status = {}
     for symbol in WATCH_SYMBOLS:
         try:
             news = fh_client.company_news(symbol, _from=week_ago, to=today)
@@ -118,17 +162,32 @@ def fetch_company_news():
             for n in top_news:
                 n['_symbol'] = symbol
             all_news.extend(top_news)
+            symbol_status[symbol] = {
+                'status': ST_OK_ITEMS if top_news else ST_OK_EMPTY,
+                'items': len(top_news), 'error': None}
             print(f"  ✅ {symbol}: {len(news)} 条，取前 {len(top_news)} 条")
             time.sleep(0.5)  # 避免触发频率限制
         except Exception as e:
+            symbol_status[symbol] = {'status': ST_ERROR, 'items': 0,
+                                     'error': str(e)}
             print(f"  ❌ {symbol}: {e}")
 
-    return all_news
+    return all_news, symbol_status
 
 def fetch_rss_news():
-    """获取RSS新闻"""
+    """获取RSS新闻(W3-02 §6.3: 全字段保全+UTC确定性时间)
+
+    - Feed名称/URL、entry.id或guid、title、link、summary全文(不截断)、
+      published原始字符串、published_parsed按UTC转换全部保留;
+    - published_parsed是UTC结构化时间 → calendar.timegm(UTC解释);
+      历史用time.mktime按进程本地时区解释,同一Feed在不同TZ环境结果漂移
+      (W3问题3),已废除;
+    - 缺发布时间 → published_parsed_utc=None(UNKNOWN),不造假时间;
+    - 'datetime'仅为旧分类/展示层的epoch视图(0=未知),权威时间在原始档案。
+    """
     print("\n📰 采集RSS新闻...")
     all_entries = []
+    feed_status = {}
 
     for name, url in RSS_FEEDS.items():
         try:
@@ -136,19 +195,125 @@ def fetch_rss_news():
             entries = feed.entries[:15]  # 每个源取前15条
 
             for entry in entries:
+                parsed = entry.get('published_parsed')
+                pub_utc = nprov.rss_parsed_to_utc_iso(parsed)
                 all_entries.append({
                     'source': name,
                     'headline': entry.get('title', ''),
-                    'summary': entry.get('summary', '')[:200],
+                    'summary': entry.get('summary', ''),   # 全文,归档前不截断
                     'url': entry.get('link', ''),
-                    'datetime': int(time.mktime(entry.get('published_parsed', time.gmtime()))) if entry.get('published_parsed') else 0,
+                    'datetime': calendar.timegm(parsed) if parsed else 0,
+                    # W3原始保全字段
+                    'provider': 'RSS', 'channel': 'rss',
+                    'feed_name': name, 'feed_url': url,
+                    'entry_id': entry.get('id', '') or entry.get('guid', ''),
+                    'headline_original': entry.get('title', ''),
+                    'summary_original': entry.get('summary', ''),
+                    'url_original': entry.get('link', '') or None,
+                    'published_raw': entry.get('published', ''),
+                    'published_parsed_utc': pub_utc,
                 })
 
+            feed_status[f'RSS:{name}'] = 'ok'
             print(f"  ✅ {name}: {len(entries)} 条")
         except Exception as e:
+            feed_status[f'RSS:{name}'] = 'fail'
             print(f"  ❌ {name}: {e}")
 
-    return all_entries
+    return all_entries, feed_status
+
+
+def collect_all_news(now_utc=None):
+    """三源采集合并 → (原始保全记录raw_records, 来源状态source_status,
+    展示条目display_items)。
+
+    W3-02: 合并不再丢URL——市场/个股新闻原样保留供应商字段(id/source/
+    summary/url/datetime/related),个股新闻记录请求证券代码且不因多证券
+    关联覆盖来源身份(每条记录独立,article_id由供应商ID>URL>三元组决定)。
+    display_items保持旧分类器口径(headline/source/summary/datetime)+
+    article_id引用,供分类/GLM输入/news_raw兼容视图使用。
+    """
+    now_utc = now_utc or nprov.now_utc_iso()
+    retrieved = now_utc  # 采集时刻独立于来源发布时间保存
+    market_news, mkt_status, mkt_err = fetch_market_news()
+    company_news, symbol_status = fetch_company_news()
+    rss_news, rss_status = fetch_rss_news()
+
+    raw_records, display = [], []
+    for n in market_news:
+        raw = {'provider': 'Finnhub', 'channel': 'market_news',
+               'provider_article_id': n.get('id', ''),
+               'publisher': n.get('source', ''),
+               'headline_original': n.get('headline', ''),
+               'summary_original': n.get('summary', '') or '',
+               'url_original': n.get('url', '') or None,
+               'published_raw': n.get('datetime', 0),
+               'retrieved_at_utc': retrieved}
+        raw_records.append(raw)
+        display.append({'headline': n.get('headline', ''),
+                        'source': n.get('source', 'Finnhub'),
+                        'summary': n.get('summary', ''),
+                        'datetime': n.get('datetime', 0),
+                        'url': n.get('url', ''),
+                        'article_id': nprov.stable_article_id(raw)})
+    for n in company_news:
+        raw = {'provider': 'Finnhub', 'channel': 'company_news',
+               'provider_article_id': n.get('id', ''),
+               'publisher': n.get('source', ''),
+               'headline_original': n.get('headline', ''),
+               'summary_original': n.get('summary', '') or '',
+               'url_original': n.get('url', '') or None,
+               'published_raw': n.get('datetime', 0),
+               'watch_symbol': n.get('_symbol', ''),
+               'related': n.get('related', ''),
+               'retrieved_at_utc': retrieved}
+        raw_records.append(raw)
+        display.append({'headline': n.get('headline', ''),
+                        'source': f"{n.get('source', 'Finnhub')}({n.get('_symbol', '')})",
+                        'summary': n.get('summary', ''),
+                        'datetime': n.get('datetime', 0),
+                        'url': n.get('url', ''),
+                        'article_id': nprov.stable_article_id(raw),
+                        'watch_symbol': n.get('_symbol', '')})
+    for n in rss_news:
+        raw = {k: n[k] for k in ('provider', 'channel', 'feed_name',
+                                 'feed_url', 'entry_id', 'headline_original',
+                                 'summary_original', 'url_original',
+                                 'published_raw', 'published_parsed_utc')}
+        raw['retrieved_at_utc'] = retrieved
+        raw_records.append(raw)
+        display.append({'headline': n['headline'], 'source': n['source'],
+                        'summary': n['summary'], 'datetime': n['datetime'],
+                        'url': n['url'], 'article_id': nprov.stable_article_id(raw)})
+
+    # FIX1-04: 状态来自实际请求执行结果。个股通道聚合=逐symbol状态推导:
+    # 有失败且有成功→PARTIAL_ERROR;全失败→ERROR;否则按有无条目OK_*
+    syms_err = [s for s, v in symbol_status.items()
+                if v['status'] == ST_ERROR]
+    syms_ok = [s for s, v in symbol_status.items()
+               if v['status'] != ST_ERROR]
+    if syms_err and syms_ok:
+        co_agg = ST_PARTIAL
+    elif syms_err:
+        co_agg = ST_ERROR
+    elif company_news:
+        co_agg = ST_OK_ITEMS
+    else:
+        co_agg = ST_OK_EMPTY
+
+    source_status = {
+        'Finnhub/general': mkt_status,
+        'Finnhub/company_news': co_agg,
+    }
+    if mkt_err:
+        source_status['Finnhub/general:error'] = mkt_err[:200]
+    for sym, v in sorted(symbol_status.items()):
+        source_status[f'Finnhub/company_news:{sym}'] = v['status']
+        if v['error']:
+            source_status[f'Finnhub/company_news:{sym}:error'] = \
+                str(v['error'])[:200]
+    source_status.update(rss_status)   # 逐feed成败披露(RSS既有能力保留)
+    return raw_records, source_status, display
 
 def classify_news(all_news):
     """按关键词对新闻进行初步分类"""
@@ -243,21 +408,120 @@ def sanitize_for_api(text):
         text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
     return text
 
-def generate_news_summary(classified):
-    """用DeepSeek生成新闻摘要"""
-    print("\n🤖 生成新闻摘要...")
+def _build_news_text(classified):
+    """模型输入派生副本(FIX1-06: 标题/发布方先经数据化处理再入行)。
 
-    # 构建脱敏新闻文本 — 只用标题，双重脱敏
+    W3-04 §8.4: 每行携带实际存在的[art_xxx]来源引用ID(原始档案核发,
+    确定性生成,由代码注入——新闻文本中的伪造ID字符串已先被方括号
+    neutral化剥离);脱敏/替换只发生在这个派生副本,原始档案永不处理。
+    """
     news_text = ""
     for category, articles in classified.items():
         if not articles:
             continue
         news_text += f"\n### {category}\n"
         for a in articles[:6]:  # 每类最多6条
-            source = a.get('source', '未知')
-            headline = a.get('headline', '')
-            news_text += f"- [{source}] {headline}\n"
+            source = nprov.sanitize_model_text(
+                str(a.get('source', '未知') or '未知'))
+            headline = nprov.sanitize_model_text(
+                str(a.get('headline', '') or ''))
+            art = a.get('article_id', '')
+            ref = f"[{art}] " if art else ""
+            news_text += f"- {ref}[{source}] {headline}\n"
+    return news_text
 
+
+def _allowed_citation_ids(classified):
+    """本次实际送入模型输入的文章ID集合(引用校验允许集,FIX1-03)。"""
+    ids = set()
+    for _cat, articles in classified.items():
+        for a in articles[:6]:
+            if a.get('article_id'):
+                ids.add(a['article_id'])
+    return ids
+
+
+def validate_summary_citations(summary, allowed_ids):
+    """FIX1-03+FIX3-02+FIX4-03: 模型成功输出的确定性引用校验(纯函数)。
+
+    规则(全部满足才通过;FIX3-02起以parse_news_item_references的
+    正式引用位置解析为共同判定基础,不再做全文任意位置ID搜索;
+    FIX4-03起同一解析器自带Markdown代码围栏上下文):
+      1. 输出至少含一个合法行首引用槽位ID(整篇无有效引用→未溯源摘要;
+         仅有代码围栏内的'- [art_…]'示例同样不算——围栏不是新闻上下文);
+      2. 输出中出现的全部[art_]ID(含正文夹带/非槽位位置/代码围栏内)
+         都属于本次模型输入的允许集合(虚构ID/超出输入集→失败——即使
+         ID在当日其他档案存在,也无依据认定模型用过该来源);
+      3. 每条'-'开头的新闻条目行必须符合正式条目语法'- [art_xxx] …'
+         (行首引用槽位;'- Fed … [art_x]'位置错误→失败;无引用条目行→
+         失败——无来源的新闻主张不得按已溯源摘要保存;围栏内行不是
+         新闻条目,不参与本判定);
+      4. 条目正文不得夹带额外[art_]ID——即使夹带ID确属允许集合,也不得
+         因正文出现而成为该条目的第二来源(§5.2固定反例:A行首合法+
+         B正文夹带→该输出不符合模型摘要格式要求,整体不通过)。
+    代码围栏内的允许ID(如模型摘要在围栏中引用真实输入文章B作示例)
+    不取得来源资格,但也不单独构成失败;真正的合法A仍可正常认证
+    (FIX4-03)。失败路径不变: 一次受控重试→二次失败→确定性回退。
+    返回 (ok, problems)。
+    """
+    allowed = set(allowed_ids)
+    parsed = nprov.parse_news_item_references(summary)
+    problems = []
+    # FIX4-03: 围栏内ID不取得引用资格,但虚构检测仍覆盖全文ID——
+    # 围栏中出现的不允许ID同样说明模型输出了无依据的来源标记
+    excluded_ids = [i for e in (parsed.get('excluded_context') or [])
+                    for i in (e.get('ids') or [])]
+    all_ids = (list(parsed['legal_ids']) + list(parsed['illegal_ids'])
+               + excluded_ids)
+    fictional = sorted({c for c in all_ids if c not in allowed})
+    if fictional:
+        problems.append('含不允许的引用ID: ' + ','.join(fictional))
+    if not parsed['legal_ids']:
+        problems.append('输出不含任何行首[art_]来源引用(合法引用槽位为空)')
+    for a in parsed['anomalies']:
+        prefix = ('引用ID不在行首槽位: ' if a['kind'] == 'illegal_position'
+                  else '条目正文夹带额外引用ID: ')
+        problems.append(prefix + a['reason'])
+    fence = nprov.markdown_fence_map(summary)
+    for idx, line in enumerate(str(summary or '').split('\n')):
+        if idx < len(fence) and fence[idx]:
+            continue          # 围栏行不是新闻条目,不按"无引用条目"计
+        s = line.strip()
+        if s.startswith('- ') and len(s) > 8 \
+                and not nprov.NEWS_ITEM_RE.match(line.rstrip()):
+            if not nprov.CITATION_RE.search(s):
+                problems.append('存在无引用的新闻条目行: ' + s[:40])
+                break
+    return (not problems), problems
+
+
+def _fallback_headlines(classified, header):
+    """确定性标题回退(FIX1-03/W3-06+FIX2-02): 代码核发真实[art_]ID。
+
+    GLM失败/引用校验二次失败时使用——不保存无引用或含虚构引用的模型
+    输出;回退行ID由确定性代码从原始档案核发,不编造链接。
+    FIX2-02: 回退标题与模型输入(_build_news_text)共用同一
+    sanitize_model_text安全派生——多行/HTML/伪ID标题在回退中同样
+    只能成为单行数据,不得凭回退路径重新注入结构或伪造引用关系。
+    """
+    fallback = header
+    for cat, articles in classified.items():
+        if articles:
+            fallback += f"### {cat}\n"
+            for a in articles[:5]:
+                art = a.get('article_id', '')
+                ref = f"[{art}] " if art else ""
+                headline = nprov.sanitize_model_text(a.get('headline', ''))
+                fallback += f"- {ref}{headline}\n"
+            fallback += "\n"
+    return fallback
+
+
+def generate_news_summary(classified):
+    """用GLM生成新闻摘要(FIX1-03: 成功输出必须通过确定性引用校验)"""
+    print("\n🤖 生成新闻摘要...")
+
+    news_text = _build_news_text(classified)
     if not news_text.strip():
         print("  ⚠️ 无新闻内容")
         return "本周无重要新闻"
@@ -292,11 +556,11 @@ def generate_news_summary(classified):
 
     prompt = f"""以下是本周的金融市场新闻标题，已按类别分组。请完成以下任务：
 
-1. 每个类别提炼出 1-3 条最重要的新闻，用一句中文概括其核心信息和市场影响
+1. 每个类别提炼出 1-3 条最重要的新闻，用一句中文概括其核心信息和市场影响；**每条摘要条目必须以对应的来源编号[art_xxx]开头**（只能使用输入中出现的编号，不得虚构）
 2. 在最后给出一段"本周新闻总结"（3-5句话），概括本周新闻的主线叙事
 3. 特别标注与以下主题相关的新闻：信用恶化、美联储政策、油价/地缘冲突、AI/科技资本开支、中国市场
 4. 输出语言：中文
-5. 注意：部分国家名和术语已做脱敏处理（如"Country-A"代表某产油国，"key channel"代表某重要航道，"tension"代表地缘事件），请基于金融语境还原真实含义并分析
+5. 行首形如[art_xxx]的标记是来源引用编号，每条以"-"开头的摘要条目必须以对应的[art_xxx]开头，只能使用输入中出现的编号，不得虚构；部分术语已做脱敏处理（如"Country-A"、"key channel"、"tension"），无法确知具体所指时直接沿用代称分析即可，不必猜测真实国家、人物或事件，保留不确定性
 
 新闻内容：
 {news_text}
@@ -307,13 +571,16 @@ def generate_news_summary(classified):
     # 迁移到智谱GLM(与周报同通道,流式防断连,见 glm-api-pitfalls)。
     client = OpenAI(api_key=GLM_API_KEY, base_url=GLM_BASE_URL)
 
-    try:
+    # FIX1-06: system角色内容固定,不因新闻内容改变;新闻文本一律作为
+    # user消息中的数据出现(已脱敏+数据化),不存在指令提升通道。
+    system_msg = {"role": "system",
+                  "content": "你是金融市场新闻分析师，擅长从大量新闻中提取"
+                             "关键信息和市场影响。输出简洁、精准。"}
+
+    def _glm_call(user_content):
         stream = client.chat.completions.create(
             model=GLM_MODEL,
-            messages=[
-                {"role": "system", "content": "你是金融市场新闻分析师，擅长从大量新闻中提取关键信息和市场影响。输出简洁、精准。"},
-                {"role": "user", "content": prompt}
-            ],
+            messages=[system_msg, {"role": "user", "content": user_content}],
             max_tokens=4000,
             temperature=0.3,
             extra_body={"reasoning_effort": "low"},
@@ -321,42 +588,78 @@ def generate_news_summary(classified):
         )
         chunks = []
         for ev in stream:
-            if ev.choices and ev.choices[0].delta and ev.choices[0].delta.content:
+            if ev.choices and ev.choices[0].delta \
+                    and ev.choices[0].delta.content:
                 chunks.append(ev.choices[0].delta.content)
-        summary = "".join(chunks)
-        if not summary.strip():
+        text = "".join(chunks)
+        if not text.strip():
             raise RuntimeError("流式返回为空")
-        print(f"  ✅ 摘要生成完成(GLM): {len(summary)} 字符")
-        return summary
+        return text
+
+    allowed = _allowed_citation_ids(classified)
+    try:
+        summary = _glm_call(prompt)
+        ok, problems = validate_summary_citations(summary, allowed)
+        if not ok:
+            # FIX1-03: 一次受控重试(明确指出校验失败原因+输出约定)
+            print(f"  ⚠️ 模型输出未通过来源引用校验: {problems};受控重试一次")
+            retry_prompt = (
+                prompt + "\n\n【重要修正】上一次输出未通过来源引用校验: "
+                + ';'.join(problems)
+                + "。请严格重新输出: 每一条以'-'开头的新闻摘要条目必须以"
+                "行首来源编号[art_xxx]开始,且只能使用上面输入中给出的编号,"
+                "不得虚构;没有来源支持的表述不得作为'-'新闻条目列出。")
+            summary = _glm_call(retry_prompt)
+            ok, problems = validate_summary_citations(summary, allowed)
+        if ok:
+            n_cited = len(nprov.extract_citations(summary))
+            print(f"  ✅ 摘要生成完成(GLM,来源引用校验通过: "
+                  f"{n_cited}个有效ID)")
+            return summary
+        # FIX1-03: 二次未过→弃用模型摘要,确定性标题回退(真实ID)
+        print(f"  ❌ 引用校验二次失败,弃用模型摘要→确定性标题回退: "
+              f"{problems}")
+        return _fallback_headlines(
+            classified,
+            "## 本周新闻摘要（模型输出未通过来源引用校验，以下为确定性"
+            "原始标题回退，[art_xxx]为代码核发来源引用编号）\n\n")
     except Exception as e:
         print(f"  ❌ GLM摘要失败: {e}")
         # 最后手段：直接输出分类标题
-        fallback = "## 本周新闻摘要（AI摘要失败，以下为原始标题）\n\n"
-        for cat, articles in classified.items():
-            if articles:
-                fallback += f"### {cat}\n"
-                for a in articles[:5]:
-                    fallback += f"- {a.get('headline', '')}\n"
-                fallback += "\n"
-        return fallback
+        # W3-06: GLM失败时原始来源档案已归档(归档先于GLM);回退输出携带
+        # [art_xxx]引用ID保持可追溯,不得用编造链接填充来源缺口。
+        return _fallback_headlines(
+            classified,
+            "## 本周新闻摘要（AI摘要失败，以下为原始标题，"
+            "[art_xxx]为来源引用编号）\n\n")
 
-def save_news(classified, summary):
-    """保存新闻数据"""
-    date_str = datetime.now().strftime('%Y%m%d')
+def save_news(classified, summary, now_utc=None):
+    """保存新闻数据(W3-05: +article_id/+url/+摘要全文;写确定性来源索引)
+
+    news_raw_{ymd}.json 为简化兼容视图(每次运行重建,非原始档案——原始
+    档案是news_sources_*版本化批次,见news_provenance);原始URL与完整
+    摘要在此视图同样保全,不再[:200]截断。
+    news_refs_{ymd}.json 为周报消费端确定性来源索引(article_id→原始
+    标题/URL/发布时间/通道/完整性),由代码构造,非模型生成。
+    """
+    now_utc = now_utc or nprov.now_utc_iso()
+    date_str = now_utc[:10].replace('-', '')
     news_dir = os.path.join(DATA_DIR, 'news')
     os.makedirs(news_dir, exist_ok=True)
 
     # 保存原始分类数据
     raw_path = os.path.join(news_dir, f'news_raw_{date_str}.json')
 
-    # 简化存储（只保留关键字段）
+    # 简化存储（只保留关键字段;W3起含article_id/url/全文摘要）
     save_data = {}
     for cat, articles in classified.items():
         save_data[cat] = [{
+            'article_id': a.get('article_id', ''),
             'headline': a.get('headline', ''),
             'source': a.get('source', ''),
-            'summary': a.get('summary', '')[:200],
+            'summary': a.get('summary', ''),
             'datetime': a.get('datetime', 0),
+            'url': a.get('url', ''),
         } for a in articles[:10]]
 
     with open(raw_path, 'w', encoding='utf-8') as f:
@@ -366,57 +669,84 @@ def save_news(classified, summary):
     summary_path = os.path.join(news_dir, f'news_summary_{date_str}.md')
     with open(summary_path, 'w', encoding='utf-8') as f:
         f.write(f"# 新闻摘要 {date_str}\n\n")
-        f.write(f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+        f.write(f"生成时间: {now_utc}\n\n")
         f.write("---\n\n")
         f.write(summary)
+
+    # W3-05: 确定性来源索引(从原始来源档案批次构建,含完整性核验)
+    refs_path = nprov.write_refs_index(news_dir, ymd=date_str,
+                                       now_utc=now_utc)
 
     print(f"\n💾 文件已保存:")
     print(f"  原始数据: {raw_path} ({os.path.getsize(raw_path)} 字节)")
     print(f"  AI摘要: {summary_path} ({os.path.getsize(summary_path)} 字节)")
+    if refs_path:
+        print(f"  来源索引: {refs_path} ({os.path.getsize(refs_path)} 字节)")
 
     return summary_path
 
 # ============ 主程序 ============
-if __name__ == '__main__':
+def run(now_utc=None):
+    """新闻采集主流程(W3-03 §7.2顺序: 采集→原始归档→分类→GLM摘要→输出)。
+
+    - 原始来源档案先于分类/GLM落盘: GLM失败/超时时已获取的原始来源仍已
+      保全(W3-06);
+    - 全部来源失败: 不创建虚假有效新闻批次(无原始记录不归档),摘要降级为
+      无可信新闻数据披露,周报金融事实研究不受阻(非关键步骤语义不变);
+    - 部分来源失败: 保留其余真实来源,失败源记入批次source_status明确披露,
+      不伪造失败源的文章。
+    """
+    now_utc = now_utc or nprov.now_utc_iso()
     print("=" * 60)
     print("📰 新闻采集与分析")
-    print(f"🕐 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"🕐 {now_utc}")
     print("=" * 60)
 
-    # 1. 采集
-    market_news = fetch_market_news()
-    company_news = fetch_company_news()
-    rss_news = fetch_rss_news()
+    # 1. 采集(全字段保全)
+    raw_records, source_status, display = collect_all_news(now_utc=now_utc)
+    print(f"\n📊 合计采集: {len(display)} 条新闻")
 
-    # 2. 合并（统一格式）
-    all_news = []
-    for n in market_news:
-        all_news.append({
-            'headline': n.get('headline', ''),
-            'source': n.get('source', 'Finnhub'),
-            'summary': n.get('summary', ''),
-            'datetime': n.get('datetime', 0),
-        })
-    for n in company_news:
-        all_news.append({
-            'headline': n.get('headline', ''),
-            'source': f"{n.get('source', 'Finnhub')}({n.get('_symbol', '')})",
-            'summary': n.get('summary', ''),
-            'datetime': n.get('datetime', 0),
-        })
-    for n in rss_news:
-        all_news.append(n)
+    # 2. 原始来源归档(先于分类/GLM;同日重跑新批次,旧批次永不覆盖)
+    news_dir = os.path.join(DATA_DIR, 'news')
+    batch_id = None
+    if raw_records:
+        batch_id, apath, records = nprov.save_batch(
+            raw_records, news_dir, retrieved_at_utc=now_utc,
+            source_status=source_status, now_utc=now_utc)
+        print(f"🗄️ 原始来源档案: {apath} ({len(records)}条,批次{batch_id})")
+    elif any(v in (ST_ERROR, ST_PARTIAL, 'fail')
+             for v in source_status.values()):
+        failed = {k: v for k, v in source_status.items()
+                  if v in (ST_ERROR, ST_PARTIAL, 'fail')}
+        print(f"⚠️ 新闻来源采集失败且零条(无原始记录,不创建虚假批次): "
+              f"{failed}")
+    else:
+        print("📭 全部采集通道请求成功但返回零条(合法空结果,不创建空批次)")
 
-    print(f"\n📊 合计采集: {len(all_news)} 条新闻")
+    # 3. 分类(沿用关键词体系;条目保留article_id)
+    classified = classify_news(display)
 
-    # 3. 分类
-    classified = classify_news(all_news)
+    # 4. AI摘要(GLM;成功输出须过引用校验,失败/未过→确定性回退)
+    if raw_records:
+        summary = generate_news_summary(classified)
+    elif any(v in (ST_ERROR, ST_PARTIAL, 'fail')
+             for v in source_status.values()):
+        failed_txt = ','.join(
+            f"{k}={v}" for k, v in sorted(source_status.items())
+            if v in (ST_ERROR, ST_PARTIAL, 'fail'))
+        summary = ("## 本周无可信新闻数据\n\n"
+                   "(全部/关键新闻来源采集失败,未创建新闻来源批次;本段为降级"
+                   "披露,非模型生成,不含任何虚构新闻条目。失败通道: "
+                   + failed_txt + ")")
+    else:
+        # FIX1-04: 合法空结果≠请求失败——如实披露,不误报,不造假新闻
+        summary = ("## 本周无新闻条目\n\n"
+                   "(全部采集通道请求成功但返回零条,为合法空结果而非请求"
+                   "失败;未创建空新闻批次,不虚构新闻;本段为确定性披露,"
+                   "非模型生成)")
 
-    # 4. AI摘要
-    summary = generate_news_summary(classified)
-
-    # 5. 保存
-    save_news(classified, summary)
+    # 5. 保存(摘要+简化视图+确定性来源索引)
+    save_news(classified, summary, now_utc=now_utc)
 
     # 6. 预览
     print("\n" + "=" * 60)
@@ -429,3 +759,8 @@ if __name__ == '__main__':
         print(f"\n... 共 {len(lines)} 行")
 
     print("\n🎉 新闻采集完成！")
+    return summary
+
+
+if __name__ == '__main__':
+    run()

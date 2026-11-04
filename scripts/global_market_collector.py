@@ -39,7 +39,7 @@ import pandas as pd
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta, time, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from env_config import DATA_DIR
@@ -92,6 +92,58 @@ WATCHLIST = {
     "GLD": "GLD",
     "USO": "USO",
 }
+
+# ══ BTC日收盘UTC完整日语义(IA-P0-2-W5-FIX2-AC-v1.0 F2-AC-01,2026-11-01) ══
+# 背景(R003归因,dev/p0-2-w5-attr@2215f0e): 每日07:00(UTC+8)=前一日23:00 UTC
+# 定时采集时,yfinance BTC-USD日K最后一根是**当日在途UTC日K**,其Close为23:00
+# 时点市价(截断价),曾被记作该UTC日的日收盘——实测2026-10-30 07:00:17(UTC+8)
+# 即2026-10-29 23:00:17Z取到78822.59被记为2026-10-29收盘,与Coinbase完整
+# UTC日收77780.33差1.34%(该日最后一小时真实跌幅)。
+# 修复语义: BTC日收盘仅引用**取数时刻(UTC)前已完整结束的UTC日K**;日K时间戳D
+# (UTC,实测索引tz=UTC)代表区间[D 00:00:00Z, D+1 00:00:00Z),仅当
+# retrieved_at_utc ≥ D+1 00:00:00Z该日已完结;在途日K的任何价格(Close/High/
+# Low)不得被写入/标注为任何UTC日的日收盘——在途bar整体剔除,close/high/low/
+# date/series及全部派生指标均以完结日K为基础。仅BTC适用(注册表calendar=
+# crypto仅BTC);其他资产采集口径不变。
+BTC_ASSET_ID = "BTC"
+BTC_CLOSE_SOURCE = "yfinance:BTC-USD(daily,UTC日K)"
+
+
+def btc_completed_utc_days_only(hist, retrieved_at=None):
+    """剔除BTC日K中取数时刻(UTC)尚未完结的UTC日bar(F2-AC-01)。
+
+    参数: hist=yfinance BTC-USD日线DataFrame(索引tz-aware,实测UTC;naive
+    按UTC解释); retrieved_at=取数时刻datetime(缺省=当前UTC时刻;naive按UTC
+    解释——供测试注入确定性时点,如R003场景2026-10-29T23:00:17Z)。
+    返回: (filtered_hist, close_meta)。close_meta随采集产物持久化:
+      source=来源标识; retrieved_at_utc=取数时刻(UTC ISO);
+      semantics='completed_utc_daily_close_only'; bar_utc_window=日K区间语义;
+      completed_through_utc=保留的最后已完结UTC日(ISO);
+      dropped_incomplete_utc_days=被剔除在途日(ISO列表)。
+    未来时间戳bar(数据源异常)同样剔除——不采信未来数据为已完结日。"""
+    now = retrieved_at if retrieved_at is not None else datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    idx = hist.index
+    idx_utc = idx.tz_convert('UTC') if idx.tz is not None else idx.tz_localize('UTC')
+    keep, dropped = [], []
+    for i, ts in enumerate(idx_utc):
+        day_end = datetime.combine(ts.date() + timedelta(days=1), time.min,
+                                   tzinfo=timezone.utc)
+        if day_end <= now:
+            keep.append(i)
+        else:
+            dropped.append(ts.date().isoformat())
+    filtered = hist.iloc[keep]
+    meta = {
+        'source': BTC_CLOSE_SOURCE,
+        'retrieved_at_utc': now.astimezone(timezone.utc).isoformat(timespec='seconds'),
+        'semantics': 'completed_utc_daily_close_only',
+        'bar_utc_window': '[D 00:00:00Z, D+1 00:00:00Z)',
+        'completed_through_utc': idx_utc[keep[-1]].date().isoformat() if keep else None,
+        'dropped_incomplete_utc_days': dropped,
+    }
+    return filtered, meta
 
 def fetch_all(period="1y"):
     """批量获取所有资产的历史收盘价，返回一个字典：{资产ID: DataFrame}"""
@@ -232,10 +284,22 @@ if __name__ == "__main__":
 
     print("\n计算指标...")
     results = {}
+    btc_close_meta = None
     for asset_id, hist in all_data.items():
+        if asset_id == BTC_ASSET_ID:
+            # W5-FIX2 F2-AC-01: BTC日收盘仅引用已完结UTC日K——在途日K整体剔除,
+            # 其任何价格不进入close/high/low/date/series;元数据随产物持久化
+            hist, btc_close_meta = btc_completed_utc_days_only(hist)
+            if btc_close_meta['dropped_incomplete_utc_days']:
+                print(f"  ⛔ BTC剔除在途UTC日K: "
+                      f"{','.join(btc_close_meta['dropped_incomplete_utc_days'])}"
+                      f"(取数{btc_close_meta['retrieved_at_utc']},仅保留已完结日≤"
+                      f"{btc_close_meta['completed_through_utc']})")
         m = calc_metrics(asset_id, hist)
         if m:
             results[asset_id] = m
+    if btc_close_meta is not None and BTC_ASSET_ID in results:
+        results[BTC_ASSET_ID]['close_meta'] = btc_close_meta
 
     print(f"计算完成: {len(results)} 个资产")
 

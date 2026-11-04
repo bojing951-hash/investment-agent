@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from env_config import GLM_API_KEY, GLM_BASE_URL, GLM_MODEL
 import allocation_engine  # P2/P3 配置研究引擎(同目录)
 import research_provenance as rp  # IA-P0-1: 来源链核验/门禁合成
+import news_provenance  # IA-P0-2-W3: 新闻来源档案/确定性引用索引
 
 # ============ 路径配置 ============
 # FIX11-01(IA-F10-DEF-001): 原join(dirname(__file__),'..')推导的DATA_DIR词法
@@ -267,7 +268,16 @@ def load_news_summary():
             continue
         day = fname[-11:-3]
         day_lines = [f"### {day} 新闻"]
-        for line in sanitize_news(content).split('\n'):
+        # FIX4-02: 先剔除Markdown代码围栏区域,再进板块过滤/脱敏——
+        # 正确顺序=识别代码区域→排除非新闻代码内容→板块过滤/脱敏→去重
+        # →聚合→裁剪→正式引用解析→来源认证。旧顺序(sanitize_news(content)
+        # 直接过全文)会把围栏标记行当普通行丢弃、却保留围栏内的
+        # '- [art_…]'样式行,围栏上下文在正式解析之前即被销毁,代码块
+        # 内假新闻被"洗白"成普通新闻(IA-P02-W3-FIX3-DEF-001第二环节)。
+        # 共用news_provenance.strip_code_fences(与解析器同一围栏语义,
+        # §5.3);逐文件独立,未关闭围栏状态不跨天携带。
+        safe_content = news_provenance.strip_code_fences(content)
+        for line in sanitize_news(safe_content).split('\n'):
             s = line.strip()
             if s.startswith('- '):          # 新闻条目:跨天去重
                 if s in seen:
@@ -291,6 +301,48 @@ def load_news_summary():
     merged = '\n\n'.join(blocks)
     if len(merged) > 9000:  # 单日也超长的极端情况,控制长度防GLM 1301风控
         merged = merged[:9000] + "\n... [本周新闻过长已截断]"
+
+    # IA-P0-2-W3-05 + W3-FIX1-02 + W3-FIX3-03 + W3-FIX4: 确定性来源索引
+    # 附录——仅对**最终保留文本**(脱敏/去重/裁剪之后)中处于新闻条目行首
+    # 引用槽位的ID逐一认证(严格引用位置解析parse_news_item_references;
+    # 正文/标题/不合格条目行/Markdown代码围栏内的ID不取得引用资格,
+    # 只作确定性诊断)——引用集合与实际进入周报新闻输入的内容严格对应,
+    # 被裁剪掉的新闻引用不得进入附录。FIX1-02起**不以历史
+    # news_refs_*.json为可信依据**(索引是派生视图,可被伪造/过期):
+    # 消费时用load_trusted_articles_since从原始来源档案实时重建可信集合
+    # (档案→清单→文件SHA-256→逐记录摘要→ID映射),仅通过认证的来源进入
+    # 附录;档案缺失/损坏的引用→如实标注未通过来源认证。无URL来源明确
+    # 标记不可提供,不编造链接。旧摘要无引用ID→零引用→不追加附录
+    # (完全向后兼容);附录不进入长度竞争。
+    parsed = news_provenance.parse_news_item_references(merged)
+    cited = parsed['legal_ids']
+    fenced_ex = parsed.get('excluded_context') or []
+    if fenced_ex:
+        n = sum(len(e.get('ids') or []) for e in fenced_ex)
+        print(f"⚠️ 检出{len(fenced_ex)}行位于Markdown代码围栏内的新闻样式"
+              f"内容(含{n}个[art_]ID),已整段排除、不构成可信引用"
+              f"(确定性代码诊断,非模型生成)")
+    if parsed['illegal_ids']:
+        print(f"⚠️ 新闻文本含{len(parsed['illegal_ids'])}个非行首槽位"
+              f"[art_]ID,不作为可信引用(仅诊断): "
+              f"{','.join(parsed['illegal_ids'])}")
+    if cited:
+        trusted = news_provenance.load_trusted_articles_since(
+            news_dir, cutoff)
+        appendix = news_provenance.summarize_for_prompt(trusted, cited)
+        if parsed['illegal_ids']:
+            # 诊断行不含方括号(不可被再提取为引用),明示未列入来源索引
+            appendix += ('\n⚠️ 诊断: 检测到'
+                         + str(len(parsed['illegal_ids']))
+                         + '个不在新闻条目行首槽位的ID('
+                         + ','.join(parsed['illegal_ids'])
+                         + '),不构成可信引用,未列入来源索引'
+                         '(确定性代码诊断,非模型生成)')
+        merged = merged + '\n\n' + appendix
+        arts_t = trusted.get('articles') or {}
+        print(f"✅ 新闻来源索引: {len(cited)}个引用经原始档案核验"
+              f"({sum(1 for a in cited if a in arts_t)}通过/"
+              f"{sum(1 for a in cited if a not in arts_t)}未通过)")
 
     print(f"✅ 已加载近7天新闻: {total}天文件, 去重{dup}条重复, {len(merged)}字符")
     return merged
@@ -1034,7 +1086,8 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
                     elif len(new_support) >= 2:
                         t['status'] = new_status
                         via = (f"重新启用: 新增独立证据{len(new_support)}项经验证"
-                               f"+原失效条件复核未触发({star_desc[:40]})")
+                               f"+原失效条件复核未触发({star_desc[:40]})"
+                               + ae.uncertified_note(supporting))
                         t['last_change'] = {'date': today_iso, 'from': old_status, 'to': new_status,
                                             'via': via, 'evidence': supporting[:5], 'note': note}
                         updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old_status}→{new_status} (经{via})")
@@ -1064,7 +1117,8 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
                         updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old_status}→{new_status} (经{via})")
                     elif len(new_contrary) >= 2:
                         t['status'] = new_status
-                        via = f"重新开启: 新增独立反证{len(new_contrary)}项经验证({star_desc[:40]})"
+                        via = (f"重新开启: 新增独立反证{len(new_contrary)}项经验证"
+                               f"({star_desc[:40]})" + ae.uncertified_note(contrary))
                         t['last_change'] = {'date': today_iso, 'from': old_status, 'to': new_status,
                                             'via': via, 'evidence': contrary[:5], 'note': note}
                         updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old_status}→{new_status} (经{via})")
@@ -1095,7 +1149,8 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
                 elif len(new_support) >= 2:
                     old = t.get('status')
                     t['status'] = new_status
-                    via = f"新增独立支持证据{len(new_support)}项经验证({star_desc[:60]})"
+                    via = (f"新增独立支持证据{len(new_support)}项经验证({star_desc[:60]})"
+                           + ae.uncertified_note(supporting))
                     t['last_change'] = {'date': today_iso, 'from': old, 'to': new_status,
                                         'via': via, 'evidence': supporting[:5], 'note': note}
                     updates.append(f"论点#{tid}{t.get('name', '')[:10]}: {old}→{new_status} (经{via})")
@@ -1135,11 +1190,16 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
         # 证据台账写入(第五轮P1-1: 放在门禁判定**之后** — 同日重跑时,
         # 早前运行写入的(指标,观测日)已在已知集合内,同批数据不会再次计为新增)
         if verified:
+            # W2-FIX4-03: 台账持久化点时认证计数(与配置观点同构;旧记录无字段
+            # =如实缺席,读取按未认证,不回填不推定,不批量改写历史台账)
+            _cert_n = sum(1 for i in verified if i.get('point_in_time_certified'))
             ledger = t.setdefault('evidence_ledger', [])
             ledger.append({'date': today_iso, 'verified': len(verified),
                            'supporting': len(supporting), 'contrary': len(contrary),
                            'unexplained': len(unexplained), 'neutral': len(neutral_ev),
                            'new_support': sorted(new_support),
+                           'point_time_certified': _cert_n,
+                           'point_time_uncertified': len(verified) - _cert_n,
                            'star_max': star_max, 'desc': star_desc[:200],
                            'obs_pairs': sorted({(i['metric'], str(i.get('obs_date'))[:10])
                                                 for i in verified})})

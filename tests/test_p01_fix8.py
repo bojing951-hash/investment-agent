@@ -661,9 +661,12 @@ with tempfile.TemporaryDirectory(prefix='fix8-I2-') as td:
           f"no={st_no} ok={st_ok}")
 
 # I3: real_data_acceptance缺省拒外部--data-dir;显式--trusted-root放行
+# (FIX1-05必要修订: 输出目录移出数据目录——原out-dir设在td内属FIX1-05
+#  明令拒绝的"输出位于输入内部"模式;信任边界场景与全部断言保持不变)
 with tempfile.TemporaryDirectory(prefix='fix8-I3-') as td:
     fixt.write_collectors(td, DAY)
     fake_now = f'{DAY[:4]}-{DAY[4:6]}-{DAY[6:]}T08:00:00'
+    _outroot = tempfile.mkdtemp(prefix='fix8-I3-out-')
 
     class _DT(datetime):
         @classmethod
@@ -673,7 +676,7 @@ with tempfile.TemporaryDirectory(prefix='fix8-I3-') as td:
     def _run_rda(out_sub, extra):
         out = io.StringIO()
         argv = ['rda', '--data-dir', td, '--out-dir',
-                os.path.join(td, out_sub), '--skip-external'] + extra
+                os.path.join(_outroot, out_sub), '--skip-external'] + extra
         with mock.patch.object(sys, 'argv', argv), \
                 mock.patch.object(rda, 'datetime', _DT), \
                 contextlib.redirect_stdout(out):
@@ -686,7 +689,7 @@ with tempfile.TemporaryDirectory(prefix='fix8-I3-') as td:
 
     rc1, out1 = _run_rda('acc1', [])                        # 缺省可信根
     rc2, out2 = _run_rda('acc2', ['--trusted-root', td])    # 显式授权
-    _acc = sorted(glob.glob(os.path.join(td, 'acc2', '*.json')))[-1]
+    _acc = sorted(glob.glob(os.path.join(_outroot, 'acc2', '*.json')))[-1]
     _checks = {r['check']: r['verdict']
                for r in json.load(open(_acc))['checks']}
     _fails2 = [r['check'] for r in json.load(open(_acc))['checks']

@@ -19,6 +19,8 @@ import re
 from datetime import date, datetime, timezone, timedelta
 
 import trading_calendar as tc
+import registry_semantics as rsem
+import freshness_policy as fp
 
 REGISTRY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                              'config', 'metric_registry.json')
@@ -54,6 +56,17 @@ def load_registry(path=None, force=False):
         assert m.get('unit'), f"{mid}缺unit"
         assert m.get('calendar') in tc.MARKETS, f"{mid}日历非法: {m.get('calendar')}"
         by_id[mid] = m
+    # IA-P0-2-W1-03: 金融语义一致性纳入生产加载——已确认非法配置(工具身份
+    # 矛盾/量纲混淆/来源枚举外值等,error级)一律RegistrySemanticsError拒绝,
+    # 不静默使用;review级(未确认组合)不拦截(未确认≠非法)。既有ID/unit/
+    # calendar断言保持不变;合法历史兼容结构(统计序列可选identity等)不受影响
+    # (规则集详见registry_semantics.INSTRUMENT_BY_CLASS/UNIT_BY_CLASS)。
+    rsem.assert_registry_semantics(reg, source_desc=str(p))
+    # IA-P0-2-W2: 注册表freshness窗口(已批准政策,见fp.POLICY_APPROVAL)构建为
+    # 唯一生效时效策略并注入共享缓存(validate_fact与Gate B消费同一份)。
+    # 缺失/非法窗口→FreshnessPolicyError fail-loud,不得静默回退旧7/16/92硬编码
+    # (W2-DEF-001: 注册表freshness曾是声明性死配置,本行起为实际生效政策)。
+    fp.set_policy(fp.build_policy(reg))
     reg['by_id'] = by_id
     _REGISTRY_CACHE = reg
     return reg
@@ -182,7 +195,7 @@ def parse_iso_date(s):
 
 def make_fact(metric_id, value, observation_date, as_of, source_file, collector,
               series=None, calendar=None, retrieved_at=None, calculation_ref=None,
-              quality_status=None, issues=None):
+              quality_status=None, issues=None, release_date=None):
     m = metric(metric_id)
     if m is None:
         return None
@@ -212,6 +225,12 @@ def make_fact(metric_id, value, observation_date, as_of, source_file, collector,
         fact["derived"] = compute_period_returns(
             series.get('dates', []), series.get('values', []),
             m['unit'], calendar, as_of=None if as_of is None else str(as_of)[:10])
+    # FIX1-02(IA-P02-W2-DEF-002): 真实采集记录提供release_date时原样保留并进入
+    # 共享时效判断(validate_fact→fp.assess点时可得性)。采集端未提供→不写该键
+    # (RELEASE_UNKNOWN,绝不以observation_date/retrieved_at/文件日期冒充发布日)。
+    # 非法值原样保留由validate_fact按FAIL拒绝(不截断洗白)。
+    if release_date is not None:
+        fact["release_date"] = release_date
     # IA-P0-1-FIX5(IA-DEF-006): 缺失质量标记不得默认PASS——由已附issues按
     # 既有分级规则推导(无issue才得PASS);显式传入quality_status仍优先。
     fact["quality_status"] = quality_status or grade_issues(issues or [])
@@ -240,12 +259,14 @@ def normalize_global(data, as_of, source_file="global_*.json"):
             continue
         f = make_fact(mid, item.get('close'), item.get('date'), as_of, source_file,
                       "global_market_collector",
-                      series=item.get('series'), retrieved_at=data.get('time'))
+                      series=item.get('series'), retrieved_at=data.get('time'),
+                      release_date=item.get('release_date'))
         if item.get('high') is not None:
             f['high'] = item['high']
         if item.get('low') is not None:
             f['low'] = item['low']
-        f['issues'].extend(validate_fact(f, item, m, as_of_date=str(as_of)[:10]))
+        # FIX1-01: 研究截止原样传递,由validate_fact严格解析(不在此[:10]截断洗白)
+        f['issues'].extend(validate_fact(f, item, m, as_of_date=as_of))
         f['quality_status'] = grade_issues(f['issues'])
         facts.append(f)
     return facts
@@ -267,8 +288,9 @@ def normalize_macro(data, as_of, source_file="macro_*.json"):
                                       "message": f"宏观序列{name}不在注册表"}], "value": item.get('value')})
             continue
         f = make_fact(mid, item.get('value'), item.get('date'), as_of, source_file,
-                      "macro_collector", series=item.get('series'), retrieved_at=None)
-        f['issues'].extend(validate_fact(f, item, m, as_of_date=str(as_of)[:10]))
+                      "macro_collector", series=item.get('series'), retrieved_at=None,
+                      release_date=item.get('release_date'))
+        f['issues'].extend(validate_fact(f, item, m, as_of_date=as_of))
         f['quality_status'] = grade_issues(f['issues'])
         if m.get('frequency') == 'monthly':
             f['release_note'] = m.get('release_semantics', '发布时间未知,按观测日保守处理')
@@ -291,7 +313,7 @@ def normalize_china(data, as_of, source_file="china_*.json"):
         if sub:
             f['source']['channel'] = sub
         f['issues'].extend(validate_fact(f, {"close": value, "date": obs_d}, m,
-                                         as_of_date=str(as_of)[:10]))
+                                         as_of_date=as_of))
         if extra_issues:
             f['issues'].extend(extra_issues)
         f['quality_status'] = grade_issues(f['issues'])
@@ -321,7 +343,7 @@ def normalize_china(data, as_of, source_file="china_*.json"):
         if not mid:
             print(f"  ⚠️ A股代码{code}({item.get('name', '?')})未入注册表,跳过(不造事实)")
             continue
-        add(mid, _num(item.get('close')), str(item.get('date')), sub='sina',
+        add(mid, _num(item.get('close')), str(item.get('date')), sub=item.get('via', 'sina'),
             series=item.get('series'))
     _HK_MAP = {"^HSI": "HSI", "^HSCE": "HSCEI", "^HSCEI": "HSCEI"}
     for code, item in (data.get('hk_indices') or {}).items():
@@ -350,17 +372,20 @@ def normalize_china(data, as_of, source_file="china_*.json"):
         obs = to.get('date')
         if obs and len(str(obs)) == 8 and '-' not in str(obs):   # Tushare YYYYMMDD→ISO
             obs = f"{str(obs)[:4]}-{str(obs)[4:6]}-{str(obs)[6:]}"
+        # R049(B-AC-03): 东财回落产物(source='akshare_em')按其实际单位标注calc;
+        # 缺失 source(=tushare方案1或历史数据)保持原字符串,零口径洗白。
+        em = (to.get('source') == 'akshare_em')
         add("SH_AMOUNT", to.get('sh_amount_billion'), obs,
-            calc="Tushare 000001.SH amount千元→亿元")
+            calc="东财 元→亿元(sh000001 amount)" if em else "Tushare 000001.SH amount千元→亿元")
         add("SZ_COMPONENT_AMOUNT", to.get('sz_amount_billion'), obs,
             extra_issues=[{"category": "completeness", "severity": "WARN",
                            "message": "深证成指成分口径(非深市全市场,全市场须399106.SZ)"}],
-            calc="Tushare 399001.SZ amount千元→亿元(成分股口径)")
+            calc="东财 元→亿元(sz399001 amount,成分股口径)" if em else "Tushare 399001.SZ amount千元→亿元(成分股口径)")
         if to.get('sh_amount_billion') is not None and to.get('sz_amount_billion') is not None:
             add("CN_TOTAL_TURNOVER", round(to['sh_amount_billion'] + to['sz_amount_billion'], 2), obs,
                 extra_issues=[{"category": "completeness", "severity": "WARN",
                                "message": "口径=沪市全市场+深证成指成分(近似,非严格沪深全市场)"}],
-                calc="sh_amount+sz_component_amount;旧字段total_amount_billion/volume_billion同此口径")
+                calc="东财 元→亿元(sh+sz相加)" if em else "sh_amount+sz_component_amount;旧字段total_amount_billion/volume_billion同此口径")
         elif to.get('total_amount_billion') is not None:
             # akshare降级: 仅沪市,scope收窄必须披露(旧代码静默)
             add("CN_TOTAL_TURNOVER", to.get('total_amount_billion'), obs,
@@ -392,14 +417,15 @@ def normalize_rate(data, as_of, source_file="rate_economy_*.json"):
     facts, recon_inputs = [], []
     if not isinstance(data, dict):
         return facts, recon_inputs
-    as_of_date = str(as_of)[:10]
     for key, item in (data.get('current_rates') or {}).items():
         mid = key if metric(key) else {'DFF': 'DFF', 'DFEDTARU': 'DFEDTARU', 'DFEDTARL': 'DFEDTARL'}.get(key)
         if not mid:
             continue
-        f = make_fact(mid, item.get('value'), _iso(item.get('date')), as_of, source_file, "rate_expectations")
+        # FIX1-01/02: 研究截止原样传递(严格解析在validate_fact),release_date透传
+        f = make_fact(mid, item.get('value'), _iso(item.get('date')), as_of, source_file,
+                      "rate_expectations", release_date=item.get('release_date'))
         f['issues'] = validate_fact(f, {"close": item.get('value'), "date": item.get('date')},
-                                    metric(mid), as_of_date=as_of_date)
+                                    metric(mid), as_of_date=as_of)
         f['quality_status'] = grade_issues(f['issues'])
         facts.append(f)
     for name, item in (data.get('real_economy') or {}).items():
@@ -428,9 +454,9 @@ def normalize_rate(data, as_of, source_file="rate_economy_*.json"):
             # 观测日滞后由validate_fact按日频7天窗如实降级DEGRADED并披露。
             zq_obs = str(c.get('date') or data.get('date'))
             f = make_fact("ZQ_F1_PRICE", c['price'], _iso(zq_obs), as_of, source_file,
-                          "rate_expectations")
+                          "rate_expectations", release_date=c.get('release_date'))
             f['issues'] = validate_fact(f, {"close": c['price'], "date": zq_obs},
-                                        metric("ZQ_F1_PRICE"), as_of_date=as_of_date)
+                                        metric("ZQ_F1_PRICE"), as_of_date=as_of)
             f['quality_status'] = grade_issues(f['issues'])
             facts.append(f)
     return facts, {"recon_inputs": recon_inputs, "fed_futures_curve": curve}
@@ -507,33 +533,82 @@ def validate_fact(fact, raw_item, m, as_of_date=None):
     if d_obs is None:
         issues.append({"category": "time", "severity": "FAIL", "message": f"{mid}观测日非法:{od!r}(须完整YYYY-MM-DD真实日期)"})
         return issues
+    # FIX1-01: 研究截止严格解析——date/datetime/完整ISO日期/完整ISO时间戳
+    # (整串先验证再取日期;'2026-10-24INVALID'不再经[:10]截断洗白,给了但非法
+    # =FAIL,fail-closed,不得静默跳过时间校验)。None=调用方未提供(既有语义,
+    # 跳过时间类校验)。
+    a_d = fp.parse_instant(as_of_date) if as_of_date is not None else None
+    if as_of_date is not None and a_d is None:
+        issues.append({"category": "time", "severity": "FAIL",
+                       "message": f"{mid}研究截止非法:{as_of_date!r}(须完整ISO日期/时间戳;不得截断洗白)"})
+        return issues
     # 时间: 观测日不得晚于研究截止(as_of日期部分)
-    if as_of_date:
-        try:
-            if d_obs > date.fromisoformat(as_of_date):
-                issues.append({"category": "time", "severity": "FAIL",
-                               "message": f"{mid}观测日{d_obs}晚于研究截止{as_of_date}"})
-        except ValueError:
-            pass
-    # 频率新鲜度: 月频未发布≠无效,超窗→DEGRADED披露。
-    # 月频有效窗=92天: FRED月度观测戳记为月首(如8月PCE=08-01),发布在次月末前后,
-    # 到下一次发布前as_of−月首最长可达~92天(真实数据2026-10-17复验: 08-01观测
-    # 对10-17=77天,75天窗误报DEGRADED)。仍拦截连缺两期以上的真过期(>3个月)。
-    fr = (m.get('freshness') or {}).get('max_calendar_lag_days')
+    if a_d and d_obs > a_d:
+        issues.append({"category": "time", "severity": "FAIL",
+                       "message": f"{mid}观测日{d_obs}晚于研究截止{a_d}"})
+    # FIX1-02(IA-P02-W2-DEF-002)+FIX2-02/03(IA-P02-W2-FIX1-DEF-002续)
+    # +FIX3-01/02(IA-P02-W2-FIX2-DEF-001)点时可得性——事实真实携带
+    # release_date时,**消费fp.compare_release_availability统一时刻可得性
+    # 判定**(不再各自把release/as_of降成date后独立比较):
+    #   RELEASED_AFTER(绝对时刻/日粒度/区间证明发布晚于截止)→FAIL
+    #     (NOT_AVAILABLE_AT_AS_OF: as_of时点该值不可得;核心事实经既有Gate A
+    #     核心FAIL规则阻断;同日"截止08:00/发布20:00"按绝对时刻正确拒绝;
+    #     混合精度下仅当现实时区界UTC区间证明"全部可能时刻晚于截止"才FAIL
+    #     ——date-only发布×时间戳截止不再按名义日差硬拒或放行);
+    #   发布先于观测/非法→FAIL(语义非法);
+    #   RELEASED_BEFORE→通过(granularity披露INSTANT/DAY/RANGE;RANGE=区间
+    #     证明先后已证但发布具体时刻未知,不冒充精确时刻认证);
+    #   UNVERIFIED_SAME_DAY/UNVERIFIED_TZ/UNVERIFIED_PRECISION→按日粒度可得
+    #     (历史兼容,不FAIL既有数据)但INFO披露"点时未认证"——绝不虚报已
+    #     验证点时可得;
+    #   无release_date→RELEASE_UNKNOWN: 不伪造点时认证,月频(存在"观测在窗内
+    #     但尚未发布"真实风险区)按WARN披露"发布时间未验证"。
+    rel = fact.get('release_date')
+    if rel is not None:
+        rtv = fp.parse_temporal_value(rel)
+        if not rtv['ok']:
+            issues.append({"category": "release", "severity": "FAIL",
+                           "message": f"{mid}release_date非法:{rel!r}"
+                                      f"({rtv['error']};须完整ISO日期/时间戳,不得截断)"})
+        elif rtv['date'] < d_obs:
+            issues.append({"category": "release", "severity": "FAIL",
+                           "message": f"{mid}发布日{rtv['date'].isoformat()}早于观测日{d_obs}(发布先于观测,语义非法)"})
+        elif a_d is not None:
+            cmpv = fp.compare_release_availability(rel, as_of_date)
+            if cmpv['verdict'] == 'RELEASED_AFTER':
+                issues.append({"category": "release", "severity": "FAIL",
+                               "message": (f"{mid}已知发布{rel!r}晚于研究截止"
+                                           f"{as_of_date!r}({cmpv['detail']})"
+                                           f"(NOT_AVAILABLE_AT_AS_OF)——as_of时点"
+                                           f"该值不可得,不得作为当前研究证据")})
+            elif cmpv['verdict'] in ('UNVERIFIED_SAME_DAY', 'UNVERIFIED_TZ',
+                                     'UNVERIFIED_PRECISION'):
+                issues.append({"category": "release", "severity": "INFO",
+                               "message": (f"{mid}点时未认证({cmpv['verdict']}): "
+                                           f"{cmpv['detail']}——按日粒度可得,"
+                                           f"不构成已验证点时可得证据")})
+    elif m.get('frequency') == 'monthly':
+        issues.append({"category": "release", "severity": "WARN",
+                       "message": f"{mid}发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"})
+    # 频率新鲜度(W2-DEF-001修复): 窗口消费注册表已批准策略(fp单一来源,
+    # fact_engine与Gate B同一份;两轮审批记录见freshness_policy.POLICY_APPROVAL)。
+    # 旧硬编码7/16/92废除——其中月频92为历史宽松值(容忍连缺两期);现行月频窗
+    # =60天: FRED月度观测戳记为月首、发布在次月中下旬至月末(BLS系~38天,
+    # BEA/EIA/G.17系可达~60天),窗口须覆盖按时发布的最慢情形(45天会在每月
+    # 下旬把按时发布的CORE_PCE/WTI_SPOT_M误判过期)。超窗=连缺一期以上→DEGRADED。
     freq = m.get('frequency')
-    eff_window = 7 if freq == 'daily' else (16 if freq == 'weekly' else 92)
-    if as_of_date:
-        try:
-            lag = (date.fromisoformat(as_of_date) - d_obs).days
-            if lag > eff_window:
-                issues.append({"category": "frequency", "severity": "DEGRADED",
-                               "message": f"{mid}观测日滞后{lag}天(>{eff_window}天有效窗,{freq}频;未发布或采集失败,不得当作最新一期)"})
-        except ValueError:
-            pass
+    pol = fp.policy_for(mid)
+    if a_d:
+        lag = (a_d - d_obs).days
+        if pol is None:
+            issues.append({"category": "freshness_policy", "severity": "DEGRADED",
+                           "message": f"{mid}无已批准时效窗口(注册表freshness缺失或策略未加载)——不得默认按任意窗口视为新鲜"})
+        elif lag > pol['window']:
+            issues.append({"category": "frequency", "severity": "DEGRADED",
+                           "message": f"{mid}观测日滞后{lag}天(>{pol['window']}天有效窗,{freq}频;未发布或采集失败,不得当作最新一期)"})
     # 发布滞后合理性(月频): 观测月即当前月且当前月未过半 → 可疑(通常发布滞后)
-    if freq == 'monthly' and as_of_date:
-        a = date.fromisoformat(as_of_date)
-        if d_obs.year == a.year and d_obs.month == a.month and a.day < 15:
+    if freq == 'monthly' and a_d:
+        if d_obs.year == a_d.year and d_obs.month == a_d.month and a_d.day < 15:
             issues.append({"category": "release-limit", "severity": "WARN",
                            "message": f"{mid}观测日为当前月初({d_obs}),当月数据通常尚未发布,请核对是否为上月观测或预览值"})
     # 离群: 周变动超限(序列存在时)

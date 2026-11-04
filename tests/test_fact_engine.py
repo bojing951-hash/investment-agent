@@ -50,8 +50,10 @@ check("NFP存量与月差双注册", by_id['NFP']['value_type'] == 'level'
       and by_id['NFP_MOM_K']['asset_class'] == 'macro_count_derived')
 check("沪深成交额近似口径显式proxy", by_id['CN_TOTAL_TURNOVER']['identity'].get('is_proxy') is True)
 check("深证成指标注非全市场", '非深市全市场' in by_id['SZCI'].get('notes', '') + by_id['SZ_COMPONENT_AMOUNT'].get('notes', ''))
-check("日频/月频新鲜度窗区分", by_id['SPX']['freshness']['max_calendar_lag_days'] == 5
-      and by_id['CPI']['freshness']['max_calendar_lag_days'] == 45)
+check("日频/月频新鲜度窗区分(IA-P0-2-W2批准政策: 月频45→60,覆盖BEA/EIA系"
+      "次月中下旬~月末正常发布;详见freshness_policy.POLICY_APPROVAL)",
+      by_id['SPX']['freshness']['max_calendar_lag_days'] == 5
+      and by_id['CPI']['freshness']['max_calendar_lag_days'] == 60)
 
 # ══ [2] 统一收益引擎(合成序列) ════════════════════════════════════
 print("\n[2] 统一收益引擎 — SYNTHETIC序列验证数学口径")
@@ -172,7 +174,14 @@ mdata = {"data": {
 mf = fe.normalize_macro(mdata, AS_OF, "macro_20261017.json")
 mby = {f.get('metric_id'): f for f in mf}
 check("CPI月频事实带发布语义披露", 'release_note' in mby['CPI'] and '10月发布属正常' in mby['CPI']['release_note'])
-check("月频观测滞后不判错(9月观测10月研究)", mby['CPI']['quality_status'] == 'PASS', str(mby['CPI']['issues']))
+# W2-FIX1(§6.4)修订: 无release_date的月频事实必须披露"发布时间未验证"
+# (WARN档,独立合法档位不降级不计counts)——原断言==PASS改为: 无FAIL/DEGRADED
+# 且release披露在场(原预期漏掉点时披露义务,非放松)
+check("月频观测滞后不判错(9月观测10月研究;发布时间未验证按WARN披露)",
+      mby['CPI']['quality_status'] in ('PASS', 'WARN')
+      and not [i for i in mby['CPI']['issues'] if i['severity'] in ('FAIL', 'DEGRADED')]
+      and any(i['category'] == 'release' and 'RELEASE_UNKNOWN' in i['message']
+              for i in mby['CPI']['issues']), str(mby['CPI']['issues']))
 
 # china成交额口径(§4.5)
 cdata = {"indices": {"上证指数": {"close": 3716.28, "date": "2026-10-16"},

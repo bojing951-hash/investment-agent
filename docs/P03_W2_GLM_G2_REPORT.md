@@ -168,10 +168,10 @@ DESIGN L226 五条验收要点逐条映射(要点文本见 §0.1 抄录;工件=�
 ## §四 git 取证与自检(提交时回填;最终尖端以 ls-remote 为准)
 
 - 开工时序: 2026-11-04T17:17:35Z(UTC)git status clean@main;分支 `dev/p03-w2-glm-g2` 自 f5dc79fc5b86f70e98b10753acfd9b45845e52ea 切出(§3 步骤3 实测 rev-parse=基线全值)。
-- 设计在场核验(§3 步骤4 原样输出入证据包成员③): merge-base --is-ancestor 0c8de3c3…HEAD exit 0;设计六件 ls-tree 双侧 blob 逐一相同(GLM 三件 5cb643a1/c72d41a1/772ad4cd;E2E-B 三件 9306e68b/89de7de9/5e0eb558)。
-- 开发提交: 纯线性零 merge(提交信息见 `git log`);reflog 无 reset/amend;不 force push;不碰 main;除本分支外零分支创建。
+- 设计在场核验(§3 步骤4 原样输出入证据包成员③): merge-base --is-ancestor 0c8de3c3…HEAD exit 0(收工复测同 exit 0,`git-forensics/06a-merge-base.txt`;设计支为基线祖先经 e67f710 并入,merge-base(基线,设计支)=设计支自身);设计六件 ls-tree 双侧 blob 逐一相同(GLM 三件 5cb643a1/c72d41a1/772ad4cd;E2E-B 三件 9306e68b/89de7de9/5e0eb558;收工复测 `git-forensics/06c-design-docs-blob-equality.txt` 全等值=PASS;另附依赖六件[设计文档+G1模块+四个被复用既有件]核验 `06b-design-blob-equality.txt`: glm_input_assembler 为 G1 交付物晚于设计支诞生@933ec66,断言改 blob(基线)==blob(HEAD)=True,其余五件三方等值)。
+- 开发提交: 纯线性零 merge(基线..尖端 `--merges` 空,`git-forensics/03b-log-merges-empty.txt`;提交信息见 `03-log-range.txt`);reflog 无 reset/amend(`04-reflog.txt`);不 force push;不碰 main;除本分支外零分支创建。
 - 交付文件双源一致性: git 尖端版 vs 工作树版交叉哈希见证据包成员②。
-- LS-REMOTE 尖端+29 支对照: 见证据包成员③(原样输出;冻结 BRANCH-SET=29 支,唯一新增预期=dev/p03-w2-glm-g2)。
+- LS-REMOTE 尖端+29 支对照: 见证据包成员③(原样输出;冻结 BRANCH-SET=29 支,唯一新增预期=dev/p03-w2-glm-g2)。收工实取: 远端恰 30 支=冻结 29+新增 dev/p03-w2-glm-g2→467a74ecd252cf6d13cc643fb46daad3a9174190(尖端,与本地 rev-parse 一致;`git-forensics/05-ls-remote-heads.txt`)。
 - data/ 零触碰锚定: 27 文件(24 daily+3 research)sha256 快照 `datapath-zero-touch-snapshot.txt`(锚定时刻 2026-11-04T17:5xZ;研究档案 03b4fd7d… 与 E2E-A Run2 登记值一致)。
 
 ---

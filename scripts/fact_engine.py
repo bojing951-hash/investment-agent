@@ -343,7 +343,7 @@ def normalize_china(data, as_of, source_file="china_*.json"):
         if not mid:
             print(f"  ⚠️ A股代码{code}({item.get('name', '?')})未入注册表,跳过(不造事实)")
             continue
-        add(mid, _num(item.get('close')), str(item.get('date')), sub='sina',
+        add(mid, _num(item.get('close')), str(item.get('date')), sub=item.get('via', 'sina'),
             series=item.get('series'))
     _HK_MAP = {"^HSI": "HSI", "^HSCE": "HSCEI", "^HSCEI": "HSCEI"}
     for code, item in (data.get('hk_indices') or {}).items():
@@ -372,17 +372,20 @@ def normalize_china(data, as_of, source_file="china_*.json"):
         obs = to.get('date')
         if obs and len(str(obs)) == 8 and '-' not in str(obs):   # Tushare YYYYMMDD→ISO
             obs = f"{str(obs)[:4]}-{str(obs)[4:6]}-{str(obs)[6:]}"
+        # R049(B-AC-03): 东财回落产物(source='akshare_em')按其实际单位标注calc;
+        # 缺失 source(=tushare方案1或历史数据)保持原字符串,零口径洗白。
+        em = (to.get('source') == 'akshare_em')
         add("SH_AMOUNT", to.get('sh_amount_billion'), obs,
-            calc="Tushare 000001.SH amount千元→亿元")
+            calc="东财 元→亿元(sh000001 amount)" if em else "Tushare 000001.SH amount千元→亿元")
         add("SZ_COMPONENT_AMOUNT", to.get('sz_amount_billion'), obs,
             extra_issues=[{"category": "completeness", "severity": "WARN",
                            "message": "深证成指成分口径(非深市全市场,全市场须399106.SZ)"}],
-            calc="Tushare 399001.SZ amount千元→亿元(成分股口径)")
+            calc="东财 元→亿元(sz399001 amount,成分股口径)" if em else "Tushare 399001.SZ amount千元→亿元(成分股口径)")
         if to.get('sh_amount_billion') is not None and to.get('sz_amount_billion') is not None:
             add("CN_TOTAL_TURNOVER", round(to['sh_amount_billion'] + to['sz_amount_billion'], 2), obs,
                 extra_issues=[{"category": "completeness", "severity": "WARN",
                                "message": "口径=沪市全市场+深证成指成分(近似,非严格沪深全市场)"}],
-                calc="sh_amount+sz_component_amount;旧字段total_amount_billion/volume_billion同此口径")
+                calc="东财 元→亿元(sh+sz相加)" if em else "sh_amount+sz_component_amount;旧字段total_amount_billion/volume_billion同此口径")
         elif to.get('total_amount_billion') is not None:
             # akshare降级: 仅沪市,scope收窄必须披露(旧代码静默)
             add("CN_TOTAL_TURNOVER", to.get('total_amount_billion'), obs,

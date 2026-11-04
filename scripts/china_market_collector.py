@@ -71,6 +71,99 @@ A_SHARE_INDICES = {
     '000852.SH': '中证1000',
 }
 
+# ============ 方案B东财备源(R049/IA-P0-2-W5-DATASRC-B, 2026-11-04) ============
+# 根因(R032 判定件 attempt1_formal_20261104): tushare 同 token index_daily 日配额被
+# 外部先在耗尽(判别首调即「5次/天」)→Gate A core 4 项(SHCOMP/SZCI/SH_AMOUNT/
+# CN_TOTAL_TURNOVER)结构性缺失。用户实批备源换路;操作者实测: akshare 东财端点
+# stock_zh_index_daily_em 免费、无需凭证,完结日 close+amount 可用并与新浪端点交叉
+# 一致;旧回落 amount=0 的根因=新浪端点 stock_zh_index_daily 根本没有 amount 列
+# (结构性缺陷,非数据源不可用)→旧新浪回落删除,唯一新增通道=东财公开免费端点。
+# 纪律: tushare 调用参数/61s 闸门/A_SHARE_INDICES 清单与顺序零变化;零新 token。
+EM_FALLBACK_MAX_DATE = '2026-11-03'  # 合同级截止: 取值行 date≤此日,在途行禁用
+EM_MAP = {
+    '000001.SH': 'sh000001',
+    '399001.SZ': 'sz399001',
+    '399006.SZ': 'sz399006',
+    '000300.SH': 'sh000300',
+    '000905.SH': 'sh000905',
+    '000852.SH': 'sh000852',
+}
+
+
+def _em_settled_pairs(df):
+    """东财日K完结行选择: [(date_str, 原表行号)] 升序,date≤EM_FALLBACK_MAX_DATE
+    (在途行禁用)。date 一律字符串化[:10],与端点返回 dtype 无关。"""
+    if df is None or len(df) == 0:
+        return []
+    pairs = sorted(((str(d)[:10], i) for i, d in enumerate(df['date'])),
+                   key=lambda p: p[0])
+    return [p for p in pairs if p[0] <= EM_FALLBACK_MAX_DATE]
+
+
+def _em_last_settled(df):
+    """东财日K取值行: date≤EM_FALLBACK_MAX_DATE 的最后一行;无完结行→None。
+    返回 (date_str, 行Series)。"""
+    settled = _em_settled_pairs(df)
+    if not settled:
+        return None
+    dstr, idx = settled[-1]
+    return dstr, df.iloc[idx]
+
+
+def _fetch_index_em(code, name):
+    """F1 指数回落(东财,仅 tushare 异常时经 fetch_a_share_indices 进入):
+    返回与 tushare 路径同 schema 的 item + 恰一新增键 via='akshare_em';
+    取值行=date≤EM_FALLBACK_MAX_DATE 最后一行(在途行禁用);东财失败/无完结行
+    →None(该指数如实缺失)。单位披露: EM amount 单位=元(tushare 千元),
+    volume 语义=成交量;经 _no_proxy 禁代理直连。"""
+    try:
+        import akshare as ak
+        with _no_proxy():
+            df = ak.stock_zh_index_daily_em(symbol=EM_MAP[code])
+        settled = _em_settled_pairs(df)
+        if not settled:
+            print(f"  ⚠️ {name}({code}) 东财回落无完结行(date≤{EM_FALLBACK_MAX_DATE})")
+            return None
+        # 与 tushare 路径同窗语义: df_year=当年序列(start_date=年初)→ 周变化/YTD/
+        # pct/series 全部取**取值行当年**窗口(跨年历史不入计算,与 tushare item 同构)
+        year = settled[-1][0][:4]
+        yr = [p for p in settled if p[0][:4] == year]
+        dates = [d for d, _ in yr]
+        closes = [float(df.iloc[i]['close']) for _, i in yr]
+        close = closes[-1]
+        # 周变化与 tushare 路径同规则(倒数第5收盘;不足5根对比首根)
+        week_chg = None
+        if len(closes) >= 5:
+            prev_close = closes[-5]
+            week_chg = round((close - prev_close) / prev_close * 100, 2)
+        elif len(closes) >= 2:
+            prev_close = closes[0]
+            week_chg = round((close - prev_close) / prev_close * 100, 2)
+        # YTD 基准=当年首个收盘(同 tushare df_year 首行)
+        ytd_chg = None
+        if closes and closes[0]:
+            ytd_chg = round((close - closes[0]) / closes[0] * 100, 2)
+        # 东财无 pct_chg 列 → 由前一完结收盘推得(EM同列自洽,非跨源拼接)
+        pct_chg = 0.0
+        if len(closes) >= 2 and closes[-2] > 0:
+            pct_chg = round((close - closes[-2]) / closes[-2] * 100, 2)
+        last_d, last_row = _em_last_settled(df)
+        return {
+            'name': name,
+            'close': close,
+            'pct_chg': pct_chg,
+            'week_chg': week_chg,
+            'ytd_chg': ytd_chg,
+            'volume': float(last_row.get('volume', 0) or 0),
+            'amount': float(last_row.get('amount', 0) or 0),   # 单位: 元
+            'date': last_d.replace('-', ''),                    # →YYYYMMDD,同tushare规格
+            'series': {'dates': dates, 'values': closes},
+            'via': 'akshare_em',
+        }
+    except Exception as e:
+        print(f"  ⚠️ {name}({code}) 东财回落失败: {e}")
+        return None
+
 # 港股（主通道腾讯直连，yfinance备用）
 HK_INDICES = {
     '^HSI': '恒生指数',
@@ -166,11 +259,19 @@ def fetch_a_share_indices():
                 'amount': float(latest.get('amount', 0)),
                 'date': str(latest['trade_date']),
                 'series': {'dates': dates, 'values': closes},
+                'via': 'tushare',
             }
             print(f"  ✅ {name}: {close} (周{week_chg:+.2f}%)" if week_chg else f"  ✅ {name}: {close}")
 
         except Exception as e:
             print(f"  ❌ {name}({code}): {e}")
+            # F1(R049 B-AC-01): tushare 异常→东财回落;上方 tushare 先行路径零变化。
+            item = _fetch_index_em(code, name)
+            if item is not None:
+                results[code] = item
+                wc = item.get('week_chg')
+                tag = f" (周{wc:+.2f}%)" if wc is not None else ""
+                print(f"  ✅ {name}: {item['close']}{tag} [东财回落 akshare_em]")
 
     return results
 
@@ -420,32 +521,44 @@ def fetch_turnover():
     except Exception as e:
         print(f"  ⚠️ Tushare成交额失败: {e}")
 
-    # 方案2: akshare (注意: volume是股数不是金额; 境内源禁代理直连)
+    # 方案2: 东财EM双取(R049 B-AC-02)——旧新浪回落(ak.stock_zh_index_daily)已删除:
+    # 该端点根本没有 amount 列,回落 amount 恒=0(结构性缺陷,非数据源不可用)。
+    # 本方案双取 sh000001+sz399001(禁代理直连),取值行 date≤EM_FALLBACK_MAX_DATE
+    # (在途行禁用),amount 单位=元 → ÷1e8 round2 得亿元;source 标记=akshare_em
+    # (禁冒充 tushare);口径与方案1一致(沪市全市场+深证成指成分)。
     try:
         import akshare as ak
         with _no_proxy():
-            df = ak.stock_zh_index_daily(symbol='sh000001')
-        if df is not None and len(df) > 0:
-            latest = df.iloc[-1]
-            # akshare的amount字段才是成交额，volume是成交量(股数)
-            amount = float(latest.get('amount', 0))
-            if amount > 0:
-                # amount单位是元
-                amount_billion = round(amount / 1e8, 2)
-            else:
-                # 如果amount为0，说明数据源有问题，跳过
-                print(f"  ⚠️ akshare amount为0，跳过")
-                return None
+            df_sh = ak.stock_zh_index_daily_em(symbol='sh000001')
+            df_sz = ak.stock_zh_index_daily_em(symbol='sz399001')
+        sh_row = _em_last_settled(df_sh)
+        sz_row = _em_last_settled(df_sz)
+        if sh_row is None or sz_row is None:
+            print(f"  ⚠️ 东财成交额回落无完结行(date≤{EM_FALLBACK_MAX_DATE})")
+            return None
+        sh_date, sh_last = sh_row
+        sz_date, sz_last = sz_row
+        sh_amount = float(sh_last['amount'])  # 元
+        sz_amount = float(sz_last['amount'])  # 元
+        sh_billion = round(sh_amount / 1e8, 2)
+        sz_billion = round(sz_amount / 1e8, 2)
+        total_billion = round(sh_billion + sz_billion, 2)
 
-            result = {
-                'date': str(latest.name.date()) if hasattr(latest.name, 'date') else str(latest.name),
-                'volume_billion': amount_billion,
-                'total_amount_billion': amount_billion,
-            }
-            print(f"  ✅ 上证成交额(akshare): {amount_billion:.2f} 亿")
-            return result
+        result = {
+            'date': sh_date.replace('-', ''),  # 同方案1规格(YYYYMMDD)
+            # 口径与方案1一致(深侧=399001成指成分,非深市全市场)
+            'scope': '沪市全市场+深证成指成分(近似沪深两市)',
+            'sh_amount_billion': sh_billion,
+            'sz_amount_billion': sz_billion,
+            'total_amount_billion': total_billion,
+            'volume_billion': total_billion,  # 兼容旧字段名
+            'source': 'akshare_em',
+            'label': f'成交额(近似两市): {total_billion:.0f}亿 (沪{sh_billion:.0f}全市场+深{sz_billion:.0f}成指成分)',
+        }
+        print(f"  ✅ 成交额(akshare-em): sh≈{sh_billion:.2f} sz≈{sz_billion:.2f} total≈{total_billion:.2f} 亿")
+        return result
     except Exception as e:
-        print(f"  ⚠️ akshare成交额: {e}")
+        print(f"  ⚠️ 东财成交额回落失败: {e}")
 
     return None
 

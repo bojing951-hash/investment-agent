@@ -161,7 +161,7 @@ WP-B2 验收要点(L220①-⑤)工件全部为离线测试文件/as_of字符串/
 
 commit 链(纯线性,零 merge): 开工登记 8312889(REPORT §零/§一/§六)→ 实现提交(本 REPORT §二-§五 回填+两实现文件,SHA 见下行)→ REPORT/DELIVERY 终版提交(§七-§九 回填+DELIVERY)→ zip sha 追加提交(DELIVERY §五 zip 实测值追加行,自指豁免沿 B1/3e7c300 先例;见 git log dev/p03-e2eb-b2,证据包③+08-sidecar)。
 
-实现提交SHA: (实现提交落盘后回填)
+实现提交SHA: fd36c08a83170b0c3c352b1f0da220b83abeff41
 
 ## §六 实现参数与决策点登记(先登记后运行,运行后禁回改)
 
@@ -190,12 +190,51 @@ commit 链(纯线性,零 merge): 开工登记 8312889(REPORT §零/§一/§六)�
 
 ## §七 偏离与如实声明
 
-(实现后回填)
+1. **要点①测试数据源差异**(§零(iv)已登记,此处展开): DESIGN L220①草案要求「DEV授权副本(data/daily 20261101/20261102)构建快照」,冻结合同 AC-03 承接 R014-D3 要求合成 fixture 为唯一数据源+预期值字面量硬编码;依 DESIGN L206 标题自注(「验收要点=草案,正式AC由主Agent后续轮拟定」)以冻结合同为准(与 B1 §七.1 同款先例)。实现=两日合成采集档(四通道全,结构复刻采集器输出,数值全发明)+核心覆盖生成器(D-B2-14);「数据档引用 data/daily/macro_20261102.json」以测试文件内 fixture 结构注记承接,非数据依赖。时刻: 2026-11-05T0x:xxZ UTC(证据包④ timestamps)。
+2. **双层注册表纪律**: 执行器绑定身份=合成 fixture 注册表(registry 注入,8/10/10 条变体,不读真实注册表);S1 管线内部的指标身份/校验=真实 registry(fe.load_registry,sb 无注入面)——与 tests/test_snapshot.py:117-119 既有先例同构;真实注册表零数值转录(通用值=range 中点,场景值=发明字面量)。此为结构事实,非偏离,如实登记。
+3. **level_diff 语义登记**(D-B2-10): DESIGN L93 仅给 op 名与「同指标两时点差」字样,operand 角色组合未定义;登记为「level 绑定+derived_window 绑定,result=level 值−E3 窗口基准值」,先登记后实现(§六),运行后未改。
+4. **correlation 操作的 IR 生产面**: B1 映射器 v1 约束式规则只发射 spread(D-B1-02 恰 4 条规则登记集),不发射 correlation/level_diff 操作——本包以 hand_ir(手工 mapped IR,过 schema 自检)覆盖这两类 op 的执行语义;映射器扩展属 WP-B3+。如实登记非静默。
+5. **macro 序列不经 series_store**(D-B2-11 登记): 相关性操作对 macro 通道序列结构性 NO_DATA(理由注明既有结构边界,research_history_query.py:25-27 同源登记);将 macro 序列纳入 store 须改 snapshot_builder=白名单外,登记发现不实施。
+6. **fixture gate=DEGRADED 而非 PASS 的如实性**: 生成器蓄意不写 china 可选块(南向/两融/估值→SB_FLOW/MARGIN_BAL/SH_PE 非核心缺席)+CURVE_2S10S 缺席(A3 场景)+BTC 观测滞后 3 天超其 2 天窗(质量 DEGRADED,如实)→S1 构建快照 gate=DEGRADED(R3 放行);gate=PASS 路径经 R1 文件快照与注入快照覆盖(T5/T6)。断言字面量 `DEGRADED` 即 fixture 自检的一部分(T0)。
+7. **test_p4_fixes 本地既有红**: 与 B1 基线登记同款 4 项(monthly_review 数据块,「39通过/4失败」),本包零 M/D 纯新增、与该套件零导入关系,归因在案(§三);Actions run 证据=操作者 CHECKPOINT 派发后落档(合同 §五,执行Agent 不自行 dispatch)。
+8. **临时工具脚本**: /tmp/b2_precalc.py(预期值引擎原语预演)/tmp/b2_inject.py(D1-D4 注入器)/tmp/b2_run_ci.py(本地 CI runner)均为一次性工具,复制入证据包(④ precalc//④ injections//④ ci-runner/),不入白名单。
+9. 无其他偏离;未触发情形(b)上游漂移(套件数 58=57+1 与 B1 终态+1 恰一致);未触发情形(c)不可得(零真实数据面,§零(iv) 零运行产物登记);未触发 PREEMPT-STOP。
 
 ## §八 合同逐条自检(AC-01~AC-07)
 
-(实现后回填)
+| AC | 自评 | 一句证据指引 |
+|---|---|---|
+| AC-01 规格抄录与登记正确性 | PASS | §零(i)逐字抄录(L216-220,基线工作树实读)可直读对照;清单 k=4 逐条附依据;与 git ls-files 零重合(§零(iii));要点①数据源差异公开登记(§七.1) |
+| AC-02 逐要点交付与证据映射 | PASS | §四映射表要点①-⑤全落+4 补充行,file:line 实取;参数登记 D-B2-01..14=常量=断言一致(§六/§二);零运行产物登记(§零(iv)) |
+| AC-03 测试与确定性验证 | PASS(生效) | 63 用例零网络/合成 fixture(四通道采集档+生成器)/预期值字面量硬编码(手算+预演核验);本地: 新套件 exit=0,全量 59 文件 58 套 57 绿+1 既有红归因(§三);负向敏感性 D1-D4 定向红(1/15/3/1)后还原逐字节一致 |
+| AC-04 引用真实性与注入边界 | PASS | §一 file:line 逐条可寻(基线工作树实读);「注入快照」字样仅用于手工快照测试面(依赖注入语义,D-B2-01 登记)非证据伪造;无跨支引用;无引擎路径依赖(全仓可寻) |
+| AC-05 范围/分支/生产隔离 | PASS | diff name-status=纯 A 行(白名单 k=4,零 M/D);分支自 3e7c300 切出+纯线性零 merge;reflog 无 reset/amend;零网络 import(T8 源码锁);fact_engine/snapshot_builder 既有函数签名零改动(DESIGN L218,复用调用);LIVE 零写入(取证见证据包③);main 零触碰 |
+| AC-06 CI与证据包 | PASS(本地侧)/CI待操作者 | 证据包八类成员+SHA256SUMS 落 /tmp/p03-e2eb-b2-evidence/;DELIVERY 五节+漂移维护策略专节;CI dispatch=操作者 CHECKPOINT(执行Agent 未自行 dispatch),登记件路径 rounds/022/E2EB-WP-B2-CI-dispatch-evidence.md |
+| AC-07 研究纪律与使用边界 | PASS | 模块零 open()/零 glob(T8 源码锁,唯一 IO=os.listdir 快照层文件名);禁墙钟(T8+D4 注入定向红);缺值零填 0(四级缺席+values 键集=RESOLVED 集断言);门禁 FAIL 拒答零部分执行(D-B2-03+D3 注入定向红);零 GLM/零凭证/零付费;白名单外需求零实施(登记发现: §七.5) |
 
 ## §九 提交前数值标注六项自检清单(§5.3,强制)
 
-(实现后回填)
+双文档(REPORT+DELIVERY)全文扫描,计数/统计类数值逐个二选一标注;[实取]项已回工作树复核(2026-11-05):
+
+| 数值 | 值 | 标注 |
+|---|---|---|
+| 白名单文件数 k | 4 | [实取·来源: 本REPORT §零(ii)清单] |
+| DESIGN WP-B2行行号 | L216-220 | [实取·来源: docs/P03_E2EB_DESIGN.md 基线工作树,2026-11-04实读] |
+| 专项测试用例数 | 63 | [实取·来源: 本地运行"Ran 63 tests",证据包④log;类计数T0..T9=6/11/5/5/7/7/5/10/5/2] |
+| fixture注册表条数(基/CCC变体/JP变体) | 8/10/10 | [实取·来源: tests L34-87构造字面量] |
+| 合成场景日数/快照日 | 2/20261101+20261102 | [实取·来源: tests DAY_D1/DAY_D2] |
+| 黄金IR绑定数/派生数(承接B1) | 11/3 | [实取·来源: B1黄金字面量+T1终态断言] |
+| 核心覆盖core数(生成器) | 32 | [实取·来源: config/metric_registry.json criticality=core计数,2026-11-05] |
+| 真实注册表指标总数 | 81 | [实取·来源: 同上计数;与B1 REPORT §九一致] |
+| 负向敏感性注入 | D1-D4红1/15/3/1 | [实取·来源: 本地注入实测,§三] |
+| 模块sha256(注入前=还原后) | 54d1fe0c…a4ba | [实取·来源: shasum -a 256 4次比对,§三/§五] |
+| 测试文件总数/CI套件数 | 59/58 | [实取·来源: 本地CI同构运行,证据包④suite-summary.txt] |
+| 基线CI套件数(B1终态) | 57 | [对照·来源: B1 REPORT §九58文件57套件;本包59=58+1,58套=57+1一致] |
+| 既有红失败项 | 4 | [实取·来源: 证据包④logs/test_p4_fixes.log「39通过/4失败」,与B1基线同款] |
+| 执行器/测试行数 | 359/1065 | [实取·来源: wc -l,2026-11-05] |
+| 参数登记项数 | 承接P-01..14+D-B1-01/12/13;本包D-B2-01..14 | [实取·来源: 本REPORT §六] |
+| DELIVERY节数 | 5+专节1 | [实取·来源: docs/P03_E2EB_B2_DELIVERY.md结构] |
+| 证据包成员类别 | 8 | [实取·来源: 合同附录A §六②最低集;证据包目录实测] |
+| 实现提交SHA | fd36c08a83170b0c3c352b1f0da220b83abeff41 | [实取·来源: git rev-parse fd36c08,已回填§五] |
+
+日期/SHA/行号按边界出圈登记: 本文件头部时区声明(UTC);DESIGN行号=基线工作树(3e7c300)版本;无[示意]数值留档。

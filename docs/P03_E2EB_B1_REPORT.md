@@ -67,19 +67,57 @@ WP-B1 验收要点(L214①-④)工件全部为离线测试/文档/commit 登记�
 
 ## §二 实现(逐文件)
 
-(待实现后回填)
+**scripts/e2eb_query_ir.py**(IR定义模块,DESIGN L211「落地§三(a)IR schema」):
+- §三(a) 五结构字段级 schema: IR_KEYS/BINDING_KEYS/PROVENANCE_KEYS/OP_KEYS/UNRESOLVED_KEYS(L63-68)与枚举常量 P-01..P-14(L32-60);
+- `validate_ir(ir, stage)`(L248-): 两阶段字段级校验(mapped/executed;枚举/ID格式/必填/跨引用[operands→binding_id]/阶段规则),返回 issues 列表空=合法;
+- 辅助构造 `make_query_id`(L71-;QB-YYYYMMDD-NNN,D-B1-10);
+- 零文件IO零项目依赖(纯 schema 定义;T5 源码锁用例锁死)。
+
+**scripts/e2eb_query_mapper.py**(映射器v1,DESIGN L211「约束式映射: 词表+注册表检索」):
+- 登记词表: OUT_OF_SCOPE_PATTERNS(L35-39,21词)/AS_OF_CUE_RE(L46)/TREND_CUE_RE(L50)/METRICISH_RE(L53)/CONCEPT_RULES(L57-103,恰4条);
+- `field_for_window`(L113-;单位纪律,复用 fe.RATE_UNITS/PRICE_LIKE_UNITS/COUNT_UNITS 零复制);
+- `_search_registry`(L133-;display_name/calc 关键词检索=A1发现机制)/`_merge_spans`(L146-);
+- `map_question`(L163-): 七步流水——①OOS拦截(L189)②as_of检测经E4(L201)③概念触发(L207)④三阶段绑定发射(L215-267;identity/metric_id分离防缺席概念撞键)⑤派生操作operand齐备性判定(L269-289)⑥剩余指称上浮(L291-304)⑦IR装配+validate_ir(stage="mapped") fail-loud自检(L306-);
+- 缺省数据面=fe.load_registry()(E1)/by_id检索与E2同构(fact_engine.py:75-76);registry参数=注入面。
+
+**tests/test_p03_e2eb_b1.py**(59用例,五类):
+- T0 fixture自检(TestFixtureSanity L138-): 8条合成注册表结构/单位字面量/零日本侧身份;
+- T1 schema两阶段(TestIRSchemaValid L157-/TestIRSchemaNegative L180-/TestMakeQueryId L327-): 合法mapped/executed基底+33单缺陷注入(枚举/格式/必填/跨引用/阶段规则逐条);
+- T2 黄金映射(TestGoldenMapping L341-): §三(d)问题全文→IR**全量字面量对照**(L342-414)+MB-8/MB-9 ABSENT_REGISTRY点名(L416-)+自schema校验/确定性/JP在场身份自动解析(L436-)/US缺席变体/query_seq/双触发去重;
+- T3 窗口与as_of(TestWindowsAndAsOf L484-): field_for_window单位纪律字面量/无cue无窗口/文本as_of/非法日期忽略/参数优先/规则D/E4行为锚;
+- T4 unresolved负向(TestUnresolvedEntities L536-): 交易类问题→out_of_scope(mention字面量「应该买入」「能保证赚钱」)/剩余中性照常映射/印度政策利率→no_registry_identity/空问题/空文本拒绝;
+- T5 接线与纯度(TestWiringAndPurity L583-): mock.patch注入fixture证明E1缺省接线零真实文件读取/两模块源码零网络import锁/零采集档路径字面量与零open()锁/IR模块零项目依赖锁。
 
 ## §三 测试与本地CI
 
-(待回填)
+- 专项套件: `python3 tests/test_p03_e2eb_b1.py` → **Ran 59 tests, OK(exit=0)**(2026-11-04T19:2xZ UTC);
+- 负向敏感性(D1-D4真实注入,记录于证据包④): D1词表删「买入」→红1(test_trading_question_out_of_scope);D2硬编码缺席(跳过注册表检索)→红1(test_jp_present_fixture_resolves_identity);D3 validator删RESOLVED→provenance必填分支→红1(test_resolved_requires_provenance_executed);D4规则B发射序交换→红2(test_golden_ir_full_literal+test_us_metric_missing_fixture_absent);全部还原后59全绿,两模块sha256与注入前逐字节一致(545bddfa…/71448d40…);
+- 本地CI同构(与 offline-tests.yml 逐套件循环同构,python驱动): **58个test文件=57 CI套件(排除test_glm_live)中56绿+1既有红+1跳过**;套件数对照: 56(基线,注入快照+本地57文件-1排除实测一致)+1(新增tests/test_p03_e2eb_b1.py)=57 ✓ 零漂移;
+- 既有红归因: `test_p4_fixes exit=1`(39通过/4失败: 月度序列提取0条/无序列/bp报告空/%报告空——monthly_review数据块,与基线a6d086b交付时登记的**同款既有红**[E2E-A提交信息⑥「test_p4_fixes既有红4项…与本包零导入关系,归因在案」];本包diff零M/D纯新增A行,test_p4_fixes不import本包任何模块→结构性零影响;本地数据演化所致,CI环境[run 41862875466 success]与本地数据面不同);
+- 逐套件记录: 证据包成员④ local-suites/suite-summary.txt(58行)+logs/。
 
 ## §四 逐要点证据映射表(AC-02)
 
-(待回填)
+抄录要点(DESIGN L214,①-④)逐条映射:
+
+| 要点 | (a)实现落点 | (b)证据指针 | (c)自检结论 |
+|---|---|---|---|
+| ①离线单测: IR字段级schema校验用例 | scripts/e2eb_query_ir.py:32-60(常量)+126-180(绑定)+182-229(派生)+248-(总校验);tests/test_p03_e2eb_b1.py:157-339(TestIRSchemaValid/Negative/MakeQueryId共36用例: 合法基底2+单缺陷33+构造器1) | 证据包④local-suites/logs/test_p03_e2eb_b1.log(Ran 59 tests OK);CI run登记件=操作者CHECKPOINT落 rounds/021/E2EB-WP-B1-CI-dispatch-evidence.md | 过 |
+| ②§三(d)问题文本→IR映射黄金用例,含MB-8/MB-9 ABSENT_REGISTRY断言 | scripts/e2eb_query_mapper.py:163-(map_question);tests:342-414(全量字面量对照,11绑定+3派生+缺席理由含「(8指标,INVENTORY G-01)」)+416-434(MB-8/MB-9点名断言) | 同上log;§六D-B1-02..05登记=实现常量=测试断言三方一致 | 过 |
+| ③unresolved_entities负向用例(禁交易类问题→out_of_scope) | scripts/e2eb_query_mapper.py:35-39(21词表)+189-199(拦截);tests:537-559(交易问题→恰2实体out_of_scope+note含「不构成投资建议」)+561-581(剩余中性映射/no_registry_identity/空问题) | 同上log;D-B1-07登记=词表常量=断言一致 | 过 |
+| ④模块SHA登记 | 本REPORT §五(下) | 证据包③git取证+§五 sha256;commit SHA=8d8b408c6c2ccaf50d702a2f0f3fa8fcefa1a389(实现提交,本REPORT回填提交前的稳定固定点) | 过 |
+
+参数类登记核验(AC-02判据3): 词表/枚举/模板/触发词全部先登记(§六,commit 295ebf7)→实现常量→运行,三者一致,运行后零回改。
 
 ## §五 模块SHA登记(验收要点④)
 
-(待回填)
+| 文件 | sha256(实现提交8d8b408版,与当前工作树逐字节一致) |
+|---|---|
+| scripts/e2eb_query_ir.py | 545bddfa698a17f773313d5337b5ea7a2be8dec19c234fe144169677e87ddd2f |
+| scripts/e2eb_query_mapper.py | 71448d40dd46742368a216eeb495ab15b05e9728daccd5ed022856b905d16a6e |
+| tests/test_p03_e2eb_b1.py | 8c594c9afdc90238f6bfcf33fc1812cf7916db0813eeec2fa8be448d8b6f3cbe |
+
+commit SHA 登记: 实现提交=8d8b408c6c2ccaf50d702a2f0f3fa8fcefa1a389;开工登记提交=295ebf7(全值见证据包③git取证);最终尖端与CI headSha登记=操作者CHECKPOINT(rounds/021/E2EB-WP-B1-CI-dispatch-evidence.md)。
 
 ## §六 实现参数与决策点登记(先登记后运行,运行后禁回改)
 
@@ -124,8 +162,51 @@ WP-B1 验收要点(L214①-④)工件全部为离线测试/文档/commit 登记�
 
 ## §七 偏离与如实声明
 
-(待回填)
+1. **tests 文件名差异**(§零(ii)已登记): DESIGN L214 工件草案glob `tests/test_p03_b1*.py` 与冻结合同附录A §零(ii)实值名 `tests/test_p03_e2eb_b1.py` 不字面匹配;依 DESIGN §六标题自注(L206「验收要点=草案,正式AC由主Agent后续轮拟定」)以冻结合同名为准,差异公开登记非静默。时刻: 2026-11-04T19:05Z UTC。
+2. **test_p4_fixes 本地既有红**: 与基线a6d086b登记同款4项(monthly_review数据块),本包零M/D纯新增、零导入关系,归因在案(§三);CI环境基线run 41862875466=success。
+3. **D-B1-01 生命周期哨兵 PENDING_EXECUTION**: DESIGN §三(a) 五值status/二值派生status为执行后终态词汇,而WP-B1范围「不含执行器」(L212)结构性要求映射期存在「已绑定未取数」状态;哨兵为**映射期新增词汇**(不改动终态枚举),已于运行前登记§六(§零 commit 295ebf7),非事后补登。
+4. **走查MB-7展开**: DESIGN L138「MB-7 USDJPY(level+derived_window week/ytd)」为摘要压缩;schema单role约束(L73)下展开为MB-7(level)+MB-10/MB-11(week/ytd),MB-8/MB-9编号保持与走查一致(黄金断言不受影响),登记于D-B1-03。
+5. **OOS相邻span合并**: 「能保证」(13,16)与「赚钱」(16,18)相接即并为一实体(mention=「能保证赚钱」),D-B1-07「重叠span合并」含相接情形,测试内手算注明。
+6. **DELIVERY zip sha256 自指豁免**(沿 d667a4e/fa8db61 先例): zip内DELIVERY副本无zip整体哈希行(固定点不可内含自身哈希),实测值以封装后追加行落档,终态SHA与最终ls-remote见证据目录 08-sidecar/final-state.txt(zip外)。
+7. 无其他偏离;未触发情形(b)上游漂移(套件数恰57=56+1);未触发情形(c)不可得(本包无真实运行面,登记零运行产物);未触发PREEMPT-STOP。
 
 ## §八 合同逐条自检(AC-01~AC-07)
 
-(待回填)
+| AC | 自评 | 一句证据指引 |
+|---|---|---|
+| AC-01 规格抄录与登记正确性 | PASS | §零(i)逐字抄录(L210-214,行号即DESIGN并入后实读)审计可直读对照;清单k=5逐条附依据;与git ls-files零重合;tests文件名差异公开登记(§七.1) |
+| AC-02 逐要点交付与证据映射 | PASS | §四映射表4/4条,落点file:line实取;参数登记=常量=断言一致;无真实运行面→零运行产物登记(§零(iv)) |
+| AC-03 测试与确定性验证 | PASS(生效) | 59用例零网络/合成fixture唯一数据源(不读真实registry与采集档,mock.patch注入)/预期值字面量硬编码;本地: 新套件exit=0,全量58文件57套件56绿+1既有红归因(§三);负向敏感性D1-D4全红 |
+| AC-04 引用真实性与注入边界 | PASS | §一file:line逐条可寻(±3行);「注入快照」字样仅用于基线CI套件数56与31支快照(合同实值,已本地对照57文件-1排除=56一致);无跨支引用(设计三件=并入后工作树实读);无引擎路径依赖 |
+| AC-05 范围/分支/生产隔离 | PASS | diff name-status=纯A行(3并入+5白名单,零M/D);分支自基线切出+恰1个--no-ff merge(800960e)+线性提交;reflog无reset/amend;ls-remote终态见证据(唯一新增dev/p03-e2eb-b1);零网络import(T5锁);E2E-A六文件/主流水线/registry/workflow零触碰(对齐=复用调用fe);LIVE零写入(取证见证据包③) |
+| AC-06 CI与证据包 | PASS(本地侧)/CI待操作者 | 证据包八类成员+SHA256SUMS落/tmp/p03-e2eb-b1-evidence/;DELIVERY五节;自述四段(result.md由驱动落档);CI dispatch=操作者CHECKPOINT(执行Agent未自行dispatch),登记件路径 rounds/021/E2EB-WP-B1-CI-dispatch-evidence.md |
+| AC-07 研究纪律与使用边界 | PASS | 模块零采集档路径字面量/零open(T5源码锁);缺值零填0(NO_DATA→result=None schema锁);OOS词表拦截+文案「不构成投资建议」;零GLM/零凭证/零付费;W4/W5未触碰;白名单外需求零实施(登记发现: 无) |
+
+## §九 提交前数值标注六项自检清单(§5.3,强制)
+
+双文档(REPORT+DELIVERY)全文扫描,计数/统计类数值逐个二选一标注;[实取]项已回工作树复核(2026-11-04T19:3xZ):
+
+| 数值 | 值 | 标注 |
+|---|---|---|
+| 白名单文件数 k | 5 | [实取·来源: 本REPORT §零(ii)清单] |
+| DESIGN WP-B1行行号 | L210-214 | [实取·来源: docs/P03_E2EB_DESIGN.md 并入后工作树,2026-11-04实读] |
+| 概念规则数 | 4 | [实取·来源: scripts/e2eb_query_mapper.py:57-103计数] |
+| out_of_scope词表词数 | 21 | [实取·来源: scripts/e2eb_query_mapper.py:35-39计数] |
+| 专项测试用例数 | 59 | [实取·来源: 本地运行"Ran 59 tests",证据包④log] |
+| schema类用例数 | 36 | [实取·来源: tests/test_p03_e2eb_b1.py L157-339方法计数] |
+| 黄金IR绑定数/派生数 | 11/3 | [实取·来源: tests全量字面量期望(手算登记)] |
+| fixture注册表条数(基/JP变体/US变体) | 8/10/7 | [实取·来源: tests L48-90构造字面量] |
+| 真实注册表指标总数 | 81 | [实取·来源: python计数config/metric_registry.json,2026-11-04;与INVENTORY层②一致] |
+| 测试文件总数/CI套件数 | 58/57 | [实取·来源: 本地CI同构运行,证据包④suite-summary.txt] |
+| 基线CI套件数 | 56 | [注入快照·合同实值BASE-B1-CI-SUITES;本地对照57文件-1排除=56一致] |
+| 既有红失败项 | 4 | [实取·来源: 证据包④logs/test_p4_fixes.log「39通过/4失败」] |
+| 负向敏感性注入 | D1-D4红1/1/1/2 | [实取·来源: 本地注入实测,§三] |
+| merge-base | 1ddfb65ec78f4358b7a004be8ef5d8916ba0f052 | [实取·来源: git merge-base,2026-11-04] |
+| 并入设计文件数/行数 | 3/489 | [实取·来源: merge输出"3 files changed, 489 insertions"] |
+| 模块/测试sha256 | 3条全值 | [实取·来源: shasum -a 256,§五] |
+| 实现提交SHA | 8d8b408c…a389 | [实取·来源: git rev-parse,§五] |
+| 参数登记项数 | P-01..14(14)+D-B1-01..13(13) | [实取·来源: 本REPORT §六] |
+| DELIVERY节数 | 5 | [实取·来源: docs/P03_E2EB_B1_DELIVERY.md结构] |
+| 证据包成员类别 | 8 | [实取·来源: 合同附录A §六②最低集;证据包目录实测] |
+
+日期/SHA/行号按边界出圈登记: 本文件头部时区声明(UTC);DESIGN行号=并入后工作树版本;无[示意]数值留档。

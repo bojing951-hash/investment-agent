@@ -52,6 +52,11 @@ IA-P03-E2EB-WP-B2-EVIDENCE.zip sha256 = 14d8e80b054a5a6df711d66916e35d52fdf62cae
 
 **漂移维护策略**:
 
+**合同 AC-03⑥ 三要素按名目声明(B2-fix1,2026-11-05,依审计处方补齐;原专节三条款保留于后)**:
+1. **①测试预期值唯一来源=仓库内版本化合成 fixture**: 全部预期值字面量硬编码于 `tests/test_p03_e2eb_b2.py` L89-139(合成 fixture 定义与预期值同文件,随本包提交链版本化);
+2. **②fixture 演进时预期值与 fixture 同一 commit 变更**: fixture 定义与预期值同处一文件(tests L89-139),物理不可分离——任何 fixture 变更必然与对应预期值变更落在同一 commit(结构性保证,零人工纪律依赖);
+3. **③真实数据档(`data/daily/` 等)永不进入测试预期值来源**: 测试零读取真实数据档(全合成 fixture 唯一源+源码边界锁用例在案,审计独立核验)。
+
 1. **上游接口漂移**(fact_engine引擎口径/snapshot_builder build_snapshot返回结构/research_provenance门禁与select_snapshot/e2eb_query_ir schema枚举)→ 按合同情形(b)如实报告主Agent,禁当场改;套件(T5/T6/T8接线锁)将定向红,红即信号非误报;
 2. **后续包承接纪律**: 本包登记参数D-B2-01..14(REPORT §六)运行后禁回改;WP-B3+如扩展映射器发射correlation/level_diff或将macro序列纳入series_store,属新包登记面,不回写本包模块;
 3. **SHA与证据链维护**: 模块sha256 `54d1fe0c…a4ba` 与提交链(REPORT §五)为固定点;证据包成员逐件SHA256SUMS,zip整体sha于本文件§五追加行+08-sidecar/final-state.txt(zip外终态)双落档。

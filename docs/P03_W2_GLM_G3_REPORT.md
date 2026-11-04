@@ -192,9 +192,14 @@ WP-G3 验收要点①-④工件=**测试文件**(离线合成 fixture 驱动,确
 
 ---
 
-## §四 git 取证与自检(提交时回填;最终尖端以 ls-remote 为准)
+## §四 git 取证与自检(装配时刻回填;最终尖端以 zip 外 sidecar 为准——自指豁免,G1/G2 同款)
 
-(提交时回填)
+- **分支/线性**: `dev/p03-w2-glm-g3` 自基线 2f03be1fd77677b43d3afb7946af07c725625a2a 纯线性切出;`git log --merges 基线..尖端`=空输出(零 merge 提交);reflog 干净(成员③ reflog.txt)。装配时刻 git 尖端=**本提交**(sha 实取见证据包 03-git-forensics/rev-parse-HEAD.txt;本提交之前的推送实取=ls-remote-POST-push.txt[实现提交 a1f0cfbd8686fc2a5e5107726ea468ad3325d76b 已在 origin]);装配之后的终态(DELIVERY 追加行提交与最终 ls-remote)以 zip 外 `08-sidecar/final-state.txt` 为准——固定点(证据包)不可内含其后提交的哈希,自指豁免同 G1/G2 先例。
+- **diff 范围**: `git diff --name-status 基线..尖端` = 恰 4 行 A(docs/P03_W2_GLM_G3_DELIVERY.md / docs/P03_W2_GLM_G3_REPORT.md / scripts/glm_conclusion_integrator.py / tests/test_p03_w2_glm_g3.py),零 M/D,零第二类(成员③ diff-name-status 文件;与 §0.2 白名单 k=4 逐行一致)。
+- **设计在场**: `git merge-base --is-ancestor dev/p03-w2-glm-design HEAD` exit=0(设计支可达);设计六件 blob 等值核验=设计支 vs 基线 HEAD 全等(GLM 族: P03_W2_GLM_DESIGN.md=c72d41a12eee3c24610bbf3b7078759d7c1895d2 / P03_W2_GLM_INVENTORY.md=5cb643a1aea4ca39f5c8ee32f6a2240b89c0168d / P03_W2_GLM_DELIVERY.md=772ad4cd20ac64db28923c38e30a26b1537f0578;E2EB 族: P03_E2EB_DESIGN.md=89de7de9…/P03_E2EB_DELIVERY.md=5e0eb558…/P03_E2EB_QUERY_SURFACE_INVENTORY.md=9306e68b…;成员③ 06a/06b 文件原样输出)。
+- **远端实取**: 实现提交推送后 `git ls-remote origin`=31 支(30[G2 终态=冻结 29+dev/p03-w2-glm-g2]+唯一新增 `dev/p03-w2-glm-g3`→a1f0cfbd8686fc2a5e5107726ea468ad3325d76b);既有 30 支尖端零变动(含 dev/p03-w2-glm-g2=2f03be1 基线不动)。最终 ls-remote(追加行提交后)见 sidecar。
+- **LIVE/隔离**: LIVE 路径 grep(`R028|GLM-WP-G3|IA-P03-W2-GLM-WP-G3`)=0 命中;launchd 零触碰;`data/` 27 文件与 G2 基线快照逐字节一致(diff IDENTICAL);.gitignore 零改动(diff 白名单外零文件);证据档案(zip)不 commit(仅存 /tmp)。成员③ LIVE-isolation-checks.txt。
+- **白名单外零改动自检**: 工作树 `git status` 全程仅白名单 4 文件出现(实现提交前 untracked 恰 3+DELIVERY 落笔后恰 4,提交后 clean);E2E-A 六文件/G1 四文件/G2 四文件/主流水线 scripts/registry/workflows 均在 diff 零改动面内(4 行 A 之外无任何路径)。
 
 ---
 

@@ -217,11 +217,18 @@ def _no_proxy():
         requests.utils.getproxies = orig
 
 # 需要估值数据的指数
+# IA-DATA-W3(AC-01c, 2026-11-04): 000001.SH(上证指数)纳入估值名单——注册 SH_PE
+# 语义=上证指数整体PE(TTM),原名单仅300/500/1000,上证身份缺席(R008 断点③:
+# A_SHARE_INDICES 含 000001.SH 而本名单不含)。与 A_SHARE_INDICES 在上证身份上
+# 对齐(既有 300/500/1000 成员与顺序零变化,仅首位新增上证)。
 VALUATION_INDICES = {
+    '000001.SH': '上证指数',
     '000300.SH': '沪深300',
     '000905.SH': '中证500',
     '000852.SH': '中证1000',
 }
+# SH_PE 扁平桥接的权威身份(注册口径=上证;300/500/1000 不冒充,身份纪律)
+SH_PE_IDENTITY = '000001.SH'
 
 def get_trade_dates():
     """获取日期范围"""
@@ -319,7 +326,9 @@ def _tx_kline_rows(code, bars=320, retries=2):
             rows = [(x[0], float(x[2])) for x in days if len(x) >= 3]
             if rows:
                 return rows
-        except Exception:
+        except Exception as e:
+            # IA-DATA-W3(AC-01b): 原静默吞异常→留日志(标识+类型),重试语义零变化
+            print(f"  ⚠️ 腾讯日K({code})第{attempt + 1}次失败: {type(e).__name__}: {str(e)[:80]}")
             if attempt < retries:
                 time.sleep(2)
     return []
@@ -359,8 +368,9 @@ def _fetch_hk_yfinance(ticker, name, retries=1):
                 if len(hist_ytd) > 0:
                     year_start = float(hist_ytd['Close'].iloc[0])
                     ytd_chg = round((close - year_start) / year_start * 100, 2)
-            except Exception:
-                pass
+            except Exception as e:
+                # IA-DATA-W3(AC-01b): 原静默pass→留日志;ytd_chg=None 语义零变化
+                print(f"  ⚠️ {name} yfinance YTD获取失败: {type(e).__name__}: {str(e)[:60]}")
             tail = hist['Close'].tail(400)
             return {'name': name, 'close': close, 'week_chg': week_chg,
                     'ytd_chg': ytd_chg, 'date': str(hist.index[-1].date()),
@@ -456,20 +466,46 @@ def fetch_margin():
                     'rzye': round(float(total_rzye), 2),       # 融资余额（元）
                     'rqye': round(float(total_rqye), 2),       # 融券余额（元）
                     'rzye_billion': round(float(total_rzye) / 1e8, 2),  # 亿元
+                    # IA-DATA-W3(AC-01a, 2026-11-04): 引擎/快照契约键 margin.balance
+                    # (fact_engine L364-366 读 mg.get('balance');snapshot_builder 锚
+                    # 'china.margin.balance')。口径=两融余额合计(融资rzye+融券rqye)
+                    # ÷1e8→亿元,与注册 unit=cny_100m「融资融券余额存量(亿元)」同口径;
+                    # 公式授权=IA-DATA-W3-AC-v1.0 §一(a)冻结合同(操作者代批,取代
+                    # R008 §1.4-2a「须合同确认」的前置)。rzye/rqye/rzye_billion 原样保留。
+                    'balance': round((float(total_rzye) + float(total_rqye)) / 1e8, 2),
                 }
                 print(f"  ✅ 融资余额: {result['rzye_billion']:.2f} 亿元 ({date})")
                 return result
-        except:
+        except Exception as e:
+            # IA-DATA-W3(AC-01b): 原裸 except:continue 吞异常(R008 U-1 根因)→
+            # 具体异常类型+指标标识+日期留日志,失败可归因;重试语义零变化。
+            print(f"  ❌ 融资融券(margin)@{date}: {type(e).__name__}: {str(e)[:120]}")
             continue
 
     print("  ⚠️ 融资融券数据暂不可用")
     return None
+
+def _pe_value(row):
+    """PE 取值双形态兼容(IA-DATA-W3 AC-01c): 扁平 pe 键(旧产物/部分载荷形态)
+    或嵌套 pe_ttm 键(tushare index_dailybasic 实测形态)择一取值;均缺席/不可
+    数值化→None(如实缺失,不造 0)。"""
+    for k in ('pe', 'pe_ttm'):
+        v = row.get(k)
+        if v is not None:
+            try:
+                return round(float(v), 2)
+            except (TypeError, ValueError) as e:
+                print(f"  ⚠️ 估值PE取值失败(键={k}): {type(e).__name__}: {str(e)[:60]}")
+                return None
+    return None
+
 
 def fetch_valuation():
     """采集指数估值（PE/PB）"""
     print("\n📊 采集指数估值...")
     end_date, start_week, _ = get_trade_dates()
     results = {}
+    sh_flat = {}   # SH_PE 扁平桥接键(pe/date),上证成功且 PE 可取时填充
 
     for code, name in VALUATION_INDICES.items():
         try:
@@ -489,10 +525,24 @@ def fetch_valuation():
                 'turnover_rate': round(float(latest.get('turnover_rate', 0)), 2),
                 'total_mv': round(float(latest.get('total_mv', 0)), 2),
             }
+            # IA-DATA-W3(AC-01c): 扁平桥接——引擎/快照契约键 valuation.pe+date
+            # (fact_engine L367-369 只读扁平 pe;snapshot_builder 锚
+            # 'china.valuation.pe')。身份纪律: 一律取上证(SH_PE_IDENTITY,
+            # 注册 SH_PE=上证整体PE TTM),pe 取值经 _pe_value 兼容扁平 pe/嵌套
+            # pe_ttm 两形态;上证失败或 PE 不可取→不写扁平键(如实缺失,不以
+            # 300/500/1000 冒充)。嵌套 per-index 对象原样保留(两形态并存)。
+            if code == SH_PE_IDENTITY:
+                pe = _pe_value(latest)
+                if pe is not None:
+                    sh_flat = {'pe': pe, 'date': str(latest['trade_date'])}
             print(f"  ✅ {name}: PE={results[code]['pe_ttm']}, PB={results[code]['pb']}")
 
         except Exception as e:
-            print(f"  ❌ {name}: {e}")
+            print(f"  ❌ {name}({code})估值: {type(e).__name__}: {str(e)[:120]}")
+
+    if sh_flat:
+        results.update(sh_flat)
+        print(f"  ✅ 上证PE(扁平桥接 valuation.pe): {sh_flat['pe']} ({sh_flat['date']})")
 
     return results
 
@@ -592,7 +642,9 @@ def _parse_sina_rt_line(line):
             return None
         return {'close': close, 'prev_close': prev,
                 'date': f"{m.group(1)}-{m.group(2)}-{m.group(3)}"}
-    except Exception:
+    except Exception as e:
+        # IA-DATA-W3(AC-01b): 原静默return None→留日志(标识+类型),解析契约零变化
+        print(f"  ⚠️ 新浪rt行解析失败(rt_hk): {type(e).__name__}: {str(e)[:60]}")
         return None
 
 def _ah_signal(close):

@@ -137,6 +137,22 @@ class FakeGLM:
         return _Client
 
 
+class _FrozenDatetime(datetime):
+    """CI时间炸弹修复(2026-11-04): 冻结datetime.now()系至夹具now(2026-10-30T05:30),
+    使fetch_market_news的"最近7天"过滤 deterministic;否则夹具新闻(2026-10-28T12:00Z)
+    在真实时间2026-11-04T12:00Z后永久出窗→六套件全红。仅测试时钟,零生产改动。"""
+    @classmethod
+    def now(cls, tz=None):
+        base = datetime(2026, 10, 30, 5, 30)
+        return base if tz is None else base.replace(tzinfo=tz)
+    @classmethod
+    def utcnow(cls):
+        return datetime(2026, 10, 30, 5, 30)
+    @classmethod
+    def today(cls):
+        return datetime(2026, 10, 30, 5, 30)
+
+
 def run_collector(tmp, market=None, company=None, rss=None, glm=None,
                   now='2026-10-30T05:30:00Z', watch=None, rss_err=None):
     """在隔离DATA_DIR下真实执行nc.run()。rss: {feed名: [entries]或Exception}。"""
@@ -154,6 +170,7 @@ def run_collector(tmp, market=None, company=None, rss=None, glm=None,
                               lambda url: feed_by_url[url].parse(url)), \
             mock.patch.object(nc, 'WATCH_SYMBOLS', watch or ['NVDA']), \
             mock.patch.object(nc, 'OpenAI', glm()), \
+            mock.patch.object(nc, 'datetime', _FrozenDatetime), \
             contextlib.redirect_stdout(io.StringIO()):
         nc.run(now_utc=now)
     return glm, os.path.join(nc.DATA_DIR, 'news')

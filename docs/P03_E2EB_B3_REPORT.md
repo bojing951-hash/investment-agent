@@ -5,6 +5,7 @@
 > 合同: IA-P03-E2EB-WP-B3-AC-v1.1(v1.0 冻结→v1.0 执行段触发(d)→操作者 v1.1 修正章重冻,2026-11-05 05:22 HKT[注入,合同 v1.1 重冻章,非工作树实读];v1.0 原文归档=rounds/023/criteria-v1.0-frozen.md[注入])
 > **状态(v1.0 段): 情形(d)规格冲突合法停止——零开发零实现;处置记录=rounds/023/OPERATOR-DISPOSITION-R023.md[注入]。**
 > **状态(v1.1 段,本段): 情形(d)规格冲突合法停止(残余冲突面)——本文件为停止登记件,非交付登记件。v1.1 修正面已解决 v1.0 段 C-1~C-4 全部冲突点,但开工步骤5-6 实测暴露**新的结构冲突**(既有测试同步面/source 枚举镜像锁/calendar 封闭集,见 §零-v1.1(ii) C-1'~C-3'),交付清单仍不可合法实现 → 本包 v1.1 段零开发、零实现、无交付文件清单、无 DELIVERY、无测试、无运行产物;不判 FAIL、不进审计,处置权操作者。(依据: 合同 v1.1 附录A §零(iv)/§九(d)/§十;executor prompt v1.1 §3 步骤5 停止条件/§7)
+> **状态(v1.2 段,现段): 情形(d)规格冲突合法停止(残余冲突面第三层)——v1.2 修正面(六类 M 白名单+锁同步纪律)消解 v1.1 段 C-1'~C-3' 的**枚举/日历/授权**面,但**全量 58 套件受控实验**(v1.1 段仅抽样 7 套件)实测: 注入态红面为 **28 套件(归因)**,其中 **23 套件在 v1.2 五文件锁同步白名单之外**;最保守弱化变体(U1)仍有 8 套白名单外红;v1.2 硬条件「5 套件同步后全绿」不可达 → 交付不可合法实现。本段零开发、零实现(实验注入已全部还原,clean),唯一落档=本 REPORT v1.2 段;不判 FAIL、不进审计,处置权操作者。(依据: 合同 v1.2 附录A §零(iii)⑤/§五①/§六①/§九(d);executor prompt v1.2 §3 步骤5/§7;证据=/tmp/p03-e2eb-b3-evidence/v1.2-stop/)
 > 时区边界声明: 本文件日期/时刻凡未注明者均为 UTC;v1.0 段引用 DESIGN 行号为基线 fe04691 工作树实读行号(2026-11-04T21:12–21:18Z 实取);v1.1 段引用行号为基线 9575419 工作树实读行号(2026-11-04T21:27–21:40Z 实取;DESIGN blob 经 v1.1 步骤4 核验与 fe04691 侧等值,行号不变);引用合同/executor prompt 内容标注「注入」;工作树事实一律实读取证(命令与输出可复核,实验日志原件存 /tmp/p03-e2eb-b3-evidence/v1.1-stop/)。
 
 ---
@@ -187,4 +188,110 @@ registry 指标 `calendar` 必须属于 `KNOWN_CALENDARS={us_equity,us_rates,com
 
 ---
 
-*本文件为 IA-P03-E2EB-WP-B3 情形(d)合法停止登记件(v1.0 段+ v1.1 段);零实现零交付,不进审计;处置权操作者。*
+*〔v1.1 段完,2026-11-04T21:40Z;以下为 v1.2 重发执行段追加,2026-11-04T22:20Z 起〕*
+
+---
+
+# v1.2 执行段(基点 9c701eaaadd8df2e1df66a1c31b2b70ad637721a)
+
+## §零-v1.2 开工核验与残余冲突登记(第三层)
+
+### (i) 开工核验记录(步骤0-6,全部原样可复核)
+
+| 核验项 | 结果 |
+|---|---|
+| 步骤0 时序自检 | `git status` clean,分支 dev/p03-e2eb-b3,2026-11-04T21:55:27Z(UTC) |
+| 步骤1 占位符 | 三占位符已实值化: BASE-B3=9c701eaaadd8df2e1df66a1c31b2b70ad637721a/CI套件58/BRANCH-SET 34支[注入: 提示词§0,v1.2 重冻 2026-11-05 05:51 HKT];生效前置(WP-B2 PASS 合并 main b5c33f8)成立 |
+| 步骤2 前置实取 | `git ls-remote origin dev/p03-e2eb-b3`=9c701eaaadd8df2e1df66a1c31b2b70ad637721a(=基线,全值一致);`dev/p03-e2eb-b2`=fe046913404a63f3d08ec362a53808d418efdcde(谱系前件一致);`dev/p03-e2eb-design`=f1fe593faa0f1754e6a6ab14c39f39fc0848550a(前7位=f1fe593);main=b5c33f85c42e12b4f04e2a80faa1131244997c70 |
+| 步骤3 接管既有分支 | 已在 dev/p03-e2eb-b3,`git rev-parse HEAD`=9c701eaaadd8df2e1df66a1c31b2b70ad637721a(=基线);v1.0/v1.1 两段(d)登记件 commits 为合法谱系前件,保留不 revert |
+| 步骤4 设计在场核验 | `git merge-base --is-ancestor f1fe593… HEAD` exit 0(可达);三件 blob 双侧等值: P03_E2EB_DELIVERY.md=5e0eb558036f631f27c751bec296c8d8d97e2ec9,P03_E2EB_DESIGN.md=89de7de9ba570930d5765067ae034aca07b97d72,P03_E2EB_QUERY_SURFACE_INVENTORY.md=9306e68b54ac2ec03252289f2330355f395a2b38(HEAD 侧与 f1fe593 侧逐一相同)——**核验通过,无基线异常** |
+| 步骤5 规格抄录 | WP-B3 行 L222-226 四要素逐字抄录沿用 §零(i)(DESIGN blob 89de7de9… 等值核验通过,原文与行号不变);v1.2 六类 M 白名单与 DESIGN 范围三项(registry 变更/采集器扩展/通道 SOURCE_FILE_RULES 登记)**初审相容**(v1.1 段 C-1'~C-3' 对应面均已入授权)→ 推进至步骤6 前置实读与实现可行性实测 |
+| 步骤6 前置实读 | 登记见 (i-b);实读中发现**白名单外既有计数锁**(tests/test_p02_w4.py L231/232 等)→ 触发全量套件受控实验(先于任何实现提交),(ii)~(iv) |
+
+### (i-b) 前置实读登记(file:line,基线 9c701ea 工作树实读,2026-11-04T21:56–22:04Z)
+
+- `tests/fixt.py` L1-12(docstring: fixture 必须覆盖全部 active/core 集合,「缺席=非核心缺失→DEGRADED 披露」)、L40-45(`collector_payloads` 硬编码 4 通道 payload,返回恰 {'global','macro','china','rate_economy'} 四键)、L205-211(`write_collectors` 恰写 4 个 `{name}_{ymd}.json`)、L223-240(`real_snapshot` 经真实 build_snapshot 构造,gate='PASS' 语义=全核心有效);
+- `scripts/snapshot_builder.py` L43-44(`SOURCES` 自 `rp.SOURCE_FILE_RULES` 推导——通道登记即自动进入 sources_status);L273-289(事实提取按通道硬编码 4 分支,无 japan 分支,fact_engine 冻结);
+- `scripts/research_provenance.py` L111-117(`_SOURCE_TO_INPUT` source→通道映射)、L135-141(`_AUTHORIZED_COLLECTORS`)、L145(`SOURCE_CHANNELS` 必需 4 通道元组)、L152-157(`SOURCE_FILE_RULES` 单一权威)、L586(sources_status_problems 恰迭代 SOURCE_CHANNELS 4 通道,额外通道键不校验不拒绝)、L1029-1055(recompute_gate_a 非核心缺失判定: 派生归因分支 L1024-1037/无映射边界分支 L1040-1045「来源无法映射采集通道…不入缺失判定」/有映射无文件=来源缺失 L1048-1052/有映射有文件=采集遗漏 L1049-1050);
+- `scripts/registry_semantics.py` L48-58(KNOWN_UNITS 含 percent)、L60-61(KNOWN_CALENDARS 7 值,A6b 镜像 trading_calendar.MARKETS)、L63-71(KNOWN_SOURCES 6 值,A6c 镜像 rp._AUTHORIZED_COLLECTORS∪deprecated)、L112-129(INSTRUMENT_BY_CLASS: rates_yield/policy_rate→instrument optional 含 index_rate_series)、L139-162(UNIT_BY_CLASS: rates_yield/policy_rate→percent);
+- `scripts/trading_calendar.py` L30(MARKETS 元组 7 值)、L84-104(is_trading_day 市场分支);
+- **白名单外计数/契约锁实读发现**: tests/test_p02_w4.py L231-232(`len(reg['metrics'])==81`/`len(result['metrics'])==81`,另 L412/L691/L746 同类)、tests/test_p02_w4_fix1.py L544、tests/test_p02_w4_fix2.py L243/L543、tests/test_p02_w4_fix3.py L411、tests/test_p02_w4_fix4.py(test_c5_no_metric_inflation)、tests/test_p01_fix1.py L412-420(fixt 正常日→`gate_a.status=='PASS'`)、tests/test_p01_fix5/6/10/11(sources_status 结构/通道参数化/「四通道全选」断言)——**均不在 v1.2 五文件锁同步白名单内**(白名单=tests/test_p02_w1.py/tests/test_p02_w1_fix1.py/tests/test_p02_w2.py/tests/test_e2e_frozen14.py/tests/test_gate_chain_p01.py);
+- registry 计数与来源/日历分布沿用 §一(v1.0 段)登记(81/80 active/32 core;blob 逐字复核一致)。
+
+### (ii) 残余冲突登记(三点,全部全量套件受控实验取证,2026-11-04T22:05–22:38Z)
+
+**实验方法**: 注入脚本(/tmp/p03-e2eb-b3-evidence/v1.2-stop/exp_inject.py,锚定替换,锚不在场即零部分注入退出)向白名单侧恰四类文件施加**最小 japan 身份变更**(=真实设计的白名单侧子集,结果可迁移): ①registry v2.0.0/81→v2.1.0/85(新增 4 条 active 日本利率指标: JP_POLICY_RATE[policy_rate/percent/japan/japan_rate_collector/index_rate_series/important]+JGB_2Y/5Y/10Y[rates_yield/同前])②research_provenance.py(SOURCE_FILE_RULES+japan 通道[prefix japan_/fallback 5]+_SOURCE_TO_INPUT+japan_rate_collector→japan+_AUTHORIZED_COLLECTORS+japan_rate_collector)③registry_semantics.py(KNOWN_SOURCES+japan_rate_collector+KNOWN_CALENDARS+japan+L60 注释同步)④trading_calendar.py(MARKETS+japan+is_trading_day japan 分支[周末+01-01 保守最小集]+docstring 口径行)。注入态 sanity 全过(fe.load_registry 85/84 active;registry_semantics 0 error 0 review;A6b/A6c 双镜像逐元素相等成立——**镜像锁无需动测试即保持绿,验证 v1.2 该修正面有效**)。随后以与 .github/workflows/offline-tests.yml 同构循环(逐 `python3 tests/test_*.py`,排除 test_glm_live)跑**全量 58 套件**(v1.1 段实验仅抽样 7 套件——本次升格为全集)。
+
+**实验结果(M 态=完整诚实设计,含 _SOURCE_TO_INPUT 映射)**: 58 套件 **29 红/29 绿**(m_summary.txt+m-logs/);扣除环境红 1 套(见 (v) 附注)后**归因红 28 套**,其中**白名单内恰 5 套**(test_p02_w1 5断言/test_p02_w1_fix1 4/test_p02_w2 2/test_e2e_frozen14 5/test_gate_chain_p01 5——与 v1.1 段实测完全一致,v1.2 白名单对此 5 套的预判正确)、**白名单外 23 套**:
+
+| 白名单外红套件(23) | 失败机制(代表行,m-logs/ 逐套可复核) |
+|---|---|
+| test_p01_fix1/fix2/fix3/fix4/fix5/fix7/fix8(7) | fixt 正常日 Gate A PASS 契约: noncore_missing=['JGB_10','JGB_2','JGB_5','JP_POLICY_RATE']→实测 DEGRADED(如 p01_fix1 L412-420「全核心齐备+无失败→Gate A PASS」红) |
+| test_p01_fix5/fix6/fix10/fix11(4,与上行 fix5 并集) | sources_status 第 5 通道(japan MISSING)结构锁/通道参数化用例(p01_fix6「B[japan] 真实构建窗口内 lag→PASS」无 japan fixture 文件即红)/「四通道全选」断言(files dict 含 japan:False) |
+| test_p02_w2_fix1/fix2(2) | 「B10/D1/A5/A6/C2 正常对照 Gate A=PASS」锁(实测 DEGRADED) |
+| test_p02_w3/w3_fix1/fix2/fix3/fix4(5) | 「O3/O4/L2/E2E-A3/E2E-B1 Gate A PASS(金融事实链不受新闻影响)」契约锁 |
+| test_p02_w4/w4_fix1/fix2/fix3/fix4(5) | 字面 81 计数锁(L231/232/412/691/746 等,`AssertionError: 85 != 81`) |
+| test_p02_w5(1) | 「E1 离线诊断 Gate A=PASS」锁(实测 DEGRADED) |
+
+**分解实验(U1 态=去掉 _SOURCE_TO_INPUT 映射的弱化变体,即 research_provenance L1040-1045 边界路径)**: 归因红降为 **11 套**,其中白名单外仍 **8 套**(test_p01_fix5/fix6/fix11+test_p02_w4 全族 5)——证明计数锁面与通道结构面**与映射选择无关,任何含 81+N registry 变更+japan 通道登记的实现都必然触发白名单外红面**;且 U1 变体下边界注释「来源无法映射采集通道」与通道已登记的事实自相矛盾、采集日「来源文件在场而指标缺席(采集遗漏)」披露被抑制,属 v1.1 段 (iv)③ 同类的语义弱化路径。
+
+**C-1'' 计数/结构锁面溢出五文件白名单(实测坐实)**: v1.2 M 白名单⑤的五文件锁同步授权仅覆盖 5/28 归因红套件;余 23 套(上表)不在六类授权任何一类内。合同 v1.2 AC §零(iii)⑤ 硬条件「**5 套件同步后全绿**」在全量套件下不可达——同步 5 套后仍有 23 套红。
+**C-2'' fixt「全 active 齐备」契约结构性不可满足**: tests/fixt.py L1-12/L40-45 契约要求 fixture 覆盖全部 active 指标,但其 payload 硬编码 4 通道、fixt.py 不在 v1.2 任何 M 授权类;新增 4 条 active 指标后正常日 fixture 永远缺 4 条→noncore_missing→DEGRADED,「正常日 PASS」在全注册表面下**不可构造**(11+ 套契约锁所测的 PASS 路径失去可测性,锁值即使移动亦使被测语义失真)。fixt docstring「gate='PASS'→全核心有效」语义失真且不可修复(文件禁改)。
+**C-3'' japan 通道登记本身即触发白名单外红(与 registry 指标无关)**: U1 分解实验证明,仅 SOURCE_FILE_RULES+japan(DESIGN L224 范围第三项「通道SOURCE_FILE_RULES登记」)即使零指标新增,也使 snapshot_builder.SOURCES 变 5 通道,p01_fix5(sources_status 结构)/p01_fix6(B[japan] 参数化)/p01_fix10/11(四通道全选)红——通道登记无「零红」实现路径。
+
+### (iii) 受控实验记录(方法/还原/对照,完整日志 /tmp/p03-e2eb-b3-evidence/v1.2-stop/)
+
+1. 注入(exp_inject.py+补丁补齐,锚定替换零部分注入): M 态=白名单侧四文件最小 japan 身份(见 (ii));sanity=85 指标/84 active/0 error/0 review/A6b=A6c=True/SOURCES 5 通道/SOURCE_CHANNELS 仍 4(历史快照重验不受影响)/japan 日历 2026-11-03 交易日·01-01 休市·周日休市;
+2. M 态全量 58 套件: 29 红(28 归因+1 环境见 (v) 附注)/29 绿(m_summary.txt);
+3. U1 分解(M−_SOURCE_TO_INPUT 映射): 11 红(归因)/47 绿(u1_summary.txt);
+4. 还原: `git checkout -- config/metric_registry.json scripts/research_provenance.py scripts/registry_semantics.py scripts/trading_calendar.py`(实验前工作树 clean、四文件全部改动为实验所注入,还原到 HEAD 权威态)→ 实测 81 指标/version 2.0.0/KNOWN_SOURCES 无 japan/SOURCE_FILE_RULES 4 通道/MARKETS 7 值零残留;
+5. 基线对照(还原态全量 58 套件): **恰 1 红=test_p4_fixes(环境红,见 (v) 附注),其余 57 绿**——归因红面由注入**单独**致生的因果链闭合;白名单 5 套还原计数 w1 46/0、frozen14 33/0、gate_chain 86/0,与 v1.1 段还原对照计数完全一致;
+6. 本实验零网络(无任何采集/HTTP)、零提交、零 LIVE 触碰;实验后工作树 clean(git status 零行)。
+
+### (iv) 四路穷尽论证(v1.2 版,无可合法实现路径)
+
+| 路径 | 结果 |
+|---|---|
+| ①实现+仅同步 5 白名单套件 | 23 套白名单外红(实测)→ AC-06①③「success/套件零回归」不可能+AC-03⑤「本地逐套件全绿」不可能;v1.2 §零(iii)⑤ 硬条件「5 套件同步后全绿」实测不可达 → **FAIL 面** |
+| ②实现+同步全部红面文件 | M 行溢出六类白名单(23 套含 p01_fix×10/w2_fix×2/w3×5/w4×5/w5,另 fixt.py 契约重构)→ AC-05① 反例①「清单外任何 M 行=违约」 → **FAIL 面** |
+| ③零 registry 变更/deprecated 伪装 | v1.1 段 (iv)③④ 已证(要点①②④无落点/语义伪造),v1.2 未改该面 → **FAIL 面** |
+| ④弱化映射(U1 边界路径) | 仍 8 套白名单外红(计数锁+通道结构锁与映射无关)+边界注释与通道登记事实矛盾+采集遗漏披露被抑制(较①②更不诚实) → **FAIL 面** |
+
+四路皆 FAIL 面 → DESIGN WP-B3 权威范围(81+N registry 变更+通道登记)与 v1.2 合同结构边界(五文件锁同步白名单+fixt 不可改+「5 套件同步后全绿」硬条件)在**全量测试基线**上正面冲突,属合同 §九(d)「与结构边界矛盾」→ **开工即停,零开发,最小登记执行**。根源: v1.1 段实验抽样 7 套件外推红面,v1.2 白名单按样本建置;全量实测红面(28 套)约为样本(5 套)的 5.6 倍——合同起草所依证据不全,非设计漂移(DESIGN 仍为权威,其 L223「registry版本升级走既有变更纪律」在**全量基线**下要求的同步面远超 63bd750 先例的 5 文件规模)。
+
+### (v) 停止判定与执行内容(v1.2 段)
+
+依合同 v1.2 附录A §零(iii)⑤(「5 套件同步后全绿」为硬条件,实测不可达=结构违约面)/§九(d)(「规格冲突合法停止…与结构边界矛盾→开工即停如实报告,零开发或最小登记执行,不判 FAIL、不进审计,处置权操作者」)、executor prompt v1.2 §3 步骤5 停止条件/§7 同款条款:
+
+- **本包 v1.2 执行段宣告情形(d)规格冲突合法停止(残余冲突面第三层 C-1''~C-3'')。**
+- 零开发: 不实现任何 WP-B3 范围项;不创建 DELIVERY/测试/采集器文件;不触碰(还原后)registry/采集器/research_provenance/registry_semantics/trading_calendar/tests/data/daily/LIVE 路径/launchd;零网络零 GLM 零凭证零付费(受控实验为基线工作树内临时注入+还原,零提交,已还原 clean 并全量对照)。
+- 仅登记件执行: 本 REPORT v1.2 段(核验记录+前置实读+残余冲突登记+实验记录+四路穷尽+停止判定)为唯一落档动作;实验日志与三态全量日志原件存 /tmp/p03-e2eb-b3-evidence/v1.2-stop/(4 脚本+3 日志目录[m-logs/58、u1-logs/58、baseline-logs/58]+3 摘要+2 单套复跑日志+U1 文件态快照,供操作者 v1.3 处置参考;(d)停止不进审计,不装配 AC-06 八类证据包)。
+- 不运行 CI dispatch((d)停止不进审计;分支相对基线唯一差异为本 docs 文件追加,无代码路径变化,CI 零回归由 diff 结构自证)。
+- **处置权操作者**。处置参考(非本Agent决定): ①合同 v1.3 扩锁同步白名单至实测红面全集(23 白名单外套件+fixt.py 契约重构)并逐文件锁同步登记表——工程量约 24 文件,远超 63bd750 先例(5 文件),须用户知情;②计数锚弱化处置(DESIGN 修订或合同允许结构锚[如「≥81 且含 4 条日本身份/含 japan 通道」]替代字面 81 锁,v1.1 段处置参考③的合同化);③拆包处置(先「测试基线重构包」[fixt 动态化+计数锚结构化+PASS 路径保留],后「日本身份注册包」零测试冲突落地);④回补设计处置(WP-B3 范围收窄为「采集器+数据档」先行,registry 身份延后)。涉测试基线语义变更者均涉用户知情(测试基线=封版链资产)。另附独立发现供操作者知悉(与本包无关): **环境红 test_p4_fixes**——还原基线上单独复跑亦红(4 失败,「提取到≥5个月度序列 got 0」),机制=tests/test_p4_fixes.py L60-62 以 `data/daily/global_2026*.json` 在场与否选 real/fixture 目录,DEV data/daily 现含 20261101-1104 真实副本(24 文件)而无 202609 数据→real 分支 9 月序列为空;GitHub CI fresh checkout 无 data/daily(数据不进库)→fixture 分支→绿。即该套件对本地数据目录状态敏感,本地红/CI 绿,建议后续轮次处置(如 real 分支缺当月数据时回退 fixture),非本包范围。
+
+### (vi) LIVE 侧零接触取证(2026-11-04T22:17Z)
+
+- LIVE `real_data_acceptance.py` SHA256=f9ca189c5248199bb5acbc78b2a2c82d59c10e1c7c2c2d20bdaaa6105fbfe3eb(合同登记前缀 f9ca189c… 一致,不变);
+- LIVE 目录 grep(`R023|E2EB-WP-B3|IA-P03-E2EB-WP-B3`)零命中;
+- LaunchAgents 零改动(mtime 全部≤2026-11-03,本会话零写入;全部命令只读)。
+
+## §一-v1.2 数值标注清单(§5.3 纪律)
+
+| 数值 | 标注 |
+|---|---|
+| v1.2 基点 9c701eaaadd8df2e1df66a1c31b2b70ad637721a | [实取·来源: git rev-parse HEAD + ls-remote origin dev/p03-e2eb-b3,2026-11-04T21:55Z] |
+| 套件基线 58/BRANCH-SET 34 支/重冻时刻 05:51 HKT | [注入·来源: executor prompt §0 与合同 v1.2 重冻章,非工作树实读] |
+| M 态红面 29 红/29 绿;归因 28=白名单 5+白名单外 23;U1 归因 11=白名单 3+白名单外 8;基线 57 绿+1 环境红 | [实取·来源: /tmp/p03-e2eb-b3-evidence/v1.2-stop/ m_summary.txt/u1_summary.txt/baseline-logs 逐套退出码,2026-11-04T22:09–22:38Z] |
+| 白名单 5 套失败断言数 w1 5/w1_fix1 4/w2 2/frozen14 5/gate_chain 5 | [实取·来源: m-logs/ 同名 .log ❌ 行计数,2026-11-04T22:36Z;与 v1.1 段 §零-v1.1(ii) 表一致] |
+| 还原对照计数 w1 46/0、frozen14 33/0、gate_chain 86/0 | [实取·来源: restore_spot_*.log,2026-11-04T22:15–22:16Z] |
+| 注入指标 4 条(JP_POLICY_RATE/JGB_2Y/JGB_5Y/JGB_10Y)/85/84 active/0 error | [实取·来源: exp_sanity.py 输出,2026-11-04T22:08Z/22:35Z] |
+| 白名单外锁 file:line(test_p02_w4.py L231/232/412/691/746、w4_fix1 L544、w4_fix2 L243/543、w4_fix3 L411、p01_fix1 L412-420、fixt.py L1-12/L40-45/L60-62 等) | [实取·来源: 对应文件 grep -n/实读,2026-11-04T21:56–22:04Z] |
+| research_provenance 行号 L111-117/L135-141/L145/L152-157/L586/L1029-1055;snapshot_builder L43-44;registry_semantics L48-71/L112-162;trading_calendar L30 | [实取·来源: 对应 scripts 文件实读,2026-11-04T21:58–22:03Z] |
+| DEV data/daily 24 文件(20261101-1104 四通道族) | [实取·来源: ls data/daily/,2026-11-04T22:12Z] |
+| LIVE sha256 f9ca189c…(全值见 (vi))/grep 零命中/LaunchAgents mtime≤2026-11-03 | [实取·来源: shasum -a 256/grep -rl/ls -la,2026-11-04T22:17Z] |
+| 红面倍数 5.6(28/5) | [实取·计算: 归因红 28÷白名单样本 5,来源同上] |
+| N=4(注入设计值) | [示意·非实取;DESIGN L223 原文「新增N条」未定值,实验取 4=政策利率+JGB 2Y/5Y/10Y(至 10Y 关键期限)为设计提案,非设计定值;红面与 N 具体值无关(任何 N≥1 即触发字面 81 锁)] |
+
+---
+
+*本文件为 IA-P03-E2EB-WP-B3 情形(d)合法停止登记件(v1.0 段+v1.1 段+v1.2 段);三段均零实现零交付,不进审计;处置权操作者。*

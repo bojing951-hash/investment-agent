@@ -30,8 +30,10 @@ from unittest import mock
 
 import pandas as pd
 
-ROOT = '/Users/cast/investment-agent-dev'
-for p in (ROOT, ROOT + '/scripts'):
+import os
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+for p in (ROOT, os.path.join(ROOT, 'scripts')):
     if p not in sys.path:
         sys.path.insert(0, p)
 

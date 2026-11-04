@@ -41,7 +41,7 @@ AC-01 PASS(规格逐字抄录 L228-232 行号零偏差+清单 k=4 零重合+推�
 - 模块 SHA 与提交链登记: REPORT §五;zip 整体 sha256 实测值(装配后追加行,自指豁免沿 B1/B2/G1/G2 先例):
 
 ```
-(装配后追加行)
+IA-P03-E2EB-WP-B4-EVIDENCE.zip sha256 = bfe17e23d14daae931b5743abfb19c713b7cfc4a5c827c9f2c6a31c42181797e (27成员/98790字节, 装配后实测,assemble TIP=f617bbc)
 ```
 
 > 自指豁免: zip 内 DELIVERY 副本(成员②)=终版提交版无上行实测值,固定点不可内含自身哈希;推送终态(最终尖端/最终 ls-remote)见证据目录 08-sidecar/final-state.txt(zip 外),B1/B2 同款先例。

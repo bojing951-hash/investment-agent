@@ -42,6 +42,7 @@ AC-01 PASS(规格逐字抄录L216-220+清单k=4零重合)/AC-02 PASS(要点①-�
 
 ```
 IA-P03-E2EB-WP-B2-EVIDENCE.zip sha256 = 14d8e80b054a5a6df711d66916e35d52fdf62cae434a98eb52c9129096145235 (91成员/301343字节, 装配后实测)
+IA-P03-E2EB-WP-B2-EVIDENCE.zip sha256 = 8ea2dee092a6353566b8e858a9c6cb3dfac0f0966a951ff1863c8534cec17a32 (91成员/303661字节, B2-fix1重装配后实测,assemble TIP=8170a46;原装配行保留为历史)
 ```
 
 > 自指豁免: zip内DELIVERY副本(成员②)=c2d473f版无本行, 固定点不可内含自身哈希; 推送终态(最终尖端/最终ls-remote)见证据目录08-sidecar/final-state.txt(zip外), B1/G1/G2同款先例。

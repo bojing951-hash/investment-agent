@@ -26,6 +26,7 @@
 - **git 取证**: 原样输出于证据包成员③(name-status/rev-parse/log/reflog/ls-remote+merge 提交信息)。
 - **CI**: 操作者 CHECKPOINT dispatch(执行Agent 禁自行触发);登记件将落 `rounds/026/GLM-WP-G1-CI-dispatch-evidence.md`(引擎侧,本包引用其路径)。
 - **zip 整体 sha256**: 见证据包成员⑧ SHA256SUMS 与 stdout 自述(本文件不预写,以装配后实测为准)。
+- **zip 整体 sha256(装配后实测追加登记)**: `a68070c4b5a0ccc3438f13a145c0d9201422c403f34039c6848872b93601f657`(94 成员,278817 字节,2026-11-04T17:1xZ 装配)。本行为 zip 封装后追加提交——zip 内 DELIVERY 副本(成员①②)=4b067df 版无本行,自指豁免同 SHA256SUMS;追加提交 SHA 与最终 ls-remote 见证据目录 `08-sidecar/final-state.txt`(zip 外)。
 
 ## §三 逐 AC 自评
 

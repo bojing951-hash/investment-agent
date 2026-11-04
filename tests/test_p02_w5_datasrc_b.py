@@ -37,6 +37,15 @@ for p in (ROOT, os.path.join(ROOT, 'scripts')):
     if p not in sys.path:
         sys.path.insert(0, p)
 
+import types
+
+# CI 环境不装 akshare(离线套件零真实依赖): 无条件注入确定性 fake,
+# 不论真包是否在场统一覆盖,保证 CI==本地行为一致;
+# 真实端点证据在证据包 console,不在测试(见文件头声明)。
+_ak_fake = types.ModuleType('akshare')
+_ak_fake.stock_zh_index_daily_em = mock.MagicMock(name='stock_zh_index_daily_em')
+sys.modules['akshare'] = _ak_fake
+
 import china_market_collector as cmc
 import fact_engine as fe
 

@@ -78,25 +78,70 @@ WP-B5 验收要点(L238①-④)工件全部为离线测试文件/CI run 登记�
 
 ## §二 实现(逐文件)
 
-(实现后回填;见 §五 commit 链)
+**实现提交见 §五 commit 链;以下行号为实现提交(a0c0039)工作树实取(2026-11-05)。**
+
+### scripts/e2eb_answer_renderer.py(约260行,纯新增)
+
+- `GroundingError`(L36,ValueError 子类;D-B5-04 fail-closed 唯一出口);
+- 接地标识三形态常量与核验(L42-47 形态名/字段路径例式;L50-75 `_is_number`+`_identifier_forms`——形态①复用 qir.FACT_ID_RE/形态② qir.SNAPSHOT_ID_RE/形态③ qir.ISO_DATE_PREFIX_RE,零复制);
+- `validate_value_node`(L77-92,要点①机制面: 数值类型守卫+至少一种完整形态,返回 issues);
+- `validate_derived_node`(L95-115,派生值 calculation_ref 必附+operand 观测链逐个核验);
+- 禁语守卫(L118-137,`GUARD_EXEMPT_KINDS=("unresolved","footer")` 豁免登记+`assert_no_advice` **复用 eqm.OUT_OF_SCOPE_PATTERNS** 禁复制);
+- 缺席文本化常量(L141-157: A1-A3 逐字措辞/A4=reason 原样转述于 `_absent_line` L160-168/NO_DATA 措辞/质量披露/头部/footer/refusal 模板,逐字对齐 D-B5-05..10);
+- `_value_line`(L170-189,数值行三标识内联+窗口口径后缀+非PASS质量披露追加);
+- `render_answer`(L199- 主入口): 输入面=B2 产出(executed 四键或 refusal;非 dict/缺 ir→ValueError)→防御断言 grounding_required(纵深防御)→refusal 分支(D-B5-09,零数值行+守卫照常)→绑定循环(RESOLVED→节点校验过→数值行+质量披露;ABSENT→缺席行)→派生循环(COMPUTED→派生节点校验;NO_DATA→措辞行)→**issues 非空→GroundingError 零部分输出**(L:issues_all 检查)→未解析行(豁免 kind)→footer→守卫→返回十键结构(D-B5-13)。
+
+### tests/test_p03_e2eb_b5.py(约810行,纯新增)
+
+- fixture 层(L40-278): 合成注册表八条(与 B1/B2 场景同构、数值身份独立)/DESIGN §三(d) 问题文本逐字复用(L77)/场景字面量 DAY(全发明数值,L80-91)/预期值全字面量(L93-119: V_GOLDEN 九值+OP3+八条行文本,/tmp/b5_precalc.py 真实管线预演核验誊写)/`write_day_files` 生成器(L139,注册表驱动四通道核心覆盖,tests/test_snapshot.py 同构范式)/`quiet_build`(L232,S1 write=False)/`hfact`/`hsnap`/`_pb`/`hand_ir`(L248-281,注入面手造构造器)。
+- 八类 56 用例: T0 fixture 自检(5,L284)/T1 fail-closed 接地负向(13,L327;要点①主战场: provenance=None/三形态全破/单形态放行对照/派生缺 calc_ref/真实管线拷贝定向篡改/bool与字符串拒收/values键集=RESOLVED集/防御断言/refusal 无接地错误)/T2 缺席文本化(8,L471;A1-A4 逐字+NO_DATA+footer 计数+缺席零编造)/T3 质量披露(4,L552;DEGRADED/WARN/PASS/门禁展示)/T4 黄金端到端(12,L592;要点②: 美端九值字面量+9节点全接地+日端 MB-8/9 无数据+OP-1/OP-2 NO_DATA+OP-3=0.41+行文本字面量+executed schema+确定性+**GAP-05 write=False 零持久化**+**B4 append/verify 复用调用衔接**)/T5 daily_dir 自取+边界(4,L689;自取=注入逐值相等+零持久化/OOS 问题如实披露/refusal/空 IR)/T6 禁语守卫(4,L749;建议行拒/豁免行过/**21 词逐一命中拒**)/T7 复用纯度锁(6,L776;零文件IO零网络/零采集档路径/import 面恰 qir+eqm+os+sys/无 B1-B4 逻辑副本/词表复用无本地副本/公共 API 白名单恰5)。
 
 ---
 
 ## §三 测试与本地CI
 
-(实现后回填)
+**本地运行(2026-11-05,python3 tests/test_p03_e2eb_b5.py): Ran 56 tests — OK(exit=0),证据包④ log。**
+
+**负向敏感性注入(D1-D4,真实注入→定向红→还原→sha256 逐字节一致;注入器 /tmp/b5_inject.py 入证据包④ injections/):**
+
+| 注入 | 缺陷内容 | 红(定向) | 还原核验 |
+|---|---|---|---|
+| D1 | 接地 fail-closed 拆除(validate_value_node 恒空) | 5 红: test_resolved_without_provenance_fails/test_tampered_real_pipeline_fails/test_all_three_forms_broken_fails/test_bool_and_string_value_rejected/test_validate_value_node_forms_unit | sha 还原一致 |
+| D2 | 禁语守卫拆除(assert_no_advice 恒过) | 3 红: test_guard_covers_all_wordlist_entries/test_guard_raises_on_advice_value_line/test_guard_raises_on_derived_line | sha 还原一致 |
+| D3 | 派生 calc_ref 检查拆除(if False) | 1 红: test_derived_without_calc_ref_fails | sha 还原一致 |
+| D4 | 质量披露拆除(恒不追加) | 2 红: test_degraded_disclosure/test_warn_disclosure | sha 还原一致 |
+
+- D4 首次注入尝试曾因注入文本自身语法非法(删空 if 体)致收集期 IndentationError——**注入器缺陷非被测件缺陷**,修正注入文本(保留 if 体仅换判定)后为合法定向红;首试输出原样入证据包④ injections/(含 /tmp/b5_inject_d4.py 复现件)。
+- 模块 sha256(注入前=每次还原后): `af467a338a134641e8cbef2d0a104bcdfa0470629c6a0779847ba7934c02f945`;还原态全量 56 用例复跑 OK(证据包④ injections/)。
+
+**本地CI(步骤9,.github/workflows/offline-tests.yml 同构: 全部 tests/test_*.py 排除 test_glm_live,逐套退出码;runner /tmp/b5_run_ci.py 入证据包④ ci-runner/):**
+
+- 文件总数 64(基线 ac01d072 既有 63+本包新增 1);运行套件 63(排除 test_glm_live=skipped);**62 套 exit=0 + 1 套 exit=1(test_p4_fixes)= B1/B2/B3/B4 基线既有红原样归因**(其尾部「39通过 / 4失败」,与 B1/B2/B4 REPORT §三/§七登记的基线实值完全一致;DEV data/daily 真实副本 20261101-1104 在场触发 real 分支无 9 月数据,CI fresh checkout 绿,与本包零导入关系);本包新套件 test_p03_e2eb_b5 exit=0(Ran 56 tests OK)。
+- **与冻结合同基线 62 对照**: 62(=B4 轮 run 41931607228 实跑套件数)+本包新增 1(test_p03_e2eb_b5.py)= 63 运行套件,实测 63 ✓;绿套件 61+1=62 ✓;零回归判据成立(B4 时点 61 绿+1 红 → 本包 62 绿+1 红,差集=+本包绿)。CI Actions run 证据=操作者 CHECKPOINT 派发后落 rounds/025/E2EB-WP-B5-CI-dispatch-evidence.md(执行Agent 不自行派发,合同 §六.5)。
 
 ---
 
 ## §四 逐要点证据映射表(AC-02)
 
-(实现后回填)
+(要点编号=DESIGN L238①-④抄录;证据指针=证据包成员编号[见 DELIVERY §三]/档内可直读位置)
+
+| 要点 | (a)实现落点 | (b)证据指针 | (c)自检结论 |
+|---|---|---|---|
+| ① 无provenance数值注入→渲染fail-closed负向测试(工件: 测试文件) | 机制: scripts/e2eb_answer_renderer.py:77-92(validate_value_node)+L95-115(validate_derived_node)+L36(GroundingError)+render_answer issues 聚集抛出;用例: tests/test_p03_e2eb_b5.py T1 十三用例(L327-,点名 test_resolved_without_provenance_fails/test_tampered_real_pipeline_fails/test_all_three_forms_broken_fails) | 证据包④ 本套件 log(56 OK)+④ injections/ D1 定向 5 红 | **过**——负向注入真实定向红;fail-closed 零部分输出(渲染函数无降级路径) |
+| ② 端到端黄金用例: DEV授权副本上全链路,断言美端值+日端「无数据」+OP-1 NO_DATA(工件: 测试文件+数据档引用) | tests/test_p03_e2eb_b5.py T4 十二用例(L592-;全链=B1 map_question→B2 execute_query[S1 write=False 快照]→B5 render_answer);美端值=V_GOLDEN 九值字面量(L93-94);日端=test_jp_side_no_data;OP-1=test_op1_no_data;数据档引用=fixture 结构注记(L74-76,§七.1 差异登记);GAP-05 固化=test_write_false_no_persistence+T5 自取路径;B4 衔接=test_archive_append_and_verify | 证据包④ 本套件 log+⑥ 零运行产物声明+① 抄录件 | **过**(数据源差异按 AC-03 合成 fixture 纪律处理,§七.1 如实登记——B2 §七.1 审计 PASS 同款先例) |
+| ③ WP-B3完成后同用例升级为双端闭合版(工件: 测试+新数据档) | **B3 条件款**: B3 三段(d)停泊中(v1.3 处置待用户,注入摘要,非工作树实读;工作树无 B3 交付件实取核验于开工步)——本包**登记不实施**(D-B5-16);日端「无数据」如实=当前事实(要点②断言面);渲染层 COMPUTED 数值行通用能力由黄金 OP-3 覆盖 | 证据包① §零(i) 抄录+⑤ 本表 | **情形(c)如实登记**: 升级版待 B3 落定,由后续轮承接;禁静默跳过=本行在场即证,不构成情形(d)(冻结合同 §0 生效前置段处置) |
+| ④ CI零回归(工件: run ID) | 本地 CI 同构全量: REPORT §三(64 文件/63 运行/62 绿+1 基线红);Actions run 由操作者 CHECKPOINT 派发,登记件将落 rounds/025/E2EB-WP-B5-CI-dispatch-evidence.md(执行Agent 禁自行 dispatch,合同 §六.5) | 证据包④ ci-runner/ 全量逐套件记录+操作者登记件(派发后落) | **操作者面 NOT VERIFIED(执行Agent 侧)**: 本地侧零回归成立(§三);Actions run ID 属操作者 CHECKPOINT 段,本包不自评 PASS |
 
 ---
 
 ## §五 模块SHA登记
 
-(实现后回填)
+| 文件 | sha256(实现提交 a0c0039 版) |
+|---|---|
+| scripts/e2eb_answer_renderer.py | `af467a338a134641e8cbef2d0a104bcdfa0470629c6a0779847ba7934c02f945` |
+| tests/test_p03_e2eb_b5.py | `0491d8ee69998c8c2440334ecdf9b6970932dfb9f1af5e6ab42a884790875892` |
+
+commit 链(纯线性,零 merge): 开工登记 fd5c92c(REPORT §零/§一/§六)→ 实现提交 a0c0039(两实现文件,SHA 见上表)→ REPORT/DELIVERY 终版提交(本 REPORT §二-§五/§七-§九 回填+DELIVERY)→ zip sha 追加提交(DELIVERY §五 zip 实测值追加行,自指豁免沿 B1/B2/B4 先例;终态 SHA 与最终 ls-remote 见证据目录 08-sidecar/final-state.txt,zip 外)。
 
 ---
 
@@ -127,16 +172,47 @@ WP-B5 验收要点(L238①-④)工件全部为离线测试文件/CI run 登记�
 
 ## §七 偏离与如实声明
 
-(实现后回填)
+1. **要点②测试数据源差异**(§零(iv)已登记,此处展开): DESIGN L238②草案要求「DEV授权副本上全链路」,冻结合同 AC-03 承接 R014-D3 要求合成 fixture 为唯一数据源+预期值字面量硬编码;依 DESIGN L206 标题自注(「验收要点=草案,正式AC由主Agent后续轮拟定」)以冻结合同为准(**B2 §七.1 审计 PASS 同款先例**)。实现=一日四通道合成采集档(结构复刻采集器输出,数值全发明)+「数据档引用」以测试文件内 fixture 结构注记承接(tests/test_p03_e2eb_b5.py:74-76),非数据依赖。真实 data/daily 零读取(渲染器零文件IO,T7 源码锁;数据面锚定清单见证据包⑥)。时刻: 2026-11-05T0x:xxZ UTC(证据包④ timestamps,终版提交时点)。
+2. **要点③=B3 条件款情形(c)登记**(§零(i)/§四/D-B5-16): B3 三段(d)停泊(v1.3 处置待用户,注入摘要,非工作树实读);「升级版待 B3 落定,由后续轮承接」——非静默跳过(本 REPORT §四映射行在场即证),不构成情形(d)(冻结合同 §0 生效前置段明文处置)。
+3. **commit 信息中 T1 用例数笔误如实登记**: 实现提交 a0c0039 信息写「T1 fail-closed接地负向12」,实测 T1=13 用例(5+13+8+4+12+4+4+6=56;python3 枚举类内 def test_ 计数实取,证据包④ log)。git commit 信息不可原地改(禁 amend),以本 REPORT 为准。
+4. **D4 注入器首试语法缺陷**(§三已展开): 注入文本删空 if 体→IndentationError 收集期崩溃(非定向红);系注入器缺陷非被测件缺陷,修正后 D4=合法定向 2 红;首试输出原样留存证据包④ injections/(禁修剪纪律)。
+5. **无其他偏离**: 设计在场核验(步骤4)通过=merge-base 可达 exit 0+三件 blob 等值(证据包③);占位符三值核验通过(§0/步骤1-2);分支尖端表(35 支)开工未逐一复核——ls-remote 全表复核于终态取证步(§八 AC-05 证据),冻结值与终态对照见证据包③。上游依赖漂移零遇(dateutil 4.0.0 类事件零发生,零 pip 操作)。
+6. **CI Actions run 未由本执行Agent 派发**(合同 §六.5: 操作者 CHECKPOINT 段完成): 本包本地同构 CI 全绿记录在案(§三),run ID 登记件 rounds/025/E2EB-WP-B5-CI-dispatch-evidence.md 由操作者落档;执行Agent 侧 AC-06① 按「本地侧成立+Actions 面待操作者」如实自评。
 
 ---
 
 ## §八 合同逐条自检(AC-01~AC-07)
 
-(实现后回填)
+| AC | 自评 | 一句证据指引 |
+|---|---|---|
+| AC-01 规格抄录与登记正确性 | **PASS** | §零(i) 逐字抄录(L234-238,基线工作树实读)可直读对照;清单 k=4 逐条附依据;与 git ls-files 零重合(§零(iii));要点③ B3 条件款按合同 §0 处置非擅自补写 |
+| AC-02 验收要点逐条交付与证据映射 | **PASS** | §四映射表四行齐(要点①② 过+③ 情形(c)登记+④ 操作者面 NV);参数登记=常量=echo 三者一致(D-B5-01..16 先登记后实现,模板常量与测试断言字面量逐一对照);真实运行类=零运行产物(§零(iv))无锚定违背面,数据面锚定清单在证据包⑥ |
+| AC-03 测试与确定性验证 | **PASS** | 56 用例全绿(证据包④);零网络(T7 源码锁)/全合成 fixture 唯一数据源(结构注记 L74-76)/预期值字面量硬编码(/tmp/b5_precalc.py 真实管线预演誊写,禁自证恒真)/D1-D4 注入定向红(§三)/漂移维护策略专节+fixture→预期值映射=DELIVERY §六/§七 |
+| AC-04 引用真实性与注入边界 | **PASS** | §一 file:line 登记逐条基线工作树实取;注入内容凡引用标「注入摘要,非工作树实读」(§七.2 B3 停泊);零跨支引用(DESIGN 三件=基线工作树实读);/tmp 仅证据包不构成交付依赖(测试零 /tmp 引用,源码锁) |
+| AC-05 范围/分支/生产隔离 | **PASS** | diff ac01d072..HEAD=M/D 0+A 恰 4 行=白名单 k=4(§五 commit 链;终态复核入证据包③);纯线性零 merge+reflog 无 reset/amend;ls-remote 35 支尖端不变唯一新增本支(终态 ls-remote 入证据包③);零网络;LIVE 零写入(grep [R025\|E2EB-WP-B5\|IA-P03-E2EB-WP-B5] 零命中+real_data_acceptance.py sha256 不变,取证入证据包③);LaunchAgents 零改动;E2E-A/B1/B2/B4 在场件零改动(A 行恰白名单可反证);复用禁复制分叉(T7 正向锁+词表复用无本地副本+无逻辑副本函数名);档案不 commit(data/ gitignored);.gitignore 零改动 |
+| AC-06 CI 与证据包 | **本地侧 PASS/Actions 面=操作者 NV** | 证据包八类最低集齐(DELIVERY §三+SHA256SUMS);DELIVERY 五节+漂移维护专节(AC-03 生效);result.md 四段=stdout 自述;CI dispatch 登记件 rounds/025/…(操作者 CHECKPOINT 落档后闭合;§七.6 如实登记) |
+| AC-07 研究纪律与使用边界 | **PASS** | 渲染器零文件IO零采集档路径(T7 源码锁+GAP-05 write=False 零持久化双断言);缺值零填0(四级缺席+values 键集=RESOLVED 集断言);禁投资建议=守卫 fail-closed+footer 免责声明+OOS 如实披露(T5/T6);零 GLM/零凭证/零付费;W4/W5 零涉及;白名单外需求零实施(零登记发现) |
 
 ---
 
 ## §九 提交前数值标注六项自检清单(§5.3,强制)
 
-(实现后回填)
+(双文档全文扫描;[实取]=工作树/命令实读,[示意]=非实取;日期/SHA/档键成分按 REPORT 头部边界声明出圈登记)
+
+| # | 数值 | 标注 |
+|---|---|---|
+| 1 | 白名单 k=4 文件(§零(ii)) | [实取·来源: 本 REPORT §零(ii) 表+git ls-files 对照(开工时实取零重合)] |
+| 2 | B1 词表 21 词(§一/§六 D-B5-08) | [实取·来源: scripts/e2eb_query_mapper.py:35-39 逐词计数(OUT_OF_SCOPE_PATTERNS 元组长度 21)] |
+| 3 | 黄金美端值九绑定 V_GOLDEN(L93-94 誊写) | [实取·来源: /tmp/b5_precalc.py 真实管线预演输出+tests/test_p03_e2eb_b5.py:93-94 字面量(手算旁证: 4.72−4.31=0.41 等)] |
+| 4 | 用例总数 56=5+13+8+4+12+4+4+6(§二/§三) | [实取·来源: python3 tests/test_p03_e2eb_b5.py → Ran 56 tests OK+类内 def test_ 枚举计数(grep 实取)] |
+| 5 | D1-D4 定向红计数 5/3/1/2(§三) | [实取·来源: /tmp/b5_inject.py 输出(证据包④ injections/)] |
+| 6 | 模块 sha256 af467a33…(§五) | [实取·来源: shasum -a 256 scripts/e2eb_answer_renderer.py(注入前后各一次,一致)] |
+| 7 | 测试文件 sha256 0491d8ee…(§五) | [实取·来源: shasum -a 256 tests/test_p03_e2eb_b5.py] |
+| 8 | 本地 CI 64 文件/63 运行/62 绿+1 红(§三) | [实取·来源: /tmp/b5_run_ci.py 输出(证据包④ ci-runner/)] |
+| 9 | 基线 62=B4 轮 run 41931607228 实跑套件数(§三) | [实取·来源: 冻结合同 §0 CI-SUITES=62(注入文本;B4 轮勘误后新纪律)] |
+| 10 | test_p4_fixes「39通过/4失败」(§三) | [实取·来源: 本地 CI 该套 stdout 尾部(证据包④);与 B1/B2/B4 REPORT §三登记同款] |
+| 11 | fixture 注册表 8 指标(L44 注「8指标」于缺席理由) | [实取·来源: tests/test_p03_e2eb_b5.py:44-66 FIXTURE_METRICS 八条+B1 端 MB-8 absence_reason 渲染实测(预演输出)] |
+| 12 | 数据面锚定 27 文件(§零(iv)/证据包⑥) | [实取·来源: /tmp/b5_anchor.py 输出 files anchored: 27] |
+| 13 | 设计支 35 支冻结表(§七.5/§八 AC-05) | [实取·来源: 冻结合同 §0 BRANCH-SET=35(注入文本);终态 ls-remote 对照入证据包③] |
+| 14 | 走查实取值(DESIGN L145-156 的 3.75/4.0/157.8 等) | [示意·非实取](本包零引用零复制——B5 用独立发明 fixture,D-B5-14;此行仅为「未使用」声明的对照锚) |
+| 15 | commit 链 SHA fd5c92c/a0c0039(§五) | [实取·来源: git rev-parse HEAD 逐次实取] |

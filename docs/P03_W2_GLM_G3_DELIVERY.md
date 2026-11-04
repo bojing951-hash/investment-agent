@@ -25,7 +25,7 @@
 - **零触碰**: `data/` 全量 27 文件(24 daily+3 research)sha256 快照 `05-zero-touch/datapath-zero-touch-snapshot.txt`,与 G2 证据包基线快照 diff 逐字节一致(IDENTICAL-TO-G2-BASELINE);本包无真实运行面→零运行产物(REPORT §0.3 依据);LIVE 路径 grep(`R028|GLM-WP-G3|IA-P03-W2-GLM-WP-G3`)=零命中。
 - **git 取证**: 原样输出于证据包成员③(name-status/rev-parse/log/reflog/ls-remote+设计在场核验输出[merge-base 可达+六件 blob 等值])。
 - **CI**: 操作者 CHECKPOINT dispatch(执行Agent 禁自行触发);登记件将落 `rounds/028/GLM-WP-G3-CI-dispatch-evidence.md`(引擎侧,本包引用其路径)。
-- **zip 整体 sha256**: 见证据包 SHA256SUMS 头注与 stdout 终述(本文件不预写,以装配后实测为准;自指豁免同 G1/G2 先例——zip 内任何文件不可内含 zip 自身哈希,实测值以封装后追加行落档,终态见 zip 外 `08-sidecar/final-state.txt`)。
+- **zip 整体 sha256**: 见证据包 SHA256SUMS 头注与 stdout 终述(本文件不预写,以装配后实测为准;自指豁免同 G1/G2 先例——zip 内任何文件不可内含 zip 自身哈希,实测值以封装后追加行落档,终态见 zip 外 `08-sidecar/final-state.txt`)。装配后实测追加登记(任务步骤12「落 DELIVERY 与自述」): `ad5fa7f201b55270d11dc5e9fd6147beeda877f075e0fedecbb522474fad0ce4`(98 成员/309545 字节)。自指豁免处理: zip 内 DELIVERY 副本(成员①②)=7f845d16 版无本行,固定点不可内含自身哈希,故实测值以封装后追加行落档;终态 SHA 与最终 ls-remote 见证据目录 `08-sidecar/final-state.txt`(zip 外)。
 
 ## §三 逐 AC 自评
 

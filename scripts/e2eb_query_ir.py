@@ -24,6 +24,13 @@ DESIGN docs/P03_E2EB_DESIGN.md §三(a) IR schema 的确定性落地(行号=并�
   无任何文件IO);一切数值来源由调用方经快照/事实引擎转递(架构v2,D1)。
 
 参数登记: docs/P03_E2EB_B1_REPORT.md §六 P-01..P-14(先登记后实现,运行后禁回改)。
+
+IA-P1-WP-D 扩展(参数登记 docs/P1_WP_D_REPORT.md §零.6 PD-1/PD-2):
+- ECONOMIES 枚举常量(US/CN/JP/EA/HK/GLOBAL,DESIGN §四 L133 候选);
+- IR 顶层可选键 "economy"(经济体过滤维度;键缺席或 None=不过滤,键在场且非 None
+  须枚举成员——向后兼容: 既有无 economy 键的 IR 形态保持合法);
+  接地标识强制面(BINDING_KEYS/PROVENANCE_KEYS/RESOLVED→provenance 必填)对
+  四经济体统一适用,结构零变更(PD-2 判定)。
 """
 import re
 
@@ -43,6 +50,7 @@ ANSWER_CONSTRAINTS = {"grounding_required": True,
                       "no_data_policy": "report_absence"}                        # P-12(L66-67)
 ABSENCE_LEVELS = {"A1": "ABSENT_REGISTRY", "A2": "ABSENT_SOURCE",               # §三(c) L122-127
                   "A3": "ABSENT_DATA", "A4": "ABSENT_WINDOW"}
+ECONOMIES = ("US", "CN", "JP", "EA", "HK", "GLOBAL")   # P1 WP-D PD-1(DESIGN §四 L133 候选enum)
 PENDING_EXECUTION = "PENDING_EXECUTION"   # D-B1-01 生命周期哨兵(映射期词汇,终态枚举不动)
 BINDING_STATUS_MAPPED = (PENDING_EXECUTION, "ABSENT_REGISTRY", "ABSENT_SOURCE",
                          "ABSENT_DATA", "ABSENT_WINDOW")
@@ -275,6 +283,10 @@ def validate_ir(ir, stage="mapped"):
     tsi = ir.get("target_snapshot_id")
     if tsi is not None and (not isinstance(tsi, str) or not SNAPSHOT_ID_RE.match(tsi)):
         issues.append(f"target_snapshot_id格式非法(DESIGN L62): {tsi!r}")
+    econ = ir.get("economy")                    # P1 WP-D PD-2: 可选经济体过滤维度键
+    if econ is not None and econ not in ECONOMIES:
+        issues.append(f"economy须为{ECONOMIES}|None(经济体过滤维度,DESIGN §四 L133,"
+                      f"缺席/None=不过滤): {econ!r}")
     if ir.get("answer_constraints") != ANSWER_CONSTRAINTS:
         issues.append(f"answer_constraints恒等值{{'grounding_required': True, "
                       f"'no_data_policy': 'report_absence'}}(DESIGN L66-67): "

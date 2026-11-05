@@ -53,6 +53,18 @@ TREND_CUE_RE = re.compile(r"最近|走势|表现|怎么样|涨|跌")
 METRICISH_RE = re.compile(r"[\u4e00-\u9fa5A-Za-z0-9_]{0,8}"
                           r"(?:收益率|利率|利差|指数|汇率|期货|CPI|GDP)")
 
+# IA-P1-WP-D PD-3: NL经济体指称识别词表(DESIGN §四 L133;子串匹配,与
+# OUT_OF_SCOPE_PATTERNS 同机制;GLOBAL 不设词表——全球性查询单过滤维度语义不成立)
+ECONOMY_CUES = (
+    ("EA", ("欧元区", "欧洲央行", "欧央行", "ECB", "HICP", "Bund", "德国国债",
+            "DAX", "CAC40", "欧元股")),
+    ("JP", ("日本", "日银", "BOJ", "日元", "JGB", "日经", "NIKKEI", "东京CPI")),
+    ("CN", ("中国", "人民币", "中资", "A股", "沪深", "LPR", "社融", "逆回购",
+            "SHCOMP", "中国央行")),
+    ("US", ("美国", "美联储", "联邦基金", "美债", "美股")),
+    ("HK", ("香港", "恒生", "港股")),
+)
+
 # D-B1-02: 概念规则恰4条(约束式;触发/绑定/缺席概念/派生公式逐项登记)
 CONCEPT_RULES = (
     {
@@ -316,6 +328,13 @@ def map_question(question_text, *, created_at=None, query_seq=1, as_of=None,
         "unresolved_entities": unresolved,
         "answer_constraints": dict(qir.ANSWER_CONSTRAINTS),
     }
+    # IA-P1-WP-D PD-4: economy识别与条件写——恰单族cue命中且概念规则零触发才写键
+    # (跨经济体比较链(fired)与零族/多族不设单过滤维度;向后兼容: 既有问题IR零新键)
+    if not fired:
+        hit_econs = {econ for econ, cues in ECONOMY_CUES
+                     if any(c in question_text for c in cues)}
+        if len(hit_econs) == 1:
+            ir["economy"] = next(iter(hit_econs))
     issues = qir.validate_ir(ir, stage="mapped")
     if issues:
         raise ValueError("映射产出IR未过schema校验(D-B1 fail-loud): " + ";".join(issues))

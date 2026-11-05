@@ -147,23 +147,162 @@ p4环境敏感: test_p4_fixes.py
 
 ## §一 三联锁设计登记(参数/签名/vintage 规则——R011 登记型决策点纪律,先登记后实现,运行后禁回改)
 
-*(本节随 helper 实现提交填充终版;要点开工时点已定: 见零.1 各行方案列)*
+**宿主**: `tests/helpers/baseline_locks.py`(commit bca2e0a;模块 docstring 即登记文本,本节为登记的登记制转录,二者不一致时以模块 docstring 为准)。签名/参数/返回一览:
+
+### 一.1 T1 冻结下限锁(防缩水)
+
+| 常量/函数 | 签名 | 语义 |
+|---|---|---|
+| `REGISTRY_FLOOR=81` | 常量 | 注册表全量项数(含 deprecated)下限 |
+| `ACTIVE_FLOOR=80` / `CORE_FLOOR=32` | 常量 | active / active+core 项数下限 |
+| `W4_REPORT_ROWS_FLOOR=82` | 常量 | w4 机器报告逐项表行数下限(表头 1+81) |
+| `BASELINE_SOURCE_CHANNELS` | 4 元组 | 基线四采集通道(global/macro/china/rate_economy),任何 vintage 硬 active 域 |
+| `BASELINE_DATA_CHANNELS` | 5 元组 | 数据面五通道全集(四采集+research_snapshot;=hca.CHANNEL_PATTERNS 基线值),w4 审计通道覆盖域锚 |
+| `BASELINE_VINTAGE_IDS` | frozenset(81) | 封版 vintage 锚,机器生成自 BASE-BR 基线态注册表零手抄(溯源 `VINTAGE_PROVENANCE`;生成指令入证据包 discovery/)。语义=「fixture 时点已存在的注册表条目」,仅用于下限/包含判断,禁与实载注册表整集相等 |
+| `registry_counts_ok(reg=None)` | →(ok,why) | 全量≥81 ∧ active≥80 ∧ core≥32 三面下限 |
+| `baseline_removals(reg=None)` | →set | 实载注册表缺失的 vintage 基线条目(必须为空;与计数下限互为冗余双面) |
+| `vintage_additions(reg=None)` | →set | 时点后新增条目(合法演进不回溯要求域) |
+
+### 一.2 T2 派生完备锁(防腐化——期望值一律自单一事实源实载派生,弃字面常量)
+
+| 函数 | 签名 | 派生源与语义 |
+|---|---|---|
+| `registry_doc(reg=None)` | →dict | 默认实读 `config/metric_registry.json`;`reg` 注入时用于变体,不落盘不触生产文件 |
+| `registry_metric_ids / active_metric_ids / core_metric_ids_loaded(reg=None)` | →set | 三态 ID 集,一律派生自 `registry_doc` |
+| `expected_registry_count(reg=None)` | →int | w4 族派生期望: 审计结果项数==实载注册表项数 |
+| `ids_unique_bijection_ok(reg=None)` | →(ok,why) | metrics 无重复 ∧ by_id 键集==metrics ID 集(双射)。by_id 口径: 生产原始 JSON 不含 by_id(fe.load_registry 加载时派生)——无注入以 fe 实载为准,注入自带 by_id 按注入比对(N3 由此红),缺省按生产同式派生 |
+| `artifact_covers_vintage_baseline(artifact_ids, reg=None)` | →(ok,why) | 封版工件(审计清单/政策矩阵)恰覆盖 注册表∩vintage 锚: 唯一+无缺+无私货+∩≥81;时点后新增不要求工件回溯补录 |
+| `gate_vintage_ok(gate, reg=None)` | →(ok,why) | 全 active 契约 vintage 域: `gate` 接受快照 gate_a dict(status)或 recompute 结果 dict(effective);合法=PASS(恒);或 DEGRADED 且 core_missing/core_fail/noncore_fail/noncore_degraded 全空 且 noncore_missing⊆vintage_additions(基线通道/指标静默死亡在此红) |
+| `sources_status_baseline_ok(sources_status, require='EXACT'\|'FALLBACK', reg=None)` | →(ok,problems) | ① ⊇基线四通道逐通道 status==require(硬 active);② 每个在场通道委托生产校验器 `rp.sources_status_problems` 结构口径;③ 新增通道仅②,不回溯 EXACT |
+
+### 一.3 T3 自洽演进锁(防静默未登记演进)
+
+| 函数 | 签名 | 语义 |
+|---|---|---|
+| `registry_self_consistent(reg=None)` | →(ok,problems) | 双射唯一 + `rsem.validate_registry` 零 error(自洽破坏/重复/映射漂移 @任意 N 捕获) |
+| `evolution_legal(reg=None)` | →(ok,problems) | 自洽前件 + vintage 后新增条目全字段合规: status∈('active','deprecated','pending')、source∈rsem.KNOWN_SOURCES 且映射通道∈rp.SOURCE_FILE_RULES(collector→channel 映射表内置;'(derived)' 源免通道登记)、calendar∈rsem.KNOWN_CALENDARS、unit∈rsem.KNOWN_UNITS |
+| `reset_registry_caches()` | →None | 注入配套: 清 fe._REGISTRY_CACHE/rp._CORE_CACHE/rp._ACTIVE_CACHE——monkeypatch fe.load_registry 后必调,否则派生集仍旧注册表(注入失真) |
+
+### 一.4 vintage 判定规则(登记)
+
+条目属「fixture 时点已存在」iff metric_id∈BASELINE_VINTAGE_IDS;时点后新增(=实载−vintage 锚)不回溯要求。Gate A 正常日断言允许 DEGRADED 仅当 core_missing/core_fail/noncore_fail/noncore_degraded 全空 且 noncore_missing⊆时点后新增集;**基线四采集通道在任何 vintage 均 active 硬要求**(sources_status ⊇ 且逐通道 EXACT/FALLBACK 形态)。PENDING 形态由条目级 status='pending' 承载(不计入 active 期望,天然不产生 noncore_missing);通道级 PENDING 不在生产词汇表,不扩生产语义(出入注记见 §零.2③)。
+
+### 一.5 重建确定性注记(w5/fix8 伴随)
+
+w5 #45 与 fix8 #32 的原锁为「报告/预检输出 Gate A==PASS」文案锁,重构后断言基面换成**重建快照**(`sb.build_snapshot(...)` 产物)的 gate_a——两文件断言因此共享同一确定性来源: 同一 fixture 数据目录+同一 target_ymd+同一 as_of 输入下 build_snapshot 纯函数化,报告侧 `checks['Gate A状态']` 与重建快照 gate_a.status 逐字相等(等式双侧同源,文案漂移不再依赖字面 'PASS')。该注记随 commit 9df5c56 落档。
 
 ## §二 逐文件重构摘要
 
-*(随重构提交填充)*
+**w4 族 5 文件**(commit de11602)——81 计数锁 12 处全数替换: T1 冻结下限(≥81/≥82)+T2 实载派生(结果项数/桶和/registry 回显/逐项表行数==实载注册表项数,弃字面常量),对应清点表 #1-#12。漏项/私货/重复/缩水回归类由集合全等+唯一+下限三面保持捕获;注册表合法演进(81→85)不撞墙。
+
+**p01_fix 族 11 文件**(commits a662434/a73ec5c/135cd9a)——fix1/fix2: gate_a 基线 PASS 断言→`bl.gate_vintage_ok`(快照 gate,基线通道硬 active,演进日 DEGRADED 且 noncore_missing⊆vintage 新增为可接受);重算矩阵 #14/15 与 gate_status 裁决三处(#15b/c/d)放行真实状态。fix3: #17 meta 一致性+vintage 域。fix4: #18/#19/#20 声明/重算同变体。fix5: #21 vintage 域+≥78 下限保持;#22/#23 → `bl.sources_status_baseline_ok(...,require='EXACT'/'FALLBACK')`+基线四通道 file_date==DAY/PREV_D。fix6: #26 六处重算对照 vintage 域+#27 meta 一致性。fix7: #28 ssp 结构本体保留+追加 ⊇基线四通道在场增强;#29/#30 vintage 域。fix8: #31 基线四通道==rp.SOURCE_CHANNELS 实载全等(通道枚举同步演进)+逐通道 sha256 结构;#32 报告 Gate A→重建快照 vintage 判定。fix9: #33 结构族保留+⊇增强,另加 +C0 检查(43→44)。fix10/fix11: #34/#35/#36 driver 负载扩展(gate 桶+gate_a 全量+基线四通道在场),负向侧断言不变。
+
+**w2_fix 族 2 文件**(commit 9df5c56)——#37/#38/#39 快照 gate PASS 锁→vintage 域(`bl.gate_vintage_ok(snap['gate_a'])[0]`),D 对照 meta 绑定断言保持。
+
+**w3 族 5 文件**(commit 9df5c56)——#40-#44 gate PASS 锁→vintage 域;quality 桶断言(FAIL==0/DEGRADED==0)保持 fixture 事实全有效语义;#40 final_quality==gate_a 一致性。
+
+**w5 族 1 文件**(commit 9df5c56)——#45 重建快照判定(`sb.build_snapshot` 产物 gate_a vs 报告 checks['Gate A状态'] 逐字相等,确定性注记 §一.5);#46 global∈基线四通道硬要求域,原样保持注记。
+
+**清点实证扩充族 3 文件**(commit 9df5c56)——w1/w1_fix1/w2 计数锁→T1 下限+`bl.artifact_covers_vintage_baseline`(审计清单/政策矩阵恰覆盖注册表∩vintage)+双射唯一+成员锚('SPX'/'UST_10Y'∈core 保持)。
+
+**p4 环境敏感 1 文件**(commit d058cbe)——ambient 分支删除: `tests/fixtures/e2e/w4_data` 提交内 fixture 恒 `copytree` 到独立 tmp 根作 data_dir,禁 ambient `data/daily` 依赖(双态记录 §五)。
+
+**邻接修复 8 处**(commit 94c6e84,演进敏感邻接锁——合法 85 预演首跑红面清单,不在 §零.1 清点表内但同为全 active/一致性语义): fix1 声明断言 got is None 分支化、fix1 FAIL重跑 final_quality==gate_a+`bl.gate_vintage_ok`、fix3/w3 final_quality==gate_a 一致性、fix6 D对照 `set(noncore_missing)-set(vintage_additions)=={'UMCSENT'}`、fix7 R5 干净形态、w2_fix2 G1/w2 G1 `bl.gate_vintage_ok(snap gate)[0]`。
+
+### 二.1 终值计量对照表(AST 计数;约束: test 函数数≥基线,check 调用数不减)
+
+| 文件 | tf 基线→终值 | ck 基线→终值 | 备注 |
+|---|---|---|---|
+| test_p02_w4.py | 36→36 | — | unittest 类族 |
+| test_p02_w4_fix1.py | 40→40 | — | |
+| test_p02_w4_fix2.py | 34→34 | — | |
+| test_p02_w4_fix3.py | 34→34 | — | |
+| test_p02_w4_fix4.py | 41→41 | — | |
+| test_p01_fix1.py | — | 78→78 | |
+| test_p01_fix2.py | — | 96→96 | |
+| test_p01_fix3.py | — | 40→40 | |
+| test_p01_fix4.py | — | 23→23 | |
+| test_p01_fix5.py | — | 45→45 | |
+| test_p01_fix6.py | — | 33→33 | |
+| test_p01_fix7.py | — | 41→41 | |
+| test_p01_fix8.py | — | 52→52 | |
+| test_p01_fix9.py | — | 43→44 | +C0 在场断言(只增) |
+| test_p01_fix10.py | — | 30→30 | |
+| test_p01_fix11.py | — | 18→18 | |
+| test_p02_w2_fix1.py | — | 41→41 | |
+| test_p02_w2_fix2.py | — | 34→34 | |
+| test_p02_w3.py | — | 38→38 | |
+| test_p02_w3_fix1.py | — | 44→44 | |
+| test_p02_w3_fix2.py | — | 26→26 | |
+| test_p02_w3_fix3.py | — | 26→26 | |
+| test_p02_w3_fix4.py | — | 35→35 | |
+| test_p02_w5.py | 32→32 | — | unittest 类族 |
+| test_p02_w1.py | — | 40→40 | |
+| test_p02_w1_fix1.py | — | 36→36 | |
+| test_p02_w2.py | — | 44→44 | |
+| test_p4_fixes.py | — | 45→45 | 隔离化不动断言数 |
+
+28/28 只增不减(仅 fix9 43→44 一处净增);计数脚本入证据包。
 
 ## §三 等价电池映射表+运行红面记录
 
-*(随等价套件提交填充)*
+**宿主**: `tests/test_p0_baseline_lock_equivalence.py`(A 集;脚本式,`python3 tests/test_p0_baseline_lock_equivalence.py`,退出码 0=全绿)。结构: Z0 基线态对照(注入前先证锁活着,防「恒红假等价」)→ N1-N7+ 负向注入电池(进程内 deep-copy 注入+monkeypatch,运行后还原)→ R 三态演进预演(worktree 副本+子进程)。每项 docstring 引用原锁 文件:行号。
+
+### 三.1 电池项 ↔ 清点回归类 1:1 映射(合同 AC-03)
+
+| 电池项 | 注入态 | 咬合的锁 | 清点表对应(回归类) |
+|---|---|---|---|
+| Z0 | 基线态(不注入) | T1/T2/T3 全绿 | 对照锚(锁非恒红前提) |
+| N1a | 注册表 81→80(删 UMCSENT) | T1 计数下限红 | #1/#2/#7-#12/#47/#51-#57(静默缩水) |
+| N1a2 | 同上 | baseline_removals 恰={UMCSENT} | #1 集合面(缩水) |
+| N1b | core 32→31(monkeypatch fe.load_registry+reset_registry_caches) | 生产路径 core 下限红(n=31<32);还原后==32 零残留(N1b2) | #48/#50/#54(core 缩水) |
+| N1c | 审计工件删 UMCSENT 一行 | artifact 恰覆盖锁红(漏项) | #49/#55(审计清单漏项) |
+| N2a | metrics 重复 SPX | T2 双射唯一红 | #6/#47(重复) |
+| N2b | 审计工件夹带私货条目 | artifact 恰覆盖锁红(多) | #49/#57(私货) |
+| N3a | by_id 缺 VIX(列表在册) | T2 双射红(映射漂移) | #47/#52/#56(映射漂移) |
+| N3b(自洽) | 同 N3a 前件 | rsem.validate_registry error 经 T3 前件红 | #28/#33(结构损坏) |
+| N3b(桶和) | by_status 桶和≠项数 | T2 sum==len 红 | #3/#9(丢桶/丢项) |
+| N3c | 机器报告回显 81(实载注入 85) | T2 回显==实载红 | #4/#12(回显漂移) |
+| N3d | 逐项表行数==项数(缺表头) | T2 行数==1+实载 红 | #5(丢行) |
+| N4a | fixt 快照正常日 vintage 基线缺席 UMCSENT(gate=DEGRADED) | gate_vintage_ok 红(noncore_missing 含 vintage 条目) | #13-#21/#24/#26/#29/#30/#32/#37-#45(基线指标静默死亡) |
+| N4b(对照) | 全齐日 | gate_vintage_ok 绿(锁非恒红) | 对照锚 |
+| N4b(通道) | 基线通道 china status=MISSING | sources_status 结构锁红(基线通道硬 active) | #22/#34(基线通道死亡) |
+| N5a/b/c/d | 新条目日历/source/status 未登记×3 + 合法 85 对照绿 | T3 evolution_legal 红×3/绿对照 | T3 面(静默未登记演进;宿主 w1:71 fe.load_registry 崩溃面互证) |
+| N6a | sources_status 缺 china | 基线四通道在场红 | #22/#23/#28/#31/#33/#34/#35(通道缺席) |
+| N6b(对照) | 四通道齐 EXACT | 结构锁绿(锁非恒红) | 对照锚 |
+| N6c | rp.SOURCE_CHANNELS 缩水(monkeypatch 缺 china,还原后 ⊇ 成立=N6c2) | ⊇基线四通道红 | #31(通道枚举缩水) |
+| N7a | 协同缩水(注册表−1 且审计结果同步−1) | 旧形态 T2-only 等值比较绿=**漏检实锤** | #1/#2(三联锁缺件弱化面) |
+| N7b | 同 N7a 注入 | T1 下限红+artifact∩vintage<81 红(T1 必要性) | #1/#2 |
+| N-还原 | 电池运行后 | 实载注册表态与 Z0 一致(工作树零污染) | 红线(注入不触生产) |
+
+### 三.2 运行红面记录(关键咬合证据摘录)
+
+- N1a: `注册表项数80<81(静默缩水)`;N1b: `core项数31<32`;N2a: `metrics重复metric_id:['SPX']`;N3a: `by_id与metrics不同步: 仅列表有['VIX']`;N4a: `noncore_missing含vintage基线条目:['UMCSENT']`;N6c: `set(rp.SOURCE_CHANNELS)⊇基线四通道` 破;N7a: `res=80 reg=80`(旧形态绿=漏检)同注入 N7b 红。
+- 恒红防线: Z0/N4b 对照/N5d/N6b 四处绿面(锁非恒红,注入可分辨)。
+- 终值: **31/31 全绿,exit=0**(首次运行 N3c/N7b 两处电池自身构造缺陷——live 派生未接注入变体/artifact 锁未传注入 reg——修正后全绿,修正即电池语义自证的组成部分)。
 
 ## §四 演进兼容预演双向记录
 
-*(随预演运行填充)*
+**方法**(合同 AC-04): `git worktree add --detach <tmp> HEAD` 建纯副本→副本内覆写 `config/metric_registry.json` 为预演变体(合法 85/缩水 84/裸 85)→子进程逐套件运行 **M 集 28 文件零改动**→`git worktree remove`(副本全移除,主工作树零污染;套件内 R-还原 断言 worktree 清单回零)。预演变体语义: 合法 85=81+4 条日本利率新条目(BOJ_POLICY_RATE/JGB_2Y/JGB_5Y/JGB_10Y,source/日历/单位/通道/status 全登记,version 2.0.0→2.1.0,B3 DESIGN §六 口径);缩水 84=合法 85 删 vintage 基线条目 UMCSENT;裸 85=合法 85 但 JGB_2Y calendar='jp_unregistered'。
+
+| 方向 | 注入 | 载体 | 结果 | 证据 |
+|---|---|---|---|---|
+| ①合法演进 | registry→85(全登记) | M 集 28 套件 | **28/28 全绿(reds=0)**——演进不撞墙,B3 重冻发车前提成立 | R[legal85] |
+| ②非法缩水 | registry→84(删 vintage 基线条目) | 载体 4 套件(w1/w1_fix1/w2/w4) | **红面 4/4**: w1 A5/w1_fix1 E1/w2 A1 artifact 锁红「注册表∩vintage=80<81(基线条目被删)」;w4 StopIteration(UMCSENT 行查表落空)——防缩水面咬合 | R[shrink84] |
+| ③非法裸演进 | registry→85(JGB_2Y 日历未登记) | 载体 w1 | **红面 1/1**: fe.load_registry 加载即 AssertionError「JGB_2Y日历非法: jp_unregistered」——静默未登记演进被 T3 前件(生产校验器)拦截 | R[bare85] |
+
+双向结论: 演进合法(①)不撞墙 ∧ 演进非法(②③)必红——AC-04①② 双面成立。预演构造脚本与三变体 JSON 入证据包(`rehearsal/`)。
 
 ## §五 test_p4_fixes 双态运行记录
 
-*(随 p4 隔离提交填充)*
+**重构**(commit d058cbe): 删除 ambient 分支(`real if glob(data/daily/global_2026*.json) else fixdir`)→恒定 `tests/fixtures/e2e/w4_data` `copytree` 到独立 tmp 根作 data_dir。断言数不动(45 check 调用)。
+
+| 态 | 环境 | 结果 |
+|---|---|---|
+| ambient 态 | 主工作树(ambient `data/daily` 在场,基线红面环境) | **43/0,exit=0** |
+| isolated 态 | `git worktree add --detach`(HEAD 提交树,无未跟踪 `data/daily`) | **43/0,exit=0** |
+
+双态同绿=环境依赖消除(基线态下该套件 ambient 在场时月度序列提取 4 红的漂移面不复存在;脚本 `p4_dual.py` 入证据包 `p4/`)。无 @skip/xfail。
 
 ## §六 本地全量实测表
 

@@ -31,7 +31,7 @@
 
 > zip sha256(装配后追加行): fe11a2bbfd5988cce3c0400f51d88e80781654afeef717d25a12181cd4d3bab7(100 成员/354032 字节;装配后全包凭证模式 grep 复核=零凭证明文命中,仅 3 处 'Authorization' 字面量=脱敏正则代码与既有 P2 测试类名,非凭证值)。自指豁免: zip 内 DELIVERY 副本(tip/工作树成员②)=026a479 版占位行,固定点不可内含自身哈希,实测值以装配后追加行落档;终态 SHA 与最终 ls-remote 见证据目录 08-sidecar/final-state.txt(zip 外)。
 
-> zip sha256 v2(补证据轮重装配,装配后追加行): 【装配后实测值占位】(v2 成员数/字节数待装配后回填;v2 变更=新增第 4 次尝试阻断工件[real-run/live_smoke_F1_attempt2_blocked.txt+anchors/*-round2.txt]+双源副本/REGISTRY/映射/自检副本刷新至补证据轮提交版+SHA256SUMS 重列;终态 SHA 与最终 ls-remote 以 zip 外 08-sidecar/final-state.txt 为准,自指豁免沿 v1: zip 内 DELIVERY 副本=本占位行版本)。
+> zip sha256 v2(补证据轮重装配,装配后追加行): b9e8d4268c27b37ba378061bac20186081d6599651436576e95e23e358d7c8f7(104 成员/367496 字节;SHA256SUMS 重列 103 成员全验证 OK,清单自身显式豁免不入 zip 自身校验和;装配后全包凭证复核=凭证据值字节扫描零命中,'Authorization' 字面量 13 处=引用性文字/本模块脱敏正则代码/既有 P2 测试类名,零凭证值)。v2 变更=新增第 4 次尝试阻断工件 4 件[06-real-run/live_smoke_F1_attempt2_blocked.txt+anchors/pre-run-sha256-round2.txt+anchors/post-run-check-round2.txt+03-git/forensics-round2.txt]+双源副本/REGISTRY/映射/自检副本刷新至补证据轮提交 1(d40eeaa)版;终态 SHA 与最终 ls-remote 以 zip 外 08-sidecar/final-state.txt 为准,自指豁免沿 v1: zip 内 DELIVERY 副本=占位行版本(d40eeaa)。
 
 ## §三 逐 AC 自评(详见 REPORT 对应节)
 

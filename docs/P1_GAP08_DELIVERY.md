@@ -90,4 +90,8 @@ fixture→预期值映射(逐断言组→定义处):
 | 13 | test_e2e_frozen14.py E2E-02d2 | load_meta noncore_missing==['UMCSENT'] | ==同上四元名单 |
 
 ## §六 zip 哈希终笔登记
-(装配后回填)
+- 证据包: `/tmp/p1-gap08-evidence/IA-P1-GAP08-EVIDENCE.zip` = **32 文件成员 / 105058 字节**
+- zip 整体 sha256: `3ecbc3d602a90fc418e30f125f07da2e80aeb9ee0d0828b70a649441b1ee94a1`(装配脚本 stdout 与独立 `shasum -a 256` 复算一致)
+- 装配时刻: 2026-11-05T22:48:46Z UTC(=2026-11-06 06:48:46 HKT);装配时点 TIP=74d64a31a86ba764806702cbc4b10782bbb2648b(实现笔)
+- 完整性: zip 内 `unzip -t`=No errors detected;SHA256SUMS=32 行 zip 外生成、自身显式豁免不入 zip(zip 内 grep SHA256SUMS=无);②类双源副本(tip vs 工作树)交叉哈希全 equal=True
+- 如实披露(先例沿 WP-B/WP-C/WP-D): zip 内 REPORT/DELIVERY 副本=74d64a3 装配时点版(不含本 §六 终笔定值),终局自述以会话 stdout 四段为准

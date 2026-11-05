@@ -151,4 +151,4 @@ RT_ECONOMIES 常量+`_task_economy(indicators)`(registry.economy 实读集合恰
 | — | **F5 EA 双源对账=合同明列排除**(数据受阻 DFR=READ_FAIL 缺席如故),本包零实现零触碰 | — | — |
 
 ## §六 证据包与 zip 定值登记
-(终笔回填=DELIVERY §六 同源;装配 stdout 与独立复算一致为准)
+- 证据包: /tmp/p1-gap08-evidence/IA-P1-GAP08-EVIDENCE.zip=**32 文件成员/105058 字节/sha256=3ecbc3d602a90fc418e30f125f07da2e80aeb9ee0d0828b70a649441b1ee94a1**(装配 2026-11-05T22:48:46Z UTC=2026-11-06 06:48:46 HKT,TIP=74d64a3 实现笔;装配 stdout 与独立复算 shasum 一致,zip 内 testzip=OK);SHA256SUMS=32 行 zip 外旁挂(R023/R060 自指豁免先例,zip 内无 SUMS 自身);八类成员: ①规格链五源逐字抄录件 ②双源副本 7 文件(tip/工作树交叉哈希全 equal=True)+CI 镜像终跑 summary+6 件套件日志 ③git 取证 6 件(diff name-status/rev-parse/first-parent log/reflog/ls-remote 45 支全表) ④负向注入实录+pre/post sha 3 件 ⑤红线反证汇编(LIVE sha 全值一致/三档 sha/main 零触碰/零网络 grep×4/零 push) ⑥映射表+DP 登记+diff 清单副本 ⑦自述报告装配时点草稿 ⑧SHA256SUMS(zip 外)。如实披露: zip 内 REPORT/DELIVERY 副本=74d64a3 装配时点版(不含本 §六 终笔定值,先例沿 WP-B/WP-C/WP-D);终局自述以执行会话 stdout 四段为准。

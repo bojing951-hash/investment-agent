@@ -2752,7 +2752,7 @@
    "validation": {
     "range": [
      5000,
-     60000
+     150000
     ],
     "max_week_pct_move": 25
    },

@@ -473,6 +473,120 @@ def normalize_rate(data, as_of, source_file="rate_economy_*.json"):
     return facts, {"recon_inputs": recon_inputs, "fed_futures_curve": curve}
 
 
+# ══ JP/EA 市场通道规范化(IA-P1-WP-B, DESIGN §三(a-3) 同构 normalize_rate) ══
+
+# jp_ 文件内 japan_rate_collector 权属系列(B3)→注册表id: 该通道对它们只做
+# 对账输入,不立事实(registry source 为权属唯一权威, real_economy 先例)。
+_JP_RECON_MAP = {'BOJ_POLICY_RATE': 'JP_POLICY_RATE', 'JGB_10Y': 'JGB10Y',
+                 'JGB_2Y': 'JGB2Y'}
+
+
+def _series_from_map(ser):
+    """a-2 prices.series 形态(date→value 字典)→ {'dates','values'}(键升序)。
+    纯形态转换(数值/日期字符串零改动);非字典/空→None(不产派生)。"""
+    if not isinstance(ser, dict) or not ser:
+        return None
+    ds = sorted(ser)
+    return {"dates": ds, "values": [ser[k] for k in ds]}
+
+
+def _channel_fact(mid, item, as_of, source_file, collector, fetched, price_like):
+    """jp/ea 通道已注册单项→事实。price_like=prices 节取 close/series;其余节取 value。"""
+    m = metric(mid)
+    value = item.get('close') if price_like else item.get('value')
+    series = _series_from_map(item.get('series')) if price_like else item.get('series')
+    f = make_fact(mid, value, item.get('date'), as_of, source_file, collector,
+                  series=series, retrieved_at=fetched,
+                  release_date=item.get('release_date'))
+    raw_check = {"close": value, "date": item.get('date')}
+    if series:
+        raw_check["series"] = series
+    f['issues'].extend(validate_fact(f, raw_check, m, as_of_date=as_of))
+    f['quality_status'] = grade_issues(f['issues'])
+    if price_like:
+        if item.get('high') is not None:
+            f['high'] = item['high']
+        if item.get('low') is not None:
+            f['low'] = item['low']
+    return f
+
+
+def _unregistered_diag(channel, key, item, price_like):
+    """未注册键→FAIL诊断记录(deny-by-default, normalize_global L256 先例;
+    不入有效研究事实计数, 只作可诊断披露)。"""
+    return {"metric_id": key, "quality_status": "FAIL",
+            "issues": [{"category": "identity", "severity": "FAIL",
+                        "message": f"{channel}通道系列{key}不在注册表(无身份定义)"}],
+            "value": item.get('close') if price_like else item.get('value')}
+
+
+def normalize_jp(data, as_of, source_file="jp_*.json"):
+    """jp_YYYYMMDD.json → (事实, 对账输入)。
+
+    身份纪律(同构 normalize_rate): registry 指定 japan_rate_collector 为权威的
+    系列(JP_POLICY_RATE/JGB2Y/JGB10Y)不在本通道重复立事实——policy_rates/jgb
+    数值转为 reconciliation 对照输入(与 japan 通道事实同 metric_id 比对;对手方
+    事实接线属 GAP-P1-08/WP-B §零.9-F6,本函数不伪造对账结论);
+    jp_market_collector 权属系列(NIKKEI225/JP_CPI_TOKYO_YOY)立事实。
+    节缺席(键不出现或 null)=诚实缺席,不产事实不填 0(DESIGN §三(a-2) L58);
+    未注册键→FAIL 诊断记录。
+    """
+    facts, recon = [], []
+    if not isinstance(data, dict):
+        return facts, recon
+    fetched = data.get('fetched_at')
+    for sec in ('prices', 'inflation'):          # 本通道权属节→立事实
+        for key, item in (data.get(sec) or {}).items():
+            if not isinstance(item, dict):
+                continue
+            if metric(key) is None:
+                facts.append(_unregistered_diag('jp', key, item, sec == 'prices'))
+                continue
+            facts.append(_channel_fact(key, item, as_of, source_file,
+                                       'jp_market_collector', fetched, sec == 'prices'))
+    for sec in ('policy_rates', 'jgb'):          # B3 权属节→对账输入(不立事实)
+        for key, item in (data.get(sec) or {}).items():
+            if not isinstance(item, dict):
+                continue
+            mid = _JP_RECON_MAP.get(key, key)
+            m = metric(mid)
+            if m is None:
+                facts.append(_unregistered_diag('jp', key, item, False))
+            elif m.get('source') == 'jp_market_collector':
+                facts.append(_channel_fact(mid, item, as_of, source_file,
+                                           'jp_market_collector', fetched, False))
+            else:
+                recon.append({"metric_id": mid, "value": item.get('value'),
+                              "observation_date": item.get('date'), "channel": "jp",
+                              "prev_value": item.get('prev_value'),
+                              "unit": item.get('unit')})
+    return facts, recon
+
+
+def normalize_ea(data, as_of, source_file="ea_*.json"):
+    """ea_YYYYMMDD.json → (事实, 对账输入)。
+
+    全部 7 注册指标权属 ea_market_collector→立事实(键名即注册表id,零别名)。
+    节缺席=诚实缺席(真实首档 ea_20261105 仅 policy_rates.ECB_MRO,其余节键
+    不出现);未注册键→FAIL 诊断记录。对账输入恒空(无跨通道权属系列),
+    返回签名与 normalize_jp 同构。
+    """
+    facts, recon = [], []
+    if not isinstance(data, dict):
+        return facts, recon
+    fetched = data.get('fetched_at')
+    for sec in ('policy_rates', 'bund', 'inflation', 'prices'):
+        for key, item in (data.get(sec) or {}).items():
+            if not isinstance(item, dict):
+                continue
+            if metric(key) is None:
+                facts.append(_unregistered_diag('ea', key, item, sec == 'prices'))
+                continue
+            facts.append(_channel_fact(key, item, as_of, source_file,
+                                       'ea_market_collector', fetched, sec == 'prices'))
+    return facts, recon
+
+
 def compute_derived(facts, as_of, source_file="derived"):
     """从已规范化事实计算派生指标。返回新事实列表(含REAL_10Y/REAL_5Y/HY_IG_DIFF/ZQ)。"""
     by_id = {f.get('metric_id'): f for f in facts if isinstance(f, dict) and f.get('metric_id')}
@@ -720,8 +834,15 @@ def sign_match(a, b):
     return True  # 方向检查以周变化做,此占位恒过(双载体周方向相反时在快照披露)
 
 
-def build_all(global_data=None, macro_data=None, china_data=None, as_of=None):
-    """一站式: 规范化+派生+跨指标 → (facts, reconciliation)。as_of为研究截止时间戳。"""
+def build_all(global_data=None, macro_data=None, china_data=None, as_of=None,
+              jp_data=None, ea_data=None):
+    """一站式: 规范化+派生+跨指标 → (facts, reconciliation)。as_of为研究截止时间戳。
+
+    IA-P1-WP-B: 尾部增 jp_data/ea_data(jp_/ea_ 采集档)——位置参数向后兼容。
+    jp 通道对账输入(japan_rate_collector 权属系列)的快照级消费=与 japan 通道
+    事实比对, 而 japan 通道事实接线属 GAP-P1-08/WP-B §零.9-F6(本函数无
+    japan_data 入参)——无对手方事实时不得伪造 source-diff 记录,对账输入
+    如实不进 reconciliation 返回。"""
     as_of = as_of or datetime.now(timezone(timedelta(hours=8))).isoformat(timespec='seconds')
     facts = []
     if global_data is not None:
@@ -730,6 +851,10 @@ def build_all(global_data=None, macro_data=None, china_data=None, as_of=None):
         facts += normalize_macro(macro_data.get('data') or macro_data, as_of)
     if china_data is not None:
         facts += normalize_china(china_data, as_of)
+    if jp_data is not None:
+        facts += normalize_jp(jp_data, as_of)[0]
+    if ea_data is not None:
+        facts += normalize_ea(ea_data, as_of)[0]
     facts += compute_derived(facts, as_of)
     recon = cross_metric_checks(facts)
     for f in facts:

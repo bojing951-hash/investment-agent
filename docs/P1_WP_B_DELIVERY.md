@@ -50,3 +50,32 @@
 2. **上游再演进**: WP-A/B3 若调整 jp_/ea_/japan_ 档节形态(a-2 结构)→normalize_jp/ea 的节取值面(_channel_fact price_like 分支)为唯一适配点; registry 若调整 13 指标权属(source 字段)→normalize_jp 权属拆分与 _JP_RECON_MAP 语义以 registry 为唯一权威随之重审(t02/t13 断言同步)。
 3. **锚点面**: NIKKEI range 上限再次触顶(真实收盘>150000)→按 §零.11.1 同侪余量算术重算并先登记(REPORT 先例沿用); B3 冻结锚(test_p03_e2eb_b3 t02)覆盖 JP_POLICY_RATE/JGB×3 完整字段, 本包未触碰; build_all 签名再演进→t11 兼容断言为准绳(位置参数面)。
 4. **白名单外发现(F1-F6)**: build_snapshot facts 级接线/series_store 键/_SOURCE_TO_INPUT jp/ea 绑定/fixt L214 注释陈旧/EA 双源对账/jp 对账对手方——任何后续包承接时, 本包 t13/t14/t16 的 boundary==13 与 t18 全等断言即为**预期变更面**: F3 落地将使 boundary 断言转向 noncore_missing 断言, F1 落地将使 t18 需扩展为"US 面+新通道面"双对照——承接包须先在本节登记预期断言迁移, 禁静默改断言。
+
+## §六 逐 AC 自评摘要(v1.2 整改轮增节; 仿 WP-A DELIVERY §五 形态; 逐条全文=REPORT §三+stdout 四段自述, 标注同源)
+
+- **AC-01 规格抄录与登记正确性: 绿** — §零.2 逐字转写 L170 与 DESIGN 原文**逐字节一致**(v1.2 项1 勘正后; 全角逗号失实两处域已改半角+披露行在档), 四要素齐备; 清单 A3+M5 登记 §零.3(同源 REPORT §零.2/§零.3)。
+- **AC-02 验收要点逐条映射: 绿** — L170 ①②③+技术要点四项+(e) 触面逐点映射表=REPORT §一(同源); DP=零载明判定(REPORT §零.7, 判定依据在档)。
+- **AC-03 测试与确定性: 绿** — 20 测全绿零网络全合成 fixture, 期望值字面量硬编码(REPORT §零.8); 漂移维护政策=本件 §五, fixture→期望值映射=本件 §三; 桩纪律 7=不适用(登记清单无外部调用面文件, REPORT 判定依据在档)。
+- **AC-04 引用真实性: 绿** — 引用 file:line 逐条可寻; normalize_ea 行号端点已按 v1.2 项2 勘正为 L566-587(实测函数域, REPORT §零.12); 注入摘要一律标注「注入摘要,非工作树实读」。
+- **AC-05 范围/分支/生产隔离: 绿** — `git diff --name-status f6d0beb..HEAD` = A3+M2+D0 逐件在授权面内(REPORT §零.13); 纯线性零 merge 零 amend; BRANCH-SET 42 冻结零漂移+唯一新增 dev/p1-impl-b; LIVE grep 零命中+零写入; 零网络(唯一网络面=git 通道)。
+- **AC-06 CI 与证据包: 绿** — 本地 CI 镜像 71 槽=70 exit0+1 SKIPPED(test_glm_live 设计性), FAILFLAG=0(本件 §四); 证据 zip 八类最低集齐+SHA256SUMS zip 外自指豁免(§四登记 sha256); 本件五节齐备+本节起 v1.2 增节; CI dispatch=操作者 CHECKPOINT 面(登记件 rounds/045/P1-WP-B-CI-dispatch-evidence.md, 本 Agent 不自行触发)。
+- **AC-07 研究纪律与使用边界: 绿** — P1 特有纪律六条登记并遵守(REPORT §零.6); 缺席不填 0/陈旧 DEGRADED/不足 unavailable 如实(t06/t09/t20); 零真实 GLM/零网络出站/零凭证/零付费; F1-F6 白名单外发现登记不实现(REPORT §零.9); W4/W5 未入链。
+
+## §七 如实偏差(v1.2 整改轮增节; 同源摘录自 REPORT §二, 编号一致)
+
+1. **§零.1 禁锚措辞失实**(取证期发现): "非祖先"字面对任何合规分支不可满足=c9626633 实为 BASE-P1B 历史祖先; 正确判定三元组在档(分支基点 f6d0beb 正确/恰纯线性提交/main 未触碰); §零.16.2 完整登记+原句划线保留; v1.2 处置章认定该偏离处置已接受(同源 REPORT §二.1)。
+2. **快照面交付形态偏离(收敛性)**: (b) 授权面被 WP-A SOURCE_FILE_RULES→SOURCES 推导吸收, 本包零 diff+测试证成(t16/t17/t18), 非缩水; facts 级接线/series_store/_SOURCE_TO_INPUT=白名单外 F1/F2/F3 登记不实现(同源 REPORT §二.2)。
+3. **测试开发期 4 处预期失实**: 均测试侧对齐既有系统语义, 零实现侧回改, 逐处诊断登记(同源 REPORT §二.3/§零.12)。
+4. **首轮 CI 镜像调用方式失当**: `-m unittest` 致 2 脚本式套件误红, canon 文件方式重跑 71 槽全绿, 失当过程不隐瞒(同源 REPORT §二.4/§零.15)。
+5. **F4 注释陈旧**: fixt.py L214 旧区间注释陈旧(值仍合法), fixt 不在白名单不更新(同源 REPORT §二.5)。
+6. **零运行产物**: 验收①②③全部为【测试】/【CI】面, 无真实运行验收面; 未运行采集器/生产快照路径, data/ 零变化(同源 REPORT §二.6; 证据 06-no-run)。
+7. **ECB_MRO DEGRADED 如实降级**: 观测滞后 50 天>10 天窗, t20 断言 DEGRADED——诚实降级语义非缺陷(同源 REPORT §二.7)。
+8. **v1.2 整改轮登记**: ①rounds/045 首审 FAIL 四阻断项全为文档/证据形式类(处置章认定), 本轮四项授权全部落地(零代码/零测试/零数据面); ②本轮新发现=REPORT §零.1 表更正指针指向「§零.16.3」而实际禁锚更正节为「§零.16.2」(v1.1 取证更正笔转写滑笔; 不在四项授权面内, 未整改, 判定权留操作者; 注: 本轮 zip 终笔新增节恰为 §零.16.3[zip 重装配登记], 与该指针本意[禁锚更正=§零.16.2]语义不同)。
+
+## §八 参考(v1.2 整改轮增节)
+
+- 合同: IA-P1-WP-B-AC-v1.2(v1.1 冻结章及全部 AC 语义不变+处置章四项整改授权; 注入摘要,非工作树实读——执行Agent 不可达引擎路径, 合同经提示词内嵌传递)。
+- 设计: docs/P1_DESIGN.md §六 L170 WP-P1-B 行(blob 13b263cf, 基线工作树实读; 设计支 dev/p1-design@049ec978 终态留驻只读)。
+- 上游对照同源: WP-P1-A(R044)工作树在场交付件(其 REPORT §零 登记清单为对照同源; 含 jp_/ea_ 采集器/registry 三字段/SOURCE_FILE_RULES jp/ea/fixt jp/ea 合成节); B3 冻结锚=tests/test_p03_e2eb_b3.py t02。
+- 范本: docs/P1_WP_A_DELIVERY.md §五(本件 §六 仿其合规形态)。
+- 证据: /tmp/p1-wp-b-evidence/IA-P1-WP-B-EVIDENCE.zip + SHA256SUMS(zip 外自指豁免, 沿 R019/R023/R060 先例); CI dispatch 登记件=引擎侧 rounds/045/P1-WP-B-CI-dispatch-evidence.md(操作者 CHECKPOINT 落字面值)。

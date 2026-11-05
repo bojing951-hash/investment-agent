@@ -26,15 +26,17 @@
 转写源: docs/P1_DESIGN.md(blob 13b263cf)第 170 行,VERBATIM:
 
 ```
-| WP-P1-B 事实引擎与快照贯通 | 新通道进引擎与快照，缺席合法登记 | normalize_jp/ea、jp/ea 日历、build_all/resolve_inputs 扩展、Gate A 对新指标裁决 | WP-A | ① 单测: 新通道事实构造+口径(week/MTD/YTD 对 jp/ea 日历)+数据不足路径【测试】② 快照 sources_status 含 jp/ea 键的构建测试(含缺源 MISSING)【测试】③ 既有 US 面输出零回归(W-3 对照)【测试/CI】 |
+| WP-P1-B 事实引擎与快照贯通 | 新通道进引擎与快照,缺席合法登记 | normalize_jp/ea、jp/ea 日历、build_all/resolve_inputs 扩展、Gate A 对新指标裁决 | WP-A | ① 单测: 新通道事实构造+口径(week/MTD/YTD 对 jp/ea 日历)+数据不足路径【测试】② 快照 sources_status 含 jp/ea 键的构建测试(含缺源 MISSING)【测试】③ 既有 US 面输出零回归(W-3 对照)【测试/CI】 |
 ```
+
+> 转写勘正披露(v1.2 处置章整改授权项1, 2026-11-05T17:50Z): 本节转写原将 DESIGN L170 范围列的半角逗号误录为全角逗号(恰逐字块与下方四要素表"工作内容"行两处域), 原为全角已勘正为半角, 现与 DESIGN 原文(blob 13b263cf)逐字一致; 勘正依据=rounds/045 首审 FAIL 阻断项+处置章 v1.2 授权项1。
 
 四要素分解:
 
 | 要素 | 内容 | 本包处置 |
 |---|---|---|
 | 名称 | WP-P1-B 事实引擎与快照贯通 | 本 REPORT 主题 |
-| 工作内容 | 新通道进引擎与快照，缺席合法登记 | 引擎面=normalize_jp/ea+build_all 扩展(实现);快照面=resolve_inputs/sources_status(WP-A 已交付,本包测试证成);缺席合法登记=Gate A 边界裁决实录(测试证成) |
+| 工作内容 | 新通道进引擎与快照,缺席合法登记 | 引擎面=normalize_jp/ea+build_all 扩展(实现);快照面=resolve_inputs/sources_status(WP-A 已交付,本包测试证成);缺席合法登记=Gate A 边界裁决实录(测试证成) |
 | 技术要点 | normalize_jp/ea、jp/ea 日历、build_all/resolve_inputs 扩展、Gate A 对新指标裁决 | ①normalize_jp/ea 新增(fact_engine);②jp/ea 日历=tc.MARKETS 已含 'japan'/'ea'(B3/WP-A 已交付,本包零改动+口径测试);③build_all 扩展(实现)/resolve_inputs 扩展(WP-A 已交付);④Gate A 裁决=测试面对 rp.recompute_gate_a 的证成(rp 零改动) |
 | 验收点 | ①②③ | 见 §一逐点证据映射 |
 
@@ -177,7 +179,7 @@ M类(既有文件触面, 合同冻结章五文件):
 | `_channel_fact` | L493-512 | 已注册单项→事实(prices 取 close/series, 其余取 value; validate+grade; high/low 透传) |
 | `_unregistered_diag` | L514-521 | 未注册键→FAIL 诊断记录(deny-by-default) |
 | `normalize_jp` | L523-564 | 返回 (facts, recon); prices/inflation→事实(jp_market_collector 权属), policy_rates/jgb→对账输入(B3 权属), inflation=null 诚实缺席 |
-| `normalize_ea` | L566-592 | 返回 (facts, recon); 四节全立事实(ea_market_collector 权属), 对账输入恒空 |
+| `normalize_ea` | L566-587 | 返回 (facts, recon); 四节全立事实(ea_market_collector 权属), 对账输入恒空 |
 | `build_all` 扩展 | L837-859 | 尾部入参 jp_data/ea_data(位置兼容); jp 对账输入消费=F6 不实现(不伪造 source-diff) |
 
 **M-e config/metric_registry.json**(diff=1 行): NIKKEI225 validation.range 上限 60000→**150000**(下限 5000/max_week_pct_move 25/版本 2.2.0/条目数 94 均不动, t19 锁)。

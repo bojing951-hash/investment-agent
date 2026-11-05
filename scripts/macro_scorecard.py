@@ -32,6 +32,13 @@ MIN_AVAILABLE_PER_DIM = 2          # 每维度至少2个可用指标才给体制
 DISCLAIMER = ("评分卡=内部模型观点(阈值为模型假设),非客观事实;"
               "体制结论为二维映射的机械输出,须结合证据分级使用")
 
+# IA-P1-WP-C(DP-3定值=形态①,P1_DESIGN L30): 维度函数economy参数化。
+# 阈值表仅定义于US——非US经济体**不杜撰阈值**(spec §三(a-2): 缺失不以0占位),
+# US专属指标逐项如实计缺失,total=None(无评分,区别于0分的"中性"误读),
+# 维度可用<2 → 主流程判DATA_INSUFFICIENT,机制复用零新逻辑。
+ECONOMY_NAMES = {'US': '美国', 'CN': '中国', 'JP': '日本', 'EA': '欧元区'}
+ECONOMY_SCORECARD_PREFIX = 'economy_scorecard_'   # 非US存档前缀(避开US主评分卡glob)
+
 # ══════════════════════════════════════════════════════════════════
 # 快照接入(Layer 3 → Layer 4唯一数据入口)
 # ══════════════════════════════════════════════════════════════════
@@ -89,10 +96,23 @@ def _take(facts, metric_id, extractor):
 # 评分(阈值与档位=v1原样保留;仅数据来源改为快照)
 # ══════════════════════════════════════════════════════════════════
 
-def score_growth(facts):
-    """增长维度评分: 输入=快照facts;返回(得分表, 总分, 缺失清单)。"""
+def score_growth(facts, economy='US'):
+    """增长维度评分: 输入=快照facts;返回(得分表, 总分, 缺失清单)。
+    IA-P1-WP-C(DP-3): economy参数化——economy='US'(默认)=原口径零回归;
+    非US=阈值表无该经济体口径,4项US专属指标逐项如实计缺失,
+    返回({}, None, missing)——total=None即"无评分"(禁0占位,spec §三(a-2))。"""
     print("\n📊 增长维度评分(输入=研究快照)...")
     scores, missing = {}, []
+    if economy != 'US':
+        for key, mid, name in (('consumer_confidence', 'UMCSENT', '消费者信心(密歇根)'),
+                               ('unemployment_change', 'UNEMPLOYMENT', '失业率3月变化'),
+                               ('retail_sales_mom', 'RSAFS', '零售销售环比'),
+                               ('industrial_production', 'INDPRO', '工业生产环比')):
+            missing.append({'key': key, 'metric_id': mid, 'name': name,
+                            'reason': f'US专属指标({economy}经济体无该口径,阈值表未定义,如实计缺失)'})
+            print(f"  ⚠️ {name}缺失: US专属指标({economy}不适用)")
+        print(f"\n  📌 增长总分: 无(该经济体阈值口径未定义;可用0项/缺失{len(missing)}项,不以0占位)")
+        return scores, None, missing
 
     # 1. 消费者信心 (UMCSENT, 月频水平)
     v, date, why = _take(facts, 'UMCSENT', _level)
@@ -177,10 +197,21 @@ def score_growth(facts):
     return scores, total, missing
 
 
-def score_inflation(facts):
-    """通胀维度评分: 输入=快照facts;返回(得分表, 总分, 缺失清单)。"""
+def score_inflation(facts, economy='US'):
+    """通胀维度评分: 输入=快照facts;返回(得分表, 总分, 缺失清单)。
+    IA-P1-WP-C(DP-3): economy参数化,语义同score_growth。"""
     print("\n📊 通胀维度评分(输入=研究快照)...")
     scores, missing = {}, []
+    if economy != 'US':
+        for key, mid, name in (('core_cpi_yoy', 'CORE_CPI', '核心CPI同比'),
+                               ('bei_10y', 'BEI_10Y', 'BEI 10Y(通胀预期)'),
+                               ('wti_oil', 'WTI_F', 'WTI油价(期货)'),
+                               ('ahe_yoy', 'AHE', '平均时薪同比')):
+            missing.append({'key': key, 'metric_id': mid, 'name': name,
+                            'reason': f'US专属指标({economy}经济体无该口径,阈值表未定义,如实计缺失)'})
+            print(f"  ⚠️ {name}缺失: US专属指标({economy}不适用)")
+        print(f"\n  📌 通胀总分: 无(该经济体阈值口径未定义;可用0项/缺失{len(missing)}项,不以0占位)")
+        return scores, None, missing
 
     # 1. 核心CPI同比 (CORE_CPI, 引擎m12 pct口径)
     v, date, why = _take(facts, 'CORE_CPI', lambda f: _derived(f, 'm12', 'pct_change'))
@@ -383,7 +414,7 @@ def attribute_regime(g_scores, g_total, i_scores, i_total):
 def save_scorecard(g_scores, g_total, i_scores, i_total, regime, desc,
                    g_missing=None, i_missing=None, data_basis=None,
                    drivers=None, counterfactuals=None, date_str=None,
-                   data_dir=None):
+                   data_dir=None, economy='US'):
     today = date_str or datetime.now().strftime('%Y%m%d')
     out_dir = data_dir or os.path.join(ROOT_DIR, 'data', 'daily')
     os.makedirs(out_dir, exist_ok=True)
@@ -396,8 +427,15 @@ def save_scorecard(g_scores, g_total, i_scores, i_total, regime, desc,
     prev_status = "confirmed"
 
     # 查找上一观察周(不同ISO周)的评分卡;同周文件视为回声,不参与"连续两周"判定
-    existing = sorted(glob.glob(os.path.join(out_dir, 'scorecard_*.json')))
-    prev_files = [f for f in existing if not f.endswith(f'scorecard_{today}.json')]
+    # IA-P1-WP-C: 制度比较按经济体各自独立——US只与US主评分卡比,非US只与
+    # 同经济体economy_scorecard_前缀档比(两命名族glob互不匹配,US路径零回归)
+    if economy == 'US':
+        prev_pattern, prev_today = 'scorecard_*.json', f'scorecard_{today}.json'
+    else:
+        prev_pattern = f'{ECONOMY_SCORECARD_PREFIX}{economy}_*.json'
+        prev_today = f'{ECONOMY_SCORECARD_PREFIX}{economy}_{today}.json'
+    existing = sorted(glob.glob(os.path.join(out_dir, prev_pattern)))
+    prev_files = [f for f in existing if not f.endswith(prev_today)]
     prev_file = _prev_distinct_week_file(prev_files, today)
 
     if prev_file:
@@ -442,14 +480,20 @@ def save_scorecard(g_scores, g_total, i_scores, i_total, regime, desc,
         'sensitivity_note': '敏感性分析=反事实分解(剔除单指标看映射是否翻转),算术敏感性而非经济因果归因',
     }
 
-    json_path = os.path.join(out_dir, f'scorecard_{today}.json')
+    # IA-P1-WP-C(DP-3): 非US才写入economy键——US输出19个legacy键零回归(§零.6-a4)
+    if economy != 'US':
+        result['economy'] = economy
+
+    base = f'scorecard_{today}' if economy == 'US' \
+        else f'{ECONOMY_SCORECARD_PREFIX}{economy}_{today}'
+    json_path = os.path.join(out_dir, f'{base}.json')
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
     print(f"\n💾 JSON已保存: {json_path}")
 
     # ── Markdown ──
     md = render_markdown(result)
-    md_path = os.path.join(out_dir, f'scorecard_{today}.md')
+    md_path = os.path.join(out_dir, f'{base}.md')
     with open(md_path, 'w', encoding='utf-8') as f:
         f.write(md)
     print(f"💾 MD已保存: {md_path}")
@@ -471,7 +515,9 @@ def _score_rows(scores, missing):
 def render_markdown(result):
     g, i = result['growth_scores'], result['inflation_scores']
     gm, im = result['growth_missing'], result['inflation_missing']
-    L = [f"# 宏观体制评分卡({result['date']})",
+    econ = result.get('economy')   # IA-P1-WP-C: 非US存档带economy键→标题加经济体名前缀
+    econ_name = f"{ECONOMY_NAMES.get(econ, econ)} " if econ else ''
+    L = [f"# 宏观体制评分卡({econ_name}{result['date']})",
          "",
          f"> ⚠️ {result['disclaimer']}",
          f"> 数据基础: 研究快照 {result.get('data_basis', {}).get('snapshot_id', '?')}"
@@ -483,13 +529,19 @@ def render_markdown(result):
     L.append("| 指标 | 最新值 | 观测日 | 评分 | 阈值 |")
     L.append("|---|---|---|---|---|")
     L.extend(_score_rows(g, gm))
-    L.append(f"\n**增长总分: {result['growth_total']:+d}**(可用{len(g)}项,缺失{len(gm)}项不计分)")
+    if result['growth_total'] is None:   # IA-P1-WP-C: 非US无评分——如实"无",不以0占位
+        L.append(f"\n**增长总分: —(该经济体阈值口径未定义,不计分不折0)**(可用{len(g)}项,缺失{len(gm)}项不计分)")
+    else:
+        L.append(f"\n**增长总分: {result['growth_total']:+d}**(可用{len(g)}项,缺失{len(gm)}项不计分)")
 
     L.append("\n## 通胀维度")
     L.append("| 指标 | 最新值 | 观测日 | 评分 | 阈值 |")
     L.append("|---|---|---|---|---|")
     L.extend(_score_rows(i, im))
-    L.append(f"\n**通胀总分: {result['inflation_total']:+d}**(可用{len(i)}项,缺失{len(im)}项不计分)")
+    if result['inflation_total'] is None:
+        L.append(f"\n**通胀总分: —(该经济体阈值口径未定义,不计分不折0)**(可用{len(i)}项,缺失{len(im)}项不计分)")
+    else:
+        L.append(f"\n**通胀总分: {result['inflation_total']:+d}**(可用{len(i)}项,缺失{len(im)}项不计分)")
 
     L.append("\n## 体制判断(二维映射输出)")
     if result['regime'] == DATA_INSUFFICIENT:
@@ -522,10 +574,13 @@ def render_markdown(result):
 
 # ══════════════════════════════════════════════════════════════════
 
-def main(date_str=None, data_dir=None):
+def main(date_str=None, data_dir=None, economy='US'):
     print("=" * 60)
     print("📊 宏观体制评分卡 v2.0(输入=研究快照)")
     print("=" * 60)
+    if economy != 'US':
+        print(f"🌍 经济体: {ECONOMY_NAMES.get(economy, economy)}({economy})"
+              f"——阈值表仅定义于US,本卡如实记录指标缺席,不给维度评分")
 
     snapshot = load_snapshot(date_str, data_dir)
     facts = snapshot.get('facts', [])
@@ -536,8 +591,8 @@ def main(date_str=None, data_dir=None):
     }
     print(f"📌 数据基础: {data_basis['snapshot_id']}(Gate A: {data_basis['gate_a']})")
 
-    g_scores, g_total, g_missing = score_growth(facts)
-    i_scores, i_total, i_missing = score_inflation(facts)
+    g_scores, g_total, g_missing = score_growth(facts, economy=economy)
+    i_scores, i_total, i_missing = score_inflation(facts, economy=economy)
 
     # 数据不足判定: 任一维度可用<2 → 不给体制结论(spec §9)
     if len(g_scores) < MIN_AVAILABLE_PER_DIM or len(i_scores) < MIN_AVAILABLE_PER_DIM:
@@ -558,7 +613,7 @@ def main(date_str=None, data_dir=None):
                             g_missing=g_missing, i_missing=i_missing,
                             data_basis=data_basis, drivers=drivers,
                             counterfactuals=counterfactuals,
-                            date_str=date_str, data_dir=data_dir)
+                            date_str=date_str, data_dir=data_dir, economy=economy)
     print(f"\n✅ 确认体制: {result['confirmed_regime']}(状态: {result['regime_status']})")
     return result
 

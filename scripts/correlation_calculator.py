@@ -43,6 +43,13 @@ PAIRS = [
     {"a": "VIX", "b": "HYG", "label": "VIX vs 高收益债ETF",
      "disclosure": "HYG为高收益债价格代理(与HY_OAS利差反向)"},
     {"a": "BTC", "b": "NDX", "label": "比特币 vs 纳斯达克100"},
+    # IA-P1-WP-C(规格L171"相关性新对"): 两跨域配对追加分枝末尾;序列取自快照
+    # series_store——NIKKEI225/DAX序列接线为上游WP-B F2延后面,真实运行如缺
+    # 该对如实进missing("序列缺失"),非失败非0值;测试以合成快照覆盖全链路。
+    {"a": "NIKKEI225", "b": "USDJPY", "label": "日经225 vs 美元/日元",
+     "disclosure": "跨域配对(IA-P1-WP-C新增): 日经225为日元计价股指,与USDJPY汇率同表仅示联动,描述统计非因果"},
+    {"a": "DAX", "b": "EURUSD", "label": "德国DAX vs 欧元/美元",
+     "disclosure": "跨域配对(IA-P1-WP-C新增): DAX为欧元区股指,与EURUSD汇率同表仅示联动,描述统计非因果"},
 ]
 
 

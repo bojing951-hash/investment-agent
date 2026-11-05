@@ -79,6 +79,29 @@ def scorecard_state(ymd, data_dir=None):
     return fd, (lag == 0)
 
 
+# IA-P1-WP-C(规格L171"数据包经济体节"): 四经济体观察(DP-1经济面)。
+# 命名与通道口径与macro_scorecard对齐: 非US评分卡档=economy_scorecard_{econ}_*
+# (前缀避开本模块scorecard_state的daily/scorecard_*.md glob——两命名族互不
+# 匹配,US主评分卡对账面零污染);通道事实接线为上游延后面(WP-B F1),
+# JP/EA通道仅以快照顶层sources_status在此如实披露。
+ECONOMY_NAMES = {'US': '美国', 'CN': '中国', 'JP': '日本', 'EA': '欧元区'}
+ECONOMY_CHANNELS = {'JP': ('japan', 'jp'), 'EA': ('ea',)}
+
+
+def economy_scorecard(economy, ymd, data_dir=None):
+    """读取某经济体当日评分卡JSON存档(IA-P1-WP-C;数据访问helper,非渲染函数):
+    US=主评分卡scorecard_{ymd}.json;非US=economy_scorecard_{economy}_{ymd}.json。
+    在场才读;缺失/损坏返回None——由渲染层如实标注"未生成",不代行评分。"""
+    dd = data_dir or DATA_DIR
+    fname = f'scorecard_{ymd}.json' if economy == 'US' \
+        else f'economy_scorecard_{economy}_{ymd}.json'
+    try:
+        with open(os.path.join(dd, 'daily', fname), 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
 # ══ 渲染 ══════════════════════════════════════════════════════════
 
 def _wk(f):
@@ -245,6 +268,55 @@ def build_markdown(snapshot, ymd, data_dir=None, trusted_root=None):
     for f in cn_idx:
         L.append(f"| {f.get('display_name')} | {_fv(f)} | {_wk(f)} | "
                  f"{f.get('observation_date')} | 指数点位 |")
+
+    # IA-P1-WP-C: 经济体观察节(四DP-1经济体)——评分卡阈值口径仅定义于US;
+    # 非US维度无适用阈值,如实记"数据不足"(不以0占位,spec §三(a-2));
+    # 制度/数据状态取当日评分卡存档(在场才读,缺失如实"未生成");
+    # JP/EA通道事实未接线进facts(上游WP-B F1延后面),其采集状态逐通道披露。
+    L.append("")
+    L.append("## 经济体观察")
+    L.append("> 阈值表仅定义于美国(US)评分口径;非US经济体维度无适用阈值,"
+             "如实记数据不足,不以0占位(IA-P1-WP-C)。")
+    L.append("| 经济体 | 增长 | 通胀 | 制度 | 数据状态 |")
+    L.append("|---|---|---|---|---|")
+    reg_counts = {}
+    for m in fe.load_registry().get('metrics', []):
+        if m.get('status', 'active') != 'deprecated':
+            reg_counts[m.get('economy')] = reg_counts.get(m.get('economy'), 0) + 1
+    _st_names = {'confirmed': '已确认', 'pending_confirmation': '待确认',
+                 'data_insufficient': '数据不足'}
+    for econ in ('US', 'CN', 'JP', 'EA'):
+        sc = economy_scorecard(econ, ymd, data_dir)
+        if sc is None:
+            g_cell = i_cell = r_cell = '未生成'
+            s_cell = '未生成(当日评分卡不存在)'
+        else:
+            gt, it = sc.get('growth_total'), sc.get('inflation_total')
+            g_cell = f"{gt:+d}" if isinstance(gt, int) else '数据不足'
+            i_cell = f"{it:+d}" if isinstance(it, int) else '数据不足'
+            r_cell = sc.get('confirmed_regime') or sc.get('regime') or '—'
+            s_cell = ("本期在场;"
+                      + _st_names.get(sc.get('regime_status'), str(sc.get('regime_status'))))
+        L.append(f"| {ECONOMY_NAMES[econ]}({econ}) | {g_cell} | {i_cell} | {r_cell} | {s_cell} |")
+    L.append("- 注册表覆盖(静态披露,config/metric_registry.json economy字段活跃计数): "
+             + '; '.join(f"{ECONOMY_NAMES[e]}({e})={reg_counts.get(e, 0)}项"
+                         for e in ('US', 'CN', 'JP', 'EA'))
+             + ";评分卡阈值口径仅US(增长4+通胀4),CN/JP/EA阈值表未定义→维度得分如实"
+             "记数据不足,不杜撰阈值")
+    ss = snapshot.get('sources_status', {})
+    for econ in ('JP', 'EA'):
+        parts = []
+        for ch in ECONOMY_CHANNELS[econ]:
+            st = ss.get(ch)
+            if not st:
+                parts.append(f"{ch}=无记录")
+                continue
+            d = f"{ch}={st.get('status')}"
+            if st.get('file'):
+                d += f"({os.path.basename(st['file'])})"
+            parts.append(d)
+        L.append(f"- {ECONOMY_NAMES[econ]}通道披露: " + ', '.join(parts)
+                 + ";通道事实未接线进快照facts(上游WP-B F1延后面),此处仅为采集状态如实披露")
 
     # 联邦基金期货
     curve = snapshot.get('fed_futures_curve') or []

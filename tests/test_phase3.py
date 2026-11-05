@@ -179,7 +179,7 @@ snap_fake = {'snapshot_id': 'research_snapshot_TEST',
                  'VIX': series(18, -1.2), 'HYG': series(79, 0.05),
                  'BTC': series(97000, 0.8)}}       # NDX缺失→该对须进missing
 results, missing = cc.compute_all(snap_fake)
-check("可用9对全部产出(NDX缺失对除外)", len(results) == 9 and len(missing) == 1,
+check("可用9对全部产出(NDX与跨域新对缺失除外)", len(results) == 9 and len(missing) == 3,
       f"{len(results)}/{len(missing)}")
 check("NDX缺失对如实进missing不造数", '比特币' in missing[0] and 'NDX' in missing[0],
       str(missing))

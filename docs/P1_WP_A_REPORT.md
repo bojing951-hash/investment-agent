@@ -1,9 +1,9 @@
-# IA-P1-WP-A REPORT(登记件 · **v1.3 实现轮 · 状态=情形(d)停止#3:N3d 单点阻塞**)
+# IA-P1-WP-A REPORT(登记件 · **v1.4 实现轮 · 状态=执行中(v1.3 停止#3 已处置: N3d 单点扩容授权)**)
 
 > 包: IA-P1-WP-A(P1 四经济体底图层实现包第 1 包/族首包)| 分支: `dev/p1-impl-a`(自 018d913061a2b0ab5680e6c49c544efef740db7e 切出)
 > 合同: IA-P1-WP-A-AC-v1.1(FROZEN 2026-11-05 21:1x HKT 操作者代批)→ v1.2(FROZEN 2026-11-05 操作者发车,§3 步骤3=分支续作形态 @33d0dfc)→ **v1.3(FROZEN 2026-11-05 操作者发车,§3 步骤3=分支续作形态 @f0a2aea;(g)-(k)+从属锁类增 t06+research_provenance 括注明确化+实现参数预登记锚定)**
-> **状态: v1.1 轮(§零.1-§零.6)+ v1.2 轮(§零.7-§零.10)两轮情形(d)合法停止(仅登记件);v1.3 轮(§零.11-§零.14)授权面齐备,实现执行中**
-> 时点: v1.1 轮停止 2026-11-05T13:1xZ / v1.2 轮停止 2026-11-05T13:57:07Z / v1.3 轮开工 2026-11-05T14:04:45Z(UTC)[实取·本机 date -u]
+> **状态: v1.1(§零.1-§零.6)+v1.2(§零.7-§零.10)+v1.3(§零.11-§零.15)三轮历史在案;v1.4 轮(§零.16)执行完毕: N3d 域化+要点②真实采集(A6/A7 首档在场)+本地 CI 70 槽全绿+终笔推送**
+> 时点: v1.1 轮停止 2026-11-05T13:1xZ / v1.2 轮停止 2026-11-05T13:57:07Z / v1.3 轮开工 2026-11-05T14:04:45Z / v1.4 轮开工 2026-11-05T15:36:00Z(UTC)[实取·本机 date -u]
 > 本文件数值标注纪律沿 §5.3: 逐值 [实取·来源] 或 [示意·非实取]。
 
 ---
@@ -427,3 +427,38 @@ print("\n结论: v1.2③ 授权面全落地后,WP-A 规格仍强制触红 2 白�
 - **复跑终态(提交 7c179d9 后)**: `等价套件结果: 30通过 / 1失败`(唯一失败=N3d,见上);log=`/tmp/p1-wp-a-evidence/equiv-post-commit.log`(证据随停止形态入库 ci-summary 旁)。
 - **如更正登记**: 提交 7c179d9 message 内记「28通过/2失败」,提交前 CI 实录为 28通过/3失败(第三项=R-还原,自致工件已于提交前清除故未列入 message 两因);历史不 amend,以本节实录为准。提交前全量矩阵=`/tmp/p1-wp-a-evidence/ci-summary.txt`(TOTAL_SLOTS=70, RED=1)+ci-logs/ 逐套 log。
 - **要点②联动未启动(如实)**: 采集器就绪+源 URL 定值(§零.12⑩);v1.4 授权 N3d 一行后,同轮执行步骤⑪(白名单五域真实采集)+A6/A7 首档 `git add -f`(§零.14)。
+
+## §零.16 v1.4 轮开工核验与定值登记(合同=IA-P1-WP-A-AC-v1.4;先登记后实现后运行,运行后禁回改)
+
+**开工核验(步骤0-4 复核,原样登记,2026-11-05T15:36:00Z [实取·本机 date -u])**:
+
+- 步骤0: `git status` clean,已在 `dev/p1-impl-a`,HEAD=65cf32f49e84b3541b8aa20db705115d0402805b(v1.3 轮终态=实现笔 7c179d9+登记笔#3 65cf32f)。
+- 步骤1: 三占位符已实值化(BASE-P1A=018d913…/CI-SUITES=69→本轮目标 70 槽/BRANCH-SET=41 分支表),§0 生效前置信号满足(冻结章 v1.4 处置章在场)。
+- 步骤2: `git ls-remote origin main`=018d913061a2b0ab5680e6c49c544efef740db7e ✓;`dev/p1-design`=049ec978523dec659ba47f140bf41669604de24f 全值一致 ✓(禁锚 c9626633 未触);`dev/p1-impl-a`=65cf32f49e84b3541b8aa20db705115d0402805b=本地 HEAD ✓(v1.4③ 分支续作@65cf32f 形态)。
+- 步骤4 设计在场核验: `git merge-base --is-ancestor 049ec978… HEAD`=exit 0 ✓;设计三件 blob 双侧等值 [实取·git ls-tree]: P1_DATA_NEEDS_INVENTORY=df79c06f66c368d93159b7a3b46852b6fcb9b196/P1_DELIVERY=314c2644a51f2f575a90253580cb56346e2f93b6/P1_DESIGN=13b263cf3139d420e01bf1e154b03ce85a35db4c(HEAD 侧=049ec978 侧逐一相同,与冻结章实读记录一致)。
+- 步骤5-6: 规格抄录(§零.1)与白名单终版(§零.13)为 v1.3 轮已登记实体,本轮复核在场无漂移;本轮白名单增量=**v1.4③(l) 单点**: `tests/test_p0_baseline_lock_equivalence.py` **仅限 n3d 注入算术域化(该套件其余断言零触碰)**——M 行新增 1 件(累计 M 实改 11→12 件)。
+
+**N3d 域化定值登记(登记型,先登记后改后运行)**:
+
+- **二选一定值=「floor−1」**: 注入算术 `range(bl.expected_registry_count() - 4)` → `range(bl.W4_REPORT_ROWS_FLOOR - 1)`=81 行 [实取·tests/helpers/baseline_locks.py L45: W4_REPORT_ROWS_FLOOR=82]。
+- **选 floor−1 弃 live 自适应缺行的理由**: ①81 与 R060 迁移后锚值(live85 count−4=81)数值连续,「live 81→85 同型」=迁移后注入行数保持 81 不变,本定值沿该型;②锚定冻结常量 `W4_REPORT_ROWS_FLOOR`(82),与 live registry 演进解耦,live 再扩容不再触红(R014-D3 硬编码预期随数据档演进漂移教训);live 自适应公式(如 `count-(count-floor)-1`)数值等价但公式绑 live,复杂度无收益。
+- **双咬合验证算术(登记)**: rows=81: T2 精确锁 81≠1+live(94→95)咬合 ✓;下限锁 not(81≥82)=True 咬合 ✓——双联锁条件表达式**零改动**,语义不弱化(禁弱化判据=check 的两个条件子式逐字保持)。
+- **同步面(数值标注与本体同步纪律,R014 教训)**: n3d_table_rows() docstring 追加 v1.4 二迁注记+check 描述文字「(缺表头+4行)」→「(floor−1=81行)」——描述与注入算术一体同步,不触该套件其余任何断言函数。
+
+**v1.4 续段范围登记(合同 v1.4 修正面②,按序)**:
+
+N3d 域化 → 要点②真实采集(A6/A7 jp_/ea_ 首档;白名单五域;源失败→MISSING 不填 0;诚实缺席三项照 §零.12⑩ 预登记[DAX/CAC40/JP_CPI_TOKYO_YOY])→本地 CI 全绿(70 槽=69 exit0+1 skip)→证据 zip 八类(§3 步骤12)→终笔推送。采集运行前 `data/daily/` 全量+`data/research/` 既有档案 sha256 锚定,运行后既有哈希一律不变(§3 步骤10);首档 `git add -f` 显式纳入(§零.14)。
+
+### §零.16.1 v1.4 实录(终态;全部 [实取·运行输出/日志],证据=/tmp/p1-wp-a-evidence/)
+
+**① N3d 域化落地与验证**: 改动=`tests/test_p0_baseline_lock_equivalence.py` n3d_table_rows() 内 3 处行内(docstring 追加 v1.4 二迁注记/注入算术一行 `range(bl.W4_REPORT_ROWS_FLOOR - 1)`/check 描述文字同步),**该套件其余断言函数零触碰**(diff 可复核)。验证: 等价套件复跑 **31通过/0失败**(v1.3 轮 30/1,唯一红=N3d → 本轮修复;输出见本节尾注)。负向敏感性算术验证(n3d-sensitivity-check.log): 旧锚 count−4=90→bite=False(红);新锚 floor−1=81→bite=True(咬合);weakened(90)=True 反证=下限锁子式若删则旧锚也咬合=语义弱化——本 diff 条件子式逐字保持,未弱化。v1.3 轮红实录(equiv-post-commit.log `rows=90 expect=1+94`)=同断言域化前负向证据。
+
+**② 真实采集实录(要点②;白名单五域零凭证零付费)**:
+
+- **jp_ 通道(1 次运行,全源成功)**: exit 0,写出 `data/daily/jp_20261105.json`(4 系列)。MOF_JGBCME=EXACT(jgb.JGB_10Y=2.855@2026-11-04 prev 2.817/jgb.JGB_2Y=1.891@2026-11-04 prev 1.880);FRED_POLICY=EXACT(policy_rates.BOJ_POLICY_RATE=1.043@2026-09-01 prev 0.977,月频观测);FRED_NIKKEI225=EXACT(prices.NIKKEI225 close=61077.9@2026-11-05,high/low=null 仅收盘口径,series=251 点);inflation 节键不出现(JP_CPI_TOKYO=MISSING 诚实缺席,alerts 如实)。log=jp-collector-run-attempt1.log。
+- **ea_ 通道(2 次尝试,零改参,全部如实记录)**: attempt1(15:42)exit 0 写出: ECB_FM_DFR=EXACT(obs=2026-09-16,**数值不可考**——该档随后被 attempt2 原子覆盖,仅 log 留 observations 观测日)/ECB_FM_MRO=504 READ_FAIL/BBK_WU3146·WU3141=Connection reset READ_FAIL/ECB_ICP_HICP=504 READ_FAIL(1 系列);attempt2(15:43-15:45,零改参重试=瞬时网络错误恢复非调参凑结果)exit 0 写出(覆盖 attempt1): ECB_FM_MRO=EXACT(MRO 2.65@2026-09-16 prev 2.4)/其余同 504/reset READ_FAIL(1 系列)。终态档=`data/daily/ea_20261105.json`(policy_rates.ECB_MRO 在场;bund/inflation/prices 节键不出现;DAX/CAC40=MISSING 诚实缺席;alerts 9 条如实)。ECB FM 端点呈轮换性 504(两次各恰一个 FM 系列成功),BBK 持续 connection reset——**服务端瞬时/限流形态,如实 READ_FAIL,不再重试凑全**。log=ea-collector-run-attempt1.log/ea-collector-run-attempt2.log。
+- **锚定对比(§3 步骤10)**: 运行前 anchor-data-daily-pre.txt(25 件,sha256=2469381439a127494c882f7a51a42df98b8b04eb780fab9f9801571f67c2e7cd)vs 运行后 anchor-data-daily-post.txt: diff 仅 2 行新增(ea_20261105.json=e6db3ddf…/jp_20261105.json=7f0bdeb1…),**既有 25 件哈希一律不变**;data/research 13 件 pre/post 逐字节一致零变化。
+
+**③ 本地 CI 全绿(要点④)**: 与 `.github/workflows/offline-tests.yml` L34-57 同构镜像(run_ci_v14.py),**70 slots=69 exit=0+1 SKIPPED(test_glm_live 设计性)+FAILFLAG=0**(15:47:07Z-15:49:03Z)。关键套件: test_p0_baseline_lock_equivalence=exit 0(N3d 修复)/test_p1_wp_a=exit 0/从属锁套件(test_p03_e2eb_b3/test_p03_final_acceptance/test_phase3/test_p01_fix6)全绿。summary=ci-summary-v14.txt,逐套件 log=ci-logs-v14/。
+
+**④ §5.3 六项自检(本轮新增数值清单,双文档扫描)**: 等价套件 31/0 [实取·运行输出];CI 70=69+1skip+FAILFLAG0 [实取·ci-summary-v14.txt];jp 4 系列数值 [实取·data/daily/jp_20261105.json];ea 1 系列+4 READ_FAIL+2 MISSING [实取·data/daily/ea_20261105.json];锚定 25→27 与 research 13 不变 [实取·diff anchor-pre/post];N3d 新锚 floor−1=81 [实取·tests/helpers/baseline_locks.py L45=82];改动文件数=3(tests/test_p0_baseline_lock_equivalence.py+data/daily/jp_+ea_ 两档)+文档 2 件(REPORT/DELIVERY 续笔);ea 尝试次数=2 [实取·两 attempt log]。全部 [实取] 项已回工作树复核;日期/SHA 出圈边界=本报告头部声明。清单本身入证据包(§5.3 第 6 项)。

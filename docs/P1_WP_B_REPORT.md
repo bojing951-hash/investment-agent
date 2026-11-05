@@ -249,6 +249,14 @@ M-b(snapshot_builder)/M-c(trading_calendar)/M-d(data_validator)=**零 diff**(条
 - 禁锚的正确语义与合规判定: **不得以 c9626633 为分支基点**。实测三元组: merge-base(dev/p1-impl-b, main)=**f6d0beb=BASE-P1B**(分支基点正确); rev-list --count f6d0beb..dev/p1-impl-b=**1**(恰一实现提交 6a9414c, 纯线性); main 尖端=f6d0beb(未被触碰)。
 - 处置: §零.1 原句保留划线+更正指针(不删除原文), 本节完整登记; 判定权留操作者(若合同原文确以"非祖先"字面为停止条件, 该条件自 base 起即不可满足, 望操作者裁决语义)。
 
+### §零.16.3 v1.2 整改重装配终笔(处置章项4; 装配后回填定值)
+
+- zip=IA-P1-WP-B-EVIDENCE.zip(v1.2 重装配), **成员 111 件 / 406,554 字节 / sha256=8529fd3dca25ef94863317d5e08b8f7e412b223a55c8b22225a26d2eb956f5ad**, 装配时刻 2026-11-05T17:58:08Z(UTC), 装配 TIP=5389bbe121a58607f889076e742dbf1039d759e9(整改笔)[实取·装配脚本 stdout+独立复算一致]。
+- 重装配勘正内容(v1.2 项4): ③类设计在场取证件 anchor-triple-and-design-presence.txt=补第三件 docs/P1_DELIVERY.md blob 对照(314c2644a51f2f575a90253580cb56346e2f93b6, 与冻结章登记一致)+对照基改锚 049ec978(v1.1 误用 f6d0beb)+补 is-ancestor 可达性判定(exit0)与 rev-list --merges=0 判定; ①类 spec-transcription-L170.md 副本随 §零.2 勘正同步(zip 内实测零全角逗号+逐字行与 DESIGN L170 全等)。
+- §零.16.1 的 v1.1 zip(sha=6e786095…, TIP=fa95213)=历史登记保留不删, 该物理件已被本次重装配取代。
+- 完整性[实取·核验脚本]: 双源 10 文件交叉哈希 0 失配/SHA256SUMS 111 行 zip 外重建(自指豁免沿 R019/R023/R060)/zip 内不含 SUMS 自身/testzip=OK。
+- **zip 内 REPORT/DELIVERY/自述副本=5389bbe 装配时点版**(不含本节定值与 DELIVERY §四 v1.2 行; 先例沿本包 8edfb68/WP-A 8ec3737); zip sha 与本节定值以本提交(zip 哈希终笔)登记为准。
+
 ---
 
 ## §一 验收点逐点证据映射(AC-02)

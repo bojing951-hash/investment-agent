@@ -42,7 +42,8 @@
 - 本地 CI 镜像(canon=offline-tests.yml 同构, 逐 test_*.py 脚本方式): **TOTAL_SLOTS=71 GREEN=70 FAILFLAG=0**(2026-11-06 00:59-01:01 HKT; test_glm_live SKIPPED 设计性; summary=/tmp/p1-wp-b-evidence/ci-summary-wpb.txt, 逐件 log=ci-logs-wpb/)。
 - 关键从属锁全绿: test_p0_baseline_lock_equivalence/test_p1_wp_a(23 测)/test_p03_e2eb_b3(B3 冻结锚)/test_fact_engine/test_phase3/test_p03_final_acceptance/test_p01_fix6。
 - 白名单: `git diff --name-status f6d0beb..HEAD` = A3+M2+D0(REPORT §零.13)。
-- 证据包: IA-P1-WP-B-EVIDENCE.zip = **111 成员/397,969 字节/sha256=6e786095e05479990e46bdb723ef7c4030d49d74a97e9412b1d8f9ebd728b37e**(装配 2026-11-05T17:12:26Z, TIP=fa95213; REPORT §零.16.1; SHA256SUMS zip 外自指豁免沿 WP-A R023/R060)。
+- 证据包: IA-P1-WP-B-EVIDENCE.zip = **111 成员/397,969 字节/sha256=6e786095e05479990e46bdb723ef7c4030d49d74a97e9412b1d8f9ebd728b37e**(装配 2026-11-05T17:12:26Z, TIP=fa95213; REPORT §零.16.1; SHA256SUMS zip 外自指豁免沿 WP-A R023/R060)。〔v1.1 装配历史登记, 该物理件已被下行 v1.2 重装配取代〕
+- 证据包(v1.2 重装配终态, 处置章项4): IA-P1-WP-B-EVIDENCE.zip = **111 成员/406,554 字节/sha256=8529fd3dca25ef94863317d5e08b8f7e412b223a55c8b22225a26d2eb956f5ad**(装配 2026-11-05T17:58:08Z, TIP=5389bbe 整改笔; REPORT §零.16.3; ③类设计在场取证=设计三件 blob 对照+对照基锚 049ec978+可达性判定, ①类 spec 副本同步勘正; SHA256SUMS 111 行 zip 外重建; 双源交叉哈希 0 失配; zip 内双文档副本=5389bbe 装配时点版, 定值以终笔提交为准)。
 
 ## §五 漂移维护政策(AC-03)
 

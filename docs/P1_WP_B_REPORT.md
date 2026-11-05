@@ -17,7 +17,7 @@
 | 契约 | IA-P1-WP-B-AC-v1.1(FROZEN 2026-11-06 00:3x HKT) | 操作者注入全文,逐节实读 |
 | BASE-P1B | f6d0beb7cdba8631c9df6a20a2e9a5e6140c1c20 | `git rev-parse HEAD` 于 dev/p1-impl-b = 同值 |
 | 分支 | dev/p1-impl-b(自 f6d0beb 直接创建,零合并) | `git branch --show-current` + log 线性 |
-| 禁锚 | c9626633 不得为祖先 | merge-base 核验非祖先 |
+| 禁锚 | c9626633 不得为祖先 | ~~merge-base 核验非祖先~~ **措辞失实, 更正见 §零.16.3**: c9626633 实为 BASE-P1B 自身的历史祖先; 正确核验=merge-base(dev/p1-impl-b, main)=f6d0beb=BASE-P1B ✓(分支基点正确) |
 | BRANCH-SET | 42分支冻结表,唯一预期新增=dev/p1-impl-b | 实现后 ls-remote 对照(§零.16) |
 | 工作树 | 启动时干净(status clean) | `git status --short` 空 |
 
@@ -218,6 +218,7 @@ M-b(snapshot_builder)/M-c(trading_calendar)/M-d(data_validator)=**零 diff**(条
 4. **手算独立性**: t03/t08 期望(4.0/8/6/5.0 等)为 §零.11 预登记手算字面量, 禁自证(不 import 实现侧计算结果)。
 5. **无粉饰**: 失实 4 处如 §零.12 逐条登记; ECB_MRO DEGRADED(滞后50天)如实降级披露; fixture 诚实缺席 3 项(DAX/CAC40/JP_CPI)在 t13 断言为边界记录而非伪装在场。
 6. **禁区零触碰**: LIVE(/Users/cast/AI内容/…)零 grep 命中(模式 `R045|P1-WP-B|IA-P1-WP-B`, 实录见 §零.16)/零写; 引擎目录/launchd 零访问; 网络零出站(测试全离线, 本会话唯一网络面=git push 经 gh HTTPS 凭证通道)。
+7. **自检补充(取证期发现)**: §零.1"禁锚非祖先"措辞失实一处(c9626633 实为 base 历史祖先), §零.16.2 完整登记+更正指针, 判定权留操作者——本轮自检共发现失实 5 处(§零.12 四处测试预期+本处登记措辞), 全部如实披露零隐瞒。
 
 ## §零.15 本地 CI 镜像实录
 
@@ -227,11 +228,21 @@ M-b(snapshot_builder)/M-c(trading_calendar)/M-d(data_validator)=**零 diff**(条
 - 关键从属锁套件全绿: test_p0_baseline_lock_equivalence(N3d 修复面)/test_p1_wp_a(23 测)/test_p03_e2eb_b3(t02 B3 冻结锚含 JP_POLICY_RATE/JGB range)/test_p03_final_acceptance/test_phase3/test_p01_fix6/test_fact_engine。
 - 首轮镜像驱动曾以 `python -m unittest tests.<name>` 方式运行得 2 红(test_p02_w1/test_p02_w1_fix1, ModuleNotFoundError: helpers)——经诊断为**镜像脚本调用方式失当**(脚本式套件须以文件方式运行), 非代码回归; 两套件以 canon 文件方式运行 46/0+41/0 全绿。该失当如实登记, canon 重跑后 71 槽全绿为准。
 
-## §零.16 证据包与取证登记(见 DELIVERY §四/§五; 摘要)
+## §零.16 证据包与取证登记(摘要; 全套证据=/tmp/p1-wp-b-evidence/ 与 zip)
 
 - 证据目录: /tmp/p1-wp-b-evidence/; zip=IA-P1-WP-B-EVIDENCE.zip(装配脚本 assemble_zip_wpb.py, SHA256SUMS zip 外自指豁免先例沿 WP-A R023/R060)。
-- LIVE grep 零命中实录: 模式 `R045|P1-WP-B|IA-P1-WP-B` 于 LIVE 仓库 grep=0 行(证据件 07)。
+- LIVE grep 零命中实录: 模式 `R045|P1-WP-B|IA-P1-WP-B` 于 LIVE 仓库 grep=0 行(证据件 03-git-forensics/live-grep-zero.txt)。
 - git 取证: name-status f6d0beb..HEAD=A3+M2+D0/rev-parse/log 线性/reflog 零 reset --hard/ls-remote BRANCH-SET 对照(42 冻结+唯一新增 dev/p1-impl-b)(证据件 03)。
+
+### §零.16.1 zip 装配终笔(装配后回填定值)
+
+(待装配后回填: 成员数/字节数/sha256/装配时刻/TIP)
+
+### §零.16.2 §零.1 禁锚措辞失实更正(取证期发现, 如实登记)
+
+- 原登记(§零.1): "禁锚 c9626633 不得为祖先 | merge-base 核验非祖先"——**后半句为失实表述**: 实测 `git merge-base --is-ancestor c9626633 HEAD` = exit 0(是祖先), 因 c9626633(P1-DESIGN T2 终笔)本就是 BASE-P1B 的历史祖先(`rev-list --count f6d0beb..c9626633`=0), 一切自 base 创建的分支必然包含它——"非祖先"字面条件对任何合规分支均不可满足, 该措辞系本 Agent 转写/核验失实。
+- 禁锚的正确语义与合规判定: **不得以 c9626633 为分支基点**。实测三元组: merge-base(dev/p1-impl-b, main)=**f6d0beb=BASE-P1B**(分支基点正确); rev-list --count f6d0beb..dev/p1-impl-b=**1**(恰一实现提交 6a9414c, 纯线性); main 尖端=f6d0beb(未被触碰)。
+- 处置: §零.1 原句保留划线+更正指针(不删除原文), 本节完整登记; 判定权留操作者(若合同原文确以"非祖先"字面为停止条件, 该条件自 base 起即不可满足, 望操作者裁决语义)。
 
 ---
 
@@ -251,12 +262,13 @@ M-b(snapshot_builder)/M-c(trading_calendar)/M-d(data_validator)=**零 diff**(条
 
 ## §二 偏离与如实声明
 
-1. **快照面交付形态偏离(收敛性)**: 冻结章 (b) 授权"resolve_inputs 扩展+sources_status jp/ea 键"已被 WP-A 上游实现吸收(SOURCE_FILE_RULES→SOURCES 推导), 本包 (b) 零 diff、以测试证成(t16/t17/t18)——非缩水: 授权面功能全部在场且被验收测试锁定; facts 级快照接线/series_store/_SOURCE_TO_INPUT 属白名单外(F1/F2/F3 登记), 不实现=合规而非偏离。
-2. **测试开发期 4 处预期失实**(§零.12): 均为测试侧预期错误并如实登记, 更正后全绿, 零实现侧回改。
-3. **首轮 CI 镜像调用方式失当**(§零.15): `-m unittest` 方式致 2 个脚本式套件误红, canon 文件方式重跑全绿; 失当过程不隐瞒。
-4. **F4 注释陈旧**: fixt.py L214"NIKKEI225∈[5000,60000]"注释随上限调整陈旧(值 38000 仍合法∈新区间), fixt 不在白名单不更新, 登记留后续。
-5. **零运行产物**(步骤⑩登记): 验收①②③全部为【测试】/【CI】面, 无真实运行验收点; 本包未运行任何采集器/快照构建生产路径(build_snapshot 仅测试沙箱 tmp 目录), data/daily 与 data/research 零变化——故无运行产物档, 如实登记。
-6. **ECB_MRO DEGRADED 如实降级**: 真实首档观测 2026-09-16 vs 研究 2026-11-05 滞后 50 天>10 天窗(注册表日频政策), t20 断言 DEGRADED+滞后消息——非缺陷, 诚实降级语义(§三(c))。
+1. **§零.1 禁锚措辞失实(取证期发现)**: 原登记"禁锚 c9626633 非祖先已核"失实——c9626633 实为 BASE-P1B 历史祖先(对一切合规分支"非祖先"字面均不可满足); 正确判定=分支基点核验(merge-base(dev/p1-impl-b, main)=f6d0beb=BASE-P1B, 恰 1 提交领先, 纯线性)——§零.16.2 完整登记, 原句划线保留不删, 判定权留操作者。
+2. **快照面交付形态偏离(收敛性)**: 冻结章 (b) 授权"resolve_inputs 扩展+sources_status jp/ea 键"已被 WP-A 上游实现吸收(SOURCE_FILE_RULES→SOURCES 推导), 本包 (b) 零 diff、以测试证成(t16/t17/t18)——非缩水: 授权面功能全部在场且被验收测试锁定; facts 级快照接线/series_store/_SOURCE_TO_INPUT 属白名单外(F1/F2/F3 登记), 不实现=合规而非偏离。
+3. **测试开发期 4 处预期失实**(§零.12): 均为测试侧预期错误并如实登记, 更正后全绿, 零实现侧回改。
+4. **首轮 CI 镜像调用方式失当**(§零.15): `-m unittest` 方式致 2 个脚本式套件误红, canon 文件方式重跑全绿; 失当过程不隐瞒。
+5. **F4 注释陈旧**: fixt.py L214"NIKKEI225∈[5000,60000]"注释随上限调整陈旧(值 38000 仍合法∈新区间), fixt 不在白名单不更新, 登记留后续。
+6. **零运行产物**(步骤⑩登记): 验收①②③全部为【测试】/【CI】面, 无真实运行验收点; 本包未运行任何采集器/快照构建生产路径(build_snapshot 仅测试沙箱 tmp 目录), data/daily 与 data/research 零变化——故无运行产物档, 如实登记。
+7. **ECB_MRO DEGRADED 如实降级**: 真实首档观测 2026-09-16 vs 研究 2026-11-05 滞后 50 天>10 天窗(注册表日频政策), t20 断言 DEGRADED+滞后消息——非缺陷, 诚实降级语义(§三(c))。
 
 ## §三 合同逐条自检 AC-01~AC-07
 

@@ -75,6 +75,7 @@ class _FakeDT:
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import fixt   # noqa: E402
+from helpers import baseline_locks as bl  # noqa: E402  WP-BR三联锁(vintage域)
 
 _BREAK_FOR_GATE = {'DEGRADED': 'UMCSENT', 'FAIL': 'SPX'}
 
@@ -417,7 +418,9 @@ with tempfile.TemporaryDirectory() as td:
     collector_day(td)
     snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, trusted_root=td, as_of=AS_OF)
     check("全核心齐备+无失败→Gate A PASS(基线)",
-          snap['gate_a']['status'] == 'PASS', str(snap['gate_a']))
+          # WP-BR vintage域(#13): PASS恒绿;DEGRADED仅当core桶净+noncore_missing
+          # ⊆注册表vintage后新增(基线通道/指标静默死亡仍红)
+          bl.gate_vintage_ok(snap['gate_a'])[0], str(snap['gate_a']))
 with tempfile.TemporaryDirectory() as td:
     collector_day(td, break_metric='UMCSENT')   # 非核心(信心指数)值坏
     snap = quiet(sb.build_snapshot, target_ymd=DAY, data_dir=td, out_dir=td, trusted_root=td, as_of=AS_OF)

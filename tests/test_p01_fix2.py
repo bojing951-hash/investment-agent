@@ -35,6 +35,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from helpers import baseline_locks as bl  # noqa: E402  WP-BR三联锁(vintage域)
 PY = sys.executable
 
 PASS, FAIL = 0, 0
@@ -363,7 +364,9 @@ def _illegal_has(rec, mid):
 # 重算层(直接对rp.recompute_gate_a断言)
 rec = rp.recompute_gate_a(RE_PASS)
 check("全核心齐备→PASS;计数键集恰为3键(PASS/DEGRADED/FAIL)",
-      rec['effective'] == 'PASS' and set(rec['counts']) == {'PASS', 'DEGRADED', 'FAIL'}
+      # WP-BR vintage域(#14)
+      bl.gate_vintage_ok(rec)[0]
+      and set(rec['counts']) == {'PASS', 'DEGRADED', 'FAIL'}
       and rec['overall'] == 'PASS', str(rec['counts']))
 
 snap_miss = quiet(fixt.real_snapshot, DAY, missing=('VIX',))
@@ -452,11 +455,18 @@ snap_warn['quality']['counts']['PASS'] = _base_counts['PASS'] - 1
 rec = rp.recompute_gate_a(snap_warn)
 check("FIX3-01 合法WARN保持原语义(WARN不计counts,effective不变)",
       rec['counts'] == {'PASS': _base_counts['PASS'] - 1, 'DEGRADED': 0, 'FAIL': 0}
-      and rec['effective'] == 'PASS'
+      and bl.gate_vintage_ok(rec)[0]          # WP-BR vintage域(#15)
       and 'BEI_10Y' not in rec['noncore_fail'] + rec['noncore_degraded'],
       str(rec['counts']))
 got, why = rp.gate_status(snap_warn)
-check("FIX3-01 合法WARN快照gate_status仍PASS(原有语义不变)", got == 'PASS', f"{got} {why}")
+# WP-BR vintage域(#15b): 声明↔重算一致→放行真实状态;基线=PASS,
+# 注册表演进(基线后新增指标未采集)下=DEGRADED且须vintage合法(非基线条目
+# 缺失仍须拒绝),不逐vintage硬编码
+_wrec = rp.recompute_gate_a(snap_warn)
+check("FIX3-01 合法WARN快照gate_status放行真实状态(WARN不计级,基线=PASS)",
+      got == _wrec['effective']
+      and (_wrec['effective'] == 'PASS' or bl.gate_vintage_ok(_wrec)[0]),
+      f"{got} {why}")
 
 # FIX3-01: 缺失必要质量汇总字段→gate_status拒绝("必需字段缺失不得放行")
 bad = copy.deepcopy(RE_PASS)
@@ -511,12 +521,18 @@ check("注册表外指标→不进核心分级也不冒充非核心研究事实(
       any('ZZZ_UNKNOWN' in s for s in rec['non_research_facts'])
       and 'ZZZ_UNKNOWN' not in rec['core_fail'] + rec['core_missing']
       and 'ZZZ_UNKNOWN' not in rec['noncore_fail'] + rec['noncore_degraded']
-      and rec['counts'] == _rec_pass['counts'] and rec['effective'] == 'PASS',
+      and rec['counts'] == _rec_pass['counts'] and bl.gate_vintage_ok(rec)[0],
       str(rec))
 
 # 裁决层(gate_status: 声明↔重算矛盾一律拒绝)
 got, why = rp.gate_status(RE_PASS)
-check("真实PASS+声明一致→PASS", got == 'PASS', f"{got} {why}")
+# WP-BR vintage域(#15c): 声明(builder如实写入)↔重算一致→放行真实状态;
+# 基线=PASS,演进(新增指标未采集)=DEGRADED且须vintage合法——非基线条目
+# 缺失造成的DEGRADED不受此放行(拒绝路径回归由下方矛盾注入用例覆盖)
+check("真实状态+声明一致→放行真实状态(基线PASS/vintage合法DEGRADED)",
+      got == _rec_pass['effective']
+      and (_rec_pass['effective'] == 'PASS' or bl.gate_vintage_ok(_rec_pass)[0]),
+      f"{got} {why}")
 got, why = rp.gate_status(snap_spx)
 check("真实FAIL(SPX坏)+声明FAIL(builder写入)→FAIL", got == 'FAIL', f"{got} {why}")
 bad = copy.deepcopy(snap_spx)
@@ -550,9 +566,14 @@ got, why = rp.gate_status(dup_decl)
 check("重复metric_id+声明FAIL(如实)→FAIL(清单不涉重复项,由重算裁决)",
       got == 'FAIL', f"{got} {why}")
 bad = copy.deepcopy(RE_PASS)
-bad['gate_a']['status'] = 'DEGRADED'   # 全PASS事实+声明DEGRADED=矛盾
+bad['gate_a']['status'] = 'DEGRADED'   # 与事实的关系随注册表vintage而定
 got, why = rp.gate_status(bad)
-check("全PASS事实+声明DEGRADED→拒绝(声明不得劣于事实)", got is None, f"{got} {why}")
+# WP-BR vintage域(#15d): 基线(重算PASS)下声明DEGRADED=劣于事实→拒绝;
+# 演进(重算vintage合法DEGRADED)下声明DEGRADED=如实一致→放行
+check("声明DEGRADED: 事实PASS→拒绝(不得劣于事实)/事实vintage-DEGRADED→如实放行",
+      (got is None) if (_rec_pass['effective'] == 'PASS'
+                        or not bl.gate_vintage_ok(_rec_pass)[0])
+      else (got == 'DEGRADED'), f"{got} {why}")
 
 # ════════════════════════════════════════════════════════════════════
 # FIX2-03 步骤依赖与报告授权(IA-DEF-003)

@@ -198,4 +198,4 @@ sha256 终笔见文末补记;装配时点 TIP+终态登记 08-sidecar/final-stat
 
 ## B3R zip 哈希补记(重装配后追加;自指豁免沿 B2/R057/R058/B3 先例: 上方 zip 内 DELIVERY 副本无本行)
 
-(装配后实测填入)
+IA-P03-E2EB-WP-B3-EVIDENCE.zip sha256 = 859efd3926013a3439f3169b96d8ea89e2b9fa23d8b500b4537c8cc0b91a4aba (280条目=279成员+SHA256SUMS/940899字节, 装配时点TIP=7bec868, 装配后实测; 原187成员字节级零变化全保留——对照件=zip内09-remediation-r060/01-preservation-proof/(B3原SHA256SUMS+验证脚本+输出,186/186零变化); 终态见证据目录08-sidecar/final-state.txt)

@@ -73,7 +73,11 @@ git diff --stat vs BASE-P1D: 4 files changed, 53 insertions(+), 0 deletions(-)(M
 
 ## §六 zip 哈希终笔登记
 
-(装配后回填: zip 整体 sha256+成员数+装配 UTC 时刻)
+- 证据包: `/tmp/p1-wp-d-evidence/IA-P1-WP-D-EVIDENCE.zip` = **36 文件成员 / 126077 字节**
+- zip 整体 sha256: `3086ed16bfbf950a0cd3154c32ce53b55bc3ca73cf1774a2f611aba7fc7b5818`(装配脚本 stdout 与独立 `shasum -a 256` 复算一致)
+- 装配时刻: 2026-11-05T19:58:51Z UTC(=2026-11-06 03:58:51 HKT);装配时点 TIP=f5ddc459fbb537e1c44e07777eb59dc242068388(实现笔)
+- 完整性: zip 内 `testzip`=OK;SHA256SUMS=36 行 zip 外生成、自身显式豁免不入 zip(zip 内 grep SHA256SUMS=无);②类双源副本(tip vs 工作树)交叉哈希全 equal=True
+- 如实披露(先例沿 WP-B 8edfb68/WP-C 9b829e4): zip 内 REPORT/DELIVERY 副本=f5ddc45 装配时点版(不含本 §六 终笔定值),终局自述以会话 stdout 步骤14 为准
 
 ## §七 参考
 

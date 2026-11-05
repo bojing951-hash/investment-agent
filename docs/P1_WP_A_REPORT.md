@@ -462,3 +462,13 @@ N3d 域化 → 要点②真实采集(A6/A7 jp_/ea_ 首档;白名单五域;源失
 **③ 本地 CI 全绿(要点④)**: 与 `.github/workflows/offline-tests.yml` L34-57 同构镜像(run_ci_v14.py),**70 slots=69 exit=0+1 SKIPPED(test_glm_live 设计性)+FAILFLAG=0**(15:47:07Z-15:49:03Z)。关键套件: test_p0_baseline_lock_equivalence=exit 0(N3d 修复)/test_p1_wp_a=exit 0/从属锁套件(test_p03_e2eb_b3/test_p03_final_acceptance/test_phase3/test_p01_fix6)全绿。summary=ci-summary-v14.txt,逐套件 log=ci-logs-v14/。
 
 **④ §5.3 六项自检(本轮新增数值清单,双文档扫描)**: 等价套件 31/0 [实取·运行输出];CI 70=69+1skip+FAILFLAG0 [实取·ci-summary-v14.txt];jp 4 系列数值 [实取·data/daily/jp_20261105.json];ea 1 系列+4 READ_FAIL+2 MISSING [实取·data/daily/ea_20261105.json];锚定 25→27 与 research 13 不变 [实取·diff anchor-pre/post];N3d 新锚 floor−1=81 [实取·tests/helpers/baseline_locks.py L45=82];改动文件数=3(tests/test_p0_baseline_lock_equivalence.py+data/daily/jp_+ea_ 两档)+文档 2 件(REPORT/DELIVERY 续笔);ea 尝试次数=2 [实取·两 attempt log]。全部 [实取] 项已回工作树复核;日期/SHA 出圈边界=本报告头部声明。清单本身入证据包(§5.3 第 6 项)。
+
+### §零.16.2 v1.4 取证与 zip 登记(终态;全部 [实取·命令输出],原样件=/tmp/p1-wp-a-evidence/ 与 zip ③)
+
+- **AC-05 全量 diff 判据**: `git diff --name-status 018d913..HEAD`=**A 恰 7**(REPORT/DELIVERY/jp_/ea_ 采集器/test_p1_wp_a/jp_+ea_ 两档)+**M 恰 12**(registry/run_weekly/rsem/rp/tc/hca/baseline_locks/test_phase3/fixt/b3/final/**test_p0_baseline_lock_equivalence**)+**D=0**;japan_rate_collector.py(M-c 条件类)零触碰。
+- **分支历史**: 纯线性 5 笔(33d0dfc→f0a2aea→7c179d9→65cf32f→0c28e96+终笔),零 merge;reflog-20 零 reset/amend;不 force;main 零触碰。
+- **BRANCH-SET 对照(41 冻结分支)**: **41/41 尖端语义零漂移+唯一新增分支=dev/p1-impl-a** ✓;**如实登记 3 处冻结章文本 vs ls-remote 实取的一位字符差异**: dev/p0-2-w5-emwin(章 `…a38fc75d`/实取 `…a88fc75d`)、dev/p0-2-w5-fix2(章 `…75b1d`/实取 `…75c1d`)、dev/p3-design(章 `f93adb5d033e…`/实取 `f93adb5d0338…`)——各恰 1 个十六进制位不同;git SHA 为密码学哈希,真实提交推进不可能恰差一位(概率≈10⁻⁴⁶),判定=**冻结章文本层单字符笔误**(R059 轮 dev/p0-2-w2 合同一位笔误重核先例同型),非尖端漂移;处置权留操作者复核。
+- **LIVE 隔离**: LIVE `real_data_acceptance.py` sha256=f9ca189c5248199bb5acbc78b2a2c82d59c10e1c7c2c2d20bdaaa6105fbfe3eb(合同 AC-05.6 断言 f9ca189c… 前缀一致);LIVE 目录本轮标记 grep(`R044|P1-WP-A|IA-P1-WP-A`)=零命中;LaunchAgents 零改动。
+- **证据 zip(AC-06.2)**: IA-P1-WP-A-EVIDENCE.zip=134 成员/578676 字节/sha256=a4d7b439bc9fd2a4cf067233d9024075692736fc8c186bf0489471b2b6df1c88(装配 2026-11-05T15:57:33Z,TIP=0c28e96);八类最低集齐(①spec 抄录+清单 ②19 件双源副本交叉哈希 0 失配 ③git 取证+设计在场核验+LIVE sha ④CI 70 套件+等价 31/0+敏感性 ⑤映射表+DP 登记 ⑥3 采集 log+双面锚定 4 件 ⑦自述副本 ⑧SHA256SUMS zip 外自指豁免);zip sha 落 DELIVERY §六;推送终态=证据目录 08-sidecar/final-state.txt。
+- **CI dispatch**: 未自行 dispatch(合同 §六.5);登记件将落 `rounds/044/P1-WP-A-CI-dispatch-evidence.md`(操作者 CHECKPOINT 面)。
+- **顺序偏离如实(合规补救)**: v1.4 续段合同序=「…zip 八类→终笔推送」;实现笔 0c28e96 因 zip sha 须落 DELIVERY 而先于 zip 装配推送→补救=R023/R060 先例形态(zip 装配内件=TIP 0c28e96 版→DELIVERY 补记 zip sha=本终笔提交,zip 内副本自指豁免);纯线性续加零 amend。

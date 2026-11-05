@@ -116,3 +116,7 @@ sha256 全值;gate_a=DEGRADED vintage 合法;noncore_missing=china 档既有
 operative 值差异)已在 release_semantics 登记,决议值指标化留待需求轮;
 ③CI dispatch 登记件(rounds/023)归操作者动作,不在本执行器白名单;
 ④zip 哈希终笔见下。
+
+## zip 哈希补记(装配后追加;自指豁免: 上方 zip 内 DELIVERY 副本无本行)
+
+IA-P03-E2EB-WP-B3-EVIDENCE.zip sha256 = 0f14d11f895ed8b2695d9e912831ee3915eed990615bb4869d93899ea1a09232 (187成员/674941字节, 装配时点TIP=378fd04, 装配后实测; zip外终态见证据目录08-sidecar/final-state.txt)

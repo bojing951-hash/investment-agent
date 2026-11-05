@@ -52,14 +52,21 @@ check("2027-01-01(周五,旧触发日)→None", pending_completed_month(d(2027, 
 check("11-07→月报202610(10月已完结)", pending_completed_month(d(2026, 11, 7)) == '202610')
 check("11-07→季报None(11月非季初月)", pending_completed_quarter(d(2026, 11, 7)) is None)
 
-# ── 测试2: 月度数据装配(真实数据优先,缺失用E2E fixture,第二轮#20) ──────────────────
+# ── 测试2: 月度数据装配(WP-BR环境隔离#58: fixture全tmp化,禁ambient分支) ──────────────────
 print("\n[2] monthly_review.build_data_block")
 import glob as _glob
 import monthly_review as mr
 
-real = os.path.join(ROOT, 'data', 'daily')
+# WP-BR p4环境隔离(#58): 原形态=ambient data/daily在场则用真实数据,缺席则
+# 回落fixture——本地在场态月度序列提取0→4红(CI绿/DEV红漂移)。修复=提交内
+# fixture(tests/fixtures/e2e/w4_data)复制到独立tmp根,套件环境无关化
+# (ambient在场/缺席两态恒同路径);断言集零改动,仅数据来源隔离。
+import shutil as _sh
+import tempfile as _tf
 fixdir = os.path.join(ROOT, 'tests', 'fixtures', 'e2e', 'w4_data')
-data_dir = real if _glob.glob(os.path.join(real, 'global_2026*.json')) else fixdir
+_p4tmp = _tf.mkdtemp(prefix='p4-fixes-data-')
+data_dir = os.path.join(_p4tmp, 'w4_data')
+_sh.copytree(fixdir, data_dir)
 ym = '202609'
 block, series, ctx, preview = mr.build_data_block(ym, data_dir=data_dir)
 check("提取到≥5个月度序列", len(series) >= 5, f"got {len(series)}: {list(series)}")
@@ -82,12 +89,13 @@ ym_now = datetime.now().strftime('%Y%m')
 block_now, _, _, preview_now = mr.build_data_block(ym_now, data_dir=data_dir)
 check("当月未完结→预览模式", preview_now is True and "【预览】" in block_now)
 
-# 月度序列观测日去重(fixture精确版见test_e2e;此处真实数据: 期内可含1-2个合法月度观测)
+# 月度序列观测日去重(fixture精确版见test_e2e;tmp化后数据面=提交内fixture,
+# 环境无关;期内可含1-2个合法月度观测)
 unrate = series.get('失业率UNRATE')
 if unrate:
     check("月度序列观测数合法(按观测日去重,1-2个)", 1 <= unrate['obs_count'] <= 2, str(unrate))
 else:
-    check("月度序列存在(真实数据UNRATE亦应去重)", '失业率UNRATE' in series or data_dir == real)
+    check("月度序列存在(UNRATE亦应去重)", '失业率UNRATE' in series)
 
 # ── 测试3: 季度数据装配(整季聚合,非3时点) ──────────────────
 print("\n[3] quarterly_outlook.build_data_block")

@@ -8,7 +8,8 @@
      污染,运行后还原),断言三联锁在每种注入下必须红(锁仍然咬合);
   ② 演进兼容预演: 合法注册演进 81→85(4条日本指标,全登记,B3 DESIGN §六
      v2.1.0 语义)下 M 集 28 套件**零改动全绿**;85→84(删vintage基线条目)红;
-     裸85(新条目日历未登记)红。
+     裸85(新条目日历未登记)红。(R060 注记: B3 落地后实载基座=85,预演变体
+     现为 85→89=85基+4虚构条目,8 条 vintage 新增;函数名保持 R057 冻结身份。)
 
 运行形态: 脚本式(python3 tests/test_p0_baseline_lock_equivalence.py),
 CI 同构零 pytest 依赖;零真实出站(全部 monkeypatch/tmp/git worktree 本地实现)。
@@ -104,12 +105,30 @@ def _jp(mid, name, sym):
 
 
 def _evolved_85():
-    """合法演进变体: 81→85(BOJ_POLICY_RATE/JGB_2Y/JGB_5Y/JGB_10Y全登记)。"""
+    """合法演进变体: 81→85(BOJ_POLICY_RATE/JGB_2Y/JGB_5Y/JGB_10Y全登记)。
+
+    R060 注记: B3 落地后实载基座=85(v2.1.0 含 4 条实名 JP 条目,与虚构 4 条
+    无 metric_id 碰撞=D1 命名规避),本变体现为 85→89(8 条 vintage 新增);
+    函数名/虚构条目集保持 R057 冻结身份,演进兼容语义不变(REPORT §零.7)。"""
     return _variant(lambda d: d['metrics'].extend([
         _jp('BOJ_POLICY_RATE', '日银政策利率', 'BOJRATE'),
         _jp('JGB_2Y', '2年期日债收益率', 'JGB2Y'),
         _jp('JGB_5Y', '5年期日债收益率', 'JGB5Y'),
         _jp('JGB_10Y', '10年期日债收益率', 'JGB10Y')]))
+
+
+def _shrink_variant():
+    """N1/N7 共用缩水注入(live=85 重锚,R060/REM-AC-02⑥):
+
+    删 vintage 基线条目 UMCSENT+时点后新增 4 条实名 JP 条目→恰 80 项<81 触
+    T1 下限(原锚=live 81 删 1 条即 80 触底;B3 后 live=85,单删 1 条=84 不触
+    下限=电池算术漂移,见 B3 REPORT §零.5/§三)。baseline_removals 仍恰
+    ={UMCSENT}(JP 条目∉BASELINE_VINTAGE_IDS,新增退场非基线缩水)。"""
+    def _m(d):
+        d['metrics'] = [m for m in d['metrics']
+                        if m['metric_id'] in bl.BASELINE_VINTAGE_IDS
+                        and m['metric_id'] != 'UMCSENT']
+    return _variant(_m)
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -127,14 +146,13 @@ check('Z0 T1计数下限+T2双射+T3自洽 基线态全绿',
 
 
 def n1_entry_loss():
-    """N1 条目丢失(81→80)——原锁: test_p02_w4.py:231 `assertEqual(len(reg
+    """N1 条目丢失(85→80,live=85 重锚: 删vintage条目UMCSENT+4条新增,见
+    _shrink_variant)——原锁: test_p02_w4.py:231 `assertEqual(len(reg
     ['metrics']), 81)` 等 81 计数族(清点#1-#12/#47-#56);回归类=注册表静默
-    缩水(条目丢失)。T1 下限必须红。"""
-    v = _variant(lambda d: d['metrics'].__delitem__(
-        next(i for i, m in enumerate(d['metrics'])
-             if m['metric_id'] == 'UMCSENT')))
+    缩水(条目丢失)。T1 下限必须红(R060 重锚登记: REPORT §零.7 第6点)。"""
+    v = _shrink_variant()
     ok_c, why_c = bl.registry_counts_ok(v)
-    check('N1a 注册表81→80: T1计数下限红(缩水捕获)',
+    check('N1a 注册表85→80: T1计数下限红(缩水捕获)',
           not ok_c and '81' in why_c, why_c)
     check('N1a2 T1集合形态: baseline_removals恰={UMCSENT}',
           bl.baseline_removals(v) == {'UMCSENT'},
@@ -226,7 +244,7 @@ def n3c_echo_drift():
     registry回显漂移。重构形态= ==实载注册表项数;注入回显81(实载85)红。"""
     echo = {'registry': {'metric_count': 81}}
     live_n = bl.expected_registry_count(_evolved_85())
-    check('N3c 回显81≠实载85: T2回显==实载红(漂移捕获)',
+    check(f'N3c 回显81≠实载{live_n}: T2回显==实载红(漂移捕获)',
           echo['registry']['metric_count'] != live_n
           and live_n >= bl.REGISTRY_FLOOR, f'echo=81 live={live_n}')
 
@@ -234,9 +252,11 @@ def n3c_echo_drift():
 def n3d_table_rows():
     """N3d 逐项表行数缩水——原锁: test_p02_w4.py:703-705
     `assertEqual(len(rows), 82)`(清点#5);回归类=无数据指标丢行。重构形态=
-    ==1+实载项数+下限≥82;注入行数==项数(缺表头)红。"""
-    rows = [f'row{i}' for i in range(bl.expected_registry_count())]  # 缺表头1行
-    check('N3d 逐项表行数缺表头: T2行数==1+实载红(丢行捕获)',
+    ==1+实载项数+下限≥82;注入行数缩水至下限锁咬合域红(R060 重锚: 原锚=live81
+    全表缺表头 81 行双锁咬合;live=85 后缺表头=85 行≥82 下限不咬合→锚改为
+    缺表头+4 行=81 行,1+实载等值锁与≥82 下限锁双咬合语义逐字保持)。"""
+    rows = [f'row{i}' for i in range(bl.expected_registry_count() - 4)]  # 缺表头+4行
+    check('N3d 逐项表行数缩水(缺表头+4行): T2行数==1+实载红且下限锁红(丢行捕获)',
           len(rows) != 1 + bl.expected_registry_count()
           and not (len(rows) >= bl.W4_REPORT_ROWS_FLOOR),
           f'rows={len(rows)} expect=1+{bl.expected_registry_count()}')
@@ -309,7 +329,7 @@ def n5_unregistered_evolution():
     check('N5c 新条目status非法: T3红(status词汇缺)',
           not ok3 and any('status' in w for w in why3), str(why3[:2]))
     ok4, _ = bl.evolution_legal(_evolved_85())
-    check('N5d 对照: 合法85演进T3绿(锁非恒红)', ok4)
+    check('N5d 对照: 合法演进(实载85+4虚构=89项)T3绿(锁非恒红)', ok4)
 
 
 def n6_sources_status_baseline_missing():
@@ -341,13 +361,12 @@ def n6_sources_status_baseline_missing():
 
 def n7_missing_t1_self_detection():
     """N7 三联锁缺件自身检测(仅T2无T1)——证明T1必要性: 协同缩水注入
-    (注册表删1条且审计结果同步删1条)下,旧形态T2-only锁
-    (`len(res)==len(registry)`实载等值)漏检(绿=弱化实锤面),T1下限红。
+    (注册表删条且审计结果同步缩水,R060 重锚=删5条: UMCSENT+4条新增,见
+    _shrink_variant)下,旧形态T2-only锁(`len(res)==len(registry)`实载等值)
+    漏检(绿=弱化实锤面),T1下限红。
     原锁: test_p02_w4.py:231-232(清点#1/#2)81计数族——重构若只有T2无T1
     即复现此漏检,故三件缺一即弱化。"""
-    v = _variant(lambda d: d['metrics'].__delitem__(
-        next(i for i, m in enumerate(d['metrics'])
-             if m['metric_id'] == 'UMCSENT')))
+    v = _shrink_variant()
     res_ids = [m['metric_id'] for m in v['metrics']]     # 审计结果同步缩水
     old_t2_only = (len(res_ids) == bl.expected_registry_count(v))
     t1_floor = bl.registry_counts_ok(v)[0]
@@ -411,7 +430,7 @@ def rehearsal():
                 else:
                     reds += 1
             if expect_green:
-                check(f'R[{label}] 合法演进81→85: M集{len(files)}套件'
+                check(f'R[{label}] 合法演进(实载85+4虚构=89项): M集{len(files)}套件'
                       f'零改动全绿(演进不撞墙,B3重冻发车前提)',
                       greens == len(files) and reds == 0,
                       f'greens={greens} reds={reds}')

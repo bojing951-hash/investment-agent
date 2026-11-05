@@ -138,10 +138,17 @@ _AUTHORIZED_COLLECTORS = {
     'china_market_collector': frozenset({'china_market_collector'}),
     'rate_expectations': frozenset({'rate_expectations'}),
     'fact_engine(derived)': frozenset({'fact_engine'}),
+    # WP-B3(IA-P03-E2EB): 日本利率通道采集器——collector与registry source
+    # 同符号(事实级授权;批次绑定_SOURCE_TO_INPUT随E2E-B接线轮登记)
+    'japan_rate_collector': frozenset({'japan_rate_collector'}),
 }
 
-# FIX5-04: 必需采集通道(snapshot_builder.SOURCES全集——真实构建器恒写入4通道)
-# 与合法来源状态值(resolve_inputs/build_snapshot实际产出词汇表)。
+# FIX5-04: 必需采集通道(=基线四通道: 真实构建器恒写入;存量历史快照均只含
+# 这四键,不回溯要求新通道)。WP-B3(IA-P03-E2EB)起 SOURCE_FILE_RULES 增登记
+# japan 通道——新快照随采集文件在场多写 japan 键,本迭代域仍只把基线四通道
+# 当**必需**;在场的新通道键经 canonical_source_file/文件规则另行核验,不静默
+# 拒绝也不回溯强求(通道演进=验证域扩展属后续轮,见 B3 DELIVERY 漂移维护)。
+# 合法来源状态值(resolve_inputs/build_snapshot实际产出词汇表)。
 SOURCE_CHANNELS = ('global', 'macro', 'china', 'rate_economy')
 SOURCE_STATUSES = ('EXACT', 'FALLBACK', 'MISSING', 'READ_FAIL')
 
@@ -149,11 +156,14 @@ SOURCE_STATUSES = ('EXACT', 'FALLBACK', 'MISSING', 'READ_FAIL')
 # snapshot_builder.SOURCES自本表推导(验证端与构建端同一规则源,禁止两处
 # 独立维护漂移)。规范文件名={prefix}YYYYMMDD.json;max_fallback_days=
 # 该通道既有回退窗(自然日,resolve_inputs既有约束,非本轮新设阈值)。
+# WP-B3(IA-P03-E2EB): 新增japan通道(japan_rate_collector产出,免费公开源
+# MOF/FRED,零凭证);窗口5自然日与global/china同档。
 SOURCE_FILE_RULES = {
     'global':       {'prefix': 'global_',       'max_fallback_days': 5},
     'macro':        {'prefix': 'macro_',        'max_fallback_days': 7},
     'china':        {'prefix': 'china_',        'max_fallback_days': 5},
     'rate_economy': {'prefix': 'rate_economy_', 'max_fallback_days': 7},
+    'japan':        {'prefix': 'japan_',        'max_fallback_days': 5},
 }
 _SOURCE_FILE_RE = {ch: re.compile(rf'^{re.escape(r["prefix"])}(\d{{8}})\.json$')
                    for ch, r in SOURCE_FILE_RULES.items()}

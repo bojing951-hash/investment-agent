@@ -44,6 +44,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import historical_coverage_audit as hca          # 被审计的真实审计器
 import fact_engine as fe                          # 真实身份原语(漂移守护基准)
+import research_provenance as rp                 # 生产通道权威(d2词表派生源,R060)
 from helpers import baseline_locks as bl         # WP-BR三联锁(T1下限/T2实载派生)
 
 REGISTRY = os.path.join(ROOT, 'config', 'metric_registry.json')
@@ -770,7 +771,10 @@ class TestDIdentityDriftGuard(unittest.TestCase):
             ch = hca.REGISTRY_SOURCE_CHANNEL.get(m['source'])
             if '(derived)' not in m['source'] and '(derived)' not in str(m.get('source_symbol')):
                 self.assertIsNotNone(ch, m['metric_id'])
-            self.assertIn(ch, (None, 'global', 'china', 'macro', 'rate_economy'))
+            # R060 B3整改轮(REM-AC-02③): 通道词表域化——弃冻结五值字面常量,自
+            # 生产权威 rp.SOURCE_FILE_RULES 派生(R057 T2「弃字面常量」形态);
+            # hca 映射漂移至未登记通道仍被本断言捕获(japan 随 v2.1.0 入域)
+            self.assertIn(ch, (None,) + tuple(rp.SOURCE_FILE_RULES))
 
 
 # ════════════════ E组: 负向敏感性(monkeypatch纯函数缝) ════════════════

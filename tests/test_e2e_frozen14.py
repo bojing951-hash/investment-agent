@@ -69,6 +69,7 @@ def cli(argv):
 
 
 import research_provenance as rp          # noqa: E402
+from helpers import baseline_locks as bl  # noqa: E402  (WP-B3演进域化:vintage锁共享助手)
 import snapshot_builder as sb             # noqa: E402
 import data_assembler as da               # noqa: E402
 import data_validator as dv               # noqa: E402
@@ -272,20 +273,33 @@ print("\n── E2E-01 完整正常数据进入研究流程")
 with tempfile.TemporaryDirectory() as td:
     paths, c = chain_build(td, DAY, gate='PASS')
     snap = json.load(open(paths['snapshot'], encoding='utf-8'))
-    check("E2E-01a 快照构建(CLI真实子进程)exit0+Gate A=PASS(全核心在场)",
-          c == 0 and paths['sb_exit'] == 0 and snap['gate_a']['status'] == 'PASS',
-          f"sb={paths['sb_exit']} gate={snap['gate_a']['status']}")
-    check("E2E-01b 装配器exit0+正式包在场+包meta.gate_a='PASS'(与权威一致)",
+    _ga01 = snap['gate_a']
+    # WP-B3(IA-P03-E2EB)演进域化(R057形): Gate-PASS 锁族迁vintage域——
+    # PASS恒合法;DEGRADED仅当core桶全空且noncore_missing⊆演进新增集合法
+    # (基线指标静默死亡仍红;禁语义弱化,迁移前后现态均绿)
+    check("E2E-01a 快照构建(CLI真实子进程)exit0+Gate A vintage合法(PASS恒真;"
+          "DEGRADED仅演进新增缺席)",
+          c == 0 and paths['sb_exit'] == 0 and bl.gate_vintage_ok(_ga01)[0],
+          f"sb={paths['sb_exit']} gate={_ga01.get('status')} "
+          f"vintage={bl.gate_vintage_ok(_ga01)[1]}")
+    _meta_ga = rp.load_meta(paths['pack']).get('gate_a')
+    check("E2E-01b 装配器exit0+正式包在场+包meta.gate_a与快照实际gate一致且"
+          "vintage合法(与权威一致)",
           paths['pack_code'] == 0 and os.path.exists(paths['pack'])
-          and rp.load_meta(paths['pack']).get('gate_a') == 'PASS',
-          f"pack={paths['pack_code']}")
+          and _meta_ga == _ga01.get('status') and bl.gate_vintage_ok(_ga01)[0],
+          f"pack={paths['pack_code']} meta={_meta_ga} gate={_ga01.get('status')}")
     code, out, applied, glm = report_run(td, gate_b='PASS')
     v = formal(out, DAY)
-    check("E2E-01c 周报全流程exit0+GLM恰1次+真实formal_view认定(published+PASS)",
+    # final_quality与combine_gates精确一致(gate_b='PASS'注入下:gate_a=DEGRADED
+    # 则final=DEGRADED)——绑定快照实际值,非弱化为任取
+    _exp_fq = 'DEGRADED' if _ga01.get('status') == 'DEGRADED' else 'PASS'
+    check("E2E-01c 周报全流程exit0+GLM恰1次+真实formal_view认定(published+final"
+          "与gate合成一致)",
           code == 0 and glm.calls == 1 and v is not None
           and v['status']['published'] is True
-          and v['status']['final_quality'] == 'PASS',
-          f"exit={code} glm={glm.calls}")
+          and v['status']['final_quality'] == _exp_fq,
+          f"exit={code} glm={glm.calls} "
+          f"fq={v['status'].get('final_quality') if v else None}")
     check("E2E-01d 分级'PASS'回写调度1次(真实apply,长期状态沙箱内)",
           applied == ['PASS'] and os.path.exists(os.path.join(out, f'weekly_report_{DAY}.md')),
           f"applied={applied}")

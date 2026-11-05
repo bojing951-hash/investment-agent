@@ -57,17 +57,24 @@ KNOWN_UNITS = frozenset({
     'persons', 'persons_thousands',
 })
 
-# 交易日历全集 = trading_calendar.MARKETS镜像(us_equity/us_rates/commodity/cn/hk/fx/crypto)。
-KNOWN_CALENDARS = frozenset({'us_equity', 'us_rates', 'commodity', 'cn', 'hk', 'fx', 'crypto'})
+# 交易日历全集 = trading_calendar.MARKETS镜像
+# (us_equity/us_rates/commodity/cn/hk/fx/crypto)。
+# WP-B3(IA-P03-E2EB): +japan(日本利率通道;保守最小集=周末+01-01+12-25,
+# 与hk同款——宁多预期一天,不假miss;详见trading_calendar docstring)。
+KNOWN_CALENDARS = frozenset({'us_equity', 'us_rates', 'commodity', 'cn', 'hk',
+                             'fx', 'crypto', 'japan'})
 
 # 来源全集 = research_provenance._AUTHORIZED_COLLECTORS键
 # (global_market_collector/macro_collector/china_market_collector/
-#  rate_expectations/fact_engine(derived)) ∪ deprecated遗留
-# 'macro_collector(derived)'(REAL_SHORT,_SOURCE_TO_INPUT仍映射macro通道)。
+#  rate_expectations/fact_engine(derived)/japan_rate_collector[WP-B3新增]) ∪
+# deprecated遗留 'macro_collector(derived)'(REAL_SHORT,_SOURCE_TO_INPUT仍映射
+# macro通道)。A6c镜像要求本集与_AUTHORIZED_COLLECTORS键集双侧同步
+# (test_p02_w1.py A6节强制相等,单侧扩集即红)。
 # 采集器与注册表source的符号级映射核验见 docs/P0_2_W1_REGISTRY_AUDIT.json(开发期人工核验)。
 KNOWN_SOURCES = frozenset({
     'global_market_collector', 'macro_collector', 'china_market_collector',
     'rate_expectations', 'fact_engine(derived)', 'macro_collector(derived)',
+    'japan_rate_collector',
 })
 
 # 工具身份词汇表(W1-01审计确认):个股/ETF/指数/期货连续/现货加密/利率序列/

@@ -273,6 +273,10 @@ def evolution_legal(reg=None):
     collector_to_channel = {
         'global_market_collector': 'global', 'macro_collector': 'macro',
         'china_market_collector': 'china', 'rate_expectations': 'rate_economy',
+        # R060 B3整改轮(REM-AC-02①): +japan_rate_collector→japan——通道归属按
+        # registry v2.1.0 实读语义,与 hca.REGISTRY_SOURCE_CHANNEL 同步扩展
+        # (R057漂移维护要素2「重冻时点」落点;依据 REPORT §零.7)
+        'japan_rate_collector': 'japan',
     }
     for mid in sorted(vintage_additions(reg)):
         m = by_id.get(mid)

@@ -408,6 +408,12 @@ for gate, declare, label in (('DEGRADED', 'PASS', '非核心FAIL日谎报PASS'),
         paths, c = chain_build(td, gate=gate)
         snap_path = paths['snapshot']
         snap = json.load(open(snap_path, encoding='utf-8'))
+        # WP-B3(IA-P03-E2EB)演进域化(R057形): 声明改写前旁证建成快照**重算**
+        # 恰为请求的gate(按快照实际gate有效值对齐,非fixture标签假设——演进
+        # 接线后DEGRADED构成变化不破坏本场景;声明冲突语义零变化)
+        _got7, _why7 = rp.gate_status(snap)
+        check(f"S7前置 {label}场景建成快照重算恰为{gate}(域化旁证)",
+              _got7 == gate, f"{_got7} {_why7}")
         snap['gate_a']['status'] = declare
         with open(snap_path, 'w', encoding='utf-8') as f:
             json.dump(snap, f, ensure_ascii=False, indent=1)

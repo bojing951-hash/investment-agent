@@ -106,7 +106,8 @@ CHANNEL_COLLECTOR = {'global': 'global_market_collector', 'china': 'china_market
                      'research_snapshot': 'snapshot_builder(Layer3)'}
 # 注册表source(权威通道声明) ↔ 采集文件通道
 REGISTRY_SOURCE_CHANNEL = {'global_market_collector': 'global', 'macro_collector': 'macro',
-                           'china_market_collector': 'china', 'rate_expectations': 'rate_economy'}
+                           'china_market_collector': 'china', 'rate_expectations': 'rate_economy',
+                           'japan_rate_collector': 'japan'}  # R060 B3整改轮(REM-AC-02③): WP-B3 japan通道
 
 # ── 身份映射(与既有实现同源;test_p02_w4以ast解析fe/snapshot_builder源码守护不漂移) ──
 GLOBAL_ID_MAP = fe._GLOBAL_ID_MAP        # {"GOLD":"GOLD_F",...,"WTI":"WTI_F"(期货通道)}(模块级)

@@ -42,7 +42,7 @@ def collector_payloads(ymd, obs, break_metric=None, missing=()):
 
     - break_metric: 指定指标值置'N/A'(→事实引擎type校验FAIL);
     - missing: 指定指标**整体不出现**(→核心缺失);
-    返回{'global':..,'macro':..,'china':..,'rate_economy':..}。"""
+    返回{'global':..,'macro':..,'china':..,'rate_economy':..,'japan':..}。"""
 
     def _val(mid, v):
         if break_metric == mid:
@@ -187,7 +187,28 @@ def collector_payloads(ymd, obs, break_metric=None, missing=()):
         "real_economy": {
             "UNRATE": {"name": "失业率", "value": 4.2, "date": prev_m, "freq": "月度"},
             "UMCSENT": {"name": "消费者信心", "value": 71.0, "date": prev_m, "freq": "月度"}}}
-    return {"global": glob, "macro": macro, "china": china, "rate_economy": rate}
+
+    # R060 B3整改轮(REM-AC-02④): 第5通道japan合成fixture——齐备研究日构造
+    # 覆盖 rp.SOURCE_FILE_RULES 全部5通道。数值=合成合法域内值(JGB2Y/5Y/10Y在
+    # validation range[-0.5,15]内,JP_POLICY_RATE在[-0.5,2]内),**不冒充真实采集**
+    # (真实档=data/daily/japan_20261105.json,D12实测锚定 JGB2Y=1.891/JGB5Y=2.269/
+    # JGB10Y=2.855/JP_POLICY_RATE=1.043);形态镜像 japan_rate_collector 产出
+    # (date/data/observations/sources/fetched_at/alerts)。本通道事实提取未接线
+    # (E2E-B/D7: _SOURCE_TO_INPUT 无 japan 键),文件仅承担通道身份/EXACT-FALLBACK
+    # 构造面。fixture→预期值映射: JGB2Y=0.500/JGB5Y=0.900/JGB10Y=1.200/
+    # JP_POLICY_RATE=0.100(REPORT §零.7 第3点预登记;DELIVERY fixture漂移策略表入表)。
+    japan = {"date": ymd, "data": {
+        "JGB2Y": _val('JGB2Y', 0.500), "JGB5Y": _val('JGB5Y', 0.900),
+        "JGB10Y": _val('JGB10Y', 1.200), "JP_POLICY_RATE": _val('JP_POLICY_RATE', 0.100)},
+        "observations": {"JGB2Y": obs, "JGB5Y": obs, "JGB10Y": obs,
+                         "JP_POLICY_RATE": obs},
+        "sources": {"fixture": {
+            "url": "tests/fixt.py:synthetic",
+            "note": "合成fixture(不冒充真实采集;真实档=japan_20261105.json)"}},
+        "fetched_at": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}T08:00:00Z",
+        "alerts": []}
+    return {"global": glob, "macro": macro, "china": china, "rate_economy": rate,
+            "japan": japan}
 
 
 def pday(iso, n):

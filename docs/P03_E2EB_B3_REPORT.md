@@ -178,6 +178,59 @@ launchd/LIVE/CI 配置——一律零改动(其红面按 §零.6 (b) 路由如�
 见 §零.2 末行红名单。实测=git diff 行级核对(DELIVERY §一交付清单附 diff 统计与
 关键文件 sha256 前后对照)。
 
+## §零.7 整改登记(R060 B3 整改轮,基点 ee959ff;先登记后动手)
+
+触发: R023 独立审计 NOT VERIFIED 处方四点合一(IA-P03-E2EB-B3-REMEDIATION-AC-v1.0;
+引擎 rounds/023 不可达,按合同 §0 括注以本 REPORT/DELIVERY 在场登记为处方权威)。
+本轮性质=B3 交付合规收口,B3 六提交实现面零触碰;M 白名单恰 8 件,A=0,D=0。
+
+**三红件红面现状(2026-11-05 实测复现,与 §零.5/§三 逐项吻合)**:
+- test_p01_fix6.py: 86通过/4失败,红=B[japan]×4(窗口内lag=1/正好边界lag=5/
+  超窗1天lag=6/115天旧文件;前两处因 fixture 无 japan 档→sources_status[japan]
+  =MISSING≠FALLBACK,后两处因 ssp 迭代域=SOURCE_CHANNELS(四通道)对 japan 键
+  中性忽略→probs=[] 无『超japan通道回退窗口』问题串);
+- test_p02_w4.py: 36用例 1失败=test_d2_channel_authority_matrix
+  (assertIsNotNone None: JP_POLICY_RATE——hca.REGISTRY_SOURCE_CHANNEL 冻结映射
+  无 japan_rate_collector;映射补行后 L773 冻结五值词表亦无 'japan' 将接力红);
+- test_p0_baseline_lock_equivalence.py: 25通过/6失败=Z0(bl.evolution_legal 内置
+  collector_to_channel 四采集器映射无 japan_rate_collector→『无采集通道登记』)/
+  N1a+N7b(live=85 后单删 1 条不触 81 下限,电池算术按 live=81 校准漂移)/N3d
+  (行数=85≥82 下限锁不再与 1+85 等值锁双咬合)/N5d(_evolved_85 自实载 85 构造
+  →89 项,含 4 条真实 JP 条目经 bl 冻结映射红)/R[legal85](greens=26 reds=2,
+  红=fix6+w4 两 M 件即上述两红面,bl 映射+fixt+hca+d2 消解后自证复绿)。
+
+**修复设计逐点登记(依据=合同 M 白名单 1-6 行+R057 漂移维护三要素+R057 域化形态)**:
+1. bl 映射扩展(baseline_locks.py evolution_legal): collector_to_channel
+   +japan_rate_collector→japan(通道归属按 registry v2.1.0 实读语义,与 hca 映射
+   一致);Z0/N5d/R[legal85] 随之自证复绿,零电池改动。
+2. hca 映射扩展(historical_coverage_audit.py L108-109 恰一行邻域):
+   REGISTRY_SOURCE_CHANNEL+japan_rate_collector→japan;内部消费点 L572(_is_auth
+   .get)/L979-981(by_channel.get('japan',0))软取,无 KeyError 面,JP 指标行
+   authority_channel='japan'、发现面走『数据集中未发现』如实路径。
+3. fixt japan fixture(fixt.py collector_payloads 增 japan 键): 合成合法域内值
+   JGB2Y=0.500/JGB5Y=0.900/JGB10Y=1.200(range[-0.5,15] 内)/JP_POLICY_RATE=0.100
+   (range[-0.5,2] 内),形态镜像真实档(data/daily/japan_20261105.json: date/data/
+   observations/sources/fetched_at/alerts),docstring 注明**不冒充真实采集**;
+   fixture→预期值映射行=本节此行(DELIVERY fixture 漂移策略专节 file:line 表入表)。
+4. fix6 域化迁移(B[japan]×4 两分法): B 真实构建循环(L342)保持 live 域
+   rp.SOURCE_FILE_RULES 迭代——japan 经 fixt fixture 真实走 build_snapshot/
+   recompute 双口径(lag=1/lag=5 两红面消解);B 篡改循环(L377)域基线化→
+   bl.BASELINE_SOURCE_CHANNELS(=ssp 生产迭代域 SOURCE_CHANNELS 的冻结权威,
+   D6 japan 键中性忽略语义下断言 ssp 拒绝=词表外伪证)——lag=6/115 两红面消解,
+   japan 超窗拒绝语义由 A3(test_p03_e2eb_b3.py T5 负向: 超回退窗→MISSING)承载,
+   基线四通道篡改断言零变化。
+5. w4 d2 词表域化: L773 弃冻结五值字面常量,通道词表自生产权威
+   rp.SOURCE_FILE_RULES 派生((None,)+tuple(rp.SOURCE_FILE_RULES),R057 T2
+   『弃字面常量』形态)——hca 映射漂移至未登记通道仍被捕获,禁语义弱化。
+6. equivalence 电池锚 1:1 重校准(红面数与语义逐项保持,重锚逐项入 DELIVERY):
+   - N1a/N7 共用注入 _shrink_variant=删 vintage 条目 UMCSENT+时点后新增 4 条
+     (JP 实名)→项数 80<81 触 T1 下限(原锚=live81 删 1 条即触底;baseline_removals
+     恰={UMCSENT} 断言原样保持);N7a 协同缩水 T2-only 漏检展示零变化;
+   - N3d 注入行数锚=expected_registry_count()-4(缺表头+4 行→81 行: 1+实载等值锁
+     与 ≥82 下限锁双咬合,原锚=live81 全表缺表头 81 行双咬合);
+   - N3c/N5d/R[legal85] 标签算术如实改写(实载 85/_evolved=89),检查语义零变化;
+   - Z0/R[legal85] 零改动经 bl 扩展自证复绿。
+
 ---
 
 ## §一 基线实读登记(步骤④,先读后动)
@@ -289,5 +342,36 @@ equivalence/w4-d2/hca 一律未动,字节级 SAME 见 mfile_sha256.txt);修复�
 8. 实验与全量日志(exp-logs/ 66 套件+_summary、fullrun-logs/ 69 件+_summary、
    b3_exp.py/run_full_suite.py 工具);
 9. 装入件清单(SHA256SUMS 全成员指纹)。
+
+*(本节 §五/§六 为 R060 B3 整改轮补设,阻断项3/豁免落字消解;原 §零-§四 未动)*
+
+## §五 B3-AC-02 验收要点固定映射表(R060 补设;四要点→(a)落点/(b)证据/(c)自检 逐行)
+
+四要点=B3 合同 AC-02 验收要点(DESIGN §六 WP-B3 验收要点草案逐字,§零.1 转写):
+
+| 要点 | (a)落点 file:line | (b)证据指针 | (c)自检结论 |
+|---|---|---|---|
+| ①注册表计数实测断言(81+4=85/active 84/v2.1.0) | config/metric_registry.json(version/"metrics" 全文);tests/test_p03_e2eb_b3.py:100-104(test_t01: len==85/active==84/version=='2.1.0') | A3 直跑 28用例全绿(R060 全量日志 test_p03_e2eb_b3.log);DELIVERY §一 M1 行 sha256=63fe1cbf… | PASS——计数/版本/四条目(T1 六用例含 t02 全字段冻结)实测锁死 |
+| ②身份语义校验通过(registry_semantics 既有校验) | tests/test_p03_e2eb_b3.py:160-162(test_t03: assertEqual(rsem.validate_registry(REG),[]));A6 双侧镜像 t04(L164-174) | 同上日志;另 A6b/A6c 镜像绿(test_p02_w1.py L114-117 惯例域) | PASS——validate_registry 零 error;KNOWN_SOURCES/KNOWN_CALENDARS 双侧镜像同步(D8) |
+| ③真实采集样本落 data/daily 且经快照 Gate A | data/daily/japan_20261105.json(全文 sha256=6bba4718759ba12546499c1bdc510a1157b87f9462408e14071967d29e14e7f1);tests/test_p03_e2eb_b3.py:374-386(t51 真实档 sha 锁)/388-407(t52 沙箱 build_snapshot: japan EXACT+sha 全值+digest 可复算) | 证据包⑥ D16 快照(research_snapshot_20261105_b3evidence.json,digest=8dc327664b8309fb;gate_a=DEGRADED vintage 合法,noncore_missing_boundary=JP 四条目恰=D7);证据包⑤ real/ 原始回执 | PASS——真实档经生产 build_snapshot 链 japan EXACT,Gate A 有效值如实 DEGRADED 且 vintage 合法(§四第6条) |
+| ④文档口径登记(单位 percent/日历/来源) | config/metric_registry.json 四条目 unit='percent'/calendar='japan'/source='japan_rate_collector'/release_semantics(MOF 每营业日+FRED 月均口径);tests/test_p03_e2eb_b3.py:106-158(t02 全字段冻结含上述四口径字段) | M1 registry diff(证据包③);REPORT §零.4 D3/D4/D11 登记全文 | PASS——四口径字段入注册表实体并被 t02 逐字段硬编码锁,观测日口径另见 D12/D15(不冒充运行日) |
+
+## §六 B3 整改轮消解记录(R060: 审计 NV→处方→消解逐条对照)
+
+R023 独立审计 NOT VERIFIED(引擎 rounds/023/audit.md §2 四阻断项+§3 DEFERRED-1;
+引擎路径本轮不可达,以合同 IA-P03-E2EB-B3-REMEDIATION-AC-v1.0 §八对照表+B3
+DELIVERY §五在场登记为处方权威)。逐条消解:
+
+| 阻断项(审计指认) | 处方(合同§八) | 消解(本轮实做) |
+|---|---|---|
+| 1. CI 红=三冻结套件(fix6/w4/equivalence) | 域化复绿+CI 全绿 | §零.7 登记→六件域化(bl 映射/hca 映射/fixt japan/fix6 两分法/w4 d2 词表/电池重锚)→本地全量 69 件零红(§整改轮全量记录;CI dispatch=操作者 REM-AC-03 动作) |
+| 2. zip 缺四类成员(⑤映射表/⑦result 副本/③ls-remote 输出+设计在场核验) | 证据包重装配 | zip 重装配: 原 187 成员全保留+补四类+本轮整改件;SHA256SUMS 重算;新哈希终笔 DELIVERY/证据目录 final-state.txt |
+| 3. REPORT 缺 AC-02 固定映射表/DELIVERY 缺 fixture 漂移策略专节 | docs 两表 | 本节 §五 + DELIVERY §七(fixture 漂移策略专节: 三要素原文+fixture→预期值 file:line 表) |
+| 4. t51-t53 读真实档与「测试零读真实档」张力 | 合同§零豁免登记+REPORT 落字 | **豁免登记(落字)**: A3 t51-t53 读 data/daily/japan_20261105.json——该档=已 commit 不可变交付物(sha256=6bba4718…全值冻结)+反漂移目的(t51/t52 依赖 CI checkout 真实档)结构性成立→豁免「测试零读真实档」字面面;本轮该档 sha 实测不变=豁免有效性活证明(2026-11-05 实测复核同值) |
+| §3 DEFERRED-1(LIVE sha 字面张力) | LIVE/DEV 双值显式登记 | **双值登记(落字)**: LIVE scripts/real_data_acceptance.py sha256=f9ca189c5248199bb5acbc78b2a2c82d59c10e1c7c2c2d20bdaaa6105fbfe3eb(操作者冻结时实取);DEV 工作树同路径=01e3f890793f09b86f1e885da9a4eb9fc143a1638cb4a56e80e2f34a5bcb331b(=R058 基线登记值;2026-11-05 本轮实测复核同值);两值本轮均不变,LIVE 零写入 |
+
+整改性质重申: B3 六提交实现面(registry 85/研究溯源/语义/日历/japan_rate_collector/
+A3 锁/演进域化四文件)本轮零触碰;bl/equivalence/fixt/fix6/w4/hca 六件为授权例外邻域
+(合同 M 白名单恰 8 件=六代码件+REPORT/DELIVERY,A=0,D=0)。
 
 *(完;result.md 四节自报另出 stdout)*

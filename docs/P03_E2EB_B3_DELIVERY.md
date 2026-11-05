@@ -120,3 +120,82 @@ operative 值差异)已在 release_semantics 登记,决议值指标化留待需�
 ## zip 哈希补记(装配后追加;自指豁免: 上方 zip 内 DELIVERY 副本无本行)
 
 IA-P03-E2EB-WP-B3-EVIDENCE.zip sha256 = 0f14d11f895ed8b2695d9e912831ee3915eed990615bb4869d93899ea1a09232 (187成员/674941字节, 装配时点TIP=378fd04, 装配后实测; zip外终态见证据目录08-sidecar/final-state.txt)
+
+---
+
+## §六 B3 整改轮交付登记(R060 IA-P03-E2EB-B3-REMEDIATION-AC-v1.0;基点 ee959ff 纯线性追加)
+
+性质= R023 审计 NOT VERIFIED 处方整改(B3 实现面零触碰,结构面合规收口)。
+登记全稿见 REPORT §零.7(先登记后动手)/§五(AC-02 固定映射表)/§六(消解记录);
+本节为交付视图。**M 白名单恰 8 件,A=0,D=0**,清单:
+
+| 行 | 件 | 改动 | sha256(工作树终态) |
+|---|---|---|---|
+| M1 | tests/helpers/baseline_locks.py | evolution_legal collector_to_channel +japan_rate_collector→japan(L273-280) | (见 SHA256SUMS 重算) |
+| M2 | tests/test_p0_baseline_lock_equivalence.py | 电池锚 1:1 重校准(N1a/N3d/N7b 重锚+N3c/N5d/R[legal85] 标签算术如实;红面数与语义逐项保持) | 同上 |
+| M3 | scripts/historical_coverage_audit.py | REGISTRY_SOURCE_CHANNEL +japan_rate_collector→japan(L108-110 恰一行邻域) | 同上 |
+| M4 | tests/test_p02_w4.py | d2 词表域化(L774-777 派生自 rp.SOURCE_FILE_RULES;+rp 导入 L47) | 同上 |
+| M5 | tests/fixt.py | japan 合成 fixture(L191-211,合法域内值,不冒充真实采集) | 同上 |
+| M6 | tests/test_p01_fix6.py | B 篡改循环域基线化(L377-386→bl.BASELINE_SOURCE_CHANNELS) | 同上 |
+| M7 | docs/P03_E2EB_B3_REPORT.md | +§零.7 整改登记/§五 AC-02 映射表/§六 消解记录 | 装配时点见 SHA256SUMS |
+| M8 | docs/P03_E2EB_B3_DELIVERY.md | +本节/§七 fixture 漂移策略专节/zip 重装配终笔 | 本件(自指豁免先例) |
+
+### 整改轮测试面(三红件前后对照,均为实测)
+
+| 套件 | 前(B3 轮实测) | 后(R060 实测,代码 TIP) |
+|---|---|---|
+| test_p01_fix6.py | 86通过/4失败(B[japan]×4) | **88通过/0失败**(断言数 90→88: japan 篡改 2 断言随域基线化移出——其 ssp 词表外断言=伪证,japan 超窗拒绝语义由 A3 T5 负向承载;真实构建 2 断言经 fixture 转绿;基线四通道 8 篡改断言+全部既有断言原样) |
+| test_p02_w4.py | 36用例 1失败(d2: JP_POLICY_RATE None) | **36用例 0失败**(断言数不变,词表自生产权威派生) |
+| test_p0_baseline_lock_equivalence.py | 25通过/6失败(Z0/N1a/N3d/N5d/N7b/R[legal85]) | **31通过/0失败**(Z0/N5d/R[legal85] 经 bl 扩展自证复绿零改动;N1a/N3d/N7b 重锚;R[legal85] worktree 取提交后 HEAD 自证 greens=28 reds=0) |
+
+**全量(69 件,B3 同口径逐文件直跑)**: 69 PASS / 0 RED(B3 轮 66/3→全绿收口;
+fixt japan 全域零回归扩散;test_glm_live 自护栏跳过沿 B3 轮口径如实注记;
+fixt.py 直跑 exit 0)。日志=证据包 fullrun-logs-r060/。
+
+### 演进域化登记表·整改轮增行(1:1 before→after;原 §三 B3 行不动)
+
+| 套件(前态) | 迁移点 before → after | 语义 |
+|---|---|---|
+| test_p01_fix6.py (86/4) | B 篡改循环: `for ch, rule in rp.SOURCE_FILE_RULES.items():`(live 5 通道,japan 键 ssp 中性忽略→probs=[] 无『超japan…』问题串=词表外伪红) → `for ch in bl.BASELINE_SOURCE_CHANNELS:`+`rule = rp.SOURCE_FILE_RULES[ch]`(L382-384,域=ssp 生产迭代域 SOURCE_CHANNELS 的冻结权威 D6) | 域对齐生产验证器;基线四通道篡改断言逐字不动;japan 超窗语义由 A3 T5(超回退窗→MISSING)承载 |
+| 同上 | B 真实构建循环(L342,live 域)**不改**+fixt japan fixture(L191-211)→japan 通道真实 build_snapshot/recompute 双口径覆盖(lag=1/lag=5) | fixture 消解 MISSING≠FALLBACK 红面×2;japan 获真实构建覆盖(非删除覆盖) |
+| test_p02_w4.py (36/1) | d2 L773: `assertIn(ch, (None,'global','china','macro','rate_economy'))`(冻结五值字面) → `assertIn(ch, (None,) + tuple(rp.SOURCE_FILE_RULES))`(L777,生产权威派生+导入 L47) | R057 T2「弃字面常量」形态;hca 映射漂移至未登记通道仍被捕获,禁语义弱化 |
+| test_p0_baseline_lock_equivalence.py (25/6) | N1a/N7 注入: 删 UMCSENT 单条(live85→84 不触下限=电池算术漂移红) → `_shrink_variant()`(L120-133): 删 UMCSENT+4 条时点后新增→80<81 触 T1(L153/L369) | T1 下限红+`baseline_removals恰={UMCSENT}`(L156-158/L373-375)语义逐字保持;N7a T2-only 漏检展示零变化 |
+| 同上 | N3d 注入: `rows=range(bl.expected_registry_count())`(缺表头 85 行≥82,下限锁不咬合) → `range(bl.expected_registry_count() - 4)`(缺表头+4 行=81 行,L258) | 『1+实载等值锁∧≥82 下限锁』双咬合语义逐字保持(标签如实改写) |
+| 同上 | Z0/N5d/R[legal85]/N3c 标签算术: 81→85/实载85 字面 → 如实 85→89/实载89(L11-13 模块 docstring/L110-113/L324-326/L348/L427-429) | 检查体零变化(唯 N3c 标签改 f-string 取实测值);Z0/N5d/R[legal85] 经 bl 映射扩展自证复绿 |
+
+### 证据包重装配(阻断项2消解)
+
+`/tmp/p03-e2eb-b3-evidence/IA-P03-E2EB-WP-B3-EVIDENCE.zip` 重装配: 原 187
+成员全保留+**补四类**(⑤REPORT §五逐要点映射表副本/⑦R023+R060 result.md
+自述副本/③ls-remote 全量输出+BRANCH-SET 设计在场核验输出/本轮整改件
+(diff/迁移表/全量日志 fullrun-logs-r060/));SHA256SUMS 逐成员重算;zip 新
+sha256 终笔见文末补记;装配时点 TIP+终态登记 08-sidecar/final-state.txt。
+
+## §七 fixture 漂移策略专节(AC-03.6 语义;R060 补设,阻断项3消解)
+
+**三要素原文引用**(§五 原文,一字不增删;R060 注记: 要素1 所指「四点合一轮
+重冻」即本轮落位——bl 映射/电池锚/hca 映射/fixt-w4 词表已重冻,N5d/R[legal85]
+自证复绿达成的重冻发车前提):
+
+1. **冻结面扩展**: bl.evolution_legal 采集器映射+baseline_locks 电池算术锚
+   (live=85 重校准)、hca.REGISTRY_SOURCE_CHANNEL 映射、fixt B 循环 japan
+   fixture、w4-d2 词表——四点合一轮重冻(重冻轮自证 N5d/R[legal85] 复绿);
+2. **红面清单**: 本轮 (b) 三件(REPORT §三表)即重冻轮验收基线,重冻前不得
+   作为回归信号误读;
+3. **锚定值登记**: D12 实测锚定+真实档 sha256+A3 硬编码三方绑定,后续源端
+   改版(如 MOF CSV 形态/FRED 系列 id)时 A3 先红=感知点,修复按"新锚定实测
+   →登记 → 同步三处"流程,禁单点改。
+
+**fixture→预期值 file:line 映射表**(fixture 漂移时的同步绑定面;fixt japan
+行为合同要求入表行):
+
+| fixture(file:line) | 值 | 预期值绑定(file:line) | 漂移动作 |
+|---|---|---|---|
+| tests/fixt.py:200-209(japan 合成 payload,R060 新增) | JGB2Y=0.500/JGB5Y=0.900/JGB10Y=1.200/JP_POLICY_RATE=0.100 | **无测试硬编码消费**(D7 事实提取未接线,仅通道身份/EXACT-FALLBACK 构造面);值域约束=config/metric_registry.json validation range(写死在 fixture 注释 L192-193) | 漂移无害(不进事实流);禁改用 D12 真实锚定值(1.891/2.269/2.855/1.043)以免冒充真实采集 |
+| tests/test_p03_e2eb_b3.py:67+77-86(合成 MOF/FRED raw 复刻 D12 锚定) | JGB 2Y=1.891/5Y=2.269/10Y=2.855;FRED 2026-09=1.043 | 同文件 T4 期望常量(t30/t32 锚定断言,期望=fixture 复刻值非网络获取) | 源端改版→A3 先红=感知点;按三要素3「新锚定实测→登记→同步三处」 |
+| tests/test_p03_e2eb_b3.py:63-65(REAL_JAPAN_FILE/REAL_JAPAN_SHA256) | 真实档全文 sha256=6bba4718…e14e7f1 | t51(:386)/t52(:398) | 档案再生成或字节漂移=红(反漂移锁);禁改档禁改锁 |
+| data/daily/japan_20261105.json(A2 真实档本体) | D12 锚定值+observations 观测日口径 | 被 t51/t52 读(合同 §零豁免登记;REPORT §六落字) | 不可变交付物,任何改动=违约 |
+
+## B3R zip 哈希补记(重装配后追加;自指豁免沿 B2/R057/R058/B3 先例: 上方 zip 内 DELIVERY 副本无本行)
+
+(装配后实测填入)

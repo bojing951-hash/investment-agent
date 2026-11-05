@@ -53,6 +53,7 @@ import fact_engine as fe
 import registry_semantics as rsem
 import research_provenance as rp
 import trading_calendar as tc
+from helpers import baseline_locks as bl   # WP-BR三联锁(vintage域)
 
 REG_PATH = os.path.join(ROOT, 'config', 'metric_registry.json')
 with open(REG_PATH, encoding='utf-8') as f:
@@ -68,11 +69,17 @@ by_id = {m['metric_id']: m for m in _REG['metrics']}
 
 # ══ A. 现有注册表 ═════════════════════════════════════════════════
 print("\n[A] 现有注册表")
-check("A1 恰有81个唯一metric_id", len(_REG['metrics']) == 81 and len(by_id) == 81,
-      f"got {len(_REG['metrics'])}/{len(by_id)}")
+# WP-BR三联锁(#47/#48): 字面81/80/32→T1冻结下限(≥81/≥80/≥32,防缩水)
+# +T2实载派生(双射唯一,弃字面常量;合法演进81→85不撞墙)
+_ok_a1, _why_a1 = bl.registry_counts_ok(_REG)
+_ok_a1u, _why_a1u = bl.ids_unique_bijection_ok(_REG)
+check("A1 唯一metric_id集≥81+metrics/by_id双射(T1下限+T2派生)",
+      _ok_a1 and _ok_a1u and len(by_id) == len(_REG['metrics']),
+      f"got {len(_REG['metrics'])}/{len(by_id)} {_why_a1};{_why_a1u}")
 n_active = sum(1 for m in _REG['metrics'] if m.get('status') == 'active')
 n_core = sum(1 for m in _REG['metrics'] if m.get('status') == 'active' and m.get('criticality') == 'core')
-check("A2 active=80 / active+core=32(非预期改变即红)", n_active == 80 and n_core == 32,
+check("A2 active≥80 / active+core≥32(T1冻结下限,非预期缩水即红)",
+      n_active >= bl.ACTIVE_FLOOR and n_core >= bl.CORE_FLOOR,
       f"got active={n_active} core={n_core}")
 for mid in ('NVDA', 'AAPL', 'MSFT'):
     m = by_id[mid]
@@ -90,8 +97,11 @@ check("A4b 机器review级=0(DXY口径待核为**审计级**REVIEW——机器�
 with open(os.path.join(ROOT, 'docs', 'P0_2_W1_REGISTRY_AUDIT.json'), encoding='utf-8') as f:
     audit = json.load(f)
 aud_ids = [i['metric_id'] for i in audit['items']]
-check("A5 审计报告覆盖全部81项,不重复不遗漏",
-      len(aud_ids) == 81 and set(aud_ids) == set(by_id) and len(set(aud_ids)) == 81)
+# WP-BR三联锁(#49): 审计工件恰覆盖注册表∩vintage锚(基线81项)——
+# 漏项/私货/重复/基线条目被删由唯一+全等+下限三面捕获;演进新增不回溯补录
+_ok_a5, _why_a5 = bl.artifact_covers_vintage_baseline(aud_ids)
+check("A5 审计报告恰覆盖注册表∩vintage基线(≥81,不重复不遗漏)",
+      _ok_a5, _why_a5)
 check("A5b 审计分类计数一致(FIX1修订后: 76 VERIFIED/4 FIXED/1 REVIEW/0 BLOCKED;"
       "CORE_PCE基期经官方来源证伪由VERIFIED改判FIXED,总数与逐项重算一致性另由"
       "test_p02_w1_fix1 E3/E4锁定)",
@@ -217,9 +227,11 @@ src_probs2 = rp.fact_source_problems(f3, by_id['NVDA'],
                                      {'status': 'EXACT', 'file': 'global_20261025.json'},
                                      {'NVDA': f3})
 check("D5 合法collector+批次经rp零问题(修复不破坏既有授权)", src_probs2 == [], str(src_probs2))
-check("D6 Gate A权威集合不变(core 32含SPX/UST_10Y;active defs 80)",
-      len(rp.core_metric_ids()) == 32 and 'SPX' in rp.core_metric_ids()
-      and 'UST_10Y' in rp.core_metric_ids() and len(rp.active_registry_metrics()) == 80)
+_core_ids_d6 = rp.core_metric_ids()
+check("D6 Gate A权威集合下限保持(core≥32含SPX/UST_10Y;active≥80;T1)",
+      len(_core_ids_d6) >= bl.CORE_FLOOR and 'SPX' in _core_ids_d6
+      and 'UST_10Y' in _core_ids_d6
+      and len(rp.active_registry_metrics()) >= bl.ACTIVE_FLOOR)
 g = fe.snapshot_quality_grade(gf)
 check("D7 快照分级行为保持(注册表active事实计数口径)", g['overall'] == 'PASS'
       and 'NVDA' not in g['missing_core'], str(g))
@@ -254,8 +266,9 @@ try:
 finally:
     shutil.rmtree(tmpd, ignore_errors=True)
 fe.load_registry(force=True)  # 恢复默认注册表缓存,不影响后续调用方
-check("E4 恢复后默认注册表可正常加载(81/32)",
-      len(fe.load_registry()['by_id']) == 81 and len(rp.core_metric_ids()) == 32)
+check("E4 恢复后默认注册表可正常加载(by_id≥81/core≥32;T1下限)",
+      len(fe.load_registry()['by_id']) >= bl.REGISTRY_FLOOR
+      and len(rp.core_metric_ids()) >= bl.CORE_FLOOR)
 check("E5 非法配置不污染缓存:metric('AAPL')仍为修复后身份",
       fe.metric('AAPL')['identity']['instrument'] == 'single_stock')
 

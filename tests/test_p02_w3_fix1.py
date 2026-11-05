@@ -36,6 +36,7 @@ sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.join(os.path.dirname(_HERE)))
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import news_provenance as nprov                # noqa: E402
 import report_generator as rg                  # noqa: E402
 import data_assembler as da                    # noqa: E402
@@ -774,11 +775,12 @@ gateL = json.load(open(os.path.join(GROOT, 'data', 'daily',
                                     f'research_snapshot_{DAY}.json'),
                        encoding='utf-8'))
 check("L2 新闻失败为非关键降级: 正式研究可运行(exit0+GLM恰1次+四对象"
-      "落盘+published)+Gate A仍PASS(金融事实链不受新闻影响)",
+      "落盘+published)+Gate A仍基线齐备(vintage域;金融事实链不受新闻影响)",
       rcL == 0 and glmR.calls == 1
       and all(os.path.exists(p) for p in (REPO, STATL, THG, VWG))
       and statL.get('published') is True
-      and gateL['gate_a']['status'] == 'PASS'
+      # WP-BR vintage域(#41)
+      and bl.gate_vintage_ok(gateL['gate_a'])[0]
       and gateL['quality'].get('FAIL', 0) == 0, f'rc={rcL}')
 check("L3 长期状态零污染: thesis/views内容未变(无合成状态写入)",
       json.load(open(THG, encoding='utf-8'))['updated_at']

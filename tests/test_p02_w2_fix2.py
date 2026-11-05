@@ -42,6 +42,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(_HERE), 'scripts'))
 sys.path.insert(0, _HERE)
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import freshness_policy as fp                  # noqa: E402
 import fact_engine as fe                       # noqa: E402
 import data_validator as dv                    # noqa: E402
@@ -410,9 +411,9 @@ tdC, dailyC, snapC = build_day(
 fcC = fact_of(snapC, 'CPI')
 issC = [i for i in fcC['issues'] if i.get('category') == 'release']
 check("C2 真实链路(自定义研究截止20:00): 同日早发布CPI质量PASS+无任何"
-      "release问题+滞后窗照走(lag53≤60)+Gate A=PASS——B场景同一对输入"
-      "在正确时刻语义下正常放行(精度修复不误伤合法同日)",
-      snapC['gate_a']['status'] == 'PASS'
+      "release问题+滞后窗照走(lag53≤60)+Gate A基线齐备(vintage域)——B场景"
+      "同一对输入在正确时刻语义下正常放行(精度修复不误伤合法同日)",
+      bl.gate_vintage_ok(snapC['gate_a'])[0]   # WP-BR vintage域(#39)
       and fcC['quality_status'] == 'PASS' and not issC
       and fcC.get('release_date') == REL_EARLY_TS,
       f"gate={snapC['gate_a']['status']} q={fcC['quality_status']} "

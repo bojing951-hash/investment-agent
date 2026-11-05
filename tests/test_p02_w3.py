@@ -30,6 +30,7 @@ sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.join(os.path.dirname(_HERE)))
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import news_provenance as nprov                # noqa: E402
 import report_generator as rg                  # noqa: E402
 import snapshot_builder as sb                  # noqa: E402
@@ -757,9 +758,10 @@ check("O3 正式发布/身份/长期状态无回归: published=true+final_qualit
 gateO = json.load(open(os.path.join(GROOT, 'data', 'daily',
                                     f'research_snapshot_{DAY}.json'),
                        encoding='utf-8'))
-check("O4 Gate A语义未动(P0-1来源门禁): 快照gate_a=PASS,事实质量全PASS"
-      "(W3不触碰金融事实链)",
-      gateO['gate_a']['status'] == 'PASS'
+check("O4 Gate A语义未动(P0-1来源门禁): 快照gate_a基线齐备(vintage域),"
+      "事实质量零FAIL零DEGRADED(W3不触碰金融事实链)",
+      # WP-BR vintage域(#40): quality桶断言保持(fixture事实全有效语义)
+      bl.gate_vintage_ok(gateO['gate_a'])[0]
       and gateO['quality'].get('FAIL', 0) == 0
       and gateO['quality'].get('DEGRADED', 0) == 0,
       str(gateO.get('gate_a')))

@@ -35,6 +35,7 @@ sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.join(os.path.dirname(_HERE)))
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import news_provenance as nprov                # noqa: E402
 import report_generator as rg                  # noqa: E402
 import data_assembler as da                    # noqa: E402
@@ -573,10 +574,11 @@ statE = json.load(open(os.path.join(OUTG, f'report_status_{DAY}.json'),
 gateE = json.load(open(os.path.join(GROOT, 'data', 'daily',
                                     f'research_snapshot_{DAY}.json'),
                        encoding='utf-8'))
-check("E2E-1 新闻全败: 正式研究链exit0+GLM恰1次+published+Gate A PASS"
-      "(金融事实链不受新闻影响)",
+check("E2E-1 新闻全败: 正式研究链exit0+GLM恰1次+published+Gate A基线齐备"
+      "(vintage域;金融事实链不受新闻影响)",
       rcE == 0 and glmR.calls == 1 and statE.get('published') is True
-      and gateE['gate_a']['status'] == 'PASS'
+      # WP-BR vintage域(#42)
+      and bl.gate_vintage_ok(gateE['gate_a'])[0]
       and gateE['quality'].get('FAIL', 0) == 0, f'rc={rcE}')
 check("E2E-2 长期状态零污染(thesis/views未变)",
       json.load(open(THG, encoding='utf-8'))['updated_at']

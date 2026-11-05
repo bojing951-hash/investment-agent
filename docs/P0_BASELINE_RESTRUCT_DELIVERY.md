@@ -28,8 +28,10 @@
 `IA-P0-BASELINE-RESTRUCT-EVIDENCE.zip` 成员: ①result.md 副本;②REPORT/DELIVERY 终版副本;③等价套件源码副本;④清点表 CSV(58 锁行)+发现程序三源(wpbr_discovery.py/raw.tsv/count.txt+vintage_ids.txt 生成指令);⑤p4 双态脚本+记录;⑥预演三变体 JSON+构造/驱动脚本;⑦全量跑 summary.csv+逐套日志;⑧计数脚本;⑨SHA256SUMS(最后写入)。zip 整体 sha256(装配后实测,自指豁免沿 B1/B2/B4 先例):
 
 ```
-IA-P0-BASELINE-RESTRUCT-EVIDENCE.zip sha256 = (见下方实测值行,装配后追加)
+IA-P0-BASELINE-RESTRUCT-EVIDENCE.zip sha256 = 332b32d0088d99e7b015476d66a3ef59d58024819cdccfb600e88138ec064a61 (86成员/245666字节, 装配后实测,assemble TIP=4a89f22)
 ```
+
+> 自指豁免: zip 内 DELIVERY 副本(成员③)=终版提交版无上行实测值,固定点不可内含自身哈希;推送终态(最终尖端/最终 ls-remote)见证据目录 final-state.txt(zip 外),B1/B2/B4 同款先例。
 
 ## §五 复算指令+漂移维护三要素+映射表(References)
 

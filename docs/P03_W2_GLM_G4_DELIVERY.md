@@ -29,7 +29,7 @@
 - LIVE 路径/launchd: 零写入零触碰(边界声明;证据包③ reflog+diff 可反证)。
 - 凭证明文: 零落盘(REGISTRY 仅环境变量名;证据包全成员装配后凭证模式 grep 复核零命中)。
 
-> zip sha256(装配后追加行): 【待装配后实值追加——自指豁免: zip 内 DELIVERY 副本不含本行终值,终值以本工作树行与证据目录 08-sidecar/final-state.txt(zip 外)为准】
+> zip sha256(装配后追加行): fe11a2bbfd5988cce3c0400f51d88e80781654afeef717d25a12181cd4d3bab7(100 成员/354032 字节;装配后全包凭证模式 grep 复核=零凭证明文命中,仅 3 处 'Authorization' 字面量=脱敏正则代码与既有 P2 测试类名,非凭证值)。自指豁免: zip 内 DELIVERY 副本(tip/工作树成员②)=026a479 版占位行,固定点不可内含自身哈希,实测值以装配后追加行落档;终态 SHA 与最终 ls-remote 见证据目录 08-sidecar/final-state.txt(zip 外)。
 
 ## §三 逐 AC 自评(详见 REPORT 对应节)
 

@@ -33,7 +33,7 @@
 
 > zip sha256 v2(补证据轮重装配,装配后追加行): b9e8d4268c27b37ba378061bac20186081d6599651436576e95e23e358d7c8f7(104 成员/367496 字节;SHA256SUMS 重列 103 成员全验证 OK,清单自身显式豁免不入 zip 自身校验和;装配后全包凭证复核=凭证据值字节扫描零命中,'Authorization' 字面量 13 处=引用性文字/本模块脱敏正则代码/既有 P2 测试类名,零凭证值)。v2 变更=新增第 4 次尝试阻断工件 4 件[06-real-run/live_smoke_F1_attempt2_blocked.txt+anchors/pre-run-sha256-round2.txt+anchors/post-run-check-round2.txt+03-git/forensics-round2.txt]+双源副本/REGISTRY/映射/自检副本刷新至补证据轮提交 1(d40eeaa)版;终态 SHA 与最终 ls-remote 以 zip 外 08-sidecar/final-state.txt 为准,自指豁免沿 v1: zip 内 DELIVERY 副本=占位行版本(d40eeaa)。
 
-> zip sha256 v3(补证据轮第 4 次尝试·操作者代执行后重装配,装配后追加行): 【装配后回填】(成员数/字节数装配后回填;SHA256SUMS 重列全验证 OK,清单自身显式豁免)。v3 变更=新增第 4 次尝试工件[06-real-run/live_smoke_F1_attempt3_operator.log(操作者会话 stdout 转录)+06-real-run/glm4_live_smoke_20261105T032559Z.json.redacted-copy+06-real-run/glm4_usage_log_20261104.jsonl.redacted-copy(4 行版)+03-git/pre-registration-cf7c75c.txt(先登记次序证明)+03-git/forensics-round3.txt]+双源副本/REGISTRY/映射/自检副本刷新至本轮回填提交版;自指豁免沿 v1/v2: zip 内 DELIVERY 副本=占位行版本。
+> zip sha256 v3(补证据轮第 4 次尝试·操作者代执行后重装配,装配后追加行): ce1867da76aa5592f4b196b0097b49bf10cdb7d0db5261c5ef03d4712efc589c(107 成员/379049 字节;SHA256SUMS 重列 106 成员全验证 OK,清单自身显式豁免不入 zip 自身校验和;装配后全包凭证字节扫描=零命中)。v3 变更=新增第 4 次尝试工件 5 件[06-real-run/live_smoke_F1_attempt3_operator.log(操作者会话 stdout 转录)+06-real-run/glm4_live_smoke_20261105T032559Z.json.redacted-copy+03-git/pre-registration-cf7c75c.txt(先登记次序证明)+03-git/forensics-round3.txt+06-real-run/anchors 目录并入 forensics-round3]+usage log/archive 脱敏副本刷新(4 行版/含新结论记录)+双源副本(tip=3a8d77b)/REGISTRY/映射/自检副本刷新;终态 SHA 与最终 ls-remote 以 zip 外 08-sidecar/final-state.txt 为准,自指豁免沿 v1/v2: zip 内 DELIVERY 副本=占位行版本(3a8d77b)。
 
 ## §三 逐 AC 自评(详见 REPORT 对应节)
 

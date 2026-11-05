@@ -17,7 +17,7 @@
 | 契约 | IA-P1-WP-B-AC-v1.1(FROZEN 2026-11-06 00:3x HKT) | 操作者注入全文,逐节实读 |
 | BASE-P1B | f6d0beb7cdba8631c9df6a20a2e9a5e6140c1c20 | `git rev-parse HEAD` 于 dev/p1-impl-b = 同值 |
 | 分支 | dev/p1-impl-b(自 f6d0beb 直接创建,零合并) | `git branch --show-current` + log 线性 |
-| 禁锚 | c9626633 不得为祖先 | ~~merge-base 核验非祖先~~ **措辞失实, 更正见 §零.16.3**: c9626633 实为 BASE-P1B 自身的历史祖先; 正确核验=merge-base(dev/p1-impl-b, main)=f6d0beb=BASE-P1B ✓(分支基点正确) |
+| 禁锚 | c9626633 不得为祖先 | ~~merge-base 核验非祖先~~ **措辞失实, 更正见 §零.16.2**: c9626633 实为 BASE-P1B 自身的历史祖先; 正确核验=merge-base(dev/p1-impl-b, main)=f6d0beb=BASE-P1B ✓(分支基点正确) |
 | BRANCH-SET | 42分支冻结表,唯一预期新增=dev/p1-impl-b | 实现后 ls-remote 对照(§零.16) |
 | 工作树 | 启动时干净(status clean) | `git status --short` 空 |
 
@@ -129,12 +129,12 @@ M类(既有文件触面, 合同冻结章五文件):
 
 | # | 发现 | 属地 | 为何不属本包 | 建议承接 |
 |---|---|---|---|---|
-| F1 | build_snapshot facts 级 jp/ea 接线(L273-304 仅 4 通道) | snapshot_builder L273-304 | 冻结章 (b) "其余零改动"禁区 | 快照接线轮(与 F3 同包, GAP-P1-08) |
-| F2 | series_store 增 NIKKEI225/DAX/CAC40 序列键 | snapshot_builder L358-382 | 同上(DESIGN §三(a-4) 候选, 冻结章未授权) | 同 F1 |
-| F3 | _SOURCE_TO_INPUT 增 jp/ea(缺席从 boundary 转 noncore_missing) | rp L111-117 | rp 不在 M 类白名单; 且翻转将改既有缺席口径(既有 fixture 预期随之变, 超 W-3 面) | GAP-P1-08 承接(rp 注释 L145-146 已预告"批次绑定属 WP-B"→经核对该注释所指=normalize 接线与批次绑定整体, 归 F1/F3 同轮) |
-| F4 | fixt.py L214 注释"NIKKEI225∈[5000,60000]"将随 (e) 上限调整而陈旧(值 38000 本身仍合法∈新区间) | tests/fixt.py | fixt 不在白名单(注释文本陈旧非功能面) | 下轮触碰 fixt 时顺手更新 |
-| F5 | EA 双源对账候选(DESIGN §三(a-3) cross_metric_checks EA 候选): ECB_MRO/DFR 双源(BBK vs ECB)在真实首档不可实现(DFR=READ_FAIL 缺席) | fact_engine cross_metric_checks | 无双源数据可对; 且 cross_metric_checks 属既有函数零改动面 | 数据齐备后的对账轮 |
-| F6 | jp 对账输入(build_all 内)与 japan 通道事实的比对命中路径: build_all 无 japan_data 入参且 japan 通道 normalize 未接线(B3 D7), 对比恒 skip | fact_engine build_all | japan normalize 接线属 F1/F3 同轮 | 同 F1 |
+| F1 | build_snapshot facts 级 jp/ea 接线(L273-304 仅 4 通道) | snapshot_builder L273-304 | 冻结章 (b) "其余零改动"禁区 | 快照接线轮(与 F3 同包, GAP-P1-08)→**R061 已承接落地**(japan 面同轮, 见 docs/P1_GAP08_REPORT.md) |
+| F2 | series_store 增 NIKKEI225/DAX/CAC40 序列键 | snapshot_builder L358-382 | 同上(DESIGN §三(a-4) 候选, 冻结章未授权) | 同 F1→**R061 已承接落地**(docs/P1_GAP08_REPORT.md) |
+| F3 | _SOURCE_TO_INPUT 增 jp/ea(缺席从 boundary 转 noncore_missing) | rp L111-117 | rp 不在 M 类白名单; 且翻转将改既有缺席口径(既有 fixture 预期随之变, 超 W-3 面) | GAP-P1-08 承接(rp 注释 L145-146 已预告"批次绑定属 WP-B"→经核对该注释所指=normalize 接线与批次绑定整体, 归 F1/F3 同轮)→**R061 已承接落地**(三键含 japan_rate_collector→'japan', docs/P1_GAP08_REPORT.md) |
+| F4 | fixt.py L214 注释"NIKKEI225∈[5000,60000]"将随 (e) 上限调整而陈旧(值 38000 本身仍合法∈新区间) | tests/fixt.py | fixt 不在白名单(注释文本陈旧非功能面) | 下轮触碰 fixt 时顺手更新→**R061 已勘正**([5000,150000], docs/P1_GAP08_REPORT.md) |
+| F5 | EA 双源对账候选(DESIGN §三(a-3) cross_metric_checks EA 候选): ECB_MRO/DFR 双源(BBK vs ECB)在真实首档不可实现(DFR=READ_FAIL 缺席) | fact_engine cross_metric_checks | 无双源数据可对; 且 cross_metric_checks 属既有函数零改动面 | 数据齐备后的对账轮→**R061 仍排除**(双源不可实现如故, GAP08 合同明列排除) |
+| F6 | jp 对账输入(build_all 内)与 japan 通道事实的比对命中路径: build_all 无 japan_data 入参且 japan 通道 normalize 未接线(B3 D7), 对比恒 skip | fact_engine build_all | japan normalize 接线属 F1/F3 同轮 | 同 F1→**R061 已承接落地**(快照级 jp_recon_extra, 判定=japan 通道事实在场; fe.build_all docstring 陈旧括注 L842-845 仍属 fact_engine 零改禁区, 登记 GAP08 REPORT §四) |
 
 ### §零.10 已核对锚(排雷实录, 实现前完成)
 

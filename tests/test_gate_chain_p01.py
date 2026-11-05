@@ -178,7 +178,11 @@ print("\n── 1. Gate A三态语义(AC-01)")
 for st in ('PASS', 'DEGRADED', 'FAIL'):
     snap = synth_snapshot(gate=st)
     got, why = rp.gate_status(snap)
-    check(f"真实快照gate_status读取{st}(事实重算一致)", got == st, f"{got} {why}")
+    # GAP08-F3 (j) 涟漪: fixture 7通道日 jp/ea 诚实缺席三指标
+    # (JP_CPI_TOKYO_YOY/DAX/CAC40)入 noncore_missing→原 PASS 日事实重算
+    # 如实 DEGRADED(前=PASS;重算裁决非盲信语义不变)
+    expect = 'DEGRADED' if st == 'PASS' else st
+    check(f"真实快照gate_status读取{st}(事实重算一致)", got == expect, f"{got} {why}")
 # WP-B3(IA-P03-E2EB)演进域化(R057形旁证,不替换三态断言): vintage正常日判定
 # 须区分「演进新增缺席」(合法DEGRADED)与「真实失败降级」——PASS日恒合法;
 # 失败日DEGRADED(noncore_fail非空)必须被拒绝,不得洗白为合法演进
@@ -194,9 +198,11 @@ check("缺gate_a字段→None(不得默认PASS)", got is None and '缺gate_a' in
 got, why = rp.gate_status(synth_snapshot() | {'gate_a': {'status': 'pass_with_errors'}})
 check("非法状态→None", got is None, f"{got} {why}")
 _snap_str = synth_snapshot()
-_snap_str['gate_a'] = 'PASS'   # 旧版裸字符串声明+事实一致→兼容读取
+# GAP08-F3 (j) 涟漪: PASS 日已不可由 fixture 重算→裸字符串取事实一致值 DEGRADED
+# (兼容读取分支不变;前='PASS'/got=='PASS')
+_snap_str['gate_a'] = 'DEGRADED'   # 旧版裸字符串声明+事实一致→兼容读取
 got, _ = rp.gate_status(_snap_str)
-check("gate_a为裸字符串(兼容,事实一致)→PASS", got == 'PASS', str(got))
+check("gate_a为裸字符串(兼容,事实一致)→DEGRADED", got == 'DEGRADED', str(got))
 got, _ = rp.gate_status(None)
 check("快照非对象→None", got is None, str(got))
 check("允许正式研究: PASS/DEGRADED=True, FAIL/None=False",
@@ -401,7 +407,8 @@ with tempfile.TemporaryDirectory() as td:
         ok, problems, ctx = rg.verify_research_inputs(DAY)
     check("全要素齐备→预检通过", ok and not problems, str(problems))
     check("上下文携带当日锚点与Gate A",
-          ctx['gate_a'] == 'PASS' and isinstance(ctx['anchors'], dict)
+          # GAP08-F3 (j) 涟漪: fixture 日重算 DEGRADED(前='PASS')
+          ctx['gate_a'] == 'DEGRADED' and isinstance(ctx['anchors'], dict)
           and len(ctx['anchors']) >= 20 and ctx['anchors_path'].endswith('anchors_20261017.json'))
 reject_cases = [
     ('Gate A FAIL快照', dict(gate='FAIL')),
@@ -519,11 +526,14 @@ with tempfile.TemporaryDirectory() as td:
     status = json.load(open(os.path.join(out_dir, f'report_status_{DAY}.json')))
     check("Gate A PASS+Gate B PASS→报告落盘+exit 0",
           code == 0 and os.path.exists(rep) and glm.calls == 1, f"exit={code} glm={glm.calls}")
-    check("合成质量PASS(report_status sidecar)",
-          status['final_quality'] == 'PASS' and status['gate_a'] == 'PASS'
+    check("合成质量DEGRADED如实(report_status sidecar)",
+          # GAP08-F3 (j) 涟漪: fixture 日 jp/ea 诚实缺席→gate_a/final 如实
+          # DEGRADED(前=PASS×2;gate_b 不受 Gate A 面影响)
+          status['final_quality'] == 'DEGRADED' and status['gate_a'] == 'DEGRADED'
           and status['gate_b'] == 'PASS', str(status))
     check("PASS→状态回写执行1次", len(applied) == 1 and applied[0][0] == 'PASS', str(applied))
-    check("PASS→无降级footer", '数据质量降级披露' not in open(rep, encoding='utf-8').read())
+    check("DEGRADED→降级footer在场(GAP08前PASS日无footer)",
+          '数据质量降级披露' in open(rep, encoding='utf-8').read())
 
 with tempfile.TemporaryDirectory() as td:
     code, glm, applied, out_dir = run_weekly_report_flow(td, gate_b='FAIL')

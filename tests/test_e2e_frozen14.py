@@ -345,7 +345,9 @@ with tempfile.TemporaryDirectory() as td:
     md = open(paths['snapshot'].replace('.json', '.md'), encoding='utf-8').read()
     check("E2E-02d 非核心整体缺席→noncore_missing点名+Gate A=DEGRADED(不再无声PASS)",
           c == 0 and ga['status'] == 'DEGRADED'
-          and ga.get('noncore_missing') == ['UMCSENT']
+          # GAP08-F3 (j) 涟漪: jp/ea fixture 诚实缺席三指标同入名单(前=['UMCSENT'])
+          and ga.get('noncore_missing') == ['CAC40', 'DAX', 'JP_CPI_TOKYO_YOY',
+                                            'UMCSENT']
           and 'UMCSENT' not in ga.get('core_fail', [])
           and fake == [],
           f"gate={ga['status']} missing={ga.get('noncore_missing')}")
@@ -354,7 +356,9 @@ with tempfile.TemporaryDirectory() as td:
           and len(snap['facts']) >= 78
           and '非核心指标缺失' in md and 'UMCSENT' in md
           and 'UMCSENT' in open(paths['pack'], encoding='utf-8').read()
-          and rp.load_meta(paths['pack']).get('noncore_missing') == ['UMCSENT'],
+          # GAP08-F3 (j) 涟漪: meta 名单同扩三指标(前=['UMCSENT'])
+          and rp.load_meta(paths['pack']).get('noncore_missing')
+          == ['CAC40', 'DAX', 'JP_CPI_TOKYO_YOY', 'UMCSENT'],
           f"facts={len(snap['facts'])} pack={paths['pack_code']}")
     code, out, applied, glm = report_run(td, gate_b='PASS')
     rmd = open(os.path.join(out, f'weekly_report_{DAY}.md'), encoding='utf-8').read() \

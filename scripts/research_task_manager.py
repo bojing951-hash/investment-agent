@@ -53,6 +53,29 @@ def make_task_id(start, end, rule_id, indicators, params):
     return f"RT-{start}~{end}-{rule_id}-{hashlib.sha256(fingerprint.encode('utf-8')).hexdigest()[:8]}"
 
 
+# IA-P1-GAP08 R47-F1(WP-D REPORT §一.6-F1 承接=DESIGN §四 L143 候选完整落地):
+# RT- 任务记录增 economy 字段——取值经 registry.economy 实读推导;恰单经济体
+# 才写键(跨经济体不设单过滤维度,形态先例=WP-D PD-4 恰单族命中才写
+# ir["economy"]);任务体其余字段含 falsifiable_conditions 不变(L143),
+# schema 可增不可减(SCHEMA_MIN_FIELDS 不动)。
+RT_ECONOMIES = ("US", "CN", "JP", "EA", "HK", "GLOBAL")   # registry economy 值域实测同集
+
+
+def _task_economy(indicators):
+    """指标族经济体派生: registry.economy 实读集合恰单值→该值;跨经济体/
+    零注册指标/零 economy 值→None(不写键,如实无单维度)。"""
+    import fact_engine as fe
+    econs = set()
+    for mid in indicators or []:
+        m = fe.metric(mid) if isinstance(mid, str) else None
+        e = (m or {}).get('economy')
+        if isinstance(e, str) and e.strip():
+            econs.add(e)
+    if len(econs) == 1 and next(iter(econs)) in RT_ECONOMIES:
+        return next(iter(econs))
+    return None
+
+
 def build_task(start, end, detection, rate_payload, gold_payload, as_of=None):
     """构造完整 schema 任务档(状态 pending→active 由 run_e2e 驱动;
     evidence.series_window 由 run_e2e 在检测后装配窗口内共同序列)。"""
@@ -71,12 +94,13 @@ def build_task(start, end, detection, rate_payload, gold_payload, as_of=None):
                   f"实际利率({RATE_METRIC})与黄金({GOLD_METRIC})背离检测: 窗口 "
                   f"{start}~{end} 内规则 {detection['rule_id']} 未触发(如实记录,"
                   f"见 detection.trigger_stats)。")
+    indicators = [RATE_METRIC, GOLD_METRIC]
     task = {
         'task_id': task_id,
         'created_at': now_utc,
         'phenomenon': phenomenon,
         'status': 'pending',
-        'indicators': [RATE_METRIC, GOLD_METRIC],
+        'indicators': indicators,
         'window': {'start': start, 'end': end, 'source_date': None,
                    'alignment': detection['alignment'],
                    'common_observations': detection['summary']['n_common']},
@@ -124,6 +148,11 @@ def build_task(start, end, detection, rate_payload, gold_payload, as_of=None):
         'history': [{'ts': now_utc, 'from': None, 'to': 'pending',
                      'note': '检测触发,任务建立(E2E-A 自动编排)'}],
     }
+    # IA-P1-GAP08 R47-F1: economy 条件写(恰单经济体→顶层键;默认任务
+    # TIPS_10Y(US)+GOLD_F(GLOBAL)跨经济体→如实不写键)。
+    task_economy = _task_economy(indicators)
+    if task_economy is not None:
+        task['economy'] = task_economy
     return task
 
 

@@ -435,7 +435,9 @@ class T14ExistingChainCompat(unittest.TestCase):
             self.assertIn('global_market.data.JPY=X.close', anchors)
             prompt = open(paths['prompt'], 'r', encoding='utf-8').read()
             self.assertIn('EURUSD', prompt)
-            self.assertEqual(snap['gate_a']['status'], 'PASS')
+            # GAP08-F3 口径翻转: 13 新指标缺席自 boundary 转 noncore_missing
+            # →快照级 DEGRADED(前=PASS;缺席如实披露, 非 US 面劣化)
+            self.assertEqual(snap['gate_a']['status'], 'DEGRADED')
 
 
 if __name__ == '__main__':

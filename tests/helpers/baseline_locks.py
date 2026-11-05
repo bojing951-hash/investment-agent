@@ -277,6 +277,10 @@ def evolution_legal(reg=None):
         # registry v2.1.0 实读语义,与 hca.REGISTRY_SOURCE_CHANNEL 同步扩展
         # (R057漂移维护要素2「重冻时点」落点;依据 REPORT §零.7)
         'japan_rate_collector': 'japan',
+        # IA-P1-WP-A(v1.3): +jp/ea 采集器→jp/ea 通道——registry v2.2.0 实读语义,
+        # 与 hca.REGISTRY_SOURCE_CHANNEL 同步扩展(同字典同形式,R060 先例;
+        # 依据 REPORT §零.12⑧)
+        'jp_market_collector': 'jp', 'ea_market_collector': 'ea',
     }
     for mid in sorted(vintage_additions(reg)):
         m = by_id.get(mid)

@@ -18,6 +18,9 @@ allocation_engine 反向 import 保持兼容。新增 us_rates/fx/commodity 市�
   hk         港股 — 最小集(周末+01-01+12-25,保守:少排除一个假日只影响窗口标注精度)
   japan      日本利率(JGB曲线/政策利率,WP-B3) — 最小集(周末+01-01+12-25,hk同款保守:
              MOF营业日≈平日-祝日;祝日不逐个精确,少排除一天只影响窗口标注精度不假miss)
+  ea         欧元区利率/宏观(ECB/欧盟统计局/Bundesbank,IA-P1-WP-A) — 最小集
+             (周末+01-01+12-25,hk/japan同款保守;TARGET2结算日祝日不逐个精确,
+             少排除一天只影响窗口标注精度不假miss)
   fx         全球外汇 — 周一至周五(24/5,节假日近似为全工作日)
   crypto     7×24 全天候
 """
@@ -30,7 +33,7 @@ __all__ = ['MARKETS', 'is_trading_day', 'expected_trading_days', 'prev_trading_d
            'snap_to_session', 'sessions_between']
 
 MARKETS = ('us_equity', 'us_rates', 'commodity', 'cn', 'hk', 'fx', 'crypto',
-           'japan')
+           'japan', 'ea')
 
 _CN_HOLIDAY_BLOCKS = {
     2026: {'01-01', '01-02',                # 元旦
@@ -105,6 +108,11 @@ def is_trading_day(d, market):
     if market == 'japan':
         # WP-B3(IA-P03-E2EB): 日本利率通道保守最小集(hk同款)——宁可多预期
         # 一天,绝不漏真实营业日(2026-11-03文化日MOF无发布仅影响该日窗口标注)
+        return md not in ('01-01', '12-25')
+    if market == 'ea':
+        # IA-P1-WP-A: 欧元区通道保守最小集(hk/japan同款)——ECB/Bundesbank/
+        # Eurostat 发布日≈平日-TARGET2结算祝日;祝日不逐个精确,少排除一天
+        # 只影响窗口标注精度不假miss
         return md not in ('01-01', '12-25')
     if market == 'fx':
         return True

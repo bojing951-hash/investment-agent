@@ -124,30 +124,36 @@ def main():
     # 只作"历史参考"标注且报告入口按pack meta拒绝)。
     _pack_deps = ["macro_scorecard.py"] + list(_formal_research_deps)
     steps = [
-        ("1/11 全球市场数据采集", "global_market_collector.py", True),
-        ("2/11 A股港股数据采集", "china_market_collector.py", True),
-        ("3/11 宏观数据采集", "macro_collector.py", True),
+        ("1/13 全球市场数据采集", "global_market_collector.py", True),
+        ("2/13 A股港股数据采集", "china_market_collector.py", True),
+        ("3/13 宏观数据采集", "macro_collector.py", True),
         # 非关键(第五轮P1-2): 新闻源失败可降级——原始标题缺失只影响周报叙事,
         # 不得阻止行情观察记录;整体退出码不因非关键失败而转失败。
-        ("4/11 新闻采集与分析", "news_collector.py", False),
-        ("5/11 利率预期与实体经济", "rate_expectations.py", True),
+        ("4/13 新闻采集与分析", "news_collector.py", False),
+        ("5/13 利率预期与实体经济", "rate_expectations.py", True),
         # 第七轮重构: 采集层之后先建研究快照(唯一数据入口/Gate A),评分卡/相关性/
         # 装配器/校验器均消费快照,不再各自glob"最新文件"或自行拉数(文件最新≠数据最新)。
-        ("6/11 研究快照构建(Gate A)", "snapshot_builder.py", True),
-        ("7/11 宏观体制评分卡(消费快照)", "macro_scorecard.py", True,
+        ("6/13 研究快照构建(Gate A)", "snapshot_builder.py", True),
+        ("7/13 宏观体制评分卡(消费快照)", "macro_scorecard.py", True,
          list(_formal_research_deps)),
         # 相关性计算器2026-10-11接线:必须在data_assembler之前跑,汇编器会读取
         # correlation_*.md拼进数据包第五节。非关键: 相关性缺失只降级周报第五节。
-        ("8/11 跨资产相关性(消费快照)", "correlation_calculator.py", False,
+        ("8/13 跨资产相关性(消费快照)", "correlation_calculator.py", False,
          list(_formal_research_deps)),
-        ("9/11 数据汇总打包", "data_assembler.py", True,
+        ("9/13 数据汇总打包", "data_assembler.py", True,
          list(_pack_deps)),
-        ("10/11 数据校验与锚点生成", "data_validator.py", True,
+        ("10/13 数据校验与锚点生成", "data_validator.py", True,
          ["data_assembler.py"] + list(_pack_deps)),
         # 每日预测观察(第四轮P0-6 + 第五轮P1-2): 锚点生成后用Python记录观察期内
         # 预测的当期数据,幂等不调GLM;数据质量门禁FAIL(无当日锚点)时exit 2,
         # 作为关键失败向上传播——采集失败时受影响预测的正式状态不得被更新。
-        ("11/11 预测观察记录", "daily_prediction_observer.py", True),
+        ("11/13 预测观察记录", "daily_prediction_observer.py", True),
+        # IA-P1-WP-A(v1.3): JP/EA 市场通道采集(免费公开源 MOF/FRED/ECB/Bundesbank,
+        # 零凭证)。非关键: 事实级消费(normalize_jp/normalize_ea)属 WP-B 未接线,
+        # 快照不消费 jp_/ea_ 档(D7 边界,REPORT §零.12⑧)——源失败只登记
+        # sources_status/alerts 如实降级,不阻塞主链;接线轮承接后再评估关键性。
+        ("12/13 日本市场数据采集(jp_)", "jp_market_collector.py", False),
+        ("13/13 欧元区市场数据采集(ea_)", "ea_market_collector.py", False),
     ]
 
     results = run_pipeline(steps)

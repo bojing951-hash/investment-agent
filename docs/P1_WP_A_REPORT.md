@@ -1,9 +1,9 @@
-# IA-P1-WP-A REPORT(登记件 · 情形(d)停止)
+# IA-P1-WP-A REPORT(登记件 · **v1.3 实现轮执行中**)
 
 > 包: IA-P1-WP-A(P1 四经济体底图层实现包第 1 包/族首包)| 分支: `dev/p1-impl-a`(自 018d913061a2b0ab5680e6c49c544efef740db7e 切出)
-> 合同: IA-P1-WP-A-AC-v1.1(FROZEN 2026-11-05 21:1x HKT 操作者代批)→ **v1.2(FROZEN 2026-11-05 操作者发车,§3 步骤3=分支续作形态 @33d0dfc)**
-> **状态: 情形(d)规格冲突合法停止——v1.1 轮(§零.1-§零.6)+ v1.2 轮(§零.7-§零.10)两轮登记,均仅登记件执行,零开发**(合同 §九(d)、§3 步骤5/§零(iv);不判 FAIL、不进审计,处置权操作者)
-> 停止时刻: v1.1 轮 2026-11-05T13:1xZ / v1.2 轮 2026-11-05T13:57:07Z(UTC)[实取·本机 date -u;v1.2 轮开工 2026-11-05T13:3xZ]
+> 合同: IA-P1-WP-A-AC-v1.1(FROZEN 2026-11-05 21:1x HKT 操作者代批)→ v1.2(FROZEN 2026-11-05 操作者发车,§3 步骤3=分支续作形态 @33d0dfc)→ **v1.3(FROZEN 2026-11-05 操作者发车,§3 步骤3=分支续作形态 @f0a2aea;(g)-(k)+从属锁类增 t06+research_provenance 括注明确化+实现参数预登记锚定)**
+> **状态: v1.1 轮(§零.1-§零.6)+ v1.2 轮(§零.7-§零.10)两轮情形(d)合法停止(仅登记件);v1.3 轮(§零.11-§零.14)授权面齐备,实现执行中**
+> 时点: v1.1 轮停止 2026-11-05T13:1xZ / v1.2 轮停止 2026-11-05T13:57:07Z / v1.3 轮开工 2026-11-05T14:04:45Z(UTC)[实取·本机 date -u]
 > 本文件数值标注纪律沿 §5.3: 逐值 [实取·来源] 或 [示意·非实取]。
 
 ---
@@ -321,3 +321,98 @@ print("\n结论: v1.2③ 授权面全落地后,WP-A 规格仍强制触红 2 白�
 - 零网络/零 GLM/零凭证/零付费;未写 LIVE;未触 launchd;未触 main;未 force;分支 `dev/p1-impl-a` 线性续加(33d0dfc→本轮登记件提交,零 merge)。
 - 实验脚本存 `/tmp/p1_wpa_runtime_lock_experiment.py`(临时件;全文已入 §零.8.3,证据自包含于 git)。
 - 排除事项 12 项、AC-01..07 在 v1.2 轮 (d) 停止下均未进入执行面(除 §零.7-§零.9 登记义务);不判 FAIL、不进审计;处置权操作者(v1.3 或停泊,建议清单 §零.9.1)。
+
+# ══ v1.3 轮登记(2026-11-05;分支续作形态 @f0a2aea,§3 步骤3 v1.3④;实现轮)══
+
+## §零.11 v1.3 轮开工核验(步骤0-4 复核,原样登记)
+
+- **步骤0** [2026-11-05T14:04:45Z 实取·开工时点]: `git status` clean;HEAD=f0a2aeae287519d721fd624c021b3d822cdb70ff(=v1.2 轮登记件终态提交)。
+- **步骤1 占位符**: 沿 v1.1 §零.3 已实值登记(BASE-P1A=018d913…/BASE-P1A-CI-SUITES=69/BRANCH-SET=41 分支表),v1.3 合同文本实收复核零残留。
+- **步骤2 前置实取** [2026-11-05T14:0xZ 实取]: `git ls-remote origin` main=018d913061a2b0ab5680e6c49c544efef740db7e、dev/p1-design=049ec978523dec659ba47f140bf41669604de24f(禁锚 c9626633 未触)、dev/p1-impl-a=f0a2aeae287519d721fd624c021b3d822cdb70ff(与本地一致)。
+- **步骤3 分支续作**: 续用既有 `dev/p1-impl-a`,自 f0a2aea 线性续加;零删除/零重建/零 force/零 checkout 重置。
+- **步骤4 设计在场核验(复核)**: `git merge-base --is-ancestor 049ec978… HEAD`=exit 0 可达;设计三件双侧 blob 等值(HEAD vs 049ec978): P1_DATA_NEEDS_INVENTORY.md=df79c06f66c368d93159b7a3b46852b6fcb9b196 / P1_DELIVERY.md=314c2644a51f2f575a90253580cb56346e2f93b6 / P1_DESIGN.md=13b263cf3139d420e01bf1e154b03ce85a35db4c(与 v1.1 §零.3 登记值逐值一致)。**无失配。**
+- **实现轮附加实读**(实现参数定值依据,全部只读):
+  - `.github/workflows/offline-tests.yml` L38: CI 发现面=`tests/test_*.py` 全 glob(test_glm_live 显式排除,L40-42)→ 现役 69 件 [实取·`ls tests/test_*.py | wc -l`=69,2026-11-05] → 目标 **70 slots=69 exit=0+1 SKIPPED**(+tests/test_p1_wp_a.py 恰 1 件新套件)。
+  - `config/metric_registry.json` 实况: 85 条/v2.1.0/active 84/deprecated 1(REAL_SHORT);tail 4=JP_POLICY_RATE/JGB2Y/JGB5Y/JGB10Y;asset_class 全集 29 值(含 country_etf_proxy 8/fx_rate 4/fx_index 1/fed_futures 2/crypto 1);calendar 全集 8 值(us_rates 35/us_equity 22/cn 8/commodity 6/fx 5/hk 4/japan 4/crypto 1);country_etf_proxy 8 条 source_symbol=EZU/FEZ/EWU/EWG/EWJ/INDA/FXI/EEM;identity.instrument 模板形态=equity_index→index/policy_rate→macro_series(或 index_rate_series)/rates_yield→index_rate_series/macro_index→macro_series。
+  - P1-P10 规则 dry-run 对账 [实取·/tmp/p1a_dryrun_rules.py stdout,2026-11-05,零写入只算]: 85/85 全命中零未命中;**81-vintage 聚合=US 49/CN 10/HK 4/JP 2/EA 4/GLOBAL 12——与 INVENTORY b.1 L57 登记值逐值相等**;live-85 聚合=US 49/CN 10/HK 4/**JP 6**(JP2+JP4[P9])/EA 4/GLOBAL 12;seat 聚合=onshore_local 65/global 12/offshore_proxy 8。
+  - `.gitignore` L1 `data/` 全忽略;B3 先例=`data/daily/japan_20261105.json` tracked(显式纳入) [实取·`git ls-files data/`=恰该 1 件;`git check-ignore` 对新路径 jp_20261105.json/ea_20261105.json 报 data/ 规则命中] → v1.3 首档同形态显式纳入。
+  - `data/daily` 现役实况: 四通道 20261101-20261104 各 4 件+japan_20261105.json 1 件(采集前 sha256 全量锚定见 §零.14)。
+  - `scripts/p03_final_acceptance_run.py`: 「85/v2.1.0」仅存在于注释与打印文本(L68/L71),无运行时计数断言,且非 CI 套件成员——零触碰。
+  - `tests/test_p02_w4.py` d2 L773(红-1 触发体): 断言 `hca.REGISTRY_SOURCE_CHANNEL.get(m['source'])` 非空——hca 字典 +2 行后自适应转绿,**测试件零触碰**。
+
+## §零.12 实现参数定值登记(先登记后真实运行,运行后禁回改;锚定源=本文件 §零.9.2[示意·非实取],本节登记定值即实现值)
+
+**① 规则集(P1-P10 终版)**: P1-P8=INVENTORY a.3 L39-L47 逐字;P8 操作读法=**R2**(`calendar=="us_equity"`);补读 P9=`calendar=="japan"→JP`/P10=`calendar=="ea"→EA`(沿 P1/P2 境内日历型形态);无命中→「未归类」拒入待人工裁决(实测 0/85,dry-run 见 §零.11)。
+
+**② market_seat(S1-S4 终版)**: S1 `asset_class=="country_etf_proxy"`→offshore_proxy;S2 `calendar∈{commodity,crypto,fx}`∪`asset_class∈{fed_futures,fx_rate,fx_index}`→global;S3/S4 其余(含 us_equity/us_rates/cn/hk/japan/ea 日历的本币在岸与境内序列、商品ETF[GLD/USO 等美交所上市工具])→onshore_local。
+
+**③ economy_rule 字符串形态**: 短串 `"P{序}:{触发}"`(如 `P5:fx leg JPY=X`/`P6:etf EWJ`/`P9:calendar=japan`;P1/P2/P3/P8-R2/P10 同型 `P1:calendar=cn` 等;P4=`P4:asset_class=fed_futures`;P7=`P7:commodity/crypto`);测试侧独立重编码后按规则序对账。
+
+**④ 12 候选落点(终版)**: 复用 3(BOJ_POLICY_RATE≡JP_POLICY_RATE[同 FRED IRSTCI01JPM156N 概念,禁同概念双注册];JGB_10Y→JGB10Y;JGB_2Y→JGB2Y)+新注册 9 → **registry 85→94 / version 2.1.0→2.2.0 / active 84→93 / deprecated 1 沿(REAL_SHORT)**;新 9 条一律 append 于 metrics 数组尾(mapper 首命中语义保持,§零.8.2)。
+
+**⑤ 新 9 条字段定值表**(全字段镜像既有模板形态;economy/rule/seat 由 ①② 机械结果,不在此重复;identity.adjustment 全=none;status 全=active):
+
+| metric_id | display_name | source | source_symbol | asset_class | freq | unit | calendar | criticality | value_type | identity.instrument | validation.range | validation 周限 | freshness.max_lag_days |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| JP_CPI_TOKYO_YOY | 东京都CPI同比 | jp_market_collector | PENDING | macro_index | monthly | percent | japan | important | level | macro_series | [-2,15] | — | 60(note:月频) |
+| NIKKEI225 | 日经225指数 | jp_market_collector | NIKKEI225 | equity_index | daily | index_point | japan | important | level | index | [5000,60000] | max_week_pct_move 25 | 5 |
+| ECB_DFR | 欧央行存款便利利率 | ea_market_collector | FM.B.U2.EUR.4F.KR.DFR.LEV | policy_rate | daily | percent | ea | important | level | macro_series | [-1,15] | max_week_abs_move 1.0 | 10 |
+| ECB_MRO | 欧央行主要再融资利率 | ea_market_collector | FM.B.U2.EUR.4F.KR.MRR_FR.LEV | policy_rate | daily | percent | ea | important | level | macro_series | [-1,15] | max_week_abs_move 1.0 | 10 |
+| BUND_10Y | 10年期德国国债收益率 | ea_market_collector | WU3146 | rates_yield | daily | percent | ea | important | yield_or_spread_level | index_rate_series | [-0.5,15] | max_week_abs_move 1.0 | 7 |
+| BUND_2Y | 2年期德国国债收益率 | ea_market_collector | WU3141 | rates_yield | daily | percent | ea | important | yield_or_spread_level | index_rate_series | [-0.5,15] | max_week_abs_move 1.0 | 7 |
+| EA_HICP_YOY | 欧元区HICP同比 | ea_market_collector | ICP.M.U2.N.000000.4.ANR | macro_index | monthly | percent | ea | important | level | macro_series | [-2,15] | — | 60(note:月频) |
+| DAX | 德国DAX指数 | ea_market_collector | PENDING | equity_index | daily | index_point | ea | important | level | index | [1000,40000] | max_week_pct_move 25 | 5 |
+| CAC40 | 法国CAC40指数 | ea_market_collector | PENDING | equity_index | daily | index_point | ea | important | level | index | [1000,10000] | max_week_pct_move 25 | 5 |
+
+- `source_symbol=PENDING` 三义(JP_CPI_TOKYO_YOY/DAX/CAC40): 白名单五域无诚实口径源(见 ⑩诚实缺席),calc 字段如实登记口径与缺席理由;**PENDING≠编造源**;BUND_2Y `WU3141`=候选键(BBK01 收益率曲线残存期限 1-2 年档),运行时核口径,不符→数据档诚实缺席(条目身份保留)。
+- release_semantics 各条如实登记(ECB=管委会决议日生效当日更新系列;Bundesbank=每营业日;FRED NIKKEI225=次日更新东京收盘;Eurostat HICP=次月中旬终值;PENDING 三条=口径源未接线,按缺席纪律处理)。
+
+**⑥ 三字段回填面与终态聚合**: 全部 94 条(85 既有+9 新)回填 economy/economy_rule/market_seat(字段序插于 `calendar` 后);终态聚合 **US 49/CN 10/HK 4/JP 8/EA 11/GLOBAL 12=94** [示意·推导=85 实测聚合+P9×2+P10×7];seat 终态=onshore_local 74/global 12/offshore_proxy 8;top-level `version`="2.2.0"+`field_semantics` 增 economy/economy_rule/market_seat 三字段语义文档+`notes` 增 v2.2.0 版本纪要 1 行(同文件 (a) 授权面)。
+
+**⑦ run_weekly 步骤接入**: 步骤列表尾追加 2 步,标签定值 `12/13 日本市场数据采集(jp_)`(脚本 jp_market_collector.py)/`13/13 欧元区市场数据采集(ea_)`(脚本 ea_market_collector.py),均非关键;既有 11 步标签 `/11`→`/13` 全量重编号(1/13…11/13);`_critical_collectors` 4 集零变化。
+
+**⑧ 通道登记链定值**: `rp.SOURCE_FILE_RULES` +`"jp": {"prefix": "jp_", "max_fallback_days": 5}`/`"ea": {"prefix": "ea_", "max_fallback_days": 5}`(沿 japan 通道窗);`rp._AUTHORIZED_COLLECTORS` +`jp_market_collector`/`ea_market_collector`(A6c 双侧镜像同步 `rsem.KNOWN_SOURCES` +同 2 值);`tc.MARKETS` +`ea`,`is_trading_day` ea 分支=japan 同款(非 `01-01`/`12-25` 即交易日),日历注册表 docstring +ea 行;`hca.REGISTRY_SOURCE_CHANNEL` +2 行(jp_market_collector→jp/ea_market_collector→ea);`bl.collector_to_channel` +同 2 行+注释同步。**D7 边界保持**: `rp._SOURCE_TO_INPUT` 不加 jp/ea 键(无映射→noncore_missing_boundary 诚实记录,门禁面零变化;`rp.SOURCE_CHANNELS` 冻结 4 通道零变化;b3-t14「无 japan 键」断言形态沿续覆盖 jp/ea)。
+
+**⑨ vintage/测试锁域化定值**: `bl.BASELINE_VINTAGE_IDS` 81 冻结零变化;`vintage_additions` 终态 4→13(JP4∪NEW9);b3-t06 期望=该 13 id 集;b3-t01=94/93/"2.2.0";b3-t02 四条目期望 dict 各+3 字段(JP_POLICY_RATE=JP/`P9:calendar=japan`/onshore_local;JGB2Y/JGB5Y/JGB10Y 同 P9/JP/onshore_local);final-t11=94/"2.2.0"/93;test_phase3 L216=`src.count('/13') == 13`;fixt 选择((k) 二选一)=**tests/fixt.py** +jp/ea 合成 payload(值全发明,镜像 a-2 嵌套节结构;test_p01_fix6.py B 循环零改动自动覆盖新通道 FALLBACK,**test_p01_fix6.py 零触碰**)。
+
+**⑩ 白名单域数据源 URL 定值(jp_/ea_ 首档目标日=20261105)**:
+- jp_ 通道: MOF jgbcme 曲线(复用 `japan_rate_collector.MOF_JGBCME_URL` import)→jgb 节;FRED IRSTCI01JPM156N(复用 `FRED_POLICY_URL`)→policy_rates.BOJ_POLICY_RATE;FRED fredgraph csv `?id=NIKKEI225`(fred.stlouisfed.org)→prices.NIKKEI225。
+- ea_ 通道: ECB Data Portal(data-api.ecb.europa.eu)FM.B.U2.EUR.4F.KR.DFR.LEV/FM.B.U2.EUR.4F.KR.MRR_FR.LEV(日频)→policy_rates;ICP.M.U2.N.000000.4.ANR(月频)→inflation.EA_HICP_YOY;Bundesbank API(api.bundesbank.de)BBK01/WU3146→BUND_10Y、BBK01/WU3141→BUND_2Y(候选键运行时核口径,不符→该节诚实缺席)。
+- **诚实缺席定值**(数据档键不出现,禁 0 占位;sources_status/alerts 如实;=⑤PENDING 三条的数据面): DAX/CAC40(yfinance 不入依赖面[v1.1② 冻结],白名单五域无指数口径源)/JP_CPI_TOKYO_YOY(东京CPI口径唯 stat.go.jp 发布,非白名单域,禁全国CPI冒充)。
+- 数据档结构=`DESIGN §三(a-2) L45-L58` 逐字(顶层 date/generated_at/sources_status;jp_ 节 policy_rates/jgb/inflation/prices;ea_ 节 policy_rates/bund/inflation/prices;任何节缺席→键不出现)。
+
+**⑪ 采集器 payload 形态**: 顶层=**a-2 逐字**(`date`/`generated_at`/`sources_status`[逐源 {status,retrieved_at},状态词汇沿 rp.SOURCE_STATUSES 语义: EXACT/READ_FAIL/MISSING]+通道节 `policy_rates`/`jgb`|`bund`/`inflation`/`prices` 直接挂顶层)+观测性附加键 `observations`(逐系列观测日,B3 纪律形态)/`sources`(逐源 url 口径)/`fetched_at`/`alerts`(诚实降级记录;附加键不与 a-2 冲突,a-2 未禁增);行情节 `series`=近端观测序列(窗口对齐既有 global 档实况,实现时实读取样定窗,禁编造历史);`prev_value`=源端次新观测(不可得→null);NIKKEI225 `high`/`low`=FRED 该系列仅收盘口径→**null(非 0)**。失败纪律=源失败→节键不出现+sources_status 该源 READ_FAIL+alerts 登记,禁 0 占位(L58);全节缺席→exit 1 不产空壳(B3 同款);离线测试(要点③)以注入 raw 验证失败→READ_FAIL/节缺席形态,零网络。
+
+## §零.13 v1.3 白名单终版登记(A 行 7+M 行 12 授权[其中 (c) 条件类未触发零触碰]→M 实改 11 件)
+
+| # | 路径 | A/M | 授权项 | DESIGN 依据(行号) |
+|---|---|---|---|---|
+| 1 | docs/P1_WP_A_REPORT.md | A(已在场续笔) | 必含件 | 附录A §零(ii);v1.1/v1.2 轮已建,本轮 §零.11-§零.14 续笔 |
+| 2 | docs/P1_WP_A_DELIVERY.md | A(新建) | 必含件 | 附录A §零(ii);含代码必含 DELIVERY |
+| 3 | scripts/jp_market_collector.py | A(新建) | §四 L124 | 「新增 scripts/jp_market_collector.py(候选名)」+L169 范围「jp_/ea_ 采集脚本」 |
+| 4 | scripts/ea_market_collector.py | A(新建) | §四 L124 | 同上 |
+| 5 | tests/test_p1_wp_a.py | A(新建) | 含代码必含 | L169 验收要点①③ |
+| 6 | data/daily/jp_20261105.json | A(新建,显式纳入) | v1.1④ 豁免 | L169 验收要点②「首份 data/daily/jp_/ea_YYYYMMDD.json 真实档在场」 |
+| 7 | data/daily/ea_20261105.json | A(新建,显式纳入) | v1.1④ 豁免 | 同上 |
+| M-a | config/metric_registry.json | M | v1.2③(a)/v1.1③(a) | L169「registry 三字段回填与12候选条目」+§三(a-1) L37-L43/§三(a-3) L62 |
+| M-b | run_weekly.py | M | v1.2③(b)/v1.1③(b) | L169「run_weekly 步骤接入」+§四 L124 |
+| M-c | scripts/japan_rate_collector.py | **M 条件类未触发,零触碰** | v1.2③(c)/v1.1③(c) | §四 L124 要求「新增」独立脚本;复用调用(fetch import)优先于扩展 |
+| M-d | scripts/registry_semantics.py | M | v1.2③(d) | KNOWN_SOURCES 扩容+A6c 镜像(通道登记链,B3 合同范围实证) |
+| M-e | scripts/research_provenance.py | M | v1.2③(e)+v1.3③(i) | _AUTHORIZED_COLLECTORS 登记+SOURCE_FILE_RULES +{jp,ea}(括注明确化) |
+| M-f | scripts/trading_calendar.py | M | v1.2③(f) | MARKETS/CALENDARS 增 ea(通道登记链) |
+| M-g | scripts/historical_coverage_audit.py | M | v1.3③(g) | REGISTRY_SOURCE_CHANNEL +2 行(R060 M3 同字典先例;红-1 修复) |
+| M-h | tests/helpers/baseline_locks.py | M | v1.3③(h) | collector_to_channel +2 行+注释同步(R060 先例;红-2 修复簇①) |
+| M-j | tests/test_phase3.py | M | v1.3③(j) | L216 步标签锁域化 /11×11→/13×13(R057 形态;红-3 修复) |
+| M-k | tests/fixt.py | M | v1.3③(k)二选一 | +jp/ea 合成 payload(R060 REM-AC-02④ 先例;红-4 修复;test_p01_fix6.py 零触碰) |
+| M-锁1 | tests/test_p03_e2eb_b3.py | M | v1.2③(a) 从属锁+v1.3 增 t06 | t01/t02/t06 registry 计数/冻结/增集锁域化(R057/R060 形态,禁语义弱化) |
+| M-锁2 | tests/test_p03_final_acceptance.py | M | v1.2③(a) 从属锁 | t11 registry 计数锁域化(同上) |
+
+- 结构约束预检: A 行新建 5 件(REPORT/DELIVERY/双采集器/test_p1_wp_a)与 `git ls-files` 零重合 [实取·2026-11-05];jp_/ea_ 首档路径无同名在场件;必含件齐;含代码件含对应 tests。**清单外白名单外路径零变更**(AC-05.1)。
+
+## §零.14 v1.3 轮纪律声明(实现轮;运行后终笔复核)
+
+- **零网络边界**: 网络仅步骤⑪真实采集运行时、仅白名单五域(boj.or.jp/mof.go.jp/fred.stlouisfed.org/ecb.europa.eu/bundesbank.de;ECB Data Portal/Bundesbank API 属 ecb.europa.eu/bundesbank.de 域);采集前 `data/daily` 全量 sha256 锚定,运行后既有档哈希零变化登记。
+- **零 GLM/零凭证/零付费;LIVE 禁写;launchd 零触碰;main 零触碰;分支唯 dev/p1-impl-a 线性零 merge;禁 reset --hard/force/amend 已推提交。**
+- jp_/ea_ 首档 `git add -f` 显式纳入(`.gitignore data/` 规则下,B3 japan_20261105.json 同形态先例)。
+- 本节 §零.12 定值先登记后运行,运行后禁回改;任何偏离=情形(b)/(d) 如实上报,不以调参换绿。
+- 测试纪律: 新测试零网络/合成 fixture 唯一数据源/期望值硬编码字面量(禁自证);离线测试禁冒充真实金融数据。

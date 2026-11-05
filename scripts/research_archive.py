@@ -246,6 +246,17 @@ def validate_query_record(record):
     aa = record.get("archived_at")
     if not isinstance(aa, str) or not qir.ISO_DATE_PREFIX_RE.match((aa or "")[:10]):
         issues.append(f"archived_at须为ISO8601字符串: {aa!r}")
+    # IA-P1-WP-D PD-7: economy echo三条校验(可选键;旧记录无键合法)
+    rec_econ = record.get("economy")
+    if rec_econ is not None and rec_econ not in qir.ECONOMIES:
+        issues.append(f"economy须为{qir.ECONOMIES}|None(经济体维度echo,"
+                      f"DESIGN §四 L133): {rec_econ!r}")
+    ir_econ = ir.get("economy") if isinstance(ir, dict) else None
+    if ir_econ is not None and rec_econ is None:
+        issues.append(f"ir携economy维度({ir_econ!r})但记录未echo economy键"
+                      f"(引用经济体维度必落地,DESIGN §四 L142)")
+    if (rec_econ is not None and ir_econ is not None and rec_econ != ir_econ):
+        issues.append(f"economy echo与ir.economy不一致: {rec_econ!r} vs {ir_econ!r}")
     return issues
 
 
@@ -325,6 +336,11 @@ def append_query_record(ir, *, snapshot, archive_dir=None, execution=None,
               "answer_summary": build_answer_summary(ir, stage, execution),
               "promoted_to_task_id": promoted_to_task_id,
               "archived_at": archived_at}
+    # IA-P1-WP-D PD-7: economy echo条件写(ir携economy维度→记录落地echo;
+    # 衔接设计L142「凡引用经济体维度,必附snapshot_id+digest」的QB-侧维度落地;
+    # 条件写=旧IR(无economy键)记录零变化,QUERY_RECORD_KEYS必填集不动)
+    if ir.get("economy") is not None:
+        record["economy"] = ir["economy"]
     issues = validate_query_record(record)                         # ⑥
     if issues:
         raise ValueError("查询记录未过schema校验(fail-loud): " + ";".join(issues))

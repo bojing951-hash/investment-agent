@@ -37,11 +37,17 @@ import e2eb_query_ir as qir                               # B1 IR schema(两阶�
 import correlation_calculator as cc                       # C3/C4(配对相关复用)
 
 # D-B2-07: registry source → sources_status 通道映射
+# IA-P1-WP-D PD-6: 增 jp/ea 两键(WP-A 采集面 source → rp.SOURCE_FILE_RULES 键
+# "jp"/"ea" 实读对齐,research_provenance.py:168-176),使 _mark_channel_absent
+# 对 jp/ea 指标可按快照 sources_status 做 A2 通道归因(缺席差距登记结构化);
+# economy 过滤本身经 IR 驱动(绑定循环无经济体分支),_refusal/_resolve_binding 零改动。
 CHANNEL_OF_SOURCE = {
     "macro_collector": "macro",
     "global_market_collector": "global",
     "rate_expectations": "rate_economy",
     "china_market_collector": "china",
+    "jp_market_collector": "jp",
+    "ea_market_collector": "ea",
 }
 # D-B2-12: 快照层文件名(research_snapshot_YYYYMMDD[_vN].json)——仅用于最大ymd枚举
 _SNAPSHOT_FILE_RE = re.compile(r"^research_snapshot_(\d{8})(?:_v\d+)?\.json$")

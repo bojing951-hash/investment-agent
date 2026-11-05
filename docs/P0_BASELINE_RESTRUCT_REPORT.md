@@ -306,8 +306,28 @@ w5 #45 与 fix8 #32 的原锁为「报告/预检输出 Gate A==PASS」文案锁,
 
 ## §六 本地全量实测表
 
-*(随最终全量跑填充)*
+**口径**: 与 CI 同构(`for t in tests/test_*.py`,排除 test_glm_live 付费套件;`python3` 直跑逐套退出码)。驱动脚本与逐套日志/summary.csv 入证据包 `fullrun/`。
+
+**结果**: **66 文件 → 65 运行 → 65 绿 / 0 红 / exit=0,总耗时 323s**(64 基线套件 + 1 新增等价套件 test_p0_baseline_lock_equivalence exit=0 146.8s)。
+
+对照基线态: BASE-BR-CI-SUITES=64(本地基线实测 63 绿+test_p4_fixes ambient 红)→本包后 65/65 全绿——test_p4_fixes 经 §五隔离化在本地 ambient 在场态亦绿(基线漂移面消除);其余 64 套件与基线逐一对照零新红(无回归)。逐套行(名称/exit/秒)见证据包 `fullrun/summary.csv`(66 行,含 skipped 行)。
 
 ## §七 谱系(基线/分支/尖端/SHA 链)
 
-*(终版填充)*
+- **BASE-BR**: `5e9fc88650b9d4a483e83b6638cbc984f8e7b514`(冻结时 origin/main 尖端,ls-remote 实取核对一致)
+- **分支**: `dev/p0-baseline-restruct`(自 BASE-BR 切出,纯线性,`git merge-base --is-ancestor` 核验)
+- **SHA 链**(11 提交,均无 merge/reset/amend):
+
+| # | SHA | 内容 |
+|---|---|---|
+| 1 | 2503ccf | 清点登记(§零 58 锁表+M28/A5+冲突自检) |
+| 2 | de11602 | w4 族 5 文件(81 计数 12 锁→T1+T2) |
+| 3 | bca2e0a | 三联锁共享助手 tests/helpers/baseline_locks.py |
+| 4 | a662434 | p01_fix 1/11-2/11(fix1/fix2 vintage 域) |
+| 5 | a73ec5c | p01_fix 3/11-5/11(fix3/4/5+sources_status 基线域) |
+| 6 | 135cd9a | p01_fix 6/11-11/11(fix6-11) |
+| 7 | 9df5c56 | w2_fix/w3/w5/扩充族 11 文件 |
+| 8 | d058cbe | p4 环境隔离(fixture tmp 化) |
+| 9 | 94c6e84 | 预演红面修复(8 邻接演进敏感锁 vintage 域化) |
+| 10 | ea5d230 | 等价套件(31/31)+REPORT §一-§五 |
+| 11 | (本提交) | REPORT §六/§七终版+DELIVERY |

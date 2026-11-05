@@ -162,6 +162,7 @@ DESIGN L236 范围列为**模块级**(「调用点接入+费用/用量记录+熔
 | (a) 实现落点 | 接线链: `scripts/glm_conclusion_client.py` `call_glm_once`(:468,真实出站点 :497 流式 create)→`run_live_conclusion`(:565,G2 权威管线消费方)→`run_smoke`(:673,CLI 冒烟入口 :747);门控 `_live_gate`(:545);数值接地=G2 `validate_output`/`collect_evidence_numbers` 复用(§一.1);六槽位 prompt `build_prompt`(:302) |
 | (b) 证据指针 | REGISTRY `G4-CRED-001`(3 次出站/费用 $0.0667/未触发);证据包⑤ real-run/: `live_smoke_F1_attempt1.log`(全 stdout+退出码 0)、`glm4_usage_log_20261104.jsonl.redacted-copy`(逐次 usage/费用/熔断态)、`glm4_live_smoke_20261105T015850Z.json.redacted-copy`(终态报告含 trace 反馈链) |
 | (c) 自检结论 | **部分(情形(c)如实)**: 接线链端到端真实工作——门控开→3 次真实流式出站(26.9s/26.1s/19.7s,均<CB-4)→G2 逐次裁决(尝试1 schema 外字段/尝试2 limitations 义务+接地/尝试3 仅剩数值接地)→径1 反馈回注两轮生效(失败面收敛)→预算 3 用尽→**终裁 ABSENT_REGISTERED**(模型输出未过校验器,数值接地未达)= 合法如实结果,禁重试凑结果;参数(temperature=0.2/reasoning_effort=low)为登记冻结初值,运行后禁回改 |
+| (d) 补证据轮第 4 次执行段(2026-11-05T02:45:52Z 先登记 G4-CRED-002 后发起) | **执行环境权限阻断,零真实出站**(2026-11-05T02:45:52Z~02:48:27Z 之间 4 次发起,均被本会话工具权限层拒绝于命令执行前「This command requires approval」,含一次显式非沙箱批准形式,无批准通道应答);冻结参数原样零改动,代码/测试零改动;零出站独立佐证=双面锚定 34/34 文件哈希不变+usage log 仍 3 行+无新 smoke 报告;REGISTRY §五如实登记;按追加指令「恰 1 次不追加」停止发起,处置权操作者;证据=证据包⑥ real-run/live_smoke_F1_attempt2_blocked.txt+anchors/*-round2.txt |
 
 ### 要点② 费用熔断测试(工件: 测试文件)
 
@@ -194,6 +195,7 @@ DESIGN L236 范围列为**模块级**(「调用点接入+费用/用量记录+熔
 ### 4.1 分支与提交
 
 - 分支 `dev/p03-w2-glm-g4` 自基点 d667a4e5f3faf93fffbaa1ab1bfd67c386fee2e3 切出(开工时 `git rev-parse` 实取基点一致;纯线性,零 merge 提交,单提交收尾);
+- 补证据轮(2026-11-05T02:4xZ 起)追加 2 笔纯线性提交(恰白名单内 REGISTRY/REPORT/DELIVERY 追加行;零代码零测试改动);上句「单提交收尾」指首版交付时点,补证据轮提交后**对基线 diff 仍恰 5 行纯 A**(补证据轮仅改白名单内既有 A 文件,不新增路径),AC-05 判据不受影响;
 - 提交内容=白名单恰 5 文件(`git diff --name-status d667a4e..HEAD` 预期 5 行纯 A);提交后 `git push origin dev/p03-w2-glm-g4`(禁 force);
 - 取证输出原样留存证据包④ git/: name-status/rev-parse/log/reflog/ls-remote(推前推后双份)+设计在场核验输出(merge-base exit 0+六件 blob 等值)。
 
@@ -213,6 +215,7 @@ DESIGN L236 范围列为**模块级**(「调用点接入+费用/用量记录+熔
 4. **env_config.py 既有回退路径(白名单外发现,不代改)**: env_config.py:28-29 自带本机回退(~/investment-agent 等);本模块按 DP-4(a) 仅环境变量取凭证、零本机回退(§二.2),该既有文件缺陷登记不实施(合同 §八.10)。
 5. **原始响应正文不留档(设计使然,如实披露)**: 3 次真实出站的模型原始文本仅在进程内存消费(G2 逐次解析/校验),不落盘;落档证据=逐次 usage 日志+G2 trace 反馈链(逐次失败原因全文)+终态报告。补强需改实现(白名单内可另包),本包如实披露。
 6. **CI run ID 缺席(合同步骤15 承接)**: 本包不自行 dispatch workflow;CI 登记件由操作者/opd 落 `rounds/029/GLM-WP-G4-CI-dispatch-evidence.md`,stdout 自述引用其将落路径。
+7. **补证据轮第 4 次尝试阻断(2026-11-05T02:45:52Z~02:48:27Z,如实,非 FAIL 项)**: 操作者补证据轮追加指令(2026-11-05 10:5x)要求以冻结参数原样经既有 run_live_conclusion 冒烟管线新登记一次真实尝试;本执行会话 4 次发起均被工具权限层拒绝于命令执行前(含显式非沙箱批准形式,零批准通道应答),**零真实出站**;上轮同调用面(G4-CRED-001,01:59Z)真实出站成功,判定为本轮会话执行环境权限配置变更所致。零出站佐证与处置见要点①(d)行+REGISTRY §五+证据包⑥ 阻断记录;按「恰 1 次不追加」停止;代码/测试/参数/熔断/模板零改动;处置权操作者(择时重发/代执行)。
 
 ---
 
@@ -226,3 +229,14 @@ DESIGN L236 范围列为**模块级**(「调用点接入+费用/用量记录+熔
 | 4 | 测试预期值字面量硬编码、不从被测模块导入计算 | tests 硬编码 VAL_TIPS=1.87/VAL_GOLD=3912.5/FROZEN_CB 族/费用 0.021·0.022·0.02 等,零 `from glm_conclusion_client import` 取值(源码 grep;fixture→预期值映射表入 DELIVERY §四) |
 | 5 | 合成 fixture 与真实数据隔离 | fixture 全发明(T0 自检 4 用例: 值域/日期/缺席构造合法性);真实数据仅执行段快照路径经标准化层,测试零 data/daily 依赖(T5/T6 源码 grep 反证) |
 | 6 | 计数类陈述(套件数/用例数/出站数)与可复核原始计数一致 | 48 用例(逐类计数 §三要点②)、61 条目本地 CI(summary 实取)、3 次出站(usage log 行数=REGISTRY 登记=报告 attempts_used) |
+
+### §6.7 补证据轮数值标注追加(2026-11-05T02:4x~03:xxZ;沿六项纪律)
+
+| 数值 | 口径 |
+|---|---|
+| 4 次发起 [实取·来源: 本会话工具权限层 4 次拒绝输出,2026-11-05T02:45:52Z~02:48:27Z] | 发起次数≠出站次数;零到达执行层 |
+| 0 次出站 [实取·来源: usage log 仍 3 行+锚定 34/34 不变+无新 smoke 报告,post-run 复核 02:48:27Z] | REGISTRY G4-CRED-002 出站次数列=0/3 同源 |
+| $0.0000/$0.0667 [实取·来源: 上轮 usage log 三行费用合计 0.022137+0.023628+0.020913=0.066678,本轮零新增] | 跨执行段历史累计不变 |
+| 34 文件锚定(24 daily+10 research) [实取·来源: anchors/pre-run-sha256-round2.txt 全文+post-run-check-round2.txt] | 本轮 data/research 既有 10=上轮终态(3 既有+7 上轮产物) |
+| GLM_API_KEY len=49 [实取·来源: 存在性检查 2026-11-05T02:44Z,值零打印] | 仅存在性,无值落盘 |
+| 证据包 v2 成员数/zip sha256 [实取·来源: 装配后 sha256 命令输出,登记于 DELIVERY §二 v2 行+sidecar] | 装配后回填 |

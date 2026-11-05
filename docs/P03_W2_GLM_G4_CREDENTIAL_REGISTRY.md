@@ -31,6 +31,7 @@
 | 登记编号 | 时间(UTC) | 调用面 | 模型/端点标识 | 用途 | 凭证标识 | 出站次数 | 费用估算(USD) | 熔断器状态 | 审批依据 |
 |---|---|---|---|---|---|---|---|---|---|
 | G4-CRED-001 | 2026-11-05T01:59:17Z | scripts/glm_conclusion_client.py: run_smoke(L673)→run_live_conclusion(L565)→call_glm_once(L468,真实出站点L497) | glm-5.3 @ https://open.bigmodel.cn/api/paas/v4 | 要点①(真实调用冒烟: 结构化输出过校验器+数值接地核对;兼证要点③调用日志与用量记录落盘) | GLM_API_KEY(环境变量,值不落盘) | 3 / 3 | $0.0667 / $0.0667 | 未触发 | PENDING-APPROVALS.md 2026-11-05 批复行(合同冻结章②) |
+| G4-CRED-002 | 2026-11-05T02:45:52Z | scripts/glm_conclusion_client.py: run_smoke(L673)→run_live_conclusion(L565)→call_glm_once(L468,真实出站点L497) | glm-5.3 @ https://open.bigmodel.cn/api/paas/v4 | 要点①补证据轮(合同 §九情形(c): 仅补真实重跑一次,冻结参数原样 temperature=0.2/reasoning_effort=low;操作者 2026-11-05 10:5x 追加指令;兼证要点③日志追加) | GLM_API_KEY(环境变量,值不落盘) | 0 / 3 | $0.0000 / $0.0667 | 未触发(零出站) | PENDING-APPROVALS.md 2026-11-05 批复行(合同冻结章②)+操作者补证据轮追加指令(2026-11-05 10:5x) |
 
 ## 三、登记说明
 
@@ -64,3 +65,21 @@
 - 产物: data/research/glm4_live_smoke_20261105T015850Z.json(报告)+
   glm_conclusions_archive.json(G3 结论记录,absence 版)+
   glm4_usage_log_20261104.jsonl(用量日志,零凭证明文)——均不 commit。
+
+## 五、G4-CRED-002 执行段结果(补证据轮,2026-11-05 UTC;如实: 阻断零出站)
+
+- **结果: 未执行成功——执行环境权限阻断,零真实出站**(2026-11-05T02:45:52Z~
+  02:48:27Z 之间 4 次发起,均被本会话工具权限层拒绝于命令执行前,错误统一为
+  「This command requires approval」,含一次显式非沙箱批准形式;无批准通道应答)。
+- 冻结参数原样零改动(temperature=0.2/reasoning_effort=low/glm-5.3/16k/125s;
+  代码与测试文件零改动,模块 sha256 不变);GLM_API_KEY 在场(存在性核验
+  2026-11-05T02:44Z,len=49,值零打印)。
+- 零出站独立佐证: 双面锚定 34/34 文件哈希不变(零新增零变更,post-run 复核
+  2026-11-05T02:48:27Z);usage log 仍 3 行(零新记录);无新 smoke 报告文件;
+  第 4 次命令从未到达执行层(real-run/live_smoke_F1_attempt2_blocked.txt=阻断
+  记录工件,入证据包⑥)。
+- 处置: 按操作者追加指令「恰 1 次,无论结果如何不追加」——阻断后停止发起,
+  不重试凑结果;上轮(2026-11-05T01:59Z)同调用面 G4-CRED-001 真实出站成功,
+  判定为本轮会话执行环境权限配置变更所致(非凭证/网络/实批问题)。处置权在
+  操作者(择时重发/代执行;CI dispatch 先例=opd 代执行同)。
+- 熔断器: 未触发(零出站零计数;跨执行段历史累计 3 次/$0.0667 不变)。

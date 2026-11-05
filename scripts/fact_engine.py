@@ -358,9 +358,20 @@ def normalize_china(data, as_of, source_file="china_*.json"):
     if sb.get('net_buy') is not None:
         add("SB_FLOW", sb.get('net_buy'), sb.get('date'), calc="当日净买入(亿港元)")
     elif sb.get('south_money') is not None:
-        # 新通道(东财): south_money单位=百万港元 → 亿港元;口径=南向当日净流入
+        # south_money 单位=百万港元 → 亿港元(÷100);口径=南向当日净流入。
+        # R058 SB_FLOW 备源修复(IA-P0-SB-FLOW-BACKUP-AC §一): 来源标签诚实两值制
+        # ——东财回落产物(source='akshare_em')→sub='akshare_em';其余(缺 source
+        # 键=tushare 主路产物或历史数据,R049 turnover 同款判源惯例)→sub='tushare';
+        # 每值可溯源到采集通道,禁冒充。旧一刀切标签(把一切 south_money 产物
+        # 标作东财通道,拼写见 R058 DELIVERY §零)对 tushare 主路产物构成冒充,
+        # 废除(源内该字符串零出现=tests/test_p0_sbflow_backup.py T5b 锁)。
+        # net_buy 分支(legacy,无现役producer)零改动。
+        if sb.get('source') == 'akshare_em':
+            sub, calc = 'akshare_em', "东财南向当日净流入(百万港元→亿港元)"
+        else:
+            sub, calc = 'tushare', "Tushare南向当日净流入(百万港元→亿港元)"
         add("SB_FLOW", round(_num(sb.get('south_money')) / 100.0, 2), sb.get('date'),
-            sub='eastmoney', calc="东财南向当日净流入(百万港元→亿港元)")
+            sub=sub, calc=calc)
     mg = data.get('margin') or {}
     if mg.get('balance') is not None:
         add("MARGIN_BAL", mg.get('balance'), mg.get('date'))

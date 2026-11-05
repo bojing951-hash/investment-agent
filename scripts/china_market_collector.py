@@ -405,8 +405,65 @@ def fetch_hk_indices():
 
     return results
 
+# ============ R058 SB_FLOW 备源回落登记(IA-P0-SB-FLOW-BACKUP-AC-v1.0) ============
+# 现状(R010 登记): tushare moneyflow_hsgt 对本 token 返回「没有接口访问权限」
+# (权限类拒,结构性)→ southbound 恒缺(source-persist)。经用户 L0-5 决策二
+# (2026-11-05)+预授权③(东财免费公开源),仿 R049 EM 备源模式增设回落路:
+# - 接口(登记冻结): akshare v1.18.64 stock_hsgt_hist_em(symbol='南向资金')
+#   (datacenter-web.eastmoney.com, RPT_MUTUAL_DEAL_HISTORY, MUTUAL_TYPE=006,
+#   免费公开零凭证);淘汰 stock_hsgt_fund_flow_summary_em——仅当日快照,无带
+#   日期历史序列,无法做完结行选择与近5日累计。
+# - 字段映射(登记冻结): 日期→YYYYMMDD(同 tushare 规格);当日成交净买额
+#   (单位=亿港元,2026-11-05 实测锚定: 南向=港股通沪+港股通深 逐分恰等差
+#   0.000000)×100→south_money(百万港元,tushare 路径现行口径);近5完结行
+#   合计同系数→south_5d_total;north_* 键缺席如实(EM 北向净买披露 2024-08
+#   起停止,summary 端点沪股通/深股通成交净买额实测恒0——不伪造)。
+# - 回落条件(登记冻结): 主路三态失败(异常含权限拒/df None/len(df)==0)→
+#   进入回落,逐次 print 如实记录;取值行=日期≤_em_max_date()(R051 动态
+#   截止,复用 _em_settled_pairs,在途行禁用);回落无完结行/取值行NaN/异常
+#   →None(=现行 source-persist 语义,如实缺失,禁假值禁重试凑数)。
+# - 诚实标签: 主路产物零改动(不添 source 键);回落产物恰一新增键
+#   source='akshare_em'(禁冒充 tushare);fact_engine 侧两值制见
+#   scripts/fact_engine.py SB_FLOW 区登记。
+def _fetch_southbound_em():
+    """南向资金备源回落(东财港股通,akshare,免费公开,R058 登记)。
+    仅经 fetch_southbound 在主路权限拒/空返回/异常后进入;返回
+    {date(YYYYMMDD), south_money(百万港元), source='akshare_em',
+     [south_5d_total(百万港元)]};north_* 不产(披露停止,缺席如实);
+    无完结行/取值行缺值/异常→None。"""
+    try:
+        import akshare as ak
+        with _no_proxy():
+            df = ak.stock_hsgt_hist_em(symbol='南向资金')
+        # 完结行选择复用 R049/R051 冻结 helper(列名桥接: 日期→date)
+        settled = _em_settled_pairs(df.rename(columns={'日期': 'date'}))
+        if not settled:
+            print(f"  ⚠️ 东财南向回落无完结行(date≤{_em_max_date()})")
+            return None
+        last_d, idx = settled[-1]
+        # 单位换算(登记冻结): 亿港元×100→百万港元(tushare 现行口径)
+        vals = [pd.to_numeric(df.iloc[i]['当日成交净买额'], errors='coerce')
+                for _, i in settled]
+        net_yi = vals[-1]
+        if pd.isna(net_yi):
+            print(f"  ⚠️ 东财南向回落取值行({last_d})当日成交净买额缺失")
+            return None
+        result = {
+            'date': last_d.replace('-', ''),                # 同 tushare 规格
+            'south_money': round(float(net_yi) * 100.0, 2),
+            'source': 'akshare_em',                          # 恰一新增键,禁冒充
+        }
+        if len(settled) >= 5:   # 近5完结行累计(同 tushare 路径语义,skipna)
+            result['south_5d_total'] = round(
+                float(sum(v for v in vals[-5:] if not pd.isna(v))) * 100.0, 2)
+        print(f"  ✅ 南向资金(akshare-em): {result['south_money']:.2f} 百万 [{last_d}]")
+        return result
+    except Exception as e:
+        print(f"  ⚠️ 东财南向回落失败: {e}")
+        return None
+
 def fetch_southbound():
-    """采集南向资金"""
+    """采集南向资金: tushare(主) → 东财EM(备,R058)双通道"""
     print("\n💰 采集南向资金...")
     end_date, start_week, _ = get_trade_dates()
 
@@ -414,38 +471,40 @@ def fetch_southbound():
         df = _pro().moneyflow_hsgt(start_date=start_week, end_date=end_date)
         if df is None or len(df) == 0:
             print("  ⚠️ 无南向资金数据")
-            return None
+        else:
+            # 确保数值列为数字类型
+            for col in ['south_money', 'north_money']:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col], errors='coerce')
 
-        # 确保数值列为数字类型
-        for col in ['south_money', 'north_money']:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors='coerce')
+            df = df.sort_values('trade_date')
+            latest = df.iloc[-1]
 
-        df = df.sort_values('trade_date')
-        latest = df.iloc[-1]
+            south = latest.get('south_money', 0)
+            north = latest.get('north_money', 0)
 
-        south = latest.get('south_money', 0)
-        north = latest.get('north_money', 0)
+            result = {
+                'date': str(latest['trade_date']),
+                'south_money': round(float(south), 2) if pd.notna(south) else 0,
+                'north_money': round(float(north), 2) if pd.notna(north) else 0,
+            }
 
-        result = {
-            'date': str(latest['trade_date']),
-            'south_money': round(float(south), 2) if pd.notna(south) else 0,
-            'north_money': round(float(north), 2) if pd.notna(north) else 0,
-        }
+            # 计算近5日累计
+            if len(df) >= 5:
+                recent = df.tail(5)
+                result['south_5d_total'] = round(float(recent['south_money'].sum(skipna=True)), 2)
+                result['north_5d_total'] = round(float(recent['north_money'].sum(skipna=True)), 2)
 
-        # 计算近5日累计
-        if len(df) >= 5:
-            recent = df.tail(5)
-            result['south_5d_total'] = round(float(recent['south_money'].sum(skipna=True)), 2)
-            result['north_5d_total'] = round(float(recent['north_money'].sum(skipna=True)), 2)
-
-        print(f"  ✅ 南向资金: {result['south_money']:.2f} 百万")
-        print(f"  ✅ 北向资金: {result['north_money']:.2f} 百万")
-        return result
+            print(f"  ✅ 南向资金: {result['south_money']:.2f} 百万")
+            print(f"  ✅ 北向资金: {result['north_money']:.2f} 百万")
+            return result
 
     except Exception as e:
         print(f"  ❌ 南向资金: {e}")
-        return None
+
+    # R058 备源回落(登记见上方): 主路权限拒/空返回/异常→东财EM,逐次如实记录
+    print("  ↪️ 南向主路失败/空,转东财EM回落(akshare)")
+    return _fetch_southbound_em()
 
 def fetch_margin():
     """采集融资融券数据"""

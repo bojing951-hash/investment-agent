@@ -1,4 +1,4 @@
-# IA-P1-WP-A REPORT(登记件 · **v1.3 实现轮执行中**)
+# IA-P1-WP-A REPORT(登记件 · **v1.3 实现轮 · 状态=情形(d)停止#3:N3d 单点阻塞**)
 
 > 包: IA-P1-WP-A(P1 四经济体底图层实现包第 1 包/族首包)| 分支: `dev/p1-impl-a`(自 018d913061a2b0ab5680e6c49c544efef740db7e 切出)
 > 合同: IA-P1-WP-A-AC-v1.1(FROZEN 2026-11-05 21:1x HKT 操作者代批)→ v1.2(FROZEN 2026-11-05 操作者发车,§3 步骤3=分支续作形态 @33d0dfc)→ **v1.3(FROZEN 2026-11-05 操作者发车,§3 步骤3=分支续作形态 @f0a2aea;(g)-(k)+从属锁类增 t06+research_provenance 括注明确化+实现参数预登记锚定)**
@@ -416,3 +416,14 @@ print("\n结论: v1.2③ 授权面全落地后,WP-A 规格仍强制触红 2 白�
 - jp_/ea_ 首档 `git add -f` 显式纳入(`.gitignore data/` 规则下,B3 japan_20261105.json 同形态先例)。
 - 本节 §零.12 定值先登记后运行,运行后禁回改;任何偏离=情形(b)/(d) 如实上报,不以调参换绿。
 - 测试纪律: 新测试零网络/合成 fixture 唯一数据源/期望值硬编码字面量(禁自证);离线测试禁冒充真实金融数据。
+
+## §零.15 (d) 停止#3 登记(验收要点④唯一红=N3d 清单外锁;处置建议供操作者,非自决)
+
+**停止形态**: v1.3 授权面(A7[数据档 2 未产]+M11)全部落地,本地 CI 镜像 offline-tests(70 slots=68 exit0+1 skipped[test_glm_live]+1 红)。唯一红=`tests/test_p0_baseline_lock_equivalence.py`(清单外文件,AC-05 禁触碰)→ 按合同序(⑨ CI 门→⑪ 真实采集),要点②真实采集与 jp_/ea_ 首档落盘联动未启动。**情形(d)停止#3: 仅登记,处置供操作者。**
+
+- **N3d 机理(唯一真实阻塞)**: 该文件 `n3d_table_rows()` 注入 `range(expected_registry_count()-4)` 行——live=94 时注入 rows=90 ≥ `W4_REPORT_ROWS_FLOOR`(82,冻结锚)→下限锁不咬合,T2 精确锁红而双联锁失败: 提交后复跑实测 `❌ N3d 逐项表行数缩水(缺表头+4行): T2行数==1+实载红且下限锁红(丢行捕获) rows=90 expect=1+94`。R060 先例=live 81→85 时同款锚迁移一次(「缺表头」→「缺表头+4行」,该函数 docstring 自证);v1.3 85→94 为同构情形。**v1.4 建议: 该文件 n3d 注入算术一行域化(锚改 floor−1 或 live 自适应缺行数,R060 重锚同形态,非语义弱化)**。v1.2 轮 §零.8.1「全部强制触红项」清查对该项**漏报,如实更正**(当时实验只覆盖 d2/evolution_legal/步标签/fixt 四簇,未触 N3d 注入算术)。
+- **R[legal85] 提交序工件(非阻塞,已验证自愈)**: 预演 worktree 取 committed HEAD——未提交态下旧代码+新注册表世界结构性红;本地提交 7c179d9(代码与注册表同提交原子一致)后复跑: `R[legal85] 合法演进(实载85+4虚构=89项): M集28套件零改动全绿` ✅。
+- **R-还原 红(自致工件,已清除)**: 提交前 CI 运行时 `/tmp/p1a-wt-diag` 诊断用 worktree 未移除致 `git worktree list` 计数≠1 触红;提交前 `git worktree remove --force` 清除,复跑 `R-还原 worktree清单回零` ✅。
+- **复跑终态(提交 7c179d9 后)**: `等价套件结果: 30通过 / 1失败`(唯一失败=N3d,见上);log=`/tmp/p1-wp-a-evidence/equiv-post-commit.log`(证据随停止形态入库 ci-summary 旁)。
+- **如更正登记**: 提交 7c179d9 message 内记「28通过/2失败」,提交前 CI 实录为 28通过/3失败(第三项=R-还原,自致工件已于提交前清除故未列入 message 两因);历史不 amend,以本节实录为准。提交前全量矩阵=`/tmp/p1-wp-a-evidence/ci-summary.txt`(TOTAL_SLOTS=70, RED=1)+ci-logs/ 逐套 log。
+- **要点②联动未启动(如实)**: 采集器就绪+源 URL 定值(§零.12⑩);v1.4 授权 N3d 一行后,同轮执行步骤⑪(白名单五域真实采集)+A6/A7 首档 `git add -f`(§零.14)。

@@ -257,12 +257,14 @@ class TestChannelRegistrationChain(unittest.TestCase):
         self.assertIn('jp_market_collector', rsem.KNOWN_SOURCES)
         self.assertIn('ea_market_collector', rsem.KNOWN_SOURCES)
 
-    def test_t2c_d7_boundary_preserved(self):
-        """_SOURCE_TO_INPUT 无 jp/ea 键(WP-B 接线前,事实面缺席=边界记录);
-        SOURCE_CHANNELS 基线四通道冻结不动。"""
-        for k in ('japan_rate_collector', 'jp_market_collector',
-                  'ea_market_collector'):
-            self.assertNotIn(k, rp._SOURCE_TO_INPUT)
+    def test_t2c_d7_source_to_input_wired(self):
+        """GAP08-F3 (j) 涟漪勘正: _SOURCE_TO_INPUT 三键已接线(原断言=接线前
+        "无 jp/ea/japan 键"边界冻结态,前后值 1:1 登记 GAP08 DELIVERY §五);
+        缺席口径自 boundary 转 noncore_missing;SOURCE_CHANNELS 冻结不动。"""
+        for k, ch in (('japan_rate_collector', 'japan'),
+                      ('jp_market_collector', 'jp'),
+                      ('ea_market_collector', 'ea')):
+            self.assertEqual(rp._SOURCE_TO_INPUT.get(k), ch)
         self.assertEqual(rp.SOURCE_CHANNELS,
                          ('global', 'macro', 'china', 'rate_economy'))
 

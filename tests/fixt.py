@@ -194,9 +194,9 @@ def collector_payloads(ymd, obs, break_metric=None, missing=()):
     # validation range[-0.5,15]内,JP_POLICY_RATE在[-0.5,2]内),**不冒充真实采集**
     # (真实档=data/daily/japan_20261105.json,D12实测锚定 JGB2Y=1.891/JGB5Y=2.269/
     # JGB10Y=2.855/JP_POLICY_RATE=1.043);形态镜像 japan_rate_collector 产出
-    # (date/data/observations/sources/fetched_at/alerts)。本通道事实提取未接线
-    # (E2E-B/D7: _SOURCE_TO_INPUT 无 japan 键),文件仅承担通道身份/EXACT-FALLBACK
-    # 构造面。fixture→预期值映射: JGB2Y=0.500/JGB5Y=0.900/JGB10Y=1.200/
+    # (date/data/observations/sources/fetched_at/alerts)。本通道事实提取已接线
+    # (GAP08 F1/F3: _SOURCE_TO_INPUT 增 japan 键+snapshot_builder _normalize_japan),
+    # 文件兼承担通道身份/EXACT-FALLBACK 构造面。fixture→预期值映射: JGB2Y=0.500/JGB5Y=0.900/JGB10Y=1.200/
     # JP_POLICY_RATE=0.100(REPORT §零.7 第3点预登记;DELIVERY fixture漂移策略表入表)。
     japan = {"date": ymd, "data": {
         "JGB2Y": _val('JGB2Y', 0.500), "JGB5Y": _val('JGB5Y', 0.900),
@@ -211,12 +211,13 @@ def collector_payloads(ymd, obs, break_metric=None, missing=()):
 
     # IA-P1-WP-A v1.3(REPORT §零.12⑨ (k)二选一=fixt.py): jp/ea 通道合成fixture
     # ——齐备研究日构造覆盖 rp.SOURCE_FILE_RULES 全部7通道。数值=合成合法域内值
-    # (NIKKEI225∈[5000,60000]/ECB_DFR·ECB_MRO∈[-1,15]/BUND_10Y·BUND_2Y∈[-0.5,15]
+    # (NIKKEI225∈[5000,150000]/ECB_DFR·ECB_MRO∈[-1,15]/BUND_10Y·BUND_2Y∈[-0.5,15]
     # /EA_HICP_YOY∈[-2,15]),**不冒充真实采集**(真实档=data/daily/jp_20261105.json
     # /ea_20261105.json);形态镜像两采集器产出(DESIGN §三(a-2) 节结构+观测性附加键;
     # jp inflation 节/ea prices 节=诚实缺席键不出现,与真实档同形态)。
-    # 本通道事实提取未接线(WP-B/GAP-P1-08: _SOURCE_TO_INPUT 无 jp/ea 键),
-    # 文件仅承担通道身份/EXACT-FALLBACK 构造面。
+    # 本通道事实提取已接线(GAP08 F1/F3: _SOURCE_TO_INPUT 增 jp/ea 键+
+    # normalize_jp/normalize_ea 入 build_snapshot facts),文件兼承担通道身份/
+    # EXACT-FALLBACK 构造面。
     jp = {"date": ymd,
           "generated_at": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}T08:00:00Z",
           "sources_status": {"MOF_JGBCME": {"status": "EXACT", "retrieved_at": None},

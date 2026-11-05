@@ -358,26 +358,34 @@ class TestGateA(unittest.TestCase):
     def setUp(self):
         self.p = fixt.collector_payloads(YMD, OBS)
 
-    def test_t13_present_pass_counted_boundary_excluded(self):
-        """[示意] 在场→计数与缺席判定(不入 noncore_missing); japan 事实补齐→
-        boundary 对 13 指标收敛至 fixture 诚实缺席的 3 项(DAX/CAC40/JP_CPI)。"""
+    def test_t13_present_pass_counted_missing_flipped(self):
+        """[示意] 在场→计数与缺席判定; GAP08-F3 映射落地后缺席自 boundary
+        转入 noncore_missing——japan 事实补齐→13 指标缺席收敛至 fixture
+        诚实缺席的 3 项(DAX/CAC40/JP_CPI, 采集遗漏口径)。"""
         facts = _us_jp_ea_facts(self.p)
         rec1 = rp.recompute_gate_a(_gate_payload(facts))
+        present1 = {f['metric_id'] for f in facts}
+        self.assertEqual(set(JP13) - present1,
+                         {'JP_POLICY_RATE', 'JGB2Y', 'JGB5Y', 'JGB10Y',
+                          'JP_CPI_TOKYO_YOY', 'DAX', 'CAC40'})
         for mid in JP13:
-            self.assertNotIn(mid, rec1['noncore_missing'], mid)
+            if mid in present1:
+                self.assertNotIn(mid, rec1['noncore_missing'], mid)
+            else:
+                self.assertIn(mid, rec1['noncore_missing'], mid)  # F3 翻转面
         b1 = [b for b in rec1.get('noncore_missing_boundary', [])
               if any(mid in b for mid in JP13)]
-        # fixture 诚实缺席: DAX/CAC40(ea prices 节键不出现)+
-        # JP_CPI_TOKYO_YOY(jp inflation 节键不出现)+ japan 权属 4(未接线)
-        self.assertEqual(len(b1), 7)
+        # GAP08 前=7(japan 权属4+诚实缺席3)走 boundary;F3 后边界清空
+        self.assertEqual(len(b1), 0)
         rec2 = rp.recompute_gate_a(_gate_payload(facts + _japan_facts()))
         b2 = [b for b in rec2.get('noncore_missing_boundary', [])
               if any(mid in b for mid in JP13)]
-        self.assertEqual(len(b2), 3)
-        for mid in ('JP_CPI_TOKYO_YOY', 'DAX', 'CAC40'):
-            self.assertTrue(any(mid in b for b in b2), mid)
+        self.assertEqual(len(b2), 0)   # GAP08 前=3→现 noncore_missing
+        # fixture 诚实缺席: DAX/CAC40(ea prices 节键不出现)+
+        # JP_CPI_TOKYO_YOY(jp inflation 节键不出现)→采集遗漏
+        self.assertEqual(set(JP13) & set(rec2['noncore_missing']),
+                         {'JP_CPI_TOKYO_YOY', 'DAX', 'CAC40'})
         for mid in JP13:
-            self.assertNotIn(mid, rec2['noncore_missing'], mid)
             self.assertNotIn(mid, rec2['noncore_fail'], mid)
         self.assertEqual(rec2['core_missing'], [])
         present = {f['metric_id'] for f in facts} | {'JP_POLICY_RATE', 'JGB2Y',
@@ -385,17 +393,18 @@ class TestGateA(unittest.TestCase):
         self.assertEqual(set(JP13) - present,
                          {'JP_CPI_TOKYO_YOY', 'DAX', 'CAC40'})
 
-    def test_t14_absent_boundary_legal_registration(self):
-        """[示意] 缺席→noncore_missing_boundary 边界记录(合法登记), 不入缺失清单。"""
+    def test_t14_absent_noncore_missing_after_mapping(self):
+        """[示意] 缺席→GAP08-F3 映射后=noncore_missing 采集遗漏(来源文件在场);
+        GAP08 前=13 条'无法映射采集通道'boundary 记录(前后值登记 DELIVERY §五)。"""
         rec = rp.recompute_gate_a(_gate_payload(_us_face_facts(self.p)))
-        boundary = rec.get('noncore_missing_boundary', [])
-        self.assertEqual(len(boundary), 13)             # 13 新指标全部边界登记
-        self.assertTrue(any("NIKKEI225:来源'jp_market_collector'无法映射采集通道"
-                            in b for b in boundary))
-        self.assertTrue(any("ECB_MRO:来源'ea_market_collector'无法映射采集通道"
-                            in b for b in boundary))
-        for mid in JP13:
-            self.assertNotIn(mid, rec['noncore_missing'], mid)
+        boundary = [b for b in rec.get('noncore_missing_boundary', [])
+                    if any(mid in b for mid in JP13)]
+        self.assertEqual(len(boundary), 0)             # 前=13(无法映射采集通道)
+        self.assertEqual(set(JP13), set(rec['noncore_missing']) & set(JP13))
+        self.assertEqual(rec['noncore_missing_detail']['NIKKEI225'],
+                         '来源文件在场而指标缺席(采集遗漏)')
+        self.assertEqual(rec['noncore_missing_detail']['ECB_MRO'],
+                         '来源文件在场而指标缺席(采集遗漏)')
 
     def test_t15_bad_value_noncore_fail(self):
         """[示意] 坏值(超注册表 range)→合法 FAIL→noncore_fail, effective≤DEGRADED。"""
@@ -419,8 +428,9 @@ class TestSnapshotSourcesStatus(unittest.TestCase):
                                  trusted_root=td, as_of=AS_OF)
 
     def test_t16_sources_status_jp_ea_keys(self):
-        """[示意] 真实 build_snapshot: sources_status 含 jp/ea 键(EXACT)+
-        13 新指标缺席边界合法登记。"""
+        """[示意] 真实 build_snapshot: sources_status 含 jp/ea 键(EXACT);
+        GAP08-F3+F1 后缺席=3 项 noncore_missing(fixture 诚实缺席,
+        快照级), gate DEGRADED(前=13 条 boundary+PASS)。"""
         with tempfile.TemporaryDirectory() as td:
             snap = self._snap(td)
             ss = snap['sources_status']
@@ -431,7 +441,10 @@ class TestSnapshotSourcesStatus(unittest.TestCase):
             self.assertEqual(ss['ea']['file'], 'ea_20261106.json')
             self.assertEqual(ss['japan']['status'], 'EXACT')
             boundary = snap['gate_a'].get('noncore_missing_boundary', [])
-            self.assertEqual(len(boundary), 13)         # 缺席合法登记(快照级)
+            self.assertEqual(len(boundary), 0)         # 前=13;F3 后转入缺失清单
+            self.assertEqual(set(JP13) & set(snap['gate_a']['noncore_missing']),
+                             {'JP_CPI_TOKYO_YOY', 'DAX', 'CAC40'})
+            self.assertEqual(snap['gate_a']['status'], 'DEGRADED')
 
     def test_t17_missing_ea_source(self):
         """[示意] 缺源: ea 文件缺席→sources_status['ea']={'status':'MISSING'}。"""
@@ -443,16 +456,29 @@ class TestSnapshotSourcesStatus(unittest.TestCase):
 
     def test_t18_w3_us_face_zero_regression(self):
         """[示意] W-3 对照: 7通道 vs 基线4通道(无 jp_/ea_/japan_)——
-        US 面 facts/quality/gate_a 全等, 差异仅新增通道来源键。"""
+        US 面 facts/quality/noncore_missing 全等;GAP08-F1 接线后 7通道恰
+        多 10 条 jp/ea/japan 事实, gate 同级 DEGRADED(F3 缺席披露口径
+        翻转, 非 US 面劣化), 差异仅新增通道来源键。"""
+        def _us(fls):
+            return [f for f in fls if f['metric_id'] not in JP13]
         with tempfile.TemporaryDirectory() as tda, \
                 tempfile.TemporaryDirectory() as tdb:
             snapa = self._snap(tda)
             snapb = self._snap(tdb, drop=('jp', 'ea', 'japan'))
-            self.assertEqual(snapa['facts'], snapb['facts'])
-            self.assertEqual(snapa['quality'], snapb['quality'])
-            self.assertEqual(snapa['gate_a']['status'], snapb['gate_a']['status'])
-            self.assertEqual(snapa['gate_a']['noncore_missing'],
-                             snapb['gate_a']['noncore_missing'])
+            self.assertEqual(_us(snapa['facts']), _us(snapb['facts']))
+            self.assertEqual(fe.snapshot_quality_grade(_us(snapa['facts'])),
+                             fe.snapshot_quality_grade(_us(snapb['facts'])))
+            self.assertEqual(len(snapa['facts']) - len(_us(snapa['facts'])), 10)
+            self.assertEqual(snapa['gate_a']['status'],
+                             snapb['gate_a']['status'])   # 均 DEGRADED(前均 PASS)
+            self.assertEqual([m for m in snapa['gate_a']['noncore_missing']
+                              if m not in JP13],
+                             [m for m in snapb['gate_a']['noncore_missing']
+                              if m not in JP13])
+            self.assertEqual(set(JP13) & set(snapa['gate_a']['noncore_missing']),
+                             {'JP_CPI_TOKYO_YOY', 'DAX', 'CAC40'})
+            self.assertEqual(set(JP13) & set(snapb['gate_a']['noncore_missing']),
+                             set(JP13))                    # 4通道=来源级缺失13项
             for ch in ('global', 'macro', 'china', 'rate_economy'):
                 self.assertEqual(snapa['sources_status'][ch],
                                  snapb['sources_status'][ch], ch)

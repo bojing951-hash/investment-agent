@@ -231,6 +231,36 @@ def build_anchors(snapshot, ymd):
     return anchors
 
 
+def _normalize_japan(data, as_of, source_file):
+    """IA-P1-GAP08 F1 japan 面: japan_*.json(B3 flat 形态)→4 事实。
+
+    形态: data.{metric_id}=数值+observations.{metric_id}=观测日(B3
+    japan_rate_collector 产出);经 fe 现成 make_fact/validate_fact/
+    grade_issues 产事实(collector='japan_rate_collector',与 registry
+    source 同符号;fact_engine 零改;构造形态先例=WP-B t13 _japan_facts)。
+    键缺席/节缺席=诚实缺席不产事实不填 0;非数值/未注册键不立事实
+    (与各 normalize_* 身份纪律一致);观测日非法由 validate_fact 按完整
+    ISO 严格拒绝(fail-closed,不截断洗白)。"""
+    facts = []
+    if not isinstance(data, dict):
+        return facts
+    obs_map = data.get('observations') or {}
+    for key, value in (data.get('data') or {}).items():
+        m = fe.metric(key)
+        if m is None or isinstance(value, bool) \
+                or not isinstance(value, (int, float)):
+            continue
+        f = fe.make_fact(key, value, obs_map.get(key), as_of, source_file,
+                         'japan_rate_collector')
+        if f is None:
+            continue
+        f['issues'] = fe.validate_fact(
+            f, {'close': value, 'date': obs_map.get(key)}, m, as_of_date=as_of)
+        f['quality_status'] = fe.grade_issues(f['issues'])
+        facts.append(f)
+    return facts
+
+
 # ══ 快照构建 ══════════════════════════════════════════════════════
 
 def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
@@ -302,8 +332,47 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
                     'detail': f"rate={r['value']} macro={mf['value']} 差{diff:+.4f}"
                               + (f"(观测日不同: rate {r.get('observation_date')} vs macro {mf.get('observation_date')})"
                                  if str(r.get('observation_date'))[:10] != str(mf.get('observation_date'))[:10] else "")})
+    # IA-P1-GAP08 F1(WP-B §零.9-F1 承接): jp/ea 通道接线——normalize_jp/ea 为
+    # fe 既有函数(fact_engine 零改);缺源(键不在 raw)=来源级缺失照实披露
+    # (sources_status 已记 MISSING,不产事实不填 0);jp 对账输入留待 F6 消费。
+    jp_facts_l, jp_recon_l = [], []
+    if 'jp' in raw:
+        jp_facts_l, jp_recon_l = fe.normalize_jp(raw['jp'], as_of,
+                                                 sources_status['jp']['file'])
+        facts += jp_facts_l
+    if 'ea' in raw:
+        facts += fe.normalize_ea(raw['ea'], as_of,
+                                 sources_status['ea']['file'])[0]
+    # IA-P1-GAP08 F1 japan 面(WP-B §零.9-F6 承接列"japan normalize 接线属
+    # F1/F3 同轮"): japan_*.json flat 形态经模块本地适配产 4 事实
+    # (fact_engine 零改,构造形态先例=WP-B t13 _japan_facts)。
+    if 'japan' in raw:
+        facts += _normalize_japan(raw['japan'], as_of,
+                                  sources_status['japan']['file'])
+    # IA-P1-GAP08 F6(WP-B §零.9-F6 承接): jp 通道对账输入(japan_rate_collector
+    # 权属系列)的快照级消费——判定=当次事实集存在 japan 通道事实;命中→按既有
+    # 对账规则(与上方 rate_recon_extra 同式)逐条产出 source-diff;无对手方→
+    # 如实不进 reconciliation(不伪造对账结论)。
+    jp_recon_extra = []
+    if jp_recon_l and any(isinstance(f, dict)
+                          and (f.get('source') or {}).get('collector')
+                          == 'japan_rate_collector' for f in facts):
+        jp_by_id = {f.get('metric_id'): f for f in facts}
+        for r in jp_recon_l:
+            mf = jp_by_id.get(r['metric_id'])
+            if not mf:
+                continue
+            if isinstance(r.get('value'), (int, float)) and isinstance(mf.get('value'), (int, float)):
+                diff = round(r['value'] - mf['value'], 4)
+                rel = abs(diff) / max(abs(mf['value']), 1e-9)
+                jp_recon_extra.append({
+                    'type': 'source-diff', 'check': f"jp通道 vs japan通道采集: {r['metric_id']}",
+                    'result': 'consistent' if rel < 0.005 else 'diff-needs-review',
+                    'detail': f"jp={r['value']} japan={mf['value']} 差{diff:+.4f}"
+                              + (f"(观测日不同: jp {r.get('observation_date')} vs japan {mf.get('observation_date')})"
+                                 if str(r.get('observation_date'))[:10] != str(mf.get('observation_date'))[:10] else "")})
     facts += fe.compute_derived(facts, as_of)
-    recon = fe.cross_metric_checks(facts) + rate_recon_extra
+    recon = fe.cross_metric_checks(facts) + rate_recon_extra + jp_recon_extra
     quality = fe.snapshot_quality_grade(facts)
     # IA-P0-1-FIX5(IA-DEF-006)+FIX2-02(IA-DEF-002): 核心与否以注册表criticality
     # 为唯一权威,且Gate A在写入时即按recompute_gate_a**从事实重算**——
@@ -378,6 +447,26 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
             if mid and isinstance(item, dict) and isinstance(item.get('series'), dict) \
                     and mid not in store:
                 store[mid] = item['series']
+    # IA-P1-GAP08 F2(WP-B §零.9-F2 承接): jp/ea 通道 prices 序列入 store——
+    # 键=registry metric_id 实读(fe.metric 在场且 source=对应采集器;现注册面
+    # 恰=NIKKEI225(jp)/DAX+CAC40(ea));序列=档内 series 值直通,形态转
+    # {'dates':sorted,'values':[按序]} 与 global/china 池统一(消费面
+    # correlation_calculator.paired_returns/rhq._clean_series 均吃该形态;
+    # 值零改写零造数,先例=normalize_jp series 转换 WP-B §零.10.4);
+    # prices 节缺席(真实首档 ea 形态)=诚实缺席不造序列。
+    for ch, collector in (('jp', 'jp_market_collector'),
+                          ('ea', 'ea_market_collector')):
+        for key, item in ((raw.get(ch) or {}).get('prices') or {}).items():
+            m = fe.metric(key) if isinstance(key, str) else None
+            s = item.get('series') if isinstance(item, dict) else None
+            if m is None or m.get('source') != collector \
+                    or not isinstance(s, dict) or key in store:
+                continue
+            if 'dates' in s and 'values' in s:
+                store[key] = s
+            else:
+                ks = sorted(s)
+                store[key] = {'dates': ks, 'values': [s[d] for d in ks]}
     if store:
         snapshot['series_store'] = store
 

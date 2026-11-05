@@ -22,9 +22,19 @@
   snapshot_builder.build_snapshot(write=False)(scripts/snapshot_builder.py:236)
   → snapshot['series_store'][metric_id](构建段 snapshot_builder.py:358-382;
   旧ID GOLD→GOLD_F 映射 fact_engine.py:244)——快照历史序列,零落盘、零直开。
-- 结构性缺口(登记,不实施): series_store 仅收 global+china 序列,macro 利率序列
-  不经快照任何位置(fact 不保留 series,fact_engine.py:224-227 仅供派生计算);
-  若要求利率亦走 series_store 须改 snapshot_builder(白名单外)→报告§四 PENDING。
+- IA-P1-GAP08 R47-F3 覆盖面扩展(WP-D REPORT §一.6-F3 承接=DESIGN §四 L130
+  "查询覆盖面扩展至新 metric_id"): jp/ea 通道价格序列指标(NIKKEI225/DAX/CAC40,
+  registry source=jp/ea_market_collector)经同一快照接入点(series_store,
+  F2 接线后在场)载入——jp_/ea_ 原始采集档同禁直读(DESIGN L130 禁直读约束
+  原样覆盖新通道,查询只吃快照层);japan_rate_collector 类为 flat 单点无序列
+  →无接入点(既有 ValueError 如实)。
+- IA-P1-GAP08 R47-F3 economy 过滤维度(L130 "economy 字段可作过滤维度"):
+  payload 附 registry.economy echo;query_window 可选 economy 参数——过滤
+  不命中=如实空窗披露,不造数据;取值域 ECONOMIES(registry 实测值域)。
+- 结构性缺口(登记): series_store 收 global+china+F2 后 jp/ea 价格序列,
+  macro 利率序列不经快照任何位置(fact 不保留 series,fact_engine.py:224-227
+  仅供派生计算);若要求利率亦走 series_store 须改 snapshot_builder 构建段
+  →继续 PENDING 登记于 GAP08 REPORT §四。
 
 零网络: 纯标准库+项目既有模块;不做任何采集/请求。
 """
@@ -54,7 +64,17 @@ ACCESS_POINTS = {
               '(scripts/fact_engine.py:275; scripts/snapshot_builder.py:47)'),
     'global': ('snapshot.series_store via snapshot_builder.build_snapshot(write=False) '
                '(scripts/snapshot_builder.py:236,358-382)'),
+    # IA-P1-GAP08 R47-F3: jp/ea 价格序列指标走同一快照接入点(F2 接线后
+    # NIKKEI225/DAX/CAC40 在 store);jp_/ea_ 档禁直读约束原样覆盖。
+    'jp': ('snapshot.series_store via snapshot_builder.build_snapshot(write=False) '
+           '(scripts/snapshot_builder.py:236,358-382+GAP08-F2)'),
+    'ea': ('snapshot.series_store via snapshot_builder.build_snapshot(write=False) '
+           '(scripts/snapshot_builder.py:236,358-382+GAP08-F2)'),
 }
+
+# IA-P1-GAP08 R47-F3: economy 过滤维度取值域(registry economy 字段实测值域
+# 同集;先例=e2eb_query_ir.ECONOMIES WP-D PD-1,DESIGN §四 L133 候选 enum)。
+ECONOMIES = ("US", "CN", "JP", "EA", "HK", "GLOBAL")
 
 
 def _clean_series(dates, values):
@@ -118,6 +138,7 @@ def load_metric_series(metric_id, source_date_ymd, as_of=None, data_dir=None,
         dates, values, clean = _clean_series(s.get('dates'), s.get('values'))
         return {'metric_id': metric_id, 'unit': m['unit'],
                 'frequency': m['frequency'], 'calendar': m['calendar'],
+                'economy': m.get('economy'),
                 'quality_status': (fact or {}).get('quality_status'),
                 'observation_date': (fact or {}).get('observation_date'),
                 'value': (fact or {}).get('value'),
@@ -127,38 +148,57 @@ def load_metric_series(metric_id, source_date_ymd, as_of=None, data_dir=None,
                            'file_date': info['file_date'], 'exact': info['exact'],
                            'sha256': sha}}
 
-    if src == 'global_market_collector':
-        # 接入点B: 快照历史序列(write=False 全内存,零落盘)
+    if src in ('global_market_collector', 'jp_market_collector',
+               'ea_market_collector'):
+        # 接入点B: 快照历史序列(write=False 全内存,零落盘)——global 既有,
+        # jp/ea 为 IA-P1-GAP08 R47-F3 覆盖面扩展(F2 接线后序列在 store)
+        ch = {'global_market_collector': 'global', 'jp_market_collector': 'jp',
+              'ea_market_collector': 'ea'}[src]
         snap = sb.build_snapshot(target_ymd=source_date_ymd,
                                  data_dir=data_dir or sb.DATA_DIR, write=False,
                                  as_of=as_of, trusted_root=trusted_root)
         series = (snap.get('series_store') or {}).get(metric_id) or {}
         fact = next((f for f in snap.get('facts', [])
                      if f.get('metric_id') == metric_id), None)
-        st = (snap.get('sources_status') or {}).get('global') or {}
+        st = (snap.get('sources_status') or {}).get(ch) or {}
         dates, values, clean = _clean_series(series.get('dates'), series.get('values'))
         return {'metric_id': metric_id, 'unit': m['unit'],
                 'frequency': m['frequency'], 'calendar': m['calendar'],
+                'economy': m.get('economy'),
                 'quality_status': (fact or {}).get('quality_status'),
                 'observation_date': (fact or {}).get('observation_date'),
                 'value': (fact or {}).get('value'),
                 'dates': dates, 'values': values, 'series_clean': clean,
-                'source': {'access_point': ACCESS_POINTS['global'],
+                'source': {'access_point': ACCESS_POINTS[ch],
                            'file': st.get('file'), 'file_date': st.get('file_date'),
                            'exact': st.get('status') == 'EXACT',
                            'sha256': st.get('sha256')}}
 
     raise ValueError(f"指标 {metric_id} 来源 {src!r} 无登记接入点"
-                     f"(本包支持 macro_collector/global_market_collector;"
-                     f"fact_engine(derived) 类须由上游双输入构造,不在本模块展开)")
+                     f"(本包支持 macro_collector/global_market_collector/"
+                     f"jp_market_collector/ea_market_collector;"
+                     f"fact_engine(derived) 类须由上游双输入构造,不在本模块展开;"
+                     f"japan_rate_collector 类=flat 单点无序列,无历史查询接入点)")
 
 
-def query_window(payload, start, end, lookback=0):
+def query_window(payload, start, end, lookback=0, economy=None):
     """区间截取: [start,end] 内观测 + 窗口前 lookback 个预热观测(供滚动计算)。
+
+    economy: 可选经济体过滤(GAP08 R47-F3,取值域 ECONOMIES)——非 None 且与
+    payload.economy 不等(含 payload 无 economy 字段)→如实空窗,coverage.note
+    披露过滤不命中,不造数据;None=不过滤(既有行为不变)。
 
     返回 dict(dates/values 自序列末预热点起,window_* 为窗口内首末;缺窗口数据
     如实返回空窗与 coverage 说明,不造点)。
     """
+    if economy is not None and payload.get('economy') != economy:
+        return {'dates': [], 'values': [], 'coverage': {
+            'requested': [start, end], 'n_window': 0, 'n_lookback': 0,
+            'economy_filter': {'requested': economy,
+                               'metric_economy': payload.get('economy'),
+                               'matched': False},
+            'note': (f"economy 过滤不命中(指标经济体={payload.get('economy')!r}"
+                     f"≠请求 {economy!r});如实空窗,不造数据")}}
     dates, values = payload['dates'], payload['values']
     idx = [i for i, d in enumerate(dates) if start <= d <= end]
     if not idx:
@@ -294,10 +334,15 @@ def _main():
     ap.add_argument('--end', required=True, help='YYYY-MM-DD')
     ap.add_argument('--source-date', required=True, help='采集档日期 YYYYMMDD')
     ap.add_argument('--lookback', type=int, default=0)
+    ap.add_argument('--economy', default=None, choices=ECONOMIES,
+                    help='可选经济体过滤(R47-F3;非 None 且与指标 economy 不等→如实空窗)')
     args = ap.parse_args()
     payload = load_metric_series(args.metric, args.source_date)
-    win = query_window(payload, args.start, args.end, lookback=args.lookback)
+    win = query_window(payload, args.start, args.end, lookback=args.lookback,
+                       economy=args.economy)
     print(json.dumps({'metric_id': args.metric, 'unit': payload['unit'],
+                      'economy': payload.get('economy'),
+                      'economy_filter': args.economy,
                       'quality_status': payload['quality_status'],
                       'observation_date': payload['observation_date'],
                       'source': payload['source'], 'coverage': win['coverage'],

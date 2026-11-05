@@ -34,7 +34,7 @@ diff 判据自评: `git diff --name-status fcd0537c..HEAD` 应=恰 3 行 A(A1-A3
 - AC-02 逐要点证据映射: 自评**过**(REPORT §五 映射 9 行无漏检,落点直读可核)。
 - AC-03 测试与确定性验证: 条 1-4/6-7 自评**过**;条 5"本地逐套件全绿"v1.1 执行段自评**不满足**(test_phase3.py rc=1,涟漪根因+AC-07.7 处置登记)——**v1.2 处置闭环**: 处置章授权1 单行勘正落地后重跑 pass=72 skip=0 fail=0(72 槽全绿,REPORT §三.1),条 5 自评改判**过**;整条 AC-03 终态自评**过**(判定权留操作者/审计)。
 - AC-04 引用真实性: 自评**过**(file:line 引用以提交时工作树为准;基线 CI run 42082218620 标注注入转录非实取)。
-- AC-05 范围/分支/生产隔离: 自评**过**(diff 恰 3A+3M+0D;零分支外操作;LIVE/launchd/引擎零触碰;零网络)。
+- AC-05 范围/分支/生产隔离: 自评**过**(diff 恰 3A+3M+0D——**v1.1 时点残留值,R061 补注: 权威值=3A+4M**(v1.2 处置章授权1 增 M-e tests/test_phase3.py 单 hunk,定值已见 §一 L22);零分支外操作;LIVE/launchd/引擎零触碰;零网络)。
 - AC-06 CI 与证据包: 本地镜像已录;**GitHub CI dispatch=操作者 CHECKPOINT 面**(登记件将落 rounds/046/P1-WP-C-CI-dispatch-evidence.md);证据包八类成员+SHA256SUMS(自指豁免)=§四。
 - AC-07 研究纪律: 自评**过**(特有纪律登记=REPORT §零.4;数据不足不填 0 实现于非 US 路径;零投资建议文案;零真实调用;白名单外发现登记不实施=§零.9)。
 
@@ -47,7 +47,7 @@ diff 判据自评: `git diff --name-status fcd0537c..HEAD` 应=恰 3 行 A(A1-A3
 ## §五 漂移维护策略声明(AC-03.6 三要素)+fixture→预期值映射
 
 1. **预期值唯一来源=仓库内版本化合成 fixture**: 本包测试一切期望值来源于 tests/fixt.py 合成载荷与 tests/test_p1_wp_c.py 内显式发明值([示意]标注),不依赖 data/daily 真实档。
-2. **fixture 演进时预期值与 fixture 同一 commit 变更**: fixt.py 若演进(如 WP-A v1.3 先例),依赖其数值的断言(t05 UMCSENT=68.0→0 分;t09 JPY=X=152.4/EURUSD=1.163)须同 commit 勘正;fixture 路径锚定: fixt.py L40(collector_payloads)/L152(UMCSENT 68.0)/L80-82(EURUSD/JPY=X)。
+2. **fixture 演进时预期值与 fixture 同一 commit 变更**: fixt.py 若演进(如 WP-A v1.3 先例),依赖其数值的断言(t05 UMCSENT=68.0→0 分;t09 JPY=X=152.4/EURUSD=1.163)须同 commit 勘正;fixture 路径锚定: fixt.py L40(collector_payloads)/L152(UMCSENT 68.0)/L80-82(EURUSD/JPY=X)。勘误族注记(R061 补注): REPORT §零.7 t05 行「20 legacy 键在+无 economy 键」为勘误族文字,实际断言=**19 键**(REPORT §三.1 勘误③已记「§零.6-a4 legacy 键计数 20→19」但 §零.7 t05 行未随注,本行补注收口)。
 3. **真实数据档永不进入测试预期值来源**: 测试零读取 data/daily(渲染面 t07/t14 走临时目录注入);真实档(jp_20261105.json 等)仅 REPORT 文字引用,不入断言。
 
 fixture→预期值映射(逐断言组→定义处):

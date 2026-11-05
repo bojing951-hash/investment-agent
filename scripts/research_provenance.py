@@ -114,6 +114,14 @@ _SOURCE_TO_INPUT = {
     'macro_collector(derived)': 'macro',
     'china_market_collector': 'china',
     'rate_expectations': 'rate_economy',
+    # IA-P1-GAP08 F3(WP-B §零.9-F3 承接): jp/ea/japan 来源映射落地——缺席口径
+    # 自 boundary 记录(L1060-1064)转入 FIX4-03 noncore_missing(来源在场=采集
+    # 遗漏/来源缺失=来源级缺失)。japan_rate_collector→'japan' 取值依据=
+    # 合同 §十 勘正值+双先例(tests/helpers/baseline_locks.py L279/
+    # historical_coverage_audit.py L110);三通道前缀 SOURCE_FILE_RULES 已含零改。
+    'jp_market_collector': 'jp',
+    'ea_market_collector': 'ea',
+    'japan_rate_collector': 'japan',
 }
 
 # 派生指标输入依赖(与fact_engine.compute_derived一致): 派生缺席在**输入缺席**

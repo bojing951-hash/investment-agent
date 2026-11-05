@@ -67,7 +67,7 @@ git diff --stat vs BASE-P1D: 4 files changed, 53 insertions(+), 0 deletions(-)(M
 | t17/t18 A2/A3 归因 | tests/test_p1_wp_d.py:333-354(W1_SNAP/W1_SNAP_EA_OK sources_status) | 状态+reason 子串字面量 |
 | t19/t20 W-2 values | tests/test_p1_wp_d.py:356-390(W1_SNAP china/global facts) | {MB-1:6.64,MB-2:33.08,MB-3:23294.42,MB-4:132.49}+G-P1 编号子串 |
 | t21-t23 档案绑定 | tests/test_p1_wp_d.py:393-445(W1_SNAP) | DIGEST_W1=758ad6f9ef881eb1[预计算字面量@L132] |
-| t24-t29 校验/约定 | tests/test_p1_wp_d.py:447-478(_record@L170-186) | issue 子串+零 issue 字面量 |
+| t24-t29 校验/约定 | tests/test_p1_wp_d.py:447-478(_record@L165-179;R061 辅锚勘正: 原记 L170-186 缘偏,实测 def@L165/return@L179) | issue 子串+零 issue 字面量 |
 
 **AC-03.7 判定**: 不适用——登记清单(M 四件+A 三件)零外部服务调用面实现(无 GLM/LLM 客户端/网络编排/数据源客户端类文件;scripts 四件 import 面纯标准库+项目既有模块);测试注入点=显式参数注入(registry=/snapshot=/archive_dir=,mapper D-B1-11/executor D-B2-01 既有注入面),fixture 构造处 tests/test_p1_wp_d.py:38-133。
 
@@ -85,3 +85,4 @@ git diff --stat vs BASE-P1D: 4 files changed, 53 insertions(+), 0 deletions(-)(M
 - 设计: docs/P1_DESIGN.md §六 L172(WP-P1-D 行)+§三(c)(d)+§四衔接设计 L130-143+§七
 - 上游: docs/P1_WP_A_REPORT.md §零.2/§零.3、docs/P1_WP_B_REPORT.md §零.3-§零.4、docs/P1_WP_C_REPORT.md §零.2-§零.3(在场实读)
 - 配套: docs/P1_WP_D_REPORT.md(§零 登记+§一 实录)
+- 承接回填(R061): REPORT §一.6-F1(RT- economy 字段完整落地)/F3(消费面接线)已由 IA-P1-GAP08 轮承接落地(docs/P1_GAP08_REPORT.md;F1=research_task_manager 条件写,F3=research_history_query 过滤维度+覆盖面)

@@ -47,6 +47,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(_HERE), 'scripts'))
 sys.path.insert(0, _HERE)
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import research_provenance as rp               # noqa: E402
 import snapshot_builder as sb                  # noqa: E402
 import data_assembler as da                    # noqa: E402
@@ -350,13 +351,19 @@ print("\n── F. 正常路径回归(FIX8-05: 不得借拒绝一切制造安全
 with tempfile.TemporaryDirectory(prefix='fix8-F1-') as td:
     fixt.write_collectors(td, DAY)                            # 平铺沙箱
     riF = quiet(sb.resolve_inputs, DAY, td, trusted_root=td)
-    check("F1a 平铺沙箱(tempfile无链接自定义采集目录)四通道EXACT全选",
-          all(riF[ch] and riF[ch]['exact'] for ch in rp.SOURCE_CHANNELS),
+    # WP-BR vintage域(#31a): 迭代域=rp.SOURCE_CHANNELS实载枚举(T3通道演进
+    # 兼容);追加基线四通道⊆实载枚举硬断言(防生产通道枚举静默缩水致循环空转)
+    check("F1a 平铺沙箱(tempfile无链接自定义采集目录)通道EXACT全选"
+          "(实载枚举⊇基线四通道)",
+          set(rp.SOURCE_CHANNELS) >= set(bl.BASELINE_SOURCE_CHANNELS)
+          and all(riF[ch] and riF[ch]['exact'] for ch in rp.SOURCE_CHANNELS),
           str({k: v and v.get('exact') for k, v in riF.items()}))
     snapF = quiet(sb.build_snapshot, DAY, td, td, trusted_root=td,
                   as_of=fixt.as_of_for(DAY))
-    check("F1b 正常四源日构建Gate A=PASS且记录sha256(FIX7-05保持)",
-          snapF['gate_a']['status'] == 'PASS'
+    check("F1b 正常四源日构建Gate A基线齐备且记录sha256(FIX7-05保持;vintage域)",
+          # WP-BR vintage域(#31b)
+          bl.gate_vintage_ok(snapF['gate_a'])[0]
+          and set(rp.SOURCE_CHANNELS) >= set(bl.BASELINE_SOURCE_CHANNELS)
           and all(isinstance(snapF['sources_status'][ch].get('sha256'), str)
                   and len(snapF['sources_status'][ch]['sha256']) == 64
                   for ch in rp.SOURCE_CHANNELS),
@@ -694,13 +701,20 @@ with tempfile.TemporaryDirectory(prefix='fix8-I3-') as td:
                for r in json.load(open(_acc))['checks']}
     _fails2 = [r['check'] for r in json.load(open(_acc))['checks']
                if r['verdict'] == 'FAIL']
+    # WP-BR vintage域(#32): 以同参重建快照判vintage——验收记录Gate A必须
+    # ==重建快照gate(基线PASS/vintage合法DEGRADED),重建快照本身基线齐备
+    _snapI3 = quiet(sb.build_snapshot, DAY, td,
+                    tempfile.mkdtemp(prefix='fix8-I3-rebuild-'),
+                    trusted_root=td, as_of=fake_now)
     check("I3 real_data_acceptance: --data-dir不再自证授权——缺省可信根下"
-          "Gate A≠PASS→exit 2且留信任边界原因;显式--trusted-root→快照PASS"
-          "进入真实验收,验收记录Gate A=PASS且无信任拒绝",
+          "Gate A≠PASS→exit 2且留信任边界原因;显式--trusted-root→快照基线"
+          "齐备进入真实验收,验收记录Gate A==重建快照且无信任拒绝(vintage域)",
           rc1 == 2 and '不在可信项目根之内' in out1
-          and _checks.get('Gate A状态') == 'PASS'
+          and bl.gate_vintage_ok(_snapI3['gate_a'])[0]
+          and _checks.get('Gate A状态') == _snapI3['gate_a'].get('status')
           and '不在可信项目根之内' not in out2,
-          f"no-root={rc1} with-root={rc2} fails2={_fails2}")
+          f"no-root={rc1} with-root={rc2} fails2={_fails2} "
+          f"snap_gate={_snapI3['gate_a'].get('status')}")
     print(f"     (退出码留痕: 无授权={rc1}; 显式授权={rc2}"
           f";授权态FAIL项={_fails2 or '无'}——fixture合成序列无2026年前"
           "观测,YTD基准语义检查为数据属性非信任属性)")

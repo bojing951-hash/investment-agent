@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(_HERE), 'scripts'))
 sys.path.insert(0, _HERE)
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import snapshot_builder as sb                  # noqa: E402
 import data_assembler as da                    # noqa: E402
 import report_generator as rg                  # noqa: E402
@@ -106,13 +107,19 @@ def _b8_layout(trusted_root, outside_root, day=DAY):
 # ════════════════════════════════════════════════════════════════════
 print("\n── A. 规范路径(可信根内的正常采集结构必须零误伤)")
 
-check("A1 真实构建日(data/daily结构,fixture可信根)三口径全过",
+# WP-BR vintage域(#28): 结构校验(spp)本体vintage中立保留;追加基线四通道
+# 在场+EXACT硬要求(增强——基线通道在任何vintage均active,新增通道不回溯)
+_ok_ss28, _why_ss28 = bl.sources_status_baseline_ok(
+    SNAP['sources_status'], require='EXACT')
+check("A1 真实构建日(data/daily结构,fixture可信根)三口径全过+基线四通道硬在场",
       ssp(SNAP['sources_status'], data_dir=BASE_DAILY, trusted_root=BASE) == []
+      and _ok_ss28
       and rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY,
                               trusted_root=BASE)['effective'] == SNAP['gate_a']['status']
       and rp.gate_status(SNAP, data_dir=BASE_DAILY, trusted_root=BASE)[0]
       == SNAP['gate_a']['status'],
-      str(ssp(SNAP['sources_status'], data_dir=BASE_DAILY, trusted_root=BASE)[:1]))
+      str(ssp(SNAP['sources_status'], data_dir=BASE_DAILY, trusted_root=BASE)[:1])
+      + ';' + '; '.join(str(_w) for _w in _why_ss28[:2]))
 
 ri, ok = no_exception(sb.resolve_inputs, DAY, BASE_DAILY, trusted_root=BASE)
 check("A2 构建端EXACT: 四通道规范文件全选中",
@@ -356,7 +363,8 @@ with tempfile.TemporaryDirectory() as tdd:
     probs_d1 = ssp(snap_d1['sources_status'], data_dir=tdd, trusted_root=tdd)
     check("D1 tempfile.TemporaryDirectory结构+显式fixture可信根正常工作",
           ok_d1 and snap_d1 is not None
-          and snap_d1['gate_a']['status'] == 'PASS' and probs_d1 == [],
+          # WP-BR vintage域(#29): 基线齐备(PASS/vintage合法DEGRADED)
+          and bl.gate_vintage_ok(snap_d1['gate_a'])[0] and probs_d1 == [],
           str(probs_d1[:1]))
 
 ri_d2, ok_d2 = no_exception(sb.resolve_inputs, DAY, BASE_DAILY, trusted_root=BASE)
@@ -373,11 +381,13 @@ snap_hist, ok_h = no_exception(sb.build_snapshot, DAY, TDA, TDA,
 for _f in os.listdir(TDA):                # 构建后删除全部原始采集文件
     os.remove(os.path.join(TDA, _f))
 check("D3 纯历史口径(data_dir=None): 原始文件已删,结构复算仍过,不虚报实体/内容核验",
+      # WP-BR vintage域(#30): 三口径同变体——快照/重算基线齐备,声明口径
+      # ==快照一致性(基线PASS/vintage合法DEGRADED且三口径一致)
       ok_h and snap_hist is not None
-      and snap_hist['gate_a']['status'] == 'PASS'
+      and bl.gate_vintage_ok(snap_hist['gate_a'])[0]
       and ssp(snap_hist['sources_status']) == []
-      and rp.recompute_gate_a(snap_hist)['effective'] == 'PASS'
-      and rp.gate_status(snap_hist)[0] == 'PASS',
+      and bl.gate_vintage_ok(rp.recompute_gate_a(snap_hist))[0]
+      and rp.gate_status(snap_hist)[0] == snap_hist['gate_a']['status'],
       str(ssp(snap_hist['sources_status'])[:1]))
 
 prov_d4 = rp.provenance_of(SNAP, os.path.basename(SNAP_PATH))

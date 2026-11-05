@@ -15,8 +15,9 @@ fixture 中以同值复刻作为解析预期(锚定值仅作期望常量,不冒�
 mock _http_get;零 skip;零删除断言。
 
 锁清单:
-T1 注册表身份(85/84/v2.1.0;四条目全字段硬编码冻结;registry_semantics 零错;
-   A6 双侧镜像;与 R057 冻结 81 条目 ID 不相交;vintage_additions 恰为日本四条目)
+T1 注册表身份(94/93/v2.2.0[IA-P1-WP-A v1.3 域化: 85+9];四条目全字段硬编码冻结;
+   registry_semantics 零错;A6 双侧镜像;与 R057 冻结 81 条目 ID 不相交;
+   vintage_additions 恰为日本四条目∪P1 新九条目)
 T2 通道登记(SOURCE_FILE_RULES japan 精确;sb.SOURCES 含 japan 且由规则表派生;
    canonical_source_file 接受/跨通道拒/坏日期拒/路径成分拒;SOURCE_CHANNELS 基线
    四通道冻结不动;_AUTHORIZED_COLLECTORS 在场;_SOURCE_TO_INPUT 无 japan 键=D7
@@ -58,6 +59,9 @@ with open(os.path.join(ROOT, 'config', 'metric_registry.json'), encoding='utf-8'
     REG = json.load(_f)
 METRICS = {m['metric_id']: m for m in REG['metrics']}   # 注册表为列表,按id索引
 JP4 = {'JP_POLICY_RATE', 'JGB2Y', 'JGB5Y', 'JGB10Y'}
+# IA-P1-WP-A v1.3: 新九条目(REPORT §零.12④;append 于 metrics 数组尾)
+NEW9 = {'JP_CPI_TOKYO_YOY', 'NIKKEI225', 'ECB_DFR', 'ECB_MRO', 'BUND_10Y',
+        'BUND_2Y', 'EA_HICP_YOY', 'DAX', 'CAC40'}
 
 # ---- 真实档冻结指纹(2026-11-05 采集落盘实测,证据包 real/ 原始回执) ----
 REAL_JAPAN_FILE = os.path.join(ROOT, 'data', 'daily', 'japan_20261105.json')
@@ -98,13 +102,14 @@ class T1RegistryIdentity(unittest.TestCase):
     """B3-AC-01: 注册表 81→85,四条目身份全字段冻结。"""
 
     def test_t01_counts_and_version(self):
-        self.assertEqual(len(REG['metrics']), 85, '指标总数须恰为85(81+4)')
+        self.assertEqual(len(REG['metrics']), 94, '指标总数须恰为94(85+9)')
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 84)
-        self.assertEqual(REG['version'], '2.1.0', '版本号须为2.1.0')
+                             if m.get('status') == 'active'), 93)
+        self.assertEqual(REG['version'], '2.2.0', '版本号须为2.2.0')
 
     def test_t02_four_entries_full_field_freeze(self):
-        # D11 全字段冻结(硬编码逐字段=磁盘实况,任何漂移即红)
+        # D11 全字段冻结(硬编码逐字段=磁盘实况,任何漂移即红);
+        # IA-P1-WP-A v1.3: +economy/economy_rule/market_seat 三字段(P9/JP/onshore)
         self.assertEqual(METRICS['JP_POLICY_RATE'], {
             'metric_id': 'JP_POLICY_RATE',
             'display_name': '日本无担保隔夜拆借利率(月均)',
@@ -114,6 +119,9 @@ class T1RegistryIdentity(unittest.TestCase):
             'frequency': 'monthly',
             'unit': 'percent',
             'calendar': 'japan',
+            'economy': 'JP',
+            'economy_rule': 'P9:calendar=japan',
+            'market_seat': 'onshore_local',
             'criticality': 'important',
             'status': 'active',
             'identity': {'instrument': 'macro_series', 'adjustment': 'none'},
@@ -142,6 +150,9 @@ class T1RegistryIdentity(unittest.TestCase):
                 'frequency': 'daily',
                 'unit': 'percent',
                 'calendar': 'japan',
+                'economy': 'JP',
+                'economy_rule': 'P9:calendar=japan',
+                'market_seat': 'onshore_local',
                 'criticality': 'important',
                 'status': 'active',
                 'identity': {'instrument': 'index_rate_series',
@@ -179,8 +190,9 @@ class T1RegistryIdentity(unittest.TestCase):
                          '日本四条目不得与R057冻结81条目撞名')
 
     def test_t06_vintage_additions_exact(self):
-        self.assertEqual(set(bl.vintage_additions()), JP4,
-                         'vintage_additions 须恰为日本四条目')
+        # IA-P1-WP-A v1.3 域化: additions 4→13(日本四条目∪P1 新九条目)
+        self.assertEqual(set(bl.vintage_additions()), JP4 | NEW9,
+                         'vintage_additions 须恰为日本四条目∪P1新九条目(13)')
 
 
 class T2ChannelRegistration(unittest.TestCase):

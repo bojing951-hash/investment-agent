@@ -118,12 +118,13 @@ def run_closed_chain():
 class TestT1RealChainAnchors(unittest.TestCase):
     """真实注册表+真实 japan 档(CI checkout 在场件)上的确定性锚。"""
 
-    def test_t11_registry_basepoint_85_v210(self):
+    def test_t11_registry_basepoint_94_v220(self):
+        """IA-P1-WP-A v1.3 域化: 85→94(85+9)/v2.1.0→v2.2.0/active 84→93。"""
         reg = fe.load_registry()
         metrics = reg["metrics"]
-        self.assertEqual(len(metrics), 85)
-        self.assertEqual(reg["version"], "2.1.0")
-        self.assertEqual(sum(1 for m in metrics if m.get("status") == "active"), 84)
+        self.assertEqual(len(metrics), 94)
+        self.assertEqual(reg["version"], "2.2.0")
+        self.assertEqual(sum(1 for m in metrics if m.get("status") == "active"), 93)
 
     def test_t12_mapper_real_registry_golden_question(self):
         """B3 注册效果锚: MB-8 由 ABSENT_REGISTRY(B5 时代 81 注册表)转为注册表命中

@@ -141,6 +141,11 @@ _AUTHORIZED_COLLECTORS = {
     # WP-B3(IA-P03-E2EB): 日本利率通道采集器——collector与registry source
     # 同符号(事实级授权;批次绑定_SOURCE_TO_INPUT随E2E-B接线轮登记)
     'japan_rate_collector': frozenset({'japan_rate_collector'}),
+    # IA-P1-WP-A: JP/EA 市场通道采集器——collector与registry source同符号
+    # (事实级授权;normalize_jp/normalize_ea 与 _SOURCE_TO_INPUT 批次绑定
+    # 属 WP-B,GAP-P1-08 L156 承接登记,本包不接线)
+    'jp_market_collector': frozenset({'jp_market_collector'}),
+    'ea_market_collector': frozenset({'ea_market_collector'}),
 }
 
 # FIX5-04: 必需采集通道(=基线四通道: 真实构建器恒写入;存量历史快照均只含
@@ -158,12 +163,16 @@ SOURCE_STATUSES = ('EXACT', 'FALLBACK', 'MISSING', 'READ_FAIL')
 # 该通道既有回退窗(自然日,resolve_inputs既有约束,非本轮新设阈值)。
 # WP-B3(IA-P03-E2EB): 新增japan通道(japan_rate_collector产出,免费公开源
 # MOF/FRED,零凭证);窗口5自然日与global/china同档。
+# IA-P1-WP-A: 新增jp/ea通道(jp_market_collector/ea_market_collector产出,
+# 免费公开源 MOF/FRED/ECB/Bundesbank,零凭证);窗口5自然日沿japan同档。
 SOURCE_FILE_RULES = {
     'global':       {'prefix': 'global_',       'max_fallback_days': 5},
     'macro':        {'prefix': 'macro_',        'max_fallback_days': 7},
     'china':        {'prefix': 'china_',        'max_fallback_days': 5},
     'rate_economy': {'prefix': 'rate_economy_', 'max_fallback_days': 7},
     'japan':        {'prefix': 'japan_',        'max_fallback_days': 5},
+    'jp':           {'prefix': 'jp_',           'max_fallback_days': 5},
+    'ea':           {'prefix': 'ea_',           'max_fallback_days': 5},
 }
 _SOURCE_FILE_RE = {ch: re.compile(rf'^{re.escape(r["prefix"])}(\d{{8}})\.json$')
                    for ch, r in SOURCE_FILE_RULES.items()}

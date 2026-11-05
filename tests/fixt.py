@@ -42,7 +42,8 @@ def collector_payloads(ymd, obs, break_metric=None, missing=()):
 
     - break_metric: 指定指标值置'N/A'(→事实引擎type校验FAIL);
     - missing: 指定指标**整体不出现**(→核心缺失);
-    返回{'global':..,'macro':..,'china':..,'rate_economy':..,'japan':..}。"""
+    返回{'global':..,'macro':..,'china':..,'rate_economy':..,'japan':..,
+    'jp':..,'ea':..}(IA-P1-WP-A v1.3 起7通道全覆盖)。"""
 
     def _val(mid, v):
         if break_metric == mid:
@@ -207,8 +208,72 @@ def collector_payloads(ymd, obs, break_metric=None, missing=()):
             "note": "合成fixture(不冒充真实采集;真实档=japan_20261105.json)"}},
         "fetched_at": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}T08:00:00Z",
         "alerts": []}
+
+    # IA-P1-WP-A v1.3(REPORT §零.12⑨ (k)二选一=fixt.py): jp/ea 通道合成fixture
+    # ——齐备研究日构造覆盖 rp.SOURCE_FILE_RULES 全部7通道。数值=合成合法域内值
+    # (NIKKEI225∈[5000,60000]/ECB_DFR·ECB_MRO∈[-1,15]/BUND_10Y·BUND_2Y∈[-0.5,15]
+    # /EA_HICP_YOY∈[-2,15]),**不冒充真实采集**(真实档=data/daily/jp_20261105.json
+    # /ea_20261105.json);形态镜像两采集器产出(DESIGN §三(a-2) 节结构+观测性附加键;
+    # jp inflation 节/ea prices 节=诚实缺席键不出现,与真实档同形态)。
+    # 本通道事实提取未接线(WP-B/GAP-P1-08: _SOURCE_TO_INPUT 无 jp/ea 键),
+    # 文件仅承担通道身份/EXACT-FALLBACK 构造面。
+    jp = {"date": ymd,
+          "generated_at": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}T08:00:00Z",
+          "sources_status": {"MOF_JGBCME": {"status": "EXACT", "retrieved_at": None},
+                             "FRED_POLICY": {"status": "EXACT", "retrieved_at": None},
+                             "FRED_NIKKEI225": {"status": "EXACT", "retrieved_at": None},
+                             "JP_CPI_TOKYO": {"status": "MISSING", "retrieved_at": None}},
+          "policy_rates": {"BOJ_POLICY_RATE": {
+              "value": _val('BOJ_POLICY_RATE', 0.100), "unit": "percent",
+              "date": obs, "prev_value": 0.090}},
+          "jgb": {"JGB_10Y": {"value": _val('JGB_10Y', 1.200), "unit": "percent",
+                              "date": obs, "prev_value": 1.180},
+                  "JGB_2Y": {"value": _val('JGB_2Y', 0.500), "unit": "percent",
+                             "date": obs, "prev_value": 0.480}},
+          "prices": {"NIKKEI225": {
+              "close": _val('NIKKEI225', 38000.0), "date": obs,
+              "high": None, "low": None,
+              "series": {pday(obs, 7): 37800.0, obs: 38000.0}}},
+          "observations": {"BOJ_POLICY_RATE": obs, "JGB_10Y": obs, "JGB_2Y": obs,
+                           "NIKKEI225": obs},
+          "sources": {"fixture": {
+              "url": "tests/fixt.py:synthetic",
+              "note": "合成fixture(不冒充真实采集;真实档=jp_20261105.json)"}},
+          "fetched_at": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}T08:00:00Z",
+          "alerts": ["JP_CPI_TOKYO_YOY诚实缺席(合成形态沿真实档)"]}
+    ea = {"date": ymd,
+          "generated_at": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}T08:00:00Z",
+          "sources_status": {"ECB_FM_DFR": {"status": "EXACT", "retrieved_at": None},
+                             "ECB_FM_MRO": {"status": "EXACT", "retrieved_at": None},
+                             "ECB_ICP_HICP": {"status": "EXACT", "retrieved_at": None},
+                             "BBK_WU3146": {"status": "EXACT", "retrieved_at": None},
+                             "BBK_WU3141": {"status": "EXACT", "retrieved_at": None},
+                             "DAX": {"status": "MISSING", "retrieved_at": None},
+                             "CAC40": {"status": "MISSING", "retrieved_at": None}},
+          "policy_rates": {"ECB_DFR": {"value": _val('ECB_DFR', 2.00),
+                                        "unit": "percent", "date": obs,
+                                        "prev_value": 2.00},
+                           "ECB_MRO": {"value": _val('ECB_MRO', 3.15),
+                                       "unit": "percent", "date": obs,
+                                       "prev_value": 3.15}},
+          "bund": {"BUND_10Y": {"value": _val('BUND_10Y', 2.60), "unit": "percent",
+                                "date": obs, "prev_value": 2.62},
+                   "BUND_2Y": {"value": _val('BUND_2Y', 2.30), "unit": "percent",
+                               "date": obs, "prev_value": 2.35}},
+          "inflation": {"EA_HICP_YOY": {"value": _val('EA_HICP_YOY', 2.2),
+                                        "unit": "percent", "date": prev_m,
+                                        "prev_value": 2.4, "change": -0.2,
+                                        "change_period": "MoM",
+                                        "freq": "Monthly"}},
+          "observations": {"ECB_DFR": obs, "ECB_MRO": obs, "BUND_10Y": obs,
+                           "BUND_2Y": obs, "EA_HICP_YOY": prev_m},
+          "sources": {"fixture": {
+              "url": "tests/fixt.py:synthetic",
+              "note": "合成fixture(不冒充真实采集;真实档=ea_20261105.json)"}},
+          "fetched_at": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}T08:00:00Z",
+          "alerts": ["DAX/CAC40诚实缺席(合成形态沿真实档)"]}
     return {"global": glob, "macro": macro, "china": china, "rate_economy": rate,
-            "japan": japan}
+            "japan": japan, "jp": jp, "ea": ea}
 
 
 def pday(iso, n):

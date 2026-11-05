@@ -254,9 +254,11 @@ def n3d_table_rows():
     `assertEqual(len(rows), 82)`(清点#5);回归类=无数据指标丢行。重构形态=
     ==1+实载项数+下限≥82;注入行数缩水至下限锁咬合域红(R060 重锚: 原锚=live81
     全表缺表头 81 行双锁咬合;live=85 后缺表头=85 行≥82 下限不咬合→锚改为
-    缺表头+4 行=81 行,1+实载等值锁与≥82 下限锁双咬合语义逐字保持)。"""
-    rows = [f'row{i}' for i in range(bl.expected_registry_count() - 4)]  # 缺表头+4行
-    check('N3d 逐项表行数缩水(缺表头+4行): T2行数==1+实载红且下限锁红(丢行捕获)',
+    缺表头+4 行=81 行,1+实载等值锁与≥82 下限锁双咬合语义逐字保持;v1.4 二迁:
+    live=94 后 count−4=90≥82 又不咬合→锚二迁=floor−1=81 行,锚定冻结常量
+    W4_REPORT_ROWS_FLOOR 与 live 演进解耦,双咬合语义逐字保持)。"""
+    rows = [f'row{i}' for i in range(bl.W4_REPORT_ROWS_FLOOR - 1)]  # floor−1=81行(v1.4二迁)
+    check('N3d 逐项表行数缩水(floor−1=81行): T2行数==1+实载红且下限锁红(丢行捕获)',
           len(rows) != 1 + bl.expected_registry_count()
           and not (len(rows) >= bl.W4_REPORT_ROWS_FLOOR),
           f'rows={len(rows)} expect=1+{bl.expected_registry_count()}')

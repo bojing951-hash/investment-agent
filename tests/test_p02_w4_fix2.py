@@ -37,6 +37,9 @@ from unittest import mock
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from helpers import baseline_locks as bl  # WP-BR三联锁(T1下限/T2实载派生)
 
 import historical_coverage_audit as hca   # 被审计的真实审计器(FIX2版)
 
@@ -240,7 +243,12 @@ class TestAEligibleSlots(unittest.TestCase):
             recount[r['status']] = recount.get(r['status'], 0) + 1
         self.assertEqual(self.result['summary']['by_status'],
                          {k: v for k, v in sorted(recount.items())})
-        self.assertEqual(sum(self.result['summary']['by_status'].values()), 81)
+        # WP-BR: 字面81改T1下限+T2自洽派生(桶和==结果项数)
+        self.assertGreaterEqual(
+            sum(self.result['summary']['by_status'].values()),
+            bl.REGISTRY_FLOOR)
+        self.assertEqual(sum(self.result['summary']['by_status'].values()),
+                         len(self.result['metrics']))
         # with_authority_observations不含NO_VALID_SLOTS/UNDETERMINED
         n_auth = len([r for r in self.result['metrics'] if r['status'] in
                       ('OBSERVED', 'SPARSE', 'SINGLE_OBSERVATION')])
@@ -540,7 +548,10 @@ class TestCHistoricalContract(unittest.TestCase):
         try:
             self.assertEqual(ec, 0)
             self.assertEqual(res['audit_status'], 'COMPLETED')
-            self.assertEqual(len(res['metrics']), 81)
+            # WP-BR: 字面81改T1下限+T2实载派生(==注册表项数)
+            self.assertGreaterEqual(len(res['metrics']), bl.REGISTRY_FLOOR)
+            self.assertEqual(len(res['metrics']),
+                             bl.expected_registry_count())
         finally:
             _cleanup(tmp)
 

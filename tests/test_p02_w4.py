@@ -40,9 +40,11 @@ from unittest import mock
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import historical_coverage_audit as hca          # 被审计的真实审计器
 import fact_engine as fe                          # 真实身份原语(漂移守护基准)
+from helpers import baseline_locks as bl         # WP-BR三联锁(T1下限/T2实载派生)
 
 REGISTRY = os.path.join(ROOT, 'config', 'metric_registry.json')
 
@@ -222,14 +224,19 @@ class TestACoverageAndIdentity(unittest.TestCase):
     def tearDownClass(cls):
         cls.fx.cleanup()
 
-    # 用例1: 81项全部输出(不得只审计有数据的)
+    # 用例1: 注册表全量输出(不得只审计有数据的)——WP-BR三联锁: 字面81改
+    # T1下限(≥冻结81,防缩水)+T2实载派生(结果数==实载注册表项数;配合下方
+    # 集合全等+唯一断言,漏项/私货/重复仍红;注册表合法演进不撞墙)。
     def test_a01_all_81_metrics_output(self):
         self.assertEqual(self.ec, 0)
         self.assertEqual(self.result['audit_status'], 'COMPLETED')
         with open(REGISTRY, 'r', encoding='utf-8') as f:
             reg = json.load(f)
-        self.assertEqual(len(reg['metrics']), 81)
-        self.assertEqual(len(self.result['metrics']), 81)
+        self.assertGreaterEqual(len(reg['metrics']), bl.REGISTRY_FLOOR)
+        self.assertGreaterEqual(
+            len(self.result['metrics']), bl.REGISTRY_FLOOR)
+        self.assertEqual(len(self.result['metrics']),
+                         bl.expected_registry_count())
         ids = [r['metric_id'] for r in self.result['metrics']]
         self.assertEqual(len(ids), len(set(ids)))
         self.assertEqual(set(ids), {m['metric_id'] for m in reg['metrics']})
@@ -407,9 +414,15 @@ class TestACoverageAndIdentity(unittest.TestCase):
             self.assertEqual(r['coverage']['total_unique_observations'], 0)
             self.assertIsNone(r['coverage']['first_observation_date'])
         st = self.result['summary']['by_status']
-        self.assertEqual(st.get('MISSING', 0) + st.get('SINGLE_OBSERVATION', 0)
-                         + st.get('SPARSE', 0) + st.get('OBSERVED', 0)
-                         + st.get('DERIVED_ONLY', 0), 81)
+        # WP-BR: 字面81改T2自洽派生(桶和==结果项数)+T1下限
+        self.assertGreaterEqual(
+            st.get('MISSING', 0) + st.get('SINGLE_OBSERVATION', 0)
+            + st.get('SPARSE', 0) + st.get('OBSERVED', 0)
+            + st.get('DERIVED_ONLY', 0), bl.REGISTRY_FLOOR)
+        self.assertEqual(
+            st.get('MISSING', 0) + st.get('SINGLE_OBSERVATION', 0)
+            + st.get('SPARSE', 0) + st.get('OBSERVED', 0)
+            + st.get('DERIVED_ONLY', 0), len(self.result['metrics']))
 
     # 用例17: 未注册来源独立披露(不静默丢失)
     def test_a17_unmapped_disclosed(self):
@@ -688,7 +701,11 @@ class TestCIntegrityDeterminism(unittest.TestCase):
                   '3_哪些指标中间存在严重断点', '4_哪些指标未保存历史',
                   '5_哪些数据无法支持研究区间判断', '6_现有历史覆盖的主要限制'):
             self.assertIn(q, r['findings'])
-        self.assertEqual(r['registry']['metric_count'], 81)
+        # WP-BR: 机器报告registry回显==实载注册表项数(T2)+T1下限
+        self.assertGreaterEqual(r['registry']['metric_count'],
+                                bl.REGISTRY_FLOOR)
+        self.assertEqual(r['registry']['metric_count'],
+                         bl.expected_registry_count())
         g = by_id(r, 'GOLD_F')
         for k in ('metric_id', 'display_name', 'source', 'source_symbol', 'status',
                   'criticality', 'frequency', 'calendar', 'unit', 'identity',
@@ -702,7 +719,9 @@ class TestCIntegrityDeterminism(unittest.TestCase):
         section = md.split('## 逐项覆盖')[1].split('## 审计发现')[0]
         rows = [ln for ln in section.splitlines()
                 if ln.startswith('| ') and '---' not in ln]
-        self.assertEqual(len(rows), 82)  # 表头1+81数据行(无数据指标也在表内)
+        # WP-BR: 逐项表行数==表头1+实载注册表项数(T2)+T1下限(表头1+冻结81)
+        self.assertGreaterEqual(len(rows), bl.W4_REPORT_ROWS_FLOOR)
+        self.assertEqual(len(rows), 1 + bl.expected_registry_count())
         self.assertIn('阈值定义与依据', md)
         self.assertIn('证据限制', md)
         self.assertIn('未注册来源记录', md)
@@ -743,7 +762,8 @@ class TestDIdentityDriftGuard(unittest.TestCase):
         with open(REGISTRY, 'r', encoding='utf-8') as f:
             reg = json.load(f)
         ids = {m['metric_id'] for m in reg['metrics']}
-        self.assertEqual(len(ids), 81)
+        # WP-BR: T1下限(唯一性由set构造+下方映射目标断言保持)
+        self.assertGreaterEqual(len(ids), bl.REGISTRY_FLOOR)
         for v in hca.GLOBAL_ID_MAP.values():
             self.assertIn(v, ids)  # 别名目标必须都是注册指标
         for m in reg['metrics']:

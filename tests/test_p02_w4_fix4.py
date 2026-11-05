@@ -36,11 +36,16 @@ from unittest import mock
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from helpers import baseline_locks as bl  # WP-BR三联锁(T1下限/T2实载派生)
 import historical_coverage_audit as hca   # 被审计的真实审计器(FIX4版)
 
 REGISTRY = os.path.join(ROOT, 'config', 'metric_registry.json')
-N_METRICS = 81
+# WP-BR: 字面81改T2实载派生期望(==实载注册表项数;C5"不虚增/不缩水"语义=与
+# 注册表同步)+T1冻结下限双形态;演进不撞墙,缩水/虚增仍红
+N_METRICS = bl.expected_registry_count()
+N_METRICS_FLOOR = bl.REGISTRY_FLOOR
 
 
 # ════════════════ 公共工具(真实main()/真实文件系统) ════════════════
@@ -537,7 +542,10 @@ class TestCReports(unittest.TestCase):
             with self.subTest(case=tag):
                 ec, res, out, tmp = _run(files, 'c5_' + tag)
                 self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+                self.assertGreaterEqual(len(res['metrics']), N_METRICS_FLOOR)
                 self.assertEqual(len(res['metrics']), N_METRICS)
+                self.assertGreaterEqual(res['registry']['metric_count'],
+                                        N_METRICS_FLOOR)
                 self.assertEqual(res['registry']['metric_count'], N_METRICS)
 
     # C6: 文件SHA-256可追溯——failed_files与Manifest的SHA==测试复算的真实文件哈希

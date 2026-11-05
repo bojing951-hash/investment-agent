@@ -119,4 +119,4 @@
 
 ## zip 哈希补记(装配后追加;自指豁免: 上方 zip 内 DELIVERY 副本无本行)
 
-- zip 整体 sha256 实测值: `PENDING_ASSEMBLE`(待证据包装配后按 B1/B2/B4/R057 先例于推送前补记实测值)
+- zip 整体 sha256 实测值: `be5e99c9ef26a85c886e55575b37a424c832eb6af50c3b7af39ba74a8459d533`(79成员/222710字节,装配时点 tip=d44733c;zip 内 DELIVERY/result.md 副本=终版提交版无上行实测值,推送终态见证据目录 final-state.txt——B1/B2/B4/R057 同款先例)

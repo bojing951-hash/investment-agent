@@ -33,6 +33,7 @@ sys.path.insert(0, os.path.join(_REPO, 'scripts'))
 sys.path.insert(0, _HERE)
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import research_provenance as rp               # noqa: E402
 import data_assembler as da                    # noqa: E402
 import report_generator as rg                  # noqa: E402
@@ -286,6 +287,8 @@ if PA and PB:
 # ════════════════════════════════════════════════════════════════════
 print("\n── D. 真实研究链(§十.D)")
 
+# WP-BR vintage域(#34): driver负载扩展——gate_a全桶随行导出(供vintage域
+# 断言消费);'gate'短字段保留(D2/D3消费兼容)
 SB_DRIVER = (
     "import json, os, sys\n"
     "DAY, AS_OF = " + repr(DAY) + ", " + repr(AS_OF) + "\n"
@@ -294,6 +297,7 @@ SB_DRIVER = (
     ",\n    out_dir=" + repr(DAILY) + ", as_of=AS_OF)\n"
     "src = snap.get('sources_status') or {}\n"
     "print('@SB@' + json.dumps({'gate': (snap.get('gate_a') or {}).get('status'),\n"
+    " 'gate_a': snap.get('gate_a') or {},\n"
     " 'files': {k: bool((v or {}).get('file')) for k, v in src.items()},\n"
     " 'global': (src.get('global') or {})}, default=str))\n"
 )
@@ -303,11 +307,14 @@ try:
                       if l.startswith('@SB@')][0][4:])
 except Exception:
     oD1 = None
-check("D1(物理导入子进程) 真实build_snapshot: Gate A=PASS, 四通道全选中",
-      rD1.returncode == 0 and oD1 and oD1['gate'] == 'PASS'
-      and all(oD1['files'].get(c) for c in
-              ('global', 'macro', 'china', 'rate_economy')),
-      rD1.stderr[-300:] if oD1 is None else str(oD1))
+_ok_v34, _why_v34 = bl.gate_vintage_ok(
+    (oD1 or {}).get('gate_a') or {}) if oD1 else (False, 'driver无输出')
+check("D1(物理导入子进程) 真实build_snapshot: Gate A基线齐备(vintage域), "
+      "基线四通道全选中",
+      rD1.returncode == 0 and oD1 and _ok_v34
+      and oD1['gate'] == (oD1.get('gate_a') or {}).get('status')
+      and all(oD1['files'].get(c) for c in bl.BASELINE_SOURCE_CHANNELS),
+      rD1.stderr[-300:] if oD1 is None else f"{_why_v34} :: {str(oD1)[:200]}")
 SNAP_PATH = os.path.join(DAILY, f'research_snapshot_{DAY}.json')
 check("D1b 快照文件真实落盘(供后续外链导入链消费)",
       os.path.isfile(SNAP_PATH))

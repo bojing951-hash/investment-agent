@@ -56,6 +56,7 @@ import fact_engine as fe
 import macro_collector as mc
 import registry_semantics as rsem
 import research_provenance as rp
+from helpers import baseline_locks as bl   # WP-BR三联锁(vintage域)
 
 REG_PATH = os.path.join(ROOT, 'config', 'metric_registry.json')
 with open(REG_PATH, encoding='utf-8') as f:
@@ -225,8 +226,8 @@ try:
         ['CORE_PCE', 'R-OFFICIAL-SERIES', 'PCEPILFE', 'INDPRO'])
     # 拒绝后缓存不被污染: 默认注册表仍完好
     fe.load_registry(force=True)
-    check("C7 逐项拒绝后默认注册表可正常重载(缓存无污染)",
-          len(fe.load_registry()['by_id']) == 81
+    check("C7 逐项拒绝后默认注册表可正常重载(缓存无污染;by_id≥81 T1下限)",
+          len(fe.load_registry()['by_id']) >= bl.REGISTRY_FLOOR   # WP-BR(#52)
           and fe.metric('SPX')['criticality'] == 'core'
           and fe.metric('CORE_PCE')['unit'] == 'index_point_2017')
 finally:
@@ -235,10 +236,12 @@ finally:
 
 # ══ D. 核心集合/Gate A回归 ═════════════════════════════════════════
 print("\n[D] Gate A核心集合: 非法注册表被拒,而非静默缩core")
-check("D1 对照组合法注册表: 81项/active 80/core 32/SPX属核心",
-      len(_REG['metrics']) == 81 and len(rp.core_metric_ids()) == 32
-      and 'SPX' in rp.core_metric_ids() and len(rp.active_registry_metrics()) == 80,
-      f"core={len(rp.core_metric_ids())}")
+_core_d1 = rp.core_metric_ids()
+check("D1 对照组合法注册表: ≥81项/active≥80/core≥32/SPX属核心(T1下限)",
+      len(_REG['metrics']) >= bl.REGISTRY_FLOOR and len(_core_d1) >= bl.CORE_FLOOR
+      and 'SPX' in _core_d1
+      and len(rp.active_registry_metrics()) >= bl.ACTIVE_FLOOR,   # WP-BR(#53)
+      f"core={len(_core_d1)}")
 tmpd = tempfile.mkdtemp(prefix='w1f1-d')
 try:
     # 若非法注册表被静默加载,SPX会被字面'active'过滤逐出core→core=31的"合格"Gate A
@@ -253,8 +256,9 @@ try:
         rejected = True
     check("D2 SPX.criticality=123→整表拒绝,不产生'core静默缩为31'的合法假象",
           rejected, '非法注册表被静默加载!' if not rejected else '')
-    check("D3 拒绝后rp.core_metric_ids()仍为32含SPX(权威集合未被污染)",
-          len(rp.core_metric_ids()) == 32 and 'SPX' in rp.core_metric_ids())
+    check("D3 拒绝后rp.core_metric_ids()下限保持(≥32含SPX,权威集合未被污染)",
+          len(rp.core_metric_ids()) >= bl.CORE_FLOOR   # WP-BR(#54)
+          and 'SPX' in rp.core_metric_ids())
 finally:
     shutil.rmtree(tmpd, ignore_errors=True)
     fe.load_registry(force=True)
@@ -267,8 +271,11 @@ items = audit['items']
 aud_ids = [i['metric_id'] for i in items]
 recomputed = {r: sum(1 for i in items if i['result'] == r) for r in
               ('VERIFIED_CONSISTENT', 'FIXED', 'REVIEW', 'BLOCKED')}
-check("E1 81项逐项清单完整无重复",
-      len(aud_ids) == 81 and len(set(aud_ids)) == 81 and set(aud_ids) == set(by_id))
+# WP-BR三联锁(#55): 审计工件恰覆盖注册表∩vintage锚(漏项/私货/重复/
+# 基线被删三面捕获;演进新增不回溯补录)
+_ok_e1, _why_e1 = bl.artifact_covers_vintage_baseline(aud_ids)
+check("E1 逐项清单恰覆盖注册表∩vintage基线(≥81,完整无重复)",
+      _ok_e1, _why_e1)
 cp = next(i for i in items if i['metric_id'] == 'CORE_PCE')
 check("E2 CORE_PCE记录为FIXED,含原错误单位与官方证据",
       cp['result'] == 'FIXED' and 'index_point_2012' in json.dumps(cp, ensure_ascii=False)
@@ -302,8 +309,8 @@ check("F1 NVDA/AAPL/MSFT身份保持single_stock",
           for m in ('NVDA', 'AAPL', 'MSFT')))
 errs = [p for p in rsem.validate_registry(_REG) if p['severity'] == 'error']
 check("F2 合法完整注册表通过全部新规则(0 error)", not errs, str(errs[:3]))
-check("F3 默认注册表可正常加载(81项)",
-      len(fe.load_registry(force=True)['by_id']) == 81)
+check("F3 默认注册表可正常加载(by_id≥81;T1下限)",
+      len(fe.load_registry(force=True)['by_id']) >= bl.REGISTRY_FLOOR)   # WP-BR(#56)
 f2 = fe.make_fact('CORE_PCE', 118.6, '2026-09-30', AS_OF, 'macro_20261025.json',
                   'shadow_module')
 src_probs = rp.fact_source_problems(f2, by_id['CORE_PCE'],

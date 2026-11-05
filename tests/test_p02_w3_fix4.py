@@ -34,6 +34,7 @@ sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.join(os.path.dirname(_HERE)))
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import news_provenance as nprov                # noqa: E402
 import report_generator as rg                  # noqa: E402
 import data_assembler as da                    # noqa: E402
@@ -742,8 +743,9 @@ check("E2E-A2 周报过滤与严格位置解析: 围栏B不成为正式新闻引
       and '#### 来源索引' in promptA
       and 'https://r4/e2eA' in promptA,
       appA_in_prompt[:80])
-check("E2E-A3 Gate A/B不回归+发布成功(published,digest==正式文件摘要)",
-      gateE['gate_a']['status'] == 'PASS'
+check("E2E-A3 Gate A(基线齐备vintage域)/B不回归+发布成功"
+      "(published,digest==正式文件摘要)",
+      bl.gate_vintage_ok(gateE['gate_a'])[0]   # WP-BR vintage域(#44a)
       and gateE['quality'].get('FAIL', 0) == 0
       and statE.get('published') is True
       and statE.get('gate_b') == 'PASS'
@@ -801,10 +803,11 @@ gateE2 = json.load(open(os.path.join(GB, 'data', 'daily',
                                      f'research_snapshot_{DAY}.json'),
                         encoding='utf-8'))
 check("E2E-B1 新闻源全部失败: 维持非关键降级(正式研究链exit0+GLM恰1次"
-      "+published+Gate A/B PASS+无[art_]认证)——金融事实门禁不因新闻改变",
+      "+published+Gate A基线齐备(vintage域)/B PASS+无[art_]认证)"
+      "——金融事实门禁不因新闻改变",
       rcE2 == 0 and glmR2.calls == 1
       and statE2.get('published') is True
-      and gateE2['gate_a']['status'] == 'PASS'
+      and bl.gate_vintage_ok(gateE2['gate_a'])[0]   # WP-BR vintage域(#44b)
       and statE2.get('gate_b') == 'PASS'
       and '[art_' not in glmR2.prompts[0]
       and '来源索引' not in glmR2.prompts[0], f'rc={rcE2}')

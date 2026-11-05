@@ -38,6 +38,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(_HERE), 'scripts'))
 sys.path.insert(0, _HERE)
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import freshness_policy as fp                  # noqa: E402
 import fact_engine as fe                       # noqa: E402
 import data_validator as dv                    # noqa: E402
@@ -413,13 +414,14 @@ anc10 = json.load(open(os.path.join(daily10, f'anchors_{DAY}.json'),
                        encoding='utf-8'))[CPI_KEY]
 info10 = dv.metric_registry_info(CPI_KEY, anc10)
 check("B10 默认链路不伪造release: fact/锚点均无release_date键(不以obs/"
-      "retrieved_at/文件日期冒充)+registry披露RELEASE_UNKNOWN+Gate A照常PASS"
-      "(缺release不FAIL既有数据)",
+      "retrieved_at/文件日期冒充)+registry披露RELEASE_UNKNOWN+Gate A照常基线"
+      "齐备(缺release不FAIL既有数据;vintage域)",
       'release_date' not in fc10 and 'release_date' not in anc10
       and info10['release_provenance'].startswith('RELEASE_UNKNOWN')
       and fp.assess('CPI', fc10['observation_date'], AS_OF)['point_in_time']
       ['status'] == 'RELEASE_UNKNOWN'
-      and snap10['gate_a']['status'] == 'PASS',
+      # WP-BR vintage域(#37)
+      and bl.gate_vintage_ok(snap10['gate_a'])[0],
       f"gate={snap10['gate_a']['status']} "
       f"prov={info10['release_provenance'][:40]}")
 
@@ -519,8 +521,8 @@ D1ROOT = tempfile.mkdtemp(prefix='w2fix1-D1-', dir=_TMPD)
 snap_d1, _snap_path_d1, out_d1 = fixt.build_full_day(D1ROOT, DAY)
 pack_d1 = os.path.join(D1ROOT, 'data', 'weekly', f'data_pack_{DAY}.md')
 meta_d1 = json.load(open(rp.meta_path_for(pack_d1), encoding='utf-8'))
-check("D1 正常对照: 真实build_full_day Gate A=PASS+数据包落盘+meta绑定"
-      "snapshot", snap_d1['gate_a']['status'] == 'PASS'
+check("D1 正常对照: 真实build_full_day Gate A基线齐备(vintage域)+数据包落盘"
+      "+meta绑定snapshot", bl.gate_vintage_ok(snap_d1['gate_a'])[0]   # WP-BR(#38)
       and os.path.exists(pack_d1) and meta_d1.get('source') == 'snapshot'
       and meta_d1.get('pack_digest'),
       snap_d1['gate_a']['status'])

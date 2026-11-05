@@ -41,8 +41,10 @@ from unittest import mock
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import historical_coverage_audit as hca   # 被审计的真实审计器(FIX1版)
+from helpers import baseline_locks as bl  # WP-BR三联锁(T1下限/T2实载派生)
 import fact_engine as fe                  # 真实身份原语
 
 REGISTRY = os.path.join(ROOT, 'config', 'metric_registry.json')
@@ -541,7 +543,10 @@ class TestDDiscovery(unittest.TestCase):
             self.assertEqual(res['input']['by_channel'],
                              {'global': 0, 'china': 1, 'macro': 0,
                               'rate_economy': 0, 'research_snapshot': 0})
-            self.assertEqual(len(res['metrics']), 81)
+            # WP-BR: 字面81改T1下限+T2实载派生(==注册表项数)
+            self.assertGreaterEqual(len(res['metrics']), bl.REGISTRY_FLOOR)
+            self.assertEqual(len(res['metrics']),
+                             bl.expected_registry_count())
             self.assertEqual(by_id(res, 'SHCOMP')['status'], 'SINGLE_OBSERVATION')
             self.assertIn('daily/', res['input']['excluded']['selection_rule'])
         finally:
@@ -560,7 +565,11 @@ class TestDDiscovery(unittest.TestCase):
                 expect = {ch: (1 if ch in combo else 0)
                           for ch in MIN_CHANNEL_FILE}
                 self.assertEqual(res['input']['by_channel'], expect, combo)
-                self.assertEqual(len(res['metrics']), 81, combo)
+                # WP-BR: 同上(T1+T2)
+                self.assertGreaterEqual(len(res['metrics']),
+                                        bl.REGISTRY_FLOOR, combo)
+                self.assertEqual(len(res['metrics']),
+                                 bl.expected_registry_count(), combo)
                 self.assertEqual(res['input']['files'], len(combo), combo)
             finally:
                 _cleanup(tmp)

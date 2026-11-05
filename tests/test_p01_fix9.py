@@ -38,6 +38,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(_HERE), 'scripts'))
 sys.path.insert(0, _HERE)
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import research_provenance as rp               # noqa: E402
 import snapshot_builder as sb                  # noqa: E402
 import data_assembler as da                    # noqa: E402
@@ -249,6 +250,13 @@ with tempfile.TemporaryDirectory(prefix='fix9-C-') as td:
     os.symlink(daily, os.path.join(proj, 'data', 'daily_alias'))
     SNAP = quiet(fixt.real_snapshot, DAY)
     ok_ss = SNAP['sources_status']
+    # WP-BR vintage域(#33): 结构校验族(C1-C8)vintage中立保留;追加基线四通道
+    # 在场+EXACT硬断言(增强——正常日fixture基线通道任何vintage均active)
+    _ok_ss33, _why_ss33 = bl.sources_status_baseline_ok(ok_ss,
+                                                        require='EXACT')
+    check("C0 对照: 真实快照sources_status基线四通道硬在场+EXACT"
+          "(新增通道不回溯,在场即须结构合法)",
+          _ok_ss33, '; '.join(str(_w) for _w in _why_ss33[:3]))
 
     c1 = rp.trusted_dir_problems(os.path.join(proj, 'datalink', 'daily'), proj)
     check("C1 FIX6反例(data→outside)仍拒", bool(c1)

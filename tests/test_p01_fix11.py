@@ -28,6 +28,7 @@ sys.path.insert(0, os.path.join(_REPO, 'scripts'))
 sys.path.insert(0, _HERE)
 
 import fixt                                    # noqa: E402
+from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
 import research_provenance as rp               # noqa: E402
 
 PUB, ATK = '20261024', '20261025'      # 先合格发布, 后非法研究尝试
@@ -148,18 +149,25 @@ POS = (
     "src = snap.get('sources_status') or {}\n"
     "print('@POS@' + json.dumps({\n"
     " 'gate': (snap.get('gate_a') or {}).get('status'),\n"
+    " 'gate_a_full': snap.get('gate_a') or {},\n"
     " 'files': {k: bool((v or {}).get('file')) for k, v in src.items()},\n"
     " 'phys_probs': rp.trusted_dir_problems(" + repr(DAILY) + "),\n"
     " 'root': rp.default_trusted_root()}))\n"
 )
 r_pos = sub_run([os.path.join(PROJECT, 'scripts')], POS, ISO)
 o_pos = marker(r_pos, '@POS@')
-check("P1 正向对照(物理导入): 同批ATK文件Gate A=PASS+四通道全选+物理目录无"
-      "信任问题——拒绝只能来自路径入口而非数据缺陷",
-      r_pos.returncode == 0 and o_pos and o_pos['gate'] == 'PASS'
-      and all(o_pos['files'].values()) and o_pos['phys_probs'] == []
+# WP-BR vintage域(#35): driver负载扩展gate_a全桶;断言vintage域化+基线四通道
+# 在场(原all(files.values())盲迭代→基线通道域,新增通道不回溯)
+_ok_v35, _why_v35 = bl.gate_vintage_ok(
+    (o_pos or {}).get('gate_a_full') or {}) if o_pos else (False, '无输出')
+check("P1 正向对照(物理导入): 同批ATK文件Gate A基线齐备(vintage域)"
+      "+基线四通道全选+物理目录无信任问题——拒绝只能来自路径入口而非数据缺陷",
+      r_pos.returncode == 0 and o_pos and _ok_v35
+      and o_pos['gate'] == (o_pos.get('gate_a_full') or {}).get('status')
+      and all(o_pos['files'].get(c) for c in bl.BASELINE_SOURCE_CHANNELS)
+      and o_pos['phys_probs'] == []
       and os.path.realpath(o_pos['root']) == os.path.realpath(PROJECT),
-      r_pos.stderr[-300:] if o_pos is None else str(o_pos)[:300])
+      r_pos.stderr[-300:] if o_pos is None else f"{_why_v35} :: {str(o_pos)[:300]}")
 
 # ════════════════════════════════════════════════════════════════════
 print("\n── PUBLISH. 物理导入真实发布历史合格报告(§FIX11-02)")
@@ -255,6 +263,7 @@ ATKD = (
     "    out_dir=LDD, as_of=" + repr(AS_OF_ATK) + ")\n"
     "srcst = snap.get('sources_status') or {}\n"
     "gate = (snap.get('gate_a') or {}).get('status')\n"
+    "gate_full = snap.get('gate_a') or {}\n"
     "# ATTACK-C 数据装配(模块锚=外链词法DATA_DIR)\n"
     "assert os.path.normpath(os.path.dirname(str(da.DATA_DIR))) == LINK\n"
     "da.datetime = _DT(" + repr(ATK) + ")\n"
@@ -300,6 +309,7 @@ ATKD = (
     " 'reject_msg': (probs_pre or ['-'])[0][:120],\n"
     " 'gate_a': gate, 'sb_sources_missing': all((v or {}).get('status') == 'MISSING'\n"
     "                                            for v in srcst.values()),\n"
+    " 'gate_a_full': gate_full,\n"
     " 'assembler_exit': rc_c, 'assembler_msg': buf_c.getvalue()[-200:],\n"
  " 'assembler_reject_authorized': any(k in buf_c.getvalue() for k in\n"
  "     ('不在可信项目根之内', '符号链接', 'Gate A')),\n"

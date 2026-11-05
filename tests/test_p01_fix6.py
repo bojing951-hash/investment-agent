@@ -59,6 +59,7 @@ import data_assembler as da               # noqa: E402
 import report_generator as rg             # noqa: E402
 import daily_prediction_observer as dpo   # noqa: E402
 import fixt                                # noqa: E402
+from helpers import baseline_locks as bl   # noqa: E402  WP-BR三联锁(vintage域)
 
 DAY = '20261024'
 TGT = _dt.date(2026, 10, 24)
@@ -236,7 +237,9 @@ check("A1-A4 四通道规范文件名+实体在场(直调/纯/正式三口径全
           for ch in rp.SOURCE_CHANNELS)
       and ssp(_OK_SS) == []
       and ssp(_OK_SS, data_dir=BASE_DAILY, trusted_root=BASE) == []
-      and rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY, trusted_root=BASE)['effective'] == 'PASS',
+      # WP-BR vintage域(#26a): 重算侧基线齐备(PASS/vintage合法DEGRADED)
+      and bl.gate_vintage_ok(rp.recompute_gate_a(
+          SNAP, data_dir=BASE_DAILY, trusted_root=BASE))[0],
       str(ssp(_OK_SS, data_dir=BASE_DAILY, trusted_root=BASE)[:1]))
 
 _A_BAD = [
@@ -303,10 +306,12 @@ with tempfile.TemporaryDirectory() as tds:
           ok and any('符号链接' in p for p in probs),
           str(probs[:1]))
 
-check("A15 对照: 规范文件+sources_status+fact.source三者匹配→全链PASS"
-      "(不能只比字符串相等——身份层先行)",
-      rp.recompute_gate_a(SNAP)['effective'] == 'PASS'
-      and rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY, trusted_root=BASE)['effective'] == 'PASS'
+check("A15 对照: 规范文件+sources_status+fact.source三者匹配→全链基线齐备"
+      "(不能只比字符串相等——身份层先行;vintage域)",
+      # WP-BR vintage域(#26b): 纯/正式两口径基线齐备
+      bl.gate_vintage_ok(rp.recompute_gate_a(SNAP))[0]
+      and bl.gate_vintage_ok(rp.recompute_gate_a(
+          SNAP, data_dir=BASE_DAILY, trusted_root=BASE))[0]
       and next(f for f in SNAP['facts'] if f['metric_id'] == 'SPX')['source']['file']
       == SNAP['sources_status']['global']['file'])
 
@@ -352,9 +357,10 @@ for ch, rule in rp.SOURCE_FILE_RULES.items():
                          and not any('回退窗口' in x or '不符通道规范' in x
                                      for x in r_pure['illegal_quality']))
         if want_pass:
-            check(f"B[{ch}] 真实构建{tag}→PASS(纯+正式,回退身份真实)",
-                  st_ok and no_window and r_pure['effective'] == 'PASS'
-                  and r_form['effective'] == 'PASS',
+            check(f"B[{ch}] 真实构建{tag}→基线齐备(纯+正式,回退身份真实;vintage域)",
+                  # WP-BR vintage域(#26c): 纯/正式两口径基线齐备
+                  st_ok and no_window and bl.gate_vintage_ok(r_pure)[0]
+                  and bl.gate_vintage_ok(r_form)[0],
                   f"ss={snap_b['sources_status'].get(ch)} eff="
                   f"{r_pure['effective']}/{r_form['effective']}")
         else:
@@ -422,11 +428,13 @@ check("B FALLBACK日期字段非法→拒(任一身份层)",
       ok and probs != [], str(probs[:1]))
 
 spx = next(f for f in SNAP['facts'] if f['metric_id'] == 'SPX')
-check("B对照: 观测日(周五收盘2026-10-23)与采集批次日(20261024)合法不同→PASS"
-      "(周六研究用周五收盘,不机械强制相等)",
+check("B对照: 观测日(周五收盘2026-10-23)与采集批次日(20261024)合法不同→基线齐备"
+      "(周六研究用周五收盘,不机械强制相等;vintage域)",
       spx['observation_date'] == '2026-10-23'
       and SNAP['sources_status']['global']['file_date'] == DAY
-      and rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY, trusted_root=BASE)['effective'] == 'PASS')
+      # WP-BR vintage域(#26d)
+      and bl.gate_vintage_ok(rp.recompute_gate_a(
+          SNAP, data_dir=BASE_DAILY, trusted_root=BASE))[0])
 
 # ════════════════════════════════════════════════════════════════════
 print("\n── C. collector类型安全(FIX6-03)")
@@ -441,8 +449,8 @@ for tag, col, legal in _C_RAW:
     r, ok = no_exception(rp.recompute_gate_a, s)
     bad = [x for x in (r['illegal_quality'] if ok else []) if 'collector' in x]
     if legal:
-        check(f"C[原始SPX] {tag}→无collector问题,无TypeError",
-              ok and r['effective'] == 'PASS' and not bad,
+        check(f"C[原始SPX] {tag}→无collector问题,无TypeError(基线齐备vintage域)",
+              ok and bl.gate_vintage_ok(r)[0] and not bad,
               f"eff={r.get('effective') if ok else r} bad={bad[:1]}")
     else:
         check(f"C[原始SPX] {tag}→可诊断拒(collector非法类型/空),无TypeError",
@@ -459,8 +467,8 @@ for tag, col, legal in _C_DERIVED:
     r, ok = no_exception(rp.recompute_gate_a, s)
     bad = [x for x in (r['illegal_quality'] if ok else []) if 'collector' in x]
     if legal:
-        check(f"C[派生REAL_10Y] {tag}→无collector问题,无TypeError",
-              ok and r['effective'] == 'PASS' and not bad,
+        check(f"C[派生REAL_10Y] {tag}→无collector问题,无TypeError(基线齐备vintage域)",
+              ok and bl.gate_vintage_ok(r)[0] and not bad,
               f"eff={r.get('effective') if ok else r} bad={bad[:1]}")
     else:
         check(f"C[派生REAL_10Y] {tag}→可诊断拒,无TypeError",
@@ -574,10 +582,14 @@ with tempfile.TemporaryDirectory() as tdm:
     sm = sb.build_snapshot(target_ymd=DAY, data_dir=tdm, trusted_root=tdm,
                            out_dir=os.path.join(tdm, 'out'), as_of=fixt.as_of_for(DAY))
 r = rp.recompute_gate_a(sm)
-check("D对照: 真实合法非核心缺失(UMCSENT)→DEGRADED披露(fail-closed不误伤)",
-      r['effective'] == 'DEGRADED' and r['noncore_missing'] == ['UMCSENT']
+check("D对照: 真实合法非核心缺失(基线缺席恰UMCSENT,vintage新增不追责)"
+      "→DEGRADED披露(fail-closed不误伤)",
+      # WP-BR vintage域(#26e): 基线缺席恰UMCSENT;演进新增缺席可并存(不追责)
+      r['effective'] == 'DEGRADED'
+      and 'UMCSENT' in r['noncore_missing']
+      and set(r['noncore_missing']) - set(bl.vintage_additions()) == {'UMCSENT'}
       and not r['illegal_quality'],
-      f"eff={r['effective']}")
+      f"eff={r['effective']} miss={r['noncore_missing']}")
 with tempfile.TemporaryDirectory() as tdc2:
     fixt.write_collectors(tdc2, DAY)
     os.remove(os.path.join(tdc2, f'china_{DAY}.json'))
@@ -593,11 +605,13 @@ check("D对照: 核心通道真正缺失(china)→核心质量规则阻断(FAIL)
 # ════════════════════════════════════════════════════════════════════
 print("\n── E. 真实门禁链路(装配器/周报预检/发布/观察器)")
 
-check("E1 正常PASS进入研究(快照+装配exit0+包meta.gate_a=PASS)",
-      SNAP['gate_a']['status'] == 'PASS' and os.path.exists(SNAP_PATH)
+check("E1 正常基线齐备进入研究(快照+装配exit0+包meta.gate_a如实=快照;vintage域)",
+      # WP-BR vintage域(#27): 快照基线齐备;meta==快照一致性(基线PASS/演进合法DEGRADED)
+      bl.gate_vintage_ok(SNAP['gate_a'])[0] and os.path.exists(SNAP_PATH)
       and _run_da_main(BASE) == 0
       and rp.load_meta(os.path.join(BASE, 'data', 'weekly',
-                                    f'data_pack_{DAY}.md')).get('gate_a') == 'PASS')
+                                    f'data_pack_{DAY}.md')).get('gate_a')
+      == SNAP['gate_a'].get('status'))
 
 with tempfile.TemporaryDirectory() as td2:
     fixt.build_full_day(td2, DAY, gate='DEGRADED')

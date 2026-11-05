@@ -47,7 +47,9 @@ sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 sys.path.insert(0, os.path.join(ROOT, 'tests'))
 
 import real_data_acceptance as rda   # 被测的真实验收脚本(W5版)
+import snapshot_builder as sb
 import fixt
+from helpers import baseline_locks as bl   # WP-BR三联锁(vintage域)
 
 DAY = '20261024'                       # 与历史套件同一固定研究日
 OBS = '2026-10-23'                     # fixt.obs_for(DAY)
@@ -681,7 +683,19 @@ class W5EMainE2E(unittest.TestCase):
                              'offline_diagnostic(--skip-external)')
             self.assertIn('离线诊断', rep['reasons'][0])
             checks = {c['check']: c['verdict'] for c in rep['checks']}
-            self.assertEqual(checks.get('Gate A状态'), 'PASS')   # 历史合同
+            # WP-BR vintage域(#45): 以同参重建快照判vintage(重建确定性登记
+            # REPORT §一: data-day/trusted-root/as_of==_run同参,fixture纯
+            # 静态→确定性);离线诊断记录Gate A==重建快照gate,重建快照本身
+            # 基线齐备(基线PASS/vintage合法DEGRADED)
+            _fn45 = f'{DAY[:4]}-{DAY[4:6]}-{DAY[6:]}T08:00:00'
+            _snap45 = sb.build_snapshot(
+                target_ymd=DAY, data_dir=td,
+                out_dir=tempfile.mkdtemp(prefix='w5-e1-rebuild-'),
+                trusted_root=td, as_of=_fn45)
+            self.assertTrue(bl.gate_vintage_ok(_snap45['gate_a'])[0],
+                            str(_snap45['gate_a']))
+            self.assertEqual(checks.get('Gate A状态'),
+                             _snap45['gate_a'].get('status'))   # 历史合同vintage域
             # FIX1-03修订旧预期: fixture序列无2026年前观测→复算全部为部分复核
             # (INSUFFICIENT_HISTORY,complete_recompute=False,week已核),
             # 零完整三期PASS——部分复核不得冒充完整复算(原断言≥2 PASS作废)

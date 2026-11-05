@@ -1,9 +1,9 @@
 # IA-P1-WP-A REPORT(登记件 · 情形(d)停止)
 
 > 包: IA-P1-WP-A(P1 四经济体底图层实现包第 1 包/族首包)| 分支: `dev/p1-impl-a`(自 018d913061a2b0ab5680e6c49c544efef740db7e 切出)
-> 合同: IA-P1-WP-A-AC-v1.1(FROZEN 2026-11-05 21:1x HKT 操作者代批)
-> **状态: 情形(d)规格冲突合法停止——仅登记件执行,零开发**(合同 §九(d)、§3 步骤5/§零(iv);不判 FAIL、不进审计,处置权操作者)
-> 停止时刻: 2026-11-05T13:1xZ(UTC)[实取·本机 date -u,开工 2026-11-05T13:13:58Z]
+> 合同: IA-P1-WP-A-AC-v1.1(FROZEN 2026-11-05 21:1x HKT 操作者代批)→ **v1.2(FROZEN 2026-11-05 操作者发车,§3 步骤3=分支续作形态 @33d0dfc)**
+> **状态: 情形(d)规格冲突合法停止——v1.1 轮(§零.1-§零.6)+ v1.2 轮(§零.7-§零.10)两轮登记,均仅登记件执行,零开发**(合同 §九(d)、§3 步骤5/§零(iv);不判 FAIL、不进审计,处置权操作者)
+> 停止时刻: v1.1 轮 2026-11-05T13:1xZ / v1.2 轮 2026-11-05T13:57:07Z(UTC)[实取·本机 date -u;v1.2 轮开工 2026-11-05T13:3xZ]
 > 本文件数值标注纪律沿 §5.3: 逐值 [实取·来源] 或 [示意·非实取]。
 
 ---
@@ -104,3 +104,220 @@
 - 零开发: 未创建/修改任何代码、测试、registry、run_weekly、workflow;未发起任何网络调用/真实采集/凭证/付费;零 GLM;未写入 LIVE;未改 launchd;未触碰 main;未建其他分支。
 - 本登记件(本文件)为「仅登记件执行」形态的唯一提交物;分支 `dev/p1-impl-a` 零开发提交(重发时可由操作者处置: 续用本登记件或 reset 重切)。
 - 排除事项 12 项、AC-01..07 在 (d) 停止下均未进入执行面(除 §零.1-§零.4 登记义务);不判 FAIL、不进审计。
+
+---
+
+# ══ v1.2 轮登记(2026-11-05;分支续作形态 @33d0dfc,§3 步骤3 v1.2④)══
+
+## §零.7 v1.2 轮开工核验(步骤0-4 复核,原样登记)
+
+- **步骤0 时序自检** [2026-11-05T13:3xZ 实取]: `git status` clean;HEAD=33d0dfccef9221cfa2b84b0d13103b3c2d00784e=v1.1 轮(d)登记件提交;本轮复核 [2026-11-05T13:5xZ 实取] 仍 clean。
+- **步骤1 占位符**: 沿 v1.1 轮核验(BASE-P1A=018d913…全值/BASE-P1A-CI-SUITES=69/BRANCH-SET=41 行),零残留;v1.2 冻结章新增占位符(分支续作尖端 33d0dfc/CI 目标 70 槽=69+新增 1)已实值 [实取·任务书 §0]。
+- **步骤2 前置实取** [2026-11-05T13:5xZ 实取]: `git ls-remote origin dev/p1-impl-a`=33d0dfccef9221cfa2b84b0d13103b3c2d00784e(全值一致);`dev/p1-design`=049ec978523dec659ba47f140bf41669604de24f(全值一致;禁锚 c9626633 未触)。
+- **步骤3 分支续作**: `dev/p1-impl-a` 在场@33d0dfc,checkout 续作,不删不重建不 force ✓(v1.2④ 形态;B3 v1.4 先例)。
+- **步骤4 设计在场核验**: `merge-base --is-ancestor 049ec978… HEAD` exit 0 ✓;P1 设计三件 blob 等值(HEAD vs 049ec978 侧逐一相同,v1.1 轮已核、本轮 HEAD 前进仅本文件,设计件 blob 未变 [实取·git ls-tree 比对])。
+- **步骤5 规格抄录**: 沿 §零.1(v1.1 轮已逐字抄录 L169;L169 本轮实读未变 [实取·blob 等值推论]);无 (d) 触发。
+
+## §零.8 运行态锁清查(v1.2 轮核心增量;方法+清查面+实验证据)
+
+**v1.1→v1.2 的差异**: v1.1 轮停止于**静态封闭集层**(KNOWN_SOURCES/KNOWN_CALENDARS/MARKETS/_AUTHORIZED_COLLECTORS 生产登记链);v1.2③ 已授权该层(rsem[KNOWN_SOURCES+A6c镜像]/rp[_AUTHORIZED_COLLECTORS]/tc[MARKETS/CALENDARS 增 ea]+两件 P0-3 测试锁域化)。本轮将清查推进至**运行态锁层**(注册表实载后 69 套件会真实执行到的锁),发现新的强制触红面——全部落在 v1.2③ 清单外。
+
+**清查方法**(可复核): ①对 {registry `source` 字段消费者, `rp.SOURCE_FILE_RULES` 消费者, `tc.MARKETS`/`KNOWN_CALENDARS` 消费者, `run_weekly` 步骤形态消费者, `data/daily` 枚举消费者} 五轴做定向 grep+逐件实读;②以内存 monkeypatch 模拟「v1.2③ 授权面全部落地后的世界」,对两处核心锁执行**实验复现**(脚本+输出全文见 §零.8.3,只读仓库零写入)。
+
+### §零.8.1 强制触红清单(全部 v1.2③ 清单外;阻止验收要点④「全套件零回归」)
+
+| # | 锁(文件:行) | 触红机制 | 修复所需(清单外?) | 先例形态 |
+|---|---|---|---|---|
+| 红-1 | `tests/test_p02_w4.py` d2 L773 `assertIsNotNone(hca.REGISTRY_SOURCE_CHANNEL.get(m['source']))` | 9 条新 source 条目(`jp_market_collector`/`ea_market_collector`)在 `scripts/historical_coverage_audit.py` L108-L110 `REGISTRY_SOURCE_CHANNEL` 封闭 5 键映射中 get→None | hca 映射 +2 行(**清单外**,生产脚本) | R060/B3-DELIVERY M3 行(同字典+japan_rate_collector→japan,L108-110 恰一邻域,注释自证) |
+| 红-2 | `tests/test_p0_baseline_lock_equivalence.py` Z0 L144 `bl.evolution_legal()[0]` | `tests/helpers/baseline_locks.py` L291-L294: `ch=collector_to_channel.get(source)`(L273-L280 硬编码 6 键)→ None/∉`set(rp.SOURCE_FILE_RULES)` → 「无采集通道登记(SOURCE_FILE_RULES缺)」 | 修复簇=①baseline_locks `collector_to_channel` +2 行(**清单外**,测试助手)+②`rp.SOURCE_FILE_RULES`+`jp`/`ea` 键(rp 文件在清单内但 v1.2③ 括注仅 `_AUTHORIZED_COLLECTORS`,**括注歧义待明确**) | R060(同字典同形式,B3 四条目入口;注释 L276-L279 自证) |
+| 红-2b | (同上②触发) | `SOURCE_FILE_RULES` 键集(现 5: global/macro/china/rate_economy/japan [实取·运行时])不含 jp/ea——即便授权①字典扩展,ch∉键集仍红(§零.8.3 变体实验证明) | `rp.SOURCE_FILE_RULES` +{jp,ea}(通道身份 jp_/ea_ 前缀+回退窗参数=实现参数,v1.3 预登记) | B3(japan 通道入口即此形态) |
+| 红-3 | `tests/test_phase3.py` L216 `src.count('/11') == 11` | v1.2③(b) 授权的 run_weekly 步骤接入(11→13 步)必然改写 N/11 标签 → count≠11 | test_phase3.py 标签锁域化 11→13(**清单外**) | R057「弃字面常量/域化」形态 |
+| 红-4 | `tests/test_p01_fix6.py` L342-L355 B 循环(条件: 红-2b 落地后触发) | 循环迭代 `rp.SOURCE_FILE_RULES.items()` 逐通道断言 FALLBACK 构造;`tests/fixt.py` `collector_payloads`(L200-L211)仅产 5 通道文件 → jp/ea 无 fixture 文件 → `sources_status[jp/ea]=MISSING ≠ FALLBACK` → check 失败 | fixt.py +jp/ea 合成 payload(**清单外**)或 B 循环域基线化(**清单外**,test_p01_fix6.py) | R060 REM-AC-02④⑤(fixture japan 通道+篡改循环域基线化,二选一先例形态均在) |
+
+**排除「用授权面 dodge」的路径(已逐一否证)**: ①新条目 source 改挂 `japan_rate_collector`(hca/bl 字典已有)——语义谎报(数据实产自新脚本,违反来源诚实纪律),且 EA 7 条无任何既有采集器可承载;②source 加 `(derived)` 后缀钻 d2 L772 豁免——同上谎报+`R-SOURCE-ENUM` 枚举亦无此值;③12 候选砍到只剩 3 条复用(BOJ_POLICY_RATE≡JP_POLICY_RATE/JGB_10Y/JGB_2Y 复用 B3 既有)——违反 L169 范围「12候选条目」主体;④EA 日历复用 fx/global——日历语义谎报(d2/A6c 镜像虽自适应,fe 日历断言过但口径失实)。
+
+### §零.8.2 v1.2③ 授权面生效性佐证(授权层工作正常——红因恰只在清单外运行态锁)
+
+[实取·§零.8.3 实验输出] 模拟世界(v1.2③ 授权的 rsem/tc/rp 三件扩展全部落地+registry 追加 2 条模拟条目): `rsem.validate_registry` errors=0;`bl.registry_self_consistent` ok=True;A6c 镜像 `KNOWN_CALENDARS==frozenset(MARKETS)` 保持 True(自适应镜像锁 test_p02_w1 L114-L117/test_p02_w1_fix1 L324-L325/test_p03_e2eb_b3 t04 双侧同长即绿);`vintage_additions` 净增恰=新增条目集(t06 域化=授权内)。
+
+**清查为绿/不受影响面(逐件实读登记,实现轮免重复清查)**: test_p03_e2eb_b3 t04/t10(assertIn 自适应)/L238(assertIn japan);test_fact_engine L276(`<=` 子集);test_p01_fix4/fix5/fix6 `vintage_additions` 减法模式(新条目入 additions 即被减去);test_p02_w4 L236(assertGreaterEqual);无 `len(tc.MARKETS)`/`len(SOURCE_FILE_RULES)`/`sources_status` 精确键集锁;无 `data/daily` 文件枚举锁(japan_20261105.json sha 锁 t51/t13 不受新档影响);mapper(e2eb_query_mapper L133-L143 `_search_registry` **首命中**语义)——新条目 append 于 metrics 数组尾则金题 11 绑定/unresolved=[] 不变(实现参数预登记: **新条目一律 append 尾部,禁插中段**)。残余风险如实声明: run_weekly 台账断言(e2e_frozen14/orig14/p01_fix1/fix2 经 mock run_step 消费 main())静态清查未见步数/精确序列锁,但本轮未运行全套件佐证((d) 停止零实现零运行),实现轮 CI 实测兜底。
+
+### §零.8.3 实验: 脚本与输出全文(证据自包含入库;原件 /tmp/p1_wpa_runtime_lock_experiment.py)
+
+```python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""IA-P1-WP-A v1.2轮 情形(d)取证实验(只读仓库,内存monkeypatch模拟,v1.2③授权面全落地后世界)。
+
+目的: 在「v1.2③ 已授权的全部生产镜像扩展都做完」的模拟世界里,证明 WP-A 规格强制
+(注册表 85→94 含 9 条新 source 条目)仍使两处**白名单外**运行态锁结构性触红:
+  红-1: tests/test_p02_w4.py d2 L773  assertIsNotNone(hca.REGISTRY_SOURCE_CHANNEL.get(source))
+  红-2: tests/test_p0_baseline_lock_equivalence.py Z0 L144 经 bl.evolution_legal L291-294
+并且白名单内 rp.SOURCE_FILE_RULES 括注不含 jp/ea 时,即使授权 baseline_locks 字典扩展也无法使红-2 转绿。
+
+零仓库写入;零网络;全部断言/输出供 REPORT §零 登记(脚本+输出全文入库)。
+"""
+import copy
+import json
+import os
+import sys
+
+ROOT = "/Users/cast/investment-agent-dev"
+sys.path.insert(0, os.path.join(ROOT, "scripts"))
+sys.path.insert(0, os.path.join(ROOT, "tests"))
+
+import fact_engine as fe                    # noqa: E402
+import registry_semantics as rsem           # noqa: E402
+import trading_calendar as tc               # noqa: E402
+import research_provenance as rp            # noqa: E402
+import historical_coverage_audit as hca     # noqa: E402
+import helpers.baseline_locks as bl         # noqa: E402
+
+REG_PATH = os.path.join(ROOT, "config", "metric_registry.json")
+with open(REG_PATH, encoding="utf-8") as f:
+    reg = json.load(f)
+
+# ── 模拟条目: 镜像 B3 JP_POLICY_RATE 字段形态,唯 source=新采集器 ──────────
+template = next(m for m in reg["metrics"] if m["metric_id"] == "JP_POLICY_RATE")
+def dummy(mid, source, calendar):
+    m = copy.deepcopy(template)
+    m["metric_id"] = mid
+    m["display_name"] = f"模拟{mid}(取证用,不入库)"
+    m["source"] = source
+    m["calendar"] = calendar
+    return m
+
+NEW = [dummy("X_JP_TEST", "jp_market_collector", "japan"),
+       dummy("X_EA_TEST", "ea_market_collector", "ea")]
+sim_reg = copy.deepcopy(reg)
+sim_reg["metrics"].extend(NEW)              # append-at-end(mapper 首命中语义保持)
+sim_reg["by_id"] = {m["metric_id"]: m for m in sim_reg["metrics"]}
+print(f"[基线] 实载注册表 metrics={len(reg['metrics'])} version={reg['version']} "
+      f"| 模拟追加 {len(NEW)} 条(active, source=新采集器) → {len(sim_reg['metrics'])}")
+
+# ── 模拟 v1.2③ 授权面全部落地(生产镜像扩展,内存替换)────────────────────
+rsem.KNOWN_SOURCES = frozenset(rsem.KNOWN_SOURCES) | {"jp_market_collector", "ea_market_collector"}
+rsem.KNOWN_CALENDARS = frozenset(rsem.KNOWN_CALENDARS) | {"ea"}
+tc.MARKETS = tuple(tc.MARKETS) + ("ea",)
+_auth = dict(rp._AUTHORIZED_COLLECTORS)
+_auth["jp_market_collector"] = {"url": "https://www.boj.or.jp/", "note": "模拟v1.2授权"}
+_auth["ea_market_collector"] = {"url": "https://www.ecb.europa.eu/", "note": "模拟v1.2授权"}
+rp._AUTHORIZED_COLLECTORS = _auth
+print(f"[模拟] rsem.KNOWN_SOURCES +2 → {len(rsem.KNOWN_SOURCES)}; "
+      f"KNOWN_CALENDARS +ea → {sorted(rsem.KNOWN_CALENDARS)}")
+print(f"[模拟] tc.MARKETS +ea → {len(tc.MARKETS)} markets; "
+      f"rp._AUTHORIZED_COLLECTORS +2 → {len(rp._AUTHORIZED_COLLECTORS)} keys")
+print(f"[模拟] A6c 镜像(测试自适应形态)保持: "
+      f"KNOWN_CALENDARS==frozenset(MARKETS) → "
+      f"{rsem.KNOWN_CALENDARS == frozenset(tc.MARKETS)}")
+
+# ── 红-1 复现: test_p02_w4.py d2 L770-777 断言体逐条执行 ──────────────────
+print("\n== 红-1 复现: tests/test_p02_w4.py TestDIdentityDriftGuard.test_d2_channel_authority_matrix ==")
+print(f"    (L773: assertIsNotNone(hca.REGISTRY_SOURCE_CHANNEL.get(m['source'])) — 白名单外 hca L108-110 未动)")
+d2_failures = []
+for m in sim_reg["metrics"]:
+    ch = hca.REGISTRY_SOURCE_CHANNEL.get(m["source"])
+    if "(derived)" not in m["source"] and "(derived)" not in str(m.get("source_symbol")):
+        if ch is None:
+            d2_failures.append(m["metric_id"])
+    if ch not in (None,) + tuple(rp.SOURCE_FILE_RULES):
+        d2_failures.append(f"{m['metric_id']}:ch={ch!r}∉SOURCE_FILE_RULES")
+print(f"    d2 断言体结果: {'RED' if d2_failures else 'GREEN'}; 触红条目/问题: {d2_failures}")
+print(f"    hca.REGISTRY_SOURCE_CHANNEL 键集(白名单外,未动): {sorted(hca.REGISTRY_SOURCE_CHANNEL)}")
+
+# ── 红-2 复现: bl.evolution_legal(注入模拟注册表)──────────────────────
+print("\n== 红-2 复现: tests/test_p0_baseline_lock_equivalence.py Z0(L144) 经 bl.evolution_legal ==")
+ok, problems = bl.evolution_legal(sim_reg)
+print(f"    (白名单外 tests/helpers/baseline_locks.py L273-280 collector_to_channel 未动)")
+print(f"    evolution_legal → ok={ok}; problems={problems}")
+
+# ── 变体: 即便授权 baseline_locks 字典扩展,若 rp.SOURCE_FILE_RULES 无 jp/ea ──
+print("\n== 变体证明: 假想 baseline_locks collector_to_channel 已+2(仍无 rp.SOURCE_FILE_RULES 扩展) ==")
+fake_map = {'global_market_collector': 'global', 'macro_collector': 'macro',
+            'china_market_collector': 'china', 'rate_expectations': 'rate_economy',
+            'japan_rate_collector': 'japan',
+            'jp_market_collector': 'jp', 'ea_market_collector': 'ea'}
+known_channels = set(rp.SOURCE_FILE_RULES)
+still = [mid for mid, src in ((m["metric_id"], m["source"]) for m in sim_reg["metrics"])
+         if src in fake_map and "(derived)" not in src
+         and fake_map.get(src) not in known_channels]
+print(f"    SOURCE_FILE_RULES 键集(v1.2③括注仅_AUTHORIZED_COLLECTORS,未扩): {sorted(known_channels)}")
+print(f"    ch∉SOURCE_FILE_RULES 仍触红条目(Z0 路径 L292-294): {still or '无'}")
+
+# ── 绿面佐证: v1.2 授权的两件 P0-3 测试锁迁移后可绿 + 自洽/枚举全过 ────────
+print("\n== 佐证: 模拟世界里 rsem 枚举校验对 9X 条目零 error(即红因不在枚举层) ==")
+errs = [p for p in rsem.validate_registry(sim_reg) if p.get("severity") == "error"]
+print(f"    validate_registry errors={len(errs)} {errs[:2] if errs else ''}")
+ok2, why2 = bl.registry_self_consistent(sim_reg)
+print(f"    registry_self_consistent → ok={ok2} {why2 if not ok2 else ''}")
+vadd = set(bl.vintage_additions(sim_reg)) - set(bl.vintage_additions(reg))
+print(f"    vintage_additions 净增(=授权锁 t06 域化迁移面): {sorted(vadd)}")
+
+# ── '/11' 步标签锁静态佐证 ────────────────────────────────────────────────
+src = open(os.path.join(ROOT, "run_weekly.py"), encoding="utf-8").read()
+print(f"\n== 静态佐证: tests/test_phase3.py L216 src.count('/11')=={src.count('/11')} "
+      f"(现值 11 绿; 步骤 11→13 改标签后≠11 → RED; test_phase3.py 白名单外) ==")
+print("\n结论: v1.2③ 授权面全落地后,WP-A 规格仍强制触红 2 白名单外运行态锁(红-1/红-2)"
+      "+1 步标签锁(静态)+SOURCE_FILE_RULES 括注歧义(Z0 修复簇必需)。")
+```
+
+实验输出(2026-11-05T13:5xZ 实测,`python3 /tmp/p1_wpa_runtime_lock_experiment.py` 退出码 0,原样):
+
+```
+[基线] 实载注册表 metrics=85 version=2.1.0 | 模拟追加 2 条(active, source=新采集器) → 87
+[模拟] rsem.KNOWN_SOURCES +2 → 9; KNOWN_CALENDARS +ea → ['cn', 'commodity', 'crypto', 'ea', 'fx', 'hk', 'japan', 'us_equity', 'us_rates']
+[模拟] tc.MARKETS +ea → 9 markets; rp._AUTHORIZED_COLLECTORS +2 → 8 keys
+[模拟] A6c 镜像(测试自适应形态)保持: KNOWN_CALENDARS==frozenset(MARKETS) → True
+
+== 红-1 复现: tests/test_p02_w4.py TestDIdentityDriftGuard.test_d2_channel_authority_matrix ==
+    (L773: assertIsNotNone(hca.REGISTRY_SOURCE_CHANNEL.get(m['source'])) — 白名单外 hca L108-110 未动)
+    d2 断言体结果: RED; 触红条目/问题: ['X_JP_TEST', 'X_EA_TEST']
+    hca.REGISTRY_SOURCE_CHANNEL 键集(白名单外,未动): ['china_market_collector', 'global_market_collector', 'japan_rate_collector', 'macro_collector', 'rate_expectations']
+
+== 红-2 复现: tests/test_p0_baseline_lock_equivalence.py Z0(L144) 经 bl.evolution_legal ==
+    (白名单外 tests/helpers/baseline_locks.py L273-280 collector_to_channel 未动)
+    evolution_legal → ok=False; problems=["X_EA_TEST:source='ea_market_collector'无采集通道登记(SOURCE_FILE_RULES缺)", "X_JP_TEST:source='jp_market_collector'无采集通道登记(SOURCE_FILE_RULES缺)"]
+
+== 变体证明: 假想 baseline_locks collector_to_channel 已+2(仍无 rp.SOURCE_FILE_RULES 扩展) ==
+    SOURCE_FILE_RULES 键集(v1.2③括注仅_AUTHORIZED_COLLECTORS,未扩): ['china', 'global', 'japan', 'macro', 'rate_economy']
+    ch∉SOURCE_FILE_RULES 仍触红条目(Z0 路径 L292-294): ['X_JP_TEST', 'X_EA_TEST']
+
+== 佐证: 模拟世界里 rsem 枚举校验对 9X 条目零 error(即红因不在枚举层) ==
+    validate_registry errors=0 
+    registry_self_consistent → ok=True 
+    vintage_additions 净增(=授权锁 t06 域化迁移面): ['X_EA_TEST', 'X_JP_TEST']
+
+== 静态佐证: tests/test_phase3.py L216 src.count('/11')==11 (现值 11 绿; 步骤 11→13 改标签后≠11 → RED; test_phase3.py 白名单外) ==
+
+结论: v1.2③ 授权面全落地后,WP-A 规格仍强制触红 2 白名单外运行态锁(红-1/红-2)+1 步标签锁(静态)+SOURCE_FILE_RULES 括注歧义(Z0 修复簇必需)。
+```
+
+(注: 实验以 2 条模拟条目代表 9 条新 source 条目——触红机制按 source 值判定,与条数无关;9 条全触红同理由。)
+
+## §零.9 v1.2 轮冲突登记(情形(d)第二轮)与处置建议
+
+**冲突一句话**: A 行范围「12候选条目…经济体化」+「run_weekly 步骤接入」的诚实实现路径,在 v1.2③ 授权面**全部落地后**的模拟世界里,仍必需链式修改 **5 件 v1.2③ 清单外文件**(`scripts/historical_coverage_audit.py`/`tests/helpers/baseline_locks.py`/`tests/test_phase3.py`/`tests/test_p01_fix6.py`/`tests/fixt.py`)+1 处清单内文件的括注歧义(`rp.SOURCE_FILE_RULES`);绝对禁令④「白名单外一切路径零变更」与验收要点④「全套件零回归」在 v1.2 冻结文本下不可同时满足——按合同 §九(d)「与结构边界矛盾」停止。
+
+**触红链完整性声明**: 本轮清查覆盖 v1.1 轮未及的运行态锁层;§零.8.1 表=清查所得**全部**强制触红项(方法五轴+实验复现),§零.8.2=已逐一实读排除的绿面;残余不确定性(run_weekly 台账断言群)已如实标注。若 v1.3 按 §零.9.1 清单授权,预期无第三轮结构性停止(实现轮 CI 实测兜底最终裁判)。
+
+### §零.9.1 处置建议(v1.3 M 类增量清单,供操作者;全部 R057/R060 既有形态,禁语义弱化)
+
+1. `scripts/historical_coverage_audit.py` L108-L110 `REGISTRY_SOURCE_CHANNEL` +`jp_market_collector→jp`/`ea_market_collector→ea`(R060/B3-DELIVERY M3 同字典同形式先例);
+2. `tests/helpers/baseline_locks.py` L273-L280 `collector_to_channel` +同 2 行+注释同步(R060 同字典先例;L276-L279 注释已自证该形态);
+3. `scripts/research_provenance.py` 括注明确化: 授权 `SOURCE_FILE_RULES` +`jp`/`ea` 通道(前缀 `jp_`/`ea_`+回退窗参数——建议窗=5,沿 japan 通道 B3 先例;此为红-2 修复簇必要件,非可选);
+4. `tests/test_phase3.py` L216 步标签锁域化(`/11`×11→`/13`×13,R057 形态);
+5. `tests/fixt.py` +`jp`/`ea` 合成 fixture 或 `tests/test_p01_fix6.py` B 循环域基线化(R060 REM-AC-02④⑤ 先例二选一);
+6. (既有授权面确认沿续) `tests/test_p03_e2eb_b3.py` t01/t02/t06 与 `tests/test_p03_final_acceptance.py` t11 域化迁移。
+
+**实现参数预登记(v1.3 可直接采用或修订;全部 [示意·非实取],登记定值即实现值)**: ①P1-P8 规则补读: P8 操作条件读 `calendar=="us_equity"`(R2;唯一使「无规则命中→拒入」负向用例自洽的读法),续登记 P9 `calendar=="japan"→JP`/P10 `calendar=="ea"→EA`(沿 P1/P2 境内日历型规则形态);②market_seat 映射 S1-S4: country_etf_proxy→offshore_proxy/commodity·crypto·fed_futures·fx 族→global/us_equity·us_rates·cn·hk·japan·ea 其余→onshore_local;③12 候选落点: BOJ_POLICY_RATE≡复用既有 JP_POLICY_RATE(同 FRED IRSTCI01JPM156N 概念,禁同概念双注册)/JGB_10Y·JGB_2Y→复用 JGB10Y·JGB2Y/**新注册 9 条** JP_CPI_TOKYO_YOY·NIKKEI225·ECB_DFR·ECB_MRO·BUND_10Y·BUND_2Y·EA_HICP_YOY·DAX·CAC40 → registry **85→94/version 2.2.0/active 93** [示意·推导];④新条目一律 append 于 metrics 数组尾(mapper 首命中语义保持,§零.8.2);⑤run_weekly 步骤=非关键 2 步(jp/ea 采集),11→13 重编号;⑥白名单域内数据源: ECB Data Portal/Bundesbank API/FRED fredgraph/BOJ+MOF(经复用 japan_rate_collector import);DAX/CAC40 如白名单域无源→节点诚实缺席(键不出现,sources_status/alerts 如实,禁 0 占位);JP_CPI_TOKYO_YOY 如 BOJ stat-search 无东京CPI口径→诚实缺席,禁以全国CPI冒充。
+
+### §零.9.2 未被阻断范围要素(沿 v1.1 §零.5.5 如实区分,口径不变)
+
+三字段回填(85 条)/jp_/ea_ 采集脚本与数据档本体/run_weekly 步骤接入本体——三者实现面本轮仍零开发((d) 停止不拆包交付;整包 v1.3 重发后一并实现)。
+
+## §零.10 v1.2 轮 (d) 停止边界声明
+
+- 零开发: v1.2 轮未创建/修改任何代码、测试、registry、run_weekly、workflow、.gitignore;唯一仓库变更=本文件(§零.7-§零.10 追加+文件头状态行更新)。
+- 零网络/零 GLM/零凭证/零付费;未写 LIVE;未触 launchd;未触 main;未 force;分支 `dev/p1-impl-a` 线性续加(33d0dfc→本轮登记件提交,零 merge)。
+- 实验脚本存 `/tmp/p1_wpa_runtime_lock_experiment.py`(临时件;全文已入 §零.8.3,证据自包含于 git)。
+- 排除事项 12 项、AC-01..07 在 v1.2 轮 (d) 停止下均未进入执行面(除 §零.7-§零.9 登记义务);不判 FAIL、不进审计;处置权操作者(v1.3 或停泊,建议清单 §零.9.1)。

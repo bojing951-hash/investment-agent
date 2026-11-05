@@ -33,6 +33,8 @@
 
 > zip sha256 v2(补证据轮重装配,装配后追加行): b9e8d4268c27b37ba378061bac20186081d6599651436576e95e23e358d7c8f7(104 成员/367496 字节;SHA256SUMS 重列 103 成员全验证 OK,清单自身显式豁免不入 zip 自身校验和;装配后全包凭证复核=凭证据值字节扫描零命中,'Authorization' 字面量 13 处=引用性文字/本模块脱敏正则代码/既有 P2 测试类名,零凭证值)。v2 变更=新增第 4 次尝试阻断工件 4 件[06-real-run/live_smoke_F1_attempt2_blocked.txt+anchors/pre-run-sha256-round2.txt+anchors/post-run-check-round2.txt+03-git/forensics-round2.txt]+双源副本/REGISTRY/映射/自检副本刷新至补证据轮提交 1(d40eeaa)版;终态 SHA 与最终 ls-remote 以 zip 外 08-sidecar/final-state.txt 为准,自指豁免沿 v1: zip 内 DELIVERY 副本=占位行版本(d40eeaa)。
 
+> zip sha256 v3(补证据轮第 4 次尝试·操作者代执行后重装配,装配后追加行): 【装配后回填】(成员数/字节数装配后回填;SHA256SUMS 重列全验证 OK,清单自身显式豁免)。v3 变更=新增第 4 次尝试工件[06-real-run/live_smoke_F1_attempt3_operator.log(操作者会话 stdout 转录)+06-real-run/glm4_live_smoke_20261105T032559Z.json.redacted-copy+06-real-run/glm4_usage_log_20261104.jsonl.redacted-copy(4 行版)+03-git/pre-registration-cf7c75c.txt(先登记次序证明)+03-git/forensics-round3.txt]+双源副本/REGISTRY/映射/自检副本刷新至本轮回填提交版;自指豁免沿 v1/v2: zip 内 DELIVERY 副本=占位行版本。
+
 ## §三 逐 AC 自评(详见 REPORT 对应节)
 
 | AC | 自评 | 一句证据指引 |
@@ -54,6 +56,7 @@
 5. 原始响应正文不留档(仅 usage+trace 反馈链+终态报告),如实披露;
 6. CI run ID 缺席: 合同步骤15 承接,操作者派发后落 rounds/029 登记件。
 7. 补证据轮第 4 次尝试阻断(2026-11-05T02:45:52Z~02:48:27Z,如实非 FAIL): 4 次发起均被本会话工具权限层拒绝于执行前,**零真实出站**(佐证=锚定 34/34 不变+usage log 仍 3 行);REGISTRY G4-CRED-002=0/3 出站/$0.0000/$0.0667/未触发;按追加指令「恰 1 次不追加」停止;零代码/测试/参数改动;处置权操作者(择时重发/代执行);详见 REPORT §五.7+证据包⑥ 阻断记录。
+8. 补证据轮第 4 次尝试·操作者代执行=ABSENT_REGISTERED(2026-11-05T03:26:33Z,如实非 FAIL): 二复审处方代执行(CI dispatch 先例)+处置§五恰 1 次(RETRY_BUDGET 运行时置 1,模块文件零改动,模型面冻结参数分文未动);先登记 G4-CRED-003(git cf7c75c,03:24:43Z)后出站(03:26:33Z);1 次真实出站传输层成功(34.3s/$0.0220),模型输出仍未过 G2 校验器(径2义务+接地[0.3,25.0]),终裁 ABSENT_REGISTERED;累计 4 次/$0.0887,熔断未触发;**处置§五预置分支生效→§二兜底终态(接受 (c) 如实缺席定稿)**;详见 REPORT 要点①(e)+§五.8+REGISTRY §六+证据包⑥ v3 工件。
 
 ## §五 参考
 

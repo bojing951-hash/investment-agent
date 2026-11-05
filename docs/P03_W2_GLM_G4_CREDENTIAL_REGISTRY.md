@@ -32,7 +32,7 @@
 |---|---|---|---|---|---|---|---|---|---|
 | G4-CRED-001 | 2026-11-05T01:59:17Z | scripts/glm_conclusion_client.py: run_smoke(L673)→run_live_conclusion(L565)→call_glm_once(L468,真实出站点L497) | glm-5.3 @ https://open.bigmodel.cn/api/paas/v4 | 要点①(真实调用冒烟: 结构化输出过校验器+数值接地核对;兼证要点③调用日志与用量记录落盘) | GLM_API_KEY(环境变量,值不落盘) | 3 / 3 | $0.0667 / $0.0667 | 未触发 | PENDING-APPROVALS.md 2026-11-05 批复行(合同冻结章②) |
 | G4-CRED-002 | 2026-11-05T02:45:52Z | scripts/glm_conclusion_client.py: run_smoke(L673)→run_live_conclusion(L565)→call_glm_once(L468,真实出站点L497) | glm-5.3 @ https://open.bigmodel.cn/api/paas/v4 | 要点①补证据轮(合同 §九情形(c): 仅补真实重跑一次,冻结参数原样 temperature=0.2/reasoning_effort=low;操作者 2026-11-05 10:5x 追加指令;兼证要点③日志追加) | GLM_API_KEY(环境变量,值不落盘) | 0 / 3 | $0.0000 / $0.0667 | 未触发(零出站) | PENDING-APPROVALS.md 2026-11-05 批复行(合同冻结章②)+操作者补证据轮追加指令(2026-11-05 10:5x) |
-| G4-CRED-003 | 2026-11-05T03:24:43Z | scripts/glm_conclusion_client.py: run_smoke(L673)→run_live_conclusion(L565)→call_glm_once(L468,真实出站点L497) | glm-5.3 @ https://open.bigmodel.cn/api/paas/v4 | 要点①补证据轮第4次尝试·操作者代执行(二复审处方2026-11-05 11:1x HKT「操作者择时重发第4次尝试或代执行,同CI dispatch先例」+处置§五;冻结参数原样 temperature=0.2/reasoning_effort=low;恰1次=RETRY_BUDGET 运行时置1[进程内],模块文件零改动) | GLM_API_KEY(环境变量,值不落盘) | 待回填 / 4 | 待回填 | 待回填 | PENDING-APPROVALS.md 2026-11-05 批复行(合同冻结章②)+二复审处方代执行(2026-11-05 11:24 HKT) |
+| G4-CRED-003 | 2026-11-05T03:24:43Z | scripts/glm_conclusion_client.py: run_smoke(L673)→run_live_conclusion(L565)→call_glm_once(L468,真实出站点L497) | glm-5.3 @ https://open.bigmodel.cn/api/paas/v4 | 要点①补证据轮第4次尝试·操作者代执行(二复审处方2026-11-05 11:1x HKT「操作者择时重发第4次尝试或代执行,同CI dispatch先例」+处置§五;冻结参数原样 temperature=0.2/reasoning_effort=low;恰1次=RETRY_BUDGET 运行时置1[进程内],模块文件零改动) | GLM_API_KEY(环境变量,值不落盘) | 1 / 4 | $0.0220 / $0.0887 | 未触发 | PENDING-APPROVALS.md 2026-11-05 批复行(合同冻结章②)+二复审处方代执行(2026-11-05 11:24 HKT) |
 
 ## 三、登记说明
 
@@ -84,3 +84,13 @@
   判定为本轮会话执行环境权限配置变更所致(非凭证/网络/实批问题)。处置权在
   操作者(择时重发/代执行;CI dispatch 先例=opd 代执行同)。
 - 熔断器: 未触发(零出站零计数;跨执行段历史累计 3 次/$0.0667 不变)。
+
+## 六、G4-CRED-003 执行段结果(补证据轮第 4 次尝试·操作者代执行,2026-11-05 UTC;如实)
+
+- **先登记后发起**: 前六列登记于 git 提交 cf7c75c(登记时戳 2026-11-05T03:24:43Z),真实出站时戳 2026-11-05T03:26:33Z(usage log 第 4 行),次序机器可证(commit 时戳<出站时戳)。
+- **结果: 1 次真实出站传输层成功,模型输出仍未过 G2 校验器,终裁 ABSENT_REGISTERED(如实)**。单次 34.3s(< CB-4=120s);费用 $0.0220;失败面=hypotheses[0].limitations 未承接 Gate A 降级影响面(径2义务)+hypotheses[1].statement 接地失败([0.3,25.0] 不在证据包)+hypotheses[1].limitations 未承接(径2义务)——与 G4-CRED-001 尝试 3 残余面(数值接地)同域,模型遵从性在冻结参数(temperature=0.2/reasoning_effort=low)下第 4 次仍未达。
+- **恰 1 次实现**: RETRY_BUDGET 运行时进程内置 1(gcc.RETRY_BUDGET=1,处置§五「恰 1 次」;模块文件零改动,冻结 retry_budget=3 文件值原样;模型面参数 temperature/reasoning_effort/模型/16k/125s 分文未动)。
+- 出站面: 操作者会话(二复审处方 2026-11-05 11:1x HKT「操作者择时重发第 4 次尝试或代执行,同 CI dispatch 先例」);凭证=LIVE env_config 三元组进程注入(RUN_GLM_LIVE=1),值零落盘零打印(存在性核验 len=49)。
+- 预算纪律: 累计出站 3→4(CB-2 上限 60 远未及);累计费用 $0.0667→$0.0887(CB-3 日上限 $5.00 远未及);熔断未触发(本段 1 出站/0 连败)。
+- 产物: data/research/glm4_live_smoke_20261105T032559Z.json(终态报告,registry_row 内嵌)+glm4_usage_log_20261104.jsonl 第 4 行+glm_conclusions_archive.json 追加结论记录——均不 commit。
+- 处置: 处置§五预置分支生效——第 4 次 ACCEPTED→要点①PASS;再失败(本段=ABSENT_REGISTERED)→§二兜底终态(接受 (c) 如实缺席定稿,处置留痕于 rounds/029/OPERATOR-DISPOSITION-R029.md)。

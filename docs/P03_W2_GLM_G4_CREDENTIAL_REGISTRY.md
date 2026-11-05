@@ -94,3 +94,4 @@
 - 预算纪律: 累计出站 3→4(CB-2 上限 60 远未及);累计费用 $0.0667→$0.0887(CB-3 日上限 $5.00 远未及);熔断未触发(本段 1 出站/0 连败)。
 - 产物: data/research/glm4_live_smoke_20261105T032559Z.json(终态报告,registry_row 内嵌)+glm4_usage_log_20261104.jsonl 第 4 行+glm_conclusions_archive.json 追加结论记录——均不 commit。
 - 处置: 处置§五预置分支生效——第 4 次 ACCEPTED→要点①PASS;再失败(本段=ABSENT_REGISTERED)→§二兜底终态(接受 (c) 如实缺席定稿,处置留痕于 rounds/029/OPERATOR-DISPOSITION-R029.md)。
+- 时戳勘误(三审 DEFERRED④,2026-11-05 11:5x HKT): 本行登记时戳 03:24:43Z 为登记动作前手工捕获值,机器可证值=先登记提交 cf7c75c 时戳 2026-11-05T03:25:13Z(三审独立复取);两值均先于真实出站 03:26:33Z,先登记后出站次序结论不受影响。前六列禁事后改,特此勘误注记。

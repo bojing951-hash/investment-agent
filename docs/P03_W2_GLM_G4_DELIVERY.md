@@ -35,6 +35,10 @@
 
 > zip sha256 v3(补证据轮第 4 次尝试·操作者代执行后重装配,装配后追加行): ce1867da76aa5592f4b196b0097b49bf10cdb7d0db5261c5ef03d4712efc589c(107 成员/379049 字节;SHA256SUMS 重列 106 成员全验证 OK,清单自身显式豁免不入 zip 自身校验和;装配后全包凭证字节扫描=零命中)。v3 变更=新增第 4 次尝试工件 5 件[06-real-run/live_smoke_F1_attempt3_operator.log(操作者会话 stdout 转录)+06-real-run/glm4_live_smoke_20261105T032559Z.json.redacted-copy+03-git/pre-registration-cf7c75c.txt(先登记次序证明)+03-git/forensics-round3.txt+06-real-run/anchors 目录并入 forensics-round3]+usage log/archive 脱敏副本刷新(4 行版/含新结论记录)+双源副本(tip=3a8d77b)/REGISTRY/映射/自检副本刷新;终态 SHA 与最终 ls-remote 以 zip 外 08-sidecar/final-state.txt 为准,自指豁免沿 v1/v2: zip 内 DELIVERY 副本=占位行版本(3a8d77b)。
 
+> **v3 勘误(三审阻断项 1,2026-11-05 11:5x HKT)**: v3 行「新增 5 件」中 `06-real-run/live_smoke_F1_attempt3_operator.log` 实际**漏收入包**(装配脚本仅写入 zip 外 real-run/ 顶层,未拷入 pkg/;三审 unzip 107 成员+SUMS 106 行均无此件;zip 外实物 1894B 经审计直读与全部登记数值吻合=装配遗漏致登记失实,非编造)。净增实物=3 件(operator 转录件缺失+新报告脱敏副本+pre-registration+forensics-round3 中,新增成员实为后三件+SUMS 重列)。v3 行 Authorization 计数「13 处」沿用 v2 未刷新,三审实测 17 处(逐处核验均为引用性文字/脱敏正则/P2 测试类名,零凭证值)。
+
+> zip sha256 **v4**(三审处方重装配,装配后追加行): **82a099f57d31043a30947605eb2ce517844398b0f7ef11051bc1ed2b83becee6**(108 成员/380405 字节;SHA256SUMS 重列 **107** 成员全验证 OK,清单自身显式豁免;装配后全包凭证字节扫描=零命中;Authorization 字面量 17 处=引用性文字/脱敏正则代码/既有 P2 测试类名,零凭证值)。v4 变更=v3 唯一阻断修复: 收件 `06-real-run/live_smoke_F1_attempt3_operator.log`(三处登记指针[commit 54e9306 消息/本文件 v3 行/REPORT 要点①(e)]随 v4 全部成立),其余成员与 v3 逐字节一致;终态 SHA 与最终 ls-remote(全值)以 zip 外 08-sidecar/final-state.txt v4 段为准;自指豁免沿 v1~v3: zip 内 DELIVERY 副本=占位行版本。
+
 ## §三 逐 AC 自评(详见 REPORT 对应节)
 
 | AC | 自评 | 一句证据指引 |

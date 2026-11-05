@@ -1,0 +1,79 @@
+# IA-P1-WP-C 交付说明(DELIVERY)
+
+- 工作包: IA-P1-WP-C(P1 四经济体底图层·经济体评分·装配·报告)
+- 契约: IA-P1-WP-C-AC-v1.1(FROZEN,2026-11-06 02:5x HKT;附录A随开工提示词注入);**v1.2 整改续作(2026-11-06 03:2x HKT 处置章,单行授权勘正,FROZEN)**——第4笔整改笔+第5笔 zip 终笔,v1.1 执行段(3 笔)零 amend 纯线性续作
+- 分支: dev/p1-impl-c(自 BASE-P1C=fcd0537c9ac4b66dcd8a52c6186e814121feaf5f 切出,纯线性)
+- 尖端 SHA: 以 git 取证为准(证据包③;本件不含自引用尖端值——避免"提交内嵌自身 SHA"自指失实,先例沿 WP-B 报告头形态)
+- 姊妹件: docs/P1_WP_C_REPORT.md(§零 登记+§一-§六 实录,事实基线以 REPORT 为准)
+
+## §一 交付件清单与 git 面
+
+| 类 | 文件 | 状态 |
+|---|---|---|
+| A1 | docs/P1_WP_C_REPORT.md | 新增(§零 开工登记+§一-§六 实录) |
+| A2 | docs/P1_WP_C_DELIVERY.md | 新增(本件) |
+| A3 | tests/test_p1_wp_c.py | 新增(14 用例,全合成数据源) |
+| M-a | scripts/macro_scorecard.py | 修改(DP-3 economy 参数化: L38-41/L99-118/L200-216/L414-437/L484-487/L517-545/L577-616) |
+| M-b | scripts/data_assembler.py | 修改(经济体观察节: L82-105/L267-320) |
+| M-c | scripts/correlation_calculator.py | 修改(PAIRS+2 跨域对: L46-53) |
+| M-d | scripts/report_generator.py | **零改动**(条件类判定成立,t13 固化;DESIGN L128 自动传导) |
+| M-e | tests/test_phase3.py | 修改(**v1.2 处置章授权1**: L182 单条 check 语句 `len(missing) == 1`→`== 3`+标签「NDX缺失对除外」→「NDX与跨域新对缺失除外」,其余一切行零触碰——git diff 单 hunk) |
+
+diff 判据自评: `git diff --name-status fcd0537c..HEAD` 应=恰 3 行 A(A1-A3)+4 行 M(M-a/b/c+M-e[v1.2 处置章授权])+0 行 D;report_generator 零 diff=条件类零改动(非遗漏)。分支=BASE 切出纯线性零 merge,不碰 main,零 force。
+
+## §二 运行与验证摘要
+
+- 本包测试: tests/test_p1_wp_c.py 14/14 绿(Ran 14 tests, OK;全合成 fixture,零网络零 GLM——t13 对 `_call_glm` 本地打桩,桩注入点=tests/test_p1_wp_c.py L403)。
+- 本地 CI 镜像(2026-11-06): 72 槽=71 rc=0+1 rc=1;红=tests/test_phase3.py 单断言(L182 计数 9/1→9/3),根因=DESIGN L171 授权的 PAIRS 新对对白名单外既有测试的涟漪(根因隔离实证=证据包⑥;涟漪面=AC-07.7 登记发现不实施,REPORT §零.9 发现1/§二 偏离1)。71 rc=0 含 test_glm_live.py 设计性跳过面(exit 0)。
+- 真实运行面: **零运行产物**(要点均【测试/CI】限定;data/daily 19 既有 JSON sha256 运行前后一致;零 GLM/零网络/零凭证/零付费)。
+- **v1.2 整改续作重跑(2026-11-06)**: 处置章授权1 勘正(test_phase3.py L182 单条 check 语句 `==1`→`==3`+标签同步,git diff 单 hunk)后本地 CI 镜像 **pass=72 skip=0 fail=0(72 槽全绿)**;test_phase3.py 47/47 检查项绿(尾部摘要「47通过 / 0失败」,全量 stdout=证据包④ 新增成员 test_phase3_postfix_stdout.txt);负向敏感度=v1.1 同输入 rc=1↔本轮 rc=0 红绿转换;DEV data/daily 锚定 19/19 复核一致。v1.1 执行段红态记录(上行第2条)按历史原文保留(REPORT §三.1)。
+
+## §三 合同 AC 逐条自评摘要(全文自检=stdout 自述段4;判据细节=REPORT)
+
+- AC-01 规格抄录与登记: 自评**过**(L171 逐字抄录+四要素+清单推导;审计对照权在审计侧)。
+- AC-02 逐要点证据映射: 自评**过**(REPORT §五 映射 9 行无漏检,落点直读可核)。
+- AC-03 测试与确定性验证: 条 1-4/6-7 自评**过**;条 5"本地逐套件全绿"v1.1 执行段自评**不满足**(test_phase3.py rc=1,涟漪根因+AC-07.7 处置登记)——**v1.2 处置闭环**: 处置章授权1 单行勘正落地后重跑 pass=72 skip=0 fail=0(72 槽全绿,REPORT §三.1),条 5 自评改判**过**;整条 AC-03 终态自评**过**(判定权留操作者/审计)。
+- AC-04 引用真实性: 自评**过**(file:line 引用以提交时工作树为准;基线 CI run 42082218620 标注注入转录非实取)。
+- AC-05 范围/分支/生产隔离: 自评**过**(diff 恰 3A+3M+0D;零分支外操作;LIVE/launchd/引擎零触碰;零网络)。
+- AC-06 CI 与证据包: 本地镜像已录;**GitHub CI dispatch=操作者 CHECKPOINT 面**(登记件将落 rounds/046/P1-WP-C-CI-dispatch-evidence.md);证据包八类成员+SHA256SUMS(自指豁免)=§四。
+- AC-07 研究纪律: 自评**过**(特有纪律登记=REPORT §零.4;数据不足不填 0 实现于非 US 路径;零投资建议文案;零真实调用;白名单外发现登记不实施=§零.9)。
+
+## §四 证据包登记
+
+- 路径: /tmp/p1-wp-c-evidence/IA-P1-WP-C-EVIDENCE.zip(八类成员: ①规格抄录件+登记清单副本 ②交付文件双源副本(git 尖端版+工作树版,交叉哈希) ③git 取证原样输出 ④本地 CI 逐套件记录 ⑤逐要点证据映射表 ⑥真实运行面=「零运行产物」声明+data/daily sha256 锚定+涟漪隔离实证 ⑦自述报告副本+六项自检清单件 ⑧SHA256SUMS——清单自身显式豁免不塞入 zip,R019-D3)。
+- zip v1.1 执行段登记(取证更正笔后装配,2026-11-05T19:02:22Z UTC=2026-11-06 03:02:22 HKT, TIP=86da5dadc0574f5c4ddccb6a668172ec702b2a67): **IA-P1-WP-C-EVIDENCE.zip=42 文件成员/196345字节/sha256=72f0b62ea6f3af04fda3707401ed940a97cc30d053d1692ba97adac292f34287**;SHA256SUMS=42行 zip 外旁挂(R019-D3 自指豁免,zip 内无 SUMS 自身);zip 内 testzip=OK;装配 stdout 与独立复算(zip_sha256_recompute)一致;双源交叉哈希 7 文件全 equal=True(含 report_generator 双源=BASE版,条件类零改动)。如实披露: zip 内 REPORT/DELIVERY 副本=86da5da 装配时点版(不含终笔 §四 定值回填,先例沿 WP-B 8edfb68/4575a76);终局自述以执行会话 stdout 步骤14为准。(**历史登记保留不删——物理件已被 v1.2 重装配取代,先例沿 WP-B v1.2**)
+- zip 终值登记(v1.2 整改续作装配,2026-11-05T19:15:07Z UTC=2026-11-06 03:15:07 HKT, TIP=c6fa6f49451c02d08bfbae065c130ca3bb7fe326=整改笔): **IA-P1-WP-C-EVIDENCE.zip=45 文件成员/214339字节/sha256=fc7db6b63b13a9c2edf7bea952fa5221ced2e4cf3b267e23ec3d6f26c239849f**;SHA256SUMS=45行 zip 外旁挂(R019-D3 自指豁免,zip 内无 SUMS 自身);zip 内 testzip=OK(None);装配 stdout 与独立复算(zip_sha256_recompute)一致;双源交叉哈希 **8 文件**全 equal=True(v1.2 增 tests/test_phase3.py 双源副本;report_generator 双源=BASE版,条件类零改动);④类刷新=ci-mirror/results.txt(72 槽全绿重跑版)+test_phase3_postfix_stdout.txt(新增成员)+test_p1_wp_c_full_stdout.txt(重刷);⑥类 data/daily 锚定 v1.2 装配时点复核 19/19 一致零新增。如实披露: zip 内 REPORT/DELIVERY 副本=c6fa6f4 装配时点版(不含本终笔 §四 定值回填,先例沿 9b829e4/86da5da/WP-B 8edfb68);终局自述以执行会话 stdout 步骤14为准。
+
+## §五 漂移维护策略声明(AC-03.6 三要素)+fixture→预期值映射
+
+1. **预期值唯一来源=仓库内版本化合成 fixture**: 本包测试一切期望值来源于 tests/fixt.py 合成载荷与 tests/test_p1_wp_c.py 内显式发明值([示意]标注),不依赖 data/daily 真实档。
+2. **fixture 演进时预期值与 fixture 同一 commit 变更**: fixt.py 若演进(如 WP-A v1.3 先例),依赖其数值的断言(t05 UMCSENT=68.0→0 分;t09 JPY=X=152.4/EURUSD=1.163)须同 commit 勘正;fixture 路径锚定: fixt.py L40(collector_payloads)/L152(UMCSENT 68.0)/L80-82(EURUSD/JPY=X)。
+3. **真实数据档永不进入测试预期值来源**: 测试零读取 data/daily(渲染面 t07/t14 走临时目录注入);真实档(jp_20261105.json 等)仅 REPORT 文字引用,不入断言。
+
+fixture→预期值映射(逐断言组→定义处):
+
+| 断言组 | fixture/发明值定义处 | 预期值断言处 |
+|---|---|---|
+| t01-t04 维度评分 | tests/test_p1_wp_c.py L60-101(_fact/_us_full_facts,发明值) | L93-138 |
+| t05-t06 存档/标题 | fixt.py L291-297(write_collectors)+L152 | tests/test_p1_wp_c.py L167-227 |
+| t07-t08 经济体节 | fixt.py L60-276(7通道)+config/metric_registry.json(计数实取) | L241-277 |
+| t09-t10 Gate B | fixt.py L80/L82+registry source 字段 | L282-322 |
+| t11-t12 相关性 | scripts/correlation_calculator.py L28-53(字面)+tests L344-388(发明序列) | L331-388 |
+| t13 报告 prompt | da.build_markdown 输出+桩捕获(注入点 L403) | L393-420 |
+| t14 既有链路 | fixt.py L329-390(build_full_day) | L426-440 |
+
+## §六 如实偏差与 PENDING
+
+1. **test_phase3.py 涟漪红**(§二): PENDING 操作者——授权单行勘正(L182 `== 1`→`== 3`)或改派;本包不越白名单。→**已闭环(v1.2)**: 处置章(IA-P1-WP-C-AC-v1.2)采纳单行勘正并授权本包整改续作,第4笔落地+重跑 72 槽全绿,PENDING 解除(REPORT §零.9 处置回填/§三.1;处置认定=rounds/046/OPERATOR-DISPOSITION-R046.md[注入摘要,非工作树实读])。
+2. REPORT §零 三处登记勘误(实现前,注记保留原文): PAIRS 字段名/sources_status 表述/legacy 键 19。
+3. t02 期望值手算勘正(WTI 档位,实现零改动)。
+4. 上游延后面(WP-B F1/F2): NIKKEI/DAX 序列与 jp/ea facts 未接线——本包以如实缺席呈现(设计内形态),接线属后续包。
+5. AC-03.7 外部调用面合成桩: **条件适用判定=不适用**——登记清单无外部服务调用面实现(四 M 件+三 A 件均确定性本地模块);t13 的 _call_glm 桩=对既有调用面的测试打桩(测 t13 一处),非本包新增调用面实现,注入点(L403)已登记。
+6. **取证表述失实一处族(步骤12 发现,取证更正笔处置)**: REPORT 对 049ec978 误记为 blob、抄录命令漏 `:docs/P1_DESIGN.md` 路径限定(7 处)——实测=commit(设计分支尖端,其内 DESIGN blob=13b263cf…);抄录内容与"设计在场"结论经正确命令复核均成立。全记录=REPORT §零.12,原文划线保留+更正指针;本笔=REPORT+本件两 docs 零代码面。
+
+## §七 参考
+
+- 契约: IA-P1-WP-C-AC-v1.2(v1.1 冻结版+处置章单行授权勘正;开工提示词附录A注入;contracts/ 存档=引擎侧不可达,有效性以冻结章实物化为准)
+- 设计: docs/P1_DESIGN.md(blob 049ec978;§六 L171 规格行、L30 DP-3、L68 §三a-5、L128 §四 L5)
+- 上游: docs/P1_WP_A_REPORT.md、docs/P1_WP_B_REPORT.md(工作树在场)
+- CI: .github/workflows/offline-tests.yml(零改动)

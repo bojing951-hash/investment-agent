@@ -1,5 +1,5 @@
 {
- "version": "2.0.0",
+ "version": "2.1.0",
  "created": "2026-10-17",
  "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
  "field_semantics": {
@@ -2321,6 +2321,122 @@
     "note": "月频:发布滞后约5周"
    },
    "release_semantics": "发布日不可得;按观测月保守处理"
+  },
+  {
+   "metric_id": "JP_POLICY_RATE",
+   "display_name": "日本无担保隔夜拆借利率(月均)",
+   "source": "japan_rate_collector",
+   "source_symbol": "IRSTCI01JPM156N",
+   "asset_class": "policy_rate",
+   "frequency": "monthly",
+   "unit": "percent",
+   "calendar": "japan",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none"
+   },
+   "value_type": "monthly_avg_rate",
+   "calc": "FRED系列IRSTCI01JPM156N最新观测(日本无担保隔夜拆借利率月均,OECD/BOJ口径;政策利率operative信号,与BOJ决议目标值口径不同,决议值变更时点见release_semantics)",
+   "validation": {
+    "range": [
+     -0.5,
+     2
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 60,
+    "note": "月频:观测日=统计期(月),发布滞后4-6周属正常,未发布≠数据缺失"
+   },
+   "release_semantics": "FRED月频系列发布日不可得;BOJ决议目标值经金融政策决定会议公布(无固定时刻),本指标为月均 operative 利率而非决议值,按观测月+滞后窗口保守标注"
+  },
+  {
+   "metric_id": "JGB2Y",
+   "display_name": "2年期日债收益率",
+   "source": "japan_rate_collector",
+   "source_symbol": "2Y",
+   "asset_class": "rates_yield",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "japan",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "MOF日本国债收益率曲线(jgbcme)2年期最新收盘观测(每营业日发布,非营业日无新观测)",
+   "validation": {
+    "range": [
+     -0.5,
+     15
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "MOF每营业日收盘后发布当日曲线(约19:00 JST);发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用,发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "JGB5Y",
+   "display_name": "5年期日债收益率",
+   "source": "japan_rate_collector",
+   "source_symbol": "5Y",
+   "asset_class": "rates_yield",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "japan",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "MOF日本国债收益率曲线(jgbcme)5年期最新收盘观测(每营业日发布,非营业日无新观测)",
+   "validation": {
+    "range": [
+     -0.5,
+     15
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "MOF每营业日收盘后发布当日曲线(约19:00 JST);发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用,发布晚于观测日的风险见快照披露)"
+  },
+  {
+   "metric_id": "JGB10Y",
+   "display_name": "10年期日债收益率",
+   "source": "japan_rate_collector",
+   "source_symbol": "10Y",
+   "asset_class": "rates_yield",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "japan",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "MOF日本国债收益率曲线(jgbcme)10年期最新收盘观测(每营业日发布,非营业日无新观测)",
+   "validation": {
+    "range": [
+     -0.5,
+     15
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "MOF每营业日收盘后发布当日曲线(约19:00 JST);发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用,发布晚于观测日的风险见快照披露)"
   }
  ]
 }

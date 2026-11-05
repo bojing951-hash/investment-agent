@@ -17,8 +17,8 @@
 | 1 占位符核验 | 提示词冻结章 | BASE-P1C=fcd0537c…、CI=71、BRANCH-SET=43 分支均已实物化，无未替换占位符 | 通过 |
 | 2 前置实取 | `git ls-remote origin` | origin/main 尖端=fcd0537c…（与冻结章一致），dev/p1-impl-a、dev/p1-impl-b 在列，dev/p1-impl-c 不存在 | 通过：远端可达、分支可新建、无重名冲突 |
 | 3 切建分支 | `git checkout -b dev/p1-impl-c fcd0537c…` | 新分支创建于 fcd0537c，工作区净 | 通过 |
-| 4 设计在场核验 | `git cat-file -e 049ec978^{blob}`；`git rev-parse origin/main:P1_DESIGN.md` 等 | 049ec978 为有效 blob；main:docs/P1_DESIGN.md 与 main:P1_DESIGN.md 两 blob 全等（同 blob id）；工作区三文件与 main 版本零差异（`git diff origin/main -- docs/P1_DESIGN.md scripts/macro_scorecard.py scripts/data_assembler.py scripts/correlation_calculator.py scripts/report_generator.py config/metric_registry.json` 输出为空） | 通过：设计文件在场且未被上游改动 |
-| 5 规格抄录 | `git show 049ec978 | sed -n '171p'` | 与本报告 §零.2 逐字块一致（含行首行尾） | 通过 |
+| 4 设计在场核验 | `git cat-file -e 049ec978^{blob}`；`git rev-parse origin/main:P1_DESIGN.md` 等 | ~~049ec978 为有效 blob~~（**取证勘正：失实——实测 `git cat-file -t 049ec978`=commit，即设计分支尖端提交（全值 049ec978523dec659ba47f140bf41669604de24f），非 blob；设计三件在该提交的 blob=13b263cf…/df79c06f…/314c2644…（ls-tree 实取），更正全记录见 §零.12**）；main:docs/P1_DESIGN.md 与 main:P1_DESIGN.md 两 blob 全等（同 blob id）；工作区三文件与 main 版本零差异（`git diff origin/main -- docs/P1_DESIGN.md scripts/macro_scorecard.py scripts/data_assembler.py scripts/correlation_calculator.py scripts/report_generator.py config/metric_registry.json` 输出为空） | 通过：设计文件在场且未被上游改动（"在场"结论经 §零.12 正确命令复核成立；仅对象类型表述失实） |
+| 5 规格抄录 | ~~`git show 049ec978 | sed -n '171p'`~~（**取证勘正：该命令实测输出仅 55 行（commit 元数据+diff），`sed -n '171p'` 取到空行——抄录实际来源命令为 `git show 049ec978:docs/P1_DESIGN.md | sed -n '171p'`（182 行文件，见 §零.12）**） | 与本报告 §零.2 逐字块一致（含行首行尾）（经正确命令复核仍一致） | 通过 |
 
 补充实录（同批执行）：
 
@@ -26,9 +26,9 @@
 - `git ls-remote` 返回分支数=43（含 HEAD），与冻结章 BRANCH-SET=43 一致；本包分支 dev/p1-impl-c 为新增第 44 个引用（本地），完成后推送。
 - 契约文本来源：开工提示词附录A（contracts/ 目录在 DEV 仓库不存在，为主 Agent 侧工程产物；契约有效性以提示词冻结章实物化为准，未触发停止条件）。
 
-### §零.2 规格抄录（P1_DESIGN.md §六 L171，blob 049ec978）
+### §零.2 规格抄录（P1_DESIGN.md §六 L171，~~blob 049ec978~~ →取证勘正：设计提交 049ec978（其内 docs/P1_DESIGN.md blob=13b263cf3139d420e01bf1e154b03ce85a35db4c），见 §零.12）
 
-以下为 `git show 049ec978` 第 171 行逐字抄录（一字不改、含原始域分隔与全角标点；用 §零.2 结尾的逐字节核验说明自律）：
+以下为 ~~`git show 049ec978` 第 171 行~~（取证勘正：实为 `git show 049ec978:docs/P1_DESIGN.md` 第 171 行，见 §零.12）逐字抄录（一字不改、含原始域分隔与全角标点；用 §零.2 结尾的逐字节核验说明自律）：
 
 ```
 | WP-P1-C 经济体评分·装配·报告 | 评分/数据包/报告经济体化 | scorecard economy 参数化(DP-3)、数据包经济体节、相关性新对、报告模板与 Gate B 锚点 | WP-B | ① 维度扩展单测+DATA_INSUFFICIENT 负向【测试】② 数据包经济体节渲染快照测试【测试】③ Gate B 对新锚点全量核验用例【测试/CI】 |```
@@ -42,14 +42,14 @@
 | 前置 | WP-B | BASE-P1C=fcd0537c 已含 WP-B 合并（merge commit msg 注明 WP-P1-B），前置满足 |
 | 验收要点 | ① 维度扩展单测+DATA_INSUFFICIENT 负向【测试】② 数据包经济体节渲染快照测试【测试】③ Gate B 对新锚点全量核验用例【测试/CI】 | t01–t04/t06（①）；t07–t08（②）；t09–t10（③）—— §零.7 |
 
-规格关联行（同 blob，抄录依据）：
+规格关联行（同 blob=13b263cf…，抄录依据；原登记"同 blob"指代经 §零.12 勘正后语义=同一设计提交内的同一文件版本）：
 
 - L30（DP-3 登记）：倾向①=macro_scorecard 维度函数参数化 economy，复用 score_growth/score_inflation 与 DATA_INSUFFICIENT 机制；最终由 WP-P1-C 实现包定。
 - L68（§三a-5 触面清单）：build_markdown 新增「经济体观察」节（渲染复用 _rows/_fv）；macro_scorecard 维度函数 economy 参数化；compute_all 增新对（候选 NIKKEI225×USDJPY、DAX×EURUSD）；报告模板经济体章节；Gate B 锚点自动覆盖新 metric_id（锚点=build_anchors 按快照事实生成，零改动）。
 - L128（§四 L5 说明）：generate_report prompt 输入=数据包新节自动进入——报告模板零改动的依据。
 - L175（§六红线筛查行）与 L177–L183（§七四红线）：见 §零.4。
 
-逐字节核验说明：本节逐字块与 `git show 049ec978` 第171行经字节级比对一致（无全角逗号替换、无空格增删）。判定权属审计角色。
+逐字节核验说明：本节逐字块与 ~~`git show 049ec978` 第171行~~（取证勘正：`git show 049ec978:docs/P1_DESIGN.md` 第171行，见 §零.12）经字节级比对一致（无全角逗号替换、无空格增删）。判定权属审计角色。
 
 ### §零.3 交付清单（自 §零.2 拆解；登记后即本包白名单实体）
 
@@ -160,7 +160,7 @@ M类（既有文件授权触面，4件；超此清单的既有文件改动=违�
 | 锚 | 值 |
 |---|---|
 | BASE-P1C | fcd0537c9ac4b66dcd8a52c6186e814121feaf5f |
-| P1_DESIGN.md blob | 049ec978（L171 规格行所在版本） |
+| P1_DESIGN.md blob | ~~049ec978~~（取证勘正：049ec978=设计提交；其内 blob=13b263cf3139d420e01bf1e154b03ce85a35db4c，L171 规格行所在版本，见 §零.12） |
 | registry | config/metric_registry.json v2.2.0（94 条目，93 active） |
 | CI 基线 | 71 测试文件，offline-tests.yml 逐文件直跑，skip=test_glm_live |
 | 上游报告 | docs/P1_WP_A_REPORT.md、docs/P1_WP_B_REPORT.md（在 main，工作区零差异） |
@@ -176,6 +176,13 @@ M类（既有文件授权触面，4件；超此清单的既有文件改动=违�
 - 预期1 对照： 本包测试 14 用例实测全绿（Ran 14 tests, OK）——符合。
 - 预期2 对照： 本地 CI 镜像实测 72 槽=71 rc=0+1 rc=1（**不符预期**： test_phase3.py rc=1，红=发现1 涟漪面；71 rc=0 中含 test_glm_live.py 设计性跳过面[打印"⏭️ 跳过"并 exit 0]）。槽位数 72=71+新增1 ✓（步骤9 套件数对照通过）；套件内容红已按 §零.9 发现1+§二 偏离1 如实登记，未越白名单修改。
 - 预期3 对照： 零运行产物成立（§四： git status 除白名单 5 文件外零变化，data/daily 19 既有 JSON sha256 锚定清单运行前后一致[本包未对真实数据目录执行任何写入]）。
+
+### §零.12 取证勘误登记（049ec978 对象类型与抄录命令表述失实；步骤12 装配时点发现，处置=取证更正笔）
+
+- **发现时点与触发**： 2026-11-06 步骤12 证据包装配脚本首跑 `git show 049ec978` 取 L171 时 IndexError——该命令实测输出仅 55 行（提交元数据+diff），遂复核对象类型，暴露 §零.1 行4/行5、§零.2 标题与首尾句、§零.10 锚表、§六 第1/2 行共 7 处对 049ec978 的"blob"定性失实。
+- **实测事实（2026-11-06，全值）**： `git cat-file -t 049ec978`→**commit**（设计分支尖端提交，全值 049ec978523dec659ba47f140bf41669604de24f，即冻结章"设计分支尖端"值）；`git show 049ec978 | wc -l`→55；`git show 049ec978:docs/P1_DESIGN.md | wc -l`→182，其 L171 与工作树 docs/P1_DESIGN.md L171 逐字节一致，且与 §零.2 逐字块一致；`git ls-tree 049ec978 docs/`（三件）=P1_DESIGN.md blob **13b263cf3139d420e01bf1e154b03ce85a35db4c**/P1_DATA_NEEDS_INVENTORY.md blob **df79c06f66c368d93159b7a3b46852b6fcb9b196**/P1_DELIVERY.md blob **314c2644a51f2f575a90253580cb56346e2f93b6**；`git ls-tree HEAD`（同三件）blob 与上逐值相等；`git merge-base --is-ancestor 049ec978 HEAD`→exit 0（设计提交在本分支祖先谱系）。
+- **勘正结论**： 抄录**内容**经正确命令复核仍逐字节一致（抄录实体无失实）；失实面=对象类型表述（commit 误记为 blob）与取数命令表述（漏 `:docs/P1_DESIGN.md` 路径限定）。"设计在场"核验结论经 ls-tree 双侧 blob 等值+is-ancestor 判定复核**成立**。7 处原文均划线保留+更正指针（不删原文，先例沿 WP-B fa95213）。判定权留操作者/审计。
+- **纪律面自检**： 本勘误属登记文本的取证表述失实（如实申报义务面），非登记实现参数回改——§零.6 实现参数零触碰；代码/测试/数据面零变化。
 
 ---
 
@@ -216,6 +223,7 @@ M类（既有文件授权触面，4件；超此清单的既有文件改动=违�
 3. **t02 首跑红勘正**（§一.5）： 测试期望值手算笔误勘正，非实现改参；全过痕迹留证据包④。
 4. **上游延后面如实呈现（非本包偏离，登记备查）**： 真实运行面 NIKKEI225/DAX 无 series_store 键（WP-B F2）、jp/ea 通道事实未接线（WP-B F1）→ 相关性新对在真实快照=如实 missing、经济体观察节 JP/EA 行=快照 sources_status 披露（设计内合法如实形态，t12/t07 分别固化）。
 5. **零真实运行**： 本包零 GLM 调用、零网络出站、零凭证、零付费；测试全合成（唯一数据源=tests/fixt.py+测试内发明值）。
+6. **取证表述失实一处族（步骤12 发现，取证更正笔处置）**： §零.1 行4/行5、§零.2 标题与首尾句、§零.10 锚表、§六 第1/2 行对 049ec978 误记为 blob/漏路径限定命令（共 7 处）——实测=commit（设计分支尖端），抄录实取命令=`git show 049ec978:docs/P1_DESIGN.md` L171；抄录内容与"设计在场"结论经正确命令复核均成立，仅表述失实。全记录=§零.12，7 处原文划线保留+更正指针，零 amend 纯线性追加。
 
 ## §三 本地 CI 镜像实录（步骤9）
 
@@ -249,8 +257,8 @@ M类（既有文件授权触面，4件；超此清单的既有文件改动=违�
 
 | # | 数值 | 标注 |
 |---|---|---|
-| 1 | BASE-P1C=fcd0537c9ac4b66dcd8a52c6186e814121feaf5f；design blob=049ec978 | [实取·来源: git rev-parse/ls-tree, 2026-11-06, 证据包③] |
-| 2 | 规格行=P1_DESIGN.md §六 L171 | [实取·来源: git show 049ec978 L171, 抄录件=证据包①] |
+| 1 | BASE-P1C=fcd0537c9ac4b66dcd8a52c6186e814121feaf5f；~~design blob=049ec978~~（取证勘正→设计提交 049ec978，其内 DESIGN blob=13b263cf…，见 §零.12） | [实取·来源: git rev-parse/ls-tree, 2026-11-06, 证据包③] |
+| 2 | 规格行=P1_DESIGN.md §六 L171 | [实取·来源: ~~git show 049ec978 L171~~→`git show 049ec978:docs/P1_DESIGN.md` L171（§零.12 勘正命令）, 抄录件=证据包①] |
 | 3 | 白名单 A 类 3 件+M 类 4 件（k=3 A 行） | [实取·来源: 本 REPORT §零.3; git diff name-status 对照=证据包③] |
 | 4 | registry v2.2.0=94 条目/93 active；活跃计数 US=48/GLOBAL=12/EA=11/JP=8/CN=10/HK=4 | [实取·来源: config/metric_registry.json 实测清点 2026-11-06; 渲染行测试断言=t07/t08] |
 | 5 | PAIRS 12 对（旧 10+新 2）；新对字段 | [实取·来源: scripts/correlation_calculator.py L28-53; t11 硬编码断言] |
@@ -262,4 +270,4 @@ M类（既有文件授权触面，4件；超此清单的既有文件改动=违�
 | 11 | 皮尔逊期望 +1.0/-1.0（t12） | [示意·非实取——比例/反比例序列数学性质，独立手算] |
 | 12 | WTI_F 75.0→+1 档（t02 勘正后） | [实取·来源: scripts/macro_scorecard.py L227-231 阈值链实读; §一.5 勘正实录] |
 
-复核记录： 上表 [实取] 项 2026-11-06 提交前回工作树实读复核一遍（禁凭记忆）；疑似失实项=无新增（三处登记勘误已于实现前以注记处置，见 §二.2）。边界声明： 本 REPORT 日期/SHA 均为实取 UTC/全值；证据包装配时点=步骤12，晚于本清单（清单件随包入⑦）。
+复核记录： 上表 [实取] 项 2026-11-06 提交前回工作树实读复核一遍（禁凭记忆）；~~疑似失实项=无新增（三处登记勘误已于实现前以注记处置，见 §二.2）~~（取证勘正追加： 步骤12 实际发现第 1/2 行 049ec978 表述失实一处族，已按 §零.12/§二.6 处置——本行原文保留并以此注记更新）。边界声明： 本 REPORT 日期/SHA 均为实取 UTC/全值；证据包装配时点=步骤12，晚于本清单（清单件随包入⑦）。

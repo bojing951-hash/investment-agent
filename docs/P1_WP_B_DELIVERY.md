@@ -42,6 +42,7 @@
 - 本地 CI 镜像(canon=offline-tests.yml 同构, 逐 test_*.py 脚本方式): **TOTAL_SLOTS=71 GREEN=70 FAILFLAG=0**(2026-11-06 00:59-01:01 HKT; test_glm_live SKIPPED 设计性; summary=/tmp/p1-wp-b-evidence/ci-summary-wpb.txt, 逐件 log=ci-logs-wpb/)。
 - 关键从属锁全绿: test_p0_baseline_lock_equivalence/test_p1_wp_a(23 测)/test_p03_e2eb_b3(B3 冻结锚)/test_fact_engine/test_phase3/test_p03_final_acceptance/test_p01_fix6。
 - 白名单: `git diff --name-status f6d0beb..HEAD` = A3+M2+D0(REPORT §零.13)。
+- 证据包: IA-P1-WP-B-EVIDENCE.zip = **111 成员/397,969 字节/sha256=6e786095e05479990e46bdb723ef7c4030d49d74a97e9412b1d8f9ebd728b37e**(装配 2026-11-05T17:12:26Z, TIP=fa95213; REPORT §零.16.1; SHA256SUMS zip 外自指豁免沿 WP-A R023/R060)。
 
 ## §五 漂移维护政策(AC-03)
 

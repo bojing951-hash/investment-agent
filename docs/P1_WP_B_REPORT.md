@@ -236,7 +236,10 @@ M-b(snapshot_builder)/M-c(trading_calendar)/M-d(data_validator)=**零 diff**(条
 
 ### §零.16.1 zip 装配终笔(装配后回填定值)
 
-(待装配后回填: 成员数/字节数/sha256/装配时刻/TIP)
+- zip=IA-P1-WP-B-EVIDENCE.zip, **成员 111 件 / 397,969 字节 / sha256=6e786095e05479990e46bdb723ef7c4030d49d74a97e9412b1d8f9ebd728b37e**, 装配时刻 2026-11-05T17:12:26Z(UTC), 装配 TIP=fa95213d53d12fd6b551b48dbb08abd5d108f868[实取·装配脚本 stdout]。
+- 八类最低集齐: 01-spec 3 件 / 02-deliverables 21 件(10 文件×gitshow+worktree 双源+cross-hash.txt, **双源交叉哈希 0 失配**) / 03-git-forensics 6 件 / 04-ci 75 件 / 05-mapping 4 件 / 06-no-run 1 件 / 07-self-report 1 件(zip 内); SHA256SUMS zip 外(自指豁免沿 WP-A R023/R060 先例)。
+- zip 完整性 testzip=OK; zip 内不含 SHA256SUMS 自身[实取·核验脚本]。
+- **zip 内 REPORT/自述副本=fa95213 装配时点版**: 本终笔(§零.16.1 回填)发生于 zip 装配之后, zip 内 REPORT 副本不含本节定值——先例沿 WP-A 8ec3737(装配时点版如实披露); zip sha 与本节定值以本提交(装配后终笔)登记为准。
 
 ### §零.16.2 §零.1 禁锚措辞失实更正(取证期发现, 如实登记)
 

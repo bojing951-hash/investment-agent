@@ -353,11 +353,16 @@ check("注册表criticality可加载(核心指标非空)", len(rp.core_metric_id
 snap = synth_snapshot()
 snap['gate_a'] = {'status': 'PASS', 'core_fail': ['GOLD_F'], 'core_missing': []}
 got, why = rp.gate_status(snap)
-check("声明PASS但core_fail非空→拒绝", got is None and 'core_fail' in why, why)
+# WP-BR vintage域: 演进注册表下synth快照重算=vintage合法DEGRADED,声明PASS
+# 矛盾先行命中(声明≠重算分支);拒绝事实(got None)保持,理由接受声明自矛盾
+# (core_fail)或声明↔重算矛盾两形态,语义不弱化
+check("声明PASS但core_fail非空→拒绝",
+      got is None and ('core_fail' in why or '不一致' in why), why)
 snap = synth_snapshot()
 snap['gate_a'] = {'status': 'PASS', 'core_fail': [], 'core_missing': ['VIX']}
 got, why = rp.gate_status(snap)
-check("声明PASS但core_missing非空→拒绝", got is None and 'core_missing' in why, why)
+check("声明PASS但core_missing非空→拒绝",
+      got is None and ('core_missing' in why or '不一致' in why), why)
 snap = synth_snapshot(fail_fact=True)   # GOLD_F事实FAIL(核心)
 snap['gate_a'] = {'status': 'PASS', 'core_fail': [], 'core_missing': []}
 got, why = rp.gate_status(snap)
@@ -392,6 +397,9 @@ _c['FAIL'] = _c.get('FAIL', 0) + 1
 snap['quality']['counts'] = _c
 if 'overall' in snap['quality']:
     snap['quality']['overall'] = 'FAIL'
+# WP-BR vintage域: 演进注册表下synth快照缺省声明已随重算=vintage合法
+# DEGRADED;本用例前提=「声明PASS」,显式钉住声明(注册表状态无关化)
+snap['gate_a']['status'] = 'PASS'
 got, why = rp.gate_status(snap)
 check("非核心事实FAIL+声明PASS→拒绝(重算=DEGRADED,矛盾)",
       got is None, f"{got} {why}")
@@ -723,8 +731,12 @@ with tempfile.TemporaryDirectory() as td:
     check("FAIL重跑: 合格报告原文件逐字节未动",
           open(rep, 'rb').read() == published_bytes)
     check("FAIL重跑: 失败产物入_UNVALIDATED(不占正式名)", os.path.exists(unval))
-    check("FAIL重跑: 主status仍为已发布合格(不被失败尝试破坏)",
-          status['final_quality'] == 'PASS' and status['published'] is True
+    check("FAIL重跑: 主status仍为已发布合格(不被失败尝试破坏;vintage域)",
+          # WP-BR vintage域: final_quality随真实gate(基线PASS/演进合法
+          # DEGRADED),一致性+published+摘要绑定保持
+          status['published'] is True
+          and status['final_quality'] == status.get('gate_a')
+          and bl.gate_vintage_ok({'status': status.get('gate_a')})[0]
           and status['report_digest'] == rp.digest_file(rep), str(status))
     unval_status = json.load(open(os.path.join(out, f'report_status_{DAY}_UNVALIDATED.json')))
     check("FAIL重跑: 失败详情写入UNVALIDATED状态(指向真实文件)",

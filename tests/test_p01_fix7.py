@@ -514,8 +514,13 @@ with tempfile.TemporaryDirectory() as tdr:
         f.write('THIS IS NOT JSON')
     probs_r5 = ssp(snap_r5['sources_status'], data_dir=tdr, trusted_root=tdr)
     st_r5 = rp.gate_status(snap_r5, data_dir=tdr, trusted_root=tdr)
-    check("R5 历史快照(无摘要字段): 不虚报内容核验,实体核验照常(证据边界如实)",
-          not any('摘要' in p for p in probs_r5) and st_r5[0] == 'PASS',
+    check("R5 历史快照(无摘要字段): 不虚报内容核验,实体核验照常(证据边界如实;"
+          "gate基线齐备vintage域)",
+          # WP-BR vintage域(#30b): 声明==重算一致性由gate_status内部保证
+          # (矛盾→None);终态以vintage域判(基线PASS/vintage合法DEGRADED)
+          not any('摘要' in p for p in probs_r5)
+          and st_r5[0] is not None
+          and bl.gate_vintage_ok({'status': st_r5[0]})[0],
           f"probs={probs_r5[:1]} st={st_r5[0]}")
 
 # ════════════════════════════════════════════════════════════════════

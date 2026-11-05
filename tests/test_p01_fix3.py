@@ -274,9 +274,13 @@ with tempfile.TemporaryDirectory() as td:
     out = pub_pass_day(td, DAY, glm_text='# 周报V1\n\n' + '正文一(SYNTHETIC)。' * 100)
     rep = os.path.join(out, f'weekly_report_{DAY}.md')
     view, vr = rp.formal_report_view(rep)
-    check("(1)正常发布PASS→生产读取器认定(published+PASS+摘要一致)",
+    check("(1)正常发布(基线齐备vintage域)→生产读取器认定"
+          "(published+final_quality==gate_a+摘要一致)",
+          # WP-BR vintage域: final_quality随真实gate(基线PASS/演进合法DEGRADED)
           view is not None and view['status']['published'] is True
-          and view['status']['final_quality'] == 'PASS', vr)
+          and view['status']['final_quality'] == view['status'].get('gate_a')
+          and bl.gate_vintage_ok({'status': view['status'].get('gate_a')})[0],
+          vr)
     prev = load_prev(td, DT_D3)
     check("(1)load_previous_report取已发布合格报告(无未验证标注)",
           '周报V1' in prev and '未验证' not in prev, prev[:40])

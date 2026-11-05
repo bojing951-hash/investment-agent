@@ -582,10 +582,14 @@ with tempfile.TemporaryDirectory() as tdm:
     sm = sb.build_snapshot(target_ymd=DAY, data_dir=tdm, trusted_root=tdm,
                            out_dir=os.path.join(tdm, 'out'), as_of=fixt.as_of_for(DAY))
 r = rp.recompute_gate_a(sm)
-check("D对照: 真实合法非核心缺失(UMCSENT)→DEGRADED披露(fail-closed不误伤)",
-      r['effective'] == 'DEGRADED' and r['noncore_missing'] == ['UMCSENT']
+check("D对照: 真实合法非核心缺失(基线缺席恰UMCSENT,vintage新增不追责)"
+      "→DEGRADED披露(fail-closed不误伤)",
+      # WP-BR vintage域(#26e): 基线缺席恰UMCSENT;演进新增缺席可并存(不追责)
+      r['effective'] == 'DEGRADED'
+      and 'UMCSENT' in r['noncore_missing']
+      and set(r['noncore_missing']) - set(bl.vintage_additions()) == {'UMCSENT'}
       and not r['illegal_quality'],
-      f"eff={r['effective']}")
+      f"eff={r['effective']} miss={r['noncore_missing']}")
 with tempfile.TemporaryDirectory() as tdc2:
     fixt.write_collectors(tdc2, DAY)
     os.remove(os.path.join(tdc2, f'china_{DAY}.json'))

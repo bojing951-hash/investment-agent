@@ -350,8 +350,10 @@ def build_day(mutate_macro=None, break_metric=None):
 td1, daily1, snap1 = build_day()
 g1 = (snap1.get('gate_a') or {}).get('status')
 apath1 = os.path.join(daily1, f'anchors_{DAY}.json')
-check("G1 正常日: 真实链路Gate A=PASS且批次核验通过",
-      g1 == 'PASS' and rp.verify_anchor_batch(apath1, daily_dir=daily1, trusted_root=td1) == (True, ''),
+# WP-BR vintage域(#57b): 正常日Gate A基线齐备(基线PASS/演进合法DEGRADED)
+check("G1 正常日: 真实链路Gate A基线齐备(vintage域)且批次核验通过",
+      bl.gate_vintage_ok(snap1.get('gate_a') or {})[0]
+      and rp.verify_anchor_batch(apath1, daily_dir=daily1, trusted_root=td1) == (True, ''),
       f"gate={g1}")
 
 td2, daily2, snap2 = build_day(mutate_macro=lambda o: o['data']['CPI'].update(date='2026-08-10'))

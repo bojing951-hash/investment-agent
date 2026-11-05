@@ -748,9 +748,12 @@ check("O2 真实新闻消费链进入周报输入: 摘要条目带[art_]身份+�
       and '来源索引(确定性代码构造' in news_part
       and 'https://r.com/w3' in news_part, news_part[-200:])
 statO = json.load(open(STATO, encoding='utf-8'))
-check("O3 正式发布/身份/长期状态无回归: published=true+final_quality=PASS+"
-      "formal身份有效+thesis/views内容未变(零合成状态写入)",
-      statO.get('published') is True and statO.get('final_quality') == 'PASS'
+check("O3 正式发布/身份/长期状态无回归: published=true+final_quality==gate_a"
+      "(基线齐备vintage域)+formal身份有效+thesis/views内容未变(零合成状态写入)",
+      # WP-BR vintage域(#40b): final_quality随真实gate(基线PASS/演进合法DEGRADED)
+      statO.get('published') is True
+      and statO.get('final_quality') == statO.get('gate_a')
+      and bl.gate_vintage_ok({'status': statO.get('gate_a')})[0]
       and rp.formal_report_view(REPO)[0] is not None
       and json.load(open(THG, encoding='utf-8'))['updated_at']
       == '2026-10-24T08:00:00'

@@ -275,9 +275,12 @@ tamA['target_date'] = '20261024'                   # 合法回退源在场(洗�
 st_tam, why_tam = rp.gate_status(tamA, data_dir=dailyA, trusted_root=tdA)
 rec_tam = rp.recompute_gate_a(tamA)
 check("A5 真实链路洗白组合('2026-10-24INVALID'+target_date='20261024'): "
-      "对照快照gate_status=PASS; 注入后gate_status=None(不可用,非PASS/"
-      "DEGRADED任何放行态)+recompute fail-closed+reason可诊断",
-      snapA_pass == 'PASS' and st_tam is None
+      "对照快照gate_status=基线齐备(vintage域); 注入后gate_status=None"
+      "(不可用,非PASS/DEGRADED任何放行态)+recompute fail-closed+reason可诊断",
+      # WP-BR vintage域(#39b): 对照=基线齐备(基线PASS/演进合法DEGRADED)
+      snapA_pass in ('PASS', 'DEGRADED')
+      and bl.gate_vintage_ok({'status': snapA_pass})[0]
+      and st_tam is None
       and rec_tam['effective'] is None
       and any('research_as_of显式存在但非法' in r for r in rec_tam['reasons']),
       f"对照={snapA_pass}/{reasonA} 注入={st_tam}/{str(why_tam)[:60]}")
@@ -309,9 +312,12 @@ snapA3 = json.loads(json.dumps(snapA))
 snapA3.pop('research_as_of')
 snapA3['target_date'] = '20261024INVALID'         # 键缺席+非法target_date
 st_no, why_no = rp.gate_status(snapA3, data_dir=dailyA, trusted_root=tdA)
-check("A6 正向三连: 合法both=PASS; 缺as_of+严格八位合法tgt=PASS(受控回退"
-      "保持正常研究); 缺as_of+非法tgt=None(非法tgt不得为回退源)",
-      snapA_pass == 'PASS' and st_fb == 'PASS' and st_no is None,
+check("A6 正向三连: 合法both=基线齐备(vintage域); 缺as_of+严格八位合法tgt="
+      "基线齐备(受控回退保持正常研究); 缺as_of+非法tgt=None(非法tgt不得为回退源)",
+      # WP-BR vintage域(#39c): 对照/受控回退=基线齐备(声明==重算一致已由
+      # gate_status保证,vintage域判终态)
+      bl.gate_vintage_ok({'status': snapA_pass})[0]
+      and bl.gate_vintage_ok({'status': st_fb})[0] and st_no is None,
       f"both={snapA_pass} fb={st_fb}/{str(why_fb)[:40]} "
       f"badtgt={st_no}/{str(why_no)[:40]}")
 

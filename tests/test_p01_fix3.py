@@ -54,6 +54,7 @@ import data_validator as dv               # noqa: E402
 import monthly_review as mr               # noqa: E402
 import report_generator as rg             # noqa: E402
 import fixt                               # noqa: E402
+from helpers import baseline_locks as bl  # noqa: E402  WP-BR三联锁(vintage域)
 
 DAY = '20261024'
 DAY1 = '20261023'      # 跨日场景: 上一个发布日
@@ -240,8 +241,12 @@ with tempfile.TemporaryDirectory() as td:
     snap, snap_path, paths = fixt.build_full_day(td, DAY)
     ok, problems = run_verify(td)
     meta = rp.load_meta(paths['pack'])
-    check("对照: 全核心PASS日→预检通过+包meta.gate_a=PASS(字段在)",
-          ok and meta.get('gate_a') == 'PASS', f"{ok}:{problems[:1]}")
+    # WP-BR vintage域(#17): 正常日=基线通道硬active齐备;基线注册表=PASS,
+    # 演进注册表(基线后新增未采集)=vintage合法DEGRADED,meta如实即通过
+    _ok_v17, _why_v17 = bl.gate_vintage_ok(snap['gate_a'])
+    check("对照: 基线齐备正常日→预检通过+包meta.gate_a如实(基线PASS/vintage合法降级)",
+          ok and _ok_v17 and meta.get('gate_a') == snap['gate_a'].get('status'),
+          f"{ok}:{meta.get('gate_a')}:{_why_v17}")
 
 # ════════════════════════════════════════════════════════════════════
 # 2. FIX3-02(F2-NEW-002): 正式消费者只认可验证的已发布状态
@@ -490,8 +495,15 @@ with tempfile.TemporaryDirectory() as td:
     snap, snap_path, paths = fixt.build_full_day(td, DAY)
     tamper_pack_meta(paths['pack'], gate_a='DEGRADED')
     ok, problems = run_verify(td)
-    check("(b)A=PASS+pack报DEGRADED→拒(双向一致才可信)",
-          ok is False and any('gate_a' in p for p in problems), str(problems[:2]))
+    # WP-BR vintage域(#18): 基线=权威PASS,pack报DEGRADED=矛盾→拒;
+    # 演进(权威vintage合法DEGRADED)下pack=DEGRADED=如实一致→通过
+    # (谎报PASS方向的反例由(a)覆盖,非法降级仍走拒绝分支)
+    _auth_b18 = snap['gate_a'].get('status')
+    _ok_v18, _ = bl.gate_vintage_ok(snap['gate_a'])
+    check("(b)A=PASS+pack报DEGRADED→拒(双向一致才可信;vintage演进日如实DEGRADED)",
+          (ok is False and any('gate_a' in p for p in problems))
+          if (_auth_b18 == 'PASS' or not _ok_v18) else ok,
+          f"auth={_auth_b18}:{problems[:2]}")
 
 # (c) A=FAIL, 伪造pack(gate_a=PASS) → 拒(装配器根本不产包,手 forg e 也不行)
 with tempfile.TemporaryDirectory() as td:

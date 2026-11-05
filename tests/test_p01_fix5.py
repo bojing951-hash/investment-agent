@@ -54,6 +54,7 @@ import data_assembler as da               # noqa: E402
 import report_generator as rg             # noqa: E402
 import daily_prediction_observer as dpo   # noqa: E402
 import fixt                                # noqa: E402
+from helpers import baseline_locks as bl   # noqa: E402  WP-BR三联锁(vintage域)
 
 DAY = '20261024'
 PREV_D = '20261023'
@@ -155,15 +156,18 @@ print("=" * 64)
 print("\n── A. 来源一致性(FIX5-01)")
 
 rec = rp.recompute_gate_a(SNAP, data_dir=BASE_DAILY, trusted_root=BASE)
-check("A0 对照: 真实全active构建(带采集目录)→PASS零非法",
+# WP-BR vintage域(#20): 基线=PASS;演进注册表(基线后新增未采集)=vintage合法
+# DEGRADED(基线通道硬active语义不因新增指标缺席而失效)
+_ok_v20, _why_v20 = bl.gate_vintage_ok(rec)
+check("A0 对照: 真实全基线active构建(带采集目录)→基线齐备(vintage域)零非法",
       # W2-FIX1(§6.4)修订: 月频事实WARN档不计入counts桶——全active零FAIL/零
       # DEGRADED且PASS+WARN总数覆盖全部active(78)即"全部合格"
-      rec['effective'] == 'PASS' and rec['illegal_quality'] == []
+      _ok_v20 and rec['illegal_quality'] == []
       and rec['counts']['PASS'] + sum(
           1 for f in SNAP['facts']
           if f.get('quality_status') == 'WARN') >= 78
       and rec['counts']['FAIL'] == 0 and rec['counts']['DEGRADED'] == 0,
-      f"eff={rec['effective']} illegal={rec['illegal_quality'][:2]}")
+      f"eff={rec['effective']} {_why_v20} illegal={rec['illegal_quality'][:2]}")
 
 s = mutated(SNAP, 'SPX', **{'source': {'collector': 'fictitious_collector',
                                        'file': 'global_20261024.json'}})
@@ -193,11 +197,17 @@ check("A4 事实声明他人通道批次文件(macro_*)→批次不一致拒",
       illegal_has(r, 'source.file与当次采集批次不一致'),
       str(r['illegal_quality'][:1]))
 
-check("A5 对照: 真实EXACT通道(file_date==当日,事实file==批次file)",
-      all(st.get('status') == 'EXACT' and st.get('file_date') == DAY
-          for st in SNAP['sources_status'].values())
+# WP-BR vintage域(#22): 盲迭代→基线四通道逐通道EXACT+file_date==当日(硬要求)
+# +在场通道结构合法(新增通道不回溯要求EXACT)
+_ok_ss22, _why_ss22 = bl.sources_status_baseline_ok(
+    SNAP['sources_status'], require='EXACT')
+check("A5 对照: 真实EXACT通道(基线四通道file_date==当日,事实file==批次file)",
+      _ok_ss22
+      and all(SNAP['sources_status'][_ch]['file_date'] == DAY
+              for _ch in bl.BASELINE_SOURCE_CHANNELS)
       and all(f['source']['file'] == SNAP['sources_status']['global']['file']
-              for f in SNAP['facts'] if f['metric_id'] == 'SPX'))
+              for f in SNAP['facts'] if f['metric_id'] == 'SPX'),
+      '; '.join(str(_w) for _w in _why_ss22[:3]))
 
 with tempfile.TemporaryDirectory() as tdf:
     fixt.write_collectors(tdf, PREV_D)      # 前一日文件名→当日目标回退
@@ -207,13 +217,21 @@ with tempfile.TemporaryDirectory() as tdf:
                                 out_dir=os.path.join(tdf, 'out'),
                                 as_of=fixt.as_of_for(DAY))
 r = rp.recompute_gate_a(snap_fb)
-check("A6 对照: 真实FALLBACK(保留真实旧文件日期+lag_days,事实file=回退文件)→PASS",
-      r['effective'] == 'PASS'
-      and all(st['status'] == 'FALLBACK' and st['file_date'] == PREV_D
-              and st['lag_days'] == 1 for st in snap_fb['sources_status'].values())
+# WP-BR vintage域(#23): 盲迭代→基线四通道逐通道FALLBACK+file_date==前日+lag_days==1
+# (硬要求)+在场通道结构合法(新增通道不回溯要求FALLBACK)
+_ok_ss23, _why_ss23 = bl.sources_status_baseline_ok(
+    snap_fb['sources_status'], require='FALLBACK')
+check("A6 对照: 真实FALLBACK(基线四通道保留真实旧文件日期+lag_days,事实file=回退文件)"
+      "→基线齐备(vintage域)",
+      bl.gate_vintage_ok(r)[0]
+      and _ok_ss23
+      and all(snap_fb['sources_status'][_ch]['file_date'] == PREV_D
+              and snap_fb['sources_status'][_ch]['lag_days'] == 1
+              for _ch in bl.BASELINE_SOURCE_CHANNELS)
       and next(f for f in snap_fb['facts'] if f['metric_id'] == 'SPX')['source']['file']
       == snap_fb['sources_status']['global']['file'],
-      f"eff={r['effective']} ss={ {k: v.get('status') for k, v in snap_fb['sources_status'].items()} }")
+      f"eff={r['effective']} ss={ {k: v.get('status') for k, v in snap_fb['sources_status'].items()} }"
+      f" why={'; '.join(str(_w) for _w in _why_ss23[:3])}")
 
 s = copy.deepcopy(snap_fb)
 for st in s['sources_status'].values():
@@ -235,7 +253,7 @@ r = rp.recompute_gate_a(SNAP)
 check("A9 对照: 合法派生来源(REAL_10Y collector=fact_engine+calc_ref+输入在场)",
       r10['source']['collector'] == 'fact_engine'
       and bool(r10.get('calculation_ref'))
-      and r['effective'] == 'PASS'
+      and bl.gate_vintage_ok(r)[0]            # WP-BR vintage域(#20)
       and not any('REAL_10Y' in x for x in r['illegal_quality']))
 
 s = mutated(SNAP, 'REAL_10Y', **{'source': {'collector': 'macro_collector',
@@ -276,7 +294,7 @@ r_pure = rp.recompute_gate_a(s)                     # 纯重验(无目录)
 r_formal = rp.recompute_gate_a(s, data_dir=BASE_DAILY, trusted_root=BASE)   # 当前正式流程
 check("A11 内部自洽的幽灵批次: 纯重验口径结构通过;正式口径核出文件不存在→拒"
       "(两级口径职责差异显式可验,不矛盾: 后者多验'文件在场'这一事实)",
-      _n >= 30 and r_pure['effective'] == 'PASS'
+      _n >= 30 and bl.gate_vintage_ok(r_pure)[0]   # WP-BR vintage域(#20)
       and r_formal['effective'] is None
       and any('来源文件在采集目录不存在' in p
               for p in r_formal.get('sources_problems', [])),
@@ -285,8 +303,8 @@ check("A11 内部自洽的幽灵批次: 纯重验口径结构通过;正式口径
 # ════════════════════════════════════════════════════════════════════
 print("\n── B. 事实质量一致性(FIX5-02)")
 
-check("B1 对照: PASS+无严重issues(真实构建)→PASS",
-      rp.recompute_gate_a(SNAP)['effective'] == 'PASS')
+check("B1 对照: PASS+无严重issues(真实构建)→基线齐备(vintage域)",
+      bl.gate_vintage_ok(rp.recompute_gate_a(SNAP))[0])   # WP-BR vintage域(#20)
 
 _FAIL_ISSUE = [{'category': 'fixture', 'severity': 'FAIL', 'message': '模拟严重问题'}]
 _DEG_ISSUE = [{'category': 'fixture', 'severity': 'DEGRADED', 'message': '模拟降级'}]
@@ -313,7 +331,7 @@ _b4_pass = SNAP['quality']['counts']['PASS'] - (
               if f['metric_id'] == 'BEI_10Y').get('quality_status') == 'PASS' else 0)
 check("B4 对照: WARN+WARN issue→合法(WARN为独立档位不计入counts不降级,"
       "声明与重算一致,既有语义)",
-      r['effective'] == 'PASS'
+      bl.gate_vintage_ok(r)[0]               # WP-BR vintage域(#20)
       and r['counts'] == {'PASS': _b4_pass, 'DEGRADED': 0, 'FAIL': 0}
       and 'BEI_10Y' not in r['noncore_fail'] + r['noncore_degraded']
       and not r['illegal_quality'],
@@ -397,8 +415,8 @@ for tag, od, kw in (
           str([x for x in r['illegal_quality'] if 'observation_date' in x
                or '晚于' in x][:1]))
 
-check("C1 对照: 合法ISO日期(真实构建全部事实)→PASS(零日期非法)",
-      rp.recompute_gate_a(SNAP)['effective'] == 'PASS'
+check("C1 对照: 合法ISO日期(真实构建全部事实)→基线齐备vintage域(零日期非法)",
+      bl.gate_vintage_ok(rp.recompute_gate_a(SNAP))[0]   # WP-BR vintage域(#20)
       and not any('observation_date' in x for x in
                   rp.recompute_gate_a(SNAP)['illegal_quality']))
 
@@ -434,8 +452,8 @@ check("C11 YYYYMMDD在规范化阶段转ISO(采集端语义不变)",
 # ════════════════════════════════════════════════════════════════════
 print("\n── D. 来源状态fail-closed(FIX5-04)")
 
-check("D1 对照: 合法完整sources_status→PASS",
-      rp.recompute_gate_a(SNAP)['effective'] == 'PASS')
+check("D1 对照: 合法完整sources_status→基线齐备(vintage域)",
+      bl.gate_vintage_ok(rp.recompute_gate_a(SNAP))[0])   # WP-BR vintage域(#20)
 
 with tempfile.TemporaryDirectory() as tdm:
     fixt.write_collectors(tdm, DAY, missing=('UMCSENT',))
@@ -445,8 +463,10 @@ with tempfile.TemporaryDirectory() as tdm:
                                as_of=fixt.as_of_for(DAY))
 r = rp.recompute_gate_a(snap_m)
 check("D2 对照: 合法非核心缺失(macro在场而UMCSENT缺席)→DEGRADED+采集遗漏点名"
-      "(正常降级不因fail-closed误伤)",
-      r['effective'] == 'DEGRADED' and r['noncore_missing'] == ['UMCSENT']
+      "(正常降级不因fail-closed误伤;基线缺席恰UMCSENT,vintage新增不追责)",
+      r['effective'] == 'DEGRADED'
+      and 'UMCSENT' in r['noncore_missing']
+      and set(r['noncore_missing']) - set(bl.vintage_additions()) == {'UMCSENT'}
       and '采集遗漏' in r['noncore_missing_detail'].get('UMCSENT', ''),
       f"eff={r['effective']} miss={r['noncore_missing']}")
 
@@ -549,15 +569,16 @@ check("D17 声明MISSING却携带file(伪装在场)→拒",
 # ════════════════════════════════════════════════════════════════════
 print("\n── E. 端到端(真实装配器/周报预检/发布/观察器)")
 
-check("E1 正常有效快照可以构建(Gate A=PASS)",
-      SNAP['gate_a']['status'] == 'PASS'
+check("E1 正常有效快照可以构建(基线通道齐备,vintage域)",
+      bl.gate_vintage_ok(SNAP['gate_a'])[0]   # WP-BR vintage域(#20)
       and os.path.exists(SNAP_PATH))
 
 code = _run_da_main(BASE)
 pack = os.path.join(BASE, 'data', 'weekly', f'data_pack_{DAY}.md')
 pm = rp.load_meta(pack)
-check("E2 Gate A PASS正常进入数据包(exit0+包在场+meta.gate_a=PASS)",
-      code == 0 and os.path.exists(pack) and pm.get('gate_a') == 'PASS',
+check("E2 正常日进入数据包(exit0+包在场+meta.gate_a如实=快照声明,vintage域)",
+      code == 0 and os.path.exists(pack)
+      and pm.get('gate_a') == SNAP['gate_a'].get('status'),
       f"code={code} meta_gate={pm and pm.get('gate_a')}")
 
 with tempfile.TemporaryDirectory() as td3:

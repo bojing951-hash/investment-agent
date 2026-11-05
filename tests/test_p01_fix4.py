@@ -58,6 +58,7 @@ import data_validator as dv                # noqa: E402
 import monthly_review as mr                # noqa: E402
 import report_generator as rg              # noqa: E402
 import fixt                                # noqa: E402
+from helpers import baseline_locks as bl   # noqa: E402  WP-BR三联锁(vintage域)
 
 DAY = '20261024'
 PREV = '20261023'
@@ -128,13 +129,17 @@ print("=" * 64)
 # FIX4-01 金融事实必要字段与注册表身份校验(19例矩阵)
 # ════════════════════════════════════════════════════════════════════
 print("\n── FIX4-01 金融事实必要字段与注册表身份(19例矩阵)")
-base = fixt.real_snapshot(DAY)          # 全active在场,Gate A=PASS(真实构建)
+base = fixt.real_snapshot(DAY)          # 全基线active在场,真实构建(基线Gate A=PASS)
 rec0 = rp.recompute_gate_a(base)
-check("F4-01#01 正常完整事实: effective=PASS+gate_status一致+零非法+非核心零缺失",
-      rec0['effective'] == 'PASS' and rp.gate_status(base) == ('PASS', '')
-      and rec0['illegal_quality'] == [] and rec0['noncore_missing'] == []
+# WP-BR vintage域(#19): 基线=PASS+零缺失;演进注册表(基线后新增未采集)=
+# vintage合法DEGRADED,缺失恰为vintage新增(基线条目缺失不获此待遇)
+_ok_v19, _why_v19 = bl.gate_vintage_ok(rec0)
+check("F4-01#01 正常完整事实: 基线齐备(vintage域)+gate_status一致+零非法+缺失⊆vintage新增",
+      _ok_v19 and rp.gate_status(base)[0] == rec0['effective']
+      and rec0['illegal_quality'] == []
+      and set(rec0['noncore_missing']) <= set(bl.vintage_additions())
       and rec0['non_research_facts'] == [],
-      f"eff={rec0['effective']}")
+      f"eff={rec0['effective']} {_why_v19}")
 
 ILLEGAL_CASES = [
     ('#02 删除value', 'SPX', {'value': _DEL}, 'value非法'),
@@ -189,7 +194,9 @@ snap['facts'].append({'metric_id': 'FAKE_METRIC_FIX4', 'quality_status': 'FAIL',
                       'value': None})
 rec = rp.recompute_gate_a(snap)
 check("F4-01#16b 未注册指标仅FAIL→诊断桶披露但不入有效研究事实/不阻断",
-      rec['effective'] == 'PASS' and rp.gate_status(snap) == ('PASS', '')
+      # WP-BR vintage域(#19): 裁决与基线快照重算一致(基线PASS/vintage合法DEGRADED)
+      rec['effective'] == rec0['effective']
+      and rp.gate_status(snap)[0] == rec['effective']
       and any('FAKE_METRIC_FIX4' in s for s in rec['non_research_facts'])
       and rec['counts']['PASS'] == rec0['counts']['PASS'],
       f"eff={rec['effective']} nrf={rec['non_research_facts']}")
@@ -471,9 +478,12 @@ with tempfile.TemporaryDirectory() as td:
 print("\n── FIX4-03 非核心完全缺失的降级与披露")
 snap_b = fixt.real_snapshot(DAY, missing=('UMCSENT',))       # 场景B: 完全缺席
 rec_b = rp.recompute_gate_a(snap_b)
-check("F4-03#B 非核心完全缺席→noncore_missing点名+可核查缺失原因+Gate A=DEGRADED",
+check("F4-03#B 非核心完全缺席→noncore_missing点名(基线缺席恰UMCSENT,vintage新增不追责)"
+      "+可核查缺失原因+Gate A=DEGRADED",
+      # WP-BR vintage域(#19b): 基线条目缺席=恰UMCSENT;演进新增缺席可并存(不追责)
       rec_b['effective'] == 'DEGRADED'
-      and rec_b['noncore_missing'] == ['UMCSENT']
+      and 'UMCSENT' in rec_b['noncore_missing']
+      and set(rec_b['noncore_missing']) - set(bl.vintage_additions()) == {'UMCSENT'}
       and '采集遗漏' in rec_b['noncore_missing_detail'].get('UMCSENT', '')
       and rec_b['noncore_fail'] == []                        # 不与场景A互替
       and not any(f.get('metric_id') == 'UMCSENT' for f in snap_b['facts']),
@@ -496,10 +506,12 @@ with tempfile.TemporaryDirectory() as td:
               encoding='utf-8').read()
     pm = rp.load_meta(pack)
     check("F4-03#B3 缺席逐级披露: 快照MD+数据包正文+包meta记录(其余有效数据继续研究)",
+          # WP-BR vintage域(#19c): meta缺失清单基线缺席恰UMCSENT(∪vintage新增)
           snap['gate_a']['status'] == 'DEGRADED'
           and '非核心指标缺失' in md and 'UMCSENT' in md
           and 'UMCSENT' in open(pack, encoding='utf-8').read()
-          and pm.get('noncore_missing') == ['UMCSENT'] and pm.get('gate_a') == 'DEGRADED',
+          and set(pm.get('noncore_missing') or []) - set(bl.vintage_additions())
+          == {'UMCSENT'} and pm.get('gate_a') == 'DEGRADED',
           f"gate={snap['gate_a']['status']} pm={pm.get('noncore_missing')}")
 
 snap_c = fixt.real_snapshot(DAY, missing=('SPX',))            # 核心完全缺席
@@ -538,7 +550,8 @@ rec_dep = rp.recompute_gate_a(snap_dep)
 check("F4-03#D deprecated指标(REAL_SHORT)不追责: 不入缺失清单,FAIL仅留诊断",
       'REAL_SHORT' not in rec_dep['noncore_missing']
       and any('REAL_SHORT' in s for s in rec_dep['non_research_facts'])
-      and rec_dep['effective'] == 'PASS',
+      # WP-BR vintage域(#19d): 裁决与基线快照重算一致(deprecated不改变结果)
+      and rec_dep['effective'] == rec0['effective'],
       f"eff={rec_dep['effective']}")
 
 snap_nb = copy.deepcopy(base)

@@ -32,6 +32,7 @@
 |---|---|---|---|---|---|---|---|---|---|
 | G4-CRED-001 | 2026-11-05T01:59:17Z | scripts/glm_conclusion_client.py: run_smoke(L673)→run_live_conclusion(L565)→call_glm_once(L468,真实出站点L497) | glm-5.3 @ https://open.bigmodel.cn/api/paas/v4 | 要点①(真实调用冒烟: 结构化输出过校验器+数值接地核对;兼证要点③调用日志与用量记录落盘) | GLM_API_KEY(环境变量,值不落盘) | 3 / 3 | $0.0667 / $0.0667 | 未触发 | PENDING-APPROVALS.md 2026-11-05 批复行(合同冻结章②) |
 | G4-CRED-002 | 2026-11-05T02:45:52Z | scripts/glm_conclusion_client.py: run_smoke(L673)→run_live_conclusion(L565)→call_glm_once(L468,真实出站点L497) | glm-5.3 @ https://open.bigmodel.cn/api/paas/v4 | 要点①补证据轮(合同 §九情形(c): 仅补真实重跑一次,冻结参数原样 temperature=0.2/reasoning_effort=low;操作者 2026-11-05 10:5x 追加指令;兼证要点③日志追加) | GLM_API_KEY(环境变量,值不落盘) | 0 / 3 | $0.0000 / $0.0667 | 未触发(零出站) | PENDING-APPROVALS.md 2026-11-05 批复行(合同冻结章②)+操作者补证据轮追加指令(2026-11-05 10:5x) |
+| G4-CRED-003 | 2026-11-05T03:24:43Z | scripts/glm_conclusion_client.py: run_smoke(L673)→run_live_conclusion(L565)→call_glm_once(L468,真实出站点L497) | glm-5.3 @ https://open.bigmodel.cn/api/paas/v4 | 要点①补证据轮第4次尝试·操作者代执行(二复审处方2026-11-05 11:1x HKT「操作者择时重发第4次尝试或代执行,同CI dispatch先例」+处置§五;冻结参数原样 temperature=0.2/reasoning_effort=low;恰1次=RETRY_BUDGET 运行时置1[进程内],模块文件零改动) | GLM_API_KEY(环境变量,值不落盘) | 待回填 / 4 | 待回填 | 待回填 | PENDING-APPROVALS.md 2026-11-05 批复行(合同冻结章②)+二复审处方代执行(2026-11-05 11:24 HKT) |
 
 ## 三、登记说明
 

@@ -39,7 +39,7 @@ diff 判据自评: `git diff --name-status fcd0537c..HEAD` 应=恰 3 行 A(A1-A3
 ## §四 证据包登记
 
 - 路径: /tmp/p1-wp-c-evidence/IA-P1-WP-C-EVIDENCE.zip(八类成员: ①规格抄录件+登记清单副本 ②交付文件双源副本(git 尖端版+工作树版,交叉哈希) ③git 取证原样输出 ④本地 CI 逐套件记录 ⑤逐要点证据映射表 ⑥真实运行面=「零运行产物」声明+data/daily sha256 锚定+涟漪隔离实证 ⑦自述报告副本+六项自检清单件 ⑧SHA256SUMS——清单自身显式豁免不塞入 zip,R019-D3)。
-- zip 整体 sha256: **装配于本件提交之后**(先例沿 WP-B 8edfb68 两笔形态)——终值以装配 stdout+SHA256SUMS 旁挂件为准,回填登记见本仓库后续"证据包终笔"提交(纯线性追加,零 amend)。
+- zip 终值登记(取证更正笔后装配,2026-11-05T19:02:22Z UTC=2026-11-06 03:02:22 HKT, TIP=86da5dadc0574f5c4ddccb6a668172ec702b2a67): **IA-P1-WP-C-EVIDENCE.zip=42 文件成员/196345字节/sha256=72f0b62ea6f3af04fda3707401ed940a97cc30d053d1692ba97adac292f34287**;SHA256SUMS=42行 zip 外旁挂(R019-D3 自指豁免,zip 内无 SUMS 自身);zip 内 testzip=OK;装配 stdout 与独立复算(zip_sha256_recompute)一致;双源交叉哈希 7 文件全 equal=True(含 report_generator 双源=BASE版,条件类零改动)。如实披露: zip 内 REPORT/DELIVERY 副本=86da5da 装配时点版(不含本终笔 §四 定值回填,先例沿 WP-B 8edfb68/4575a76);终局自述以执行会话 stdout 步骤14为准。
 
 ## §五 漂移维护策略声明(AC-03.6 三要素)+fixture→预期值映射
 

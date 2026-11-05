@@ -26,6 +26,7 @@ import subprocess
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # WP-B3域化: helpers可导入
 PY = sys.executable
 
 PASS, FAIL = 0, 0
@@ -55,6 +56,7 @@ import report_generator as rg
 import daily_prediction_observer as dpo
 import data_validator as dv
 import run_weekly
+from helpers import baseline_locks as bl  # WP-B3(IA-P03-E2EB)演进域化:vintage锁共享助手
 
 DAY = '20261017'
 DAY_ISO = '2026-10-17'
@@ -177,6 +179,14 @@ for st in ('PASS', 'DEGRADED', 'FAIL'):
     snap = synth_snapshot(gate=st)
     got, why = rp.gate_status(snap)
     check(f"真实快照gate_status读取{st}(事实重算一致)", got == st, f"{got} {why}")
+# WP-B3(IA-P03-E2EB)演进域化(R057形旁证,不替换三态断言): vintage正常日判定
+# 须区分「演进新增缺席」(合法DEGRADED)与「真实失败降级」——PASS日恒合法;
+# 失败日DEGRADED(noncore_fail非空)必须被拒绝,不得洗白为合法演进
+_okv, _whyv = bl.gate_vintage_ok(synth_snapshot(gate='PASS')['gate_a'])
+check("合成PASS快照vintage合法(域化旁证)", _okv, _whyv)
+_okv, _whyv = bl.gate_vintage_ok(synth_snapshot(gate='DEGRADED')['gate_a'])
+check("合成DEGRADED(失败日,noncore_fail非空)被vintage正常日判定拒绝(反向旁证)",
+      (not _okv) and 'noncore_fail' in _whyv, _whyv)
 got, why = rp.gate_status({'gate_a': {'status': 'PASS'}})
 check("裸dict无facts→None(声明不可验证,不默认PASS)", got is None, f"{got} {why}")
 got, why = rp.gate_status({})

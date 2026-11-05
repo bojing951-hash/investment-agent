@@ -12,6 +12,7 @@ from datetime import date, timedelta
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # WP-B3域化: helpers可导入
 
 PASS, FAIL = 0, 0
 
@@ -31,6 +32,7 @@ print("=" * 60)
 
 import fact_engine as fe
 import trading_calendar as tc
+from helpers import baseline_locks as bl  # WP-B3(IA-P03-E2EB)演进域化:vintage锁共享助手
 
 # ══ [1] 注册表 ════════════════════════════════════════════════════
 print("\n[1] 指标注册表")
@@ -267,6 +269,12 @@ check("core缺失可识别(SPX在但NDX/VIX等缺)", 'NDX' in g9['missing_core']
 g10 = fe.snapshot_quality_grade(gf + mf + cf + derived)
 check("无注册表active FAIL(仅未注册UNKNOWN_X诊断)→overall=PASS(诊断不冒充研究事实)",
       g10['overall'] == 'PASS')
+# WP-B3(IA-P03-E2EB)演进域化(R057形旁证): 注册表演进新增恰含日本利率四条目
+# (superset容后续合法演进),且其"已注册未接线"状态不拉低在场事实质量分级
+# (身份登记与事实流接线=E2E-B分轮;分级只看在场事实质量,不虚报缺失)
+check("演进新增含日本利率四条目且在场事实分级不受扰(域化旁证)",
+      {'JGB2Y', 'JGB5Y', 'JGB10Y', 'JP_POLICY_RATE'} <= bl.vintage_additions()
+      and g10['overall'] == 'PASS')
 # FIX4-01: 注册表active指标的合法FAIL照旧计入分级(未注册FAIL诊断不计)
 umc_fail = fe.normalize_macro({"data": {"UMCSENT": {"value": "N/A", "date": "2026-09-01",
                                                     "frequency": "monthly"}}},

@@ -374,7 +374,13 @@ for ch, rule in rp.SOURCE_FILE_RULES.items():
                   f"src={r_pure.get('sources_problems')}")
 
 # 篡改: 超窗1天/115天(自报lag自洽)→拒
-for ch, rule in rp.SOURCE_FILE_RULES.items():
+# R060 B3整改轮(REM-AC-02⑤): 篡改循环域基线化——ssp 迭代域=SOURCE_CHANNELS
+# (D6 冻结四通道,japan 键中性忽略),对其词表外通道断言 ssp 拒绝=伪证;域对齐
+# 生产冻结权威 bl.BASELINE_SOURCE_CHANNELS(基线四通道篡改断言零变化)。japan
+# 超窗拒绝语义由 A3(test_p03_e2eb_b3.py T5 负向: 超回退窗→MISSING)承载;
+# B 真实构建循环(上方)保持 live 域,japan 经 fixt japan fixture 真实构建覆盖。
+for ch in bl.BASELINE_SOURCE_CHANNELS:
+    rule = rp.SOURCE_FILE_RULES[ch]
     w = rule['max_fallback_days']
     for lag, tag in ((w + 1, f'超窗1天lag={w+1}'), (115, '115天旧文件')):
         ss = copy.deepcopy(_OK_SS)

@@ -171,6 +171,8 @@
 | WP-P1-C 经济体评分·装配·报告 | 评分/数据包/报告经济体化 | scorecard economy 参数化(DP-3)、数据包经济体节、相关性新对、报告模板与 Gate B 锚点 | WP-B | ① 维度扩展单测+DATA_INSUFFICIENT 负向【测试】② 数据包经济体节渲染快照测试【测试】③ Gate B 对新锚点全量核验用例【测试/CI】 |
 | WP-P1-D 查询面与共享档案衔接 | 四经济体 NL 查询与档案 ID 衔接 | IR economy 字段、QB-/RT- 引用约定落地、W-1/W-2 场景实现化 | **依赖 P0-3 落地**(E2E-A/B 实现) | ① IR schema 扩展单测(economy 过滤+接地标识强制)【测试】② W-1/W-2 端到端用例: 缺席→「无数据」+差距登记断言【测试】③ 档案记录附 snapshot_id+digest 的校验【测试】 |
 | WP-P1-E CN 面修复与宏观扩展 | 断点修复+CN 宏观接入 | G-P1-10..18(备源切换与新宏观接口) | **依赖用户授权**(china 采集器冻结在案);tushare 积分/e-Stat→PENDING 报批,不为唯一路径 | ① 断点修复后 `china_YYYYMMDD.json` 对应节非空【数据档引用】② 源端失败注入测试(限流→MISSING 披露)【测试】③ 宏观新指标 registry 条目+单测【测试/CI】 |
+| WP-P1-F 跨经济体比较视图(§4a#19) | 四经济体横向比较消费面: 在场底图之上的并置比较视图,不重做底图 | 比较视图装配(消费 economy_scorecard_* 档与经济体观察节)、比较事实与跨域对呈现、economy 过滤查询比较用例;零新数据源(纯消费面);不含持续运行监测面(=#20,互斥) | A..E+GAP08+第一层 P0-3 落地链在场交付件(锚见 §八.1);零新数据源 | ① 比较视图=快照/事实/评分卡消费面,零直读采集档【测试】② 四经济体并置+缺席如实(DATA_INSUFFICIENT/「无数据」,不填0)【测试】③ 既有 US 面零回归【测试/CI】④ 实现参数先登记后运行、禁回改;真实调用/凭证/付费面=PENDING·用户实批前置【PENDING】 |
+| WP-P1-G(候选名)常态监测(§4a#20) | 让 P0-3 验证的研究流程在四经济体底图上更大范围长期跑: 常态运行监测与异常→研究任务衔接的运行面 | 链路健康常态监测(流水线台账+sources_status+新鲜度)、异常检测经济体扩展、异常→RT- 任务 append-only 衔接、监测回溯查询;零新数据通道;不含按需比较视图(=#19 前件,互斥) | #19 前件+第一层 P0-3 落地链+A..E+GAP08 在场交付件(锚见 §八.2);零新数据源;LIVE 部署=用户保留卡点③(PENDING) | ① 监测面=台账/快照/事实层消费,零直读采集档【测试】② 断点/缺席如实列示(与 Gate A 语义一致,不填0)【测试】③ 异常→任务走 append-only+既有 schema(研究状态保护不绕开)【测试】④ 既有 offline-tests 全套件零回归【CI】⑤ LIVE 部署与通知面=确认型 DP·PENDING·确认权留用户【PENDING】 |
 
 红线筛查(全包通用,逐包不再重复): 全部包**不含** LIVE 部署、launchd 改动、交易或收益承诺、绕开快照+门禁直读原始数据的设计;新数据一律经快照进入研究面(§三(a-4)、§四衔接设计)。
 
@@ -180,3 +182,75 @@
 2. **LIVE 禁写**: 全部工作在 DEV 仓库 dev/* 分支;LIVE 目录与 launchd 零触碰(本包 docs-only 已零接触)。
 3. **禁交易/仓位/收益承诺**: 本设计与全部工作包不含任何交易、仓位管理、收益承诺内容。
 4. **数据不足不填0**: 采集层键缺席/引擎层 available:false/Gate A 缺失披露/查询层「无数据」/评分层 DATA_INSUFFICIENT——五层一致(§三(c))。
+
+---
+
+## §八 收口链设计补全: #19 跨经济体比较视图 + #20 常态监测(实现级规格;IA-P1-DESIGN-COMP/R064 纯追加)
+
+> 本节由 R064 IA-P1-DESIGN-COMP(docs-only)追加,把 §4a 第二层 #19-20 路线级意图(注入摘要,2026-11-06,非工作树实读:L135-139 第二层行,其中 L138「19-20. 跨经济体比较视图+常态监测(让 P0-3 验证的研究流程更大范围长期跑)」=需求源行)展开为实现级规格;§一-§七 既有行零改动。溯源表/DP 登记节/数值扫描清单=`docs/P1_DESIGN_COMP_REPORT.md` §二-§五;数值标注纪律沿本文头部声明(L6)。**#21(P1 验收+终裁+封版)不在本节**: 终验/封版/用户确认面由 #21 合同事承载(本节仅衔接注记)。**两包范围互斥划界**: #19=按需横向比较消费面 / #20=持续运行监测面。**红线承接**: §六 L177 红线筛查与 §七 L179-L184 四红线对 #19/#20 全量适用(本节零例外条款);W4/W5 侧边验收工具不入链(注入摘要架构纪律)。
+
+### §八.1 WP-P1-F 跨经济体比较视图(§4a #19;实现包=WP-P1-F,R062 停泊名,v1.1 重锚后生效)
+
+**目标**: 在 P1 底图层在场交付面之上,提供四经济体(US/CN/JP/EA,INVENTORY a.1 DP-1 默认候选)横向比较消费面——把各经济体评分卡状态、关键事实与跨域相关性并置为单一比较视图,支撑 W-1 型(US×EA 政策分化,§三(d) L88-L100)跨经济体研究问题的例行对照。**纯消费面**: 零新数据源、零新采集通道、不重做底图;数据与研究档案唯一入口=研究快照(§四衔接设计 L141)。
+
+**范围**:
+1. **比较视图装配面**: US 主评分卡(`scorecard_{ymd}.json`)与非 US 档(`economy_scorecard_{econ}_{ymd}.json`,macro_scorecard.py L40/L487-L488)并置;复用数据包「经济体观察」节渲染面(data_assembler.py L277-L301)扩展比较呈现;沿用评分卡 DISCLAIMER 口径(内部模型观点非客观事实,macro_scorecard.py L32-L33),不构成投资建议;
+2. **比较事实面**: 快照事实+`series_store`(snapshot_builder.py L427-L471)与跨域对(correlation_calculator.py PAIRS L28,含 NIKKEI225×USDJPY L49/DAX×EURUSD L51)的比较型呈现;
+3. **查询比较面**: economy 过滤维度(research_history_query.py L184-L201/L337)的比较型查询用例(W-1/W-2 型问题);
+4. **互斥划界**: 不含持续运行监测/告警/台账常态面(=#20);不含 #21 终验/封版面(衔接注记: 终验/封版面由 #21 承载)。
+
+**依赖**(层序前置声明: 实现面排程前置=第一层已关闭+WP-P1-A..E(R044-R048)+GAP08(R061)全部在场[BASE-COMP 工作树实读,能力面清单见 REPORT §四];#19 不登记 #20 前件):
+- scripts/macro_scorecard.py: score_growth L99/score_inflation L200(economy 参数)/save_scorecard L414-L417/DATA_INSUFFICIENT L30/ECONOMY_NAMES L39;
+- scripts/data_assembler.py: economy_scorecard L91/「经济体观察」节 L277-L301;
+- scripts/correlation_calculator.py: PAIRS L28/L49/L51,paired_returns L60,compute_all L90;
+- scripts/snapshot_builder.py: build_snapshot L266/jp/ea 接线 L335-L350/series_store L427-L471;
+- scripts/fact_engine.py: normalize_jp L523/normalize_ea L566/build_all L837;
+- config/metric_registry.json: v2.3.0 [实取·json.load,2026-11-06]/102 条目 [实取·同上]/economy 字段(US49/CN18/EA11/JP8/HK4/GLOBAL12 [实取·同上]);
+- scripts/research_history_query.py: ECONOMIES L77/query_window L184/--economy L337;
+- 第一层 P0-3 落地链查询面: e2eb_query_ir.py ECONOMIES L53。
+
+**验收要点(草案;正式 AC 由 #19 实现包合同冻结)**:
+① 比较视图产物=纯快照/事实/评分卡档消费,零直读 `data/daily/` 采集档(禁直读约束=§四 L130 对 jp_/ea_ 档同样生效)【测试】
+② 四经济体并置渲染+缺席如实: 任一经济体档缺席→该经济体如实标 DATA_INSUFFICIENT/「无数据」,禁填0、禁跳过整行、禁以离岸代理冒充在岸口径【测试】
+③ 既有 US 面零回归: `scorecard_{ymd}` 主评分卡输出与既有套件断言零变化(§三(d) W-3 基准路径行为零回归,L118)【测试/CI】
+④ 实现参数(落位形态/并置指标最小集/配对新增)先登记后运行、禁回改(登记型 DP 纪律承接,见 DP 节)【纪律】
+⑤ 本包零新数据源/零凭证/零付费;若实现中识别需真实调用/凭证/付费/新数据源→只以 DP/PENDING 登记·用户实批前置,禁直接依赖【PENDING】
+
+**DP 节**(决策点/选项≥2/推荐/影响+分类;登记型提案值均为 [示意·非实取],终值由 #19 实现包合同登记定):
+- **DP-F1(登记型)比较视图落位形态**: ①数据包新节(装配器扩展) ②独立比较视图模块(消费快照+评分卡档) ③报告模板新章节。推荐②——US 面零回归触面最小;影响=实现包白名单与零回归面。
+- **DP-F2(登记型)并置指标最小集**: ①仅增长/通胀总分+regime ②总分+regime 加关键事实行(政策利率/通胀同比) ③全量指标表。推荐②——比较密度与缺席披露面平衡;影响=视图信息结构与要点②断言面。
+- **DP-F3(登记型)跨经济体配对新增**: ①零新增(仅呈现既有两跨域对 L49/L51) ②增候选对(如 SPX×SHCOMP,序列双在场性由实现包实读核验) ③更广候选集。推荐①——配对扩容属底图面非本包消费面;影响=series_store 消费面与相关性输出。
+- **确认型 DP: 无**——零新数据源/零凭证/零付费/零部署面/零批量状态修改(如实登记;若实现中发现确认型事项,只登记 PENDING,确认权留用户)。
+
+### §八.2 WP-P1-G(候选名)常态监测(§4a #20;包名候选,终名由主Agent #20 实现包预拟轮定)
+
+**目标**: 让 P0-3 验证的研究流程(注入摘要,2026-11-06,非工作树实读: E2E-A 历史查询/异常检测/研究任务结构与档案、E2E-B 自然语言入口、GLM 竞争性假设、报告生成+档案)在四经济体底图上「更大范围长期跑」(§4a L138 注入行)——设计常态监测运行面: 每日链路健康监测、四经济体异常检测扩展、异常→研究任务→档案的常态化衔接。**纯运行面设计**: 不重做底图、零新数据通道、不绕开快照与研究状态保护机制。
+
+**范围**:
+1. **链路健康常态监测面**: 既有 13 步流水线(run_weekly.py steps L126-L157 [实取·2026-11-06 工作树实读;R015 时点 11 步已被 WP-A v1.3 扩为 13 步,以工作树实读为准])台账(`logs/pipeline_run_YYYYMMDD.json`,run_weekly.py L12/L217-L238)与快照 sources_status/Gate A(snapshot_builder.py L382-L385)之上的常态健康视图(逐通道断点/MISSING 回溯、新鲜度越限列示——月频窗 60 天沿既有口径 [实取·config/metric_registry.json CPI 条目 freshness.max_calendar_lag_days=60,2026-11-06 json.load 复核];回溯窗=N 日=登记型 DP-G1);
+2. **异常检测经济体扩展面**: 既有 detect_divergence(anomaly_detector.py L60,阈值登记 L29-L32 [实取: CORR_THRESHOLD=0.30/RATE_BP_THRESHOLD=25.0/GOLD_PCT_THRESHOLD=2.0])为 US 单一对(利率×黄金);扩展形态=登记型 DP-G2(泛化/新规则/regime 变化候选三选);
+3. **异常→研究任务衔接面**: research_task_manager(build_task L79/SCHEMA_MIN_FIELDS L36-L37/falsifiable_conditions L139/append-only 落档 L165-L189)与 RT- economy 字段(_task_economy L64)的常态化衔接;**研究状态保护=append-only+状态机+门禁**(论点状态修改=report_generator.py update_thesis_status L985;流水线级放行语义=台账 allow_state_writeback,run_weekly.py L211-L216),设计禁绕开;
+4. **监测回溯查询面**: research_history_query economy 过滤(L184-L201)作为监测回溯消费面;
+5. **互斥划界**: 不含按需横向比较视图(=#19 前件,层内收口链序: #19 先落地);#21 终验/封版/用户确认面不进本包(衔接注记: 终验/封版面由 #21 承载);
+6. **部署边界**: 「长期跑」运行宿主(LIVE launchd/定时面)=用户保留卡点(注入摘要 L166: 用户三个保留卡点③LIVE 部署)——本包只设计监测逻辑与离线可验面,任何 LIVE 部署=确认型 DP-G4·PENDING。
+
+**依赖**(#19 前件+层序前置声明: 第一层已关闭+A..E+GAP08 在场;能力面清单见 REPORT §四):
+- 第一层 P0-3 落地链: anomaly_detector.py L29-L32/L60;research_task_manager.py L36-L37/L64/L79/L139/L165-L189;research_history_query.py L77/L100/L184;research_archive.py validate_id_conventions L67(QB-/RT-)/validate_query_record L191;report_generator.py generate_report L377/verify_research_inputs L612/update_thesis_status L985;data_validator.py validate_report L755(Gate B)/forbidden_phrases_in L238;
+- 底图: run_weekly.py L126-L157(13 步)/L211-L216(放行标志)/L217-L238(台账);snapshot_builder.py L47/L266/L335-L350/L382-L385;config/metric_registry.json v2.3.0/102 条目(freshness 字段);
+- #19(前件): 比较视图先落地,监测面消费其视图与底图。
+
+**验收要点(草案;正式 AC 由 #20 实现包合同冻结)**:
+① 监测视图=台账+快照+事实层消费,零直读采集档、零新数据通道【测试】
+② 断点/缺席如实列示: 任一通道连续 MISSING/新鲜度越限→如实呈现(禁0填充禁静默),语义与 Gate A DEGRADED/MISSING 一致【测试】
+③ 异常→研究任务衔接走 append-only+既有 schema(SCHEMA_MIN_FIELDS 可增不可减,falsifiable_conditions 语义不变);研究状态修改仅经既有状态机/门禁面【测试】
+④ 既有 offline-tests 全套件零回归(套件数以 #20 实现包合同 BASE 实取值为准,不预植固定数)【CI】
+⑤ 实现参数(回溯窗/新鲜度口径/异常规则族)先登记后运行、禁回改(登记型 DP 纪律承接,见 DP 节)【纪律】
+⑥ LIVE 部署与通知面=确认型 DP·PENDING·确认权留用户(用户保留卡点③);本包交付零 LIVE 写入【PENDING】
+⑦ 涉真实 GLM 调用面(若监测衔接报告生成)=PENDING·用户实批前置;离线测试全 mock【PENDING】
+
+**DP 节**(决策点/选项≥2/推荐/影响+分类;登记型提案值均为 [示意·非实取],终值由 #20 实现包合同登记定):
+- **DP-G1(登记型)常态健康回溯窗**: ①7 日 ②14 日 ③30 日。推荐② [示意·非实取];影响=监测视图数据面与要点②断言构造窗。
+- **DP-G2(登记型)异常检测经济体扩展形态**: ①detect_divergence 规则族参数化 economy 泛化 ②新增经济体专用规则模块 ③复用评分卡 regime 变化作异常候选。推荐①——复用既有阈值登记结构+registry economy 维度,零新机制;影响=检测面与任务生成量。
+- **DP-G3(登记型)新鲜度监测口径**: ①registry freshness 逐条监测 ②分层口径(月频 60 天窗沿既有 [实取·见范围1]+日频通道 MISSING 回溯) ③仅核心指标。推荐②;影响=要点②越限断言面与误报率。
+- **DP-G4(确认型)常态监测运行宿主与部署面**: ①LIVE launchd 定时任务 ②手动触发 ③DEV 侧演练先行。**确认权留用户,PENDING**——LIVE 部署=用户保留卡点③(注入摘要 L166);影响=#20 实现包交付面范围(部署面不进离线可验 AC)。
+- **DP-G5(确认型)监测结果通知形态**: ①零通知(仅台账与视图) ②终端摘要 ③外部通知(推送/邮件类)。推荐①(零凭证零外部依赖) [示意·非实取];**确认权留用户,PENDING**——通知面涉用户个人流程(选项③另涉凭证=PENDING 报批);影响=#20 实现包通知面有无。

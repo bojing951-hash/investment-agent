@@ -11,7 +11,7 @@
 | 项 | 值 |
 |---|---|
 | 分支 | `dev/p1-design-comp`(自 BASE-COMP 切出,纯线性提交,零 merge;已推 origin) |
-| 提交 | 3+1 笔(规格笔/报告笔/交付笔+zip 终笔;全SHA 见 §二 git 取证与 stdout 自述;zip 终笔=DELIVERY §六定值登记 1 行追加) |
+| 提交 | 3+2 笔(规格笔/报告笔/交付笔+zip 终笔+REPORT 勘正笔[§八.1 范围区间 L196-L210→L196-L200 与 §二两处 §七 红线行号 L179→L181 更正为实值;§5.3 第4项出口];全SHA 见 §二 git 取证与 stdout 自述;zip 终笔=DELIVERY §六定值登记) |
 | A 类(恰2) | `docs/P1_DESIGN_COMP_REPORT.md` / `docs/P1_DESIGN_COMP_DELIVERY.md`(与 `git ls-files` 零重合 [实取·2026-11-06]) |
 | M 类(实触恰1) | `docs/P1_DESIGN.md`: §六 追加两行 L174-L175(WP-P1-F §4a#19/WP-P1-G 候选名 §4a#20,行式对齐既有 A..E 五列式样)+文档尾 §八 规格节 L188 起(§八.1=L192/§八.2=L225,四要素+DP 节齐备);diff=`74 插入/0 删除` [实取·git diff --numstat,纯追加零删行,P1_DELIVERY.md/P1_DATA_NEEDS_INVENTORY.md 零触碰] |
 | 改动面 | 零代码/零测试/零 workflow/零 requirements/零 .gitignore;D=0;白名单外零路径变更(AC-05.1 论证=diff 无 `.py`/`tests/`/workflow/requirements 即 docs-only 零测试面变更) |

@@ -164,13 +164,38 @@
 
 ---
 
-## §一 实现落位登记(实现后回填)
+## §一 实现落位登记(实现后回填;行号=实现终笔工作树实读)
 
-(待实现后登记: 四模块结构锚+tests 用例锚)
+**(1) scripts/routine_health_monitor.py(范围1 链路健康常态监测面;299 行)**:
+登记参数 `HEALTH_LOOKBACK_DAYS = 14` L33(DP-G1=②);`window_days` L41(=[ymd−13, ymd] 含端点);`read_ledger` L59(台账只读,缺席→None/损坏→corrupt 标记);`_ledger_summary` L71(关键失败/跳步/放行标志/`allow_state_writeback` 只读提取);`_snapshot_summary` L89(经 `rp.select_snapshot` 规范选择);`_channel_view` L100(DP-G3 层2 逐通道 MISSING streak,无快照日=断链);`_freshness_view` L137(DP-G3 层1 非日频 registry 指标逐条对照 `freshness.max_calendar_lag_days`,越限=lag **>** 窗严格大于,事实缺席→缺席行);`build_health_view` L175(`registry_metrics` 可注入=测试 hermetic 面);`render_health_markdown` L226;CLI `main` L276(--ymd/--data-dir/--logs-dir/--out)。
+
+**(2) scripts/economy_anomaly_rules.py(范围2 异常检测经济体扩展;DP-G2=②;181 行)**:
+登记常量 L29-L33(ROLLING_WINDOW=60/CORR_THRESHOLD=0.30/FX_PCT_THRESHOLD=2.0/EQ_PCT_THRESHOLD=2.0/THRESHOLDS_INCLUSIVE=True,阈值登记结构与 anomaly_detector.py L28-L32 同构);`RULES` 规则族 L36-L49(RD-DIV-CN-001/JP-001/EA-001 三行,恰 CN/JP/EA);`US_PAIR_OWNER` L53(US 对=封版 RD-DIV-001 划界);`MONITOR_DISCLAIMER` L55;`echo_params` L59;`_pearson_full` L71;`detect_economy_divergence` L86(纯函数;判定式 cond_corr/cond_move 含等号;窗口前观测自然预热;缺席=reason 不造点);`detect_all_from_series_store` L154(任一成员序列缺席→absent_reason 行)。
+
+**(3) scripts/monitor_task_bridge.py(范围3 异常→研究任务衔接;234 行)**:
+`build_monitor_task` L46(泛化任务体: `rtm.make_task_id` 确定性 id L59→L53 指纹含 frozen_params;`rtm.SCHEMA_MIN_FIELDS` 十字段构造后校验 L115-L117;`rtm._task_economy` 条件写 L118-L120;falsifiable_conditions 三条 L101-L111;history pending 落 L112-L113);`run_bridge` L124(编排: `rp.select_snapshot` L133→`detect_all_from_series_store` L150-L151→触发→建任务+series_window 装配 L178-L186→pending→active L187-L191→`rtm.save_task` L193 append-only;不触发/快照缺席=如实零任务;幂等跳过打印 L197-L198);CLI `main` L219(恒 exit 0——不触发是合法结果,情形(c))。
+
+**(4) scripts/monitor_history_view.py(范围4 监测回溯查询;270 行)**:
+`HISTORY_LOOKBACK_DAYS = 14` L38(DP-G1=② 同值);`default_window` L41;`build_payloads` L48(自快照 series_store 装配 payload,economy=registry 实取,不在 registry→None);`retrospective_windows` L68(逐经济体上游 `rhq.query_window` 直用 economy 过滤);`list_monitor_tasks` L83(RT-*.json 只读扫描含 `__v{N}`,损坏→corrupt 行,目录缺席→如实 note);`comparison_status` L105(#19 前件消费=`ecv.economy_row` 复用不复制);`build_history_view` L119;`render_history_markdown` L173;CLI `main` L229(--economies 取值域校验=rhq.ECONOMIES)。
+
+**(5) tests/test_p1_wp_g.py(38 用例=7 类;合成 fixture=唯一数据源)**:
+`YMD='20990101'` L45/`POISON='POISON_G42_MARKER'` L46;`SYNTH_REGISTRY` 合成 registry L54-L69(hermetic);手算构造器 `_pair_series` L72(逐日差分交替 ±amp→pearson=±1 精确)/`_boundary_series` L88(cond_move 含等号边界 +2.0%/−2.0%);fixture 工厂 `_write_snapshot` L116(sources_status=Gate A dict 形态)/`_write_ledger` L130/`make_health_fixture` L145/`make_bridge_fixture` L166(诱饵档 RT-DECOY)/`make_history_fixture` L180(RT- 常规+__v2+corrupt 三件);用例类: `TestRegisteredParamsFrozen` L224(要点⑤,4 用例)/`TestAcceptance1ZeroDirectRead` L269(要点①,4 用例)/`TestAcceptance2HonestAbsence` L353(要点②,6 用例)/`TestRulesEngine` L478(范围2 判定式,7 用例)/`TestAcceptance3BridgeAppendOnly` L577(要点③,9 用例)/`TestHistoryView` L723(范围4,6 用例)/`TestStaticPendingFaces` L833(要点⑥⑦,2 用例)。
 
 ## §二 逐要点证据映射表(AC-02;实现后回填)
 
-(待实现后登记)
+证据形态: (a)实现锚=file:line(§一);(b)测试锚=tests/test_p1_wp_g.py 类#用例名+结果;(c)运行锚=本地复跑记录(§四+evidence zip)。套件结果: 38/38 全绿(2026-11-07 实跑)。
+
+| 要点 | (a) 实现锚 | (b) 测试锚(38 用例全绿) | (c) 运行/纪律锚 |
+|---|---|---|---|
+| ① 零直读采集档零新通道 | rhm: 快照唯一入口=rp.select_snapshot L89-L97,开档面仅台账+快照 L165-L175;mtb: series_store 消费 L147-L151+L169-L174;mhv: build_payloads L48(纯快照)+list_monitor_tasks L83(只读 RT-);ecv/rp 接入点=§零.6 | TestAcceptance1: test_health_view_collector_presence_changes_nothing(毒丸在场/缺席两变体逐字节等值)/test_bridge_output_collector_poison_never_leaks(任务档+摘要零泄漏)/test_history_view_collector_presence_changes_nothing/test_four_modules_static_offline(四模块零网络 import) | 毒丸标记 `POISON_G42_MARKER` 于 7 通道采集档在场而三面产物零出现;evidence zip 08-injections 负向四注入佐证期望零弱化 |
+| ② 断点/缺席如实列示 | rhm L100-L134(MISSING streak+DEGRADED 不改判)+L137-L162(越限严格大于+缺席行)+L59-L87(台账缺席/损坏如实) | TestAcceptance2: test_missing_streak_and_gate_semantics(japan 连续=2/DEGRADED 回显)/test_no_snapshot_day_breaks_streak(断链不脑补)/test_freshness_violation_boundary_and_absence(lag92>60 越限/lag60 等号未越限/缺席行)/test_no_snapshot_whole_freshness_absent/test_no_ledger_honest_not_success/test_corrupt_ledger_honest | 注入#2(>→>=)即红=evidence injections/02;DISCLAIMER=登记文案逐字(test_monitor_disclaimer_registered_literal) |
+| ③ append-only+既有 schema+状态保护 | mtb L115-L117(schema 校验)/L118-L120(economy 条件写)/L193(rtm.save_task)/L187-L191(pending→active);零 update_thesis_status(全模块静态) | TestAcceptance3: test_schema_min_fields_all_present(十字段)/test_task_economy_and_lifecycle(economy='JP'/pending→active)/test_task_id_deterministic_across_builds/test_idempotent_replay_zero_rewrite(重放幂等+全目录 sha256 前后等值+诱饵档不动)/test_new_version_on_different_fingerprint(__v2 追加原档字节不动)/test_not_triggered_zero_tasks/test_snapshot_absent_zero_detection/test_cli_smoke_exit_zero/test_state_protection_static | 注入#3(save_task→朴素覆盖)即红=injections/03;研究状态保护=零调用面(静态)+summary.state_protection 登记 |
+| ④ offline-tests 全套件零回归 | 本包新增 tests/test_p1_wp_g.py(白名单 #5) | —(CI 类要点,套件级) | 本地 CI 复跑 77 槽=76 exit0+1 SKIPPED(test_glm_live)FAIL=0;BASE=76 槽→77(=BASE+本包 1);evidence local_ci.log;远端 CI=操作者 dispatch 面(合同 R062 先例) |
+| ⑤ 参数先登记后运行禁回改 | §零.5(1)-(5) 开工首步登记;实现值=登记值逐字 | TestRegisteredParamsFrozen: test_health_and_history_windows(14/窗端点)/test_rules_constants_and_table(五常量+规则族三行+US 划界)/test_echo_params_matches_registration/test_monitor_disclaimer_registered_literal | 登记时点早于实现与运行(git 历史首笔=REPORT §零 成文;evidence zip git 取证);注入#1(含等号→严格)即红=injections/01(登记语义有守卫) |
+| ⑥ LIVE/通知面=PENDING 未自决 | 四模块零 launchd/定时/常驻/通知实现(§零.5 确认型 DP 节);唯一写面=CLI 视图档+RT- 落档 | TestStaticPendingFaces: test_no_live_or_notification_faces(四模块静态扫描)/test_health_cli_writes_only_view_doc(CLI 唯一写面=tmp 输出档,daily/ 全目录 sha256 前后等值) | DP-G4/G5 未自决(§零.5);LIVE 目录/launchd 零触碰(git 取证零 ~/agent-loop 路径) |
+| ⑦ 真实 GLM 面=PENDING 未自决 | 监测不衔接报告生成(衔接面属用户实批 PENDING,未实现);零 GLM/LLM 客户端 | test_four_modules_static_offline(zhipuai/GLM import 禁面)/test_no_live_or_notification_faces(glm.chat/antglm 面) | 零网络零凭证零付费(§零.5(5) 共通);test_glm_live 在 CI=SKIPPED 不变(local_ci.log) |
+
+范围2 判定式补充锚(要点⑤ 承接): TestRulesEngine 7 用例=corr 触发(JP rho=−1 手算)/符号语义(EA 不触发+CN rho=+1 触发)/cond_move 含等号边界(+2.0%/−2.0% 恰达阈)/cond_corr 含等号边界(参数注入面 rho×s=−1.0=−threshold)/窗外如实零评分/序列缺席 absent_reason/预热窗结构(n_common=1 vs n_common_total=61)。
 
 ## §三 运行产物判定(对照依据)
 
@@ -178,4 +203,29 @@
 
 ## §四 数值标注自检清单(§5.3;提交前回填)
 
-(待双文档成文后扫描回填)
+六项自检执行记录(2026-11-07 扫描;清单成件=证据包⑤同源副本 `numeric_checklist.md`):
+
+1. **全文扫描**: REPORT+DELIVERY 全文计数类/统计类数值逐项列出(下表);
+2. **二选一标注**: `[实取·来源]` / `[示意·非实取]`(下表逐行);
+3. **[实取] 项回工作树复核**: 行数=wc -l 实测(§一/DELIVERY① 值=2026-11-07 实测: 299/181/234/270/872);用例数=unittest loader 实数(38=4+6+9+6+4+7+2);CI=local_ci.log 实录(77 行);registry 计数=json.load 实取(§零.5(1) [实取·2026-11-06]);上游 file:line=实现期工作树实读(§零.6);
+4. **疑似失实更正记录**: §一 初稿三处行数失实已更正为实值——rhm「197→290 行」→299(草稿期 streak 语义修正扩 9 行未同步)/ear 182→181/mhv 255→270(basename+缺席披露扩容未同步);按第 4 项合法出口更正,禁静默保留;
+5. **边界出圈登记**: 头部边界声明(L7)覆盖 日期/时刻=UTC、SHA=全值、行号=实读时点;DP 节/验收要点引用值=规格逐字抄录(锚=§六 L175+§八.2,非自造数值);
+6. **成件**: 本节同源副本入证据包⑤成员。
+
+| 数值项 | 值 | 标注 |
+|---|---|---|
+| BASE-P1G/BASE-P1G-CI-SUITES/BRANCH-SET | sha 8b157fd…全值/76/49 支 | [实取·§零.1 开工 ls-remote+合同 §0 注入] |
+| 开工/设计 blob 三值 | 2026-11-06T18:13:21Z;10e026c0…/df79c06f…/314c2644… | [实取·§零.1 步骤0/4 机器实取] |
+| 规格行号组 | §六 L175+§八.2 L225-L256(细锚 L227/L229-L235/L237-L240/L242-L249/L251-L256) | [实取·工作树逐字抄录§零.2] |
+| 上游锚数值 | 13 步(run_weekly L126-L157)/anomaly 阈值 0.30·25.0·2.0(L29-L32)/rtm save L164-L185/rhq L184-L201/ecv L120/registry v2.3.0·102 条 | [实取·上游件开工时点实读§零.6] |
+| 白名单规模 | A=k=7/M=0/D=0 | [实取·§零.3 清单+git ls-files 对照] |
+| registry 非日频 | monthly 23+weekly 1=24 条;7 通道 | [实取·json.load 2026-11-06/research_provenance L176-L183] |
+| DP-G1/G2/G3 定值 | ②14 日/②独立规则模块/②分层口径 | [实取·冻结章§四 逐字转录=实现值] |
+| 实现参数 | 14/60/0.30/2.0/2.0/True/round4;s=−1·+1·−1 | [登记定值=实现值(§零.5);60=anomaly_detector 同值先例实取;s=登记机械假设非事实] |
+| 模块/测试行数 | 299/181/234/270/872 | [实取·wc -l 2026-11-07;三处初稿失实已更正(见上第 4 项)] |
+| 用例数 | 38=7 类(4+6+9+6+4+7+2) | [实取·unittest loader 计数 2026-11-07] |
+| 本地 CI | 77 槽=76 exit0+1 SKIPPED | [实取·local_ci.log(BASE 76+新增 1)] |
+| 注入验证 | 4 注入=4 红(1 ERROR+3 FAIL) | [实取·injections/01-04 .txt] |
+| 合成 fixture 数值 | YMD 20990101/LAST 2098-12-31/POISON_G42_MARKER/rho=±1.0/chg=0.0·±2.0%/lag=92·60·27/窗端点 2098-12-19~2099-01-01/values [150.0,151.0]/n_window=2 | [示意·非实取(手算硬编码期望字面量,合成序列构造器推导)] |
+| rounds/065 登记件 | CI dispatch 证据路径 | [注入·合同 §六.1 操作者面] |
+| 先例锚 | R019/R022/R061/R062/R064/384dedd 等 | [实取·git log/各包 REPORT 工作树在场] |

@@ -13,8 +13,8 @@
 ## ② 证据指针
 
 - 证据包: `/tmp/p1-wp-g-evidence/IA-P1-WP-G-EVIDENCE.zip`(八类成员+SHA256SUMS 清单自身显式豁免;整体 sha256 见 §六 定值登记);
-- 本地 CI: 逐套件记录=证据包④(`local_ci.log`,77 行)——**77 槽=76 exit0+1 SKIPPED**(BASE-P1G-CI-SUITES=76+新增 tests/test_p1_wp_g.py 1=77,零回归;SKIPPED=test_glm_live 真实 GLM 套件不进 CI);驱动器=`run_local_ci.py`(与 .github/workflows/offline-tests.yml 同构: 逐套件独立子进程,test_glm_live SKIPPED);
-- 负向敏感度: 四缺陷注入四红记录(injections/01 rules 含等号→严格=cond_corr 边界用例 ERROR/02 新鲜度 >→>= =等号边界用例 FAIL/03 bridge append-only 旁路→幂等重放用例 FAIL/04 history 损坏档静默跳过→corrupt 用例 FAIL);每注入后恢复原字节并复跑全绿(期望零弱化,注入脚本内建恢复);
+- 本地 CI: 逐套件记录=证据包④(`04-local-ci/local_ci.log`,78 行=77 槽行+1 TOTAL 行)——**77 槽=76 exit0+1 SKIPPED**(BASE-P1G-CI-SUITES=76+新增 tests/test_p1_wp_g.py 1=77,零回归;SKIPPED=test_glm_live 真实 GLM 套件不进 CI);驱动器=`04-local-ci/run_local_ci.py`(与 .github/workflows/offline-tests.yml 同构: 逐套件独立子进程,test_glm_live SKIPPED;逐套件日志=04-local-ci/suite-logs/ 76 件);
+- 负向敏感度: 四缺陷注入四红记录(证据包 08-injections/,注入脚本 inject1-4.py+四红日志各 8 件: 01_rules_strict_cmp.txt rules 含等号→严格=cond_corr 边界用例 ERROR/02_freshness_eq_violation.txt 新鲜度 >→>= =等号边界用例 FAIL/03_bridge_appendonly_bypass.txt bridge append-only 旁路→幂等重放用例 FAIL/04_history_corrupt_silent_skip.txt history 损坏档静默跳过→corrupt 用例 FAIL);每注入后恢复原字节并复跑全绿(期望零弱化,注入脚本内建恢复);
 - 套件绿态: 38/38 用例全绿(`suite-logs/test_p1_wp_g.log`);
 - git 取证: 证据包③(name-status/rev-parse/log/reflog/ls-remote+设计在场核验输出);
 - CI dispatch: 操作者 CHECKPOINT 面(登记件落 `rounds/065/P1-WP-G-CI-dispatch-evidence.md`,执行席不自行 dispatch);
@@ -70,5 +70,5 @@
 ## §六 zip 定值登记(终笔)
 
 - 证据包: `/tmp/p1-wp-g-evidence/IA-P1-WP-G-EVIDENCE.zip`
-- (装配后回填: 成员数/字节/zip 整体 sha256;装配脚本 stdout 与 shasum 独立复算一致;testzip=OK;SHA256SUMS 清单自身显式豁免不入 zip 自身校验和,R019/R023/R060/R062/R064 先例)
-- 装配时点 TIP=(终笔前一笔);zip 内本文副本=装配时点版,不含本节定值行(R064 384dedd DISCLOSED 口径);终局自述以会话 stdout 四段为准。
+- **定值**: 128 成员+SHA256SUMS=129 files;380367 字节(未压缩 1095207);zip 整体 sha256=`8d785102cd4de38689d16fa325ade0dc863c31d2800e09d6309e1ddb5523f52d`(装配脚本 stdout 与 `shasum -a 256` 独立复算一致);testzip=OK;SHA256SUMS 128 条经解包逐条复算 128 OK/0 BAD;根层零杂散,八类成员=01×1+02×15+03×18+04×79+05×3+06×1+08×8+09×3;02 双源交叉哈希 7/7 equal=True;装配工具=09-tools/assemble_zip.py(zip 内副本=实际执行的修复版);装配经三轮迭代(前两轮缺陷=根层工具件杂散入包+误执行 09-tools 内旧副本,中间 zip 均已删除且零登记零引用,终轮自根层修复版执行并独立复算);
+- 装配时点 TIP=`5ad2612e6aacc6647918edb8b664f99868245f0f`(报告笔,终笔前一笔);zip 内本文副本=装配时点版,不含本节定值行与②两处精度修正(R064 384dedd DISCLOSED 口径);终局自述以会话 stdout 四段为准;SHA256SUMS 清单自身显式豁免不入 zip 自身校验和(R019-D3/R023/R060/R062/R064 先例)。

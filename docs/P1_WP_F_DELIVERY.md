@@ -64,6 +64,10 @@
 | 范围3 查询 | _payloads L354-L366(静态方法内合成序列) | 窗口值[2.0,3.0,4.0]/[11.0,12.0]+n_window 3/2+不命中语义锚 |
 | 参数冻结 | REPORT §零.5/§零.6 登记表 | 常量逐字断言(经济体集/八映射/两元组) |
 
-## §七 zip 定值登记(终笔回填)
+## §七 zip 定值登记(终笔)
 
-(待终笔: 证据包整体 sha256=装配后登记;zip 内本文副本=装配时点版,不含本节定值行——R064 384dedd 先例 DISCLOSED 口径)
+- 证据包: `/tmp/p1-wp-f-evidence/IA-P1-WP-F-EVIDENCE.zip`
+- 成员: 35 件+SHA256SUMS(=zip 内 36 files;八类最低集齐+08-tools 装配工具件)
+- 字节: 108477(未压缩 234791)
+- **zip 整体 sha256=`d00ffbcb3435ad7ca8612ee10c1e11c25edc8c2fea5ae3f6c5f116ded8016862`**(装配脚本 stdout 与 shasum -a 256 独立复算一致;testzip=OK;SHA256SUMS 36 行清单自身显式豁免不入 zip 自身校验和,R019/R023/R060/R064 先例)
+- 装配时点 TIP=826579a(报告笔);zip 内本文副本=装配时点版,不含本节定值行(R064 384dedd DISCLOSED 口径);终局自述以会话 stdout 四段为准。

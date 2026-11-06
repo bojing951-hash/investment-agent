@@ -90,6 +90,6 @@ AC-01 PASS(§零.2 复核逐字一致+§零.3 清单)/AC-02 PASS(§零.14 三要
 ## §六 证据包 zip 哈希终笔(AC-06.2;装配后终笔登记,本节值=装配时点实测;v1.4 轮重装配)
 
 - 证据包: /tmp/p1-wp-e-evidence/IA-P1-WP-E-EVIDENCE.zip(v1.4 轮完整八类成员+SHA256SUMS zip 外自指豁免,R019 审计 D3/R023/R060 先例)。
-- 定值(装配 stdout 与独立复算 shasum/unzip 双通道一致): **[v1.4 装配后终笔登记——装配 stdout 与独立复算一致时落值]**。
+- 定值(装配 stdout 与独立复算 shasum/unzip 双通道一致): **成员 18 件/97961 字节/sha256=ee91bd4de5ff47000148c8bb0e6b338233f072fa320d6afa18947a2da325a0e6** [实取·装配 stdout(Python zipfile testzip=OK+逐成员 18 哈希全匹配)+shasum -a 256 独立复算同值,2026-11-06T11:0xZ UTC];SHA256SUMS 18 行 zip 外自指豁免。
 - 历轮旧包保全(禁止静默覆盖消灭): (d) 轮=IA-P1-WP-E-EVIDENCE.d-round-archived.zip(sha256=f8905d00…1a81ce6df,与 340c8e1 终笔登记值逐字一致 [实取·保全时点复算]);v1.3 轮=IA-P1-WP-E-EVIDENCE.v1.3-round-archived.zip(sha256=4662f906029f34cc08984a179000b12d8e1b188481018ad05e25e30fe55d9a22,与 be69968 终笔登记值逐字一致 [实取·2026-11-06T10:5xZ 保全时点复算])。
 - TIP=装配时分支尖端(v1.4 涟漪笔,见 git 取证成员③);zip 内 REPORT/DELIVERY 副本=装配时点版(不含本节终笔值,如实披露);终局自述以会话 stdout 四段为准(R023 先例)。

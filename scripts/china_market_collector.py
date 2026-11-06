@@ -506,6 +506,60 @@ def fetch_southbound():
     print("  ↪️ 南向主路失败/空,转东财EM回落(akshare)")
     return _fetch_southbound_em()
 
+def _fetch_margin_em():
+    """G-P1-11 融资融券备源(IA-P1-WP-E, 2026-11-06): tushare 主路不可用→东财
+    akshare 两所 margin(上交所 stock_margin_sse+深交所 stock_margin_szse)
+    **同一信用交易日期**配对合计(两所同日合计口径,与主路 margin(trade_date)
+    汇总同构);产出键与主路 1:1(date/rzye/rqye/rzye_billion/balance,元口径)
+    +via='akshare_em' 恰一新增键(诚实源标签,禁冒充 tushare);单所数据缺席/
+    配对窗内无共同日→None(如实缺席不填0,不以单所半合计冒充两所口径)。
+    SSE 完结行按 _em_max_date() 截止择新,至多 3 候选日逐一配对(深交所单日
+    查询,调用有界)。"""
+    import akshare as ak
+    try:
+        with _no_proxy():
+            end = datetime.now().strftime('%Y%m%d')
+            start = (datetime.now() - timedelta(days=14)).strftime('%Y%m%d')
+            sse = ak.stock_margin_sse(start_date=start, end_date=end)
+    except Exception as e:
+        print(f"  ❌ 融资融券备源上交所(stock_margin_sse): {type(e).__name__}: {str(e)[:120]}")
+        return None
+    if sse is None or len(sse) == 0 or '信用交易日期' not in getattr(sse, 'columns', []):
+        print("  ⚠️ 融资融券备源: 上交所无数据/列漂移")
+        return None
+    cand = sorted({str(d)[:10].replace('-', '') for d in sse['信用交易日期']
+                   if str(d)[:10].replace('-', '') <= _em_max_date().replace('-', '')},
+                  reverse=True)[:3]
+    for ymd in cand:
+        try:
+            with _no_proxy():
+                szse = ak.stock_margin_szse(date=ymd)
+            if szse is None or len(szse) == 0:
+                continue
+            sse_rows = sse[sse['信用交易日期'].astype(str).str.replace('-', '')
+                          .str[:8] == ymd]
+            if len(sse_rows) == 0:
+                continue
+            sse_row = sse_rows.iloc[-1]
+            rzye = float(sse_row['融资余额']) + float(szse['融资余额'].sum())
+            rqye = float(sse_row['融券余量金额']) + float(szse['融券余额'].sum())
+            result = {
+                'date': ymd,
+                'rzye': round(rzye, 2),
+                'rqye': round(rqye, 2),
+                'rzye_billion': round(rzye / 1e8, 2),
+                'balance': round((rzye + rqye) / 1e8, 2),
+                'via': 'akshare_em',
+            }
+            print(f"  ✅ 融资融券备源(东财两所同日合计): balance={result['balance']} 亿元 ({ymd})")
+            return result
+        except Exception as e:
+            print(f"  ❌ 融资融券备源深交所@{ymd}: {type(e).__name__}: {str(e)[:120]}")
+            continue
+    print("  ⚠️ 融资融券备源: 无两所同日配对(数据不足,如实缺席)")
+    return None
+
+
 def fetch_margin():
     """采集融资融券数据"""
     print("\n💳 采集融资融券...")
@@ -541,8 +595,11 @@ def fetch_margin():
             print(f"  ❌ 融资融券(margin)@{date}: {type(e).__name__}: {str(e)[:120]}")
             continue
 
-    print("  ⚠️ 融资融券数据暂不可用")
-    return None
+    # IA-P1-WP-E(G-P1-11, 2026-11-06): margin 备源切换——tushare 主路全失败→
+    # 东财 akshare 两所备源(_fetch_margin_em);备源亦不可用→None(当日该节
+    # 键缺席,不填0,§三(c) L81 纪律)。
+    print("  ↪️ 融资融券主路不可用,转东财 akshare 备源")
+    return _fetch_margin_em()
 
 def _pe_value(row):
     """PE 取值双形态兼容(IA-DATA-W3 AC-01c): 扁平 pe 键(旧产物/部分载荷形态)
@@ -557,6 +614,46 @@ def _pe_value(row):
                 print(f"  ⚠️ 估值PE取值失败(键={k}): {type(e).__name__}: {str(e)[:60]}")
                 return None
     return None
+
+
+def _fetch_valuation_em():
+    """G-P1-11 估值备源(IA-P1-WP-E, 2026-11-06): tushare 估值主路无上证 PE
+    可取→乐咕 akshare stock_market_pe_lg('上证')「平均市盈率」完结行(date≤
+    _em_max_date(),在途行禁用)。范围仅限 SH_PE 扁平桥接 pe/date 两键(+via/
+    note 口径披露),嵌套 per-index 对象不越域补造(身份纪律: 300/500/1000
+    不冒充);无完结行/值不可数值化→None(如实缺席不填0)。
+    口径披露: 乐咕=上证主板平均市盈率,注册 SH_PE=上证整体 PE(TTM) 近似
+    代理,口径差异经 note 键如实标注,禁静默混同。"""
+    import akshare as ak
+    try:
+        with _no_proxy():
+            df = ak.stock_market_pe_lg(symbol='上证')
+        # 完结行选择(乐咕列=「日期」,与东财 date 列名不同→就地选择,不改共享
+        # 助手 _em_settled_pairs 的既有契约): date≤_em_max_date(),在途行禁用
+        if df is None or len(df) == 0 or '日期' not in getattr(df, 'columns', []):
+            print("  ⚠️ 估值备源: 乐咕无数据/列漂移")
+            return None
+        settled = sorted(((str(d)[:10], i) for i, d in enumerate(df['日期'])),
+                         key=lambda p: p[0])
+        settled = [p for p in settled if p[0] <= _em_max_date()]
+        if not settled:
+            print(f"  ⚠️ 估值备源: 乐咕无完结行(date≤{_em_max_date()})")
+            return None
+        d, idx = settled[-1]
+        try:
+            pe = round(float(df.iloc[idx]['平均市盈率']), 2)
+        except (TypeError, ValueError):
+            print(f"  ⚠️ 估值备源: 乐咕平均市盈率不可数值化: {df.iloc[idx]['平均市盈率']!r}")
+            return None
+        return {
+            'pe': pe,
+            'date': d.replace('-', ''),
+            'via': 'akshare_legu',
+            'note': '乐咕上证主板平均市盈率(近似口径;注册 SH_PE=上证整体PE(TTM),口径差异如实披露)',
+        }
+    except Exception as e:
+        print(f"  ❌ 估值备源(stock_market_pe_lg): {type(e).__name__}: {str(e)[:120]}")
+        return None
 
 
 def fetch_valuation():
@@ -602,6 +699,15 @@ def fetch_valuation():
     if sh_flat:
         results.update(sh_flat)
         print(f"  ✅ 上证PE(扁平桥接 valuation.pe): {sh_flat['pe']} ({sh_flat['date']})")
+    else:
+        # IA-P1-WP-E(G-P1-11, 2026-11-06): SH_PE 扁平桥接键备源——主路无上证
+        # PE 可取→乐咕备源(_fetch_valuation_em);备源亦不可用→扁平键缺席
+        # (当日该键缺席,不填0,不以 300/500/1000 冒充上证身份)。
+        print("  ↪️ 主路无上证PE,转乐咕 akshare 备源")
+        em = _fetch_valuation_em()
+        if em is not None:
+            results.update(em)
+            print(f"  ✅ 上证PE(备源扁平桥接 valuation.pe): {em['pe']} ({em['date']})")
 
     return results
 
@@ -778,6 +884,212 @@ def fetch_ah_premium():
     print("  ❌ AH溢价指数采集失败")
     return None
 
+# ============ IA-P1-WP-E G-P1-14..18 CN 宏观采集(2026-11-06) ============
+# 免费公开源经 akshare(DESIGN §三(b) L73 预授权③直用面);境内端点一律
+# _no_proxy() 直连(2026-10-17 修复纪律);逐端点独立 try/except 容错——单端点
+# 失败仅该键缺席(§三(c) L81 降级→MISSING 披露,不填0)。月频指标观测日=
+# 统计期(月),未发布≠缺失(§三(c) L82,registry freshness 60 天窗)。端点列
+# 锚与口径=REPORT §零.6A 终值表(akshare 1.18.47 安装包源码离线实读)。
+# 产出键与 registry 新增 8 条目 1:1: lpr_1y/lpr_5y/cpi_yoy/ppi_yoy/pmi_mfg/
+# sf_flow/new_loans/omo_7d;各值 {'date','value','source'} 诚实源标签。
+
+def _norm_month(s):
+    """中文月份列归一: '2026年10月'→'2026-10';不可解析→None(如实弃行)。"""
+    m = re.search(r'(\d{4})\s*年\s*(\d{1,2})', str(s))
+    return '%s-%02d' % (m.group(1), int(m.group(2))) if m else None
+
+
+def _norm_date(s):
+    """宏观日期列归一(序向/格式不依赖): 'YYYY-MM-DD'/'YYYY/M/D'/'2026年10月
+    10日'→'YYYY-MM-DD';月粒度('2026年10月'/'2026-10')→'YYYY-MM'(观测日=
+    统计期,月频语义);不可解析→None。"""
+    s = str(s).strip()
+    m = re.search(r'(\d{4})\s*[-/年]\s*(\d{1,2})(?:\s*[-/月]\s*(\d{1,2})\s*日?)?', s)
+    if not m:
+        return None
+    y, mo, d = m.group(1), int(m.group(2)), m.group(3)
+    return '%s-%02d-%02d' % (y, mo, int(d)) if d else '%s-%02d' % (y, mo)
+
+
+def _macro_last(df, date_col, value_col):
+    """宏观序列最新有值观测(全行扫描取最大归一日期,端点返回序向不依赖;
+    值不可数值化/NaN/日期不可归一→跳行;全无有值行→None)。"""
+    if df is None or len(df) == 0:
+        return None
+    best = None
+    for _, row in df.iterrows():
+        d = _norm_date(row.get(date_col))
+        v = row.get(value_col)
+        if d is None or v is None:
+            continue
+        try:
+            fv = float(v)
+        except (TypeError, ValueError):
+            continue
+        if fv != fv:                      # NaN(金十端点未发布行形态)→如实跳行
+            continue
+        if best is None or d > best[0]:
+            best = (d, fv)
+    return best
+
+
+def _macro_last_month(df, month_col, value_col):
+    """月度宏观序列最新有值观测(月份列 '2026年10月' 形态→'YYYY-MM' 归一;
+    语义同 _macro_last: NaN/不可数值化跳行,序向不依赖)。"""
+    if df is None or len(df) == 0:
+        return None
+    best = None
+    for _, row in df.iterrows():
+        d = _norm_month(row.get(month_col))
+        v = row.get(value_col)
+        if d is None or v is None:
+            continue
+        try:
+            fv = float(v)
+        except (TypeError, ValueError):
+            continue
+        if fv != fv:
+            continue
+        if best is None or d > best[0]:
+            best = (d, fv)
+    return best
+
+
+def _parse_omo_rows(lines, today=None):
+    """央行公开市场业务交易公告行纯解析(G-P1-18;可注入零网络): 行序列中
+    过滤 7 天期逆回购操作行→[(日期, 利率)] 升序去重。行形锚(公告短语形态,
+    测试合成 fixture 同构): '2026年11月5日 …7天期逆回购操作…中标利率1.80'。
+    today='YYYY-MM-DD' 给出→仅取观测行≤今日(测试冻结钟);无'7天'/'逆回购'
+    词对/利率不可解→该行跳过(如实缺席);无有效行→[]。"""
+    rows = {}
+    for line in lines:
+        s = str(line)
+        if ('7天' not in s) or ('逆回购' not in s):
+            continue
+        d = _norm_date(s)
+        m = re.search(r'中标利率[^0-9]{0,6}([0-9]+(?:\.[0-9]+)?)', s)
+        if d is None or m is None:
+            continue
+        if today is not None and d > today:
+            continue
+        rows[d] = float(m.group(1))
+    return [(d, rows[d]) for d in sorted(rows)]
+
+
+def _omo_rows_default():
+    """G-P1-18 源默认装载器: 免费公开现成接口缺席(akshare 1.18.47 源码 grep
+    逆回购零命中[实取·离线])→PENDING 披露返回 None(禁造数禁网络;接线留
+    后续轮,操作者排程面)。"""
+    print("  ⏳ CN_OMO_7D 源未接线(PENDING): 公告装载待后续轮接线,本节如实缺席")
+    return None
+
+
+def fetch_omo_7d(rows=None, today=None):
+    """G-P1-18 采集点: rows=公告行序列注入(纯解析面);rows=None→默认装载器
+    (_omo_rows_default)。返回 {'date','value','source':'pboc_omo'} 或 None。"""
+    if rows is None:
+        rows = _omo_rows_default()
+        if rows is None:
+            return None
+    parsed = _parse_omo_rows(rows, today=today)
+    if not parsed:
+        return None
+    d, v = parsed[-1]
+    return {'date': d, 'value': round(v, 2), 'source': 'pboc_omo'}
+
+
+def fetch_macro():
+    """采集 CN 宏观序列(G-P1-14..17+G-P1-18 装配点;IA-P1-WP-E): 返回 dict,
+    产出键与 registry 新增 8 条目 1:1(lpr_1y/lpr_5y/cpi_yoy/ppi_yoy/pmi_mfg/
+    sf_flow/new_loans/omo_7d);逐端点容错,单端点失败→该键缺席(禁 0 填充)。"""
+    print("\n🏦 采集 CN 宏观序列...")
+    import akshare as ak
+    out = {}
+
+    # G-P1-14 LPR(东财;TRADE_DATE/LPR1Y/LPR5Y 列锚)
+    try:
+        with _no_proxy():
+            df = ak.macro_china_lpr()
+        for key, col in (('lpr_1y', 'LPR1Y'), ('lpr_5y', 'LPR5Y')):
+            got = _macro_last(df, 'TRADE_DATE', col)
+            if got is not None:
+                out[key] = {'date': got[0], 'value': round(got[1], 2),
+                            'source': 'akshare_em'}
+                print(f"  ✅ {key}: {out[key]['value']} ({out[key]['date']})")
+            else:
+                print(f"  ⚠️ {key}: 无有值行(macro_china_lpr.{col})")
+    except Exception as e:
+        print(f"  ❌ LPR(macro_china_lpr): {type(e).__name__}: {str(e)[:120]}")
+
+    # G-P1-15 CPI/PPI 同比(金十;日期/今值 列锚)
+    for key, fn_name in (('cpi_yoy', 'macro_china_cpi_yearly'),
+                         ('ppi_yoy', 'macro_china_ppi_yearly')):
+        try:
+            with _no_proxy():
+                df = getattr(ak, fn_name)()
+            got = _macro_last(df, '日期', '今值')
+            if got is not None:
+                out[key] = {'date': got[0], 'value': round(got[1], 2),
+                            'source': 'akshare_jin10'}
+                print(f"  ✅ {key}: {out[key]['value']} ({out[key]['date']})")
+            else:
+                print(f"  ⚠️ {key}: 无有值行({fn_name}.今值)")
+        except Exception as e:
+            print(f"  ❌ {key}({fn_name}): {type(e).__name__}: {str(e)[:120]}")
+
+    # G-P1-16 制造业 PMI(东财;月份/制造业-指数 列锚,中文月份归一)
+    try:
+        with _no_proxy():
+            df = ak.macro_china_pmi()
+        got = _macro_last_month(df, '月份', '制造业-指数')
+        if got is not None:
+            out['pmi_mfg'] = {'date': got[0], 'value': round(got[1], 2),
+                              'source': 'akshare_em'}
+            print(f"  ✅ pmi_mfg: {out['pmi_mfg']['value']} ({out['pmi_mfg']['date']})")
+        else:
+            print("  ⚠️ pmi_mfg: 无有值行(macro_china_pmi.制造业-指数)")
+    except Exception as e:
+        print(f"  ❌ PMI(macro_china_pmi): {type(e).__name__}: {str(e)[:120]}")
+
+    # G-P1-17 社融增量(商务部转载;月份/社会融资规模增量 列锚)
+    try:
+        with _no_proxy():
+            df = ak.macro_china_shrzgm()
+        got = _macro_last_month(df, '月份', '社会融资规模增量')
+        if got is not None:
+            out['sf_flow'] = {'date': got[0], 'value': round(got[1], 2),
+                              'source': 'akshare_mofcom'}
+            print(f"  ✅ sf_flow: {out['sf_flow']['value']} ({out['sf_flow']['date']})")
+        else:
+            print("  ⚠️ sf_flow: 无有值行(macro_china_shrzgm.社会融资规模增量)")
+    except Exception as e:
+        print(f"  ❌ 社融(macro_china_shrzgm): {type(e).__name__}: {str(e)[:120]}")
+
+    # G-P1-17 新增人民币贷款(东财;月份/当月 列锚)
+    try:
+        with _no_proxy():
+            df = ak.macro_china_new_financial_credit()
+        got = _macro_last_month(df, '月份', '当月')
+        if got is not None:
+            out['new_loans'] = {'date': got[0], 'value': round(got[1], 2),
+                                'source': 'akshare_em'}
+            print(f"  ✅ new_loans: {out['new_loans']['value']} ({out['new_loans']['date']})")
+        else:
+            print("  ⚠️ new_loans: 无有值行(macro_china_new_financial_credit.当月)")
+    except Exception as e:
+        print(f"  ❌ 新增贷款(macro_china_new_financial_credit): {type(e).__name__}: {str(e)[:120]}")
+
+    # G-P1-18 7天逆回购(无现成接口→身份预注册;公告行纯解析可注入)
+    try:
+        got = fetch_omo_7d()
+        if got is not None:
+            out['omo_7d'] = got
+            print(f"  ✅ omo_7d: {got['value']} ({got['date']})")
+    except Exception as e:
+        print(f"  ❌ omo_7d: {type(e).__name__}: {str(e)[:120]}")
+
+    return out
+
 def save_data(all_data):
     """保存数据"""
     date_str = datetime.now().strftime('%Y%m%d')
@@ -826,6 +1138,9 @@ if __name__ == '__main__':
     # 7. AH溢价（新增）
     all_data['ah_premium'] = fetch_ah_premium()
 
+    # 8. CN宏观序列(IA-P1-WP-E G-P1-14..18 新增)
+    all_data['macro'] = fetch_macro()
+
     # 保存
     save_data(all_data)
 
@@ -842,4 +1157,5 @@ if __name__ == '__main__':
     print(f"  指数估值: {'✅' if all_data.get('valuation') else '❌'}")
     print(f"  成交额:   {'✅' if all_data.get('turnover') else '❌'}")
     print(f"  AH溢价:   {'✅' if all_data.get('ah_premium') else '❌'}")
+    print(f"  CN宏观:   {len(all_data.get('macro') or {})} 项")
     print("\n🎉 采集完成！")

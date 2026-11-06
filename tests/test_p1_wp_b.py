@@ -502,8 +502,10 @@ class TestRegistryAndRealArchive(unittest.TestCase):
         self.assertEqual(m['validation']['max_week_pct_move'], 25)
         self.assertEqual(m['calendar'], 'japan')
         self.assertEqual(m['source'], 'jp_market_collector')
-        self.assertEqual(reg['version'], '2.2.0')       # 单字段≠版本变更
-        self.assertEqual(len(reg['metrics']), 94)
+        # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移): 2.2.0→2.3.0/94→102
+        # (WP-B 单字段≠版本变更原则不变;本值=WP-E 结构变更[+8 条目]所递增)
+        self.assertEqual(reg['version'], '2.3.0')
+        self.assertEqual(len(reg['metrics']), 102)
         # 上限余量=同侪带中段(SPX 3.96×/NDX 2.13×先例; REPORT §零.11.1)
         self.assertGreater(m['validation']['range'][1], 61077.9)
 

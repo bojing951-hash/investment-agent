@@ -1,5 +1,5 @@
 {
- "version": "2.2.0",
+ "version": "2.3.0",
  "created": "2026-10-17",
  "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
  "field_semantics": {
@@ -25,7 +25,8 @@
   "YTD/MTD/周变化等收益率派生值不单独注册——由事实引擎统一收益引擎计算并附带calculation_ref",
   "月频指标未发布≠缺失/无效;新鲜度窗按月频45天",
   "同一指标多来源时以source为权威,对账差异写入快照reconciliation节",
-  "v2.2.0(2026-11-05,IA-P1-WP-A): 全条目回填 economy/economy_rule/market_seat 三字段(INVENTORY a.3 P1-P8+v1.3 补读 P8-R2/P9/P10+S1-S4 机械规则);新注册 9 条 JP/EA 条目 append 于数组尾(12 候选=复用 3[BOJ_POLICY_RATE≡JP_POLICY_RATE/JGB_10Y/JGB_2Y]+新 9);85→94/active 84→93"
+  "v2.2.0(2026-11-05,IA-P1-WP-A): 全条目回填 economy/economy_rule/market_seat 三字段(INVENTORY a.3 P1-P8+v1.3 补读 P8-R2/P9/P10+S1-S4 机械规则);新注册 9 条 JP/EA 条目 append 于数组尾(12 候选=复用 3[BOJ_POLICY_RATE≡JP_POLICY_RATE/JGB_10Y/JGB_2Y]+新 9);85→94/active 84→93",
+  "v2.3.0(2026-11-06,IA-P1-WP-E): 新注册 8 条 CN 宏观条目 append 于数组尾(G-P1-14..18: LPR 1Y/5Y/CPI 同比/PPI 同比/制造业 PMI/社融增量/新增人民币贷款/央行 7 天逆回购利率[身份预注册 source_symbol=PENDING]);94→102/active 93→101;CN_OMO_7D frequency='daily'=v1.3 裁决(有效利率形态,ECB_DFR 先例)"
  ],
  "metrics": [
   {
@@ -2984,6 +2985,254 @@
     "max_calendar_lag_days": 5
    },
    "release_semantics": "Euronext Paris每交易日收盘后发布官方值;口径源未接线,条目=身份预注册,数据缺席按 L58 纪律处理"
+  },
+  {
+   "metric_id": "CN_LPR_1Y",
+   "display_name": "贷款市场报价利率(LPR)1年期",
+   "source": "china_market_collector",
+   "source_symbol": "macro_china_lpr.LPR1Y",
+   "asset_class": "macro_rate",
+   "frequency": "monthly",
+   "unit": "percent",
+   "calendar": "cn",
+   "economy": "CN",
+   "economy_rule": "P1:calendar=cn",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "akshare macro_china_lpr(东方财富)TRADE_DATE/LPR1Y 列最新观测(1年期 LPR,%)",
+   "validation": {
+    "range": [
+     1,
+     10
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 60,
+    "note": "月频:观测日=发布日(每月20日),未发布≠数据缺失"
+   },
+   "release_semantics": "LPR 每月20日 09:15 公布(节假日顺延);月频:观测日=发布日,未发布≠数据缺失"
+  },
+  {
+   "metric_id": "CN_LPR_5Y",
+   "display_name": "贷款市场报价利率(LPR)5年期",
+   "source": "china_market_collector",
+   "source_symbol": "macro_china_lpr.LPR5Y",
+   "asset_class": "macro_rate",
+   "frequency": "monthly",
+   "unit": "percent",
+   "calendar": "cn",
+   "economy": "CN",
+   "economy_rule": "P1:calendar=cn",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "akshare macro_china_lpr(东方财富)TRADE_DATE/LPR5Y 列最新观测(5年期以上 LPR,%)",
+   "validation": {
+    "range": [
+     1,
+     10
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 60,
+    "note": "月频:观测日=发布日(每月20日),未发布≠数据缺失"
+   },
+   "release_semantics": "LPR 每月20日 09:15 公布(节假日顺延);月频:观测日=发布日,未发布≠数据缺失"
+  },
+  {
+   "metric_id": "CN_CPI_YOY",
+   "display_name": "居民消费价格指数(CPI)同比",
+   "source": "china_market_collector",
+   "source_symbol": "macro_china_cpi_yearly.今值",
+   "asset_class": "macro_index",
+   "frequency": "monthly",
+   "unit": "percent",
+   "calendar": "cn",
+   "economy": "CN",
+   "economy_rule": "P1:calendar=cn",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "akshare macro_china_cpi_yearly(金十数据)「今值」列最新观测(全国 CPI 当月同比,%)",
+   "validation": {
+    "range": [
+     -2,
+     10
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 60,
+    "note": "月频:观测日=统计期(月),未发布≠数据缺失"
+   },
+   "release_semantics": "国家统计局每月 9-10 日发布上月值;月频:观测日=统计期(月),未发布≠数据缺失"
+  },
+  {
+   "metric_id": "CN_PPI_YOY",
+   "display_name": "工业生产者出厂价格指数(PPI)同比",
+   "source": "china_market_collector",
+   "source_symbol": "macro_china_ppi_yearly.今值",
+   "asset_class": "macro_index",
+   "frequency": "monthly",
+   "unit": "percent",
+   "calendar": "cn",
+   "economy": "CN",
+   "economy_rule": "P1:calendar=cn",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "akshare macro_china_ppi_yearly(金十数据)「今值」列最新观测(全部工业品 PPI 当月同比,%)",
+   "validation": {
+    "range": [
+     -10,
+     15
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 60,
+    "note": "月频:观测日=统计期(月),未发布≠数据缺失"
+   },
+   "release_semantics": "国家统计局每月 9-10 日发布上月值;月频:观测日=统计期(月),未发布≠数据缺失"
+  },
+  {
+   "metric_id": "CN_PMI_MFG",
+   "display_name": "制造业PMI",
+   "source": "china_market_collector",
+   "source_symbol": "macro_china_pmi.制造业-指数",
+   "asset_class": "macro_index",
+   "frequency": "monthly",
+   "unit": "index_point",
+   "calendar": "cn",
+   "economy": "CN",
+   "economy_rule": "P1:calendar=cn",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "akshare macro_china_pmi(东方财富)「制造业-指数」列最新观测(国家统计局制造业 PMI)",
+   "validation": {
+    "range": [
+     30,
+     70
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 60,
+    "note": "月频:观测日=统计期(月),未发布≠数据缺失"
+   },
+   "release_semantics": "国家统计局每月末发布当月值;月频:观测日=统计期(月),未发布≠数据缺失"
+  },
+  {
+   "metric_id": "CN_SF_FLOW",
+   "display_name": "社会融资规模增量",
+   "source": "china_market_collector",
+   "source_symbol": "macro_china_shrzgm.社会融资规模增量",
+   "asset_class": "flow",
+   "frequency": "monthly",
+   "unit": "cny_100m",
+   "calendar": "cn",
+   "economy": "CN",
+   "economy_rule": "P1:calendar=cn",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "level",
+   "calc": "akshare macro_china_shrzgm「社会融资规模增量」列最新观测(当月新增社融,亿元人民币;月度流量非存量)",
+   "validation": {
+    "range": [
+     -30000,
+     150000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 60,
+    "note": "月频:观测日=统计期(月),未发布≠数据缺失"
+   },
+   "release_semantics": "人民银行每月 10-15 日发布上月增量;月频:观测日=统计期(月),未发布≠数据缺失"
+  },
+  {
+   "metric_id": "CN_NEW_LOANS",
+   "display_name": "新增人民币贷款",
+   "source": "china_market_collector",
+   "source_symbol": "macro_china_new_financial_credit.当月",
+   "asset_class": "flow",
+   "frequency": "monthly",
+   "unit": "cny_100m",
+   "calendar": "cn",
+   "economy": "CN",
+   "economy_rule": "P1:calendar=cn",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "level",
+   "calc": "akshare macro_china_new_financial_credit(东方财富)「当月」列最新观测(新增人民币贷款当月值,亿元人民币;月度流量非存量)",
+   "validation": {
+    "range": [
+     -30000,
+     120000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 60,
+    "note": "月频:观测日=统计期(月),未发布≠数据缺失"
+   },
+   "release_semantics": "人民银行每月 10-15 日发布上月值;月频:观测日=统计期(月),未发布≠数据缺失"
+  },
+  {
+   "metric_id": "CN_OMO_7D",
+   "display_name": "央行7天期逆回购利率",
+   "source": "china_market_collector",
+   "source_symbol": "PENDING",
+   "asset_class": "policy_rate",
+   "frequency": "daily",
+   "unit": "percent",
+   "calendar": "cn",
+   "economy": "CN",
+   "economy_rule": "P1:calendar=cn",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "人民银行公开市场业务交易公告 7 天期逆回购中标利率(操作利率,有效利率口径);akshare 1.18.47 无逆回购接口→条目=身份预注册,公告行解析函数已随包交付(可注入纯函数),源接线=PENDING",
+   "validation": {
+    "range": [
+     0.5,
+     5
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 10
+   },
+   "release_semantics": "央行操作室每交易日 09:20 前后披露交易公告(决议日不定期);frequency='daily'=IA-P1-WP-E v1.3 裁决(有效利率形态,ECB_DFR 先例),决议日语义由本注记承载、不扩 FREQUENCY_VALUES;源未接线,数据缺席按 L58 纪律处理"
   }
  ]
 }

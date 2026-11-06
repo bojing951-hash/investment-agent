@@ -1225,7 +1225,7 @@ def gate_reason_desc(snapshot):
         parts.append('core失败: ' + ','.join(ga['core_fail'][:8]))
     if ga.get('noncore_missing'):
         # FIX4-03: 非核心完全缺失进入降级/拒绝原因(进入周报降级披露)
-        parts.append('非核心缺失: ' + ','.join(ga['noncore_missing'][:8]))
+        parts.append('非核心缺失: ' + ','.join(ga['noncore_missing'][:16]))
     q = (snapshot.get('quality') or {}).get('counts') or {}
     if q.get('DEGRADED'):
         parts.append(f"DEGRADED事实{q['DEGRADED']}项")

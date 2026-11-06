@@ -38,6 +38,10 @@ with open(os.path.join(ROOT, 'config', 'metric_registry.json'), encoding='utf-8'
 METRICS = {m['metric_id']: m for m in REG['metrics']}
 NEW9 = ('JP_CPI_TOKYO_YOY', 'NIKKEI225', 'ECB_DFR', 'ECB_MRO', 'BUND_10Y',
         'BUND_2Y', 'EA_HICP_YOY', 'DAX', 'CAC40')
+# IA-P1-WP-E v1.3(§十三.1 从属锁域化迁移): CN 宏观八条目(G-P1-14..18,
+# P1_REPORT WP-E §零.6A 终值表;append 于 metrics 数组尾)
+CN8 = ('CN_LPR_1Y', 'CN_LPR_5Y', 'CN_CPI_YOY', 'CN_PPI_YOY', 'CN_PMI_MFG',
+       'CN_SF_FLOW', 'CN_NEW_LOANS', 'CN_OMO_7D')
 
 # ══ 要点①: P1-P10 规则表(INVENTORY a.3 L39-47 逐字独立重编码+P9/P10)════
 def classify(m):
@@ -149,15 +153,17 @@ class TestEconomyRules(unittest.TestCase):
     独立重编码逐条一致;负向=规则未命中条目 classify→None(拒入)。"""
 
     def test_t1a_counts_version_aggregate(self):
-        self.assertEqual(len(REG['metrics']), 94)
-        self.assertEqual(REG['version'], '2.2.0')
+        # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
+        # 94+8→102 / 93+8→101 / 2.2.0→2.3.0 / 聚合 CN 10→18(其余键不动)
+        self.assertEqual(len(REG['metrics']), 102)
+        self.assertEqual(REG['version'], '2.3.0')
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 93)
+                             if m.get('status') == 'active'), 101)
         agg = {}
         for m in REG['metrics']:
             agg[m['economy']] = agg.get(m['economy'], 0) + 1
-        # 定值=REPORT §零.12⑥(85 实测聚合+P9×2+P10×7)
-        self.assertEqual(agg, {'US': 49, 'CN': 10, 'HK': 4, 'JP': 8,
+        # 定值=REPORT §零.12⑥(85 实测聚合+P9×2+P10×7)+CN 宏观八条目(P1:calendar=cn)
+        self.assertEqual(agg, {'US': 49, 'CN': 18, 'HK': 4, 'JP': 8,
                                'EA': 11, 'GLOBAL': 12})
 
     def test_t1b_per_entry_rule_consistency(self):
@@ -224,8 +230,13 @@ class TestEconomyRules(unittest.TestCase):
         self.assertNotIn('BOJ_POLICY_RATE', METRICS)          # ≡JP_POLICY_RATE
         self.assertNotIn('JGB_10Y', METRICS)                  # →JGB10Y
         self.assertNotIn('JGB_2Y', METRICS)                   # →JGB2Y
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-9:]),
-                         NEW9)                                # append 尾序
+        # IA-P1-WP-E v1.3 域化(§十三.1 同族同型迁移,第10断言位·如实登记见
+        # WP-E REPORT §零.13): CN 宏观八条目 append 于数组尾→NEW9 尾块前移,
+        # 块内连续性与序仍锁([-17:-8]);CN8 尾序新锁([-8:],锁面净增强)。
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-17:-8]),
+                         NEW9)                                # append 尾序(WP-A 时点)
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-8:]),
+                         CN8)                                 # append 尾序(WP-E)
         self.assertEqual(METRICS['JP_POLICY_RATE']['source_symbol'],
                          'IRSTCI01JPM156N')                   # 复用概念同源
         for mid in NEW9:
@@ -273,9 +284,10 @@ class TestChannelRegistrationChain(unittest.TestCase):
         self.assertEqual(hca.REGISTRY_SOURCE_CHANNEL['ea_market_collector'], 'ea')
         ok, why = bl.evolution_legal()
         self.assertTrue(ok, why)
+        # IA-P1-WP-E v1.3 域化(§十三.1): vintage 13→21(∪CN 宏观八条目)
         self.assertEqual(set(bl.vintage_additions()),
                          {'JP_POLICY_RATE', 'JGB2Y', 'JGB5Y', 'JGB10Y'}
-                         | set(NEW9))
+                         | set(NEW9) | set(CN8))
 
     def test_t2e_run_weekly_thirteen_steps(self):
         src = open(os.path.join(ROOT, 'run_weekly.py'), encoding='utf-8').read()

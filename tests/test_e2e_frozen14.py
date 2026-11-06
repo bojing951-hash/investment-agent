@@ -346,8 +346,12 @@ with tempfile.TemporaryDirectory() as td:
     check("E2E-02d 非核心整体缺席→noncore_missing点名+Gate A=DEGRADED(不再无声PASS)",
           c == 0 and ga['status'] == 'DEGRADED'
           # GAP08-F3 (j) 涟漪: jp/ea fixture 诚实缺席三指标同入名单(前=['UMCSENT'])
-          and ga.get('noncore_missing') == ['CAC40', 'DAX', 'JP_CPI_TOKYO_YOY',
-                                            'UMCSENT']
+          and ga.get('noncore_missing') == ['CAC40', 'CN_CPI_YOY',
+                                            'CN_LPR_1Y', 'CN_LPR_5Y',
+                                            'CN_NEW_LOANS', 'CN_OMO_7D',
+                                            'CN_PMI_MFG', 'CN_PPI_YOY',
+                                            'CN_SF_FLOW', 'DAX',
+                                            'JP_CPI_TOKYO_YOY', 'UMCSENT']
           and 'UMCSENT' not in ga.get('core_fail', [])
           and fake == [],
           f"gate={ga['status']} missing={ga.get('noncore_missing')}")
@@ -358,7 +362,9 @@ with tempfile.TemporaryDirectory() as td:
           and 'UMCSENT' in open(paths['pack'], encoding='utf-8').read()
           # GAP08-F3 (j) 涟漪: meta 名单同扩三指标(前=['UMCSENT'])
           and rp.load_meta(paths['pack']).get('noncore_missing')
-          == ['CAC40', 'DAX', 'JP_CPI_TOKYO_YOY', 'UMCSENT'],
+          == ['CAC40', 'CN_CPI_YOY', 'CN_LPR_1Y', 'CN_LPR_5Y',
+             'CN_NEW_LOANS', 'CN_OMO_7D', 'CN_PMI_MFG', 'CN_PPI_YOY',
+             'CN_SF_FLOW', 'DAX', 'JP_CPI_TOKYO_YOY', 'UMCSENT'],
           f"facts={len(snap['facts'])} pack={paths['pack_code']}")
     code, out, applied, glm = report_run(td, gate_b='PASS')
     rmd = open(os.path.join(out, f'weekly_report_{DAY}.md'), encoding='utf-8').read() \

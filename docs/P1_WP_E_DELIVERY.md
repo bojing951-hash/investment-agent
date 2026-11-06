@@ -1,8 +1,8 @@
-# IA-P1-WP-E DELIVERY(交付件 · v1.3 续作轮 · 状态=终态交付)
+# IA-P1-WP-E DELIVERY(交付件 · v1.4 涟漪迁移轮 · 状态=本地 75 槽全绿形态)
 
-> 合同: IA-P1-WP-E-AC-v1.3(§十三处置章续作;基点 BASE-P1E=ee66f3a9 同分支零重锚)。
-> 分支: dev/p1-impl-e((d) 登记轮 2 笔+v1.3 续作轮续笔,纯线性零 merge;main 未触碰)。
-> 数值标注纪律(合同 §5.3): 本文逐值 `[实取·来源]` 或 `[示意·非实取]`;六项自检与 REPORT §零.15 同源成件(证据包成员⑤)。
+> 合同: IA-P1-WP-E-AC-v1.4(§十四处置章涟漪迁移续作;基点 BASE-P1E=ee66f3a9 同分支零重锚零重切)。
+> 分支: dev/p1-impl-e((d) 登记轮 2 笔+v1.3 实施轮 2 笔+v1.4 涟漪轮续笔,纯线性零 merge;main 未触碰)。
+> 数值标注纪律(合同 §5.3): 本文逐值 `[实取·来源]` 或 `[示意·非实取]`;六项自检与 REPORT §零.15/§零.17 同源成件(证据包成员⑤)。
 
 ## §一 交付清单与 M-d 演进表(逐项 1:1)
 
@@ -19,6 +19,9 @@
 | tests/test_p03_final_acceptance.py | M(d) | §十三.1 | 演进表 E5;全绿 9 用例 |
 | tests/test_p1_wp_a.py | M(d) | §十三.1 | 演进表 E6-E8(+E10 如实登记);全绿 23 用例 |
 | tests/test_p1_wp_b.py | M(d) | §十三.1 | 演进表 E9;全绿 20 用例 |
+| tests/test_p1_wp_c.py | M(e1) | §十四 (e1) 恰 1 位 | 演进表 E11;本地全绿 OK [实取·运行 log] |
+| tests/test_e2e_frozen14.py | M(e2) | §十四 (e2) 恰 2 位 | 演进表 E12/E13;33 通过/0 失败 [实取·/tmp/frozen14-post.txt] |
+| scripts/research_provenance.py | M(e3) | §十四 (e3) 恰 1 hunk | 演进表 E14;E2E-02d3 零改动复真 |
 
 ### M-d 从属锁域化迁移演进表(1:1 before/after;§十三.1「逐处 1:1 登记(演进表入 DELIVERY 对应节)」)
 
@@ -38,6 +41,18 @@ N=8(机器清点 [实取·§零.11];迁移值=数据驱动与 registry 实况 1:
 | E10 | test_p1_wp_a.py t1e **(授权面外同族·如实登记)** | `REG['metrics'][-9:]==NEW9`(尾块切片序锁) | `[-17:-8:]==NEW9`+新增 `[-8:]==CN8`(锁面净增强) | REPORT §零.13 第 10 位登记(发现过程+单一动因+处置权留操作者) |
 
 - 迁移纪律遵守: 恰等仍恰等/比较符零改动/零删除断言/零 skip/E1-E9=授权面恰 9 位;E10=实现期发现同族位,**不在 §十三.1 恰 9 断言授权面内**,按「同族同型+单一动因(仅 M-b 纯追加致红)+净增强+零弱化」处置并全链披露(§五;stdout 第三段)。
+
+### M-e 涟漪迁移演进表(v1.4 §十四 (e1)(e2)(e3);1:1 before/after;触发=M-b 纯追加直接且仅此一因)
+
+| # | 文件:位置 | before(基线) | after(迁移) | 机器清点依据 |
+|---|---|---|---|---|
+| E11 | test_p1_wp_c.py t08(L269 assertIn 期望串) | `美国(US)=48项; 中国(CN)=10项; 日本(JP)=8项; 欧元区(EA)=11项` | `…中国(CN)=18项…`(仅 CN 段 10→18,US/JP/EA 三段不动) | registry v2.3.0 活跃计数派生运行实况 [实取·v1.3 轮运行 log+本轮迁移后 wp_c OK] |
+| E12 | test_e2e_frozen14.py E2E-02d(L349-354) | `ga.get('noncore_missing') == ['CAC40','DAX','JP_CPI_TOKYO_YOY','UMCSENT']`(恰等 4 名单) | `== ['CAC40','CN_CPI_YOY','CN_LPR_1Y','CN_LPR_5Y','CN_NEW_LOANS','CN_OMO_7D','CN_PMI_MFG','CN_PPI_YOY','CN_SF_FLOW','DAX','JP_CPI_TOKYO_YOY','UMCSENT']`(恰等 12 名单,成员与序=机器输出逐字转录) | 迁移前实跑失败详情 `missing=[…12 成员字母序…]` [实取·/tmp/frozen14-pre.txt L15;入证据包成员⑥] |
+| E13 | test_e2e_frozen14.py E2E-02d2(L364-367) | `rp.load_meta(...)['noncore_missing'] == ['CAC40','DAX','JP_CPI_TOKYO_YOY','UMCSENT']` | 同 E12 名单 4→12(与包 meta 实况 1:1) | 同 E12(包 meta 名单=快照 gate 同源同值) |
+| E14 | scripts/research_provenance.py gate_reason_desc(L1228) | `','.join(ga['noncore_missing'][:8])`(截 8 渲染) | `…[:16]`(渲染帽 8→16;core_missing L1223/core_fail L1225 `[:8]` 不动;文件其余零触碰) | §十四 (e3) 裁决=FIX4-03 意图恢复;E2E-02d3 断言零改动复真=本轮实跑证实 [实取·/tmp/frozen14-post.txt 33/0] |
+
+- 迁移纪律遵守(M-e): 恰等仍恰等(4 位比较符零改动)/零删除断言/零 skip/零弱化/三文件其余内容零触碰(diff hunk 对照=恰 3 文件 4 hunk);E11-E14=§十四授权面恰 3 文件 4 位(E10 已由 §十四追认,归 M-d 面,无进一步动作)。
+- 陈旧注记登记(授权面外零实施): test_p1_wp_c.py L267 注释(v2.2.0/CN10)与 test_e2e_frozen14.py L348/L365 GAP08 时点注记(前=['UMCSENT'])在本轮恰 N 位让渡边界外,未动,留操作者裁量(REPORT §零.17 登记发现项)。
 
 ## §二 验收要点逐条映射(DESIGN L173;正文=REPORT §零.14)
 
@@ -60,7 +75,7 @@ N=8(机器清点 [实取·§零.11];迁移值=数据驱动与 registry 实况 1:
 
 ## §四 AC 自检摘要(逐条全文=stdout 四段自述第 4 段)
 
-AC-01 PASS(§零.2 复核逐字一致+§零.3 清单)/AC-02 PASS(§零.14 三要点映射齐;要点①真实运行面=零运行产物如实声明非漏检)/AC-03 PASS(AC-03 生效: 25 用例全绿+§三策略专节+映射)/AC-04 PASS(file:line 逐条可寻;注入内容已标注)/AC-05 PASS(diff=M 授权域恰 6 文件(a×1+b×1+d×4)+A 恰 3;E10 披露位见 §五;纯线性零 merge;LIVE 零写入;零网络)/AC-06 执行席面如实登记(本地 75 槽=**73 绿+2 红**,2 红=授权面外涟漪件§五.6 情形(b) 分流零改动,授权面内 9 文件全绿;证据包八类;CI dispatch=操作者 CHECKPOINT 待办)/AC-07 PASS(纪律登记 §零.4 承接;零真实调用零凭证零付费;零投资建议)。
+AC-01 PASS(§零.2 复核逐字一致+§零.3 清单)/AC-02 PASS(§零.14 三要点映射齐;要点①真实运行面=零运行产物如实声明非漏检)/AC-03 PASS(AC-03 生效: 25 用例全绿+§三策略专节+映射;v1.4 轮涟漪修正后全量 75 槽全绿)/AC-04 PASS(file:line 逐条可寻;注入内容已标注)/AC-05 PASS(diff=M 授权域恰 9 文件(a×1+b×1+d×4+e×3)+A 恰 3;E10 披露位见 §五;纯线性零 merge;LIVE 零写入;零网络)/AC-06 执行席面: 本地全量 **75 槽全绿(74 exit=0+1 test_glm_live skipped,nonzero=0)** [实取·local-ci-v14-per-suite.txt];证据包八类;CI dispatch=操作者 CHECKPOINT 待办(§十四 CI 前置已满足)/AC-07 PASS(纪律登记 §零.4 承接;零真实调用零凭证零付费;零投资建议)。
 
 ## §五 如实偏差与登记
 
@@ -69,11 +84,12 @@ AC-01 PASS(§零.2 复核逐字一致+§零.3 清单)/AC-02 PASS(§零.14 三要
 3. **零运行产物声明(AC-02 要点①运行面/AC-06 成员⑥)**: 本包未运行任何真实采集编排(china_*档零新增零改动);真实数据获取=门②开后操作者排程面(免费公开源预授权③);故要点①「数据档引用」面=备源函数交付+离线注入验证,真实档非空验证属操作者运行面。
 4. **套件数 74→75**: BASE-P1E-CI-SUITES=74+新增 tests/test_p1_wp_e.py 1 件=75 [实取·本地全量逐件运行计数];实况=73 绿+2 红(红件=§五.6 涟漪,非回归);CI 端=操作者 dispatch 后按 AC-06.1 对照(74+1 零回归,涟漪件同口径注记)。
 5. **估值备源口径**: 乐咕=上证主板平均市盈率,注册 SH_PE=上证整体 PE(TTM) 近似代理,note 键如实披露(禁静默混同;REPORT §零.6A/§零.12)。
-6. **全量运行涟漪发现(授权面外 2 文件 4 断言位;情形(b) 常规分流,零改动)**: `tests/test_p1_wp_c.py` t08(L268)静态披露串 `中国(CN)=10项`→实渲染 18 项(registry 活跃计数派生);`tests/test_e2e_frozen14.py` E2E-02d(L346-353)/02d2(L354-362) noncore_missing 恰等冻结 4 名单→实值 12 项(原 4+CN8)、E2E-02d3(L363-369) `'UMCSENT' in rmd` 败于 research_provenance.py:1228 `[:8]` 截断渲染(UMCSENT 序位 12 落出可见文本)。单一动因=M-b 纯追加;两文件不在 §十三.1 恰 4 文件授权面(第 5/6 文件=越域),零改动如实登记,处置建议=仿 GAP08-F3 (j) 涟漪先例授权后续迁移工作包(t08 值 10→18;名单扩 CN8;02d3 断言名稳定化或渲染面单独授权)。详情=REPORT §零.13A [实取·/tmp/wpe_run/SUMMARY.txt+运行 log]。
+6. **全量运行涟漪发现(授权面外 2 文件 4 断言位;情形(b) 常规分流,零改动)**〔v1.3 轮原文,历史记录〕: `tests/test_p1_wp_c.py` t08(L268)静态披露串 `中国(CN)=10项`→实渲染 18 项(registry 活跃计数派生);`tests/test_e2e_frozen14.py` E2E-02d(L346-353)/02d2(L354-362) noncore_missing 恰等冻结 4 名单→实值 12 项(原 4+CN8)、E2E-02d3(L363-369) `'UMCSENT' in rmd` 败于 research_provenance.py:1228 `[:8]` 截断渲染(UMCSENT 序位 12 落出可见文本)。单一动因=M-b 纯追加;两文件不在 §十三.1 恰 4 文件授权面(第 5/6 文件=越域),零改动如实登记,处置建议=仿 GAP08-F3 (j) 涟漪先例授权后续迁移工作包(t08 值 10→18;名单扩 CN8;02d3 断言名稳定化或渲染面单独授权)。详情=REPORT §零.13A [实取·/tmp/wpe_run/SUMMARY.txt+运行 log]。→ **v1.4 处置闭合**: 操作者 §十四 (e) 授权(2026-11-06),本项涟漪已按 (e1)(e2)(e3) 恰 3 文件 4 位迁移落定(演进表 E11-E14),本地 75 槽全绿,处置建议全部承载(02d3 走 (e3) 渲染帽路径)。
+7. **v1.4 轮如实登记(涟漪迁移)**: ①机器清点纪律——E12/E13 名单成员与序=迁移前实跑 frozen14 失败详情输出逐字转录(禁手抄;证据包成员⑥ v14-e2e-machine-count-basis.txt),迁移后 33/0 全绿复验 [实取·/tmp/frozen14-post.txt];②E14 渲染帽 8→16=§十四 (e3) 单 hunk 授权(core_missing/core_fail `[:8]` 两行不动,e2eb_query_executor/data_assembler/report_generator 消费面均为长度容忍形态,grep 复核无其他断言依赖截断渲染) [实取·grep];③陈旧注记两处(wp_c L267/frozen14 L348+L363)在恰 N 位让渡边界外零实施,登记发现留操作者(REPORT §零.17);④E10 已追认归档,无进一步动作。
 
-## §六 证据包 zip 哈希终笔(AC-06.2;装配后终笔登记,本节值=装配时点实测)
+## §六 证据包 zip 哈希终笔(AC-06.2;装配后终笔登记,本节值=装配时点实测;v1.4 轮重装配)
 
-- 证据包: /tmp/p1-wp-e-evidence/IA-P1-WP-E-EVIDENCE.zip(完整八类成员+SHA256SUMS zip 外自指豁免,R019 审计 D3/R023/R060 先例)。
-- 定值(装配 stdout 与独立复算 shasum/unzip 双通道一致): **成员 12 件/63050 字节/sha256=4662f906029f34cc08984a179000b12d8e1b188481018ad05e25e30fe55d9a22** [实取·装配 stdout+shasum -a 256 独立复算同值];testzip=OK,12 逐成员哈希全匹配(SHA256SUMS 12 行 zip 外自指豁免)。
-- (d) 轮旧包保全: IA-P1-WP-E-EVIDENCE.d-round-archived.zip(sha256=f8905d00…1a81ce6df,与 340c8e1 终笔登记值逐字一致 [实取·保全时点复算]),禁止静默覆盖消灭。
-- TIP=装配时分支尖端 ffad574(实现笔,见 git 取证成员③);zip 内 REPORT/DELIVERY 副本=装配时点版(REPORT worktree 含实现笔后之分支计数更正 47,由本终笔携带;不含本节终笔值,如实披露);终局自述以会话 stdout 四段为准(R023 先例)。
+- 证据包: /tmp/p1-wp-e-evidence/IA-P1-WP-E-EVIDENCE.zip(v1.4 轮完整八类成员+SHA256SUMS zip 外自指豁免,R019 审计 D3/R023/R060 先例)。
+- 定值(装配 stdout 与独立复算 shasum/unzip 双通道一致): **[v1.4 装配后终笔登记——装配 stdout 与独立复算一致时落值]**。
+- 历轮旧包保全(禁止静默覆盖消灭): (d) 轮=IA-P1-WP-E-EVIDENCE.d-round-archived.zip(sha256=f8905d00…1a81ce6df,与 340c8e1 终笔登记值逐字一致 [实取·保全时点复算]);v1.3 轮=IA-P1-WP-E-EVIDENCE.v1.3-round-archived.zip(sha256=4662f906029f34cc08984a179000b12d8e1b188481018ad05e25e30fe55d9a22,与 be69968 终笔登记值逐字一致 [实取·2026-11-06T10:5xZ 保全时点复算])。
+- TIP=装配时分支尖端(v1.4 涟漪笔,见 git 取证成员③);zip 内 REPORT/DELIVERY 副本=装配时点版(不含本节终笔值,如实披露);终局自述以会话 stdout 四段为准(R023 先例)。

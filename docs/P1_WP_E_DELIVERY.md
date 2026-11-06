@@ -74,5 +74,6 @@ AC-01 PASS(§零.2 复核逐字一致+§零.3 清单)/AC-02 PASS(§零.14 三要
 ## §六 证据包 zip 哈希终笔(AC-06.2;装配后终笔登记,本节值=装配时点实测)
 
 - 证据包: /tmp/p1-wp-e-evidence/IA-P1-WP-E-EVIDENCE.zip(完整八类成员+SHA256SUMS zip 外自指豁免,R019 审计 D3/R023/R060 先例)。
-- 定值(成员数/字节/sha256): **[装配后终笔登记——装配 stdout 与独立复算一致时落值]**。
-- TIP=装配时分支尖端(见 git 取证成员③);zip 内 REPORT/DELIVERY 副本=装配时点版(不含本节终笔值,如实披露);终局自述以会话 stdout 四段为准(R023 先例)。
+- 定值(装配 stdout 与独立复算 shasum/unzip 双通道一致): **成员 12 件/63050 字节/sha256=4662f906029f34cc08984a179000b12d8e1b188481018ad05e25e30fe55d9a22** [实取·装配 stdout+shasum -a 256 独立复算同值];testzip=OK,12 逐成员哈希全匹配(SHA256SUMS 12 行 zip 外自指豁免)。
+- (d) 轮旧包保全: IA-P1-WP-E-EVIDENCE.d-round-archived.zip(sha256=f8905d00…1a81ce6df,与 340c8e1 终笔登记值逐字一致 [实取·保全时点复算]),禁止静默覆盖消灭。
+- TIP=装配时分支尖端 ffad574(实现笔,见 git 取证成员③);zip 内 REPORT/DELIVERY 副本=装配时点版(REPORT worktree 含实现笔后之分支计数更正 47,由本终笔携带;不含本节终笔值,如实披露);终局自述以会话 stdout 四段为准(R023 先例)。

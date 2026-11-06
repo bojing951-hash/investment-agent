@@ -60,6 +60,6 @@
 ## ⑥ 证据包 zip 定值登记(终笔)
 
 - zip: `/tmp/p1-design-comp-evidence/IA-P1-DESIGN-COMP-EVIDENCE.zip`
-- sha256: **待装配终笔登记(本行由 zip 终笔提交追加定值;装配与复算输出见 stdout 自述)**
+- sha256: **`0921b0993427ef4b0a3ae07742db6a1384d9550f6bff878b71e5adecf3c0ebf7`**(105 成员/300812 字节;装配 stdout[python zipfile]与 shasum 独立复算一致;testzip=OK;成员逐哈希=包内 SHA256SUMS 104 行,清单自身显式豁免不入 zip 自身校验和,R019-D3/R026 起口径)
 
-(§六 由 zip 终笔提交追加定值——R048 v1.3/v1.4 先例口径;zip 内本 DELIVERY 副本不含本定值行,如实披露。)
+(§六 定值行由 zip 终笔提交落笔——R048 v1.3/v1.4 先例口径;zip 内本 DELIVERY 副本=装配时点版不含本定值行,如实披露;终局自述以会话 stdout 四段为准。)

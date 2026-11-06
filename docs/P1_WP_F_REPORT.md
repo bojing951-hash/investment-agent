@@ -126,17 +126,17 @@
 
 ---
 
-## §一 落位登记(行号=dev/p1-impl-f 工作树实读,实现笔 f4769cf 版)
+## §一 落位登记(行号=dev/p1-impl-f 工作树实读;tests 锚=整改笔版[CI-红-F1 修复后],模块锚=实现笔 f4769cf 版零改动——tests 行号因 fixture 写档行注释+3 与文末守卫类追加而平移,原报告笔锚按 §5.3 第 4 项主动更正为实值)
 
-**scripts/economy_comparison_view.py**(278 行[实取·wc -l]):
-- 登记参数区: COMPARISON_ECONOMIES L42 / KEY_FACTS L43-L52(八映射) / CROSS_DOMAIN_PAIRS L53(恰两元组)——与 §零.5/§零.6 登记值逐字一致(断言面=tests L280-L294);
+**scripts/economy_comparison_view.py**(278 行[实取·wc -l];整改续段零改动,sha256=`fb8aa49cbab457ad2e8103a49fae6881333d62e3d59ffa4bdfce42c02eef8001` 与终笔版等值[实取·remediation/05 注入前锚]):
+- 登记参数区: COMPARISON_ECONOMIES L42 / KEY_FACTS L43-L52(八映射) / CROSS_DOMAIN_PAIRS L53(恰两元组)——与 §零.5/§零.6 登记值逐字一致(断言面=tests L283-L297);
 - 缺席语义常量: NO_DATA/INSUFFICIENT_CELL/NOT_GENERATED/_REGIME_STATUS_NAMES L56-L62(上游式样锚: data_assembler L286-L296);
-- 接口复用面(零复制分叉,全部 import 调用,import 区 L24-L37: 标准库 L24-L28+项目模块 L33-L37): rp.select_snapshot(L68-L75 消费面版,缺席不中断)+data_assembler.economy_scorecard(L124)+correlation_calculator.PAIRS/compute_all(L145-L153)+macro_scorecard DATA_INSUFFICIENT/DISCLAIMER/ECONOMY_NAMES/fact_of(L36)+research_history_query.query_window(L37);
+- 接口复用面(零复制分叉,全部 import 调用,import 区 L24-L37: 标准库 L24-L28+项目模块 L33-L37): rp.select_snapshot(L68-L75 消费面版,缺席不中断)+data_assembler.economy_scorecard(L124,精确名 open=大写约定消费面)+correlation_calculator.PAIRS/compute_all(L145-L153)+macro_scorecard DATA_INSUFFICIENT/DISCLAIMER/ECONOMY_NAMES/fact_of(L36)+research_history_query.query_window(L37);
 - 结构: key_fact L87-L118 / economy_row L120-L143 / cross_domain_pairs_view L145-L154 / comparison_query L156-L171 / build_comparison_view L173-L197 / _kf_cell L200-L208 / render_comparison_markdown L210-L256 / main L258-L277。
 
-**tests/test_p1_wp_f.py**(399 行[实取·wc -l],19 用例[实取·unittest「Ran 19 tests」]):
-- fixture 工厂(唯一数据源,全[示意]合成): _us_scorecard L43 / _nonus_scorecard L48 / _snapshot_facts L55 / _series_store L70(收益率手工构造±1 联动) / make_fixture L86-L110 / 毒丸 POISON L36;
-- 用例类: TestAcceptance1ZeroDirectRead L121 / TestAcceptance2SideBySideHonestAbsence L162 / TestAcceptance3USFaceZeroRegression L247 / TestCrossDomainPairs L278 / TestComparisonQuery L354。
+**tests/test_p1_wp_f.py**(432 行[实取·wc -l 整改笔版],20 用例[实取·unittest「Ran 20 tests」remediation/03]):
+- fixture 工厂(唯一数据源,全[示意]合成): _us_scorecard L43 / _nonus_scorecard L48 / _snapshot_facts L55 / _series_store L70(收益率手工构造±1 联动) / make_fixture L86-L113(写档名=上游大写约定 L96-L99,CI-红-F1 修复行) / 毒丸 POISON L36;
+- 用例类: TestAcceptance1ZeroDirectRead L124 / TestAcceptance2SideBySideHonestAbsence L165 / TestAcceptance3USFaceZeroRegression L250 / TestCrossDomainPairs L281 / TestComparisonQuery L357 / TestRemediationFixtureNameCaseExact L403-L428(CI-红-F1 守卫,exact-basename 成员判定=大小写敏感 FS 语义)。
 
 ## §二 逐要点证据映射表(AC-02;要点条数=映射行数,逐条编号对应)
 
@@ -144,11 +144,11 @@
 
 | # | 要点 | (a) 实现落点 | (b) 证据指针 | (c) 自检 |
 |---|---|---|---|---|
-| ① | 纯快照/事实/评分卡档消费,零直读采集档 | ecv L173-L197(开档仅经 L68-L75 select_snapshot+L124 economy_scorecard 两入口,零采集档 glob) | tests L123-L135(采集档在场/缺席双变体视图逐字节等值)+L138-L148(毒丸标记零泄漏)+L150-L159(源码静态扫描);负向敏感度: 缺陷注入①直读采集档→2 用例红(证据包④负向记录) | 过 |
-| ② | 四经济体并置+缺席如实(不填0/不跳行/不冒充) | ecv L87-L142(key_fact/economy_row 五态缺席语义)+L200-L208(_kf_cell 无数据+原因) | tests L175-L178(四行恒在场行序锚)+L180-L186(US int 总分)+L188-L197(非 US None→数据不足)+L199-L205(EA 未生成行在场)+L207-L218(关键事实接地字面量)+L220-L236(缺席变体 available=False/value=None+禁 0.00%)+L238-L245(DISCLAIMER);负向敏感度: 缺陷注入②缺席填 0→1 用例红 | 过 |
-| ③ | 既有 US 面零回归 | ecv 纯读面(零写入路径;M=0 零触碰既有文件) | tests L249-L261(daily/ 全目录 sha256 前后等值+零新档)+L263-L276(US 主评分卡字节不变);套件级=本地 CI 76 套件全绿零回归(证据包④)+CI dispatch=操作者面 | 过(CI dispatch 面留操作者) |
-| ④ | 实现参数先登记后运行、禁回改 | 登记=本文 §零.5/§零.6(规格笔 829e13a,先于实现笔 f4769cf);常量=ecv L42-L53;运行面=测试断言 | tests L280-L294(test_registered_parameters_frozen: 登记=常量逐字断言);负向敏感度: 缺陷注入③第三对→该用例红(初注入数据面未红缺口→补常量面断言闭合,如实登记);git log 提交序=登记先于实现 | 过 |
-| ⑤ | 零新数据源/凭证/付费;识别即 PENDING | ecv import 面 L24-L37 纯标准库+项目既有模块(零 requests/urllib/socket/http/subprocess) | tests L150-L159(静态扫描);实现期零确认型事项发现→§零.5「确认型=无」维持;零 PENDING 触发 | 过 |
+| ① | 纯快照/事实/评分卡档消费,零直读采集档 | ecv L173-L197(开档仅经 L68-L75 select_snapshot+L124 economy_scorecard 两入口,零采集档 glob) | tests L126-L138(采集档在场/缺席双变体视图逐字节等值)+L141-L151(毒丸标记零泄漏)+L153-L162(源码静态扫描);负向敏感度: 缺陷注入①直读采集档→2 用例红(证据包④负向记录+09-remediation/05 复验) | 过 |
+| ② | 四经济体并置+缺席如实(不填0/不跳行/不冒充) | ecv L87-L142(key_fact/economy_row 五态缺席语义)+L200-L208(_kf_cell 无数据+原因) | tests L178-L181(四行恒在场行序锚)+L183-L189(US int 总分)+L191-L200(非 US None→数据不足,CI-红-F1 修复后大小写敏感面亦绿,期望零弱化)+L202-L208(EA 未生成行在场)+L210-L221(关键事实接地字面量)+L223-L239(缺席变体 available=False/value=None+禁 0.00%)+L241-L248(DISCLAIMER)+L403-L428(CI-红-F1 守卫);负向敏感度: 缺陷注入②缺席填 0→1 用例红 | 过 |
+| ③ | 既有 US 面零回归 | ecv 纯读面(零写入路径;M=0 零触碰既有文件) | tests L252-L264(daily/ 全目录 sha256 前后等值+零新档)+L266-L279(US 主评分卡字节不变);套件级=本地 CI 76 套件全绿零回归(证据包④+09-remediation/04)+CI dispatch=操作者面 | 过(CI dispatch 面留操作者;CI-红-F1 修复复验=09-remediation/04) |
+| ④ | 实现参数先登记后运行、禁回改 | 登记=本文 §零.5/§零.6(规格笔 829e13a,先于实现笔 f4769cf);常量=ecv L42-L53;运行面=测试断言 | tests L283-L297(test_registered_parameters_frozen: 登记=常量逐字断言);负向敏感度: 缺陷注入③第三对→该用例红(初注入数据面未红缺口→补常量面断言闭合,如实登记);git log 提交序=登记先于实现 | 过 |
+| ⑤ | 零新数据源/凭证/付费;识别即 PENDING | ecv import 面 L24-L37 纯标准库+项目既有模块(零 requests/urllib/socket/http/subprocess) | tests L153-L162(静态扫描);实现期零确认型事项发现→§零.5「确认型=无」维持;零 PENDING 触发 | 过 |
 
 **范围四条(L197-L200)+目标(L194)映射**:
 
@@ -156,8 +156,8 @@
 |---|---|---|---|
 | 目标: 四经济体比较消费面/W-1 例行对照 | ecv L173-L197(单一比较视图装配) | tests L175-L178 四经济体并置+CLI 冒烟(证据包⑥面 stdout exit=0) | 过 |
 | 范围1 装配面: US 主卡与非 US 档并置+经济体观察式样+DISCLAIMER 沿用 | ecv L120-L143(经上游 helper 读两命名族)+L210-L232(表式样沿 data_assembler L277-L301)+L60-L64(DISCLAIMER import 逐字) | tests L180-L205+L238-L245 | 过 |
-| 范围2 事实面: 快照事实+series_store+跨域对比较呈现 | ecv L87-L118(facts)+L145-L154(跨域对经 compute_all 复用) | tests L296-L319(恰两对+corr±1 手算+n/窗口字面量)+L321-L331(序列缺席如实)+L333-L352(快照缺席整体无数据) | 过 |
-| 范围3 查询比较面: economy 过滤比较用例(W-1/W-2) | ecv L156-L171(comparison_query 逐经济体调上游 query_window) | tests L368-L378(命中窗口手算字面量)+L380-L390(不命中=上游如实空窗)+L392-L396(payload 缺席无数据) | 过 |
+| 范围2 事实面: 快照事实+series_store+跨域对比较呈现 | ecv L87-L118(facts)+L145-L154(跨域对经 compute_all 复用) | tests L299-L322(恰两对+corr±1 手算+n/窗口字面量)+L324-L334(序列缺席如实)+L336-L355(快照缺席整体无数据) | 过 |
+| 范围3 查询比较面: economy 过滤比较用例(W-1/W-2) | ecv L156-L171(comparison_query 逐经济体调上游 query_window) | tests L371-L381(命中窗口手算字面量)+L383-L393(不命中=上游如实空窗)+L395-L399(payload 缺席无数据) | 过 |
 | 范围4 互斥划界: 不含 #20/#21 面 | ecv 全模块零监测/告警/台账/部署面(源码直读可证) | tests L150-L159 静态扫描佐证;grep 零 cron/alert/monitor 面 | 过 |
 
 **DP 判据⑥(§二.6)自检**: 登记型 DP-F1/F2/F3 全部于 REPORT §零.5 登记定值且运行后零回改(登记 829e13a→实现 f4769cf→运行,git 提交序可证;§零.5/§零.6 文本运行后零改动);确认型 DP 未被自决(§八.1 L223「确认型 DP: 无」实读一致,实现期零触及);DP 登记=P1_DESIGN 实读编号/分类一致(F1/F2/F3 登记型,L220-L222)。
@@ -173,16 +173,60 @@
 | 数值 | 标注 |
 |---|---|
 | 白名单 A 类 k=4 文件 | [实取·§零.3 登记+git ls-files 零重合核验 2026-11-06T16:2xZ] |
-| 测试用例 19 | [实取·unittest stdout「Ran 19 tests」2026-11-06T16:3xZ] |
-| 本地 CI 76 套件=75 exit0+1 SKIPPED | [实取·/tmp/p1-wp-f-evidence/local_ci_records.txt 76 行] |
+| 测试用例 19(原)+20(整改笔版) | [实取·unittest stdout「Ran 19 tests」2026-11-06T16:3xZ;「Ran 20 tests」remediation/03 2026-11-06T17:1xZ] |
+| 本地 CI 76 套件=75 exit0+1 SKIPPED(原)+修复后同值复跑 | [实取·local_ci_records.txt 76 行+remediation/04-local-ci-records-remediation.txt 76 行 2026-11-06T17:2xZ] |
+| CI-红-F1: run 42256314191=failure@1220ab6,76 槽=74 exit0+1 红+1 SKIP | [注入·操作者整改续段登记(机器实取);原红登记不洗不删,§五.1] |
+| CI-红-F1 守卫用例 1(回植滑笔→本机即红 exit=1) | [实取·remediation/02-guard-negative-proof.txt] |
+| 负向敏感度三注入复验=3/3 红(修复后代码,零弱化) | [实取·remediation/05-negative-sensitivity-remediation.md] |
 | BASE-P1F-CI-SUITES=75(对照基数) | [注入·冻结章实值,2026-11-07 00:1x HKT 主 CI 42211060088@64ce40c] |
 | registry v2.3.0/102 条目/US49+CN18+EA11+JP8+HK4+GLOBAL12 | [实取·json.load 同刻复取一致 2026-11-06T16:2xZ] |
 | KEY_FACTS 八映射(4 经济体×2 指标) | [实取·registry 逐 id 在场核验] |
 | 跨域对 2 元组 | [实取·correlation_calculator.PAIRS L49/L51] |
 | 经济体集 4(US/CN/JP/EA) | [实取·DESIGN L194+INVENTORY a.1 L19-L22+macro_scorecard L39] |
-| ecv 278 行/tests 399 行/REPORT 行数 | [实取·wc -l,REPORT 行数随终稿以 zip 内副本为准] |
+| ecv 278 行/tests 432 行(原 399,整改笔 +3 注释+30 守卫)/REPORT 行数 | [实取·wc -l 2026-11-06T17:2xZ,REPORT 行数随终稿以 zip 内副本为准] |
 | 分支提交: 指定并入步 1 merge+开发笔(规格笔 829e13a/实现笔 f4769cf/报告笔/终笔=4 开发笔) | [实取·git log dev/p1-impl-f] |
 | BRANCH-SET 48 支(52 行=1 HEAD+48 支+3 tags) | [实取·ls-remote 00-lsremote-full.txt] |
 | 毒丸标记/合成值(POISON_XR71_MARKER/YMD 20990101/序列值/评分卡值) | [示意·tests fixture 发明,非真实数据] |
 
 边界声明(第 5 项): 本文日期时刻=UTC;SHA=全值;P1_DESIGN 行号=并入后工作树实读(=design-comp 侧一致)。第 3 项全表复核完毕,零失实项;第 4 项无触发。
+
+---
+
+## §五 整改续段登记(CI-红-F1;操作者 2026-11-07 0:5x HKT 处置段,根因登记先行、禁先改后归因)
+
+### §五.1 原红事实(操作者登记,机器实取;原红登记不洗不删)
+
+- 分支 CI run **42256314191 = failure**@`1220ab6`(终笔尖端);76 槽=**74 exit0+1 红+1 SKIP**(零套件漂移);
+- 唯一红=`test_p1_wp_f` 的 `test_nonus_rows_data_insufficient_not_zero`(当时 tests/test_p1_wp_f.py L192): 期望非 US 行 growth_cell=`数据不足`,实得=`未生成`;
+- 本地(macOS)全绿 vs CI(ubuntu-latest/Python 3.11)红=DELIVERY ④.5 环境差异预声明面的实化。
+
+### §五.2 根因(诊断于修复前,证据=证据包 09-remediation/01-rootcause-diagnosis.txt)
+
+**根因=fixture 文件名大小写滑笔(测试侧档名偏离上游约定),非墙钟/时区依赖**:
+
+1. **偏离侧=fixture(本包 tests/test_p1_wp_f.py make_fixture 原实现笔 f4769cf 版,写档行 `econ.lower()`)**: fixture 实际写入 `economy_scorecard_cn_20990101.json`/`economy_scorecard_jp_20990101.json`(小写);
+2. **模块侧语义正确(零改动面)**: `economy_comparison_view.economy_row` 以登记经济体集大写 `'CN'/'JP'` 调上游 `data_assembler.economy_scorecard`(L91-L102)→ 精确名 open `economy_scorecard_CN_…json`(大写);
+3. **上游命名约定=大写(economy 实参原样)三方实证**: ①生产写档 `macro_scorecard.py` L487-L488(`{ECONOMY_SCORECARD_PREFIX}{economy}_{today}`,economy 实参原样拼接);②生产读档 `data_assembler.py` L288-L289 渲染面以大写 `('US','CN','JP','EA')` 调 economy_scorecard;③同族前包契约 `tests/test_p1_wp_c.py` L172-L173=`economy_scorecard_JP_{YMD}.json`(大写);
+4. **环境差放大机制**: 本机 macOS 默认 APFS=大小写不敏感→`open('…CN_…')` 命中小写档→本地绿(缺陷被隐藏);CI ubuntu-latest ext4=大小写敏感→精确名 open 失败→helper 如实返回 None→非 US 行按缺席语义分类「未生成」→红。与 CI 红签名(期望`数据不足`实得`未生成`)逐点吻合;
+5. **墙钟/时区假设证伪(操作者预判方向,以实读取证伪)**: 评分卡定位链=economy_scorecard 精确名 open(零时钟参与);快照选版=rp.select_snapshot glob+sorted 最高版(research_provenance L1257-L1267,零时钟)。时钟面全模块盘点仅两处: ecv L184 `generated_at`(输出档案元数据,等值测试显式 pop,从不进入期望值推导)+ecv L260 CLI `--ymd` 缺省值(测试/冒烟均传显式 `--ymd`,不被断言面触达)——**fixture/选版/分类路径零墙钟依赖**,整改续段 #3 确定性纪律达标(维持)。
+
+### §五.3 修复(最小面;修复面⊆A 类白名单自有文件)
+
+- **修复侧=tests/test_p1_wp_f.py(fixture 写档名 `econ.lower()`→`econ`,对齐上游大写约定)**;`scripts/economy_comparison_view.py` **零改动**(sha256 前后等值 `fb8aa49c…` 实证;模块分类语义=缺席五态语义[§零.6 登记值],正确面不动);
+- **期望零弱化(整改续段 #4 红线)**: `test_nonus_rows_data_insufficient_not_zero` 期望`数据不足`**原样保留**——规格 §八.1 L213-L214(要点②: 档在场+非 US 维度无阈值→总分 None→「数据不足」禁 0)+L217(五态缺席语义)支持现期望;根因在 fixture 命名而非模块语义,故修 fixture 不改期望(判定依据=§五.2 三方大写约定实证);
+- **守卫用例新增(防复发,同文件)**: 新增 `test_fixture_names_exact_case_sensitive_semantics`——以 exact-basename 成员判定(=大小写敏感文件系统语义)断言 fixture 写档名与模块请求名逐字符等值+小写变体零在场,使该类错位在**任何**开发机文件系统(含大小写不敏感 macOS)上必然暴露,不依赖 CI 复现;负向验证: 临时回植 `.lower()` 滑笔→该守卫在本机即红(记录=证据包 09-remediation/02-guard-negative-proof.txt)。
+
+### §五.4 复验(整改续段 #5;逐套件记录=证据包 09-remediation/)
+
+| 项 | 结果 | 记录 |
+|---|---|---|
+| 专项套件 test_p1_wp_f | 20 用例全绿(19 原用例零弱化+1 守卫) | 09-remediation/03-testsuite-postfix.txt |
+| 守卫负向(回植 `.lower()`→守卫红) | 红(证明守卫独立于文件系统捕获该类滑笔) | 09-remediation/02-guard-negative-proof.txt |
+| 本地 CI 全量 | 76 套件=75 exit0+1 SKIPPED(零回归) | 09-remediation/04-local-ci-records-remediation.txt |
+| 负向敏感度三注入(修复后代码上重跑) | 三注入仍三红(①直读采集档→2 红/②缺席填 0→1 红/③DP-F3 第三对→1 红,零弱化) | 09-remediation/05-negative-sensitivity-remediation.md |
+| CLI 冒烟(显式 --ymd) | exit=0(合成 fixture,/tmp 输出零仓库 data/ 写入) | 09-remediation/06-cli-smoke-remediation.txt |
+
+### §五.5 提交与 CI(执行席边界)
+
+- 整改笔=自 `1220ab6` 续笔(纯线性零新 merge 零 force 零 amend);push 后**不自行 dispatch CI**(操作者 CHECKPOINT 面;登记件 `rounds/062/P1-WP-F-CI-dispatch-evidence.md` 待操作者回填);
+- 原红登记(run 42256314191=failure@1220ab6)不洗不删,本节+DELIVERY ④.7 永久留痕;zip 重新装配(原 35 成员原样保留+09-remediation 续作成员),定值见 DELIVERY §八。

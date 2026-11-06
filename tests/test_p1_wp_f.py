@@ -92,7 +92,10 @@ def make_fixture(with_collectors=False, with_ea_scorecard=False, with_ea_facts=T
     with open(os.path.join(daily, f'scorecard_{YMD}.json'), 'w', encoding='utf-8') as f:
         json.dump(_us_scorecard(), f)
     for econ in ('CN', 'JP') + (('EA',) if with_ea_scorecard else ()):
-        with open(os.path.join(daily, f'economy_scorecard_{econ.lower()}_{YMD}.json'),
+        # 档名=上游大写约定(economy 实参原样): 生产写档 macro_scorecard L487-L488
+        # +生产读档 data_assembler L288-L289+WP-C 契约 test_p1_wp_c L172-L173
+        # (CI-红-F1: 原 econ.lower() 滑笔仅被 macOS 大小写不敏感卷隐藏,见文末守卫)
+        with open(os.path.join(daily, f'economy_scorecard_{econ}_{YMD}.json'),
                   'w', encoding='utf-8') as f:
             json.dump(_nonus_scorecard(econ), f)
     if with_snapshot:
@@ -393,6 +396,36 @@ class TestComparisonQuery(unittest.TestCase):
         out = ecv.comparison_query({}, '2098-12-15', '2099-01-03',
                                    economies=('JP',))
         self.assertIn('无数据', out['JP']['coverage']['note'])
+
+
+# ══ CI-红-F1 守卫(整改续段): fixture 档名=上游大写约定+exact-name 语义 ════
+
+class TestRemediationFixtureNameCaseExact(unittest.TestCase):
+    """CI-红-F1 根因=fixture 曾以 econ.lower() 写档,偏离上游大写命名约定
+    (economy_scorecard_{ECON}_{ymd}.json: 生产写档 macro_scorecard L487-L488
+    [economy 实参原样]+生产读档 data_assembler L288-L289 大写+WP-C 契约
+    test_p1_wp_c L172-L173)——macOS 大小写不敏感卷隐藏该错位,ubuntu-latest
+    (大小写敏感)精确名 open 失败→非 US 行被误分类「未生成」(CI run
+    42256314191 唯一红)。本守卫以 exact-basename 成员判定(=大小写敏感
+    文件系统语义)使该类错位在任何开发机文件系统上必然暴露,不依赖 CI 复现。"""
+
+    def test_fixture_names_exact_case_sensitive_semantics(self):
+        """fixture 写档名=模块请求名逐字符等值(精确名 open 在大小写敏感
+        CI 上必命中);大写=上游约定,小写变体零在场。"""
+        root, daily = make_fixture(with_ea_scorecard=True)
+        try:
+            names = set(os.listdir(daily))
+            for econ in ('CN', 'JP', 'EA'):
+                expected = f'economy_scorecard_{econ}_{YMD}.json'
+                self.assertIn(expected, names,
+                              'fixture 写档名偏离上游大写约定(模块请求名='
+                              f'{expected});大小写敏感 CI 上该档将不可寻→'
+                              '误分类「未生成」(CI-红-F1)')
+            for econ in ('cn', 'jp', 'ea'):
+                self.assertNotIn(f'economy_scorecard_{econ}_{YMD}.json', names)
+        finally:
+            import shutil
+            shutil.rmtree(root, ignore_errors=True)
 
 
 if __name__ == '__main__':

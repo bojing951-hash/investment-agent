@@ -75,7 +75,13 @@
 
 ## §六 证据包 zip 定值登记(终笔回填;装配时点 TIP=笔 3)
 
-(本节=笔 4 终笔登记位: zip 成员数/字节数/整体 sha256+装配时点 TIP 全值+验证记录;zip 内本文副本=笔 3 版不含本节定值行——R065 先例口径。)
+- 路径: `/tmp/p1-close-evidence/IA-P1-WP-CLOSE-EVIDENCE.zip`
+- 装配时点 TIP=笔 3=`6a3c2032ef358c3b79436191bcca0317d6183eb4`(rev-parse=ls-remote 实取一致)
+- 成员数: **137 files**=136 成员+SHA256SUMS(清单自身显式豁免不入自身校验和,R019-D3 措辞;R065 先例)
+- 字节: **331005**(未压缩 918809)
+- zip 整体 sha256: **`8ab0de3258ce414107f0103a4e00a7451dcd2df35a9318555de2b3031d0401e0`**(装配 stdout 与 shasum 独立复算一致)
+- 验证记录: `unzip -t`=No errors detected;SHA256SUMS 136 条解包逐条复算=136 OK/0 BAD;根层零杂散(恰 9 类目录=01-spec/02-deliverables/03-git-forensics/04-local-ci/05-mapping/06-acceptance-run/07-selfreport/08-sha256sums/09-helpers);02 双源副本交叉哈希 4/4 equal(git show TIP 版 vs 工作树版)
+- 披露(R065 先例口径): zip 内本文副本=笔 3 装配时点版,**不含本节定值行**(终笔=本笔);终局自述以会话 stdout 四段为准。
 
 ## 漂移维护策略专节(AC-03.6 三要素;沿 R022)
 

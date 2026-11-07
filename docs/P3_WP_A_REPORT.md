@@ -73,7 +73,7 @@ L174: - 验收要点草案: ①索引直读原始 data/daily 的负向测试(须
 | P-A-13 | 门禁依据强制(修正机制,要点④) | `gate_basis` 二选一: `{kind:"trigger", trigger_id:<非空 str>}`(引擎核验已触发的触发器)或 `{kind:"program_evidence", evidence_refs:[<引用 str>,…len≥2]}`(≥2 项程序验证证据)——沿现行门禁语义 [实取·report_generator L503「触发器…被引擎核验为已触发,或本周≥2项新增独立支持证据通过程序验证」/L521 评级门禁同构/L505 确信度门禁];不合法/不足→ValueError fail-loud 零写入;**签名无 bypass/force/skip 类参数**(无弱门禁旁路,§3.3 L93「不设任何弱门禁旁路」);修正提案=change_type "revision_proposal" 记录落档+返回 applied=False(实际状态变更仍走既有回写路径 report_generator 门禁族,本模块旁路零状态文件写入——「不改动既有回写签名,以旁路写入实现」§3.3 L92) | §3.3 L92-93+L174④ |
 | P-A-14 | 快照三重纪律(版本记录绑定) | ①`drr._load_snapshot_for_verify` 规范分解加载(L778-801 实读,结构性不可达原始采集档)②`rp.digest_snapshot` 内容重算绑定(禁采声明值)③`rp.gate_allows_formal_research` 放行核验;Gate A=FAIL→fail-closed 拒收(§3.1 L71/L216 红线) | §3.1+WP-D P-D-07 先例 |
 | P-A-15 | O-5 接口预留 | `REF_KINDS` 词表含 `deep_research_task`(O-5 对象类,§2.1 L53);`INDEXED_KINDS` 第一期收录集=6 kind(snapshot/formal_report/thesis/view/prediction/conclusion_version)不含之;索引输入遇 O-5 类→`skipped_reserved` 如实清单(不冒充已收录,接口预留=P0-3 落地后接入) | §2.1 L53+§3.2 L77⑤ |
-| P-A-16 | 纯度与免责 | import 面白名单={json, os, sys, datetime, deep_research_registrar, research_provenance, fact_engine}(纯标准库+项目既有依赖);AST 零网络 import(urllib/requests/http/socket/httpx 禁);零凭证/密钥/token;模块 docstring+索引文件 note+查询输出 note 携「研究检索面输出,不构成投资建议(禁交易/禁仓位/禁收益承诺)」 | AC-05.4+AC-07+§8.3 红线 |
+| P-A-16 | 纯度与免责 | import 面白名单={json, os, re, sys, datetime, deep_research_registrar, research_provenance, fact_engine}(纯标准库+项目既有依赖;`re`=严格快照 glob 正则面;报告笔勘误补录,首稿枚举漏 `re` 见 §三.1);AST 零网络 import(urllib/requests/http/socket/httpx 禁);零凭证/密钥/token;模块 docstring+索引文件 note+查询输出 note 携「研究检索面输出,不构成投资建议(禁交易/禁仓位/禁收益承诺)」 | AC-05.4+AC-07+§8.3 红线 |
 
 ### §零.6 前置实读登记(file:line;基线工作树 2026-11-07T14:2x-15:0xZ)
 
@@ -136,3 +136,72 @@ DESIGN L174 验收要点 5 条: ①负向测试=测试面 ②可重建性测试=
 
 **零运行产物锚定**: 套件单跑前后 `find data/research -newer <锚>` 零输出(§零.8 判定兑现,索引/版本记录全落测试临时沙箱)。
 
+
+---
+
+## §一 实现摘要
+
+**模块 `scripts/research_index.py` 721 行 [实取·wc -l@实现笔 a8bf61e]**,四个确定性组件同模块内聚(P-A-01):
+
+1. **旁路索引器**(DP-1(a),L57 定值+L203-297 载体面): 索引=JSON 单文件衍生物,`_dump_index_bytes`(L203)canonical JSON(sort_keys+ensure_ascii=False+indent=1)零时间戳零过程元数据→逐字节确定性;`load_index_file`(L233)结构损坏/键集非法/排序漂移/(kind,ref) 重复→ValueError fail-loud(衍生物损坏→重建,L264 `rebuild_index` 删→重建→逐字节一致;L278 `update_index_entries` 同键替换/新键插入事件触发增量);**不反向修改任何权威档**。
+2. **索引四源**(DP-2(a) O-1~O-4 全 4 类): ①快照(L313 `index_snapshots`): 严格 glob `_snapshot_ymds`(L287,模式 L99 `research_snapshot_*.json` 结构性不可达采集件)→`rp.select_snapshot` 权威版本选择→`rp.gate_allows_formal_research` 放行,FAIL/无候选/损坏→excluded 如实清单不填冒充值;assets 经 `fe.metric()` registry 在场接口(L300)。②正式报告(L355 `index_formal_reports`): `rp.scan_formal_weekly_reports` 在场复用 8 条校验链,档键引用不复制数值语义(P-A-07)。③门禁后状态文件(L369 `index_state_files`): thesis/view/prediction 三类;mechanisms=null 如实缺席(P-A-08 登记发现,维度在数据面不造值)。④结论版本记录(L412 `index_conclusion_versions`,§3.2④ 随建随入)。
+3. **结构化查询 API**(P-A-10,L656 `query_index`): 六维度过滤器(metric_ids/时间窗/资产/机制/结论状态/档键前缀),窗命中=date 落窗或 [obs_min,obs_max] 与窗相交,多过滤器 AND,输出=[{kind,ref,snapshot_id,digest}] 档键引用按 (kind,ref) 确定性排序(实现笔缺陷修复项,§零.10),离线纯函数零网络。
+4. **版本记录写入挂接**(§3.3 旁路 append-only,L545 `record_conclusion_version`): VER-{YYYYMMDD}-{NNN} 同日单调配号(L444 扫集合目录,L457 配号,ra 纪律同款);11 字段全落含 changes=[{field,before,after}≥1] 记录级 DP-3(a);快照三重纪律(L582-589: drr._load_snapshot_for_verify+rp.digest_snapshot 重算+gate 放行,FAIL fail-closed 拒);gate_basis 强制(L465: trigger 非空核验 或 ≥2 项程序验证证据,签名零 bypass/force/skip 参数);`applied` 恒 False 零状态文件写入;`revise_conclusion`(L603)修正提案→revision_proposal 入链,提案≠回写。O-5 接口预留(L428 `index_reserved_kind` skipped_reserved 登记项,L84 收录集排除)。DP 哨兵(L137/L143 回改 AssertionError)。
+
+**测试 `tests/test_p3_wp_a.py` 1081 行 75 用例 17 类 [实取@实现笔]**: 分类明细见 §零.10;黄金字面量 7 项独立预计算固化+测试内 hashlib 首原理复算双源一致;全合成 fixture 沙箱唯一数据源零真实档触碰;created_at 全显式定值零墙钟。
+
+## §二 AC-02 五要点逐条映射表(DESIGN L174①-⑤)
+
+| 要点 | 模块面(file:line 实取) | 测试面(tests/test_p3_wp_a.py:line 实取) | 判定 |
+|---|---|---|---|
+| ①索引直读原始 data/daily 负向(须被拒) | `_snapshot_ymds` 严格 glob L287-297(模式 L99,china_/global_ 等采集件零匹配零打开);模块 docstring L13-15 结构性不可达声明 | test_raw_collection_files_unreachable L364(5 类采集件名零发现零改写)/test_mixed_raw_and_snapshot_discovery L382(混合目录仅快照被发现)/TestStaticPurity.test_no_raw_daily_literal L979(源码零 data/daily 字面+严格 glob 字面锚) | 本地面 PASS |
+| ②可重建性(删索引→确定性重建→逐字节一致) | `_dump_index_bytes` L203 确定性序列化;`rebuild_index` L262 删→重建→覆盖写 | test_delete_and_rebuild_byte_identical L741/test_rewrite_and_replay_idempotent L749/test_small_index_bytes_golden L734(索引文档 sha256 黄金字面量)/TestIndexFileFace L776-852(损坏六面 fail-loud→重建路径) | 本地面 PASS |
+| ③版本记录 append-only 负向+DP-1/2/3 禁回改负向 | 写入经 drr._write_records(预检存在即 rejected-duplicate)L591-594;`validate_conclusion_version_record` L503 逐字段校验;`dp_selfcheck` L143 哨兵 | test_existing_records_never_modified L653(逐字节不变)/test_tampered_archive_fail_loud L663/test_write_race_duplicate_rejected L672(并发窗口 rejected-duplicate)/TestDPRegistration.test_dp_regression_detected L256(回改→AssertionError)/test_record_validator_field_tampering L617(13 篡改变体拒) | 本地面 PASS |
+| ④修正提案走既有门禁(无弱门禁旁路) | `_validate_gate_basis` L465-486(trigger 核验或 ≥2 程序验证证据);`revise_conclusion` L603;签名面 L545/L603 零 bypass/force/skip 参数 | test_revision_proposal_appended_not_applied L696/test_revision_gate_still_enforced_and_zero_state_write L709(弱依据拒+状态档零写入)/test_gate_basis_rejections L559(8 变体拒+零写入) | 本地面 PASS |
+| ⑤CI 零回归(工件=测试文件+run ID) | 工件=tests/test_p3_wp_a.py(本链 a8bf61e 入库);本地 CI 镜像=83 文件 82 exit0+0 非零+1 SKIPPED(test_glm_live) 基线零回归(§零.10) | run ID=CI 面: **NOT VERIFIED@执行席**(执行侧无 CI 可见面)→留操作者 CHECKPOINT dispatch `rounds/038/P3-WP-A-CI-dispatch-evidence.md` | 本地面 PASS+CI 面分列 |
+
+## §三 如实偏差索引
+
+1. **§零.5 P-A-16 白名单枚举笔误**: 首稿枚举 {json,os,sys,datetime+3 项目件} 漏 `re`(模块实 import re 用于严格快照 glob/ID 正则;测试 AST 白名单含 re 且实锚)。报告笔已勘误补录(语义零漂移: re∈标准库同族,纯度不变);模块 docstring L36 同漏一行,**模块零改动**保实现笔 sha256 稳定(ea782f21…9c49),以测试白名单 AST 实锚为准。
+2. **本地 CI 镜像首轮方法学误用**: 首轮以 `python3 -m unittest tests.test_X` 循环→2 假失败(test_p02_w1[_fix1] helpers 导入面差异: 直接执行时 sys.path[0]=tests/ 可解析,-m unittest 不可)+5 假 SKIP(输出词面误判);按 `.github/workflows/offline-tests.yml` L38-57 实取命令(`python3 tests/test_X.py` 逐文件直接执行+test_glm_live 显式跳过)勘误重演→83=82+0+1。方法论偏差非代码缺陷,登记于 §零.10。
+3. **§零.7 BRANCH-SET 人工转录 5 处失真**(开工笔如实登记在案): R037 独立机器转储链裁定远端零漂移 54 支全值一致+恰 main 登记内前移;教训=长 SHA 表对照以机器转储链为准(已在开工笔落档,此处索引)。
+4. **实现期缺陷修复 3 处**(§零.10 登记): 模块侧 1(query_index 确定性排序缺失,首轮红 3 暴露)+测试侧 2(GOLDEN 折行转录丢 1 字符被首原理复算抓获/record 助手哨兵)。
+5. **CI run ID 执行侧不可见**: AC-02⑤ CI 面 NOT VERIFIED@执行席,不冒充已验证;留操作者 dispatch 取证(rounds/038)。
+6. **REPORT/DELIVERY 行数自指**: §六 数值标注以各笔提交时点 wc -l 实取值登记;行数写入不改变行数(占位行内替换),提交后可 `git show` 复核。
+
+## §四 DP 零回改自检表
+
+| DP | 登记定值(§零.4,开工笔 92bcca7) | 实现值(实现笔 a8bf61e) | 零回改判定 |
+|---|---|---|---|
+| DP-1 索引形态 | (a) 旁路索引文件+事件触发增量更新 | `DP1_INDEX_FORM="bypass_file_incremental"` L57+write/update/rebuild 载体面 | ✓(测试 L246 字面量锚+哨兵 L143) |
+| DP-2 第一期对象集 | (a) O-1~O-4 全 4 类 | `DP2_OBJECT_SET="O1_O2_O3_O4_full_four"` L58+INDEXED_KINDS 6 kind L82 | ✓(同上锚定) |
+| DP-3 记录粒度 | (a) 记录级(前值+后值+受影响字段清单) | `DP3_RECORD_GRANULARITY="record_level"` L59+changes=[{field,before,after}] | ✓(同上锚定) |
+| DP-4/8/9/10 确认型 | 本包零触及 | 零实现零引用(GLM/个人流程/LIVE 面零代码) | ✓(grep 零命中) |
+| DP-5/6/7 登记型(他包) | 本包不触及 | 零引用零改写 | ✓ |
+
+## §五 git 纪律自检
+
+1. 分支 `dev/p3-impl-a` 自 BASE-P3A=`8cebe74d…` 全值切出(§零.7 步骤3,fetch 只读取回);
+2. 首笔=**指定并入步** `git merge --no-ff 7f43724…`(v1.1 合同条款,第二父=设计定稿支;带入恰 3 A 行设计三件,零冲突),其后纯线性: 登记笔 92bcca7→实现笔 a8bf61e→报告笔(本笔)→终笔(DELIVERY);
+3. 白名单 k=4 恰 A=4 纯新增(scripts/research_index.py+tests/test_p3_wp_a.py+REPORT+DELIVERY),与 git ls-files 零重合(§零.3);
+4. 零 merge(指定并入步外)零 amend 零 force --force-push 零 rebase;
+5. main/LIVE(/Users/cast/AI内容/…)/launchd 零触碰(LIVE 隔离核验见终笔后 stdout);
+6. 网络=取证类(ls-remote/gh api 只读)+终局单支推送(origin dev/p3-impl-a,不触 main);测试全离线;
+7. 零 tag(既有 tag 前后等值,终笔取证)。
+
+## §六 数值标注自检(AC-04;逐项实取·来源)
+
+| # | 标注 | 值[实取·来源] |
+|---|---|---|
+| 1 | 模块行数 | 721 [wc -l@实现笔 a8bf61e,§零.10] |
+| 2 | 测试行数 | 1081 [同上] |
+| 3 | 测试用例/类 | 75 用例/17 类 [Ran 75 tests OK+类清点,类内计数和=75 复核] |
+| 4 | 黄金字面量 | 7 项(4 快照指纹+2 报告文件指纹+1 索引文档 sha256)[GOLDEN 表清点+预计算器逐值一致 7/7] |
+| 5 | 套件镜像 | 83 文件=82 exit0+0 非零+1 SKIPPED(test_glm_live)[CI 同款方法学逐文件直接执行] |
+| 6 | 负向敏感性 | 三注入红 3/1/3,还原复绿,sha256 注入前后等值 [§零.10] |
+| 7 | 模块 sha256 | ea782f210ed16340d2c75ee17985d4c7c510a7f86d76e2eb9291d8e0af119c49 [shasum -a 256@实现笔] |
+| 8 | 测试 sha256 | 307fbee84fe437a00597798290ca098cde395ef7b227bc03500d24b558af68ba [同上] |
+| 9 | REPORT 行数 | 207 [wc -l@报告笔提交时点,占位行内替换不增行] |
+| 10 | 交付计数 | k=4 [§零.2 清点] |
+| 11 | DP 登记 | 行内 3 登记型定值+确认型 4 零触及+他包 3 零触及 [§四] |
+| 12 | 验收映射 | 5 要点=本地面 PASS×4+CI 面分列×1 [§二] |

@@ -84,6 +84,43 @@ SHA256SUMS(38 行)旁置于 zip 同目录,清单自身显式豁免(合同 §3 �
 落地行组(zip 定值+笔B/TIP SHA+推送后复核行);终值以终笔提交信息与会话 stdout
 四段为准。
 
+### §六 续段定值行组(R040 续段重装;笔D 随终笔更新,R065/R068 口径·区内纯追加)
+
+- **v2 zip 定值**(R040 续段授权第 5③条重装;装配停点=笔C `66cc96c`): 路径
+  `/tmp/p3-wp-c-evidence/IA-P3-WP-C-EVIDENCE.zip` **文件数 42**(7 类目录成员
+  01=1+02=9+03=10[新增 continuation-diff 续段 diff 取证件]+04=4[新增双解释器
+  记录]+05=5[新增续段节副本+续段数值扫描清单]+06=12+07=1;SHA256SUMS 42 行
+  旁置自豁免不入包)· **字节数 200542** · **sha256=
+  `444dc302c68b751945b4488f9845b91e6acea859db945b296450a260ffb60106`**
+  (装配器 hashlib 与 `shasum -a 256` 双源复算一致;`unzip -t` No errors
+  detected;解包逐成员复算 42 OK/0 BAD;`unzip -l` 独立计数 42 files;根层恰
+  7 类目录;包内 SHA256SUMS 零在包断言通过)。
+- **v1 zip 只读留痕**: 更名 `IA-P3-WP-C-EVIDENCE.b25542e.zip`(162052 字节,
+  sha256=`1e84a4ff607b780d656fc27c3ba36b078854d3f9a8fe132cfec6a9ea7f063500`
+  等值不变,装配器 v2 前置断言+独立 shasum 复核);v1 `SHA256SUMS` 同步旁置更名
+  `SHA256SUMS.b25542e`(38 行)。
+- **续段交付件定值**(@笔C 66cc96c,工作树=git-show 双源等值): 
+  `scripts/prediction_review.py` **651 行** sha256=
+  `4397b6de7b2f15299e39f61a75f24f4ca928e4b515da170660a64765b5471d74`;
+  `tests/test_p3_wp_c.py` **1346 行**(120 用例 16 类=115 既有零弱化+纯新增
+  TestCanonicalFormGuard 5 用例) sha256=
+  `0acbaf984387d1a2636df9801440698c5120c73dae924e8973a05089a6baf173`;
+  `docs/P3_WP_C_REPORT.md` **235 行**(§七 纯追加) sha256=
+  `98f0c8c4876e719e3d5fadaebe9e61b5a060fc715887671cf6f8600d2e655082`;
+  `docs/P3_WP_C_DELIVERY.md`=本笔(笔D)终笔版。§一/§五 表内 642/1306 行与
+  15 类映射=所属笔时点历史值,续段新值以本行组与 REPORT §七 为准(数值演进
+  承接声明;新增类⑯ 的 fixture→断言映射=REPORT §七.3,字面量形族无 fixture
+  依赖)。
+- **续段根因-修复-复验三面**: REPORT §七(根因=CI 3.11 fromisoformat 扩收差/
+  修复=规范形守卫恰 1 函数/复验=镜像 85=84 exit0+1 SKIP+0 非零+黄金三 sha
+  等值+负向敏感性零残留);偏差增补第 9/10 项=REPORT §七.6(本 DELIVERY §七
+  保持原 8 项终态,R068 口径零改动;续段增补面以 REPORT §七 为准)。
+- **CI 复跑**: 操作者 CHECKPOINT 职能(执行席禁 dispatch,run ID 不可见@执行席
+  如实声明);登记件 `rounds/040/P3-WP-C-CI-dispatch-evidence.md` 落字面值。
+- 自指口径注记(续段): 本文件 zip 内副本=笔B 稿(装配停点笔C 未触及 DELIVERY),
+  与库内续段终笔版差异=恰本续段定值行组;包内自述副本与 stdout 终稿差异=恰
+  装配后落地行组;终值以笔D 提交信息与会话 stdout 四段为准。
+
 ## §七 如实偏差(全项登记;不声明「无偏差」)
 
 > 本节仿 R067/R068 先例(WP-A/B DELIVERY 如实偏差专节)自笔A 起在场;内容与 REPORT §三 逐项对应。

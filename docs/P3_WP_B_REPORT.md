@@ -109,4 +109,18 @@ DESIGN L180 验收要点 5 条: ①关联不改状态断言=测试面 ②门禁�
 
 ### §零.10 实现期登记(实现笔回填)
 
-(待实现笔回填: 交付物实取行数与指纹/用例分类实取/黄金值登记/实现期缺陷修复登记[如有]/负向敏感性三注入/本地 CI 镜像重演/零运行产物锚定。)
+**交付物实取(行数/sha256 双源=shasum -a 256 与装配器 hashlib 复算一致)**:
+- `scripts/evidence_linkage.py`: 748 行,sha256=`e639c42358017c92a59138c2c75530fb265a54033809bf48f8e43aa4c4d8f9ba`;
+- `tests/test_p3_wp_b.py`: 1225 行,sha256=`dade7023c3480883b5e048ec099a5d326eaf86415aae6093854a9321df587de1`(基线 748+1225=1973 与本登记一致;`py_compile` 双件通过)。
+
+**用例分类实取**: 117 用例/17 类 [实取·`Ran 117 tests`+`grep -c ^class Test`=17]——TestGoldenFirstPrinciples(4)/TestParamRegistration(8)/TestEventGateNegative(17)/TestEventGolden(8)/TestLoadLinkObjects(5)/TestLayer1Evaluation(6)/TestMatchGolden(7)/TestLayer2MechanismCross(5)/TestRecordLinkagesGolden(5)/TestBuildLinkageRecordsPure(4)/TestArchiveAppendOnly(6)/TestValidateTamperVariants(20)/TestRebuildDeterminism(1)/TestZeroStateWrite(5)/TestAggregations(9)/TestStaticPurity(5)/TestEndToEnd(2)。
+
+**黄金值登记(独立首原理预计算 `/tmp/p3wpb/golden_precompute.py`,零被测模块 import;fixture 一致性 `/tmp/p3wpb/fixture_consistency.py` 三方裁定 0 失配)**: 快照 digest(PASS)=`3e5dd3494769532d`/(DEGRADED)=`0efa106fbb80f4b7`;周报 md digest=`8f1dcc804923a009`;关联档文件字节 sha256: LNK-20260105-001=`48d7311c…c9e73ac`/002=`7122a72e…0a4397`/003=`66c420a4…7f2d164`/004=`3038fc7e…c3f56f3`(全值见测试文件 GOLD_RECORD_SHA;测试内 hashlib 首原理复算逐值相等,双源一致)。
+
+**实现期缺陷修复登记(2 处,当轮暴露当轮修复)**: ①`build_linkage_records` 占位配号缺 `:03d` 零填充(首轮红 `LNK-20260105-1`≠`LNK-20260105-001` 暴露,补格式化复绿);②`record_linkages` 拒绝路径返回值失真(count/linkage_ids 按计划面而非实写面报数——诚实性缺陷,改为拒绝时如实归零 0/[]);另 1 处**设计口径修正**(非缺陷): `_layer1_condition_status` sustain 分支首轮写作「sustain>0 一律 sustaining」,与引擎空状态一次性口径(sustain=1 首跨即满=triggered)不一致→按 `ae.evaluate_quant_triggers` consec=1 口径逐字对齐(sustain≤1→triggered;sustain>1→sustaining),对齐依据=复用禁分叉纪律(§零.5 P-B-05 登记值同步此口径)。
+
+**负向敏感性三注入 [实取·注入→红→还原→复绿,sha256 前后等值零残留]**: ①第一层锚点在场守卫删除→红(failures=11,errors=1)→还原复绿;②Gate A fail-closed 条件替换为永假→红(failures=4)→还原复绿;③sustaining 分支删除→红(failures=5)→还原复绿;三循环前后模块 sha256 均等值 `e639c423…f9ba`(基线=终态)。
+
+**本地 CI 镜像重演(CI 同款方法学: 逐文件直接执行,串行零并发——WP-A 教训在册)**: 84 文件=83 exit0+1 SKIP(test_glm_live 身份锚,RUN_GLM_LIVE 未设)+0 非零 [实取·`/tmp/p3wpb/ci_mirror_results.txt`];基线 83 槽零回归,本包恰 +1(tests/test_p3_wp_b.py exit0)。
+
+**零运行产物锚定 [实取]**: `find data/research -newer scripts/evidence_linkage.py`→零输出;`git status --porcelain` 仅白名单 2 代码件未跟踪(登记笔后状态),data/ 零改动。

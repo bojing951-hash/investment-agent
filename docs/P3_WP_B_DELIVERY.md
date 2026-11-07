@@ -80,3 +80,45 @@ zip 定值(文件数/字节数/sha256)以终笔提交信息与会话 stdout 为�
 (装配器 hashlib 与 `shasum -a 256` 双源复算一致;`unzip -t` No errors detected;
 解包逐成员复算 38 OK/0 BAD/自引用 0;`unzip -l` 独立计数 38 files;根层恰 7 类目录)。
 SHA256SUMS(38 行)旁置于 zip 同目录,清单自身显式豁免(合同 §3 步骤12 口径)。
+
+## §七 如实偏差(R068/IA-P3-WP-B-FIX1 笔A 纯新增;AC-06.3 补齐)
+
+> 本节=整改轮 IA-P3-WP-B-FIX1(R068)笔A 于既有 §一~§六 之后文末纯追加;既有各节零重排/零删除/零改写(笔A diff=纯新增行)。仿 R067 先例(WP-A 同构缺口补 §七 专节)。本节登记全部已登记偏差事实,**不声明「无偏差」**。
+
+### §7.1 R039 审计唯一阻断(AC-06.3)事实与本轮补齐对照
+
+**阻断事实(rounds/039 audit §2,逐字引述自本轮执行提示词注入文本;以 audit 落档原文为准)**:
+
+> AC-06.3 — DELIVERY 缺“如实偏差”专节且未索引(docs/P3_WP_B_DELIVERY.md §一-§六;偏差内容仅存于 REPORT §三)。合同明文五节齐备破一;R038 审计对 WP-A 完全同构缺口判 AC-06.3 FAIL,R067 补 §七 如实偏差专节整改后方 PASS——修复面窄: 仿 R067 先例,DELIVERY 文末纯追加如实偏差专节(全文落节或引述 REPORT §三 8 项),零既有节改动,走整改轮补笔+重 dispatch CI。
+
+**补齐对照(逐项→FIX1 包成员指针;包路径 `/tmp/p3-wp-b-fix1-evidence/IA-P3-WP-B-FIX1-EVIDENCE.zip`,装配时点 TIP=笔A 尖端)**:
+
+| 阻断要件 | 本轮补齐落点(FIX1 包成员指针) |
+|---|---|
+| DELIVERY 缺「如实偏差」专节 | 本节本体(§七;插入位=§六 之后文末,恰合冻结章预期;既有节零改动) |
+| 偏差内容仅存 REPORT §三、未索引 | §7.2 逐项全文落节承接 REPORT §三 实读全量 8 项(含 REPORT 行号索引,零删略零改写) |
+| 证据通道(专节+装配证据可索引) | DELIVERY 双源副本→`02-dual-source-copies/`(gitshow TIP 版+工作树版+`cross-hash-table-fix1.txt`+`blob-equality-base-vs-tipa.txt`);git-chain 新取→`03-git-forensics/`;逐套件串行记录→`04-local-ci-mirror/per-suite-serial-record-fix1.txt`;本轮 AC 映射→`05-evidence-mapping/fix1-ac-mapping.md`;零运行声明→`06-run-artifacts/zero-run-products-declaration-fix1.txt`;自述副本→`07-selfreport-copy/`;装配 README(TIP full SHA+α/β 全量分类)→根层 `README.md` |
+| 走整改轮补笔 | 本节=笔A;FIX1 包 zip 定值=笔B(§六 定值行组区内登记);恰 2 笔纯线性 |
+| 重 dispatch CI | TIP-FIX1 推送后就绪待操作者 CHECKPOINT dispatch,登记件 `rounds/068/P3-WP-B-FIX1-CI-dispatch-evidence.md`(执行席零 dispatch,run ID 不可见不虚构) |
+
+### §7.2 REPORT §三 执行期如实偏差项承接(实读全量=恰 8 项;逐项全文落节+行号索引)
+
+实读 `docs/P3_WP_B_REPORT.md` §三「如实偏差与登记承接」(节首 L149,项区 L151-158),清点=**恰 8 项**,与 R039 审计登记 8 项**零出入**。以下逐项全文落节(逐字复制 REPORT §三 原文,零删略零改写;行号=本轮实读行号):
+
+1. **实现期缺陷 2 处**(占位配号缺 :03d 零填充/拒绝路径返回值按计划面报数→如实归零)——当轮暴露当轮修复,登记 §零.10;(REPORT L151)
+2. **设计口径修正 1 处**(sustain 分支首轮「sustain>0 一律 sustaining」与引擎空状态口径不一致→按 consec=1 首跨逐字对齐,复用禁分叉纪律)——登记 §零.10;(REPORT L152)
+3. **CI 镜像 SKIP 分类首轮误标 6 槽**(字符串匹配把 5 个含「SKIP」字样的通过套件误计 SKIP 槽)→当场勘误为身份锚口径(唯一 SKIP 槽=test_glm_live,输出含 RUN_GLM_LIVE)→终局 83+1+0;(REPORT L153)
+4. **CI run ID 执行席不可见**→⑤ CI 面分列 NOT VERIFIED@执行席,操作者 rounds/039 dispatch 通道(非偏差,如实分列);(REPORT L154)
+5. **资产标签轴结构性缺席**(P-B-08 登记发现): 中文资产标签(美股等)与 registry asset_class(英文)无在场词表桥接,如实缺席不造值,记录 schema 无 asset 字段(TestLayer2MechanismCross 断言);(REPORT L155)
+6. **默认锚点面注记**: 合成 fixture metric 不在真实 registry,`sb.build_anchors` 默认派生产出空集→测试以 P-B-04 注入面为主,默认面仅类型冒烟(TestEventGolden.test_snapshot_event_default_anchors_face);(REPORT L156)
+7. **重放语义注记**(登记语义澄清非偏差): 同事件同日重放=同日单调追加新批(005-008),rejected-duplicate=drr 并发守卫面(测试以陈旧配号扫描模拟竞态窗口,真守卫拒绝零写入零部分落档);(REPORT L157)
+8. **测试文件 1 处 subprocess 受控用途**: test_selfcheck_main_entry 仅以子进程运行被测模块 `__main__` 自检(本地零网络零凭证);被测模块 AST 纯度零 subprocess(TestStaticPurity 白名单外 import=∅)。(REPORT L158)
+
+### §7.3 R039 审计 DEFERRED 4 项引述(DEFERRED·本轮不修)
+
+引述自 rounds/039 audit §3(经本轮执行提示词 §1/附录A §八.1 注入;以 audit 落档原文为准)。4 项均**只记不修**,本轮零触碰(引述=文本引用,非修改):
+
+- **DEFERRED-1(DEFERRED·本轮不修)**: tests `test_fixture_literals_sha256_of_full_set` 恒真断言(`assertEqual(len(blob), len(blob))`,建议下轮替换为具体指纹断言——本轮触改 tests 即违约;tests/test_p3_wp_b.py 本轮零触碰,blob 等值经 FIX1 包 `02-dual-source-copies/blob-equality-base-vs-tipa.txt` 锁定);
+- **DEFERRED-2(DEFERRED·本轮不修)**: CI run annotation ubuntu-latest→Ubuntu 26 迁移提示(登记留意,不改 workflow;`.github/workflows/offline-tests.yml` 本轮零触碰);
+- **DEFERRED-3(DEFERRED·本轮不修)**: 黄金 sha16 digest 第三源复算通道不可达(双源采认口径维持;R039 06 类固化输出经 FIX1 包携行承证,不加工);
+- **DEFERRED-4(DEFERRED·本轮不修)**: DELIVERY §一 表第 3/4 行行数列自指口径(本轮**不**借机登记终值,§一 表零触碰;由笔A/笔B 白名单纪律+定值行组区外零变更锁定)。

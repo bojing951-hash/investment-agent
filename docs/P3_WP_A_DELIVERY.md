@@ -73,6 +73,10 @@ zip 定值(文件数/字节数/sha256)以终笔提交信息与会话 stdout 为�
 - 字节数: **72740**
 - sha256: **82d218a12c05029abac0b2adedfa9762d0334bd75827ddff1be292a0444193df**(装配器 hashlib 与 shasum -a 256 独立复算双源一致;unzip -t No errors;解包逐成员复算 SHA256SUMS 31 条=31 OK/0 BAD/自引用 0)
 - 装配时点 TIP=报告笔 febba90(zip 内 REPORT 副本=报告笔版,DELIVERY 副本=装配时点稿不含本定值行,R065 先例口径);终局自述以会话 stdout 四段为准。
+- FIX1 整改包(IA-P3-WP-A-FIX1,R067 整改轮笔B 登记): `/tmp/p3-wp-a-fix1-evidence/IA-P3-WP-A-FIX1-EVIDENCE.zip`
+- FIX1 定值: 文件数 **46**(45 类成员+SHA256SUMS 自豁免;SUMS 45 条解包逐条复算 45 OK/0 BAD/自引用 0;unzip -t No errors)/字节数 **251159**/sha256 **71bdc09d79c9b0fa0f294832ba8b45a96295b4eba3adfddd905c96aae443a476**(装配器 hashlib 与 shasum -a 256 双源复算一致)
+- 原包(只读对照源)定值留痕: `/tmp/p3-wp-a-evidence/IA-P3-WP-A-EVIDENCE.zip` sha256=82d218a12c05029abac0b2adedfa9762d0334bd75827ddff1be292a0444193df(见上方原行,R067 轮开工核验复算一致,原包零改动)
+- 自指口径注记(R065 先例+R038 审计 DEFERRED-4 采认): FIX1 包内 DELIVERY 双源副本与自述副本=笔A 装配时点稿(TIP=e7086d74c3dd9c8dad4a7582870b726ec22d941f),与库内终笔版(本笔后)差异=恰本 §六 FIX1 定值行组,其余字节等值;终值以库内终笔版+会话 stdout 四段为准。
 
 ## §七 如实偏差(R038 审计承接与 R067/FIX1 整改对照)
 

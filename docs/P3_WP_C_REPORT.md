@@ -101,32 +101,88 @@ DP 编号/数量/分类与 DESIGN 实读一致: 行内所引 DP-5/DP-6(L186② �
 
 登记清单(§零.2)无 GLM/LLM 能力级调用面实现文件(范围列 L184 零 GLM 字样;模块=归类器+统计器+警示清单确定性结构;§5.2 归类框架为登记型零 GLM 路径)→ **AC-03.7 不适用**,判定依据=清单无调用面类文件(§零.2 表 1-4 无客户端封装/调用编排/适配器类)。
 
-### §零.9 实现期登记(实现笔回填)
+### §零.9 实现期登记(实现笔回填;实现笔=cdd7dba,2026-11-08 实取)
 
-(占位: 实现笔回填——交付物行数/sha256/用例分类/黄金值登记/实现期缺陷修复/负向敏感性注入/本地 CI 镜像/零运行产物锚定)
+- **交付物双代码件**(实现笔 git-show 尖端版=工作树版,shasum -a 256 双源与装配期一致): `scripts/prediction_review.py` 642 行,sha256=`bc1c4a543e7e7be9ea0330c1e3a3e61cc5ce0ef1046982588c0a70e2518ac7e1`;`tests/test_p3_wp_c.py` 1306 行,sha256=`a9effbcd493765face2f75a9fd1a8db4f8e9084dc27420af6039cf8046121d06` [实取·shasum];
+- **合成 fixture**(唯一数据源,18 预测 C01..C18+版本记录 5 条,as_of=2026-10-31,窗口 [2025-10-31,2026-10-31]): 与独立首原理预计算件 `/tmp/p3-wp-c/fixture_and_golden.py`(零被测模块 import)字面量逐字节一致 [实取·/tmp/p3-wp-c/fixture_byte_equality.py 六面裁定=preds/versions/doc/warnings/briefing/sha256 全 OK];fixture 一致性三方裁定(手推黄金==模块输出==上游 ae 锚定 settlement/mechanism/词表)`/tmp/p3-wp-c/fixture_consistency.py` 全 OK(含 str-only 文档 dump==sort_keys 形等值性检查);
+- **黄金值登记**(首原理固化,测试内 hashlib 复算双源一致): 统计文档 canonical sha256=`2c40919e35d60cc9dd32939adde27504cb12be6e33ee8d1f699bbc0b31ac5eb7`;警示清单 canonical sha256=`a3004f5e253bc4051a9b7821cfe6f436abf526a120a30cbe0aeed50bfbafd8c2`;简报文本 sha256=`7a9ec406f48c933a381d97e8474ec80b84a01828a5316ac014ecb46c3b63c980`;黄金数值锚: 窗内 hit=3/miss=10/inconclusive=1/nyt 终态=1,hit_rate=3/13(精确浮点 0.23076923076923078),窗外终态=1,未决=2;
+- **用例分类**: 115 用例 15 类 [实取·unittest 计数]: ①黄金首原理复算(6) ②DP/参数登记哨兵含 monkeypatch 回改检出 6 面(10) ③滚动窗口边界月末日钳制(7) ④终态判定(9) ⑤锚定序 resolved_date→VER→deadline+失配(10) ⑥miss 三轴规则含 touch-high/settlement 回退/窗前观测排除/方向优先于期限(15) ⑦归类行 schema/序/单列(8) ⑧分桶统计黄金含 DP-6 分母/空文档/零分母 None(12) ⑨警示游程边界恰 3 触发/2 不触发/hit 打断/premise 不成组/unclassified 计入游程/哨兵不从调用方读(9) ⑩简报渲染含免责尾行/N-A 分母(7) ⑪只读零写入(views 字节等值/fixture 零突变/archive 零创建/repo config 套件前后等值)(5) ⑫编排面(空链黄金/注入面等值/墙钟缺省/负向 4 面)(7) ⑬AST 纯度(import 白名单/禁网/只读 open/零写调用/禁字符串/编译)(6) ⑭负向输入(7) ⑮__main__ 自检(subprocess 受控 1 处)(1);
+- **实现期缺陷修复 1 处**(实现笔前修复,如实登记): `registered_param_values()` 期限桶镜像格式化 `≥9周:9-+`→`≥9周:9+` 与 §零.5 登记字面量对齐(镜像格式缺陷,登记定值本身未动;首运行 dp_selfcheck 检出);
+- **实现期口径修正 1 处**(首原理预计算件检出,如实登记): `dump_statistics` 序列化——`json.dumps(sort_keys=True)` 对 P-C-07 登记的 None 单列桶键抛 TypeError(CPython 不支持 None/str 混合排序)→ 增 `_canonical_order` 递归确定序(None 键排首)后 sort_keys=False 序列化;str-only 文档产物与 §零.5 P-C-08 登记序列化式**逐字节等值**(测试断言+fixture 一致性双面);P-C-07 None 单列键与 P-C-08 确定性序列化两登记定值同时保真;
+- **负向敏感性三注入**(红→还原→复绿→sha256 前后等值零残留,记录件 `/tmp/p3-wp-c/negative-sensitivity-record.txt`): INJ-1 方向轴判定翻转(magnitude_error 冒充 direction_error)→ 红;INJ-2 警示阈值哨兵旁路(阈值-1,游程 2 也触发)→ 红;INJ-3 DP-6 分母口径破坏(inconclusive 入分母,hit_rate 3/13→3/14)→ 红;三注入后模块 sha256=实现笔全值等值;
+- **本地 CI 镜像**(CI 同款逐文件串行,记录件 `/tmp/p3-wp-c/local-ci-mirror.txt`): 85 文件=84 exit0+1 SKIP(test_glm_live)+0 非零 [实取·镜像记录]=基线 84 槽零回归+本包恰 +1(test_p3_wp_c),与 §零.7 预期一致;
+- **零运行产物锚定**: `find data/research -newer docs/P3_WP_C_REPORT.md` 零输出 [实取·find];`git status` 实现笔前后工作树仅白名单 2 文件纯新增(M=0/D=0);
+- **编号注记**: 实现笔提交信息所称「REPORT §零.10 实现期登记」实为本 §零.9(本 REPORT 无 §零.10;提交信息编号笔误,内容指向无误,终笔不回改——如实登记)。
 
 ---
 
 ## §一 实现摘要
 
-(占位: 报告笔回填)
+`scripts/prediction_review.py`(642 行,§零.9 sha256)按 §零.4/§零.5 登记定值确定性落地,四组件:
+
+1. **终态预测归类器(四轴,DP-5)**: `terminal_state`(P-C-02 词表: hit/miss/inconclusive 结果终态;not_yet_triggered 且 deadline≤as_of 终态化[引擎 L913-915 语义];observing/open 未决;未知 status/nyt 缺 deadline→ValueError fail-loud)+`anchor_date_of`(P-C-03 判定序 resolved_date→结论版本链[rri.list_conclusion_versions,object_type=prediction+change_type=status_change 最新 created_at,同刻按 version_id]→deadline;版本链 after 值与状态文件失配→discrepancies 如实清单[状态文件=权威载体,不改判不 fail])+`classify_miss`(P-C-06 三轴: ae._window_obs/_obs_field_value/COMPARATORS/market_of_metric/settlement_date 在场复用;==无方向轴→幅度错误/预期反向→方向错误/方向对且 post_deadline_hits>0→期限错误/其余→幅度错误;规格不可计算或可用观测<2→unclassifiable 单列;终态 miss 缺 deadline→ValueError)+`classify_predictions`(行 schema 13 键,行序=输入序;hit→hit_sample/miss→error_pattern/inconclusive 与 nyt 终态→premise_class 单列[DP-6(a)]/未决→pending_excluded);
+2. **分桶统计器(§5.2 L132)**: `window_bounds`+`shift_months`(P-C-04 滚动 12 个日历月闭区间,月末日钳制)+`_bucket_rows`(P-C-07 资产/机制[ae.mechanism_of 复用]/期限桶 ≤2周-3-8周-≥9周,缺席轴 None 单列键,桶行 6 键含 hit_rate=None 当分母 0)+`review_statistics`(P-C-08 统计文档 12 键;hit_rate=hit÷(hit+miss) 精确浮点)+`dump_statistics`(确定性序列化,_canonical_order None 键可承载形,§零.9 口径修正);
+3. **假设生成警示清单(§5.2 L134)**: `hypothesis_warnings`(P-C-09 窗内机制分组末端连续 miss 游程≥3[登记阈值]→条目;条目 8 键携 slot=hypothesis_generation_warning_input_slot;只读聚合零写入)+`render_warning_briefing`(旁路渲染纯文本,零注入零回写零周报系统触碰;消费面=WP-P3-D 范围禁提前带入);
+4. **编排面与哨兵**: `prediction_review_report`(P-C-13 唯一墙钟缺省=as_of 边缘;状态文件只读直载 json.load 不经 ae.load_views;archive_dir 只读)+`registered_dp_values`/`registered_param_values`/`dp_selfcheck`(P-C-15 登记哨兵,回改任一定值→AssertionError)+`__main__` 自检零写入。
+
+测试面 `tests/test_p3_wp_c.py`(1306 行 115 用例 15 类,§零.9 分类): 全合成 fixture 18 预测+版本记录 5 条唯一数据源;预期值一律字面量硬编码不从被测模块派生;三黄金 sha256 首原理固化+测试内 hashlib 复算双源;DP-5/DP-6/阈值回改 monkeypatch 检出 6 面;AST 纯度面;只读零写入字节级断言;负向输入 fail-loud;1 处 subprocess 受控用途(§三)。
 
 ## §二 AC-02 五要点逐条映射表(DESIGN L186①-⑤)
 
-(占位: 报告笔回填)
+| 要点 | 落地面(测试 file:case) | 结果 |
+|---|---|---|
+| ①历史裁决记录零改写断言 | TestZeroWrite.test_views_file_bytes_unchanged_after_report(编排面全流程后 views 文件字节 sha256 前后等值)+test_input_fixture_dicts_not_mutated(输入 fixture 深比较零突变)+test_archive_dir_not_created(archive 目录零创建)+模块面 P-C-10(零文件写入面,observations/resolved_note/status/resolved_date 全字段零改写,AST 零写调用断言 TestStaticPurity.test_zero_write_calls)+TestZeroWrite 套件级 repo config/allocation_views.json sha256 前后等值(setUpModule/tearDownModule) | PASS [实取·115/115 OK] |
+| ②归类框架与统计口径参数(DP-5/DP-6: 窗口 12 个月/分母口径)先登记后运行、禁回改负向测试 | 登记时序: §零.4/§零.5 登记笔 ca56427(2026-11-07)先于实现笔 cdd7dba(2026-11-08)(git 时序);运行期哨兵 dp_selfcheck(活性常量 vs 模块内登记镜像逐值对照)+负向检出 TestDPParamRegistration.test_monkeypatch_window_months_detected(DP-5 窗口 12→6→AssertionError)/test_monkeypatch_dp6_scope_detected(DP-6 口径→AssertionError)/test_monkeypatch_threshold_detected(P-C-09 阈值 3→2→AssertionError)等 6 面;字面量三方一致 test_registered_dp_values_literals/test_registered_param_values_literals/test_module_constants_vs_registered(常量=镜像=§零.4/§零.5 登记字面量) | PASS [实取·115/115 OK] |
+| ③inconclusive/not_yet_triggered 不入错误分母断言 | TestStatisticsGolden.test_premise_class_excluded_from_error_denominator(C08/C09 不入三轴与 correct_samples;premise_class 单列清单断言)+test_full_document_equals_golden(黄金 counts: hit_rate=3/13 分母不含 inconclusive=1 与 nyt 终态=1)+test_zero_denominator_hit_rate_none(仅 inconclusive→hit_rate=None 如实缺席)+TestClassifyRows.test_premise_class_rows_dp6a(premise_class 类别行)+负向敏感性 INJ-3(inconclusive 入分母→红) | PASS [实取·115/115 OK] |
+| ④警示清单只作输入槽位、周报结构与回写路径零改动断言 | 结构面: 警示条目携 slot=hypothesis_generation_warning_input_slot(P-C-09;TestHypothesisWarnings 黄金断言)+模块零周报系统触碰(P-C-14: report_generator 零依赖=TestStaticPurity.test_no_banned_strings 禁字符串断言;回写路径零改写=要点①面同源);渲染面 render_warning_briefing=纯函数返回字符串零写入(TestRenderBriefing 全类;TestZeroWrite 沙箱零新文件);消费面 WP-P3-D 零提前带入(P-C-14) | PASS [实取·115/115 OK] |
+| ⑤CI 零回归 | 本地 CI 镜像(CI 同款逐文件串行)85 文件=84 exit0+1 SKIP+0 非零=基线 84 槽零回归+恰 +1(test_p3_wp_c) [实取·/tmp/p3-wp-c/local-ci-mirror.txt];CI 面 run=操作者 rounds/040 dispatch(执行席 NOT VERIFIED,§五/DELIVERY 承接) | 本地面 PASS;CI 面 NOT VERIFIED@执行席→操作者 dispatch |
 
 ## §三 如实偏差与登记承接
 
-(占位: 报告笔回填)
+1. **实现期缺陷修复 1 处**: `registered_param_values()` 期限桶镜像格式 `≥9周:9-+`→`≥9周:9+`(§零.5 登记字面量对齐;首运行 dp_selfcheck 检出;登记定值未动)——登记于 §零.9,仿 WP-B「实现期缺陷修复」先例;
+2. **实现期口径修正 1 处**: `dump_statistics` 序列化式——P-C-08 登记序列化式 `json.dumps(sort_keys=True)` 对 P-C-07 登记的 None 单列桶键抛 TypeError(登记内部张力,首原理预计算件检出)→ `_canonical_order` 确定序(None 排首)后 sort_keys=False;str-only 文档与登记式逐字节等值(测试断言);**两登记定值同时保真,非回改**(P-C-07 None 键保留/P-C-08 确定性保留)——登记于 §零.9;
+3. **实现期口径补强 1 处**: 终态 miss 缺规范 deadline→classify_miss ValueError fail-loud——P-C-06 未明列该输入形(P-C-02 仅登记 nyt 缺 deadline 的 fail-loud);理由=窗口不可定界归类不可计算,fail-loud 优于沿用 ae._window_obs 的 9999-12-31 缺省假窗口;测试 TestClassifyMiss.test_miss_without_deadline_fail_loud;
+4. **测试 1 处 subprocess 受控用途**: TestSelfcheckMain 以 subprocess 运行 `scripts/prediction_review.py` __main__ 自检(受控: sys.executable+仓库内路径+timeout=60+capture_output;仿 WP-B 先例登记);AST 纯度禁 subprocess 面仅约束被测模块(模块 import 白名单经 test_import_whitelist 断言零 subprocess);
+5. **提交信息编号笔误**: 实现笔提交信息称「REPORT §零.10 实现期登记」,本 REPORT 实为 §零.9(无 §零.10;内容指向无误);已提交信息不回改,如实登记于 §零.9/本节;
+6. **REPORT §零.1 行号偏差**: 冻结章 §十一 注记 C 行 L181-185 vs 基线实读 L182-186,偏差恰 1 行≤3 行容差(§零.1 已登记,AC-01 满足)——承接非新增;
+7. **无其他偏差**: 未声明「无偏差」;WP-A/B 全部前序偏差项与本包无涉;DP-5/DP-6/P-C-01..P-C-16 登记定值运行后零回改(§四)。
 
 ## §四 DP 零回改自检表
 
-(占位: 报告笔回填)
+| DP/参数 | 登记定值(§零.4/§零.5) | 实现值(实现笔尖端) | 零回改证据 |
+|---|---|---|---|
+| DP-5 | four_axis × 滚动 12 个月 | DP5_ERROR_FRAMEWORK="four_axis";DP5_ROLLING_WINDOW_MONTHS=12;四轴词面 §零.4 | dp_selfcheck 镜像对照+monkeypatch 检出(test_monkeypatch_window_months_detected)+字面量三方一致 |
+| DP-6 | (a) inconclusive/not_yet_triggered 不入分母单列 | DP6_DENOMINATOR_SCOPE=hit_miss_only_inconclusive_nyt_listed_separately;counts 分母=hit+miss | 同上(test_monkeypatch_dp6_scope_detected)+INJ-3 负向敏感性红 |
+| P-C-09 阈值 | 机制末端连续 miss≥3 | WARNING_CONSEC_MISS_THRESHOLD=3 | test_monkeypatch_threshold_detected+INJ-2 红 |
+| P-C-02/07/08 | 终态词表/期限桶/schema v1 | RESULT_TERMINAL_STATUSES/HORIZON_BUCKETS/STATS_SCHEMA_VERSION 登记值 | test_monkeypatch_terminal_statuses_detected/nonmonotonic/schema_version 3 面+字面量断言 |
+| DP-1/2/3 | 上游 WP-P3-A 已登记,只读复用 | 模块只 import ae/rri 读侧面,零载体改写 | AST import 白名单+零写调用+fixture 深比较零突变 |
+| DP-4/8/9/10 | 确认型零触及 | 零实现零引用(§零.8 同判;grep 面=TestStaticPurity 禁字符串) | AST/字符串断言 |
+| DP-7 | 不触及(WP-P3-D 面) | 零引用零改写 | 同上 |
 
 ## §五 git 纪律自检(七项)
 
-(占位: 报告笔回填)
+1. 基线切出: dev/p3-impl-c 自 BASE-P3C `c14931c…` 全值切出(§零.7 步骤3,非自 HEAD 盲切)✓;
+2. 纯线性: BASE 后登记笔 ca56427→实现笔 cdd7dba→报告笔(本笔)→终笔,零 merge 零 amend 零 force(git log --oneline 单父链)✓;
+3. main 未触碰: 全程零 checkout main/零 push main;main 尖端开工 ls-remote=BASE-P3C 全值一致(§零.7 步骤2)✓;
+4. LIVE 零写入: LIVE 目录零写入(DELIVERY 取证: grep R040/P3-WP-C/IA-P3-WP-C 零命中+real_data_acceptance.py sha256 不变)✓;
+5. launchd 零改动: ~/Library/LaunchAgents 清单前后等值取证(DELIVERY)✓;
+6. 零 tag: 全程零 git tag(基线先存 tag 与本包无涉)✓;
+7. 网络: 仅取证类(ls-remote/push);终局单支推送 dev/p3-impl-c(不 force)→ ls-remote 全分支集比对 §十一.1 57 支冻结表(新增仅 dev/p3-impl-c)✓。
 
 ## §六 数值标注自检(AC-04;逐项实取·来源)
 
-(占位: 报告笔回填)
+| 数值 | 值 | 标注 |
+|---|---|---|
+| 交付模块行数 | 642 行 | [实取·wc -l 实现笔工作树] |
+| 测试行数/用例/类 | 1306 行/115 用例/15 类 | [实取·wc -l+unittest Ran 115 tests] |
+| 模块/测试 sha256 | bc1c4a54…8ac7e1/a9effbcd…6121d06 | [实取·shasum -a 256 全值见 §零.9] |
+| 合成 fixture 规模 | 18 预测+5 版本记录 | [实取·fixture 字面量清点] |
+| as_of/窗口 | 2026-10-31/[2025-10-31,2026-10-31] | [实取·fixture 定值(合成,非真实日期数据)] |
+| 黄金统计 sha256 三值 | 2c40919e…/a3004f5e…/7a9ec406… | [实取·/tmp/p3-wp-c 首原理预计算+测试内 hashlib 复算] |
+| 黄金计数 | hit=3/miss=10/inconclusive=1/nyt=1/hit_rate=3/13 | [实取·手推黄金=模块输出=测试断言] |
+| DP-5 窗口/DP-6 口径/阈值 | 12 个月/(a) 单列不入分母/3 | [实取·登记定值=模块常量=测试字面量] |
+| CI 基线/镜像 | 84 槽/85 文件=84 exit0+1 SKIP+0 非零 | [实取·§零.7 清点+/tmp/p3-wp-c/local-ci-mirror.txt] |
+| 负向敏感性 | 3 注入全红→复绿→零残留 | [实取·/tmp/p3-wp-c/negative-sensitivity-record.txt] |
+| 零运行产物 | find data/research -newer REPORT 零输出 | [实取·find] |
+| 分支笔序 | BASE c14931c→ca56427→cdd7dba→报告笔 | [实取·git log] |
+| fixture 截止日交易日锚定 | 13 个 expiry 截止日 settlement==当日 | [实取·ae.settlement_date 复核(fixture 一致性件)] |

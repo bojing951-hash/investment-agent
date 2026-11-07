@@ -35,7 +35,7 @@ L203: - 验收要点草案: ①证据接地负向测试(无 provenance 数值注
 
 ### §零.3 结构约束核验
 
-- 与 `git ls-files` 零重合: 4 路径 `git ls-files -- <paths>` 输出=0 行 [实取·开工 2026-11-07T06:4xZ,输出入证据包 03],且工作树均不存在 → 纯新增 ✓
+- 与 `git ls-files` 零重合: 4 路径 `git ls-files -- <paths>` 输出=0 行 [实取·开工 2026-11-07T06:03Z(登记笔 c825ee4 提交前),输出入证据包 01-startup-forensics],且工作树均不存在 → 纯新增 ✓
 - 必含 DELIVERY ✓;含 .py 实现文件 → 必含对应 tests(tests/test_p2_wp_b.py)✓
 - 推导无越界: 范围列恰 1 个代码模块 → scripts/ 恰 1 文件;范围列两处排除项(按需配对计算/事件日历)零实现零文件;未引入 DESIGN 依据外文件 ✓
 
@@ -101,10 +101,10 @@ DP 编号/数量与 DESIGN 实读一致(6 个 [实取·DESIGN §2.4 表清点]);
 
 1. **步骤0**: `git status` clean(基点分支 dev/p2-impl-a[WP-A 终态残留检出态],非本包所致脏=零)✓;UTC=2026-11-07T05:49:38Z。
 2. **步骤1 占位符核验**: 三占位符均实值化(BASE-P2B=`a040faa741a69f4e7f037fb6e778f4e0bda3305a`/CI-SUITES=79/BRANCH-SET=52 支全表)✓,无占位符开闭标记残留。
-3. **步骤2 前置实取**: `git ls-remote origin main`=`a040faa741a69f4e7f037fb6e778f4e0bda3305a` 全值一致 ✓;`git ls-remote --heads origin` 计 **52** 支 ✓ 且无 `dev/p2-impl-b` ✓;`git ls-remote origin dev/p2-design`=`f8ed401f4274e158c06a9404149d41260e5cc0ad` 前 7 位=f8ed401 ✓(原始输出=证据包 03/ls-remote-*.txt)。注记(如实): 本地仓库 origin/main 跟踪 ref 陈旧(0c9fc3f,WP-A 收口前),`git fetch origin main` 后对象在场合规(跨支只读取证允许,合同 §4);checkout 自基线 SHA 实切,非盲切 HEAD。
-4. **BRANCH-SET 全表对照发现登记(如实,R033 同型先例)**: 52 支分支名集合与冻结章 §三.1 完全一致、48/52 支尖端全值相等;**4 支提示词冻结表值与 live ls-remote 不符**(dev/p03-w2-glm-design/dev/p1-impl-b/dev/p1-impl-f/dev/round4-reliability),其中 2 条表值为结构无效 SHA(39 字符: p03-w2-glm-design `0c8de3c3…d892a817b…`缺 1 字符/p1-impl-f `44a7a686…f97d923…`缺 1 字符,真 ls-remote 不可能产出),另 2 条单字符替换(p1-impl-b `…ee7b7…`→live `…ee7b5…`/round4-reliability `…2b69209…`→live `…2b69409…`);第三源复核=本地 remote-tracking refs(for-each-ref)与 live 逐一全值一致 → 判定=**提示词侧转录讹误,非分支漂移**(证据链=证据包 03/branchset-anomaly-analysis.txt);处置=开工步 2 显式判据(main 尖端/计数 52/无本分支/p2-design 尖端)全过不触发停止,执行窗口漂移检测锚定开工真观测快照,建议操作者对合同存档件冻结章 §三.1 作勘误登记(执行Agent 无权改合同)。
+3. **步骤2 前置实取**: `git ls-remote origin main`=`a040faa741a69f4e7f037fb6e778f4e0bda3305a` 全值一致 ✓;`git ls-remote --heads origin` 计 **52** 支 ✓ 且无 `dev/p2-impl-b` ✓;`git ls-remote origin dev/p2-design`=`f8ed401f4274e158c06a9404149d41260e5cc0ad` 前 7 位=f8ed401 ✓(原始输出=证据包 01-startup-forensics/ls-remote-*.txt)。注记(如实): 本地仓库 origin/main 跟踪 ref 陈旧(0c9fc3f,WP-A 收口前),`git fetch origin main` 后对象在场合规(跨支只读取证允许,合同 §4);checkout 自基线 SHA 实切,非盲切 HEAD。
+4. **BRANCH-SET 全表对照发现登记(如实,R033 同型先例)**: 52 支分支名集合与冻结章 §三.1 完全一致、48/52 支尖端全值相等;**4 支提示词冻结表值与 live ls-remote 不符**(dev/p03-w2-glm-design/dev/p1-impl-b/dev/p1-impl-f/dev/round4-reliability),其中 2 条表值为结构无效 SHA(39 字符: p03-w2-glm-design `0c8de3c3…d892a817b…`缺 1 字符/p1-impl-f `44a7a686…f97d923…`缺 1 字符,真 ls-remote 不可能产出),另 2 条单字符替换(p1-impl-b `…ee7b7…`→live `…ee7b5…`/round4-reliability `…2b69209…`→live `…2b69409…`);第三源复核=本地 remote-tracking refs(for-each-ref)与 live 逐一全值一致 → 判定=**提示词侧转录讹误,非分支漂移**(证据链=证据包 01-startup-forensics/branchset-anomaly-analysis.txt);处置=开工步 2 显式判据(main 尖端/计数 52/无本分支/p2-design 尖端)全过不触发停止,执行窗口漂移检测锚定开工真观测快照,建议操作者对合同存档件冻结章 §三.1 作勘误登记(执行Agent 无权改合同)。
 5. **步骤3 切建分支**: `git checkout -b dev/p2-impl-b a040faa741a69f4e7f037fb6e778f4e0bda3305a` ✓(自基线 SHA 切出;本包无并入步,DESIGN 冻结章无分支名指定,维持 dev/p2-impl-b)。
-6. **步骤4 设计在场核验(本包无并入步,路径甲)**: ①`git merge-base --is-ancestor f8ed401f4274e158c06a9404149d41260e5cc0ad HEAD` **exit 0 可达** ✓(经 R033 指定并入步 dcfc7d0 祖先在场);②设计三件 `git ls-tree` 双侧(HEAD vs f8ed401)blob 等值: P2_INVENTORY=`c83c3938269ffb7192da9e7810bb052885cd9bb5`/P2_DESIGN=`63a1964812f0c081aef0ea38148dec82537c7416`/P2_DELIVERY=`ac80196fd06d28019e8c5e63f86a63ab94429f99`,与合同冻结章 §三 登记三值逐一相同 ✓(原始输出=证据包 03/design-blob-*.txt)。
+6. **步骤4 设计在场核验(本包无并入步,路径甲)**: ①`git merge-base --is-ancestor f8ed401f4274e158c06a9404149d41260e5cc0ad HEAD` **exit 0 可达** ✓(经 R033 指定并入步 dcfc7d0 祖先在场);②设计三件 `git ls-tree` 双侧(HEAD vs f8ed401)blob 等值: P2_INVENTORY=`c83c3938269ffb7192da9e7810bb052885cd9bb5`/P2_DESIGN=`63a1964812f0c081aef0ea38148dec82537c7416`/P2_DELIVERY=`ac80196fd06d28019e8c5e63f86a63ab94429f99`,与合同冻结章 §三 登记三值逐一相同 ✓(原始输出=证据包 01-startup-forensics/design-blob-*.txt)。
 7. **生效前置**: 依赖列上游=WP-P2-A(L199-203 依赖列所载恰 1 包),其交付件基线工作树在场(§零.6 实读)✓;合同级生效前置=操作者发车时保证(注入摘要,非工作树实读)。
 
 ### §零.8 运行产物边界登记
@@ -128,3 +128,80 @@ DP 编号/数量与 DESIGN 实读一致(6 个 [实取·DESIGN §2.4 表清点]);
 **黄金字面量预计算修正(如实,测试 fixture 预备期)**: 快照 digest 定值经 3 轮定稿(v2 增 WEIRD 事实/v3 增 HASHFORM 事实后),其中 v3 首算经 scratch 脚本位置参数错配得出 `efc57914…`(WEIRD 覆写参数错位致 metric/quality 错值),与测试 fixture 实算 `41fb4043…` 不符→ 逐字节 diff 定位 scratch 侧转录讹误并修正(与 §零.7 BRANCH-SET 同类的「独立预计算侧讹误,当场防线捕获」例证;测试 fixture 本身无缺陷;所有 ID 族定值因指纹不含快照内容而不受影响,一次定稿)。
 
 **负向敏感性注入循环(3 真实注入,登记件=证据包 03-negative-sensitivity/negative-sensitivity-injections.txt)**: ①Gate A fail-closed 失活→2 红(单条接地负向+e2e 链)②同基底去重失活→3 红(去重/中性排除/summary 定值)③阻断声明复核失活→1 红(放行快照谎报不再拒);恢复后 57 用例全绿,模块 sha256 注入前后逐字节等值 `19a3a50e…dfd43`(shasum 双次核验),测试文件全程零改动。注入循环前三注入全部一次命中预期红,无「注入后仍绿」测试缺口情形(与 WP-A 注入2同类缺口暴露不在本轮发生,如实区分)。
+
+---
+
+## §一 做了什么(实现摘要)
+
+**实现笔 c906db5**(3 files changed/1839 insertions [实取·git show --stat c906db5]):
+
+1. **scripts/deep_research_matrix_engine.py**(816 行 [实取·wc -l 2026-11-07T06:26Z]): 证据矩阵装配与轮次推进引擎,两新记录族(`deep_research_evidence`/`deep_research_rounds`,P-B-01)挂共享档案族根。核心面(行号=c906db5 版实读):
+   - **确定性 ID 族**: `EVI-{YYYYMMDD}-{sha256[:8]}`/`RD-` 同构(make_evidence_id L86/make_round_id L98);指纹不含墙钟→重放幂等,前缀避开上游已占 RT-DR-/HP-/FC-/EV-;
+   - **六重 fail-closed 证据接地** `_ground_and_build_record`(L260-L336): ①快照可载(drr._load_snapshot_for_verify,结构性不可达原始采集档)②digest 重算(rp.digest_snapshot,API 无 digest 入参,禁采声明值)③Gate A 放行(rp.gate_allows_formal_research,FAIL 快照不作正式证据源)④事实接地(fact_id 命中且 value/observation_date/metric_id 逐一相等——无 provenance 的数值不得进入矩阵)⑤事实质量≠FAIL(fe 词表)⑥任务面(ACTIVE+假设成员+round≤DP-1);
+   - **证据矩阵确定性汇编** `assemble_matrix`(L406-L449): cells=绑定对稀疏映射(无绑定对的格子不虚构中性值);summary 四字段+star——同一底层指标去重/方向切分/星级门槛复用 `ae._base_metric`/`ae.split_evidence_direction`/`ae.star_level_from_evidence` **同一代码路径**(与 L520-521 同构=复用调用,非平行重写);`_to_v2_item`(L396)v2 分级映射(支持/反对{contrary,explained}/中性{neutral});
+   - **轮次引擎** `run_round`(L545-L678): 推进任一(①新登记证据 ≥1 ②判据可计算 ③反证检索义务未闭合)否则 hold;终止枚举序 ①RESOLVED(判据成立)②ALL_FALSIFIED(全假设证伪)③INCONCLUSIVE(预算耗尽,DP-1 硬上界)④INCONCLUSIVE(数据阻断经 `_verify_blocking` L524 对快照 gate_a 复核实证——放行态快照谎报阻断→拒收不一致声明);判据判定锚定任务档登记面(`_registered_criteria_keys` L467,tuple(sorted(pair))+(criterion,) 命中检查);轮次序贯 append-only(round=既有+1,历史轮记录不可改写);证据批两段式全量校验后原子落档(drr._write_records 预检零存在);
+   - **生命周期全经 drr 既有状态保护转递**: activate_task(L451)/终态事件均=append_lifecycle_event,零新增状态值零改迁移表(AC-07.5 转递面);
+   - **e2e 编排入口** `run_dev_copy_end_to_end`(L680-L816): sb.build_snapshot(write=False) 离线构建(P2-G-06 范式),快照物化运行产物区,合成任务登记常量,证据接地如实尝试(gate 放行→落档/FAIL→fail-closed 拒收如实记录理由),阻断→§4.4④ 收束;产物落 `data/research/p2_wp_b_e2e/`(不 commit);data_dir/trusted_root/as_of 透传仅测试沙箱用;模块源码零 `data/daily` 字面引用。
+2. **tests/test_p2_wp_b.py**(1009 行 [实取·wc -l 同上],57 用例/14 类 [实取·unittest 收集计数 2026-11-07T06:2xZ]): 黄金字面量 38 个 GOLDEN_* 常量 [实取·正则清点](32 ID 族+2 digest+3 summary 定值+1 e2e 参数组,独立预计算+首原理 canonical sha256 交叉验证,反自证纪律)+逐要点负向/正向(§二映射表);数据纪律=临时目录合成 fixture 唯一数据源+显式注入时刻+零真实档零网络。
+3. **负向敏感性测试**(执行纪律 #4): 三真实注入(Gate A fail-closed 失活/同基底去重失活/阻断声明复核失活)→套件红 2/3/1 [实取·unittest 失败计数]→恢复后 57 全绿,模块 sha256 注入前后等值 `19a3a50e…` [实取·shasum 对照],测试文件全程零改动 `0a1484c0…`(全记录=证据包 03-negative-sensitivity/negative-sensitivity-injections.txt)。三注入全部一次命中预期红,无测试缺口暴露情形(§三.4 如实区分)。
+4. **本地 CI 镜像**(仿 .github/workflows/offline-tests.yml 逐套 python3 直跑): TOTAL=80/RUN=79/EXIT0=79/SKIPPED=1(test_glm_live,合同排除)/FAIL=0 [实取·p2b-run-ci.py 输出,逐套日志=证据包 04-local-ci/](=WP-A 时点 79 槽+本包新增 1 套件,零回归)。
+5. **官方 e2e 真实运行(要点④,步骤10)**: `run_dev_copy_end_to_end('20261102')` 于 DEV 授权数据副本实跑 **exit=0** [实取·e2e-run-stdout.txt]: 快照 `research_snapshot_20261102`(digest `82bd93dfdf625c02`)Gate A=**FAIL**(core_missing 5 项 [实取·运行日志: CN_TOTAL_TURNOVER/FED_FUNDS/SHCOMP/SH_AMOUNT/SZCI])→证据接地 **fail-closed 拒收**(拒收理由如实落档)→R1 终态判定 **INCONCLUSIVE**(rule=§4.4④ 数据阻断,经引擎对快照 gate_a 复核实证);任务 `RT-DR-20261107-60e21f15` 全链(事件 DRAFT→ACTIVE→INCONCLUSIVE);运行产物 11 文件落运行产物区(+11/-0,全量清单=证据包 05-acceptance-anchors/anchor-verdict.txt);数据纪律锚定: data/daily 27 件前后逐行 sha256 等值 [实取·hash_tree 对照],data/research 既有 13 件零改动。
+
+## §二 逐要点证据映射表(AC-02)
+
+DESIGN L203 验收要点①-⑤ → 实现/证据/自检逐条(行号=实现笔 c906db5 版实读):
+
+| 要点 | 实现位置 | 测试证据(类·用例数 [实取·类清点]) | 自检 |
+|---|---|---|---|
+| ① 证据接地负向(无 provenance 数值注入矩阵→fail-closed) | `_ground_and_build_record`(L260-L336 六重校验,任一不过零写入) | TestEvidenceGroundingNegative·9: 事实缺席/数值错配/日期错配(WEIRD)/指标错配(ODD)/质量 FAIL(BROKEN)/Gate A FAIL 源拒收/DEGRADED 可用正例/缺档快照/批内原子性零部分写入 + TestEvidenceSchemaNegative·6: weight 量表/direction 词表/mechanism 7 族/explained 必携解释/fact_id 形式(HASHFORM)/缺字段 | ✓ 全绿;负向注入 1(Gate A 失活)→2 红实证防线真实(单条接地+e2e 链) |
+| ② 矩阵汇总确定性(同输入同输出;去重/封顶规则与 L520-521 同构) | `assemble_matrix`(L406-L449)+`_to_v2_item`(L396)——ae 三原语复用调用非平行重写 | TestMatrixAssembly·7: summary 三假设定值(5★/封顶 3★/去重 1★)/cells 稀疏映射/同基底去重/中性排除/未解释封顶/已解释不封顶/零态全零 + TestStarIsomorphism·1: 矩阵 star≡ae.star_level_from_evidence 同证据集输出 + TestMatrixDeterminism·2: 同沙箱重复汇编+跨沙箱同输入 canonical 逐字节等 | ✓ 全绿;负向注入 2(去重失活)→3 红实证 |
+| ③ 轮次终止条件各自触发(条件 4 项;数据阻断→INCONCLUSIVE+登记,不编造) | `run_round`(L545-L678)终止枚举序①②③④+`_verify_blocking`(L524 阻断复核实证) | TestRoundTerminal·7: 四终态各自可达+枚举优先序全对(①>②④/②>③/③>④/部分证伪非终态)+TestRoundAdvance·2(推进三源各自+hold)+TestRoundBlockingNegative·2(放行谎报拒收零落档/缺档快照拒收)+TestRoundSequencing·6(首轮须 1/超预算/重放拒/历史档篡改字节不变/野判据拒/pair 未命中拒) | ✓ 全绿;负向注入 3(阻断复核失活)→1 红实证 |
+| ④ DEV 授权数据副本端到端(数据档引用 data/daily/*_20261102.json) | `run_dev_copy_end_to_end`(L680-L816;sb write=False 离线构建,模块零 data/daily 字面引用) | TestOfflineE2E·2: 最小合成数据面→真实 sb 门禁 FAIL→fail-closed 拒收→§4.4④ INCONCLUSIVE 全链+事件链 DRAFT→ACTIVE→INCONCLUSIVE+产物沙箱内聚断言+不构成投资建议声明;同沙箱重放拒 + 官方运行(§一.5,证据包 05 全量日志) | ✓ 全绿+正式运行 exit=0 |
+| ⑤ CI 零回归(工件: 测试文件+run ID) | tests/test_p2_wp_b.py(57 用例,CI 入口直跑兼容 unittest.main) | 本地 CI 镜像 80 槽 FAIL=0(§一.4,日志=证据包 04);真实 CI run ID=操作者 dispatch 面(rounds/035 登记件),执行时点尚未产生,如实登记 NOT VERIFIED@执行侧(DELIVERY §三 AC-06 分列) | 本地面 ✓;CI 面=操作者面待 run |
+
+另有非要点直映射的防线类: TestGoldenRegistration·2(ID 族定值+注册全链)/TestAppendOnlyEvidence·2(证据重放字节不变+零墙钟同日异刻同 ID)/TestStateProtection·6(未激活登记拒/异假设拒/超预算轮拒/未激活推进拒/终态后再入拒/终态后手工迁移拒)/TestStaticPurity·3(零 data/daily 字面/零网络 import/产物区恒 data/research 子域),全绿 [实取·unittest 计数]。
+
+## §三 偏离与如实声明
+
+1. **BRANCH-SET 提示词侧转录讹误**(开工发现,§零.7.4 全文): 4 支提示词冻结表值与 live 不符(2 条 39 字符结构无效 SHA+2 条单字符替换)→判定=提示词侧转录讹误非分支漂移(第三源 for-each-ref 与 live 逐一一致);开工步 2 显式判据(main 尖端/计数 52/无本分支/p2-design 尖端)全过不触发停止;处置=漂移检测锚定开工真观测快照+建议操作者对合同存档件冻结章 §三.1 作勘误登记(执行Agent 无权改合同)。执行后 ls-remote 对照=DELIVERY §二。
+2. **实现期缺陷修复 3 处+文案修正 1 处**(均测试首轮运行暴露、实现笔提交前修复,§零.10): 修复A=轮次记录写入状态回传补 rejected-duplicate 分支;修复B(沙箱逃逸级,如实重点登记)=`os.path.join(root, drr.DEFAULT_ARCHIVE_DIR)` 因常量为绝对值而静默丢弃 root→合成任务族误落仓库 gitignored 运行产物区(非 LIVE,零 git 污染),修复=尾部三段相对锚,误写合成族当场清除,既有 query_history/ 零触碰,e2e 测试以「档案区在 repo_root 沙箱内」断言锚定;修复C=run_round 返回补 blocking 键;文案=DP-6 错误消息乱码片段修正(零语义)。
+3. **黄金 digest 定值 3 轮定稿与 scratch 侧讹误当场修正**(实现期,§零.10): v3 首算经 scratch 脚本位置参数错配得 `efc57914…`,与测试 fixture 实算 `41fb4043…` 不符→逐字节 diff 定位 scratch 侧转录讹误并修正(独立预计算侧讹误,当场防线捕获;测试 fixture 本身无缺陷;ID 族定值不受影响)。
+4. **负向注入循环零测试缺口(与 WP-A 注入2先例如实区分)**: 本轮三注入全部一次命中预期红,无「注入后仍绿」暴露测试缺口情形;注入循环前的首轮测试运行暴露实现缺陷 2 处(修复A/修复B)——缺陷暴露来自测试运行而非注入循环,时序如实登记(§零.10)。
+5. **官方 e2e 结果=数据阻断路径(情形(c) 合法如实,不编造)**: DEV 授权副本 20261102 快照 Gate A=FAIL(core_missing 5 项)→证据接地 fail-closed 拒收→§4.4④ INCONCLUSIVE;开工只读探针已预登记该预期路径(§零.8),正式运行以步骤10 全量日志为准(exit=0,产物 +11/-0);不以合成数据冒充放行态,不以探针替代正式运行。
+6. **LIVE 树复核环境不可及(如实分列 NOT RE-VERIFIED@执行侧,不以结构性证据冒充实读 PASS)**: LIVE 部署目录不在本会话允许目录清单内(安全策略,ls 即被拒)→real_data_acceptance.py sha256 复核与 LIVE 全树 grep 本会话不可执行,WP-A 时点基线值 `f9ca189c…` 留操作者/审计面对照;结构性替代证据=①交付件(模块+测试)源码 grep real_data_acceptance/LaunchAgents/launchctl 零命中 [实取·p2b-live-iso.py 输出]②全部写入经参数落位(测试沙箱断言锚定)③data/daily 27/27 前后逐行 sha256 等值④LaunchAgents 12/12 与 WP-A 基线逐文件 sha256 全等 [实取·同上](证据包 06-live-isolation/)。
+7. **CI run ID 如实分列**: 真实 CI run 属操作者 dispatch 面(rounds/035),执行时点未产生→本包交付本地面证据(§二⑤),AC-06 CI 面如实登记 NOT VERIFIED@执行侧。
+8. **§零 证据包路径标注修正 4 处+时点标注修正 1 处(报告笔时点,零语义)**: §零.3/§零.7.3/§零.7.4/§零.7.6 原以类号「03」预标注证据包路径,装配终局布局定为 01-startup-forensics(与 WP-A 同构),统一修正;§零.3 时点「06:4xZ」修正为「06:03Z」(登记笔 c825ee4=06:04:17Z 前,与包内 whitelist-overlap-check 登记口径一致);§零.10 的 03-negative-sensitivity 引用本就正确。
+
+## §四 DP 与登记参数运行后零回改自检
+
+| 项 | 登记定值(§零.4/§零.5) | 实现值(c906db5 实读) | 零回改自检 |
+|---|---|---|---|
+| DP-1 轮次预算 | 双轨 N=5(提前终止;复用上游定值) | `drr.DP1_ROUND_BUDGET_DEFAULT`(=5)复用导入零重复定义;消费面=接地六重之⑥(round≤round_budget)+超预算轮拒(TestStateProtection) | ✓ 常量=登记值;零自决 |
+| DP-2 权重量表 | 星级 [1,5](复用上游定值) | `drr.DP2_WEIGHT_SCALE`(=(1,5))复用;weight∈{1..5} schema 拒收(TestEvidenceSchemaNegative) | ✓ 同上 |
+| DP-6 每对判据 | 每对 ≥1(复用上游定值) | `drr.DP6_MIN_DISCRIMINATING_PER_PAIR`(=1)复用;判定锚定任务档登记面(野判据拒 TestRoundSequencing) | ✓ 同上 |
+| DP-3 ID 族 | 对齐型不冻结;EVI-/RD- 确定性前缀 | make_evidence_id/make_round_id(指纹不含墙钟,重放幂等) | ✓ 黄金字面量定值一次定稿 |
+| P-B-01..P-B-18 | §零.5 登记表 | 逐项实现一致(§零.10 登记型参数零勘误;含预登记张力处置: explained/star/预算硬上界/阻断复核限门禁支/e2e 透传) | ✓ 18 项逐一对照 |
+| API 回改面 | 无(登记型参数非 API 参数) | `inspect.signature(register_evidence/run_round)` 无 DP 参数;证据规格无 digest 入参(经 rp.digest_snapshot 重算绑定) | ✓ TestStaticPurity+schema 断言 |
+
+登记参数无任何「先登记后回改」事实: 本包登记型参数零勘误(与 WP-A 两处勘误对照如实区分);设计张力(§零.5 已预登记的 explained/star/预算硬上界等)均先登记后实现,运行后零回改。
+
+## §五 git 纪律与范围自检
+
+1. **分支**: `dev/p2-impl-b` 自 BASE-P2B=`a040faa7…` 切出(§零.7.5);开工时远端 52 支无本分支(§零.7.3)。
+2. **本包无并入步(与 WP-A 唯一差异点)**: f8ed401 经 R033 指定并入步 dcfc7d0 祖先在场(merge-base --is-ancestor exit 0,§零.7.6);纯线性 4 笔: c825ee4(登记笔)→c906db5(实现笔)→报告笔→终笔;BASE..HEAD merges=0 [实取·终笔前复核=DELIVERY §二取证]。
+3. **白名单符合**: 新增恰 k=4 文件(§零.2),无设计件带入(本包无并入步,设计三件已在 BASE);`git diff --name-status BASE..HEAD` 预期 A=4/M=0/D=0 [实取·终笔前复核=DELIVERY §二取证]。
+4. **零破坏性操作**: 零 merge 零 amend 零 reset --hard 零 force-push;reflog 复核=DELIVERY §二。
+5. **main/LIVE/launchd**: main 未触碰(无 checkout/merge/push main);LIVE 零写入(§三.6,会话可及面 LaunchAgents 12/12 全等+LIVE 树 NOT RE-VERIFIED@执行侧 如实分列);launchd 零变更(launchctl 零调用)。
+6. **网络**: 全程仅 git ls-remote/push(取证与交付类,合同允许);零 API/凭证/付费(§零.9)。
+7. **零 tag**: `git tag -l` 前后等值(DELIVERY §二取证)。
+
+## §六 提交前数值标注六项自检清单(§5.3,强制)
+
+| # | 自检项 | 本文件相关数值 | 标注合规 |
+|---|---|---|---|
+| 1 | 行数类 | 模块 816/测试 1009/REPORT 207/DELIVERY 83(均报告笔时点) | 逐值 `[实取·wc -l <时点>]`;zip 定值=终笔登记 |
+| 2 | 用例/类计数 | 57 用例/14 类;逐类 2/9/6/2/7/1/2/2/7/2/6/6/3/2(声明序=文件内类定义序: Golden/接地/schema/append-only/矩阵/同构/确定性/推进/终止/阻断负向/序贯/状态保护/静态纯度/e2e) | `[实取·unittest 收集计数]`;和=57 复核 ✓ |
+| 3 | 套件/退出码 | CI 镜像 TOTAL=80/RUN=79/EXIT0=79/SKIPPED=1/FAIL=0;注入红 2/3/1;官方 e2e exit=0;探针 1 次(§零.8) | `[实取·run 脚本输出/运行日志]` |
+| 4 | 文件/锚定计数 | 证据包成员数与字节数(终笔 DELIVERY §六);锚定 daily=27/research 13→24(+11/-0);LaunchAgents=12;黄金常量 38;实现笔 1839 insertions/3 files | `[实取·清点]`;日期/SHA/档键成分按合同边界出圈登记 |
+| 5 | 次数类 | 提交笔数 k=4(本包无并入步,零 merge 计入);负向注入 3 次;官方 e2e 运行 1 次;只读探针 1 次;实现期缺陷修复 3 处 | `[实取·git log/注入记录/运行日志]` |
+| 6 | 全量扫描 | 本文件无未标注计数类/统计类数值;`[示意·非实取]` 标记本文未使用(全部数值实取) | 报告笔提交前通读扫描 ✓;zip 定值行=终笔唯一补记 |

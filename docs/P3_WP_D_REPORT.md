@@ -105,32 +105,74 @@ DP 编号/数量/分类与 DESIGN 实读一致: 行内所引 DP-7(L192② 明文
 
 登记清单(§零.2)无 GLM/LLM 能力级调用面实现文件(范围列 L190 零 GLM 字样;模块=旁路统计件+简报渲染确定性结构;DP-8 注入面=范围列明文排除,零实现)→ **AC-03.7 不适用**,判定依据=清单无调用面类文件(§零.2 表 1-4 无客户端封装/调用编排/适配器类)。
 
-### §零.9 实现期登记(实现笔回填)
+### §零.9 实现期登记(实现笔回填;2026-11-08 实取)
 
-(待实现笔回填)
+- 交付双代码件定值: 模块 `scripts/report_quality_review.py` 674 行 sha256=`c6f863bfe5ce1cef68302f351494166e9546d39fa7ca634cbe98e7648305e3a2`;测试 `tests/test_p3_wp_d.py` 1368 行 96 用例 18 类 sha256=`6fe29c5dc8aff6dead7137564ebec426bfaac78e158576ac7f1b2f5829becacc` [实取·wc -l+shasum -a 256 @实现笔 02e1c00];
+- 黄金预计算双源一致: 独立首原理件 `/tmp/p3-wp-d/fixture_and_golden.py`(零被测模块 import,仅 json/hashlib 标准库)手推黄金五 sha256=月度质量文档 `5e5e5e96161a49b104abb8031c9bef14dee56568454548d438b19059dbddd5f2`/季度质量文档 `ff3c41fe89ba709da72f7e66d104b6c2d4369139068e6d2582484c0a65a2b4eb`/prd 统计文档(全量含桶,None 键排首 canonical)`66b7cd70ce88fdbe264ceedcb7cf744251673500d5c288859fcaecf0dddd3919`/建议清单 `80ab64e66a76912655e32bb453a7ed71eee5fcd0702a730458283d76bf54275f`/月度简报 `3ef24d3a100bfd0c1f459c26a57a5058cfee30e615845b3d91b54dae752f020f`;模块实跑交叉裁定 `golden_cross_check.py` 五面全 MATCH [实取·/tmp/p3-wp-d/golden_cross_check.py 输出 ALL MATCH];
+- fixture 一致性: 测试面 write_fixture × 首原理件 write_fixture 两树 16 文件逐文件 sha256 全等(report_path 树路径成分归一后比对,归一口径在裁定件内登记)[实取·/tmp/p3-wp-d/fixture_byte_equality.py 输出 ALL BYTE-EQUAL];
+- 黄金数值定值(合成 fixture 手推): 窗内正式周报月度 4 份/季度 5 份;gate_b PASS=3/DEGRADED=1(月度)通过率 0.75、DEGRADED 率 0.25;覆盖命中 3/4/6/1(月度,均值 14/24=0.5833…)、季度加 1026 命中 2(均值 16/30);时效 on-time 3/4(20261123 次日落档=late)/季度 4/5;论证行 10 行(月度)星级直方图 {1:1,2:3,3:3,4:2,5:1} 均值 29/10=2.9/季度 11 行均值 34/11;未解释反证 2(1102 论点一 1+1116 论点六 1);预测窗内终态 5=hit 2(D01,D02)+miss 1(D03 方向错误)+inconclusive 1(D04)+nyt 终态 1(D05),未决 1(D06),hit_rate=2/3;ATTENTION 4 维(argument_completeness/coverage/numeric_quality/timeliness)+建议条目 4 条(SUG-01..04),机制警示 0 条(资金流末端连续 miss 游程 1<3)→警示条目不触发 [实取·fixture_and_golden.py 手推结构+模块输出等值];
+- 本地测试: 96 用例 18 类全 OK(python3 3.9.6,`python3 -m unittest tests.test_p3_wp_d`→Ran 96 tests OK)[实取·2026-11-08];
+- 本地 CI 镜像: 86 文件=85 exit0+1 SKIP(test_glm_live)+0 非零(85 基线+本包新增 1;`/tmp/p3-wp-d/ci_mirror.py` 逐文件串行,记录头 2026-11-08 05:16:42 机器本地时刻)[实取·/tmp/p3-wp-d/local-ci-mirror.txt];
+- 负向敏感性三注入: INJ-1 取数面窗口过滤旁路→红(failures=6)/INJ-2 阈值登记定值回改 0.90→0.5→红(failures=9)/INJ-3 时效 on-time 判定倒置→红(failures=7);逐注入还原后复绿(rc=0 OK)且模块 sha256 终态=基线 `c6f863bf…5e3a2` 零残留 [实取·/tmp/p3-wp-d/negative-sensitivity-record.txt];
+- 实现期缺陷修复与口径修正(如实登记,详见 §三): ①dp_selfcheck 登记镜像 DP-8 字面量装配笔误(镜像 `user_confirmation_required_zero_implementation`≠活性 `user_confirmation_required`)——selfcheck 首跑即红检出,实现笔内修正镜像字面量与活性常量等值(§零.4 登记语义[确认权留用户/零实现零自决]零变更);②黄金手推两处以模块实跑交叉裁定为准修正(周报 1116 正文覆盖锚改六 id 显式枚举[原文「A1 至 A6」区间措辞字面仅含 4 id]/≥9周桶 hit=2[D01,D02 双 hit])——首原理件自纠,模块逻辑零改动;③测试黄金覆盖均值公式对齐 P-D-06 登记口径(逐报告比率先算后均值[14/24 分子和式与逐报告均值式浮点 repr 差异],登记口径=逐报告 coverage 的算术平均);④测试负向用例自纠(ymd 负例 `20261130` 为合法形改 `2026113`;write_fixture makedirs exist_ok 化[双写fixture 树场景]);四项均实现笔内自检出并修正,零登记定值变更(登记语义与数值口径与 §零.4/§零.5 完全一致);
+- 零运行产物(P-D-20): 模块零落盘面;repo 内零本包运行产物(`data/research/` 零写入;统计/简报/建议全落函数返回值与 /tmp 临时沙箱)[实取·§五 检查锚]。
 
 ---
 
 ## §一 实现摘要
 
-(报告笔回填)
+模块 `scripts/report_quality_review.py`(674 行)=四组件单文件 [实取·实现笔 02e1c00]:
+
+1. **取数面**(P-D-03/P-D-04,要点③): `read_formal_reports(weekly_output_dir, as_of, window_kind)` L241-258——`rp.scan_formal_weekly_reports` 复用调用(发布状态认定链全承: 规范文件名+`FORMAL_REPORT_EXCLUDES`+published=True+final_quality∈FORMAL_FINAL_QUALITIES+身份三字段一致+digest 实算一致,任一不满足即拒),候选/未发布/digest 失配/窗外件一律不入统计;窗口过滤(ymd ISO 形 ∈ [window_start, window_end] 闭区间)后正文只读读取,返回升序。`load_core_ids` L261-284(core 集载入: 注入优先/registry criticality=core 且 status=active/去重保序/0 项 fail-loud)。`_reject_raw_data_path` L147-158(快照纪律守卫: data+daily 相邻路径组件→ValueError;守卫字面量组件化 `_RAW_DIR_GUARD=("data","daily")`,源码零连续字面量[AST 测试面锚定]);适用 weekly_output_dir/views_path/registry_path/version_archive_dir 四输入面。
+2. **五维计量**(纯函数): ①数值质量 `evaluate_numeric_quality` L342-367(gate_a/gate_b/final_quality 三词表桶[词表=rp.GATES,词表外→ValueError fail-loud]+gate_b_pass_rate/degraded_rate,n=0→None 如实缺席);②覆盖度 `evaluate_coverage` L370-385+`report_coverage` L298-303(词边界正则命中[负向环视防前缀同形误命中,`_metric_ref_pattern` L289-295 缓存],per-report coverage=命中数÷core 总数,mean=逐报告算术平均);③预测质量 `evaluate_prediction_quality` L388-406(prd 统计文档 counts/error_patterns/correct_samples/premise_class **原样承载零重算零改写零重开窗**,hit_rate=None→NO_DATA);④时效 `evaluate_timeliness` L409-433(on-time=generated_at 日期段==target_date 发布事务同日落档口径;时间戳缺席/不可解析→late_generated_at_missing 如实单列[late 计数内不 fail]);⑤论证完整度 `evaluate_argument_completeness` L436-461+`report_argument_rows` L306-315(`ae._parse_status_block` 复用解析 THESIS_STATUS+ALLOCATION_STATUS 双块,块缺席→零行如实)+`_star_of` L318-325(confidence 1-5 整数词表 fail-loud)+`_unexplained_contrary_of` L328-339(contrary==True 严格布尔且 explained!=True 计数,rg L521 封顶规则可观测面)。
+3. **装配与渲染**(P-D-13/P-D-11/P-D-12): `build_quality_document` L514-546(五维+attention 清单[DIMENSION_KEYS 字典序]+建议清单;`prediction_window` 双窗并记 DP-5 上游窗口);`build_suggestions` L470-511(ATTENTION 维度→SUG-NN 条目,trigger/proposal 按维度登记模板,警示非空→追加证据校准段权重复核条目;**requires_user_confirmation 恒 true+dp8="确认权留用户"标记=DP-8 零自决零注入**);`dump_statistics` L549-556(sort_keys=True 确定性序列化,零 None 键);`render_quality_briefing` L588-628(纯文本旁路渲染: 标题+双窗行+五维行[None 计量→「N/A(分母=0,如实缺席)」]+ATTENTION 清单+建议清单+免责尾行)。
+4. **编排面**(P-D-17): `report_quality_review` L633-657(唯一墙钟缺省 as_of;views_path/version_archive_dir 直通 `prd.prediction_review_report` 复用承载;全流程零文件写入);`dp_selfcheck` L214-236+`registered_dp_values`/`registered_param_values` L187-211(DP/参数哨兵: 活性常量 vs 模块内登记镜像逐值对照,回改任一定值→AssertionError);`_parse_iso_date` L117-133 日期规范形守卫(WP-C R040 续段先例: 十位带杠形才入 fromisoformat,3.9/3.11 行为一致);`__main__` 自检入口 L662-674 零写入零默认路径。
+
+测试 `tests/test_p3_wp_d.py`(1368 行,96 用例 18 类): 合成 fixture 唯一数据源(周报目录 9 文件+状态 JSON 6 件+预测 6 条 D01..D06,零真实数据),黄金五 sha256 字面量硬编码双源一致,fixture 逐字节一致裁定,零回写字节级(fixture 树+上游五模块 report_generator/data_validator/prediction_review/research_provenance/allocation_engine+config/metric_registry.json sha 前后等值,setUpModule/tearDownModule 守卫),AST 纯度七面,DP 回改 monkeypatch 三面检出,负向守卫(快照纪律四输入面/紧凑 as_of 全形族/非法 window_kind/坏 ymd),`__main__` subprocess 受控 1 处 [实取·测试文件+运行记录]。
 
 ## §二 D-AC-02 验收要点逐条证据映射表
 
-(报告笔回填)
+| 要点(L192) | 证据(测试/结构面) |
+|---|---|
+| ①周报系统主流程零改动(report_generator/data_validator diff 为空) | 白名单 M=0 结构性保障(`git diff BASE-P3D..HEAD --name-status` 恰 A=4 零 M 零 D,§五);测试双保险: TestZeroWrite.setUpModule/tearDownModule 上下游五模块+metric_registry sha256 前后等值,TestStaticPurity 零写调用+只读 open+主流程模块 import 禁入(report_generator/data_validator/monthly_review/quarterly_outlook/snapshot_builder) |
+| ②评价维度集与阈值(DP-7)先登记后运行、禁回改(负向测试) | 登记笔 921fa15(§零.4/§零.5)先于实现笔 02e1c00(git 时序);TestDPParamRegistration: registered_dp_values/registered_param_values 与登记字面量逐值相等+dp_selfcheck True+三面 monkeypatch 回改检出(DP-7 维度集/阈值/dimension_keys 均 AssertionError);负向敏感性 INJ-2(阈值 0.90→0.5 源码级注入)→9 红→还原复绿零残留 |
+| ③统计取数经正式产物(发布状态认定) | TestFormalSourcing: 未发布件(published=False)/digest 失配件/候选文件名/窗外件四类排除逐条断言+正式件 status/text 承载;INJ-1(窗口过滤旁路源码级注入)→6 红;取数链=rp.scan_formal_weekly_reports 复用调用(P-D-03,零本地重实现[TestStaticPurity import 白名单锚]) |
+| ④CI 零回归 | 本地 CI 镜像 86 文件=85 exit0+1 SKIP+0 非零(85 基线+本包 1 新增全绿,零回归)[实取·/tmp/p3-wp-d/local-ci-mirror.txt];CI 面分支 run=操作者 dispatch(CHECKPOINT,登记件 rounds/041/P3-WP-D-CI-dispatch-evidence.md;执行席禁 dispatch 如实声明) |
 
 ## §三 如实偏差登记
 
-(报告笔回填)
+1. **实现期缺陷修复 1**: dp_selfcheck 登记镜像 DP-8 字面量装配笔误(镜像 `user_confirmation_required_zero_implementation` vs 活性 `DP8_INJECTION_POLICY="user_confirmation_required"`)——selfcheck 首跑 AssertionError 检出,实现笔内修正镜像与活性常量等值;§零.4 登记语义(「本包零实现零自决/确认权留用户」)与登记数值零变更,非回改登记(镜像笔误=装配错误非登记漂移)。
+2. **口径修正 2 项(首原理件自纠,模块零改动)**: ①黄金 fixture 周报 1116 正文原稿「SYN-A1 至 SYN-A6」区间措辞字面仅命中 4 id(模块正确计 4)——正文改六 id 显式枚举使 fixture 意图(6/6 全覆盖)成立;②黄金 ≥9周桶手推 hit 笔误(1→2,D01/D02 双 hit)——以模块实跑交叉裁定为准修正手推。两处=独立首原理件的手推错误由双源裁定机制自检出,裁定链(golden_cross_check ALL MATCH 终态)如实保留全过程记录。
+3. **测试字面量自纠 2 项(实现笔内,零登记定值变更)**: ①测试黄金覆盖均值公式由分子和式(14/24)对齐 P-D-06 登记口径「逐报告 coverage 算术平均」(两种算法浮点 repr 差异 0.5833333333333333 vs …34,登记口径=逐报告先比率后均值);②ymd 负例 `20261130`(int)经 str() 后为合法形,改 `2026113`(真非法形)+补 `20261100`(8 位但月份非法);另 write_fixture makedirs exist_ok 化(同测试双写 fixture 树场景)。
+4. **冻结表对照 2 支休眠历史支疑似差异**(开工步骤2 实取): 全量 ls-remote 58 支 vs 合同 §十一.1 冻结表,`dev/p03-e2eb-b3-legacy`(冻结 `cb402d8f…963` vs 远端 index34 位 c/a 差)与 `dev/round3-reliability`(冻结 `e050db3f…f2` vs 远端 index20 位 a/b 差)两次独立手抄复核差异仍在;合同授权核对支(main/设计支/同族四实现支)六支全值一致 ✓;DEV repo 无 contracts/ 档(在 engine repo,执行席不可达),机-机对照不可行如实声明;处置=本包零触碰零依赖该二支(休眠历史支,与本包交付无涉),本人零转打证明链=推送前后 ls-remote 机器快照逐字节 diff(§五/证据包 03 类)。
+5. **subprocess 受控 1 处**: TestSelfcheckMain 跑 `__main__` 自检入口(sys.executable 同解释器,timeout=60,无网络无凭证;WP-C TestSelfcheckMain 先例同构)。
+6. **CI 面 NOT VERIFIED@执行席**: 分支 CI run=操作者 CHECKPOINT dispatch(执行席不可见 run ID,如实声明不臆造;本地镜像 86 全绿为本地证据面;登记件 rounds/041/P3-WP-D-CI-dispatch-evidence.md 由操作者落)。
+7. **行号容差承接**: §零.1/§零.6 引用行号为基线工作树实读时点值,后续上游演进行号可能漂移(合同边界注记;本包基线=BASE-P3D 固定锚)。
+8. **不声明无偏差**: 本节登记 7 项;除上述外无其他已知偏差,但不作「无偏差」绝对声明。
 
 ## §四 DP 零回改自检表
 
-(报告笔回填)
+| DP | 登记定值(§零.4) | 运行后实值 | 零回改证据 |
+|---|---|---|---|
+| DP-7 | 维度 5 项全启+阈值首期 T1-T5(0.90/0.80/0.30/0.90/2) | `DP7_DIMENSION_SET=5`/`THRESHOLDS` 五值逐一等值 | registered_dp_values/registered_param_values 与登记字面量逐值相等(TestDPParamRegistration);dp_selfcheck 镜像对照通过;INJ-2 回改注入→9 红(检出面实证) |
+| DP-8 | 本包零实现零自决,注入须用户确认 | `REQUIRES_USER_CONFIRMATION is True` 恒真;建议条目全量携 requires_user_confirmation=true+dp8 标记;模块零注入零提示词触碰零回写(TestSuggestions 全条目断言+TestStaticPurity 零写调用+AST 主流程禁入) | registered_dp_values["DP-8"]=`user_confirmation_required`;§三.1 镜像字面量装配笔误已登记(语义零变更) |
+| DP-1/2/3 | 上游登记面只读复用(WP-P3-A) | 经 prd/rp 只读消费,零改写 | TestZeroWrite 上游五模块+registry sha 前后等值;白名单 M=0 |
+| DP-5/6 | 上游登记面只读复用(WP-P3-C) | 预测质量维度=prd 统计文档原样承载(P-D-07),窗口/分母口径零重算 | TestPredictionQuality 黄金 passthrough 等值;TestOrchestrator prediction_review.statistics==GOLDEN_PRD_STATISTICS |
+| DP-4/9/10 | 本包零触及 | 零实现零引用 | TestStaticPurity import 白名单(WP-P3-B/E/F 面模块零依赖);AST 禁网令牌 |
 
 ## §五 git 纪律七项自检
 
-(报告笔回填)
+1. **单支纯线性**: BASE-P3D `aeb39e8` 后纯线性: 登记笔 `921fa15`(REPORT §零)→实现笔 `02e1c00`(模块+测试)→报告笔(本笔,REPORT §零.9+§一-§六 回填)→DELIVERY 笔→定值笔;`git log --merges BASE-P3D..HEAD` 空 [实取];
+2. **零 amend 零 force**: 提交一次成型,零 --amend 零 --force 推送(推送=单支 `git push origin dev/p3-impl-d` no-force);
+3. **main 未触碰**: 本包零 main 操作(推送前后 ls-remote main 全值等值 `aeb39e8d…` 机器快照);
+4. **LIVE 零写入**: 全程零写 `/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent`(grep R041/P3-WP-D/IA-P3-WP-D 零命中+real_data_acceptance.py sha 等值+LaunchAgents 清单零改动,取证三面落证据包 03 类);
+5. **零 tag**: 全程零 tag 创建;
+6. **零网络**: 除取证类(ls-remote/推送)零网络出站;零 GLM/凭证/付费;
+7. **零运行产物**: repo 内零本包运行产物(P-D-20;模块零落盘面+测试临时沙箱)。
 
 ## §六 数值标注自检清单
 
-(报告笔回填)
+本文计数类/统计类数值逐项标注复核(二选一标注完整性):
+- 实取类: 模块 674 行/测试 1368 行/sha256 全值 [实取·wc -l+shasum];96 用例 18 类 [实取·unittest 输出 Ran 96 tests];CI 镜像 86=85+1+0 [实取·local-ci-mirror.txt];负向敏感性 6/9/7 红 [实取·negative-sensitivity-record.txt];黄金五 sha256 [实取·fixture_and_golden.py 输出+golden_cross_check ALL MATCH];fixture 16 文件全等 [实取·fixture_byte_equality.py];registry v2.3.0 metrics 102/core 32 [实取·json 清点 §零.5];ls-remote 64 行/58 支 [实取·步骤2];CI 基线 85 [实取·开工清点];
+- 合成 fixture 手推定值类(=黄金字面量,非真实数据): 月度 4 份/季度 5 份/gate_b 3+1/覆盖 3,4,6,1(+2)/时效 3-4(+1)/论证 10 行(+1)直方图五桶/未解释 2/预测终态 2-1-1-1 未决 1/hit_rate 2÷3/ATTENTION 4 维/建议 4 条 [实取·fixture_and_golden.py 结构(合成数据手推,标注边界=合同数值标注出圈档键成分与结构编号)];
+- 示意类: 无(本文零示意数值)。

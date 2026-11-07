@@ -73,3 +73,35 @@ zip 定值(文件数/字节数/sha256)以终笔提交信息与会话 stdout 为�
 - 字节数: **72740**
 - sha256: **82d218a12c05029abac0b2adedfa9762d0334bd75827ddff1be292a0444193df**(装配器 hashlib 与 shasum -a 256 独立复算双源一致;unzip -t No errors;解包逐成员复算 SHA256SUMS 31 条=31 OK/0 BAD/自引用 0)
 - 装配时点 TIP=报告笔 febba90(zip 内 REPORT 副本=报告笔版,DELIVERY 副本=装配时点稿不含本定值行,R065 先例口径);终局自述以会话 stdout 四段为准。
+
+## §七 如实偏差(R038 审计承接与 R067/FIX1 整改对照)
+
+> 本节=IA-P3-WP-A-FIX1 笔A 纯新增(插入位=既有 §六 之后文末追加;既有 §一-§六 零重排/零删除/零改写)。
+> 整改证据包: `/tmp/p3-wp-a-fix1-evidence/IA-P3-WP-A-FIX1-EVIDENCE.zip`(定值见 §六 FIX1 行组,笔B 登记);R038 原包 `/tmp/p3-wp-a-evidence/IA-P3-WP-A-EVIDENCE.zip` 只读对照源(sha256=82d218a1…93df)。
+
+### ① R038 审计 5 阻断与 FIX1 补齐对照(rounds/038 audit §2 逐项)
+
+| # | 阻断(rounds/038 audit §2) | FIX1 补齐落点(FIX1 包成员指针) |
+|---|---|---|
+| 1 | AC-06.2② 交付文件双源副本(git show 尖端版+工作树版+交叉哈希)整体缺失,核心代码件在包内零副本 | `09-dual-source-copies/`: 4 交付件×{`git show` 装配时点TIP版+工作树版}+`cross-hash-table.txt`(逐件 sha256+BASE-FIX1 侧 blob 对照;代码件=预期值 ea782f21…/307fbee8…) |
+| 2 | AC-06.3 DELIVERY 缺「如实偏差」专节(五节要求破一) | 本节(§七,笔A 纯新增)+`09-dual-source-copies/gitshow-docs-P3_WP_A_DELIVERY.md`(装配时点稿双源副本之一) |
+| 3 | AC-06.2④/AC-03.5 本地 CI 镜像仅聚合计数,无逐套件名称+退出码记录 | `06-local-ci-mirror/fix1-per-suite-serial-record.txt`(83 行=每套件一行「名称+退出码」+汇总行;记录头含装配时点 TIP full SHA+命令原文+「串行」方法学注记) |
+| 4 | AC-06.2③ 设计在场核验(rev-parse/blob 对照)原始输出未作为 zip 成员 | `02-git-chain/fix1-design-presence-raw.txt`(5 组命令+原始输出逐字捕获: rev-parse×2/is-ancestor×2/601bf9a 第二父全值/设计三件 ls-tree 双侧对照) |
+| 5 | AC-06.2⑦ 四段自述副本未入包 | `10-selfreport-copy/selfreport-assembly-time-draft.md`(四段齐备装配时点稿;与 stdout 终稿差异=恰 zip 整体定值行组,自指口径见 §六 注记) |
+
+### ② R038 执行期 7 项偏离承接索引(R038 result.md §三 逐项承接,不删略)
+
+1. **P-A-16 白名单枚举漏 `re`**: REPORT §零.5 参数 P-A-16 与模块 docstring import 白名单枚举均漏列 `re`(实际 import=json/os/re/sys/datetime);报告笔勘误已补录;模块 docstring 侧为零改动(保 sha256 稳定)未随改,以测试 AST 实锚为权威。
+2. **CI 镜像首轮方法学误用**: 首轮误用 `python3 -m unittest tests.test_X` 循环,产生 2 假失败(helpers 导入面差异: 直接执行时 sys.path[0]=tests/ 可解析,-m unittest 不可)+5 假 SKIP(输出词面误判);按 workflow `offline-tests.yml` 实取命令勘误后重演=干净 83=82 exit0+1 SKIP(原包 06 类两方法学件对照留存,本轮 β 携行)。
+3. **BRANCH-SET 转录失真裁定**: R038 REPORT §零.7 冻结章人工转录 5 处失真;经 R037 独立链机器 diff 裁定=远端零漂移(54 支全值一致+恰 main 登记内前移),失真在本席转录侧非仓库侧。
+4. **实现期缺陷 3 处(当轮修复+测试复绿证实)**: 模块侧 1 处(query_index 未按 P-A-10 确定性排序,首轮红 3 暴露,补排序复绿);测试侧 2 处(GOLDEN 长串折行转录丢 1 字符被测试内首原理复算当场抓获;record 助手 `is not None` 兜底吞没显式 None 负向,改哨兵后负向复红)。
+5. **锁等价套件并发假失败**: R038 终局镜像首捕与误方法学重演/负向敏感性重演并行执行时 `test_p0_baseline_lock_equivalence` 出现 1 次非零(锁等价套件对并发文件活动敏感);隔离重跑 31 用例全通过;串行重捕=干净 83=82+0+1。教训=镜像运行禁与其他套件并发——本轮 FIX1 逐套件记录显式采**串行**方法学(①.3 记录头注记在场)。
+6. **CI run ID 执行席不可见**: R038 CI 面 AC-02⑤ NOT VERIFIED@执行席,run ID 证据通道=操作者 CHECKPOINT 登记件(rounds/038/P3-WP-A-CI-dispatch-evidence.md)+审计 gh 复核;本轮同口径(rounds/067/P3-WP-A-FIX1-CI-dispatch-evidence.md=操作者面,执行席零 dispatch)。
+7. **行数自指占位**: REPORT/DELIVERY 行数等自指标注以占位先行、终笔以实取替换(721/1081/207 等);本文件 §一 表行数列同口径。
+
+### ③ R038 审计 DEFERRED 4 项如实引述(逐项标注)
+
+1. **DEFERRED·本轮不修**: 模块 docstring import 白名单漏 `re`(P-A-16;测试 AST 锚为权威,模块零改动保 sha256 稳定)。
+2. **DEFERRED·本轮不修**: 镜像首轮 `-m unittest` 方法学误用史+锁等价套件并发敏感 1 次非零记录(原包 06 类 README 已登记,本轮 β 携行保留)。
+3. **DEFERRED·本轮不修**: CI run ID 执行席不可见 NV 列(操作者通道已闭环)。
+4. **DEFERRED·本轮不修**: 原包内 DELIVERY 副本时点稿(自指口径已采认,R038 审计 DEFERRED-4)。

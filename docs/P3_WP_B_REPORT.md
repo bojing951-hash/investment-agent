@@ -124,3 +124,71 @@ DESIGN L180 验收要点 5 条: ①关联不改状态断言=测试面 ②门禁�
 **本地 CI 镜像重演(CI 同款方法学: 逐文件直接执行,串行零并发——WP-A 教训在册)**: 84 文件=83 exit0+1 SKIP(test_glm_live 身份锚,RUN_GLM_LIVE 未设)+0 非零 [实取·`/tmp/p3wpb/ci_mirror_results.txt`];基线 83 槽零回归,本包恰 +1(tests/test_p3_wp_b.py exit0)。
 
 **零运行产物锚定 [实取]**: `find data/research -newer scripts/evidence_linkage.py`→零输出;`git status --porcelain` 仅白名单 2 代码件未跟踪(登记笔后状态),data/ 零改动。
+
+## §一 实现摘要
+
+`scripts/evidence_linkage.py`(748 行)四组件确定性落地:
+
+1. **事件触发器(3 类,P-B-02/P-B-03)**——触发器消费门禁后事件流(事件=注入,模块无 daily_dir 参数/零 data/daily 路径引用,结构性不可达采集件): ①快照事件 `snapshot_event(snapshot, anchors=None)`: gate_a.status 经 `rp.gate_allows_formal_research`(L1210-1213)放行,FAIL/None/未知→ValueError 零构造;digest=`rp.digest_snapshot`(L1324-1328)内容重算禁采声明值;②裁决事件 `adjudication_event(prediction, snapshot, …)`: 限终态词表 {hit,miss,inconclusive}(open/observing/not_yet_triggered 未决态如实拒),evidence_key=`PRED-{pred_id}`(rri 前缀词表),evidence_keys=规格 metric 单键;③周报事件 `formal_report_event(report_view, snapshot_dir, …)`: `rp.formal_report_view`(L1456-1517)八条校验链**复验**+绑定快照三重纪律(`drr._load_snapshot_for_verify` L778-801 规范加载+gate 放行+digest 重算),重算 digest 与发布状态 snapshot_digest 声明值失配→ValueError 证据链漂移 fail-loud。
+2. **匹配器(第一/二层零 GLM,P-B-05..P-B-08)**——`match_event(event, objects)` 纯函数,输出按 (object_type, object_id, anchor_key, match_layer) 字典序: 第一层=对象 quant_triggers[].metric(锚键)∈事件锚点键集,条件评估经 `ae._eval_condition_set`(L213-233)在场复用,条件态沿用引擎核验词面(triggered/not_triggered/sustaining/unverifiable; sustain 一次性口径=引擎空状态 consec=1 首跨对齐),建议动作映射 triggered→提案/余三态→复核(提案=仅生成建议条目);第二层=`ae.mechanism_of`(L117-124)+`ae.MECHANISM_CATEGORIES`(L104)机制类别单轴交叉,建议动作=忽略;资产标签轴结构性缺席(P-B-08 登记发现,不造值)。
+3. **关联档案(append-only 旁路件,P-B-09/P-B-10)**——LNK-{YYYYMMDD}-{NNN} 同日单调配号(扫集合目录当日最大序号+1),集合 `evidence_linkages` 避开上游 12 集合名/15 前缀,经 `drr._write_records`(L513-524)原子落档(预检存在→rejected-duplicate 零写入,包装层拒绝时 count/ids 如实归零);记录 16 键零原始数值(证据引用落 snapshot_id+digest_snapshot 重算值+档键);`validate_linkage_record` 全量校验+`list_linkages` 读档逐条重校验篡改 fail-loud;`build_linkage_records` 纯函数(占位配号)与 `record_linkages` 权威续配两口径显式分立;同事件×同对象×同 created_at 双档案重放逐字节一致(可重建)。
+4. **聚合视图(只读零写入,P-B-12/P-B-13/P-B-14)**——①`pending_triggers_overview`: ❓待验证/⏳持续确认中两态跨期清单,views 直经 `ae.evaluate_quant_triggers`(L265-328,persist=False 零副作用渲染路径),theses 经只读适配壳同评估器;②`due_adjudications_overview`: `ae.due_predictions`(L187-192)在场复用(⏰已到期口径);③`render_tracking_briefing` 旁路简报渲染(两清单纯文本表+免责尾行,零回写路径);锚点集未注入时未决清单如实缺席渲染不冒充。
+
+测试 `tests/test_p3_wp_b.py`(1225 行/117 用例/17 类): 全合成 fixture 唯一数据源,预期值字面量硬编码不从被测模块派生,黄金值(快照 digest×2/周报 md digest/关联档文件字节 sha256×4)独立首原理预计算固化+测试内 hashlib 复算双源一致+fixture 一致性三方裁定 0 失配。
+
+## §二 AC-02 五要点逐条映射表
+
+| 要点 | 实现面 | 测试面锚 |
+|---|---|---|
+| ① 关联不改状态(零状态写入) | `record_linkages` 唯一写路径=drr._write_records 落 evidence_linkages 集合;thesis/views/索引/任何权威档零触碰;聚合全 persist=False/只读 | TestZeroStateWrite 5 用例: 状态文件字节前后不变(关联+聚合+简报三面)/views 零 trigger_state 注入/archive 子树独占/record_linkages 无 archive_dir→TypeError(必填 kw,无默认路径常量结构性禁达 LIVE) |
+| ② 触发事件消费门禁后事件流(原始数据轮询被拒) | 事件=注入面(snapshot/prediction/report_view dict);模块无 daily_dir/枚举/扫描原始数据参数;门禁核验构造器内置(快照 gate/裁决终态/周报八链)三态 fail-closed | TestEventGateNegative 17 用例: FAIL/缺 gate/未知态/非 dict/坏 snapshot_id/anchors 非 dict/非终态×3/坏 pred_id×2/裁决 gate FAIL/候选名/未发布/digest 漂移/绑定快照缺失/绑定 FAIL/坏质量/无 path;TestStaticPurity: 禁网令牌+data/daily 剥 docstring 代码面零在场 |
+| ③ 匹配层参数先登记后运行禁回改 | P-B-01..P-B-16 登记笔(869770a)先于实现笔(479ec7d)(git 时序);活性常量+模块内登记镜像+测试字面量三方一致;运行期 `param_selfcheck` 哨兵 | TestParamRegistration 8 用例: registered_param_values 字面量全等/param_selfcheck=True/monkeypatch 回改 action_map·collection·prefix 三面→AssertionError 检出/集合名与前缀避上游/机制词表镜像引擎;__main__ 自检入口 exit0 |
+| ④ 关联建议引用带 snapshot_id+digest 断言 | 记录 16 键含 snapshot_id+digest_snapshot(构造器重算值,禁采声明值);零原始数值字段 | TestRecordLinkagesGolden: 档文件字节 sha256 黄金×4+独立字面量 canonical 逐字节相等+记录 JSON 零原始数值串(1.85/2650/5900/4.9/\"value\" 全不在档);TestEventGolden: 三类事件 digest=重算黄金(周报事件声明值失配→ValueError) |
+| ⑤ CI 零回归 | 本地镜像=CI 同款逐文件直接执行串行: 84 文件=83 exit0+1 SKIP(test_glm_live)+0 非零,基线 83 槽零回归本包恰 +1 [实取·/tmp/p3wpb/ci_mirror_results.txt] | CI 面 **NOT VERIFIED@执行席**: run ID 执行席不可见,操作者 CHECKPOINT 通道 `rounds/039/P3-WP-B-CI-dispatch-evidence.md`(冻结章登记),非自决 PASS |
+
+## §三 如实偏差与登记承接
+
+1. **实现期缺陷 2 处**(占位配号缺 :03d 零填充/拒绝路径返回值按计划面报数→如实归零)——当轮暴露当轮修复,登记 §零.10;
+2. **设计口径修正 1 处**(sustain 分支首轮「sustain>0 一律 sustaining」与引擎空状态口径不一致→按 consec=1 首跨逐字对齐,复用禁分叉纪律)——登记 §零.10;
+3. **CI 镜像 SKIP 分类首轮误标 6 槽**(字符串匹配把 5 个含「SKIP」字样的通过套件误计 SKIP 槽)→当场勘误为身份锚口径(唯一 SKIP 槽=test_glm_live,输出含 RUN_GLM_LIVE)→终局 83+1+0;
+4. **CI run ID 执行席不可见**→⑤ CI 面分列 NOT VERIFIED@执行席,操作者 rounds/039 dispatch 通道(非偏差,如实分列);
+5. **资产标签轴结构性缺席**(P-B-08 登记发现): 中文资产标签(美股等)与 registry asset_class(英文)无在场词表桥接,如实缺席不造值,记录 schema 无 asset 字段(TestLayer2MechanismCross 断言);
+6. **默认锚点面注记**: 合成 fixture metric 不在真实 registry,`sb.build_anchors` 默认派生产出空集→测试以 P-B-04 注入面为主,默认面仅类型冒烟(TestEventGolden.test_snapshot_event_default_anchors_face);
+7. **重放语义注记**(登记语义澄清非偏差): 同事件同日重放=同日单调追加新批(005-008),rejected-duplicate=drr 并发守卫面(测试以陈旧配号扫描模拟竞态窗口,真守卫拒绝零写入零部分落档);
+8. **测试文件 1 处 subprocess 受控用途**: test_selfcheck_main_entry 仅以子进程运行被测模块 `__main__` 自检(本地零网络零凭证);被测模块 AST 纯度零 subprocess(TestStaticPurity 白名单外 import=∅)。
+
+## §四 DP 零回改自检表
+
+| DP | 处置 | 本包核验 |
+|---|---|---|
+| DP-1/2/3 | 上游 WP-A 已登记(报告笔 febba90 §四),本包只读复用 | rri.THESIS-/VIEW-/PRED-KEY_PREFIX 三常量只读引用,零回改 ✓(§零.4 登记) |
+| DP-4 | 确认面(第三层语义匹配)PENDING 另拟,确认权留用户 | 本包零实现零引用: MATCH_LAYERS=(1,2),范围列 L178 明文排除,AC-03.7 不适用(§零.9) ✓ |
+| DP-5/6/7/8/9/10 | 他包面 | 零触及 ✓(§零.4 登记) |
+| 行内登记型参数 P-B-01..P-B-16 | 先登记后运行禁回改 | 登记笔 869770a(§零.5 全表)→实现笔 479ec7d,git 时序在册;三方一致(活性常量/镜像/测试字面量)+param_selfcheck 运行期哨兵+monkeypatch 回改检出 3 面 ✓ |
+
+## §五 git 纪律自检(七项)
+
+1. 基线切出: `git checkout -b dev/p3-impl-b b3628fd…` 自 BASE-P3B 全值切出(§零.7 步骤3,fetch 只读补对象库) ✓;
+2. 纯线性: 登记笔 869770a→实现笔 479ec7d→报告笔→终笔,零 merge 零 amend 零 force ✓;
+3. main 未触碰: 全程零 main 写操作(读/fetch/ls-remote 除外) ✓;
+4. LIVE 零写入: data/ 零改动(find -newer 零输出+git status 零 data/ 条目),关联档案/简报全落测试沙箱 ✓;
+5. launchd 零改动: 全程零 LaunchAgents 操作 ✓;
+6. 零 tag: `git tag` 3 枚均为他流先存(p03-final-20261105/p1-final-20261107/w5-final-20261104,早于本包开工),本包零新增 ✓;
+7. 网络: 仅取证类(ls-remote/fetch 只读;终局单支推送 dev/p3-impl-b,no-force),测试全离线 ✓。
+
+## §六 数值标注自检(全实取)
+
+| # | 数值 | 实取依据 |
+|---|---|---|
+| 1 | 模块 748 行 | `wc -l` 实取(§零.10) |
+| 2 | 测试 1225 行 | `wc -l` 实取(§零.10) |
+| 3 | 117 用例/17 类 | `Ran 117 tests`+`grep -c ^class Test`=17+AST 逐类计数(§零.10) |
+| 4 | 黄金 digest×3+档 sha×4 | 独立预计算+测试内复算双源一致(§零.10) |
+| 5 | 门禁负向 17 面/篡改变体 20 面 | AST 用例计数(§一/§零.10) |
+| 6 | 注入红 11+1/4/5 | 三注入循环实取(§零.10) |
+| 7 | CI 镜像 84=83 exit0+1 SKIP+0 非零 | /tmp/p3wpb/ci_mirror_results.txt(§零.10) |
+| 8 | 基线 83 槽→分支 84 | §零.7 开工清点+镜像重演 |
+| 9 | 集合名避 12/前缀避 15 | 上游实取清单(§零.5 P-B-09;测试 UPSTREAM_* 元组计数) |
+| 10 | k=4 白名单恰 4 文件 | §零.2 登记+git 终局 name-status |
+| 11 | 缺陷修复 2+口径修正 1+方法学勘误 1 | §三/§零.10 |
+| 12 | 双代码件 sha256 全值 | shasum -a 256+装配器 hashlib 双源(§零.10) |

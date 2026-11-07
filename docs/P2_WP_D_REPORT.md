@@ -112,3 +112,88 @@ DESIGN L215 验收要点 4 条: ①schema 与来源登记=确定性结构+测试
 - **负向敏感性(执行纪律 #4)**: 三真实注入(模块 sha256 注入前锚=f9267192ea0eefdbed83f4f2a202ec7b2c4a541fbefd5c9ec8e5faa68ab674c8): ①classify_observation pre 分支归属失活(pre 观测误判 post 流)→红 2(test_pre_window_boundary_day_before_event+test_cpi_event_window_golden,直击窗口归属语义)②validate_calendar_event source_id 白名单分支失活(`if src is None and False:`)→红 1(test_unregistered_source_rejected,ERROR 形态=后续 src["url"] TypeError,fail-loud 同效)③load_snapshot_disciplined Gate A 分支失活(`and False:`)→红 2(test_gate_a_fail_snapshot_rejected+test_mount_gate_a_fail_rejected,窗计算+挂载双侧拒收面);还原后 60 全绿,模块 sha256=注入前锚等值 f9267192…b674c8(零注入残留 grep INJ 零命中)。
 - **本地 CI 镜像**(步骤9): 82 文件 [实取·ls 计数]=81 exit0+1 SKIPPED(test_glm_live)+零非零 [实取·2026-11-07T10:0xZ 逐套件循环];对照 BASE-P2D-CI-SUITES=81 槽(80+1SKIP)→ 基线 81 零回归+本包新增 1(test_p2_wp_d exit=0);套件数 82=81+登记清单内新增 tests 文件数 1,一致无分流。
 - **零运行产物锚定**(步骤10 对照 §零.8): `find data/research -newer scripts/deep_research_event_calendar.py -type f` 零输出 [实取·2026-11-07T10:1xZ]=本包零写入 data/research/;`git status` 未跟踪恰=白名单 2 代码件(REPORT 已于登记笔提交)。
+
+---
+
+## §一 做了什么(实现摘要)
+
+**模块** `scripts/deep_research_event_calendar.py`(470 行 [实取·wc -l]),P2-G-04 事件序列数据面确定性落地四件:
+1. **事件档格式**: `calendar_event` 记录族(ID=CAL-{YYYYMMDD}-{sha256[:8]},指纹件 5 项不含墙钟→重放幂等);`validate_calendar_event` 全量校验(字段齐备/类型词表/规范日期/白名单/指标绑定/ID 指纹重算防篡改);`register_calendar_event`(append-only 经 drr._write_records,source_url 无入参由白名单登记值回填)+`list_calendar_events`(档内逐条重校验 fail-loud,按 event_date,event_id 升序);
+2. **来源登记(DP-5(a) 白名单登记制)**: `SOURCE_WHITELIST` 三源(每源六要素: source_id/publisher/url/access=free_public/credentials=none/cost=none/supports),零付费源零凭证源登记,全生存期零访问(零网络);
+3. **快照挂载**: `mount_event_context`——三重纪律过闸(drr._load_snapshot_for_verify+rp.digest_snapshot 重算+rp.gate_allows_formal_research 放行,FAIL fail-closed)后,把「事件窗∩快照观测日期面≠∅」的事件绑定为上下文{snapshot_id,digest_snapshot,gate_a_status,event_ids 升序,future_excluded,window,note},读侧纯计算零写入;
+4. **事件窗对齐计算**: `event_window_observations`——pre 窗=[event−pre_days, event−1](不含事件日)/post 窗=[event, event+post_days](含事件日)默认 5/5 自然日(P-D-06);观测=快照 facts 该 metric 窗内条目(每条携 fact_id/snapshot_id/digest_snapshot provenance 绑定);FAIL 质量与非数值如实排除入清单(不填 0);零合格观测→DATA_INSUFFICIENT(available=False);事件无绑定且未显式给 metric→拒(不以相近指标冒充)。
+
+**测试** `tests/test_p2_wp_d.py`(702 行 [实取·wc -l],15 类 60 用例 [实取·Ran 60 tests]),全合成 fixture 唯一数据源、预期值黄金字面量硬编码(GOLDEN 8 项独立预计算+测试内首原理三源复算)、零网络、created_at 全显式定值;类构成与负向敏感性三注入(红 2/1/2)与还原等值详见 §零.10。
+
+**本地 CI 镜像**(2026-11-07T10:0xZ 实跑): 82 文件=81 exit0+1 SKIPPED(test_glm_live)+零非零;对照 BASE-P2D-CI-SUITES=81 槽(80+1SKIP)→ 基线 81 零回归+本包新增 1;套件数 82=81+登记清单内新增 tests 文件数 1,一致(无情形(b)分流)。逐套件记录=证据包 04。
+
+**真实运行面**: 零(§零.8 判定+§零.10 锚定: `find data/research -newer <模块>` 零输出)。
+
+## §二 逐要点证据映射表(AC-02;DESIGN L215 验收要点 4 条 [实取·§零.1 抄录])
+
+| 要点 | (a) 实现落点 | (b) 证据指针 | (c) 自检结论 |
+|---|---|---|---|
+| ①事件档 schema 与来源登记(免费源 URL 白名单登记制) | 模块: SOURCE_WHITELIST 三源+validate_calendar_event(白名单/URL 逐字相等/类型支持/指标绑定/ID 指纹)+register_calendar_event(URL 无入参登记值回填)+append-only 落档;测试: TestSourceWhitelistRegistry·3+TestEventIdGolden·4+TestEventSchemaNegative·10+TestEventRegistryFace·2+TestEventAppendOnly·3+TestEventLoading·2(行锚: 测试 L131-L191/L192-L375) | 证据包 ①(REPORT §零 副本)+⑤(本表)+04(本地 CI test_p2_wp_d exit=0) | 过(60 用例全绿;未登记源/URL 失配/付费源零登记均有负向或断言锚) |
+| ②事件窗对齐计算单测(事件前后窗口取数经快照) | 模块: event_window_bounds/classify_observation(窗口口径 P-D-06)+event_window_observations(经快照三重纪律取数+fact_id/digest provenance+质量纪律)+mount_event_context(挂载);测试: TestWindowBounds·7+TestWindowObservationsGolden·4+TestWindowQuality·4+TestSnapshotDiscipline·5+TestMountContext·5(类行锚: 测试 L376-L594);快照纪律锚: 快照缺失拒/GateA FAIL 拒/DEGRADED 放行/digest 重算黄金 | 证据包 ④+⑤;§零.10 负向敏感性(窗口归属失活注入红 2/GateA 失活注入红 2) | 过(pre 不含事件日+post 含事件日边界直测;DATA_INSUFFICIENT 如实;零直读原始采集档——模块零 data/daily 字面 grep 零命中) |
+| ③零凭证零付费断言 | 模块: 白名单每源 credentials=none/cost=none 常量+_selfcheck;测试: TestZeroCredentialPaid·3(凭证/env/付费模式零命中+AST 零网络 import+取数调用字面零命中)+TestSourceWhitelistRegistry·2(免费/零凭证/零付费逐源断言)(类行锚: 测试 L131-L191) | 证据包 ④+⑤;§零.4 DP-5 行(付费源零登记零实施 PENDING 留痕) | 过(断言三面: 白名单常量/源码模式/AST import;零真实源访问结构性保证) |
+| ④CI 零回归 | 本地 CI 镜像 82=81 exit0+1SKIP 零非零(基线 81 零回归+本包 1);CI 面=操作者 CHECKPOINT dispatch(登记件 rounds/037/P2-WP-D-CI-dispatch-evidence.md,本席不自行 dispatch) | 证据包 ④(逐套件记录)+§一;CI 登记件=操作者面 | 本地面过;CI 面执行侧留操作者 dispatch 后以登记件为准(NOT VERIFIED@执行席,结构性如实) |
+
+**DP 判据⑥自检(R020-D5 承接)**: DP-1/DP-2/DP-6=本包不触及(零登记面零运行面零回改,沿用 WP-A 族级定值引用,§零.4 表);DP-5(a)=按 DESIGN 范围列明文+合同冻结章登记处置执行(白名单登记制,登记后零回改——SOURCE_WHITELIST 常量自实现笔起未变更,§五 git 取证可复核);DP-5(b) 付费源=零实施+PENDING 留痕;DP-4=零触及;DP 编号与 DESIGN §2.4 实读一致(6 DP)。
+
+## §三 偏离与如实声明
+
+1. **BRANCH-SET 对照方法偏离(如实)**: 冻结章 §三.1 全表经人工重打后机器 diff 出 7 行 SHA 尾部差异→经 R036 证据包 ls-remote-heads-postpush.txt(R036 终笔推送后 54 支机器转储)独立对照链裁定=本席重打转录失真,远端差异集恰 2 支均为登记内预期前移(dev/p2-impl-c→858af49+main→e557fd3),其余 52 支全值一致零漂移(§零.7 详登);教训=长 SHA 对照以机器转储链为准,已在证据包 07 留存两源对照件;
+2. **实现期缺陷修复 1 处(测试侧)**: TestEventLoading NFP spec source_id 首稿笔误→排序黄金断言红 1,修正后全绿(§零.10;模块零缺陷一次成型,py_compile+60 用例首跑 59/60 仅此笔误);
+3. **本地 Python 版本差异(如实登记)**: 本地 3.9.6 vs CI 3.11(合同步骤9 本地镜像同构跑,语法面已保持 3.9 兼容;CI 3.11 面以操作者 dispatch 登记件为准);
+4. **CI 面结构性留操作者**: 本席不自行 dispatch(合同步骤14);AC-02 要点④ CI 面在执行席=NOT VERIFIED@执行侧,证据=登记件将落路径;
+5. **黄金预计算脚本 ACT 槽位注记**: /tmp/p2d-golden-precompute.py 中 EV_CORE_CPI fixture(带非法日期串,作日期负向素材预演)最终未入测试文件(测试改用直接改档构造非法日期),脚本该条目为预演残留,其输出(CAL id)未被测试采用——如实注记,黄金值仅采 EV_CPI/EV_NFP/EV_FOMC/EV_FOMC_DFED/EV_FAR+DIGEST×3 共 8 项(测试 GOLDEN 表 [实取·计数 8]);
+6. 无其他偏离: 无规格冲突/无套件数不符(82=81+1)/无不触发面/无引用不可达/无中断。
+
+## §四 DP 与登记参数运行后零回改自检
+
+| DP/参数 | 登记定值 | 实现值(运行后实读) | 零回改 |
+|---|---|---|---|
+| DP-1/2/6 | 本包不触及(§零.4) | 模块零引用(源码 grep DP1/DP2/DP6 零命中) | ✓(结构性无回改面) |
+| DP-3 ID 前缀 | CAL-(§零.4) | EVENT_ID_PREFIX="CAL-"(模块 L60 [实取]) | ✓ |
+| DP-5(a) 白名单 | 3 源登记不访问(§零.5 P-D-04) | SOURCE_WHITELIST 3 源常量(模块 L69-L89),登记笔后零变更(§五 diff 可复核) | ✓ |
+| DP-5(b) 付费源 | 零实施 PENDING(§零.4) | 源码零付费源字面;测试断言白名单全免费 | ✓ |
+| P-D-05 最小集指标 | {CPI,CORE_CPI,NFP,NFP_MOM_K}+FOMC{None,DFEDTARU,DFEDTARL}(§零.5) | INDICATOR_METRIC_WHITELIST/FOMC_METRIC_WHITELIST 常量(模块 L91-L92) | ✓ |
+| P-D-06 窗口默认 | pre=5/post=5(§零.5) | WINDOW_PRE_DEFAULT=5/WINDOW_POST_DEFAULT=5(模块 L95-L96) | ✓ |
+| 全部登记参数 | P-D-01..13(§零.5) | 实现与登记逐项一致(登记笔先于实现笔提交 2e8d92d→4240c14,git 序可复核) | ✓ 先登记后实现 |
+
+## §五 git 纪律与范围自检
+
+1. 分支 `dev/p2-impl-d` 自 e557fd3a6598b0145c9c40cee07299a992ad56bb 切出(§零.7 核验),纯线性: 2e8d92d(登记)→4240c14(实现)→报告笔→终笔,零 merge 提交(BASE..HEAD merges=0 预期,终笔取证);
+2. `git diff --name-status e557fd3a…HEAD`: A=恰白名单 4 行、M=0、D=0 预期(终笔取证落证据包 07);
+3. reflog 零 reset 零 amend;零 force push;main 未触碰(本地 fetch 仅只读取回对象);
+4. 零网络: 模块 import 面白名单+AST 断言(§二 要点③);测试零网络;本席全程网络操作仅 git push/ls-remote/fetch(取证交付类);
+5. LIVE 零写入: LIVE 目录本轮标记 grep(R037|P2-WP-D|IA-P2-WP-D)零命中+real_data_acceptance.py SHA256 不变(终笔取证,证据包 06);
+6. launchd 零改动(LaunchAgents 快照取证,证据包 06);
+7. 研究档案不 commit(data/research/ 零新增零 diff);.gitignore 零改动;workflow 零改动;上游在场件(E2E-A/WP-A/B/C 交付件+主流水线+registry)零改动(M=0 判据内)。
+
+## §六 提交前数值标注六项自检清单(§5.3 强制;清单成件入证据包 03)
+
+全文扫描(REPORT+DELIVERY 双文档)计数类/统计类数值清单与标注核验(逐项二选一标注;[实取] 项已回工作树复核):
+
+| # | 数值 | 标注 |
+|---|---|---|
+| 1 | 交付清单 k=4 | [实取·§零.2 清点+git ls-files 零重合实跑] |
+| 2 | DESIGN DP 表 6 个/D 行验收要点 4 条/事件类型 2 类 | [实取·DESIGN §2.4 表/§七 L215/模块 EVENT_TYPES 清点] |
+| 3 | 白名单源 3(SRC_FED/SRC_BLS_CPI/SRC_BLS_EMPSIT) | [实取·模块 SOURCE_WHITELIST 清点+测试断言] |
+| 4 | 最小集指标 4(CPI/CORE_CPI/NFP/NFP_MOM_K)+FOMC 通道 2(DFEDTARU/DFEDTARL)+可选 None | [实取·模块常量+registry 在场测试;选取依据引用计数 CPI=8/CORE_CPI=4/NFP=3/DFEDTARU=3/DFEDTARL=3/NFP_MOM_K=2/CORE_PCE=1/FED_FUNDS=0,2026-11-07T09:5xZ 8 模块词边界计数实跑] |
+| 5 | 窗口默认 pre=5/post=5 自然日 | [登记定值·P-D-06,非统计观测值] |
+| 6 | 高频引用计数统计面 8 模块 | [实取·report_generator/macro_scorecard/allocation_engine/correlation_calculator/market_regime/macro_dashboard/daily_prediction_observer/fact_engine,在场 ls 实跑] |
+| 7 | 模块 470 行/测试 702 行 | [实取·wc -l 2026-11-07T10:0xZ] |
+| 8 | 测试 15 类 60 用例 | [实取·Ran 60 tests+类定义清点 15] |
+| 9 | 类内用例分布 3/4/10/2/3/2/7/4/4/5/5/3/3/3/1(和=60) | [实取·测试文件 def test_ 清点复核] |
+| 10 | 黄金字面量 8 项(CAL×5+DIGEST×3) | [实取·GOLDEN 表清点+独立预计算脚本] |
+| 11 | 负向敏感性 3 注入红 2/1/2;还原 60 全绿 | [实取·§零.10 执行记录] |
+| 12 | 本地 CI 82 文件=81 exit0+1 SKIP;基线 81 槽=80+1SKIP | [实取·2026-11-07T10:0xZ 逐套件循环+合同冻结章 §三] |
+| 13 | BRANCH-SET 54 支;远端对照差异集 2 支(52 支一致);重打失真 7 行 | [实取·ls-remote+R036 证据包机器转储对照,§零.7/§三.1] |
+| 14 | 开工 heads 计数 54/分支总数执行后预期 55 | [实取·ls-remote 2026-11-07T09:44Z/合同冻结章 §三 注记] |
+| 15 | 实现期缺陷修复 1 处(测试侧) | [实取·§零.10] |
+| 16 | P-D-01..13 共 13 项登记参数 | [实取·§零.5 表清点] |
+| 17 | 证据包成员 8 类;zip 字节数/哈希 | [实取·终笔装配后落 DELIVERY §六(装配时点定值)] |
+
+日期/SHA/结构编号(WP-P2-D/P2-G-04/CAL-ID/DIGEST)/档键成分按边界出圈(头部声明);URL 字符串=登记型参数(P-D-04 登记值,非统计值)。**疑似失实项: 无**(第 17 项 zip 定值为装配时点占位于 DELIVERY §六 回填,双源哈希复核)。
+

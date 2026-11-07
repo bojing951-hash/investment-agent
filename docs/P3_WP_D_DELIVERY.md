@@ -78,6 +78,13 @@ zip 定值(文件数/字节数/sha256)以终笔提交信息与会话 stdout 为�
 
 (定值笔区内纯追加,R065/WP-C 笔B 先例;文件数/字节数/sha256 以终笔提交信息与会话 stdout 四段为准)
 
+证据包 `/tmp/p3-wp-d-evidence/IA-P3-WP-D-EVIDENCE.zip` 定值@装配停点 HEAD=450141a(本笔前):
+- **文件数 50**(根层恰 8 类 = 01:1[REPORT §零 全节]+02:9[4 交付件×{git-show TIP 450141a 版+工作树版}+cross-hash 表,双源逐值等值]+03:15[ls-remote 推送前 64 行快照+pre-push 核验(零预创建+main 等值)/log/name-status(BASE..笔4 恰 A=4+M=1)/merges 空/head-parents 单父/祖先双核验(BASE-P3D aeb39e8+design-fix1 7f43724 exit0)/reflog -30/设计在场 L188-192 逐字+DESIGN HEAD 全档+三件 ls-tree 双侧+三件 hash-object/LIVE 三面(grep R041|P3-WP-D|IA-P3-WP-D 零命中+real_data_acceptance.py sha256=f9ca189c…3eb 与 WP-C 记录全值等值+LaunchAgents 12 件哈希清单)]+04:3[镜像脚本+86 行逐套件记录+汇总(86=85 exit0+1 SKIP+0 非零)]+05:5[AC-02 映射+如实偏差副本+DP/参数登记节副本(§零.4/§零.5)+§5.3 数值扫描清单 REPORT 件+DELIVERY 件]+06:15[零运行声明+data/research 与 data/daily 双 find 锚定(均 0 行)+96 OK stdout(verbose)+selfcheck stdout+py_compile+黄金首原理件与输出(五 sha)+交叉裁定件与输出(ALL MATCH)+fixture 逐字节一致件与输出(16 文件全等)+负向敏感性脚本+装配时点复跑记录+终局记录(6/9/7 红→复绿→sha 零残留)]+07:1[自述装配时点稿]+08:1[双解释器记录: 系统 3.9.6 全套件 96 OK+venv 3.9.6 全套件 OK;3.10+ 执行席不可达如实登记(command -v/目录面沙箱拦截)+守卫零版本依赖证明链+CI 3.11@workflow L29 实读]);
+- **字节数 204358**;
+- **sha256=6012434b4d20c9e9cef070e18f96c3129ee45b745a885d79b3a2f202547569a4**(装配器 hashlib 与 `shasum -a 256` 双源复算一致;`unzip -t` No errors detected;解包逐成员 50 OK/0 BAD;`unzip -l` 独立计数 50 files);
+- SHA256SUMS 50 行旁置自豁免不入包(合同 §3 步骤12 口径);
+- 自指口径注记: 包内 DELIVERY/自述副本=装配时点稿(笔4 450141a 版),与终笔版差异=恰本定值行组(R065 先例);终值以终笔提交信息与会话 stdout 四段为准。
+
 ## §七 如实偏差(全项登记;不声明「无偏差」)
 
 与 REPORT §三 同源同步(8 项): 实现期缺陷修复 1(dp_selfcheck 镜像 DP-8 字面量装配笔误,selfcheck 首跑检出,登记语义零变更)/首原理件自纠 2(周报 1116 覆盖正文六 id 显式枚举+≥9周桶 hit=2,模块实跑交叉裁定为准)/测试字面量自纠 2(覆盖均值公式对齐登记口径+ymd 负例合法形改真非法形+write_fixture exist_ok)/冻结表 2 支休眠历史支疑似差异(执行席不可达 contracts 如实声明,六授权支全值一致,零转打证明链=推送前后机器快照 diff)/subprocess 受控 1 处(TestSelfcheckMain)/CI 分支 run NOT VERIFIED@执行席(操作者 rounds/041 dispatch)/行号容差承接;不声明无偏差。

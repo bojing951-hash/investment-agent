@@ -11,7 +11,7 @@
 | 1 登记笔 | c825ee4 | REPORT §零 开工登记(规格抄录/白名单/DP/参数 P-B-01..18/前置实读/开工核验/BRANCH-SET 异常登记/运行边界) |
 | 2 实现笔 | c906db5 | scripts/deep_research_matrix_engine.py(816 行)+tests/test_p2_wp_b.py(1009 行/57 用例/14 类)+REPORT §零.10 实现期登记(3 files/1839 insertions) |
 | 3 报告笔 | (本笔) | REPORT §一-§六 回填+§零 路径/时点标注修正 5 处+DELIVERY §一-§五 新增 |
-| 4 终笔 | (待) | DELIVERY §六 zip 定值登记(唯一补记位) |
+| 4 终笔 | (本笔) | DELIVERY §六 zip 定值登记(唯一补记位) |
 
 模块面: 恰 1 个代码模块(矩阵装配与轮次引擎)+1 测试文件+REPORT+DELIVERY=k=4 白名单全量;本包无并入步,设计三件已在 BASE 在场→`git diff --name-status BASE..HEAD` A=4/M=0/D=0 [实取·§二取证]。
 
@@ -80,4 +80,12 @@ CI dispatch 登记件: rounds/035/P2-WP-B-CI-dispatch-evidence.md(操作者面;�
 
 ## §六 zip 定值登记(终笔唯一补记位)
 
-(待终笔装配登记: 成员数/字节数/sha256 双算/unzip -t/SHA256SUMS 逐条复算/交叉哈希/装配时点 TIP——R065 先例口径。)
+**装配定值**(装配器 /tmp/p2b-assemble.py,2026-11-07 终笔时点;证据包根 /tmp/p2-wp-b-evidence/):
+
+- 包: `IA-P2-WP-B-EVIDENCE.zip`,**292516 字节 [实取·zip 文件大小]/未压缩合计 875817 字节 [实取·zipfile infos 合计,121 files 含清单]**;
+- 成员: **SHA256SUMS 清单 120 条 [实取·清单行数]**(staging 121 文件,清单自身显式豁免,R019-D3/R065 先例);根层恰 8 类目录+SHA256SUMS 零杂散 [实取·zip namelist 根层清点]: 01-startup-forensics(11)/02-deliverables(4)/03-negative-sensitivity(1)/04-local-ci(80=summary+79 套件日志)/05-acceptance-anchors(7)/06-live-isolation(3)/07-git-forensics(13)/08-selfreport(1);
+- sha256: **`5e01a437340b57a09008dabbd5e63fd9998bc469d2320bc1f39aa50d419fbb9a` [实取·装配器 hashlib 与 shasum -a 256 独立复算双源一致]**;
+- 完整性: `unzip -t` No errors detected [实取·外部命令第二源]+zipfile.testzip 无错 [实取];SHA256SUMS 120 条解包逐条复算 **120 OK/0 BAD [实取·装配器校验循环]**;
+- 双源副本交叉哈希: 02-deliverables 4 件(REPORT/DELIVERY/模块/测试)与仓库工作树逐字节等值 **4/4 EQUAL [实取·sha256 对照]**;其中模块 `19a3a50e…` 与负向敏感性注入前后等值链同值(§二取证链闭合),测试 `0a1484c0…` 同款闭合;
+- 装配时点 TIP=报告笔 `5bbee29`(rev-parse=推送后 ls-remote 单支值一致,07/rev-parse-tip.txt+push-output.txt);zip 内 DELIVERY/自述副本=装配时点版,不含本 §六 定值行(R065 先例口径),终局自述以会话 stdout 四段为准;
+- 如实登记: push 原始输出经会话 stdout 呈现(输出重定向落档通道被环境安全策略拒),07-git-forensics/push-output.txt 为推送后单支 ls-remote 复核+说明头(等价终态证据,非原始输出副本);07/zero-drift-check.txt 首版装配脚本装饰行因相邻字符串字面量乘法缺陷错列,修正直写版+缺陷注记入件(对照数据行不受影响,07/forensics-README.txt 登记)。

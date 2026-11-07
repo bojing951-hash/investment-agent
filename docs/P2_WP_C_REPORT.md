@@ -118,4 +118,80 @@ DESIGN L209 验收要点 5 条逐条对照: ①触发入口各子类端到端用
 
 **本地 CI 镜像(证据包 04)**: 80 套件全 exit=0(offline-tests.yml 同口径 python3 逐套件,排除 test_glm_live)=基线 79 套件零回归+本包 1 新增;槽位记账: 基线 tracked test 文件=80 [实取·git ls-tree f0648841]=79 run+1 SKIP,本包后=81=80 run+1 SKIP(预期 CI 面,操作者 dispatch 后以 rounds/036 实跑为准)。
 
-(§一-§六由报告笔回填。)
+## §一 做了什么(实现摘要)
+
+**实现笔 37d0593**(3 files changed/2407 insertions(+1 deletion) [实取·git show --stat 37d0593]):
+
+1. **scripts/deep_research_tracking_engine.py**(1004 行 [实取·wc -l 2026-11-07T08:3xZ]): 跟踪触发与 GLM 综合对接引擎,三新集合(`deep_research_triggers`/`deep_research_conclusions`/`deep_research_disposals`,P-C-01)挂共享档案族根。核心面(行号=实现笔 37d0593 版实读):
+   - **S-3 触发监听三子类 intake**: `validate_trigger_payload`(L158-L213)按子类 schema 校验(论点触发器 engine_status 恒 `triggered` 引擎核验门禁[L503 先例]/预测裁决 event∈{adjudicated,premise_fulfilled}+verdict 四态词表[L534,adjudicated 恒非 null·premise_fulfilled 恒 null]/拒写提案 proposed_rating 四档[ae.ALLOWED_RATINGS]+gate_status 恒 `rejected`[L522 先例]);`register_tracking_trigger`(L244-L270)fail-loud 零写入 append-only 落档;
+   - **触发后再研究衔接**: `spawn_research_from_trigger`(L284-L298)——origin 恰一 `origin_trigger{kind,ref}` 取自触发档(任务档记录衔接,DESIGN L41),DRAFT 五要件校验经 drr 兜底复用,digest 经 rp.digest_snapshot 重算(禁采声明值);
+   - **条件程序评估**(§6.2 程序判定,观察记录驱动): `_observations_from_snapshot`(L304-L326,质量≠FAIL 且数值型才入,数据不足不填 0)/`_condition_window`(L329-L354,窗口=[premise 兑现日|条件档 created_at 日期段,deadline=window.deadline 或 created_at+weeks×7];前提未兑现→NOT_YET_IN_WINDOW/晚于截止日兑现→NOT_ACTIVATED 不顺延[L762-764 同款])/`_evaluate_condition`(L357-L400,**窗内观测才参与裁决**[L537+_window_obs 同款过滤],touch 触及可提前/expiry 截止日未到不得提前裁决[L538 同款]/窗内零可用观测=DATA_INSUFFICIENT 不硬判[L903-906 同款],比较符复用 ae.COMPARATORS 同一代码路径)/`evaluate_hypothesis_conditions`(L403-L454,快照纪律三重: drr._load_snapshot_for_verify+rp.digest_snapshot 重算+rp.gate_allows_formal_research 放行,任一不过 blocked 如实零编造,as_of 显式必填禁墙钟);
+   - **结论状态机**(§6.3): `_decide_status`(L530-L573)确定性判定(P-C-11 映射: ①证伪向触发→FALSIFIED ②支持向成立∧无未解释重大反证→CONFIRMED ③∧反证未解释→PARTIAL_SUPPORT 驻留[反证义务未闭合 §4.3] ④窗口闭合: ∃DATA_INSUFFICIENT→INCONCLUSIVE 否则 EXPIRED_UNRESOLVED ⑤未闭合: 证伪向 expiry 不利观测→PARTIAL_FALSIFIED;优先序 FALSIFIED>CONFIRMED>EXPIRED_UNRESOLVED>INCONCLUSIVE);`adjudicate_conclusion`(L576-L628)终态后再评一律拒收前置门(L595-L599)+prior_status 词表 schema 兜底双层防御,未解释重大反证旗经 dm.assemble_matrix 复用汇编取 summary;`current_conclusion_status`(L631-L636)=结论流 created_at+conclusion_id 确定性折叠(append-only 推导零改档);
+   - **证伪后处置三路径一次成套**(§6.3 L182-L185): `apply_falsification_disposal`(L712-L816)前置恒须当前结论=FALSIFIED;路径①mark=FALSIFIED 结论档引用不可改写+可选实质新假设经 drr.revise_hypothesis(新记录+新ID+revision_of);路径②review_request 走终态门禁正向流程(requires=[engine_verified_trigger, gte2_new_independent_evidence],decided_by=gate,**深研层零研究状态写路径**);路径③TRACKING→ARCHIVED 经 drr.append_lifecycle_event 既有迁移表(非 TRACKING 态如实登记不适用)+可选闭环 followup 经 S-3 origin_trigger 发起新任务;
+   - **GLM 综合接口预留**(§五能力级,R019 定稿字段面对齐,零调用): `build_glm_synthesis_input`(L858-L891,contract_version/mode/snapshot_binding/task_ref/prompt_contract R019 字段名+evidence_matrix 经 dm 复用汇编;FAIL 快照拒入)/`validate_glm_synthesis_output`(L895-L927,轻量: ≥2 竞争假设+每假设 falsifiable_conditions≥1+confidence 三档+absent_ack;R019 WP-G2 全量校验器不在本包重复实现)/`GLMSynthesisAdapter` 协议(L822)/`PendingGLMAdapter` 缺席登记桩(L837-L852,called=False/network=False,不部分产出不静默跳过状态不因此推进)/显式依赖注入点 `synthesize_competing_hypotheses(adapter=…)`(L931-L953);**零真实 GLM/LLM 调用零网络零凭证零付费**(DP-4 PENDING);
+   - ID 族 TRG-/CON-/DSP-{YYYYMMDD}-{sha256[:8]} 零墙钟(L131-L152);全记录族经 drr._write_records append-only 原子落档;零第三方新依赖。
+2. **tests/test_p2_wp_c.py**(1386 行 [实取·wc -l 同上],77 用例/13 类 [实取·pytest --collect-only 2026-11-07T08:5xZ]): 黄金字面量 25 项(GOLDEN 表 L46-L72: TRG×4/digest×1/RT-DR×2/HP×5/FC×7/CON×5/DSP×1)独立预计算+首原理交叉验证固化;全合成 fixture(5 快照含 SNAPSHOT_POST 窗口敏感锚)临时目录沙箱,created_at 全显式定值零墙钟,零网络。逐类用例数 [实取·pytest 逐类清点]: TriggerGoldenIntake 5/TriggerSchemaNegative 8/TriggerAppendOnly 3/SpawnFromTrigger 4/ConditionWindow 12/ConditionGrounding 7/ConclusionStateMachine 11/FalsificationDisposal 6/GLMInterface 7/RecordSchemas 5/GoldenDeterminism 4/StaticPurity 3/EndToEndChain 2(和=77 复核 ✓)。
+3. **负向敏感性**(§零.10): 三真实注入红 5/1/1 [实取·pytest 失败计数](全部一次命中预期红),恢复后 77 全绿,模块 sha256 注入前后等值 `fd927a94…`(基线=还原后,全记录=证据包 03)。
+4. **本地 CI 镜像**(offline-tests.yml 同口径): 80 run 全 exit=0/FAIL=0 [实取·p2-wp-c 采集脚本输出,逐套登记=证据包 04]=基线 79 套件零回归+本包新增 1;槽位记账 79+1SKIP→80+1SKIP [实取·git ls-tree f0648841=80 tracked]。
+5. **零运行产物**(§零.8 判定的包末复核): data/research 全树清点 `p2_wp_c` 零命中+git status clean [实取·证据包 05 zero-run-products-anchor.txt];data/daily 全树 sha256 现存态锚同件在档(本包零数据面运行,负向证据)。
+
+## §二 逐要点证据映射表(AC-02)
+
+DESIGN L209 验收要点①-⑤ → 实现/证据/自检逐条(行号=实现笔 37d0593 版实读):
+
+| 要点 | 实现位置 | 测试证据(类·用例数 [实取·pytest 清点]) | 自检 |
+|---|---|---|---|
+| ① 触发入口各子类端到端用例(子类 3 个) | validate_trigger_payload L158-L213/register L244-L270/spawn L284-L298 | TestTriggerGoldenIntake·5(三子类黄金 ID+premise_fulfilled 恒 null+确定性序)+TestTriggerSchemaNegative·8(engine_status 门禁 4 值/verdict 词表/评级四档/gate_status/未登记键/类型)+TestSpawnFromTrigger·4(thesis→TASK1 黄金/prediction→TASK2 黄金/未知触发拒/上游校验兜底)+TestEndToEndChain·2(proposal→TASK3 全链) | ✓ 全绿;负向注入③(引擎核验门禁失活)→1 红实证 |
+| ② 条件评估与每日观察先例口径一致性(观察窗内观测才参与裁决) | _observations_from_snapshot L304-L326/_condition_window L329-L354/_evaluate_condition L357-L400(窗内过滤=obs∈[window_start,deadline] 闭区间) | TestConditionWindow·12(touch 提前/闭合未触发/闭合零观测不硬判/expiry 不提前裁决/expiry 不利观测/截止日判定取窗内最新/截止日后观测排除[SNAPSHOT_POST 敏感锚]/premise 三态: 未兑现不开窗/晚兑现不激活/兑现日开窗)+TestConditionGrounding·7(缺快照/GateA FAIL 阻断/DEGRADED 放行/缺 facts/FAIL 质量与非数值排除/digest 重算黄金/异假设与非法 as_of) | ✓ 全绿;负向注入①(窗口过滤失活)→5 红实证(直击 2+黄金链指纹下游 3) |
+| ③ 证伪后处置路径断言(路径 3 条: FALSIFIED 不可改写/关联论点走门禁/新任务闭环) | apply_falsification_disposal L712-L816(前置恒须 FALSIFIED L733-L736) | TestFalsificationDisposal·6(黄金 DSP+三路径全套: mark 不可改写+修订新 ID revision_of+review_request decided_by=gate 深研层零状态直改+TRACKING→ARCHIVED 迁移+followup origin_trigger 闭环/非 FALSIFIED 拒×2/输入校验/非 TRACKING 如实/结论档字节不可改写)+TestConclusionStateMachine·11(FALSIFIED 不可改写再评拒+优先序①>②+终态双拒) | ✓ 全绿;负向注入②(终态门禁失活)→1 红实证(专用语义失位即红) |
+| ④ GLM 零调用断言(定稿前) | GLMSynthesisAdapter L822/PendingGLMAdapter L837-L852(called=False/network=False)/注入点 L931-L953 | TestGLMInterface·7(输入契约字段+digest 绑定/FAIL 快照拒入/PENDING 缺席登记+状态不因此推进/输出校验 5 负向/注入桩合法非法/协议 NotImplementedError/缺 task_id+payload 拒)+TestStaticPurity·3(AST 零网络 import+import 面白名单枚举/零 data/daily 路径字面/零研究状态档字面) | ✓ 全绿;PENDING 桩零调用零网络断言在场(DP-4 PENDING 留痕) |
+| ⑤ CI 零回归(工件: 测试文件+run ID) | tests/test_p2_wp_c.py(77 用例,CI 入口直跑兼容 unittest.main) | 本地 CI 镜像 80 run FAIL=0(§一.4,逐套登记=证据包 04);真实 CI run ID=操作者 dispatch 面(rounds/036 登记件),执行时点尚未产生,如实登记 NOT VERIFIED@执行侧(DELIVERY §三 AC-06 分列) | 本地面 ✓;CI 面=操作者面待 run |
+
+另有非要点直映射的防线类: TestRecordSchemas·5(结论/处置档 schema 负向: 状态词表/终态前态/绑定格式/缺字段/review_request 形制)+TestGoldenDeterminism·4(跨沙箱全链逐字节等/CON 重放同 ID 拒/CON+TRG 指纹 hashlib 首原理独立复算)+TestTriggerAppendOnly·3(重放拒字节不变/跨沙箱同 ID/同日异刻同 ID),全绿 [实取·pytest 计数]。
+
+## §三 偏离与如实声明
+
+1. **BRANCH-SET 提示词侧转录讹误**(开工发现,§零.7 同 WP-B R033 同型): 4 支提示词冻结表值与 live 不符(2 条 39 字符结构无效 SHA+2 条单字符替换)→判定=提示词侧转录讹误非分支漂移;开工步显式判据(main 尖端/计数 53/无本分支/p2-design 尖端)全过不触发停止;处置=漂移检测锚定开工真观测快照+建议操作者对合同存档件冻结章作勘误登记(执行Agent 无权改合同)。执行后 ls-remote 对照=DELIVERY §二。
+2. **实现笔提交信息类粒度计数 4 处偏差(如实登记)**: 实现笔 37d0593 提交信息中逐类用例数写了「结论状态机 12/处置 8/GLM 8/接地 8」,pytest 逐类实取=11/6/7/7 [实取·pytest --collect-only 逐类清点,§一.2];总数 77 与类数 13 无误,类粒度四值系提交信息撰写期手记口径偏差(非测试面变化——测试文件自实现笔起零改动,sha256 见 §六);正确值以 §一.2/§六 登记为准。git 纪律=零 amend,提交信息不回改,以本节勘误登记处置。
+3. **实现期缺陷修复 3 处**(均实现笔提交前修复,§零.10,与 WP-B 修复B 沙箱逃逸级如实区分——本包无沙箱逃逸级缺陷): ①list_triggers 首稿语法错误(py_compile 首编译即红,未入任何测试运行);②_decide_status CONFIRMED 分支 NameError(首次冒烟裁决即红,修推导式);③协议类文档串非 f-string 装饰性缺陷(零行为影响)。登记参数语义零变更。
+4. **黄金预计算脚本侧登记缺陷 1 处(当场防线+补证)**: 独立预计算脚本 ACT["DIGEST"] 槽位未填充致交叉验证表出现 1 行 MISMATCH(act=None)——系脚本侧登记缺陷非模块偏差,digest 另经独立复算件证 EQUAL(exp=act=2a86cee966ed2c12),MISMATCH 行已注记(证据包 03/golden-precompute/precompute-output.txt);其余 24 项全 GOLDEN-OK。与 WP-B scratch 侧讹误先例同型(独立预计算侧缺陷,测试 fixture 无缺陷)。
+5. **负向注入②敏感性=1 红且防御双层(如实登记)**: 终态门禁失活后 schema 兜底(prior_status 词表: 终态不可为前态)仍 fail-closed 拒收零写入,故仅专用拒收语义测试变红(消息钉住);双层防御单层失活不至静默改写,如实登记不强凑红数;注入①5 红中 3 红为黄金 CON 指纹下游(evidence 首命中观测日期钉住窗口语义)——黄金链本身即窗口纪律敏感性锚,如实说明红数构成。
+6. **CI run ID 如实分列**: 真实 CI run 属操作者 dispatch 面(rounds/036),执行时点未产生→本包交付本地面证据(§二⑤),AC-06 CI 面如实登记 NOT VERIFIED@执行侧。
+7. **LIVE 树复核环境不可及(如实分列 NOT RE-VERIFIED@执行侧,不以结构性证据冒充实读 PASS)**: LIVE 部署目录不在本会话允许目录清单内(安全策略)→LIVE 全树 grep 本会话不可执行;结构性替代证据=①交付件(模块+测试)源码 grep LIVE 面常量零命中 [实取·证据包 06]②全部写入经 archive_dir/snapshot_dir 参数落位(测试 tempfile 沙箱断言锚定)③data/research 零运行产物(§一.5)④LaunchAgents 12/12 与 WP-B 证据基线逐文件 sha256 全等 [实取·同上]。
+8. **本包 §零 零标注修正**: §零 各节路径/时点标注在登记笔即按终局证据包布局书写(01-startup-forensics 等终局类号),报告笔复核零修正(与 WP-B 5 处修正先例如实区分)。
+
+## §四 DP 与登记参数运行后零回改自检
+
+| 项 | 登记定值(§零.4/§零.5) | 实现值(37d0593 实读) | 零回改自检 |
+|---|---|---|---|
+| DP-1 轮次预算 | 双轨 N=5(复用上游定值,本包消费面=无直接消费+GLM 输入透传 echo) | `drr.DP1_ROUND_BUDGET_DEFAULT`(=5)复用导入零重复定义;透传面=evidence_matrix.registered_params 经 dm 汇编(测试钉值 round_budget=5) | ✓ 常量=登记值;零自决 |
+| DP-2 权重量表 | 星级 [1,5](复用上游定值) | `drr.DP2_WEIGHT_SCALE`(=(1,5))复用;矩阵 summary/star 经 dm 复用汇编透传 | ✓ 同上 |
+| DP-6 每对判据 | 每对 ≥1(复用上游定值) | `drr.DP6_MIN_DISCRIMINATING_PER_PAIR`(=1)复用;spawn 走 drr DRAFT 校验判据覆盖兜底 | ✓ 同上 |
+| DP-3 ID 族 | 对齐型不冻结;TRG-/CON-/DSP- 确定性前缀 | make_trigger_id L131/make_conclusion_id L138/make_disposal_id L148(指纹不含墙钟,重放幂等) | ✓ 黄金字面量定值一次定稿 |
+| DP-4 GLM 角色 | 仅接口预留+零调用断言,真实调用/费用 PENDING 留痕非自决 | 接口预留全套(L822-L953)+PendingGLMAdapter 缺席登记+测试零调用断言;零真实调用零网络零凭证零付费 | ✓ 未实施;PENDING 留痕 |
+| DP-5 外部源扩展 | 本包不触及 | 范围无任何数据源扩展;模块零新数据源 import(测试 AST 白名单钉住) | ✓ 零触及 |
+| P-C-01..P-C-18 | §零.5 登记表 | 逐项实现一致(§零.10 登记型参数零勘误;含预登记张力处置: PARTIAL_SUPPORT 驻留/非 TRACKING 如实不适用/评估无任务面前置=登记口径/GLM 轻量校验边界承接) | ✓ 18 项逐一对照 |
+| API 回改面 | 无(登记型参数非 API 参数) | `inspect.signature(register_tracking_trigger/adjudicate_conclusion/apply_falsification_disposal/synthesize_competing_hypotheses)` 无 DP 参数;触发/评估面无 digest 入参(经 rp.digest_snapshot 重算绑定) | ✓ TestStaticPurity+schema 断言 |
+
+登记参数无任何「先登记后回改」事实: 本包登记型参数零勘误(§零.10 三处缺陷修复均零语义变更);设计张力(§零.5 已预登记的窗口边界/驻留语义/门禁走法等)均先登记后实现,运行后零回改。
+
+## §五 git 纪律与范围自检
+
+1. **分支**: `dev/p2-impl-c` 自 BASE-P2C=`f0648841…` 切出(§零.7;因基线 merge commit 非本地对象先 `git fetch origin main` 只读获取后切建);开工时远端 53 支无本分支(§零.7)。
+2. **本包无并入步**: f8ed401 经 R033 指定并入步 dcfc7d0 祖先在场(merge-base --is-ancestor exit 0,§零.7);纯线性 4 笔: 4e94b8e(登记笔)→37d0593(实现笔)→报告笔→终笔;BASE..HEAD merges=0 [实取·终笔前复核=DELIVERY §二取证]。
+3. **白名单符合**: 新增恰 k=4 文件(§零.2),无设计件带入(设计三件已在 BASE);`git diff --name-status BASE..HEAD` 预期 A=4/M=0/D=0 [实取·终笔前复核=DELIVERY §二取证]。
+4. **零破坏性操作**: 零 merge 零 amend 零 reset --hard 零 force-push;reflog 复核=DELIVERY §二。
+5. **main/LIVE/launchd**: main 未触碰(无 checkout/merge/push main);LIVE 零写入(§三.7,LaunchAgents 12/12 全等+LIVE 树 NOT RE-VERIFIED@执行侧 如实分列);launchd 零变更(launchctl 零调用)。
+6. **网络**: 全程仅 git ls-remote/fetch origin main(开工基线获取,只读)/push(取证与交付类,合同允许);零 API/凭证/付费(§零.9)。
+7. **零 tag**: `git tag -l` 前后等值(DELIVERY §二取证)。
+
+## §六 提交前数值标注六项自检清单(§5.3,强制)
+
+| # | 自检项 | 本文件相关数值 | 标注合规 |
+|---|---|---|---|
+| 1 | 行数类 | 模块 1004/测试 1386/REPORT 197/DELIVERY 83(均报告笔时点 wc -l 实取) | 逐值 `[实取·wc -l]`;zip 定值=终笔登记 |
+| 2 | 用例/类计数 | 77 用例/13 类;逐类 5/8/3/4/12/7/11/6/7/5/4/3/2(声明序=文件内类定义序: 触发黄金/schema 负向/append-only/spawn/窗口/接地/结论状态机/处置/GLM/记录 schema/确定性/静态纯度/端到端) | `[实取·pytest --collect-only 逐类清点]`;和=77 复核 ✓;实现笔提交信息 4 处类粒度偏差已 §三.2 勘误 |
+| 3 | 套件/退出码 | CI 镜像 80 run 全 exit=0/FAIL=0(基线 79+本包 1);注入红 5/1/1;探针 0 次(§零.8 零运行判定,对照 WP-B 官方 e2e=1 次不在 C 行) | `[实取·采集脚本输出/pytest 失败计数]` |
+| 4 | 文件/锚定计数 | 证据包成员数与字节数(终笔 DELIVERY §六);黄金常量 25;实现笔 2407 insertions/3 files;LaunchAgents=12;data/daily 现存态清单行数=清点实取(证据包 05) | `[实取·清点]`;日期/SHA/档键成分按合同边界出圈登记 |
+| 5 | 次数类 | 提交笔数 k=4(本包无并入步零 merge 计入);负向注入 3 次;真实运行 0 次(§零.8);实现期缺陷修复 3 处;只读 fetch 1 次(基线获取) | `[实取·git log/注入记录/§零.8]` |
+| 6 | 全量扫描 | 本文件无未标注计数类/统计类数值;`[示意·非实取]` 标记本文未使用(全部数值实取) | 报告笔提交前通读扫描 ✓;zip 定值行=终笔唯一补记 |

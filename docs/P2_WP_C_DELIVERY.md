@@ -80,4 +80,12 @@ CI dispatch 登记件: rounds/036/P2-WP-C-CI-dispatch-evidence.md(操作者面;�
 
 ## §六 zip 定值登记(终笔唯一补记位)
 
-(本节由终笔回填。)
+**装配定值**(装配器 /tmp/wpc-assemble.py,2026-11-07 终笔时点;证据包根 /tmp/p2-wp-c-evidence/):
+
+- 包: `IA-P2-WP-C-EVIDENCE.zip`,**124207 字节 [实取·zip 文件大小]/未压缩合计 330922 字节 [实取·zipfile infos 合计,32 files 含清单]**;
+- 成员: **SHA256SUMS 清单 31 条 [实取·清单行数]**(staging 32 文件,清单自身显式豁免,R019-D3/R065 先例);根层恰 8 类目录+SHA256SUMS 零杂散 [实取·zip namelist 根层清点]: 01-startup-forensics(3=startup-forensics.txt 83 行+DESIGN 基线副本 232 行+§零 副本 105 行,后两件报告笔时点自 02-spec-transcription 并入,终局布局根层恰 8 目录)/02-deliverables(4)/03-negative-sensitivity(5=injections+golden-precompute 4)/04-local-ci(1)/05-acceptance-anchors(2)/06-live-isolation(2)/07-git-forensics(13)/08-selfreport(1);
+- sha256: **`cd59b5482f74a8b52168e19efce18646c59ff7e40fb3ab841a3c44f3c65e2d12` [实取·装配器 hashlib 与 shasum -a 256 独立复算双源一致]**;
+- 完整性: `unzip -t` No errors detected [实取·外部命令第二源,exit=0]+zipfile.testzip 无错 [实取];SHA256SUMS 31 条解包逐条复算 **31 OK/0 BAD [实取·装配器校验循环]**;
+- 双源副本交叉哈希: 02-deliverables 4 件(REPORT/DELIVERY/模块/测试)与仓库工作树逐字节等值 **4/4 EQUAL [实取·sha256 对照]**;其中模块 `fd927a94…` 与负向敏感性注入前后等值链同值(§二取证链闭合),测试 `e326076d…` 同款(实现笔起零改动);
+- 装配时点 TIP=报告笔 `3a96af0`(rev-parse=推送后 ls-remote 单支值一致,07/rev-parse-tip.txt+push-output.txt);zip 内 DELIVERY/自述副本=装配时点版,不含本 §六 定值行(R065 先例口径),终局自述以会话 stdout 四段为准;
+- 如实登记: push 原始输出经会话 stdout 呈现(重定向落档被环境安全策略拒,WP-B 同型),07/push-output.txt=推送后单支复核+说明头;07/head-reflog-classified.txt 经两轮修正(首版事件首段解析错位+窗口初版误匹配提交消息正文中的「零amend」字样),修正直写+注记入件,数据行以修正版为准(07/forensics-README.txt);修正版揭示全生存期存在 P2 治理前库史 amend×1/cherry-pick×1,均不在任何 P2 包窗口,WP-C 包窗口(4 条目)零破坏性,如实归因登记。

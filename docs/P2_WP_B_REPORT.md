@@ -114,3 +114,17 @@ DP 编号/数量与 DESIGN 实读一致(6 个 [实取·DESIGN §2.4 表清点]);
 ### §零.9 GLM 能力级调用面判定(AC-03.7)
 
 登记清单(§零.2)不含 GLM 能力级调用面实现(无客户端封装/调用编排/适配器类文件;范围 L201=纯确定性矩阵装配与轮次引擎)→ **AC-03.7 不适用**,判定依据=清单无调用面类文件即证;真实调用/凭证/付费=零(本包任何成员不得发生;DESIGN L207 GLM 对接属 WP-P2-C;条件程序评估判定结果作为确定性输入消费的边界见 P-B-09/P-B-18③)。
+
+### §零.10 实现期登记(勘误/缺陷修复/注入循环;实现笔时点回填,先于任何正式运行)
+
+**登记型参数零勘误**: P-B-01..P-B-18 登记定值与实现值逐项一致(§零.5 登记即实现;含已预登记的设计张力处置: explained/explained_note 字段/star 字段/预算硬上界/阻断复核限门禁支/e2e 透传参数),DP-1/2/6 复用上游常量零自决。
+
+**实现期缺陷修复 3 处(测试首轮运行暴露,当场修复,先于任何提交)**:
+- 修复A: `run_round` 轮次记录 `drr._write_records` 返回值原被丢弃——同 id 重放场景会返回 written 假象;补 rejected-duplicate 回传分支(与证据批分支同款)。
+- 修复B(沙箱逃逸级,如实重点登记): `run_dev_copy_end_to_end` 原以 `os.path.join(root, drr.DEFAULT_ARCHIVE_DIR)` 定档案区,而 `drr.DEFAULT_ARCHIVE_DIR` 为**绝对常量**(模块位置解析),join 语义静默丢弃 root → 测试与调试运行的合成任务族误落仓库 `data/research/research_archive/research_archive/deep_research_*`(gitignored 运行产物区,**非 LIVE 部署,零 git 污染**);修复=取常量尾部三段相对锚恒随 repo_root 落位;误写合成族(恰 5 目录单家族,20260301 合成快照来源)已当场清除,既有合法内容(query_history/)零触碰;e2e 测试以「档案区在 repo_root 沙箱内」断言锚定复发防线。
+- 修复C: `run_round` 返回 dict 补 `blocking` 键(终态④复核结果的 API 面可见性;首轮断言暴露)。
+- 文案修正 1 处: `_validate_round_input` 判据锚定错误消息乱码片段 `D-{''}P-6`→`DP-6`(纯消息面,零语义)。
+
+**黄金字面量预计算修正(如实,测试 fixture 预备期)**: 快照 digest 定值经 3 轮定稿(v2 增 WEIRD 事实/v3 增 HASHFORM 事实后),其中 v3 首算经 scratch 脚本位置参数错配得出 `efc57914…`(WEIRD 覆写参数错位致 metric/quality 错值),与测试 fixture 实算 `41fb4043…` 不符→ 逐字节 diff 定位 scratch 侧转录讹误并修正(与 §零.7 BRANCH-SET 同类的「独立预计算侧讹误,当场防线捕获」例证;测试 fixture 本身无缺陷;所有 ID 族定值因指纹不含快照内容而不受影响,一次定稿)。
+
+**负向敏感性注入循环(3 真实注入,登记件=证据包 03-negative-sensitivity/negative-sensitivity-injections.txt)**: ①Gate A fail-closed 失活→2 红(单条接地负向+e2e 链)②同基底去重失活→3 红(去重/中性排除/summary 定值)③阻断声明复核失活→1 红(放行快照谎报不再拒);恢复后 57 用例全绿,模块 sha256 注入前后逐字节等值 `19a3a50e…dfd43`(shasum 双次核验),测试文件全程零改动。注入循环前三注入全部一次命中预期红,无「注入后仍绿」测试缺口情形(与 WP-A 注入2同类缺口暴露不在本轮发生,如实区分)。

@@ -96,10 +96,19 @@ _ROW_KEYS = ("pred_id", "status", "terminal", "category", "error_axis",
 # ══ 基础件 ═════════════════════════════════════════════════════════════
 
 def _parse_iso_date(s):
-    """规范 YYYY-MM-DD 解析;非法→None(P-C-02/P-C-03 面由调用方决定 fail 或缺席)。"""
+    """规范 YYYY-MM-DD 解析;非法→None(P-C-02/P-C-03 面由调用方决定 fail 或缺席)。
+
+    规范形守卫(R040 续段修复): 截断候选 t 须为十位带杠形(YYYY-MM-DD,
+    第 5/8 位为 -)才入 date.fromisoformat——Python 3.11+ 起 fromisoformat
+    扩收 ISO 8601 基本式(如 20261031)与周形(如 2026-W44-1),纯 fromisoformat
+    判定随解释器版本漂移(本地 3.9 拒/CI 3.11 收);守卫使任一版本行为与
+    登记口径「规范 YYYY-MM-DD」一致——3.9 fromisoformat 恰只收十位带杠形,
+    守卫=3.9 规范语义精确复刻(规范形收/非规范形拒,判定面不放宽)。"""
     if not isinstance(s, str):
         return None
     t = s.strip()[:10]
+    if len(t) != 10 or t[4] != "-" or t[7] != "-":
+        return None
     try:
         return date.fromisoformat(t).isoformat()
     except ValueError:

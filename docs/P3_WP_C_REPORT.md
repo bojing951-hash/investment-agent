@@ -186,3 +186,50 @@ DP 编号/数量/分类与 DESIGN 实读一致: 行内所引 DP-5/DP-6(L186② �
 | 零运行产物 | find data/research -newer REPORT 零输出 | [实取·find] |
 | 分支笔序 | BASE c14931c→ca56427→cdd7dba→报告笔 | [实取·git log] |
 | fixture 截止日交易日锚定 | 13 个 expiry 截止日 settlement==当日 | [实取·ae.settlement_date 复核(fixture 一致性件)] |
+
+---
+
+## §七 续段登记(R040 续段授权·分支 CI 红最小修复;2026-11-08 实取)
+
+> 续段授权=操作者 2026-11-08 04:0x 指令(仿 R062/R048 v1.4 先例;附录A 合同文本零变更;注入摘要,非工作树实读)。续段基点=笔B 尖端 `b25542e7b64a1171cfd50f1c9ab83ad479b85d80`(开工核验 `git rev-parse HEAD` 实取全值一致,树 clean,UTC 2026-11-07T20:10:19Z);BASE 侧全值核验照旧(main ls-remote=`c14931c34f23dacc3439cc2609cf51a89d7ea60f` 等值/设计支=`7f43724661b50e011394e643cdd8c223c0b27a90` 等值/设计三件 blob 复核等值)。**本节纯追加,§零~§六 零改动**;§零.9/§六 的历史计数(115 用例 15 类/642/1306 行)为所属笔时点值,续段新值以本节为准(数值演进承接声明,防 AC-04 失实判定)。
+
+### §七.1 根因(注入+工作树实读复核)
+
+- 分支 CI run `42409208175`@b25542e=**failure**: 85 槽=83 exit0+1 红+1 SKIP,唯一失败用例 `TestOrchestrator.test_bad_as_of_rejected`(`as_of="20261031"` 期望 ValueError 实未抛)【注入摘要·操作者 CHECKPOINT 机器捕获,非执行席实取;执行席 run ID 不可见】;
+- 解释器版本差实化(R067 审计 DEFERRED-4 预警【注入】): 本地镜像=venv `python3` **3.9.6** [实取·sys.version],CI=**3.11** [实取·.github/workflows/offline-tests.yml L29 `python-version: '3.11'`]——3.9 `date.fromisoformat` 拒收紧凑形(只收十位带杠形 YYYY-MM-DD)→`_require_iso_date` raise(本地绿);**3.11+ 扩收 ISO 8601 基本式**("20261031"→date(2026,10,31) 不抛)→as_of 被放行(CI 红);
+- 缺陷定位=模块守卫面(`_parse_iso_date` 以 `fromisoformat` 为唯一判定,scripts/prediction_review.py 修复前 L98-106);测试编码=登记口径「规范 YYYY-MM-DD」拒收非规范形→**缺陷在模块守卫面,禁以弱化测试转绿**(续段授权红线)。
+
+### §七.2 修复(最小修复域,恰 1 函数;笔C)
+
+- `scripts/prediction_review.py` `_parse_iso_date`: 截断候选 `t=s.strip()[:10]` 后增**规范形守卫**——十位带杠形(YYYY-MM-DD,第 5/8 位为 `-`)显式判定(`len(t)!=10 or t[4]!="-" or t[7]!="-"`→None)后才入 `date.fromisoformat`(或等价判定,授权原文口径);
+- **语义不弱化论证**: 3.9 `fromisoformat` 恰只收十位带杠形(CPython 3.9 语义)→守卫+`fromisoformat` 对任一输入的行为与修复前 3.9 完全一致=3.9 规范语义精确复刻;规范形收/非规范形拒判定面**不放宽不收窄**;既有 `[:10]` 截断语义(内部 created_at 时间戳取日期段)/None 契约(P-C-02/P-C-03 调用方决定面)/`_require_iso_date` 消息词面零变更;
+- **黄金面零影响**: 黄金 sha256 三值修复前后等值 [实取·首原理预计算件复跑: 统计文档 `2c40919e35d60cc9dd32939adde27504cb12be6e33ee8d1f699bbc0b31ac5eb7`/警示清单 `a3004f5e253bc4051a9b7821cfe6f436abf526a120a30cbe0aeed50bfbafd8c2`/简报 `7a9ec406f48c933a381d97e8474ec80b84a01828a5316ac014ecb46c3b63c980`];黄金计数 hit=3/miss=10/inconclusive=1/nyt 终态=1/hit_rate=3/13 不变;
+- **DP 面**: 零新增 DP 零回改——守卫=已登记口径「规范 YYYY-MM-DD」(§零.5 P-C-03「非空且规范」用词+`_require_iso_date` 既有消息词面+`_parse_iso_date` 既有 docstring 首句)的合规修复,非参数变更;DP-5/DP-6/P-C-01..P-C-16 登记定值全部未动(§四 自检表面仍成立)。
+
+### §七.3 tests 面(纯新增;笔C)
+
+- 新增类 **⑯ TestCanonicalFormGuard** 5 用例: ①`test_guard_rejects_311_extended_family`(3.11 扩收形族 5 形 `20261031`/`2026-W44`/`2026W44`/`2026-W44-1`/`2026W441` 守卫级全拒)②`test_guard_accepts_canonical_form`(规范形收)③`test_guard_keeps_timestamp_tail_truncation`(既有截断语义保持不收窄)④`test_window_bounds_rejects_extended_forms`(公共 API 拒收)⑤`test_orchestrator_rejects_compact_as_of`(CI 红用例回归锚,编排面拒收紧凑形);
+- 用例计数 **115→120,类 15→16** [实取·unittest `Ran 120 tests` OK];既有 115 用例**零删除零跳过零弱化**(diff 面纯新增行,无既有断言改动);
+- 跨版本证明链(次新解释器执行席不可达,见 §七.4②): 守卫=纯字符串判定(len/index 比较)零解释器版本依赖;新增用例构成 **3.11 守卫敏感面**(守卫若缺席,`_parse_iso_date("20261031")` 在 3.11 返回 "2026-10-31"→①⑤必红=CI 唯一红机理);CI 3.11 复跑=操作者 CHECKPOINT。
+
+### §七.4 复验记录(续段授权第 5 条逐项;2026-11-08 实取)
+
+- **①本地逐套件串行镜像重跑全量**: 85 文件=84 exit0+1 SKIP(test_glm_live)+**0 非零**;test_p3_wp_c exit=0(含续段新增 5 用例) [实取·/tmp/p3-wp-c/local-ci-mirror.txt 复跑记录,记录头 2026-11-08 04:15:30];
+- **②双解释器交叉佐证**: python3(3.9.6,venv,=镜像同款)TestCanonicalFormGuard 类级 5/5 OK+全套件 120 OK [实取·运行记录];**次新解释器(3.10+)执行席不可达**——`command -v`/直呼 python3.10..3.13 权限面拒绝或不存在、/opt/homebrew/bin 与 /usr/local/bin 目录不存在、/usr/bin/python3 直呼权限面拒绝 [实取·Glob/命令面],按授权「不可达则如实登记」处置,以 §七.3 证明链+操作者 CI 3.11 复跑补位(双解释器记录件入证据包 04 类);
+- **③证据包重装**: `/tmp/p3-wp-c-evidence/IA-P3-WP-C-EVIDENCE.zip` v2 新定值(文件数/字节数/sha256 落 DELIVERY §六 续段行组与续段终笔提交信息);**原 zip 只读留痕**更名 `IA-P3-WP-C-EVIDENCE.b25542e.zip`(sha256=`1e84a4ff607b780d656fc27c3ba36b078854d3f9a8fe132cfec6a9ea7f063500` 等值不变,装配器 v2 前置断言;SHA256SUMS 同步旁置更名留痕);
+- **④DELIVERY §六 定值行组随续段终笔更新**(R065/R068 口径: §六 区内纯追加,§一~§五+§七 零改动;笔D);
+- **⑤根因-修复-复验三面**=本节+stdout 四段自述;
+- 附: 负向敏感性三注入复验(模块变更后新鲜基线): 3 注入全红→复绿→sha256 零残留,终态 sha256=§七.5 登记笔C 值 [实取·negative_sensitivity.py 复跑];模块/测试续段笔C 工作树计数: `scripts/prediction_review.py` **651 行** sha256=`4397b6de7b2f15299e39f61a75f24f4ca928e4b515da170660a64765b5471d74`、`tests/test_p3_wp_c.py` **1346 行** sha256=`0acbaf984387d1a2636df9801440698c5120c73dae924e8973a05089a6baf173` [实取·wc -l/shasum]。
+
+### §七.5 续段 git 纪律与取证
+
+- 笔C(修复笔=模块+tests+本 §七;本笔)/笔D(续段终笔=DELIVERY §六 续段定值行组)两笔纯线性续进,BASE-P3C 后 5→7 笔,零 merge/amend/force;main 未触碰(续段开工 ls-remote 实取 main=BASE 全值一致;dev/p3-design-fix1 等值;dev/p3-impl-c=笔B 全值);
+- LIVE 三面复取: grep(`R040|P3-WP-C|IA-P3-WP-C|prediction_review`) **0 命中** [实取·Grep 工具全目录扫描];LIVE `real_data_acceptance.py` sha256=`f9ca189c5248199bb5acbc78b2a2c82d59c10e1c7c2c2d20bdaaa6105fbfe3eb` 等值 [实取·shasum 只读];LaunchAgents 12 件 plist 清单+逐件 sha256 与 v1 取证一致,全部 mtime≤2026-11-03 早于开工,零改动零新增零删除 [实取·ls/shasum 只读];
+- 零 tag;零网络(取证/推送类除外);终局单支推送 `dev/p3-impl-c` no-force,推送后 ls-remote 复核(57 支冻结表零漂移+main=BASE 全值);
+- CI 复跑=操作者 CHECKPOINT 职能(执行席禁 dispatch,run ID 不可见如实声明);登记件 `rounds/040/P3-WP-C-CI-dispatch-evidence.md` 落字面值(run ID+headSha+conclusion+套件数)。
+
+### §七.6 偏差登记增补(§三 历史节零回改,续段增补项在此登记)
+
+9. **续段 CI 红(3.11 扩收差)与修复**: CI run 42409208175@b25542e 唯一红=as_of 紧凑形被 3.11 `fromisoformat` 扩收放行(根因 §七.1;run 事实=注入摘要);修复=§七.2 守卫(最小域恰 1 函数);复验=§七.4;测试零弱化(§七.3)=R067 审计 DEFERRED-4 预警的实化承接;
+10. **双解释器交叉佐证面 3.10+ 执行席不可达**: 如实登记(§七.4②),以守卫纯字符串判定零版本依赖+新增用例 3.11 守御敏感面+操作者 CI 3.11 复跑补位——如实非 FAIL;
+11. **无其他续段偏差声明不作出**: 以上为续段全量增补;其余沿 §三 1-7 项与 DELIVERY §七 1-8 项终态不变。

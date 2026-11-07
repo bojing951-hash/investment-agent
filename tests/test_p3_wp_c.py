@@ -1302,5 +1302,45 @@ class TestSelfcheckMain(unittest.TestCase):
         self.assertIn("不构成投资建议", proc.stdout)
 
 
+# ══ ⑯ 规范形守卫跨版本一致性(R040 续段;3.11 扩收形族) ═════════════
+
+class TestCanonicalFormGuard(unittest.TestCase):
+    """日期入口规范形守卫(十位带杠,第 5/8 位为 -)跨解释器一致性。
+
+    根因(R040 续段,操作者注入摘要+工作树实读复核): Python 3.11+ 起
+    date.fromisoformat 扩收 ISO 8601 基本式(20261031)/周形(2026-W44-1),
+    纯 fromisoformat 判定随解释器版本漂移(本地 3.9 拒/CI 3.11 收,
+    workflow L29 python-version '3.11');守卫使任一版本与登记口径
+    「规范 YYYY-MM-DD」一致: 规范形收/非规范形拒,判定面不放宽,
+    既有 [:10] 截断语义(内部 created_at 时间戳取日期段)不收窄。"""
+
+    EXTENDED_FORMS = ("20261031", "2026-W44", "2026W44",
+                      "2026-W44-1", "2026W441")
+
+    def test_guard_rejects_311_extended_family(self):
+        for s in self.EXTENDED_FORMS:
+            self.assertIsNone(pr._parse_iso_date(s), s)
+
+    def test_guard_accepts_canonical_form(self):
+        self.assertEqual(pr._parse_iso_date("2026-10-31"), "2026-10-31")
+
+    def test_guard_keeps_timestamp_tail_truncation(self):
+        # 既有语义保持(不因守卫收窄): 内部时间戳形取前 10 位日期段
+        self.assertEqual(pr._parse_iso_date("2026-10-31T09:30:00"),
+                         "2026-10-31")
+
+    def test_window_bounds_rejects_extended_forms(self):
+        for s in ("20261031", "2026-W44-1"):
+            with self.assertRaises(ValueError):
+                pr.window_bounds(s)
+
+    def test_orchestrator_rejects_compact_as_of(self):
+        # CI 红用例(R040 续段根因)回归锚: 3.11+ 不因扩收而放行紧凑形
+        with tempfile.TemporaryDirectory() as td:
+            vp = TestZeroWrite._write_views(td)
+            with self.assertRaises(ValueError):
+                pr.prediction_review_report(vp, as_of="20261031")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=1)

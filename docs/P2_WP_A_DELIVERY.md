@@ -79,4 +79,12 @@ CI dispatch 登记件: rounds/033/P2-WP-A-CI-dispatch-evidence.md(操作者面;�
 
 ## §六 zip 定值登记(终笔唯一补记位)
 
-(终笔登记: 成员数/字节数/sha256/双算一致性/解包复算结果)
+**装配定值**(装配器 assemble_evidence.py,2026-11-07 终笔时点;证据包根 /tmp/p2-wp-a-evidence/):
+
+- 包: `IA-P2-WP-A-EVIDENCE.zip`,**341705 字节 [实取·zip 文件大小]/未压缩合计 986670 字节 [实取·unzip -l 合计,113 files 含清单]**;
+- 成员: **SHA256SUMS 清单 112 条 [实取·清单行数]**(staging 113 文件,清单自身显式豁免,R019-D3/R065 先例);根层恰 8 类目录+SHA256SUMS 零杂散 [实取·staging 根清点]: 01-startup-forensics/02-deliverables/03-negative-sensitivity/04-local-ci(含 logs/78 套件日志)/05-acceptance-anchors/06-live-isolation/07-git-forensics/08-selfreport;
+- sha256: **`33a4ead14842fb3691542ae08264574d2c1a8f7ac4f218a6f2d1ef13793944a4` [实取·装配器 hashlib 与 shasum -a 256 独立复算双源一致]**;
+- 完整性: `unzip -t` No errors detected [实取];SHA256SUMS 112 条解包逐条复算 **112 OK/0 BAD [实取·装配器 verify()]**;
+- 双源副本交叉哈希: 02-deliverables 4 件(REPORT/DELIVERY/模块/测试)与仓库工作树逐字节等值 **4/4 EQUAL [实取·sha256 对照]**;其中模块 `8600ad36…` 与负向敏感性注入前后等值链同值(§二取证链闭合);
+- 装配时点 TIP=报告笔 `8f856aa`(rev-parse=推送后 ls-remote 一致,§二 git 取证);zip 内 DELIVERY/自述副本=装配时点版,不含本 §六 定值行(R065 先例口径),终局自述以会话 stdout 四段为准;
+- 如实登记: push 原始输出经会话 stdout 呈现(输出重定向落档通道被环境安全策略拒),07-git-forensics/push-output.txt 为推送后单支 ls-remote 复核+说明头(等价终态证据,非原始输出副本)。

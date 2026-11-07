@@ -110,4 +110,29 @@ DESIGN L174 验收要点 5 条: ①负向测试=测试面 ②可重建性测试=
 
 ### §零.10 实现期登记(实现笔回填)
 
-(待实现笔回填)
+**交付物实取行数与指纹**(2026-11-07 实现笔时点):
+
+- `scripts/research_index.py` = **721 行**(wc -l 实取);sha256=`ea782f210ed16340d2c75ee17985d4c7c510a7f86d76e2eb9291d8e0af119c49`
+- `tests/test_p3_wp_a.py` = **1081 行**(wc -l 实取);sha256=`307fbee84fe437a00597798290ca098cde395ef7b227bc03500d24b558af68ba`
+- 测试面: **75 用例 / 17 类**,`python3 tests/test_p3_wp_a.py` → `Ran 75 tests … OK`(rc=0)。
+
+**用例分类实取**(类名: 用例数): TestGoldenFirstPrinciples 3(黄金字面量×测试内 hashlib 首原理复算逐值相等+索引文档 sha256 独立重演)/TestDPRegistration 4(登记值锚定/哨兵绿/回改检出 monkeypatch×2 面/词表收录集划分)/TestEntrySchema 6(11 键恰集/null 如实缺席/列表规范化去重排序/预留类与未知类拒/坏 ref 与坏日期拒/观测区间倒置拒)/TestSnapshotIndexing 8(当日修订版 v2 权威选择+条目黄金/DEGRADED 放行/Gate A FAIL excluded 如实/混合日放行分裂/采集件结构性不可达零读取零改写/混合目录仅快照被发现/损坏候选 excluded/合成指标 assets=[] 不造值)/TestFormalReportIndexing 3(发布 PASS+DEGRADED 入索引且 digest=None 档键语义/四负向面不入/空目录)/TestStateFileIndexing 5(论点条目/观点 rating=status/预测条目/mechanisms=null 如实缺席/状态档缺失 fail-loud)/TestVersionRecordGolden 5(首记录 trigger 黄金含规范化 gate_basis 与 on-disk 复校/同日单调+跨类型+翌日重起/DEGRADED 快照可绑定/deep_research_conclusion 类型无前缀约束/版本条目索引)/TestVersionValidationNegative 7(门禁依据 8 变体拒+零写入/changes 5 变体拒/对象面拒/快照注入面拒/快照接地缺失拒/Gate A FAIL fail-closed 拒/记录校验器 13 篡改变体逐字段拒)/TestVersionAppendOnly 3(三记录后既有档逐字节不变/篡改档 list fail-loud/并发窗口模拟 rejected-duplicate 且既有档不变)/TestReviseConclusion 2(revision_proposal 入链 applied=False/弱依据仍拒+状态档零写入)/TestIndexDeterminism 4(小索引字节 sha256 黄金/删后重建逐字节一致/重写与同键重放幂等/同键替换非追加)/TestIndexFileFace 6(往返/损坏 JSON/错 schema/键集多与少/排序漂移与重复/预留类条目不可装载)/TestQueryAPI 10(六维度逐一+窗 date 落窗与 obs 相交命中+AND 组合+输出形与确定性排序+mechanisms 如实不匹配+6 负向入参)/TestOSkipping 3(登记项形/预留类不可构造/收录集排除)/TestStaticPurity 4(import 白名单 AST/零网络零凭证 token 面/零 data/daily 字面+严格 glob 字面锚/墙钟仅限 _now_iso)/TestZeroStateWrite 1(record+revise 后状态档逐字节不变+索引默认路径非 config)/TestEndToEnd 1(四源构建 11 条目+重建逐字节一致+查询 5/3/7 命中+O-5 登记项非条目)。
+
+**黄金值登记**: GOLDEN 表 7 项(4 快照指纹+2 报告文件指纹+1 索引文档 sha256),独立预计算脚本 `/tmp/p3a-golden-precompute.py`(证据包 03 成员,首原理 hashlib/json,禁 import 被测模块);fixture 三方一致裁定脚本 `/tmp/p3a-fixture-consistency.py`(证据包 04 成员): 测试 fixture=预计算副本逐字节一致(7 组)+预计算器主路径独立重演值=测试 GOLDEN 表逐值相等(7/7)。
+
+**实现期缺陷修复登记**(如实):
+1. **模块侧 1 处**: `query_index` 输出未按 P-A-10 登记语义确定性排序(仅承袭条目序;直接构造索引输入时非 (kind,ref) 序)→ 首轮测试红 3(test_metric_filter/test_output_shape_and_order/test_window_date_inclusion)暴露 → 模块补 `out.sort(key=(kind,ref))` 修复,复绿。非 DP 回改(P-A-10 登记语义本就是确定性排序,实现向登记收敛)。
+2. **测试侧 2 处**: ①GOLDEN["INDEX_SMALL_SHA256"] 长串手工折行转录丢 1 字符(`1576|608e2` 应为 `1576|6608e2`),被 TestGoldenFirstPrinciples 测试内首原理复算当场抓获(双源一致机制生效的实证);②`record()` 沙箱助手以 `is not None` 兜底默认值,吞没显式 `None` 负向入参(gate_basis=None/snapshot=None 两用例假绿)→ 改哨兵 `_UNSET` 仅缺席时兜底。
+
+**负向敏感性三注入**(真实缺陷注入→红→还原→复绿→sha256 等值;脚本 `/tmp/p3a-negative-sensitivity.py` 证据包 05 成员):
+- INJ-1 门禁依据校验失活(`_validate_gate_basis` 一律放行)→ **红 3**;还原复绿。
+- INJ-2 Gate A fail-closed 失活(FAIL 快照放行)→ **红 1**;还原复绿。
+- INJ-3 严格快照 glob 失活(任意 `*.json` 皆候选)→ **红 3**;还原复绿。
+- 还原后模块 sha256 与注入前锚点**等值**(`ea782f210ed16340d2c75ee17985d4c7c510a7f86d76e2eb9291d8e0af119c49`),零残留。
+
+**本地 CI 镜像重演**(CI 同款方法学: 仓库根 CWD 逐文件 `python3 tests/test_X.py` 直接执行,`test_glm_live` 契约性跳过;首轮以 `-m unittest` 方法学误跑出 2 假失败[helpers 导入面差异]+5 假 SKIP[词面误判],勘误后按 workflow 实取命令重演;脚本 `/tmp/p3a-local-ci-mirror.py` 证据包 06 成员):
+- **83 文件 = 82 exit0 + 0 非零 + 1 SKIPPED(test_glm_live)**,基线 82 槽(81 exit0+1 SKIP)零回归+本包恰 1 新增套件。
+- 本地 Python 3.9.6(CI=3.11),模块保持 3.9 兼容语法(py_compile 过)。
+
+**零运行产物锚定**: 套件单跑前后 `find data/research -newer <锚>` 零输出(§零.8 判定兑现,索引/版本记录全落测试临时沙箱)。
+

@@ -102,4 +102,20 @@ DESIGN L209 验收要点 5 条逐条对照: ①触发入口各子类端到端用
 
 **适用**(登记清单含 GLM 对接接口预留面,依 DESIGN L207「GLM 对接仅接口预留」以最保守口径按适用处置): 该面测试一律本地合成桩覆盖(显式依赖注入 adapter 参数,缺省 PENDING_GLM_ADAPTER 缺席登记桩),禁任何真实出站;桩注入点登记=本模块 adapter 注入参数定义处+PENDING 桩返回处(file:line 于 §零.10 实现笔登记);**零真实 GLM/LLM 调用、零凭证、零付费**(要点④断言+§七.4+排除事项 5 三重约束;真实调用面属后续专门步/包,DP-4 PENDING 留痕)。
 
-(§零.10 实现期登记由实现笔追加;§一-§六由报告笔回填。)
+### §零.10 实现期登记(实现笔追加;登记后禁回改)
+
+**交付件定值**(wc -l 实取 2026-11-07T08:3xZ): `scripts/deep_research_tracking_engine.py` 1004 行/`tests/test_p2_wp_c.py` 1386 行(77 用例 [实取·pytest --collect-only]/13 类 [实取·class Test 清点])。模块 sha256(测试全绿态,负向敏感性基线=还原后)=`fd927a94340490be5a07a077f0aafe4e890753a92d7e5da5c2444edf5eb897fe`。
+
+**桩注入点登记(§零.9/AC-03.7 承接)**: 适配器协议=`GLMSynthesisAdapter`(类 L822,`synthesize` L831-L834,NotImplementedError);PENDING 桩=`PendingGLMAdapter`(类 L837,缺席登记返回 L841-L852,`called=False/network=False` 零调用零网络);显式依赖注入点=`synthesize_competing_hypotheses(adapter=…)` 参数定义 L931-L934,缺省选择 L945(`adapter is not None else PENDING_GLM_ADAPTER`),注入协议校验零出站;测试一律本地合成桩(TestGLMInterface Stub 类,禁真实出站)。
+
+**黄金值独立预计算**: 25 字面量(GOLDEN 表: TRG-×4/digest×1/RT-DR-×2/HP-×5/FC-×7/CON-×5/DSP-×1)由独立脚本首原理复算(自带 canonical sha256,不从被测模块导入计算;JSON sort_keys 指纹件逐项字面书写)与模块沙箱运行链交叉验证 24 项 GOLDEN-OK+digest 独立 EQUAL(脚本侧 ACT 槽位未填的 1 项 MISMATCH 行系脚本自身登记缺陷,已注记,证据包 03/golden-precompute);测试内 CON/DSP 指纹复算用自带 `_h8` hashlib 首原理实现(禁导入模块计算,反自证纪律)。
+
+**实现期缺陷修复 3 处(如实登记,均为实现笔内发现+当场修复,零 LIVE 零 git 污染)**: ①`list_triggers`(L278-L281)首稿语法错误(`return _list_collection COLLECTION_TRIGGERS if False else _list_collection(…)` 非法语句)——py_compile 首次编译即红,未入任何测试运行,修复为直呼;②`_decide_status` CONFIRMED 分支(L541-L546)NameError——reasons 首项 f-string 引用 `e` 在推导式外,首次冒烟裁决即触发,修复为 `[… for e in s_trig]` 推导式;③`GLMSynthesisAdapter` 类文档字符串(L825)非 f-string 字面 `{GLM_REAL_CALL_FACE}`(装饰性缺陷,不影响行为)——修复为纯文本表述。三处修复均在登记参数语义零变更前提下进行(P-C-01..18 定值不受触)。
+
+**测试面实现期登记(测试侧 fixture/锚定,非模块面,零 DP 回改)**: ①窗口敏感性锚: 黄金 fixture 之外补 `SNAPSHOT_POST`(截止日后观测 2026-12-05=7.5 晚于 11-16/11-30 两档 deadline)——窗口过滤负向注入①的直击锚(无此锚则截止日后观测翻转不可见);②PARTIAL_SUPPORT 驻留语义钉住(P-C-11③): unexplained 反证证据档 append-only 不可改写→「事后解释」路径在现有上游面不存在(新证据 explained=True 不改旧档),驻留态唯一出路=证伪向触发→FALSIFIED(测试 `test_partial_support_unexplained_counter_then_falsified` 两段式钉住: ③驻留→premise 兑现→①FALSIFIED,prior_status=PARTIAL_SUPPORT 续评合法);③任务生命周期面: evaluate/adjudicate 不设任务态前置(登记口径 P-C-11 无任务面前置;证据登记的 ACTIVE 门禁属 dm 上游自有面 `_check_task_face`),测试按登记口径覆盖 DRAFT/ACTIVE 两态评估;④测试调试图期 HYP_G 增补第 2 条件(us10y.real>=2.0 expiry)修正条件索引错位——测试侧 fixture 修正,TASK3 族无黄金 ID 依赖(运行期捕获),黄金链零影响。
+
+**负向敏感性(真实注入 3 处,全部一次命中预期红,证据包 03)**: ①窗口过滤失活(in_window=全量观测)→5 红(直击 2: 截止日后观测翻转+截止日判定取错观测;下游 3: 黄金 CON 指纹钉住 evidence 首命中观测日期,11-01 窗前观测渗入即指纹漂移——黄金链即窗口语义敏感性锚);②终态不可重开失活(前置门短路)→1 红(专用拒收语义失位;schema 兜底 prior_status 词表仍 fail-closed,双层防御单层失活不至静默改写,如实登记);③S-3① 引擎核验门禁失活→1 红(not_triggered/sustaining/unverifiable/None 四值全放行即红)。三注入还原后 77 用例全绿,模块 sha256 注入前后等值(基线 fd927a94…b897fe)。
+
+**本地 CI 镜像(证据包 04)**: 80 套件全 exit=0(offline-tests.yml 同口径 python3 逐套件,排除 test_glm_live)=基线 79 套件零回归+本包 1 新增;槽位记账: 基线 tracked test 文件=80 [实取·git ls-tree f0648841]=79 run+1 SKIP,本包后=81=80 run+1 SKIP(预期 CI 面,操作者 dispatch 后以 rounds/036 实跑为准)。
+
+(§一-§六由报告笔回填。)

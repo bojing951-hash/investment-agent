@@ -111,24 +111,73 @@ DP 编号/数量与 DESIGN 实读一致(6 个 [实取·DESIGN §2.4 表清点]);
 
 ## §一 做了什么(实现摘要)
 
-(实现笔后回填)
+**实现笔 0f2b48c**(纯新增,3 files changed/1439 insertions [实取·git show --stat 0f2b48c]):
+
+1. **scripts/deep_research_registrar.py**(842 行 [实取·wc -l]): 深研任务与假设登记器,四记录族(tasks/hypotheses/conditions/events)挂共享档案族根 `data/research/research_archive/`(P-A-01)。核心面:
+   - **DRAFT 登记入口** `register_deep_research_task`: 五要件校验(question 非空/origin 恰一三类/≥2 互异假设/判据 C(n,2) 全对 DP-6≥1 覆盖/snapshot 注入绑定)+digest 经 `rp.digest_snapshot` 重算(FIX-01,API 无 digest 入参);
+   - **确定性 ID 族**: `RT-DR-{YYYYMMDD}-{sha256[:8]}`(对齐 E2E-A 先例)+`HP-`/`FC-`/`EV-` 同构;指纹不含墙钟→重放幂等;
+   - **append-only 落档** `_write_records`: 预检全部目标路径零存在→`rejected-duplicate`(零写入)→tmp+`os.replace` 原子写;重复/改写一律拒,原档字节永不动;
+   - **生命周期事件溯源**: 迁移表 DRAFT→ACTIVE→{四终态}→TRACKING→ARCHIVED;迁移=追加事件记录(每任务 `seq` 单调),`from_status` 必须等于推导当前态;任务档字节不可变;
+   - **修订语义** `revise_hypothesis`: 修订=新记录(`revision_of`/`revision_reason` 必填);
+   - **绑定校验** `verify_task_bindings`: 快照文件名经 `ra.parse_snapshot_id` 派生加载(结构性不可达 data/daily)+digest 复算对照;
+   - **registry 缺席如实标**: `_registry_status_of` 惰性实读 `fe.metric()`,缺席→`ABSENT_REGISTRY` 标记不拒收。
+2. **tests/test_p2_wp_a.py**(595 行 [实取·wc -l],45 用例/11 类 [实取·unittest 收集计数]): 黄金字面量(独立预计算,反自证纪律,开工预计算脚本=证据包 compute_golden.py)+逐要点负向/正向(§二映射表);数据纪律=临时目录合成 fixture 唯一数据源+显式注入时刻+零真实档零网络。
+3. **负向敏感性测试**(执行纪律 #4): 三真实注入(DP-6 覆盖检查失活/digest 采声明值/append-only 预检失活)→套件红 2/1/3 [实取·pytest 退出码与失败计数]→恢复后 45 全绿,模块 sha256 注入前后等值 `8600ad36…` [实取·shasum 对照](全记录=证据包 negative-sensitivity-injections.txt)。注入 2 首轮全绿暴露测试缺口→当场补强用例(详见 §三.4)。
+4. **本地 CI 镜像**(仿 .github/workflows/offline-tests.yml 逐套 python3 直跑): TOTAL=79/RUN=78/EXIT0=78/SKIPPED=1(test_glm_live,合同排除)/FAIL=0 [实取·run_ci_mirror.py 输出,逐套日志=证据包 04-local-ci/](=P1 基线 78 套件+本包新增 1 套件,零回归)。
+5. **零运行产物保险锚定**: data/daily(27 文件)+data/research(13 文件)两树逐文件 sha256 锚定,套件重跑前后 T1==T2 逐字节等值 [实取·diff ANCHORS-IDENTICAL](证据包 06-acceptance-run/)。
 
 ## §二 逐要点证据映射表(AC-02)
 
-(实现笔后回填)
+DESIGN L197 验收要点①-⑤ → 实现/证据/自检逐条(行号=实现笔 0f2b48c 版实读):
+
+| 要点 | 实现位置 | 测试证据(类·用例数 [实取·类清点]) | 自检 |
+|---|---|---|---|
+| ① append-only 不可变(重复写入/改写被拒) | `scripts/deep_research_registrar.py` `_write_records`(L513-L524 预检零存在→拒;tmp+os.replace)+`register_deep_research_task` 落档面(L644-L651) | TestAppendOnly·4: 重复注册拒+原档字节 sha256 不变/同 id 改写拒(轮次预算 5→9 注入不生效)/重复迁移事件拒(公共面: from≠推导态 fail-loud+事件档文件数不增)/写入层同 event_id 拒(白盒) | ✓ 全绿;负向注入 3(预检失活)→3 红实证防线真实 |
+| ② DRAFT 负向(假设数<2 拒;origin 违规拒) | `validate_hypothesis_specs`(≥2+互异)/`validate_origin`(恰一三类,子类枚举) | TestDraftNegative·8: 单假设/零假设/同语句/origin 缺失/≥2 项/S-1 缺字段/S-2 非 QB 格式/S-3 子类非法 | ✓ 全绿 |
+| ③ 条件 schema(§6.1 字段集)+登记型参数禁回改负向 | `validate_condition`(五字段+operator 词表+window 恰一+threshold_source 三档+direction)/`registered_params` 落任务档不可变 | TestConditionSchema·11+TestDPNoRewrite·2: API 面 inspect 无 DP 参数(结构性无回改面)/篡改档 round_budget→记录级校验拒 | ✓ 全绿;负向注入 1(DP-6 失活)→2 红实证 |
+| ④ snapshot_id+digest 绑定(篡改→拒) | 注册时 `rp.digest_snapshot` 重算(L561)/校验时 `ra.parse_snapshot_id` 派生文件名加载+复算对照(`verify_task_bindings`) | TestSnapshotBinding·5: 重算不采声明值(双面: 签名面+行为面 lying 快照)/篡改快照拒/篡改档 digest 拒/缺档拒/golden 全链 verify ok | ✓ 全绿;负向注入 2(采声明值)→1 红实证(补强后,见 §三.4) |
+| ⑤ CI 零回归(工件: 测试文件+run ID) | tests/test_p2_wp_a.py(45 用例,CI 入口直跑兼容 unittest.main) | 本地 CI 镜像 79 套件 FAIL=0(§一.4,日志=证据包 04);真实 CI run ID=操作者 dispatch 面(rounds/033 登记件),执行时点尚未产生,如实登记 NOT VERIFIED@执行侧(DELIVERY §三 AC-06 分列) | 本地面 ✓;CI 面=操作者面待 run |
 
 ## §三 偏离与如实声明
 
-(报告笔回填;开工期发现=§零.7.3 BRANCH-SET 异常登记)
+1. **BRANCH-SET 提示词侧转录讹误**(开工发现,§零.7.3 全文): 6 支提示词冻结表值与 live 不符(2 条 39/41 字符结构无效 SHA+2 条与已提交文档冲突)→判定=提示词侧转录讹误非分支漂移;开工步 2 显式判据(计数/无本分支)全过不触发停止;处置=漂移检测锚定开工真观测快照+建议操作者对合同存档件作勘误登记(执行Agent 无权改合同)。执行后 ls-remote 对照=DELIVERY §二。
+2. **P-A-04 登记勘误**(实现期,先于任何运行): 假设 schema 误列 `registry_status`(语义属条件面 P-A-05),已修正;实现值与勘误后登记值一致。
+3. **P-A-08 登记勘误**(实现期,先于任何运行): 事件记录补 `seq` 字段——冒烟实测 created_at 并列时按 (created_at,event_id) 折叠当前态次序不确定,补每任务单调 seq(B4 `_same_day_max_seq` 先例);实现值与勘误后登记值一致。
+4. **负向注入 2 首轮全绿→测试缺口如实暴露并补强**: 既有用例仅断言签名面无 digest 入参,不能捕获"快照 dict 内伪声明值被采信";当场补强为双面用例(签名+行为: lying 快照独立重算对照)。补强用例自身首版断言有误(误期 GOLDEN_DIGEST——lying 快照增键后重算值合法地不同于黄金 digest),当场修正为测试侧独立重算对照;两处当场修正均发生在实现笔提交前,零事后改档。
+5. **重复事件用例首版设计缺陷当场重构**: 同内容迁移事件重放时,from≠推导态一致性防线先于写入层拒收触发(两防线均有效但次序与初版假设不符)→重构为公共面(文件数不增+ValueError)与写入层白盒两面;另有 lifecycle 用例首版含 `hasattr(drr,"list_tasks")` 死代码守卫,提交前清理。
+6. **实现期缺陷修复 3 处**(均冒烟发现、实现笔提交前修复): ①初始事件 (None→DRAFT) 引导对未入迁移对全集→补;②条件记录校验视图漏 threshold_source/direction 两键→补全 cond_view;③事件折叠次序依赖 (created_at,event_id) 同刻不定→seq 字段化(联动 §三.3 勘误)。
+7. **LIVE 工作树先行修改如实登记**: LIVE 侧存在与本包无关的先行修改(config/framework.md、config/thesis.json、run_daily.sh 等;证据包 live-isolation-checks.txt);本包对 LIVE 全部操作=只读(sha256 等值 f9ca189c…+grep 0 命中+LaunchAgents 12/12 与 P1 基线逐字节全等),零写入结构性成立(代码路径无 LIVE 路径常量);开工时点未对 LIVE git status 留档,故不对先行修改来源作判定(留操作者/审计面)。
+8. **CI run ID 如实分列**: 真实 CI run 属操作者 dispatch 面(rounds/033),执行时点未产生→本包交付本地面证据(§二⑤),AC-06 CI 面如实登记 NOT VERIFIED@执行侧。
 
 ## §四 DP 与登记参数运行后零回改自检
 
-(报告笔回填)
+| 项 | 登记定值(§零.4/§零.5) | 实现值(0f2b48c 实读) | 零回改自检 |
+|---|---|---|---|
+| DP-1 轮次预算 | 双轨 N=5(提前终止) | `DP1_ROUND_BUDGET_DEFAULT=5`;落档 `registered_params.round_budget=5` | ✓ 常量+落档=登记值;篡改值(→9)被记录级校验拒(TestDPNoRewrite) |
+| DP-2 权重量表 | 星级 [1,5] | `DP2_WEIGHT_SCALE=(1,5)`;落档 `weight_scale=[1,5]` | ✓ 同上 |
+| DP-6 每对判据 | 每对 ≥1 | `DP6_MIN_DISCRIMINATING_PER_PAIR=1`;C(n,2) 全对强制 | ✓ 同上;负向注入 1 实证 |
+| P-A-01..P-A-12 | §零.5 登记表 | 逐项实现一致(P-A-04/P-A-08 勘误后口径,§三.2/§三.3) | ✓ 四集合名/三 schema/origin 三类/ID 族/重放拒/snapshot 重算/import 面/零墙钟逐一对照 |
+| API 回改面 | 无(登记型参数非 API 参数) | `inspect.signature(register_deep_research_task)` 无 round_budget/weight_scale/min_discriminating 参数 | ✓ TestDPNoRewrite 断言 |
+
+登记参数无任何"先登记后回改"事实: 勘误 2 处均为实现期、先于任何运行(本包零真实运行面,§零.8),且登记值与实现值终态一致。
 
 ## §五 git 纪律与范围自检
 
-(报告笔回填)
+1. **分支**: `dev/p2-impl-a` 自 BASE-P2A=`0c9fc3f…` 切出(§零.7.4);开工时远端 51 支无本分支(§零.7.2)。
+2. **指定并入步**: dcfc7d0(`git merge --no-ff f8ed401…`),恰 1 个 merge 提交,第二父=f8ed401(§零.7.4);此后纯线性: 7b6a00e(登记笔)→0f2b48c(实现笔)→报告笔→终笔。
+3. **白名单符合**: 新增恰 k=4 文件(§零.2)+并入步带入设计三件(合同豁免面);`git diff --name-status BASE..HEAD` 预期 A=7(4 白名单+3 设计件)/M=0/D=0 [实取·终笔前复核=DELIVERY §二取证]。
+4. **零破坏性操作**: 零 merge(并入步除外)零 amend 零 reset --hard 零 force-push;reflog 复核=DELIVERY §二。
+5. **main/LIVE/launchd**: main 未触碰(无 checkout/merge/push main);LIVE 零写入(§三.7);launchd 零变更(LaunchAgents 12/12 全等,§三.7)。
+6. **网络**: 全程仅 git ls-remote/push(取证与交付类,合同允许);零 API/凭证/付费(§零.9)。
+7. **零 tag**: `git tag -l` 前后等值(DELIVERY §二取证)。
 
 ## §六 提交前数值标注六项自检清单(§5.3,强制)
 
-(报告笔回填)
+| # | 自检项 | 本文件相关数值 | 标注合规 |
+|---|---|---|---|
+| 1 | 行数类 | 模块 842/测试 595/REPORT 183(报告笔时点)/DELIVERY 行数(终笔登记) | 逐值 `[实取·wc -l <时点>]`;zip 定值=终笔登记 |
+| 2 | 用例/类计数 | 45 用例/11 类;逐类 2/4/8/11/2/4/5/4/2/1/2 | `[实取·unittest 收集计数]`;和=45 复核 ✓ |
+| 3 | 套件/退出码 | CI 镜像 TOTAL=79/RUN=78/EXIT0=78/SKIPPED=1/FAIL=0;注入红 2/1/3 | `[实取·run_ci_mirror.py/pytest 计数]` |
+| 4 | 文件/锚定计数 | 证据包成员数与字节数(终笔 DELIVERY §六);锚定 daily=27/research=13 文件;LaunchAgents=12 | `[实取·清点]`;日期/SHA/档键成分按合同边界出圈登记 |
+| 5 | 次数类 | 提交笔数 k=4(并入步不计入笔序);负向注入 3 次;套件重跑锚定 1 次 | `[实取·git log/注入记录]` |
+| 6 | 全量扫描 | 本文件无未标注计数类/统计类数值;[示意·非实取] 仅用于非实取说明(N=5 设计提案值来源注记等) | 报告笔提交前通读扫描 ✓;zip 定值行=终笔唯一补记 |

@@ -32,6 +32,7 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 
 import workbench_data as wd  # noqa: E402
+from redact_secrets import redact  # noqa: E402  P0-4: tail 过脱敏再入 JSON
 
 try:
     import fact_engine as fe  # 单位族的唯一权威分桶源
@@ -337,14 +338,15 @@ def cmd_update(args):
              exit_code=1)
     lines = (proc.stdout or '').strip().splitlines()
     # critical_tail: 40 行 output_tail 会滚掉早先的根因行(如步骤9的⛔拒写),
-    # 关键行单独留底(大小写兼顾),保证 ⛃/❌/Traceback/ERROR/失败/错误 仍可见
+    # 关键行单独留底(大小写兼顾),保证 ⛃/❌/Traceback/ERROR/失败/错误 仍可见。
+    # P0-4: 三条 tail 全部过 redact()——采集器异常文本常内嵌含密钥的完整 URL
     critical_tail = [l for l in lines if _CRITICAL_LINE_RE.search(l)][-10:]
     payload = envelope('update', proc.returncode == 0, {
         'exit_code': proc.returncode,
         'exit_semantics': '0=全部关键步骤成功(非关键可降级); 1=任一关键步骤失败或被跳过',
-        'output_tail': lines[-40:],
-        'critical_tail': critical_tail,
-        'stderr_tail': (proc.stderr or '').strip().splitlines()[-10:]})
+        'output_tail': [redact(l) for l in lines[-40:]],
+        'critical_tail': [redact(l) for l in critical_tail],
+        'stderr_tail': [redact(l) for l in (proc.stderr or '').strip().splitlines()[-10:]]})
     emit(payload, exit_code=proc.returncode)
 
 

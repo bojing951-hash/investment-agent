@@ -213,7 +213,11 @@ def sha256_text(t):
 # 运行时已知密钥明文登记处(自动含URL编码形式;正式运行由main()登记FRED key;
 # 测试只用**虚构**密钥验证机制,绝不用真实密钥做测试)
 _KNOWN_SECRETS = []
-_UNREDACTED_KEY_PAT = re.compile(r"(?i)(api_key=)(?!\*\*\*REDACTED\*\*\*)[^&\s'\"]+")
+# P0-4(2026-11-09): 与 scripts/redact_secrets.py 同一参数族与同一 [?&] 锚
+# (api_key/apikey/token/key 查询参数形态;锚防 mid-word 误伤如 monkey=)——
+# 纵深防御两层口径保持一致,不各自漂移
+_UNREDACTED_KEY_PAT = re.compile(
+    r"(?i)([?&](?:api_key|apikey|token|key)=)(?!\*\*\*REDACTED\*\*\*)[^&\s'\"]+")
 
 
 def _register_secret(s):

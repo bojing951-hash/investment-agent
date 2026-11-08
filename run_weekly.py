@@ -102,8 +102,14 @@ def run_pipeline(steps, script_dir=None, extra_args_by_script=None):
                 results.skips[step_name] = reason
                 results.append((step_name, False, critical))
                 continue
-        success = run_step(step_name, script_name, script_dir=script_dir,
-                           extra_args=(extra_args_by_script or {}).get(script_name))
+        # P0-2 兼容: 仅在确有附加参数时才传 extra_args——零参路径保持旧调用
+        # 形状(既有测试/替身的 run_step 签名不含新参,演进不得破坏旧契约)
+        extra = (extra_args_by_script or {}).get(script_name)
+        if extra is None:
+            success = run_step(step_name, script_name, script_dir=script_dir)
+        else:
+            success = run_step(step_name, script_name, script_dir=script_dir,
+                               extra_args=extra)
         results.append((step_name, success, critical))
         if success:
             ok_scripts.add(script_name)
@@ -186,10 +192,12 @@ def main():
         if args.revision_reason:
             revision_args += ['--revision-reason', args.revision_reason]
 
-    results = run_pipeline(
-        steps,
-        extra_args_by_script={'snapshot_builder.py': revision_args}
-        if revision_args else None)
+    # 零参路径保持旧调用形状 run_pipeline(steps)(兼容替身签名);仅修订时传新参
+    if revision_args:
+        results = run_pipeline(
+            steps, extra_args_by_script={'snapshot_builder.py': revision_args})
+    else:
+        results = run_pipeline(steps)
 
     # 汇总
     end_time = datetime.now()

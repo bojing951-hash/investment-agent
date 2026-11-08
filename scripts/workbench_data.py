@@ -80,9 +80,18 @@ def fmt_value(value, unit=''):
     if value is None:
         return '缺失'
     try:
-        return f"{float(value):,.4g}" + (f' {unit}' if unit else '')
+        v = float(value)
     except (TypeError, ValueError):
         return f"{value}" + (f' {unit}' if unit else '')
+    if abs(v) >= 1000:          # 千位分隔,不用科学计数法
+        s = f"{v:,.0f}"
+    elif abs(v) >= 100:
+        s = f"{v:,.1f}"
+    elif abs(v) >= 1:
+        s = f"{v:,.2f}"
+    else:
+        s = f"{v:,.4f}"
+    return s + (f' {unit}' if unit else '')
 
 
 def fmt_change(derived, key):

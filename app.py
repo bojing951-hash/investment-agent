@@ -82,7 +82,7 @@ def page_overview():
     n_miss = sum(1 for r in rows if r['当前值'] == '缺失')
     st.caption(f"快照日 {META['date']} · {wd.ECONOMY_LABELS.get(econ, econ)} 活跃指标 "
                f"{len(rows)} 项(缺失 {n_miss} 项,如实列出) · 变化口径: 周/月内/年初至今")
-    st.dataframe(rows, use_container_width=True, height=560)
+    st.dataframe(rows, width='stretch', height=560)
     with st.expander('数据来源状态(sources_status)'):
         st.json(SNAP.get('sources_status', {}))
 
@@ -96,7 +96,7 @@ def page_market():
     rows = wd.market_rows(SNAP, REGISTRY)
     st.caption(f"快照日 {META['date']} · 资产类指标(股/债/汇/商品/加密/信用/波动率)"
                f"共 {len(rows)} 项 · 周变化=最近一个交易周,月=月内,年内=年初至今")
-    st.dataframe(rows, use_container_width=True, height=560)
+    st.dataframe(rows, width='stretch', height=560)
     st.subheader('历史走势')
     options = wd.series_capable_metrics(SNAP, REGISTRY)
     if not options:

@@ -10,6 +10,34 @@
 > 配置建议、不评级资产、不预测价格、不执行任何交易。投资观点由你自己形成。
 > (产品方向见 [PRODUCT-GOAL.md](PRODUCT-GOAL.md),公开研究样例见 [examples/](examples/))
 
+## 用你自己的 AI Agent 做研究(Agent Skill,推荐入口)
+
+本仓库内置一个 **Agent Skill**(`.agents/skills/global-macro-research/`,遵循
+[agentskills.io](https://agentskills.io) 开放标准): 安装后,你的 AI 助手
+(Claude Code / Codex / 任何能跑 shell 命令的 Agent)能用自然语言驱动本引擎的
+统一工具接口 `ia_cli.py`,拿到**每个数值都带来源、观测日期、单位口径、
+ETF 代理身份**的结构化 JSON,再按内置研究纪律(事实/推断分离、缺失不填 0、
+禁成分编造归因)作答。
+
+```bash
+# Claude Code(项目级,克隆本仓库后在其目录里):
+python3 install_skill.py --target project    # 复制到 .claude/skills/,重启会话生效
+# Codex: 无需安装——在仓库目录内启动 codex 即自动发现(.agents/skills/ 为官方扫描路径)
+# Claude Code / Codex 个人级(任意目录可用):
+python3 install_skill.py --target personal-cc
+python3 install_skill.py --target personal-codex
+```
+
+装好后对 AI 说(四个可直接复制的研究起点):
+
+1. 「全球宏观现在什么情况?给我美中欧日概览,注明各指标观测日期」
+2. 「最近一周金融市场发生了什么变化?利率和股指分开说,别把百分点说成百分比」
+3. 「把美国 10 年期国债收益率和标普 500 的历史相关性算出来,观测窗对齐了吗?」
+4. 「美元兑日元现在什么水平?最近走势如何?」,或继续「把刚才的研究存档」
+
+详细安装/卸载/宿主兼容见 **[docs/SKILL_GUIDE.md](docs/SKILL_GUIDE.md)**;
+也可以完全不用 AI,直接 `python3 ia_cli.py doctor` 等命令自助查询(见下)。
+
 ## 适合谁
 
 - 想每周花 10 分钟了解全球宏观与市场全景的个人研究者;
@@ -24,6 +52,7 @@
 | **观察金融市场近期变化** | 工作台"金融市场变化"页: 股/债/汇/商品/加密/信用/波动率的周/月/年内变化与走势图 |
 | **比较历史与不同经济体** | 工作台"历史研究"页: 任选指标看 1 个月~1 年+ 序列,双指标叠加对比(本地真实序列) |
 | **借助 AI 开展专题研究** | 工作台"AI 研究"页: 基于快照事实的接地作答(每个数值可溯源),可存入本地研究档案;GLM 研究解释为可选增强 |
+| **让 AI Agent 替你跑全流程** | Agent Skill + `ia_cli.py`: 自然语言→结构化 JSON→按研究纪律作答(见上节) |
 
 外加每周一份的 **AI 宏观研究周报**(需智谱 GLM Key): [样例点这里](examples/weekly_report_20261108.md)。
 
@@ -64,8 +93,13 @@ python3 run_weekly.py       # 第一次数据采集(13 步流水线,配齐 Key �
   美国政策利率水平,支持 as_of 与单经济体概览),越界问题(投资建议类)明确拒绝,
   未支持问题如实说明,不猜映射;
 - **研究档案**: 问题与作答 append-only 落本地档案(`data/research/`);
-- **离线测试**: 91 个测试套件(`python3 tests/<name>.py`,无需 pytest;CI 自动跑
-  90 个离线套件,真实 GLM 调用套件须显式开启)。
+- **Agent Skill 与统一工具接口**(`.agents/skills/global-macro-research/` +
+  `ia_cli.py`): 八能力(doctor/update/overview/changes/history/compare/research/
+  archive)结构化 JSON 输出,数值节点强制携带单位族/观测日期/来源/ETF 代理身份,
+  变化量强制携带基准日与窗口语义,附研究纪律 lint(成分编造断言=violation);
+  安装器 `install_skill.py` 物理复制到各宿主(不依赖符号链接);
+- **离线测试**: 94 个测试套件(`python3 tests/<name>.py`,无需 pytest;CI 自动跑
+  93 个离线套件,真实 GLM 调用套件须显式开启)。
 
 **历史兼容(非默认执行)**: `config/thesis.json`、`config/allocation_views.json`
 为**已冻结的历史研究档案**(2026-11-08 产品章程勘误: 论点星级/超配低配/预测裁决
@@ -97,6 +131,8 @@ python3 run_weekly.py                 # 数据采集+快照+校验(13步;免Key�
 python3 scripts/report_generator.py   # 生成 AI 周报(需 GLM_API_KEY)
 bash run_daily.sh                     # 采集入口脚本(自动定位项目根/虚拟环境,可移植)
 streamlit run app.py                  # 本地研究工作台(网页)
+python3 ia_cli.py doctor              # Agent 工具接口·环境体检(其余: overview/changes/history/compare/research/archive)
+python3 install_skill.py              # 安装 Agent Skill 到 Claude Code(.claude/skills/)/Codex(--target personal-codex)
 python3 scripts/monthly_review.py --month 202610 --dry-run   # 月度复盘(手动,历史兼容)
 python3 tests/test_p0_fixes.py        # 运行单个测试套件(离线)
 ```
@@ -111,8 +147,9 @@ python3 tests/test_p0_fixes.py        # 运行单个测试套件(离线)
 
 ## 已验证 / 未验证(诚实边界)
 
-**已离线验证**: 91 个测试套件(门禁逻辑/快照与事实引擎/数值校验/研究问答/
-工作台数据层/配置安全);真实 GLM 冒烟(显式开启)。
+**已离线验证**: 94 个测试套件(门禁逻辑/快照与事实引擎/数值校验/研究问答/
+工作台数据层/配置安全/Skill 格式与安装器/ia_cli 契约与纪律 lint);
+真实 GLM 冒烟(显式开启)。
 **未验证/边界**: Windows 实机未测(代码无 OS 专属调用,理论可用);中国节假日
 日历仅 2026 年;免费数据源存在限流与修订(降级机制会如实披露);GLM 解释性内容
 可能出错(因此与【事实】严格区分)。

@@ -731,6 +731,27 @@ class TestZeroActiveCollection(_SandboxCase):
                 for tok in banned:
                     self.assertNotIn(tok, node.value, repr(node.value[:60]))
 
+    def test_p3_family_modules_zero_network_imports(self):
+        # P-E-09: P3 层零用户数据拉取路径断言(五模块零网络 import)
+        network = {"socket", "urllib", "requests", "http", "httpx",
+                   "ftplib", "smtplib", "telnetlib", "ssl", "poplib",
+                   "imaplib"}
+        for fn in ("research_index.py", "evidence_linkage.py",
+                   "prediction_review.py", "report_quality_review.py",
+                   "personal_flow_integration.py"):
+            path = os.path.join(SCRIPTS_DIR, fn)
+            with open(path, encoding="utf-8") as f:
+                tree = ast.parse(f.read())
+            for node in ast.walk(tree):
+                names = []
+                if isinstance(node, ast.Import):
+                    names = [a.name for a in node.names]
+                elif isinstance(node, ast.ImportFrom):
+                    names = [node.module or ""]
+                for n in names:
+                    self.assertNotIn(n.split(".")[0], network,
+                                     f"{fn}: {n}")
+
     def test_no_module_level_path_constants_beyond_guards_and_dev_root(self):
         # 零主动采集面: 模块级路径类常量封闭集=双守卫组件组+_DEV_ROOT
         # (守卫推导用);零数据根/零监听/零用户目录默认常量
@@ -1101,6 +1122,33 @@ class TestStaticPurity(_SandboxCase):
                     pfi._RAW_DIR_GUARD[0] + os.sep + pfi._RAW_DIR_GUARD[1],
                     node.value)
 
+    def test_export_write_face_zero_read_back(self):
+        # P-E-08 结构性零回读: write_export_document 函数体零读取面
+        for node in ast.walk(self.tree):
+            if isinstance(node, ast.FunctionDef) \
+                    and node.name == "write_export_document":
+                for sub in ast.walk(node):
+                    if isinstance(sub, ast.Call) \
+                            and isinstance(sub.func, ast.Name) \
+                            and sub.func.id == "open":
+                        self.assertEqual(sub.args[1].value, "w")
+                    if isinstance(sub, ast.Call) \
+                            and isinstance(sub.func, ast.Name):
+                        self.assertNotIn(sub.func.id,
+                                         ("read_annotations",
+                                          "read_note_references",
+                                          "_load_records"))
+                return
+        self.fail("write_export_document 未找到")
+
+    def test_no_update_delete_rewrite_api_surface(self):
+        # P-E-04 零改写面: 模块无 update/delete/rewrite 类公共 API(dir 扫描)
+        mutators = [n for n in dir(pfi)
+                    if any(k in n.lower() for k in
+                           ("update", "delete", "rewrite", "remove",
+                            "modify"))]
+        self.assertEqual(mutators, [])
+
     def test_upstream_module_files_untouched_by_import(self):
         before = _sha(open(os.path.join(SCRIPTS_DIR,
                                         "report_quality_review.py"),
@@ -1236,7 +1284,7 @@ class TestSelfcheckMain(_SandboxCase):
     def test_selfcheck_main_exit_zero_with_sentinels(self):
         proc = subprocess.run(
             [sys.executable, MODULE_PATH],
-            capture_output=True, text=True, cwd=REPO_ROOT, timeout=60,
+            capture_output=True, text=True, cwd=self.sb, timeout=60,
             env={k: v for k, v in os.environ.items()
                  if not k.startswith("PYTHON")},
         )
@@ -1245,6 +1293,8 @@ class TestSelfcheckMain(_SandboxCase):
         self.assertIn("isolation_check=True", proc.stdout)
         self.assertIn("不构成投资建议", proc.stdout)
         self.assertIn("interfaces=3", proc.stdout)
+        # P-E-17: __main__ 自检入口零写入零默认路径(运行后运行目录零新文件)
+        self.assertEqual(os.listdir(self.sb), [])
 
 
 if __name__ == "__main__":

@@ -75,7 +75,7 @@
 
 ## 测试
 
-纯离线套件（`~/AI内容/venv/bin/python3 tests/<name>.py`，无需 pytest）：
+纯离线套件（`python3 tests/<name>.py`，无需 pytest；CI 同口径直跑全部套件并记录每套退出码）：
 
 | 套件 | 断言数 | 覆盖 |
 |---|---|---|

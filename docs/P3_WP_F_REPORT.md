@@ -111,4 +111,74 @@ DP 编号/数量/分类与 DESIGN 实读一致: 行内所引 DP-10(L200/L203 明
 
 ### §零.9 实现期登记(报告笔回填;时点=各笔提交时点)
 
-- (报告笔回填: 交付双代码件定值 sha256/黄金面双源一致/本地测试计数/本地 CI 镜像/负向敏感性注入记录/双解释器/实现期对账与自纠/真实运行产物登记——预留)
+- **交付双代码件定值**(实现笔 2d90631 时点实取): `scripts/project_final_seal.py` 1235 行 [实取·`wc -l`] sha256=`7d1701ac57fd56c05de3ca17ce44df2d6e9e2753d3c02a8e211a2bdcf75a9582` [实取·`shasum -a 256`];`tests/test_p3_wp_f.py` 1190 行 [实取·`wc -l`] 110 用例 [实取·unittest verbose 计数] sha256=`f11e551e8bbf0f6321f7b4186c5776883374687fc94b3ea8eac8c2fa9c938a1f` [实取·同上];
+- **黄金面双源一致**: 终验指纹 `fa_digest=e13399ad60c834a4f5a1e2178a112a7ebf17f50965e0e11fd1fbfb601987fe23`(=sha256(canonical_json([清单 24 项,计时常量])),模块实跑与首原理件 `/tmp/p3-wp-f/fixture_and_golden.py`(零被测模块 import)独立预计算**首跑即等值**;交叉裁定件 `/tmp/p3-wp-f/cross_check.py` 六面对照[fa_digest/迷你仓层 digest 全表/overall_digest/绿路 json sha/绿路 md sha/绿路状态日志三行逐字节]×三源[模块实跑/预计算件输出/测试黄金字面量] **ALL MATCH** [实取·cross_check.py stdout,证据包 06 类]);
+- **本地测试**: `python3 -m unittest tests.test_p3_wp_f -v` → Ran 110 tests, OK(3.9.6;19 类 TestGoldenFirstPrinciples..TestCLI,§五 映射表);零运行产物(测试全落 tempfile 沙箱,repo 工作树零新文件);
+- **本地 CI 镜像**(offline-tests 同款方法学: 逐套件 `python3 tests/test_*.py` 串行): 88 套件 [实取·`ls tests/test_*.py \| wc -l`=88] = **87 exit0 + 1 SKIP + 0 非零** [实取·`/tmp/p3-wp-f/ci_mirror.py` 记录,证据包 04 类];SKIP=`tests/test_glm_live.py`(身份锚,CI L40 同款显式排除);基线 87(§零.7)→本包恰 +1(tests/test_p3_wp_f.py exit0)零回归;镜像执行法与 CI 工作流 L45 逐字同款(`python3 "$t"` 脚本式,非 unittest 装载——`tests/test_p02_w1.py` 等脚本式套件依赖 sys.path[0]=tests/ 解析 helpers,unittest 模块装载法对其 ImportError 属执行法差异非套件缺陷,如实登记);
+- **负向敏感性三注入**(实注入被测模块→套件红→还原→复绿→sha 零残留): INJ1 RT_MIN_SCHEDULED_EXECUTION_DAYS 7→1(登记值漂移)→ **10 红** [实取·FAILED (failures=10)];INJ2 LIVE 根守卫四组件序列换为永不匹配占位→ **5 failures+1 error 红**;INJ3 状态日志 append 'a'→'w'(append-only 破坏)→ **4 failures+19 errors 红**;还原后 Ran 110 OK,模块 sha256 复算=`7d1701ac…a9582` 与注入前**逐字节等值**(cmp 零差异) [实取·neg_sensitivity.py stdout+shasum,证据包 06 类];
+- **双解释器**: 系统 Python 3.9.6 全套件 110 OK+selfcheck OK [实取];3.10+ 执行席不可达如实登记(命令面/目录面拦截,WP-E 同款);**守卫零版本依赖证明链**: 模块日历=纯字符串解析+月长表+闰年规则(parse_ymd L471-484/ymd_to_ordinal/ordinal_to_ymd),零 `fromisoformat`/`strptime`/`datetime` import(import 封闭集 {json,os,sys,hashlib},AST 测试 TestAstPurity L976),3.9/3.11 行为一致由构造保证;CI=3.11@offline-tests.yml L29 实读;
+- **实现期对账与自纠**(全部发生于实现笔提交前,如实登记,详见 §三): ①dp_selfcheck 层集断言首版以注册表 layer_id 直比索引键(两层命名空间混淆,L6-p3ae vs L6-p3),首跑 AssertionError→修正为经 archive_layer 列映射(语义等价);②`_validate_as_of` 首版链式赋值笔误(`as_at` 尾靶),py_compile 通过但运行期解包错→修正;③`SEAL_DOC_FIELDS` 常量声明序误置(schema_version 排序位),内部一致性断言红→修正为字典序;④`_guarded_path` data/daily 拒绝消息含连续词面,AST 纯度测试红→改为 `"/".join(_RAW_DIR_GUARD)` 运行期拼接(错误文本不变);⑤测试初版 4 处自纠(listdir 序未排序/journal_compiled_record 键未入期望集/docstring 纪律词面豁免面/守卫 stderr 断言),与模块④同步复绿;
+- **真实运行产物登记**: 实现期(本笔时点)**零运行产物**(repo 零本包运行产物,`git status` clean 即证;冒烟/交叉裁定/敏感性面全落 `/tmp/p3-wp-f/`);真实运行(编排入口 run)=DELIVERY 笔后执行(§四 AC-02.④ 承接;产物落 `data/research/p3_final_seal/` 不入 diff,P-F-20;运行 stdout/锚定清单入证据包 06 类,装配时点登记)。
+
+
+---
+
+## §一 实现摘要(四组件;file:line=实现笔 2d90631 时点实锚)
+
+1. **登记面**(终验清单+计时基线): 清单 24 项六段常量 `_CHECKLIST_ROWS` L327-408(S1 七 AC 复演 7=FA-S1-AC-01..07/S2 层序关闭 11=FA-S2-01..11/S3 归档索引 1/S4 横切运行时登记 3/S5 清单纪律 1/S6 总封版判定 1;项字段封闭集 ITEM_FIELDS L410,kind 枚举 7 值 KIND_VALUES L412-414,六段计数 SECTION_COUNTS L415);`registered_checklist()` L425/`registered_timing()` L434(DP-10 定值 (a)+(i)+阈值五值,§零.4/§零.5 逐值承载);层序关闭登记表 `_LAYER_ROWS` L114-144(11 行,closure_provenance=冻结章 §十一 注记+L6-p3ae 逐包轮次/merge/tip+L6-p3f 执行席自评注记);归档索引 `ARCHIVE_INDEX` L148-323(154 件 10 层冻结登记+F 自身 4 件自豁免 `SELF_EXCLUDED_PATHS` L77-82);
+2. **状态机**(JSONL append-only+禁回改 digest 链): `fa_digest()` L570=sha256(canonical_json([清单,计时]));`write_baseline` L640(恰 1 次)→`start_final_acceptance` L655(恰 1 次+digest 复核等值,失配=「疑似回改,禁开」)→`compile_seal_determination` L787(恰 1 次+三方 digest 逐级等值复核);`propose_checklist_amendment` L679 **恒拒**(未登记/已登记/已开始三面 ValueError,L208④ 负向测试锚);`read_journal` L616 坏行/空行/非 dict/记录违式 fail-loud,`_validate_journal_record` L589 记录类型封闭集+journal_schema_version+compiled 专属字段校验;`_validate_as_of` L576 规范形二十位校验;
+3. **执行面**(归档核验+层序核对+七 AC 汇编): `verify_archive_index` L709 逐件 isfile 在场核验+sha256 指纹+逐层/总 digest(缺席如实记录不美化);`validate_seven_ac_selfcheck` L748 输入契约(键集恰 AC-01..07/字段封闭集/verdict 值域,evidence/note 逐字承载,provenance=「REPORT §四 登记值(执行席自评,独立审计待 R043)」——**verdict=运行输入非模块自算,零自证**);零 datetime 日历纯函数组 L458-516(月长表+闰年含世纪规则+序数往返);路径守卫 `_guarded_path` L554(LIVE 根四组件序列拒+data/daily 相邻组件拒,全部读写面,组件化常量 L102-103 零连续字面量);
+4. **判定面**(判定规则+材料汇编+渲染): `determine` L769(任一 FAIL→NOT_SEALED/任一 NV→PENDING_SUPPLEMENTARY_EVIDENCE/否则 SEALED,P-F-13);`compile_seal_determination` L787-985(S1 输入 echo/S2 层序在场核验[L6-p3f=presence-only 自豁免 4 件+NOT_VERIFIED@执行席]/S3 索引/S4 ①②恒 NOT_VERIFIED[零预执行,elapsed 纯日历如实]+③载体登记 PASS/S5 digest 链 PASS/S6 汇编 PASS;FAIL 项逐字留档 fail_items;文档键封闭集 SEAL_DOC_FIELDS L780;确定性序列化 sort_keys+ensure_ascii=False+indent=1);`render_seal_determination` L987-1051(标题/计时/判定/七 AC 表/层序表/索引摘要/运行时登记/FAIL 如实区/免责尾行);哨兵组 L1055-1189(`registered_dp_values`/`registered_param_values`/`dp_selfcheck` 活性常量 vs 模块内登记镜像逐值对照+结构断言+日历算术断言);`_main` L1191(selfcheck 零写默认/run 编排入口,exit 0/1/2)。
+
+## §二 验收要点逐条映射(DESIGN L204-208 ①-⑤;AC-02;落点=实现笔 2d90631+测试 19 类)
+
+| 要点 | (a) 实现落点 | (b) 证据指针 | (c) 自检结论 |
+|---|---|---|---|
+| ①七 AC 复演式终验(L204) | S1 清单项 `_CHECKLIST_ROWS` L329-349+`validate_seven_ac_selfcheck` L748+compile S1 段 L823-834(verdict=REPORT §四 输入 echo+provenance);测试 TestSevenAcValidation L546(10 用例)+TestGoldenFirstPrinciples.fa_digest L142 | 证据包 05 类映射表副本+06 类首原理件/交叉裁定件 | 过(映射行=要点行;verdict 非自算,零自证) |
+| ②层序关闭核对(L202/清单 S2) | `_LAYER_ROWS` L114-144+compile S2 段 L836-878(在场核验=离线实检,关闭事实=冻结章注记);测试 TestRegisteredIndex L927(4)+TestCompileGreenPath 层序断言 L606 | 06 类(154 件索引+层 digest) | 过(11 层全核;L6-p3f=NOT_VERIFIED@执行席如实,R043 待) |
+| ③各层交付件归档索引(L202/清单 S3) | `ARCHIVE_INDEX` L148-323(154 件机械转储冻结登记)+`verify_archive_index` L709;测试 TestArchiveIndexVerify L489(7)+TestRegisteredIndex L927+TestGoldenFirstPrinciples 层 digest 黄金 L142 | 06 类(gen_archive_table 生成件+迷你仓黄金) | 过(在场+sha256 指纹;F 自身 4 件自豁免) |
+| ④先登记后运行禁回改(L208④/清单 S5) | digest 链 L570/L655/L799-805+`propose_checklist_amendment` L679 恒拒;测试 TestAmendmentRejection L426(3)+TestDigestChainTamper L448(3,monkeypatch 回改检出)+TestJournalStateMachine L318(12) | 06 类(黄金状态日志三行+负向敏感性 INJ1 10 红) | 过(登记后运行前于 REPORT §零 先行;digest 三级等值) |
+| ⑤总封版判定材料如实汇编(L208⑤/清单 S6) | `determine` L769+compile/render+FAIL 逐字留档;测试 TestCompileFailPath L743(3)+TestCompileMissingArchive L773+TestRender L836 | 06 类(绿/败路双黄金 sha+渲染全文) | 过(FAIL 不美化;绿路=NV 3 项如实) |
+
+合同 §二 判据 1-6 对照: 1 无漏检(①-⑤ 恰 5 行映射)✓;2 落点真实(file:line 实锚,§零.9 双代码件 sha 锚定)✓;3 参数登记制(§零.5 P-F-01..21 登记→模块常量→dp_selfcheck/registered_param_values 运行 echo 三方一致,TestRegisteredValues L874)✓;4 真实运行类(本包 run 面=DELIVERY 笔后执行,只读锚定+stdout 入证据包 06 类;实现期零运行产物已登记)✓;5 失实分流(零发现;观察窗 3/30 如实 NV 承接=用户知悉采纳处置非失实)✓;6 DP 纪律(§零.4 DP-10 双性[确认面=用户行使,登记面=(a)+(i)]+上游 DP 零消费+确认型 DP-4/8/9 零触及;零自决)✓。
+
+## §三 如实偏差与自纠登记(不声明「无偏差」;全项列示)
+
+1. 模块自纠①(提交前): dp_selfcheck 层集断言首版以注册表 layer_id 直比 ARCHIVE_INDEX 键集——两层命名空间混淆(L6-p3ae 注册行 vs L6-p3 索引层),selfcheck 首跑 AssertionError;修正为经 archive_layer 列映射后比对(语义=注册表非空映射层恰=索引层集,行为等价);未流入提交,实现笔版本即修正版;
+2. 模块自纠②(提交前): `_validate_as_of` 首版 `hh, mm, ss = …, as_at = …` 链式赋值笔误(py_compile 静默通过,运行期 2 字符解包 3 靶 ValueError);修正为三靶显式赋值;
+3. 模块自纠③(提交前): `SEAL_DOC_FIELDS` 常量声明序误置(schema_version 排序后于 seven_ac_reverification 误序),compile 内部一致性断言首跑红;修正为字典序(schema_version<seven_ac_reverification);
+4. 模块自纠④(提交前): `_guarded_path` data/daily 拒绝消息首版含连续 "data/daily" 词面(违反零连续字面量纪律),AST 纯度测试红;修正为 `"/".join(_RAW_DIR_GUARD)` 运行期拼接(运行期错误文本逐字不变,仅源码形态合规);
+5. 测试自纠(提交前,4 处): ①`os.listdir` 期望序未排序(文件系统序不定);②doc 键封闭集期望未含 compile 后附着的 journal_compiled_record;③纯度扫描首版含源码文本级禁令牌断言(docstring/注释中纪律词面「零 datetime」误伤)→改为 AST 调用面/导入面/常量面(docstring 豁免);④CI 镜像首版用 unittest 装载法对脚本式套件(p02_w1 系)ImportError——执行法与工作流 L45 不符,改镜像为 `python3 "$t"` 同款(套件本身零缺陷,如实登记);
+6. subprocess 受控恰 1 处: TestCLI L1093(入口面退出码/stdout 哨兵/零写断言,timeout 120s,受控临时目录);
+7. CI 分支 run NOT VERIFIED@执行席: dispatch=操作者 CHECKPOINT 面(rounds/043),执行席不可达如实登记(AC-06/§四);
+8. 归档索引时点注记: 154 件索引=2026-11-08T05:3xZ 基线工作树机械转储冻结登记(P-F-10);后续新增件(含 rounds/043 操作者登记件)结构性不在索引(冻结纪律,禁漂移,非缺陷);L6-p3f 行对 F 自身 4 件=presence-only 核验且 NOT_VERIFIED@执行席(R043 审计面),非在场核验 PASS 声明;
+9. 行号容差承接: 本文一切 file:line 引用=实现笔 2d90631 时点实锚(grep -n 实取),偏差 0 行。
+
+## §四 七 AC 复演式终验自评表(执行席自评,独立审计待 R043;=真实运行 seven_ac_selfcheck_input.json 输入源)
+
+| AC | verdict | evidence | note |
+|---|---|---|---|
+| AC-01 | PASS | REPORT §零.1 DESIGN L200-208 逐字抄录+四要素齐备+F 行与 A~E 行可区分(族内唯一)+冻结章行号登记一致偏差 0;§零.2/§零.3 清单 k=4 纯新增零重合 | 规格面,静态可验 |
+| AC-02 | PASS | §二 ①-⑤ 映射表 5/5 无漏检+落点 file:line 实锚;判据 1-6 全过;④真实运行类=run 面(DELIVERY 笔后执行,只读锚定+stdout 入证据包 06 类) | 要点面;运行产物登记于装配时点 |
+| AC-03 | PASS | 测试 110 用例 19 类全绿(3.9.6);全合成 fixture 唯一数据源(迷你仓+七AC表);黄金字面量硬编码(GOLDEN_* L101-139);双源交叉裁定 ALL MATCH 六面;漂移维护策略专节=DELIVERY §四(三要素);fixture→断言映射=DELIVERY §五;AC-03.7 不适用(§零.8) | 零网络零第三方依赖;负向敏感性 10/6/23 红→复绿→sha 零残留 |
+| AC-04 | PASS | 本文/DELIVERY 一切 file:line 实锚(偏差 0,§三.9);注入摘要标注逐处(§零.1/§零.4/冻结章引用);设计三件=基线工作树实读(§零.7 双侧 blob 等值);上游交付件以在场 REPORT §零.2 为对照同源(§零.6);交付物零 /tmp 运行期依赖(黄金值已字面量化入测试) | 引用面静态可验 |
+| AC-05 | PASS | diff BASE-P3F..终态=恰 A=4 白名单+M/D=0(证据包 03 类 name-status;REPORT/DELIVERY 本身=清单内必含件);纯线性零 merge(reflog 清洁);main 未触碰;LIVE/launchd 零触碰(grep 三令牌零命中+real_data_acceptance sha 转引注记+LaunchAgents 清单,证据包 03 类);零网络(import 封闭集 AST 锁定);上游件零改零复制分叉(F 零上游 import,P-F-18) | 终态以定值笔后取证为准 |
+| AC-06 | NOT_VERIFIED | 工件面=证据包八类+SHA256SUMS 旁置自豁免(装配于 DELIVERY 笔后,/tmp/p3-wp-f-evidence/);**CI 分支 run=操作者 CHECKPOINT dispatch(rounds/043),执行席不可达**;本地镜像 88=87 exit0+1SKIP+0 非零 | 分支 run+conclusion=headSha 全值待操作者登记件回填 |
+| AC-07 | PASS | 快照纪律:data/daily 相邻组件守卫全读写面(源码零连续字面量,AST 常量面锁定)+研究状态档零写入(零状态档路径);零真实 GLM/网络/凭证/付费(§零.8+import 封闭集);不构成投资建议:免责词面三处(模块 docstring/判定材料 disclaimer 字段/渲染尾行,§8.3 L218 承接);W4/W5 零接入;白名单外零实施 | 三红线+使用边界,静态可验 |
+
+## §五 git 纪律自检(七项)
+
+1. 基线: 自 BASE-P3F=`98f1a95d0c7345bf1c71b05766f78c394fa78618` 全值切出(§零.7 步骤3,ls-remote 实取 main 等值核验先行);
+2. 纯线性: 登记笔 c759640 → 实现笔 2d90631 → 报告笔(本笔)→ DELIVERY 笔 → [真实运行+证据包装配,零提交]→ 定值笔(终笔);每笔单父,`git log --merges 98f1a95..HEAD`=空(证据包 03 类);
+3. 零 amend/reset/force: reflog 干净(证据包 03 类);已推送提交零改写;
+4. main 未触碰: 分支=dev/p3-impl-f(冻结表登记指定名),推送=单支 no-force 新支;
+5. LIVE/launchd 零触碰: 取证面 grep(`R043\|P3-WP-F\|IA-P3-WP-F`)=零命中+LIVE real_data_acceptance.py sha256=`f9ca189c…`(WP-D 冻结值转引注记,执行席不可达如实登记)+LaunchAgents 清单哈希(证据包 03 类);
+6. 零 tag;零网络(取证推送类除外;终局单支推送 dev/p3-impl-f no-force);
+7. 研究档案不 commit: 运行产物落 data/research/p3_final_seal/(`.gitignore` L1 `data/` 结构性保障);.gitignore/workflow 零改动(diff M=0 判据内)。
+
+## §六 数值标注自检(§5.3 六项扫描;逐数值二选一标注复核)
+
+- 实取类(来源逐项): 双代码件行数/sha256(wc -l/shasum)|测试计数 110(verbose)|CI 镜像 88=87+1SKIP+0(镜像脚本 stdout)|负向敏感性 10/5+1/4+19 红(逐注入 stdout)|索引 154=21+45+2+2+2+13+12+23+11+23(生成件 TOTAL+ls docs 计数 144+上游 10)|套件基线 87(ls tests 计数)|f9ca189c… 转引(WP-D 冻结值,不可达注记)|LaunchAgents 12 件(取证清单)|分支/SHA(BASE-P3F/c759640/2d90631/91612378/98f1a95/f74a126/b3628fd/c14931c/aeb39e8 等,git 实取或冻结章注入摘要逐处标注)|blob(5acc130a/9f366da5/ac8965ce,ls-tree 实取);
+- 合成手推定值类(首原理件推导,双源一致): fa_digest e13399ad…|迷你仓层 digest 10 值+overall e82fcd20…|绿路 json sha 801a5928…/md sha a05c8990…|败路 json sha d7ac8806…/md sha 30c0c961…|状态日志三行黄金(逐字节)|elapsed=3(2026-11-05→2026-11-08 纯日历)|determine 三值(全 PASS→SEALED 等)|绿路 NV=3/FAIL=0、CLI 默认索引面 FAIL=11/NV=3(结构推导,测试锁定);
+- 示意类: 无(本文无数值以示意口径出现);
+- 扫描面: REPORT 本件+DELIVERY(§5.3 双件扫描清单成件,证据包 05 类)|日期/SHA/结构编号按合同边界出圈登记|全部计数可复算来源逐项如上。

@@ -88,7 +88,7 @@ CONCEPT_RULES = (
         "us_bindings": ("UST_2Y", "UST_10Y", "CURVE_2S10S"),
         "absent_concepts": (
             {"label": "JGB 10Y",
-             "search_terms": ("JGB", "日本国债", "日本10年")},
+             "search_terms": ("JGB", "日本国债", "日本10年", "10年期日债")},
         ),
         "ops": (
             {"op_label": "美日10Y收益率差",
@@ -143,16 +143,30 @@ def _spans_overlap(a, b):
 
 
 def _search_registry(terms, metrics):
-    """候选指标检索(D-B1-04): display_name/calc 关键词命中→首个metric_id。
+    """候选指标检索(D-B1-04): display_name/calc 关键词命中计分→最高分metric_id。
 
     对齐DESIGN L109「候选指标检索(注册表display_name/calc/别名,经E2)」;
     零命中→None(=A1缺席的发现机制,非硬编码)。
+    MW-V1(2026-11-08) 修期限错绑: 旧"首个命中"在家族指标下按注册表序先中——
+    JGB 家族 calc 共享曲线描述词("MOF日本国债收益率曲线…"),概念"JGB 10Y"
+    的检索词"日本国债"先命中序号更小的 JGB2Y,公式"JGB 10Y − UST_10Y"实拿
+    2年期值=期限错配(真实注册表复现;旧测试 fixture 无家族竞争故未暴露)。
+    改为计分制: 每候选按**命中词数**计分(词表含期限词时正确期限候选多得
+    一分),平分时 display_name 命中优先于 calc 命中(display=人工身份声明,
+    calc=采集描述),仍平分保持注册表序(稳定,不改变无竞争场景的既有结果)。
     """
+    best, best_key = None, None
     for m in metrics:
-        hay = "{}|{}".format(m.get("display_name") or "", m.get("calc") or "")
-        if any(t in hay for t in terms):
-            return m.get("metric_id")
-    return None
+        disp = m.get("display_name") or ""
+        calc = m.get("calc") or ""
+        n_disp = sum(1 for t in terms if t in disp)
+        n_calc = sum(1 for t in terms if t in calc)
+        if n_disp + n_calc == 0:
+            continue
+        key = (n_disp + n_calc, n_disp)      # 命中词数 → display命中数
+        if best_key is None or key > best_key:
+            best, best_key = m.get("metric_id"), key
+    return best
 
 
 def _merge_spans(spans):

@@ -4,8 +4,7 @@
 
 IA-P0-1(2026-10-27)失败传播修复:
 - 步骤依赖图(4元组,兼容旧3元组): 评分卡/相关性/装配器依赖快照构建;
-  校验器依赖装配器;预测观察无依赖——自持门禁(锚点当日+批次核验),
-  采集失败不得阻止观察记录(R17既有行为保持);
+  校验器依赖装配器(预测观察步骤已于 MW-V1 2026-11-08 章程勘误下线);
 - 依赖未成功 → 依赖步骤标记SKIPPED并记录原因,不执行危险操作(旧实现无条件
   全部执行: Gate A FAIL后装配器照常打包、校验器照常跑);
 - 关键步骤失败或被跳过 → 流水线退出码1(既有行为),跳过原因写入
@@ -65,7 +64,7 @@ def run_pipeline(steps, script_dir=None):
     """顺序执行步骤。steps元素为(名称, 脚本, 关键?)或(名称, 脚本, 关键?, 依赖脚本名列表);
     返回PipelineResults([(名称, 成功?, 关键?)])供退出码判定:
     - 只有**关键**步骤失败才使流水线失败;非关键失败(新闻/相关性)降级运行,
-      不得阻止行情观察记录;
+      不影响其余步骤执行;
     - IA-P0-1: 声明了依赖的步骤,任一依赖未成功(失败或自身被跳过)→本步骤
       SKIPPED(结果记False),原因存于.skips并公示——依赖失败后继续跑下游
       只会用未验证数据做危险操作(旧缺陷)。依赖以**脚本名**为标识(步骤显示名
@@ -113,8 +112,7 @@ def main():
     #   还依赖**全部关键采集器**成功——关键采集失败后不得因旧采集文件存在就
     #   自动放行下游正式产物(旧文件回退属快照层的已披露降级能力,须人工/显式
     #   处置,不在自动流水线内冒充当日成功批次);受影响步骤SKIPPED并记录上游名;
-    # - 预测观察无依赖(自持门禁): 采集失败当日锚点缺失,观察器自行exit 2,
-    #   不得由上游依赖阻止其余资产观察(R17既有约定)。
+    # - 预测观察步骤已下线(MW-V1 章程勘误,见 steps 尾注);无自持门禁步骤。
     _critical_collectors = ["global_market_collector.py", "china_market_collector.py",
                             "macro_collector.py", "rate_expectations.py"]
     _formal_research_deps = ["snapshot_builder.py"] + _critical_collectors
@@ -128,32 +126,35 @@ def main():
         ("2/13 A股港股数据采集", "china_market_collector.py", True),
         ("3/13 宏观数据采集", "macro_collector.py", True),
         # 非关键(第五轮P1-2): 新闻源失败可降级——原始标题缺失只影响周报叙事,
-        # 不得阻止行情观察记录;整体退出码不因非关键失败而转失败。
+        # 不影响其余步骤;整体退出码不因非关键失败而转失败。
         ("4/13 新闻采集与分析", "news_collector.py", False),
         ("5/13 利率预期与实体经济", "rate_expectations.py", True),
+        # MW-V1(2026-11-08 章程校准): 日欧通道采集挪到快照构建**之前**——原尾部步骤
+        # 在快照后执行,jp_/ea_ 当日档结构上进不了当日快照(恒 T-1 回退);同时把
+        # japan_rate_collector(JGB 曲线/日政策利率权属,japan_ 档)纳入调度——原
+        # 13 步无任何步骤跑它,japan 通道在生产上永缺失(data/daily 仅 11-05 一份
+        # 手动档,超 5 天回退窗后 JGB 全 MISSING)。三通道保持非关键: 源失败只登记
+        # sources_status/alerts 如实降级,不阻塞主链(IA-P1-WP-A D7 边界口径)。
+        ("6/13 日本利率与国债曲线(japan_)", "japan_rate_collector.py", False),
+        ("7/13 日本市场数据采集(jp_)", "jp_market_collector.py", False),
+        ("8/13 欧元区市场数据采集(ea_)", "ea_market_collector.py", False),
         # 第七轮重构: 采集层之后先建研究快照(唯一数据入口/Gate A),评分卡/相关性/
         # 装配器/校验器均消费快照,不再各自glob"最新文件"或自行拉数(文件最新≠数据最新)。
-        ("6/13 研究快照构建(Gate A)", "snapshot_builder.py", True),
-        ("7/13 宏观体制评分卡(消费快照)", "macro_scorecard.py", True,
+        ("9/13 研究快照构建(Gate A)", "snapshot_builder.py", True),
+        ("10/13 宏观体制评分卡(消费快照)", "macro_scorecard.py", True,
          list(_formal_research_deps)),
         # 相关性计算器2026-10-11接线:必须在data_assembler之前跑,汇编器会读取
         # correlation_*.md拼进数据包第五节。非关键: 相关性缺失只降级周报第五节。
-        ("8/13 跨资产相关性(消费快照)", "correlation_calculator.py", False,
+        ("11/13 跨资产相关性(消费快照)", "correlation_calculator.py", False,
          list(_formal_research_deps)),
-        ("9/13 数据汇总打包", "data_assembler.py", True,
+        ("12/13 数据汇总打包", "data_assembler.py", True,
          list(_pack_deps)),
-        ("10/13 数据校验与锚点生成", "data_validator.py", True,
+        ("13/13 数据校验与锚点生成", "data_validator.py", True,
          ["data_assembler.py"] + list(_pack_deps)),
-        # 每日预测观察(第四轮P0-6 + 第五轮P1-2): 锚点生成后用Python记录观察期内
-        # 预测的当期数据,幂等不调GLM;数据质量门禁FAIL(无当日锚点)时exit 2,
-        # 作为关键失败向上传播——采集失败时受影响预测的正式状态不得被更新。
-        ("11/13 预测观察记录", "daily_prediction_observer.py", True),
-        # IA-P1-WP-A(v1.3): JP/EA 市场通道采集(免费公开源 MOF/FRED/ECB/Bundesbank,
-        # 零凭证)。非关键: 事实级消费(normalize_jp/normalize_ea)属 WP-B 未接线,
-        # 快照不消费 jp_/ea_ 档(D7 边界,REPORT §零.12⑧)——源失败只登记
-        # sources_status/alerts 如实降级,不阻塞主链;接线轮承接后再评估关键性。
-        ("12/13 日本市场数据采集(jp_)", "jp_market_collector.py", False),
-        ("13/13 欧元区市场数据采集(ea_)", "ea_market_collector.py", False),
+        # MW-V1(2026-11-08 章程勘误): 预测观察步骤下线——预测池/命中裁决/超配低配/
+        # 论点星级属越位零件(PRODUCT-GOAL.md 2026-11-08 勘误:观点由用户形成,系统
+        # 供证据)。daily_prediction_observer 模块与历史观察档案原样保留(历史研究
+        # 记录不删),仅退出自动调度;config/allocation_views.json 冻结为历史档。
     ]
 
     results = run_pipeline(steps)
@@ -252,12 +253,12 @@ def main():
     # 2026-10-11 P0修复: 任一步骤失败必须以非零退出,否则run_daily.sh拿到RESULT=0,
     # 失败被静默吞掉(此前无论成败永远exit 0)
     # 第五轮P1-2修正: 只有**关键**步骤失败才exit 1 — 非关键失败(新闻/相关性)
-    # 降级运行且不阻止行情观察记录,但仍在汇总中如实公示。
+    # 降级运行,但仍在汇总中如实公示。
     # IA-P0-1: 关键步骤**被跳过**同样计入失败——依赖未成功时依赖步骤不得静默消失。
     critical_failed = [n for n, s, c in results if not s and c]
     noncritical_failed = [n for n, s, c in results if not s and not c]
     if noncritical_failed:
-        print(f"\n⚠️ 非关键步骤降级运行: {', '.join(noncritical_failed)}(不阻止观察记录)")
+        print(f"\n⚠️ 非关键步骤降级运行: {', '.join(noncritical_failed)}")
     if critical_failed:
         print(f"\n❌ {len(critical_failed)} 个关键步骤失败或被跳过: {', '.join(critical_failed)}")
         sys.exit(1)

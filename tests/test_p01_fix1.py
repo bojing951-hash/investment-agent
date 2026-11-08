@@ -507,8 +507,10 @@ with tempfile.TemporaryDirectory() as td:
           any('全球市场数据采集' in r for r in
               (s.get('skip_reason') or '' for s in ledger['steps'])),
           str({n: s.get('skip_reason') for n, s in skipped.items()}))
-    check("观察器不被上游依赖阻止(自持门禁,R17)",
-          'daily_prediction_observer.py' in executed)
+    # MW-V1(2026-11-08 章程勘误): 预测观察步骤下线——观察器不再被调度(任何情形),
+    # 模块与历史观察档案原样保留。
+    check("观察器已下线不被调度(MW-V1)",
+          'daily_prediction_observer.py' not in executed)
     check("台账含运行日期/研究目标日/快照不可用原因",
           ledger.get('run_date') == '2026-10-17'
           and ledger.get('research_target_date') == '20261017'
@@ -545,9 +547,9 @@ for failed_collector in ('macro_collector.py', 'china_market_collector.py'):
 with tempfile.TemporaryDirectory() as td:
     # 非关键(新闻)失败→降级运行: 不阻断正式研究与观察,退出码0
     code, executed, ledger = run_pipeline_main(td, fail_scripts={'news_collector.py'})
-    check("非关键新闻失败→降级运行exit 0,正式步骤照常",
+    check("非关键新闻失败→降级运行exit 0,正式步骤照常(观察器MW-V1已下线)",
           code == 0 and 'data_assembler.py' in executed
-          and 'daily_prediction_observer.py' in executed, f"exit={code}")
+          and 'daily_prediction_observer.py' not in executed, f"exit={code}")
 with tempfile.TemporaryDirectory() as td:
     # 有效回退: 当日global文件缺失,回退3天前文件——必须显式披露FALLBACK+滞后天数,
     # 不得冒充当日EXACT采集(快照层既有降级机制,FIX-03要求披露而非放水)

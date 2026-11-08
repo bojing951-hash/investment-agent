@@ -447,10 +447,10 @@ with tempfile.TemporaryDirectory() as td:
     st = formal_view(out)
     rep_text = open(rep, encoding='utf-8').read()
     check("S8a 链路终点: 合法DEGRADED日发布成功(exit 0,GLM 1,final=DEGRADED,"
-          "可见降级页脚,真实apply收到Gate B=PASS)",
+          "可见降级页脚,零状态回写[MW-V1越位零件下线])",
           code == 0 and glm.calls == 1 and st is not None
           and st['final_quality'] == 'DEGRADED' and st['gate_a'] == 'DEGRADED'
-          and '数据质量降级披露' in rep_text and applied == ['PASS'],
+          and '数据质量降级披露' in rep_text and applied == [],
           f"exit={code} applied={applied} fq={st and st.get('final_quality')}")
 with tempfile.TemporaryDirectory() as td:
     paths, c = chain_build(td, gate='FAIL')

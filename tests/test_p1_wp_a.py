@@ -292,11 +292,21 @@ class TestChannelRegistrationChain(unittest.TestCase):
     def test_t2e_run_weekly_thirteen_steps(self):
         src = open(os.path.join(ROOT, 'run_weekly.py'), encoding='utf-8').read()
         self.assertEqual(src.count('/13'), 13)
-        self.assertIn('"12/13 日本市场数据采集(jp_)", "jp_market_collector.py", False',
+        # MW-V1(2026-11-08 章程校准): jp/ea 自尾部 12/13 挪到快照前 7/8(当日档
+        # 进当日快照),japan_rate_collector(JGB/日政策利率权属)纳管为第 6 步;
+        # 预测观察步骤(原 11/13)按 PRODUCT-GOAL.md 2026-11-08 勘误下线。
+        self.assertIn('"6/13 日本利率与国债曲线(japan_)", "japan_rate_collector.py", False',
                       src)
-        self.assertIn('"13/13 欧元区市场数据采集(ea_)", "ea_market_collector.py", False',
+        self.assertIn('"7/13 日本市场数据采集(jp_)", "jp_market_collector.py", False',
                       src)
-        # 关键采集器集零变化(4,jp/ea 非关键)
+        self.assertIn('"8/13 欧元区市场数据采集(ea_)", "ea_market_collector.py", False',
+                      src)
+        # 快照构建仍在全部采集通道之后(步骤号大于 japan/jp/ea)
+        self.assertLess(src.find('日本市场数据采集(jp_)'), src.find('研究快照构建'))
+        self.assertLess(src.find('欧元区市场数据采集(ea_)'), src.find('研究快照构建'))
+        # 预测观察退出自动调度(模块与历史档案保留,仅不在 steps 内)
+        self.assertNotIn('"daily_prediction_observer.py"', src)
+        # 关键采集器集零变化(4,japan/jp/ea 非关键)
         self.assertNotIn('"jp_market_collector.py"]', src)
         i = src.find('_critical_collectors = [')
         j = src.find(']', i)
@@ -306,6 +316,7 @@ class TestChannelRegistrationChain(unittest.TestCase):
             self.assertIn(c, crit)
         self.assertNotIn('jp_market_collector', crit)
         self.assertNotIn('ea_market_collector', crit)
+        self.assertNotIn('japan_rate_collector', crit)
 
     def test_t2f_fixture_seven_channels(self):
         """fixt 7 通道全覆盖(红-4 修复面): write_collectors 落盘 jp_/ea_ 档。"""

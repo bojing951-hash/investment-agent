@@ -403,6 +403,41 @@ def normalize_china(data, as_of, source_file="china_*.json"):
                 extra_issues=[{"category": "completeness", "severity": "DEGRADED",
                                "message": "akshare降级通道仅沪市成交额,不得表述为'沪深两市'"}],
                 calc="akshare sh000001 amount(仅沪市)")
+
+    # MW-V1(2026-11-08 章程校准): 消费 macro 节(G-P1-14..18)。china_market_collector
+    # 自 2026-10 起每日采集 CN 宏观 8 指标且注册表在册,但此前 normalize_china 无
+    # 消费路径=采而不用(快照永缺,四经济体面缺中国宏观行)。键→注册表id 1:1
+    # (fetch_macro 产出契约);月度月份锚('YYYY-MM')归一月首——FRED 月频系列同构
+    # 先例(如 IRSTCI01JPM156N→'2026-09-01'),calc 披露源粒度;键缺席=诚实缺席
+    # 不造事实,禁 0 填充。
+    _CN_MACRO_MAP = {'lpr_1y': 'CN_LPR_1Y', 'lpr_5y': 'CN_LPR_5Y',
+                     'cpi_yoy': 'CN_CPI_YOY', 'ppi_yoy': 'CN_PPI_YOY',
+                     'pmi_mfg': 'CN_PMI_MFG', 'sf_flow': 'CN_SF_FLOW',
+                     'new_loans': 'CN_NEW_LOANS', 'omo_7d': 'CN_OMO_7D'}
+    for key, item in (data.get('macro') or {}).items():
+        if not isinstance(item, dict):
+            continue
+        mid = _CN_MACRO_MAP.get(key, key)
+        if metric(mid) is None:
+            facts.append(_unregistered_diag('china-macro', key, item, False))
+            continue
+        val = _num(item.get('value'))
+        if val is None:
+            continue
+        obs = str(item.get('date') or '')
+        calc = None
+        if len(obs) == 7 and obs[4] == '-':    # 'YYYY-MM' 月度月份锚→月首
+            obs = f"{obs}-01"
+            calc = "月度统计,月份锚归一月首(源粒度=月)"
+        f = make_fact(mid, val, obs, as_of, source_file, "china_market_collector",
+                      calculation_ref=calc)
+        if f is None:
+            continue
+        f['source']['channel'] = item.get('source')
+        f['issues'].extend(validate_fact(f, {"close": val, "date": obs},
+                                         metric(mid), as_of_date=as_of))
+        f['quality_status'] = grade_issues(f['issues'])
+        facts.append(f)
     return facts
 
 
@@ -807,9 +842,34 @@ def cross_metric_checks(facts):
     check_pair("DFEDTARL", "DFEDTARU", lambda lo, hi: (lo <= hi, "下限>上限"), "目标区间次序")
     check_pair("IG_OAS", "HY_OAS", lambda ig, hy: (hy > ig, "HY利差须大于IG(评级越低利差越宽)"), "评级-利差次序")
     check_pair("HY_OAS", "CCC_OAS", lambda hy, ccc: (ccc > hy, "CCC须大于HY整体"), "评级-利差次序")
-    check_pair("GOLD_F", "GLD",
-               lambda g, gld: (sign_match(g, gld), "黄金期货与黄金ETF周方向相反(允许容差内例外,此处只提示)"),
-               "黄金双载体方向")
+    # MW-V1(2026-11-08): 黄金双载体(GOLD_F期货 vs GLD ETF)方向检查真实现——原
+    # sign_match()占位恒True(2026-10-17遗留,死检查,注释承诺的"快照披露"从未
+    # 发生)。两载体水平量级不同(期货≈盎司价 vs ETF≈1/10盎司),符号比对只能做
+    # 在统一收益口径的周变化上(derived.week.pct_change,期前收盘基准);同源双
+    # 观测周方向相反=口径/数据异常,DEGRADED披露不判错;任一周变化不可得=不
+    # 伪造结论,如实登记 insufficient。
+    gf, ge = by_id.get("GOLD_F"), by_id.get("GLD")
+    if gf and ge:
+        wg = (gf.get('derived') or {}).get('week') or {}
+        we = (ge.get('derived') or {}).get('week') or {}
+        pg, pe = wg.get('pct_change'), we.get('pct_change')
+        if isinstance(pg, (int, float)) and isinstance(pe, (int, float)) \
+           and wg.get('available') is not False and we.get('available') is not False:
+            if pg * pe < 0:
+                msg = (f"黄金双载体方向: GOLD_F周{pg:+.2f}% vs GLD周{pe:+.2f}%"
+                       "(同源双观测周方向相反,口径/数据异常须复核)")
+                gf.setdefault('issues', []).append(
+                    {"category": "cross-metric", "severity": "DEGRADED", "message": msg})
+                recon.append({"type": "cross-metric", "check": "黄金双载体方向",
+                              "result": "violation", "detail": msg})
+            else:
+                recon.append({"type": "cross-metric", "check": "黄金双载体方向",
+                              "result": "consistent",
+                              "detail": f"周方向一致(GOLD_F{pg:+.2f}%/GLD{pe:+.2f}%)"})
+        else:
+            recon.append({"type": "cross-metric", "check": "黄金双载体方向",
+                          "result": "insufficient",
+                          "detail": "双载体周变化不可得(derived.week缺失/不可用),不伪造方向结论"})
     # 对账: 派生REAL_10Y vs 市场TIPS_10Y(同期限,允许持续小基差)
     r10, t10 = by_id.get("REAL_10Y"), by_id.get("TIPS_10Y")
     if r10 and t10 and isinstance(r10.get('value'), (int, float)) and isinstance(t10.get('value'), (int, float)):
@@ -828,10 +888,6 @@ def cross_metric_checks(facts):
         idx = {f.get('display_name'): f for f in facts if isinstance(f, dict)}
         # 通道信息在source.channel; 同指标双通道对账在采集器内部完成,此处仅登记
     return recon
-
-
-def sign_match(a, b):
-    return True  # 方向检查以周变化做,此占位恒过(双载体周方向相反时在快照披露)
 
 
 def build_all(global_data=None, macro_data=None, china_data=None, as_of=None,

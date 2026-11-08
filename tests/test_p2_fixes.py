@@ -323,24 +323,26 @@ check("预测生命周期字段补全(verify_mode/observations/data_source)",
 # ── 测试8: 接线检查(report_generator源码级) ──────────
 print("\n[8] report_generator接线")
 rg = open(os.path.join(ROOT, 'scripts', 'report_generator.py')).read()
-check("主流程加载观点库", "allocation_engine.load_views()" in rg)
-check("渲染时传入锚点+研究截止时间核验触发器",
-      "render_views_block(" in rg and "anchors=latest_anchors" in rg
-      and "today_str=datetime.now()" in rg)
-check("回写统一研究截止时间(today_str,经apply_status_updates调度)",
-      "allocation_engine.update_allocation_status(report, views_path=views_path," in rg
-      and "anchors=anchors, today_str=_today" in rg
-      and "apply_status_updates(report, classification, anchors=latest_anchors)" in rg)
-check("prompt含配置观点库节", "## 配置观点库" in rg)
-check("prompt含量表v2规范", "rating只能取" in rg and "不用\"中性\"" in rg)
-check("prompt含结构化预测规格", "pred_metric" in rg and "pred_op" in rg)
-check("prompt含touch/expiry双模式规范", "pred_mode" in rg and "touch" in rg and "expiry" in rg)
-check("prompt含五态裁决规范", "not_yet_triggered" in rg and "无证据" in rg)
-check("prompt含证据分级v2程序校验规则", "证据分级v2程序校验" in rg and "evidence" in rg)
-check("prompt含评级变更门禁说明", "评级变更门禁" in rg)
-check("prompt含研究链路7问", "研究链路要求" in rg and "传导机制" in rg)
-check("回写在FAIL门禁else分支内", rg.find("update_thesis_status(report)") < rg.find("allocation_engine.update_allocation_status(report"))
-check("校验分级FAIL禁止回写", 'classification == "FAIL"' in rg and "跳过thesis.json与allocation_views.json回写" in rg)
+# MW-V1(2026-11-08 章程勘误): 观点库/论点库加载、views_block渲染、状态回写与
+# prompt越位指令(三状态块/量表/预测规格/裁决/星级门禁/配置研究链路)全部下线;
+# apply_status_updates/update_*_status机器保留为休眠历史档,历史JSON冻结不被消费。
+_wk = rg[rg.index('def generate_weekly_report'):]
+check("主流程不加载观点库(MW-V1)", "load_views" not in _wk)
+check("主流程不渲染views_block(MW-V1)", "render_views_block" not in _wk)
+check("主流程不调度回写(MW-V1)",
+      "apply_status_updates(report" not in _wk
+      and "update_thesis_status(report" not in _wk
+      and "update_allocation_status(report" not in _wk)
+check("prompt无配置观点库节(MW-V1)", "## 配置观点库" not in rg)
+check("prompt无量表v2规范(MW-V1)", "rating只能取" not in rg)
+check("prompt无结构化预测规格(MW-V1)", "pred_metric" not in rg and "pred_op" not in rg)
+check("prompt无touch/expiry双模式规范(MW-V1)", "pred_mode" not in rg)
+check("prompt无五态裁决规范(MW-V1)", "not_yet_triggered" not in rg)
+check("prompt无证据分级v2程序校验(MW-V1)", "证据分级v2程序校验" not in rg)
+check("prompt无评级变更门禁(MW-V1)", "评级变更门禁" not in rg)
+check("prompt无研究链路7问(MW-V1)", "研究链路要求" not in rg)
+check("回写机器保留为休眠档(函数仍在,不被主流程调用)",
+      "def apply_status_updates" in rg and "def update_thesis_status" in rg)
 
 print("\n" + "=" * 60)
 print(f"结果: {PASS}通过 / {FAIL}失败")

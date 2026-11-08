@@ -77,6 +77,9 @@ check("无配置倾向六步链路(MW-V1下线)",
 check("含三类内容显式标注纪律", "【事实】" in sp and "【推断】" in sp and "【假设】" in sp)
 check("含竞争性解释纪律", "竞争性解释" in sp)
 check("含禁止用语清单", "买入" in sp and "目标价" in sp and "止损" in sp)
+# D'审计P3-6整改回补: 人设重写时误删的两轴(绝对化用语禁令/输出格式)恢复并重钉
+check("含绝对化用语禁令(P3-6回补)", "板上钉钉" in sp and "risk-free" in sp and "唯一解释" in sp)
+check("保留输出语言/格式尾部(P3-6回补)", "输出语言：中文" in sp and "输出格式：Markdown" in sp)
 check("含数值绑定纪律", "数据包" in sp and "不得凭记忆" in sp and "相关≠因果" in sp)
 mp = load_prompt('monthly_review_prompt.md')
 qp = load_prompt('quarterly_outlook_prompt.md')

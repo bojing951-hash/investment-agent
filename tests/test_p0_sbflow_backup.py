@@ -284,11 +284,14 @@ class T5SourceFreezeLocks(unittest.TestCase):
         self.assertIn("'tushare'", src)
 
     def test_t5c_real_data_acceptance_untouched(self):
-        # 零改动锁: sha256 与基点 02565b9 冻结值一致(AC §七反例3)
+        # 零改动锁: sha256 与冻结值一致(AC §七反例3)。
+        # v1.1(2026-11-09)显式再冻结一次: 第三轮 WI3(P0-4 密钥卫生)授权把脱敏
+        # 参数族从 api_key= 扩到 api_key/apikey/token/key=(负向后顾挡 mid-word),
+        # 属规格内变更——新冻结值=变更后文件;后续无授权变更仍必须红面。
         with open(ROOT + '/scripts/real_data_acceptance.py', 'rb') as fh:
             blob = fh.read()
         self.assertEqual(hashlib.sha256(blob).hexdigest(),
-                         '01e3f890793f09b86f1e885da9a4eb9fc143a1638cb4a56e80e2f34a5bcb331b')
+                         '30c5aadf4d3e550b055cface116c9eea86170ef24e6a04cd23ecd8d3a82cd95f')
 
 
 if __name__ == '__main__':

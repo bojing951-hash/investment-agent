@@ -78,6 +78,14 @@ zip 定值(文件数/字节数/sha256)以终笔提交信息与会话 stdout 为�
 
 (定值笔区内纯追加,R065/WP-C/WP-D 笔B 先例;文件数/字节数/sha256 以终笔提交信息与会话 stdout 四段为准)
 
+证据包 `/tmp/p3-wp-e-evidence/IA-P3-WP-E-EVIDENCE.zip` 定值@装配停点 HEAD=b64f028(DELIVERY 笔,推送前):
+- **文件数 39**(根层恰 8 类 = 01:1[REPORT §零 全节副本 110 行]+02:9[4 交付件×{git-show TIP b64f028 版+工作树版}+cross-hash 表,双源逐值等值]+03:9[ls-remote 推送前全分支快照+pre-push 分支核验(main=91612378 等值+dev/p3-impl-e 未上远端)/log/name-status(BASE..DELIVERY 恰 A=4+M=0+D=0)/merges 空/head-parents 单父链 7 行/reflog -20/设计在场 L194-198 逐字+三设计件 hash-object 双侧等值/LIVE 三面(grep 三令牌零命中+real_data_acceptance 执行席不可达如实登记[WP-D 冻结值 f9ca189c…3eb 转引注记]+LaunchAgents 12 件哈希清单)]+04:3[镜像脚本+87 行逐套件记录+汇总(87=86 exit0+1 SKIP+0 非零)]+05:6[AC-02 映射+如实偏差+DP 登记节+参数登记节+§5.3 扫描清单 REPORT 件+DELIVERY 件]+06:9[零运行声明+双 find 锚定 10 面 0 行+129 OK verbose stdout+selfcheck/py_compile+黄金首原理件+manifest 六 sha+交叉裁定件与输出(ALL MATCH 六面全等)+负向敏感性脚本与终态记录(9/2/4 红→复绿→sha 零残留)]+07:1[自述装配时点稿]+08:1[双解释器记录: 系统 3.9.6 全套件 129 OK+仓内 venv 不在场+3.10+ 执行席不可达如实登记+守卫零版本依赖证明链(纯字符串+月长表,零 fromisoformat 3.11 宽形面)+CI 3.11@workflow L29]);
+- **字节数 177296**;
+- **sha256=`c6ae94cc81e1b7c9f912c2fd2d8773365b0508e631918a8482b1551231fb9b1c`**(装配器 hashlib 与 `shasum -a 256` 双源复算一致;`unzip -t` No errors detected+`testzip` 零坏件;`unzip -l` 独立计数 39 files;39 件逐件解压 OK/0 BAD);
+- SHA256SUMS 39 行旁置自豁免不入包(合同 §3 步骤12 口径;`shasum -c` 全 OK 独立复核);
+- 自指口径注记: 包内 DELIVERY/自述副本=装配时点稿(DELIVERY 笔 b64f028 版),与终笔版差异=恰本定值行组(R065 先例);终值以终笔提交信息与会话 stdout 四段为准;
+- 推送登记: 装配(推送前 ls-remote 已核 dev/p3-impl-e 未上远端+main=91612378 等值)→ 单支推送 `git push -u origin dev/p3-impl-e`(no-force,新支,远端=b64f028)→ 本定值笔(第 8 笔)→ 终局推送(单支 no-force)。
+
 ## §七 如实偏差(全项登记;不声明「无偏差」)
 
 与 REPORT §三 同源同步(8 项): 模块-登记对齐 2(open 'a' 内联化恰 2 处+零 datetime 纯日历化[P-E-03 登记文 fromisoformat 词面与 P-E-16 白名单张力,取白名单优先,行为面逐值等价])/测试字面量自纠 3(截断语义归位+渲染隔离断言归位+路径类常量封闭集归位)/测试补齐笔 1(四登记面补齐 126→129 用例,k=4/M=0 不变)/补齐笔提交信息行数误记(1297→实取 1301)+勘误笔×2(GOLDEN_SHAS 行锚+提交链计数,零 amend 独立纠偏)/subprocess 受控 1 处(TestSelfcheckMain)/CI 分支 run NOT VERIFIED@执行席(操作者 rounds/042 dispatch)/行号容差承接(偏差 0);不声明无偏差。

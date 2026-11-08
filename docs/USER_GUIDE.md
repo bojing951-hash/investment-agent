@@ -57,7 +57,7 @@ Gate A 必 FAIL ⇒ 接地研究问答全部拒答**、脚本退出码 1——�
 |---|---|---|
 | `GLM_API_KEY` | **AI 周报生成、AI 研究解释**需要;不配→采集/工作台浏览照常,AI 功能不可用 | [智谱开放平台](https://open.bigmodel.cn/) |
 | `FRED_API_KEY` | **美国宏观序列**(CPI/就业/利率等)需要;不配→美国宏观核心缺失,**Gate A 必 FAIL,接地研究问答拒答**(见 Q1) | [FRED](https://fred.stlouisfed.org/docs/api/api_key.html) |
-| `TUSHARE_TOKEN` | A股/港股深度数据;不配→匿名限流 1 次/小时,深度数据近乎不可用,首跑或耗时 10 分钟左右 | [tushare](https://tushare.pro/) |
+| `TUSHARE_TOKEN` | A股/港股深度数据;不配→匿名调用限流严(本地闸门 ≥61 秒/次,实测同小时重跑会被服务端拒),深度数据近乎不可用,首跑或耗时 10 分钟左右 | [tushare](https://tushare.pro/) |
 | `FINNHUB_API_KEY` | 新闻摘要;不配→新闻步骤降级,不影响其他数据 | [Finnhub](https://finnhub.io/) |
 
 ### 推荐方式: 项目根 .env 文件
@@ -176,7 +176,8 @@ macOS plist 模板(占位路径请替换为你自己的,放 `~/Library/LaunchAge
 流水线第 10-13 步跳过、`run_weekly.py` 退出码 1。这是防假数据门禁的如实行为,
 **不是你的环境坏了**;配置 FRED Key(免费申请,见第 2 节)后即恢复。
 其余影响: 缺 GLM → 无 AI 周报与 AI 解释;缺 TUSHARE → A 股深度数据近乎不可用
-(匿名限流 1 次/小时,免 Token 首跑可能耗时 10 分钟左右);缺 FINNHUB → 无新闻摘要
+(匿名调用限流严: 本地闸门 ≥61 秒/次,实测同小时重跑会被服务端拒;免 Token 首跑
+可能耗时 10 分钟左右);缺 FINNHUB → 无新闻摘要
 (该步骤在无 GLM Key 时还会向终端打印一段异常堆栈,但不影响后续步骤)。
 所有缺失一律如实标注,不会编造。
 

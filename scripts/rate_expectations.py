@@ -12,6 +12,7 @@ import os
 import sys
 import json
 import glob
+import socket
 import time
 import requests
 from datetime import datetime, timedelta
@@ -21,6 +22,36 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT_DIR)
 
 from env_config import FRED_API_KEY
+
+# --- 代理修复(2026-11-08) ---
+# 根因: 同 global_market_collector 2026-09-30 前案——Yahoo 对直连家宽 IP 429 限流;
+# launchd 的 NO_PROXY=* 禁用代理后,本模块 ZQ=F 直连静默失败→fed_funds_futures=[]→
+# Gate A 核心缺失(ZQ_IMPLIED_AVG)→每日链 6/11 起断(2026-10-31 起实证,周报停于 10-24)。
+# 修复: 复用同款探测逻辑,代理在线则强制走代理,否则回退直连。
+def _setup_proxy():
+    proxy = os.environ.get("YF_PROXY", "http://127.0.0.1:7890")
+    host, _, port = proxy.rpartition(":")
+    host = host.replace("http://", "").replace("https://", "")
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(2)
+            s.connect((host, int(port)))
+        online = True
+    except Exception:
+        online = False
+    if online:
+        # NO_PROXY=*会让requests忽略HTTP(S)_PROXY,必须先清除
+        for var in ("NO_PROXY", "no_proxy"):
+            os.environ.pop(var, None)
+        os.environ["HTTP_PROXY"] = proxy
+        os.environ["HTTPS_PROXY"] = proxy
+        print(f"🌐 代理在线,走 {proxy}")
+    else:
+        for var in ("HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy", "NO_PROXY", "no_proxy"):
+            os.environ.pop(var, None)
+        print("⚠️ 本地代理不在线,尝试直连(Yahoo可能429限流)")
+
+_setup_proxy()
 
 def _load_cached_futures(max_age_days=7, row_max_age_days=14, data_dir=None):
     """429限流兜底: 从最近的rate_economy_*.json读取上次成功的期货曲线。

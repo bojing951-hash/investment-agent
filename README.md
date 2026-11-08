@@ -34,7 +34,7 @@ git clone https://github.com/bojing951-hash/investment-agent.git
 cd investment-agent
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
-cp .env.example .env        # 按需填入 Key(不填也能采集大部分数据,见指南)
+cp .env.example .env        # 按需填 Key(免 Key 可采集;但缺 FRED Key 时 Gate A 必 FAIL、研究问答被拒,见指南 FAQ Q1)
 python3 run_weekly.py       # 第一次数据采集(13 步流水线,数分钟)
 
 # 打开本地研究工作台(可选):
@@ -75,14 +75,16 @@ python3 run_weekly.py       # 第一次数据采集(13 步流水线,数分钟)
 
 **开发中/已知限制**(如实声明,不夸大): 德国/法国国债与股指、中国 OMO/资金通道、
 东京 CPI 采集通道待建;报告历史对照列待建;事件/新闻研究通道待建;月/季报提示词
-仍为旧版人设(12-05 前改革);克隆仓库**不含历史数据**,序列须自行采集积累。
+仍为旧版人设(12-05 前改革);克隆仓库**不含历史数据积累**(仅 3 个单日示例采集档),
+序列须自行采集积累;**免 FRED Key 首跑必然 Gate A FAIL**(美国宏观核心缺失),研究
+问答会被如实拒答、脚本退出码 1——配 Key 后恢复,详见指南 FAQ Q1。
 
 ## 数据来源(全部免费公开源)
 
 | 数据 | 来源 | Key |
 |---|---|---|
 | 美股/全球行情 | Yahoo Finance | 不需要 |
-| 美国宏观序列/利率预期 | FRED | `FRED_API_KEY`(推荐) |
+| 美国宏观序列/利率预期 | FRED | `FRED_API_KEY`(研究问答实际依赖——Gate A 核心指标来源,免 Key 必 FAIL) |
 | A股/港股/中国宏观 | akshare / tushare | `TUSHARE_TOKEN`(可选) |
 | 日本国债/政策利率、欧元区利率 | 日本财务省/BOJ、ECB 公开数据 | 不需要 |
 | 新闻摘要 | Finnhub | `FINNHUB_API_KEY`(可选) |
@@ -91,7 +93,7 @@ python3 run_weekly.py       # 第一次数据采集(13 步流水线,数分钟)
 ## 命令速查
 
 ```bash
-python3 run_weekly.py                 # 数据采集+快照+校验(13步,无需任何Key)
+python3 run_weekly.py                 # 数据采集+快照+校验(13步;免Key可跑,缺FRED Key时Gate A FAIL→退出码1,属预期)
 python3 scripts/report_generator.py   # 生成 AI 周报(需 GLM_API_KEY)
 bash run_daily.sh                     # 采集入口脚本(自动定位项目根/虚拟环境,可移植)
 streamlit run app.py                  # 本地研究工作台(网页)

@@ -69,6 +69,11 @@ check("README链接公开样例与用户指南",
       'examples/' in readme and 'docs/USER_GUIDE.md' in readme
       and os.path.isfile(os.path.join(ROOT, 'examples', 'README.md'))
       and os.path.isfile(os.path.join(ROOT, 'docs', 'USER_GUIDE.md')))
+# D验收(2026-11-08): 文档承诺必须与免Key现实一致——不再无条件'无需任何Key',
+# 且直说缺FRED Key⇒Gate A必FAIL⇒问答拒答;仓库数据声明对齐"仅3个示例档"
+check("README不再无条件宣称'无需任何Key'", '无需任何' not in readme)
+check("README直说免FRED Key首跑Gate A FAIL", '必然 Gate A FAIL' in readme)
+check("README仓库数据声明对齐现实(仅示例采集档)", '示例采集档' in readme)
 
 print("═" * 60)
 print("[2] W4 用户文档/配置模板")
@@ -86,6 +91,10 @@ check("指南覆盖FAQ八问(无Key/源失败/无历史/Gate A/经济体不全/�
       all(k in guide for k in ('没有任何 API Key', '不可访问', '没有历史数据',
                                'Gate A FAIL', '经济体数据不全', '报告没生成',
                                '如何更新软件', '误覆盖')))
+check("指南Q1直说免FRED Key⇒Gate A必FAIL⇒问答拒答",
+      '必然 FAIL' in guide and '拒答' in guide and '不是你的环境坏了' in guide)
+check("指南FAQ新增Q10/Q11(免Key退出码预期/同日重跑修订机制)",
+      'Q10' in guide and 'Q11' in guide and '--allow-revision' in guide)
 envx = open(os.path.join(ROOT, '.env.example'), encoding='utf-8').read()
 check(".env.example在场且无真实凭证", '=' in envx and not re.search(
     r'=(sk-|[A-Za-z0-9]{20,})', envx.replace('=http', '').replace('=你的', '')))

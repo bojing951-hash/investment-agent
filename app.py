@@ -107,7 +107,7 @@ def page_market():
     sel = st.selectbox('选择资产', options,
                        format_func=lambda o: f"{o['label']}({o['metric_id']})",
                        index=[o['metric_id'] for o in options].index(default))
-    series, err = wd.metric_series(sel, SNAP)
+    series, err = wd.metric_series(sel['metric_id'], SNAP)
     if series is None:
         st.warning(f'无历史序列: {err}')
         return
@@ -145,7 +145,7 @@ def page_history():
         return
     sel = st.selectbox('选择指标', options,
                        format_func=lambda o: f"{o['label']}({o['metric_id']})")
-    series, err = wd.metric_series(sel, SNAP)
+    series, err = wd.metric_series(sel['metric_id'], SNAP)
     if series is None:
         st.warning(f'无历史序列: {err}')
         return
@@ -153,7 +153,7 @@ def page_history():
     _render_series(series, window)
     st.subheader('跨指标对比')
     sel2 = st.selectbox('对比指标(叠加显示)', ['(不对比)'] + [o['metric_id'] for o in options])
-    if sel2 != '(不对比)' and sel2 != sel:
+    if sel2 != '(不对比)' and sel2 != sel['metric_id']:
         s2, err2 = wd.metric_series(sel2, SNAP)
         if s2 is None:
             st.warning(f'对比序列不可用: {err2}')

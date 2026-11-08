@@ -187,6 +187,8 @@ def metric_series(metric_id, snapshot=None, root=None):
     """页面三: 本地真实历史序列。优先快照 series_store,否则按注册表 source
     找最新采集档走 research_history_query.load_metric_series。
     返回 {'metric_id','label','unit','dates','values','source'} 或 (None, 原因)。"""
+    if isinstance(metric_id, dict):  # UI 下拉传入 option 对象时取其 id(2026-11-08 D验收回归)
+        metric_id = metric_id.get('metric_id')
     registry = load_registry(root)
     m = registry['by_id'].get(metric_id)
     if m is None:

@@ -94,6 +94,10 @@ check('fmt_change pct/pp/bp/缺',
 s, err = wd.metric_series('SPX', SYN_SNAP)
 check('序列走快照series_store', s is not None and s['dates'] == SYN_SNAP['series_store']['SPX']['dates']
       and 'series_store' in s['source'], f"s={s and s['source']} err={err}")
+# D验收回归(2026-11-08): UI下拉把option dict整个传入不得崩(曾致历史页TypeError)
+s_d, _e_d = wd.metric_series({'metric_id': 'SPX', 'label': '标普500', 'unit': '点'}, SYN_SNAP)
+check('metric_series接受UI选项dict(D阻断回归)', s_d is not None and s_d['metric_id'] == 'SPX'
+      and s_d['dates'] == s['dates'], f"s_d={s_d}")
 s2, err2 = wd.metric_series('JGB10Y', SYN_SNAP)
 check('japan单点指标如实报无序列',
       s2 is None and ('单点' in err2 or '无历史序列' in err2), err2 or '')

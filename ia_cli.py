@@ -51,6 +51,8 @@ ENV_KEYS = (  # doctor 只报"已配置/未配置",永不打印值
     ('YF_PROXY', 'yfinance 代理(可选)'),
 )
 ARCHIVE_DOUBLE_NEST = 'research_archive/query_history'  # research_archive._collection_dir 再拼一层
+# P0-1: update 结果信封的关键行筛(⛔/❌/Traceback/ERROR/失败/错误,大小写兼顾)
+_CRITICAL_LINE_RE = re.compile(r'⛔|❌|Traceback|ERROR|失败|错误', re.IGNORECASE)
 
 
 # ══ 输出信封 ═════════════════════════════════════════════════════════
@@ -318,20 +320,28 @@ def cmd_update(args):
     cmd = [sys.executable, os.path.join(ROOT, 'run_weekly.py')]
     if args.allow_revision:
         cmd.append('--allow-revision')
-    print(json.dumps({'ok': True, 'capability': 'update', 'engine_root': ROOT,
-                      'notice': '开始运行 run_weekly.py,完成后输出结果摘要(透传退出码)'},
-                     ensure_ascii=False))
+    # P0-1 契约修复: stdout 全程只输出一个 JSON 信封(SKILL.md「输出一律为单个
+    # JSON 对象」)。开始提示走 stderr(人读进度,机器不解析)。
+    print(f'开始运行 run_weekly.py(引擎根 {ROOT}),完成后输出结果摘要(透传退出码)',
+          file=sys.stderr)
     try:
-        proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+        # errors='replace': 子进程输出非 UTF-8 字节时以替换符入 tail,
+        # 不让 UnicodeDecodeError 裸崩吞掉结果信封与退出码(2026-11-09 复现缺陷)
+        proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                              errors='replace')
     except OSError as e:
         emit(envelope('update', False, {},
                       error=('spawn_failed', f'无法启动 run_weekly.py: {e}', None)),
              exit_code=1)
-    tail = (proc.stdout or '').strip().splitlines()[-40:]
+    lines = (proc.stdout or '').strip().splitlines()
+    # critical_tail: 40 行 output_tail 会滚掉早先的根因行(如步骤9的⛔拒写),
+    # 关键行单独留底(大小写兼顾),保证 ⛃/❌/Traceback/ERROR/失败/错误 仍可见
+    critical_tail = [l for l in lines if _CRITICAL_LINE_RE.search(l)][-10:]
     payload = envelope('update', proc.returncode == 0, {
         'exit_code': proc.returncode,
         'exit_semantics': '0=全部关键步骤成功(非关键可降级); 1=任一关键步骤失败或被跳过',
-        'output_tail': tail,
+        'output_tail': lines[-40:],
+        'critical_tail': critical_tail,
         'stderr_tail': (proc.stderr or '').strip().splitlines()[-10:]})
     emit(payload, exit_code=proc.returncode)
 

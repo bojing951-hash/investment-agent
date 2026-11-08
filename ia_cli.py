@@ -466,7 +466,7 @@ def cmd_compare(args):
         if len(ids) != 2:
             emit(envelope('compare', False, {},
                           error=('bad_metrics', f'--metrics 需恰好两个指标,收到: {ids}',
-                                 '如 --metrics UST_10Y,JGB10Y')), exit_code=2)
+                                 '如 --metrics SPX,GOLD_F')), exit_code=2)
     snap, reg, note = load_context()
     if snap is None:
         emit(envelope('compare', False, {},
@@ -491,11 +491,28 @@ def cmd_compare(args):
                                  '运行不带 --metric 的 history 查看支持序列的指标')),
                  exit_code=1)
         import correlation_calculator as cc
-        paired, common = cc.paired_returns(
-            {'dates': sa['dates'], 'values': sa['values']},
-            {'dates': sb['dates'], 'values': sb['values']})
-        corr = cc.pearson(*paired) if paired else None
         import research_history_query as rhq
+        metas = []
+        for sid in ids:
+            metas.append(reg['by_id'].get(sid) or {})
+        fam_a, _sa = unit_family(metas[0].get('unit', ''), metas[0].get('asset_class', ''))
+        fam_b, _sb = unit_family(metas[1].get('unit', ''), metas[1].get('asset_class', ''))
+        # P0-3: other 族无可靠变化口径→结构化拒绝(与无序列拒绝同 rc=1 语义)
+        if fam_a == 'other' or fam_b == 'other':
+            bad = [{'metric': ids[i], 'unit_family': fam, 'unit': metas[i].get('unit')}
+                   for i, fam in ((0, fam_a), (1, fam_b)) if fam == 'other']
+            emit(envelope('compare', False, {},
+                          error=('incomparable_units',
+                                 f'指标单位族不可比(无可靠变化口径,拒绝混算): {bad}',
+                                 'other 族不能进单位感知变化相关;换用价格/利率/计数族'
+                                 '指标对,或用 history 分别取原序列')),
+                 exit_code=1)
+        # P0-3 单位感知变化相关: 利率→pp/价格→pct,修复利率×价格混算 pct
+        paired, common = cc.paired_unit_changes(
+            {'dates': sa['dates'], 'values': sa['values']}, fam_a,
+            {'dates': sb['dates'], 'values': sb['values']}, fam_b)
+        corr = (cc.pearson(paired['changes_a'], paired['changes_b'])
+                if paired else None)
         sides = []
         for sid, s in ((ids[0], sa), (ids[1], sb)):
             m = reg['by_id'].get(sid) or {}
@@ -515,14 +532,44 @@ def cmd_compare(args):
                 iv = {'available': False, 'reason': 'interval_change 计算失败'}
             node['interval_change_common_window'] = iv
             sides.append(node)
+        basis_a = 'pp' if fam_a == 'rate' else 'pct'
+        basis_b = 'pp' if fam_b == 'rate' else 'pct'
         data = {'mode': 'metrics', 'sides': sides,
                 'alignment': {'n_common_observations': len(common),
+                              'n_level_observations': len(common),
+                              'n_change_pairs': len(common) - 1,
                               'common_first': common[0] if common else None,
-                              'common_last': common[-1] if common else None},
-                'pearson_returns': corr}
-        if paired and len(paired[0]) < 15:
-            warnings.append(f'共同观测日仅 {len(paired[0])} 个(<15),相关性统计意义不足,'
-                            '引擎口径要求如实警示')
+                              'common_last': common[-1] if common else None,
+                              'note': '水平窗=共同观测日数;变化窗=相邻观测对数'
+                                      '(少一个会话,如实并列);data.n_change_pairs='
+                                      '剔除 null/零基丢弃后实际参与相关的对数'},
+                'pearson_returns': corr,
+                'change_basis': {'a': basis_a, 'b': basis_b},
+                'n_change_pairs': paired['n_change_pairs'] if paired else 0,
+                'dropped_null': paired['dropped_null'] if paired else 0,
+                'zero_base_dropped': paired['zero_base_dropped'] if paired else 0}
+        if fam_a == 'count' or fam_b == 'count':
+            warnings.append('count 族序列按百分比(pct)近似,基数大,相对变化仅作'
+                            '量级参考(basis=count 近似已随 change_basis 标注)')
+        if paired and paired['n_change_pairs'] < 30:
+            warnings.append(f"变化对仅 {paired['n_change_pairs']} 对(<30),"
+                            '样本不足,短窗相关不外推')
+            data['sample_note'] = (f"n_change_pairs={paired['n_change_pairs']}<30,"
+                                   '样本不足,短窗相关性不可外推')
+        if paired and paired['n_change_pairs'] < 15:
+            warnings.append(f"变化对仅 {paired['n_change_pairs']} 个(<15),"
+                            '相关性统计意义不足,引擎口径要求如实警示')
+        freq_a, freq_b = metas[0].get('frequency'), metas[1].get('frequency')
+        if freq_a and freq_b and freq_a != freq_b:
+            warnings.append(f'mixed_frequency: 两侧频率不同({freq_a} vs {freq_b}),'
+                            '共同观测日交集由低频侧主导,解读须注意')
+        if len(common) >= 2:
+            gaps = [_date_gap_days(common[i - 1], common[i])
+                    for i in range(1, len(common))]
+            gaps = [g for g in gaps if g is not None]
+            if gaps and max(gaps) > 7:
+                warnings.append(f'date_gap: 共同观测窗内相邻观测最大间隔 '
+                                f'{max(gaps)} 天(>7),期间无共同观测,相关序列存在断点')
         gap = _date_gap_days(sa['dates'][-1], sb['dates'][-1])
         if gap is not None and gap > 3:
             warnings.append(f'两侧最新观测日相差 {gap} 天({sa["dates"][-1]} vs '

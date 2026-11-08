@@ -57,19 +57,98 @@ def load_series_store(snapshot):
     return (snapshot or {}).get('series_store') or {}
 
 
-def paired_returns(series_a, series_b):
-    """共同观测日内连接 → 收益率序列(算术对齐,不假设日历)。"""
-    da = {str(d)[:10]: float(v) for d, v in zip(series_a.get('dates', []),
-                                                series_a.get('values', []))}
-    db = {str(d)[:10]: float(v) for d, v in zip(series_b.get('dates', []),
-                                                series_b.get('values', []))}
+def unit_change(v0, v1, unit_family):
+    """P0-3 单位感知单步变化: 同族口径下 v0→v1 的变化量。
+
+    price → (v1/v0-1)*100(百分比 pct);rate → v1-v0(百分点 pp);
+    count → 百分比 pct(基数大,须标注 basis=count 近似);other → None(不可比)。
+    """
+    if v0 is None or v1 is None:
+        return None
+    if unit_family == 'price':
+        return (v1 / v0 - 1.0) * 100.0
+    if unit_family == 'rate':
+        return v1 - v0
+    if unit_family == 'count':
+        return (v1 / v0 - 1.0) * 100.0
+    return None
+
+
+def paired_unit_changes(series_a, unit_family_a, series_b, unit_family_b):
+    """P0-3: 共同观测日上的**单位感知**两侧变化序列。
+
+    与 paired_returns(全按价格 pct)不同,本函数按各自 unit_family 取变化口径
+    (rate→pp/price→pct/count→pct近似);pearson 在此变化序列上计算,修复利率×
+    价格混算 pct 的口径缺陷(Agent A 独立重算证实)。
+
+    配对纪律:
+    - 共同日期升序;任一侧值为 None 的观测对跳过(dropped_null);
+    - **双侧联合零基过滤**: 前值任一侧==0 → 该对丢弃(zero_base_dropped)——
+      修复两侧独立过滤导致的错位配对(ra[i] 与 rb[j] 不再一一对应)。
+
+    返回 (result|None, common);result:
+      {'changes_a', 'changes_b', 'dates'(变化日), 'basis_a'|'basis_b'('pct'|'pp'),
+       'family_a'|'family_b', 'n_change_pairs', 'dropped_null', 'zero_base_dropped'}
+    共同观测<3 → (None, common)。unit_family 任一侧为 other → ValueError
+    (调用方应先做结构化拒绝,此处 fail-loud 防混算溜进统计)。
+    """
+    for fam in (unit_family_a, unit_family_b):
+        if fam not in ('price', 'rate', 'count'):
+            raise ValueError(f"unit_family 不可比({fam!r}),拒绝混算(P0-3)")
+    da = {str(d)[:10]: v for d, v in zip(series_a.get('dates', []),
+                                         series_a.get('values', []))}
+    db = {str(d)[:10]: v for d, v in zip(series_b.get('dates', []),
+                                         series_b.get('values', []))}
     common = sorted(set(da) & set(db))
     if len(common) < 3:
         return None, common
-    ra = [da[common[i]] / da[common[i - 1]] - 1.0 for i in range(1, len(common))
-          if da[common[i - 1]] != 0]
-    rb = [db[common[i]] / db[common[i - 1]] - 1.0 for i in range(1, len(common))
-          if db[common[i - 1]] != 0]
+    ca, cb, dates = [], [], []
+    dropped_null = zero_base_dropped = 0
+    for i in range(1, len(common)):
+        a0, a1 = da[common[i - 1]], da[common[i]]
+        b0, b1 = db[common[i - 1]], db[common[i]]
+        if a0 is None or a1 is None or b0 is None or b1 is None:
+            dropped_null += 1
+            continue
+        if a0 == 0 or b0 == 0:      # 双侧联合零基: 任一侧前值为0该对整体丢弃
+            zero_base_dropped += 1
+            continue
+        ca.append(unit_change(a0, a1, unit_family_a))
+        cb.append(unit_change(b0, b1, unit_family_b))
+        dates.append(common[i])
+    result = {'changes_a': ca, 'changes_b': cb, 'dates': dates,
+              'basis_a': 'pp' if unit_family_a == 'rate' else 'pct',
+              'basis_b': 'pp' if unit_family_b == 'rate' else 'pct',
+              'family_a': unit_family_a, 'family_b': unit_family_b,
+              'n_change_pairs': len(ca),
+              'dropped_null': dropped_null,
+              'zero_base_dropped': zero_base_dropped}
+    return result, common
+
+
+def paired_returns(series_a, series_b):
+    """共同观测日内连接 → 收益率序列(算术对齐,不假设日历)。
+
+    P0-3 同步收紧: None 观测跳过;零基过滤改**双侧联合**(前值任一侧==0→该对
+    整体丢弃),修复两侧独立过滤导致的 ra/rb 错位配对(此前 zip 截断静默错位)。
+    全价格对(compute_all 12 对)行为基本不变。"""
+    da = {str(d)[:10]: v for d, v in zip(series_a.get('dates', []),
+                                         series_a.get('values', []))}
+    db = {str(d)[:10]: v for d, v in zip(series_b.get('dates', []),
+                                         series_b.get('values', []))}
+    common = sorted(set(da) & set(db))
+    if len(common) < 3:
+        return None, common
+    ra, rb = [], []
+    for i in range(1, len(common)):
+        a0, a1 = da[common[i - 1]], da[common[i]]
+        b0, b1 = db[common[i - 1]], db[common[i]]
+        if a0 is None or a1 is None or b0 is None or b1 is None:
+            continue
+        if a0 == 0 or b0 == 0:
+            continue
+        ra.append(a1 / a0 - 1.0)
+        rb.append(b1 / b0 - 1.0)
     return (ra, rb), common[1:]
 
 

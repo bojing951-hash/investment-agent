@@ -337,17 +337,18 @@ def cmd_update(args):
 
 
 def cmd_overview(args):
-    snap, reg, note = load_context()
-    if snap is None:
-        emit(envelope('overview', False, {}, snapshot=None,
-                      error=('no_snapshot', note, '先运行 python3 ia_cli.py update --yes 采集数据')),
-             exit_code=1)
+    # 用法校验先于快照加载: rc=2 与环境数据无关(无快照环境同样恒定)
     economies = [e.strip().upper() for e in re.split(r'[,\s]+', args.economy) if e.strip()]
     bad = [e for e in economies if e not in wd.ECONOMY_LABELS]
     if bad:
         emit(envelope('overview', False, {},
                       error=('bad_economy', f"未知经济体代码: {bad}",
                              f"可选: {sorted(wd.ECONOMY_LABELS)}")), exit_code=2)
+    snap, reg, note = load_context()
+    if snap is None:
+        emit(envelope('overview', False, {}, snapshot=None,
+                      error=('no_snapshot', note, '先运行 python3 ia_cli.py update --yes 采集数据')),
+             exit_code=1)
     warnings = []
     data = {'economies': economy_view(snap, reg, economies, warnings),
             'supported_hint': wd.SUPPORTED_CONCEPT_HINT}
@@ -430,12 +431,13 @@ def _date_gap_days(a, b):
 
 
 def cmd_compare(args):
-    snap, reg, note = load_context()
     warnings = []
-    if snap is None:
+    # 用法校验先于快照加载: rc=2 与环境数据无关(无快照环境同样恒定)
+    if not (args.economies or args.assets or args.metrics):
         emit(envelope('compare', False, {},
-                      error=('no_snapshot', note, '先运行 python3 ia_cli.py update --yes 采集数据')),
-             exit_code=1)
+                      error=('no_mode', '未指定比较模式',
+                             '--metrics A,B | --economies US,JP | --assets 三选一')), exit_code=2)
+    ecos = []
     if args.economies:
         ecos = [e.strip().upper() for e in re.split(r'[,\s]+', args.economies) if e.strip()]
         bad = [e for e in ecos if e not in wd.ECONOMY_LABELS]
@@ -444,6 +446,19 @@ def cmd_compare(args):
                           error=('bad_economies',
                                  f'需≥2个合法经济体代码,收到: {ecos}',
                                  f"可选: {sorted(wd.ECONOMY_LABELS)}")), exit_code=2)
+    ids = []
+    if args.metrics:
+        ids = [m.strip() for m in args.metrics.split(',') if m.strip()]
+        if len(ids) != 2:
+            emit(envelope('compare', False, {},
+                          error=('bad_metrics', f'--metrics 需恰好两个指标,收到: {ids}',
+                                 '如 --metrics UST_10Y,JGB10Y')), exit_code=2)
+    snap, reg, note = load_context()
+    if snap is None:
+        emit(envelope('compare', False, {},
+                      error=('no_snapshot', note, '先运行 python3 ia_cli.py update --yes 采集数据')),
+             exit_code=1)
+    if args.economies:
         data = {'mode': 'economies', 'economies': economy_view(snap, reg, ecos, warnings)}
         emit(envelope('compare', True, data, warnings, snapshot=snap))
     if args.assets:
@@ -453,11 +468,6 @@ def cmd_compare(args):
                 'note': '相关性≠因果;n<15 样本警示已由引擎随行(见各 pair 字段)'}
         emit(envelope('compare', True, data, warnings, snapshot=snap))
     if args.metrics:
-        ids = [m.strip() for m in args.metrics.split(',') if m.strip()]
-        if len(ids) != 2:
-            emit(envelope('compare', False, {},
-                          error=('bad_metrics', f'--metrics 需恰好两个指标,收到: {ids}',
-                                 '如 --metrics UST_10Y,JGB10Y')), exit_code=2)
         sa, err_a = wd.metric_series(ids[0], snap, ROOT)
         sb, err_b = wd.metric_series(ids[1], snap, ROOT)
         errs = [(ids[i], e) for i, e in enumerate((err_a, err_b)) if e]

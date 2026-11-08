@@ -11,3 +11,7 @@ venv/
 .env
 .env.*
 !.env.example
+
+# Skill 安装产物(install_skill.py 生成;单一权威源=.agents/skills/,副本不入库)
+.claude/
+engine-path.json

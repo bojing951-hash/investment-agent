@@ -664,18 +664,18 @@ with tempfile.TemporaryDirectory() as td:
     # 非关键(新闻)失败→降级运行: 正式步骤照常+观察记录不被阻止
     code, executed, ledger = run_pipeline_main(td, fail_scripts={'news_collector.py'},
                                                snapshot=copy.deepcopy(RE_PASS))
-    check("新闻失败(非关键)→exit 0+装配/校验/观察照常+allow=True",
+    check("新闻失败(非关键)→exit 0+装配/校验照常+allow=True(观察器MW-V1已下线)",
           code == 0 and 'data_assembler.py' in executed
           and 'data_validator.py' in executed
-          and 'daily_prediction_observer.py' in executed
+          and 'daily_prediction_observer.py' not in executed
           and ledger.get('allow_formal_report') is True, f"exit={code}")
 with tempfile.TemporaryDirectory() as td:
     # 非关键(相关性)失败→同上
     code, executed, ledger = run_pipeline_main(td,
                                                fail_scripts={'correlation_calculator.py'},
                                                snapshot=copy.deepcopy(RE_PASS))
-    check("相关性失败(非关键)→exit 0+allow=True(观察不被阻止)",
-          code == 0 and 'daily_prediction_observer.py' in executed
+    check("相关性失败(非关键)→exit 0+allow=True(观察器MW-V1已下线)",
+          code == 0 and 'daily_prediction_observer.py' not in executed
           and ledger.get('allow_formal_report') is True, f"exit={code}")
 with tempfile.TemporaryDirectory() as td:
     # 合法DEGRADED日(步骤全成)→allow=True(保留合理降级研究能力)

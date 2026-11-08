@@ -52,15 +52,17 @@ ANCHOR_JGB_OBS = "2026-11-04"
 ANCHOR_POLICY_OBS = "2026-09-01"
 
 # T2 合成值(全发明,显式标注;B3 §零.7 fixture 值域先例 JP 0.100/0.500)
+# MW-V1(2026-11-08): MB-9 计分制修复后概念"JGB 10Y"绑 JGB10Y(旧=JGB2Y 首命中
+# 误映射),合成装置补 JGB10Y 事实使双端闭合按正确期限计算。
 SYN = {"DFEDTARL": 3.9, "DFEDTARU": 4.1, "DFF": 4.0, "UST_2Y": 4.5,
        "UST_10Y": 4.8, "CURVE_2S10S": 0.3, "USDJPY": 150.0,
-       "JP_POLICY_RATE": 0.1, "JGB2Y": 0.5}
+       "JP_POLICY_RATE": 0.1, "JGB2Y": 0.5, "JGB10Y": 1.2}
 SYN_OBS_US = "2026-11-02"
 SYN_OBS_JP = "2026-11-04"
 SNAP_ID_SYN = "research_snapshot_20261102"
 # OP 预期(执行器 D-B2-09: result=v[0]−mean(v[1:]),round4)
 OP1_EXPECTED = round(SYN["JP_POLICY_RATE"] - (SYN["DFEDTARL"] + SYN["DFEDTARU"]) / 2, 4)
-OP2_EXPECTED = round(SYN["JGB2Y"] - SYN["UST_10Y"], 4)
+OP2_EXPECTED = round(SYN["JGB10Y"] - SYN["UST_10Y"], 4)
 OP3_EXPECTED = round(SYN["UST_10Y"] - SYN["UST_2Y"], 4)
 
 
@@ -97,6 +99,8 @@ def synthetic_closed_snapshot():
               "japan_20261102.json", calc_ref="合成fixture:发明值,非真实观测"),
         hfact("JGB2Y", SYN["JGB2Y"], SYN_OBS_JP, "japan_20261102.json",
               calc_ref="合成fixture:发明值,非真实观测"),
+        hfact("JGB10Y", SYN["JGB10Y"], SYN_OBS_JP, "japan_20261102.json",
+              calc_ref="合成fixture:发明值,非真实观测"),
     ]
     return {"snapshot_id": SNAP_ID_SYN,
             "research_as_of": "2026-11-02T12:00:00+08:00", "target_date": "20261102",
@@ -129,8 +133,8 @@ class TestT1RealChainAnchors(unittest.TestCase):
 
     def test_t12_mapper_real_registry_golden_question(self):
         """B3 注册效果锚: MB-8 由 ABSENT_REGISTRY(B5 时代 81 注册表)转为注册表命中
-        JP_POLICY_RATE;MB-9 现状=JGB2Y(FD-2 首命中误映射,REPORT §四登记,本断言
-        =现状锚——接线/映射修复轮翻转此断言即红,提示 consciously 更新)。"""
+        JP_POLICY_RATE;MB-9=MW-V1(2026-11-08)计分制修复后绑定期限正确的
+        JGB10Y(旧=JGB2Y 首命中误映射,FD-2 已闭合)。"""
         ir = eqm.map_question(GOLDEN_QUESTION, created_at=CREATED_AT,
                               as_of="2026-11-05")
         by_bid = {b["binding_id"]: b for b in ir["metric_bindings"]}
@@ -138,7 +142,7 @@ class TestT1RealChainAnchors(unittest.TestCase):
         self.assertEqual(by_bid["MB-8"]["metric_id"], "JP_POLICY_RATE")
         self.assertEqual(by_bid["MB-8"]["status"], "PENDING_EXECUTION")
         self.assertIsNone(by_bid["MB-8"]["absence_reason"])   # 非ABSENT_REGISTRY
-        self.assertEqual(by_bid["MB-9"]["metric_id"], "JGB2Y")  # FD-2 现状锚
+        self.assertEqual(by_bid["MB-9"]["metric_id"], "JGB10Y")  # MW-V1 期限修复锚
         self.assertEqual([op["op_id"] for op in ir["derived_operations"]],
                          ["OP-1", "OP-2", "OP-3"])
         self.assertTrue(all(op["status"] == "PENDING_EXECUTION"
@@ -193,7 +197,7 @@ class TestT2DualEndedClosure(unittest.TestCase):
 
     def test_t21_jp_bindings_resolved_with_provenance(self):
         by_bid = {b["binding_id"]: b for b in self.execution["ir"]["metric_bindings"]}
-        for bid, mid in (("MB-8", "JP_POLICY_RATE"), ("MB-9", "JGB2Y")):
+        for bid, mid in (("MB-8", "JP_POLICY_RATE"), ("MB-9", "JGB10Y")):
             b = by_bid[bid]
             self.assertEqual(b["metric_id"], mid)
             self.assertEqual(b["status"], "RESOLVED", bid)
@@ -217,7 +221,7 @@ class TestT2DualEndedClosure(unittest.TestCase):
         self.assertEqual(self.answer["n_grounded_values"], 11)
         text = self.answer["answer_text"]
         self.assertIn("MB-8 JP_POLICY_RATE = 0.1", text)
-        self.assertIn("MB-9 JGB2Y = 0.5", text)
+        self.assertIn("MB-9 JGB10Y = 1.2", text)
         self.assertIn(f"OP-1", text)
         self.assertIn(f"= {OP1_EXPECTED}", text)
         self.assertIn("无数据0项/不可计算0项", text)

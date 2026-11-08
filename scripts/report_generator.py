@@ -374,8 +374,11 @@ def sanitize_news(text):
         out.append(line)
     return '\n'.join(out)
 
-def generate_report(data_pack, framework=None, theses=None, prev_report=None, tech_notes=None, news_summary=None, views_block=None):
-    """调用智谱 GLM 生成周报(views_block: P2配置观点库,渲染自allocation_views.json)"""
+def generate_report(data_pack, framework=None, prev_report=None, tech_notes=None, news_summary=None):
+    """调用智谱 GLM 生成宏观研究周报。
+    MW-V1(2026-11-08 章程勘误): 移除 theses/views_block 输入——论点状态/配置观点/
+    预测裁决块属越位零件(PRODUCT-GOAL.md: 观点由用户形成,系统供证据),不再进
+    prompt也不再回写;load_theses/apply_status_updates 等机器保留为休眠历史档。"""
 
     today = datetime.now()
     # 计算本周的周一和周日
@@ -387,7 +390,9 @@ def generate_report(data_pack, framework=None, theses=None, prev_report=None, te
     system_prompt = load_prompt('system_prompt.md')
     style_constraint = load_prompt('style_constraints.md')
 
-    user_prompt = f"""请基于以下数据和分析框架，生成本周（{week_range}）的投资周报。
+    user_prompt = f"""请基于以下数据和分析框架，生成本周（{week_range}）的全球宏观与金融市场观察报告。
+本报告是研究材料：整理数据、识别变化、做跨经济体/跨资产比较、给出有证据支撑的研究性解释。
+观点与决策由读者自行形成——报告中不输出任何资产配置建议、评级、确信度或价格预测。
 
 {style_constraint}
 
@@ -396,9 +401,6 @@ def generate_report(data_pack, framework=None, theses=None, prev_report=None, te
 
 ## 上期报告摘要（供对比参考）
 {prev_report if prev_report else '无上期报告，这是第一期。'}
-
-## 配置观点库（上期各资产评级，供第五节各资产小节与第七节引用）
-{views_block if views_block else '观点库缺失，本周跳过配置观点，各资产小节不标注评级。'}
 
 ## 用户技术面观察
 {tech_notes if tech_notes else '用户未提供技术面笔记，技术面部分请标注[待用户补充]'}
@@ -413,137 +415,45 @@ def generate_report(data_pack, framework=None, theses=None, prev_report=None, te
 
 请严格按照以下结构输出：
 
-### 一、本周摘要（3-5句话概括核心变化）
+### 一、本周全球宏观概览（四经济体）
+按 美国 / 中国 / 欧元区 / 日本 分四小节：
+- 每个经济体用数据包中实际存在的数据概括关键宏观变量现状（增长/通胀/就业/货币政策等维度，有什么写什么）
+- 与上期可比数据有变化的，指出变化方向与幅度
+- 每小节末尾以"数据缺口:"开行列出该经济体本周缺失的通道或指标（数据包"数据源状态/非核心缺失"节有如实登记）；无缺失则写"数据缺口: 无"
+- 无重大变化的经济体如实说明平淡，不得制造变化
 
-### 二、宏观体制判断
-- 当前体制及判断依据
-- 与上周相比是否有变化
+### 二、全球资产概览
+（表格：资产名称、收盘价或水平值、周涨跌幅、关键信号；覆盖数据包中出现的全部资产类别——美股指数/A股港股/日欧股指/利率与收益率曲线/信用/美元/贵金属/能源/加密等，数据包没有的类别不凭记忆补）
 
-### 三、本周新闻叙事
-**主线新闻**：本周最重要的1-2条新闻事件及其市场影响
-**次要新闻**：其他值得关注的新闻（2-3条）
-**新闻驱动的市场变化**：哪些资产价格/板块因新闻而发生显著变化
+### 三、本周重要变化
+- 真正值得注意的宏观或市场变化，按重要性排序，每条给出数据依据
+- 区分"数据已证实的变化"与"方向性但幅度不大的变化"
+- 没有重大变化时如实说明，不得为凑内容制造叙事
 
-### 四、资产表现总览
-（整理为表格，包含资产名称、收盘价、周涨跌幅、关键信号）
+### 四、跨经济体/跨资产比较（至少1个真实比较）
+- 用数据包中的具体数字做至少一个跨经济体或跨资产的比较（例如: 美日政策利率差与日元走势、中美利差、实际利率与金价、风险偏好与信用利差——以数据包实际有的为准，不强求例子）
+- 说明比较的观测日期口径；相关≠因果，机制未证实处明确标注"研究假设"
 
-### 五、分资产深度分析
-（每个资产小节末尾加一行"配置观点: 评级|确信度★"，评级只能取: 超配/标配/低配/观望(标配=与理论基准一致的中性仓位,不用"中性"一词)；
-触发器纪律: 只有上方观点库标注"✅已触发"的引擎核验条件才可写成已触发,"❓待验证"的条件必须标注待验证,不得当作已发生,"⏳持续确认中"的条件须待连续周数满额才算触发；
-若本周该资产的升降级条件被引擎核验为已触发，才输出"调整提案"：动作与理由、证据及反证、风险与最大容忍损失、失效条件、下一复核日；未触发则只维持原评级；
-【研究链路要求】每个资产小节不得从体制评分直接跳到配置建议，须依次回答:
-当前宏观环境对该资产产生什么影响→传导机制是什么(无法量化的机制明确标注"研究假设",不得伪装成已证实事实)→这些影响是已经发生还是未来可能发生→市场价格是否已反映相关预期→有哪些相反力量(反证)→为什么当前评级合理(无充分新增证据时允许维持原观点)→什么新数据会改变评级→调整及失效条件(当前配置的调整触发器、失效条件与下一复核日,无充分新证据时输出"维持原观点+复核日"也是合法结论,不得为生成报告制造配置变化)。
-不得直接从资产相关性推断因果关系。)
+### 五、研究性解释
+- 本周重要变化的可能驱动因素，给出主要解释与至少一个竞争性解释
+- 变化若可能传导到其他经济体或资产，写明传导路径假设及其未证实之处
+- 严格区分三类内容并显式标注: 【事实】数据包可查证的数值 / 【推断】由数据支撑的推论 / 【假设】尚无数据支撑或未验证的解释
+- 用户技术面观察（如提供）在此结合讨论，标注[用户提供]；未提供则不虚构技术面内容
 
-#### 5.1 美股
-- 指数表现与技术位置
-- 关键驱动因素
-- 技术面分析（结合用户技术面笔记，如用户已提供关键支撑/阻力/形态则直接使用，未提供则标注[待用户补充]）
+### 六、后续观察
+- 值得继续跟踪的变量/事件及跟踪原因
+- 需要监控的关键阈值（用数据包口径给出当前值与阈值）
 
-#### 5.2 利率与久期
-- 收益率曲线变化
-- 实际利率与通胀预期分解
-- 对其他资产的影响
-
-#### 5.3 信用市场
-- HY OAS 水平及阈值距离
-- 分评级利差变化
-- 私募信贷/CLO 风险信号
-
-#### 5.4 美元
-- DXY 水平与趋势
-- "Sell America"信号检查
-- 对新兴市场和商品的影响
-
-#### 5.5 贵金属
-- 金价驱动分解（实际利率 vs 避险 vs 美元）
-- 金银比信号
-- ETF/央行持仓（如有数据）
-
-#### 5.6 能源
-- 油价水平与供需
-- Brent-WTI 价差
-- 对通胀预期的传导
-
-#### 5.7 A股与港股
-- 指数表现
-- 南向资金动态
-- 成交量与底部条件检查
-
-#### 5.8 加密货币
-- BTC 表现与趋势信号
-
-### 六、核心矛盾与风险
-- 列出 2-3 个当前市场最主要的矛盾
-- 每个矛盾的两面力量和可能的解决方向
-
-### 七、下周关注
-- 关键事件日历
-- 需要监控的阈值和触发条件
-- 情景概率判断
-
-### 八、论点追踪
-{theses if theses else '暂无历史论点'}
-
-请根据本周数据，对每个论点进行以下判断：
-1. 确信度是否需要调整（升/降/维持）
-2. 是否触发了升级或降级条件
-3. 状态是否需要变更（进行中/待观察/已验证/已失效）
-4. 用一句话说明本周证据
-5. 报告正文全部结束后，必须另起一行输出"论点状态块"（HTML注释包裹，渲染时不可见，供脚本解析回写thesis.json），
-   格式严格如下，每个论点一行、共9行、一行一个JSON对象、不得包裹代码块围栏：
-
-<!--THESIS_STATUS
-{{"id":1,"status":"进行中","confidence":3,"note":"≤40字本周证据","evidence":[{{"metric":"macro.data.TIPS_10Y.value","value":2.1,"obs_date":"2026-10-09","mechanism":"利率与流动性"}}]}}
-{{"id":2,"status":"待观察","confidence":2,"note":"..."}}
-THESIS_STATUS-->
-
-status只能取: 进行中/待观察/已验证/已失效；confidence为1-5整数；id与thesis.json一致。
-evidence数组可选但强烈建议提供，格式与配置观点块相同(锚点指标ID+数值+观测日+机制类别)，程序按同一套证据分级v2规则核验：
-- 【状态终态门禁】→已失效/→已验证为终态判定：须该论点的失效/升级触发器被引擎核验为已触发，或本周≥2项新增独立支持证据通过程序验证；否则保留原状态，模型判断降级为提案留档。
-- 【终态退出门禁】已失效/已验证论点不得直接改回进行中/待观察：重新启用须≥2项新增独立证据且原失效条件经引擎复核未触发；已验证重新开启须invalidation触发器已触发或≥2项新增独立反证。实质上形成新假设时应建议创建关联新版本论点（在note中标注），不得改写原论点历史结论。
-- 【确信度门禁】上调不得超过程序验证星级；下调不受限。
-- 论点引用历史数值时必须在note中带原始观测日期(如"实际利率2.5%(2026-09-30观测)")——同一指标旧值再次引用不算新增证据。
-- 论点失效不自动改变关联资产评级：关联观点须各自过证据门禁。
-
-6. 紧跟THESIS_STATUS块之后，输出"配置观点块"（HTML注释，同格式，每个资产一行、共9行）：
-
-<!--ALLOCATION_STATUS
-{{"id":1,"rating":"标配","confidence":2,"note":"≤40字本周理由","evidence":[{{"metric":"macro.data.CCC_OAS.value","value":10.30,"obs_date":"2026-10-15","mechanism":"信用"}}]}}
-{{"id":2,"rating":"低配","confidence":3,"note":"..."}}
-ALLOCATION_STATUS-->
-
-rating只能取: 超配/标配/低配/观望（不用"中性"，中性=标配）；id与allocation_views.json一致（1美股/2利率久期/3信用/4美元/5贵金属/6能源/7A股港股/8加密/9现金短债）。
-确信度变化与评级变化相互独立：评级未变但证据增减时应调confidence（1-5整数），二者程序会分别记录。
-【证据分级v2程序校验】evidence数组为结构化证据，每项含metric(锚点指标ID)/value(数值,须与观点块或数据包中该指标的锚点值一致)/obs_date(观测日,必填且须与锚点观测日完全一致——缺失、不可解析、与锚点不符或以采集日as_of替代的证据整项拒收,不参与星级与评级)/mechanism(机制类别:增长/通胀/利率与流动性/信用/避险与估值/供应与库存/资金流)；可加"contrary":true表示反证、"explained":true表示反证已解释、"neutral":true表示相关但不能直接支持方向(数值照常核验,但不计入支持数量)。
-程序按以下规则核验并执行门禁（不满足会被拒写）：
-- 同一底层指标多次引用只计1项独立证据；同一月度指标连续四周重复引用不等于多次独立观察。
-- 星级门槛: 1★=1项 / 2★=2项 / 3★=3项且覆盖2类机制 / 4★=4项且3类机制且跨2个观察期 / 5★=5项且3类机制且跨3个观察期（5★不要求必须存在反证；但若存在重大反证，必须已解释——存在未解释反证时封顶3★）。反对证据(contrary)不计入支持数量，只参与反证校验。
-- 【评级变更门禁】新评级须满足: 引擎核验为"✅已触发"的同向触发器，或≥2项通过程序验证的新增evidence；否则保留原评级、提案留档。被拒提案会在观点块公示，勿无新证据重复提交。
-- 【确信度门禁】上调不得超过程序验证星级；下调不受限。评级变更/确信度上调必须走上述门禁，评级变化是需证据支持的研究判断修正，不是数值状态更新。
-仅当本周发生评级变更时，在该行附加预测字段（方向+期限+可计算规格）：
-{{"id":5,"rating":"标配","confidence":3,"note":"...","pred":"若XXX则两周内YYY","pred_weeks":2,"pred_metric":"macro.data.CCC_OAS.value","pred_op":">=","pred_target":10.0,"pred_mode":"expiry"}}
-pred_metric/pred_op/pred_target为可选的机器可校验规格（锚点指标ID、比较符>=/<=/>/<、目标值）；pred_mode取expiry(截止日达到,默认)或touch(观察期内触及,两者不得混淆)；价格类touch预测可附pred_basis指定比较口径: close(收盘价达到,默认)/high(盘中最高触及)/low(盘中最低触及)——"盘中触及"必须写high/low口径，收盘价不能证明盘中未触及；还可附前提规格pred_premise_metric/pred_premise_op/pred_premise_target(条件预测: 前提兑现才开始结果观察期,截止日不顺延)。带完整规格的预测到期由程序按每日观察记录自动裁决。
-
-7. 若观点库中有"⏰已到期"的预测，先在报告第七节给出裁决，并在最后输出预测裁决块：
-
-<!--PREDICTION_STATUS
-{{"pred_id":1,"status":"hit","note":"GOLD 4310≥4300(观测日2026-10-16)"}}
-PREDICTION_STATUS-->
-
-status只能取: hit(已命中)/miss(已证伪)/inconclusive(无法裁决)/not_yet_triggered(前提未发生,预测未生效)。
-裁决纪律:
-- note必须引用具体数值与观测日作为证据；无证据或无数值的hit/miss会被程序拒绝回写。
-- 引用的数值与观测日必须落在该预测的观察窗内(观察起点~截止日)且与已记录的观测吻合；窗口结束后的数据不得用于裁决。
-- expiry模式在截止日未到时不得提前裁决；touch模式触及即可判hit。
-- 引擎已按观察记录自动裁决的预测，你的裁决只能与之一致，不得用自然语言说明覆盖程序客观结果。
-- 前提条件未兑现的预测应判not_yet_triggered或inconclusive并说明，不得判hit。
+### 七、数据与来源说明
+- 研究时点: 报告生成时间与数据包生成时间
+- 各通道数据来源与质量状态（依据数据包"数据源状态"节）
+- 本周数据缺口清单（与第一节各经济体"数据缺口"一致）
+- 报告基于数据的部分与基于解释的部分可区分
 
 注意：
-- 所有数字精确到小数点后两位
-- 每个判断标注确信度（★ 到 ★★★★★）
-- 技术分析部分标注"[待用户补充]"
+- 所有数字精确到小数点后两位，且必须与数据包/锚点一致，不得引入数据包之外的数字冒充本周数据
 - 如果数据不足以支撑某个判断，明确说明
+- 技术分析部分如无用户笔记则标注"[待用户补充]"
 """
 
     print("\n🤖 正在调用智谱 GLM 生成周报...")
@@ -1335,11 +1245,9 @@ def generate_weekly_report():
     # 第0步：加载分析框架
     framework = load_framework()
 
-    # 第0.5步：加载论点
-    theses = load_theses()
-
-    # 第0.55步：加载配置观点库(P2) — 连同**当日**锚点一并喂给引擎做触发器核验
-    views_data = allocation_engine.load_views()
+    # MW-V1(2026-11-08 章程勘误): 论点库/配置观点库加载下线——两者只服务于
+    # prompt注入与状态回写,均属越位零件(PRODUCT-GOAL.md: 观点由用户形成)。
+    # load_theses()/allocation_engine 保留为休眠历史档,历史JSON不再被消费。
 
     # 第0.85步(FIX2-01): 发布中断恢复——上次运行若中断于"正式文件已替换、
     # 主状态未写"的中间态,以主状态(权威)自备份恢复,未完成发布产物隔离为
@@ -1367,14 +1275,6 @@ def generate_weekly_report():
     print(f"✅ 预检通过: 快照={os.path.basename(pfx['snapshot_path'])} "
           f"Gate A={gate_a} | 锚点/数据包/锚点prompt均为当日且与权威快照绑定")
 
-    views_block = allocation_engine.render_views_block(
-        views_data, today_str=datetime.now().strftime('%Y-%m-%d'),
-        anchors=latest_anchors) if views_data else ""
-    if views_data:
-        print(f"   配置观点: {len(views_data.get('views', []))} 资产 / "
-              f"{len(views_data.get('predictions', []))} 预测"
-              f"({len(allocation_engine.due_predictions(views_data))} 条已到期待裁决)")
-
     # 第0.6步：加载上期报告
     prev_report = load_previous_report()
 
@@ -1400,8 +1300,8 @@ def generate_weekly_report():
         data_pack = anchor_block + "\n\n---\n\n" + data_pack
         print(f"✅ 数据锚点已加载 ({len(anchor_block)} 字符, 当日{today_ymd})")
 
-    # 第2步：生成报告
-    report = generate_report(data_pack, framework, theses, prev_report, tech_notes, news_summary, views_block)
+    # 第2步：生成报告(MW-V1: 不再注入论点/观点库,签名收窄)
+    report = generate_report(data_pack, framework, prev_report, tech_notes, news_summary)
     if not report:
         print("\n❌ 报告生成失败")
         sys.exit(1)
@@ -1443,13 +1343,13 @@ def generate_weekly_report():
             f'Gate A={gate_a}, Gate B={classification}(最终质量FAIL)')
         print(f"\n⛔ 最终质量FAIL(Gate A={gate_a}, Gate B={classification}) — "
               f"报告已标记为未验证: {os.path.basename(unval_path)}(正式文件未受影响)")
-        print("   不回写thesis.json/allocation_views.json;处置后重跑(数值错误须修复数据或重新生成)")
+        print("   未发布任何状态;处置后重跑(数值错误须修复数据或重新生成)")
         sys.exit(3)
     if final_quality == 'DEGRADED':
         _append_degraded_footer(cand_path, gate_a, classification,
                                 rp.gate_reason_desc(pfx['snapshot']))
         print(f"⚠️ 最终质量DEGRADED(Gate A={gate_a}, Gate B={classification}) — "
-              f"报告尾部已附降级披露,回写按既有规则继续")
+              f"报告尾部已附降级披露")
 
     # 第3.58步(FIX2-01/IA-DEF-001): 候选状态**独立文件**落盘——绝不先动主状态。
     # 旧实现先把主report_status改成published=False再发布,若os.replace失败,
@@ -1518,10 +1418,10 @@ def generate_weekly_report():
             pass
     print(f"\n📄 正式报告已发布: {final_md} (最终质量={final_quality})")
 
-    # 第3.6步：论点状态回写 — 校验分级FAIL则禁止回写,
-    # 防止基于错误数字的升降级污染thesis.json/allocation_views.json
-    # (第四轮P0-4: 两类长期状态共用同一批已验证锚点与统一研究截止时间)
-    apply_status_updates(report, classification, anchors=latest_anchors)
+    # 第3.6步 MW-V1(2026-11-08 章程勘误): 论点/观点/预测状态回写下线——
+    # 预测池/命中裁决/超配低配/论点星级属越位零件,报告不再解析状态块,也不写
+    # thesis.json/allocation_views.json(历史档案冻结保留)。apply_status_updates
+    # 及其解析/门禁机器保留为休眠代码,供历史测试与档案读取。
 
     # 第4步：预览前30行
     print("\n" + "=" * 60)

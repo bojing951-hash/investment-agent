@@ -300,8 +300,8 @@ with tempfile.TemporaryDirectory() as td:
           and v['status']['final_quality'] == _exp_fq,
           f"exit={code} glm={glm.calls} "
           f"fq={v['status'].get('final_quality') if v else None}")
-    check("E2E-01d 分级'PASS'回写调度1次(真实apply,长期状态沙箱内)",
-          applied == ['PASS'] and os.path.exists(os.path.join(out, f'weekly_report_{DAY}.md')),
+    check("E2E-01d 分级'PASS'零回写(MW-V1越位零件下线,长期状态沙箱内不动)",
+          applied == [] and os.path.exists(os.path.join(out, f'weekly_report_{DAY}.md')),
           f"applied={applied}")
 
 # ════════════════════════════════════════════════════════════════════
@@ -542,9 +542,9 @@ with tempfile.TemporaryDirectory() as td:
     v = formal(out, DAY)
     # 回写调度按既有契约(=test_gate_chain_p01§DEGRADED→回写继续): Gate B=PASS
     # 授权内容回写,调用恰1次;报告最终质量以状态final_quality='DEGRADED'披露
-    check("E2E-09 GateA=DEGRADED+GateB=PASS→exit0+最终DEGRADED发布+回写不被阻断(恰1次)",
+    check("E2E-09 GateA=DEGRADED+GateB=PASS→exit0+最终DEGRADED发布+零回写(MW-V1)",
           code == 0 and v is not None and v['status']['final_quality'] == 'DEGRADED'
-          and len(applied) == 1,
+          and applied == [],
           f"exit={code} final={v and v['status']['final_quality']} applied={applied}")
 
 # ════════════════════════════════════════════════════════════════════

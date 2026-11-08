@@ -531,7 +531,9 @@ with tempfile.TemporaryDirectory() as td:
           # DEGRADED(前=PASS×2;gate_b 不受 Gate A 面影响)
           status['final_quality'] == 'DEGRADED' and status['gate_a'] == 'DEGRADED'
           and status['gate_b'] == 'PASS', str(status))
-    check("PASS→状态回写执行1次", len(applied) == 1 and applied[0][0] == 'PASS', str(applied))
+    check("PASS→不回写长期状态(MW-V1越位零件下线)",
+          # MW-V1(2026-11-08 章程勘误): 论点/观点/预测状态块与回写下线
+          applied == [], str(applied))
     check("DEGRADED→降级footer在场(GAP08前PASS日无footer)",
           '数据质量降级披露' in open(rep, encoding='utf-8').read())
 
@@ -556,7 +558,7 @@ with tempfile.TemporaryDirectory() as td:
           code == 0 and status['final_quality'] == 'DEGRADED', f"exit={code} {status}")
     check("DEGRADED→报告尾部可见降级披露",
           '数据质量降级披露' in text and 'Gate A' in text and 'DEGRADED' in text)
-    check("DEGRADED→回写按既有规则继续", len(applied) == 1, str(applied))
+    check("DEGRADED→发布成功且不回写(MW-V1)", applied == [], str(applied))
 
 # Gate合成穷举(AC-06)
 combos = [(('PASS', 'PASS'), 'PASS'), (('PASS', 'DEGRADED'), 'DEGRADED'),

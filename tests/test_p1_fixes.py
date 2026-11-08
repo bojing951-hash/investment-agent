@@ -65,16 +65,19 @@ print("\n[2] 提示词热加载")
 from report_generator import load_prompt
 
 sp = load_prompt('system_prompt.md')
-check("系统提示词为跨资产策略师角色(第二轮#4)", "全球宏观首席研究员兼跨资产策略师" in sp, sp[:60])
+# MW-V1(2026-11-08 章程校准): 系统提示词改为研究助理角色,配置倾向/星级门槛/
+# 论点追踪指令下线(越位零件,PRODUCT-GOAL.md勘误),事实/解释/禁止用语纪律保留。
+check("系统提示词为全球宏观研究助理角色(MW-V1)", "全球宏观研究助理" in sp, sp[:60])
 check("声明不管理真实账户不执行交易", "不管理真实账户" in sp and "不执行交易" in sp)
-check("含六步研究流程", "核对时点" in sp and "检查反证" in sp and "提出配置倾向" in sp)
+check("含职责边界与观点归属(读者自行形成)", "职责边界" in sp and "自行形成" in sp)
 check("秘书角色与账户职责已移除", "秘书" not in sp and "下单" not in sp and "未获取用户确认" not in sp)
-check("含证据分级v2门槛", "【证据分级v2】" in sp and "5★" in sp and "3类机制" in sp)
-check("含反证封顶与缺失不评级", "最高3★" in sp and "不评级" in sp)
-check("含禁止用语v2清单", "【禁止用语v2】" in sp and "板上钉钉" in sp and "risk-free" in sp)
-check("含数值绑定纪律", "指标ID" in sp and "不得将相关性直接解释为因果关系" in sp)
-check("含配置建议要素", "宏观依据" in sp and "传导机制" in sp and "无充分新增证据时允许维持原观点" in sp)
-check("保留输出语言/格式尾部", "输出语言：中文" in sp and "输出格式：Markdown" in sp)
+check("无星级/证据分级v2门槛(MW-V1下线)", "★" not in sp and "证据分级v2" not in sp)
+check("无配置倾向六步链路(MW-V1下线)",
+      "提出配置倾向" not in sp and "配置观点" not in sp and "论点追踪" not in sp)
+check("含三类内容显式标注纪律", "【事实】" in sp and "【推断】" in sp and "【假设】" in sp)
+check("含竞争性解释纪律", "竞争性解释" in sp)
+check("含禁止用语清单", "买入" in sp and "目标价" in sp and "止损" in sp)
+check("含数值绑定纪律", "数据包" in sp and "不得凭记忆" in sp and "相关≠因果" in sp)
 mp = load_prompt('monthly_review_prompt.md')
 qp = load_prompt('quarterly_outlook_prompt.md')
 check("月报提示词同为策略师+显式免责", "跨资产策略师" in mp and "不管理真实账户" in mp and "不执行交易" in mp)
@@ -84,8 +87,12 @@ check("月报提示词含预览纪律", "【预览】" in mp)
 check("季报提示词同为策略师+显式免责", "跨资产策略师" in qp and "不管理真实账户" in qp and "不执行交易" in qp)
 check("季报提示词无下单/审批类指令", "下单" not in qp and "审批" not in qp)
 sc_txt = load_prompt('style_constraints.md')
-check("硬性约束10条完整", "完美验证" in sc_txt and "30Y收益率" in sc_txt and "10." in sc_txt)
-check("硬约束挂接证据分级v2", "证据分级v2" in sc_txt and "禁止用语v2" in sc_txt)
+# MW-V1: 硬约束10条改钉研究周报契约(数值绑定/缺口披露/三类标注/比较/相关非因果/
+# 30Y≠房贷/零越位输出),星级与论点追踪约束下线。
+check("硬性约束10条完整", "数据缺口" in sc_txt and "30年" in sc_txt and "10." in sc_txt)
+check("硬约束挂接研究纪律(MW-V1)", "【事实】" in sc_txt and "相关非因果" in sc_txt)
+check("硬约束无越位指令(MW-V1)", "证据分级v2" not in sc_txt and "THESIS" not in sc_txt
+      and "不输出任何配置建议" in sc_txt)
 
 # ── 测试3: 校验时点检查 ──────────────────
 print("\n[3] data_validator时点检查")

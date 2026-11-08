@@ -132,7 +132,7 @@ python3 scripts/report_generator.py   # 生成 AI 周报(需 GLM_API_KEY)
 bash run_daily.sh                     # 采集入口脚本(自动定位项目根/虚拟环境,可移植)
 streamlit run app.py                  # 本地研究工作台(网页)
 python3 ia_cli.py doctor              # Agent 工具接口·环境体检(其余: overview/changes/history/compare/research/archive)
-python3 install_skill.py              # 安装 Agent Skill 到 Claude Code(.claude/skills/)/Codex(--target personal-codex)
+python3 install_skill.py              # 安装 Agent Skill(默认 --target project→.claude/skills/;个人级/Codex 须显式 --target personal-cc|personal-codex)
 python3 scripts/monthly_review.py --month 202610 --dry-run   # 月度复盘(手动,历史兼容)
 python3 tests/test_p0_fixes.py        # 运行单个测试套件(离线)
 ```

@@ -82,9 +82,13 @@ python3 ia_cli.py doctor        # 引擎侧: 环境/密钥/数据新鲜度/上�
 ## 更新与卸载
 
 ```bash
-python3 install_skill.py                    # 重跑=刷新所有已装副本(与源字节一致)
-python3 install_skill.py --uninstall        # 移除已安装副本(仓库源不受影响)
+python3 install_skill.py                    # 默认 --target project: 仅刷新项目级副本
+python3 install_skill.py --target all       # 显式刷新全部已装副本(含个人级)
+python3 install_skill.py --uninstall        # 移除已安装副本(默认仅项目级;仓库源不受影响)
 ```
+
+安全默认(v1.1): 已装副本相对源树有本地修改时,重装/卸载会**拒绝**以防静默丢失
+你的改动——确需覆盖用 `--force`(旧目录先备份为 `{dest}.bak-时间戳` 再替换)。
 
 ## FAQ
 

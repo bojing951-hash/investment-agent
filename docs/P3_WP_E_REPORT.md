@@ -141,8 +141,8 @@ DP 编号/数量/分类与 DESIGN 实读一致: 行内所引 DP-9(L197 明文)�
 1. **模块-登记对齐·open 'a' 内联化**(实现笔提交前): 实现首稿以共享 helper 承载追加使 open("a") 计 1 处,P-E-16 登记「'a' 恰 2 处」→提交前对齐为标注档/笔记档两处内联(登记语义零变更;对齐发生于实现笔 04e30fc 提交前,非登记后回改);
 2. **模块-登记对齐·零 datetime 纯日历化**(实现笔提交前): P-E-03 登记文词面「十位带杠形才入 fromisoformat」与 P-E-16「import 白名单={json,os,sys}」存在内在张力(fromisoformat 需 datetime)→实现取白名单优先: 纯字符串+月长表+闰年规则判定;十位带杠 ASCII 数字形行为与 fromisoformat 逐值等价(年界≥1/月界/闰年含世纪规则),且零 fromisoformat 3.11 宽形接受面(紧凑形/周形在 3.11 被其接受,本实现结构性拒绝)——跨版本一致性由构造保证;
 3. **测试字面量自纠 3 项**(实现笔首跑 3 红对账,全为期望侧口径归位非模块缺陷): ①尾随内容容差用例归位 R040 截断语义组(首十位规范即收=家族先例登记口径,原误置于拒绝组)②渲染隔离断言归位「零 ★+标签在场」(「不参与星级与门禁」本身即隔离声明词面,原误删「星级」字样)③模块级路径类常量封闭集归位含双守卫组件组(原误仅 _DEV_ROOT);
-4. **测试补齐笔**(1b50fc3): 实现笔遗漏 P-E-09(P3 族五模块零网络 import)/P-E-08(write_export_document 零读取面 AST)/P-E-04(零改写类 API dir 扫描)/P-E-17(selfcheck 零写入)四登记面测试→补齐笔纯追加 3 用例+1 断言(126→129);白名单 k=4 不变/M=0 不变;提交链 6 笔(登记→实现→测试补齐→报告→DELIVERY→定值),较家族 5 笔先例多 1 笔(如实登记);
-5. **补齐笔提交信息行数误记**: 提交信息称「1297 行」,实取 1301 行(wc -l;51 insertions-1 deletion 自证 1251+50=1301)——sha 与用例数无误,行数以本登记与 `git show` 终笔复核为准;
+4. **测试补齐笔**(1b50fc3): 实现笔遗漏 P-E-09(P3 族五模块零网络 import)/P-E-08(write_export_document 零读取面 AST)/P-E-04(零改写类 API dir 扫描)/P-E-17(selfcheck 零写入)四登记面测试→补齐笔纯追加 3 用例+1 断言(126→129);白名单 k=4 不变/M=0 不变;提交链含补齐笔与勘误笔(见 5),较家族 5 笔先例多 2 笔(如实登记);
+5. **补齐笔提交信息行数误记**: 提交信息称「1297 行」,实取 1301 行(wc -l;51 insertions-1 deletion 自证 1251+50=1301)——sha 与用例数无误,行数以本登记与 `git show` 终笔复核为准;**勘误笔×2**(报告笔内两处误记的零 amend 独立纠偏: ①GOLDEN_SHAS 行锚 L110-127→实锚 L90-107;②本 §三/§五 提交链计数: 报告笔原计 6 笔[未计勘误]→实 8 笔[登记→实现→测试补齐→报告→勘误①→勘误②→DELIVERY→定值],报告笔时点未预见自身后续勘误,如实登记);
 6. **subprocess 受控 1 处**: TestSelfcheckMain(selfcheck 子进程,超时 60s/PYTHON* 环境变量剥离/运行目录沙箱零写入断言);
 7. **CI 分支 run NOT VERIFIED@执行席**: 分支 run 属操作者 dispatch 面(与 WP-D AC-02④ 同款),本地镜像=方法学等价面如实呈报,不冒充分支 run;
 8. **行号容差承接**: 冻结章 §十一 注记行号与本包基线工作树实读偏差 0 行(≤3 行容差内;§零.1 登记)。
@@ -157,9 +157,9 @@ DP 编号/数量/分类与 DESIGN 实读一致: 行内所引 DP-9(L197 明文)�
 | DP-7(上游登记型) | WP-D 质量文档/简报/建议清单原样承载(briefing/suggestions 引用同一性;schema 锚=rqr.STATS_SCHEMA_VERSION 复用调用禁复制分叉);零改写零注入 |
 | DP-4/8/10(确认型,他包面) | 零触及: 导出建议清单 requires_user_confirmation=true 标记随上游原样携带(渲染计数行明示「DP-8…本导出零注入」);零 GLM/零提示词注入/零终验窗 |
 
-## §五 git 纪律七项自检(BASE-P3E `91612378…` 后纯线性 6 笔)
+## §五 git 纪律七项自检(BASE-P3E `91612378…` 后纯线性 8 笔)
 
-1. 切支: `git checkout -b dev/p3-impl-e 91612378…` 自基线全值切出(§零.7 步骤3)✓;2. 提交链纯线性零 merge: 登记 bcd363d→实现 04e30fc→测试补齐 1b50fc3→报告笔→DELIVERY 笔→定值笔(每笔单父;`git log --merges 91612378..HEAD`=空,证据包 03 类)✓;3. 零 amend/零 force(全程未使用)✓;4. main 未触碰(仅读: ls-remote 取证)✓;5. LIVE 路径与 launchd/LaunchAgents 零触碰(模块结构性拒写+证据包 03 类三面[grep 零命中+real_data_acceptance sha 等值+LaunchAgents 清单哈希])✓;6. 零 tag ✓;7. 零网络(取证推送类除外;终局单支推送 dev/p3-impl-e no-force)✓;白名单 diff 面: BASE..终笔 `git diff --name-status`=恰 A=4 零 M 零 D(证据包 03 类)✓。
+1. 切支: `git checkout -b dev/p3-impl-e 91612378…` 自基线全值切出(§零.7 步骤3)✓;2. 提交链纯线性零 merge: 登记 bcd363d→实现 04e30fc→测试补齐 1b50fc3→报告笔 9bc2200→勘误① 1972970→勘误②(本笔)→DELIVERY 笔→定值笔(每笔单父;`git log --merges 91612378..HEAD`=空,证据包 03 类)✓;3. 零 amend/零 force(全程未使用)✓;4. main 未触碰(仅读: ls-remote 取证)✓;5. LIVE 路径与 launchd/LaunchAgents 零触碰(模块结构性拒写+证据包 03 类三面[grep 零命中+real_data_acceptance sha 等值+LaunchAgents 清单哈希])✓;6. 零 tag ✓;7. 零网络(取证推送类除外;终局单支推送 dev/p3-impl-e no-force)✓;白名单 diff 面: BASE..终笔 `git diff --name-status`=恰 A=4 零 M 零 D(证据包 03 类)✓。
 
 ## §六 数值标注自检清单(§5.3 六项扫描;REPORT+DELIVERY 双件)
 

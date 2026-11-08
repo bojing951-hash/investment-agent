@@ -75,7 +75,7 @@ python3 ia_cli.py doctor        # 引擎侧: 环境/密钥/数据新鲜度/上�
 2. **近期市场变化**: 「最近一周市场发生了什么?利率变化用百分点说,股市用百分比,别混」
    → AI 调 `changes`
 3. **历史与跨资产比较**: 「美国10年期国债收益率与标普500的历史相关性?共同观测窗多长?」
-   → AI 调 `history` + `compare --metrics UST_10Y,SPX`
+   → AI 调 `history` + `compare --metrics UST_10Y,SPX`(利率按 pp、价格按 pct,口径见输出 `change_basis`,单位不可比时如实拒算)
 4. **接地问答与归档**: 「美日10年期国债收益率差是多少?」→ `research`;
    「把这个问题存档」→ `archive save`;事后「查我上周问过什么」→ `archive list`
 

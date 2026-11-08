@@ -54,17 +54,17 @@
 ## 各能力 data 负载
 
 - **doctor**: {python, platform, env{key→{configured,purpose}}, glm_key_note?, snapshot{available,note,target_date,gate_a,missing,degraded,sources_status}, data_freshness{prefix→最新文件}, last_run{available,ledger_file,run_at,success_count,critical_steps_all_ok,gate_a,snapshot_id,allow_formal_report,critical_steps}, skill{source_present,project_install_present}}
-- **update**: {exit_code, exit_semantics, output_tail, stderr_tail};确认门: 无 --yes → error.kind=confirmation_required
+- **update**: {exit_code, exit_semantics, output_tail(尾40行), critical_tail(⛔/❌/Traceback/ERROR/失败/错误 关键行,尾10行,留底根因), stderr_tail};stdout 恒单 JSON,进度提示走 stderr;三条 tail 均过密钥脱敏;确认门: 无 --yes → error.kind=confirmation_required
 - **overview**: {economies{代码→{label,n_metrics,n_missing,observation_span,metrics[]}}, supported_hint}
 - **changes**: {n_metrics, n_missing, by_asset_class{类→节点[]}, window_note}
 - **history**: 无 --metric → {series_capable_metrics[], note};有 → {series{metric_id,label,unit,unit_family,frequency,identity,calc,n,first,last,dates[],values[],source}}
-- **compare**: --metrics → {mode:'metrics', sides[2](含 interval_change_common_window), alignment{n_common_observations,common_first,common_last}, pearson_returns};--economies → {mode:'economies', economies{...同overview}};--assets → {mode:'assets', pairs[](引擎12对,含 disclosure/n_20d/n_60d/window), missing[]}
-- **research**: {status(answered/refusal/out_of_scope/no_registry_identity/unmapped/error), answer_text, values, unresolved, supported_hint, economy_fallback?(单经济体问题附概览节点), glm?(仅 --glm), archived_query_id?(仅 --archive)}
-- **archive**: save → {saved, query_id, note};list → {n_total, records[]{query_id,created_at,question_text,snapshot_id,ir_stage}};get → {record(完整档案记录)}
+- **compare**: --metrics → {mode:'metrics', sides[2](含 interval_change_common_window), alignment{n_common_observations(=水平观测数,off-by-one 已修), n_level_observations, n_change_pairs(=水平数−1,几何变化对), common_first, common_last, note}, **pearson_returns(单位感知变化相关: 利率侧按 pp、价格侧按 pct,count 族 pct 近似——不再混算)**, change_basis{a,b}('pct'|'pp'), n_change_pairs(剔除丢弃后实际参与对数), dropped_null, zero_base_dropped, sample_note?(<30对)};任一侧 unit_family='other' → error.kind=incomparable_units;--economies → {mode:'economies', economies{...同overview}};--assets → {mode:'assets', pairs[](引擎12对,含 disclosure/n_20d/n_60d/window), missing[]}
+- **research**: {status(answered/refusal/out_of_scope/no_registry_identity/unmapped/error), answer_text, values, unresolved, supported_hint, economy_fallback?(单经济体问题附概览节点), glm?(仅 --glm), archived_query_id?(仅 --archive)};--note=用户备注、--follow-up-of=关联前档 query_id(校验失败 rc=2),两者随 research-full sidecar 落档
+- **archive**: save → {saved, query_id, note}(另有 --note/--follow-up-of,独立保存 sidecar 中 answer 相关字段如实 null);list → {n_total, records[]{query_id,created_at,question_text,snapshot_id,ir_stage,has_full,user_note?}};get → {record(旧档原样), full?(sidecar 存在时并列合并视图: 作答正文/GLM原文/warnings/violations/user_note/follow_up_of;record_type 保 query_history)}
 
 ## 退出码
 
-`0` 进程成功(research 诚实拒答/未支持也在此列,看 ok/data.status);`1` 执行错误(无快照/无序列/确认缺失等);`2` 用法错误(未知经济体/参数缺失)。
+`0` 进程成功(research 诚实拒答/未支持也在此列,看 ok/data.status);`1` 执行错误(无快照/无序列/确认缺失/单位族不可比 incomparable_units 等);`2` 用法错误(未知经济体/参数缺失/无效 --follow-up-of invalid_follow_up)。
 
 ## 纪律 lint 工具(自撰事实位文本自检)
 

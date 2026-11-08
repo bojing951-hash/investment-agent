@@ -35,9 +35,9 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 | overview | `... overview --economy US,JP` | 经济体宏观概览(原始数值节点) | 缺失指标如实 `presence:"missing"` |
 | changes | `... changes [--asset-class X]` | 金融市场周/月/年内变化 | 每条变化带窗口语义与基准日 |
 | history | `... history --metric SPX [--start --end]` | 历史序列;不带 --metric 列出可查指标 | 单点指标(如 JGB 利率)如实报不支持 |
-| compare | `... compare --metrics A,B / --economies US,JP / --assets` | 双指标对齐+相关性 / 跨经济体并排 / 固定12对资产相关性 | 错位>3天或样本<15自动警示 |
-| research | `... research --question "..."` | 本地接地问答(零网络) | 支持:美日政策利率差/美日10Y收益率差/USDJPY水平/美国政策利率 |
-| archive | `... archive save --question "..." / list / get --query-id QB-...` | 研究档案存/列/取 | append-only,不覆盖 |
+| compare | `... compare --metrics A,B / --economies US,JP / --assets` | 双指标对齐+相关性 / 跨经济体并排 / 固定12对资产相关性 | 单位感知变化相关: 利率按 pp、价格按 pct(见 `change_basis`);other 族拒算(rc=1);错位>3天/样本<15/频率不一致/日期间隔>7天自动警示 |
+| research | `... research --question "..."` | 本地接地问答(零网络) | 支持:美日政策利率差/美日10Y收益率差/USDJPY水平/美国政策利率;`--archive` 同步落档(含 `--note`/`--follow-up-of`) |
+| archive | `... archive save --question "..." / list / get --query-id QB-...` | 研究档案存/列/取 | append-only,不覆盖;`--note`/`--follow-up-of` 随 research-full sidecar 落档(`list` 见 `has_full`,`get` 返回 `full` 合并视图) |
 | update | `... update --yes` | 真实运行采集流水线 | **仅用户明确要求时**执行;可能数分钟 |
 
 退出码: `0`=进程成功(注意: research 的诚实拒答也是 0,语义成败看 `ok` 与 `data.status`); `1`=执行错误; `2`=用法错误。输出一律为单个 JSON 对象(stdout)。
@@ -69,7 +69,7 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 
 **全球宏观全景**: `overview --economy US,CN,EA,JP` → 逐经济体转述(带各自观测日与缺失)→ 不下整体结论,如实在数据覆盖范围内总结
 **近期市场变化**: `changes` → 按资产类转述变化(pp 与 % 不可混)→ 解释标注【推断】且不得归因到具体成分
-**历史与跨资产比较**: `history --metric A` 确认序列 → `compare --metrics A,B` → 转述相关性+共同观测窗+警示
+**历史与跨资产比较**: `history --metric A` 确认序列 → `compare --metrics A,B` → 转述相关性(注明口径: 利率 pp、价格 pct)+共同观测窗+警示
 **深入研究**: `research --question "..."` 接地作答 → 需要更多解释时(用户同意)`research --question "..." --glm` → `archive save`
 
 ## 已知边界(如实告知用户)

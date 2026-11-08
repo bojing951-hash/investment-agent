@@ -6,3 +6,8 @@ __pycache__/
 *.bak
 .DS_Store
 venv/
+.venv/
+# 环境变量文件含密钥,严禁入库(.env.example 为无凭证模板,保持跟踪)
+.env
+.env.*
+!.env.example

@@ -12,11 +12,11 @@
 ## 1. 基线(FIX4最终提交,开发前只读预检)
 
 - FIX4最终提交: `cc5143aa526e0296aa92c4ba65ca0f35240c1036`(CI run 40921349015,success)
-- FIX5开工预检(2026-10-30,只读): DEV root=`/Users/cast/investment-agent-dev`
+- FIX5开工预检(2026-10-30,只读): DEV root=`<DEV根目录>`
   (独立仓库,realpath一致), branch=`dev/p0-2-w2`, HEAD=`cc5143a`(=基线,无他人
   修改), 工作树clean, origin/main=`50b5d13`(未动),
   origin/dev/p0-2-w2=`cc5143a`(=本地HEAD), LIVE
-  realpath=`/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent`,
+  realpath=`<LIVE根目录>`,
   launchd plist执行目录=LIVE(venv `AI内容/venv/bin/python3`,本轮未触碰)。
 
 ## 2. FIX5提交
@@ -229,8 +229,8 @@ RELEASE_UNKNOWN/UNCERTIFIED→观测层兼容全状态透传;诊断不claim时�
 
 ## 18. DEV/LIVE隔离证据(只读核验, 2026-10-30)
 
-- DEV=/Users/cast/investment-agent-dev(dev/p0-2-w2@db58663), LIVE=
-  /Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent(无.git,
+- DEV=<DEV根目录>(dev/p0-2-w2@db58663), LIVE=
+  <LIVE根目录>(无.git,
   launchd指向LIVE)。
 - 逐文件SHA-256比对(本轮涉及4文件): LIVE侧3个存在文件(allocation_engine/
   data_validator/report_generator所在口径承FIX4核验)全部=`50b5d13`(main

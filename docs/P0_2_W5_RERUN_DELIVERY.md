@@ -148,7 +148,7 @@ index 19d5db7..ab626f6 100644
 ✅ 真实数据验收(W5版) — 独立外部来源 + 独立复算 + 三态综合
 ============================================================
 
-📌 验收数据日: 20261103(自动最新四源齐全日(lag=0天);来源目录/Users/cast/investment-agent-dev/data/daily)
+📌 验收数据日: 20261103(自动最新四源齐全日(lag=0天);来源目录<DEV根目录>/data/daily)
 ✅ 快照: /var/folders/…/T/tmp1u7vfhoe/research_snapshot_20261103.json
    MD:   /var/folders/…/T/tmp1u7vfhoe/research_snapshot_20261103.md
    锚点: /var/folders/…/T/tmp1u7vfhoe/anchors_20261103.json (171个)

@@ -10,14 +10,14 @@
 |---|---|
 | 固定基线 Commit | `50b5d13db6c477084c6f4b3944b7bd08a8e329d6`（P0-1 验收 HEAD；origin/main 与之一致，fetch 后核实） |
 | 开发分支 | `dev/p0-2-w1`（自固定 SHA 创建，非失控 HEAD） |
-| DEV 工作目录 | `/Users/cast/investment-agent-dev`（独立持久化 clone） |
+| DEV 工作目录 | `<DEV根目录>`（独立持久化 clone） |
 | 实现 Commit A | `80a7744`（6 文件 +2438/−3） |
 | 最终 W1 Commit B | 本提交（docs only）；推送后 Actions 运行链接在最终开发回复给出（不以 P0-1 历史 run 代替） |
 
 ## 2. 隔离证据
 
-- LIVE 物理路径：`/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent`（属上层 monorepo，launchd 生产目录）。
-- DEV 物理路径：`/Users/cast/investment-agent-dev`；`git rev-parse --show-toplevel` = DEV 自身；remote = `git@github.com:bojing951-hash/investment-agent.git`（fetch/push 同源）。
+- LIVE 物理路径：`<LIVE根目录>`（属上层 monorepo，launchd 生产目录）。
+- DEV 物理路径：`<DEV根目录>`；`git rev-parse --show-toplevel` = DEV 自身；remote = `git@github.com:bojing951-hash/investment-agent.git`（fetch/push 同源）。
 - 隔离判断：LIVE≠DEV、互非祖先/后代（realpath 逐级核实）、DEV 树内无任何符号链接、不使用 LIVE 上层 monorepo。
 - LIVE：零读取零修改（本轮全部操作位于 DEV 与 /tmp 临时目录；未运行 git reset/checkout/clean/pull 于 LIVE）。
 - GitHub main：未被修改（仅创建/推送 dev/p0-2-w1）。

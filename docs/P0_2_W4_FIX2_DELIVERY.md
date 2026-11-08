@@ -144,7 +144,7 @@ FIX2验收结果**,FIX2以新CI轮次为准(48文件-1排除=47套件,含新增
 test_p02_w4_fix2.py)。
 
 ## 11. 正式真实数据审计(FIX2-04,最终Commit后执行)
-- 数据: 复用W4授权冻结副本/Users/cast/audit/w4-real-data(848文件)前按§7.1
+- 数据: 复用W4授权冻结副本~/audit/w4-real-data(848文件)前按§7.1
   重新核验: 目录存在/授权范围有效/文件计数与SHA-256与LIVE原件对应/来源
   清单完整/未授权文件不读——核验记录入Git外附件;核验不过→停止并如实报告
   NOT VERIFIED|REAL-DATA AUDIT PENDING。

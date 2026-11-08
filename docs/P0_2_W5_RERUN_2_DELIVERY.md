@@ -40,7 +40,7 @@
 判定件 console 原文(逐字,formal/attempt1_formal_20261104/console.log):
 
 ```
-📌 验收数据日: 20261104(自动最新四源齐全日(lag=0天);来源目录/Users/cast/investment-agent-dev/data/daily)
+📌 验收数据日: 20261104(自动最新四源齐全日(lag=0天);来源目录<DEV根目录>/data/daily)
 ✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/tmp68yztyr6/research_snapshot_20261104.json
    MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/tmp68yztyr6/research_snapshot_20261104.md
    锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/tmp68yztyr6/anchors_20261104.json (171个)

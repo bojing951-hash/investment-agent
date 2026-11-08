@@ -185,7 +185,7 @@ DESIGN L174 验收要点 5 条: ①负向测试=测试面 ②可重建性测试=
 2. 首笔=**指定并入步** `git merge --no-ff 7f43724…`(v1.1 合同条款,第二父=设计定稿支;带入恰 3 A 行设计三件,零冲突),其后纯线性: 登记笔 92bcca7→实现笔 a8bf61e→报告笔(本笔)→终笔(DELIVERY);
 3. 白名单 k=4 恰 A=4 纯新增(scripts/research_index.py+tests/test_p3_wp_a.py+REPORT+DELIVERY),与 git ls-files 零重合(§零.3);
 4. 零 merge(指定并入步外)零 amend 零 force --force-push 零 rebase;
-5. main/LIVE(/Users/cast/AI内容/…)/launchd 零触碰(LIVE 隔离核验见终笔后 stdout);
+5. main/LIVE(~/AI内容/…)/launchd 零触碰(LIVE 隔离核验见终笔后 stdout);
 6. 网络=取证类(ls-remote/gh api 只读)+终局单支推送(origin dev/p3-impl-a,不触 main);测试全离线;
 7. 零 tag(既有 tag 前后等值,终笔取证)。
 

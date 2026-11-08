@@ -1,7 +1,7 @@
 # IA-P0-2-W2-FIX2 交付报告: Gate A 严格截止时间与真实发布时间精度修复
 
 - 任务: IA-P0-2-W2-FIX2 (指令 IA-P0-2-W2-FIX2-DEV-v1.0)
-- 分支: dev/p0-2-w2 | 仓库: bojing951-hash/investment-agent (DEV=/Users/cast/investment-agent-dev)
+- 分支: dev/p0-2-w2 | 仓库: bojing951-hash/investment-agent (DEV=<DEV根目录>)
 - 日期: 2026-10-29
 - 状态结论: **CODE FIXED — 独立验收材料齐备, READY FOR W2 INDEPENDENT ACCEPTANCE**
   (最终裁决权属 Agent 4; HSAHP 政策已获用户第四轮批准, 见§14)
@@ -214,7 +214,7 @@ SB_FLOW(南向净买入)观测日历=沪深港通**通道开放日=两地开市�
 
 | 项 | DEV | LIVE |
 |---|---|---|
-| realpath | /Users/cast/investment-agent-dev | /Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent |
+| realpath | <DEV根目录> | <LIVE根目录> |
 | inode | 60895116 | 22199716 |
 | Git | dev/p0-2-w2 @ 实现SHA 1aafdb8(本文档补录提交=最终, §2) | 纯消费目录, 无.git, 不在版本管理内 |
 | origin/main | 50b5d13(未合并main) | — |

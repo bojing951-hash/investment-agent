@@ -1,0 +1,4 @@
+# 研究工作台(app.py 本地Web界面)额外依赖——核心数据管线不需要本文件
+# 安装: pip install -r requirements.txt -r requirements-workbench.txt
+# 启动: streamlit run app.py
+streamlit>=1.49

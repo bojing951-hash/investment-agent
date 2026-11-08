@@ -136,7 +136,7 @@ test_p02_w4_fix2.py L580): §6版本升级是FIX3合同本身的语义变更,断
 (unmapped文案无断言依赖;findings2内容仅键存在断言)。
 
 ## 10. 输入真实路径边界(本轮授权)
-真实审计只读授权冻结副本`/Users/cast/audit/w4-real-data`(W4授权范围的
+真实审计只读授权冻结副本`~/audit/w4-real-data`(W4授权范围的
 逐字节副本),执行前按§12重新核验(目录存在/授权范围/逐文件SHA-256与LIVE
 原件对应/路径无越界);LIVE冻结时点后新增文件不在授权集不读;不执行网络
 回补;FIX3-02使越界路径构造在工具层即被拒绝。
@@ -151,12 +151,12 @@ FIX3最终SHA。不合并main(50b5d13)。
 
 ## 12. 正式真实数据审计(FIX3-06,最终固定Commit后执行)
 - 复用冻结副本前重新核验(不预设848): 目录存在/授权范围有效/逐通道清单/
-  逐文件SHA-256与LIVE原件(/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/
+  逐文件SHA-256与LIVE原件(~/AI内容/🤖_AI投资项目/每周宏观追踪/
   investment-agent/data/daily)比对/与原始授权对应/路径无越界;核验不过→
   停止并如实报告NOT VERIFIED|REAL-DATA AUDIT PENDING。
 - 在FIX3最终固定Commit上执行(audit_commit==最终GitHub SHA+真实UTC
   generated_at+干净工作区);Git仓库外独立新目录(不覆盖FIX2产物
-  /Users/cast/audit/w4-fix2-real-audit-output);输出4文件(JSON/MD/Manifest/
+  ~/audit/w4-fix2-real-audit-output);输出4文件(JSON/MD/Manifest/
   日志)+代码SHA+执行时间+退出码+81项分布+完整input_files映射验证+输入
   未改证据+异常与研究限制。**必须真执行并交付**,不得只写"将于最终Commit
   后执行"。

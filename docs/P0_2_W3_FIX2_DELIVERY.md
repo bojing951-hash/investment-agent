@@ -78,7 +78,7 @@ FIX1的41套绿色CI（41046916803）不作为本轮执行证据；run#2在最�
 
 ## 13. 最终DEV/LIVE隔离证据（Git仓库外审计材料）
 
-`/Users/cast/audit/IA-P0-2-W3-FIX2-POSTCOMMIT-ISOLATION-<最终SHA前7位>.txt` — 最终Commit与CI run#2之后执行；含核验时间/DEV HEAD/DEV与LIVE realpath+inode/origin/main/launchd路径与工作目录/LIVE关键源码与P0-1封版50b5d13 SHA-256逐文件对照/W3全部新模块及开发测试未部署LIVE/生产长期状态只读元数据/无法证明的历史事项如实标注。证据正文在对话中完整输出（脱敏，无生产密钥/私人状态正文），实际送达供Agent 4读取。
+`~/audit/IA-P0-2-W3-FIX2-POSTCOMMIT-ISOLATION-<最终SHA前7位>.txt` — 最终Commit与CI run#2之后执行；含核验时间/DEV HEAD/DEV与LIVE realpath+inode/origin/main/launchd路径与工作目录/LIVE关键源码与P0-1封版50b5d13 SHA-256逐文件对照/W3全部新模块及开发测试未部署LIVE/生产长期状态只读元数据/无法证明的历史事项如实标注。证据正文在对话中完整输出（脱敏，无生产密钥/私人状态正文），实际送达供Agent 4读取。
 
 ## 14. 未验证事项
 

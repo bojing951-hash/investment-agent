@@ -40,7 +40,7 @@
 判定件 console 关键行(逐字):
 
 ```
-📌 验收数据日: 20261104(自动最新四源齐全日(lag=0天);来源目录/Users/cast/investment-agent-dev/data/daily)
+📌 验收数据日: 20261104(自动最新四源齐全日(lag=0天);来源目录<DEV根目录>/data/daily)
    Gate A: DEGRADED | 事实 77 | 质量 {'PASS': 61, 'DEGRADED': 12, 'FAIL': 0} | core缺失 0 | 非核心缺失 3项(MARGIN_BAL,SB_FLOW,SH_PE)
 综合结果: NOT_VERIFIED | 状态分布: {'PASS': 6, 'FAIL': 0, 'NOT_VERIFIED': 5, 'NOT_COMPARABLE': 0, 'INSUFFICIENT_HISTORY': 1, 'SKIPPED': 0}
   · 市场资产类(BTC/SPX/SHCOMP)真实同日可比PASS不足2项——其他资产证据缺失

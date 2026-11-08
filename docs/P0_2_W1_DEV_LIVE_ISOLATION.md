@@ -13,9 +13,9 @@
 
 | 项 | 值 |
 |---|---|
-| DEV 声明路径 / realpath | `/Users/cast/investment-agent-dev` → realpath 同（无符号链接参与） |
-| LIVE 声明路径 / realpath | `/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent` → realpath 同 |
-| DEV Git 根 realpath | `/Users/cast/investment-agent-dev/.git`（Git 根=DEV 自身，独立仓库） |
+| DEV 声明路径 / realpath | `<DEV根目录>` → realpath 同（无符号链接参与） |
+| LIVE 声明路径 / realpath | `<LIVE根目录>` → realpath 同 |
+| DEV Git 根 realpath | `<DEV根目录>/.git`（Git 根=DEV 自身，独立仓库） |
 | 目录身份（st_dev, st_ino） | DEV=(16777231, 60895116)；LIVE=(16777231, 22199716)——**inode 不同，物理上两个目录** |
 | 是否同一目录 | 否（realpath 与 inode 双重判定） |
 | 祖先/后代关系 | 否（`os.path.commonpath` 双向判定均否） |

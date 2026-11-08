@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from env_config import GLM_API_KEY, GLM_BASE_URL, GLM_MODEL
+from env_config import GLM_API_KEY, GLM_BASE_URL, GLM_MODEL, GLM_KEY_MISSING_MESSAGE
 import allocation_engine  # P2/P3 配置研究引擎(同目录)
 import research_provenance as rp  # IA-P0-1: 来源链核验/门禁合成
 import news_provenance  # IA-P0-2-W3: 新闻来源档案/确定性引用索引
@@ -491,6 +491,12 @@ def _call_glm(system_prompt, user_prompt, max_tokens=32000, timeout=900):
        新闻已做sanitize_news脱敏
     """
     from openai import OpenAI
+
+    # W8(2026-11-08 产品化): GLM凭证缺失时明确提示并快速失败——不创建客户端、
+    # 不发起任何网络请求(数据采集等功能不受影响,它们不走本函数)。
+    if not GLM_API_KEY:
+        print(GLM_KEY_MISSING_MESSAGE, file=sys.stderr)
+        raise RuntimeError("GLM_API_KEY 未配置(周报生成需智谱GLM;数据采集不需要)")
 
     client = OpenAI(api_key=GLM_API_KEY, base_url=GLM_BASE_URL, timeout=timeout)
     stream = client.chat.completions.create(
@@ -1437,9 +1443,21 @@ def generate_weekly_report():
     # **结束后**的第一个周六 → 追加月报/季报
     # (v1在月末最后一个周五触发,会在期间结束前生成,如12-25提前生成Q4季报——已废除)
     # 周报已完成并落盘,附加报告失败不影响周报(独立进程,失败仅记日志)
+    #
+    # W3(2026-11-08 产品化收口): 自动级联**默认关闭**——月/季 prompt 仍带旧版
+    # "配置倾向/预测复盘/评级"人设(改革登记于 docs/MW-V1-AUDIT-DEFERRED.md,目标
+    # 12-05),在改革落地前不随周报自动执行越位判断。显式开启: IA_AUTO_MONTHLY=1。
+    # 手动入口不受影响: python3 scripts/monthly_review.py --month YYYYMM [--dry-run]
     script_dir = os.path.dirname(os.path.abspath(__file__))
     done_month = pending_completed_month()
-    if done_month:
+    done_quarter = pending_completed_quarter()
+    auto_mq_enabled = os.environ.get('IA_AUTO_MONTHLY', '') == '1'
+    if (done_month or done_quarter) and not auto_mq_enabled:
+        due = done_month or done_quarter
+        print(f"\nℹ️ {due}已完结(今天是其后第一个周六),但月/季复盘自动级联默认关闭"
+              "(W3收口);如需自动生成请设置 IA_AUTO_MONTHLY=1,或手动运行: "
+              "python3 scripts/monthly_review.py --month YYYYMM")
+    if auto_mq_enabled and done_month:
         print(f"\n📅 {done_month}已完结(今天是其后第一个周六),启动月度复盘(monthly_review.py)...")
         try:
             r = subprocess.run([sys.executable, os.path.join(script_dir, 'monthly_review.py'),
@@ -1450,8 +1468,7 @@ def generate_weekly_report():
                 print(f"⚠️ 月度复盘失败(exit {r.returncode}): {r.stderr[-300:]}")
         except subprocess.TimeoutExpired:
             print("⚠️ 月度复盘超时30分钟,已终止(周报不受影响)")
-    done_quarter = pending_completed_quarter()
-    if done_quarter:
+    if auto_mq_enabled and done_quarter:
         print(f"\n📅 {done_quarter}已完结(今天是其后第一个周六),启动季度展望(quarterly_outlook.py)...")
         try:
             r = subprocess.run([sys.executable, os.path.join(script_dir, 'quarterly_outlook.py'),

@@ -1,7 +1,7 @@
 # Phase 0 基线审计 — 金融事实引擎重构前 (2026-10-17)
 
 基线 commit `f8281c8`（dev/fact-engine 分支起点）。方法：逐文件通读 13 个核心脚本 + 测试套件 + README；
-真实运行产物审计延后至 Phase 5（live 数据在 `/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/`，
+真实运行产物审计延后至 Phase 5（live 数据在 `<LIVE根目录>/`，
 本仓库 data/ 为 gitignored，克隆内无历史产物）。
 
 ## 1. 现行数据流（改造前）

@@ -4,17 +4,17 @@
  "verified_at": "2026-10-29T13:58:47+08:00",
  "os": "Darwin 24.6.0 (arm64)",
  "dev": {
-  "path": "/Users/cast/investment-agent-dev",
-  "realpath": "/Users/cast/investment-agent-dev",
-  "git_root_realpath": "/Users/cast/investment-agent-dev/.git",
+  "path": "<DEV根目录>",
+  "realpath": "<DEV根目录>",
+  "git_root_realpath": "<DEV根目录>/.git",
   "dir_identity": {
    "st_dev": 16777231,
    "st_ino": 60895116
   }
  },
  "live": {
-  "path": "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent",
-  "realpath": "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent",
+  "path": "<LIVE根目录>",
+  "realpath": "<LIVE根目录>",
   "dir_identity": {
    "st_dev": 16777231,
    "st_ino": 22199716
@@ -71,14 +71,14 @@
  },
  "launchd_readonly_check": {
   "com.investment.daily": {
-   "plist": "/Users/cast/Library/LaunchAgents/com.investment.daily.plist",
+   "plist": "~/Library/LaunchAgents/com.investment.daily.plist",
    "program": [
     "/bin/bash",
-    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/run_daily.sh"
+    "<LIVE根目录>/run_daily.sh"
    ],
    "path_like_args": [
     "/bin/bash",
-    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/run_daily.sh"
+    "<LIVE根目录>/run_daily.sh"
    ],
    "any_arg_points_to_live": true,
    "any_arg_points_to_dev": false,
@@ -90,14 +90,14 @@
    }
   },
   "com.investment.weekly": {
-   "plist": "/Users/cast/Library/LaunchAgents/com.investment.weekly.plist",
+   "plist": "~/Library/LaunchAgents/com.investment.weekly.plist",
    "program": [
-    "/Users/cast/AI内容/venv/bin/python3",
-    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/scripts/report_generator.py"
+    "<LIVE venv>/bin/python3",
+    "<LIVE根目录>/scripts/report_generator.py"
    ],
    "path_like_args": [
-    "/Users/cast/AI内容/venv/bin/python3",
-    "/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/scripts/report_generator.py"
+    "<LIVE venv>/bin/python3",
+    "<LIVE根目录>/scripts/report_generator.py"
    ],
    "any_arg_points_to_live": true,
    "any_arg_points_to_dev": false,
@@ -124,9 +124,9 @@
   "完整shell历史不构成'绝对零写入'的数学证明;独立方可按下方命令只读复跑核验"
  ],
  "rerun_commands": [
-  "python3 -c \"import os;print(os.path.realpath('/Users/cast/investment-agent-dev'), os.path.realpath('/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent'))\"",
-  "cd /Users/cast/investment-agent-dev && git rev-parse HEAD origin/main && git status --porcelain",
-  "shasum -a 256 '/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent/scripts/fact_engine.py' && cd /Users/cast/investment-agent-dev && git show 50b5d13:scripts/fact_engine.py | shasum -a 256",
-  "plutil -p /Users/cast/Library/LaunchAgents/com.investment.daily.plist | grep -A2 Program"
+  "python3 -c \"import os;print(os.path.realpath('<DEV根目录>'), os.path.realpath('<LIVE根目录>'))\"",
+  "cd <DEV根目录> && git rev-parse HEAD origin/main && git status --porcelain",
+  "shasum -a 256 '<LIVE根目录>/scripts/fact_engine.py' && cd <DEV根目录> && git show 50b5d13:scripts/fact_engine.py | shasum -a 256",
+  "plutil -p ~/Library/LaunchAgents/com.investment.daily.plist | grep -A2 Program"
  ]
 }

@@ -162,7 +162,7 @@ import json
 import os
 import sys
 
-ROOT = "/Users/cast/investment-agent-dev"
+ROOT = "<DEV根目录>"
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 sys.path.insert(0, os.path.join(ROOT, "tests"))
 

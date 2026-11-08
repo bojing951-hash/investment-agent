@@ -167,8 +167,8 @@ Gate A/B、报告保护、论点观点、预测生命周期、月报季报)。�
 
 ## 8. 隔离设计(DEV/LIVE)
 
-- 开发全部在 /Users/cast/investment-agent-dev(独立仓库,分支dev/p0-2-w3);
-  LIVE(/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent)零触碰。
+- 开发全部在 <DEV根目录>(独立仓库,分支dev/p0-2-w3);
+  LIVE(<LIVE根目录>)零触碰。
 - 测试数据全部在tmpdir临时目录;生产data/news未写入(本机开发目录data/为
   gitignored本地副产物,非LIVE路径)。
 - W3新模块news_provenance.py仅用Python标准库,不导入网络客户端/密钥,

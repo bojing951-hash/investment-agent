@@ -60,7 +60,7 @@ fix10-B：外链→project 根（B1）/→project/data（B2，FIX8 反例）/多
 - `da`/`rg`：可信根锚=模块 `DATA_DIR` 上级——别名导入下该锚词法=外链（或 `<link>/scripts/..` 形态），经根校验（根自身是符号链接/入口失配）**fail-closed**，绝不放行（fix10-D5/D6/D7 实测 exit 2）。
 - `sb`/`dpo`：缺省 `rp.default_trusted_root()` 物理锚；外链词法 data_dir 入口失配拒绝（fix10-D4 全通道缺源+Gate A 不可证明）。
 - `rda`：显式 `--trusted-root`（FIX8-03）不变。
-- **launchd/CLI 兼容**：两 plist 均以物理路径启动（`/Users/cast/AI内容/…/investment-agent/run_daily.sh`、`…/scripts/report_generator.py`），无外部级根符号链接——生产零影响。建议（未自动修改 launchd，遵守禁令）：启动路径/PYTHONPATH 一律使用物理项目路径；若运维改为经外部根链接启动，本轮起将 fail-closed（exit 2 + 信任边界报错），这正是预期行为而非故障。
+- **launchd/CLI 兼容**：两 plist 均以物理路径启动（`~/AI内容/…/investment-agent/run_daily.sh`、`…/scripts/report_generator.py`），无外部级根符号链接——生产零影响。建议（未自动修改 launchd，遵守禁令）：启动路径/PYTHONPATH 一律使用物理项目路径；若运维改为经外部根链接启动，本轮起将 fail-closed（exit 2 + 信任边界报错），这正是预期行为而非故障。
 
 ## 10. G4/正式报告保护（FIX10-05，原样保持）
 

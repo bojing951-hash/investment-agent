@@ -120,7 +120,7 @@
 
 ```
 === IA-P1-WP-CLOSE P1 全链谱系核对(#21 / WP-P1-CLOSE) ===
-repo=/Users/cast/investment-agent-dev tip-source=ls-remote table=<冻结章定值透传> run_utc=2026-11-06T20:08:42Z
+repo=<DEV根目录> tip-source=ls-remote table=<冻结章定值透传> run_utc=2026-11-06T20:08:42Z
 --- 开工核验(合同 §零①~⑦) ---
 [PRESENCE] ① origin/main 尖端==BASE(5e6ddcd3691a3d52…): OK
 [PRESENCE] ② 祖先 7190eb7aae110dcc… ∈ HEAD(设计在场(design-comp 尖端)): OK

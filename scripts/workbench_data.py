@@ -283,10 +283,13 @@ GLM_EXPLAIN_SYSTEM = (
 def glm_explain(question, grounded_text):
     """页面四可选: GLM 研究解释(复用 glm_conclusion_client.call_glm_once,
     环境变量 GLM_API_KEY 唯一凭证,零本机回退)。返回 {'ok', 'text'|'error'}。"""
+    # 先确保项目根 .env 已载入(进程环境变量优先;幂等补载,覆盖会话中途新增的.env),
+    # 否则 Key 只写在 .env 时首调会误报缺失
+    import env_config as ec
+    ec.load_env_file()
     key = os.environ.get('GLM_API_KEY', '')
     if not key:
-        from env_config import GLM_KEY_MISSING_MESSAGE
-        return {'ok': False, 'error': GLM_KEY_MISSING_MESSAGE}
+        return {'ok': False, 'error': ec.GLM_KEY_MISSING_MESSAGE}
     import glm_conclusion_client as gcc
     user = (f'研究问题: {question}\n\n【已核实事实】(本地快照接地结果,作答唯一数值来源):\n'
             f'{grounded_text}\n\n请基于以上事实给出解释性分析(传导机制/历史比较视角),'

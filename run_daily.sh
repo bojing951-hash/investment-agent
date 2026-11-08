@@ -10,10 +10,19 @@
 # 程序直接调用 run_weekly.py。脚本本身只做: 定位项目根 → 定位Python → 日志 → 执行 → 透传退出码。
 
 # 项目根 = 本脚本所在目录(可在任意路径克隆/软链;不依赖原作者目录结构)
+# dirname 结果兜底为'.'——PATH 残缺时 dirname 可能不可用返回空串,而 cd '' 在
+# bash>=5.3 是错误(POSIX 收紧),空转 '.' 保证任何 bash 版本下路径解析可完成
 SCRIPT_SOURCE="${BASH_SOURCE[0]:-$0}"
-PROJECT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+SCRIPT_DIR="$(dirname "$SCRIPT_SOURCE" 2>/dev/null || true)"
+PROJECT_DIR="$(cd "${SCRIPT_DIR:-.}" && pwd)"
 if [ -n "${IA_PROJECT_DIR:-}" ]; then
     PROJECT_DIR="$IA_PROJECT_DIR"
+fi
+
+# 目录存在性检查须在写日志之前——IA_PROJECT_DIR 指错时不产生任何副作用
+if [ ! -d "$PROJECT_DIR" ]; then
+    echo "❌ 项目目录不存在: $PROJECT_DIR" >&2
+    exit 1
 fi
 
 # Python 解释器定位: PYTHON环境变量 > 项目内 .venv/venv > 系统 PATH 中的 python3
@@ -42,11 +51,6 @@ mkdir -p "$LOG_DIR"
 echo "====== 每日采集开始: $(date) ======" >> "$LOG_FILE" 2>&1
 echo "Python: ${PYTHON:-<未找到>}" >> "$LOG_FILE" 2>&1
 echo "项目: $PROJECT_DIR" >> "$LOG_FILE" 2>&1
-
-if [ ! -d "$PROJECT_DIR" ]; then
-    echo "❌ 项目目录不存在: $PROJECT_DIR" >> "$LOG_FILE" 2>&1
-    exit 1
-fi
 
 # 检查Python是否可用(缺失时给出可照做的修复指引,退出码127=命令未找到;
 # 指引用echo内建输出——即使PATH残缺也保证提示可达用户)

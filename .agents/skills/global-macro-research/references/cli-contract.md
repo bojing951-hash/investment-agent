@@ -30,7 +30,7 @@
 | asset_class | 注册表资产类 |
 | observation_date | **该数值的观测日**(各指标不同!) |
 | as_of | 采集时刻 |
-| quality_status | PASS / DEGRADED / MISSIED / unknown |
+| quality_status | PASS / DEGRADED / MISSING / unknown |
 | issues | 质量问题列表 |
 | source | {collector, file} |
 | identity | {instrument, is_proxy, proxy_of, adjustment, market_seat, economy} |
@@ -65,3 +65,13 @@
 ## 退出码
 
 `0` 进程成功(research 诚实拒答/未支持也在此列,看 ok/data.status);`1` 执行错误(无快照/无序列/确认缺失等);`2` 用法错误(未知经济体/参数缺失)。
+
+## 纪律 lint 工具(自撰事实位文本自检)
+
+给 AI 的提示: 你自己撰写"事实性描述"位文本(表格关键信号列、无标注的接地转述)前,先跑 lint 自检,零 violation 再输出:
+
+```bash
+python3 -c 'import sys; sys.path.insert(0, "<engine_root>"); from ia_cli import lint_fact_contract_text as L; print(L("""待检文本,可多行"""))'
+```
+
+返回 `[]` 即干净;非空则按 `kind` 修正(causal_claim_in_fact_position → 移入【推断】/【假设】或删除;unsupported_composition_claim → 删除成分/权重断言或降级为【假设】并明示无法验证)。

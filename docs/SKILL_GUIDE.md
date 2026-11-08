@@ -29,7 +29,8 @@ python3 install_skill.py --target project   # 复制到 <仓库>/.claude/skills/
 ```
 
 重启 Claude Code 会话(或在会话内 `/skills` 确认 global-macro-research 已加载)。
-项目级副本经 `${CLAUDE_PROJECT_DIR}` 定位引擎,仓库整体移动不失效。
+项目级副本优先经 `${CLAUDE_PROJECT_DIR}` 定位引擎;所有已安装副本(含项目级)
+均由安装器写入 `engine-path.json` 作兜底。
 
 **个人级(在任何目录的会话里可用)**:
 
@@ -37,8 +38,8 @@ python3 install_skill.py --target project   # 复制到 <仓库>/.claude/skills/
 python3 install_skill.py --target personal-cc   # 复制到 ~/.claude/skills/
 ```
 
-个人级副本由安装器写入 `engine-path.json` 记录引擎根路径;若移动了仓库目录,
-重跑一次安装器刷新即可。
+个人级副本依赖安装器写入的 `engine-path.json` 定位引擎根路径;若移动了仓库
+目录,重跑一次安装器刷新即可。
 
 ## Codex 安装
 

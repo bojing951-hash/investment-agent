@@ -9,6 +9,7 @@
 ② 研究纪律 lint: EEM 反例(成分编造=violation)、对照干净、因果动词=warning、
    事实契约位阻断(lint_fact_contract_text)、【假设】段放行;
 ③ 跨经济体对齐警示: 观测窗跨度 warnings;
+③b 金融正确性静态防线(⑦期限标识防错绑跨期/⑧汇率方向语义随行);
 ④ 子进程行为: doctor 离线可跑、用法错误 rc=2、research 无快照结构化错误 rc=1、
    update 无 --yes 拒绝、archive get 不存在→结构化 not_found。
 CI 安全: 合成快照+真实注册表(已提交),零网络零写入(不触发 archive save 默认目录)。
@@ -130,6 +131,21 @@ check("缺失指标: value=null+presence=missing+原因(绝不填0)",
       node_m['value'] is None and node_m['presence'] == 'missing'
       and node_m['absence_reason'] and node_m['quality_status'] == 'MISSING'
       and node_m['changes'] == [], str(node_m)[:120])
+
+# ── 金融正确性静态防线(C审计⑦⑧): 注册表身份字段先天花板 ──
+TENOR_IDS = ('UST_2Y', 'UST_10Y', 'JGB2Y', 'JGB10Y')
+check("⑦ 期限标识: 利差操作数 display_name 含期限(2年/10年),防错绑跨期限",
+      all(any(t in REG['by_id'][i]['display_name'] for t in ('2年期', '10年期'))
+          for i in TENOR_IDS),
+      str({i: REG['by_id'][i]['display_name'] for i in TENOR_IDS}))
+check("⑦ 美日10Y利差操作数成对在场(UST_10Y+JGB10Y)",
+      {'UST_10Y', 'JGB10Y'} <= set(REG['by_id']))
+check("⑧ 汇率方向: USDJPY calc 含方向语义(上涨=美元升值),引用必随行",
+      '美元升值' in (REG['by_id']['USDJPY']['calc'] or ''),
+      REG['by_id']['USDJPY'].get('calc'))
+check("⑧ USDJPY 归 price 族+fx 子族(方向语义有结构位承载)",
+      ia_cli.unit_family(REG['by_id']['USDJPY'].get('unit', ''),
+                         REG['by_id']['USDJPY'].get('asset_class', '')) == ('price', 'fx'))
 
 print("═" * 60)
 print("② 研究纪律 lint(AC-06 反例集)")

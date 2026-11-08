@@ -267,6 +267,9 @@ def cmd_doctor(args):
                         'missing': meta['missing'], 'degraded': meta['degraded']}
     if snap:
         data['snapshot']['sources_status'] = snap.get('sources_status', {})
+        data['snapshot']['sources_status_note'] = (
+            '上表为快照生成时点记录的采集档校验状态;磁盘当前实际在场文件以 '
+            'data_freshness 为准(两者可能不一致,如文件事后被移动)')
     daily = os.path.join(ROOT, 'data', 'daily')
     data['data_freshness'] = {}
     for prefix in ('global_', 'macro_', 'china_', 'rate_economy_',
@@ -555,7 +558,8 @@ def cmd_archive(args):
                           error=('save_failed', err or '归档失败', None)), exit_code=1)
         emit(envelope('archive', True, {
             'saved': True, 'query_id': qid,
-            'note': f'append-only 落档于 <引擎根>/data/research/{ARCHIVE_DOUBLE_NEST}/'},
+            'note': f'append-only 落档于 <引擎根>/data/research/{ARCHIVE_DOUBLE_NEST}'
+                    '/(research_archive 模块双层嵌套,既定行为)'},
             snapshot=snap))
     elif args.action == 'list':
         try:

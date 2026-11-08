@@ -110,7 +110,7 @@ DP 编号/数量/分类与 DESIGN 实读一致: 行内所引 DP-9(L197 明文)�
 - **交付双代码件定值**(sha256 实取):
   - `scripts/personal_flow_integration.py` 721 行,sha256=`7985308c995cc5ea94a3dafdcccb0997003a67a8b1472e5e2b2f7c87d3359096` [实取·实现笔 04e30fc 提交时点 `git hash-object`/hashlib 双源;终笔时点 `git show` 复核为准;补齐笔后零改动,负向敏感性三注入还原后 sha 零残留等值核验];
   - `tests/test_p3_wp_e.py` 实现笔 1251 行/126 用例(sha256=`437e0284a72200f6b29370e5e9554da3f87469392e15471830ecffb59622b351`)→ 测试补齐笔 1b50fc3 终态 **1301 行/129 用例**(sha256=`6b4a8c77681d6bf23bb62e134f9f55b504d98efaf1991e35e70b56473c653b2a`)[实取·wc -l+hashlib@补齐笔工作树];
-- **黄金六面 sha256 双源一致** [实取·/tmp/p3-wp-e/fixture_and_golden.py(零被测模块 import 首原理件)与 cross_check.py(模块实跑)交叉裁定 ALL MATCH,六面逐字节全等]: G1 标注视图 `3379001e…e8c3c2`/G2 笔记视图 `c350686f…aceb0`/G3 标注档字节 `146c74b8…8ff13`/G4 笔记档字节 `d9112cec…365a4`/G5 导出文档序列化 `dea070d6…7288f`/G6 导出渲染 `20a5c876…4a59b`(全值见测试件 GOLDEN_SHAS L110-127 字面量);
+- **黄金六面 sha256 双源一致** [实取·/tmp/p3-wp-e/fixture_and_golden.py(零被测模块 import 首原理件)与 cross_check.py(模块实跑)交叉裁定 ALL MATCH,六面逐字节全等]: G1 标注视图 `3379001e…e8c3c2`/G2 笔记视图 `c350686f…aceb0`/G3 标注档字节 `146c74b8…8ff13`/G4 笔记档字节 `d9112cec…365a4`/G5 导出文档序列化 `dea070d6…7288f`/G6 导出渲染 `20a5c876…4a59b`(全值见测试件 GOLDEN_SHAS L90-107 字面量);
 - **本地测试**: 129 用例 18 类 OK [实取·`python3 -m unittest tests.test_p3_wp_e` @3.9.6,verbose stdout 证据包 06 类];
 - **本地 CI 镜像**(CI 同款方法学,逐 tests/test_*.py 独立运行): 87 件=86 exit0+1 SKIP(test_glm_live 身份锚)+0 非零 [实取·/tmp/p3-wp-e/local_ci_mirror.py 终态记录;开工基线 86 槽零回归+本包恰 +1];
 - **负向敏感性三注入**(终态 129 用例面复跑): 定值回改(NOTE_SOURCE_LEVEL→"增长")9 红/LIVE 写入守卫旁路 2 红/append 'a'→'w' 4 红→还原复绿→模块 sha256 零残留(=7985308c… 等值)[实取·注入脚本与记录,证据包 06 类];

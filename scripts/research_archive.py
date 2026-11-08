@@ -374,6 +374,110 @@ def load_query_record(query_id, archive_dir=None):
         return json.load(f)
 
 
+# ══ research_full 旁挂(sidecar;批2 WI6 2026-11-09) ═══════════════════════
+# 设计约束: 旧 query_history 格式**一字不动**(QUERY_RECORD_KEYS/digest 重算/
+# 不可变/拒绝重复全部保留);完整研究内容(用户实际所见的作答正文/GLM 原文/
+# warnings/violations/用户备注/前档链接)旁挂新文件,命名
+# {query_id}.research-full.json——_QUERY_FILE_RE(^QB-\d{8}-\d{3}\.json$)不匹配,
+# list_query_records/_same_day_max_seq 天然无视 sidecar(已实证),旧档案可无
+# sidecar 存在(读侧缺失→None,不报错)。
+
+FULL_RECORD_TYPE = "research_full_v1"
+RESEARCH_FULL_SUFFIX = ".research-full.json"
+FULL_KEYS = ("record_type", "query_id", "question_text", "created_at",
+             "research_as_of", "snapshot_id", "digest_snapshot", "status",
+             "answer_text", "values", "unresolved", "glm", "warnings",
+             "violations", "user_note", "follow_up_of", "saved_at")
+
+
+def _research_full_path(collection_dir, query_id):
+    return os.path.join(str(collection_dir), f"{query_id}{RESEARCH_FULL_SUFFIX}")
+
+
+def validate_research_full(payload):
+    """sidecar 记录校验;返回 issues 列表(空=合法)。answer 相关字段允许 None
+    (独立保存场景),但键必须齐(schema 明示,null≠缺席)。"""
+    issues = []
+    if not isinstance(payload, dict):
+        return [f"payload须为dict: {type(payload).__name__}"]
+    for k in FULL_KEYS:
+        if k not in payload:
+            issues.append(f"sidecar缺字段{k}(research_full_v1 schema)")
+    if issues:
+        return issues
+    if payload.get("record_type") != FULL_RECORD_TYPE:
+        issues.append(f"record_type恒须字面量{FULL_RECORD_TYPE!r}: "
+                      f"{payload.get('record_type')!r}")
+    qid = payload.get("query_id")
+    if not isinstance(qid, str) or not qir.QUERY_ID_RE.match(qid or ""):
+        issues.append(f"query_id格式非法(须QB-YYYYMMDD-NNN): {qid!r}")
+    for k in ("question_text",):
+        v = payload.get(k)
+        if not isinstance(v, str) or not v:
+            issues.append(f"{k}须为非空string: {v!r}")
+    for k in ("created_at", "saved_at"):
+        v = payload.get(k)
+        if not isinstance(v, str) or not qir.ISO_DATE_PREFIX_RE.match((v or "")[:10]):
+            issues.append(f"{k}须为ISO8601字符串: {v!r}")
+    if parse_snapshot_id(payload.get("snapshot_id")) is None:
+        issues.append(f"snapshot_id非规范: {payload.get('snapshot_id')!r}")
+    dg = payload.get("digest_snapshot")
+    if not isinstance(dg, str) or not DIGEST_RE.match(dg or ""):
+        issues.append(f"digest_snapshot格式非法(须R5十六位小写指纹): {dg!r}")
+    for k in ("values", "glm"):
+        v = payload.get(k)
+        if v is not None and not isinstance(v, dict):
+            issues.append(f"{k}须为dict|null: {type(v).__name__}")
+    # unresolved=作答相关(独立保存场景 null 如实);warnings/violations=进程自产恒为list
+    v = payload.get("unresolved")
+    if v is not None and not isinstance(v, list):
+        issues.append(f"unresolved须为list|null: {type(v).__name__}")
+    for k in ("warnings", "violations"):
+        v = payload.get(k)
+        if not isinstance(v, list):
+            issues.append(f"{k}须为list(可空,不可null缺席): {type(v).__name__}")
+    fu = payload.get("follow_up_of")
+    if fu is not None and (not isinstance(fu, str)
+                           or not qir.QUERY_ID_RE.match(fu or "")):
+        issues.append(f"follow_up_of须为null|QB-YYYYMMDD-NNN: {fu!r}")
+    return issues
+
+
+def write_research_full(collection_dir, payload):
+    """research_full sidecar 落盘(append-only: 已存在一律拒写,与 base 同纪律)。
+
+    返回 (status, path): written | rejected-duplicate-query-id。
+    schema 违规=ValueError fail-loud。answer 相关字段(status/answer_text/
+    values/unresolved/glm)允许 None(archive save 独立保存场景)。
+    """
+    issues = validate_research_full(payload)
+    if issues:
+        raise ValueError("research_full sidecar未过schema校验(fail-loud): "
+                         + ";".join(issues))
+    collection = str(collection_dir)
+    path = _research_full_path(collection, payload["query_id"])
+    if os.path.exists(path):
+        return STATUS_REJECTED_DUPLICATE, path
+    os.makedirs(collection, exist_ok=True)
+    _tmp = path + '.tmp'
+    with open(_tmp, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, ensure_ascii=False, indent=1, sort_keys=True)
+    os.replace(_tmp, path)
+    return STATUS_WRITTEN, path
+
+
+def load_research_full(query_id, archive_dir=None):
+    """读回 sidecar;缺失返回 None(旧档案无 sidecar 属正常,不报错)。"""
+    if not isinstance(query_id, str) or not qir.QUERY_ID_RE.match(query_id or ""):
+        raise ValueError(f"query_id格式非法: {query_id!r}")
+    path = _research_full_path(_collection_dir(archive_dir or DEFAULT_ARCHIVE_DIR),
+                               query_id)
+    if not os.path.exists(path):
+        return None
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
 def verify_query_record(record, snapshot_dir, archive_dir=None):
     """单记录验证: 记录级校验+快照解析+R5 digest 复算对照;→ (ok, issues)。"""
     if isinstance(record, str):

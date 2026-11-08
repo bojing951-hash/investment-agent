@@ -34,6 +34,11 @@ sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 import workbench_data as wd  # noqa: E402
 from redact_secrets import redact  # noqa: E402  P0-4: tail 过脱敏再入 JSON
 
+# 研究档案目录注入缝(批2 WI6): None=模块默认(<引擎根>/data/research/…);
+# 生产恒为 None——测试进程内 monkeypatch 指向沙箱,跨进程 e2e 用仓库副本
+# 自然隔离(模块路径派生),不引入环境变量面。
+_ARCHIVE_DIR = None
+
 try:
     import fact_engine as fe  # 单位族的唯一权威分桶源
     RATE_UNITS = set(fe.RATE_UNITS)
@@ -580,7 +585,67 @@ def cmd_compare(args):
                          '--metrics A,B | --economies US,JP | --assets 三选一')), exit_code=2)
 
 
+def _check_follow_up(query_id):
+    """--follow-up-of 引用校验: QB 格式+前档存在性;返回 (ok, 原因)。"""
+    import e2eb_query_ir as qir
+    import research_archive as ra
+    if not isinstance(query_id, str) or not qir.QUERY_ID_RE.match(query_id or ''):
+        return False, f'格式非法(须QB-YYYYMMDD-NNN): {query_id!r}'
+    try:
+        ra.load_query_record(query_id, archive_dir=_ARCHIVE_DIR)
+    except FileNotFoundError:
+        return False, f'前档不存在: {query_id}'
+    except ValueError as e:
+        return False, f'前档读取失败: {e}'
+    return True, None
+
+
+def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=None,
+                            values=None, unresolved=None, glm=None,
+                            warnings_=(), violations=(), user_note=None,
+                            follow_up_of=None):
+    """research_full_v1 sidecar 旁挂(批2 WI6): 保存**本次用户实际所见**的
+    作答正文/GLM 原文/warnings/violations/备注/前档链接——只搬运本进程已有
+    值,绝不重新生成、绝不补发任何 API 调用。返回 (ok, 详情)。"""
+    from datetime import datetime, timezone
+    import research_archive as ra
+    import research_provenance as rp
+    if not snap or not snap.get('snapshot_id'):
+        return False, '无快照,sidecar 快照绑定字段不可构造'
+    saved_at = datetime.now(timezone.utc).isoformat(timespec='seconds')
+    try:
+        base = ra.load_query_record(qid, archive_dir=_ARCHIVE_DIR)
+        created_at = base.get('created_at')
+    except (FileNotFoundError, ValueError):
+        created_at = saved_at      # 基档不可读时不阻断(sidecar 仍绑定本进程事实)
+    payload = {'record_type': ra.FULL_RECORD_TYPE, 'query_id': qid,
+               'question_text': question, 'created_at': created_at,
+               'research_as_of': snap.get('research_as_of'),
+               'snapshot_id': snap.get('snapshot_id'),
+               'digest_snapshot': rp.digest_snapshot(snap),
+               'status': status, 'answer_text': answer_text,
+               'values': values, 'unresolved': unresolved, 'glm': glm,
+               'warnings': list(warnings_), 'violations': list(violations),
+               'user_note': user_note, 'follow_up_of': follow_up_of,
+               'saved_at': saved_at}
+    try:
+        st, _path = ra.write_research_full(
+            ra._collection_dir(_ARCHIVE_DIR or ra.DEFAULT_ARCHIVE_DIR), payload)
+    except ValueError as e:
+        return False, f'schema 拒绝: {e}'
+    if st != ra.STATUS_WRITTEN:
+        return False, st
+    return True, None
+
+
 def cmd_research(args):
+    if args.follow_up_of:
+        fu_ok, fu_why = _check_follow_up(args.follow_up_of)
+        if not fu_ok:
+            emit(envelope('research', False, {},
+                          error=('invalid_follow_up',
+                                 f'--follow-up-of 校验失败: {fu_why}',
+                                 '先 archive list 查看已有 query_id')), exit_code=2)
     snap, reg, note = load_context()
     if snap is None:
         emit(envelope('research', False, {},
@@ -606,9 +671,19 @@ def cmd_research(args):
         if not glm.get('ok'):
             warnings.append(f"GLM 解释未生成: {glm.get('error', '')[:120]}")
     if args.archive and ok:
-        qid, err = wd.save_to_archive(args.question, snap, ROOT)
+        qid, err = wd.save_to_archive(args.question, snap, ROOT,
+                                      archive_dir=_ARCHIVE_DIR)
         if qid:
             data['archived_query_id'] = qid
+            # sidecar=本次用户实际所见原文(先于后续 warnings 追加,快照此刻状态)
+            full_ok, full_why = _write_research_sidecar(
+                qid, snap, args.question, status=res['status'],
+                answer_text=res.get('answer_text'), values=res.get('values', {}),
+                unresolved=res.get('unresolved', []), glm=data.get('glm'),
+                warnings_=list(warnings), violations=list(violations or []),
+                user_note=args.note, follow_up_of=args.follow_up_of)
+            if not full_ok:
+                warnings.append(f'research-full sidecar 未落盘: {full_why}')
         else:
             warnings.append(f'归档失败: {err}')
     # 退出码=进程层成败(诚实拒答/未支持也是成功执行);语义成败看 ok 与 data.status
@@ -619,40 +694,63 @@ def cmd_archive(args):
     import research_archive as ra
     snap, _reg, _note = load_context()
     if args.action == 'save':
+        if args.follow_up_of:
+            fu_ok, fu_why = _check_follow_up(args.follow_up_of)
+            if not fu_ok:
+                emit(envelope('archive', False, {},
+                              error=('invalid_follow_up',
+                                     f'--follow-up-of 校验失败: {fu_why}',
+                                     '先 archive list 查看已有 query_id')), exit_code=2)
         if snap is None:
             emit(envelope('archive', False, {},
                           error=('no_snapshot', '本地无研究快照,无法归档',
                                  '先运行 python3 ia_cli.py update --yes 采集数据')), exit_code=1)
-        qid, err = wd.save_to_archive(args.question, snap, ROOT)
+        qid, err = wd.save_to_archive(args.question, snap, ROOT,
+                                      archive_dir=_ARCHIVE_DIR)
         if not qid:
             emit(envelope('archive', False, {},
                           error=('save_failed', err or '归档失败', None)), exit_code=1)
-        emit(envelope('archive', True, {
-            'saved': True, 'query_id': qid,
-            'note': f'append-only 落档于 <引擎根>/data/research/{ARCHIVE_DOUBLE_NEST}'
-                    '/(research_archive 模块双层嵌套,既定行为)'},
-            snapshot=snap))
+        # 独立保存场景: 无本次作答,answer 相关字段如实 null(备注/前档链接落位)
+        full_ok, full_why = _write_research_sidecar(
+            qid, snap, args.question, warnings_=[], violations=[],
+            user_note=args.note, follow_up_of=args.follow_up_of)
+        data = {'saved': True, 'query_id': qid,
+                'note': f'append-only 落档于 <引擎根>/data/research/{ARCHIVE_DOUBLE_NEST}'
+                        '/(research_archive 模块双层嵌套,既定行为)'}
+        warns = []
+        if not full_ok:
+            warns.append(f'research-full sidecar 未落盘: {full_why}')
+        emit(envelope('archive', True, data, warns, snapshot=snap))
     elif args.action == 'list':
         try:
-            qids = ra.list_query_records()
+            qids = ra.list_query_records(archive_dir=_ARCHIVE_DIR)
         except (OSError, ValueError) as e:
             emit(envelope('archive', True, {'records': [],
                                             'note': f'档案目录不可读或为空: {e}'}))
         records = []
         for qid in qids[-args.limit:]:
             try:
-                rec = ra.load_query_record(qid)
-                records.append({'query_id': qid,
-                                'created_at': rec.get('created_at'),
-                                'question_text': (rec.get('question_text') or '')[:80],
-                                'snapshot_id': rec.get('snapshot_id'),
-                                'ir_stage': rec.get('ir_stage')})
+                rec = ra.load_query_record(qid, archive_dir=_ARCHIVE_DIR)
             except (FileNotFoundError, ValueError):
                 records.append({'query_id': qid, 'note': '记录读取失败(损坏或不完整)'})
+                continue
+            row = {'query_id': qid,
+                   'created_at': rec.get('created_at'),
+                   'question_text': (rec.get('question_text') or '')[:80],
+                   'snapshot_id': rec.get('snapshot_id'),
+                   'ir_stage': rec.get('ir_stage')}
+            try:  # sidecar 存在性(损坏不阻断列表,如实标注)
+                full = ra.load_research_full(qid, archive_dir=_ARCHIVE_DIR)
+            except (OSError, ValueError):
+                full = False
+            row['has_full'] = bool(full)
+            if full and full.get('user_note'):
+                row['user_note'] = str(full['user_note'])[:60]
+            records.append(row)
         emit(envelope('archive', True, {'n_total': len(qids), 'records': records}))
     else:  # get
         try:
-            rec = ra.load_query_record(args.query_id)
+            rec = ra.load_query_record(args.query_id, archive_dir=_ARCHIVE_DIR)
         except FileNotFoundError:
             emit(envelope('archive', False, {},
                           error=('not_found', f'无此档案记录: {args.query_id}',
@@ -660,7 +758,17 @@ def cmd_archive(args):
         except ValueError as e:
             emit(envelope('archive', False, {},
                           error=('corrupt_record', f'档案格式非法: {e}', None)), exit_code=1)
-        emit(envelope('archive', True, {'record': rec}))
+        data = {'record': rec}   # 旧档原样(格式一字不动)
+        warns = []
+        try:
+            full = ra.load_research_full(args.query_id, archive_dir=_ARCHIVE_DIR)
+        except ValueError as e:
+            full, warns = None, [f'sidecar 读取失败(基档不受影响): {e}']
+        if full is not None:     # 并列合并视图(base 身份为准,record_type 不被覆盖)
+            merged = dict(rec)
+            merged.update({k: v for k, v in full.items() if k != 'record_type'})
+            data['full'] = merged
+        emit(envelope('archive', True, data, warns))
 
 
 # ══ 入口 ══════════════════════════════════════════════════════════════
@@ -705,12 +813,18 @@ def build_parser():
     rs.add_argument('--glm', action='store_true',
                     help='附加 GLM 解释(产生 API 费用,仅用户明确要求时使用)')
     rs.add_argument('--archive', action='store_true', help='同时落研究档案')
+    rs.add_argument('--note', help='用户备注(随 research-full sidecar 落档)')
+    rs.add_argument('--follow-up-of',
+                    help='关联前档 query_id(QB-YYYYMMDD-NNN;存在性校验失败 rc=2)')
 
     ar = sub.add_parser('archive', help='研究档案: 存/列/取')
     ar.add_argument('action', choices=['save', 'list', 'get'])
     ar.add_argument('--question', help='save: 要归档的研究问题')
     ar.add_argument('--query-id', help='get: QB-YYYYMMDD-NNN')
     ar.add_argument('--limit', type=int, default=20, help='list: 条数上限')
+    ar.add_argument('--note', help='save: 用户备注(随 sidecar 落档)')
+    ar.add_argument('--follow-up-of',
+                    help='save: 关联前档 query_id(存在性校验失败 rc=2)')
     return p
 
 

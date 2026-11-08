@@ -1,7 +1,7 @@
 # P03 E2EB WP-B3 实施报告 — 日本利率数据身份与获取
 
 - 合同: IA-P03-E2EB-WP-B3-AC-v1.4 案A回做版(sha256前缀 c878e5a8,以操作者归档件为准)
-- 执行: Agent 3(executor), DEV 仓 /Users/cast/investment-agent-dev, 分支 dev/p03-e2eb-b3
+- 执行: Agent 3(executor), DEV 仓 <DEV根目录>, 分支 dev/p03-e2eb-b3
 - 基线: 04ead6d384f5ef30113883fa8ff46197d08771f1(main 与分支双 tip 实测一致;设计三文件
   与 f1fe593 blob 级相等已验)
 - 报告纪律: §零为**运行前登记**(登记型决策点先登记后实现,运行后禁回改);

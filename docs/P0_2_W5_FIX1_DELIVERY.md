@@ -108,7 +108,7 @@
 
 ## 4. 正式真实数据验收执行计划(§十二)
 最终固定SHA后实际执行(不留未来计划):
-- 输入: `/Users/cast/audit/w4-real-data/daily`(848文件冻结副本,完整性
+- 输入: `~/audit/w4-real-data/daily`(848文件冻结副本,完整性
   重确认);输出: 独立目录(与输入无路径冲突,FIX1-05先决检查)。
 - 数据授权: 非LIVE生产数据,冻结副本+只读;LIVE/launchd/生产数据零改动。
 - 外部: Treasury.gov/Coinbase/sina/FRED(密钥经env注入不打印)真实调用;

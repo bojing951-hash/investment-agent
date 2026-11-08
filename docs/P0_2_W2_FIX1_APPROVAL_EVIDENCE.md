@@ -5,7 +5,7 @@
 - 用途: Agent 4 判定 W2 政策项 NOT VERIFIED(缺可独立复核的原始批准
   消息)——本文件回填**用户原始批准消息的逐字记录**, 非开发者转述。
 - 可复核来源: Claude Code 会话transcript
-  `/Users/cast/.claude/projects/-Users-cast-AI--/b16f1517-4837-4cee-9466-4b517752687b.jsonl`
+  `~/.claude/projects/-Users-cast-AI--/b16f1517-4837-4cee-9466-4b517752687b.jsonl`
   (JSONL, 每行含 `type`/`timestamp`/`message.content`;
   AskUserQuestion 的提问=assistant tool_use, 批复=user tool_result,
   文本以 `Your questions have been answered:` 开头)
@@ -15,7 +15,7 @@
 ```bash
 python3 - <<'EOF'
 import json
-path='/Users/cast/.claude/projects/-Users-cast-AI--/b16f1517-4837-4cee-9466-4b517752687b.jsonl'
+path='~/.claude/projects/-Users-cast-AI--/b16f1517-4837-4cee-9466-4b517752687b.jsonl'
 for line in open(path, encoding='utf-8'):
     try: obj=json.loads(line)
     except Exception: continue

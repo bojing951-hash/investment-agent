@@ -165,7 +165,7 @@ DP 编号/数量/分类与 DESIGN 实读一致: 行内所引 DP-7(L192② 明文
 1. **单支纯线性**: BASE-P3D `aeb39e8` 后纯线性: 登记笔 `921fa15`(REPORT §零)→实现笔 `02e1c00`(模块+测试)→报告笔(本笔,REPORT §零.9+§一-§六 回填)→DELIVERY 笔→定值笔;`git log --merges BASE-P3D..HEAD` 空 [实取];
 2. **零 amend 零 force**: 提交一次成型,零 --amend 零 --force 推送(推送=单支 `git push origin dev/p3-impl-d` no-force);
 3. **main 未触碰**: 本包零 main 操作(推送前后 ls-remote main 全值等值 `aeb39e8d…` 机器快照);
-4. **LIVE 零写入**: 全程零写 `/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent`(grep R041/P3-WP-D/IA-P3-WP-D 零命中+real_data_acceptance.py sha 等值+LaunchAgents 清单零改动,取证三面落证据包 03 类);
+4. **LIVE 零写入**: 全程零写 `<LIVE根目录>`(grep R041/P3-WP-D/IA-P3-WP-D 零命中+real_data_acceptance.py sha 等值+LaunchAgents 清单零改动,取证三面落证据包 03 类);
 5. **零 tag**: 全程零 tag 创建;
 6. **零网络**: 除取证类(ls-remote/推送)零网络出站;零 GLM/凭证/付费;
 7. **零运行产物**: repo 内零本包运行产物(P-D-20;模块零落盘面+测试临时沙箱)。

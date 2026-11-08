@@ -1,7 +1,7 @@
 # IA-P0-2-W2-FIX3 交付报告: 混合精度与未知时区比较错误认证修复
 
 - 任务: IA-P0-2-W2-FIX3 (指令 IA-P0-2-W2-FIX3-DEV-v1.0, 缺陷 IA-P02-W2-FIX2-DEF-001)
-- 分支: dev/p0-2-w2 | 仓库: bojing951-hash/investment-agent (DEV=/Users/cast/investment-agent-dev)
+- 分支: dev/p0-2-w2 | 仓库: bojing951-hash/investment-agent (DEV=<DEV根目录>)
 - 日期: 2026-10-30
 - 状态结论: **CODE FIXED — 独立验收材料齐备, READY FOR W2 INDEPENDENT ACCEPTANCE**
   (最终裁决权属 Agent 4; 政策批准原始证据复现性与独立核验路径见§8)
@@ -152,7 +152,7 @@ D4反=FIX1未来发布保护(CPI obs 09-01/release 10-28/as_of时刻)在混合�
 ```bash
 python3 - <<'EOF'
 import hashlib, json
-p='/Users/cast/.claude/projects/-Users-cast-AI--/b16f1517-4837-4cee-9466-4b517752687b.jsonl'
+p='~/.claude/projects/-Users-cast-AI--/b16f1517-4837-4cee-9466-4b517752687b.jsonl'
 raw=open(p,'rb').read()
 print('前缀不变:', hashlib.sha256(raw[:12553908]).hexdigest()
       =='34b23023a6b0eb6db47895ed994332c080c912412890b1f853ba9e03f82245f5')
@@ -233,13 +233,13 @@ test_p02_w2_fix3.py/必要既有W2测试(仅fix2 E2一处)/FRESHNESS.json/.md核
 
 ## 13. §4 隔离(开发前预检+最终核验)
 
-- 开发前(只读): DEV git根=/Users/cast/investment-agent-dev(独立仓库, 无
+- 开发前(只读): DEV git根=<DEV根目录>(独立仓库, 无
   symlink), branch=dev/p0-2-w2, HEAD=d1ceac6, 工作树clean(无未提交修改
   需核实保留), origin/main=50b5d13;
 - **最终核验**(实现提交da235c5后、只读执行):
   - DEV: HEAD=da235c5, branch=dev/p0-2-w2, inode=60895116,
     origin/main=50b5d13(未合并);
-  - LIVE: realpath=/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/
+  - LIVE: realpath=~/AI内容/🤖_AI投资项目/每周宏观追踪/
     investment-agent, inode=22199716, 无.git, 祖先目录无symlink;
   - LIVE 8关键文件`git hash-object`对比50b5d13 blob: **7 MATCH**
     (fact_engine/data_validator/research_provenance/snapshot_builder/

@@ -72,8 +72,8 @@ W4=对**实际已保存历史数据**的只读覆盖调查：基于 `data/daily/
 
 ## 12. 真实审计执行证据（§十二W4-09）
 
-- **开发期smoke（本Commit前，已披露）**: LIVE `data/daily/` 五通道848文件（global 210/china 210/macro 206/rate_economy 207/research_snapshot 15）`cp -p`冻结副本至Git外 `/Users/cast/audit/w4-real-data/`，SHA-256逐文件核对与LIVE一致（848/848，0差异）；DEV代码只读审计副本2.3秒完成: COMPLETED、848可读0坏、81项全输出、run_id `ra_d7a7f17bbf0c`；结束后复核LIVE原件848文件SHA全部未变（审计零触碰）。smoke产物在Git外 `/Users/cast/audit/w4-real-audit-smoke/`（不作为官方审计证据，仅开发调试）。
-- **官方真实审计（本Commit后按§十四顺序）**: 用最终固定Commit代码+冻结副本（重新核对SHA）执行，完整脱敏审计记录与真实覆盖报告（run_id/81项状态分布/关键指标明细/六问发现）在对话交付报告与Git外附件 `/Users/cast/audit/` 交付Agent 4，不写入仓库。严禁且未做: 合成数据替代真实审计、period='1y'推断已存一年、observation_start推断最早观测日、网络API补回、因覆盖差改旧数据、改生产周报或长期状态。只有两周就报两周，没数据就报没数据。
+- **开发期smoke（本Commit前，已披露）**: LIVE `data/daily/` 五通道848文件（global 210/china 210/macro 206/rate_economy 207/research_snapshot 15）`cp -p`冻结副本至Git外 `~/audit/w4-real-data/`，SHA-256逐文件核对与LIVE一致（848/848，0差异）；DEV代码只读审计副本2.3秒完成: COMPLETED、848可读0坏、81项全输出、run_id `ra_d7a7f17bbf0c`；结束后复核LIVE原件848文件SHA全部未变（审计零触碰）。smoke产物在Git外 `~/audit/w4-real-audit-smoke/`（不作为官方审计证据，仅开发调试）。
+- **官方真实审计（本Commit后按§十四顺序）**: 用最终固定Commit代码+冻结副本（重新核对SHA）执行，完整脱敏审计记录与真实覆盖报告（run_id/81项状态分布/关键指标明细/六问发现）在对话交付报告与Git外附件 `~/audit/` 交付Agent 4，不写入仓库。严禁且未做: 合成数据替代真实审计、period='1y'推断已存一年、observation_start推断最早观测日、网络API补回、因覆盖差改旧数据、改生产周报或长期状态。只有两周就报两周，没数据就报没数据。
 - **真实数据smoke事实预览**（官方审计将复核）: 状态分布72 OBSERVED+2 SPARSE（ZQ_F1_PRICE 19观测/4段/最大间隔126天、HSAHP 25观测）+1 MISSING（SH_PE: 新格式valuation仅300/500/1000嵌套pe_ttm，与注册"上证PE"非同身份，26组unmapped如实披露）+6 DERIVED_ONLY；series backed 64/81；全部权威观测最早日2025-01-01（macro月频）/2025-10-17（global日频回看窗口）；ZQ=F仅出现在31/207个rate文件（历史真实现象，非解析缺陷——31文件外futures数组为空或仅月份合约）。
 
 ## 13. 输入完整性（§五5.2）
@@ -93,7 +93,7 @@ W4=对**实际已保存历史数据**的只读覆盖调查：基于 `data/daily/
 
 ## 16. DEV/LIVE隔离（§三）
 
-DEV=`/Users/cast/investment-agent-dev`（独立Git仓库，分支dev/p0-2-w4，本轮前工作区0脏项）；LIVE=`/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent`（无.git）。开发前后只读核查: realpath+inode非同目录/非祖先后代；launchd两服务程序与工作目录仅指LIVE零DEV引用；真实数据只经冻结副本接触；LIVE原件复核未变。最终Commit与CI run#2后按§十四⑥执行完整只读取证（模板=W3-FIX5隔离脚本改W4版: 基线497b02c、分支dev/p0-2-w4、W4产物在LIVE缺席清单、两轮CI、零修改证明），证据入Git外 `/Users/cast/audit/` 并在对话完整输出（脱敏）。
+DEV=`<DEV根目录>`（独立Git仓库，分支dev/p0-2-w4，本轮前工作区0脏项）；LIVE=`<LIVE根目录>`（无.git）。开发前后只读核查: realpath+inode非同目录/非祖先后代；launchd两服务程序与工作目录仅指LIVE零DEV引用；真实数据只经冻结副本接触；LIVE原件复核未变。最终Commit与CI run#2后按§十四⑥执行完整只读取证（模板=W3-FIX5隔离脚本改W4版: 基线497b02c、分支dev/p0-2-w4、W4产物在LIVE缺席清单、两轮CI、零修改证明），证据入Git外 `~/audit/` 并在对话完整输出（脱敏）。
 
 ## 17. 未验证事项
 

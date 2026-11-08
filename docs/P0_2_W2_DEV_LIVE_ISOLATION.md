@@ -8,8 +8,8 @@
 
 | 项 | 值 |
 |---|---|
-| DEV | `/Users/cast/investment-agent-dev`（realpath 同，无符号链接参与） |
-| LIVE | `/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent`（realpath 同） |
+| DEV | `<DEV根目录>`（realpath 同，无符号链接参与） |
+| LIVE | `<LIVE根目录>`（realpath 同） |
 | 目录身份 | DEV=(16777231, 60895116)；LIVE=(16777231, 22199716)——**inode 不同，物理两个目录** |
 | 祖先/后代关系 | 否（commonpath 双向判定） |
 

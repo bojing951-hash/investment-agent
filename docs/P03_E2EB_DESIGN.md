@@ -244,7 +244,7 @@ UnresolvedEntity = {
 ## §七 红线遵守
 
 1. **快照+门禁不可绕开**: 查询执行器唯一数据入口=`select_snapshot`(R1)+`gate_allows_formal_research`(R3);IR的`source_file`仅披露,不构成读取路径(D1;§三(a) Provenance注释);新研究模块(模式B全链)不例外于架构v2"必须走快照+门禁"。
-2. **LIVE禁写**: 全部工作包产物落DEV仓与测试沙箱;LIVE路径(/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent)与launchd零触碰;WP-B3采集落DEV数据档。
+2. **LIVE禁写**: 全部工作包产物落DEV仓与测试沙箱;LIVE路径(<LIVE根目录>)与launchd零触碰;WP-B3采集落DEV数据档。
 3. **禁交易/收益承诺**: `answer_constraints`与映射器`out_of_scope`(§三(a) UnresolvedEntity)显式拦截交易指令/仓位管理/收益承诺类问题;回答模板禁止投资建议措辞(实现于WP-B5渲染层)。
 4. **数据不足不填0**: 四级缺席路径(§三(c))零填零;派生NO_DATA不部分计算;与E3/M1/C5三处既有"不填0"实现同源;走查中MB-8/9与OP-1/2为活例。
 

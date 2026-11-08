@@ -130,10 +130,10 @@ P0-1×12/E2E×3/Gate/报告保护/月报季报。零历史口径修改、零门�
   EVIDENCE.zip内CI证据(最终轮实数按防预写纪律不入Git)。
 
 ## 10. W5-08 正式真实数据验收(最终固定Commit后实际执行)
-- 输入: 冻结副本`/Users/cast/audit/w4-real-data/daily`(Git外,848文件,
+- 输入: 冻结副本`~/audit/w4-real-data/daily`(Git外,848文件,
   W4轮自LIVE生产data/daily冻结,授权链=W4系列用户开发指令;执行前重新
   核实: 目录存在/非symlink入口/逐文件授权范围一致)。
-- 信任根: 经既有`--trusted-root /Users/cast/audit/w4-real-data`显式授权
+- 信任根: 经既有`--trusted-root ~/audit/w4-real-data`显式授权
   (FIX8-03既有接口,不关闭Gate A/不伪造可信根/不降低源校验阈值)。
 - 数据日: `--data-day 20261030`(该日四源齐且Gate A=DEGRADED core零缺失;
   20261031因rate通道real_economy缺ZQ_IMPLIED_AVG核心键Gate A=FAIL,

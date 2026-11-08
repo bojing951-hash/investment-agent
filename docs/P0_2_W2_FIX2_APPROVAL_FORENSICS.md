@@ -9,7 +9,7 @@
 
 | 项 | 值 |
 |---|---|
-| 文件 | /Users/cast/.claude/projects/-Users-cast-AI--/b16f1517-4837-4cee-9466-4b517752687b.jsonl (Mac本地, Claude Code会话日志, JSONL) |
+| 文件 | ~/.claude/projects/-Users-cast-AI--/b16f1517-4837-4cee-9466-4b517752687b.jsonl (Mac本地, Claude Code会话日志, JSONL) |
 | SHA-256 (取证时刻快照) | `34b23023a6b0eb6db47895ed994332c080c912412890b1f853ba9e03f82245f5` |
 | 字节数 (取证时刻) | 12553908 |
 | 会话 | W2开发会话链(2026-10-29起, 含W2→FIX1→FIX2连续工作, 经compact续接, 单一JSONL) |

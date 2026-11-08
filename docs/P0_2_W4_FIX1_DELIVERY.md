@@ -172,7 +172,7 @@ Gate A/B、来源内容摘要、正式报告及长期状态保护、月报季报
 **W4首轮的46套绿色CI不作为FIX1验收结果**。
 
 ## 14. 正式真实数据审计(FIX1-07,最终Commit后执行)
-- 数据: 优先复用W4已授权冻结副本/Users/cast/audit/w4-real-data(848文件);
+- 数据: 优先复用W4已授权冻结副本~/audit/w4-real-data(848文件);
   复用前重新核验: 目录存在/授权范围/文件计数与SHA-256与LIVE原件对应/来源
   清单——**不因旧文档提到该路径即自动假定仍完整可信**;核验记录入Git外附件。
 - 用最终固定SHA代码重跑(工作区必须干净→audit_commit=最终SHA,无脏披露);
@@ -186,7 +186,7 @@ Gate A/B、来源内容摘要、正式报告及长期状态保护、月报季报
 
 ## 15. 最终DEV/LIVE只读隔离证据
 最终Commit后按§十四⑩执行,产出
-/Users/cast/audit/IA-P0-2-W4-FIX1-POSTCOMMIT-ISOLATION-<SHA7>.txt(Git外):
+~/audit/IA-P0-2-W4-FIX1-POSTCOMMIT-ISOLATION-<SHA7>.txt(Git外):
 核验时间/DEV HEAD与分支/远程三分支/GitHub main/DEV与LIVE realpath+inode/
 launchd两服务路径/LIVE核心源码SHA-256 vs P0-1封印/W4+FIX1产物未部署LIVE/
 生产数据与长期状态只读元数据/真实审计冻结副本与授权来源关系/未能独立证明的

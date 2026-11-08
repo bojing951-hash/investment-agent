@@ -126,7 +126,7 @@ CI(GitHub Actions offline-tests): 见§14。
 
 ## 15. DEV/LIVE隔离证据(只读核验, 2026-10-30)
 
-- DEV=/Users/cast/investment-agent-dev(dev/p0-2-w2@965d397), LIVE=/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/investment-agent(无.git,launchd指向LIVE)。
+- DEV=<DEV根目录>(dev/p0-2-w2@965d397), LIVE=<LIVE根目录>(无.git,launchd指向LIVE)。
 - 逐文件SHA-256比对(W2整改涉及的8文件): LIVE侧7个存在文件**全部=50b5d13(main基线)**——`data_assembler.py`三方一致(本轮未改);`allocation_engine/report_generator/data_validator/fact_engine/snapshot_builder/research_provenance`6个LIVE=50b5d13≠dev(dev整改未部署,预期);`freshness_policy.py`LIVE不存在(50b5d13亦无,维持前轮结论)。
 - 全程未触碰Mac LIVE/launchd/生产数据与状态;未读取或复制密钥;未执行真实GLM(测试GLM为≥500字本地替身,CI侧SKIPPED);测试全部使用独立沙箱与合成数据;未将JSONL上传公开仓库。
 

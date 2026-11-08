@@ -12,7 +12,7 @@
 3. **LIVE/launchd 三项只读(开轮;收轮×2 复核见证据包 isolation/CLOSING-REGISTRATION.md)**:
    - LIVE scripts/real_data_acceptance.py SHA256=f9ca189c5248199bb5acbc78b2a2c82d59c10e1c7c2c2d20bdaaa6105fbfe3eb(机器件 isolation/opening-live-acceptance-sha.txt;=R050/R051/R052 在案同值=LIVE 零变化;≠DEV 01e3f890793f09b86f1e885da9a4eb9fc143a1638cb4a56e80e2f34a5bcb331b ✓);
    - LIVE 全库 grep「FINALVERDICT-R2|FINALVERDICT_R2|IA-P0-2-W5-FINALVERDICT-R2|P0_2_W5_FINALVERDICT_R2_INDEX」=**0 命中** ✓;
-   - /Users/cast/Library/LaunchAgents grep「investment-agent-dev」=**0 命中** ✓(清单快照 isolation/opening-launchd-listing.txt)。
+   - ~/Library/LaunchAgents grep「investment-agent-dev」=**0 命中** ✓(清单快照 isolation/opening-launchd-listing.txt)。
 4. **旧证据包只读复核**(zip sha256 重算,机器件 isolation/prior-evidence-zips-readonly-verify.txt+chain-round-zips-readonly-verify.txt): R050=4c2ae5eacbf66683024cbaa068f9f39d7fdfe4ee89193a5cfa45e65815d08049/R051=097bc7ccacf4b17eb0953ac4e5ad7d8da8ac9bea3210321d11027d650e6f5ceb/R052=5ee5a1e66680d1ede4ac2f1ce36662759609162631939eb18bae7ca3159cf4ff(=合同【R052ZIP】逐字)均与各轮登记值一致;R052 包 62 散件 `shasum -a 256 -c SHA256SUMS` 重算**全 OK**(exit 0)。
 5. **R052 证据包定位**(任务§3.2): /tmp/w5rerun4-evidence/**存续可达**(zip=5ee5a1e66680d1ede4ac2f1ce36662759609162631939eb18bae7ca3159cf4ff);引擎侧 rounds/052 登记件执行位不可达,以包内 SHA256SUMS+result.md 副本+DEV 交付文档 docs/P0_2_W5_RERUN_4_DELIVERY.md@07f87cc5cc18db0e5e67fd6fb5d8e3a606998183 为据(与合同锚定三同源)。
 

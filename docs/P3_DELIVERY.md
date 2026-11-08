@@ -34,7 +34,7 @@
 
 ## ④ 偏离与如实声明
 
-1. **本地解释器版本**: 本机 python3=3.9.6(venv `/Users/cast/AI内容/venv`;CI=Python 3.11)。CI 同构运行以 3.9.6 完成 53/53 全绿;版本差异如实登记,最终以操作者 CI dispatch(3.11)为准。
+1. **本地解释器版本**: 本机 python3=3.9.6(venv `<LIVE venv>`;CI=Python 3.11)。CI 同构运行以 3.9.6 完成 53/53 全绿;版本差异如实登记,最终以操作者 CI dispatch(3.11)为准。
 2. **工作区数据副本影响**: 如③所述 `test_p4_fixes` 工作区 exit=1(授权数据副本在场)。未删除/移动任何本地数据文件;以 clone 取得 CI 同构结果,如实呈报。
 3. **DELIVERY 双提交机制**: 因「zip sha256 落 DELIVERY」与「DELIVERY 副本入 zip」自指,采用 v1(入 zip)→装配→v2 补登字面值(第 3 提交)机制,差异仅补登块,非内容改写。
 4. **CI dispatch(AC-06(e))**: 属操作者 CHECKPOINT 段(登记件 `rounds/030/P3-DESIGN-CI-dispatch-evidence.md` 落字面值: run ID+headSha+conclusion+套件数),执行 Agent 零 dispatch、零 `gh` 调用。

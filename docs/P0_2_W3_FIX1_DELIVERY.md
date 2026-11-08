@@ -74,7 +74,7 @@ A 同秒双批次/同内容重跑/4线程并发/清单损坏保全/恒定身份�
 只改动: scripts/news_provenance.py、scripts/news_collector.py、scripts/report_generator.py（仅新闻部分）、tests/test_p02_w3.py、tests/test_p02_w3_fix1.py、docs/P0_2_W3_FIX1_DELIVERY.md。未触碰: 金融指标注册表、金融时效策略、fact_engine、Gate A/B正式门禁、P0-1来源身份、W1-W2成果、run_weekly新闻非关键定位、Mac LIVE、launchd、生产data/news、历史正式报告、thesis/allocation_views、生产密钥（未读取未复制）、真实付费GLM、W4/W5/P0-3、main分支、force push。
 
 ## 10. 最终DEV/LIVE隔离证据（Git仓库外审计材料）
-`/Users/cast/audit/IA-P0-2-W3-FIX1-POSTCOMMIT-ISOLATION-<最终SHA前7位>.txt`（Git仓库外;最终Commit与CI run#2之后执行;完整文件名/SHA-256见对话交付报告） — 在最终Commit与CI run#2之后执行;含: 核验时间、DEV HEAD=最终SHA、DEV/LIVE realpath+inode 对照、origin/main 与 origin/dev/p0-2-w3、launchd 路径与内容、LIVE关键源码与P0-1封版`50b5d13` SHA-256逐文件对照、LIVE不存在W3/W3-FIX1新模块及开发测试、生产 data/news 无 news_sources_*/news_refs_* 新产物、生产长期状态只读检查、不可再现的历史瞬时事项如实标注"无法事后证明"。证据正文已在对话中完整输出（脱敏，无生产密钥/私人状态正文）。
+`~/audit/IA-P0-2-W3-FIX1-POSTCOMMIT-ISOLATION-<最终SHA前7位>.txt`（Git仓库外;最终Commit与CI run#2之后执行;完整文件名/SHA-256见对话交付报告） — 在最终Commit与CI run#2之后执行;含: 核验时间、DEV HEAD=最终SHA、DEV/LIVE realpath+inode 对照、origin/main 与 origin/dev/p0-2-w3、launchd 路径与内容、LIVE关键源码与P0-1封版`50b5d13` SHA-256逐文件对照、LIVE不存在W3/W3-FIX1新模块及开发测试、生产 data/news 无 news_sources_*/news_refs_* 新产物、生产长期状态只读检查、不可再现的历史瞬时事项如实标注"无法事后证明"。证据正文已在对话中完整输出（脱敏，无生产密钥/私人状态正文）。
 
 ## 11. 剩余未验证事项
 - 真实Finnhub API在异常限流/断连下的行为（本轮全Mock；测试覆盖异常类路径但非真实网络）。

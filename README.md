@@ -35,7 +35,7 @@ cd investment-agent
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 cp .env.example .env        # 按需填 Key(免 Key 可采集;但缺 FRED Key 时 Gate A 必 FAIL、研究问答被拒,见指南 FAQ Q1)
-python3 run_weekly.py       # 第一次数据采集(13 步流水线,数分钟)
+python3 run_weekly.py       # 第一次数据采集(13 步流水线,配齐 Key 数分钟;免 Key 或需 10 分钟左右,见指南 Q1)
 
 # 打开本地研究工作台(可选):
 .venv/bin/pip install -r requirements-workbench.txt

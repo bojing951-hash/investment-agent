@@ -49,14 +49,15 @@ python -m venv .venv
 
 ## 2. 配置 API Key
 
-**没有任何 Key 也能用**: 全球行情、日本/欧元区公开数据可无 Key 采集,工作台
-四页全部可用。Key 决定的是数据覆盖面与 AI 功能:
+**没有任何 Key 也能跑**: 全球行情、日本/欧元区公开数据可无 Key 采集,工作台
+四页都能打开浏览。但注意免 Key 的确定性后果(详见 FAQ Q1): **缺 FRED Key ⇒
+Gate A 必 FAIL ⇒ 接地研究问答全部拒答**、脚本退出码 1——配 Key 后恢复。
 
 | 环境变量 | 影响 | 申请(免费) |
 |---|---|---|
-| `GLM_API_KEY` | **AI 周报生成、AI 研究解释**需要;不配→数据采集/工作台/接地问答照常 | [智谱开放平台](https://open.bigmodel.cn/) |
-| `FRED_API_KEY` | **美国宏观序列**(CPI/就业/利率等)需要;不配→美国宏观大部分缺失 | [FRED](https://fred.stlouisfed.org/docs/api/api_key.html) |
-| `TUSHARE_TOKEN` | A股/港股深度数据;不配→自动降级 akshare 等免费通道,部分指标缺失 | [tushare](https://tushare.pro/) |
+| `GLM_API_KEY` | **AI 周报生成、AI 研究解释**需要;不配→采集/工作台浏览照常,AI 功能不可用 | [智谱开放平台](https://open.bigmodel.cn/) |
+| `FRED_API_KEY` | **美国宏观序列**(CPI/就业/利率等)需要;不配→美国宏观核心缺失,**Gate A 必 FAIL,接地研究问答拒答**(见 Q1) | [FRED](https://fred.stlouisfed.org/docs/api/api_key.html) |
+| `TUSHARE_TOKEN` | A股/港股深度数据;不配→匿名限流 1 次/小时,深度数据近乎不可用,首跑或耗时 10 分钟左右 | [tushare](https://tushare.pro/) |
 | `FINNHUB_API_KEY` | 新闻摘要;不配→新闻步骤降级,不影响其他数据 | [Finnhub](https://finnhub.io/) |
 
 ### 推荐方式: 项目根 .env 文件
@@ -85,7 +86,7 @@ python3 -c "import env_config as e; print('GLM:', bool(e.GLM_API_KEY), '| FRED:'
 
 ## 3. 第一次运行
 
-### 3.1 数据采集(约 2~10 分钟,视网络)
+### 3.1 数据采集(配齐 Key 约 2~10 分钟;免 TUSHARE Token 可达 10 分钟以上,见 Q1)
 
 ```bash
 python3 run_weekly.py

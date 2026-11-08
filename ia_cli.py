@@ -320,6 +320,8 @@ def cmd_update(args):
     cmd = [sys.executable, os.path.join(ROOT, 'run_weekly.py')]
     if args.allow_revision:
         cmd.append('--allow-revision')
+        if args.revision_reason:
+            cmd += ['--revision-reason', args.revision_reason]
     # P0-1 契约修复: stdout 全程只输出一个 JSON 信封(SKILL.md「输出一律为单个
     # JSON 对象」)。开始提示走 stderr(人读进度,机器不解析)。
     print(f'开始运行 run_weekly.py(引擎根 {ROOT}),完成后输出结果摘要(透传退出码)',
@@ -621,10 +623,15 @@ def build_parser():
 
     sub.add_parser('doctor', help='环境/密钥/数据新鲜度/上次运行 体检(只报已配置与否,不打印值)')
 
-    up = sub.add_parser('update', help='运行采集流水线(显式 --yes 才执行,透传退出码)')
+    up = sub.add_parser('update',
+                        help='运行采集流水线(显式 --yes 才执行,透传退出码;'
+                             '--allow-revision 同日修订,--revision-reason 修订原因)')
     up.add_argument('--yes', action='store_true', help='确认真实运行(外部数据源调用)')
     up.add_argument('--allow-revision', action='store_true',
-                    help='同日重跑允许修订(run_weekly 修订机制)')
+                    help='同日重跑允许修订(经 run_weekly 转发 snapshot_builder,'
+                         '生成 _vN 新版本,原版保留)')
+    up.add_argument('--revision-reason', help='修订原因(随 --allow-revision 透传,'
+                                              '写入快照 revision_reason 字段)')
 
     ov = sub.add_parser('overview', help='经济体宏观概览(原始数值节点)')
     ov.add_argument('--economy', required=True,

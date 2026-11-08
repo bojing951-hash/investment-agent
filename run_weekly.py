@@ -9,8 +9,14 @@ IA-P0-1(2026-10-27)失败传播修复:
   全部执行: Gate A FAIL后装配器照常打包、校验器照常跑);
 - 关键步骤失败或被跳过 → 流水线退出码1(既有行为),跳过原因写入
   logs/pipeline_run_YYYYMMDD.json(AC-11可追溯)。
+
+CLI(P0-2链路修复, 2026-11-09):
+  --allow-revision        同日重跑允许修订快照(转发 snapshot_builder,生成_vN原版保留;
+                          不带此参数时同日重跑被不可变保护拒绝,step9 exit 3 → 流水线 exit 1)
+  --revision-reason TEXT  修订原因(随 --allow-revision 转发写入快照 revision_reason)
 """
 
+import argparse
 import subprocess
 import sys
 import os
@@ -20,8 +26,11 @@ from datetime import datetime
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_DIR = os.path.join(PROJECT_DIR, 'scripts')
 
-def run_step(step_name, script_name, timeout=900, script_dir=None):
-    """运行一个步骤(默认15分钟超时,防止网络挂死堵住launchd——见a_stock_tracker 2026-10-01事故)"""
+def run_step(step_name, script_name, timeout=900, script_dir=None, extra_args=None):
+    """运行一个步骤(默认15分钟超时,防止网络挂死堵住launchd——见a_stock_tracker 2026-10-01事故)。
+
+    extra_args(P0-2): 透传给步骤脚本的附加命令行参数(如 snapshot_builder 的
+    --allow-revision);缺省 None=零参(既有行为,接口兼容)。"""
     print(f"\n{'='*50}")
     print(f"▶ 步骤: {step_name}")
     print(f"{'='*50}")
@@ -34,7 +43,7 @@ def run_step(step_name, script_name, timeout=900, script_dir=None):
 
     try:
         result = subprocess.run(
-            [sys.executable, script_path],
+            [sys.executable, script_path] + list(extra_args or []),
             cwd=PROJECT_DIR,
             capture_output=False,
             timeout=timeout
@@ -60,7 +69,7 @@ class PipelineResults(list):
         self.skips = dict(skips or {})
 
 
-def run_pipeline(steps, script_dir=None):
+def run_pipeline(steps, script_dir=None, extra_args_by_script=None):
     """顺序执行步骤。steps元素为(名称, 脚本, 关键?)或(名称, 脚本, 关键?, 依赖脚本名列表);
     返回PipelineResults([(名称, 成功?, 关键?)])供退出码判定:
     - 只有**关键**步骤失败才使流水线失败;非关键失败(新闻/相关性)降级运行,
@@ -69,6 +78,8 @@ def run_pipeline(steps, script_dir=None):
       SKIPPED(结果记False),原因存于.skips并公示——依赖失败后继续跑下游
       只会用未验证数据做危险操作(旧缺陷)。依赖以**脚本名**为标识(步骤显示名
       可变,脚本名稳定),公示时换算回步骤名保持可读。
+    - P0-2: extra_args_by_script={脚本名: [附加参数]} 按脚本透传给 run_step
+      (缺省 None=全部零参,既有行为不变)。
     """
     results = PipelineResults()
     # 脚本名 → 步骤显示名(依赖公示用);脚本名 → 是否成功(依赖判定用)
@@ -91,13 +102,23 @@ def run_pipeline(steps, script_dir=None):
                 results.skips[step_name] = reason
                 results.append((step_name, False, critical))
                 continue
-        success = run_step(step_name, script_name, script_dir=script_dir)
+        success = run_step(step_name, script_name, script_dir=script_dir,
+                           extra_args=(extra_args_by_script or {}).get(script_name))
         results.append((step_name, success, critical))
         if success:
             ok_scripts.add(script_name)
     return results
 
 def main():
+    ap = argparse.ArgumentParser(
+        description='投资周报一键流水线(采集→快照→评分→装配→校验)')
+    ap.add_argument('--allow-revision', action='store_true',
+                    help='同日重跑允许修订快照(转发 snapshot_builder: 生成_vN新版本,'
+                         '原版保留);不带时同日重跑被不可变保护拒绝(exit 3→流水线 exit 1)')
+    ap.add_argument('--revision-reason', default=None,
+                    help='修订原因(随 --allow-revision 转发,写入快照 revision_reason)')
+    args = ap.parse_args()
+
     start_time = datetime.now()
 
     print("=" * 60)
@@ -157,7 +178,18 @@ def main():
         # 记录不删),仅退出自动调度;config/allocation_views.json 冻结为历史档。
     ]
 
-    results = run_pipeline(steps)
+    # P0-2 链路: --allow-revision/--revision-reason 透传到快照构建步骤
+    # (此前 run_weekly 零参数解析,ia_cli 转发的旗标被静默吞掉,同日重跑必失败)
+    revision_args = []
+    if args.allow_revision:
+        revision_args.append('--allow-revision')
+        if args.revision_reason:
+            revision_args += ['--revision-reason', args.revision_reason]
+
+    results = run_pipeline(
+        steps,
+        extra_args_by_script={'snapshot_builder.py': revision_args}
+        if revision_args else None)
 
     # 汇总
     end_time = datetime.now()

@@ -32,8 +32,7 @@ python3 install_skill.py --target project   # 复制到 <仓库>/.claude/skills/
 项目级副本优先经 `${CLAUDE_PROJECT_DIR}` 定位引擎;所有已安装副本(含项目级)
 均由安装器写入 `engine-path.json` 作兜底。
 
-安装器 stdout 为中文提示行+JSON 混合格式: 自动化场景请解析末尾的 JSON 对象
-(单 JSON 输出契约仅承诺于 `ia_cli.py`,不含安装器)。
+安装器 stdout 为单个 JSON 对象,中文提示行走 stderr(单 JSON 契约 ia_cli.py 与安装器均满足,自动化场景直接解析 stdout)。
 
 **个人级(在任何目录的会话里可用)**:
 

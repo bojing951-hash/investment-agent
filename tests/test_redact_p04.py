@@ -50,6 +50,20 @@ check("token=/key=/apikey= 同族脱敏",
       'token=***REDACTED***' in redact(f"/x?token={FAKE}")
       and 'key=***REDACTED***' in redact(f"/x?key={FAKE}")
       and 'apikey=***REDACTED***' in redact(f"/x?apikey={FAKE}"))
+# 收尾轮新增(2026-11-09): 裸键回显语义(负向后顾非锚定,对齐 rda 已验证口径)
+BARE_403_BODY = (f'403 Client Error: Forbidden for url: https://api.stlouisfed.org/'
+                 f'fred/series/observations -- body: {{"error_code":403,'
+                 f'"error_message":"api_key={FAKE} is invalid"}}')
+check("裸键 403 body 回显脱敏(无 ?/& 前缀,C 复现场景)",
+      redact(BARE_403_BODY) == BARE_403_BODY.replace(f'api_key={FAKE}', 'api_key=***REDACTED***'))
+check("裸键大小写不敏感(API_KEY=)",
+      'API_KEY=***REDACTED***' in redact(f"API_KEY={FAKE}&x=1"))
+check("负向后顾不误伤: monkey=/license_key= 中缀词原样",
+      redact(f"monkey=ab license_key={FAKE}") == f"monkey=ab license_key={FAKE}")
+check("负向后顾不误伤: sha256=/digest= 摘要原样",
+      redact(f"sha256={'a' * 64} digest={'b' * 40}") == f"sha256={'a' * 64} digest={'b' * 40}")
+check("幂等复验(裸键形态,已脱敏再过不变)",
+      redact(redact(BARE_403_BODY)) == redact(BARE_403_BODY))
 check("幂等(已脱敏再过不变)", redact(redact(FAKE_URL)) == redact(FAKE_URL))
 check("sha256 摘要不误伤(64hex 裸串原样)",
       redact(f"sha256={'a' * 64}") == f"sha256={'a' * 64}")
@@ -81,6 +95,13 @@ def _raise_get(url, params=None, timeout=None):
     raise RuntimeError(f"HTTPSConnectionPool url='{FAKE_URL}' timed out")
 
 
+def _raise403body_get(url, params=None, timeout=None):
+    # 收尾轮新增(2026-11-09): 403 错误体回显裸键(C 端到端复现场景)
+    raise RuntimeError(
+        f"403 Client Error: Forbidden for url: {FAKE_URL} -- body: "
+        f'{{"error_code":403,"error_message":"api_key={FAKE} is invalid"}}')
+
+
 def _resp400_get(url, params=None, timeout=None):
     return _Resp400()
 
@@ -92,6 +113,11 @@ try:
     check("重试失败 print 不含密钥串", FAKE not in text)
     check("print 含 ***REDACTED***", '***REDACTED***' in text)
     check("失败返回空观测列表", obs == [])
+    rex.requests.get = _raise403body_get
+    text, obs = _capture(lambda: rex._fred_observations('DFF', tries=1))
+    check("403 body 裸键回显端到端: print 不含密钥串", FAKE not in text, text[:120])
+    check("403 body 裸键回显端到端: print 含 ***REDACTED***",
+          'api_key=***REDACTED***' in text)
     rex.requests.get = _resp400_get
     text, obs = _capture(lambda: rex._fred_observations('DFF', tries=1))
     check("非200 → HTTP 状态码可见(此前不可见)", 'HTTP 400' in text)

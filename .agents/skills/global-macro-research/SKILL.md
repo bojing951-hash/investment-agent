@@ -74,6 +74,7 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 
 ## 已知边界(如实告知用户)
 
+- research 拒答文本里的 `query_id` 只是参考编号: 拒答也会生成,但**不落研究档案**;它与 `archive save` 的存档 ID 同格式(QB-日期-序号)却不同物,转述时勿让用户误以为拒答已存档
 - 免费无 Key 首跑: 缺 FRED_API_KEY 时 28 个序列采集失败 → Gate A FAIL → 问答拒答,属预期(见 doctor 的 env 说明)
 - 周窗口语义 = "ISO 周之前最后观测为基准",不是"最近 7 天"
 - japan_rate_collector 来源(日债收益率)为单点观测,无历史序列

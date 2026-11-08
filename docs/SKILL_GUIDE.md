@@ -32,6 +32,9 @@ python3 install_skill.py --target project   # 复制到 <仓库>/.claude/skills/
 项目级副本优先经 `${CLAUDE_PROJECT_DIR}` 定位引擎;所有已安装副本(含项目级)
 均由安装器写入 `engine-path.json` 作兜底。
 
+安装器 stdout 为中文提示行+JSON 混合格式: 自动化场景请解析末尾的 JSON 对象
+(单 JSON 输出契约仅承诺于 `ia_cli.py`,不含安装器)。
+
 **个人级(在任何目录的会话里可用)**:
 
 ```bash
@@ -65,8 +68,15 @@ python3 install_skill.py --target personal-codex   # 复制到 ~/.agents/skills/
 python3 ia_cli.py doctor        # 引擎侧: 环境/密钥/数据新鲜度/上次运行
 ```
 
+`doctor` 输出的 `data.skill = {source_present, project_install_present}`
+同时确认仓库源与项目级安装副本就位——不必进 AI 会话即可完成引擎侧验证。
+
 然后在 AI 会话里说「全球宏观现在什么情况?」——若 AI 调用了 ia_cli 并在回答里
 带出观测日期与来源,即安装成功。Claude Code 可用 `/skills` 直接确认加载状态。
+
+Headless 注意(宿主验收实测): Claude Code 以 `claude -p` 无界面模式运行时,
+项目级 Skill 需加 `--setting-sources project` 才会加载;交互式会话经信任
+对话后自动加载,无需此参数。
 
 ## 四个研究场景(可直接对 AI 说)
 

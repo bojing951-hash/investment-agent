@@ -276,7 +276,7 @@ def lint_fact_contract_text(text):
     return violations
 
 
-# ══ 八个能力 ══════════════════════════════════════════════════════════
+# ══ 九个能力 ══════════════════════════════════════════════════════════
 def cmd_doctor(args):
     data = {'python': sys.version.split()[0], 'platform': sys.platform}
     import env_config as ec

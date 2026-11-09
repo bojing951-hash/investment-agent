@@ -13,16 +13,18 @@ Key 从进程环境或引擎根 `.env` 读取(进程环境优先)。**绝不允�
 
 ## 采集流水线(update 能力)
 
-`update --yes` = `python3 run_weekly.py`(13 步,分钟级)。退出码: 0=全部关键步骤成功(非关键可降级);1=任一关键步骤失败或被跳过。同日重跑需 `--allow-revision`(修订机制,生成 _vN 快照)。台账: `logs/pipeline_run_YYYYMMDD.json`(doctor 的 last_run 数据源)。**Skill 永不自动运行 update——只有用户明确要求时。**
+`update --yes` = `python3 run_weekly.py`(15 步,分钟级)。退出码: 0=全部关键步骤成功(非关键可降级);1=任一关键步骤失败或被跳过。同日重跑需 `--allow-revision`(修订机制,生成 _vN 快照)。台账: `logs/pipeline_run_YYYYMMDD.json`(doctor 的 last_run 数据源)。**Skill 永不自动运行 update——只有用户明确要求时。**
+
+采集窗口(Charter6-P0): FRED 观测起点已参数化(宏观数据全史);Yahoo 行情窗口参数化(默认 10 年,可用环境变量覆盖);Shiller 估值(ie_data.xls, 月频 1871+,免 Key)。日档保留策略: 近 90 天全量保留+更早每月最后一份 gzip 归档(`data/daily/archive/`),不做增量合并(全量重拉)。
 
 ## 快照结构(doctor/overview 的数据来源)
 
 `data/daily/research_snapshot_YYYYMMDD[_vN].json`:
 - `facts[]`: 指标事实(value/unit/observation_date/quality_status/source/identity/derived)
 - `derived.{week,mtd,ytd}`: 变化节点(pp_change+bp_change 或 pct_change,带 basis_date/window/formula/return_semantics)
-- `series_store`: 38 个指标的内嵌历史序列
+- `series_store`: 各指标的内嵌历史序列(全球行情资产+中国/港股指数+宏观月频+Shiller 估值,以 metric_id 为键)
 - `gate_a`: {status, core_missing, noncore_missing(+detail), noncore_degraded}
-- `sources_status`: 7 个采集通道(global/macro/china/rate_economy/japan/jp/ea)的文件与校验状态
+- `sources_status`: 8 个采集通道(global/macro/china/rate_economy/japan/jp/ea/shiller)的文件与校验状态
 
 经济体代码: US/CN/EA/JP/HK/GLOBAL(权威=注册表 economy 字段)。指标身份/单位/资产类唯一权威= `config/metric_registry.json`。
 

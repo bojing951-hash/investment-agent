@@ -1011,7 +1011,7 @@ class TestGLMInterface(WPCTestBase):
 
     def test_build_input_contract_fields(self):
         r, s = self._task1_active_with_evidence()
-        inp = dt.build_glm_synthesis_input(GOLDEN["TASK1"], snapshot_dir=self.sd,
+        inp = dt.build_model_synthesis_input(GOLDEN["TASK1"], snapshot_dir=self.sd,
                                            archive_dir=self.ad)
         self.assertEqual(sorted(inp), ["contract_version", "evidence_matrix",
                                        "hypotheses", "mode", "prompt_contract",
@@ -1042,7 +1042,7 @@ class TestGLMInterface(WPCTestBase):
             r["trigger_id"], "FAIL 快照任务", [HYP_A, HYP_B], CRITERIA,
             snap_fail, archive_dir=self.ad, created_at="2026-11-03T09:00:00")
         with self.assertRaises(ValueError) as cm:
-            dt.build_glm_synthesis_input(r_fail["task_id"],
+            dt.build_model_synthesis_input(r_fail["task_id"],
                                          snapshot_dir=self.sd,
                                          archive_dir=self.ad)
         self.assertIn("不放行正式研究", str(cm.exception))
@@ -1052,7 +1052,7 @@ class TestGLMInterface(WPCTestBase):
         before = drr.current_status(GOLDEN["TASK1"], self.ad)
         out = dt.synthesize_competing_hypotheses(
             task_id=GOLDEN["TASK1"], snapshot_dir=self.sd, archive_dir=self.ad)
-        self.assertEqual(out["adapter"], "PendingGLMAdapter")
+        self.assertEqual(out["adapter"], "PendingModelAdapter")
         res = out["result"]
         self.assertEqual(res["status"], "ABSENT_PENDING_APPROVAL")
         self.assertFalse(res["called"])               # 零调用
@@ -1069,7 +1069,7 @@ class TestGLMInterface(WPCTestBase):
                     {"statement": "s2", "falsifiable_conditions": ["c2"],
                      "confidence": "low"}],
                 "absent_ack": []}
-        self.assertEqual(dt.validate_glm_synthesis_output(good), [])
+        self.assertEqual(dt.validate_model_synthesis_output(good), [])
         bads = {
             "lt2_hypotheses": dict(good, hypotheses=good["hypotheses"][:1]),
             "no_falsifiable": dict(good, hypotheses=[
@@ -1088,10 +1088,10 @@ class TestGLMInterface(WPCTestBase):
         for name, payload in bads.items():
             with self.subTest(bad=name):
                 self.assertNotEqual(
-                    dt.validate_glm_synthesis_output(payload), [])
+                    dt.validate_model_synthesis_output(payload), [])
 
     def test_injected_stub_valid_and_invalid(self):
-        class Stub(dt.GLMSynthesisAdapter):
+        class Stub(dt.ModelSynthesisAdapter):
             def __init__(self, payload_out):
                 self.payload_out = payload_out
             def synthesize(self, payload):
@@ -1113,7 +1113,7 @@ class TestGLMInterface(WPCTestBase):
 
     def test_base_adapter_not_implemented(self):
         with self.assertRaises(NotImplementedError):
-            dt.GLMSynthesisAdapter().synthesize({"x": 1})
+            dt.ModelSynthesisAdapter().synthesize({"x": 1})
 
     def test_missing_task_and_payload_rejected(self):
         with self.assertRaises(ValueError):

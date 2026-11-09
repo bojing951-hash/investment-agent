@@ -17,7 +17,7 @@
   原样返回(既挡重匹配,也放过"仅头+方案词无值"的无泄漏形态)。
 
 刻意**不**覆盖(无锚不猜,防误伤):
-- OpenAI 式散文回显(无=/:/Bearer 结构): 由 glm_conclusion_client.redact
+- OpenAI 式散文回显(无=/:/Bearer 结构): 由 model_conclusion_client.redact
   在值=进程内登记明文(MODEL_API_KEY/GLM_API_KEY)时纵深兜底;
   裸 Bearer 已覆盖(批2 W7)但带 16+ 长度下限——短于 16 的串按设计保留
   (自然语言防误伤),是安全边界不是遗漏;

@@ -7,7 +7,7 @@ DESIGN docs/P03_E2EB_DESIGN.md §4.1(L180-185)与 §六 WP-B4 行(L228-232)的�
 - query_history 集合: 模式B查询 IR+作答摘要归档,一记录一文件,append-only
   (重复写入/改写被拒,记录不可变不可删改,§四行6 L176);
 - ID 引用约定: query_id=QB-YYYYMMDD-NNN(复用 qir.QUERY_ID_RE)/任务引用=RT- 前缀族
-  (G3 先例 glm_conclusion_integrator.py:82;DESIGN L183 严格格式为其子集)/
+  (G3 先例 model_conclusion_integrator.py:82;DESIGN L183 严格格式为其子集)/
   origin_query_id=严格 QB 格(L184 交叉引用约定;任务侧字段,本模块提供约定校验面,
   不建 E2E-A 任务集合存储——L230「本包只建模式B侧+引用约定」);
 - snapshot_id+digest 内容级绑定: 每记录必携完整 snapshot_id(规范

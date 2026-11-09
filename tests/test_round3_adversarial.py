@@ -100,7 +100,7 @@ for py in glob.glob(os.path.join(ROOT, 'scripts', '*.py')):
         for i, line in enumerate(f, 1):
             if re.search(r'\bor\s+True\b', line):
                 hits.append(f"{os.path.basename(py)}:{i}")
-check("S0 scripts/无 `or True` 恒真短路(测试文件由重写覆盖,test_glm_live旧断言已删)", not hits, str(hits))
+check("S0 scripts/无 `or True` 恒真短路(测试文件由重写覆盖,test_model_live旧断言已删)", not hits, str(hits))
 
 # ════════ 用例1: 模型无条件改变评级 ════════
 print("\n[1] 模型无条件改变评级(无触发器无证据)")

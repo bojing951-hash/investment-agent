@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""真实GLM API冒烟测试(第三轮, 2026-10-11重写)
+"""真实模型 API 冒烟测试(第三轮重写;v2.1 中性名,原真实调用冒烟)
 
 默认跳过(不花token、不依赖网络)。显式开启:
-  RUN_GLM_LIVE=1 ~/AI内容/venv/bin/python3 tests/test_glm_live.py
+  RUN_MODEL_LIVE=1 ~/AI内容/venv/bin/python3 tests/test_model_live.py
 
 测试内容(最小代价端到端切片,非完整周报):
   1. 用真实锚点渲染观点块(触发器核验+预测生命周期) → 拼进精简prompt
-  2. GLM真实调用输出1条带结构化evidence的ALLOCATION_STATUS行
+  2. 模型真实调用输出1条带结构化evidence的ALLOCATION_STATUS行
   3. 回写门禁链路真实跑通(临时副本,不碰真实研究状态):
-     无论GLM说什么,落盘结果必须与门禁的确定性预测一致
+     无论模型说什么,落盘结果必须与门禁的确定性预测一致
      (评级变更=触发器或足量验证证据;确信度上调≤程序星级;证据台账只含验证通过项)
   4. 无证据裁决必须被拒(与模型输出无关的硬门禁)
 与离线E2E互为补充: 离线测逻辑,在线测模型遵从性+门禁确定性。
@@ -28,8 +28,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 
-if os.environ.get('RUN_GLM_LIVE') != '1':
-    print("⏭️ 跳过(设置 RUN_GLM_LIVE=1 以运行真实GLM冒烟测试)")
+if os.environ.get('RUN_MODEL_LIVE') != '1':
+    print("⏭️ 跳过(设置 RUN_MODEL_LIVE=1 以运行真实模型冒烟测试)")
     sys.exit(0)
 
 PASS, FAIL = 0, 0
@@ -44,7 +44,7 @@ def check(name, cond, detail=""):
         print(f"  ❌ {name} {detail}")
 
 print("=" * 60)
-print("真实GLM API冒烟测试(RUN_GLM_LIVE=1, 第三轮格式)")
+print("真实模型 API 冒烟测试(RUN_MODEL_LIVE=1, 第三轮格式)")
 print("=" * 60)
 
 from data_validator import extract_anchors_from_data
@@ -67,7 +67,7 @@ block = ae.render_views_block(views, anchors=anchors)
 check("真实锚点渲染观点块(触发器核验+预测跟踪)", len(block) > 400 and "❓待验证" in block
       and "预测跟踪" in block)
 
-# ── 2. 真实GLM调用(精简输入,只要1条带evidence的状态行) ──
+# ── 2. 真实模型调用(精简输入,只要1条带evidence的状态行) ──
 system_prompt = load_prompt('system_prompt.md')
 user_prompt = f"""以下是当前配置观点库(触发器状态由程序核验):
 
@@ -81,16 +81,16 @@ ALLOCATION_STATUS-->
 rating只能取: 超配/标配/低配/观望。evidence数组须引用上方锚点中TIPS_10Y/GOLD等指标的真实数值与观测日(程序将逐项核验,虚构会被拒收)。
 2. 一句话说明评级理由(≤50字),如引用触发器须按引擎核验结果如实标注"已触发/待验证/持续确认中"。"""
 
-print("\n🤖 调用GLM(真实API, max_tokens=2500)...")
+print("\n🤖 调用模型(真实API, max_tokens=2500)...")
 md = _call_glm(system_prompt, user_prompt, max_tokens=2500)
-check("GLM返回内容", len(md.strip()) > 50, md[:100])
-print(f"--- GLM输出 ---\n{md[:700]}\n----------------")
+check("模型返回内容", len(md.strip()) > 50, md[:100])
+print(f"--- 模型输出 ---\n{md[:700]}\n----------------")
 
 # ── 3. 回写门禁链路(临时副本): 结果与门禁预测确定性一致 ──
 today = datetime.now().strftime('%Y-%m-%d')
 objs = ae._parse_status_block(md, 'ALLOCATION_STATUS')
 o5 = next((o for o in objs if o.get('id') == 5), None)
-check("GLM状态块可解析(含id=5行)", o5 is not None, md[:200])
+check("模型状态块可解析(含id=5行)", o5 is not None, md[:200])
 
 if o5 is not None:
     views_before = json.load(open(os.path.join(ROOT, 'config', 'allocation_views.json')))
@@ -127,7 +127,7 @@ if o5 is not None:
                 check("变更审计齐备(date/from/to/via/evidence)",
                       all(k in v5.get('last_change', {}) for k in ('date', 'from', 'to', 'via')))
     else:
-        check("GLM维持原评级(或量表外被忽略)", proposed == old_rating or proposed not in ae.ALLOWED_RATINGS,
+        check("模型维持原评级(或量表外被忽略)", proposed == old_rating or proposed not in ae.ALLOWED_RATINGS,
               proposed)
 
     # 不变式: 确信度上调不超过程序星级; 台账只含验证通过的证据
@@ -140,7 +140,7 @@ if o5 is not None:
         v5 = next(v for v in saved['views'] if v['id'] == 5)
         star, _ = ae.star_level_from_evidence(verified)
         if isinstance(o5.get('confidence'), int) and o5['confidence'] > v5_before['confidence']:
-            check(f"确信度上调未超过程序星级(GLM要{o5['confidence']}★,程序星级{star}★)",
+            check(f"确信度上调未超过程序星级(模型要{o5['confidence']}★,程序星级{star}★)",
                   v5['confidence'] <= max(star, v5_before['confidence']),
                   f"落盘{v5['confidence']}★")
         if verified:

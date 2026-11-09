@@ -7,7 +7,7 @@
   金融市场变化  market_rows()     —— 资产类指标 周/月/年内变化
   历史研究      metric_series()   —— 本地真实历史序列(快照 series_store / 采集档 series)
   AI研究        ask_local() / ai_explain() / save_to_archive()
-                                 —— 复用 e2eb 查询栈 / glm_conclusion_client / research_archive
+                                 —— 复用 e2eb 查询栈 / model_conclusion_client / research_archive
 
 数据纪律(章程 AC-06): 一切数值来自本地快照与采集档,显示观测日期与来源;
 数据缺失时如实标注"缺失",不填充任何虚构数据。研究问题越界(out_of_scope)或
@@ -312,7 +312,7 @@ EXPLAIN_SYSTEM = (
 
 def ai_explain(question, grounded_text):
     """页面四可选: AI 研究解释(v2.1, 2026-11-09;复用
-    glm_conclusion_client.call_glm_once,模型三参经 env_config.model_runtime_config
+    model_conclusion_client.call_model_once,模型三参经 env_config.model_runtime_config
     解析——唯一凭证面 MODEL_*,零本机文件回退)。
     返回 {'ok', 'text'|'error'}。"""
     # 先确保项目根 .env 已载入(进程环境变量优先;幂等补载,覆盖会话中途新增的.env),
@@ -323,11 +323,11 @@ def ai_explain(question, grounded_text):
     if not cfg['complete']:
         return {'ok': False,
                 'error': ec.MODEL_KEY_MISSING_MESSAGE}
-    import glm_conclusion_client as gcc
+    import model_conclusion_client as mcc
     user = (f'研究问题: {question}\n\n【已核实事实】(本地快照接地结果,作答唯一数值来源):\n'
             f'{grounded_text}\n\n请基于以上事实给出解释性分析(传导机制/历史比较视角),'
             '并明确区分事实与推断。')
-    res = gcc.call_glm_once(EXPLAIN_SYSTEM, user, model=cfg['model'])
+    res = mcc.call_model_once(EXPLAIN_SYSTEM, user, model=cfg['model'])
     if not res.get('ok'):
         return {'ok': False,
                 'error': f"模型调用失败({res.get('kind')}): {res.get('error')}"}

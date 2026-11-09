@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
-"""IA-P03-W2-GLM-WP-G4 测试(全合成桩,零真实出站)
+"""模型结论层真实调用接线测试(全合成桩,零真实出站;v2.1 中性名,原 WP-G4)
 
 覆盖 DESIGN §七 WP-G4 验收要点可离线验证面+合同 AC-03 全部生效项:
 - 熔断机制合成测试(AC-03.8,阈值=合同冻结字面量 5/60/5.00/120 硬编码断言);
 - 调用面测试边界(AC-03.7): 一切用例经 client_factory 显式依赖注入合成桩,
-  零真实出站(桩注入点登记 REPORT §二.4=scripts/glm_conclusion_client.py
-  call_glm_once 的 client_factory 参数+run_live_conclusion 的 breaker 参数);
+  零真实出站(桩注入点登记 REPORT §二.4=scripts/model_conclusion_client.py
+  call_model_once 的 client_factory 参数+run_live_conclusion 的 breaker 参数);
 - 六槽位 prompt(DESIGN §四(1) L126-131)/编排(G2 管线复用)/落档(G3 复用)
-  /门控默认跳过(tests/test_glm_live.py:31-33 模式)/脱敏/禁直读边界。
+  /门控默认跳过(tests/test_model_live.py:31-33 模式)/脱敏/禁直读边界。
 
 数据纪律(R014-D3/R022 沿用): 合成 fixture=唯一数据源(合成快照经
 rp.recompute_gate_a 声明构建,数值全发明,不代表真实交易日);预期值一律
-字面量硬编码(禁自证恒真);不读 data/daily/ 真实档。漂移维护策略见
-docs/P03_W2_GLM_G4_DELIVERY.md 专节;fixture→预期值映射登记同处。
+字面量硬编码(禁自证恒真);不读 data/daily/ 真实档。漂移维护策略与 fixture→预期值映射登记见历史交付档(已移出公开仓)。
 """
 import json
 import os
@@ -27,13 +26,13 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 
-import glm_conclusion_client as gcc          # 被测模块
-import glm_input_assembler as gia            # G1 复用(fixture 装配)
-import glm_output_validator as gov           # G2 复用(权威校验)
-import glm_conclusion_integrator as gci      # G3 复用(落档)
+import model_conclusion_client as mcc          # 被测模块
+import model_input_assembler as mia            # G1 复用(fixture 装配)
+import model_output_validator as mov           # G2 复用(权威校验)
+import model_conclusion_integrator as mci      # G3 复用(落档)
 import research_provenance as rp             # 既有权威机制(fixture 声明构建)
 
-SRC_PATH = os.path.join(ROOT, 'scripts', 'glm_conclusion_client.py')
+SRC_PATH = os.path.join(ROOT, 'scripts', 'model_conclusion_client.py')
 with open(SRC_PATH, encoding='utf-8') as _fh:
     MODULE_SOURCE = _fh.read()
 
@@ -154,7 +153,7 @@ def build_full_inp():
     """全指标在场输入(gate PASS,absent_registry 空)。"""
     snap = build_synthetic_snapshot(
         {RATE_METRIC: VAL_TIPS, GOLD_METRIC: VAL_GOLD})
-    return gia.assemble_mode_a(snap, build_synthetic_task())
+    return mia.assemble_mode_a(snap, build_synthetic_task())
 
 
 def build_absent_inp():
@@ -164,11 +163,11 @@ def build_absent_inp():
         drop_metrics=(ABSENT_DATA_METRIC,))
     task = build_synthetic_task(
         (RATE_METRIC, GOLD_METRIC, ABSENT_DATA_METRIC))
-    return gia.assemble_mode_a(snap, task)
+    return mia.assemble_mode_a(snap, task)
 
 
 def build_valid_output(absent=False, variant=0):
-    """合成合法 HypothesisSet(过 gov.validate_output;数值全接地 fixture 值)。
+    """合成合法 HypothesisSet(过 mov.validate_output;数值全接地 fixture 值)。
 
     variant=1: 陈述/置信微变(同 conclusion_id 不同 output_digest → 档案版本化)。"""
     stmt2 = ('避险与央行购金主导: GOLD_F 报3912.5,利率敏感度阶段性下降'
@@ -283,13 +282,13 @@ class CanaryFactory:
 
 
 class _SaveEnv(unittest.TestCase):
-    """环境补丁基类: 统一 RUN_GLM_LIVE=1+GLM_API_KEY=SENTINEL(canary 值)。"""
+    """环境补丁基类: 统一 RUN_MODEL_LIVE=1+MODEL_API_KEY=SENTINEL(canary 值)。"""
 
     def setUp(self):
         self._saved = {k: os.environ.get(k)
-                       for k in (gcc.LIVE_GATE_ENV, gcc.CREDENTIAL_ENV)}
-        os.environ[gcc.LIVE_GATE_ENV] = '1'
-        os.environ[gcc.CREDENTIAL_ENV] = CRED_SENTINEL
+                       for k in (mcc.LIVE_GATE_ENV, mcc.CREDENTIAL_ENV)}
+        os.environ[mcc.LIVE_GATE_ENV] = '1'
+        os.environ[mcc.CREDENTIAL_ENV] = CRED_SENTINEL
         self.tmpdir = tempfile.mkdtemp(prefix='g4_test_')
 
     def tearDown(self):
@@ -315,14 +314,14 @@ class T0_FixtureSanity(unittest.TestCase):
         self.assertEqual(absent.get(ABSENT_DATA_METRIC), 'ABSENT_DATA')
 
     def test_assembled_inputs_pass_g1_contract(self):
-        self.assertEqual(gia.validate_input(build_full_inp()), [])
-        self.assertEqual(gia.validate_input(build_absent_inp()), [])
+        self.assertEqual(mia.validate_input(build_full_inp()), [])
+        self.assertEqual(mia.validate_input(build_absent_inp()), [])
 
     def test_valid_output_fixture_passes_g2(self):
         self.assertEqual(
-            gov.validate_output(build_full_inp(), build_valid_output()), [])
+            mov.validate_output(build_full_inp(), build_valid_output()), [])
         self.assertEqual(
-            gov.validate_output(build_absent_inp(),
+            mov.validate_output(build_absent_inp(),
                                 build_valid_output(absent=True)), [])
 
 
@@ -330,14 +329,14 @@ class T0_FixtureSanity(unittest.TestCase):
 
 class T1_CircuitBreaker(_SaveEnv):
     def test_echo_frozen_literals(self):
-        echo = gcc.echo_params()
+        echo = mcc.echo_params()
         self.assertEqual(echo['cb1_max_consecutive_failures'], 5)
         self.assertEqual(echo['cb2_max_outbound_per_segment'], 60)
         self.assertEqual(echo['cb3_daily_cost_cap_usd'], 5.00)
         self.assertEqual(echo['cb4_timeout_seconds'], 120)
 
     def test_cb1_trips_exactly_at_5th_failure(self):
-        brk = gcc.CircuitBreaker(day_utc='2026-11-05')
+        brk = mcc.CircuitBreaker(day_utc='2026-11-05')
         for i in range(4):                      # 前4次不熔断
             brk.note_failure('network', 0.02)
             self.assertIsNone(brk.state()['tripped'],
@@ -350,20 +349,20 @@ class T1_CircuitBreaker(_SaveEnv):
 
     def test_cb1_no_6th_outbound_via_orchestrator(self):
         stub = StubFactory([ConnectionError('合成网络错误')] * 6)
-        brk = gcc.CircuitBreaker(day_utc='2026-11-05')
+        brk = mcc.CircuitBreaker(day_utc='2026-11-05')
         inp = build_full_inp()
-        r1 = gcc.run_live_conclusion(
+        r1 = mcc.run_live_conclusion(
             inp, client_factory=stub, breaker=brk, today_iso=TODAY)
-        r2 = gcc.run_live_conclusion(
+        r2 = mcc.run_live_conclusion(
             inp, client_factory=stub, breaker=brk, today_iso=TODAY)
         self.assertEqual(len(stub.consumed), 5,
                          '恰5次出站后熔断,禁第6次出站尝试')
-        self.assertEqual(r1['attempts_used'], 3)   # =RETRY_BUDGET(gov.MAX_RETRIES)
+        self.assertEqual(r1['attempts_used'], 3)   # =RETRY_BUDGET(mov.MAX_RETRIES)
         self.assertEqual(r2['attempts_used'], 2)   # 第4/5次失败→TRIPPED→停
         self.assertTrue(r2['blocked_reason'].startswith('TRIPPED-CB-1'))
 
     def test_cb2_soft_stop_at_60(self):
-        brk = gcc.CircuitBreaker(day_utc='2026-11-05')
+        brk = mcc.CircuitBreaker(day_utc='2026-11-05')
         for _ in range(FROZEN_CB2):
             brk.note_outbound()
         allowed, why = brk.outbound_allowed()
@@ -373,10 +372,10 @@ class T1_CircuitBreaker(_SaveEnv):
 
     def test_cb2_orchestrator_zero_new_outbound_at_cap(self):
         stub = StubFactory([ok_call(json.dumps(build_valid_output()))])
-        brk = gcc.CircuitBreaker(day_utc='2026-11-05')
+        brk = mcc.CircuitBreaker(day_utc='2026-11-05')
         for _ in range(FROZEN_CB2):
             brk.note_outbound()
-        r = gcc.run_live_conclusion(
+        r = mcc.run_live_conclusion(
             build_full_inp(), client_factory=stub, breaker=brk,
             today_iso=TODAY)
         self.assertEqual(len(stub.consumed), 0, '达60后零新出站')
@@ -384,7 +383,7 @@ class T1_CircuitBreaker(_SaveEnv):
         self.assertIn('CB-2', r['blocked_reason'])
 
     def test_cb3_trips_at_5usd_exact(self):
-        brk = gcc.CircuitBreaker(day_utc='2026-11-05')
+        brk = mcc.CircuitBreaker(day_utc='2026-11-05')
         brk.note_success(2.49)
         brk.note_success(2.50)                    # 累计4.99 → 不熔断
         self.assertIsNone(brk.state()['tripped'])
@@ -392,31 +391,31 @@ class T1_CircuitBreaker(_SaveEnv):
         self.assertEqual(brk.state()['tripped'], 'CB-3')
 
     def test_cb4_boundary_strictly_greater(self):
-        self.assertEqual(gcc.classify_elapsed(120.0), 'ok')
-        self.assertEqual(gcc.classify_elapsed(119.9), 'ok')
-        self.assertEqual(gcc.classify_elapsed(120.01), 'cb4_timeout')
+        self.assertEqual(mcc.classify_elapsed(120.0), 'ok')
+        self.assertEqual(mcc.classify_elapsed(119.9), 'ok')
+        self.assertEqual(mcc.classify_elapsed(120.01), 'cb4_timeout')
 
     def test_cb4_delay_counts_into_cb1(self):
-        brk = gcc.CircuitBreaker(day_utc='2026-11-05')
+        brk = mcc.CircuitBreaker(day_utc='2026-11-05')
         for elapsed in (121.0, 150.0, 130.5, 999.0, 120.5):
-            self.assertEqual(gcc.classify_elapsed(elapsed), 'cb4_timeout')
+            self.assertEqual(mcc.classify_elapsed(elapsed), 'cb4_timeout')
             brk.note_failure('cb4_timeout', 0.02)
         self.assertEqual(brk.state()['tripped'], 'CB-1',
                          'CB-4延迟>120s计失败并入CB-1连续计数,5次即熔断')
 
     def test_tripped_no_auto_retry_zero_outbound(self):
-        brk = gcc.CircuitBreaker(day_utc='2026-11-05')
+        brk = mcc.CircuitBreaker(day_utc='2026-11-05')
         for _ in range(5):
             brk.note_failure('network')
         stub = StubFactory([ok_call('{}')] * 3)
-        r = gcc.run_live_conclusion(
+        r = mcc.run_live_conclusion(
             build_full_inp(), client_factory=stub, breaker=brk,
             today_iso=TODAY)
         self.assertEqual(len(stub.consumed), 0, 'TRIPPED后无自动重试')
         self.assertEqual(r['attempts_used'], 0)
 
     def test_manual_reset_semantics(self):
-        brk = gcc.CircuitBreaker(day_utc='2026-11-05')
+        brk = mcc.CircuitBreaker(day_utc='2026-11-05')
         for _ in range(5):
             brk.note_failure('network', 0.02)
         brk.note_outbound()
@@ -429,7 +428,7 @@ class T1_CircuitBreaker(_SaveEnv):
                          '复位不清日费用累计(CB-3累计语义保留)')
 
     def test_auth_failure_counts_conservatively(self):
-        brk = gcc.CircuitBreaker(day_utc='2026-11-05')
+        brk = mcc.CircuitBreaker(day_utc='2026-11-05')
         for _ in range(5):
             brk.note_failure('auth_error', 0.02)
         self.assertEqual(brk.state()['tripped'], 'CB-1',
@@ -441,7 +440,7 @@ class T1_CircuitBreaker(_SaveEnv):
 class T2_ClientStub(_SaveEnv):
     def test_success_raw_usage_cost(self):
         stub = StubFactory([ok_call('{"k": 1}', usage=_Usage(1000, 2000))])
-        r = gcc.call_glm_once('sys', 'usr', client_factory=stub)
+        r = mcc.call_model_once('sys', 'usr', client_factory=stub)
         self.assertTrue(r['ok'])
         self.assertEqual(r['raw'], '{"k": 1}')
         self.assertEqual(r['usage']['prompt_tokens'], 1000)
@@ -451,19 +450,19 @@ class T2_ClientStub(_SaveEnv):
 
     def test_cost_floor_without_usage(self):
         stub = StubFactory([ok_call('text')])
-        r = gcc.call_glm_once('sys', 'usr', client_factory=stub)
+        r = mcc.call_model_once('sys', 'usr', client_factory=stub)
         self.assertEqual(r['cost_est_usd'], 0.02, '用量缺席按下限0.02(字面量)')
 
     def test_empty_stream_is_stream_interrupted(self):
         stub = StubFactory([[_Event(usage=_Usage(10, 10))]])
-        r = gcc.call_glm_once('sys', 'usr', client_factory=stub)
+        r = mcc.call_model_once('sys', 'usr', client_factory=stub)
         self.assertFalse(r['ok'])
         self.assertEqual(r['kind'], 'stream_interrupted')
         self.assertEqual(r['cost_est_usd'], 0.02)
 
     def test_exception_classified_network(self):
         stub = StubFactory([ConnectionError('合成连接中断')])
-        r = gcc.call_glm_once('sys', 'usr', client_factory=stub)
+        r = mcc.call_model_once('sys', 'usr', client_factory=stub)
         self.assertFalse(r['ok'])
         self.assertEqual(r['kind'], 'network')
         self.assertIn('ConnectionError', r['error'])
@@ -472,23 +471,23 @@ class T2_ClientStub(_SaveEnv):
         class RiskErr(Exception):
             status_code = 1301
         stub = StubFactory([RiskErr('内容风控(合成)')])
-        r = gcc.call_glm_once('sys', 'usr', client_factory=stub)
+        r = mcc.call_model_once('sys', 'usr', client_factory=stub)
         self.assertEqual(r['kind'], 'risk_control')
 
     def test_auth_error_classification(self):
         class AuthErr(Exception):
             status_code = 401
         stub = StubFactory([AuthErr('无效凭证(合成)')])
-        r = gcc.call_glm_once('sys', 'usr', client_factory=stub)
+        r = mcc.call_model_once('sys', 'usr', client_factory=stub)
         self.assertEqual(r['kind'], 'auth_error')
 
     def test_redaction_strips_credential_value(self):
         stub = StubFactory([
             RuntimeError(f'请求失败 header含 {CRED_SENTINEL} (合成)')])
-        r = gcc.call_glm_once('sys', 'usr', client_factory=stub)
+        r = mcc.call_model_once('sys', 'usr', client_factory=stub)
         self.assertFalse(r['ok'])
         self.assertNotIn(CRED_SENTINEL, r['error'])
-        self.assertIn(gcc._REDACTED, r['error'])
+        self.assertIn(mcc._REDACTED, r['error'])
 
 
 # ══ T3 六槽位 prompt(DESIGN §四(1) L126-131) ═════════════════════════════
@@ -497,7 +496,7 @@ class T3_PromptSixSlots(_SaveEnv):
     def build(self, absent=False, feedback=None):
         inp = build_absent_inp() if absent else build_full_inp()
         legal = {VAL_TIPS, VAL_GOLD}      # 注入合法数值集(不依赖真实registry)
-        return gcc.build_prompt(inp, feedback=feedback, legal_targets=legal)
+        return mcc.build_prompt(inp, feedback=feedback, legal_targets=legal)
 
     def test_slot1_phenomenon_window_indicators(self):
         _, user = self.build()
@@ -570,8 +569,8 @@ class T3_PromptSixSlots(_SaveEnv):
             'question_text': 'TIPS_10Y与GOLD_F为何背离?',
             'as_of': OBS, 'metric_bindings_digest': 'a1b2c3d4e5f60718',
             'derived_ops_digest': 'b2c3d4e5f60718a9'}
-        self.assertEqual(gia.validate_input(inp), [])
-        _, user = gcc.build_prompt(inp, legal_targets={VAL_TIPS, VAL_GOLD})
+        self.assertEqual(mia.validate_input(inp), [])
+        _, user = mcc.build_prompt(inp, legal_targets={VAL_TIPS, VAL_GOLD})
         self.assertIn('TIPS_10Y与GOLD_F为何背离?', user)
         self.assertIn('"explanation"', user)
         self.assertIn('"phenomenon_echo"', user)
@@ -589,13 +588,13 @@ class T4_Orchestrator(_SaveEnv):
         stub = StubFactory([ok_call(json.dumps(out)) if sp == 'VALID' else sp
                             for sp in specs])
         log = os.path.join(self.tmpdir, 'usage.jsonl')
-        r = gcc.run_live_conclusion(
+        r = mcc.run_live_conclusion(
             inp, client_factory=stub, breaker=breaker, seq=seq,
             today_iso=TODAY, archive=archive, usage_log_path=log)
         return r, stub, log
 
     def test_accepted_first_try(self):
-        archive = {gcc.ARCHIVE_KEY: []}
+        archive = {mcc.ARCHIVE_KEY: []}
         r, stub, log = self.run_case(['VALID'], archive=archive)
         self.assertEqual(r['pipeline']['outcome'], 'ACCEPTED')
         self.assertEqual(r['attempts_used'], 1)
@@ -603,7 +602,7 @@ class T4_Orchestrator(_SaveEnv):
         self.assertRegex(r['conclusion_record']['conclusion_id'],
                          r'^CR-20261105-001$')
         self.assertIsNone(r['breaker']['tripped'])
-        self.assertEqual(len(archive[gcc.ARCHIVE_KEY]), 1)
+        self.assertEqual(len(archive[mcc.ARCHIVE_KEY]), 1)
         with open(log, encoding='utf-8') as fh:
             lines = [json.loads(x) for x in fh if x.strip()]
         self.assertEqual(len(lines), 1)
@@ -615,7 +614,7 @@ class T4_Orchestrator(_SaveEnv):
         r, _, _ = self.run_case(['VALID'], absent=True)
         self.assertEqual(r['pipeline']['outcome'], 'ACCEPTED_DOWNGRADED')
         self.assertEqual(r['grounding']['outcome'], 'ACCEPTED_DOWNGRADED')
-        self.assertIn('gov.validate_output', r['grounding']['enforced_by'])
+        self.assertIn('mov.validate_output', r['grounding']['enforced_by'])
 
     def test_feedback_retry_then_accepted(self):
         r, stub, _ = self.run_case(['这不是JSON(合成坏响应)', 'VALID'])
@@ -637,7 +636,7 @@ class T4_Orchestrator(_SaveEnv):
         r, stub, _ = self.run_case(['坏响应A(合成)', '坏响应B(合成)',
                                '坏响应C(合成)'])
         self.assertEqual(r['attempts_used'], 3,
-                         '重试预算=gov.MAX_RETRIES(3)字面量')
+                         '重试预算=mov.MAX_RETRIES(3)字面量')
         self.assertEqual(len(stub.consumed), 3, '禁第4次出站')
         self.assertEqual(r['pipeline']['outcome'], 'ABSENT_REGISTERED')
         self.assertEqual(r['conclusion_record']['outcome'],
@@ -645,7 +644,7 @@ class T4_Orchestrator(_SaveEnv):
         self.assertIsNone(r['blocked_reason'])
 
     def test_pretripped_zero_outbound_absent(self):
-        brk = gcc.CircuitBreaker(day_utc='2026-11-05')
+        brk = mcc.CircuitBreaker(day_utc='2026-11-05')
         for _ in range(5):
             brk.note_failure('network')
         r, stub, _ = self.run_case(['VALID'], breaker=brk)
@@ -655,22 +654,22 @@ class T4_Orchestrator(_SaveEnv):
         self.assertIn('TRIPPED-CB-1', r['blocked_reason'])
 
     def test_archive_idempotent_replay(self):
-        archive = {gcc.ARCHIVE_KEY: []}
+        archive = {mcc.ARCHIVE_KEY: []}
         r1, _, _ = self.run_case(['VALID'], archive=archive)
         r2, _, _ = self.run_case(['VALID'], archive=archive)
         self.assertEqual(r1['archive_status'], 'written')
         self.assertEqual(r2['archive_status'], 'skipped-idempotent')
-        self.assertEqual(len(archive[gcc.ARCHIVE_KEY]), 1)
+        self.assertEqual(len(archive[mcc.ARCHIVE_KEY]), 1)
 
     def test_archive_versioning_on_digest_change(self):
-        archive = {gcc.ARCHIVE_KEY: []}
+        archive = {mcc.ARCHIVE_KEY: []}
         r1, _, _ = self.run_case(['VALID'], archive=archive, variant=0)
         r2, _, _ = self.run_case(['VALID'], archive=archive, variant=1)
         self.assertEqual(r1['archive_status'], 'written')
         self.assertEqual(r2['archive_status'], 'written-new-version')
-        self.assertTrue(archive[gcc.ARCHIVE_KEY][-1]['conclusion_id'].endswith(
+        self.assertTrue(archive[mcc.ARCHIVE_KEY][-1]['conclusion_id'].endswith(
             '__v2'), '同id不同digest→新版本追加(原记录字节不动)')
-        self.assertTrue(archive[gcc.ARCHIVE_KEY][0]['conclusion_id'].endswith(
+        self.assertTrue(archive[mcc.ARCHIVE_KEY][0]['conclusion_id'].endswith(
             '001'), '原记录保留')
 
 
@@ -678,26 +677,26 @@ class T4_Orchestrator(_SaveEnv):
 
 class T5_GatesAndBoundaries(_SaveEnv):
     def test_gate_refused_without_run_env(self):
-        os.environ.pop(gcc.LIVE_GATE_ENV, None)
-        with self.assertRaises(gcc.LiveGateRefused):
-            gcc.run_live_conclusion(build_full_inp(),
+        os.environ.pop(mcc.LIVE_GATE_ENV, None)
+        with self.assertRaises(mcc.LiveGateRefused):
+            mcc.run_live_conclusion(build_full_inp(),
                                     client_factory=CanaryFactory())
 
     def test_gate_refused_without_credential(self):
-        os.environ.pop(gcc.CREDENTIAL_ENV, None)
-        with self.assertRaises(gcc.LiveGateRefused):
-            gcc.run_live_conclusion(build_full_inp(),
+        os.environ.pop(mcc.CREDENTIAL_ENV, None)
+        with self.assertRaises(mcc.LiveGateRefused):
+            mcc.run_live_conclusion(build_full_inp(),
                                     client_factory=CanaryFactory())
 
     def test_cli_default_skip_zero_outbound(self):
         env = {k: v for k, v in os.environ.items()
-               if k not in (gcc.LIVE_GATE_ENV, gcc.CREDENTIAL_ENV)}
+               if k not in (mcc.LIVE_GATE_ENV, mcc.CREDENTIAL_ENV)}
         p = subprocess.run(
             [sys.executable, SRC_PATH, '--live-smoke'],
             capture_output=True, text=True, env=env, cwd=ROOT, timeout=60)
         self.assertEqual(p.returncode, 0)
         self.assertIn('跳过', p.stdout)
-        self.assertIn('RUN_GLM_LIVE', p.stdout)
+        self.assertIn('RUN_MODEL_LIVE', p.stdout)
 
     def test_module_source_no_data_daily_reference(self):
         self.assertNotIn('data/daily', MODULE_SOURCE,
@@ -717,23 +716,23 @@ class T5_GatesAndBoundaries(_SaveEnv):
         stub = StubFactory([
             RuntimeError(f'失败信息含凭证 {CRED_SENTINEL} (合成)')] * 3)
         log = os.path.join(self.tmpdir, 'usage2.jsonl')
-        gcc.run_live_conclusion(build_full_inp(), client_factory=stub,
+        mcc.run_live_conclusion(build_full_inp(), client_factory=stub,
                                 today_iso=TODAY, usage_log_path=log)
         with open(log, encoding='utf-8') as fh:
             blob = fh.read()
         self.assertNotIn(CRED_SENTINEL, blob)
-        self.assertIn(gcc._REDACTED, blob)
+        self.assertIn(mcc._REDACTED, blob)
         self.assertEqual(blob.count('\n'), 3)
 
     def test_registry_row_alias_only(self):
-        row = gcc.render_registry_row(
+        row = mcc.render_registry_row(
             1, face='F1-合成', purpose='要点①(合成)',
             outbound_count=2, cost_usd=0.04,
-            breaker_state=gcc.CircuitBreaker(day_utc=TODAY).state(),
+            breaker_state=mcc.CircuitBreaker(day_utc=TODAY).state(),
             ts_utc='2026-11-05T00:00:00Z',
             approval_ref='PENDING-APPROVALS.md(合成)')
         self.assertIn('G4-CRED-001', row)
-        self.assertIn(gcc.CREDENTIAL_ENV, row)
+        self.assertIn(mcc.CREDENTIAL_ENV, row)
         self.assertNotIn(CRED_SENTINEL, row)
         self.assertIn('未触发', row)
 
@@ -742,8 +741,8 @@ class T5_GatesAndBoundaries(_SaveEnv):
 
 class T6_RealPathGuard(_SaveEnv):
     def test_no_credential_means_zero_outbound(self):
-        os.environ.pop(gcc.CREDENTIAL_ENV, None)
-        r = gcc.call_glm_once('sys', 'usr')   # 真实路径分支,凭证缺席即拒
+        os.environ.pop(mcc.CREDENTIAL_ENV, None)
+        r = mcc.call_model_once('sys', 'usr')   # 真实路径分支,凭证缺席即拒
         self.assertFalse(r['ok'])
         self.assertEqual(r['kind'], 'auth_error')
         self.assertIn('零凭证零出站', r['error'])

@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""IA-P03-W2-GLM-WP-G3: GLM 研究结论层 可反驳条件推导与门禁对接+档案衔接(结论整合模块)
+"""模型研究结论层 可反驳条件推导与门禁对接+档案衔接(结论整合模块;v2.1 中性名,原 G3)
 
-命名沿历史(模块名 glm_* 与运行层已中性化 MODEL_* 无关,此处指 GLM 结论层
-合同冻结登记件;Model-Agnostic v2 不改冻结命名)。
-合同 IA-P03-W2-GLM-WP-G3-AC-v1.0 / DESIGN §五(docs/P03_W2_GLM_DESIGN.md:152-190):
-- (1) 推导规则四步(L154-161): 主张变量化→阈值三来源(证据包/注册表/先验触发器)
+v2.1(Charter 5 S3, 2026-11-09): 模块更名 model_conclusion_integrator,删除
+"命名沿历史"豁免注;合同要点(历史设计档已移出公开仓) §五:
+- (1) 推导规则四步: 主张变量化→阈值三来源(证据包/注册表/先验触发器)
   →条件规格化(op/mode 与现行预测规格对齐,窗口默认=task_ref.window)→区分性检查
   (步4 由 G2 校验器承接,四元组判据禁复制分叉,trace 登记 deferred);
-- (2) Gate B 三态提案路径(L163-169): 论点(终态/确信度)/观点(评级/确信度)/预测候选
-  ——GLM 假设永不直接写状态;门禁判定与现行门禁同构(复用 allocation_engine 常量
+- (2) Gate B 三态提案路径: 论点(终态/确信度)/观点(评级/确信度)/预测候选
+  ——模型假设永不直接写状态;门禁判定与现行门禁同构(复用 allocation_engine 常量
   [MIN_EVIDENCE_FOR_RATING_CHANGE 等]与 _record_proposal/_change_direction 机制);
   数值校验前置=G2 校验器(结构化数值接地,零容差)×rp.combine_gates(B4 合成),
   FAIL→阻断提案(apply_status_updates FAIL 语义同构);
@@ -19,15 +18,15 @@
 - (4) E2E-A 任务 schema 字段映射(L177-190,9 行): rtm.SCHEMA_MIN_FIELDS 契约同源
   (复用导入);task_ref 只读回显不回写;状态推进=提案(经门禁)。
 
-G2 预留承接(glm_output_validator REPORT §二.3 登记):
+G2 预留承接(model_output_validator REPORT §二.3 登记):
 - 来源(iii) 先验触发器结构化注入面: extract_prior_trigger_targets→数值集,
   喂 G2 legal_target_numbers(prior_trigger_targets=…);
 - direction 枚举三值完整性(support/counter/neutral): 投影层值域校验承接。
 
-零真实 GLM/LLM 调用、零凭证、零付费、零网络出站(设计对象≠设计手段;真实调用属
+零真实模型调用、零凭证、零付费、零网络出站(设计对象≠设计手段;真实调用属
 WP-G4,执行前置=用户批准凭证/费用 PENDING 未批)。零文件读写/零glob/零算术旁路
 (档案=注入面 dict,生产持久化属编排层;阈值=三来源逐位投影)。import 面纯标准库+
-项目既有模块(allocation_engine/glm_output_validator/research_provenance/
+项目既有模块(allocation_engine/model_output_validator/research_provenance/
 research_task_manager 复用调用,禁复制分叉)。
 """
 import hashlib
@@ -39,17 +38,17 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import allocation_engine as ae        # noqa: E402 (门禁常量/提案留档/方向语义 复用调用)
-import glm_output_validator as gov    # noqa: E402 (G2 校验/合法来源/枚举 复用调用)
+import model_output_validator as mov    # noqa: E402 (G2 校验/合法来源/枚举 复用调用)
 import research_provenance as rp      # noqa: E402 (B4 combine_gates 复用调用)
 import research_task_manager as rtm   # noqa: E402 (E2E-A schema/状态机 契约同源)
 
 # ══ 契约常量(DESIGN 明示值/既有登记值沿用;登记=常量=echo 三方一致,REPORT §二.1) ══
 DERIVATION_STEPS = ('variableize', 'threshold', 'specification', 'distinctiveness')
 THRESHOLD_SOURCES = ('evidence_pack', 'registry', 'prior_triggers')   # DESIGN L157
-SPEC_KEYS = tuple(gov.SPEC_FIELDS)                    # (metric,op,target,mode,window)
-SPEC_OPS = gov.SPEC_OPS                               # 复用引用(禁复制分叉)
-SPEC_MODES = gov.SPEC_MODES                           # 复用引用
-NON_SPECIFIABLE_MARKER = gov.NON_SPECIFIABLE_MARKER   # '不可程序裁决'(DESIGN L161)
+SPEC_KEYS = tuple(mov.SPEC_FIELDS)                    # (metric,op,target,mode,window)
+SPEC_OPS = mov.SPEC_OPS                               # 复用引用(禁复制分叉)
+SPEC_MODES = mov.SPEC_MODES                           # 复用引用
+NON_SPECIFIABLE_MARKER = mov.NON_SPECIFIABLE_MARKER   # '不可程序裁决'(DESIGN L161)
 PROPOSAL_KINDS = ('thesis_status', 'thesis_confidence',
                   'view_rating', 'view_confidence', 'prediction_candidate')
 THESIS_TERMINAL_STATES = ('已失效', '已验证')          # report_generator.py:1137 语义
@@ -59,9 +58,9 @@ PROPOSAL_DEDUP_DAYS = ae.PROPOSAL_DEDUP_DAYS           # 复用引用(=21)
 PRED_INITIAL_STATUS = 'not_yet_triggered'              # ae.PRED_STATUSES 之首
 PRED_CANDIDATE_SPEC_KEYS = ('pred_metric', 'pred_op', 'pred_target', 'pred_mode')
 CONCLUSION_ID_PREFIX = 'CR-'                           # §六 L207 ID 族(登记型扩展)
-DIRECTIONS = gov.DIRECTIONS          # (support,counter,neutral) 三值完整承接(G2留G3)
-OUTCOMES = (gov.OUTCOME_ACCEPTED, gov.OUTCOME_ACCEPTED_DOWNGRADED,
-            gov.OUTCOME_ABSENT_REGISTERED)             # G2 三结局透传
+DIRECTIONS = mov.DIRECTIONS          # (support,counter,neutral) 三值完整承接(G2留G3)
+OUTCOMES = (mov.OUTCOME_ACCEPTED, mov.OUTCOME_ACCEPTED_DOWNGRADED,
+            mov.OUTCOME_ABSENT_REGISTERED)             # G2 三结局透传
 E2EA_MAP_ROWS = 9                                     # DESIGN §五(4) 表 L181-189
 
 # ══ 实现登记值(DESIGN 未定值,本包登记;运行后禁回改,REPORT §二.2) ═════════
@@ -205,8 +204,8 @@ def legal_thresholds_for(metric_id, inp, *, registry_metrics=None,
     """步2 阈值取值约束(DESIGN L157): 该指标的三来源合法阈值(逐源带标记,保序)。
 
     (i) evidence_pack: 该指标事实 value+派生窗口值(week/mtd/ytd 固定序×
-    gov._DERIVED_VALUE_KEYS 字段族——与 G2 接地集同源,复用引用禁复制);
-    (ii) registry: validation.range 端点+max_week_pct_move(gov.
+    mov._DERIVED_VALUE_KEYS 字段族——与 G2 接地集同源,复用引用禁复制);
+    (ii) registry: validation.range 端点+max_week_pct_move(mov.
     REGISTRY_THRESHOLD_KEYS 点名两族,不扩展);
     (iii) prior_triggers: 注入触发器中 metric 匹配项的 target。"""
     out = {'evidence_pack': [], 'registry': [], 'prior_triggers': []}
@@ -217,7 +216,7 @@ def legal_thresholds_for(metric_id, inp, *, registry_metrics=None,
             for w in _DERIVED_WINDOW_ORDER:
                 wrec = (f.get('derived') or {}).get(w)
                 if isinstance(wrec, dict):
-                    for k in gov._DERIVED_VALUE_KEYS:   # 复用引用(禁复制分叉)
+                    for k in mov._DERIVED_VALUE_KEYS:   # 复用引用(禁复制分叉)
                         if _num(wrec.get(k)):
                             out['evidence_pack'].append(wrec[k])
             break
@@ -316,7 +315,7 @@ def derive_falsifiable_conditions(hypothesis, inp, *, op=None, mode=None,
              f'不产条件不引入,DESIGN L156)' for m in step1['registered_not_in_input']]
     trace.append({'step': 'distinctiveness', 'status': 'deferred-to-g2-validator',
                   'note': '区分性判据由 G2 校验器承接(四元组(metric,op,target,'
-                          'mode)两两不全同,glm_output_validator.py:482-493),'
+                          'mode)两两不全同,model_output_validator.py:482-493),'
                           '本模块禁复制分叉;集成断言=apply 后过 G2 校验'})
     return {'spec_conditions': spec_conditions,
             'non_specifiable': non_specifiable,
@@ -354,17 +353,17 @@ def build_gate_b_proposal(inp, validated_output, *, kind, hypothesis=None,
                           new_support_metrics=(), trigger_rows=(),
                           star_max=None, registry_targets=None,
                           prior_trigger_targets=None, today_iso=None):
-    """构造 Gate B 提案(数值校验前置先行;GLM 假设永不直接写状态,DESIGN L165)。
+    """构造 Gate B 提案(数值校验前置先行;模型假设永不直接写状态,历史设计档 L165)。
 
     前置双层(DESIGN L169):
-    ① gov.validate_output(G2 结构化数值接地,零容差)=B1-B3 md 报告面的结构化
+    ① mov.validate_output(G2 结构化数值接地,零容差)=B1-B3 md 报告面的结构化
        等价(B1-B3 对象=md 文件+锚点,HypothesisSet 无 md 载体——判定依据登记
        REPORT §一.2);
     ② rp.combine_gates(gate_a, gate_b)(B4 复用调用)——gate_b=①有问题→FAIL。
     合成 FAIL→blocked 提案(不进门禁判定,apply_status_updates FAIL 语义同构)。"""
     if kind not in PROPOSAL_KINDS:
         raise ValueError(f'proposal kind 非法(枚举{PROPOSAL_KINDS}): {kind!r}')
-    probs = gov.validate_output(inp, validated_output,
+    probs = mov.validate_output(inp, validated_output,
                                 registry_targets=registry_targets,
                                 prior_trigger_targets=prior_trigger_targets)
     gate_b = GATE_B_BLOCKED_CLASSIFICATION if probs else 'PASS'

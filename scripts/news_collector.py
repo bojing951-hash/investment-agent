@@ -43,6 +43,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.dirname(__file__))
 from env_config import FINNHUB_API_KEY, GLM_API_KEY, GLM_BASE_URL, GLM_MODEL
+from redact_secrets import redact
 import news_provenance as nprov
 
 import finnhub
@@ -138,7 +139,7 @@ def fetch_market_news():
         print(f"  ✅ 获取 {len(recent)} 条（最近7天）[{status}]")
         return recent, status, None
     except Exception as e:
-        print(f"  ❌ 市场新闻失败: {e}")
+        print(redact(f"  ❌ 市场新闻失败: {e}"))
         return [], ST_ERROR, str(e)
 
 def fetch_company_news():
@@ -170,7 +171,7 @@ def fetch_company_news():
         except Exception as e:
             symbol_status[symbol] = {'status': ST_ERROR, 'items': 0,
                                      'error': str(e)}
-            print(f"  ❌ {symbol}: {e}")
+            print(redact(f"  ❌ {symbol}: {e}"))
 
     return all_news, symbol_status
 
@@ -306,12 +307,12 @@ def collect_all_news(now_utc=None):
         'Finnhub/company_news': co_agg,
     }
     if mkt_err:
-        source_status['Finnhub/general:error'] = mkt_err[:200]
+        source_status['Finnhub/general:error'] = redact(mkt_err)[:200]
     for sym, v in sorted(symbol_status.items()):
         source_status[f'Finnhub/company_news:{sym}'] = v['status']
         if v['error']:
             source_status[f'Finnhub/company_news:{sym}:error'] = \
-                str(v['error'])[:200]
+                redact(str(v['error']))[:200]
     source_status.update(rss_status)   # 逐feed成败披露(RSS既有能力保留)
     return raw_records, source_status, display
 

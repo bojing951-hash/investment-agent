@@ -22,6 +22,7 @@ ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT_DIR)
 
 from env_config import FRED_API_KEY
+from redact_secrets import redact
 
 # --- 代理修复(2026-11-08) ---
 # 根因: 同 global_market_collector 2026-09-30 前案——Yahoo 对直连家宽 IP 429 限流;
@@ -193,14 +194,14 @@ def _fred_observations(series_id, limit=5, tries=3):
             data = resp.json()
             if data.get('observations'):
                 return data['observations']
-            last_err = f"空观测({str(data)[:80]})"
+            last_err = f"空观测(HTTP {resp.status_code}, {str(data)[:80]})"
         except Exception as e:
             last_err = str(e)
         if i < tries - 1:
             wait = 3 * (i + 1)
-            print(f"    ⏳ {series_id} 第{i+1}次失败({last_err[:60]}),{wait}s后重试...")
+            print(redact(f"    ⏳ {series_id} 第{i+1}次失败({last_err[:60]}),{wait}s后重试..."))
             time.sleep(wait)
-    print(f"  ⚠️ {series_id}: {tries}次尝试均失败——{last_err}")
+    print(redact(f"  ⚠️ {series_id}: {tries}次尝试均失败——{last_err}"))
     return []
 
 

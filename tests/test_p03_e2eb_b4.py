@@ -152,7 +152,11 @@ ALLOWED_PUBLIC_FUNCS = {"validate_id_conventions", "parse_snapshot_id",
                         "build_answer_summary", "validate_query_record",
                         "list_query_records", "allocate_query_id",
                         "append_query_record", "load_query_record",
-                        "verify_query_record", "verify_archive"}
+                        "verify_query_record", "verify_archive",
+                        # 批2 WI6(2026-11-09)显式扩面: research_full sidecar
+                        # (validate/write/load;旧 query_history 契约一字不动)
+                        "validate_research_full", "write_research_full",
+                        "load_research_full"}
 
 
 def _ir_with_qid(ir, qid):
@@ -624,9 +628,11 @@ class T5WiringPurity(B4TestBase):
 
     def test_open_surface_whitelisted(self):
         # 文件打开面恰3处: 记录原子写/记录读回/快照加载(D-B4-08登记面)
-        self.assertEqual(MODULE_SRC.count("open("), 3)
+        # 批2 WI6(2026-11-09)显式扩面: +sidecar 原子写/sidecar 读回 = 恰5处
+        self.assertEqual(MODULE_SRC.count("open("), 5)
         for func in ("append_query_record", "load_query_record",
-                     "_load_snapshot_for_binding"):
+                     "_load_snapshot_for_binding", "write_research_full",
+                     "load_research_full"):
             self.assertIn("open(", inspect.getsource(getattr(ra, func)))
 
     def test_no_network_imports(self):

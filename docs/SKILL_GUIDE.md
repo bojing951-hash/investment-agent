@@ -32,6 +32,8 @@ python3 install_skill.py --target project   # 复制到 <仓库>/.claude/skills/
 项目级副本优先经 `${CLAUDE_PROJECT_DIR}` 定位引擎;所有已安装副本(含项目级)
 均由安装器写入 `engine-path.json` 作兜底。
 
+安装器 stdout 为单个 JSON 对象,中文提示行走 stderr(单 JSON 契约 ia_cli.py 与安装器均满足,自动化场景直接解析 stdout)。
+
 **个人级(在任何目录的会话里可用)**:
 
 ```bash
@@ -65,8 +67,15 @@ python3 install_skill.py --target personal-codex   # 复制到 ~/.agents/skills/
 python3 ia_cli.py doctor        # 引擎侧: 环境/密钥/数据新鲜度/上次运行
 ```
 
+`doctor` 输出的 `data.skill = {source_present, project_install_present}`
+同时确认仓库源与项目级安装副本就位——不必进 AI 会话即可完成引擎侧验证。
+
 然后在 AI 会话里说「全球宏观现在什么情况?」——若 AI 调用了 ia_cli 并在回答里
 带出观测日期与来源,即安装成功。Claude Code 可用 `/skills` 直接确认加载状态。
+
+Headless 注意(宿主验收实测): Claude Code 以 `claude -p` 无界面模式运行时,
+项目级 Skill 需加 `--setting-sources project` 才会加载;交互式会话经信任
+对话后自动加载,无需此参数。
 
 ## 四个研究场景(可直接对 AI 说)
 
@@ -75,16 +84,20 @@ python3 ia_cli.py doctor        # 引擎侧: 环境/密钥/数据新鲜度/上�
 2. **近期市场变化**: 「最近一周市场发生了什么?利率变化用百分点说,股市用百分比,别混」
    → AI 调 `changes`
 3. **历史与跨资产比较**: 「美国10年期国债收益率与标普500的历史相关性?共同观测窗多长?」
-   → AI 调 `history` + `compare --metrics UST_10Y,SPX`
+   → AI 调 `history` + `compare --metrics UST_10Y,SPX`(利率按 pp、价格按 pct,口径见输出 `change_basis`,单位不可比时如实拒算)
 4. **接地问答与归档**: 「美日10年期国债收益率差是多少?」→ `research`;
    「把这个问题存档」→ `archive save`;事后「查我上周问过什么」→ `archive list`
 
 ## 更新与卸载
 
 ```bash
-python3 install_skill.py                    # 重跑=刷新所有已装副本(与源字节一致)
-python3 install_skill.py --uninstall        # 移除已安装副本(仓库源不受影响)
+python3 install_skill.py                    # 默认 --target project: 仅刷新项目级副本
+python3 install_skill.py --target all       # 显式刷新全部已装副本(含个人级)
+python3 install_skill.py --uninstall        # 移除已安装副本(默认仅项目级;仓库源不受影响)
 ```
+
+安全默认(v1.1): 已装副本相对源树有本地修改时,重装/卸载会**拒绝**以防静默丢失
+你的改动——确需覆盖用 `--force`(旧目录先备份为 `{dest}.bak-时间戳` 再替换)。
 
 ## FAQ
 

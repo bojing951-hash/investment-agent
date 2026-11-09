@@ -32,6 +32,12 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 
 import workbench_data as wd  # noqa: E402
+from redact_secrets import redact  # noqa: E402  P0-4: tail 过脱敏再入 JSON
+
+# 研究档案目录注入缝(批2 WI6): None=模块默认(<引擎根>/data/research/…);
+# 生产恒为 None——测试进程内 monkeypatch 指向沙箱,跨进程 e2e 用仓库副本
+# 自然隔离(模块路径派生),不引入环境变量面。
+_ARCHIVE_DIR = None
 
 try:
     import fact_engine as fe  # 单位族的唯一权威分桶源
@@ -51,6 +57,8 @@ ENV_KEYS = (  # doctor 只报"已配置/未配置",永不打印值
     ('YF_PROXY', 'yfinance 代理(可选)'),
 )
 ARCHIVE_DOUBLE_NEST = 'research_archive/query_history'  # research_archive._collection_dir 再拼一层
+# P0-1: update 结果信封的关键行筛(⛔/❌/Traceback/ERROR/失败/错误,大小写兼顾)
+_CRITICAL_LINE_RE = re.compile(r'⛔|❌|Traceback|ERROR|失败|错误', re.IGNORECASE)
 
 
 # ══ 输出信封 ═════════════════════════════════════════════════════════
@@ -318,21 +326,32 @@ def cmd_update(args):
     cmd = [sys.executable, os.path.join(ROOT, 'run_weekly.py')]
     if args.allow_revision:
         cmd.append('--allow-revision')
-    print(json.dumps({'ok': True, 'capability': 'update', 'engine_root': ROOT,
-                      'notice': '开始运行 run_weekly.py,完成后输出结果摘要(透传退出码)'},
-                     ensure_ascii=False))
+        if args.revision_reason:
+            cmd += ['--revision-reason', args.revision_reason]
+    # P0-1 契约修复: stdout 全程只输出一个 JSON 信封(SKILL.md「输出一律为单个
+    # JSON 对象」)。开始提示走 stderr(人读进度,机器不解析)。
+    print(f'开始运行 run_weekly.py(引擎根 {ROOT}),完成后输出结果摘要(透传退出码)',
+          file=sys.stderr)
     try:
-        proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+        # errors='replace': 子进程输出非 UTF-8 字节时以替换符入 tail,
+        # 不让 UnicodeDecodeError 裸崩吞掉结果信封与退出码(2026-11-09 复现缺陷)
+        proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                              errors='replace')
     except OSError as e:
         emit(envelope('update', False, {},
                       error=('spawn_failed', f'无法启动 run_weekly.py: {e}', None)),
              exit_code=1)
-    tail = (proc.stdout or '').strip().splitlines()[-40:]
+    lines = (proc.stdout or '').strip().splitlines()
+    # critical_tail: 40 行 output_tail 会滚掉早先的根因行(如步骤9的⛔拒写),
+    # 关键行单独留底(大小写兼顾),保证 ⛃/❌/Traceback/ERROR/失败/错误 仍可见。
+    # P0-4: 三条 tail 全部过 redact()——采集器异常文本常内嵌含密钥的完整 URL
+    critical_tail = [l for l in lines if _CRITICAL_LINE_RE.search(l)][-10:]
     payload = envelope('update', proc.returncode == 0, {
         'exit_code': proc.returncode,
         'exit_semantics': '0=全部关键步骤成功(非关键可降级); 1=任一关键步骤失败或被跳过',
-        'output_tail': tail,
-        'stderr_tail': (proc.stderr or '').strip().splitlines()[-10:]})
+        'output_tail': [redact(l) for l in lines[-40:]],
+        'critical_tail': [redact(l) for l in critical_tail],
+        'stderr_tail': [redact(l) for l in (proc.stderr or '').strip().splitlines()[-10:]]})
     emit(payload, exit_code=proc.returncode)
 
 
@@ -452,7 +471,7 @@ def cmd_compare(args):
         if len(ids) != 2:
             emit(envelope('compare', False, {},
                           error=('bad_metrics', f'--metrics 需恰好两个指标,收到: {ids}',
-                                 '如 --metrics UST_10Y,JGB10Y')), exit_code=2)
+                                 '如 --metrics SPX,GOLD_F')), exit_code=2)
     snap, reg, note = load_context()
     if snap is None:
         emit(envelope('compare', False, {},
@@ -477,11 +496,28 @@ def cmd_compare(args):
                                  '运行不带 --metric 的 history 查看支持序列的指标')),
                  exit_code=1)
         import correlation_calculator as cc
-        paired, common = cc.paired_returns(
-            {'dates': sa['dates'], 'values': sa['values']},
-            {'dates': sb['dates'], 'values': sb['values']})
-        corr = cc.pearson(*paired) if paired else None
         import research_history_query as rhq
+        metas = []
+        for sid in ids:
+            metas.append(reg['by_id'].get(sid) or {})
+        fam_a, _sa = unit_family(metas[0].get('unit', ''), metas[0].get('asset_class', ''))
+        fam_b, _sb = unit_family(metas[1].get('unit', ''), metas[1].get('asset_class', ''))
+        # P0-3: other 族无可靠变化口径→结构化拒绝(与无序列拒绝同 rc=1 语义)
+        if fam_a == 'other' or fam_b == 'other':
+            bad = [{'metric': ids[i], 'unit_family': fam, 'unit': metas[i].get('unit')}
+                   for i, fam in ((0, fam_a), (1, fam_b)) if fam == 'other']
+            emit(envelope('compare', False, {},
+                          error=('incomparable_units',
+                                 f'指标单位族不可比(无可靠变化口径,拒绝混算): {bad}',
+                                 'other 族不能进单位感知变化相关;换用价格/利率/计数族'
+                                 '指标对,或用 history 分别取原序列')),
+                 exit_code=1)
+        # P0-3 单位感知变化相关: 利率→pp/价格→pct,修复利率×价格混算 pct
+        paired, common = cc.paired_unit_changes(
+            {'dates': sa['dates'], 'values': sa['values']}, fam_a,
+            {'dates': sb['dates'], 'values': sb['values']}, fam_b)
+        corr = (cc.pearson(paired['changes_a'], paired['changes_b'])
+                if paired else None)
         sides = []
         for sid, s in ((ids[0], sa), (ids[1], sb)):
             m = reg['by_id'].get(sid) or {}
@@ -501,14 +537,44 @@ def cmd_compare(args):
                 iv = {'available': False, 'reason': 'interval_change 计算失败'}
             node['interval_change_common_window'] = iv
             sides.append(node)
+        basis_a = 'pp' if fam_a == 'rate' else 'pct'
+        basis_b = 'pp' if fam_b == 'rate' else 'pct'
         data = {'mode': 'metrics', 'sides': sides,
                 'alignment': {'n_common_observations': len(common),
+                              'n_level_observations': len(common),
+                              'n_change_pairs': len(common) - 1,
                               'common_first': common[0] if common else None,
-                              'common_last': common[-1] if common else None},
-                'pearson_returns': corr}
-        if paired and len(paired[0]) < 15:
-            warnings.append(f'共同观测日仅 {len(paired[0])} 个(<15),相关性统计意义不足,'
-                            '引擎口径要求如实警示')
+                              'common_last': common[-1] if common else None,
+                              'note': '水平窗=共同观测日数;变化窗=相邻观测对数'
+                                      '(少一个会话,如实并列);data.n_change_pairs='
+                                      '剔除 null/零基丢弃后实际参与相关的对数'},
+                'pearson_returns': corr,
+                'change_basis': {'a': basis_a, 'b': basis_b},
+                'n_change_pairs': paired['n_change_pairs'] if paired else 0,
+                'dropped_null': paired['dropped_null'] if paired else 0,
+                'zero_base_dropped': paired['zero_base_dropped'] if paired else 0}
+        if fam_a == 'count' or fam_b == 'count':
+            warnings.append('count 族序列按百分比(pct)近似,基数大,相对变化仅作'
+                            '量级参考(basis=count 近似已随 change_basis 标注)')
+        if paired and paired['n_change_pairs'] < 30:
+            warnings.append(f"变化对仅 {paired['n_change_pairs']} 对(<30),"
+                            '样本不足,短窗相关不外推')
+            data['sample_note'] = (f"n_change_pairs={paired['n_change_pairs']}<30,"
+                                   '样本不足,短窗相关性不可外推')
+        if paired and paired['n_change_pairs'] < 15:
+            warnings.append(f"变化对仅 {paired['n_change_pairs']} 个(<15),"
+                            '相关性统计意义不足,引擎口径要求如实警示')
+        freq_a, freq_b = metas[0].get('frequency'), metas[1].get('frequency')
+        if freq_a and freq_b and freq_a != freq_b:
+            warnings.append(f'mixed_frequency: 两侧频率不同({freq_a} vs {freq_b}),'
+                            '共同观测日交集由低频侧主导,解读须注意')
+        if len(common) >= 2:
+            gaps = [_date_gap_days(common[i - 1], common[i])
+                    for i in range(1, len(common))]
+            gaps = [g for g in gaps if g is not None]
+            if gaps and max(gaps) > 7:
+                warnings.append(f'date_gap: 共同观测窗内相邻观测最大间隔 '
+                                f'{max(gaps)} 天(>7),期间无共同观测,相关序列存在断点')
         gap = _date_gap_days(sa['dates'][-1], sb['dates'][-1])
         if gap is not None and gap > 3:
             warnings.append(f'两侧最新观测日相差 {gap} 天({sa["dates"][-1]} vs '
@@ -519,7 +585,67 @@ def cmd_compare(args):
                          '--metrics A,B | --economies US,JP | --assets 三选一')), exit_code=2)
 
 
+def _check_follow_up(query_id):
+    """--follow-up-of 引用校验: QB 格式+前档存在性;返回 (ok, 原因)。"""
+    import e2eb_query_ir as qir
+    import research_archive as ra
+    if not isinstance(query_id, str) or not qir.QUERY_ID_RE.match(query_id or ''):
+        return False, f'格式非法(须QB-YYYYMMDD-NNN): {query_id!r}'
+    try:
+        ra.load_query_record(query_id, archive_dir=_ARCHIVE_DIR)
+    except FileNotFoundError:
+        return False, f'前档不存在: {query_id}'
+    except ValueError as e:
+        return False, f'前档读取失败: {e}'
+    return True, None
+
+
+def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=None,
+                            values=None, unresolved=None, glm=None,
+                            warnings_=(), violations=(), user_note=None,
+                            follow_up_of=None):
+    """research_full_v1 sidecar 旁挂(批2 WI6): 保存**本次用户实际所见**的
+    作答正文/GLM 原文/warnings/violations/备注/前档链接——只搬运本进程已有
+    值,绝不重新生成、绝不补发任何 API 调用。返回 (ok, 详情)。"""
+    from datetime import datetime, timezone
+    import research_archive as ra
+    import research_provenance as rp
+    if not snap or not snap.get('snapshot_id'):
+        return False, '无快照,sidecar 快照绑定字段不可构造'
+    saved_at = datetime.now(timezone.utc).isoformat(timespec='seconds')
+    try:
+        base = ra.load_query_record(qid, archive_dir=_ARCHIVE_DIR)
+        created_at = base.get('created_at')
+    except (FileNotFoundError, ValueError):
+        created_at = saved_at      # 基档不可读时不阻断(sidecar 仍绑定本进程事实)
+    payload = {'record_type': ra.FULL_RECORD_TYPE, 'query_id': qid,
+               'question_text': question, 'created_at': created_at,
+               'research_as_of': snap.get('research_as_of'),
+               'snapshot_id': snap.get('snapshot_id'),
+               'digest_snapshot': rp.digest_snapshot(snap),
+               'status': status, 'answer_text': answer_text,
+               'values': values, 'unresolved': unresolved, 'glm': glm,
+               'warnings': list(warnings_), 'violations': list(violations),
+               'user_note': user_note, 'follow_up_of': follow_up_of,
+               'saved_at': saved_at}
+    try:
+        st, _path = ra.write_research_full(
+            ra._collection_dir(_ARCHIVE_DIR or ra.DEFAULT_ARCHIVE_DIR), payload)
+    except ValueError as e:
+        return False, f'schema 拒绝: {e}'
+    if st != ra.STATUS_WRITTEN:
+        return False, st
+    return True, None
+
+
 def cmd_research(args):
+    if args.follow_up_of:
+        fu_ok, fu_why = _check_follow_up(args.follow_up_of)
+        if not fu_ok:
+            emit(envelope('research', False, {},
+                          error=('invalid_follow_up',
+                                 f'--follow-up-of 校验失败: {fu_why}',
+                                 '先 archive list 查看已有 query_id')), exit_code=2)
     snap, reg, note = load_context()
     if snap is None:
         emit(envelope('research', False, {},
@@ -545,9 +671,19 @@ def cmd_research(args):
         if not glm.get('ok'):
             warnings.append(f"GLM 解释未生成: {glm.get('error', '')[:120]}")
     if args.archive and ok:
-        qid, err = wd.save_to_archive(args.question, snap, ROOT)
+        qid, err = wd.save_to_archive(args.question, snap, ROOT,
+                                      archive_dir=_ARCHIVE_DIR)
         if qid:
             data['archived_query_id'] = qid
+            # sidecar=本次用户实际所见原文(先于后续 warnings 追加,快照此刻状态)
+            full_ok, full_why = _write_research_sidecar(
+                qid, snap, args.question, status=res['status'],
+                answer_text=res.get('answer_text'), values=res.get('values', {}),
+                unresolved=res.get('unresolved', []), glm=data.get('glm'),
+                warnings_=list(warnings), violations=list(violations or []),
+                user_note=args.note, follow_up_of=args.follow_up_of)
+            if not full_ok:
+                warnings.append(f'research-full sidecar 未落盘: {full_why}')
         else:
             warnings.append(f'归档失败: {err}')
     # 退出码=进程层成败(诚实拒答/未支持也是成功执行);语义成败看 ok 与 data.status
@@ -558,40 +694,63 @@ def cmd_archive(args):
     import research_archive as ra
     snap, _reg, _note = load_context()
     if args.action == 'save':
+        if args.follow_up_of:
+            fu_ok, fu_why = _check_follow_up(args.follow_up_of)
+            if not fu_ok:
+                emit(envelope('archive', False, {},
+                              error=('invalid_follow_up',
+                                     f'--follow-up-of 校验失败: {fu_why}',
+                                     '先 archive list 查看已有 query_id')), exit_code=2)
         if snap is None:
             emit(envelope('archive', False, {},
                           error=('no_snapshot', '本地无研究快照,无法归档',
                                  '先运行 python3 ia_cli.py update --yes 采集数据')), exit_code=1)
-        qid, err = wd.save_to_archive(args.question, snap, ROOT)
+        qid, err = wd.save_to_archive(args.question, snap, ROOT,
+                                      archive_dir=_ARCHIVE_DIR)
         if not qid:
             emit(envelope('archive', False, {},
                           error=('save_failed', err or '归档失败', None)), exit_code=1)
-        emit(envelope('archive', True, {
-            'saved': True, 'query_id': qid,
-            'note': f'append-only 落档于 <引擎根>/data/research/{ARCHIVE_DOUBLE_NEST}'
-                    '/(research_archive 模块双层嵌套,既定行为)'},
-            snapshot=snap))
+        # 独立保存场景: 无本次作答,answer 相关字段如实 null(备注/前档链接落位)
+        full_ok, full_why = _write_research_sidecar(
+            qid, snap, args.question, warnings_=[], violations=[],
+            user_note=args.note, follow_up_of=args.follow_up_of)
+        data = {'saved': True, 'query_id': qid,
+                'note': f'append-only 落档于 <引擎根>/data/research/{ARCHIVE_DOUBLE_NEST}'
+                        '/(research_archive 模块双层嵌套,既定行为)'}
+        warns = []
+        if not full_ok:
+            warns.append(f'research-full sidecar 未落盘: {full_why}')
+        emit(envelope('archive', True, data, warns, snapshot=snap))
     elif args.action == 'list':
         try:
-            qids = ra.list_query_records()
+            qids = ra.list_query_records(archive_dir=_ARCHIVE_DIR)
         except (OSError, ValueError) as e:
             emit(envelope('archive', True, {'records': [],
                                             'note': f'档案目录不可读或为空: {e}'}))
         records = []
         for qid in qids[-args.limit:]:
             try:
-                rec = ra.load_query_record(qid)
-                records.append({'query_id': qid,
-                                'created_at': rec.get('created_at'),
-                                'question_text': (rec.get('question_text') or '')[:80],
-                                'snapshot_id': rec.get('snapshot_id'),
-                                'ir_stage': rec.get('ir_stage')})
+                rec = ra.load_query_record(qid, archive_dir=_ARCHIVE_DIR)
             except (FileNotFoundError, ValueError):
                 records.append({'query_id': qid, 'note': '记录读取失败(损坏或不完整)'})
+                continue
+            row = {'query_id': qid,
+                   'created_at': rec.get('created_at'),
+                   'question_text': (rec.get('question_text') or '')[:80],
+                   'snapshot_id': rec.get('snapshot_id'),
+                   'ir_stage': rec.get('ir_stage')}
+            try:  # sidecar 存在性(损坏不阻断列表,如实标注)
+                full = ra.load_research_full(qid, archive_dir=_ARCHIVE_DIR)
+            except (OSError, ValueError):
+                full = False
+            row['has_full'] = bool(full)
+            if full and full.get('user_note'):
+                row['user_note'] = str(full['user_note'])[:60]
+            records.append(row)
         emit(envelope('archive', True, {'n_total': len(qids), 'records': records}))
     else:  # get
         try:
-            rec = ra.load_query_record(args.query_id)
+            rec = ra.load_query_record(args.query_id, archive_dir=_ARCHIVE_DIR)
         except FileNotFoundError:
             emit(envelope('archive', False, {},
                           error=('not_found', f'无此档案记录: {args.query_id}',
@@ -599,7 +758,17 @@ def cmd_archive(args):
         except ValueError as e:
             emit(envelope('archive', False, {},
                           error=('corrupt_record', f'档案格式非法: {e}', None)), exit_code=1)
-        emit(envelope('archive', True, {'record': rec}))
+        data = {'record': rec}   # 旧档原样(格式一字不动)
+        warns = []
+        try:
+            full = ra.load_research_full(args.query_id, archive_dir=_ARCHIVE_DIR)
+        except ValueError as e:
+            full, warns = None, [f'sidecar 读取失败(基档不受影响): {e}']
+        if full is not None:     # 并列合并视图(base 身份为准,record_type 不被覆盖)
+            merged = dict(rec)
+            merged.update({k: v for k, v in full.items() if k != 'record_type'})
+            data['full'] = merged
+        emit(envelope('archive', True, data, warns))
 
 
 # ══ 入口 ══════════════════════════════════════════════════════════════
@@ -611,10 +780,15 @@ def build_parser():
 
     sub.add_parser('doctor', help='环境/密钥/数据新鲜度/上次运行 体检(只报已配置与否,不打印值)')
 
-    up = sub.add_parser('update', help='运行采集流水线(显式 --yes 才执行,透传退出码)')
+    up = sub.add_parser('update',
+                        help='运行采集流水线(显式 --yes 才执行,透传退出码;'
+                             '--allow-revision 同日修订,--revision-reason 修订原因)')
     up.add_argument('--yes', action='store_true', help='确认真实运行(外部数据源调用)')
     up.add_argument('--allow-revision', action='store_true',
-                    help='同日重跑允许修订(run_weekly 修订机制)')
+                    help='同日重跑允许修订(经 run_weekly 转发 snapshot_builder,'
+                         '生成 _vN 新版本,原版保留)')
+    up.add_argument('--revision-reason', help='修订原因(随 --allow-revision 透传,'
+                                              '写入快照 revision_reason 字段)')
 
     ov = sub.add_parser('overview', help='经济体宏观概览(原始数值节点)')
     ov.add_argument('--economy', required=True,
@@ -639,12 +813,18 @@ def build_parser():
     rs.add_argument('--glm', action='store_true',
                     help='附加 GLM 解释(产生 API 费用,仅用户明确要求时使用)')
     rs.add_argument('--archive', action='store_true', help='同时落研究档案')
+    rs.add_argument('--note', help='用户备注(随 research-full sidecar 落档)')
+    rs.add_argument('--follow-up-of',
+                    help='关联前档 query_id(QB-YYYYMMDD-NNN;存在性校验失败 rc=2)')
 
     ar = sub.add_parser('archive', help='研究档案: 存/列/取')
     ar.add_argument('action', choices=['save', 'list', 'get'])
     ar.add_argument('--question', help='save: 要归档的研究问题')
     ar.add_argument('--query-id', help='get: QB-YYYYMMDD-NNN')
     ar.add_argument('--limit', type=int, default=20, help='list: 条数上限')
+    ar.add_argument('--note', help='save: 用户备注(随 sidecar 落档)')
+    ar.add_argument('--follow-up-of',
+                    help='save: 关联前档 query_id(存在性校验失败 rc=2)')
     return p
 
 

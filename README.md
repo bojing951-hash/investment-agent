@@ -98,8 +98,8 @@ python3 run_weekly.py       # 第一次数据采集(13 步流水线,配齐 Key �
   archive)结构化 JSON 输出,数值节点强制携带单位族/观测日期/来源/ETF 代理身份,
   变化量强制携带基准日与窗口语义,附研究纪律 lint(成分编造断言=violation);
   安装器 `install_skill.py` 物理复制到各宿主(不依赖符号链接);
-- **离线测试**: 94 个测试套件(`python3 tests/<name>.py`,无需 pytest;CI 自动跑
-  93 个离线套件,真实 GLM 调用套件须显式开启)。
+- **离线测试**: 99 个测试套件(`python3 tests/<name>.py`,无需 pytest;CI 自动跑
+  98 个离线套件,真实 GLM 调用套件须显式开启)。
 
 **历史兼容(非默认执行)**: `config/thesis.json`、`config/allocation_views.json`
 为**已冻结的历史研究档案**(2026-11-08 产品章程勘误: 论点星级/超配低配/预测裁决
@@ -132,7 +132,7 @@ python3 scripts/report_generator.py   # 生成 AI 周报(需 GLM_API_KEY)
 bash run_daily.sh                     # 采集入口脚本(自动定位项目根/虚拟环境,可移植)
 streamlit run app.py                  # 本地研究工作台(网页)
 python3 ia_cli.py doctor              # Agent 工具接口·环境体检(其余: overview/changes/history/compare/research/archive)
-python3 install_skill.py              # 安装 Agent Skill 到 Claude Code(.claude/skills/)/Codex(--target personal-codex)
+python3 install_skill.py              # 安装 Agent Skill(默认 --target project→.claude/skills/;个人级/Codex 须显式 --target personal-cc|personal-codex)
 python3 scripts/monthly_review.py --month 202610 --dry-run   # 月度复盘(手动,历史兼容)
 python3 tests/test_p0_fixes.py        # 运行单个测试套件(离线)
 ```
@@ -147,8 +147,9 @@ python3 tests/test_p0_fixes.py        # 运行单个测试套件(离线)
 
 ## 已验证 / 未验证(诚实边界)
 
-**已离线验证**: 94 个测试套件(门禁逻辑/快照与事实引擎/数值校验/研究问答/
-工作台数据层/配置安全/Skill 格式与安装器/ia_cli 契约与纪律 lint);
+**已离线验证**: 99 个测试套件(门禁逻辑/快照与事实引擎/数值校验/研究问答/
+工作台数据层/配置安全/Skill 格式与安装器/ia_cli 契约与纪律 lint/单位感知
+比较与档案 sidecar);
 真实 GLM 冒烟(显式开启)。
 **未验证/边界**: Windows 实机未测(代码无 OS 专属调用,理论可用);中国节假日
 日历仅 2026 年;免费数据源存在限流与修订(降级机制会如实披露);GLM 解释性内容

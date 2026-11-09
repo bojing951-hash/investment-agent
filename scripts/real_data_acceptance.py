@@ -213,7 +213,15 @@ def sha256_text(t):
 # 运行时已知密钥明文登记处(自动含URL编码形式;正式运行由main()登记FRED key;
 # 测试只用**虚构**密钥验证机制,绝不用真实密钥做测试)
 _KNOWN_SECRETS = []
-_UNREDACTED_KEY_PAT = re.compile(r"(?i)(api_key=)(?!\*\*\*REDACTED\*\*\*)[^&\s'\"]+")
+# P0-4(2026-11-09): 参数族从 api_key= 扩到 api_key/apikey/token/key=。
+# 本层保持**非 [?&] 锚**的基线语义(裸 "api_key=XX" 中缀串也须脱敏,如异常
+# 消息 'weird failure api_key=K tail'——[?&] 锚会让它漏网,回归实证见
+# tests/test_p02_w5_fix1.py a2);mid-word 误伤改由负向后顾 (?<![a-z0-9_])
+# 挡(monkey=/license_key= 不匹配)。redact_secrets.py 的 [?&] 锚是 print/tail
+# 层口径,本层是更深的兜底清扫,两层刻意不同宽。
+_UNREDACTED_KEY_PAT = re.compile(
+    r"(?i)((?<![a-z0-9_])(?:api_key|apikey|token|key)=)"
+    r"(?!\*\*\*REDACTED\*\*\*)[^&\s'\"]+")
 
 
 def _register_secret(s):

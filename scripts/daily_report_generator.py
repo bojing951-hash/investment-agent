@@ -1,11 +1,13 @@
 """
-每日投资简报生成器(遗留入口,IA-P0-1标注)
+每日投资简报生成器(遗留弃用入口,不在流水线;IA-P0-1标注)
 轻量版：市场快照 + 阈值变化 + 新闻要点 + 论点快检
 
-⚠️ 遗留入口声明(2026-10-27): 本脚本不在launchd调度内,直读原始采集JSON+
-DeepSeek,未接入研究快照链(Gate A)与数据校验(Gate B)。其输出**不得作为
-合格正式研究产出**引用;正式路径为 run_weekly.py → report_generator.py。
-保留仅作历史参考,如需正式产出请勿使用本入口。
+⚠️ 遗留弃用(2026-11-09 Model-Agnostic v2 重申): 本脚本不在任何活跃流水线
+(launchd/run_weekly 均不调用),直读原始采集JSON+DeepSeek(通道早已下线),
+未接入研究快照链(Gate A)与数据校验(Gate B)。其输出**不得作为合格正式研究
+产出**引用;正式路径为 run_weekly.py → report_generator.py。
+仅因历史测试(test_e2e_orig14/test_p01_fix2)仍 import 本模块而保留可导入
+(env_config 提供空值 DEEPSEEK_* 常量);如需正式产出请勿使用本入口。
 """
 
 import os

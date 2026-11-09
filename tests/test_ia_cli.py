@@ -16,6 +16,7 @@ CI 安全: 合成快照+真实注册表(已提交),零网络零写入(不触发 
 """
 import json
 import os
+import glob
 import subprocess
 import sys
 import tempfile
@@ -192,8 +193,9 @@ d = json.loads(r.stdout)
 check("doctor: rc=0 离线可跑,信封齐(ok/capability/engine_root)",
       r.returncode == 0 and d['ok'] and d['capability'] == 'doctor'
       and os.path.isabs(d['engine_root']))
-check("doctor: env 只报已配置与否,值不出现",
-      set(d['data']['env']) == {'GLM_API_KEY', 'FRED_API_KEY', 'TUSHARE_TOKEN',
+check("doctor: env 只报已配置与否,值不出现(含 W5 中性 MODEL_* 三参+旧 GLM 行)",
+      set(d['data']['env']) == {'MODEL_API_KEY', 'MODEL_BASE_URL', 'MODEL_NAME',
+                                'GLM_API_KEY', 'FRED_API_KEY', 'TUSHARE_TOKEN',
                                 'FINNHUB_API_KEY', 'YF_PROXY'}
       and all(set(v) == {'configured', 'purpose'} for v in d['data']['env'].values()))
 check("doctor: 无快照时如实 available=false(CI 预期)",
@@ -216,6 +218,53 @@ r = run_cli('history')
 d = json.loads(r.stdout)
 check("history 不带 --metric→列出可查指标(CI 下可为空列表,结构在场)",
       r.returncode == 0 and 'series_capable_metrics' in d['data'])
+
+# 批2 W8(C-1): catalog 全字段——字段齐全性+与注册表实值一致抽验
+# (期望值直读 metric_registry.json/snapshot 原始 JSON,不经被测模块自算)
+FULL_KEYS = {'metric_id', 'label', 'unit', 'unit_family', 'frequency',
+             'first', 'last', 'n', 'calendar', 'release_semantics',
+             'quality_status'}
+caps = d['data']['series_capable_metrics']
+if caps:
+    check("catalog 全字段(11键)且键集一致",
+          all(set(c) == FULL_KEYS for c in caps),
+          str(next((set(c) ^ FULL_KEYS for c in caps if set(c) != FULL_KEYS), '')))
+    reg_doc = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),
+                             encoding='utf-8'))
+    reg_by_id = {m['metric_id']: m for m in reg_doc['metrics']}
+    for c in caps[:5]:                      # 抽验前5项注册表透传一致性
+        m = reg_by_id.get(c['metric_id'])
+        ok = (m is not None
+              and c['label'] == m.get('display_name')
+              and c['unit'] == m.get('unit', '')
+              and c['frequency'] == m.get('frequency')
+              and c['calendar'] == m.get('calendar')
+              and c['release_semantics'] == m.get('release_semantics'))
+        check(f"catalog 抽验 {c['metric_id']} 与注册表实值一致", ok,
+              f"catalog={ {k: c[k] for k in ('label','unit','frequency','calendar')} }")
+    snap_files = sorted(glob.glob(os.path.join(
+        ROOT, 'data', 'daily', 'research_snapshot_*.json')))
+    if snap_files:
+        snap = json.load(open(snap_files[-1], encoding='utf-8'))
+        ss = snap.get('series_store') or {}
+        qmap = {f.get('metric_id'): f.get('quality_status')
+                for f in snap.get('facts', [])}
+        by_id = {c['metric_id']: c for c in caps}
+        ss_in_catalog = [mid for mid in ss if mid in by_id]
+        if ss_in_catalog:
+            mid = ss_in_catalog[0]
+            dates = ss[mid]['dates']
+            c = by_id[mid]
+            check(f"catalog 序列统计 {mid} first/last/n 与 series_store 原值一致",
+                  c['first'] == dates[0] and c['last'] == dates[-1]
+                  and c['n'] == len(dates),
+                  f"catalog=({c['first']},{c['last']},{c['n']}) "
+                  f"raw=({dates[0]},{dates[-1]},{len(dates)})")
+            check(f"catalog {mid} quality_status 与快照事实层一致",
+                  c['quality_status'] == qmap.get(mid),
+                  f"{c['quality_status']} vs {qmap.get(mid)}")
+else:
+    check("catalog 空为合法(CI 无快照)", isinstance(caps, list))
 
 # research 无快照(CI): 结构化 no_snapshot;本地有快照则退化为状态面断言
 r = run_cli('research', '--question', '美国和日本10年期国债收益率差是多少')

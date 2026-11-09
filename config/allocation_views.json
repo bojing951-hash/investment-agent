@@ -1,7 +1,7 @@
 {
   "version": "3.0",
   "last_updated": "2026-10-11",
-  "note": "配置观点库v3(第三轮可靠性): 评级变更须过门禁(引擎同向触发器'已触发'或≥2项程序验证evidence),被拒提案留档于各view.proposals; quant_triggers支持all/any复合与sustain_weeks持续确认(trigger_state持久化连续周数); 证据分级v2程序校验(星级=独立证据数×机制类别×观察期,未解释反证封顶3★,key_metrics缺失封顶2★); 预测全生命周期(premise前提规格→observe_from观察起点→observations持续记录→touch/expiry双模式裁决,禁止窗口外未来数据,截止日不顺延)。评级≠仓位指令,星级不直接推导仓位。",
+  "note": "[冻结档 MW-V1 历史件(2026-11-08 章程校准: 配置观点库越位下线,本文件只读保留作历史登记,不再驱动任何现行流程)] 配置观点库v3(第三轮可靠性): 评级变更须过门禁(引擎同向触发器'已触发'或≥2项程序验证evidence),被拒提案留档于各view.proposals; quant_triggers支持all/any复合与sustain_weeks持续确认(trigger_state持久化连续周数); 证据分级v2程序校验(星级=独立证据数×机制类别×观察期,未解释反证封顶3★,key_metrics缺失封顶2★); 预测全生命周期(premise前提规格→observe_from观察起点→observations持续记录→touch/expiry双模式裁决,禁止窗口外未来数据,截止日不顺延)。评级≠仓位指令,星级不直接推导仓位。",
   "ratings_scale": [
     "超配",
     "标配",

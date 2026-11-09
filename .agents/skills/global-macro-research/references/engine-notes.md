@@ -5,7 +5,8 @@
 | 环境变量 | 用途 | 缺失后果 |
 |---|---|---|
 | FRED_API_KEY | 美联储/FRED 宏观序列(28 个) | 强烈推荐;缺失→这些序列采集失败→Gate A FAIL→research 拒答(属预期,不是故障) |
-| GLM_API_KEY | AI 解释(research --glm)与 AI 周报 | 仅影响 AI 功能;申请 open.bigmodel.cn |
+| MODEL_API_KEY / MODEL_BASE_URL / MODEL_NAME | AI 解释(research --explain,旧名 --glm)与 AI 周报叙事层(可选;任意 OpenAI 兼容端点) | 仅影响 AI 功能;三参未配齐→周报 data-only 确定性观察、AI 解释如实提示未配置(Agent Native 默认) |
+| GLM_API_KEY | 旧变量,仅 MODEL_API_KEY 未设时兼容回退(智谱默认端点/模型随回退套用;第三方端点不跨服务回退) | 建议迁移 MODEL_*;见引擎根 .env.example |
 | TUSHARE_TOKEN / FINNHUB_API_KEY | 中国市场/市场补充 | 可选 |
 | YF_PROXY | yfinance 代理 | 可选 |
 

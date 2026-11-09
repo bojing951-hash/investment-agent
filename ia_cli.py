@@ -13,7 +13,8 @@ correlation_calculator / research_history_query 等既有模块,输出结构化 
   - 每个数值携带 单位/单位族/观测日期/来源/身份(代理口径) 字段;
   - 每个变化量携带 变化单位(pp|bp|pct)/基准日/窗口语义/公式;
   - 错误结构化输出(kind/message/hint),永不输出空串或裸 0 充当错误;
-  - update 仅显式请求时运行;GLM 调用仅 research --glm 显式请求时发生。
+  - update 仅显式请求时运行;模型 API 调用仅 research --explain/--glm
+    显式请求时发生(Model-Agnostic v2: 中性 MODEL_* 三参,旧 --glm 保留兼容)。
 
 用法: python3 ia_cli.py <能力> [参数]   (json 输出到 stdout; 退出码 0/1/2)
 """
@@ -50,13 +51,23 @@ except Exception:  # noqa: BLE001 —— 引擎常量不可用时退化为空集
 FX_ASSET_CLASSES = {'fx_rate', 'fx_index'}
 CHANGE_WINDOWS = ('week', 'mtd', 'ytd')
 ENV_KEYS = (  # doctor 只报"已配置/未配置",永不打印值
-    ('GLM_API_KEY', 'AI 解释/周报生成(可选,不配仅影响 AI 功能)'),
+    # W5(Model-Agnostic v2): 模型面中性三参;GLM_API_KEY 保留为旧变量行
+    ('MODEL_API_KEY', '可选模型 API Key(通用;AI 解释/周报生成共用,'
+     'Agent Native 默认无需,不配仅影响 AI 解释与周报叙事层)'),
+    ('MODEL_BASE_URL', '可选模型端点(任意 OpenAI 兼容服务;沿用智谱填 '
+     'https://open.bigmodel.cn/api/paas/v4)'),
+    ('MODEL_NAME', '可选模型名(如 glm-5.3 / 其他兼容服务模型名)'),
+    ('GLM_API_KEY', '旧变量(仅 MODEL_API_KEY 未设时条件回退,建议迁移,'
+     '见 .env.example)'),
     ('FRED_API_KEY', '美联储/FRED 数据(强烈推荐,缺失则 28 个序列采集失败→Gate A FAIL)'),
     ('TUSHARE_TOKEN', '中国市场数据(可选)'),
     ('FINNHUB_API_KEY', '市场数据补充(可选)'),
     ('YF_PROXY', 'yfinance 代理(可选)'),
 )
 ARCHIVE_DOUBLE_NEST = 'research_archive/query_history'  # research_archive._collection_dir 再拼一层
+# 任务F(批2 W10, C-4): 拒答导流——未支持问题类型转由 Agent 组合能力自由研究
+AGENT_ROUTING_HINT = ('自由研究问题请组合使用 history(列出可用指标)/'
+                      'compare(单位感知对齐)/overview/changes,由你的 Agent 组织研究')
 # P0-1: update 结果信封的关键行筛(⛔/❌/Traceback/ERROR/失败/错误,大小写兼顾)
 _CRITICAL_LINE_RE = re.compile(r'⛔|❌|Traceback|ERROR|失败|错误', re.IGNORECASE)
 
@@ -241,10 +252,12 @@ def lint_grounded_answer(text):
 
 def lint_fact_contract_text(text):
     """带"事实性描述"契约的文本位(如资产表关键信号列)→ violations。
-    因果动词在事实位=违约;同一句出现在【假设】/【推断】标记后=该段本分,允许。"""
+    因果动词在事实位=违约;同一句出现在【假设】/【推断】/【尚未验证】标记后=该段
+    本分,允许(批2 W10 D5: 四分=事实/推断/假设/尚未验证)。"""
     violations = []
     for line in (text or '').splitlines():
-        seg = re.split(r'【(假设|推断)】', line, maxsplit=1)[0]  # 标记前(或整行)为事实位
+        # 标记前(或整行)为事实位;【尚未验证】后文字不计事实位(不确定陈述的本位)
+        seg = re.split(r'【(假设|推断|尚未验证)】', line, maxsplit=1)[0]
         hits = [v for v in CAUSAL_VERBS if v in seg]
         m = COMPOSITION_RE.search(seg)
         if hits:
@@ -265,8 +278,14 @@ def cmd_doctor(args):
     ec.load_env_file()
     data['env'] = {k: {'configured': bool(os.environ.get(k)), 'purpose': purpose}
                    for k, purpose in ENV_KEYS}
-    if not os.environ.get('GLM_API_KEY'):
-        data['glm_key_note'] = ec.GLM_KEY_MISSING_MESSAGE
+    # W5: 改读中性模型配置(键名 glm_key_note 保持输出契约;值语义中性化)
+    _mcfg = ec.model_runtime_config()
+    if not _mcfg['complete']:
+        data['glm_key_note'] = (_mcfg['blocked_reason']
+                                or ec.MODEL_KEY_MISSING_MESSAGE)
+    elif _mcfg['legacy_fallback']:
+        data['glm_key_note'] = ('使用旧变量 GLM_API_KEY 回退,建议迁移到 '
+                                'MODEL_API_KEY(三参模板见 .env.example)')
     snap, note = wd.latest_snapshot(ROOT)
     meta = wd.snapshot_meta(snap)
     data['snapshot'] = {'available': snap is not None,
@@ -456,6 +475,16 @@ def cmd_compare(args):
         emit(envelope('compare', False, {},
                       error=('no_mode', '未指定比较模式',
                              '--metrics A,B | --economies US,JP | --assets 三选一')), exit_code=2)
+    # 批2 W9: --window 仅 metrics 模式且 N≥2(先于快照加载,恒定 rc=2)
+    if args.window is not None:
+        if not args.metrics:
+            emit(envelope('compare', False, {},
+                          error=('bad_window', '--window 仅适用于 --metrics 模式',
+                                 '滚动相关需要双指标序列;先给 --metrics A,B')), exit_code=2)
+        if args.window < 2:
+            emit(envelope('compare', False, {},
+                          error=('bad_window', f'--window 须 ≥2,收到 {args.window}',
+                                 '窗长=参与每个滚动相关值的变化对数')), exit_code=2)
     ecos = []
     if args.economies:
         ecos = [e.strip().upper() for e in re.split(r'[,\s]+', args.economies) if e.strip()]
@@ -512,42 +541,110 @@ def cmd_compare(args):
                                  'other 族不能进单位感知变化相关;换用价格/利率/计数族'
                                  '指标对,或用 history 分别取原序列')),
                  exit_code=1)
+        # ── 批2 W9: 指令窗口过滤(建议2)——对齐前作用于两侧原序列 ──
+        if args.start or args.end:
+            kept = []
+            for s in (sa, sb):
+                lo = args.start or s['dates'][0]
+                hi = args.end or s['dates'][-1]
+                idx = [i for i, d in enumerate(s['dates']) if lo <= d <= hi]
+                s['dates'] = [s['dates'][i] for i in idx]
+                s['values'] = [s['values'][i] for i in idx]
+                kept.append(len(idx))
+            if min(kept) == 0:
+                emit(envelope('compare', False, {},
+                              error=('empty_window',
+                                     f'窗口 {args.start}~{args.end} 内至少一侧无观测'
+                                     f'(各侧保留 {kept[0]}/{kept[1]} 点)',
+                                     '放宽窗口,或先用 history 查看序列覆盖区间')),
+                     exit_code=1)
+
+        freq_a, freq_b = metas[0].get('frequency'), metas[1].get('frequency')
+
+        # ── 批2 W9: 月度聚合对齐(建议6)——mixed_frequency 且低频侧=月频时默认 ──
+        # 高频侧聚合到自然月网格(代表=期内末值,rhq.align_to_month),月键(YYYY-MM)
+        # 内交;两侧同频(含月×月)仍走原精确日内交(alignment.mode=exact_date)。
+        align_mode = 'exact_date'
+        agg_side = None                      # 被聚合侧标记('a'/'b'),sides 披露用
+        pair_a = {'dates': sa['dates'], 'values': sa['values']}
+        pair_b = {'dates': sb['dates'], 'values': sb['values']}
+        if (freq_a and freq_b and freq_a != freq_b
+                and 'monthly' in (freq_a, freq_b)):
+            if freq_a == 'monthly':          # b 侧为高频→聚合 b
+                grid = rhq.align_to_month(pair_b)
+                pair_b = {'dates': grid['grid_keys'], 'values': grid['values']}
+                pair_a = {'dates': [str(d)[:7] for d in pair_a['dates']],
+                          'values': pair_a['values']}
+                agg_side = 'b'
+            else:                            # 聚合 a
+                grid = rhq.align_to_month(pair_a)
+                pair_a = {'dates': grid['grid_keys'], 'values': grid['values']}
+                pair_b = {'dates': [str(d)[:7] for d in pair_b['dates']],
+                          'values': pair_b['values']}
+                agg_side = 'a'
+            align_mode = 'month_grid'
+
         # P0-3 单位感知变化相关: 利率→pp/价格→pct,修复利率×价格混算 pct
-        paired, common = cc.paired_unit_changes(
-            {'dates': sa['dates'], 'values': sa['values']}, fam_a,
-            {'dates': sb['dates'], 'values': sb['values']}, fam_b)
+        paired, common = cc.paired_unit_changes(pair_a, fam_a, pair_b, fam_b)
         corr = (cc.pearson(paired['changes_a'], paired['changes_b'])
                 if paired else None)
+
+        # ── 批2 W9: 跨历掉落披露(建议5)——各自非共同观测计数(月键口径=月数) ──
+        a_dropped = len(set(pair_a['dates'])) - len(common)
+        b_dropped = len(set(pair_b['dates'])) - len(common)
+
+        # ── 批2 W9: 质量披露并入 sides(建议1)——quality_status(快照事实层)
+        # +release_note(注册表 release_semantics 透传;事实层无该字段,口径登记) ──
+        facts_by_id = {f.get('metric_id'): f for f in snap.get('facts', [])}
         sides = []
-        for sid, s in ((ids[0], sa), (ids[1], sb)):
+        for k, (sid, s) in enumerate(((ids[0], sa), (ids[1], sb))):
             m = reg['by_id'].get(sid) or {}
             fam, sub = unit_family(m.get('unit', ''), m.get('asset_class', ''))
             node = {'metric_id': sid, 'label': s['label'], 'unit': s['unit'],
                     'unit_family': fam, 'frequency': m.get('frequency'),
                     'identity': identity_block(m), 'calc': m.get('calc'),
                     'n': len(s['dates']), 'first': s['dates'][0], 'last': s['dates'][-1],
-                    'source': s['source']}
+                    'source': s['source'],
+                    'quality_status': (facts_by_id.get(sid) or {}).get('quality_status'),
+                    'release_note': m.get('release_semantics')}
             if sub:
                 node['unit_subfamily'] = sub
+            if agg_side == ('a' if k == 0 else 'b'):
+                node['aggregation'] = ('month_grid: 自然月网格,代表=期内末值'
+                                       '(rhq.align_to_month,mixed_frequency 对齐)')
+            # 月键窗口界: start=共同首月月初, end=共同末月月末串界('YYYY-MM-31'
+            # 字典序≥该月任意日且<次月),与 interval_change 纯字符串比较兼容
+            if align_mode == 'month_grid' and common:
+                w_start, w_end = common[0] + '-01', common[-1] + '-31'
+            else:
+                w_start = common[0] if common else None
+                w_end = common[-1] if common else None
             try:
                 iv = rhq.interval_change(s['dates'], s['values'], s['unit'],
-                                         start=common[0] if common else None,
-                                         end=common[-1] if common else None)
+                                         start=w_start, end=w_end)
             except Exception:  # noqa: BLE001 —— 区间变动失败不阻断对齐结果
                 iv = {'available': False, 'reason': 'interval_change 计算失败'}
             node['interval_change_common_window'] = iv
             sides.append(node)
         basis_a = 'pp' if fam_a == 'rate' else 'pct'
         basis_b = 'pp' if fam_b == 'rate' else 'pct'
+        align_note = ('水平窗=共同观测日数;变化窗=相邻观测对数'
+                      '(少一个会话,如实并列);data.n_change_pairs='
+                      '剔除 null/零基丢弃后实际参与相关的对数')
+        if align_mode == 'month_grid':
+            align_note += (';本对为 mixed_frequency(低频侧=月频): 高频侧已聚合到'
+                           '自然月网格(代表=期内末值,align_to_month),按月键'
+                           '(YYYY-MM)内交,n_*=共同月份数;a_dropped/b_dropped='
+                           '各自未进入共同窗的观测数(月键口径=月数)')
         data = {'mode': 'metrics', 'sides': sides,
-                'alignment': {'n_common_observations': len(common),
+                'alignment': {'mode': align_mode,
+                              'n_common_observations': len(common),
                               'n_level_observations': len(common),
                               'n_change_pairs': len(common) - 1,
                               'common_first': common[0] if common else None,
                               'common_last': common[-1] if common else None,
-                              'note': '水平窗=共同观测日数;变化窗=相邻观测对数'
-                                      '(少一个会话,如实并列);data.n_change_pairs='
-                                      '剔除 null/零基丢弃后实际参与相关的对数'},
+                              'a_dropped': a_dropped, 'b_dropped': b_dropped,
+                              'note': align_note},
                 'pearson_returns': corr,
                 'change_basis': {'a': basis_a, 'b': basis_b},
                 'n_change_pairs': paired['n_change_pairs'] if paired else 0,
@@ -564,21 +661,75 @@ def cmd_compare(args):
         if paired and paired['n_change_pairs'] < 15:
             warnings.append(f"变化对仅 {paired['n_change_pairs']} 个(<15),"
                             '相关性统计意义不足,引擎口径要求如实警示')
-        freq_a, freq_b = metas[0].get('frequency'), metas[1].get('frequency')
+        if not paired or paired['n_change_pairs'] == 0:
+            # 批2 W9(建议9): n==0 专门文案——区别于样本不足,直说不可计算
+            data['sample_note'] = ('n_change_pairs=0: 无可用变化对,相关性不可计算'
+                                   '(共同观测<3 或 变化对全部因 null/零基被弃)')
+            warnings.append('n_change_pairs=0: 相关性不可计算,勿引用 pearson_returns')
         if freq_a and freq_b and freq_a != freq_b:
-            warnings.append(f'mixed_frequency: 两侧频率不同({freq_a} vs {freq_b}),'
-                            '共同观测日交集由低频侧主导,解读须注意')
-        if len(common) >= 2:
+            if align_mode == 'month_grid':
+                warnings.append(f'mixed_frequency: 两侧频率不同({freq_a} vs {freq_b}),'
+                                '已默认按自然月网格聚合对齐(alignment.mode='
+                                'month_grid,聚合方式见 alignment.note 与该侧 '
+                                'sides[].aggregation)')
+            else:
+                warnings.append(f'mixed_frequency: 两侧频率不同({freq_a} vs {freq_b}),'
+                                '共同观测日交集由低频侧主导,解读须注意')
+        # ── 批2 W9: date_gap 阈值频率归一(建议4)——月频参与时 7→45 天
+        # (月×月相邻观测~28-31 天,旧 7 天阈值对月频恒误报;缺整月=59+ 天仍报) ──
+        gap_threshold = 45 if 'monthly' in (freq_a, freq_b) else 7
+        if align_mode == 'exact_date' and len(common) >= 2:
             gaps = [_date_gap_days(common[i - 1], common[i])
                     for i in range(1, len(common))]
             gaps = [g for g in gaps if g is not None]
-            if gaps and max(gaps) > 7:
+            if gaps and max(gaps) > gap_threshold:
                 warnings.append(f'date_gap: 共同观测窗内相邻观测最大间隔 '
-                                f'{max(gaps)} 天(>7),期间无共同观测,相关序列存在断点')
+                                f'{max(gaps)} 天(>{gap_threshold},月频参与时阈值'
+                                '归一为45天),期间无共同观测,相关序列存在断点')
+        elif align_mode == 'month_grid' and len(common) >= 2:
+            def _midx(k):
+                y, m = k.split('-')
+                return int(y) * 12 + int(m)
+            mgaps = [_midx(common[i]) - _midx(common[i - 1])
+                     for i in range(1, len(common))]
+            if mgaps and max(mgaps) > 1:
+                warnings.append(f'date_gap(月网格): 共同观测窗内最大间隔 '
+                                f'{max(mgaps)} 个月(缺失月份),相关序列存在断点')
         gap = _date_gap_days(sa['dates'][-1], sb['dates'][-1])
         if gap is not None and gap > 3:
             warnings.append(f'两侧最新观测日相差 {gap} 天({sa["dates"][-1]} vs '
                             f'{sb["dates"][-1]})——日频指标错位>3天,末端对比须注明各自观测日')
+        # ── 批2 W9: 滚动相关(建议3,C-3)——单位感知变化对上取滚动窗 pearson ──
+        # rhq.rolling_correlation 为 diff 基(对输入序列差分): 传入变化序列的
+        # 累积和,其相邻差分恰好还原各单位感知变化对,复用零新算式。
+        if args.window is not None:
+            if paired and paired['n_change_pairs'] >= args.window:
+                cum_a = [sum(paired['changes_a'][:i + 1])
+                         for i in range(len(paired['changes_a']))]
+                cum_b = [sum(paired['changes_b'][:i + 1])
+                         for i in range(len(paired['changes_b']))]
+                roll = rhq.rolling_correlation(paired['dates'], cum_a, cum_b,
+                                                args.window)
+                rvals = [r for _, r in roll if r is not None]
+                data['rolling'] = {
+                    'window': args.window,
+                    'n_windows': len(roll),
+                    'first': {'as_of': roll[0][0], 'rho': roll[0][1]} if roll else None,
+                    'last': {'as_of': roll[-1][0], 'rho': roll[-1][1]} if roll else None,
+                    'max': max(rvals) if rvals else None,
+                    'min': min(rvals) if rvals else None,
+                    'basis': ('滚动窗=最近 N 个单位感知变化对(口径见 change_basis),'
+                              'diff 基 pearson(复用 rhq.rolling_correlation);'
+                              '首值自第 N+1 个变化日起(需差分样本满 N)')}
+                if not roll:
+                    warnings.append(f'--window {args.window}: 滚动序列为空'
+                                    '(变化对数不足),rolling.n_windows=0')
+            else:
+                data['rolling'] = {
+                    'window': args.window, 'n_windows': 0,
+                    'note': f'变化对数({paired["n_change_pairs"] if paired else 0})'
+                            f'不足窗长 {args.window},滚动序列为空'}
+                warnings.append(f'--window {args.window}: 变化对数不足,滚动序列为空')
         emit(envelope('compare', True, data, warnings, snapshot=snap))
     emit(envelope('compare', False, {},
                   error=('no_mode', '未指定比较模式',
@@ -603,10 +754,15 @@ def _check_follow_up(query_id):
 def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=None,
                             values=None, unresolved=None, glm=None,
                             warnings_=(), violations=(), user_note=None,
-                            follow_up_of=None):
+                            follow_up_of=None, evidence=None, statistics=None,
+                            hypotheses=None, open_questions=None, as_of=None):
     """research_full_v1 sidecar 旁挂(批2 WI6): 保存**本次用户实际所见**的
-    作答正文/GLM 原文/warnings/violations/备注/前档链接——只搬运本进程已有
-    值,绝不重新生成、绝不补发任何 API 调用。返回 (ok, 详情)。"""
+    作答正文/AI 解释原文(glm 字段名保留)/warnings/violations/备注/前档链接——只搬运本进程已有
+    值,绝不重新生成、绝不补发任何 API 调用。返回 (ok, 详情)。
+
+    任务F(批2 W10): 跨模型完整成果开放输入——archive save 可直传 Agent 产出的
+    answer_text/evidence/statistics/hypotheses/open_questions 与 as_of(研究截止,
+    落 research_as_of 位;不传=快照口径,旧行为不变)。所有文本过 redact()。"""
     from datetime import datetime, timezone
     import research_archive as ra
     import research_provenance as rp
@@ -618,15 +774,35 @@ def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=Non
         created_at = base.get('created_at')
     except (FileNotFoundError, ValueError):
         created_at = saved_at      # 基档不可读时不阻断(sidecar 仍绑定本进程事实)
+    # W4(Model-Agnostic v2): 写入时消毒——question/answer/user_note 为用户与
+    # 引擎自由文本,glm.error 可能回显端点/头;过 redact() 后落盘。只消毒写入,
+    # 读取层(list/detail)不过滤,sidecar 保持"用户实际所见原文"语义(密钥除外);
+    # None 如实保 None(无本次作答不编造成空串)。
+    # 四路终审 D-1(2026-11-09): 登记明文清扫兜底——redact 为模式匹配,URL 编码形
+    # (api_key%3D<KEY> / %61pi_key=<KEY>)可穿透;进程内已配置凭证明文(含
+    # percent/plus 编码形)经 real_data_acceptance 既有登记机制直接替换,覆盖任意
+    # 编码形(值级清扫,不依赖模式)。
+    def _san(v):
+        if not isinstance(v, str):
+            return v
+        import real_data_acceptance as rda
+        rda.register_runtime_env_secrets()      # 幂等: 自动补 %xx/+ 编码形
+        return rda.sanitize_text(redact(v))
+    _glm_sanitized = None
+    if isinstance(glm, dict):
+        _glm_sanitized = {k: _san(v) for k, v in glm.items()}
     payload = {'record_type': ra.FULL_RECORD_TYPE, 'query_id': qid,
-               'question_text': question, 'created_at': created_at,
-               'research_as_of': snap.get('research_as_of'),
+               'question_text': _san(question), 'created_at': created_at,
+               'research_as_of': _san(as_of) if as_of else snap.get('research_as_of'),
                'snapshot_id': snap.get('snapshot_id'),
                'digest_snapshot': rp.digest_snapshot(snap),
-               'status': status, 'answer_text': answer_text,
-               'values': values, 'unresolved': unresolved, 'glm': glm,
+               'status': status, 'answer_text': _san(answer_text),
+               'values': values, 'unresolved': unresolved, 'glm': _glm_sanitized,
                'warnings': list(warnings_), 'violations': list(violations),
-               'user_note': user_note, 'follow_up_of': follow_up_of,
+               'user_note': _san(user_note), 'follow_up_of': follow_up_of,
+               'evidence': _san(evidence), 'statistics': _san(statistics),
+               'hypotheses': _san(hypotheses),
+               'open_questions': _san(open_questions),
                'saved_at': saved_at}
     try:
         st, _path = ra.write_research_full(
@@ -656,6 +832,11 @@ def cmd_research(args):
     data = {'status': res['status'], 'answer_text': res.get('answer_text'),
             'values': res.get('values', {}), 'unresolved': res.get('unresolved', []),
             'supported_hint': wd.SUPPORTED_CONCEPT_HINT}
+    # 任务F(批2 W10, C-4): 拒答导流——未支持类型除概念提示外,指明可由 Agent
+    # 组合其他能力自由组织研究(研究能力不被四类预设问题封死)
+    if res['status'] in ('unmapped', 'no_registry_identity'):
+        data['answer_text'] = ((res.get('answer_text') or '') + '\n'
+                               + AGENT_ROUTING_HINT)
     ok = res['status'] == 'answered'
     # 单经济体概览问题路由(mapper 写 ir.economy 而 executor 无分支的已知缺口,此处补):
     if res['status'] == 'unmapped' and (res.get('ir') or {}).get('economy'):
@@ -669,7 +850,7 @@ def cmd_research(args):
         glm = wd.glm_explain(args.question, res.get('answer_text', ''))
         data['glm'] = glm
         if not glm.get('ok'):
-            warnings.append(f"GLM 解释未生成: {glm.get('error', '')[:120]}")
+            warnings.append(f"AI 解释未生成: {glm.get('error', '')[:120]}")
     if args.archive and ok:
         qid, err = wd.save_to_archive(args.question, snap, ROOT,
                                       archive_dir=_ARCHIVE_DIR)
@@ -710,10 +891,15 @@ def cmd_archive(args):
         if not qid:
             emit(envelope('archive', False, {},
                           error=('save_failed', err or '归档失败', None)), exit_code=1)
-        # 独立保存场景: 无本次作答,answer 相关字段如实 null(备注/前档链接落位)
+        # 独立保存场景: 无本次作答,answer 相关字段如实 null(备注/前档链接落位);
+        # 任务F(W10): --answer-text 等六参开放 Agent 完整成果直存(全过 redact),
+        # 不带=旧行为完全不变(成果键 null)
         full_ok, full_why = _write_research_sidecar(
             qid, snap, args.question, warnings_=[], violations=[],
-            user_note=args.note, follow_up_of=args.follow_up_of)
+            user_note=args.note, follow_up_of=args.follow_up_of,
+            answer_text=args.answer_text, evidence=args.evidence,
+            statistics=args.statistics, hypotheses=args.hypotheses,
+            open_questions=args.open_questions, as_of=args.as_of)
         data = {'saved': True, 'query_id': qid,
                 'note': f'append-only 落档于 <引擎根>/data/research/{ARCHIVE_DOUBLE_NEST}'
                         '/(research_archive 模块双层嵌套,既定行为)'}
@@ -767,6 +953,9 @@ def cmd_archive(args):
         if full is not None:     # 并列合并视图(base 身份为准,record_type 不被覆盖)
             merged = dict(rec)
             merged.update({k: v for k, v in full.items() if k != 'record_type'})
+            # 任务F(W10): 旧 sidecar 缺成果键 → null(读侧归一,输出契约恒齐)
+            for _k in ('evidence', 'statistics', 'hypotheses', 'open_questions'):
+                merged.setdefault(_k, None)
             data['full'] = merged
         emit(envelope('archive', True, data, warns))
 
@@ -807,11 +996,17 @@ def build_parser():
     cp.add_argument('--metrics', help='两个指标 ID 逗号分隔(历史对齐+相关性)')
     cp.add_argument('--economies', help='≥2 经济体代码(概览并排)')
     cp.add_argument('--assets', action='store_true', help='引擎固定 12 对资产相关性')
+    cp.add_argument('--start', help='metrics 模式: 窗口起始日 YYYY-MM-DD(对齐前先过滤)')
+    cp.add_argument('--end', help='metrics 模式: 窗口结束日 YYYY-MM-DD(对齐前先过滤)')
+    cp.add_argument('--window', type=int,
+                    help='metrics 模式: 滚动相关窗长 N≥2(单位感知变化对,diff 基;'
+                    '输出 rolling 摘要,不改全窗 pearson_returns)')
 
     rs = sub.add_parser('research', help='本地接地研究问答(e2eb 栈,零网络)')
     rs.add_argument('--question', required=True, help='研究问题')
-    rs.add_argument('--glm', action='store_true',
-                    help='附加 GLM 解释(产生 API 费用,仅用户明确要求时使用)')
+    rs.add_argument('--explain', '--glm', dest='glm', action='store_true',
+                    help='附加 AI 解释(可选模型 API,产生 API 费用,仅用户明确'
+                    '要求时使用;--glm 为旧别名,保留兼容)')
     rs.add_argument('--archive', action='store_true', help='同时落研究档案')
     rs.add_argument('--note', help='用户备注(随 research-full sidecar 落档)')
     rs.add_argument('--follow-up-of',
@@ -825,6 +1020,13 @@ def build_parser():
     ar.add_argument('--note', help='save: 用户备注(随 sidecar 落档)')
     ar.add_argument('--follow-up-of',
                     help='save: 关联前档 query_id(存在性校验失败 rc=2)')
+    ar.add_argument('--answer-text',
+                    help='save: 完整研究正文(Agent 成果直存;落 sidecar answer_text)')
+    ar.add_argument('--evidence', help='save: 事实证据与来源')
+    ar.add_argument('--statistics', help='save: 统计结果')
+    ar.add_argument('--hypotheses', help='save: 竞争性假设')
+    ar.add_argument('--open-questions', help='save: 未解决问题')
+    ar.add_argument('--as-of', help='save: 研究截止时间(落 sidecar research_as_of 位)')
     return p
 
 

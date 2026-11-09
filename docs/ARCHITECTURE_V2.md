@@ -45,7 +45,9 @@ L4 研究引擎(全部改吃快照,不再自行找文件):
      · correlation_calculator: 注册表身份/ETF≠指数标注/实际交易日对齐/样本数
      · data_assembler: 数据包=快照渲染(统一收益/单位/前值标注/口径标签)
      · rate_expectations: 期货隐含=月均口径,禁换算降息次数
-L5 GLM(只做解释): 输入=当日数据包(当日纪律: 无当日包拒绝生成,不回退旧包)
+L5 可选模型解释层(只做解释;原 GLM,Model-Agnostic v2 后任意 OpenAI 兼容端点,
+   未配齐三参→data-only 确定性观察,不再硬失败): 输入=当日数据包
+   (当日纪律: 无当日包拒绝生成,不回退旧包)
 L6 Gate B scripts/data_validator.py:
      · 全量覆盖(re.finditer逐处核验,非首处即止)
      · 身份解析: canonical锚点比对;贴近同族非canonical→🚨疑似指标混淆(不放行)

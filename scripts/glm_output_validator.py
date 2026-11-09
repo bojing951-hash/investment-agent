@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """IA-P03-W2-GLM-WP-G2: GLM 研究结论层结构化输出契约与校验器(输出侧确定性结构)
 
+命名沿历史(模块名 glm_* 与运行层已中性化 MODEL_* 无关,此处指 GLM 结论层
+合同冻结登记件;Model-Agnostic v2 不改冻结命名)。
 合同 IA-P03-W2-GLM-WP-G2-AC-v1.0 / DESIGN §三(b)(c)+§四+§五(1)+§六
 (docs/P03_W2_GLM_DESIGN.md:78-116/120-161/193-208):
 - 输出 schema: HypothesisSet(模式 A 七字段全量)/模式 B 裁剪三字段;

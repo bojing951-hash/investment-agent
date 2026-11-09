@@ -213,14 +213,16 @@ def sha256_text(t):
 # 运行时已知密钥明文登记处(自动含URL编码形式;正式运行由main()登记FRED key;
 # 测试只用**虚构**密钥验证机制,绝不用真实密钥做测试)
 _KNOWN_SECRETS = []
-# P0-4(2026-11-09): 参数族从 api_key= 扩到 api_key/apikey/token/key=。
+# P0-4(2026-11-09): 参数族从 api_key= 扩到 api_key/apikey/token/key=;
+# W4(Model-Agnostic v2,同日)再同步 redact_secrets 复合名扩展:
+# model_api_key/glm_api_key(MODEL_*/GLM_* 中性化后新泄漏面)。
 # 本层保持**非 [?&] 锚**的基线语义(裸 "api_key=XX" 中缀串也须脱敏,如异常
 # 消息 'weird failure api_key=K tail'——[?&] 锚会让它漏网,回归实证见
 # tests/test_p02_w5_fix1.py a2);mid-word 误伤改由负向后顾 (?<![a-z0-9_])
 # 挡(monkey=/license_key= 不匹配)。redact_secrets.py 的 [?&] 锚是 print/tail
 # 层口径,本层是更深的兜底清扫,两层刻意不同宽。
 _UNREDACTED_KEY_PAT = re.compile(
-    r"(?i)((?<![a-z0-9_])(?:api_key|apikey|token|key)=)"
+    r"(?i)((?<![a-z0-9_])(?:model_api_key|glm_api_key|api_key|apikey|token|key)=)"
     r"(?!\*\*\*REDACTED\*\*\*)[^&\s'\"]+")
 
 
@@ -232,6 +234,21 @@ def _register_secret(s):
     for cand in {s, _up.quote(s, safe=''), _up.quote_plus(s)}:
         if cand and cand not in _KNOWN_SECRETS:
             _KNOWN_SECRETS.append(cand)
+
+
+# 四路终审 D-1(2026-11-09): 进程环境凭证明文登记(幂等)——供持久化层
+# (ia_cli sidecar / research_archive 基档)在 redact() 模式匹配之外做值级
+# 清扫,兜底覆盖 URL 编码形(api_key%3D<KEY> / %61pi_key=<KEY>)等任意变体。
+RUNTIME_SECRET_ENV_KEYS = ('MODEL_API_KEY', 'GLM_API_KEY', 'FRED_API_KEY',
+                           'TUSHARE_TOKEN', 'FINNHUB_API_KEY')
+
+
+def register_runtime_env_secrets():
+    """登记进程环境已配置的全部凭证明文(len>4 才登记,防误吞短值;幂等)。"""
+    for k in RUNTIME_SECRET_ENV_KEYS:
+        v = os.environ.get(k)
+        if v and len(v) > 4:
+            _register_secret(v)
 
 
 def sanitize_text(s):

@@ -259,6 +259,28 @@ check("独立保存 sidecar: answer 相关字段=null(无本次作答,不编造)
       and full_d.get('values') is None and full_d.get('glm') is None)
 
 print("═" * 60)
+print("⑥b W4 写入消毒: 含密钥文本过 redact() 落盘,读取层不过滤")
+print("═" * 60)
+LEAK_Q = '问一下 ?api_key=FAKESIDEKEY123&x=1 这个端点'
+LEAK_NOTE = '备注 token=FAKESIDEKEY456 散文回显,另见 Bearer sk-SIDEKEY' + 'X' * 20
+code, out, _ = run_inproc('archive', 'save', '--question', LEAK_Q,
+                          '--note', LEAK_NOTE)
+d6b = json.loads(out)
+qid_6b = d6b['data']['query_id']
+full_6b = ra.load_research_full(qid_6b, archive_dir=SBX)
+check("消毒落盘: question_text 密钥值消失+REDACTED标记",
+      full_6b is not None and 'FAKESIDEKEY123' not in full_6b.get('question_text', '')
+      and 'api_key=***REDACTED***' in full_6b.get('question_text', ''))
+check("消毒落盘: user_note 密钥值消失+REDACTED标记",
+      'FAKESIDEKEY456' not in full_6b.get('user_note', '')
+      and 'token=***REDACTED***' in full_6b.get('user_note', ''))
+check("消毒落盘: 裸 Bearer 长值(批2W7)脱敏",
+      'sk-SIDEKEY' + 'X' * 20 not in full_6b.get('user_note', '')
+      and 'Bearer ***REDACTED***' in full_6b.get('user_note', ''))
+check("消毒不改结构: 其余字段仍在(question_text 非空)",
+      bool(full_6b.get('question_text')))
+
+print("═" * 60)
 print("⑦ GLM mock(虚构响应文本,零真实调用)")
 print("═" * 60)
 glm_calls = []

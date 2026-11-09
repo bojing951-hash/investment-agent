@@ -42,7 +42,8 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.dirname(__file__))
-from env_config import FINNHUB_API_KEY, GLM_API_KEY, GLM_BASE_URL, GLM_MODEL
+from env_config import (FINNHUB_API_KEY, MODEL_API_KEY, MODEL_BASE_URL,
+                        MODEL_NAME, model_runtime_config)
 from redact_secrets import redact
 import news_provenance as nprov
 
@@ -570,7 +571,9 @@ def generate_news_summary(classified):
     # 2026-10-11 P0修复(缺陷六.1/六.10): 此处原调用火山引擎DeepSeek(responses.create),
     # 模型已下线(ModelNotOpen)导致每日"AI摘要失败"降级为原始标题噪音。
     # 迁移到智谱GLM(与周报同通道,流式防断连,见 glm-api-pitfalls)。
-    client = OpenAI(api_key=GLM_API_KEY, base_url=GLM_BASE_URL)
+    # Model-Agnostic v2(2026-11-09): 改读中性配置 MODEL_* 三参(env_config 内含
+    # 旧 GLM_* 条件回退);主流程在调用前已检查三参齐备,此处理论不达缺参路径。
+    client = OpenAI(api_key=MODEL_API_KEY, base_url=MODEL_BASE_URL)
 
     # FIX1-06: system角色内容固定,不因新闻内容改变;新闻文本一律作为
     # user消息中的数据出现(已脱敏+数据化),不存在指令提升通道。
@@ -580,7 +583,7 @@ def generate_news_summary(classified):
 
     def _glm_call(user_content):
         stream = client.chat.completions.create(
-            model=GLM_MODEL,
+            model=MODEL_NAME,
             messages=[system_msg, {"role": "user", "content": user_content}],
             max_tokens=4000,
             temperature=0.3,
@@ -614,7 +617,7 @@ def generate_news_summary(classified):
             ok, problems = validate_summary_citations(summary, allowed)
         if ok:
             n_cited = len(nprov.extract_citations(summary))
-            print(f"  ✅ 摘要生成完成(GLM,来源引用校验通过: "
+            print(f"  ✅ 摘要生成完成(模型API,来源引用校验通过: "
                   f"{n_cited}个有效ID)")
             return summary
         # FIX1-03: 二次未过→弃用模型摘要,确定性标题回退(真实ID)
@@ -625,7 +628,8 @@ def generate_news_summary(classified):
             "## 本周新闻摘要（模型输出未通过来源引用校验，以下为确定性"
             "原始标题回退，[art_xxx]为代码核发来源引用编号）\n\n")
     except Exception as e:
-        print(f"  ❌ GLM摘要失败: {e}")
+        # W2(2026-11-09): 异常文本过 redact()——错误体可能回显凭证形态
+        print(f"  ❌ 模型摘要失败: {redact(str(e))}")
         # 最后手段：直接输出分类标题
         # W3-06: GLM失败时原始来源档案已归档(归档先于GLM);回退输出携带
         # [art_xxx]引用ID保持可追溯,不得用编造链接填充来源缺口。
@@ -727,9 +731,20 @@ def run(now_utc=None):
     # 3. 分类(沿用关键词体系;条目保留article_id)
     classified = classify_news(display)
 
-    # 4. AI摘要(GLM;成功输出须过引用校验,失败/未过→确定性回退)
+    # 4. AI摘要(可选模型API;成功输出须过引用校验,失败/未过→确定性回退)
+    # Model-Agnostic v2(W2, 2026-11-09): 模型三参不齐时**不进入**模型调用
+    # (消除缺Key异常堆栈,USER_GUIDE:181 自认问题),直取确定性标题回退。
     if raw_records:
-        summary = generate_news_summary(classified)
+        _mcfg = model_runtime_config()
+        if not _mcfg['complete']:
+            print("  ⏭️ 未配置模型 API(MODEL_* 三参不齐)——跳过模型摘要,"
+                  "直取确定性标题回退(Agent Native 模式预期行为)")
+            summary = _fallback_headlines(
+                classified,
+                "## 本周新闻摘要（未配置模型 API，以下为确定性原始标题，"
+                "[art_xxx]为代码核发来源引用编号）\n\n")
+        else:
+            summary = generate_news_summary(classified)
     elif any(v in (ST_ERROR, ST_PARTIAL, 'fail')
              for v in source_status.values()):
         failed_txt = ','.join(

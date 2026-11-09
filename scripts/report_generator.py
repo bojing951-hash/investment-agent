@@ -1,6 +1,6 @@
 """
 投资周报生成器
-调用智谱 GLM API，基于数据包 + 分析框架生成周报初稿
+调用可选模型 API（OpenAI 兼容端点，env_config MODEL_* 三参），基于数据包 + 分析框架生成周报初稿；未配置时走 data-only 确定性数据观察分支
 生成后: ①解析论点状态块回写 thesis.json ②用同日锚点校验报告数值
 """
 
@@ -18,10 +18,11 @@ from datetime import datetime, timedelta
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from env_config import GLM_API_KEY, GLM_BASE_URL, GLM_MODEL, GLM_KEY_MISSING_MESSAGE
+from env_config import MODEL_API_KEY, MODEL_BASE_URL, MODEL_NAME, MODEL_KEY_MISSING_MESSAGE, model_runtime_config
 import allocation_engine  # P2/P3 配置研究引擎(同目录)
 import research_provenance as rp  # IA-P0-1: 来源链核验/门禁合成
 import news_provenance  # IA-P0-2-W3: 新闻来源档案/确定性引用索引
+from redact_secrets import redact  # W4: 模型调用异常文本过脱敏再print
 
 # ============ 路径配置 ============
 # FIX11-01(IA-F10-DEF-001): 原join(dirname(__file__),'..')推导的DATA_DIR词法
@@ -351,6 +352,7 @@ def load_news_summary():
 def sanitize_news(text):
     """新闻脱敏: 板块白名单 + 敏感词黑名单(2026-09-30)
     智谱GLM内容风控(1301)会拦截战争/军事/敏感组织类内容,原Reuters新闻标题常触发。
+    (历史=智谱风控运维经验,通用无害: 输入脱敏/控长对任意模型端点都是好实践。)
     只保留财经板块,并过滤军事冲突相关条目。地缘因素对市场的影响仍可从油价等数据侧体现。
     """
     import re
@@ -375,7 +377,7 @@ def sanitize_news(text):
     return '\n'.join(out)
 
 def generate_report(data_pack, framework=None, prev_report=None, tech_notes=None, news_summary=None):
-    """调用智谱 GLM 生成宏观研究周报。
+    """调用可选模型 API(OpenAI 兼容端点)生成宏观研究周报。
     MW-V1(2026-11-08 章程勘误): 移除 theses/views_block 输入——论点状态/配置观点/
     预测裁决块属越位零件(PRODUCT-GOAL.md: 观点由用户形成,系统供证据),不再进
     prompt也不再回写;load_theses/apply_status_updates 等机器保留为休眠历史档。"""
@@ -456,8 +458,8 @@ def generate_report(data_pack, framework=None, prev_report=None, tech_notes=None
 - 技术分析部分如无用户笔记则标注"[待用户补充]"
 """
 
-    print("\n🤖 正在调用智谱 GLM 生成周报...")
-    print(f"   模型: {GLM_MODEL} (智谱v4通道·流式)")
+    print("\n🤖 正在调用模型 API 生成周报...")
+    print(f"   模型: {MODEL_NAME} (OpenAI兼容通道·流式)")
     print(f"   输入长度: 约 {len(system_prompt) + len(user_prompt)} 字符")
 
     max_attempts = 3
@@ -470,37 +472,44 @@ def generate_report(data_pack, framework=None, prev_report=None, tech_notes=None
             return report_text
 
         except Exception as e:
-            print(f"❌ 第{attempt}次调用失败: {str(e)[:200]}")
+            # W4: 异常文本常回显完整请求URL/头(含Key)——过脱敏再print
+            print(f"❌ 第{attempt}次调用失败: {redact(str(e))[:200]}")
             if attempt < max_attempts:
                 import time
                 wait = attempt * 15
                 print(f"   {wait}秒后重试...")
                 time.sleep(wait)
 
-    print("❌ GLM API 连续3次调用失败,放弃")
+    print("❌ 模型 API 连续3次调用失败,放弃")
     return None
 
 
 def _call_glm(system_prompt, user_prompt, max_tokens=32000, timeout=900):
-    """调用智谱GLM(paas/v4 OpenAI兼容通道, 流式)
+    """调用通用模型 API(OpenAI 兼容通道, 流式;配置=env_config MODEL_* 三参,
+    含旧 GLM_* 条件回退,见 env_config.model_runtime_config)
 
-    实测踩坑记录(2026-09-30, glm-5.3):
+    实测踩坑记录(2026-09-30, 智谱 glm-5.3;历史=智谱风控运维经验,通用无害):
     1. 非流式长时间生成会被网关断连(RemoteDisconnected) → 必须流式
     2. glm-5.3思考不可关闭,会吃光max_tokens导致正文为空 → reasoning_effort=low控制思考档位
     3. 过长的旧报告/笔记输入会触发1301内容风控 → load_previous_report/load_technical_notes已做截断,
        新闻已做sanitize_news脱敏
+    (流式/控长/脱敏对任意端点通用;reasoning_effort 为智谱参数,其他端点
+    不识别时由该端点自行忽略或报错——沿用历史行为,不做端点探测。)
     """
     from openai import OpenAI
 
-    # W8(2026-11-08 产品化): GLM凭证缺失时明确提示并快速失败——不创建客户端、
-    # 不发起任何网络请求(数据采集等功能不受影响,它们不走本函数)。
-    if not GLM_API_KEY:
-        print(GLM_KEY_MISSING_MESSAGE, file=sys.stderr)
-        raise RuntimeError("GLM_API_KEY 未配置(周报生成需智谱GLM;数据采集不需要)")
+    # W8(2026-11-08 产品化)+Model-Agnostic v2(2026-11-09): 模型三参不齐时明确
+    # 提示并快速失败——不创建客户端、不发起任何网络请求(数据采集等功能不走本函数)。
+    _cfg = model_runtime_config()
+    if not _cfg['complete']:
+        print(MODEL_KEY_MISSING_MESSAGE, file=sys.stderr)
+        raise RuntimeError("模型 API 未配置(MODEL_API_KEY/MODEL_BASE_URL/MODEL_NAME "
+                           "三参不齐;周报解释层需可选模型 API,Agent Native 模式"
+                           "由上层走 data-only 确定性分支)")
 
-    client = OpenAI(api_key=GLM_API_KEY, base_url=GLM_BASE_URL, timeout=timeout)
+    client = OpenAI(api_key=_cfg['api_key'], base_url=_cfg['base_url'], timeout=timeout)
     stream = client.chat.completions.create(
-        model=GLM_MODEL,
+        model=_cfg['model'],
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -822,6 +831,116 @@ def reconcile_publication(ymd):
     return actions
 
 
+def _model_stamp():
+    """报告头戳: 已配置模型名(Model-Agnostic v2);未配置/三参不齐→data-only 标识。"""
+    _cfg = model_runtime_config()
+    return _cfg['model'] if _cfg['complete'] \
+        else 'data-only(无模型调用,确定性数据观察)'
+
+
+# ============ W3(Model-Agnostic v2, 2026-11-09): data-only 确定性周观察 ======
+# 模型三参不齐(Agent Native 默认)时,周报不再 RuntimeError 硬失败,改走确定性
+# 数据观察: 只汇编引擎已有确定性产物,零模型调用;Gate B 锚点/事实位校验照跑,
+# 人设/解释类检查跳过(报告里本就没有)。
+
+DATA_ONLY_DISCLOSURE = (
+    "\n---\n\n## 数据与来源说明(data-only)\n\n"
+    "本报告为确定性数据观察,不含模型解释;如需解释层请经你的 AI Agent 处理"
+    "数据包或配置可选模型 API(MODEL_API_KEY/MODEL_BASE_URL/MODEL_NAME,"
+    "任意 OpenAI 兼容端点,模板见 .env.example)。\n"
+    "以上各节均为引擎确定性产物原样汇编(数据包/评分卡/相关性/新闻标题),"
+    "数值、观测日与来源以各节原文为准,未做任何加工或解释。"
+)
+
+
+def _latest_daily_md(prefix, date_str):
+    """取 data/daily 下指定前缀的最新 ≤当日 .md 确定性产物;缺失返回 None。"""
+    d = os.path.join(DATA_DIR, 'daily')
+    if not os.path.isdir(d):
+        return None
+    cands = sorted(f for f in os.listdir(d)
+                   if f.startswith(prefix + '_') and f.endswith('.md')
+                   and f[len(prefix) + 1:len(prefix) + 9] <= date_str)
+    if not cands:
+        return None
+    try:
+        with open(os.path.join(d, cands[-1]), encoding='utf-8') as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def _data_only_news_section():
+    """确定性新闻段: 从 news_raw_*.json(原始分类数据,代码核发[art_]ID)重建
+    标题清单——不引用任何模型生成摘要(W3: data-only 不得混入解释层文本)。"""
+    news_dir = os.path.join(DATA_DIR, 'news')
+    if not os.path.isdir(news_dir):
+        return "## 本周新闻\n\n(无新闻数据档案)\n"
+    cutoff = (datetime.now() - timedelta(days=7)).strftime('%Y%m%d')
+    files = sorted(f for f in os.listdir(news_dir)
+                   if f.startswith('news_raw_') and f.endswith('.json')
+                   and f[len('news_raw_'):len('news_raw_') + 8] >= cutoff)
+    if not files:
+        return "## 本周新闻\n\n(近7天无新闻数据档案)\n"
+    merged = {}
+    for fn in files:                       # 旧→新;同 article_id 去重(保留首见)
+        try:
+            with open(os.path.join(news_dir, fn), encoding='utf-8') as f:
+                day = json.load(f)
+        except (OSError, ValueError):
+            continue
+        if not isinstance(day, dict):
+            continue
+        for cat, articles in day.items():
+            if not isinstance(articles, list):
+                continue
+            seen = merged.setdefault(cat, [])
+            have = {a.get('article_id') for a in seen}
+            for a in articles:
+                if isinstance(a, dict) and a.get('article_id') not in have:
+                    seen.append(a)
+                    have.add(a.get('article_id'))
+    try:
+        import news_collector as nc        # 复用确定性回退(含标题单行化消毒)
+        return nc._fallback_headlines(
+            merged, "## 本周新闻(确定性标题,[art_xxx]为代码核发来源引用编号)\n\n")
+    except ImportError:
+        lines = ["## 本周新闻(确定性标题)\n"]
+        for cat, articles in merged.items():
+            if articles:
+                lines.append(f"### {cat}\n")
+                for a in articles[:5]:
+                    ref = f"[{a.get('article_id', '')}] " if a.get('article_id') else ""
+                    lines.append(f"- {ref}{a.get('headline', '')}")
+                lines.append("")
+        return "\n".join(lines)
+
+
+def generate_data_only_report(data_pack):
+    """W3(Model-Agnostic v2): 确定性周观察报告(模型三参不齐时的周报产物)。
+
+    组装既有确定性产物: 数据包(快照关键数据的确定性渲染)+评分卡+相关性摘要
+    +确定性新闻标题段。零模型调用;这是数据观察不是叙事周报——无解释层、
+    无人设,末尾固定披露。锚点/事实位校验由候选→Gate B 流程照跑。"""
+    today = datetime.now()
+    monday = today - timedelta(days=today.weekday())
+    sunday = monday + timedelta(days=6)
+    week_range = f"{monday.strftime('%Y%m%d')}-{sunday.strftime('%Y%m%d')}"
+    ymd = today.strftime('%Y%m%d')
+    parts = [f"# 全球宏观与金融市场数据观察({week_range})", "",
+             "> 生成模式: data-only(无模型调用,确定性数据观察)", "",
+             "## 一、本周数据包(引擎确定性渲染;数值/观测日/来源以原文为准)", "",
+             data_pack or '(数据包缺失)']
+    sc = _latest_daily_md('scorecard', ymd)
+    if sc:
+        parts += ["", "## 二、宏观评分卡(确定性)", "", sc]
+    co = _latest_daily_md('correlation', ymd)
+    if co:
+        parts += ["", "## 三、跨资产相关性摘要(确定性)", "", co]
+    parts += ["", _data_only_news_section(), DATA_ONLY_DISCLOSURE]
+    return "\n".join(parts)
+
+
 def save_candidate_report(report_text, date_str=None):
     """FIX-02(IA-DEF-002): 报告一律先落**候选文件**(weekly_report_{ymd}_CANDIDATE.md),
     Gate B校验通过且状态记录成功后才发布(原子替换)为正式文件——生成/校验/发布
@@ -831,7 +950,7 @@ def save_candidate_report(report_text, date_str=None):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     cand_path = os.path.join(OUTPUT_DIR, f'weekly_report_{date_str}_CANDIDATE.md')
     with open(cand_path, 'w', encoding='utf-8') as f:
-        f.write(f"<!-- 生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {GLM_MODEL} | investment-agent -->\n\n")
+        f.write(f"<!-- 生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {_model_stamp()} | investment-agent -->\n\n")
         f.write(report_text)
     print(f"\n📄 候选报告: {cand_path} ({os.path.getsize(cand_path)} 字节,验证通过后发布)")
     return cand_path
@@ -848,7 +967,7 @@ def save_report(report_text, date_str=None):
     # 保存 Markdown(GLM输出自带标题,这里只写一行元信息避免双标题)
     md_path = os.path.join(OUTPUT_DIR, f'weekly_report_{date_str}.md')
     with open(md_path, 'w', encoding='utf-8') as f:
-        f.write(f"<!-- 生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {GLM_MODEL} | investment-agent -->\n\n")
+        f.write(f"<!-- 生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {_model_stamp()} | investment-agent -->\n\n")
         f.write(report_text)
 
     print(f"\n📄 报告已保存:")
@@ -1156,13 +1275,16 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
         print(f"   {u}")
     return updates
 
-def validate_generated_report(md_path, anchors=None, anchors_file=None):
+def validate_generated_report(md_path, anchors=None, anchors_file=None,
+                              data_only=False):
     """用与报告**同日**的锚点校验刚生成的报告,结果落 logs/validation_*.log 并附注到报告尾部。
 
     第二轮审查#4: 返回 (classification, warnings),classification ∈ PASS/DEGRADED/FAIL。
     FAIL = 无锚点/锚点非同日/数值类错误 → 调用方禁止一切长期状态回写。
     IA-P0-1: main传入预检核验过的当日锚点(anchors/anchors_file);
-    未传时回退glob当日→最新(排除*.meta.json来源侧挂),保持独立可用。"""
+    未传时回退glob当日→最新(排除*.meta.json来源侧挂),保持独立可用。
+    W3(Model-Agnostic v2): data_only=True 时锚点/事实位校验照跑,人设/解释类
+    检查(禁止用语等叙事语言扫描)跳过——data-only 报告本就没有解释层。"""
     ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     date_str = datetime.now().strftime('%Y%m%d')
 
@@ -1190,7 +1312,8 @@ def validate_generated_report(md_path, anchors=None, anchors_file=None):
 
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        warnings = data_validator.validate_report(md_path, anchors)
+        warnings = data_validator.validate_report(md_path, anchors,
+                                                  skip_forbidden=data_only)
 
     classification, reason = data_validator.classify_result(
         has_anchors=True, anchors_same_day=anchors_same_day,
@@ -1307,7 +1430,19 @@ def generate_weekly_report():
         print(f"✅ 数据锚点已加载 ({len(anchor_block)} 字符, 当日{today_ymd})")
 
     # 第2步：生成报告(MW-V1: 不再注入论点/观点库,签名收窄)
-    report = generate_report(data_pack, framework, prev_report, tech_notes, news_summary)
+    # W3(Model-Agnostic v2, 2026-11-09): 模型三参不齐→不再 RuntimeError 硬失败,
+    # 走确定性 data-only 周观察(数据包+评分卡+相关性+确定性新闻段);Gate B
+    # 锚点/事实位校验照跑,人设/解释类检查跳过(data_only=True)。
+    _mcfg = model_runtime_config()
+    data_only = not _mcfg['complete']
+    if data_only:
+        print("⏭️ 未配置模型 API(三参不齐)——走 data-only 确定性数据观察分支"
+              "(Agent Native 模式预期行为,不发起任何模型调用)")
+        if _mcfg['blocked_reason']:
+            print(f"   ⚠️ {_mcfg['blocked_reason']}")
+        report = generate_data_only_report(data_pack)
+    else:
+        report = generate_report(data_pack, framework, prev_report, tech_notes, news_summary)
     if not report:
         print("\n❌ 报告生成失败")
         sys.exit(1)
@@ -1336,7 +1471,8 @@ def generate_weekly_report():
     # FIX-02: 校验器异常 → 候选按未验证隔离,不得遗留伪装为合格的正式文件
     try:
         classification, warnings = validate_generated_report(
-            cand_path, anchors=latest_anchors, anchors_file=pfx['anchors_path'])
+            cand_path, anchors=latest_anchors, anchors_file=pfx['anchors_path'],
+            data_only=data_only)
     except Exception as e:
         classification, warnings = 'FAIL', []
         print(f"⛔ Gate B校验器异常({type(e).__name__}: {e}) — 候选报告按未验证处置,不发布")

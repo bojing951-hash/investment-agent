@@ -156,8 +156,24 @@ def market_rows(snapshot, registry):
 
 # ══ 历史研究 ══════════════════════════════════════════════════════════
 def series_capable_metrics(snapshot, registry):
-    """历史研究页可选项: 快照 series_store ∪ 采集档含 series 的指标。"""
-    ids = set((snapshot or {}).get('series_store', {}).keys())
+    """历史研究页可选项+发现所需全字段(C-1, 批2 W8): 快照 series_store ∪
+    采集档含 series 的指标。
+
+    字段三层纯透传/纯统计,不推算:
+    - 注册表透传: label/unit/frequency/calendar/release_semantics;
+    - 序列统计(first/last/n): series_store 优先,仅存采集档的取最新档
+      series 原值(同旧版来源优先级,统计口径=该来源序列本身);
+    - 口径族(unit_family, 单位感知比较预判用)与事实层 quality_status
+      (快照 facts,无事实→null,如实标注不猜测)。
+    """
+    import fact_engine as fe        # 惰性: 单位族常量(重模块函数内导入纪律)
+    facts_q = {f.get('metric_id'): f.get('quality_status')
+               for f in (snapshot or {}).get('facts', [])}
+    stats = {}
+    for mid, s in ((snapshot or {}).get('series_store') or {}).items():
+        dates = (s or {}).get('dates') or []
+        if dates:
+            stats[mid] = (dates[0], dates[-1], len(dates))
     daily = os.path.join(ROOT, 'data', 'daily')
     for prefix in ('macro_', 'global_', 'rate_economy_'):
         files = sorted(glob.glob(os.path.join(daily, f'{prefix}*.json')))
@@ -171,15 +187,27 @@ def series_capable_metrics(snapshot, registry):
                 for k, v in data.items():
                     if isinstance(v, dict) and isinstance(v.get('series'), dict) \
                             and v['series'].get('dates'):
-                        ids.add(k)
+                        if k not in stats:      # series_store 优先(快照口径)
+                            dates = v['series']['dates']
+                            stats[k] = (dates[0], dates[-1], len(dates))
         except (OSError, ValueError):
             continue
     out = []
-    for mid in sorted(ids):
-        m = registry['by_id'].get(mid)
+    for mid in sorted(stats):
+        m = registry['by_id'].get(mid) or {}
+        unit = m.get('unit', '')
+        fam = ('rate' if unit in fe.RATE_UNITS else
+               'price' if unit in fe.PRICE_LIKE_UNITS else
+               'count' if unit in fe.COUNT_UNITS else 'other')
+        first, last, n = stats[mid]
         out.append({'metric_id': mid,
-                    'label': (m or {}).get('display_name', mid),
-                    'unit': (m or {}).get('unit', '')})
+                    'label': m.get('display_name', mid),
+                    'unit': unit, 'unit_family': fam,
+                    'frequency': m.get('frequency'),
+                    'first': first, 'last': last, 'n': n,
+                    'calendar': m.get('calendar'),
+                    'release_semantics': m.get('release_semantics'),
+                    'quality_status': facts_q.get(mid)})
     return out
 
 
@@ -282,27 +310,36 @@ GLM_EXPLAIN_SYSTEM = (
 )
 
 
-def glm_explain(question, grounded_text):
-    """页面四可选: GLM 研究解释(复用 glm_conclusion_client.call_glm_once,
-    环境变量 GLM_API_KEY 唯一凭证,零本机回退)。返回 {'ok', 'text'|'error'}。"""
+def ai_explain(question, grounded_text):
+    """页面四可选: AI 研究解释(Model-Agnostic v2, 2026-11-09;复用
+    glm_conclusion_client.call_glm_once,模型三参经 env_config.model_runtime_config
+    解析——MODEL_* 优先,旧 GLM_* 条件回退,零本机文件回退)。
+    返回 {'ok', 'text'|'error'}。"""
     # 先确保项目根 .env 已载入(进程环境变量优先;幂等补载,覆盖会话中途新增的.env),
     # 否则 Key 只写在 .env 时首调会误报缺失
     import env_config as ec
     ec.load_env_file()
-    key = os.environ.get('GLM_API_KEY', '')
-    if not key:
-        return {'ok': False, 'error': ec.GLM_KEY_MISSING_MESSAGE}
+    cfg = ec.model_runtime_config()
+    if not cfg['complete']:
+        return {'ok': False,
+                'error': (cfg['blocked_reason'] or ec.MODEL_KEY_MISSING_MESSAGE)}
     import glm_conclusion_client as gcc
     user = (f'研究问题: {question}\n\n【已核实事实】(本地快照接地结果,作答唯一数值来源):\n'
             f'{grounded_text}\n\n请基于以上事实给出解释性分析(传导机制/历史比较视角),'
             '并明确区分事实与推断。')
-    res = gcc.call_glm_once(GLM_EXPLAIN_SYSTEM, user)
+    res = gcc.call_glm_once(GLM_EXPLAIN_SYSTEM, user, model=cfg['model'])
     if not res.get('ok'):
-        return {'ok': False, 'error': f"GLM调用失败({res.get('kind')}): {res.get('error')}"}
+        return {'ok': False,
+                'error': f"模型调用失败({res.get('kind')}): {res.get('error')}"}
     raw = res.get('raw')
     text = raw if isinstance(raw, str) else (
         raw.get('content') if isinstance(raw, dict) else str(raw))
-    return {'ok': True, 'text': text or '(GLM返回空正文)'}
+    return {'ok': True, 'text': text or '(模型返回空正文)'}
+
+
+def glm_explain(question, grounded_text):
+    """旧名兼容别名(历史调用方 app.py/测试仍用;Model-Agnostic v2 更名 ai_explain)。"""
+    return ai_explain(question, grounded_text)
 
 
 def save_to_archive(question, snapshot, root=None, archive_dir=None):

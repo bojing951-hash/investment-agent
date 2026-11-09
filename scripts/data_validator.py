@@ -795,7 +795,12 @@ def _report_date_from_path(report_path):
         return None
 
 
-def validate_report(report_path, anchors):
+def validate_report(report_path, anchors, skip_forbidden=False):
+    """Gate B 校验器。
+
+    skip_forbidden(W3, Model-Agnostic v2, 2026-11-09): data-only 确定性周观察
+    报告传 True——锚点/事实位/量级校验照跑,禁止用语等叙事语言检查跳过
+    (data-only 报告没有解释层/人设文本)。"""
     if not os.path.exists(report_path):
         print(f"❌ 报告文件不存在: {report_path}")
         return []
@@ -992,14 +997,18 @@ def validate_report(report_path, anchors):
                     pass
 
     # === 4. 禁止用语检查(2026-10-11 v2: 与系统提示词【禁止用语v2】同步) ===
-    print("\n🚫 禁止用语检查(v2):")
-    found = forbidden_phrases_in(report_text)
-    for phrase, count in found:
-        msg = f"⚠️ 禁止用语v2 \"{phrase}\" 出现 {count} 次"
-        warnings.append(msg)
-        print(f"  {msg}")
-    if not found:
-        print(f"  ✅ 未发现禁止用语")
+    # W3(Model-Agnostic v2): data-only 报告跳过(叙事语言检查只针对解释层文本)
+    if skip_forbidden:
+        print("\n🚫 禁止用语检查(v2): ⏭️ 跳过(data-only 确定性报告,无解释层文本)")
+    else:
+        print("\n🚫 禁止用语检查(v2):")
+        found = forbidden_phrases_in(report_text)
+        for phrase, count in found:
+            msg = f"⚠️ 禁止用语v2 \"{phrase}\" 出现 {count} 次"
+            warnings.append(msg)
+            print(f"  {msg}")
+        if not found:
+            print(f"  ✅ 未发现禁止用语")
 
     # === 5. 自动标注版报告 ===
     annotated = report_text

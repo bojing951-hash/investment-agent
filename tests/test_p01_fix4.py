@@ -35,6 +35,12 @@ import unittest.mock as mock
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'scripts'))
+# Model-Agnostic v2(W3修复): 模拟已配置模型三参(零真实凭证,base_url 指向
+# 保留域 fake.invalid),使 generate_weekly_report 走模型分支——本套件 mock 的
+# _call_glm 仅在模型分支被调用;未配置时的 data-only 分支由 test_p0_fixes 覆盖。
+os.environ.setdefault('MODEL_API_KEY', 'FAKE_E2E_MODEL_KEY')
+os.environ.setdefault('MODEL_BASE_URL', 'https://fake.invalid/v1')
+os.environ.setdefault('MODEL_NAME', 'fake-e2e-model')
 
 PASS = FAIL = 0
 
@@ -290,7 +296,7 @@ def publish(td, ymd, gate='PASS', gate_b='PASS', dt=DT_DAY):
                           today_str=today_str, thesis_path=thesis_path,
                           views_path=views_path)
 
-    def _validate(md_path, anchors=None, anchors_file=None):
+    def _validate(md_path, anchors=None, anchors_file=None, data_only=False):
         return (gate_b, ['SYNTHETIC FIX4警告'])
     patches = [
         mock.patch.object(rg, 'DATA_DIR', os.path.join(td, 'data')),

@@ -116,11 +116,48 @@ check("存在sys.exit(1)失败分支(第五轮P1-2: 关键步骤失败才exit 1,
       "sys.exit(1)" in rw and "critical_failed" in rw and "run_pipeline" in rw)
 
 
-# ── 测试6: 新闻摘要已迁GLM(缺陷六.1,源码级检查) ──────────────────
-print("\n[7] news_collector GLM迁移")
+# ── 测试6: 新闻摘要已迁模型API(缺陷六.1,源码级检查;Model-Agnostic v2 中性名) ──
+print("\n[7] news_collector 模型API迁移")
 nc = open(os.path.join(ROOT, 'scripts', 'news_collector.py')).read()
 check("不再引用DEEPSEEK", "DEEPSEEK" not in nc)
-check("使用GLM流式", "GLM_MODEL" in nc and "stream=True" in nc)
+check("使用模型API流式(中性MODEL_*;2026-11-09由GLM_MODEL更名)",
+      "MODEL_NAME" in nc and "stream=True" in nc)
+
+
+# ── 测试8: 周报 data-only 分支(Model-Agnostic v2 W3,2026-11-09) ────────
+print("\n[8] report_generator data-only 分支(模型三参不齐→确定性观察)")
+import tempfile as _tf
+from datetime import datetime as _dt
+from unittest import mock as _mock
+import report_generator as rg
+import data_validator as dv
+import inspect as _inspect
+
+with _tf.TemporaryDirectory() as td:
+    _daily = os.path.join(td, 'daily')
+    _news = os.path.join(td, 'news')
+    os.makedirs(_daily)
+    os.makedirs(_news)
+    _ymd = _dt.now().strftime('%Y%m%d')
+    with open(os.path.join(_daily, f'scorecard_{_ymd}.md'), 'w', encoding='utf-8') as f:
+        f.write('# 宏观评分卡(今日确定性)\n')
+    with open(os.path.join(_news, f'news_raw_{_ymd}_t.json'), 'w', encoding='utf-8') as f:
+        json.dump({'货币政策': [{'article_id': 'art_1', 'headline': '央行公开市场操作'},
+                               {'article_id': 'art_2', 'headline': '利率决议原文'}]},
+                  f, ensure_ascii=False)
+    with _mock.patch.object(rg, 'DATA_DIR', td):
+        rep = rg.generate_data_only_report('数据包正文(确定性渲染样例)')
+    check("data-only头戳(无模型调用声明)", 'data-only(无模型调用,确定性数据观察)' in rep)
+    check("确定性产物汇编(评分卡)", '宏观评分卡(今日确定性)' in rep)
+    check("新闻段来自原始档([art_]代码核发)", '[art_1] ' in rep and '[art_2] ' in rep)
+    check("末尾固定披露", '数据与来源说明(data-only)' in rep)
+
+rg_src = open(os.path.join(ROOT, 'scripts', 'report_generator.py'), encoding='utf-8').read()
+check("周报按模型三参分支(未配置→data-only,不再RuntimeError硬失败)",
+      "data_only = not _mcfg['complete']" in rg_src
+      and 'generate_data_only_report(data_pack)' in rg_src)
+check("Gate B data-only 跳过叙事检查(skip_forbidden形参)",
+      'skip_forbidden' in _inspect.signature(dv.validate_report).parameters)
 
 
 print("\n" + "=" * 60)

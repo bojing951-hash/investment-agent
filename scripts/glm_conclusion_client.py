@@ -114,12 +114,16 @@ def echo_params():
 # ══ 工具: 脱敏/费用估算/延迟分类 ═══════════════════════════════════════════
 
 def redact(text):
-    """凭证明文剥离: 凭证值(若在环境在场且长度>4)一律替换为占位符。"""
+    """凭证明文剥离: 内存中所有模型 Key(MODEL_API_KEY+GLM_API_KEY,长度>4)
+    一律替换为占位符;Authorization 头(含可选 Bearer 前缀)整段吃满令牌。
+    (Model-Agnostic v2 W2/E2, 2026-11-09: 多Key遍历防任一别名漏网。)"""
     s = str(text)
-    key = os.environ.get(CREDENTIAL_ENV, '')
-    if key and len(key) > 4 and key in s:
-        s = s.replace(key, _REDACTED)
-    s = re.sub(r'(Authorization\s*[:=]\s*)\S+', r'\1' + _REDACTED, s, flags=re.I)
+    for _env_name in ('MODEL_API_KEY', CREDENTIAL_ENV):
+        _v = os.environ.get(_env_name, '')
+        if _v and len(_v) > 4 and _v in s:
+            s = s.replace(_v, _REDACTED)
+    s = re.sub(r'(Authorization\s*[:=]\s*(?:Bearer\s+)?)\S+',
+               r'\1' + _REDACTED, s, flags=re.I)
     return s
 
 
@@ -484,15 +488,23 @@ def call_glm_once(system_prompt, user_prompt, *, client_factory=None,
         if client_factory is not None:
             client = client_factory()
         else:
-            api_key = os.environ.get(CREDENTIAL_ENV, '')
-            if not api_key:
+            # Model-Agnostic v2(W2, 2026-11-09): 真实路径改读 env_config 中性
+            # 三参(MODEL_* 优先,旧 GLM_* 条件回退);三参不齐=零出站。
+            # GLM_BASE_URL_DEFAULT/GLM_MODEL_DEFAULT 保留为合同冻结登记值(echo),
+            # 不再作为真实调用的硬编码端点。
+            import env_config as _ec
+            _cfg = _ec.model_runtime_config()
+            if not _cfg['complete']:
                 return _call_result(
                     False, kind='auth_error',
-                    error=f'{CREDENTIAL_ENV} 未设置(零凭证零出站)',
+                    error='模型 API 未配置(MODEL_API_KEY/MODEL_BASE_URL/'
+                          'MODEL_NAME 三参不齐;零凭证零出站;Agent Native '
+                          '模式不需要模型 Key)',
                     elapsed_s=time.monotonic() - t0,
                     cost_est_usd=EST_FLOOR_USD_PER_CALL)
+            model = _cfg['model'] or model
             from openai import OpenAI   # 惰性: 项目既有依赖(requirements)
-            client = OpenAI(api_key=api_key, base_url=GLM_BASE_URL_DEFAULT,
+            client = OpenAI(api_key=_cfg['api_key'], base_url=_cfg['base_url'],
                             timeout=CALL_CLIENT_TIMEOUT_S)
         stream = client.chat.completions.create(
             model=model,
@@ -545,13 +557,16 @@ def call_glm_once(system_prompt, user_prompt, *, client_factory=None,
 def _live_gate():
     """执行发车门(默认跳过门控,沿 test_glm_live.py:31-33 模式)。
 
-    未过 → LiveGateRefused(零出站零凭证读取,先于任何 client 构造)。"""
+    未过 → LiveGateRefused(零出站零凭证读取,先于任何 client 构造)。
+    Model-Agnostic v2(W2): 凭证面接受中性 MODEL_API_KEY(env_config 回退含旧
+    GLM_API_KEY),二者均缺席才拒。"""
     if os.environ.get(LIVE_GATE_ENV) != '1':
         raise LiveGateRefused(
             f'执行门未开: {LIVE_GATE_ENV}!=1(默认跳过,零真实调用零凭证读取)')
-    if not os.environ.get(CREDENTIAL_ENV):
+    import env_config as _ec
+    if not (os.environ.get(CREDENTIAL_ENV) or _ec.model_runtime_config()['api_key']):
         raise LiveGateRefused(
-            f'执行门未开: {CREDENTIAL_ENV} 缺席(零凭证零出站)')
+            f'执行门未开: MODEL_API_KEY/{CREDENTIAL_ENV} 均缺席(零凭证零出站)')
 
 
 def _log_usage(path, record):

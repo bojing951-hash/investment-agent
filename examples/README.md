@@ -8,7 +8,7 @@
 
 | 文件 | 类型 | 研究窗口 | 生成模型 |
 |---|---|---|---|
-| [weekly_report_20261108.md](weekly_report_20261108.md) | 全球宏观与金融市场观察周报(第一期) | 2026-11-02 ~ 11-08 | 智谱 GLM (glm-5.3) |
+| [weekly_report_20261108.md](weekly_report_20261108.md) | 全球宏观与金融市场观察周报(第一期) | 2026-11-02 ~ 11-08 | AI 模型生成 |
 
 ## 数据来源
 
@@ -70,6 +70,5 @@
 
 见根目录 [README.md](../README.md) 与 [docs/USER_GUIDE.md](../docs/USER_GUIDE.md):
 完成安装与一次数据采集后,运行 `python3 scripts/report_generator.py`
-(周报样例为**当时的智谱 GLM 生成之历史产物**,原样保留;2026-11-09 起
-模型面中立化——可选任意 OpenAI 兼容端点,未配置则产出 data-only 确定性
-数据观察周报,见 USER_GUIDE 第 2 节。)
+(周报样例为 AI 模型生成之历史产物;模型面任意 OpenAI 兼容端点,未配置则
+产出 data-only 确定性数据观察周报,见 USER_GUIDE 第 2 节。)

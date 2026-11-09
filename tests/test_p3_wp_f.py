@@ -1062,15 +1062,10 @@ class TestRealRepoSample(unittest.TestCase):
     """真实仓稳定样例在场(实跑面归 step 10;此处仅稳定锚抽检)。"""
 
     def test_stable_anchors_present(self):
+        # 2026-11-09: 历史交付/设计档(P0-P3 docs)整体移出公开仓(本地归档),
+        # 稳定锚相应收敛为在仓文件;归档件清单见 scripts/project_final_seal.py
         anchors = [
-            "docs/P3_DESIGN.md", "docs/P3_INVENTORY.md",
-            "docs/P3_DELIVERY.md",
             ".github/workflows/offline-tests.yml",
-            "docs/P3_WP_A_REPORT.md", "docs/P3_WP_A_DELIVERY.md",
-            "docs/P3_WP_B_REPORT.md", "docs/P3_WP_B_DELIVERY.md",
-            "docs/P3_WP_C_REPORT.md", "docs/P3_WP_C_DELIVERY.md",
-            "docs/P3_WP_D_REPORT.md", "docs/P3_WP_D_DELIVERY.md",
-            "docs/P3_WP_E_REPORT.md", "docs/P3_WP_E_DELIVERY.md",
             "scripts/research_index.py", "scripts/evidence_linkage.py",
             "scripts/prediction_review.py", "scripts/report_quality_review.py",
             "scripts/personal_flow_integration.py",
@@ -1079,7 +1074,6 @@ class TestRealRepoSample(unittest.TestCase):
             "tests/test_p3_wp_e.py",
             "scripts/project_final_seal.py",
             "tests/test_p3_wp_f.py",
-            "docs/P3_WP_F_REPORT.md",
         ]
         for rel in anchors:
             self.assertTrue(os.path.isfile(os.path.join(REPO_ROOT, rel)),

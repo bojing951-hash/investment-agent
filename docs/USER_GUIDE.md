@@ -55,8 +55,7 @@ Gate A 必 FAIL ⇒ 接地研究问答全部拒答**、脚本退出码 1——�
 
 | 环境变量 | 影响 | 申请(免费) |
 |---|---|---|
-| `MODEL_API_KEY` / `MODEL_BASE_URL` / `MODEL_NAME` | **AI 周报叙事层、AI 研究解释**(可选)需要,三参配齐才启用;任意 OpenAI 兼容端点均可(如智谱: `https://open.bigmodel.cn/api/paas/v4` + `glm-5.3`)。不配→Agent Native 默认模式: 周报自动走 data-only 确定性数据观察,采集/工作台/研究问答照常 | 模型服务商处(智谱[开放平台](https://open.bigmodel.cn/)或其他兼容服务) |
-| `GLM_API_KEY` | **旧变量,兼容保留**: 仅当 `MODEL_API_KEY` 未设时回退生效(智谱默认端点/模型随回退自动套用;显式第三方端点不跨服务回退,防 Key 外送) | [智谱开放平台](https://open.bigmodel.cn/) |
+| `MODEL_API_KEY` / `MODEL_BASE_URL` / `MODEL_NAME` | **AI 周报叙事层、AI 研究解释**(可选)需要,三参配齐才启用;任意 OpenAI 兼容端点均可。不配→Agent Native 默认模式: 周报自动走 data-only 确定性数据观察,采集/工作台/研究问答照常 | 你的模型服务商(任意 OpenAI 兼容服务) |
 | `FRED_API_KEY` | **美国宏观序列**(CPI/就业/利率等)需要;不配→美国宏观核心缺失,**Gate A 必 FAIL,接地研究问答拒答**(见 Q1) | [FRED](https://fred.stlouisfed.org/docs/api/api_key.html) |
 | `TUSHARE_TOKEN` | A股/港股深度数据;不配→匿名调用限流严(本地闸门 ≥61 秒/次,实测同小时重跑会被服务端拒),深度数据近乎不可用,首跑或耗时 10 分钟左右 | [tushare](https://tushare.pro/) |
 | `FINNHUB_API_KEY` | 新闻摘要;不配→新闻步骤降级,不影响其他数据 | [Finnhub](https://finnhub.io/) |
@@ -73,7 +72,7 @@ cp .env.example .env
 ### 密钥安全三原则
 
 1. 只放 `.env` 或环境变量,不写进代码/笔记/聊天记录;
-2. 本项目的凭证读取**只**看 `MODEL_API_KEY`/`GLM_API_KEY`(兼容回退)等自有变量与项目根 `.env`,
+2. 本项目的凭证读取**只**看 `MODEL_API_KEY` 等自有变量与项目根 `.env`,
    不会读取你机器上其他应用的配置文件;
 3. 密钥值不会出现在任何日志与输出中(程序只输出"是否已配置")。
 
@@ -88,14 +87,13 @@ cp .env.example .env
   完全不受影响。
 - **可选通用模型 API**: 配齐 `MODEL_API_KEY`/`MODEL_BASE_URL`/`MODEL_NAME`
   三参(任意 OpenAI 兼容端点)→ 周报叙事层/新闻摘要/AI 研究解释启用。
-  旧 `GLM_API_KEY` 仍兼容: 仅当 `MODEL_API_KEY` 未设时回退。
 - **Data Only 产物**: 无论何时未配齐三参,周报产物都明确标注
   `data-only(无模型调用,确定性数据观察)`,不冒充模型叙事。
 
 ### 确认配置生效
 
 ```bash
-python3 -c "import env_config as e; c=e.model_runtime_config(); print('模型API(三参配齐):', c['complete'], '| 旧GLM回退:', c['legacy_fallback'], '| FRED:', bool(e.FRED_API_KEY), '| TUSHARE:', bool(e.TUSHARE_TOKEN), '| FINNHUB:', bool(e.FINNHUB_API_KEY))"
+python3 -c "import env_config as e; c=e.model_runtime_config(); print('模型API(三参配齐):', c['complete'], '| FRED:', bool(e.FRED_API_KEY), '| TUSHARE:', bool(e.TUSHARE_TOKEN), '| FINNHUB:', bool(e.FINNHUB_API_KEY))"
 ```
 
 输出 `True/False`(只显示有无,不显示值)。

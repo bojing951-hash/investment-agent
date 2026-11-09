@@ -123,7 +123,7 @@ python3 run_weekly.py       # 第一次数据采集(13 步流水线,配齐 Key �
 | A股/港股/中国宏观 | akshare / tushare | `TUSHARE_TOKEN`(可选) |
 | 日本国债/政策利率、欧元区利率 | 日本财务省/BOJ、ECB 公开数据 | 不需要 |
 | 新闻摘要 | Finnhub | `FINNHUB_API_KEY`(可选) |
-| AI 周报/研究解释 | 可选模型 API(任意 OpenAI 兼容端点;如智谱 GLM) | `MODEL_API_KEY`/`MODEL_BASE_URL`/`MODEL_NAME` 三参(仅 AI 功能需要;数据采集不需要;旧 `GLM_API_KEY` 兼容回退) |
+| AI 周报/研究解释 | 可选模型 API(任意 OpenAI 兼容端点) | `MODEL_API_KEY`/`MODEL_BASE_URL`/`MODEL_NAME` 三参(仅 AI 功能需要;数据采集不需要) |
 
 ## 命令速查
 

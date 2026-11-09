@@ -8,8 +8,8 @@
 # 在此之前: 本仓库未建立CI, 不得宣称"CI通过"(所有测试结果均为本地离线运行)。
 name: offline-tests
 # IA-P0-1-FIX1 独立复核用离线测试工作流:
-# - 只跑本地离线套件(全部SYNTHETIC fixture+GLM mock),零网络依赖、零API密钥、零付费调用
-# - test_glm_live.py 为真实GLM验收套件,按契约不得进入CI,显式排除
+# - 只跑本地离线套件(全部SYNTHETIC fixture+模型层 mock),零网络依赖、零API密钥、零付费调用
+# - test_glm_live.py 为真实模型API验收套件,按契约不得进入CI,显式排除
 # - 依赖: 仅Python标准库(被测模块不引入第三方包)
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
           for t in tests/test_*.py; do
             name=$(basename "$t" .py)
             if [ "$name" = "test_glm_live" ]; then
-              echo "== $name: SKIPPED(真实GLM付费调用,不进CI)"
+              echo "== $name: SKIPPED(真实模型API付费调用,不进CI)"
               continue
             fi
             echo "== $name"

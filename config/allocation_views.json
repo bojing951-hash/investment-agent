@@ -404,7 +404,7 @@
       "target": 4300,
       "evidence_ref": "前提: scorecard.confirmed_regime=类滞胀(定性,由周报判断); 结果: global_market.data.GOLD.close",
       "resolved_note": "",
-      "note": "前提未确认前为'未触发'状态;前提确认后转'观察中';到期引擎按结果规格(GOLD>=4300)自动裁决,GLM可依前提未兑现改判无法裁决(须附证据)",
+      "note": "前提未确认前为'未触发'状态;前提确认后转'观察中';到期引擎按结果规格(GOLD>=4300)自动裁决,AI模型可依前提未兑现改判无法裁决(须附证据)",
       "verify_mode": "expiry",
       "observations": [],
       "data_source": "anchors",
@@ -420,7 +420,7 @@
       "trigger": "CCC OAS周观测值",
       "status": "observing",
       "resolved_note": "",
-      "note": "无可计算指标规格(HY指数价格无锚点),到期须人工/GLM裁决并附证据",
+      "note": "无可计算指标规格(HY指数价格无锚点),到期须人工/AI模型裁决并附证据",
       "verify_mode": "expiry",
       "observations": [],
       "data_source": "anchors"

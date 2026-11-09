@@ -22,6 +22,7 @@ from env_config import MODEL_API_KEY, MODEL_BASE_URL, MODEL_NAME, MODEL_KEY_MISS
 import allocation_engine  # P2/P3 配置研究引擎(同目录)
 import research_provenance as rp  # IA-P0-1: 来源链核验/门禁合成
 import news_provenance  # IA-P0-2-W3: 新闻来源档案/确定性引用索引
+from redact_secrets import redact  # W4: 模型调用异常文本过脱敏再print
 
 # ============ 路径配置 ============
 # FIX11-01(IA-F10-DEF-001): 原join(dirname(__file__),'..')推导的DATA_DIR词法
@@ -471,7 +472,8 @@ def generate_report(data_pack, framework=None, prev_report=None, tech_notes=None
             return report_text
 
         except Exception as e:
-            print(f"❌ 第{attempt}次调用失败: {str(e)[:200]}")
+            # W4: 异常文本常回显完整请求URL/头(含Key)——过脱敏再print
+            print(f"❌ 第{attempt}次调用失败: {redact(str(e))[:200]}")
             if attempt < max_attempts:
                 import time
                 wait = attempt * 15

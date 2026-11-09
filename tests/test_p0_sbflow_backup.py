@@ -288,10 +288,13 @@ class T5SourceFreezeLocks(unittest.TestCase):
         # v1.1(2026-11-09)显式再冻结一次: 第三轮 WI3(P0-4 密钥卫生)授权把脱敏
         # 参数族从 api_key= 扩到 api_key/apikey/token/key=(负向后顾挡 mid-word),
         # 属规格内变更——新冻结值=变更后文件;后续无授权变更仍必须红面。
+        # v1.2(2026-11-09同日)再冻结: Charter4 W4 授权 _UNREDACTED_KEY_PAT
+        # 同步 redact_secrets 复合名扩展(model_api_key|glm_api_key,MODEL_*/
+        # GLM_* 中性化后新泄漏面),同属规格内变更;后续无授权变更仍红面。
         with open(ROOT + '/scripts/real_data_acceptance.py', 'rb') as fh:
             blob = fh.read()
         self.assertEqual(hashlib.sha256(blob).hexdigest(),
-                         '30c5aadf4d3e550b055cface116c9eea86170ef24e6a04cd23ecd8d3a82cd95f')
+                         '4c59e4d9d8416ac9bf10ad1a1ede475b7be00445d929a2122c1b040704e5dbd0')
 
 
 if __name__ == '__main__':

@@ -13,7 +13,8 @@ correlation_calculator / research_history_query 等既有模块,输出结构化 
   - 每个数值携带 单位/单位族/观测日期/来源/身份(代理口径) 字段;
   - 每个变化量携带 变化单位(pp|bp|pct)/基准日/窗口语义/公式;
   - 错误结构化输出(kind/message/hint),永不输出空串或裸 0 充当错误;
-  - update 仅显式请求时运行;GLM 调用仅 research --glm 显式请求时发生。
+  - update 仅显式请求时运行;模型 API 调用仅 research --explain/--glm
+    显式请求时发生(Model-Agnostic v2: 中性 MODEL_* 三参,旧 --glm 保留兼容)。
 
 用法: python3 ia_cli.py <能力> [参数]   (json 输出到 stdout; 退出码 0/1/2)
 """
@@ -50,7 +51,14 @@ except Exception:  # noqa: BLE001 —— 引擎常量不可用时退化为空集
 FX_ASSET_CLASSES = {'fx_rate', 'fx_index'}
 CHANGE_WINDOWS = ('week', 'mtd', 'ytd')
 ENV_KEYS = (  # doctor 只报"已配置/未配置",永不打印值
-    ('GLM_API_KEY', 'AI 解释/周报生成(可选,不配仅影响 AI 功能)'),
+    # W5(Model-Agnostic v2): 模型面中性三参;GLM_API_KEY 保留为旧变量行
+    ('MODEL_API_KEY', '可选模型 API Key(通用;AI 解释/周报生成共用,'
+     'Agent Native 默认无需,不配仅影响 AI 解释与周报叙事层)'),
+    ('MODEL_BASE_URL', '可选模型端点(任意 OpenAI 兼容服务;沿用智谱填 '
+     'https://open.bigmodel.cn/api/paas/v4)'),
+    ('MODEL_NAME', '可选模型名(如 glm-5.3 / 其他兼容服务模型名)'),
+    ('GLM_API_KEY', '旧变量(仅 MODEL_API_KEY 未设时条件回退,建议迁移,'
+     '见 .env.example)'),
     ('FRED_API_KEY', '美联储/FRED 数据(强烈推荐,缺失则 28 个序列采集失败→Gate A FAIL)'),
     ('TUSHARE_TOKEN', '中国市场数据(可选)'),
     ('FINNHUB_API_KEY', '市场数据补充(可选)'),
@@ -265,8 +273,14 @@ def cmd_doctor(args):
     ec.load_env_file()
     data['env'] = {k: {'configured': bool(os.environ.get(k)), 'purpose': purpose}
                    for k, purpose in ENV_KEYS}
-    if not os.environ.get('GLM_API_KEY'):
-        data['glm_key_note'] = ec.GLM_KEY_MISSING_MESSAGE
+    # W5: 改读中性模型配置(键名 glm_key_note 保持输出契约;值语义中性化)
+    _mcfg = ec.model_runtime_config()
+    if not _mcfg['complete']:
+        data['glm_key_note'] = (_mcfg['blocked_reason']
+                                or ec.MODEL_KEY_MISSING_MESSAGE)
+    elif _mcfg['legacy_fallback']:
+        data['glm_key_note'] = ('使用旧变量 GLM_API_KEY 回退,建议迁移到 '
+                                'MODEL_API_KEY(三参模板见 .env.example)')
     snap, note = wd.latest_snapshot(ROOT)
     meta = wd.snapshot_meta(snap)
     data['snapshot'] = {'available': snap is not None,
@@ -618,15 +632,24 @@ def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=Non
         created_at = base.get('created_at')
     except (FileNotFoundError, ValueError):
         created_at = saved_at      # 基档不可读时不阻断(sidecar 仍绑定本进程事实)
+    # W4(Model-Agnostic v2): 写入时消毒——question/answer/user_note 为用户与
+    # 引擎自由文本,glm.error 可能回显端点/头;过 redact() 后落盘。只消毒写入,
+    # 读取层(list/detail)不过滤,sidecar 保持"用户实际所见原文"语义(密钥除外);
+    # None 如实保 None(无本次作答不编造成空串)。
+    def _san(v):
+        return redact(v) if isinstance(v, str) else v
+    _glm_sanitized = None
+    if isinstance(glm, dict):
+        _glm_sanitized = {k: _san(v) for k, v in glm.items()}
     payload = {'record_type': ra.FULL_RECORD_TYPE, 'query_id': qid,
-               'question_text': question, 'created_at': created_at,
+               'question_text': _san(question), 'created_at': created_at,
                'research_as_of': snap.get('research_as_of'),
                'snapshot_id': snap.get('snapshot_id'),
                'digest_snapshot': rp.digest_snapshot(snap),
-               'status': status, 'answer_text': answer_text,
-               'values': values, 'unresolved': unresolved, 'glm': glm,
+               'status': status, 'answer_text': _san(answer_text),
+               'values': values, 'unresolved': unresolved, 'glm': _glm_sanitized,
                'warnings': list(warnings_), 'violations': list(violations),
-               'user_note': user_note, 'follow_up_of': follow_up_of,
+               'user_note': _san(user_note), 'follow_up_of': follow_up_of,
                'saved_at': saved_at}
     try:
         st, _path = ra.write_research_full(
@@ -810,8 +833,9 @@ def build_parser():
 
     rs = sub.add_parser('research', help='本地接地研究问答(e2eb 栈,零网络)')
     rs.add_argument('--question', required=True, help='研究问题')
-    rs.add_argument('--glm', action='store_true',
-                    help='附加 GLM 解释(产生 API 费用,仅用户明确要求时使用)')
+    rs.add_argument('--explain', '--glm', dest='glm', action='store_true',
+                    help='附加 AI 解释(可选模型 API,产生 API 费用,仅用户明确'
+                    '要求时使用;--glm 为旧别名,保留兼容)')
     rs.add_argument('--archive', action='store_true', help='同时落研究档案')
     rs.add_argument('--note', help='用户备注(随 research-full sidecar 落档)')
     rs.add_argument('--follow-up-of',

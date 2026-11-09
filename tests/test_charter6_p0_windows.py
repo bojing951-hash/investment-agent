@@ -305,6 +305,85 @@ check("长序列区间变动(start=None): pp=+624.75(手算)",
       iv2.get('pp_change') == 624.75, iv2.get('pp_change'))
 
 print("=" * 64)
+print("五、收尾修复包(A2 延期①③, 2026-11-10)")
+print("=" * 64)
+# 延期③: GLOBAL_HISTORY_PERIOD 合法值校验——非法值回落默认并告警,
+# 不直通 yfinance(与 macro 侧 MACRO_HISTORY_YEARS 同款纪律)
+with_env({'GLOBAL_HISTORY_PERIOD': 'abc'},
+         lambda: check("延期③: 非法'abc'→回落'10y'",
+                       gmc.global_history_period() == '10y'))
+with_env({'GLOBAL_HISTORY_PERIOD': '10Y'},
+         lambda: check("延期③: 大小写敏感'10Y'→非法回落'10y'",
+                       gmc.global_history_period() == '10y'))
+with_env({'GLOBAL_HISTORY_PERIOD': '1 decade'},
+         lambda: check("延期③: 带空格'1 decade'→非法回落'10y'",
+                       gmc.global_history_period() == '10y'))
+with_env({'GLOBAL_HISTORY_PERIOD': 'ytd'},
+         lambda: check("延期③: 合法'ytd'直通", gmc.global_history_period() == 'ytd'))
+check("延期③: 合法集=yfinance 官方 period 全集(逐项直通)",
+      __import__('env_config').HISTORY_PERIOD_LEGAL ==
+      ('1d', '5d', '1mo', '3mo', '6mo', '1y', '2y',
+       '5y', '10y', 'ytd', 'max'))
+check("延期③: resolve_history_period 共享解析器(env_config,纯函数返回回落旗标)",
+      __import__('env_config').resolve_history_period('3mo') == ('3mo', False)
+      and __import__('env_config').resolve_history_period(None)
+      == ('10y', False)
+      and __import__('env_config').resolve_history_period('xx')
+      == ('10y', True))
+g_src2 = open(os.path.join(ROOT, 'scripts', 'global_market_collector.py'),
+              encoding='utf-8').read()
+check("延期③: 结构锁——global_history_period 走 resolve_history_period",
+      'resolve_history_period' in g_src2
+      and 'HISTORY_PERIOD_LEGAL' in __import__('env_config').__dict__)
+
+# 延期①: jp 采集器 NIKKEI225 SERIES_WINDOW=251 硬截断→与 global 窗口对齐
+import jp_market_collector as jpm   # noqa: E402
+check("延期①: 旧 251 硬截断已废(SERIES_WINDOW=10y≈2520 遗留别名)",
+      jpm.SERIES_WINDOW == 2520)
+with_env({'GLOBAL_HISTORY_PERIOD': None},
+         lambda: check("延期①: 默认窗口=2520(读同一 env/默认)",
+                       jpm.nikkei_series_window() == 2520))
+with_env({'GLOBAL_HISTORY_PERIOD': '1mo'},
+         lambda: check("延期①: env='1mo'→21 观测",
+                       jpm.nikkei_series_window() == 21))
+with_env({'GLOBAL_HISTORY_PERIOD': 'max'},
+         lambda: check("延期①: env='max'→None 不截断(全量)",
+                       jpm.nikkei_series_window() is None))
+with_env({'GLOBAL_HISTORY_PERIOD': 'abc'},
+         lambda: check("延期①: 非法值经同一校验回落 2520",
+                       jpm.nikkei_series_window() == 2520))
+check("延期①: 显式 period 参数同规('5y'→1260/'ytd'→None)",
+      jpm.nikkei_series_window('5y') == 1260
+      and jpm.nikkei_series_window('ytd') is None)
+_NRAW = (b'observation_date,NIKKEI225\r\n2026-10-30,38250.0\r\n'
+         b'2026-11-02,38100.5\r\n2026-11-04,38000.25\r\n')
+import datetime as _dt               # noqa: E402
+_pj, _ = jpm.build_payload(run_date=_dt.date(2026, 11, 5), mof_raw=b'',
+                           fred_policy_raw=b'', fred_nikkei_raw=_NRAW)
+check("延期①: build_payload 默认窗口下短序列全量直通(3<2520)",
+      list(_pj['prices']['NIKKEI225']['series'])
+      == ['2026-10-30', '2026-11-02', '2026-11-04'])
+_pj2, _ = jpm.build_payload(run_date=_dt.date(2026, 11, 5), mof_raw=b'',
+                            fred_policy_raw=b'', fred_nikkei_raw=_NRAW,
+                            series_window=2)
+check("延期①: series_window=2→近端2观测(手算)",
+      list(_pj2['prices']['NIKKEI225']['series'])
+      == ['2026-11-02', '2026-11-04'])
+_pj3_box = {}
+with_env({'GLOBAL_HISTORY_PERIOD': '1d'},
+         lambda: _pj3_box.update(
+             {'s': jpm.build_payload(
+                 run_date=_dt.date(2026, 11, 5), mof_raw=b'',
+                 fred_policy_raw=b'', fred_nikkei_raw=_NRAW)[0]
+              ['prices']['NIKKEI225']['series']}))
+check("延期①: env='1d' 生效→仅末观测(手算)",
+      list(_pj3_box['s']) == ['2026-11-04'])
+jp_src = open(os.path.join(ROOT, 'scripts', 'jp_market_collector.py'),
+              encoding='utf-8').read()
+check("延期①: 过期注释清除(251 实况对齐叙述已废)",
+      '近端251观测' not in jp_src and 'global 档实况对齐,见 docstring' not in jp_src)
+
+print("=" * 64)
 if FAIL == 0:
     print(f"✅ 全部通过: {PASS} 项")
 else:

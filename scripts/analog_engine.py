@@ -456,7 +456,9 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
         d_val, wsum, terms = weighted_distance(zs_anchor, zs_c, feat_w)
         if d_val is None:
             continue
-        dists.append({'month': m, 'D': d_val, 'terms': terms})
+        # wsum=共有特征原始权重和(D3: 归一事实随行——重归一发生在
+        # weighted_distance 内部,原始和逐候选随行披露,不得只报归一后值)
+        dists.append({'month': m, 'D': d_val, 'terms': terms, 'wsum': wsum})
     dists.sort(key=lambda x: (x['D'], x['month']))
     ds = [x['D'] for x in dists]
     for i, x in enumerate(dists):
@@ -481,12 +483,17 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                           if x['D'] > 0 else 0.0,
                           'z_gap': math.sqrt(w2) if w2 > 0 else 0.0}
         x['dims'] = contrib
+        # D3/D4(收尾): 逐特征披露归一后实际权重 w_norm(=原始特征权/该候选
+        # 共有特征权重和)——候选间共有特征集不同时各候选的归一权重不同,
+        # 归一事实必须随行,不得只在方法学文字里说明
         x['features_detail'] = {k: {'anchor_z': zs_anchor[k],
                                     'cand_z': (next(
                                         zz for mm, zz in cand_months
                                         if mm == x['month'])).get(k),
-                                    'gap': t['gap']}
+                                    'gap': t['gap'],
+                                    'w_norm': round(t['w'], 6)}
                                 for k, t in x['terms'].items()}
+        x['norm_wsum'] = round(x['wsum'], 6)
 
     # ── 巧合判据(§1.7 机械 flag) ──
     for x in topn:
@@ -634,6 +641,7 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                               'z_gap': round(v['z_gap'], 6)}
                           for d, v in x['dims'].items()},
                  'features_detail': x['features_detail'],
+                 'norm_wsum': x['norm_wsum'],
                  'aftermath': aftermath_blocks.get(x['month'])}
                 for i, x in enumerate(topn)],
         'dispersion': dispersion,

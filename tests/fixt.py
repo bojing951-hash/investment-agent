@@ -151,6 +151,26 @@ def collector_payloads(ymd, obs, break_metric=None, missing=()):
     if not _skip('UMCSENT'):
         macro["data"]["UMCSENT"] = {"value": _val('UMCSENT', 68.0), "date": prev_m,
                                     "frequency": "monthly"}
+    # Charter6 收尾(A2 延期④, 2026-11-10): US_REAL_GDP(季频)补进 fixture 宏观
+    # 面——此前 fixture 无 GDPC1 序列→noncore_missing 恒点名 US_REAL_GDP
+    # (P1 登记后 fixture 未跟上);补齐后冻结名单 13→12 收回齐备日语义。
+    # 观测日=≤目标月的季末月(registry: 季频以季末月表示;freshness 120天窗内)
+    _q_end_m = ((int(ymd[4:6]) - 1) // 3) * 3
+    _q_year = int(ymd[:4]) if _q_end_m > 0 else int(ymd[:4]) - 1
+    _q_end_m = _q_end_m if _q_end_m > 0 else 12
+    _q_obs = '%04d-%02d-01' % (_q_year, _q_end_m)
+    _qd = []
+    for _k in range(8):
+        _idx = _q_year * 12 + (_q_end_m - 1) - 3 * _k
+        _qd.append('%04d-%02d-01' % (_idx // 12, _idx % 12 + 1))
+    _qd.reverse()
+    if not _skip('US_REAL_GDP'):
+        macro["data"]["US_REAL_GDP"] = {
+            "value": _val('US_REAL_GDP', 23100.0), "date": _q_obs,
+            "frequency": "quarterly",
+            "series": {"dates": _qd,
+                       "values": [round(22000.0 + 157.0 * i, 1)
+                                  for i in range(8)]}}
     macro["derived"] = {}
 
     cn_dates = [month_end(prev_m), pday(obs, 7), pday(obs, 1), obs]

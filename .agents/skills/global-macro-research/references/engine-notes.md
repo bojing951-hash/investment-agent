@@ -15,7 +15,7 @@ Key 从进程环境或引擎根 `.env` 读取(进程环境优先)。**绝不允�
 
 `update --yes` = `python3 run_weekly.py`(15 步,分钟级)。退出码: 0=全部关键步骤成功(非关键可降级);1=任一关键步骤失败或被跳过。同日重跑需 `--allow-revision`(修订机制,生成 _vN 快照)。台账: `logs/pipeline_run_YYYYMMDD.json`(doctor 的 last_run 数据源)。**Skill 永不自动运行 update——只有用户明确要求时。**
 
-采集窗口(Charter6-P0): FRED 观测起点已参数化(宏观数据全史);Yahoo 行情窗口参数化(默认 10 年,可用环境变量覆盖);Shiller 估值(ie_data.xls, 月频 1871+,免 Key)。日档保留策略: 近 90 天全量保留+更早每月最后一份 gzip 归档(`data/daily/archive/`),不做增量合并(全量重拉)。
+采集窗口(Charter6-P0): FRED 观测起点已参数化(宏观数据全史);Yahoo 行情窗口参数化(默认 10 年,`GLOBAL_HISTORY_PERIOD` 可覆盖,非法值经 env_config 校验回落默认并告警,合法集=yfinance 官方 period 全集——收尾延期③);jp 采集器 NIKKEI225 series 窗口与 global 读同一 env/默认(默认'10y'≈2520 观测,近似 月≈21/年≈252 交易日;ytd/max=不截断——收尾延期①,旧 251 硬截断已废);Shiller 估值(ie_data.xls, 月频 1871+,免 Key)——**live 首跑未执行**(随真实拉取授权一并执行,代码路径已经 fixture 验证,收尾延期②登记)。日档保留策略: 近 90 天全量保留+更早每月最后一份 gzip 归档(`data/daily/archive/`),不做增量合并(全量重拉)。
 
 ## 快照结构(doctor/overview 的数据来源)
 

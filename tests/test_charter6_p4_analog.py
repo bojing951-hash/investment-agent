@@ -309,6 +309,11 @@ def build_feats(mp, mk_list):
                                for mk in gap
                                if mkey_add(mk, -12) in gap}
     feats['HY_OAS_level'] = hy
+    # D1(收尾): 独立管线补 HY_OAS_d12m——引擎 credit 第4特征;其 d12m 网格
+    # 起 2021-01,z 需36月→唯一 z 可算候选=2023-12,此前测试侧缺席导致该
+    # 候选的距离(引擎 0.934889)游离于交叉验证之外
+    feats['HY_OAS_d12m'] = {mk: hy[mk] - hy[mkey_add(mk, -12)]
+                            for mk in hy if mkey_add(mk, -12) in hy}
     return feats
 
 
@@ -342,6 +347,7 @@ for mk in MK60:
     if len({FEAT_DIM[k] for k in zs}) >= 4:
         cands_ind.append((mk, zs))
 D_ind = []
+IND_W = {}      # month → (原始权重和 ws, {特征: 归一后实际权重})——D3 独立对照
 for mk, zs in cands_ind:
     common = [k for k in zs if k in zs_anchor_ind]
     wdim = {dm: 1.0 / 6.0 for dm in ('growth', 'inflation', 'rates', 'credit',
@@ -356,6 +362,7 @@ for mk, zs in cands_ind:
     dd = math.sqrt(sum((fw[k] / ws) * (zs_anchor_ind[k] - zs[k]) ** 2
                        for k in common))
     D_ind.append((mk, dd))
+    IND_W[mk] = (ws, {k: fw[k] / ws for k in common})
 D_ind.sort(key=lambda x: (x[1], x[0]))
 top1 = d['top'][0]
 check("TOP-1 候选月=独立重算(手写复算管线)",
@@ -372,9 +379,22 @@ check("重叠排除: 全部候选≤锚点−12月(2023-12)",
       all(t['candidate_month'] <= '2023-12' for t in d['top']))
 check("TOP-1 距离分位=0.0(最小距离)",
       top1['distance_percentile'] == 0.0)
-check("features_detail 逐特征锚点/候选 z 随行",
-      all({'anchor_z', 'cand_z', 'gap'} == set(v)
+check("features_detail 逐特征锚点/候选 z+归一权重随行",
+      all({'anchor_z', 'cand_z', 'gap', 'w_norm'} == set(v)
           for t in d['top'] for v in t['features_detail'].values()))
+# D3/D4(收尾): 归一事实随行——norm_wsum(共有特征原始权重和)+逐特征
+# w_norm(归一后实际权重)与测试侧独立构造的权重规则逐值对照
+ws1, wn1 = IND_W[top1['candidate_month']]
+check("TOP-1 norm_wsum=独立重算原始权重和(6dp)",
+      top1['norm_wsum'] == round(ws1, 6),
+      f"{top1['norm_wsum']} vs {round(ws1, 6)}")
+check("TOP-1 逐特征 w_norm=独立重算(归一后,6dp)",
+      all(v['w_norm'] == round(wn1[k], 6)
+          for k, v in top1['features_detail'].items()),
+      str(top1['features_detail']))
+check("TOP-1 逐特征 w_norm 和=1(归一事实自洽)",
+      abs(sum(v['w_norm'] for v in top1['features_detail'].values()) - 1.0)
+      < 2e-5)
 # dims contribution_share 和=1(数值和)
 cs = sum(v['contribution_share'] for v in top1['dims'].values())
 check("维度贡献份额和=1(6dp舍入容差)", abs(cs - 1.0) < 5e-6, str(cs))
@@ -392,6 +412,30 @@ check("默认锚点 top=13: 候选含 2022-12(1年重叠排除窗)",
       res_a['ok'] is True
       and any(t['candidate_month'] == '2022-12' for t in res_a['data']['top']))
 top_a = {t['candidate_month']: t for t in res_a['data']['top']}
+# D1(收尾): 候选 2023-12 距离进入交叉验证——独立管线补 HY_OAS_d12m 后,
+# 该候选(唯一 d12m z 可算者)的共同特征=12,距离与引擎逐值对照;0.934889
+# 为审查 D1 记录的引擎现值(双管线一致才放行)
+t2312 = top_a['2023-12']
+d2312_ind = dict(D_ind)['2023-12']
+check("D1: 候选2023-12 距离=独立重算(补 HY_OAS_d12m 后)",
+      abs(t2312['distance'] - d2312_ind) < 1e-6
+      and t2312['distance'] == 0.934889,
+      f"engine={t2312['distance']} ind={d2312_ind}")
+check("D1: 2023-12 共同特征恰含 HY_OAS_d12m(12特征)",
+      'HY_OAS_d12m' in t2312['features_detail']
+      and len(t2312['features_detail']) == 12,
+      str(sorted(t2312['features_detail'])))
+ws2312 = IND_W['2023-12'][0]
+check("D1: 2023-12 norm_wsum=12特征原始权重和(≠TOP-1,归一差异随行)",
+      t2312['norm_wsum'] == round(ws2312, 6)
+      and t2312['norm_wsum'] != top1['norm_wsum'],
+      f"{t2312['norm_wsum']} vs {round(ws2312, 6)}")
+# HY_OAS_d12m 归一权重手算: 维权1/6 ÷ credit 规格数4 = 1/24,再除以
+# 该候选12特征原始权重和
+check("D1: HY_OAS_d12m w_norm=手算((1/6/4)/ws12)",
+      t2312['features_detail']['HY_OAS_d12m']['w_norm']
+      == round((1.0 / 24.0) / ws2312, 6),
+      str(t2312['features_detail']['HY_OAS_d12m']))
 t122 = top_a['2022-12']
 af = t122['aftermath']
 check("aftermath 标签逐字(事后非预测,不参与相似度)",
@@ -487,6 +531,103 @@ check("估值维度缺席如实标注(不以价格涨幅冒充)",
       and res['data']['state_vector']['valuation']['note']
       == '无估值数据, 维度缺席(如实)',
       str(res['data']['state_vector']['valuation']))
+
+# D2(收尾)判据2: 事后方向一致率<0.6(n≥3)→分歧警示。GOLD_F 换密布月频
+# 周期4模式[1,2,4,1](gold 不进特征面,只影响事后块);测试侧独立镜像
+# 事后窗定义(起点=严格>候选月末首观测;3m 窗末=m+3 月末)复算 13 候选方向
+smap_c2 = {k: dict(v) for k, v in smap.items()}
+gk = months('2022-12', 25)                    # 2022-12..2024-12 每月15日
+gvals = [[1.0, 2.0, 4.0, 1.0][i % 4] for i in range(25)]
+smap_c2['GOLD_F'] = {'dates': [m + '-15' for m in gk], 'values': gvals}
+res_c2 = ae.run(smap_c2, REG_LOADED, top=13)
+signs = [0 if gvals[i + 3] == gvals[i + 1]
+         else (1 if gvals[i + 3] > gvals[i + 1] else -1) for i in range(13)]
+npos_c2 = sum(1 for s in signs if s > 0)
+agree_c2 = max(npos_c2, len(signs) - npos_c2) / len(signs)
+check("D2判据2: 独立复算 3m 方向 7负6正→一致率 7/13",
+      signs.count(-1) == 7 and signs.count(1) == 6
+      and abs(agree_c2 - 7.0 / 13.0) < 1e-12, str(signs))
+check("D2判据2: GOLD_F 3m 分歧警示随行(方向一致率 0.54<0.6)",
+      any(('GOLD_F 3m' in w and '分歧' in w and '0.54' in w)
+          for w in res_c2['warnings']), str(res_c2['warnings'][:5]))
+check("D2判据2: dispersion GOLD_F_3m 一致率=独立复算(7/13)",
+      abs(res_c2['data']['dispersion']['topN_aftermath_sign_agreement']
+          ['GOLD_F_3m'] - 7.0 / 13.0) < 5e-5,
+      str(res_c2['data']['dispersion']['topN_aftermath_sign_agreement']))
+check("D2判据2: 负对照——原稀疏序列无事后分歧警示",
+      not any('分歧' in w for w in res_a['warnings']))
+
+# D2(收尾)判据4: TOP-1 与中位不分离((med−min)/med<10%)。前向解序列:
+# 逐月解 v 使自身扩展窗 z 命中目标剖面(测试侧独立数值解,镜像引擎 z
+# 定义: μ/σ=含当期扩展窗,总体σ);候选窗内 z 剖面近平坦(δ·(1+0.0005k)),
+# 全部特征=该解的仿射拷贝(z 仿射不变)→各候选距离挤在 <1% 带内→警示;
+# 原序列(负对照)sep≈46% 不触发
+def _solve_z_series(targets):
+    s = [0.0, 1.0]
+    for tg in targets[2:]:
+        def z_of(v, s=s):
+            xs = s + [v]
+            n = len(xs)
+            mu = sum(xs) / n
+            var = sum((x - mu) ** 2 for x in xs) / n
+            return float('inf') if var <= 0 else (v - mu) / var ** 0.5
+        lo, hi = -1e6, 1e6
+        for _ in range(200):
+            mid = (lo + hi) / 2.0
+            if z_of(mid) < tg:
+                lo = mid
+            else:
+                hi = mid
+        s.append((lo + hi) / 2.0)
+    return s
+
+
+C_T, DELTA_C4, SLOPE_C4 = 1.0, 0.5, 0.0005
+tgs_c4 = [0.3 + 0.1 * math.sin(0.7 * j) for j in range(35)]
+tgs_c4 += [C_T - DELTA_C4 * (1.0 + SLOPE_C4 * (47 - j))
+           for j in range(35, 48)]
+tgs_c4 += [C_T] * 12
+s_flat = _solve_z_series(tgs_c4)
+
+
+def _z_at_vals(vals, j):
+    xs = vals[:j + 1]
+    mu = sum(xs) / len(xs)
+    var = sum((x - mu) ** 2 for x in xs) / len(xs)
+    return (vals[j] - mu) / var ** 0.5
+
+
+check("D2判据4自证: 解序列 z 剖面逐月命中目标(独立复算,1e-6)",
+      all(abs(_z_at_vals(s_flat, j) - tgs_c4[j]) < 1e-6
+          for j in range(2, 60)))
+_AFF = [('UNEMPLOYMENT', 5.0, 0.3), ('CPI', 300.0, 2.0), ('BEI_10Y', 2.0, 0.05),
+        ('FED_FUNDS', 4.0, 0.1), ('UST_10Y', 4.2, 0.1), ('HY_OAS', 5.0, 0.2),
+        ('IG_OAS', 1.3, 0.05), ('VIX', 15.0, 0.5),
+        ('SPX_CAPE', 30.0, 1.0), ('SPX_PE_TTM', 20.0, 0.7)]
+smap_c4 = {mid: {'dates': [mk + '-15' for mk in MK60],
+                 'values': [a + b * v for v in s_flat]}
+           for mid, a, b in _AFF}
+res_c4 = ae.run(smap_c4, REG_LOADED, top=13, include_aftermath=False)
+check("D2判据4: 压缩距离 fixture 正常出榜(13候选全可算)",
+      res_c4['ok'] is True and len(res_c4['data']['top']) >= 3,
+      str(res_c4.get('error')))
+check("D2判据4: TOP-1 不分离警示随行",
+      any('TOP-1 未与候选分布分离' in w for w in res_c4['warnings']),
+      str(res_c4['warnings'][:5]))
+d_by_m = {t['candidate_month']: t['distance'] for t in res_c4['data']['top']}
+d_hand_c4 = {MK60[j]: abs(C_T - tgs_c4[j]) for j in range(35, 48)}
+check("D2判据4: 无扰动候选距离=手算|z_a−z_c|(1e-4;yoy/d12m 扰动仅2023-12)",
+      all(abs(d_by_m[mk] - d_hand_c4[mk]) < 1e-4
+          for mk in MK60[35:48] if mk != '2023-12'),
+      str({mk: (d_by_m.get(mk), round(d_hand_c4[mk], 6))
+           for mk in MK60[35:48]}))
+_d_sorted = sorted(d_by_m.values())
+_sep_c4 = ((_d_sorted[len(_d_sorted) // 2] - _d_sorted[0])
+           / _d_sorted[len(_d_sorted) // 2])
+check("D2判据4: 手算分离度<10%与警示自洽+负对照(原fixture分离≈46%无警示)",
+      _sep_c4 < 0.10
+      and not any('TOP-1 未与候选分布分离' in w for w in res['warnings']),
+      f"sep={_sep_c4:.4f}")
 # 固定披露文案逐字
 check("固定披露三条逐字(Afin §1.5)",
       res['data']['disclosure'] == [

@@ -42,7 +42,8 @@ import sys
 from datetime import datetime, timedelta, time, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from env_config import DATA_DIR
+from env_config import (DATA_DIR, HISTORY_PERIOD_LEGAL,
+                        resolve_history_period)
 
 # === Charter6-P0(A2 §4-P0, 2026-11-09): 历史窗口参数化 ======================
 # 原硬编码1年窗口(fetch_all默认值+__main__调用点)——默认改10年供长序列
@@ -51,13 +52,23 @@ from env_config import DATA_DIR
 # 空白回落默认)。复权口径不变: history() 显式 auto_adjust=True(除权除息
 # 调整收盘,唯一口径,不允许yfinance默认值漂移)。全量重拉幂等,不做增量
 # 合并(A2 §3);旧档清理见 scripts/data_retention.py(90天全量+月度归档)。
+# Charter6 收尾(A2 延期③, 2026-11-10): 非法值经 env_config.
+# resolve_history_period 校验回落默认并告警,不再直通 yfinance。
 DEFAULT_HISTORY_PERIOD = '10y'
 
 
 def global_history_period():
-    """历史窗口解析(纯函数,每次调用现读环境变量,便于测试与运行期覆盖)。"""
-    raw = (os.environ.get('GLOBAL_HISTORY_PERIOD') or '').strip()
-    return raw or DEFAULT_HISTORY_PERIOD
+    """历史窗口解析(纯函数,每次调用现读环境变量,便于测试与运行期覆盖)。
+
+    空白→默认'10y';非法值(不在 env_config.HISTORY_PERIOD_LEGAL)→告警
+    回落默认(延期③: 不直通 yfinance;告警打在本模块,env_config 零 print)。"""
+    period, fallback = resolve_history_period(
+        os.environ.get('GLOBAL_HISTORY_PERIOD'), DEFAULT_HISTORY_PERIOD)
+    if fallback:
+        print(f"  ⚠️ GLOBAL_HISTORY_PERIOD 非法(合法集 "
+              f"{'/'.join(HISTORY_PERIOD_LEGAL)}),"
+              f"回落默认 {DEFAULT_HISTORY_PERIOD}")
+    return period
 
 # 资产监控列表：key=资产ID, value=yfinance的ticker代码
 WATCHLIST = {

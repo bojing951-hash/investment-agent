@@ -103,3 +103,27 @@ CONFIG_DIR = os.path.join(PROJECT_ROOT, "config")
 
 # === Finnhub API 配置 ===
 FINNHUB_API_KEY = os.environ.get("FINNHUB_API_KEY", "")
+
+
+# === Charter6 收尾(A2 延期③, 2026-11-10): GLOBAL_HISTORY_PERIOD 合法值校验 ====
+# 原解析直通任意字符串给 yfinance(非法值→运行期异常或静默截断);与 macro 侧
+# MACRO_HISTORY_YEARS 同款纪律: 非法值回落默认并告警,绝不直通下游。合法集=
+# yfinance 官方 period 语法全集;此函数为 global 采集器与 jp 采集器(NIKKEI
+# 窗口对齐)共用。纯函数零打印零副作用(W8 纪律: env_config 源码零 print,
+# 密钥不落日志——告警由调用方按返回的 fallback 旗标自行打印)。
+HISTORY_PERIOD_LEGAL = ('1d', '5d', '1mo', '3mo', '6mo', '1y', '2y',
+                        '5y', '10y', 'ytd', 'max')
+
+
+def resolve_history_period(raw, default='10y'):
+    """历史窗口 period 解析(纯函数): 空白→默认;非法值→回落默认。
+
+    返回 (period, fallback): fallback=True 表示原值非法已回落(调用方负责
+    告警)。合法值即 yfinance 官方 period 语法,大小写敏感。
+    """
+    val = (raw or '').strip()
+    if not val:
+        return default, False
+    if val not in HISTORY_PERIOD_LEGAL:
+        return default, True
+    return val, False

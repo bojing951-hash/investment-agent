@@ -49,7 +49,7 @@ print("=" * 60)
 
 from data_validator import extract_anchors_from_data
 import allocation_engine as ae
-from report_generator import load_prompt, _call_glm
+from report_generator import load_prompt, _call_model
 
 # ── 1. 真实锚点 + 观点渲染(触发器核验/预测生命周期) ──
 buf = io.StringIO()
@@ -82,7 +82,7 @@ rating只能取: 超配/标配/低配/观望。evidence数组须引用上方锚�
 2. 一句话说明评级理由(≤50字),如引用触发器须按引擎核验结果如实标注"已触发/待验证/持续确认中"。"""
 
 print("\n🤖 调用模型(真实API, max_tokens=2500)...")
-md = _call_glm(system_prompt, user_prompt, max_tokens=2500)
+md = _call_model(system_prompt, user_prompt, max_tokens=2500)
 check("模型返回内容", len(md.strip()) > 50, md[:100])
 print(f"--- 模型输出 ---\n{md[:700]}\n----------------")
 

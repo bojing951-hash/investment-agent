@@ -411,7 +411,7 @@ RG6 = (
     "def _glm(*a, **k):\n"
     "    _calls.append(1)\n"
     "    return 'x' * 600\n"
-    "rg._call_glm = _glm\n"
+    "rg._call_model = _glm\n"
     "rg.datetime = _DT(" + repr(DAY) + ")\n"
     "try:\n"
     "    rg.generate_weekly_report()\n"
@@ -458,7 +458,7 @@ with mock.patch.object(rg, 'datetime', _DT(DAY)), \
         mock.patch.object(rg, 'DATA_DIR', os.path.join(LINK, 'data')), \
         mock.patch.object(rg, 'OUTPUT_DIR',
                           os.path.join(ISO, 'fix10-rg-out')), \
-        mock.patch.object(rg, '_call_glm', _glm):
+        mock.patch.object(rg, '_call_model', _glm):
     rc_d7, out_d7 = quiet(rg.generate_weekly_report)
 check("D7(进程内, 模块锚=外链词法形态) rg exit 2, GLM=0, 无产出目录",
       rc_d7 == 2 and _glm.calls == 0

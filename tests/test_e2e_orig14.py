@@ -184,7 +184,7 @@ def report_run(td, gate_b='PASS', validator_exc=None, status_false=False,
         mock.patch.object(rg, 'DATA_DIR', os.path.join(td, 'data')),
         mock.patch.object(rg, 'OUTPUT_DIR', out_dir),
         mock.patch.object(rg, 'datetime', _FakeDT),
-        mock.patch.object(rg, '_call_glm', glm),
+        mock.patch.object(rg, '_call_model', glm),
         # Model-Agnostic v2(W3): 模拟已配置模型三参,使周报走模型分支(零真实凭证)
         mock.patch.object(rg, 'model_runtime_config', lambda: {
             'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1',
@@ -250,7 +250,7 @@ def ensure_state_sandbox(td):
 
 
 # ── E2E 场景1: 数据包数字改变 ────────────────────────────────────────
-print("\n── E2E场景1: 数据包数字改变(全链: 预检拒绝,零GLM,长期状态不动)")
+print("\n── E2E场景1: 数据包数字改变(全链: 预检拒绝,零模型调用,长期状态不动)")
 with tempfile.TemporaryDirectory() as td:
     paths, c = chain_build(td)
     before = state_files(td)
@@ -259,7 +259,7 @@ with tempfile.TemporaryDirectory() as td:
     with open(paths['pack'], 'w', encoding='utf-8') as f:
         f.write(pack.replace('7,659.44', '9,999.99', 1))
     code, out, applied, glm = report_run(td)
-    check("S1a 改包数字(meta未动)→入口exit 2+零GLM+无候选/正式文件+状态文件字节不动",
+    check("S1a 改包数字(meta未动)→入口exit 2+零模型调用+无候选/正式文件+状态文件字节不动",
           code == 2 and glm.calls == 0 and applied == []
           and not glob.glob(os.path.join(out, 'weekly_report_*'))
           and state_files(td) == before, f"exit={code} glm={glm.calls}")
@@ -274,7 +274,7 @@ with tempfile.TemporaryDirectory() as td:
     meta = rp.load_meta(paths['pack'])
     rp.write_meta(paths['pack'], dict(meta, pack_digest=rp.digest_file(paths['pack'])))
     code, out, applied, glm = report_run(td)
-    check("S1b 改包数字+同步改meta摘要→权威快照重建比对仍拒(exit 2,零GLM)",
+    check("S1b 改包数字+同步改meta摘要→权威快照重建比对仍拒(exit 2,零模型调用)",
           code == 2 and glm.calls == 0 and state_files(td) == before,
           f"exit={code} glm={glm.calls}")
 
@@ -289,7 +289,7 @@ with tempfile.TemporaryDirectory() as td:
     with open(paths['anchors'], 'w', encoding='utf-8') as f:
         json.dump(anchors, f, ensure_ascii=False, indent=1)
     code, out, applied, glm = report_run(td)
-    check("S2a 改锚点数字(meta未动)→exit 2+零GLM+长期状态不动",
+    check("S2a 改锚点数字(meta未动)→exit 2+零模型调用+长期状态不动",
           code == 2 and glm.calls == 0 and state_files(td) == before,
           f"exit={code} glm={glm.calls}")
 with tempfile.TemporaryDirectory() as td:
@@ -317,7 +317,7 @@ with tempfile.TemporaryDirectory() as td:
     with open(paths['prompt'], 'w', encoding='utf-8') as f:
         f.write(text)
     code, out, applied, glm = report_run(td)
-    check("S3a prompt数字被替换→重建比对拒(exit 2,零GLM)",
+    check("S3a prompt数字被替换→重建比对拒(exit 2,零模型调用)",
           code == 2 and glm.calls == 0, f"exit={code}")
 with tempfile.TemporaryDirectory() as td:
     paths, c = chain_build(td)
@@ -335,7 +335,7 @@ for field in ('anchors_digest', 'snapshot_digest'):
         meta = rp.load_meta(paths['anchors'])
         rp.write_meta(paths['anchors'], dict(meta, **{field: 'deadbeefdeadbeef'}))
         code, out, applied, glm = report_run(td)
-        check(f"S4 meta.{field}改死值→exit 2+零GLM", code == 2 and glm.calls == 0,
+        check(f"S4 meta.{field}改死值→exit 2+零模型调用", code == 2 and glm.calls == 0,
               f"exit={code}")
 
 # ── E2E 场景5: 锚点残留旧指标 ──────────────────────────────────────
@@ -354,7 +354,7 @@ with tempfile.TemporaryDirectory() as td:
                   dict(meta, anchors_digest=rp.digest_file(paths['anchors'])))
     code, out, applied, glm = report_run(td)
     # 入口拒绝(重建比对/残留点名);锚点批质量核验在预检内完成
-    check("S5 锚点文件残留旧指标键(+meta同步)→exit 2+零GLM+长期状态不动",
+    check("S5 锚点文件残留旧指标键(+meta同步)→exit 2+零模型调用+长期状态不动",
           code == 2 and glm.calls == 0 and state_files(td) == before,
           f"exit={code}")
     ok, reason = rp.verify_anchor_batch(paths['anchors'], anchors_date=DAY,
@@ -387,7 +387,7 @@ with tempfile.TemporaryDirectory() as td:
           and snap['snapshot_id'] == f'research_snapshot_{DAY}_v3', str(why))
     # 修订后旧包/旧锚点绑base→入口拒绝(批次失配,不得拿旧包冒充)
     code, out, applied, glm = report_run(td)
-    check("S6c 修订_v3后旧包仍绑base→报告入口exit 2(零GLM)",
+    check("S6c 修订_v3后旧包仍绑base→报告入口exit 2(零模型调用)",
           code == 2 and glm.calls == 0, f"exit={code}")
 with tempfile.TemporaryDirectory() as td:
     paths, c = chain_build(td)
@@ -424,7 +424,7 @@ for gate, declare, label in (('DEGRADED', 'PASS', '非核心FAIL日谎报PASS'),
             json.dump(snap, f, ensure_ascii=False, indent=1)
         before = state_files(td)
         code, out, applied, glm = report_run(td)
-        check(f"S7 {label}→入口exit 2+零GLM+长期状态不动",
+        check(f"S7 {label}→入口exit 2+零模型调用+长期状态不动",
               code == 2 and glm.calls == 0 and state_files(td) == before,
               f"exit={code}")
 with tempfile.TemporaryDirectory() as td:
@@ -463,7 +463,7 @@ with tempfile.TemporaryDirectory() as td:
           paths['pack_code'] == 2 and not os.path.exists(paths['pack']),
           f"pack_code={paths['pack_code']} exists={os.path.exists(paths['pack'])}")
     code, out, applied, glm = report_run(td, gate_b='PASS')
-    check("S8b 链路终点: 核心失败日报告入口exit 2+零GLM+无任何报告文件",
+    check("S8b 链路终点: 核心失败日报告入口exit 2+零模型调用+无任何报告文件",
           code == 2 and glm.calls == 0
           and not glob.glob(os.path.join(out, 'weekly_report_*')),
           f"exit={code} glm={glm.calls}")
@@ -494,7 +494,7 @@ with tempfile.TemporaryDirectory() as td:
           and 'data_validator.py' not in executed
           and ledger.get('allow_formal_report') is False, f"exit={pcode}")
     code, out, applied, glm = report_run(td)
-    check("S9a 链路终点: 采集失败日报告入口exit 2+零GLM(不得凭旧产物放行)",
+    check("S9a 链路终点: 采集失败日报告入口exit 2+零模型调用(不得凭旧产物放行)",
           code == 2 and glm.calls == 0, f"exit={code} glm={glm.calls}")
 with tempfile.TemporaryDirectory() as td:
     def fake_step2(step_name, script_name, timeout=900, script_dir=None):
@@ -538,7 +538,7 @@ with tempfile.TemporaryDirectory() as td:
           ok is False and ('不一致' in reason or 'quality' in reason.lower()
                            or '质量' in reason), reason)
     code, out, applied, glm = report_run(td)
-    check("S10(链) 报告入口exit 2+零GLM", code == 2 and glm.calls == 0, f"exit={code}")
+    check("S10(链) 报告入口exit 2+零模型调用", code == 2 and glm.calls == 0, f"exit={code}")
 
 # ── E2E 场景11: 既有正式报告被新失败报告尝试覆盖 ────────────────────
 print("\n── E2E场景11: 已发布合格报告vs新失败报告")
@@ -632,7 +632,7 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(qo, 'DATA_DIR', os.path.join(td, 'data', 'daily')), \
          mock.patch.object(qo, 'OUTPUT_DIR', qdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
-         mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, '_call_model', glm), \
          mock.patch.object(rg, 'model_runtime_config', lambda: { \
              'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
              'model': 'fake-e2e-model', 'complete': True, \
@@ -640,13 +640,13 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(sys, 'argv', ['monthly_review.py', '--month', '202609',
                                          '--dry-run']):
         quiet(mr.main)
-    check("S14a 月报dry-run: monthly_data落盘+零GLM",
+    check("S14a 月报dry-run: monthly_data落盘+零模型调用",
           os.path.exists(os.path.join(mdir, 'monthly_data_202609.md')) and glm.calls == 0)
     with mock.patch.object(mr, 'ROOT_DIR', td), \
          mock.patch.object(mr, 'DATA_DIR', os.path.join(td, 'data', 'daily')), \
          mock.patch.object(mr, 'OUTPUT_DIR', mdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
-         mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, '_call_model', glm), \
          mock.patch.object(rg, 'model_runtime_config', lambda: { \
              'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
              'model': 'fake-e2e-model', 'complete': True, \
@@ -662,7 +662,7 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(qo, 'DATA_DIR', os.path.join(td, 'data', 'daily')), \
          mock.patch.object(qo, 'OUTPUT_DIR', qdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
-         mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, '_call_model', glm), \
          mock.patch.object(rg, 'model_runtime_config', lambda: { \
              'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
              'model': 'fake-e2e-model', 'complete': True, \

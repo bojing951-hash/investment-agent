@@ -8,7 +8,7 @@
   (盘中触及判定需要);
 - 前提规格同样每日程序判定(兑现→转观察中,观察期自前提观测日起);
   第六轮P0-2: 终态预测不参与;前提触发观测日须≤截止日(引擎侧守卫);
-- 不调用GLM — 裁决仍由周报路径的引擎/受核验GLM执行,本脚本只做数据记录。
+- 不调用模型 — 裁决仍由周报路径的引擎/受核验模型执行,本脚本只做数据记录。
 
 第六轮P0-1 验证与写入严格隔离:
 - 观察中预测校验目标指标,未触发预测校验前提指标,二者分别判定;
@@ -211,7 +211,7 @@ def shutil_copy(path):
 
 
 if __name__ == '__main__':
-    ap = argparse.ArgumentParser(description='每日预测观察记录(不调用GLM)')
+    ap = argparse.ArgumentParser(description='每日预测观察记录(不调用模型)')
     ap.add_argument('--views', default=None, help='观点库路径(默认config/allocation_views.json)')
     ap.add_argument('--anchors', default=None, help='锚点JSON路径(默认最新data/daily/anchors_*)')
     ap.add_argument('--anchors-date', default=None, help='锚点采集批次YYYYMMDD(默认取自文件名;'

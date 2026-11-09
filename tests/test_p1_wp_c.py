@@ -11,7 +11,7 @@
    WP-B F1)域外锚点fail-closed=UNVERIFIED(SOURCE_MISMATCH)——负向敏感度。
 
 数据纪律: 合成值全部显式发明并标注[示意], 不冒充真实; 期望值独立手算硬编码,
-禁自证(不 import 实现侧计算结果充当期望); 零网络零GLM零凭证(t13对_call_glm
+禁自证(不 import 实现侧计算结果充当期望); 零网络零模型调用零凭证(t13对_call_model
 打桩捕获prompt, 不触网)。定值源=docs/P1_WP_C_REPORT.md §零.6/§零.7。
 """
 import json
@@ -399,8 +399,8 @@ class T13ReportTemplateZeroDiff(unittest.TestCase):
             captured['usr'] = user_prompt
             return 'X' * 600                       # ≥500字符⇒首试即返回, 零重试零sleep
 
-        orig = rg._call_glm
-        rg._call_glm = fake_glm
+        orig = rg._call_model
+        rg._call_model = fake_glm
         try:
             with tmp:
                 snap, data_root, daily = _build_day(tmp.name)
@@ -409,7 +409,7 @@ class T13ReportTemplateZeroDiff(unittest.TestCase):
                                               trusted_root=tmp.name)
                 out = rg.generate_report(data_pack)
         finally:
-            rg._call_glm = orig
+            rg._call_model = orig
         self.assertIsNotNone(out)
         self.assertIn('## 经济体观察', captured['usr'],
                       "数据包经济体节须原样进入GLM prompt(自动传导=零模板改动的判定依据)")

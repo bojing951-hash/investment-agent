@@ -17,7 +17,7 @@
 
 数据纪律(R014-D3/R022): 合成 fixture=唯一数据源(全部 tempfile 临时目录,零读
 真实 data/daily/ 与 data/research/);期望值独立手算硬编码[示意],禁自证(不 import
-实现侧计算结果充当期望);零网络零 GLM 零凭证零第三方新依赖。定值源=
+实现侧计算结果充当期望);零网络零模型调用 零凭证零第三方新依赖。定值源=
 docs/P1_WP_G_REPORT.md §零.5(登记定值)。fixture→期望值映射: 本文件
 make_*_fixture 工厂与 _pair_series/_boundary_series 手算构造器(逐断言组可追溯,
 DELIVERY 漂移维护专节登记表同源)。

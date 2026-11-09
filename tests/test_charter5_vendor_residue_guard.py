@@ -9,7 +9,10 @@ A2 清单 S1-S8 的机器面清零。本守卫静态扫描仓内源码/配置/�
   glm_conclusion_integrator / glm_conclusion_client(含 import/字符串/注释);
 - 类名 GLMResearchInput;--glm 旗标;RUN_GLM_LIVE 旧门名;
   glm4_*/glm_conclusions_archive 产物名;glm_key_note/GLM_KEY_MISSING_MESSAGE;
-  GLM_BASE_URL/GLM_MODEL 旧变量名;ZHIPU_PRESET 预设;bigmodel.cn 端点。
+  GLM_BASE_URL/GLM_MODEL 旧变量名;ZHIPU_PRESET 预设;bigmodel.cn 端点;
+- 角色词面(D 轮裁定,2026-11-09): _call_glm/_glm_call 旧函数名、GLM裁决/
+  调GLM/调用GLM 消息与文案、GLM 数据包/GLM 研究输入产物称谓、L3-glm 层键、
+  glm_resolved 变量名、零GLM/不调用GLM 纪律措辞(统一=零模型调用/模型裁决)。
 
 白名单(唯一例外,各有归属理由):
 - 密钥卫生名单(防用户旧 Key 泄漏,安全功能,Charter5 唯一豁免):
@@ -17,11 +20,13 @@ A2 清单 S1-S8 的机器面清零。本守卫静态扫描仓内源码/配置/�
   scripts/model_conclusion_client.py 的 redact 值级剥离;
 - 旧档兼容映射(S6 读取层,旧 sidecar 'glm' 键→'model'):
   scripts/research_archive.py / ia_cli.py 中含 'glm' 的行;
-- 断言"残留不存在"的负向守卫测试(守卫的守卫): 本文件与 test_oss_product。
+- 断言"残留不存在"的负向守卫测试(守卫的守卫): 本文件与 test_oss_product;
+  test_skill_installer ⑪ 装机副本防漂移(断言安装产物零 --glm/零旧键名)。
 
-A2 已登记但本守卫不锁定的残余(角色词,非机器面,留交叉审查裁决):
-report_generator._call_glm、allocation_engine 判决消息、news_collector 注释、
-project_final_seal 层键、monthly/quarterly 引用——见套件头注与终报。
+乙裁定(2026-11-09): project_final_seal.py(封版登记簿,含 L3-glm 层键与
+历史交付件名,登记簿改名=伪造)与 test_p3_wp_f.py 已整体移出公开仓至
+~/investment-agent-docs-archive/scripts/(110 测试在归档侧保覆盖,归档侧
+不属本守卫扫描面);公开仓 CI 套件数 107→106。
 """
 import os
 import re
@@ -67,6 +72,13 @@ HARD_PATTERNS = [
     (r'GLM_BASE_URL|GLM_MODEL\b', '旧模型变量名'),
     (r'ZHIPU_PRESET', '厂商预设常量'),
     (r'bigmodel\.cn', '厂商端点域名'),
+    # ── D 轮(2026-11-09)角色词面增补: 机械改名后全仓零命中 ──
+    (r'_call_glm\b|_glm_call\b', '旧调用函数名'),
+    (r'GLM裁决|调GLM|调用GLM', '判决消息/文案角色词'),
+    (r'GLM 数据包|GLM 研究输入', '旧产物称谓'),
+    (r'L3-glm', '旧登记层键(乙类已移出公开仓)'),
+    (r'glm_resolved', '旧变量名'),
+    (r'零 ?GLM|不调用 ?GLM', '旧纪律措辞(=零模型调用)'),
 ]
 
 # 白名单文件(整文件豁免,理由见模块 docstring)
@@ -80,6 +92,7 @@ HYGIENE_ALLOW = {
     os.path.join(ROOT, 'tests', 'test_charter5_zero_key_matrix.py'),     # 负向守卫(剥离旧变量名)
     os.path.join(ROOT, 'tests', 'test_charter5_usage_actual_values.py'),  # 负向守卫(断言缺席)
     os.path.join(ROOT, 'tests', 'test_charter5_vendor_residue_guard.py'),  # 本文件
+    os.path.join(ROOT, 'tests', 'test_skill_installer.py'),  # ⑪ 装机副本防漂移(负向守卫)
 }
 # 旧档兼容行(S6): research_archive/ia_cli 中含 'glm' 的行级豁免
 LEGACY_KEY_FILES = {

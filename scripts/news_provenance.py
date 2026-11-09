@@ -295,7 +295,7 @@ def _batch_identity(now_iso, count):
 
 def save_batch(raw_records, news_dir, retrieved_at_utc=None,
                source_status=None, now_utc=None):
-    """原始来源归档(采集→归档→分类→GLM→输出;GLM失败不丢原始档案)。
+    """原始来源归档(采集→归档→分类→模型→输出;模型失败不丢原始档案)。
 
     FIX1-01不可覆盖保证:
       * 档案文件以排他模式'x'(O_CREAT|O_EXCL)创建——命名碰撞(同秒同

@@ -102,7 +102,7 @@ def _gate_check(snapshot):
     if not rp.gate_allows_formal_research(status):
         raise AssemblyRefused(
             f"Gate A {status if status else '不可用(' + reason + ')'} — "
-            f"拒绝装配正式 GLM 研究输入(FAIL/未知不得进入正式研究;"
+            f"拒绝装配正式模型研究输入(FAIL/未知不得进入正式研究;"
             f"沿数据装配器拒绝语义)")
     return status
 

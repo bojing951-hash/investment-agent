@@ -4,7 +4,7 @@
 覆盖验收契约IA-P0-1-AC-v1.0的行为矩阵:
 - AC-01 Gate A三态语义(缺字段/非法不默认PASS)      - AC-02 流水线依赖与SKIPPED
 - AC-03 装配器不得绕过Gate A                        - AC-04 快照→包→锚点可验证绑定
-- AC-05 独立报告入口预检(不调GLM/不写状态)          - AC-06 Gate A+B合成
+- AC-05 独立报告入口预检(不调模型/不写状态)          - AC-06 Gate A+B合成
 - AC-07 Gate B FAIL报告不冒充合格(_UNVALIDATED)     - AC-08 长期状态保护(观察器)
 - AC-10 DEGRADED保留降级能力                        - AC-11 跳过原因/状态可追溯
 
@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # WP-B3域化: helpers可导入
 # Model-Agnostic v2(W3修复): 模拟已配置模型三参(零真实凭证,base_url 指向
 # 保留域 fake.invalid),使 generate_weekly_report 走模型分支——本套件 mock 的
-# _call_glm 仅在模型分支被调用;未配置时的 data-only 分支由 test_p0_fixes 覆盖。
+# _call_model 仅在模型分支被调用;未配置时的 data-only 分支由 test_p0_fixes 覆盖。
 os.environ.setdefault('MODEL_API_KEY', 'FAKE_E2E_MODEL_KEY')
 os.environ.setdefault('MODEL_BASE_URL', 'https://fake.invalid/v1')
 os.environ.setdefault('MODEL_NAME', 'fake-e2e-model')
@@ -450,7 +450,7 @@ with tempfile.TemporaryDirectory() as td:
     check("Gate A DEGRADED→预检通过(继续+披露)", ok and ctx['gate_a'] == 'DEGRADED',
           str(problems))
 
-# ══ 6. 报告主流程行为: 不调GLM/不写状态/_UNVALIDATED/降级披露(AC-05/06/07/10) ═
+# ══ 6. 报告主流程行为: 不调模型/不写状态/_UNVALIDATED/降级披露(AC-05/06/07/10) ═
 print("\n── 6. 报告主流程(AC-05/06/07/10)")
 
 
@@ -480,7 +480,7 @@ def run_weekly_report_flow(td, gate_b, gate='PASS'):
     with mock.patch.object(rg, 'DATA_DIR', td), \
          mock.patch.object(rg, 'OUTPUT_DIR', out_dir), \
          mock.patch.object(rg, 'datetime', _FakeDT), \
-         mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, '_call_model', glm), \
          mock.patch.object(rg, 'apply_status_updates', _apply), \
          mock.patch.object(rg, 'validate_generated_report',
                            lambda md, anchors=None, anchors_file=None, data_only=False: (gate_b, ['SYNTHETIC警告'])), \
@@ -502,7 +502,7 @@ def run_weekly_report_flow(td, gate_b, gate='PASS'):
 
 
 with tempfile.TemporaryDirectory() as td:
-    # 预检失败(目录空) → 不调GLM/不写状态/不产报告/exit 2
+    # 预检失败(目录空) → 不调模型/不写状态/不产报告/exit 2
     os.makedirs(os.path.join(td, 'daily'))
     os.makedirs(os.path.join(td, 'weekly'))
     glm = _GLMRecorder()
@@ -510,7 +510,7 @@ with tempfile.TemporaryDirectory() as td:
     with mock.patch.object(rg, 'DATA_DIR', td), \
          mock.patch.object(rg, 'OUTPUT_DIR', os.path.join(td, 'out')), \
          mock.patch.object(rg, 'datetime', _FakeDT), \
-         mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, '_call_model', glm), \
          mock.patch.object(rg, 'apply_status_updates',
                            lambda *a, **kw: applied.append(1)), \
          mock.patch.object(rg.allocation_engine, 'load_views',

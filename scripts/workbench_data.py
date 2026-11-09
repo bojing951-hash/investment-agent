@@ -283,7 +283,7 @@ SUPPORTED_CONCEPT_HINT = (
 
 
 def ask_local(question, snapshot, root=None):
-    """页面四: 本地接地作答(e2eb mapper→executor→renderer,零网络零GLM)。
+    """页面四: 本地接地作答(e2eb mapper→executor→renderer,零网络零模型调用)。
 
     返回 {'status': answered|refusal|out_of_scope|no_registry_identity|unmapped|error,
           'answer_text', 'values', 'unresolved', 'ir'}——未支持类型如实报状态,不猜映射。"""

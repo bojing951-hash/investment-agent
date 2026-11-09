@@ -115,4 +115,71 @@ check("误设旧变量不被读取: doctor 三参仍=未配置(model_key_note �
       d5['data']['env']['MODEL_API_KEY']['configured'] is False
       and 'model_key_note' in d5['data'])
 
+# ── 6. S6 旧档 glm→model 读侧映射回归锁(D2,2026-11-09;A2 手工实证→永久测试) ──
+# tempdir 注入 ia_cli._ARCHIVE_DIR(批2 WI6 注入缝),构造 glm 键旧 sidecar
+# (write_research_full 前时代的合法旧档)→ archive get 断言: full.model 由旧
+# glm 键填充、输出契约恒 model 键(无 glm 键)、**盘上旧档字节零改写**。
+print("\n── 6. 旧档 sidecar glm→model 映射 + 盘上字节不动(D2) ──")
+import contextlib
+import io
+sys.path.insert(0, ROOT)
+sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+import ia_cli                                   # noqa: E402
+import research_archive as ra                   # noqa: E402
+
+QID = 'QB-20261108-001'
+with tempfile.TemporaryDirectory() as td:
+    coll = os.path.join(td, 'research_archive', 'query_history')
+    os.makedirs(coll)
+    base_rec = {'record_type': 'query_history', 'query_id': QID,
+                'created_at': '2026-11-08T09:00:00+08:00', 'mode': 'CLI',
+                'question_text': '旧档映射锁', 'as_of': '2026-11-08',
+                'snapshot_id': 'research_snapshot_20261108',
+                'digest_snapshot': '0123456789abcdef', 'ir': {}, 'ir_stage': 'map',
+                'answer_summary': None, 'promoted_to_task_id': None,
+                'archived_at': '2026-11-08T09:05:00+08:00'}
+    base_path = os.path.join(coll, QID + '.json')
+    with open(base_path, 'w', encoding='utf-8') as f:
+        json.dump(base_rec, f, ensure_ascii=False, indent=1, sort_keys=True)
+    # 旧档 sidecar: model 缺席而 glm 在场(FULL_LEGACY_KEYS 代位=合法旧格式)
+    legacy = {'record_type': 'research_full_v1', 'query_id': QID,
+              'question_text': '旧档映射锁',
+              'created_at': '2026-11-08T09:00:00+08:00',
+              'research_as_of': '2026-11-08T09:00:00+08:00',
+              'snapshot_id': 'research_snapshot_20261108',
+              'digest_snapshot': '0123456789abcdef', 'status': 'answered',
+              'answer_text': '旧档正文', 'values': None,
+              'glm': {'provider': 'model-x'}, 'unresolved': None,
+              'warnings': [], 'violations': [], 'user_note': None,
+              'follow_up_of': None, 'saved_at': '2026-11-08T09:05:00+08:00'}
+    check("6a 旧档 payload 过 schema 校验(glm 代位=合法旧格式)",
+          ra.validate_research_full(legacy) == [])
+    side_path = os.path.join(coll, QID + '.research-full.json')
+    with open(side_path, 'w', encoding='utf-8') as f:
+        json.dump(legacy, f, ensure_ascii=False, indent=1, sort_keys=True)
+    base_before = open(base_path, 'rb').read()
+    side_before = open(side_path, 'rb').read()
+
+    real_dir = ia_cli._ARCHIVE_DIR
+    ia_cli._ARCHIVE_DIR = td
+    out = io.StringIO()
+    code = None
+    try:
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(io.StringIO()):
+            try:
+                ia_cli.main(['archive', 'get', '--query-id', QID])
+            except SystemExit as e:
+                code = e.code
+    finally:
+        ia_cli._ARCHIVE_DIR = real_dir
+    d6 = json.loads(out.getvalue())
+    full6 = d6.get('data', {}).get('full') or {}
+    check("6b archive get 旧档成功(full.model 由 glm 键填充)",
+          code == 0 and d6.get('ok')
+          and full6.get('model') == {'provider': 'model-x'}, out.getvalue()[:200])
+    check("6c 输出契约恒 model 键(合并视图无 glm 键)", 'glm' not in full6)
+    check("6d 盘上旧档字节零改写(base+sidecar 读后原样)",
+          open(base_path, 'rb').read() == base_before
+          and open(side_path, 'rb').read() == side_before)
+
 sys.exit(0 if FAIL == 0 else 1)

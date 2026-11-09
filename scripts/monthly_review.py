@@ -13,7 +13,7 @@
 用法:
   python3 monthly_review.py --month 202609   # 指定月份(已完结→正式,当月→预览)
   python3 monthly_review.py                  # auto: 上一自然月已完结且今天是其后第一个周五才生成
-  python3 monthly_review.py --dry-run        # 只装配数据不调用GLM
+  python3 monthly_review.py --dry-run        # 只装配数据不调用模型
 """
 import os
 import sys
@@ -303,7 +303,7 @@ MONTHLY_STRUCTURE = """请按以下结构输出月度复盘：
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--month', help='YYYYMM,指定复盘月份(当月未完结则按【预览】生成)')
-    ap.add_argument('--dry-run', action='store_true', help='只装配数据不调用GLM')
+    ap.add_argument('--dry-run', action='store_true', help='只装配数据不调用模型')
     args = ap.parse_args()
 
     if args.month:
@@ -351,10 +351,10 @@ def main():
     print(f"💾 月度数据块: {data_path}")
 
     if args.dry_run:
-        print("🏃 dry-run: 跳过GLM调用")
+        print("🏃 dry-run: 跳过模型调用")
         return
 
-    from report_generator import load_prompt, _call_glm
+    from report_generator import load_prompt, _call_model
     system_prompt = load_prompt('monthly_review_prompt.md')
     user_prompt = f"""请基于以下{ym[:4]}年{int(ym[4:6])}月的原始数据汇总，生成{tag}月度复盘。
 
@@ -362,8 +362,8 @@ def main():
 
 {MONTHLY_STRUCTURE}"""
 
-    print(f"🤖 调用GLM生成月报(输入约{len(system_prompt) + len(user_prompt)}字符)...")
-    md = _call_glm(system_prompt, user_prompt)
+    print(f"🤖 调用模型生成月报(输入约{len(system_prompt) + len(user_prompt)}字符)...")
+    md = _call_model(system_prompt, user_prompt)
     if len(md.strip()) < 500:
         print(f"❌ 返回过短({len(md)}字符),放弃")
         sys.exit(1)

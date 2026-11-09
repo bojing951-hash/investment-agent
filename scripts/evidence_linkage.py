@@ -11,8 +11,8 @@ DESIGN docs/P3_DESIGN.md §7 WP-P3-B 行(L176-L180,基线工作树实读)确定�
   周报事件经 rp.formal_report_view 八条校验链在场复用+绑定快照三重纪律
   (drr._load_snapshot_for_verify 规范加载+rp.digest_snapshot 重算+gate 放行,
   重算 digest 与发布状态声明值失配→ValueError 证据链漂移 fail-loud);
-- 匹配器(§4.1 L105-108,第一/二层零 GLM;**不含第三层语义匹配**——PENDING 另拟,
-  确认权留用户[DP-4],本模块零 GLM/零网络/零凭证):
+- 匹配器(§4.1 L105-108,第一/二层零模型调用;**不含第三层语义匹配**——PENDING 另拟,
+  确认权留用户[DP-4],本模块零模型调用/零网络/零凭证):
   第一层 精确匹配=对象 quant_triggers[].metric(锚键)∈事件锚点键集,条件评估经
   ae._eval_condition_set 在场复用(COMPARATORS 词表),条件态沿用引擎核验词面
   (triggered/not_triggered/sustaining/unverifiable);建议动作映射(P-B-06):
@@ -37,7 +37,7 @@ DESIGN docs/P3_DESIGN.md §7 WP-P3-B 行(L176-L180,基线工作树实读)确定�
 
 纪律: 零网络(import 面白名单 json/os/re/sys/datetime+项目既有
 allocation_engine/deep_research_registrar/research_provenance/snapshot_builder/
-research_index);零 GLM/凭证/付费;关联不改任何状态(要点①);对齐上游=复用调用
+research_index);零模型调用/凭证/付费;关联不改任何状态(要点①);对齐上游=复用调用
 禁复制分叉。本模块输出为研究关联与跟踪聚合面数据,**不构成投资建议**
 (DESIGN §8.3 红线: 禁交易/禁仓位/禁收益承诺)。参数登记: docs/P3_WP_B_REPORT.md
 §零.4/§零.5(DP 处置+P-B-01..P-B-16,先登记后实现,运行后禁回改)。

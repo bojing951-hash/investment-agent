@@ -15,7 +15,7 @@ DESIGN docs/P3_DESIGN.md §7 WP-P3-A 行(L170-L174,基线工作树实读)确定�
   rate_economy_ 等采集件零匹配零读取);索引损坏/漂移→重建,不反向修改任何
   权威档;查询结果引用一律落到源档档键(snapshot_id+digest/报告档键/状态记录
   键/VER- 键),不复制数值语义为第二事实源(§3.1 L73);
-- 结构化查询 API(§3.2(a) L82): 离线纯函数,零网络零 GLM;输入=维度过滤器
+- 结构化查询 API(§3.2(a) L82): 离线纯函数,零网络零模型调用;输入=维度过滤器
   (metric_id/时间窗/资产/机制类别/结论状态/档键前缀),输出=档键引用列表
   (非数值本身);确定性排序;
 - 版本记录写入挂接(§3.3,DP-3(a) 记录级): 结论版本链=append-only 旁路记录族
@@ -34,7 +34,7 @@ DESIGN docs/P3_DESIGN.md §7 WP-P3-A 行(L170-L174,基线工作树实读)确定�
 关联扫描(§3.2(c),WP-P3-B 面)不在本包;WP-P3-B..F 任何范围禁提前带入。
 
 纪律: 零网络(import 面白名单 json/os/sys/datetime+项目既有 drr/rp/fe);
-零 GLM/凭证/付费;版本记录 append-only(重复/改写一律拒,族先例);快照绑定
+零模型调用/凭证/付费;版本记录 append-only(重复/改写一律拒,族先例);快照绑定
 三重纪律(drr._load_snapshot_for_verify 规范加载+rp.digest_snapshot 重算+
 rp.gate_allows_formal_research 放行,Gate A=FAIL fail-closed);本模块输出为
 研究检索面数据,**不构成投资建议**(DESIGN §8.3 红线: 禁交易/禁仓位/禁收益
@@ -660,7 +660,7 @@ def query_index(index, *, metric_ids=None, obs_start=None, obs_end=None,
     命中语义(P-A-10): metric_ids/assets/mechanisms=集合交集非空;statuses=
     条目 status 精确等值(任一);key_prefixes=ref 前缀任一;时间窗=条目 date
     落窗 **或** 条目 [obs_min,obs_max] 与窗相交;多过滤器 AND;输出按
-    (kind,ref) 排序={kind,ref,snapshot_id,digest}(档键引用)。零网络零 GLM。"""
+    (kind,ref) 排序={kind,ref,snapshot_id,digest}(档键引用)。零网络零模型调用。"""
     if not isinstance(index, dict) or not isinstance(index.get("entries"), list):
         raise ValueError("index 须为携 entries 列表的 dict(load_index_file 产出)")
     _check_window_args(obs_start, obs_end)

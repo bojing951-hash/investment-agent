@@ -5,7 +5,7 @@
 
 IA-P0-2-W3(新闻原始来源保全):
 - 采集顺序固定: 采集 → 原始来源归档(news_provenance.save_batch) → 分类
-  → GLM摘要 → 输出——GLM失败原始来源已保全(W3-03 §7.2);
+  → 模型摘要 → 输出——模型失败原始来源已保全(W3-03 §7.2);
 - 原始保全字段: 供应商文章ID/标题/摘要全文/URL/发布时间原文/related/
   请求证券代码/Feed身份/entry.id——URL不再在合并时丢失(W3问题1),
   summary_original归档前禁止[:200]截断(W3问题2,截断只在派生视图);
@@ -17,7 +17,7 @@ IA-P0-2-W3(新闻原始来源保全):
 - 周报引用链: 每日写news_refs_YYYYMMDD.json确定性来源索引(W3-05)。
 
 IA-P0-2-W3-FIX1(首轮独立验收失败后增量整改):
-- FIX1-03 GLM成功摘要引用保全: 模型输入行携带[art_]引用ID+提示词要求
+- FIX1-03 模型成功摘要引用保全: 模型输入行携带[art_]引用ID+提示词要求
   每条摘要条目以对应ID开头;成功输出做**确定性引用校验**(至少一个引用/
   全部属于本次输入允许集合/每条'-'新闻条目行必须携带允许引用)——未过
   校验→一次受控重试→仍失败→确定性标题回退(代码核发真实ID),绝不把
@@ -233,7 +233,7 @@ def collect_all_news(now_utc=None):
     summary/url/datetime/related),个股新闻记录请求证券代码且不因多证券
     关联覆盖来源身份(每条记录独立,article_id由供应商ID>URL>三元组决定)。
     display_items保持旧分类器口径(headline/source/summary/datetime)+
-    article_id引用,供分类/GLM输入/news_raw兼容视图使用。
+    article_id引用,供分类/模型输入/news_raw兼容视图使用。
     """
     now_utc = now_utc or nprov.now_utc_iso()
     retrieved = now_utc  # 采集时刻独立于来源发布时间保存
@@ -500,7 +500,7 @@ def validate_summary_citations(summary, allowed_ids):
 def _fallback_headlines(classified, header):
     """确定性标题回退(FIX1-03/W3-06+FIX2-02): 代码核发真实[art_]ID。
 
-    GLM失败/引用校验二次失败时使用——不保存无引用或含虚构引用的模型
+    模型失败/引用校验二次失败时使用——不保存无引用或含虚构引用的模型
     输出;回退行ID由确定性代码从原始档案核发,不编造链接。
     FIX2-02: 回退标题与模型输入(_build_news_text)共用同一
     sanitize_model_text安全派生——多行/HTML/伪ID标题在回退中同样
@@ -520,7 +520,7 @@ def _fallback_headlines(classified, header):
 
 
 def generate_news_summary(classified):
-    """用GLM生成新闻摘要(FIX1-03: 成功输出必须通过确定性引用校验)"""
+    """用模型生成新闻摘要(FIX1-03: 成功输出必须通过确定性引用校验)"""
     print("\n🤖 生成新闻摘要...")
 
     news_text = _build_news_text(classified)
@@ -570,9 +570,9 @@ def generate_news_summary(classified):
 
     # 2026-10-11 P0修复(缺陷六.1/六.10): 此处原调用火山引擎DeepSeek(responses.create),
     # 模型已下线(ModelNotOpen)导致每日"AI摘要失败"降级为原始标题噪音。
-    # 迁移到智谱GLM(与周报同通道,流式防断连,见 glm-api-pitfalls)。
-    # Model-Agnostic v2(2026-11-09): 改读中性配置 MODEL_* 三参(env_config 内含
-    # 旧 GLM_* 条件回退);主流程在调用前已检查三参齐备,此处理论不达缺参路径。
+    # 迁移到与周报同通道的模型调用(流式防断连,踩坑经验见 memory 注记)。
+    # Model-Agnostic v2(2026-11-09): 改读中性配置 MODEL_* 三参;
+    # 主流程在调用前已检查三参齐备,此处理论不达缺参路径。
     client = OpenAI(api_key=MODEL_API_KEY, base_url=MODEL_BASE_URL)
 
     # FIX1-06: system角色内容固定,不因新闻内容改变;新闻文本一律作为
@@ -581,7 +581,7 @@ def generate_news_summary(classified):
                   "content": "你是金融市场新闻分析师，擅长从大量新闻中提取"
                              "关键信息和市场影响。输出简洁、精准。"}
 
-    def _glm_call(user_content):
+    def _model_call(user_content):
         stream = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[system_msg, {"role": "user", "content": user_content}],
@@ -602,7 +602,7 @@ def generate_news_summary(classified):
 
     allowed = _allowed_citation_ids(classified)
     try:
-        summary = _glm_call(prompt)
+        summary = _model_call(prompt)
         ok, problems = validate_summary_citations(summary, allowed)
         if not ok:
             # FIX1-03: 一次受控重试(明确指出校验失败原因+输出约定)
@@ -613,7 +613,7 @@ def generate_news_summary(classified):
                 + "。请严格重新输出: 每一条以'-'开头的新闻摘要条目必须以"
                 "行首来源编号[art_xxx]开始,且只能使用上面输入中给出的编号,"
                 "不得虚构;没有来源支持的表述不得作为'-'新闻条目列出。")
-            summary = _glm_call(retry_prompt)
+            summary = _model_call(retry_prompt)
             ok, problems = validate_summary_citations(summary, allowed)
         if ok:
             n_cited = len(nprov.extract_citations(summary))
@@ -631,7 +631,7 @@ def generate_news_summary(classified):
         # W2(2026-11-09): 异常文本过 redact()——错误体可能回显凭证形态
         print(f"  ❌ 模型摘要失败: {redact(str(e))}")
         # 最后手段：直接输出分类标题
-        # W3-06: GLM失败时原始来源档案已归档(归档先于GLM);回退输出携带
+        # W3-06: 模型失败时原始来源档案已归档(归档先于模型);回退输出携带
         # [art_xxx]引用ID保持可追溯,不得用编造链接填充来源缺口。
         return _fallback_headlines(
             classified,
@@ -692,9 +692,9 @@ def save_news(classified, summary, now_utc=None):
 
 # ============ 主程序 ============
 def run(now_utc=None):
-    """新闻采集主流程(W3-03 §7.2顺序: 采集→原始归档→分类→GLM摘要→输出)。
+    """新闻采集主流程(W3-03 §7.2顺序: 采集→原始归档→分类→模型摘要→输出)。
 
-    - 原始来源档案先于分类/GLM落盘: GLM失败/超时时已获取的原始来源仍已
+    - 原始来源档案先于分类/模型落盘: 模型失败/超时时已获取的原始来源仍已
       保全(W3-06);
     - 全部来源失败: 不创建虚假有效新闻批次(无原始记录不归档),摘要降级为
       无可信新闻数据披露,周报金融事实研究不受阻(非关键步骤语义不变);
@@ -711,7 +711,7 @@ def run(now_utc=None):
     raw_records, source_status, display = collect_all_news(now_utc=now_utc)
     print(f"\n📊 合计采集: {len(display)} 条新闻")
 
-    # 2. 原始来源归档(先于分类/GLM;同日重跑新批次,旧批次永不覆盖)
+    # 2. 原始来源归档(先于分类/模型;同日重跑新批次,旧批次永不覆盖)
     news_dir = os.path.join(DATA_DIR, 'news')
     batch_id = None
     if raw_records:

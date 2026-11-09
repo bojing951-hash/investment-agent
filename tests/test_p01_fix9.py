@@ -38,7 +38,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(_HERE), 'scripts'))
 sys.path.insert(0, _HERE)
 # Model-Agnostic v2(W3修复): 模拟已配置模型三参(零真实凭证,base_url 指向
 # 保留域 fake.invalid),使 generate_weekly_report 走模型分支——本套件 mock 的
-# _call_glm 仅在模型分支被调用;未配置时的 data-only 分支由 test_p0_fixes 覆盖。
+# _call_model 仅在模型分支被调用;未配置时的 data-only 分支由 test_p0_fixes 覆盖。
 os.environ.setdefault('MODEL_API_KEY', 'FAKE_E2E_MODEL_KEY')
 os.environ.setdefault('MODEL_BASE_URL', 'https://fake.invalid/v1')
 os.environ.setdefault('MODEL_NAME', 'fake-e2e-model')
@@ -364,7 +364,7 @@ with mock.patch.object(rg, 'DATA_DIR', os.path.join(DROOT, 'data')), \
         mock.patch.object(rg, 'OUTPUT_DIR', os.path.join(DROOT, 'output',
                                                          'weekly')), \
         mock.patch.object(rg, 'datetime', _DT(ATK)), \
-        mock.patch.object(rg, '_call_glm', glm_d), \
+        mock.patch.object(rg, '_call_model', glm_d), \
         mock.patch.object(rg, 'apply_status_updates',
                           lambda *a, **k: applied_d.append(1)), \
         mock.patch.object(rg, 'validate_generated_report',
@@ -411,7 +411,7 @@ applied_pub_e = []
 with mock.patch.object(rg, 'DATA_DIR', os.path.join(EROOT, 'data')), \
         mock.patch.object(rg, 'OUTPUT_DIR', OUTE), \
         mock.patch.object(rg, 'datetime', _DT(PUB)), \
-        mock.patch.object(rg, '_call_glm', glm_e), \
+        mock.patch.object(rg, '_call_model', glm_e), \
         mock.patch.object(rg, 'apply_status_updates',
                           lambda *a, **k: applied_pub_e.append(1)), \
         mock.patch.object(rg, 'validate_generated_report',
@@ -484,7 +484,7 @@ applied_e2 = []
 with mock.patch.object(rg, 'DATA_DIR', os.path.join(EROOT, 'data')), \
         mock.patch.object(rg, 'OUTPUT_DIR', OUTE), \
         mock.patch.object(rg, 'datetime', _DT(EATK)), \
-        mock.patch.object(rg, '_call_glm', glm_e2), \
+        mock.patch.object(rg, '_call_model', glm_e2), \
         mock.patch.object(rg, 'apply_status_updates',
                           lambda *a, **k: applied_e2.append(1)), \
         mock.patch.object(rg, 'validate_generated_report',

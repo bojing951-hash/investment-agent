@@ -5,7 +5,7 @@
 方法学(与 REPORT §零.5/§零.10 登记一致):
 - 唯一数据源=本文件内合成 fixture 字面量(FX_*;零真实数据档引用,
   与 /tmp/p3wpb/golden_precompute.py 字面量逐字节一致,fixture_consistency
-  三方裁定);零网络零 GLM 零凭证;
+  三方裁定);零网络零模型调用 零凭证;
 - 预期值一律字面量硬编码,**不从被测模块派生**;黄金值=独立首原理预计算
   (/tmp/p3wpb/golden_precompute.py,零被测模块 import)固化,测试内 hashlib
   首原理复算逐值相等(双源一致);

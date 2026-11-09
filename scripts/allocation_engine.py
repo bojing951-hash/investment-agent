@@ -7,9 +7,9 @@
    替代实际观测日);观察器侧先过滤无效锚点再传入 — 双侧防线,其他调用路径无法绕过。
 2. P0-2 条件预测到期封存: 终态预测加final标记(向后兼容迁移: 旧hit/miss/inconclusive
    记录自动补final;到期未触发终态在引擎落地时写入) — 每日观察任务不得重开终态预测,
-   前提只能在有效期内激活(触发观测日须≤截止日,截止日不顺延);GLM不得翻案终态。
+   前提只能在有效期内激活(触发观测日须≤截止日,截止日不顺延);模型不得翻案终态。
 3. P0-3 expiry严格结算口径: 裁决只认预定义有效截止交易日(settlement_date,非交易日
-   回溯)当日的观测,该日缺失→inconclusive,不得回退用前一交易日价格;GLM引用核验
+   回溯)当日的观测,该日缺失→inconclusive,不得回退用前一交易日价格;模型引用核验
    与引擎同一结算日(不得拿前一日满足值把inconclusive裁成hit)。
 
 相对v3.0的修复(第四轮P0):
@@ -24,7 +24,7 @@
 4. 预测观察与裁决强化(P0-6): 每日观察记录(幂等,含盘中高/低与数据来源);
    price_basis区分close/high/low口径 — 只有收盘价不得证明盘中未触及(缺→无法裁决);
    expiry按预定义有效截止交易日当日观测判定(第六轮P0-3严格化,无容差回退);
-   定性预测GLM只能inconclusive研究回顾,不计入客观命中率(qualitative单列)。
+   定性预测模型只能inconclusive研究回顾,不计入客观命中率(qualitative单列)。
 
 相对v2.0的修复(第三轮P0):
 1. 评级变更门禁: 模型提出的新评级不再直接写入 — 必须满足
@@ -42,8 +42,8 @@
    verify_mode区分 touch(观察期内触及)与 expiry(截止日水平),二者不混。
    裁决只用观察窗内的观测(禁止窗口后未来数据); expiry未到期不得提前裁决;
    touch触及可提前判hit。前提至截止日未成立→未触发(终态,截止日不顺延)。
-5. 裁决权威序: 引擎按观察记录的客观裁决 > GLM附证据裁决。GLM不得覆盖引擎已裁决
-   的结果; GLM裁决引用的数值/观测日必须落在观察窗内且与记录吻合。
+5. 裁决权威序: 引擎按观察记录的客观裁决 > 模型附证据裁决。模型不得覆盖引擎已裁决
+   的结果; 模型裁决引用的数值/观测日必须落在观察窗内且与记录吻合。
 
 保留v2.0全部语义: 量表v2、五态、仅确信度变化落盘、无证据裁决拒收、FAIL门禁由调用方执行。
 """
@@ -690,7 +690,7 @@ def _premise_spec(p):
 
 def _is_final_prediction(p, today_iso=None):
     """预测是否已形成正式终态(第六轮P0-2): 终态预测不得被每日观察任务重新开启,
-    也不得被GLM重复裁决或翻案。判定(按序):
+    也不得被模型重复裁决或翻案。判定(按序):
     1. 显式 final 标记(新记录,裁决落地时由引擎写入);
     2. status ∈ hit/miss/inconclusive(三态即终态);
     3. 旧版记录兼容: not_yet_triggered 且已带 resolved_date(到期未触发曾被周报
@@ -1203,9 +1203,9 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
     - 评级变更: 须引擎同向触发器"已触发",或≥2项程序验证的新增evidence;
       否则保留原评级,提案留档(proposals)。转/自"观望"放宽为≥1项。
     - 确信度上调: 不得超过程序验证星级(证据分级v2);关键证据缺失封顶2★;下调自由。
-    - 预测: 先记录观察+程序判前提,再按 权威序=引擎>GLM 裁决;
-      GLM不得覆盖引擎结果;expiry未到期不得提前裁决;touch触及可提前hit;
-      GLM裁决note引用的数值须与观察窗内记录吻合。
+    - 预测: 先记录观察+程序判前提,再按 权威序=引擎>模型 裁决;
+      模型不得覆盖引擎结果;expiry未到期不得提前裁决;touch触及可提前hit;
+      模型裁决note引用的数值须与观察窗内记录吻合。
     - 无证据(无note/无数值)的hit/miss一律拒收(v2保留)。
 
     返回更新摘要列表。"""
@@ -1417,12 +1417,12 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
     for ch in record_observations(data, anchors, today_iso):
         updates.append(ch)
 
-    # --- 引擎权威裁决(GLM处理前先算,防模型覆盖客观结果) ---
+    # --- 引擎权威裁决(模型处理前先算,防模型覆盖客观结果) ---
     engine_verdicts = {pid: (new, note) for pid, old, new, note
                        in evaluate_predictions(data, today_str=today_iso, anchors=anchors)}
 
-    # --- GLM裁决回写(受限: 不得覆盖引擎;expiry未到期拒提前;引用须在观察窗内) ---
-    glm_resolved_today = set()
+    # --- 模型裁决回写(受限: 不得覆盖引擎;expiry未到期拒提前;引用须在观察窗内) ---
+    model_resolved_today = set()
     for o in pred_objs:
         pid = o.get('pred_id')
         p = next((x for x in data.get('predictions', []) if x.get('pred_id') == pid), None)
@@ -1435,27 +1435,27 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
         today_iso_ = today_iso
 
         # 第六轮P0-2: 已形成正式终态的预测,每日/每周回写路径都不得重开或翻案 —
-        # GLM不得对final预测改判或重复注记(hit/miss/inconclusive三态终局,
+        # 模型不得对final预测改判或重复注记(hit/miss/inconclusive三态终局,
         # 重复运行不随意改变;重复注记会刷新原始裁决日期,破坏审计)
         if _is_final_prediction(p, today_iso_):
             if status != p.get('status'):
-                updates.append(f"预测#{pid}: GLM裁决'{status}'被拒 — 该预测已形成正式终态"
+                updates.append(f"预测#{pid}: 模型裁决'{status}'被拒 — 该预测已形成正式终态"
                                f"({p.get('status')}),不得重复裁决或翻案")
-                print(f"   🚫 预测#{pid}: 终态预测({p.get('status')})不得被GLM重新裁决")
+                print(f"   🚫 预测#{pid}: 终态预测({p.get('status')})不得被模型重新裁决")
             continue
 
         if status in ALLOWED_PRED_VERDICTS and p.get('status') != status:
             # 引擎已有客观裁决(hit/miss) → 模型只能附和,不得覆盖;
-            # inconclusive是"无数据"而非客观结果,允许GLM附窗内证据补位(仍走引用核验)
+            # inconclusive是"无数据"而非客观结果,允许模型附窗内证据补位(仍走引用核验)
             eng = engine_verdicts.get(pid)
             if eng and eng[0] != status and eng[0] != 'inconclusive':
-                updates.append(f"预测#{pid}: GLM裁决'{status}'被拒 — 引擎已按观察记录裁决为'{eng[0]}',模型不可覆盖")
-                print(f"   🚫 预测#{pid}: GLM试图将引擎裁决{eng[0]}改为{status},已拒绝")
+                updates.append(f"预测#{pid}: 模型裁决'{status}'被拒 — 引擎已按观察记录裁决为'{eng[0]}',模型不可覆盖")
+                print(f"   🚫 预测#{pid}: 模型试图将引擎裁决{eng[0]}改为{status},已拒绝")
                 continue
-            # 第四轮P0-6: 无可计算规格的定性预测,GLM不得判hit/miss
+            # 第四轮P0-6: 无可计算规格的定性预测,模型不得判hit/miss
             # (文字说明不能替代观察记录;只能inconclusive研究回顾,不计入客观命中率)
             if not p.get('metric') and status in ('hit', 'miss'):
-                updates.append(f"预测#{pid}: GLM裁决'{status}'被拒 — 定性预测无可计算规格/观察记录,"
+                updates.append(f"预测#{pid}: 模型裁决'{status}'被拒 — 定性预测无可计算规格/观察记录,"
                                f"只能以inconclusive作研究性回顾(不计入客观命中率)")
                 print(f"   🚫 预测#{pid}: 无规格预测不得判hit/miss,只能inconclusive研究回顾")
                 continue
@@ -1467,13 +1467,13 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
                 print(f"   ⚠️ 预测#{pid}裁决note无具体数值('{note[:30]}'),已拒绝(证据须引用数值)")
                 updates.append(f"预测#{pid}: 裁决被拒(note无数值)")
                 continue
-            # expiry模式未到期 → 不得提前裁决; touch提前hit已由引擎处理,GLM同口径
+            # expiry模式未到期 → 不得提前裁决; touch提前hit已由引擎处理,模型同口径
             if deadline > today_iso_ and p.get('verify_mode') != 'touch':
-                updates.append(f"预测#{pid}: GLM裁决'{status}'被拒 — 截止日{deadline}未到(expiry模式不得提前裁决)")
+                updates.append(f"预测#{pid}: 模型裁决'{status}'被拒 — 截止日{deadline}未到(expiry模式不得提前裁决)")
                 print(f"   🚫 预测#{pid}: expiry模式未到期(截止{deadline}),拒绝提前裁决")
                 continue
-            # 引擎无法裁决(无规格/无记录/数据不足)时GLM补位 — 第五轮P0-1:
-            # 可量化预测的hit/miss必须有有效观察记录支撑,空观察记录不得放行GLM裁决;
+            # 引擎无法裁决(无规格/无记录/数据不足)时模型补位 — 第五轮P0-1:
+            # 可量化预测的hit/miss必须有有效观察记录支撑,空观察记录不得放行模型裁决;
             # note引用的数值与观测日必须与观察窗内**同一条**实际记录吻合 —
             # 仅数值正确而日期错误→拒;仅日期正确而数值错误→拒;as_of采集日不算观测日;
             # hit引用的记录还须实际满足预测条件;miss须窗口覆盖充分(与引擎同口径);
@@ -1498,7 +1498,7 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
                     settle = settlement_date(deadline, market_of_metric(p['metric']))
                     if cited[1] != settle:
                         cited = None   # 第六轮P0-3: 只认有效截止交易日**当日**的记录
-                        # (与引擎同一结算口径 — Python判inconclusive时GLM不得拿
+                        # (与引擎同一结算口径 — Python判inconclusive时模型不得拿
                         #  前一交易日的满足值把同批数据裁成hit)
                 if status in ('hit', 'miss'):
                     if cited is None:
@@ -1506,39 +1506,39 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
                                if not obs else
                                f"note引用的数值与观测日未同时与观察窗{start}~{end}内同一条记录吻合"
                                f"(数值与观测日须来自同一条实际记录)")
-                        updates.append(f"预测#{pid}: GLM裁决被拒 — {why}")
-                        print(f"   🚫 预测#{pid}: GLM裁决引用核验不通过(窗内{len(obs)}个观测)")
+                        updates.append(f"预测#{pid}: 模型裁决被拒 — {why}")
+                        print(f"   🚫 预测#{pid}: 模型裁决引用核验不通过(窗内{len(obs)}个观测)")
                         continue
                     if status == 'hit' and not COMPARATORS[p['comparator']](cited[0], float(p['target'])):
-                        updates.append(f"预测#{pid}: GLM裁决hit被拒 — 引用记录{cited[0]:g}(观测日{cited[1]})"
+                        updates.append(f"预测#{pid}: 模型裁决hit被拒 — 引用记录{cited[0]:g}(观测日{cited[1]})"
                                        f"并未满足{p['comparator']}{p['target']:g},不能判命中")
-                        print(f"   🚫 预测#{pid}: GLM引用记录不满足预测条件却判hit,已拒绝")
+                        print(f"   🚫 预测#{pid}: 模型引用记录不满足预测条件却判hit,已拒绝")
                         continue
                     if status == 'miss':
                         cov = window_coverage(p)
                         if not cov['sufficient']:
-                            updates.append(f"预测#{pid}: GLM裁决miss被拒 — "
+                            updates.append(f"预测#{pid}: 模型裁决miss被拒 — "
                                            f"观察窗覆盖不足({cov['market']}日历预期"
                                            f"{len(cov['expected'] or [])}个交易日缺{len(cov['missing'] or [])}天),"
-                                           f"GLM与引擎同口径: 缺失日期无法证明未触及,不得判miss")
-                            print(f"   🚫 预测#{pid}: 覆盖不足,GLM miss被拒(数据缺失≠失败)")
+                                           f"模型与引擎同口径: 缺失日期无法证明未触及,不得判miss")
+                            print(f"   🚫 预测#{pid}: 覆盖不足,模型 miss被拒(数据缺失≠失败)")
                             continue
             old = p.get('status')
             p['status'] = status
             p['resolved_note'] = note[:120]
             p['resolved_date'] = today_iso_
             p['final'] = True   # 第六轮P0-2: 终态落地即封存,后续运行不得重开/翻案
-            glm_resolved_today.add(pid)
+            model_resolved_today.add(pid)
             updates.append(f"预测#{pid}: {old}→{status} ({note[:40]})")
         elif status == 'not_yet_triggered' and p.get('status') in ('observing', 'not_yet_triggered'):
-            # 前提未兑现判定(定性前提由GLM判断,须附说明;带前提规格且已程序触发者不得改回)
+            # 前提未兑现判定(定性前提由模型判断,须附说明;带前提规格且已程序触发者不得改回)
             if _premise_spec(p):
                 prem = p['premise']
                 info = (anchors or {}).get(prem['metric'])
                 if info and isinstance(info.get('value'), (int, float)) and \
                         COMPARATORS[prem['op']](float(info['value']), float(prem['target'])):
-                    updates.append(f"预测#{pid}: GLM'未触发'判定被拒 — 前提{prem['metric']}已程序确认触发")
-                    print(f"   🚫 预测#{pid}: 前提已程序触发,GLM不得改判未触发")
+                    updates.append(f"预测#{pid}: 模型'未触发'判定被拒 — 前提{prem['metric']}已程序确认触发")
+                    print(f"   🚫 预测#{pid}: 前提已程序触发,模型不得改判未触发")
                     continue
             if not note:
                 print(f"   ⚠️ 预测#{pid}'未触发'判定未附note说明,忽略")
@@ -1548,13 +1548,13 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
             p['resolved_date'] = today_iso_
             updates.append(f"预测#{pid}: →未触发 ({note[:40]})")
         elif status == 'observing' and p.get('status') == 'not_yet_triggered':
-            # 定性前提兑现(GLM判断): 观察期自今日起算,截止日不变
+            # 定性前提兑现(模型判断): 观察期自今日起算,截止日不变
             if pid in engine_verdicts and engine_verdicts[pid][0] == 'not_yet_triggered':
-                updates.append(f"预测#{pid}: GLM'转观察中'被拒 — 前提规格至截止日未程序触发,预测已终态未生效")
+                updates.append(f"预测#{pid}: 模型'转观察中'被拒 — 前提规格至截止日未程序触发,预测已终态未生效")
                 print(f"   🚫 预测#{pid}: 引擎已终态裁决(前提未成立),不得再转观察中")
                 continue
             if deadline < today_iso_:
-                updates.append(f"预测#{pid}: GLM'转观察中'被拒 — 截止日{deadline}已过,前提迟于截止日兑现→预测未生效")
+                updates.append(f"预测#{pid}: 模型'转观察中'被拒 — 截止日{deadline}已过,前提迟于截止日兑现→预测未生效")
                 print(f"   🚫 预测#{pid}: 前提到截止日未兑现,截止日不顺延")
                 continue
             if not note:
@@ -1567,14 +1567,14 @@ def update_allocation_status(report_text, views_path=None, anchors=None, today_s
             p.pop('resolved_date', None)
             updates.append(f"预测#{pid}: 未触发→观察中 (前提兑现,观察期自今日起,截止日不变)")
 
-    # --- 补记: GLM刚将定性前提转"观察中"的预测,其确认周观测也在观察窗内,须记录 ---
+    # --- 补记: 模型刚将定性前提转"观察中"的预测,其确认周观测也在观察窗内,须记录 ---
     # (幂等: record_observations按观测日去重;仅新增observing状态的本周观测)
     for ch in record_observations(data, anchors, today_iso):
         updates.append(ch)
 
-    # --- 应用引擎裁决(未被GLM合法处理的) ---
+    # --- 应用引擎裁决(未被模型合法处理的) ---
     for pid, (new, note) in engine_verdicts.items():
-        if pid in glm_resolved_today:
+        if pid in model_resolved_today:
             continue
         p = next(x for x in data['predictions'] if x.get('pred_id') == pid)
         old = p.get('status')

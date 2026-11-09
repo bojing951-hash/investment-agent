@@ -2,7 +2,7 @@
 """第三轮P0单元测试(2026-10-11) — 评级门禁/证据分级v2程序校验/触发器v3/预测生命周期/数据新鲜度
 
 对应任务书的P0-1~P0-4,每项断言都可证伪: 给定构造输入,断言引擎的确定性行为。
-纯离线,不调用GLM。
+纯离线,不调用模型。
 
 运行: ~/AI内容/venv/bin/python3 tests/test_round3_p0.py
 """
@@ -584,7 +584,7 @@ report = alloc_block([{'id': 1, 'rating': '标配', 'confidence': 2, 'note': 'm'
     pred_block([{'pred_id': 25, 'status': 'hit', 'note': 'SPX 7650≥7500(观测日2026-10-08)'}])
 saved, ups = run_update(vd, report, today='2026-10-09')
 p = saved['predictions'][0]
-check("F6 GLM裁决与引擎一致(hit)→正常落盘", p['status'] == 'hit' and p['resolved_date'] == '2026-10-09')
+check("F6 模型裁决与引擎一致(hit)→正常落盘", p['status'] == 'hit' and p['resolved_date'] == '2026-10-09')
 
 # F7 无证据裁决(hit但note无数值)→拒 (截止未到,引擎无裁决,走GLM补位前的证据检查)
 vd = pred_views([{'pred_id': 26, 'date_made': '2026-10-02', 'asset': '股', 'deadline': '2026-10-23',

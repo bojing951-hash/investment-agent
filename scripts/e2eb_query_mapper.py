@@ -13,7 +13,7 @@ PENDING_EXECUTION哨兵(登记型决策点D-B1-01,REPORT §六;终态枚举不�
 与 E2 `metric()` 同构(fact_engine.py:75-76实读;DESIGN L213「注册表只读接口E2既有」);
 registry 参数=依赖注入面(测试合成fixture唯一数据源,D-B1-11)。
 禁直读任何原始采集档(DESIGN §七1;本模块无采集档路径/文件IO);
-零网络/零GLM/零凭证(DESIGN §七3-4;out_of_scope拦截词表=D-B1-07)。
+零网络/零模型调用/零凭证(DESIGN §七3-4;out_of_scope拦截词表=D-B1-07)。
 
 参数与决策点全部先登记后运行: docs/P03_E2EB_B1_REPORT.md §六
 (D-B1-01..D-B1-13;运行后禁回改)。

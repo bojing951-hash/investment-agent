@@ -28,7 +28,7 @@ json.load(不经 ae.load_views——其读侧归一对 dict 就地变更,复盘�
 ae.COMPARATORS/ae.market_of_metric/ae.settlement_date/ae.mechanism_of/
 ae.MECHANISM_CATEGORIES;rri.list_conclusion_versions/rri.PREDICTION_KEY_PREFIX。
 
-纪律: 零网络零 GLM 零凭证零付费(import 面白名单 json/os/sys/datetime+项目既有
+纪律: 零网络零模型调用零凭证零付费(import 面白名单 json/os/sys/datetime+项目既有
 allocation_engine/research_index);一切日期依赖纯函数显式 as_of 必填(唯一墙钟
 缺省=编排面 prediction_review_report 边缘);本模块输出为预测复盘与错误模式统计
 面数据,**不构成投资建议**(DESIGN §8.3 红线: 禁交易/禁仓位/禁收益承诺)。
@@ -288,7 +288,7 @@ def anchor_date_of(p, as_of, version_records=None):
     return dl, disc
 
 
-# ══ 归类器(P-C-05/P-C-06;零 GLM 确定性) ═════════════════════════════
+# ══ 归类器(P-C-05/P-C-06;零模型调用确定性) ═════════════════════════════
 
 def classify_miss(p):
     """miss 三轴归类(P-C-06): (error_axis|None, basis 明细)。

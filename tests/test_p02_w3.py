@@ -28,6 +28,12 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(_HERE), 'scripts'))
 sys.path.insert(0, _HERE)
 sys.path.insert(0, os.path.join(os.path.dirname(_HERE)))
+# Model-Agnostic v2(W3修复): 模拟已配置模型三参(零真实凭证,base_url 指向
+# 保留域 fake.invalid),使 generate_weekly_report 走模型分支——本套件 mock 的
+# _call_glm 仅在模型分支被调用;未配置时的 data-only 分支由 test_p0_fixes 覆盖。
+os.environ.setdefault('MODEL_API_KEY', 'FAKE_E2E_MODEL_KEY')
+os.environ.setdefault('MODEL_BASE_URL', 'https://fake.invalid/v1')
+os.environ.setdefault('MODEL_NAME', 'fake-e2e-model')
 
 import fixt                                    # noqa: E402
 from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
@@ -678,7 +684,7 @@ with contextlib.ExitStack() as st:
         mock.patch.object(rg, '_call_glm', glm0),
         mock.patch.object(rg, 'apply_status_updates', lambda *a, **k: None),
         mock.patch.object(rg, 'validate_generated_report',
-                          lambda md, anchors=None, anchors_file=None:
+                          lambda md, anchors=None, anchors_file=None, data_only=False:
                           ('PASS', ['x'])),
         mock.patch.object(rg.allocation_engine, 'load_views',
                           lambda *a, **k: {'views': [], 'predictions': []}),
@@ -716,7 +722,7 @@ harness = [
     mock.patch.object(rg, 'apply_status_updates',
                       lambda *a, **k: applied.append(1)),
     mock.patch.object(rg, 'validate_generated_report',
-                      lambda md, anchors=None, anchors_file=None:
+                      lambda md, anchors=None, anchors_file=None, data_only=False:
                       ('PASS', ['SYNTHETIC警告'])),
     mock.patch.object(rg.allocation_engine, 'load_views',
                       lambda *a, **k: {'views': [], 'predictions': []}),

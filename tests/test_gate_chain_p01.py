@@ -27,6 +27,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # WP-B3域化: helpers可导入
+# Model-Agnostic v2(W3修复): 模拟已配置模型三参(零真实凭证,base_url 指向
+# 保留域 fake.invalid),使 generate_weekly_report 走模型分支——本套件 mock 的
+# _call_glm 仅在模型分支被调用;未配置时的 data-only 分支由 test_p0_fixes 覆盖。
+os.environ.setdefault('MODEL_API_KEY', 'FAKE_E2E_MODEL_KEY')
+os.environ.setdefault('MODEL_BASE_URL', 'https://fake.invalid/v1')
+os.environ.setdefault('MODEL_NAME', 'fake-e2e-model')
 PY = sys.executable
 
 PASS, FAIL = 0, 0
@@ -477,7 +483,7 @@ def run_weekly_report_flow(td, gate_b, gate='PASS'):
          mock.patch.object(rg, '_call_glm', glm), \
          mock.patch.object(rg, 'apply_status_updates', _apply), \
          mock.patch.object(rg, 'validate_generated_report',
-                           lambda md, anchors=None, anchors_file=None: (gate_b, ['SYNTHETIC警告'])), \
+                           lambda md, anchors=None, anchors_file=None, data_only=False: (gate_b, ['SYNTHETIC警告'])), \
          mock.patch.object(rg.allocation_engine, 'load_views',
                            lambda *a, **kw: {'views': [], 'predictions': []}), \
          mock.patch.object(rg, 'pending_completed_month', lambda d=None: None), \

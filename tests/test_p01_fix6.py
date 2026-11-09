@@ -203,7 +203,7 @@ def publish(td, ymd, dt=DT_DAY):
                 json.dump(obj, f, ensure_ascii=False)
     glm = _GLM()
 
-    def _validate(md_path, anchors=None, anchors_file=None):
+    def _validate(md_path, anchors=None, anchors_file=None, data_only=False):
         return ('PASS', ['SYNTHETIC FIX6警告'])
     patches = [
         mock.patch.object(rg, 'DATA_DIR', os.path.join(td, 'data')),

@@ -26,6 +26,12 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _REPO = os.path.dirname(_HERE)
 sys.path.insert(0, os.path.join(_REPO, 'scripts'))
 sys.path.insert(0, _HERE)
+# Model-Agnostic v2(W3修复): 模拟已配置模型三参(零真实凭证,base_url 指向
+# 保留域 fake.invalid),使 generate_weekly_report 走模型分支——本套件 mock 的
+# _call_glm 仅在模型分支被调用;未配置时的 data-only 分支由 test_p0_fixes 覆盖。
+os.environ.setdefault('MODEL_API_KEY', 'FAKE_E2E_MODEL_KEY')
+os.environ.setdefault('MODEL_BASE_URL', 'https://fake.invalid/v1')
+os.environ.setdefault('MODEL_NAME', 'fake-e2e-model')
 
 import fixt                                    # noqa: E402
 from helpers import baseline_locks as bl       # noqa: E402  WP-BR三联锁(vintage域)
@@ -73,7 +79,7 @@ def _install_publish_mocks(rg, glm_log):
     rg._call_glm = (lambda *a, **k:
                     glm_log.append(1) or ('本周市场综述与分资产回顾。' * 60))
     rg.validate_generated_report = (
-        lambda md, anchors=None, anchors_file=None: ('PASS', ['SYNTHETIC警告']))
+        lambda md, anchors=None, anchors_file=None, data_only=False: ('PASS', ['SYNTHETIC警告']))
     rg.allocation_engine.load_views = (
         lambda *a, **k: {'views': [], 'predictions': []})
     rg.pending_completed_month = lambda d=None: None

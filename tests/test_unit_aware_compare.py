@@ -9,6 +9,8 @@
 ④ count 族标注(basis=pct + family=count + ia_cli 侧近似警示);
 ⑤ other 族 → incomparable_units 结构化拒绝 rc=1(与无序列拒绝同语义);
 ⑥ None/零基丢弃计数 + 双侧联合零基过滤(修复两侧独立过滤的错位配对);
+⑥b A-fin(2026-11-09) 零基过滤按族独立: rate 侧 v0=0 合法保留(pp 口径
+   x−0=x),仅 price/count 侧 v0=0 丢整对;修前错误值以测试内旧条件复算存档;
 ⑦ mixed_frequency / date_gap / sample_insufficient 三警告;
 ⑧ 对齐块 off-by-one: n_common_observations=len(common)(原为 len(common)-1),
    水平窗/变化窗字段并存;
@@ -155,6 +157,67 @@ try:
     check("other 族进 paired_unit_changes → ValueError fail-loud", False)
 except ValueError:
     check("other 族进 paired_unit_changes → ValueError fail-loud", True)
+
+print("═" * 60)
+print("⑥b A-fin 零基过滤按族独立(2026-11-09 修复行为锁)")
+print("═" * 60)
+# A-fin §0 边界2: 前值 v0==0 仅在 price/count 侧丢整对(pct 除零不可定义);
+# rate 侧 v0==0 的 pp 变化(x−0=x)数学有效,保留——不再按"任一侧为0"错丢。
+# 预期值全部手算字面量;修前错误值(0.9998397996112698)以测试内旧条件复算
+# 存档,不回退代码。
+zb_dates = ['2099-05-01', '2099-05-02', '2099-05-03', '2099-05-04', '2099-05-05']
+zb_rate = [0.00, 0.25, 0.25, 0.50, 0.50]     # pp 变化: +0.25 0.00 +0.25 0.00
+zb_px = [100.0, 110.0, 105.0, 121.0, 115.0]  # pct 变化(手算): +10 -4.54545… +15.23809… -4.95867…
+res7, _ = cc.paired_unit_changes(
+    {'dates': zb_dates, 'values': zb_rate}, 'rate',
+    {'dates': zb_dates, 'values': zb_px}, 'price')
+PP7 = [0.25, 0.00, 0.25, 0.00]                                   # 手算 pp
+PCT7 = [10.0, -4.545454545454546, 15.238095238095238,
+        -4.958677685950413]                                      # 手算 pct
+check("⑦ rate 侧 v0=0 合法: 4 对全保留(n=4, zero_base=0)",
+      res7['n_change_pairs'] == 4 and res7['zero_base_dropped'] == 0,
+      f"n={res7['n_change_pairs']} zb={res7['zero_base_dropped']}")
+check("⑦ pp 序列=手算(含 0.00 值对在场)",
+      all(abs(a - e) < 1e-12 for a, e in zip(res7['changes_a'], PP7)),
+      str(res7['changes_a']))
+check("⑦ pct 序列=手算",
+      all(abs(b - e) < 1e-9 for b, e in zip(res7['changes_b'], PCT7)),
+      str(res7['changes_b']))
+check("⑦ rho=冻结值 0.9778828613721822(修后)",
+      res7['n_change_pairs'] == 4
+      and abs(cc.pearson(res7['changes_a'], res7['changes_b'])
+              - 0.9778828613721822) < 1e-12,
+      str(cc.pearson(res7['changes_a'], res7['changes_b'])))
+# 修前错误口径复算存档(旧条件"任一侧 v0==0 即丢"→ 丢首对剩 3 对):
+PP7_OLD = [0.00, 0.25, 0.00]
+PCT7_OLD = [-4.545454545454546, 15.238095238095238, -4.958677685950413]
+check("⑦ 修前口径复算=冻结错误值 0.9998397996112698(存档对照,非现行为)",
+      abs(ref_pearson(PP7_OLD, PCT7_OLD) - 0.9998397996112698) < 1e-12
+      and abs(cc.pearson(res7['changes_a'], res7['changes_b'])
+              - 0.9998397996112698) > 1e-9)
+# ⑦b price×price: A 前值 0 → 该对仍丢(price 侧零基不变)
+res7b, _ = cc.paired_unit_changes(
+    {'dates': ['2099-06-01', '2099-06-02', '2099-06-03'],
+     'values': [0.0, 100.0, 110.0]}, 'price',
+    {'dates': ['2099-06-01', '2099-06-02', '2099-06-03'],
+     'values': [100.0, 110.0, 121.0]}, 'price')
+check("⑦b price 侧 v0=0 仍丢: n_chg=1, zero_base=1, rho=None",
+      res7b['n_change_pairs'] == 1 and res7b['zero_base_dropped'] == 1
+      and cc.pearson(res7b['changes_a'], res7b['changes_b']) is None,
+      f"n={res7b['n_change_pairs']} zb={res7b['zero_base_dropped']}")
+# ⑦c 混合判别: rate 侧 0 合法保留 + price 侧 0 丢弃,同链共存
+res7c, _ = cc.paired_unit_changes(
+    {'dates': ['2099-07-01', '2099-07-02', '2099-07-03', '2099-07-04'],
+     'values': [0.0, 1.0, 2.0, 3.0]}, 'rate',
+    {'dates': ['2099-07-01', '2099-07-02', '2099-07-03', '2099-07-04'],
+     'values': [50.0, 0.0, 60.0, 72.0]}, 'price')
+check("⑦c 首对保留(rate 0)+第2对丢(price 0): n_chg=2, zero_base=1",
+      res7c['n_change_pairs'] == 2 and res7c['zero_base_dropped'] == 1,
+      f"n={res7c['n_change_pairs']} zb={res7c['zero_base_dropped']}")
+check("⑦c 保留对=手算 pp[1,1] × pct[-100,20]",
+      all(abs(a - e) < 1e-12 for a, e in zip(res7c['changes_a'], [1.0, 1.0]))
+      and all(abs(b - e) < 1e-9 for b, e in zip(res7c['changes_b'], [-100.0, 20.0])),
+      f"a={res7c['changes_a']} b={res7c['changes_b']}")
 
 print("═" * 60)
 print("⑤ other → incomparable_units rc=1 / ④ count 标注(ia_cli compare)")

@@ -62,6 +62,8 @@ def unit_change(v0, v1, unit_family):
 
     price → (v1/v0-1)*100(百分比 pct);rate → v1-v0(百分点 pp);
     count → 百分比 pct(基数大,须标注 basis=count 近似);other → None(不可比)。
+    v0=0 的 price/count 侧由调用方(paired_unit_changes 零基过滤)保证不进入
+    (除零 fail-loud 不静默 None;A-fin §0 边界2, 2026-11-09)。
     """
     if v0 is None or v1 is None:
         return None
@@ -83,8 +85,10 @@ def paired_unit_changes(series_a, unit_family_a, series_b, unit_family_b):
 
     配对纪律:
     - 共同日期升序;任一侧值为 None 的观测对跳过(dropped_null);
-    - **双侧联合零基过滤**: 前值任一侧==0 → 该对丢弃(zero_base_dropped)——
-      修复两侧独立过滤导致的错位配对(ra[i] 与 rb[j] 不再一一对应)。
+    - **零基过滤按族独立判定**(A-fin §0, 2026-11-09): 前值 v0==0 仅在
+      price/count 侧丢弃该对(pct 除零不可定义);rate 侧 v0==0 的 pp 变化
+      (x−0=x) 数学有效,保留——利率零下限/零利率 regime 下不再错丢有效对。
+      zero_base_dropped 只计 price/count 侧零基丢弃。
 
     返回 (result|None, common);result:
       {'changes_a', 'changes_b', 'dates'(变化日), 'basis_a'|'basis_b'('pct'|'pp'),
@@ -110,7 +114,9 @@ def paired_unit_changes(series_a, unit_family_a, series_b, unit_family_b):
         if a0 is None or a1 is None or b0 is None or b1 is None:
             dropped_null += 1
             continue
-        if a0 == 0 or b0 == 0:      # 双侧联合零基: 任一侧前值为0该对整体丢弃
+        if ((unit_family_a in ('price', 'count') and a0 == 0)
+                or (unit_family_b in ('price', 'count') and b0 == 0)):
+            # 零基按族独立: 仅 price/count 侧前值 0 丢整对;rate 侧 0 值合法
             zero_base_dropped += 1
             continue
         ca.append(unit_change(a0, a1, unit_family_a))

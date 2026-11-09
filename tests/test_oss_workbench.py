@@ -116,11 +116,11 @@ check('无快照→error明确提示先采集', res_nosnap['status'] == 'error'
       and '快照' in res_nosnap['answer_text'])
 
 print('══ ③ 模型Key缺Key明确提示(不打印密钥;Model-Agnostic v2 中性文案) ══')
-_saved = {k: os.environ.pop(k, None) for k in ('GLM_API_KEY', 'MODEL_API_KEY')}
+_saved = {k: os.environ.pop(k, None) for k in ('MODEL_API_KEY',)}
 try:
-    out = wd.glm_explain('测试问题', '测试事实')
+    out = wd.ai_explain('测试问题', '测试事实')
     # 2026-11-09 W1/W5: 提示已中性化(任意 OpenAI 兼容端点;Agent Native 不需要),
-    # 不再含 bigmodel.cn 注册推荐——断言随语义更新
+    # 不再含厂商注册推荐——断言随语义更新
     check('无模型Key→ok=False+中性配置指引', out['ok'] is False
           and 'MODEL_API_KEY' in out['error'] and 'Agent Native' in out['error'],
           str(out)[:120])
@@ -155,7 +155,7 @@ check('级联由IA_AUTO_MONTHLY守卫', 'IA_AUTO_MONTHLY' in rg_src)
 check('月报级联调用点在守卫分支内', 'auto_mq_enabled and done_month' in rg_src)
 check('季报级联调用点在守卫分支内', 'auto_mq_enabled and done_quarter' in rg_src)
 check('关闭时打印开启指引', 'IA_AUTO_MONTHLY=1' in rg_src)
-check('缺模型Key快速失败提示(_call_glm;Model-Agnostic v2中性文案)',
+check('缺模型Key快速失败提示(_call_model;Model-Agnostic v2中性文案)',
       'MODEL_KEY_MISSING_MESSAGE' in rg_src and '模型 API 未配置' in rg_src)
 
 print()

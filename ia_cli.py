@@ -13,11 +13,19 @@ correlation_calculator / research_history_query 等既有模块,输出结构化 
   - 每个数值携带 单位/单位族/观测日期/来源/身份(代理口径) 字段;
   - 每个变化量携带 变化单位(pp|bp|pct)/基准日/窗口语义/公式;
   - 错误结构化输出(kind/message/hint),永不输出空串或裸 0 充当错误;
-  - update 仅显式请求时运行;模型 API 调用仅 research --explain/--glm
-    显式请求时发生(Model-Agnostic v2: 中性 MODEL_* 三参,旧 --glm 保留兼容)。
+  - update 仅显式请求时运行;模型 API 调用仅 research --explain
+    显式请求时发生(v2.1: 中性 MODEL_* 三参;旧厂商别名旗标已彻底删除)。
 
 用法: python3 ia_cli.py <能力> [参数]   (json 输出到 stdout; 退出码 0/1/2)
 """
+# D 线终验修复(2): stdout 恒单 JSON 契约——D 线 LibreSSL 环境实测 urllib3
+# NotOpenSSLWarning 曾在归档 save 时偶发占用 stdout 前两行,破坏"stdout 单
+# JSON"消费前提。本机不可复现→代码面防御: 进程启动即静默全部 warnings,
+# 且置于任何引擎 import 之前(warn 时过滤生效,惰性导入同样覆盖)。
+import warnings
+
+warnings.filterwarnings('ignore')
+
 import argparse
 import glob
 import json
@@ -51,14 +59,11 @@ except Exception:  # noqa: BLE001 —— 引擎常量不可用时退化为空集
 FX_ASSET_CLASSES = {'fx_rate', 'fx_index'}
 CHANGE_WINDOWS = ('week', 'mtd', 'ytd')
 ENV_KEYS = (  # doctor 只报"已配置/未配置",永不打印值
-    # W5(Model-Agnostic v2): 模型面中性三参;GLM_API_KEY 保留为旧变量行
+    # v2.1(Charter 5, 2026-11-09): 模型面唯一凭证面=中性三参 MODEL_*;旧变量行已删除
     ('MODEL_API_KEY', '可选模型 API Key(通用;AI 解释/周报生成共用,'
      'Agent Native 默认无需,不配仅影响 AI 解释与周报叙事层)'),
-    ('MODEL_BASE_URL', '可选模型端点(任意 OpenAI 兼容服务;沿用智谱填 '
-     'https://open.bigmodel.cn/api/paas/v4)'),
-    ('MODEL_NAME', '可选模型名(如 glm-5.3 / 其他兼容服务模型名)'),
-    ('GLM_API_KEY', '旧变量(仅 MODEL_API_KEY 未设时条件回退,建议迁移,'
-     '见 .env.example)'),
+    ('MODEL_BASE_URL', '可选模型端点(任意 OpenAI 兼容服务;填你的服务地址)'),
+    ('MODEL_NAME', '可选模型名(填你的模型服务模型名)'),
     ('FRED_API_KEY', '美联储/FRED 数据(强烈推荐,缺失则 28 个序列采集失败→Gate A FAIL)'),
     ('TUSHARE_TOKEN', '中国市场数据(可选)'),
     ('FINNHUB_API_KEY', '市场数据补充(可选)'),
@@ -278,14 +283,11 @@ def cmd_doctor(args):
     ec.load_env_file()
     data['env'] = {k: {'configured': bool(os.environ.get(k)), 'purpose': purpose}
                    for k, purpose in ENV_KEYS}
-    # W5: 改读中性模型配置(键名 glm_key_note 保持输出契约;值语义中性化)
+    # v2.1(Charter 5): 模型面唯一凭证面=MODEL_* 三参;键名改 model_key_note
+    # (v2.1 破坏性变更,Release 注记,不做双写过渡),医生面不再有旧变量行
     _mcfg = ec.model_runtime_config()
     if not _mcfg['complete']:
-        data['glm_key_note'] = (_mcfg['blocked_reason']
-                                or ec.MODEL_KEY_MISSING_MESSAGE)
-    elif _mcfg['legacy_fallback']:
-        data['glm_key_note'] = ('使用旧变量 GLM_API_KEY 回退,建议迁移到 '
-                                'MODEL_API_KEY(三参模板见 .env.example)')
+        data['model_key_note'] = ec.MODEL_KEY_MISSING_MESSAGE
     snap, note = wd.latest_snapshot(ROOT)
     meta = wd.snapshot_meta(snap)
     data['snapshot'] = {'available': snap is not None,
@@ -419,7 +421,23 @@ def cmd_changes(args):
     emit(envelope('changes', True, data, warnings, snapshot=snap))
 
 
+def _reject_blank_window_args(args, cap):
+    """D 线终验修复(1): --start/--end 空串/纯空白曾**静默当无界**(假值直通
+    if args.start 过滤条件,D 线第一次分段四窗因此全跑成累计窗)——统一
+    rc=2 bad_window(与 --window/--lag 用法错误同款;二者 type=int,空串由
+    argparse 自身拒 rc=2,无此病)。用法校验先于快照加载,无快照环境恒定。"""
+    for flag in ('start', 'end'):
+        v = getattr(args, flag, None)
+        if v is not None and not str(v).strip():
+            emit(envelope(cap, False, {},
+                          error=('bad_window',
+                                 f'--{flag} 传了空串/纯空白(会被静默当作无界)',
+                                 '要无界请省略该旗标;限定窗口请给 YYYY-MM-DD')),
+                 exit_code=2)
+
+
 def cmd_history(args):
+    _reject_blank_window_args(args, 'history')  # rc=2 先于快照加载
     snap, reg, _note = load_context()
     warnings = []
     if not args.metric:
@@ -468,6 +486,18 @@ def _date_gap_days(a, b):
         return None
 
 
+def _has_vn_history(ymd, data_dir=None):
+    """A-fin §2: 该日是否存在历史版本快照(_vN 修订版文件)。
+
+    判据=data/daily 下 research_snapshot_{ymd}_v*.json 文件存在性(引擎已知
+    事实,零推断);点时取版由 research_provenance.select_snapshot 承担(同日
+    多版本取最高 _vN)。data_dir 可注入(测试用临时目录构造 _vN fixture)。
+    """
+    data_dir = data_dir or os.path.join(ROOT, 'data', 'daily')
+    return bool(glob.glob(os.path.join(
+        data_dir, f'research_snapshot_{ymd}_v*.json')))
+
+
 def cmd_compare(args):
     warnings = []
     # 用法校验先于快照加载: rc=2 与环境数据无关(无快照环境同样恒定)
@@ -475,6 +505,8 @@ def cmd_compare(args):
         emit(envelope('compare', False, {},
                       error=('no_mode', '未指定比较模式',
                              '--metrics A,B | --economies US,JP | --assets 三选一')), exit_code=2)
+    # D 线终验修复(1): 窗口日期参数空串/纯空白拒收(曾静默当无界)
+    _reject_blank_window_args(args, 'compare')
     # 批2 W9: --window 仅 metrics 模式且 N≥2(先于快照加载,恒定 rc=2)
     if args.window is not None:
         if not args.metrics:
@@ -485,6 +517,17 @@ def cmd_compare(args):
             emit(envelope('compare', False, {},
                           error=('bad_window', f'--window 须 ≥2,收到 {args.window}',
                                  '窗长=参与每个滚动相关值的变化对数')), exit_code=2)
+    # A-fin §4: --lag 滞后相关(单 lag,不扫全域)——仅 metrics 模式,与 --window
+    # 互斥(防输出歧义: 滚动窗与滞后平移叠加无单值解读),同 bad_window rc=2 风格
+    if args.lag is not None:
+        if not args.metrics:
+            emit(envelope('compare', False, {},
+                          error=('bad_lag', '--lag 仅适用于 --metrics 模式',
+                                 '滞后相关需要双指标序列;先给 --metrics A,B')), exit_code=2)
+        if args.window is not None:
+            emit(envelope('compare', False, {},
+                          error=('bad_lag', '--lag 与 --window 互斥(不可同时使用)',
+                                 '滞后平移与滚动窗叠加无单值解读;二选一')), exit_code=2)
     ecos = []
     if args.economies:
         ecos = [e.strip().upper() for e in re.split(r'[,\s]+', args.economies) if e.strip()]
@@ -541,6 +584,11 @@ def cmd_compare(args):
                                  'other 族不能进单位感知变化相关;换用价格/利率/计数族'
                                  '指标对,或用 history 分别取原序列')),
                  exit_code=1)
+        # ── A-fin 交叉审查[中]修复: 窗口过滤会滤掉"严格早于 start 的最后观测"
+        # (interval_change 的水平变动基准)→保留过滤前副本,区间变动按原序列
+        # +窗口界计算(对齐/相关仍用过滤后序列,窗口语义不变) ──
+        sa_raw = {'dates': list(sa['dates']), 'values': list(sa['values'])}
+        sb_raw = {'dates': list(sb['dates']), 'values': list(sb['values'])}
         # ── 批2 W9: 指令窗口过滤(建议2)——对齐前作用于两侧原序列 ──
         if args.start or args.end:
             kept = []
@@ -563,9 +611,14 @@ def cmd_compare(args):
 
         # ── 批2 W9: 月度聚合对齐(建议6)——mixed_frequency 且低频侧=月频时默认 ──
         # 高频侧聚合到自然月网格(代表=期内末值,rhq.align_to_month),月键(YYYY-MM)
-        # 内交;两侧同频(含月×月)仍走原精确日内交(alignment.mode=exact_date)。
+        # 内交;两侧同频(非月×月)走原精确日内交(alignment.mode=exact_date)。
+        # ── A-fin §3: 月×月改月键内交——原 exact_date 仅在双月频锚日巧合(如
+        # FRED 统一 01 锚)时可得非空交集,月中/月末锚月频对会 n=0 静默空;两侧
+        # 各取 d[:7] 月键、同格多观测取末值(复用 _group_representative 规则,
+        # 月×月时通常 no-op),锚日巧合不再作为对齐前提。01 锚下月键≡原日键,
+        # 现役月×月数值不变(⑤号验收锁)。──
         align_mode = 'exact_date'
-        agg_side = None                      # 被聚合侧标记('a'/'b'),sides 披露用
+        agg_side = None                      # 被聚合侧标记('a'/'b'/'both'),sides 披露用
         pair_a = {'dates': sa['dates'], 'values': sa['values']}
         pair_b = {'dates': sb['dates'], 'values': sb['values']}
         if (freq_a and freq_b and freq_a != freq_b
@@ -582,6 +635,13 @@ def cmd_compare(args):
                 pair_b = {'dates': [str(d)[:7] for d in pair_b['dates']],
                           'values': pair_b['values']}
                 agg_side = 'a'
+            align_mode = 'month_grid'
+        elif freq_a == freq_b == 'monthly':
+            grid_a = rhq.align_to_month(pair_a)
+            grid_b = rhq.align_to_month(pair_b)
+            pair_a = {'dates': grid_a['grid_keys'], 'values': grid_a['values']}
+            pair_b = {'dates': grid_b['grid_keys'], 'values': grid_b['values']}
+            agg_side = 'both'
             align_mode = 'month_grid'
 
         # P0-3 单位感知变化相关: 利率→pp/价格→pct,修复利率×价格混算 pct
@@ -600,18 +660,32 @@ def cmd_compare(args):
         for k, (sid, s) in enumerate(((ids[0], sa), (ids[1], sb))):
             m = reg['by_id'].get(sid) or {}
             fam, sub = unit_family(m.get('unit', ''), m.get('asset_class', ''))
+            # A-fin §1: 时间语义结构化透传(注册表人工登记,缺键=null 不默认);
+            # 快照 fact 层实测 release_date 覆盖登记(数据>登记,值随行可查)
+            ts = {'observation_period_kind': m.get('observation_period_kind'),
+                  'release_date_available': m.get('release_date_available')}
+            fact_release = (facts_by_id.get(sid) or {}).get('release_date')
+            if fact_release:
+                ts['release_date_available'] = True
+                ts['release_date'] = fact_release
+                ts['release_date_source'] = 'fact(快照实测值,覆盖登记)'
             node = {'metric_id': sid, 'label': s['label'], 'unit': s['unit'],
                     'unit_family': fam, 'frequency': m.get('frequency'),
                     'identity': identity_block(m), 'calc': m.get('calc'),
                     'n': len(s['dates']), 'first': s['dates'][0], 'last': s['dates'][-1],
                     'source': s['source'],
                     'quality_status': (facts_by_id.get(sid) or {}).get('quality_status'),
-                    'release_note': m.get('release_semantics')}
+                    'release_note': m.get('release_semantics'),
+                    'time_semantics': ts}
             if sub:
                 node['unit_subfamily'] = sub
             if agg_side == ('a' if k == 0 else 'b'):
                 node['aggregation'] = ('month_grid: 自然月网格,代表=期内末值'
                                        '(rhq.align_to_month,mixed_frequency 对齐)')
+            elif agg_side == 'both':
+                node['aggregation'] = ('month_grid: 月×月按月键(YYYY-MM)对齐,'
+                                       '同格多观测取末值(_group_representative 同规则;'
+                                       '锚日巧合不作为对齐前提)')
             # 月键窗口界: start=共同首月月初, end=共同末月月末串界('YYYY-MM-31'
             # 字典序≥该月任意日且<次月),与 interval_change 纯字符串比较兼容
             if align_mode == 'month_grid' and common:
@@ -619,9 +693,13 @@ def cmd_compare(args):
             else:
                 w_start = common[0] if common else None
                 w_end = common[-1] if common else None
+            # 交叉审查[中]: 用未过滤原序列求区间变动(基准=严格早于 w_start 的
+            # 最后观测,由 interval_change 自身按 start/end 定位;过滤后序列在
+            # 窗口化时必无更早观测,会恒 unavailable)
+            s_raw = sa_raw if k == 0 else sb_raw
             try:
-                iv = rhq.interval_change(s['dates'], s['values'], s['unit'],
-                                         start=w_start, end=w_end)
+                iv = rhq.interval_change(s_raw['dates'], s_raw['values'],
+                                         s['unit'], start=w_start, end=w_end)
             except Exception:  # noqa: BLE001 —— 区间变动失败不阻断对齐结果
                 iv = {'available': False, 'reason': 'interval_change 计算失败'}
             node['interval_change_common_window'] = iv
@@ -630,12 +708,35 @@ def cmd_compare(args):
         basis_b = 'pp' if fam_b == 'rate' else 'pct'
         align_note = ('水平窗=共同观测日数;变化窗=相邻观测对数'
                       '(少一个会话,如实并列);data.n_change_pairs='
-                      '剔除 null/零基丢弃后实际参与相关的对数')
+                      '剔除 null/零基丢弃后实际参与相关的对数;'
+                      '不做异常值处理(原始值直算)')
         if align_mode == 'month_grid':
-            align_note += (';本对为 mixed_frequency(低频侧=月频): 高频侧已聚合到'
-                           '自然月网格(代表=期内末值,align_to_month),按月键'
-                           '(YYYY-MM)内交,n_*=共同月份数;a_dropped/b_dropped='
-                           '各自未进入共同窗的观测数(月键口径=月数)')
+            if agg_side == 'both':
+                align_note += (';本对为月×月: 两侧各按月键(YYYY-MM)对齐,'
+                               '同格多观测取末值,锚日巧合不作为对齐前提,'
+                               'n_*=共同月份数;a_dropped/b_dropped=各自未进入'
+                               '共同窗的观测数(月键口径=月数)')
+            else:
+                align_note += (';本对为 mixed_frequency(低频侧=月频): 高频侧已聚合到'
+                               '自然月网格(代表=期内末值,align_to_month),按月键'
+                               '(YYYY-MM)内交,n_*=共同月份数;a_dropped/b_dropped='
+                               '各自未进入共同窗的观测数(月键口径=月数)')
+        # ── A-fin §2: 研究模式门(泄漏三模式的数据条件,机械可计算部分)──
+        # 描述性=历史比较永远可算;事件研究=须两侧发布日已知(任一宏观侧无发布日
+        # →blocked);当时信息集=须有历史版本快照(_vN,点时取版)。禁令执行归
+        # SKILL 研究纪律(引擎不知道研究者声称什么),此处只报数据条件事实。
+        release_known = [bool((s.get('time_semantics') or {})
+                              .get('release_date_available')) for s in sides]
+        snap_ymd = str(snap.get('target_date') or '')[:10].replace('-', '')
+        vn_available = _has_vn_history(snap_ymd) if snap_ymd else False
+        research_mode_gate = {
+            'descriptive': 'available',
+            'event_study': ('available' if all(release_known)
+                            else 'blocked: 无发布日, 不得按发布日对齐/'
+                                 '不得声称事件研究'),
+            'realtime_info_set': ('available(经 select_snapshot 点时取版)'
+                                  if vn_available
+                                  else 'blocked: 无历史版本, 修订值≠当时值')}
         data = {'mode': 'metrics', 'sides': sides,
                 'alignment': {'mode': align_mode,
                               'n_common_observations': len(common),
@@ -644,6 +745,7 @@ def cmd_compare(args):
                               'common_first': common[0] if common else None,
                               'common_last': common[-1] if common else None,
                               'a_dropped': a_dropped, 'b_dropped': b_dropped,
+                              'research_mode_gate': research_mode_gate,
                               'note': align_note},
                 'pearson_returns': corr,
                 'change_basis': {'a': basis_a, 'b': basis_b},
@@ -730,6 +832,29 @@ def cmd_compare(args):
                     'note': f'变化对数({paired["n_change_pairs"] if paired else 0})'
                             f'不足窗长 {args.window},滚动序列为空'}
                 warnings.append(f'--window {args.window}: 变化对数不足,滚动序列为空')
+        # ── A-fin §4: 滞后相关(--lag k,单 lag 不扫全域)——单位感知变化对上
+        # 做索引平移: 配对 (ca[i], cb[i−k]),k>0=B 领先 A k 期(B 的变化先发生),
+        # k<0 反向;有效对数 n_lag=n_change_pairs−|k|,<3 → rho=None+提示。
+        # pearson 复用,零新统计代码。──
+        if args.lag is not None and paired:
+            ca, cb = paired['changes_a'], paired['changes_b']
+            k = args.lag
+            idx = [i for i in range(len(ca)) if 0 <= i - k < len(cb)]
+            xa = [ca[i] for i in idx]
+            xb = [cb[i - k] for i in idx]
+            n_lag = len(xa)
+            rho_lag = cc.pearson(xa, xb) if n_lag >= 3 else None
+            insufficient = (f'n_lag_pairs={n_lag}<3: 平移 |{k}| 后有效变化对不足,'
+                            '滞后相关不可计算(降低 |k| 或换更长样本)') if n_lag < 3 else None
+            data['lagged'] = {
+                'lag': k, 'rho': rho_lag, 'n_lag_pairs': n_lag,
+                'n_lag_expected': paired['n_change_pairs'] - abs(k),
+                'basis': ('滞后配对=(A第i个变化, B第i−k个变化);k>0=B领先A k个'
+                          '变化对(B先动),k<0=A领先;口径见 change_basis'
+                          '(单位感知 pp/pct)'),
+                'warning_if_insufficient': insufficient}
+            if insufficient:
+                warnings.append(f'--lag {k}: {insufficient}')
         emit(envelope('compare', True, data, warnings, snapshot=snap))
     emit(envelope('compare', False, {},
                   error=('no_mode', '未指定比较模式',
@@ -752,12 +877,12 @@ def _check_follow_up(query_id):
 
 
 def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=None,
-                            values=None, unresolved=None, glm=None,
+                            values=None, unresolved=None, model=None,
                             warnings_=(), violations=(), user_note=None,
                             follow_up_of=None, evidence=None, statistics=None,
                             hypotheses=None, open_questions=None, as_of=None):
     """research_full_v1 sidecar 旁挂(批2 WI6): 保存**本次用户实际所见**的
-    作答正文/AI 解释原文(glm 字段名保留)/warnings/violations/备注/前档链接——只搬运本进程已有
+    作答正文/AI 解释原文(v2.1: 字段名 model,旧档 glm 键读取层兼容)/warnings/violations/备注/前档链接——只搬运本进程已有
     值,绝不重新生成、绝不补发任何 API 调用。返回 (ok, 详情)。
 
     任务F(批2 W10): 跨模型完整成果开放输入——archive save 可直传 Agent 产出的
@@ -775,7 +900,7 @@ def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=Non
     except (FileNotFoundError, ValueError):
         created_at = saved_at      # 基档不可读时不阻断(sidecar 仍绑定本进程事实)
     # W4(Model-Agnostic v2): 写入时消毒——question/answer/user_note 为用户与
-    # 引擎自由文本,glm.error 可能回显端点/头;过 redact() 后落盘。只消毒写入,
+    # 引擎自由文本,模型 error 可能回显端点/头;过 redact() 后落盘。只消毒写入,
     # 读取层(list/detail)不过滤,sidecar 保持"用户实际所见原文"语义(密钥除外);
     # None 如实保 None(无本次作答不编造成空串)。
     # 四路终审 D-1(2026-11-09): 登记明文清扫兜底——redact 为模式匹配,URL 编码形
@@ -788,16 +913,16 @@ def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=Non
         import real_data_acceptance as rda
         rda.register_runtime_env_secrets()      # 幂等: 自动补 %xx/+ 编码形
         return rda.sanitize_text(redact(v))
-    _glm_sanitized = None
-    if isinstance(glm, dict):
-        _glm_sanitized = {k: _san(v) for k, v in glm.items()}
+    _model_sanitized = None
+    if isinstance(model, dict):
+        _model_sanitized = {k: _san(v) for k, v in model.items()}
     payload = {'record_type': ra.FULL_RECORD_TYPE, 'query_id': qid,
                'question_text': _san(question), 'created_at': created_at,
                'research_as_of': _san(as_of) if as_of else snap.get('research_as_of'),
                'snapshot_id': snap.get('snapshot_id'),
                'digest_snapshot': rp.digest_snapshot(snap),
                'status': status, 'answer_text': _san(answer_text),
-               'values': values, 'unresolved': unresolved, 'glm': _glm_sanitized,
+               'values': values, 'unresolved': unresolved, 'model': _model_sanitized,
                'warnings': list(warnings_), 'violations': list(violations),
                'user_note': _san(user_note), 'follow_up_of': follow_up_of,
                'evidence': _san(evidence), 'statistics': _san(statistics),
@@ -846,11 +971,11 @@ def cmd_research(args):
             data['economy_fallback_note'] = (
                 f'问题识别为单经济体({eco})概览类,已附该经济体全部指标节点——'
                 '请基于节点原值作答,缺失即缺失')
-    if args.glm and ok:
-        glm = wd.glm_explain(args.question, res.get('answer_text', ''))
-        data['glm'] = glm
-        if not glm.get('ok'):
-            warnings.append(f"AI 解释未生成: {glm.get('error', '')[:120]}")
+    if args.explain and ok:
+        explain = wd.ai_explain(args.question, res.get('answer_text', ''))
+        data['model'] = explain
+        if not explain.get('ok'):
+            warnings.append(f"AI 解释未生成: {explain.get('error', '')[:120]}")
     if args.archive and ok:
         qid, err = wd.save_to_archive(args.question, snap, ROOT,
                                       archive_dir=_ARCHIVE_DIR)
@@ -860,7 +985,7 @@ def cmd_research(args):
             full_ok, full_why = _write_research_sidecar(
                 qid, snap, args.question, status=res['status'],
                 answer_text=res.get('answer_text'), values=res.get('values', {}),
-                unresolved=res.get('unresolved', []), glm=data.get('glm'),
+                unresolved=res.get('unresolved', []), model=data.get('model'),
                 warnings_=list(warnings), violations=list(violations or []),
                 user_note=args.note, follow_up_of=args.follow_up_of)
             if not full_ok:
@@ -953,6 +1078,10 @@ def cmd_archive(args):
         if full is not None:     # 并列合并视图(base 身份为准,record_type 不被覆盖)
             merged = dict(rec)
             merged.update({k: v for k, v in full.items() if k != 'record_type'})
+            # v2.1(Charter 5 S6): 旧 sidecar 'glm' 键 → 归一映射到 'model'
+            # (旧档不重写;输出契约恒用 model 键,原 glm 键不再出现在合并视图)
+            if 'glm' in merged:
+                merged.setdefault('model', merged.pop('glm'))
             # 任务F(W10): 旧 sidecar 缺成果键 → null(读侧归一,输出契约恒齐)
             for _k in ('evidence', 'statistics', 'hypotheses', 'open_questions'):
                 merged.setdefault(_k, None)
@@ -1001,12 +1130,15 @@ def build_parser():
     cp.add_argument('--window', type=int,
                     help='metrics 模式: 滚动相关窗长 N≥2(单位感知变化对,diff 基;'
                     '输出 rolling 摘要,不改全窗 pearson_returns)')
+    cp.add_argument('--lag', type=int,
+                    help='metrics 模式: 滞后相关平移 k 期(整数可负,单位=变化对;'
+                    'k>0=B 领先 A k 期先动,k<0 反向;与 --window 互斥)')
 
     rs = sub.add_parser('research', help='本地接地研究问答(e2eb 栈,零网络)')
     rs.add_argument('--question', required=True, help='研究问题')
-    rs.add_argument('--explain', '--glm', dest='glm', action='store_true',
+    rs.add_argument('--explain', dest='explain', action='store_true',
                     help='附加 AI 解释(可选模型 API,产生 API 费用,仅用户明确'
-                    '要求时使用;--glm 为旧别名,保留兼容)')
+                    '要求时使用)')
     rs.add_argument('--archive', action='store_true', help='同时落研究档案')
     rs.add_argument('--note', help='用户备注(随 research-full sidecar 落档)')
     rs.add_argument('--follow-up-of',

@@ -120,7 +120,7 @@ check("存在sys.exit(1)失败分支(第五轮P1-2: 关键步骤失败才exit 1,
 print("\n[7] news_collector 模型API迁移")
 nc = open(os.path.join(ROOT, 'scripts', 'news_collector.py')).read()
 check("不再引用DEEPSEEK", "DEEPSEEK" not in nc)
-check("使用模型API流式(中性MODEL_*;2026-11-09由GLM_MODEL更名)",
+check("使用模型API流式(中性MODEL_*;v2 中性更名)",
       "MODEL_NAME" in nc and "stream=True" in nc)
 
 

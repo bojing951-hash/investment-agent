@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""IA-P03-W2-GLM-WP-G1: GLM 研究结论层输入装配器(结论层输入唯一写者)
+"""模型研究结论层输入装配器(结论层输入唯一写者;v2.1 中性名,原 G1)
 
-命名沿历史(模块名 glm_* 与运行层已中性化 MODEL_* 无关,此处指 GLM 结论层
-合同冻结登记件;Model-Agnostic v2 不改冻结命名)。
-合同 IA-P03-W2-GLM-WP-G1-AC-v1.0 / DESIGN §三(a)(docs/P03_W2_GLM_DESIGN.md:56-76):
-产出 `GLMResearchInput`(模式 A 任务形态 / 模式 B 查询形态),九字段输入契约:
+合同要点(历史设计档已移出公开仓;v2.1 Charter 5 S3: 模块更名
+model_input_assembler,类 ModelResearchInput,删除"命名沿历史"豁免注):
+产出 `ModelResearchInput`(模式 A 任务形态 / 模式 B 查询形态),九字段输入契约:
 contract_version / mode / snapshot_binding / task_ref / query_ref / evidence_pack /
 absent_registry / prior_knowledge / prompt_contract。
 
-禁直读四机制(DESIGN §三(a) 机制1-4,登记于 docs/P03_W2_GLM_G1_REPORT.md §一.3):
+禁直读四机制(历史设计档 §三(a) 机制1-4):
 1. 唯一写者+读取面封闭: 本模块零文件读取/零glob/零网络;唯一取数接入点=R1
    标准化层快照选择(接入点豁免标记单处落于 assemble,沿 E2E-A
    research_history_query 先例),只经手 research_snapshot_*.json 标准化产物,
@@ -16,10 +15,10 @@ absent_registry / prior_knowledge / prompt_contract。
 2. 披露与读取分离: evidence_pack.facts[].source_file 仅作披露字符串自快照事实
    source.file 逐字透传(规范basename),不构成任何读取通道;
 3. 负向测试固化: 装配产物零原始档路径引用(除披露槽位)+ Gate A FAIL/None
-   拒绝装配(tests/test_p03_w2_glm_g1.py T2/T2b/T2c);
+   拒绝装配(tests/test_p03_w2_model_g1.py T2/T2b/T2c);
 4. 数值零旁路: 装配器零算术,一切数值=快照事实逐位投影(T1b 断言字面量相等)。
 
-缺席登记(DESIGN §三(a) absent_registry;E2E-B 四级枚举): 数据不足不填0,
+缺席登记(历史设计档 §三(a) absent_registry;E2E-B 四级枚举): 数据不足不填0,
 缺席如实进输入(classify_absence 四级: ABSENT_REGISTRY/ABSENT_SOURCE/
 ABSENT_DATA/ABSENT_WINDOW)。
 
@@ -28,7 +27,7 @@ JSON);入参 expected_snapshot_digest 携先验声明时重算比对,失配拒�
 Gate A 经 R2 事实重算+R3 放行判定,FAIL/None/声明与重算矛盾一律拒绝装配
 (沿 data_assembler 拒绝语义)。
 
-零真实 GLM/LLM 调用、零凭证、零付费、零网络出站(真实调用属 WP-G4,
+零真实模型调用、零凭证、零付费、零网络出站(真实调用属调用层,
 执行前置=用户批准凭证/费用,PENDING 未批)。import 面纯标准库+项目既有模块。
 """
 import hashlib
@@ -103,7 +102,7 @@ def _gate_check(snapshot):
     if not rp.gate_allows_formal_research(status):
         raise AssemblyRefused(
             f"Gate A {status if status else '不可用(' + reason + ')'} — "
-            f"拒绝装配正式 GLM 研究输入(FAIL/未知不得进入正式研究;"
+            f"拒绝装配正式模型研究输入(FAIL/未知不得进入正式研究;"
             f"沿数据装配器拒绝语义)")
     return status
 
@@ -293,7 +292,7 @@ def _prompt_contract(language=None, output_schema_version=None):
 # ══ 输入契约字段级校验(要点①;装配末步自检+测试直调) ═══════════════════
 
 def validate_input(inp):
-    """GLMResearchInput 九字段字段级校验;返回问题列表(空=过)。
+    """ModelResearchInput 九字段字段级校验;返回问题列表(空=过)。
 
     必备字段缺席/类型不符/枚举越界/常量漂移(prompt_contract 三合同级值)均为
     问题;额外字段 tolerated(前向兼容,E2E-A「可增不可减」同款语义)。"""

@@ -7,11 +7,11 @@
 - redact_secrets.redact: 参数形(URL/裸键,含 model_api_key/glm_api_key
   复合名)、JSON冒号形(含 camelCase apiKey)、Header形(Authorization/
   x-api-key,值域 [A-Za-z0-9_.-]+);幂等性逐格验证。
-- glm_conclusion_client.redact: 登记明文(进程内 MODEL_API_KEY/GLM_API_KEY
+- model_conclusion_client.redact: 登记明文(进程内 MODEL_API_KEY/GLM_API_KEY
   值)任意位置 + Authorization 头的纵深版对照。
 
 刻意边界(断言"不脱敏",是设计而非遗漏):
-- OpenAI 式散文回显: redact_secrets 无锚不猜,由 gcc.redact 在值=已登记
+- OpenAI 式散文回显: redact_secrets 无锚不猜,由 mcc.redact 在值=已登记
   明文时兜底;裸 Bearer 批2 W7 已覆盖(16+ 长度下限防自然语言误伤,
   短串按设计保留);
 - 裸 hex/指纹泛化: 会误伤快照 sources sha256 摘要,明确不做。
@@ -70,7 +70,7 @@ for name, cell, anchor in COVERED:
     check(name, FAKE not in out and SK not in out and '***REDACTED***' in out,
           f'out={out[:70]}')
 
-# ── 二、边界格(无锚不猜——redact_secrets 刻意不动,纵深由 gcc 承担) ────
+# ── 二、边界格(无锚不猜——redact_secrets 刻意不动,纵深由 mcc 承担) ────
 print("\n[2] 边界(散文回显/短串/自然语言: 本层不猜或按设计保留)")
 BOUNDARY = [
     ('D2 OpenAI式散文回显(未登记值)', f'Incorrect API key provided: {SK}'),
@@ -115,9 +115,9 @@ check("四行泄漏全消+明文行保留", FAKE not in out and SK not in out
       f'out={out[:120]}')
 check("多行幂等", redact(out) == out)
 
-# ── 六、gcc.redact 纵深对照(登记明文任意位置+Authorization) ───────────
-print("\n[6] glm_conclusion_client.redact(登记明文纵深版)")
-import glm_conclusion_client as gcc        # noqa: E402
+# ── 六、mcc.redact 纵深对照(登记明文任意位置+Authorization) ───────────
+print("\n[6] model_conclusion_client.redact(登记明文纵深版)")
+import model_conclusion_client as mcc        # noqa: E402
 _saved = {k: os.environ.get(k) for k in ('MODEL_API_KEY', 'GLM_API_KEY')}
 try:
     os.environ.pop('MODEL_API_KEY', None)
@@ -129,10 +129,10 @@ try:
         ('D2 散文回显(值=登记明文)', f'Incorrect API key provided: {FAKE}'),
     ]
     for name, cell in GCC_CELLS:
-        out = gcc.redact(cell)
+        out = mcc.redact(cell)
         check(name, FAKE not in out and SK not in out, f'out={out[:70]}')
     # 未登记值且无头名锚: 纵深版同样不猜(边界对称)
-    check('未登记裸Bearer→原样(对称边界)', gcc.redact(f'Bearer {SK}') == f'Bearer {SK}')
+    check('未登记裸Bearer→原样(对称边界)', mcc.redact(f'Bearer {SK}') == f'Bearer {SK}')
 finally:
     for k, v in _saved.items():
         if v is None:

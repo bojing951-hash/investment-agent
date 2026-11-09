@@ -694,7 +694,7 @@ def run_flow(td, gate_b='PASS', validator_exc=None, status_writer=None):
         mock.patch.object(rg, 'DATA_DIR', td),
         mock.patch.object(rg, 'OUTPUT_DIR', os.path.join(td, 'out', 'weekly')),
         mock.patch.object(rg, 'datetime', _FakeDT),
-        mock.patch.object(rg, '_call_glm', glm),
+        mock.patch.object(rg, '_call_model', glm),
         # Model-Agnostic v2(W3): 模拟已配置模型三参,使周报走模型分支(零真实凭证)
         mock.patch.object(rg, 'model_runtime_config', lambda: {
             'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1',
@@ -827,7 +827,7 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(mr, 'DATA_DIR', os.path.join(td, 'data', 'daily')), \
          mock.patch.object(mr, 'OUTPUT_DIR', mdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
-         mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, '_call_model', glm), \
          mock.patch.object(rg, 'model_runtime_config', lambda: { \
              'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
              'model': 'fake-e2e-model', 'complete': True, \
@@ -863,7 +863,7 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(qo, 'DATA_DIR', os.path.join(td, 'data', 'daily')), \
          mock.patch.object(qo, 'OUTPUT_DIR', qdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
-         mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, '_call_model', glm), \
          mock.patch.object(rg, 'model_runtime_config', lambda: { \
              'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
              'model': 'fake-e2e-model', 'complete': True, \

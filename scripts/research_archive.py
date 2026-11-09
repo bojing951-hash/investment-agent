@@ -7,7 +7,7 @@ DESIGN docs/P03_E2EB_DESIGN.md §4.1(L180-185)与 §六 WP-B4 行(L228-232)的�
 - query_history 集合: 模式B查询 IR+作答摘要归档,一记录一文件,append-only
   (重复写入/改写被拒,记录不可变不可删改,§四行6 L176);
 - ID 引用约定: query_id=QB-YYYYMMDD-NNN(复用 qir.QUERY_ID_RE)/任务引用=RT- 前缀族
-  (G3 先例 glm_conclusion_integrator.py:82;DESIGN L183 严格格式为其子集)/
+  (G3 先例 model_conclusion_integrator.py:82;DESIGN L183 严格格式为其子集)/
   origin_query_id=严格 QB 格(L184 交叉引用约定;任务侧字段,本模块提供约定校验面,
   不建 E2E-A 任务集合存储——L230「本包只建模式B侧+引用约定」);
 - snapshot_id+digest 内容级绑定: 每记录必携完整 snapshot_id(规范
@@ -418,10 +418,13 @@ def load_query_record(query_id, archive_dir=None):
 
 FULL_RECORD_TYPE = "research_full_v1"
 RESEARCH_FULL_SUFFIX = ".research-full.json"
+# v2.1(Charter 5, 2026-11-09): AI 解释块键名 glm→model(写侧)。旧 sidecar 的
+# 'glm' 键在 validate(legacy 代位)与读取层(ia_cli get 归一映射)兼容,不重写旧档。
 FULL_KEYS = ("record_type", "query_id", "question_text", "created_at",
              "research_as_of", "snapshot_id", "digest_snapshot", "status",
-             "answer_text", "values", "unresolved", "glm", "warnings",
+             "answer_text", "values", "unresolved", "model", "warnings",
              "violations", "user_note", "follow_up_of", "saved_at")
+FULL_LEGACY_KEYS = {"model": "glm"}   # 旧档代位键(payload 缺 model 而 glm 在场=合法)
 # 任务F(批2 W10, 2026-11-09): 跨模型完整成果开放输入——可选文本键,在场须
 # str|null;不列入 FULL_KEYS(旧 sidecar 缺键合法,读侧缺键→null,不破坏旧档)。
 FULL_OPTIONAL_TEXT_KEYS = ("evidence", "statistics", "hypotheses", "open_questions")
@@ -438,7 +441,8 @@ def validate_research_full(payload):
     if not isinstance(payload, dict):
         return [f"payload须为dict: {type(payload).__name__}"]
     for k in FULL_KEYS:
-        if k not in payload:
+        if k not in payload and not (k in FULL_LEGACY_KEYS
+                                     and FULL_LEGACY_KEYS[k] in payload):
             issues.append(f"sidecar缺字段{k}(research_full_v1 schema)")
     if issues:
         return issues
@@ -461,8 +465,9 @@ def validate_research_full(payload):
     dg = payload.get("digest_snapshot")
     if not isinstance(dg, str) or not DIGEST_RE.match(dg or ""):
         issues.append(f"digest_snapshot格式非法(须R5十六位小写指纹): {dg!r}")
-    for k in ("values", "glm"):
-        v = payload.get(k)
+    for k in ("values", "model"):
+        # v2.1: model 缺席而旧档 glm 在场=legacy 合法,dict|null 校验取代位键
+        v = payload.get(k, payload.get(FULL_LEGACY_KEYS.get(k, k)))
         if v is not None and not isinstance(v, dict):
             issues.append(f"{k}须为dict|null: {type(v).__name__}")
     # unresolved=作答相关(独立保存场景 null 如实);warnings/violations=进程自产恒为list
@@ -490,7 +495,7 @@ def write_research_full(collection_dir, payload):
 
     返回 (status, path): written | rejected-duplicate-query-id。
     schema 违规=ValueError fail-loud。answer 相关字段(status/answer_text/
-    values/unresolved/glm)允许 None(archive save 独立保存场景)。
+    values/unresolved/model)允许 None(archive save 独立保存场景)。
     """
     issues = validate_research_full(payload)
     if issues:

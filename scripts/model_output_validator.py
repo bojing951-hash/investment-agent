@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""IA-P03-W2-GLM-WP-G2: GLM 研究结论层结构化输出契约与校验器(输出侧确定性结构)
+"""模型研究结论层结构化输出契约与校验器(输出侧确定性结构;v2.1 中性名,原 G2)
 
-命名沿历史(模块名 glm_* 与运行层已中性化 MODEL_* 无关,此处指 GLM 结论层
-合同冻结登记件;Model-Agnostic v2 不改冻结命名)。
-合同 IA-P03-W2-GLM-WP-G2-AC-v1.0 / DESIGN §三(b)(c)+§四+§五(1)+§六
-(docs/P03_W2_GLM_DESIGN.md:78-116/120-161/193-208):
+v2.1(Charter 5 S3, 2026-11-09): 模块更名 model_output_validator,删除
+"命名沿历史"豁免注;合同要点(历史设计档已移出公开仓):
 - 输出 schema: HypothesisSet(模式 A 七字段全量)/模式 B 裁剪三字段;
 - 校验器: 证据引用在场核验+数值接地(证据包/三合法来源)+竞争性区分性判据
   +反方证据强制(空即拒)+缺席承接(absent_ack/limitations 四义务)
@@ -12,12 +10,12 @@
 - 假设-证据映射表构建(§四(2),装配期由校验器构建,入研究档案);
 - 失败三径状态机(§三(b): 径1重试→径2降级→径3缺席登记)。
 
-零真实 GLM/LLM 调用、零凭证、零付费、零网络出站(设计对象≠设计手段;
+零真实模型调用、零凭证、零付费、零网络出站(设计对象≠设计手段;
 DESIGN L224「不含真实调用(以确定性样例驱动)」;真实调用属 WP-G4,执行前置=
 用户批准凭证/费用 PENDING 未批)。调用面以确定性样例驱动:
 run_conclusion_pipeline 的 attempts 参数=注入的尝试产物序列
 (桩注入点,登记 REPORT §二.3),禁任何真实出站。
-import 面纯标准库+项目既有模块(glm_input_assembler/research_provenance
+import 面纯标准库+项目既有模块(model_input_assembler/research_provenance
 复用调用,禁复制分叉)。
 """
 import json
@@ -28,10 +26,10 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import research_provenance as rp        # noqa: E402 (注册表访问复用,禁复制分叉)
-import glm_input_assembler as gia       # noqa: E402 (G1 输入契约复用,禁复制分叉)
+import model_input_assembler as mia       # noqa: E402 (G1 输入契约复用,禁复制分叉)
 
 # ══ 契约常量(DESIGN 明示值/G1 登记值沿用;登记=常量=echo 三方一致,REPORT §二.1) ══
-OUTPUT_SCHEMA_VERSION = 'hs-1.0'        # G1 登记(glm_input_assembler.py:64)沿用
+OUTPUT_SCHEMA_VERSION = 'hs-1.0'        # G1 登记(model_input_assembler.py:64)沿用
 HYPOTHESIS_FIELDS = ('hypothesis_id', 'statement', 'supporting_evidence',
                      'counter_evidence', 'falsifiable_conditions',
                      'confidence', 'limitations')   # DESIGN L95-103 七字段
@@ -72,7 +70,7 @@ _NUM_TOKEN_RE = re.compile(
 
 
 class InvalidResearchInput(Exception):
-    """入参非有效 GLMResearchInput(G1 契约): 管线入口 fail-closed 拒绝。"""
+    """入参非有效 ModelResearchInput(G1 契约): 管线入口 fail-closed 拒绝。"""
 
 
 class InvalidOutput(Exception):
@@ -204,8 +202,8 @@ def legal_target_numbers(inp, *, registry_targets=None,
 
 def _validate_common(inp, out, probs):
     """模式共用: 输入形态/echo 复述/absent_ack 逐项复述/数值集准备。"""
-    if not isinstance(inp, dict) or inp.get('mode') not in gia.MODE_ENUM:
-        probs.append(f'输入非法(非GLMResearchInput形态): '
+    if not isinstance(inp, dict) or inp.get('mode') not in mia.MODE_ENUM:
+        probs.append(f'输入非法(非ModelResearchInput形态): '
                      f'mode={inp.get("mode") if isinstance(inp, dict) else type(inp).__name__}')
         return None
     return inp['mode']
@@ -237,7 +235,7 @@ def validate_output(inp, out, *, registry_targets=None,
                     prior_trigger_targets=None):
     """HypothesisSet(模式A)/裁剪版(模式B) 输出契约校验;返回问题列表(空=过)。
 
-    inp=GLMResearchInput(G1 契约产物;九字段级校验由管线入口 gia.validate_input
+    inp=ModelResearchInput(G1 契约产物;九字段级校验由管线入口 mia.validate_input
     承担,本函数不重复);out=解析后的输出对象。分层接地/闭合 schema/竞争性
     区分性/反方证据强制/缺席承接/阈值三来源——逐项登记 REPORT §二.3。"""
     probs = []
@@ -282,7 +280,7 @@ def _validate_mode_a(inp, out, probs, facts_by_id, facts_by_mid,
         probs.append(f'hypotheses须非空列表: {hyps!r}')
         return
     min_comp = (inp.get('prompt_contract') or {}).get(
-        'min_competing_hypotheses') or gia.MIN_COMPETING_HYPOTHESES
+        'min_competing_hypotheses') or mia.MIN_COMPETING_HYPOTHESES
     if len(hyps) < min_comp:
         probs.append(f'竞争假设数不足: {len(hyps)}<{min_comp}(§四竞争性强制)')
 
@@ -587,7 +585,7 @@ def run_conclusion_pipeline(inp, attempts, *, max_retries=MAX_RETRIES,
                             prior_trigger_targets=None):
     """失败三径状态机(§三(b): 径1重试→径2降级→径3缺席登记;离线确定性)。
 
-    【桩注入点】attempts=注入的GLM尝试产物序列(本模块GLM调用面的确定性形态;
+    【桩注入点】attempts=注入的模型尝试产物序列(本模块模型调用面的确定性形态;
     每项 {'raw': <响应文本>} 或 {'error': <说明>, 'kind': <瞬态类|cost_breaker>});
     禁任何真实出站(真实调用属WP-G4,PENDING)。零实际休眠: 线性退避=计划表记录。
 
@@ -596,9 +594,9 @@ def run_conclusion_pipeline(inp, attempts, *, max_retries=MAX_RETRIES,
          (降级义务已由校验器强制: limitations逐项承接+涉缺席降置信);
     径3: 重试耗尽/cost_breaker(即时)/未知失败类(fail-closed)→缺席事件,
          无部分产出,task_status_advanced=False。"""
-    probs0 = gia.validate_input(inp)
+    probs0 = mia.validate_input(inp)
     if probs0:
-        raise InvalidResearchInput('入参非有效GLMResearchInput(G1契约): '
+        raise InvalidResearchInput('入参非有效ModelResearchInput(G1契约): '
                                    + '; '.join(probs0[:5]))
     trace = []
     used = 0

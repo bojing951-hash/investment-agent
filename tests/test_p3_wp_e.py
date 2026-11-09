@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """IA-P3-WP-E 测试件: 个人流程整合接口(#37 挂靠;P3 收尾层第 5 实现包)。
 
-数据面: 全合成 fixture 唯一数据源(零真实数据/零网络/零 GLM/零凭证);
+数据面: 全合成 fixture 唯一数据源(零真实数据/零网络/零模型调用/零凭证);
 预期值=黄金字面量硬编码(六面 sha256+三渲染面全文),独立首原理预计算件
 /tmp/p3-wp-e/fixture_and_golden.py(零被测模块 import)与模块实跑三方
 一致(交叉裁定 ALL MATCH,/tmp/p3-wp-e/cross_check.py)。

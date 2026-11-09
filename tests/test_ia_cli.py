@@ -193,11 +193,12 @@ d = json.loads(r.stdout)
 check("doctor: rc=0 离线可跑,信封齐(ok/capability/engine_root)",
       r.returncode == 0 and d['ok'] and d['capability'] == 'doctor'
       and os.path.isabs(d['engine_root']))
-check("doctor: env 只报已配置与否,值不出现(含 W5 中性 MODEL_* 三参+旧 GLM 行)",
+check("doctor: env 只报已配置与否,值不出现(v2.1 唯一模型面=MODEL_* 三参,无旧变量行)",
       set(d['data']['env']) == {'MODEL_API_KEY', 'MODEL_BASE_URL', 'MODEL_NAME',
-                                'GLM_API_KEY', 'FRED_API_KEY', 'TUSHARE_TOKEN',
+                                'FRED_API_KEY', 'TUSHARE_TOKEN',
                                 'FINNHUB_API_KEY', 'YF_PROXY'}
-      and all(set(v) == {'configured', 'purpose'} for v in d['data']['env'].values()))
+      and all(set(v) == {'configured', 'purpose'} for v in d['data']['env'].values())
+      and not any('glm' in k.lower() for k in d['data']))   # v2.1: 医生面零旧变量键
 check("doctor: 无快照时如实 available=false(CI 预期)",
       d['data']['snapshot']['available'] in (True, False))  # CI 无快照/本地有快照均合法
 
@@ -221,12 +222,13 @@ check("history 不带 --metric→列出可查指标(CI 下可为空列表,结构
 
 # 批2 W8(C-1): catalog 全字段——字段齐全性+与注册表实值一致抽验
 # (期望值直读 metric_registry.json/snapshot 原始 JSON,不经被测模块自算)
+# A-fin(2026-11-09): +time_semantics; 问题二 C-2: +supported_stats(13键)
 FULL_KEYS = {'metric_id', 'label', 'unit', 'unit_family', 'frequency',
              'first', 'last', 'n', 'calendar', 'release_semantics',
-             'quality_status'}
+             'time_semantics', 'supported_stats', 'quality_status'}
 caps = d['data']['series_capable_metrics']
 if caps:
-    check("catalog 全字段(11键)且键集一致",
+    check("catalog 全字段(13键)且键集一致",
           all(set(c) == FULL_KEYS for c in caps),
           str(next((set(c) ^ FULL_KEYS for c in caps if set(c) != FULL_KEYS), '')))
     reg_doc = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),
@@ -275,6 +277,27 @@ if 'error' in d:
 else:
     check("research 有快照→接地作答,violations 字段纪律生效",
           r.returncode == 0 and d['data']['status'] in ('answered', 'refusal'))
+
+print()
+print("═" * 60)
+print("⑫(D 线终验) 窗口参数空串拒收 + stdout 恒单 JSON")
+print("═" * 60)
+r = run_cli('history', '--metric', 'SPX', '--start', '')
+d12 = json.loads(r.stdout) if r.stdout.strip().startswith('{') else {}
+check("history --start '' → rc=2 bad_window(曾静默当无界)",
+      r.returncode == 2 and d12.get('error', {}).get('kind') == 'bad_window',
+      r.stdout[:120])
+r = run_cli('history', '--metric', 'SPX', '--end', '   ')
+check("history --end 纯空白 → rc=2 bad_window",
+      r.returncode == 2 and json.loads(r.stdout)['error']['kind'] == 'bad_window')
+env_w = dict(os.environ, PYTHONWARNINGS='always')
+r = subprocess.run([sys.executable, CLI, 'doctor'],
+                   capture_output=True, text=True, timeout=120, env=env_w)
+check("PYTHONWARNINGS=always 下 stdout 仍恒单 JSON(首字符'{'且整体可解析)",
+      r.stdout.startswith('{') and json.loads(r.stdout)['ok'], r.stdout[:80])
+check("stderr 零 warning 行(入口 filterwarnings 防御;D 线 LibreSSL urllib3 "
+      "NotOpenSSLWarning 占 stdout 案例本机不可复现,防御性锁)",
+      r.stderr == '', r.stderr[:120])
 
 print()
 print("═" * 60)

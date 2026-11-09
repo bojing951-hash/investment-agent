@@ -129,7 +129,7 @@ def load_previous_report():
 
     IA-P0-1-FIX3(FIX3-02/F2-NEW-002): 正式性由**可验证的已发布状态**决定,
     不由文件存在/文件名决定——发布事务"替换已完成、主状态未写入"的中断窗口内,
-    正式文件名下是未发布产物,不得被当作"上期报告"喂给GLM续写。
+    正式文件名下是未发布产物,不得被当作"上期报告"喂给模型续写。
     读取链(rp.latest_formal_weekly_report): 规范文件名+发布状态published=True
     +final_quality∈(PASS,DEGRADED)+身份一致+内容摘要重算一致,任一不满足即拒。
     无任何已发布合格报告时降级为**历史档案**模式(规范文件名筛选,排除候选/
@@ -160,7 +160,7 @@ def load_previous_report():
         with open(filepath, 'r', encoding='utf-8') as f:
             content = f.read()
 
-        # 只取前60行作为摘要: 控制输入长度(过长会触发GLM 1301风控且拖慢思考)
+        # 只取前60行作为摘要: 控制输入长度(过长会触发模型 1301风控且拖慢思考)
         lines = content.split('\n')
         summary = '\n'.join(lines[:60])
 
@@ -300,7 +300,7 @@ def load_news_summary():
         dropped = blocks.pop(0)
         print(f"   ⚠️ 新闻过长,丢弃最旧一天({dropped.splitlines()[0][:20]}...)")
     merged = '\n\n'.join(blocks)
-    if len(merged) > 9000:  # 单日也超长的极端情况,控制长度防GLM 1301风控
+    if len(merged) > 9000:  # 单日也超长的极端情况,控制长度防模型 1301风控
         merged = merged[:9000] + "\n... [本周新闻过长已截断]"
 
     # IA-P0-2-W3-05 + W3-FIX1-02 + W3-FIX3-03 + W3-FIX4: 确定性来源索引
@@ -351,8 +351,8 @@ def load_news_summary():
 
 def sanitize_news(text):
     """新闻脱敏: 板块白名单 + 敏感词黑名单(2026-09-30)
-    智谱GLM内容风控(1301)会拦截战争/军事/敏感组织类内容,原Reuters新闻标题常触发。
-    (历史=智谱风控运维经验,通用无害: 输入脱敏/控长对任意模型端点都是好实践。)
+    模型服务内容风控(1301)会拦截战争/军事/敏感组织类内容,原Reuters新闻标题常触发。
+    (历史=模型服务风控运维经验,通用无害: 输入脱敏/控长对任意模型端点都是好实践。)
     只保留财经板块,并过滤军事冲突相关条目。地缘因素对市场的影响仍可从油价等数据侧体现。
     """
     import re
@@ -465,7 +465,7 @@ def generate_report(data_pack, framework=None, prev_report=None, tech_notes=None
     max_attempts = 3
     for attempt in range(1, max_attempts + 1):
         try:
-            report_text = _call_glm(system_prompt, user_prompt)
+            report_text = _call_model(system_prompt, user_prompt)
             if not report_text or len(report_text.strip()) < 500:
                 raise ValueError(f"返回内容过短({len(report_text or '')}字符),疑似被截断")
             print(f"✅ 生成完成！报告长度: {len(report_text)} 字符")
@@ -484,16 +484,15 @@ def generate_report(data_pack, framework=None, prev_report=None, tech_notes=None
     return None
 
 
-def _call_glm(system_prompt, user_prompt, max_tokens=32000, timeout=900):
-    """调用通用模型 API(OpenAI 兼容通道, 流式;配置=env_config MODEL_* 三参,
-    含旧 GLM_* 条件回退,见 env_config.model_runtime_config)
+def _call_model(system_prompt, user_prompt, max_tokens=32000, timeout=900):
+    """调用通用模型 API(OpenAI 兼容通道, 流式;配置=env_config MODEL_* 三参)
 
-    实测踩坑记录(2026-09-30, 智谱 glm-5.3;历史=智谱风控运维经验,通用无害):
+    实测踩坑记录(2026-09-30;历史=模型服务风控运维经验,通用无害):
     1. 非流式长时间生成会被网关断连(RemoteDisconnected) → 必须流式
-    2. glm-5.3思考不可关闭,会吃光max_tokens导致正文为空 → reasoning_effort=low控制思考档位
+    2. 部分模型思考不可关闭,会吃光max_tokens导致正文为空 → reasoning_effort=low控制思考档位
     3. 过长的旧报告/笔记输入会触发1301内容风控 → load_previous_report/load_technical_notes已做截断,
        新闻已做sanitize_news脱敏
-    (流式/控长/脱敏对任意端点通用;reasoning_effort 为智谱参数,其他端点
+    (流式/控长/脱敏对任意端点通用;reasoning_effort 为部分端点参数,其他端点
     不识别时由该端点自行忽略或报错——沿用历史行为,不做端点探测。)
     """
     from openai import OpenAI
@@ -531,11 +530,11 @@ def _call_glm(system_prompt, user_prompt, max_tokens=32000, timeout=900):
 
 # ============ IA-P0-1 预检与报告质量(任务5/6, 2026-10-27) ============
 # 独立launchd入口(周六08:00直接跑report_generator.py)此前只查"当日数据包存在",
-# 无Gate A检查、无来源核验: Gate A FAIL日照常调GLM、旧包/旧锚点/跨批次混用均可
-# 通过。预检在**调用GLM之前**核验四件套,失败→不调GLM/不覆盖合格报告/不写状态。
+# 无Gate A检查、无来源核验: Gate A FAIL日照常调模型、旧包/旧锚点/跨批次混用均可
+# 通过。预检在**调用模型之前**核验四件套,失败→不调模型/不覆盖合格报告/不写状态。
 
 def verify_research_inputs(ymd=None):
-    """报告生成前置核验(调GLM之前)。返回(ok, 问题列表, 上下文dict)。
+    """报告生成前置核验(调模型之前)。返回(ok, 问题列表, 上下文dict)。
 
     核验项(全部须当日且互相绑定,缺一即拒;FIX-01: 实际内容摘要重算+确定性重建):
     1. 当日研究快照存在且可解析,Gate A ∈ {PASS, DEGRADED}(FAIL/缺字段/非法/
@@ -964,7 +963,7 @@ def save_report(report_text, date_str=None):
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    # 保存 Markdown(GLM输出自带标题,这里只写一行元信息避免双标题)
+    # 保存 Markdown(模型输出自带标题,这里只写一行元信息避免双标题)
     md_path = os.path.join(OUTPUT_DIR, f'weekly_report_{date_str}.md')
     with open(md_path, 'w', encoding='utf-8') as f:
         f.write(f"<!-- 生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {_model_stamp()} | investment-agent -->\n\n")
@@ -1385,13 +1384,13 @@ def generate_weekly_report():
     for act in reconcile_publication(today_ymd):
         print(f"🛠️  {act}")
 
-    # 第0.9步(IA-P0-1,任务5): 生成前置核验——调GLM之前核验当日四件套
+    # 第0.9步(IA-P0-1,任务5): 生成前置核验——调模型之前核验当日四件套
     # (权威快照/Gate A/数据包绑定/锚点批次/锚点prompt)。本入口由launchd独立调度
     # (周六08:00),无流水线内存状态可依赖,一切以磁盘上的可验证产物为准:
-    # 预检失败 → 不调用GLM、不覆盖任何已有合格报告、不更新研究状态,exit 2。
+    # 预检失败 → 不调用模型、不覆盖任何已有合格报告、不更新研究状态,exit 2。
     ok, problems, pfx = verify_research_inputs(today_ymd)
     if not ok:
-        print(f"\n⛔ 预检失败({len(problems)}项) — 拒绝生成正式周报(不调用GLM,退出码2):")
+        print(f"\n⛔ 预检失败({len(problems)}项) — 拒绝生成正式周报(不调用模型,退出码2):")
         for p in problems:
             print(f"   - {p}")
         print("   处置: 先运行 run_weekly.py 完整流水线;Gate A FAIL须修复采集后"
@@ -1438,8 +1437,6 @@ def generate_weekly_report():
     if data_only:
         print("⏭️ 未配置模型 API(三参不齐)——走 data-only 确定性数据观察分支"
               "(Agent Native 模式预期行为,不发起任何模型调用)")
-        if _mcfg['blocked_reason']:
-            print(f"   ⚠️ {_mcfg['blocked_reason']}")
         report = generate_data_only_report(data_pack)
     else:
         report = generate_report(data_pack, framework, prev_report, tech_notes, news_summary)

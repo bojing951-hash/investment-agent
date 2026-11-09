@@ -34,7 +34,7 @@ NFP_MOM_K},依据=主流水线 8 模块词边界引用计数实取≥2;FOMC_RATE
 关联 metric∈{None, DFEDTARU, DFEDTARL})。
 
 纪律: 零网络(import 面白名单 json/os/sys/datetime+项目既有 drr/rp/fe,
-P-D-10);零 GLM/凭证/付费;append-only(重复/改写一律拒,族先例);零墙钟入
+P-D-10);零模型调用/凭证/付费;append-only(重复/改写一律拒,族先例);零墙钟入
 指纹;registry 解析经 fe.metric() 复用(P-D-11,零 registry 直读复制);本
 模块输出为研究结构面数据,**不构成投资建议**(DESIGN §八 L225 红线承接)。
 参数登记: docs/P2_WP_D_REPORT.md §零.4/§零.5(DP 处置+P-D-01..P-D-13,

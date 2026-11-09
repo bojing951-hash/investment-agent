@@ -28,7 +28,7 @@ DESIGN docs/P3_DESIGN.md §7 WP-P3-D 行(L188-L192,基线工作树实读)确定�
 rp.GATES/rp.FORMAL_FINAL_QUALITIES;ae._parse_status_block;prd.
 prediction_review_report/review_statistics/hypothesis_warnings/window_bounds。
 
-纪律: 零网络零 GLM 零凭证零付费(import 面白名单 json/os/re/sys/datetime+
+纪律: 零网络零模型调用零凭证零付费(import 面白名单 json/os/re/sys/datetime+
 项目既有 research_provenance/allocation_engine/prediction_review);一切
 日期依赖纯函数显式 as_of 必填(唯一墙钟缺省=编排面 report_quality_review
 边缘);本模块输出为报告质量评价循环面数据,**不构成投资建议**(DESIGN

@@ -55,7 +55,7 @@ print("第三轮对抗性测试(9个点名用例)")
 print("=" * 60)
 
 # IA-P0-1-FIX1: 锚点schema新增quality字段(FIX-04引擎侧校验)——fixture补
-# quality='PASS'与新schema对齐,不改变既有断言语义(被测行为是GLM裁决核验,
+# quality='PASS'与新schema对齐,不改变既有断言语义(被测行为是模型裁决核验,
 # 不是质量门禁本身)。
 ANCHORS = {
     'macro.data.CCC_OAS.value': {'value': 10.12, 'obs_date': '2026-10-09', 'as_of': '2026-10-09', 'quality': 'PASS'},
@@ -100,7 +100,7 @@ for py in glob.glob(os.path.join(ROOT, 'scripts', '*.py')):
         for i, line in enumerate(f, 1):
             if re.search(r'\bor\s+True\b', line):
                 hits.append(f"{os.path.basename(py)}:{i}")
-check("S0 scripts/无 `or True` 恒真短路(测试文件由重写覆盖,test_glm_live旧断言已删)", not hits, str(hits))
+check("S0 scripts/无 `or True` 恒真短路(测试文件由重写覆盖,test_model_live旧断言已删)", not hits, str(hits))
 
 # ════════ 用例1: 模型无条件改变评级 ════════
 print("\n[1] 模型无条件改变评级(无触发器无证据)")

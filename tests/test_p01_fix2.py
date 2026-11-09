@@ -136,7 +136,7 @@ def run_pub_flow(td, gate_b='PASS', validator_exc=None, cand_status_false=False,
         mock.patch.object(rg, 'DATA_DIR', os.path.join(td, 'data')),
         mock.patch.object(rg, 'OUTPUT_DIR', out_dir),
         mock.patch.object(rg, 'datetime', _FakeDT),
-        mock.patch.object(rg, '_call_glm', glm),
+        mock.patch.object(rg, '_call_model', glm),
         # Model-Agnostic v2(W3): 模拟已配置模型三参,使周报走模型分支(零真实凭证)
         mock.patch.object(rg, 'model_runtime_config', lambda: {
             'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1',
@@ -893,7 +893,7 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(mr, 'DATA_DIR', os.path.join(td, 'data', 'daily')), \
          mock.patch.object(mr, 'OUTPUT_DIR', mdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
-         mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, '_call_model', glm), \
          mock.patch.object(rg, 'model_runtime_config', lambda: { \
              'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
              'model': 'fake-e2e-model', 'complete': True, \
@@ -901,13 +901,13 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(sys, 'argv', ['monthly_review.py', '--month', '202609',
                                          '--dry-run']):
         quiet(mr.main)
-    check("月报dry-run离线: 数据块落盘+零GLM调用",
+    check("月报dry-run离线: 数据块落盘+零模型调用",
           os.path.exists(os.path.join(mdir, 'monthly_data_202609.md')) and glm.calls == 0)
     with mock.patch.object(mr, 'ROOT_DIR', td), \
          mock.patch.object(mr, 'DATA_DIR', os.path.join(td, 'data', 'daily')), \
          mock.patch.object(mr, 'OUTPUT_DIR', mdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
-         mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, '_call_model', glm), \
          mock.patch.object(rg, 'model_runtime_config', lambda: { \
              'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
              'model': 'fake-e2e-model', 'complete': True, \
@@ -929,7 +929,7 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(qo, 'DATA_DIR', os.path.join(td, 'data', 'daily')), \
          mock.patch.object(qo, 'OUTPUT_DIR', qdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
-         mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, '_call_model', glm), \
          mock.patch.object(rg, 'model_runtime_config', lambda: { \
              'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
              'model': 'fake-e2e-model', 'complete': True, \
@@ -937,7 +937,7 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(sys, 'argv', ['quarterly_outlook.py', '--quarter', '2026Q3',
                                          '--dry-run']):
         quiet(qo.main)
-    check("季报dry-run离线: 数据块落盘+零GLM调用",
+    check("季报dry-run离线: 数据块落盘+零模型调用",
           os.path.exists(os.path.join(qdir, 'quarterly_data_2026Q3.md'))
           and glm.calls == 0)
 with tempfile.TemporaryDirectory() as td:

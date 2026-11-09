@@ -112,11 +112,12 @@ class T1RegistryIdentity(unittest.TestCase):
         self.assertEqual(len(REG['metrics']), 102, '指标总数须恰为102(85+9+8)')
         self.assertEqual(sum(1 for m in REG['metrics']
                              if m.get('status') == 'active'), 101)
-        self.assertEqual(REG['version'], '2.3.0', '版本号须为2.3.0')
+        self.assertEqual(REG['version'], '2.4.0', '版本号须为2.4.0(A-fin 2026-11-09 时间键登记)')
 
     def test_t02_four_entries_full_field_freeze(self):
         # D11 全字段冻结(硬编码逐字段=磁盘实况,任何漂移即红);
-        # IA-P1-WP-A v1.3: +economy/economy_rule/market_seat 三字段(P9/JP/onshore)
+        # IA-P1-WP-A v1.3: +economy/economy_rule/market_seat 三字段(P9/JP/onshore);
+        # A-fin(2026-11-09): +observation_period_kind/release_date_available
         self.assertEqual(METRICS['JP_POLICY_RATE'], {
             'metric_id': 'JP_POLICY_RATE',
             'display_name': '日本无担保隔夜拆借利率(月均)',
@@ -124,6 +125,8 @@ class T1RegistryIdentity(unittest.TestCase):
             'source_symbol': 'IRSTCI01JPM156N',
             'asset_class': 'policy_rate',
             'frequency': 'monthly',
+            'observation_period_kind': 'calendar_month',
+            'release_date_available': False,
             'unit': 'percent',
             'calendar': 'japan',
             'economy': 'JP',
@@ -155,6 +158,8 @@ class T1RegistryIdentity(unittest.TestCase):
                 'source_symbol': tenor.replace('JGB', ''),
                 'asset_class': 'rates_yield',
                 'frequency': 'daily',
+                'observation_period_kind': 'trading_day',
+                'release_date_available': True,
                 'unit': 'percent',
                 'calendar': 'japan',
                 'economy': 'JP',

@@ -9,7 +9,7 @@
 name: offline-tests
 # IA-P0-1-FIX1 独立复核用离线测试工作流:
 # - 只跑本地离线套件(全部SYNTHETIC fixture+模型层 mock),零网络依赖、零API密钥、零付费调用
-# - test_glm_live.py 为真实模型API验收套件,按契约不得进入CI,显式排除
+# - test_model_live.py 为真实模型API验收套件,按契约不得进入CI,显式排除
 # - 依赖: 仅Python标准库(被测模块不引入第三方包)
 on:
   push:
@@ -26,12 +26,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: 运行全部离线测试套件(排除test_glm_live)
+      - name: 运行全部离线测试套件(排除test_model_live)
         run: |
           fail=0
           for t in tests/test_*.py; do
             name=$(basename "$t" .py)
-            if [ "$name" = "test_glm_live" ]; then
+            if [ "$name" = "test_model_live" ]; then
               echo "== $name: SKIPPED(真实模型API付费调用,不进CI)"
               continue
             fi

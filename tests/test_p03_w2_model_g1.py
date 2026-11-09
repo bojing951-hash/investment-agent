@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""IA-P03-W2-GLM-WP-G1(结论层输入装配器)专项测试。
+"""结论层输入装配器(model_input_assembler)专项测试(v2.1 中性名,原 G1)。
 
-合同 IA-P03-W2-GLM-WP-G1-AC-v1.0 / DESIGN §七 WP-G1 验收要点行为锁:
+合同验收要点行为锁(历史设计档已移出公开仓):
 - 要点① 输入契约字段级校验: 九字段 schema/类型/枚举/合同级常量(prompt_contract
   三值)逐项正反向用例(T1/T1c/T11);
 - 要点② 禁直读: 装配产物零原始档路径引用(除 facts[].source_file 披露槽位,
@@ -34,7 +34,7 @@ for p in (ROOT, os.path.join(ROOT, 'scripts')):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-import glm_input_assembler as gia          # noqa: E402 (被测模块)
+import model_input_assembler as mia          # noqa: E402 (被测模块)
 import research_provenance as rp           # noqa: E402 (既有权威机制,fixture 声明构建)
 
 YMDS = '20261104'                          # 合成快照目标日(非真实交易日)
@@ -201,7 +201,7 @@ class T1_ModeAInputContract(unittest.TestCase):
         self.snap = build_synthetic_snapshot(
             {RATE_METRIC: VAL_TIPS, GOLD_METRIC: VAL_GOLD})
         self.task = build_synthetic_task()
-        self.inp = gia.assemble_mode_a(self.snap, self.task)
+        self.inp = mia.assemble_mode_a(self.snap, self.task)
 
     def test_nine_fields_and_literals(self):
         self.assertEqual(sorted(self.inp), sorted([
@@ -230,7 +230,7 @@ class T1_ModeAInputContract(unittest.TestCase):
         self.assertEqual(self.inp['evidence_pack']['scorecard_summary'],
                          {'status': 'MISSING',
                           'reason': 'scorecard_summary未提供(装配期如实登记缺席)'})
-        self.assertEqual(gia.validate_input(self.inp), [])
+        self.assertEqual(mia.validate_input(self.inp), [])
 
     def test_task_ref_echo(self):
         t = self.inp['task_ref']
@@ -255,47 +255,47 @@ class T1c_ValidateInputNegative(unittest.TestCase):
 
     def setUp(self):
         snap = build_synthetic_snapshot({RATE_METRIC: VAL_TIPS})
-        self.inp = gia.assemble_mode_a(snap, build_synthetic_task(
+        self.inp = mia.assemble_mode_a(snap, build_synthetic_task(
             (RATE_METRIC,)))
 
     def test_missing_top_field(self):
         bad = copy.deepcopy(self.inp)
         del bad['prompt_contract']
-        self.assertTrue(gia.validate_input(bad))
+        self.assertTrue(mia.validate_input(bad))
 
     def test_prompt_contract_constant_drift(self):
         bad = copy.deepcopy(self.inp)
         bad['prompt_contract']['min_competing_hypotheses'] = 1
-        probs = gia.validate_input(bad)
+        probs = mia.validate_input(bad)
         self.assertTrue(any('min_competing_hypotheses须=2(合同级)' in p
                             for p in probs), probs)
         bad2 = copy.deepcopy(self.inp)
         bad2['prompt_contract']['counter_evidence_required'] = False
-        self.assertTrue(gia.validate_input(bad2))
+        self.assertTrue(mia.validate_input(bad2))
 
     def test_digest_shape_and_gate_value(self):
         bad = copy.deepcopy(self.inp)
         bad['snapshot_binding']['snapshot_digest'] = 'xyz'
-        self.assertTrue(gia.validate_input(bad))
+        self.assertTrue(mia.validate_input(bad))
         bad2 = copy.deepcopy(self.inp)
         bad2['snapshot_binding']['gate_a'] = 'FAIL'
-        self.assertTrue(gia.validate_input(bad2))
+        self.assertTrue(mia.validate_input(bad2))
 
     def test_absent_level_enum(self):
         bad = copy.deepcopy(self.inp)
         bad['absent_registry'].append({'metric_id': 'X', 'level': 'ABSENT_FOO',
                                        'reason': 'r'})
-        self.assertTrue(gia.validate_input(bad))
+        self.assertTrue(mia.validate_input(bad))
 
     def test_mode_mismatch(self):
         bad = copy.deepcopy(self.inp)
         bad['query_ref'] = {'query_id': 'q'}
-        self.assertTrue(gia.validate_input(bad))
+        self.assertTrue(mia.validate_input(bad))
 
     def test_hidden_missing_ref(self):
         bad = copy.deepcopy(self.inp)
         bad['evidence_pack']['correlation_ref'] = None
-        self.assertTrue(gia.validate_input(bad))
+        self.assertTrue(mia.validate_input(bad))
 
 
 class T2_GateRefusal(unittest.TestCase):
@@ -305,16 +305,16 @@ class T2_GateRefusal(unittest.TestCase):
         snap = rebuild_declarations(build_synthetic_snapshot(
             drop_metrics=(GOLD_METRIC,)))     # 核心缺失→FAIL(声明如实)
         self.assertEqual(rp.gate_status(snap)[0], 'FAIL')
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_a(snap, build_synthetic_task())
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_a(snap, build_synthetic_task())
         self.assertIn('Gate A', str(cm.exception))
 
     def test_gate_illegal_none_refuses(self):
         snap = build_synthetic_snapshot()
         snap['quality']['counts']['PASS'] += 1   # 计数漂移→声明↔重算矛盾→None
         self.assertIsNone(rp.gate_status(snap)[0])
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_a(snap, build_synthetic_task())
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_a(snap, build_synthetic_task())
         self.assertIn('Gate A', str(cm.exception))
 
 
@@ -324,7 +324,7 @@ class T2b_NoRawArchivePaths(unittest.TestCase):
     def setUp(self):
         snap = build_synthetic_snapshot({RATE_METRIC: VAL_TIPS,
                                          GOLD_METRIC: VAL_GOLD})
-        self.inp = gia.assemble_mode_a(snap, build_synthetic_task())
+        self.inp = mia.assemble_mode_a(snap, build_synthetic_task())
 
     def _walk_strings(self, obj):
         if isinstance(obj, str):
@@ -353,7 +353,7 @@ class T2c_SourceBoundaryLock(unittest.TestCase):
     """要点②(机制1): 装配器源码级边界锁(沿 E2E-A T6 先例)。"""
 
     def test_source_locks(self):
-        path = os.path.join(ROOT, 'scripts', 'glm_input_assembler.py')
+        path = os.path.join(ROOT, 'scripts', 'model_input_assembler.py')
         with open(path, 'r', encoding='utf-8') as f:
             src = f.read()
         self.assertEqual(src.count('ACCESS_POINT_EXEMPT'), 1)
@@ -375,7 +375,7 @@ class T3_AbsentRegistry(unittest.TestCase):
             {RATE_METRIC: VAL_TIPS}, drop_metrics=(ABSENT_DATA_METRIC,)))
         task = build_synthetic_task(
             (RATE_METRIC, UNREGISTERED_METRIC, ABSENT_DATA_METRIC))
-        inp = gia.assemble_mode_a(snap, task)
+        inp = mia.assemble_mode_a(snap, task)
         self.assertEqual(inp['snapshot_binding']['gate_a'], 'DEGRADED')
         facts = inp['evidence_pack']['facts']
         self.assertEqual([f['metric_id'] for f in facts], [RATE_METRIC])
@@ -388,7 +388,7 @@ class T3_AbsentRegistry(unittest.TestCase):
         # 零填0断言: 缺席指标不得以任何数值形态出现(0/近似/编造)
         for mid in (UNREGISTERED_METRIC, ABSENT_DATA_METRIC):
             self.assertNotIn(mid, [f['metric_id'] for f in facts])
-        self.assertEqual(gia.validate_input(inp), [])
+        self.assertEqual(mia.validate_input(inp), [])
 
 
 class T3b_ClassifyAbsenceFourLevels(unittest.TestCase):
@@ -399,19 +399,19 @@ class T3b_ClassifyAbsenceFourLevels(unittest.TestCase):
 
     def test_registry_level(self):
         self.assertEqual(
-            gia.classify_absence(UNREGISTERED_METRIC, self.snap),
+            mia.classify_absence(UNREGISTERED_METRIC, self.snap),
             ('ABSENT_REGISTRY', '指标不在注册表(无身份定义): JGB_10Y'))
 
     def test_source_level(self):
         snap = {'facts': [], 'sources_status': {
             'rate_economy': {'status': 'READ_FAIL', 'error': '合成'}}}
-        level, reason = gia.classify_absence('ZQ_F1_PRICE', snap)
+        level, reason = mia.classify_absence('ZQ_F1_PRICE', snap)
         self.assertEqual(level, 'ABSENT_SOURCE')
         self.assertIn('rate_economy:READ_FAIL', reason)
 
     def test_data_level(self):
         snap = build_synthetic_snapshot(drop_metrics=(ABSENT_DATA_METRIC,))
-        level, reason = gia.classify_absence(ABSENT_DATA_METRIC, snap)
+        level, reason = mia.classify_absence(ABSENT_DATA_METRIC, snap)
         self.assertEqual(level, 'ABSENT_DATA')
         self.assertIn('快照facts无该metric_id事实', reason)
 
@@ -421,11 +421,11 @@ class T3b_ClassifyAbsenceFourLevels(unittest.TestCase):
                            'derived': {'week': {'available': False,
                                                 'reason': '序列不含上一ISO周观测'}}}],
                 'sources_status': {}}
-        level, reason = gia.classify_absence(RATE_METRIC, snap,
+        level, reason = mia.classify_absence(RATE_METRIC, snap,
                                              required_window='m6')
         self.assertEqual(level, 'ABSENT_WINDOW')
         self.assertIn('m6', reason)
-        self.assertIsNone(gia.classify_absence(RATE_METRIC, self.snap))
+        self.assertIsNone(mia.classify_absence(RATE_METRIC, self.snap))
 
 
 class T4_SnapshotBindingTamper(unittest.TestCase):
@@ -434,13 +434,13 @@ class T4_SnapshotBindingTamper(unittest.TestCase):
     def test_value_tamper_digest_mismatch(self):
         snap = build_synthetic_snapshot({RATE_METRIC: VAL_TIPS,
                                          GOLD_METRIC: VAL_GOLD})
-        declared = gia.assemble_mode_a(
+        declared = mia.assemble_mode_a(
             snap, build_synthetic_task())['snapshot_binding']['snapshot_digest']
         tampered = rebuild_declarations(build_synthetic_snapshot(
             {RATE_METRIC: 9.99, GOLD_METRIC: VAL_GOLD}))
         self.assertEqual(rp.gate_status(tampered)[0], 'PASS')  # 值变不改变门禁
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_a(tampered, build_synthetic_task(),
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_a(tampered, build_synthetic_task(),
                                 expected_snapshot_digest=declared)
         self.assertIn('摘要不一致', str(cm.exception))
 
@@ -449,8 +449,8 @@ class T4_SnapshotBindingTamper(unittest.TestCase):
             drop_metrics=(GOLD_METRIC,)))                     # 核心缺失→重算FAIL
         snap['gate_a']['status'] = 'PASS'                     # 声明说谎
         self.assertIsNone(rp.gate_status(snap)[0])
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_a(snap, build_synthetic_task())  # 无 declared 亦拒
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_a(snap, build_synthetic_task())  # 无 declared 亦拒
         self.assertIn('Gate A', str(cm.exception))
 
 
@@ -500,7 +500,7 @@ class T5_ModeB(unittest.TestCase):
         self.query = build_synthetic_query()
 
     def test_mode_b_assembly(self):
-        inp = gia.assemble_mode_b(self.snap, self.query)
+        inp = mia.assemble_mode_b(self.snap, self.query)
         self.assertEqual(inp['mode'], 'B')
         self.assertIsNone(inp['task_ref'])
         qr = inp['query_ref']
@@ -520,41 +520,41 @@ class T5_ModeB(unittest.TestCase):
              'reason': 'E2查无身份(合成IR fixture)'},
             {'metric_id': 'SHCOMP', 'level': 'ABSENT_WINDOW',
              'reason': '序列不足6个月(合成IR fixture)'}])
-        self.assertEqual(gia.validate_input(inp), [])
+        self.assertEqual(mia.validate_input(inp), [])
 
     def test_ungrounded_resolved_refuses(self):
         q = copy.deepcopy(self.query)
         q['metric_bindings'][0]['provenance']['fact_id'] = \
             RATE_METRIC + '@2026-12-31'
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_b(self.snap, q)
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_b(self.snap, q)
         self.assertIn('接地失败', str(cm.exception))
 
     def test_binding_snapshot_mismatch_refuses(self):
         q = copy.deepcopy(self.query)
         q['metric_bindings'][0]['provenance']['snapshot_id'] = \
             'research_snapshot_20261101'
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_b(self.snap, q)
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_b(self.snap, q)
         self.assertIn('快照失配', str(cm.exception))
 
     def test_binding_metric_identity_mismatch_refuses(self):
         q = copy.deepcopy(self.query)
         q['metric_bindings'][0]['metric_id'] = GOLD_METRIC   # 绑定身份≠事实身份
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_b(self.snap, q)
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_b(self.snap, q)
         self.assertIn('身份不符', str(cm.exception))
 
     def test_no_ir_refuses(self):
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_b(self.snap, None)
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_b(self.snap, None)
         self.assertIn('WP-B1', str(cm.exception))
 
     def test_target_snapshot_mismatch_refuses(self):
         q = copy.deepcopy(self.query)
         q['target_snapshot_id'] = 'research_snapshot_20261101'
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_b(self.snap, q)
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_b(self.snap, q)
         self.assertIn('绑定快照失配', str(cm.exception))
 
 
@@ -569,13 +569,13 @@ class T6_R1Shell(unittest.TestCase):
             with open(os.path.join(td, 'research_snapshot_' + YMDS + '.json'),
                       'w', encoding='utf-8') as f:
                 json.dump(snap, f, ensure_ascii=False)
-            via_shell = gia.assemble(YMDS, td, mode='A', task=task)
-        self.assertEqual(via_shell, gia.assemble_mode_a(snap, task))
+            via_shell = mia.assemble(YMDS, td, mode='A', task=task)
+        self.assertEqual(via_shell, mia.assemble_mode_a(snap, task))
 
     def test_no_snapshot_refuses(self):
         with tempfile.TemporaryDirectory() as td:
-            with self.assertRaises(gia.AssemblyRefused) as cm:
-                gia.assemble(YMDS, td, mode='A', task=build_synthetic_task())
+            with self.assertRaises(mia.AssemblyRefused) as cm:
+                mia.assemble(YMDS, td, mode='A', task=build_synthetic_task())
         self.assertIn('R1', str(cm.exception))
 
 
@@ -588,14 +588,14 @@ class T7_TaskSchemaContract(unittest.TestCase):
     def test_missing_min_field_refuses(self):
         task = build_synthetic_task()
         del task['falsifiable_conditions']
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_a(self.snap, task)
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_a(self.snap, task)
         self.assertIn('falsifiable_conditions', str(cm.exception))
 
     def test_empty_indicators_refuses(self):
         task = build_synthetic_task(())
-        with self.assertRaises(gia.AssemblyRefused) as cm:
-            gia.assemble_mode_a(self.snap, task)
+        with self.assertRaises(mia.AssemblyRefused) as cm:
+            mia.assemble_mode_a(self.snap, task)
         self.assertIn('indicators', str(cm.exception))
 
 
@@ -603,7 +603,7 @@ class T8_EchoParams(unittest.TestCase):
     """R011 纪律: echo=代码常量=REPORT §二 登记值(三方一致,字面量)。"""
 
     def test_echo_equals_registered_literals(self):
-        self.assertEqual(gia.echo_params(), {
+        self.assertEqual(mia.echo_params(), {
             'contract_version': 'gri-1.0',
             'mode_enum': ['A', 'B'],
             'absent_levels': ['ABSENT_REGISTRY', 'ABSENT_SOURCE',

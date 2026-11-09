@@ -644,7 +644,7 @@ def publish(td, ymd, gate='PASS', dt=DT_DAY):
         mock.patch.object(rg, 'OUTPUT_DIR', out_dir),
         mock.patch.object(rg, 'CONFIG_DIR', cfg),
         mock.patch.object(rg, 'datetime', dt),
-        mock.patch.object(rg, '_call_glm', glm),
+        mock.patch.object(rg, '_call_model', glm),
         mock.patch.object(rg, 'validate_generated_report', _validate),
         mock.patch.object(rg.allocation_engine, 'DEFAULT_VIEWS_PATH',
                           os.path.join(cfg, 'views.json'))]
@@ -672,7 +672,7 @@ with tempfile.TemporaryDirectory() as td9:
         mock.patch.object(rg, 'OUTPUT_DIR', out_dir),
         mock.patch.object(rg, 'CONFIG_DIR', os.path.join(td9, 'config')),
         mock.patch.object(rg, 'datetime', DT_DAY),
-        mock.patch.object(rg, '_call_glm', _GLM()),
+        mock.patch.object(rg, '_call_model', _GLM()),
     ]
     with contextlib.ExitStack() as stack:
         for p in patches:

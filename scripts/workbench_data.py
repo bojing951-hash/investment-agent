@@ -6,8 +6,8 @@
   全球宏观概览  overview_rows()   —— 快照 facts × 注册表(经济体分组,缺失如实标注)
   金融市场变化  market_rows()     —— 资产类指标 周/月/年内变化
   历史研究      metric_series()   —— 本地真实历史序列(快照 series_store / 采集档 series)
-  AI研究        ask_local() / glm_explain() / save_to_archive()
-                                 —— 复用 e2eb 查询栈 / glm_conclusion_client / research_archive
+  AI研究        ask_local() / ai_explain() / save_to_archive()
+                                 —— 复用 e2eb 查询栈 / model_conclusion_client / research_archive
 
 数据纪律(章程 AC-06): 一切数值来自本地快照与采集档,显示观测日期与来源;
 数据缺失时如实标注"缺失",不填充任何虚构数据。研究问题越界(out_of_scope)或
@@ -155,15 +155,31 @@ def market_rows(snapshot, registry):
 
 
 # ══ 历史研究 ══════════════════════════════════════════════════════════
+# supported_stats(问题二 C-2): 由 unit_family 机械推导的可用统计面——
+# 描述可做什么,不是对数据的断言;other 族无可靠变化口径,只报 level。
+SUPPORTED_STATS = {
+    'price': ('level', 'interval_change(pct)', 'unit_aware_change(pct)',
+              'pearson(单位感知变化)', 'rolling(单位感知变化)', 'lag(单位感知变化)'),
+    'rate': ('level', 'interval_change(pp/bp)', 'unit_aware_change(pp)',
+             'pearson(单位感知变化)', 'rolling(单位感知变化)', 'lag(单位感知变化)'),
+    'count': ('level', 'interval_change(abs)', 'unit_aware_change(pct,基数大近似)',
+              'pearson(单位感知变化)', 'rolling(单位感知变化)', 'lag(单位感知变化)'),
+    'other': ('level',),
+}
+
+
 def series_capable_metrics(snapshot, registry):
     """历史研究页可选项+发现所需全字段(C-1, 批2 W8): 快照 series_store ∪
     采集档含 series 的指标。
 
     字段三层纯透传/纯统计,不推算:
-    - 注册表透传: label/unit/frequency/calendar/release_semantics;
+    - 注册表透传: label/unit/frequency/calendar/release_semantics/
+      time_semantics(observation_period_kind+release_date_available,
+      A-fin 人工登记键,缺键=null 不默认);
     - 序列统计(first/last/n): series_store 优先,仅存采集档的取最新档
       series 原值(同旧版来源优先级,统计口径=该来源序列本身);
-    - 口径族(unit_family, 单位感知比较预判用)与事实层 quality_status
+    - 口径族(unit_family, 单位感知比较预判用)+supported_stats(由
+      unit_family 机械推导的可用统计面)与事实层 quality_status
       (快照 facts,无事实→null,如实标注不猜测)。
     """
     import fact_engine as fe        # 惰性: 单位族常量(重模块函数内导入纪律)
@@ -207,6 +223,11 @@ def series_capable_metrics(snapshot, registry):
                     'first': first, 'last': last, 'n': n,
                     'calendar': m.get('calendar'),
                     'release_semantics': m.get('release_semantics'),
+                    'time_semantics': {'observation_period_kind':
+                                       m.get('observation_period_kind'),
+                                       'release_date_available':
+                                       m.get('release_date_available')},
+                    'supported_stats': list(SUPPORTED_STATS[fam]),
                     'quality_status': facts_q.get(mid)})
     return out
 
@@ -248,7 +269,7 @@ def metric_series(metric_id, snapshot=None, root=None):
             'source': f"采集档 {os.path.basename(res.get('source', {}).get('file', files[-1]))}"}, None
 
 
-# ══ AI研究(复用 e2eb 查询栈 / GLM / 研究档案) ═════════════════════════
+# ══ AI研究(复用 e2eb 查询栈 / 可选模型解释层 / 研究档案) ═══════════════
 SUPPORTED_CONCEPT_HINT = (
     '当前支持的完整研究问题类型(基于本地快照事实作答):\n'
     '  1) 美日政策利率差(触发词: 政策利率差)\n'
@@ -262,7 +283,7 @@ SUPPORTED_CONCEPT_HINT = (
 
 
 def ask_local(question, snapshot, root=None):
-    """页面四: 本地接地作答(e2eb mapper→executor→renderer,零网络零GLM)。
+    """页面四: 本地接地作答(e2eb mapper→executor→renderer,零网络零模型调用)。
 
     返回 {'status': answered|refusal|out_of_scope|no_registry_identity|unmapped|error,
           'answer_text', 'values', 'unresolved', 'ir'}——未支持类型如实报状态,不猜映射。"""
@@ -302,7 +323,7 @@ def ask_local(question, snapshot, root=None):
                 'values': {}, 'unresolved': [], 'ir': None}
 
 
-GLM_EXPLAIN_SYSTEM = (
+EXPLAIN_SYSTEM = (
     '你是全球宏观研究助理。纪律: 1)只依据用户提供的【已核实事实】作答,'
     '不得编造或引用任何未提供的数值;2)区分【事实】与【推断】,推断须标注;'
     '3)不提供任何投资建议、资产配置倾向或价格预测;4)相关不等于因果;'
@@ -311,9 +332,9 @@ GLM_EXPLAIN_SYSTEM = (
 
 
 def ai_explain(question, grounded_text):
-    """页面四可选: AI 研究解释(Model-Agnostic v2, 2026-11-09;复用
-    glm_conclusion_client.call_glm_once,模型三参经 env_config.model_runtime_config
-    解析——MODEL_* 优先,旧 GLM_* 条件回退,零本机文件回退)。
+    """页面四可选: AI 研究解释(v2.1, 2026-11-09;复用
+    model_conclusion_client.call_model_once,模型三参经 env_config.model_runtime_config
+    解析——唯一凭证面 MODEL_*,零本机文件回退)。
     返回 {'ok', 'text'|'error'}。"""
     # 先确保项目根 .env 已载入(进程环境变量优先;幂等补载,覆盖会话中途新增的.env),
     # 否则 Key 只写在 .env 时首调会误报缺失
@@ -322,12 +343,12 @@ def ai_explain(question, grounded_text):
     cfg = ec.model_runtime_config()
     if not cfg['complete']:
         return {'ok': False,
-                'error': (cfg['blocked_reason'] or ec.MODEL_KEY_MISSING_MESSAGE)}
-    import glm_conclusion_client as gcc
+                'error': ec.MODEL_KEY_MISSING_MESSAGE}
+    import model_conclusion_client as mcc
     user = (f'研究问题: {question}\n\n【已核实事实】(本地快照接地结果,作答唯一数值来源):\n'
             f'{grounded_text}\n\n请基于以上事实给出解释性分析(传导机制/历史比较视角),'
             '并明确区分事实与推断。')
-    res = gcc.call_glm_once(GLM_EXPLAIN_SYSTEM, user, model=cfg['model'])
+    res = mcc.call_model_once(EXPLAIN_SYSTEM, user, model=cfg['model'])
     if not res.get('ok'):
         return {'ok': False,
                 'error': f"模型调用失败({res.get('kind')}): {res.get('error')}"}
@@ -335,11 +356,6 @@ def ai_explain(question, grounded_text):
     text = raw if isinstance(raw, str) else (
         raw.get('content') if isinstance(raw, dict) else str(raw))
     return {'ok': True, 'text': text or '(模型返回空正文)'}
-
-
-def glm_explain(question, grounded_text):
-    """旧名兼容别名(历史调用方 app.py/测试仍用;Model-Agnostic v2 更名 ai_explain)。"""
-    return ai_explain(question, grounded_text)
 
 
 def save_to_archive(question, snapshot, root=None, archive_dir=None):

@@ -549,7 +549,7 @@ def render_markdown(snap):
     L = [f"# 研究快照 {snap['snapshot_id']}", '',
          f"- 研究截止(research_as_of): **{snap['research_as_of']}** (Asia/Shanghai)",
          f"- Gate A: **{snap['gate_a']['status']}** | 事实质量 {snap['quality']['counts']}",
-         f"- 不可变快照;本文件数值表由程序确定性生成(GLM只作解释,不选数/不改数)", '']
+         f"- 不可变快照;本文件数值表由程序确定性生成(模型只作解释,不选数/不改数)", '']
 
     L.append('## 数据源状态')
     L.append('| 源 | 状态 | 文件 | 采集日 | 披露 |')

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""IA-P2-WP-C: 跟踪触发与 GLM 综合对接(P2 深研层第 3 实现包,确定性结构)
+"""IA-P2-WP-C: 跟踪触发与模型综合对接(P2 深研层第 3 实现包,确定性结构)
 
 DESIGN docs/P2_DESIGN.md §七 WP-P2-C 行(L205-L209,基线工作树实读)确定性落地:
 - §2.1 S-3 跟踪触发入口(L41,入口子类 3 个): 论点触发器(终态门禁反向面,
@@ -30,13 +30,13 @@ DESIGN docs/P2_DESIGN.md §七 WP-P2-C 行(L205-L209,基线工作树实读)确�
   改写状态**,零 thesis/allocation/prediction 状态档读写路径);③跟踪处置=
   TRACKING→ARCHIVED 经 drr.append_lifecycle_event 既有迁移表;可选闭环后续
   任务经 S-3 origin_trigger 发起(触发档先行,模块不发明触发);
-- §五 GLM 综合能力级对接(L135-L144)=仅接口预留: 输入构建器(证据矩阵+
-  假设集+快照 digest 绑定,字段名与 R019 GLMResearchInput 对齐
-  [P03_W2_GLM_DESIGN.md §三(a) L62-L70,跨支只读实读])+轻量输出契约校验
+- §五模型综合能力级对接(L135-L144)=仅接口预留: 输入构建器(证据矩阵+
+  假设集+快照 digest 绑定,字段名与 R019 ModelResearchInput 对齐
+  [历史设计档(已移出公开仓)§三(a),跨支只读实读])+轻量输出契约校验
   (≥2 竞争假设+每假设 falsifiable_conditions≥1+confidence 三档+absent_ack,
   R019 §三(c) L102;**R019 WP-G2 结构化输出校验器全量面不在本包重复实现**)
   +适配器协议+PENDING 桩(缺席登记返回,R019 §三(b)3 同款: 不部分产出、
-  不静默跳过、状态不因此推进)+显式依赖注入点;**零真实 GLM/LLM 调用、
+  不静默跳过、状态不因此推进)+显式依赖注入点;**零真实模型调用、
   零网络出站、零凭证、零付费**(真实调用面=DP-4 确认权留用户,PENDING)。
 
 上游复用(对齐=复用调用,禁复制分叉): WP-P2-A deep_research_registrar
@@ -50,7 +50,7 @@ FACT_QUALITY_REJECTED 词表);生命周期迁移全经 drr 既有状态保护机
 L372-L377 FAIL→禁止一切长期状态回写先例)。
 
 纪律: 零网络(import 面纯标准库+项目既有模块,零 requests/urllib/socket/
-http/openai);零 GLM/凭证/付费;append-only(同 id 重放一律拒,零部分写入);
+http/openai);零模型调用/凭证/付费;append-only(同 id 重放一律拒,零部分写入);
 零墙钟入指纹(ymd 仅取 created_at 日期段;评估 as_of 为显式必填参数,禁墙钟
 判定);快照纪律(一切快照读取经 drr._load_snapshot_for_verify 规范分解派生,
 结构性不可达 data/daily 原始采集档,源码零路径字面);数据不足不填 0,缺值
@@ -113,12 +113,13 @@ COND_OUTCOMES = (COND_TRIGGERED, COND_NOT_TRIGGERED, COND_PENDING,
                  COND_NOT_YET_IN_WINDOW, COND_NOT_ACTIVATED, COND_DATA_INSUFFICIENT)
 _COND_DECIDED = (COND_TRIGGERED, COND_NOT_TRIGGERED, COND_DATA_INSUFFICIENT)  # 窗口已闭合类
 
-# GLM 接口预留(P-C-14;R019 定稿字段面对齐,跨支只读实读 2026-11-07)
-GLM_INPUT_CONTRACT_VERSION = "p2-gsi-1.0"     # 输入契约版本(标识符,非数据值)
-GLM_OUTPUT_CONFIDENCE_LEVELS = ("high", "medium", "low")   # R019 §三(c) L102 三档
-GLM_PENDING_STATUS = "ABSENT_PENDING_APPROVAL"             # 缺席登记(R019 §三(b)3)
-GLM_MIN_COMPETING_HYPOTHESES = 2             # 强制项(DESIGN L141 ≥2)
-GLM_REAL_CALL_FACE = "PENDING_USER_APPROVAL(DP-4)"         # 真实调用面=未批零调用
+# 模型接口预留(P-C-14;R019 定稿字段面对齐,跨支只读实读 2026-11-07;
+# v2.1(Charter 5 S4): 符号面前缀中性化→MODEL_*)
+MODEL_INPUT_CONTRACT_VERSION = "p2-gsi-1.0"     # 输入契约版本(标识符,非数据值)
+MODEL_OUTPUT_CONFIDENCE_LEVELS = ("high", "medium", "low")   # R019 §三(c) L102 三档
+MODEL_PENDING_STATUS = "ABSENT_PENDING_APPROVAL"             # 缺席登记(R019 §三(b)3)
+MODEL_MIN_COMPETING_HYPOTHESES = 2             # 强制项(DESIGN L141 ≥2)
+MODEL_REAL_CALL_FACE = "PENDING_USER_APPROVAL(DP-4)"         # 真实调用面=未批零调用
 
 
 # ══ 基础件(上游原语复用;零墙钟入指纹,P-C-02/P-C-18) ══════════════════
@@ -816,13 +817,13 @@ def apply_falsification_disposal(task_id, hypothesis_id, *, review_target,
             "conclusion_id": falsified["conclusion_id"]}
 
 
-# ══ GLM 综合接口预留(P-C-14;§五能力级,R019 定稿对齐,零调用) ══════════
+# ══ 模型综合接口预留(P-C-14;§五能力级,R019 定稿对齐,零调用) ══════════
 
 
-class GLMSynthesisAdapter:
-    """GLM 综合适配器能力级协议(DESIGN §五 L135-L144;仅接口预留)。
+class ModelSynthesisAdapter:
+    """模型综合适配器能力级协议(DESIGN §五 L135-L144;仅接口预留)。
 
-    真实调用面=GLM_REAL_CALL_FACE(PENDING_USER_APPROVAL)——本模块不提供任何
+    真实调用面=MODEL_REAL_CALL_FACE(PENDING_USER_APPROVAL)——本模块不提供任何
     真实出站实现;注入点=
     synthesize_competing_hypotheses(adapter=…) 显式依赖注入(测试一律本地
     合成桩,禁任何真实出站)。
@@ -831,37 +832,37 @@ class GLMSynthesisAdapter:
     def synthesize(self, payload):
         raise NotImplementedError(
             "能力级接口预留: 适配器须经显式依赖注入提供(真实调用面="
-            + GLM_REAL_CALL_FACE + ",零调用)")
+            + MODEL_REAL_CALL_FACE + ",零调用)")
 
 
-class PendingGLMAdapter(GLMSynthesisAdapter):
+class PendingModelAdapter(ModelSynthesisAdapter):
     """PENDING 桩: 缺席登记返回(R019 §三(b)3 同款)——不部分产出、不静默跳过、
     任务状态不因此推进;零调用零网络零凭证零付费。"""
 
     def synthesize(self, payload):
         payload = payload or {}
-        return {"status": GLM_PENDING_STATUS,
-                "contract_version": GLM_INPUT_CONTRACT_VERSION,
+        return {"status": MODEL_PENDING_STATUS,
+                "contract_version": MODEL_INPUT_CONTRACT_VERSION,
                 "task_ref": payload.get("task_ref"),
                 "snapshot_binding": payload.get("snapshot_binding"),
-                "absent_reason": "真实 GLM 调用与费用=DP-4 确认权留用户"
+                "absent_reason": "真实模型调用与费用=DP-4 确认权留用户"
                                  "(未批;本包零调用零网络零凭证零付费)",
-                "absent_policy": "缺席登记: 本轮无 GLM 结论,不部分产出、"
+                "absent_policy": "缺席登记: 本轮无模型结论,不部分产出、"
                                  "不静默跳过,任务状态不因此推进"
                                  "(R019 §三(b)3 同款)",
                 "called": False, "network": False}
 
 
-PENDING_GLM_ADAPTER = PendingGLMAdapter()
+PENDING_MODEL_ADAPTER = PendingModelAdapter()
 
 
-def build_glm_synthesis_input(task_id, *, snapshot_dir=None, archive_dir=None):
-    """GLM 综合输入构建(DESIGN §五 L139: 证据矩阵+假设集+快照 digest 绑定;
-    字段名与 R019 GLMResearchInput 对齐[contract_version/mode/snapshot_binding/
+def build_model_synthesis_input(task_id, *, snapshot_dir=None, archive_dir=None):
+    """模型综合输入构建(DESIGN §五 L139: 证据矩阵+假设集+快照 digest 绑定;
+    字段名与 R019 ModelResearchInput 对齐[contract_version/mode/snapshot_binding/
     task_ref/prompt_contract])。
 
     快照纪律: 经 drr._load_snapshot_for_verify 加载+rp.digest_snapshot 重算
-    +Gate A 放行核验(FAIL 快照不得进入 GLM 正式输入,DESIGN §3.1 承接);
+    +Gate A 放行核验(FAIL 快照不得进入模型正式输入,DESIGN §3.1 承接);
     数值面=矩阵经 dm.assemble_matrix 复用汇编(模型不直接改写矩阵数值,
     DESIGN L119 同款纪律)。
     """
@@ -869,14 +870,14 @@ def build_glm_synthesis_input(task_id, *, snapshot_dir=None, archive_dir=None):
     task = drr.load_task(task_id, ad)
     snap, load_err = drr._load_snapshot_for_verify(task["snapshot_id"], snapshot_dir)
     if snap is None:
-        raise ValueError(f"GLM 输入构建快照不可载: {load_err}")
+        raise ValueError(f"模型输入构建快照不可载: {load_err}")
     gate_status = (snap.get("gate_a") or {}).get("status")
     if not rp.gate_allows_formal_research(gate_status):
         raise ValueError(f"Gate A={gate_status!r} 不放行正式研究,该快照不得进入"
-                         f"GLM 正式输入(DESIGN §3.1)")
+                         f"模型正式输入(设计档 §3.1)")
     digest = rp.digest_snapshot(snap)
     matrix = dm.assemble_matrix(task_id, archive_dir=ad)
-    return {"contract_version": GLM_INPUT_CONTRACT_VERSION, "mode": "A",
+    return {"contract_version": MODEL_INPUT_CONTRACT_VERSION, "mode": "A",
             "snapshot_binding": {"snapshot_id": task["snapshot_id"],
                                  "snapshot_digest": digest,
                                  "gate_a": gate_status,
@@ -888,11 +889,11 @@ def build_glm_synthesis_input(task_id, *, snapshot_dir=None, archive_dir=None):
                                 "registered_params": matrix["registered_params"]},
             "prompt_contract": {"language": "zh",
                                 "counter_evidence_required": True,
-                                "min_competing_hypotheses": GLM_MIN_COMPETING_HYPOTHESES,
+                                "min_competing_hypotheses": MODEL_MIN_COMPETING_HYPOTHESES,
                                 "numeric_grounding_required": True}}
 
 
-def validate_glm_synthesis_output(payload):
+def validate_model_synthesis_output(payload):
     """预留输出契约轻量校验(DESIGN L140-L141 强制项+R019 §三(c) L102 三档)。
 
     校验面边界(承接登记): 本校验仅覆盖 P2 侧强制项(≥2 竞争假设/每假设
@@ -904,8 +905,8 @@ def validate_glm_synthesis_output(payload):
     if not isinstance(payload, dict):
         return [f"输出须为dict: {type(payload).__name__}"]
     hyps = payload.get("hypotheses")
-    if not isinstance(hyps, list) or len(hyps) < GLM_MIN_COMPETING_HYPOTHESES:
-        issues.append(f"hypotheses须为list且 ≥{GLM_MIN_COMPETING_HYPOTHESES}"
+    if not isinstance(hyps, list) or len(hyps) < MODEL_MIN_COMPETING_HYPOTHESES:
+        issues.append(f"hypotheses须为list且 ≥{MODEL_MIN_COMPETING_HYPOTHESES}"
                       f"(强制项,DESIGN L141): "
                       f"实得{len(hyps) if isinstance(hyps, list) else type(hyps).__name__}")
     else:
@@ -919,9 +920,9 @@ def validate_glm_synthesis_output(payload):
             if not isinstance(fc, list) or not fc:
                 issues.append(f"hypotheses[{i}].falsifiable_conditions须为非空list"
                               f"(强制项,DESIGN L141)")
-            if h.get("confidence") not in GLM_OUTPUT_CONFIDENCE_LEVELS:
+            if h.get("confidence") not in MODEL_OUTPUT_CONFIDENCE_LEVELS:
                 issues.append(f"hypotheses[{i}].confidence须为"
-                              f"{'|'.join(GLM_OUTPUT_CONFIDENCE_LEVELS)}(R019 三档): "
+                              f"{'|'.join(MODEL_OUTPUT_CONFIDENCE_LEVELS)}(R019 三档): "
                               f"{h.get('confidence')!r}")
     if not isinstance(payload.get("absent_ack"), list):
         issues.append("absent_ack须为list(缺席逐项承接,R019 §三(c)")
@@ -931,25 +932,25 @@ def validate_glm_synthesis_output(payload):
 def synthesize_competing_hypotheses(*, task_id=None, payload=None,
                                     adapter=None, snapshot_dir=None,
                                     archive_dir=None):
-    """GLM 综合能力级入口(**注入点**: adapter 显式依赖注入,缺省=PENDING 桩)。
+    """模型综合能力级入口(**注入点**: adapter 显式依赖注入,缺省=PENDING 桩)。
 
-    零调用纪律: 缺省 PENDING_GLM_ADAPTER 返回缺席登记(不部分产出/不静默
+    零调用纪律: 缺省 PENDING_MODEL_ADAPTER 返回缺席登记(不部分产出/不静默
     跳过/状态不因此推进);注入桩亦为本地合成对象,禁任何真实出站。
     返回 {adapter, result, output_valid, issues}(零写入,不改任务状态)。
     """
     if payload is None:
         if not task_id:
             raise ValueError("task_id 与 payload 须至少其一(输入契约面)")
-        payload = build_glm_synthesis_input(task_id, snapshot_dir=snapshot_dir,
+        payload = build_model_synthesis_input(task_id, snapshot_dir=snapshot_dir,
                                             archive_dir=archive_dir)
-    active_adapter = adapter if adapter is not None else PENDING_GLM_ADAPTER
+    active_adapter = adapter if adapter is not None else PENDING_MODEL_ADAPTER
     result = active_adapter.synthesize(payload)
-    if result.get("status") == GLM_PENDING_STATUS:
+    if result.get("status") == MODEL_PENDING_STATUS:
         return {"adapter": type(active_adapter).__name__, "result": result,
                 "output_valid": None,
-                "issues": ["缺席登记(真实调用面=" + GLM_REAL_CALL_FACE
+                "issues": ["缺席登记(真实调用面=" + MODEL_REAL_CALL_FACE
                            + ",零调用);输出契约校验不适用于缺席产物"]}
-    issues = validate_glm_synthesis_output(result)
+    issues = validate_model_synthesis_output(result)
     return {"adapter": type(active_adapter).__name__, "result": result,
             "output_valid": not issues, "issues": issues}
 

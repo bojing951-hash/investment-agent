@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""IA-P03-W2-GLM-WP-G3(可反驳条件推导与门禁对接+档案衔接)专项测试。
+"""可反驳条件推导与门禁对接+档案衔接(model_conclusion_integrator)专项测试(v2.1 中性名,原 G3)。
 
-合同 IA-P03-W2-GLM-WP-G3-AC-v1.0 / DESIGN §七 WP-G3 验收要点行为锁:
+合同验收要点行为锁(历史设计档已移出公开仓):
 - 要点① 推导规则四步用例(可规格化/不可规格化分流): 主张变量化三分类/
   阈值三来源逐源/规格化(spec 五键+窗口默认 task 窗+op·mode 枚举)/步4 区分性
   由 G2 承接(trace 登记)+分流落回(apply: 合入四元组去重+non_spec 转
@@ -21,12 +21,12 @@
   零原始档字样+复用导入标记(T6)。
 
 数据纪律(R014-D3/R022 沿用): 全部离线合成 fixture=唯一数据源——
-GLMResearchInput 与 HypothesisSet 均为内联字面量合成(数值锚点 2.93/4186.7
+ModelResearchInput 与 HypothesisSet 均为内联字面量合成(数值锚点 2.93/4186.7
 为 E2E-A 登记窗终值语义的合成复用,不代表任何真实交易日数据);注册表/先验
 触发器一律注入合成集,真实 config/metric_registry.json、thesis.json、
 allocation_views.json 永不进入测试预期值来源;预期值一律字面量硬编码(不从
 被测模块导入计算——自证恒真是 F 反例)。零网络/零新增第三方依赖。
-零真实 GLM 调用(集成输入=本地合成 fixture 过 G2 校验器,attempts 注入面
+零真实模型调用(集成输入=本地合成 fixture 过 G2 校验器,attempts 注入面
 沿 G2 桩纪律,本包清单不含调用面实现)。
 """
 import copy
@@ -41,10 +41,10 @@ for p in (ROOT, os.path.join(ROOT, 'scripts')):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-import glm_conclusion_integrator as gci   # noqa: E402 (被测模块)
+import model_conclusion_integrator as mci   # noqa: E402 (被测模块)
 import allocation_engine as ae            # noqa: E402 (同构断言/留档复用对照)
-import glm_input_assembler as gia         # noqa: E402 (G1 契约 fixture 自检)
-import glm_output_validator as gov        # noqa: E402 (G2 校验 fixture 自检/集成闭环)
+import model_input_assembler as mia         # noqa: E402 (G1 契约 fixture 自检)
+import model_output_validator as mov        # noqa: E402 (G2 校验 fixture 自检/集成闭环)
 import research_task_manager as rtm       # noqa: E402 (E2E-A schema 契约同源)
 
 # ══ 合成 fixture(唯一数据源;字面量锚点) ════════════════════════════════════
@@ -80,7 +80,7 @@ TRIGGER_FIRED = [{'trig_id': 'INV-1', 'direction': 'invalidation',
 
 
 def build_input(gate='PASS'):
-    """合成 GLMResearchInput(模式A;经 gia.validate_input 自检=T0)。"""
+    """合成 ModelResearchInput(模式A;经 mia.validate_input 自检=T0)。"""
     return {
         'contract_version': 'gri-1.0',
         'mode': 'A',
@@ -112,7 +112,7 @@ def build_input(gate='PASS'):
 
 
 def build_input_mode_b():
-    """合成 GLMResearchInput(模式B;query_ref 引用摘要形态)。"""
+    """合成 ModelResearchInput(模式B;query_ref 引用摘要形态)。"""
     inp = build_input()
     inp['mode'] = 'B'
     inp['task_ref'] = None
@@ -126,7 +126,7 @@ def build_input_mode_b():
 
 
 def build_output():
-    """合成 HypothesisSet(模式A七字段;经 gov.validate_output 自检=T0)。"""
+    """合成 HypothesisSet(模式A七字段;经 mov.validate_output 自检=T0)。"""
     return {
         'hypotheses': [
             {'hypothesis_id': 'HY-20261102-001',
@@ -170,28 +170,28 @@ def build_output():
 
 def legal_set(inp):
     """三合法来源并集(合成注入;断言用,独立于被测模块组装路径)。"""
-    return gov.legal_target_numbers(
+    return mov.legal_target_numbers(
         inp, registry_targets={1000, 30000, 25},
-        prior_trigger_targets=gci.extract_prior_trigger_targets(TRIG_SYN))
+        prior_trigger_targets=mci.extract_prior_trigger_targets(TRIG_SYN))
 
 
 def run_fixture_pipeline(inp, out):
     """经 G2 真实管线产 result(集成: G2→G3;attempts=本地合成桩)。"""
-    return gov.run_conclusion_pipeline(
+    return mov.run_conclusion_pipeline(
         inp, [{'raw': json.dumps(out, ensure_ascii=False)}],
         registry_targets=set(),
-        prior_trigger_targets=gci.extract_prior_trigger_targets(TRIG_SYN))
+        prior_trigger_targets=mci.extract_prior_trigger_targets(TRIG_SYN))
 
 
 class T0_FixtureSanity(unittest.TestCase):
     """fixture 自检: 合成输入/输出经 G1/G2 既有权威校验器回读=合法契约。"""
 
     def test_input_passes_g1_contract(self):
-        self.assertEqual(gia.validate_input(build_input()), [])
+        self.assertEqual(mia.validate_input(build_input()), [])
 
     def test_output_passes_g2_contract(self):
         inp = build_input()
-        self.assertEqual(gov.validate_output(
+        self.assertEqual(mov.validate_output(
             inp, build_output(), registry_targets=set(),
             prior_trigger_targets=set()), [])
 
@@ -204,37 +204,37 @@ class T1_DerivationRules(unittest.TestCase):
 
     def test_step1_variableize_three_classes(self):
         hyp = {'statement': 'TIPS_10Y 与 GOLD_F 同涨,SPX 未入输入,JGB_10Y 缺席'}
-        v = gci.variableize_claim(hyp, self._inp(), registry_metrics=REG_SYN)
+        v = mci.variableize_claim(hyp, self._inp(), registry_metrics=REG_SYN)
         self.assertEqual(v['present'], ['TIPS_10Y', 'GOLD_F'])
         self.assertEqual(v['absent'], ['JGB_10Y'])
         self.assertEqual(v['registered_not_in_input'], ['SPX'])
 
     def test_step2_thresholds_source_i_per_metric_order(self):
-        thr = gci.legal_thresholds_for('TIPS_10Y', self._inp(),
+        thr = mci.legal_thresholds_for('TIPS_10Y', self._inp(),
                                        registry_metrics=REG_SYN)
         self.assertEqual(thr['evidence_pack'], [2.93, 0.73, 73.0, 2.20])
-        thr_g = gci.legal_thresholds_for('GOLD_F', self._inp(),
+        thr_g = mci.legal_thresholds_for('GOLD_F', self._inp(),
                                          registry_metrics=REG_SYN)
         self.assertEqual(thr_g['evidence_pack'], [4186.7, 3.7, 4161.7])
 
     def test_step2_thresholds_source_ii_registry(self):
-        thr = gci.legal_thresholds_for('SPX', self._inp(),
+        thr = mci.legal_thresholds_for('SPX', self._inp(),
                                        registry_metrics=REG_SYN)
         self.assertEqual(thr['registry'], [1000, 30000, 25])
         self.assertEqual(thr['evidence_pack'], [])
 
     def test_step2_thresholds_source_iii_prior_triggers(self):
-        thr = gci.legal_thresholds_for('TIPS_10Y', self._inp(),
+        thr = mci.legal_thresholds_for('TIPS_10Y', self._inp(),
                                        registry_metrics={},
                                        prior_triggers=TRIG_SYN)
         self.assertEqual(thr['prior_triggers'], [3.5])
-        thr_g = gci.legal_thresholds_for('GOLD_F', self._inp(),
+        thr_g = mci.legal_thresholds_for('GOLD_F', self._inp(),
                                          registry_metrics={},
                                          prior_triggers=TRIG_SYN)
         self.assertEqual(thr_g['prior_triggers'], [4300.0])
 
     def test_step3_specification_form_and_window_default(self):
-        d = gci.derive_falsifiable_conditions(
+        d = mci.derive_falsifiable_conditions(
             {'statement': 'TIPS_10Y 上行'}, self._inp(),
             registry_metrics=REG_SYN, prior_triggers=TRIG_SYN)
         self.assertEqual(len(d['spec_conditions']), 1)
@@ -247,14 +247,14 @@ class T1_DerivationRules(unittest.TestCase):
 
     def test_step3_op_mode_enums_rejected(self):
         with self.assertRaises(ValueError):
-            gci.derive_falsifiable_conditions({'statement': 'x'}, self._inp(),
+            mci.derive_falsifiable_conditions({'statement': 'x'}, self._inp(),
                                               op='==')
         with self.assertRaises(ValueError):
-            gci.derive_falsifiable_conditions({'statement': 'x'}, self._inp(),
+            mci.derive_falsifiable_conditions({'statement': 'x'}, self._inp(),
                                               mode='span')
 
     def test_step4_distinctiveness_deferred_trace(self):
-        d = gci.derive_falsifiable_conditions(
+        d = mci.derive_falsifiable_conditions(
             {'statement': 'TIPS_10Y 上行'}, self._inp(), registry_metrics=REG_SYN)
         last = d['trace'][-1]
         self.assertEqual(last['step'], 'distinctiveness')
@@ -262,7 +262,7 @@ class T1_DerivationRules(unittest.TestCase):
 
     def test_derive_nonspecifiable_absent_metric_flow(self):
         hyp = {'statement': '日本利率 JGB_10Y 缺席下黄金坚挺'}
-        d = gci.derive_falsifiable_conditions(hyp, self._inp(),
+        d = mci.derive_falsifiable_conditions(hyp, self._inp(),
                                               registry_metrics=REG_SYN)
         self.assertEqual(d['spec_conditions'], [])
         self.assertEqual(len(d['non_specifiable']), 1)
@@ -272,7 +272,7 @@ class T1_DerivationRules(unittest.TestCase):
 
     def test_derive_nonspecifiable_no_legal_threshold_flow(self):
         hyp = {'statement': 'TIPS_10Y 上行'}
-        d = gci.derive_falsifiable_conditions(
+        d = mci.derive_falsifiable_conditions(
             hyp, self._inp(), threshold_source='registry',
             registry_metrics={})       # 在场但来源(ii) 无该指标阈值
         self.assertEqual(d['spec_conditions'], [])
@@ -284,7 +284,7 @@ class T1_DerivationRules(unittest.TestCase):
         legal = legal_set(inp)
         hyp = {'statement': 'TIPS_10Y 与 GOLD_F 同涨,SPX 未入输入,JGB_10Y 缺席'}
         for src in ('auto', 'evidence_pack', 'registry', 'prior_triggers'):
-            d = gci.derive_falsifiable_conditions(
+            d = mci.derive_falsifiable_conditions(
                 hyp, inp, threshold_source=src, registry_metrics=REG_SYN,
                 prior_triggers=TRIG_SYN)
             for c in d['spec_conditions']:
@@ -294,16 +294,16 @@ class T1_DerivationRules(unittest.TestCase):
     def test_derive_cond_text_grounded(self):
         inp = self._inp()
         legal = legal_set(inp)
-        d = gci.derive_falsifiable_conditions(
+        d = mci.derive_falsifiable_conditions(
             {'statement': 'TIPS_10Y 与 GOLD_F 同涨'}, inp,
             registry_metrics=REG_SYN, prior_triggers=TRIG_SYN)
         for c in d['spec_conditions']:
-            nums = gov.extract_numeric_tokens(c['cond_text'])
+            nums = mov.extract_numeric_tokens(c['cond_text'])
             self.assertTrue(all(n in legal for n in nums))
 
     def test_derive_registered_not_in_input_noted(self):
         hyp = {'statement': 'SPX 风险偏好支持流动性假设'}
-        d = gci.derive_falsifiable_conditions(hyp, self._inp(),
+        d = mci.derive_falsifiable_conditions(hyp, self._inp(),
                                               registry_metrics=REG_SYN)
         self.assertEqual(d['spec_conditions'], [])
         self.assertEqual(d['non_specifiable'], [])
@@ -314,9 +314,9 @@ class T1_DerivationRules(unittest.TestCase):
         inp = self._inp()
         out = build_output()
         h1 = copy.deepcopy(out['hypotheses'][0])
-        d = gci.derive_falsifiable_conditions(h1, inp,
+        d = mci.derive_falsifiable_conditions(h1, inp,
                                               registry_metrics=REG_SYN)
-        applied = gci.apply_derived_conditions(h1, d)
+        applied = mci.apply_derived_conditions(h1, d)
         # TIPS 条件四元组与既有相同→去重跳过;GOLD_F 条件为新增
         self.assertEqual(len(applied['falsifiable_conditions']), 2)
         quads = [tuple(applied['falsifiable_conditions'][i]['spec'][k]
@@ -329,9 +329,9 @@ class T1_DerivationRules(unittest.TestCase):
     def test_apply_nonspec_to_limitations(self):
         inp = self._inp()
         h2 = copy.deepcopy(build_output()['hypotheses'][1])
-        d = gci.derive_falsifiable_conditions(h2, inp,
+        d = mci.derive_falsifiable_conditions(h2, inp,
                                               registry_metrics=REG_SYN)
-        applied = gci.apply_derived_conditions(h2, d)
+        applied = mci.apply_derived_conditions(h2, d)
         self.assertEqual(len(applied['limitations']),
                          len(h2['limitations']) + 1)
         self.assertIn('不可程序裁决', applied['limitations'][-1])
@@ -342,20 +342,20 @@ class T1_DerivationRules(unittest.TestCase):
         inp = self._inp()
         out = build_output()
         for i, h in enumerate(out['hypotheses']):
-            d = gci.derive_falsifiable_conditions(h, inp,
+            d = mci.derive_falsifiable_conditions(h, inp,
                                                   registry_metrics=REG_SYN)
-            out['hypotheses'][i] = gci.apply_derived_conditions(h, d)
-        probs = gov.validate_output(
+            out['hypotheses'][i] = mci.apply_derived_conditions(h, d)
+        probs = mov.validate_output(
             inp, out, registry_targets={1000, 30000, 25},
-            prior_trigger_targets=gci.extract_prior_trigger_targets(TRIG_SYN))
+            prior_trigger_targets=mci.extract_prior_trigger_targets(TRIG_SYN))
         self.assertEqual(probs, [])
 
     def test_extract_prior_trigger_targets(self):
-        self.assertEqual(gci.extract_prior_trigger_targets(TRIG_SYN),
+        self.assertEqual(mci.extract_prior_trigger_targets(TRIG_SYN),
                          {3.5, 4300.0})
-        self.assertEqual(gci.extract_prior_trigger_targets(None), set())
+        self.assertEqual(mci.extract_prior_trigger_targets(None), set())
         self.assertEqual(
-            gci.extract_prior_trigger_targets(
+            mci.extract_prior_trigger_targets(
                 [{'trig_id': 'X', 'metric': 'M', 'op': '>=',
                   'target': 'non-numeric'}]), set())
 
@@ -371,7 +371,7 @@ class T2_GateBProposals(unittest.TestCase):
                     new_support_metrics=['TIPS_10Y'], trigger_rows=[],
                     today_iso=TODAY)
         base.update(kw)
-        return gci.build_gate_b_proposal(
+        return mci.build_gate_b_proposal(
             inp, out, registry_targets=set(),
             prior_trigger_targets=set(), **base)
 
@@ -379,7 +379,7 @@ class T2_GateBProposals(unittest.TestCase):
         inp = build_input()
         out = build_output()
         out['hypotheses'][0]['statement'] = '实际利率升至 2.94(数值改写,不在证据包)'
-        p = gci.build_gate_b_proposal(inp, out, kind='thesis_status',
+        p = mci.build_gate_b_proposal(inp, out, kind='thesis_status',
                                       change_to='已失效',
                                       new_support_metrics=['TIPS_10Y', 'GOLD_F'],
                                       today_iso=TODAY, registry_targets=set(),
@@ -387,7 +387,7 @@ class T2_GateBProposals(unittest.TestCase):
         self.assertTrue(p['blocked'])
         self.assertEqual(p['numeric_gate']['combined'], 'FAIL')
         self.assertTrue(p['numeric_gate']['validation_problems'])
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertFalse(accepted)
         self.assertIn('数值校验前置FAIL', reason)
 
@@ -396,71 +396,71 @@ class T2_GateBProposals(unittest.TestCase):
         out = build_output()
         for h in out['hypotheses']:      # 径2 义务: 降级承接标记
             h['limitations'] = list(h['limitations']) + ['Gate A DEGRADED: 数据降级影响已承接']
-        p = gci.build_gate_b_proposal(inp, out, kind='thesis_status',
+        p = mci.build_gate_b_proposal(inp, out, kind='thesis_status',
                                       change_to='已失效',
                                       new_support_metrics=['TIPS_10Y', 'GOLD_F'],
                                       today_iso=TODAY, registry_targets=set(),
                                       prior_trigger_targets=set())
         self.assertFalse(p['blocked'])
         self.assertEqual(p['numeric_gate']['combined'], 'DEGRADED')
-        self.assertTrue(gci.evaluate_gate_b(p)[0])
+        self.assertTrue(mci.evaluate_gate_b(p)[0])
 
     def test_thesis_terminal_no_trigger_insufficient_rejected(self):
         p = self._proposal()             # 无触发器+1 项新增证据
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertFalse(accepted)
         self.assertIn('终态判定', reason)
         self.assertIn('≥2', reason)
 
     def test_thesis_terminal_rejected_recorded_via_ae(self):
         p = self._proposal()
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertFalse(accepted)
         thesis = {'id': 'TH-9', 'status': '进行中'}
-        entry = gci.record_rejected_proposal(thesis, p, reason, TODAY)
+        entry = mci.record_rejected_proposal(thesis, p, reason, TODAY)
         self.assertEqual(entry['status'], 'rejected')
         self.assertEqual(thesis['proposals'][0]['to'], '已失效')
         self.assertIn('终态判定', thesis['proposals'][0]['reason'])
 
     def test_thesis_terminal_two_new_support_accepted(self):
         p = self._proposal(new_support_metrics=['TIPS_10Y', 'GOLD_F'])
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertTrue(accepted)
         self.assertIn('新增独立支持证据2项', reason)
 
     def test_thesis_terminal_trigger_fired_accepted(self):
         p = self._proposal(trigger_rows=TRIGGER_FIRED)
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertTrue(accepted)
         self.assertIn('invalidation触发器', reason)
         self.assertIn('INV-1', reason)
 
     def test_thesis_process_status_allowed(self):
         p = self._proposal(change_to='待观察')
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertTrue(accepted)
         self.assertIn('过程状态调整', reason)
 
     def test_confidence_above_star_rejected(self):
         p = self._proposal(kind='thesis_confidence', change_to=4, star_max=3)
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertFalse(accepted)
         self.assertIn('不足以授予4★', reason)
 
     def test_confidence_within_star_accepted(self):
         p = self._proposal(kind='thesis_confidence', change_to=3, star_max=3)
-        self.assertTrue(gci.evaluate_gate_b(p)[0])
+        self.assertTrue(mci.evaluate_gate_b(p)[0])
 
     def test_confidence_star_missing_fail_closed(self):
         p = self._proposal(kind='thesis_confidence', change_to=3, star_max=None)
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertFalse(accepted)
         self.assertIn('fail-closed', reason)
 
     def test_view_rating_insufficient_rejected(self):
         p = self._proposal(kind='view_rating', change_to='超配',
                            current='标配', new_support_metrics=['TIPS_10Y'])
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertFalse(accepted)
         self.assertIn('upgrade', reason)
 
@@ -468,12 +468,12 @@ class T2_GateBProposals(unittest.TestCase):
         p = self._proposal(kind='view_rating', change_to='超配',
                            current='标配',
                            new_support_metrics=['TIPS_10Y', 'GOLD_F'])
-        self.assertTrue(gci.evaluate_gate_b(p)[0])
+        self.assertTrue(mci.evaluate_gate_b(p)[0])
 
     def test_view_rating_suspend_relaxed_to_one(self):
         p = self._proposal(kind='view_rating', change_to='观望',
                            current='标配', new_support_metrics=['TIPS_10Y'])
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertTrue(accepted)
         self.assertIn('direction=suspend', reason)
 
@@ -482,16 +482,16 @@ class T2_GateBProposals(unittest.TestCase):
                            current='标配',
                            trigger_rows=[{'trig_id': 'UP-1', 'direction':
                                           'upgrade', 'status': 'triggered'}])
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertTrue(accepted)
         self.assertIn('upgrade触发器', reason)
 
     def test_gate_constants_shared_with_ae(self):
         """与现行门禁同构断言: 判定常量=ae 同一登记值(复用非复制)。"""
-        self.assertEqual(gci.RATING_CHANGE_MIN_EVIDENCE,
+        self.assertEqual(mci.RATING_CHANGE_MIN_EVIDENCE,
                          ae.MIN_EVIDENCE_FOR_RATING_CHANGE)
-        self.assertEqual(gci.RATING_CHANGE_MIN_EVIDENCE, 2)
-        self.assertEqual(gci.PROPOSAL_DEDUP_DAYS, ae.PROPOSAL_DEDUP_DAYS)
+        self.assertEqual(mci.RATING_CHANGE_MIN_EVIDENCE, 2)
+        self.assertEqual(mci.PROPOSAL_DEDUP_DAYS, ae.PROPOSAL_DEDUP_DAYS)
         # 方向语义复用: ae._change_direction 同一函数族
         self.assertEqual(ae._change_direction('标配', '观望'), 'suspend')
         self.assertEqual(ae._change_direction('标配', '超配'), 'upgrade')
@@ -500,10 +500,10 @@ class T2_GateBProposals(unittest.TestCase):
         """留档复用语义(ae._record_proposal): 同向重提→repeat 累计不新增条目。"""
         p = self._proposal()
         view = {'id': 5, 'rating': '标配'}
-        e1 = gci.record_rejected_proposal(view, p, 'r1', TODAY)
+        e1 = mci.record_rejected_proposal(view, p, 'r1', TODAY)
         self.assertEqual(e1['repeat'], 1)   # 首登 repeat=1(须在第二次调用前断言:
         # ae._record_proposal 返回的是留档条目本体, 去重命中原地累加 repeat)
-        e2 = gci.record_rejected_proposal(view, p, 'r2', TODAY)
+        e2 = mci.record_rejected_proposal(view, p, 'r2', TODAY)
         self.assertEqual(e2['repeat'], 2)
         self.assertEqual(len(view['proposals']), 1)
 
@@ -511,7 +511,7 @@ class T2_GateBProposals(unittest.TestCase):
         p = self._proposal(kind='prediction_candidate',
                            change_to={'pred_metric': 'GOLD_F', 'pred_op': '>=',
                                       'pred_mode': 'expiry'})   # 缺 pred_target
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertFalse(accepted)
         self.assertIn("['pred_target']", reason)
 
@@ -520,7 +520,7 @@ class T2_GateBProposals(unittest.TestCase):
                            change_to={'pred_metric': 'GOLD_F', 'pred_op': '>=',
                                       'pred_target': 4300.0,
                                       'pred_mode': 'expiry'})
-        accepted, reason = gci.evaluate_gate_b(p)
+        accepted, reason = mci.evaluate_gate_b(p)
         self.assertTrue(accepted)
         self.assertIn('not_yet_triggered', reason)
 
@@ -540,7 +540,7 @@ class T3_ConclusionArchive(unittest.TestCase):
                       'absence_event': None}
         else:
             result = run_fixture_pipeline(inp, out or build_output())
-        return gci.build_conclusion_record(
+        return mci.build_conclusion_record(
             inp, result, gate_b_results=[
                 {'hypothesis_id': 'HY-20261102-001', 'kind': 'thesis_status',
                  'accepted': False, 'reason': '终态判定门禁不足(合成)'}],
@@ -554,15 +554,15 @@ class T3_ConclusionArchive(unittest.TestCase):
     def test_append_written(self):
         rec = self._record()
         archive = {}
-        status, _ = gci.append_conclusion_record(rec, archive)
+        status, _ = mci.append_conclusion_record(rec, archive)
         self.assertEqual(status, 'written')
         self.assertEqual(len(archive['conclusions']), 1)
 
     def test_append_idempotent_skip(self):
         rec = self._record()
         archive = {}
-        gci.append_conclusion_record(rec, archive)
-        s2, _ = gci.append_conclusion_record(dict(rec), archive)
+        mci.append_conclusion_record(rec, archive)
+        s2, _ = mci.append_conclusion_record(dict(rec), archive)
         self.assertEqual(s2, 'skipped-idempotent')
         self.assertEqual(len(archive['conclusions']), 1)
 
@@ -576,9 +576,9 @@ class T3_ConclusionArchive(unittest.TestCase):
         self.assertEqual(rec2['conclusion_id'], rec1['conclusion_id'])
         self.assertNotEqual(rec2['output_digest'], rec1['output_digest'])
         archive = {}
-        gci.append_conclusion_record(rec1, archive)
+        mci.append_conclusion_record(rec1, archive)
         before = copy.deepcopy(archive['conclusions'][0])
-        status, new = gci.append_conclusion_record(rec2, archive)
+        status, new = mci.append_conclusion_record(rec2, archive)
         self.assertEqual(status, 'written-new-version')
         self.assertEqual(new['conclusion_id'], 'CR-20261105-001__v2')
         self.assertEqual(len(archive['conclusions']), 2)
@@ -587,31 +587,31 @@ class T3_ConclusionArchive(unittest.TestCase):
     def test_record_rewrite_rejected(self):
         rec = self._record()
         archive = {}
-        gci.append_conclusion_record(rec, archive)
-        with self.assertRaises(gci.ArchiveImmutable):
-            gci.mutate_conclusion_record(archive, rec['conclusion_id'],
+        mci.append_conclusion_record(rec, archive)
+        with self.assertRaises(mci.ArchiveImmutable):
+            mci.mutate_conclusion_record(archive, rec['conclusion_id'],
                                          {'outcome': 'ACCEPTED'})
 
     def test_cross_ref_required_both_missing(self):
         inp = build_input()
         inp['task_ref'] = None
         inp['query_ref'] = None
-        with self.assertRaises(gci.InvalidConclusionRecord):
-            gci.build_conclusion_record(
+        with self.assertRaises(mci.InvalidConclusionRecord):
+            mci.build_conclusion_record(
                 inp, run_fixture_pipeline(build_input(), build_output()),
                 today_iso=TODAY)
 
     def test_cross_ref_bad_prefixes(self):
         inp = build_input()
         inp['task_ref']['task_id'] = 'XX-20261102-001'
-        with self.assertRaises(gci.InvalidConclusionRecord):
-            gci.build_conclusion_record(
+        with self.assertRaises(mci.InvalidConclusionRecord):
+            mci.build_conclusion_record(
                 inp, run_fixture_pipeline(build_input(), build_output()),
                 today_iso=TODAY)
         inp_b = build_input_mode_b()
         inp_b['query_ref']['query_id'] = 'RT-20261102-001'
-        with self.assertRaises(gci.InvalidConclusionRecord):
-            gci.build_conclusion_record(
+        with self.assertRaises(mci.InvalidConclusionRecord):
+            mci.build_conclusion_record(
                 inp_b, {'outcome': 'ACCEPTED', 'validated_output':
                         {'phenomenon_echo': 'x', 'explanation': 'y',
                          'absent_ack': []}}, today_iso=TODAY)
@@ -620,15 +620,15 @@ class T3_ConclusionArchive(unittest.TestCase):
         inp = build_input()
         out = build_output()
         out['hypotheses'][0]['hypothesis_id'] = 'BAD-1'
-        with self.assertRaises(gci.InvalidConclusionRecord):
-            gci.build_conclusion_record(
+        with self.assertRaises(mci.InvalidConclusionRecord):
+            mci.build_conclusion_record(
                 inp, {'outcome': 'ACCEPTED', 'validated_output': out,
                       'absence_event': None}, today_iso=TODAY)
 
     def test_conclusion_id_format_checked(self):
         archive = {}
-        with self.assertRaises(gci.InvalidConclusionRecord):
-            gci.append_conclusion_record(
+        with self.assertRaises(mci.InvalidConclusionRecord):
+            mci.append_conclusion_record(
                 {'conclusion_id': 'CR-bad', 'task_id': 'RT-1',
                  'origin_query_id': None, 'output_digest': 'd' * 16},
                 archive)
@@ -668,8 +668,8 @@ class T4_E2EAFieldMapContract(unittest.TestCase):
                           'falsifiable_conditions', 'history'])
 
     def test_field_map_nine_rows_literal(self):
-        self.assertEqual(len(gci.E2EA_FIELD_MAP), 9)
-        rows = {r[0]: r for r in gci.E2EA_FIELD_MAP}
+        self.assertEqual(len(mci.E2EA_FIELD_MAP), 9)
+        rows = {r[0]: r for r in mci.E2EA_FIELD_MAP}
         self.assertIn('task_ref.task_id', rows)
         self.assertEqual(rows['task_ref.task_id'][1], 'task_id')
         self.assertIn('statement', rows)
@@ -682,7 +682,7 @@ class T4_E2EAFieldMapContract(unittest.TestCase):
         base = dict(evidence_map=None, proposals=(), gate_results=(),
                     today_iso=TODAY)
         base.update(kw)
-        return gci.build_e2ea_projection(inp, out, **base)
+        return mci.build_e2ea_projection(inp, out, **base)
 
     def test_projection_task_id_passthrough(self):
         self.assertEqual(self._proj()['task_id'], TASK_ID)
@@ -725,12 +725,12 @@ class T4_E2EAFieldMapContract(unittest.TestCase):
                           'metric_id': 'TIPS_10Y', 'direction': 'neutral',
                           'quality_status': 'PASS', 'snapshot_id': SNAP_ID,
                           'snapshot_digest': SNAP_DIGEST}]}
-        proj = gci.build_e2ea_projection(inp, out, evidence_map=emap)
+        proj = mci.build_e2ea_projection(inp, out, evidence_map=emap)
         self.assertEqual(proj['evidence_refs'][0]['direction'], 'neutral')
         emap_bad = copy.deepcopy(emap)
         emap_bad['rows'][0]['direction'] = 'up'
         with self.assertRaises(ValueError):
-            gci.build_e2ea_projection(inp, out, evidence_map=emap_bad)
+            mci.build_e2ea_projection(inp, out, evidence_map=emap_bad)
 
     def test_projection_conditions_merge_specifiable_subset(self):
         merge = self._proj()['falsifiable_conditions_merge']
@@ -768,7 +768,7 @@ class T4_E2EAFieldMapContract(unittest.TestCase):
         inp = build_input_mode_b()
         out = {'phenomenon_echo': 'TIPS_10Y与GOLD_F为何同涨? ……',
                'explanation': '接地解释(合成)', 'absent_ack': []}
-        proj = gci.build_e2ea_projection(inp, out)
+        proj = mci.build_e2ea_projection(inp, out)
         self.assertEqual(set(proj.keys()),
                          {'origin_query_id', 'conclusions', 'mode_b_note'})
         self.assertEqual(proj['origin_query_id'], 'QB-20261102-001')
@@ -790,7 +790,7 @@ class T5_EchoParams(unittest.TestCase):
     """登记参数 echo=常量=登记值(R011 三方一致;REPORT §二 登记表)。"""
 
     def test_echo_params_literal(self):
-        self.assertEqual(gci.echo_params(), {
+        self.assertEqual(mci.echo_params(), {
             'derivation_steps': ['variableize', 'threshold', 'specification',
                                  'distinctiveness'],
             'threshold_sources': ['evidence_pack', 'registry',
@@ -834,22 +834,22 @@ class T6_SourceBoundaryLock(unittest.TestCase):
     """源码边界锁: 零网络/零凭证/零文件读写/零原始档字样+复用导入标记。"""
 
     def test_source_boundary_lock(self):
-        src_path = os.path.join(ROOT, 'scripts', 'glm_conclusion_integrator.py')
+        src_path = os.path.join(ROOT, 'scripts', 'model_conclusion_integrator.py')
         with open(src_path, 'r', encoding='utf-8') as f:
             src = f.read()
         for banned in ('import requests', 'urllib', 'socket', 'http.client',
-                       'GLM_API_KEY', 'api_key', 'sk-', 'data/daily',
+                       'api_key', 'sk-', 'data/daily',
                        'data\\daily', 'os.listdir', 'glob.', 'subprocess',
                        'os.system', 'shutil', 'open(', 'write('):
             self.assertNotIn(banned, src, f'边界锁违规: {banned}')
         for required in ('import allocation_engine as ae',
-                         'import glm_output_validator as gov',
+                         'import model_output_validator as mov',
                          'import research_provenance as rp',
                          'import research_task_manager as rtm',
                          'ae.MIN_EVIDENCE_FOR_RATING_CHANGE',
                          'ae._record_proposal(', 'ae._change_direction(',
-                         'rp.combine_gates(', 'gov.validate_output(',
-                         'gov.SPEC_OPS', 'rtm.STATUS_FLOW'):
+                         'rp.combine_gates(', 'mov.validate_output(',
+                         'mov.SPEC_OPS', 'rtm.STATUS_FLOW'):
             self.assertIn(required, src, f'复用标记缺失: {required}')
 
 

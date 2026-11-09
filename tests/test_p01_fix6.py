@@ -178,7 +178,7 @@ def _run_report(td, out_dir, glm):
         mock.patch.object(rg, 'OUTPUT_DIR', out_dir),
         mock.patch.object(rg, 'CONFIG_DIR', os.path.join(td, 'config')),
         mock.patch.object(rg, 'datetime', DT_DAY),
-        mock.patch.object(rg, '_call_glm', glm)]
+        mock.patch.object(rg, '_call_model', glm)]
     with contextlib.ExitStack() as stack:
         for p in patches:
             stack.enter_context(p)
@@ -210,7 +210,7 @@ def publish(td, ymd, dt=DT_DAY):
         mock.patch.object(rg, 'OUTPUT_DIR', out_dir),
         mock.patch.object(rg, 'CONFIG_DIR', cfg),
         mock.patch.object(rg, 'datetime', dt),
-        mock.patch.object(rg, '_call_glm', glm),
+        mock.patch.object(rg, '_call_model', glm),
         mock.patch.object(rg, 'validate_generated_report', _validate),
         mock.patch.object(rg.allocation_engine, 'DEFAULT_VIEWS_PATH',
                           os.path.join(cfg, 'views.json'))]

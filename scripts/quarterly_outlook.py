@@ -192,7 +192,7 @@ QUARTERLY_STRUCTURE = """请按以下结构输出季度展望：
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--quarter', help="YYYYQn,指定季度(当季未完结则按【预览】生成)")
-    ap.add_argument('--dry-run', action='store_true', help='只装配数据不调用GLM')
+    ap.add_argument('--dry-run', action='store_true', help='只装配数据不调用模型')
     args = ap.parse_args()
 
     if args.quarter:
@@ -237,10 +237,10 @@ def main():
           + (" ⚠️季度未完结,预览模式" if preview else ""))
 
     if args.dry_run:
-        print("🏃 dry-run: 跳过GLM调用")
+        print("🏃 dry-run: 跳过模型调用")
         return
 
-    from report_generator import load_prompt, _call_glm
+    from report_generator import load_prompt, _call_model
     system_prompt = load_prompt('quarterly_outlook_prompt.md')
     tag = "【预览】" if preview else ""
     user_prompt = f"""请基于以下{q}的季度数据汇总，生成{tag}季度展望。
@@ -249,8 +249,8 @@ def main():
 
 {QUARTERLY_STRUCTURE}"""
 
-    print(f"🤖 调用GLM生成季报(输入约{len(system_prompt) + len(user_prompt)}字符)...")
-    md = _call_glm(system_prompt, user_prompt)
+    print(f"🤖 调用模型生成季报(输入约{len(system_prompt) + len(user_prompt)}字符)...")
+    md = _call_model(system_prompt, user_prompt)
     if len(md.strip()) < 500:
         print(f"❌ 返回过短({len(md)}字符),放弃")
         sys.exit(1)

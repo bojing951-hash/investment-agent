@@ -4,7 +4,7 @@
 
 性质(W4-DEV-v1.0 §一): 调查已有数据事实,不采集/不回补/不修改任何输入。
 - 只读 --data-dir(授权数据集),只写 --out-dir(必须在数据根之外);
-- 无网络/无GLM/不触发采集器/不改研究状态/不写Gate产物;
+- 无网络/无模型调用/不触发采集器/不改研究状态/不写Gate产物;
 - 身份映射复用项目既有逻辑(fact_engine._GLOBAL_ID_MAP/_MACRO_ALIAS;
   china代码映射与snapshot_builder._CN_CODE/_HK_CODE及fe.normalize_china同源,
   tests/test_p02_w4.py守护防漂移);

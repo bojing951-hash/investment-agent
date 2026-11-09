@@ -12,7 +12,7 @@
   (verify_research_inputs)、来源核验(verify_anchor_batch/
   verify_meta_gate_a)、正式读取器(rp.formal_report_view/
   load_previous_report)、发布事务(候选→Gate B→状态→原子替换)全部真实执行;
-- 唯一mock = 付费GLM(_call_glm)与Gate B裁决值(validate_generated_report
+- 唯一mock = 付费GLM(_call_model)与Gate B裁决值(validate_generated_report
   内部即GLM付费调用,mock其返回=mock付费API;Gate B裁决逻辑本身由
   test_p01_fix1/fix2/fix3套件覆盖);
 - config/thesis/views 经 CONFIG_DIR/DEFAULT_VIEWS_PATH 指向沙箱,由**真实
@@ -197,7 +197,7 @@ def state_files(td):
 
 def report_run(td, gate_b='PASS', dt=DT_DAY, glm_text=None):
     """链路后段: 真实generate_weekly_report。
-    mock范围(仅): 付费GLM(_call_glm)与Gate B裁决值(validate_generated_report
+    mock范围(仅): 付费GLM(_call_model)与Gate B裁决值(validate_generated_report
     内部为GLM付费调用); config经CONFIG_DIR/DEFAULT_VIEWS_PATH重定向由真实
     加载器读取; load_previous_report/发布事务/预检/Gate A全部真实。
     返回(exit_code, out_dir, applied, glm)。applied=真实apply收到的分级。"""
@@ -222,7 +222,7 @@ def report_run(td, gate_b='PASS', dt=DT_DAY, glm_text=None):
         mock.patch.object(rg, 'OUTPUT_DIR', out_dir),
         mock.patch.object(rg, 'CONFIG_DIR', os.path.join(td, 'config')),
         mock.patch.object(rg, 'datetime', dt),
-        mock.patch.object(rg, '_call_glm', glm),
+        mock.patch.object(rg, '_call_model', glm),
         # Model-Agnostic v2(W3): 模拟已配置模型三参,使周报走模型分支(零真实凭证)
         mock.patch.object(rg, 'model_runtime_config', lambda: {
             'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1',
@@ -264,7 +264,7 @@ def formal(out_dir, ymd):
 # 真实入口: snapshot_builder CLI子进程 → macro_scorecard.main →
 #   data_assembler.main → report_generator.generate_weekly_report
 # 合成输入: fixt全核心(32core)齐备采集JSON(4通道)
-# mock范围: 付费GLM(_call_glm)与Gate B裁决值('PASS');其余零mock
+# mock范围: 付费GLM(_call_model)与Gate B裁决值('PASS');其余零mock
 # 执行模块: fact_engine→snapshot_builder→macro_scorecard→data_assembler
 #   →research_provenance(来源核验)→report_generator全流程(发布事务真实)
 # 文件副作用: 快照/锚点+meta/评分卡/数据包+meta/anchor_prompt落沙箱;
@@ -622,7 +622,7 @@ with tempfile.TemporaryDirectory() as td:
           and ledger.get('allow_formal_report') is False,
           f"exit={pcode} allow={ledger.get('allow_formal_report')}")
     code, out, applied, glm = report_run(td, gate_b='PASS')
-    check("E2E-11b 链路终点: 采集失败日报告入口exit2+零GLM(不得凭旧产物放行)",
+    check("E2E-11b 链路终点: 采集失败日报告入口exit2+零模型调用(不得凭旧产物放行)",
           code == 2 and glm.calls == 0, f"exit={code} glm={glm.calls}")
 
 # ════════════════════════════════════════════════════════════════════

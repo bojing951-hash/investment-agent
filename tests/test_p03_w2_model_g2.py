@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""IA-P03-W2-GLM-WP-G2(结构化输出契约与校验器)专项测试。
+"""结构化输出契约与校验器(model_output_validator)专项测试(v2.1 中性名,原 G2)。
 
-合同 IA-P03-W2-GLM-WP-G2-AC-v1.0 / DESIGN §七 WP-G2 验收要点行为锁:
+合同验收要点行为锁(历史设计档已移出公开仓):
 - 要点① schema 正向用例: 模式A七字段全量/模式B裁剪三字段/解析器围栏与注释
   包裹容忍/假设-证据映射表字面量(T1/T1b);
 - 要点② 负向敏感性: counter_evidence 空/数值不在输入证据包(含数值被改写)/
@@ -14,12 +14,12 @@
 - 数值抽取豁免族直测(T5);登记参数 echo=常量=登记值+G1 模块复用身份(T6);
 - 源码边界锁: 零网络/零凭证/零文件读取/零原始档字样+复用导入标记(T7)。
 
-数据纪律(R014-D3/R022 沿用): 全部离线合成 fixture=唯一数据源——GLMResearchInput
+数据纪律(R014-D3/R022 沿用): 全部离线合成 fixture=唯一数据源——ModelResearchInput
 与 HypothesisSet 均为内联字面量合成(数值锚点 2.93/4186.7 为 E2E-A 登记窗终值
 语义的合成复用,不代表任何真实交易日数据);注册表/先验触发器一律注入合成集,
 真实 config/metric_registry.json、thesis.json 永不进入测试预期值来源;预期值
 一律字面量硬编码(不从被测模块导入计算——自证恒真是 F 反例)。零网络/零新增
-第三方依赖。零真实 GLM 调用(attempts=本地合成桩,注入面)。
+第三方依赖。零真实模型调用(attempts=本地合成桩,注入面)。
 """
 import copy
 import json
@@ -32,8 +32,8 @@ for p in (ROOT, os.path.join(ROOT, 'scripts')):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-import glm_output_validator as gov      # noqa: E402 (被测模块)
-import glm_input_assembler as gia       # noqa: E402 (G1 契约复用对照/fixture 自检)
+import model_output_validator as mov      # noqa: E402 (被测模块)
+import model_input_assembler as mia       # noqa: E402 (G1 契约复用对照/fixture 自检)
 import research_provenance as rp        # noqa: E402 (T3 monkeypatch 注入面)
 
 # ══ 合成 fixture(唯一数据源;字面量锚点) ════════════════════════════════════
@@ -69,7 +69,7 @@ MISSING_REF = {'status': 'MISSING', 'reason': '合成fixture显式缺席'}
 
 
 def build_input_mode_a(gate='PASS', absent=True):
-    """合成 GLMResearchInput(模式A;经 gia.validate_input 自检=T0)。"""
+    """合成 ModelResearchInput(模式A;经 mia.validate_input 自检=T0)。"""
     indicators = ['TIPS_10Y', 'GOLD_F'] + (['JGB_10Y'] if absent else [])
     return {
         'contract_version': 'gri-1.0',
@@ -105,7 +105,7 @@ def build_input_mode_a(gate='PASS', absent=True):
 
 
 def build_input_mode_b():
-    """合成 GLMResearchInput(模式B;query_ref 引用摘要形态)。"""
+    """合成 ModelResearchInput(模式B;query_ref 引用摘要形态)。"""
     inp = build_input_mode_a(absent=False)
     inp['mode'] = 'B'
     inp['task_ref'] = None
@@ -182,7 +182,7 @@ def valid_out_with_degraded_ack(absent=True):
 
 def _v(inp, out):
     """校验便捷入口(注入合成来源(ii)(iii);真实 config 永不入测试)。"""
-    return gov.validate_output(inp, out, registry_targets=REG_TARGETS,
+    return mov.validate_output(inp, out, registry_targets=REG_TARGETS,
                                prior_trigger_targets=PRIOR_TRIGGERS)
 
 
@@ -239,13 +239,13 @@ ECHO_LITERAL = {
 }
 
 
-# ══ T0 fixture 自检(合成输入经 G1 契约回读=合法 GLMResearchInput) ══════════
+# ══ T0 fixture 自检(合成输入经 G1 契约回读=合法 ModelResearchInput) ══════════
 class T0_FixtureSanity(unittest.TestCase):
     def test_mode_a_input_passes_g1_contract(self):
-        self.assertEqual(gia.validate_input(build_input_mode_a()), [])
+        self.assertEqual(mia.validate_input(build_input_mode_a()), [])
 
     def test_mode_b_input_passes_g1_contract(self):
-        self.assertEqual(gia.validate_input(build_input_mode_b()), [])
+        self.assertEqual(mia.validate_input(build_input_mode_b()), [])
 
 
 # ══ T1 要点①: schema 正向用例 ═══════════════════════════════════════════════
@@ -264,21 +264,21 @@ class T1_SchemaPositive(unittest.TestCase):
             _v(build_input_mode_b(), build_valid_output_mode_b()), [])
 
     def test_evidence_map_rows_literal(self):
-        emap = gov.build_hypothesis_evidence_map(
+        emap = mov.build_hypothesis_evidence_map(
             build_input_mode_a(), build_valid_output_mode_a(),
             registry_targets=REG_TARGETS, prior_trigger_targets=PRIOR_TRIGGERS)
         self.assertEqual(emap, EVIDENCE_MAP_LITERAL)
 
     def test_evidence_map_mode_b_returns_none(self):
-        self.assertIsNone(gov.build_hypothesis_evidence_map(
+        self.assertIsNone(mov.build_hypothesis_evidence_map(
             build_input_mode_b(), build_valid_output_mode_b(),
             registry_targets=REG_TARGETS, prior_trigger_targets=PRIOR_TRIGGERS))
 
     def test_evidence_map_invalid_output_raises(self):
         out = build_valid_output_mode_a()
         out['hypotheses'][0]['counter_evidence'] = []
-        with self.assertRaises(gov.InvalidOutput):
-            gov.build_hypothesis_evidence_map(
+        with self.assertRaises(mov.InvalidOutput):
+            mov.build_hypothesis_evidence_map(
                 build_input_mode_a(), out, registry_targets=REG_TARGETS,
                 prior_trigger_targets=PRIOR_TRIGGERS)
 
@@ -286,37 +286,37 @@ class T1_SchemaPositive(unittest.TestCase):
 # ══ T1b 解析面容忍(DESIGN L82: 围栏/注释包裹容忍,字段缺失不容忍) ═══════════
 class T1b_ParserTolerance(unittest.TestCase):
     def test_parse_bare_json(self):
-        obj, err = gov.parse_hypothesis_set('{"a": 1}')
+        obj, err = mov.parse_hypothesis_set('{"a": 1}')
         self.assertEqual(obj, {'a': 1})
         self.assertIsNone(err)
 
     def test_parse_fenced_json(self):
-        obj, err = gov.parse_hypothesis_set('```json\n{"a": 1}\n```')
+        obj, err = mov.parse_hypothesis_set('```json\n{"a": 1}\n```')
         self.assertEqual(obj, {'a': 1})
         self.assertIsNone(err)
 
     def test_parse_comment_wrapped(self):
-        obj, err = gov.parse_hypothesis_set('<!--\n{"a": 1}\n-->')
+        obj, err = mov.parse_hypothesis_set('<!--\n{"a": 1}\n-->')
         self.assertEqual(obj, {'a': 1})
         self.assertIsNone(err)
 
     def test_parse_fence_inside_comment(self):
-        obj, err = gov.parse_hypothesis_set('<!-- ```json {"a": 1}``` -->')
+        obj, err = mov.parse_hypothesis_set('<!-- ```json {"a": 1}``` -->')
         self.assertEqual(obj, {'a': 1})
         self.assertIsNone(err)
 
     def test_parse_non_dict_top_rejected(self):
-        obj, err = gov.parse_hypothesis_set('[1, 2]')
+        obj, err = mov.parse_hypothesis_set('[1, 2]')
         self.assertIsNone(obj)
         self.assertIn('单一JSON对象', err)
 
     def test_parse_garbage_rejected(self):
-        obj, err = gov.parse_hypothesis_set('不是JSON')
+        obj, err = mov.parse_hypothesis_set('不是JSON')
         self.assertIsNone(obj)
         self.assertIn('JSON解析失败', err)
 
     def test_parse_empty_rejected(self):
-        obj, err = gov.parse_hypothesis_set('   ')
+        obj, err = mov.parse_hypothesis_set('   ')
         self.assertIsNone(obj)
         self.assertIn('空', err)
 
@@ -606,7 +606,7 @@ class T3_ThresholdProvenance(unittest.TestCase):
         orig = rp.active_registry_metrics
         rp.active_registry_metrics = lambda: copy.deepcopy(REG_SYN)
         try:
-            self.assertEqual(gov.registry_legal_targets(),
+            self.assertEqual(mov.registry_legal_targets(),
                              {1000, 30000, 25})
         finally:
             rp.active_registry_metrics = orig
@@ -618,7 +618,7 @@ class T3_ThresholdProvenance(unittest.TestCase):
         orig = rp.active_registry_metrics
         rp.active_registry_metrics = lambda: copy.deepcopy(reg)
         try:
-            self.assertEqual(gov.registry_legal_targets(), {1, 2})
+            self.assertEqual(mov.registry_legal_targets(), {1, 2})
         finally:
             rp.active_registry_metrics = orig
 
@@ -627,7 +627,7 @@ class T3_ThresholdProvenance(unittest.TestCase):
 class T4_FailurePaths(unittest.TestCase):
     @staticmethod
     def _run(inp, attempts, **kw):
-        return gov.run_conclusion_pipeline(
+        return mov.run_conclusion_pipeline(
             inp, attempts, registry_targets=REG_TARGETS,
             prior_trigger_targets=PRIOR_TRIGGERS, **kw)
 
@@ -740,8 +740,8 @@ class T4_FailurePaths(unittest.TestCase):
     def test_invalid_input_rejected_at_entry(self):
         bad = build_input_mode_a()
         del bad['prompt_contract']
-        with self.assertRaises(gov.InvalidResearchInput):
-            gov.run_conclusion_pipeline(bad, [self._raw(
+        with self.assertRaises(mov.InvalidResearchInput):
+            mov.run_conclusion_pipeline(bad, [self._raw(
                 build_valid_output_mode_a())])
 
 
@@ -749,52 +749,52 @@ class T4_FailurePaths(unittest.TestCase):
 class T5_NumericExtraction(unittest.TestCase):
     def test_extract_mixed_text(self):
         self.assertEqual(
-            gov.extract_numeric_tokens(
+            mov.extract_numeric_tokens(
                 'TIPS_10Y 自2.20升至2.93(+73bp),4,186.7美元;'
                 'HY-20261029-001 于2026-10-29观测,2026年6月后生效'),
             [2.2, 2.93, 73.0, 4186.7])
 
     def test_extract_signed_and_units(self):
         self.assertEqual(
-            gov.extract_numeric_tokens('-0.5pp 与 +3.7% 与73bp'),
+            mov.extract_numeric_tokens('-0.5pp 与 +3.7% 与73bp'),
             [-0.5, 3.7, 73.0])
 
     def test_extract_ignores_identifiers(self):
-        self.assertEqual(gov.extract_numeric_tokens(
+        self.assertEqual(mov.extract_numeric_tokens(
             'UST_10Y 与 NFP_MOM_K 与 RT-20261029-001'), [])
 
 
 # ══ T6 登记参数 echo=常量=登记值(R011 三方一致)+复用身份 ═══════════════════
 class T6_EchoAndReuse(unittest.TestCase):
     def test_echo_params_literal(self):
-        self.assertEqual(gov.echo_params(), ECHO_LITERAL)
+        self.assertEqual(mov.echo_params(), ECHO_LITERAL)
 
     def test_output_schema_version_follows_g1(self):
-        self.assertEqual(gov.OUTPUT_SCHEMA_VERSION, 'hs-1.0')
-        self.assertEqual(gov.OUTPUT_SCHEMA_VERSION,
-                         gia.OUTPUT_SCHEMA_VERSION_DEFAULT)
+        self.assertEqual(mov.OUTPUT_SCHEMA_VERSION, 'hs-1.0')
+        self.assertEqual(mov.OUTPUT_SCHEMA_VERSION,
+                         mia.OUTPUT_SCHEMA_VERSION_DEFAULT)
 
     def test_spec_enums_literal(self):
-        self.assertEqual(gov.SPEC_OPS, ('>', '>=', '<', '<='))
-        self.assertEqual(gov.SPEC_MODES, ('touch', 'expiry'))
-        self.assertEqual(gov.CONFIDENCE_ENUM, ('high', 'medium', 'low'))
-        self.assertEqual(gov.MAX_RETRIES, 3)
+        self.assertEqual(mov.SPEC_OPS, ('>', '>=', '<', '<='))
+        self.assertEqual(mov.SPEC_MODES, ('touch', 'expiry'))
+        self.assertEqual(mov.CONFIDENCE_ENUM, ('high', 'medium', 'low'))
+        self.assertEqual(mov.MAX_RETRIES, 3)
 
     def test_g1_module_reuse_identity(self):
-        self.assertIs(gov.gia, gia)      # 复用调用(同一模块对象),非复制分叉
+        self.assertIs(mov.mia, mia)      # 复用调用(同一模块对象),非复制分叉
 
 
 # ══ T7 源码边界锁(零网络/零凭证/零文件读取/零原始档字样+复用标记) ═══════════
 class T7_SourceBoundaryLock(unittest.TestCase):
     def test_source_boundary_lock(self):
-        src_path = os.path.join(ROOT, 'scripts', 'glm_output_validator.py')
+        src_path = os.path.join(ROOT, 'scripts', 'model_output_validator.py')
         with open(src_path, encoding='utf-8') as fh:
             src = fh.read()
         for pattern in ('http', 'requests', 'socket', 'urllib', 'os.environ',
                         'API_KEY', 'api_key', 'open(', 'glob(', 'data/daily',
                         'launchd', 'subprocess'):
             self.assertNotIn(pattern, src, f'源码含禁用模式: {pattern}')
-        self.assertIn('import glm_input_assembler as gia', src)   # G1 复用
+        self.assertIn('import model_input_assembler as mia', src)   # G1 复用
         self.assertIn('import research_provenance as rp', src)    # rp 复用
         self.assertIn('rp.active_registry_metrics', src)           # 注册表经rp
 

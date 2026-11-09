@@ -251,6 +251,61 @@ with tempfile.TemporaryDirectory() as td:
 
 print()
 print("═" * 60)
+print("⑪ 装机副本防漂移: 零 --glm/零旧键名(D1,2026-11-09)")
+print("═" * 60)
+# 缺陷回放(D1): ~/.claude 装机副本过期(mtime 11-08),仍教 research --glm
+# (旗标已删,照做 rc=2)/glm_key_note/glm?/GLM_API_KEY/bigmodel——源已清而
+# 副本漂移。锁: 新装副本+在场装机副本一律零旧键名。
+import re as _re
+
+_DRIFT_PATTERNS = [(_re.compile(r'--glm\b'), '--glm 旗标'),
+                   (_re.compile(r'GLM_API_KEY'), '旧密钥变量名'),
+                   (_re.compile(r'glm_key_note'), '旧医生面键'),
+                   (_re.compile(r'\bglm\?'), '旧输出键 glm?'),
+                   (_re.compile(r'bigmodel'), '厂商端点')]
+
+
+def _scan_installed_copy(base, label):
+    """扫描装机副本文本文件;返回命中清单(空=洁净)。副本缺席→None。"""
+    skill_dir = os.path.join(base, SKILL)
+    if not os.path.isdir(skill_dir):
+        return None
+    hits = []
+    for dirpath, _dirnames, filenames in os.walk(skill_dir):
+        for fn in filenames:
+            if not fn.endswith(('.md', '.json')):
+                continue
+            fp = os.path.join(dirpath, fn)
+            try:
+                text = open(fp, encoding='utf-8', errors='replace').read()
+            except OSError:
+                continue
+            for pat, label2 in _DRIFT_PATTERNS:
+                for m in pat.finditer(text):
+                    hits.append(f'{label}: {os.path.relpath(fp, base)}: {label2}')
+    return hits
+
+
+with tempfile.TemporaryDirectory() as td2:
+    dest2 = os.path.join(td2, 'skills')
+    r13 = run_installer('--dest', dest2)
+    check("新装副本可安装(⑪前置)", r13.returncode == 0)
+    hits = _scan_installed_copy(dest2, '新装')
+    check("新装副本零 --glm/零旧键名(源洁则副本洁)",
+          hits == [], '; '.join(hits[:4]))
+
+for base, label, strict in (
+        (os.path.join(ROOT, '.claude', 'skills'), '项目级装机副本', True),
+        (os.path.expanduser('~/.claude/skills'), '个人级装机副本', True)):
+    hits = _scan_installed_copy(base, label)
+    if hits is None:
+        print(f"  ℹ️ {label}不在场({base})——跳过(CI 干净克隆属正常)")
+    else:
+        check(f"{label}零 --glm/零旧键名(防漂移;过期须重装 --force)",
+              hits == [], '; '.join(hits[:4]))
+
+print()
+print("═" * 60)
 print(f"结果: {PASS}通过 / {FAIL}失败")
 print("═" * 60)
 sys.exit(0 if FAIL == 0 else 1)

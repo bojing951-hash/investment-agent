@@ -3,7 +3,7 @@ name: offline-tests
 # - 触发: push/PR到main + 手动workflow_dispatch
 # - 只跑本地离线套件(全部SYNTHETIC fixture + 模型层全程mock):
 #   零API密钥、零付费调用、零真实采集——CI环境无需任何secret;
-# - test_glm_live.py 为真实模型API验收套件,按契约不得进入CI,显式排除;
+# - test_model_live.py 为真实模型API验收套件,按契约不得进入CI,显式排除;
 # - FIX3-04修正: 被测模块import面含第三方库(requests/openai/pandas/
 #   fredapi/feedparser/finnhub/tushare/yfinance),CI必须**安装真实依赖**
 #   (此前"仅标准库"的假设错误,导致首轮8套件import失败——测试本身对依赖的
@@ -31,13 +31,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install requests openai pandas fredapi feedparser finnhub-python tushare yfinance six
-      - name: 运行全部离线测试套件(排除test_glm_live,记录每套退出码)
+      - name: 运行全部离线测试套件(排除test_model_live,记录每套退出码)
         run: |
           fail=0
           mkdir -p /tmp/suite-logs
           for t in tests/test_*.py; do
             name=$(basename "$t" .py)
-            if [ "$name" = "test_glm_live" ]; then
+            if [ "$name" = "test_model_live" ]; then
               echo "== $name: SKIPPED(真实模型API付费调用,不进CI) exit=skipped"
               continue
             fi

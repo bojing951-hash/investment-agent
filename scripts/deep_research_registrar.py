@@ -18,7 +18,7 @@ DESIGN docs/P2_DESIGN.md §七 WP-P2-A 行(L193-L197,并入步带入)确定性�
   禁采声明值;B4 先例 research_archive.py:321),校验时快照文件名经
   ra.parse_snapshot_id 规范分解派生,结构性不可达 data/daily 原始采集档。
 
-纪律: 零网络(纯标准库+项目既有模块复用调用);零 GLM/凭证/付费;append-only
+纪律: 零网络(纯标准库+项目既有模块复用调用);零模型调用/凭证/付费;append-only
 (重复写入/改写一律拒,不区分内容,B4 §四行6 同款;修订=新记录 revision_of+
 revision_reason);零墙钟入指纹(created_at 缺省 now 属登记落档时刻,测试显式注入)。
 参数登记: docs/P2_WP_A_REPORT.md §零.4/§零.5(DP-1/2/6+P-A-01..P-A-12,

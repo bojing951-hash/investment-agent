@@ -140,15 +140,18 @@ check("② CPI 侧窗前无基准观测 → 如实 unavailable(不编造基准)"
 
 # ══ ③ 月×月 date_gap 阈值归一(建议4) ═══════════════════════════════
 print("\n[③] 月×月(FED_FUNDS×UNEMPLOYMENT)阈值 7→45 天,缺整月才报")
+# A-fin §3(2026-11-09): 月×月改月键内交(锚日巧合不作为对齐前提),mode 由
+# exact_date→month_grid;相邻月 28~35 天正常间距在月网格=1 个月步长,唯一
+# 断点=缺整月(03→06=3 个月步长),date_gap(月网格) 以月步长计。
 f_dates = ['2026-01-15', '2026-02-15', '2026-03-20', '2026-06-15']
 snap3 = make_snap({'FED_FUNDS': {'dates': f_dates, 'values': [4.0, 4.0, 3.9, 3.8]},
                    'UNEMPLOYMENT': {'dates': f_dates, 'values': [4.2, 4.1, 4.0, 3.9]}})
 code, d = run_cmp('--metrics', 'FED_FUNDS,UNEMPLOYMENT', snap=snap3)
 gapw = [w for w in d['warnings'] if 'date_gap' in w]
-check("③ 同频月×月不聚合(exact_date)",
-      d['data']['alignment']['mode'] == 'exact_date')
-check("③ 相邻月 28~35 天间隔不再误报(唯一 date_gap=缺整月 87 天,阈值45)",
-      len(gapw) == 1 and '87' in gapw[0] and '45' in gapw[0], str(gapw))
+check("③ A-fin: 月×月按月键对齐(month_grid,锚日巧合非前提)",
+      d['data']['alignment']['mode'] == 'month_grid')
+check("③ 相邻月不再误报(唯一 date_gap=缺整月 3 个月步长,月网格口径)",
+      len(gapw) == 1 and '3 个月' in gapw[0] and '月网格' in gapw[0], str(gapw))
 check("③ 利率族 basis=pp 两侧",
       d['data']['change_basis'] == {'a': 'pp', 'b': 'pp'})
 
@@ -311,6 +314,47 @@ check("--window 无 --metrics → rc=2 结构化 bad_window",
 code, d = run_cmp('--metrics', 'SPX,NVDA', '--window', '1', snap=snap1)
 check("--window 1 → rc=2 bad_window(N≥2)", code == 2
       and d['error']['kind'] == 'bad_window')
+
+print("\n[附4] 窗口化 interval_change 基准观测不被滤掉(A-fin 交叉审查[中],2026-11-09)")
+# 缺陷回放: 窗口过滤块先于区间变动,s['dates'] 已无 start 前观测 → 任何
+# --start 窗口下 interval_change_common_window 恒 unavailable。修复=保留
+# 过滤前副本,按原序列+窗口界计算(对齐/相关仍用过滤后序列)。
+# 手算: 窗 [01-05,01-31],基准=严格早于 01-05 的末笔=01-02(SPX 100/NVDA 50),
+# 窗末=01-07(103/53) → pct=(103/100−1)×100=+3.0% / (53/50−1)×100=+6.0%
+code, d = run_cmp('--metrics', 'SPX,NVDA', '--start', '2026-01-05',
+                  '--end', '2026-01-31', snap=snapw)
+ivm = {s['metric_id']: s['interval_change_common_window']
+       for s in d['data']['sides']}
+check("窗口下基准观测保留: SPX basis=01-02(100)→end=01-07(103),手算 +3.0%",
+      ivm['SPX'].get('available', True) and ivm['SPX'].get('basis_date') == '2026-01-02'
+      and ivm['SPX'].get('basis_value') == 100 and ivm['SPX'].get('end_date') == '2026-01-07'
+      and abs(ivm['SPX'].get('pct_change', 0) - 3.0) < 5e-5, str(ivm['SPX']))
+check("NVDA 同理 basis=01-02(50)→end=01-07(53),手算 +6.0%",
+      ivm['NVDA'].get('available', True) and ivm['NVDA'].get('basis_date') == '2026-01-02'
+      and abs(ivm['NVDA'].get('pct_change', 0) - 6.0) < 5e-5, str(ivm['NVDA']))
+check("对齐/样本口径仍按过滤后序列(共同观测=3,窗口语义不变)",
+      d['data']['alignment']['n_common_observations'] == 3
+      and d['data']['sides'][0]['n'] == 3)
+# 窗起点=序列首笔 → 窗前真无更早观测 → 如实 unavailable(不编造基准)
+code, d = run_cmp('--metrics', 'SPX,NVDA', '--start', '2026-01-02',
+                  '--end', '2026-01-07', snap=snapw)
+iv0 = d['data']['sides'][0]['interval_change_common_window']
+check("start=序列首笔 → 窗前确无基准观测 → 如实 unavailable+原因",
+      iv0.get('available') is False and '无基准观测' in (iv0.get('reason') or ''),
+      str(iv0))
+
+print("\n[附5] 窗口参数空串/纯空白拒收(D 线终验修复1,2026-11-09)")
+# 缺陷回放: --end "" 为假值直通 `if args.end:` 过滤条件→静默当无界,
+# D 线第一次分段四窗全跑成累计窗。修=空串/纯空白 rc=2 bad_window。
+code, d = run_cmp('--metrics', 'SPX,NVDA', '--start', '', snap=snap1)
+check("compare --start '' → rc=2 bad_window(不再静默当无界)",
+      code == 2 and d['error']['kind'] == 'bad_window', str(d.get('error')))
+code, d = run_cmp('--metrics', 'SPX,NVDA', '--end', '   ', snap=snap1)
+check("compare --end 纯空白 → rc=2 bad_window",
+      code == 2 and d['error']['kind'] == 'bad_window', str(d.get('error')))
+code, d = run_cmp('--metrics', 'SPX,NVDA', snap=snap1)
+check("不传旗标=正常无界行为不受影响(rc=0)",
+      code == 0 and d['data']['alignment']['mode'] == 'exact_date')
 
 print("\n" + "=" * 60)
 print(f"结果: {PASS}通过 / {FAIL}失败")

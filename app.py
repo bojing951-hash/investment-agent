@@ -181,9 +181,9 @@ def page_research():
     q = st.text_area('研究问题', value='美国和日本10年期国债收益率差是多少？', height=80)
     col1, col2, col3 = st.columns(3)
     do_ask = col1.button('本地接地作答', type='primary')
-    do_glm = col2.button('AI 解释(可选,需模型 API)')
+    do_explain = col2.button('AI 解释(可选,需模型 API)')
     do_save = col3.button('存入研究档案')
-    if do_ask or q and (do_glm or do_save):
+    if do_ask or q and (do_explain or do_save):
         with st.spinner('本地查询中…'):
             res = wd.ask_local(q, SNAP)
         if res['status'] == 'answered':
@@ -201,7 +201,7 @@ def page_research():
             st.table([{ '指标绑定': k, '数值': v} for k, v in res['values'].items()])
         st.session_state['last_answer'] = res
         st.session_state['last_q'] = q
-    if do_glm:
+    if do_explain:
         last = st.session_state.get('last_answer')
         if not last or st.session_state.get('last_q') != q:
             res = wd.ask_local(q, SNAP)
@@ -212,7 +212,7 @@ def page_research():
             st.warning('AI 解释仅对接地作答成功的问题开放(数值必须先经本地核实)。')
         else:
             with st.spinner('AI 解释生成中(真实模型调用,产生少量费用)…'):
-                out = wd.glm_explain(q, last['answer_text'])
+                out = wd.ai_explain(q, last['answer_text'])
             if out['ok']:
                 st.subheader('AI 解释(基于上方已核实事实;【推断】部分非事实)')
                 st.markdown(out['text'])

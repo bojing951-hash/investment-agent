@@ -20,7 +20,7 @@ rp.gate_allows_formal_research(R3)+sb.build_snapshot(S1);本模块零 open()/
 零采集档文件IO(as_of=None时仅以 os.listdir 列举快照层文件名取最大ymd,
 D-B2-12);data_dir 参数由调用方注入(测试合成采集文件写tempdir,
 tests/test_snapshot.py 同构);禁墙钟(D-B2-01)。
-零网络/零GLM/零凭证;缺值如实缺席零填0(四级缺席 DESIGN §三(c) L118-129)。
+零网络/零模型调用/零凭证;缺值如实缺席零填0(四级缺席 DESIGN §三(c) L118-129)。
 
 参数与决策点全部先登记后运行: docs/P03_E2EB_B2_REPORT.md §六
 (D-B2-01..D-B2-14;承接 B1 D-B1-01/12/13;运行后禁回改)。

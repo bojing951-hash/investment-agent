@@ -140,15 +140,18 @@ check("② CPI 侧窗前无基准观测 → 如实 unavailable(不编造基准)"
 
 # ══ ③ 月×月 date_gap 阈值归一(建议4) ═══════════════════════════════
 print("\n[③] 月×月(FED_FUNDS×UNEMPLOYMENT)阈值 7→45 天,缺整月才报")
+# A-fin §3(2026-11-09): 月×月改月键内交(锚日巧合不作为对齐前提),mode 由
+# exact_date→month_grid;相邻月 28~35 天正常间距在月网格=1 个月步长,唯一
+# 断点=缺整月(03→06=3 个月步长),date_gap(月网格) 以月步长计。
 f_dates = ['2026-01-15', '2026-02-15', '2026-03-20', '2026-06-15']
 snap3 = make_snap({'FED_FUNDS': {'dates': f_dates, 'values': [4.0, 4.0, 3.9, 3.8]},
                    'UNEMPLOYMENT': {'dates': f_dates, 'values': [4.2, 4.1, 4.0, 3.9]}})
 code, d = run_cmp('--metrics', 'FED_FUNDS,UNEMPLOYMENT', snap=snap3)
 gapw = [w for w in d['warnings'] if 'date_gap' in w]
-check("③ 同频月×月不聚合(exact_date)",
-      d['data']['alignment']['mode'] == 'exact_date')
-check("③ 相邻月 28~35 天间隔不再误报(唯一 date_gap=缺整月 87 天,阈值45)",
-      len(gapw) == 1 and '87' in gapw[0] and '45' in gapw[0], str(gapw))
+check("③ A-fin: 月×月按月键对齐(month_grid,锚日巧合非前提)",
+      d['data']['alignment']['mode'] == 'month_grid')
+check("③ 相邻月不再误报(唯一 date_gap=缺整月 3 个月步长,月网格口径)",
+      len(gapw) == 1 and '3 个月' in gapw[0] and '月网格' in gapw[0], str(gapw))
 check("③ 利率族 basis=pp 两侧",
       d['data']['change_basis'] == {'a': 'pp', 'b': 'pp'})
 

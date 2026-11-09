@@ -128,7 +128,7 @@ class TestT1RealChainAnchors(unittest.TestCase):
         reg = fe.load_registry()
         metrics = reg["metrics"]
         self.assertEqual(len(metrics), 102)
-        self.assertEqual(reg["version"], "2.3.0")
+        self.assertEqual(reg["version"], "2.4.0")  # A-fin(2026-11-09) 时间键登记 2.3.0→2.4.0
         self.assertEqual(sum(1 for m in metrics if m.get("status") == "active"), 101)
 
     def test_t12_mapper_real_registry_golden_question(self):

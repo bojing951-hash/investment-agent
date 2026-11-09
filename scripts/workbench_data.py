@@ -160,7 +160,9 @@ def series_capable_metrics(snapshot, registry):
     采集档含 series 的指标。
 
     字段三层纯透传/纯统计,不推算:
-    - 注册表透传: label/unit/frequency/calendar/release_semantics;
+    - 注册表透传: label/unit/frequency/calendar/release_semantics/
+      time_semantics(observation_period_kind+release_date_available,
+      A-fin 人工登记键,缺键=null 不默认);
     - 序列统计(first/last/n): series_store 优先,仅存采集档的取最新档
       series 原值(同旧版来源优先级,统计口径=该来源序列本身);
     - 口径族(unit_family, 单位感知比较预判用)与事实层 quality_status
@@ -207,6 +209,10 @@ def series_capable_metrics(snapshot, registry):
                     'first': first, 'last': last, 'n': n,
                     'calendar': m.get('calendar'),
                     'release_semantics': m.get('release_semantics'),
+                    'time_semantics': {'observation_period_kind':
+                                       m.get('observation_period_kind'),
+                                       'release_date_available':
+                                       m.get('release_date_available')},
                     'quality_status': facts_q.get(mid)})
     return out
 

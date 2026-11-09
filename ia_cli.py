@@ -462,6 +462,18 @@ def _date_gap_days(a, b):
         return None
 
 
+def _has_vn_history(ymd, data_dir=None):
+    """A-fin §2: 该日是否存在历史版本快照(_vN 修订版文件)。
+
+    判据=data/daily 下 research_snapshot_{ymd}_v*.json 文件存在性(引擎已知
+    事实,零推断);点时取版由 research_provenance.select_snapshot 承担(同日
+    多版本取最高 _vN)。data_dir 可注入(测试用临时目录构造 _vN fixture)。
+    """
+    data_dir = data_dir or os.path.join(ROOT, 'data', 'daily')
+    return bool(glob.glob(os.path.join(
+        data_dir, f'research_snapshot_{ymd}_v*.json')))
+
+
 def cmd_compare(args):
     warnings = []
     # 用法校验先于快照加载: rc=2 与环境数据无关(无快照环境同样恒定)
@@ -479,6 +491,17 @@ def cmd_compare(args):
             emit(envelope('compare', False, {},
                           error=('bad_window', f'--window 须 ≥2,收到 {args.window}',
                                  '窗长=参与每个滚动相关值的变化对数')), exit_code=2)
+    # A-fin §4: --lag 滞后相关(单 lag,不扫全域)——仅 metrics 模式,与 --window
+    # 互斥(防输出歧义: 滚动窗与滞后平移叠加无单值解读),同 bad_window rc=2 风格
+    if args.lag is not None:
+        if not args.metrics:
+            emit(envelope('compare', False, {},
+                          error=('bad_lag', '--lag 仅适用于 --metrics 模式',
+                                 '滞后相关需要双指标序列;先给 --metrics A,B')), exit_code=2)
+        if args.window is not None:
+            emit(envelope('compare', False, {},
+                          error=('bad_lag', '--lag 与 --window 互斥(不可同时使用)',
+                                 '滞后平移与滚动窗叠加无单值解读;二选一')), exit_code=2)
     ecos = []
     if args.economies:
         ecos = [e.strip().upper() for e in re.split(r'[,\s]+', args.economies) if e.strip()]
@@ -557,9 +580,14 @@ def cmd_compare(args):
 
         # ── 批2 W9: 月度聚合对齐(建议6)——mixed_frequency 且低频侧=月频时默认 ──
         # 高频侧聚合到自然月网格(代表=期内末值,rhq.align_to_month),月键(YYYY-MM)
-        # 内交;两侧同频(含月×月)仍走原精确日内交(alignment.mode=exact_date)。
+        # 内交;两侧同频(非月×月)走原精确日内交(alignment.mode=exact_date)。
+        # ── A-fin §3: 月×月改月键内交——原 exact_date 仅在双月频锚日巧合(如
+        # FRED 统一 01 锚)时可得非空交集,月中/月末锚月频对会 n=0 静默空;两侧
+        # 各取 d[:7] 月键、同格多观测取末值(复用 _group_representative 规则,
+        # 月×月时通常 no-op),锚日巧合不再作为对齐前提。01 锚下月键≡原日键,
+        # 现役月×月数值不变(⑤号验收锁)。──
         align_mode = 'exact_date'
-        agg_side = None                      # 被聚合侧标记('a'/'b'),sides 披露用
+        agg_side = None                      # 被聚合侧标记('a'/'b'/'both'),sides 披露用
         pair_a = {'dates': sa['dates'], 'values': sa['values']}
         pair_b = {'dates': sb['dates'], 'values': sb['values']}
         if (freq_a and freq_b and freq_a != freq_b
@@ -576,6 +604,13 @@ def cmd_compare(args):
                 pair_b = {'dates': [str(d)[:7] for d in pair_b['dates']],
                           'values': pair_b['values']}
                 agg_side = 'a'
+            align_mode = 'month_grid'
+        elif freq_a == freq_b == 'monthly':
+            grid_a = rhq.align_to_month(pair_a)
+            grid_b = rhq.align_to_month(pair_b)
+            pair_a = {'dates': grid_a['grid_keys'], 'values': grid_a['values']}
+            pair_b = {'dates': grid_b['grid_keys'], 'values': grid_b['values']}
+            agg_side = 'both'
             align_mode = 'month_grid'
 
         # P0-3 单位感知变化相关: 利率→pp/价格→pct,修复利率×价格混算 pct
@@ -594,18 +629,32 @@ def cmd_compare(args):
         for k, (sid, s) in enumerate(((ids[0], sa), (ids[1], sb))):
             m = reg['by_id'].get(sid) or {}
             fam, sub = unit_family(m.get('unit', ''), m.get('asset_class', ''))
+            # A-fin §1: 时间语义结构化透传(注册表人工登记,缺键=null 不默认);
+            # 快照 fact 层实测 release_date 覆盖登记(数据>登记,值随行可查)
+            ts = {'observation_period_kind': m.get('observation_period_kind'),
+                  'release_date_available': m.get('release_date_available')}
+            fact_release = (facts_by_id.get(sid) or {}).get('release_date')
+            if fact_release:
+                ts['release_date_available'] = True
+                ts['release_date'] = fact_release
+                ts['release_date_source'] = 'fact(快照实测值,覆盖登记)'
             node = {'metric_id': sid, 'label': s['label'], 'unit': s['unit'],
                     'unit_family': fam, 'frequency': m.get('frequency'),
                     'identity': identity_block(m), 'calc': m.get('calc'),
                     'n': len(s['dates']), 'first': s['dates'][0], 'last': s['dates'][-1],
                     'source': s['source'],
                     'quality_status': (facts_by_id.get(sid) or {}).get('quality_status'),
-                    'release_note': m.get('release_semantics')}
+                    'release_note': m.get('release_semantics'),
+                    'time_semantics': ts}
             if sub:
                 node['unit_subfamily'] = sub
             if agg_side == ('a' if k == 0 else 'b'):
                 node['aggregation'] = ('month_grid: 自然月网格,代表=期内末值'
                                        '(rhq.align_to_month,mixed_frequency 对齐)')
+            elif agg_side == 'both':
+                node['aggregation'] = ('month_grid: 月×月按月键(YYYY-MM)对齐,'
+                                       '同格多观测取末值(_group_representative 同规则;'
+                                       '锚日巧合不作为对齐前提)')
             # 月键窗口界: start=共同首月月初, end=共同末月月末串界('YYYY-MM-31'
             # 字典序≥该月任意日且<次月),与 interval_change 纯字符串比较兼容
             if align_mode == 'month_grid' and common:
@@ -624,12 +673,35 @@ def cmd_compare(args):
         basis_b = 'pp' if fam_b == 'rate' else 'pct'
         align_note = ('水平窗=共同观测日数;变化窗=相邻观测对数'
                       '(少一个会话,如实并列);data.n_change_pairs='
-                      '剔除 null/零基丢弃后实际参与相关的对数')
+                      '剔除 null/零基丢弃后实际参与相关的对数;'
+                      '不做异常值处理(原始值直算)')
         if align_mode == 'month_grid':
-            align_note += (';本对为 mixed_frequency(低频侧=月频): 高频侧已聚合到'
-                           '自然月网格(代表=期内末值,align_to_month),按月键'
-                           '(YYYY-MM)内交,n_*=共同月份数;a_dropped/b_dropped='
-                           '各自未进入共同窗的观测数(月键口径=月数)')
+            if agg_side == 'both':
+                align_note += (';本对为月×月: 两侧各按月键(YYYY-MM)对齐,'
+                               '同格多观测取末值,锚日巧合不作为对齐前提,'
+                               'n_*=共同月份数;a_dropped/b_dropped=各自未进入'
+                               '共同窗的观测数(月键口径=月数)')
+            else:
+                align_note += (';本对为 mixed_frequency(低频侧=月频): 高频侧已聚合到'
+                               '自然月网格(代表=期内末值,align_to_month),按月键'
+                               '(YYYY-MM)内交,n_*=共同月份数;a_dropped/b_dropped='
+                               '各自未进入共同窗的观测数(月键口径=月数)')
+        # ── A-fin §2: 研究模式门(泄漏三模式的数据条件,机械可计算部分)──
+        # 描述性=历史比较永远可算;事件研究=须两侧发布日已知(任一宏观侧无发布日
+        # →blocked);当时信息集=须有历史版本快照(_vN,点时取版)。禁令执行归
+        # SKILL 研究纪律(引擎不知道研究者声称什么),此处只报数据条件事实。
+        release_known = [bool((s.get('time_semantics') or {})
+                              .get('release_date_available')) for s in sides]
+        snap_ymd = str(snap.get('target_date') or '')[:10].replace('-', '')
+        vn_available = _has_vn_history(snap_ymd) if snap_ymd else False
+        research_mode_gate = {
+            'descriptive': 'available',
+            'event_study': ('available' if all(release_known)
+                            else 'blocked: 无发布日, 不得按发布日对齐/'
+                                 '不得声称事件研究'),
+            'realtime_info_set': ('available(经 select_snapshot 点时取版)'
+                                  if vn_available
+                                  else 'blocked: 无历史版本, 修订值≠当时值')}
         data = {'mode': 'metrics', 'sides': sides,
                 'alignment': {'mode': align_mode,
                               'n_common_observations': len(common),
@@ -638,6 +710,7 @@ def cmd_compare(args):
                               'common_first': common[0] if common else None,
                               'common_last': common[-1] if common else None,
                               'a_dropped': a_dropped, 'b_dropped': b_dropped,
+                              'research_mode_gate': research_mode_gate,
                               'note': align_note},
                 'pearson_returns': corr,
                 'change_basis': {'a': basis_a, 'b': basis_b},
@@ -724,6 +797,29 @@ def cmd_compare(args):
                     'note': f'变化对数({paired["n_change_pairs"] if paired else 0})'
                             f'不足窗长 {args.window},滚动序列为空'}
                 warnings.append(f'--window {args.window}: 变化对数不足,滚动序列为空')
+        # ── A-fin §4: 滞后相关(--lag k,单 lag 不扫全域)——单位感知变化对上
+        # 做索引平移: 配对 (ca[i], cb[i−k]),k>0=B 领先 A k 期(B 的变化先发生),
+        # k<0 反向;有效对数 n_lag=n_change_pairs−|k|,<3 → rho=None+提示。
+        # pearson 复用,零新统计代码。──
+        if args.lag is not None and paired:
+            ca, cb = paired['changes_a'], paired['changes_b']
+            k = args.lag
+            idx = [i for i in range(len(ca)) if 0 <= i - k < len(cb)]
+            xa = [ca[i] for i in idx]
+            xb = [cb[i - k] for i in idx]
+            n_lag = len(xa)
+            rho_lag = cc.pearson(xa, xb) if n_lag >= 3 else None
+            insufficient = (f'n_lag_pairs={n_lag}<3: 平移 |{k}| 后有效变化对不足,'
+                            '滞后相关不可计算(降低 |k| 或换更长样本)') if n_lag < 3 else None
+            data['lagged'] = {
+                'lag': k, 'rho': rho_lag, 'n_lag_pairs': n_lag,
+                'n_lag_expected': paired['n_change_pairs'] - abs(k),
+                'basis': ('滞后配对=(A第i个变化, B第i−k个变化);k>0=B领先A k个'
+                          '变化对(B先动),k<0=A领先;口径见 change_basis'
+                          '(单位感知 pp/pct)'),
+                'warning_if_insufficient': insufficient}
+            if insufficient:
+                warnings.append(f'--lag {k}: {insufficient}')
         emit(envelope('compare', True, data, warnings, snapshot=snap))
     emit(envelope('compare', False, {},
                   error=('no_mode', '未指定比较模式',
@@ -999,6 +1095,9 @@ def build_parser():
     cp.add_argument('--window', type=int,
                     help='metrics 模式: 滚动相关窗长 N≥2(单位感知变化对,diff 基;'
                     '输出 rolling 摘要,不改全窗 pearson_returns)')
+    cp.add_argument('--lag', type=int,
+                    help='metrics 模式: 滞后相关平移 k 期(整数可负,单位=变化对;'
+                    'k>0=B 领先 A k 期先动,k<0 反向;与 --window 互斥)')
 
     rs = sub.add_parser('research', help='本地接地研究问答(e2eb 栈,零网络)')
     rs.add_argument('--question', required=True, help='研究问题')

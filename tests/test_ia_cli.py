@@ -222,12 +222,13 @@ check("history 不带 --metric→列出可查指标(CI 下可为空列表,结构
 
 # 批2 W8(C-1): catalog 全字段——字段齐全性+与注册表实值一致抽验
 # (期望值直读 metric_registry.json/snapshot 原始 JSON,不经被测模块自算)
+# A-fin(2026-11-09): +time_semantics(12键,注册表人工登记键纯透传)
 FULL_KEYS = {'metric_id', 'label', 'unit', 'unit_family', 'frequency',
              'first', 'last', 'n', 'calendar', 'release_semantics',
-             'quality_status'}
+             'time_semantics', 'quality_status'}
 caps = d['data']['series_capable_metrics']
 if caps:
-    check("catalog 全字段(11键)且键集一致",
+    check("catalog 全字段(12键)且键集一致",
           all(set(c) == FULL_KEYS for c in caps),
           str(next((set(c) ^ FULL_KEYS for c in caps if set(c) != FULL_KEYS), '')))
     reg_doc = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),

@@ -210,7 +210,7 @@ class T1RegistryV230(unittest.TestCase):
     def test_t01_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1): 94+8→102/93+8→101/2.2.0→2.3.0/CN 10→18
         self.assertEqual(len(REG['metrics']), 102)
-        self.assertEqual(REG['version'], '2.3.0')
+        self.assertEqual(REG['version'], '2.4.0')  # A-fin(2026-11-09) 时间键登记 2.3.0→2.4.0
         self.assertEqual(sum(1 for m in REG['metrics']
                              if m.get('status') == 'active'), 101)
         agg = {}
@@ -243,6 +243,8 @@ class T1RegistryV230(unittest.TestCase):
             'source_symbol': 'PENDING',
             'asset_class': 'policy_rate',
             'frequency': 'daily',
+            'observation_period_kind': 'calendar_day',
+            'release_date_available': True,
             'unit': 'percent',
             'calendar': 'cn',
             'economy': 'CN',

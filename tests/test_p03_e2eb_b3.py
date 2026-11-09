@@ -109,10 +109,10 @@ class T1RegistryIdentity(unittest.TestCase):
     def test_t01_counts_and_version(self):
         # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
         # 94+8→102 / 93+8→101 / 2.2.0→2.3.0
-        self.assertEqual(len(REG['metrics']), 103, '指标总数须恰为103(85+9+8+1Charter6)')
+        self.assertEqual(len(REG['metrics']), 106, '指标总数须恰为106(85+9+8+1+3Charter6)')  # Charter6-P2: +CAPE/PE_TTM/PB
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 102)  # Charter6-P1: +US_REAL_GDP
-        self.assertEqual(REG['version'], '2.5.0', '版本号须为2.5.0(Charter6-P1 2026-11-09 缺失补齐)')
+                             if m.get('status') == 'active'), 104)  # Charter6-P2: +SPX_CAPE/SPX_PE_TTM
+        self.assertEqual(REG['version'], '2.6.0', '版本号须为2.6.0(Charter6-P2 2026-11-09 估值面)')
 
     def test_t02_four_entries_full_field_freeze(self):
         # D11 全字段冻结(硬编码逐字段=磁盘实况,任何漂移即红);
@@ -204,8 +204,9 @@ class T1RegistryIdentity(unittest.TestCase):
     def test_t06_vintage_additions_exact(self):
         # IA-P1-WP-A v1.3 域化: additions 4→13(日本四条目∪P1 新九条目);
         # IA-P1-WP-E v1.3 域化(§十三.1): 13→21(∪CN 宏观八条目)
-        self.assertEqual(set(bl.vintage_additions()), JP4 | NEW9 | CN8 | {'US_REAL_GDP'},
-                         'vintage_additions 须恰为日本四条目∪P1新九条目∪CN宏观八条目∪US_REAL_GDP(22)')
+        self.assertEqual(set(bl.vintage_additions()), JP4 | NEW9 | CN8
+                         | {'US_REAL_GDP', 'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB'},
+                         'vintage_additions 须恰为…∪US_REAL_GDP∪Shiller三条目(25)')
 
 
 class T2ChannelRegistration(unittest.TestCase):

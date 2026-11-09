@@ -234,10 +234,10 @@ shutil.rmtree(os.path.dirname(daily_d), ignore_errors=True)
 # run_weekly 接线: 14步含保留策略(非关键)
 rw_src = open(os.path.join(ROOT, 'run_weekly.py'), encoding='utf-8').read()
 check("run_weekly: 保留策略已接线(非关键)",
-      '("14/14 日档保留策略(90天全量+月度归档)", "data_retention.py", False)'
+      '("15/15 日档保留策略(90天全量+月度归档)", "data_retention.py", False)'
       in rw_src)
-check("run_weekly: 14步分母一致(1/14..14/14)",
-      len(re.findall(r'"\d{1,2}/14 ', rw_src)) == 14)
+check("run_weekly: 15步分母一致(1/15..15/15)",
+      len(re.findall(r'"\d{1,2}/15 ', rw_src)) == 15)
 
 print("=" * 64)
 print("四、长序列回归(~2500点,手算期望)")

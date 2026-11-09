@@ -109,7 +109,9 @@ REGISTRY_SOURCE_CHANNEL = {'global_market_collector': 'global', 'macro_collector
                            'china_market_collector': 'china', 'rate_expectations': 'rate_economy',
                            'japan_rate_collector': 'japan',  # R060 B3整改轮(REM-AC-02③): WP-B3 japan通道
                            # IA-P1-WP-A(v1.3): JP/EA 市场通道(同字典同形式,R060 先例)
-                           'jp_market_collector': 'jp', 'ea_market_collector': 'ea'}
+                           'jp_market_collector': 'jp', 'ea_market_collector': 'ea',
+                           # Charter6-P2: Shiller 估值通道(同字典同形式)
+                           'shiller_collector': 'shiller'}
 
 # ── 身份映射(与既有实现同源;test_p02_w4以ast解析fe/snapshot_builder源码守护不漂移) ──
 GLOBAL_ID_MAP = fe._GLOBAL_ID_MAP        # {"GOLD":"GOLD_F",...,"WTI":"WTI_F"(期货通道)}(模块级)

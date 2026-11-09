@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # correlation_)刻意缺席)。同日多版本档(如 *_v2.json)不匹配日期正则,
 # 天然不动。
 COLLECTOR_PREFIXES = ('macro_', 'global_', 'china_', 'japan_', 'jp_',
-                      'ea_', 'rate_economy_')
+                      'ea_', 'rate_economy_', 'shiller_')
 _FILE_RE = re.compile(
     r'^(?:' + '|'.join(COLLECTOR_PREFIXES) + r')(\d{8})\.(json|md)$')
 ARCHIVE_DIRNAME = 'archive'

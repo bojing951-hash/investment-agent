@@ -77,6 +77,9 @@ KNOWN_SOURCES = frozenset({
     'global_market_collector', 'macro_collector', 'china_market_collector',
     'rate_expectations', 'fact_engine(derived)', 'macro_collector(derived)',
     'japan_rate_collector', 'jp_market_collector', 'ea_market_collector',
+    # Charter6-P2(A2 §2#5): Shiller 估值采集器(ie_data.xls 月频1871+,
+    # 免Key)——SPX_CAPE/SPX_PE_TTM 权属源。
+    'shiller_collector',
 })
 
 # 工具身份词汇表(W1-01审计确认):个股/ETF/指数/期货连续/现货加密/利率序列/
@@ -172,7 +175,11 @@ UNIT_BY_CLASS = {
 
 # status词汇:fe.snapshot_quality_grade/rp.core_metric_ids/active_metric_defs
 # 以字面'active'过滤——拼写漂移会把core指标静默逐出Gate A统计,必须error。
-STATUS_VALUES = frozenset({'active', 'deprecated'})
+# Charter6-P2(A2 §2#6, 2026-11-09): +'unavailable'=登记为不可得(SPX_PB:
+# 无免费干净源,不以 proxy 冒充——宁缺毋假)。语义=该指标不产事实不产序列,
+# Gate A/active_registry_metrics 按 status=='active' 过滤天然零消费,
+# 仅供 catalog/研究层如实披露"该口径已评估且不可得"。
+STATUS_VALUES = frozenset({'active', 'deprecated', 'unavailable'})
 # criticality词汇:'core'为Gate A分级权威;未知值=静默降级,必须error。
 CRITICALITY_VALUES = frozenset({'core', 'important', 'context'})
 # value_type词汇:make_fact缺省'level';rp.fact_structure_problems逐字比对

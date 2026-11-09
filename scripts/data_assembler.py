@@ -281,7 +281,9 @@ def build_markdown(snapshot, ymd, data_dir=None, trusted_root=None):
     L.append("|---|---|---|---|---|")
     reg_counts = {}
     for m in fe.load_registry().get('metrics', []):
-        if m.get('status', 'active') != 'deprecated':
+        # Charter6-P2: 只数 active(unavailable 登记项不计入覆盖——
+        # 零消费指标算"已覆盖"会虚报,宁缺毋假纪律延伸到披露面)
+        if m.get('status') == 'active':
             reg_counts[m.get('economy')] = reg_counts.get(m.get('economy'), 0) + 1
     _st_names = {'confirmed': '已确认', 'pending_confirmation': '待确认',
                  'data_insufficient': '数据不足'}

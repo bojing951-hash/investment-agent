@@ -122,6 +122,8 @@ _SOURCE_TO_INPUT = {
     'jp_market_collector': 'jp',
     'ea_market_collector': 'ea',
     'japan_rate_collector': 'japan',
+    # Charter6-P2: Shiller 估值通道(ie_data.xls 月频;缺席口径同 FIX4-03)
+    'shiller_collector': 'shiller',
 }
 
 # 派生指标输入依赖(与fact_engine.compute_derived一致): 派生缺席在**输入缺席**
@@ -154,6 +156,9 @@ _AUTHORIZED_COLLECTORS = {
     # 属 WP-B,GAP-P1-08 L156 承接登记,本包不接线)
     'jp_market_collector': frozenset({'jp_market_collector'}),
     'ea_market_collector': frozenset({'ea_market_collector'}),
+    # Charter6-P2: Shiller 估值采集器——collector 与 registry source 同符号
+    # (SPX_CAPE/SPX_PE_TTM;SPX_PB=unavailable 无事实面)
+    'shiller_collector': frozenset({'shiller_collector'}),
 }
 
 # FIX5-04: 必需采集通道(=基线四通道: 真实构建器恒写入;存量历史快照均只含
@@ -181,6 +186,10 @@ SOURCE_FILE_RULES = {
     'japan':        {'prefix': 'japan_',        'max_fallback_days': 5},
     'jp':           {'prefix': 'jp_',           'max_fallback_days': 5},
     'ea':           {'prefix': 'ea_',           'max_fallback_days': 5},
+    # Charter6-P2(A2 §2#5): shiller 通道(shiller_collector 产出,Robert
+    # Shiller 官网 ie_data.xls 免Key);月频估值序列+官网不定期更新→回退窗
+    # 放宽到35自然日(月度节奏,与5/7天日频通道不同档)。
+    'shiller':      {'prefix': 'shiller_',      'max_fallback_days': 35},
 }
 _SOURCE_FILE_RE = {ch: re.compile(rf'^{re.escape(r["prefix"])}(\d{{8}})\.json$')
                    for ch, r in SOURCE_FILE_RULES.items()}

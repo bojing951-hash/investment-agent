@@ -155,16 +155,16 @@ class TestEconomyRules(unittest.TestCase):
     def test_t1a_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
         # 94+8→102 / 93+8→101 / 2.2.0→2.3.0 / 聚合 CN 10→18(其余键不动)
-        self.assertEqual(len(REG['metrics']), 103)  # Charter6-P1: +US_REAL_GDP
-        self.assertEqual(REG['version'], '2.5.0')  # Charter6-P1(2026-11-09) 缺失补齐 2.4.0→2.5.0
+        self.assertEqual(len(REG['metrics']), 106)  # Charter6-P2: +SPX_CAPE/SPX_PE_TTM/SPX_PB
+        self.assertEqual(REG['version'], '2.6.0')  # Charter6-P2(2026-11-09) 估值面 2.5.0→2.6.0
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 102)  # Charter6-P1
+                             if m.get('status') == 'active'), 104)  # Charter6-P2: +SPX_CAPE/SPX_PE_TTM
         agg = {}
         for m in REG['metrics']:
             agg[m['economy']] = agg.get(m['economy'], 0) + 1
         # 定值=REPORT §零.12⑥(85 实测聚合+P9×2+P10×7)+CN 宏观八条目(P1:calendar=cn)
-        # Charter6-P1: US 49→50(+US_REAL_GDP)
-        self.assertEqual(agg, {'US': 50, 'CN': 18, 'HK': 4, 'JP': 8,
+        # Charter6-P2: US 50→52(+SPX_CAPE/SPX_PE_TTM;SPX_PB=unavailable不计)
+        self.assertEqual(agg, {'US': 53, 'CN': 18, 'HK': 4, 'JP': 8,
                                'EA': 11, 'GLOBAL': 12})
 
     def test_t1b_per_entry_rule_consistency(self):
@@ -289,26 +289,31 @@ class TestChannelRegistrationChain(unittest.TestCase):
         self.assertEqual(set(bl.vintage_additions()),
                          {'JP_POLICY_RATE', 'JGB2Y', 'JGB5Y', 'JGB10Y'}
                          | set(NEW9) | set(CN8)
-                         | {'US_REAL_GDP'})  # Charter6-P1(A2 §2#1)
+                         | {'US_REAL_GDP', 'SPX_CAPE', 'SPX_PE_TTM',
+                            'SPX_PB'})  # Charter6-P1 §2#1 + P2 §2#5/#6
 
     def test_t2e_run_weekly_thirteen_steps(self):
         src = open(os.path.join(ROOT, 'run_weekly.py'), encoding='utf-8').read()
-        self.assertEqual(src.count('/14'), 14)
+        self.assertEqual(src.count('/15'), 15)  # Charter6-P0: 13→14;P2: +Shiller→15
         # MW-V1(2026-11-08 章程校准): jp/ea 自尾部 12/13 挪到快照前 7/8(当日档
         # 进当日快照),japan_rate_collector(JGB/日政策利率权属)纳管为第 6 步;
         # 预测观察步骤(原 11/13)按 PRODUCT-GOAL.md 2026-11-08 勘误下线。
-        self.assertIn('"6/14 日本利率与国债曲线(japan_)", "japan_rate_collector.py", False',
+        self.assertIn('"6/15 日本利率与国债曲线(japan_)", "japan_rate_collector.py", False',
                       src)
-        self.assertIn('"7/14 日本市场数据采集(jp_)", "jp_market_collector.py", False',
+        self.assertIn('"7/15 日本市场数据采集(jp_)", "jp_market_collector.py", False',
                       src)
-        self.assertIn('"8/14 欧元区市场数据采集(ea_)", "ea_market_collector.py", False',
+        self.assertIn('"8/15 欧元区市场数据采集(ea_)", "ea_market_collector.py", False',
                       src)
-        # Charter6-P0(2026-11-09): 第14步=日档保留策略(非关键,尾步)
+        # Charter6-P2(2026-11-09): 第9步=Shiller估值采集(快照前,当日档进当日快照)
         self.assertIn(
-            '"14/14 日档保留策略(90天全量+月度归档)", "data_retention.py", False', src)
+            '"9/15 Shiller估值采集(shiller_)", "shiller_collector.py", False', src)
+        # Charter6-P0(2026-11-09): 尾步=日档保留策略(非关键;P2起=15/15)
+        self.assertIn(
+            '"15/15 日档保留策略(90天全量+月度归档)", "data_retention.py", False', src)
         # 快照构建仍在全部采集通道之后(步骤号大于 japan/jp/ea)
         self.assertLess(src.find('日本市场数据采集(jp_)'), src.find('研究快照构建'))
         self.assertLess(src.find('欧元区市场数据采集(ea_)'), src.find('研究快照构建'))
+        self.assertLess(src.find('Shiller估值采集'), src.find('研究快照构建'))
         # 预测观察退出自动调度(模块与历史档案保留,仅不在 steps 内)
         self.assertNotIn('"daily_prediction_observer.py"', src)
         # 关键采集器集零变化(4,japan/jp/ea 非关键)

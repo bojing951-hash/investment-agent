@@ -231,13 +231,15 @@ def build_anchors(snapshot, ymd):
     return anchors
 
 
-def _normalize_japan(data, as_of, source_file):
+def _normalize_japan(data, as_of, source_file, collector='japan_rate_collector'):
     """IA-P1-GAP08 F1 japan 面: japan_*.json(B3 flat 形态)→4 事实。
 
     形态: data.{metric_id}=数值+observations.{metric_id}=观测日(B3
     japan_rate_collector 产出);经 fe 现成 make_fact/validate_fact/
     grade_issues 产事实(collector='japan_rate_collector',与 registry
     source 同符号;fact_engine 零改;构造形态先例=WP-B t13 _japan_facts)。
+    Charter6-P2: collector 参数化——shiller_*.json 同 flat 形态
+    (shiller_collector 产出 SPX_CAPE/SPX_PE_TTM),同一适配器复用。
     键缺席/节缺席=诚实缺席不产事实不填 0;非数值/未注册键不立事实
     (与各 normalize_* 身份纪律一致);观测日非法由 validate_fact 按完整
     ISO 严格拒绝(fail-closed,不截断洗白)。"""
@@ -251,7 +253,7 @@ def _normalize_japan(data, as_of, source_file):
                 or not isinstance(value, (int, float)):
             continue
         f = fe.make_fact(key, value, obs_map.get(key), as_of, source_file,
-                         'japan_rate_collector')
+                         collector)
         if f is None:
             continue
         f['issues'] = fe.validate_fact(
@@ -267,12 +269,16 @@ def merge_series_sections(store, raw):
     """Charter6-P1(A2 §2#2/#3): japan/ea 通道**全史序列节**入 store(就地并入)。
 
     japan_ 档 series 节(JP_POLICY_RATE,fredgraph 全行解析)与 ea_ 档 series 节
-    (ECB_DFR/ECB_MRO,SDMX 全行,startPeriod=1999)——键=registry metric_id 实读
+    (ECB_DFR/ECB_MRO,SDMX 全行,startPeriod=1999),Charter6-P2 起 shiller_ 档
+    series 节(SPX_CAPE/SPX_PE_TTM,ie_data.xls 月频1871+)——键=registry
+    metric_id 实读
     且 source=权属采集器方可入(防别名行/越权序列混入计算面);形态须为
     {'dates','values'} 等长非空(升序直通,零改写零造数);节缺席=诚实缺席不
     造序列;store 既有键(global/china/prices 池)先占,series 节不覆盖。"""
     for ch, collector in (('japan', 'japan_rate_collector'),
-                          ('ea', 'ea_market_collector')):
+                          ('ea', 'ea_market_collector'),
+                          # Charter6-P2: Shiller 估值全史序列(1871+,月频)
+                          ('shiller', 'shiller_collector')):
         for key, s in (((raw.get(ch) or {}).get('series') or {}).items()):
             m = fe.metric(key) if isinstance(key, str) else None
             if m is None or m.get('source') != collector or key in store:
@@ -370,6 +376,13 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
     if 'japan' in raw:
         facts += _normalize_japan(raw['japan'], as_of,
                                   sources_status['japan']['file'])
+    # Charter6-P2(A2 §2#5): shiller 面接线——shiller_*.json 与 japan_ 同 flat
+    # 形态(data/observations),同一适配器产 SPX_CAPE/SPX_PE_TTM 事实;
+    # 缺源(键不在 raw)=来源级缺失照实披露(sources_status 已记 MISSING)。
+    if 'shiller' in raw:
+        facts += _normalize_japan(raw['shiller'], as_of,
+                                  sources_status['shiller']['file'],
+                                  collector='shiller_collector')
     # IA-P1-GAP08 F6(WP-B §零.9-F6 承接): jp 通道对账输入(japan_rate_collector
     # 权属系列)的快照级消费——判定=当次事实集存在 japan 通道事实;命中→按既有
     # 对账规则(与上方 rate_recon_extra 同式)逐条产出 source-diff;无对手方→

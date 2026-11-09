@@ -38,6 +38,7 @@ SERIES_SOURCE_PREFIX = {
     'rate_expectations': 'rate_economy_',
     'jp_market_collector': 'jp_',
     'ea_market_collector': 'ea_',
+    'shiller_collector': 'shiller_',   # Charter6-P2: Shiller 估值通道
 }
 
 
@@ -191,7 +192,8 @@ def series_capable_metrics(snapshot, registry):
         if dates:
             stats[mid] = (dates[0], dates[-1], len(dates))
     daily = os.path.join(ROOT, 'data', 'daily')
-    for prefix in ('macro_', 'global_', 'rate_economy_'):
+    # Charter6-P2: +shiller_(估值序列月频;series 节直通)
+    for prefix in ('macro_', 'global_', 'rate_economy_', 'shiller_'):
         files = sorted(glob.glob(os.path.join(daily, f'{prefix}*.json')))
         if not files:
             continue

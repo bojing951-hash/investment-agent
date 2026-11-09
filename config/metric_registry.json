@@ -1,5 +1,5 @@
 {
- "version": "2.5.0",
+ "version": "2.6.0",
  "created": "2026-10-17",
  "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
  "field_semantics": {
@@ -24,6 +24,7 @@
   "release_date_available": "逐观测发布日掌握性(人工登记): true=发布日已知或按已知规则(市场序列观测即发布;政策/管理利率决议或操作当日公布,DFF次日;LPR每月20日09:15;ICSA每周四)/false=统计类宏观发布滞后且逐观测发布日本仓未登记;缺键=未登记(null);快照fact层release_date实测值覆盖本登记(数据>登记)"
  },
  "notes": [
+  "v2.6.0(2026-11-09,Charter6-P2 估值面): +SPX_CAPE/SPX_PE_TTM(Shiller ie_data.xls 月频1871+,新通道shiller,免Key;revision_semantics=latest_vintage_asof_collected 全局披露见上条)+SPX_PB 登记不可得(status=unavailable 新词汇:无免费干净源不以proxy冒充,不入active面);估值维序列(analog六维状态向量估值输入)落地",
   "v2.5.0(2026-11-09,Charter6-P1): +US_REAL_GDP(GDPC1,季频'quarterly'词汇扩;单位词汇+billion_usd);JP_POLICY_RATE/ECB_DFR/ECB_MRO 全史序列通道落档(japan_/ea_ 档 series 节,快照 series_store 直通);全库修订口径 revision_semantics=latest_vintage_asof_collected(FRED通道返回最新修订值,研究引用历史值须随附该披露,A2 §3.1)",
   "YTD/MTD/周变化等收益率派生值不单独注册——由事实引擎统一收益引擎计算并附带calculation_ref",
   "月频指标未发布≠缺失/无效;新鲜度窗按月频45天",
@@ -2028,6 +2029,92 @@
     "note": "季频:观测日=统计季(以季末月表示);advance估计约季后25-30天发布,未发布≠数据缺失"
    },
    "release_semantics": "BEA季度advance估计约季后25-30天发布(精确发布日经FRED API不可得→按观测季+已知滞后窗口保守标注);后续修订随全量重拉自动生效(revision_semantics=latest_vintage_asof_collected)"
+  },
+  {
+   "metric_id": "SPX_CAPE",
+   "display_name": "标普500席勒CAPE",
+   "source": "shiller_collector",
+   "source_symbol": "ie_data.xls!CAPE",
+   "asset_class": "valuation",
+   "frequency": "monthly",
+   "observation_period_kind": "calendar_month",
+   "release_date_available": false,
+   "unit": "ratio",
+   "calendar": "us_equity",
+   "economy": "US",
+   "economy_rule": "P8:calendar=us_equity",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "level",
+   "calc": "Shiller ie_data.xls 月频(1871+)CAPE列:价格÷10年平均实际盈利(通胀调整);表头容错定位,源版本注记随档",
+   "validation": {
+    "range": [
+     5,
+     45
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 75,
+    "note": "月频:官网不定期更新(月初/月中数次),75天窗口容月度节奏"
+   },
+   "release_semantics": "ie_data.xls 不定期整文件更新(无逐版发布日);本系列=采集时点最新修订口径(latest_vintage_asof_collected),当时市场所见分位与最新口径可能不同"
+  },
+  {
+   "metric_id": "SPX_PE_TTM",
+   "display_name": "标普500市盈率(TTM)",
+   "source": "shiller_collector",
+   "source_symbol": "ie_data.xls!P/E",
+   "asset_class": "valuation",
+   "frequency": "monthly",
+   "observation_period_kind": "calendar_month",
+   "release_date_available": false,
+   "unit": "ratio",
+   "calendar": "us_equity",
+   "economy": "US",
+   "economy_rule": "P8:calendar=us_equity",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "level",
+   "calc": "Shiller ie_data.xls 月频(1871+):PE TTM=逐行P÷E(近12个月盈利合计口径);源带P/E列则直用,否则逐行计算",
+   "validation": {
+    "range": [
+     5,
+     40
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 75,
+    "note": "月频:同SPX_CAPE,75天窗口容官网不定期更新"
+   },
+   "release_semantics": "ie_data.xls 不定期整文件更新(无逐版发布日);本系列=采集时点最新修订口径(latest_vintage_asof_collected),当时市场所见分位与最新口径可能不同"
+  },
+  {
+   "metric_id": "SPX_PB",
+   "display_name": "标普500市净率(不可得)",
+   "source": "shiller_collector",
+   "source_symbol": "unavailable",
+   "asset_class": "valuation",
+   "frequency": "monthly",
+   "unit": "ratio",
+   "calendar": "us_equity",
+   "economy": "US",
+   "economy_rule": "P8:calendar=us_equity",
+   "market_seat": "onshore_local",
+   "criticality": "context",
+   "status": "unavailable",
+   "value_type": "level",
+   "calc": "登记为不可得(A2 §2#6 宁缺毋假):Shiller ie_data.xls 无 book value;multpl.com 非API结构脆弱不入生产;不以任何 proxy 冒充——status=unavailable,不产事实不产序列(时间键未登记:无观测即无统计期)",
+   "validation": {
+    "range": [
+     0,
+     50
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 75
+   }
   },
   {
    "metric_id": "ICSA",

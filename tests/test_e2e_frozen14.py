@@ -353,13 +353,14 @@ with tempfile.TemporaryDirectory() as td:
           # GAP08-F3 (j) 涟漪: jp/ea fixture 诚实缺席三指标同入名单(前=['UMCSENT'])
           # Charter6-P1(2026-11-09): +US_REAL_GDP(vintage 新增,fixture 宏观
           # 面无 GDPC1 序列→非核心缺席点名属如实;真实采集后即补齐)
+          # Charter6-P2: shiller fixture 提供 SPX_CAPE/SPX_PE_TTM→不在缺席名单
           and ga.get('noncore_missing') == ['CAC40', 'CN_CPI_YOY',
                                             'CN_LPR_1Y', 'CN_LPR_5Y',
                                             'CN_NEW_LOANS', 'CN_OMO_7D',
                                             'CN_PMI_MFG', 'CN_PPI_YOY',
                                             'CN_SF_FLOW', 'DAX',
-                                            'JP_CPI_TOKYO_YOY', 'UMCSENT',
-                                            'US_REAL_GDP']
+                                            'JP_CPI_TOKYO_YOY',
+                                            'UMCSENT', 'US_REAL_GDP']
           and 'UMCSENT' not in ga.get('core_fail', [])
           and fake == [],
           f"gate={ga['status']} missing={ga.get('noncore_missing')}")
@@ -373,8 +374,8 @@ with tempfile.TemporaryDirectory() as td:
           and rp.load_meta(paths['pack']).get('noncore_missing')
           == ['CAC40', 'CN_CPI_YOY', 'CN_LPR_1Y', 'CN_LPR_5Y',
              'CN_NEW_LOANS', 'CN_OMO_7D', 'CN_PMI_MFG', 'CN_PPI_YOY',
-             'CN_SF_FLOW', 'DAX', 'JP_CPI_TOKYO_YOY', 'UMCSENT',
-             'US_REAL_GDP'],
+             'CN_SF_FLOW', 'DAX', 'JP_CPI_TOKYO_YOY',
+             'UMCSENT', 'US_REAL_GDP'],
           f"facts={len(snap['facts'])} pack={paths['pack_code']}")
     code, out, applied, glm = report_run(td, gate_b='PASS')
     rmd = open(os.path.join(out, f'weekly_report_{DAY}.md'), encoding='utf-8').read() \

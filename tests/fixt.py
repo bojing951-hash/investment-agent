@@ -273,8 +273,46 @@ def collector_payloads(ymd, obs, break_metric=None, missing=()):
               "note": "合成fixture(不冒充真实采集;真实档=ea_20261105.json)"}},
           "fetched_at": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}T08:00:00Z",
           "alerts": ["DAX/CAC40诚实缺席(合成形态沿真实档)"]}
+
+    # Charter6-P2: 第8通道shiller合成fixture——齐备研究日构造覆盖
+    # rp.SOURCE_FILE_RULES 全部8通道。数值=合成合法域内值(SPX_CAPE∈[5,45]
+    # /SPX_PE_TTM∈[5,40]),**不冒充真实采集**(真实源=ie_data.xls 月频1871+,
+    # 本fixture仅6个月缩影);形态镜像 shiller_collector 产出(flat data/
+    # observations+全史series节+source_version;统计期=月首日口径)。
+    # 观测期=上月(prev_m,calendar_month),时效窗75日内;release不可得→
+    # WARN(诚实披露,与 japan/jp/ea 同款纪律)。
+    shiller = {"date": ymd,
+               "generated_at": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}T08:00:00Z",
+               "sources_status": {"SHILLER_IE": {"status": "EXACT",
+                                                 "retrieved_at": None}},
+               "data": {"SPX_CAPE": _val('SPX_CAPE', 31.5),
+                        "SPX_PE_TTM": _val('SPX_PE_TTM', 21.6)},
+               "observations": {"SPX_CAPE": prev_m, "SPX_PE_TTM": prev_m},
+               "sources": {"fixture": {
+                   "url": "tests/fixt.py:synthetic",
+                   "note": "合成fixture(不冒充真实采集;真实源=Shiller ie_data.xls)"}},
+               "source_version": {"sheet": "Data", "header_row": 3,
+                                  "n_rows_scanned": 6, "columns_used": None,
+                                  "first_month": prev_m[:7], "last_month": prev_m[:7]},
+               "series": {
+                   "SPX_CAPE": {"dates": _shiller_dates(prev_m, 6),
+                                "values": [30.5, 31.0, 31.2, 31.4, 31.5, 31.5]},
+                   "SPX_PE_TTM": {"dates": _shiller_dates(prev_m, 6),
+                                  "values": [21.0, 21.2, 21.4, 21.5, 21.6, 21.6]}},
+               "fetched_at": f"{ymd[:4]}-{ymd[4:6]}-{ymd[6:]}T08:00:00Z",
+               "alerts": []}
     return {"global": glob, "macro": macro, "china": china, "rate_economy": rate,
-            "japan": japan, "jp": jp, "ea": ea}
+            "japan": japan, "jp": jp, "ea": ea, "shiller": shiller}
+
+
+def _shiller_dates(last_ym, n):
+    """自 last_ym('YYYY-MM-01')起向前 n 个月的首日序列(升序; 月算术, 非30天近似)。"""
+    y, m = int(last_ym[:4]), int(last_ym[5:7])
+    out = []
+    for k in range(n - 1, -1, -1):
+        idx = y * 12 + (m - 1) - k
+        out.append('%04d-%02d-01' % (idx // 12, idx % 12 + 1))
+    return out
 
 
 def pday(iso, n):

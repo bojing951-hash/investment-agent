@@ -149,35 +149,41 @@ def main():
     # 只作"历史参考"标注且报告入口按pack meta拒绝)。
     _pack_deps = ["macro_scorecard.py"] + list(_formal_research_deps)
     steps = [
-        ("1/13 全球市场数据采集", "global_market_collector.py", True),
-        ("2/13 A股港股数据采集", "china_market_collector.py", True),
-        ("3/13 宏观数据采集", "macro_collector.py", True),
+        ("1/14 全球市场数据采集", "global_market_collector.py", True),
+        ("2/14 A股港股数据采集", "china_market_collector.py", True),
+        ("3/14 宏观数据采集", "macro_collector.py", True),
         # 非关键(第五轮P1-2): 新闻源失败可降级——原始标题缺失只影响周报叙事,
         # 不影响其余步骤;整体退出码不因非关键失败而转失败。
-        ("4/13 新闻采集与分析", "news_collector.py", False),
-        ("5/13 利率预期与实体经济", "rate_expectations.py", True),
+        ("4/14 新闻采集与分析", "news_collector.py", False),
+        ("5/14 利率预期与实体经济", "rate_expectations.py", True),
         # MW-V1(2026-11-08 章程校准): 日欧通道采集挪到快照构建**之前**——原尾部步骤
         # 在快照后执行,jp_/ea_ 当日档结构上进不了当日快照(恒 T-1 回退);同时把
         # japan_rate_collector(JGB 曲线/日政策利率权属,japan_ 档)纳入调度——原
         # 13 步无任何步骤跑它,japan 通道在生产上永缺失(data/daily 仅 11-05 一份
         # 手动档,超 5 天回退窗后 JGB 全 MISSING)。三通道保持非关键: 源失败只登记
         # sources_status/alerts 如实降级,不阻塞主链(IA-P1-WP-A D7 边界口径)。
-        ("6/13 日本利率与国债曲线(japan_)", "japan_rate_collector.py", False),
-        ("7/13 日本市场数据采集(jp_)", "jp_market_collector.py", False),
-        ("8/13 欧元区市场数据采集(ea_)", "ea_market_collector.py", False),
+        ("6/14 日本利率与国债曲线(japan_)", "japan_rate_collector.py", False),
+        ("7/14 日本市场数据采集(jp_)", "jp_market_collector.py", False),
+        ("8/14 欧元区市场数据采集(ea_)", "ea_market_collector.py", False),
         # 第七轮重构: 采集层之后先建研究快照(唯一数据入口/Gate A),评分卡/相关性/
         # 装配器/校验器均消费快照,不再各自glob"最新文件"或自行拉数(文件最新≠数据最新)。
-        ("9/13 研究快照构建(Gate A)", "snapshot_builder.py", True),
-        ("10/13 宏观体制评分卡(消费快照)", "macro_scorecard.py", True,
+        ("9/14 研究快照构建(Gate A)", "snapshot_builder.py", True),
+        ("10/14 宏观体制评分卡(消费快照)", "macro_scorecard.py", True,
          list(_formal_research_deps)),
         # 相关性计算器2026-10-11接线:必须在data_assembler之前跑,汇编器会读取
         # correlation_*.md拼进数据包第五节。非关键: 相关性缺失只降级周报第五节。
-        ("11/13 跨资产相关性(消费快照)", "correlation_calculator.py", False,
+        ("11/14 跨资产相关性(消费快照)", "correlation_calculator.py", False,
          list(_formal_research_deps)),
-        ("12/13 数据汇总打包", "data_assembler.py", True,
+        ("12/14 数据汇总打包", "data_assembler.py", True,
          list(_pack_deps)),
-        ("13/13 数据校验与锚点生成", "data_validator.py", True,
+        ("13/14 数据校验与锚点生成", "data_validator.py", True,
          ["data_assembler.py"] + list(_pack_deps)),
+        # Charter6-P0 配套(A2 §4-P0/§3, 2026-11-09): 采集档保留策略——近90天
+        # 全量保留+更早每月最后一份gzip归档至 data/daily/archive/+可重拉旧档
+        # 清理(采集窗口默认10年后单日增量约5MB,无策略约1.8GB+/年)。非关键:
+        # 失败只告警不阻塞;研究层文件(research_snapshot_/anchors_/anchor_
+        # prompt_/correlation_)与 data/research 不在策略范围(append-only 纪律)。
+        ("14/14 日档保留策略(90天全量+月度归档)", "data_retention.py", False),
         # MW-V1(2026-11-08 章程勘误): 预测观察步骤下线——预测池/命中裁决/超配低配/
         # 论点星级属越位零件(PRODUCT-GOAL.md 2026-11-08 勘误:观点由用户形成,系统
         # 供证据)。daily_prediction_observer 模块与历史观察档案原样保留(历史研究

@@ -291,16 +291,19 @@ class TestChannelRegistrationChain(unittest.TestCase):
 
     def test_t2e_run_weekly_thirteen_steps(self):
         src = open(os.path.join(ROOT, 'run_weekly.py'), encoding='utf-8').read()
-        self.assertEqual(src.count('/13'), 13)
+        self.assertEqual(src.count('/14'), 14)
         # MW-V1(2026-11-08 章程校准): jp/ea 自尾部 12/13 挪到快照前 7/8(当日档
         # 进当日快照),japan_rate_collector(JGB/日政策利率权属)纳管为第 6 步;
         # 预测观察步骤(原 11/13)按 PRODUCT-GOAL.md 2026-11-08 勘误下线。
-        self.assertIn('"6/13 日本利率与国债曲线(japan_)", "japan_rate_collector.py", False',
+        self.assertIn('"6/14 日本利率与国债曲线(japan_)", "japan_rate_collector.py", False',
                       src)
-        self.assertIn('"7/13 日本市场数据采集(jp_)", "jp_market_collector.py", False',
+        self.assertIn('"7/14 日本市场数据采集(jp_)", "jp_market_collector.py", False',
                       src)
-        self.assertIn('"8/13 欧元区市场数据采集(ea_)", "ea_market_collector.py", False',
+        self.assertIn('"8/14 欧元区市场数据采集(ea_)", "ea_market_collector.py", False',
                       src)
+        # Charter6-P0(2026-11-09): 第14步=日档保留策略(非关键,尾步)
+        self.assertIn(
+            '"14/14 日档保留策略(90天全量+月度归档)", "data_retention.py", False', src)
         # 快照构建仍在全部采集通道之后(步骤号大于 japan/jp/ea)
         self.assertLess(src.find('日本市场数据采集(jp_)'), src.find('研究快照构建'))
         self.assertLess(src.find('欧元区市场数据采集(ea_)'), src.find('研究快照构建'))

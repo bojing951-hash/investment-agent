@@ -44,6 +44,21 @@ from datetime import datetime, timedelta, time, timezone
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from env_config import DATA_DIR
 
+# === Charter6-P0(A2 §4-P0, 2026-11-09): 历史窗口参数化 ======================
+# 原硬编码1年窗口(fetch_all默认值+__main__调用点)——默认改10年供长序列
+# 研究(六维状态向量/expanding z-score 需要完整历史);环境变量
+# GLOBAL_HISTORY_PERIOD 可覆盖(yfinance period语法: 1y/2y/5y/10y/max/...,
+# 空白回落默认)。复权口径不变: history() 显式 auto_adjust=True(除权除息
+# 调整收盘,唯一口径,不允许yfinance默认值漂移)。全量重拉幂等,不做增量
+# 合并(A2 §3);旧档清理见 scripts/data_retention.py(90天全量+月度归档)。
+DEFAULT_HISTORY_PERIOD = '10y'
+
+
+def global_history_period():
+    """历史窗口解析(纯函数,每次调用现读环境变量,便于测试与运行期覆盖)。"""
+    raw = (os.environ.get('GLOBAL_HISTORY_PERIOD') or '').strip()
+    return raw or DEFAULT_HISTORY_PERIOD
+
 # 资产监控列表：key=资产ID, value=yfinance的ticker代码
 WATCHLIST = {
     # 美股指数
@@ -145,8 +160,13 @@ def btc_completed_utc_days_only(hist, retrieved_at=None):
     }
     return filtered, meta
 
-def fetch_all(period="1y"):
-    """批量获取所有资产的历史收盘价，返回一个字典：{资产ID: DataFrame}"""
+def fetch_all(period=None):
+    """批量获取所有资产的历史收盘价，返回一个字典：{资产ID: DataFrame}
+
+    period 缺省时取 global_history_period()(Charter6-P0: env
+    GLOBAL_HISTORY_PERIOD,默认'10y');显式传参优先(测试/单次窗口用)。"""
+    if period is None:
+        period = global_history_period()
     all_data = {}
     failed = []
 
@@ -279,8 +299,9 @@ def save_results(results):
 if __name__ == "__main__":
     print(f"全球行情采集 - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("=" * 50)
+    print(f"历史窗口: {global_history_period()}(GLOBAL_HISTORY_PERIOD 可覆盖)")
 
-    all_data, failed = fetch_all(period="1y")
+    all_data, failed = fetch_all()
 
     print("\n计算指标...")
     results = {}

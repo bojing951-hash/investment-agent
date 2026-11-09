@@ -46,6 +46,40 @@ FRED_SERIES = {
     "JTSJOL": "JTSJOL",
 }
 
+# === Charter6-P0(A2 §4-P0, 2026-11-09): 采集窗口参数化 ======================
+# 原硬编码2025年初起点(仅约1年窗口)——长序列研究(六维状态向量/
+# expanding z-score/十年期对照)需要历史窗口。默认10年;环境变量
+# MACRO_HISTORY_YEARS 可覆盖(正整数,非法值回落默认并告警,最小1年)。
+# 口径不变: 每次全量重拉(幂等),FRED返回最新修订值,重拉自动修正历史修订
+# (A2 §3 结论: 不做增量合并)。纯函数 macro_observation_start 离线可测。
+DEFAULT_HISTORY_YEARS = 10
+
+
+def _history_years():
+    """读 MACRO_HISTORY_YEARS 环境变量(每次调用现读,便于测试与运行期覆盖)。"""
+    raw = (os.environ.get('MACRO_HISTORY_YEARS') or '').strip()
+    if not raw:
+        return DEFAULT_HISTORY_YEARS
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        print(f"  ⚠️ MACRO_HISTORY_YEARS={raw!r} 非法(须为正整数),"
+              f"回落默认{DEFAULT_HISTORY_YEARS}年")
+        return DEFAULT_HISTORY_YEARS
+
+
+def macro_observation_start(now=None):
+    """采集窗口起点(纯函数): now 往前 _history_years() 年,返回'YYYY-MM-DD'。
+
+    2月29日无平年对应日时取3月1日(窗口多含一天,无口径影响)。"""
+    now = now or datetime.now()
+    years = _history_years()
+    try:
+        start = datetime(now.year - years, now.month, now.day)
+    except ValueError:
+        start = datetime(now.year - years, 3, 1)
+    return start.strftime('%Y-%m-%d')
+
 # 信用阈值配置（来自分析框架）
 CREDIT_THRESHOLDS = {
     "HY_OAS_WATCH": 3.0,
@@ -198,9 +232,12 @@ def fetch_all_macro():
     """采集所有FRED数据(第四轮P0-3: 按系列频率分别计算变化,附窗口元数据与修订检测)"""
     results = {}
     today_str = datetime.now().strftime('%Y%m%d')
+    obs_start = macro_observation_start()
+    print(f"  📅 FRED采集窗口: observation_start={obs_start}"
+          f"(MACRO_HISTORY_YEARS={_history_years()})")
     for name, series_id in FRED_SERIES.items():
         try:
-            data = fred.get_series(series_id, observation_start='2025-01-01')
+            data = fred.get_series(series_id, observation_start=obs_start)
             clean = data.dropna()
             if len(clean) > 0:
                 latest = float(clean.iloc[-1])

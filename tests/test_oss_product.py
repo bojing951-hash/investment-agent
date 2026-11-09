@@ -108,9 +108,14 @@ print("[3] W8 配置安全(env_config)")
 print("═" * 60)
 check("源码无跨服务配置读取(settings.json/.claude)",
       '.claude' not in env_src and 'settings.json' not in env_src)
-check("源码零print(密钥不落日志)", 'print(' not in env_src)
-check("缺GLM_KEY明确提示常量在场", 'GLM_KEY_MISSING_MESSAGE' in env_src
-      and 'GLM_API_KEY' in env_src)
+# Model-Agnostic v2(2026-11-09 W1/W5): 唯一允许的 print=旧GLM_KEY回退的stderr
+# 迁移提示(每进程一次,非密钥值);其余零 print 保持"密钥不落日志"纪律
+check("源码除stderr迁移提示外零print(密钥不落日志)",
+      env_src.count('print(') == 1 and 'file=sys.stderr' in env_src
+      and '建议迁移到 MODEL_API_KEY' in env_src)
+check("缺模型Key明确提示常量在场(新旧名兼容)",
+      'MODEL_KEY_MISSING_MESSAGE' in env_src and 'MODEL_API_KEY' in env_src
+      and 'GLM_KEY_MISSING_MESSAGE' in env_src and 'GLM_API_KEY' in env_src)
 
 # 行为级: 投毒HOME实证——伪造~/.claude/settings.json含ANTHROPIC_API_KEY,
 # 重载env_config后GLM_API_KEY必须仍为空(W8: 删除跨服务回退)

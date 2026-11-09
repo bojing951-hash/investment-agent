@@ -18,6 +18,14 @@ correlation_calculator / research_history_query 等既有模块,输出结构化 
 
 用法: python3 ia_cli.py <能力> [参数]   (json 输出到 stdout; 退出码 0/1/2)
 """
+# D 线终验修复(2): stdout 恒单 JSON 契约——D 线 LibreSSL 环境实测 urllib3
+# NotOpenSSLWarning 曾在归档 save 时偶发占用 stdout 前两行,破坏"stdout 单
+# JSON"消费前提。本机不可复现→代码面防御: 进程启动即静默全部 warnings,
+# 且置于任何引擎 import 之前(warn 时过滤生效,惰性导入同样覆盖)。
+import warnings
+
+warnings.filterwarnings('ignore')
+
 import argparse
 import glob
 import json
@@ -413,7 +421,23 @@ def cmd_changes(args):
     emit(envelope('changes', True, data, warnings, snapshot=snap))
 
 
+def _reject_blank_window_args(args, cap):
+    """D 线终验修复(1): --start/--end 空串/纯空白曾**静默当无界**(假值直通
+    if args.start 过滤条件,D 线第一次分段四窗因此全跑成累计窗)——统一
+    rc=2 bad_window(与 --window/--lag 用法错误同款;二者 type=int,空串由
+    argparse 自身拒 rc=2,无此病)。用法校验先于快照加载,无快照环境恒定。"""
+    for flag in ('start', 'end'):
+        v = getattr(args, flag, None)
+        if v is not None and not str(v).strip():
+            emit(envelope(cap, False, {},
+                          error=('bad_window',
+                                 f'--{flag} 传了空串/纯空白(会被静默当作无界)',
+                                 '要无界请省略该旗标;限定窗口请给 YYYY-MM-DD')),
+                 exit_code=2)
+
+
 def cmd_history(args):
+    _reject_blank_window_args(args, 'history')  # rc=2 先于快照加载
     snap, reg, _note = load_context()
     warnings = []
     if not args.metric:
@@ -481,6 +505,8 @@ def cmd_compare(args):
         emit(envelope('compare', False, {},
                       error=('no_mode', '未指定比较模式',
                              '--metrics A,B | --economies US,JP | --assets 三选一')), exit_code=2)
+    # D 线终验修复(1): 窗口日期参数空串/纯空白拒收(曾静默当无界)
+    _reject_blank_window_args(args, 'compare')
     # 批2 W9: --window 仅 metrics 模式且 N≥2(先于快照加载,恒定 rc=2)
     if args.window is not None:
         if not args.metrics:

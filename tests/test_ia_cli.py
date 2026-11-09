@@ -280,6 +280,27 @@ else:
 
 print()
 print("═" * 60)
+print("⑫(D 线终验) 窗口参数空串拒收 + stdout 恒单 JSON")
+print("═" * 60)
+r = run_cli('history', '--metric', 'SPX', '--start', '')
+d12 = json.loads(r.stdout) if r.stdout.strip().startswith('{') else {}
+check("history --start '' → rc=2 bad_window(曾静默当无界)",
+      r.returncode == 2 and d12.get('error', {}).get('kind') == 'bad_window',
+      r.stdout[:120])
+r = run_cli('history', '--metric', 'SPX', '--end', '   ')
+check("history --end 纯空白 → rc=2 bad_window",
+      r.returncode == 2 and json.loads(r.stdout)['error']['kind'] == 'bad_window')
+env_w = dict(os.environ, PYTHONWARNINGS='always')
+r = subprocess.run([sys.executable, CLI, 'doctor'],
+                   capture_output=True, text=True, timeout=120, env=env_w)
+check("PYTHONWARNINGS=always 下 stdout 仍恒单 JSON(首字符'{'且整体可解析)",
+      r.stdout.startswith('{') and json.loads(r.stdout)['ok'], r.stdout[:80])
+check("stderr 零 warning 行(入口 filterwarnings 防御;D 线 LibreSSL urllib3 "
+      "NotOpenSSLWarning 占 stdout 案例本机不可复现,防御性锁)",
+      r.stderr == '', r.stderr[:120])
+
+print()
+print("═" * 60)
 print(f"结果: {PASS}通过 / {FAIL}失败")
 print("═" * 60)
 sys.exit(0 if FAIL == 0 else 1)

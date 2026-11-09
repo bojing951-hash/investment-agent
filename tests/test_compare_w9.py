@@ -343,6 +343,19 @@ check("start=序列首笔 → 窗前确无基准观测 → 如实 unavailable+�
       iv0.get('available') is False and '无基准观测' in (iv0.get('reason') or ''),
       str(iv0))
 
+print("\n[附5] 窗口参数空串/纯空白拒收(D 线终验修复1,2026-11-09)")
+# 缺陷回放: --end "" 为假值直通 `if args.end:` 过滤条件→静默当无界,
+# D 线第一次分段四窗全跑成累计窗。修=空串/纯空白 rc=2 bad_window。
+code, d = run_cmp('--metrics', 'SPX,NVDA', '--start', '', snap=snap1)
+check("compare --start '' → rc=2 bad_window(不再静默当无界)",
+      code == 2 and d['error']['kind'] == 'bad_window', str(d.get('error')))
+code, d = run_cmp('--metrics', 'SPX,NVDA', '--end', '   ', snap=snap1)
+check("compare --end 纯空白 → rc=2 bad_window",
+      code == 2 and d['error']['kind'] == 'bad_window', str(d.get('error')))
+code, d = run_cmp('--metrics', 'SPX,NVDA', snap=snap1)
+check("不传旗标=正常无界行为不受影响(rc=0)",
+      code == 0 and d['data']['alignment']['mode'] == 'exact_date')
+
 print("\n" + "=" * 60)
 print(f"结果: {PASS}通过 / {FAIL}失败")
 print("=" * 60)

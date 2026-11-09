@@ -120,7 +120,7 @@ _saved = {k: os.environ.pop(k, None) for k in ('MODEL_API_KEY',)}
 try:
     out = wd.ai_explain('测试问题', '测试事实')
     # 2026-11-09 W1/W5: 提示已中性化(任意 OpenAI 兼容端点;Agent Native 不需要),
-    # 不再含 bigmodel.cn 注册推荐——断言随语义更新
+    # 不再含厂商注册推荐——断言随语义更新
     check('无模型Key→ok=False+中性配置指引', out['ok'] is False
           and 'MODEL_API_KEY' in out['error'] and 'Agent Native' in out['error'],
           str(out)[:120])

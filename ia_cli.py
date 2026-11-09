@@ -14,7 +14,7 @@ correlation_calculator / research_history_query 等既有模块,输出结构化 
   - 每个变化量携带 变化单位(pp|bp|pct)/基准日/窗口语义/公式;
   - 错误结构化输出(kind/message/hint),永不输出空串或裸 0 充当错误;
   - update 仅显式请求时运行;模型 API 调用仅 research --explain
-    显式请求时发生(v2.1: 中性 MODEL_* 三参;旧 --glm 别名已删除)。
+    显式请求时发生(v2.1: 中性 MODEL_* 三参;旧厂商别名旗标已彻底删除)。
 
 用法: python3 ia_cli.py <能力> [参数]   (json 输出到 stdout; 退出码 0/1/2)
 """

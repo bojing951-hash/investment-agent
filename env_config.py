@@ -60,7 +60,7 @@ DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "")
 # 不配置模型 Key,本地能力(采集/研究问答/工作台/确定性周报)全部可用。
 # 任意 OpenAI 兼容端点均可;金融数据源 Key(FRED/tushare/Finnhub)与模型 Key
 # 相互独立。无任何硬编码默认端点/模型名;缺任一参数即视为未配置
-# (v2.1, 2026-11-09: 旧 GLM_* 变量读取与预设回退已整体移除,唯一凭证面=MODEL_*)。
+# (v2.1, 2026-11-09: 旧厂商变量读取与预设回退已整体移除,唯一凭证面=MODEL_*)。
 
 MODEL_KEY_MISSING_MESSAGE = (
     "未配置模型 API(可选): 解释层(AI 周报解释/研究 AI 解释)不可用,"

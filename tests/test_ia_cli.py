@@ -198,7 +198,7 @@ check("doctor: env 只报已配置与否,值不出现(v2.1 唯一模型面=MODEL
                                 'FRED_API_KEY', 'TUSHARE_TOKEN',
                                 'FINNHUB_API_KEY', 'YF_PROXY'}
       and all(set(v) == {'configured', 'purpose'} for v in d['data']['env'].values())
-      and 'glm_key_note' not in d['data'])
+      and not any('glm' in k.lower() for k in d['data']))   # v2.1: 医生面零旧变量键
 check("doctor: 无快照时如实 available=false(CI 预期)",
       d['data']['snapshot']['available'] in (True, False))  # CI 无快照/本地有快照均合法
 

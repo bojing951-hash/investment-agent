@@ -315,6 +315,34 @@ code, d = run_cmp('--metrics', 'SPX,NVDA', '--window', '1', snap=snap1)
 check("--window 1 → rc=2 bad_window(N≥2)", code == 2
       and d['error']['kind'] == 'bad_window')
 
+print("\n[附4] 窗口化 interval_change 基准观测不被滤掉(A-fin 交叉审查[中],2026-11-09)")
+# 缺陷回放: 窗口过滤块先于区间变动,s['dates'] 已无 start 前观测 → 任何
+# --start 窗口下 interval_change_common_window 恒 unavailable。修复=保留
+# 过滤前副本,按原序列+窗口界计算(对齐/相关仍用过滤后序列)。
+# 手算: 窗 [01-05,01-31],基准=严格早于 01-05 的末笔=01-02(SPX 100/NVDA 50),
+# 窗末=01-07(103/53) → pct=(103/100−1)×100=+3.0% / (53/50−1)×100=+6.0%
+code, d = run_cmp('--metrics', 'SPX,NVDA', '--start', '2026-01-05',
+                  '--end', '2026-01-31', snap=snapw)
+ivm = {s['metric_id']: s['interval_change_common_window']
+       for s in d['data']['sides']}
+check("窗口下基准观测保留: SPX basis=01-02(100)→end=01-07(103),手算 +3.0%",
+      ivm['SPX'].get('available', True) and ivm['SPX'].get('basis_date') == '2026-01-02'
+      and ivm['SPX'].get('basis_value') == 100 and ivm['SPX'].get('end_date') == '2026-01-07'
+      and abs(ivm['SPX'].get('pct_change', 0) - 3.0) < 5e-5, str(ivm['SPX']))
+check("NVDA 同理 basis=01-02(50)→end=01-07(53),手算 +6.0%",
+      ivm['NVDA'].get('available', True) and ivm['NVDA'].get('basis_date') == '2026-01-02'
+      and abs(ivm['NVDA'].get('pct_change', 0) - 6.0) < 5e-5, str(ivm['NVDA']))
+check("对齐/样本口径仍按过滤后序列(共同观测=3,窗口语义不变)",
+      d['data']['alignment']['n_common_observations'] == 3
+      and d['data']['sides'][0]['n'] == 3)
+# 窗起点=序列首笔 → 窗前真无更早观测 → 如实 unavailable(不编造基准)
+code, d = run_cmp('--metrics', 'SPX,NVDA', '--start', '2026-01-02',
+                  '--end', '2026-01-07', snap=snapw)
+iv0 = d['data']['sides'][0]['interval_change_common_window']
+check("start=序列首笔 → 窗前确无基准观测 → 如实 unavailable+原因",
+      iv0.get('available') is False and '无基准观测' in (iv0.get('reason') or ''),
+      str(iv0))
+
 print("\n" + "=" * 60)
 print(f"结果: {PASS}通过 / {FAIL}失败")
 print("=" * 60)

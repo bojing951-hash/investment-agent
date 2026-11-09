@@ -558,6 +558,11 @@ def cmd_compare(args):
                                  'other 族不能进单位感知变化相关;换用价格/利率/计数族'
                                  '指标对,或用 history 分别取原序列')),
                  exit_code=1)
+        # ── A-fin 交叉审查[中]修复: 窗口过滤会滤掉"严格早于 start 的最后观测"
+        # (interval_change 的水平变动基准)→保留过滤前副本,区间变动按原序列
+        # +窗口界计算(对齐/相关仍用过滤后序列,窗口语义不变) ──
+        sa_raw = {'dates': list(sa['dates']), 'values': list(sa['values'])}
+        sb_raw = {'dates': list(sb['dates']), 'values': list(sb['values'])}
         # ── 批2 W9: 指令窗口过滤(建议2)——对齐前作用于两侧原序列 ──
         if args.start or args.end:
             kept = []
@@ -662,9 +667,13 @@ def cmd_compare(args):
             else:
                 w_start = common[0] if common else None
                 w_end = common[-1] if common else None
+            # 交叉审查[中]: 用未过滤原序列求区间变动(基准=严格早于 w_start 的
+            # 最后观测,由 interval_change 自身按 start/end 定位;过滤后序列在
+            # 窗口化时必无更早观测,会恒 unavailable)
+            s_raw = sa_raw if k == 0 else sb_raw
             try:
-                iv = rhq.interval_change(s['dates'], s['values'], s['unit'],
-                                         start=w_start, end=w_end)
+                iv = rhq.interval_change(s_raw['dates'], s_raw['values'],
+                                         s['unit'], start=w_start, end=w_end)
             except Exception:  # noqa: BLE001 —— 区间变动失败不阻断对齐结果
                 iv = {'available': False, 'reason': 'interval_change 计算失败'}
             node['interval_change_common_window'] = iv

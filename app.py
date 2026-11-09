@@ -172,7 +172,7 @@ def page_history():
 def page_research():
     st.header('AI 研究')
     st.caption('基于本地快照事实的接地作答(e2eb 查询栈,零网络);'
-               'AI 解释为可选增强(需 GLM_API_KEY)。')
+               'AI 解释为可选增强(可选模型 API,三参模板见 .env.example)。')
     if SNAP is None:
         st.warning('本地无研究快照,研究问题无法作答。请先运行 `python3 run_weekly.py`。')
         return
@@ -181,7 +181,7 @@ def page_research():
     q = st.text_area('研究问题', value='美国和日本10年期国债收益率差是多少？', height=80)
     col1, col2, col3 = st.columns(3)
     do_ask = col1.button('本地接地作答', type='primary')
-    do_glm = col2.button('AI 解释(需GLM Key)')
+    do_glm = col2.button('AI 解释(可选,需模型 API)')
     do_save = col3.button('存入研究档案')
     if do_ask or q and (do_glm or do_save):
         with st.spinner('本地查询中…'):
@@ -211,7 +211,7 @@ def page_research():
         if last['status'] != 'answered':
             st.warning('AI 解释仅对接地作答成功的问题开放(数值必须先经本地核实)。')
         else:
-            with st.spinner('GLM 解释生成中(真实调用,产生少量费用)…'):
+            with st.spinner('AI 解释生成中(真实模型调用,产生少量费用)…'):
                 out = wd.glm_explain(q, last['answer_text'])
             if out['ok']:
                 st.subheader('AI 解释(基于上方已核实事实;【推断】部分非事实)')
@@ -232,7 +232,7 @@ def page_about():
     st.markdown(
         f'- **当前快照**: {META["date"]} · Gate A={META["gate_a"]}\n'
         '- **已实现**: 四大经济体宏观概览 / 资产市场变化 / 本地历史序列与对比 / '
-        '四类接地研究问题 / GLM 研究解释(可选)\n'
+        '四类接地研究问题 / AI 研究解释(可选,需模型 API)\n'
         '- **不支持(如实声明)**: 实时行情、任意自然语言研究问题(当前四类,见AI研究页)、'
         '投资建议/资产配置/价格预测(产品红线,见 PRODUCT-GOAL.md)、'
         '多用户/云端/协作\n'

@@ -192,8 +192,9 @@ d = json.loads(r.stdout)
 check("doctor: rc=0 离线可跑,信封齐(ok/capability/engine_root)",
       r.returncode == 0 and d['ok'] and d['capability'] == 'doctor'
       and os.path.isabs(d['engine_root']))
-check("doctor: env 只报已配置与否,值不出现",
-      set(d['data']['env']) == {'GLM_API_KEY', 'FRED_API_KEY', 'TUSHARE_TOKEN',
+check("doctor: env 只报已配置与否,值不出现(含 W5 中性 MODEL_* 三参+旧 GLM 行)",
+      set(d['data']['env']) == {'MODEL_API_KEY', 'MODEL_BASE_URL', 'MODEL_NAME',
+                                'GLM_API_KEY', 'FRED_API_KEY', 'TUSHARE_TOKEN',
                                 'FINNHUB_API_KEY', 'YF_PROXY'}
       and all(set(v) == {'configured', 'purpose'} for v in d['data']['env'].values()))
 check("doctor: 无快照时如实 available=false(CI 预期)",

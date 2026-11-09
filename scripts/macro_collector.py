@@ -44,6 +44,9 @@ FRED_SERIES = {
     "RSAFS": "RSAFS",
     "INDPRO": "INDPRO",
     "JTSJOL": "JTSJOL",
+    # Charter6-P1(A2 §2#1): 美国实际GDP(季频,SAAR,2017链式美元,1947+)——
+    # 增长结构主锚;案例B六维状态向量增长维输入之一
+    "US_REAL_GDP": "GDPC1",
 }
 
 # === Charter6-P0(A2 §4-P0, 2026-11-09): 采集窗口参数化 ======================
@@ -96,6 +99,7 @@ SERIES_FREQ = {
     "UST_5Y": "daily",
     "UMCSENT": "monthly", "RSAFS": "monthly", "INDPRO": "monthly", "JTSJOL": "monthly",
     "ICSA": "weekly",
+    "US_REAL_GDP": "quarterly",   # Charter6-P1: GDPC1 季频(变化口径=QoQ/YoY)
     # 其余(BAML利差/DGS收益率/DFII/T5YIE/T10Y2Y)=daily
 }
 
@@ -126,6 +130,7 @@ SERIES_UNITS = {
     "RSAFS": ("index", "百万美元"),
     "INDPRO": ("index", "指数点(2017=100)"),
     "JTSJOL": ("count", "千人(职位空缺)"),
+    "US_REAL_GDP": ("index", "十亿美元(2017年链式,SAAR)"),
 }
 # 各kind的变化单位标签(chg字段附_chg_unit,程序与报告据此区分口径)
 _CHG_UNIT_BY_KIND = {
@@ -141,6 +146,8 @@ def compute_series_changes(dates, values, freq, unit=None):
     weekly:  week_chg = 最新值 − 上一期(≥5天前最近)观测值
     monthly: mom_chg = 最新值 − 上一期月度观测; yoy_chg = 最新值 − 约12个月前观测
              (不产week_chg — 月度序列没有"周变化"这个口径)
+    quarterly(Charter6-P1): qoq_chg = 最新值 − 上一期季度观测; yoy_chg = 约4季前
+             (季频无周/月变化口径;GDPC1 举例)
     单位语义(第五轮P1-3): 所有派生指标标注 unit/chg_unit/from/formula;
     index/price类同时产百分比变化(mom_pct/yoy_pct/week_pct=(v/v0−1)×100),
     rate类变化一律百分点(不给百分比变化),count类变化一律人数。
@@ -187,6 +194,18 @@ def compute_series_changes(dates, values, freq, unit=None):
             i, d0, v0 = prev
             out["prev"] = round(v0, 4)
             _emit("mom_chg", d0, v0, "月度环比")
+        if yoy:
+            i, d0, v0 = yoy
+            _emit("yoy_chg", d0, v0, "同比")
+    elif freq == "quarterly":
+        # Charter6-P1(A2 §2#1): 季频系列(GDPC1)——QoQ=上一季观测(自然日滞后
+        # 约88~95天取最近),YoY=约4季前(330~400天取最近);口径与月频分支同构
+        prev = _pick(70, 110)    # 上一期季度观测
+        yoy = _pick(330, 400)    # 约4个季度前
+        if prev:
+            i, d0, v0 = prev
+            out["prev"] = round(v0, 4)
+            _emit("qoq_chg", d0, v0, "季度环比")
         if yoy:
             i, d0, v0 = yoy
             _emit("yoy_chg", d0, v0, "同比")

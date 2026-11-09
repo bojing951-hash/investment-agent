@@ -49,7 +49,7 @@ KNOWN_UNITS = frozenset({
     # 价格/点位类(fact_engine.PRICE_LIKE_UNITS镜像)
     'index_point', 'usd', 'usd_per_oz', 'usd_per_barrel', 'usd_per_eur',
     'usd_per_gbp', 'jpy_per_usd', 'cny_per_usd', 'cny_100m', 'hkd_100m',
-    'points', 'million_usd', 'usd_per_hour', 'ratio',
+    'points', 'million_usd', 'usd_per_hour', 'ratio', 'billion_usd',
     'index_point_1982_84', 'index_point_2012', 'index_point_1966', 'index_point_2017',
     # 利率类(fact_engine.RATE_UNITS镜像)
     'percent', 'percentage_point',
@@ -182,7 +182,9 @@ VALUE_TYPE_VALUES = frozenset({
     'target_band', 'derived_rate', 'derived_spread', 'daily_net_flow',
     'outstanding_balance', 'daily_turnover', 'contract_implied_monthly_average',
 })
-FREQUENCY_VALUES = frozenset({'daily', 'weekly', 'monthly'})
+# Charter6-P1(A2 §2#1, 2026-11-09): +'quarterly'(US_REAL_GDP/GDPC1 季频;
+# 采集层 compute_series_changes 季频分支=QoQ/YoQ...见 macro_collector)。
+FREQUENCY_VALUES = frozenset({'daily', 'weekly', 'monthly', 'quarterly'})
 
 # ── IA-P02-W1-FIX1-02: 已确认官方序列身份→单位(独立权威映射) ──
 # 本映射独立于被验证的注册表(绝不从当前配置生成"期望值",否则注册表与校验

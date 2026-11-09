@@ -32,7 +32,7 @@ _REGISTRY_CACHE = None
 #   计数类(persons/…) → 绝对变化
 PRICE_LIKE_UNITS = {'index_point', 'usd', 'usd_per_oz', 'usd_per_barrel', 'usd_per_eur',
                     'usd_per_gbp', 'jpy_per_usd', 'cny_per_usd', 'cny_100m', 'hkd_100m',
-                    'points', 'million_usd', 'usd_per_hour', 'ratio',
+                    'points', 'million_usd', 'usd_per_hour', 'ratio', 'billion_usd',
                     'index_point_1982_84', 'index_point_2012', 'index_point_1966', 'index_point_2017'}
 RATE_UNITS = {'percent', 'percentage_point'}
 COUNT_UNITS = {'persons', 'persons_thousands'}

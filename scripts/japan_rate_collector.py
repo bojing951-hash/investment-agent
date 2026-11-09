@@ -16,7 +16,9 @@ japan_YYYYMMDD.json,回退窗5自然日);产出目录 data/daily(与既有四通
 产出家形(镜像 macro 通道 {date,data:{metric_id:value}} 并增逐系列观测日披露):
   {"date": "YYYYMMDD(运行日)", "data": {metric_id: value(percent)},
    "observations": {metric_id: "YYYY-MM-DD"}, "sources": {…逐源url/口径…},
-   "fetched_at": "ISO8601 UTC", "alerts": […]}
+   "fetched_at": "ISO8601 UTC", "alerts": […],
+   "series": {metric_id: {"dates": […], "values": […]}}  # Charter6-P1: 全史
+   序列节(JP_POLICY_RATE,fredgraph 全行解析;源失败→键不出现)}
 
 诚实语义(合同红线: 不凑数不造数):
   - 各系列取源端**最新已发布观测**;观测日≠运行日属正常(月频系列;当日未到
@@ -32,7 +34,8 @@ import urllib.request
 from datetime import date, datetime, timezone
 
 __all__ = ['MOF_JGBCME_URL', 'FRED_POLICY_URL', 'fetch_mof_jgb',
-           'fetch_fred_policy_rate', 'build_payload', 'save_daily', 'main']
+           'fetch_fred_policy_rate_series', 'fetch_fred_policy_rate',
+           'build_payload', 'save_daily', 'main']
 
 MOF_JGBCME_URL = ('https://www.mof.go.jp/english/policy/jgbs/'
                   'reference/interest_rate/jgbcme.csv')
@@ -122,11 +125,14 @@ def fetch_mof_jgb(raw=None):
     return obs, out, alerts
 
 
-def fetch_fred_policy_rate(raw=None):
-    """解析 FRED fredgraph CSV → (obs_date, value, alerts)。
+def fetch_fred_policy_rate_series(raw=None):
+    """解析 FRED fredgraph CSV **全部行** → (dates, values, alerts)(Charter6-P1,
+    A2 §2#3): fredgraph 端点本就返回 IRSTCI01JPM156N 全史(月频 1960s+),此前
+    只取末行=有值无史;本函数按行升序全量解析(缺失值'.'行跳过,不造数),
+    供 japan_ 档 series 节(长序列研究/analog 六维状态向量利率维输入)。
 
     形态(2026-11-05实测): 首行 observation_date,<series_id>,其后行
-    YYYY-MM-DD,value(.);取最后一个非空值行(=最新已发布期)。"""
+    YYYY-MM-DD,value。raw 供离线测试注入;注入则零网络。"""
     alerts = []
     if raw is None:
         raw, a0 = _fetch_or_alert('FRED', lambda: _http_get(FRED_POLICY_URL,
@@ -138,23 +144,35 @@ def fetch_fred_policy_rate(raw=None):
     lines = [l for l in text.splitlines() if l.strip()]
     if not lines or not lines[0].startswith('observation_date'):
         return None, None, ['fred形态不符(缺observation_date表头)']
-    last = None
+    dates, values = [], []
     for line in lines[1:]:
         cells = line.split(',')
         if len(cells) != 2:
             continue
         d, v = cells[0].strip(), cells[1].strip()
-        if not v or v == '.':    # FRED缺失值标记'.'跳过(取最后有值行)
+        if not v or v == '.':    # FRED缺失值标记'.'跳过(不造数)
             continue
         try:
-            float(v)
+            fv = float(v)
         except ValueError:
             alerts.append(f'fred数值非法行跳过:{line!r}')
             continue
-        last = (d, float(v))
-    if last is None:
+        dates.append(d)
+        values.append(fv)
+    if not dates:
         return None, None, ['fred无有效观测行'] + alerts
-    return last[0], last[1], alerts
+    return dates, values, alerts
+
+
+def fetch_fred_policy_rate(raw=None):
+    """解析 FRED fredgraph CSV → (obs_date, value, alerts)=最新已发布期。
+
+    (兼容旧接口;Charter6-P1 起内部委托 fetch_fred_policy_rate_series 全行
+    解析取末值——口径不变,历史序列另经 build_payload 的 series 节落档。)"""
+    dates, values, alerts = fetch_fred_policy_rate_series(raw)
+    if dates is None:
+        return None, None, alerts
+    return dates[-1], values[-1], alerts
 
 
 def build_payload(run_date=None, mof_raw=None, fred_raw=None):
@@ -171,13 +189,15 @@ def build_payload(run_date=None, mof_raw=None, fred_raw=None):
     for mid, v in jgb.items():
         data[mid] = v
         observations[mid] = obs
-    pobs, pv, a2 = fetch_fred_policy_rate(fred_raw)
+    # Charter6-P1(A2 §2#3): fredgraph 全行解析一次,同源同响应同时供
+    # 最新值(data/observations)与全史序列(series 节)——零新增请求面
+    pdates, pvalues, a2 = fetch_fred_policy_rate_series(fred_raw)
     alerts.extend(a2)
-    if pobs is None:
+    if pdates is None:
         alerts.append('FRED源整体失败→JP_POLICY_RATE缺席(如实,不伪造)')
     else:
-        data['JP_POLICY_RATE'] = pv
-        observations['JP_POLICY_RATE'] = pobs
+        data['JP_POLICY_RATE'] = pvalues[-1]
+        observations['JP_POLICY_RATE'] = pdates[-1]
     payload = {
         'date': ymd,
         'data': data,
@@ -186,12 +206,17 @@ def build_payload(run_date=None, mof_raw=None, fred_raw=None):
             'JGB': {'url': MOF_JGBCME_URL,
                     'note': 'MOF jgbcme收益率曲线(日频收盘,列头期限映射)'},
             'JP_POLICY_RATE': {'url': FRED_POLICY_URL,
-                               'note': 'FRED月频系列(观测日=统计期月)'},
+                               'note': 'FRED月频系列(观测日=统计期月;全史'
+                                       '月频1960s+,OECD镜像口径)'},
         },
         'fetched_at': datetime.now(timezone.utc).strftime(
             '%Y-%m-%dT%H:%M:%SZ'),
         'alerts': alerts,
     }
+    # 全史序列节(升序;供快照 series_store/长序列研究);源失败→键不出现
+    if pdates is not None:
+        payload['series'] = {
+            'JP_POLICY_RATE': {'dates': pdates, 'values': pvalues}}
     return payload, len(data)
 
 

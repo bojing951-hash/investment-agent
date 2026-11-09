@@ -266,7 +266,8 @@ class T07T08DataPackEconomySection(unittest.TestCase):
         with tmp:
             # 静态注册表覆盖披露(活跃计数, registry v2.2.0实测: US48/CN10/JP8/EA11)
             self.assertIn('注册表覆盖(静态披露,config/metric_registry.json economy字段活跃计数): '
-                          '美国(US)=48项; 中国(CN)=18项; 日本(JP)=8项; 欧元区(EA)=11项', md)
+                          # Charter6-P1: US 48→49(+US_REAL_GDP)
+                          '美国(US)=49项; 中国(CN)=18项; 日本(JP)=8项; 欧元区(EA)=11项', md)
             # JP/EA通道披露(快照顶层sources_status; 通道名 japan/jp/ea)
             self.assertIn('日本通道披露: japan=EXACT(japan_%s.json), jp=EXACT(jp_%s.json)'
                           % (YMD, YMD), md)

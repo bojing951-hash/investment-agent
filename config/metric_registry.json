@@ -1,5 +1,5 @@
 {
- "version": "2.4.0",
+ "version": "2.5.0",
  "created": "2026-10-17",
  "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
  "field_semantics": {
@@ -24,6 +24,7 @@
   "release_date_available": "逐观测发布日掌握性(人工登记): true=发布日已知或按已知规则(市场序列观测即发布;政策/管理利率决议或操作当日公布,DFF次日;LPR每月20日09:15;ICSA每周四)/false=统计类宏观发布滞后且逐观测发布日本仓未登记;缺键=未登记(null);快照fact层release_date实测值覆盖本登记(数据>登记)"
  },
  "notes": [
+  "v2.5.0(2026-11-09,Charter6-P1): +US_REAL_GDP(GDPC1,季频'quarterly'词汇扩;单位词汇+billion_usd);JP_POLICY_RATE/ECB_DFR/ECB_MRO 全史序列通道落档(japan_/ea_ 档 series 节,快照 series_store 直通);全库修订口径 revision_semantics=latest_vintage_asof_collected(FRED通道返回最新修订值,研究引用历史值须随附该披露,A2 §3.1)",
   "YTD/MTD/周变化等收益率派生值不单独注册——由事实引擎统一收益引擎计算并附带calculation_ref",
   "月频指标未发布≠缺失/无效;新鲜度窗按月频45天",
   "同一指标多来源时以source为权威,对账差异写入快照reconciliation节",
@@ -1993,6 +1994,40 @@
     "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
    },
    "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+  },
+  {
+   "metric_id": "US_REAL_GDP",
+   "display_name": "美国实际GDP(SAAR)",
+   "source": "macro_collector",
+   "source_symbol": "GDPC1",
+   "asset_class": "macro_index",
+   "frequency": "quarterly",
+   "release_date_available": false,
+   "unit": "billion_usd",
+   "calendar": "us_rates",
+   "economy": "US",
+   "economy_rule": "P3:calendar=us_rates",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none",
+    "seasonal_adjustment": "SA(季调,年化率SAAR)"
+   },
+   "value_type": "level",
+   "calc": "美国实际GDP水平(FRED GDPC1,2017年链式美元,十亿,季调年化SAAR,1947+);QoQ/YoY由序列变化机制派生",
+   "validation": {
+    "range": [
+     1500,
+     40000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 120,
+    "note": "季频:观测日=统计季(以季末月表示);advance估计约季后25-30天发布,未发布≠数据缺失"
+   },
+   "release_semantics": "BEA季度advance估计约季后25-30天发布(精确发布日经FRED API不可得→按观测季+已知滞后窗口保守标注);后续修订随全量重拉自动生效(revision_semantics=latest_vintage_asof_collected)"
   },
   {
    "metric_id": "ICSA",

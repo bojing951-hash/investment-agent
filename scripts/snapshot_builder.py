@@ -263,6 +263,27 @@ def _normalize_japan(data, as_of, source_file):
 
 # ══ 快照构建 ══════════════════════════════════════════════════════
 
+def merge_series_sections(store, raw):
+    """Charter6-P1(A2 §2#2/#3): japan/ea 通道**全史序列节**入 store(就地并入)。
+
+    japan_ 档 series 节(JP_POLICY_RATE,fredgraph 全行解析)与 ea_ 档 series 节
+    (ECB_DFR/ECB_MRO,SDMX 全行,startPeriod=1999)——键=registry metric_id 实读
+    且 source=权属采集器方可入(防别名行/越权序列混入计算面);形态须为
+    {'dates','values'} 等长非空(升序直通,零改写零造数);节缺席=诚实缺席不
+    造序列;store 既有键(global/china/prices 池)先占,series 节不覆盖。"""
+    for ch, collector in (('japan', 'japan_rate_collector'),
+                          ('ea', 'ea_market_collector')):
+        for key, s in (((raw.get(ch) or {}).get('series') or {}).items()):
+            m = fe.metric(key) if isinstance(key, str) else None
+            if m is None or m.get('source') != collector or key in store:
+                continue
+            if isinstance(s, dict) and isinstance(s.get('dates'), list) \
+                    and isinstance(s.get('values'), list) \
+                    and len(s['dates']) == len(s['values']) and s['dates']:
+                store[key] = s
+    return store
+
+
 def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
                    write=True, allow_revision=False, revision_reason=None,
                    trusted_root=None):
@@ -467,6 +488,7 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
             else:
                 ks = sorted(s)
                 store[key] = {'dates': ks, 'values': [s[d] for d in ks]}
+    store = merge_series_sections(store, raw)
     if store:
         snapshot['series_store'] = store
 

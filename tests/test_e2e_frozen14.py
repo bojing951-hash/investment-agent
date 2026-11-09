@@ -351,12 +351,15 @@ with tempfile.TemporaryDirectory() as td:
     check("E2E-02d 非核心整体缺席→noncore_missing点名+Gate A=DEGRADED(不再无声PASS)",
           c == 0 and ga['status'] == 'DEGRADED'
           # GAP08-F3 (j) 涟漪: jp/ea fixture 诚实缺席三指标同入名单(前=['UMCSENT'])
+          # Charter6-P1(2026-11-09): +US_REAL_GDP(vintage 新增,fixture 宏观
+          # 面无 GDPC1 序列→非核心缺席点名属如实;真实采集后即补齐)
           and ga.get('noncore_missing') == ['CAC40', 'CN_CPI_YOY',
                                             'CN_LPR_1Y', 'CN_LPR_5Y',
                                             'CN_NEW_LOANS', 'CN_OMO_7D',
                                             'CN_PMI_MFG', 'CN_PPI_YOY',
                                             'CN_SF_FLOW', 'DAX',
-                                            'JP_CPI_TOKYO_YOY', 'UMCSENT']
+                                            'JP_CPI_TOKYO_YOY', 'UMCSENT',
+                                            'US_REAL_GDP']
           and 'UMCSENT' not in ga.get('core_fail', [])
           and fake == [],
           f"gate={ga['status']} missing={ga.get('noncore_missing')}")
@@ -365,11 +368,13 @@ with tempfile.TemporaryDirectory() as td:
           and len(snap['facts']) >= 78
           and '非核心指标缺失' in md and 'UMCSENT' in md
           and 'UMCSENT' in open(paths['pack'], encoding='utf-8').read()
-          # GAP08-F3 (j) 涟漪: meta 名单同扩三指标(前=['UMCSENT'])
+          # GAP08-F3 (j) 涟漪: meta 名单同扩三指标(前=['UMCSENT']);
+          # Charter6-P1: +US_REAL_GDP(fixture面无GDPC1序列→非核心缺席点名)
           and rp.load_meta(paths['pack']).get('noncore_missing')
           == ['CAC40', 'CN_CPI_YOY', 'CN_LPR_1Y', 'CN_LPR_5Y',
              'CN_NEW_LOANS', 'CN_OMO_7D', 'CN_PMI_MFG', 'CN_PPI_YOY',
-             'CN_SF_FLOW', 'DAX', 'JP_CPI_TOKYO_YOY', 'UMCSENT'],
+             'CN_SF_FLOW', 'DAX', 'JP_CPI_TOKYO_YOY', 'UMCSENT',
+             'US_REAL_GDP'],
           f"facts={len(snap['facts'])} pack={paths['pack_code']}")
     code, out, applied, glm = report_run(td, gate_b='PASS')
     rmd = open(os.path.join(out, f'weekly_report_{DAY}.md'), encoding='utf-8').read() \

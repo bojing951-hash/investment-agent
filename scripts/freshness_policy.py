@@ -352,7 +352,11 @@ def build_policy(registry):
             problems.append(f"{mid}:max_calendar_lag_days={w!r}(须正整数)")
             continue
         freq = m.get('frequency')
-        if freq not in ('daily', 'weekly', 'monthly'):
+        # Charter6-P1(A2 §2#1, 2026-11-09): +'quarterly'(US_REAL_GDP/GDPC1)——
+        # 时效窗语义=季频发布滞后(advance估计约季后25-30天),与频率枚举
+        # (registry_semantics.FREQUENCY_VALUES)同步扩;窗口本身仍以各条目
+        # 已批准的 max_calendar_lag_days 为准,不因频率默认放宽。
+        if freq not in ('daily', 'weekly', 'monthly', 'quarterly'):
             problems.append(f"{mid}:frequency={freq!r}非法(无法解释时效窗)")
             continue
         out[mid] = {'window': w, 'frequency': freq,

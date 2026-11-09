@@ -155,15 +155,16 @@ class TestEconomyRules(unittest.TestCase):
     def test_t1a_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
         # 94+8→102 / 93+8→101 / 2.2.0→2.3.0 / 聚合 CN 10→18(其余键不动)
-        self.assertEqual(len(REG['metrics']), 102)
-        self.assertEqual(REG['version'], '2.4.0')  # A-fin(2026-11-09) 时间键登记 2.3.0→2.4.0
+        self.assertEqual(len(REG['metrics']), 103)  # Charter6-P1: +US_REAL_GDP
+        self.assertEqual(REG['version'], '2.5.0')  # Charter6-P1(2026-11-09) 缺失补齐 2.4.0→2.5.0
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 101)
+                             if m.get('status') == 'active'), 102)  # Charter6-P1
         agg = {}
         for m in REG['metrics']:
             agg[m['economy']] = agg.get(m['economy'], 0) + 1
         # 定值=REPORT §零.12⑥(85 实测聚合+P9×2+P10×7)+CN 宏观八条目(P1:calendar=cn)
-        self.assertEqual(agg, {'US': 49, 'CN': 18, 'HK': 4, 'JP': 8,
+        # Charter6-P1: US 49→50(+US_REAL_GDP)
+        self.assertEqual(agg, {'US': 50, 'CN': 18, 'HK': 4, 'JP': 8,
                                'EA': 11, 'GLOBAL': 12})
 
     def test_t1b_per_entry_rule_consistency(self):
@@ -287,7 +288,8 @@ class TestChannelRegistrationChain(unittest.TestCase):
         # IA-P1-WP-E v1.3 域化(§十三.1): vintage 13→21(∪CN 宏观八条目)
         self.assertEqual(set(bl.vintage_additions()),
                          {'JP_POLICY_RATE', 'JGB2Y', 'JGB5Y', 'JGB10Y'}
-                         | set(NEW9) | set(CN8))
+                         | set(NEW9) | set(CN8)
+                         | {'US_REAL_GDP'})  # Charter6-P1(A2 §2#1)
 
     def test_t2e_run_weekly_thirteen_steps(self):
         src = open(os.path.join(ROOT, 'run_weekly.py'), encoding='utf-8').read()

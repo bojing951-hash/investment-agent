@@ -7,9 +7,9 @@ ea_YYYYMMDD.json,回退窗5自然日);产出目录 data/daily。
 
 数据源(IA-P1-WP-A-AC §一 白名单域,REPORT §零.12⑩ 定值;均免费公开):
   1. ECB Data Portal SDMX(csvdata;ecb.europa.eu 域):
-     https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.DFR.LEV?format=csvdata&startPeriod=2024-01-01
+     https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.DFR.LEV?format=csvdata&startPeriod=1999-01-01
        → policy_rates.ECB_DFR(存款便利利率,日频)
-     https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.MRR_FR.LEV?format=csvdata&startPeriod=2024-01-01
+     https://data-api.ecb.europa.eu/service/data/FM/B.U2.EUR.4F.KR.MRR_FR.LEV?format=csvdata&startPeriod=1999-01-01
        → policy_rates.ECB_MRO(主要再融资固定利率,日频)
      https://data-api.ecb.europa.eu/service/data/ICP/M.U2.N.000000.4.ANR?format=csvdata
        → inflation.EA_HICP_YOY(HICP年度变化率,月频;月统计期 TIME_PERIOD 'YYYY-MM'
@@ -29,7 +29,12 @@ ea_YYYYMMDD.json,回退窗5自然日);产出目录 data/daily。
 产出档形(DESIGN §三(a-2) L45-L57 逐字+观测性附加键,REPORT §零.12⑪):
   顶层 date/generated_at/sources_status + 通道节 policy_rates/bund/inflation/prices
   + 附加 observations/sources/fetched_at/alerts;prev_value=源端次新观测
-  (不可得→null);inflation 节增 change(=value−prev_value,pp)/change_period/freq。
+  (不可得→null);inflation 节增 change(=value−prev_value,pp)/change_period/freq;
+  series 节(Charter6-P1)= 政策利率全史序列(DFR/MRO 1999+ 全行入档,升序;
+  源失败→键不出现)——A2 §2#2 ECB_DFR 历史化(本通道路线)+§2#8 MRO 对称。
+
+Charter6-P1(A2 P1#7): BBK 源 RemoteDisconnected 偶发断供→重试+指数退避
+(3次: 即时/2s/5s;仅网络层异常重试;ECB 源保持单次)。
 
 失败纪律(B3 同款): 源失败→节键不出现+sources_status 该源 READ_FAIL+alerts
 如实;全部系列缺席→exit 1 且不产出文件。零依赖: 仅标准库。
@@ -38,15 +43,19 @@ import json
 import os
 import re
 import sys
+import urllib.error
 from datetime import date, datetime, timezone
 
 __all__ = ['ECB_DFR_URL', 'ECB_MRO_URL', 'ECB_HICP_URL', 'BBK_10Y_URL',
            'BBK_2Y_URL', 'build_payload', 'save_daily', 'main']
 
+# Charter6-P1(A2 §1/§2#2): 政策利率两系列 startPeriod 2024→1999(欧元区
+# 货币联盟起点,全史 1999+;单文件响应仍轻量,限流宽松)——供 series 节全行
+# 解析,长序列研究(利率通道对比/相似期)不再只有末值。
 ECB_DFR_URL = ('https://data-api.ecb.europa.eu/service/data/FM/'
-               'B.U2.EUR.4F.KR.DFR.LEV?format=csvdata&startPeriod=2024-01-01')
+               'B.U2.EUR.4F.KR.DFR.LEV?format=csvdata&startPeriod=1999-01-01')
 ECB_MRO_URL = ('https://data-api.ecb.europa.eu/service/data/FM/'
-               'B.U2.EUR.4F.KR.MRR_FR.LEV?format=csvdata&startPeriod=2024-01-01')
+               'B.U2.EUR.4F.KR.MRR_FR.LEV?format=csvdata&startPeriod=1999-01-01')
 ECB_HICP_URL = ('https://data-api.ecb.europa.eu/service/data/ICP/'
                 'M.U2.N.000000.4.ANR?format=csvdata')
 BBK_10Y_URL = 'https://api.bundesbank.de/timeseries/rest/data/BBK01/WU3146?format=csv'
@@ -61,11 +70,43 @@ def _now_iso():
     return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-def _http_get(url):
+# Charter6-P1(A2 P1#7): Bundesbank 源偶发 RemoteDisconnected(2026-11-08
+# 实测 ea_20261108.json alerts: BBK_WU3146源获取失败:RemoteDisconnected)
+# ——BBK 请求带重试+指数退避(3次: 即时/2s/5s);仅网络层异常重试,HTTP 4xx/5xx
+# 与解析失败不重试(如实降级)。ECB 源稳定,保持单次(不放大请求面)。
+_RETRY_SOURCES = frozenset({'bbk'})
+_RETRY_DELAYS = (0, 2, 5)
+
+
+def _open_url(url, headers):
+    """单次 HTTP GET(独立小函数,离线测试可注入替身)。"""
     import urllib.request
-    req = urllib.request.Request(url, headers=_UA)
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=_TIMEOUT) as r:
         return r.read()
+
+
+def _sleep(seconds):
+    """退避等待(独立小函数,离线测试可注入替身,不真睡)。"""
+    import time
+    time.sleep(seconds)
+
+
+def _http_get(url, src='ecb'):
+    last_exc = None
+    for attempt, delay in enumerate(_RETRY_DELAYS, start=1):
+        if delay and attempt > 1:
+            _sleep(delay)
+        try:
+            return _open_url(url, _UA)
+        except urllib.error.HTTPError:
+            raise    # 4xx/5xx 不属网络瞬断,不重试(如实降级,不放大请求面)
+        except Exception as e:   # 网络层(RemoteDisconnected/URLError/超时)
+            last_exc = e
+            if src in _RETRY_SOURCES and attempt < len(_RETRY_DELAYS):
+                continue
+            raise
+    raise last_exc
 
 
 def _fetch_or_alert(label, fetcher):
@@ -151,10 +192,17 @@ def build_payload(run_date=None, ecb_dfr_raw=None, ecb_mro_raw=None,
     observations, alerts = {}, []
     sources_status = {}
 
-    def daily_source(label, url, raw, section, key):
-        """公共日频源流: 取raw(或网络)→解析→节登记/缺席登记。"""
+    # Charter6-P1: 政策利率全史序列节收集(DFR/MRO 1999+;BUND 历史化=A2 P2#12
+    # 不在本轮,只修复源故障重试)
+    series_out = {}
+
+    def daily_source(label, url, raw, section, key, src='ecb', keep_series=False):
+        """公共日频源流: 取raw(或网络)→解析→节登记/缺席登记。
+
+        src('ecb'/'bbk')路由重试策略(BBK=重试+退避);keep_series=True 时全行
+        入 series_out[key](SDMX 行序即时序升序,缺失值行已在解析层跳过)。"""
         if raw is None:
-            raw, a = _fetch_or_alert(label, lambda: _http_get(url))
+            raw, a = _fetch_or_alert(label, lambda: _http_get(url, src))
             alerts.extend(a)
         if raw is None:
             sources_status[label] = {'status': 'READ_FAIL', 'retrieved_at': None}
@@ -170,12 +218,19 @@ def build_payload(run_date=None, ecb_dfr_raw=None, ecb_mro_raw=None,
         leaf, obs = _daily_section(rows)
         section[key] = leaf
         observations[key] = obs
+        if keep_series and rows:
+            series_out[key] = {'dates': [r[0] for r in rows],
+                               'values': [r[1] for r in rows]}
         sources_status[label] = {'status': 'EXACT', 'retrieved_at': t0}
 
-    daily_source('ECB_FM_DFR', ECB_DFR_URL, ecb_dfr_raw, policy_rates, 'ECB_DFR')
-    daily_source('ECB_FM_MRO', ECB_MRO_URL, ecb_mro_raw, policy_rates, 'ECB_MRO')
-    daily_source('BBK_WU3146', BBK_10Y_URL, bbk10_raw, bund, 'BUND_10Y')
-    daily_source('BBK_WU3141', BBK_2Y_URL, bbk2_raw, bund, 'BUND_2Y')
+    daily_source('ECB_FM_DFR', ECB_DFR_URL, ecb_dfr_raw, policy_rates,
+                 'ECB_DFR', keep_series=True)
+    daily_source('ECB_FM_MRO', ECB_MRO_URL, ecb_mro_raw, policy_rates,
+                 'ECB_MRO', keep_series=True)
+    daily_source('BBK_WU3146', BBK_10Y_URL, bbk10_raw, bund, 'BUND_10Y',
+                 src='bbk')
+    daily_source('BBK_WU3141', BBK_2Y_URL, bbk2_raw, bund, 'BUND_2Y',
+                 src='bbk')
 
     # ── Bundesbank 口径核验(候选键纪律: 不可核→节诚实缺席)────────────────
     for label, key, lo, hi, meta_raw in (
@@ -265,6 +320,9 @@ def build_payload(run_date=None, ecb_dfr_raw=None, ecb_mro_raw=None,
                          ('inflation', inflation)):
         if obj:
             payload[section] = obj          # 缺席节键不出现(L58)
+    # Charter6-P1: 全史序列节(政策利率 DFR/MRO 1999+;缺席→键不出现)
+    if series_out:
+        payload['series'] = series_out
     n_series = len(policy_rates) + len(bund) + len(inflation)
     return payload, n_series
 

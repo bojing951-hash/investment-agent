@@ -127,9 +127,9 @@ class TestT1RealChainAnchors(unittest.TestCase):
         IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移): 94→102(94+8)/v2.2.0→v2.3.0/active 93→101。"""
         reg = fe.load_registry()
         metrics = reg["metrics"]
-        self.assertEqual(len(metrics), 102)
-        self.assertEqual(reg["version"], "2.4.0")  # A-fin(2026-11-09) 时间键登记 2.3.0→2.4.0
-        self.assertEqual(sum(1 for m in metrics if m.get("status") == "active"), 101)
+        self.assertEqual(len(metrics), 103)  # Charter6-P1: +US_REAL_GDP
+        self.assertEqual(reg["version"], "2.5.0")  # Charter6-P1(2026-11-09) 缺失补齐 2.4.0→2.5.0
+        self.assertEqual(sum(1 for m in metrics if m.get("status") == "active"), 102)  # Charter6-P1: +US_REAL_GDP
 
     def test_t12_mapper_real_registry_golden_question(self):
         """B3 注册效果锚: MB-8 由 ABSENT_REGISTRY(B5 时代 81 注册表)转为注册表命中

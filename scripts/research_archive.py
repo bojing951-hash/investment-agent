@@ -388,6 +388,9 @@ FULL_KEYS = ("record_type", "query_id", "question_text", "created_at",
              "research_as_of", "snapshot_id", "digest_snapshot", "status",
              "answer_text", "values", "unresolved", "glm", "warnings",
              "violations", "user_note", "follow_up_of", "saved_at")
+# 任务F(批2 W10, 2026-11-09): 跨模型完整成果开放输入——可选文本键,在场须
+# str|null;不列入 FULL_KEYS(旧 sidecar 缺键合法,读侧缺键→null,不破坏旧档)。
+FULL_OPTIONAL_TEXT_KEYS = ("evidence", "statistics", "hypotheses", "open_questions")
 
 
 def _research_full_path(collection_dir, query_id):
@@ -440,6 +443,11 @@ def validate_research_full(payload):
     if fu is not None and (not isinstance(fu, str)
                            or not qir.QUERY_ID_RE.match(fu or "")):
         issues.append(f"follow_up_of须为null|QB-YYYYMMDD-NNN: {fu!r}")
+    # 任务F(W10): 可选成果键——在场须 str|null(旧档缺键合法)
+    for k in FULL_OPTIONAL_TEXT_KEYS:
+        v = payload.get(k)
+        if v is not None and not isinstance(v, str):
+            issues.append(f"{k}须为str|null(可选成果键): {type(v).__name__}")
     return issues
 
 

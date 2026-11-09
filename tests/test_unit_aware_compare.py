@@ -205,6 +205,8 @@ check("sample_note 随行", data.get('sample_note') and '30' in data['sample_not
 
 # mixed_frequency + date_gap: NFP(真实注册表 count 族,monthly)vs SPX(daily)
 # + 共同观测中间断 13 天(03-02→03-15)
+# 批2 W9 语义更新: 日×月对走 month_grid 聚合(单月样本→变化对不足,13 天日间隔
+# 不再是断点口径);date_gap>7 改由日×日对(阈值不归一)承担本断言。
 gap_dates = ['2099-03-01', '2099-03-02', '2099-03-15', '2099-03-16', '2099-03-17']
 with_context(synth_snapshot({
     'SPX': {'dates': gap_dates, 'values': spx},
@@ -215,9 +217,17 @@ d2 = json.loads(out)
 w2 = json.dumps(d2.get('warnings') or [], ensure_ascii=False)
 check("mixed_frequency 警示(daily vs monthly)", 'mixed_frequency' in w2)
 check("count 族 pct 近似警示", 'count' in w2 and '近似' in w2)
-check("date_gap 警示(最大间隔13天>7)", 'date_gap' in w2 and '13' in w2)
+check("W9: 日×月默认 month_grid 聚合(高频侧披露)",
+      d2['data']['alignment']['mode'] == 'month_grid'
+      and any('month_grid' in (s.get('aggregation') or '')
+              for s in d2['data']['sides']))
 check("count 侧 change_basis=pct",
       d2['data']['change_basis']['b'] == 'pct')
+# date_gap: 日×日(UST_10Y daily)阈值仍 7 天,13 天断点照报(频率归一只在月频参与时)
+code, out, _ = run_cli('compare', '--metrics', 'SPX,UST_10Y')
+w3 = json.dumps(json.loads(out).get('warnings') or [], ensure_ascii=False)
+check("date_gap 警示(日×日最大间隔13天>7,阈值归一不影响同频对)",
+      'date_gap' in w3 and '13' in w3 and '>7' in w3)
 
 print("═" * 60)
 print("⑨ compute_all 12 对回归(合成快照,全价格族)")

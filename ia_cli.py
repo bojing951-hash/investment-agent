@@ -65,6 +65,9 @@ ENV_KEYS = (  # doctor 只报"已配置/未配置",永不打印值
     ('YF_PROXY', 'yfinance 代理(可选)'),
 )
 ARCHIVE_DOUBLE_NEST = 'research_archive/query_history'  # research_archive._collection_dir 再拼一层
+# 任务F(批2 W10, C-4): 拒答导流——未支持问题类型转由 Agent 组合能力自由研究
+AGENT_ROUTING_HINT = ('自由研究问题请组合使用 history(列出可用指标)/'
+                      'compare(单位感知对齐)/overview/changes,由你的 Agent 组织研究')
 # P0-1: update 结果信封的关键行筛(⛔/❌/Traceback/ERROR/失败/错误,大小写兼顾)
 _CRITICAL_LINE_RE = re.compile(r'⛔|❌|Traceback|ERROR|失败|错误', re.IGNORECASE)
 
@@ -249,10 +252,12 @@ def lint_grounded_answer(text):
 
 def lint_fact_contract_text(text):
     """带"事实性描述"契约的文本位(如资产表关键信号列)→ violations。
-    因果动词在事实位=违约;同一句出现在【假设】/【推断】标记后=该段本分,允许。"""
+    因果动词在事实位=违约;同一句出现在【假设】/【推断】/【尚未验证】标记后=该段
+    本分,允许(批2 W10 D5: 四分=事实/推断/假设/尚未验证)。"""
     violations = []
     for line in (text or '').splitlines():
-        seg = re.split(r'【(假设|推断)】', line, maxsplit=1)[0]  # 标记前(或整行)为事实位
+        # 标记前(或整行)为事实位;【尚未验证】后文字不计事实位(不确定陈述的本位)
+        seg = re.split(r'【(假设|推断|尚未验证)】', line, maxsplit=1)[0]
         hits = [v for v in CAUSAL_VERBS if v in seg]
         m = COMPOSITION_RE.search(seg)
         if hits:
@@ -749,10 +754,15 @@ def _check_follow_up(query_id):
 def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=None,
                             values=None, unresolved=None, glm=None,
                             warnings_=(), violations=(), user_note=None,
-                            follow_up_of=None):
+                            follow_up_of=None, evidence=None, statistics=None,
+                            hypotheses=None, open_questions=None, as_of=None):
     """research_full_v1 sidecar 旁挂(批2 WI6): 保存**本次用户实际所见**的
     作答正文/AI 解释原文(glm 字段名保留)/warnings/violations/备注/前档链接——只搬运本进程已有
-    值,绝不重新生成、绝不补发任何 API 调用。返回 (ok, 详情)。"""
+    值,绝不重新生成、绝不补发任何 API 调用。返回 (ok, 详情)。
+
+    任务F(批2 W10): 跨模型完整成果开放输入——archive save 可直传 Agent 产出的
+    answer_text/evidence/statistics/hypotheses/open_questions 与 as_of(研究截止,
+    落 research_as_of 位;不传=快照口径,旧行为不变)。所有文本过 redact()。"""
     from datetime import datetime, timezone
     import research_archive as ra
     import research_provenance as rp
@@ -775,13 +785,16 @@ def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=Non
         _glm_sanitized = {k: _san(v) for k, v in glm.items()}
     payload = {'record_type': ra.FULL_RECORD_TYPE, 'query_id': qid,
                'question_text': _san(question), 'created_at': created_at,
-               'research_as_of': snap.get('research_as_of'),
+               'research_as_of': _san(as_of) if as_of else snap.get('research_as_of'),
                'snapshot_id': snap.get('snapshot_id'),
                'digest_snapshot': rp.digest_snapshot(snap),
                'status': status, 'answer_text': _san(answer_text),
                'values': values, 'unresolved': unresolved, 'glm': _glm_sanitized,
                'warnings': list(warnings_), 'violations': list(violations),
                'user_note': _san(user_note), 'follow_up_of': follow_up_of,
+               'evidence': _san(evidence), 'statistics': _san(statistics),
+               'hypotheses': _san(hypotheses),
+               'open_questions': _san(open_questions),
                'saved_at': saved_at}
     try:
         st, _path = ra.write_research_full(
@@ -811,6 +824,11 @@ def cmd_research(args):
     data = {'status': res['status'], 'answer_text': res.get('answer_text'),
             'values': res.get('values', {}), 'unresolved': res.get('unresolved', []),
             'supported_hint': wd.SUPPORTED_CONCEPT_HINT}
+    # 任务F(批2 W10, C-4): 拒答导流——未支持类型除概念提示外,指明可由 Agent
+    # 组合其他能力自由组织研究(研究能力不被四类预设问题封死)
+    if res['status'] in ('unmapped', 'no_registry_identity'):
+        data['answer_text'] = ((res.get('answer_text') or '') + '\n'
+                               + AGENT_ROUTING_HINT)
     ok = res['status'] == 'answered'
     # 单经济体概览问题路由(mapper 写 ir.economy 而 executor 无分支的已知缺口,此处补):
     if res['status'] == 'unmapped' and (res.get('ir') or {}).get('economy'):
@@ -865,10 +883,15 @@ def cmd_archive(args):
         if not qid:
             emit(envelope('archive', False, {},
                           error=('save_failed', err or '归档失败', None)), exit_code=1)
-        # 独立保存场景: 无本次作答,answer 相关字段如实 null(备注/前档链接落位)
+        # 独立保存场景: 无本次作答,answer 相关字段如实 null(备注/前档链接落位);
+        # 任务F(W10): --answer-text 等六参开放 Agent 完整成果直存(全过 redact),
+        # 不带=旧行为完全不变(成果键 null)
         full_ok, full_why = _write_research_sidecar(
             qid, snap, args.question, warnings_=[], violations=[],
-            user_note=args.note, follow_up_of=args.follow_up_of)
+            user_note=args.note, follow_up_of=args.follow_up_of,
+            answer_text=args.answer_text, evidence=args.evidence,
+            statistics=args.statistics, hypotheses=args.hypotheses,
+            open_questions=args.open_questions, as_of=args.as_of)
         data = {'saved': True, 'query_id': qid,
                 'note': f'append-only 落档于 <引擎根>/data/research/{ARCHIVE_DOUBLE_NEST}'
                         '/(research_archive 模块双层嵌套,既定行为)'}
@@ -922,6 +945,9 @@ def cmd_archive(args):
         if full is not None:     # 并列合并视图(base 身份为准,record_type 不被覆盖)
             merged = dict(rec)
             merged.update({k: v for k, v in full.items() if k != 'record_type'})
+            # 任务F(W10): 旧 sidecar 缺成果键 → null(读侧归一,输出契约恒齐)
+            for _k in ('evidence', 'statistics', 'hypotheses', 'open_questions'):
+                merged.setdefault(_k, None)
             data['full'] = merged
         emit(envelope('archive', True, data, warns))
 
@@ -986,6 +1012,13 @@ def build_parser():
     ar.add_argument('--note', help='save: 用户备注(随 sidecar 落档)')
     ar.add_argument('--follow-up-of',
                     help='save: 关联前档 query_id(存在性校验失败 rc=2)')
+    ar.add_argument('--answer-text',
+                    help='save: 完整研究正文(Agent 成果直存;落 sidecar answer_text)')
+    ar.add_argument('--evidence', help='save: 事实证据与来源')
+    ar.add_argument('--statistics', help='save: 统计结果')
+    ar.add_argument('--hypotheses', help='save: 竞争性假设')
+    ar.add_argument('--open-questions', help='save: 未解决问题')
+    ar.add_argument('--as-of', help='save: 研究截止时间(落 sidecar research_as_of 位)')
     return p
 
 

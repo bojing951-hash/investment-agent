@@ -836,6 +836,109 @@ def _model_stamp():
         else 'data-only(无模型调用,确定性数据观察)'
 
 
+# ============ W3(Model-Agnostic v2, 2026-11-09): data-only 确定性周观察 ======
+# 模型三参不齐(Agent Native 默认)时,周报不再 RuntimeError 硬失败,改走确定性
+# 数据观察: 只汇编引擎已有确定性产物,零模型调用;Gate B 锚点/事实位校验照跑,
+# 人设/解释类检查跳过(报告里本就没有)。
+
+DATA_ONLY_DISCLOSURE = (
+    "\n---\n\n## 数据与来源说明(data-only)\n\n"
+    "本报告为确定性数据观察,不含模型解释;如需解释层请经你的 AI Agent 处理"
+    "数据包或配置可选模型 API(MODEL_API_KEY/MODEL_BASE_URL/MODEL_NAME,"
+    "任意 OpenAI 兼容端点,模板见 .env.example)。\n"
+    "以上各节均为引擎确定性产物原样汇编(数据包/评分卡/相关性/新闻标题),"
+    "数值、观测日与来源以各节原文为准,未做任何加工或解释。"
+)
+
+
+def _latest_daily_md(prefix, date_str):
+    """取 data/daily 下指定前缀的最新 ≤当日 .md 确定性产物;缺失返回 None。"""
+    d = os.path.join(DATA_DIR, 'daily')
+    if not os.path.isdir(d):
+        return None
+    cands = sorted(f for f in os.listdir(d)
+                   if f.startswith(prefix + '_') and f.endswith('.md')
+                   and f[len(prefix) + 1:len(prefix) + 9] <= date_str)
+    if not cands:
+        return None
+    try:
+        with open(os.path.join(d, cands[-1]), encoding='utf-8') as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def _data_only_news_section():
+    """确定性新闻段: 从 news_raw_*.json(原始分类数据,代码核发[art_]ID)重建
+    标题清单——不引用任何模型生成摘要(W3: data-only 不得混入解释层文本)。"""
+    news_dir = os.path.join(DATA_DIR, 'news')
+    if not os.path.isdir(news_dir):
+        return "## 本周新闻\n\n(无新闻数据档案)\n"
+    cutoff = (datetime.now() - timedelta(days=7)).strftime('%Y%m%d')
+    files = sorted(f for f in os.listdir(news_dir)
+                   if f.startswith('news_raw_') and f.endswith('.json')
+                   and f[len('news_raw_'):len('news_raw_') + 8] >= cutoff)
+    if not files:
+        return "## 本周新闻\n\n(近7天无新闻数据档案)\n"
+    merged = {}
+    for fn in files:                       # 旧→新;同 article_id 去重(保留首见)
+        try:
+            with open(os.path.join(news_dir, fn), encoding='utf-8') as f:
+                day = json.load(f)
+        except (OSError, ValueError):
+            continue
+        if not isinstance(day, dict):
+            continue
+        for cat, articles in day.items():
+            if not isinstance(articles, list):
+                continue
+            seen = merged.setdefault(cat, [])
+            have = {a.get('article_id') for a in seen}
+            for a in articles:
+                if isinstance(a, dict) and a.get('article_id') not in have:
+                    seen.append(a)
+                    have.add(a.get('article_id'))
+    try:
+        import news_collector as nc        # 复用确定性回退(含标题单行化消毒)
+        return nc._fallback_headlines(
+            merged, "## 本周新闻(确定性标题,[art_xxx]为代码核发来源引用编号)\n\n")
+    except ImportError:
+        lines = ["## 本周新闻(确定性标题)\n"]
+        for cat, articles in merged.items():
+            if articles:
+                lines.append(f"### {cat}\n")
+                for a in articles[:5]:
+                    ref = f"[{a.get('article_id', '')}] " if a.get('article_id') else ""
+                    lines.append(f"- {ref}{a.get('headline', '')}")
+                lines.append("")
+        return "\n".join(lines)
+
+
+def generate_data_only_report(data_pack):
+    """W3(Model-Agnostic v2): 确定性周观察报告(模型三参不齐时的周报产物)。
+
+    组装既有确定性产物: 数据包(快照关键数据的确定性渲染)+评分卡+相关性摘要
+    +确定性新闻标题段。零模型调用;这是数据观察不是叙事周报——无解释层、
+    无人设,末尾固定披露。锚点/事实位校验由候选→Gate B 流程照跑。"""
+    today = datetime.now()
+    monday = today - timedelta(days=today.weekday())
+    sunday = monday + timedelta(days=6)
+    week_range = f"{monday.strftime('%Y%m%d')}-{sunday.strftime('%Y%m%d')}"
+    ymd = today.strftime('%Y%m%d')
+    parts = [f"# 全球宏观与金融市场数据观察({week_range})", "",
+             "> 生成模式: data-only(无模型调用,确定性数据观察)", "",
+             "## 一、本周数据包(引擎确定性渲染;数值/观测日/来源以原文为准)", "",
+             data_pack or '(数据包缺失)']
+    sc = _latest_daily_md('scorecard', ymd)
+    if sc:
+        parts += ["", "## 二、宏观评分卡(确定性)", "", sc]
+    co = _latest_daily_md('correlation', ymd)
+    if co:
+        parts += ["", "## 三、跨资产相关性摘要(确定性)", "", co]
+    parts += ["", _data_only_news_section(), DATA_ONLY_DISCLOSURE]
+    return "\n".join(parts)
+
+
 def save_candidate_report(report_text, date_str=None):
     """FIX-02(IA-DEF-002): 报告一律先落**候选文件**(weekly_report_{ymd}_CANDIDATE.md),
     Gate B校验通过且状态记录成功后才发布(原子替换)为正式文件——生成/校验/发布
@@ -1170,13 +1273,16 @@ def update_thesis_status(report_text, thesis_path=None, today_str=None, anchors=
         print(f"   {u}")
     return updates
 
-def validate_generated_report(md_path, anchors=None, anchors_file=None):
+def validate_generated_report(md_path, anchors=None, anchors_file=None,
+                              data_only=False):
     """用与报告**同日**的锚点校验刚生成的报告,结果落 logs/validation_*.log 并附注到报告尾部。
 
     第二轮审查#4: 返回 (classification, warnings),classification ∈ PASS/DEGRADED/FAIL。
     FAIL = 无锚点/锚点非同日/数值类错误 → 调用方禁止一切长期状态回写。
     IA-P0-1: main传入预检核验过的当日锚点(anchors/anchors_file);
-    未传时回退glob当日→最新(排除*.meta.json来源侧挂),保持独立可用。"""
+    未传时回退glob当日→最新(排除*.meta.json来源侧挂),保持独立可用。
+    W3(Model-Agnostic v2): data_only=True 时锚点/事实位校验照跑,人设/解释类
+    检查(禁止用语等叙事语言扫描)跳过——data-only 报告本就没有解释层。"""
     ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     date_str = datetime.now().strftime('%Y%m%d')
 
@@ -1204,7 +1310,8 @@ def validate_generated_report(md_path, anchors=None, anchors_file=None):
 
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        warnings = data_validator.validate_report(md_path, anchors)
+        warnings = data_validator.validate_report(md_path, anchors,
+                                                  skip_forbidden=data_only)
 
     classification, reason = data_validator.classify_result(
         has_anchors=True, anchors_same_day=anchors_same_day,
@@ -1321,7 +1428,19 @@ def generate_weekly_report():
         print(f"✅ 数据锚点已加载 ({len(anchor_block)} 字符, 当日{today_ymd})")
 
     # 第2步：生成报告(MW-V1: 不再注入论点/观点库,签名收窄)
-    report = generate_report(data_pack, framework, prev_report, tech_notes, news_summary)
+    # W3(Model-Agnostic v2, 2026-11-09): 模型三参不齐→不再 RuntimeError 硬失败,
+    # 走确定性 data-only 周观察(数据包+评分卡+相关性+确定性新闻段);Gate B
+    # 锚点/事实位校验照跑,人设/解释类检查跳过(data_only=True)。
+    _mcfg = model_runtime_config()
+    data_only = not _mcfg['complete']
+    if data_only:
+        print("⏭️ 未配置模型 API(三参不齐)——走 data-only 确定性数据观察分支"
+              "(Agent Native 模式预期行为,不发起任何模型调用)")
+        if _mcfg['blocked_reason']:
+            print(f"   ⚠️ {_mcfg['blocked_reason']}")
+        report = generate_data_only_report(data_pack)
+    else:
+        report = generate_report(data_pack, framework, prev_report, tech_notes, news_summary)
     if not report:
         print("\n❌ 报告生成失败")
         sys.exit(1)
@@ -1350,7 +1469,8 @@ def generate_weekly_report():
     # FIX-02: 校验器异常 → 候选按未验证隔离,不得遗留伪装为合格的正式文件
     try:
         classification, warnings = validate_generated_report(
-            cand_path, anchors=latest_anchors, anchors_file=pfx['anchors_path'])
+            cand_path, anchors=latest_anchors, anchors_file=pfx['anchors_path'],
+            data_only=data_only)
     except Exception as e:
         classification, warnings = 'FAIL', []
         print(f"⛔ Gate B校验器异常({type(e).__name__}: {e}) — 候选报告按未验证处置,不发布")

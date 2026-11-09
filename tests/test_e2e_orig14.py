@@ -175,7 +175,7 @@ def report_run(td, gate_b='PASS', validator_exc=None, status_false=False,
                           today_str=today_str, thesis_path=thesis,
                           views_path=views)
 
-    def _validate(md_path, anchors=None, anchors_file=None):
+    def _validate(md_path, anchors=None, anchors_file=None, data_only=False):
         if validator_exc:
             raise validator_exc
         return (gate_b, ['SYNTHETIC E2E警告'])
@@ -185,6 +185,11 @@ def report_run(td, gate_b='PASS', validator_exc=None, status_false=False,
         mock.patch.object(rg, 'OUTPUT_DIR', out_dir),
         mock.patch.object(rg, 'datetime', _FakeDT),
         mock.patch.object(rg, '_call_glm', glm),
+        # Model-Agnostic v2(W3): 模拟已配置模型三参,使周报走模型分支(零真实凭证)
+        mock.patch.object(rg, 'model_runtime_config', lambda: {
+            'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1',
+            'model': 'fake-e2e-model', 'complete': True,
+            'legacy_fallback': False, 'blocked_reason': ''}),
         mock.patch.object(rg, 'apply_status_updates', _apply),
         mock.patch.object(rg, 'validate_generated_report', _validate),
         mock.patch.object(rg.allocation_engine, 'load_views',
@@ -628,6 +633,10 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(qo, 'OUTPUT_DIR', qdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
          mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, 'model_runtime_config', lambda: { \
+             'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
+             'model': 'fake-e2e-model', 'complete': True, \
+             'legacy_fallback': False, 'blocked_reason': ''}), \
          mock.patch.object(sys, 'argv', ['monthly_review.py', '--month', '202609',
                                          '--dry-run']):
         quiet(mr.main)
@@ -638,6 +647,10 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(mr, 'OUTPUT_DIR', mdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
          mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, 'model_runtime_config', lambda: { \
+             'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
+             'model': 'fake-e2e-model', 'complete': True, \
+             'legacy_fallback': False, 'blocked_reason': ''}), \
          mock.patch.object(sys, 'argv', ['monthly_review.py', '--month', '202609']):
         quiet(mr.main)
     mtext = open(os.path.join(mdir, 'monthly_review_202609_UNVALIDATED.md'),
@@ -650,6 +663,10 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(qo, 'OUTPUT_DIR', qdir), \
          mock.patch.object(rg, 'load_prompt', lambda *a, **kw: '系统提示'), \
          mock.patch.object(rg, '_call_glm', glm), \
+         mock.patch.object(rg, 'model_runtime_config', lambda: { \
+             'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1', \
+             'model': 'fake-e2e-model', 'complete': True, \
+             'legacy_fallback': False, 'blocked_reason': ''}), \
          mock.patch.object(sys, 'argv', ['quarterly_outlook.py', '--quarter', '2026Q3']):
         quiet(qo.main)
     qtext = open(os.path.join(qdir, 'quarterly_outlook_2026Q3_UNVALIDATED.md'),

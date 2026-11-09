@@ -214,7 +214,7 @@ def report_run(td, gate_b='PASS', dt=DT_DAY, glm_text=None):
                           today_str=today_str, thesis_path=thesis_path,
                           views_path=views_path)
 
-    def _validate(md_path, anchors=None, anchors_file=None):
+    def _validate(md_path, anchors=None, anchors_file=None, data_only=False):
         return (gate_b, ['SYNTHETIC E2E警告'])
 
     patches = [
@@ -223,6 +223,11 @@ def report_run(td, gate_b='PASS', dt=DT_DAY, glm_text=None):
         mock.patch.object(rg, 'CONFIG_DIR', os.path.join(td, 'config')),
         mock.patch.object(rg, 'datetime', dt),
         mock.patch.object(rg, '_call_glm', glm),
+        # Model-Agnostic v2(W3): 模拟已配置模型三参,使周报走模型分支(零真实凭证)
+        mock.patch.object(rg, 'model_runtime_config', lambda: {
+            'api_key': 'FAKE_E2E_MODEL_KEY', 'base_url': 'https://fake.invalid/v1',
+            'model': 'fake-e2e-model', 'complete': True,
+            'legacy_fallback': False, 'blocked_reason': ''}),
         mock.patch.object(rg, 'apply_status_updates', _apply),
         mock.patch.object(rg, 'validate_generated_report', _validate),
         mock.patch.object(rg.allocation_engine, 'DEFAULT_VIEWS_PATH',

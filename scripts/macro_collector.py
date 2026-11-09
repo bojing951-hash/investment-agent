@@ -83,6 +83,36 @@ def macro_observation_start(now=None):
         start = datetime(now.year - years, 3, 1)
     return start.strftime('%Y-%m-%d')
 
+
+# === 真实数据修复轮③(2026-11-10): 源端历史窗口上限的如实注记 ============
+# 实测(2026-11-10 直连 FRED API+fredgraph 双通道复核): ICE BofA 族系列
+# (HY_OAS/BB_OAS/B_OAS/CCC_OAS/IG_OAS=BAMLH*/BAMLC0A0CM)源端仅提供约3年
+# 滚动窗(系列元数据 observation_start=2023-11-10,与请求 observation_start
+# 无关);DGS10 等其余系列不受影响(10年窗完整,n=2496)。这不是采集器截断,
+# 故在系列条目上如实注记 history_note,不冒充完整10年窗。
+_SOURCE_HISTORY_NOTE_THRESHOLD_DAYS = 90   # 月频自然滞后≈31天/季频≈92天内不算
+
+
+def series_history_note(dates, obs_start, threshold_days=None):
+    """序列首观测明显晚于采集窗起点→源端历史上限注记(纯函数,离线可测)。
+
+    返回注记字符串或 None。threshold_days 默认90: 月频系列首观测合法滞后
+    至多约1个发布周期(月频≤31天/季频GDP≈51-92天),超过则视为源端窗口
+    上限(如 ICE BofA 3年滚动授权窗),如实注记供审计,不静默。"""
+    from datetime import date as _date
+    if not dates:
+        return None
+    thr = (_SOURCE_HISTORY_NOTE_THRESHOLD_DAYS if threshold_days is None
+           else threshold_days)
+    try:
+        lag = (_date.fromisoformat(dates[0]) - _date.fromisoformat(obs_start)).days
+    except (TypeError, ValueError):
+        return None
+    if lag <= thr:
+        return None
+    return (f'源端历史自{dates[0]}起(晚于采集窗起点{obs_start}约{lag // 365}年)'
+            f'——源侧窗口上限,非采集器截断;序列深度以实际可得为准')
+
 # 信用阈值配置（来自分析框架）
 CREDIT_THRESHOLDS = {
     "HY_OAS_WATCH": 3.0,
@@ -267,6 +297,11 @@ def fetch_all_macro():
                 item = {"value": round(latest, 4), "date": latest_date, "frequency": freq}
                 # 第七轮Layer2: 附加原始序列(事实引擎统一计算收益/环比,替代各处自带口径)
                 item["series"] = {"dates": dates, "values": values}
+                # 修复轮③: 源端历史上限如实注记(ICE BofA族3年滚动窗等)
+                note = series_history_note(dates, obs_start)
+                if note:
+                    item["history_note"] = note
+                    print(f"  ⚠️ {name}: {note}")
                 item.update(compute_series_changes(dates, values, freq,
                                                    unit=SERIES_UNITS.get(name)))
                 rev = detect_revisions(name, {name: item}, today_str)

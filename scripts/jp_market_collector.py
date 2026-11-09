@@ -38,6 +38,11 @@ import os
 import sys
 from datetime import date, datetime, timezone
 
+# 仓库根进 sys.path(既有先例: china_market_collector/global_market_collector
+# 同款)——`python3 scripts/jp_market_collector.py` 流水线上下文下,
+# nikkei_series_window 的延迟 env_config import 才可解析(收尾修复轮①)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import japan_rate_collector as jrc   # B3 上游件: 复用调用,零修改
 
 __all__ = ['FRED_NIKKEI_URL', 'SERIES_WINDOW', 'fetch_nikkei_series',

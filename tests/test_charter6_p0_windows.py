@@ -383,6 +383,75 @@ jp_src = open(os.path.join(ROOT, 'scripts', 'jp_market_collector.py'),
 check("延期①: 过期注释清除(251 实况对齐叙述已废)",
       '近端251观测' not in jp_src and 'global 档实况对齐,见 docstring' not in jp_src)
 
+# ══ 六、真实数据修复轮(2026-11-10): ①jp流水线上下文import ②tail(400)
+#    ③ICE BofA 源端窗口上限注记 ============================================
+print("\n[六] 真实数据修复轮回归(①ModuleNotFoundError ②n=400截断 ③源端窗)")
+
+# ① 真实故障复现条件: 流水线以 `python3 scripts/jp_market_collector.py`
+# 起进程,scripts/ 在 sys.path 而仓库根不在——延迟 env_config import 曾
+# ModuleNotFoundError。子进程 cwd=临时目录 + 仅 scripts/ 入 path 忠实
+# 复现;模块级 sys.path 自举(修复)应使 nikkei_series_window() 可调用。
+import subprocess as _sp   # noqa: E402
+_snippet = (
+    "import sys; sys.path.insert(0, {scripts!r})\n"
+    "import importlib.util as iu\n"
+    "spec = iu.spec_from_file_location('jp_pipeline_ctx', {mod!r})\n"
+    "m = iu.module_from_spec(spec); spec.loader.exec_module(m)\n"
+    "print(m.nikkei_series_window())\n"
+).format(scripts=os.path.join(ROOT, 'scripts'),
+         mod=os.path.join(ROOT, 'scripts', 'jp_market_collector.py'))
+_tdctx = tempfile.mkdtemp(prefix='ia_fix1_ctx_')
+_r = _sp.run([sys.executable, '-c', _snippet], capture_output=True, text=True,
+             cwd=_tdctx, timeout=120,
+             env={**os.environ, 'GLOBAL_HISTORY_PERIOD': ''})
+check("①: 流水线上下文(根不在path)延迟import可解析,窗口=2520",
+      _r.returncode == 0 and _r.stdout.strip() == '2520'
+      and 'ModuleNotFoundError' not in _r.stderr,
+      str((_r.returncode, _r.stdout.strip()[:40], _r.stderr.strip()[-80:])))
+
+# ② 旧 tail(400) 硬截断在10年窗下把已采历史丢掉84%(catalog 恒 n=400);
+# 修复=series 即所请求窗口全量。手造1000行 DataFrame 验证零截断。
+import global_market_collector as gmc   # noqa: E402
+import pandas as _pd                    # noqa: E402
+_idx = _pd.bdate_range('2022-01-03', periods=1000)
+_hist = _pd.DataFrame({'Close': [1000.0 + i for i in range(1000)],
+                       'High': [1010.0 + i for i in range(1000)],
+                       'Low': [990.0 + i for i in range(1000)]}, index=_idx)
+_m = gmc.calc_metrics('SYN', _hist)
+check("②: calc_metrics series=窗口全量1000点(零截断)",
+      len(_m['series']['dates']) == 1000 and len(_m['series']['values']) == 1000,
+      str(len(_m['series']['dates'])))
+check("②: series 首末=窗口首末(非滚动400子窗)",
+      _m['series']['dates'][0] == '2022-01-03'
+      and _m['series']['dates'][-1] == str(_idx[-1].date()),
+      str((_m['series']['dates'][0], _m['series']['dates'][-1])))
+check("②: 结构锁——tail(400) 硬截断已从源码清除",
+      '.tail(400)' not in open(os.path.join(
+          ROOT, 'scripts', 'global_market_collector.py'),
+          encoding='utf-8').read())
+
+# ③ ICE BofA 族源端3年滚动窗(FRED 侧授权限制,双通道复核2026-11-10):
+# 采集器如实注记,不冒充10年窗。纯函数逐值手算。
+import macro_collector as mc   # noqa: E402
+hn = mc.series_history_note
+check("③: BAML族形态(首观测晚起点约7年)→注记含首观测日+源侧上限语义",
+      hn(['2023-11-10', '2026-11-06'], '2016-11-10') is not None
+      and '2023-11-10' in hn(['2023-11-10'], '2016-11-10')
+      and '源侧窗口上限' in hn(['2023-11-10'], '2016-11-10'))
+check("③: 月频合法滞后(21天)→None(不误报)",
+      hn(['2016-12-01', '2026-11-01'], '2016-11-10') is None)
+check("③: 季频GDP合法滞后(51天)→None(不误报)",
+      hn(['2016-12-31', '2026-09-30'], '2016-11-10') is None)
+check("③: 空/非法输入→None(不崩)",
+      hn([], '2016-11-10') is None and hn(None, '2016-11-10') is None
+      and hn(['2023-11-10'], 'junk') is None)
+check("③: 阈值边界(90天→None;91天→注记)",
+      hn(['2017-02-08'], '2016-11-10') is None
+      and hn(['2017-02-09'], '2016-11-10') is not None)
+check("③: 结构锁——fetch_all_macro 已接线 history_note 注记",
+      'series_history_note' in open(os.path.join(
+          ROOT, 'scripts', 'macro_collector.py'), encoding='utf-8').read())
+
 print("=" * 64)
 if FAIL == 0:
     print(f"✅ 全部通过: {PASS} 项")

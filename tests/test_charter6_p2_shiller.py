@@ -9,9 +9,15 @@
   二、日期换算边界: 1871.01→1月/1871.1→10月(浮点尾差)/月份越界/
      非数值/布尔 全部如实拒绝。
   三、P/E 直用列变体: 源带 P/E 列则直用(≠逐行 P÷E 计算值,可证)。
+  三b、真实数据修复轮④(2026-11-10): 实册4行合并表头陷阱 fixture(第7行
+     第5列'Date  '/第16列'CAPE'=Excess CAPE Yield 表头末行,真表头=第8行
+     首列恰'Date')——严格首列定位+回退告警;shillerdata.com 规范源直链
+     解析器(_resolve_current_ie_url)。
   四、诚实缺席: 无估值列表头→零序列+告警;非 xls 字节→打开失败;
      全序列缺席→不落盘不产空壳(exit 1)。
   五、payload/落盘: flat data+observations+series 全史+source_version。
+  五b、修复轮⑤: 解析字节 sha256+长度随档落盘(版本凭证);
+     _fetch_ie_workbook 双源(规范源→Yale回退)离线注入验证。
   六、快照接线 E2E: shiller_ 档→EXACT 来源状态→SPX_CAPE/SPX_PE_TTM
      事实(质量/单位/采集器权属)+series_store lift;缺源→MISSING+
      noncore_missing 如实;SPX_PB(status=unavailable)永不产事实。
@@ -51,6 +57,9 @@ def check(name, cond, detail=""):
 FIX1 = os.path.join(ROOT, 'tests', 'fixtures', 'charter6_shiller_min.xls')
 FIX2 = os.path.join(ROOT, 'tests', 'fixtures', 'charter6_shiller_pe_col.xls')
 FIX3 = os.path.join(ROOT, 'tests', 'fixtures', 'charter6_shiller_nocol.xls')
+# 修复轮④: 实册合并表头陷阱缩影(2026-11-10 下载真实 ie_data.xls 逐行
+# 核对后以 xlwt 忠实复刻其行2标题/行6-7合并表头/行8真表头/尾部注释形态)
+FIX4 = os.path.join(ROOT, 'tests', 'fixtures', 'charter6_shiller_merged_hdr.xls')
 
 print("=" * 64)
 print("Charter6-P2: Shiller CAPE 采集通道(ie_data.xls,免 Key,月频 1871+)")
@@ -120,6 +129,46 @@ check("P/E 采用列=直用列索引(非[P,E]计算形态)",
 check("fixture2 SPX_CAPE 同步解析",
       series2.get('SPX_CAPE', {}).get('values') == [31.5, 31.8, 32.0])
 
+# ══ [3b] 修复轮④: 实册合并表头陷阱(fixture4) ═════════════════════
+print("\n[3b] 真实数据修复轮④: 合并表头陷阱(实册2026-11-10形态缩影)")
+series4, meta4, alerts4 = sc.parse_ie_data(open(FIX4, 'rb').read())
+check("表头定位=真表头第8行(首列恰'Date';非第7行陷阱行)",
+      meta4['header_row'] == 8, str(meta4['header_row']))
+check("CAPE 采用列=真CAPE第12列(陷阱列16被首列规则排除)",
+      meta4['columns_used'] == {'CAPE': 12, 'PE': [1, 3]},
+      str(meta4['columns_used']))
+check("CAPE 序列=真列手算[31.0,31.5,32.0]",
+      series4.get('SPX_CAPE', {}).get('values') == [31.0, 31.5, 32.0],
+      str(series4.get('SPX_CAPE')))
+check("陷阱列(Excess CAPE Yield,0.02量级)值未混入任何序列",
+      all(0.023 != v and 0.024 != v and 0.025 != v
+          for s in series4.values() for v in s['values']),
+      str(series4))
+check("TR CAPE 变体列排除(41.0系值不在场)",
+      all(41.0 != v and 41.5 != v and 42.0 != v
+          for s in series4.values() for v in s['values']))
+check("PE=逐行P÷E 手算(4800/210,4850/212,4900/215)",
+      all(abs(a - b) < 1e-9 for a, b in zip(
+          series4.get('SPX_PE_TTM', {}).get('values', []),
+          [4800 / 210, 4850 / 212, 4900 / 215])),
+      str(series4.get('SPX_PE_TTM')))
+check("首末月=2024-01~2024-03(数据区,非陷阱区段)",
+      meta4['first_month'] == '2024-01' and meta4['last_month'] == '2024-03',
+      str((meta4['first_month'], meta4['last_month'])))
+check("零告警(严格定位成功,无回退告警)", alerts4 == [], str(alerts4))
+
+# ══ [3c] 修复轮④: shillerdata.com 规范源直链解析器 ═══════════════
+print("\n[3c] _resolve_current_ie_url(首页HTML→版本化CDN直链)")
+rs = sc._resolve_current_ie_url
+check("协议相对直链→补https(实册2026-11-10形态)",
+      rs('<a href="//img1.wsimg.com/blobby/go/abc/ie_data.xls?ver=123">x</a>')
+      == 'https://img1.wsimg.com/blobby/go/abc/ie_data.xls?ver=123')
+check("https 绝对直链原样",
+      rs('<a href="https://img1.wsimg.com/blobby/ie_data.xls?ver=9">x</a>')
+      == 'https://img1.wsimg.com/blobby/ie_data.xls?ver=9')
+check("无 ie_data.xls 链接→None(促回退)", rs('<a href="/about">x</a>') is None)
+check("空/None 输入→None", rs('') is None and rs(None) is None)
+
 # ══ [4] 诚实缺席/失败纪律 ═══════════════════════════════════════
 print("\n[4] 诚实缺席与不产空壳")
 series3, meta3, alerts3 = sc.parse_ie_data(open(FIX3, 'rb').read())
@@ -167,6 +216,61 @@ check("save_daily 原子落盘 shiller_20240630.json",
       p1 == os.path.join(td1, 'shiller_20240630.json')
       and os.path.isfile(p1) and not os.path.exists(p1 + '.tmp')
       and json.load(open(p1))['date'] == '20240630')
+
+# ══ [5b] 修复轮⑤: 字节指纹随档 + 双源获取(离线注入) ═══════════════
+print("\n[5b] 修复轮⑤: sha256 指纹随档 / _fetch_ie_workbook 双源")
+import hashlib  # noqa: E402
+payload5, _ = sc.build_payload(run_date=date(2024, 6, 30), raw=raw1)
+sv5 = payload5['source_version']
+check("解析字节 sha256 随档(注入路径,手算比对)",
+      sv5.get('download_sha256') == hashlib.sha256(raw1).hexdigest(),
+      str(sv5.get('download_sha256')))
+check("解析字节长度随档", sv5.get('download_bytes') == len(raw1),
+      str(sv5.get('download_bytes')))
+
+_HOMEPAGE = ('<html><a href="//img1.wsimg.com/blobby/go/e5e/ie_data.xls'
+             '?ver=42">ie_data.xls</a></html>')
+_real_http_get = sc._http_get
+
+
+def _mock_http_by_url(urls):
+    """url→bytes 映射注入;未登记 url 抛 KeyError 模拟失败。"""
+    def _get(url, timeout=None):
+        return urls[url]
+    return _get
+
+
+# 规范源成功路径: 首页→解析直链→下载,返回该直链
+sc._http_get = _mock_http_by_url({
+    sc.SHILLER_HOME_URL: _HOMEPAGE.encode(),
+    'https://img1.wsimg.com/blobby/go/e5e/ie_data.xls?ver=42': b'WBCANON',
+})
+try:
+    rb, uu, aa = sc._fetch_ie_workbook()
+finally:
+    sc._http_get = _real_http_get
+check("规范源成功: 返回首页解析直链+字节+零告警",
+      rb == b'WBCANON' and uu == 'https://img1.wsimg.com/blobby/go/e5e/ie_data.xls?ver=42'
+      and aa == [], str((rb, uu, aa)))
+# 规范源失败→回退Yale镜像(如实告警)
+sc._http_get = _mock_http_by_url({sc.SHILLER_IE_URL: b'WBFALLBACK'})
+try:
+    rb, uu, aa = sc._fetch_ie_workbook()
+finally:
+    sc._http_get = _real_http_get
+check("规范源失败→回退Yale镜像+告警(不冒充当前期)",
+      rb == b'WBFALLBACK' and uu == sc.SHILLER_IE_URL
+      and len(aa) == 2 and any('回退 Yale 旧镜像' in a for a in aa)
+      and any('不冒充当前期' in a for a in aa), str((rb, uu, aa)))
+# 双源均失败→(None,None,失败告警)
+sc._http_get = _mock_http_by_url({})
+try:
+    rb, uu, aa = sc._fetch_ie_workbook()
+finally:
+    sc._http_get = _real_http_get
+check("双源均失败→None+失败告警(不产空壳)",
+      rb is None and uu is None and any('SHILLER_IE源获取失败' in a for a in aa),
+      str((rb, uu, aa)))
 
 # ══ [6] 快照接线 E2E ════════════════════════════════════════════
 print("\n[6] snapshot_builder 接线(shiller 通道)")

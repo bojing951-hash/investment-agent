@@ -254,9 +254,12 @@ def calc_metrics(asset_id, hist):
     # 第七轮Layer2(2026-10-17): 附加原始收盘序列 — 事实引擎统一计算
     # 周变化/MTD/YTD(期前收盘基准+交易日历口径),替代本函数的固定偏移口径。
     # 旧字段保留以兼容既有消费者,但快照以下游事实引擎输出为准。
-    tail = close.tail(400)
-    series = {"dates": [str(d.date()) for d in tail.index],
-              "values": [round(float(v), 6) for v in tail.values]}
+    # 收尾修复轮②(2026-11-10): 删 tail(400) 硬截断——那是 1 年窗时代的载荷
+    # 护栏,10 年窗下把已采到的历史丢掉 84%(catalog 深度恒 n=400、起点恒
+    # 2025-04)。hist 本身即所请求窗口(period 参数化,见 fetch_all),series
+    # 直接全量;ytd/max 时为 yfinance 返回全量,不做二次截断。
+    series = {"dates": [str(d.date()) for d in close.index],
+              "values": [round(float(v), 6) for v in close.values]}
 
     return {
         "asset_id": asset_id,

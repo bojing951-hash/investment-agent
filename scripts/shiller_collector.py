@@ -6,9 +6,14 @@
 shiller_YYYYMMDD.json,回退窗35自然日——月频数据+官网不定期更新,窗口放宽
 到月度节奏);产出目录 data/daily。
 
-数据源(A2 白名单): Robert Shiller 官网 ie_data.xls(耶鲁,http 直链,
-免 Key 单文件下载):
-  http://www.econ.yale.edu/~shiller/data/ie_data.xls
+数据源(A2 白名单): Robert Shiller 官网 ie_data.xls(免 Key 单文件下载):
+  1. 规范源(收尾修复轮④,2026-11-10): https://shillerdata.com/ 首页解析
+     当前 ie_data.xls 直链——官网迁址后的正式家;直链是版本化 CDN URL
+     (每次上传更换,不可硬编码),故按首页解析。实测月频 1871.01+ 至最近月
+     (2026-11-10 拉取末月=2026.10);
+  2. 回退源: http://www.econ.yale.edu/~shiller/data/ie_data.xls(旧镜像,
+     实测滞后——2026-11-10 拉取末月=2023.09;规范源失败时使用并如实告警,
+     不冒充当前期)。
   → SPX_CAPE(席勒周期调整市盈率: 价格÷10年平均实际盈利,月频 1871+)
   → SPX_PE_TTM(标普500 TTM 市盈率: P÷E(近12个月盈利),月频 1871+)
 
@@ -20,7 +25,13 @@ shiller_YYYYMMDD.json,回退窗35自然日——月频数据+官网不定期更�
 
 解析容错(A2 §2#5 "sheet 名/表头变动需容错+源版本注记"):
   - sheet 优先名'Data',否则首个 sheet;
-  - 表头行=前15行内首个含'Date'列的行(列头驱动定位,不按位置猜列);
+  - 表头行=前15行内首个首列恰为'Date'的行(收尾修复轮④,2026-11-10:
+    真实 ie_data.xls 的表头是4行合并式,合并区间的中间行(第7行)在第5列
+    恰有'Date  '(月末分数子列头)、第16列恰有'CAPE'(Excess CAPE Yield
+    合并表头末行)——首版"任一行含Date列"定位会错采该行,把Excess CAPE
+    Yield(0.02量级,1881-04起2023-12止,n=286)当成CAPE。真表头=首列
+    恰为'Date'的单行完整列头行(实册第8行);无严格匹配时回落旧行为
+    (任一行含Date列)并告警);列头驱动定位,不按位置猜列;
   - CAPE 列=表头恰为'CAPE'(排除'TR CAPE'/'CAPE10'等变体);P/E 若源带
     'P/E'列则直用,否则逐行 P÷E 计算(calc 口径登记);
   - 日期列=数值 YYYY.MM(1871.01 形态;月份=四舍五入((v−年)×100),
@@ -39,6 +50,7 @@ shiller_YYYYMMDD.json,回退窗35自然日——月频数据+官网不定期更�
 依赖: 标准库+xlrd(读 .xls;CI 离线套件已装);解析函数支持字节注入零网络。
 """
 import json
+import hashlib
 import os
 import sys
 import urllib.request
@@ -48,10 +60,29 @@ __all__ = ['SHILLER_IE_URL', 'parse_ie_data', 'build_payload', 'save_daily',
            'main']
 
 SHILLER_IE_URL = 'http://www.econ.yale.edu/~shiller/data/ie_data.xls'
+# 规范源首页(收尾修复轮④): 官网迁址 shillerdata.com,当前直链=首页上的
+# 版本化 CDN URL(每次上传更换),按首页解析获取;Yale 旧镜像仅作回退
+# (2026-11-10 实测末月 2023.09,滞后约3年,回退时如实告警不冒充当前期)。
+SHILLER_HOME_URL = 'https://shillerdata.com/'
 _UA = {'User-Agent': 'investment-agent-dev-shiller-collector/1.0',
        'Connection': 'close'}
 _TIMEOUT = 120          # ie_data.xls ~2MB,慢源宽限
+_HOME_TIMEOUT = 30      # 首页解析(小页面,快速失败促回退)
 _HEADER_SCAN_ROWS = 15  # 表头行容错扫描窗(实册约第7-8行)
+
+
+def _resolve_current_ie_url(html_text):
+    """shillerdata.com 首页 HTML → 当前 ie_data.xls 直链;未找到→None。
+
+    直链形态(2026-11-10 实测): //img1.wsimg.com/blobby/go/…/ie_data.xls?ver=…
+    (协议相对→补 https:)。纯函数零网络,离线可测。"""
+    import re
+    m = re.search(r'''href=["']([^"']*ie_data\.xls[^"']*)["']''',
+                  html_text or '', re.I)
+    if not m:
+        return None
+    u = m.group(1)
+    return 'https:' + u if u.startswith('//') else u
 
 # 表头匹配规范(小写去空白;列头驱动,不按位置)
 def _hdr(cell):
@@ -115,18 +146,29 @@ def parse_ie_data(raw):
         alerts.append(f"未见'Data' sheet,回退首个 sheet:{sheet.name!r}")
     meta['sheet'] = sheet.name
 
-    # 表头行定位(前15行内首个含'Date'列的行;列头驱动;不要求该行
+    # 表头行定位(前15行内;收尾修复轮④: 严格匹配=首个首列恰为'Date'的行
+    # ——真实表头行的 Date 即该 sheet 第0列;真实文件的合并表头中间行只在
+    # 无关列(月末分数子列)出现'Date'字样,不得据此定位。无严格匹配→回落
+    # 旧行为(任一行含'Date'列)并告警,容错未来版式。列头驱动;不要求该行
     # 同时含估值列——先定位表头,估值列缺席与否是下一步的独立判定,
     # 两种缺席(无表头/有表头无估值列)分别如实告警)
     header_idx, cols = None, {}
-    for r in range(min(_HEADER_SCAN_ROWS, sheet.nrows)):
-        cells = [_hdr(sheet.cell_value(r, c))
-                 for c in range(sheet.ncols)]
-        if 'date' not in cells:
-            continue
-        cols = {h: c for c, h in enumerate(cells) if h}
-        header_idx = r
-        break
+    for strict_first_cell in (True, False):
+        for r in range(min(_HEADER_SCAN_ROWS, sheet.nrows)):
+            cells = [_hdr(sheet.cell_value(r, c))
+                     for c in range(sheet.ncols)]
+            if 'date' not in cells:
+                continue
+            if strict_first_cell and cells[0] != 'date':
+                continue
+            cols = {h: c for c, h in enumerate(cells) if h}
+            header_idx = r
+            break
+        if header_idx is not None:
+            if not strict_first_cell:
+                alerts.append("表头行无'首列=Date'严格匹配,回落任一含Date"
+                              "列的行定位(容错模式,版式可能与实册不同)")
+            break
     if header_idx is None:
         return {}, meta, ['ie_data.xls 表头行未定位(前15行无 Date 列头)']
     meta['header_row'] = header_idx + 1
@@ -177,10 +219,41 @@ def parse_ie_data(raw):
     return series, meta, alerts
 
 
-def _http_get(url):
+def _http_get(url, timeout=None):
     req = urllib.request.Request(url, headers=_UA)
-    with urllib.request.urlopen(req, timeout=_TIMEOUT) as r:
+    with urllib.request.urlopen(req, timeout=timeout or _TIMEOUT) as r:
         return r.read()
+
+
+def _fetch_ie_workbook():
+    """ie_data.xls 获取(收尾修复轮④双源): 规范源→回退源。
+
+    返回 (raw_bytes|None, used_url|None, alerts)。规范源=shillerdata.com
+    首页解析当前直链;任一步失败→回退 Yale 旧镜像并告警(镜像滞后,末月
+    2023.09 实测,不冒充当前期);双源均失败→(None, None, 失败告警)。"""
+    alerts = []
+    # ── 规范源: 首页解析当前直链 → 下载 ─────────────────────────────
+    try:
+        home_html = _http_get(SHILLER_HOME_URL, timeout=_HOME_TIMEOUT
+                              ).decode('utf-8', errors='replace')
+        cur = _resolve_current_ie_url(home_html)
+        if cur is None:
+            raise ValueError('首页未找到 ie_data.xls 直链')
+        raw = _http_get(cur)
+        return raw, cur, alerts
+    except Exception as e:
+        alerts.append(f'shillerdata.com 规范源失败({type(e).__name__}:'
+                      f'{str(e)[:60]})→回退 Yale 旧镜像')
+    # ── 回退源: Yale 旧镜像(滞后,如实告警) ──────────────────────────
+    try:
+        raw = _http_get(SHILLER_IE_URL)
+        alerts.append('已从 Yale 旧镜像获取 ie_data.xls(镜像滞后,实测末月'
+                      '2023.09;CAPE 末月以 source_version.last_month 为准,'
+                      '不冒充当前期)')
+        return raw, SHILLER_IE_URL, alerts
+    except Exception as e:
+        alerts.append(f'SHILLER_IE源获取失败:{type(e).__name__}:{str(e)[:60]}')
+        return None, None, alerts
 
 
 def _now_iso():
@@ -196,16 +269,20 @@ def build_payload(run_date=None, raw=None):
     ymd = rd.strftime('%Y%m%d')
     alerts = []
     sources_status = {}
+    used_url = None          # 网络路径实际下载 URL(注入路径保持 None)
     series, meta, a = {}, {}, []
     if raw is not None:
         series, meta, a = parse_ie_data(raw)
         alerts.extend(a)
+        # 收尾修复轮⑤(C-sec 建议): 实际解析字节的指纹随档落盘——
+        # 注入(离线测试)与网络下载同款记录,审计可对源端复下载核验
+        meta['download_sha256'] = hashlib.sha256(raw).hexdigest()
+        meta['download_bytes'] = len(raw)
     else:
         t0 = _now_iso()
-        try:
-            raw_bytes = _http_get(SHILLER_IE_URL)
-        except Exception as e:
-            alerts.append(f'SHILLER_IE源获取失败:{type(e).__name__}:{e}')
+        raw_bytes, used_url, net_alerts = _fetch_ie_workbook()
+        alerts.extend(net_alerts)
+        if raw_bytes is None:
             sources_status['SHILLER_IE'] = {'status': 'READ_FAIL',
                                             'retrieved_at': t0}
         else:
@@ -213,6 +290,12 @@ def build_payload(run_date=None, raw=None):
                                             'retrieved_at': t0}
             series, meta, a = parse_ie_data(raw_bytes)
             alerts.extend(a)
+            # ⑤ 同款: 源无逐版发布日,字节指纹+长度即版本凭证
+            meta['download_sha256'] = hashlib.sha256(raw_bytes).hexdigest()
+            meta['download_bytes'] = len(raw_bytes)
+            if meta.get('last_month') and meta['last_month'] < '2024':
+                alerts.append(f"源末月={meta['last_month']}(旧镜像滞后),"
+                              f"CAPE 时效受限如实披露,不冒充当前期")
     data, observations = {}, {}
     for mid, s in sorted(series.items()):
         data[mid] = s['values'][-1]
@@ -225,8 +308,9 @@ def build_payload(run_date=None, raw=None):
         'observations': observations,
         'sources': {
             'SHILLER_IE': {
-                'url': SHILLER_IE_URL,
-                'note': 'Robert Shiller 官网 ie_data.xls(月频 1871+;'
+                'url': used_url or SHILLER_IE_URL,
+                'note': 'Robert Shiller 官网 ie_data.xls(规范源 shillerdata.'
+                        'com 首页解析直链,回退 Yale 旧镜像;月频 1871+;'
                         'CAPE=价格÷10年平均实际盈利;PE_TTM=逐行P÷E)'
                         '——最新修订口径(latest_vintage_asof_collected)'},
         },

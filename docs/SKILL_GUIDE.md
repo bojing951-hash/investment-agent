@@ -112,7 +112,7 @@ python3 install_skill.py --uninstall        # 移除已安装副本(默认仅项
 
 **Q: update 会花钱吗?**
 数据源全免费;`update --yes` 只是耗时的采集流水线。会花钱的只有
-`research --glm`(GLM 解释,需 GLM_API_KEY)——Skill 默认不调用,仅你明确要求时。
+`research --explain`(AI 解释,可选模型 API 三参;`--glm` 为旧别名)——Skill 默认不调用,仅你明确要求时。
 
 **Q: Skill 会把我的 Key 发到哪?**
 不会。ia_cli/Skill 全程本地;`doctor` 只报"已配置/未配置",不打印值;

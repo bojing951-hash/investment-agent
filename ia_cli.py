@@ -619,7 +619,7 @@ def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=Non
                             warnings_=(), violations=(), user_note=None,
                             follow_up_of=None):
     """research_full_v1 sidecar 旁挂(批2 WI6): 保存**本次用户实际所见**的
-    作答正文/GLM 原文/warnings/violations/备注/前档链接——只搬运本进程已有
+    作答正文/AI 解释原文(glm 字段名保留)/warnings/violations/备注/前档链接——只搬运本进程已有
     值,绝不重新生成、绝不补发任何 API 调用。返回 (ok, 详情)。"""
     from datetime import datetime, timezone
     import research_archive as ra
@@ -692,7 +692,7 @@ def cmd_research(args):
         glm = wd.glm_explain(args.question, res.get('answer_text', ''))
         data['glm'] = glm
         if not glm.get('ok'):
-            warnings.append(f"GLM 解释未生成: {glm.get('error', '')[:120]}")
+            warnings.append(f"AI 解释未生成: {glm.get('error', '')[:120]}")
     if args.archive and ok:
         qid, err = wd.save_to_archive(args.question, snap, ROOT,
                                       archive_dir=_ARCHIVE_DIR)

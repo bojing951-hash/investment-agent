@@ -51,10 +51,10 @@ python3 install_skill.py --target personal-codex
 | **查看全球宏观全景** | 工作台"全球宏观概览"页: 美中欧日主要指标当前值/观测日期/变化/来源,缺失如实标注 |
 | **观察金融市场近期变化** | 工作台"金融市场变化"页: 股/债/汇/商品/加密/信用/波动率的周/月/年内变化与走势图 |
 | **比较历史与不同经济体** | 工作台"历史研究"页: 任选指标看 1 个月~1 年+ 序列,双指标叠加对比(本地真实序列) |
-| **借助 AI 开展专题研究** | 工作台"AI 研究"页: 基于快照事实的接地作答(每个数值可溯源),可存入本地研究档案;GLM 研究解释为可选增强 |
+| **借助 AI 开展专题研究** | 工作台"AI 研究"页: 基于快照事实的接地作答(每个数值可溯源),可存入本地研究档案;AI 研究解释为可选增强(可选模型 API,任意 OpenAI 兼容端点) |
 | **让 AI Agent 替你跑全流程** | Agent Skill + `ia_cli.py`: 自然语言→结构化 JSON→按研究纪律作答(见上节) |
 
-外加每周一份的 **AI 宏观研究周报**(需智谱 GLM Key): [样例点这里](examples/weekly_report_20261108.md)。
+外加每周一份的 **AI 宏观研究周报**(可选模型 API;不配则自动产出 data-only 确定性数据观察周报——Agent Native 默认形态,见 USER_GUIDE 第 2 节): [样例点这里](examples/weekly_report_20261108.md)。
 
 ## 快速开始
 
@@ -86,7 +86,8 @@ python3 run_weekly.py       # 第一次数据采集(13 步流水线,配齐 Key �
   单一权威来源 `config/metric_registry.json`);
 - **金融事实引擎 + 研究快照**: 每项事实带观测日期/来源文件/内容指纹;快照不可变;
 - **Gate A(数据质量门禁)**: 核心缺失即 FAIL;非核心缺失→DEGRADED 降级并如实披露;
-- **AI 周报生成**(`scripts/report_generator.py`,需 `GLM_API_KEY`): GLM 生成 →
+- **AI 周报生成**(`scripts/report_generator.py`,可选模型 API `MODEL_*` 三参,任意
+  OpenAI 兼容端点;未配齐→data-only 确定性数据观察,不失败): 模型生成 →
   **Gate B 数值校验**(报告里每个数字对照当日锚点核验,不可核验→待复核)→ 三态发布;
 - **本地研究工作台**(`streamlit run app.py`,四页,见上表);
 - **接地研究问答**: 当前支持 4 类问题(美日政策利率差/美日10Y收益率差/美元兑日元/
@@ -98,8 +99,8 @@ python3 run_weekly.py       # 第一次数据采集(13 步流水线,配齐 Key �
   archive)结构化 JSON 输出,数值节点强制携带单位族/观测日期/来源/ETF 代理身份,
   变化量强制携带基准日与窗口语义,附研究纪律 lint(成分编造断言=violation);
   安装器 `install_skill.py` 物理复制到各宿主(不依赖符号链接);
-- **离线测试**: 99 个测试套件(`python3 tests/<name>.py`,无需 pytest;CI 自动跑
-  98 个离线套件,真实 GLM 调用套件须显式开启)。
+- **离线测试**: 100 个测试套件(`python3 tests/<name>.py`,无需 pytest;CI 自动跑
+  99 个离线套件,真实模型调用套件 `test_glm_live` 须显式开启)。
 
 **历史兼容(非默认执行)**: `config/thesis.json`、`config/allocation_views.json`
 为**已冻结的历史研究档案**(2026-11-08 产品章程勘误: 论点星级/超配低配/预测裁决
@@ -122,13 +123,13 @@ python3 run_weekly.py       # 第一次数据采集(13 步流水线,配齐 Key �
 | A股/港股/中国宏观 | akshare / tushare | `TUSHARE_TOKEN`(可选) |
 | 日本国债/政策利率、欧元区利率 | 日本财务省/BOJ、ECB 公开数据 | 不需要 |
 | 新闻摘要 | Finnhub | `FINNHUB_API_KEY`(可选) |
-| AI 周报/研究解释 | 智谱 GLM | `GLM_API_KEY`(仅 AI 功能需要;数据采集不需要) |
+| AI 周报/研究解释 | 可选模型 API(任意 OpenAI 兼容端点;如智谱 GLM) | `MODEL_API_KEY`/`MODEL_BASE_URL`/`MODEL_NAME` 三参(仅 AI 功能需要;数据采集不需要;旧 `GLM_API_KEY` 兼容回退) |
 
 ## 命令速查
 
 ```bash
 python3 run_weekly.py                 # 数据采集+快照+校验(13步;免Key可跑,缺FRED Key时Gate A FAIL→退出码1,属预期)
-python3 scripts/report_generator.py   # 生成 AI 周报(需 GLM_API_KEY)
+python3 scripts/report_generator.py   # 生成 AI 周报(可选模型 API;未配齐→data-only 数据观察)
 bash run_daily.sh                     # 采集入口脚本(自动定位项目根/虚拟环境,可移植)
 streamlit run app.py                  # 本地研究工作台(网页)
 python3 ia_cli.py doctor              # Agent 工具接口·环境体检(其余: overview/changes/history/compare/research/archive)
@@ -147,12 +148,12 @@ python3 tests/test_p0_fixes.py        # 运行单个测试套件(离线)
 
 ## 已验证 / 未验证(诚实边界)
 
-**已离线验证**: 99 个测试套件(门禁逻辑/快照与事实引擎/数值校验/研究问答/
+**已离线验证**: 100 个测试套件(门禁逻辑/快照与事实引擎/数值校验/研究问答/
 工作台数据层/配置安全/Skill 格式与安装器/ia_cli 契约与纪律 lint/单位感知
 比较与档案 sidecar);
-真实 GLM 冒烟(显式开启)。
+真实模型 API 冒烟(`test_glm_live`,显式开启)。
 **未验证/边界**: Windows 实机未测(代码无 OS 专属调用,理论可用);中国节假日
-日历仅 2026 年;免费数据源存在限流与修订(降级机制会如实披露);GLM 解释性内容
+日历仅 2026 年;免费数据源存在限流与修订(降级机制会如实披露);AI 解释性内容
 可能出错(因此与【事实】严格区分)。
 
 ## 免责声明

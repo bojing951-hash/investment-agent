@@ -470,6 +470,16 @@ def cmd_compare(args):
         emit(envelope('compare', False, {},
                       error=('no_mode', '未指定比较模式',
                              '--metrics A,B | --economies US,JP | --assets 三选一')), exit_code=2)
+    # 批2 W9: --window 仅 metrics 模式且 N≥2(先于快照加载,恒定 rc=2)
+    if args.window is not None:
+        if not args.metrics:
+            emit(envelope('compare', False, {},
+                          error=('bad_window', '--window 仅适用于 --metrics 模式',
+                                 '滚动相关需要双指标序列;先给 --metrics A,B')), exit_code=2)
+        if args.window < 2:
+            emit(envelope('compare', False, {},
+                          error=('bad_window', f'--window 须 ≥2,收到 {args.window}',
+                                 '窗长=参与每个滚动相关值的变化对数')), exit_code=2)
     ecos = []
     if args.economies:
         ecos = [e.strip().upper() for e in re.split(r'[,\s]+', args.economies) if e.strip()]
@@ -526,42 +536,110 @@ def cmd_compare(args):
                                  'other 族不能进单位感知变化相关;换用价格/利率/计数族'
                                  '指标对,或用 history 分别取原序列')),
                  exit_code=1)
+        # ── 批2 W9: 指令窗口过滤(建议2)——对齐前作用于两侧原序列 ──
+        if args.start or args.end:
+            kept = []
+            for s in (sa, sb):
+                lo = args.start or s['dates'][0]
+                hi = args.end or s['dates'][-1]
+                idx = [i for i, d in enumerate(s['dates']) if lo <= d <= hi]
+                s['dates'] = [s['dates'][i] for i in idx]
+                s['values'] = [s['values'][i] for i in idx]
+                kept.append(len(idx))
+            if min(kept) == 0:
+                emit(envelope('compare', False, {},
+                              error=('empty_window',
+                                     f'窗口 {args.start}~{args.end} 内至少一侧无观测'
+                                     f'(各侧保留 {kept[0]}/{kept[1]} 点)',
+                                     '放宽窗口,或先用 history 查看序列覆盖区间')),
+                     exit_code=1)
+
+        freq_a, freq_b = metas[0].get('frequency'), metas[1].get('frequency')
+
+        # ── 批2 W9: 月度聚合对齐(建议6)——mixed_frequency 且低频侧=月频时默认 ──
+        # 高频侧聚合到自然月网格(代表=期内末值,rhq.align_to_month),月键(YYYY-MM)
+        # 内交;两侧同频(含月×月)仍走原精确日内交(alignment.mode=exact_date)。
+        align_mode = 'exact_date'
+        agg_side = None                      # 被聚合侧标记('a'/'b'),sides 披露用
+        pair_a = {'dates': sa['dates'], 'values': sa['values']}
+        pair_b = {'dates': sb['dates'], 'values': sb['values']}
+        if (freq_a and freq_b and freq_a != freq_b
+                and 'monthly' in (freq_a, freq_b)):
+            if freq_a == 'monthly':          # b 侧为高频→聚合 b
+                grid = rhq.align_to_month(pair_b)
+                pair_b = {'dates': grid['grid_keys'], 'values': grid['values']}
+                pair_a = {'dates': [str(d)[:7] for d in pair_a['dates']],
+                          'values': pair_a['values']}
+                agg_side = 'b'
+            else:                            # 聚合 a
+                grid = rhq.align_to_month(pair_a)
+                pair_a = {'dates': grid['grid_keys'], 'values': grid['values']}
+                pair_b = {'dates': [str(d)[:7] for d in pair_b['dates']],
+                          'values': pair_b['values']}
+                agg_side = 'a'
+            align_mode = 'month_grid'
+
         # P0-3 单位感知变化相关: 利率→pp/价格→pct,修复利率×价格混算 pct
-        paired, common = cc.paired_unit_changes(
-            {'dates': sa['dates'], 'values': sa['values']}, fam_a,
-            {'dates': sb['dates'], 'values': sb['values']}, fam_b)
+        paired, common = cc.paired_unit_changes(pair_a, fam_a, pair_b, fam_b)
         corr = (cc.pearson(paired['changes_a'], paired['changes_b'])
                 if paired else None)
+
+        # ── 批2 W9: 跨历掉落披露(建议5)——各自非共同观测计数(月键口径=月数) ──
+        a_dropped = len(set(pair_a['dates'])) - len(common)
+        b_dropped = len(set(pair_b['dates'])) - len(common)
+
+        # ── 批2 W9: 质量披露并入 sides(建议1)——quality_status(快照事实层)
+        # +release_note(注册表 release_semantics 透传;事实层无该字段,口径登记) ──
+        facts_by_id = {f.get('metric_id'): f for f in snap.get('facts', [])}
         sides = []
-        for sid, s in ((ids[0], sa), (ids[1], sb)):
+        for k, (sid, s) in enumerate(((ids[0], sa), (ids[1], sb))):
             m = reg['by_id'].get(sid) or {}
             fam, sub = unit_family(m.get('unit', ''), m.get('asset_class', ''))
             node = {'metric_id': sid, 'label': s['label'], 'unit': s['unit'],
                     'unit_family': fam, 'frequency': m.get('frequency'),
                     'identity': identity_block(m), 'calc': m.get('calc'),
                     'n': len(s['dates']), 'first': s['dates'][0], 'last': s['dates'][-1],
-                    'source': s['source']}
+                    'source': s['source'],
+                    'quality_status': (facts_by_id.get(sid) or {}).get('quality_status'),
+                    'release_note': m.get('release_semantics')}
             if sub:
                 node['unit_subfamily'] = sub
+            if agg_side == ('a' if k == 0 else 'b'):
+                node['aggregation'] = ('month_grid: 自然月网格,代表=期内末值'
+                                       '(rhq.align_to_month,mixed_frequency 对齐)')
+            # 月键窗口界: start=共同首月月初, end=共同末月月末串界('YYYY-MM-31'
+            # 字典序≥该月任意日且<次月),与 interval_change 纯字符串比较兼容
+            if align_mode == 'month_grid' and common:
+                w_start, w_end = common[0] + '-01', common[-1] + '-31'
+            else:
+                w_start = common[0] if common else None
+                w_end = common[-1] if common else None
             try:
                 iv = rhq.interval_change(s['dates'], s['values'], s['unit'],
-                                         start=common[0] if common else None,
-                                         end=common[-1] if common else None)
+                                         start=w_start, end=w_end)
             except Exception:  # noqa: BLE001 —— 区间变动失败不阻断对齐结果
                 iv = {'available': False, 'reason': 'interval_change 计算失败'}
             node['interval_change_common_window'] = iv
             sides.append(node)
         basis_a = 'pp' if fam_a == 'rate' else 'pct'
         basis_b = 'pp' if fam_b == 'rate' else 'pct'
+        align_note = ('水平窗=共同观测日数;变化窗=相邻观测对数'
+                      '(少一个会话,如实并列);data.n_change_pairs='
+                      '剔除 null/零基丢弃后实际参与相关的对数')
+        if align_mode == 'month_grid':
+            align_note += (';本对为 mixed_frequency(低频侧=月频): 高频侧已聚合到'
+                           '自然月网格(代表=期内末值,align_to_month),按月键'
+                           '(YYYY-MM)内交,n_*=共同月份数;a_dropped/b_dropped='
+                           '各自未进入共同窗的观测数(月键口径=月数)')
         data = {'mode': 'metrics', 'sides': sides,
-                'alignment': {'n_common_observations': len(common),
+                'alignment': {'mode': align_mode,
+                              'n_common_observations': len(common),
                               'n_level_observations': len(common),
                               'n_change_pairs': len(common) - 1,
                               'common_first': common[0] if common else None,
                               'common_last': common[-1] if common else None,
-                              'note': '水平窗=共同观测日数;变化窗=相邻观测对数'
-                                      '(少一个会话,如实并列);data.n_change_pairs='
-                                      '剔除 null/零基丢弃后实际参与相关的对数'},
+                              'a_dropped': a_dropped, 'b_dropped': b_dropped,
+                              'note': align_note},
                 'pearson_returns': corr,
                 'change_basis': {'a': basis_a, 'b': basis_b},
                 'n_change_pairs': paired['n_change_pairs'] if paired else 0,
@@ -578,21 +656,75 @@ def cmd_compare(args):
         if paired and paired['n_change_pairs'] < 15:
             warnings.append(f"变化对仅 {paired['n_change_pairs']} 个(<15),"
                             '相关性统计意义不足,引擎口径要求如实警示')
-        freq_a, freq_b = metas[0].get('frequency'), metas[1].get('frequency')
+        if not paired or paired['n_change_pairs'] == 0:
+            # 批2 W9(建议9): n==0 专门文案——区别于样本不足,直说不可计算
+            data['sample_note'] = ('n_change_pairs=0: 无可用变化对,相关性不可计算'
+                                   '(共同观测<3 或 变化对全部因 null/零基被弃)')
+            warnings.append('n_change_pairs=0: 相关性不可计算,勿引用 pearson_returns')
         if freq_a and freq_b and freq_a != freq_b:
-            warnings.append(f'mixed_frequency: 两侧频率不同({freq_a} vs {freq_b}),'
-                            '共同观测日交集由低频侧主导,解读须注意')
-        if len(common) >= 2:
+            if align_mode == 'month_grid':
+                warnings.append(f'mixed_frequency: 两侧频率不同({freq_a} vs {freq_b}),'
+                                '已默认按自然月网格聚合对齐(alignment.mode='
+                                'month_grid,聚合方式见 alignment.note 与该侧 '
+                                'sides[].aggregation)')
+            else:
+                warnings.append(f'mixed_frequency: 两侧频率不同({freq_a} vs {freq_b}),'
+                                '共同观测日交集由低频侧主导,解读须注意')
+        # ── 批2 W9: date_gap 阈值频率归一(建议4)——月频参与时 7→45 天
+        # (月×月相邻观测~28-31 天,旧 7 天阈值对月频恒误报;缺整月=59+ 天仍报) ──
+        gap_threshold = 45 if 'monthly' in (freq_a, freq_b) else 7
+        if align_mode == 'exact_date' and len(common) >= 2:
             gaps = [_date_gap_days(common[i - 1], common[i])
                     for i in range(1, len(common))]
             gaps = [g for g in gaps if g is not None]
-            if gaps and max(gaps) > 7:
+            if gaps and max(gaps) > gap_threshold:
                 warnings.append(f'date_gap: 共同观测窗内相邻观测最大间隔 '
-                                f'{max(gaps)} 天(>7),期间无共同观测,相关序列存在断点')
+                                f'{max(gaps)} 天(>{gap_threshold},月频参与时阈值'
+                                '归一为45天),期间无共同观测,相关序列存在断点')
+        elif align_mode == 'month_grid' and len(common) >= 2:
+            def _midx(k):
+                y, m = k.split('-')
+                return int(y) * 12 + int(m)
+            mgaps = [_midx(common[i]) - _midx(common[i - 1])
+                     for i in range(1, len(common))]
+            if mgaps and max(mgaps) > 1:
+                warnings.append(f'date_gap(月网格): 共同观测窗内最大间隔 '
+                                f'{max(mgaps)} 个月(缺失月份),相关序列存在断点')
         gap = _date_gap_days(sa['dates'][-1], sb['dates'][-1])
         if gap is not None and gap > 3:
             warnings.append(f'两侧最新观测日相差 {gap} 天({sa["dates"][-1]} vs '
                             f'{sb["dates"][-1]})——日频指标错位>3天,末端对比须注明各自观测日')
+        # ── 批2 W9: 滚动相关(建议3,C-3)——单位感知变化对上取滚动窗 pearson ──
+        # rhq.rolling_correlation 为 diff 基(对输入序列差分): 传入变化序列的
+        # 累积和,其相邻差分恰好还原各单位感知变化对,复用零新算式。
+        if args.window is not None:
+            if paired and paired['n_change_pairs'] >= args.window:
+                cum_a = [sum(paired['changes_a'][:i + 1])
+                         for i in range(len(paired['changes_a']))]
+                cum_b = [sum(paired['changes_b'][:i + 1])
+                         for i in range(len(paired['changes_b']))]
+                roll = rhq.rolling_correlation(paired['dates'], cum_a, cum_b,
+                                                args.window)
+                rvals = [r for _, r in roll if r is not None]
+                data['rolling'] = {
+                    'window': args.window,
+                    'n_windows': len(roll),
+                    'first': {'as_of': roll[0][0], 'rho': roll[0][1]} if roll else None,
+                    'last': {'as_of': roll[-1][0], 'rho': roll[-1][1]} if roll else None,
+                    'max': max(rvals) if rvals else None,
+                    'min': min(rvals) if rvals else None,
+                    'basis': ('滚动窗=最近 N 个单位感知变化对(口径见 change_basis),'
+                              'diff 基 pearson(复用 rhq.rolling_correlation);'
+                              '首值自第 N 个变化日起(差分样本≥N)')}
+                if not roll:
+                    warnings.append(f'--window {args.window}: 滚动序列为空'
+                                    '(变化对数不足),rolling.n_windows=0')
+            else:
+                data['rolling'] = {
+                    'window': args.window, 'n_windows': 0,
+                    'note': f'变化对数({paired["n_change_pairs"] if paired else 0})'
+                            f'不足窗长 {args.window},滚动序列为空'}
+                warnings.append(f'--window {args.window}: 变化对数不足,滚动序列为空')
         emit(envelope('compare', True, data, warnings, snapshot=snap))
     emit(envelope('compare', False, {},
                   error=('no_mode', '未指定比较模式',
@@ -830,6 +962,11 @@ def build_parser():
     cp.add_argument('--metrics', help='两个指标 ID 逗号分隔(历史对齐+相关性)')
     cp.add_argument('--economies', help='≥2 经济体代码(概览并排)')
     cp.add_argument('--assets', action='store_true', help='引擎固定 12 对资产相关性')
+    cp.add_argument('--start', help='metrics 模式: 窗口起始日 YYYY-MM-DD(对齐前先过滤)')
+    cp.add_argument('--end', help='metrics 模式: 窗口结束日 YYYY-MM-DD(对齐前先过滤)')
+    cp.add_argument('--window', type=int,
+                    help='metrics 模式: 滚动相关窗长 N≥2(单位感知变化对,diff 基;'
+                    '输出 rolling 摘要,不改全窗 pearson_returns)')
 
     rs = sub.add_parser('research', help='本地接地研究问答(e2eb 栈,零网络)')
     rs.add_argument('--question', required=True, help='研究问题')

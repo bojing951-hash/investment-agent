@@ -108,19 +108,17 @@ print("[3] W8 配置安全(env_config)")
 print("═" * 60)
 check("源码无跨服务配置读取(settings.json/.claude)",
       '.claude' not in env_src and 'settings.json' not in env_src)
-# Model-Agnostic v2(2026-11-09 W1/W5): 唯一允许的 print=旧GLM_KEY回退的stderr
-# 迁移提示(每进程一次,非密钥值);其余零 print 保持"密钥不落日志"纪律
-check("源码除stderr迁移提示外零print(密钥不落日志)",
-      env_src.count('print(') == 1 and 'file=sys.stderr' in env_src
-      and '建议迁移到 MODEL_API_KEY' in env_src)
-check("缺模型Key明确提示常量在场(新旧名兼容)",
+# v2.1(Charter 5 S1, 2026-11-09): 旧 GLM_* 变量读取整体删除——env_config 零
+# print(迁移提示随回退一起移除),保持"密钥不落日志"纪律
+check("源码零print(密钥不落日志)", env_src.count('print(') == 0)
+check("缺模型Key明确提示常量在场(唯一名 MODEL_KEY_MISSING_MESSAGE)",
       'MODEL_KEY_MISSING_MESSAGE' in env_src and 'MODEL_API_KEY' in env_src
-      and 'GLM_KEY_MISSING_MESSAGE' in env_src and 'GLM_API_KEY' in env_src)
+      and 'GLM_API_KEY' not in env_src)
 
 # 行为级: 投毒HOME实证——伪造~/.claude/settings.json含ANTHROPIC_API_KEY,
-# 重载env_config后GLM_API_KEY必须仍为空(W8: 删除跨服务回退)
-_old = {k: os.environ.get(k) for k in ('HOME', 'GLM_API_KEY')}
-os.environ.pop('GLM_API_KEY', None)
+# 重载env_config后MODEL_API_KEY必须仍为空(W8: 零跨服务回退)
+_old = {k: os.environ.get(k) for k in ('HOME', 'MODEL_API_KEY')}
+os.environ.pop('MODEL_API_KEY', None)
 with tempfile.TemporaryDirectory() as td:
     claude_dir = os.path.join(td, '.claude')
     os.makedirs(claude_dir)
@@ -131,34 +129,34 @@ with tempfile.TemporaryDirectory() as td:
         'env_config_fresh', os.path.join(ROOT, 'env_config.py'))
     fresh = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(fresh)
-    check("投毒HOME下GLM_API_KEY仍为空(跨服务回退已删除)",
-          fresh.GLM_API_KEY == '', repr(fresh.GLM_API_KEY))
+    check("投毒HOME下MODEL_API_KEY仍为空(跨服务回退已删除)",
+          fresh.MODEL_API_KEY == '', repr(fresh.MODEL_API_KEY))
 os.environ['HOME'] = _old['HOME'] or ''
-if _old['GLM_API_KEY']:
-    os.environ['GLM_API_KEY'] = _old['GLM_API_KEY']
+if _old['MODEL_API_KEY']:
+    os.environ['MODEL_API_KEY'] = _old['MODEL_API_KEY']
 
 # .env加载与优先级(纯函数级)
 with tempfile.NamedTemporaryFile('w', suffix='.env', delete=False,
                                  encoding='utf-8') as tf:
-    tf.write('# 注释\nGLM_API_KEY=FROM_FILE\nexport FRED_API_KEY=FROM_FILE_FRED\n'
+    tf.write('# 注释\nTEST_PARSE_KEY=FROM_FILE\nexport FRED_API_KEY=FROM_FILE_FRED\n'
              'BAD_LINE_NO_EQ\n')
     env_path = tf.name
-_saved = {k: os.environ.pop(k, None) for k in ('GLM_API_KEY', 'FRED_API_KEY')}
+_saved = {k: os.environ.pop(k, None) for k in ('TEST_PARSE_KEY', 'FRED_API_KEY')}
 import env_config as ec  # noqa: E402
 ec.load_env_file(env_path)
 check(".env键被加载(env优先时跳过)",
-      os.environ.get('GLM_API_KEY') == 'FROM_FILE'
+      os.environ.get('TEST_PARSE_KEY') == 'FROM_FILE'
       and os.environ.get('FRED_API_KEY') == 'FROM_FILE_FRED')
-os.environ['GLM_API_KEY'] = 'FROM_ENV_PROCESS'
+os.environ['TEST_PARSE_KEY'] = 'FROM_ENV_PROCESS'
 ec.load_env_file(env_path)
 check("进程环境变量优先于.env(不覆盖)",
-      os.environ.get('GLM_API_KEY') == 'FROM_ENV_PROCESS')
+      os.environ.get('TEST_PARSE_KEY') == 'FROM_ENV_PROCESS')
 os.unlink(env_path)
 for k, v in _saved.items():
     if v is not None:
         os.environ[k] = v
-if _old['GLM_API_KEY'] is None:
-    os.environ.pop('GLM_API_KEY', None)
+if _old['MODEL_API_KEY'] is None:
+    os.environ.pop('MODEL_API_KEY', None)
 
 print("═" * 60)
 print("[4] W6 公开样例")

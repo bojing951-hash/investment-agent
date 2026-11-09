@@ -13,8 +13,8 @@ correlation_calculator / research_history_query 等既有模块,输出结构化 
   - 每个数值携带 单位/单位族/观测日期/来源/身份(代理口径) 字段;
   - 每个变化量携带 变化单位(pp|bp|pct)/基准日/窗口语义/公式;
   - 错误结构化输出(kind/message/hint),永不输出空串或裸 0 充当错误;
-  - update 仅显式请求时运行;模型 API 调用仅 research --explain/--glm
-    显式请求时发生(Model-Agnostic v2: 中性 MODEL_* 三参,旧 --glm 保留兼容)。
+  - update 仅显式请求时运行;模型 API 调用仅 research --explain
+    显式请求时发生(v2.1: 中性 MODEL_* 三参;旧 --glm 别名已删除)。
 
 用法: python3 ia_cli.py <能力> [参数]   (json 输出到 stdout; 退出码 0/1/2)
 """
@@ -51,14 +51,11 @@ except Exception:  # noqa: BLE001 —— 引擎常量不可用时退化为空集
 FX_ASSET_CLASSES = {'fx_rate', 'fx_index'}
 CHANGE_WINDOWS = ('week', 'mtd', 'ytd')
 ENV_KEYS = (  # doctor 只报"已配置/未配置",永不打印值
-    # W5(Model-Agnostic v2): 模型面中性三参;GLM_API_KEY 保留为旧变量行
+    # v2.1(Charter 5, 2026-11-09): 模型面唯一凭证面=中性三参 MODEL_*;旧变量行已删除
     ('MODEL_API_KEY', '可选模型 API Key(通用;AI 解释/周报生成共用,'
      'Agent Native 默认无需,不配仅影响 AI 解释与周报叙事层)'),
-    ('MODEL_BASE_URL', '可选模型端点(任意 OpenAI 兼容服务;沿用智谱填 '
-     'https://open.bigmodel.cn/api/paas/v4)'),
-    ('MODEL_NAME', '可选模型名(如 glm-5.3 / 其他兼容服务模型名)'),
-    ('GLM_API_KEY', '旧变量(仅 MODEL_API_KEY 未设时条件回退,建议迁移,'
-     '见 .env.example)'),
+    ('MODEL_BASE_URL', '可选模型端点(任意 OpenAI 兼容服务;填你的服务地址)'),
+    ('MODEL_NAME', '可选模型名(填你的模型服务模型名)'),
     ('FRED_API_KEY', '美联储/FRED 数据(强烈推荐,缺失则 28 个序列采集失败→Gate A FAIL)'),
     ('TUSHARE_TOKEN', '中国市场数据(可选)'),
     ('FINNHUB_API_KEY', '市场数据补充(可选)'),
@@ -278,14 +275,11 @@ def cmd_doctor(args):
     ec.load_env_file()
     data['env'] = {k: {'configured': bool(os.environ.get(k)), 'purpose': purpose}
                    for k, purpose in ENV_KEYS}
-    # W5: 改读中性模型配置(键名 glm_key_note 保持输出契约;值语义中性化)
+    # v2.1(Charter 5): 模型面唯一凭证面=MODEL_* 三参;键名改 model_key_note
+    # (v2.1 破坏性变更,Release 注记,不做双写过渡),医生面不再有旧变量行
     _mcfg = ec.model_runtime_config()
     if not _mcfg['complete']:
-        data['glm_key_note'] = (_mcfg['blocked_reason']
-                                or ec.MODEL_KEY_MISSING_MESSAGE)
-    elif _mcfg['legacy_fallback']:
-        data['glm_key_note'] = ('使用旧变量 GLM_API_KEY 回退,建议迁移到 '
-                                'MODEL_API_KEY(三参模板见 .env.example)')
+        data['model_key_note'] = ec.MODEL_KEY_MISSING_MESSAGE
     snap, note = wd.latest_snapshot(ROOT)
     meta = wd.snapshot_meta(snap)
     data['snapshot'] = {'available': snap is not None,
@@ -752,12 +746,12 @@ def _check_follow_up(query_id):
 
 
 def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=None,
-                            values=None, unresolved=None, glm=None,
+                            values=None, unresolved=None, model=None,
                             warnings_=(), violations=(), user_note=None,
                             follow_up_of=None, evidence=None, statistics=None,
                             hypotheses=None, open_questions=None, as_of=None):
     """research_full_v1 sidecar 旁挂(批2 WI6): 保存**本次用户实际所见**的
-    作答正文/AI 解释原文(glm 字段名保留)/warnings/violations/备注/前档链接——只搬运本进程已有
+    作答正文/AI 解释原文(v2.1: 字段名 model,旧档 glm 键读取层兼容)/warnings/violations/备注/前档链接——只搬运本进程已有
     值,绝不重新生成、绝不补发任何 API 调用。返回 (ok, 详情)。
 
     任务F(批2 W10): 跨模型完整成果开放输入——archive save 可直传 Agent 产出的
@@ -775,7 +769,7 @@ def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=Non
     except (FileNotFoundError, ValueError):
         created_at = saved_at      # 基档不可读时不阻断(sidecar 仍绑定本进程事实)
     # W4(Model-Agnostic v2): 写入时消毒——question/answer/user_note 为用户与
-    # 引擎自由文本,glm.error 可能回显端点/头;过 redact() 后落盘。只消毒写入,
+    # 引擎自由文本,模型 error 可能回显端点/头;过 redact() 后落盘。只消毒写入,
     # 读取层(list/detail)不过滤,sidecar 保持"用户实际所见原文"语义(密钥除外);
     # None 如实保 None(无本次作答不编造成空串)。
     # 四路终审 D-1(2026-11-09): 登记明文清扫兜底——redact 为模式匹配,URL 编码形
@@ -788,16 +782,16 @@ def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=Non
         import real_data_acceptance as rda
         rda.register_runtime_env_secrets()      # 幂等: 自动补 %xx/+ 编码形
         return rda.sanitize_text(redact(v))
-    _glm_sanitized = None
-    if isinstance(glm, dict):
-        _glm_sanitized = {k: _san(v) for k, v in glm.items()}
+    _model_sanitized = None
+    if isinstance(model, dict):
+        _model_sanitized = {k: _san(v) for k, v in model.items()}
     payload = {'record_type': ra.FULL_RECORD_TYPE, 'query_id': qid,
                'question_text': _san(question), 'created_at': created_at,
                'research_as_of': _san(as_of) if as_of else snap.get('research_as_of'),
                'snapshot_id': snap.get('snapshot_id'),
                'digest_snapshot': rp.digest_snapshot(snap),
                'status': status, 'answer_text': _san(answer_text),
-               'values': values, 'unresolved': unresolved, 'glm': _glm_sanitized,
+               'values': values, 'unresolved': unresolved, 'model': _model_sanitized,
                'warnings': list(warnings_), 'violations': list(violations),
                'user_note': _san(user_note), 'follow_up_of': follow_up_of,
                'evidence': _san(evidence), 'statistics': _san(statistics),
@@ -846,11 +840,11 @@ def cmd_research(args):
             data['economy_fallback_note'] = (
                 f'问题识别为单经济体({eco})概览类,已附该经济体全部指标节点——'
                 '请基于节点原值作答,缺失即缺失')
-    if args.glm and ok:
-        glm = wd.glm_explain(args.question, res.get('answer_text', ''))
-        data['glm'] = glm
-        if not glm.get('ok'):
-            warnings.append(f"AI 解释未生成: {glm.get('error', '')[:120]}")
+    if args.explain and ok:
+        explain = wd.ai_explain(args.question, res.get('answer_text', ''))
+        data['model'] = explain
+        if not explain.get('ok'):
+            warnings.append(f"AI 解释未生成: {explain.get('error', '')[:120]}")
     if args.archive and ok:
         qid, err = wd.save_to_archive(args.question, snap, ROOT,
                                       archive_dir=_ARCHIVE_DIR)
@@ -860,7 +854,7 @@ def cmd_research(args):
             full_ok, full_why = _write_research_sidecar(
                 qid, snap, args.question, status=res['status'],
                 answer_text=res.get('answer_text'), values=res.get('values', {}),
-                unresolved=res.get('unresolved', []), glm=data.get('glm'),
+                unresolved=res.get('unresolved', []), model=data.get('model'),
                 warnings_=list(warnings), violations=list(violations or []),
                 user_note=args.note, follow_up_of=args.follow_up_of)
             if not full_ok:
@@ -953,6 +947,10 @@ def cmd_archive(args):
         if full is not None:     # 并列合并视图(base 身份为准,record_type 不被覆盖)
             merged = dict(rec)
             merged.update({k: v for k, v in full.items() if k != 'record_type'})
+            # v2.1(Charter 5 S6): 旧 sidecar 'glm' 键 → 归一映射到 'model'
+            # (旧档不重写;输出契约恒用 model 键,原 glm 键不再出现在合并视图)
+            if 'glm' in merged:
+                merged.setdefault('model', merged.pop('glm'))
             # 任务F(W10): 旧 sidecar 缺成果键 → null(读侧归一,输出契约恒齐)
             for _k in ('evidence', 'statistics', 'hypotheses', 'open_questions'):
                 merged.setdefault(_k, None)
@@ -1004,9 +1002,9 @@ def build_parser():
 
     rs = sub.add_parser('research', help='本地接地研究问答(e2eb 栈,零网络)')
     rs.add_argument('--question', required=True, help='研究问题')
-    rs.add_argument('--explain', '--glm', dest='glm', action='store_true',
+    rs.add_argument('--explain', dest='explain', action='store_true',
                     help='附加 AI 解释(可选模型 API,产生 API 费用,仅用户明确'
-                    '要求时使用;--glm 为旧别名,保留兼容)')
+                    '要求时使用)')
     rs.add_argument('--archive', action='store_true', help='同时落研究档案')
     rs.add_argument('--note', help='用户备注(随 research-full sidecar 落档)')
     rs.add_argument('--follow-up-of',

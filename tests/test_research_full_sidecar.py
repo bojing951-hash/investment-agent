@@ -10,7 +10,7 @@
 ④ --follow-up-of 链接: 前档不存在→rc=2;存在→sidecar 落位;
 ⑤ list 不把 sidecar 当独立记录(_QUERY_FILE_RE 不匹配,目录清单实证);
 ⑥ --note 落位(sidecar user_note + list 摘要);
-⑦ GLM 用 mock(虚构响应文本,调用计数=1),零真实调用;未请求时 glm=null;
+⑦ AI 解释用 mock(虚构响应文本,调用计数=1),零真实调用;未请求时 model=null;
 ⑧ 旧 query_history 契约不动(QUERY_RECORD_KEYS 字面量/文件正则/旧档可读)。
 """
 import contextlib
@@ -101,14 +101,14 @@ def run_proj(*argv):
     return r.returncode, r.stdout, r.stderr
 
 
-def run_inproc(*argv, snap=None, glm_mock=None):
+def run_inproc(*argv, snap=None, explain_mock=None):
     """进程内跑 ia_cli.main(load_context 指合成快照/档案指沙箱)。"""
     real_ctx, real_arch = ia_cli.load_context, ia_cli._ARCHIVE_DIR
-    real_glm = wd.glm_explain
+    real_explain = wd.ai_explain
     ia_cli.load_context = lambda: (snap or make_snap(), wd.load_registry(ROOT), '')
     ia_cli._ARCHIVE_DIR = SBX
-    if glm_mock is not None:
-        wd.glm_explain = glm_mock
+    if explain_mock is not None:
+        wd.ai_explain = explain_mock
     out, err = io.StringIO(), io.StringIO()
     code = None
     real_argv = sys.argv
@@ -122,7 +122,7 @@ def run_inproc(*argv, snap=None, glm_mock=None):
     finally:
         sys.argv = real_argv
         ia_cli.load_context, ia_cli._ARCHIVE_DIR = real_ctx, real_arch
-        wd.glm_explain = real_glm
+        wd.ai_explain = real_explain
     return code, out.getvalue(), err.getvalue()
 
 
@@ -157,8 +157,8 @@ check("data.full 并列合并视图在场", isinstance(full2, dict))
 check("sidecar answer_text 与首进程用户所见**逐字节一致**(绝不重新生成)",
       full2 is not None and full2.get('answer_text') == answer1)
 check("sidecar user_note 落位", full2 is not None and full2.get('user_note') == NOTE1)
-check("sidecar glm=null(未请求 --glm,如实 null)",
-      full2 is not None and full2.get('glm') is None)
+check("sidecar model=null(未请求 --explain,如实 null)",
+      full2 is not None and full2.get('model') is None)
 check("sidecar digest 与 base 一致(同一 R5 重算)",
       full2 is not None
       and full2.get('digest_snapshot') == d2['data']['record']['digest_snapshot'])
@@ -256,7 +256,7 @@ full_d = ra.load_research_full(qid_d, archive_dir=SBX)
 check("独立保存 sidecar: user_note 落位", code == 0 and full_d.get('user_note') == '独立备注XYZ')
 check("独立保存 sidecar: answer 相关字段=null(无本次作答,不编造)",
       full_d.get('answer_text') is None and full_d.get('status') is None
-      and full_d.get('values') is None and full_d.get('glm') is None)
+      and full_d.get('values') is None and full_d.get('model') is None)
 
 print("═" * 60)
 print("⑥b W4 写入消毒: 含密钥文本过 redact() 落盘,读取层不过滤")
@@ -281,27 +281,27 @@ check("消毒不改结构: 其余字段仍在(question_text 非空)",
       bool(full_6b.get('question_text')))
 
 print("═" * 60)
-print("⑦ GLM mock(虚构响应文本,零真实调用)")
+print("⑦ AI 解释 mock(虚构响应文本,零真实调用)")
 print("═" * 60)
-glm_calls = []
+explain_calls = []   # v2.1: mock 的是 wd.ai_explain
 
 
-def mock_glm(question, grounded_text):
-    glm_calls.append((question, grounded_text))
+def mock_ai_explain(question, grounded_text):
+    explain_calls.append((question, grounded_text))
     return {'ok': True, 'text': 'MOCK_GLM_RESPONSE_虚构响应文本_绝不联网'}
 
 
-code, out, _ = run_inproc('research', '--question', Q_POLICY, '--glm',
-                          '--archive', glm_mock=mock_glm)
+code, out, _ = run_inproc('research', '--question', Q_POLICY, '--explain',
+                          '--archive', explain_mock=mock_ai_explain)
 d7 = json.loads(out)
 qid_e = d7['data'].get('archived_query_id')
 full_e = ra.load_research_full(qid_e, archive_dir=SBX)
-check("mock GLM 恰好调用 1 次(零真实调用)", len(glm_calls) == 1)
-check("sidecar.glm 原文=本次实际返回(mock 文本逐字节)",
-      full_e is not None and full_e.get('glm') == {'ok': True,
-                                                   'text': 'MOCK_GLM_RESPONSE_虚构响应文本_绝不联网'})
-check("research stdout data.glm 与 sidecar 一致",
-      d7['data']['glm']['text'] == full_e['glm']['text'])
+check("mock AI 解释恰好调用 1 次(零真实调用)", len(explain_calls) == 1)
+check("sidecar.model 原文=本次实际返回(mock 文本逐字节)",
+      full_e is not None and full_e.get('model') == {'ok': True,
+                                                     'text': 'MOCK_GLM_RESPONSE_虚构响应文本_绝不联网'})
+check("research stdout data.model 与 sidecar 一致",
+      d7['data']['model']['text'] == full_e['model']['text'])
 
 # 清理: 沙箱与副本整体移除(子进程已全部结束)
 shutil.rmtree(TD, ignore_errors=True)

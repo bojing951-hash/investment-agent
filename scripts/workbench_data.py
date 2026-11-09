@@ -6,7 +6,7 @@
   全球宏观概览  overview_rows()   —— 快照 facts × 注册表(经济体分组,缺失如实标注)
   金融市场变化  market_rows()     —— 资产类指标 周/月/年内变化
   历史研究      metric_series()   —— 本地真实历史序列(快照 series_store / 采集档 series)
-  AI研究        ask_local() / glm_explain() / save_to_archive()
+  AI研究        ask_local() / ai_explain() / save_to_archive()
                                  —— 复用 e2eb 查询栈 / glm_conclusion_client / research_archive
 
 数据纪律(章程 AC-06): 一切数值来自本地快照与采集档,显示观测日期与来源;
@@ -248,7 +248,7 @@ def metric_series(metric_id, snapshot=None, root=None):
             'source': f"采集档 {os.path.basename(res.get('source', {}).get('file', files[-1]))}"}, None
 
 
-# ══ AI研究(复用 e2eb 查询栈 / GLM / 研究档案) ═════════════════════════
+# ══ AI研究(复用 e2eb 查询栈 / 可选模型解释层 / 研究档案) ═══════════════
 SUPPORTED_CONCEPT_HINT = (
     '当前支持的完整研究问题类型(基于本地快照事实作答):\n'
     '  1) 美日政策利率差(触发词: 政策利率差)\n'
@@ -302,7 +302,7 @@ def ask_local(question, snapshot, root=None):
                 'values': {}, 'unresolved': [], 'ir': None}
 
 
-GLM_EXPLAIN_SYSTEM = (
+EXPLAIN_SYSTEM = (
     '你是全球宏观研究助理。纪律: 1)只依据用户提供的【已核实事实】作答,'
     '不得编造或引用任何未提供的数值;2)区分【事实】与【推断】,推断须标注;'
     '3)不提供任何投资建议、资产配置倾向或价格预测;4)相关不等于因果;'
@@ -311,9 +311,9 @@ GLM_EXPLAIN_SYSTEM = (
 
 
 def ai_explain(question, grounded_text):
-    """页面四可选: AI 研究解释(Model-Agnostic v2, 2026-11-09;复用
+    """页面四可选: AI 研究解释(v2.1, 2026-11-09;复用
     glm_conclusion_client.call_glm_once,模型三参经 env_config.model_runtime_config
-    解析——MODEL_* 优先,旧 GLM_* 条件回退,零本机文件回退)。
+    解析——唯一凭证面 MODEL_*,零本机文件回退)。
     返回 {'ok', 'text'|'error'}。"""
     # 先确保项目根 .env 已载入(进程环境变量优先;幂等补载,覆盖会话中途新增的.env),
     # 否则 Key 只写在 .env 时首调会误报缺失
@@ -322,12 +322,12 @@ def ai_explain(question, grounded_text):
     cfg = ec.model_runtime_config()
     if not cfg['complete']:
         return {'ok': False,
-                'error': (cfg['blocked_reason'] or ec.MODEL_KEY_MISSING_MESSAGE)}
+                'error': ec.MODEL_KEY_MISSING_MESSAGE}
     import glm_conclusion_client as gcc
     user = (f'研究问题: {question}\n\n【已核实事实】(本地快照接地结果,作答唯一数值来源):\n'
             f'{grounded_text}\n\n请基于以上事实给出解释性分析(传导机制/历史比较视角),'
             '并明确区分事实与推断。')
-    res = gcc.call_glm_once(GLM_EXPLAIN_SYSTEM, user, model=cfg['model'])
+    res = gcc.call_glm_once(EXPLAIN_SYSTEM, user, model=cfg['model'])
     if not res.get('ok'):
         return {'ok': False,
                 'error': f"模型调用失败({res.get('kind')}): {res.get('error')}"}
@@ -335,11 +335,6 @@ def ai_explain(question, grounded_text):
     text = raw if isinstance(raw, str) else (
         raw.get('content') if isinstance(raw, dict) else str(raw))
     return {'ok': True, 'text': text or '(模型返回空正文)'}
-
-
-def glm_explain(question, grounded_text):
-    """旧名兼容别名(历史调用方 app.py/测试仍用;Model-Agnostic v2 更名 ai_explain)。"""
-    return ai_explain(question, grounded_text)
 
 
 def save_to_archive(question, snapshot, root=None, archive_dir=None):

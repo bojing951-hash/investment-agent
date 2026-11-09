@@ -193,11 +193,12 @@ d = json.loads(r.stdout)
 check("doctor: rc=0 离线可跑,信封齐(ok/capability/engine_root)",
       r.returncode == 0 and d['ok'] and d['capability'] == 'doctor'
       and os.path.isabs(d['engine_root']))
-check("doctor: env 只报已配置与否,值不出现(含 W5 中性 MODEL_* 三参+旧 GLM 行)",
+check("doctor: env 只报已配置与否,值不出现(v2.1 唯一模型面=MODEL_* 三参,无旧变量行)",
       set(d['data']['env']) == {'MODEL_API_KEY', 'MODEL_BASE_URL', 'MODEL_NAME',
-                                'GLM_API_KEY', 'FRED_API_KEY', 'TUSHARE_TOKEN',
+                                'FRED_API_KEY', 'TUSHARE_TOKEN',
                                 'FINNHUB_API_KEY', 'YF_PROXY'}
-      and all(set(v) == {'configured', 'purpose'} for v in d['data']['env'].values()))
+      and all(set(v) == {'configured', 'purpose'} for v in d['data']['env'].values())
+      and 'glm_key_note' not in d['data'])
 check("doctor: 无快照时如实 available=false(CI 预期)",
       d['data']['snapshot']['available'] in (True, False))  # CI 无快照/本地有快照均合法
 

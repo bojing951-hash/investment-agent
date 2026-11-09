@@ -1438,8 +1438,6 @@ def generate_weekly_report():
     if data_only:
         print("⏭️ 未配置模型 API(三参不齐)——走 data-only 确定性数据观察分支"
               "(Agent Native 模式预期行为,不发起任何模型调用)")
-        if _mcfg['blocked_reason']:
-            print(f"   ⚠️ {_mcfg['blocked_reason']}")
         report = generate_data_only_report(data_pack)
     else:
         report = generate_report(data_pack, framework, prev_report, tech_notes, news_summary)

@@ -155,6 +155,19 @@ def market_rows(snapshot, registry):
 
 
 # ══ 历史研究 ══════════════════════════════════════════════════════════
+# supported_stats(问题二 C-2): 由 unit_family 机械推导的可用统计面——
+# 描述可做什么,不是对数据的断言;other 族无可靠变化口径,只报 level。
+SUPPORTED_STATS = {
+    'price': ('level', 'interval_change(pct)', 'unit_aware_change(pct)',
+              'pearson(单位感知变化)', 'rolling(单位感知变化)', 'lag(单位感知变化)'),
+    'rate': ('level', 'interval_change(pp/bp)', 'unit_aware_change(pp)',
+             'pearson(单位感知变化)', 'rolling(单位感知变化)', 'lag(单位感知变化)'),
+    'count': ('level', 'interval_change(abs)', 'unit_aware_change(pct,基数大近似)',
+              'pearson(单位感知变化)', 'rolling(单位感知变化)', 'lag(单位感知变化)'),
+    'other': ('level',),
+}
+
+
 def series_capable_metrics(snapshot, registry):
     """历史研究页可选项+发现所需全字段(C-1, 批2 W8): 快照 series_store ∪
     采集档含 series 的指标。
@@ -165,7 +178,8 @@ def series_capable_metrics(snapshot, registry):
       A-fin 人工登记键,缺键=null 不默认);
     - 序列统计(first/last/n): series_store 优先,仅存采集档的取最新档
       series 原值(同旧版来源优先级,统计口径=该来源序列本身);
-    - 口径族(unit_family, 单位感知比较预判用)与事实层 quality_status
+    - 口径族(unit_family, 单位感知比较预判用)+supported_stats(由
+      unit_family 机械推导的可用统计面)与事实层 quality_status
       (快照 facts,无事实→null,如实标注不猜测)。
     """
     import fact_engine as fe        # 惰性: 单位族常量(重模块函数内导入纪律)
@@ -213,6 +227,7 @@ def series_capable_metrics(snapshot, registry):
                                        m.get('observation_period_kind'),
                                        'release_date_available':
                                        m.get('release_date_available')},
+                    'supported_stats': list(SUPPORTED_STATS[fam]),
                     'quality_status': facts_q.get(mid)})
     return out
 

@@ -282,27 +282,36 @@ GLM_EXPLAIN_SYSTEM = (
 )
 
 
-def glm_explain(question, grounded_text):
-    """页面四可选: GLM 研究解释(复用 glm_conclusion_client.call_glm_once,
-    环境变量 GLM_API_KEY 唯一凭证,零本机回退)。返回 {'ok', 'text'|'error'}。"""
+def ai_explain(question, grounded_text):
+    """页面四可选: AI 研究解释(Model-Agnostic v2, 2026-11-09;复用
+    glm_conclusion_client.call_glm_once,模型三参经 env_config.model_runtime_config
+    解析——MODEL_* 优先,旧 GLM_* 条件回退,零本机文件回退)。
+    返回 {'ok', 'text'|'error'}。"""
     # 先确保项目根 .env 已载入(进程环境变量优先;幂等补载,覆盖会话中途新增的.env),
     # 否则 Key 只写在 .env 时首调会误报缺失
     import env_config as ec
     ec.load_env_file()
-    key = os.environ.get('GLM_API_KEY', '')
-    if not key:
-        return {'ok': False, 'error': ec.GLM_KEY_MISSING_MESSAGE}
+    cfg = ec.model_runtime_config()
+    if not cfg['complete']:
+        return {'ok': False,
+                'error': (cfg['blocked_reason'] or ec.MODEL_KEY_MISSING_MESSAGE)}
     import glm_conclusion_client as gcc
     user = (f'研究问题: {question}\n\n【已核实事实】(本地快照接地结果,作答唯一数值来源):\n'
             f'{grounded_text}\n\n请基于以上事实给出解释性分析(传导机制/历史比较视角),'
             '并明确区分事实与推断。')
-    res = gcc.call_glm_once(GLM_EXPLAIN_SYSTEM, user)
+    res = gcc.call_glm_once(GLM_EXPLAIN_SYSTEM, user, model=cfg['model'])
     if not res.get('ok'):
-        return {'ok': False, 'error': f"GLM调用失败({res.get('kind')}): {res.get('error')}"}
+        return {'ok': False,
+                'error': f"模型调用失败({res.get('kind')}): {res.get('error')}"}
     raw = res.get('raw')
     text = raw if isinstance(raw, str) else (
         raw.get('content') if isinstance(raw, dict) else str(raw))
-    return {'ok': True, 'text': text or '(GLM返回空正文)'}
+    return {'ok': True, 'text': text or '(模型返回空正文)'}
+
+
+def glm_explain(question, grounded_text):
+    """旧名兼容别名(历史调用方 app.py/测试仍用;Model-Agnostic v2 更名 ai_explain)。"""
+    return ai_explain(question, grounded_text)
 
 
 def save_to_archive(question, snapshot, root=None, archive_dir=None):

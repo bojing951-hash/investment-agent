@@ -1,6 +1,6 @@
 """
 投资周报生成器
-调用智谱 GLM API，基于数据包 + 分析框架生成周报初稿
+调用可选模型 API（OpenAI 兼容端点，env_config MODEL_* 三参），基于数据包 + 分析框架生成周报初稿；未配置时走 data-only 确定性数据观察分支
 生成后: ①解析论点状态块回写 thesis.json ②用同日锚点校验报告数值
 """
 
@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from env_config import GLM_API_KEY, GLM_BASE_URL, GLM_MODEL, GLM_KEY_MISSING_MESSAGE
+from env_config import MODEL_API_KEY, MODEL_BASE_URL, MODEL_NAME, MODEL_KEY_MISSING_MESSAGE, model_runtime_config
 import allocation_engine  # P2/P3 配置研究引擎(同目录)
 import research_provenance as rp  # IA-P0-1: 来源链核验/门禁合成
 import news_provenance  # IA-P0-2-W3: 新闻来源档案/确定性引用索引
@@ -351,6 +351,7 @@ def load_news_summary():
 def sanitize_news(text):
     """新闻脱敏: 板块白名单 + 敏感词黑名单(2026-09-30)
     智谱GLM内容风控(1301)会拦截战争/军事/敏感组织类内容,原Reuters新闻标题常触发。
+    (历史=智谱风控运维经验,通用无害: 输入脱敏/控长对任意模型端点都是好实践。)
     只保留财经板块,并过滤军事冲突相关条目。地缘因素对市场的影响仍可从油价等数据侧体现。
     """
     import re
@@ -375,7 +376,7 @@ def sanitize_news(text):
     return '\n'.join(out)
 
 def generate_report(data_pack, framework=None, prev_report=None, tech_notes=None, news_summary=None):
-    """调用智谱 GLM 生成宏观研究周报。
+    """调用可选模型 API(OpenAI 兼容端点)生成宏观研究周报。
     MW-V1(2026-11-08 章程勘误): 移除 theses/views_block 输入——论点状态/配置观点/
     预测裁决块属越位零件(PRODUCT-GOAL.md: 观点由用户形成,系统供证据),不再进
     prompt也不再回写;load_theses/apply_status_updates 等机器保留为休眠历史档。"""
@@ -456,8 +457,8 @@ def generate_report(data_pack, framework=None, prev_report=None, tech_notes=None
 - 技术分析部分如无用户笔记则标注"[待用户补充]"
 """
 
-    print("\n🤖 正在调用智谱 GLM 生成周报...")
-    print(f"   模型: {GLM_MODEL} (智谱v4通道·流式)")
+    print("\n🤖 正在调用模型 API 生成周报...")
+    print(f"   模型: {MODEL_NAME} (OpenAI兼容通道·流式)")
     print(f"   输入长度: 约 {len(system_prompt) + len(user_prompt)} 字符")
 
     max_attempts = 3
@@ -477,30 +478,36 @@ def generate_report(data_pack, framework=None, prev_report=None, tech_notes=None
                 print(f"   {wait}秒后重试...")
                 time.sleep(wait)
 
-    print("❌ GLM API 连续3次调用失败,放弃")
+    print("❌ 模型 API 连续3次调用失败,放弃")
     return None
 
 
 def _call_glm(system_prompt, user_prompt, max_tokens=32000, timeout=900):
-    """调用智谱GLM(paas/v4 OpenAI兼容通道, 流式)
+    """调用通用模型 API(OpenAI 兼容通道, 流式;配置=env_config MODEL_* 三参,
+    含旧 GLM_* 条件回退,见 env_config.model_runtime_config)
 
-    实测踩坑记录(2026-09-30, glm-5.3):
+    实测踩坑记录(2026-09-30, 智谱 glm-5.3;历史=智谱风控运维经验,通用无害):
     1. 非流式长时间生成会被网关断连(RemoteDisconnected) → 必须流式
     2. glm-5.3思考不可关闭,会吃光max_tokens导致正文为空 → reasoning_effort=low控制思考档位
     3. 过长的旧报告/笔记输入会触发1301内容风控 → load_previous_report/load_technical_notes已做截断,
        新闻已做sanitize_news脱敏
+    (流式/控长/脱敏对任意端点通用;reasoning_effort 为智谱参数,其他端点
+    不识别时由该端点自行忽略或报错——沿用历史行为,不做端点探测。)
     """
     from openai import OpenAI
 
-    # W8(2026-11-08 产品化): GLM凭证缺失时明确提示并快速失败——不创建客户端、
-    # 不发起任何网络请求(数据采集等功能不受影响,它们不走本函数)。
-    if not GLM_API_KEY:
-        print(GLM_KEY_MISSING_MESSAGE, file=sys.stderr)
-        raise RuntimeError("GLM_API_KEY 未配置(周报生成需智谱GLM;数据采集不需要)")
+    # W8(2026-11-08 产品化)+Model-Agnostic v2(2026-11-09): 模型三参不齐时明确
+    # 提示并快速失败——不创建客户端、不发起任何网络请求(数据采集等功能不走本函数)。
+    _cfg = model_runtime_config()
+    if not _cfg['complete']:
+        print(MODEL_KEY_MISSING_MESSAGE, file=sys.stderr)
+        raise RuntimeError("模型 API 未配置(MODEL_API_KEY/MODEL_BASE_URL/MODEL_NAME "
+                           "三参不齐;周报解释层需可选模型 API,Agent Native 模式"
+                           "由上层走 data-only 确定性分支)")
 
-    client = OpenAI(api_key=GLM_API_KEY, base_url=GLM_BASE_URL, timeout=timeout)
+    client = OpenAI(api_key=_cfg['api_key'], base_url=_cfg['base_url'], timeout=timeout)
     stream = client.chat.completions.create(
-        model=GLM_MODEL,
+        model=_cfg['model'],
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -822,6 +829,13 @@ def reconcile_publication(ymd):
     return actions
 
 
+def _model_stamp():
+    """报告头戳: 已配置模型名(Model-Agnostic v2);未配置/三参不齐→data-only 标识。"""
+    _cfg = model_runtime_config()
+    return _cfg['model'] if _cfg['complete'] \
+        else 'data-only(无模型调用,确定性数据观察)'
+
+
 def save_candidate_report(report_text, date_str=None):
     """FIX-02(IA-DEF-002): 报告一律先落**候选文件**(weekly_report_{ymd}_CANDIDATE.md),
     Gate B校验通过且状态记录成功后才发布(原子替换)为正式文件——生成/校验/发布
@@ -831,7 +845,7 @@ def save_candidate_report(report_text, date_str=None):
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     cand_path = os.path.join(OUTPUT_DIR, f'weekly_report_{date_str}_CANDIDATE.md')
     with open(cand_path, 'w', encoding='utf-8') as f:
-        f.write(f"<!-- 生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {GLM_MODEL} | investment-agent -->\n\n")
+        f.write(f"<!-- 生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {_model_stamp()} | investment-agent -->\n\n")
         f.write(report_text)
     print(f"\n📄 候选报告: {cand_path} ({os.path.getsize(cand_path)} 字节,验证通过后发布)")
     return cand_path
@@ -848,7 +862,7 @@ def save_report(report_text, date_str=None):
     # 保存 Markdown(GLM输出自带标题,这里只写一行元信息避免双标题)
     md_path = os.path.join(OUTPUT_DIR, f'weekly_report_{date_str}.md')
     with open(md_path, 'w', encoding='utf-8') as f:
-        f.write(f"<!-- 生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {GLM_MODEL} | investment-agent -->\n\n")
+        f.write(f"<!-- 生成: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {_model_stamp()} | investment-agent -->\n\n")
         f.write(report_text)
 
     print(f"\n📄 报告已保存:")

@@ -155,8 +155,8 @@ check('级联由IA_AUTO_MONTHLY守卫', 'IA_AUTO_MONTHLY' in rg_src)
 check('月报级联调用点在守卫分支内', 'auto_mq_enabled and done_month' in rg_src)
 check('季报级联调用点在守卫分支内', 'auto_mq_enabled and done_quarter' in rg_src)
 check('关闭时打印开启指引', 'IA_AUTO_MONTHLY=1' in rg_src)
-check('缺GLM_KEY快速失败提示(_call_glm)',
-      'GLM_KEY_MISSING_MESSAGE' in rg_src and 'GLM_API_KEY 未配置' in rg_src)
+check('缺模型Key快速失败提示(_call_glm;Model-Agnostic v2中性文案)',
+      'MODEL_KEY_MISSING_MESSAGE' in rg_src and '模型 API 未配置' in rg_src)
 
 print()
 print('═' * 60)

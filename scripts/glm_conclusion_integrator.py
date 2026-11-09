@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """IA-P03-W2-GLM-WP-G3: GLM 研究结论层 可反驳条件推导与门禁对接+档案衔接(结论整合模块)
 
+命名沿历史(模块名 glm_* 与运行层已中性化 MODEL_* 无关,此处指 GLM 结论层
+合同冻结登记件;Model-Agnostic v2 不改冻结命名)。
 合同 IA-P03-W2-GLM-WP-G3-AC-v1.0 / DESIGN §五(docs/P03_W2_GLM_DESIGN.md:152-190):
 - (1) 推导规则四步(L154-161): 主张变量化→阈值三来源(证据包/注册表/先验触发器)
   →条件规格化(op/mode 与现行预测规格对齐,窗口默认=task_ref.window)→区分性检查

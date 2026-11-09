@@ -236,6 +236,21 @@ def _register_secret(s):
             _KNOWN_SECRETS.append(cand)
 
 
+# 四路终审 D-1(2026-11-09): 进程环境凭证明文登记(幂等)——供持久化层
+# (ia_cli sidecar / research_archive 基档)在 redact() 模式匹配之外做值级
+# 清扫,兜底覆盖 URL 编码形(api_key%3D<KEY> / %61pi_key=<KEY>)等任意变体。
+RUNTIME_SECRET_ENV_KEYS = ('MODEL_API_KEY', 'GLM_API_KEY', 'FRED_API_KEY',
+                           'TUSHARE_TOKEN', 'FINNHUB_API_KEY')
+
+
+def register_runtime_env_secrets():
+    """登记进程环境已配置的全部凭证明文(len>4 才登记,防误吞短值;幂等)。"""
+    for k in RUNTIME_SECRET_ENV_KEYS:
+        v = os.environ.get(k)
+        if v and len(v) > 4:
+            _register_secret(v)
+
+
 def sanitize_text(s):
     """统一脱敏: api_key=…查询参数模式 + 已登记密钥明文(含URL编码形式)。
     幂等: 已脱敏文本再过一遍不变;非字符串原样返回。"""

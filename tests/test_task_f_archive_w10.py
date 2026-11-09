@@ -10,7 +10,11 @@
 ④ 不带新参 save=旧行为(成果键 null);旧格式 sidecar(缺新键)get 归一 null;
 ⑤ schema 增补键类型守卫(evidence 非 str → ValueError fail-loud);
 ⑥ 拒答导流文案(C-4): unmapped/no_registry_identity 拒答文本附 Agent 组合导流行;
-⑦ lint 四分(D5): 事实/推断/假设/尚未验证——【尚未验证】后文字不计事实位。
+⑦ lint 四分(D5): 事实/推断/假设/尚未验证——【尚未验证】后文字不计事实位;
+⑧ 四路终审 D-1/D-2: URL 编码形(api_key%3D/%61pi_key=)穿透修补——登记明文
+   值级清扫兜底,基档(QB-*.json 含 ir 内嵌)与 sidecar 双层落盘全净;
+⑨ 四路终审 R1: monthly_review/quarterly_outlook 模型三参预检——未配齐时
+   中性提示 exit 2,不构造客户端不炸栈(零数据/零密钥子进程)。
 
 运行: python3 tests/test_task_f_archive_w10.py(仓库副本+子进程,零网络零真实数据)。
 """
@@ -272,6 +276,74 @@ check("同行事实位在标记前: 标记前文本含因果动词仍违约",
       len(L('关税引发股市下跌【尚未验证】后续路径')) == 1)
 check("同行事实位在标记前: 标记前文本干净则整行免检",
       L('股市波动加大【尚未验证】关税引发回调') == [])
+
+print("═" * 60)
+print("⑧ D-1/D-2: URL 编码形穿透修补(登记明文清扫,基档+sidecar 双层)")
+print("═" * 60)
+os.environ['FINNHUB_API_KEY'] = 'sk-FINNURLFAKE00000'   # 虚构值(登记清扫锚点)
+try:
+    Q_D = ('调试: api_key%3Dsk-FINNURLFAKE00000 与 %61pi_key=sk-FINNURLFAKE00000'
+           ' 双形(四路终审 D-1 实测形态)')
+    rcD, outD, _ = run_proj('archive', 'save', '--question', Q_D,
+                            '--answer-text', '正文 Bearer sk-D1BODYFAKE0000000 原样')
+    dD = json.loads(outD)
+    qidD = dD['data']['query_id']
+    collD = os.path.join(PROJ, 'data', 'research', 'research_archive',
+                         'research_archive', 'query_history')
+    base_raw = open(os.path.join(collD, f'{qidD}.json'), encoding='utf-8').read()
+    full_raw = open(os.path.join(collD, f'{qidD}.research-full.json'),
+                    encoding='utf-8').read()
+    check("D-1 sidecar: 双 URL 编码形全清扫(值级,含 %3D 与 %61 前缀)",
+          'sk-FINNURLFAKE' not in full_raw
+          and full_raw.count('***REDACTED***') >= 2, full_raw[:0])
+    check("D-1 基档: 双 URL 编码形同样清扫(redact 模式外的登记明文兜底)",
+          'sk-FINNURLFAKE' not in base_raw)
+    check("D-2 基档: question_text 与 ir 内嵌问题串的 URL 形已脱敏"
+          "(Bearer 在 answer_text,随 sidecar 层走)",
+          'sk-D1BODYFAKE' not in base_raw
+          and 'api_key%3D***REDACTED***' in base_raw)
+    # 双入口单点验证: research --archive 与 archive save 同经 append_query_record,
+    # 以真实 mapper 产 IR(问题串嵌 Bearer 形)直调写入层,证明通道无关
+    import e2eb_query_mapper as qm
+    _snapD = make_snap()
+    _qD = '研究通道题: Authorization: Bearer sk-D2RESFAKE00000000'
+    _dirD = os.path.join(TD, 'd2-direct')
+    _createdD = '2099-01-01T00:00:00+00:00'
+    _qidD = ra.allocate_query_id(_createdD, archive_dir=_dirD)
+    _irD = qm.map_question(_qD, created_at=_createdD,
+                           query_seq=int(_qidD.rsplit('-', 1)[-1]))
+    _st, _ = ra.append_query_record(_irD, snapshot=_snapD, archive_dir=_dirD)
+    _raw = open(os.path.join(_dirD, 'research_archive', 'query_history',
+                             f'{_qidD}.json'), encoding='utf-8').read()
+    check("D-2 写入层单点: 直调 append_query_record 基档同样脱敏(通道无关)",
+          _st == 'written' and 'sk-D2RESFAKE' not in _raw
+          and 'Bearer ***REDACTED***' in _raw)
+finally:
+    os.environ.pop('FINNHUB_API_KEY', None)
+
+print("═" * 60)
+print("⑨ R1: 月/季报模型三参预检(未配齐 → 中性提示 exit 2,不炸栈)")
+print("═" * 60)
+R1TD = tempfile.mkdtemp(prefix='w10-r1-')
+R1PROJ = os.path.join(R1TD, 'proj')
+shutil.copytree(os.path.join(ROOT, 'scripts'), os.path.join(R1PROJ, 'scripts'))
+shutil.copytree(os.path.join(ROOT, 'config'), os.path.join(R1PROJ, 'config'))
+shutil.copy2(os.path.join(ROOT, 'env_config.py'), os.path.join(R1PROJ, 'env_config.py'))
+# 不复制 .env;子进程剥离 MODEL_*/GLM_* 环境变量 → 三参不齐口径
+r1env = {k: v for k, v in os.environ.items()
+         if not k.startswith(('MODEL_', 'GLM_'))}
+for script, flag in (('monthly_review.py', '--month'), ('quarterly_outlook.py', '--quarter')):
+    r = subprocess.run([sys.executable, os.path.join(R1PROJ, 'scripts', script),
+                        flag, '202610' if flag == '--month' else '2026Q3'],
+                       capture_output=True, text=True, timeout=120, cwd=R1TD, env=r1env)
+    tail = (r.stderr + r.stdout)
+    check(f"{script}: 未配三参 → exit 2(中性退出)",
+          r.returncode == 2, f"rc={r.returncode}")
+    check(f"{script}: 中性提示在场(data-only 周报可用 + MODEL_* 三参指引)",
+          'data-only' in tail and 'MODEL_API_KEY' in tail)
+    check(f"{script}: 无 Traceback(不构造客户端不炸栈)",
+          'Traceback' not in tail and 'RuntimeError' not in tail)
+shutil.rmtree(R1TD, ignore_errors=True)
 
 print("═" * 60)
 shutil.rmtree(TD, ignore_errors=True)

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """IA-P03-W2-GLM-WP-G1: GLM 研究结论层输入装配器(结论层输入唯一写者)
 
+命名沿历史(模块名 glm_* 与运行层已中性化 MODEL_* 无关,此处指 GLM 结论层
+合同冻结登记件;Model-Agnostic v2 不改冻结命名)。
 合同 IA-P03-W2-GLM-WP-G1-AC-v1.0 / DESIGN §三(a)(docs/P03_W2_GLM_DESIGN.md:56-76):
 产出 `GLMResearchInput`(模式 A 任务形态 / 模式 B 查询形态),九字段输入契约:
 contract_version / mode / snapshot_binding / task_ref / query_ref / evidence_pack /

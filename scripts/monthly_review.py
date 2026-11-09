@@ -324,6 +324,21 @@ def main():
     print(f"📅 月度复盘生成器 ({ym})")
     print("=" * 60)
 
+    # 四路终审 R1(2026-11-09): 模型三参预检——月度复盘解释层无 data-only 分支,
+    # 未配齐时中性提示退出(不装配数据块、不构造客户端、不炸栈),口径同周报
+    # data-only 分支;--dry-run(只装配数据)不受影响。
+    if not args.dry_run:
+        from env_config import MODEL_KEY_MISSING_MESSAGE
+        import report_generator as _rg      # 模型配置取自同栈符号(口径/可测面一致)
+        _mcfg = _rg.model_runtime_config()
+        if not _mcfg['complete']:
+            print(MODEL_KEY_MISSING_MESSAGE, file=sys.stderr)
+            print("ℹ️ 月度复盘解释层需可选模型 API(无 data-only 分支): "
+                  "data-only 确定性周报仍可用(python3 run_weekly.py);"
+                  "或配置 MODEL_API_KEY/MODEL_BASE_URL/MODEL_NAME 三参后重试",
+                  file=sys.stderr)
+            sys.exit(2)
+
     data_block, series, ctx, preview = build_data_block(ym)
     tag = "【预览】" if preview else ""
     print(f"✅ 数据装配: {len(series)}个序列 / {len(ctx['scorecard_timeline'])}周评分卡 / {len(ctx['weekly_reports'])}期周报"

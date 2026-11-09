@@ -33,6 +33,7 @@ from datetime import datetime, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import e2eb_query_ir as qir          # B1(复用禁复制,DESIGN L231「IR即首类记录」)
 import research_provenance as rp     # R5 digest_snapshot(rp:1297-1301)
+from redact_secrets import redact    # 四路终审 D-2(2026-11-09): 基档写入层脱敏
 
 # ══ 载体与常量(D-B4-01/D-B4-03) ═════════════════════════════════════════
 
@@ -301,6 +302,34 @@ def allocate_query_id(created_at, archive_dir=None):
 
 # ══ append(要点①;D-B4-05) ═══════════════════════════════════════════════
 
+def _sanitize_persist_text(s):
+    """持久化层统一脱敏(D-1+D-2, 四路终审 2026-11-09): redact() 模式匹配 +
+    已登记环境凭证明文值级清扫(real_data_acceptance 既有登记机制,含 URL
+    编码形兜底)。幂等;非字符串原样。"""
+    if not isinstance(s, str):
+        return s
+    import real_data_acceptance as rda
+    rda.register_runtime_env_secrets()
+    return rda.sanitize_text(redact(s))
+
+
+def _redact_tree(obj):
+    """递归对 dict/list 内全部字符串做持久化层脱敏(非字符串原样;幂等)。
+
+    四路终审 D-2(2026-11-09): ir 内嵌问题串等自由文本进基档前与顶层
+    question_text 同口径脱敏——只影响**新写**记录内容,append-only 语义与
+    旧档读取原样不变。
+    """
+    if isinstance(obj, str):
+        return _sanitize_persist_text(obj)
+    if isinstance(obj, dict):
+        return {k: _redact_tree(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        t = [_redact_tree(v) for v in obj]
+        return type(obj)(t) if isinstance(obj, tuple) else t
+    return obj
+
+
 def append_query_record(ir, *, snapshot, archive_dir=None, execution=None,
                         promoted_to_task_id=None, archived_at=None):
     """查询记录 append-only 落档;返回 (status, path)。
@@ -323,15 +352,20 @@ def append_query_record(ir, *, snapshot, archive_dir=None, execution=None,
         raise ValueError("execution.ir与归档ir不一致(D-B4-05④一致性)")
     if archived_at is None:
         archived_at = datetime.now(timezone.utc).isoformat(timespec='seconds')
+    # D-2(四路终审,2026-11-09): 写入层单点脱敏——顶层 question_text 与 ir 内嵌
+    # 问题串进基档前过脱敏(与 research-full sidecar 同口径: redact+登记明文
+    # 清扫);digest 只绑定快照(不含问题文本),脱敏不影响绑定校验;append-only
+    # 语义与旧档读取不变。
+    ir_sanitized = _redact_tree(ir)
     record = {"record_type": RECORD_TYPE_QUERY,
               "query_id": ir["query_id"],
               "created_at": ir["created_at"],
               "mode": ir["mode"],
-              "question_text": ir["question_text"],
+              "question_text": _sanitize_persist_text(ir["question_text"]),
               "as_of": ir["as_of"],
               "snapshot_id": sid,
               "digest_snapshot": digest,
-              "ir": ir,
+              "ir": ir_sanitized,
               "ir_stage": stage,
               "answer_summary": build_answer_summary(ir, stage, execution),
               "promoted_to_task_id": promoted_to_task_id,

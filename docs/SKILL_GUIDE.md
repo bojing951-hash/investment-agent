@@ -88,6 +88,14 @@ Headless 注意(宿主验收实测): Claude Code 以 `claude -p` 无界面模式
 4. **接地问答与归档**: 「美日10年期国债收益率差是多少?」→ `research`;
    「把这个问题存档」→ `archive save`;事后「查我上周问过什么」→ `archive list`
 
+**Agent 完整成果直存(六参)**: AI 用 history/compare/overview/changes 自由组织研究后,
+可把完整成果一并落档——`archive save --question "..." --answer-text "<研究正文>"
+--evidence "<事实证据与来源>" --statistics "<统计结果>" --hypotheses "<竞争性假设>"
+--open-questions "<未解决问题>" --as-of "<研究截止时间>"`(全部文本落盘前自动脱敏;
+`--as-of` 落 `research_as_of` 位)。回读: `archive get --query-id QB-...` 返回
+`record`(基档)+`full`(sidecar 合并视图)双视图,成果文本在 `full.answer_text`。
+前置: 本地需已有研究快照(先跑过 update/run_weekly),零数据环境 `no_snapshot` 拒存。
+
 ## 更新与卸载
 
 ```bash

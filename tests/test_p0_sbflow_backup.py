@@ -293,8 +293,12 @@ class T5SourceFreezeLocks(unittest.TestCase):
         # GLM_* 中性化后新泄漏面),同属规格内变更;后续无授权变更仍红面。
         with open(ROOT + '/scripts/real_data_acceptance.py', 'rb') as fh:
             blob = fh.read()
+        # v1.3(2026-11-09晚)再冻结: 四路终审 D-1 授权新增
+        # register_runtime_env_secrets()(进程环境凭证明文登记,供持久化层
+        # URL 编码形兜底清扫复用既有 _register_secret/sanitize_text),
+        # 属规格内变更;后续无授权变更仍必须红面。
         self.assertEqual(hashlib.sha256(blob).hexdigest(),
-                         '4c59e4d9d8416ac9bf10ad1a1ede475b7be00445d929a2122c1b040704e5dbd0')
+                         'bfdaabf4833618b0e367e78666cae85463d79e814a9e42c89848ecc8e056ce30')
 
 
 if __name__ == '__main__':

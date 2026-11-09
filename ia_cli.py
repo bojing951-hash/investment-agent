@@ -720,7 +720,7 @@ def cmd_compare(args):
                     'min': min(rvals) if rvals else None,
                     'basis': ('滚动窗=最近 N 个单位感知变化对(口径见 change_basis),'
                               'diff 基 pearson(复用 rhq.rolling_correlation);'
-                              '首值自第 N 个变化日起(差分样本≥N)')}
+                              '首值自第 N+1 个变化日起(需差分样本满 N)')}
                 if not roll:
                     warnings.append(f'--window {args.window}: 滚动序列为空'
                                     '(变化对数不足),rolling.n_windows=0')
@@ -778,8 +778,16 @@ def _write_research_sidecar(qid, snap, question, *, status=None, answer_text=Non
     # 引擎自由文本,glm.error 可能回显端点/头;过 redact() 后落盘。只消毒写入,
     # 读取层(list/detail)不过滤,sidecar 保持"用户实际所见原文"语义(密钥除外);
     # None 如实保 None(无本次作答不编造成空串)。
+    # 四路终审 D-1(2026-11-09): 登记明文清扫兜底——redact 为模式匹配,URL 编码形
+    # (api_key%3D<KEY> / %61pi_key=<KEY>)可穿透;进程内已配置凭证明文(含
+    # percent/plus 编码形)经 real_data_acceptance 既有登记机制直接替换,覆盖任意
+    # 编码形(值级清扫,不依赖模式)。
     def _san(v):
-        return redact(v) if isinstance(v, str) else v
+        if not isinstance(v, str):
+            return v
+        import real_data_acceptance as rda
+        rda.register_runtime_env_secrets()      # 幂等: 自动补 %xx/+ 编码形
+        return rda.sanitize_text(redact(v))
     _glm_sanitized = None
     if isinstance(glm, dict):
         _glm_sanitized = {k: _san(v) for k, v in glm.items()}

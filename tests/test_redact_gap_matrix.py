@@ -11,8 +11,9 @@
   值)任意位置 + Authorization 头的纵深版对照。
 
 刻意边界(断言"不脱敏",是设计而非遗漏):
-- 裸 Bearer(无头名)/OpenAI 式散文回显: redact_secrets 无锚不猜,由
-  gcc.redact 在值=已登记明文时兜底;
+- OpenAI 式散文回显: redact_secrets 无锚不猜,由 gcc.redact 在值=已登记
+  明文时兜底;裸 Bearer 批2 W7 已覆盖(16+ 长度下限防自然语言误伤,
+  短串按设计保留);
 - 裸 hex/指纹泛化: 会误伤快照 sources sha256 摘要,明确不做。
 运行: python3 tests/test_redact_gap_matrix.py(零 pytest,零真实出站)。
 """
@@ -61,6 +62,8 @@ COVERED = [
     ('D1b JSON无空格 "token"', f'{{"token":"{FAKE}"}}', '"token":'),
     ('D3 JSON camelCase apiKey(429体)', f'{{"error":{{"apiKey":"{FAKE}"}}}}', '"apiKey": '),
     ('D3b JSON "model_api_key"', f'{{"model_api_key": "{FAKE}"}}', '"model_api_key": '),
+    ('C2 裸 Bearer 无头名(16+长值,批2W7)', f'Bearer {SK}', 'Bearer '),
+    ('C2c 裸 Bearer 40字符真实Key形态', 'Bearer sk-' + 'K' * 30, 'Bearer '),
 ]
 for name, cell, anchor in COVERED:
     out = redact(cell)
@@ -68,10 +71,11 @@ for name, cell, anchor in COVERED:
           f'out={out[:70]}')
 
 # ── 二、边界格(无锚不猜——redact_secrets 刻意不动,纵深由 gcc 承担) ────
-print("\n[2] 边界(裸Bearer/散文回显: 无头名锚点,本层不猜)")
+print("\n[2] 边界(散文回显/短串/自然语言: 本层不猜或按设计保留)")
 BOUNDARY = [
-    ('C2 裸 Bearer 无头名(未登记值)', f'Bearer {SK}'),
     ('D2 OpenAI式散文回显(未登记值)', f'Incorrect API key provided: {SK}'),
+    ('C2b 裸 Bearer 短值(<16,长度下限保留)', 'Bearer sk-short1'),
+    ('自然语句 the Bearer of good news…', 'the Bearer of good news arrives today'),
 ]
 for name, cell in BOUNDARY:
     out = redact(cell)

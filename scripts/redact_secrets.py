@@ -17,8 +17,10 @@
   原样返回(既挡重匹配,也放过"仅头+方案词无值"的无泄漏形态)。
 
 刻意**不**覆盖(无锚不猜,防误伤):
-- 裸 Bearer(无头名)/OpenAI 式散文回显: 由 glm_conclusion_client.redact
+- OpenAI 式散文回显(无=/:/Bearer 结构): 由 glm_conclusion_client.redact
   在值=进程内登记明文(MODEL_API_KEY/GLM_API_KEY)时纵深兜底;
+  裸 Bearer 已覆盖(批2 W7)但带 16+ 长度下限——短于 16 的串按设计保留
+  (自然语言防误伤),是安全边界不是遗漏;
 - 裸 32/64 位 hex 泛化: 会误伤快照 sources sha256 摘要等合法指纹
   (实测通道摘要逐日入台账/信封)。需要更宽口径的场景用
   real_data_acceptance.sanitize_text(登记已知密钥明文的纵深防御版)。
@@ -37,6 +39,9 @@ _SECRET_JSON_RE = re.compile(
 _SECRET_HEADER_RE = re.compile(
     r"((?:authorization|x-api-key)\s*[:=]\s*(?:bearer\s+)?)([A-Za-z0-9_\-.]+)",
     re.IGNORECASE)
+# 裸 Bearer(无头名,安全矩阵批1抽查缺口): 16+ 长度下限防自然语言误伤——
+# "the Bearer of good news" 的 of 不满足 16+ 连续;幂等天然保持(* 不在字符集)。
+_SECRET_BEARER_RE = re.compile(r"(Bearer\s+)[A-Za-z0-9_\-.]{16,}", re.IGNORECASE)
 
 
 def _header_sub(m):
@@ -54,7 +59,8 @@ def redact(text):
         return text
     text = _SECRET_QS_RE.sub(r"\1***REDACTED***", text)
     text = _SECRET_JSON_RE.sub(r'\1***REDACTED***', text)
-    return _SECRET_HEADER_RE.sub(_header_sub, text)
+    text = _SECRET_HEADER_RE.sub(_header_sub, text)
+    return _SECRET_BEARER_RE.sub(r"\1***REDACTED***", text)
 
 
 def _selftest():
@@ -91,8 +97,12 @@ def _selftest():
     once = redact(f"?api_key={fake} | Authorization: Bearer {sk} | {{\"token\":\"{fake}\"}}")
     assert redact(once) == once, once
     assert redact(None) is None and redact(123) == 123
-    bare = f'Bearer {sk}'                      # 裸 Bearer 无头名: 本层不猜
-    assert redact(bare) == bare
+    bare = f'Bearer {sk}'                      # 裸 Bearer(长值): 批2 W7 覆盖
+    assert redact(bare) == f'Bearer ***REDACTED***', bare
+    short = 'Bearer sk-short1'                 # 短值(<16): 长度下限保留
+    assert redact(short) == short
+    prose = 'the Bearer of good news arrives'  # 自然语言: 零误伤
+    assert redact(prose) == prose
     print(f"redact_secrets 自测: {n}用例+幂等+类型+边界 全部通过")
 
 

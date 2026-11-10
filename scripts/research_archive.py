@@ -147,6 +147,15 @@ def _load_snapshot_for_binding(snapshot_id, snapshot_dir):
     return snap, None
 
 
+def load_snapshot_by_id(snapshot_id, daily_dir):
+    """公开面: 按规范 snapshot_id 自 data/daily 加载指定快照(C席观察②,
+    2026-11-10): 归档显式绑定旧版快照用——record.snapshot_id/digest 随
+    **注入快照**走,默认入口(ia_cli)取最新;研究实际基于旧版时调用方
+    须显式指定,读者才能按指针复现。委托 _load_snapshot_for_binding
+    (唯一快照读取面,零第二实现)。返回 (snapshot|None, 原因)。"""
+    return _load_snapshot_for_binding(snapshot_id, daily_dir)
+
+
 # ══ IR 阶段探测与确定性摘要(D-B4-04/D-B4-05) ═══════════════════════════
 
 def _detect_ir_stage(ir):

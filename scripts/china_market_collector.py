@@ -251,6 +251,24 @@ _CN_PERIOD_DAYS = {'1d': 1, '5d': 5, '1mo': 31, '3mo': 92, '6mo': 183}
 _CN_PERIOD_YEARS = {'1y': 1, '2y': 2, '5y': 5, '10y': 10}
 _CN_FLOOR_DATE = '19901219'   # 上证基日(1990-12-19);各指数以源端实际可得为准
 
+# Charter8(HK 深度补拉, 2026-11-10): 港股指数深窗与 A 股同档≈10年。
+# 腾讯 ifzq 按 bar 数取数(2600根≈10年);WAF 对大 count 可能 501 拦截→
+# 上层转 yfinance 深窗备源(见 _fetch_hk_yfinance)。env 可覆盖,非法回落。
+def hk_history_bars():
+    """港股指数日K bar 数(纯函数,现读 env HK_INDEX_HISTORY_BARS)。"""
+    raw = os.environ.get('HK_INDEX_HISTORY_BARS')
+    if raw is None or not str(raw).strip():
+        return 2600
+    try:
+        n = int(str(raw).strip())
+    except ValueError:
+        print(f"  ⚠️ HK_INDEX_HISTORY_BARS 非整数({raw!r}),回落默认 2600")
+        return 2600
+    if n < 60:
+        print(f"  ⚠️ HK_INDEX_HISTORY_BARS={n} 过小(<60 不足以算周变化),回落 2600")
+        return 2600
+    return n
+
 
 def cn_index_history_period():
     """CN 指数历史窗口解析(纯函数,现读 env;空白→默认'10y',非法→告警回落)。"""
@@ -379,9 +397,15 @@ def _hk_metrics_from_daily(dates, closes):
         ytd_chg = round((close - year_first) / year_first * 100, 2)
     return {'close': close, 'week_chg': week_chg, 'ytd_chg': ytd_chg, 'date': str(dates[-1])[:10]}
 
-def _tx_kline_rows(code, bars=320, retries=2):
+def _tx_kline_rows(code, bars=None, retries=2):
     """腾讯ifzq日K直连,返回升序[(date, close), ...];失败返回[]。
-    320根约15个月,足够覆盖周变化与YTD计算。"""
+
+    bars: Charter8(HK深度补拉)——默认取 hk_history_bars()(≈10年,与
+    A股深窗 CN_INDEX_HISTORY_PERIOD=10y 同档);腾讯 WAF 对大 count 请求
+    可能 501 拦截(2026-11-10 实测 >320 被拦),拦→[]→上层转 yfinance 深窗
+    备源,不降级凑短窗。"""
+    if bars is None:
+        bars = hk_history_bars()
     for attempt in range(retries + 1):
         try:
             r = _direct_session().get(
@@ -415,38 +439,32 @@ def _fetch_hk_tencent(ticker, name):
     return m
 
 def _fetch_hk_yfinance(ticker, name, retries=1):
-    """方案2: yfinance(走系统代理出境)。429限流时重试1次,仍失败交回调用方。"""
+    """方案2: yfinance(走系统代理出境)。429限流时重试1次,仍失败交回调用方。
+
+    Charter8(HK 深度补拉, 2026-11-10): 1mo→10y 深窗(与腾讯主路
+    hk_history_bars()≈10年同档;腾讯 WAF 拦大 count 时的兜底路径);
+    删 tail(400) 截断与额外 ytd 请求——指标改由 _hk_metrics_from_daily
+    从全序列统一计算(与腾讯主路同口径),series 全量直通。"""
     last_err = None
     for attempt in range(retries + 1):
         try:
             data = yf.Ticker(ticker)
-            hist = data.history(period='1mo')
+            hist = data.history(period='10y')
             if hist.empty:
                 return None
-            close = round(float(hist['Close'].iloc[-1]), 2)
-            week_chg = None
-            if len(hist) >= 5:
-                prev = float(hist['Close'].iloc[-5])
-                week_chg = round((close - prev) / prev * 100, 2)
-            ytd_chg = None
-            try:
-                hist_ytd = data.history(period='ytd')
-                if len(hist_ytd) > 0:
-                    year_start = float(hist_ytd['Close'].iloc[0])
-                    ytd_chg = round((close - year_start) / year_start * 100, 2)
-            except Exception as e:
-                # IA-DATA-W3(AC-01b): 原静默pass→留日志;ytd_chg=None 语义零变化
-                print(f"  ⚠️ {name} yfinance YTD获取失败: {type(e).__name__}: {str(e)[:60]}")
-            tail = hist['Close'].tail(400)
-            return {'name': name, 'close': close, 'week_chg': week_chg,
-                    'ytd_chg': ytd_chg, 'date': str(hist.index[-1].date()),
-                    'series': {'dates': [str(d.date()) for d in tail.index],
-                               'values': [round(float(v), 6) for v in tail.values]}}
+            dates = [str(d.date()) for d in hist.index]
+            closes = [float(v) for v in hist['Close'].values]
+            m = _hk_metrics_from_daily(dates, closes)
+            return {'name': name, 'close': m['close'], 'week_chg': m['week_chg'],
+                    'ytd_chg': m['ytd_chg'], 'date': m['date'],
+                    'series': {'dates': dates,
+                               'values': [round(v, 6) for v in closes]}}
         except Exception as e:
             last_err = e
             time.sleep(15)
     if last_err:
-        print(f"  ⚠️ {name} yfinance失败({str(last_err)[:80]})")
+        # Charter8: 补异常类型(与腾讯主路"标识+类型"纪律一致,AC-01b)
+        print(f"  ⚠️ {name} yfinance失败({type(last_err).__name__}: {str(last_err)[:70]})")
     return None
 
 def fetch_hk_indices():

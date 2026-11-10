@@ -156,7 +156,10 @@ ALLOWED_PUBLIC_FUNCS = {"validate_id_conventions", "parse_snapshot_id",
                         # 批2 WI6(2026-11-09)显式扩面: research_full sidecar
                         # (validate/write/load;旧 query_history 契约一字不动)
                         "validate_research_full", "write_research_full",
-                        "load_research_full"}
+                        "load_research_full",
+                        # C席观察②(2026-11-10)显式扩面: 按 snapshot_id 加载
+                        # 指定快照(归档显式绑定旧版;委托既有私有读取面零新实现)
+                        "load_snapshot_by_id"}
 
 
 def _ir_with_qid(ir, qid):

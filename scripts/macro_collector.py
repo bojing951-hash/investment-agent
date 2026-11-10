@@ -170,7 +170,8 @@ SERIES_UNITS = {
     "JTSJOL": ("count", "千人(职位空缺)"),
     "US_REAL_GDP": ("index", "十亿美元(2017年链式,SAAR)"),
     "SOFR": ("rate", "%"),
-    "WALCL": ("index", "十亿美元(美联储总资产,周三水平)"),
+    # 首跑校准(2026-11-10): FRED原始单位=百万美元(存原始值惯例,RSAFS同例)
+    "WALCL": ("index", "百万美元(美联储总资产,周三水平)"),
 }
 # 各kind的变化单位标签(chg字段附_chg_unit,程序与报告据此区分口径)
 _CHG_UNIT_BY_KIND = {

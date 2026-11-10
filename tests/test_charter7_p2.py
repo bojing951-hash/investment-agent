@@ -216,10 +216,19 @@ check("Gate A 语义不变: SOFR/WALCL 为 important 非 core(缺席=noncore_mis
       all(REG_BY_ID[m]['criticality'] == 'important' and REG_BY_ID[m]['status'] == 'active'
           for m in ('SOFR', 'WALCL'))
       and not ({'SOFR', 'WALCL'} & set(core_ids)))
-check("单位族: SOFR percent→rate(pp 口径)/WALCL billion_usd→price(pct 口径,"
+check("单位族: SOFR percent→rate(pp 口径)/WALCL million_usd→price(pct 口径,"
       "缩表扩表=水平变化可复算)",
       ia_cli.unit_family(REG_BY_ID['SOFR']['unit'])[0] == 'rate'
       and ia_cli.unit_family(REG_BY_ID['WALCL']['unit'])[0] == 'price')
+# 首跑校准锁(2026-11-10真实拉取前校准): FRED WALCL原始单位=百万美元,
+# 管线惯例=存原始值+注册表单位描述原始值(RSAFS同例)→量程须为原始值量级,
+# 严禁出现"十亿单位标签配百万原始值"的口径错位
+_vw = REG_BY_ID['WALCL']['validation']['range']
+check("WALCL 单位校准: million_usd+原始值量程(百万级,防十亿/百万口径错位)",
+      REG_BY_ID['WALCL']['unit'] == 'million_usd'
+      and _vw[0] >= 1000000 and _vw[1] <= 100000000
+      and '百万美元' in mc.SERIES_UNITS['WALCL'][1],
+      f"unit={REG_BY_ID['WALCL']['unit']} range={_vw}")
 
 # 3b. 采集器接线: 三张映射(独立读表,期望硬编码)
 check("macro_collector: FRED_SERIES/SERIES_FREQ/SERIES_UNITS 三表接线"
@@ -245,14 +254,16 @@ check("SOFR 变化口径: week_chg=4.36−4.33=+0.03(pp,基准=2026-02-05)"
       and 'week_pct' not in sofr_ch,
       json.dumps({k: v for k, v in sofr_ch.items() if k.startswith('week')},
                  ensure_ascii=False))
-# WALCL 周频 index: week_chg=水平差+week_pct=百分比(独立手算 6600/6500)
+# WALCL 周频 index: week_chg=水平差+week_pct=百分比(独立手算 6600000/6500000;
+# 首跑校准后 fixture 用源端原始单位=百万美元,与真实 FRED 返回量级一致)
 walcl_d = ['2026-01-21', '2026-01-28', '2026-02-04']
-walcl_v = [6400.0, 6500.0, 6600.0]
+walcl_v = [6400000.0, 6500000.0, 6600000.0]
 walcl_ch = mc.compute_series_changes(walcl_d, walcl_v, 'weekly',
                                      unit=mc.SERIES_UNITS['WALCL'])
-check("WALCL 变化口径: week_chg=+100(十亿)+week_pct=6600/6500−1=+1.5385%",
-      abs(walcl_ch.get('week_chg', 9) - 100.0) < 1e-6
-      and abs(walcl_ch.get('week_pct', 9) - (6600.0 / 6500.0 - 1) * 100) < 1e-4,
+check("WALCL 变化口径: week_chg=+100000(百万)+week_pct=6600000/6500000−1="
+      "+1.5385%",
+      abs(walcl_ch.get('week_chg', 9) - 100000.0) < 1e-6
+      and abs(walcl_ch.get('week_pct', 9) - (6600000.0 / 6500000.0 - 1) * 100) < 1e-4,
       json.dumps({k: v for k, v in walcl_ch.items() if k.startswith('week')},
                  ensure_ascii=False))
 
@@ -261,7 +272,7 @@ MAC_DATA = {
     'data': {
         'SOFR': {'value': 4.36, 'date': '2026-02-10', 'frequency': 'daily',
                  'series': {'dates': sofr_d, 'values': sofr_v}},
-        'WALCL': {'value': 6600.0, 'date': '2026-02-04', 'frequency': 'weekly',
+        'WALCL': {'value': 6600000.0, 'date': '2026-02-04', 'frequency': 'weekly',
                   'series': {'dates': walcl_d, 'values': walcl_v}},
     }}
 facts = fe.normalize_macro(MAC_DATA, '2026-02-10T08:00:00+08:00',
@@ -271,7 +282,7 @@ check("normalize_macro: SOFR/WALCL 事实生成(值/观测日/序列随行/质�
       'SOFR' in fmap and 'WALCL' in fmap
       and fmap['SOFR']['value'] == 4.36
       and fmap['SOFR']['observation_date'] == '2026-02-10'
-      and fmap['WALCL']['value'] == 6600.0
+      and fmap['WALCL']['value'] == 6600000.0
       and fmap['WALCL']['observation_date'] == '2026-02-04'
       and all(fmap[m]['quality_status'] != 'FAIL' for m in ('SOFR', 'WALCL')),
       str([(f.get('metric_id'), f.get('quality_status'),

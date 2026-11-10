@@ -12,7 +12,33 @@ S(≤半天)/M(1-3天)/L(>3天或需章程决策)。
 
 | 项 | 内容 | 状态 |
 |---|---|---|
-| US 流动性维首批 | `SOFR`(FRED SOFR,日频,percent→rate 族)/`WALCL`(FRED WALCL,周频周三水平,billion_usd→price 族)注册表 v2.7.0 + macro_collector FRED_SERIES/SERIES_FREQ/SERIES_UNITS 接线 | **接线+fixture 测试完成,零真实拉取**;首跑真实拉取需协调方批准。批准前 active 条目缺席=Gate A noncore_missing 如实披露(不进 core,不改 FAIL 语义) |
+| US 流动性维首批 | `SOFR`(FRED SOFR,日频,percent→rate 族)/`WALCL`(FRED WALCL,周频周三水平,million_usd→price 族)注册表 v2.7.0 + macro_collector FRED_SERIES/SERIES_FREQ/SERIES_UNITS 接线 | **接线+fixture 测试+首跑真实拉取全部完成(2026-11-10,经协调方书面批准;见下首跑登记)**。缺席时=Gate A noncore_missing 如实披露(不进 core,不改 FAIL 语义) |
+
+### 首跑登记(2026-11-10,协调方批准后真实拉取,源端只读/现有 FRED key/零新凭证零付费)
+
+- **SOFR**: n=2148,首观测 2018-04-03(**序列起点即源端上线日**,非采集截断——
+  history_note 已随行注记),末观测 2026-11-06,值 3.89%。
+  源端限制: 日频每营业日发布前一营业日值;拉取时点周一(11-09)值尚未在
+  FRED 在场,末观测=上周五属正常节奏。
+- **WALCL**: n=521,首观测 2016-11-16(=采集窗起点,10 年全深),末观测
+  2026-11-04(周三),值 6,748,145(百万美元≈6.75 万亿)。
+  源端限制: H.4.1 每周四 16:30 ET 发布上周三水平,末观测=上周三属正常节奏;
+  事实层 WARN"近20自然日观测覆盖率3/15偏低"=连续性启发式按日频口径评周频
+  序列,**与既有周频 ICSA 同款同文案**(一致现状,非新缺陷;频率感知分母
+  属后续引擎批,不在本台账范围)。
+- **首跑校准(同日版本内修订)**: FRED WALCL 原始单位=**百万美元**(非十亿),
+  按管线惯例(存原始值/注册表单位描述原始值,RSAFS 同例)将注册表单位口径
+  由 billion_usd 校正为 million_usd+原始值量程 [3000000,10000000],
+  SERIES_UNITS 标签同步;零换算逻辑,真实值 6,748,145 直接落入量程。
+- **快照**: 当日重建 `research_snapshot_20261110_v3`(--allow-revision,
+  修订原因在档);Gate A=**DEGRADED**(core 缺失 0;noncore_missing=8 项
+  全部为其他通道既有缺席 BUND_10Y/BUND_2Y/CAC40/CN_OMO_7D/CN_SF_FLOW/
+  DAX/ECB_MRO/JP_CPI_TOKYO_YOY——macro 单档拉取不可能修复,非本轮目标)。
+  SOFR/WALCL **已从 noncore_missing 除名**,事实 96→98,SOFR=PASS,
+  WALCL=WARN(上述周频覆盖率文案)。
+- **analog 影响确认**: SOFR/WALCL **不在** `analog_engine.FEATURE_SPECS`
+  26 条六维特征集内(注册表≠特征集,FEATURE_METRICS 由 specs 推导),
+  Case B 归档(QB-20261110-023)数值零扰动。
 
 选型依据: Case A 七维矩阵**流动性维四经济体全缺是最大研究缺口**;FRED
 免费+现有 FRED_API_KEY+零新逻辑(周频/日频/利率/水平变化口径全有先例:

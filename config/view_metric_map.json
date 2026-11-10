@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "purpose": "机构观点 subjects → 注册表现有 metric_id 映射(Charter8 交付②)。verifier 只从本表取指标;表中 id 必须都在 metric_registry 且 active——完整性由 tests/test_charter8_view_verifier.py 锁。",
+  "subjects": {
+    "US_rates": {
+      "note": "美联储政策与美债曲线;含货币政策操作目标(FFR/目标区间/SOFR)、期限结构、实际利率与政策预期(期货隐含)。",
+      "metrics": ["FED_FUNDS", "DFF", "DFEDTARU", "DFEDTARL", "SOFR", "ZQ_IMPLIED_AVG", "ZQ_F1_PRICE", "UST_2Y", "UST_5Y", "UST_10Y", "UST_30Y", "CURVE_2S10S", "REAL_10Y", "REAL_5Y", "TIPS_10Y", "BEI_10Y"]
+    },
+    "US_growth": {
+      "note": "美国增长与劳动力市场(硬数据+软数据);GDP/工业/零售/就业/初请/信心。",
+      "metrics": ["US_REAL_GDP", "INDPRO", "RSAFS", "NFP", "NFP_MOM_K", "UNEMPLOYMENT", "AHE", "ICSA", "JTSJOL", "UMCSENT"]
+    },
+    "CN_macro": {
+      "note": "中国宏观与政策:利率(LPR/OMO)、物价、PMI、社融/信贷、流动性。注意 CN_SF_FLOW/CN_OMO_7D 源端断连/PENDING 时 verifier 如实报缺席(不入证据表)。",
+      "metrics": ["CN_LPR_1Y", "CN_LPR_5Y", "CN_OMO_7D", "CN_CPI_YOY", "CN_PPI_YOY", "CN_PMI_MFG", "CN_SF_FLOW", "CN_NEW_LOANS", "CN_TOTAL_TURNOVER", "MARGIN_BAL"]
+    },
+    "EA_macro": {
+      "note": "欧元区宏观与政策:欧央行利率、HICP、德债曲线。BUND_10Y/2Y 依赖 BBK 源站(近期持续断连,缺席如实)。",
+      "metrics": ["ECB_DFR", "ECB_MRO", "EA_HICP_YOY", "BUND_10Y", "BUND_2Y", "EURUSD"]
+    },
+    "JP_macro": {
+      "note": "日本宏观与政策:政策利率、JGB 曲线、东京 CPI(唯 stat.go.jp 发布,登记未采集,缺席如实)。",
+      "metrics": ["JP_POLICY_RATE", "JGB2Y", "JGB5Y", "JGB10Y", "JP_CPI_TOKYO_YOY", "USDJPY"]
+    },
+    "HK_macro": {
+      "note": "香港市场面(指数/国企/AH溢价/南向)。宏观八维(增长/通胀/就业/财政等)注册表零覆盖=已登记缺口,verifier 如实报无宏观指标。",
+      "metrics": ["HSI", "HSCEI", "HSAHP", "SB_FLOW"]
+    },
+    "equities": {
+      "note": "全球股指与估值:美(含 SPX 家族估值 CAPE/PE/EPS)/欧/日/中/港+新兴与地区代理 ETF。",
+      "metrics": ["SPX", "NDX", "RUT", "VIX", "SPX_CAPE", "SPX_PE_TTM", "SPX_EPS", "DAX", "CAC40", "NIKKEI225", "SHCOMP", "SZCI", "CHINEXT", "HSI", "HSCEI", "FXI", "EEM", "EZU", "EWJ", "EWU", "INDA"]
+    },
+    "fixed_income": {
+      "note": "利率债与信用债:美债 ETF 期限梯+高收益/投资级;OAS 族源端 3 年授权窗(ICE BofA)历史浅,区间变动如报不足如实。",
+      "metrics": ["TLT", "IEF", "SHY", "LQD", "HYG", "HY_OAS", "BB_OAS", "B_OAS", "CCC_OAS", "IG_OAS", "HY_IG_DIFF", "UST_10Y", "BUND_10Y", "JGB10Y"]
+    },
+    "fx": {
+      "note": "主要汇率:美元指数+G3 汇率+人民币。EURUSD/USDJPY 方向语义相反(上涨分别=欧元升值/美元升值),verifier 只报数值不带方向判断。",
+      "metrics": ["DXY", "EURUSD", "USDJPY", "USDCNY", "GBPUSD"]
+    },
+    "commodities": {
+      "note": "商品:金银油气(期货主力连续)+现货月均 WTI。期货≠现货口径,注释在册。",
+      "metrics": ["GOLD_F", "SILVER_F", "WTI_F", "BRENT_F", "GLD", "USO", "WTI_SPOT_M"]
+    },
+    "credit": {
+      "note": "信用利差面:高收益/投资级 OAS 全族+派生 HY−IG 差。",
+      "metrics": ["HY_OAS", "BB_OAS", "B_OAS", "CCC_OAS", "IG_OAS", "HY_IG_DIFF", "HYG"]
+    }
+  }
+}

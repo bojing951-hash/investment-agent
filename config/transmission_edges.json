@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "purpose": "全球金融传导地图静态策划档(Charter8 页②数据源)。每条边/机制结论必须来自已归档真实研究——qb_source 指向真实 QB 号,本文件零凭空策划(协调裁定硬约束 2026-11-10)。",
+  "provenance_rule": "edges[].qb_source 与 mechanism_findings[].qb_source 必须指向 data/research/research_archive/research_archive/query_history/ 下真实存在的 QB 档;r/n/window/note 逐字取自归档 answer_text,不得改写数值。未在归档研究中出现过的传导关系禁止加入。",
+  "evidence_grading": {
+    "E1": "统计事实——本地数据相关/共动(变化对口径),方向可引但非因果",
+    "E2": "事后路径佐证——历史簇事后形态与统计结构相容,单簇样本不外推",
+    "E3": "历史形态不可移植——制度状态/政策相位不同质,该簇事后形态不可作为当前推断依据"
+  },
+  "category_semantics": {
+    "strong": "较强渠道(|r|≥0.24,方向可引,仍=统计事实非因果)",
+    "near_zero": "近零渠道(|r|<0.19)——流行叙事在本地数据中 E1 不支持,情景推演中此类链不作方向依据"
+  },
+  "edges": [
+    {"edge_id": "TIPS10Y-UST10Y", "from": "TIPS_10Y", "to": "UST_10Y", "channel_label": "名义-实际利率同动", "category": "strong", "r": 0.8278, "n": 2495, "window": "全窗", "evidence_level": "E1", "note": "名义-实际同向(沿用 Case A)", "qb_source": "QB-20261110-022"},
+    {"edge_id": "EZU-SPX", "from": "EZU", "to": "SPX", "channel_label": "美欧权益高度共动", "category": "strong", "r": 0.8012, "n": 2512, "window": "2016起", "evidence_level": "E1", "note": "美欧权益高度共动", "qb_source": "QB-20261110-022"},
+    {"edge_id": "NDX-RUT", "from": "NDX", "to": "RUT", "channel_label": "美股内部大小盘共动", "category": "strong", "r": 0.7644, "n": 2512, "window": "2016起", "evidence_level": "E1", "note": "roll60 末 +0.7666(窗史 0.1702~0.9586)——风格分化发生在高共动之内", "qb_source": "QB-20261110-022"},
+    {"edge_id": "VIX-SPX", "from": "VIX", "to": "SPX", "channel_label": "风险偏好内环(波动-股指)", "category": "strong", "r": -0.7138, "n": 2512, "window": "全窗", "evidence_level": "E1", "note": "roll60 末 -0.9176(沿用)", "qb_source": "QB-20261110-022"},
+    {"edge_id": "SPX-HYOAS", "from": "SPX", "to": "HY_OAS", "channel_label": "风险偏好内环(股指-信用)", "category": "strong", "r": -0.6318, "n": 749, "window": "3yr", "evidence_level": "E1", "note": "源端窗;a/b 掉落 217/34", "qb_source": "QB-20261110-022"},
+    {"edge_id": "RUT-HYOAS", "from": "RUT", "to": "HY_OAS", "channel_label": "小盘-信用强关联", "category": "strong", "r": -0.5883, "n": 749, "window": "3yr", "evidence_level": "E1", "note": "小盘-信用强关联", "qb_source": "QB-20261110-022"},
+    {"edge_id": "NDX-HYOAS", "from": "NDX", "to": "HY_OAS", "channel_label": "大盘成长-信用关联", "category": "strong", "r": -0.5843, "n": 749, "window": "3yr", "evidence_level": "E1", "note": "与 RUT 同量级→信用渠道不判别风格", "qb_source": "QB-20261110-022"},
+    {"edge_id": "FXI-SPX", "from": "FXI", "to": "SPX", "channel_label": "中美权益联动(中等)", "category": "strong", "r": 0.5, "n": 2512, "window": "2016起", "evidence_level": "E1", "note": "中美权益联动中等", "qb_source": "QB-20261110-022"},
+    {"edge_id": "COREPCE-FEDFUNDS", "from": "CORE_PCE", "to": "FED_FUNDS", "channel_label": "通胀-政策利率历史共动", "category": "strong", "r": 0.422, "n": 118, "window": "月网格", "evidence_level": "E1", "note": "ev/rt blocked", "qb_source": "QB-20261110-022"},
+    {"edge_id": "DXY-GOLDF", "from": "DXY", "to": "GOLD_F", "channel_label": "美元-黄金负关联", "category": "strong", "r": -0.3935, "n": 2511, "window": "2016起", "evidence_level": "E1", "note": "roll60 末 -0.4609(窗史 -0.7836~+0.2818)——美元-黄金负相关近窗强于全窗", "qb_source": "QB-20261110-022"},
+    {"edge_id": "DXY-UST10Y", "from": "DXY", "to": "UST_10Y", "channel_label": "美元-美债利率同动(弱)", "category": "strong", "r": 0.314, "n": 2492, "window": "全窗", "evidence_level": "E1", "note": "roll60 末 +0.3974(沿用)", "qb_source": "QB-20261110-022"},
+    {"edge_id": "UST2Y-FEDFUNDS", "from": "UST_2Y", "to": "FED_FUNDS", "channel_label": "前端利率-政策锚", "category": "strong", "r": 0.2871, "n": 119, "window": "月网格", "evidence_level": "E1", "note": "ev/rt blocked", "qb_source": "QB-20261110-022"},
+    {"edge_id": "TIPS10Y-GOLDF", "from": "TIPS_10Y", "to": "GOLD_F", "channel_label": "实际利率-黄金负关联", "category": "strong", "r": -0.3013, "n": 2491, "window": "全窗", "evidence_level": "E1", "note": "roll60 末 -0.1488(沿用);2021 起子窗 -0.2730(n=1458)", "qb_source": "QB-20261110-022"},
+    {"edge_id": "HYOAS-UST10Y", "from": "HY_OAS", "to": "UST_10Y", "channel_label": "信用利差-利率弱负关联", "category": "strong", "r": -0.2418, "n": 745, "window": "3yr", "evidence_level": "E1", "note": "roll60 末 -0.2319;3yr 内'利率下↔利差宽'并存", "qb_source": "QB-20261110-022"},
+    {"edge_id": "EURUSD-UST10Y", "from": "EURUSD", "to": "UST_10Y", "channel_label": "利率差→欧元(教科书渠道)", "category": "near_zero", "r": -0.0307, "n": 2491, "window": "全窗", "evidence_level": "E1", "note": "利率差→欧元渠道近零(a 掉落 109)", "qb_source": "QB-20261110-022"},
+    {"edge_id": "USDJPY-UST10Y", "from": "USDJPY", "to": "UST_10Y", "channel_label": "美债利率→日元套息(教科书渠道)", "category": "near_zero", "r": 0.0313, "n": 2491, "window": "全窗", "evidence_level": "E1", "note": "沿用;美债利率→日元套息渠道近零", "qb_source": "QB-20261110-022"},
+    {"edge_id": "USDJPY-UST2Y", "from": "USDJPY", "to": "UST_2Y", "channel_label": "前端锚→日元(教科书渠道)", "category": "near_zero", "r": 0.0064, "n": 2491, "window": "全窗", "evidence_level": "E1", "note": "前端锚同样近零", "qb_source": "QB-20261110-022"},
+    {"edge_id": "VIX-USDJPY", "from": "VIX", "to": "USDJPY", "channel_label": "风险偏好→carry 货币(教科书渠道)", "category": "near_zero", "r": -0.0238, "n": 2510, "window": "全窗", "evidence_level": "E1", "note": "风险偏好→carry 货币渠道近零", "qb_source": "QB-20261110-022"},
+    {"edge_id": "VIX-GOLDF", "from": "VIX", "to": "GOLD_F", "channel_label": "风险→黄金对冲(流行叙事)", "category": "near_zero", "r": -0.0309, "n": 2510, "window": "全窗", "evidence_level": "E1", "note": "黄金非短期 VIX 对冲(日度变化口径)", "qb_source": "QB-20261110-022"},
+    {"edge_id": "GOLDF-BEI10Y", "from": "GOLD_F", "to": "BEI_10Y", "channel_label": "通胀预期→黄金(流行叙事)", "category": "near_zero", "r": 0.0255, "n": 2492, "window": "全窗", "evidence_level": "E1", "note": "通胀预期→黄金渠道近零", "qb_source": "QB-20261110-022"},
+    {"edge_id": "NDX-UST10Y", "from": "NDX", "to": "UST_10Y", "channel_label": "久期渠道(流行叙事)", "category": "near_zero", "r": 0.0586, "n": 2491, "window": "全窗", "evidence_level": "E1", "note": "久期渠道近零——M3 机制 A 不被支持", "qb_source": "QB-20261110-022"},
+    {"edge_id": "INDPRO-SPX", "from": "INDPRO", "to": "SPX", "channel_label": "增长→股指(教科书渠道)", "category": "near_zero", "r": -0.0471, "n": 118, "window": "月网格", "evidence_level": "E1", "note": "月网格;工业产出变化→股指近零", "qb_source": "QB-20261110-022"},
+    {"edge_id": "CPI-BEI10Y", "from": "CPI", "to": "BEI_10Y", "channel_label": "通胀读数→通胀预期(弱)", "category": "near_zero", "r": 0.1733, "n": 117, "window": "月网格", "evidence_level": "E1", "note": "月网格;弱", "qb_source": "QB-20261110-022"},
+    {"edge_id": "WTIF-BEI10Y", "from": "WTI_F", "to": "BEI_10Y", "channel_label": "油价→通胀预期(弱)", "category": "near_zero", "r": 0.1561, "n": 2493, "window": "全窗", "evidence_level": "E1", "note": "弱", "qb_source": "QB-20261110-022"},
+    {"edge_id": "FEDFUNDS-UST10Y-LAG6", "from": "FED_FUNDS", "to": "UST_10Y", "channel_label": "政策→长端(弱,lag6)", "category": "near_zero", "r": 0.1322, "n": 113, "window": "月网格 lag6", "evidence_level": "E1", "note": "月网格;政策→长端弱(沿用)", "qb_source": "QB-20261110-022"}
+  ],
+  "structural_summary": {
+    "qb_source": "QB-20261110-022",
+    "text": "证据面结构性结论: 风险偏好内环(股×VIX×信用, r 0.59~0.80)与美元-黄金链(|r| 0.39~0.46)是本地数据中清晰的 E1 传导面; 而利率→汇率(欧元/日元)、风险→黄金、风险→carry、久期→成长风格、增长→股指等教科书渠道在变化相关口径下近零——凡依赖这些渠道的推演环节, 本报告只标【假设】并给证伪指标, 不作方向判断依据。"
+  },
+  "mechanism_findings": [
+    {"finding_id": "MF-NOMINAL-REAL", "mechanism_label": "名义-实际利率同动", "verdict": "still_valid", "evidence_level": "E1", "metrics": ["TIPS_10Y", "UST_10Y"], "note": "TIPS_10Y×UST_10Y r=+0.8278, n=2495: 事后块中 UST 与 TIPS 路径同族(E2 佐证)。", "qb_source": "QB-20261110-023"},
+    {"finding_id": "MF-DXY-GOLD", "mechanism_label": "美元-黄金负关联", "verdict": "still_valid", "evidence_level": "E1", "metrics": ["DXY", "GOLD_F"], "note": "DXY×GOLD_F -0.3935, roll60 -0.4609: 与'2024-12 簇事后 DXY -10.16 同时 GOLD +62.65'的并存方向一致(单簇样本, 不外推)。", "qb_source": "QB-20261110-023"},
+    {"finding_id": "MF-RISK-INNER-LOOP", "mechanism_label": "风险偏好内环(股×VIX×信用)", "verdict": "still_valid", "evidence_level": "E1", "metrics": ["VIX", "SPX", "HY_OAS"], "note": "VIX×SPX -0.7138/SPX×HY_OAS -0.6318: 2022-01 簇事后 SPX -10.34 伴随波动抬升的记录与该统计结构相容(E2, 事后块无 VIX 序列输出, 不作断言)。", "qb_source": "QB-20261110-023"},
+    {"finding_id": "MF-QE-VALUATION", "mechanism_label": "QE/零利率估值传导", "verdict": "not_applicable", "evidence_level": "E3", "metrics": ["TIPS_10Y", "SPX", "UST_10Y"], "note": "2020-12 簇: TIPS z -2.22 时的股债双涨事后形态——锚点 TIPS z +1.65, 制度状态不同质, 该簇事后形态不可移植。", "qb_source": "QB-20261110-023"},
+    {"finding_id": "MF-HIKE-CYCLE-START", "mechanism_label": "'加息周期起点'动态", "verdict": "not_applicable", "evidence_level": "E3", "metrics": ["FED_FUNDS"], "note": "2022-01 簇: 锚点 FED z +0.76 且 d12m -0.33(近 12 月净降息), 与候选 d12m +0.16 方向相反, 政策相位不同。", "qb_source": "QB-20261110-023"},
+    {"finding_id": "MF-CREDIT-CONDITIONS", "mechanism_label": "信用条件机制", "verdict": "unverifiable", "evidence_level": "E2_gap", "metrics": ["HY_OAS"], "note": "候选侧无信用特征, 相似度未含信用信息; 锚点信用 z 抬升是否为共同特征, 本引擎不可验(E2 缺环)。", "qb_source": "QB-20261110-023"},
+    {"finding_id": "MF-INFLATION-EXPECTATIONS", "mechanism_label": "通胀预期机制", "verdict": "unverifiable", "evidence_level": "E2_gap", "metrics": ["BEI_10Y"], "note": "锚点通胀维仅 BEI 一特征(coverage 0.33), 通胀相似性证据薄(CPI 族 release_lag 缺席)。", "qb_source": "QB-20261110-023"}
+  ],
+  "display_rule": "未验证因果不画为事实: strong=E1 统计事实(非因果)可画实线带 r 值;near_zero=画虚线并标注'本地数据不支持';not_applicable/unverifiable=机制结论面板展示,不入边图。图例必须明示证据分级(页②渲染纪律)。"
+}

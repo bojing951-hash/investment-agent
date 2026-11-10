@@ -6,7 +6,7 @@
 不复制引擎,只包装 scripts/workbench_data.py / research_archive /
 correlation_calculator / research_history_query 等既有模块,输出结构化 JSON。
 
-九个能力: doctor | update | overview | changes | history | compare | analog | research | archive
+十个能力: doctor | update | overview | changes | history | compare | analog | research | archive | views
 
 输出纪律(与 Skill 研究纪律同源):
   - 数值一律来自本地快照/采集档原值,缺失如实报缺失,绝不填 0;
@@ -1112,6 +1112,22 @@ def cmd_archive(args):
     import research_archive as ra
     snap, _reg, _note = load_context()
     if args.action == 'save':
+        # C席观察②(2026-11-10): record.snapshot_id 随**注入快照**走,默认取最新;
+        # 研究实际基于旧版快照时须 --snapshot-id 显式绑定,读者按指针才能复现
+        # (QB-032/033 教训: 正文自述 v4,指针却落 v5)。
+        if getattr(args, 'snapshot_id', None):
+            sid = args.snapshot_id
+            if not sid.startswith('research_snapshot_'):
+                sid = 'research_snapshot_' + sid     # 容忍短形 20261110_v4
+            chosen, why = ra.load_snapshot_by_id(
+                sid, os.path.join(ROOT, 'data', 'daily'))
+            if chosen is None:
+                emit(envelope('archive', False, {},
+                              error=('snapshot_not_found',
+                                     f'--snapshot-id 加载失败: {why}',
+                                     '查 data/daily/research_snapshot_*.json 在场版本')),
+                     exit_code=2)
+            snap = chosen
         if args.follow_up_of:
             fu_ok, fu_why = _check_follow_up(args.follow_up_of)
             if not fu_ok:
@@ -1138,6 +1154,7 @@ def cmd_archive(args):
             statistics=args.statistics, hypotheses=args.hypotheses,
             open_questions=args.open_questions, as_of=args.as_of)
         data = {'saved': True, 'query_id': qid,
+                'snapshot_id': snap.get('snapshot_id'),
                 'note': f'append-only 落档于 <引擎根>/data/research/{ARCHIVE_DOUBLE_NEST}'
                         '/(research_archive 模块双层嵌套,既定行为)'}
         warns = []
@@ -1199,6 +1216,47 @@ def cmd_archive(args):
                 merged.setdefault(_k, None)
             data['full'] = merged
         emit(envelope('archive', True, data, warns))
+
+
+# ══ views(Charter 8, 2026-11-10) ═══════════════════════════════════════
+def cmd_views(args):
+    """机构观点存储(交付⑦): list/get/lint——只读装载,零写入零网络。
+
+    信封与九能力一致;views 不依赖快照(快照位字段恒 null)。
+    get/lint 的隔离件绝不放出(linter 违规=隔离,不降级装载)。"""
+    import view_store as vs_m
+    action = args.action
+    if action == 'list':
+        out = vs_m.list_views()
+        data = {'schema_version': vs_m.SCHEMA_VERSION,
+                'views': out['views'], 'n_views': len(out['views']),
+                'n_quarantined': out['n_quarantined'], 'n_files': out['n_files'],
+                'views_dir': vs_m.VIEWS_DIR}
+        warns = []
+        if out['n_quarantined']:
+            warns.append(f"{out['n_quarantined']} 份被 linter 隔离(views lint 看违规明细;隔离件不参与任何装载面)")
+        emit(envelope('views', True, data, warns))
+    elif action == 'get':
+        if not args.view_id:
+            emit(envelope('views', False, {},
+                          error=('missing_view_id', 'views get 需要 --view-id', None)),
+                 exit_code=2)
+        doc, reason = vs_m.get_view(args.view_id)
+        if doc is None:
+            emit(envelope('views', False, {},
+                          error=('view_not_found_or_quarantined', reason, None)),
+                 exit_code=1)
+        emit(envelope('views', True, {'view': doc}))
+    else:  # lint
+        res = vs_m.load_views()
+        data = {'schema_version': vs_m.SCHEMA_VERSION,
+                'n_compliant': len(res['views']), 'n_quarantined': len(res['quarantined']),
+                'n_files': res['n_files'], 'quarantined': res['quarantined']}
+        warns = []
+        if res['quarantined']:
+            rules = sorted({v['rule'] for q in res['quarantined'] for v in q['violations']})
+            warns.append(f"违规规则集: {','.join(rules)}(隔离件明细见 data.quarantined)")
+        emit(envelope('views', not res['quarantined'], data, warns), exit_code=0 if not res['quarantined'] else 1)
 
 
 # ══ 入口 ══════════════════════════════════════════════════════════════
@@ -1282,6 +1340,14 @@ def build_parser():
     ar.add_argument('--hypotheses', help='save: 竞争性假设')
     ar.add_argument('--open-questions', help='save: 未解决问题')
     ar.add_argument('--as-of', help='save: 研究截止时间(落 sidecar research_as_of 位)')
+    ar.add_argument('--snapshot-id',
+                    help='save: 显式绑定快照(默认最新;研究基于旧版时须指定,'
+                         '如 research_snapshot_20261110_v4 或短形 20261110_v4)')
+
+    vw = sub.add_parser('views',
+                        help='机构观点存储(Charter8): list 摘要 / get 单份(合规件) / lint 违规明细')
+    vw.add_argument('action', choices=['list', 'get', 'lint'])
+    vw.add_argument('--view-id', help='get: VIEW-YYYYMMDD-NNN(隔离件拒绝并给原因)')
     return p
 
 
@@ -1290,7 +1356,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     handlers = {'doctor': cmd_doctor, 'update': cmd_update, 'overview': cmd_overview,
                 'changes': cmd_changes, 'history': cmd_history, 'compare': cmd_compare,
-                'analog': cmd_analog, 'research': cmd_research, 'archive': cmd_archive}
+                'analog': cmd_analog, 'research': cmd_research, 'archive': cmd_archive,
+                'views': cmd_views}
     if args.capability == 'archive':
         if args.action == 'save' and not args.question:
             emit(envelope('archive', False, {},

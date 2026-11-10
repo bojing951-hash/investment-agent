@@ -1,15 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""investment-agent 研究工作台 —— 本地Web统一入口(W5, 2026-11-08)。
+"""investment-agent 研究工作台 —— 本地Web统一入口(W5→Charter8, 2026-11-10)。
 
 启动(项目根):
     streamlit run app.py
 (需先安装工作台依赖: pip install -r requirements-workbench.txt,详见 docs/USER_GUIDE.md)
 
-四个页面: 全球宏观概览 / 金融市场变化 / 历史研究 / AI研究。
+Charter8 四页(Charter 8 章程, 2026-11-10):
+  ① 全球宏观全景   经济体×维度覆盖表 + 市场指标 1m/3m/1y/5y 窗口(interval_change
+                   自配对口径,与 ia_cli compare 同函数) + 历史走势
+  ② 全球金融传导地图 config/transmission_edges.json 静态策划档——每条边带 qb_source
+                   指向真实研究归档,E1/E2/E3 证据分级图例;未验证因果不画为事实
+  ③ 机构观点矩阵   data/institutions/views 存储(schema v1.1,只装载 linter 合规件)
+  ④ 独立研究结论   本地研究档案(QB 链)+ Agent Native 引导
+
 全部数值来自本地快照与采集档(显示观测日期与来源),缺失如实标注;
-不做实时行情、不做投资建议、不连任何云端服务。数据加载逻辑见
-scripts/workbench_data.py(纯函数层,可离线测试)。
+**零模型调用**: 页面不发起任何模型 API 请求(无模型环境=数据图+缓存研究
++Agent Native 引导);不做实时行情、不做投资建议、不连任何云端服务。
+数据加载逻辑见 scripts/workbench_data.py(纯函数层,可离线测试)。
 """
 import os
 import sys
@@ -34,7 +42,7 @@ st.set_page_config(page_title='investment-agent 研究工作台',
                    page_icon='🔬', layout='wide')
 
 DISCLAIMER = ('本工作台是宏观**研究工具**: 所有数值来自本地采集数据,可能滞后或有误;'
-              '内容不构成投资建议,投资观点请自行形成并自担风险。')
+              '内容不构成投资建议,投资观点请自行形成并担风险。')
 
 
 @st.cache_data(show_spinner=False)
@@ -64,39 +72,41 @@ with st.sidebar:
             with st.expander(f"降级指标 {len(META['degraded'])} 项"):
                 st.write('、'.join(META['degraded']))
     st.divider()
-    page = st.radio('导航', ['全球宏观概览', '金融市场变化', '历史研究', 'AI 研究',
-                             '关于与限制'], label_visibility='collapsed')
+    page = st.radio('导航', ['全球宏观全景', '全球金融传导地图', '机构观点矩阵',
+                             '独立研究结论', '关于与限制'],
+                    label_visibility='collapsed')
     st.divider()
     st.caption(DISCLAIMER)
 
 
-# ── 页面一: 全球宏观概览 ─────────────────────────────────────────────
-def page_overview():
-    st.header('全球宏观概览')
+# ── 页面①: 全球宏观全景 ─────────────────────────────────────────────
+def page_panorama():
+    st.header('全球宏观全景')
     if SNAP is None:
         st.warning('本地无研究快照。请先运行 `python3 run_weekly.py` 完成一次数据采集。')
         return
+    st.subheader('经济体 × 维度覆盖表')
+    mx = wd.economy_dimension_matrix(SNAP, REGISTRY)
+    st.caption(mx['note'] + ' · 维度=注册表 asset_class 权威口径')
+    st.dataframe(mx['rows'], width='stretch', height=260)
+
+    st.subheader('分经济体指标表')
     econ = st.selectbox('经济体', ['US', 'CN', 'EA', 'JP', 'GLOBAL', 'HK'],
                         format_func=lambda k: f'{wd.ECONOMY_LABELS.get(k, k)}({k})')
     rows = wd.overview_rows(SNAP, REGISTRY, econ)
     n_miss = sum(1 for r in rows if r['当前值'] == '缺失')
     st.caption(f"快照日 {META['date']} · {wd.ECONOMY_LABELS.get(econ, econ)} 活跃指标 "
                f"{len(rows)} 项(缺失 {n_miss} 项,如实列出) · 变化口径: 周/月内/年初至今")
-    st.dataframe(rows, width='stretch', height=560)
-    with st.expander('数据来源状态(sources_status)'):
-        st.json(SNAP.get('sources_status', {}))
+    st.dataframe(rows, width='stretch', height=480)
 
+    st.subheader('市场多窗口变化(1m / 3m / 1y / 5y)')
+    st.caption('区间变动=interval_change 自配对口径(基准=严格早于窗口起点的最后观测;'
+               '利率 pp/价格 %/计数绝对差)——与 `ia_cli compare --start <T-k>` 同函数,'
+               '数据不足如实标"不可用"。')
+    wrows = wd.market_window_rows(SNAP, REGISTRY)
+    st.caption(f"资产类指标 {len(wrows)} 项 · 快照日 {META['date']}")
+    st.dataframe(wrows, width='stretch', height=560)
 
-# ── 页面二: 金融市场变化 ─────────────────────────────────────────────
-def page_market():
-    st.header('金融市场变化')
-    if SNAP is None:
-        st.warning('本地无研究快照。请先运行 `python3 run_weekly.py` 完成一次数据采集。')
-        return
-    rows = wd.market_rows(SNAP, REGISTRY)
-    st.caption(f"快照日 {META['date']} · 资产类指标(股/债/汇/商品/加密/信用/波动率)"
-               f"共 {len(rows)} 项 · 周变化=最近一个交易周,月=月内,年内=年初至今")
-    st.dataframe(rows, width='stretch', height=560)
     st.subheader('历史走势')
     options = wd.series_capable_metrics(SNAP, REGISTRY)
     if not options:
@@ -111,13 +121,13 @@ def page_market():
     if series is None:
         st.warning(f'无历史序列: {err}')
         return
-    window = st.selectbox('窗口', ['全部', '1年', '6个月', '3个月', '1个月'])
+    window = st.selectbox('窗口', ['全部', '5年', '1年', '6个月', '3个月', '1个月'])
     _render_series(series, window)
 
 
 def _render_series(series, window):
     import pandas as pd
-    n = {'全部': 0, '1年': 252, '6个月': 126, '3个月': 63, '1个月': 21}[window]
+    n = {'全部': 0, '5年': 1260, '1年': 252, '6个月': 126, '3个月': 63, '1个月': 21}[window]
     dates, values = series['dates'], series['values']
     if n:
         dates, values = dates[-n:], values[-n:]
@@ -135,95 +145,156 @@ def _render_series(series, window):
             pass
 
 
-# ── 页面三: 历史研究 ─────────────────────────────────────────────────
-def page_history():
-    st.header('历史研究')
-    options = wd.series_capable_metrics(SNAP, REGISTRY)
-    if not options:
-        st.warning('本地暂无历史序列。请先运行 `python3 run_weekly.py` 采集数据'
-                   '(克隆仓库不含历史数据,数据须自行采集积累)。')
+# ── 页面②: 全球金融传导地图 ─────────────────────────────────────────
+def page_transmission():
+    st.header('全球金融传导地图')
+    try:
+        doc = wd.transmission_edges()
+    except (OSError, ValueError) as e:
+        st.error(f'传导边档不可用: {e}')
         return
-    sel = st.selectbox('选择指标', options,
-                       format_func=lambda o: f"{o['label']}({o['metric_id']})")
-    series, err = wd.metric_series(sel['metric_id'], SNAP)
-    if series is None:
-        st.warning(f'无历史序列: {err}')
-        return
-    window = st.selectbox('窗口', ['全部', '1年', '6个月', '3个月', '1个月'], key='hist_w')
-    _render_series(series, window)
-    st.subheader('跨指标对比')
-    sel2 = st.selectbox('对比指标(叠加显示)', ['(不对比)'] + [o['metric_id'] for o in options])
-    if sel2 != '(不对比)' and sel2 != sel['metric_id']:
-        s2, err2 = wd.metric_series(sel2, SNAP)
-        if s2 is None:
-            st.warning(f'对比序列不可用: {err2}')
-        else:
-            import pandas as pd
-            df = pd.DataFrame({series['label']: series['values']},
-                              index=pd.to_datetime(series['dates']))
-            df2 = pd.DataFrame({s2['label']: s2['values']},
-                               index=pd.to_datetime(s2['dates']))
-            st.line_chart(df.join(df2, how='inner'), height=340)
-            st.caption('两序列按共同观测日对齐(inner join);数值各自保留原单位,'
-                       '量纲不同时请谨慎解读(相关性≠因果)。')
+    st.caption('静态策划档(零模型调用): 每条边/机制结论来自已归档真实研究'
+               '(qb_source 指向 QB 研究档案),无凭空策划边。')
+
+    st.subheader('图例(证据分级)')
+    gr = doc['evidence_grading']
+    sem = doc['category_semantics']
+    st.markdown(
+        f"- **E1** {gr['E1']}\n"
+        f"- **E2** {gr['E2']}\n"
+        f"- **E3** {gr['E3']}\n"
+        f"- **实线(较强渠道)** {sem['strong']}\n"
+        f"- **虚线(近零渠道)** {sem['near_zero']}\n"
+        f"- {doc['display_rule']}")
+
+    edges = doc['edges']
+    strong = [e for e in edges if e['category'] == 'strong']
+    near = [e for e in edges if e['category'] == 'near_zero']
+    st.subheader(f'较强渠道({len(strong)} 条,方向可引=统计事实非因果)')
+    st.dataframe([{'渠道': f"{e['from']} × {e['to']}", '机制': e['channel_label'],
+                   'r': e['r'], 'n(变化对)': e['n'], '窗': e['window'],
+                   '证据级': e['evidence_level'], '来源': e['qb_source'],
+                   '备注': e['note']} for e in strong],
+                 width='stretch', height=420)
+    st.subheader(f'近零渠道({len(near)} 条——流行叙事在本地数据中 E1 不支持)')
+    st.dataframe([{'渠道': f"{e['from']} × {e['to']}", '机制': e['channel_label'],
+                   'r': e['r'], 'n(变化对)': e['n'], '窗': e['window'],
+                   '证据级': e['evidence_level'], '来源': e['qb_source'],
+                   '备注': e['note']} for e in near],
+                 width='stretch', height=360)
+
+    ss = doc.get('structural_summary') or {}
+    if ss:
+        st.info(f"**结构性结论({ss['qb_source']})**: {ss['text']}")
+
+    st.subheader('机制层结论(仍成立 / 已不适用 / 不可验)')
+    verdict_badge = {'still_valid': ('✅ 仍成立', 'green'),
+                     'not_applicable': ('⛔ 已不适用(E3)', 'red'),
+                     'unverifiable': ('❓ 不可验(缺环)', 'orange')}
+    for f in doc['mechanism_findings']:
+        label, color = verdict_badge.get(f['verdict'], (f['verdict'], 'gray'))
+        with st.expander(f"{label} · {f['mechanism_label']}({f['evidence_level']})"):
+            st.markdown(f"- {f['note']}")
+            st.caption(f"涉及指标: {'、'.join(f['metrics'])} · 来源: {f['qb_source']}")
 
 
-# ── 页面四: AI 研究 ──────────────────────────────────────────────────
+# ── 页面③: 机构观点矩阵 ─────────────────────────────────────────────
+def page_views():
+    st.header('机构观点矩阵')
+    import view_store as vs
+    vm = wd.views_matrix()
+    st.caption(f"schema v{vm['schema_version']} · 只装载 linter 合规件"
+               f"({len(vm['rows'])} 份;隔离件绝不入面) · 零模型调用,纯本地存储读取")
+    if vm['n_quarantined']:
+        st.warning(f"{vm['n_quarantined']} 份被 linter 隔离(见 `python3 ia_cli.py views lint`);"
+                   '本页不展示违规数据。')
+    if not vm['rows']:
+        st.info('views 存储暂无合规观点档(data/institutions/views/VIEW-*.json)。')
+        return
+
+    st.subheader('机构 × 主题矩阵')
+    st.caption('单元格=该机构该主题的 view 编号(末三位);「—」=未覆盖')
+    st.dataframe(vm['matrix'], width='stretch', height=320)
+
+    st.subheader('观点清单')
+    st.dataframe(vm['rows'], width='stretch', height=360)
+
+    st.subheader('单份详情')
+    sel = st.selectbox('选择观点', vm['rows'],
+                       format_func=lambda r: f"{r['view_id']} · {r['机构']} · {r['标题'][:40]}")
+    doc, reason = vs.get_view(sel['view_id'])
+    if doc is None:
+        st.warning(reason)
+        return
+    att_badge = {'institution_stated': '🏛 机构明示', 'ai_inferred': '🤖 AI 推导'}
+    st.markdown(f"**{doc['institution']['name']}**({doc['institution']['type']})"
+                f" · 发布 {doc['publish_date']} · 采集 {doc['fetch_date']} · "
+                f"期限 {doc['view_horizon']} · 来源类型 {doc['source_type']}")
+    st.markdown(f"[原文链接]({doc['source_url']}) · 存储纪律: 元数据+短引文+链接"
+                f"(quote≤500 字符)")
+    for i, cv in enumerate(doc['core_views'], 1):
+        badge = att_badge.get(cv['attribution'], cv['attribution'])
+        st.markdown(f"**观点{i}** [{badge} · {cv['basis']}] {cv['statement']}")
+        if cv.get('quote'):
+            st.caption(f"原文佐证: “{cv['quote']}”")
+    if doc['forecasts']:
+        st.markdown('**预测点位**')
+        st.table([{'目标': f['target'], '值/方向': f['value_or_direction'],
+                   '期限': f['horizon'],
+                   'attribution': att_badge.get(f['attribution'], f['attribution'])}
+                  for f in doc['forecasts']])
+    for title, key in (('关键假设', 'key_assumptions'), ('风险因素', 'risk_factors'),
+                       ('证伪条件', 'falsification_conditions')):
+        items = doc[key]
+        if items:
+            st.markdown(f"**{title}**")
+            for it in items:
+                badge = att_badge.get(it['attribution'], it['attribution'])
+                text = it.get('condition') or it.get('statement') or ''
+                st.markdown(f"- [{badge}] {text}")
+    if doc['revisions']:
+        st.markdown('**观点修订(只追加)**')
+        st.table([{'日期': r['date'], '变更': r['change'], '来源': r['source_url']}
+                  for r in doc['revisions']])
+    if doc['completeness_notes']:
+        with st.expander('完整性说明(诚实缺席披露)'):
+            st.write(doc['completeness_notes'])
+
+
+# ── 页面④: 独立研究结论 ─────────────────────────────────────────────
 def page_research():
-    st.header('AI 研究')
-    st.caption('基于本地快照事实的接地作答(e2eb 查询栈,零网络);'
-               'AI 解释为可选增强(可选模型 API,三参模板见 .env.example)。')
-    if SNAP is None:
-        st.warning('本地无研究快照,研究问题无法作答。请先运行 `python3 run_weekly.py`。')
-        return
-    with st.expander('当前支持的问题类型(如实声明,不夸大)'):
-        st.text(wd.SUPPORTED_CONCEPT_HINT)
-    q = st.text_area('研究问题', value='美国和日本10年期国债收益率差是多少？', height=80)
-    col1, col2, col3 = st.columns(3)
-    do_ask = col1.button('本地接地作答', type='primary')
-    do_explain = col2.button('AI 解释(可选,需模型 API)')
-    do_save = col3.button('存入研究档案')
-    if do_ask or q and (do_explain or do_save):
-        with st.spinner('本地查询中…'):
-            res = wd.ask_local(q, SNAP)
-        if res['status'] == 'answered':
-            st.success(f"已作答(接地于快照 {META['date']})")
-        elif res['status'] == 'refusal':
-            st.warning('查询被数据门禁拒绝(Gate A 未放行或缺数据)——如实拒绝,不作猜测。')
-        elif res['status'] == 'out_of_scope':
-            st.error('越界问题(投资建议/交易类),不作答。')
-        elif res['status'] in ('no_registry_identity', 'unmapped'):
-            st.info(f"暂不支持的问题类型({res['status']})——见上方支持范围说明。")
-        else:
-            st.error(res['answer_text'])
-        st.markdown(res['answer_text'])
-        if res.get('values'):
-            st.table([{ '指标绑定': k, '数值': v} for k, v in res['values'].items()])
-        st.session_state['last_answer'] = res
-        st.session_state['last_q'] = q
-    if do_explain:
-        last = st.session_state.get('last_answer')
-        if not last or st.session_state.get('last_q') != q:
-            res = wd.ask_local(q, SNAP)
-            st.session_state['last_answer'] = res
-            st.session_state['last_q'] = q
-            last = res
-        if last['status'] != 'answered':
-            st.warning('AI 解释仅对接地作答成功的问题开放(数值必须先经本地核实)。')
-        else:
-            with st.spinner('AI 解释生成中(真实模型调用,产生少量费用)…'):
-                out = wd.ai_explain(q, last['answer_text'])
-            if out['ok']:
-                st.subheader('AI 解释(基于上方已核实事实;【推断】部分非事实)')
-                st.markdown(out['text'])
-            else:
-                st.error(out['error'])
-    if do_save:
-        qid, err = wd.save_to_archive(q, SNAP)
-        if qid:
-            st.success(f'已存入研究档案: {qid}(data/research/research_archive/,append-only)')
-        else:
-            st.error(err or '归档失败')
+    st.header('独立研究结论')
+    st.caption('本地研究档案(QB 链,append-only)——缓存研究成果展示,零模型调用;'
+               '页面不发起任何 AI 请求。')
+    rows = wd.research_archive_rows(limit=100)
+    if not rows:
+        st.info('本地暂无研究档案(data/research/research_archive/)。'
+                '经 `python3 ia_cli.py research --question … --archive` 生成。')
+    else:
+        st.dataframe(rows, width='stretch', height=420)
+        sel = st.selectbox('展开全文', rows,
+                           format_func=lambda r: f"{r['query_id']} · {r['问题'][:44]}")
+        try:
+            import research_archive as ra
+            full = ra.load_research_full(sel['query_id'])
+            at = (full or {}).get('answer_text') or '(无 answer_text sidecar)'
+            st.markdown(at[:8000])
+            chain = (full or {}).get('follow_up_of')
+            if chain:
+                st.caption(f"承接前档: {chain}(QB 链)")
+        except (OSError, ValueError) as e:
+            st.warning(f'研究正文读取失败: {e}')
+
+    st.subheader('Agent Native 引导(零默认付费 API)')
+    st.info(
+        '- 本工作台**不内置任何模型调用**;数据图+缓存研究即全部页面能力。\n'
+        '- 专题研究走 Agent Native: 经 global-macro-research Skill 调用 '
+        '`ia_cli.py` 十个能力(doctor/update/overview/changes/history/compare/'
+        'analog/research/archive/views)组合研究。\n'
+        '- 机构观点确定性验证: `python3 scripts/view_verifier.py VIEW-YYYYMMDD-NNN`'
+        '(证据表=本地快照事实+区间变动,零 AI 判断)。\n'
+        '- 模型 API(可选)仅由用户显式配置 MODEL_* 三参后,经 CLI/Skill 使用;'
+        '工作台页面永不调用。')
 
 
 # ── 关于与限制 ───────────────────────────────────────────────────────
@@ -231,17 +302,20 @@ def page_about():
     st.header('关于与限制')
     st.markdown(
         f'- **当前快照**: {META["date"]} · Gate A={META["gate_a"]}\n'
-        '- **已实现**: 四大经济体宏观概览 / 资产市场变化 / 本地历史序列与对比 / '
-        '四类接地研究问题 / AI 研究解释(可选,需模型 API)\n'
-        '- **不支持(如实声明)**: 实时行情、任意自然语言研究问题(当前四类,见AI研究页)、'
-        '投资建议/资产配置/价格预测(产品红线,见 PRODUCT-GOAL.md)、'
-        '多用户/云端/协作\n'
-        '- **数据窗口**: 由本地采集积累决定(克隆仓库不含历史数据)\n'
+        '- **Charter8 四页**: 全球宏观全景(经济体×维度+市场 1m/3m/1y/5y) / '
+        '全球金融传导地图(归档研究边+E1E2E3 分级) / 机构观点矩阵(schema v1.1 '
+        '存储,linter 合规件) / 独立研究结论(研究档案 QB 链)\n'
+        '- **页面零模型调用**: 不发起任何模型 API 请求;专题研究走 Agent Native'
+        '(Skill+ia_cli 十能力),模型 Key 仅用户显式配置后经 CLI 使用\n'
+        '- **不支持(如实声明)**: 实时行情、投资建议/资产配置/价格预测'
+        '(产品红线,见 PRODUCT-GOAL.md)、多用户/云端/协作\n'
+        '- **数据窗口**: 由本地采集积累决定(克隆仓库不含历史数据);'
+        '5y 窗口需≥5 年本地序列,不足如实标"不可用"\n'
         '- **月报/季报**: 历史兼容能力,自动级联默认关闭(IA_AUTO_MONTHLY=1 可开启),'
         '人设改革登记于 docs/MW-V1-AUDIT-DEFERRED.md\n')
     st.warning(DISCLAIMER)
 
 
-{'全球宏观概览': page_overview, '金融市场变化': page_market,
- '历史研究': page_history, 'AI 研究': page_research,
+{'全球宏观全景': page_panorama, '全球金融传导地图': page_transmission,
+ '机构观点矩阵': page_views, '独立研究结论': page_research,
  '关于与限制': page_about}[page]()

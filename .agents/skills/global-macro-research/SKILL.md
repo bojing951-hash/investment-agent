@@ -1,6 +1,6 @@
 ---
 name: global-macro-research
-description: 全球宏观与金融市场研究工具,覆盖美国/中国/欧元区/日本/香港/全球。当用户询问宏观经济指标(政策利率、国债收益率、通胀、就业、汇率)、股市/ETF/商品/加密资产行情变化、历史序列、跨经济体对比或跨资产相关性、历史时期状态相似对照,或需要可追溯(来源/观测日期/单位口径)的宏观研究与本地研究档案检索时使用。经 ia_cli.py 调用本地研究引擎,输出结构化 JSON(能力: doctor/overview/changes/history/compare/analog/research/archive)。不提供投资建议或价格预测。
+description: 全球宏观与金融市场研究工具,覆盖美国/中国/欧元区/日本/香港/全球。当用户询问宏观经济指标(政策利率、国债收益率、通胀、就业、汇率)、股市/ETF/商品/加密资产行情变化、历史序列、跨经济体对比或跨资产相关性、历史时期状态相似对照、机构观点与引擎数据交叉验证,或需要可追溯(来源/观测日期/单位口径)的宏观研究与本地研究档案检索时使用。经 ia_cli.py 调用本地研究引擎,输出结构化 JSON(能力: doctor/overview/changes/history/compare/analog/research/archive/views)。不提供投资建议或价格预测。
 license: MIT
 compatibility: Requires Python 3.8+; engine invoked via `python3 ia_cli.py`; works in Claude Code, Codex, and any agent that can run shell commands.
 allowed-tools: Bash(python3:*)
@@ -27,7 +27,7 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 
 不确定时先跑 `doctor`(只读体检,无副作用)确认环境。
 
-## 九个能力速查
+## 十个能力速查
 
 | 能力 | 命令 | 用途 | 关键点 |
 |---|---|---|---|
@@ -39,6 +39,7 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 | analog | `... analog [--anchor YYYY-MM --top N --weights 六维和=1 --no-aftermath]` | 六维状态向量(增长/通胀/利率/信用/波动/估值)历史相似检索 | expanding z(μ/σ 只用 t≤各自锚点月末)+加权 z 距离;候选≤锚点−12月;TOP-N+各维贡献+**事后块(候选锚点后 1/3/6/12 月,非预测,不参与相似度)**;TOP-N 排序=(n_missing, distance, month) 双键——名次非纯距离序,比较相似度以 distance 字段为准(sort_basis 随行,条目带 n_missing);`disclosure` 固定文案与巧合旗标必须逐字转述;拒答(insufficient_history/insufficient_candidates)是正确行为,不放宽阈值硬凑;事后窗观测不足该 horizon 标 unavailable,不以 0 冒充 |
 | research | `... research --question "..."` | 本地接地问答(零网络) | 支持:美日政策利率差/美日10Y收益率差/USDJPY水平/美国政策利率;`--explain` 附加 AI 解释(可选模型 API,产生费用);`--archive` 同步落档(含 `--note`/`--follow-up-of`);拒答时附 Agent 组合导流(history/compare/overview/changes) |
 | archive | `... archive save --question "..." [--answer-text ... --as-of T] / list / get --query-id QB-...` | 研究档案存/列/取 | append-only,不覆盖;**save(含六参直存)需本地已有研究快照(先跑过 update/run_weekly),零数据环境 no_snapshot 拒存**;`--note`/`--follow-up-of` 随 research-full sidecar 落档;`--answer-text/--evidence/--statistics/--hypotheses/--open-questions/--as-of` 直存 Agent 完整成果(全过脱敏;`--as-of` 落 research_as_of 位);`list` 见 `has_full`,`get` 返回 `record`+`full` 双视图(成果文本在 `full.answer_text`) |
+| views | `... views list / get --view-id VIEW-... / lint` | 机构观点存储读取(schema v1.1) | 只装载 linter 合规件;隔离件 get 拒绝并给原因(rc=1),lint 出逐条违规明细(rc=1 时有隔离);不依赖快照(信封快照位=null);观点文件零写入(采集归上游,本技能只读) |
 | update | `... update --yes` | 真实运行采集流水线 | **仅用户明确要求时**执行;可能数分钟 |
 
 退出码: `0`=进程成功(注意: research 的诚实拒答也是 0,语义成败看 `ok` 与 `data.status`); `1`=执行错误; `2`=用法错误。输出一律为单个 JSON 对象(stdout)。
@@ -91,6 +92,14 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 10. **自检**: 事实位文本过 lint(调用方式见 references/cli-contract.md 末节);核对 warnings 全部转述、无成分编造、无"以事后冒充预测"句式
 11. **落档**: 用户认可结果后 `archive save`(拒答不落档,拼接成果可走六参直存)
 
+## 研究地图工作流(机构观点 × 引擎数据交叉验证, Charter8)
+
+1. **观点采集**(上游): 采集 Agent 把机构公开报告结构化为 `data/institutions/views/VIEW-YYYYMMDD-NNN.json`(schema v1.1: 只存元数据+短引文≤500字符+链接,禁整篇转载;每条观点/预测/假设/证伪条件逐条 `attribution`——**institution_stated(机构明示)与 ai_inferred(AI 推导)不得含糊,这是章程核心红线**;revisions 只追加不覆写)
+2. **装载校验**: `views lint`——违规件被隔离,绝不降级装载;`views list` 看合规清单;`views get --view-id ...` 读单份(引用观点时必须随行 attribution 与 basis)
+3. **确定性验证**: `python3 scripts/view_verifier.py VIEW-YYYYMMDD-NNN`(可选 `--directions '{"SPX":"up"}'`)→ 证据表 = 观点 subjects 映射指标(config/view_metric_map.json)× 最新快照事实 + 1m/3m/1y 区间变动(interval_change 自配对,与 compare 同一 common window 口径);`relation`(supports/against/neutral)仅在**你显式给 directions** 时机械计算——方向语义提取归 Agent 层,verifier 零 AI 判断;映射在册但快照缺席的指标入 `missing`(如实,不猜)
+4. **传导地图引用**: 机制推演引用 `config/transmission_edges.json` 归档研究边——每条边带 `qb_source`(真实 QB 档),r/n/窗口逐字转述不四舍五入;**近零渠道(利率→汇率/风险→黄金/久期→风格等)=本地数据不支持的教科书叙事,不得作方向依据**;E3 机制结论(如 QE 估值传导)不可移植,引用时标【假设】
+5. **落档闭环**: 交叉验证结论按纪律 15(E1/E2/E3)与 16(五行)标注后 `archive save` 六参直存——机构观点(归因清晰)× 引擎数据(口径可溯)形成可追溯研究链
+
 ## 典型研究流程
 
 **全球宏观全景**: `overview --economy US,CN,EA,JP` → 逐经济体转述(带各自观测日与缺失)→ 不下整体结论,如实在数据覆盖范围内总结
@@ -98,6 +107,7 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 **历史与跨资产比较**: `history --metric A` 确认序列 → `compare --metrics A,B` → 转述相关性(注明口径: 利率 pp、价格 pct)+共同观测窗+警示
 **历史相似对照**: `analog`(拒答时如实转述 refusal 与原因)→ 随行 `disclosure` 固定文案+巧合旗标 → 逐维 z_gap 反读关键差异 → 事后块只作历史记录引用;候选期轨迹用 `history --metric UST_10Y --start ... --end ...` 佐证,事件叙述归【假设】层
 **深入研究**: `research --question "..."` 接地作答 → 需要更多解释时(用户同意)`research --question "..." --explain` → `archive save`
+**机构观点交叉验证**: `views list` → `views get --view-id ...`(随行 attribution/basis)→ `view_verifier.py VIEW-...`(证据表+可选 directions)→ 结合 transmission_edges 归档边写验证结论(纪律 15/16)→ `archive save` 六参直存
 
 ## 已知边界(如实告知用户)
 

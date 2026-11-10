@@ -239,27 +239,47 @@ class T3NoSilentExceptions(unittest.TestCase):
         self.assertIn('ValueError', out.getvalue())
 
     def test_t3d_yfinance_ytd_failure_logs_and_keeps_result(self):
+        # Charter8(HK 深度补拉, 2026-11-10)机制迁移: 1mo+单独ytd请求 → 单次
+        # 10y 全序列,ytd/week 统一由 _hk_metrics_from_daily 从序列计算
+        # (独立ytd请求的失败面已随机制删除)。锁面迁移不减: ①单请求纪律
+        # (恰一次 history 调用,period='10y');②ytd=当年首收盘基准的独立
+        # 手算期望;③异常路径仍带标识+类型留日志(AC-01b 纪律保持)。
         hist = pd.DataFrame({'Close': [100.0, 101.0, 102.0, 103.0, 104.0, 105.0]},
                             index=pd.DatetimeIndex(pd.date_range('2026-10-27', periods=6)))
+        calls = []
 
         class _FakeTicker:
             def __init__(self, symbol):
                 pass
 
             def history(self, period):
-                if period == 'ytd':
-                    raise OSError('429 Too Many Requests')
+                calls.append(period)
                 return hist
         with mock.patch.object(cmc.yf, 'Ticker', _FakeTicker):
             out = io.StringIO()
             with redirect_stdout(out):
                 r = cmc._fetch_hk_yfinance('^HSI', '恒生指数', retries=0)
-        self.assertIsNotNone(r)                        # 主结果不受 YTD 失败影响
-        self.assertIsNone(r['ytd_chg'])                # ytd 语义零变化
-        s = out.getvalue()
-        self.assertIn('恒生指数', s)                    # 指标标识
-        self.assertIn('YTD', s)
-        self.assertIn('OSError', s)                    # 异常类型
+        self.assertIsNotNone(r)
+        self.assertEqual(calls, ['10y'])               # 单请求纪律(无第二次ytd调用)
+        # ytd 手算: 当年(2026)首个收盘=100.0, 末值105.0 → +5.0%
+        self.assertEqual(r['ytd_chg'], round((105.0 / 100.0 - 1) * 100, 2))
+        self.assertEqual(r['week_chg'], round((105.0 / 101.0 - 1) * 100, 2))
+        self.assertEqual(r['series']['dates'][0], '2026-10-27')
+
+        # 异常路径: history 抛错 → None + 标识+类型留日志(AC-01b 保持)
+        class _BoomTicker:
+            def __init__(self, symbol):
+                pass
+
+            def history(self, period):
+                raise OSError('429 Too Many Requests')
+        with mock.patch.object(cmc.yf, 'Ticker', _BoomTicker):
+            out2 = io.StringIO()
+            with redirect_stdout(out2):
+                r2 = cmc._fetch_hk_yfinance('^HSI', '恒生指数', retries=0)
+        self.assertIsNone(r2)
+        self.assertIn('恒生指数', out2.getvalue())      # 指标标识
+        self.assertIn('OSError', out2.getvalue())      # 异常类型
 
     def test_t3e_valuation_per_index_failure_logs_code_and_type(self):
         pro = mock.MagicMock()

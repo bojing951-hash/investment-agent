@@ -155,6 +155,226 @@ def market_rows(snapshot, registry):
     return rows
 
 
+# ══ Charter8 研究地图面(2026-11-10) ═══════════════════════════════════
+# 窗口区间变动的**唯一实现**在此(纯函数层): app 页①与 scripts/view_verifier
+# 共用,防口径分叉。区间计算一律 research_history_query.interval_change——
+# 与 ia_cli compare 自配对(P2-2 正式口径)同一函数同一条 common window 规则。
+WINDOW_HORIZONS = ('1m', '3m', '1y', '5y')
+
+_MONTH_DAYS = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+
+
+def _month_shift(d, months):
+    """自然月平移(2026-03-31 −1月→2026-02-28,近端语义)。"""
+    import datetime as _dt
+    y, mo = d.year, d.month - months
+    while mo <= 0:
+        mo += 12
+        y -= 1
+    leap = (y % 4 == 0 and y % 100 != 0) or y % 400 == 0
+    day = min(d.day, 29 if (mo == 2 and leap) else _MONTH_DAYS[mo - 1])
+    return _dt.date(y, mo, day)
+
+
+def horizon_start(target_ymd, horizon):
+    """窗口起点(target_ymd=YYYYMMDD 或 ISO): 1m/3m 自然月回退,1y/5y 年回退。"""
+    import datetime as _dt
+    s = str(target_ymd)
+    d = _dt.date(int(s[:4]), int(s[4:6]) if len(s) == 8 else int(s[5:7]),
+                 int(s[6:8]) if len(s) == 8 else int(s[8:10]))
+    if horizon == '1m':
+        return _month_shift(d, 1).isoformat()
+    if horizon == '3m':
+        return _month_shift(d, 3).isoformat()
+    if horizon in ('1y', '5y'):
+        years = 1 if horizon == '1y' else 5
+        day = min(d.day, 28) if (d.month == 2 and d.day == 29) else d.day
+        return _dt.date(d.year - years, d.month, day).isoformat()
+    raise ValueError(f'未知窗口 {horizon!r}(合法: {WINDOW_HORIZONS})')
+
+
+def metric_window_changes(metric_id, snapshot, unit, target_ymd,
+                          horizons=WINDOW_HORIZONS, root=None):
+    """单指标多窗口区间变动 → (changes, series_source)。
+
+    序列经 metric_series: 快照 series_store 优先→采集档回落(同一条取数
+    路径);两级都无→全窗 available=False+原因(不猜)。采集档标准化层的
+    进度打印与本指标无关→捕获丢弃,调用方输出保持单 JSON/单页面契约。"""
+    import io
+    from contextlib import redirect_stdout
+    import research_history_query as rhq
+    out = {}
+    with redirect_stdout(io.StringIO()):
+        series, reason = metric_series(metric_id, snapshot=snapshot,
+                                       root=root or ROOT)
+    if series is None or not series.get('dates'):
+        return ({h: {'available': False, 'reason': reason or '无观测序列'}
+                 for h in horizons}, None)
+    for h in horizons:
+        out[h] = rhq.interval_change(series['dates'], series['values'], unit,
+                                     start=horizon_start(target_ymd, h),
+                                     end=str(target_ymd))
+    return out, series.get('source')
+
+
+def _fmt_interval(node):
+    """区间变动节点 → 展示串('+12.43%' / '+0.31pp' / '±N' / '不可用(原因)')。
+
+    interval_change 契约: 成功节点不带 available 键(带变化值),失败节点
+    available=False+reason——判可用=键缺席或非 False。"""
+    if not isinstance(node, dict) or node.get('available') is False:
+        reason = (node or {}).get('reason', '数据不足')
+        return f'不可用({str(reason)[:24]})'
+    for key, suffix in (('pp_change', 'pp'), ('pct_change', '%'),
+                        ('abs_change', '')):
+        if node.get(key) is not None:
+            sign = '+' if node[key] > 0 else ''
+            return f'{sign}{node[key]:.2f}{suffix}'
+    return '不可用(无变化值)'
+
+
+def market_window_rows(snapshot, registry, root=None, horizons=WINDOW_HORIZONS):
+    """Charter8 页①市场窗口表: 资产类指标 当前值+1m/3m/1y/5y 区间变动。
+
+    每行: 指标/ID/经济体/当前值/观测日 + 各窗口(fmt) + 序列来源;
+    缺失指标如实'缺失'行(不猜序列);全部口径=metric_window_changes。"""
+    if not snapshot:
+        return []
+    target = snapshot.get('target_date')
+    facts = {f['metric_id']: f for f in snapshot.get('facts', [])}
+    wanted = [m for m in registry['metrics']
+              if m.get('asset_class') in MARKET_ASSET_CLASSES
+              and m.get('status') == 'active']
+    rows = []
+    for m in wanted:
+        mid = m['metric_id']
+        f = facts.get(mid)
+        if f is None:
+            rows.append({'指标': m['display_name'], 'ID': mid,
+                         '经济体': m.get('economy', '—'), '当前值': '缺失',
+                         '观测日期': '—',
+                         **{f'{h}变化': '缺失' for h in horizons},
+                         '序列来源': '—'})
+            continue
+        unit = f.get('unit') or m.get('unit', '')
+        chg, src = metric_window_changes(mid, snapshot, unit, target,
+                                         horizons=horizons, root=root)
+        rows.append({'指标': f.get('display_name') or m['display_name'],
+                     'ID': mid, '经济体': m.get('economy', '—'),
+                     '当前值': fmt_value(f.get('value'), unit),
+                     '观测日期': f.get('observation_date', '—'),
+                     **{f'{h}变化': _fmt_interval(chg.get(h)) for h in horizons},
+                     '序列来源': src or '—'})
+    return rows
+
+
+def economy_dimension_matrix(snapshot, registry):
+    """Charter8 页①经济体×维度覆盖表: 行=经济体,列=资产类维度,
+    单元格=在场/活跃(如 '12/13';无活跃指标维度='—')。
+
+    覆盖=活跃注册数与快照在场事实数之比——覆盖缺口如实呈现,不放大。"""
+    econs, acs = [], []
+    for m in registry['metrics']:
+        if m.get('status') != 'active':
+            continue
+        if m.get('economy') not in econs:
+            econs.append(m.get('economy'))
+        ac = m.get('asset_class')
+        if ac and ac not in acs:
+            acs.append(ac)
+    facts = {f['metric_id'] for f in (snapshot or {}).get('facts', [])}
+    cells, rows = {}, []
+    for m in registry['metrics']:
+        if m.get('status') != 'active' or not m.get('asset_class'):
+            continue
+        k = (m.get('economy'), m['asset_class'])
+        a, p = cells.get(k, (0, 0))
+        cells[k] = (a + 1, p + (1 if m['metric_id'] in facts else 0))
+    for e in econs:
+        row = {'经济体': f'{ECONOMY_LABELS.get(e, e)}({e})'}
+        for ac in acs:
+            a, p = cells.get((e, ac), (0, 0))
+            row[ac] = f'{p}/{a}' if a else '—'
+        rows.append(row)
+    return {'rows': rows, 'asset_classes': acs,
+            'note': '单元格=快照在场/注册活跃(指标数);覆盖缺口如实呈现'}
+
+
+def transmission_edges(root=None):
+    """Charter8 页②传导地图静态策划档(config/transmission_edges.json)。
+
+    校验: 每条边必须带 qb_source(指向真实 QB 归档)——缺 qb_source 的
+    任何边=策划纪律违规,raise ValueError(不静默装载)。"""
+    path = os.path.join(root or ROOT, 'config', 'transmission_edges.json')
+    with open(path, encoding='utf-8') as f:
+        doc = json.load(f)
+    edges = doc.get('edges') or []
+    bad = [e.get('edge_id', f'#{i}') for i, e in enumerate(edges)
+           if not e.get('qb_source')]
+    if bad:
+        raise ValueError(f'传导边缺 qb_source(禁凭空策划): {bad}')
+    return doc
+
+
+def views_matrix(views_dir=None):
+    """Charter8 页③机构观点矩阵: 只装载 linter 合规件(view_store)。
+
+    返回 {'rows': 摘要行, 'matrix': 机构×主题单元格, 'subjects': 主题列,
+    'n_quarantined': 隔离数, 'schema_version': '1.1'}——隔离件绝不入面。"""
+    import view_store as vs
+    res = vs.load_views(views_dir)
+    subjects = list(vs.KNOWN_SUBJECTS)
+    cells = {}
+    for d in res['views']:
+        name = d['institution']['name']
+        for s in d['subjects']:
+            cells.setdefault((name, s), []).append(d['view_id'][-3:])
+    names = sorted({d['institution']['name'] for d in res['views']})
+    matrix = [{'机构': n,
+               **{s: ','.join(cells.get((n, s), [])) or '—' for s in subjects}}
+              for n in names]
+    rows = [{'view_id': d['view_id'], '机构': d['institution']['name'],
+             '类型': d['institution']['type'], '发布日': d['publish_date'],
+             '期限': d['view_horizon'], '主题': '、'.join(d['subjects']),
+             '核心观点数': len(d['core_views']), '标题': d['report_title']}
+            for d in res['views']]
+    return {'rows': rows, 'matrix': matrix, 'subjects': subjects,
+            'n_quarantined': len(res['quarantined']),
+            'quarantined': res['quarantined'],
+            'schema_version': vs.SCHEMA_VERSION}
+
+
+def research_archive_rows(limit=50, archive_dir=None):
+    """Charter8 页④独立研究结论: 本地研究档案行(QB 链)。
+
+    每行: query_id/创建时间/问题摘要/follow_up 链/sidecar 在场(有则
+    answer_text 摘要);零网络零模型,纯读归档。"""
+    import research_archive as ra
+    qids = ra.list_query_records(archive_dir=archive_dir)
+    rows = []
+    for qid in reversed(qids[-limit:]):        # 最新在前
+        try:
+            rec = ra.load_query_record(qid, archive_dir=archive_dir)
+        except (OSError, ValueError, KeyError):
+            rows.append({'query_id': qid, '创建时间': '—', '问题': '(读取失败)',
+                         '关联前档': '—', '研究正文': '—'})
+            continue
+        ir = rec.get('ir') or {}
+        question = str(ir.get('question_text') or '(无问题文本)')
+        full = None
+        try:
+            full = ra.load_research_full(qid, archive_dir=archive_dir)
+        except (OSError, ValueError):
+            full = None
+        at = (full or {}).get('answer_text') if full else None
+        rows.append({'query_id': qid,
+                     '创建时间': rec.get('created_at', '—'),
+                     '问题': question[:80] + ('…' if len(question) > 80 else ''),
+                     '关联前档': (full or rec).get('follow_up_of') or '—',
+                     '研究正文': (at[:120] + '…') if at else '—'})
+    return rows
+
+
 # ══ 历史研究 ══════════════════════════════════════════════════════════
 # supported_stats(问题二 C-2): 由 unit_family 机械推导的可用统计面——
 # 描述可做什么,不是对数据的断言;other 族无可靠变化口径,只报 level。

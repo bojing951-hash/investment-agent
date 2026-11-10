@@ -152,17 +152,45 @@ with tempfile.TemporaryDirectory() as td:
           and vm['rows'][0]['核心观点数'] == 1)
 
 print("═" * 60)
-print("[4] 页④ research_archive_rows: 真实档案零网络读取")
+print("[4] 页④ research_archive_rows: 档案读取(fixture + 真实双轨)")
 print("═" * 60)
-ra_rows = wd.research_archive_rows(limit=10)
-check("档案行非空(本地 QB 链在册)", len(ra_rows) > 0)
+# 根因A热修(2026-11-11): CI 干净检出无真实 data/(不入库纪律),
+# research_archive_rows 默认读真实档→空表 IndexError。改为: 公开写入 API
+# 合成 fixture 归档(QB-022带sidecar正文/023无正文但follow_up链在册),
+# 全部断言在 fixture 行上执行;真实档在场时同款断言追加(本地/LIVE 不弱化),
+# 缺席显式 SKIP。
+import fixt_c8_archive as fixt  # noqa: E402
+with tempfile.TemporaryDirectory() as _td:
+    _arch = fixt.build_archive(_td)
+    ra_rows = wd.research_archive_rows(limit=10, archive_dir=_arch)
+check("档案行非空(fixture QB 链在册, n=%d)" % len(ra_rows), len(ra_rows) == 2)
 check("行含 query_id/创建时间/问题/关联前档四要素",
       all(k in ra_rows[0] for k in ('query_id', '创建时间', '问题', '关联前档')))
 check("最新在前(reversed)", ra_rows[0]['query_id'] >= ra_rows[-1]['query_id'])
-check("问题摘要≤81 字符(截断纪律)",
-      all(len(r['问题']) <= 81 for r in ra_rows))
+check("问题摘要≤81 字符(截断纪律,含超长问题行)",
+      all(len(r['问题']) <= 81 for r in ra_rows)
+      and any(len(r['问题']) == 81 for r in ra_rows))
 has_full = [r for r in ra_rows if r['研究正文'] != '—']
-check("sidecar 研究正文摘要在场(至少一行)", len(has_full) > 0)
+check("sidecar 研究正文摘要在场(022 行)", len(has_full) == 1
+      and has_full[0]['query_id'] == fixt.Q22)
+fu = {r['query_id']: r['关联前档'] for r in ra_rows}
+check("follow_up 链在册(023→022)", fu.get(fixt.Q23) == fixt.Q22)
+
+REAL_QH = os.path.join(ROOT, 'data', 'research', 'research_archive',
+                       'research_archive', 'query_history')
+if os.path.isdir(REAL_QH) and any(f.startswith('QB-')
+                                  for f in os.listdir(REAL_QH)):
+    real_rows = wd.research_archive_rows(limit=10)
+    check("真实档案行非空(本地 QB 链在册, n=%d)" % len(real_rows),
+          len(real_rows) > 0)
+    check("真实行四要素/最新在前/≤81/正文在场",
+          all(k in real_rows[0] for k in ('query_id', '创建时间', '问题', '关联前档'))
+          and real_rows[0]['query_id'] >= real_rows[-1]['query_id']
+          and all(len(r['问题']) <= 81 for r in real_rows)
+          and any(r['研究正文'] != '—' for r in real_rows))
+else:
+    print("  ⏭️ SKIP[CI]: 真实 QB 归档缺席(data/不入库纪律;本地/LIVE 在场时"
+          "执行真实档断言)——fixture 断言已覆盖同逻辑")
 
 print("═" * 60)
 print("[5] SKILL.md 研究地图工作流 + docs 3m 自然窗口径")

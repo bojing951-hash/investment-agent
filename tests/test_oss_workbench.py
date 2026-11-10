@@ -59,7 +59,7 @@ SYN_SNAP = {
 
 print('══ ① 工作台数据层 ══')
 registry = wd.load_registry()
-check('注册表加载(106项,与文件一致)', len(registry['metrics']) == 106,  # Charter6-P2: +SPX_CAPE/SPX_PE_TTM/SPX_PB
+check('注册表加载(108项,与文件一致)', len(registry['metrics']) == 108,  # Charter7 P2-3: +SOFR/WALCL
       f"got {len(registry['metrics'])}")
 
 rows = wd.overview_rows(SYN_SNAP, registry, 'US')

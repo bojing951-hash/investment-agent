@@ -47,6 +47,12 @@ FRED_SERIES = {
     # Charter6-P1(A2 §2#1): 美国实际GDP(季频,SAAR,2017链式美元,1947+)——
     # 增长结构主锚;案例B六维状态向量增长维输入之一
     "US_REAL_GDP": "GDPC1",
+    # Charter7 P2-3(2026-11-10,Case A 流动性维): SOFR(担保隔夜融资利率,
+    # 日频)/WALCL(美联储总资产周三水平,周频)——免费FRED序列/现有
+    # FRED_API_KEY/零新凭证;接线即此,首跑真实拉取需协调方批准(未批准前
+    # 注册表active条目缺席=noncore_missing如实披露,见docs/P2_DATA_GAP_LEDGER.md)
+    "SOFR": "SOFR",
+    "WALCL": "WALCL",
 }
 
 # === Charter6-P0(A2 §4-P0, 2026-11-09): 采集窗口参数化 ======================
@@ -130,6 +136,8 @@ SERIES_FREQ = {
     "UMCSENT": "monthly", "RSAFS": "monthly", "INDPRO": "monthly", "JTSJOL": "monthly",
     "ICSA": "weekly",
     "US_REAL_GDP": "quarterly",   # Charter6-P1: GDPC1 季频(变化口径=QoQ/YoY)
+    "WALCL": "weekly",            # P2-3: H.4.1 周三水平(周四发布)
+    "SOFR": "daily",              # P2-3: 担保隔夜融资利率(营业日)
     # 其余(BAML利差/DGS收益率/DFII/T5YIE/T10Y2Y)=daily
 }
 
@@ -161,6 +169,8 @@ SERIES_UNITS = {
     "INDPRO": ("index", "指数点(2017=100)"),
     "JTSJOL": ("count", "千人(职位空缺)"),
     "US_REAL_GDP": ("index", "十亿美元(2017年链式,SAAR)"),
+    "SOFR": ("rate", "%"),
+    "WALCL": ("index", "十亿美元(美联储总资产,周三水平)"),
 }
 # 各kind的变化单位标签(chg字段附_chg_unit,程序与报告据此区分口径)
 _CHG_UNIT_BY_KIND = {

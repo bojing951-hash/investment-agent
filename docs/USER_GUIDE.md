@@ -165,6 +165,21 @@ python3 scripts/report_generator.py
 **经济体比较**: 工作台"全球宏观概览"页切换 美国/中国/欧元区/日本/全球;
 **跨资产比较**: "金融市场变化"页看同口径周/月/年内变化,历史页双指标叠加。
 
+**单指标 1月/1年/5年 变化(命令行正式口径)**: 用"自配对 compare"——同一指标
+填在 `--metrics` 两侧,`--start/--end` 圈出回看窗,变化值读输出里的
+`sides[].interval_change_common_window`(利率自动按 pp、价格按 %,基准=窗口
+首观测之前最后一笔)。示例(1 年):
+
+```bash
+python3 ia_cli.py compare --metrics FED_FUNDS,FED_FUNDS \
+  --start 2025-11-10 --end 2026-11-10
+```
+
+1 个月=起点推前一个月(`--start 2026-10-10 --end 2026-11-10`),5 年同理。
+**注意 empty_window 是诚实拒绝**: 月频指标在 1 个月窗里常无当月新观测(发布
+滞后或月中提问),命令会以 `empty_window` 退出并提示放宽窗口——此时只引用
+水平值(用 `history`),不要拿旧观测差硬造"当月变化"。
+
 **定时调度(可选,非必需)**:
 - macOS launchd: 两个定时任务(每天采集+周六出报告),`run_daily.sh` 会自动
   定位项目根;plist 模板见下方;

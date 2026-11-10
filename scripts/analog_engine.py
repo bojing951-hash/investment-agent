@@ -73,6 +73,14 @@ ANCHOR_COMPLETE_RATIO = 0.8   # 完整月判定(≥80% 已启用维度有数据)
 AFTERMATH_HORIZONS = ('1m', '3m', '6m', '12m')
 AFTERMATH_ASSETS = ('SPX', 'UST_10Y', 'DXY', 'GOLD_F')
 
+# P2-1(2026-11-10, Case B 实战/QB-20261110-023): TOP-N 排序=双键
+# (缺席数,距离,月)——机制无错(数据洞只降位不升位,保守方向;复验 PASS
+# 口径不变),缺陷=输出未披露排序依据,A席曾把名次读作纯距离序并归档疑似
+# 缺陷。修=纯披露: sort_basis 随行+每条目 n_missing 计数,零计算改动。
+SORT_BASIS = ('(n_missing, distance, month) — 缺席特征多者降位,名次非纯'
+              '距离序,比较相似度请以 distance 字段为准')
+
+
 DISCLOSURE = [
     '相似≠因果, 更非预测: TOP-N 是历史状态距离最近的时期, 当时之后的演变只是历史记录',
     '特征为最新修订口径的描述性对齐, 不代表当时市场信息集(research_mode_gate)',
@@ -833,8 +841,10 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                                          '同簇(事后窗重叠),每簇仅保留排序'
                                          '最优代表;准入/距离/分位计算不变'
                                          % CLUSTER_GAP_MONTHS)},
+        'sort_basis': SORT_BASIS,   # P2-1: 排序依据随行(纯披露,零计算改动)
         'top': [{'rank': i + 1, 'candidate_month': x['month'],
                  'distance': round(x['D'], 6),
+                 'n_missing': len(x['missing']),   # P2-1: 排序首键计数随行
                  'distance_percentile': round(x['pct'], 4),
                  'dims': {d: {'contribution_share': round(v['contribution_share'], 6),
                               'z_gap': round(v['z_gap'], 6)}

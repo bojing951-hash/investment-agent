@@ -276,8 +276,9 @@ print("=" * 64)
 reg = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),
                      encoding='utf-8'))
 by = {m['metric_id']: m for m in reg['metrics']}
-check("版本=2.6.0(P2估值面后)", reg['version'] == '2.6.0', reg['version'])
-check("指标数=106", len(reg['metrics']) == 106, len(reg['metrics']))
+check("版本=2.7.0(P2-3 流动性维)", reg['version'] == '2.7.0', reg['version'])
+check("指标数=108(Charter7 P2-3: +SOFR/WALCL)", len(reg['metrics']) == 108,
+      len(reg['metrics']))
 g = by.get('US_REAL_GDP') or {}
 check("US_REAL_GDP 字段逐项",
       g.get('source') == 'macro_collector' and g.get('source_symbol') == 'GDPC1'
@@ -302,7 +303,7 @@ check("FREQUENCY_VALUES 含 quarterly", 'quarterly' in rsem.FREQUENCY_VALUES)
 import freshness_policy as fpol  # noqa: E402
 import fact_engine  # noqa: E402
 check("fact_engine.load_registry 通过(freshness quarterly 合法)",
-      len(fact_engine.load_registry(force=True)['metrics']) == 106)
+      len(fact_engine.load_registry(force=True)['metrics']) == 108)  # P2-3 +2
 check("billion_usd 入价格类单位族(变化=百分比口径)",
       'billion_usd' in fact_engine.PRICE_LIKE_UNITS)
 

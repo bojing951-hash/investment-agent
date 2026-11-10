@@ -354,13 +354,14 @@ with tempfile.TemporaryDirectory() as td:
           # Charter6 收尾(延期④): fixture 宏观面补 US_REAL_GDP 季频序列→
           # 不再点名(名单 13→12,齐备日语义收回;真实采集面 P1 起已有)
           # Charter6-P2: shiller fixture 提供 SPX_CAPE/SPX_PE_TTM→不在缺席名单
+          # Charter7 P2-3: +SOFR/WALCL(接线后 fixture 未带→如实点名,12→14)
           and ga.get('noncore_missing') == ['CAC40', 'CN_CPI_YOY',
                                             'CN_LPR_1Y', 'CN_LPR_5Y',
                                             'CN_NEW_LOANS', 'CN_OMO_7D',
                                             'CN_PMI_MFG', 'CN_PPI_YOY',
                                             'CN_SF_FLOW', 'DAX',
                                             'JP_CPI_TOKYO_YOY',
-                                            'UMCSENT']
+                                            'SOFR', 'UMCSENT', 'WALCL']
           and 'UMCSENT' not in ga.get('core_fail', [])
           and fake == [],
           f"gate={ga['status']} missing={ga.get('noncore_missing')}")
@@ -375,7 +376,7 @@ with tempfile.TemporaryDirectory() as td:
           == ['CAC40', 'CN_CPI_YOY', 'CN_LPR_1Y', 'CN_LPR_5Y',
              'CN_NEW_LOANS', 'CN_OMO_7D', 'CN_PMI_MFG', 'CN_PPI_YOY',
              'CN_SF_FLOW', 'DAX', 'JP_CPI_TOKYO_YOY',
-             'UMCSENT'],
+             'SOFR', 'UMCSENT', 'WALCL'],  # P2-3 +2
           f"facts={len(snap['facts'])} pack={paths['pack_code']}")
     code, out, applied, glm = report_run(td, gate_b='PASS')
     rmd = open(os.path.join(out, f'weekly_report_{DAY}.md'), encoding='utf-8').read() \

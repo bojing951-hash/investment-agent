@@ -20,7 +20,7 @@ Key 从进程环境或引擎根 `.env` 读取(进程环境优先)。**绝不允�
 
 ## Charter7 P0 修订(2026-11-10,analog/研究门要点)
 
-- **统一特征集(Charter7-2)**: analog 距离特征面=锚点准入特征集 U 唯一决定;分母 W_U 全候选一致,**不逐候选重归一**(旧实现缺数候选剩余特征相对权重变相放大,偏差更大但缺数者可反超——已修);候选缺 U 特征→missing_features{特征→原因}随行,排序=(缺席数升序,距离升序)双键。
+- **统一特征集(Charter7-2)**: analog 距离特征面=锚点准入特征集 U 唯一决定;分母 W_U 全候选一致,**不逐候选重归一**(旧实现缺数候选剩余特征相对权重变相放大,偏差更大但缺数者可反超——已修);候选缺 U 特征→missing_features{特征→原因}随行,排序=(缺席数升序,距离升序)双键。**排序依据随行披露(P2-1, 2026-11-10)**: 输出顶层 `sort_basis` 逐字写明排序=(n_missing, distance, month)——名次非纯距离序,比较相似度以 distance 字段为准;每条 top 条目带 `n_missing`(缺席特征数=排序首键)。处置注记: Case B 实战 QB-20261110-023(把 TOP-N 名次读作纯距离序,2020-12 D=1.19/miss2 排在 2019-12 D=1.01/miss7 之前疑为缺陷)经裁决=**机制无错**(缺席多者只降位不升位,保守方向,复验 PASS 口径不变),残留缺陷仅输出未披露排序依据,已加披露收口;零计算改动。
 - **跨频率门槛(Charter7-4)**: 36 **个月**史按网格步长折算观测数(月网格 36 点/季网格 12 点;旧实现隐性 36 季=9 年致 GDP_yoy 永不参与——已修);锚点月无值特征全部进 features_dropped_at_anchor 带原因(release_lag/quarterly_grid/no_value_at_anchor);维度缺席判据双侧(锚点+候选侧);候选有效维度只按 U 内特征计(锚点缺席的 SPX_PE_TTM 不再为候选积维度证据)。
 - **TOP-N 簇去重(Charter7-5)**: 候选月相差<12 个月=同簇(事后窗重叠),TOP-N 仅输出簇代表(cluster_members 随行,dispersion/一致性按独立簇口径);准入/距离/分位计算本身不变。
 - **realtime 门(Charter7-1)**: 对查询时窗负责——仅查询起点月窗内存在**跨日 vintage**(research_snapshot 基础日期)才 available;同日 _vN 修订不算历史 vintage(仅附加披露)。compare 与 analog 同一权威(realtime_gate_text)。

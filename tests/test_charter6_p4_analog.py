@@ -534,6 +534,15 @@ check("TOP-1 距离分位=独立重算(0缺席但距离最大→100%)",
 check("TOP-2 距离分位=独立重算",
       abs(top2['distance_percentile'] - round(r2['pct'], 4)) < 1e-3,
       f"{top2['distance_percentile']} vs {round(r2['pct'], 4)}")
+check("P2-1 sort_basis 披露: 排序依据随行(名次非纯距离序,以 distance 为准)",
+      d['sort_basis'] == ae.SORT_BASIS
+      and '(n_missing, distance, month)' in d['sort_basis']
+      and '名次非纯距离序' in d['sort_basis']
+      and 'distance 字段为准' in d['sort_basis'], str(d.get('sort_basis')))
+check("P2-1 条目 n_missing 计数随行(=缺席特征数=排序首键)",
+      all(t['n_missing'] == len(t['missing_features']) for t in d['top'])
+      and top1['n_missing'] == 0 and top2['n_missing'] == 5,
+      str([t.get('n_missing') for t in d['top']]))
 check("features_detail 逐特征锚点/候选 z+归一权重随行",
       all({'anchor_z', 'cand_z', 'gap', 'w_norm'} == set(v)
           for t in d['top'] for v in t['features_detail'].values()))
@@ -955,6 +964,9 @@ check("CLI analog: ok=true+信封(TOP-5 请求→独立簇2 实际输出2,Charte
 check("CLI analog: 警示随行(13<24+簇不足)",
       any('<24' in w for w in out['warnings'])
       and any('独立簇仅 2 个' in w for w in out['warnings']))
+check("CLI analog: sort_basis 随行+条目 n_missing(P2-1 披露接线)",
+      out['data']['sort_basis'] == ae.SORT_BASIS
+      and all('n_missing' in t for t in out['data']['top']))
 code, out2 = run_cli(['--weights', '0.3,0.2,0.2,0.1,0.1,0.05'])
 check("CLI bad_weights(和≠1)→rc=2",
       code == 2 and out2['error']['kind'] == 'bad_weights')

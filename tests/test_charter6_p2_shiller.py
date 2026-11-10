@@ -23,8 +23,8 @@
      noncore_missing 如实;SPX_PB(status=unavailable)永不产事实。
   七、下游接入: rhq.load_metric_series 接入点B;workbench 序列能力行;
      retention shiller_ 前缀月度归档。
-  八、注册表锁: v2.6.0/106/104活跃/US=52;SPX_PB 不可得登记纪律;
-     语义校验零 error 零 review;vintage_additions 25。
+  八、注册表锁: v2.7.0/108/106活跃/US=53;SPX_PB 不可得登记纪律;
+     语义校验零 error 零 review;vintage_additions 27(P2-3 +SOFR/WALCL)。
 
 数据纪律: 全部 fixture 为 SYNTHETIC 二进制(.xls, dev-only xlwt 预生成
 入库;测试只读);零网络零真实数据目录;运行时档案只在临时目录。
@@ -372,16 +372,17 @@ check("retention: 归档为 gzip(月度档案)",
       os.path.isfile(os.path.join(tdr, 'archive', 'shiller_20250331.json.gz')))
 
 # ══ [8] 注册表锁 ════════════════════════════════════════════════
-print("\n[8] 注册表锁(v2.6.0)与语义校验")
+print("\n[8] 注册表锁(v2.7.0)与语义校验")
 regj = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),
                       encoding='utf-8'))
 ms = regj['metrics']
-check("版本 v2.6.0(Charter6-P2)", regj.get('version') == '2.6.0')
-check("106项(103+CAPE/PE_TTM/PB)", len(ms) == 106, str(len(ms)))
+check("版本 v2.7.0(Charter7 P2-3 流动性维)", regj.get('version') == '2.7.0')
+check("108项(106+SOFR/WALCL P2-3)", len(ms) == 108, str(len(ms)))
 active = [m for m in ms if m.get('status') == 'active']
-check("活跃104项", len(active) == 104, str(len(active)))
+check("活跃106项(P2-3 +2)", len(active) == 106, str(len(active)))
 us = [m for m in active if m.get('economy') == 'US']
-check("US 活跃51项(SPX_PB=unavailable不计入)", len(us) == 51, str(len(us)))
+check("US 活跃53项(SPX_PB=unavailable不计入;P2-3 +SOFR/WALCL)",
+      len(us) == 53, str(len(us)))
 pb = next(m for m in ms if m['metric_id'] == 'SPX_PB')
 check("SPX_PB=unavailable 登记(宁缺毋假,不以proxy冒充)",
       pb.get('status') == 'unavailable' and 'proxy' in pb.get('calc', '')
@@ -418,9 +419,10 @@ check("_SOURCE_TO_INPUT 映射 shiller_collector→shiller",
 sys.path.insert(0, os.path.join(ROOT, 'tests'))
 from helpers import baseline_locks as bl  # noqa: E402
 va = bl.vintage_additions(fe.load_registry())
-check("vintage_additions=25(含新4项;unavailable同属时点后新增)",
-      len(va) == 25 and {'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB',
-                         'US_REAL_GDP'} <= va, str(sorted(va)))
+check("vintage_additions=27(含新4项+P2-3 SOFR/WALCL;unavailable同属"
+      "时点后新增)",
+      len(va) == 27 and {'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB', 'US_REAL_GDP',
+                         'SOFR', 'WALCL'} <= va, str(sorted(va)))
 
 print("\n" + "=" * 64)
 print(f"结果: {PASS}通过 / {FAIL}失败")

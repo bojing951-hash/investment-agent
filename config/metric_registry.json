@@ -1,5 +1,5 @@
 {
- "version": "2.6.0",
+ "version": "2.7.0",
  "created": "2026-10-17",
  "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
  "field_semantics": {
@@ -24,6 +24,7 @@
   "release_date_available": "逐观测发布日掌握性(人工登记): true=发布日已知或按已知规则(市场序列观测即发布;政策/管理利率决议或操作当日公布,DFF次日;LPR每月20日09:15;ICSA每周四)/false=统计类宏观发布滞后且逐观测发布日本仓未登记;缺键=未登记(null);快照fact层release_date实测值覆盖本登记(数据>登记)"
  },
  "notes": [
+  "v2.7.0(2026-11-10,Charter7 P2-3): +SOFR/WALCL(FRED免费序列/现有FRED_API_KEY/零新凭证——美国流动性维首批落地,Case A 七维矩阵流动性维 US 侧从✗→可采;源端已接线: FRED_SERIES+SERIES_FREQ+SERIES_UNITS,首跑真实拉取需协调方批准,批准前 active 条目缺席=noncore_missing 如实披露,详见 docs/P2_DATA_GAP_LEDGER.md);首跑校准(同日,版本内修订): WALCL源端原始单位=百万美元,单位口径由billion_usd校正为million_usd+原始值量程(存原始值惯例,RSAFS同例,零换算);106→108条",
   "v2.6.0(2026-11-09,Charter6-P2 估值面): +SPX_CAPE/SPX_PE_TTM(Shiller ie_data.xls 月频1871+,新通道shiller,免Key;revision_semantics=latest_vintage_asof_collected 全局披露见上条)+SPX_PB 登记不可得(status=unavailable 新词汇:无免费干净源不以proxy冒充,不入active面);估值维序列(analog六维状态向量估值输入)落地",
   "v2.5.0(2026-11-09,Charter6-P1): +US_REAL_GDP(GDPC1,季频'quarterly'词汇扩;单位词汇+billion_usd);JP_POLICY_RATE/ECB_DFR/ECB_MRO 全史序列通道落档(japan_/ea_ 档 series 节,快照 series_store 直通);全库修订口径 revision_semantics=latest_vintage_asof_collected(FRED通道返回最新修订值,研究引用历史值须随附该披露,A2 §3.1)",
   "YTD/MTD/周变化等收益率派生值不单独注册——由事实引擎统一收益引擎计算并附带calculation_ref",
@@ -3561,6 +3562,73 @@
     "max_calendar_lag_days": 10
    },
    "release_semantics": "央行操作室每交易日 09:20 前后披露交易公告(决议日不定期);frequency='daily'=IA-P1-WP-E v1.3 裁决(有效利率形态,ECB_DFR 先例),决议日语义由本注记承载、不扩 FREQUENCY_VALUES;源未接线,数据缺席按 L58 纪律处理"
+  },
+  {
+   "metric_id": "SOFR",
+   "display_name": "担保隔夜融资利率(SOFR)",
+   "source": "macro_collector",
+   "source_symbol": "SOFR",
+   "asset_class": "rates_yield",
+   "frequency": "daily",
+   "observation_period_kind": "trading_day",
+   "release_date_available": true,
+   "unit": "percent",
+   "calendar": "us_rates",
+   "economy": "US",
+   "economy_rule": "P3:calendar=us_rates",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "index_rate_series",
+    "adjustment": "none"
+   },
+   "value_type": "yield_or_spread_level",
+   "calc": "FRED系列最新观测(SOFR=担保隔夜融资利率,每营业日发布前一营业日值,非营业日无新观测)",
+   "validation": {
+    "range": [
+     0,
+     15
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 7
+   },
+   "release_semantics": "SOFR次日晨(约08:00 ET)发布前一营业日值;FRED发布时点不可得,按观测日保守处理。P2-3(2026-11-10)接线: 免费FRED序列/现有FRED_API_KEY,首跑真实拉取需协调方批准——批准前条目在场而数据缺席=noncore_missing 如实披露"
+  },
+  {
+   "metric_id": "WALCL",
+   "display_name": "美联储总资产(周三水平)",
+   "source": "macro_collector",
+   "source_symbol": "WALCL",
+   "asset_class": "macro_index",
+   "frequency": "weekly",
+   "release_date_available": true,
+   "unit": "million_usd",
+   "calendar": "us_rates",
+   "economy": "US",
+   "economy_rule": "P3:calendar=us_rates",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "H.4.1总资产(百万美元,周三水平,WALCL);水平值非流量,缩表/扩表=周度水平变化(pct 口径随 price 族)",
+   "validation": {
+    "range": [
+     3000000,
+     10000000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 16,
+    "note": "周频:滞后1周属正常(周四发布)"
+   },
+   "release_semantics": "H.4.1每周四16:30 ET发布上周三水平;观测期=周内单日水平(与ICSA同例,observation_period_kind枚举无对应值→不登记,输出null)。P2-3(2026-11-10)接线: 免费FRED序列/现有FRED_API_KEY,首跑真实拉取需协调方批准——批准前条目在场而数据缺席=noncore_missing 如实披露。首跑校准(2026-11-10): 源端FRED原始单位=百万美元(非十亿),按管线惯例(存原始值/注册表单位描述原始值,RSAFS同例)单位口径校正为million_usd+原始值量程,零换算逻辑"
   }
  ]
 }

@@ -96,6 +96,30 @@ def resolve_inputs(target_ymd, data_dir=None, trusted_root=None):
         if usable:
             fd, lag, p = usable[-1]
             out[name] = {'file': p, 'file_date': fd, 'exact': False, 'fallback': True, 'lag_days': lag}
+            continue
+        # Charter7-6: 采集目录新鲜度窗内无档→查保留策略归档(archive/*.gz)。
+        # 仅当目录内**完全无**窗内可用档时回退归档(归档读取走 gzip,sha256
+        # 口径=解压后原始字节);归档同样只接受规范文件名+非链接普通文件,
+        # lag 窗与现行档同一约束(过期归档不冒充)。老日期研究查询由此获得
+        # 优雅降级(读回归档)而非裸缺源。
+        arc_dir = os.path.join(dd, 'archive')
+        arc_usable = []
+        for p in sorted(glob.glob(os.path.join(arc_dir, pattern + '.gz'))):
+            base = os.path.basename(p)[:-3]          # strip '.gz'
+            fd = rp.canonical_source_file(name, base)
+            if fd is None:
+                continue
+            if os.path.islink(p) or not os.path.isfile(p):
+                continue
+            if fd < target_ymd:
+                lag = (date.fromisoformat(f"{target_ymd[:4]}-{target_ymd[4:6]}-{target_ymd[6:]}")
+                       - date.fromisoformat(f"{fd[:4]}-{fd[4:6]}-{fd[6:]}")).days
+                if lag <= window:
+                    arc_usable.append((fd, lag, p))
+        if arc_usable:
+            fd, lag, p = arc_usable[-1]
+            out[name] = {'file': p, 'file_date': fd, 'exact': False,
+                         'fallback': True, 'lag_days': lag, 'archived': True}
         else:
             out[name] = None
     return out

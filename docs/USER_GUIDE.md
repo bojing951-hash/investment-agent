@@ -55,7 +55,8 @@ Gate A 必 FAIL ⇒ 接地研究问答全部拒答**、脚本退出码 1——�
 
 | 环境变量 | 影响 | 申请(免费) |
 |---|---|---|
-| `MODEL_API_KEY` / `MODEL_BASE_URL` / `MODEL_NAME` | **AI 周报叙事层、AI 研究解释**(可选)需要,三参配齐才启用;任意 OpenAI 兼容端点均可。不配→Agent Native 默认模式: 周报自动走 data-only 确定性数据观察,采集/工作台/研究问答照常 | 你的模型服务商(任意 OpenAI 兼容服务) |
+| `MODEL_API_KEY` / `MODEL_BASE_URL` / `MODEL_NAME` | **AI 周报叙事层、AI 研究解释**(可选)需要,三参配齐才启用;任意 OpenAI 兼容端点均可。不配→Agent Native 默认模式: 周报自动走 data-only 确定性数据观察,采集/工作台/研究问答照常。**注意(2026-11-10 Charter7-7): 新闻模型摘要不再随三参配齐自动启用**——须再显式设 `IA_NEWS_MODEL_SUMMARY=1` 才调用(默认关闭) | 你的模型服务商(任意 OpenAI 兼容服务) |
+| `IA_NEWS_MODEL_SUMMARY` | **新闻模型摘要显式开关**(默认关闭): `=1` 且 `MODEL_*` 三参齐才调用付费模型摘要;不设/非 1→新闻走确定性标题回退(**MODEL_* 三参齐也不自动调用**,付费调用须显式知情开启) | 无需申请 |
 | `FRED_API_KEY` | **美国宏观序列**(CPI/就业/利率等)需要;不配→美国宏观核心缺失,**Gate A 必 FAIL,接地研究问答拒答**(见 Q1) | [FRED](https://fred.stlouisfed.org/docs/api/api_key.html) |
 | `TUSHARE_TOKEN` | A股/港股深度数据;不配→匿名调用限流严(本地闸门 ≥61 秒/次,实测同小时重跑会被服务端拒),深度数据近乎不可用,首跑或耗时 10 分钟左右 | [tushare](https://tushare.pro/) |
 | `FINNHUB_API_KEY` | 新闻摘要;不配→新闻步骤降级,不影响其他数据 | [Finnhub](https://finnhub.io/) |
@@ -86,7 +87,10 @@ cp .env.example .env
   新闻走确定性标题回退,AI 研究解释如实提示"未配置"。采集、工作台、研究问答
   完全不受影响。
 - **可选通用模型 API**: 配齐 `MODEL_API_KEY`/`MODEL_BASE_URL`/`MODEL_NAME`
-  三参(任意 OpenAI 兼容端点)→ 周报叙事层/新闻摘要/AI 研究解释启用。
+  三参(任意 OpenAI 兼容端点)→ **周报叙事层/AI 研究解释**启用。模型 Key 的
+  三个消费点=周报叙事层/AI 研究解释/**新闻模型摘要**;其中新闻模型摘要
+  **额外须显式开关** `IA_NEWS_MODEL_SUMMARY=1`(2026-11-10 Charter7-7 起默认
+  关闭,三参齐不再自动调用付费摘要,新闻默认走确定性标题回退)。
 - **Data Only 产物**: 无论何时未配齐三参,周报产物都明确标注
   `data-only(无模型调用,确定性数据观察)`,不冒充模型叙事。
 
@@ -161,6 +165,21 @@ python3 scripts/report_generator.py
 **经济体比较**: 工作台"全球宏观概览"页切换 美国/中国/欧元区/日本/全球;
 **跨资产比较**: "金融市场变化"页看同口径周/月/年内变化,历史页双指标叠加。
 
+**单指标 1月/1年/5年 变化(命令行正式口径)**: 用"自配对 compare"——同一指标
+填在 `--metrics` 两侧,`--start/--end` 圈出回看窗,变化值读输出里的
+`sides[].interval_change_common_window`(利率自动按 pp、价格按 %,基准=窗口
+首观测之前最后一笔)。示例(1 年):
+
+```bash
+python3 ia_cli.py compare --metrics FED_FUNDS,FED_FUNDS \
+  --start 2025-11-10 --end 2026-11-10
+```
+
+1 个月=起点推前一个月(`--start 2026-10-10 --end 2026-11-10`),5 年同理。
+**注意 empty_window 是诚实拒绝**: 月频指标在 1 个月窗里常无当月新观测(发布
+滞后或月中提问),命令会以 `empty_window` 退出并提示放宽窗口——此时只引用
+水平值(用 `history`),不要拿旧观测差硬造"当月变化"。
+
 **定时调度(可选,非必需)**:
 - macOS launchd: 两个定时任务(每天采集+周六出报告),`run_daily.sh` 会自动
   定位项目根;plist 模板见下方;
@@ -191,7 +210,9 @@ macOS plist 模板(占位路径请替换为你自己的,放 `~/Library/LaunchAge
 流水线第 10-13 步跳过、`run_weekly.py` 退出码 1。这是防假数据门禁的如实行为,
 **不是你的环境坏了**;配置 FRED Key(免费申请,见第 2 节)后即恢复。
 其余影响: 缺模型 API → 周报自动走 data-only 数据观察、AI 解释如实提示未配置
-(2026-11-09 起新闻步骤改确定性标题回退,不再打印异常堆栈);缺 TUSHARE →
+(2026-11-09 起新闻步骤改确定性标题回退,不再打印异常堆栈;2026-11-10 起
+新闻模型摘要须 `IA_NEWS_MODEL_SUMMARY=1` 显式开启,三参齐也不再自动调用);
+缺 TUSHARE →
 A 股深度数据近乎不可用(匿名调用限流严: 本地闸门 ≥61 秒/次,实测同小时重跑会被
 服务端拒;免 Token 首跑可能耗时 10 分钟左右);缺 FINNHUB → 无新闻采集。
 所有缺失一律如实标注,不会编造。

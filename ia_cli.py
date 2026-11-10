@@ -60,10 +60,13 @@ FX_ASSET_CLASSES = {'fx_rate', 'fx_index'}
 CHANGE_WINDOWS = ('week', 'mtd', 'ytd')
 ENV_KEYS = (  # doctor 只报"已配置/未配置",永不打印值
     # v2.1(Charter 5, 2026-11-09): 模型面唯一凭证面=中性三参 MODEL_*;旧变量行已删除
-    ('MODEL_API_KEY', '可选模型 API Key(通用;AI 解释/周报生成共用,'
-     'Agent Native 默认无需,不配仅影响 AI 解释与周报叙事层)'),
+    ('MODEL_API_KEY', '可选模型 API Key(通用;AI 解释/周报生成/新闻模型摘要共用,'
+     'Agent Native 默认无需,不配仅影响 AI 解释/周报叙事层/新闻模型摘要)'),
     ('MODEL_BASE_URL', '可选模型端点(任意 OpenAI 兼容服务;填你的服务地址)'),
     ('MODEL_NAME', '可选模型名(填你的模型服务模型名)'),
+    ('IA_NEWS_MODEL_SUMMARY', '新闻模型摘要显式开关(Charter7-7: 默认关闭;'
+     '须 =1 且 MODEL_* 三参齐才调用付费模型摘要;不设/非1→新闻走确定性'
+     '标题回退,MODEL_* 三参齐也不再自动调用)'),
     ('FRED_API_KEY', '美联储/FRED 数据(强烈推荐,缺失则 28 个序列采集失败→Gate A FAIL)'),
     ('TUSHARE_TOKEN', '中国市场数据(可选)'),
     ('FINNHUB_API_KEY', '市场数据补充(可选)'),
@@ -339,8 +342,11 @@ def cmd_doctor(args):
 def cmd_update(args):
     if not args.yes:
         emit(envelope('update', False,
-                      {'notice': 'update 会真实运行采集流水线(可能数分钟,含外部数据源调用)。'
-                                 '确认请加 --yes。本命令永不自动触发。'},
+                      {'notice': 'update 会真实运行采集流水线(可能数分钟,含外部数据源调用'
+                                 '与新闻采集;含可选模型摘要步骤——默认关闭,须'
+                                 ' IA_NEWS_MODEL_SUMMARY=1 且 MODEL_* 三参齐才调用,'
+                                 '否则新闻走确定性标题回退)。确认请加 --yes。'
+                                 '本命令永不自动触发。'},
                       error=('confirmation_required',
                              'update 需要显式 --yes 确认', 'python3 ia_cli.py update --yes')),
              exit_code=1)
@@ -487,15 +493,40 @@ def _date_gap_days(a, b):
 
 
 def _has_vn_history(ymd, data_dir=None):
-    """A-fin §2: 该日是否存在历史版本快照(_vN 修订版文件)。
+    """A-fin §2: 该日是否存在同日修订版快照(_vN 修订版文件)。
 
     判据=data/daily 下 research_snapshot_{ymd}_v*.json 文件存在性(引擎已知
     事实,零推断);点时取版由 research_provenance.select_snapshot 承担(同日
     多版本取最高 _vN)。data_dir 可注入(测试用临时目录构造 _vN fixture)。
+    Charter7-1: 本函数只回答"当日有无修订版"(作为门的附加披露——当日早版
+    不可经 select_snapshot 取回);**realtime_info_set 的可用性判定不再依据
+    同日 _vN 在场性**,改为查询起点月窗内的跨日 vintage 在场性
+    (research_provenance.vintage_dates + analog_engine.realtime_gate_text)。
     """
     data_dir = data_dir or os.path.join(ROOT, 'data', 'daily')
     return bool(glob.glob(os.path.join(
         data_dir, f'research_snapshot_{ymd}_v*.json')))
+
+
+def _realtime_window_band(start_iso, end_iso):
+    """Charter7-1: realtime 门的查询起点月窗 [win_start, win_end]('YYYYMMDD')。
+
+    无 --start(当前窗)→(None, None): 现役快照即当前时点信息集;
+    有 --start→ 起点月窗=[start, min(--end, 起点月末日)]——点时重构的
+    as-of 主张锚定在查询起点,起点月内无跨日 vintage 即 blocked。"""
+    if not (start_iso or '').strip():
+        return None, None
+    from datetime import date, timedelta
+    try:
+        d0 = date.fromisoformat(str(start_iso)[:10])
+        month_end = ((d0.replace(day=28) + timedelta(days=8)).replace(day=1)
+                     - timedelta(days=1))
+        hi = month_end
+        if (end_iso or '').strip():
+            hi = min(hi, date.fromisoformat(str(end_iso)[:10]))
+    except ValueError:
+        return None, None
+    return d0.strftime('%Y%m%d'), hi.strftime('%Y%m%d')
 
 
 def cmd_compare(args):
@@ -721,22 +752,30 @@ def cmd_compare(args):
                                '自然月网格(代表=期内末值,align_to_month),按月键'
                                '(YYYY-MM)内交,n_*=共同月份数;a_dropped/b_dropped='
                                '各自未进入共同窗的观测数(月键口径=月数)')
-        # ── A-fin §2: 研究模式门(泄漏三模式的数据条件,机械可计算部分)──
-        # 描述性=历史比较永远可算;事件研究=须两侧发布日已知(任一宏观侧无发布日
-        # →blocked);当时信息集=须有历史版本快照(_vN,点时取版)。禁令执行归
+        # ── A-fin §2 / Charter7-1: 研究模式门(泄漏三模式的数据条件,机械可
+        #    计算部分)──描述性=历史比较永远可算;事件研究=须两侧发布日已知
+        # (任一宏观侧无发布日→blocked);当时信息集=**对查询时窗负责**——仅
+        # 查询起点月窗内存在跨日 vintage(不同 target_date 的研究快照;同日
+        # _vN 修订不算历史 vintage)才 available;无 --start/--end=当前窗
+        # (现役快照即当前时点信息集,不据此声称历史可重构)。禁令执行归
         # SKILL 研究纪律(引擎不知道研究者声称什么),此处只报数据条件事实。
         release_known = [bool((s.get('time_semantics') or {})
                               .get('release_date_available')) for s in sides]
         snap_ymd = str(snap.get('target_date') or '')[:10].replace('-', '')
-        vn_available = _has_vn_history(snap_ymd) if snap_ymd else False
+        import research_provenance as _rp
+        import analog_engine as _ae
+        _vints = _rp.vintage_dates(os.path.join(ROOT, 'data', 'daily'))
+        _ws, _we = _realtime_window_band(args.start, args.end)
         research_mode_gate = {
             'descriptive': 'available',
             'event_study': ('available' if all(release_known)
                             else 'blocked: 无发布日, 不得按发布日对齐/'
                                  '不得声称事件研究'),
-            'realtime_info_set': ('available(经 select_snapshot 点时取版)'
-                                  if vn_available
-                                  else 'blocked: 无历史版本, 修订值≠当时值')}
+            'realtime_info_set': _ae.realtime_gate_text(
+                _ws, _we, _vints,
+                same_day_revision=(_has_vn_history(snap_ymd)
+                                   if snap_ymd else False)),
+            'realtime_vintage_dates': _vints}
         data = {'mode': 'metrics', 'sides': sides,
                 'alignment': {'mode': align_mode,
                               'n_common_observations': len(common),
@@ -1050,9 +1089,15 @@ def cmd_analog(args):
         else:
             missing_series.append(mid)
     snap_ymd = str(snap.get('target_date') or '')[:10].replace('-', '')
+    # Charter7-1: realtime 门对锚点月查询时窗负责——跨日 vintage 日期由
+    # 调用方注入(research_provenance.vintage_dates 单一权威),引擎零文件系统
+    import research_provenance as _rp
+    _vints = _rp.vintage_dates(os.path.join(ROOT, 'data', 'daily'))
     res = ae.run(series_map, reg, anchor=args.anchor, top=args.top or 5,
                  weights=weights, include_aftermath=not args.no_aftermath,
-                 vn_available=_has_vn_history(snap_ymd) if snap_ymd else False)
+                 vintage_dates=_vints,
+                 same_day_revision=(_has_vn_history(snap_ymd)
+                                    if snap_ymd else False))
     warns = list(res['warnings'])
     if missing_series:
         warns.append('序列缺席(如实,不造数): ' + ','.join(missing_series))

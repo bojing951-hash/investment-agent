@@ -102,6 +102,11 @@ WATCHLIST = {
     "FEZ": "FEZ",
     "EWU": "EWU",
     "EWG": "EWG",
+    # 数据批1#8(2026-11-10): EA 本土股指经 Yahoo 转引(注册表 DAX/CAC40
+    # 从PENDING转正,通道归属=global;ea通道保持零依赖白名单纪律)。
+    # TOPIX 不入: Yahoo 免费无 ^TPX 序列(实测 2026-11-10),宁缺毋假。
+    "DAX": "^GDAXI",
+    "CAC40": "^FCHI",
     # --- 亚太 ---
     "EWJ": "EWJ",
     "INDA": "INDA",

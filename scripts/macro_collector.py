@@ -53,6 +53,9 @@ FRED_SERIES = {
     # 注册表active条目缺席=noncore_missing如实披露,见docs/P2_DATA_GAP_LEDGER.md)
     "SOFR": "SOFR",
     "WALCL": "WALCL",
+    # 数据批1(2026-11-10,#M2SL 可选项): M2货币供应月末存量(月频,H.6)——
+    # 流动性数量维,与WALCL资产负债表维互补;免费FRED序列/现有key同模式
+    "M2SL": "M2SL",
 }
 
 # === Charter6-P0(A2 §4-P0, 2026-11-09): 采集窗口参数化 ======================
@@ -138,6 +141,7 @@ SERIES_FREQ = {
     "US_REAL_GDP": "quarterly",   # Charter6-P1: GDPC1 季频(变化口径=QoQ/YoY)
     "WALCL": "weekly",            # P2-3: H.4.1 周三水平(周四发布)
     "SOFR": "daily",              # P2-3: 担保隔夜融资利率(营业日)
+    "M2SL": "monthly",            # 数据批1: H.6 M2月末存量
     # 其余(BAML利差/DGS收益率/DFII/T5YIE/T10Y2Y)=daily
 }
 
@@ -172,6 +176,8 @@ SERIES_UNITS = {
     "SOFR": ("rate", "%"),
     # 首跑校准(2026-11-10): FRED原始单位=百万美元(存原始值惯例,RSAFS同例)
     "WALCL": ("index", "百万美元(美联储总资产,周三水平)"),
+    # 数据批1: M2SL 月频存量(流动性数量维,与WALCL资产负债表维互补)
+    "M2SL": ("index", "十亿美元(M2月末存量)"),
 }
 # 各kind的变化单位标签(chg字段附_chg_unit,程序与报告据此区分口径)
 _CHG_UNIT_BY_KIND = {

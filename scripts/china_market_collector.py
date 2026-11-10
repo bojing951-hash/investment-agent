@@ -140,12 +140,14 @@ def _fetch_index_em(code, name):
         if not settled:
             print(f"  ⚠️ {name}({code}) 东财回落无完结行(date≤{_em_max_date()})")
             return None
-        # 与 tushare 路径同窗语义: df_year=当年序列(start_date=年初)→ 周变化/YTD/
-        # pct/series 全部取**取值行当年**窗口(跨年历史不入计算,与 tushare item 同构)
-        year = settled[-1][0][:4]
-        yr = [p for p in settled if p[0][:4] == year]
-        dates = [d for d, _ in yr]
-        closes = [float(df.iloc[i]['close']) for _, i in yr]
+        # 数据批1(#10): 与 tushare 主路同窗语义——series=窗口起点起全序列
+        # (EM 端点本就返回全史,按 cn_window_start 过滤);周变化规则不变;
+        # YTD 基准=窗内**当年**首个收盘(非窗口首根)。
+        win_start = cn_window_start(cn_index_history_period()).replace('-', '')
+        win = [p for p in settled if p[0].replace('-', '') >= win_start]
+        year = win[-1][0][:4]
+        dates = [d for d, _ in win]
+        closes = [float(df.iloc[i]['close']) for _, i in win]
         close = closes[-1]
         # 周变化与 tushare 路径同规则(倒数第5收盘;不足5根对比首根)
         week_chg = None
@@ -155,10 +157,11 @@ def _fetch_index_em(code, name):
         elif len(closes) >= 2:
             prev_close = closes[0]
             week_chg = round((close - prev_close) / prev_close * 100, 2)
-        # YTD 基准=当年首个收盘(同 tushare df_year 首行)
+        # YTD 基准=窗内当年首个收盘(纯函数 _ytd_base_close,同 tushare 主路)
         ytd_chg = None
-        if closes and closes[0]:
-            ytd_chg = round((close - closes[0]) / closes[0] * 100, 2)
+        base = _ytd_base_close(dates, closes, dates[-1].replace('-', ''))
+        if base:
+            ytd_chg = round((close - base) / base * 100, 2)
         # 东财无 pct_chg 列 → 由前一完结收盘推得(EM同列自洽,非跨源拼接)
         pct_chg = 0.0
         if len(closes) >= 2 and closes[-2] > 0:
@@ -238,17 +241,76 @@ def get_trade_dates():
     start_date_year = f'{today.year}0101'
     return end_date, start_date_week, start_date_year
 
+# === 数据批1(#10 CN 股指深窗,2026-11-10): 历史窗口参数化 =====================
+# 原硬编码 start_date=当年0101 → 指数 series 恒为年内浅窗(台账#10 缺口:
+# CN 股指序列仅 2026-01 起)。镜像 global_market_collector Charter6-P0 同款:
+# env CN_INDEX_HISTORY_PERIOD(合法集=env_config.HISTORY_PERIOD_LEGAL),默认
+# '10y';'ytd'=旧行为精确保留。61s 限流闸门(_index_daily)零变化——窗口加宽
+# 只加大单次响应,不增加调用次数。
+_CN_PERIOD_DAYS = {'1d': 1, '5d': 5, '1mo': 31, '3mo': 92, '6mo': 183}
+_CN_PERIOD_YEARS = {'1y': 1, '2y': 2, '5y': 5, '10y': 10}
+_CN_FLOOR_DATE = '19901219'   # 上证基日(1990-12-19);各指数以源端实际可得为准
+
+
+def cn_index_history_period():
+    """CN 指数历史窗口解析(纯函数,现读 env;空白→默认'10y',非法→告警回落)。"""
+    from env_config import HISTORY_PERIOD_LEGAL, resolve_history_period
+    period, fallback = resolve_history_period(
+        os.environ.get('CN_INDEX_HISTORY_PERIOD'), '10y')
+    if fallback:
+        print(f"  ⚠️ CN_INDEX_HISTORY_PERIOD 非法(合法集 "
+              f"{'/'.join(HISTORY_PERIOD_LEGAL)}),回落默认 10y")
+    return period
+
+
+def cn_window_start(period, today=None):
+    """窗口起点 YYYYMMDD(纯函数,离线可测)。
+
+    'ytd'→当年0101(旧行为);'max'→上证基日下限;'Nd/Nmo'→自然日回退;
+    'Ny'→年回退(月末日不前移——指数日频无月末语义,年回退取同月日)。"""
+    t = today or datetime.now()
+    if period == 'ytd':
+        return f'{t.year}0101'
+    if period == 'max':
+        return _CN_FLOOR_DATE
+    if period in _CN_PERIOD_DAYS:
+        return (t - timedelta(days=_CN_PERIOD_DAYS[period])).strftime('%Y%m%d')
+    if period in _CN_PERIOD_YEARS:
+        try:
+            return t.replace(year=t.year - _CN_PERIOD_YEARS[period]).strftime('%Y%m%d')
+        except ValueError:                    # 2/29 润日 → 3/1 同义
+            return (t.replace(year=t.year - _CN_PERIOD_YEARS[period],
+                              day=28)).strftime('%Y%m%d')
+    return f'{t.year}0101'
+
+
+def _ytd_base_close(trade_dates, closes, last_date_yyyymmdd):
+    """YTD 基准收盘(纯函数,数据批1#10 深窗修正)。
+
+    基准=**当年**首个收盘(深窗下序列首根是 N 年前,不得当年初基准);
+    当年无行(如 max 窗被源端截断)→退回序列首根并保持非完整YTD语义。
+    trade_dates=YYYYMMDD 字符串序列(升序),closes 同长。"""
+    year = str(last_date_yyyymmdd)[:4]
+    for d, c in zip(trade_dates, closes):
+        if str(d).startswith(year):
+            return float(c)
+    return float(closes[0]) if closes else None
+
+
 def fetch_a_share_indices():
     """采集A股指数数据"""
     print("\n📈 采集A股指数...")
     end_date, start_week, start_year = get_trade_dates()
+    period = cn_index_history_period()
+    window_start = cn_window_start(period)
+    print(f"  历史窗口: {period}(start={window_start};CN_INDEX_HISTORY_PERIOD 可覆盖)")
     results = {}
 
     for code, name in A_SHARE_INDICES.items():
         try:
-            # 第七轮: 单次拉取年初至今全序列(原为近10天+年初两次调用),
+            # 数据批1(#10): 单次拉取 window_start 起全序列(原=年初至今),
             # 附加原始series供事实引擎统一口径计算(周/MTD/YTD=期前收盘基准)
-            df_year = _index_daily(ts_code=code, start_date=start_year, end_date=end_date)
+            df_year = _index_daily(ts_code=code, start_date=window_start, end_date=end_date)
             if df_year is None or len(df_year) == 0:
                 print(f"  ⚠️ {name}({code}): 无数据")
                 continue
@@ -265,10 +327,14 @@ def fetch_a_share_indices():
                 prev_close = float(df.iloc[0]['close'])
                 week_chg = round((close - prev_close) / prev_close * 100, 2)
 
-            # YTD：获取年初数据
+            # YTD: 基准=窗口内**当年首个**收盘(纯函数 _ytd_base_close;
+            # 深窗下 df.iloc[0] 是 N 年前,不得再当年初基准——数据批1#10 修正)
             ytd_chg = None
-            year_start = float(df.iloc[0]['close'])
-            ytd_chg = round((close - year_start) / year_start * 100, 2)
+            year_start = _ytd_base_close(list(df['trade_date']),
+                                         list(df['close']),
+                                         str(latest['trade_date']))
+            if year_start:
+                ytd_chg = round((close - year_start) / year_start * 100, 2)
 
             dates = [f"{str(d)[:4]}-{str(d)[4:6]}-{str(d)[6:]}" for d in df['trade_date']]
             closes = [float(v) for v in df['close']]

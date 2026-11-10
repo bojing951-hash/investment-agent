@@ -1,5 +1,5 @@
 {
- "version": "2.7.0",
+ "version": "2.8.0",
  "created": "2026-10-17",
  "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
  "field_semantics": {
@@ -24,6 +24,7 @@
   "release_date_available": "逐观测发布日掌握性(人工登记): true=发布日已知或按已知规则(市场序列观测即发布;政策/管理利率决议或操作当日公布,DFF次日;LPR每月20日09:15;ICSA每周四)/false=统计类宏观发布滞后且逐观测发布日本仓未登记;缺键=未登记(null);快照fact层release_date实测值覆盖本登记(数据>登记)"
  },
  "notes": [
+  "v2.8.0(2026-11-10,数据批1): +SPX_EPS(Shiller E列月频1871+,盈利维,与SPX_CAPE/SPX_PE_TTM同源同频同vintage)+M2SL(FRED月频流动性数量维,与WALCL资产负债表维互补);DAX/CAC40 从PENDING预注册转正(source改global_market_collector,Yahoo ^GDAXI/^FCHI 日线;ea通道保持零依赖白名单纪律);108→110条(106→108 active)。首跑真实拉取随本批批准(现有key/免费源/只读),详见 docs/P2_DATA_GAP_LEDGER.md 数据批1首跑登记",
   "v2.7.0(2026-11-10,Charter7 P2-3): +SOFR/WALCL(FRED免费序列/现有FRED_API_KEY/零新凭证——美国流动性维首批落地,Case A 七维矩阵流动性维 US 侧从✗→可采;源端已接线: FRED_SERIES+SERIES_FREQ+SERIES_UNITS,首跑真实拉取需协调方批准,批准前 active 条目缺席=noncore_missing 如实披露,详见 docs/P2_DATA_GAP_LEDGER.md);首跑校准(同日,版本内修订): WALCL源端原始单位=百万美元,单位口径由billion_usd校正为million_usd+原始值量程(存原始值惯例,RSAFS同例,零换算);106→108条",
   "v2.6.0(2026-11-09,Charter6-P2 估值面): +SPX_CAPE/SPX_PE_TTM(Shiller ie_data.xls 月频1871+,新通道shiller,免Key;revision_semantics=latest_vintage_asof_collected 全局披露见上条)+SPX_PB 登记不可得(status=unavailable 新词汇:无免费干净源不以proxy冒充,不入active面);估值维序列(analog六维状态向量估值输入)落地",
   "v2.5.0(2026-11-09,Charter6-P1): +US_REAL_GDP(GDPC1,季频'quarterly'词汇扩;单位词汇+billion_usd);JP_POLICY_RATE/ECB_DFR/ECB_MRO 全史序列通道落档(japan_/ea_ 档 series 节,快照 series_store 直通);全库修订口径 revision_semantics=latest_vintage_asof_collected(FRED通道返回最新修订值,研究引用历史值须随附该披露,A2 §3.1)",
@@ -2092,6 +2093,36 @@
    "release_semantics": "ie_data.xls 不定期整文件更新(无逐版发布日);本系列=采集时点最新修订口径(latest_vintage_asof_collected),当时市场所见分位与最新口径可能不同"
   },
   {
+   "metric_id": "SPX_EPS",
+   "display_name": "标普500每股收益(近12个月名义)",
+   "source": "shiller_collector",
+   "source_symbol": "ie_data.xls!E",
+   "asset_class": "valuation",
+   "frequency": "monthly",
+   "observation_period_kind": "calendar_month",
+   "release_date_available": false,
+   "unit": "usd",
+   "calendar": "us_equity",
+   "economy": "US",
+   "economy_rule": "P8:calendar=us_equity",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "value_type": "level",
+   "calc": "Shiller ie_data.xls 月频(1871+)E列:近12个月名义每股收益合计(盈利维原始序列;与SPX_CAPE/SPX_PE_TTM同源同频同vintage);E列缺席→序列缺席,不以proxy冒充",
+   "validation": {
+    "range": [
+     0,
+     500
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 75,
+    "note": "月频:同SPX_CAPE,75天窗口容官网不定期更新"
+   },
+   "release_semantics": "ie_data.xls 不定期整文件更新(无逐版发布日);本系列=采集时点最新修订口径(latest_vintage_asof_collected);名义美元水平,同比/环比以pct口径随price族"
+  },
+  {
    "metric_id": "SPX_PB",
    "display_name": "标普500市净率(不可得)",
    "source": "shiller_collector",
@@ -3234,8 +3265,8 @@
   {
    "metric_id": "DAX",
    "display_name": "德国DAX指数",
-   "source": "ea_market_collector",
-   "source_symbol": "PENDING",
+   "source": "global_market_collector",
+   "source_symbol": "^GDAXI",
    "asset_class": "equity_index",
    "frequency": "daily",
    "observation_period_kind": "trading_day",
@@ -3252,7 +3283,7 @@
     "adjustment": "none"
    },
    "value_type": "level",
-   "calc": "德国DAX指数(40成份,XETRA收盘点位);白名单五域无指数口径源(yfinance 不入依赖面)→数据面诚实缺席待后续轮源扩展或口径裁决",
+   "calc": "德国DAX指数(40成份,收盘点位);经global通道Yahoo ^GDAXI日线(auto_adjust复权口径,指数无除息影响)——数据批1#8(2026-11-10)从PENDING预注册转正;官方发布=XETRA,Yahoo为免费转引源",
    "validation": {
     "range": [
      1000,
@@ -3263,13 +3294,13 @@
    "freshness": {
     "max_calendar_lag_days": 5
    },
-   "release_semantics": "Deutsche Börse XETRA每交易日收盘后发布官方值;口径源未接线,条目=身份预注册,数据缺席按 L58 纪律处理"
+   "release_semantics": "Deutsche Börse XETRA每交易日收盘后发布官方值;采集经Yahoo转引(^GDAXI),通道归属=global(global_market_collector既有Yahoo依赖面;ea通道保持零依赖白名单纪律)"
   },
   {
    "metric_id": "CAC40",
    "display_name": "法国CAC40指数",
-   "source": "ea_market_collector",
-   "source_symbol": "PENDING",
+   "source": "global_market_collector",
+   "source_symbol": "^FCHI",
    "asset_class": "equity_index",
    "frequency": "daily",
    "observation_period_kind": "trading_day",
@@ -3286,7 +3317,7 @@
     "adjustment": "none"
    },
    "value_type": "level",
-   "calc": "法国CAC 40指数(Euronext Paris 收盘点位);白名单五域无指数口径源(yfinance 不入依赖面)→数据面诚实缺席待后续轮源扩展或口径裁决",
+   "calc": "法国CAC 40指数(收盘点位);经global通道Yahoo ^FCHI日线(auto_adjust复权口径,指数无除息影响)——数据批1#8(2026-11-10)从PENDING预注册转正;官方发布=Euronext Paris,Yahoo为免费转引源",
    "validation": {
     "range": [
      1000,
@@ -3297,7 +3328,7 @@
    "freshness": {
     "max_calendar_lag_days": 5
    },
-   "release_semantics": "Euronext Paris每交易日收盘后发布官方值;口径源未接线,条目=身份预注册,数据缺席按 L58 纪律处理"
+   "release_semantics": "Euronext Paris每交易日收盘后发布官方值;采集经Yahoo转引(^FCHI),通道归属=global(global_market_collector既有Yahoo依赖面;ea通道保持零依赖白名单纪律)"
   },
   {
    "metric_id": "CN_LPR_1Y",
@@ -3629,6 +3660,40 @@
     "note": "周频:滞后1周属正常(周四发布)"
    },
    "release_semantics": "H.4.1每周四16:30 ET发布上周三水平;观测期=周内单日水平(与ICSA同例,observation_period_kind枚举无对应值→不登记,输出null)。P2-3(2026-11-10)接线: 免费FRED序列/现有FRED_API_KEY,首跑真实拉取需协调方批准——批准前条目在场而数据缺席=noncore_missing 如实披露。首跑校准(2026-11-10): 源端FRED原始单位=百万美元(非十亿),按管线惯例(存原始值/注册表单位描述原始值,RSAFS同例)单位口径校正为million_usd+原始值量程,零换算逻辑"
+  },
+  {
+   "metric_id": "M2SL",
+   "display_name": "美国M2货币供应(月存量)",
+   "source": "macro_collector",
+   "source_symbol": "M2SL",
+   "asset_class": "macro_index",
+   "frequency": "monthly",
+   "observation_period_kind": "calendar_month",
+   "release_date_available": false,
+   "unit": "billion_usd",
+   "calendar": "us_rates",
+   "economy": "US",
+   "economy_rule": "P3:calendar=us_rates",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "FRED M2SL月频存量水平(月末快照非流量;十亿);M2同比/环比由序列变化机制派生(流动性数量维,与WALCL资产负债表维互补)",
+   "validation": {
+    "range": [
+     8000,
+     40000
+    ]
+   },
+   "freshness": {
+    "max_calendar_lag_days": 75,
+    "note": "月频:H.6约月末四周后发布,未发布≠数据缺失"
+   },
+   "release_semantics": "美联储H.6每月最后一个营业日约四周后发布上月末存量(精确发布日经FRED API不可得→按观测月+已知滞后窗口保守标注);后续修订随全量重拉自动生效(revision_semantics=latest_vintage_asof_collected)。数据批1(2026-11-10): 免费FRED序列/现有FRED_API_KEY,与SOFR/WALCL同模式"
   }
  ]
 }

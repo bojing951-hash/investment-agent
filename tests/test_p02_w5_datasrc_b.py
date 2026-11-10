@@ -194,7 +194,10 @@ class T2IndexEmFallbackContract(unittest.TestCase):
         self.assertEqual(item['week_chg'], 81.82)
         self.assertEqual(item['ytd_chg'], 100.0)
         self.assertEqual(item['pct_chg'], 42.86)
-        self.assertEqual(item['series']['dates'][0], '2026-01-05')  # 年窗序列
+        # 数据批1(#10): EM 回落与 tushare 主路同窗语义——series=cn_window_start
+        # (默认10y)起全序列,2025 尾行在场(前=年窗首根'2026-01-05');
+        # ytd=100.0(基准=当年首根100)证明 90.0 不入 YTD 基准的纪律不变
+        self.assertEqual(item['series']['dates'][0], '2025-12-31')  # 深窗序列
 
     def test_t2f_cutoff_function_four_vectors_frozen_clock(self):
         # R051 W5-EMWIN: 常量锁→函数冻结时钟四向量锁(EM-AC-03 语义规格)

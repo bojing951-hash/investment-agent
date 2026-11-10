@@ -95,6 +95,12 @@ check("SPX_PE_TTM 序列=手算 P÷E 8值(重复月保留最后4760/220)",
 check("TR CAPE 变体列被排除(表头恰为'cape'才采用)",
       meta['columns_used'].get('CAPE') == 12
       and 31.9 in series['SPX_CAPE']['values'])
+# 数据批1#7: E 列直读=SPX_EPS(与 P÷E 的分母同一列,独立手算直读值)
+check("SPX_EPS 序列=E列直读手算8值(数据批1盈利维)",
+      series.get('SPX_EPS', {}).get('dates') == EXP_PE_D
+      and series['SPX_EPS']['values']
+      == [190.0, 195.0, 200.0, 205.0, 210.0, 210.0, 215.0, 220.0],
+      str(series.get('SPX_EPS')))
 check("源版本注记随解析产出(sheet/表头行/首末月)",
       meta['sheet'] == 'Data' and meta['header_row'] == 3
       and meta['first_month'] == '2023-11' and meta['last_month'] == '2024-06',
@@ -135,7 +141,7 @@ series4, meta4, alerts4 = sc.parse_ie_data(open(FIX4, 'rb').read())
 check("表头定位=真表头第8行(首列恰'Date';非第7行陷阱行)",
       meta4['header_row'] == 8, str(meta4['header_row']))
 check("CAPE 采用列=真CAPE第12列(陷阱列16被首列规则排除)",
-      meta4['columns_used'] == {'CAPE': 12, 'PE': [1, 3]},
+      meta4['columns_used'] == {'CAPE': 12, 'PE': [1, 3], 'EPS': 3},
       str(meta4['columns_used']))
 check("CAPE 序列=真列手算[31.0,31.5,32.0]",
       series4.get('SPX_CAPE', {}).get('values') == [31.0, 31.5, 32.0],
@@ -193,17 +199,20 @@ check("main 全序列缺席→exit 1 且不产出文件",
 # ══ [5] payload 组装与原子落盘 ══════════════════════════════════
 print("\n[5] build_payload + save_daily")
 payload, n = sc.build_payload(run_date=date(2024, 6, 30), raw=raw1)
-check("n=2(SPX_CAPE+SPX_PE_TTM)", n == 2)
-check("flat data=各序列末值(手算: CAPE=31.9, PE=4760/220)",
+check("n=3(SPX_CAPE+SPX_PE_TTM+SPX_EPS)", n == 3)
+check("flat data=各序列末值(手算: CAPE=31.9, PE=4760/220, EPS=220)",
       abs(payload['data']['SPX_CAPE'] - 31.9) < 1e-9
-      and abs(payload['data']['SPX_PE_TTM'] - 4760 / 220) < 1e-9,
+      and abs(payload['data']['SPX_PE_TTM'] - 4760 / 220) < 1e-9
+      and payload['data']['SPX_EPS'] == 220.0,
       str(payload['data']))
 check("observations=统计期月首日口径",
       payload['observations'] == {'SPX_CAPE': '2024-06-01',
-                                  'SPX_PE_TTM': '2024-06-01'})
+                                  'SPX_PE_TTM': '2024-06-01',
+                                  'SPX_EPS': '2024-06-01'})
 check("series 全史随档落盘(月频1871+口径的离线缩影)",
       len(payload['series']['SPX_CAPE']['dates']) == 7
-      and len(payload['series']['SPX_PE_TTM']['dates']) == 8)
+      and len(payload['series']['SPX_PE_TTM']['dates']) == 8
+      and len(payload['series']['SPX_EPS']['dates']) == 8)
 check("source_version 源版本注记随档(payload面)",
       payload['source_version'].get('last_month') == '2024-06'
       and payload['source_version'].get('sheet') == 'Data')
@@ -372,17 +381,18 @@ check("retention: 归档为 gzip(月度档案)",
       os.path.isfile(os.path.join(tdr, 'archive', 'shiller_20250331.json.gz')))
 
 # ══ [8] 注册表锁 ════════════════════════════════════════════════
-print("\n[8] 注册表锁(v2.7.0)与语义校验")
+print("\n[8] 注册表锁(v2.8.0)与语义校验")
 regj = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),
                       encoding='utf-8'))
 ms = regj['metrics']
-check("版本 v2.7.0(Charter7 P2-3 流动性维)", regj.get('version') == '2.7.0')
-check("108项(106+SOFR/WALCL P2-3)", len(ms) == 108, str(len(ms)))
+check("版本 v2.8.0(数据批1: +SPX_EPS/M2SL,DAX/CAC40转正)",
+      regj.get('version') == '2.8.0')
+check("110项(数据批1 +SPX_EPS/M2SL)", len(ms) == 110, str(len(ms)))
 active = [m for m in ms if m.get('status') == 'active']
-check("活跃106项(P2-3 +2)", len(active) == 106, str(len(active)))
+check("活跃108项(数据批1 +2)", len(active) == 108, str(len(active)))
 us = [m for m in active if m.get('economy') == 'US']
-check("US 活跃53项(SPX_PB=unavailable不计入;P2-3 +SOFR/WALCL)",
-      len(us) == 53, str(len(us)))
+check("US 活跃55项(SPX_PB=unavailable不计入;数据批1 +SPX_EPS/M2SL)",
+      len(us) == 55, str(len(us)))
 pb = next(m for m in ms if m['metric_id'] == 'SPX_PB')
 check("SPX_PB=unavailable 登记(宁缺毋假,不以proxy冒充)",
       pb.get('status') == 'unavailable' and 'proxy' in pb.get('calc', '')
@@ -392,7 +402,8 @@ check("SPX_PB 无观测即无统计期(时间键未登记)",
 check("SPX_PB release_semantics 留空(无发布可谈)",
       not pb.get('release_semantics'))
 for mid, sym in (('SPX_CAPE', 'ie_data.xls!CAPE'),
-                 ('SPX_PE_TTM', 'ie_data.xls!P/E')):
+                 ('SPX_PE_TTM', 'ie_data.xls!P/E'),
+                 ('SPX_EPS', 'ie_data.xls!E')):
     m = next(x for x in ms if x['metric_id'] == mid)
     check(f"{mid}: source=shiller_collector/月频/calendar_month/US",
           m['source'] == 'shiller_collector' and m['frequency'] == 'monthly'
@@ -419,10 +430,11 @@ check("_SOURCE_TO_INPUT 映射 shiller_collector→shiller",
 sys.path.insert(0, os.path.join(ROOT, 'tests'))
 from helpers import baseline_locks as bl  # noqa: E402
 va = bl.vintage_additions(fe.load_registry())
-check("vintage_additions=27(含新4项+P2-3 SOFR/WALCL;unavailable同属"
-      "时点后新增)",
-      len(va) == 27 and {'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB', 'US_REAL_GDP',
-                         'SOFR', 'WALCL'} <= va, str(sorted(va)))
+check("vintage_additions=29(含新4项+P2-3两项+数据批1 SPX_EPS/M2SL;"
+      "unavailable同属时点后新增)",
+      len(va) == 29 and {'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB', 'US_REAL_GDP',
+                         'SOFR', 'WALCL', 'SPX_EPS', 'M2SL'} <= va,
+      str(sorted(va)))
 
 print("\n" + "=" * 64)
 print(f"结果: {PASS}通过 / {FAIL}失败")

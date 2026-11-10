@@ -209,24 +209,24 @@ class T1RegistryV230(unittest.TestCase):
 
     def test_t01_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1): 94+8→102/93+8→101/2.2.0→2.3.0/CN 10→18
-        self.assertEqual(len(REG['metrics']), 108)  # Charter7 P2-3: +SOFR/WALCL(前 Charter6-P2 +SPX_CAPE/SPX_PE_TTM/SPX_PB)
-        self.assertEqual(REG['version'], '2.7.0')  # Charter7 P2-3(2026-11-10) 流动性维 2.6.0→2.7.0
+        self.assertEqual(len(REG['metrics']), 110)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL)
+        self.assertEqual(REG['version'], '2.8.0')  # 数据批1(2026-11-10) 2.7.0→2.8.0
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 106)  # Charter7 P2-3 +SOFR/WALCL
+                             if m.get('status') == 'active'), 108)  # 数据批1 +SPX_EPS/M2SL
         agg = {}
         for m in REG['metrics']:
             agg[m['economy']] = agg.get(m['economy'], 0) + 1
         # Charter6-P2: US 50→52(+SPX_CAPE/SPX_PE_TTM)
-        # Charter7 P2-3: US 53→55(+SOFR/WALCL)
-        self.assertEqual(agg, {'US': 55, 'CN': 18, 'HK': 4, 'JP': 8,
+        # Charter7 P2-3: US 53→55(+SOFR/WALCL);数据批1: US 55→57(+SPX_EPS/M2SL)
+        self.assertEqual(agg, {'US': 57, 'CN': 18, 'HK': 4, 'JP': 8,
                                'EA': 11, 'GLOBAL': 12})
 
     def test_t02_cn8_tail_order_and_common_fields(self):
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-10:-2]),
-                         CN8_ORDER)                       # append 尾序=终值表序(P2-3 +2 后块前移)
-        # Charter7 P2-3(2026-11-10): SOFR/WALCL append 于数组尾(US 流动性维)
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-2:]),
-                         ('SOFR', 'WALCL'))               # append 尾序(P2-3)
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-11:-3]),
+                         CN8_ORDER)                       # append 尾序=终值表序(P2-3/数据批1 后块前移)
+        # Charter7 P2-3 + 数据批1(2026-11-10): SOFR/WALCL/M2SL append 于数组尾
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-3:]),
+                         ('SOFR', 'WALCL', 'M2SL'))       # append 尾序(P2-3+数据批1)
         for mid in CN8_ORDER:
             m = METRICS[mid]
             self.assertEqual(m['source'], 'china_market_collector', mid)
@@ -278,7 +278,8 @@ class T1RegistryV230(unittest.TestCase):
         self.assertEqual(bl.vintage_additions(), JP4 | NEW9 | CN8
                          | {'US_REAL_GDP', 'SPX_CAPE', 'SPX_PE_TTM',
                             'SPX_PB'}    # Charter6-P2: +3=25
-                         | {'SOFR', 'WALCL'})  # Charter7 P2-3: +2=27(流动性维)
+                         | {'SOFR', 'WALCL'}  # Charter7 P2-3: +2=27(流动性维)
+                         | {'SPX_EPS', 'M2SL'})  # 数据批1(2026-11-10): +2=29
         self.assertEqual(bl.BASELINE_VINTAGE_IDS & CN8, set())      # 不与冻结81撞名
 
     def test_t05_cn_classification_reencode(self):

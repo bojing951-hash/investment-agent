@@ -63,20 +63,24 @@ JP_F1_EXPECT = {                        # F1 接线后快照新增事实(恰 10 
 }
 
 
-def _snap(td, drop=(), ea_prices=False):
-    """7通道 fixture 快照(drop=删除指定采集档; ea_prices=ea 档补 DAX/CAC40
-    prices 节——真实首档形态为诚实缺席, F2 的 DAX/CAC40 键须齐备形态驱动)。"""
+def _snap(td, drop=(), global_ea_idx=False):
+    """7通道 fixture 快照(drop=删除指定采集档; global_ea_idx=global 档补
+    DAX/CAC40 行情——数据批1通道转正后两条目权威来源=global_market_collector,
+    F2 的 DAX/CAC40 键须齐备形态驱动;ea 档不再承载两键)。"""
     fixt.write_collectors(td, YMD)
-    if ea_prices:
+    if global_ea_idx:
         p = fixt.collector_payloads(YMD, OBS)
-        ea = copy.deepcopy(p['ea'])
-        ea['prices'] = {
-            'DAX': {'close': 21000.0, 'date': OBS, 'high': None, 'low': None,
-                    'series': {P7: 20500.0, OBS: 21000.0}},
-            'CAC40': {'close': 8100.0, 'date': OBS, 'high': None, 'low': None,
-                      'series': {P7: 8000.0, OBS: 8100.0}}}
-        with open(os.path.join(td, f'ea_{YMD}.json'), 'w', encoding='utf-8') as f:
-            json.dump(ea, f, ensure_ascii=False)
+        glob = copy.deepcopy(p['global'])
+        glob['data']['DAX'] = {'close': 21000.0, 'date': OBS,
+                               'series': {'dates': [P7, OBS],
+                                          'values': [20500.0, 21000.0]}}
+        glob['data']['CAC40'] = {'close': 8100.0, 'date': OBS,
+                                 'series': {'dates': [P7, OBS],
+                                            'values': [8000.0, 8100.0]}}
+        glob['count'] = len(glob['data'])
+        with open(os.path.join(td, f'global_{YMD}.json'), 'w',
+                  encoding='utf-8') as f:
+            json.dump(glob, f, ensure_ascii=False)
     for name in drop:
         os.remove(os.path.join(td, f'{name}_{YMD}.json'))
     return sb.build_snapshot(target_ymd=YMD, data_dir=td, out_dir=td,
@@ -140,9 +144,11 @@ class TestF2SeriesStore(unittest.TestCase):
 
     def test_g03_store_three_keys_values_pass_through(self):
         """[示意] store 增 NIKKEI225/DAX/CAC40: {dates,values} 形态+值直通
-        (与档内 series 逐值全等, 升序); global 池既有键零回归。"""
+        (与档内 series 逐值全等, 升序); global 池既有键零回归。
+        数据批1(2026-11-10): DAX/CAC40 改经 global 档驱动(通道转正),
+        值期望不变——迁移=承载文件换, 语义零变化。"""
         with tempfile.TemporaryDirectory() as td:
-            snap = _snap(td, ea_prices=True)
+            snap = _snap(td, global_ea_idx=True)
             store = snap['series_store']
             self.assertEqual(store['NIKKEI225'],
                              {'dates': [P7, OBS], 'values': [37800.0, 38000.0]})
@@ -151,12 +157,13 @@ class TestF2SeriesStore(unittest.TestCase):
             self.assertEqual(store['CAC40'],
                              {'dates': [P7, OBS], 'values': [8000.0, 8100.0]})
             # 值直通复核: 档内 series 逐值回读比对(零改写零造数)
-            with open(os.path.join(td, f'ea_{YMD}.json'), encoding='utf-8') as f:
-                ea_raw = json.load(f)
+            with open(os.path.join(td, f'global_{YMD}.json'),
+                      encoding='utf-8') as f:
+                glob_raw = json.load(f)
             for mid in ('DAX', 'CAC40'):
-                arch = ea_raw['prices'][mid]['series']
-                self.assertEqual(dict(zip(store[mid]['dates'],
-                                          store[mid]['values'])), arch, mid)
+                arch = glob_raw['data'][mid]['series']
+                self.assertEqual({'dates': store[mid]['dates'],
+                                  'values': store[mid]['values']}, arch, mid)
             self.assertIn('SPX', store)                  # global 池不受影响
 
 
@@ -193,11 +200,20 @@ class TestF3SourceMappingFlip(unittest.TestCase):
         self.assertEqual(set(JP13), set(JP13) & set(rec['noncore_missing']))
         self.assertEqual(rec['noncore_missing_detail']['NIKKEI225'],
                          '来源文件缺失(jp:MISSING)')
+        # 数据批1(2026-11-10)通道转正迁移: DAX 权威来源自 ea→global
+        # (global_market_collector)——仅置 ea=MISSING 不再使 DAX 报来源级
+        # 缺失(global 档在场⇒采集遗漏口径,通道归属如实);补强化反例:
+        # 连 global 一并 MISSING 时 DAX 报来源级缺失(global 面)
         self.assertEqual(rec['noncore_missing_detail']['DAX'],
-                         '来源文件缺失(ea:MISSING)')
+                         '来源文件在场而指标缺席(采集遗漏)')
         self.assertEqual(rec['noncore_missing_detail']['JGB10Y'],
                          '来源文件缺失(japan:MISSING)')
         self.assertEqual(rec['effective'], 'DEGRADED')
+        ss2 = dict(ss)
+        ss2['global'] = {'status': 'MISSING'}
+        rec2 = _gate(facts, ss2)
+        self.assertEqual(rec2['noncore_missing_detail']['DAX'],
+                         '来源文件缺失(global:MISSING)')
 
 
 # ══ F6: jp 对账输入消费 ═════════════════════════════════════════════

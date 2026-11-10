@@ -209,14 +209,15 @@ class T1RegistryV230(unittest.TestCase):
 
     def test_t01_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1): 94+8→102/93+8→101/2.2.0→2.3.0/CN 10→18
-        self.assertEqual(len(REG['metrics']), 102)
-        self.assertEqual(REG['version'], '2.4.0')  # A-fin(2026-11-09) 时间键登记 2.3.0→2.4.0
+        self.assertEqual(len(REG['metrics']), 106)  # Charter6-P2: +SPX_CAPE/SPX_PE_TTM/SPX_PB
+        self.assertEqual(REG['version'], '2.6.0')  # Charter6-P2(2026-11-09) 估值面 2.5.0→2.6.0
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 101)
+                             if m.get('status') == 'active'), 104)  # Charter6-P2: +SPX_CAPE/SPX_PE_TTM
         agg = {}
         for m in REG['metrics']:
             agg[m['economy']] = agg.get(m['economy'], 0) + 1
-        self.assertEqual(agg, {'US': 49, 'CN': 18, 'HK': 4, 'JP': 8,
+        # Charter6-P2: US 50→52(+SPX_CAPE/SPX_PE_TTM)
+        self.assertEqual(agg, {'US': 53, 'CN': 18, 'HK': 4, 'JP': 8,
                                'EA': 11, 'GLOBAL': 12})
 
     def test_t02_cn8_tail_order_and_common_fields(self):
@@ -270,7 +271,9 @@ class T1RegistryV230(unittest.TestCase):
         self.assertEqual(rsem.validate_registry(REG), [])   # 零 error 零 review
         ok, why = bl.evolution_legal()
         self.assertTrue(ok, why)
-        self.assertEqual(bl.vintage_additions(), JP4 | NEW9 | CN8)  # 21=4+9+8
+        self.assertEqual(bl.vintage_additions(), JP4 | NEW9 | CN8
+                         | {'US_REAL_GDP', 'SPX_CAPE', 'SPX_PE_TTM',
+                            'SPX_PB'})  # Charter6-P2: +3=25
         self.assertEqual(bl.BASELINE_VINTAGE_IDS & CN8, set())      # 不与冻结81撞名
 
     def test_t05_cn_classification_reencode(self):

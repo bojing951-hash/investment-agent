@@ -60,7 +60,7 @@ n_metrics = len(reg['metrics'])
 counts = re.findall(r'(\d+)\s*项指标', readme)
 check(f"README指标数与注册表一致(注册表={n_metrics})",
       len(counts) == 1 and counts[0] == str(n_metrics), f"README出现={counts}")
-check("README步骤数=13步(与run_weekly.py一致)", '13 步' in readme)
+check("README步骤数=15步(与run_weekly.py一致)", '15 步' in readme)  # Charter6-P2: +Shiller
 check("README不再把论点/预测/超配当现有能力",
       '预测生命周期' not in readme and '超配/标配/低配' not in readme)
 check("历史档明示(thesis/views=冻结历史档案)",
@@ -183,7 +183,7 @@ check("脚本零个人路径", '/Users/' not in sh_src and 'AI内容' not in sh_
 check("按脚本自身位置定位项目根", 'BASH_SOURCE' in sh_src)
 check("支持PYTHON环境变量覆盖", 'PYTHON="${PYTHON:-}"' in sh_src)
 check("退出码透传保留", 'exit $RESULT' in sh_src)
-check("步骤注释已更新(13步)", '13 步' in sh_src or '13步' in sh_src)
+check("步骤注释已更新(15步)", '15 步' in sh_src or '15步' in sh_src)  # Charter6-P2
 
 # 行为级: 复制到陌生绝对路径,验证路径解析/日志/退出码;不跑真实采集
 with tempfile.TemporaryDirectory() as td:

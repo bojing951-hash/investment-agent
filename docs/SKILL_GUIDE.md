@@ -8,7 +8,7 @@
 - **Skill** = 一份指导你的 AI 助手"何时用、怎么调、守什么纪律"的说明文件
   (`.agents/skills/global-macro-research/SKILL.md`,遵循 agentskills.io 开放标准);
 - **ia_cli.py** = 统一工具接口(引擎薄适配层): `doctor / update / overview /
-  changes / history / compare / research / archive` 八个能力,输出结构化 JSON;
+  changes / history / compare / analog / research / archive` 九个能力,输出结构化 JSON;
 - Skill 不替换引擎,只是教 AI 用它。所有数值仍来自本地快照与采集档。
 
 ## 前置条件
@@ -77,7 +77,7 @@ Headless 注意(宿主验收实测): Claude Code 以 `claude -p` 无界面模式
 项目级 Skill 需加 `--setting-sources project` 才会加载;交互式会话经信任
 对话后自动加载,无需此参数。
 
-## 四个研究场景(可直接对 AI 说)
+## 五个研究场景(可直接对 AI 说)
 
 1. **全球宏观全景**: 「给我美中欧日宏观概览,缺失的指标如实说,注明各指标观测日期」
    → AI 调 `overview --economy US,CN,EA,JP`
@@ -85,7 +85,11 @@ Headless 注意(宿主验收实测): Claude Code 以 `claude -p` 无界面模式
    → AI 调 `changes`
 3. **历史与跨资产比较**: 「美国10年期国债收益率与标普500的历史相关性?共同观测窗多长?」
    → AI 调 `history` + `compare --metrics UST_10Y,SPX`(利率按 pp、价格按 pct,口径见输出 `change_basis`,单位不可比时如实拒算)
-4. **接地问答与归档**: 「美日10年期国债收益率差是多少?」→ `research`;
+4. **历史时期相似对照**: 「现在和历史上哪个时期宏观状态最像?」
+   → AI 调 `analog`(六维状态向量相似检索,TOP-N+各维贡献+事后表现);
+   **数据窗口不足时引擎如实拒答(insufficient_history/insufficient_candidates)——这是设计行为,
+   需先跑 `update` 拉长采集窗口**;事后表现块"非预测,不参与相似度",AI 只作历史记录引用
+5. **接地问答与归档**: 「美日10年期国债收益率差是多少?」→ `research`;
    「把这个问题存档」→ `archive save`;事后「查我上周问过什么」→ `archive list`
 
 **Agent 完整成果直存(六参)**: AI 用 history/compare/overview/changes 自由组织研究后,

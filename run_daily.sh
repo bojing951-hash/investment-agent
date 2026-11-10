@@ -65,7 +65,7 @@ if [ -z "$PYTHON" ]; then
 fi
 $PYTHON --version >> "$LOG_FILE" 2>&1 || { echo "❌ Python不可用: $PYTHON" >> "$LOG_FILE" 2>&1; exit 1; }
 
-# 执行数据采集流水线(run_weekly.py 现为13步: 9关键/4非关键;关键步骤失败→退出码1,
+# 执行数据采集流水线(run_weekly.py 现为15步: 9关键/6非关键;关键步骤失败→退出码1,
 # 各步骤语义与依赖见 run_weekly.py steps 注释)
 cd "$PROJECT_DIR" || { echo "❌ 无法进入项目目录: $PROJECT_DIR" >> "$LOG_FILE" 2>&1; exit 1; }
 "$PYTHON" run_weekly.py >> "$LOG_FILE" 2>&1

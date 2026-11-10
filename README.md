@@ -64,7 +64,7 @@ cd investment-agent
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 cp .env.example .env        # 按需填 Key(免 Key 可采集;但缺 FRED Key 时 Gate A 必 FAIL、研究问答被拒,见指南 FAQ Q1)
-python3 run_weekly.py       # 第一次数据采集(13 步流水线,配齐 Key 数分钟;免 Key 或需 10 分钟左右,见指南 Q1)
+python3 run_weekly.py       # 第一次数据采集(15 步流水线,配齐 Key 数分钟;免 Key 或需 10 分钟左右,见指南 Q1)
 
 # 打开本地研究工作台(可选):
 .venv/bin/pip install -r requirements-workbench.txt
@@ -78,11 +78,11 @@ python3 run_weekly.py       # 第一次数据采集(13 步流水线,配齐 Key �
 **已实现**(以下数字以代码为准确口径,查看当前指标数量:
 `python3 -c "import json;print(len(json.load(open('config/metric_registry.json'))['metrics']))"`):
 
-- **13 步数据流水线**(`run_weekly.py`,9 步关键/4 步非关键,失败降级如实记台账):
+- **15 步数据流水线**(`run_weekly.py`,9 步关键/6 步非关键,失败降级如实记台账):
   全球行情(yfinance)→A股港股(akshare/tushare)→美国宏观(FRED)→新闻(Finnhub,可选)→
-  利率预期→日本利率/市场→欧元区市场→研究快照(Gate A)→体制评分卡→跨资产相关性→
-  数据打包→校验与锚点;
-- **指标注册表**: 102 项指标(101 启用+1 弃用,覆盖美国/中国/欧元区/日本/全球市场,
+  利率预期→日本利率/市场→欧元区市场→Shiller估值→研究快照(Gate A)→体制评分卡→跨资产相关性→
+  数据打包→校验与锚点→日档保留(90天全量+月度归档);
+- **指标注册表**: 106 项指标(104 启用+1 弃用+1 不可得,覆盖美国/中国/欧元区/日本/全球市场,
   单一权威来源 `config/metric_registry.json`);
 - **金融事实引擎 + 研究快照**: 每项事实带观测日期/来源文件/内容指纹;快照不可变;
 - **Gate A(数据质量门禁)**: 核心缺失即 FAIL;非核心缺失→DEGRADED 降级并如实披露;
@@ -130,7 +130,7 @@ python3 run_weekly.py       # 第一次数据采集(13 步流水线,配齐 Key �
 ## 命令速查
 
 ```bash
-python3 run_weekly.py                 # 数据采集+快照+校验(13步;免Key可跑,缺FRED Key时Gate A FAIL→退出码1,属预期)
+python3 run_weekly.py                 # 数据采集+快照+校验(15步;免Key可跑,缺FRED Key时Gate A FAIL→退出码1,属预期)
 python3 scripts/report_generator.py   # 生成 AI 周报(可选模型 API;未配齐→data-only 数据观察)
 bash run_daily.sh                     # 采集入口脚本(自动定位项目根/虚拟环境,可移植)
 streamlit run app.py                  # 本地研究工作台(网页)

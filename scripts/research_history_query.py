@@ -70,6 +70,10 @@ ACCESS_POINTS = {
            '(scripts/snapshot_builder.py:236,358-382+GAP08-F2)'),
     'ea': ('snapshot.series_store via snapshot_builder.build_snapshot(write=False) '
            '(scripts/snapshot_builder.py:236,358-382+GAP08-F2)'),
+    # Charter6-P2(A2 §2#5): Shiller 估值序列(SPX_CAPE/SPX_PE_TTM,月频1871+)
+    # 走同一快照接入点(merge_series_sections lift 后在 store)。
+    'shiller': ('snapshot.series_store via snapshot_builder.build_snapshot(write=False) '
+                '(scripts/snapshot_builder.py:236,358-382+Charter6-P2 shiller通道lift)'),
 }
 
 # IA-P1-GAP08 R47-F3: economy 过滤维度取值域(registry economy 字段实测值域
@@ -149,11 +153,13 @@ def load_metric_series(metric_id, source_date_ymd, as_of=None, data_dir=None,
                            'sha256': sha}}
 
     if src in ('global_market_collector', 'jp_market_collector',
-               'ea_market_collector'):
+               'ea_market_collector', 'shiller_collector'):
         # 接入点B: 快照历史序列(write=False 全内存,零落盘)——global 既有,
-        # jp/ea 为 IA-P1-GAP08 R47-F3 覆盖面扩展(F2 接线后序列在 store)
+        # jp/ea 为 IA-P1-GAP08 R47-F3 覆盖面扩展(F2 接线后序列在 store);
+        # shiller=Charter6-P2 估值序列(merge_series_sections lift 后在 store)
         ch = {'global_market_collector': 'global', 'jp_market_collector': 'jp',
-              'ea_market_collector': 'ea'}[src]
+              'ea_market_collector': 'ea',
+              'shiller_collector': 'shiller'}[src]
         snap = sb.build_snapshot(target_ymd=source_date_ymd,
                                  data_dir=data_dir or sb.DATA_DIR, write=False,
                                  as_of=as_of, trusted_root=trusted_root)
@@ -176,7 +182,8 @@ def load_metric_series(metric_id, source_date_ymd, as_of=None, data_dir=None,
 
     raise ValueError(f"指标 {metric_id} 来源 {src!r} 无登记接入点"
                      f"(本包支持 macro_collector/global_market_collector/"
-                     f"jp_market_collector/ea_market_collector;"
+                     f"jp_market_collector/ea_market_collector/"
+                     f"shiller_collector;"
                      f"fact_engine(derived) 类须由上游双输入构造,不在本模块展开;"
                      f"japan_rate_collector 类=flat 单点无序列,无历史查询接入点)")
 

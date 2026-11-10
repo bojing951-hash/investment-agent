@@ -18,7 +18,7 @@ mock _http_get;零 skip;零删除断言。
 T1 注册表身份(102/101/v2.3.0[IA-P1-WP-A v1.3 域化: 85+9;IA-P1-WP-E v1.3 域化:
    94+8];四条目全字段硬编码冻结;
    registry_semantics 零错;A6 双侧镜像;与 R057 冻结 81 条目 ID 不相交;
-   vintage_additions 恰为日本四条目∪P1 新九条目∪CN 宏观八条目)
+   vintage_additions 恰为日本四条目∪P1 新九条目∪CN 宏观八条目∪Charter6-P1 US_REAL_GDP(22))
 T2 通道登记(SOURCE_FILE_RULES japan 精确;sb.SOURCES 含 japan 且由规则表派生;
    canonical_source_file 接受/跨通道拒/坏日期拒/路径成分拒;SOURCE_CHANNELS 基线
    四通道冻结不动;_AUTHORIZED_COLLECTORS 在场;_SOURCE_TO_INPUT 无 japan 键=D7
@@ -109,10 +109,10 @@ class T1RegistryIdentity(unittest.TestCase):
     def test_t01_counts_and_version(self):
         # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
         # 94+8→102 / 93+8→101 / 2.2.0→2.3.0
-        self.assertEqual(len(REG['metrics']), 102, '指标总数须恰为102(85+9+8)')
+        self.assertEqual(len(REG['metrics']), 106, '指标总数须恰为106(85+9+8+1+3Charter6)')  # Charter6-P2: +CAPE/PE_TTM/PB
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 101)
-        self.assertEqual(REG['version'], '2.4.0', '版本号须为2.4.0(A-fin 2026-11-09 时间键登记)')
+                             if m.get('status') == 'active'), 104)  # Charter6-P2: +SPX_CAPE/SPX_PE_TTM
+        self.assertEqual(REG['version'], '2.6.0', '版本号须为2.6.0(Charter6-P2 2026-11-09 估值面)')
 
     def test_t02_four_entries_full_field_freeze(self):
         # D11 全字段冻结(硬编码逐字段=磁盘实况,任何漂移即红);
@@ -204,8 +204,9 @@ class T1RegistryIdentity(unittest.TestCase):
     def test_t06_vintage_additions_exact(self):
         # IA-P1-WP-A v1.3 域化: additions 4→13(日本四条目∪P1 新九条目);
         # IA-P1-WP-E v1.3 域化(§十三.1): 13→21(∪CN 宏观八条目)
-        self.assertEqual(set(bl.vintage_additions()), JP4 | NEW9 | CN8,
-                         'vintage_additions 须恰为日本四条目∪P1新九条目∪CN宏观八条目(21)')
+        self.assertEqual(set(bl.vintage_additions()), JP4 | NEW9 | CN8
+                         | {'US_REAL_GDP', 'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB'},
+                         'vintage_additions 须恰为…∪US_REAL_GDP∪Shiller三条目(25)')
 
 
 class T2ChannelRegistration(unittest.TestCase):

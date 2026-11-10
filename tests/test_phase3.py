@@ -213,7 +213,8 @@ i_corr = src.find('"correlation_calculator.py"')
 i_asm = src.find('"data_assembler.py"')
 check("次序: 快照<评分卡<相关性<装配", i_snap < i_sc < i_corr < i_asm,
       f"{i_snap},{i_sc},{i_corr},{i_asm}")
-check("全部13步标签统一(/13)", src.count('/13') == 13, str(src.count('/13')))
+check("全部15步标签统一(/15)", src.count('/15') == 15,
+      str(src.count('/15')))  # Charter6-P2: +Shiller估值采集步骤(14→15)
 
 # ══ [6] 汇编器嵌入评分卡标签(结构保持) ═════════════════════════
 print("\n[6] 数据包嵌入标签")

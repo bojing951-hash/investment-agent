@@ -24,8 +24,9 @@ jp_YYYYMMDD.json,回退窗5自然日);产出目录 data/daily。
 产出档形(DESIGN §三(a-2) L45-L52 逐字+观测性附加键,REPORT §零.12⑪):
   顶层 date/generated_at/sources_status + 通道节 policy_rates/jgb/inflation/prices
   + 附加 observations(逐系列观测日)/sources(逐源url口径)/fetched_at/alerts。
-  NIKKEI225.series=近端251观测 map{"YYYY-MM-DD": close}(窗口对齐既有 global 档
-  实况 n=251 [实取·data/daily/global_20261102.json AAPL.series]);high/low=null
+  NIKKEI225.series=近端窗口观测 map{"YYYY-MM-DD": close}(窗口=GLOBAL_HISTORY_PERIOD
+  对齐 global 档,默认'10y'≈2520 观测,见 nikkei_series_window;Charter6 收尾延期①
+  废除旧 251 硬截断);high/low=null
   (FRED该系列仅收盘,禁以 0 占位);prev_value=源端次新观测(不可得→null)。
 
 失败纪律(B3 同款): 源失败→节键不出现+sources_status 该源 READ_FAIL+alerts
@@ -37,6 +38,11 @@ import os
 import sys
 from datetime import date, datetime, timezone
 
+# 仓库根进 sys.path(既有先例: china_market_collector/global_market_collector
+# 同款)——`python3 scripts/jp_market_collector.py` 流水线上下文下,
+# nikkei_series_window 的延迟 env_config import 才可解析(收尾修复轮①)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import japan_rate_collector as jrc   # B3 上游件: 复用调用,零修改
 
 __all__ = ['FRED_NIKKEI_URL', 'SERIES_WINDOW', 'fetch_nikkei_series',
@@ -44,7 +50,34 @@ __all__ = ['FRED_NIKKEI_URL', 'SERIES_WINDOW', 'fetch_nikkei_series',
 
 FRED_NIKKEI_URL = ('https://fred.stlouisfed.org/graph/fredgraph.csv'
                    '?id=NIKKEI225')
-SERIES_WINDOW = 251                  # 近端窗口(global 档实况对齐,见 docstring)
+# === Charter6 收尾(A2 延期①, 2026-11-10): NIKKEI series 窗口与 global 对齐 ====
+# 原 SERIES_WINDOW=251 硬截断(历史窗口参数化前的 1 年实况对齐,注释已过期)——
+# 改读同一 GLOBAL_HISTORY_PERIOD(env_config 校验,默认'10y'),按近似交易日
+# 数映射近端窗口;ytd/max=不截断。零依赖不变: 不 import global 采集器(其引入
+# yfinance),只共享 env_config 纯函数。近似口径: 日历月≈21 个交易日/年≈252
+# (FRED 日频收盘,节假日缺口由 FRED 端已吸收)。
+_NIKKEI_WINDOW_BY_PERIOD = {
+    '1d': 1, '5d': 5, '1mo': 21, '3mo': 63, '6mo': 126,
+    '1y': 252, '2y': 504, '5y': 1260, '10y': 2520,   # ytd/max→None 不截断
+}
+SERIES_WINDOW = _NIKKEI_WINDOW_BY_PERIOD['10y']   # 遗留别名: 默认窗口观测数
+
+
+def nikkei_series_window(period=None):
+    """NIKKEI225.series 近端观测数上限(与 global 窗口同一 env/默认)。
+
+    period=None 时读 GLOBAL_HISTORY_PERIOD(经 env_config.resolve_history_period
+    校验,非法值回落'10y'并告警);显式传参同规校验。'ytd'/'max'→None=不截断。"""
+    from env_config import (HISTORY_PERIOD_LEGAL,
+                            resolve_history_period)
+    p, fallback = resolve_history_period(
+        os.environ.get('GLOBAL_HISTORY_PERIOD') if period is None else period,
+        '10y')
+    if fallback:
+        print(f"  ⚠️ GLOBAL_HISTORY_PERIOD 非法(合法集 "
+              f"{'/'.join(HISTORY_PERIOD_LEGAL)}),回落默认 10y(NIKKEI窗口≈2520)")
+    return _NIKKEI_WINDOW_BY_PERIOD.get(p)      # ytd/max→None(全量)
+
 _JGB_A2 = {'JGB10Y': 'JGB_10Y', 'JGB2Y': 'JGB_2Y'}   # registry→a-2 键名
 
 
@@ -134,12 +167,16 @@ def _leaf(value, obs, prev):
 
 
 def build_payload(run_date=None, mof_raw=None, fred_policy_raw=None,
-                  fred_nikkei_raw=None):
+                  fred_nikkei_raw=None, series_window=None):
     """组装 jp_YYYYMMDD.json 载荷(a-2 节结构;缺席节键不出现)。
 
+    series_window: NIKKEI series 近端观测数上限;None=经
+    nikkei_series_window() 读 GLOBAL_HISTORY_PERIOD(默认'10y'≈2520,
+    延期①: 与 global 窗口对齐;旧硬编码 251 已废)。
     返回 (payload, n_series);n_series==0 时调用方不得落盘。"""
     rd = run_date or date.today()
     ymd = rd.strftime('%Y%m%d')
+    win = nikkei_series_window() if series_window is None else series_window
     policy_rates, jgb, prices = {}, {}, {}
     observations, alerts = {}, []
     sources_status = {}
@@ -222,7 +259,8 @@ def build_payload(run_date=None, mof_raw=None, fred_policy_raw=None,
         prices['NIKKEI225'] = {
             'close': close_v, 'date': close_d,
             'high': None, 'low': None,      # FRED系列仅收盘→null(禁0占位)
-            'series': {d: v for d, v in rows[-SERIES_WINDOW:]},
+            'series': ({d: v for d, v in rows[-win:]} if win
+                       else dict(rows)),   # win=None(ytd/max)→全量不截断
         }
         observations['NIKKEI225'] = close_d
         sources_status['FRED_NIKKEI225'] = {'status': 'EXACT', 'retrieved_at': t0}

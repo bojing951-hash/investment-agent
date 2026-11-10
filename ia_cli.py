@@ -6,7 +6,7 @@
 不复制引擎,只包装 scripts/workbench_data.py / research_archive /
 correlation_calculator / research_history_query 等既有模块,输出结构化 JSON。
 
-八个能力: doctor | update | overview | changes | history | compare | research | archive
+九个能力: doctor | update | overview | changes | history | compare | analog | research | archive
 
 输出纪律(与 Skill 研究纪律同源):
   - 数值一律来自本地快照/采集档原值,缺失如实报缺失,绝不填 0;
@@ -276,7 +276,7 @@ def lint_fact_contract_text(text):
     return violations
 
 
-# ══ 八个能力 ══════════════════════════════════════════════════════════
+# ══ 九个能力 ══════════════════════════════════════════════════════════
 def cmd_doctor(args):
     data = {'python': sys.version.split()[0], 'platform': sys.platform}
     import env_config as ec
@@ -996,6 +996,73 @@ def cmd_research(args):
     emit(envelope('research', ok, data, warnings, violations or None, snapshot=snap))
 
 
+def cmd_analog(args):
+    """历史相似结构检索(Afin §1, Charter6 块4)——独立能力,与 compare 并列。
+
+    只读零网络: 序列装配=快照 series_store 优先,缺失指标经 wd.metric_series
+    按注册表 source 回退采集档;计算全部在 analog_engine 确定性完成。
+    拒答(insufficient_history/insufficient_candidates 等)=诚实行为,
+    rc=1(数据条件不满足),与用法错误(rc=2)区分。"""
+    import analog_engine as ae
+    # 用法校验先于快照加载(rc=2 恒定,与数据无关)
+    weights = None
+    if args.weights is not None:
+        parts = [p.strip() for p in args.weights.split(',')]
+        try:
+            vals = [float(p) for p in parts]
+        except ValueError:
+            vals = None
+        if (vals is None or len(vals) != 6
+                or any(v < 0 for v in vals)
+                or abs(sum(vals) - 1.0) > 1e-6):
+            emit(envelope('analog', False, {},
+                          error=('bad_weights',
+                                 f'--weights 须为六个非负数(顺序 '
+                                 f'growth,inflation,rates,credit,volatility,'
+                                 f'valuation)且和=1,收到: {args.weights!r}',
+                                 '如 --weights 0.2,0.2,0.2,0.2,0.1,0.1')),
+                 exit_code=2)
+        weights = dict(zip(ae.DIMENSIONS, vals))
+    if args.top is not None and args.top < 1:
+        emit(envelope('analog', False, {},
+                      error=('bad_top', f'--top 须为≥1 整数,收到: {args.top}',
+                             'TOP-N 候选数,默认 5')), exit_code=2)
+    if args.anchor is not None and not re.fullmatch(r'\d{4}-\d{2}', args.anchor):
+        emit(envelope('analog', False, {},
+                      error=('bad_anchor',
+                             f'--anchor 须为 YYYY-MM,收到: {args.anchor!r}',
+                             '如 --anchor 2026-09(回放历史锚点)')), exit_code=2)
+    snap, reg, note = load_context()
+    if snap is None:
+        emit(envelope('analog', False, {},
+                      error=('no_snapshot', note,
+                             '先运行 python3 ia_cli.py update --yes 采集数据')),
+             exit_code=1)
+    # 序列装配: 特征面+事后面指标(只装配这两类;other 族别名不在清单,
+    # 结构上不可能进计算路径——Afin §0)
+    need = sorted(set(ae.FEATURE_METRICS) | set(ae.AFTERMATH_ASSETS))
+    series_map, missing_series = {}, []
+    for mid in need:
+        s, _err = wd.metric_series(mid, snap, ROOT)
+        if s and s.get('dates'):
+            series_map[mid] = {'dates': list(s['dates']),
+                               'values': list(s['values'])}
+        else:
+            missing_series.append(mid)
+    snap_ymd = str(snap.get('target_date') or '')[:10].replace('-', '')
+    res = ae.run(series_map, reg, anchor=args.anchor, top=args.top or 5,
+                 weights=weights, include_aftermath=not args.no_aftermath,
+                 vn_available=_has_vn_history(snap_ymd) if snap_ymd else False)
+    warns = list(res['warnings'])
+    if missing_series:
+        warns.append('序列缺席(如实,不造数): ' + ','.join(missing_series))
+    if not res['ok']:
+        kind, msg, hint = res['error']
+        emit(envelope('analog', False, {}, warns,
+                      error=(kind, msg, hint)), exit_code=1)
+    emit(envelope('analog', True, res['data'], warns, snapshot=snap))
+
+
 def cmd_archive(args):
     import research_archive as ra
     snap, _reg, _note = load_context()
@@ -1144,6 +1211,17 @@ def build_parser():
     rs.add_argument('--follow-up-of',
                     help='关联前档 query_id(QB-YYYYMMDD-NNN;存在性校验失败 rc=2)')
 
+    an = sub.add_parser('analog',
+                        help='历史相似结构检索(六维状态向量+expanding z+'
+                             '加权z距离+事后演变;短历史下诚实拒答)')
+    an.add_argument('--anchor', help='锚点月 YYYY-MM(缺省=最新完整月;回放合法)')
+    an.add_argument('--top', type=int, help='TOP-N 候选数(默认5)')
+    an.add_argument('--weights',
+                    help='六维权重 g,i,r,c,v,val 逗号分隔(非负,和=1;'
+                         '缺省=六维等权,实值随行)')
+    an.add_argument('--no-aftermath', action='store_true',
+                    help='不输出事后演变块(不影响排序——排序与事后严格分离)')
+
     ar = sub.add_parser('archive', help='研究档案: 存/列/取')
     ar.add_argument('action', choices=['save', 'list', 'get'])
     ar.add_argument('--question', help='save: 要归档的研究问题')
@@ -1167,7 +1245,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     handlers = {'doctor': cmd_doctor, 'update': cmd_update, 'overview': cmd_overview,
                 'changes': cmd_changes, 'history': cmd_history, 'compare': cmd_compare,
-                'research': cmd_research, 'archive': cmd_archive}
+                'analog': cmd_analog, 'research': cmd_research, 'archive': cmd_archive}
     if args.capability == 'archive':
         if args.action == 'save' and not args.question:
             emit(envelope('archive', False, {},

@@ -68,8 +68,9 @@ BASELINE_VINTAGE_IDS = frozenset((
     'WTI_SPOT_M', 'ZQ_F1_PRICE', 'ZQ_IMPLIED_AVG',
 ))
 
-# T3 演进合法 status 词汇(条目级 PENDING 形态在此承载)
-EVOLUTION_LEGAL_STATUS = ('active', 'deprecated', 'pending')
+# T3 演进合法 status 词汇(条目级 PENDING 形态在此承载;Charter6-P2 起含
+# 'unavailable'=登记不可得(SPX_PB: 无免费干净源不以proxy冒充,零事实面))
+EVOLUTION_LEGAL_STATUS = ('active', 'deprecated', 'pending', 'unavailable')
 
 REGISTRY_PATH = os.path.join(ROOT, 'config', 'metric_registry.json')
 
@@ -281,6 +282,9 @@ def evolution_legal(reg=None):
         # 与 hca.REGISTRY_SOURCE_CHANNEL 同步扩展(同字典同形式,R060 先例;
         # 依据 REPORT §零.12⑧)
         'jp_market_collector': 'jp', 'ea_market_collector': 'ea',
+        # Charter6-P2: +shiller_collector→shiller 通道(registry v2.6.0 实读
+        # 语义,同字典同形式,R060 先例)
+        'shiller_collector': 'shiller',
     }
     for mid in sorted(vintage_additions(reg)):
         m = by_id.get(mid)

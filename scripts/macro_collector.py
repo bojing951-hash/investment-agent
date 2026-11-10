@@ -44,7 +44,74 @@ FRED_SERIES = {
     "RSAFS": "RSAFS",
     "INDPRO": "INDPRO",
     "JTSJOL": "JTSJOL",
+    # Charter6-P1(A2 §2#1): 美国实际GDP(季频,SAAR,2017链式美元,1947+)——
+    # 增长结构主锚;案例B六维状态向量增长维输入之一
+    "US_REAL_GDP": "GDPC1",
 }
+
+# === Charter6-P0(A2 §4-P0, 2026-11-09): 采集窗口参数化 ======================
+# 原硬编码2025年初起点(仅约1年窗口)——长序列研究(六维状态向量/
+# expanding z-score/十年期对照)需要历史窗口。默认10年;环境变量
+# MACRO_HISTORY_YEARS 可覆盖(正整数,非法值回落默认并告警,最小1年)。
+# 口径不变: 每次全量重拉(幂等),FRED返回最新修订值,重拉自动修正历史修订
+# (A2 §3 结论: 不做增量合并)。纯函数 macro_observation_start 离线可测。
+DEFAULT_HISTORY_YEARS = 10
+
+
+def _history_years():
+    """读 MACRO_HISTORY_YEARS 环境变量(每次调用现读,便于测试与运行期覆盖)。"""
+    raw = (os.environ.get('MACRO_HISTORY_YEARS') or '').strip()
+    if not raw:
+        return DEFAULT_HISTORY_YEARS
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        print(f"  ⚠️ MACRO_HISTORY_YEARS={raw!r} 非法(须为正整数),"
+              f"回落默认{DEFAULT_HISTORY_YEARS}年")
+        return DEFAULT_HISTORY_YEARS
+
+
+def macro_observation_start(now=None):
+    """采集窗口起点(纯函数): now 往前 _history_years() 年,返回'YYYY-MM-DD'。
+
+    2月29日无平年对应日时取3月1日(窗口多含一天,无口径影响)。"""
+    now = now or datetime.now()
+    years = _history_years()
+    try:
+        start = datetime(now.year - years, now.month, now.day)
+    except ValueError:
+        start = datetime(now.year - years, 3, 1)
+    return start.strftime('%Y-%m-%d')
+
+
+# === 真实数据修复轮③(2026-11-10): 源端历史窗口上限的如实注记 ============
+# 实测(2026-11-10 直连 FRED API+fredgraph 双通道复核): ICE BofA 族系列
+# (HY_OAS/BB_OAS/B_OAS/CCC_OAS/IG_OAS=BAMLH*/BAMLC0A0CM)源端仅提供约3年
+# 滚动窗(系列元数据 observation_start=2023-11-10,与请求 observation_start
+# 无关);DGS10 等其余系列不受影响(10年窗完整,n=2496)。这不是采集器截断,
+# 故在系列条目上如实注记 history_note,不冒充完整10年窗。
+_SOURCE_HISTORY_NOTE_THRESHOLD_DAYS = 90   # 月频自然滞后≈31天/季频≈92天内不算
+
+
+def series_history_note(dates, obs_start, threshold_days=None):
+    """序列首观测明显晚于采集窗起点→源端历史上限注记(纯函数,离线可测)。
+
+    返回注记字符串或 None。threshold_days 默认90: 月频系列首观测合法滞后
+    至多约1个发布周期(月频≤31天/季频GDP≈51-92天),超过则视为源端窗口
+    上限(如 ICE BofA 3年滚动授权窗),如实注记供审计,不静默。"""
+    from datetime import date as _date
+    if not dates:
+        return None
+    thr = (_SOURCE_HISTORY_NOTE_THRESHOLD_DAYS if threshold_days is None
+           else threshold_days)
+    try:
+        lag = (_date.fromisoformat(dates[0]) - _date.fromisoformat(obs_start)).days
+    except (TypeError, ValueError):
+        return None
+    if lag <= thr:
+        return None
+    return (f'源端历史自{dates[0]}起(晚于采集窗起点{obs_start}约{lag // 365}年)'
+            f'——源侧窗口上限,非采集器截断;序列深度以实际可得为准')
 
 # 信用阈值配置（来自分析框架）
 CREDIT_THRESHOLDS = {
@@ -62,6 +129,7 @@ SERIES_FREQ = {
     "UST_5Y": "daily",
     "UMCSENT": "monthly", "RSAFS": "monthly", "INDPRO": "monthly", "JTSJOL": "monthly",
     "ICSA": "weekly",
+    "US_REAL_GDP": "quarterly",   # Charter6-P1: GDPC1 季频(变化口径=QoQ/YoY)
     # 其余(BAML利差/DGS收益率/DFII/T5YIE/T10Y2Y)=daily
 }
 
@@ -92,6 +160,7 @@ SERIES_UNITS = {
     "RSAFS": ("index", "百万美元"),
     "INDPRO": ("index", "指数点(2017=100)"),
     "JTSJOL": ("count", "千人(职位空缺)"),
+    "US_REAL_GDP": ("index", "十亿美元(2017年链式,SAAR)"),
 }
 # 各kind的变化单位标签(chg字段附_chg_unit,程序与报告据此区分口径)
 _CHG_UNIT_BY_KIND = {
@@ -107,6 +176,8 @@ def compute_series_changes(dates, values, freq, unit=None):
     weekly:  week_chg = 最新值 − 上一期(≥5天前最近)观测值
     monthly: mom_chg = 最新值 − 上一期月度观测; yoy_chg = 最新值 − 约12个月前观测
              (不产week_chg — 月度序列没有"周变化"这个口径)
+    quarterly(Charter6-P1): qoq_chg = 最新值 − 上一期季度观测; yoy_chg = 约4季前
+             (季频无周/月变化口径;GDPC1 举例)
     单位语义(第五轮P1-3): 所有派生指标标注 unit/chg_unit/from/formula;
     index/price类同时产百分比变化(mom_pct/yoy_pct/week_pct=(v/v0−1)×100),
     rate类变化一律百分点(不给百分比变化),count类变化一律人数。
@@ -156,6 +227,18 @@ def compute_series_changes(dates, values, freq, unit=None):
         if yoy:
             i, d0, v0 = yoy
             _emit("yoy_chg", d0, v0, "同比")
+    elif freq == "quarterly":
+        # Charter6-P1(A2 §2#1): 季频系列(GDPC1)——QoQ=上一季观测(自然日滞后
+        # 约88~95天取最近),YoY=约4季前(330~400天取最近);口径与月频分支同构
+        prev = _pick(70, 110)    # 上一期季度观测
+        yoy = _pick(330, 400)    # 约4个季度前
+        if prev:
+            i, d0, v0 = prev
+            out["prev"] = round(v0, 4)
+            _emit("qoq_chg", d0, v0, "季度环比")
+        if yoy:
+            i, d0, v0 = yoy
+            _emit("yoy_chg", d0, v0, "同比")
     elif freq == "weekly":
         prev = _pick(5, 14)      # 上一期周度观测
         if prev:
@@ -198,9 +281,12 @@ def fetch_all_macro():
     """采集所有FRED数据(第四轮P0-3: 按系列频率分别计算变化,附窗口元数据与修订检测)"""
     results = {}
     today_str = datetime.now().strftime('%Y%m%d')
+    obs_start = macro_observation_start()
+    print(f"  📅 FRED采集窗口: observation_start={obs_start}"
+          f"(MACRO_HISTORY_YEARS={_history_years()})")
     for name, series_id in FRED_SERIES.items():
         try:
-            data = fred.get_series(series_id, observation_start='2025-01-01')
+            data = fred.get_series(series_id, observation_start=obs_start)
             clean = data.dropna()
             if len(clean) > 0:
                 latest = float(clean.iloc[-1])
@@ -211,6 +297,11 @@ def fetch_all_macro():
                 item = {"value": round(latest, 4), "date": latest_date, "frequency": freq}
                 # 第七轮Layer2: 附加原始序列(事实引擎统一计算收益/环比,替代各处自带口径)
                 item["series"] = {"dates": dates, "values": values}
+                # 修复轮③: 源端历史上限如实注记(ICE BofA族3年滚动窗等)
+                note = series_history_note(dates, obs_start)
+                if note:
+                    item["history_note"] = note
+                    print(f"  ⚠️ {name}: {note}")
                 item.update(compute_series_changes(dates, values, freq,
                                                    unit=SERIES_UNITS.get(name)))
                 rev = detect_revisions(name, {name: item}, today_str)

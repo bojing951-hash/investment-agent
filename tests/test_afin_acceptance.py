@@ -65,13 +65,28 @@ DAILY = os.path.join(ROOT, 'data', 'daily')
 
 
 def _latest_snapshot_path():
+    """最新快照路径(与引擎 select_snapshot 同规则: 最新 target_date,同日
+    取最高 _vN——零引擎导入,规则手工镜像)。
+
+    真实数据修复轮②连带(2026-11-10): 旧版把 _vN 从候选中排除,与引擎
+    "点时取版取最高 _vN"分叉——同日修订版(_v2)在场时,引擎读新版序列而
+    本测试独立重算读旧 base 序列,rho/n 全线假失败。改为同规则取版后,
+    独立重算与引擎回到同一数据面。"""
     cands = sorted(glob.glob(os.path.join(DAILY, 'research_snapshot_*.json')))
-    cands = [c for c in cands if '_v' not in os.path.basename(c)]
-    return cands[-1] if cands else None
+    if not cands:
+        return None
+
+    def _key(p):
+        b = os.path.basename(p)[len('research_snapshot_'):-len('.json')]
+        base, _, ver = b.rpartition('_v')
+        return (base, int(ver) if ver.isdigit() else 0)
+
+    return max(cands, key=_key)
 
 
 SNAP_PATH = _latest_snapshot_path()
 SNAP = json.load(open(SNAP_PATH, encoding='utf-8')) if SNAP_PATH else None
+_RT_GATE = None      # ⑧面捕获,⑨真实一致性断言消费(无快照环境保持 None)
 VINTAGE = bool(SNAP) and str(SNAP.get('target_date')) == '20261108'
 _ARCHIVE = {}
 for _p in sorted(glob.glob(os.path.join(DAILY, 'macro_*.json'))):
@@ -285,8 +300,20 @@ if SNAP:
           str(cpi['time_semantics']))
     check("⑧ gate.event_study='blocked: 无发布日…'",
           gate['event_study'].startswith('blocked: 无发布日'))
-    check("⑧ gate.realtime_info_set=blocked(现役单版本)",
-          gate['realtime_info_set'].startswith('blocked: 无历史版本'))
+    # 修复轮②连带: 同日修订版(_vN)在场时门=available(点时取版);无修订版
+    # 才 blocked。原断言锁死"现役单版本"形态,授权重跑产生 _v2 后按实际
+    # 在场性断言(两形态都是正确行为,以数据面为准)。
+    _vn_here = bool(glob.glob(os.path.join(
+        DAILY, f"research_snapshot_{SNAP.get('target_date')}_v*.json")))
+    if _vn_here:
+        check("⑧ gate.realtime_info_set=available(同日修订版在场,点时取版)",
+              gate['realtime_info_set'].startswith('available'),
+              gate['realtime_info_set'])
+    else:
+        check("⑧ gate.realtime_info_set=blocked(现役单版本)",
+              gate['realtime_info_set'].startswith('blocked: 无历史版本'),
+              gate['realtime_info_set'])
+    _RT_GATE = gate['realtime_info_set']
 
     # ── ⑩ ICSA×SPX 现状锁(不升级 empty_common) ──
     print("[⑩] ICSA×SPX 现状四要素锁(ok/mode=exact_date/n=0/rho=None)")
@@ -315,7 +342,7 @@ if SNAP:
     ys = [cb[i - k] for i in range(len(ca)) if 0 <= i - k < len(cb)]
     rc, d = raw_compare('SPX,UST_10Y', '--lag', '5')
     lag = d['data']['lagged']
-    check("①附 lag5 rho=独立平移重算值, n_lag=242",
+    check("①附 lag5 rho=独立平移重算值, n_lag=独立计数",
           abs(lag['rho'] - ref_pearson(xs, ys)) < 1e-12
           and lag['n_lag_pairs'] == len(xs),
           f"{lag['rho']} vs {ref_pearson(xs, ys)} n={lag['n_lag_pairs']}")
@@ -342,8 +369,20 @@ with tempfile.TemporaryDirectory() as td:
           (json.dump(base, open(os.path.join(td, 'research_snapshot_20991231_v2.json'), 'w')),
            os.remove(os.path.join(td, 'research_snapshot_20991231_v2.json')),
            ia_cli._has_vn_history('20991231', data_dir=td) is False)[2])
-check("⑨ 真实 data/daily 无 _vN→realtime 门恒 blocked(修订值≠当时值)",
-      not ia_cli._has_vn_history(str((SNAP or {}).get('target_date') or '00000000')))
+# 修复轮②连带: 真实面 _vN 在场性不再恒为无——授权重跑产生同日修订版后,
+# 断言"门可用性⇔同日 _vN 在场"(两形态各自正确,以数据面为准);无快照
+# 环境(CI)保持原 dummy 日期恒 False 断言。
+_real_td = str((SNAP or {}).get('target_date') or '00000000')
+if _RT_GATE is not None:
+    check("⑨ 真实面: realtime 门可用性⇔同日 _vN 在场性(修订版在场→available)",
+          (ia_cli._has_vn_history(_real_td)
+           and _RT_GATE.startswith('available'))
+          or (not ia_cli._has_vn_history(_real_td)
+              and _RT_GATE.startswith('blocked')),
+          f"gate={_RT_GATE} vn={ia_cli._has_vn_history(_real_td)}")
+else:
+    check("⑨ 真实 data/daily 无 _vN→realtime 门恒 blocked(修订值≠当时值)",
+          not ia_cli._has_vn_history('00000000'))
 
 print()
 print("═" * 64)

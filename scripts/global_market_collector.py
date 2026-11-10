@@ -42,7 +42,33 @@ import sys
 from datetime import datetime, timedelta, time, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from env_config import DATA_DIR
+from env_config import (DATA_DIR, HISTORY_PERIOD_LEGAL,
+                        resolve_history_period)
+
+# === Charter6-P0(A2 §4-P0, 2026-11-09): 历史窗口参数化 ======================
+# 原硬编码1年窗口(fetch_all默认值+__main__调用点)——默认改10年供长序列
+# 研究(六维状态向量/expanding z-score 需要完整历史);环境变量
+# GLOBAL_HISTORY_PERIOD 可覆盖(yfinance period语法: 1y/2y/5y/10y/max/...,
+# 空白回落默认)。复权口径不变: history() 显式 auto_adjust=True(除权除息
+# 调整收盘,唯一口径,不允许yfinance默认值漂移)。全量重拉幂等,不做增量
+# 合并(A2 §3);旧档清理见 scripts/data_retention.py(90天全量+月度归档)。
+# Charter6 收尾(A2 延期③, 2026-11-10): 非法值经 env_config.
+# resolve_history_period 校验回落默认并告警,不再直通 yfinance。
+DEFAULT_HISTORY_PERIOD = '10y'
+
+
+def global_history_period():
+    """历史窗口解析(纯函数,每次调用现读环境变量,便于测试与运行期覆盖)。
+
+    空白→默认'10y';非法值(不在 env_config.HISTORY_PERIOD_LEGAL)→告警
+    回落默认(延期③: 不直通 yfinance;告警打在本模块,env_config 零 print)。"""
+    period, fallback = resolve_history_period(
+        os.environ.get('GLOBAL_HISTORY_PERIOD'), DEFAULT_HISTORY_PERIOD)
+    if fallback:
+        print(f"  ⚠️ GLOBAL_HISTORY_PERIOD 非法(合法集 "
+              f"{'/'.join(HISTORY_PERIOD_LEGAL)}),"
+              f"回落默认 {DEFAULT_HISTORY_PERIOD}")
+    return period
 
 # 资产监控列表：key=资产ID, value=yfinance的ticker代码
 WATCHLIST = {
@@ -145,8 +171,13 @@ def btc_completed_utc_days_only(hist, retrieved_at=None):
     }
     return filtered, meta
 
-def fetch_all(period="1y"):
-    """批量获取所有资产的历史收盘价，返回一个字典：{资产ID: DataFrame}"""
+def fetch_all(period=None):
+    """批量获取所有资产的历史收盘价，返回一个字典：{资产ID: DataFrame}
+
+    period 缺省时取 global_history_period()(Charter6-P0: env
+    GLOBAL_HISTORY_PERIOD,默认'10y');显式传参优先(测试/单次窗口用)。"""
+    if period is None:
+        period = global_history_period()
     all_data = {}
     failed = []
 
@@ -223,9 +254,12 @@ def calc_metrics(asset_id, hist):
     # 第七轮Layer2(2026-10-17): 附加原始收盘序列 — 事实引擎统一计算
     # 周变化/MTD/YTD(期前收盘基准+交易日历口径),替代本函数的固定偏移口径。
     # 旧字段保留以兼容既有消费者,但快照以下游事实引擎输出为准。
-    tail = close.tail(400)
-    series = {"dates": [str(d.date()) for d in tail.index],
-              "values": [round(float(v), 6) for v in tail.values]}
+    # 收尾修复轮②(2026-11-10): 删 tail(400) 硬截断——那是 1 年窗时代的载荷
+    # 护栏,10 年窗下把已采到的历史丢掉 84%(catalog 深度恒 n=400、起点恒
+    # 2025-04)。hist 本身即所请求窗口(period 参数化,见 fetch_all),series
+    # 直接全量;ytd/max 时为 yfinance 返回全量,不做二次截断。
+    series = {"dates": [str(d.date()) for d in close.index],
+              "values": [round(float(v), 6) for v in close.values]}
 
     return {
         "asset_id": asset_id,
@@ -279,8 +313,9 @@ def save_results(results):
 if __name__ == "__main__":
     print(f"全球行情采集 - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print("=" * 50)
+    print(f"历史窗口: {global_history_period()}(GLOBAL_HISTORY_PERIOD 可覆盖)")
 
-    all_data, failed = fetch_all(period="1y")
+    all_data, failed = fetch_all()
 
     print("\n计算指标...")
     results = {}

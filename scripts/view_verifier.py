@@ -23,7 +23,12 @@
 防口径分叉);两级都无序列的指标只报 level+缺席原因(不猜)。
 
 运行: python3 scripts/view_verifier.py VIEW-YYYYMMDD-NNN [--directions '{"SPX":"up"}']
+      [--snapshot-id research_snapshot_YYYYMMDD_vN]
 输出: 单个 JSON(stdout);rc=0 成功 / 1 执行错(无快照/无 view) / 2 用法错。
+快照指针(DEFERRED②, 2026-11-10): 默认=最新;研究针对特定版本时 --snapshot-id
+显式指定(archive save 同款: 短形 YYYYMMDD_vN 容忍,不存在/非规范 rc=2
+snapshot_not_found)——验证结果与归档指针同版,读者按 envelope.snapshot_id
+可复现。
 """
 import io
 import json
@@ -170,27 +175,68 @@ def verify(view_id, snapshot, registry, vmap, views_dir=None, directions=None):
     }
 
 
-def main(argv=None):
+def _resolve_snapshot(snapshot_id=None, root=ROOT):
+    """快照解析: 显式 id→research_archive.load_snapshot_by_id(archive save
+    同款,短形容忍);缺省→workbench_data.latest_snapshot(默认行为不变)。
+
+    返回 (snapshot|None, 说明)。(None, 原因) 时调用方按 kind 分流:
+    显式指定失败=snapshot_not_found(用法错), 缺省无快照=no_snapshot(执行错)。"""
+    if not snapshot_id:
+        return wd.latest_snapshot(root)
+    import research_archive as ra
+    sid = snapshot_id
+    if not sid.startswith('research_snapshot_'):
+        sid = 'research_snapshot_' + sid         # 容忍短形 20261110_v4
+    return ra.load_snapshot_by_id(sid, os.path.join(root, 'data', 'daily'))
+
+
+def main(argv=None, data_root=None):
+    """data_root: 快照查找根(默认 ROOT;测试注入沙箱用——注册表/映射仍走
+    引擎根,与 verify 的 views_dir 同款注入缝)。"""
     argv = sys.argv[1:] if argv is None else argv
     if not argv:
         print(__doc__)
         return 2
-    view_id = argv[0]
+    view_id = argv[0] if not argv[0].startswith('--') else None
     directions = None
-    if len(argv) > 2 and argv[1] == '--directions':
-        try:
-            directions = json.loads(argv[2])
-            assert isinstance(directions, dict)
-        except (ValueError, AssertionError):
+    snapshot_id = None
+    rest = argv[1:] if view_id else argv
+    j = 0
+    while j < len(rest):
+        if rest[j] == '--directions' and j + 1 < len(rest):
+            try:
+                directions = json.loads(rest[j + 1])
+                assert isinstance(directions, dict)
+            except (ValueError, AssertionError):
+                print(json.dumps({'ok': False, 'error': {
+                    'kind': 'bad_directions', 'message': '--directions 须为 {"METRIC":"up|down"} JSON'}},
+                    ensure_ascii=False))
+                return 2
+            j += 2
+        elif rest[j] == '--snapshot-id' and j + 1 < len(rest):
+            snapshot_id = rest[j + 1].strip()
+            if not snapshot_id:
+                print(json.dumps({'ok': False, 'error': {
+                    'kind': 'bad_snapshot_id', 'message': '--snapshot-id 须为非空 research_snapshot_YYYYMMDD[_vN]'}},
+                    ensure_ascii=False))
+                return 2
+            j += 2
+        else:
             print(json.dumps({'ok': False, 'error': {
-                'kind': 'bad_directions', 'message': '--directions 须为 {"METRIC":"up|down"} JSON'}},
+                'kind': 'usage', 'message': f'无法识别参数: {rest[j]}(用法见 --help 或模块 docstring)'}},
                 ensure_ascii=False))
             return 2
-    snap, note = wd.latest_snapshot(ROOT)
+    if not view_id:
+        print(json.dumps({'ok': False, 'error': {
+            'kind': 'missing_view_id', 'message': '首参须为 VIEW-YYYYMMDD-NNN'}},
+            ensure_ascii=False))
+        return 2
+    snap, note = _resolve_snapshot(snapshot_id, data_root or ROOT)
     if snap is None:
-        print(json.dumps({'ok': False, 'error': {'kind': 'no_snapshot',
+        kind = 'snapshot_not_found' if snapshot_id else 'no_snapshot'
+        print(json.dumps({'ok': False, 'error': {'kind': kind,
                                                  'message': note}}, ensure_ascii=False))
-        return 1
+        return 2 if snapshot_id else 1
     reg = wd.load_registry(ROOT)
     try:
         vmap = load_map()

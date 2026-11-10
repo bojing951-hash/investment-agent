@@ -10,7 +10,8 @@
    覆盖登记(数据>登记,值与来源随行);
 ③ alignment.research_mode_gate 三模式: descriptive 恒 available;
    event_study=任一侧 release_date_available!==True→blocked: 无发布日;
-   realtime_info_set=_vN 文件存在性(_has_vn_history 可注入目录);
+   realtime_info_set=Charter7-1 对查询时窗负责(当前窗 available/历史窗起点
+   月窗内跨日 vintage 在场性;同日 _vN 仅附加披露,_has_vn_history 可注入);
 ④ 月×月月键内交: 锚日不巧合(01 锚 vs 15 锚)旧 exact_date 会 n=0,新路径
    month_grid 出非空(手算 rho);01 锚下月键≡日键(现役不变性由验收套件
    ⑤号真实数据锁);
@@ -168,9 +169,25 @@ code, out, _ = run_cli('compare', '--metrics', 'SPX,NDX')
 gate2 = json.loads(out)['data']['alignment']['research_mode_gate']
 check("双市场侧→event_study available", gate2['event_study'] == 'available',
       str(gate2))
-check("真实仓无 _vN→realtime_info_set blocked(修订值≠当时值)",
-      gate2['realtime_info_set'].startswith('blocked: 无历史版本'),
+# Charter7-1(2026-11-10): realtime 门对查询时窗负责——判据=查询起点月窗内
+# 跨日 vintage(research_snapshot 基础日期)在场性;同日 _vN 只是附加披露。
+# 边界三形态: ①当前窗(无 --start)→available(现役快照=当前信息集,即使仓内
+# 无任何 _vN);②历史窗起点月内无跨日 vintage→blocked(文案给现存清单+如实
+# 原因);③同日 _vN 在场性只改变披露尾注,不改变可用性(⑧⑨号验收另锁)。
+check("当前窗(无 --start)→available(现役快照即当前时点信息集)",
+      gate2['realtime_info_set'].startswith('available(现役快照即当前时点信息集'),
       str(gate2['realtime_info_set']))
+check("compare 随行 realtime_vintage_dates 清单(跨日vintage权威)",
+      isinstance(gate2.get('realtime_vintage_dates'), list),
+      str(gate2.get('realtime_vintage_dates')))
+code, out, _ = run_cli('compare', '--metrics', 'SPX,NDX',
+                       '--start', '2099-06-01')
+gate3 = json.loads(out)['data']['alignment']['research_mode_gate']
+check("历史窗(起点月内无跨日vintage)→blocked+如实原因",
+      gate3['realtime_info_set'].startswith(
+          'blocked: 查询期20990601~20990630起点月窗内无vintage快照')
+      and '不得以今日修订口径冒充当时值' in gate3['realtime_info_set'],
+      str(gate3['realtime_info_set']))
 # _has_vn_history 可注入判据(⑨号验收另锁 select_snapshot 取 _v2)
 with tempfile.TemporaryDirectory() as td:
     open(os.path.join(td, 'research_snapshot_20990531.json'), 'w').write('{}')

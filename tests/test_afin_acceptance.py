@@ -300,19 +300,18 @@ if SNAP:
           str(cpi['time_semantics']))
     check("⑧ gate.event_study='blocked: 无发布日…'",
           gate['event_study'].startswith('blocked: 无发布日'))
-    # 修复轮②连带: 同日修订版(_vN)在场时门=available(点时取版);无修订版
-    # 才 blocked。原断言锁死"现役单版本"形态,授权重跑产生 _v2 后按实际
-    # 在场性断言(两形态都是正确行为,以数据面为准)。
-    _vn_here = bool(glob.glob(os.path.join(
-        DAILY, f"research_snapshot_{SNAP.get('target_date')}_v*.json")))
-    if _vn_here:
-        check("⑧ gate.realtime_info_set=available(同日修订版在场,点时取版)",
-              gate['realtime_info_set'].startswith('available'),
-              gate['realtime_info_set'])
-    else:
-        check("⑧ gate.realtime_info_set=blocked(现役单版本)",
-              gate['realtime_info_set'].startswith('blocked: 无历史版本'),
-              gate['realtime_info_set'])
+    # Charter7-1(2026-11-10)回转: 70102d5 把判据校准到"同日 _vN 在场性",
+    # 方向反了——正确判据=**查询时窗内跨日 vintage 在场性**(research_snapshot
+    # 基础日期)。本案例无 --start=当前窗: 现役快照即当前时点信息集→恒
+    # available(同日 _vN 只是附加披露,不构成跨日 vintage);历史窗/同日修订
+    # 两形态的边界断言在 ⑨ fixture 完成。
+    check("⑧ 当前窗(无 --start)→available(现役快照即当前时点信息集)",
+          gate['realtime_info_set'].startswith(
+              'available(现役快照即当前时点信息集'),
+          gate['realtime_info_set'])
+    check("⑧ realtime_vintage_dates=跨日vintage清单随行(非同日_vN判据)",
+          isinstance(gate.get('realtime_vintage_dates'), list),
+          str(gate.get('realtime_vintage_dates')))
     _RT_GATE = gate['realtime_info_set']
 
     # ── ⑩ ICSA×SPX 现状锁(不升级 empty_common) ──
@@ -348,9 +347,10 @@ if SNAP:
           f"{lag['rho']} vs {ref_pearson(xs, ys)} n={lag['n_lag_pairs']}")
 
 # ── ⑨ _vN 历史版本(fixture 注入,无快照环境也执行) ──
-print("[⑨] 同日多版本: select_snapshot 取最高 _vN + realtime 门")
+print("[⑨] 同日多版本 + Charter7-1 realtime 门三形态(跨日vintage判据)")
 import research_provenance as rp          # noqa: E402 (点时取版受审面)
 import ia_cli                             # noqa: E402 (仅 _has_vn_history 助手)
+import analog_engine as ae                # noqa: E402 (realtime_gate_text 纯函数)
 with tempfile.TemporaryDirectory() as td:
     base = {'snapshot_id': 'research_snapshot_20991231', 'target_date': '20991231',
             'research_as_of': '2099-12-31T18:00:00+08:00'}
@@ -369,20 +369,61 @@ with tempfile.TemporaryDirectory() as td:
           (json.dump(base, open(os.path.join(td, 'research_snapshot_20991231_v2.json'), 'w')),
            os.remove(os.path.join(td, 'research_snapshot_20991231_v2.json')),
            ia_cli._has_vn_history('20991231', data_dir=td) is False)[2])
-# 修复轮②连带: 真实面 _vN 在场性不再恒为无——授权重跑产生同日修订版后,
-# 断言"门可用性⇔同日 _vN 在场"(两形态各自正确,以数据面为准);无快照
-# 环境(CI)保持原 dummy 日期恒 False 断言。
-_real_td = str((SNAP or {}).get('target_date') or '00000000')
-if _RT_GATE is not None:
-    check("⑨ 真实面: realtime 门可用性⇔同日 _vN 在场性(修订版在场→available)",
-          (ia_cli._has_vn_history(_real_td)
-           and _RT_GATE.startswith('available'))
-          or (not ia_cli._has_vn_history(_real_td)
-              and _RT_GATE.startswith('blocked')),
-          f"gate={_RT_GATE} vn={ia_cli._has_vn_history(_real_td)}")
+    # ── Charter7-1: 判据=查询起点月窗内跨日 vintage(基础日期)在场性 ──
+    # fixture: 2099-10-31 跨日 vintage + 2099-12-31 base+_v2(同日修订)。
+    # 同日 _v2 归并到基础日期,不新增 vintage 日期。
+    json.dump({'snapshot_id': 'research_snapshot_20991031',
+               'target_date': '20991031'},
+              open(os.path.join(td, 'research_snapshot_20991031.json'), 'w'))
+    vints = rp.vintage_dates(td)
+    check("⑨ vintage_dates=基础日期升序(_vN 归并不新增日期)",
+          vints == ['20991031', '20991231'], str(vints))
+    # 形态①当前窗(无 --start): available——现役快照即当前时点信息集;
+    # 同日 _vN 在场性不参与判定
+    check("⑨ 形态① 当前窗→available(现役快照即当前时点信息集)",
+          ae.realtime_gate_text(None, None, vints).startswith(
+              'available(现役快照即当前时点信息集'),
+          ae.realtime_gate_text(None, None, vints))
+    # 形态②历史窗: 起点月窗内存在跨日 vintage→available(点时取版)
+    g2 = ae.realtime_gate_text('20991201', '20991231', vints,
+                               same_day_revision=True)
+    check("⑨ 形态② 历史窗(窗内有跨日vintage)→available+同日修订仅披露",
+          g2.startswith('available(查询起点月窗内存在跨日vintage快照:20991231')
+          and '当日修订版在场' in g2, g2)
+    g2b = ae.realtime_gate_text('20991001', '20991031', vints)
+    check("⑨ 形态② 10月窗→available(20991031 vintage 在场)",
+          g2b.startswith('available(查询起点月窗内存在跨日vintage快照:20991031'),
+          g2b)
+    # 形态③历史窗无跨日 vintage→blocked(给现存清单+如实原因);同日 _vN
+    # 在场也不翻转判定(修订值≠当时值)——70102d5 的"同日_vN⇒available"
+    # 方向反转回归锁
+    g3 = ae.realtime_gate_text('20990901', '20990930', vints,
+                               same_day_revision=True)
+    check("⑨ 形态③ 历史窗无跨日vintage→blocked(同日_vN在场也不翻转)",
+          g3.startswith('blocked: 查询期20990901~20990930起点月窗内无vintage快照')
+          and '不得以今日修订口径冒充当时值' in g3
+          and '20991031' in g3 and '20991231' in g3, g3)
+    g3b = ae.realtime_gate_text('20990901', '20990930', vints)
+    check("⑨ 形态③ 无同日修订披露尾注→同一 blocked 判定(在场性不参与)",
+          g3b.startswith('blocked: 查询期20990901~20990930'), g3b)
+# 真实面: 用真实 data/daily 的跨日 vintage 清单做同判据边界(纯函数,零
+# 数据依赖);无快照环境(CI)同样可跑(空清单→全部历史窗 blocked 仍如实)。
+_real_vints = rp.vintage_dates(DAILY)
+if _real_vints:
+    _vm = _real_vints[0][:6]
+    check("⑨ 真实面: 最早vintage起点月窗→available(跨日vintage判据)",
+          ae.realtime_gate_text(_vm + '01', _vm + '31',
+                                _real_vints).startswith(
+              'available(查询起点月窗内存在跨日vintage快照'),
+          f"vints={_real_vints[:3]}")
+    check("⑨ 真实面: 早于最早vintage的历史窗→blocked+现存清单",
+          ae.realtime_gate_text('20000101', '20000131', _real_vints).startswith(
+              'blocked: 查询期20000101~20000131起点月窗内无vintage快照'),
+          '')
 else:
-    check("⑨ 真实 data/daily 无 _vN→realtime 门恒 blocked(修订值≠当时值)",
-          not ia_cli._has_vn_history('00000000'))
+    check("⑨ 真实面: 无快照目录→历史窗 blocked(如实,不造vintage)",
+          ae.realtime_gate_text('20990901', '20990930', []).startswith(
+              'blocked: 查询期20990901~20990930'), '')
 
 print()
 print("═" * 64)

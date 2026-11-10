@@ -691,6 +691,30 @@ def save_news(classified, summary, now_utc=None):
     return summary_path
 
 # ============ 主程序 ============
+def news_model_summary_mode():
+    """Charter7-7: 新闻模型摘要**显式 opt-in 门**(独立开关,默认关闭)。
+
+    返回 (mode, banner):
+      'model'         —— IA_NEWS_MODEL_SUMMARY=1 且 MODEL_* 三参齐备
+                         (显式知情+凭证齐备,唯一调用模型的形态);
+      'off_optin'     —— 开关未显式设为1(默认关闭): MODEL_* 三参即便齐备
+                         也**不再自动调用**(C7审计#7: 旧实现三参齐=自动
+                         付费调用,用户不知情;默认关闭+显式开启=成本知情);
+      'off_incomplete'—— 已显式开启但 MODEL_* 三参不齐(无法调用,如实说明)。
+    环境变量在调用时读取(进程内测试可注入);本函数零网络零凭证读取。"""
+    optin = os.environ.get('IA_NEWS_MODEL_SUMMARY', '').strip() == '1'
+    cfg = model_runtime_config()
+    if not optin:
+        return 'off_optin', ('未显式开启模型摘要(IA_NEWS_MODEL_SUMMARY 未设为1,'
+                             '默认关闭)——MODEL_* 三参即便齐备也不自动调用,'
+                             '直取确定性标题回退(显式开启: '
+                             'IA_NEWS_MODEL_SUMMARY=1 且 MODEL_* 三参齐)')
+    if not cfg['complete']:
+        return 'off_incomplete', ('已设 IA_NEWS_MODEL_SUMMARY=1 但 MODEL_* '
+                                  '三参不齐——跳过模型摘要,直取确定性标题回退')
+    return 'model', '模型摘要已显式开启(IA_NEWS_MODEL_SUMMARY=1 且三参齐备)'
+
+
 def run(now_utc=None):
     """新闻采集主流程(W3-03 §7.2顺序: 采集→原始归档→分类→模型摘要→输出)。
 
@@ -734,17 +758,20 @@ def run(now_utc=None):
     # 4. AI摘要(可选模型API;成功输出须过引用校验,失败/未过→确定性回退)
     # Model-Agnostic v2(W2, 2026-11-09): 模型三参不齐时**不进入**模型调用
     # (消除缺Key异常堆栈,USER_GUIDE:181 自认问题),直取确定性标题回退。
+    # Charter7-7(2026-11-10): 在三参齐备之上再加**独立显式 opt-in 门**
+    # IA_NEWS_MODEL_SUMMARY=1(默认关闭)——三参齐≠自动调用(付费调用须
+    # 用户显式知情开启;默认路径=确定性标题回退,零模型调用)。
     if raw_records:
-        _mcfg = model_runtime_config()
-        if not _mcfg['complete']:
-            print("  ⏭️ 未配置模型 API(MODEL_* 三参不齐)——跳过模型摘要,"
-                  "直取确定性标题回退(Agent Native 模式预期行为)")
+        mode, banner = news_model_summary_mode()
+        if mode == 'model':
+            print(f"  ✅ {banner}")
+            summary = generate_news_summary(classified)
+        else:
+            print(f"  ⏭️ {banner}")
             summary = _fallback_headlines(
                 classified,
-                "## 本周新闻摘要（未配置模型 API，以下为确定性原始标题，"
+                "## 本周新闻摘要（模型摘要未启用，以下为确定性原始标题，"
                 "[art_xxx]为代码核发来源引用编号）\n\n")
-        else:
-            summary = generate_news_summary(classified)
     elif any(v in (ST_ERROR, ST_PARTIAL, 'fail')
              for v in source_status.values()):
         failed_txt = ','.join(

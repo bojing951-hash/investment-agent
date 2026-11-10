@@ -20,41 +20,55 @@
     价格/指数类水平一律不用(信息经同比/Δ12m/z 进入);
   - 每特征统一 expanding z: z=(x−μ_≤t)/σ_≤t,μ/σ 只用 t≤各自锚点月末观测
     (泄漏规则1: 全样本统计=泄漏);σ=总体标准差(ddof=0),hist 含当期;
-  - min_history=36 个月: 不足→该特征在该候选弃用(features_dropped),
-    有效维度<4/6→候选整体无效;锚点自身不满足→拒答 insufficient_history,
-    不降门槛硬算;
+  - min_history=36 **个月**(Charter7-4b): 按网格自然步长折算最少观测数
+    (月网格=36 点,季网格=12 点——36 个月≠36 个季观测=9 年;步长=网格
+    相邻键月差中位数,数据驱动不猜);不足→该特征在该候选弃用
+    (features_dropped),有效维度<4/6→候选整体无效;锚点自身不满足→拒答
+    insufficient_history,不降门槛硬算;
   - 同比须整 12 个月(t 与 t−12 都在网格上),不足→弃用不缩短窗口冒充。
 
-相似度(§1.2): 加权 z 距离 D=sqrt(Σ w_i·(z_i^anchor−z_i^cand)²),求和仅
-over双方都有效特征,权重按有效特征重新归一(归一事实随行);报告 D+距离分位
+相似度(§1.2, Charter7-2 统一特征集): 加权 z 距离
+D=sqrt(Σ w_i·(z_i^anchor−z_i^cand)²/W_U),特征面=**锚点准入特征集 U**
+(锚点侧唯一决定),分母 W_U=U 全特征权重和,**全候选一致,不逐候选重归一**
+(重归一会让缺数候选因数据洞获得相对权重优势——缺得越多剩余权重越重,
+系可操纵口径);候选在 U 上缺特征(自身历史不足/该月无值)→按缺该特征
+处理,missing_features 清单+原因随行,排序键=(缺席数升序,距离升序)
+——偏差更大但缺数者不得反超完整证据候选;报告 D+距离分位
 (分位=严格小于该 D 的候选数/(N2−1)×100)。不得更换为分位数映射/DTW/马氏。
 
 检索(§1.3): 锚点=最新完整月(≥80%已启用维度有数据的最后一个月,--anchor
 可回放);候选=锚点前全部有效候选月,排除特征窗重叠者(候选月 M≤M0−12,
-泄漏规则3);事后演变(§1.5 aftermath)单独计算单独标注,永不进入相似度
-(泄漏规则4)。
+泄漏规则3);TOP-N 簇去重(Charter7-5): 候选月相差<12 个月=同簇(事后窗
+重叠),TOP-N 仅输出各簇排序最优代表,准入/距离/分位计算本身不变;
+事后演变(§1.5 aftermath)单独计算单独标注,永不进入相似度(泄漏规则4)。
 
 拒答阈值(§1.6, 勿放宽): N2≥24 正常;8≤N2<24 警示;N2<8 拒答
 insufficient_candidates。当前短历史数据下必然拒答=正确行为(§1.6 现状预判)。
 
-巧合判据(§1.7, 机械触发进 warnings): 单维主导(>0.6)/事后分歧(一致率
-<0.6,n≥3)/维度缺席(<6)/TOP-1 不分离(与中位差<10%)。
+巧合判据(§1.7, 机械触发进 warnings;Charter7-4d 维度缺席=双侧: 锚点有效维
+<6 或候选侧某维在全部有效候选上无有效特征均触发): 单维主导(>0.6)/事后分歧
+(一致率<0.6,n≥3)/维度缺席(<6,双侧)/TOP-1 不分离(与中位差<10%)。
 """
 import math
 
 __all__ = ['DIMENSIONS', 'FEATURE_SPECS', 'AFTERMATH_ASSETS', 'run',
-           'month_grid', 'feature_grids', 'z_at', 'weighted_distance']
+           'month_grid', 'feature_grids', 'z_at', 'weighted_distance',
+           'realtime_gate_text']
 
 DIMENSIONS = ('growth', 'inflation', 'rates', 'credit', 'volatility',
               'valuation')
 DIM_LABELS = {'growth': '增长', 'inflation': '通胀', 'rates': '利率',
               'credit': '信用', 'volatility': '波动', 'valuation': '估值'}
 
-MIN_HISTORY = 36          # expanding z 最小历史月数(§1.1, 勿放宽)
-MIN_VALID_DIMS = 4        # 候选有效维度下限(<4/6 → 候选无效)
+MIN_HISTORY = 36          # expanding z 最小历史**月数**(§1.1, 勿放宽;Charter7-4b
+                          # 按网格步长折算观测数: 月网格36点/季网格12点)
+MIN_VALID_DIMS = 4        # 候选有效维度下限(<4/6 → 候选无效;Charter7-4c/d:
+                          # 维度只按统一特征集 U 内特征计,不在 U 的特征
+                          # (如锚点缺席的 SPX_PE_TTM)不得为候选积维度证据)
 MIN_CANDIDATES = 8        # N2 拒答阈值(§1.6, 勿放宽)
 WARN_CANDIDATES = 24      # 样本不稳警示阈值
 FEATURE_WINDOW = 12       # 特征窗月数(重叠排除窗, §1.3)
+CLUSTER_GAP_MONTHS = 12   # TOP-N 簇去重阈值(Charter7-5): 候选月相差<12月=同簇
 ANCHOR_COMPLETE_RATIO = 0.8   # 完整月判定(≥80% 已启用维度有数据)
 AFTERMATH_HORIZONS = ('1m', '3m', '6m', '12m')
 AFTERMATH_ASSETS = ('SPX', 'UST_10Y', 'DXY', 'GOLD_F')
@@ -64,7 +78,9 @@ DISCLOSURE = [
     '特征为最新修订口径的描述性对齐, 不代表当时市场信息集(research_mode_gate)',
     '距离分位=该候选在全部有效候选中的相对位置, 不是概率',
 ]
-AFTERMATH_LABEL = ('事后(候选锚点后 1/3/6/12 月, 非预测, 不参与相似度)')
+AFTERMATH_LABEL = ('事后(起点=候选锚点月之后首个观测(次月首日起),终点=候选月'
+                   '+N 月内(该月末日界)最后观测,非预测,不参与相似度;逐窗'
+                   '实际起止观测日随 {资产}_window 随行,可自行复算)')
 REVISION_NOTE = '当时市场所见状态可能与修订后档案值不同'
 
 # (feature_key, dim, metric_ids, transform)
@@ -267,32 +283,59 @@ def feature_grids(series_map, registry):
 
 
 # ══ expanding z(泄漏规则1) ════════════════════════════════════════
+def _grid_step_months(grid):
+    """网格自然步长(月)——相邻网格键月差的中位数(数据驱动,不猜频率)。
+
+    月网格→1, 季网格→3;步长用于把 36 **个月**史换算成最少观测数
+    (Charter7-4b: 36 个月=季频 12 个观测,不得按 36 个季观测=9 年误设)。
+    观测<2 或中位差<1 → 1(保守,等同月网格要求)。"""
+    ks = sorted(grid)
+    if len(ks) < 2:
+        return 1
+    gaps = sorted(_months_between(ks[i - 1], ks[i]) for i in range(1, len(ks)))
+    return max(1, gaps[len(gaps) // 2])
+
+
+def min_observations(step_months):
+    """该步长网格的 expanding z 最少观测数=ceil(MIN_HISTORY/步长)。"""
+    return max(1, int(math.ceil(MIN_HISTORY / float(step_months))))
+
+
 def z_at(grid, mkey):
     """特征在 mkey 的 expanding z;hist=≤mkey 全部观测(含当期)。
 
-    返回 (z, hist_n) 或 (None, hist_n);None=不足 MIN_HISTORY 或 σ=0
-    (退化序列无信息,弃用不硬算)。"""
+    最少观测数按网格步长折算(36 个月史: 月网格 36 点/季网格 12 点)。
+    返回 (z, hist_n, required_n) 或 (None, hist_n, required_n);None=不足
+    required_n 或 σ=0(退化序列无信息,弃用不硬算)。"""
+    required = min_observations(_grid_step_months(grid))
     h = sorted(m for m in grid if m <= mkey)
     n = len(h)
-    if n < MIN_HISTORY:
-        return None, n
+    if n < required:
+        return None, n, required
     vals = [grid[m] for m in h]
     mu = sum(vals) / n
     var = sum((v - mu) ** 2 for v in vals) / n
     if var <= 0.0:
-        return None, n
-    return (grid[mkey] - mu) / math.sqrt(var), n
+        return None, n, required
+    return (grid[mkey] - mu) / math.sqrt(var), n, required
 
 
-def weighted_distance(zs_a, zs_c, weights_by_feature):
-    """加权 z 距离(§1.2): 双方都有效特征求和,权重按有效特征重新归一。
+def weighted_distance(zs_a, zs_c, weights_by_feature, wsum_total=None):
+    """加权 z 距离(§1.2): 双方都有效特征求和。
 
-    返回 (D, norm_factor, per_feature_terms);norm_factor=原始权重和
-    (归一事实随行);无共同特征→(None, 0.0, {})。"""
+    wsum_total=None(旧口径,仅独立单元测试保留): 分母=共同特征权重和
+    (逐候选重归一——Charter7-2 已证该口径让缺数候选获得相对权重优势,
+    引擎主流程不再使用);
+    wsum_total=W_U(引擎主流程,统一特征集): 分母=锚点准入特征集全权重和,
+    **全候选一致不重归一**——缺席特征不再抬高剩余特征相对权重,缺数事实
+    经 missing_features 随行,排序由调用方按(缺席数,距离)双键承担。
+    返回 (D, norm_factor, per_feature_terms);norm_factor=实际使用的分母
+    原始权重和(归一事实随行);无共同特征→(None, 0.0, {})。"""
     common = [k for k in zs_a if k in zs_c and k in weights_by_feature]
     if not common:
         return None, 0.0, {}
-    wsum = sum(weights_by_feature[k] for k in common)
+    wsum = (sum(weights_by_feature[k] for k in common)
+            if wsum_total is None else float(wsum_total))
     if wsum <= 0:
         return None, 0.0, {}
     terms = {}
@@ -303,6 +346,38 @@ def weighted_distance(zs_a, zs_c, weights_by_feature):
         terms[k] = {'w': w, 'gap': gap, 'w_gap2': w * gap * gap}
         sq += w * gap * gap
     return math.sqrt(sq), wsum, terms
+
+
+def realtime_gate_text(win_start, win_end, vintages, same_day_revision=False):
+    """realtime_info_set 门文案(纯函数,Charter7-1: 判定对**查询时窗**负责)。
+
+    - win_start=None(当前窗): 现役快照即当前时点信息集→available;
+      同日 _vN 修订**不构成跨日 vintage**(不据此声称历史可重构);
+    - win_start 给定(历史窗): 查询起点月窗 [win_start, win_end] 内须存在
+      **跨日 vintage**(research_snapshot 基础日期;vintages 由调用方从
+      data/daily 扫描注入,引擎保持零文件系统);缺→blocked 并给出现存
+      vintage 与如实原因(历史时点信息集不可重构,不得以今日修订口径
+      冒充当时值)。同日修订在场仅附加披露(select_snapshot 取最高 _vN,
+      当日早版不可点时取回),不改变可用性判定。
+    win_start/win_end: 'YYYYMMDD';vintages: 'YYYYMMDD' 序列。"""
+    vint = sorted({str(v)[:8] for v in (vintages or []) if str(v)})
+    tail = ('当日修订版在场: select_snapshot 取最高 _vN,当日早版不可点时取回'
+            if same_day_revision else '')
+    if not win_start:
+        return ('available(现役快照即当前时点信息集;跨日vintage=%d个%s;'
+                '同日_vN修订不构成跨日vintage%s)'
+                % (len(vint), ('[' + ','.join(vint[-3:]) + ']') if vint else '',
+                   '; ' + tail if tail else ''))
+    band = [d for d in vint if win_start <= d <= win_end]
+    if band:
+        return ('available(查询起点月窗内存在跨日vintage快照:%s;可经'
+                'select_snapshot点时取版%s)'
+                % (','.join(band), '; ' + tail if tail else ''))
+    return ('blocked: 查询期%s~%s起点月窗内无vintage快照(现存跨日vintage:%s'
+            '——历史时点信息集不可重构,修订值≠当时值,不得以今日修订口径'
+            '冒充当时值%s)'
+            % (win_start, win_end, ','.join(vint) if vint else '无',
+               '; ' + tail if tail else ''))
 
 
 def _dims_valid(zs):
@@ -317,7 +392,7 @@ def _refuse(kind, message, hint):
 
 # ══ 主入口 ════════════════════════════════════════════════════════
 def run(series_map, registry, anchor=None, top=5, weights=None,
-        include_aftermath=True, vn_available=False):
+        include_aftermath=True, vintage_dates=(), same_day_revision=False):
     """历史相似结构检索(只读确定性计算)。
 
     series_map: {metric_id: {'dates':[...], 'values':[...]}}(快照 store ∪
@@ -326,7 +401,11 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
     anchor: 'YYYY-MM'(回放历史锚点,合法)或 None(=最新完整月);
     top: TOP-N(≥1);weights: {'growth':w,...} 六维非负和=1 或 None(等权);
     include_aftermath: 事后演变块开关(关闭不影响排序——排序与事后严格分离);
-    vn_available: 是否存在 _vN 历史版本(research_mode_gate 第三态)。
+    vintage_dates: data/daily 跨日 vintage 基础日期('YYYYMMDD' 序列,由
+      调用方注入,引擎零文件系统)——research_mode_gate.realtime_info_set
+      对**锚点月查询时窗**负责(Charter7-1): 仅锚点月窗内存在跨日 vintage
+      才 available;同日 _vN 修订不算历史 vintage;
+    same_day_revision: 现役日是否存在同日 _vN 修订(仅附加披露,不影响判定)。
     """
     # ── 权重(§1.1: 默认六维等权;覆盖仅维度级,六个非负数和为1) ──
     if weights is None:
@@ -390,16 +469,50 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                            '检查序列覆盖,或 --anchor 显式回放')
 
     # ── 锚点特征 z(泄漏规则2: 只用 t≤锚点月末) ──
+    # Charter7-4a: 锚点月无值的特征不再静默跳过——全部进 features_dropped_
+    # at_anchor 并带**具体原因**(月度序列止于锚点前一月=release_lag 发布滞后;
+    # 季频网格锚点月非季末月;月内洞;序列始于锚点后;历史不足/σ=0 如旧)。
     zs_anchor = {}
     hist_n = {}
     dropped_anchor = {}
     for k in spec_keys:
-        if grids[k].get(m0) is None:
+        g = grids[k]
+        if g.get(m0) is None:
+            last = max(g) if g else None
+            if last is None or last > m0:
+                ahead = min((m for m in g if m > m0), default=None)
+                behind = max((m for m in g if m < m0), default=None)
+                if behind is None:
+                    dropped_anchor[k] = (f'no_value_at_anchor(序列始于{last},'
+                                         f'锚点月{m0}之前无观测)')
+                elif ahead is not None:
+                    step = _grid_step_months(g)
+                    if step >= 2:
+                        dropped_anchor[k] = (
+                            f'quarterly_grid(季频网格仅季末月有值,最近值月'
+                            f'{behind}/下一值月{ahead},锚点月{m0}非季末月)')
+                    else:
+                        dropped_anchor[k] = (
+                            f'no_value_at_anchor(锚点月{m0}无观测,前后有值月'
+                            f'{behind}/{ahead}——月内洞,如实缺席不推导)')
+                else:
+                    dropped_anchor[k] = (
+                        f'no_value_at_anchor(序列无观测晚于或等于{last})')
+            else:
+                lag = _months_between(last, m0)
+                if lag == 1:
+                    dropped_anchor[k] = (
+                        f'release_lag(序列止于{last},锚点月{m0}无观测——月度'
+                        f'发布滞后一个月,如实缺席不以前值/插值冒充)')
+                else:
+                    dropped_anchor[k] = (
+                        f'no_value_at_anchor(序列止于{last},距锚点{m0}差'
+                        f'{lag}个月——发布滞后/序列未及,如实缺席)')
             continue
-        z, n = z_at(grids[k], m0)
+        z, n, required = z_at(g, m0)
         if z is None:
-            dropped_anchor[k] = ('hist_%d<%d' % (n, MIN_HISTORY)
-                                 if n < MIN_HISTORY else 'sigma_0')
+            dropped_anchor[k] = (f'hist_{n}<{required}点(={MIN_HISTORY}个月史按'
+                                 f'网格步长折算)' if n < required else 'sigma_0')
         else:
             zs_anchor[k] = z
             hist_n[k] = n
@@ -407,12 +520,21 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
     if valid_dims_anchor < 2:
         return _refuse('insufficient_history',
                        f'锚点 {m0} 有效维度 {valid_dims_anchor}<2'
-                       f'(expanding z 需 {MIN_HISTORY} 个月历史;弃用特征: '
+                       f'(expanding z 需 {MIN_HISTORY} 个月史(按网格步长折算'
+                       f'观测数);弃用特征: '
                        f'{sorted(dropped_anchor) or spec_keys})',
                        '扩展采集窗至≥%d 个月后重试(现状短历史下拒答=正确行为,'
                        '勿降门槛硬算)' % MIN_HISTORY)
 
+    # ── 统一特征集 U(Charter7-2): 距离特征面=锚点准入结果唯一决定 ──
+    U = sorted(zs_anchor)
+    dims_U = {dim_of[k] for k in U}
+
     # ── 候选扫描(§1.3: 排除特征窗重叠 M≤M0−12, 泄漏规则3) ──
+    # Charter7-4c/d: 候选有效维度只按 U 内特征计——不在 U 的特征(锚点侧
+    # 缺席,永不进距离)不得为候选积维度证据;候选在 U 上的缺席进
+    # missing_features(带原因: 自身历史不足/该月无值/σ=0),排序按
+    # (缺席数升序, 距离升序)双键——偏差更大但缺数者不得反超完整证据候选。
     cutoff = _m_add(m0, -FEATURE_WINDOW)
     cand_months, dropped_overlap, dropped_insufficient = [], 0, 0
     for m in all_months:
@@ -421,15 +543,19 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
         if m > cutoff:
             dropped_overlap += 1
             continue
-        zs_c = {}
-        for k in spec_keys:
+        zs_c, missing_c = {}, {}
+        for k in U:
             if grids[k].get(m) is None:
+                missing_c[k] = 'no_value_at_candidate_month'
                 continue
-            z, _n = z_at(grids[k], m)
-            if z is not None:
+            z, _n, req = z_at(grids[k], m)
+            if z is None:
+                missing_c[k] = ('hist_%d<%d' % (_n, req)
+                                if _n < req else 'sigma_0')
+            else:
                 zs_c[k] = z
         if _dims_valid(zs_c) >= MIN_VALID_DIMS:
-            cand_months.append((m, zs_c))
+            cand_months.append((m, zs_c, missing_c))
         else:
             dropped_insufficient += 1
     n2 = len(cand_months)
@@ -441,25 +567,30 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                        f'与锚点窗不重叠),当前 scanned={len(all_months)} 月')
 
     # ── 权重展开到特征级(§1.1: 每特征 w=维度权/该维特征数;特征数=规格表
-    #    全定义数,与数据在场与否无关——权重确定透明零调参;某特征在具体
-    #    候选上缺席由距离层的重归一吸收,缺席事实经 features_dropped 随行)──
+    #    全定义数,与数据在场与否无关——权重确定透明零调参)──
     n_spec_per_dim = {d: sum(1 for _k, dd, _m, _t in FEATURE_SPECS if dd == d)
                       for d in DIMENSIONS}
     feat_w = {}
     for k, d in dim_of.items():
         if n_spec_per_dim[d]:
             feat_w[k] = wdim[d] / n_spec_per_dim[d]
+    # W_U=统一特征集全权重和: 距离分母全候选一致(不逐候选重归一——
+    # 重归一让缺数候选剩余特征相对权重变相放大,系可操纵口径,Charter7-2)
+    W_U = sum(feat_w[k] for k in U)
 
-    # ── 距离+分位(§1.2) ──
+    # ── 距离+分位(§1.2, 统一特征集固定分母) ──
     dists = []
-    for m, zs_c in cand_months:
-        d_val, wsum, terms = weighted_distance(zs_anchor, zs_c, feat_w)
+    for m, zs_c, missing_c in cand_months:
+        d_val, wsum, terms = weighted_distance(zs_anchor, zs_c, feat_w,
+                                               wsum_total=W_U)
         if d_val is None:
             continue
-        # wsum=共有特征原始权重和(D3: 归一事实随行——重归一发生在
-        # weighted_distance 内部,原始和逐候选随行披露,不得只报归一后值)
-        dists.append({'month': m, 'D': d_val, 'terms': terms, 'wsum': wsum})
-    dists.sort(key=lambda x: (x['D'], x['month']))
+        # wsum=实际分母(=W_U, 全候选一致;归一事实随行);accounted=该候选
+        # 实际覆盖权重(缺席权重份额 disclosed via missing_wsum)
+        dists.append({'month': m, 'D': d_val, 'terms': terms, 'wsum': wsum,
+                      'missing': missing_c,
+                      'accounted_wsum': sum(feat_w[k] for k in terms)})
+    dists.sort(key=lambda x: (len(x['missing']), x['D'], x['month']))
     ds = [x['D'] for x in dists]
     for i, x in enumerate(dists):
         x['pct'] = (sum(1 for d0 in ds if d0 < x['D']) / (len(ds) - 1)
@@ -471,9 +602,42 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                         '相似排名与分位不稳, 结论弱')
     if len(dists) < MIN_CANDIDATES:
         warnings.append(f'共同特征距离可算候选仅 {len(dists)} 个——分位不稳')
+    # Charter7-4d(维度缺席双侧): 候选侧某维在**全部**有效候选上无有效特征
+    # (不进任何距离)→与锚点侧同级的"可能是共同驱动(缺变量)"警示
+    cand_present_dims = set()
+    for x in dists:
+        cand_present_dims |= {dim_of[k] for k in x['terms']}
+    cand_absent_dims = sorted(dims_U - cand_present_dims,
+                              key=lambda d: DIMENSIONS.index(d))
+    if cand_absent_dims:
+        warnings.append(
+            f"候选侧维度缺席: {'/'.join(DIM_LABELS[d] for d in cand_absent_dims)}"
+            f"({'/'.join(cand_absent_dims)})在全部有效候选上无有效特征,不进入"
+            '任何距离——未覆盖维度可能是共同驱动(缺变量),相似性解释力受限')
+
+    # ── TOP-N 簇去重(Charter7-5): 候选月相差<CLUSTER_GAP_MONTHS=同簇 ──
+    # 排序遍历贪心选代表: 每簇保留排序最优者(缺席数最少/距离最小);簇成员
+    # 全清单随代表披露。**不改变**候选准入/距离/分位计算本身,只改 TOP-N
+    # 呈现与 dispersion/一致性口径(相邻月候选事后窗高度重叠=伪独立样本)。
+    reps = []
+    for x in dists:
+        owner = next((r for r in reps
+                      if _months_between(min(r['month'], x['month']),
+                                         max(r['month'], x['month']))
+                      < CLUSTER_GAP_MONTHS), None)
+        if owner is None:
+            x['cluster_members'] = [x['month']]
+            reps.append(x)
+        else:
+            owner['cluster_members'].append(x['month'])
+    topn = reps[:top]
+    if len(reps) < top:
+        warnings.append(
+            f'TOP-{top} 请求但独立簇仅 {len(reps)} 个(候选月相差<'
+            f'{CLUSTER_GAP_MONTHS} 个月=同簇只保留簇代表,事后窗重叠的相邻月'
+            f'不是独立样本)——实际输出 {len(topn)} 个')
 
     # ── 维度贡献(§1.5 dims) ──
-    topn = dists[:top]
     for x in topn:
         contrib = {}
         for d in DIMENSIONS:
@@ -483,17 +647,17 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                           if x['D'] > 0 else 0.0,
                           'z_gap': math.sqrt(w2) if w2 > 0 else 0.0}
         x['dims'] = contrib
-        # D3/D4(收尾): 逐特征披露归一后实际权重 w_norm(=原始特征权/该候选
-        # 共有特征权重和)——候选间共有特征集不同时各候选的归一权重不同,
-        # 归一事实必须随行,不得只在方法学文字里说明
+        # Charter7-2 披露: w_norm=原始特征权/W_U(统一特征集分母)——**全候选
+        # 一致**(同一特征在任何候选上的归一权重相同);该候选实际覆盖份额
+        # =Σw_norm(=accounted_wsum/W_U<1 时即缺席权重份额);逐候选缺席特征
+        # 清单+原因随行(missing_features),不得只在方法学文字里说明
+        zs_by_month = {mm: zz for mm, zz, _mi in cand_months}
         x['features_detail'] = {k: {'anchor_z': zs_anchor[k],
-                                    'cand_z': (next(
-                                        zz for mm, zz in cand_months
-                                        if mm == x['month'])).get(k),
+                                    'cand_z': zs_by_month[x['month']].get(k),
                                     'gap': t['gap'],
                                     'w_norm': round(t['w'], 6)}
                                 for k, t in x['terms'].items()}
-        x['norm_wsum'] = round(x['wsum'], 6)
+        x['norm_wsum'] = round(x['wsum'], 6)   # =W_U, 全候选一致(统一分母)
 
     # ── 巧合判据(§1.7 机械 flag) ──
     for x in topn:
@@ -504,7 +668,10 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                 f"巧合可能性高({DIM_LABELS[dom[0]]} contribution_share="
                 f"{dom[1]['contribution_share']:.2f})")
     if len(dists) >= 3:
-        d1, dmed = dists[0]['D'], dists[len(dists) // 2]['D']
+        # 判据按**距离值排序**取 min/中位(dists 本身是(缺席数,距离)双键
+        # 排序——rank 首位不再是距离最小者,不得直接用 dists[0])
+        ds_sorted = sorted(x['D'] for x in dists)
+        d1, dmed = ds_sorted[0], ds_sorted[len(ds_sorted) // 2]
         if dmed > 0 and (dmed - d1) / dmed < 0.10:
             warnings.append('TOP-1 未与候选分布分离, '
                             '"最相似"表述降级为"处于相似簇"')
@@ -532,6 +699,9 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                             f'{cov:.2f}(<0.5), 该维特征部分弃用')
 
     # ── research_mode_gate(§1.4 规则5, 继承 compare 语义) ──
+    # Charter7-1: realtime_info_set 对**锚点月查询时窗**负责——仅锚点月窗内
+    # 存在跨日 vintage(research_snapshot 基础日期)才 available;同日 _vN
+    # 修订不算历史 vintage(仅附加披露: select_snapshot 取最高 _vN)。
     by_id = (registry or {}).get('by_id') or {}
     feat_mids = sorted({m for k, _d, ms, _t in FEATURE_SPECS
                         if k in zs_anchor for m in ms})
@@ -542,9 +712,9 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
         'event_study': ('available' if (release_known and all(release_known))
                         else 'blocked: 存在无发布日特征指标(月度宏观发布日'
                              '不可得), 不得按发布日对齐/不得声称事件研究'),
-        'realtime_info_set': ('available(经 select_snapshot 点时取版)'
-                              if vn_available
-                              else 'blocked: 无历史版本, 修订值≠当时值'),
+        'realtime_info_set': realtime_gate_text(
+            m0.replace('-', '') + '01', m0.replace('-', '') + '31',
+            vintage_dates, same_day_revision=same_day_revision),
         'note': REVISION_NOTE,
     }
 
@@ -557,6 +727,7 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
             for a in AFTERMATH_ASSETS:
                 s = (series_map or {}).get(a)
                 horizons = {}
+                window_dates = {}
                 unavail = []
                 if s and s.get('dates'):
                     pairs = sorted(zip([str(d)[:10] for d in s['dates']],
@@ -568,6 +739,7 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                                if d0 >= next_first), None)
                     if i0 is None:
                         horizons = {h: None for h in AFTERMATH_HORIZONS}
+                        window_dates = {h: None for h in AFTERMATH_HORIZONS}
                         unavail = list(AFTERMATH_HORIZONS)
                     else:
                         for h in AFTERMATH_HORIZONS:
@@ -580,6 +752,7 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                                 # 无窗内末观测(或仅起点自身)→该 horizon
                                 # unavailable: 不以缩短窗/0值冒充"无变动"
                                 horizons[h] = None
+                                window_dates[h] = None
                                 unavail.append(h)
                                 continue
                             v0, v1 = pairs[i0][1], pairs[i_end][1]
@@ -588,10 +761,17 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                             horizons[h] = round(
                                 (v1 - v0) if is_rate
                                 else (v1 / v0 - 1.0) * 100.0, 6)
+                            # Charter7-3: 逐窗实际起止观测日随行(起点=次月起
+                            # 首个观测日,终点=+N月内最后观测日),使用者可据
+                            # 此自行复算口径,不再有窗口端点歧义
+                            window_dates[h] = {'start': pairs[i0][0],
+                                               'end': pairs[i_end][0]}
                 else:
                     horizons = {h: None for h in AFTERMATH_HORIZONS}
+                    window_dates = {h: None for h in AFTERMATH_HORIZONS}
                     unavail = list(AFTERMATH_HORIZONS)
                 blk[a] = horizons
+                blk[a + '_window'] = window_dates
                 blk[a + '_unit'] = 'pp' if _is_rate(
                     (by_id.get(a) or {}).get('unit', '')) else 'pct'
                 blk['unavailable_horizons'][a] = sorted(set(unavail))
@@ -611,8 +791,11 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                             '之外的条件, 不支持确定性路径推演'
                             f'(方向一致率 {agree:.2f})')
 
-    # ── dispersion(§1.5) ──
-    dispersion = {'topN_aftermath_sign_agreement': {}}
+    # ── dispersion(§1.5; Charter7-5: 按独立簇代表口径) ──
+    dispersion = {'topN_aftermath_sign_agreement': {},
+                  'basis': 'TOP-N 独立簇代表(候选月相差<%d个月=同簇只计代表)'
+                           % CLUSTER_GAP_MONTHS,
+                  'n_independent_clusters': len(topn)}
     for a in AFTERMATH_ASSETS:
         for h in AFTERMATH_HORIZONS:
             vals = [aftermath_blocks[x['month']][a][h]
@@ -629,11 +812,27 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
         'state_vector': sv,
         'normalization': {'method': 'expanding z (t≤各自锚点月末; '
                                     'μ/σ=含当期历史均值/总体标准差σ)',
-                          'min_history_months': MIN_HISTORY},
+                          'min_history_months': MIN_HISTORY,
+                          'min_observations_note': (
+                              '%d 个月史按网格自然步长折算观测数: 月网格 %d 点'
+                              '/季网格 %d 点(步长=相邻网格键月差中位数;36 个'
+                              '季观测=9 年系旧实现误设,Charter7-4b 已修)'
+                              % (MIN_HISTORY, min_observations(1),
+                                 min_observations(3)))},
         'weights': {d: round(wdim[d], 6) for d in DIMENSIONS},
+        'feature_set': {'basis': 'anchor_admitted(统一特征集: 距离特征面由'
+                                 '锚点侧准入结果唯一决定,Charter7-2)',
+                        'features': U,
+                        'n_features': len(U),
+                        'wsum': round(W_U, 6)},
         'candidates': {'scanned': len(all_months), 'valid': n2,
                        'dropped_overlap': dropped_overlap,
-                       'dropped_insufficient': dropped_insufficient},
+                       'dropped_insufficient': dropped_insufficient,
+                       'n_independent_clusters_topN': len(topn),
+                       'cluster_dedup': ('TOP-N 簇去重: 候选月相差<%d 个月='
+                                         '同簇(事后窗重叠),每簇仅保留排序'
+                                         '最优代表;准入/距离/分位计算不变'
+                                         % CLUSTER_GAP_MONTHS)},
         'top': [{'rank': i + 1, 'candidate_month': x['month'],
                  'distance': round(x['D'], 6),
                  'distance_percentile': round(x['pct'], 4),
@@ -642,6 +841,10 @@ def run(series_map, registry, anchor=None, top=5, weights=None,
                           for d, v in x['dims'].items()},
                  'features_detail': x['features_detail'],
                  'norm_wsum': x['norm_wsum'],
+                 'accounted_wsum': round(x['accounted_wsum'], 6),
+                 'missing_features': dict(x['missing']),
+                 'missing_wsum': round(W_U - x['accounted_wsum'], 6) + 0.0,
+                 'cluster_members': sorted(x['cluster_members']),
                  'aftermath': aftermath_blocks.get(x['month'])}
                 for i, x in enumerate(topn)],
         'dispersion': dispersion,

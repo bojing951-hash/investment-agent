@@ -39,6 +39,7 @@
 零网络: 纯标准库+项目既有模块;不做任何采集/请求。
 """
 import argparse
+import gzip
 import hashlib
 import json
 import os
@@ -125,11 +126,23 @@ def load_metric_series(metric_id, source_date_ymd, as_of=None, data_dir=None,
                                    trusted_root=trusted_root)
         info = (inputs or {}).get('macro')
         if not info:
-            raise LookupError(f"{source_date_ymd} 新鲜度窗内无可用 macro 采集档")
+            # Charter7-6: 老日期优雅降级——resolve_inputs 已同步查过采集目录
+            # 与其 archive/ 归档(归档在窗内时返回 archived 档,不走到这里);
+            # 此处把已查范围如实写进错误,不再裸 LookupError(文件选择仍
+            # 一律经 resolve_inputs 规范核验,本模块不 glob/不猜文件名)
+            raise LookupError(
+                f"{source_date_ymd} 新鲜度窗内无可用 macro 采集档"
+                f"(resolve_inputs 已查 {sb.DATA_DIR} 与 archive/ 归档均无窗内"
+                "档——历史窗口过期;采集档可全量重拉重建,归档读回路径见"
+                " snapshot_builder.resolve_inputs)")
         # 经标准化层转递: 读取动作仅服务于 normalize_macro 的标准化输入
-        # (路径来自 resolve_inputs 已验证物理路径,非本模块自行查找)
-        with open(info['file'], 'rb') as f:          # ACCESS_POINT_EXEMPT(标准化层转递)
+        # (路径来自 resolve_inputs 已验证物理路径,非本模块自行查找);
+        # Charter7-6: 归档档(resolve_inputs 标 archived 的 .gz=gzip 容器)
+        # 读回后解压,sha256 按解压后原始字节计算(与未压缩口径一致)
+        with open(info['file'], 'rb') as f:              # ACCESS_POINT_EXEMPT(标准化层转递)
             raw_bytes = f.read()
+        if info.get('archived'):
+            raw_bytes = gzip.decompress(raw_bytes)
         sha = hashlib.sha256(raw_bytes).hexdigest()
         raw = json.loads(raw_bytes.decode('utf-8'))
         data = raw.get('data') or {}

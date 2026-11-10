@@ -62,7 +62,7 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 5. **研究模式三禁令**(与 compare 输出 `alignment.research_mode_gate` 一一对应,字段=机器可查,此处=作答纪律):
    - 描述性比较(无论 gate 是否 blocked)须声明"**按统计期对齐,不代表当时市场信息集**"(`descriptive`);
    - `event_study` blocked(无发布日)时**不得按发布日对齐、不得声称事件研究/市场反应**——月度宏观数值是统计期值,不是发布时点的市场信息;
-   - `realtime_info_set` blocked(无历史版本)时**不得用修订值冒充当时值**——快照序列是最新修订口径,当时可见值可能不同
+   - `realtime_info_set` blocked 时**不得用修订值冒充当时值**——快照序列是最新修订口径,当时可见值可能不同。门判定**对查询时窗负责**(Charter7-1): available 仅当查询起点月窗内存在**跨日 vintage**(research_snapshot 基础日期;同日 _vN 修订不算历史 vintage);无 --start 的当前窗 available 仅指"现役快照=当前信息集",不得引申为历史可重构
 
 6. **禁成分编造**: 数据不含任何指数成分/权重/贡献数据——不得断言"受某市场拖累/驱动"(EEM 反例见 references/research-discipline.md);你自撰的事实位文本(表格"关键信号"列、无标注转述)动笔前先过 lint 自检(调用方式见 references/cli-contract.md 末节)
 7. **相关≠因果**: 相关性输出只作统计事实陈述

@@ -53,6 +53,7 @@ IA-P0-1-FIX5(2026-10-28第五轮整改)收紧(DEF-F4-001/002):
 设计约束: 纯本地文件实现,不引入数据库/服务/多Agent(约束九);轻量可离线测试。
 """
 import glob
+import gzip
 import hashlib
 import json
 import math
@@ -565,7 +566,7 @@ def fact_issues_problems(fact, mid):
 
 
 def sources_status_problems(sources_status, target_ymd=None, data_dir=None,
-                            trusted_root=None):
+                            trusted_root=None, notes=None):
     """FIX5-04(DEF-F4-002)+FIX6(IA-F5-DEF-001/003)+FIX7(IA-F6-DEF-001):
     来源状态结构统一校验(fail-closed)。
 
@@ -593,10 +594,16 @@ def sources_status_problems(sources_status, target_ymd=None, data_dir=None,
         越界别名一律不可证明);
       * FIX7-05(IA-F6-RISK-002最小整改): 快照构建时记录的sha256内容摘要
         在原始文件可访问时重算比对——文件在快照构建后被替换/篡改即拒绝
-        (历史快照无摘要字段时不虚报内容核验,按既有两级口径处理)。
+        (历史快照无摘要字段时不虚报内容核验,按既有两级口径处理);
+      * Charter7-6(保留策略兼容): 声明文件已不在采集目录时查
+        archive/{file}.gz 归档(read_archived_source)——归档在场且(有摘要
+        时)解压内容摘要一致→不构成问题,归档事实写入 notes(调用方传入
+        list 时);"研究记录永远可溯源"底线=删除前必有归档在场的可读回证据;
+        无归档→按不存在拒绝(已查采集目录与归档)。
       纯历史重验场景不传data_dir,以快照内持久化来源状态为准(可证范围=
       结构/规范名/日期/窗口/一致性,不含实体存在与内容摘要——两种口径
       证据范围显式区分,不冒充)。
+    notes: 可选 list——归档回读等信息性事实(非问题)追加于此,不进问题清单。
     返回问题列表(空=结构可证明)。调用方对非空必须按不可证明处理,不得跳过
     检查后继续PASS。"""
     probs = []
@@ -729,29 +736,52 @@ def sources_status_problems(sources_status, target_ymd=None, data_dir=None,
                         probs.append(f'sources_status[{ch!r}]声明{status}但来源文件是'
                                      f'目录:{fil}(目录不得冒充JSON采集文件)')
                     elif not os.path.isfile(full):
-                        probs.append(f'sources_status[{ch!r}]声明{status}但来源文件在'
-                                     f'采集目录不存在:{fil}(声明批次不可证明)')
+                        # Charter7-6: 采集目录不在场→查保留策略归档
+                        # (archive/{fil}.gz);归档在场+摘要一致→可溯源不构成
+                        # 问题(信息性事实入 notes);无归档/摘要失配→拒绝
+                        raw = read_archived_source(probe, fil)
+                        dig = st.get('sha256')
+                        if raw is None:
+                            probs.append(f'sources_status[{ch!r}]声明{status}但来源文件'
+                                         f'在采集目录不存在且无归档:{fil}'
+                                         '(已查采集目录与archive/*.gz——声明批次'
+                                         '不可证明,研究溯源链断裂)')
+                        elif (isinstance(dig, str) and dig.strip()
+                              and hashlib.sha256(raw).hexdigest() != dig):
+                            probs.append(f'sources_status[{ch!r}]来源文件归档内容与'
+                                         f'构建时摘要不一致:archive/{fil}.gz'
+                                         '(FIX7-05内容绑定)')
+                        else:
+                            if notes is not None:
+                                notes.append(
+                                    f'sources_status[{ch!r}]来源文件已按保留策略归档:'
+                                    f'archive/{fil}.gz 在场且可读回('
+                                    + ('sha256与构建时一致'
+                                       if isinstance(dig, str) and dig.strip()
+                                       else '历史快照无sha256字段,内容核验不虚报')
+                                    + ',研究溯源链保持)')
                     elif os.path.realpath(full) != full:
                         # verified_dir为物理形态,任何再解析偏差=文件层别名/越界
                         probs.append(f'sources_status[{ch!r}]来源文件实际路径与采集目录'
                                      f'内规范文件名不一致:{fil}(越界/别名不可作为授权来源)')
-                    # FIX7-05(IA-F6-RISK-002最小整改): 构建时sha256内容摘要重算
-                    # 比对——快照构建后原始采集文件被替换为非JSON/其他内容时,
-                    # 文件名/日期/实体核验全绿但内容已变,须以摘要失配拒绝。
-                    # 历史快照(无sha256字段)不虚报内容核验,按两级口径处理
-                    dig = st.get('sha256')
-                    if isinstance(dig, str) and dig.strip():
-                        try:
-                            with open(full, 'rb') as _fh:
-                                _actual = hashlib.sha256(_fh.read()).hexdigest()
-                            if _actual != dig:
-                                probs.append(
-                                    f'sources_status[{ch!r}]来源文件内容与构建时摘要'
-                                    f'不一致:{fil}(原始采集文件在快照构建后被变更'
-                                    '——FIX7-05内容绑定)')
-                        except OSError as _e:
-                            probs.append(f'sources_status[{ch!r}]来源文件内容摘要不可'
-                                         f'读取:{fil}({_e})')
+                    else:
+                        # FIX7-05(IA-F6-RISK-002最小整改): 构建时sha256内容摘要重算
+                        # 比对——快照构建后原始采集文件被替换为非JSON/其他内容时,
+                        # 文件名/日期/实体核验全绿但内容已变,须以摘要失配拒绝。
+                        # 历史快照(无sha256字段)不虚报内容核验,按两级口径处理
+                        dig = st.get('sha256')
+                        if isinstance(dig, str) and dig.strip():
+                            try:
+                                with open(full, 'rb') as _fh:
+                                    _actual = hashlib.sha256(_fh.read()).hexdigest()
+                                if _actual != dig:
+                                    probs.append(
+                                        f'sources_status[{ch!r}]来源文件内容与构建时摘要'
+                                        f'不一致:{fil}(原始采集文件在快照构建后被变更'
+                                        '——FIX7-05内容绑定)')
+                            except OSError as _e:
+                                probs.append(f'sources_status[{ch!r}]来源文件内容摘要不可'
+                                             f'读取:{fil}({_e})')
         elif status == 'MISSING':
             # FIX6-04(IA-F5-DEF-003): MISSING=无可用来源文件——不得同时声明任何
             # 成功来源字段。真实构建器产物仅{'status'}(字段缺失与值None等价合法,
@@ -1274,6 +1304,42 @@ def snapshot_candidates(ymd, daily_dir):
         if v and v[0] == str(ymd):
             out.append((v[1], p))
     return sorted(out, key=lambda t: (t[0] is None, t[0] if t[0] is not None else 0))
+
+
+def vintage_dates(daily_dir):
+    """Charter7-1: data/daily 内**跨日 vintage** 日期集(升序 'YYYYMMDD')。
+
+    判据=research_snapshot_{ymd}*.json 的基础日期(_vN 同日修订归并到其
+    基础日期,**不新增 vintage 日期**——同日修订不是历史 vintage);供
+    realtime_info_set 门按查询时窗判定(与 ia_cli/analog 共用同一权威,
+    零推断)。目录不存在/不可读→空列表。"""
+    out = set()
+    try:
+        names = os.listdir(str(daily_dir))
+    except OSError:
+        return []
+    for name in names:
+        m = re.match(r'^research_snapshot_(\d{8})', name)
+        if m:
+            out.add(m.group(1))
+    return sorted(out)
+
+
+def read_archived_source(daily_dir, filename):
+    """Charter7-6: 采集档归档读取(data/daily/archive/{filename}.gz)。
+
+    返回解压后原始 bytes(sha256 口径与未压缩原档一致);文件不存在/损坏
+    → None。归档目录=采集目录下 archive/(保留策略 gzip 月度代表+研究引用
+    保护档);研究溯源链的读回路径。"""
+    gz = os.path.join(str(daily_dir), 'archive', os.path.basename(filename)
+                      + '.gz')
+    try:
+        if os.path.islink(gz) or not os.path.isfile(gz):
+            return None
+        with gzip.open(gz, 'rb') as fh:
+            return fh.read()
+    except (OSError, EOFError):
+        return None
 
 
 def select_snapshot(ymd, daily_dir):

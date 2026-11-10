@@ -4,17 +4,24 @@ data/daily 采集档保留策略(Charter6-P0 配套,2026-11-09;采纳 A2 §4-P0/
 背景: 采集窗口默认扩到10年后(Charter6-P0),data/daily 单日增量约 3.6-5MB
 (global+macro 序列变长),无保留策略约 1.8GB+/年(A2 §3 估算)。
 
-规则(90天全量 + 月度gzip归档 + 可重拉旧档清理):
+规则(90天全量 + 月度gzip归档 + 可重拉旧档清理 + 研究引用保护):
   1. 观测日距今 ≤ keep_days 的采集档: 原样保留(下游最新档扫描/修订检测
      只读最新档;近窗全量保留供排障与回看);
   2. 观测日更早的采集档: 每个采集族(prefix)每月保留**最后一份** →
      gzip 压缩移入 data/daily/archive/;同月其余旧档删除——采集档可全量
      重拉重建(FRED/Yahoo 幂等,采集窗口内完整自愈,A2 §3: 保持全量重拉
      不做增量合并,删除不损失可重建数据);
-  3. 研究层文件一律不动: research_snapshot_*/anchors_*/anchor_prompt_*/
+  3. **研究引用保护(Charter7-6)**: 被 data/daily 内任一 research_snapshot_*
+     的 sources_status 声明为来源(EXACT/FALLBACK 的 file)的采集档**永不
+     删除**——过期时改为 gzip 移入 archive/(protected_archived 清单),
+     研究记录永远可溯源(sources_status_problems/read_archived_source/
+     resolve_inputs 均已具备 archive 读回路径);"删除不损失可重建数据"
+     不适用于**声明EXACT/FALLBACK的研究绑定档**——可重拉重建的是采集
+     数据,重建不出构建时点的字节与摘要绑定;
+  4. 研究层文件一律不动: research_snapshot_*/anchors_*/anchor_prompt_*/
      correlation_* 等不在采集族清单内(研究台账 append-only 纪律,删除/
      移动违反不可变契约;snapshot 选档/溯源链依赖它们留在 data/daily);
-  4. data/research 完全不在本模块职责内(永不触碰)。
+  5. data/research 完全不在本模块职责内(永不触碰)。
 
 工程属性: 无网络、纯本地文件操作;dry_run 只报告不动手;重入幂等
 (第二次运行对已归档月份零动作);操作清单随返回值交调用方记台账。
@@ -22,6 +29,7 @@ data/daily 采集档保留策略(Charter6-P0 配套,2026-11-09;采纳 A2 §4-P0/
 
 import argparse
 import gzip
+import json
 import os
 import re
 import sys
@@ -41,6 +49,35 @@ ARCHIVE_DIRNAME = 'archive'
 DEFAULT_KEEP_DAYS = 90
 
 
+def research_referenced_files(daily_dir):
+    """Charter7-6: data/daily 内研究快照声明为来源的采集档文件名集合。
+
+    扫描 research_snapshot_*.json 的 sources_status 各通道 file 字段
+    (EXACT/FALLBACK 声明);解析失败/异常结构→该快照的贡献为空(fail-safe:
+    保护集宁少勿滥不会误删声明档——声明档解析失败时其 file 不进保护集,
+    但这类文件本身属研究层语法失败场景,由快照校验层处理,不在保留策略
+    职责内)。"""
+    refs = set()
+    try:
+        names = os.listdir(daily_dir)
+    except OSError:
+        return refs
+    for name in names:
+        if not (name.startswith('research_snapshot_') and name.endswith('.json')):
+            continue
+        try:
+            with open(os.path.join(daily_dir, name), encoding='utf-8') as fh:
+                snap = json.load(fh)
+        except (OSError, ValueError):
+            continue
+        for _ch, st in (snap.get('sources_status') or {}).items():
+            if isinstance(st, dict):
+                f = st.get('file')
+                if isinstance(f, str) and f:
+                    refs.add(os.path.basename(f))
+    return refs
+
+
 def prune_daily_archives(daily_dir, keep_days=DEFAULT_KEEP_DAYS, now=None,
                          dry_run=False):
     """对 data/daily 执行保留策略,返回操作报告 dict(含完整文件清单)。
@@ -50,7 +87,7 @@ def prune_daily_archives(daily_dir, keep_days=DEFAULT_KEEP_DAYS, now=None,
     now = now or datetime.now()
     cutoff = now - timedelta(days=keep_days)
     report = {
-        'policy': 'keep_recent_full+monthly_gzip_archive',
+        'policy': 'keep_recent_full+monthly_gzip_archive+research_ref_protect',
         'daily_dir': daily_dir,
         'now': now.strftime('%Y-%m-%d %H:%M:%S'),
         'keep_days': keep_days,
@@ -60,10 +97,13 @@ def prune_daily_archives(daily_dir, keep_days=DEFAULT_KEEP_DAYS, now=None,
         'archived': [],
         'deleted': [],
         'untouched': [],
+        'protected_archived': [],   # Charter7-6: 研究引用保护档(不删,改归档)
         'archive_dir': os.path.join(daily_dir, ARCHIVE_DIRNAME),
     }
     if not os.path.isdir(daily_dir):
         return report
+    referenced = research_referenced_files(daily_dir)
+    report['research_referenced'] = len(referenced)
     cutoff_date = cutoff.date()
     old_by_month = {}  # (prefix, ext, YYYYMM) -> [(ymd, filename)]
     for name in sorted(os.listdir(daily_dir)):
@@ -87,21 +127,32 @@ def prune_daily_archives(daily_dir, keep_days=DEFAULT_KEEP_DAYS, now=None,
         else:
             old_by_month.setdefault((prefix, ext, ymd[:6]), []).append((ymd, name))
     archive_dir = report['archive_dir']
+
+    def _gzip_into_archive(fname):
+        os.makedirs(archive_dir, exist_ok=True)
+        src = os.path.join(daily_dir, fname)
+        dst = os.path.join(archive_dir, fname + '.gz')
+        with open(src, 'rb') as fin, gzip.open(dst, 'wb', compresslevel=9) as fout:
+            fout.write(fin.read())
+        os.remove(src)
+
     for (_prefix, _ext, _month), entries in sorted(old_by_month.items()):
         entries.sort()  # 同月按观测日升序;最后一份=该月代表档
         for _ymd, name in entries[:-1]:
-            report['deleted'].append(name)
-            if not dry_run:
-                os.remove(os.path.join(daily_dir, name))
+            if name in referenced:
+                # Charter7-6: 研究快照声明来源档——永不删除,过期改 gzip 归档
+                # (sources_status_problems/read_archived_source 可读回校验)
+                report['protected_archived'].append(name)
+                if not dry_run:
+                    _gzip_into_archive(name)
+            else:
+                report['deleted'].append(name)
+                if not dry_run:
+                    os.remove(os.path.join(daily_dir, name))
         rep_name = entries[-1][1]
         report['archived'].append(rep_name)
         if not dry_run:
-            os.makedirs(archive_dir, exist_ok=True)
-            src = os.path.join(daily_dir, rep_name)
-            dst = os.path.join(archive_dir, rep_name + '.gz')
-            with open(src, 'rb') as fin, gzip.open(dst, 'wb', compresslevel=9) as fout:
-                fout.write(fin.read())
-            os.remove(src)
+            _gzip_into_archive(rep_name)
     return report
 
 

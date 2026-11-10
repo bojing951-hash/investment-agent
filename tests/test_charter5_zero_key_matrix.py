@@ -57,11 +57,16 @@ print("═" * 64)
 r = run_zero_key('doctor')
 d = json.loads(r.stdout)
 check("doctor rc=0 零Key可跑", r.returncode == 0 and d['ok'])
-check("doctor env 恰为中性三参+数据源四键(旧变量行删除)",
+check("doctor env 恰为中性三参+新闻开关+数据源四键(旧变量行删除)",
       set(d['data']['env']) == {'MODEL_API_KEY', 'MODEL_BASE_URL', 'MODEL_NAME',
+                                'IA_NEWS_MODEL_SUMMARY',
                                 'FRED_API_KEY', 'TUSHARE_TOKEN',
                                 'FINNHUB_API_KEY', 'YF_PROXY'},
       str(set(d['data']['env'])))
+check("IA_NEWS_MODEL_SUMMARY 行: 零Key下未配置+注明默认关闭",
+      d['data']['env']['IA_NEWS_MODEL_SUMMARY']['configured'] is False
+      and '默认关闭' in d['data']['env']['IA_NEWS_MODEL_SUMMARY']['purpose'],
+      str(d['data']['env'].get('IA_NEWS_MODEL_SUMMARY')))
 blob = json.dumps(d, ensure_ascii=False)
 check("doctor 全输出无旧厂商词(glm/zhipu/bigmodel 大小写任意)",
       not any(t in blob.lower() for t in ('glm', 'zhipu', 'bigmodel')))

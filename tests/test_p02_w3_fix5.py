@@ -45,6 +45,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(_HERE)))
 os.environ.setdefault('MODEL_API_KEY', 'FAKE_E2E_MODEL_KEY')
 os.environ.setdefault('MODEL_BASE_URL', 'https://fake.invalid/v1')
 os.environ.setdefault('MODEL_NAME', 'fake-e2e-model')
+# Charter7-7: 新闻模型摘要须显式 opt-in(本套件 mock 模型调用=显式开启语义)
+os.environ.setdefault('IA_NEWS_MODEL_SUMMARY', '1')
 
 import news_provenance as nprov                # noqa: E402
 import report_generator as rg                  # noqa: E402

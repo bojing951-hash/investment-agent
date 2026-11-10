@@ -180,7 +180,15 @@ STUB_STEPS = ['global_market_collector', 'china_market_collector', 'macro_collec
               'jp_market_collector', 'ea_market_collector', 'macro_scorecard',
               'correlation_calculator', 'data_assembler', 'data_validator']
 
-today = dt.date.today()
+# CI时间炸弹修复②(2026-11-11,热修): snapshot_builder 以北京时区定日
+# (build_snapshot 内 datetime.now(TZ_BJ)),而本测试原用运行机本地日
+# (GitHub runner=UTC)。UTC 16:00-23:59 期间两地日期分叉,builder 写
+# research_snapshot_{BJ日}.json 而测试找 {UTC日}.json → L213
+# FileNotFoundError(主CI 42850982644 于 16:05Z 首次踩中;此前 14 次全在
+# 00:00-15:59Z 窗口内两地同日故绿)。预存缺陷非 C8 回归——修法=测试
+# 对齐快照权威口径(生产机为北京时区时本就一致):
+TZ_BJ = dt.timezone(dt.timedelta(hours=8), name='Asia/Shanghai')
+today = dt.datetime.now(TZ_BJ).date()
 obs = today - dt.timedelta(days=1)
 while obs.weekday() >= 5:
     obs -= dt.timedelta(days=1)

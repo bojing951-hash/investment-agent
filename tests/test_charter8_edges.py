@@ -33,6 +33,8 @@ def check(name, cond, detail=""):
 
 
 import workbench_data as wd  # noqa: E402
+import research_archive as ra  # noqa: E402
+import fixt_c8_archive as fixt  # noqa: E402  (CI自足fixture,根因A热修)
 
 EDGES_PATH = os.path.join(ROOT, 'config', 'transmission_edges.json')
 doc = json.load(open(EDGES_PATH, encoding='utf-8'))
@@ -40,19 +42,47 @@ doc = json.load(open(EDGES_PATH, encoding='utf-8'))
 print("═" * 60)
 print("[1] 溯源铁律: qb_source 指向真实 QB 归档")
 print("═" * 60)
-qb_ids = {os.path.basename(p)[:-5] for p in glob.glob(os.path.join(
-    ROOT, 'data', 'research', 'research_archive', 'research_archive',
-    'query_history', 'QB-*.json'))}
-check("本地 QB 归档可枚举(n=%d)" % len(qb_ids), len(qb_ids) > 0)
+# 根因A热修(2026-11-11): CI 干净检出无真实 data/(不入库纪律),原直读真实
+# QB 档必挂。改为: 公开写入 API 合成 fixture 档(022/023,与边表引用一致),
+# "边必挂 QB 号"核验逻辑在 fixture 上完整执行+反例核验(不空转);真实档
+# 核验在档在场时执行,缺席显式 SKIP——禁止为过 CI 往库里塞真实 data 档。
+FIXTURE_TD = tempfile.TemporaryDirectory()
+fixt_arch = fixt.build_archive(FIXTURE_TD.name)
+qb_ids = set(ra.list_query_records(archive_dir=fixt_arch))
+check("合成 QB 归档可枚举(fixture, n=%d)" % len(qb_ids),
+      qb_ids == {fixt.Q22, fixt.Q23}, str(sorted(qb_ids)))
+check("fixture 记录可经读取面回读(写入API产物非手工摆文件)",
+      ra.load_query_record(fixt.Q22, archive_dir=fixt_arch).get('query_id')
+      == fixt.Q22)
 edge_sources = {e['qb_source'] for e in doc['edges']}
 check("每条边带 qb_source", all(e.get('qb_source') for e in doc['edges']))
-check(f"边表 qb_source 全部指向真实归档{sorted(edge_sources)}",
+check(f"边表 qb_source 全部指向在册归档(fixture){sorted(edge_sources)}",
       edge_sources <= qb_ids, str(edge_sources - qb_ids))
 mf_sources = {f['qb_source'] for f in doc['mechanism_findings']}
-check(f"机制结论 qb_source 全部真实{sorted(mf_sources)}", mf_sources <= qb_ids)
+check(f"机制结论 qb_source 全部在册(fixture){sorted(mf_sources)}",
+      mf_sources <= qb_ids)
 ss = doc.get('structural_summary') or {}
 check("结构性结论带 qb_source", bool(ss.get('qb_source'))
       and ss['qb_source'] in qb_ids)
+check("核验能逮住未归档来源(反例,不空转)",
+      not ({'QB-20261110-999'} <= qb_ids))
+
+REAL_QH = os.path.join(ROOT, 'data', 'research', 'research_archive',
+                       'research_archive', 'query_history')
+real_qb_ids = {os.path.basename(p)[:-5] for p in glob.glob(
+    os.path.join(REAL_QH, 'QB-*.json'))}
+if real_qb_ids:
+    check("本地真实 QB 归档可枚举(n=%d)" % len(real_qb_ids),
+          len(real_qb_ids) > 0)
+    check(f"边表 qb_source 全部指向真实归档{sorted(edge_sources)}",
+          edge_sources <= real_qb_ids, str(edge_sources - real_qb_ids))
+    check(f"机制结论 qb_source 全部真实{sorted(mf_sources)}",
+          mf_sources <= real_qb_ids)
+    check("结构性结论 qb_source 指向真实归档", ss.get('qb_source')
+          in real_qb_ids)
+else:
+    print("  ⏭️ SKIP[CI]: 真实 QB 归档缺席(data/不入库纪律;本地/LIVE 在场"
+          "时执行真实档核验)——fixture 核验+反例已覆盖同逻辑")
 
 print("═" * 60)
 print("[2] 边表结构与 E1/E2/E3 分级")
@@ -112,16 +142,28 @@ check("真实档装载成功(workbench_data.transmission_edges)",
 print("═" * 60)
 print("[4] 数值抽核: 边表 r 与归档 answer_text 一致(防抄录漂移)")
 print("═" * 60)
-full022 = json.load(open(os.path.join(
-    ROOT, 'data', 'research', 'research_archive', 'research_archive',
-    'query_history', 'QB-20261110-022.research-full.json'), encoding='utf-8'))
-at = full022['answer_text']
-spot = {('| VIX×SPX | −0.7138' in at, 'VIX×SPX r=-0.7138 逐字在归档'),
-        ('| DXY×GOLD_F | **−0.3935' in at, 'DXY×GOLD_F r=−0.3935 逐字在归档'),
-        ('| TIPS_10Y×UST_10Y | +0.8278' in at, 'TIPS×UST r=+0.8278 逐字在归档'),
-        ('| EURUSD×UST_10Y | −0.0307' in at, 'EURUSD×UST 近零 −0.0307 在归档')}
+# 根因A热修: CI 无真实归档——抽核对 fixture sidecar 执行(其 answer_text
+# 四行与真实 QB-022 逐字同源,防抄录漂移核验逻辑在 CI 完整可跑);真实档
+# 在场时追加对真实归档的同款抽核(本地/LIVE 不弱化)。
+at = ra.load_research_full(fixt.Q22, archive_dir=fixt_arch)['answer_text']
+spot = {('| VIX×SPX | −0.7138' in at, 'VIX×SPX r=-0.7138 逐字在归档(fixture)'),
+        ('| DXY×GOLD_F | **−0.3935' in at, 'DXY×GOLD_F r=−0.3935 逐字在归档(fixture)'),
+        ('| TIPS_10Y×UST_10Y | +0.8278' in at, 'TIPS×UST r=+0.8278 逐字在归档(fixture)'),
+        ('| EURUSD×UST_10Y | −0.0307' in at, 'EURUSD×UST 近零 −0.0307 在归档(fixture)')}
 for cond, name in spot:
     check(name, cond)
+real_full022 = os.path.join(REAL_QH, 'QB-20261110-022.research-full.json')
+if os.path.isfile(real_full022):
+    rat = json.load(open(real_full022, encoding='utf-8'))['answer_text']
+    real_spot = (('| VIX×SPX | −0.7138' in rat, 'VIX×SPX r=-0.7138 逐字在真实归档'),
+                 ('| DXY×GOLD_F | **−0.3935' in rat, 'DXY×GOLD_F r=−0.3935 逐字在真实归档'),
+                 ('| TIPS_10Y×UST_10Y | +0.8278' in rat, 'TIPS×UST r=+0.8278 逐字在真实归档'),
+                 ('| EURUSD×UST_10Y | −0.0307' in rat, 'EURUSD×UST 近零 −0.0307 在真实归档'))
+    for cond, name in real_spot:
+        check(name, cond)
+else:
+    print("  ⏭️ SKIP[CI]: 真实 QB-022 research-full 缺席(data/不入库纪律;"
+          "本地/LIVE 在场时执行)——fixture 抽核已覆盖同逻辑")
 edges_by_id = {e['edge_id']: e for e in doc['edges']}
 check("边表 VIX-SPX r=-0.7138 与归档一致",
       edges_by_id['VIX-SPX']['r'] == -0.7138)

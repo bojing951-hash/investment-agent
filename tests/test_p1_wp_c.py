@@ -268,7 +268,8 @@ class T07T08DataPackEconomySection(unittest.TestCase):
             self.assertIn('注册表覆盖(静态披露,config/metric_registry.json economy字段活跃计数): '
                           # Charter6-P2: US 49→51(+SPX_CAPE/SPX_PE_TTM)
                           # Charter7 P2-3: US 51→53(+SOFR/WALCL;unavailable不计入覆盖)
-                          '美国(US)=53项; 中国(CN)=18项; 日本(JP)=8项; 欧元区(EA)=11项', md)
+                          # 数据批1(2026-11-10): US 53→55(+SPX_EPS/M2SL)
+                          '美国(US)=55项; 中国(CN)=18项; 日本(JP)=8项; 欧元区(EA)=11项', md)
             # JP/EA通道披露(快照顶层sources_status; 通道名 japan/jp/ea)
             self.assertIn('日本通道披露: japan=EXACT(japan_%s.json), jp=EXACT(jp_%s.json)'
                           % (YMD, YMD), md)
@@ -308,14 +309,22 @@ class T09T10GateBAnchors(unittest.TestCase):
                              "facts未接线的指标不得出现锚点")
 
     def test_10_out_of_family_anchor_fail_closed(self):
-        # 负向敏感度: NIKKEI225/DAX已注册但权威来源非global_market家族
+        # 负向敏感度: NIKKEI225已注册但权威来源非global_market家族(jp通道)
         # → 以global_market形态请求锚点身份 ⇒ SOURCE_MISMATCH→UNVERIFIED(fail-closed)
-        for key in ('global_market.data.NIKKEI225.close',
-                    'global_market.data.DAX.close'):
+        # 数据批1(2026-11-10)通道转正迁移: DAX 从 PENDING→global_market_collector,
+        # 域外前提失效——DAX 移入族内正例(锁面净增强: 负向保 NIKKEI225 不减,
+        # 新增 DAX 族内 MAPPED 正向断言),域外负向另补 CAC40 同族外反例不适用
+        # (其已同转 global),故以 JP 家族指标 NIKKEI225 独扛 fail-closed 语义。
+        for key in ('global_market.data.NIKKEI225.close',):
             v = fp.verify_anchor_identity(key)
             self.assertEqual(v['status'], 'UNVERIFIED', f"{key}: {v}")
             self.assertEqual(v['reason'], 'source_mismatch')
             self.assertIsNone(v['metric_id'], "域外锚点不得返回可认证身份")
+        # 数据批1新增正向: DAX 转正后族内可认证(身份面与通道归属一致)
+        v = fp.verify_anchor_identity('global_market.data.DAX.close')
+        self.assertEqual(v['status'], 'MAPPED', f"DAX: {v}")
+        self.assertEqual(v['metric_id'], 'DAX')
+        self.assertEqual(v['family'], 'global_market')
         # 反例锁定fail-closed语义: 同形键但家族内来源(USDJPY旧键)仍MAPPED——
         # 机器正确性=拒绝越族而非拒绝一切
         v = fp.verify_anchor_identity('global_market.data.JPY=X.close')

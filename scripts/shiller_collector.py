@@ -16,6 +16,8 @@ shiller_YYYYMMDD.json,回退窗35自然日——月频数据+官网不定期更�
      不冒充当前期)。
   → SPX_CAPE(席勒周期调整市盈率: 价格÷10年平均实际盈利,月频 1871+)
   → SPX_PE_TTM(标普500 TTM 市盈率: P÷E(近12个月盈利),月频 1871+)
+  → SPX_EPS(标普500每股收益E列: 近12个月名义盈利合计,月频 1871+;
+    数据批1#7——与 CAPE/PE_TTM 同源同频同 vintage 口径,盈利维研究入口)
 
 诚实缺席(A2 §2#6 宁缺毋假,DESIGN 同款纪律):
   - SPX_PB 不采集不登记序列: ie_data.xls 无 book value;multpl.com 非API
@@ -176,15 +178,19 @@ def parse_ie_data(raw):
     use_cape = 'cape' in cols
     use_pe_col = cols.get('p/e')
     use_pe_calc = use_pe_col is None and 'p' in cols and 'e' in cols
+    # 数据批1#7: E 列直读(名义EPS,1871+;与 PE 计算列同源同vintage;
+    # E 列缺席→SPX_EPS 序列缺席+告警,不以任何 proxy 冒充)
+    use_eps = cols.get('e')
     meta['columns_used'] = {
         'CAPE': cols.get('cape'),
         'PE': use_pe_col if use_pe_col is not None else (
             [cols['p'], cols['e']] if use_pe_calc else None),
+        'EPS': use_eps,
     }
-    if not (use_cape or use_pe_col or use_pe_calc):
-        return {}, meta, ['ie_data.xls 无可用估值列(CAPE/P/E 均未在表头定位)']
+    if not (use_cape or use_pe_col or use_pe_calc or use_eps):
+        return {}, meta, ['ie_data.xls 无可用估值列(CAPE/P/E/EPS 均未在表头定位)']
 
-    cape_m, pe_m = {}, {}
+    cape_m, pe_m, eps_m = {}, {}, {}
     for r in range(header_idx + 1, sheet.nrows):
         meta['n_rows_scanned'] += 1
         dv = sheet.cell_value(r, cols['date'])
@@ -207,13 +213,22 @@ def parse_ie_data(raw):
             e = _cell_float(sheet.cell_value(r, cols['e']))
             if p is not None and e is not None and e != 0:
                 pe_m[mkey] = p / e
+        if use_eps is not None:
+            ev = _cell_float(sheet.cell_value(r, use_eps))
+            if ev is not None:
+                eps_m[mkey] = ev
     if cape_m:
         ks = sorted(cape_m)
         series['SPX_CAPE'] = {'dates': ks, 'values': [cape_m[k] for k in ks]}
     if pe_m:
         ks = sorted(pe_m)
         series['SPX_PE_TTM'] = {'dates': ks, 'values': [pe_m[k] for k in ks]}
-    months = sorted(set(cape_m) | set(pe_m))
+    if eps_m:
+        ks = sorted(eps_m)
+        series['SPX_EPS'] = {'dates': ks, 'values': [eps_m[k] for k in ks]}
+    else:
+        alerts.append('E 列未定位或无有效行→SPX_EPS 序列缺席(如实,不猜测)')
+    months = sorted(set(cape_m) | set(pe_m) | set(eps_m))
     meta['first_month'], meta['last_month'] = (
         (months[0][:7], months[-1][:7]) if months else (None, None))
     return series, meta, alerts

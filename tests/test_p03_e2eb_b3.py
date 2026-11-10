@@ -109,10 +109,10 @@ class T1RegistryIdentity(unittest.TestCase):
     def test_t01_counts_and_version(self):
         # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
         # 94+8→102 / 93+8→101 / 2.2.0→2.3.0
-        self.assertEqual(len(REG['metrics']), 108, '指标总数须恰为108(85+9+8+1+3Charter6+2Charter7 P2-3)')  # Charter7 P2-3: +SOFR/WALCL
+        self.assertEqual(len(REG['metrics']), 110, '指标总数须恰为110(85+9+8+1+3Charter6+2P2-3+2数据批1)')  # 数据批1: +SPX_EPS/M2SL
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 106)  # Charter7 P2-3 +SOFR/WALCL
-        self.assertEqual(REG['version'], '2.7.0', '版本号须为2.7.0(Charter7 P2-3 2026-11-10 流动性维)')
+                             if m.get('status') == 'active'), 108)  # 数据批1 +SPX_EPS/M2SL
+        self.assertEqual(REG['version'], '2.8.0', '版本号须为2.8.0(数据批1 2026-11-10)')
 
     def test_t02_four_entries_full_field_freeze(self):
         # D11 全字段冻结(硬编码逐字段=磁盘实况,任何漂移即红);
@@ -206,8 +206,9 @@ class T1RegistryIdentity(unittest.TestCase):
         # IA-P1-WP-E v1.3 域化(§十三.1): 13→21(∪CN 宏观八条目)
         self.assertEqual(set(bl.vintage_additions()), JP4 | NEW9 | CN8
                          | {'US_REAL_GDP', 'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB'}
-                         | {'SOFR', 'WALCL'},   # Charter7 P2-3: +2=27(流动性维)
-                         'vintage_additions 须恰为…∪US_REAL_GDP∪Shiller三条目∪P2-3两条目(27)')
+                         | {'SOFR', 'WALCL'}   # Charter7 P2-3: +2=27(流动性维)
+                         | {'SPX_EPS', 'M2SL'},  # 数据批1(2026-11-10): +2=29
+                         'vintage_additions 须恰为…∪US_REAL_GDP∪Shiller三条目∪P2-3∪数据批1(29)')
 
 
 class T2ChannelRegistration(unittest.TestCase):

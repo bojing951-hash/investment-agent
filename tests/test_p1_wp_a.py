@@ -155,17 +155,17 @@ class TestEconomyRules(unittest.TestCase):
     def test_t1a_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
         # 94+8→102 / 93+8→101 / 2.2.0→2.3.0 / 聚合 CN 10→18(其余键不动)
-        self.assertEqual(len(REG['metrics']), 108)  # Charter7 P2-3: +SOFR/WALCL(前 Charter6-P2 +SPX_CAPE/SPX_PE_TTM/SPX_PB)
-        self.assertEqual(REG['version'], '2.7.0')  # Charter7 P2-3(2026-11-10) 流动性维 2.6.0→2.7.0
+        self.assertEqual(len(REG['metrics']), 110)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL)
+        self.assertEqual(REG['version'], '2.8.0')  # 数据批1(2026-11-10) 2.7.0→2.8.0
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 106)  # Charter7 P2-3 +SOFR/WALCL(前 Charter6-P2 +SPX_CAPE/SPX_PE_TTM)
+                             if m.get('status') == 'active'), 108)  # 数据批1 +SPX_EPS/M2SL
         agg = {}
         for m in REG['metrics']:
             agg[m['economy']] = agg.get(m['economy'], 0) + 1
         # 定值=REPORT §零.12⑥(85 实测聚合+P9×2+P10×7)+CN 宏观八条目(P1:calendar=cn)
         # Charter6-P2: US 50→52(+SPX_CAPE/SPX_PE_TTM;SPX_PB=unavailable不计)
-        # Charter7 P2-3: US 53→55(+SOFR/WALCL)
-        self.assertEqual(agg, {'US': 55, 'CN': 18, 'HK': 4, 'JP': 8,
+        # Charter7 P2-3: US 53→55(+SOFR/WALCL);数据批1: US 55→57(+SPX_EPS/M2SL)
+        self.assertEqual(agg, {'US': 57, 'CN': 18, 'HK': 4, 'JP': 8,
                                'EA': 11, 'GLOBAL': 12})
 
     def test_t1b_per_entry_rule_consistency(self):
@@ -235,18 +235,21 @@ class TestEconomyRules(unittest.TestCase):
         # IA-P1-WP-E v1.3 域化(§十三.1 同族同型迁移,第10断言位·如实登记见
         # WP-E REPORT §零.13): CN 宏观八条目 append 于数组尾→NEW9 尾块前移,
         # 块内连续性与序仍锁([-17:-8]);CN8 尾序新锁([-8:],锁面净增强)。
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-19:-10]),
-                         NEW9)                                # append 尾序(WP-A 时点;P2-3 +2 后块前移)
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-10:-2]),
-                         CN8)                                 # append 尾序(WP-E;P2-3 +2 后块前移)
-        # Charter7 P2-3(2026-11-10): SOFR/WALCL append 于数组尾(US 流动性维)
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-2:]),
-                         ('SOFR', 'WALCL'))                   # append 尾序(P2-3)
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-20:-11]),
+                         NEW9)                                # append 尾序(WP-A 时点;P2-3/数据批1 后块前移)
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-11:-3]),
+                         CN8)                                 # append 尾序(WP-E;P2-3/数据批1 后块前移)
+        # Charter7 P2-3 + 数据批1(2026-11-10): SOFR/WALCL/M2SL append 于数组尾
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-3:]),
+                         ('SOFR', 'WALCL', 'M2SL'))           # append 尾序(P2-3+数据批1)
         self.assertEqual(METRICS['JP_POLICY_RATE']['source_symbol'],
                          'IRSTCI01JPM156N')                   # 复用概念同源
         for mid in NEW9:
+            # 数据批1(2026-11-10)通道转正: DAX/CAC40 从 PENDING 预注册转
+            # global_market_collector(Yahoo 转引;ea 保持零依赖),余 7 条不变
             self.assertIn(METRICS[mid]['source'],
-                          ('jp_market_collector', 'ea_market_collector'))
+                          ('jp_market_collector', 'ea_market_collector',
+                           'global_market_collector'))
             self.assertEqual(METRICS[mid]['status'], 'active')
 
     def test_t1f_field_semantics_documents_economy(self):
@@ -295,7 +298,8 @@ class TestChannelRegistrationChain(unittest.TestCase):
                          | set(NEW9) | set(CN8)
                          | {'US_REAL_GDP', 'SPX_CAPE', 'SPX_PE_TTM',
                             'SPX_PB'}        # Charter6-P1 §2#1 + P2 §2#5/#6
-                         | {'SOFR', 'WALCL'})  # Charter7 P2-3 流动性维
+                         | {'SOFR', 'WALCL'}   # Charter7 P2-3 流动性维
+                         | {'SPX_EPS', 'M2SL'})  # 数据批1(2026-11-10)
 
     def test_t2e_run_weekly_thirteen_steps(self):
         src = open(os.path.join(ROOT, 'run_weekly.py'), encoding='utf-8').read()

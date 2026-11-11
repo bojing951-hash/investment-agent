@@ -204,7 +204,8 @@ skill_path = os.path.join(ROOT, '.agents', 'skills',
 skill = open(skill_path, encoding='utf-8').read()
 n_lines = skill.count('\n') + 1
 check(f"SKILL.md 行数<500(现{n_lines})", n_lines < 500)
-check("十个能力速查标题在册", '十个能力速查' in skill)
+# Charter9 P4: research-map 入册(十能→十一能,等强度锁定速查面在册)
+check("十一个能力速查标题在册(Charter9 增 research-map)", '十一个能力速查' in skill)
 check("views 能力行在册(skill 面)",
       'views' in skill and '机构观点' in skill)
 check("研究地图工作流节在册(Charter8 交付⑧)",

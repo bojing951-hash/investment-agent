@@ -381,7 +381,19 @@ def views_matrix(views_dir=None):
              '期限': d['view_horizon'], '主题': '、'.join(d['subjects']),
              '核心观点数': len(d['core_views']), '标题': d['report_title']}
             for d in res['views']]
+    # Charter9 P4(协调增量: 单源伪共识标注固化为矩阵面): 主题覆盖机构数
+    # ——恰 1 家=单源(伪共识风险: 叙事易把单家观点当共识);确定性计数,
+    # 提名/解读归编排层 Agent(research-map nomination_inputs 同源)
+    inst_of = {}
+    for d in res['views']:
+        for s in d['subjects']:
+            inst_of.setdefault(s, set()).add(d['institution']['name'])
+    subject_coverage = {s: {'n_institutions': len(inst_of.get(s, ())),
+                            'institutions': sorted(inst_of.get(s, ())),
+                            'pseudo_consensus_risk': len(inst_of.get(s, ())) == 1}
+                        for s in subjects}
     return {'rows': rows, 'matrix': matrix, 'subjects': subjects,
+            'subject_coverage': subject_coverage,
             'n_quarantined': len(res['quarantined']),
             'quarantined': res['quarantined'],
             'schema_version': vs.SCHEMA_VERSION}

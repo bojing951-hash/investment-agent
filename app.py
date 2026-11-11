@@ -82,6 +82,27 @@ with st.sidebar:
 # ── 页面①: 全球宏观全景 ─────────────────────────────────────────────
 def page_panorama():
     st.header('全球宏观全景')
+    # Charter9 P4 Web入口: 刷新数据按钮(显式点击才运行,页面加载绝不触发;
+    # 采集=真实网络调用 run_weekly.py,输出尾部如实展示)
+    with st.expander('刷新数据(run_weekly 采集)'):
+        st.caption('点击才运行(真实网络采集,可能数分钟);页面加载不自动执行。')
+        if st.button('运行 run_weekly.py'):
+            import subprocess
+            try:
+                proc = subprocess.run(
+                    [sys.executable, os.path.join(ROOT, 'run_weekly.py')],
+                    capture_output=True, text=True, timeout=1800, cwd=ROOT)
+                tail = '\n'.join((proc.stdout or '').strip().splitlines()[-15:])
+                st.code(proc.returncode and (tail + '\n[stderr]\n' + (proc.stderr or '')[-500:]) or (tail or '(无输出)'),
+                        language='text')
+                if proc.returncode == 0:
+                    st.success('采集完成——刷新页面加载新快照。')
+                else:
+                    st.error(f'采集退出码 {proc.returncode}(见输出尾部;doctor 排查)')
+            except subprocess.TimeoutExpired:
+                st.error('采集超时(30 分钟)——检查数据源连通性/代理。')
+            except OSError as e:
+                st.error(f'无法启动采集: {e}')
     if SNAP is None:
         st.warning('本地无研究快照。请先运行 `python3 run_weekly.py` 完成一次数据采集。')
         return
@@ -240,6 +261,16 @@ def page_views():
     st.subheader('机构 × 主题矩阵')
     st.caption('单元格=该机构该主题的 view 编号(末三位);「—」=未覆盖')
     st.dataframe(vm['matrix'], width='stretch', height=320)
+    # Charter9 P4(协调增量): 单源伪共识标注固化为矩阵面——主题覆盖机构数
+    # 恰 1 家=伪共识风险(叙事易把单家观点当共识);确定性计数,提名归 Agent
+    cov = vm.get('subject_coverage') or {}
+    single = [f"{s}({c['institutions'][0]})" for s, c in cov.items()
+              if c.get('pseudo_consensus_risk')]
+    if single:
+        st.warning('单源主题(伪共识风险,05 节提名原料): ' + '、'.join(single))
+    st.caption('主题机构覆盖: '
+               + ' · '.join(f"{s}×{c['n_institutions']}" for s, c in cov.items())
+               + '(单源=恰 1 家)')
 
     st.subheader('观点清单')
     st.dataframe(vm['rows'], width='stretch', height=360)
@@ -339,6 +370,32 @@ def page_research():
             st.caption(f"层: {q['primary_layer']}(兼取: {draws}) · 面: {q['surface']}")
     except (OSError, ValueError, KeyError) as e:
         st.warning(f'研究十问配置不可用: {e}')
+
+    # Charter9 P4 Web入口: 研究地图面板(research-map 同引擎;零模型)
+    with st.expander('研究地图(十问确定性扇出证据包)', expanded=False):
+        try:
+            import research_map as rm
+            rmap = rm.build_map()
+            ni = rmap.get('nomination_inputs') or {}
+            if ni.get('conflicts'):
+                st.markdown('**机构对撞(04 节提名原料)**')
+                st.table([{'指标': c['metric_id'], '看多': '、'.join(c['bull']),
+                           '看空': '、'.join(c['bear'])}
+                          for c in ni['conflicts']])
+            else:
+                st.caption('机构对撞: 无(forecast 可映射+方向可解析面内)')
+            pc = ni.get('pseudo_consensus_subjects') or []
+            st.caption('单源主题(伪共识风险,05 节提名原料): '
+                       + ('、'.join(pc) if pc else '无'))
+            art = rmap.get('art') or {}
+            clock = rmap.get('observation_clock') or {}
+            st.caption(f"ART-M {'在册 ' + str(art.get('m_table', {}).get('n')) if art.get('m_table', {}).get('present') else '未文件化'}"
+                       f" · ART-FALS {'在册 ' + str(art.get('falsification', {}).get('n')) if art.get('falsification', {}).get('present') else '未文件化'}"
+                       f" · 观察钟 {'在册 ' + str(clock.get('n')) if clock.get('present') else '未建'}"
+                       '(编排层维护;引擎只透传)')
+            st.caption('CLI 同面: `python3 ia_cli.py research-map`')
+        except (OSError, ValueError, KeyError) as e:
+            st.warning(f'研究地图不可用: {e}')
     rows = wd.research_archive_rows(limit=100)
     if not rows:
         st.info('本地暂无研究档案(data/research/research_archive/)。'

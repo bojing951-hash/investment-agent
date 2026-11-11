@@ -27,7 +27,7 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 
 不确定时先跑 `doctor`(只读体检,无副作用)确认环境。
 
-## 十个能力速查
+## 十一个能力速查
 
 | 能力 | 命令 | 用途 | 关键点 |
 |---|---|---|---|
@@ -41,6 +41,7 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 | archive | `... archive save --question "..." [--answer-text ... --as-of T] / list / get --query-id QB-...` | 研究档案存/列/取 | append-only,不覆盖;**save(含六参直存)需本地已有研究快照(先跑过 update/run_weekly),零数据环境 no_snapshot 拒存**;`--note`/`--follow-up-of` 随 research-full sidecar 落档;`--answer-text/--evidence/--statistics/--hypotheses/--open-questions/--as-of` 直存 Agent 完整成果(全过脱敏;`--as-of` 落 research_as_of 位);`list` 见 `has_full`,`get` 返回 `record`+`full` 双视图(成果文本在 `full.answer_text`) |
 | views | `... views list / get --view-id VIEW-... / lint` | 机构观点存储读取(schema v1.1) | 只装载 linter 合规件;隔离件 get 拒绝并给原因(rc=1),lint 出逐条违规明细(rc=1 时有隔离);不依赖快照(信封快照位=null);观点文件零写入(采集归上游,本技能只读) |
 | update | `... update --yes` | 真实运行采集流水线 | **仅用户明确要求时**执行;可能数分钟 |
+| research-map | `... research-map` | 研究地图: 章程§五十问确定性扇出证据包(Charter9) | 每问=五层归属+当前数据面(计数/覆盖/新鲜度)+既有能力命令清单;另附 `nomination_inputs`(机构对撞 conflicts+单源伪共识主题=04/05 节问题集**提名原料**,提名归 Agent 规则非引擎硬编码)+ART-M/ART-FALS 透传+观察钟透传;零模型零网络;缺席面如实 null/警告 |
 
 退出码: `0`=进程成功(注意: research 的诚实拒答也是 0,语义成败看 `ok` 与 `data.status`); `1`=执行错误; `2`=用法错误。输出一律为单个 JSON 对象(stdout)。
 
@@ -96,9 +97,19 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 
 1. **观点采集**(上游): 采集 Agent 把机构公开报告结构化为 `data/institutions/views/VIEW-YYYYMMDD-NNN.json`(schema v1.1: 只存元数据+短引文≤500字符+链接,禁整篇转载;每条观点/预测/假设/证伪条件逐条 `attribution`——**institution_stated(机构明示)与 ai_inferred(AI 推导)不得含糊,这是章程核心红线**;revisions 只追加不覆写)
 2. **装载校验**: `views lint`——违规件被隔离,绝不降级装载;`views list` 看合规清单;`views get --view-id ...` 读单份(引用观点时必须随行 attribution 与 basis)
-3. **确定性验证**: `python3 scripts/view_verifier.py VIEW-YYYYMMDD-NNN`(可选 `--directions '{"SPX":"up"}'`)→ 证据表 = 观点 subjects 映射指标(config/view_metric_map.json)× 最新快照事实 + 1m/3m/1y 区间变动(interval_change 自配对,与 compare 同一 common window 口径);`relation`(supports/against/neutral)仅在**你显式给 directions** 时机械计算——方向语义提取归 Agent 层,verifier 零 AI 判断;映射在册但快照缺席的指标入 `missing`(如实,不猜)
+3. **确定性验证(三型)**: `python3 scripts/view_verifier.py VIEW-YYYYMMDD-NNN --mode A|B|C`(Charter9;缺省=legacy 最新快照行为)→ A=**提出时证据**(≤publish 最近跨日 vintage 快照锚定,切点随行;无该时点 vintage→最新快照截断 DEGRADED 如实)/B=**当前证据更新**(逐指标附 since_publish)/C=**到期验证**(forecast 级判定序: UNPARSEABLE_HORIZON/NOT_YET_TESTABLE/NOT_MACHINE_VERIFIABLE/INSUFFICIENT_DATA/LEVEL_TARGET/supports/against;期限取上界,UBS 双时点取最晚);**成熟度护栏**: 未到期/不可解析一律不判 supports/against;可选 `--directions '{"SPX":"up"}'` → 证据表 = 观点 subjects 映射指标(config/view_metric_map.json)× 最新快照事实 + 1m/3m/1y 区间变动(interval_change 自配对,与 compare 同一 common window 口径);`relation`(supports/against/neutral)仅在**你显式给 directions** 时机械计算——方向语义提取归 Agent 层,verifier 零 AI 判断;映射在册但快照缺席的指标入 `missing`(如实,不猜)
 4. **传导地图引用**: 机制推演引用 `config/transmission_edges.json` 归档研究边——每条边带 `qb_source`(真实 QB 档),r/n/窗口逐字转述不四舍五入;**近零渠道(利率→汇率/风险→黄金/久期→风格等)=本地数据不支持的教科书叙事,不得作方向依据**;E3 机制结论(如 QE 估值传导)不可移植,引用时标【假设】
 5. **落档闭环**: 交叉验证结论按纪律 15(E1/E2/E3)与 16(五行)标注后 `archive save` 六参直存——机构观点(归因清晰)× 引擎数据(口径可溯)形成可追溯研究链
+
+## 编排层工作流(观察钟/ART 登记/问题提名, Charter9)
+
+引擎日历门无对外能力——以下全由**编排层(Agent)**执行,引擎只提供文件面与透传(`research-map`):
+
+1. **观察钟**(data/research/observation_clock.json,编排层维护): 每轮研究先读本档,检查各条目 `deadline`/`trigger`(如"SOFR 突破 X%"或日期到期)——命中即向用户报告并提议后续研究;**引擎绝不代触发**;条目 {id, claim_ref(ART-M id/view_id), metric_id, trigger, deadline, status}
+2. **ART-M 判断表**(data/research/art_m.json): 活跃核心判断文件化(散在报告内→文件化+append 增修+状态迁移 active/degraded/retired);终报告内嵌可接受,文件化便于跨轮维护与观察钟引用
+3. **ART-FALS 证伪登记**(data/research/art_fals.json): 每条 ART-M 的证伪条件登记(falsification_conditions 口径),观察钟条目从这里派生
+4. **04/05 节问题集自动提名**(Agent 规则,非引擎硬编码): 从 `research-map` 的 `nomination_inputs` 读——`conflicts`(同指标多空机构对撞)提名分歧问题;`pseudo_consensus_subjects`(单源主题=恰 1 家机构覆盖)提名伪共识核查问题
+5. **08 节情景覆盖如实披露**: 活跃 ART-M **强制配套条件情景=目标态**;本轮若降级,SCN 节必须如实列**哪些 M 有情景/哪些无**;新 M 的情景生成是研究判断,由 Agent 产,引擎不造
 
 ## 典型研究流程
 
@@ -107,7 +118,8 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 **历史与跨资产比较**: `history --metric A` 确认序列 → `compare --metrics A,B` → 转述相关性(注明口径: 利率 pp、价格 pct)+共同观测窗+警示
 **历史相似对照**: `analog`(拒答时如实转述 refusal 与原因)→ 随行 `disclosure` 固定文案+巧合旗标 → 逐维 z_gap 反读关键差异 → 事后块只作历史记录引用;候选期轨迹用 `history --metric UST_10Y --start ... --end ...` 佐证,事件叙述归【假设】层
 **深入研究**: `research --question "..."` 接地作答 → 需要更多解释时(用户同意)`research --question "..." --explain` → `archive save`
-**机构观点交叉验证**: `views list` → `views get --view-id ...`(随行 attribution/basis)→ `view_verifier.py VIEW-...`(证据表+可选 directions)→ 结合 transmission_edges 归档边写验证结论(纪律 15/16)→ `archive save` 六参直存
+**机构观点交叉验证**: `views list` → `views get --view-id ...`(随行 attribution/basis)→ `view_verifier.py VIEW-... --mode A/B/C`(三型+护栏)→ `view_plausibility.py` 落 VP sidecar(假设级链+六标签最保守聚合)→ 结合 transmission_edges 归档边写验证结论(纪律 15/16)→ `archive save` 六参直存
+**十问研究地图**: `research-map` → 逐问读数据面+命令清单逐项执行 → AI 层问题(RQ3/RQ9)明示 ai_inferred/条件推演 → 冲突/单源主题提名 04/05 节问题 → ART-M/ART-FALS 增修+观察钟检查
 
 ## 已知边界(如实告知用户)
 

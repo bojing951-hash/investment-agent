@@ -1269,6 +1269,38 @@ def cmd_views(args):
 
 
 # ══ 入口 ══════════════════════════════════════════════════════════════
+def cmd_research_map(args):
+    """研究地图(Charter9 P4): 十问确定性扇出证据包(零模型零网络)。
+
+    每问=问题/五层归属+当前确定性数据面+既有能力命令清单;另附
+    nomination_inputs(04/05 节矛盾+单源伪共识提名原料,提名归编排层
+    Agent)/ART-M·FALS 透传/观察钟透传(引擎只透传不代触发)。"""
+    import research_map as rm
+    try:
+        data = rm.build_map(views_dir=getattr(args, 'views_dir', None))
+    except (OSError, ValueError) as e:
+        emit(envelope('research-map', False, {},
+                      error=('map_unavailable', str(e), None)), exit_code=1)
+        return
+    warns = []
+    ni = data.get('nomination_inputs') or {}
+    if ni.get('conflicts'):
+        warns.append(f"机构对撞 {len(ni['conflicts'])} 组指标(04 节提名原料,见 data)"
+                     + '; '.join(c['metric_id'] for c in ni['conflicts'][:8]))
+    if ni.get('pseudo_consensus_subjects'):
+        warns.append('单源主题(伪共识风险,05 节提名原料): '
+                     + '、'.join(ni['pseudo_consensus_subjects'][:11]))
+    art = data.get('art') or {}
+    if not art.get('m_table', {}).get('present'):
+        warns.append('ART-M 未文件化(终报告内嵌可接受;编排层可建 '
+                     'data/research/art_m.json)')
+    clock = data.get('observation_clock') or {}
+    if not clock.get('present'):
+        warns.append('观察钟未建(编排层维护 data/research/'
+                     'observation_clock.json;引擎日历门无对外能力)')
+    emit(envelope('research-map', True, data, warns))
+
+
 def build_parser():
     p = argparse.ArgumentParser(
         prog='ia_cli.py',
@@ -1362,6 +1394,12 @@ def build_parser():
                          '不可达≠伪造,只披露不隔离)')
     vw.add_argument('--url-timeout', type=int, default=10,
                     help='--verify-urls 单请求超时秒数(默认 10)')
+
+    rmp = sub.add_parser('research-map',
+                         help='研究地图: 章程§五十问确定性扇出证据包'
+                              '(数据面+命令清单+提名原料+ART/观察钟透传;零模型)')
+    rmp.add_argument('--views-dir', default=None,
+                     help='views 目录注入缝(默认 data/institutions/views;测试用)')
     return p
 
 
@@ -1371,7 +1409,7 @@ def main(argv=None):
     handlers = {'doctor': cmd_doctor, 'update': cmd_update, 'overview': cmd_overview,
                 'changes': cmd_changes, 'history': cmd_history, 'compare': cmd_compare,
                 'analog': cmd_analog, 'research': cmd_research, 'archive': cmd_archive,
-                'views': cmd_views}
+                'views': cmd_views, 'research-map': cmd_research_map}
     if args.capability == 'archive':
         if args.action == 'save' and not args.question:
             emit(envelope('archive', False, {},

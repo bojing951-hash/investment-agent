@@ -4,11 +4,18 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-11 (HKT, R2 后)
+## 快照: 2026-11-11 (HKT, 用户「全部审批通过」四卡点执行后)
 
-- **基线**: main = `cdffebe`(v0.9.0-alpha,Charter 9「全球宏观研究闭环与一键研究」当日闭合);
-  Release 441388150 上线,CI 42983226791 绿 = main 基线 126 槽。
-- **LIVE(阿里云)**: 仍跑 v0.7.1 面;升级新面 = 用户保留卡点③,待批。
+- **基线**: main = `be8dabd`(v0.10.0-alpha,长期自主研发第一波 R1-R4+审计闭环);
+  Release 441746111 上线,CI 43030767965 绿 = main 基线 **128 槽**(CI 口径=tests/;
+  全仓口径 129 含根 test_env.py 环境探测)。merge --no-ff dev/rd-r2-research-orchestrator,
+  分支链 53aa4fe→946625b→ac40ef8→cb98106→fc18590→1721ecc→b9d5cf6→be8dabd。
+- **LIVE(本地 Mac launchd)**: **已部署 v0.10.0 面**(2026-11-11 卡点③执行毕)。
+  git archive be8dabd 覆盖提取+三 key 重注入 env_config 默认位+.env/data/logs/output/
+  archive 全保护;冒烟绿(changes/research-map 10问/research-run 14 步 0 败/
+  report_generator+app 导入/launchd 两任务在场)。已知: weekly exit2=既有 Gate A
+  数据缺口(ZQ_IMPLIED_AVG 采集缺席,10-31 与 11-07 同因)非部署回归——采集面排查
+  已列 RESUME R5 候选③。明晨 07:00 daily=新面首跑。key 备份=~/.ia-live-deploy-backup/。
 - **引擎**: 停于唯一日历门——F 补证轮观察钟 2026-12-05 满自动触发,此前无排程任务。
 - **长期研发章程**: 2026-11-11 用户《总指令》原文已落位 `PRODUCT_GOAL.md`;
   《长期自主研发系统启动指令》原文已落位 `RUN_MANDATE.md`(自主循环/环境自检/AC11–AC12)。
@@ -68,6 +75,14 @@ Charter 7 能力建设(v0.7/v0.7.1)→ Charter 8 机构观点交叉验证(v0.8)�
 - 数据缺口台账 18 项(`../P2_DATA_GAP_LEDGER.md`);HY_OAS 族 = 源端 3 年授权窗如实注记。
 - 历史遗留(`../REMAINING_ISSUES.md`,2026-10-17 版): P0 空,余 P1 观察项。
 
-## 用户保留卡点(未经用户亲自批准不得动)
+## 用户保留卡点(状态: 2026-11-11「全部审批通过」)
 
-① 封版合并 main(含本章程初始化分支) ② 新数据源凭证/付费 ③ LIVE 部署。
+- ① 封版合并 main — **已批准已执行**(本波 R1-R4=be8dabd+v0.10.0-alpha+Release 441746111)。
+  后续波次合并 main 仍逐次请批(红线不变)。
+- ② 新数据源凭证/付费 — **原则获批**,暂无即需项;HY_OAS ICE BofA 3 年授权窗等
+  实际采购仍按需逐次报批。
+- ③ LIVE 部署 — **已批准已执行**(v0.10.0 面,见快照)。
+- ④ 无头自主运行 — **已批准,落地被权限分类器拦**(启动器提示词文件写入=
+  [Create Unsafe Agents] 类别);待用户在场放行后建
+  (方案: launchd 每 4h `claude -p` 单轮+STOP 文件+--max-budget-usd 界+允许清单
+  禁 push/ssh/curl/npm/pip、合并 main 与付费仍留用户)。

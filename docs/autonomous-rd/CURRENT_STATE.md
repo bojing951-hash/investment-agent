@@ -21,6 +21,14 @@
   (L1 每行挂 snapshot fact_id/L2 挂 VP-id),实体映射零命中=如实 unmapped 不猜,
   归档默认关。入口 `ia_cli.py research-run --question …`。自测 31 判定绿;R1 无回归;
   **全套回归 129/129 exit 0**(全仓口径=tests/128+根 test_env.py 环境探测脚本)。
+  **R2 独立审计已收口**(七维对抗: 真执行面/诚实面/证据索引/实体映射/红线/测试真实性/
+  Skill 对照——无 BLOCKER,2 MAJOR+4 MINOR+5 NIT;证据索引实测对上快照、红线全过、
+  31 判独立;报告 `/tmp/r2_audit_report.md`)。**R2.1 已修**(MAJOR-1 S7 gate 改取
+  compare 对齐门 `data.alignment.research_mode_gate`+记 gate_source,修死代码;
+  MAJOR-2 L4 五行回归纪律16 权威模板+L3 补 E1/E2/E3 指路+research_map RQ9 统一;
+  MINOR-1 analog 诚实拒答豁免 run_ok;MINOR-2 compare 截断披露;MINOR-3 台账语义列)。
+  套件 38 判定绿(+7 回归);R1 50/50、research_map 32/32 无回归。剩余 MINOR-4+5 NIT
+  转 OPEN_ISSUES。
 - **R1(三型证据落库)已完成+审计收口**: 分支 `dev/rd-r1-stage-evidence` @ `26d4ef7`——
   VP sidecar v1.1(阶段A/B 结构化+stage_labels,mode C 契约零变动)、research-map 命令清单
   可执行化(14 条实解析)、页③三阶段证据披露;本地 17 份 VP 重建(A面 12 INSUFFICIENT/

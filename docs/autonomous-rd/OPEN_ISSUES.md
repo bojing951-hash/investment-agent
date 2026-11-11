@@ -20,6 +20,11 @@
 
 ## 技术待办(不阻塞)
 
+- **[R2 审计 MINOR-4] S9 与 Skill 第 9 步错位**: 编排器 S9=views lint+VP 装载,
+  Skill 第 9 步=解释标注(四层+竞争解释)——现为确定性替身,补作 Agent 落位时对齐。
+- **[R2 审计 NIT×5]** 分钟级时间戳(同分钟两跑目录碰撞面)/vp_face root 透传面/
+  economies 默认 US+CN 未点名披露/异常捕获面(run_step 信封解析宽捕获)/commit 措辞——
+  均不阻塞,下轮顺手清。
 - **[R1 审计 MINOR-4] vintage 二次过滤缺失**: vintage 路径信任 vintage 快照,无 obs≤publish
   二次过滤(快照若含未来观测即漏);今日干净——vintage 累积落地时一并加护。
 - **[R1 审计 MINOR-5] lineage 链坍缩**: 反复重建使 `prior_generated_by` 第二次起指向 build_vp

@@ -23,6 +23,8 @@
 | 11-11 | R1 独立审计 | 对抗式 6 维(无前视/标签纪律/方向归因/契约真实性/可复算性/B面抽验) | (后台 Agent 对 26d4ef7 diff) | 六维全 PASS,交付物清洁;无 BLOCKER,2 MAJOR+6 MINOR+3 NIT |
 | 11-11 | R1.1 审计整改 | MAJOR-1 入口日期归一 _norm_ymd;MAJOR-2 linked_forecasts 定 1-based 单基+记基制;MINOR-3 词表否定护栏+英文词边界;NIT-9/10/11(判定数/死代码/n 硬编码/定基夹具) | dev/rd-r1-stage-evidence(本提交) | 套件 50 判定全绿;受影响 8 文件全 exit 0;对照实验=17 份 VP 语义零差异 |
 | 11-11 | R2 一键研究真执行 | research_orchestrator 十一步确定性管线(S1 分解→S11 归档,零模型,每步真 ia_cli 子进程+信封留档,ok/semantic_ok 分记,L3/L4 恒 declared-not-produced,逐数证据索引)+`ia_cli research-run`;并入 R1.1(merge 946625b) | dev/rd-r2-research-orchestrator@946625b 后 | 自测 31 判定绿;R1 无回归(50 判定);全套回归 129/129 exit 0(全仓口径=tests/128+根 test_env.py,后者为环境探测脚本,外部连通面 11/14 与研发面无关) |
+| 11-11 | R2 独立审计 | 七维对抗(真执行面/诚实面/证据索引/实体映射/红线/测试真实性/Skill 对照) | (后台 Agent 对 ac40ef8 diff) | 无 BLOCKER;2 MAJOR+4 MINOR+5 NIT;主体成立(证据索引实测对上快照/红线全过/31 判独立) |
+| 11-11 | R2.1 审计整改 | MAJOR-1 S7 gate 改取 compare 对齐门+记 gate_source;MAJOR-2 L4 五行回归纪律16 权威模板+L3 补 E1/E2/E3 指路+research_map RQ9 统一;MINOR-1 诚实拒答豁免 run_ok;MINOR-2 compare 截断披露;MINOR-3 台账语义列 | dev/rd-r2-research-orchestrator(本提交) | 套件 38 判定绿(+7 回归);R1 50/50 与 research_map 32/32 无回归 |
 
 ## 排队中
 

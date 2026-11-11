@@ -128,6 +128,46 @@ def main():
                   isinstance(gate.get('gate'), dict)
                   and 'realtime_info_set' in gate['gate'])
 
+            # ── R2.1 修复回归(E席审计 MAJOR-1/2 + MINOR-1/2/3) ──────
+            s5 = next(s for s in rep['steps'] if s['step'] == 'S5_compare')
+            s5_gate = (((s5.get('envelope') or {}).get('data') or {})
+                       .get('alignment') or {}).get('research_mode_gate')
+            check("R2.1 MAJOR-1: S7 gate=S5 对齐门逐字段相等(修复前取错来源)",
+                  s5_gate is not None and gate['gate'] == s5_gate
+                  and gate.get('gate_source')
+                  == 'S5_compare:data.alignment.research_mode_gate',
+                  f"src={gate.get('gate_source')}")
+            l4n = rep['layers']['L4_条件情景层']['note']
+            check("R2.1 MAJOR-2: L4 五行=纪律16 权威模板(旧'前提/机制/路径'清除)",
+                  all(k in l4n for k in ('情景', '置信层级', '敏感变量',
+                                         '证伪指标', '触发条件'))
+                  and '前提/机制/路径' not in l4n)
+            l3n = rep['layers']['L3_AI推断层']['note']
+            check("R2.1 MAJOR-2: L3 补 E1/E2/E3+四层标注指路(纪律15/4)",
+                  all(k in l3n for k in ('E1', 'E2', 'E3', '四层标注')))
+            check("R2.1 MINOR-1: 诚实拒答豁免(合成: 拒答步不翻 run_ok)",
+                  ro._run_ok([{'step': 'X', 'executed': True, 'ok': False,
+                               'honest_refusal': True}]) is True
+                  and ro._run_ok([{'step': 'X', 'executed': True,
+                                   'ok': False}]) is False)
+            check("R2.1 MINOR-1: 本机 analog 未拒答则无豁免标记",
+                  all('honest_refusal' not in s or s.get('ok')
+                      for s in rep['steps']))
+            md = open(os.path.join(rep['report_dir'], 'report.md'),
+                      encoding='utf-8').read()
+            check("R2.1 MINOR-3: report.md 台账含语义列(进程/语义分面)",
+                  '[OK |语义✔] S1_decompose' in md.replace('  ', ' ')
+                  or ('语义✔' in md and '## 步骤台账' in md))
+
+            rep3 = ro.run_research(
+                "10年期美债收益率 SPX 和 美元指数 走势对比",
+                root=ROOT, out_dir=os.path.join(tmp, 'three'))
+            s5b = next(s for s in rep3['steps'] if s['step'] == 'S5_compare')
+            check("R2.1 MINOR-2: 命中>2 时 compare 截断披露(不静默)",
+                  s5b.get('executed') and s5b.get('note')
+                  and '前 2' in s5b['note'] and 'UST_10Y' in s5b['note'],
+                  f"note={s5b.get('note')}")
+
             # [4] 四层区分
             section("4 四层区分(零模型诚实面)")
             l3 = rep['layers']['L3_AI推断层']

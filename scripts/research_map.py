@@ -145,7 +145,8 @@ QUESTION_COMMANDS = {
             'ia_cli.py compare --metrics A_ID,B_ID'],
     'RQ7': ['ia_cli.py analog', 'ia_cli.py archive list'],
     'RQ8': ['ia_cli.py research-map', '(面: edges/mechanism——map 输出内含)'],
-    'RQ9': ['(Agent 条件推演五行: 前提/机制/路径/观察指标/推翻条件;'
+    'RQ9': ['(Agent 条件推演五行,纪律16 权威模板: 情景[假设非预测]/'
+            '资产方向判断[方向+置信层级]/敏感变量/证伪指标/触发条件;'
             '不冒充预测)'],
     'RQ10': ['ia_cli.py views get --view-id VIEW-…',
              '(要点: falsification_conditions 字段;观察钟=编排层检查 '

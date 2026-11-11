@@ -78,6 +78,13 @@ def skipped_step(name, note):
             'exit_code': None, 'skipped_reason': note, 'envelope': None}
 
 
+def _run_ok(steps):
+    """进程层总判: 全部已执行步骤 ok;诚实拒答步骤豁免(R2.1 MINOR-1,
+    E席审计——analog 短历史拒答是引擎正确行为,不是管线失败)。"""
+    return all(s.get('ok') for s in steps
+               if s.get('executed') and not s.get('honest_refusal'))
+
+
 def map_entities(question, reg):
     """确定性实体映射: 指标(metric_id/display_name 折叠子串)+经济体(中文标签反查)。
 
@@ -187,29 +194,62 @@ def run_research(question, root=None, archive=False, out_dir=None,
         steps.append(run_step('S5_compare',
                               ['compare', '--metrics',
                                ','.join(hist_metrics[:2])], ia_timeout))
+        # R2.1 MINOR-2(E席审计): compare 仅取命中前 2(注册表序,确定性;
+        # 非问题重点序)——如实披露,不静默截断
+        if len(hist_metrics) > 2:
+            steps[-1]['note'] = (f"命中 {len(hist_metrics)} 个指标,"
+                                 f"compare 仅取注册表序前 2("
+                                 f"{','.join(hist_metrics[:2])});"
+                                 f"其余 {','.join(hist_metrics[2:])} "
+                                 f"以 L1 事实行呈现,如需对比另行单跑")
     else:
         steps.append(skipped_step(
             'S5_compare', '命中指标不足 2 个,无可对齐自配对(如实跳过)'))
 
     # ── S6 历史相似结构(analog;短历史诚实拒答透传) ─────────────────
     steps.append(run_step('S6_analog', ['analog'], ia_timeout))
+    # R2.1 MINOR-1(E席审计): analog 数据面诚实拒答(rc=1,engine _refuse)
+    # 是正确行为不是管线失败——标记豁免,run_ok 不因它翻 False。
+    _s6 = steps[-1]
+    _err = ((_s6.get('envelope') or {}).get('error') or {})
+    if (not _s6.get('ok')
+            and _err.get('kind') in ('insufficient_history',
+                                     'insufficient_candidates',
+                                     'anchor_not_complete')):
+        _s6['honest_refusal'] = True
+        _s6['note'] = (f"诚实拒答(engine: {_err.get('kind')}),"
+                       f"run_ok 豁免: {_err.get('message')}")
 
     # ── S7 research_mode_gate(从 compare/analog 信封提取,无独立命令) ─
-    gate = None
+    # R2.1 MAJOR-1(E席审计): gate 两处来源语义不同——compare 信封
+    # data.alignment.research_mode_gate=对齐研究门(权威,本步对象);
+    # analog 信封 data 顶层=锚点月窗门(另一语义)。旧实现只探顶层两处,
+    # compare 对齐门恒漏(死代码),错取 analog 门甚至落空。现按优先级取并
+    # 记 gate_source,可溯。
+    gate, gate_src = None, None
     for s in steps:
-        env = s.get('envelope')
-        if isinstance(env, dict):
-            g = ((env.get('data') or {}).get('research_mode_gate')
-                 if isinstance(env.get('data'), dict) else None)
-            if g is None:
-                g = env.get('research_mode_gate')
+        if s['step'] != 'S5_compare':
+            continue
+        d = (s.get('envelope') or {}).get('data')
+        g = (d.get('alignment') or {}).get('research_mode_gate') \
+            if isinstance(d, dict) else None
+        if g is not None:
+            gate, gate_src = g, 'S5_compare:data.alignment.research_mode_gate'
+    if gate is None:
+        for s in steps:
+            if s['step'] != 'S6_analog':
+                continue
+            d = (s.get('envelope') or {}).get('data')
+            g = d.get('research_mode_gate') if isinstance(d, dict) else None
             if g is not None:
-                gate = g
-                break
+                gate, gate_src = g, 'S6_analog:data.research_mode_gate'
+    gate_note = None
+    if gate_src == 'S6_analog:data.research_mode_gate':
+        gate_note = 'analog 锚点月窗门(compare 未产出对齐门——命中<2 或被拒)'
     steps.append({'step': 'S7_mode_gate', 'executed': True, 'ok': gate is not None,
-                  'gate': gate,
-                  'note': None if gate else 'compare/analog 信封未含 gate'
-                          '(本轮无可比对/被拒答)——如实缺席,不编造'})
+                  'gate': gate, 'gate_source': gate_src, 'note': gate_note or
+                  (None if gate else 'compare/analog 信封未含 gate'
+                          '(本轮无可比对/被拒答)——如实缺席,不编造')})
 
     # ── S8 接地问答(ia_cli research;archive 开关在此一次性落档) ────
     qa_argv = ['research', '--question', question]
@@ -247,12 +287,21 @@ def run_research(question, root=None, archive=False, out_dir=None,
         'L3_AI推断层': {
             'produced': False,
             'note': '零模型管线: 本层(矛盾综合/推断)须编排层 Agent 补作,'
-                    'attribution=ai_inferred——本管线绝不代写',
+                    'attribution=ai_inferred——本管线绝不代写。补作纪律: '
+                    '四层标注(事实/推断/假设/尚未验证)+并列竞争性解释'
+                    '(Skill 纪律4/第9步);机制链每环标 E1(引擎直接可验证)/'
+                    'E2(部分支持,缺环明写【假设】)/E3(纯叙事,须给证伪指标)'
+                    '(纪律15)',
         },
         'L4_条件情景层': {
             'produced': False,
-            'note': '条件推演五行(前提/机制/路径/观察指标/推翻条件)归编排层'
-                    'Agent;不冒充预测——本管线绝不代写',
+            # R2.1 MAJOR-2(E席审计): 五行以 Skill 纪律16 权威模板为准
+            # (旧措辞"前提/机制/路径"系 research_map 历史漂移,已一并统一)
+            'note': '条件推演五行(纪律16: 情景[明写假设非预测]/资产方向判断'
+                    '[方向+置信层级]/敏感变量[1-2 个引擎指标]/证伪指标'
+                    '[可观测阈值]/触发条件[可观测条件+时限];单一情景不得'
+                    '单独呈现,至少并列基准与反例)归编排层 Agent;'
+                    '不冒充预测——本管线绝不代写',
         },
     }
 
@@ -291,7 +340,8 @@ def run_research(question, root=None, archive=False, out_dir=None,
     if ent['note']:
         notes.append(ent['note'])
 
-    run_ok = all(s.get('ok') for s in steps if s.get('executed'))
+    # R2.1 MINOR-1: 诚实拒答步骤(如 S6 analog 短历史拒答)豁免出 run_ok
+    run_ok = _run_ok(steps)
     report = {
         'schema_version': '2.0',
         'pipeline_version': PIPELINE_VERSION,
@@ -360,8 +410,18 @@ def _render_md(r):
     lines += ['', '## 步骤台账', '']
     for s in r['steps']:
         tag = 'OK ' if s.get('ok') else ('SKIP' if not s.get('executed') else 'FAIL')
+        # R2.1 MINOR-3: 语义面单列(进程 ok ≠ 语义产出;诚实拒答/如实
+        # unmapped 不与真失败混渲)
+        if not s.get('executed'):
+            sem = '—'
+        elif s.get('semantic_ok') is True:
+            sem = '语义✔'
+        elif s.get('honest_refusal'):
+            sem = '诚实拒答'
+        else:
+            sem = '语义✗'
         extra = s.get('skipped_reason') or s.get('note') or ''
-        lines.append(f"- [{tag}] {s['step']} {extra}")
+        lines.append(f"- [{tag}|{sem}] {s['step']} {extra}")
     lines += ['', f"## 证据索引({len(r['evidence_index'])} 行)", '']
     for e in r['evidence_index'][:60]:
         lines.append(f"- {e['kind']}:{e['ref']}"

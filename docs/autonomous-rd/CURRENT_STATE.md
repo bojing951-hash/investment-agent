@@ -4,7 +4,44 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-12 (HKT, R10 tushare 月度缓存轮·无头自主执行)
+## 快照: 2026-11-12 (HKT, R11 子源级注记细化轮·无头自主执行)
+
+- **R11(Gate A noncore_missing 子源级注记细化,RESUME 3①=P2 台账 R10 候选①)
+  已完成**: 分支 `dev/rd-r11-subsource-missing` @`1d135d7`(自 main=14b1590
+  切出;操作者已合并 R10 并发布 v0.13.0-alpha)——
+  **根因**: 「来源文件在场而指标缺席(采集遗漏)」为文件级泛化文案,BBK 源站
+  断连(READ_FAIL)/白名单域未采(MISSING)这类诚实子源缺席被误标"采集遗漏";
+  ea/jp 采集器日档已持久化子源级 sources_status,信息在档引擎未用。
+  **修复**: registry **v2.8.2→v2.8.3** 新增可选字段 `source_key`(指标→采集档
+  内子源状态键,接线 7 条: ECB_DFR/ECB_MRO/BUND_10Y/BUND_2Y/EA_HICP_YOY/
+  JP_CPI_TOKYO_YOY/NIKKEI225);`_channel_subsource_map`(可信路径+sha256 一致
+  才采信,只读不加信,单次重算共享缓存)+`_missing_reason_file_present`
+  三分支分类: 子源非 EXACT=子源缺席(非采集遗漏)/子源 EXACT 而缺席=采集遗漏
+  (采集器已取到而事实未生成)/证据不可得=诚实兜底「采集遗漏或子源缺席不可
+  区分」(不再无证据断言"采集遗漏")。**契约零变动**: noncore_missing 成员/
+  Gate 状态/门核验链不变(套件[5]对照锁+真实快照改前改后双跑复证)。
+  **测试**: 新套件 `tests/test_rd_r11_subsource_missing.py` 24 判定绿(注册表
+  面/READ_FAIL·MISSING·EXACT 三态/兜底两路/契约锁/单元面/MD 渲染);
+  版本锁 10 处/9 文件随升+话术断言 4 处随升;**全仓 tests/ 131 文件
+  131 exit 0**(基线 130+新 1,零环境性 FAIL)。
+  **真实数据复证**: 真实快照 20261112_v2/20261110_v5 改前(14b1590)改后
+  双模块同参 recompute——effective/core_missing/noncore_missing/gate_status
+  全零变动;话术分化正中诉求: BUND_10Y/2Y→子源缺席(ea 档 BBK=READ_FAIL)/
+  JP_CPI_TOKYO_YOY→子源缺席(jp 档 MISSING)/CN_OMO_7D/CN_SF_FLOW→诚实兜底。
+  **独立审计已收口**(未参与开发的 general-purpose 席,四维对抗: 代码正确性
+  [自写 33 项对抗测试含 FALLBACK 旧档/sha 缺失/路径成分/缓存串扰全绿]/
+  诚实纪律[7 条 source_key 与采集器档内键逐一核对]/契约不变性[静态+动态
+  8 份真实快照×双模式 15 字段零失配+下游 7 消费点无比对 detail 断言]/
+  测试真实性[变异测试证明契约锁有牙]=**四维全 PASS,零 BLOCKER 零 MAJOR**;
+  MINOR=japan 通道 BOJ_POLICY_RATE/JGB_* 未接 source_key 时兜底文案"档内无
+  记录"失准(实为注册表缺映射,方向保守零裁决影响未触发,登记台账后续补)
+  /NIT=词汇表外子源状态串仍入"源端不可得"分支[原始值已内插,无害]。
+  终判=**可并入**)。**CAPABILITY_MATRIX 无差距变动**(披露精度硬化,非覆盖面
+  增量)。
+- **R11 波次毕,待操作者合并发布**(无头权限面无推送能力);v0.13.0 LIVE
+  同步仍待用户终端亲跑或加白名单(R10 轮遗留,分类器拦)。
+
+## 前一快照: 2026-11-12 (HKT, R10 tushare 月度缓存轮·无头自主执行)
 
 - **R10(采集器级缓存硬化,RESUME 2②)已完成**: 分支 `dev/rd-r10-tushare-cache`
   @`68469f5`(自 main=3fcf263 切出)——

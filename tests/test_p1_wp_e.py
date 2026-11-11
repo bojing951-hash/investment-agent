@@ -234,7 +234,7 @@ class T1RegistryV230(unittest.TestCase):
     def test_t01_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1): 94+8→102/93+8→101/2.2.0→2.3.0/CN 10→18
         self.assertEqual(len(REG['metrics']), 110)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL)
-        self.assertEqual(REG['version'], '2.8.2')  # R6-D1(2026-11-11) CPI/PPI 换源;数据批1(2026-11-10) 2.7.0→2.8.0
+        self.assertEqual(REG['version'], '2.8.3')  # R11(2026-11-12) source_key 注记细化;曾升 2.8.2(R6-D1 换源)/2.8.0(数据批1)
         self.assertEqual(sum(1 for m in REG['metrics']
                              if m.get('status') == 'active'), 108)  # 数据批1 +SPX_EPS/M2SL
         agg = {}

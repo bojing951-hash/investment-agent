@@ -235,6 +235,23 @@ def page_views():
                 f"期限 {doc['view_horizon']} · 来源类型 {doc['source_type']}")
     st.markdown(f"[原文链接]({doc['source_url']}) · 存储纪律: 元数据+短引文+链接"
                 f"(quote≤500 字符)")
+    # Charter9 P0-2: VP sidecar 验证标签(独立于 views v1.1;编排层写入,引擎校验)
+    import view_plausibility as vpl
+    vp, vp_reason = vpl.load_vp(sel['view_id'])
+    if vp is not None:
+        vp_ok, vp_errs = vpl.validate_vp(vp, doc)
+        if vp_ok:
+            st.markdown(f"**验证标签: {vp['view_label']}**(假设级链六标签最保守"
+                        "聚合,裁定④;as_of "
+                        f"{vp.get('as_of', '—')})")
+            st.table(vpl.vp_badge_rows(vp))
+            st.caption('VP sidecar=data/institutions/verification/'
+                       'VP-*.json(不动 views 档);判定依据= view_verifier '
+                       '--mode C 机械 verdict 的标签映射')
+        else:
+            st.warning('VP sidecar 校验失败,不入面: ' + ';'.join(vp_errs[:3]))
+    else:
+        st.caption(f'验证标签: 暂无({vp_reason})')
     for i, cv in enumerate(doc['core_views'], 1):
         badge = att_badge.get(cv['attribution'], cv['attribution'])
         st.markdown(f"**观点{i}** [{badge} · {cv['basis']}] {cv['statement']}")
@@ -246,6 +263,22 @@ def page_views():
                    '期限': f['horizon'],
                    'attribution': att_badge.get(f['attribution'], f['attribution'])}
                   for f in doc['forecasts']])
+    # Charter9 P0-2 页③渲染修复: mechanism_steps/evidence_cited 在 schema v1.1
+    # 为必填采集面,此前单份详情从未渲染(工程遗漏,非数据缺席)
+    if doc['mechanism_steps']:
+        st.markdown('**传导机制(机构自述)**')
+        for i, ms in enumerate(doc['mechanism_steps'], 1):
+            badge = att_badge.get(ms.get('attribution'), ms.get('attribution'))
+            st.markdown(f"{i}. [{badge}] {ms['step']}")
+            if ms.get('quote'):
+                st.caption(f"原文佐证: “{ms['quote']}”")
+    if doc['evidence_cited']:
+        st.markdown('**引用证据(机构自述)**')
+        for ec in doc['evidence_cited']:
+            badge = att_badge.get(ec.get('attribution'), ec.get('attribution'))
+            st.markdown(f"- [{badge}] {ec['statement']}")
+            if ec.get('quote'):
+                st.caption(f"原文佐证: “{ec['quote']}”")
     for title, key in (('关键假设', 'key_assumptions'), ('风险因素', 'risk_factors'),
                        ('证伪条件', 'falsification_conditions')):
         items = doc[key]

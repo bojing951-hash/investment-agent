@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "source": "章程§五研究十问(协调裁定⑤ 2026-11-11: 页4十问=章程§五原文十条,五层区分)",
+  "layers": ["客观事实", "机构观点", "AI推断", "历史统计", "条件情景"],
+  "layer_note": "五层=答案内容层(区分归因,不混装): 客观事实=本地快照/序列可核;机构观点=views 档采集原文(明示 attribution);AI推断=Agent 综合判断(须明示 ai_inferred 不冒充机构观点);历史统计=研究档案 E1/E2 级;条件情景=条件推演(不冒充预测)",
+  "questions": [
+    {
+      "id": "RQ1",
+      "text": "当前全球经济处于什么环境?",
+      "primary_layer": "客观事实",
+      "draws": ["历史统计"],
+      "surface": "页①指标多窗口表+经济体维度矩阵;ia_cli overview"
+    },
+    {
+      "id": "RQ2",
+      "text": "当前最重要的宏观变化是什么?",
+      "primary_layer": "客观事实",
+      "draws": [],
+      "surface": "页①指标多窗口表(1m/3m/1y 变化);ia_cli changes"
+    },
+    {
+      "id": "RQ3",
+      "text": "当前的主要矛盾是什么?",
+      "primary_layer": "AI推断",
+      "draws": ["客观事实", "机构观点"],
+      "surface": "Agent 综合判断(须明示 ai_inferred;基于页①证据+页③观点分歧)"
+    },
+    {
+      "id": "RQ4",
+      "text": "主要机构如何理解当前环境?",
+      "primary_layer": "机构观点",
+      "draws": [],
+      "surface": "页③机构观点矩阵;ia_cli views lint/list"
+    },
+    {
+      "id": "RQ5",
+      "text": "机构之间存在哪些分歧?",
+      "primary_layer": "机构观点",
+      "draws": [],
+      "surface": "页③矩阵交叉+VP sidecar 验证标签;单源伪共识标注(P4 矩阵列)"
+    },
+    {
+      "id": "RQ6",
+      "text": "客观证据支持什么判断?",
+      "primary_layer": "客观事实",
+      "draws": ["历史统计"],
+      "surface": "页①数据+页②传导边(E1/E2);view_verifier --mode A/B/C"
+    },
+    {
+      "id": "RQ7",
+      "text": "历史上有哪些相似时期?",
+      "primary_layer": "历史统计",
+      "draws": ["客观事实"],
+      "surface": "研究档案 analog 类查询(QB 链);ia_cli research"
+    },
+    {
+      "id": "RQ8",
+      "text": "传导机制如何运作?",
+      "primary_layer": "历史统计",
+      "draws": ["客观事实"],
+      "surface": "页②传导地图(边=已归档真实研究,机制层结论仍成立/已不适用/不可验)"
+    },
+    {
+      "id": "RQ9",
+      "text": "条件情景如何推演?",
+      "primary_layer": "条件情景",
+      "draws": ["客观事实", "机构观点"],
+      "surface": "条件推演五行(前提/机制/路径/观察指标/推翻条件;不冒充预测)"
+    },
+    {
+      "id": "RQ10",
+      "text": "哪些数据会推翻当前判断?",
+      "primary_layer": "条件情景",
+      "draws": ["客观事实"],
+      "surface": "证伪条件清单(views falsification_conditions+研究档案);观察钟(编排层)"
+    }
+  ]
+}

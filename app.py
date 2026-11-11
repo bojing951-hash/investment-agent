@@ -186,6 +186,28 @@ def page_transmission():
                    '备注': e['note']} for e in near],
                  width='stretch', height=360)
 
+    # Charter9 P3: 行选择→单边详情面板+验证徽标(qb_source 存在性核验,
+    # source_verifier 四状态;干净 clone 归档缺席=PARTIAL 如实非通过)
+    st.subheader('单边详情(行选择)')
+    all_edges = strong + near
+    if all_edges:
+        sel_e = st.selectbox(
+            '选择传导边', range(len(all_edges)),
+            format_func=lambda i: (f"{'实线' if all_edges[i]['category'] == 'strong' else '虚线'}"
+                                   f" · {all_edges[i]['from']} × {all_edges[i]['to']}"
+                                   f" · {all_edges[i]['channel_label']}"
+                                   f"(r={all_edges[i]['r']})"))
+        e = all_edges[sel_e]
+        badge = wd.edge_verification_badge(e['qb_source'])
+        st.markdown(
+            f"**{e['from']} × {e['to']}** · {e['channel_label']}\n\n"
+            f"- r = {e['r']}(变化对 n={e['n']},窗 {e['window']})\n"
+            f"- 证据级 {e['evidence_level']} · 类别 {e['category']}\n"
+            f"- 源档案 {e['qb_source']} — {badge['badge']}: {badge['detail']}\n"
+            f"- {e['note']}")
+        st.caption(f"验证徽标: {badge['badge']}——`python3 scripts/source_verifier.py"
+                   " --edges` 全量核验+复算(干净 clone 归档缺席=部分核验如实)")
+
     ss = doc.get('structural_summary') or {}
     if ss:
         st.info(f"**结构性结论({ss['qb_source']})**: {ss['text']}")
@@ -302,6 +324,21 @@ def page_research():
     st.header('独立研究结论')
     st.caption('本地研究档案(QB 链,append-only)——缓存研究成果展示,零模型调用;'
                '页面不发起任何 AI 请求。')
+    # Charter9 P3: 研究十问结构(章程§五原文十条,裁定⑤;config 驱动,
+    # 五层区分=答案内容层归因,不混装)
+    try:
+        rq = wd.research_questions()
+        layer_icon = {'客观事实': '📊', '机构观点': '🏛', 'AI推断': '🤖',
+                      '历史统计': '📜', '条件情景': '🔀'}
+        st.subheader(f"研究十问(章程§五;{rq['n']} 问 × {len(rq['layers'])} 层)")
+        st.caption(rq['layer_note'])
+        for q in rq['questions']:
+            draws = '、'.join(q['draws']) or '—'
+            st.markdown(f"{layer_icon.get(q['primary_layer'], '')} "
+                        f"**{q['id']}** {q['text']}")
+            st.caption(f"层: {q['primary_layer']}(兼取: {draws}) · 面: {q['surface']}")
+    except (OSError, ValueError, KeyError) as e:
+        st.warning(f'研究十问配置不可用: {e}')
     rows = wd.research_archive_rows(limit=100)
     if not rows:
         st.info('本地暂无研究档案(data/research/research_archive/)。'
@@ -327,8 +364,9 @@ def page_research():
         '- 专题研究走 Agent Native: 经 global-macro-research Skill 调用 '
         '`ia_cli.py` 十个能力(doctor/update/overview/changes/history/compare/'
         'analog/research/archive/views)组合研究。\n'
-        '- 机构观点确定性验证: `python3 scripts/view_verifier.py VIEW-YYYYMMDD-NNN`'
-        '(证据表=本地快照事实+区间变动,零 AI 判断)。\n'
+        '- 机构观点确定性验证: `python3 scripts/view_verifier.py VIEW-YYYYMMDD-NNN'
+        ' [--mode A|B|C]`(A=提出时证据 vintage 锚/B=当前更新/C=到期验证;'
+        '证据表=本地快照事实+区间变动,零 AI 判断)。\n'
         '- 模型 API(可选)仅由用户显式配置 MODEL_* 三参后,经 CLI/Skill 使用;'
         '工作台页面永不调用。')
 

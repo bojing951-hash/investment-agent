@@ -449,6 +449,56 @@ def series_change_caption(unit, first, last):
                     f'(区间变化 {b - a:+,.4g},绝对差)'}
 
 
+# ══ Charter9 P3: 页④研究十问 + 页②边验证徽标(纯函数/读档,零模型) ═════
+def research_questions(path=None):
+    """config/research_questions.json: 章程§五研究十问(裁定⑤原文十条)。
+
+    返回 {schema_version, n, layers, layer_note, questions, by_layer};
+    校验(FAIL-LOUD): 恰 10 问、id RQ1..RQ10 连续、primary_layer 全在
+    五层枚举、五层各至少一问、draws 不越枚举——config 受版本管理,
+    破损=安装损坏非数据缺席。"""
+    p = path or os.path.join(ROOT, 'config', 'research_questions.json')
+    with open(p, encoding='utf-8') as f:
+        cfg = json.load(f)
+    layers = list(cfg.get('layers') or [])
+    qs = cfg.get('questions') or []
+    problems = []
+    if len(qs) != 10:
+        problems.append(f'须恰 10 问(当前 {len(qs)})')
+    if [q.get('id') for q in qs] != [f'RQ{i}' for i in range(1, 11)]:
+        problems.append('id 须为 RQ1..RQ10 连续')
+    for q in qs:
+        if q.get('primary_layer') not in layers:
+            problems.append(f"{q.get('id')}.primary_layer 越五层枚举")
+        for d in q.get('draws') or []:
+            if d not in layers:
+                problems.append(f"{q.get('id')}.draws 含越枚举层 {d!r}")
+    if {q.get('primary_layer') for q in qs} != set(layers):
+        problems.append('五层须各至少一问(primary_layer 覆盖)')
+    if problems:
+        raise ValueError('research_questions.json 破损: ' + '; '.join(problems))
+    by_layer = {layer: [q['id'] for q in qs if q['primary_layer'] == layer]
+                for layer in layers}
+    return {'schema_version': cfg.get('schema_version'),
+            'n': len(qs), 'layers': layers,
+            'layer_note': cfg.get('layer_note'),
+            'questions': qs, 'by_layer': by_layer}
+
+
+def edge_verification_badge(qb_source, archive_dir=None):
+    """页②行详情: 边的 qb_source → source_verifier 四状态徽标行(纯离线)。
+
+    source_verifier 惰性 import(其复算面依赖本模块,顶层互引成环)。
+    返回 {'qb_source', 'state', 'badge', 'detail'};state∈四状态,badge=
+    展示文案(VERIFIED/PARTIAL/MISSING/CONFLICTED)。"""
+    import source_verifier as svf
+    r = svf.verify_qb_source(qb_source, archive_dir=archive_dir)
+    badge = {'VERIFIED': '✅ 源已核验', 'PARTIAL': '⚠️ 部分核验',
+             'MISSING': '❌ 悬空引用', 'CONFLICTED': '⛔ 状态冲突'}
+    return {'qb_source': qb_source, 'state': r['state'],
+            'badge': badge.get(r['state'], r['state']), 'detail': r['detail']}
+
+
 def research_archive_rows(limit=50, archive_dir=None):
     """Charter8 页④独立研究结论: 本地研究档案行(QB 链)。
 

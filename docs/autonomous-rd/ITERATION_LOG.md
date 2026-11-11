@@ -33,6 +33,8 @@
 | 11-11 | R5+R6 发布+LIVE 同步(v0.11.0-alpha) | 用户「批准」+合并纪律更正(验收绿即合并发布不逐次请批,逐次报批仅剩付费类);merge=**9051e7f**→CI 43052903525 绿=**基线129**→tag v0.11.0-alpha→Release 441903695;LIVE 同步 v0.11.0 面(archive 覆盖+三 key 重注入 56/32/40+冒烟绿+**生产树真实拉取终验 cpi=0.9@2026-09-30**);PPI=用户裁定暂不付费先跑通其他(如实缺席留后议);干净 clone 全量回归抓出版本锁漏网 6 处随升(129/129 exit0);AC7 首跑计划入 docs(AC7_RUN_PLAN.md) | main=9051e7f | 干净 clone 129/129+CI 绿+LIVE 冒烟全绿+终验真实值 PASS |
 | 11-12 | R7 AC7 真实端到端首跑 | 数据面修复(HSI/HSCEI core 缺失→腾讯 2000 根重采经 env 缝+PPI 真实复拉; snapshot 20261112_v2 Gate A=DEGRADED core 0 缺)+任务A 13 节全景(research-run 十一步 16 命令真跑, 13/13 节无空置)+任务B 17 档/15 机构 M 表八问+分歧矩阵+新鲜 CPI/PPI 更新评注(上游通胀=机构面空白登记)+任务C 三型验证+17 件 VP 重建@v2(B 面 23 机械判定 11 against/5 supports/7 neutral; C 层全未到期如实)+开放题金油比压缩 32.3%仍 80 分位(现场生成, n=6 如实); 四 QB 归档=QB-20261112-001~004 全绑 v2; AC7=EXECUTED(终判留覆盘轮) | dev/rd-r7-ac7-e2e | 13/13 节验收;全套回归 129=128 exit0+1 环境性 FAIL(worktree 清单断言测到本 fork 活 worktree;干净 clone 同套件 31/31 绿=非回归);零引擎代码改动(纯执行轮) |
 
+| 11-12 | R8 独立验证+AC7 合并(操作者轮) | 七面独立复算(不 import 项目代码): 数值面 ZQ−DFF 单项 FAIL(归档 +0.295 实为 +0.305,方向/量级/S1 结论不变,dae5a41 零命中)其余全 PASS(PPI−CPI=4.10/CAPE z=2.999/金油比逐位);档完整性/诚实面(反刍 grep 178 旧档零命中)/Gate A 复算(DEGRADED core 0 missing 逐字段一致)/干净 clone 研究面 339 判定 0 败/红线全净=**零 BLOCKER**;MINOR 处置: ①QB-001 更正评注 C1 随行+草稿五处修正 ②dev 树陈旧工件同步(china_20261112 sha=87d300e3 对齐快照声明+VP 面 20261112);merge=**825eb4f**(docs-only 不另发 tag,LIVE 不受影响) | main=825eb4f | R8 七面 6 PASS+1 单项 FAIL(非 BLOCKER);C 层口径以档内原文"全不可判"为准 |
+
 ## 排队中
 
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。

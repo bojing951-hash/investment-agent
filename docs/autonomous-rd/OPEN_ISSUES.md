@@ -9,8 +9,7 @@
 1. **① 封版合并 main — 已批准已执行**(be8dabd+tag v0.10.0-alpha+Release 441746111+
    CI 43030767965 绿=基线 128)。后续波次合并仍逐次请批。
 2. **② 新数据源凭证/付费 — 原则获批**,实际采购逐次报批。**已裁定
-   (2026-11-11)**: CN_PPI tushare 积分档升级=**暂不付费**,先跑通其他,
-   PPI 如实缺席(台账三之四);HY_OAS 族 = ICE BofA 源端 3 年授权窗,现如实
+   (2026-11-11)**: **CN_PPI tushare 积分档=已裁定暂不付费,且 2026-11-12 实测免费可访问(积分刷新,零支出,台账三之四);HY_OAS 族 = ICE BofA 源端 3 年授权窗,现如实
    注记,不绕付费墙。
 3. **③ LIVE 部署 — 已批准已执行**(2026-11-11 v0.10.0 面;注: LIVE 实为本地 Mac
    launchd 树,非阿里云——阿里云无 investment-agent 部署,只有 coin监控旧系统)。
@@ -44,9 +43,9 @@
   **[R6-D1 已修(2026-11-11,dev/rd-r6-collection-fixes)]**: 采集器 G-P1-15
   金十通道(停更后持续写 2025-08 旧值)→tushare pro 换源: `cn_cpi.nt_yoy`
   **真实拉取验证**(202609=0.9,月末观测日),registry v2.8.0→2.8.1
-  (source_symbol 同步);`cn_ppi.ppi_yoy` 源已接线但**本 token 权限档不足**
-  (服务端拒,卡点②候选报批项)→ 批前 ppi_yoy 如实缺席,下次快照起
-  CN_CPI_YOY 转新鲜。**[R5-D2→R6-D2 已核]** CN_OMO_7D=四路免费源全阻
+  (source_symbol 同步);`cn_ppi.ppi_yoy` **2026-11-12 更正=免费已通**(首夜权限拒系积分
+  未刷新,跨午夜后同 token 可访问,零付费)——快照 20261112 实测 CPI=0.9/
+  PPI=5.0@2026-09-30 双进 tushare_pro 面;用户「暂不付费」裁定自然满足。**[R5-D2→R6-D2 已核]** CN_OMO_7D=四路免费源全阻
   (tushare 无接口/央行 502/akshare 零端点/东财 cookie 门)→登记
   source-blocked 不造数(台账 `../P2_DATA_GAP_LEDGER.md` 三之四)。
 

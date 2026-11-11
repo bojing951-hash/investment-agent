@@ -96,13 +96,15 @@ def page_panorama():
     rows = wd.overview_rows(SNAP, REGISTRY, econ)
     n_miss = sum(1 for r in rows if r['当前值'] == '缺失')
     st.caption(f"快照日 {META['date']} · {wd.ECONOMY_LABELS.get(econ, econ)} 活跃指标 "
-               f"{len(rows)} 项(缺失 {n_miss} 项,如实列出) · 变化口径: 周/月内/年初至今")
+               f"{len(rows)} 项(缺失 {n_miss} 项,如实列出) · 变化口径: 周=ISO周前末观测基准 / "
+               "月内=前一自然月末基准 / 年初至今=前一自然年末基准(非当年首日)")
     st.dataframe(rows, width='stretch', height=480)
 
     st.subheader('市场多窗口变化(1m / 3m / 1y / 5y)')
     st.caption('区间变动=interval_change 自配对口径(基准=严格早于窗口起点的最后观测;'
                '利率 pp/价格 %/计数绝对差)——与 `ia_cli compare --start <T-k>` 同函数,'
-               '数据不足如实标"不可用"。')
+               '数据不足如实标"不可用"。Charter9: 含利率族(rates_yield/policy_rate/'
+               'curve_slope)——美债/德日国债/2s10s 的窗口变化在此表可答。')
     wrows = wd.market_window_rows(SNAP, REGISTRY)
     st.caption(f"资产类指标 {len(wrows)} 项 · 快照日 {META['date']}")
     st.dataframe(wrows, width='stretch', height=560)
@@ -127,22 +129,23 @@ def page_panorama():
 
 def _render_series(series, window):
     import pandas as pd
-    n = {'全部': 0, '5年': 1260, '1年': 252, '6个月': 126, '3个月': 63, '1个月': 21}[window]
-    dates, values = series['dates'], series['values']
-    if n:
-        dates, values = dates[-n:], values[-n:]
+    # Charter9 P0-4: 窗切片=日历日期截取(wd.slice_series_window,零频率假设——
+    # 旧版固定观测数 252/126/63/21 按日频设计,月频序列"1年"实显21年);
+    # 首末变化 caption=族感知(wd.series_change_caption,利率 pp/价格 %/计数绝对差,
+    # 与窗口表口径一致——旧版一律水平百分变化)。
+    dates, values, slice_note = wd.slice_series_window(
+        series['dates'], series['values'], window)
+    if not dates:
+        st.warning(f'窗口内无观测: {slice_note}')
+        return
     df = pd.DataFrame({series['label']: values}, index=pd.to_datetime(dates))
-    st.caption(f"来源: {series['source']} · 观测点 {len(dates)} 个"
-               f"({dates[0]} → {dates[-1]}) · 单位: {series['unit'] or '—'}")
+    st.caption(f"来源: {series['source']} · 窗口: {slice_note} · 单位: {series['unit'] or '—'}"
+               " · ETF价格为复权基(近似总回报,采集器 auto_adjust=True)")
     st.line_chart(df, height=340)
     if len(values) >= 2:
-        first, last = values[0], values[-1]
-        try:
-            chg = (last - first) / abs(first) * 100
-            st.caption(f"窗口首值 {first:,.4g} → 末值 {last:,.4g}"
-                       f"(区间变化 {chg:+.2f}%,由本地序列计算)")
-        except (TypeError, ZeroDivisionError):
-            pass
+        cap = wd.series_change_caption(series['unit'], values[0], values[-1])
+        if cap['text']:
+            st.caption(cap['text'] + '(由本地窗口序列计算)')
 
 
 # ── 页面②: 全球金融传导地图 ─────────────────────────────────────────

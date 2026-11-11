@@ -1311,7 +1311,8 @@ def cmd_research_run(args):
     try:
         rep = ro.run_research(args.question, root=ROOT,
                               archive=bool(getattr(args, 'archive', False)),
-                              out_dir=getattr(args, 'out_dir', None))
+                              out_dir=getattr(args, 'out_dir', None),
+                              fanout=bool(getattr(args, 'fanout', False)))
     except (OSError, ValueError) as e:
         emit(envelope('research-run', False, {},
                       error=('orchestrator_failed', str(e), None)), exit_code=1)
@@ -1330,6 +1331,10 @@ def cmd_research_run(args):
                 'L3_produced': rep['layers']['L3_AI推断层']['produced'],
                 'L4_produced': rep['layers']['L4_条件情景层']['produced']},
             'n_evidence_rows': len(rep.get('evidence_index', [])),
+            'fanout': {'requested': (rep.get('fanout') or {}).get('requested'),
+                       'n_rq': (rep.get('fanout') or {}).get('n_rq'),
+                       'n_executed': (rep.get('fanout') or {}).get('n_executed'),
+                       'n_agent_layer': (rep.get('fanout') or {}).get('n_agent_layer')},
             'archive': {'requested': rep['run']['archive_requested'],
                         'archived_query_id':
                             next((s.get('archived_query_id') for s in rep['steps']
@@ -1450,6 +1455,9 @@ def build_parser():
                     help='落档(Skill 第 11 步=用户认可后;默认关)')
     rr.add_argument('--out-dir', default=None,
                     help='报告目录注入缝(默认 output/research_runs/<ts>_<slug>)')
+    rr.add_argument('--fanout', action='store_true',
+                    help='R3 十问扇出: research_map 十问命令清单逐条真跑'
+                         '(Agent 层问 RQ3/RQ9 declared-not-produced)')
     return p
 
 

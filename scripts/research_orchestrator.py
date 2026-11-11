@@ -46,16 +46,17 @@ def _slug(text, maxlen=40):
     return (s[:maxlen] or 'question')
 
 
-def run_step(name, argv, timeout=180):
-    """跑一步真 ia_cli 子进程;进程成败/语义成败/信封三层分开记录。"""
+def _run_proc(name, cmdline, timeout=180, argv_label=None):
+    """跑一个真子进程(通用);进程成败/语义成败/信封三层分开记录。"""
     t0 = time.monotonic()
     try:
-        p = subprocess.run([sys.executable, IA_CLI] + argv,
+        p = subprocess.run(cmdline,
                            capture_output=True, text=True, timeout=timeout,
                            cwd=ROOT)
         rc, out, err = p.returncode, p.stdout, p.stderr
     except subprocess.TimeoutExpired:
-        return {'step': name, 'argv': argv, 'executed': True,
+        return {'step': name, 'argv': argv_label or cmdline[1:],
+                'executed': True,
                 'ok': False, 'exit_code': None,
                 'note': f'超时(>{timeout}s)', 'duration_ms': None,
                 'envelope': None}
@@ -64,13 +65,19 @@ def run_step(name, argv, timeout=180):
         env = json.loads(out)
     except ValueError:
         pass
-    return {'step': name, 'argv': argv, 'executed': True,
+    return {'step': name, 'argv': argv_label or cmdline[1:], 'executed': True,
             'ok': rc == 0,
             'exit_code': rc,
             'semantic_ok': bool(env.get('ok')) if isinstance(env, dict) else None,
             'note': (err.strip()[:200] or None) if rc != 0 and env is None else None,
             'duration_ms': int((time.monotonic() - t0) * 1000),
             'envelope': env}
+
+
+def run_step(name, argv, timeout=180):
+    """跑一步真 ia_cli 子进程(十一步管线主路径)。"""
+    return _run_proc(name, [sys.executable, IA_CLI] + argv, timeout,
+                     argv_label=argv)
 
 
 def skipped_step(name, note):
@@ -83,6 +90,89 @@ def _run_ok(steps):
     E席审计——analog 短历史拒答是引擎正确行为,不是管线失败)。"""
     return all(s.get('ok') for s in steps
                if s.get('executed') and not s.get('honest_refusal'))
+
+
+def run_fanout(root, ia_timeout, mapped_metrics):
+    """R3 十问确定性扇出: QUESTION_COMMANDS 逐条真跑,信封留档。
+
+    纪律: Agent 层问(RQ3/RQ9)=declared-not-produced,本管线绝不代写;
+    占位符确定性替身且如实披露——VIEW-…→观点库首条 view_id(相关性选择
+    归 Agent),A_ID/B_ID→命中指标前二(不足回落清单原样 UST_10Y,SPX);
+    清单原样的 US+CN/RQ2 指标对不做语义改写(替身≠相关性判断)。"""
+    import shlex
+    import research_map as rm
+    import view_store as vs
+    import workbench_data as wd
+    root = root or ROOT
+    try:
+        qmeta = {q['id']: q for q in
+                 (wd.research_questions().get('questions') or [])}
+    except (OSError, ValueError, KeyError):
+        qmeta = {}
+    try:
+        views = vs.load_views(os.path.join(root, 'data', 'institutions',
+                                           'views'))['views']
+        first_vid = views[0]['view_id'] if views else None
+    except (OSError, ValueError, KeyError, IndexError):
+        first_vid = None
+    pair = list(mapped_metrics[:2]) if len(mapped_metrics) >= 2 else None
+    rows = []
+    for rq_id in sorted(rm.QUESTION_COMMANDS,
+                        key=lambda k: int(''.join(filter(str.isdigit, k)) or 0)):
+        meta = qmeta.get(rq_id, {})
+        steps, agent_layer_notes = [], []
+        for ci, c in enumerate(rm.QUESTION_COMMANDS[rq_id]):
+            toks = shlex.split(c)
+            if not toks or toks[0].startswith('('):
+                agent_layer_notes.append(c.strip('()'))
+                continue
+            subs = []
+            argv, dead = [], False
+            for t in toks[1:]:
+                if t == 'VIEW-…':
+                    if first_vid is None:
+                        subs.append('VIEW-… 无观点库可替(如实跳过)')
+                        dead = True
+                        break
+                    subs.append(f'VIEW-…→{first_vid}(首条确定性替身,'
+                                '相关性选择归 Agent)')
+                    t = first_vid
+                elif t == 'A_ID' and pair:
+                    t, _ = pair[0], subs.append(f'A_ID→{pair[0]}')
+                elif t == 'B_ID' and pair:
+                    t, _ = pair[1], subs.append(f'B_ID→{pair[1]}')
+                elif t == 'A_ID,B_ID' and pair:
+                    t = f'{pair[0]},{pair[1]}'
+                    subs.append(f'A_ID,B_ID→{pair[0]},{pair[1]}')
+                argv.append(t)
+            name = f'{rq_id}_c{ci}'
+            if dead:
+                steps.append(skipped_step(name, '; '.join(subs)))
+                continue
+            if toks[0] == 'ia_cli.py':
+                st = run_step(name, argv, ia_timeout)
+            elif toks[0].startswith('scripts/'):
+                st = _run_proc(name, [sys.executable, os.path.join(
+                    root, toks[0])] + argv, ia_timeout, argv_label=argv)
+            else:
+                steps.append(skipped_step(name, f'非可执行清单项: {c}'))
+                continue
+            if subs:
+                st['substitutions'] = subs
+            steps.append(st)
+        rows.append({'id': rq_id,
+                     'text': meta.get('text'),
+                     'primary_layer': meta.get('primary_layer'),
+                     'agent_layer': bool(agent_layer_notes),
+                     'agent_layer_notes': agent_layer_notes or None,
+                     'steps': steps})
+    n_exec = sum(1 for r in rows for s in r['steps'] if s.get('executed'))
+    n_agent = sum(1 for r in rows if r['agent_layer'])
+    return {'requested': True, 'n_rq': len(rows), 'n_executed': n_exec,
+            'n_agent_layer': n_agent,
+            'substitution_rule': ('VIEW-…→首条 view_id;A_ID/B_ID→命中前二'
+                                  '(不足=清单原样)——替身≠相关性选择'),
+            'rq': rows}
 
 
 def map_entities(question, reg):
@@ -152,8 +242,11 @@ def vp_face(root):
 
 
 def run_research(question, root=None, archive=False, out_dir=None,
-                 ia_timeout=180):
-    """十一步一键研究管线;返回完整报告 dict(run_ok=进程层,语义面看各步)。"""
+                 ia_timeout=180, fanout=False):
+    """十一步一键研究管线;返回完整报告 dict(run_ok=进程层,语义面看各步)。
+
+    fanout=True 追加十问扇出面(R3): research_map.QUESTION_COMMANDS 逐条
+    真跑+信封留档,Agent 层问(RQ3/RQ9)declared-not-produced。"""
     root = root or ROOT
     import workbench_data as wd
     steps = []
@@ -342,6 +435,12 @@ def run_research(question, root=None, archive=False, out_dir=None,
 
     # R2.1 MINOR-1: 诚实拒答步骤(如 S6 analog 短历史拒答)豁免出 run_ok
     run_ok = _run_ok(steps)
+
+    # ── R3 十问扇出(可选,--fanout;独立于 S1-S11 主台账) ────────────
+    fan = ({'requested': False}
+           if not fanout else run_fanout(root, ia_timeout,
+                                         [m for m in ent['metrics']]))
+
     report = {
         'schema_version': '2.0',
         'pipeline_version': PIPELINE_VERSION,
@@ -349,6 +448,7 @@ def run_research(question, root=None, archive=False, out_dir=None,
                 'archive_requested': bool(archive),
                 'git_head': _git_head(root)},
         'steps': steps,
+        'fanout': fan,
         'layers': layers,
         'evidence_index': evidence_index,
         'notes': notes,
@@ -378,7 +478,10 @@ def _git_head(root):
 
 
 def _render_md(r):
-    """人类可读面: 四层区分+步骤台账+证据索引(数字行全部带来源)。"""
+    """人类可读面: 四层区分+步骤台账+(可选)十问扇出台账+证据索引。"""
+
+    def argv_str(step):
+        return ' '.join(str(x) for x in (step.get('argv') or [])[:8])
     q = r['run']['question']
     L = r['layers']
     lines = [f"# 一键研究报告(零模型编排 v{r['pipeline_version']})",
@@ -422,6 +525,26 @@ def _render_md(r):
             sem = '语义✗'
         extra = s.get('skipped_reason') or s.get('note') or ''
         lines.append(f"- [{tag}|{sem}] {s['step']} {extra}")
+    fan = r.get('fanout') or {}
+    if fan.get('requested'):
+        lines += ['', f"## 十问扇出台账(执行 {fan['n_executed']} / "
+                  f"Agent 层 {fan['n_agent_layer']} / 共 {fan['n_rq']} 问)",
+                  f"> 替身规则: {fan['substitution_rule']}", '']
+        for row in fan['rq']:
+            head = f"### {row['id']} {row.get('text') or ''} [{row.get('primary_layer')}]"
+            lines += [head]
+            if row['agent_layer_notes']:
+                lines.append(f"- [Agent层|不代写] " + '; '.join(
+                    n[:120] for n in row['agent_layer_notes']))
+            for s in row['steps']:
+                tag = ('OK ' if s.get('ok') else
+                       ('SKIP' if not s.get('executed') else 'FAIL'))
+                extra = s.get('skipped_reason') or s.get('note') or ''
+                sub = '; '.join(s.get('substitutions') or [])
+                lines.append(f"- [{tag}] {s['step']} "
+                             f"{argv_str(s)}{(' | 替身: ' + sub) if sub else ''}"
+                             f"{(' | ' + extra) if extra else ''}")
+            lines.append('')
     lines += ['', f"## 证据索引({len(r['evidence_index'])} 行)", '']
     for e in r['evidence_index'][:60]:
         lines.append(f"- {e['kind']}:{e['ref']}"

@@ -29,6 +29,13 @@
   MINOR-1 analog 诚实拒答豁免 run_ok;MINOR-2 compare 截断披露;MINOR-3 台账语义列)。
   套件 38 判定绿(+7 回归);R1 50/50、research_map 32/32 无回归。剩余 MINOR-4+5 NIT
   转 OPEN_ISSUES。
+- **R3(十问扇出入口)已完成**: 同分支 @本提交——`research-run --fanout` 把
+  research_map.QUESTION_COMMANDS 十问命令清单确定性执行(16 条命令 ia_cli/scripts
+  双通道真子进程+信封留档);Agent 层问(RQ3/RQ9)declared-not-produced;占位符确定性
+  替身且如实披露(VIEW-…→观点库首条,A_ID,B_ID→命中指标前二,替身≠相关性选择);
+  report.md 增十问扇出台账;run_step 泛化为 _run_proc(支持 scripts/ 直跑)。套件
+  47 判定绿(+9);全套回归 129/129 exit 0。AC6 剩余差距收窄=AC7 端到端 3 任务+1
+  开放题+真实案例积累。
 - **R1(三型证据落库)已完成+审计收口**: 分支 `dev/rd-r1-stage-evidence` @ `26d4ef7`——
   VP sidecar v1.1(阶段A/B 结构化+stage_labels,mode C 契约零变动)、research-map 命令清单
   可执行化(14 条实解析)、页③三阶段证据披露;本地 17 份 VP 重建(A面 12 INSUFFICIENT/

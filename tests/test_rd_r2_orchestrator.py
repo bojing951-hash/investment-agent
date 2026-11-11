@@ -168,6 +168,68 @@ def main():
                   and '前 2' in s5b['note'] and 'UST_10Y' in s5b['note'],
                   f"note={s5b.get('note')}")
 
+            # ── R3 十问扇出(fanout=True 追加面) ─────────────────────
+            section("9 十问扇出(--fanout;R3)")
+            check("默认关: 主台账 run 不带扇出面",
+                  rep.get('fanout', {}).get('requested') is False)
+            repf = ro.run_research("10年期美债收益率 和 SPX 走势对比",
+                                   root=ROOT, out_dir=os.path.join(tmp, 'fan'),
+                                   fanout=True)
+            fan = repf['fanout']
+            check("扇出十问齐备(RQ1..RQ10)", fan['requested']
+                  and fan['n_rq'] == 10
+                  and [r['id'] for r in fan['rq']] == [f'RQ{i}' for i in
+                                                       range(1, 11)])
+            rq3 = next(r for r in fan['rq'] if r['id'] == 'RQ3')
+            rq9 = next(r for r in fan['rq'] if r['id'] == 'RQ9')
+            check("Agent 层问 declared-not-produced(RQ3/RQ9 零步骤+注记)",
+                  rq3['agent_layer'] and not rq3['steps']
+                  and rq9['agent_layer'] and not rq9['steps']
+                  and fan['n_agent_layer'] >= 2)
+            ex_bad = [(r['id'], s['step']) for r in fan['rq']
+                      for s in r['steps']
+                      if s.get('executed') and not s.get('ok')]
+            check("扇出可执行步骤全真跑且全 ok(本机真实面)",
+                  fan['n_executed'] >= 12 and not ex_bad, str(ex_bad))
+            raw_ph = [s['argv'] for r in fan['rq'] for s in r['steps']
+                      if s.get('executed')
+                      and any('A_ID' in str(a) or 'VIEW-…' in str(a)
+                              or 'B_ID' in str(a) for a in s['argv'])]
+            check("占位符全部确定性替换(无 A_ID/VIEW-… 裸跑)",
+                  not raw_ph, str(raw_ph))
+            sub_steps = [s for r in fan['rq'] for s in r['steps']
+                         if s.get('substitutions')]
+            check("替身披露随行(substitutions 记录)",
+                  sub_steps and all(s.get('substitutions') for s in sub_steps)
+                  and any('VIEW-' in str(s['argv']) or 'VIEW-2026' in str(
+                      s['argv']) for s in sub_steps), f"n={len(sub_steps)}")
+            mdf = open(os.path.join(repf['report_dir'], 'report.md'),
+                       encoding='utf-8').read()
+            check("report.md 十问扇出台账+替身规则披露",
+                  '## 十问扇出台账' in mdf and '替身规则' in mdf)
+            repf2 = ro.run_research("10年期美债收益率 和 SPX 走势对比",
+                                    root=ROOT,
+                                    out_dir=os.path.join(tmp, 'fan2'),
+                                    fanout=True)
+            seq1 = [(r['id'], [s['step'] for s in r['steps']])
+                    for r in fan['rq']]
+            seq2 = [(r['id'], [s['step'] for s in r['steps']])
+                    for r in repf2['fanout']['rq']]
+            check("扇出确定性: 两跑十问步骤序列一致",
+                  seq1 == seq2)
+            p2 = subprocess.run(
+                [sys.executable, 'ia_cli.py', 'research-run',
+                 '--question', '10年期美债收益率 和 SPX 走势对比',
+                 '--fanout', '--out-dir', os.path.join(tmp, 'cli_fan')],
+                capture_output=True, text=True, timeout=600, cwd=ROOT)
+            envf = json.loads(p2.stdout) if p2.stdout.strip().startswith('{') \
+                else {}
+            check("ia_cli --fanout 信封带扇出摘要(n_rq/n_executed/n_agent)",
+                  envf.get('ok') is True
+                  and envf.get('data', {}).get('fanout', {}).get('requested')
+                  is True
+                  and envf['data']['fanout']['n_rq'] == 10)
+
             # [4] 四层区分
             section("4 四层区分(零模型诚实面)")
             l3 = rep['layers']['L3_AI推断层']

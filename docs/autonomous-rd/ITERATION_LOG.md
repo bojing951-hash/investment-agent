@@ -25,6 +25,7 @@
 | 11-11 | R2 一键研究真执行 | research_orchestrator 十一步确定性管线(S1 分解→S11 归档,零模型,每步真 ia_cli 子进程+信封留档,ok/semantic_ok 分记,L3/L4 恒 declared-not-produced,逐数证据索引)+`ia_cli research-run`;并入 R1.1(merge 946625b) | dev/rd-r2-research-orchestrator@946625b 后 | 自测 31 判定绿;R1 无回归(50 判定);全套回归 129/129 exit 0(全仓口径=tests/128+根 test_env.py,后者为环境探测脚本,外部连通面 11/14 与研发面无关) |
 | 11-11 | R2 独立审计 | 七维对抗(真执行面/诚实面/证据索引/实体映射/红线/测试真实性/Skill 对照) | (后台 Agent 对 ac40ef8 diff) | 无 BLOCKER;2 MAJOR+4 MINOR+5 NIT;主体成立(证据索引实测对上快照/红线全过/31 判独立) |
 | 11-11 | R2.1 审计整改 | MAJOR-1 S7 gate 改取 compare 对齐门+记 gate_source;MAJOR-2 L4 五行回归纪律16 权威模板+L3 补 E1/E2/E3 指路+research_map RQ9 统一;MINOR-1 诚实拒答豁免 run_ok;MINOR-2 compare 截断披露;MINOR-3 台账语义列 | dev/rd-r2-research-orchestrator(本提交) | 套件 38 判定绿(+7 回归);R1 50/50 与 research_map 32/32 无回归 |
+| 11-11 | R3 十问扇出入口 | research-run --fanout: QUESTION_COMMANDS 十问逐条真跑(16 命令 ia_cli+scripts 双通道)+信封留档;Agent 层问(RQ3/RQ9)declared-not-produced;占位符确定性替身(VIEW-…→首条 view_id/A_ID,B_ID→命中前二)且披露;report.md 十问台账;run_step 泛化 _run_proc | dev/rd-r2-research-orchestrator(本提交) | 套件 47 判定绿(+9);全套回归 129/129 exit 0(全仓口径) |
 
 ## 排队中
 

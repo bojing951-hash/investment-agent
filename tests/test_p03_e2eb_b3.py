@@ -112,7 +112,7 @@ class T1RegistryIdentity(unittest.TestCase):
         self.assertEqual(len(REG['metrics']), 110, '指标总数须恰为110(85+9+8+1+3Charter6+2P2-3+2数据批1)')  # 数据批1: +SPX_EPS/M2SL
         self.assertEqual(sum(1 for m in REG['metrics']
                              if m.get('status') == 'active'), 108)  # 数据批1 +SPX_EPS/M2SL
-        self.assertEqual(REG['version'], '2.8.1', '版本号须为2.8.1(R6-D1 换源;数据批1曾升2.8.0)')
+        self.assertEqual(REG['version'], '2.8.2', '版本号须为2.8.2(R6-D1 换源;数据批1曾升2.8.0)')
 
     def test_t02_four_entries_full_field_freeze(self):
         # D11 全字段冻结(硬编码逐字段=磁盘实况,任何漂移即红);

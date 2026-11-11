@@ -207,8 +207,8 @@ my_errs = [p for p in probs if p.get('severity') == 'error'
            and p.get('metric_id') in ('SOFR', 'WALCL')]
 check("注册表 v2.7.0: SOFR/WALCL 条目零结构 error(单位/日历/来源/身份"
       "枚举全过)", not my_errs, str(my_errs[:2]))
-check("注册表: 版本号在册(R6-D1 后 v2.8.1;P2-3 变更注记仍在)",
-      REG_JSON['version'] == '2.8.1'
+check("注册表: 版本号在册(R6-D1 后 v2.8.2;P2-3 变更注记仍在)",
+      REG_JSON['version'] == '2.8.2'
       and any('P2-3' in n and 'SOFR' in n for n in REG_JSON['notes']))
 core_ids = rp.core_metric_ids()
 check("Gate A 语义不变: SOFR/WALCL 为 important 非 core(缺席=noncore_missing"

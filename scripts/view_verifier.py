@@ -100,12 +100,16 @@ def _net_direction(chg):
 
 def metric_evidence_table(subjects, snapshot, registry, vmap,
                           horizons=('1m', '3m', '1y'), directions=None,
-                          target_ymd=None):
+                          target_ymd=None, extra_metric_ids=None):
     """证据表(纯函数): subjects∪映射指标 × 快照 facts/series_store。
 
     target_ymd: 窗口锚定日(默认快照 target_date;mode A 传 publish/vintage
     切点——提出时证据的 trailing 窗以观点时点为窗末,防"今天的窗"冒充
     "提出时的证据状态")。
+    extra_metric_ids(R5 2026-11-11): 假设层 metric_refs 并入证据面——机构
+    观点明确引用的指标即使不在该观点 subjects 的映射面也出证据行
+    (subject='hypothesis_ref');不在注册表/非active 的如实进 missing 并注明
+    语义层缺口(禁猜,不造映射)。缺省 None=原契约(仅 subjects 映射面)。
     返回 {'evidence': [row...], 'missing': [...], 'notes': [...]}——missing=
     映射在册但快照无事实的指标(缺席如实,不猜)。"""
     directions = directions or {}
@@ -117,6 +121,18 @@ def metric_evidence_table(subjects, snapshot, registry, vmap,
             for mid in spec['metrics']:
                 subj_of.setdefault(mid, subj)
     evidence, missing, notes = [], [], []
+    for mid in sorted(set(extra_metric_ids or []) - set(subj_of)):
+        m = by_id.get(mid)
+        if m is None:
+            missing.append({'metric_id': mid,
+                            'reason': '假设引用指标不在注册表'
+                                      '(语义层映射缺口,Agent 层待修,禁猜)'})
+            continue
+        if m.get('status') != 'active':
+            missing.append({'metric_id': mid,
+                            'reason': f'假设引用指标注册表非active({m.get("status")})'})
+            continue
+        subj_of[mid] = 'hypothesis_ref'
     for mid in sorted(subj_of):
         m = by_id.get(mid)
         if m is None or m.get('status') != 'active':
@@ -149,14 +165,17 @@ def metric_evidence_table(subjects, snapshot, registry, vmap,
             else:
                 rel = 'supports' if got == hint else 'against'
                 rel_note = f'净变动方向={got} vs hint={hint}(最长可用窗口机械比对)'
-        evidence.append({
+        row = {
             'metric_id': mid, 'subject': subj_of[mid],
             'display_name': fact.get('display_name') or m.get('display_name', mid),
             'unit': unit, 'unit_family': fam,
             'level': fact.get('value'), 'observation_date': fact.get('observation_date'),
             'quality_status': fact.get('quality_status'), 'series_source': series_source,
             'changes': chg, 'relation': rel, 'relation_note': rel_note,
-        })
+        }
+        if fact.get('level_source') is not None:  # R5: mode A 截断尾值近似披露
+            row['level_source'] = fact['level_source']
+        evidence.append(row)
     if directions and set(directions) - set(subj_of):
         notes.append(f'directions 含映射外指标: '
                      f'{sorted(set(directions) - set(subj_of))}(忽略,防越权拼凑)')
@@ -167,7 +186,7 @@ def metric_evidence_table(subjects, snapshot, registry, vmap,
 
 
 def verify(view_id, snapshot, registry, vmap, views_dir=None, directions=None,
-           mode=None, target_ymd=None):
+           mode=None, target_ymd=None, extra_metric_ids=None):
     """完整验证: view → subjects → 证据表。返回输出 JSON dict(不含 AI 文本)。
 
     Charter9 P0-1 三型(--mode A/B/C;缺省=legacy 最新快照行为,已有契约不变):
@@ -178,6 +197,8 @@ def verify(view_id, snapshot, registry, vmap, views_dir=None, directions=None,
     mode∈{A,B,C} 时启用**成熟度护栏**: 观点期限未到期/不可解析 → relation
     一律压为 None+护栏注(未到期不判 supports/against——C席复现③的机械防线);
     仅 mode='C' 且到期,relation 才允许作为预测验证语义(见 verify_expiry)。
+    extra_metric_ids(R5): 假设层 metric_refs 并入证据面(见
+    metric_evidence_table docstring;build_vp 传入,CLI 缺省不变)。
     revision_anchors(协调裁定 2026-11-11): revisions[] 每条修订=新验证主体
     锚定其自身 date——本档验证仍锚原 publish_date,修订主体随行登记不改变
     原 vintage 窗。"""
@@ -188,7 +209,8 @@ def verify(view_id, snapshot, registry, vmap, views_dir=None, directions=None,
     anchor_ymd = target_ymd or snapshot.get('target_date')
     tab = metric_evidence_table(doc['subjects'], snapshot, registry, vmap,
                                 horizons=('1m', '3m', '1y'), directions=directions,
-                                target_ymd=anchor_ymd)
+                                target_ymd=anchor_ymd,
+                                extra_metric_ids=extra_metric_ids)
     publish = doc.get('publish_date')
     mat = maturity(doc.get('view_horizon'), publish,
                    snapshot.get('target_date'))
@@ -376,14 +398,19 @@ def _since_publish_node(metric_id, unit, snapshot, publish_date):
 
 
 def verify_at_publish(view_id, registry, vmap, views_dir=None, directions=None,
-                      root=ROOT):
+                      root=ROOT, extra_metric_ids=None):
     """mode A 提出时证据: vintage 锚定 publish_date(裁定①含当日观测≤,
     切点日期随行披露)。
 
     快照选择: rp.vintage_dates 跨日 vintage 中 ≤publish 的最近日 →
-    select_snapshot(同日最高修订);无该时点 vintage → 最新快照序列截断至
+    select_snapshot(同日最高修订);无该时点 vintage → 最新快照截断至
     publish_date(裁定⑦: 当时信息集近似,DEGRADED 标注随行——C席复核实证面);
-    连快照都没有(干净clone)→ 如实 unavailable。"""
+    连快照都没有(干净clone)→ 如实 unavailable。
+    截断近似的事实面(R5 2026-11-11): observation_date>publish 的事实原版
+    直接丢弃——但 series_store 截断后仍含 ≤publish 观测(市场日频指标典型),
+    遂以截断序列尾值近似 level(observation_date=尾值日期,
+    level_source=series_tail_le_publish,quality_status=DEGRADED 随行披露,
+    原观测日保留在 fact_observation_date);序列无 ≤publish 观测才真缺席。"""
     doc, reason = vs.get_view(view_id, views_dir)
     if doc is None:
         return {'ok': False, 'error': {'kind': 'view_not_found_or_quarantined',
@@ -409,23 +436,39 @@ def verify_at_publish(view_id, registry, vmap, views_dir=None, directions=None,
                     'error': {'kind': 'vintage_unavailable',
                               'message': f'无 vintage≤{pymd} 且无本地快照({note})'
                                          '——干净clone 无历史数据,mode A 不可执行'}}
-        facts = [f for f in (snap.get('facts') or [])
-                 if str(f.get('observation_date', ''))[:10].replace('-', '') <= pymd]
         series_store = {}
         for mid, ss in (snap.get('series_store') or {}).items():
             keep = [i for i, d in enumerate(ss.get('dates', []))
                     if str(d)[:10].replace('-', '') <= pymd]
             series_store[mid] = {'dates': [ss['dates'][i] for i in keep],
                                  'values': [ss['values'][i] for i in keep]}
+        facts = []
+        for f in snap.get('facts') or []:
+            if str(f.get('observation_date', ''))[:10].replace('-', '') <= pymd:
+                facts.append(f)
+                continue
+            ss = series_store.get(f.get('metric_id')) or {}
+            tail = [(d, v) for d, v in zip(ss.get('dates') or [],
+                                           ss.get('values') or [])
+                    if v is not None]
+            if tail:
+                facts.append({**f, 'value': tail[-1][1],
+                              'observation_date': tail[-1][0],
+                              'quality_status': 'DEGRADED',
+                              'level_source': 'series_tail_le_publish',
+                              'fact_observation_date': f.get('observation_date')})
         snap = {**snap, 'facts': facts, 'series_store': series_store,
                 'snapshot_id': snap.get('snapshot_id')}
         vintage_note = {'anchor': 'approx_filtered', 'cutoff': doc['publish_date'],
                         'degraded': True,
                         'note': '无该时点 vintage 快照→最新快照截断至 publish_date'
-                                '(当时信息集近似,DEGRADED;裁定⑦,C席复核实证面)'}
+                                '(当时信息集近似,DEGRADED;裁定⑦,C席复核实证面;'
+                                'obs>publish 事实以截断序列尾值近似,'
+                                'level_source=series_tail_le_publish)'}
     out = verify(view_id, snap, registry, vmap, views_dir=views_dir,
                  directions=directions, mode='A',
-                 target_ymd=min(str(snap.get('target_date')), pymd))
+                 target_ymd=min(str(snap.get('target_date')), pymd),
+                 extra_metric_ids=extra_metric_ids)
     out['mode_a_anchor'] = vintage_note
     return out
 

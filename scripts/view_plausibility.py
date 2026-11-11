@@ -306,6 +306,9 @@ def _hypothesis_directions(hyp, view_doc, target_map):
     否则由 evidence.linked_forecasts 指向的 forecast 自身 value_or_direction
     经 view_verifier._parse_direction 词表机械解析,且该 forecast 的 target 经
     forecast_target_map 解析到同一 metric 才采用(防错配)。
+    linked_forecasts 基制=**1-based**(与 mode C verify_expiry 的
+    evidence.forecast_index enumerate(...,1) 同惯例;E席审计 MAJOR-2:
+    双基容忍会把方向挂到错误引文——生产 17 份该路径零使用,定基零迁移)。
     返回 ({metric_id: hint}, {metric_id: provenance});不可解析不猜。"""
     import view_verifier as vv
     dirs, prov = {}, {}
@@ -316,8 +319,8 @@ def _hypothesis_directions(hyp, view_doc, target_map):
             prov[mid] = {'source': 'metric_ref', 'attribution': 'institution_stated'}
     forecasts = view_doc.get('forecasts') or []
     for fi in (hyp.get('evidence') or {}).get('linked_forecasts') or []:
-        i = fi if isinstance(fi, int) and 0 <= fi < len(forecasts) else (
-            fi - 1 if isinstance(fi, int) and 1 <= fi <= len(forecasts) else None)
+        i = (fi - 1 if isinstance(fi, int) and 1 <= fi <= len(forecasts)
+             else None)
         if i is None:
             continue
         f = forecasts[i]
@@ -328,7 +331,8 @@ def _hypothesis_directions(hyp, view_doc, target_map):
         if metric and metric not in dirs:
             dirs[metric] = hint
             prov[metric] = {'source': 'forecast_value_or_direction',
-                            'forecast_index': i,
+                            'forecast_index': fi,
+                            'forecast_index_basis': '1-based',
                             'quote': str(f.get('value_or_direction'))[:120],
                             'attribution': 'institution_stated'}
     return dirs, prov

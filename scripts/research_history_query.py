@@ -273,6 +273,18 @@ def align_to_month(payload):
                                  lambda d: d[:7], '自然月')
 
 
+def _norm_ymd(s):
+    """日期统一 YYYY-MM-DD(8 位紧凑→横线;其余截前 10)。
+
+    E席审计 MAJOR-1(2026-11-11): 无横线端锚('20261006')与有横线序列日期
+    ('2026-10-01')字符串比较,'-'(45)<'1'(49) 使同年内有横线日期恒小——
+    end/start 封顶整年失效。入口一处归一根治(阶段A回落序列+阶段B端锚同根因)。"""
+    s = str(s)
+    if len(s) == 8 and s.isdigit():
+        return f'{s[:4]}-{s[4:6]}-{s[6:]}'
+    return s[:10]
+
+
 def interval_change(dates, values, unit, start=None, end=None):
     """区间变动(单位纪律与 fact_engine.compute_period_returns emit() 同式:
     利率类→pp+bp;价格类→pct;计数/其他→绝对差)。
@@ -280,12 +292,14 @@ def interval_change(dates, values, unit, start=None, end=None):
     基准规则(登记,fact_engine 同口径): end 值=≤end 最后观测;基准=严格早于
     start 的最后观测(不取 start 当日观测,与"期开始之前最后有效观测"一致);
     start=None → 基准=序列首观测。数据不足→available=False+原因(不回退0)。
-    """
+    入口日期一律 _norm_ymd 归一(混合格式串比较会使封顶失效,见上)。"""
     if len(dates) != len(values) or not dates:
         return {'available': False, 'reason': '无观测序列'}
-    pairs = sorted(zip([str(d)[:10] for d in dates], [float(v) for v in values]))
+    pairs = sorted(zip([_norm_ymd(d) for d in dates], [float(v) for v in values]))
     ds = [p[0] for p in pairs]
     vs = [p[1] for p in pairs]
+    end = _norm_ymd(end) if end is not None else None
+    start = _norm_ymd(start) if start is not None else None
     if end is not None:
         cands = [i for i, d in enumerate(ds) if d <= end]
         if not cands:

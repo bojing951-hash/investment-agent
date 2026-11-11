@@ -153,8 +153,6 @@ def mk11(stage_a=('SUPPORTED',), stage_b=('INSUFFICIENT_EVIDENCE',),
 
 ok, errs = vpl.validate_vp(mk11(), GOOD_VIEW)
 check("v1.1 合规档通过(含 stages/stage_labels/stage_summary)", ok, str(errs))
-ok, _ = vpl.validate_vp(mk11(ver='1.0', summary_a=None), GOOD_VIEW) if False \
-    else (None, None)
 # 1.0 兼容: 老档(无 stages)仍按旧合同通过
 doc10 = {'schema_version': '1.0', 'view_id': 'VIEW-20261110-099',
          'generated_by': 'agent_orchestration', 'as_of': '20261110',
@@ -272,11 +270,60 @@ else:
             with contextlib.redirect_stdout(outs):
                 rc = vpl.main(['--build-all', '--vp-dir', vp_tmp])
         lines = json.loads(outs.getvalue())
+        n_vp = len([f for f in os.listdir(os.path.join(ROOT, 'data',
+                     'institutions', 'verification'))
+                    if f.startswith('VP-') and f.endswith('.json')])
         check(f"--build-all 全量重建({lines.get('n')} 份)全 ok",
               rc == 0 and lines.get('n_ok') == lines.get('n')
-              and lines.get('n') == 17, str(lines.get('n_ok')))
+              and lines.get('n') == n_vp, str(lines.get('n_ok')))
     finally:
         shutil.rmtree(tmp)
+
+# ══════════ [7] R1.1 修复回归(E席审计 2026-11-11) ═══════════════════
+print("═" * 60)
+print("[7] R1.1 修复回归(E席审计: MAJOR-1 日期封顶/MAJOR-2 定基/词表护栏)")
+print("═" * 60)
+import research_history_query as rhq_mod
+import view_verifier as vv_mod
+
+_d = ['2026-01-05', '2026-06-02', '2026-10-01']
+_v = [100.0, 102.0, 105.0]
+_r = rhq_mod.interval_change(_d, _v, 'index_point', end='20260601')
+check("MAJOR-1: 无横线端锚封顶生效(修复前越锚返回 2026-10-01)",
+      _r.get('end_date') == '2026-01-05', str(_r.get('end_date') or _r.get('reason')))
+_r2 = rhq_mod.interval_change(_d, _v, 'index_point', start='20260501', end='20261006')
+check("MAJOR-1: 无横线 start 基准=严格早于窗起的最后观测",
+      _r2.get('basis_date') == '2026-01-05' and _r2.get('end_date') == '2026-10-01'
+      and abs((_r2.get('pct_change') or 0) - 5.0) < 1e-9,
+      f"{_r2.get('basis_date')}→{_r2.get('end_date')} "
+      f"pct={_r2.get('pct_change')}")
+_r3 = rhq_mod.interval_change(['20251231', '20260602', '20261001'], _v,
+                              'index_point', start='20260105', end='20261006')
+check("MAJOR-1: 序列侧紧凑日期同归一(混合格式不再整年错序)",
+      _r3.get('end_date') == '2026-10-01'
+      and _r3.get('basis_date') == '2025-12-31',
+      f"{_r3.get('basis_date')}→{_r3.get('end_date')}")
+
+_tmap = vv_mod.load_forecast_target_map()
+_tgt, _mid = next(iter(_tmap['targets'].items()))
+_fdoc = {'forecasts': [
+    {'value_or_direction': '维持不变', 'target': _tgt},
+    {'value_or_direction': '继续加息', 'target': _tgt}]}
+_dirs, _prov = vpl._hypothesis_directions({'evidence': {'linked_forecasts': [2]}},
+                                          _fdoc, _tmap)
+check("MAJOR-2: linked=[2] 按 1-based 取第 2 条(0-based 会取'维持不变'→None)",
+      _dirs.get(_mid) == 'up'
+      and (_prov.get(_mid) or {}).get('forecast_index_basis') == '1-based',
+      f"dirs={_dirs} prov={_prov}")
+check("MAJOR-2: 越界序号(0)如实不采用",
+      vpl._hypothesis_directions({'evidence': {'linked_forecasts': [0]}},
+                                 _fdoc, _tmap)[0] == {})
+
+for txt, want in [('不再加息', None), ('no further cuts', None),
+                  ('supply-driven', None), ('继续加息', 'up'),
+                  ('Rate cut expected', 'down'), ('Higher for longer', 'up')]:
+    got = vv_mod._parse_direction(txt)
+    check(f"词表护栏: {txt!r} → {want}", got == want, f"got {got}")
 
 print()
 print("═" * 60)

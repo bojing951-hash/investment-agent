@@ -20,6 +20,19 @@
 
 ## 技术待办(不阻塞)
 
+- **[R1 审计 MINOR-4] vintage 二次过滤缺失**: vintage 路径信任 vintage 快照,无 obs≤publish
+  二次过滤(快照若含未来观测即漏);今日干净——vintage 累积落地时一并加护。
+- **[R1 审计 MINOR-5] lineage 链坍缩**: 反复重建使 `prior_generated_by` 第二次起指向 build_vp
+  自身,原始编排层署名丢失;v1.0 基底被原地覆盖+data/ 不入库不可恢复——重建时保留首代署名。
+- **[R1 审计 MINOR-6] since_publish 基准语义**: 名义"严格>publish"实际基准=严格早于 publish
+  的最后观测(含 publish 当日变动);"无新观测"(basis==end)与"净变动0"混报同 note——
+  拆分两种如实注记。
+- **[R1 审计 MINOR-7] validate_vp 不复核行内容**: 只做结构+聚合校验,不复核 stages 行与引擎
+  重算一致(伪造自洽行可通过装载);信任边界=写入方,幂等可重建部分缓解。
+- **[R1 审计 MINOR-8] B面描述性陈述语义激进**: 对既成事实类陈述("已引发…")判 CONTRADICTED
+  易被误读为预测失败;证据评价语义已披露,考虑描述性行单独标注。
+- **[R1 审计 NIT-10 余项] 测试面欠强**: 幂等断言只比 stage_summary(未比全档);无前视集成
+  断言只测 1 份 VP——下轮补强。
 - **[R1 发现] 阶段B 可判面受限**: forecast_target_map 对齐后 16 个指标在快照 facts 缺席
   (观点引用→数据面映射覆盖缺口),对应假设阶段面 INSUFFICIENT——数据覆盖轮处理(勿手工造数)。
 - **[R1 发现] 阶段A vintage 累积**: 采集档无历史 vintage,现用最新快照截断近似(DEGRADED

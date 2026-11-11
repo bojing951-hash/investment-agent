@@ -10,9 +10,10 @@
   Release 441388150 上线,CI 42983226791 绿 = main 基线 126 槽。
 - **LIVE(阿里云)**: 仍跑 v0.7.1 面;升级新面 = 用户保留卡点③,待批。
 - **引擎**: 停于唯一日历门——F 补证轮观察钟 2026-12-05 满自动触发,此前无排程任务。
-- **长期研发章程**: 2026-11-11 用户启动《自主研发、独立审计与持续迭代总指令》,本目录建立。
-  总指令原文待用户消息落位 `PRODUCT_GOAL.md`(落位前,本目录其余文件按现行事实登记)。
-- **章程初始化分支**: `dev/autonomous-rd-charter`(CLAUDE.md + autonomous-rd 七文件;
+- **长期研发章程**: 2026-11-11 用户《自主研发、独立审计与持续迭代总指令》**原文已落位**
+  `PRODUCT_GOAL.md`;FINAL_ACCEPTANCE.md 建立(AC1–AC10 全 NOT_VERIFIED,独立复核后更新)。
+  **R1 审计进行中**(总指令 §十二:不信历史 PASS,按实际代码与运行证据重判)。
+- **章程初始化分支**: `dev/autonomous-rd-charter`(CLAUDE.md + autonomous-rd 全套文件;
   未合并 main、未推送)。
 
 ## 里程碑脉络(详录 = `ITERATION_LOG.md`)

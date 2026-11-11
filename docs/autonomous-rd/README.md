@@ -13,6 +13,8 @@
 | `CURRENT_STATE.md` | 最新研发状态(研发恢复入口) |
 | `ITERATION_LOG.md` | 每轮研发记录(只追加) |
 | `OPEN_ISSUES.md` | 未解决问题与阻塞项(专项台账只挂指针) |
+| `ACCEPTANCE_CRITERIA.md` | 验收标准(总指令 §八 AC1–AC10 + 现行纪律) |
+| `FINAL_ACCEPTANCE.md` | 最终验收结果(独立审计复核后登记) |
 | `RESUME.md` | 新会话恢复指令 |
 
 ## 与既有文档的关系(防双头维护,每主题唯一权威)

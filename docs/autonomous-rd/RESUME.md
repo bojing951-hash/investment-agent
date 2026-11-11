@@ -16,10 +16,11 @@
 6. 在 `dev/*` 分支工作;未经授权不合 main、不推送、不付费、不碰生产。
    结束前完成阶段检查点(纪律见 `CLAUDE.md`)。
 
-## 下一步(2026-11-11 登记)
+## 下一步(2026-11-11 R1 中更新)
 
-1. [等用户] 总指令原文到达 → **原样**写入 `PRODUCT_GOAL.md` →
-   对齐 `ACCEPTANCE_CRITERIA.md` 与 `CAPABILITY_MATRIX.md`(标准只升不降)。
+1. [进行中] R1 审计: 不信历史 PASS,按实际代码/运行证据重判 AC1–AC10 → 更新
+   `CAPABILITY_MATRIX.md`(按能力A–F)+ `FINAL_ACCEPTANCE.md` → 识别三大阻碍 →
+   实施最高优先级修复 → 真实测试 → 独立审计(§四 STEP 1–7)。
 2. [用户裁定] `dev/autonomous-rd-charter` 合并 main(卡点①)——合并前新会话在 main 上
    看不到 CLAUDE.md,期间以本目录为凭。
 3. [可先行] 按现有产品章程做全仓差距审计,列首轮研发候选包(不动 main/不付费/不碰生产)。

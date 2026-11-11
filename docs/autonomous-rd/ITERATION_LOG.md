@@ -19,10 +19,11 @@
 | 11-11 | Charter 8 机构观点 | 观点库 11 份/10 机构+view_verifier+四页工作台 | v0.8.0-alpha@06bb65d | 五席协作+E 席七面零 BLOCKER |
 | 11-11 | Charter 9 研究闭环 | 三型验证/六标签/四状态/research-map/一键研究 | v0.9.0-alpha@cdffebe | A-E 全 PASS+反例 10/10;CI 基线 126 |
 | 11-11 | 长期研发章程初始化 | CLAUDE.md+autonomous-rd 七文件 | dev/autonomous-rd-charter | 总指令+启动指令原文落位 |
-| 11-11 | R1 三型证据落库 | VP v1.1 阶段A/B+stage_labels(C 契约零变动)+research-map 命令可执行化+页③三阶段披露 | dev/rd-r1-stage-evidence@26d4ef7 | 自测 38 判定过;全套回归 129/129 绿(11-11 干净重跑);独立审计进行中 |
+| 11-11 | R1 三型证据落库 | VP v1.1 阶段A/B+stage_labels(C 契约零变动)+research-map 命令可执行化+页③三阶段披露 | dev/rd-r1-stage-evidence@26d4ef7 | 自测 39 判定过;全套回归 129/129 绿(11-11 干净重跑) |
+| 11-11 | R1 独立审计 | 对抗式 6 维(无前视/标签纪律/方向归因/契约真实性/可复算性/B面抽验) | (后台 Agent 对 26d4ef7 diff) | 六维全 PASS,交付物清洁;无 BLOCKER,2 MAJOR+6 MINOR+3 NIT |
+| 11-11 | R1.1 审计整改 | MAJOR-1 入口日期归一 _norm_ymd;MAJOR-2 linked_forecasts 定 1-based 单基+记基制;MINOR-3 词表否定护栏+英文词边界;NIT-9/10/11(判定数/死代码/n 硬编码/定基夹具) | dev/rd-r1-stage-evidence(本提交) | 套件 50 判定全绿;受影响 8 文件全 exit 0;对照实验=17 份 VP 语义零差异 |
 
 ## 排队中
 
 - **R2 一键研究真执行**: Skill 十一步散文工作流 → 可执行编排(AC6 核心差距;P2)。
-- **R1 收尾**: R1 分支全套回归重跑 + 独立审计(r1-code-audit)对 diff 复核。
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。

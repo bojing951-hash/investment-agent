@@ -19,7 +19,7 @@
 | 11-11 | Charter 8 机构观点 | 观点库 11 份/10 机构+view_verifier+四页工作台 | v0.8.0-alpha@06bb65d | 五席协作+E 席七面零 BLOCKER |
 | 11-11 | Charter 9 研究闭环 | 三型验证/六标签/四状态/research-map/一键研究 | v0.9.0-alpha@cdffebe | A-E 全 PASS+反例 10/10;CI 基线 126 |
 | 11-11 | 长期研发章程初始化 | CLAUDE.md+autonomous-rd 七文件 | dev/autonomous-rd-charter | 总指令+启动指令原文落位 |
-| 11-11 | R1 三型证据落库 | VP v1.1 阶段A/B+stage_labels(C 契约零变动)+research-map 命令可执行化+页③三阶段披露 | dev/rd-r1-stage-evidence@26d4ef7 | 自测 38 判定过;全套回归+独立审计待跑 |
+| 11-11 | R1 三型证据落库 | VP v1.1 阶段A/B+stage_labels(C 契约零变动)+research-map 命令可执行化+页③三阶段披露 | dev/rd-r1-stage-evidence@26d4ef7 | 自测 38 判定过;全套回归 129/129 绿(11-11 干净重跑);独立审计进行中 |
 
 ## 排队中
 

@@ -16,10 +16,13 @@
 - **R1(三型证据落库)已完成**: 分支 `dev/rd-r1-stage-evidence` @ `26d4ef7`——
   VP sidecar v1.1(阶段A/B 结构化+stage_labels,mode C 契约零变动)、research-map 命令清单
   可执行化(14 条实解析)、页③三阶段证据披露;本地 17 份 VP 重建(A面 12 INSUFFICIENT/
-  4 PARTIALLY_SUPPORTED/1 MIXED;B面 12 INSUFFICIENT/5 MIXED)。**全套回归待在 R1 分支
-  重跑**(此前一次跑在章程分支上,测试文件缺席,结果作废);独立审计对 R1 diff 待跑。
-- **章程分支**: `dev/autonomous-rd-charter`(CLAUDE.md + autonomous-rd 全套 + RUN_MANDATE;
-  未合并 main、未推送)。
+  4 PARTIALLY_SUPPORTED/1 MIXED;B面 12 INSUFFICIENT/5 MIXED)。**全套回归已绿**(2026-11-11
+  在 R1 分支干净重跑: 129/129 文件全部 exit 0,零 FAIL;此前章程分支上的作废运行系测试文件
+  被分支切换污染)。**独立审计进行中**(对抗式 6 维: 无前视/标签纪律/方向归因/契约真实性/
+  可复算性/B面抽验)。章程分支已并入 R1 分支(merge 87afebe,统一历史线)。
+- **自主机制**(2026-11-11 配置): 项目级 `.claude/settings.json`(gitignore,仅本地)挂
+  PreCompact+SessionStart hooks——PreCompact 提醒完成检查点,SessionStart 提示恢复入口
+  (CLAUDE.md→RESUME.md)。stderr 级提醒,无写操作;对在未来于本仓启动的会话生效。
 
 ## 里程碑脉络(详录 = `ITERATION_LOG.md`)
 

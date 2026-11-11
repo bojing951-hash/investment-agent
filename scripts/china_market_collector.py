@@ -1013,6 +1013,63 @@ def _tushare_monthly_last(df, col):
     return ('%04d-%02d-%02d' % (y, mo, calendar.monthrange(y, mo)[1]), best[2])
 
 
+# ============ tushare 月度宏观跨进程响应缓存(R10, 2026-11-12) ============
+# 实证(RESUME 2②/P2 台账"R10 候选"): tushare cn_cpi/cn_ppi 同 api 1 次/分
+# 限流(与 index_daily 同族,FIX3 §六附则)。午夜窗自采与流水线=两个独立进程,
+# 同分钟各拉一次→第二次必限流拒→cpi_yoy/ppi_yoy 假性缺席→Gate A 误拒
+# (生产 07:00 单跑不受影响)。_index_daily 闸门(方案A)是进程内单调钟,护不
+# 到跨进程——故加文件级响应缓存: 成功且可解析的响应按 api 落 data/cache/,
+# TTL 内(默认600s;月度数据发布周期≥28天,窗口保守)复用免二次直连。
+# 纪律: 缓存只做同窗去重,不做陈旧回退——直连失败仍如实缺席(禁0填充不变);
+# 缓存读/写任何失败=透明跳过,绝不影响采集主路。
+TUSHARE_MONTHLY_CACHE_TTL_SECONDS = 600
+TUSHARE_MONTHLY_CACHE_DIR = os.path.join(DATA_DIR, 'cache')
+
+
+def _monthly_cache_path(api_name):
+    """缓存档路径(R10): data/cache/tushare_monthly_{api}.json。api 名白名单
+    校验(现役仅 cn_cpi/cn_ppi 两面)防路径注入;目录经模块常量注入=测试密闭。"""
+    if api_name not in ('cn_cpi', 'cn_ppi'):
+        raise ValueError('unknown monthly api: %r' % (api_name,))
+    return os.path.join(TUSHARE_MONTHLY_CACHE_DIR,
+                        'tushare_monthly_%s.json' % api_name)
+
+
+def _cache_load_rows(path, now_ts, ttl=TUSHARE_MONTHLY_CACHE_TTL_SECONDS):
+    """读月度响应缓存(纯文件面,零网络): {'fetched_at','rows'} 且 0≤age≤ttl
+    →rows(list[dict]);其余(缺档/坏JSON/rows 非list或空/fetched_at 坏值/
+    超龄/钟偏未来)→None。零异常外泄。"""
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            obj = json.load(f)
+        rows = obj.get('rows')
+        fetched_at = obj.get('fetched_at')
+        if (isinstance(rows, list) and rows
+                and isinstance(fetched_at, (int, float))
+                and 0 <= now_ts - float(fetched_at) <= ttl):
+            return rows
+    except Exception:
+        pass
+    return None
+
+
+def _cache_save_rows(path, df, now_ts):
+    """写月度响应缓存(尽力而为): DataFrame→records(NaN→None,JSON 严格可序列
+    化)+fetched_at,先写 .tmp.{pid} 再 os.replace 原子换名(两进程并发写=后写
+    者胜,两者皆合法)。任何失败→False,不外泄不影响主路。"""
+    try:
+        rows = df.astype(object).where(df.notna(), None).to_dict('records')
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        tmp = '%s.tmp.%d' % (path, os.getpid())
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump({'fetched_at': now_ts, 'rows': rows}, f,
+                      ensure_ascii=False)
+        os.replace(tmp, path)
+        return True
+    except Exception:
+        return False
+
+
 MOFCOM_SHRZGM_URL = 'https://data.mofcom.gov.cn/datamofcom/front/gnmy/shrzgmQuery'
 
 
@@ -1191,14 +1248,27 @@ def fetch_macro():
     # G-P1-15 CPI/PPI 同比(R6-D1 换源: 金十 macro_china_cpi/ppi_yearly 停更于
     # 2025-08[R5 盘点;akshare 1.18.47 金十族实测 cpi 尾 2008-02/ppi 尾 2006-01/
     # cpi_monthly 尾 2025-09 皆死]→tushare pro cn_cpi.nt_yoy/cn_ppi.ppi_yoy
-    # (现有 token/现有依赖;月度→月末观测日;失败=如实缺席,不回退停更源)
+    # (现有 token/现有依赖;月度→月末观测日;失败=如实缺席,不回退停更源)。
+    # R10 跨进程缓存: TTL 内复用成功响应免同分钟双耗限流(见缓存节注释);
+    # 仅缓存"可解析"响应(got 非 None),列漂移/空表不入缓存。
     for key, api_name, col in (('cpi_yoy', 'cn_cpi', 'nt_yoy'),
                                ('ppi_yoy', 'cn_ppi', 'ppi_yoy')):
         try:
-            with _no_proxy():
-                df = getattr(_pro(), api_name)(
-                    start_date='20200101', end_date=datetime.now().strftime('%Y%m%d'))
-            got = _tushare_monthly_last(df, col)
+            cache_path = _monthly_cache_path(api_name)
+            cached = _cache_load_rows(cache_path, time.time())
+            if cached is not None:
+                df = pd.DataFrame(cached, columns=['month', col])
+                got = _tushare_monthly_last(df, col)
+                if got is not None:
+                    print(f"  ♻️ {key}: tushare 月度缓存命中"
+                          f"(age≤{TUSHARE_MONTHLY_CACHE_TTL_SECONDS}s,免同分钟限流直连)")
+            else:
+                with _no_proxy():
+                    df = getattr(_pro(), api_name)(
+                        start_date='20200101', end_date=datetime.now().strftime('%Y%m%d'))
+                got = _tushare_monthly_last(df, col)
+                if got is not None:
+                    _cache_save_rows(cache_path, df, time.time())
             if got is not None:
                 out[key] = {'date': got[0], 'value': round(got[1], 2),
                             'source': 'tushare_pro'}

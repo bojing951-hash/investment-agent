@@ -462,9 +462,14 @@ class T3ValuationBackup(unittest.TestCase):
 class T4MacroEndpoints(unittest.TestCase):
 
     def _run_fetch_macro(self):
-        out = io.StringIO()
-        with redirect_stdout(out):
-            return cmc.fetch_macro()
+        # R10 密闭: tushare 月度响应缓存指向一次性空临时目录(起点恒空缓存=
+        # 直连路径;写出的缓存留在临时目录,测试间零共享零污染真实 data/cache)
+        import tempfile
+        with mock.patch.object(cmc, 'TUSHARE_MONTHLY_CACHE_DIR',
+                               tempfile.mkdtemp(prefix='wp_e_cache_')):
+            out = io.StringIO()
+            with redirect_stdout(out):
+                return cmc.fetch_macro()
 
     def test_t40_all_endpoints_positive(self):
         # 七产出键恰等(值/日期/源标签全硬编码);omo_7d=默认装载器 PENDING→缺席
@@ -663,10 +668,13 @@ class T6SourceFailureHonestAbsence(unittest.TestCase):
         shrzgm_stub(rows=None).start()
         pro_returns(cn_cpi=OSError('synthetic down'),
                     cn_ppi=OSError('synthetic down')).start()
-        with freeze_clock():
-            out = io.StringIO()
-            with redirect_stdout(out):
-                res = cmc.fetch_macro()
+        import tempfile
+        with mock.patch.object(cmc, 'TUSHARE_MONTHLY_CACHE_DIR',
+                               tempfile.mkdtemp(prefix='wp_e_cache_')):
+            with freeze_clock():
+                out = io.StringIO()
+                with redirect_stdout(out):
+                    res = cmc.fetch_macro()
         self.assertEqual(res, {})
         self.assertIn('PENDING', out.getvalue())        # OMO 缺席有披露
 

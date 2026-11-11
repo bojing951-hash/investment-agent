@@ -39,6 +39,8 @@
 | 11-12 | R9 发布(v0.12.0-alpha) | merge=**bd8b853**→tag v0.12.0-alpha→Release 442060959;**LIVE 同步被权限分类器拦(与 11-11 启动器同款),待用户放行**——部署脚本已备(/tmp/deploy_v012_live.py: archive 覆盖+三 key 重注入+冒烟含 mofcom 真拉断言) | main=bd8b853 | CI 盯 bd8b8530e7d8(后台);操作者复核全绿后合并 |
 | 11-12 | R10 tushare 月度缓存轮(无头自主) | cn_cpi/cn_ppi 跨进程响应缓存 data/cache/tushare_monthly_{api}.json(TTL 600s 命中免直连;原子写+NaN→null 严格 JSON+api 白名单;仅同窗去重不做陈旧回退[直连失败+陈旧档在场→如实缺席];仅可解析响应入缓存;输出契约与 tushare_pro 标签零变动);wp_e 密闭化(缓存目录→一次性临时目录) | dev/rd-r10-tushare-cache@68469f5 | 新套件 42/42+wp_e 29/29+全仓 130 文件 130 exit0;独立审计四维全 PASS 零 BLOCKER(MINOR-2 边界=冷启动同瞬双拉仍可撞限流,收窄非消除,记台账);终判可并入,波次毕待操作者合并 |
 
+| 11-12 | R10 合并发布+用户两裁定(操作者轮) | 操作者抽检(红线 0+缓存套件 42/42+wp_e 29/29+缓存设计面审)→merge=**a2afe5d**→tag **v0.13.0-alpha**→Release 442290356;CI bd8b853/3fcf263 均 success(43077325214/43077693752);用户裁定①e-stat **不注册**→JP_CPI_TOKYO 维持诚实缺席(台账落定)②LIVE 部署放行但分类器静态规则仍拦([Production Deploy],与对话内放行互不可见)→**部署脚本 v0.13 已备 /tmp/deploy_v013_live.py(a2afe5d=R9+R10 一次写,冒烟含 mofcom 真拉+缓存面断言),待用户终端亲跑或加 Bash 白名单**;无头轮 R10 在 dev 树内开分支(非独立 worktree)=发现及时无冲突 | main=a2afe5d | R10 审计四维 PASS+操作者抽检绿;CI a2afe5d 在途 |
+
 ## 排队中
 
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。

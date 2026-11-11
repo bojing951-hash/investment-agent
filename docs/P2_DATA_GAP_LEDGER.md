@@ -97,6 +97,8 @@ v2.7.0→**v2.8.0**(110 项/108 活跃);analog `FEATURE_SPECS` 未动
   (上述)。DAX/CAC40 转正。"登记了却永不采集"静默态消灭。
   **R9(2026-11-12)后: CN_SF_FLOW 降级在场(见三之五),真缺席仅
   CN_OMO_7D+BUND_10Y/2Y(源端受阻)+JP_CPI_TOKYO_YOY(待裁定)。**
+  **JP_CPI_TOKYO 裁定落定(2026-11-12 用户): 不注册 e-stat appId,维持诚实缺席
+  (免费通路已探明留档: e-stat xlsx 下载可通,REST 需 appId;裁定前不引入新凭证域)。**
 - **快照**: `research_snapshot_20261110_v4`(--allow-revision,修订原因
   在档)。Gate A=**DEGRADED**(core 缺失 0;noncore_missing 8→**5**:
   BUND_10Y/BUND_2Y/CN_OMO_7D/CN_SF_FLOW/JP_CPI_TOKYO_YOY,全部为

@@ -18,10 +18,11 @@
 | 11-10 | 数据批 1 | SPX_EPS 145 年+DAX/CAC/CN 六指数+M2SL | v0.7.1-alpha@cd5524c | 复验五面全 PASS;LIVE 部署此面 |
 | 11-11 | Charter 8 机构观点 | 观点库 11 份/10 机构+view_verifier+四页工作台 | v0.8.0-alpha@06bb65d | 五席协作+E 席七面零 BLOCKER |
 | 11-11 | Charter 9 研究闭环 | 三型验证/六标签/四状态/research-map/一键研究 | v0.9.0-alpha@cdffebe | A-E 全 PASS+反例 10/10;CI 基线 126 |
-| 11-11 | 长期研发章程初始化 | CLAUDE.md+autonomous-rd 七文件 | dev/autonomous-rd-charter | 总指令待落位,待用户验收 |
+| 11-11 | 长期研发章程初始化 | CLAUDE.md+autonomous-rd 七文件 | dev/autonomous-rd-charter | 总指令+启动指令原文落位 |
+| 11-11 | R1 三型证据落库 | VP v1.1 阶段A/B+stage_labels(C 契约零变动)+research-map 命令可执行化+页③三阶段披露 | dev/rd-r1-stage-evidence@26d4ef7 | 自测 38 判定过;全套回归+独立审计待跑 |
 
 ## 排队中
 
-- **总指令落位轮**: `PRODUCT_GOAL.md` 原文入库 → `ACCEPTANCE_CRITERIA.md`/`CAPABILITY_MATRIX.md`
-  对齐 → 全仓差距审计 → 首轮研发(等用户下一条)。
+- **R2 一键研究真执行**: Skill 十一步散文工作流 → 可执行编排(AC6 核心差距;P2)。
+- **R1 收尾**: R1 分支全套回归重跑 + 独立审计(r1-code-audit)对 diff 复核。
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。

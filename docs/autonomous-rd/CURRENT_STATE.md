@@ -10,10 +10,15 @@
   Release 441388150 上线,CI 42983226791 绿 = main 基线 126 槽。
 - **LIVE(阿里云)**: 仍跑 v0.7.1 面;升级新面 = 用户保留卡点③,待批。
 - **引擎**: 停于唯一日历门——F 补证轮观察钟 2026-12-05 满自动触发,此前无排程任务。
-- **长期研发章程**: 2026-11-11 用户《自主研发、独立审计与持续迭代总指令》**原文已落位**
-  `PRODUCT_GOAL.md`;FINAL_ACCEPTANCE.md 建立(AC1–AC10 全 NOT_VERIFIED,独立复核后更新)。
-  **R1 审计进行中**(总指令 §十二:不信历史 PASS,按实际代码与运行证据重判)。
-- **章程初始化分支**: `dev/autonomous-rd-charter`(CLAUDE.md + autonomous-rd 全套文件;
+- **长期研发章程**: 2026-11-11 用户《总指令》原文已落位 `PRODUCT_GOAL.md`;
+  《长期自主研发系统启动指令》原文已落位 `RUN_MANDATE.md`(自主循环/环境自检/AC11–AC12)。
+  FINAL_ACCEPTANCE.md: AC3 = **PARTIAL**(R1 三型证据落库),其余 NOT_VERIFIED。
+- **R1(三型证据落库)已完成**: 分支 `dev/rd-r1-stage-evidence` @ `26d4ef7`——
+  VP sidecar v1.1(阶段A/B 结构化+stage_labels,mode C 契约零变动)、research-map 命令清单
+  可执行化(14 条实解析)、页③三阶段证据披露;本地 17 份 VP 重建(A面 12 INSUFFICIENT/
+  4 PARTIALLY_SUPPORTED/1 MIXED;B面 12 INSUFFICIENT/5 MIXED)。**全套回归待在 R1 分支
+  重跑**(此前一次跑在章程分支上,测试文件缺席,结果作废);独立审计对 R1 diff 待跑。
+- **章程分支**: `dev/autonomous-rd-charter`(CLAUDE.md + autonomous-rd 全套 + RUN_MANDATE;
   未合并 main、未推送)。
 
 ## 里程碑脉络(详录 = `ITERATION_LOG.md`)

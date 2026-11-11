@@ -8,6 +8,7 @@
 | 文件 | 职责 |
 |---|---|
 | `PRODUCT_GOAL.md` | 总指令原文,最高目标文件(未经用户授权不得修改/删减/降标) |
+| `RUN_MANDATE.md` | 启动指令原文(自主循环/环境自检/AC11–AC12/最终指令) |
 | `ACCEPTANCE_CRITERIA.md` | 最终验收标准(以总指令为准绳)+ 现行验收纪律 |
 | `CAPABILITY_MATRIX.md` | 最终能力 × 当前差距 |
 | `CURRENT_STATE.md` | 最新研发状态(研发恢复入口) |

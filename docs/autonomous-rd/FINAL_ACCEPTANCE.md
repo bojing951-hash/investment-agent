@@ -10,7 +10,7 @@
 |---|---|---|---|---|
 | AC1 | 真实全球宏观全景 | NOT_VERIFIED | R1 审计中 | — |
 | AC2 | 真实机构研究 | NOT_VERIFIED | R1 审计中 | — |
-| AC3 | 正确的机构观点验证 | NOT_VERIFIED | R1 审计中(已知: 六标签全库 INSUFFICIENT) | — |
+| AC3 | 正确的机构观点验证 | PARTIAL | R1 三型证据落库: VP v1.1 阶段A/B 结构化(`scripts/view_plausibility.py --build-all`,本地 17 份重建)。A面 5/17 有真判定(4 PARTIALLY_SUPPORTED+1 MIXED),B面 5/17 MIXED(发布后数据走向与假设相反);C(到期预测实判)全库未到期=不可判(首验窗 2026-12)。差距: 阶段A vintage 仍 DEGRADED 近似锚(采集档无历史 vintage,已如实标注)+C 面零实判 | R1 开发者自测 38 判定;独立审计待跑(见 OPEN_ISSUES) |
 | AC4 | 经济机制与历史研究 | NOT_VERIFIED | R1 审计中 | — |
 | AC5 | 独立研究结论 | NOT_VERIFIED | R1 审计中 | — |
 | AC6 | 真正的一键研究 | NOT_VERIFIED | R1 审计中 | — |
@@ -18,6 +18,19 @@
 | AC8 | 研究可复核 | NOT_VERIFIED | R1 审计中 | — |
 | AC9 | 真实用户可用(干净安装全链) | NOT_VERIFIED | 装机副本须 --force(已知坑) | — |
 | AC10 | 可靠性与安全 | NOT_VERIFIED | R1 审计中 | — |
+
+## 验收标准来源与交叉映射(2026-11-11)
+
+两份用户指令各带一套 AC,编号不同、内容同源,矩阵以上表 `PRODUCT_GOAL.md` §八 AC1–AC10 为准:
+
+| `RUN_MANDATE.md`(启动指令 §十一) | 本矩阵 | 说明 |
+|---|---|---|
+| AC1–AC6 | AC1–AC6 | 同名同义 |
+| AC7 研究地图 | (并入 AC1/AC7 上表现状) | 页④ research-map 为其雏形,验收仍以 AC7 开放题为硬门 |
+| AC8 三案例 + AC9 开放题 | AC7 | 三任务+一开放题合并验收 |
+| AC10 干净环境全链 | AC9 | 装机/配置/更新/研究/展示/归档 |
+| AC11 可追溯可复核 | AC8 | — |
+| AC12 模型无关/合规/无未授权付费 | AC10 | — |
 
 ## 最终交付清单(§十一,达成后逐项勾验)
 

@@ -4,7 +4,35 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-11 (HKT, 用户「全部审批通过」四卡点执行后)
+## 快照: 2026-11-11 (HKT, R5 阶段证据覆盖面轮·无头自主执行)
+
+- **R5(阶段证据覆盖面)已完成**: 分支 `dev/rd-r5-stage-coverage`——R1 发现
+  「阶段B 16 指标快照缺席」全量分解为四类缺陷并收口(`audit/R5_STAGE_COVERAGE_INVENTORY.md`):
+  ①假设引用超出观点 subjects 映射面+③mode A 事实面截断过杀=引擎覆盖面缺口**已修**
+  (`view_verifier.metric_evidence_table/verify/verify_at_publish` 增
+  `extra_metric_ids` 并面;approx_filtered 支截断序列尾值近似,
+  `level_source=series_tail_le_publish`+DEGRADED 披露;`build_vp` 汇总假设
+  metric_refs 传入 A/B 两型);②CPI_YOY 语义层 id 错配(注册表实有 CPI/CORE_CPI)
+  =missing 注记精确化,重指留 Agent 层禁猜;④CN_OMO_7D/BUND_10Y 真缺席=台账
+  (`../P2_DATA_GAP_LEDGER.md` 三之四)。**17 份 VP 重建对照**: 既有行零丢失/
+  零变动、C 层零变动、新增 64 行(A51/B13)、7 假设 INSUFFICIENT→有判
+  (3 SUPPORTED/4 CONTRADICTED,方向全为获得判断)。新套件
+  `tests/test_rd_r5_stage_coverage.py` 38 判定绿;R1 52/52、c9_modes 57/57、
+  charter8 41/41、vp_sidecar 40/40 无回归;全套回归 129 文件批跑: 其余 128 全 PASS,
+R5 套件初跑 3 判定 FAIL=**套件自身判定缺陷**(写死「在档=前R5版」假设,批跑中他套件
+真重建 VP 后破裂;引擎零改动),改为逐字节前后不变式后 38/38 绿(全仓口径 130 含根
+test_env.py 环境探测)。
+  **新发现 P0**: CN_CPI_YOY/CN_PPI_YOY 陈旧值(2025-08 停更源)仍被证据引擎
+  采信(R5-D1)+CN_OMO_7D 字段从未采集(R5-D2)——登记 OPEN_ISSUES/台账,
+  待有网络环境轮修。
+- **基线**: main = `be8dabd`(v0.10.0-alpha);CI 绿=tests/ 128 槽(全仓口径 129
+  =+根 test_env.py);本轮后 tests/ 增 1 槽(R5 套件)→ 预期 129/130。
+  R5 波次**待用户批准合并 main**(保留卡点①逐次请批)。
+- **无头自主运行(卡点④)**: 已由用户放行落地(launchd 拉起本无头轮,提示词
+  常驻);本轮=R5 首个无头自主轮。`~/agent-loop/` 在无头会话权限面外
+  (rounds/index 追加受限,如实记录)。
+
+## 前一快照: 2026-11-11 (HKT, 用户「全部审批通过」四卡点执行后)
 
 - **基线**: main = `be8dabd`(v0.10.0-alpha,长期自主研发第一波 R1-R4+审计闭环);
   Release 441746111 上线,CI 43030767965 绿 = main 基线 **128 槽**(CI 口径=tests/;

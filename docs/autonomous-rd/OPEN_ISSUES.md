@@ -12,11 +12,10 @@
    (HY_OAS 族 = ICE BofA 源端 3 年授权窗,现如实注记,不绕付费墙)。
 3. **③ LIVE 部署 — 已批准已执行**(2026-11-11 v0.10.0 面;注: LIVE 实为本地 Mac
    launchd 树,非阿里云——阿里云无 investment-agent 部署,只有 coin监控旧系统)。
-4. **④ 无头自主运行 — 已批准,落地受阻待放行**: 启动器提示词文件写入被会话权限
-   分类器拦([Create Unsafe Agents] 类别)。方案定稿待用户在场放行: launchd 每 4h
-   拉起 `claude -p` 单轮(读本目录 RESUME/PRODUCT_GOAL/RUN_MANDATE)+STOP 文件
-   急停+`--max-budget-usd` 界+允许清单(仓库内读写/python3/git 本地)禁
-   push/ssh/curl/npm/pip;合并 main 与付费仍留用户逐次亲批。
+4. **④ 无头自主运行 — 已批准已落地**(2026-11-11 用户放行后 launchd 拉起;
+   R5=首个无头自主轮,分支 dev/rd-r5-stage-coverage)。硬边界如方案:
+   允许清单禁 push/ssh/curl/npm/pip;合并 main 与付费留用户逐次亲批;
+   `~/agent-loop/` 读写在本会话权限面外(如 rounds/index 追加受限=如实记录)。
 
 ## 观察钟/日历门
 
@@ -39,6 +38,13 @@
 
 ## 技术待办(不阻塞)
 
+- **[R5-D1,P0 观察] CN_CPI_YOY/CN_PPI_YOY 陈旧值被证据引擎采信**: 快照在档
+  0.0/-3.6@2025-08-09(akshare_jin10 源停更后持续写最后值,同日期+周六=
+  疑似发布日解析错位);DEGRADED 只披露不拦截,A/B 型证据行仍建立其上。
+  采集器修复+新鲜度政策议需网络环境轮实施(台账 `../P2_DATA_GAP_LEDGER.md`
+  三之四)。**[R5-D2]** CN_OMO_7D=china 采集器从未采 OMO 字段(gate_a
+  「采集遗漏」注记误导),与 R5-D1 同轮修(工作量 S)。
+
 - **[R2 审计 MINOR-4] S9 与 Skill 第 9 步错位**: 编排器 S9=views lint+VP 装载,
   Skill 第 9 步=解释标注(四层+竞争解释)——现为确定性替身,补作 Agent 落位时对齐。
 - **[R1 审计 MINOR-4] vintage 二次过滤缺失**: vintage 路径信任 vintage 快照,无 obs≤publish
@@ -52,8 +58,13 @@
   重算一致(伪造自洽行可通过装载);信任边界=写入方,幂等可重建部分缓解。
 - **[R1 审计 MINOR-8] B面描述性陈述语义激进**: 对既成事实类陈述("已引发…")判 CONTRADICTED
   易被误读为预测失败;证据评价语义已披露,考虑描述性行单独标注。
-- **[R1 发现] 阶段B 可判面受限**: forecast_target_map 对齐后 16 个指标在快照 facts 缺席
-  (观点引用→数据面映射覆盖缺口),对应假设阶段面 INSUFFICIENT——数据覆盖轮处理(勿手工造数)。
+- ~~**[R1 发现] 阶段B 可判面受限: 16 指标快照 facts 缺席**~~ **[R5 已分解收口
+  (2026-11-11,dev/rd-r5-stage-coverage)]**: 四类缺陷——①假设引用超出观点 subjects
+  映射面+③mode A 事实面截断过杀=引擎覆盖面缺口**已修**(证据面=subjects∪假设
+  metric_refs;截断序列尾值近似+DEGRADED 披露;重建 17 份=既有行零变动+新增
+  64 行+7 假设 INSUFFICIENT→有判;`audit/R5_STAGE_COVERAGE_INVENTORY.md`);
+  ②CPI_YOY 语义层 id 错配+④CN_OMO_7D/BUND_10Y 真缺席=数据面,转台账
+  `../P2_DATA_GAP_LEDGER.md` 三之四节(R5-D1/2/3)。
 - **[R1 发现] 阶段A vintage 累积**: 采集档无历史 vintage,现用最新快照截断近似(DEGRADED
   如实标注);自 R1 起逐快照累积 vintage 后可转精确锚。
 - 注册表覆盖: 000300.SH/000905.SH/000852.SH 取回未入,每次快照告警(REMAINING P1-1)。

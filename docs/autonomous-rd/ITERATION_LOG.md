@@ -28,6 +28,7 @@
 | 11-11 | R3 十问扇出入口 | research-run --fanout: QUESTION_COMMANDS 十问逐条真跑(16 命令 ia_cli+scripts 双通道)+信封留档;Agent 层问(RQ3/RQ9)declared-not-produced;占位符确定性替身(VIEW-…→首条 view_id/A_ID,B_ID→命中前二)且披露;report.md 十问台账;run_step 泛化 _run_proc | dev/rd-r2-research-orchestrator(本提交) | 套件 47 判定绿(+9);全套回归 129/129 exit 0(全仓口径) |
 | 11-11 | R4 NIT 清理 | 同分钟目录碰撞→追加序号不覆盖;vp_face root 透传;S3 默认 US+CN 披露;_run_proc 进程启动异常留痕;R1 套件幂等比全档+无前视扩全量 17 份 | dev/rd-r2-research-orchestrator(本提交) | R1 52 判定(+2)/R2 47 判定绿 |
 | 11-11 | 用户「全部审批通过」四卡点执行(①③毕/④受阻) | ①merge --no-ff=be8dabd→tag v0.10.0-alpha→Release 441746111→CI 43030767965 绿=基线128;③LIVE 部署 v0.10.0 面(git archive 覆盖+三 key 重注入[注入正则 bug 即时修]+data/.env 保护+冒烟绿);②原则获批无即需项;④无头运行启动器被权限分类器拦([Create Unsafe Agents])待用户放行;登记生产观察=weekly Gate A 拒(ZQ_IMPLIED_AVG 采集缺口,既有非回归) | dev/ops-post-approval-20261111 | 冒烟: changes/research-map/research-run 14步0败/report_generator+app 导入/launchd 在场;全套回归未重跑(纯文档轮+部署面,代码零改动) |
+| 11-11 | R5 阶段证据覆盖面轮(无头首轮;操作者代收尾) | 16 指标缺席分解四类: ①假设引用超出 subjects 映射面→证据面=subjects∪假设 refs(标 hypothesis_ref);②注册表外语义 id(CPI_YOY)→精确注记禁猜;③mode A 截断过杀→尾值近似 level(level_source=series_tail_le_publish+DEGRADED 披露+fact_observation_date 留原观测日;无 ≤publish 观测仍真缺席);④真缺席(BUND/CN_OMO_7D/JP_CPI_TOKYO/HY_OAS)=台账不造数;C 层契约零变动 | dev/rd-r5-stage-coverage | 新套件 38/0/0;R1 52/52+R2 47/47 零回归(操作者独立复跑);无头轮停在收尾 Monitor 等待(设计缺陷已修=禁异步泊靠),提交与记账由操作者会话补完 |
 
 ## 排队中
 

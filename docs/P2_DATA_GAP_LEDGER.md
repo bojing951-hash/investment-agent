@@ -190,3 +190,26 @@ v2.7.0→**v2.8.0**(110 项/108 活跃);analog `FEATURE_SPECS` 未动
 - 附:E席非阻塞观察 6 条(HSI×SPX 第4位截断/test_oss_product W7 环境敏感/
   parse_view_horizon 同形多时点取首[库内0影响]/openai SDK 前席遗留等)
   见 audit/C9_FINAL_ACCEPTANCE.md。
+
+## 三之四、R5 阶段证据覆盖面盘点(2026-11-11,dev/rd-r5-stage-coverage)
+
+来源: OPEN_ISSUES「R1 发现·阶段B 可判面受限(16 指标快照 facts 缺席)」——
+本轮全量分解为**四类缺陷**(逐类处置+验收证据 = `audit/R5_STAGE_COVERAGE_INVENTORY.md`,
+此处仅登记数据面行;①③为引擎覆盖面缺口已修,不属数据缺口):
+
+- **R5-D1(P0 观察)CN_CPI_YOY/CN_PPI_YOY 陈旧值**: 快照在档
+  `CN_CPI_YOY=0.0@2025-08-09`/`CN_PPI_YOY=-3.6@2025-08-09`(DEGRADED),
+  akshare_jin10 源 2025-08 后停更而采集器持续写最后值;两值同日期且
+  落周六=疑似发布日解析错位。**证据引擎(A/B 型)仍采信该事实**
+  (DEGRADED 只披露不拦截)→ VIEW-003/007 的 CN_CPI_YOY 证据行建立其上。
+  处置: 采集器修复(jin10 通道换源/日期解析)+「DEGRADED+陈旧窗是否拦截
+  出判」新鲜度政策议——登记 P0,待有网络环境轮实施(本轮无头禁外发)。
+- **R5-D2 CN_OMO_7D=字段从未采集**: china 采集器 macro 段仅
+  LPR/CPI/PPI/PMI/新增贷款,无 OMO 端点;gate_a「来源文件在场而指标缺席
+  (采集遗漏)」注记对此指标**误导**(文件在场≠有该字段)。处置: 采集器补
+  akshare OMO 端点(工作量 S),与 R5-D1 同轮修。
+- **R5-D3 CPI_YOY(US) 语义层 id 错配**: 假设层引用 `CPI_YOY`(4 观点),
+  注册表实有 `CPI`/`CORE_CPI`;引擎侧已改精确注记「不在注册表(语义层映射
+  缺口,禁猜)」,重指=Agent 层待办(编排层映射质量,与 C9-3 同类)。
+- 既有行维持: BUND_10Y/BUND_2Y(BBK RemoteDisconnected)、JP_CPI_TOKYO_YOY、
+  HY_OAS 族(ICE 3 年授权窗)——见上各节,不重复登记。

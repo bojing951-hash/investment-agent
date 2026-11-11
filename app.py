@@ -294,13 +294,18 @@ def page_views():
     if vp is not None:
         vp_ok, vp_errs = vpl.validate_vp(vp, doc)
         if vp_ok:
-            st.markdown(f"**验证标签: {vp['view_label']}**(假设级链六标签最保守"
-                        "聚合,裁定④;as_of "
+            st.markdown(f"**验证标签: {vp['view_label']}**(到期验证语义;as_of "
                         f"{vp.get('as_of', '—')})")
+            ss = vp.get('stage_summary')
+            if ss:
+                st.markdown(f"**三阶段证据**: 提出时 {ss.get('A')} · "
+                            f"发布后更新 {ss.get('B')} · 到期验证 {ss.get('C')}"
+                            "(A/B=假设证据评价,非预测判定;C 未到期=不可判)")
             st.table(vpl.vp_badge_rows(vp))
             st.caption('VP sidecar=data/institutions/verification/'
-                       'VP-*.json(不动 views 档);判定依据= view_verifier '
-                       '--mode C 机械 verdict 的标签映射')
+                       'VP-*.json(不动 views 档);view_label=mode C 到期验证'
+                       '语义(未到期=不可判);阶段A/B=提出时/发布后假设证据'
+                       '评价(证据评价非因果裁决)')
         else:
             st.warning('VP sidecar 校验失败,不入面: ' + ';'.join(vp_errs[:3]))
     else:

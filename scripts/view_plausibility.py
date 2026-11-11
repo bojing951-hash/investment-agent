@@ -29,7 +29,12 @@ INSUFFICIENT_DATA/LEVEL_TARGET/neutral→INSUFFICIENT_EVIDENCE(机器不可判=
 CLI:
   python3 scripts/view_plausibility.py VIEW-YYYYMMDD-NNN [--vp-dir DIR]
   python3 scripts/view_plausibility.py --list [--vp-dir DIR]
+  python3 scripts/view_plausibility.py --build VIEW-… [--dry-run] [--vp-dir DIR]
+  python3 scripts/view_plausibility.py --build-all [--dry-run] [--vp-dir DIR]
 退出码: 0=装载校验成功;1=缺失/不可用;2=用法错。
+
+v1.1(R1 autonomous-rd 2026-11-11): 三型证据落库——hypotheses[].stages.{A,B}
+结构化证据+stage_labels(假设证据评价,非预测验证);view_label/C 层契约零变动。
 """
 import json
 import os
@@ -137,8 +142,9 @@ def validate_vp(doc, view_doc):
     {metric_id,direction,segment} 形;view_label 与 hypotheses 聚合一致
     (不一致=写入方未用引擎聚合,拒绝)。"""
     errs = []
-    if doc.get('schema_version') != '1.0':
-        errs.append('schema_version 须为 "1.0"')
+    ver = doc.get('schema_version')
+    if ver not in ('1.0', '1.1'):
+        errs.append('schema_version 须为 "1.0" 或 "1.1"')
     if not isinstance(doc.get('view_id'), str) or not doc['view_id'].startswith('VIEW-'):
         errs.append('view_id 须为 VIEW-YYYYMMDD-NNN')
     elif view_doc is not None and doc['view_id'] != view_doc.get('view_id'):
@@ -185,11 +191,44 @@ def validate_vp(doc, view_doc):
     if declared != recomputed:
         errs.append(f'view_label({declared!r})与最保守聚合({recomputed!r})不符'
                     '——写入方须用 rollup_view_label 生成')
+    # v1.1(R1): 三阶段面校验——stages 结构/stage_labels∈六标签/
+    # stage_summary 与假设层最保守聚合一致(C 仍=view_label 契约)。
+    if ver == '1.1':
+        sum_a, sum_b = [], []
+        for i, h in enumerate(hyps):
+            if not isinstance(h, dict):
+                continue
+            pre = f'hypotheses[{i}]'
+            stages = h.get('stages')
+            if not isinstance(stages, dict) or not all(
+                    isinstance(stages.get(k), dict) for k in ('A', 'B')):
+                errs.append(f'{pre}.stages.A/B 须为对象(v1.1 三型证据落库)')
+                continue
+            sl = h.get('stage_labels')
+            if not isinstance(sl, dict) or sl.get('A') not in LABELS \
+                    or sl.get('B') not in LABELS:
+                errs.append(f'{pre}.stage_labels.A/B 须∈六标签')
+                continue
+            sum_a.append(sl['A'])
+            sum_b.append(sl['B'])
+        ss = doc.get('stage_summary')
+        if not isinstance(ss, dict):
+            errs.append('stage_summary 须为对象(v1.1)')
+        else:
+            if ss.get('C') != declared:
+                errs.append(f'stage_summary.C({ss.get("C")!r})须=view_label'
+                            f'({declared!r})(C=到期验证语义,契约不变)')
+            if ss.get('A') != rollup_view_label(sum_a) or \
+                    ss.get('B') != rollup_view_label(sum_b):
+                errs.append('stage_summary.A/B 与假设层 stage_labels 最保守'
+                            '聚合不符——写入方须用 rollup_view_label 生成')
     return (not errs), errs
 
 
 def vp_badge_rows(vp_doc):
-    """sidecar → 页③徽标表行(纯函数,app/测试共用)。"""
+    """sidecar → 页③徽标表行(纯函数,app/测试共用)。
+
+    v1.1: 有 stage_labels 时附「阶段A/B」列(证据评价,非预测判定)。"""
     kind_label = {'core_view': '观点', 'key_assumption': '假设'}
     rows = []
     for h in vp_doc.get('hypotheses') or []:
@@ -208,9 +247,229 @@ def vp_badge_rows(vp_doc):
             basis = f"mode {ev.get('mode')}"
         else:
             basis = '—'
-        rows.append({'ref': ref_txt, '标签': h.get('label'),
-                     '指标链': chain, '判定依据': basis})
+        sl = h.get('stage_labels') or {}
+        row = {'ref': ref_txt, '标签': h.get('label'),
+               '指标链': chain, '判定依据': basis}
+        if sl:
+            row['阶段A/B'] = f"{sl.get('A', '—')}/{sl.get('B', '—')}"
+        rows.append(row)
     return rows
+
+
+# ── R1(autonomous-rd 2026-11-11): VP v1.1 三型证据全落库 ──────────────
+# 背景: v1.0 的 view_label 只消费 view_verifier --mode C verdict(到期验证),
+# A(提出时)/B(发布后)两型引擎已可实算但从未结构化落库——AC3 三阶段区分
+# 名存实亡。v1.1 在不动 C 契约(view_label=到期验证语义,未到期不可判)的
+# 前提下,把 A/B 阶段证据与阶段标签(假设证据评价,非预测验证)落进 sidecar。
+# 语义层(hypotheses↔metric_refs↔linked_forecasts)沿用编排层 v1.0 映射,
+# 引擎不造语义;方向提取只认机构明示文本(词表机械解析,零 AI 判断)。
+
+REL_TO_STAGE = {'supports': 'SUPPORTED', 'against': 'CONTRADICTED',
+                'neutral': 'INSUFFICIENT_EVIDENCE'}
+
+
+def _stage_relation_a(changes, hint):
+    """阶段A关系: trailing 窗净变动方向 vs hint(与 verify 的机械规则同款;
+    语义=假设证据评价,非预测验证——不进 view_label)。"""
+    if hint not in ('up', 'down'):
+        return None, '无方向(机构未明示)→证据观察,不判支持/反对'
+    import view_verifier as vv
+    got = vv._net_direction(changes)
+    if got is None:
+        return None, '窗口无可用变动(诚实缺席)'
+    if got == 'flat':
+        return 'neutral', '窗口净变动=0(无判别力)'
+    rel = 'supports' if got == hint else 'against'
+    return rel, f'净变动方向={got} vs hint={hint}(trailing窗机械比对,证据评价非预测验证)'
+
+
+def _stage_relation_b(node, hint):
+    """阶段B关系: since_publish 区间变动方向 vs hint(严格>publish 证据更新窗)。"""
+    if hint not in ('up', 'down'):
+        return None, '无方向(机构未明示)→证据观察,不判支持/反对'
+    if not isinstance(node, dict) or node.get('available') is False:
+        reason = node.get('reason') if isinstance(node, dict) else '缺节点'
+        return None, f'发布后无可用新证据({reason})'
+    val = next((node.get(k) for k in ('pp_change', 'pct_change', 'abs_change')
+                if node.get(k) is not None), None)
+    if val is None:
+        return None, '发布后区间无变动值'
+    got = 'up' if val > 0 else 'down' if val < 0 else 'flat'
+    if got == 'flat':
+        return 'neutral', '发布后净变动=0(无判别力)'
+    rel = 'supports' if got == hint else 'against'
+    return rel, f'发布后净变动方向={got} vs hint={hint}(机械比对,证据评价非预测验证)'
+
+
+def _hypothesis_directions(hyp, view_doc, target_map):
+    """机构明示方向提取(确定性): metric_refs[].direction 优先(编排层已给);
+    否则由 evidence.linked_forecasts 指向的 forecast 自身 value_or_direction
+    经 view_verifier._parse_direction 词表机械解析,且该 forecast 的 target 经
+    forecast_target_map 解析到同一 metric 才采用(防错配)。
+    返回 ({metric_id: hint}, {metric_id: provenance});不可解析不猜。"""
+    import view_verifier as vv
+    dirs, prov = {}, {}
+    for mr in hyp.get('metric_refs') or []:
+        mid = mr.get('metric_id')
+        if mr.get('direction') in ('up', 'down'):
+            dirs[mid] = mr['direction']
+            prov[mid] = {'source': 'metric_ref', 'attribution': 'institution_stated'}
+    forecasts = view_doc.get('forecasts') or []
+    for fi in (hyp.get('evidence') or {}).get('linked_forecasts') or []:
+        i = fi if isinstance(fi, int) and 0 <= fi < len(forecasts) else (
+            fi - 1 if isinstance(fi, int) and 1 <= fi <= len(forecasts) else None)
+        if i is None:
+            continue
+        f = forecasts[i]
+        hint = vv._parse_direction(f.get('value_or_direction'))
+        if hint is None:
+            continue
+        metric = vv._resolve_forecast_metric(f.get('target'), target_map)
+        if metric and metric not in dirs:
+            dirs[metric] = hint
+            prov[metric] = {'source': 'forecast_value_or_direction',
+                            'forecast_index': i,
+                            'quote': str(f.get('value_or_direction'))[:120],
+                            'attribution': 'institution_stated'}
+    return dirs, prov
+
+
+def _stage_label(rows):
+    """阶段标签: 有判行的机械映射→最保守聚合;零判行=INSUFFICIENT(不猜)。"""
+    ls = [REL_TO_STAGE[r['relation']] for r in rows
+          if r.get('relation') in REL_TO_STAGE]
+    return rollup_view_label(ls), len(ls)
+
+
+def build_vp(view_id, root=None, vp_dir=None, views_dir=None, dry_run=False):
+    """既有 VP v1.0(语义层)× 引擎三型实跑 → VP v1.1(三阶段证据落库)。
+
+    C 层零变动: hypotheses[].label/evidence 与 view_label 保持 v1.0 语义
+    (mode C verdict 映射+最保守聚合,未到期不可判——既有契约与测试不动)。
+    新增: hypotheses[].stages.{A,B}(结构化证据行+关系+锚点披露)、
+    stage_labels.{A,B}(假设证据评价)、view 级 stage_summary、lineage 留痕。
+    引擎三型同一条取数路径(view_verifier;A=vintage/截断锚,B=最新快照+
+    since_publish,C=到期),写入前自校验(validate_vp)。"""
+    root = root or ROOT
+    base, reason = load_vp(view_id, vp_dir)
+    if base is None:
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'base_vp_missing', 'message': reason}}
+    view_doc, vr = vs.get_view(view_id, views_dir)
+    if view_doc is None:
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'view_not_found_or_quarantined',
+                          'message': vr}}
+    ok, errs = validate_vp(base, view_doc)
+    if not ok:
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'base_vp_invalid', 'message': '; '.join(errs[:3])}}
+    import view_verifier as vv
+    import workbench_data as wd
+    reg = wd.load_registry(ROOT)
+    vmap = vv.load_map()
+    snap, note = wd.latest_snapshot(root)
+    if snap is None:
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'no_snapshot', 'message': note}}
+    out_a = vv.verify_at_publish(view_id, reg, vmap, views_dir=views_dir,
+                                 root=root)
+    out_b = vv.verify(view_id, snap, reg, vmap, views_dir=views_dir, mode='B')
+    if not out_a.get('ok') or not out_b.get('ok'):
+        bad = [k for k, o in (('A', out_a), ('B', out_b)) if not o.get('ok')]
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'engine_error', 'mode': bad,
+                          'message': [o.get('error') for o in (out_a, out_b)
+                                      if not o.get('ok')]}}
+    tmap = vv.load_forecast_target_map()
+    ev_a = {e['metric_id']: e for e in out_a.get('evidence') or []}
+    ev_b = {e['metric_id']: e for e in out_b.get('evidence') or []}
+    miss_a = {m['metric_id']: m.get('reason')
+              for m in out_a.get('missing') or []}
+    miss_b = {m['metric_id']: m.get('reason')
+              for m in out_b.get('missing') or []}
+    stage_a_labels, stage_b_labels = [], []
+    for h in base.get('hypotheses') or []:
+        dirs, prov = _hypothesis_directions(h, view_doc, tmap)
+        rows_a, rows_b, miss_rows = [], [], []
+        for mr in h.get('metric_refs') or []:
+            mid = mr.get('metric_id')
+            hint = mr.get('direction') if mr.get('direction') in ('up', 'down') \
+                else dirs.get(mid)
+            p = ({'source': 'metric_ref', 'attribution': 'institution_stated'}
+                 if mr.get('direction') in ('up', 'down') else prov.get(mid))
+            e = ev_a.get(mid)
+            if e is None:
+                miss_rows.append({'metric_id': mid,
+                                  'reason': miss_a.get(mid, '快照无该指标事实')})
+            else:
+                rel, rnote = _stage_relation_a(e.get('changes'), hint)
+                rows_a.append({'metric_id': mid, 'direction': hint,
+                               'direction_provenance': p,
+                               'level': e.get('level'),
+                               'observation_date': e.get('observation_date'),
+                               'series_source': e.get('series_source'),
+                               'changes': e.get('changes'),
+                               'relation': rel, 'relation_note': rnote})
+            e = ev_b.get(mid)
+            if e is None:
+                miss_rows.append({'metric_id': mid, 'stage': 'B',
+                                  'reason': miss_b.get(mid, '快照无该指标事实')})
+            else:
+                node = e.get('since_publish')
+                rel, rnote = _stage_relation_b(node, hint)
+                rows_b.append({'metric_id': mid, 'direction': hint,
+                               'direction_provenance': p,
+                               'since_publish': node,
+                               'relation': rel, 'relation_note': rnote})
+        la, nja = _stage_label(rows_a)
+        lb, njb = _stage_label(rows_b)
+        stage_a_labels.append(la)
+        stage_b_labels.append(lb)
+        h['stages'] = {
+            'A': {'anchor': out_a.get('mode_a_anchor'),
+                  'rows': rows_a, 'n_rows': len(rows_a), 'n_judged': nja,
+                  'no_lookahead': 'trailing 窗以观点时点为窗末;'
+                                  'level observation_date≤publish(截断近似随行披露)'},
+            'B': {'snapshot_id': out_b.get('snapshot_id'),
+                  'target_date': out_b.get('target_date'),
+                  'rows': rows_b, 'n_rows': len(rows_b), 'n_judged': njb,
+                  'window': '严格>publish 的证据更新窗(since_publish)'},
+        }
+        if miss_rows:
+            h['stages']['missing'] = miss_rows
+        h['stage_labels'] = {'A': la, 'B': lb,
+                             'semantics': '假设证据评价(非预测验证;'
+                                          '预测判定=标签列,仅到期可判)'}
+    doc = dict(base)
+    doc['schema_version'] = '1.1'
+    doc['generated_by'] = 'engine:view_plausibility.build_vp(v1.1,R1 2026-11-11)'
+    doc['as_of'] = snap.get('target_date')
+    doc['lineage'] = {'prior_generated_by': base.get('generated_by'),
+                      'prior_generation_basis': base.get('generation_basis'),
+                      'upgraded': '2026-11-11 autonomous-rd R1: 三型证据落库;'
+                                  'C 层契约零变动'}
+    doc['generation_basis'] = (
+        '引擎三型实跑(view_verifier A/B)×编排层 v1.0 语义映射;阶段标签='
+        '假设证据评价(机构明示方向词表机械解析,trailing/since_publish 窗'
+        '方向机械比对),非预测验证;view_label 仍=mode C 到期验证语义')
+    doc['stage_summary'] = {
+        'A': rollup_view_label(stage_a_labels),
+        'B': rollup_view_label(stage_b_labels),
+        'C': base.get('view_label'),
+        'semantics': 'A=提出时假设证据 / B=发布后证据更新(证据评价,'
+                     '非预测判定) / C=到期预测验证(未到期=不可判)'}
+    ok, errs = validate_vp(doc, view_doc)
+    if not ok:
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'self_check_failed', 'message': errs}}
+    if not dry_run:
+        with open(vp_path(view_id, vp_dir), 'w', encoding='utf-8') as f:
+            json.dump(doc, f, ensure_ascii=False, indent=2)
+    return {'ok': True, 'view_id': view_id, 'written': not dry_run,
+            'view_label': doc['view_label'],
+            'stage_summary': doc['stage_summary'],
+            'n_hypotheses': len(doc.get('hypotheses') or [])}
 
 
 def main(argv=None):
@@ -225,6 +484,35 @@ def main(argv=None):
             return 2
         vp_dir = args[k + 1]
         del args[k:k + 2]
+    # R1: --build VIEW-ID | --build-all [--dry-run](三型证据落库,见 build_vp)
+    dry = '--dry-run' in args
+    if dry:
+        args.remove('--dry-run')
+    if args and args[0] == '--build':
+        if len(args) != 2 or not args[1].startswith('VIEW-'):
+            print(json.dumps({'ok': False, 'error': {
+                'kind': 'usage', 'message': '用法: --build VIEW-YYYYMMDD-NNN'
+                        ' [--dry-run] [--vp-dir DIR]'}}, ensure_ascii=False))
+            return 2
+        out = build_vp(args[1], vp_dir=vp_dir, dry_run=dry)
+        print(json.dumps(out, ensure_ascii=False, indent=2, default=str))
+        return 0 if out.get('ok') else 1
+    if args and args[0] == '--build-all':
+        docs, bad = load_all(vp_dir)
+        results = [build_vp(d['view_id'], vp_dir=vp_dir, dry_run=dry)
+                   for d in docs]
+        ok_n = sum(1 for r in results if r.get('ok'))
+        out = {'ok': ok_n == len(results) and len(results) > 0,
+               'n': len(results), 'n_ok': ok_n,
+               'dry_run': dry,
+               'results': [{k: r.get(k) for k in
+                            ('ok', 'view_id', 'view_label',
+                             'stage_summary', 'error')}
+                           for r in results]}
+        if bad:
+            out['skipped_bad_base'] = [f for f, _ in bad]
+        print(json.dumps(out, ensure_ascii=False, indent=2, default=str))
+        return 0 if out['ok'] else 1
     if len(args) == 1 and args[0] == '--list':
         docs, bad = load_all(vp_dir)
         print(json.dumps({'ok': True, 'n': len(docs),

@@ -136,21 +136,20 @@ def wd_views_coverage(views_dir):
 QUESTION_COMMANDS = {
     'RQ1': ['ia_cli.py overview --economy US', 'ia_cli.py overview --economy CN',
             'ia_cli.py changes'],
-    'RQ2': ['ia_cli.py changes', 'ia_cli.py compare --metric-a UST_10Y '
-            '--metric-b SPX --changes'],
+    'RQ2': ['ia_cli.py changes', 'ia_cli.py compare --metrics UST_10Y,SPX'],
     'RQ3': ['(Agent 综合: RQ1/RQ2 证据+RQ4/RQ5 观点面;须明示 ai_inferred)'],
     'RQ4': ['ia_cli.py views list', 'ia_cli.py views get --view-id VIEW-…'],
-    'RQ5': ['ia_cli.py research-map(本能力: nomination_inputs)',
-            'ia_cli.py views list'],
+    'RQ5': ['ia_cli.py research-map', 'ia_cli.py views list'],
     'RQ6': ['scripts/view_verifier.py VIEW-… --mode A',
             'scripts/view_verifier.py VIEW-… --mode C',
-            'ia_cli.py compare --metric-a … --metric-b … --changes'],
-    'RQ7': ['ia_cli.py analog --metric UST_10Y', 'ia_cli.py archive list'],
-    'RQ8': ['ia_cli.py research-map(本能力: edges/mechanism 面)'],
+            'ia_cli.py compare --metrics A_ID,B_ID'],
+    'RQ7': ['ia_cli.py analog', 'ia_cli.py archive list'],
+    'RQ8': ['ia_cli.py research-map', '(面: edges/mechanism——map 输出内含)'],
     'RQ9': ['(Agent 条件推演五行: 前提/机制/路径/观察指标/推翻条件;'
             '不冒充预测)'],
-    'RQ10': ['ia_cli.py views get --view-id VIEW-…(falsification_conditions)',
-             '(观察钟: 编排层检查 data/research/observation_clock.json)'],
+    'RQ10': ['ia_cli.py views get --view-id VIEW-…',
+             '(要点: falsification_conditions 字段;观察钟=编排层检查 '
+             'data/research/observation_clock.json)'],
 }
 
 

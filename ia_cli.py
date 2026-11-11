@@ -1301,6 +1301,47 @@ def cmd_research_map(args):
     emit(envelope('research-map', True, data, warns))
 
 
+def cmd_research_run(args):
+    """一键研究编排(R2/AC6): Skill 十一步工作流的可执行化(零模型)。
+
+    每步=真 ia_cli 子进程/既有库装载,信封留档;L3 AI推断/L4 条件情景
+    恒 declared-not-produced(归编排层 Agent,不代写)。落档默认关
+    (--archive 显式开启)。报告落 output/research_runs/<ts>_<slug>/。"""
+    import research_orchestrator as ro
+    try:
+        rep = ro.run_research(args.question, root=ROOT,
+                              archive=bool(getattr(args, 'archive', False)),
+                              out_dir=getattr(args, 'out_dir', None))
+    except (OSError, ValueError) as e:
+        emit(envelope('research-run', False, {},
+                      error=('orchestrator_failed', str(e), None)), exit_code=1)
+        return
+    data = {'report_dir': rep.get('report_dir'),
+            'pipeline_version': rep.get('pipeline_version'),
+            'steps': [{'step': s['step'], 'ok': s.get('ok'),
+                       'executed': s.get('executed'),
+                       'note': s.get('note') or s.get('skipped_reason')}
+                      for s in rep.get('steps', [])],
+            'layers_summary': {
+                'L1_available': rep['layers']['L1_事实层']['available'],
+                'L1_n_rows': len(rep['layers']['L1_事实层']['rows']),
+                'L2_vp_available': rep['layers']['L2_机构观点层']['views'].get('available'),
+                'L2_n_views': rep['layers']['L2_机构观点层']['views'].get('n'),
+                'L3_produced': rep['layers']['L3_AI推断层']['produced'],
+                'L4_produced': rep['layers']['L4_条件情景层']['produced']},
+            'n_evidence_rows': len(rep.get('evidence_index', [])),
+            'archive': {'requested': rep['run']['archive_requested'],
+                        'archived_query_id':
+                            next((s.get('archived_query_id') for s in rep['steps']
+                                  if s.get('step') == 'S11_archive'), None)}}
+    warns = list(rep.get('notes') or [])
+    if not rep.get('run_ok'):
+        failed = [s['step'] for s in rep['steps']
+                  if s.get('executed') and not s.get('ok')]
+        warns.append(f"部分步骤失败: {','.join(failed)}(信封留档于 report_dir)")
+    emit(envelope('research-run', bool(rep.get('run_ok')), data, warns))
+
+
 def build_parser():
     p = argparse.ArgumentParser(
         prog='ia_cli.py',
@@ -1400,6 +1441,15 @@ def build_parser():
                               '(数据面+命令清单+提名原料+ART/观察钟透传;零模型)')
     rmp.add_argument('--views-dir', default=None,
                      help='views 目录注入缝(默认 data/institutions/views;测试用)')
+
+    rr = sub.add_parser('research-run',
+                        help='一键研究编排(R2/AC6): 十一步确定性管线,零模型;'
+                             'L3 AI推断/L4 条件情景恒 declared-not-produced')
+    rr.add_argument('--question', required=True, help='研究问题原文')
+    rr.add_argument('--archive', action='store_true',
+                    help='落档(Skill 第 11 步=用户认可后;默认关)')
+    rr.add_argument('--out-dir', default=None,
+                    help='报告目录注入缝(默认 output/research_runs/<ts>_<slug>)')
     return p
 
 
@@ -1409,7 +1459,8 @@ def main(argv=None):
     handlers = {'doctor': cmd_doctor, 'update': cmd_update, 'overview': cmd_overview,
                 'changes': cmd_changes, 'history': cmd_history, 'compare': cmd_compare,
                 'analog': cmd_analog, 'research': cmd_research, 'archive': cmd_archive,
-                'views': cmd_views, 'research-map': cmd_research_map}
+                'views': cmd_views, 'research-map': cmd_research_map,
+                'research-run': cmd_research_run}
     if args.capability == 'archive':
         if args.action == 'save' and not args.question:
             emit(envelope('archive', False, {},

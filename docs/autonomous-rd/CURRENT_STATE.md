@@ -4,11 +4,70 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-11 (HKT, R2 后)
+## 快照: 2026-11-11 (HKT, R6 采集面修复轮·操作者网络轮)
 
-- **基线**: main = `cdffebe`(v0.9.0-alpha,Charter 9「全球宏观研究闭环与一键研究」当日闭合);
-  Release 441388150 上线,CI 42983226791 绿 = main 基线 126 槽。
-- **LIVE(阿里云)**: 仍跑 v0.7.1 面;升级新面 = 用户保留卡点③,待批。
+- **R6(采集面修复 D1/D2)已完成**: 分支 `dev/rd-r6-collection-fixes`(自
+  dev/rd-r5-stage-coverage 切出,R5 未合并故链式携带)——
+  **D1 CPI/PPI 换源**: G-P1-15 金十通道(2025-08 停更后持续写旧值)→
+  tushare pro `cn_cpi.nt_yoy`/`cn_ppi.ppi_yoy`;新纯函数
+  `_tushare_monthly_last`('YYYYMM'最大有值月→月末观测日,NaN/坏月跳行);
+  registry **v2.8.0→v2.8.1**(两 source_symbol 同步+notes 前插)。真实拉取
+  冒烟(LIVE token 只读): **cpi_yoy=0.9@2026-09-30 新鲜**;ppi_yoy=服务端
+  拒「没有接口(cn_ppi)访问权限」=token 权限档不足(与 cn_cpi 同族不同档;
+  金十族复测全死/akshare 1.18.47 无 EM-PPI 包装[源码 grep]/东财 datacenter
+  reportName 试探 0 行)→ **卡点②候选报批项**,批前如实缺席。
+  **D2 CN_OMO_7D=源端全阻登记**: 四路免费候选实测全灭(tushare 无 OMO 接口/
+  央行官网 502/akshare 零逆回购端点+无 telegraph/东财 cookie 门)→
+  source-blocked 不造数(台账三之四,后续路径=chinamoney/EM reportName 深挖
+  P3 观察)。
+- **测试**: wp_e 26 OK(T4 换 tushare 桩+新 t56 纯函数判定;版本锁随升)/
+  data_batch1 38/0/charter6_p2 88/0(两处锁随升)/R1 52/R2 47/R5 38/
+  snapshot 46 **全绿零回归**。
+- **基线**: main = `be8dabd`(v0.10.0-alpha);CI 绿=128 槽。R5+R6 波次
+  **待用户批准合并 main**(卡点①逐次请批)。
+- **无头自主运行(卡点④)**: 常态运转(每 4h);R6=操作者网络轮(无头禁外发,
+  D1/D2 需真网故由操作者会话执行)。
+
+## 前一快照: 2026-11-11 (HKT, R5 阶段证据覆盖面轮·无头自主执行)
+
+- **R5(阶段证据覆盖面)已完成**: 分支 `dev/rd-r5-stage-coverage`——R1 发现
+  「阶段B 16 指标快照缺席」全量分解为四类缺陷并收口(`audit/R5_STAGE_COVERAGE_INVENTORY.md`):
+  ①假设引用超出观点 subjects 映射面+③mode A 事实面截断过杀=引擎覆盖面缺口**已修**
+  (`view_verifier.metric_evidence_table/verify/verify_at_publish` 增
+  `extra_metric_ids` 并面;approx_filtered 支截断序列尾值近似,
+  `level_source=series_tail_le_publish`+DEGRADED 披露;`build_vp` 汇总假设
+  metric_refs 传入 A/B 两型);②CPI_YOY 语义层 id 错配(注册表实有 CPI/CORE_CPI)
+  =missing 注记精确化,重指留 Agent 层禁猜;④CN_OMO_7D/BUND_10Y 真缺席=台账
+  (`../P2_DATA_GAP_LEDGER.md` 三之四)。**17 份 VP 重建对照**: 既有行零丢失/
+  零变动、C 层零变动、新增 64 行(A51/B13)、7 假设 INSUFFICIENT→有判
+  (3 SUPPORTED/4 CONTRADICTED,方向全为获得判断)。新套件
+  `tests/test_rd_r5_stage_coverage.py` 38 判定绿;R1 52/52、c9_modes 57/57、
+  charter8 41/41、vp_sidecar 40/40 无回归;全套回归 129 文件批跑: 其余 128 全 PASS,
+R5 套件初跑 3 判定 FAIL=**套件自身判定缺陷**(写死「在档=前R5版」假设,批跑中他套件
+真重建 VP 后破裂;引擎零改动),改为逐字节前后不变式后 38/38 绿(全仓口径 130 含根
+test_env.py 环境探测)。
+  **新发现 P0**: CN_CPI_YOY/CN_PPI_YOY 陈旧值(2025-08 停更源)仍被证据引擎
+  采信(R5-D1)+CN_OMO_7D 字段从未采集(R5-D2)——登记 OPEN_ISSUES/台账,
+  待有网络环境轮修。
+- **基线**: main = `be8dabd`(v0.10.0-alpha);CI 绿=tests/ 128 槽(全仓口径 129
+  =+根 test_env.py);本轮后 tests/ 增 1 槽(R5 套件)→ 预期 129/130。
+  R5 波次**待用户批准合并 main**(保留卡点①逐次请批)。
+- **无头自主运行(卡点④)**: 已由用户放行落地(launchd 拉起本无头轮,提示词
+  常驻);本轮=R5 首个无头自主轮。`~/agent-loop/` 在无头会话权限面外
+  (rounds/index 追加受限,如实记录)。
+
+## 前一快照: 2026-11-11 (HKT, 用户「全部审批通过」四卡点执行后)
+
+- **基线**: main = `be8dabd`(v0.10.0-alpha,长期自主研发第一波 R1-R4+审计闭环);
+  Release 441746111 上线,CI 43030767965 绿 = main 基线 **128 槽**(CI 口径=tests/;
+  全仓口径 129 含根 test_env.py 环境探测)。merge --no-ff dev/rd-r2-research-orchestrator,
+  分支链 53aa4fe→946625b→ac40ef8→cb98106→fc18590→1721ecc→b9d5cf6→be8dabd。
+- **LIVE(本地 Mac launchd)**: **已部署 v0.10.0 面**(2026-11-11 卡点③执行毕)。
+  git archive be8dabd 覆盖提取+三 key 重注入 env_config 默认位+.env/data/logs/output/
+  archive 全保护;冒烟绿(changes/research-map 10问/research-run 14 步 0 败/
+  report_generator+app 导入/launchd 两任务在场)。已知: weekly exit2=既有 Gate A
+  数据缺口(ZQ_IMPLIED_AVG 采集缺席,10-31 与 11-07 同因)非部署回归——采集面排查
+  已列 RESUME R5 候选③。明晨 07:00 daily=新面首跑。key 备份=~/.ia-live-deploy-backup/。
 - **引擎**: 停于唯一日历门——F 补证轮观察钟 2026-12-05 满自动触发,此前无排程任务。
 - **长期研发章程**: 2026-11-11 用户《总指令》原文已落位 `PRODUCT_GOAL.md`;
   《长期自主研发系统启动指令》原文已落位 `RUN_MANDATE.md`(自主循环/环境自检/AC11–AC12)。
@@ -68,6 +127,14 @@ Charter 7 能力建设(v0.7/v0.7.1)→ Charter 8 机构观点交叉验证(v0.8)�
 - 数据缺口台账 18 项(`../P2_DATA_GAP_LEDGER.md`);HY_OAS 族 = 源端 3 年授权窗如实注记。
 - 历史遗留(`../REMAINING_ISSUES.md`,2026-10-17 版): P0 空,余 P1 观察项。
 
-## 用户保留卡点(未经用户亲自批准不得动)
+## 用户保留卡点(状态: 2026-11-11「全部审批通过」)
 
-① 封版合并 main(含本章程初始化分支) ② 新数据源凭证/付费 ③ LIVE 部署。
+- ① 封版合并 main — **已批准已执行**(本波 R1-R4=be8dabd+v0.10.0-alpha+Release 441746111)。
+  后续波次合并 main 仍逐次请批(红线不变)。
+- ② 新数据源凭证/付费 — **原则获批**,暂无即需项;HY_OAS ICE BofA 3 年授权窗等
+  实际采购仍按需逐次报批。
+- ③ LIVE 部署 — **已批准已执行**(v0.10.0 面,见快照)。
+- ④ 无头自主运行 — **已批准,落地被权限分类器拦**(启动器提示词文件写入=
+  [Create Unsafe Agents] 类别);待用户在场放行后建
+  (方案: launchd 每 4h `claude -p` 单轮+STOP 文件+--max-budget-usd 界+允许清单
+  禁 push/ssh/curl/npm/pip、合并 main 与付费仍留用户)。

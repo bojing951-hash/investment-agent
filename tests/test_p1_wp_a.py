@@ -156,7 +156,7 @@ class TestEconomyRules(unittest.TestCase):
         # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
         # 94+8→102 / 93+8→101 / 2.2.0→2.3.0 / 聚合 CN 10→18(其余键不动)
         self.assertEqual(len(REG['metrics']), 110)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL)
-        self.assertEqual(REG['version'], '2.8.0')  # 数据批1(2026-11-10) 2.7.0→2.8.0
+        self.assertEqual(REG['version'], '2.8.1')  # R6-D1(2026-11-11) CPI/PPI 换源;数据批1曾 2.7.0→2.8.0
         self.assertEqual(sum(1 for m in REG['metrics']
                              if m.get('status') == 'active'), 108)  # 数据批1 +SPX_EPS/M2SL
         agg = {}

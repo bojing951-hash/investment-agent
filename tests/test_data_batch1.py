@@ -54,12 +54,12 @@ import global_market_collector as gmc  # noqa: E402
 import registry_semantics as rsem    # noqa: E402
 import research_provenance as rp     # noqa: E402
 
-# ══ [1] 注册表 v2.8.0 结构 ═════════════════════════════════════════
-print("\n[1] 注册表 v2.8.0(数据批1: +SPX_EPS/M2SL,DAX/CAC40 转正)")
-check("版本 v2.8.0+变更注记在册",
-      REG_JSON['version'] == '2.8.0'
-      and any('v2.8.0' not in n or 'SPX_EPS' in n for n in [REG_JSON['notes'][0]])
-      and 'SPX_EPS' in REG_JSON['notes'][0] and 'M2SL' in REG_JSON['notes'][0],
+# ══ [1] 注册表 v2.8.0 结构(版本锁随升 v2.8.1, R6-D1 源切换) ═════════
+print("\n[1] 注册表(数据批1面: +SPX_EPS/M2SL,DAX/CAC40 转正;锁随升 v2.8.1)")
+_n80 = [n for n in REG_JSON['notes'] if n.startswith('v2.8.0')]
+check("版本 v2.8.1+数据批1注记仍在册",
+      REG_JSON['version'] == '2.8.1'
+      and len(_n80) == 1 and 'SPX_EPS' in _n80[0] and 'M2SL' in _n80[0],
       REG_JSON['version'])
 check("110项/108活跃(数据批1 +2)",
       len(REG_JSON['metrics']) == 110

@@ -376,9 +376,17 @@ def build_vp(view_id, root=None, vp_dir=None, views_dir=None, dry_run=False):
     if snap is None:
         return {'ok': False, 'view_id': view_id,
                 'error': {'kind': 'no_snapshot', 'message': note}}
+    # R5(2026-11-11): 假设层 metric_refs 并入证据面——机构观点明确引用的指标
+    # 不因观点 subjects 标签未覆盖而缺席(subject='hypothesis_ref';不在注册表
+    # 的如实进 missing 注明语义层缺口,禁猜)。
+    extra_ids = sorted({mr.get('metric_id')
+                        for h in base.get('hypotheses') or []
+                        for mr in h.get('metric_refs') or []
+                        if mr.get('metric_id')})
     out_a = vv.verify_at_publish(view_id, reg, vmap, views_dir=views_dir,
-                                 root=root)
-    out_b = vv.verify(view_id, snap, reg, vmap, views_dir=views_dir, mode='B')
+                                 root=root, extra_metric_ids=extra_ids)
+    out_b = vv.verify(view_id, snap, reg, vmap, views_dir=views_dir, mode='B',
+                      extra_metric_ids=extra_ids)
     if not out_a.get('ok') or not out_b.get('ok'):
         bad = [k for k, o in (('A', out_a), ('B', out_b)) if not o.get('ok')]
         return {'ok': False, 'view_id': view_id,
@@ -408,13 +416,16 @@ def build_vp(view_id, root=None, vp_dir=None, views_dir=None, dry_run=False):
                                   'reason': miss_a.get(mid, '快照无该指标事实')})
             else:
                 rel, rnote = _stage_relation_a(e.get('changes'), hint)
-                rows_a.append({'metric_id': mid, 'direction': hint,
-                               'direction_provenance': p,
-                               'level': e.get('level'),
-                               'observation_date': e.get('observation_date'),
-                               'series_source': e.get('series_source'),
-                               'changes': e.get('changes'),
-                               'relation': rel, 'relation_note': rnote})
+                row_a = {'metric_id': mid, 'direction': hint,
+                         'direction_provenance': p,
+                         'level': e.get('level'),
+                         'observation_date': e.get('observation_date'),
+                         'series_source': e.get('series_source'),
+                         'changes': e.get('changes'),
+                         'relation': rel, 'relation_note': rnote}
+                if e.get('level_source') is not None:  # R5: 截断尾值近似披露
+                    row_a['level_source'] = e['level_source']
+                rows_a.append(row_a)
             e = ev_b.get(mid)
             if e is None:
                 miss_rows.append({'metric_id': mid, 'stage': 'B',
@@ -447,16 +458,21 @@ def build_vp(view_id, root=None, vp_dir=None, views_dir=None, dry_run=False):
                                           '预测判定=标签列,仅到期可判)'}
     doc = dict(base)
     doc['schema_version'] = '1.1'
-    doc['generated_by'] = 'engine:view_plausibility.build_vp(v1.1,R1 2026-11-11)'
+    doc['generated_by'] = ('engine:view_plausibility.build_vp'
+                           '(v1.1,R1 2026-11-11;R5 2026-11-11 覆盖面)')
     doc['as_of'] = snap.get('target_date')
     doc['lineage'] = {'prior_generated_by': base.get('generated_by'),
                       'prior_generation_basis': base.get('generation_basis'),
                       'upgraded': '2026-11-11 autonomous-rd R1: 三型证据落库;'
+                                  '+R5: 假设引用并面+mode A 截断尾值近似;'
                                   'C 层契约零变动'}
     doc['generation_basis'] = (
         '引擎三型实跑(view_verifier A/B)×编排层 v1.0 语义映射;阶段标签='
         '假设证据评价(机构明示方向词表机械解析,trailing/since_publish 窗'
-        '方向机械比对),非预测验证;view_label 仍=mode C 到期验证语义')
+        '方向机械比对),非预测验证;view_label 仍=mode C 到期验证语义;'
+        'R5(2026-11-11)证据面=观点 subjects 映射∪假设 metric_refs'
+        '(hypothesis_ref),mode A 截断近似面 obs>publish 事实以截断序列'
+        '尾值近似(level_source=series_tail_le_publish,DEGRADED)')
     doc['stage_summary'] = {
         'A': rollup_view_label(stage_a_labels),
         'B': rollup_view_label(stage_b_labels),

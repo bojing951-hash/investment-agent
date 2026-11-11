@@ -190,3 +190,37 @@ v2.7.0→**v2.8.0**(110 项/108 活跃);analog `FEATURE_SPECS` 未动
 - 附:E席非阻塞观察 6 条(HSI×SPX 第4位截断/test_oss_product W7 环境敏感/
   parse_view_horizon 同形多时点取首[库内0影响]/openai SDK 前席遗留等)
   见 audit/C9_FINAL_ACCEPTANCE.md。
+
+## 三之四、R5 阶段证据覆盖面盘点(2026-11-11,dev/rd-r5-stage-coverage)
+
+来源: OPEN_ISSUES「R1 发现·阶段B 可判面受限(16 指标快照 facts 缺席)」——
+本轮全量分解为**四类缺陷**(逐类处置+验收证据 = `audit/R5_STAGE_COVERAGE_INVENTORY.md`,
+此处仅登记数据面行;①③为引擎覆盖面缺口已修,不属数据缺口):
+
+- **R5-D1(P0 观察)CN_CPI_YOY/CN_PPI_YOY 陈旧值**: 快照在档
+  `CN_CPI_YOY=0.0@2025-08-09`/`CN_PPI_YOY=-3.6@2025-08-09`(DEGRADED),
+  akshare_jin10 源 2025-08 后停更而采集器持续写最后值;两值同日期且
+  落周六=疑似发布日解析错位。**证据引擎(A/B 型)仍采信该事实**
+  (DEGRADED 只披露不拦截)→ VIEW-003/007 的 CN_CPI_YOY 证据行建立其上。
+  处置: ~~采集器修复(jin10 通道换源/日期解析)~~ **[R6-D1 已修一半
+  (2026-11-11,dev/rd-r6-collection-fixes)]** CN_CPI_YOY→tushare pro
+  `cn_cpi.nt_yoy` **换源成功并真实拉取验证**(202609=0.9,月末观测日,
+  registry v2.8.1);**CN_PPI_YOY→tushare pro `cn_ppi.ppi_yoy` 源已接线但
+  本 token 权限档不足**(服务端拒「没有接口(cn_ppi)访问权限」doc_id=108,
+  与 CPI 同族接口不同档;金十族复测全死/akshare 1.18.47 无 EM-PPI 包装/
+  东财 datacenter reportName 试探 0 行)→ **用户裁定(2026-11-11): 暂不付费,
+  先跑通其他;PPI 保持如实缺席,积分档升级留后议**。「DEGRADED+陈旧窗是否
+  拦截出判」新鲜度政策议: CPI 侧换源后事实自动转新鲜,政策议降级为 P3。
+- **R5-D2 CN_OMO_7D=字段从未采集**: ~~采集器补 akshare OMO 端点~~
+  **[R6-D2 已核=源端全阻(2026-11-11,操作者网络实测)]** 四路候选全灭:
+  ①tushare pro 无 OMO 接口(wk_omo/cn_omo/omo_rate 皆「请指定正确的
+  接口名」);②央行官网 www.pbc.gov.cn 502(标准 TLS 下仍拒);③akshare
+  1.18.47 零逆回购端点(源码 grep 证)+无 telegraph 函数;④东财
+  news_economic_baidu cookie 门。**登记=源端受阻(source-blocked)**,
+  不造数;后续路径候选: chinamoney/东财 datacenter reportName 深挖
+  (注册为 P3 观察,不阻塞)。
+- **R5-D3 CPI_YOY(US) 语义层 id 错配**: 假设层引用 `CPI_YOY`(4 观点),
+  注册表实有 `CPI`/`CORE_CPI`;引擎侧已改精确注记「不在注册表(语义层映射
+  缺口,禁猜)」,重指=Agent 层待办(编排层映射质量,与 C9-3 同类)。
+- 既有行维持: BUND_10Y/BUND_2Y(BBK RemoteDisconnected)、JP_CPI_TOKYO_YOY、
+  HY_OAS 族(ICE 3 年授权窗)——见上各节,不重复登记。

@@ -14,7 +14,7 @@
 | AC4 | 经济机制与历史研究 | NOT_VERIFIED | R1 审计中 | — |
 | AC5 | 独立研究结论 | NOT_VERIFIED | R1 审计中 | — |
 | AC6 | 真正的一键研究 | PARTIAL | R2: `ia_cli research-run` 十一步确定性编排真执行(每步真子进程+信封留档/ok 与 semantic 分记/L3+L4 恒 declared-not-produced/逐数证据索引/零映射如实 unmapped);单问直跑已验(31 判);**R3 十问扇出** --fanout 十问清单逐条真跑(47 判定+全套 129/129 绿) | 剩余: AC7 端到端 3 任务+1 开放题未跑;真实案例积累 |
-| AC7 | 真实端到端验收(3 任务+1 开放题) | NOT_VERIFIED | 开放式研究问题从未执行 | — |
+| AC7 | 真实端到端验收(3 任务+1 开放题) | EXECUTED | R7(2026-11-12, dev/rd-r7-ac7-e2e): 数据面修复(HSI/HSCEI core 缺席→腾讯 2000 根重采+PPI 真实复拉; 快照 research_snapshot_20261112_v2, Gate A=DEGRADED core 0 缺)后真跑——任务A 13 节全景(research-run 十一步+--fanout 16 命令; 13/13 节无空置)+任务B 17 档/15 机构分歧矩阵+M 表八问+新鲜 CPI/PPI 更新评注+任务C view_verifier A/B/C×17 档+VP sidecar 重建(B 面 23 机械判定=11 against/5 supports/7 neutral; C 层全未到期如实)+开放题金油比条件前视(现场生成非反刍); 四 QB 归档=QB-20261112-001~004(全绑 v2 快照) | 终判留 AC 覆盘轮(R8=独立验证轮他席复算);非自动 PASS |
 | AC8 | 研究可复核 | NOT_VERIFIED | R1 审计确认交付物可复算(逐字节重建一致+31 数值独立复算中);R2 每步信封留档已落;端到端研究复核(AC7 式)未跑 | — |
 | AC9 | 真实用户可用(干净安装全链) | NOT_VERIFIED | 装机副本须 --force(已知坑) | — |
 | AC10 | 可靠性与安全 | NOT_VERIFIED | R1 审计红线核查过(无前视/不造数/不越付费墙/密钥不入库);R2 归档默认关+信任边界=resolve_inputs 规范核验(符号链接逃逸被拒=验证有效) | — |

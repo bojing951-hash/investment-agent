@@ -4,7 +4,37 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-11 (HKT, R5+R6 已发布 v0.11.0-alpha·LIVE 已同步)
+## 快照: 2026-11-12 (HKT 凌晨, R7 AC7 真实端到端首跑完成)
+
+- **R7(AC7 三任务+一开放题)已完成**: 分支 `dev/rd-r7-ac7-e2e`(自 main=a22a2b7 切出,
+  worktree /tmp/ac7-wt)——
+  **数据面修复(首跑前置)**: 00:16 快照 v1 Gate A=FAIL(HSI/HSCEI core 缺席=午夜采集双通道
+  皆阻: 腾讯 WAF 拦 2600 根深窗+yfinance 限流; PPI 丢)→global 采集 34/34+china 重跑+腾讯
+  2000 根(≈8 年, 经 HK_INDEX_HISTORY_BARS env 缝, 窗口缩短如实披露)+PPI 真实复拉
+  (5.0@2026-09-30)→**research_snapshot_20261112_v2, Gate A=DEGRADED, core 缺失 0**,
+  事实 103(72 PASS/13 DEGRADED/0 FAIL)。
+  **任务A**: `ia_cli research-run --fanout --archive` 十一步 16 命令真跑(S8=诚实 unmapped:
+  接地问答仅支持四类利率问题, 全景问题走 Agent 装配; S4/S5 零实体映射如实跳过)+
+  13 节终报告(**13/13 节无空置**, 承 QB-010 结构, v2 面全数字更新)=QB-20261112-001。
+  **任务B**: 17 档/15 机构矩阵(较 QB-033 +6 档: PBoC/OECD/BIS/UBS/Vanguard/MSIM-1106)
+  +M 表八问拆解+分歧矩阵 5 轴+**新鲜 CPI/PPI 只作更新评注不重写历史档**(发现: 上游通胀
+  PPI+5.0 在 17 档机构面完全空白=研究机会缺口登记)=QB-20261112-002。
+  **任务C**: view_verifier 三型×17 档+`view_plausibility --build-all` 17 件 VP sidecar
+  重建@v2(as_of 20261112)——**B 面 143 行 86 行非零移动, 23 行机械判定(11 against/
+  5 supports/7 neutral, R5 覆盖面后首次批量出判)**; C 层 133 假设全未到期/不可机器判
+  (首验窗 2026-12)=如实, 观点级六标签 17/17 INSUFFICIENT_EVIDENCE 维持契约;
+  CN CPI/PPI 无假设映射=NOT_MACHINE_VERIFIABLE 缺口如实=QB-20261112-003。
+  **开放题(现场生成防适配)**: 金油比 12 个月压缩 32.3% 后仍处 10 年 80.1 分位(45.63,
+  剔负油日口径)——compare 滚动 60 相关 −0.3263(全窗 +0.022 近零)+6 段 Episode 条件前视
+  (n=6 小样本如实, 后 63 日 SPX 中位 +8.45%/VIX −18.61%, 禁外推)+「能源→通胀预期→金」
+  传导缺席双确认=QB-20261112-004。四 QB 全显式绑 v2 快照指针。
+- **测试**: 执行轮零引擎代码改动;全套回归 **129 文件=128 exit0+1 环境性 FAIL**
+  (test_p0_baseline_lock_equivalence 的「worktree 清单回零」断言检测到本 fork 自身的
+  活 worktree /tmp/ac7-wt=环境性;同套件干净 clone 31/31 绿=非回归,CI 基线 129 绿佐证)。
+- **AC7=EXECUTED**(FINAL_ACCEPTANCE 已记; 终判留 AC 覆盘轮)。**下一波=R8 独立验证轮**
+  (他席对 QB-001~004 复算, 开发者不自验)。
+
+## 前一快照: 2026-11-11 (HKT, R5+R6 已发布 v0.11.0-alpha·LIVE 已同步)
 
 - **发布态**: main=**9051e7f**(merge R5+R6),tag v0.11.0-alpha,Release 441903695,
   CI 43052903525 绿=**基线129**;LIVE=**v0.11.0 面**(三 key 重注入+生产树真实拉取

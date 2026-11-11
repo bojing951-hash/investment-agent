@@ -183,24 +183,23 @@ def _month_shift(d, months):
 
 
 def horizon_start(target_ymd, horizon):
-    """窗口起点(target_ymd=YYYYMMDD 或 ISO): 1m/3m/6m 自然月回退,1y/5y 年回退。
-
-    Charter9 P0-4: 新增 6m(历史走势图日历截取复用同一实现,防口径分叉)。"""
+    """窗口起点(target_ymd=YYYYMMDD 或 ISO): Nm 自然月回退,Ny 年回退
+    (N 任意正整数——Charter9 P0-3 复算对账需 3yr 边窗,通用化同语义:
+    年回退=同月同日,2-29→2-28 钳制;月回退=月末钳制)。"""
     import datetime as _dt
+    import re as _re
     s = str(target_ymd)
     d = _dt.date(int(s[:4]), int(s[4:6]) if len(s) == 8 else int(s[5:7]),
                  int(s[6:8]) if len(s) == 8 else int(s[8:10]))
-    if horizon == '1m':
-        return _month_shift(d, 1).isoformat()
-    if horizon == '3m':
-        return _month_shift(d, 3).isoformat()
-    if horizon == '6m':
-        return _month_shift(d, 6).isoformat()
-    if horizon in ('1y', '5y'):
-        years = 1 if horizon == '1y' else 5
+    m = _re.fullmatch(r'(\d+)m', str(horizon))
+    if m:
+        return _month_shift(d, int(m.group(1))).isoformat()
+    m = _re.fullmatch(r'(\d+)y', str(horizon))
+    if m:
+        years = int(m.group(1))
         day = min(d.day, 28) if (d.month == 2 and d.day == 29) else d.day
         return _dt.date(d.year - years, d.month, day).isoformat()
-    raise ValueError(f'未知窗口 {horizon!r}(合法: {WINDOW_HORIZONS}+6m)')
+    raise ValueError(f'未知窗口 {horizon!r}(合法: Nm/Ny 如 1m/3m/6m/1y/3y/5y)')
 
 
 def metric_window_changes(metric_id, snapshot, unit, target_ymd,
@@ -316,11 +315,16 @@ def economy_dimension_matrix(snapshot, registry):
             'note': '单元格=快照在场/注册活跃(指标数);覆盖缺口如实呈现'}
 
 
-def transmission_edges(root=None):
+def transmission_edges(root=None, archive_dir=None):
     """Charter8 页②传导地图静态策划档(config/transmission_edges.json)。
 
     校验: 每条边必须带 qb_source(指向真实 QB 归档)——缺 qb_source 的
-    任何边=策划纪律违规,raise ValueError(不静默装载)。"""
+    任何边=策划纪律违规,raise ValueError(不静默装载)。
+    Charter9 P0-3(C席实测: 伪号 QB-20990101-999 曾零拦截装载): 归档在场时
+    qb_source 存在性核验(不在册即 raise);归档缺席(干净 clone, data/不入库)
+    如实降级 archive_check.performed=False——禁静默通过也禁 CI 崩溃。
+    全量四状态核验(VERIFIED/PARTIAL/MISSING/CONFLICTED)+复算对账在
+    scripts/source_verifier.py(装载面只做硬闸: 悬空引用不入页)。"""
     path = os.path.join(root or ROOT, 'config', 'transmission_edges.json')
     with open(path, encoding='utf-8') as f:
         doc = json.load(f)
@@ -329,6 +333,29 @@ def transmission_edges(root=None):
            if not e.get('qb_source')]
     if bad:
         raise ValueError(f'传导边缺 qb_source(禁凭空策划): {bad}')
+    import research_archive as ra
+    check_dir = archive_dir or ra.DEFAULT_ARCHIVE_DIR
+    cited = {e['qb_source'] for e in edges
+             if not str(e['qb_source']).startswith('SYNTH:')}
+    for f in doc.get('mechanism_findings') or []:
+        if f.get('qb_source'):
+            cited.add(f['qb_source'])
+    ss = doc.get('structural_summary') or {}
+    if ss.get('qb_source'):
+        cited.add(ss['qb_source'])
+    if not os.path.isdir(check_dir):
+        doc['archive_check'] = {
+            'performed': False,
+            'note': ('研究归档目录不存在(干净clone/无归档环境)——qb_source 存在性'
+                     '核验跳过;有归档环境运行 python3 scripts/source_verifier.py')}
+        return doc
+    known = set(ra.list_query_records(check_dir))
+    dangling = sorted(cited - known)
+    if dangling:
+        raise ValueError(f'传导边 qb_source 指向不存在的研究档案(禁伪号入页): '
+                         f'{dangling}')
+    doc['archive_check'] = {
+        'performed': True, 'n_records': len(known), 'checked_refs': sorted(cited)}
     return doc
 
 

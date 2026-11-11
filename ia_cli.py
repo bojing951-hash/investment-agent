@@ -1256,6 +1256,15 @@ def cmd_views(args):
         if res['quarantined']:
             rules = sorted({v['rule'] for q in res['quarantined'] for v in q['violations']})
             warns.append(f"违规规则集: {','.join(rules)}(隔离件明细见 data.quarantined)")
+        # Charter9 P0-3(裁定③): URL 活性=显式联网档位,默认关(lint 本体零网络)
+        if getattr(args, 'verify_urls', False):
+            url_res = vs_m.check_urls_online(timeout=getattr(args, 'url_timeout', 10))
+            data['url_checks'] = url_res
+            unreachable = [c for c in url_res['checks'] if not c.get('reachable')]
+            warns.append(f"--verify-urls(联网档位): {url_res['n_reachable']}/"
+                         f"{url_res['n_checked']} 可达;不可达≠伪造(链路腐坏/地域墙/"
+                         f"改版皆不可达),只披露不隔离: "
+                         + '; '.join(f"{c['view_id']}" for c in unreachable[:10]))
         emit(envelope('views', not res['quarantined'], data, warns), exit_code=0 if not res['quarantined'] else 1)
 
 
@@ -1348,6 +1357,11 @@ def build_parser():
                         help='机构观点存储(Charter8): list 摘要 / get 单份(合规件) / lint 违规明细')
     vw.add_argument('action', choices=['list', 'get', 'lint'])
     vw.add_argument('--view-id', help='get: VIEW-YYYYMMDD-NNN(隔离件拒绝并给原因)')
+    vw.add_argument('--verify-urls', action='store_true',
+                    help='lint: 追加 source_url 活性核验(**联网档位**,默认关;'
+                         '不可达≠伪造,只披露不隔离)')
+    vw.add_argument('--url-timeout', type=int, default=10,
+                    help='--verify-urls 单请求超时秒数(默认 10)')
     return p
 
 

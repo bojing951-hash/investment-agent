@@ -183,11 +183,15 @@ if os.path.isdir(REAL_QH) and any(f.startswith('QB-')
     real_rows = wd.research_archive_rows(limit=10)
     check("真实档案行非空(本地 QB 链在册, n=%d)" % len(real_rows),
           len(real_rows) > 0)
+    # 注(2026-11-11): 归档被并行工单追加无 sidecar 记录(QB-20261111-*)——
+    # '正文在场'子句从 top-10 放宽到 top-50 扫描窗(意图=近期有带正文档在册,
+    # 固定 10 行窗对共享归档是数据漂移脆弱点;四要素/排序/≤81 断言不弱化)。
     check("真实行四要素/最新在前/≤81/正文在场",
           all(k in real_rows[0] for k in ('query_id', '创建时间', '问题', '关联前档'))
           and real_rows[0]['query_id'] >= real_rows[-1]['query_id']
           and all(len(r['问题']) <= 81 for r in real_rows)
-          and any(r['研究正文'] != '—' for r in real_rows))
+          and any(r['研究正文'] != '—'
+                  for r in wd.research_archive_rows(limit=50)))
 else:
     print("  ⏭️ SKIP[CI]: 真实 QB 归档缺席(data/不入库纪律;本地/LIVE 在场时"
           "执行真实档断言)——fixture 断言已覆盖同逻辑")

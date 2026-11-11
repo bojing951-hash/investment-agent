@@ -47,10 +47,13 @@ check("20261110 5y→2021-11-10", wd.horizon_start('20261110', '5y') == '2021-11
 check("月末钳制 20260331 −1m→2026-02-28", wd.horizon_start('20260331', '1m') == '2026-02-28')
 check("闰日锚 20240229 1y→2023-02-28", wd.horizon_start('20240229', '1y') == '2023-02-28')
 try:
-    wd.horizon_start('20261110', '7m')
-    check("未知窗口 raise", False)
+    wd.horizon_start('20261110', 'bogus')
+    check("非语法窗口 raise(Nm/Ny 之外 fail-loud)", False)
 except ValueError:
-    check("未知窗口 raise", True)
+    check("非语法窗口 raise(Nm/Ny 之外 fail-loud)", True)
+# Charter9 P0-3: 窗口语法通用化(Nm/Ny 任意正整数,复算对账需 3yr 边窗)
+check("7m 现为合法自然月回退(20261110→2026-04-10)",
+      wd.horizon_start('20261110', '7m') == '2026-04-10')
 
 # ── 合成注册表/映射/快照(结构对照真实引擎;数值刻意中性) ──────────────
 SYN_REG = {'metrics': [

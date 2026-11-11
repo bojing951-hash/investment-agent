@@ -37,6 +37,7 @@
 
 | 11-12 | R9 采集缺口波(fork 开发+操作者复核) | CN_SF_FLOW 社融换通道 mofcom 直取(根因=本机 LibreSSL 2.8.3 与 mofcom TLS 协商即断,三库同因;修复=curl 子进程零新依赖+_shrzgm_rows/_shrzgm_last 纯函数;真拉 6245.0@2026-04-01,滞后≈7个月如实 DEGRADED);BUND_10Y/2Y=四路证据确认源端封锁维持诚实缺席(TLS 握手后被服务端重置/ECB 303 dataflows 无国别德债/tushare 无);JP_CPI_TOKYO=e-stat 免费通路探明需 appId 新凭证留裁定;CN_OMO_7D 不动;registry v2.8.2 版本锁 15 处/9 文件随升 | dev/rd-r9-noncore-gaps@59ff08e+017e838 | wp_e 29/29+全仓 128 exit0+1 环境性;操作者独立复核=真拉复现(136 行/2026-04/6245.0)+Gate A 注入复算(noncore_missing 5→4+SF_FLOW→degraded)+红线 0+版本锁扫无漏网 |
 | 11-12 | R9 发布(v0.12.0-alpha) | merge=**bd8b853**→tag v0.12.0-alpha→Release 442060959;**LIVE 同步被权限分类器拦(与 11-11 启动器同款),待用户放行**——部署脚本已备(/tmp/deploy_v012_live.py: archive 覆盖+三 key 重注入+冒烟含 mofcom 真拉断言) | main=bd8b853 | CI 盯 bd8b8530e7d8(后台);操作者复核全绿后合并 |
+| 11-12 | R10 tushare 月度缓存轮(无头自主) | cn_cpi/cn_ppi 跨进程响应缓存 data/cache/tushare_monthly_{api}.json(TTL 600s 命中免直连;原子写+NaN→null 严格 JSON+api 白名单;仅同窗去重不做陈旧回退[直连失败+陈旧档在场→如实缺席];仅可解析响应入缓存;输出契约与 tushare_pro 标签零变动);wp_e 密闭化(缓存目录→一次性临时目录) | dev/rd-r10-tushare-cache@68469f5 | 新套件 42/42+wp_e 29/29+全仓 130 文件 130 exit0;独立审计四维全 PASS 零 BLOCKER(MINOR-2 边界=冷启动同瞬双拉仍可撞限流,收窄非消除,记台账);终判可并入,波次毕待操作者合并 |
 
 ## 排队中
 

@@ -23,13 +23,19 @@
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(勿手工提前)。
 - **机构观点六标签**: 全库 INSUFFICIENT(库龄函数),首验窗 2026-12。
 
-## 生产观察(LIVE 面,2026-11-11 部署后登记)
+## 生产观察(LIVE 面,2026-11-11 部署后登记;同日诊断收口)
 
-- **weekly launchd exit 2 = Gate A 预检拒绝**(既有,非 v0.10.0 回归): 核心指标
-  `ZQ_IMPLIED_AVG` 采集缺席 → Gate A FAIL → 周报链按设计拒绝生成正式档
-  (10-31 与 11-07 两周同因)。排查=RESUME R5 候选③(定位采集通道,修通或如实登记;
-  不得为过门造数)。关联旧案: 2026-11-08 生产事故(rate_expectations 429→ZQ 空→
-  Gate A 拒),当时热修 60fd169 已并入本面——需查该指标当前是否复现同类源端问题。
+- **weekly launchd exit 2 = Gate A 预检拒绝**(既有,非 v0.10.0 回归)。**同日诊断毕**:
+  `ZQ_IMPLIED_AVG` 采集已恢复(2026-11-08 热修 60fd169 生效;11-09 起每日快照在场,
+  11-11=4.175%),10-31/11-07 两周失败=热修前旧态。四件套依赖(当日快照 Gate A∈
+  {PASS,DEGRADED}+data_pack+anchors+anchor_prompt)自 11-08 起逐日产出的当日
+  链恢复;**2026-11-11 实测 `verify_research_inputs('20261111')` 预检 PASS**→
+  周六 11-14 08:00 weekly 应自动恢复正式周报(首期 v0.10.0 面周报)。零代码改动,
+  无需人工动作。
+- 残余非核心缺席(11-11 快照 noncore_missing 6 项,Gate A=DEGRADED 如实降级不阻塞):
+  BUND_10Y/BUND_2Y(BBK 源站 RemoteDisconnected)、ECB_MRO(ECB 504)、CN_OMO_7D、
+  CN_SF_FLOW(社融 SSL 缺席)、JP_CPI_TOKYO_YOY。源端问题如实缺席=设计行为;
+  数据缺口台账另行维护(`../P2_DATA_GAP_LEDGER.md`)。
 
 ## 技术待办(不阻塞)
 

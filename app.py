@@ -82,6 +82,27 @@ with st.sidebar:
 # ── 页面①: 全球宏观全景 ─────────────────────────────────────────────
 def page_panorama():
     st.header('全球宏观全景')
+    # Charter9 P4 Web入口: 刷新数据按钮(显式点击才运行,页面加载绝不触发;
+    # 采集=真实网络调用 run_weekly.py,输出尾部如实展示)
+    with st.expander('刷新数据(run_weekly 采集)'):
+        st.caption('点击才运行(真实网络采集,可能数分钟);页面加载不自动执行。')
+        if st.button('运行 run_weekly.py'):
+            import subprocess
+            try:
+                proc = subprocess.run(
+                    [sys.executable, os.path.join(ROOT, 'run_weekly.py')],
+                    capture_output=True, text=True, timeout=1800, cwd=ROOT)
+                tail = '\n'.join((proc.stdout or '').strip().splitlines()[-15:])
+                st.code(proc.returncode and (tail + '\n[stderr]\n' + (proc.stderr or '')[-500:]) or (tail or '(无输出)'),
+                        language='text')
+                if proc.returncode == 0:
+                    st.success('采集完成——刷新页面加载新快照。')
+                else:
+                    st.error(f'采集退出码 {proc.returncode}(见输出尾部;doctor 排查)')
+            except subprocess.TimeoutExpired:
+                st.error('采集超时(30 分钟)——检查数据源连通性/代理。')
+            except OSError as e:
+                st.error(f'无法启动采集: {e}')
     if SNAP is None:
         st.warning('本地无研究快照。请先运行 `python3 run_weekly.py` 完成一次数据采集。')
         return
@@ -96,13 +117,15 @@ def page_panorama():
     rows = wd.overview_rows(SNAP, REGISTRY, econ)
     n_miss = sum(1 for r in rows if r['当前值'] == '缺失')
     st.caption(f"快照日 {META['date']} · {wd.ECONOMY_LABELS.get(econ, econ)} 活跃指标 "
-               f"{len(rows)} 项(缺失 {n_miss} 项,如实列出) · 变化口径: 周/月内/年初至今")
+               f"{len(rows)} 项(缺失 {n_miss} 项,如实列出) · 变化口径: 周=ISO周前末观测基准 / "
+               "月内=前一自然月末基准 / 年初至今=前一自然年末基准(非当年首日)")
     st.dataframe(rows, width='stretch', height=480)
 
     st.subheader('市场多窗口变化(1m / 3m / 1y / 5y)')
     st.caption('区间变动=interval_change 自配对口径(基准=严格早于窗口起点的最后观测;'
                '利率 pp/价格 %/计数绝对差)——与 `ia_cli compare --start <T-k>` 同函数,'
-               '数据不足如实标"不可用"。')
+               '数据不足如实标"不可用"。Charter9: 含利率族(rates_yield/policy_rate/'
+               'curve_slope)——美债/德日国债/2s10s 的窗口变化在此表可答。')
     wrows = wd.market_window_rows(SNAP, REGISTRY)
     st.caption(f"资产类指标 {len(wrows)} 项 · 快照日 {META['date']}")
     st.dataframe(wrows, width='stretch', height=560)
@@ -127,22 +150,23 @@ def page_panorama():
 
 def _render_series(series, window):
     import pandas as pd
-    n = {'全部': 0, '5年': 1260, '1年': 252, '6个月': 126, '3个月': 63, '1个月': 21}[window]
-    dates, values = series['dates'], series['values']
-    if n:
-        dates, values = dates[-n:], values[-n:]
+    # Charter9 P0-4: 窗切片=日历日期截取(wd.slice_series_window,零频率假设——
+    # 旧版固定观测数 252/126/63/21 按日频设计,月频序列"1年"实显21年);
+    # 首末变化 caption=族感知(wd.series_change_caption,利率 pp/价格 %/计数绝对差,
+    # 与窗口表口径一致——旧版一律水平百分变化)。
+    dates, values, slice_note = wd.slice_series_window(
+        series['dates'], series['values'], window)
+    if not dates:
+        st.warning(f'窗口内无观测: {slice_note}')
+        return
     df = pd.DataFrame({series['label']: values}, index=pd.to_datetime(dates))
-    st.caption(f"来源: {series['source']} · 观测点 {len(dates)} 个"
-               f"({dates[0]} → {dates[-1]}) · 单位: {series['unit'] or '—'}")
+    st.caption(f"来源: {series['source']} · 窗口: {slice_note} · 单位: {series['unit'] or '—'}"
+               " · ETF价格为复权基(近似总回报,采集器 auto_adjust=True)")
     st.line_chart(df, height=340)
     if len(values) >= 2:
-        first, last = values[0], values[-1]
-        try:
-            chg = (last - first) / abs(first) * 100
-            st.caption(f"窗口首值 {first:,.4g} → 末值 {last:,.4g}"
-                       f"(区间变化 {chg:+.2f}%,由本地序列计算)")
-        except (TypeError, ZeroDivisionError):
-            pass
+        cap = wd.series_change_caption(series['unit'], values[0], values[-1])
+        if cap['text']:
+            st.caption(cap['text'] + '(由本地窗口序列计算)')
 
 
 # ── 页面②: 全球金融传导地图 ─────────────────────────────────────────
@@ -183,6 +207,28 @@ def page_transmission():
                    '备注': e['note']} for e in near],
                  width='stretch', height=360)
 
+    # Charter9 P3: 行选择→单边详情面板+验证徽标(qb_source 存在性核验,
+    # source_verifier 四状态;干净 clone 归档缺席=PARTIAL 如实非通过)
+    st.subheader('单边详情(行选择)')
+    all_edges = strong + near
+    if all_edges:
+        sel_e = st.selectbox(
+            '选择传导边', range(len(all_edges)),
+            format_func=lambda i: (f"{'实线' if all_edges[i]['category'] == 'strong' else '虚线'}"
+                                   f" · {all_edges[i]['from']} × {all_edges[i]['to']}"
+                                   f" · {all_edges[i]['channel_label']}"
+                                   f"(r={all_edges[i]['r']})"))
+        e = all_edges[sel_e]
+        badge = wd.edge_verification_badge(e['qb_source'])
+        st.markdown(
+            f"**{e['from']} × {e['to']}** · {e['channel_label']}\n\n"
+            f"- r = {e['r']}(变化对 n={e['n']},窗 {e['window']})\n"
+            f"- 证据级 {e['evidence_level']} · 类别 {e['category']}\n"
+            f"- 源档案 {e['qb_source']} — {badge['badge']}: {badge['detail']}\n"
+            f"- {e['note']}")
+        st.caption(f"验证徽标: {badge['badge']}——`python3 scripts/source_verifier.py"
+                   " --edges` 全量核验+复算(干净 clone 归档缺席=部分核验如实)")
+
     ss = doc.get('structural_summary') or {}
     if ss:
         st.info(f"**结构性结论({ss['qb_source']})**: {ss['text']}")
@@ -215,6 +261,16 @@ def page_views():
     st.subheader('机构 × 主题矩阵')
     st.caption('单元格=该机构该主题的 view 编号(末三位);「—」=未覆盖')
     st.dataframe(vm['matrix'], width='stretch', height=320)
+    # Charter9 P4(协调增量): 单源伪共识标注固化为矩阵面——主题覆盖机构数
+    # 恰 1 家=伪共识风险(叙事易把单家观点当共识);确定性计数,提名归 Agent
+    cov = vm.get('subject_coverage') or {}
+    single = [f"{s}({c['institutions'][0]})" for s, c in cov.items()
+              if c.get('pseudo_consensus_risk')]
+    if single:
+        st.warning('单源主题(伪共识风险,05 节提名原料): ' + '、'.join(single))
+    st.caption('主题机构覆盖: '
+               + ' · '.join(f"{s}×{c['n_institutions']}" for s, c in cov.items())
+               + '(单源=恰 1 家)')
 
     st.subheader('观点清单')
     st.dataframe(vm['rows'], width='stretch', height=360)
@@ -232,6 +288,23 @@ def page_views():
                 f"期限 {doc['view_horizon']} · 来源类型 {doc['source_type']}")
     st.markdown(f"[原文链接]({doc['source_url']}) · 存储纪律: 元数据+短引文+链接"
                 f"(quote≤500 字符)")
+    # Charter9 P0-2: VP sidecar 验证标签(独立于 views v1.1;编排层写入,引擎校验)
+    import view_plausibility as vpl
+    vp, vp_reason = vpl.load_vp(sel['view_id'])
+    if vp is not None:
+        vp_ok, vp_errs = vpl.validate_vp(vp, doc)
+        if vp_ok:
+            st.markdown(f"**验证标签: {vp['view_label']}**(假设级链六标签最保守"
+                        "聚合,裁定④;as_of "
+                        f"{vp.get('as_of', '—')})")
+            st.table(vpl.vp_badge_rows(vp))
+            st.caption('VP sidecar=data/institutions/verification/'
+                       'VP-*.json(不动 views 档);判定依据= view_verifier '
+                       '--mode C 机械 verdict 的标签映射')
+        else:
+            st.warning('VP sidecar 校验失败,不入面: ' + ';'.join(vp_errs[:3]))
+    else:
+        st.caption(f'验证标签: 暂无({vp_reason})')
     for i, cv in enumerate(doc['core_views'], 1):
         badge = att_badge.get(cv['attribution'], cv['attribution'])
         st.markdown(f"**观点{i}** [{badge} · {cv['basis']}] {cv['statement']}")
@@ -243,6 +316,22 @@ def page_views():
                    '期限': f['horizon'],
                    'attribution': att_badge.get(f['attribution'], f['attribution'])}
                   for f in doc['forecasts']])
+    # Charter9 P0-2 页③渲染修复: mechanism_steps/evidence_cited 在 schema v1.1
+    # 为必填采集面,此前单份详情从未渲染(工程遗漏,非数据缺席)
+    if doc['mechanism_steps']:
+        st.markdown('**传导机制(机构自述)**')
+        for i, ms in enumerate(doc['mechanism_steps'], 1):
+            badge = att_badge.get(ms.get('attribution'), ms.get('attribution'))
+            st.markdown(f"{i}. [{badge}] {ms['step']}")
+            if ms.get('quote'):
+                st.caption(f"原文佐证: “{ms['quote']}”")
+    if doc['evidence_cited']:
+        st.markdown('**引用证据(机构自述)**')
+        for ec in doc['evidence_cited']:
+            badge = att_badge.get(ec.get('attribution'), ec.get('attribution'))
+            st.markdown(f"- [{badge}] {ec['statement']}")
+            if ec.get('quote'):
+                st.caption(f"原文佐证: “{ec['quote']}”")
     for title, key in (('关键假设', 'key_assumptions'), ('风险因素', 'risk_factors'),
                        ('证伪条件', 'falsification_conditions')):
         items = doc[key]
@@ -266,6 +355,47 @@ def page_research():
     st.header('独立研究结论')
     st.caption('本地研究档案(QB 链,append-only)——缓存研究成果展示,零模型调用;'
                '页面不发起任何 AI 请求。')
+    # Charter9 P3: 研究十问结构(章程§五原文十条,裁定⑤;config 驱动,
+    # 五层区分=答案内容层归因,不混装)
+    try:
+        rq = wd.research_questions()
+        layer_icon = {'客观事实': '📊', '机构观点': '🏛', 'AI推断': '🤖',
+                      '历史统计': '📜', '条件情景': '🔀'}
+        st.subheader(f"研究十问(章程§五;{rq['n']} 问 × {len(rq['layers'])} 层)")
+        st.caption(rq['layer_note'])
+        for q in rq['questions']:
+            draws = '、'.join(q['draws']) or '—'
+            st.markdown(f"{layer_icon.get(q['primary_layer'], '')} "
+                        f"**{q['id']}** {q['text']}")
+            st.caption(f"层: {q['primary_layer']}(兼取: {draws}) · 面: {q['surface']}")
+    except (OSError, ValueError, KeyError) as e:
+        st.warning(f'研究十问配置不可用: {e}')
+
+    # Charter9 P4 Web入口: 研究地图面板(research-map 同引擎;零模型)
+    with st.expander('研究地图(十问确定性扇出证据包)', expanded=False):
+        try:
+            import research_map as rm
+            rmap = rm.build_map()
+            ni = rmap.get('nomination_inputs') or {}
+            if ni.get('conflicts'):
+                st.markdown('**机构对撞(04 节提名原料)**')
+                st.table([{'指标': c['metric_id'], '看多': '、'.join(c['bull']),
+                           '看空': '、'.join(c['bear'])}
+                          for c in ni['conflicts']])
+            else:
+                st.caption('机构对撞: 无(forecast 可映射+方向可解析面内)')
+            pc = ni.get('pseudo_consensus_subjects') or []
+            st.caption('单源主题(伪共识风险,05 节提名原料): '
+                       + ('、'.join(pc) if pc else '无'))
+            art = rmap.get('art') or {}
+            clock = rmap.get('observation_clock') or {}
+            st.caption(f"ART-M {'在册 ' + str(art.get('m_table', {}).get('n')) if art.get('m_table', {}).get('present') else '未文件化'}"
+                       f" · ART-FALS {'在册 ' + str(art.get('falsification', {}).get('n')) if art.get('falsification', {}).get('present') else '未文件化'}"
+                       f" · 观察钟 {'在册 ' + str(clock.get('n')) if clock.get('present') else '未建'}"
+                       '(编排层维护;引擎只透传)')
+            st.caption('CLI 同面: `python3 ia_cli.py research-map`')
+        except (OSError, ValueError, KeyError) as e:
+            st.warning(f'研究地图不可用: {e}')
     rows = wd.research_archive_rows(limit=100)
     if not rows:
         st.info('本地暂无研究档案(data/research/research_archive/)。'
@@ -291,8 +421,9 @@ def page_research():
         '- 专题研究走 Agent Native: 经 global-macro-research Skill 调用 '
         '`ia_cli.py` 十个能力(doctor/update/overview/changes/history/compare/'
         'analog/research/archive/views)组合研究。\n'
-        '- 机构观点确定性验证: `python3 scripts/view_verifier.py VIEW-YYYYMMDD-NNN`'
-        '(证据表=本地快照事实+区间变动,零 AI 判断)。\n'
+        '- 机构观点确定性验证: `python3 scripts/view_verifier.py VIEW-YYYYMMDD-NNN'
+        ' [--mode A|B|C]`(A=提出时证据 vintage 锚/B=当前更新/C=到期验证;'
+        '证据表=本地快照事实+区间变动,零 AI 判断)。\n'
         '- 模型 API(可选)仅由用户显式配置 MODEL_* 三参后,经 CLI/Skill 使用;'
         '工作台页面永不调用。')
 

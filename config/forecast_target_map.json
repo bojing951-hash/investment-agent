@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Charter9 P0-1 mode C(到期验证): view.forecasts[].target 文本→注册表 metric 的确定性映射种子。未映射 target → NOT_MACHINE_VERIFIABLE(禁猜;映射扩充=Agent 层登记后入此档,人工审阅)。",
+  "matching_rule": "精确键优先;否则最长包含键(键字符串出现在 target 文本中);两者皆无→不映射",
+  "targets": {
+    "联邦基金利率上限": "DFEDTARU",
+    "联邦基金利率": "FED_FUNDS",
+    "政策利率": "FED_FUNDS",
+    "美债10年": "UST_10Y",
+    "10年期美债": "UST_10Y",
+    "美国10年期国债": "UST_10Y",
+    "10年期国债": "UST_10Y",
+    "美债2年": "UST_2Y",
+    "2年期美债": "UST_2Y",
+    "美债30年": "UST_30Y",
+    "2s10s": "CURVE_2S10S",
+    "标普500": "SPX",
+    "美元指数": "DXY",
+    "美元兑日元": "USDJPY",
+    "日元": "USDJPY",
+    "核心PCE": "CORE_PCE",
+    "失业率": "UNEMPLOYMENT"
+  }
+}

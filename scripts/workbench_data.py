@@ -41,6 +41,12 @@ SERIES_SOURCE_PREFIX = {
     'shiller_collector': 'shiller_',   # Charter6-P2: Shiller 估值通道
 }
 
+# Charter9 P0-4(C席附加发现): 市场多窗口表原按 MARKET_ASSET_CLASSES 过滤,
+# rates_yield/policy_rate/curve_slope 不在集合 → UST/BUND/JGB/2s10s 在
+# 多窗口表零显示,"美债 3m 变化"无处可答。纳入利率族(多窗口表专用;
+# 页二"金融市场变化"的资产类口径不变)。
+RATES_ASSET_CLASSES = {'rates_yield', 'policy_rate', 'curve_slope'}
+
 
 # ══ 快照与注册表 ══════════════════════════════════════════════════════
 def latest_snapshot(root=None):
@@ -177,20 +183,23 @@ def _month_shift(d, months):
 
 
 def horizon_start(target_ymd, horizon):
-    """窗口起点(target_ymd=YYYYMMDD 或 ISO): 1m/3m 自然月回退,1y/5y 年回退。"""
+    """窗口起点(target_ymd=YYYYMMDD 或 ISO): Nm 自然月回退,Ny 年回退
+    (N 任意正整数——Charter9 P0-3 复算对账需 3yr 边窗,通用化同语义:
+    年回退=同月同日,2-29→2-28 钳制;月回退=月末钳制)。"""
     import datetime as _dt
+    import re as _re
     s = str(target_ymd)
     d = _dt.date(int(s[:4]), int(s[4:6]) if len(s) == 8 else int(s[5:7]),
                  int(s[6:8]) if len(s) == 8 else int(s[8:10]))
-    if horizon == '1m':
-        return _month_shift(d, 1).isoformat()
-    if horizon == '3m':
-        return _month_shift(d, 3).isoformat()
-    if horizon in ('1y', '5y'):
-        years = 1 if horizon == '1y' else 5
+    m = _re.fullmatch(r'(\d+)m', str(horizon))
+    if m:
+        return _month_shift(d, int(m.group(1))).isoformat()
+    m = _re.fullmatch(r'(\d+)y', str(horizon))
+    if m:
+        years = int(m.group(1))
         day = min(d.day, 28) if (d.month == 2 and d.day == 29) else d.day
         return _dt.date(d.year - years, d.month, day).isoformat()
-    raise ValueError(f'未知窗口 {horizon!r}(合法: {WINDOW_HORIZONS})')
+    raise ValueError(f'未知窗口 {horizon!r}(合法: Nm/Ny 如 1m/3m/6m/1y/3y/5y)')
 
 
 def metric_window_changes(metric_id, snapshot, unit, target_ymd,
@@ -233,8 +242,13 @@ def _fmt_interval(node):
     return '不可用(无变化值)'
 
 
-def market_window_rows(snapshot, registry, root=None, horizons=WINDOW_HORIZONS):
-    """Charter8 页①市场窗口表: 资产类指标 当前值+1m/3m/1y/5y 区间变动。
+def market_window_rows(snapshot, registry, root=None, horizons=WINDOW_HORIZONS,
+                       include_rates=True):
+    """Charter8 页①市场窗口表: 资产类+利率族指标 当前值+1m/3m/1y/5y 区间变动。
+
+    Charter9 P0-4: include_rates=True(缺省)纳入 RATES_ASSET_CLASSES
+    (rates_yield/policy_rate/curve_slope)——UST/BUND/JGB/2s10s 的 3m/1y
+    变化在此表可答(C席附加发现修复);页二"金融市场变化"口径不动。
 
     每行: 指标/ID/经济体/当前值/观测日 + 各窗口(fmt) + 序列来源;
     缺失指标如实'缺失'行(不猜序列);全部口径=metric_window_changes。"""
@@ -242,8 +256,9 @@ def market_window_rows(snapshot, registry, root=None, horizons=WINDOW_HORIZONS):
         return []
     target = snapshot.get('target_date')
     facts = {f['metric_id']: f for f in snapshot.get('facts', [])}
+    classes = MARKET_ASSET_CLASSES | (RATES_ASSET_CLASSES if include_rates else set())
     wanted = [m for m in registry['metrics']
-              if m.get('asset_class') in MARKET_ASSET_CLASSES
+              if m.get('asset_class') in classes
               and m.get('status') == 'active']
     rows = []
     for m in wanted:
@@ -300,11 +315,16 @@ def economy_dimension_matrix(snapshot, registry):
             'note': '单元格=快照在场/注册活跃(指标数);覆盖缺口如实呈现'}
 
 
-def transmission_edges(root=None):
+def transmission_edges(root=None, archive_dir=None):
     """Charter8 页②传导地图静态策划档(config/transmission_edges.json)。
 
     校验: 每条边必须带 qb_source(指向真实 QB 归档)——缺 qb_source 的
-    任何边=策划纪律违规,raise ValueError(不静默装载)。"""
+    任何边=策划纪律违规,raise ValueError(不静默装载)。
+    Charter9 P0-3(C席实测: 伪号 QB-20990101-999 曾零拦截装载): 归档在场时
+    qb_source 存在性核验(不在册即 raise);归档缺席(干净 clone, data/不入库)
+    如实降级 archive_check.performed=False——禁静默通过也禁 CI 崩溃。
+    全量四状态核验(VERIFIED/PARTIAL/MISSING/CONFLICTED)+复算对账在
+    scripts/source_verifier.py(装载面只做硬闸: 悬空引用不入页)。"""
     path = os.path.join(root or ROOT, 'config', 'transmission_edges.json')
     with open(path, encoding='utf-8') as f:
         doc = json.load(f)
@@ -313,6 +333,29 @@ def transmission_edges(root=None):
            if not e.get('qb_source')]
     if bad:
         raise ValueError(f'传导边缺 qb_source(禁凭空策划): {bad}')
+    import research_archive as ra
+    check_dir = archive_dir or ra.DEFAULT_ARCHIVE_DIR
+    cited = {e['qb_source'] for e in edges
+             if not str(e['qb_source']).startswith('SYNTH:')}
+    for f in doc.get('mechanism_findings') or []:
+        if f.get('qb_source'):
+            cited.add(f['qb_source'])
+    ss = doc.get('structural_summary') or {}
+    if ss.get('qb_source'):
+        cited.add(ss['qb_source'])
+    if not os.path.isdir(check_dir):
+        doc['archive_check'] = {
+            'performed': False,
+            'note': ('研究归档目录不存在(干净clone/无归档环境)——qb_source 存在性'
+                     '核验跳过;有归档环境运行 python3 scripts/source_verifier.py')}
+        return doc
+    known = set(ra.list_query_records(check_dir))
+    dangling = sorted(cited - known)
+    if dangling:
+        raise ValueError(f'传导边 qb_source 指向不存在的研究档案(禁伪号入页): '
+                         f'{dangling}')
+    doc['archive_check'] = {
+        'performed': True, 'n_records': len(known), 'checked_refs': sorted(cited)}
     return doc
 
 
@@ -338,10 +381,134 @@ def views_matrix(views_dir=None):
              '期限': d['view_horizon'], '主题': '、'.join(d['subjects']),
              '核心观点数': len(d['core_views']), '标题': d['report_title']}
             for d in res['views']]
+    # Charter9 P4(协调增量: 单源伪共识标注固化为矩阵面): 主题覆盖机构数
+    # ——恰 1 家=单源(伪共识风险: 叙事易把单家观点当共识);确定性计数,
+    # 提名/解读归编排层 Agent(research-map nomination_inputs 同源)
+    inst_of = {}
+    for d in res['views']:
+        for s in d['subjects']:
+            inst_of.setdefault(s, set()).add(d['institution']['name'])
+    subject_coverage = {s: {'n_institutions': len(inst_of.get(s, ())),
+                            'institutions': sorted(inst_of.get(s, ())),
+                            'pseudo_consensus_risk': len(inst_of.get(s, ())) == 1}
+                        for s in subjects}
     return {'rows': rows, 'matrix': matrix, 'subjects': subjects,
+            'subject_coverage': subject_coverage,
             'n_quarantined': len(res['quarantined']),
             'quarantined': res['quarantined'],
             'schema_version': vs.SCHEMA_VERSION}
+
+
+# ══ Charter9 P0-4: 历史走势图层日历窗口与族感知 caption(纯函数) ════════
+CHART_WINDOW_HORIZON = {'5年': '5y', '1年': '1y', '6个月': '6m',
+                        '3个月': '3m', '1个月': '1m'}
+
+
+def slice_series_window(dates, values, label, end_date=None):
+    """历史走势图窗切片(Charter9 P0-4 修复: 固定观测数→日历日期截取)。
+
+    旧缺陷: 切片=尾部 N 个观测(252/126/63/21,日频假设)——月频序列选
+    "1年"实显 21 年(C席 CONFIRMED)。新口径: 窗起点=horizon_start(末观测日,
+    label 对应窗口)同一实现(自然月/年),dates≥起点 全保留(零频率假设)。
+    '全部'→原样;end_date 缺省=序列末观测日。返回 (dates, values, note)。"""
+    if label == '全部' or not dates:
+        return list(dates), list(values), '全部观测'
+    import datetime as _dt
+    ds = [str(d)[:10] for d in dates]
+    anchor = str(end_date or ds[-1])[:10]
+    start = horizon_start(anchor.replace('-', ''), CHART_WINDOW_HORIZON[label])
+    keep = [i for i, d in enumerate(ds) if d >= start]
+    if not keep:
+        return [], [], f'窗口({label},{start}起)内无观测'
+    out_d = [dates[i] for i in keep]
+    out_v = [values[i] for i in keep]
+    n_all = len(ds)
+    note = (f'日历窗口 {start} → {ds[keep[-1]]}'
+            f'({len(keep)}/{n_all} 观测,日期截取非定点数)')
+    return out_d, out_v, note
+
+
+def series_change_caption(unit, first, last):
+    """序列首末变化 caption(Charter9 P0-4: 族感知,与窗口表口径一致)。
+
+    旧缺陷: 一律 (末-首)/|首|×100% ——利率/失业率等显示水平百分变化
+    (如失业率 4.7→4.1 显示 -12.77%)与窗口表 pp 约定不一致(C席 CONFIRMED)。
+    新口径: rate 族→pp(fact_engine.RATE_UNITS 权威);price 族→pct
+    (基准≤0 如实不可算);count/other→绝对差。返回 {'family','text'}。"""
+    import fact_engine as fe
+    try:
+        a, b = float(first), float(last)
+    except (TypeError, ValueError):
+        return {'family': 'other', 'text': None}
+    if unit in fe.RATE_UNITS:
+        return {'family': 'rate',
+                'text': f'窗口首值 {a:,.4g} → 末值 {b:,.4g}'
+                        f'(区间变化 {b - a:+.2f}pp,利率口径)'}
+    if unit in fe.PRICE_LIKE_UNITS:
+        if a == 0:
+            return {'family': 'price',
+                    'text': f'窗口首值 {a:,.4g} → 末值 {b:,.4g}'
+                            '(基准值为0,百分比变化不可定义)'}
+        if a < 0:
+            return {'family': 'price',
+                    'text': f'窗口首值 {a:,.4g} → 末值 {b:,.4g}'
+                            '(基准值为负,价格类百分比变化语义不可用)'}
+        return {'family': 'price',
+                'text': f'窗口首值 {a:,.4g} → 末值 {b:,.4g}'
+                        f'(区间变化 {(b / a - 1.0) * 100.0:+.2f}%)'}
+    return {'family': 'count',
+            'text': f'窗口首值 {a:,.4g} → 末值 {b:,.4g}'
+                    f'(区间变化 {b - a:+,.4g},绝对差)'}
+
+
+# ══ Charter9 P3: 页④研究十问 + 页②边验证徽标(纯函数/读档,零模型) ═════
+def research_questions(path=None):
+    """config/research_questions.json: 章程§五研究十问(裁定⑤原文十条)。
+
+    返回 {schema_version, n, layers, layer_note, questions, by_layer};
+    校验(FAIL-LOUD): 恰 10 问、id RQ1..RQ10 连续、primary_layer 全在
+    五层枚举、五层各至少一问、draws 不越枚举——config 受版本管理,
+    破损=安装损坏非数据缺席。"""
+    p = path or os.path.join(ROOT, 'config', 'research_questions.json')
+    with open(p, encoding='utf-8') as f:
+        cfg = json.load(f)
+    layers = list(cfg.get('layers') or [])
+    qs = cfg.get('questions') or []
+    problems = []
+    if len(qs) != 10:
+        problems.append(f'须恰 10 问(当前 {len(qs)})')
+    if [q.get('id') for q in qs] != [f'RQ{i}' for i in range(1, 11)]:
+        problems.append('id 须为 RQ1..RQ10 连续')
+    for q in qs:
+        if q.get('primary_layer') not in layers:
+            problems.append(f"{q.get('id')}.primary_layer 越五层枚举")
+        for d in q.get('draws') or []:
+            if d not in layers:
+                problems.append(f"{q.get('id')}.draws 含越枚举层 {d!r}")
+    if {q.get('primary_layer') for q in qs} != set(layers):
+        problems.append('五层须各至少一问(primary_layer 覆盖)')
+    if problems:
+        raise ValueError('research_questions.json 破损: ' + '; '.join(problems))
+    by_layer = {layer: [q['id'] for q in qs if q['primary_layer'] == layer]
+                for layer in layers}
+    return {'schema_version': cfg.get('schema_version'),
+            'n': len(qs), 'layers': layers,
+            'layer_note': cfg.get('layer_note'),
+            'questions': qs, 'by_layer': by_layer}
+
+
+def edge_verification_badge(qb_source, archive_dir=None):
+    """页②行详情: 边的 qb_source → source_verifier 四状态徽标行(纯离线)。
+
+    source_verifier 惰性 import(其复算面依赖本模块,顶层互引成环)。
+    返回 {'qb_source', 'state', 'badge', 'detail'};state∈四状态,badge=
+    展示文案(VERIFIED/PARTIAL/MISSING/CONFLICTED)。"""
+    import source_verifier as svf
+    r = svf.verify_qb_source(qb_source, archive_dir=archive_dir)
+    badge = {'VERIFIED': '✅ 源已核验', 'PARTIAL': '⚠️ 部分核验',
+             'MISSING': '❌ 悬空引用', 'CONFLICTED': '⛔ 状态冲突'}
+    return {'qb_source': qb_source, 'state': r['state'],
+            'badge': badge.get(r['state'], r['state']), 'detail': r['detail']}
 
 
 def research_archive_rows(limit=50, archive_dir=None):

@@ -310,6 +310,11 @@ def interval_change(dates, values, unit, start=None, end=None):
     elif unit in fe.PRICE_LIKE_UNITS:
         if v0 == 0:
             return {'available': False, 'reason': '基准值为0,百分比变化不可定义'}
+        if v0 < 0:
+            # Charter9 P0-4(D席边界护): 负基数的价格类百分比语义反转
+            # ((v1/v0-1) 在负基下符号失真)——如实拒算,不回退不猜。
+            return {'available': False,
+                    'reason': f'基准值为负({v0}),价格类百分比变化语义不可用'}
         out['pct_change'] = round((v1 / v0 - 1.0) * 100.0, 4)
         out['formula'] = f'({d1}值/{d0}值−1)×100'
     else:

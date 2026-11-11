@@ -296,6 +296,37 @@ def list_views(views_dir=None):
             'n_files': res['n_files']}
 
 
+def check_urls_online(views_dir=None, timeout=10):
+    """Charter9 P0-3(协调裁定③): URL 活性核验——**显式联网档位,默认关**。
+
+    lint 本体保持离线(C席实测: 全伪造件 0 违规过 lint——结构纪律管不住
+    真实性);本函数是可选补强: 对每份合规件 source_url 发一次 GET(只读,
+    超时短,不跟认证/不提交表单),2xx/3xx=reachable,其余/DNS 失败=不可达。
+    **不可达≠伪造**(链路腐坏/地域墙/改版都不可达): 结果只披露不隔离,
+    不作为 lint violation,不改变装载面。零网络环境的默认路径永不调用本函数。
+    """
+    import urllib.request
+    res = load_views(views_dir)
+    checks = []
+    for d in res['views']:
+        url = d.get('source_url') or ''
+        item = {'view_id': d['view_id'], 'url': url}
+        try:
+            req = urllib.request.Request(url, method='GET',
+                                         headers={'User-Agent': 'investment-agent-view-audit/1.0'})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                item['reachable'] = 200 <= resp.status < 400
+                item['status'] = resp.status
+        except Exception as e:                     # noqa: BLE001 —— DNS/超时/HTTP错误统一如实披露
+            item['reachable'] = False
+            item['status'] = None
+            item['note'] = str(e)[:160]
+        checks.append(item)
+    return {'n_checked': len(checks),
+            'n_reachable': sum(1 for c in checks if c.get('reachable')),
+            'checks': checks}
+
+
 if __name__ == '__main__':
     cmd = sys.argv[1] if len(sys.argv) > 1 else 'list'
     d = sys.argv[2] if len(sys.argv) > 2 else VIEWS_DIR

@@ -23,12 +23,25 @@
 防口径分叉);两级都无序列的指标只报 level+缺席原因(不猜)。
 
 运行: python3 scripts/view_verifier.py VIEW-YYYYMMDD-NNN [--directions '{"SPX":"up"}']
-      [--snapshot-id research_snapshot_YYYYMMDD_vN]
+      [--snapshot-id research_snapshot_YYYYMMDD_vN] [--mode A|B|C|all]
 输出: 单个 JSON(stdout);rc=0 成功 / 1 执行错(无快照/无 view) / 2 用法错。
 快照指针(DEFERRED②, 2026-11-10): 默认=最新;研究针对特定版本时 --snapshot-id
 显式指定(archive save 同款: 短形 YYYYMMDD_vN 容忍,不存在/非规范 rc=2
 snapshot_not_found)——验证结果与归档指针同版,读者按 envelope.snapshot_id
 可复现。
+三型验证(Charter9 P0-1, 2026-11-11;缺省=legacy 最新快照行为,已发布契约不变):
+  --mode A 提出时证据——vintage 锚定 publish_date(rp.vintage_dates≤publish 最近
+           跨日快照;无该时点 vintage→最新快照截断至 publish,DEGRADED 随行);
+           trailing 窗以观点时点为窗末(切点日期披露;含 publish 当日观测,≤含)
+  --mode B 当前证据更新——最新快照;每指标附 since_publish 区间变动(严格>publish)
+  --mode C 到期验证——期限解析(区间取上界/CY→年末/多时点取最晚;UNPARSEABLE
+           显式态)→未到期 NOT_YET_TESTABLE/未映射 NOT_MACHINE_VERIFIABLE/
+           方向型 supports·against(publish→horizon_end 区间变动);点位型只报告
+成熟度护栏: mode A/B/C 下期限未到期或不可解析 → relation 一律压制为证据观察
+(未到期不判 supports/against——C席复现 P0-1③ 的机械防线);legacy 模式保持
+已发布行为(输出新增 maturity/revision_anchors 披露字段,数值路径零变化)。
+revisions[](裁定 2026-11-11): 每条修订=新验证主体锚定其自身 date;原主张
+vintage 窗不变——修订后主张的完整验证在其新档(如 009→006 链)。
 """
 import io
 import json
@@ -85,9 +98,13 @@ def _net_direction(chg):
 
 
 def metric_evidence_table(subjects, snapshot, registry, vmap,
-                          horizons=('1m', '3m', '1y'), directions=None):
+                          horizons=('1m', '3m', '1y'), directions=None,
+                          target_ymd=None):
     """证据表(纯函数): subjects∪映射指标 × 快照 facts/series_store。
 
+    target_ymd: 窗口锚定日(默认快照 target_date;mode A 传 publish/vintage
+    切点——提出时证据的 trailing 窗以观点时点为窗末,防"今天的窗"冒充
+    "提出时的证据状态")。
     返回 {'evidence': [row...], 'missing': [...], 'notes': [...]}——missing=
     映射在册但快照无事实的指标(缺席如实,不猜)。"""
     directions = directions or {}
@@ -116,7 +133,8 @@ def metric_evidence_table(subjects, snapshot, registry, vmap,
                'price' if unit in fe.PRICE_LIKE_UNITS else
                'count' if unit in fe.COUNT_UNITS else 'other')
         chg, series_source = interval_table(mid, snapshot, unit,
-                                            snapshot.get('target_date'), horizons)
+                                            target_ymd or snapshot.get('target_date'),
+                                            horizons)
         rel, rel_note = None, '未传 directions→不做方向判断(纯确定性,语义层归 Agent)'
         if mid in directions:
             hint = directions[mid]
@@ -147,31 +165,407 @@ def metric_evidence_table(subjects, snapshot, registry, vmap,
     return {'evidence': evidence, 'missing': missing, 'notes': notes}
 
 
-def verify(view_id, snapshot, registry, vmap, views_dir=None, directions=None):
-    """完整验证: view → subjects → 证据表。返回输出 JSON dict(不含 AI 文本)。"""
+def verify(view_id, snapshot, registry, vmap, views_dir=None, directions=None,
+           mode=None, target_ymd=None):
+    """完整验证: view → subjects → 证据表。返回输出 JSON dict(不含 AI 文本)。
+
+    Charter9 P0-1 三型(--mode A/B/C;缺省=legacy 最新快照行为,已有契约不变):
+      A=提出时证据(vintage 锚定 publish_date,mode 入口在 verify_at_publish);
+      B=当前证据更新(最新快照+每指标附 since_publish 区间变动);
+      C=到期验证(verify_expiry)。
+    本函数为 A/B/legacy 共用证据表面;mode='B' 时逐指标附 since_publish 节点;
+    mode∈{A,B,C} 时启用**成熟度护栏**: 观点期限未到期/不可解析 → relation
+    一律压为 None+护栏注(未到期不判 supports/against——C席复现③的机械防线);
+    仅 mode='C' 且到期,relation 才允许作为预测验证语义(见 verify_expiry)。
+    revision_anchors(协调裁定 2026-11-11): revisions[] 每条修订=新验证主体
+    锚定其自身 date——本档验证仍锚原 publish_date,修订主体随行登记不改变
+    原 vintage 窗。"""
     doc, reason = vs.get_view(view_id, views_dir)
     if doc is None:
         return {'ok': False, 'error': {'kind': 'view_not_found_or_quarantined',
                                        'message': reason}}
+    anchor_ymd = target_ymd or snapshot.get('target_date')
     tab = metric_evidence_table(doc['subjects'], snapshot, registry, vmap,
-                                horizons=('1m', '3m', '1y'), directions=directions)
+                                horizons=('1m', '3m', '1y'), directions=directions,
+                                target_ymd=anchor_ymd)
+    publish = doc.get('publish_date')
+    mat = maturity(doc.get('view_horizon'), publish,
+                   snapshot.get('target_date'))
+    rel_semantics = None
+    if mode in ('A', 'B', 'C'):
+        allowed = (mode == 'C' and mat['state'] == 'MATURED')
+        rel_semantics = ('到期验证(publish→horizon_end 窗,允许判预测)'
+                         if allowed else
+                         {'A': '提出时 trailing 窗一致性(E2 类事实,非预测验证)',
+                          'B': '当前更新窗一致性(非预测验证)',
+                          'C': f'成熟度护栏: {mat["state"]} → 不判 supports/against'}[mode])
+        if not allowed:
+            for e in tab['evidence']:
+                if e.get('relation') is not None:
+                    e['relation'] = None
+                    e['relation_note'] = (f'成熟度护栏: 期限{mat["state"]}'
+                                          '→不判 supports/against(证据观察)')
+    if mode == 'B':
+        for e in tab['evidence']:
+            e['since_publish'] = _since_publish_node(
+                e['metric_id'], e.get('unit'), snapshot, publish)
     n_sup = sum(1 for e in tab['evidence'] if e['relation'] == 'supports')
     n_ag = sum(1 for e in tab['evidence'] if e['relation'] == 'against')
-    return {
-        'ok': True, 'view_id': view_id,
+    out = {
+        'ok': True, 'view_id': view_id, 'mode': mode or 'legacy',
         'institution': doc['institution']['name'],
         'publish_date': doc['publish_date'], 'fetch_date': doc['fetch_date'],
         'subjects': list(doc['subjects']),
         'snapshot_id': snapshot.get('snapshot_id'),
         'target_date': snapshot.get('target_date'),
+        'anchor_target': anchor_ymd,
         'research_as_of': snapshot.get('research_as_of'),
         'gate_a': (snapshot.get('gate_a') or {}).get('status'),
+        'maturity': mat,
+        'revision_anchors': [
+            {'date': r.get('date'), 'anchor': 'independent_subject',
+             'note': '每条修订=新验证主体,锚定其自身date;原主张vintage窗不变'
+                     '(协调裁定 2026-11-11)——修订后主张的完整验证见其新档'}
+            for r in (doc.get('revisions') or [])],
         'determinism_note': '全部数值=本地快照事实与 interval_change 区间变动'
                             '(compare 自配对同函数同 common window);relation 仅在'
                             '显式 directions 下机械计算,零 AI 判断',
         'n_evidence': len(tab['evidence']), 'n_missing': len(tab['missing']),
         'n_supports': n_sup, 'n_against': n_ag,
         'evidence': tab['evidence'], 'missing': tab['missing'], 'notes': tab['notes'],
+    }
+    if rel_semantics:
+        out['relation_semantics'] = rel_semantics
+    return out
+
+
+# ══ Charter9 P0-1: 期限解析器+成熟度+三型入口 ══════════════════════════
+UNPARSEABLE_HORIZON_VOCAB = ('当前', '未指明', '中期', '持续', '下阶段',
+                             '战术配置', '会议间期间', '会后即刻')
+
+
+def _month_end(y, m):
+    import calendar
+    return f'{y:04d}-{m:02d}-{calendar.monthrange(y, m)[1]:02d}'
+
+
+def _add_months(iso_date, months):
+    """自然月前移(月末钳制)——horizon 上界推算;与 horizon_start 同族语义。"""
+    import datetime as _dt
+    d = _dt.date.fromisoformat(str(iso_date)[:10])
+    y, mo = d.year, d.month + int(months)
+    while mo > 12:
+        mo -= 12
+        y += 1
+    import calendar
+    day = min(d.day, calendar.monthrange(y, mo)[1])
+    return _dt.date(y, mo, day).isoformat()
+
+
+def parse_view_horizon(text, publish_date=None):
+    """观点期限文本 → 到期日(协调裁定②: 区间取上界;UNPARSEABLE 显式态)。
+
+    CY2026/'2026年(全年)'→该年 12-31;'2027年3月'→该月末;ISO 日期→当日;
+    '6-12个月'/'12个月'→publish+上限月数;'1年/两年'→publish+N 年(≤30 视为
+    时长,4 位视为日历年);多时点(如 '12月+2027年3月')→取最晚(保守=更晚
+    触发到期判定);当前/未指明/中期/持续/下阶段/战术配置/会议间期间→
+    UNPARSEABLE。BIS 回顾性刊物无点位(forecasts 空)是真实 NOT_TESTABLE 面,
+    由调用方按 forecasts 为空处理。"""
+    import re
+    s = str(text or '').strip()
+    if not s:
+        return {'state': 'unparseable', 'horizon_end': None,
+                'basis': '期限文本为空'}
+    absolutes = []
+    m = re.search(r'(\d{4})-(\d{1,2})-(\d{1,2})', s)
+    if m:
+        absolutes.append(f'{int(m.group(1)):04d}-{int(m.group(2)):02d}-'
+                         f'{int(m.group(3)):02d}')
+    # UBS 形 '2026-12'/'2027-03'(年-月无日)→月末;OECD 形裸 '2026'/'2027'
+    # (年度点位)→年末(裁定②上界);ISO 前缀不被误拆(前后卫禁 '-数字')。
+    m = re.search(r'(?<![\d-])(\d{4})-(\d{1,2})(?![\d-])', s)
+    if m:
+        absolutes.append(_month_end(int(m.group(1)), int(m.group(2))))
+    # OECD 形 '2026-2027'(年度区间)→上界年末(裁定②;ISO 卫不吞两裸年)
+    m = re.search(r'(?<![\d-])(\d{4})\s*[-~到至]\s*(\d{4})(?!\d)', s)
+    if m:
+        absolutes.append(f'{int(m.group(2)):04d}-12-31')
+    m = re.search(r'(?<![\d-])(\d{4})(?!\d|-\d|年)', s)
+    if m:
+        absolutes.append(f'{int(m.group(1)):04d}-12-31')
+    for kind, pat in (('cy', r'CY(\d{4})'),
+                      ('year_full', r'(\d{4})\s*年(?:全年|年度)')):
+        m = re.search(pat, s)
+        if m:
+            absolutes.append(f'{int(m.group(1)):04d}-12-31')
+    m = re.search(r'(\d{4})\s*年\s*(\d{1,2})\s*月', s)
+    if m:
+        absolutes.append(_month_end(int(m.group(1)), int(m.group(2))))
+    else:
+        m = re.search(r'(?<!\d)(\d{4})\s*年(?!\d)', s)
+        if m and not re.search(r'(\d{1,2})\s*个月|\d-\d+\s*个月', s):
+            absolutes.append(f'{int(m.group(1)):04d}-12-31')
+    durations = []
+    m = re.search(r'(\d{1,2})\s*[-~到至]\s*(\d{1,2})\s*(?:个月|m)(?![a-zA-Z])', s)
+    if m:
+        durations.append(int(m.group(2)))          # 区间取上界(裁定②)
+    else:
+        m = re.search(r'(?<!\d)(\d{1,2})\s*(?:个月|m)(?![a-zA-Z0-9])', s)
+        if m:
+            durations.append(int(m.group(1)))
+    years = None
+    m = re.search(r'(?<!\d)([一两二三四五六七八九十]{1,2}|\d{1,2})\s*年(?!\d)', s)
+    if m:
+        cn = {'一': 1, '两': 2, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6,
+              '七': 7, '八': 8, '九': 9, '十': 10}
+        tok = m.group(1)
+        years = cn.get(tok) if not tok.isdigit() else int(tok)
+    else:
+        m = re.search(r'(?<!\d)(\d{1,2})\s*y(?![a-zA-Z])', s, re.IGNORECASE)
+        if m:
+            years = int(m.group(1))
+    if years is not None and 0 < years <= 30:
+        durations.append(years * 12)
+    if absolutes:
+        return {'state': 'parsed', 'horizon_end': max(absolutes),
+                'basis': (f'绝对时点 {len(absolutes)} 个取最晚(保守)'
+                          if len(absolutes) > 1 else '绝对时点')}
+    if durations and publish_date:
+        months = max(durations)
+        end = _add_months(publish_date, months)
+        return {'state': 'parsed', 'horizon_end': end,
+                'basis': f'时长 {months} 个月(区间取上界,publish {publish_date} 起算)'}
+    if durations:
+        return {'state': 'unparseable', 'horizon_end': None,
+                'basis': f'时长型期限缺 publish_date 锚({text!r})'}
+    if any(v in s for v in UNPARSEABLE_HORIZON_VOCAB):
+        return {'state': 'unparseable', 'horizon_end': None,
+                'basis': f'非期限词汇({s!r}∈UNPARSEABLE 词表)'}
+    return {'state': 'unparseable', 'horizon_end': None,
+            'basis': f'无法解析({s!r})'}
+
+
+def maturity(horizon_text, publish_date, as_of_ymd):
+    """成熟度: 到期日≤验证日=MATURED;未到=NOT_YET_TESTABLE;解析失败=
+    UNPARSEABLE(护栏在两种非 MATURED 态都压制 relation)。"""
+    p = parse_view_horizon(horizon_text, publish_date)
+    if p['state'] != 'parsed':
+        return {'state': 'UNPARSEABLE', 'horizon_end': None,
+                'as_of': as_of_ymd, 'basis': p['basis']}
+    end = p['horizon_end']
+    as_of = str(as_of_ymd or '')[:10].replace('-', '') if as_of_ymd else ''
+    matured = bool(as_of) and end.replace('-', '') <= as_of
+    return {'state': 'MATURED' if matured else 'NOT_YET_TESTABLE',
+            'horizon_end': end, 'as_of': as_of_ymd, 'basis': p['basis']}
+
+
+def _since_publish_node(metric_id, unit, snapshot, publish_date):
+    """mode B 专用: publish 之后的区间变动(严格>publish 的证据更新窗)。
+    序列取数包 redirect_stdout(与 metric_window_changes 同款——采集档
+    标准化进度打印不污染 CLI 单 JSON 契约)。"""
+    import io
+    from contextlib import redirect_stdout
+    with redirect_stdout(io.StringIO()):
+        series, err = wd.metric_series(metric_id, snapshot, ROOT)
+    if series is None:
+        return {'available': False, 'reason': f'无序列: {err}'}
+    return rhq.interval_change(series['dates'], series['values'],
+                               unit or series.get('unit'),
+                               start=publish_date, end=snapshot.get('target_date'))
+
+
+def verify_at_publish(view_id, registry, vmap, views_dir=None, directions=None,
+                      root=ROOT):
+    """mode A 提出时证据: vintage 锚定 publish_date(裁定①含当日观测≤,
+    切点日期随行披露)。
+
+    快照选择: rp.vintage_dates 跨日 vintage 中 ≤publish 的最近日 →
+    select_snapshot(同日最高修订);无该时点 vintage → 最新快照序列截断至
+    publish_date(裁定⑦: 当时信息集近似,DEGRADED 标注随行——C席复核实证面);
+    连快照都没有(干净clone)→ 如实 unavailable。"""
+    doc, reason = vs.get_view(view_id, views_dir)
+    if doc is None:
+        return {'ok': False, 'error': {'kind': 'view_not_found_or_quarantined',
+                                       'message': reason}}
+    import research_provenance as rp
+    daily = os.path.join(root, 'data', 'daily')
+    pymd = str(doc['publish_date']).replace('-', '')
+    vints = [d for d in rp.vintage_dates(daily) if d <= pymd]
+    vintage_note = None
+    snap = None
+    if vints:
+        ymd = max(vints)
+        snap, why = rp.select_snapshot(ymd, daily)
+        if snap is not None:
+            vintage_note = {'anchor': 'vintage_snapshot', 'cutoff': ymd,
+                            'degraded': False,
+                            'note': f'≤publish 最近跨日 vintage 快照(切点 {ymd},'
+                                    '含当日观测,裁定①)'}
+    if snap is None:
+        snap, note = wd.latest_snapshot(root)
+        if snap is None:
+            return {'ok': False, 'mode': 'A',
+                    'error': {'kind': 'vintage_unavailable',
+                              'message': f'无 vintage≤{pymd} 且无本地快照({note})'
+                                         '——干净clone 无历史数据,mode A 不可执行'}}
+        facts = [f for f in (snap.get('facts') or [])
+                 if str(f.get('observation_date', ''))[:10].replace('-', '') <= pymd]
+        series_store = {}
+        for mid, ss in (snap.get('series_store') or {}).items():
+            keep = [i for i, d in enumerate(ss.get('dates', []))
+                    if str(d)[:10].replace('-', '') <= pymd]
+            series_store[mid] = {'dates': [ss['dates'][i] for i in keep],
+                                 'values': [ss['values'][i] for i in keep]}
+        snap = {**snap, 'facts': facts, 'series_store': series_store,
+                'snapshot_id': snap.get('snapshot_id')}
+        vintage_note = {'anchor': 'approx_filtered', 'cutoff': doc['publish_date'],
+                        'degraded': True,
+                        'note': '无该时点 vintage 快照→最新快照截断至 publish_date'
+                                '(当时信息集近似,DEGRADED;裁定⑦,C席复核实证面)'}
+    out = verify(view_id, snap, registry, vmap, views_dir=views_dir,
+                 directions=directions, mode='A',
+                 target_ymd=min(str(snap.get('target_date')), pymd))
+    out['mode_a_anchor'] = vintage_note
+    return out
+
+
+def load_forecast_target_map(path=None):
+    """config/forecast_target_map.json: forecast.target 文本→metric 种子映射。"""
+    p = path or os.path.join(ROOT, 'config', 'forecast_target_map.json')
+    with open(p, encoding='utf-8') as f:
+        m = json.load(f)
+    if not isinstance(m.get('targets'), dict) or not m['targets']:
+        raise ValueError('forecast_target_map.json 须含非空 targets 对象')
+    return m
+
+
+def _resolve_forecast_metric(target, target_map):
+    """确定性映射: 精确→最长包含;未映射→None(NOT_MACHINE_VERIFIABLE,禁猜)。"""
+    t = str(target or '').strip()
+    if t in target_map['targets']:
+        return target_map['targets'][t]
+    hits = [(len(k), v) for k, v in target_map['targets'].items() if k in t]
+    return max(hits)[1] if hits else None
+
+
+_DIR_UP = ('上行', '上调', '升', '涨', '高于', '走高', '加息', '走强', 'up',
+           'raise', 'higher', 'bullish')
+_DIR_DOWN = ('下行', '下调', '降', '跌', '低于', '走低', '降息', '走弱', 'down',
+             'cut', 'lower', 'bearish')
+
+
+def _parse_direction(text):
+    s = str(text or '')
+    up = any(k in s for k in _DIR_UP)
+    down = any(k in s for k in _DIR_DOWN)
+    if up and not down:
+        return 'up'
+    if down and not up:
+        return 'down'
+    return None
+
+
+def verify_expiry(view_id, snapshot, registry, vmap, views_dir=None,
+                  target_map=None):
+    """mode C 到期验证: 每条 forecast 独立判定(六标签聚合在 P0-2 VP sidecar)。
+
+    判定序(确定性): 期限不可解析→UNPARSEABLE_HORIZON;未到期→NOT_YET_TESTABLE;
+    target 未映射→NOT_MACHINE_VERIFIABLE;序列不足→INSUFFICIENT_DATA;
+    方向不可解析(点位型)→LEVEL_TARGET(报告实际值与点位差,不判对错);
+    方向可解析→supports/against/neutral(publish→horizon_end 区间变动,
+    interval_change 同口径)。
+    序列取数 root 固定引擎根(metric_series 内部 load_registry(root) 须读到
+    config/metric_registry.json;序列本身优先快照 series_store——与
+    _since_publish_node 同款,data 沙箱 root 只用于快照解析侧)。"""
+    doc, reason = vs.get_view(view_id, views_dir)
+    if doc is None:
+        return {'ok': False, 'error': {'kind': 'view_not_found_or_quarantined',
+                                       'message': reason}}
+    publish = doc['publish_date']
+    as_of = snapshot.get('target_date')
+    view_mat = maturity(doc.get('view_horizon'), publish, as_of)
+    rows = []
+    for i, f in enumerate(doc.get('forecasts') or [], 1):
+        h = parse_view_horizon(f.get('horizon'), publish)
+        row = {'index': i, 'target': f.get('target'),
+               'value_or_direction': f.get('value_or_direction'),
+               'horizon_raw': f.get('horizon'), 'horizon_end': h['horizon_end'],
+               'horizon_basis': h['basis']}
+        if h['state'] != 'parsed':
+            row['verdict'] = 'UNPARSEABLE_HORIZON'
+            rows.append(row)
+            continue
+        if str(h['horizon_end']).replace('-', '') > str(as_of).replace('-', ''):
+            row['verdict'] = 'NOT_YET_TESTABLE'
+            row['note'] = f"到期 {h['horizon_end']} > 验证日 {as_of}(未到期不判)"
+            rows.append(row)
+            continue
+        metric = (_resolve_forecast_metric(f.get('target'), target_map)
+                  if target_map else None)
+        if metric is None:
+            row['verdict'] = 'NOT_MACHINE_VERIFIABLE'
+            row['note'] = 'target 未登记 forecast_target_map(映射扩充=Agent层,禁猜)'
+            rows.append(row)
+            continue
+        row['metric_id'] = metric
+        import io
+        from contextlib import redirect_stdout
+        with redirect_stdout(io.StringIO()):
+            series, err = wd.metric_series(metric, snapshot, ROOT)
+        if series is None:
+            row['verdict'] = 'INSUFFICIENT_DATA'
+            row['note'] = f'无序列: {err}'
+            rows.append(row)
+            continue
+        iv = rhq.interval_change(series['dates'], series['values'],
+                                 series.get('unit'), start=publish,
+                                 end=h['horizon_end'])
+        if iv.get('available') is False:
+            row['verdict'] = 'INSUFFICIENT_DATA'
+            row['note'] = iv.get('reason')
+            rows.append(row)
+            continue
+        row['interval_change'] = iv
+        actual = None
+        for k in ('pp_change', 'pct_change', 'abs_change'):
+            if iv.get(k) is not None:
+                actual = 'up' if iv[k] > 0 else 'down' if iv[k] < 0 else 'flat'
+                break
+        hint = _parse_direction(f.get('value_or_direction'))
+        if hint is None:
+            row['verdict'] = 'LEVEL_TARGET'
+            row['note'] = ('点位/幅度型目标——报告实际区间变动与点位,判对错'
+                           '需语义层(六标签聚合在 VP sidecar, P0-2)')
+            last = [d for d in series['dates'] if d <= h['horizon_end']]
+            if last:
+                row['actual_observation'] = {
+                    'date': last[-1],
+                    'value': series['values'][series['dates'].index(last[-1])]}
+        else:
+            row['direction_hint'] = hint
+            row['actual_direction'] = actual
+            row['verdict'] = ('supports' if actual == hint else
+                              'against' if actual in ('up', 'down') else 'neutral')
+        rows.append(row)
+    if not (doc.get('forecasts') or []):
+        note = 'forecasts 为空(回顾性刊物/纯立场档,如 BIS)——无可到期验证点位'
+    else:
+        note = None
+    return {
+        'ok': True, 'view_id': view_id, 'mode': 'C',
+        'institution': doc['institution']['name'],
+        'publish_date': publish, 'as_of': as_of,
+        'snapshot_id': snapshot.get('snapshot_id'),
+        'view_maturity': view_mat,
+        'n_forecasts': len(doc.get('forecasts') or []),
+        'forecast_verdicts': rows,
+        'no_forecasts_note': note,
+        'revision_anchors': [
+            {'date': r.get('date'), 'anchor': 'independent_subject'}
+            for r in (doc.get('revisions') or [])],
+        'determinism_note': '到期判定=区间变动方向机械比对(publish→horizon_end,'
+                            'interval_change 同口径);期限取上界(裁定②);'
+                            '未到期/不可解析/未映射一律显式态不猜',
     }
 
 
@@ -200,6 +594,7 @@ def main(argv=None, data_root=None):
     view_id = argv[0] if not argv[0].startswith('--') else None
     directions = None
     snapshot_id = None
+    mode = None
     rest = argv[1:] if view_id else argv
     j = 0
     while j < len(rest):
@@ -210,6 +605,15 @@ def main(argv=None, data_root=None):
             except (ValueError, AssertionError):
                 print(json.dumps({'ok': False, 'error': {
                     'kind': 'bad_directions', 'message': '--directions 须为 {"METRIC":"up|down"} JSON'}},
+                    ensure_ascii=False))
+                return 2
+            j += 2
+        elif rest[j] == '--mode' and j + 1 < len(rest):
+            mode = rest[j + 1].strip().upper()
+            if mode not in ('A', 'B', 'C', 'ALL'):
+                print(json.dumps({'ok': False, 'error': {
+                    'kind': 'bad_mode', 'message': '--mode 须为 A|B|C|all(A=提出时证据'
+                            '/B=当前证据更新/C=到期验证;缺省=legacy 最新快照行为)'}},
                     ensure_ascii=False))
                 return 2
             j += 2
@@ -244,6 +648,37 @@ def main(argv=None, data_root=None):
         print(json.dumps({'ok': False, 'error': {'kind': 'bad_map',
                                                  'message': str(e)}}, ensure_ascii=False))
         return 1
+    if mode in ('A', 'ALL'):
+        out_a = verify_at_publish(view_id, reg, vmap, directions=directions,
+                                  root=data_root or ROOT)
+        if mode == 'A':
+            print(json.dumps(out_a, ensure_ascii=False, indent=2, default=str))
+            return 0 if out_a.get('ok') else 1
+    if mode in ('B', 'ALL'):
+        out_b = verify(view_id, snap, reg, vmap, directions=directions,
+                       mode='B')
+        if mode == 'B':
+            print(json.dumps(out_b, ensure_ascii=False, indent=2, default=str))
+            return 0 if out_b.get('ok') else 1
+    if mode in ('C', 'ALL'):
+        try:
+            tmap = load_forecast_target_map()
+        except (OSError, ValueError) as e:
+            print(json.dumps({'ok': False, 'error': {'kind': 'bad_target_map',
+                                                     'message': str(e)}},
+                             ensure_ascii=False))
+            return 1
+        out_c = verify_expiry(view_id, snap, reg, vmap, target_map=tmap)
+        if mode == 'C':
+            print(json.dumps(out_c, ensure_ascii=False, indent=2, default=str))
+            return 0 if out_c.get('ok') else 1
+    if mode == 'ALL':
+        print(json.dumps({'ok': all(o.get('ok') for o in (out_a, out_b, out_c)
+                                    if o is not None),
+                          'view_id': view_id, 'mode': 'all',
+                          'A': out_a, 'B': out_b, 'C': out_c},
+                         ensure_ascii=False, indent=2, default=str))
+        return 0
     out = verify(view_id, snap, reg, vmap, directions=directions)
     print(json.dumps(out, ensure_ascii=False, indent=2, default=str))
     return 0 if out.get('ok') else 1

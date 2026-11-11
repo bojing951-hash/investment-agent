@@ -128,7 +128,7 @@ class TestT1RealChainAnchors(unittest.TestCase):
         reg = fe.load_registry()
         metrics = reg["metrics"]
         self.assertEqual(len(metrics), 110)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL)
-        self.assertEqual(reg["version"], "2.8.1")  # R6-D1(2026-11-11) CPI/PPI 换源;数据批1曾 2.7.0→2.8.0
+        self.assertEqual(reg["version"], "2.8.2")  # R6-D1(2026-11-11) CPI/PPI 换源;数据批1曾 2.7.0→2.8.0
         self.assertEqual(sum(1 for m in metrics if m.get("status") == "active"), 108)  # 数据批1 +SPX_EPS/M2SL
 
     def test_t12_mapper_real_registry_golden_question(self):

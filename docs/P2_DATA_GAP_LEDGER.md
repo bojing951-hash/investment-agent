@@ -75,6 +75,7 @@ v2.7.0→**v2.8.0**(110 项/108 活跃);analog `FEATURE_SPECS` 未动
   **ECB_MRO 2.65(2026-09-16,恢复采集;前缺席=网关间歇 504 重跑即得)**/
   EA_HICP_YOY 1.9(2025-12-01);**BBK 源站仍持续断连**(RemoteDisconnected,
   BUND_10Y/BUND_2Y READ_FAIL 如实缺席,不伪造,源端状态登记如上);
+  **R9(2026-11-12)四路证据加固维持封锁: 见三之五。**
   Yahoo 股指=DAX/CAC40。ECB LFS 失业候选键实测 404×3(M/Q 形态)→
   登记为"评估不接线",无键猜测。
 - **CN 股指回补(#10)**: Tushare `index_daily`(现有 token),新增
@@ -87,12 +88,15 @@ v2.7.0→**v2.8.0**(110 项/108 活跃);analog `FEATURE_SPECS` 未动
   2026-11-09,南向 55,083.68 万/北向 216,236.4 万,5 日合计随行);
   **CN_SF_FLOW(社融)SSLError 复现**(akshare `macro_china_shrzgm`,
   网络面,与 #1 同因)→如实缺席;TIC/EPFR 越红线未动。
+  **R9(2026-11-12)已收口: 换通道 mofcom 直取,见三之五。**
 - **#11 registered-not-collected 清理(实测复核 9 条)**: 8 条事实已在场
   (DFF/DFEDTAR=rate_expectations 通道,REAL_10Y/REAL_5Y/HY_IG_DIFF=
   fact_engine 派生,WTI_SPOT_M/ZQ_F1_PRICE/ZQ_F2_PRICE 各自通道)——
   台账前提已过期,属"已采集未巡检"而非"登记永不采集";真缺席仅
   CN_OMO_7D(PENDING,无免费源)+BUND_10Y/2Y(BBK 断连)+CN_SF_FLOW
   (上述)。DAX/CAC40 转正。"登记了却永不采集"静默态消灭。
+  **R9(2026-11-12)后: CN_SF_FLOW 降级在场(见三之五),真缺席仅
+  CN_OMO_7D+BUND_10Y/2Y(源端受阻)+JP_CPI_TOKYO_YOY(待裁定)。**
 - **快照**: `research_snapshot_20261110_v4`(--allow-revision,修订原因
   在档)。Gate A=**DEGRADED**(core 缺失 0;noncore_missing 8→**5**:
   BUND_10Y/BUND_2Y/CN_OMO_7D/CN_SF_FLOW/JP_CPI_TOKYO_YOY,全部为
@@ -106,7 +110,7 @@ v2.7.0→**v2.8.0**(110 项/108 活跃);analog `FEATURE_SPECS` 未动
 | 1 | CN 宏观序列化(CPI/PPI/PMI/新增贷款止于单值,CPI/PPI 停 2025-08) | A①/C | Tushare(已配 Key,月频宏观接口;社融增量曾遇 SSLError=网络面如实记) | 无 | M | 待用户裁定后实施;Tushare 积分/限流面需实测 |
 | 2 | CN 利率序列(10yr 国债/LPR 历史/OMO) | A②/C | 10yr 国债+LPR 历史: Tushare 可拉;OMO 无免费接口(akshare 1.18.47 无逆回购接口,CN_OMO_7D 身份预注册 source_symbol=PENDING) | 无 | M | 同上;OMO 项维持 PENDING(无免费干净源不冒充) |
 | 3 | EA 宏观面(HICP 陈旧/增长就业无/BUND 序列无/DAX/CAC40 未采集) | A③ | ECB(HICP/就业,免 Key 已接线)+BBK(BUND 收益率,已接线)+Yahoo(^GDAXI/^FCHI,免 Key) | 无 | M | 待裁定;跨三通道组配,建议单独立项。**数据批1: ECB 三项在场+Yahoo 股指收口;BBK 持续断连如实缺席(见一之二)** |
-| 4 | JP 东京 CPI(登记未采集) | A④ | 无已接线免费源(总务省 e-stat 未接线;Yahoo 无宏观) | 需新源 | M-L | 不实施(越红线①);留章程决策 |
+| 4 | JP 东京 CPI(登记未采集) | A④ | 无已接线免费源(总务省 e-stat 未接线;Yahoo 无宏观) | 需新源 | M-L | 不实施(越红线①);留章程决策。**R9(2026-11-12)路径已探明登记(见三之五): FRED 0 序列×4 检索/stat.go.jp PDF-only/e-stat 免 key xlsx 可下但发现链 JS+REST 需免费 appId=新凭证政策待裁定** |
 | 5 | US 流动性维 M2(M2SL) | A⑤ | FRED(现有 Key) | 无 | S | 同 SOFR/WALCL 模式,可随下一批追加。**数据批1已收口(见一之二)** |
 | 6 | 跨境资本流动(TIC/EPFR/南北向;CN_SF_FLOW/SB_FLOW 未采集) | A⑥/C(整环只能【假设】) | 南北向: Tushare/Akshare 可试(akshare 已装);TIC=美财政部(未接线);EPFR=付费 | 部分 | M-L | 南北向待裁定;TIC 越红线①;EPFR 越红线②。**数据批1: SB_FLOW 在场;CN_SF_FLOW SSLError 复现如实缺席;红线未动(见一之二)** |
 | 7 | 盈利序列 EPS | A⑦/C | **Shiller(已接线免 Key)**: ie_data 含 E(每股收益)列,1871+ | 无 | S-M | 下一批最高优先候选之一(估值/盈利维研究直接受益)。**数据批1已收口(见一之二)** |
@@ -224,3 +228,54 @@ v2.7.0→**v2.8.0**(110 项/108 活跃);analog `FEATURE_SPECS` 未动
   缺口,禁猜)」,重指=Agent 层待办(编排层映射质量,与 C9-3 同类)。
 - 既有行维持: BUND_10Y/BUND_2Y(BBK RemoteDisconnected)、JP_CPI_TOKYO_YOY、
   HY_OAS 族(ICE 3 年授权窗)——见上各节,不重复登记。
+
+## 三之五、R9 采集缺口波(2026-11-12,dev/rd-r9-noncore-gaps)
+
+范围=R8 验收快照 v2 Gate A 的 4 项 noncore_missing;CN_OMO_7D 按用户裁定
+不动。注册表 v2.8.1→**v2.8.2**(仅 CN_SF_FLOW 一条换通道)。
+
+### CN_SF_FLOW(社融增量)——已修复收口
+
+- **根因(非源端无数据)**: 本机 python ssl 栈=LibreSSL 2.8.3,与 mofcom
+  (data.mofcom.gov.cn)TLS 协商即断——akshare `macro_china_shrzgm` 报
+  SSLError 'No cipher can be selected',裸 requests=SSLEOFError,urllib=
+  握手 EOF(2026-11-12 三库实测同因);系统 curl 走 LibreSSL 3.3.6 可通。
+- **修复(换通道,零新依赖)**: `china_market_collector` 弃 akshare 壳,新增
+  `_shrzgm_rows()`(curl 子进程 POST `front/gnmy/shrzgmQuery`,`--noproxy`
+  直连与 _no_proxy 同理;失败→None 如实缺席)+ `_shrzgm_last()`(纯函数
+  行选: tiosfs 列=社融增量亿元,键序锚 akshare 1.18.47 源码;date='YYYYMM'
+  可归一+值可数值化+非 NaN 才取最大月份)。registry source_symbol=
+  `mofcom.shrzgmQuery.tiosfs`,freshness max_calendar_lag_days=60。
+- **负证据(免费源排除)**: tushare pro 无 AFRE 接口(cn_afre/cn_sf 皆
+  「请指定正确的接口名」);东财无月频社融序列。
+- **真拉首跑(2026-11-12)**: 136 行,`sf_flow {'date': '2026-04',
+  'value': 6245.0, 'source': 'mofcom_direct'}`;fact `6245.0 @ 2026-04-01`
+  quality=DEGRADED(RELEASE_UNKNOWN+滞后 225d>60d)。**镜像滞后披露**:
+  mofcom 现值仅至 2026-04(≈7 个月滞后,源端镜像节奏),降级在场优于
+  缺席;若源端更新自然前滚。注入 v2 快照重算 Gate A: noncore_missing
+  5→4(CN_SF_FLOW 移入 noncore_degraded 12→13)。
+
+### BUND_10Y/BUND_2Y——维持源端封锁(证据加固)
+
+四路证据(2026-11-12 实测): ①BBK READ_FAIL 自 11-05 持续;②curl 直连
+no-proxy **与** proxy 双模式: TLS1.3 握手+证书校验成功后连接即被重置
+(服务端/WAF 拒本出口 IP,非客户端 TLS 问题);③http2+浏览器 UA 变体同灭;
+④替代源排查: ECB Data Portal 303 dataflows 枚举无国别政府债收益率
+(仅 FM/IRS=欧元区整体),tushare 无德债序列。**登记=源端受阻,不造数,
+待源端恢复或用户裁定替代路径。**
+
+### JP_CPI_TOKYO_YOY——路径已探明,登记待裁定(未修复)
+
+registry symbol 维持 PENDING(白名单域纪律)。探路记录: FRED 4 组检索
+0 序列;stat.go.jp sokuhou=PDF-only(无序列 API);e-stat 免 key 文件下载
+通(statInfId+fileKind=0→xlsx)但发布日历发现链=JS 渲染,REST API 需免费
+appId=**新凭证+新域名政策,超最小修复边界**,留用户裁定。
+
+### R10 候选观察(登记不动手)
+
+- Gate A noncore_missing 注记「来源文件在场而指标缺席(采集遗漏)」为
+  文件级泛化文案(sources_status 8 通道全 EXACT 即触发)——BBK 源站
+  断连/白名单域缺席这类诚实子源缺席被误标"采集遗漏";细化=引擎话术层,
+  R10 候选。
+- tushare cn_cpi/cn_ppi 1/min 限流族采集器级缓存加固(低优先,本轮
+  按指令豁免未做;端到端验证时 ppi_yoy 单次缺席可复现此因)。

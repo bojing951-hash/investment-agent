@@ -1013,6 +1013,59 @@ def _tushare_monthly_last(df, col):
     return ('%04d-%02d-%02d' % (y, mo, calendar.monthrange(y, mo)[1]), best[2])
 
 
+MOFCOM_SHRZGM_URL = 'https://data.mofcom.gov.cn/datamofcom/front/gnmy/shrzgmQuery'
+
+
+def _shrzgm_rows():
+    """社融增量源端直取(R9,2026-11-12;商务部 mofcom POST;curl 子进程)。
+
+    为何不经 akshare.macro_china_shrzgm(): 本机 python ssl 栈=LibreSSL 2.8.3,
+    与 mofcom TLS 协商即断(SSLError 'No cipher can be selected'/握手 EOF,
+    2026-11-12 实测;curl 走 LibreSSL 3.3.6 可通)——同一端点经系统 curl 取
+    (零第三方依赖,curl=系统工具;境内源 --noproxy 直连与 _no_proxy 同理)。
+    失败(非 0/空响应/非 JSON 数组)→None,调用方如实缺席。"""
+    import subprocess
+    try:
+        r = subprocess.run(['curl', '-s', '--noproxy', '*', '-X', 'POST',
+                            MOFCOM_SHRZGM_URL, '--max-time', '25'],
+                           capture_output=True, timeout=35)
+        if r.returncode != 0 or not r.stdout:
+            return None
+        rows = json.loads(r.stdout.decode('utf-8'))
+        return rows if isinstance(rows, list) else None
+    except Exception:
+        return None
+
+
+def _shrzgm_last(rows):
+    """mofcom 社融行选(R9 纯函数,零网络可注入): rows(list[dict])中取
+    tiosfs(社会融资规模增量,亿元;键序↔akshare 1.18.47 macro_china_shrzgm
+    列序:date/ndbab/entrustloan/forcloan/rmblaon/bibae/tiosfs/sfinfe/
+    trustloan)有值的最大 date('YYYYMM')→('YYYY-MM', float)。语义同
+    _macro_last_month: NaN/不可数值化/月份不可归一跳行,序向不依赖;
+    无有值行→None。"""
+    if not rows:
+        return None
+    best = None
+    for row in rows:
+        m = re.fullmatch(r'(\d{4})(\d{2})', str(row.get('date') or '').strip())
+        if not m or not 1 <= int(m.group(2)) <= 12:
+            continue
+        v = row.get('tiosfs')
+        if v is None:
+            continue
+        try:
+            fv = float(v)
+        except (TypeError, ValueError):
+            continue
+        if fv != fv:
+            continue
+        ym = m.group(1) + '-' + m.group(2)
+        if best is None or ym > best[0]:
+            best = (ym, fv)
+    return best
+
+
 def _norm_date(s):
     """宏观日期列归一(序向/格式不依赖): 'YYYY-MM-DD'/'YYYY/M/D'/'2026年10月
     10日'→'YYYY-MM-DD';月粒度('2026年10月'/'2026-10')→'YYYY-MM'(观测日=
@@ -1169,19 +1222,17 @@ def fetch_macro():
     except Exception as e:
         print(f"  ❌ PMI(macro_china_pmi): {type(e).__name__}: {str(e)[:120]}")
 
-    # G-P1-17 社融增量(商务部转载;月份/社会融资规模增量 列锚)
+    # G-P1-17 社融增量(商务部 mofcom 直取 R9;date='YYYYMM'/tiosfs 列锚)
     try:
-        with _no_proxy():
-            df = ak.macro_china_shrzgm()
-        got = _macro_last_month(df, '月份', '社会融资规模增量')
+        got = _shrzgm_last(_shrzgm_rows())
         if got is not None:
             out['sf_flow'] = {'date': got[0], 'value': round(got[1], 2),
-                              'source': 'akshare_mofcom'}
+                              'source': 'mofcom_direct'}
             print(f"  ✅ sf_flow: {out['sf_flow']['value']} ({out['sf_flow']['date']})")
         else:
-            print("  ⚠️ sf_flow: 无有值行(macro_china_shrzgm.社会融资规模增量)")
+            print("  ⚠️ sf_flow: 无有值行(mofcom.shrzgmQuery.tiosfs)")
     except Exception as e:
-        print(f"  ❌ 社融(macro_china_shrzgm): {type(e).__name__}: {str(e)[:120]}")
+        print(f"  ❌ 社融(mofcom.shrzgmQuery): {type(e).__name__}: {str(e)[:120]}")
 
     # G-P1-17 新增人民币贷款(东财;月份/当月 列锚)
     try:

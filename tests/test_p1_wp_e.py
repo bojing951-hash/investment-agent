@@ -33,7 +33,8 @@ T6 源端失败→诚实缺席(全端点失败→{} 零 0 填充;OMO 默认装�
 fixture→预期值映射(AC-03.6;逐断言组可追溯):
 - sse_margin_df()/szse_margin_df() → T2 t20/t21/t23 恰等字典(两所同日合计算术)
 - legu_pe_df() → T3 t30/t32 {'pe','date','via','note'} 恰等
-- lpr_df()/tushare_cpi_df()/tushare_ppi_df()/pmi_df()/shrzgm_df()/nfc_df() → T4 t40 七键恰等
+- lpr_df()/tushare_cpi_df()/tushare_ppi_df()/pmi_df()/shrzgm_rows()/nfc_df() → T4 t40 七键恰等
+  (R9: 社融=cmc._shrzgm_rows 打桩 mofcom 直取,akshare 壳弃用)
 - OMO_LINES → T5 t54/t55 解析/冻结/末行;T6 t61 PENDING 缺席
 """
 import io
@@ -57,7 +58,7 @@ for p in (ROOT, os.path.join(ROOT, 'scripts'), os.path.dirname(os.path.abspath(_
 # 无条件注入确定性 fake(真包在场也统一覆盖,CI==本地一致;W5-DATASRC-B 先例)。
 _ak_fake = types.ModuleType('akshare')
 for _fn in ('stock_margin_sse', 'stock_margin_szse', 'stock_market_pe_lg',
-            'macro_china_lpr', 'macro_china_pmi', 'macro_china_shrzgm',
+            'macro_china_lpr', 'macro_china_pmi',
             'macro_china_new_financial_credit'):
     setattr(_ak_fake, _fn, mock.MagicMock(name=_fn))
 sys.modules['akshare'] = _ak_fake
@@ -193,10 +194,22 @@ def pmi_df():
                          '非制造业-同比增长': [0.0] * 3})
 
 
-def shrzgm_df():
-    return pd.DataFrame({'月份': ['2026年9月', '2026年8月', '2026年10月'],
-                         '社会融资规模增量': [30000.0, 25000.0, 22000.0],
-                         '其中-人民币贷款': [8000.0, 7000.0, 8000.0]})
+def shrzgm_rows():
+    """R9 mofcom 直取行 fixture(源端实形: date='YYYYMM'+tiosfs 社融增量亿元;
+    乱序+NaN 行考验 _shrzgm_last 序向不依赖与跳行纪律)。"""
+    return [
+        {'date': '202609', 'tiosfs': 30000.0, 'rmblaon': 8000.0},
+        {'date': '202608', 'tiosfs': 25000.0, 'rmblaon': 7000.0},
+        {'date': '202610', 'tiosfs': 22000.0, 'rmblaon': 8000.0},
+        {'date': '202611', 'tiosfs': None, 'rmblaon': None},   # 未发布 NaN 行跳
+    ]
+
+
+def shrzgm_stub(rows='FIXTURE'):
+    """T4 通用桩: cmc._shrzgm_rows → 固定行(默认 fixture);
+    失败注入显式传 rows=None(None≠默认哨兵,避免歧义)。"""
+    return mock.patch.object(cmc, '_shrzgm_rows',
+                             return_value=shrzgm_rows() if rows == 'FIXTURE' else rows)
 
 
 def nfc_df():
@@ -221,7 +234,7 @@ class T1RegistryV230(unittest.TestCase):
     def test_t01_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1): 94+8→102/93+8→101/2.2.0→2.3.0/CN 10→18
         self.assertEqual(len(REG['metrics']), 110)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL)
-        self.assertEqual(REG['version'], '2.8.1')  # R6-D1(2026-11-11) CPI/PPI 换源;数据批1(2026-11-10) 2.7.0→2.8.0
+        self.assertEqual(REG['version'], '2.8.2')  # R6-D1(2026-11-11) CPI/PPI 换源;数据批1(2026-11-10) 2.7.0→2.8.0
         self.assertEqual(sum(1 for m in REG['metrics']
                              if m.get('status') == 'active'), 108)  # 数据批1 +SPX_EPS/M2SL
         agg = {}
@@ -313,6 +326,9 @@ class T1RegistryV230(unittest.TestCase):
         # R6-D1: cpi/ppi 源端点=tushare pro api(_pro().cn_cpi/cn_ppi,T4 打桩验证
         # 接线),非 akshare 面——源符号端点段以 'tushare_pro' 认锚
         endpoints_called.add('tushare_pro')
+        # R9: 社融源端点=mofcom 直取(_shrzgm_rows/_shrzgm_last,T4/t57 打桩验证
+        # 接线),非 akshare 面——源符号端点段以 'mofcom' 认锚
+        endpoints_called.add('mofcom')
         for mid in CN8_ORDER:
             sym = METRICS[mid]['source_symbol']
             if sym == 'PENDING':
@@ -453,13 +469,14 @@ class T4MacroEndpoints(unittest.TestCase):
     def test_t40_all_endpoints_positive(self):
         # 七产出键恰等(值/日期/源标签全硬编码);omo_7d=默认装载器 PENDING→缺席
         # R6-D1: cpi/ppi 换源 tushare pro cn_cpi.nt_yoy/cn_ppi.ppi_yoy(月末观测日)
+        # R9: 社融换 mofcom 直取(cmc._shrzgm_rows 打桩;源标签 mofcom_direct)
         self.addCleanup(mock.patch.stopall)
         ak_returns(macro_china_lpr=lpr_df(),
                    macro_china_pmi=pmi_df(),
-                   macro_china_shrzgm=shrzgm_df(),
                    macro_china_new_financial_credit=nfc_df())
         pro_returns(cn_cpi=tushare_cpi_df(),
                     cn_ppi=tushare_ppi_df()).start()
+        shrzgm_stub().start()
         with freeze_clock():
             out = self._run_fetch_macro()
         self.assertEqual(set(out), {'lpr_1y', 'lpr_5y', 'cpi_yoy', 'ppi_yoy',
@@ -475,7 +492,7 @@ class T4MacroEndpoints(unittest.TestCase):
         self.assertEqual(out['pmi_mfg'], {'date': '2026-10', 'value': 50.1,
                                           'source': 'akshare_em'})
         self.assertEqual(out['sf_flow'], {'date': '2026-10', 'value': 22000.0,
-                                          'source': 'akshare_mofcom'})
+                                          'source': 'mofcom_direct'})  # R9 直取;202611 NaN 跳
         self.assertEqual(out['new_loans'], {'date': '2026-10', 'value': 8000.0,
                                             'source': 'akshare_em'})
 
@@ -484,10 +501,10 @@ class T4MacroEndpoints(unittest.TestCase):
         self.addCleanup(mock.patch.stopall)
         ak_returns(macro_china_lpr=lpr_df(),
                    macro_china_pmi=pmi_df(),
-                   macro_china_shrzgm=shrzgm_df(),
                    macro_china_new_financial_credit=nfc_df())
         pro_returns(cn_cpi=OSError('synthetic rate-limit'),
                     cn_ppi=tushare_ppi_df()).start()
+        shrzgm_stub().start()
         with freeze_clock():
             out = self._run_fetch_macro()
         self.assertNotIn('cpi_yoy', out)
@@ -500,14 +517,31 @@ class T4MacroEndpoints(unittest.TestCase):
         self.addCleanup(mock.patch.stopall)
         drift = tushare_cpi_df().drop(columns=['nt_yoy'])
         ak_returns(macro_china_lpr=lpr_df(), macro_china_pmi=pmi_df(),
-                   macro_china_shrzgm=shrzgm_df(),
                    macro_china_new_financial_credit=nfc_df())
         pro_returns(cn_cpi=drift,
                     cn_ppi=tushare_ppi_df()).start()
+        shrzgm_stub().start()
         with freeze_clock():
             out = self._run_fetch_macro()
         self.assertNotIn('cpi_yoy', out)
         self.assertEqual(out['ppi_yoy']['value'], -2.8)
+
+
+    def test_t41b_shrzgm_source_down_absent(self):
+        # R9: mofcom 直取失败(rows=None)→sf_flow 缺席,其余六键不受影响
+        self.addCleanup(mock.patch.stopall)
+        ak_returns(macro_china_lpr=lpr_df(),
+                   macro_china_pmi=pmi_df(),
+                   macro_china_new_financial_credit=nfc_df())
+        pro_returns(cn_cpi=tushare_cpi_df(),
+                    cn_ppi=tushare_ppi_df()).start()
+        shrzgm_stub(rows=None).start()
+        with freeze_clock():
+            out = self._run_fetch_macro()
+        self.assertNotIn('sf_flow', out)
+        self.assertEqual(set(out) - {'sf_flow'},
+                         {'lpr_1y', 'lpr_5y', 'cpi_yoy', 'ppi_yoy', 'pmi_mfg',
+                          'new_loans'})
 
 
 # ══ T5 纯解析函数 ════════════════════════════════════════════════════════
@@ -581,6 +615,41 @@ class T5PureParsers(unittest.TestCase):
         self.assertIsNone(cmc._tushare_monthly_last(
             pd.DataFrame({'month': ['202613'], 'v': [1.0]}), 'v'))  # 月13 非法跳
 
+    def test_t57_shrzgm_last(self):
+        # R9 纯函数: mofcom 行选 date('YYYYMM')最大有值 tiosfs→('YYYY-MM', v);
+        # NaN/不可数值化/坏月/非紧凑形态跳行,序向不依赖
+        rows = [
+            {'date': '202604', 'tiosfs': 6245, 'rmblaon': -4006},
+            {'date': '202603', 'tiosfs': 52240, 'rmblaon': 31522},
+            {'date': '202605', 'tiosfs': None},                # 未发布跳
+            {'date': '2026-13', 'tiosfs': 9.0},                # 月13 非法跳
+            {'date': '2026-04', 'tiosfs': 1.0},                # 非紧凑跳
+            {'date': 'bad', 'tiosfs': 2.0},                    # 月份不可归一跳
+            {'date': '202604x', 'tiosfs': 'N/A'},              # 值不可数值化跳
+        ]
+        self.assertEqual(cmc._shrzgm_last(rows), ('2026-04', 6245.0))
+        self.assertEqual(cmc._shrzgm_last(shrzgm_rows()),      # fixture 乱序+NaN
+                         ('2026-10', 22000.0))
+        self.assertIsNone(cmc._shrzgm_last([]))
+        self.assertIsNone(cmc._shrzgm_last(None))
+        self.assertIsNone(cmc._shrzgm_last([{'date': '202610'}]))  # 无 tiosfs 键
+        # 全 NaN→None
+        self.assertIsNone(cmc._shrzgm_last(
+            [{'date': '202610', 'tiosfs': float('nan')}]))
+
+    def test_t57b_shrzgm_rows_subprocess_failures(self):
+        # R9 取行层: curl 非 0/空响应/非 JSON/非数组→None(诚实缺席,不上抛)
+        import subprocess as sp
+        for rc, out in ((1, b''), (0, b''), (0, b'not-json'),
+                        (0, b'{"obj": 1}'), (23, b'partial')):
+            with mock.patch.object(
+                    sp, 'run',
+                    return_value=sp.CompletedProcess([], rc, stdout=out)):
+                self.assertIsNone(cmc._shrzgm_rows(), (rc, out))
+        # curl 抛异常(超时/缺二进制)→None
+        with mock.patch.object(sp, 'run', side_effect=OSError('no curl')):
+            self.assertIsNone(cmc._shrzgm_rows())
+
 
 # ══ T6 源端失败→诚实缺席(DESIGN 要点② 注入面) ═══════════════════════════
 class T6SourceFailureHonestAbsence(unittest.TestCase):
@@ -590,8 +659,8 @@ class T6SourceFailureHonestAbsence(unittest.TestCase):
         self.addCleanup(mock.patch.stopall)
         ak_returns(macro_china_lpr=OSError('synthetic down'),
                    macro_china_pmi=OSError('synthetic down'),
-                   macro_china_shrzgm=OSError('synthetic down'),
                    macro_china_new_financial_credit=OSError('synthetic down'))
+        shrzgm_stub(rows=None).start()
         pro_returns(cn_cpi=OSError('synthetic down'),
                     cn_ppi=OSError('synthetic down')).start()
         with freeze_clock():

@@ -208,9 +208,9 @@ v2.7.0→**v2.8.0**(110 项/108 活跃);analog `FEATURE_SPECS` 未动
   registry v2.8.1);**CN_PPI_YOY→tushare pro `cn_ppi.ppi_yoy` 源已接线但
   本 token 权限档不足**(服务端拒「没有接口(cn_ppi)访问权限」doc_id=108,
   与 CPI 同族接口不同档;金十族复测全死/akshare 1.18.47 无 EM-PPI 包装/
-  东财 datacenter reportName 试探 0 行)→ 升积分档=**卡点②候选报批项**,
-  批前 ppi_yoy 如实缺席。「DEGRADED+陈旧窗是否拦截出判」新鲜度政策议:
-  CPI 侧换源后事实自动转新鲜,政策议降级为 P3。
+  东财 datacenter reportName 试探 0 行)→ **用户裁定(2026-11-11): 暂不付费,
+  先跑通其他;PPI 保持如实缺席,积分档升级留后议**。「DEGRADED+陈旧窗是否
+  拦截出判」新鲜度政策议: CPI 侧换源后事实自动转新鲜,政策议降级为 P3。
 - **R5-D2 CN_OMO_7D=字段从未采集**: ~~采集器补 akshare OMO 端点~~
   **[R6-D2 已核=源端全阻(2026-11-11,操作者网络实测)]** 四路候选全灭:
   ①tushare pro 无 OMO 接口(wk_omo/cn_omo/omo_rate 皆「请指定正确的

@@ -38,12 +38,15 @@
 
 ## 技术待办(不阻塞)
 
-- **[R5-D1,P0 观察] CN_CPI_YOY/CN_PPI_YOY 陈旧值被证据引擎采信**: 快照在档
-  0.0/-3.6@2025-08-09(akshare_jin10 源停更后持续写最后值,同日期+周六=
-  疑似发布日解析错位);DEGRADED 只披露不拦截,A/B 型证据行仍建立其上。
-  采集器修复+新鲜度政策议需网络环境轮实施(台账 `../P2_DATA_GAP_LEDGER.md`
-  三之四)。**[R5-D2]** CN_OMO_7D=china 采集器从未采 OMO 字段(gate_a
-  「采集遗漏」注记误导),与 R5-D1 同轮修(工作量 S)。
+- ~~**[R5-D1,P0 观察] CN_CPI_YOY/CN_PPI_YOY 陈旧值被证据引擎采信**~~
+  **[R6-D1 已修(2026-11-11,dev/rd-r6-collection-fixes)]**: 采集器 G-P1-15
+  金十通道(停更后持续写 2025-08 旧值)→tushare pro 换源: `cn_cpi.nt_yoy`
+  **真实拉取验证**(202609=0.9,月末观测日),registry v2.8.0→2.8.1
+  (source_symbol 同步);`cn_ppi.ppi_yoy` 源已接线但**本 token 权限档不足**
+  (服务端拒,卡点②候选报批项)→ 批前 ppi_yoy 如实缺席,下次快照起
+  CN_CPI_YOY 转新鲜。**[R5-D2→R6-D2 已核]** CN_OMO_7D=四路免费源全阻
+  (tushare 无接口/央行 502/akshare 零端点/东财 cookie 门)→登记
+  source-blocked 不造数(台账 `../P2_DATA_GAP_LEDGER.md` 三之四)。
 
 - **[R2 审计 MINOR-4] S9 与 Skill 第 9 步错位**: 编排器 S9=views lint+VP 装载,
   Skill 第 9 步=解释标注(四层+竞争解释)——现为确定性替身,补作 Agent 落位时对齐。

@@ -4,7 +4,31 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-11 (HKT, R5 阶段证据覆盖面轮·无头自主执行)
+## 快照: 2026-11-11 (HKT, R6 采集面修复轮·操作者网络轮)
+
+- **R6(采集面修复 D1/D2)已完成**: 分支 `dev/rd-r6-collection-fixes`(自
+  dev/rd-r5-stage-coverage 切出,R5 未合并故链式携带)——
+  **D1 CPI/PPI 换源**: G-P1-15 金十通道(2025-08 停更后持续写旧值)→
+  tushare pro `cn_cpi.nt_yoy`/`cn_ppi.ppi_yoy`;新纯函数
+  `_tushare_monthly_last`('YYYYMM'最大有值月→月末观测日,NaN/坏月跳行);
+  registry **v2.8.0→v2.8.1**(两 source_symbol 同步+notes 前插)。真实拉取
+  冒烟(LIVE token 只读): **cpi_yoy=0.9@2026-09-30 新鲜**;ppi_yoy=服务端
+  拒「没有接口(cn_ppi)访问权限」=token 权限档不足(与 cn_cpi 同族不同档;
+  金十族复测全死/akshare 1.18.47 无 EM-PPI 包装[源码 grep]/东财 datacenter
+  reportName 试探 0 行)→ **卡点②候选报批项**,批前如实缺席。
+  **D2 CN_OMO_7D=源端全阻登记**: 四路免费候选实测全灭(tushare 无 OMO 接口/
+  央行官网 502/akshare 零逆回购端点+无 telegraph/东财 cookie 门)→
+  source-blocked 不造数(台账三之四,后续路径=chinamoney/EM reportName 深挖
+  P3 观察)。
+- **测试**: wp_e 26 OK(T4 换 tushare 桩+新 t56 纯函数判定;版本锁随升)/
+  data_batch1 38/0/charter6_p2 88/0(两处锁随升)/R1 52/R2 47/R5 38/
+  snapshot 46 **全绿零回归**。
+- **基线**: main = `be8dabd`(v0.10.0-alpha);CI 绿=128 槽。R5+R6 波次
+  **待用户批准合并 main**(卡点①逐次请批)。
+- **无头自主运行(卡点④)**: 常态运转(每 4h);R6=操作者网络轮(无头禁外发,
+  D1/D2 需真网故由操作者会话执行)。
+
+## 前一快照: 2026-11-11 (HKT, R5 阶段证据覆盖面轮·无头自主执行)
 
 - **R5(阶段证据覆盖面)已完成**: 分支 `dev/rd-r5-stage-coverage`——R1 发现
   「阶段B 16 指标快照缺席」全量分解为四类缺陷并收口(`audit/R5_STAGE_COVERAGE_INVENTORY.md`):

@@ -46,6 +46,7 @@ vintage 窗不变——修订后主张的完整验证在其新档(如 009→006 
 import io
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -448,16 +449,23 @@ def _resolve_forecast_metric(target, target_map):
     return max(hits)[1] if hits else None
 
 
-_DIR_UP = ('上行', '上调', '升', '涨', '高于', '走高', '加息', '走强', 'up',
-           'raise', 'higher', 'bullish')
-_DIR_DOWN = ('下行', '下调', '降', '跌', '低于', '走低', '降息', '走弱', 'down',
-             'cut', 'lower', 'bearish')
+_DIR_UP = ('上行', '上调', '升', '涨', '高于', '走高', '加息', '走强')
+_DIR_DOWN = ('下行', '下调', '降', '跌', '低于', '走低', '降息', '走弱')
+# 否定/停续类表述先拦(E席审计词表护栏,2026-11-11): '不再加息'不得判 up、
+# 'no further cuts' 不得判 down——方向不明确如实 None,不猜。
+_DIR_NEGATION = ('不再', '停止', '结束', '暂停', '维持', '无进一步')
+_DIR_NEGATION_RE = re.compile(r'\b(no further|end of|pause|halt|hold)\b', re.I)
+# EN 词用词边界匹配(子串会把 'supply-driven' 判 up——'sup' 含 'up')
+_DIR_UP_RE = re.compile(r'\b(up|raises?d?|raising|higher|bullish)\b', re.I)
+_DIR_DOWN_RE = re.compile(r'\b(down|cuts?|lower|bearish)\b', re.I)
 
 
 def _parse_direction(text):
     s = str(text or '')
-    up = any(k in s for k in _DIR_UP)
-    down = any(k in s for k in _DIR_DOWN)
+    if any(k in s for k in _DIR_NEGATION) or _DIR_NEGATION_RE.search(s):
+        return None
+    up = any(k in s for k in _DIR_UP) or bool(_DIR_UP_RE.search(s))
+    down = any(k in s for k in _DIR_DOWN) or bool(_DIR_DOWN_RE.search(s))
     if up and not down:
         return 'up'
     if down and not up:

@@ -10,14 +10,14 @@
 |---|---|---|---|---|
 | AC1 | 真实全球宏观全景 | NOT_VERIFIED | R1 审计中 | — |
 | AC2 | 真实机构研究 | NOT_VERIFIED | R1 审计中 | — |
-| AC3 | 正确的机构观点验证 | PARTIAL | R1 三型证据落库: VP v1.1 阶段A/B 结构化(`scripts/view_plausibility.py --build-all`,本地 17 份重建)。A面 5/17 有真判定(4 PARTIALLY_SUPPORTED+1 MIXED),B面 5/17 MIXED(发布后数据走向与假设相反);C(到期预测实判)全库未到期=不可判(首验窗 2026-12)。差距: 阶段A vintage 仍 DEGRADED 近似锚(采集档无历史 vintage,已如实标注)+C 面零实判 | R1 开发者自测 38 判定;独立审计待跑(见 OPEN_ISSUES) |
+| AC3 | 正确的机构观点验证 | PARTIAL | R1 三型证据落库: VP v1.1 阶段A/B 结构化(`scripts/view_plausibility.py --build-all`,本地 17 份重建)。A面 5/17 有真判定(4 PARTIALLY_SUPPORTED+1 MIXED),B面 5/17 MIXED(发布后数据走向与假设相反);C(到期预测实判)全库未到期=不可判(首验窗 2026-12)。差距: 阶段A vintage 仍 DEGRADED 近似锚(采集档无历史 vintage,已如实标注)+C 面零实判 | R1 自测 50 判定(含 R1.1 修复回归);独立审计已收口: 6 维全 PASS/无 BLOCKER,交付物 17/17 清洁+31 数值复算全中;2 MAJOR 已修(R1.1),对照实验零语义差异 |
 | AC4 | 经济机制与历史研究 | NOT_VERIFIED | R1 审计中 | — |
 | AC5 | 独立研究结论 | NOT_VERIFIED | R1 审计中 | — |
-| AC6 | 真正的一键研究 | NOT_VERIFIED | R1 审计中 | — |
+| AC6 | 真正的一键研究 | PARTIAL | R2: `ia_cli research-run` 十一步确定性编排真执行(每步真子进程+信封留档/ok 与 semantic 分记/L3+L4 恒 declared-not-produced/逐数证据索引/零映射如实 unmapped);单问直跑已验,31 判定+全套 129/129 绿 | 剩余: 十问自动扇出入口未接;AC7 端到端 3 任务+1 开放题未跑;真实案例积累 |
 | AC7 | 真实端到端验收(3 任务+1 开放题) | NOT_VERIFIED | 开放式研究问题从未执行 | — |
-| AC8 | 研究可复核 | NOT_VERIFIED | R1 审计中 | — |
+| AC8 | 研究可复核 | NOT_VERIFIED | R1 审计确认交付物可复算(逐字节重建一致+31 数值独立复算中);R2 每步信封留档已落;端到端研究复核(AC7 式)未跑 | — |
 | AC9 | 真实用户可用(干净安装全链) | NOT_VERIFIED | 装机副本须 --force(已知坑) | — |
-| AC10 | 可靠性与安全 | NOT_VERIFIED | R1 审计中 | — |
+| AC10 | 可靠性与安全 | NOT_VERIFIED | R1 审计红线核查过(无前视/不造数/不越付费墙/密钥不入库);R2 归档默认关+信任边界=resolve_inputs 规范核验(符号链接逃逸被拒=验证有效) | — |
 
 ## 验收标准来源与交叉映射(2026-11-11)
 

@@ -4,7 +4,7 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-11 (HKT)
+## 快照: 2026-11-11 (HKT, R2 后)
 
 - **基线**: main = `cdffebe`(v0.9.0-alpha,Charter 9「全球宏观研究闭环与一键研究」当日闭合);
   Release 441388150 上线,CI 42983226791 绿 = main 基线 126 槽。
@@ -12,7 +12,15 @@
 - **引擎**: 停于唯一日历门——F 补证轮观察钟 2026-12-05 满自动触发,此前无排程任务。
 - **长期研发章程**: 2026-11-11 用户《总指令》原文已落位 `PRODUCT_GOAL.md`;
   《长期自主研发系统启动指令》原文已落位 `RUN_MANDATE.md`(自主循环/环境自检/AC11–AC12)。
-  FINAL_ACCEPTANCE.md: AC3 = **PARTIAL**(R1 三型证据落库),其余 NOT_VERIFIED。
+  FINAL_ACCEPTANCE.md: AC3 = **PARTIAL**(R1+审计收口),AC6 = **PARTIAL**(R2 编排器真执行),
+  其余 NOT_VERIFIED。
+- **R2(一键研究真执行)已完成**: 分支 `dev/rd-r2-research-orchestrator` @`ac40ef8`+
+  R1.1 并入(merge `946625b`)——`scripts/research_orchestrator.py` 十一步确定性管线
+  (S1 分解→S11 归档):每步真 `ia_cli` 子进程执行+信封留档,process-ok 与 semantic-ok
+  分记,L3 AI 推断/L4 条件情景恒 declared-not-produced(诚实面),逐数证据索引
+  (L1 每行挂 snapshot fact_id/L2 挂 VP-id),实体映射零命中=如实 unmapped 不猜,
+  归档默认关。入口 `ia_cli.py research-run --question …`。自测 31 判定绿;R1 无回归;
+  **全套回归 129/129 exit 0**(全仓口径=tests/128+根 test_env.py 环境探测脚本)。
 - **R1(三型证据落库)已完成+审计收口**: 分支 `dev/rd-r1-stage-evidence` @ `26d4ef7`——
   VP sidecar v1.1(阶段A/B 结构化+stage_labels,mode C 契约零变动)、research-map 命令清单
   可执行化(14 条实解析)、页③三阶段证据披露;本地 17 份 VP 重建(A面 12 INSUFFICIENT/

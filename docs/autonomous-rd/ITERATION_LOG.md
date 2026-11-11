@@ -22,8 +22,8 @@
 | 11-11 | R1 三型证据落库 | VP v1.1 阶段A/B+stage_labels(C 契约零变动)+research-map 命令可执行化+页③三阶段披露 | dev/rd-r1-stage-evidence@26d4ef7 | 自测 39 判定过;全套回归 129/129 绿(11-11 干净重跑) |
 | 11-11 | R1 独立审计 | 对抗式 6 维(无前视/标签纪律/方向归因/契约真实性/可复算性/B面抽验) | (后台 Agent 对 26d4ef7 diff) | 六维全 PASS,交付物清洁;无 BLOCKER,2 MAJOR+6 MINOR+3 NIT |
 | 11-11 | R1.1 审计整改 | MAJOR-1 入口日期归一 _norm_ymd;MAJOR-2 linked_forecasts 定 1-based 单基+记基制;MINOR-3 词表否定护栏+英文词边界;NIT-9/10/11(判定数/死代码/n 硬编码/定基夹具) | dev/rd-r1-stage-evidence(本提交) | 套件 50 判定全绿;受影响 8 文件全 exit 0;对照实验=17 份 VP 语义零差异 |
+| 11-11 | R2 一键研究真执行 | research_orchestrator 十一步确定性管线(S1 分解→S11 归档,零模型,每步真 ia_cli 子进程+信封留档,ok/semantic_ok 分记,L3/L4 恒 declared-not-produced,逐数证据索引)+`ia_cli research-run`;并入 R1.1(merge 946625b) | dev/rd-r2-research-orchestrator@946625b 后 | 自测 31 判定绿;R1 无回归(50 判定);全套回归 129/129 exit 0(全仓口径=tests/128+根 test_env.py,后者为环境探测脚本,外部连通面 11/14 与研发面无关) |
 
 ## 排队中
 
-- **R2 一键研究真执行**: Skill 十一步散文工作流 → 可执行编排(AC6 核心差距;P2)。
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。

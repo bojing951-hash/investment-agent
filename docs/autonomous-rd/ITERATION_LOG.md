@@ -35,6 +35,9 @@
 
 | 11-12 | R8 独立验证+AC7 合并(操作者轮) | 七面独立复算(不 import 项目代码): 数值面 ZQ−DFF 单项 FAIL(归档 +0.295 实为 +0.305,方向/量级/S1 结论不变,dae5a41 零命中)其余全 PASS(PPI−CPI=4.10/CAPE z=2.999/金油比逐位);档完整性/诚实面(反刍 grep 178 旧档零命中)/Gate A 复算(DEGRADED core 0 missing 逐字段一致)/干净 clone 研究面 339 判定 0 败/红线全净=**零 BLOCKER**;MINOR 处置: ①QB-001 更正评注 C1 随行+草稿五处修正 ②dev 树陈旧工件同步(china_20261112 sha=87d300e3 对齐快照声明+VP 面 20261112);merge=**825eb4f**(docs-only 不另发 tag,LIVE 不受影响) | main=825eb4f | R8 七面 6 PASS+1 单项 FAIL(非 BLOCKER);C 层口径以档内原文"全不可判"为准 |
 
+| 11-12 | R9 采集缺口波(fork 开发+操作者复核) | CN_SF_FLOW 社融换通道 mofcom 直取(根因=本机 LibreSSL 2.8.3 与 mofcom TLS 协商即断,三库同因;修复=curl 子进程零新依赖+_shrzgm_rows/_shrzgm_last 纯函数;真拉 6245.0@2026-04-01,滞后≈7个月如实 DEGRADED);BUND_10Y/2Y=四路证据确认源端封锁维持诚实缺席(TLS 握手后被服务端重置/ECB 303 dataflows 无国别德债/tushare 无);JP_CPI_TOKYO=e-stat 免费通路探明需 appId 新凭证留裁定;CN_OMO_7D 不动;registry v2.8.2 版本锁 15 处/9 文件随升 | dev/rd-r9-noncore-gaps@59ff08e+017e838 | wp_e 29/29+全仓 128 exit0+1 环境性;操作者独立复核=真拉复现(136 行/2026-04/6245.0)+Gate A 注入复算(noncore_missing 5→4+SF_FLOW→degraded)+红线 0+版本锁扫无漏网 |
+| 11-12 | R9 发布(v0.12.0-alpha) | merge=**bd8b853**→tag v0.12.0-alpha→Release 442060959;**LIVE 同步被权限分类器拦(与 11-11 启动器同款),待用户放行**——部署脚本已备(/tmp/deploy_v012_live.py: archive 覆盖+三 key 重注入+冒烟含 mofcom 真拉断言) | main=bd8b853 | CI 盯 bd8b8530e7d8(后台);操作者复核全绿后合并 |
+
 ## 排队中
 
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。

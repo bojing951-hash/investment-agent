@@ -26,6 +26,7 @@
 | 11-11 | R2 独立审计 | 七维对抗(真执行面/诚实面/证据索引/实体映射/红线/测试真实性/Skill 对照) | (后台 Agent 对 ac40ef8 diff) | 无 BLOCKER;2 MAJOR+4 MINOR+5 NIT;主体成立(证据索引实测对上快照/红线全过/31 判独立) |
 | 11-11 | R2.1 审计整改 | MAJOR-1 S7 gate 改取 compare 对齐门+记 gate_source;MAJOR-2 L4 五行回归纪律16 权威模板+L3 补 E1/E2/E3 指路+research_map RQ9 统一;MINOR-1 诚实拒答豁免 run_ok;MINOR-2 compare 截断披露;MINOR-3 台账语义列 | dev/rd-r2-research-orchestrator(本提交) | 套件 38 判定绿(+7 回归);R1 50/50 与 research_map 32/32 无回归 |
 | 11-11 | R3 十问扇出入口 | research-run --fanout: QUESTION_COMMANDS 十问逐条真跑(16 命令 ia_cli+scripts 双通道)+信封留档;Agent 层问(RQ3/RQ9)declared-not-produced;占位符确定性替身(VIEW-…→首条 view_id/A_ID,B_ID→命中前二)且披露;report.md 十问台账;run_step 泛化 _run_proc | dev/rd-r2-research-orchestrator(本提交) | 套件 47 判定绿(+9);全套回归 129/129 exit 0(全仓口径) |
+| 11-11 | R4 NIT 清理 | 同分钟目录碰撞→追加序号不覆盖;vp_face root 透传;S3 默认 US+CN 披露;_run_proc 进程启动异常留痕;R1 套件幂等比全档+无前视扩全量 17 份 | dev/rd-r2-research-orchestrator(本提交) | R1 52 判定(+2)/R2 47 判定绿 |
 
 ## 排队中
 

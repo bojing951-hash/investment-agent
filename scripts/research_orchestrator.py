@@ -60,6 +60,13 @@ def _run_proc(name, cmdline, timeout=180, argv_label=None):
                 'ok': False, 'exit_code': None,
                 'note': f'超时(>{timeout}s)', 'duration_ms': None,
                 'envelope': None}
+    except OSError as e:
+        # R4 NIT(E席审计): 进程启动失败(脚本缺席/无解释器)=该步失败留痕,
+        # 不炸整条管线(其余步骤照跑,信封面完整)。
+        return {'step': name, 'argv': argv_label or cmdline[1:],
+                'executed': True, 'ok': False, 'exit_code': None,
+                'note': f'进程启动失败: {e}', 'duration_ms': None,
+                'envelope': None}
     env = None
     try:
         env = json.loads(out)
@@ -222,7 +229,10 @@ def vp_face(root):
     """L2 原料: VP sidecar 装载(标签/阶段摘要;缺席如实 None)。"""
     try:
         import view_plausibility as vp
-        docs, bad = vp.load_all()
+        # R4 NIT(E席审计): root 原先未透传,装载落在模块默认路径——
+        # 测试注入的隔离 root 拿不到对应 VP;现按 root 定位。
+        docs, bad = vp.load_all(vp_dir=os.path.join(
+            root, 'data', 'institutions', 'verification'))
     except Exception as e:  # noqa: BLE001 —— 缺席/不可读=如实降级,不阻断管线
         return {'available': False, 'note': f'VP 装载失败: {e}'}
     if not docs:
@@ -265,6 +275,10 @@ def run_research(question, root=None, archive=False, out_dir=None,
 
     # ── S3 事实基线(overview+changes) ───────────────────────────────
     ecos = ent['economies'] or ['US', 'CN']
+    if not ent['economies']:
+        # R4 NIT(E席审计): 默认面不再静默——US+CN 是清单默认而非问题语义
+        notes.append('问题未命中经济体,S3 用默认面 US+CN(清单默认,'
+                     '非问题语义判断;Agent 可按需补查其它经济体)')
     for eco in ecos:
         steps.append(run_step(f'S3_overview_{eco}',
                               ['overview', '--economy', eco], ia_timeout))
@@ -457,7 +471,14 @@ def run_research(question, root=None, archive=False, out_dir=None,
 
     out_root = out_dir or os.path.join(root, 'output', 'research_runs')
     run_dir = os.path.join(out_root, f"{report['run']['ts_utc']}_{_slug(question)}")
-    os.makedirs(run_dir, exist_ok=True)
+    # R4 NIT(E席审计): 时间戳分钟级,同分钟两跑同名目录会互相覆盖——
+    # 已存在则追加序号,绝不覆盖历史报告。
+    n = 2
+    while os.path.exists(run_dir):
+        run_dir = os.path.join(
+            out_root, f"{report['run']['ts_utc']}_{_slug(question)}_{n}")
+        n += 1
+    os.makedirs(run_dir)
     with open(os.path.join(run_dir, 'report.json'), 'w',
               encoding='utf-8') as f:
         json.dump(report, f, ensure_ascii=False, indent=2, default=str)

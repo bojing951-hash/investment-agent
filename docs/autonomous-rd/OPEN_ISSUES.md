@@ -22,9 +22,6 @@
 
 - **[R2 审计 MINOR-4] S9 与 Skill 第 9 步错位**: 编排器 S9=views lint+VP 装载,
   Skill 第 9 步=解释标注(四层+竞争解释)——现为确定性替身,补作 Agent 落位时对齐。
-- **[R2 审计 NIT×5]** 分钟级时间戳(同分钟两跑目录碰撞面)/vp_face root 透传面/
-  economies 默认 US+CN 未点名披露/异常捕获面(run_step 信封解析宽捕获)/commit 措辞——
-  均不阻塞,下轮顺手清。
 - **[R1 审计 MINOR-4] vintage 二次过滤缺失**: vintage 路径信任 vintage 快照,无 obs≤publish
   二次过滤(快照若含未来观测即漏);今日干净——vintage 累积落地时一并加护。
 - **[R1 审计 MINOR-5] lineage 链坍缩**: 反复重建使 `prior_generated_by` 第二次起指向 build_vp
@@ -36,8 +33,6 @@
   重算一致(伪造自洽行可通过装载);信任边界=写入方,幂等可重建部分缓解。
 - **[R1 审计 MINOR-8] B面描述性陈述语义激进**: 对既成事实类陈述("已引发…")判 CONTRADICTED
   易被误读为预测失败;证据评价语义已披露,考虑描述性行单独标注。
-- **[R1 审计 NIT-10 余项] 测试面欠强**: 幂等断言只比 stage_summary(未比全档);无前视集成
-  断言只测 1 份 VP——下轮补强。
 - **[R1 发现] 阶段B 可判面受限**: forecast_target_map 对齐后 16 个指标在快照 facts 缺席
   (观点引用→数据面映射覆盖缺口),对应假设阶段面 INSUFFICIENT——数据覆盖轮处理(勿手工造数)。
 - **[R1 发现] 阶段A vintage 累积**: 采集档无历史 vintage,现用最新快照截断近似(DEGRADED

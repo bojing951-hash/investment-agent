@@ -256,6 +256,10 @@ else:
                   for h in doc['hypotheses']))
         check("幂等: 两次 build stage_summary 一致",
               r1.get('stage_summary') == r2.get('stage_summary'))
+        # R4(NIT-10 补强): 幂等以全档为准——两次 build 后逐字节比对
+        doc2 = json.load(open(os.path.join(vp_tmp, f'VP-{VID}.json')))
+        check("幂等: 两次 build 全档逐键一致(非仅 summary)",
+              doc == doc2)
         rows_bad = [row['metric_id'] for h in doc['hypotheses']
                     for row in h['stages']['A'].get('rows') or []
                     if row.get('direction') and not
@@ -276,6 +280,22 @@ else:
         check(f"--build-all 全量重建({lines.get('n')} 份)全 ok",
               rc == 0 and lines.get('n_ok') == lines.get('n')
               and lines.get('n') == n_vp, str(lines.get('n_ok')))
+        # R4(NIT-10 补强): 无前视集成断言扩到全量档——逐份逐假设核
+        # 阶段A 观测日≤publish(原断言只测 1 份)
+        import view_store as vs_mod
+        look_bad = []
+        for fn in sorted(os.listdir(vp_tmp)):
+            if not (fn.startswith('VP-') and fn.endswith('.json')):
+                continue
+            d = json.load(open(os.path.join(vp_tmp, fn)))
+            vd, _ = vs_mod.get_view(d['view_id'])
+            pub = vd['publish_date']
+            for h in d['hypotheses']:
+                for row in h['stages']['A'].get('rows') or []:
+                    if str(row.get('observation_date') or '')[:10] > pub:
+                        look_bad.append(f"{d['view_id']}:{row.get('metric_id')}")
+        check("无前视: 全量档阶段A 观测日≤publish(逐份核)",
+              not look_bad, str(look_bad[:6]))
     finally:
         shutil.rmtree(tmp)
 

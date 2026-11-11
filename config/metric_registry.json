@@ -1,5 +1,5 @@
 {
- "version": "2.8.0",
+ "version": "2.8.1",
  "created": "2026-10-17",
  "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
  "field_semantics": {
@@ -24,6 +24,7 @@
   "release_date_available": "逐观测发布日掌握性(人工登记): true=发布日已知或按已知规则(市场序列观测即发布;政策/管理利率决议或操作当日公布,DFF次日;LPR每月20日09:15;ICSA每周四)/false=统计类宏观发布滞后且逐观测发布日本仓未登记;缺键=未登记(null);快照fact层release_date实测值覆盖本登记(数据>登记)"
  },
  "notes": [
+  "v2.8.1(2026-11-11,R6-D1 源切换): CN_CPI_YOY/CN_PPI_YOY 采集换源——akshare金十族停更(1.18.47实测 cpi/ppi_yearly 返回尾值 2008-02/2006-01,停更后持续写旧值)→tushare pro cn_cpi.nt_yoy/cn_ppi.ppi_yoy(现有token只读,实测202609新鲜);source_symbol同步(tushare_pro.cn_cpi.nt_yoy/tushare_pro.cn_ppi.ppi_yoy);月度统计期→月末观测日;110条/108 active不变",
   "v2.8.0(2026-11-10,数据批1): +SPX_EPS(Shiller E列月频1871+,盈利维,与SPX_CAPE/SPX_PE_TTM同源同频同vintage)+M2SL(FRED月频流动性数量维,与WALCL资产负债表维互补);DAX/CAC40 从PENDING预注册转正(source改global_market_collector,Yahoo ^GDAXI/^FCHI 日线;ea通道保持零依赖白名单纪律);108→110条(106→108 active)。首跑真实拉取随本批批准(现有key/免费源/只读),详见 docs/P2_DATA_GAP_LEDGER.md 数据批1首跑登记",
   "v2.7.0(2026-11-10,Charter7 P2-3): +SOFR/WALCL(FRED免费序列/现有FRED_API_KEY/零新凭证——美国流动性维首批落地,Case A 七维矩阵流动性维 US 侧从✗→可采;源端已接线: FRED_SERIES+SERIES_FREQ+SERIES_UNITS,首跑真实拉取需协调方批准,批准前 active 条目缺席=noncore_missing 如实披露,详见 docs/P2_DATA_GAP_LEDGER.md);首跑校准(同日,版本内修订): WALCL源端原始单位=百万美元,单位口径由billion_usd校正为million_usd+原始值量程(存原始值惯例,RSAFS同例,零换算);106→108条",
   "v2.6.0(2026-11-09,Charter6-P2 估值面): +SPX_CAPE/SPX_PE_TTM(Shiller ie_data.xls 月频1871+,新通道shiller,免Key;revision_semantics=latest_vintage_asof_collected 全局披露见上条)+SPX_PB 登记不可得(status=unavailable 新词汇:无免费干净源不以proxy冒充,不入active面);估值维序列(analog六维状态向量估值输入)落地",
@@ -3402,7 +3403,7 @@
    "metric_id": "CN_CPI_YOY",
    "display_name": "居民消费价格指数(CPI)同比",
    "source": "china_market_collector",
-   "source_symbol": "macro_china_cpi_yearly.今值",
+   "source_symbol": "tushare_pro.cn_cpi.nt_yoy",
    "asset_class": "macro_index",
    "frequency": "monthly",
    "observation_period_kind": "calendar_month",
@@ -3436,7 +3437,7 @@
    "metric_id": "CN_PPI_YOY",
    "display_name": "工业生产者出厂价格指数(PPI)同比",
    "source": "china_market_collector",
-   "source_symbol": "macro_china_ppi_yearly.今值",
+   "source_symbol": "tushare_pro.cn_ppi.ppi_yoy",
    "asset_class": "macro_index",
    "frequency": "monthly",
    "observation_period_kind": "calendar_month",

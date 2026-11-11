@@ -33,7 +33,7 @@ T6 源端失败→诚实缺席(全端点失败→{} 零 0 填充;OMO 默认装�
 fixture→预期值映射(AC-03.6;逐断言组可追溯):
 - sse_margin_df()/szse_margin_df() → T2 t20/t21/t23 恰等字典(两所同日合计算术)
 - legu_pe_df() → T3 t30/t32 {'pe','date','via','note'} 恰等
-- lpr_df()/jin10_df()/pmi_df()/shrzgm_df()/nfc_df() → T4 t40 七键恰等
+- lpr_df()/tushare_cpi_df()/tushare_ppi_df()/pmi_df()/shrzgm_df()/nfc_df() → T4 t40 七键恰等
 - OMO_LINES → T5 t54/t55 解析/冻结/末行;T6 t61 PENDING 缺席
 """
 import io
@@ -57,8 +57,7 @@ for p in (ROOT, os.path.join(ROOT, 'scripts'), os.path.dirname(os.path.abspath(_
 # 无条件注入确定性 fake(真包在场也统一覆盖,CI==本地一致;W5-DATASRC-B 先例)。
 _ak_fake = types.ModuleType('akshare')
 for _fn in ('stock_margin_sse', 'stock_margin_szse', 'stock_market_pe_lg',
-            'macro_china_lpr', 'macro_china_cpi_yearly', 'macro_china_ppi_yearly',
-            'macro_china_pmi', 'macro_china_shrzgm',
+            'macro_china_lpr', 'macro_china_pmi', 'macro_china_shrzgm',
             'macro_china_new_financial_credit'):
     setattr(_ak_fake, _fn, mock.MagicMock(name=_fn))
 sys.modules['akshare'] = _ak_fake
@@ -112,6 +111,20 @@ def ak_returns(**endpoints):
             mock.patch('akshare.' + name, return_value=val).start()
 
 
+def pro_returns(**apis):
+    """tushare pro 客户端逐 api 打桩(R6-D1 起 CPI/PPI 走 _pro().cn_cpi/cn_ppi):
+    值=DataFrame→return_value;值=异常实例→side_effect;None=打桩缺席(属性不存在)。"""
+    pro = mock.MagicMock(name='pro_client')
+    for name, val in apis.items():
+        if val is None:
+            delattr(pro, name)
+        elif isinstance(val, BaseException):
+            getattr(pro, name).side_effect = val
+        else:
+            getattr(pro, name).return_value = val
+    return mock.patch.object(cmc, '_pro', return_value=pro)
+
+
 # ── 合成 fixture(值全发明;结构镜像端点真实列形态,akshare 1.18.47 源码锚) ──
 def sse_margin_df(dates=('2026-11-05', '2026-11-04', '2026-11-03'),
                   rzye=None, rqye_amt=None):
@@ -158,19 +171,17 @@ def lpr_df():
     })
 
 
-def jin10_cpi_df():
-    """金十 macro_china_cpi_yearly 形状: 商品/日期/今值/预测值/前值(乱序)。"""
-    return pd.DataFrame({'商品': ['CPI'] * 3,
-                         '日期': ['2026-09-10', '2026-10-10', '2026-08-09'],
-                         '今值': [0.4, 0.5, 0.3], '预测值': [0.45, 0.48, 0.32],
-                         '前值': [0.3, 0.4, 0.2]})
+def tushare_cpi_df():
+    """tushare pro cn_cpi 形状(R6-D1 源锚): month='YYYYMM'/nt_yoy 同比(乱序,
+    含未发布 NaN 行→跳行)。值全发明,结构镜像接口真实列。"""
+    return pd.DataFrame({'month': ['202609', '202610', '202608'],
+                         'nt_yoy': [0.9, None, 0.6]})
 
 
-def jin10_ppi_df():
-    return pd.DataFrame({'商品': ['PPI'] * 2,
-                         '日期': ['2026-09-10', '2026-10-10'],
-                         '今值': [-2.3, -2.1], '预测值': [-2.2, -2.0],
-                         '前值': [-2.4, -2.3]})
+def tushare_ppi_df():
+    """tushare pro cn_ppi 形状: month/ppi_yoy(乱序)。"""
+    return pd.DataFrame({'month': ['202609', '202608'],
+                         'ppi_yoy': [-2.8, -3.0]})
 
 
 def pmi_df():
@@ -210,7 +221,7 @@ class T1RegistryV230(unittest.TestCase):
     def test_t01_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1): 94+8→102/93+8→101/2.2.0→2.3.0/CN 10→18
         self.assertEqual(len(REG['metrics']), 110)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL)
-        self.assertEqual(REG['version'], '2.8.0')  # 数据批1(2026-11-10) 2.7.0→2.8.0
+        self.assertEqual(REG['version'], '2.8.1')  # R6-D1(2026-11-11) CPI/PPI 换源;数据批1(2026-11-10) 2.7.0→2.8.0
         self.assertEqual(sum(1 for m in REG['metrics']
                              if m.get('status') == 'active'), 108)  # 数据批1 +SPX_EPS/M2SL
         agg = {}
@@ -299,6 +310,9 @@ class T1RegistryV230(unittest.TestCase):
         self.assertEqual(set(KEY_TO_METRIC.values()), set(CN8))
         endpoints_called = {fn for fn in dir(_ak_fake)
                             if not fn.startswith('_')}
+        # R6-D1: cpi/ppi 源端点=tushare pro api(_pro().cn_cpi/cn_ppi,T4 打桩验证
+        # 接线),非 akshare 面——源符号端点段以 'tushare_pro' 认锚
+        endpoints_called.add('tushare_pro')
         for mid in CN8_ORDER:
             sym = METRICS[mid]['source_symbol']
             if sym == 'PENDING':
@@ -438,13 +452,14 @@ class T4MacroEndpoints(unittest.TestCase):
 
     def test_t40_all_endpoints_positive(self):
         # 七产出键恰等(值/日期/源标签全硬编码);omo_7d=默认装载器 PENDING→缺席
+        # R6-D1: cpi/ppi 换源 tushare pro cn_cpi.nt_yoy/cn_ppi.ppi_yoy(月末观测日)
         self.addCleanup(mock.patch.stopall)
         ak_returns(macro_china_lpr=lpr_df(),
-                   macro_china_cpi_yearly=jin10_cpi_df(),
-                   macro_china_ppi_yearly=jin10_ppi_df(),
                    macro_china_pmi=pmi_df(),
                    macro_china_shrzgm=shrzgm_df(),
                    macro_china_new_financial_credit=nfc_df())
+        pro_returns(cn_cpi=tushare_cpi_df(),
+                    cn_ppi=tushare_ppi_df()).start()
         with freeze_clock():
             out = self._run_fetch_macro()
         self.assertEqual(set(out), {'lpr_1y', 'lpr_5y', 'cpi_yoy', 'ppi_yoy',
@@ -453,10 +468,10 @@ class T4MacroEndpoints(unittest.TestCase):
                                          'source': 'akshare_em'})   # NaN 最新行跳过
         self.assertEqual(out['lpr_5y'], {'date': '2026-10-19', 'value': 3.5,
                                          'source': 'akshare_em'})
-        self.assertEqual(out['cpi_yoy'], {'date': '2026-10-10', 'value': 0.5,
-                                          'source': 'akshare_jin10'})
-        self.assertEqual(out['ppi_yoy'], {'date': '2026-10-10', 'value': -2.1,
-                                          'source': 'akshare_jin10'})
+        self.assertEqual(out['cpi_yoy'], {'date': '2026-09-30', 'value': 0.9,
+                                          'source': 'tushare_pro'})  # 202610 未发布 NaN 跳
+        self.assertEqual(out['ppi_yoy'], {'date': '2026-09-30', 'value': -2.8,
+                                          'source': 'tushare_pro'})
         self.assertEqual(out['pmi_mfg'], {'date': '2026-10', 'value': 50.1,
                                           'source': 'akshare_em'})
         self.assertEqual(out['sf_flow'], {'date': '2026-10', 'value': 22000.0,
@@ -468,11 +483,11 @@ class T4MacroEndpoints(unittest.TestCase):
         # 单端点失败仅该键缺席,其余六键不受影响(§三(c) L81 独立容错)
         self.addCleanup(mock.patch.stopall)
         ak_returns(macro_china_lpr=lpr_df(),
-                   macro_china_cpi_yearly=OSError('synthetic rate-limit'),
-                   macro_china_ppi_yearly=jin10_ppi_df(),
                    macro_china_pmi=pmi_df(),
                    macro_china_shrzgm=shrzgm_df(),
                    macro_china_new_financial_credit=nfc_df())
+        pro_returns(cn_cpi=OSError('synthetic rate-limit'),
+                    cn_ppi=tushare_ppi_df()).start()
         with freeze_clock():
             out = self._run_fetch_macro()
         self.assertNotIn('cpi_yoy', out)
@@ -481,17 +496,18 @@ class T4MacroEndpoints(unittest.TestCase):
                           'new_loans'})
 
     def test_t42_column_drift_key_absent(self):
-        # 列漂移(金十表无今值列)→该键缺席不炸(端点列锚漂移=如实缺席)
+        # 列漂移(tushare 表无 nt_yoy 列)→该键缺席不炸(端点列锚漂移=如实缺席)
         self.addCleanup(mock.patch.stopall)
-        drift = jin10_cpi_df().drop(columns=['今值'])
-        ak_returns(macro_china_lpr=lpr_df(), macro_china_cpi_yearly=drift,
-                   macro_china_ppi_yearly=jin10_ppi_df(), macro_china_pmi=pmi_df(),
+        drift = tushare_cpi_df().drop(columns=['nt_yoy'])
+        ak_returns(macro_china_lpr=lpr_df(), macro_china_pmi=pmi_df(),
                    macro_china_shrzgm=shrzgm_df(),
                    macro_china_new_financial_credit=nfc_df())
+        pro_returns(cn_cpi=drift,
+                    cn_ppi=tushare_ppi_df()).start()
         with freeze_clock():
             out = self._run_fetch_macro()
         self.assertNotIn('cpi_yoy', out)
-        self.assertEqual(out['ppi_yoy']['value'], -2.1)
+        self.assertEqual(out['ppi_yoy']['value'], -2.8)
 
 
 # ══ T5 纯解析函数 ════════════════════════════════════════════════════════
@@ -549,6 +565,22 @@ class T5PureParsers(unittest.TestCase):
                           'source': 'pboc_omo'})
         self.assertIsNone(cmc.fetch_omo_7d(rows=['无关公告行']))
 
+    def test_t56_tushare_monthly_last(self):
+        # R6-D1 纯函数: 'YYYYMM'行选最大有值月→月末观测日;NaN/不可数值化/坏月行跳
+        df = pd.DataFrame({'month': ['202609', '202610', '202608', 'bad', None],
+                           'nt_yoy': [0.9, None, 0.6, 1.0, 2.0]})
+        self.assertEqual(cmc._tushare_monthly_last(df, 'nt_yoy'),
+                         ('2026-09-30', 0.9))          # 202610 未发布 None 跳
+        df2 = pd.DataFrame({'month': ['202402', '202401'], 'v': [1.0, 2.0]})
+        self.assertEqual(cmc._tushare_monthly_last(df2, 'v'),
+                         ('2024-02-29', 1.0))          # 闰年月末 calendar 锚
+        self.assertIsNone(cmc._tushare_monthly_last(
+            pd.DataFrame({'month': ['2024-01'], 'v': [1.0]}), 'v'))  # 非紧凑形态跳
+        self.assertEqual(cmc._tushare_monthly_last(df, '缺席列'), None)
+        self.assertEqual(cmc._tushare_monthly_last(pd.DataFrame(), 'nt_yoy'), None)
+        self.assertIsNone(cmc._tushare_monthly_last(
+            pd.DataFrame({'month': ['202613'], 'v': [1.0]}), 'v'))  # 月13 非法跳
+
 
 # ══ T6 源端失败→诚实缺席(DESIGN 要点② 注入面) ═══════════════════════════
 class T6SourceFailureHonestAbsence(unittest.TestCase):
@@ -557,11 +589,11 @@ class T6SourceFailureHonestAbsence(unittest.TestCase):
         # 全端点失败→{}(逐键缺席,零 0 填充,无异常上抛)
         self.addCleanup(mock.patch.stopall)
         ak_returns(macro_china_lpr=OSError('synthetic down'),
-                   macro_china_cpi_yearly=OSError('synthetic down'),
-                   macro_china_ppi_yearly=OSError('synthetic down'),
                    macro_china_pmi=OSError('synthetic down'),
                    macro_china_shrzgm=OSError('synthetic down'),
                    macro_china_new_financial_credit=OSError('synthetic down'))
+        pro_returns(cn_cpi=OSError('synthetic down'),
+                    cn_ppi=OSError('synthetic down')).start()
         with freeze_clock():
             out = io.StringIO()
             with redirect_stdout(out):

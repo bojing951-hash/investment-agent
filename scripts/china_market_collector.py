@@ -983,6 +983,36 @@ def _norm_month(s):
     return '%s-%02d' % (m.group(1), int(m.group(2))) if m else None
 
 
+def _tushare_monthly_last(df, col):
+    """tushare 月度宏观行选(R6-D1 纯函数,零网络可注入): month='YYYYMM' 行中
+    取 col 有值的最大月→('YYYY-MM-DD' 月末观测日, float)。语义同 _macro_last:
+    NaN/不可数值化/月份不可归一跳行,返回序向不依赖;无有值行→None。"""
+    if df is None or len(df) == 0:
+        return None
+    import calendar
+    best = None
+    for _, row in df.iterrows():
+        m = re.fullmatch(r'(\d{4})(\d{2})', str(row.get('month') or '').strip())
+        if not m or not 1 <= int(m.group(2)) <= 12:
+            continue
+        v = row.get(col)
+        if v is None:
+            continue
+        try:
+            fv = float(v)
+        except (TypeError, ValueError):
+            continue
+        if fv != fv:                      # NaN→如实跳行
+            continue
+        ym = (m.group(1), m.group(2))
+        if best is None or ym > (best[0], best[1]):
+            best = (m.group(1), m.group(2), fv)
+    if best is None:
+        return None
+    y, mo = int(best[0]), int(best[1])
+    return ('%04d-%02d-%02d' % (y, mo, calendar.monthrange(y, mo)[1]), best[2])
+
+
 def _norm_date(s):
     """宏观日期列归一(序向/格式不依赖): 'YYYY-MM-DD'/'YYYY/M/D'/'2026年10月
     10日'→'YYYY-MM-DD';月粒度('2026年10月'/'2026-10')→'YYYY-MM'(观测日=
@@ -1105,21 +1135,25 @@ def fetch_macro():
     except Exception as e:
         print(f"  ❌ LPR(macro_china_lpr): {type(e).__name__}: {str(e)[:120]}")
 
-    # G-P1-15 CPI/PPI 同比(金十;日期/今值 列锚)
-    for key, fn_name in (('cpi_yoy', 'macro_china_cpi_yearly'),
-                         ('ppi_yoy', 'macro_china_ppi_yearly')):
+    # G-P1-15 CPI/PPI 同比(R6-D1 换源: 金十 macro_china_cpi/ppi_yearly 停更于
+    # 2025-08[R5 盘点;akshare 1.18.47 金十族实测 cpi 尾 2008-02/ppi 尾 2006-01/
+    # cpi_monthly 尾 2025-09 皆死]→tushare pro cn_cpi.nt_yoy/cn_ppi.ppi_yoy
+    # (现有 token/现有依赖;月度→月末观测日;失败=如实缺席,不回退停更源)
+    for key, api_name, col in (('cpi_yoy', 'cn_cpi', 'nt_yoy'),
+                               ('ppi_yoy', 'cn_ppi', 'ppi_yoy')):
         try:
             with _no_proxy():
-                df = getattr(ak, fn_name)()
-            got = _macro_last(df, '日期', '今值')
+                df = getattr(_pro(), api_name)(
+                    start_date='20200101', end_date=datetime.now().strftime('%Y%m%d'))
+            got = _tushare_monthly_last(df, col)
             if got is not None:
                 out[key] = {'date': got[0], 'value': round(got[1], 2),
-                            'source': 'akshare_jin10'}
+                            'source': 'tushare_pro'}
                 print(f"  ✅ {key}: {out[key]['value']} ({out[key]['date']})")
             else:
-                print(f"  ⚠️ {key}: 无有值行({fn_name}.今值)")
+                print(f"  ⚠️ {key}: 无有值行({api_name}.{col})")
         except Exception as e:
-            print(f"  ❌ {key}({fn_name}): {type(e).__name__}: {str(e)[:120]}")
+            print(f"  ❌ {key}({api_name}): {type(e).__name__}: {str(e)[:120]}")
 
     # G-P1-16 制造业 PMI(东财;月份/制造业-指数 列锚,中文月份归一)
     try:

@@ -87,7 +87,11 @@ check('C2 ① baseline 不存在→FAIL', rc != 0 and '①基线一致 FAIL' in 
 shutil.rmtree(tmp)
 
 # ── C3 ① baseline=非祖先(现造悬空根提交) ──
-p = subprocess.run(['git', '-C', ROOT, 'commit-tree', 'HEAD^{tree}',
+# -c 内联身份: CI runner 无全局 git 身份,裸 commit-tree 会
+# "Author identity unknown"→悬空提交造不出(实测 CI 红根因之一)
+p = subprocess.run(['git', '-C', ROOT,
+                    '-c', 'user.name=rd20-test', '-c', 'user.email=rd20@test',
+                    'commit-tree', 'HEAD^{tree}',
                     '-m', 'r20-neg-orphan'], capture_output=True, text=True)
 orphan = p.stdout.strip()
 check('C3 前置: 悬空提交已造', bool(re.fullmatch(r'[0-9a-f]{40}', orphan or '')),

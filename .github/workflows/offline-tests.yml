@@ -23,7 +23,12 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth 0=全量史: R20/R21 状态套件(恢复验收+一致性负例)核验
+      # 检查点提交的真实存在性与祖先链,浅克隆会缺历史对象→套件红(实测
+      # CI 三连红根因,2026-11-12);仓小,全量克隆成本可忽略。
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
           python-version: '3.11'

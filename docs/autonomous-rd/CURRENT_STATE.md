@@ -34,6 +34,29 @@
   档归档说明注记;③AC4+AC5 正式验证(矩阵最后两个 NOT_VERIFIED)。
   报告=`docs/autonomous-rd/R15_AC1_AC2_AC8_VERIFICATION.md`。
 
+## 快照: 2026-11-12 (HKT, R16 AC4+AC5 验证+AC6 收口·fork 开发;矩阵收满)
+
+- **R16(AC 覆盘轮第三波)已完成**: 分支 `dev/rd-r16-ac4-ac5-ac6` @(本 commit,
+  基于 main bde1ab1;独立 worktree /tmp/r16-wt;真实数据只读)。三 AC 亲验:
+  **AC4 经济机制与历史研究→EXECUTED**(PASS 候选)——analog 真跑 v2 快照(扫描
+  1871 月/73 有效/5 独立簇;rank-1 距离本席加权 L2 亲算 0.326434 vs 引擎
+  0.326433 六位一致;四判据巧合旗标现役全开;vintage/事件研究/发布滞后三面
+  诚实拒答);aftermath 非预测分离+起止观测日随行;E1/E2/E3 四层标注+--lag
+  禁写"驱动";数据深度对账全中(JP_POLICY_RATE 1985-07 起 n=495/SPX_CAPE
+  n=1750/FRED 月频 119-120/USDJPY 日频 2601/HY_OAS 36 月受限如实)。
+  **AC5 独立研究结论→EXECUTED**(PASS 候选)——QB-032 亲读六要素全中(到期判
+  2/17 如实/分歧逐名/未知 12 条不填空/预期差附口径警告/S1-S4 五行=证伪条件
+  +竞争环);引数复算命中(compare 亲跑 pearson 0.42198 vs 档案 0.4220)。
+  **AC6→EXECUTED**(收口: AC7 已执行补齐原差距+四页工作台零模型调用纪律
+  36✅;剩余=真实案例积累+终判留席)。
+  **移交 D 根因查明**: QB-005~008「零Key矩阵问题」16 件=零Key套件 §4 在有快照
+  本地/无头 dev 树真写生产档案(CI 干净克隆不受影响);诚实空档非伪造;修复候选=
+  tempdir 注入缝,REMAINING_ISSUES P2+1;存量保留注记不删。
+  **矩阵=九项 EXECUTED+AC3 PARTIAL**(C 型首验窗 2026-12 日历门),全部终判
+  留用户裁定席。报告=`docs/autonomous-rd/R16_AC4_AC5_AC6_VERIFICATION.md`。
+  R17 候选: ①零Key套件 §4 tempdir 隔离(代码波);②终判覆盘轮材料包(十行终判
+  +日历门状态一并呈报用户)。
+
 ## 前一快照: 2026-11-12 (HKT, R14 AC10 红线终审+USER_GUIDE 代理落档·fork 开发)
 
 - **R14(AC 覆盘轮第一波)已完成**: 分支 `dev/rd-r14-ac10-redline` @(本 commit,
@@ -360,6 +383,7 @@ Charter 7 能力建设(v0.7/v0.7.1)→ Charter 8 机构观点交叉验证(v0.8)�
 
 - ① 封版合并 main — **已批准已执行**(本波 R1-R4=be8dabd+v0.10.0-alpha+Release 441746111)。
   后续波次合并 main 仍逐次请批(红线不变)。
+  *(2026-11-11 同日更正: 验收绿即合并发布,不再逐次请批;逐次报批仅剩付费类。)*
 - ② 新数据源凭证/付费 — **原则获批**,暂无即需项;HY_OAS ICE BofA 3 年授权窗等
   实际采购仍按需逐次报批。
 - ③ LIVE 部署 — **已批准已执行**(v0.10.0 面,见快照)。

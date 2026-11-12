@@ -16,7 +16,7 @@
 6. 在 `dev/*` 分支工作;未经授权不合 main、不推送、不付费、不碰生产。
    结束前完成阶段检查点(纪律见 `CLAUDE.md`)。
 
-## 下一步(2026-11-12 R12 AC9 干净环境全链覆盘轮收口后更新)
+## 下一步(2026-11-12 R14 AC10 红线终审+USER_GUIDE 代理落档收口后更新)
 
 1. **[已毕·R9] 采集缺口波**: CN_SF_FLOW mofcom 直取(merge=bd8b853,v0.12.0-alpha,
    Release 442060959);BUND 双年限=四路证据源端封锁维持诚实缺席;JP_CPI_TOKYO=
@@ -35,7 +35,7 @@
    CURRENT_STATE 注)——采集器落盘 sources_status+registry v2.8.4 接线 4 条+
    兜底话术三分支归因;独立审计四维全 PASS 零 MINOR 终判可并入;**波次毕,
    待操作者合并**(与 R12/AC9 波同分支一并)。
-6. **[下轮=R14 候选·按序]**: ①USER_GUIDE 补代理说明(R12 用户文档面发现:
+6. **[已毕·R14] AC10 红线终审+USER_GUIDE 代理说明**(本分支): 五面全 PASS 零违规(报告 R14_AC10_AUDIT.md,AC10→EXECUTED 终判留用户裁定)+Q2「网络与代理」节+plist EnvironmentVariables 模板;**波次毕,待操作者合并**。
    macOS 系统代理不自动进 shell env,境外源(yfinance)在 shell/launchd 启动
    管线时须 HTTPS_PROXY=http://127.0.0.1:7890;R12 首轮 Gate A 拒即此因)
    ②HK 双通道
@@ -46,11 +46,18 @@
    source_key 精确分类)④R13 审计 2 NIT 留档(data_dir 空串理论角落/三期限
    列全坏值措辞张力,纯话术层不阻塞)⑤R2/R1 审计 MINOR 存量(OPEN_ISSUES
    技术待办按需取用)。
-7. **[待用户/操作者·无头权限面外]**: ①R12(AC9)+R13(japan)两波合并 main+发布(验收绿即合并
+7. **[下轮=R15 候选·按序]**: ①AC 覆盘轮续: AC1-AC6 正式验证轮+AC8 端到端
+   复核(逐一对照 FINAL_ACCEPTANCE 定义独立核验,预计两波)②HK 双通道脆弱面
+   观察(腾讯 WAF 深窗拦阈值浮动[11-12 实测 2600 拦/320 通];HK_INDEX_HISTORY_BARS
+   env 缝=2000 根保底+yfinance 依赖代理姿态)③china/macro 采集器子源失败落盘
+   (现只 print 不落盘,落盘后可接线 source_key 精确分类)④R13 审计 2 NIT 留档
+   (data_dir 空串理论角落/三期限列全坏值措辞张力,纯话术层不阻塞)⑤R2/R1 审计
+   MINOR 存量(OPEN_ISSUES 技术待办按需取用)。
+8. **[待用户/操作者·无头权限面外]**: ①R12(AC9)+R13(japan)两波合并 main+发布(验收绿即合并
    纪律,操作者会话执行)②v0.13.x LIVE 同步(R10 轮遗留,部署脚本已备
    /tmp/deploy_v013_live.py,分类器静态规则拦,待用户终端亲跑或加 Bash 白名单)
    ③AC7/AC9 终判覆盘轮(两行均 EXECUTED 已定,终判待用户裁定)。
-8. **[日历门] 2026-12-05 F 补证轮由引擎自动触发,勿手工提前;六标签首验窗
+9. **[日历门] 2026-12-05 F 补证轮由引擎自动触发,勿手工提前;六标签首验窗
    2026-12(注意: R5 后 7 假设有判=A/B 阶段面;C 层到期判定不受影响)**;
    金油比开放题观察钟 2026-12 同窗。
 

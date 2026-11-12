@@ -19,7 +19,8 @@
 ## 1. 安装
 
 **环境要求**: Python 3.9+(推荐 3.10~3.12;CI 在 3.11 验证)+ 约 500MB 磁盘 +
-可访问国际网络的浏览器环境(部分数据源在国内网络需代理)。
+可访问国际网络的浏览器环境(境内网络境外源须配 `HTTPS_PROXY`,见 FAQ
+「网络与代理」)。
 
 ### macOS / Linux
 
@@ -204,9 +205,16 @@ macOS plist 模板(占位路径请替换为你自己的,放 `~/Library/LaunchAge
   <key>ProgramArguments</key><array>
     <string>/bin/bash</string><string>/你的路径/investment-agent/run_daily.sh</string>
   </array>
+  <key>EnvironmentVariables</key><dict>
+    <key>HTTPS_PROXY</key><string>http://127.0.0.1:7890</string>
+    <key>HTTP_PROXY</key><string>http://127.0.0.1:7890</string>
+  </dict>
   <key>StartCalendarInterval</key><dict><key>Hour</key><integer>7</integer><key>Minute</key><integer>0</integer></dict>
 </dict></plist>
 ```
+
+> `EnvironmentVariables` 两行为境外源代理注入(launchd 不继承 shell 与系统代理,
+> 见 FAQ「网络与代理」;境内网络必配,海外网络可删)。
 
 ## 5. 常见问题
 
@@ -227,8 +235,41 @@ A 股深度数据近乎不可用(匿名调用限流严: 本地闸门 ≥61 秒/�
 **Q2 某数据源不可访问/采集失败?**
 非关键步骤失败会自动降级并在台账记原因(`logs/pipeline_run_*.json`),
 不阻断整体;关键步骤失败→脚本报错退出,修复网络后**重跑即可(幂等)**。
-境内网络访问 Yahoo/FRED 通常需代理;采集脚本默认探测本机
-`http://127.0.0.1:7890`,可用环境变量 `YF_PROXY` 覆盖。
+境内网络访问境外源须走代理——**这是设计姿态,不是可选优化**(见下方
+「网络与代理」);采集脚本另对 Yahoo 默认探测本机 `http://127.0.0.1:7890`,
+可用环境变量 `YF_PROXY` 覆盖。
+
+**网络与代理(境内网络必读)**
+
+- **症状识别**(R12 干净环境实测,2026-11-12): 缺 `HTTPS_PROXY` 时境外源
+  的失败形态容易误诊为"源挂了"——腾讯港股通道对深回看窗返回 **HTTP 200 +
+  空数据**(WAF 拦截,非报错);yfinance 直连表现为 **429 限流**;连跑
+  `run_weekly.py` 会出现大面 `core_missing`。补上代理后同机同日 15/15 步全绿。
+- **根因**: macOS 的"系统代理"设置**不会**传给 shell 与 launchd 起的进程——
+  终端里 `curl` 能通,不代表 `python3 run_weekly.py` 能通。代理须以环境变量
+  显式注入进程。
+- **设置方法一(shell 手动跑)**: 启动管线前导出(地址换成你自己的):
+
+  ```bash
+  export HTTPS_PROXY=http://127.0.0.1:7890
+  export HTTP_PROXY=http://127.0.0.1:7890
+  python3 run_weekly.py
+  ```
+
+  写进 `~/.zshrc`/`~/.bashrc` 可一劳永逸(注意: 这会波及该 shell 里所有命令)。
+- **设置方法二(launchd 定时任务)**: plist 里加 `EnvironmentVariables`
+  (模板见第 4 节定时调度),或用 wrap 脚本包一层再由 plist 调用:
+
+  ```bash
+  # /你的路径/ia_daily_wrap.sh (chmod +x)
+  #!/bin/bash
+  export HTTPS_PROXY=http://127.0.0.1:7890
+  export HTTP_PROXY=http://127.0.0.1:7890
+  exec /bin/bash /你的路径/investment-agent/run_daily.sh
+  ```
+
+- **设计原理**: 境外源(FRED/Yahoo/腾讯港股通道等)在境内网络环境按
+  "走代理"设计;代理缺席时的降级与拒答是如实行为,不是 bug。
 
 **Q3 克隆下来没有历史数据?**
 正常——仓库不含数据积累(`data/` 原则上不入库,这是隐私与体积纪律;当前

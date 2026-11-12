@@ -25,6 +25,8 @@
 
 ## P2(择期)
 
+9. **零Key套件真写生产档案(2026-11-12 R16 查明)**: `test_charter5_zero_key_matrix.py` §4 在有快照的本地/无头 dev 树跑套件时,`archive save` 真写 query_history(=QB-20261109~1112-005~008 共 16 件「零Key矩阵问题」空档);CI 干净克隆走拒存分支不受影响。诚实空档非伪造,但属档案污染。修复=§4 改用 `_ARCHIVE_DIR` tempdir 注入缝(§6 先例);存量 16 件按 append-only 纪律保留注记不删。详见 docs/autonomous-rd/R16_AC4_AC5_AC6_VERIFICATION.md §4a。
+
 1. **纳指口径确认(用户侧)**: 用户App显示"纳指29391" vs 本系统NDX=29187.55/
    IXIC=26140.03(10-16)。待用户确认其App代码;系统侧NDX/IXIC双口径已注册分明。
 2. **泄漏密钥轮换(用户侧,长期提醒)**: 曾粘贴的GitHub PAT须撤销;4个真实API密钥

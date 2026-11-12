@@ -16,7 +16,7 @@
 6. 在 `dev/*` 分支工作;未经授权不合 main、不推送、不付费、不碰生产。
    结束前完成阶段检查点(纪律见 `CLAUDE.md`)。
 
-## 下一步(2026-11-12 R15 AC1/AC2/AC8 正式验证轮收口后更新)
+## 下一步(2026-11-12 R16 AC4/AC5/AC6 验证收口后更新)
 
 1. **[已毕·R9] 采集缺口波**: CN_SF_FLOW mofcom 直取(merge=bd8b853,v0.12.0-alpha,
    Release 442060959);BUND 双年限=四路证据源端封锁维持诚实缺席;JP_CPI_TOKYO=
@@ -42,10 +42,15 @@
    attribution 枚举硬拦截+112/112 institution_stated)、AC8 可复核(digest 链
    逐位一致+4 组独立复算全中,ZQ−DFF=0.305 实证 correction-1 正确);报告
    R15_AC1_AC2_AC8_VERIFICATION.md;**波次毕,待操作者合并**。
-8. **[R16 候选] AC 覆盘轮第三波**: ①AC6 行注记更新(「AC7 未跑」已过时);
-   ②QB-005~008 零Key边缘档归档说明注记;③AC4+AC5 正式验证(矩阵最后两个
-   NOT_VERIFIED)→此后矩阵全 EXECUTED,剩终判用户席+日历门(F=2026-12-05,
-   六标签首验窗=2026-12)。
+8. **[已毕·R16] AC4+AC5 正式验证+AC6 收口**(本分支): AC4(analog 真跑+距离
+   亲算六位一致+深度对账全中)/AC5(QB-032 六要素+引数复算命中)全 EXECUTED,
+   AC6 收口 EXECUTED;QB-005~008 根因=零Key套件本地真写档(修复候选登记,
+   REMAINING_ISSUES P2+1);**矩阵=九项 EXECUTED+AC3 PARTIAL(2026-12 日历门)**;
+   报告 R16_AC4_AC5_AC6_VERIFICATION.md;**波次毕,待操作者合并**。
+9. **[R17 候选] ①零Key套件 §4 tempdir 隔离**(代码波: `_ARCHIVE_DIR` 注入缝,
+   存量 16 件保留注记);**②终判覆盘轮材料包**(矩阵十行终判+日历门 F=2026-12-05
+   /六标签首验窗 2026-12 状态一并呈报用户裁定席);③LIVE 部署脚本
+   /tmp/deploy_v0141_live.py 待用户终端跑(生产仍 v0.11 面)。
    macOS 系统代理不自动进 shell env,境外源(yfinance)在 shell/launchd 启动
    管线时须 HTTPS_PROXY=http://127.0.0.1:7890;R12 首轮 Gate A 拒即此因)
    ②HK 双通道

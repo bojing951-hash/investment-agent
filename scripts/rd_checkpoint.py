@@ -38,6 +38,22 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import rd_state_consistency as gate  # noqa: E402
+import rd_progress_watch as watch  # noqa: E402
+
+
+def print_advisor(repo, state_dir):
+    """盖章后播报进展漂移顾问(Charter 10 §4.3·R21,非阻塞;降级不阻断)。"""
+    print('── 进展漂移顾问(§4.3 防死循环,非阻塞) ──')
+    try:
+        res = watch.analyze(repo, state_dir, 4)
+        for r in res['rounds']:
+            print('R%-3d %-11s %3d 文件' % (r['round'], r['kind'], r['files']))
+        for w in res['warnings']:
+            print('⚠ ' + w)
+        if 'note' in res:
+            print('NOTE ' + res['note'])
+    except Exception as e:  # 顾问是复审信号,任何降级不阻断盖章/门
+        print('NOTE 顾问降级: %s' % e)
 
 
 def now_hkt():
@@ -187,6 +203,8 @@ def main():
                 print('refuse: --finalize 须同时给 --round 与 --next-round')
                 sys.exit(1)
             rc = cmd_finalize(args, state_dir)
+            if rc is None:  # 盖章成功(rc=None → 末尾继续跑门)
+                print_advisor(args.repo, state_dir)
         if args.show:
             resume = open(os.path.join(state_dir, 'RESUME.md'),
                           encoding='utf-8').read()

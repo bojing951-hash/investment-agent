@@ -1,0 +1,27 @@
+{
+  "_comment": "合并进项目 .claude/settings.json 的 hooks 片段(R21 候选安装物)。钩子全部只读,门真正硬拦在 CI(offline-tests.yml)与 finalize 管线。",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/ops/hooks-candidate/session_start.sh\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/ops/hooks-candidate/pre_compact.sh\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

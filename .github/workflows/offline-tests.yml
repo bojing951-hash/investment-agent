@@ -66,6 +66,8 @@ jobs:
             git fetch --unshallow origin '+refs/heads/main:refs/remotes/origin/main'
           fi
           python3 scripts/rd_state_consistency.py --repo . --state-dir docs/autonomous-rd
+      - name: 研发进展漂移顾问(R21·Charter10 §4.3,非阻塞预警可见性)
+        run: python3 scripts/rd_progress_watch.py --repo . --state-dir docs/autonomous-rd
       - name: 失败套件日志打包上传(仅失败时)
         if: failure()
         uses: actions/upload-artifact@v4

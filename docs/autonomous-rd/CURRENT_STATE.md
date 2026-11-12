@@ -4,7 +4,42 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-12 (HKT, R11 子源级注记细化轮·无头自主执行)
+## 快照: 2026-11-12 (HKT, R12 AC9 干净环境全链覆盘轮·fork 开发)
+
+- **R12(AC9「真实用户可用」NOT_VERIFIED→EXECUTED)已完成**: 分支
+  `dev/rd-r12-ac9-clean` @`9de4cc8`+docs(自 main=12c3c0f 切出,含 R11 面)——
+  **①安装器 --force 坑修复**: 根因=`local_modifications()` 仅比对当前源树,
+  源树 git 拉新后**未动过的旧装机面**被误判"用户修改"逼 --force(首发安装
+  无此坑,实证);修复=`matches_source_history()`(装机树逐文件 git blob sha1
+  vs 源目录近 64 提交 `git ls-tree -r` 比对,任一历史版本逐字节一致⇒幂等刷新
+  +`stale_version_refreshed` 旗,不备份不逼旗标;真修改仍拒/--force+.bak;
+  卸载同语义;非 git 部署保守回退 v1.1 语义);macOS realpath 归一坑(realpath
+  (SOURCE) 须对齐 git toplevel,否则 relpath 跨符号链接 git log 过滤必空)。
+  套件 `tests/test_rd_r12_installer_stale.py` **16/0**+skill_installer 回归
+  **32/0**;SKILL_GUIDE v1.2 话术随升。
+  **②干净环境七步链**(/tmp/r12-clean 全新 clone,非 worktree): 安装零旗标
+  verified=ok → 配置(.env chmod600 三 key 只读注入零回显;零 Key 面=doctor ok
+  +research 诚实拒答 no_snapshot 不造数) → 更新首轮 **10/15 Gate A 拒**
+  (core_missing HSI/HSCEI;根因链: 腾讯 ifzq 对 count=2600 深窗 HTTP200+空
+  数据[WAF 静默拦,≤320 正常,设计不降级凑短窗]+yfinance 直连 IP 当日 429;
+  **LIVE 同日同败 core_missing 逐字一致=环境面铁证非副本缺陷**)→ 补
+  HTTPS_PROXY env(系统代理 127.0.0.1:7890 已在,shell 不自动继承;恢复代码
+  注释"境外源走代理"设计姿态)+`--allow-revision` 同日修订 → **15/15 exit 0**
+  (955.6s;快照 v2 DEGRADED core 0 缺;HSI=24104.44/HSCEI=8091.68 真值入档;
+  原版 FAIL 快照保留) → 一键研究两问(自然语言面 11 步 ok[S4/S5 零词面命中
+  诚实跳过零模型不语义翻译];指标面 **14 命令全 executed**,L1 2 行证据) →
+  research-map 十问(views/archive 空面如实注"干净 clone 常态") → 追溯 3/3
+  (SPX/HSI/NIKKEI225 快照值→源档命中→sha256 链,快照 v2 sha=5ec4f9ab…) →
+  归档 **QB-20261112-001**(绑 v2 快照,record/full 双视图回读逐字一致)。
+  证据档: /tmp/r12-clean/evidence_log.md(七步全真实命令+exit+输出节选)。
+  **③登记**: AC9=EXECUTED(终判留 AC 覆盘轮不自动 PASS);用户文档面发现=
+  **shell 启动管线须带 HTTPS_PROXY**(macOS 系统代理不自动进 shell env;
+  待补 USER_GUIDE,本轮不改代码);--force 坑登记面=FINAL_ACCEPTANCE AC9 行+
+  SKILL_GUIDE(均已收口;OPEN_ISSUES 原无此条目,如实注记)。
+  **边界**: 零 push/零 merge/零 tag/零 LIVE 触碰/零付费 API/密钥零回显;
+  报告零厂商词零个人路径。
+
+## 前一快照: 2026-11-12 (HKT, R11 子源级注记细化轮·无头自主执行)
 
 - **R11(Gate A noncore_missing 子源级注记细化,RESUME 3①=P2 台账 R10 候选①)
   已完成**: 分支 `dev/rd-r11-subsource-missing` @`1d135d7`(自 main=14b1590

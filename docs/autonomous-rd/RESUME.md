@@ -20,24 +20,27 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-12 R20 检查点后 · Charter 10 整改队列)
+## 下一步(2026-11-13 R22 检查点后 · Charter 10 整改队列)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
 按 CHARTER_10_RECTIFICATION.md §十一 阶段执行:
 
-1. **阶段三 金融正确性(当前最重要产品能力缺口)**: 先复现后修——5.1 汇率方向语义(USDJPY/EURUSD/DXY/利率/国债价格收益率)/5.2 到期数据新鲜度(无近到期有效数据=证据不足)/5.3 观点标签-证据真绑定(重算机器可验证面;NOT_YET_TESTABLE 底证不得撑 SUPPORTED)/5.4 前视偏差(vintage/发布日)。已到期历史样本+合成边界案例即可验算法,不等日历门。
-2. **阶段四 一键AI研究闭环**: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完。
-3. **阶段五 真实E2E+独立验收**: 未优化过的真实宏观问题;十章产出齐全;独立审计查结论-证据绑定;受影响 AC 重验按实标 PASS/PARTIAL/FAIL/NOT_VERIFIED。
-4. **阶段六 状态更新+自动入下一轮**。
-5. **操作者席待办(R21 移交)**: 候选钩子包 ops/hooks-candidate/ 安装(README 四步);R21 合并发布;明日 LIVE daily 首跑 v0.15.0 面观察(11-14 周六=ZQ 族观察钟)。
+1. **阶段四 一键AI研究闭环(当前最重要产品能力缺口)**: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完。
+2. **阶段五 真实E2E+独立验收**: 未优化过的真实宏观问题;十章产出齐全;独立审计查结论-证据绑定;受影响 AC 重验按实标 PASS/PARTIAL/FAIL/NOT_VERIFIED。
+3. **阶段六 状态更新+自动入下一轮**。
+4. **操作者席待办(R22 移交)**: R22 合并发布(dev/rd-r22-fin-correctness,盖章=分支最后一笔合规);遗留 worktree /private/tmp/r21-wt 清理(无头权限面外不可 git -C,p0 套件 30/1 环境性红唯一根因);候选钩子包 ops/hooks-candidate/ 安装(README 四步);LIVE 观察(11-14 周六=ZQ 族观察钟,daily 首跑 v0.15.0 面)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 21, "date": "2026-11-12 20:17 HKT", "branch": "main", "commit": "3ae8c508c2c8b34080e34dba8a53edc6291d7fa7", "baseline": "3ae8c508c2c8b34080e34dba8a53edc6291d7fa7", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R21-1"], "next_task": "阶段三 金融正确性: 先复现后修——5.1 汇率方向语义/5.2 到期数据新鲜度/5.3 标签-证据真绑定/5.4 前视偏差(已到期历史样本+合成边界案例验算法,不等日历门)", "next_round": 22} -->
+<!-- RD-CHECKPOINT v1: json {"round": 22, "date": "2026-11-13 04:38 HKT", "branch": "dev/rd-r22-fin-correctness", "commit": "6bf92fda7c8bb40fae3616886f4cde500086b455", "baseline": "6bf92fda7c8bb40fae3616886f4cde500086b455", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R22-1"], "next_task": "阶段四 一键AI研究闭环: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完", "next_round": 23} -->
+
+## 下一步存档(2026-11-13 R22 收口后版)
+
+1. [已毕·R22] **阶段三 金融正确性**: 四案先复现后修全毕(5.1 方向语义/5.2 到期新鲜度门/5.3 标签-证据绑定/5.4 vintage 二次过滤;R1-MINOR-4 收口)——新套件 test_rd_r22_fin_correctness.py 53 判+受影响六套件全绿;生产面 VP 17 档 --build-all 重建字节不变+绑定扫描 128 OK/5 LABEL_DRIFT/0 违规;AC3 机器防线落地,真实已到期样本首验留 2026-12 六标签首验窗(日历门)。收口由后继会话补完(前会话中断)+独立复验一致。台账 T-R22-1 待合并。
 
 ## 下一步存档(2026-11-12 R21 收口后版)
 

@@ -51,8 +51,11 @@
 
 - **[R2 审计 MINOR-4] S9 与 Skill 第 9 步错位**: 编排器 S9=views lint+VP 装载,
   Skill 第 9 步=解释标注(四层+竞争解释)——现为确定性替身,补作 Agent 落位时对齐。
-- **[R1 审计 MINOR-4] vintage 二次过滤缺失**: vintage 路径信任 vintage 快照,无 obs≤publish
-  二次过滤(快照若含未来观测即漏);今日干净——vintage 累积落地时一并加护。
+- ~~**[R1 审计 MINOR-4] vintage 二次过滤缺失**~~ **[R22 已修(2026-11-13,
+  dev/rd-r22-fin-correctness@6bf92fd)]**: mode A vintage 分支补 obs≤publish 二次过滤
+  (`_filter_snapshot_le` 两锚唯一实现,原观察=vintage 路径信任 vintage 快照,快照若含
+  未来观测即漏);复现档 audit/R22_FIN_CORRECTNESS_REPRO.py 5.4 案+套件
+  tests/test_rd_r22_fin_correctness.py 判定绿。
 - **[R1 审计 MINOR-5] lineage 链坍缩**: 反复重建使 `prior_generated_by` 第二次起指向 build_vp
   自身,原始编排层署名丢失;v1.0 基底被原地覆盖+data/ 不入库不可恢复——重建时保留首代署名。
 - **[R1 审计 MINOR-6] since_publish 基准语义**: 名义"严格>publish"实际基准=严格早于 publish

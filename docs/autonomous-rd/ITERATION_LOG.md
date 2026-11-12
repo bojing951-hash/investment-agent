@@ -62,7 +62,7 @@
 
 | 11-12 | R19 终判落章(用户「全部批准」;docs-only) | 九行 EXECUTED→PASS 落章+AC3 维持 PARTIAL(2026-12 首验窗日历门)+整体=九 PASS+一 PARTIAL;交付清单十项全勾验(各带证据指针);LIVE 部署同批放行(用户终端执行) | 0693019 后 docs commit | 落章内容=用户原话裁定,零新声明 |
 
-| 11-12 | R20 状态管理整改(fork 开发;Charter 10 阶段一) | 六项一致性检查门 scripts/rd_state_consistency.py(①基线 main⊆baseline⊆HEAD·四类容忍 ②RESUME健全·禁滞留[进行中]标记 ③台账规范·已毕只进日志 ④矩阵节枚举 ⑤日志轮次纪律·回流/滞留/称毕三态 ⑥goal_sha 防目标漂移;浅克隆降级注记)+检查点管线 scripts/rd_checkpoint.py(--verify/--show/--finalize 分工: prose 人工先行,机器盖章取实际 Git/文件 sha,无日志行拒盖章=防先称毕)+CI offline-tests 增六项硬门步;三套件 61 判(合成仓45: 变异锁牙28+管线7+浅克隆4+真仓ratchet;真状态反例11;无上下文恢复验收5: 隔离子解释器模拟新Agent+陈旧HEAD/任务回流/目标漂移三类拒启);状态档手术: 台账 T-R20-1 挂账→收口/机器 baseline 行/RESUME 恢复步骤重写(检查点块优先+HEAD 亲核)/CLAUDE.md 收口纪律;治 R15→R19 手写状态档失同步根因 | dev/rd-r20-state-mgmt@48551cd | 三套件全绿(45+11+5,真仓 ratchet 随 finalize 转绿);§七如实: 本波=系统能力(状态管理机器化),研究能力面无变化 |
+| 11-12 | R20 状态管理整改(fork 开发;Charter 10 阶段一) | 六项一致性检查门 scripts/rd_state_consistency.py(①基线 main⊆baseline⊆HEAD·四类容忍 ②RESUME健全·禁滞留[进行中]标记 ③台账规范·已毕只进日志 ④矩阵节枚举 ⑤日志轮次纪律·回流/滞留/称毕三态 ⑥goal_sha 防目标漂移;浅克隆降级注记)+检查点管线 scripts/rd_checkpoint.py(--verify/--show/--finalize 分工: prose 人工先行,机器盖章取实际 Git/文件 sha,无日志行拒盖章=防先称毕)+CI offline-tests 增六项硬门步;三套件 62 判(合成仓45: 变异锁牙28+管线7+浅克隆4+真仓ratchet;真状态反例12;无上下文恢复验收5: 隔离子解释器模拟新Agent+陈旧HEAD/任务回流/目标漂移三类拒启;Agent扫回流前剥离检查点块——块内completed_ids系机器元数据非队列prose,6de30f5 修R1/R1a假红);状态档手术: 台账 T-R20-1 挂账→收口/机器 baseline 行/RESUME 恢复步骤重写(检查点块优先+HEAD 亲核)/CLAUDE.md 收口纪律;治 R15→R19 手写状态档失同步根因 | dev/rd-r20-state-mgmt@6de30f5 | 三套件全绿(45+12+5,真仓 ratchet 随 finalize 转绿);§七如实: 本波=系统能力(状态管理机器化),研究能力面无变化 |
 
 ## 排队中
 

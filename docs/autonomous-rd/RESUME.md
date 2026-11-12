@@ -37,7 +37,7 @@
 - [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 20, "date": "2026-11-12 18:47 HKT", "branch": "dev/rd-r20-state-mgmt", "commit": "fbc8f18f10e6a21bedd2f86f1b05833574a28ad0", "baseline": "fbc8f18f10e6a21bedd2f86f1b05833574a28ad0", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R20-1"], "next_task": "阶段二 持续执行验证: 实查 hooks/launchd/agent-loop 真实配置与运行日志(不引历史文档),Charter10 §4.4 七项环境验收如实标", "next_round": 21} -->
+<!-- RD-CHECKPOINT v1: json {"round": 20, "date": "2026-11-12 19:09 HKT", "branch": "main", "commit": "dfad40ea88e51e0b7371a3caff3d9950c8f33979", "baseline": "dfad40ea88e51e0b7371a3caff3d9950c8f33979", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R20-1"], "next_task": "阶段二 持续执行验证: 实查 hooks/launchd/agent-loop 真实配置与运行日志(§4.4 七项环境验收如实标 PASS/NOT_VERIFIED/FAIL),防死循环两轮无实质进展触发根因复审", "next_round": 21} -->
 
 ## 下一步存档(2026-11-12 R20 收口后版)
 

@@ -27,10 +27,20 @@
 
 ## 阶段检查点纪律
 
-每完成一个重要研发阶段,必做:
-更新 `CURRENT_STATE.md`(实际进度/测试与审计结果/分支与 Commit)→ 追加 `ITERATION_LOG.md`
-→ 修订 `CAPABILITY_MATRIX.md` 差距 → 把下一步可执行任务写入 `RESUME.md`。
+收口分工(R20 起,Charter 10 §3.2):
+**人工 prose 面**(先写好,防先称毕——管线无日志行会拒盖章):
+追加 `ITERATION_LOG.md` R<n> 行 → 移出 `CURRENT_STATE.md` 台账已毕行 →
+刷新权威快照 prose → `RESUME.md` 队列项归档入「下一步存档」并重编号 →
+修订 `CAPABILITY_MATRIX.md` 差距。
+**机器盖章面** = `python3 scripts/rd_checkpoint.py --finalize --round N
+--next-round M --next-task "…" --completed-ids T-Rn-1,…`: 写 RESUME 检查点块
++ baseline 机器行 + goal_sha(取值=实际 Git/文件 sha,不采信人填),随即跑
+六项一致性门 `scripts/rd_state_consistency.py`(CI 同门);门红禁收口。
+盖章与 prose 同落一个 docs 提交。**检查点块/baseline 机器行勿手写**
+(历史失同步根因=状态档手写,Charter 10 §3)。
+轮开时手工加台账 `T-R<n>-<seq>` 行并在 `RESUME.md` 队列项挂 `[进行中·R<n>]`。
 上下文将耗尽或会话将结束时,优先保存完整检查点,再处理其他事。
-新会话必须仅凭仓库文件恢复工作,不依赖历史聊天记录。
+新会话必须仅凭仓库文件恢复工作: `RESUME.md` 检查点块 → `git merge-base
+--is-ancestor <commit> HEAD` 亲核 → 开工;不依赖历史聊天记录。
 
 时间戳一律带时区(默认 HKT/UTC+8;涉 CI 用 UTC)——本项目踩过时区炸弹,勿重蹈。

@@ -4,16 +4,24 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-12 R19 终审落章后 · Charter 10 整改启动
+## 权威快照: 2026-11-12 R20 检查点 · 状态管理机器化(台账+六项门+管线+恢复验收)
 
 > **本节=唯一当前态入口**(Charter 10 §3.1)。下方历史快照仅供追溯,以本节+Git HEAD 为准。
-> 核对法: `git rev-parse HEAD` 应与本节基线一致,不一致时禁止开发,先恢复状态(Charter 10 §3.2)。
+> 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);
+> 一致性门 `python3 scripts/rd_state_consistency.py` 六项全绿方可开工;不一致时禁止开发,先恢复状态(§3.2)。
 
-- **基线**: main = 9e85699(终判落章)。**Charter 10 落位**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
-- **真实进度**: R9-R19 十一波已毕并入;v0.15.0 面已发布;LIVE 已部署 v0.15.0 面(9e85699,2026-11-12 用户指令下执行)。
+- **基线(机器面)**: baseline=fbc8f18f10e6a21bedd2f86f1b05833574a28ad0(检查门§①解析本行;rd_checkpoint.py 收口时自动刷新)。
+- **基线**: main = c00a606(Charter 10 落位+状态止血)。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
+- **真实进度**: R9-R19 十一波已毕并入;v0.15.0 面已发布;LIVE 已部署 v0.15.0 面(9e85699,2026-11-12 用户指令下执行);**R20 状态管理整改(Charter 10 阶段一)毕**。
 - **验收层状态(按 Charter 10 §八重开)**: 九 PASS + AC3 PARTIAL 为**待复核旧结论**——受影响项重验中: AC3(金融正确性缺口)/AC6(L3/L4 produced=False)/状态同步(P0)/无人值守证据(P0);其余 PASS 项维持至复触及。
-- **当前任务**: 阶段一(R20 状态管理整改)已起;阶段二~六见 CHARTER_10 §十一。
+- **当前任务**: 阶段一(R20)已毕;下一轮=阶段二 持续执行验证(见 RESUME 检查点块 next_task);阶段三~六见 CHARTER_10 §十一。
 - **权限变化(Charter 10 §十)**: LIVE 生产修改自此需用户明确指令,不再随波次自动同步。
+- **检查点(R20·2026-11-12)**: 状态管理机器化落地(六项门+finalize 管线+恢复验收);台账移出 T-R20-1。
+
+### 任务台账(机器维护: scripts/rd_checkpoint.py 收口;已毕任务只进 ITERATION_LOG/RESUME 存档,永不回台账)
+
+| ID | 状态 | Git证据 | 说明 |
+|---|---|---|---|
 
 ### [历史快照·R15 视角,已被上方权威快照取代]
 

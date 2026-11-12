@@ -55,6 +55,12 @@ jobs:
             fi
           done
           exit $fail
+      - name: 研发状态一致性门(R20·Charter10 §3.2,六项任一FAIL即红)
+        run: |
+          if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+            git fetch --unshallow origin '+refs/heads/main:refs/remotes/origin/main'
+          fi
+          python3 scripts/rd_state_consistency.py --repo . --state-dir docs/autonomous-rd
       - name: 失败套件日志打包上传(仅失败时)
         if: failure()
         uses: actions/upload-artifact@v4

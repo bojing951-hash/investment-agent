@@ -5,34 +5,43 @@
 ## 恢复步骤
 
 1. 读根目录 `CLAUDE.md`(红线与启动纪律)。
-2. 读 `PRODUCT_GOAL.md`(最高目标)。**若该文件不存在 = 总指令未落位**: 向用户索取原文,
-   不得自行代拟;其余恢复步骤照常。
-3. 读 `CURRENT_STATE.md`(快照)→ `OPEN_ISSUES.md`(卡点)→ `CAPABILITY_MATRIX.md`(差距)
-   → `ITERATION_LOG.md` 末行(最近一轮)。
-4. 引擎运转面如需(周报/采集/轮次): 另查 `~/agent-loop/STATE.md` 顶部速览与
-   `~/agent-loop/HANDOVER-NEW-SESSION.md`。
-5. 从「下一步」取首个可执行任务,进研发循环:
-   **审计 → 定优先级 → 开发 → 测试 → 独立验证 → 更新状态 → 下一轮**。
-6. 在 `dev/*` 分支工作;未经授权不合 main、不推送、不付费、不碰生产。
-   结束前完成阶段检查点(纪律见 `CLAUDE.md`)。
+2. 读 `PRODUCT_GOAL.md`(最高目标;锚句「全球宏观经济与金融市场研究」「最终产品目标」
+   须完整)。**若该文件不存在 = 总指令未落位**: 向用户索取原文,不得自行代拟。
+3. 读本档「下一步」节顶部 **RD-CHECKPOINT 块**(机器检查点): 记下 round/next_task/commit。
+4. **核对真实 Git,不盲信文档**: `git rev-parse HEAD`;检查点 commit 须存在且为 HEAD 祖先
+   (`git merge-base --is-ancestor <commit> HEAD`);不成立 = 状态可疑,**禁止开发,先对账**
+   (跑 `python3 scripts/rd_state_consistency.py` 定位五项中哪项失同步)。
+5. 读 `CURRENT_STATE.md` 权威快照节(唯一当前态;含任务台账)→ `OPEN_ISSUES.md`(卡点)
+   → `CAPABILITY_MATRIX.md`(差距)→ `ITERATION_LOG.md` 末行(最近一轮)。
+6. 台账/「下一步」队列即当前工作;**已入 ITERATION_LOG 的轮次任务严禁重做**(§3.3)。
+7. 在 `dev/*` 分支工作;未经授权不合 main、不推送、不付费、不碰生产。
+   轮**开**: 手工在台账加 `T-R<n>-<seq>` 行+队列项挂 `[进行中·R<n>]`;
+   轮**收口**: 人工 prose(日志行/台账移出/快照 prose/队列归档)先写好 →
+   `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
+   (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-12 R19 终审落章后 · Charter 10 整改队列)
+## 下一步(2026-11-12 R20 检查点后 · Charter 10 整改队列)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
-> 恢复第一步: `git rev-parse HEAD` 核对基线(现=9e85699 祖先链上);不一致=状态可疑,先对账再动工。
+> 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(现=fbc8f18 祖先链上);不成立=状态可疑,先对账再动工。
 
 按 CHARTER_10_RECTIFICATION.md §十一 阶段执行:
 
-1. **[进行中·R20] 阶段一 状态管理整改**: 唯一权威状态+任务台账(唯一ID/状态/Git证据)+一致性检查门+自动状态管线+真实恢复验收测试(新Agent从文件恢复,核HEAD,不重做已完成)。
-2. **阶段二 持续执行验证**: 实查 hooks/launchd/agent-loop 真实配置与运行日志(不得引历史文档),4.4 七项环境验收如实标 PASS/NOT_VERIFIED/FAIL,防死循环两轮无实质进展触发根因复审。
-3. **阶段三 金融正确性**: 先复现后修——5.1 汇率方向语义(USDJPY/EURUSD/DXY/利率/国债价格收益率)/5.2 到期数据新鲜度(无近到期有效数据=证据不足)/5.3 观点标签-证据真绑定(重算机器可验证面;NOT_YET_TESTABLE 底证不得撑 SUPPORTED)/5.4 前视偏差(vintage/发布日)。已到期历史样本+合成边界案例即可验算法,不等日历门。
-4. **阶段四 一键AI研究闭环**: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完。
-5. **阶段五 真实E2E+独立验收**: 未优化过的真实宏观问题;十章产出齐全;独立审计查结论-证据绑定;受影响 AC 重验按实标 PASS/PARTIAL/FAIL/NOT_VERIFIED。
-6. **阶段六 状态更新+自动入下一轮**。
+1. **阶段二 持续执行验证**: 实查 hooks/launchd/agent-loop 真实配置与运行日志(不得引历史文档),4.4 七项环境验收如实标 PASS/NOT_VERIFIED/FAIL,防死循环两轮无实质进展触发根因复审。
+2. **阶段三 金融正确性**: 先复现后修——5.1 汇率方向语义(USDJPY/EURUSD/DXY/利率/国债价格收益率)/5.2 到期数据新鲜度(无近到期有效数据=证据不足)/5.3 观点标签-证据真绑定(重算机器可验证面;NOT_YET_TESTABLE 底证不得撑 SUPPORTED)/5.4 前视偏差(vintage/发布日)。已到期历史样本+合成边界案例即可验算法,不等日历门。
+3. **阶段四 一键AI研究闭环**: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完。
+4. **阶段五 真实E2E+独立验收**: 未优化过的真实宏观问题;十章产出齐全;独立审计查结论-证据绑定;受影响 AC 重验按实标 PASS/PARTIAL/FAIL/NOT_VERIFIED。
+5. **阶段六 状态更新+自动入下一轮**。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
+
+<!-- RD-CHECKPOINT v1: json {"round": 20, "date": "2026-11-12 18:47 HKT", "branch": "dev/rd-r20-state-mgmt", "commit": "fbc8f18f10e6a21bedd2f86f1b05833574a28ad0", "baseline": "fbc8f18f10e6a21bedd2f86f1b05833574a28ad0", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R20-1"], "next_task": "阶段二 持续执行验证: 实查 hooks/launchd/agent-loop 真实配置与运行日志(不引历史文档),Charter10 §4.4 七项环境验收如实标", "next_round": 21} -->
+
+## 下一步存档(2026-11-12 R20 收口后版)
+
+1. [已毕·R20] **阶段一 状态管理整改**: 唯一权威状态+任务台账(唯一ID/状态/Git证据)+六项一致性检查门(rd_state_consistency.py,CI 硬门)+检查点管线(rd_checkpoint.py --finalize,机器盖章取实际Git)+真实恢复验收测试(无上下文新Agent从文件恢复,核HEAD,不重做已完成)——三套件 62 判全绿;台账 T-R20-1 已毕移出。
 
 ## 下一步存档(2026-11-12 R8 验证+合并后版)
 
@@ -52,6 +61,9 @@
 
 ## 快照纪律
 
+- 轮次收口 = 人工 prose 先行(日志行/台账移出/快照 prose/队列归档)→
+  `scripts/rd_checkpoint.py --finalize` 机器盖章(检查点块+baseline+goal_sha)+
+  六项一致性门;盖章与 prose 同落一个 docs 提交。
 - 上下文过半: 更新 `CURRENT_STATE.md` + 本档「下一步」→ 继续工作。
 - 上下文将尽/会话将终: 立即停止开新任务,先完成完整检查点
   (实际进度/测试与审计结果/能力差距修订/分支与 Commit/下一步),再收尾。

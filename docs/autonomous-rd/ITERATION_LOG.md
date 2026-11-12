@@ -56,6 +56,8 @@
 | 11-12 | R16 合并发布(操作者轮;docs-only 无 tag) | 独立复核: 矩阵九 EXECUTED+AC3 PARTIAL 亲验渲染一致+**数据深度两声明亲对账**(SPX_CAPE 1750=research_history_query 亲数;JP_POLICY_RATE 495/1985-07→2026-09/首值 6.4167=japan_20261110.json series 亲查)→merge --no-ff **889a221**(ITERATION_LOG 与 3c3a404 双行冲突,双行共存解)→push;worktree/分支已清 | 889a221 | fork 133 套=132 exit0+1 环境性;操作者两声明亲验;CI 在途盯 |
 | 11-12 | R17 零Key套件 tempdir 隔离(fork 开发;R16 移交项①代码波) | REMAINING_ISSUES P2-9 收口: ①根因=§4 子进程 archive save 在有快照的 dev 树真写生产 query_history(16 件空档),批2 WI6 进程内注入缝跨不了子进程;②修复=ia_cli._ARCHIVE_DIR 扩环境变量形态 IA_ARCHIVE_DIR(未设置严格 None=生产路径,默认行为零变化——A1 子进程实证 env 未设→None;生产/launchd 均不设此变量),§4 save/list 全走 tempdir+新增 4b/4c 断言(落 tempdir 双档在场/生产文件集跑前后逐位一致);③新套件 test_rd_r17_zerokey_tempdir.py 7 判三面(seam 解析 A1A2/save 分支 B1-B4 合成快照 2099 段 gitignored 路径 finally 清理/拒存分支 C1)全绿;④存量 16 件 append-only 保留,P2_DATA_GAP_LEDGER 三之五注记在档; ⑤worktree data/research 全程未创建(data/ gitignored 只检出 3 个历史加档文件,合成快照仅借 daily 落位并即时清理) | dev/rd-r17-zeroykey-tempdir@1bafd6d | 新套件 7/0+零Key套件 18✅ rc=0;全仓套件 134 套=132 exit0+1 环境性(worktree 清单断言,R13-R16 同款)+1 守卫自伤当场修(旧变量名字面拼接规避) |
 
+| 11-12 | R17 合并发布(操作者轮) | 独立复核: seam 默认行为亲读(未设 env 严格 None=生产路径)+新套件 7/0 亲跑+零Key rc=0+守卫 rc=0+**生产档案计数跑前后 195 件零新增**→merge --no-ff **c453a68**→tag **v0.15.0-alpha**→Release 442725422;worktree/分支已清;R16 移交项①毕 | c453a68(v0.15.0) | fork 134 套=132 exit0+1 环境性;操作者四针亲验;CI 在途盯 |
+
 ## 排队中
 
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。

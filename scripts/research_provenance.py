@@ -927,6 +927,11 @@ FACT_QUALITY = ('PASS', 'WARN', 'DEGRADED', 'FAIL')
 # /文件不可读/解析失败/sha256失配/档内无该节或键)=采集遗漏或子源缺席
 # 不可区分(诚实兜底)。分类只改noncore_missing_detail话术——清单成员/
 # Gate状态判定零变动(见tests/test_rd_r11_subsource_missing.py契约锁)。
+# R12(2026-11-12,R11审计MINOR收口): ①japan_rate_collector 日档顶层同步
+# 持久化子源级sources_status(键MOF_JGBCME/FRED_POLICY,词汇对齐jp采集器
+# 同上游源),registry v2.8.4 接线4条(JP_POLICY_RATE/JGB2Y/JGB5Y/JGB10Y);
+# ②兜底话术按证据链断点归因(注册表未登记键/未提供data_dir/档内无记录
+# 三分支,不再一律归咎"档内无记录")。
 
 def _channel_subsource_map(st, data_dir, trusted_root=None, cache=None):
     """读取通道采集档内持久化的子源级sources_status(可选证据,只读不加信)。
@@ -977,12 +982,23 @@ def _missing_reason_file_present(mid, m, src_input, st, data_dir,
     """FIX4-03"来源文件在场而指标缺席"的R11子源级分类话术(纯reason串)。
 
     三分支(见R11节注释);任何证据环节不可得都落诚实兜底分支,绝不在
-    无证据时断言"采集遗漏"或"子源缺席"。"""
+    无证据时断言"采集遗漏"或"子源缺席"。
+    R12(2026-11-12,R11审计MINOR收口): 兜底话术按证据链断点归因——
+    注册表未登记source_key→"注册表未登记该指标子源状态键"(证据链未
+    启动,不得归咎档内);已登记而未提供data_dir(纯重验模式)→"未提供
+    采集目录,子源状态证据不可核"(未读档,不得归咎档内);读档而无该键
+    记录(含档无sources_status节/sha失配/键缺席)→"档内无该指标子源
+    状态记录"。三分支均为"采集遗漏或子源缺席不可区分"的诚实兜底,
+    仅归因措辞精确化,清单成员/Gate判定零变动。"""
     skey = m.get('source_key')
-    sub = None
-    if isinstance(skey, str) and skey:
-        smap = _channel_subsource_map(st, data_dir, trusted_root, cache)
-        sub = smap.get(skey) if isinstance(smap, dict) else None
+    if not (isinstance(skey, str) and skey):
+        return ('来源文件在场而指标缺席(采集遗漏或子源缺席'
+                '——注册表未登记该指标子源状态键,不可区分)')
+    if data_dir is None:
+        return ('来源文件在场而指标缺席(采集遗漏或子源缺席'
+                '——未提供采集目录,子源状态证据不可核,不可区分)')
+    smap = _channel_subsource_map(st, data_dir, trusted_root, cache)
+    sub = smap.get(skey) if isinstance(smap, dict) else None
     if isinstance(sub, dict) and isinstance(sub.get('status'), str):
         if sub.get('status') == 'EXACT':
             return (f'来源文件在场且子源{skey}取数成功而指标缺席'

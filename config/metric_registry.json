@@ -1,5 +1,5 @@
 {
- "version": "2.8.3",
+ "version": "2.8.4",
  "created": "2026-10-17",
  "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
  "field_semantics": {
@@ -22,9 +22,10 @@
   "market_seat": "市场座位: onshore_local=本币在岸市场/境内序列;offshore_proxy=跨市场离岸代理(US上市ETF);global=全球跨市场定价(商品/加密/汇率/Fed期货)",
   "observation_period_kind": "观测期语义(人工登记,禁从frequency推断): trading_day=市场交易时段观测(假日缺口非缺数)/calendar_day=日历日观测(含24/7市场与日历日生效的政策利率)/calendar_month=日历月统计期;缺键=未登记(ICSA观测期=日历周,枚举无对应值→不登记),输出层如实null不默认",
   "release_date_available": "逐观测发布日掌握性(人工登记): true=发布日已知或按已知规则(市场序列观测即发布;政策/管理利率决议或操作当日公布,DFF次日;LPR每月20日09:15;ICSA每周四)/false=统计类宏观发布滞后且逐观测发布日本仓未登记;缺键=未登记(null);快照fact层release_date实测值覆盖本登记(数据>登记)",
-  "source_key": "指标→采集档内子源状态键(可选;仅当该指标来源采集器在其日档持久化子源级sources_status时登记,如ea_*.json的BBK_WU3146/ECB_FM_MRO、jp_*.json的JP_CPI_TOKYO)。Gate A非核心缺失注记据此区分: 子源READ_FAIL/MISSING=子源缺席(源端不可得/白名单域未采,非采集遗漏)/子源EXACT而指标缺席=采集遗漏/无该字段或档内证据不可得=采集遗漏或子源缺席不可区分(诚实兜底)"
+  "source_key": "指标→采集档内子源状态键(可选;仅当该指标来源采集器在其日档持久化子源级sources_status时登记,如ea_*.json的BBK_WU3146/ECB_FM_MRO、jp_*.json的JP_CPI_TOKYO、japan_*.json(R12起)的MOF_JGBCME/FRED_POLICY)。Gate A非核心缺失注记据此区分: 子源READ_FAIL/MISSING=子源缺席(源端不可得/白名单域未采,非采集遗漏)/子源EXACT而指标缺席=采集遗漏/无该字段或档内证据不可得=采集遗漏或子源缺席不可区分(诚实兜底)"
  },
  "notes": [
+  "v2.8.4(R12,2026-11-12): japan 通道 source_key 补接(R11 审计 MINOR 收口)——japan_rate_collector 日档顶层新增子源级 sources_status 节(键词汇对齐 jp_market_collector 同上游源: MOF_JGBCME/FRED_POLICY;EXACT=取数解析出有效观测/READ_FAIL=获取或整体解析失败,列级坏值仍 EXACT 由 alerts 披露;旧档无该节不受影响)。接线4条: JP_POLICY_RATE→FRED_POLICY,JGB2Y/JGB5Y/JGB10Y→MOF_JGBCME。Gate A 兜底话术同步三分支归因(注册表未登记子源键/未提供采集目录/档内无记录,不再一律归咎档内)。指标集与通道零变动(108 active 不变),noncore_missing 成员与 Gate 状态判定零变动(纯话术层)。",
   "v2.8.3(R11,2026-11-12): noncore_missing 注记细化——新增可选字段 source_key(指标→采集档内子源状态键;ea/jp 采集器日档已持久化 sources_status 节)。Gate A 重算在\"来源文件在场而指标缺席\"时按子源实际状态分类: READ_FAIL/MISSING=子源缺席(源端不可得/白名单域未采,非采集遗漏),EXACT=采集遗漏,证据不可得=采集遗漏或子源缺席不可区分(诚实兜底;P2台账R10候选①收口)。接线7条: ECB_DFR/ECB_MRO/BUND_10Y/BUND_2Y/EA_HICP_YOY/JP_CPI_TOKYO_YOY/NIKKEI225。指标集与通道零变动(108 active 不变),noncore_missing 成员与 Gate 状态判定零变动(纯话术层)。",
   "v2.8.2(R9,2026-11-12): CN_SF_FLOW 社融增量换通道——akshare macro_china_shrzgm(本机 LibreSSL 2.8.3 与 mofcom TLS 协商即断)→china_market_collector 直取 mofcom shrzgmQuery.tiosfs(curl 子进程);商务部镜像现值至 2026-04(7 个月滞后→noncore_degraded 如实,优于缺席)。BUND_10Y/BUND_2Y 维持 BBK 网络层封锁登记(四路证据);JP_CPI_TOKYO_YOY 维持 PENDING(e-stat 免费注册/白名单域=待裁定)。",
   "v2.8.1(2026-11-11,R6-D1 源切换): CN_CPI_YOY/CN_PPI_YOY 采集换源——akshare金十族停更(1.18.47实测 cpi/ppi_yearly 返回尾值 2008-02/2006-01,停更后持续写旧值)→tushare pro cn_cpi.nt_yoy/cn_ppi.ppi_yoy(现有token只读,实测202609新鲜);source_symbol同步(tushare_pro.cn_cpi.nt_yoy/tushare_pro.cn_ppi.ppi_yoy);月度统计期→月末观测日;110条/108 active不变",
@@ -2897,6 +2898,7 @@
    "display_name": "日本无担保隔夜拆借利率(月均)",
    "source": "japan_rate_collector",
    "source_symbol": "IRSTCI01JPM156N",
+   "source_key": "FRED_POLICY",
    "asset_class": "policy_rate",
    "frequency": "monthly",
    "observation_period_kind": "calendar_month",
@@ -2931,6 +2933,7 @@
    "display_name": "2年期日债收益率",
    "source": "japan_rate_collector",
    "source_symbol": "2Y",
+   "source_key": "MOF_JGBCME",
    "asset_class": "rates_yield",
    "frequency": "daily",
    "observation_period_kind": "trading_day",
@@ -2965,6 +2968,7 @@
    "display_name": "5年期日债收益率",
    "source": "japan_rate_collector",
    "source_symbol": "5Y",
+   "source_key": "MOF_JGBCME",
    "asset_class": "rates_yield",
    "frequency": "daily",
    "observation_period_kind": "trading_day",
@@ -2999,6 +3003,7 @@
    "display_name": "10年期日债收益率",
    "source": "japan_rate_collector",
    "source_symbol": "10Y",
+   "source_key": "MOF_JGBCME",
    "asset_class": "rates_yield",
    "frequency": "daily",
    "observation_period_kind": "trading_day",

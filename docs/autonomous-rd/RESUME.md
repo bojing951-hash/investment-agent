@@ -23,21 +23,25 @@
 ## 下一步(2026-11-12 R20 检查点后 · Charter 10 整改队列)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
-> 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(现=fbc8f18 祖先链上);不成立=状态可疑,先对账再动工。
+> 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
 按 CHARTER_10_RECTIFICATION.md §十一 阶段执行:
 
-1. **阶段二 持续执行验证**: 实查 hooks/launchd/agent-loop 真实配置与运行日志(不得引历史文档),4.4 七项环境验收如实标 PASS/NOT_VERIFIED/FAIL,防死循环两轮无实质进展触发根因复审。
-2. **阶段三 金融正确性**: 先复现后修——5.1 汇率方向语义(USDJPY/EURUSD/DXY/利率/国债价格收益率)/5.2 到期数据新鲜度(无近到期有效数据=证据不足)/5.3 观点标签-证据真绑定(重算机器可验证面;NOT_YET_TESTABLE 底证不得撑 SUPPORTED)/5.4 前视偏差(vintage/发布日)。已到期历史样本+合成边界案例即可验算法,不等日历门。
-3. **阶段四 一键AI研究闭环**: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完。
-4. **阶段五 真实E2E+独立验收**: 未优化过的真实宏观问题;十章产出齐全;独立审计查结论-证据绑定;受影响 AC 重验按实标 PASS/PARTIAL/FAIL/NOT_VERIFIED。
-5. **阶段六 状态更新+自动入下一轮**。
+1. **阶段三 金融正确性(当前最重要产品能力缺口)**: 先复现后修——5.1 汇率方向语义(USDJPY/EURUSD/DXY/利率/国债价格收益率)/5.2 到期数据新鲜度(无近到期有效数据=证据不足)/5.3 观点标签-证据真绑定(重算机器可验证面;NOT_YET_TESTABLE 底证不得撑 SUPPORTED)/5.4 前视偏差(vintage/发布日)。已到期历史样本+合成边界案例即可验算法,不等日历门。
+2. **阶段四 一键AI研究闭环**: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完。
+3. **阶段五 真实E2E+独立验收**: 未优化过的真实宏观问题;十章产出齐全;独立审计查结论-证据绑定;受影响 AC 重验按实标 PASS/PARTIAL/FAIL/NOT_VERIFIED。
+4. **阶段六 状态更新+自动入下一轮**。
+5. **操作者席待办(R21 移交)**: 候选钩子包 ops/hooks-candidate/ 安装(README 四步);R21 合并发布;明日 LIVE daily 首跑 v0.15.0 面观察(11-14 周六=ZQ 族观察钟)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 <!-- RD-CHECKPOINT v1: json {"round": 20, "date": "2026-11-12 19:09 HKT", "branch": "main", "commit": "dfad40ea88e51e0b7371a3caff3d9950c8f33979", "baseline": "dfad40ea88e51e0b7371a3caff3d9950c8f33979", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R20-1"], "next_task": "阶段二 持续执行验证: 实查 hooks/launchd/agent-loop 真实配置与运行日志(§4.4 七项环境验收如实标 PASS/NOT_VERIFIED/FAIL),防死循环两轮无实质进展触发根因复审", "next_round": 21} -->
+
+## 下一步存档(2026-11-12 R21 收口后版)
+
+1. [已毕·R21] **阶段二 持续执行验证**: §4.4 七项矩阵全实查 6 PASS+1 PARTIAL(无头压缩恢复无实例子面,零冒认);防死循环顾问 rd_progress_watch.py(漂移/返工预警,finalize 随行+CI 非阻塞)+finalize 事故弧回归锁 18 判+候选钩子包 ops/hooks-candidate/(待操作者安装);报告=R21_CONTINUOUS_EXECUTION_AUDIT.md。台账 T-R21-1 待合并。
 
 ## 下一步存档(2026-11-12 R20 收口后版)
 

@@ -81,6 +81,9 @@ if not am:
     die(8, 'RESUME 无活动区 ## 下一步(')
 ends = [h.start() for h in re.finditer(r'^## ', res[am.end():], re.M)]
 active = res[am.start():am.end() + ends[0]] if ends else res[am.start():]
+# 检查点块=机器元数据(内含 completed_ids),不是队列 prose——扫描前剥离
+active = re.sub(r'<!--\s*RD-CHECKPOINT v1: json\s*\{.*?\}\s*-->', '', active,
+                flags=re.S)
 
 log = open(os.path.join(state_dir, 'ITERATION_LOG.md'),
            encoding='utf-8').read()

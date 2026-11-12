@@ -28,9 +28,11 @@ Codex 仓库级零安装即发现)。本安装器把源**物理复制**到各宿
                                [--uninstall]
 """
 import argparse
+import hashlib
 import json
 import os
 import shutil
+import subprocess
 import sys
 import time
 
@@ -138,9 +140,73 @@ def verify_install(dest):
     return problems
 
 
+def _git_root():
+    """ROOT 所在 git 仓库根;非 git 环境(archive/ZIP 装机)→ None。"""
+    try:
+        r = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--show-toplevel'],
+                           capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def _blob_sha(data):
+    """git blob 对象 sha1(内容寻址;与 git ls-tree 的 objectname 同口径)。"""
+    return hashlib.sha1(b'blob %d\x00%s' % (len(data), data)).hexdigest()
+
+
+def matches_source_history(dest, max_commits=64):
+    """已装副本是否与源树**任一历史版本**逐字节一致(R12 语义修正)。
+
+    local_modifications 只对比当前源,分不清「用户改过」与「装机面停在旧版」:
+    后者是常规升级场景(git pull 后重装),旧语义一律拒装逼 --force(v0.5.0 登记
+    的「装机副本须 --force」坑)。本函数把副本树映射为 {相对路径: blob sha},
+    与 git 历史中源目录各版本 ls-tree 比对;命中任一历史版本=非用户改动
+    (副本内容在仓库里逐字节存在过),可走幂等升级刷新,无需 --force/备份。
+    非 git 环境无历史可查 → False(保守回落旧语义)。
+    """
+    groot = _git_root()
+    if not groot:
+        return False
+    # git 返回的是 realpath(/private/tmp ↔ /tmp);SOURCE 须同口径归一,否则
+    # relpath 算出跨符号链接的 ../ 链,git log 路径过滤必空(macOS tmp 夹具踩过)
+    rel_src = os.path.relpath(os.path.realpath(SOURCE), groot)
+    try:
+        log = subprocess.run(
+            ['git', '-C', groot, 'log', '--format=%H', '-n', str(max_commits),
+             '--', rel_src], capture_output=True, text=True, timeout=30)
+        if log.returncode != 0:
+            return False
+        installed = {}
+        for base, _dirs, files in os.walk(dest):
+            for fn in files:
+                rel = os.path.relpath(os.path.join(base, fn), dest)
+                if rel == PATH_FILE:
+                    continue
+                with open(os.path.join(base, fn), 'rb') as fh:
+                    installed[rel] = _blob_sha(fh.read())
+        for commit in log.stdout.split():
+            ls = subprocess.run(
+                ['git', '-C', groot, 'ls-tree', '-r', commit, '--', rel_src],
+                capture_output=True, text=True, timeout=30)
+            if ls.returncode != 0:
+                continue
+            hist = {}
+            for line in ls.stdout.splitlines():
+                meta, path = line.split('\t', 1)
+                sha = meta.split()[2]
+                hist[os.path.relpath(path, rel_src)] = sha
+            if installed == hist:
+                return True
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return False
+    return False
+
+
 def install_one(dest, force=False):
     os.makedirs(os.path.dirname(dest), exist_ok=True)
     backup = None
+    stale_refresh = False
     if os.path.islink(dest):  # 历史链接残留: 换成实体复制(链接是搬移脆弱点)
         os.unlink(dest)
     elif os.path.isdir(dest):
@@ -149,13 +215,18 @@ def install_one(dest, force=False):
                     'error': '目标已存在且不属于本技能,拒绝覆盖'}
         mods = local_modifications(dest)
         if mods:
-            if not force:
+            if matches_source_history(dest):
+                # 装机面停在源树某历史版本(非用户改动): 幂等升级刷新
+                shutil.rmtree(dest)
+                stale_refresh = True
+            elif not force:
                 return {'target': dest, 'ok': False,
                         'error': '已装副本相对源树有本地修改,拒绝覆盖'
                                  '(防静默丢失改动);确需覆盖用 --force(旧目录先备份)',
                         'local_modifications': mods[:10]}
-            backup = f"{dest}.bak-{time.strftime('%Y%m%d-%H%M%S')}"
-            shutil.move(dest, backup)  # 先备份再替换,不静默销毁用户改动
+            else:
+                backup = f"{dest}.bak-{time.strftime('%Y%m%d-%H%M%S')}"
+                shutil.move(dest, backup)  # 先备份再替换,不静默销毁用户改动
         else:
             shutil.rmtree(dest)  # 与源一致的副本: 幂等刷新
     shutil.copytree(SOURCE, dest)  # 物理复制,非符号链接
@@ -170,6 +241,8 @@ def install_one(dest, force=False):
            'verify_problems': problems}
     if backup:
         out['backup'] = backup
+    if stale_refresh:
+        out['stale_version_refreshed'] = True
     return out
 
 
@@ -183,7 +256,8 @@ def uninstall_one(dest, force=False):
         return {'target': dest, 'ok': False,
                 'error': '目标不属于本技能(无对应 SKILL.md),拒绝删除'}
     mods = local_modifications(dest)
-    if mods and not force:
+    if mods and not force and not matches_source_history(dest):
+        # R12: 停在历史版本的装机面可径直卸载(无用户改动可丢),仅真修改面须 --force
         return {'target': dest, 'ok': False,
                 'error': '副本相对源树有本地修改,卸载会丢失;确需卸载用 --force',
                 'local_modifications': mods[:10]}

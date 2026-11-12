@@ -64,6 +64,8 @@
 
 | 11-12 | R20 状态管理整改(fork 开发;Charter 10 阶段一) | 六项一致性检查门 scripts/rd_state_consistency.py(①基线 main⊆baseline⊆HEAD·四类容忍 ②RESUME健全·禁滞留[进行中]标记 ③台账规范·已毕只进日志 ④矩阵节枚举 ⑤日志轮次纪律·回流/滞留/称毕三态 ⑥goal_sha 防目标漂移;浅克隆降级注记)+检查点管线 scripts/rd_checkpoint.py(--verify/--show/--finalize 分工: prose 人工先行,机器盖章取实际 Git/文件 sha,无日志行拒盖章=防先称毕)+CI offline-tests 增六项硬门步;三套件 62 判(合成仓45: 变异锁牙28+管线7+浅克隆4+真仓ratchet;真状态反例12;无上下文恢复验收5: 隔离子解释器模拟新Agent+陈旧HEAD/任务回流/目标漂移三类拒启;Agent扫回流前剥离检查点块——块内completed_ids系机器元数据非队列prose,6de30f5 修R1/R1a假红);状态档手术: 台账 T-R20-1 挂账→收口/机器 baseline 行/RESUME 恢复步骤重写(检查点块优先+HEAD 亲核)/CLAUDE.md 收口纪律;治 R15→R19 手写状态档失同步根因 | dev/rd-r20-state-mgmt@6de30f5 | 三套件全绿(45+12+5,真仓 ratchet 随 finalize 转绿);§七如实: 本波=系统能力(状态管理机器化),研究能力面无变化 |
 
+| 11-12 | R20 合并发布(操作者轮) | 独立复核: 门 6/6 亲跑+三套件 62 判亲跑全绿+CI 门 diff 亲读(shallow 先 unshallow)→merge --no-ff **f88da04**→tag **v0.16.0-alpha**→Release 442831515;撞车始末核档(rounds 18:5x 第二无头实例让席,产出吸收正典);worktree/分支已清;CI 首跑即带新门 | f88da04(v0.16.0) | 操作者三面亲验;本行=prose,门随行核 |
+
 ## 排队中
 
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。

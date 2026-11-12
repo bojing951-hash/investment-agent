@@ -4,7 +4,37 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-12 (HKT, R14 AC10 红线终审+USER_GUIDE 代理落档·fork 开发)
+## 快照: 2026-11-12 (HKT, R15 AC1+AC2+AC8 正式验证轮·fork 开发)
+
+- **R15(AC 覆盘轮第二波)已完成**: 分支 `dev/rd-r15-ac1-ac2-ac8` @(本 commit,
+  基于 main dc4c57a;独立 worktree /tmp/r15-wt,防撞车纪律;真实数据只读引用
+  dev 树,零写入)。按 PRODUCT_GOAL §八原文定义独立复核三 AC,证据=本席亲跑
+  命令+亲算数值:
+  **AC1 真实全球宏观全景→EXECUTED**(终判 PASS 候选): registry v2.8.4 110
+  指标零缺 source/source_symbol(US57/CN18/GLOBAL12/EA11/JP8/HK4);快照 v2
+  103 facts 全带值/单位/观测日/as_of/源;md 展示面=指标|值|单位|观测日|周变化|
+  身份备注|质量+8 通道源状态表+Gate A 5 noncore_missing 逐项带因+P2 台账;
+  derived week/mtd 窗含 basis+formula 71/103(余 32 月频水平显式示—);
+  口径注记=v2 md 缺失措辞为 R11 三分支归因之前的旧口径(不可变快照保留,现行
+  代码更细)。
+  **AC2 真实机构研究→EXECUTED**(终判 PASS 候选): 17 档四要素(机构/报告/
+  发布时间/原始内容)17/17 零缺,schema 1.1;access_level 逐档披露
+  (public_full10/summary6/headline1)+source_url 17/17,15 机构;明示 vs
+  AI推导=结构强制(view_store.py:163-201 attribution 枚举硬拦截,112/112
+  core_views=institution_stated,AI 推导隔离于 VP sidecar 独立层 17/17);
+  C 型首验窗 2026-12 日历门如实未判。
+  **AC8 研究可复核→EXECUTED**(终判 PASS 候选): 三层链亲验——QB-001
+  digest_snapshot=d912054bb6e154a3 按正口径(canonical JSON sha256[:16])亲算
+  当前 v2 逐位一致(注:内容指纹,非文件字节);SPX 11-11 收盘 7609.63+周基准
+  7376.85 物理在场于 global_20261112.json;独立复算 4 组全中(ZQ−DFF=
+  4.185−3.88=+0.305pp 实证 correction-1 更正正确,档案原值 0.295 为算错;
+  SPX 周 +3.16%;NDX 周 +5.2942%;REAL_10Y 恒等 4.88−2.20=2.68 精确)。
+  N1 兼证 AC8 条款②闭环: 审计发现错→评注更正→结论方向不变的越界判断。
+  **移交 R16**: ①AC6 行「AC7 未跑」注记过时须更新;②QB-005~008 零Key边缘
+  档归档说明注记;③AC4+AC5 正式验证(矩阵最后两个 NOT_VERIFIED)。
+  报告=`docs/autonomous-rd/R15_AC1_AC2_AC8_VERIFICATION.md`。
+
+## 前一快照: 2026-11-12 (HKT, R14 AC10 红线终审+USER_GUIDE 代理落档·fork 开发)
 
 - **R14(AC 覆盘轮第一波)已完成**: 分支 `dev/rd-r14-ac10-redline` @(本 commit,
   基于 main 7a58f8f;独立 worktree /tmp/r14-wt,防撞车纪律)。

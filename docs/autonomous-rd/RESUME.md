@@ -16,69 +16,23 @@
 6. 在 `dev/*` 分支工作;未经授权不合 main、不推送、不付费、不碰生产。
    结束前完成阶段检查点(纪律见 `CLAUDE.md`)。
 
-## 下一步(2026-11-12 R17 零Key套件 tempdir 隔离收口后更新)
+## 下一步(2026-11-12 R19 终审落章后 · Charter 10 整改队列)
 
-1. **[已毕·R9] 采集缺口波**: CN_SF_FLOW mofcom 直取(merge=bd8b853,v0.12.0-alpha,
-   Release 442060959);BUND 双年限=四路证据源端封锁维持诚实缺席;JP_CPI_TOKYO=
-   e-stat 需免费 appId 新凭证留用户裁定;CN_OMO_7D source-blocked 不动。
-2. **[已毕·R10] tushare 月度缓存硬化**: 操作者已合并发布(a2afe5d,v0.13.0-alpha,
-   Release 442290356);边界如实: 冷启动同瞬双拉仍可撞限流(收窄非消除,P2 台账)。
-3. **[已毕·R11] noncore_missing 子源级注记细化**: 操作者已合并(12c3c0f 面)。
-4. **[已毕·R12] AC9 干净环境全链覆盘**(dev/rd-r12-ac9-clean@9de4cc8+docs):
-   ①安装器 --force 坑修复(matches_source_history 旧版面幂等刷新,16/0+32/0)
-   ②干净环境七步链全真通(安装→配置→更新 15/15 v2 同日修订→研究两问→地图→
-   追溯 3/3 sha256→归档 QB-20261112-001);首轮 Gate A 拒=港股双通道环境面
-   (LIVE 同日同败铁证),补 HTTPS_PROXY 恢复设计姿态后闭环;**波次毕,待操作者
-   合并**。
-5. **[已毕·R13] japan 通道 source_key 补接**(R11 审计 MINOR 收口,即下条
-   原②): `dev/rd-r13-japan-source-key`@f242c63(分支含 AC9 波叠加,见
-   CURRENT_STATE 注)——采集器落盘 sources_status+registry v2.8.4 接线 4 条+
-   兜底话术三分支归因;独立审计四维全 PASS 零 MINOR 终判可并入;**波次毕,
-   待操作者合并**(与 R12/AC9 波同分支一并)。
-6. **[已毕·R14] AC10 红线终审+USER_GUIDE 代理说明**: 操作者已合并发布(dc4c57a)。
-7. **[已毕·R15] AC1+AC2+AC8 正式验证轮**(本分支): 三 AC 按定义独立复核全达
-   EXECUTED(终判=PASS 候选留用户席)——AC1 真实全景(registry 110 零缺源+快照
-   103 facts 0 缺+展示面五要素+缺口诚实)、AC2 机构研究(17 档四要素零缺+
-   attribution 枚举硬拦截+112/112 institution_stated)、AC8 可复核(digest 链
-   逐位一致+4 组独立复算全中,ZQ−DFF=0.305 实证 correction-1 正确);报告
-   R15_AC1_AC2_AC8_VERIFICATION.md;**波次毕,待操作者合并**。
-8. **[已毕·R16] AC4+AC5 正式验证+AC6 收口**(本分支): AC4(analog 真跑+距离
-   亲算六位一致+深度对账全中)/AC5(QB-032 六要素+引数复算命中)全 EXECUTED,
-   AC6 收口 EXECUTED;QB-005~008 根因=零Key套件本地真写档(修复候选登记,
-   REMAINING_ISSUES P2+1);**矩阵=九项 EXECUTED+AC3 PARTIAL(2026-12 日历门)**;
-   报告 R16_AC4_AC5_AC6_VERIFICATION.md;**波次毕,待操作者合并**。
-9. **[已毕·R17] 零Key套件 §4 tempdir 隔离**(本分支): `ia_cli._ARCHIVE_DIR` 扩
-   IA_ARCHIVE_DIR 环境变量注入缝(未设严格 None=默认零变化,A1 实证),§4 全走
-   tempdir+新套件 7/0+零Key套件 18✅;存量 16 件 append-only 注记在档
-   (P2_DATA_GAP_LEDGER 三之五,REMAINING_ISSUES P2-9 已标已修);**波次毕,
-   待操作者合并**。
-10. **[下一候选] 终判覆盘轮材料包**(矩阵十行终判+日历门 F=2026-12-05
-   /六标签首验窗 2026-12 状态一并呈报用户裁定席);③LIVE 部署脚本
-   /tmp/deploy_v0141_live.py 待用户终端跑(生产仍 v0.11 面)。
-   macOS 系统代理不自动进 shell env,境外源(yfinance)在 shell/launchd 启动
-   管线时须 HTTPS_PROXY=http://127.0.0.1:7890;R12 首轮 Gate A 拒即此因)
-   ②HK 双通道
-   脆弱面观察(腾讯 WAF 深窗拦[2026-11-12 实测 2600 拦/320 通,与 11-10 记录
-   的 >320 拦不同——阈值浮动,以当日实测为准;HK_INDEX_HISTORY_BARS env 缝=
-   2000 根保底]+yfinance 依赖代理姿态)③china/macro 采集器子源失败落盘(现只
-   print 不落盘,CN_OMO_7D 等 china 缺席只能兜底不可区分;落盘后可接线
-   source_key 精确分类)④R13 审计 2 NIT 留档(data_dir 空串理论角落/三期限
-   列全坏值措辞张力,纯话术层不阻塞)⑤R2/R1 审计 MINOR 存量(OPEN_ISSUES
-   技术待办按需取用)。
-7. **[下轮=R15 候选·按序]**: ①AC 覆盘轮续: AC1-AC6 正式验证轮+AC8 端到端
-   复核(逐一对照 FINAL_ACCEPTANCE 定义独立核验,预计两波)②HK 双通道脆弱面
-   观察(腾讯 WAF 深窗拦阈值浮动[11-12 实测 2600 拦/320 通];HK_INDEX_HISTORY_BARS
-   env 缝=2000 根保底+yfinance 依赖代理姿态)③china/macro 采集器子源失败落盘
-   (现只 print 不落盘,落盘后可接线 source_key 精确分类)④R13 审计 2 NIT 留档
-   (data_dir 空串理论角落/三期限列全坏值措辞张力,纯话术层不阻塞)⑤R2/R1 审计
-   MINOR 存量(OPEN_ISSUES 技术待办按需取用)。
-8. **[待用户/操作者·无头权限面外]**: ①R12(AC9)+R13(japan)两波合并 main+发布(验收绿即合并
-   纪律,操作者会话执行)②v0.13.x LIVE 同步(R10 轮遗留,部署脚本已备
-   /tmp/deploy_v013_live.py,分类器静态规则拦,待用户终端亲跑或加 Bash 白名单)
-   ③AC7/AC9 终判覆盘轮(两行均 EXECUTED 已定,终判待用户裁定)。
-9. **[日历门] 2026-12-05 F 补证轮由引擎自动触发,勿手工提前;六标签首验窗
-   2026-12(注意: R5 后 7 假设有判=A/B 阶段面;C 层到期判定不受影响)**;
-   金油比开放题观察钟 2026-12 同窗。
+> **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
+> 恢复第一步: `git rev-parse HEAD` 核对基线(现=9e85699 祖先链上);不一致=状态可疑,先对账再动工。
+
+按 CHARTER_10_RECTIFICATION.md §十一 阶段执行:
+
+1. **[进行中·R20] 阶段一 状态管理整改**: 唯一权威状态+任务台账(唯一ID/状态/Git证据)+一致性检查门+自动状态管线+真实恢复验收测试(新Agent从文件恢复,核HEAD,不重做已完成)。
+2. **阶段二 持续执行验证**: 实查 hooks/launchd/agent-loop 真实配置与运行日志(不得引历史文档),4.4 七项环境验收如实标 PASS/NOT_VERIFIED/FAIL,防死循环两轮无实质进展触发根因复审。
+3. **阶段三 金融正确性**: 先复现后修——5.1 汇率方向语义(USDJPY/EURUSD/DXY/利率/国债价格收益率)/5.2 到期数据新鲜度(无近到期有效数据=证据不足)/5.3 观点标签-证据真绑定(重算机器可验证面;NOT_YET_TESTABLE 底证不得撑 SUPPORTED)/5.4 前视偏差(vintage/发布日)。已到期历史样本+合成边界案例即可验算法,不等日历门。
+4. **阶段四 一键AI研究闭环**: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完。
+5. **阶段五 真实E2E+独立验收**: 未优化过的真实宏观问题;十章产出齐全;独立审计查结论-证据绑定;受影响 AC 重验按实标 PASS/PARTIAL/FAIL/NOT_VERIFIED。
+6. **阶段六 状态更新+自动入下一轮**。
+
+- 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
+- [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。
+- [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 ## 下一步存档(2026-11-12 R8 验证+合并后版)
 

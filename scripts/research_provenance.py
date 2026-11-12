@@ -916,6 +916,83 @@ def _short(v, n=40):
 FACT_QUALITY = ('PASS', 'WARN', 'DEGRADED', 'FAIL')
 
 
+# ══ R11(2026-11-12): noncore_missing 子源级注记细化(话术层,零裁决变动) ══
+# P2台账R10候选①: "来源文件在场而指标缺席(采集遗漏)"为文件级泛化文案——
+# BBK源站断连(READ_FAIL)/白名单域未采(MISSING)这类诚实子源缺席被误标
+# "采集遗漏"。ea/jp 采集器日档已持久化子源级sources_status(ea_*.json/
+# jp_*.json顶层sources_status节,BBK_WU3146/ECB_FM_MRO/JP_CPI_TOKYO等键),
+# 注册表v2.8.3起以可选字段source_key登记"指标→子源状态键"映射,重算时
+# 据此分类: 子源非EXACT=子源缺席(源端不可得/未采,非采集遗漏);子源EXACT
+# 而指标缺席=采集遗漏(采集器已取到而事实未生成);证据不可得(未给data_dir
+# /文件不可读/解析失败/sha256失配/档内无该节或键)=采集遗漏或子源缺席
+# 不可区分(诚实兜底)。分类只改noncore_missing_detail话术——清单成员/
+# Gate状态判定零变动(见tests/test_rd_r11_subsource_missing.py契约锁)。
+
+def _channel_subsource_map(st, data_dir, trusted_root=None, cache=None):
+    """读取通道采集档内持久化的子源级sources_status(可选证据,只读不加信)。
+
+    st=快照sources_status[通道](EXACT/FALLBACK,含file基准名与sha256);
+    data_dir=采集目录(与sources_status_problems同口径,缺省None=纯重验
+    模式→证据不可得);trusted_root同FIX7-01(缺省=可信代码位置推导)。
+    读取一律经trusted_source_dir已验证物理路径(FIX8-03:检查对象=访问
+    对象);档内容sha256与快照记录失配→证据不可用(None,不虚报——正式
+    流程中sources_status_problems已先行拒绝整档,此处为纵深防御)。
+    返回子源状态dict{键:{status,...}}|None(任何环节不可得);cache=调用方
+    每次重算传入的共享dict(目录+文件名→结果),避免逐指标重复读盘。"""
+    if not isinstance(st, dict) or data_dir is None:
+        return None
+    fil = st.get('file')
+    if not isinstance(fil, str) or not fil.strip() \
+            or '/' in fil or '\\' in fil or os.path.isabs(fil):
+        return None   # 文件身份不可用( sources_status_problems 已另行处置)
+    ck = (str(data_dir), fil)
+    if isinstance(cache, dict) and ck in cache:
+        return cache[ck]
+    parsed = None
+    try:
+        verified, probs = trusted_source_dir(data_dir, trusted_root)
+        if not probs:
+            full = os.path.join(verified, fil)
+            if os.path.isfile(full) and not os.path.islink(full):
+                with open(full, 'rb') as f:
+                    raw = f.read()
+                sha = st.get('sha256')
+                if not (isinstance(sha, str) and sha
+                        and hashlib.sha256(raw).hexdigest() == sha):
+                    raw = None   # 无摘要或失配→子源证据不可用(不虚报)
+                if raw is not None:
+                    doc = json.loads(raw.decode('utf-8'))
+                    sub = doc.get('sources_status') if isinstance(doc, dict) \
+                        else None
+                    parsed = sub if isinstance(sub, dict) else None
+    except Exception:
+        parsed = None   # 读取/解析失败=证据不可得,透明降级(不影响裁决)
+    if isinstance(cache, dict):
+        cache[ck] = parsed
+    return parsed
+
+
+def _missing_reason_file_present(mid, m, src_input, st, data_dir,
+                                 trusted_root=None, cache=None):
+    """FIX4-03"来源文件在场而指标缺席"的R11子源级分类话术(纯reason串)。
+
+    三分支(见R11节注释);任何证据环节不可得都落诚实兜底分支,绝不在
+    无证据时断言"采集遗漏"或"子源缺席"。"""
+    skey = m.get('source_key')
+    sub = None
+    if isinstance(skey, str) and skey:
+        smap = _channel_subsource_map(st, data_dir, trusted_root, cache)
+        sub = smap.get(skey) if isinstance(smap, dict) else None
+    if isinstance(sub, dict) and isinstance(sub.get('status'), str):
+        if sub.get('status') == 'EXACT':
+            return (f'来源文件在场且子源{skey}取数成功而指标缺席'
+                    '(采集遗漏——采集器已取到而事实未生成)')
+        return (f'子源缺席({src_input}档记录:{skey}={sub.get("status")}'
+                '——源端不可得/未采,非采集遗漏)')
+    return ('来源文件在场而指标缺席(采集遗漏或子源缺席'
+            '——档内无该指标子源状态记录,不可区分)')
+
+
 def recompute_gate_a(snapshot, data_dir=None, trusted_root=None):
     """从**真实事实+注册表**重算Gate A裁决(IA-P0-1-FIX2/FIX2-02权威口径;
     FIX3-01/F2-NEW-001: 非法事实结构fail-closed;FIX4-01/FIX3-NEW-001:
@@ -935,7 +1012,10 @@ def recompute_gate_a(snapshot, data_dir=None, trusted_root=None):
     - noncore_fail/noncore_degraded: 非核心事实**合法**FAIL/DEGRADED(按既有
       规则降级披露——合法降级语义不变,不得一律升级FAIL);
     - noncore_missing(+detail): FIX4-03——active非核心指标本期**完全无事实**:
-      来源采集文件在场而指标缺席=采集遗漏;来源文件整体缺失=来源级缺失;
+      来源采集文件在场而指标缺席=R11子源级分类(注册表source_key+采集档内
+      子源sources_status: 子源非EXACT=子源缺席[源端不可得/未采,非采集遗漏]
+      /子源EXACT而缺席=采集遗漏/证据不可得=采集遗漏或子源缺席不可区分);
+      来源文件整体缺失=来源级缺失;
       派生指标在输入缺席时属归因性缺席(不计),输入齐全而缺席才计;
       deprecated/未注册指标不要求(不被错误要求);月频"尚未发布新期"≠缺失
       (旧期观测仍应在场——真正未发布表现为**在场事实的观测日滞后**,由既有
@@ -1084,6 +1164,7 @@ def recompute_gate_a(snapshot, data_dir=None, trusted_root=None):
     # sources_status已在上方经FIX5-04结构验证: 合法→用于缺失判定;
     # 不可证明(None)→整份快照已effective=None,此处不再执行缺失判定
     boundary = []
+    _sub_cache = {}   # R11: 通道档子源状态解析结果缓存(单次重算内共享)
     for mid, m in actives.items():
         if mid in core_ids or mid in by_id:
             continue
@@ -1113,7 +1194,11 @@ def recompute_gate_a(snapshot, data_dir=None, trusted_root=None):
                 continue   # 来源状态不可证明——整份快照已None(FIX5-04),不再判缺失
             st = sources_status.get(src_input)
             if isinstance(st, dict) and st.get('status') in ('EXACT', 'FALLBACK'):
-                reason = '来源文件在场而指标缺席(采集遗漏)'
+                # R11: 子源级分类话术(注册表source_key→采集档内子源状态;
+                # 证据不可得=诚实兜底;清单成员/Gate判定不变)
+                reason = _missing_reason_file_present(
+                    mid, m, src_input, st, data_dir,
+                    trusted_root=trusted_root, cache=_sub_cache)
             else:
                 reason = f'来源文件缺失({src_input}:{(st or {}).get("status", "无状态")})'
         out['noncore_missing'].append(mid)

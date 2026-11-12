@@ -44,3 +44,5 @@
 ## 排队中
 
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。
+
+| 11-12 | R11 子源级注记细化(无头自主) | Gate A noncore_missing 误标收口: registry v2.8.3 可选字段 source_key(指标→采集档内子源状态键,接线7条 ea/jp)+recompute 三分支分类(子源非EXACT=子源缺席/子源EXACT而缺席=采集遗漏/证据不可得=诚实兜底"采集遗漏或子源缺席不可区分",不再无证据断言采集遗漏);_channel_subsource_map 可信路径+sha256一致才采信;契约零变动(成员/Gate状态/门链,套件对照锁+真实快照改前后双跑复证) | dev/rd-r11-subsource-missing@1d135d7 | 新套件24/24+版本锁10处/9文件随升+全仓131文件131 exit0;真实快照20261112_v2/20261110_v5话术分化正中诉求(BUND→READ_FAIL子源缺席/JP_CPI→MISSING子源缺席/CN_OMO→兜底);独立审计四维全PASS零BLOCKER零MAJOR(1 MINOR=japan通道source_key未接时兜底文案失准已登记,1 NIT),终判可并入,波次毕待操作者合并 |

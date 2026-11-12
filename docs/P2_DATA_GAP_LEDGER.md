@@ -275,10 +275,17 @@ appId=**新凭证+新域名政策,超最小修复边界**,留用户裁定。
 
 ### R10 候选观察(登记不动手)
 
-- Gate A noncore_missing 注记「来源文件在场而指标缺席(采集遗漏)」为
-  文件级泛化文案(sources_status 8 通道全 EXACT 即触发)——BBK 源站
-  断连/白名单域缺席这类诚实子源缺席被误标"采集遗漏";细化=引擎话术层,
-  R10 候选。
+- ~~Gate A noncore_missing 注记「来源文件在场而指标缺席(采集遗漏)」为
+  文件级泛化文案~~ **[R11 已修(2026-11-12,dev/rd-r11-subsource-missing@
+  1d135d7)]**: registry v2.8.3 可选字段 source_key(7 条接线)+recompute 三
+  分支分类——子源 READ_FAIL/MISSING=子源缺席(非采集遗漏)/子源 EXACT 而缺席
+  =采集遗漏/证据不可得=诚实兜底不可区分。真实快照复证: BUND_10Y/2Y→
+  子源缺席(ea 档 BBK=READ_FAIL)/JP_CPI_TOKYO_YOY→子源缺席(jp 档 MISSING)/
+  CN_OMO_7D/CN_SF_FLOW→兜底。**R11 审计 MINOR 登记**: japan 通道
+  BOJ_POLICY_RATE/JGB_* 未接 source_key(需先核实 japan_rate_collector 是否
+  持久化子源状态;jp 档 FRED_POLICY/MOF_JGBCME 键与 BOJ/JGB 映射待核),
+  未接时兜底文案"档内无记录"失准(实为注册表缺映射,方向保守零裁决影响)
+  ——R12 候选①。
 - ~~tushare cn_cpi/cn_ppi 1/min 限流族采集器级缓存加固~~
   **[R10 已修(2026-11-12,dev/rd-r10-tushare-cache@68469f5)]**: 文件级跨进程
   响应缓存 `data/cache/tushare_monthly_{cn_cpi,cn_ppi}.json`(TTL 600s,命中

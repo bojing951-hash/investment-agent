@@ -183,8 +183,11 @@ class TestF3SourceMappingFlip(unittest.TestCase):
         rec = _gate(facts, self.ss)
         self.assertEqual(set(JP13), set(JP13) & set(rec['noncore_missing']))
         for mid in JP13:
+            # R11(v2.8.3): 纯重验模式(无data_dir)子源证据不可得→诚实兜底
+            # (采集遗漏或子源缺席不可区分),不再断言"采集遗漏"
             self.assertEqual(rec['noncore_missing_detail'][mid],
-                             '来源文件在场而指标缺席(采集遗漏)', mid)
+                             '来源文件在场而指标缺席(采集遗漏或子源缺席'
+                             '——档内无该指标子源状态记录,不可区分)', mid)
         self.assertEqual([b for b in rec.get('noncore_missing_boundary', [])
                           if any(mid in b for mid in JP13)], [])
         self.assertEqual(rec['effective'], 'DEGRADED')
@@ -205,7 +208,8 @@ class TestF3SourceMappingFlip(unittest.TestCase):
         # 缺失(global 档在场⇒采集遗漏口径,通道归属如实);补强化反例:
         # 连 global 一并 MISSING 时 DAX 报来源级缺失(global 面)
         self.assertEqual(rec['noncore_missing_detail']['DAX'],
-                         '来源文件在场而指标缺席(采集遗漏)')
+                         '来源文件在场而指标缺席(采集遗漏或子源缺席'
+                         '——档内无该指标子源状态记录,不可区分)')
         self.assertEqual(rec['noncore_missing_detail']['JGB10Y'],
                          '来源文件缺失(japan:MISSING)')
         self.assertEqual(rec['effective'], 'DEGRADED')

@@ -304,7 +304,15 @@ def run_checks(repo, state_dir, rep):
         elif not obj_ok(bm.group(1), '①', 'baseline=%s' % bm.group(1)[:12]):
             rep.fail('①', 'baseline=%s 不是仓库中的提交' % bm.group(1)[:12])
         else:
-            base = git(repo, 'rev-parse', bm.group(1) + '^{commit}').strip()
+            try:
+                base = git(repo, 'rev-parse',
+                           bm.group(1) + '^{commit}').strip()
+            except GitError:
+                if sh:  # 浅克隆对象不在场但存在性已降级通过: 短链解析一并降级
+                    rep.note('①', '浅克隆降级: baseline 短链解析跳过(对象不在场)')
+                    base = bm.group(1)
+                else:
+                    raise
             if not anc_ok(base, head, '①', 'baseline→HEAD'):
                 rep.fail('①', 'baseline=%s 不是 HEAD(%s) 的祖先'
                          % (base[:9], head[:9]))

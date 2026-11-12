@@ -5,21 +5,25 @@
 ## 恢复步骤
 
 1. 读根目录 `CLAUDE.md`(红线与启动纪律)。
-2. 读 `PRODUCT_GOAL.md`(最高目标)。**若该文件不存在 = 总指令未落位**: 向用户索取原文,
-   不得自行代拟;其余恢复步骤照常。
-3. 读 `CURRENT_STATE.md`(快照)→ `OPEN_ISSUES.md`(卡点)→ `CAPABILITY_MATRIX.md`(差距)
-   → `ITERATION_LOG.md` 末行(最近一轮)。
-4. 引擎运转面如需(周报/采集/轮次): 另查 `~/agent-loop/STATE.md` 顶部速览与
-   `~/agent-loop/HANDOVER-NEW-SESSION.md`。
-5. 从「下一步」取首个可执行任务,进研发循环:
-   **审计 → 定优先级 → 开发 → 测试 → 独立验证 → 更新状态 → 下一轮**。
-6. 在 `dev/*` 分支工作;未经授权不合 main、不推送、不付费、不碰生产。
-   结束前完成阶段检查点(纪律见 `CLAUDE.md`)。
+2. 读 `PRODUCT_GOAL.md`(最高目标;锚句「全球宏观经济与金融市场研究」「最终产品目标」
+   须完整)。**若该文件不存在 = 总指令未落位**: 向用户索取原文,不得自行代拟。
+3. 读本档「下一步」节顶部 **RD-CHECKPOINT 块**(机器检查点): 记下 round/next_task/commit。
+4. **核对真实 Git,不盲信文档**: `git rev-parse HEAD`;检查点 commit 须存在且为 HEAD 祖先
+   (`git merge-base --is-ancestor <commit> HEAD`);不成立 = 状态可疑,**禁止开发,先对账**
+   (跑 `python3 scripts/rd_state_consistency.py` 定位五项中哪项失同步)。
+5. 读 `CURRENT_STATE.md` 权威快照节(唯一当前态;含任务台账)→ `OPEN_ISSUES.md`(卡点)
+   → `CAPABILITY_MATRIX.md`(差距)→ `ITERATION_LOG.md` 末行(最近一轮)。
+6. 台账/「下一步」队列即当前工作;**已入 ITERATION_LOG 的轮次任务严禁重做**(§3.3)。
+7. 在 `dev/*` 分支工作;未经授权不合 main、不推送、不付费、不碰生产。
+   轮**开**: 手工在台账加 `T-R<n>-<seq>` 行+队列项挂 `[进行中·R<n>]`;
+   轮**收口**: 人工 prose(日志行/台账移出/快照 prose/队列归档)先写好 →
+   `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
+   (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
 ## 下一步(2026-11-12 R19 终审落章后 · Charter 10 整改队列)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
-> 恢复第一步: `git rev-parse HEAD` 核对基线(现=9e85699 祖先链上);不一致=状态可疑,先对账再动工。
+> 恢复第一步: `git rev-parse HEAD` 核对基线(现=c00a606 祖先链上);不一致=状态可疑,先对账再动工。
 
 按 CHARTER_10_RECTIFICATION.md §十一 阶段执行:
 
@@ -52,6 +56,9 @@
 
 ## 快照纪律
 
+- 轮次收口 = 人工 prose 先行(日志行/台账移出/快照 prose/队列归档)→
+  `scripts/rd_checkpoint.py --finalize` 机器盖章(检查点块+baseline+goal_sha)+
+  六项一致性门;盖章与 prose 同落一个 docs 提交。
 - 上下文过半: 更新 `CURRENT_STATE.md` + 本档「下一步」→ 继续工作。
 - 上下文将尽/会话将终: 立即停止开新任务,先完成完整检查点
   (实际进度/测试与审计结果/能力差距修订/分支与 Commit/下一步),再收尾。

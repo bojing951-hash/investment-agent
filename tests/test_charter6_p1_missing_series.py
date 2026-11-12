@@ -276,7 +276,7 @@ print("=" * 64)
 reg = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),
                      encoding='utf-8'))
 by = {m['metric_id']: m for m in reg['metrics']}
-check("版本=2.8.3(R11 source_key注记细化;曾升2.8.2 R6-D1换源/2.8.0 数据批1)", reg['version'] == '2.8.3', reg['version'])
+check("版本=2.8.4(R12 japan source_key补接;曾升2.8.3 R11注记细化/2.8.2 R6-D1换源/2.8.0 数据批1)", reg['version'] == '2.8.4', reg['version'])
 check("指标数=110(数据批1: +SPX_EPS/M2SL)", len(reg['metrics']) == 110,
       len(reg['metrics']))
 g = by.get('US_REAL_GDP') or {}

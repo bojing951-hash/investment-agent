@@ -21,8 +21,8 @@
 (禁自证恒真)。
 
 锁清单:
-[1] 注册表面: v2.8.3/source_key 7 条精确值/field_semantics 定义/108 active
-    不变/registry_semantics 校验零 error
+[1] 注册表面: v2.8.4(锁随升,R12 japan 4 条接线)/source_key 11 条精确值
+    /field_semantics 定义/108 active 不变/registry_semantics 校验零 error
 [2] 子源 READ_FAIL→子源缺席(BBK 断连主场景)+jp 白名单域 MISSING→子源缺席
     (未变异 fixture 自带)+同档在场指标不受影响
 [3] 子源 EXACT 而指标缺席→采集遗漏(采集器已取到而事实未生成)
@@ -49,8 +49,11 @@ import snapshot_builder as sb                  # noqa: E402
 PASS, FAIL = 0, 0
 
 YMD = '20261106'   # 与 test_p1_gap08 同日(周五,obs=周四)
-HEDGE = ('来源文件在场而指标缺席(采集遗漏或子源缺席'
-         '——档内无该指标子源状态记录,不可区分)')
+# 兜底话术(R12 起按证据链断点三分支归因,语义均"不可区分"):
+HEDGE_NO_DIR = ('来源文件在场而指标缺席(采集遗漏或子源缺席'
+                '——未提供采集目录,子源状态证据不可核,不可区分)')
+HEDGE_NO_KEY = ('来源文件在场而指标缺席(采集遗漏或子源缺席'
+                '——注册表未登记该指标子源状态键,不可区分)')
 
 
 def check(name, cond, detail=""):
@@ -96,19 +99,22 @@ def _drop_bund10y_sub_ok(ea):
 
 
 # ══ [1] 注册表面 ═════════════════════════════════════════════════════
-print("\n[1] 注册表 v2.8.3(source_key 可选字段+7 条接线)")
+print("\n[1] 注册表(source_key 可选字段;锁随升 v2.8.4/R11 7条+japan 4条)")
 REG_PATH = os.path.join(ROOT, 'config', 'metric_registry.json')
 with open(REG_PATH, encoding='utf-8') as f:
     REG = json.load(f)
-check("版本 v2.8.3", REG['version'] == '2.8.3', REG['version'])
+check("版本 v2.8.4(R12 japan 补接;R11 落位时为 2.8.3)", REG['version'] == '2.8.4',
+      REG['version'])
 SKEY_EXPECT = {
     'ECB_DFR': 'ECB_FM_DFR', 'ECB_MRO': 'ECB_FM_MRO',
     'BUND_10Y': 'BBK_WU3146', 'BUND_2Y': 'BBK_WU3141',
     'EA_HICP_YOY': 'ECB_ICP_HICP',
-    'JP_CPI_TOKYO_YOY': 'JP_CPI_TOKYO', 'NIKKEI225': 'FRED_NIKKEI225'}
+    'JP_CPI_TOKYO_YOY': 'JP_CPI_TOKYO', 'NIKKEI225': 'FRED_NIKKEI225',
+    'JP_POLICY_RATE': 'FRED_POLICY',
+    'JGB2Y': 'MOF_JGBCME', 'JGB5Y': 'MOF_JGBCME', 'JGB10Y': 'MOF_JGBCME'}
 got = {m['metric_id']: m.get('source_key') for m in REG['metrics']
        if m.get('source_key')}
-check("source_key 7 条精确值(与 ea/jp 采集器档内 sources_status 键一致)",
+check("source_key 11 条精确值(与 ea/jp/japan 采集器档内 sources_status 键一致)",
       got == SKEY_EXPECT, got)
 check("field_semantics 含 source_key 定义",
       isinstance(REG.get('field_semantics', {}).get('source_key'), str)
@@ -153,18 +159,18 @@ with tempfile.TemporaryDirectory() as td:
           rec['noncore_missing_detail'].get('BUND_10Y'))
 
 # ══ [4] 证据不可得 → 诚实兜底 ═══════════════════════════════════════
-print("\n[4] 证据不可得=采集遗漏或子源缺席不可区分(兜底)")
+print("\n[4] 证据不可得=采集遗漏或子源缺席不可区分(兜底;R12 起按断点归因)")
 with tempfile.TemporaryDirectory() as td:
     snap, daily = _build(td, ea_mutate=_drop_bund10y_readfail)
     rec_pure = rp.recompute_gate_a(snap)          # 纯重验: 无 data_dir
-    check("纯重验模式(无data_dir)→兜底(不再无证据断言采集遗漏)",
-          rec_pure['noncore_missing_detail'].get('BUND_10Y') == HEDGE,
+    check("纯重验模式(无data_dir)→兜底(未提供采集目录变体)",
+          rec_pure['noncore_missing_detail'].get('BUND_10Y') == HEDGE_NO_DIR,
           rec_pure['noncore_missing_detail'].get('BUND_10Y'))
 with tempfile.TemporaryDirectory() as td:
-    snap, daily = _build(td, missing=('INDPRO',))  # macro 档内无子源记录
+    snap, daily = _build(td, missing=('INDPRO',))  # macro 通道无 source_key
     rec = rp.recompute_gate_a(snap, data_dir=daily, trusted_root=td)
-    check("macro 通道(档内无 sources_status 节)INDPRO→兜底",
-          rec['noncore_missing_detail'].get('INDPRO') == HEDGE,
+    check("无 source_key 指标(INDPRO,macro)→兜底(注册表未登记键变体)",
+          rec['noncore_missing_detail'].get('INDPRO') == HEDGE_NO_KEY,
           rec['noncore_missing_detail'].get('INDPRO'))
 
 # ══ [5] 契约锁: 清单成员/Gate 判定零变动 ═════════════════════════════

@@ -18,7 +18,20 @@ japan_YYYYMMDD.json,回退窗5自然日);产出目录 data/daily(与既有四通
    "observations": {metric_id: "YYYY-MM-DD"}, "sources": {…逐源url/口径…},
    "fetched_at": "ISO8601 UTC", "alerts": […],
    "series": {metric_id: {"dates": […], "values": […]}}  # Charter6-P1: 全史
-   序列节(JP_POLICY_RATE,fredgraph 全行解析;源失败→键不出现)}
+   序列节(JP_POLICY_RATE,fredgraph 全行解析;源失败→键不出现),
+   "sources_status": {…R12: 子源级状态…}}  # 见下
+
+R12(2026-11-12,R11 审计 MINOR 收口): 顶层增子源级 sources_status 节
+(键词汇对齐 jp_market_collector 同上游源: MOF_JGBCME/FRED_POLICY)——
+  {"MOF_JGBCME": {"status": "EXACT"|"READ_FAIL", "retrieved_at": t_mof},
+   "FRED_POLICY": {"status": "EXACT"|"READ_FAIL", "retrieved_at": t_fred}}
+status: 该源取数+解析出有效观测=EXACT / 获取失败或整体解析失败=READ_FAIL
+(列级坏值属源已取到,仍 EXACT,列级缺席由 alerts 披露);retrieved_at=
+该源本次采集**尝试**时刻(UTC;READ_FAIL 时如实=尝试时刻,非成功取数时刻,
+与 jp/ea 采集器 retrieved_at=None 表"未取到"的写法不同,语义在档内自洽)。
+用途: Gate A noncore_missing 子源级分类(registry source_key=MOF_JGBCME/
+FRED_POLICY 时,READ_FAIL→"子源缺席"而非泛化"采集遗漏");只读不加信,
+旧档(无该节)不受影响=重算走诚实兜底分支。
 
 诚实语义(合同红线: 不凑数不造数):
   - 各系列取源端**最新已发布观测**;观测日≠运行日属正常(月频系列;当日未到
@@ -182,8 +195,15 @@ def build_payload(run_date=None, mof_raw=None, fred_raw=None):
     rd = run_date or date.today()
     ymd = rd.strftime('%Y%m%d')
     data, observations, alerts = {}, {}, []
+    # R12: 子源级状态(键词汇对齐 jp_market_collector 同上游源;语义见
+    # 模块 docstring——retrieved_at=尝试时刻,列级坏值仍 EXACT 由 alerts 披露)
+    sources_status = {}
+    t_mof = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     obs, jgb, a1 = fetch_mof_jgb(mof_raw)
     alerts.extend(a1)
+    sources_status['MOF_JGBCME'] = {
+        'status': 'EXACT' if obs is not None else 'READ_FAIL',
+        'retrieved_at': t_mof}
     if obs is None:
         alerts.append('MOF源整体失败→JGB三系列缺席(如实,不伪造)')
     for mid, v in jgb.items():
@@ -191,8 +211,12 @@ def build_payload(run_date=None, mof_raw=None, fred_raw=None):
         observations[mid] = obs
     # Charter6-P1(A2 §2#3): fredgraph 全行解析一次,同源同响应同时供
     # 最新值(data/observations)与全史序列(series 节)——零新增请求面
+    t_fred = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     pdates, pvalues, a2 = fetch_fred_policy_rate_series(fred_raw)
     alerts.extend(a2)
+    sources_status['FRED_POLICY'] = {
+        'status': 'EXACT' if pdates is not None else 'READ_FAIL',
+        'retrieved_at': t_fred}
     if pdates is None:
         alerts.append('FRED源整体失败→JP_POLICY_RATE缺席(如实,不伪造)')
     else:
@@ -209,6 +233,7 @@ def build_payload(run_date=None, mof_raw=None, fred_raw=None):
                                'note': 'FRED月频系列(观测日=统计期月;全史'
                                        '月频1960s+,OECD镜像口径)'},
         },
+        'sources_status': sources_status,
         'fetched_at': datetime.now(timezone.utc).strftime(
             '%Y-%m-%dT%H:%M:%SZ'),
         'alerts': alerts,

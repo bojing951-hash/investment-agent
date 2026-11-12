@@ -30,22 +30,27 @@
    追溯 3/3 sha256→归档 QB-20261112-001);首轮 Gate A 拒=港股双通道环境面
    (LIVE 同日同败铁证),补 HTTPS_PROXY 恢复设计姿态后闭环;**波次毕,待操作者
    合并**。
-5. **[下轮=R13 候选·按序]**: ①USER_GUIDE 补代理说明(R12 用户文档面发现:
+5. **[已毕·R13] japan 通道 source_key 补接**(R11 审计 MINOR 收口,即下条
+   原②): `dev/rd-r13-japan-source-key`@f242c63(分支含 AC9 波叠加,见
+   CURRENT_STATE 注)——采集器落盘 sources_status+registry v2.8.4 接线 4 条+
+   兜底话术三分支归因;独立审计四维全 PASS 零 MINOR 终判可并入;**波次毕,
+   待操作者合并**(与 R12/AC9 波同分支一并)。
+6. **[下轮=R14 候选·按序]**: ①USER_GUIDE 补代理说明(R12 用户文档面发现:
    macOS 系统代理不自动进 shell env,境外源(yfinance)在 shell/launchd 启动
    管线时须 HTTPS_PROXY=http://127.0.0.1:7890;R12 首轮 Gate A 拒即此因)
-   ②japan 通道 source_key 补接(R11 审计 MINOR: 需先核实 japan_rate_collector
-   是否持久化子源级 sources_status,再决定接线或改兜底措辞;含 jp 档
-   FRED_POLICY/MOF_JGBCME 键与 BOJ_POLICY_RATE/JGB_* 的映射核对)③HK 双通道
+   ②HK 双通道
    脆弱面观察(腾讯 WAF 深窗拦[2026-11-12 实测 2600 拦/320 通,与 11-10 记录
    的 >320 拦不同——阈值浮动,以当日实测为准;HK_INDEX_HISTORY_BARS env 缝=
-   2000 根保底]+yfinance 依赖代理姿态)④china/macro 采集器子源失败落盘(现只
+   2000 根保底]+yfinance 依赖代理姿态)③china/macro 采集器子源失败落盘(现只
    print 不落盘,CN_OMO_7D 等 china 缺席只能兜底不可区分;落盘后可接线
-   source_key 精确分类)⑤R2/R1 审计 MINOR 存量(OPEN_ISSUES 技术待办按需取用)。
-6. **[待用户/操作者·无头权限面外]**: ①R12 波次合并 main+发布(验收绿即合并
+   source_key 精确分类)④R13 审计 2 NIT 留档(data_dir 空串理论角落/三期限
+   列全坏值措辞张力,纯话术层不阻塞)⑤R2/R1 审计 MINOR 存量(OPEN_ISSUES
+   技术待办按需取用)。
+7. **[待用户/操作者·无头权限面外]**: ①R12(AC9)+R13(japan)两波合并 main+发布(验收绿即合并
    纪律,操作者会话执行)②v0.13.x LIVE 同步(R10 轮遗留,部署脚本已备
    /tmp/deploy_v013_live.py,分类器静态规则拦,待用户终端亲跑或加 Bash 白名单)
    ③AC7/AC9 终判覆盘轮(两行均 EXECUTED 已定,终判待用户裁定)。
-7. **[日历门] 2026-12-05 F 补证轮由引擎自动触发,勿手工提前;六标签首验窗
+8. **[日历门] 2026-12-05 F 补证轮由引擎自动触发,勿手工提前;六标签首验窗
    2026-12(注意: R5 后 7 假设有判=A/B 阶段面;C 层到期判定不受影响)**;
    金油比开放题观察钟 2026-12 同窗。
 

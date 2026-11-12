@@ -402,13 +402,15 @@ class TestGateA(unittest.TestCase):
         self.assertEqual(len(boundary), 0)             # 前=13(无法映射采集通道)
         self.assertEqual(set(JP13), set(rec['noncore_missing']) & set(JP13))
         # R11(v2.8.3): 纯重验模式(无data_dir)子源证据不可得→诚实兜底,
-        # 不再断言"采集遗漏"(子源级分类见 test_rd_r11_subsource_missing.py)
+        # 不再断言"采集遗漏"(子源级分类见 test_rd_r11_subsource_missing.py);
+        # R12(v2.8.4): 兜底按证据链断点归因——两指标均已登记 source_key
+        # 而未提供采集目录→"未提供采集目录"变体(不再归咎档内)
         self.assertEqual(rec['noncore_missing_detail']['NIKKEI225'],
                          '来源文件在场而指标缺席(采集遗漏或子源缺席'
-                         '——档内无该指标子源状态记录,不可区分)')
+                         '——未提供采集目录,子源状态证据不可核,不可区分)')
         self.assertEqual(rec['noncore_missing_detail']['ECB_MRO'],
                          '来源文件在场而指标缺席(采集遗漏或子源缺席'
-                         '——档内无该指标子源状态记录,不可区分)')
+                         '——未提供采集目录,子源状态证据不可核,不可区分)')
 
     def test_t15_bad_value_noncore_fail(self):
         """[示意] 坏值(超注册表 range)→合法 FAIL→noncore_fail, effective≤DEGRADED。"""
@@ -510,8 +512,8 @@ class TestRegistryAndRealArchive(unittest.TestCase):
         # (WP-B 单字段≠版本变更原则不变;本值=WP-E 结构变更[+8 条目]所递增)
         # Charter6-P2(2026-11-09): 2.5.0→2.6.0(+SPX_CAPE/SPX_PE_TTM/SPX_PB)
         # Charter7 P2-3(2026-11-10): 2.6.0→2.7.0(+SOFR/WALCL 流动性维)
-        # R11(2026-11-12): 2.8.2→2.8.3(source_key 注记细化);曾 2.8.0→2.8.2(R6-D1 换源)/2.7.0→2.8.0(数据批1)
-        self.assertEqual(reg['version'], '2.8.3')
+        # R12(2026-11-12): 2.8.3→2.8.4(japan source_key 补接);曾 2.8.2→2.8.3(R11 注记细化)/2.8.0→2.8.2(R6-D1 换源)/2.7.0→2.8.0(数据批1)
+        self.assertEqual(reg['version'], '2.8.4')
         self.assertEqual(len(reg['metrics']), 110)  # 数据批1: +SPX_EPS/M2SL
         # 上限余量=同侪带中段(SPX 3.96×/NDX 2.13×先例; REPORT §零.11.1)
         self.assertGreater(m['validation']['range'][1], 61077.9)

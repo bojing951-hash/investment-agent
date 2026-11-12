@@ -385,8 +385,8 @@ print("\n[8] 注册表锁(v2.8.0)与语义校验")
 regj = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),
                       encoding='utf-8'))
 ms = regj['metrics']
-check("版本 v2.8.3(R11 source_key注记细化;曾升2.8.2 R6-D1换源/2.8.0 数据批1)",
-      regj.get('version') == '2.8.3')
+check("版本 v2.8.4(R12 japan source_key补接;曾升2.8.3 R11注记细化/2.8.2 R6-D1换源/2.8.0 数据批1)",
+      regj.get('version') == '2.8.4')
 check("110项(数据批1 +SPX_EPS/M2SL)", len(ms) == 110, str(len(ms)))
 active = [m for m in ms if m.get('status') == 'active']
 check("活跃108项(数据批1 +2)", len(active) == 108, str(len(active)))

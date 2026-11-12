@@ -34,6 +34,26 @@
   档归档说明注记;③AC4+AC5 正式验证(矩阵最后两个 NOT_VERIFIED)。
   报告=`docs/autonomous-rd/R15_AC1_AC2_AC8_VERIFICATION.md`。
 
+## 快照: 2026-11-12 (HKT, R17 零Key套件 tempdir 隔离·fork 开发)
+
+- **R17(R16 移交项①代码波)已完成**: 分支 `dev/rd-r17-zeroykey-tempdir`
+  @(本 commit,基于 main 889a221;独立 worktree /tmp/r17-wt)。
+  **修复**: `ia_cli._ARCHIVE_DIR` 注入缝扩环境变量形态 `IA_ARCHIVE_DIR`
+  (未设置严格 None=生产路径,默认行为零变化——A1 子进程实证;生产/launchd
+  均不设此变量);零Key套件 §4 save/list 全走 tempdir,新增 4b(落 tempdir
+  双档在场)/4c(生产 query_history 文件集跑前后逐位一致)断言;批2 WI6
+  "不引入环境变量面"决策由 R17 修订,理由注记在 ia_cli.py:45-52。
+  **新套件** `tests/test_rd_r17_zerokey_tempdir.py` 7 判三面全绿(seam 解析/
+  save 分支 B1-B4 合成快照 2099 段 gitignored 路径 finally 清理/拒存分支
+  C1)。零Key套件 18✅ rc=0。
+  **存量处置**: 16 件空档 append-only 保留注记不删,
+  P2_DATA_GAP_LEDGER 三之五+REMAINING_ISSUES P2-9 已标已修。
+  **worktree data/ 机制**: gitignored 不检出(仅 3 个历史强制加档文件在),
+  data/research 全程未创建;合成快照仅借 daily 落位即时清理。
+  **移交下一轮**: 终判覆盘轮材料包(十行终判+日历门 F=2026-12-05/
+  六标签 2026-12 呈报用户裁定席);LIVE 部署脚本 /tmp/deploy_v0141_live.py
+  待用户终端跑。**波次毕,待操作者合并**。
+
 ## 快照: 2026-11-12 (HKT, R16 AC4+AC5 验证+AC6 收口·fork 开发;矩阵收满)
 
 - **R16(AC 覆盘轮第三波)已完成**: 分支 `dev/rd-r16-ac4-ac5-ac6` @(本 commit,
@@ -54,8 +74,8 @@
   tempdir 注入缝,REMAINING_ISSUES P2+1;存量保留注记不删。
   **矩阵=九项 EXECUTED+AC3 PARTIAL**(C 型首验窗 2026-12 日历门),全部终判
   留用户裁定席。报告=`docs/autonomous-rd/R16_AC4_AC5_AC6_VERIFICATION.md`。
-  R17 候选: ①零Key套件 §4 tempdir 隔离(代码波);②终判覆盘轮材料包(十行终判
-  +日历门状态一并呈报用户)。
+  R17 候选: ①零Key套件 §4 tempdir 隔离(代码波)——**[R17 已毕,见上快照]**;
+  ②终判覆盘轮材料包(十行终判+日历门状态一并呈报用户)。
 
 ## 前一快照: 2026-11-12 (HKT, R14 AC10 红线终审+USER_GUIDE 代理落档·fork 开发)
 

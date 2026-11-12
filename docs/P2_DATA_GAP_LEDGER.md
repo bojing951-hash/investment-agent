@@ -296,3 +296,19 @@ appId=**新凭证+新域名政策,超最小修复边界**,留用户裁定。
   入缓存)。**边界如实(R10 独立审计 MINOR-2)**: 冷启动两进程同瞬直连
   (首拉落盘前)仍可撞限流——本修把误拒窗收窄到错峰启动场景,非彻底消除;
   独立审计四维全 PASS 零 BLOCKER。
+
+### R17 零Key套件档案污染收口(2026-11-12,dev/rd-r17-zeroykey-tempdir)
+
+**来龙去脉**: R16 查明 `test_charter5_zero_key_matrix.py` §4 在有快照的
+本地/无头 dev 树跑套件时,子进程 `archive save` 真写生产 query_history,
+积 16 件「零Key矩阵问题」零Key空档(QB-20261109~1112-005~008 段);CI 干净
+克隆无快照走拒存分支不受影响。诚实空档非伪造,但属档案污染。详见
+docs/autonomous-rd/R16_AC4_AC5_AC6_VERIFICATION.md §4a 与
+docs/REMAINING_ISSUES.md P2-9。
+
+**处置**: 存量 16 件按 append-only 纪律保留不删不改正文,本节即注记;
+修复(R17)= `ia_cli._ARCHIVE_DIR` 注入缝扩环境变量形态
+`IA_ARCHIVE_DIR`(未设置严格 None=生产路径,默认行为零变化;生产/launchd
+均不设此变量),§4 save/list 全走 tempdir,新套件
+`tests/test_rd_r17_zerokey_tempdir.py` 7 判锁三面(seam 解析/落 tempdir+
+生产零新增/拒存分支不破坏)。

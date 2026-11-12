@@ -4,7 +4,30 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-12 (HKT, R13 japan 通道 source_key 补接轮·无头自主执行)
+## 快照: 2026-11-12 (HKT, R14 AC10 红线终审+USER_GUIDE 代理落档·fork 开发)
+
+- **R14(AC 覆盘轮第一波)已完成**: 分支 `dev/rd-r14-ac10-redline` @(本 commit,
+  基于 main 7a58f8f;独立 worktree /tmp/r14-wt,防撞车纪律)。
+  **任务A=AC10 红线终审**(只读五面+九红线映射,报告
+  `docs/autonomous-rd/R14_AC10_AUDIT.md`): 厂商词(权威守卫
+  test_charter5_vendor_residue_guard 5/5✅+72 文件残余逐类判读全豁免类)/
+  个人路径(3 命中=1 审计引用+2 负向守卫)/密钥(赋值形 0 命中,sk- 全 FAKE
+  明标)/档案真实性(dev 树 195 文件=97 记录+97 full+1 更正,mode/ir_stage/
+  snapshot_id 零缺失,零合成冒充,零重复)/源披露(registry v2.8.4 110 指标
+  全 source+source_symbol;11 快照逐 fact 注册+带源)+交易执行面
+  (place_order/broker/ccxt 等 0 命中)+端点清单(全免费公共源,Bloomberg 仅
+  公开 RSS)。**终判: 五面全 PASS 零违规**;AC10 NOT_VERIFIED→EXECUTED
+  (终判=PASS 候选留用户裁定席)。
+  **任务B=USER_GUIDE 代理落档**(R12 根因): Q2 扩为「网络与代理(境内网络
+  必读)」——症状识别(腾讯 WAF HTTP200+空数据/yfinance 429)+根因(macOS
+  系统代理不进 shell/launchd)+两姿势(shell export/wrap 脚本)+launchd
+  plist 模板补 EnvironmentVariables 两键;§1 环境要求同步指向。零代码改动。
+  **观察登记**(非违规): GLMRecorder/GLMDraft 测试替身类名存活于 tests/
+  (守卫模式清单未收录,tests/ 外零命中);DEEPSEEK_* 死通道常量为
+  REMAINING_ISSUES P1 既有登记维持观察。
+  **测试**: 全仓套件(结果见 ITERATION_LOG R14 行);首次跑批翻车=日志目录
+  未建即重定向(0 套真跑),建目录重跑为准。
+## 前一快照: 2026-11-12 (HKT, R13 japan 通道 source_key 补接轮·无头自主执行)
 
 - **R13(R11 审计 MINOR 收口,RESUME R13 候选②)已完成**: 分支
   `dev/rd-r13-japan-source-key` @`f242c63`——**注意: 本分支含并发 AC9 会话

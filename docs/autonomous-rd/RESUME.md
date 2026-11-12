@@ -16,7 +16,7 @@
 6. 在 `dev/*` 分支工作;未经授权不合 main、不推送、不付费、不碰生产。
    结束前完成阶段检查点(纪律见 `CLAUDE.md`)。
 
-## 下一步(2026-11-12 R14 AC10 红线终审+USER_GUIDE 代理落档收口后更新)
+## 下一步(2026-11-12 R15 AC1/AC2/AC8 正式验证轮收口后更新)
 
 1. **[已毕·R9] 采集缺口波**: CN_SF_FLOW mofcom 直取(merge=bd8b853,v0.12.0-alpha,
    Release 442060959);BUND 双年限=四路证据源端封锁维持诚实缺席;JP_CPI_TOKYO=
@@ -35,7 +35,17 @@
    CURRENT_STATE 注)——采集器落盘 sources_status+registry v2.8.4 接线 4 条+
    兜底话术三分支归因;独立审计四维全 PASS 零 MINOR 终判可并入;**波次毕,
    待操作者合并**(与 R12/AC9 波同分支一并)。
-6. **[已毕·R14] AC10 红线终审+USER_GUIDE 代理说明**(本分支): 五面全 PASS 零违规(报告 R14_AC10_AUDIT.md,AC10→EXECUTED 终判留用户裁定)+Q2「网络与代理」节+plist EnvironmentVariables 模板;**波次毕,待操作者合并**。
+6. **[已毕·R14] AC10 红线终审+USER_GUIDE 代理说明**: 操作者已合并发布(dc4c57a)。
+7. **[已毕·R15] AC1+AC2+AC8 正式验证轮**(本分支): 三 AC 按定义独立复核全达
+   EXECUTED(终判=PASS 候选留用户席)——AC1 真实全景(registry 110 零缺源+快照
+   103 facts 0 缺+展示面五要素+缺口诚实)、AC2 机构研究(17 档四要素零缺+
+   attribution 枚举硬拦截+112/112 institution_stated)、AC8 可复核(digest 链
+   逐位一致+4 组独立复算全中,ZQ−DFF=0.305 实证 correction-1 正确);报告
+   R15_AC1_AC2_AC8_VERIFICATION.md;**波次毕,待操作者合并**。
+8. **[R16 候选] AC 覆盘轮第三波**: ①AC6 行注记更新(「AC7 未跑」已过时);
+   ②QB-005~008 零Key边缘档归档说明注记;③AC4+AC5 正式验证(矩阵最后两个
+   NOT_VERIFIED)→此后矩阵全 EXECUTED,剩终判用户席+日历门(F=2026-12-05,
+   六标签首验窗=2026-12)。
    macOS 系统代理不自动进 shell env,境外源(yfinance)在 shell/launchd 启动
    管线时须 HTTPS_PROXY=http://127.0.0.1:7890;R12 首轮 Gate A 拒即此因)
    ②HK 双通道

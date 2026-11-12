@@ -17,6 +17,7 @@
 反例全部在 tempdir 状态副本上做;真状态档零改动。
 正例依赖 R20 检查点已收口(块在场);未收口时 R1 如实红。
 """
+import json
 import os
 import re
 import shutil
@@ -124,7 +125,15 @@ rc, out = run_agent(STATE_DIR)
 check('R1 无上下文恢复成功(rc=0+RECOVERY-OK+下一任务)', rc == 0
       and 'RECOVERY-OK' in out and 'next=' in out,
       'rc=%d out=%s' % (rc, out[:300]))
-check('R1a 恢复的下一任务=队列阶段二', '阶段二' in out, out[:200])
+# R1a 结构断言: 恢复播报的下一任务必须=RESUME 检查点块里的 next_task 真值
+# (勿硬编码阶段词——队列进阶后硬编码必过期,2026-11-12 合并后主面实测红)
+_m = re.search(r'<!--\s*RD-CHECKPOINT v1: json (\{.*?\})\s*-->',
+               open(os.path.join(STATE_DIR, 'RESUME.md'),
+                    encoding='utf-8').read(), re.S)
+_expected = json.loads(_m.group(1))['next_task'] if _m else ''
+check('R1a 恢复的下一任务=检查点块 next_task 真值', bool(_expected)
+      and ('next=' + _expected[:20]) in out,   # 播报截断~40字,契约=前缀一致
+      'expected=%s out=%s' % (_expected[:60], out[:200]))
 
 # ── R2 反例: 陈旧检查点(拒启) ──
 tmp = tempfile.mkdtemp(prefix='r20rec_')

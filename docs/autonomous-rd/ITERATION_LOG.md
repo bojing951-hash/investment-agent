@@ -47,6 +47,8 @@
 | 11-12 | R13 合并发布(操作者轮) | 无头轮 R13 验收绿即合并: 抽检(红线0/专属套件25/25/wp_e+r11_subsource+gap08 exit0)→本地 main 先 fetch FF 对齐→merge --no-ff **2d575ec**→tag **v0.14.1-alpha**→Release 442579573→CI 43169773643 success(基线132);分支 dev/rd-r13-japan-source-key+dev/rd-r12-ac9-clean 已删,/tmp/r12-wt worktree 已清,dev 树回 main;LIVE 部署脚本刷新至 2d575ec/registry 2.8.4 待用户终端跑 | 2d575ec(v0.14.1) | 撞车修复后合并路径走正规 checkout+merge;今日累计五版(0.12.0/0.13.0/0.13.1/0.14.0/0.14.1)全 CI 绿 |
 | 11-12 | R14 AC10 红线终审+USER_GUIDE 代理落档(fork 开发;AC 覆盘轮第一波) | **任务A**: 只读五面+九红线映射,报告 R14_AC10_AUDIT.md——厂商词(权威守卫 test_charter5_vendor_residue_guard 5/5✅;72 文件原始命中逐类判读: tests 52 含冻结fixtures与负向守卫/旧档兼容码/密钥卫生面/文档史/登记死遗留,零产品面命中)+个人路径(3 命中=1 审计引用+2 负向守卫,零活路径)+密钥(赋值形 0 真命中,sk- 全 FAKE 明标,64-hex=sha256 摘要)+档案真实性(dev 树 195 文件=97 记录+97 full+1 更正,mode/ir_stage/snapshot_id 零缺失零合成冒充零重复)+源披露(registry v2.8.4 110 指标全 source+source_symbol,11 快照逐 fact 全注册全带源)+交易执行面 0 命中+端点全免费公共源(Bloomberg 仅公开 RSS)→**五面全 PASS 零违规**,AC10 NOT_VERIFIED→EXECUTED(终判=PASS 候选留用户裁定);**任务B**: USER_GUIDE Q2 扩「网络与代理(境内网络必读)」(症状/根因/两姿势)+plist 模板补 EnvironmentVariables+§1 环境要求指向,零代码改动;观察登记: GLMRecorder/GLMDraft 替身类名限 tests/ 守卫未收录、DEEPSEEK_* 死通道=P1 既有登记;记账卫生: 修复父轮两操作者行误落「排队中」节后之孤儿表行(挪回主表尾) | dev/rd-r14-ac10-redline@9cac5cc | 守卫 5/5✅(初跑自伤=报告含字面旧旗标 token,改措辞后绿)+全仓 132 套=131 exit0+1 环境性(baseline_lock worktree 清单断言测到本 worktree,R13/R7 同款先例);首次跑批翻车=日志目录未建即重定向 0 套真跑,建目录重跑为准 |
 
+| 11-12 | R14 合并发布(操作者轮;docs-only 不另发 tag,循 6cc1308 先例) | 独立复核: diff 六文件全 docs+厂商守卫亲跑 rc=0(5/5)+个人路径亲扫一致(命中全为负向守卫与审计自引)+日志表孤儿行归位确认→merge --no-ff **dc4c57a**→push;worktree/分支已清;AC10=EXECUTED(终判 PASS 候选留用户席) | dc4c57a | 套件 131 exit0+1 环境性(fork 跑);操作者守卫亲跑;CI 在途盯 |
+
 ## 排队中
 
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。

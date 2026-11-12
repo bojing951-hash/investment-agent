@@ -43,10 +43,13 @@ sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 import workbench_data as wd  # noqa: E402
 from redact_secrets import redact  # noqa: E402  P0-4: tail 过脱敏再入 JSON
 
-# 研究档案目录注入缝(批2 WI6): None=模块默认(<引擎根>/data/research/…);
-# 生产恒为 None——测试进程内 monkeypatch 指向沙箱,跨进程 e2e 用仓库副本
-# 自然隔离(模块路径派生),不引入环境变量面。
-_ARCHIVE_DIR = None
+# 研究档案目录注入缝(批2 WI6;R17 扩环境变量形态): None=模块默认(<引擎根>/
+# data/research/…)——生产恒为 None。批2 原注"不引入环境变量面"的决策由 R17
+# 修订: 零Key套件 §4 以子进程跑 archive save,在有快照的本地/无头 dev 树会
+# 真写生产档案(R16 查明 16 件空档,REMAINING_ISSUES P2-9),进程内 monkeypatch
+# 跨不了子进程——须 IA_ARCHIVE_DIR 环境变量形态;未设置时严格 None,
+# 默认行为零变化(生产/launchd 均不设此变量)。
+_ARCHIVE_DIR = os.environ.get('IA_ARCHIVE_DIR') or None
 
 try:
     import fact_engine as fe  # 单位族的唯一权威分桶源

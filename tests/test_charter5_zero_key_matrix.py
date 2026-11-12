@@ -100,18 +100,41 @@ check("research 零Key: 结构化输出绝不 Traceback",
 # ── 4. archive save: 有快照→保存成功;零快照环境→no_snapshot 结构化拒存 ──
 # (CI 干净克隆=无快照→rc=1 no_snapshot;本地开发仓=有快照→rc=0 落档,
 #  两分支都是零Key合法行为,断言=结构化+无 Traceback+分支语义正确)
-r = run_zero_key('archive', 'save', '--question', '零Key矩阵问题')
-d4 = json.loads(r.stdout) if r.stdout.strip().startswith('{') else {}
-if r.returncode == 1:
-    check("archive save 零快照环境→no_snapshot 结构化拒存",
-          d4.get('error', {}).get('kind') == 'no_snapshot', r.stdout[:150])
-else:
-    check("archive save 有快照→零Key正常落档(query_id 在场)",
-          r.returncode == 0 and d4.get('ok')
-          and bool(d4.get('data', {}).get('query_id')), r.stdout[:150])
-r = run_zero_key('archive', 'list')
-check("archive list 零Key可跑(空列表也合法)",
-      r.returncode == 0 and json.loads(r.stdout)['ok'])
+# R17(2026-11-12): 落档走 IA_ARCHIVE_DIR→tempdir,生产 query_history 零新增
+# (R16 查明旧写法在有快照的 dev 树真写生产档=16 件空档,REMAINING_ISSUES P2-9)
+def _production_archive_files():
+    coll = os.path.join(ROOT, 'data', 'research', 'research_archive',
+                        'research_archive', 'query_history')
+    try:
+        return frozenset(os.listdir(coll))
+    except OSError:
+        return frozenset()
+
+
+with tempfile.TemporaryDirectory() as _td4:
+    _prod_before4 = _production_archive_files()
+    r = run_zero_key('archive', 'save', '--question', '零Key矩阵问题',
+                     extra_env={'IA_ARCHIVE_DIR': _td4})
+    d4 = json.loads(r.stdout) if r.stdout.strip().startswith('{') else {}
+    if r.returncode == 1:
+        check("archive save 零快照环境→no_snapshot 结构化拒存",
+              d4.get('error', {}).get('kind') == 'no_snapshot', r.stdout[:150])
+    else:
+        check("archive save 有快照→零Key正常落档(query_id 在场)",
+              r.returncode == 0 and d4.get('ok')
+              and bool(d4.get('data', {}).get('query_id')), r.stdout[:150])
+        _coll4 = os.path.join(_td4, 'research_archive', 'query_history')
+        _qid4 = d4.get('data', {}).get('query_id')
+        check("4b 落档进 IA_ARCHIVE_DIR tempdir(记录+sidecar 双档在场)",
+              _qid4
+              and os.path.exists(os.path.join(_coll4, _qid4 + '.json'))
+              and os.path.exists(os.path.join(_coll4, _qid4 + '.research-full.json')),
+              str(sorted(os.listdir(_coll4)) if os.path.isdir(_coll4) else None))
+    check("4c 生产 query_history 零新增(跑前后文件集逐位一致)",
+          _production_archive_files() == _prod_before4)
+    r = run_zero_key('archive', 'list', extra_env={'IA_ARCHIVE_DIR': _td4})
+    check("archive list 零Key可跑(空列表也合法)",
+          r.returncode == 0 and json.loads(r.stdout)['ok'])
 
 # ── 5. 误设旧变量≠配置: GLM_API_KEY 设了也不被读取(唯一凭证面=MODEL_*) ──
 r = run_zero_key('doctor', extra_env={'GLM_API_KEY': 'sk-LEGACY-SHOULD-BE-IGNORED'})

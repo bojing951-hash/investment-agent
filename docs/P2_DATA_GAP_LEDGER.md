@@ -285,7 +285,10 @@ appId=**新凭证+新域名政策,超最小修复边界**,留用户裁定。
   BOJ_POLICY_RATE/JGB_* 未接 source_key(需先核实 japan_rate_collector 是否
   持久化子源状态;jp 档 FRED_POLICY/MOF_JGBCME 键与 BOJ/JGB 映射待核),
   未接时兜底文案"档内无记录"失准(实为注册表缺映射,方向保守零裁决影响)
-  ——R12 候选①。
+  ——R12 候选①。**[R13 已修(2026-11-12,dev/rd-r13-japan-source-key@
+  f242c63)]**: japan_rate_collector 落盘子源 sources_status(键 MOF_JGBCME/
+  FRED_POLICY 对齐 jp 档词汇)+registry v2.8.4 接线 4 条+兜底话术按证据链
+  断点三分支归因;独立审计四维全 PASS 零 MINOR 终判可并入。
 - ~~tushare cn_cpi/cn_ppi 1/min 限流族采集器级缓存加固~~
   **[R10 已修(2026-11-12,dev/rd-r10-tushare-cache@68469f5)]**: 文件级跨进程
   响应缓存 `data/cache/tushare_monthly_{cn_cpi,cn_ppi}.json`(TTL 600s,命中

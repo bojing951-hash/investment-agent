@@ -4,7 +4,43 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 快照: 2026-11-12 (HKT, R12 AC9 干净环境全链覆盘轮·fork 开发)
+## 快照: 2026-11-12 (HKT, R13 japan 通道 source_key 补接轮·无头自主执行)
+
+- **R13(R11 审计 MINOR 收口,RESUME R13 候选②)已完成**: 分支
+  `dev/rd-r13-japan-source-key` @`f242c63`——**注意: 本分支含并发 AC9 会话
+  (自号 R12)的 9de4cc8+13e518e+fadba31**(其合并误落于本分支——彼时主树正
+  检出本分支;两波次文件面不相交,叠加无害,合并 main 时一并落交操作者裁量;
+  main 现仍=12c3c0f)。
+  **根因**: japan 通道 4 指标(JP_POLICY_RATE/JGB2Y/JGB5Y/JGB10Y)注册表无
+  source_key,且 japan_rate_collector **不持久化**子源级 sources_status(失败
+  仅 alerts 字符串);兜底文案"档内无记录"在「注册表缺映射」「纯重验未读档」
+  两种断点下失准(未读档却归咎档内)。
+  **修复三件**: ①japan_rate_collector 顶层增子级 sources_status(键
+  MOF_JGBCME/FRED_POLICY 与 jp 采集器同上游源词汇一致,真实档 jp_20261112
+  佐证;EXACT=取数解析出有效观测/READ_FAIL=获取或整体解析失败;列级坏值仍
+  EXACT 由 alerts 披露;retrieved_at=尝试时刻语义;旧档无该节不受影响)
+  ②registry **v2.8.3→v2.8.4** 接线 4 条(JP_POLICY_RATE→FRED_POLICY,
+  JGB 三期限→MOF_JGBCME;110 条/108 active/通道零变动)③recompute 兜底
+  话术**按证据链断点三分支归因**(注册表未登记键/未提供采集目录/档内无
+  记录),不再一律归咎档内。**契约零变动**(纯话术层)。
+  **测试**: 新套件 `tests/test_rd_r12_japan_source_key.py`(按立项时号命名,
+  轮次实为 R13)25 判定绿;11 套件版本锁/话术断言随升(无弱化,审计逐行核);
+  **全仓 tests/ 133 文件=132 exit0+1 环境性 FAIL**(test_p0_baseline_lock_
+  equivalence 的 worktree 清单断言测到并发 AC9 会话活 worktree /tmp/r12-wt,
+  R7 期同类先例=环境性非回归;审计已核该断言代码位置佐证)。
+  **真实数据复证**: 真实快照 20261112_v2/20261110_v5 改前(12c3c0f)改后双跑
+  ——effective/core_missing/noncore_missing/overall 全零变动;detail 话术差
+  恰 2 处=无 source_key 指标(CN_OMO_7D/CN_SF_FLOW)归因精确化。
+  **独立审计已收口**(未参与开发 general-purpose 席,四维对抗: 代码正确性
+  [键词汇/五场景+17 项边界对抗全绿/三分支无误分类]/诚实纪律[无失败标成功
+  路径,老档如实兜底]/契约不变性[真实快照双跑逐字段全同,detail 差恰为归因
+  变体]/测试真实性[变异测试双红证明锁有牙,11 随升无弱化]=**四维全 PASS,
+  零 BLOCKER 零 MAJOR 零 MINOR**;2 NIT=①data_dir 空串理论角落走档内分支
+  ②三期限列全坏值时"采集遗漏"措辞与列级真因略有张力[设计取舍已 docstring
+  明示]。终判=**可并入**)。**CAPABILITY_MATRIX 无差距变动**(披露精度硬化)。
+- **R13 波次毕,待操作者合并发布**(与 AC9 波次同分支叠加,见上注)。
+
+## 前一快照: 2026-11-12 (HKT, R12 AC9 干净环境全链覆盘轮·fork 开发)
 
 - **R12(AC9「真实用户可用」NOT_VERIFIED→EXECUTED)已完成**: 分支
   `dev/rd-r12-ac9-clean` @`9de4cc8`+docs(自 main=12c3c0f 切出,含 R11 面)——

@@ -10,7 +10,7 @@
 > 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);
 > 一致性门 `python3 scripts/rd_state_consistency.py` 六项全绿方可开工;不一致时禁止开发,先恢复状态(§3.2)。
 
-- **基线(机器面)**: baseline=dfad40ea88e51e0b7371a3caff3d9950c8f33979(检查门§①解析本行;rd_checkpoint.py 收口时自动刷新)。
+- **基线(机器面)**: baseline=4829b64c4c0162c87d8f501365bad64b3d9d7af4(检查门§①解析本行;rd_checkpoint.py 收口时自动刷新)。
 - **基线**: main = dfad40e(v0.16.0-alpha 面,R20 状态管理机器化)。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
 - **真实进度**: R9-R20 已毕并入(R20=状态管理机器化: 六项门+finalize 管线+恢复验收);v0.15.0 已发布+LIVE 已部署(9e85699);**R21 持续执行验证(Charter 10 阶段二)毕**——§4.4 七项矩阵 6 PASS+1 PARTIAL(无头压缩恢复无实例子面),零冒认;防死循环顾问+finalize 事故弧回归锁+候选钩子包落地。
 - **验收层状态(按 Charter 10 §八重开)**: 九 PASS + AC3 PARTIAL 为**待复核旧结论**——受影响项重验中: AC3(金融正确性缺口)/AC6(L3/L4 produced=False)/无人值守证据(阶段二已补强: R21 七项矩阵,见 R21_CONTINUOUS_EXECUTION_AUDIT.md);其余 PASS 项维持至复触及。
@@ -22,7 +22,7 @@
 
 | ID | 状态 | Git证据 | 说明 |
 |---|---|---|---|
-| T-R21-1 | 待合并 | dev/rd-r21-continuous-exec(本commit) | R21 持续执行验证(Charter 10 阶段二): §4.4 七项矩阵+防死循环顾问+finalize 事故弧锁+候选钩子包;报告=R21_CONTINUOUS_EXECUTION_AUDIT.md |
+| T-R21-1 | 待合并 | dev/rd-r21-continuous-exec@4829b64 | R21 持续执行验证(Charter 10 阶段二): §4.4 七项矩阵+防死循环顾问+finalize 事故弧锁+候选钩子包;报告=R21_CONTINUOUS_EXECUTION_AUDIT.md |
 
 ### [历史快照·R15 视角,已被上方权威快照取代]
 

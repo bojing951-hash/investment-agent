@@ -77,3 +77,5 @@
 ## 排队中
 
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。
+- **VP 旧库 5 行 LABEL_DRIFT 对账**(R22 遗留,数据刷新轮候选): 17 档旧库 INSUFFICIENT_EVIDENCE 存量声明 vs 新规则重算分歧(3 例一致映射+2 例 no_forecast→NOT_YET 边界);处置=逐行定重贴或 recompute 注记,可见非静默原则不变。
+- **DFF 日频史评估**(R23 真 E2E 遗留 S4_history_DFF FAIL): 引擎内 DFF 无历史序列致 S4 拒答(诚实面);评估 FRED 现有 key 免费只读拉取日频史(Charter 6/7 同 key 先例,SOFR/WALCL 同款),供阶段五真实 E2E 与后续研究用。

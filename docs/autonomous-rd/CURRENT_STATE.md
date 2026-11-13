@@ -4,25 +4,26 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-13 R23 Agent Native 一键闭环收口 · Charter 10 阶段四毕(T-R23-1)
+## 权威快照: 2026-11-13 R24 阶段五真实E2E+独立验收收口 · Charter 10 六阶段全毕(T-R24-1)
+> baseline=bdf5b9ea552387ae0db1967f2444c1927520bd89 (机器行: rd_checkpoint.py 维护,勿手改)
 
 > **本节=唯一当前态入口**(Charter 10 §3.1)。下方历史快照仅供追溯,以本节+Git HEAD 为准。
 > 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);
 > 一致性门 `python3 scripts/rd_state_consistency.py` 六项全绿方可开工;不一致时禁止开发,先恢复状态(§3.2)。
 
-- **基线(机器面)**: baseline=29d046eb91128b533727c2273beaaa38e0f83d5f(本轮收口盖章;检查门§①解析本行)。
-- **基线**: main = 82a650d(R22 已合并发布 v0.18.0-alpha);R23 波次在 `dev/rd-r23-agent-loop@29d046e` 待操作者合并。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
-- **真实进度**: Charter 10 阶段四毕——L3/L4 produced=False→**Agent Native 真完成**: scripts/agent_judgment.py(纪律机器校验器,**零生成零改写**——证据引用必须解析到本报告证据索引/E1-E2-E3 分级/五行情景/归因 ai_inferred 硬校验;不过=绝不半落位)+ia_cli research-attach+Skill 闭环工作流。**真实 E2E 一次任务全链首例**(R23_AGENT_NATIVE_E2E.md): research-run→Agent 研判(2 矛盾×3 竞争解释+2 机制链)→attach 0 violations→QB-20261113-001 归档→观察钟首建(research-map 警告消除)。独立审计四维全 PASS 0 BLOCKER 0 MAJOR(5 MINOR: 2 本轮已修,余 3+NIT 登记);全仓 140/140 exit 0。
-- **验收层状态**: 九 PASS+AC3 PARTIAL(R19 用户落章);AC3 首验窗 2026-12(日历门);**AC6 剩余差距收窄=阶段五完整研究验收**(§6.4: 未优化过的真实宏观问题+十章产出+独立审计结论-证据绑定核查)。
-- **当前任务**: **阶段五 真实E2E+独立验收**(未优化真实宏观问题全链跑+受影响 AC 按实重验);阶段六见 CHARTER_10 §十一。
+- **基线(机器面)**: 本节标题后机器行(由 rd_checkpoint.py --finalize 盖章写入,勿手改;检查门§①解析)。
+- **基线**: main = d30445c3b(=v0.19.0-alpha docs 面;R23 已合并发布);R24 波次在 `dev/rd-r24-stage5-e2e` 待操作者合并。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
+- **真实进度**: Charter 10 **六阶段全毕**(阶段六=状态更新自动入下一轮=本轮收口)。阶段五=**§6.4 完整研究验收按实通过**: ①未优化真实宏观问题(HY_OAS×SPX×VIX×CURVE_2S10S 组合状态)全链——research-run 15 步 run_ok=True→Agent 研判(2 矛盾/2 机制链/2 情景)→research-attach 0 violations→QB-20261113-002 归档→OC-003/004 观察钟→**ART-M/ART-FALS 跨轮判断表首建**(R23 遗留项毕);②十章产出逐章映射齐(报告 R24_STAGE5_FULL_ACCEPTANCE.md §三);③**独立审计绑定核查首跑抓出 2 条真 MAJOR**(判断内容层定性错配被运行自采 S4 序列证伪: HY_OAS 实处年内 95.6 百分位而非低位/曲线两年无倒挂现处年内最平端而非陡峭化)→**修订闭环**(judgment v2 重 attach 0 violations+ART-M-2 修订+更正评注 QB-20261113-002-C1 不重写历史档)→审计二轮复核=可并入,2 MAJOR+2 MINOR 全闭无新引入;残余同源 MINOR 当场补锚收口,3 NIT 登记排队。顺带项: agent_judgment R23 审计余留 MINOR-1/4/5+NIT 硬化四条(前会话 commit 0824331,新套件 29 判)。
+- **验收层状态**: 九 PASS+AC3 PARTIAL(R19 用户落章不变);**AC6 阶段五完整重验收按实通过**(终判 PASS 系用户落章维持,证据入 FINAL_ACCEPTANCE AC6 行,无降级项);AC3 首验窗 2026-12(日历门)。
+- **当前任务**: Charter 10 完结,转入排队面(RESUME R25): VP 旧库 5 行 LABEL_DRIFT 对账/DFF 日频史评估/R24 审计 3 NIT 收口。
 - **权限变化(Charter 10 §十)**: LIVE 生产修改自此需用户明确指令,不再随波次自动同步。
-- **检查点(R23·2026-11-13)**: 阶段四毕;操作者席待办: R23 合并发布(dev/rd-r23-agent-loop,盖章=分支最后一笔合规)+R22 席遗留(worktree /private/tmp/r21-wt 清理+钩子包安装+LIVE 观察 11-14 ZQ 族观察钟)。
+- **检查点(R24·2026-11-13)**: 阶段五+六毕;操作者席待办: R24 合并发布(dev/rd-r24-stage5-e2e)+钩子包 ops/hooks-candidate/ 安装(R21 遗留)+LIVE 观察(11-14 周六 ZQ 族观察钟;R22 席 /tmp/r21-wt 已不在场)。
 
 ### 任务台账(机器维护: scripts/rd_checkpoint.py 收口;已毕任务只进 ITERATION_LOG/RESUME 存档,永不回台账)
 
 | ID | 状态 | Git证据 | 说明 |
 |---|---|---|---|
-| (空·阶段五开轮时新增 T-R24-* 行;T-R23-1 已毕入检查点块 completed_ids) | | | |
+| (空·下轮开轮时新增 T-R25-* 行;T-R24-1 已毕入检查点块 completed_ids) | | | |
 
 ### [历史快照·R15 视角,已被上方权威快照取代]
 

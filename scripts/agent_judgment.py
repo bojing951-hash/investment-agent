@@ -16,12 +16,18 @@
 子串会漏拦,语义面归 Skill lint 与独立审计,不在本校验器伪装语义理解:
 - ATTR    attribution 必须 ai_inferred(防 Agent 成果冒充机构观点)
 - CON-EXP 每条矛盾陈述须并列 >=2 竞争性解释(纪律 4)
+- CON-REF 每条矛盾陈述须 >=1 可解析证据引用,或明示免锚
+          (no_anchor_reason 非空=R23 审计 MINOR-1: 零引用放行会割裂
+          结论-证据绑定;免锚必须显式声明理由,不许静默零锚)
 - REF     所有 evidence_refs 必须解析到**本报告证据索引**内的 fact_id/VP id
           (结论-证据绑定,R22 5.3 同源纪律;悬空引用拒收)
 - E1-REF  E1 环(引擎直接可验证)须带 >=1 可解析证据引用
 - E2-ASSUM E2 环须明写缺失环【假设】(missing_link_note 含"假设")
 - E3-FALS E3 环(纯叙事)须给证伪指标(注册表在册 metric_id)
 - SCN-FIVE 每情景五行齐备(情景/资产方向判断/敏感变量/证伪指标/触发条件)
+- SCN-TYPE 五行类型锁(R23 审计 NIT: scenario=str/asset_direction=dict/
+          sensitive_variables=list/falsification=dict/trigger=dict——
+          错型原先静默绕过下游检查,现在显式拒收)
 - SCN-ASSUM 情景行须含"假设"(明写假设非预测)
 - SCN-DIR 资产方向判断=方向+置信层级(三档枚举: 有历史相似证据/有相关证据/纯逻辑推理)
 - SCN-SENS 敏感变量 1-2 个且均为注册表在册 metric_id
@@ -120,6 +126,13 @@ def validate_judgment(judgment, evidence_refs, metric_ids):
             bad('CON-EXP', f'l3.contradictions[{cid}].competing_explanations',
                 f'竞争性解释须 >=2 并列(得 {len(exps)};纪律 4: 数据同样'
                 '容纳的其他解释至少列一种)')
+        # R23 审计 MINOR-1: 零引用矛盾不再静默放行——须 >=1 可解析引用,
+        # 或显式声明免锚理由(no_anchor_reason 非空;渲染面随之披露)
+        if not (c.get('evidence_refs') or []):
+            if not (c.get('no_anchor_reason') or '').strip():
+                bad('CON-REF', f'l3.contradictions[{cid}].evidence_refs',
+                    '矛盾陈述须 >=1 可解析证据引用,或以 no_anchor_reason '
+                    '非空明示免锚(静默零锚=割裂结论-证据绑定)')
         refs_ok(f'l3.contradictions[{cid}].evidence_refs',
                 c.get('evidence_refs'))
 
@@ -170,13 +183,25 @@ def validate_judgment(judgment, evidence_refs, metric_ids):
             if not rows.get(rname):
                 bad('SCN-FIVE', f'l4.scenarios[{sid}].rows.{rname}',
                     '五行缺一不可(纪律 16)')
+        # R23 审计 NIT: 五行类型锁——错型(如 scenario 传 dict)原先静默
+        # 绕过 SCN-ASSUM/SCN-DIR 等下游检查,现在显式拒收
+        ROW_TYPES = {'scenario': str, 'asset_direction': dict,
+                     'sensitive_variables': list, 'falsification': dict,
+                     'trigger': dict}
+        type_bad = set()
+        for rname, rtype in ROW_TYPES.items():
+            rv = rows.get(rname)
+            if rv and not isinstance(rv, rtype):
+                bad('SCN-TYPE', f'l4.scenarios[{sid}].rows.{rname}',
+                    f'类型须 {rtype.__name__}(得 {type(rv).__name__})')
+                type_bad.add(rname)
         scen_text = (rows.get('scenario') or '') if isinstance(
             rows.get('scenario'), str) else ''
         if scen_text and ASSUMPTION_MARK not in scen_text:
             bad('SCN-ASSUM', f'l4.scenarios[{sid}].rows.scenario',
                 '情景行须含"假设"(明写假设非预测)')
         ad = rows.get('asset_direction') or {}
-        if isinstance(ad, dict):
+        if 'asset_direction' not in type_bad and isinstance(ad, dict):
             if not (ad.get('direction') or '').strip():
                 bad('SCN-DIR', f'l4.scenarios[{sid}].rows.asset_direction.direction',
                     '方向判断为空')
@@ -188,15 +213,17 @@ def validate_judgment(judgment, evidence_refs, metric_ids):
             refs_ok(f'l4.scenarios[{sid}].rows.asset_direction.evidence_refs',
                     ad.get('evidence_refs'))
         sens = rows.get('sensitive_variables') or []
-        if sens and not (1 <= len(sens) <= 2):
-            bad('SCN-SENS', f'l4.scenarios[{sid}].rows.sensitive_variables',
-                f'敏感变量须 1-2 个(得 {len(sens)})')
-        for m in sens:
-            if m not in mids:
+        if 'sensitive_variables' not in type_bad:
+            if sens and not (1 <= len(sens) <= 2):
                 bad('SCN-SENS', f'l4.scenarios[{sid}].rows.sensitive_variables',
-                    f'{m!r} 不在注册表(须引擎可观测指标)')
+                    f'敏感变量须 1-2 个(得 {len(sens)})')
+            for m in sens:
+                if m not in mids:
+                    bad('SCN-SENS', f'l4.scenarios[{sid}].rows.sensitive_variables',
+                        f'{m!r} 不在注册表(须引擎可观测指标)')
         fals = rows.get('falsification') or {}
-        if isinstance(fals, dict) and fals:
+        if ('falsification' not in type_bad
+                and isinstance(fals, dict) and fals):
             if fals.get('metric_id') not in mids:
                 bad('SCN-FALS', f'l4.scenarios[{sid}].rows.falsification.metric_id',
                     f'{fals.get("metric_id")!r} 不在注册表(证伪指标须可观测)')
@@ -204,7 +231,7 @@ def validate_judgment(judgment, evidence_refs, metric_ids):
                 bad('SCN-FALS', f'l4.scenarios[{sid}].rows.falsification.threshold',
                     '可观测阈值为空')
         trig = rows.get('trigger') or {}
-        if isinstance(trig, dict) and trig:
+        if 'trigger' not in type_bad and isinstance(trig, dict) and trig:
             if not (trig.get('condition') or '').strip():
                 bad('SCN-TRIG', f'l4.scenarios[{sid}].rows.trigger.condition',
                     '可观测条件为空')
@@ -229,18 +256,52 @@ def _registry_metric_ids(root):
             if m.get('metric_id')}
 
 
-def attach_judgment(report_dir, judgment_path, root=None):
+def attach_judgment(report_dir, judgment_path, root=None,
+                    allow_failed_run=False):
     """校验 Agent judgment 并合并进 research-run 报告(半落位=不落位)。
 
     校验通过: layers L3/L4 produced=True+attribution=ai_inferred+判断原文,
     judgment 副本存 <report_dir>/agent_judgment.json,report.md 重渲(含
     L3/L4 节);校验不过: produced 保持 False,violations 落档供 Agent 修订
-    重提,绝不半落位。返回摘要 dict(ia_cli 与测试共用)。
+    重提,绝不半落位。
+
+    R23 审计 MINOR-4: run_ok=False 的 research-run 默认拒收 judgment——
+    判断不得落在失败证据面之上(静默落位=L3/L4 produced=True 掩盖底座红)。
+    显式 allow_failed_run=True 才放行(诚实拒答类步骤失败但证据面可用的
+    场景;门槛显式越过=可审计)。返回摘要 dict(ia_cli 与测试共用)。
     """
     root = root or ROOT
     rj_path = os.path.join(report_dir, 'report.json')
     report = _load_json(rj_path)
     judgment = _load_json(judgment_path)
+
+    # ── MINOR-4 门槛: 失败底座默认拒收 ─────────────────────────────
+    run_ok = report.get('run_ok')
+    if run_ok is False and not allow_failed_run:
+        report['agent_judgment'] = {
+            'attached': False,
+            'attached_at': _now_utc(),
+            'judgment_file': os.path.basename(judgment_path),
+            'schema_version': JUDGMENT_SCHEMA_VERSION,
+            'blocked': 'run_ok_false',
+            'block_note': ('research-run run_ok=False——判断默认不得落在失败'
+                           '证据面上;显式 allow_failed_run=True 才放行'
+                           '(诚实拒答类失败且证据面仍可用时由 Agent 声明)'),
+            'run_ok_at_attach': run_ok,
+        }
+        with open(rj_path, 'w', encoding='utf-8') as f:
+            json.dump(report, f, ensure_ascii=False, indent=2, default=str)
+        return {'report_dir': report_dir,
+                'attached': False,
+                'blocked': 'run_ok_false',
+                'run_ok_at_attach': run_ok,
+                'layers_summary': {
+                    'L3_produced': (report.get('layers', {})
+                                    .get('L3_AI推断层', {})
+                                    .get('produced')),
+                    'L4_produced': (report.get('layers', {})
+                                    .get('L4_条件情景层', {})
+                                    .get('produced'))}}
 
     ev_refs = {e.get('ref') for e in report.get('evidence_index') or []
                if e.get('ref')}
@@ -276,6 +337,9 @@ def attach_judgment(report_dir, judgment_path, root=None):
         'judgment_file': os.path.basename(judgment_path),
         'schema_version': JUDGMENT_SCHEMA_VERSION,
         'validation': res,
+        # MINOR-4: 落位时的底座状态随档(含 allow_failed_run 越过面)
+        'run_ok_at_attach': run_ok,
+        'allow_failed_run': bool(allow_failed_run and run_ok is False),
     }
     with open(rj_path, 'w', encoding='utf-8') as f:
         json.dump(report, f, ensure_ascii=False, indent=2, default=str)
@@ -286,6 +350,7 @@ def attach_judgment(report_dir, judgment_path, root=None):
     return {'report_dir': report_dir,
             'attached': bool(res['passed']),
             'validation': res,
+            'run_ok_at_attach': run_ok,
             'layers_summary': {
                 'L3_produced': layers['L3_AI推断层']['produced'],
                 'L4_produced': layers['L4_条件情景层']['produced']}}

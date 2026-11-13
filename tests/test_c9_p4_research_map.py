@@ -197,9 +197,16 @@ check("信封内十问+对撞+单源同面",
       and d['nomination_inputs']['pseudo_consensus_subjects']
       == ['fixed_income', 'commodities'])
 warns = ' '.join(env.get('warnings') or [])
-check("warnings 提示对撞+单源+ART/观察钟",
-      '对撞' in warns and '单源' in warns and 'ART-M' in warns
-      and '观察钟' in warns, warns[:200])
+# R24: ART-M/ART-FALS/观察钟文件已由编排层落位(真树在场,干净 clone 缺席)
+# ——断言改为一致性不变式: 警告出现 ⟺ 文件缺席(两环境都成立,强于写死在场)
+_art_present = os.path.exists(os.path.join(
+    ROOT, 'data', 'research', 'art_m.json'))
+_clock_present = os.path.exists(os.path.join(
+    ROOT, 'data', 'research', 'observation_clock.json'))
+check("warnings 对撞+单源恒在;ART/观察钟提示与文件在场性一致",
+      '对撞' in warns and '单源' in warns
+      and ('ART-M' in warns) == (not _art_present)
+      and ('观察钟' in warns) == (not _clock_present), warns[:200])
 
 print("═" * 60)
 print("[6] 页面入口(app.py 源结构)+SKILL 编排纪律")

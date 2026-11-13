@@ -56,6 +56,14 @@ import view_store as vs                      # noqa: E402
 import research_history_query as rhq         # noqa: E402
 import fact_engine as fe                     # noqa: E402
 import workbench_data as wd                  # noqa: E402
+import direction_semantics as dsem_mod       # noqa: E402
+
+# 到期验证数据新鲜度(Charter 10 §5.2,R22): 到期日附近无新鲜观测=证据不足,
+# 不判对错。允许滞后按注册表 frequency(市场序列节假日容忍/月频观测间隔+
+# 发布滞后/季频同理);未登记频次保守 60 天。
+FRESHNESS_ALLOWED_LAG_DAYS = {'daily': 10, 'weekly': 21, 'monthly': 60,
+                              'quarterly': 130}
+FRESHNESS_DEFAULT_LAG_DAYS = 60
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAP_PATH = os.path.join(ROOT, 'config', 'view_metric_map.json')
@@ -397,6 +405,79 @@ def _since_publish_node(metric_id, unit, snapshot, publish_date):
                                start=publish_date, end=snapshot.get('target_date'))
 
 
+def _freshness_node(metric_id, snapshot, series_dates, horizon_end, registry):
+    """到期验证新鲜度节点(Charter 10 §5.2,R22)。
+
+    披露五要素: 预测到期日/实际观测日期(≤到期日的最后观测)/数据发布面
+    (fact 级 release_date 实测优先,未入库如实 null+注册表登记旗标)/
+    允许的数据滞后(按 frequency)/数据质量状态。到期日与最后观测的间隔
+    超过允许滞后 → fresh=False(调用方须转证据不足,不得判对错)。"""
+    m = (registry.get('by_id') or {}).get(metric_id) or {}
+    freq = m.get('frequency')
+    allowed = FRESHNESS_ALLOWED_LAG_DAYS.get(freq, FRESHNESS_DEFAULT_LAG_DAYS)
+    le = [str(d)[:10] for d in series_dates if str(d)[:10] <= str(horizon_end)[:10]]
+    last_obs = max(le) if le else None
+    gap = None
+    if last_obs:
+        import datetime as _dt
+        gap = (_dt.date.fromisoformat(str(horizon_end)[:10])
+               - _dt.date.fromisoformat(last_obs)).days
+    fact = next((f for f in (snapshot or {}).get('facts', [])
+                 if f.get('metric_id') == metric_id), None)
+    node = {
+        'prediction_due': horizon_end,
+        'actual_observation_date': last_obs,
+        'gap_days': gap,
+        'frequency': freq,
+        'allowed_lag_days': allowed,
+        'release_date': (fact or {}).get('release_date'),
+        'release_date_available_registry': m.get('release_date_available'),
+        'release_date_basis': ('fact 级 release_date 实测' if fact and
+                               fact.get('release_date') else
+                               '逐观测发布日未入库(观测日替代,vintage 累积中)'),
+        'quality_status': (fact or {}).get('quality_status') or 'series_store',
+        'fresh': bool(last_obs and gap is not None and gap <= allowed),
+    }
+    return node
+
+
+def _filter_snapshot_le(snap, ymd):
+    """快照截断到观测日 ≤ymd(R22 §5.4 二次过滤;mode A 两锚共用的唯一实现)。
+
+    facts: obs>ymd 的原版丢弃,但截断序列尾值近似(level_source=
+    series_tail_le_publish 家族,DEGRADED 披露,原观测日保留)——与 R5
+    approx 分支同款语义;series_store: 逐指标截断日期/值。
+    返回 (新 snap dict, {'dropped_series_obs': n, 'dropped_facts': n,
+    'approx_facts': n})——vintage 分支凭此披露二次过滤执行面。"""
+    series_store, dropped_obs = {}, 0
+    for mid, ss in (snap.get('series_store') or {}).items():
+        keep = [i for i, d in enumerate(ss.get('dates', []))
+                if str(d)[:10].replace('-', '') <= ymd]
+        dropped_obs += len(ss.get('dates', [])) - len(keep)
+        series_store[mid] = {'dates': [ss['dates'][i] for i in keep],
+                             'values': [ss['values'][i] for i in keep]}
+    facts, dropped, approx = [], 0, 0
+    for f in snap.get('facts') or []:
+        if str(f.get('observation_date', ''))[:10].replace('-', '') <= ymd:
+            facts.append(f)
+            continue
+        dropped += 1
+        ss = series_store.get(f.get('metric_id')) or {}
+        tail = [(d, v) for d, v in zip(ss.get('dates') or [],
+                                       ss.get('values') or [])
+                if v is not None]
+        if tail:
+            approx += 1
+            facts.append({**f, 'value': tail[-1][1],
+                          'observation_date': tail[-1][0],
+                          'quality_status': 'DEGRADED',
+                          'level_source': 'series_tail_le_publish',
+                          'fact_observation_date': f.get('observation_date')})
+    snap2 = {**snap, 'facts': facts, 'series_store': series_store}
+    return snap2, {'dropped_series_obs': dropped_obs, 'dropped_facts': dropped,
+                   'approx_facts': approx}
+
+
 def verify_at_publish(view_id, registry, vmap, views_dir=None, directions=None,
                       root=ROOT, extra_metric_ids=None):
     """mode A 提出时证据: vintage 锚定 publish_date(裁定①含当日观测≤,
@@ -425,10 +506,16 @@ def verify_at_publish(view_id, registry, vmap, views_dir=None, directions=None,
         ymd = max(vints)
         snap, why = rp.select_snapshot(ymd, daily)
         if snap is not None:
+            # R22 §5.4 二次过滤(OPEN_ISSUES R1-MINOR-4 收口): vintage 快照
+            # 不盲信——逐观测再截断到 ≤publish(防采集面夹带未来观测前视)。
+            snap, filt = _filter_snapshot_le(snap, pymd)
+            leaked = filt['dropped_series_obs'] + filt['dropped_facts']
             vintage_note = {'anchor': 'vintage_snapshot', 'cutoff': ymd,
                             'degraded': False,
+                            'obs_le_publish_filter': filt,
                             'note': f'≤publish 最近跨日 vintage 快照(切点 {ymd},'
-                                    '含当日观测,裁定①)'}
+                                    '含当日观测,裁定①);obs≤publish 二次过滤'
+                                    f"已执行(滤 {leaked} 项,R22 §5.4)"}
     if snap is None:
         snap, note = wd.latest_snapshot(root)
         if snap is None:
@@ -436,31 +523,10 @@ def verify_at_publish(view_id, registry, vmap, views_dir=None, directions=None,
                     'error': {'kind': 'vintage_unavailable',
                               'message': f'无 vintage≤{pymd} 且无本地快照({note})'
                                          '——干净clone 无历史数据,mode A 不可执行'}}
-        series_store = {}
-        for mid, ss in (snap.get('series_store') or {}).items():
-            keep = [i for i, d in enumerate(ss.get('dates', []))
-                    if str(d)[:10].replace('-', '') <= pymd]
-            series_store[mid] = {'dates': [ss['dates'][i] for i in keep],
-                                 'values': [ss['values'][i] for i in keep]}
-        facts = []
-        for f in snap.get('facts') or []:
-            if str(f.get('observation_date', ''))[:10].replace('-', '') <= pymd:
-                facts.append(f)
-                continue
-            ss = series_store.get(f.get('metric_id')) or {}
-            tail = [(d, v) for d, v in zip(ss.get('dates') or [],
-                                           ss.get('values') or [])
-                    if v is not None]
-            if tail:
-                facts.append({**f, 'value': tail[-1][1],
-                              'observation_date': tail[-1][0],
-                              'quality_status': 'DEGRADED',
-                              'level_source': 'series_tail_le_publish',
-                              'fact_observation_date': f.get('observation_date')})
-        snap = {**snap, 'facts': facts, 'series_store': series_store,
-                'snapshot_id': snap.get('snapshot_id')}
+        snap, filt = _filter_snapshot_le(snap, pymd)
         vintage_note = {'anchor': 'approx_filtered', 'cutoff': doc['publish_date'],
                         'degraded': True,
+                        'obs_le_publish_filter': filt,
                         'note': '无该时点 vintage 快照→最新快照截断至 publish_date'
                                 '(当时信息集近似,DEGRADED;裁定⑦,C席复核实证面;'
                                 'obs>publish 事实以截断序列尾值近似,'
@@ -522,9 +588,13 @@ def verify_expiry(view_id, snapshot, registry, vmap, views_dir=None,
 
     判定序(确定性): 期限不可解析→UNPARSEABLE_HORIZON;未到期→NOT_YET_TESTABLE;
     target 未映射→NOT_MACHINE_VERIFIABLE;序列不足→INSUFFICIENT_DATA;
+    到期日附近观测滞后超允许阈值(frequency 驱动)→INSUFFICIENT_DATA
+    (Charter 10 §5.2 新鲜度门,五要素随 freshness 节披露);
     方向不可解析(点位型)→LEVEL_TARGET(报告实际值与点位差,不判对错);
-    方向可解析→supports/against/neutral(publish→horizon_end 区间变动,
-    interval_change 同口径)。
+    方向可解析→报价方向语义换算(Charter 10 §5.1: 报价对计价货币侧/
+    收益率-价格侧反转,config/metric_direction_semantics.json 驱动,
+    direction_hint 语义=指标数值方向)后 supports/against/neutral
+    (publish→horizon_end 区间变动,interval_change 同口径)。
     序列取数 root 固定引擎根(metric_series 内部 load_registry(root) 须读到
     config/metric_registry.json;序列本身优先快照 series_store——与
     _since_publish_node 同款,data 沙箱 root 只用于快照解析侧)。"""
@@ -577,6 +647,20 @@ def verify_expiry(view_id, snapshot, registry, vmap, views_dir=None,
             rows.append(row)
             continue
         row['interval_change'] = iv
+        # R22 §5.2 新鲜度门: 到期日附近无足够新鲜观测=证据不足,不判对错
+        fresh = _freshness_node(metric, snapshot, series['dates'],
+                                h['horizon_end'], registry)
+        row['freshness'] = fresh
+        if not fresh['fresh']:
+            row['verdict'] = 'INSUFFICIENT_DATA'
+            row['note'] = (f"到期 {h['horizon_end']} 附近无足够新鲜观测: "
+                           f"最后观测 {fresh['actual_observation_date']}"
+                           f"(滞后 {fresh['gap_days']} 天 > 允许 "
+                           f"{fresh['allowed_lag_days']} 天,"
+                           f"{fresh['frequency'] or '未登记'}频)——证据不足,"
+                           '不判预测正确或错误(Charter 10 §5.2)')
+            rows.append(row)
+            continue
         actual = None
         for k in ('pp_change', 'pct_change', 'abs_change'):
             if iv.get(k) is not None:
@@ -593,7 +677,14 @@ def verify_expiry(view_id, snapshot, registry, vmap, views_dir=None,
                     'date': last[-1],
                     'value': series['values'][series['dates'].index(last[-1])]}
         else:
+            # R22 §5.1 方向语义: 报价对/收益率类指标,措辞主体与指标数值方向
+            # 可能相反("日元升值"=USDJPY 降)。换算确定性(config 驱动),
+            # 披露节点随行;direction_hint 语义=指标数值方向(换算后)。
+            hint, dnode = dsem_mod.apply_metric_direction_semantics(
+                hint, metric, [f.get('target'), f.get('value_or_direction')])
             row['direction_hint'] = hint
+            if dnode is not None:
+                row['direction_semantics'] = dnode
             row['actual_direction'] = actual
             row['verdict'] = ('supports' if actual == hint else
                               'against' if actual in ('up', 'down') else 'neutral')

@@ -31,6 +31,7 @@ CLI:
   python3 scripts/view_plausibility.py --list [--vp-dir DIR]
   python3 scripts/view_plausibility.py --build VIEW-… [--dry-run] [--vp-dir DIR]
   python3 scripts/view_plausibility.py --build-all [--dry-run] [--vp-dir DIR]
+  python3 scripts/view_plausibility.py --verify-binding VIEW-… [--vp-dir DIR]
 退出码: 0=装载校验成功;1=缺失/不可用;2=用法错。
 
 v1.1(R1 autonomous-rd 2026-11-11): 三型证据落库——hypotheses[].stages.{A,B}
@@ -68,10 +69,24 @@ VERDICT_TO_LABEL = {
     'neutral': 'INSUFFICIENT_EVIDENCE',
 }
 
+# R22(Charter 10 §5.3): 判定标签=宣称由机器证据产生的对错判断;
+# 不可判族=底证不可支撑判定标签的证据状态。
+_JUDGMENT_LABELS = ('SUPPORTED', 'CONTRADICTED')
+_UNTESTABLE_FAMILY = ('NOT_YET_TESTABLE', 'INSUFFICIENT_EVIDENCE')
+
 
 def verdict_to_label(verdict):
-    """mode C verdict → 六标签(未知 verdict→INSUFFICIENT_EVIDENCE,不猜)。"""
-    return VERDICT_TO_LABEL.get(str(verdict), 'INSUFFICIENT_EVIDENCE')
+    """mode C verdict → 六标签(未知 verdict→INSUFFICIENT_EVIDENCE,不猜)。
+
+    R22(2026-11-12,Charter 10 §5.3): 编排层多 forecast 假设存复合 verdict
+    ('NOT_YET_TESTABLE/NOT_YET_TESTABLE')——拆 '/' 后各段标签一致取该标签,
+    不一致/空→INSUFFICIENT_EVIDENCE(最保守)。"""
+    s = str(verdict).strip()
+    parts = [p.strip() for p in s.split('/') if p.strip()]
+    if not parts:
+        return 'INSUFFICIENT_EVIDENCE'
+    labels = [VERDICT_TO_LABEL.get(p, 'INSUFFICIENT_EVIDENCE') for p in parts]
+    return labels[0] if len(set(labels)) == 1 else 'INSUFFICIENT_EVIDENCE'
 
 
 def rollup_view_label(labels):
@@ -185,6 +200,23 @@ def validate_vp(doc, view_doc):
                 elif mr.get('direction') not in (None, 'up', 'down', 'flat'):
                     errs.append(f'{pre}.metric_refs[{j}].direction 须为 up/down/flat/缺省'
                                 '(flat=水平不变假设,如"不再加息")')
+        # R22(2026-11-12,Charter 10 §5.3)标签-证据绑定纯校验: mode C 绑定的
+        # 判定标签(SUPPORTED/CONTRADICTED)必须携带存量 verdict 且
+        # 标签=verdict_to_label(verdict)——底证 NOT_YET_TESTABLE 族不得撑
+        # 判定标签(结构性防线,不依赖快照;对当前引擎的活体重算= binding_check)。
+        ev = h.get('evidence') or {}
+        if isinstance(ev, dict) and ev.get('mode') == 'C':
+            if h.get('label') in _JUDGMENT_LABELS and ev.get('verdict') is None:
+                errs.append(
+                    f'{pre}.label={h.get("label")!r} 为判定标签但 mode C 绑定'
+                    '无存量 verdict——判定无据可查(Charter 10 §5.3)')
+            elif ev.get('verdict') is not None:
+                expected = verdict_to_label(ev.get('verdict'))
+                if h.get('label') != expected:
+                    errs.append(
+                        f'{pre}.label({h.get("label")!r})与底证 verdict'
+                        f'({ev.get("verdict")!r})绑定不符——按证据应={expected}'
+                        '(Charter 10 §5.3: 标签须真正由对应证据产生)')
     declared = doc.get('view_label')
     recomputed = rollup_view_label([h.get('label') for h in hyps
                                     if isinstance(h, dict)])
@@ -256,6 +288,145 @@ def vp_badge_rows(vp_doc):
     return rows
 
 
+# ── R22(2026-11-12,Charter 10 §5.3): 标签-证据绑定活体复核 ────────────
+# 纯结构校验(validate_vp)只看"verdict 在档→标签=verdict_to_label";本节对
+# mode C 绑定的假设**重跑 verify_expiry**(当前快照)复核: ①存量 verdict 与
+# 当前引擎 verdict 是否一致(漂移=证据过期,须重建);②当前引擎重算标签 vs
+# 声明标签——底证不可判(NOT_YET_TESTABLE 族)而声明判定标签(SUPPORTED/
+# CONTRADICTED)= BINDING_VIOLATION(Charter 原文: 不得允许底证
+# NOT_YET_TESTABLE 却无充分其他证据就将同一预测标记为 SUPPORTED)。
+# 无 mode C 绑定的假设=语义映射层(AI/编排层),机器不可复算——显式标
+# interpretation_boundary,人工审查面(诚实边界,不冒充机器验证)。
+
+
+def binding_check(view_id=None, doc=None, snapshot=None, registry=None,
+                  vmap=None, views_dir=None, vp_dir=None, target_map=None,
+                  root=None):
+    """标签-证据绑定复核(确定性): sidecar 假设层 × verify_expiry 活跑。
+
+    doc 显式传入(build_vp 写入前自检用);否则按 view_id 从 vp_dir 装载。
+    snapshot/registry/vmap/target_map 缺省按引擎根装载(与 build_vp 同源)。
+    返回 {'ok', 'view_id', 'as_of', 'rows', 'summary'}——rows 每假设一条:
+    status ∈ BINDING_OK|BINDING_VIOLATION|LABEL_DRIFT|NO_MACHINE_BINDING|
+    ENGINE_UNAVAILABLE|VP_MISSING;ok=False 当且仅当存在 BINDING_VIOLATION。
+    LABEL_DRIFT=存量 verdict 与当前引擎不一致(到期推进/数据更新)——披露
+    不阻断(重建即消);violation 才是"标签非由证据产生"的红线。"""
+    root = root or ROOT
+    if doc is None:
+        if not view_id:
+            return {'ok': False, 'error': {'kind': 'usage',
+                                           'message': '须给 view_id 或 doc'}}
+        doc, reason = load_vp(view_id, vp_dir)
+        if doc is None:
+            return {'ok': False, 'view_id': view_id,
+                    'error': {'kind': 'vp_missing', 'message': reason}}
+    view_id = view_id or doc.get('view_id')
+    rows, summary = [], {'BINDING_OK': 0, 'BINDING_VIOLATION': 0,
+                         'LABEL_DRIFT': 0, 'NO_MACHINE_BINDING': 0,
+                         'ENGINE_UNAVAILABLE': 0, 'VP_MISSING': 0}
+    view_doc, vr = vs.get_view(view_id, views_dir)
+    if view_doc is None:
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'view_not_found_or_quarantined',
+                          'message': vr}}
+    import view_verifier as vv
+    import workbench_data as wd
+    if snapshot is None:
+        snapshot, note = wd.latest_snapshot(root)
+        if snapshot is None:
+            snapshot = None
+    if registry is None or vmap is None:
+        # 注册表/映射固定引擎根(与 verify_expiry 同纪律);root 仅快照解析侧
+        registry = registry or wd.load_registry(ROOT)
+        vmap = vmap or vv.load_map()
+    if target_map is None:
+        try:
+            target_map = vv.load_forecast_target_map()
+        except (OSError, ValueError):
+            target_map = None
+    out_c = None
+    if snapshot is not None:
+        out_c = vv.verify_expiry(view_id, snapshot, registry, vmap,
+                                 views_dir=views_dir, target_map=target_map)
+        if not out_c.get('ok'):
+            out_c = None
+    verdicts = ((out_c or {}).get('forecast_verdicts') or [])
+    for i, h in enumerate(doc.get('hypotheses') or []):
+        if not isinstance(h, dict):
+            continue
+        pre = f'hypotheses[{i}]'
+        ev = h.get('evidence') or {}
+        declared = h.get('label')
+        row = {'hyp': pre, 'declared_label': declared,
+               'stored_verdict': ev.get('verdict')}
+        if not isinstance(ev, dict) or ev.get('mode') != 'C':
+            row['status'] = 'NO_MACHINE_BINDING'
+            row['interpretation_boundary'] = (
+                '无 mode C 机器绑定——语义映射=编排层/AI,机器不可复算,'
+                '人工审查面(Charter 10 §5.3 解释边界)')
+        elif out_c is None:
+            row['status'] = 'ENGINE_UNAVAILABLE'
+            row['note'] = '当前无快照/引擎不可跑(mode C 活体复核缺席,如实)'
+        else:
+            fi = ev.get('forecast_index')
+            lfs = [k for k in (ev.get('linked_forecasts') or [])
+                   if isinstance(k, int) and not isinstance(k, bool)]
+            # 候选当前 verdict(基制歧义如实枚举,依存量 verdict 匹配定基):
+            # 生产档实测 forecast_index/linked_forecasts=0-based(指向
+            # forecasts 数组),引擎行号=1-based;复合假设存量 verdict 为
+            # '/'.join(各 forecast verdict)。
+            cands = []
+            if lfs and all(0 <= k < len(verdicts) for k in lfs):
+                cands.append(('/'.join(str(verdicts[k].get('verdict'))
+                                       for k in lfs),
+                              f'linked_forecasts 0-based({lfs})'))
+            if lfs and all(1 <= k <= len(verdicts) for k in lfs):
+                cands.append(('/'.join(str(verdicts[k - 1].get('verdict'))
+                                       for k in lfs),
+                              f'linked_forecasts 1-based({lfs})'))
+            if isinstance(fi, int) and 0 <= fi < len(verdicts):
+                cands.append((str(verdicts[fi].get('verdict')),
+                              'forecast_index 0-based'))
+            if isinstance(fi, int) and 1 <= fi <= len(verdicts):
+                cands.append((str(verdicts[fi - 1].get('verdict')),
+                              'forecast_index 1-based'))
+            stored = ev.get('verdict')
+            cur_verdict, basis = None, None
+            for cv, b in cands:
+                if cv == stored:
+                    cur_verdict, basis = cv, b + '(存量匹配)'
+                    break
+            if cur_verdict is None and cands:
+                cur_verdict, basis = cands[0][0], cands[0][1] + \
+                    '(存量不匹配,按首候选取)'
+            row['index_basis'] = basis
+            row['current_verdict'] = cur_verdict
+            recomputed = verdict_to_label(cur_verdict) if cur_verdict else None
+            row['recomputed_label'] = recomputed
+            if declared in _JUDGMENT_LABELS and recomputed in _UNTESTABLE_FAMILY:
+                row['status'] = 'BINDING_VIOLATION'
+                row['note'] = (f'底证当前={cur_verdict}(不可判)而声明={declared}'
+                               '——判定标签非由当前证据产生(Charter 10 §5.3 红线)')
+            elif (stored is not None and cur_verdict is not None
+                    and cur_verdict != stored):
+                row['status'] = 'LABEL_DRIFT'
+                row['note'] = (f'存量 verdict({stored})与当前引擎'
+                               f'({cur_verdict})不一致(到期推进/数据更新/'
+                               '映射扩充)——重建即消,披露不阻断')
+            else:
+                row['status'] = 'BINDING_OK'
+        summary[row['status']] = summary.get(row['status'], 0) + 1
+        rows.append(row)
+    return {'ok': summary['BINDING_VIOLATION'] == 0, 'view_id': view_id,
+            'as_of': (snapshot or {}).get('target_date'),
+            'snapshot_id': (snapshot or {}).get('snapshot_id'),
+            'rows': rows, 'summary': summary,
+            'semantics': ('BINDING_OK=标签由当前引擎证据产生 / '
+                          'BINDING_VIOLATION=底证不可判却声明判定标签(红线) / '
+                          'LABEL_DRIFT=证据推进待重建(披露) / '
+                          'NO_MACHINE_BINDING=语义层,人工审查面')}
+
+
 # ── R1(autonomous-rd 2026-11-11): VP v1.1 三型证据全落库 ──────────────
 # 背景: v1.0 的 view_label 只消费 view_verifier --mode C verdict(到期验证),
 # A(提出时)/B(发布后)两型引擎已可实算但从未结构化落库——AC3 三阶段区分
@@ -306,11 +477,17 @@ def _hypothesis_directions(hyp, view_doc, target_map):
     否则由 evidence.linked_forecasts 指向的 forecast 自身 value_or_direction
     经 view_verifier._parse_direction 词表机械解析,且该 forecast 的 target 经
     forecast_target_map 解析到同一 metric 才采用(防错配)。
+    R22(2026-11-12,Charter 10 §5.1): 文本提取的方向经
+    direction_semantics 换算为**指标数值方向**(报价对计价货币侧/
+    收益率-价格侧反转,disclosure 随 provenance 落档)——"日元升值"不再
+    机械当 USDJPY 上行。metric_refs[].direction 为编排层已写的指标方向,
+    无原始措辞可换算,维持原值(边界如实: 该层主体歧义归人工审阅)。
     linked_forecasts 基制=**1-based**(与 mode C verify_expiry 的
     evidence.forecast_index enumerate(...,1) 同惯例;E席审计 MAJOR-2:
     双基容忍会把方向挂到错误引文——生产 17 份该路径零使用,定基零迁移)。
     返回 ({metric_id: hint}, {metric_id: provenance});不可解析不猜。"""
     import view_verifier as vv
+    import direction_semantics as dsem
     dirs, prov = {}, {}
     for mr in hyp.get('metric_refs') or []:
         mid = mr.get('metric_id')
@@ -329,12 +506,17 @@ def _hypothesis_directions(hyp, view_doc, target_map):
             continue
         metric = vv._resolve_forecast_metric(f.get('target'), target_map)
         if metric and metric not in dirs:
-            dirs[metric] = hint
-            prov[metric] = {'source': 'forecast_value_or_direction',
-                            'forecast_index': fi,
-                            'forecast_index_basis': '1-based',
-                            'quote': str(f.get('value_or_direction'))[:120],
-                            'attribution': 'institution_stated'}
+            mhint, dnode = dsem.apply_metric_direction_semantics(
+                hint, metric, [f.get('target'), f.get('value_or_direction')])
+            dirs[metric] = mhint
+            p = {'source': 'forecast_value_or_direction',
+                 'forecast_index': fi,
+                 'forecast_index_basis': '1-based',
+                 'quote': str(f.get('value_or_direction'))[:120],
+                 'attribution': 'institution_stated'}
+            if dnode is not None:
+                p['direction_semantics'] = dnode
+            prov[metric] = p
     return dirs, prov
 
 
@@ -486,15 +668,25 @@ def build_vp(view_id, root=None, vp_dir=None, views_dir=None, dry_run=False):
     if not dry_run:
         with open(vp_path(view_id, vp_dir), 'w', encoding='utf-8') as f:
             json.dump(doc, f, ensure_ascii=False, indent=2)
-    return {'ok': True, 'view_id': view_id, 'written': not dry_run,
-            'view_label': doc['view_label'],
-            'stage_summary': doc['stage_summary'],
-            'n_hypotheses': len(doc.get('hypotheses') or [])}
+    # R22 §5.3: 构建随行绑定复核(只入结果不入档,文件契约零扰动);
+    # violation 经 validate_vp 纯校验已拦截写入,此处披露活体面(漂移等)。
+    bind = binding_check(view_id=view_id, doc=doc, snapshot=snap,
+                         registry=reg, vmap=vmap, views_dir=views_dir,
+                         target_map=tmap, root=root)
+    result = {'ok': True, 'view_id': view_id, 'written': not dry_run,
+              'view_label': doc['view_label'],
+              'stage_summary': doc['stage_summary'],
+              'n_hypotheses': len(doc.get('hypotheses') or [])}
+    if bind.get('rows') is not None:
+        result['binding_summary'] = bind.get('summary')
+    return result
 
 
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     vp_dir = None
+    views_dir = None            # R22: --views-dir 注入缝(R17 tempdir 同款)
+    data_root = None            # R22: --data-root 注入缝(CI 干净面/沙箱)
     args = list(argv)
     if '--vp-dir' in args:
         k = args.index('--vp-dir')
@@ -504,10 +696,39 @@ def main(argv=None):
             return 2
         vp_dir = args[k + 1]
         del args[k:k + 2]
+    if '--views-dir' in args:
+        k = args.index('--views-dir')
+        if k + 1 >= len(args):
+            print(json.dumps({'ok': False, 'error': {
+                'kind': 'usage', 'message': '--views-dir 须跟目录'}},
+                             ensure_ascii=False))
+            return 2
+        views_dir = args[k + 1]
+        del args[k:k + 2]
+    if '--data-root' in args:
+        k = args.index('--data-root')
+        if k + 1 >= len(args):
+            print(json.dumps({'ok': False, 'error': {
+                'kind': 'usage', 'message': '--data-root 须跟目录'}},
+                             ensure_ascii=False))
+            return 2
+        data_root = args[k + 1]
+        del args[k:k + 2]
     # R1: --build VIEW-ID | --build-all [--dry-run](三型证据落库,见 build_vp)
     dry = '--dry-run' in args
     if dry:
         args.remove('--dry-run')
+    # R22(Charter 10 §5.3): 标签-证据绑定活体复核(重跑 mode C 比对声明标签)
+    if args and args[0] == '--verify-binding':
+        if len(args) != 2 or not args[1].startswith('VIEW-'):
+            print(json.dumps({'ok': False, 'error': {
+                'kind': 'usage', 'message': '用法: --verify-binding '
+                        'VIEW-YYYYMMDD-NNN [--vp-dir DIR]'}}, ensure_ascii=False))
+            return 2
+        out = binding_check(view_id=args[1], vp_dir=vp_dir,
+                            views_dir=views_dir, root=data_root)
+        print(json.dumps(out, ensure_ascii=False, indent=2, default=str))
+        return 0 if out.get('ok') else 1
     if args and args[0] == '--build':
         if len(args) != 2 or not args[1].startswith('VIEW-'):
             print(json.dumps({'ok': False, 'error': {

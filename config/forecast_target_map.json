@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "purpose": "Charter9 P0-1 mode C(到期验证): view.forecasts[].target 文本→注册表 metric 的确定性映射种子。未映射 target → NOT_MACHINE_VERIFIABLE(禁猜;映射扩充=Agent 层登记后入此档,人工审阅)。",
+  "purpose": "Charter9 P0-1 mode C(到期验证): view.forecasts[].target 文本→注册表 metric 的确定性映射种子。未映射 target → NOT_MACHINE_VERIFIABLE(禁猜;映射扩充=Agent 层登记后入此档,人工审阅)。R22(2026-11-12,Charter 10 §5.1 覆盖面): 补 EURUSD/GBPUSD/USDCNY 报价对键(注册表在册指标,非猜映射)。裸币短键(欧元/英镑/人民币)**不收**: 最长包含匹配下会子串误配('欧元'⊂'欧元区GDP增长'→GDP 预测错映汇率,实测拦截);单币措辞的方向语义由 direction_semantics 按 value_or_direction 措辞主体处理。",
   "matching_rule": "精确键优先;否则最长包含键(键字符串出现在 target 文本中);两者皆无→不映射",
   "targets": {
     "联邦基金利率上限": "DFEDTARU",
@@ -18,6 +18,9 @@
     "美元指数": "DXY",
     "美元兑日元": "USDJPY",
     "日元": "USDJPY",
+    "欧元兑美元": "EURUSD",
+    "英镑兑美元": "GBPUSD",
+    "美元兑人民币": "USDCNY",
     "核心PCE": "CORE_PCE",
     "失业率": "UNEMPLOYMENT"
   }

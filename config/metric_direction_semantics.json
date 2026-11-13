@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "created": "2026-11-12",
+  "purpose": "金融指标方向语义规则(Charter 10 §5.1): 报价对/收益率类指标的方向措辞主体与指标数值方向可能相反。'日元升值'=USDJPY 下降;'国债价格上涨'=收益率下降。本表只登记存在反向风险的指标;未登记指标方向措辞=指标名义方向(直接比对)。判定优先级: 报价对名义(pair_patterns)>相对措辞(A 相对/兑/vs B→主体=A)>单侧币种>未识别(按指标名义方向+披露)。",
+  "rules": {
+    "USDJPY": {
+      "kind": "fx_quote_pair",
+      "basis": "unit=jpy_per_usd: USD 为基准货币(base), JPY 为计价货币(quote)。指标涨=美元涨=日元跌。",
+      "pair_patterns": ["美元兑日元", "美元/日元", "USDJPY", "USD/JPY", "USD-JPY", "dollar-yen", "美元对日元"],
+      "base_tokens": ["美元", "USD", "dollar", "美金"],
+      "quote_tokens": ["日元", "日圆", "JPY", "yen"]
+    },
+    "EURUSD": {
+      "kind": "fx_quote_pair",
+      "basis": "unit=usd_per_eur: EUR 为基准货币(base), USD 为计价货币(quote)。指标涨=欧元涨=美元跌。",
+      "pair_patterns": ["欧元兑美元", "欧元/美元", "EURUSD", "EUR/USD", "EUR-USD", "euro-dollar", "欧元对美元"],
+      "base_tokens": ["欧元", "EUR", "euro"],
+      "quote_tokens": ["美元", "USD", "dollar", "美金"]
+    },
+    "GBPUSD": {
+      "kind": "fx_quote_pair",
+      "basis": "unit=usd_per_gbp: GBP 为基准货币(base), USD 为计价货币(quote)。指标涨=英镑涨=美元跌。",
+      "pair_patterns": ["英镑兑美元", "英镑/美元", "GBPUSD", "GBP/USD", "GBP-USD", "pound", "英镑对美元"],
+      "base_tokens": ["英镑", "GBP", "pound sterling"],
+      "quote_tokens": ["美元", "USD", "dollar", "美金"]
+    },
+    "USDCNY": {
+      "kind": "fx_quote_pair",
+      "basis": "unit=cny_per_usd: USD 为基准货币(base), CNY 为计价货币(quote)。指标涨=美元涨=人民币跌。",
+      "pair_patterns": ["美元兑人民币", "美元/人民币", "USDCNY", "USD/CNY", "USD-CNY", "美元对人民币"],
+      "base_tokens": ["美元", "USD", "dollar", "美金"],
+      "quote_tokens": ["人民币", "CNY", "RMB", "元人民币"]
+    },
+    "UST_2Y": {"kind": "yield_vs_price", "ref": "rates_yield"},
+    "UST_5Y": {"kind": "yield_vs_price", "ref": "rates_yield"},
+    "UST_10Y": {"kind": "yield_vs_price", "ref": "rates_yield"},
+    "UST_30Y": {"kind": "yield_vs_price", "ref": "rates_yield"},
+    "JGB2Y": {"kind": "yield_vs_price", "ref": "rates_yield"},
+    "JGB5Y": {"kind": "yield_vs_price", "ref": "rates_yield"},
+    "JGB10Y": {"kind": "yield_vs_price", "ref": "rates_yield"},
+    "BUND_10Y": {"kind": "yield_vs_price", "ref": "rates_yield"},
+    "BUND_2Y": {"kind": "yield_vs_price", "ref": "rates_yield"}
+  },
+  "yield_vs_price_shared": {
+    "basis": "rates_yield 类指标=收益率。措辞主体为'价格'时方向反转(价格涨=收益率跌);主体为'收益率/利率/yield'或未指明主体时直接比对(指标即收益率,市场惯例'N年期国债上行'指收益率)。",
+    "direct_tokens": ["收益率", "殖利率", "yield", "利率"],
+    "inverse_tokens": ["价格", "price"]
+  }
+}

@@ -4,25 +4,25 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-12 R21 合并+盖章 · 持续执行验证收口(Charter 10 阶段二毕)
+## 权威快照: 2026-11-13 R22 金融正确性收口 · Charter 10 阶段三毕(T-R22-1)
 
 > **本节=唯一当前态入口**(Charter 10 §3.1)。下方历史快照仅供追溯,以本节+Git HEAD 为准。
 > 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);
 > 一致性门 `python3 scripts/rd_state_consistency.py` 六项全绿方可开工;不一致时禁止开发,先恢复状态(§3.2)。
 
-- **基线(机器面)**: baseline=3ae8c508c2c8b34080e34dba8a53edc6291d7fa7(检查门§①解析本行;rd_checkpoint.py 收口时自动刷新)。
-- **基线**: main = 8cf1084(R21 合并;含 d8c420d CI 红根因热修)。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
-- **真实进度**: R9-R21 已毕并入;v0.16.0(R20 状态机器化)后 **R21 持续执行验证毕并已合并**——§4.4 七项矩阵 6 PASS+1 PARTIAL(无头压缩恢复无实例子面)零冒认;防死循环顾问+finalize 事故弧回归锁+候选钩子包落地。**操作者席补修**: CI 三连红根因(R20 套件未适配 CI 干净面: 浅史缺检查点对象+无 git 身份)=热修 d8c420d(checkout 全量克隆+commit-tree 内联身份),浅克隆+无身份环境复现→修后全量克隆+空 HOME 双套件转绿。
-- **验收层状态(按 Charter 10 §八重开)**: 九 PASS + AC3 PARTIAL 为**待复核旧结论**——受影响项重验中: AC3(金融正确性缺口)/AC6(L3/L4 produced=False)/无人值守证据(阶段二已补强: R21 七项矩阵,见 R21_CONTINUOUS_EXECUTION_AUDIT.md);其余 PASS 项维持至复触及。
-- **当前任务**: **阶段三 金融正确性**(5.1 汇率方向/5.2 到期新鲜度/5.3 标签-证据绑定/5.4 前视偏差,先复现后修);阶段四~六见 CHARTER_10 §十一。
+- **基线(机器面)**: baseline=6bf92fda7c8bb40fae3616886f4cde500086b455(检查门§①解析本行;rd_checkpoint.py 收口时自动刷新)。
+- **基线**: main = 8cf1084(R21 合并;含 d8c420d CI 红根因热修);R22 波次在 `dev/rd-r22-fin-correctness@6bf92fd` 待操作者合并。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
+- **真实进度**: Charter 10 阶段三毕——R22 金融正确性四案**先复现后修**(audit/R22_FIN_CORRECTNESS_REPRO.py 四案全复现→修复): 5.1 报价方向语义(direction_semantics.py,四 FX 报价对计价侧反转+国债收益率族价格侧反转)/5.2 到期数据新鲜度门(滞后按 frequency 定阈,超阈 INSUFFICIENT_DATA 不判)/5.3 标签-证据绑定(validate_vp 判定标签须有 verdict 支撑+binding_check 活体复核+CLI --verify-binding)/5.4 vintage obs≤publish 二次过滤(R1-MINOR-4 收口)。生产面: VP 17 档 --build-all 重建**字节不变**+绑定扫描 0 违规(5 LABEL_DRIFT 词汇演进如实披露)。**收口注记**: 前会话 11-13 00:24 中断于日志行未提交,由后继无头会话独立复验(新套件 53+六受影响套件+生产面三验全一致)后补完收口。
+- **验收层状态**: 九 PASS+AC3 PARTIAL(R19 用户落章);R22=AC3 缺口的机器防线落地,真实已到期样本首验留 **2026-12 六标签首验窗(日历门)**,AC3 终判届时复核;AC6 剩余差距=阶段四(L3/L4 Agent Native)。
+- **当前任务**: **阶段四 一键AI研究闭环**(L3/L4 produced=False→Agent Native 真完成,Python=确定性引擎,Agent=经济学判断);阶段五~六见 CHARTER_10 §十一。
 - **权限变化(Charter 10 §十)**: LIVE 生产修改自此需用户明确指令,不再随波次自动同步。
-- **检查点(R21·2026-11-12)**: 持续执行验证+防死循环;候选钩子包(ops/hooks-candidate/)待操作者席安装;LIVE 观察: 明日 daily 首跑 v0.15.0 面(daily exit1/weekly exit2=已知 ZQ 族缺口,11-14 观察钟)。
+- **检查点(R22·2026-11-13)**: 阶段三毕;操作者席待办: R22 合并发布+遗留 worktree /private/tmp/r21-wt 清理(无头权限面外,p0 套件 30/1 环境性红根因)+候选钩子包安装(ops/hooks-candidate/)+LIVE 观察(11-14 周六=ZQ 族观察钟,daily 首跑 v0.15.0 面)。
 
 ### 任务台账(机器维护: scripts/rd_checkpoint.py 收口;已毕任务只进 ITERATION_LOG/RESUME 存档,永不回台账)
 
 | ID | 状态 | Git证据 | 说明 |
 |---|---|---|---|
-| (空·阶段三开轮时新增 T-R22-* 行) | | | |
+| (空·阶段四开轮时新增 T-R23-* 行;T-R22-1 已毕入检查点块 completed_ids) | | | |
 
 ### [历史快照·R15 视角,已被上方权威快照取代]
 

@@ -27,20 +27,23 @@
 
 按 CHARTER_10_RECTIFICATION.md §十一 阶段执行:
 
-1. [进行中·R23] **阶段四 一键AI研究闭环(当前最重要产品能力缺口)**: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完。
-2. **阶段五 真实E2E+独立验收**: 未优化过的真实宏观问题;十章产出齐全;独立审计查结论-证据绑定;受影响 AC 重验按实标 PASS/PARTIAL/FAIL/NOT_VERIFIED。
-3. **阶段六 状态更新+自动入下一轮**。
-4. **操作者席待办(R22 移交)**: R22 合并发布(dev/rd-r22-fin-correctness,盖章=分支最后一笔合规);遗留 worktree /private/tmp/r21-wt 清理(无头权限面外不可 git -C,p0 套件 30/1 环境性红唯一根因);候选钩子包 ops/hooks-candidate/ 安装(README 四步);LIVE 观察(11-14 周六=ZQ 族观察钟,daily 首跑 v0.15.0 面)。
+1. **阶段五 真实E2E+独立验收(当前最重要产品能力缺口)**: 未优化过的真实宏观问题(research-run→Agent 研判→research-attach→归档全链,§6.4 十章产出齐全);独立审计查结论-证据绑定;受影响 AC 重验按实标 PASS/PARTIAL/FAIL/NOT_VERIFIED。R23 遗留小项顺带: agent_judgment MINOR-1(矛盾陈述零引用放行,拟要求≥1 可解析引用或明示免锚)/MINOR-4(attach 不看 run_ok 拟加门槛提示)/MINOR-5(md L1 行渲 quality_status)+NIT(scenario 行类型锁)。
+2. **阶段六 状态更新+自动入下一轮**。
+3. **操作者席待办(R23 移交)**: R23 合并发布(dev/rd-r23-agent-loop,盖章=分支最后一笔合规);R22 席遗留(worktree /private/tmp/r21-wt 清理+钩子包 ops/hooks-candidate/ 安装+LIVE 观察 11-14 周六=ZQ 族观察钟)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 22, "date": "2026-11-13 04:38 HKT", "branch": "dev/rd-r22-fin-correctness", "commit": "6bf92fda7c8bb40fae3616886f4cde500086b455", "baseline": "6bf92fda7c8bb40fae3616886f4cde500086b455", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R22-1"], "next_task": "阶段四 一键AI研究闭环: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完", "next_round": 23} -->
+<!-- RD-CHECKPOINT v1: json {"round": 23, "date": "2026-11-13 09:23 HKT", "branch": "dev/rd-r23-agent-loop", "commit": "29d046eb91128b533727c2273beaaa38e0f83d5f", "baseline": "29d046eb91128b533727c2273beaaa38e0f83d5f", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R23-1"], "next_task": "阶段五 真实E2E+独立验收: 未优化过的真实宏观问题(research-run→Agent 研判→research-attach→归档全链,§6.4 十章产出);独立审计查结论-证据绑定;受影响 AC 按实重验;顺带 agent_judgment 余留 MINOR-1/4/5+NIT", "next_round": 24} -->
+
+## 下一步存档(2026-11-13 R23 收口后版)
+
+1. [已毕·R23] **阶段四 一键AI研究闭环(Agent Native)**: L3/L4 真完成——校验器零生成零改写+attach 合并+research-attach 命令+Skill 闭环工作流;真实 E2E 一次任务全链首例(QB-20261113-001+观察钟首建);独立审计四维 PASS 0 BLOCKER 0 MAJOR(MINOR-2/3 本轮已修,余登记);新套件 43 判+全仓 140/140;报告=R23_AGENT_NATIVE_E2E.md。台账 T-R23-1 待合并。
 
 ## 下一步存档(2026-11-13 R22 收口后版)
 
-1. [已毕·R22] **阶段三 金融正确性**: 四案先复现后修全毕(5.1 方向语义/5.2 到期新鲜度门/5.3 标签-证据绑定/5.4 vintage 二次过滤;R1-MINOR-4 收口)——新套件 test_rd_r22_fin_correctness.py 53 判+受影响六套件全绿;生产面 VP 17 档 --build-all 重建字节不变+绑定扫描 128 OK/5 LABEL_DRIFT/0 违规;AC3 机器防线落地,真实已到期样本首验留 2026-12 六标签首验窗(日历门)。收口由后继会话补完(前会话中断)+独立复验一致。台账 T-R22-1 待合并。
+1. [已毕·R22] **阶段三 金融正确性**: 四案先复现后修全毕(5.1 方向语义/5.2 到期新鲜度门/5.3 标签-证据绑定/5.4 vintage 二次过滤;R1-MINOR-4 收口)——新套件 test_rd_r22_fin_correctness.py 53 判+受影响六套件全绿;生产面 VP 17 档 --build-all 重建字节不变+绑定扫描 128 OK/5 LABEL_DRIFT/0 违规;AC3 机器防线落地,真实已到期样本首验留 2026-12 六标签首验窗(日历门)。收口由后继会话补完(前会话中断)+独立复验一致。台账 T-R22-1 已合并(v0.18.0-alpha)。
 
 ## 下一步存档(2026-11-12 R21 收口后版)
 

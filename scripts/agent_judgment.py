@@ -32,6 +32,10 @@
 - SCN-DIR 资产方向判断=方向+置信层级(三档枚举: 有历史相似证据/有相关证据/纯逻辑推理)
 - SCN-SENS 敏感变量 1-2 个且均为注册表在册 metric_id
 - SCN-FALS 证伪指标=在册 metric_id+可观测阈值非空
+- SCN-FALS2 复合证伪条件可选副指标(v1.1/R25 NIT V2-5): threshold 文本
+          提及多指标时,主 metric_id 之外的指标可经 secondary_metric_ids
+          (list,1-3 条,逐条在册)机器锚定——复合条件不再"可读但口径不对称";
+          缺席不违规(单指标条件不需要),主锚仍由 metric_id 承担
 - SCN-TRIG 触发条件=可观测条件+时限(YYYY-MM-DD)
 - SCN-PLURAL >=2 情景并列(基准+反例;单一情景不得单独呈现)
 
@@ -53,7 +57,7 @@ SCRIPTS = os.path.join(ROOT, 'scripts')
 if SCRIPTS not in sys.path:
     sys.path.insert(0, SCRIPTS)
 
-JUDGMENT_SCHEMA_VERSION = '1.0'
+JUDGMENT_SCHEMA_VERSION = '1.1'   # v1.0(R23)→v1.1(R25): falsification 增可选 secondary_metric_ids(复合证伪条件副指标锚)
 CONFIDENCE_TIERS = ('有历史相似证据', '有相关证据', '纯逻辑推理')
 ASSUMPTION_MARK = '假设'
 _DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
@@ -230,6 +234,28 @@ def validate_judgment(judgment, evidence_refs, metric_ids):
             if not (fals.get('threshold') or '').strip():
                 bad('SCN-FALS', f'l4.scenarios[{sid}].rows.falsification.threshold',
                     '可观测阈值为空')
+            # R25 NIT V2-5(R24 审计): 复合证伪条件副指标锚(可选;v1.1)。
+            # threshold 文本可提及多指标,主锚=metric_id;其余指标经本字段
+            # 机器可验,消除"可读但口径不对称"。缺席=单指标条件,不违规。
+            sec = fals.get('secondary_metric_ids')
+            if sec is not None:
+                if not isinstance(sec, list) or not sec:
+                    bad('SCN-FALS2',
+                        f'l4.scenarios[{sid}].rows.falsification.'
+                        'secondary_metric_ids',
+                        '副指标须非空 list(单指标条件直接省略本字段)')
+                elif not (1 <= len(sec) <= 3):
+                    bad('SCN-FALS2',
+                        f'l4.scenarios[{sid}].rows.falsification.'
+                        'secondary_metric_ids',
+                        f'副指标 1-3 条(得 {len(sec)};主锚仍由 metric_id 承担)')
+                else:
+                    for sm in sec:
+                        if sm not in mids:
+                            bad('SCN-FALS2',
+                                f'l4.scenarios[{sid}].rows.falsification.'
+                                'secondary_metric_ids',
+                                f'{sm!r} 不在注册表(副指标同须可观测)')
         trig = rows.get('trigger') or {}
         if 'trigger' not in type_bad and isinstance(trig, dict) and trig:
             if not (trig.get('condition') or '').strip():
@@ -254,6 +280,21 @@ def _registry_metric_ids(root):
     reg = wd.load_registry(root)
     return {m.get('metric_id') for m in (reg.get('metrics') or [])
             if m.get('metric_id')}
+
+
+def _write_report(report_dir, report, rj_path):
+    """report.json + report.md 同步落盘(两视图一原子语义)。
+
+    R25 NIT V1-2(R24 审计): blocked 路径原先只写 json 不重渲 md——md/json
+    失同步(旧 md 无门槛拦截记录)。任何改变 report 的路径(含 blocked)退出
+    前都经本函数,两视图同步是 attach 的不变式。
+    """
+    with open(rj_path, 'w', encoding='utf-8') as f:
+        json.dump(report, f, ensure_ascii=False, indent=2, default=str)
+    with open(os.path.join(report_dir, 'report.md'), 'w',
+              encoding='utf-8') as f:
+        import research_orchestrator as ro
+        f.write(ro._render_md(report))
 
 
 def attach_judgment(report_dir, judgment_path, root=None,
@@ -289,8 +330,8 @@ def attach_judgment(report_dir, judgment_path, root=None,
                            '(诚实拒答类失败且证据面仍可用时由 Agent 声明)'),
             'run_ok_at_attach': run_ok,
         }
-        with open(rj_path, 'w', encoding='utf-8') as f:
-            json.dump(report, f, ensure_ascii=False, indent=2, default=str)
+        # R25 NIT V1-2: blocked 路径同样重渲 md(拦截记录两视图同步)
+        _write_report(report_dir, report, rj_path)
         return {'report_dir': report_dir,
                 'attached': False,
                 'blocked': 'run_ok_false',
@@ -341,12 +382,7 @@ def attach_judgment(report_dir, judgment_path, root=None,
         'run_ok_at_attach': run_ok,
         'allow_failed_run': bool(allow_failed_run and run_ok is False),
     }
-    with open(rj_path, 'w', encoding='utf-8') as f:
-        json.dump(report, f, ensure_ascii=False, indent=2, default=str)
-    with open(os.path.join(report_dir, 'report.md'), 'w',
-              encoding='utf-8') as f:
-        import research_orchestrator as ro
-        f.write(ro._render_md(report))
+    _write_report(report_dir, report, rj_path)
     return {'report_dir': report_dir,
             'attached': bool(res['passed']),
             'validation': res,

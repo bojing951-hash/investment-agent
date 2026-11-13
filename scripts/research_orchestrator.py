@@ -595,15 +595,23 @@ def _render_md(r):
     for s in r['steps']:
         tag = 'OK ' if s.get('ok') else ('SKIP' if not s.get('executed') else 'FAIL')
         # R2.1 MINOR-3: 语义面单列(进程 ok ≠ 语义产出;诚实拒答/如实
-        # unmapped 不与真失败混渲)
+        # unmapped 不与真失败混渲)。
+        # R25 NIT V1-1(R24 审计): 按步骤性质三分——信封步(子进程产 JSON
+        # 信封,semantic_ok 在场)才适用语义判定;编排内部步(S1/S7/S10/S11,
+        # 无信封无 semantic_ok 键)原渲染恒落「语义✗」=标签噪音(内部步
+        # 成败已由进程面 tag 忠实承载,语义层本就不适用)。方向保守:
+        # 不藏任何失败——FAIL 仍照渲,只是不再给内部步贴误导读的语义标签。
         if not s.get('executed'):
             sem = '—'
-        elif s.get('semantic_ok') is True:
-            sem = '语义✔'
-        elif s.get('honest_refusal'):
-            sem = '诚实拒答'
+        elif 'semantic_ok' in s:
+            if s.get('semantic_ok') is True:
+                sem = '语义✔'
+            elif s.get('honest_refusal'):
+                sem = '诚实拒答'
+            else:
+                sem = '语义✗'
         else:
-            sem = '语义✗'
+            sem = '不适用'
         extra = s.get('skipped_reason') or s.get('note') or ''
         lines.append(f"- [{tag}|{sem}] {s['step']} {extra}")
     fan = r.get('fanout') or {}

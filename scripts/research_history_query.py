@@ -35,6 +35,12 @@
   macro 利率序列不经快照任何位置(fact 不保留 series,fact_engine.py:224-227
   仅供派生计算);若要求利率亦走 series_store 须改 snapshot_builder 构建段
   →继续 PENDING 登记于 GAP08 REPORT §四。
+- R25(2026-11-14) history_source 双通道指标: 注册表可选字段
+  history_source(source 指事实权威通道,history_source 指历史序列通道)。
+  首例 DFF: source=rate_expectations(current_rates 当日值立事实,flat 单点)
+  +history_source=macro_collector(macro 档载 10 年日频序列)。本模块通道
+  解析=history_source 优先、回落 source;DFF 走 macro 接入点 A(序列自
+  normalize_macro 权威门外流档,不立 macro 事实,无双通道双事实)。
 
 零网络: 纯标准库+项目既有模块;不做任何采集/请求。
 """
@@ -118,7 +124,9 @@ def load_metric_series(metric_id, source_date_ymd, as_of=None, data_dir=None,
     if as_of is None:
         as_of = (f"{source_date_ymd[:4]}-{source_date_ymd[4:6]}-"
                  f"{source_date_ymd[6:]}T23:59:59+08:00")
-    src = m.get('source')
+    # R25: 历史序列通道=history_source 优先,回落 source(DFF 首例:
+    # 事实权威 rate_expectations,历史序列 macro_collector;见模块 docstring)
+    src = m.get('history_source') or m.get('source')
 
     if src == 'macro_collector':
         # 接入点A: resolve_inputs(Layer 3 输入解析,FIX7/8 可信边界+规范文件名核验)
@@ -196,7 +204,8 @@ def load_metric_series(metric_id, source_date_ymd, as_of=None, data_dir=None,
     raise ValueError(f"指标 {metric_id} 来源 {src!r} 无登记接入点"
                      f"(本包支持 macro_collector/global_market_collector/"
                      f"jp_market_collector/ea_market_collector/"
-                     f"shiller_collector;"
+                     f"shiller_collector;R25 起可用注册表 history_source 把"
+                     f"历史序列通道与事实通道解耦;"
                      f"fact_engine(derived) 类须由上游双输入构造,不在本模块展开;"
                      f"japan_rate_collector 类=flat 单点无序列,无历史查询接入点)")
 

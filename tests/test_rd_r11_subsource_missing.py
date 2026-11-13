@@ -103,7 +103,7 @@ print("\n[1] 注册表(source_key 可选字段;锁随升 v2.8.4/R11 7条+japan 4
 REG_PATH = os.path.join(ROOT, 'config', 'metric_registry.json')
 with open(REG_PATH, encoding='utf-8') as f:
     REG = json.load(f)
-check("版本 v2.8.4(R12 japan 补接;R11 落位时为 2.8.3)", REG['version'] == '2.8.4',
+check("版本 v2.8.5(R25 DFF history_source;R11 落位时 2.8.3,R12 曾升 2.8.4)", REG['version'] == '2.8.5',
       REG['version'])
 SKEY_EXPECT = {
     'ECB_DFR': 'ECB_FM_DFR', 'ECB_MRO': 'ECB_FM_MRO',

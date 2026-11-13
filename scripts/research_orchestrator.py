@@ -509,6 +509,8 @@ def _render_l3(content):
             lines.append(f"  - 竞争性解释{i}: {e}")
         if c.get('evidence_refs'):
             lines.append(f"  - 证据: {', '.join(c['evidence_refs'])}")
+        elif c.get('no_anchor_reason'):
+            lines.append(f"  - 证据: 无锚(明示免锚: {c['no_anchor_reason']})")
     for ch in (content.get('mechanism_chains') or []):
         lines.append(f"- **机制链 {ch.get('id')}**: {ch.get('name') or ''}")
         for lk in (ch.get('links') or []):
@@ -559,9 +561,13 @@ def _render_md(r):
     lines.append(f"### L1 事实层 available={l1['available']}"
                  + ('' if l1['available'] else f"({l1['note']})"))
     for row in l1['rows']:
+        # R23 审计 MINOR-5: 质量状态随行渲染(此前只在 json 面,
+        # md 读者看不到 DEGRADED 披露)
+        q = row.get('quality_status')
         lines.append(f"- {row['metric_id']} = {row['value']} {row['unit'] or ''}"
                      f" @{row['observation_date']}"
-                     f" [来源:{row['source']['kind']}:{row['source']['id']}]")
+                     + (f" [质量:{q}]" if q else '')
+                     + f" [来源:{row['source']['kind']}:{row['source']['id']}]")
     vpf = L['L2_机构观点层']['views']
     lines.append(f"\n### L2 机构观点层 "
                  f"available={vpf.get('available')}"

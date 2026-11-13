@@ -1358,7 +1358,9 @@ def cmd_research_attach(args):
     校验不过=produced 保持 False,violations 随报告落档供 Agent 修订重提。"""
     import agent_judgment as aj
     try:
-        res = aj.attach_judgment(args.report_dir, args.judgment, root=ROOT)
+        res = aj.attach_judgment(
+            args.report_dir, args.judgment, root=ROOT,
+            allow_failed_run=bool(getattr(args, 'allow_failed_run', False)))
     except (OSError, ValueError, KeyError) as e:
         emit(envelope('research-attach', False, {},
                       error=('attach_failed', str(e), None)), exit_code=1)
@@ -1367,6 +1369,8 @@ def cmd_research_attach(args):
     data = {'report_dir': res.get('report_dir'),
             'attached': res.get('attached'),
             'layers_summary': res.get('layers_summary'),
+            'blocked': res.get('blocked'),
+            'run_ok_at_attach': res.get('run_ok_at_attach'),
             'validation': {'passed': val.get('passed'),
                            'n_violations': len(val.get('violations') or []),
                            'violations': val.get('violations'),
@@ -1375,6 +1379,10 @@ def cmd_research_attach(args):
                            'n_scenarios': val.get('n_scenarios')}}
     warns = [f"{x.get('code')}@{x.get('where')}: {x.get('detail')}"
              for x in (val.get('violations') or [])]
+    if res.get('blocked') == 'run_ok_false':
+        warns.append('research-run run_ok=False——判断默认不得落在失败证据面'
+                     '上;确属诚实拒答类失败且证据面可用时,显式 '
+                     '--allow-failed-run 越过(随档可审计)')
     emit(envelope('research-attach', bool(res.get('attached')), data, warns),
          exit_code=0 if res.get('attached') else 1)
 
@@ -1500,6 +1508,10 @@ def build_parser():
     ra.add_argument('--judgment', required=True,
                     help='Agent judgment JSON 文件路径(schema v1.0,'
                          '见 scripts/agent_judgment.py 模块docstring)')
+    ra.add_argument('--allow-failed-run', action='store_true',
+                    help='run_ok=False 的报告显式越过 MINOR-4 门槛'
+                         '(诚实拒答类步骤失败但证据面仍可用时由 Agent 声明;'
+                         '越过后 run_ok_at_attach+allow_failed_run 随档)')
     return p
 
 

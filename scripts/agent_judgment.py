@@ -78,7 +78,7 @@ def _load_json(path):
 def validate_judgment(judgment, evidence_refs, metric_ids):
     """纪律结构校验(内容零改写零生成)。
 
-    judgment: Agent 提交的 dict(schema v1.0);evidence_refs: 本报告证据索引
+    judgment: Agent 提交的 dict(schema v1.1);evidence_refs: 本报告证据索引
     ref 集合(set);metric_ids: 注册表在册 metric_id 集合(set)。
     返回 {'passed', 'violations': [(code, where, detail)], 'n_*'}。
     """
@@ -401,7 +401,7 @@ def main(argv=None):
     p.add_argument('--report-dir', required=True,
                    help='research-run 报告目录(含 report.json)')
     p.add_argument('--judgment', required=True,
-                   help='Agent judgment JSON 文件(schema v1.0)')
+                   help='Agent judgment JSON 文件(schema v1.1)')
     p.add_argument('--root', default=ROOT)
     a = p.parse_args(argv)
     res = attach_judgment(a.report_dir, a.judgment, root=a.root)

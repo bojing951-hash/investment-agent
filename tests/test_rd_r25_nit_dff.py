@@ -226,9 +226,28 @@ try:
         md_now = f.read()
     check('blocked 路径重渲 report.md(旧: 滞留拦截前旧视图)',
           md_now != stale_md and md_now == ro._render_md(rep2))
+    # R25 审计 Mi-1: agent_judgment 面入 md——md-only 读者可见拦截
+    check('Mi-1: md 渲 blocked 拦截节(门槛拦截可见)',
+          '## Agent 判断落位: 未落位(门槛拦截)' in md_now
+          and 'blocked=run_ok_false' in md_now, md_now[-400:])
     check('blocked 后 L3/L4 仍 produced=False(不半落位)',
           rep2['layers']['L3_AI推断层']['produced'] is False
           and rep2['layers']['L4_条件情景层']['produced'] is False)
+    # Mi-1 对侧面: 成功 attach 后 md 渲 attached 节
+    rep3 = synth_report(run_ok=True)
+    rd2 = os.path.join(tmp, 'run2')
+    os.makedirs(rd2)
+    with open(os.path.join(rd2, 'report.json'), 'w', encoding='utf-8') as f:
+        json.dump(rep3, f, ensure_ascii=False, indent=2)
+    with open(os.path.join(rd2, 'report.md'), 'w', encoding='utf-8') as f:
+        f.write(ro._render_md(rep3))
+    res3 = aj.attach_judgment(rd2, jp, root=ROOT)
+    with open(os.path.join(rd2, 'report.md'), encoding='utf-8') as f:
+        md3 = f.read()
+    check('Mi-1 对侧: 成功 attach 后 md 渲 attached 节(violations 计数)',
+          res3['attached'] is True
+          and '## Agent 判断落位' in md3
+          and 'attached=True(schema 1.1;violations=0)' in md3, md3[-300:])
 finally:
     shutil.rmtree(tmp, ignore_errors=True)
 
@@ -377,15 +396,32 @@ try:
 finally:
     shutil.rmtree(root4e, ignore_errors=True)
 
-# ── 4e wd.metric_series 前缀解析层(history_source 优先) ────────────
-# 注: wd.metric_series 全链 e2e 对 tempdir 采集档被 FIX7 信任边界拒
-# (可信根=仓库根,by design——rhq 层 e2e 见 4c,trusted_root 显式注入)。
-# 此处锁 wd 层通道解析表达式: history_source 优先/回落 source,与
-# workbench_data.metric_series 实现同一解析序。
-dff_prefix = wd.SERIES_SOURCE_PREFIX.get(
-    dff.get('history_source') or dff.get('source'))
-check('wd 前缀解析: DFF→macro_(history_source 优先;旧: rate_economy_ 无接入点)',
-      dff_prefix == 'macro_', str(dff_prefix))
+# ── 4e wd.metric_series 真链 e2e(R25 审计 Mi-2: 镜像断言→执行覆盖) ──
+# FIX7 信任边界=采集档须在可信项目根内: fixture 置 ROOT/data 下
+# (gitignored,不在 data/daily 不污染兄弟套件 glob;finally 清理),
+# 伪根内自备 config/metric_registry.json+data/daily/macro_*.json,
+# metric_series(root=伪根) 全链走通(前缀解析+glob+rhq 接入点)。
+fake_root = tempfile.mkdtemp(prefix='r25-e2e-', dir=os.path.join(ROOT, 'data'))
+try:
+    os.makedirs(os.path.join(fake_root, 'config'))
+    shutil.copy(os.path.join(ROOT, 'config', 'metric_registry.json'),
+                os.path.join(fake_root, 'config', 'metric_registry.json'))
+    os.makedirs(os.path.join(fake_root, 'data', 'daily'))
+    with open(os.path.join(fake_root, 'data', 'daily',
+                           'macro_20260110.json'), 'w',
+              encoding='utf-8') as f:
+        json.dump({'data': macro_data}, f, ensure_ascii=False)
+    got, err = wd.metric_series('DFF', snapshot=None, root=fake_root)
+    check('Mi-2: wd.metric_series(DFF) 真链 e2e 取到序列'
+          '(history_source 前缀解析,变异可红)',
+          got is not None
+          and got['dates'] == ['2026-01-07', '2026-01-08', '2026-01-09']
+          and 'macro_20260110' in (got.get('source') or ''),
+          str((got, err)))
+finally:
+    shutil.rmtree(fake_root, ignore_errors=True)
+
+# 前缀解析回归面(表达式层): 无 history_source 回落 source;flat 通道不支持
 ust = REG['by_id'].get('UST_10Y') or {}
 ust_prefix = wd.SERIES_SOURCE_PREFIX.get(
     ust.get('history_source') or ust.get('source'))
@@ -396,6 +432,23 @@ jpn_prefix = wd.SERIES_SOURCE_PREFIX.get(
     jpn.get('history_source') or jpn.get('source'))
 check('wd 前缀解析: flat 单点通道(japan_rate)仍无前缀=如实不支持',
       jpn_prefix is None)
+
+# ── 4f registry 校验面(R25 审计 Mi-3: history_source 受通道枚举约束) ──
+import registry_semantics as rs  # noqa: E402
+probs = rs.validate_registry(REG_JSON)
+check('Mi-3: 真实 registry 过校验(零 R-HISTORYSOURCE 违规)',
+      not [p for p in probs if 'HISTORYSOURCE' in str(p.get('rule', ''))],
+      str(probs[:3]))
+bad_reg = json.loads(json.dumps(REG_JSON))
+bad_reg['metrics'][0]['history_source'] = 'not_a_channel'
+probs2 = rs.validate_registry(bad_reg)
+check('Mi-3: history_source 错值→R-HISTORYSOURCE-ENUM error(晚拒变早拒)',
+      any(p.get('rule') == 'R-HISTORYSOURCE-ENUM' for p in probs2))
+bad_reg2 = json.loads(json.dumps(REG_JSON))
+bad_reg2['metrics'][0]['history_source'] = 123
+probs3 = rs.validate_registry(bad_reg2)
+check('Mi-3: history_source 错型(int)→R-HISTORYSOURCE-TYPE error',
+      any(p.get('rule') == 'R-HISTORYSOURCE-TYPE' for p in probs3))
 
 # ══════════════════════════════════════════════════════════════════
 print('═' * 64)

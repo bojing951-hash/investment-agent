@@ -591,6 +591,21 @@ def _render_md(r):
         lines += _render_l4(L['L4_条件情景层']['content'])
     else:
         lines.append(f"> {L['L4_条件情景层']['note']}")
+    # R25 审计 Mi-1: agent_judgment 面入 md(attach/blocked/违规计数)——
+    # md-only 读者可见落位状态(旧: 仅 report.json 有,md 零渲染)
+    aj = r.get('agent_judgment') or {}
+    if aj:
+        if aj.get('blocked'):
+            lines += ['', '## Agent 判断落位: 未落位(门槛拦截)', '',
+                      f"- blocked={aj.get('blocked')}"
+                      f"(run_ok={aj.get('run_ok_at_attach')};判断默认不得落在"
+                      "失败证据面上,显式 --allow-failed-run 才放行)"]
+        else:
+            val = aj.get('validation') or {}
+            lines += ['', '## Agent 判断落位', '',
+                      f"- attached={aj.get('attached')}"
+                      f"(schema {aj.get('schema_version')};"
+                      f"violations={len(val.get('violations') or [])})"]
     lines += ['', '## 步骤台账', '']
     for s in r['steps']:
         tag = 'OK ' if s.get('ok') else ('SKIP' if not s.get('executed') else 'FAIL')

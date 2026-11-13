@@ -498,9 +498,53 @@ def _git_head(root):
         return None
 
 
+def _render_l3(content):
+    """R23: Agent Native L3 判断内容渲染(原文转述,排版不改写语义)。"""
+    lines = []
+    for c in (content.get('contradictions') or []):
+        lines.append(f"- **{c.get('id')}**: {c.get('statement')}")
+        if c.get('basis'):
+            lines.append(f"  - 依据: {c['basis']}")
+        for i, e in enumerate(c.get('competing_explanations') or [], 1):
+            lines.append(f"  - 竞争性解释{i}: {e}")
+        if c.get('evidence_refs'):
+            lines.append(f"  - 证据: {', '.join(c['evidence_refs'])}")
+    for ch in (content.get('mechanism_chains') or []):
+        lines.append(f"- **机制链 {ch.get('id')}**: {ch.get('name') or ''}")
+        for lk in (ch.get('links') or []):
+            tag = lk.get('evidence_level')
+            extra = ''
+            if tag == 'E1' and lk.get('evidence_refs'):
+                extra = f" [证据: {', '.join(lk['evidence_refs'])}]"
+            elif tag == 'E2':
+                extra = f" [缺失环: {lk.get('missing_link_note') or ''}]"
+            elif tag == 'E3':
+                extra = f" [证伪指标: {lk.get('falsification_metric') or ''}]"
+            lines.append(f"  - {tag} {lk.get('text')}{extra}")
+    return lines
+
+
+def _render_l4(content):
+    """R23: Agent Native L4 条件情景渲染(五行结构逐行落纸)。"""
+    lines = []
+    for s in (content.get('scenarios') or []):
+        rows = s.get('rows') or {}
+        ad = rows.get('asset_direction') or {}
+        fals = rows.get('falsification') or {}
+        trig = rows.get('trigger') or {}
+        lines.append(f"- **{s.get('id')}**({s.get('role') or ''})")
+        lines.append(f"  - 情景: {rows.get('scenario')}")
+        lines.append(f"  - 资产方向判断: {ad.get('direction')}"
+                     f"(置信: {ad.get('confidence_tier')})"
+                     f" {ad.get('text') or ''}")
+        lines.append(f"  - 敏感变量: {', '.join(rows.get('sensitive_variables') or [])}")
+        lines.append(f"  - 证伪指标: {fals.get('metric_id')} 阈值 {fals.get('threshold')}")
+        lines.append(f"  - 触发条件: {trig.get('condition')}(时限 {trig.get('deadline')})")
+    return lines
+
+
 def _render_md(r):
     """人类可读面: 四层区分+步骤台账+(可选)十问扇出台账+证据索引。"""
-
     def argv_str(step):
         return ' '.join(str(x) for x in (step.get('argv') or [])[:8])
     q = r['run']['question']
@@ -527,10 +571,20 @@ def _render_md(r):
         ss = row.get('stage_summary') or {}
         lines.append(f"- {row['view_id']}: view_label={row['view_label']}"
                      f" 阶段摘要={ {k: ss.get(k) for k in ('A', 'B', 'C')} }")
-    lines.append(f"\n### L3 AI推断层 produced={L['L3_AI推断层']['produced']}"
-                 f"\n> {L['L3_AI推断层']['note']}")
-    lines.append(f"\n### L4 条件情景层 produced={L['L4_条件情景层']['produced']}"
-                 f"\n> {L['L4_条件情景层']['note']}")
+    lines.append(f"\n### L3 AI推断层 produced={L['L3_AI推断层']['produced']}")
+    if L['L3_AI推断层'].get('produced') and L['L3_AI推断层'].get('content'):
+        lines.append(f"> {L['L3_AI推断层'].get('note') or ''}"
+                     f"(attribution={L['L3_AI推断层'].get('attribution')})")
+        lines += _render_l3(L['L3_AI推断层']['content'])
+    else:
+        lines.append(f"> {L['L3_AI推断层']['note']}")
+    lines.append(f"\n### L4 条件情景层 produced={L['L4_条件情景层']['produced']}")
+    if L['L4_条件情景层'].get('produced') and L['L4_条件情景层'].get('content'):
+        lines.append(f"> {L['L4_条件情景层'].get('note') or ''}"
+                     f"(attribution={L['L4_条件情景层'].get('attribution')})")
+        lines += _render_l4(L['L4_条件情景层']['content'])
+    else:
+        lines.append(f"> {L['L4_条件情景层']['note']}")
     lines += ['', '## 步骤台账', '']
     for s in r['steps']:
         tag = 'OK ' if s.get('ok') else ('SKIP' if not s.get('executed') else 'FAIL')

@@ -1350,6 +1350,35 @@ def cmd_research_run(args):
     emit(envelope('research-run', bool(rep.get('run_ok')), data, warns))
 
 
+def cmd_research_attach(args):
+    """Agent Native L3/L4 落位(R23 阶段四/AC6): judgment 纪律机器校验+合并。
+
+    校验器零生成(scripts/agent_judgment.py): 内容全来自 Agent judgment 文件,
+    本命令只验纪律结构(归因/竞争性解释/证据绑定/E1-E2-E3/五行情景)并落位;
+    校验不过=produced 保持 False,violations 随报告落档供 Agent 修订重提。"""
+    import agent_judgment as aj
+    try:
+        res = aj.attach_judgment(args.report_dir, args.judgment, root=ROOT)
+    except (OSError, ValueError, KeyError) as e:
+        emit(envelope('research-attach', False, {},
+                      error=('attach_failed', str(e), None)), exit_code=1)
+        return
+    val = res.get('validation') or {}
+    data = {'report_dir': res.get('report_dir'),
+            'attached': res.get('attached'),
+            'layers_summary': res.get('layers_summary'),
+            'validation': {'passed': val.get('passed'),
+                           'n_violations': len(val.get('violations') or []),
+                           'violations': val.get('violations'),
+                           'n_contradictions': val.get('n_contradictions'),
+                           'n_mechanism_chains': val.get('n_mechanism_chains'),
+                           'n_scenarios': val.get('n_scenarios')}}
+    warns = [f"{x.get('code')}@{x.get('where')}: {x.get('detail')}"
+             for x in (val.get('violations') or [])]
+    emit(envelope('research-attach', bool(res.get('attached')), data, warns),
+         exit_code=0 if res.get('attached') else 1)
+
+
 def build_parser():
     p = argparse.ArgumentParser(
         prog='ia_cli.py',
@@ -1461,6 +1490,16 @@ def build_parser():
     rr.add_argument('--fanout', action='store_true',
                     help='R3 十问扇出: research_map 十问命令清单逐条真跑'
                          '(Agent 层问 RQ3/RQ9 declared-not-produced)')
+
+    ra = sub.add_parser('research-attach',
+                        help='Agent Native L3/L4 判断落位+纪律机器校验(R23/阶段四): '
+                             '校验 Agent judgment 并合并进 research-run 报告;'
+                             '校验不过 produced 保持 False(violations 落档)')
+    ra.add_argument('--report-dir', required=True,
+                    help='research-run 报告目录(含 report.json)')
+    ra.add_argument('--judgment', required=True,
+                    help='Agent judgment JSON 文件路径(schema v1.0,'
+                         '见 scripts/agent_judgment.py 模块docstring)')
     return p
 
 
@@ -1471,7 +1510,8 @@ def main(argv=None):
                 'changes': cmd_changes, 'history': cmd_history, 'compare': cmd_compare,
                 'analog': cmd_analog, 'research': cmd_research, 'archive': cmd_archive,
                 'views': cmd_views, 'research-map': cmd_research_map,
-                'research-run': cmd_research_run}
+                'research-run': cmd_research_run,
+                'research-attach': cmd_research_attach}
     if args.capability == 'archive':
         if args.action == 'save' and not args.question:
             emit(envelope('archive', False, {},

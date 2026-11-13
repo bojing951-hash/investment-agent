@@ -4,20 +4,21 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-13 R24 阶段五真实E2E+独立验收收口 · Charter 10 六阶段全毕(T-R24-1)
-> baseline=bdf5b9ea552387ae0db1967f2444c1927520bd89 (机器行: rd_checkpoint.py 维护,勿手改)
+## 权威快照: 2026-11-14 R25 R24审计3NIT收口+DFF日频史接线 · 排队面首轮(T-R25-1)
+> baseline=8006b9d222328d74581b33fcc91c4bcbba3778af (机器行: rd_checkpoint.py 维护,勿手改)
 
 > **本节=唯一当前态入口**(Charter 10 §3.1)。下方历史快照仅供追溯,以本节+Git HEAD 为准。
 > 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);
 > 一致性门 `python3 scripts/rd_state_consistency.py` 六项全绿方可开工;不一致时禁止开发,先恢复状态(§3.2)。
 
 - **基线(机器面)**: 本节标题后机器行(由 rd_checkpoint.py --finalize 盖章写入,勿手改;检查门§①解析)。
-- **基线**: main = d30445c3b(=v0.19.0-alpha docs 面;R23 已合并发布);R24 波次在 `dev/rd-r24-stage5-e2e` 待操作者合并。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
-- **真实进度**: Charter 10 **六阶段全毕**(阶段六=状态更新自动入下一轮=本轮收口)。阶段五=**§6.4 完整研究验收按实通过**: ①未优化真实宏观问题(HY_OAS×SPX×VIX×CURVE_2S10S 组合状态)全链——research-run 15 步 run_ok=True→Agent 研判(2 矛盾/2 机制链/2 情景)→research-attach 0 violations→QB-20261113-002 归档→OC-003/004 观察钟→**ART-M/ART-FALS 跨轮判断表首建**(R23 遗留项毕);②十章产出逐章映射齐(报告 R24_STAGE5_FULL_ACCEPTANCE.md §三);③**独立审计绑定核查首跑抓出 2 条真 MAJOR**(判断内容层定性错配被运行自采 S4 序列证伪: HY_OAS 实处年内 95.6 百分位而非低位/曲线两年无倒挂现处年内最平端而非陡峭化)→**修订闭环**(judgment v2 重 attach 0 violations+ART-M-2 修订+更正评注 QB-20261113-002-C1 不重写历史档)→审计二轮复核=可并入,2 MAJOR+2 MINOR 全闭无新引入;残余同源 MINOR 当场补锚收口,3 NIT 登记排队。顺带项: agent_judgment R23 审计余留 MINOR-1/4/5+NIT 硬化四条(前会话 commit 0824331,新套件 29 判)。
-- **验收层状态**: 九 PASS+AC3 PARTIAL(R19 用户落章不变);**AC6 阶段五完整重验收按实通过**(终判 PASS 系用户落章维持,证据入 FINAL_ACCEPTANCE AC6 行,无降级项);AC3 首验窗 2026-12(日历门)。
-- **当前任务**: Charter 10 完结,转入排队面(RESUME R25): VP 旧库 5 行 LABEL_DRIFT 对账/DFF 日频史评估/R24 审计 3 NIT 收口。
+- **基线**: main = 969252c(v0.20.0-alpha;R24 已合并发布);R25 波次在 `dev/rd-r25-nit-dff` @8006b9d 待操作者合并。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
+- **真实进度**: Charter 10 完结后排队面首轮。**3 NIT 收口**: V1-1 步骤台账语义标签三分(内部步「不适用」消误导读噪音,FAIL 不藏)/V1-2 blocked 路径 md/json 两视图同步(_write_report 不变式)/V2-5 judgment schema **v1.1** falsification 可选 secondary_metric_ids(复合证伪副指标机器锚)。**DFF 日频史接线**: registry **v2.8.5** DFF history_source=macro_collector(事实权威仍 rate 通道)+macro_collector FRED_SERIES 接线(免费现有 key,FED_FUNDS/SOFR 同先例)+normalize_macro 事实权威门(防双通道双事实;真实 31 键审计门恰只拦 DFF)+rhq/wd 历史通道解析;**真实拉取=操作者轮**(拉取前 ia_cli history --metric DFF=no_series 序列为空如实,S4 断点数据面根治待拉取)。
+- **独立审计闭环**: 六维全 PASS **0 BLOCKER 0 MAJOR**(3 MINOR+5 NIT);Mi-1 md 渲 agent_judgment 节/Mi-2 wd 真链 e2e/Mi-3 history_source 注册校验+Ni-1 字样=当场随修(8006b9d);**二轮复核四项闭死无新引入=整体可并入**;余 Ni-2/3/4/5+skipped_step 预存观察排队 R26。
+- **验收层状态**: 九 PASS+AC3 PARTIAL(R19 用户落章不变;本轮无 AC 状态变动=工程质量+数据接线)。
+- **当前任务**: R26 候选=①VP 旧库 5 行 LABEL_DRIFT 对账②R25 审计余留 NIT 收口;操作者席=R25 合并发布+DFF 真实拉取+LIVE 观察钟(11-14 周六 ZQ 族)。
 - **权限变化(Charter 10 §十)**: LIVE 生产修改自此需用户明确指令,不再随波次自动同步。
-- **检查点(R24·2026-11-13)**: 阶段五+六毕;操作者席待办: R24 合并发布(dev/rd-r24-stage5-e2e)+LIVE 观察(11-14 周六 ZQ 族观察钟)。已毕随注: 钩子包安装+LIVE 代理修复=2026-11-13 用户席已执行(项目 .claude/settings.json 实证);/tmp/r21-wt 已不在场。
+- **检查点(R25·2026-11-14)**: 3 NIT+DFF 离线面毕,审计两轮闭;操作者席待办三件(合并/拉取/LIVE 观察)。
 
 ### 任务台账(机器维护: scripts/rd_checkpoint.py 收口;已毕任务只进 ITERATION_LOG/RESUME 存档,永不回台账)
 

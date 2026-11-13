@@ -20,22 +20,26 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-13 R24 检查点后 · Charter 10 完结转排队面)
+## 下一步(2026-11-14 R25 检查点后 · 排队面第二轮)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-Charter 10 六阶段全毕(R20 状态整改→R21 持续执行→R22 金融正确性→R23 Agent Native→R24 完整验收)。队列按优先级:
+Charter 10 完结;R25=排队面首轮(3 NIT 收口+DFF 离线接线,审计两轮闭)。队列按优先级:
 
-1. **R25 候选① R24 审计 3 NIT 收口+DFF 日频史评估(小代码+数据面)**: ①NIT V1-1 report.md 步骤台账非信封步骤(S1/S7/S10/S11)渲「语义✗」标签噪音——改按步骤性质三分(信封步/非信封步/默认关)或显式「不适用」标签,方向保守不藏失败不变;NIT V1-2 attach blocked 路径不重渲 md(实际不可达边角,加注释或重渲);NIT V2-5 SCN-B 复合证伪条件单 metric_id(评估 schema 增可选副指标字段或保持披露现状)。②DFF 日频史: 评估 FRED 现有 key 免费只读拉取(Charter 6/7 同 key 先例,SOFR/WALCL 同款)补 S4 拒答面(网络面=操作者轮或代理环境)。
-2. **R25 候选② VP 旧库 5 行 LABEL_DRIFT 对账**(数据刷新轮): 17 档旧库 INSUFFICIENT_EVIDENCE 存量声明 vs 新规则重算分歧(3 例一致映射+2 例 no_forecast→NOT_YET 边界);处置=逐行定重贴或 recompute 注记,可见非静默原则不变。
-3. **操作者席待办(R24 移交)**: R24 合并发布(dev/rd-r24-stage5-e2e,盖章=分支最后一笔合规);LIVE 观察 11-14 周六=ZQ 族观察钟。(已毕随注 2026-11-13: 钩子包安装+LIVE 代理修复=用户席当日已执行——项目 .claude/settings.json SessionStart/PreCompact 实证+~/agent-loop index L41 记录;R22 席 /private/tmp/r21-wt 已不在场,环境性红根因消除)
+1. **R26 候选① VP 旧库 5 行 LABEL_DRIFT 对账**(数据刷新轮): 17 档旧库 INSUFFICIENT_EVIDENCE 存量声明 vs 新规则重算分歧(3 例一致映射+2 例 no_forecast→NOT_YET 边界);处置=逐行定重贴或 recompute 注记,可见非静默原则不变。
+2. **R26 候选② R25 审计余留 NIT 收口(小代码面)**: Ni-2 attach 覆写先前 attach 元数据(建议 revisions 化或保留先前块)/Ni-3 _write_report 双文件非原子写(temp+rename)/Ni-4 secondary_metric_ids 与主锚/内部重复(去重或契约明示)/Ni-5 historical_coverage_audit DFF 通道映射(拉取后覆盖报告保守低报——宜与操作者拉取同轮收);预存观察 skipped_step ok=True 渲 [OK|—](SKIP 分支死码)。
+3. **操作者席待办(R25 移交)**: ①R25 合并发布(dev/rd-r25-nit-dff,盖章=分支最后一笔合规);②**DFF 真实拉取**(网络面: `python3 scripts/macro_collector.py`,macro 档落 DFF 10 年日频序列;拉取后 ia_cli history --metric DFF 出真实序列+S4_history_DFF 转绿;Ni-5 宜随后收);③LIVE 观察 11-14 周六 ZQ 族 weekly 观察钟。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 24, "date": "2026-11-13 23:08 HKT", "branch": "dev/rd-r24-stage5-e2e", "commit": "bdf5b9ea552387ae0db1967f2444c1927520bd89", "baseline": "bdf5b9ea552387ae0db1967f2444c1927520bd89", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R24-1"], "next_task": "R25 候选① R24 审计 3 NIT 收口(V1-1 台账语义标签/V1-2 blocked 重渲/V2-5 复合证伪条件)+DFF 日频史评估(FRED key 免费只读,网络面=操作者轮);候选② VP 旧库 5 行 LABEL_DRIFT 对账", "next_round": 25} -->
+<!-- RD-CHECKPOINT v1: json {"round": 25, "date": "2026-11-14 04:14 HKT", "branch": "dev/rd-r25-nit-dff", "commit": "8006b9d222328d74581b33fcc91c4bcbba3778af", "baseline": "8006b9d222328d74581b33fcc91c4bcbba3778af", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R25-1"], "next_task": "R26 候选① VP 旧库 5 行 LABEL_DRIFT 对账(逐行定重贴或 recompute 注记,可见非静默);候选② R25 审计余留 NIT 收口(Ni-2 attach 覆写史/Ni-3 非原子写/Ni-4 副指标重复/Ni-5 coverage 通道映射);操作者席: R25 合并发布+DFF 真实拉取(macro_collector.py)+LIVE ZQ 观察钟", "next_round": 26} -->
+
+## 下一步存档(2026-11-14 R25 收口后版)
+
+1. [已毕·R25] **R24 审计 3 NIT 收口+DFF 日频史接线**: V1-1 台账语义三分/V1-2 blocked md 重渲(_write_report 不变式)/V2-5 schema v1.1 secondary_metric_ids;DFF=registry v2.8.5 history_source+macro FRED_SERIES+normalize_macro 权威门+rhq/wd 解析(真实拉取=操作者轮,拉取前诚实 no_series)。独立审计六维 PASS 0 BLOCKER 0 MAJOR(3 MINOR+5 NIT→Mi-1/2/3+Ni-1 随修 8006b9d,二轮复核四项闭死无新引入=整体可并入;余 Ni-2/3/4/5 排队 R26)。新套件 44 判+全仓 142/142 两遍。台账 T-R25-1 待合并。
 
 ## 下一步存档(2026-11-13 R24 收口后版)
 

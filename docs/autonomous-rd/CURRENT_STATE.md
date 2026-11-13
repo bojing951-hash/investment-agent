@@ -17,7 +17,7 @@
 - **验收层状态**: 九 PASS+AC3 PARTIAL(R19 用户落章不变);**AC6 阶段五完整重验收按实通过**(终判 PASS 系用户落章维持,证据入 FINAL_ACCEPTANCE AC6 行,无降级项);AC3 首验窗 2026-12(日历门)。
 - **当前任务**: Charter 10 完结,转入排队面(RESUME R25): VP 旧库 5 行 LABEL_DRIFT 对账/DFF 日频史评估/R24 审计 3 NIT 收口。
 - **权限变化(Charter 10 §十)**: LIVE 生产修改自此需用户明确指令,不再随波次自动同步。
-- **检查点(R24·2026-11-13)**: 阶段五+六毕;操作者席待办: R24 合并发布(dev/rd-r24-stage5-e2e)+钩子包 ops/hooks-candidate/ 安装(R21 遗留)+LIVE 观察(11-14 周六 ZQ 族观察钟;R22 席 /tmp/r21-wt 已不在场)。
+- **检查点(R24·2026-11-13)**: 阶段五+六毕;操作者席待办: R24 合并发布(dev/rd-r24-stage5-e2e)+LIVE 观察(11-14 周六 ZQ 族观察钟)。已毕随注: 钩子包安装+LIVE 代理修复=2026-11-13 用户席已执行(项目 .claude/settings.json 实证);/tmp/r21-wt 已不在场。
 
 ### 任务台账(机器维护: scripts/rd_checkpoint.py 收口;已毕任务只进 ITERATION_LOG/RESUME 存档,永不回台账)
 

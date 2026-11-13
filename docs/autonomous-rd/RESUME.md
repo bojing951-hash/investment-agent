@@ -29,7 +29,7 @@ Charter 10 六阶段全毕(R20 状态整改→R21 持续执行→R22 金融正�
 
 1. **R25 候选① R24 审计 3 NIT 收口+DFF 日频史评估(小代码+数据面)**: ①NIT V1-1 report.md 步骤台账非信封步骤(S1/S7/S10/S11)渲「语义✗」标签噪音——改按步骤性质三分(信封步/非信封步/默认关)或显式「不适用」标签,方向保守不藏失败不变;NIT V1-2 attach blocked 路径不重渲 md(实际不可达边角,加注释或重渲);NIT V2-5 SCN-B 复合证伪条件单 metric_id(评估 schema 增可选副指标字段或保持披露现状)。②DFF 日频史: 评估 FRED 现有 key 免费只读拉取(Charter 6/7 同 key 先例,SOFR/WALCL 同款)补 S4 拒答面(网络面=操作者轮或代理环境)。
 2. **R25 候选② VP 旧库 5 行 LABEL_DRIFT 对账**(数据刷新轮): 17 档旧库 INSUFFICIENT_EVIDENCE 存量声明 vs 新规则重算分歧(3 例一致映射+2 例 no_forecast→NOT_YET 边界);处置=逐行定重贴或 recompute 注记,可见非静默原则不变。
-3. **操作者席待办(R24 移交)**: R24 合并发布(dev/rd-r24-stage5-e2e,盖章=分支最后一笔合规);钩子包 ops/hooks-candidate/ 安装(R21 遗留);LIVE 观察 11-14 周六=ZQ 族观察钟(R22 席 /tmp/r21-wt 已不在场,环境性红根因消除)。
+3. **操作者席待办(R24 移交)**: R24 合并发布(dev/rd-r24-stage5-e2e,盖章=分支最后一笔合规);LIVE 观察 11-14 周六=ZQ 族观察钟。(已毕随注 2026-11-13: 钩子包安装+LIVE 代理修复=用户席当日已执行——项目 .claude/settings.json SessionStart/PreCompact 实证+~/agent-loop index L41 记录;R22 席 /private/tmp/r21-wt 已不在场,环境性红根因消除)
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。

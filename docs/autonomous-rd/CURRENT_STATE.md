@@ -22,7 +22,7 @@
 
 | ID | 状态 | Git证据 | 说明 |
 |---|---|---|---|
-| T-R23-1 | 进行中·R23 | dev/rd-r23-agent-loop(开轮) | 阶段四 一键AI研究闭环: L3/L4 produced=False→Agent Native 真完成——judgment 落位/纪律机器校验/attach 合并面+真实 E2E 一句话全链 |
+| T-R23-1 | 进行中 | dev/rd-r23-agent-loop(开轮) | 阶段四 一键AI研究闭环: L3/L4 produced=False→Agent Native 真完成——judgment 落位/纪律机器校验/attach 合并面+真实 E2E 一句话全链 |
 
 ### [历史快照·R15 视角,已被上方权威快照取代]
 

@@ -217,8 +217,8 @@ check("页4 研究地图面板(research_map 同引擎)",
       'research_map' in pv4 and '研究地图' in pv4 and 'nomination_inputs' in pv4)
 skill = open(os.path.join(ROOT, '.agents', 'skills', 'global-macro-research',
                           'SKILL.md'), encoding='utf-8').read()
-check("SKILL 十一个能力速查(research-map 在册)",
-      '十一个能力速查' in skill and 'research-map' in skill)
+check("SKILL 十二个能力速查(research-map 在册)",
+      '十二个能力速查' in skill and 'research-map' in skill)
 check("SKILL 观察钟纪律(编排层+引擎不代触发)",
       '观察钟' in skill and '绝不代触发' in skill)
 check("SKILL ART-M/ART-FALS 文件化纪律", 'ART-M' in skill

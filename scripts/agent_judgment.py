@@ -209,9 +209,12 @@ def validate_judgment(judgment, evidence_refs, metric_ids):
                 bad('SCN-TRIG', f'l4.scenarios[{sid}].rows.trigger.condition',
                     '可观测条件为空')
             dl = trig.get('deadline') or ''
-            if not _DATE_RE.match(str(dl)):
+            # R23 MINOR-2(独立审计): 真日期校验,防 '2027-13-45' 类过纯正则
+            try:
+                datetime.strptime(str(dl), '%Y-%m-%d')
+            except ValueError:
                 bad('SCN-TRIG', f'l4.scenarios[{sid}].rows.trigger.deadline',
-                    f'时限须 YYYY-MM-DD(得 {dl!r})')
+                    f'时限须真日期 YYYY-MM-DD(得 {dl!r})')
 
     return {'passed': not v, 'violations': v,
             'n_contradictions': len(contras),
@@ -259,8 +262,12 @@ def attach_judgment(report_dir, judgment_path, root=None):
                   encoding='utf-8') as f:
             json.dump(judgment, f, ensure_ascii=False, indent=2)
     else:
-        layers['L3_AI推断层']['produced'] = False
-        layers['L4_条件情景层']['produced'] = False
+        # R23 MINOR-3(独立审计): 失败重提时清残留 content——
+        # produced=False 与旧 content 并存=语义不一致
+        for layer_key in ('L3_AI推断层', 'L4_条件情景层'):
+            layers[layer_key]['produced'] = False
+            layers[layer_key].pop('content', None)
+            layers[layer_key].pop('attribution', None)
 
     report['layers'] = layers
     report['agent_judgment'] = {

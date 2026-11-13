@@ -234,6 +234,10 @@ def m_scn_trig(j):
     j['l4']['scenarios'][0]['rows']['trigger']['deadline'] = '随时'
 
 
+def m_scn_trig_fake_date(j):
+    j['l4']['scenarios'][0]['rows']['trigger']['deadline'] = '2027-13-45'
+
+
 def m_scn_plural(j):
     j['l4']['scenarios'] = j['l4']['scenarios'][:1]
 
@@ -251,6 +255,7 @@ MATRIX = [('ATTR 归因冒充机构', 'ATTR', m_attr),
           ('SCN-SENS 敏感变量不在册', 'SCN-SENS', m_scn_sens_unreg),
           ('SCN-FALS 阈值为空', 'SCN-FALS', m_scn_fals),
           ('SCN-TRIG 时限非日期', 'SCN-TRIG', m_scn_trig),
+          ('SCN-TRIG 非法月日过正则(MINOR-2)', 'SCN-TRIG', m_scn_trig_fake_date),
           ('SCN-PLURAL 单一情景孤证', 'SCN-PLURAL', m_scn_plural)]
 for name, code, fn in MATRIX:
     r = mutate(fn)
@@ -298,6 +303,9 @@ with tempfile.TemporaryDirectory() as td:
           and not rep2['layers']['L4_条件情景层']['produced'])
     check('violations 落档供修订重提',
           {'REF', 'SCN-PLURAL'} <= codes(rep2['agent_judgment']['validation']))
+    check('失败重提清残留 content(MINOR-3)',
+          'content' not in rep2['layers']['L3_AI推断层']
+          and 'content' not in rep2['layers']['L4_条件情景层'])
     check('attached=False 时 judgment 副本不写(旧档保持)',
           json.load(open(os.path.join(rd, 'agent_judgment.json')))
           == base_judgment())

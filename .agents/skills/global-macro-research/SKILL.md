@@ -27,7 +27,7 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 
 不确定时先跑 `doctor`(只读体检,无副作用)确认环境。
 
-## 十一个能力速查
+## 十二个能力速查
 
 | 能力 | 命令 | 用途 | 关键点 |
 |---|---|---|---|
@@ -42,6 +42,8 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 | views | `... views list / get --view-id VIEW-... / lint` | 机构观点存储读取(schema v1.1) | 只装载 linter 合规件;隔离件 get 拒绝并给原因(rc=1),lint 出逐条违规明细(rc=1 时有隔离);不依赖快照(信封快照位=null);观点文件零写入(采集归上游,本技能只读) |
 | update | `... update --yes` | 真实运行采集流水线 | **仅用户明确要求时**执行;可能数分钟 |
 | research-map | `... research-map` | 研究地图: 章程§五十问确定性扇出证据包(Charter9) | 每问=五层归属+当前数据面(计数/覆盖/新鲜度)+既有能力命令清单;另附 `nomination_inputs`(机构对撞 conflicts+单源伪共识主题=04/05 节问题集**提名原料**,提名归 Agent 规则非引擎硬编码)+ART-M/ART-FALS 透传+观察钟透传;零模型零网络;缺席面如实 null/警告 |
+| research-run | `... research-run --question "..." [--fanout] [--archive]` | 一键研究编排: 十一步确定性管线(S1-S11) | 每步真子进程+信封留档;L1 事实行/L2 观点面/证据索引(fact_id/VP id)随报告落 `output/research_runs/`;L3/L4 恒 declared-not-produced(归 Agent,本管线零模型不代写) |
+| research-attach | `... research-attach --report-dir <dir> --judgment <file>` | **Agent Native L3/L4 落位**(一键闭环收口): Agent 判断经纪律机器校验合并进 research-run 报告 | 校验器零生成——内容全来自你的 judgment 文件(schema v1.0,见 `scripts/agent_judgment.py` 模块docstring);机器查: 归因=ai_inferred/竞争性解释≥2/证据引用必须解析到**该报告证据索引**/E1 带可解析引用/E2 明写【假设】/E3 给在册证伪指标/情景五行齐备+≥2 并列+敏感变量与证伪指标在册+触发条件带时限;不过=produced 保持 False,violations 落档供修订重提 |
 
 退出码: `0`=进程成功(注意: research 的诚实拒答也是 0,语义成败看 `ok` 与 `data.status`); `1`=执行错误; `2`=用法错误。输出一律为单个 JSON 对象(stdout)。
 
@@ -92,6 +94,17 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 9. **解释标注**: 按纪律 4 给四层标注(事实/推断/假设/尚未验证),并列竞争性解释;机制链按纪律 15 落 E1/E2/E3,情景按纪律 16 五行齐备
 10. **自检**: 事实位文本过 lint(调用方式见 references/cli-contract.md 末节);核对 warnings 全部转述、无成分编造、无"以事后冒充预测"句式
 11. **落档**: 用户认可结果后 `archive save`(拒答不落档,拼接成果可走六参直存)
+
+## 一键研究闭环工作流(Agent Native, R23/阶段四)
+
+用户一句话研究问题 → **一次任务内**完成全链,四步:
+
+1. **确定性底座**: `research-run --question "<原问题>"`(可加 `--fanout`)→ 得报告目录(L1 事实行/L2 观点面/**证据索引**=fact_id 与 VP id 清单)
+2. **Agent 研判(你的工作,零模型代写)**: 读报告证据面,撰写 judgment JSON(schema v1.0): L3=矛盾/综合陈述(每条并列≥2 竞争性解释+证据引用)+机制链(每环标 E1/E2/E3);L4=条件情景(≥2 并列,五行齐备)。**每个 evidence_ref 必须取自该报告证据索引原值**,每个敏感变量/证伪指标必须是注册表在册 metric_id——机器校验不认注册表外的引用
+3. **机器校验落位**: `research-attach --report-dir <dir> --judgment <file>` → 全绿=L3/L4 produced=True(attribution=ai_inferred,原文入档+报告重渲);有 violations=按落档明细修订重提,**不得为过校验而稀释判断**(缺竞争性解释就补解释,不是删条目)
+4. **归档**: 用户认可后 `archive save --question ... --answer-text <四层标注成果文本>`(六参直存),研究链闭环
+
+红线: 判断内容 100% 归 Agent(你),校验器/管线零生成零改写;归因永标 ai_inferred;校验是纪律地板不是质量保证——判断质量仍由纪律 4/15/16 与独立审计把关。
 
 ## 研究地图工作流(机构观点 × 引擎数据交叉验证, Charter8)
 

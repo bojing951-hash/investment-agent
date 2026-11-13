@@ -27,7 +27,7 @@
 
 按 CHARTER_10_RECTIFICATION.md §十一 阶段执行:
 
-1. **阶段四 一键AI研究闭环(当前最重要产品能力缺口)**: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完。
+1. [进行中·R23] **阶段四 一键AI研究闭环(当前最重要产品能力缺口)**: L3/L4 produced=False→Agent Native 真完成(Python=确定性引擎,Agent=经济学判断),一句话研究全链一次任务内跑完。
 2. **阶段五 真实E2E+独立验收**: 未优化过的真实宏观问题;十章产出齐全;独立审计查结论-证据绑定;受影响 AC 重验按实标 PASS/PARTIAL/FAIL/NOT_VERIFIED。
 3. **阶段六 状态更新+自动入下一轮**。
 4. **操作者席待办(R22 移交)**: R22 合并发布(dev/rd-r22-fin-correctness,盖章=分支最后一笔合规);遗留 worktree /private/tmp/r21-wt 清理(无头权限面外不可 git -C,p0 套件 30/1 环境性红唯一根因);候选钩子包 ops/hooks-candidate/ 安装(README 四步);LIVE 观察(11-14 周六=ZQ 族观察钟,daily 首跑 v0.15.0 面)。

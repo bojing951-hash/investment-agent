@@ -53,6 +53,13 @@ FRED_SERIES = {
     # 注册表active条目缺席=noncore_missing如实披露,见docs/P2_DATA_GAP_LEDGER.md)
     "SOFR": "SOFR",
     "WALCL": "WALCL",
+    # R25(2026-11-14): DFF(有效联邦基金利率,日频)历史序列接线——注册表
+    # DFF 事实权威仍在 rate_expectations(current_rates 当日值),本通道只载
+    # 历史序列供研究查询(registry history_source=macro_collector;
+    # fact_engine.normalize_macro 按 source 权威门拒立 DFF 事实,防双通道
+    # 双事实)。免费 FRED 序列/现有 FRED_API_KEY/零新凭证,同 FED_FUNDS
+    # (月频)/SOFR/WALCL 先例;首跑真实拉取=操作者轮(无头面无网络)。
+    "DFF": "DFF",
     # 数据批1(2026-11-10,#M2SL 可选项): M2货币供应月末存量(月频,H.6)——
     # 流动性数量维,与WALCL资产负债表维互补;免费FRED序列/现有key同模式
     "M2SL": "M2SL",
@@ -141,6 +148,7 @@ SERIES_FREQ = {
     "US_REAL_GDP": "quarterly",   # Charter6-P1: GDPC1 季频(变化口径=QoQ/YoY)
     "WALCL": "weekly",            # P2-3: H.4.1 周三水平(周四发布)
     "SOFR": "daily",              # P2-3: 担保隔夜融资利率(营业日)
+    "DFF": "daily",               # R25: 有效联邦基金利率(营业日;仅历史序列面)
     "M2SL": "monthly",            # 数据批1: H.6 M2月末存量
     # 其余(BAML利差/DGS收益率/DFII/T5YIE/T10Y2Y)=daily
 }
@@ -174,6 +182,9 @@ SERIES_UNITS = {
     "JTSJOL": ("count", "千人(职位空缺)"),
     "US_REAL_GDP": ("index", "十亿美元(2017年链式,SAAR)"),
     "SOFR": ("rate", "%"),
+    # R25: DFF 利率语义(%)——与 SOFR/UST 同族;仅历史序列面(事实权威
+    # 在 rate_expectations,见 FRED_SERIES 注)
+    "DFF": ("rate", "%"),
     # 首跑校准(2026-11-10): FRED原始单位=百万美元(存原始值惯例,RSAFS同例)
     "WALCL": ("index", "百万美元(美联储总资产,周三水平)"),
     # 数据批1: M2SL 月频存量(流动性数量维,与WALCL资产负债表维互补)

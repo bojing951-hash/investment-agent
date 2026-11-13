@@ -513,7 +513,7 @@ class TestRegistryAndRealArchive(unittest.TestCase):
         # Charter6-P2(2026-11-09): 2.5.0→2.6.0(+SPX_CAPE/SPX_PE_TTM/SPX_PB)
         # Charter7 P2-3(2026-11-10): 2.6.0→2.7.0(+SOFR/WALCL 流动性维)
         # R12(2026-11-12): 2.8.3→2.8.4(japan source_key 补接);曾 2.8.2→2.8.3(R11 注记细化)/2.8.0→2.8.2(R6-D1 换源)/2.7.0→2.8.0(数据批1)
-        self.assertEqual(reg['version'], '2.8.4')
+        self.assertEqual(reg['version'], '2.8.5')  # R25(2026-11-14) DFF history_source;曾升 2.8.4(R12)/2.8.3(R11)/2.8.2(R6-D1)/2.8.0(数据批1)
         self.assertEqual(len(reg['metrics']), 110)  # 数据批1: +SPX_EPS/M2SL
         # 上限余量=同侪带中段(SPX 3.96×/NDX 2.13×先例; REPORT §零.11.1)
         self.assertGreater(m['validation']['range'][1], 61077.9)

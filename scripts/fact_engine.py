@@ -273,7 +273,14 @@ def normalize_global(data, as_of, source_file="global_*.json"):
 
 
 def normalize_macro(data, as_of, source_file="macro_*.json"):
-    """macro_YYYYMMDD.json['data'][name] → 事实。月频含发布滞后保守语义。"""
+    """macro_YYYYMMDD.json['data'][name] → 事实。月频含发布滞后保守语义。
+
+    R25 事实权威门(DFF 历史序列接线): macro 档可承载注册表 source 指向
+    其他通道的指标序列(如 DFF,registry source=rate_expectations、
+    history_source=macro_collector——macro 只载历史序列)。这类键**不立
+    macro 事实**(事实权威=registry source 所指通道,rate 通道 current_rates
+    已立当日 DFF 事实),防止同一 metric_id 双通道双事实;序列本身留在档内
+    供 research_history_query 经 history_source 接入点读取。"""
     if isinstance(data, dict) and isinstance(data.get('data'), dict):
         data = data['data']
     facts = []
@@ -286,6 +293,10 @@ def normalize_macro(data, as_of, source_file="macro_*.json"):
             facts.append({"metric_id": name, "quality_status": "FAIL",
                           "issues": [{"category": "identity", "severity": "FAIL",
                                       "message": f"宏观序列{name}不在注册表"}], "value": item.get('value')})
+            continue
+        if m.get('source') != 'macro_collector':
+            # 权威门: 注册表把事实权威交给别的通道(rate_expectations 等)
+            # → 本通道只载序列,不立事实(见 docstring;DFF=R25 首例)
             continue
         f = make_fact(mid, item.get('value'), item.get('date'), as_of, source_file,
                       "macro_collector", series=item.get('series'), retrieved_at=None,

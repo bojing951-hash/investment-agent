@@ -636,7 +636,9 @@ def metric_series(metric_id, snapshot=None, root=None):
         return {'metric_id': metric_id, 'label': m['display_name'],
                 'unit': m.get('unit', ''), 'dates': list(ss['dates']),
                 'values': list(ss['values']), 'source': '研究快照 series_store'}, None
-    prefix = SERIES_SOURCE_PREFIX.get(m.get('source'))
+    # R25: 历史序列通道=history_source 优先,回落 source(DFF 首例:
+    # source=rate_expectations 单点,history_source=macro_collector 序列)
+    prefix = SERIES_SOURCE_PREFIX.get(m.get('history_source') or m.get('source'))
     if prefix is None:
         return None, (f"该指标来源({m.get('source')})为单点观测,无历史序列——"
                       '工作台历史页暂不支持')

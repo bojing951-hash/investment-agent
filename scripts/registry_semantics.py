@@ -294,6 +294,20 @@ def validate_registry(reg):
         if isinstance(source, str) and source not in KNOWN_SOURCES:
             add(mid, 'R-SOURCE-ENUM', 'error', 'source',
                 f"source={source!r}不是已授权采集通道/派生来源(无法解释的来源)")
+        # ── R25 审计 Mi-3: history_source 可选字段同受通道枚举约束 ──
+        # (R25 引入: 历史序列通道与事实通道解耦,DFF 首例)。值域同
+        # KNOWN_SOURCES;非空字符串之外的非 None 类型=error(typo 会在
+        # 查询期才 ValueError fail-closed——校验提前到注册面,晚拒变早拒)。
+        hsrc = m.get('history_source')
+        if hsrc is not None:
+            if not isinstance(hsrc, str) or not hsrc.strip():
+                add(mid, 'R-HISTORYSOURCE-TYPE', 'error', 'history_source',
+                    f"history_source缺失语义/非非空字符串:{hsrc!r}"
+                    '(须为已授权采集通道名或省略该字段)')
+            elif hsrc not in KNOWN_SOURCES:
+                add(mid, 'R-HISTORYSOURCE-ENUM', 'error', 'history_source',
+                    f"history_source={hsrc!r}不是已授权采集通道/派生来源"
+                    '(历史序列通道同样须可解释)')
         # ── IA-P02-W1-FIX1-03: 关键字段类型拦截 ──
         # 非字符串/空串/缺失曾在isinstance(str)守卫下静默绕过枚举判断
         # (status=123等)——Gate A按字面'active'过滤,类型违规会把核心指标

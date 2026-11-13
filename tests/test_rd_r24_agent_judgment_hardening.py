@@ -53,7 +53,7 @@ EV_REFS = {'FACT_A@2026-01-10', 'FACT_B@2026-01-10', 'VP-VIEW-20260101-001'}
 def base_judgment():
     """合规 judgment 母本(与 R23 套件同构;矛盾带引用)。"""
     return {
-        'schema_version': '1.0',
+        'schema_version': '1.1',
         'agent_declaration': {'attribution': 'ai_inferred',
                               'note': '编排层 Agent 研判'},
         'l3': {

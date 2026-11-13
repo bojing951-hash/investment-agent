@@ -1,5 +1,5 @@
 {
- "version": "2.8.4",
+ "version": "2.8.5",
  "created": "2026-10-17",
  "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
  "field_semantics": {
@@ -2191,6 +2191,7 @@
    "display_name": "有效联邦基金利率(日频)",
    "source": "rate_expectations",
    "source_symbol": "DFF",
+   "history_source": "macro_collector",
    "asset_class": "policy_rate",
    "frequency": "daily",
    "observation_period_kind": "calendar_day",
@@ -2207,7 +2208,7 @@
     "adjustment": "none"
    },
    "value_type": "daily_effective_rate",
-   "calc": "NYFed每日有效联邦基金利率(交易加权实际成交利率)",
+   "calc": "NYFed每日有效联邦基金利率(交易加权实际成交利率);R25(2026-11-14): 日频历史序列经 macro_collector 通道(FRED 现有 key 免费只读,同 FED_FUNDS 月频/SOFR/WALCL 先例)——事实权威仍在 rate_expectations(current_rates 当日值),历史查询走 history_source",
    "validation": {
     "range": [
      0,

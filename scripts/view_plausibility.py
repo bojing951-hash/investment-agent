@@ -32,6 +32,10 @@ CLI:
   python3 scripts/view_plausibility.py --build VIEW-… [--dry-run] [--vp-dir DIR]
   python3 scripts/view_plausibility.py --build-all [--dry-run] [--vp-dir DIR]
   python3 scripts/view_plausibility.py --verify-binding VIEW-… [--vp-dir DIR]
+  python3 scripts/view_plausibility.py --reconcile-drift VIEW-… [--dry-run]
+      [--allow-judgment] [--vp-dir DIR]      # R26: LABEL_DRIFT 对账
+  python3 scripts/view_plausibility.py --reconcile-drift-all [--dry-run]
+      [--vp-dir DIR]
 退出码: 0=装载校验成功;1=缺失/不可用;2=用法错。
 
 v1.1(R1 autonomous-rd 2026-11-11): 三型证据落库——hypotheses[].stages.{A,B}
@@ -427,6 +431,172 @@ def binding_check(view_id=None, doc=None, snapshot=None, registry=None,
                           'NO_MACHINE_BINDING=语义层,人工审查面')}
 
 
+# ── R26(2026-11-14): LABEL_DRIFT 对账(可见重贴) ───────────────────────
+# 背景: VP v1.0 存量 mode C verdict 由早于期限解析器成熟期的构建面写入
+# (如 no_forecast=旧期词汇"无机器可验预测绑定");现行引擎已按期限可解析性
+# 分化为 UNPARSEABLE_HORIZON/NOT_YET_TESTABLE。build_vp C 层零变动设计使
+# --build-all 不刷新存量 verdict(R22"重建即消"预期对存量词汇漂移行不成立),
+# 须经显式对账收口——逐行重贴+history 留痕,可见非静默(R22 遗留台账)。
+# 安全边界: BINDING_VIOLATION 行=红线绝不自动重贴(整档拒写);重算标签为
+# 判定标签(SUPPORTED/CONTRADICTED)=判定内容变更,默认拒绝,--allow-judgment
+# 显式放行;写前 validate_vp 全过+原子写(temp+os.replace);幂等可复跑。
+
+_RECONCILE_BY = ('engine:view_plausibility.reconcile_label_drift'
+                 '(R26 2026-11-14,LABEL_DRIFT 对账: 存量 verdict 过期行'
+                 '按当前引擎重贴,history 留痕)')
+
+
+def _now_hkt():
+    import datetime as _dt
+    return _dt.datetime.now(
+        _dt.timezone(_dt.timedelta(hours=8))).strftime('%Y-%m-%d %H:%M HKT')
+
+
+def reconcile_label_drift(view_id, vp_dir=None, views_dir=None, root=None,
+                          dry_run=False, allow_judgment=False, doc=None):
+    """LABEL_DRIFT 对账: binding_check 漂移行按当前引擎 verdict 重贴。
+
+    纪律(可见非静默,Charter 10 §5.3 后续对账):
+    - 仅动 LABEL_DRIFT 行;BINDING_OK/NO_MACHINE_BINDING 行零扰动;
+    - 档内存在 BINDING_VIOLATION → 整档拒写(红线行须人工/引擎排查,
+      不与对账混写);
+    - 重算标签∈判定标签(SUPPORTED/CONTRADICTED)→ 默认拒写(判定内容
+      变更不自动),allow_judgment=True 才放行;
+    - verdict_history/(标签变时)label_history 追加留痕(不删旧史);
+      reconciliations 台账档级留痕;
+    - view_label/stage_summary.C 随 rollup 重算;写前 validate_vp 全过;
+      原子写(.tmp+os.replace);幂等: 零漂移=零写。"""
+    root = root or ROOT
+    if doc is None:
+        doc, reason = load_vp(view_id, vp_dir)
+        if doc is None:
+            return {'ok': False, 'view_id': view_id,
+                    'error': {'kind': 'vp_missing', 'message': reason}}
+    view_id = view_id or doc.get('view_id')
+    view_doc, vr = vs.get_view(view_id, views_dir)
+    if view_doc is None:
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'view_not_found_or_quarantined',
+                          'message': vr}}
+    bind = binding_check(view_id=view_id, doc=doc, views_dir=views_dir,
+                         root=root)
+    if bind.get('rows') is None:
+        return {'ok': False, 'view_id': view_id,
+                'error': bind.get('error')
+                or {'kind': 'binding_check_failed',
+                    'message': 'binding_check 无 rows(引擎/快照不可用)'}}
+    violations = [r for r in bind['rows']
+                  if r.get('status') == 'BINDING_VIOLATION']
+    if violations:
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'binding_violation_present',
+                          'message': '档内存在 BINDING_VIOLATION(红线)行,'
+                          '须先人工/引擎排查,对账拒写',
+                          'rows': violations}}
+    drifts, skipped = [], []
+    hyps = doc.get('hypotheses') or []
+    for r in bind['rows']:
+        if r.get('status') != 'LABEL_DRIFT':
+            continue
+        try:
+            i = int(str(r.get('hyp', '')).rsplit('[', 1)[1].rstrip(']'))
+        except (IndexError, ValueError):
+            skipped.append({'hyp': r.get('hyp'),
+                            'reason': 'hyp 索引解析失败(行跳过,未重贴)'})
+            continue
+        if not (0 <= i < len(hyps)) or not isinstance(hyps[i], dict):
+            skipped.append({'hyp': r.get('hyp'),
+                            'reason': 'hyp 索引越界/非对象(行跳过)'})
+            continue
+        cur = r.get('current_verdict')
+        if not cur:
+            skipped.append({'hyp': r.get('hyp'),
+                            'reason': '当前引擎 verdict 不可得(无候选基),'
+                            '行跳过,不重贴'})
+            continue
+        drifts.append((i, r, cur))
+    refused = []
+    for i, r, cur in drifts:
+        if verdict_to_label(cur) in _JUDGMENT_LABELS and not allow_judgment:
+            refused.append({
+                'hyp': r.get('hyp'), 'current_verdict': cur,
+                'recomputed_label': verdict_to_label(cur),
+                'reason': '重算标签=判定标签(SUPPORTED/CONTRADICTED)——'
+                '判定内容变更不自动重贴,须 --allow-judgment 显式放行'
+                '或人工处置'})
+    if refused:
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'judgment_relabel_refused',
+                          'message': '存在将产生判定标签的漂移行,默认整档拒写',
+                          'rows': refused}}
+    if not drifts:
+        return {'ok': True, 'view_id': view_id, 'n_reconciled': 0,
+                'written': False, 'rows': [],
+                'note': '无 LABEL_DRIFT 行(幂等: 零漂移=零写)',
+                'binding_summary': bind.get('summary')}
+    now = _now_hkt()
+    snap_id = bind.get('snapshot_id')
+    ledger_rows = []
+    for i, r, cur in drifts:
+        h = hyps[i]
+        ev = h.get('evidence') or {}
+        old_verdict = ev.get('verdict')
+        old_label = h.get('label')
+        new_label = verdict_to_label(cur)
+        entry = {'date': now, 'from': old_verdict, 'to': cur,
+                 'basis': r.get('index_basis'),
+                 'snapshot_id': snap_id, 'by': _RECONCILE_BY}
+        ev.setdefault('verdict_history', []).append(entry)
+        ev['verdict'] = cur
+        h['evidence'] = ev
+        if new_label != old_label:
+            h.setdefault('label_history', []).append({
+                'date': now, 'from': old_label, 'to': new_label,
+                'reason': f'verdict 重贴随行: {old_verdict}→{cur}'
+                f'(basis={r.get("index_basis")})',
+                'by': _RECONCILE_BY})
+            h['label'] = new_label
+        ledger_rows.append({'hyp': r.get('hyp'),
+                            'verdict_from': old_verdict, 'verdict_to': cur,
+                            'label_from': old_label, 'label_to': new_label,
+                            'basis': r.get('index_basis')})
+    view_label_from = doc.get('view_label')
+    view_label_new = rollup_view_label(
+        [h.get('label') for h in hyps if isinstance(h, dict)])
+    if view_label_new != view_label_from:
+        doc['view_label'] = view_label_new
+        ss = doc.get('stage_summary')
+        if isinstance(ss, dict) and 'C' in ss:
+            ss['C'] = view_label_new  # v1.1 契约: stage_summary.C=view_label
+    doc.setdefault('reconciliations', []).append({
+        'date': now, 'round': 'R26', 'by': _RECONCILE_BY,
+        'snapshot_id': snap_id, 'n_rows': len(ledger_rows),
+        'view_label_from': view_label_from, 'view_label_to': view_label_new,
+        'rows': ledger_rows,
+        'principle': '可见非静默: 仅重贴 LABEL_DRIFT 行,history/reconciliations '
+        '留痕;BINDING_VIOLATION 拒写;判定标签变更须显式放行'})
+    ok, errs = validate_vp(doc, view_doc)
+    if not ok:
+        return {'ok': False, 'view_id': view_id,
+                'error': {'kind': 'self_check_failed', 'message': errs}}
+    # 跳过行如实随结果披露(skipped),不阻断已决行的对账
+    if not dry_run:
+        p = vp_path(view_id, vp_dir)
+        tmp = p + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump(doc, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, p)
+    # 写后活体复证(同一引擎面): 漂移应清零
+    post = binding_check(view_id=view_id, doc=doc, views_dir=views_dir,
+                         root=root)
+    return {'ok': True, 'view_id': view_id,
+            'n_reconciled': len(ledger_rows), 'written': not dry_run,
+            'rows': ledger_rows, 'skipped': skipped,
+            'view_label': view_label_new,
+            'view_label_changed': view_label_new != view_label_from,
+            'binding_summary_post': post.get('summary')}
+
+
 # ── R1(autonomous-rd 2026-11-11): VP v1.1 三型证据全落库 ──────────────
 # 背景: v1.0 的 view_label 只消费 view_verifier --mode C verdict(到期验证),
 # A(提出时)/B(发布后)两型引擎已可实算但从未结构化落库——AC3 三阶段区分
@@ -729,6 +899,41 @@ def main(argv=None):
                             views_dir=views_dir, root=data_root)
         print(json.dumps(out, ensure_ascii=False, indent=2, default=str))
         return 0 if out.get('ok') else 1
+    # R26(2026-11-14): LABEL_DRIFT 对账(可见重贴;violation/判定标签变更拒写)
+    if args and args[0] == '--reconcile-drift':
+        allow_j = '--allow-judgment' in args
+        if allow_j:
+            args = [a for a in args if a != '--allow-judgment']
+        if len(args) != 2 or not args[1].startswith('VIEW-'):
+            print(json.dumps({'ok': False, 'error': {
+                'kind': 'usage', 'message': '用法: --reconcile-drift '
+                        'VIEW-YYYYMMDD-NNN [--dry-run] [--allow-judgment]'
+                        ' [--vp-dir DIR]'}}, ensure_ascii=False))
+            return 2
+        out = reconcile_label_drift(args[1], vp_dir=vp_dir, views_dir=views_dir,
+                                    root=data_root, dry_run=dry,
+                                    allow_judgment=allow_j)
+        print(json.dumps(out, ensure_ascii=False, indent=2, default=str))
+        return 0 if out.get('ok') else 1
+    if args and args[0] == '--reconcile-drift-all':
+        docs, bad = load_all(vp_dir)
+        results = [reconcile_label_drift(d['view_id'], vp_dir=vp_dir,
+                                         views_dir=views_dir, root=data_root,
+                                         dry_run=dry)
+                   for d in docs]
+        ok_n = sum(1 for r in results if r.get('ok'))
+        out = {'ok': ok_n == len(results) and len(results) > 0,
+               'n': len(results), 'n_ok': ok_n, 'dry_run': dry,
+               'n_reconciled_rows': sum(r.get('n_reconciled', 0)
+                                        for r in results),
+               'results': [{k: r.get(k) for k in
+                            ('ok', 'view_id', 'n_reconciled', 'written',
+                             'view_label', 'view_label_changed', 'error')}
+                           for r in results]}
+        if bad:
+            out['skipped_bad_base'] = [f for f, _ in bad]
+        print(json.dumps(out, ensure_ascii=False, indent=2, default=str))
+        return 0 if out['ok'] else 1
     if args and args[0] == '--build':
         if len(args) != 2 or not args[1].startswith('VIEW-'):
             print(json.dumps({'ok': False, 'error': {

@@ -1166,7 +1166,8 @@ def check_render(body, manifest):
         in_disc = line.startswith(' ') or line.startswith('-') and \
             any(d in line for d in ('STALE', 'INSUFFICIENT', 'NOT_VERIFIABLE',
                                     'SEMANTIC'))
-        for t in _extract_tokens(line):
+        mline = _masked_clause(line, _find_alias(line))
+        for t in _extract_tokens(mline):
             pool = disc.get(i) if in_disc else reg.get(i)
             hit = any(t['raw'].strip() == tok or
                       _value_matches(t['value'], v if _is_num(v) else None)

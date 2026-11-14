@@ -34,7 +34,7 @@ R26=排队面候选①(VP 旧库 LABEL_DRIFT 对账毕,审计两轮闭)。队列
 - [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。六标签首验窗现含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 26, "date": "2026-11-14 09:29 HKT", "branch": "dev/rd-r26-label-drift", "commit": "70244810155f0f1d30b0ae65db3e246311bc3878", "baseline": "70244810155f0f1d30b0ae65db3e246311bc3878", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R26-1"], "next_task": "R27 候选① R25 审计余留 NIT 收口(Ni-2 attach 覆写史/Ni-3 双文件非原子写/Ni-4 副指标重复/Ni-5 coverage 通道映射宜与操作者 DFF 拉取同轮);操作者席: R26 合并发布(dev/rd-r26-label-drift)+DFF 真实拉取+LIVE ZQ 观察钟", "next_round": 27} -->
+<!-- RD-CHECKPOINT v1: json {"round": 27, "date": "2026-11-14 20:23 HKT", "branch": "dev/rd-r27-gateb-extractor", "commit": "286c0c6afea0d835bdbd6dada4e3502b11813498", "baseline": "286c0c6afea0d835bdbd6dada4e3502b11813498", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R27-1"], "next_task": "R28: 架构转型与工程整改·阶段三纵向切片开工(用户工程令唯一优先队列;分支 dev/arch-reform-p3+worktree ~/investment-agent-reform;工单 T1 S1六项落地起步)", "next_round": 28} -->
 
 ## 下一步存档(2026-11-14 R27 收口后版)
 

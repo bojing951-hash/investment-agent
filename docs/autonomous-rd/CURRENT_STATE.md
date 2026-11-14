@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-14 R26 VP旧库LABEL_DRIFT对账 · 排队面候选①(T-R26-1)
-> baseline=a3fb199371e69e799c3d8445d9f4b9c1864eb3ef (机器行: rd_checkpoint.py 维护,勿手改)
+> baseline=286c0c6afea0d835bdbd6dada4e3502b11813498 (机器行: rd_checkpoint.py 维护,勿手改)
 
 > **本节=唯一当前态入口**(Charter 10 §3.1)。下方历史快照仅供追溯,以本节+Git HEAD 为准。
 > 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);

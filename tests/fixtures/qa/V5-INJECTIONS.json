@@ -1,0 +1,1011 @@
+{
+ "set_id": "V5-PUBLIC",
+ "version": "1.0",
+ "created": "2026-11-14",
+ "created_by": "QA seat (CHARTER-ARCH-REFORM-2026-11-14 §九; no dev-tree context by design)",
+ "purpose": "人为注入金融数值错误的「错误报告」样本。每条=真实风格文本+一个(或一组关联)故意注入的错误。全部条目 synthetic_injected=true，禁冒充历史真实。用于并行 harness: 新契约链必须拦(预期 CONTRADICTED 或 SEMANTIC_REVIEW_REQUIRED)，旧正则门预期多数漏杀。",
+ "anchor_sources": {
+  "20261114": "LIVE data/daily/anchors_20261114.json (research_snapshot_20261114_v2)",
+  "20261108": "LIVE data/daily/anchors_20261108.json"
+ },
+ "style_basis": "文本风格逐句贴 LIVE output/weekly/weekly_report_20261114_UNVALIDATED.md 与 weekly_report_20261108_UNVALIDATED.md 的真实行文(【事实】/【推断】区块、阈值监控句式、数据缺口句式)。",
+ "discipline": {
+  "synthetic_injected_always_true": true,
+  "no_item_claims_historical_reality": true,
+  "non_injected_numbers_verified": "每条文本中除注入错误外的所有数值均已对照 anchors_2026111{4,8}.json 逐个核实为真，避免混淆项(confound)。"
+ },
+ "schema_doc": {
+  "id": "V5-NNN",
+  "synthetic_injected": "恒为 true",
+  "base_anchor_set": "该条文本伪装的快照日期",
+  "fault_family": "错误族(阶段一分类学 A/B 扩展)",
+  "forms": "表层形态标签，含金融席点名形态",
+  "carrier": "prose|table|footnote|enumeration|english",
+  "text": "报告风格文本(含注入错误)",
+  "injected_error": "注入内容与正确值",
+  "ground_truth": "逐项正确值+锚点引用",
+  "expected_new_contract": {
+   "verdict": "CONTRADICTED | SEMANTIC_REVIEW_REQUIRED",
+   "claim_type": "应触发拦截的 claim 型",
+   "mechanism": "契约条款(律1-8/§3谓词/§4状态/§5 C1)"
+  },
+  "expected_old_gate": {
+   "prediction": "miss(漏杀) | catch(拦截) | catch_wrong_reason(误拦旁值副作用拦下)",
+   "evidence": "依据真实日志行为的类比"
+  }
+ },
+ "named_forms_vocabulary": [
+  "ranking",
+  "correlation",
+  "additivity",
+  "interval_endpoint",
+  "thousand_cjk_unit",
+  "approx_number",
+  "prior_reference",
+  "nan_prose",
+  "negative_comma",
+  "english_unit_K"
+ ],
+ "items": [
+  {
+   "id": "V5-001",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "identity_confusion",
+   "forms": [
+    "level",
+    "multi_metric_same_line"
+   ],
+   "carrier": "prose",
+   "text": "【事实】利率端：2Y UST 4.86%（+0.35pp）领涨；10Y UST 4.86%（+0.24pp）；30Y UST 5.43%（+0.17pp），超红线5.0%。",
+   "injected_error": "10Y 水平值被写成 2Y 的 4.86（正确 10Y=5.10）。2Y/30Y 及全部周变化值均正确。",
+   "ground_truth": [
+    {
+     "role": "UST_2Y level",
+     "true_value": 4.86,
+     "unit": "percent",
+     "anchor_ref": "macro.data.UST_2Y.value@2026-11-12"
+    },
+    {
+     "role": "UST_10Y level",
+     "true_value": 5.1,
+     "unit": "percent",
+     "anchor_ref": "macro.data.UST_10Y.value@2026-11-12"
+    },
+    {
+     "role": "UST_30Y level",
+     "true_value": 5.43,
+     "unit": "percent",
+     "anchor_ref": "macro.data.UST_30Y.value@2026-11-12"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "level",
+    "mechanism": "律1 身份随断言携带：level claim(metric_id=UST_10Y) 对照 fact 5.10 → 4.86 不符 → CONTRADICTED，claim 级修订。"
+   },
+   "expected_old_gate": {
+    "prediction": "catch",
+    "evidence": "旧门有 10Y 水平检查（validation_20261114.log L19 形态），4.86 vs 5.10 偏差≈4.7% → 大概率 🚨。旧门能拦纯错水平值，这不是它的盲区。"
+   }
+  },
+  {
+   "id": "V5-002",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "value_collision",
+   "forms": [
+    "threshold_distance",
+    "pp_unit"
+   ],
+   "carrier": "prose",
+   "text": "关键阈值监控：HY OAS 3.20%（警告线400bp=4.00%，距离0.22pp）；CCC OAS 13.14%（恐慌线1000bp=10.00%，已处恐慌区）。",
+   "injected_error": "阈值距离用了周变化值 0.22（|3.42−3.20|）冒充 |3.20−4.00|=0.80。HY/CCC 水平与阈值常量均正确。",
+   "ground_truth": [
+    {
+     "role": "HY_OAS level",
+     "true_value": 3.2,
+     "unit": "percentage_point",
+     "anchor_ref": "macro.data.HY_OAS.value@2026-11-12"
+    },
+    {
+     "role": "HY_OAS threshold_distance to 4.00",
+     "true_value": 0.8,
+     "unit": "percentage_point",
+     "anchor_ref": "threshold:hy_oas.warning@v1; |3.20-4.00|"
+    },
+    {
+     "role": "week change (被冒用值)",
+     "true_value": -0.22,
+     "unit": "percentage_point",
+     "anchor_ref": "macro.data.HY_OAS.week_chg@2026-11-12"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "threshold_distance",
+    "mechanism": "§3 工厂派生：|3.20−4.00|=0.80 ≠ 0.22 → CONTRADICTED。值碰撞(周变化冒充距离)在 claim 域内不可消解。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "validation_20261114.log L33：「⬜ [HY_OAS] 周变化值[0.22](=|现值-前值|),非水平断言,跳过」——0.22 恰是旧门显式跳过的值，注入错误恰好落在跳过语境里。"
+   }
+  },
+  {
+   "id": "V5-003",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "value_collision",
+   "forms": [
+    "threshold_distance",
+    "pp_unit",
+    "audit_seat_counterexample_2"
+   ],
+   "carrier": "prose",
+   "text": "HY OAS 3.20%（警告线400bp=4.00%，距警告线尚有3.20pp，缓冲充足，短期无虞）。",
+   "injected_error": "用 HY_OAS 水平值 3.20 本身冒充阈值距离（正确 0.80）。审计席反例②的活体形态：按值匹配下水平值 3.20 冒充距离直通。",
+   "ground_truth": [
+    {
+     "role": "HY_OAS level",
+     "true_value": 3.2,
+     "unit": "percentage_point",
+     "anchor_ref": "macro.data.HY_OAS.value@2026-11-12"
+    },
+    {
+     "role": "threshold_distance",
+     "true_value": 0.8,
+     "unit": "percentage_point",
+     "anchor_ref": "threshold:hy_oas.warning@v1"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "threshold_distance",
+    "mechanism": "律8 映射须 (值,单位后缀,claim 角色) 三元兼容：pp 后缀 token 只准映射 change/threshold_distance 型；距离 claim 由工厂派生=0.80，文本 3.20pp 与之冲突 → CONTRADICTED；禁 first-match。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "validation_20261114.log L25：「⬜ HY_OAS: 阈值/目标语境[3.20],非水平断言,跳过」——水平值 3.20 出现在阈值语境=旧门显式放行。"
+   }
+  },
+  {
+   "id": "V5-004",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "observation_lag_error",
+   "forms": [
+    "lag_days",
+    "approx_number"
+   ],
+   "carrier": "prose",
+   "text": "数据缺口：无核心通道缺失；但密歇根信心、零售、工业生产、JOLTS、GDP等月频指标观测滞后（DEGRADED），SPX_EPS/PE_TTM滞后约1660天，本月数据的时效性受限。",
+   "injected_error": "滞后天数放大 10 倍（正确 166 天，11-14 报告 L22 原句）。",
+   "ground_truth": [
+    {
+     "role": "SPX_EPS observation_lag",
+     "true_value": 166,
+     "unit": "day",
+     "anchor_ref": "as_of 2026-11-14 − SPX_EPS obs（11-14 报告 L22 原句为 166 天）"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "observation_lag",
+    "mechanism": "§3 工厂派生 as_of−observation_date=166 ≠ 1660 → CONTRADICTED；「约」按所示位数取整（1660→千位取整仍≠166）不救。"
+   },
+   "expected_old_gate": {
+    "prediction": "catch_wrong_reason",
+    "evidence": "正确值 166 尚且被当 SPX 价格拦（validation_20261114.log L52「SPX范围: 166.0 < 2000」）；1660 同样会被量级检查误拦——但拦的理由是「SPX 价格过低」，不是「滞后天数错误」。"
+   }
+  },
+  {
+   "id": "V5-005",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "window_confusion",
+   "forms": [
+    "mom_vs_yoy",
+    "percent_unit"
+   ],
+   "carrier": "prose",
+   "text": "【事实】通胀：10月CPI环比+4.08%（同比+0.35%），核心CPI环比+2.87%（观测月2026-10）。",
+   "injected_error": "同比/环比标签整体互换：CPI yoy=4.08% 被标「环比」、mom=0.35% 被标「同比」；核心CPI 2.87%（实为同比）被标「环比」（核心 mom 正确值 +0.30%）。数值本身全部真实存在，仅时间窗身份错绑。",
+   "ground_truth": [
+    {
+     "role": "CPI yoy",
+     "true_value": 4.08,
+     "unit": "percent",
+     "anchor_ref": "macro.data.CPI.yoy_pct@2026-10-01"
+    },
+    {
+     "role": "CPI mom",
+     "true_value": 0.35,
+     "unit": "percent",
+     "anchor_ref": "macro.data.CPI.mom_pct@2026-10-01"
+    },
+    {
+     "role": "CORE_CPI yoy",
+     "true_value": 2.87,
+     "unit": "percent",
+     "anchor_ref": "macro.data.CORE_CPI.yoy_pct@2026-10-01"
+    },
+    {
+     "role": "CORE_CPI mom",
+     "true_value": 0.3,
+     "unit": "percent",
+     "anchor_ref": "macro.data.CORE_CPI.mom_pct@2026-10-01"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "change",
+    "mechanism": "律2 change 必带 window：window=mom 的 claim 对照 fact mom=0.35 → 4.08 ≠ 0.35 → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "旧门按值匹配：4.08 与 CPI yoy 锚点吻合 → 联合校验 ✅（validation_20261108.log L27 形态「核心CPI同比 2.57% ✅」按值命中）。窗口身份在渲染文本里，旧门不读。"
+   }
+  },
+  {
+   "id": "V5-006",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "unit_confusion",
+   "forms": [
+    "pp_vs_percent"
+   ],
+   "carrier": "prose",
+   "text": "【事实】就业：10月失业率4.10%（前值4.20%），环比下降0.10%；非农月新增+165千。",
+   "injected_error": "绝对变化 0.10 个百分点被写成相对变化「0.10%」（相对口径正确值=−2.38%）。失业率水平/前值/非农新增均正确。",
+   "ground_truth": [
+    {
+     "role": "UNRATE level",
+     "true_value": 4.1,
+     "unit": "percent",
+     "anchor_ref": "macro.data.UNEMPLOYMENT.value@2026-10-01"
+    },
+    {
+     "role": "UNRATE absolute change",
+     "true_value": -0.1,
+     "unit": "percentage_point",
+     "anchor_ref": "macro.data.UNEMPLOYMENT.mom_chg@2026-10-01"
+    },
+    {
+     "role": "UNRATE relative change",
+     "true_value": -2.38,
+     "unit": "percent",
+     "anchor_ref": "(4.10-4.20)/4.20"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "change",
+    "mechanism": "律3 单位代数：变化必须显式 relative(pct) vs absolute(pp)；「0.10%」裸 % 后缀只准映射 percent 单位，按 relative 复算=−2.38% ≠ −0.10% → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "validation_20261114.log L43：「⬜ [UNRATE] 变化/前值语境引用[0.1],非水平值断言,跳过」——变化语境显式跳过。"
+   }
+  },
+  {
+   "id": "V5-007",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "level_vs_change",
+   "forms": [
+    "level",
+    "thousand_unit"
+   ],
+   "carrier": "prose",
+   "text": "【事实】就业：10月非农新增+159,293千，失业率4.10%（前值4.20%）。",
+   "injected_error": "非农存量水平 159,293 千被当作月度新增（正确月新增 +165 千；存量另述于真实报告 L17）。",
+   "ground_truth": [
+    {
+     "role": "NFP level (存量)",
+     "true_value": 159293,
+     "unit": "thousand_persons",
+     "anchor_ref": "macro.data.NFP.value@2026-10-01"
+    },
+    {
+     "role": "NFP monthly change",
+     "true_value": 165,
+     "unit": "thousand_persons",
+     "anchor_ref": "macro.data.NFP.mom_chg@2026-10-01"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "change",
+    "mechanism": "律2 强类型：change claim(窗口=月) 工厂派生=+165 千 ≠ +159,293 千 → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "catch",
+    "evidence": "旧门有「非农月增」量级合理性检查（validation_20261108.log L72-75「非农月增: 16.5 (归一化=16, 合理)」）；159,293 归一化后大概率出界 ❌。拦得住，但属量级运气而非语义理解。"
+   }
+  },
+  {
+   "id": "V5-008",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "sign_flip",
+   "forms": [
+    "negative_comma",
+    "thousand_cjk_unit"
+   ],
+   "carrier": "prose",
+   "text": "【事实】中国社会融资增量6,245亿元（观测2026-04-01，DEGRADED：滞后227天，不得当作最新一期）；10月新增人民币贷款+5,846亿元（2026-10-01，WARN）。",
+   "injected_error": "新增贷款为负值 −5,846亿元（真实报告 L33 原文），注入翻正为 +5,846亿元——方向性反转。社融值/滞后天数/披露均正确。",
+   "ground_truth": [
+    {
+     "role": "CN new loans",
+     "true_value": -5846,
+     "unit": "亿元(CNY)",
+     "anchor_ref": "11-14 报告 L33（数据源 WARN 通道；负值为既定事实口径）"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "level",
+    "mechanism": "level/change claim 符号对照源数据 −5,846 → +5,846 不符 → CONTRADICTED；负值带逗号 token 化(−5,846)须与 claim 值精确相等。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "两期日志均无新增贷款检查项（validation_2026111{4,8}.log 全文无「贷款/新增人民币」行）。"
+   }
+  },
+  {
+   "id": "V5-009",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "additivity_break",
+   "forms": [
+    "additivity",
+    "pp_unit",
+    "change"
+   ],
+   "carrier": "prose",
+   "text": "【数据已证实】名义10Y +0.24pp的分解：实际利率贡献+0.10pp、BEI贡献+0.01pp——本周利率上行主要来自实际利率端而非通胀预期端。",
+   "injected_error": "实际利率贡献 0.23 被改为 0.10：0.10+0.01=0.11 ≠ 0.24，分解可加性破坏（真实报告 L109 原句为 +0.23pp）。名义总变化与其余数值正确。",
+   "ground_truth": [
+    {
+     "role": "UST_10Y week change",
+     "true_value": 0.24,
+     "unit": "percentage_point",
+     "anchor_ref": "macro.data.UST_10Y.week_chg@2026-11-12"
+    },
+    {
+     "role": "TIPS_10Y week change (贡献)",
+     "true_value": 0.23,
+     "unit": "percentage_point",
+     "anchor_ref": "macro.data.TIPS_10Y.week_chg@2026-11-12"
+    },
+    {
+     "role": "BEI_10Y week change (贡献)",
+     "true_value": 0.01,
+     "unit": "percentage_point",
+     "anchor_ref": "macro.data.BEI_10Y.week_chg@2026-11-13"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "change (basis 含 claim_ref)",
+    "mechanism": "§3 分解可加性复算：basis 含 claim_ref 的 change claim 须 0.23+0.01=0.24；文本分解 0.10+0.01≠0.24 → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "变化语境全部跳过（validation_20261114.log L33/L38/L43 三处 ⬜ 形态）；旧门无任何分解恒等式检查。"
+   }
+  },
+  {
+   "id": "V5-010",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "additivity_break+stale_value",
+   "forms": [
+    "additivity",
+    "level_identity"
+   ],
+   "carrier": "prose",
+   "text": "10Y名义5.10%由实际利率2.60%与通胀预期（BEI）2.24%加总构成，实际端占主导。",
+   "injected_error": "实际利率用上周旧值 2.60（正确本期 2.86；2.60 为 anchors_20261108 的 TIPS_10Y）。2.60+2.24=4.84≠5.10，名义=实际+BEI 恒等式破坏。",
+   "ground_truth": [
+    {
+     "role": "UST_10Y level",
+     "true_value": 5.1,
+     "unit": "percent",
+     "anchor_ref": "macro.data.UST_10Y.value@2026-11-12"
+    },
+    {
+     "role": "TIPS_10Y level",
+     "true_value": 2.86,
+     "unit": "percent",
+     "anchor_ref": "macro.data.TIPS_10Y.value@2026-11-12"
+    },
+    {
+     "role": "BEI_10Y level",
+     "true_value": 2.24,
+     "unit": "percent",
+     "anchor_ref": "macro.data.BEI_10Y.value@2026-11-13"
+    },
+    {
+     "role": "恒等式",
+     "true_value": "2.86+2.24=5.10 ✓",
+     "unit": null,
+     "anchor_ref": "framework.md §三.2 名义=实际+通胀预期"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "level (identity)",
+    "mechanism": "§3 可加性复算（水平恒等式）+ STALE 检查：2.60 为上期值（STALE/CONTRADICTED 双触发）→ 恒等式 4.84≠5.10 → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "catch",
+    "evidence": "旧门有 TIPS_10Y 联合校验（validation_20261108.log L49「✅ [TIPS_10Y] 报告值≈现值2.6%」容差0.1）；本期现值 2.86，|2.60−2.86|=0.26>0.1 → ❌。拦的是陈旧值本身，恒等式破坏旧门不可见。"
+   }
+  },
+  {
+   "id": "V5-011",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "correlation_error",
+   "forms": [
+    "correlation",
+    "sign_flip"
+   ],
+   "carrier": "prose",
+   "text": "【推断】美元-黄金20日相关+0.33、60日+0.41（相关非因果）；本周“美元涨+金价跌”与正相关读数一致。",
+   "injected_error": "相关系数双双翻符号（正确 −0.33/−0.41，真实报告 L128），且叙事措辞同步改写以自洽——错误内部自洽、外部证伪。",
+   "ground_truth": [
+    {
+     "role": "DXY-GOLD 20d corr",
+     "true_value": -0.33,
+     "unit": "dimensionless",
+     "anchor_ref": "11-14 报告 L128（S4 序列派生）"
+    },
+    {
+     "role": "DXY-GOLD 60d corr",
+     "true_value": -0.41,
+     "unit": "dimensionless",
+     "anchor_ref": "11-14 报告 L128"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "statistic",
+    "mechanism": "§2 statistic 型 claim 对照 S4 序列复算 → 符号不符 → CONTRADICTED。前置依赖=周报路径序列通道（契约§3 已列为阶段三前置）。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "两期日志零相关系数检查项；相关值不在任何锚点检查清单。"
+   }
+  },
+  {
+   "id": "V5-012",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "nan_fabrication",
+   "forms": [
+    "nan_prose",
+    "correlation",
+    "stale_value_collision"
+   ],
+   "carrier": "prose",
+   "text": "【推断】DAX周+3.69%与SPX周+2.51%（均为周度口径）方向一致，SPX-EZU 20日相关+0.72印证系统性β行情，属全球风险偏好共振。",
+   "injected_error": "本周 SPX-EZU 相关实为 nan（EZU 采集 FAIL，真实报告 L50 如实写 nan）；注入伪造 +0.72——恰为 11-08 期的真实旧值，双重错误（无中生有+陈旧值冒充本期）。",
+   "ground_truth": [
+    {
+     "role": "SPX-EZU 20d corr 本期",
+     "true_value": "nan",
+     "unit": "dimensionless",
+     "anchor_ref": "EZU 采集 FAIL（anchors_20261114: EZU=nan）；11-14 报告 L50 原文「本周为nan」"
+    },
+    {
+     "role": "SPX-EZU 20d corr 上期(被冒用)",
+     "true_value": 0.72,
+     "unit": "dimensionless",
+     "anchor_ref": "11-08 报告 L138「SPX-EZU 20日+0.72」"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "statistic",
+    "mechanism": "statistic claim 对照 S4/采集状态：源 nan 而文本载具体数 → CONTRADICTED（伪造）；若序列通道未闭合则须 INSUFFICIENT_EVIDENCE 且禁载具体数值。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "相关系数零检查；EZU 水平为 nan 旧门自身跳过（11-14 报告 L100 注明 18 项 nan 不列）。"
+   }
+  },
+  {
+   "id": "V5-013",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "count_error",
+   "forms": [
+    "crossing_count",
+    "persistence_claim"
+   ],
+   "carrier": "prose",
+   "text": "【数据已证实】加息预期重塑利率曲线：10Y UST 5.10%（+0.24pp），连续第5周收于5%红线上方，红线压制已成常态。",
+   "injected_error": "「连续第5周」虚构：仅上期(11-08)观测 10Y=4.86 尚在 5% 下方，本期 5.10 为（至少就相邻两周而言）首次站上——持续性陈述与序列相矛盾。",
+   "ground_truth": [
+    {
+     "role": "UST_10Y level 本期",
+     "true_value": 5.1,
+     "unit": "percent",
+     "anchor_ref": "macro.data.UST_10Y.value@2026-11-12"
+    },
+    {
+     "role": "UST_10Y level 上期",
+     "true_value": 4.86,
+     "unit": "percent",
+     "anchor_ref": "macro.data.UST_10Y.value@2026-11-05 (anchors_20261108)"
+    },
+    {
+     "role": "连续周数(截至上期)",
+     "true_value": 0,
+     "unit": "week",
+     "anchor_ref": "4.86<5.0 → 上周在红线下方"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "threshold (since_date/crossing_count)",
+    "mechanism": "§3 threshold.since_date+last_crossing 谓词 + crossing_count：序列遍历得 last_crossing(5.0)=本周 → 「连续第5周」=0≠5 → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "计数类陈述无任何检查；「5」在阈值语境（validation_20261114.log L35「阈值/条件语境引用[4.0],跳过」同类形态）。"
+   }
+  },
+  {
+   "id": "V5-014",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "count_error",
+   "forms": [
+    "compound_condition_count",
+    "qualitative"
+   ],
+   "carrier": "prose",
+   "text": "【方向性】“Sell America”三条件检查：本周已满足两条（股跌、债收益率升），信号部分触发，需警惕资金外流加速。",
+   "injected_error": "三条件（股跌+债收益率升+美元跌，framework.md §四）本周实际仅满足 1 条：债收益率升（+0.24pp）✓；股跌 ✗（SPX +2.51%）、美元跌 ✗（DXY +1.09%）。真实报告 L112 原文「未出现三条件」。",
+   "ground_truth": [
+    {
+     "role": "条件1 股跌",
+     "true_value": "不满足",
+     "unit": null,
+     "anchor_ref": "SPX week +2.51%"
+    },
+    {
+     "role": "条件2 债收益率升",
+     "true_value": "满足",
+     "unit": null,
+     "anchor_ref": "UST_10Y week +0.24pp"
+    },
+    {
+     "role": "条件3 美元跌",
+     "true_value": "不满足",
+     "unit": null,
+     "anchor_ref": "DXY week +1.09%"
+    },
+    {
+     "role": "满足计数",
+     "true_value": 1,
+     "unit": "count",
+     "anchor_ref": "framework.md §四 Sell America 三条件"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "qualitative_inference (AND 组合谓词)",
+    "mechanism": "§3 谓词文法 AND 组合：三条件逐项可判定，计数=1 ≠ 2 → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "纯语义计数（「两条」中文数词），无数值 token 可抓；旧门全部检查均不触及。"
+   }
+  },
+  {
+   "id": "V5-015",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261108",
+   "fault_family": "sign_flip",
+   "forms": [
+    "english_unit_K",
+    "english_prose"
+   ],
+   "carrier": "english",
+   "text": "Labor market: initial jobless claims printed at 189K in the week of 2026-10-31, rising 6K from the prior week, a marginal softening in the labor market.",
+   "injected_error": "初请方向反转：189K 较前周 195K 实为下降 6K（真实报告 L38 原文「初请失业金189K…周降6000人」）；英文段落+K 单位（金融席点名 189K 形态）。",
+   "ground_truth": [
+    {
+     "role": "ICSA level",
+     "true_value": 189000,
+     "unit": "persons (189K)",
+     "anchor_ref": "macro.data.ICSA.value@2026-10-31 (anchors_20261108)"
+    },
+    {
+     "role": "ICSA week change",
+     "true_value": -6000,
+     "unit": "persons (-6K)",
+     "anchor_ref": "macro.data.ICSA.week_chg@2026-10-31"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "change (absolute)",
+    "mechanism": "K 后缀 token 解析（189K↔189,000 精确换算）+ change claim 方向复算 −6K ≠ +6K → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "旧门正则锚定中文关键词；两期日志无 ICSA/初请检查行，英文段落整体游离于检查面外。"
+   }
+  },
+  {
+   "id": "V5-016",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "band_threshold_error",
+   "forms": [
+    "interval_endpoint",
+    "threshold_relation"
+   ],
+   "carrier": "prose",
+   "text": "DXY 103.41（+1.09%），本周突破104强势阈值、进入强势区间，对商品与新兴市场构成系统性压制。",
+   "injected_error": "阈值关系反转：103.41 < 104，DXY 仍处 100-104 中性区间（framework.md §四；真实报告 L92/L164「中性区间上沿（100-104）」「距离0.59」）。",
+   "ground_truth": [
+    {
+     "role": "DXY level",
+     "true_value": 103.41,
+     "unit": "index_point",
+     "anchor_ref": "global_market.data.DXY.close@2026-11-13"
+    },
+    {
+     "role": "强势阈值",
+     "true_value": 104,
+     "unit": "index_point",
+     "anchor_ref": "framework.md §四 DXY>104 强势"
+    },
+    {
+     "role": "与阈值关系",
+     "true_value": "below (距离0.59)",
+     "unit": null,
+     "anchor_ref": "|103.41-104|=0.59"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "threshold (relation)",
+    "mechanism": "阈值取自策展注册表（headline 级），relation=above 对照 103.41<104 → CONTRADICTED；区间 100-104 为一带对象两数（band 子结构）。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "validation_20261114.log L13：「⬜ DXY: 阈值/目标语境[103.41],非水平断言,跳过」+ L16 同类——阈值语境整体跳过，且 103.41 水平另有 ✅ 行覆盖注意力。"
+   }
+  },
+  {
+   "id": "V5-017",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "ranking_error",
+   "forms": [
+    "ranking"
+   ],
+   "carrier": "prose",
+   "text": "美股内部风格分化：罗素2000 +1.32%领涨，标普500 +2.51%次之，纳斯达克100 +3.53%垫底——资金防御性轮动。",
+   "injected_error": "排名整体倒置：正确为 NDX +3.53% > SPX +2.51% > RUT +1.32%（NDX 领涨，真实报告 L74-75）。三个涨幅数值本身全部正确——纯语义角色错误，数值零破绽。",
+   "ground_truth": [
+    {
+     "role": "NDX week change",
+     "true_value": 3.53,
+     "unit": "percent",
+     "anchor_ref": "11-14 报告 L74（NDX 27,943.74）"
+    },
+    {
+     "role": "SPX week change",
+     "true_value": 2.51,
+     "unit": "percent",
+     "anchor_ref": "11-14 报告 L73"
+    },
+    {
+     "role": "RUT week change",
+     "true_value": 1.32,
+     "unit": "percent",
+     "anchor_ref": "11-14 报告 L75"
+    },
+    {
+     "role": "排名(降序)",
+     "true_value": "NDX > SPX > RUT",
+     "unit": null,
+     "anchor_ref": "三值比较"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "comparison (rank)",
+    "mechanism": "§2 comparison.rank subtype：rank claim 由已验证 change claims 确定性排序复算 → 与文本排序不符 → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "周涨跌幅旧门「待复核」（validation_20261114.log L47-49「⚠️ 待复核…锚点缺该指标周变化」）——数值不核，排名更无从谈起。"
+   }
+  },
+  {
+   "id": "V5-018",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "prior_reference_error",
+   "forms": [
+    "prior_reference",
+    "direction_flip"
+   ],
+   "carrier": "prose",
+   "text": "WTI期货从上期的88.92美元回升至本期103.44美元（2026-10-23口径），地缘溢价重新注入，通胀评分端压力回升。",
+   "injected_error": "本期/上期整体互换：正确为上期 103.44（2026-10-23口径）、本期 88.92（真实报告 L20/L146 原句「从103.44美元…回落至88.92美元」）；方向叙事随之全反。",
+   "ground_truth": [
+    {
+     "role": "WTI 本期",
+     "true_value": 88.92,
+     "unit": "usd",
+     "anchor_ref": "global_market.data.WTI.close@2026-11-13"
+    },
+    {
+     "role": "WTI 上期(上期报告口径)",
+     "true_value": 103.44,
+     "unit": "usd",
+     "anchor_ref": "prior_bundle: 上期报告引用（2026-10-23 口径）"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "level (prior_bundle_ref)",
+    "mechanism": "§2 prior_bundle_ref：上期引用 claim 须携带被引上期 fact 值（103.44）；文本互换成 88.92 → 「引用存在且值相符」机械失败 → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "上期值不在本期锚点检查面（WTI 周涨跌本就「待复核」L47）；103.44/88.92 均为本期报告出现过的合法历史字符串，旧门无从分身份。"
+   }
+  },
+  {
+   "id": "V5-019",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "rounding_error",
+   "forms": [
+    "approx_number",
+    "cross_metric_diff"
+   ],
+   "carrier": "prose",
+   "text": "比较二：美国联邦基金有效利率（日频）3.88%（2026-11-12）vs 日本无担保隔夜拆借利率（月均）1.04%（2026-09，滞后）——名义利差约2.48pp，且期货隐含美国利率未来半年升至4.715%。",
+   "injected_error": "约数错误：3.88−1.04=2.84，注入 2.48（数字换位；真实报告 L125 原文「名义利差约2.84pp」）。两端利率值正确。",
+   "ground_truth": [
+    {
+     "role": "DFF level",
+     "true_value": 3.88,
+     "unit": "percent",
+     "anchor_ref": "rate_economy.current_rates.DFF.value@2026-11-12"
+    },
+    {
+     "role": "JP call rate",
+     "true_value": 1.04,
+     "unit": "percent",
+     "anchor_ref": "11-14 报告 L61（2026-09，DEGRADED 滞后74天）"
+    },
+    {
+     "role": "利差",
+     "true_value": 2.84,
+     "unit": "percentage_point",
+     "anchor_ref": "3.88-1.04"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "comparison (spread/diff)",
+    "mechanism": "§2 comparison.spread 同单位派生 2.84；「约X」按所示位数取整相等（约2.5/约2.8 可过，约2.48 不可）→ 2.48 与 2.84 两位精度不等 → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "派生利差无锚点、无检查项；2.48 裸数不邻近被检关键词。"
+   }
+  },
+  {
+   "id": "V5-020",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "digit_error",
+   "forms": [
+    "thousand_cjk_unit"
+   ],
+   "carrier": "prose",
+   "text": "【事实】沪深两市成交额（近似口径，WARN）11,245.39亿元（2026-11-13单日）；两融余额11,882.20亿元；南向净流入551.84亿港元（单日口径）。",
+   "injected_error": "千分位复合单位数值错一位：12,245.39 → 11,245.39（真实报告 L32 原值）。两融/南向正确。",
+   "ground_truth": [
+    {
+     "role": "CN total turnover",
+     "true_value": 12245.39,
+     "unit": "亿元(CNY)",
+     "anchor_ref": "china.turnover.total_amount_billion@2026-11-13"
+    },
+    {
+     "role": "margin balance",
+     "true_value": 11882.2,
+     "unit": "亿元(CNY)",
+     "anchor_ref": "china.margin.balance@2026-11-13"
+    },
+    {
+     "role": "southbound net buy",
+     "true_value": 551.84,
+     "unit": "亿港元(HKD)",
+     "anchor_ref": "china.southbound.net_buy@2026-11-13"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "level",
+    "mechanism": "千分位逗号+CJK 复合单位 token 化（11,245.39亿元→12245.39 亿元）对照 fact → 不符 → CONTRADICTED。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "validation_20261114.log L57：成交额仅触发「⚠️ A股口径」非阻断警告，数值本身不与锚点比对。"
+   }
+  },
+  {
+   "id": "V5-021",
+   "synthetic_injected": true,
+   "base_anchor_set": "20261114",
+   "fault_family": "neighbor_attribution",
+   "forms": [
+    "multi_metric_same_line",
+    "change"
+   ],
+   "carrier": "prose",
+   "text": "日经225 61,142.35（周+6.46%，本周全球主要股指中最大涨幅）；美元兑日元同样大涨，周+6.46%至159.88，测试160关口。",
+   "injected_error": "邻指标吞值（11-08 顿号并窗同族B）：日经的周涨幅 +6.46% 被复制到美元兑日元（USDJPY 正确 +1.51%，真实报告 L61/L94）。日经水平/涨幅、USDJPY 水平均正确。",
+   "ground_truth": [
+    {
+     "role": "N225 week change",
+     "true_value": 6.46,
+     "unit": "percent",
+     "anchor_ref": "11-14 报告 L59"
+    },
+    {
+     "role": "USDJPY level",
+     "true_value": 159.88,
+     "unit": "jpy_per_usd",
+     "anchor_ref": "global_market.data.JPY=X.close@2026-11-13"
+    },
+    {
+     "role": "USDJPY week change",
+     "true_value": 1.51,
+     "unit": "percent",
+     "anchor_ref": "11-14 报告 L61/L94"
+    }
+   ],
+   "expected_new_contract": {
+    "verdict": "CONTRADICTED",
+    "claim_type": "change",
+    "mechanism": "律1：change claim(metric_id=USDJPY) 自带身份，工厂/复算 +1.51% ≠ +6.46% → CONTRADICTED；同值双现(6.46 两处)由 manifest 位置映射区分角色，不靠邻近文本。"
+   },
+   "expected_old_gate": {
+    "prediction": "miss",
+    "evidence": "USDJPY 无检查项（两期日志均无）；6.46 若被周涨跌检查面扫到也仅「待复核」。"
+   }
+  }
+ ],
+ "heldout_reference": "另有 9 条同构封存样本（V5-S01..S09，占全集 30%），内容仅存 heldout-sealed/，哈希见 HELDOUT-MANIFEST.sha256；开发席位在迁移门裁决前禁止读取。启封条件见 HELDOUT-PROTOCOL.md。",
+ "coverage_matrix": {
+  "fault_family_to_items": {
+   "identity_confusion": [
+    "V5-001"
+   ],
+   "value_collision": [
+    "V5-002",
+    "V5-003"
+   ],
+   "observation_lag_error": [
+    "V5-004"
+   ],
+   "window_confusion": [
+    "V5-005"
+   ],
+   "unit_confusion_pp_vs_percent": [
+    "V5-006"
+   ],
+   "level_vs_change": [
+    "V5-007"
+   ],
+   "sign_flip_negative_comma": [
+    "V5-008"
+   ],
+   "additivity_break": [
+    "V5-009",
+    "V5-010"
+   ],
+   "correlation_error": [
+    "V5-011"
+   ],
+   "nan_fabrication": [
+    "V5-012"
+   ],
+   "count_error": [
+    "V5-013",
+    "V5-014"
+   ],
+   "sign_flip_english_K": [
+    "V5-015"
+   ],
+   "band_threshold_error": [
+    "V5-016"
+   ],
+   "ranking_error": [
+    "V5-017"
+   ],
+   "prior_reference_error": [
+    "V5-018"
+   ],
+   "rounding_error_approx": [
+    "V5-019"
+   ],
+   "digit_error_thousand_cjk": [
+    "V5-020"
+   ],
+   "neighbor_attribution": [
+    "V5-021"
+   ]
+  },
+  "named_forms_covered": {
+   "ranking": [
+    "V5-017"
+   ],
+   "correlation": [
+    "V5-011",
+    "V5-012"
+   ],
+   "additivity": [
+    "V5-009",
+    "V5-010"
+   ],
+   "interval_endpoint": [
+    "V5-016"
+   ],
+   "thousand_cjk_unit": [
+    "V5-008",
+    "V5-020"
+   ],
+   "approx_number": [
+    "V5-004",
+    "V5-019"
+   ],
+   "prior_reference": [
+    "V5-018"
+   ],
+   "nan_prose": [
+    "V5-012"
+   ],
+   "negative_comma": [
+    "V5-008"
+   ],
+   "english_unit_K": [
+    "V5-015"
+   ]
+  },
+  "carrier_mix": {
+   "prose": 20,
+   "english": 1
+  },
+  "old_gate_prediction_tally": {
+   "miss": 17,
+   "catch": 3,
+   "catch_wrong_reason": 1
+  }
+ },
+ "_fixture_provenance": {
+  "copied_from": "~/agent-loop/ARCH-REFORM/QA/V5-INJECTIONS.json",
+  "scope": "PUBLIC 面复制;heldout-sealed 不入仓(T8 独立审计席专属)",
+  "note": "V5-PUBLIC 合成注入错误集(21条)",
+  "copied": "2026-11-15",
+  "sha256_source": "ccc3c825d075a182"
+ }
+}

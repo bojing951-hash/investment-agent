@@ -86,6 +86,9 @@
 
 ## 排队中
 
+- **Gate B 提取器误杀修复(R27 候选②,操作者席 2026-11-14 登记)**: 两期实例(11-08+11-14)——「滞后166天」当价格/「DXY+1.09%」当UST_10Y水平/「距警告线0.80pp」当HY_OAS水平/TLT周涨幅与UST_10Y同行误关联; 模型生成数值本身全对(7561.67/3.20/103.41全锚点吻合),提取器把变化值/距离值/天数误断言为水平值→假FAIL→正式周报被UNVALIDATED隔离断供。修法带测试正道修(11-08遗留登记),须先独立复现三误杀再修,禁放松容差糊过。
+
+
 - **F 补证轮**: 2026-12-05 观察钟满,引擎自动触发(日历门,勿手工提前)。
 - **R25 审计余留 NIT**(R27 候选): Ni-2 attach 整体覆写先前 attach 元数据(成功后 blocked 重跑抹旧录;agent_judgment.json 副本仍在盘,预存语义)/Ni-3 _write_report json→md 顺序写非原子(render 中途异常→md 截断;建议 temp+rename)/Ni-4 secondary_metric_ids 允许与主锚/内部重复(无害冗余,建议去重或契约明示)/Ni-5 historical_coverage_audit 按 source 把 DFF 映 rate 通道——操作者 DFF 拉取后覆盖报告保守低报(非假绿,宜与拉取同轮收);另记预存观察: skipped_step ok=True 致台账渲 [OK|—],SKIP 分支死码(main 同状)。
 - **操作者席待办**: ①R26 合并发布(dev/rd-r26-label-drift,盖章=分支最后一笔合规);②**DFF 真实拉取**(R25 移交,网络面: `python3 scripts/macro_collector.py` 全量重拉;拉取后 ia_cli history --metric DFF 出真实序列+S4_history_DFF 转绿;Ni-5 宜随后收);③LIVE 观察钟(11-14 周六 ZQ 族 weekly)。

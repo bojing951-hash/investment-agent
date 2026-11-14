@@ -20,23 +20,25 @@ import re
 from research_contract import claim_factory as cf
 from research_contract import claim_verifier as cv
 
-TEXT_CONSISTENCY_VERSION = 'tc-v2-remediation'
+TEXT_CONSISTENCY_VERSION = 'tc-v3-judgment'
 
 # ── 指标别名表(绑定优先级=模式特异性降序;别名冲突取最长匹配) ──────
 ALIASES = {
-    'UST_30Y': ['30Y UST', '30年期美债', '30Y'],
-    'UST_10Y': ['10Y UST', '10年期美债', '10Y', '10年期'],
-    'UST_5Y': ['5Y UST', '5年期美债'],
-    'UST_2Y': ['2Y UST', '2年期美债', '2Y'],
-    'CURVE_2S10S': ['2s10s', '2s10s期限利差', '期限利差'],
+    'UST_30Y': ['30Y UST', '30年期美债', '30Y', 'UST_30Y', 'UST 30Y'],
+    'UST_10Y': ['10Y UST', '10年期美债', '10Y', '10年期', 'UST_10Y',
+                'UST 10Y'],
+    'UST_5Y': ['5Y UST', '5年期美债', 'UST_5Y', 'UST 5Y'],
+    'UST_2Y': ['2Y UST', '2年期美债', '2Y', 'UST_2Y', 'UST 2Y'],
+    'CURVE_2S10S': ['2s10s', '2s10s期限利差', '期限利差', 'CURVE_2S10S'],
     'HY_OAS': ['HY OAS', 'HY_OAS', '高收益债OAS', '高收益债利差'],
     'CCC_OAS': ['CCC OAS', 'CCC_OAS', 'CCC级OAS'],
     'IG_OAS': ['IG OAS', '投资级OAS'],
     'BB_OAS': ['BB OAS', 'BB级OAS'],
     'B_OAS': ['B级OAS'],
-    'REAL_10Y': ['10Y实际利率', '10年期实际利率', '实际利率'],
+    'REAL_10Y': ['10Y实际利率', '10年期实际利率', '实际利率', 'REAL_10Y',
+                 'REAL 10Y'],
     'TIPS_10Y': ['TIPS_10Y', '10年期TIPS'],
-    'BEI_10Y': ['BEI', '通胀预期'],
+    'BEI_10Y': ['BEI', '通胀预期', 'BEI_10Y', 'BEI 10Y'],
     'DFF': ['有效联邦基金利率', '联邦基金有效利率', 'EFFR', 'DFF'],
     'ZQ_IMPLIED_AVG': ['期货隐含', '联邦基金期货隐含'],
     'SOFR': ['SOFR', '担保隔夜融资利率'],
@@ -51,6 +53,7 @@ ALIASES = {
     'SPX': ['标普500', 'S&P 500', 'SPX', '标普'],
     'NDX': ['纳斯达克100', '纳指100', 'NDX', '纳指'],
     'RUT': ['罗素2000', '罗素', 'RUT'],
+    'TLT': ['TLT', '长债ETF TLT'],
     'VIX': ['VIX', '波动率指数', '恐慌指数'],
     'NIKKEI225': ['日经225', '日经', 'NIKKEI'],
     'DAX': ['德国DAX', 'DAX'],
@@ -284,11 +287,13 @@ def _extract_tokens(clause):
 # ── 断言域遮罩(别名内数字/结构数字非断言) ──────────────────────────
 
 _STRUCT_PATTERNS = [
-    re.compile(r'\d{1,2}月(\d{1,2}日?)?'),          # 10月/10月CPI
+    re.compile(r'\d{1,2}\s*月(?:\d{1,2}\s*日?)?'),   # 10月/10月CPI/9 月(空格容差)
     re.compile(r'第\s*\d+\s*周'),                    # 连续第5周
     re.compile(r'\d{1,2}日(?=相关|-?day)'),           # 20日/60日相关
     re.compile(r'\d{1,2}-?day'),
-    re.compile(r'(?:19|20)\d{2}年'),                  # 年份
+    re.compile(r'(?:19|20)\d{2}\s*年'),              # 年份(2026 年/2026年)
+    # 信封编号(L1/S3/S4 信封):层引用非断言值
+    re.compile(r'[LS]\d(?:\s*[/／]\s*[LS]\d)+'),
     # 时长换算复述(约166天(约5个半月)):N个半月/N个月=滞后者换算面,
     # 非独立断言(换算核验走 lag_duration)
     re.compile(r'约?\d+(?:\.\d+)?\s*个半?月'),
@@ -301,6 +306,19 @@ _STRUCT_PATTERNS = [
     # (?<![\d.]) 挡 ISO 日期片段(2026-11),(?![\d-]) 挡区间右缘续数字
     re.compile(r'(?<![\d.])(?:\d{1,3}(?:\.\d+)?)\s?[–—-]\s?'
                r'(?:\d{1,3}(?:\.\d+)?)(?![\d-])'),
+    # 观测计数(225 个观测):样本量=统计结论域(judgment_contract 复算),
+    # 非指标水平断言
+    re.compile(r'\d+\s*个(?:观测|样本|数据点)'),
+    # 百分位断言(第 95.6 百分位):统计结论域(judgment_contract 复算)
+    re.compile(r'第\s*\d+(?:\.\d+)?\s*百分位'),
+    # 前值复述-趋平形(自 0.32 单日趋平):judgment_contract 对照序列
+    # 前观测复算;此处遮罩防误绑当期水平
+    re.compile(r'自\s*\d+(?:\.\d+)?\s*(?:pp|点|%)?[\s个单日]*'
+               r'(?:趋平|走平)'),
+    # 编号引用(CON-1/VP-VIEW-20261110-002/QB-xxx 及裸层号 S6/E1/L2):
+    # 档案编号非断言值
+    re.compile(r'[A-Z]{2,8}(?:-[A-Za-z0-9]+)+'),
+    re.compile(r'(?:^|[^A-Za-z0-9])[ELS]\d(?![\w.-])'),
 ]
 
 
@@ -373,6 +391,7 @@ _WINDOW_PATTERNS = [
     ('m12', re.compile(r'同比|yoy', re.I)),
     ('week', re.compile(r'w/w|wow', re.I)),
     ('week', re.compile(r'周|week|weekly', re.I)),
+    ('ytd', re.compile(r'年内|年初以来|ytd|year.to.date', re.I)),
 ]
 
 
@@ -429,9 +448,11 @@ def _prior_role(clause, token, observation_date=None):
 
 
 def _direction_of(clause):
-    neg = re.search(r'回落|下跌|下行|走低|下降|降至|降到|净减少|跌|fell|'
+    neg = re.search(r'回落|下跌|下行|走低|下降|降至|降到|净减少|跌|挫|'
+                    r'收窄|微收|再收|fell|'
                     r'falling|decline|dropped|edged down|down \d', clause, re.I)
-    pos = re.search(r'回升|上涨|上行|走高|上升|升至|净增加|涨|rose|rising|'
+    pos = re.search(r'回升|上涨|上行|走高|上升|升至|净增加|涨|走阔|拓宽|'
+                    r'rose|rising|'
                     r'increase|climbed|up \d', clause, re.I)
     if neg and pos:
         return 0
@@ -852,7 +873,7 @@ def _check_additivity(clause, snapshot, thresholds_by=None):
                 'status': 'VERIFIED' if ok else 'CONTRADICTED',
                 'note': f'部分和={s:g} vs 总{total_tok["raw"]}'
                         f'{"(总归主循环节点复核)" if ok else ""}'})
-    # 形态二: A与B加总构成 C(水平恒等式)
+    # 形态二: A与B加总构成 C(水平恒等式;亦含减恒等 实际=名义−通胀预期)
     m = re.search(r'加总构成|恒等', clause)
     if m:
         mids = _find_alias(clause)
@@ -861,21 +882,24 @@ def _check_additivity(clause, snapshot, thresholds_by=None):
             for mid, s, e in mids[:3]:
                 f = _fact_of(snapshot, mid)
                 vals.append((mid, f['value'] if f else None))
-            nums = [t for t in _extract_tokens(clause)
+            nums = [t for t in _extract_tokens(mcl)
                     if t['kind'] in ('percent', 'pp')]
             if len(vals) == 3 and len(nums) >= 3 and \
                     all(_is_num(v) for _, v in vals):
                 a, b, c = [v for _, v in vals]
-                ok = abs((a + b) - c) <= 0.005 + 1e-9 and \
+                ok_sum = abs((a + b) - c) <= 0.005 + 1e-9
+                ok_diff = abs((a - b) - c) <= 0.005 + 1e-9
+                ok = (ok_sum or ok_diff) and \
                     _value_matches(nums[0]['value'], a) and \
                     _value_matches(nums[1]['value'], b) and \
                     _value_matches(nums[2]['value'], c)
+                op = '+' if ok_sum else ('−' if ok_diff else '±')
                 checks.append({'family': 'additivity_identity',
                                'token': '/'.join(n['raw'] for n in nums[:3]),
                                'value': [n['value'] for n in nums[:3]],
                                'expected': [a, b, c],
                                'status': 'VERIFIED' if ok else 'CONTRADICTED',
-                               'note': f'{a}+{b}={"✓" if abs(a+b-c)<=0.005 else "✗"}{c}'})
+                               'note': f'{a}{op}{b}={c}'})
     return checks
 
 
@@ -1371,7 +1395,8 @@ def _check_narrative_direction(text, snapshot):
         curve = _fact_of(snapshot, 'CURVE_2S10S')
         if curve and _is_num(curve.get('value')) and \
                 re.search(r'倒挂', clause) and not re.search(
-                    r'不再倒挂|脱离倒挂|告别倒挂|倒挂(?:解除|结束|消失|修复)',
+                    r'不再倒挂|脱离倒挂|告别倒挂|无倒挂|没有倒挂|后无倒挂|'
+                    r'倒挂(?:解除|结束|消失|修复)',
                     clause):
             v = curve['value']
             pp = _wk('CURVE_2S10S', 'pp_change')
@@ -1394,6 +1419,60 @@ def _check_narrative_direction(text, snapshot):
                                    'value': pp, 'expected': '>0',
                                    'status': 'CONTRADICTED',
                                    'note': f'叙事缓解 vs 周变化{pp:+g}pp(加深)'})
+    return checks
+
+
+def _check_slash_enum(clause, snapshot, thresholds_by=None):
+    """斜杠枚举值列(SPX +3.1554/VIX −30.8112/HY_OAS −0.08 形,引擎信封 basis):
+
+    ≥2 对「别名+紧随值」且对间仅隔斜杠→枚举列;逐对按指标面单位族核对周窗
+    变化(percent/percentage_point→pp,其余→pct;显式 % 后缀强制 pct)。
+    孤立值不走此器(留主循环),防误吞普通叙述。
+    """
+    checks = []
+    hits = _find_alias(clause)
+    pairs = []
+    for i, (mid, s, e) in enumerate(hits):
+        m = re.match(r'\s*(?P<sg>[+−\-])?(?P<num>\d[\d,]*(?:\.\d+)?)'
+                     r'\s*(?P<u>%|pp|个百分点)?', clause[e:e + 18])
+        if not m:
+            continue
+        vs = e + (m.start('sg') if m.group('sg') else m.start('num'))
+        pairs.append({'mid': mid, 'i': i, 'v': _strip_num(m.group('num')),
+                      'neg': (m.group('sg') or '') in ('-', '−', '−'),
+                      'unit': m.group('u'), 'vs': vs,
+                      've': e + (m.end('u') if m.group('u')
+                                 else m.end('num'))})
+    seen = set()
+    for a, b in zip(pairs, pairs[1:]):
+        between = clause[a['ve']:hits[b['i']][1]]
+        if not re.fullmatch(r'\s*[/／]\s*', between):
+            continue
+        for p in (a, b):
+            if (p['mid'], p['vs']) in seen:
+                continue
+            seen.add((p['mid'], p['vs']))
+            mid, fact = p['mid'], _fact_of(snapshot, p['mid'])
+            if not fact:
+                continue
+            val = -p['v'] if p['neg'] else p['v']
+            wk = (fact.get('derived') or {}).get('week') or {}
+            if p['unit'] == '%':
+                exp = wk.get('pct_change')
+            elif p['unit'] in ('pp', '个百分点'):
+                exp = wk.get('pp_change')
+            elif fact.get('unit') in ('percent', 'percentage_point'):
+                exp = wk.get('pp_change')
+            else:
+                exp = wk.get('pct_change')
+            if not _is_num(exp):
+                continue
+            ok = _value_matches(val, exp)
+            checks.append({
+                'family': 'slash_enum', 'token': clause[p['vs']:p['ve']],
+                'metric': mid, 'value': val, 'expected': exp,
+                'status': 'VERIFIED' if ok else 'CONTRADICTED',
+                'note': f'枚举周窗 {mid} {exp:+g}'})
     return checks
 
 
@@ -1425,7 +1504,7 @@ SPECIAL_CHECKERS = [
     _check_spread, _check_additivity, _check_consecutive,
     _check_compound_count, _check_band_relation, _check_prior_reverse,
     _check_band_label, _check_score_total, _check_probability_sum,
-    _check_target_range,
+    _check_target_range, _check_slash_enum,
 ]
 
 
@@ -1590,15 +1669,35 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                                    'note': f'{val:g}天≈{months:.2f}月 '
                                            f'vs {dm.group(0)}'})
             elif t['kind'] in ('percent', 'pp'):
-                if (signed or win or direction) and not level_mark:
-                    w = win or 'week'
-                    kind = 'percent' if t['kind'] == 'percent' else 'pp'
-                    tv = val
-                    if not signed and direction:
-                        tv = val * (1 if direction > 0 else -1)
-                    claim = _build_change_claim(
-                        dict(t, value=tv), mid, fact, snapshot, w, kind)
-                    fam = f'change/{w}'
+                # 值后紧邻处位动词(处/位于/落在/为/是)=水平断言(+0.25pp
+                # 处年内最平端:符号为正负性标注而非变化方向)
+                post_level = bool(re.match(
+                    r'\s{0,2}(?:处|位于|落在|为|是)',
+                    clause[t['end']:t['end'] + 8]))
+                # 混向子句(同句走阔+微收)取 token 前邻局部方向词
+                if not direction:
+                    direction = _direction_of(
+                        clause[max(0, t['start'] - 12):t['start']]) or 0
+                if (signed or win or direction) and not level_mark \
+                        and not post_level:
+                    # 带符号+无窗口词+无方向词+值与水平显示位对齐=水平复述
+                    # (CURVE_2S10S +0.25pp(L1 事实…):符号为正负性标注)
+                    if signed and not win and not direction:
+                        f_lv = _fact_of(snapshot, mid)
+                        if f_lv is not None and _value_matches(
+                                val, f_lv['value'], t['approx']):
+                            claim = _build_level_claim(
+                                dict(t, value=val), mid, f_lv, snapshot)
+                            fam = 'level'
+                    if claim is None:
+                        w = win or 'week'
+                        kind = 'percent' if t['kind'] == 'percent' else 'pp'
+                        tv = val
+                        if not signed and direction:
+                            tv = val * (1 if direction > 0 else -1)
+                        claim = _build_change_claim(
+                            dict(t, value=tv), mid, fact, snapshot, w, kind)
+                        fam = f'change/{w}'
                 if claim is None:
                     claim = _build_level_claim(dict(t, value=val), mid, fact,
                                                snapshot)

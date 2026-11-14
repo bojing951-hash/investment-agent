@@ -309,7 +309,10 @@ results['metrics'] = {
         'new': '契约五小模块+注册表驱动;断言=结构化对象,零正则猜义',
         'old': 'REPORT_CHECKS 正则表+语境豁免族;换说法即穿透(V2 A-2 实证)'},
     '序列依赖条目终态': {
-        'V4(R24 判定档)': 'DEFERRED_PHASE4(agent_judgment 统一验证;哈希已冻结)',
+        'V4(R24 判定档)': ('IMPLEMENTED_PHASE4(judgment_contract jc-v1.0:'
+                          ' 修订版VERIFIED/审计前错误版CONTRADICTED 7 CONTRA;'
+                          'tests/test_arch_reform_phase4.py 57 PASS;'
+                          '哈希已冻结)'),
         'V7(状态过期)': 'DEFERRED_PHASE5(状态语义一致性;哈希已冻结)'},
 }
 print('\n== 七项指标 ==')

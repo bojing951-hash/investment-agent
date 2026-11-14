@@ -36,9 +36,9 @@
    "new": {
     "verdict": "CONTRADICTED",
     "stats": {
-     "checks": 214,
-     "contradicted": 59,
-     "verified": 152,
+     "checks": 216,
+     "contradicted": 56,
+     "verified": 157,
      "unbound": 118
     },
     "contradicted_detail": [
@@ -87,26 +87,14 @@
      {
       "family": "level",
       "token": "2.34%",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-11-12=5.1"
-     },
-     {
-      "family": "level",
-      "token": "2.24%",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-11-12=5.1"
+      "metric": "BEI_10Y",
+      "note": "recompute:Fact 直读 BEI_10Y@2026-11-13=2.24"
      },
      {
       "family": "change/m12",
       "token": "+0.70%",
       "metric": "CPI",
       "note": "recompute:(337.476/324.245−1)×100 同位 4dp 复算(端值=derived.end 原始值)"
-     },
-     {
-      "family": "change/week",
-      "token": "-8.43%",
-      "metric": "SHCOMP",
-      "note": "recompute:(3634.35/3649.18−1)×100 同位 4dp 复算(端值=derived.end 原始值)"
      },
      {
       "family": "level",
@@ -146,21 +134,15 @@
      },
      {
       "family": "level",
-      "token": "2.24%",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-11-12=5.1"
-     },
-     {
-      "family": "change/week",
-      "token": "+0.01pp",
-      "metric": "UST_10Y",
-      "note": "recompute:5.1−4.86 同位 4dp 复算"
-     },
-     {
-      "family": "level",
       "token": "7.16",
       "metric": "WTI_F",
       "note": "recompute:Fact 直读 WTI_F@2026-11-13=88.92"
+     },
+     {
+      "family": "level",
+      "token": "nan",
+      "metric": "TLT",
+      "note": "recompute:Fact 直读 TLT@2026-11-13=nan"
      },
      {
       "family": "level",
@@ -279,8 +261,26 @@
      {
       "family": "level",
       "token": "2.34%",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-11-12=5.1"
+      "metric": "BEI_10Y",
+      "note": "recompute:Fact 直读 BEI_10Y@2026-11-13=2.24"
+     },
+     {
+      "family": "level",
+      "token": "102.07",
+      "metric": "WTI_F",
+      "note": "recompute:Fact 直读 WTI_F@2026-11-13=88.92"
+     },
+     {
+      "family": "level",
+      "token": "4.715%",
+      "metric": "ZQ_IMPLIED_AVG",
+      "note": "recompute:Fact 直读 ZQ_IMPLIED_AVG@2026-11-13=4.165"
+     },
+     {
+      "family": "level",
+      "token": "9456078",
+      "metric": "DXY",
+      "note": "recompute:Fact 直读 DXY@2026-11-13=103.41"
      }
     ]
    },
@@ -290,8 +290,8 @@
     "warns": 4
    },
    "runtime_sec": {
-    "new": 0.68,
-    "old": 0.04
+    "new": 0.51,
+    "old": 0.03
    }
   },
   "V2": {
@@ -300,9 +300,9 @@
     "verdict": "CONTRADICTED",
     "stats": {
      "checks": 391,
-     "contradicted": 181,
-     "verified": 208,
-     "unbound": 103
+     "contradicted": 175,
+     "verified": 214,
+     "unbound": 101
     },
     "contradicted_detail": [
      {
@@ -367,15 +367,9 @@
      },
      {
       "family": "level",
-      "token": "2.23%",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-11-05=4.84"
-     },
-     {
-      "family": "level",
       "token": "0 ",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-11-05=4.84"
+      "metric": "BEI_10Y",
+      "note": "recompute:Fact 直读 BEI_10Y@2026-11-06=2.23"
      },
      {
       "family": "level",
@@ -403,21 +397,15 @@
      },
      {
       "family": "level",
-      "token": "2.23%",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-11-05=4.84"
-     },
-     {
-      "family": "level",
       "token": "2.3",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-11-05=4.84"
+      "metric": "BEI_10Y",
+      "note": "recompute:Fact 直读 BEI_10Y@2026-11-06=2.23"
      },
      {
       "family": "change/week",
       "token": "0.07pp",
-      "metric": "UST_10Y",
-      "note": "recompute:4.84−4.94 同位 4dp 复算"
+      "metric": "BEI_10Y",
+      "note": "recompute:2.23−2.34 同位 4dp 复算"
      },
      {
       "family": "level",
@@ -544,6 +532,18 @@
       "token": "2",
       "metric": "RUT",
       "note": "recompute:Fact 直读 RUT@2026-11-06=2754.11"
+     },
+     {
+      "family": "level",
+      "token": "3",
+      "metric": "TLT",
+      "note": "recompute:Fact 直读 TLT@2026-11-06=81.92"
+     },
+     {
+      "family": "level",
+      "token": "3",
+      "metric": "DXY",
+      "note": "recompute:Fact 直读 DXY@2026-11-06=102.3"
      }
     ]
    },
@@ -553,8 +553,8 @@
     "warns": 5
    },
    "runtime_sec": {
-    "new": 0.72,
-    "old": 0.02
+    "new": 0.71,
+    "old": 0.01
    }
   },
   "V3": {
@@ -562,9 +562,9 @@
    "new": {
     "verdict": "CONTRADICTED",
     "stats": {
-     "checks": 230,
-     "contradicted": 104,
-     "verified": 125,
+     "checks": 229,
+     "contradicted": 98,
+     "verified": 130,
      "unbound": 47
     },
     "contradicted_detail": [
@@ -591,12 +591,6 @@
       "token": "1340bp",
       "metric": "CCC_OAS",
       "note": "recompute:13.4−12.97 同位 4dp 复算"
-     },
-     {
-      "family": "level",
-      "token": "13bp",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-10-22=4.96"
      },
      {
       "family": "level",
@@ -654,15 +648,9 @@
      },
      {
       "family": "level",
-      "token": "2.34%",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-10-22=4.96"
-     },
-     {
-      "family": "level",
       "token": "+1 ",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-10-22=4.96"
+      "metric": "BEI_10Y",
+      "note": "recompute:Fact 直读 BEI_10Y@2026-10-23=2.34"
      },
      {
       "family": "level",
@@ -727,12 +715,6 @@
      {
       "family": "level",
       "token": "1. ",
-      "metric": "UST_10Y",
-      "note": "recompute:Fact 直读 UST_10Y@2026-10-22=4.96"
-     },
-     {
-      "family": "level",
-      "token": "+1.61%",
       "metric": "UST_10Y",
       "note": "recompute:Fact 直读 UST_10Y@2026-10-22=4.96"
      },
@@ -807,6 +789,24 @@
       "token": "2",
       "metric": "GOLD_F",
       "note": "recompute:Fact 直读 GOLD_F@2026-10-23=4010.0"
+     },
+     {
+      "family": "level",
+      "token": "3",
+      "metric": "WTI_F",
+      "note": "recompute:Fact 直读 WTI_F@2026-10-23=103.44"
+     },
+     {
+      "family": "level",
+      "token": "2",
+      "metric": "SHCOMP",
+      "note": "recompute:Fact 直读 SHCOMP@2026-10-23=3690.4753"
+     },
+     {
+      "family": "level",
+      "token": "2",
+      "metric": "BTC",
+      "note": "recompute:Fact 直读 BTC@2026-10-23=80727.79"
      }
     ]
    },
@@ -816,7 +816,7 @@
     "warns": 3
    },
    "runtime_sec": {
-    "new": 0.42,
+    "new": 0.41,
     "old": 0.01
    }
   },
@@ -827,7 +827,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "catch",
-    "t_new": 0.008
+    "t_new": 0.009
    },
    {
     "id": "V5-002",
@@ -859,7 +859,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.004
+    "t_new": 0.005
    },
    {
     "id": "V5-006",
@@ -867,7 +867,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.006
+    "t_new": 0.007
    },
    {
     "id": "V5-007",
@@ -875,7 +875,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "catch",
-    "t_new": 0.004
+    "t_new": 0.003
    },
    {
     "id": "V5-008",
@@ -883,7 +883,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.004
+    "t_new": 0.005
    },
    {
     "id": "V5-009",
@@ -891,7 +891,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.002
+    "t_new": 0.003
    },
    {
     "id": "V5-010",
@@ -899,7 +899,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "catch",
-    "t_new": 0.002
+    "t_new": 0.003
    },
    {
     "id": "V5-011",
@@ -907,7 +907,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.009
+    "t_new": 0.008
    },
    {
     "id": "V5-012",
@@ -915,7 +915,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.006
+    "t_new": 0.007
    },
    {
     "id": "V5-013",
@@ -923,7 +923,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.004
+    "t_new": 0.005
    },
    {
     "id": "V5-014",
@@ -939,7 +939,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.003
+    "t_new": 0.004
    },
    {
     "id": "V5-016",
@@ -955,7 +955,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.004
+    "t_new": 0.003
    },
    {
     "id": "V5-018",
@@ -963,7 +963,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.004
+    "t_new": 0.005
    },
    {
     "id": "V5-019",
@@ -971,7 +971,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.003
+    "t_new": 0.004
    },
    {
     "id": "V5-020",
@@ -979,7 +979,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.005
+    "t_new": 0.006
    },
    {
     "id": "V5-021",
@@ -1013,7 +1013,7 @@
     "old": "PASS",
     "old_predicted": "false_kill",
     "unbound": 0,
-    "t_new": 0.004
+    "t_new": 0.003
    },
    {
     "id": "V6-004",
@@ -1021,7 +1021,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.007
+    "t_new": 0.006
    },
    {
     "id": "V6-005",
@@ -1037,7 +1037,7 @@
     "old": "PASS",
     "old_predicted": "false_kill",
     "unbound": 0,
-    "t_new": 0.007
+    "t_new": 0.005
    },
    {
     "id": "V6-007",
@@ -1053,7 +1053,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.02
+    "t_new": 0.018
    },
    {
     "id": "V6-009",
@@ -1061,7 +1061,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.008
+    "t_new": 0.007
    },
    {
     "id": "V6-010",
@@ -1069,7 +1069,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.008
+    "t_new": 0.007
    },
    {
     "id": "V6-011",
@@ -1093,7 +1093,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.01
+    "t_new": 0.009
    },
    {
     "id": "V6-014",
@@ -1101,7 +1101,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.056
+    "t_new": 0.021
    }
   ]
  },
@@ -1207,15 +1207,15 @@
    "v6_insuff": 0
   },
   "运行时间": {
-   "new_public_total_sec": 0.24,
-   "old_real_reports_sec": 0.07
+   "new_public_total_sec": 0.2,
+   "old_real_reports_sec": 0.05
   },
   "维护复杂度(定性)": {
    "new": "契约五小模块+注册表驱动;断言=结构化对象,零正则猜义",
    "old": "REPORT_CHECKS 正则表+语境豁免族;换说法即穿透(V2 A-2 实证)"
   },
   "序列依赖条目终态": {
-   "V4(R24 判定档)": "DEFERRED_PHASE4(agent_judgment 统一验证;哈希已冻结)",
+   "V4(R24 判定档)": "IMPLEMENTED_PHASE4(judgment_contract jc-v1.0: 修订版VERIFIED/审计前错误版CONTRADICTED 7 CONTRA;tests/test_arch_reform_phase4.py 57 PASS;哈希已冻结)",
    "V7(状态过期)": "DEFERRED_PHASE5(状态语义一致性;哈希已冻结)"
   }
  },

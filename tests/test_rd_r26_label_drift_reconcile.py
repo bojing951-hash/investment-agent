@@ -418,6 +418,17 @@ check('CLI --reconcile-drift-all: 全净档区 → exit 0+n_reconciled_rows=0'
       '(幂等汇总面)',
       r_all2.returncode == 0 and '"n_reconciled_rows": 0' in r_all2.stdout
       and '"ok": true' in r_all2.stdout, r_all2.stdout[:200])
+r_unk = cli('--reconcile-drift-all', '--bogus-flag', '--vp-dir', VP_DIR_CLEAN,
+            '--views-dir', VIEWS_DIR, '--data-root', TD)
+check('CLI --reconcile-drift-all: 多余参数=用法错 exit 2(不静默吞,'
+      '审计 Ni-1)',
+      r_unk.returncode == 2 and 'usage' in r_unk.stdout)
+r_aj = cli('--reconcile-drift-all', '--allow-judgment', '--vp-dir', VP_DIR,
+           '--views-dir', VIEWS_DIR, '--data-root', TD)
+check('CLI --reconcile-drift-all --allow-judgment: 旗标被接收(转发语义面,'
+      'violation 档仍拒;不静默忽略)',
+      r_aj.returncode == 1 and 'binding_violation_present' in r_aj.stdout,
+      r_aj.stdout[:160])
 
 # ════════════════════════════════════════════════════════════════════
 section('6 · 契约前提(no_forecast 存量档自洽性)')
@@ -425,6 +436,15 @@ section('6 · 契约前提(no_forecast 存量档自洽性)')
 check('verdict_to_label(no_forecast)=INSUFFICIENT(未知词汇不猜)——存量档'
       '标签自洽的前提,重贴由对账显式驱动',
       vpl.verdict_to_label('no_forecast') == 'INSUFFICIENT_EVIDENCE')
+# doc 注入错位防护(审计 Ni-3): view_id 与 doc.view_id 不一致 → 拒
+doc401 = read_vp('VIEW-20261110-401')
+outmis = vpl.reconcile_label_drift('VIEW-20261110-403', vp_dir=VP_DIR,
+                                   views_dir=VIEWS_DIR, root=TD, doc=doc401)
+check('doc 注入 view_id 错位 → doc_view_id_mismatch 拒(防 A 档内容写'
+      'B 档路径,审计 Ni-3)',
+      outmis.get('ok') is False
+      and outmis['error']['kind'] == 'doc_view_id_mismatch',
+      json.dumps(outmis.get('error'), ensure_ascii=False)[:120])
 check('生产漂移两类映射不变: UNPARSEABLE_HORIZON→INSUFFICIENT(标签不动)/'
       'NOT_YET_TESTABLE→NOT_YET_TESTABLE(标签随行)',
       vpl.verdict_to_label('UNPARSEABLE_HORIZON') == 'INSUFFICIENT_EVIDENCE'

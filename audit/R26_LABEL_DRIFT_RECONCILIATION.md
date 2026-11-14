@@ -34,7 +34,7 @@ VP v1.0 存量(2026-11-10 批 11 档中的 5 档)的 mode C verdict 由早于期
 |---|---|---|---|---|---|
 | VIEW-20261110-002 | hypotheses[0] | `no_forecast`→`UNPARSEABLE_HORIZON` | INSUFFICIENT→INSUFFICIENT(不变) | INSUFFICIENT(不变) | fc0「维持3.75%-4.00%」horizon「当前(会后即刻)」=期限不可解析 |
 | VIEW-20261110-005 | hypotheses[0] | `UH/UH`(2-join)→`UH/UH/UH`(3-join) | INSUFFICIENT→INSUFFICIENT(不变) | INSUFFICIENT(不变) | linked[0,1,2] 三 forecast 全期限不可解析(维持2.50%/2.65%/2.90%),存量 arity 缺一 |
-| VIEW-20261110-006 | hypotheses[0] | `no_forecast`→`UNPARSEABLE_HORIZON` | INSUFFICIENT→INSUFFICIENT(不变) | INSUFFICIENT(不变) | fc0「维持约1.25%」无期限 |
+| VIEW-20261110-006 | hypotheses[0] | `no_forecast`→`UNPARSEABLE_HORIZON` | INSUFFICIENT→INSUFFICIENT(不变) | INSUFFICIENT(不变) | fc0「维持约1.25%」horizon「会议间期间(至下次会议)」=期限不可解析(审计 NIT 更正: 原写"无期限"措辞不精确) |
 | VIEW-20261110-007 | hypotheses[0] | `no_forecast`→`NOT_YET_TESTABLE` | INSUFFICIENT→**NOT_YET_TESTABLE** | INSUFFICIENT(不变,混合档 rollup) | fc0「4.4%」horizon CY2026→到期 2026-12-31>20261112 未到期 |
 | VIEW-20261110-010 | hypotheses[0] | `no_forecast`→`NOT_YET_TESTABLE` | INSUFFICIENT→**NOT_YET_TESTABLE** | INSUFFICIENT(不变,混合档 rollup) | fc0「102.4 mb/d」horizon 2026全年→到期 2026-12-31 未到期 |
 
@@ -72,3 +72,13 @@ VP v1.0 存量(2026-11-10 批 11 档中的 5 档)的 mode C verdict 由早于期
 - `no_forecast` 旧词汇在 4 档中为存量文本,重贴后全库已无该词汇残留
   (重算+扫描确认);历史经 verdict_history 可追溯。
 - 本轮不动 R25 余留 NIT(Ni-2/3/4/5)——留 R26+ 候选②。
+
+## 六、独立审计(R26,未参与开发席)
+
+四维对抗(代码正确性/诚实纪律真实数据面/契约不变性/测试真实性)全
+**PASS**,**终判=可并入**。要点: 前态 128+5+0 经法证逆向重构(依 reconciliations
+逐层撤销+字节级 sha256 复算)双向吻合;143/143 全仓回归在完整树副本独立复证;
+变异测试三处(history 留痕/标签随行/判定拒写)全被套件咬住=锁有牙。
+审计余留 4 NIT: Ni-1 `-all` 吞 `--allow-judgment` 旗标/Ni-2 `-all` 坏基座档
+不翻红(=与 --build-all 既有同款,维持一致不另改)/Ni-3 doc 注入错位写盘/
+Ni-5 对账单 006 措辞——Ni-1/Ni-3/Ni-5 本轮随修(码波二)。

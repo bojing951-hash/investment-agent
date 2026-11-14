@@ -472,6 +472,15 @@ def reconcile_label_drift(view_id, vp_dir=None, views_dir=None, root=None,
         if doc is None:
             return {'ok': False, 'view_id': view_id,
                     'error': {'kind': 'vp_missing', 'message': reason}}
+    else:
+        # 审计 NIT-3 收口: doc 注入面防 A 档内容写 B 档路径
+        # (view_id 缺省取 doc;显式给出时须与 doc 一致,防错位落盘)
+        if view_id is not None and doc.get('view_id') != view_id:
+            return {'ok': False, 'view_id': view_id,
+                    'error': {'kind': 'doc_view_id_mismatch',
+                              'message': f'view_id({view_id})与 doc.view_id'
+                              f'({doc.get("view_id")})不一致——doc 注入须'
+                              '同档,防错位写盘'}}
     view_id = view_id or doc.get('view_id')
     view_doc, vr = vs.get_view(view_id, views_dir)
     if view_doc is None:
@@ -916,10 +925,22 @@ def main(argv=None):
         print(json.dumps(out, ensure_ascii=False, indent=2, default=str))
         return 0 if out.get('ok') else 1
     if args and args[0] == '--reconcile-drift-all':
+        # 审计 NIT-1 收口: --allow-judgment 显式接收并转发(不静默吞);
+        # 其余多余参数=用法错(不无提示忽略)
+        allow_j_all = '--allow-judgment' in args
+        if allow_j_all:
+            args = [a for a in args if a != '--allow-judgment']
+        if len(args) != 1:
+            print(json.dumps({'ok': False, 'error': {
+                'kind': 'usage', 'message': '用法: --reconcile-drift-all '
+                        '[--dry-run] [--allow-judgment] [--vp-dir DIR]'
+                        '(多余参数不忽略)'}}, ensure_ascii=False))
+            return 2
         docs, bad = load_all(vp_dir)
         results = [reconcile_label_drift(d['view_id'], vp_dir=vp_dir,
                                          views_dir=views_dir, root=data_root,
-                                         dry_run=dry)
+                                         dry_run=dry,
+                                         allow_judgment=allow_j_all)
                    for d in docs]
         ok_n = sum(1 for r in results if r.get('ok'))
         out = {'ok': ok_n == len(results) and len(results) > 0,

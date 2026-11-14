@@ -39,8 +39,9 @@
 
 ## 技术待办(不阻塞)
 
-- **[R25 审计余留 NIT,2026-11-14 登记]**: ①Ni-2 attach 整体覆写 report['agent_judgment']——成功 attach 后再 blocked 重跑抹先前 attach 元数据(agent_judgment.json 副本仍在盘;预存语义非 R25 引入),建议 revisions 化;②Ni-3 _write_report json→md 顺序写非原子,render 中途异常→md 截断(run_research 同构预存),建议 temp+rename;③Ni-4 falsification.secondary_metric_ids 允许与主锚/内部重复(无害冗余),建议去重或契约明示允许;④Ni-5 historical_coverage_audit REGISTRY_SOURCE_CHANNEL 按 source 把 DFF 映 rate 通道——操作者 DFF 拉取后覆盖报告保守低报(非假绿,不在 CI),宜与拉取同轮收。另记预存观察: skipped_step ok=True 致台账渲 [OK|—](SKIP 分支死码,main 同状)。
+- **[R25 审计余留 NIT,2026-11-14 登记;R27 候选①]**: ①Ni-2 attach 整体覆写 report['agent_judgment']——成功 attach 后再 blocked 重跑抹先前 attach 元数据(agent_judgment.json 副本仍在盘;预存语义非 R25 引入),建议 revisions 化;②Ni-3 _write_report json→md 顺序写非原子,render 中途异常→md 截断(run_research 同构预存),建议 temp+rename;③Ni-4 falsification.secondary_metric_ids 允许与主锚/内部重复(无害冗余),建议去重或契约明示允许;④Ni-5 historical_coverage_audit REGISTRY_SOURCE_CHANNEL 按 source 把 DFF 映 rate 通道——操作者 DFF 拉取后覆盖报告保守低报(非假绿,不在 CI),宜与拉取同轮收。另记预存观察: skipped_step ok=True 致台账渲 [OK|—](SKIP 分支死码,main 同状)。
 - **[R25 操作者席待办]**: DFF 真实拉取(`python3 scripts/macro_collector.py` 全量重拉,网络面)——拉取后 DFF 10 年日频序列入 macro 档,S4_history_DFF 由诚实拒答转真序列;Ni-5 随后收口。
+- **[R26 注记,2026-11-14]**: VP 旧库 5 行 LABEL_DRIFT 对账已毕(工具 reconcile_label_drift+对账单 audit/R26_LABEL_DRIFT_RECONCILIATION.md;全库 133 OK/0 漂移/0 违规);R26 审计余留 NIT: --reconcile-drift-all 坏基座档不翻红=与 --build-all 既有同款,维持一致观察。
 - ~~**[R5-D1,P0 观察] CN_CPI_YOY/CN_PPI_YOY 陈旧值被证据引擎采信**~~
   **[R6-D1 已修(2026-11-11,dev/rd-r6-collection-fixes)]**: 采集器 G-P1-15
   金十通道(停更后持续写 2025-08 旧值)→tushare pro 换源: `cn_cpi.nt_yoy`

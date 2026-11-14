@@ -394,3 +394,24 @@ $ python3 scripts/rd_state_consistency.py --quiet
 ```
 六问作答+首轮真实使用记录: RD_MECHANISM.md 附尾(任一问无证据=不标
 能力 PASS 纪律自证)。
+
+## 阶段六 — Real-World Acceptance Suite(2026-11-15)
+
+**根因决策**: RDG-20261115-004(C-real 真跑被权限分类器拦——「根因证据
+不足」类,最小处置=用户终端亲跑件+PENDING_USER_RUN 如实记,禁绕过)。
+**交付**: tests/test_arch_reform_phase6.py=真实面四域验收。**A 金融数值
+7 判**(R24 真实面 55 事实四要素零缺/单位族对注册表 22 词表权威源/恒等式
+与周变化率复算/thresholds G1-G4 69 键/Gate B 五缺陷 45 判复位/T8R 31 判
+含 V1/V2 真实历史故障复位);**B 研究结论 7 判**(两真实 MAJOR 拦截/
+修正闭环/竞争解释方向核/17 档观点标签纪律+被引 INSUFFICIENT 归因式/
+前视守卫/V5 真实衍生反例 21/21);**C 一键研究**(det=R24 真实运行结构
+面 15 步 run_ok+attach 记录+零未映射;real=WALCL×SOFR×DXY 未优化面
+真跑=用户亲跑件,判据六条成文);**D 研发可靠性 8 判**(恢复/检查点
+过期/工作面净/任务重复/开发失败降级不崩/测试失败硬拦布线/资源双上限/
+证据重放同结果)。**证据**:
+```
+$ python3 tests/test_arch_reform_phase6.py
+PHASE6 判定: 26 PASS / 0 FAIL (+C-real PENDING_USER_RUN 不计)
+```
+用户亲跑件: /tmp/run_phase6c_real.sh + /tmp/PHASE6C-REAL-ACCEPTANCE.md
+(跑完回填,C4-real 解除 PENDING)。

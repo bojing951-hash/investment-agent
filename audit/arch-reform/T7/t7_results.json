@@ -290,8 +290,8 @@
     "warns": 4
    },
    "runtime_sec": {
-    "new": 0.43,
-    "old": 0.03
+    "new": 0.68,
+    "old": 0.04
    }
   },
   "V2": {
@@ -553,8 +553,8 @@
     "warns": 5
    },
    "runtime_sec": {
-    "new": 0.57,
-    "old": 0.01
+    "new": 0.72,
+    "old": 0.02
    }
   },
   "V3": {
@@ -816,7 +816,7 @@
     "warns": 3
    },
    "runtime_sec": {
-    "new": 0.32,
+    "new": 0.42,
     "old": 0.01
    }
   },
@@ -835,7 +835,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.004
+    "t_new": 0.005
    },
    {
     "id": "V5-003",
@@ -851,7 +851,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "catch_wrong_reason",
-    "t_new": 0.005
+    "t_new": 0.006
    },
    {
     "id": "V5-005",
@@ -867,7 +867,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.005
+    "t_new": 0.006
    },
    {
     "id": "V5-007",
@@ -875,7 +875,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "catch",
-    "t_new": 0.003
+    "t_new": 0.004
    },
    {
     "id": "V5-008",
@@ -907,7 +907,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.007
+    "t_new": 0.009
    },
    {
     "id": "V5-012",
@@ -955,7 +955,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.003
+    "t_new": 0.004
    },
    {
     "id": "V5-018",
@@ -963,7 +963,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.005
+    "t_new": 0.004
    },
    {
     "id": "V5-019",
@@ -997,7 +997,7 @@
     "old": "PASS",
     "old_predicted": "false_kill",
     "unbound": 0,
-    "t_new": 0.002
+    "t_new": 0.003
    },
    {
     "id": "V6-002",
@@ -1013,7 +1013,7 @@
     "old": "PASS",
     "old_predicted": "false_kill",
     "unbound": 0,
-    "t_new": 0.002
+    "t_new": 0.004
    },
    {
     "id": "V6-004",
@@ -1021,7 +1021,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.005
+    "t_new": 0.007
    },
    {
     "id": "V6-005",
@@ -1029,7 +1029,7 @@
     "old": "PASS",
     "old_predicted": "false_kill",
     "unbound": 0,
-    "t_new": 0.002
+    "t_new": 0.003
    },
    {
     "id": "V6-006",
@@ -1037,7 +1037,7 @@
     "old": "PASS",
     "old_predicted": "false_kill",
     "unbound": 0,
-    "t_new": 0.004
+    "t_new": 0.007
    },
    {
     "id": "V6-007",
@@ -1053,7 +1053,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.015
+    "t_new": 0.02
    },
    {
     "id": "V6-009",
@@ -1061,7 +1061,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.006
+    "t_new": 0.008
    },
    {
     "id": "V6-010",
@@ -1069,7 +1069,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.006
+    "t_new": 0.008
    },
    {
     "id": "V6-011",
@@ -1077,7 +1077,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.005
+    "t_new": 0.007
    },
    {
     "id": "V6-012",
@@ -1085,7 +1085,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.004
+    "t_new": 0.005
    },
    {
     "id": "V6-013",
@@ -1093,7 +1093,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.007
+    "t_new": 0.01
    },
    {
     "id": "V6-014",
@@ -1101,7 +1101,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.02
+    "t_new": 0.056
    }
   ]
  },
@@ -1207,8 +1207,8 @@
    "v6_insuff": 0
   },
   "运行时间": {
-   "new_public_total_sec": 0.17,
-   "old_real_reports_sec": 0.05
+   "new_public_total_sec": 0.24,
+   "old_real_reports_sec": 0.07
   },
   "维护复杂度(定性)": {
    "new": "契约五小模块+注册表驱动;断言=结构化对象,零正则猜义",

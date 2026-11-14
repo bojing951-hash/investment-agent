@@ -499,7 +499,9 @@ def run_checks(repo, state_dir, rep):
     #     引用 RDG-<date>-<n> 且该号在 RDG-REGISTRY.md 在场——根因决策门
     #     并入任务准入(章程§七 7.1)。生效线之前的历史节豁免(机制前实况)。
     n_pass_rows = 0
-    for line in fa.splitlines():
+    # 只扫「验收矩阵」节(与④同界)——交叉映射表的 AC 行非状态行,不误伤。
+    mx7 = section(fa, MATRIX_HEADING)
+    for line in (mx7 or '').splitlines():
         m = AC_ROW.match(line)
         if not m or m.group(3).strip() != 'PASS':
             continue

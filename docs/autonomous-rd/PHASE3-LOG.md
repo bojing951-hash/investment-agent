@@ -415,3 +415,27 @@ PHASE6 判定: 26 PASS / 0 FAIL (+C-real PENDING_USER_RUN 不计)
 ```
 用户亲跑件: /tmp/run_phase6c_real.sh + /tmp/PHASE6C-REAL-ACCEPTANCE.md
 (跑完回填,C4-real 解除 PENDING)。
+
+## 收口修复波(2026-11-15, RDG-20261115-005)
+
+**问题**: §十二 收口前全库回归(基线 aa7a96b 对照)暴露整改破旧:
+R23/R24/R25 绿→红(attach 钩子契约拦薄合成面),R20-checkpoint 2→10 红、
+R21 18→16(⑦a 越界+期望 6/6),p0 等价锁 worktree `==1` 环境红(基线同红)。
+根因=研发流程缺陷(验收面小于受影响面),登记 RDG-20261115-005。
+
+**修复**(升标不降门): 契约全域可判定(build_face S3 步名定位+薄面不崩;
+六查可观测集=事实∪序列∪索引);⑦a 与④同界;R23/R24/R25 母本补 L2 库内
+观点+数字阈值;R20 夹具 PASS 载 QB 证据+期望 7/7;p0 worktree 清零改回落
+套件前基线。**证据**:
+```
+$ for t in tests/test_*.py; do python3 "$t" >/dev/null 2>&1 || echo "RED $t"; done
+(空输出=全绿)
+$ python3 tests/test_rd_r23_agent_judgment.py | tail -1        → 总计: PASS=43 FAIL=0
+$ python3 tests/test_rd_r24_agent_judgment_hardening.py | tail -1 → 结果: PASS=29 FAIL=0
+$ python3 tests/test_rd_r25_nit_dff.py | tail -2               → RESULT: PASS=44 FAIL=0
+$ python3 tests/test_rd_r20_state_checkpoint.py | tail -1      → PASS=45 FAIL=0
+$ python3 tests/test_rd_r21_deadloop.py | tail -1              → 判定 18/18, FAIL=0
+$ python3 tests/test_p0_baseline_lock_equivalence.py | tail -2 → 31通过 / 0失败
+$ python3 scripts/rd_state_consistency.py --quiet; echo rc=$?  → 7/7 PASS, rc=0
+```
+全库 154 套件 154 绿(0 红)。

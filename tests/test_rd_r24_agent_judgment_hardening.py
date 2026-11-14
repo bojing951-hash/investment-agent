@@ -83,7 +83,7 @@ def base_judgment():
                                         'evidence_refs': ['FACT_A@2026-01-10']},
                     'sensitive_variables': [MID_A],
                     'falsification': {'metric_id': MID_B,
-                                      'threshold': '突破合成阈值 X'},
+                                      'threshold': '突破合成阈值 4.5'},
                     'trigger': {'condition': '合成可观测条件',
                                 'deadline': '2027-06-30'}}},
                 {'id': 'SCN-B', 'role': '反例', 'rows': {
@@ -94,7 +94,7 @@ def base_judgment():
                                         'evidence_refs': []},
                     'sensitive_variables': [MID_B],
                     'falsification': {'metric_id': MID_A,
-                                      'threshold': '跌破合成阈值 Y'},
+                                      'threshold': '跌破合成阈值 2.5'},
                     'trigger': {'condition': '合成反例条件',
                                 'deadline': '2027-06-30'}}}]},
     }
@@ -119,7 +119,9 @@ def synth_report(run_ok=True, l1_rows=None):
             'L1_事实层': {'available': True, 'snapshot_id': 'SYNTH',
                           'target_date': '2026-01-10', 'n_facts_total': 2,
                           'rows': l1_rows if l1_rows is not None else [], 'note': None},
-            'L2_机构观点层': {'views': {'available': True, 'n': 1, 'rows': [],
+            'L2_机构观点层': {'views': {'available': True, 'n': 1,
+                                        'rows': [{'view_id': 'VIEW-20260101-001',
+                                                  'view_label': 'SUPPORTING'}],
                                         'n_bad_quarantined': 0}, 'note': '合成'},
             'L3_AI推断层': {'produced': False, 'note': '零模型管线: 不代写'},
             'L4_条件情景层': {'produced': False, 'note': '零模型管线: 不代写'}},

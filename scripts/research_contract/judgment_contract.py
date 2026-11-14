@@ -31,9 +31,19 @@ JUDGMENT_CONTRACT_VERSION = 'jc-v1.0-phase4'
 def build_face(report):
     """report(S3 概览+S4 序列+L2 观点+evidence_index)→ tc 兼容自包含面。"""
     facts = []
-    eco = report['steps'][2]['envelope']['data']['economies']
-    items = eco.items() if isinstance(eco, dict) else enumerate(eco)
-    for _, e in items:
+    # S3 概览按步名定位(真实步名 S3_overview_<economy>,多经济体可重复);
+    # 禁位置索引——薄报告(steps 缺位)须得空面而非崩溃(契约全域可判定)。
+    eco_steps = [st for st in report.get('steps') or []
+                 if str(st.get('step') or '').startswith('S3_overview')]
+    eco_items = []
+    for st in eco_steps:
+        data = ((st.get('envelope') or {}).get('data') or {})
+        eco = data.get('economies')
+        if isinstance(eco, dict):
+            eco_items.extend(eco.values())
+        elif isinstance(eco, list):
+            eco_items.extend(eco)
+    for e in eco_items:
         for m in e.get('metrics', []):
             if m.get('presence') != 'present' or m.get('value') is None:
                 continue
@@ -323,7 +333,15 @@ def _class_b(text, face):
 
 def _six_checks(judgment, face):
     out = []
-    facts = {f['metric_id'] for f in face.get('facts', [])}
+    # 可观测集=面内事实∪序列∪索引实据(报告自身证据声明亦算可观测;
+    # 真实面 evidence_index 实据 ⊆ S3 事实,行为不变——宽集只补薄报告)。
+    observable = ({f['metric_id'] for f in face.get('facts', [])}
+                  | set((face.get('series_store') or {}).keys())
+                  | {(e.get('metric_id') or '')
+                     for e in face.get('evidence_index') or []
+                     if e.get('kind') == 'snapshot_fact'})
+    observable.discard('')
+    facts = observable
     index = {e.get('ref'): e for e in face.get('evidence_index') or []}
     views = {v.get('view_id'): v for v in (face.get('views') or [])}
     l3 = ((judgment.get('l3') or {}).get('contradictions')) or []

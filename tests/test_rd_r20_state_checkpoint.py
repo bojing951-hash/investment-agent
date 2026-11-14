@@ -127,7 +127,7 @@ def build_fixture(base, stamped=True):
         '# FINAL_ACCEPTANCE — fixture\n\n'
         '## 验收矩阵(fixture)\n\n'
         '| # | 验收项 | 状态 | 证据 | 复核 |\n|---|---|---|---|---|\n'
-        '| AC1 | 全景 | PASS | x | y |\n'
+        '| AC1 | 全景 | PASS | QB-20260101-1 | y |\n'
         '| AC2 | 机构 | PARTIAL | x | y |\n\n'
         '## 交叉映射(fixture)\n\n'
         '| 启动指令 | 本矩阵 | 说明 |\n|---|---|---|\n'
@@ -205,7 +205,7 @@ def sec_a():
     print('── A. 合成仓库六检全绿基线 ──')
     fx = fresh()
     rep = run_gate(fx['repo'])
-    check('A1 六项全 PASS', not rep.fails,
+    check('A1 七项全 PASS', not rep.fails,
           json.dumps(rep.fails, ensure_ascii=False))
     check('A2 ①注记含容忍类(main 超前 baseline=纯文档提交)',
           any('容忍' in n for n in rep.notes.get('①', [])),
@@ -412,8 +412,8 @@ def sec_e():
         return
     rc, out = cli(os.path.join(SCRIPTS, 'rd_state_consistency.py'),
                   '--repo', ROOT)
-    check('E1 真仓六项全 PASS(状态与仓库一致)', rc == 0, out[-600:])
-    check('E2 真仓总结行 6/6', '6/6 PASS' in out, out[-200:])
+    check('E1 真仓七项全 PASS(状态与仓库一致)', rc == 0, out[-600:])
+    check('E2 真仓总结行 7/7', '7/7 PASS' in out, out[-200:])
 
 
 def main():

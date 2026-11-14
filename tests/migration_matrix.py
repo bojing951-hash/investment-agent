@@ -27,7 +27,9 @@ FX = os.path.join(HERE, 'fixtures', 't6')
 
 def load():
     snap = json.load(open(os.path.join(FX, 'snapshot_20261114_v2.json')))
-    prior = {'2026-11-08': json.load(open(os.path.join(FX, 'anchors_20261108.json'))),
+    prior = {'2026-10-24': json.load(open(os.path.join(FX, 'anchors_20261024.json'))),
+             '2026-10-31': json.load(open(os.path.join(FX, 'anchors_20261031.json'))),
+             '2026-11-08': json.load(open(os.path.join(FX, 'anchors_20261108.json'))),
              '2026-11-14': json.load(open(os.path.join(FX, 'anchors_20261114.json')))}
     def _qa(name):
         p = os.path.join(QA_DIR, name)
@@ -37,6 +39,36 @@ def load():
     v5, v6 = _qa('V5-INJECTIONS.json'), _qa('V6-PARAPHRASES.json')
     thr = cf.load_thresholds()
     return snap, prior, thr, v5, v6
+
+
+# 时代面(T8 整改 HC-1/HC-2): 留出条目自带 base_anchor_set,
+# 须按其时代取快照+锚链(V6-S03=20261108 面: UST_30Y 5.25 时代)。
+ERAS = {
+    '20261114': {
+        'snapshot': 'snapshot_20261114_v2.json',
+        'prior': ['anchors_20261024.json', 'anchors_20261031.json',
+                  'anchors_20261108.json', 'anchors_20261114.json'],
+    },
+    '20261108': {
+        'snapshot': 'snapshot_20261108_v2.json',
+        'prior': ['anchors_20261024.json', 'anchors_20261031.json',
+                  'anchors_20261108.json'],
+    },
+}
+
+
+def load_era(era='20261114'):
+    """按时代取 (snapshot, prior_anchors, thresholds);未知时代=fail-closed。"""
+    spec = ERAS.get(era)
+    if spec is None:
+        raise KeyError(f'未知时代面: {era}(须先登记 ERAS,禁静默回退)')
+    snap = json.load(open(os.path.join(FX, spec['snapshot'])))
+    prior = {}
+    for fn in spec['prior']:
+        d = fn.replace('anchors_', '').replace('.json', '')
+        prior[f'{d[:4]}-{d[4:6]}-{d[6:]}'] = json.load(
+            open(os.path.join(FX, fn)))
+    return snap, prior, cf.load_thresholds()
 
 
 def run(snap, prior, thr, items):

@@ -20,7 +20,7 @@ import re
 from research_contract import claim_factory as cf
 from research_contract import claim_verifier as cv
 
-TEXT_CONSISTENCY_VERSION = 'tc-v1'
+TEXT_CONSISTENCY_VERSION = 'tc-v2-remediation'
 
 # ── 指标别名表(绑定优先级=模式特异性降序;别名冲突取最长匹配) ──────
 ALIASES = {
@@ -62,9 +62,10 @@ ALIASES = {
     'CHINEXT': ['创业板指'],
     'BTC': ['比特币', 'BTC'],
     'CN_TOTAL_TURNOVER': ['沪深两市成交额', '两市成交额', '两市成交'],
+    'SZ_COMPONENT_AMOUNT': ['深证成指成分', '深市成交额'],
     'MARGIN_BAL': ['两融余额', '两融'],
     'SB_FLOW': ['南向净流入', '南向资金', '南向'],
-    'SH_AMOUNT': ['沪市成交额'],
+    'SH_AMOUNT': ['沪市成交额', '沪市'],
     'UNEMPLOYMENT': ['失业率', 'unemployment rate'],
     'NFP': ['非农就业人数', '非农就业', 'nonfarm payrolls', 'NFP存量',
             '新增非农', '非农新增', '非农月新增', '新增就业'],
@@ -288,6 +289,14 @@ _STRUCT_PATTERNS = [
     re.compile(r'\d{1,2}日(?=相关|-?day)'),           # 20日/60日相关
     re.compile(r'\d{1,2}-?day'),
     re.compile(r'(?:19|20)\d{2}年'),                  # 年份
+    # 时长换算复述(约166天(约5个半月)):N个半月/N个月=滞后者换算面,
+    # 非独立断言(换算核验走 lag_duration)
+    re.compile(r'约?\d+(?:\.\d+)?\s*个半?月'),
+    # 年-月形态(2026-12/2027-01 期货隐含):月份引用非断言值
+    re.compile(r'(?<!\d)(?:19|20)\d{2}[-/](?:0?[1-9]|1[0-2])'
+               r'(?![\d-])'),
+    # 等式括注(0.23+0.01=0.24 ✓ / 概率和=100%):算式自证域,非独立断言
+    re.compile(r'[（(][^()（）]*=[^()（）]*[)）]'),
     # 数值区间端点(85-100/100-104/4.5-4.8):双侧 1-3 位数字+可选小数;
     # (?<![\d.]) 挡 ISO 日期片段(2026-11),(?![\d-]) 挡区间右缘续数字
     re.compile(r'(?<![\d.])(?:\d{1,3}(?:\.\d+)?)\s?[–—-]\s?'
@@ -356,22 +365,36 @@ def _fact_of(snapshot, mid):
     return None
 
 
+_WINDOW_PATTERNS = [
+    ('m1', re.compile(r'环比|mom', re.I)),
+    ('m1', re.compile(
+        r'in\s+(?:January|February|March|April|May|June|July|'
+        r'August|September|October|November|December)', re.I)),
+    ('m12', re.compile(r'同比|yoy', re.I)),
+    ('week', re.compile(r'w/w|wow', re.I)),
+    ('week', re.compile(r'周|week|weekly', re.I)),
+]
+
+
 def _window_of(clause, token):
-    """窗口词→derived 键(环比=m1/同比=m12/周=week;默认 None=水平)。"""
-    ctx = token['ctx']
-    if re.search(r'环比|mom|环比下降|环比上升', ctx, re.I):
-        return 'm1'
-    if re.search(r'in\s+(?:January|February|March|April|May|June|July|'
-                 r'August|September|October|November|December)', ctx, re.I):
-        return 'm1'
-    if re.search(r'同比|yoy', ctx, re.I):
-        return 'm12'
-    if re.search(r'w/w|wow', ctx, re.I):
-        return 'week'
-    if re.search(r'周|week|weekly', ctx, re.I) and \
-            not re.search(r'上周|前一周|prior week|上一周', ctx, re.I):
-        return 'week'
-    return None
+    """窗口词→derived 键(环比=m1/同比=m12/周=week;默认 None=水平)。
+
+    仅扫 token 之前缀(clause[:start])取**最近**窗口词——枚举句
+    「同比+4.08%、环比+0.35%、同比+2.87%」中每个值取紧邻其前的
+    窗口词,后随窗口词不得反向殖民前值(EA-5)。
+    """
+    prefix = clause[:token['start']]
+    best_key, best_pos = None, -1
+    for key, pat in _WINDOW_PATTERNS:
+        for m in pat.finditer(prefix):
+            if m.start() >= best_pos:
+                best_key, best_pos = key, m.start()
+    if best_key == 'week':
+        # 上周/前一周/上一周=prior 标记,_PRIOR_ROLE 管,不作窗口
+        tail = prefix[max(0, best_pos - 3):best_pos + 4]
+        if re.search(r'上周|前一周|上一周|prior week', tail, re.I):
+            return None
+    return best_key
 
 
 _PRIOR_MARK_RE = re.compile(
@@ -382,15 +405,21 @@ _PRIOR_MARK_RE = re.compile(
 def _prior_role(clause, token, observation_date=None):
     """上期/前值角色标记(位置式: 标记须在 token 之前方算前值;
     「from X」的 X 在标记后=前值;「in the week of <早于观测日的日期>」
-    =上期引用)。"""
+    =上期引用;标记与 token 之间出现 本期/当前 =角色反转,不算前值)。"""
     for m in _PRIOR_MARK_RE.finditer(clause):
         if m.end() <= token['start'] + 1 and \
                 token['start'] - m.end() <= 28:
+            if re.search(r'本期|当前|current|this week',
+                         clause[m.end():token['start']], re.I):
+                continue        # 「上期的X回升至本期Y」: Y=本期值归主循环
             return 'prior'
     if observation_date:
         # 日期限定语后随形态: 「printed at 189K in the week of <旧日期>」
         # ——日期在 token 之后 20 字内=该值的上期身份;其后的变化 token
-        # (rising 6K)不受此日期株连
+        # (rising 6K)不受此日期株连;「本期X（旧日期口径）」的 本期 标记
+        # 优先于旧日期注 → 不算前值(V5-018 换向家族)
+        if re.search(r'本期|当前|current', clause[:token['start']], re.I):
+            return None
         for dm in _DATE_RE.finditer(clause):
             d = str(dm.group(0))[:10]
             if len(d) == 10 and d < str(observation_date)[:10] and \
@@ -465,8 +494,12 @@ def _verify_claims(claims, snapshot, thresholds=None):
 
 # ── 语义族检查器 ────────────────────────────────────────────────────
 
-def _mcl_is_distance(mcl, t, snapshot, thresholds_by, gpos=None):
-    """token 在遮蔽域中为「|level−阈值|」距离值(距…警告线X 形态)则真。"""
+def _mcl_is_distance(mcl, t, snapshot, thresholds_by, gpos=None,
+                     alias_mids=None):
+    """token 在遮蔽域中为「|level−阈值|」距离值(距…警告线X 形态)则真。
+
+    alias_mids: 未遮蔽句的别名命中(遮蔽域内别名已抹除,须由调用方传入)。
+    """
     mt = None
     for tt in _extract_tokens(mcl):
         if gpos is not None:
@@ -478,7 +511,7 @@ def _mcl_is_distance(mcl, t, snapshot, thresholds_by, gpos=None):
             break
     if mt is None:
         return False
-    mids = _find_alias(mcl)
+    mids = alias_mids or _find_alias(mcl)
     mid = mids[0][0] if mids else _CTX_STATE.get('carry_mid')
     if not mid:
         return False
@@ -495,15 +528,18 @@ def _mcl_is_distance(mcl, t, snapshot, thresholds_by, gpos=None):
 def _check_threshold_constant(clause, snapshot, thresholds_by):
     """阈值常量复述(警告线400bp=4.00% 等)对照注册表。"""
     checks = []
-    mcl = _masked_clause(clause, _find_alias(clause))
+    alias_mids = _find_alias(clause)
+    mcl = _masked_clause(clause, alias_mids)
     for word, _kw in THRESHOLD_KIND_WORDS:
         for m in re.finditer(re.escape(word), clause):
             seg = clause[m.end():m.end() + 40]
             for t in _extract_tokens(seg):
                 if t['kind'] in ('percent', 'pp'):
-                    # 距标记后缀跳过(…仅0.80pp)
+                    # 距标记后缀/上下方偏移跳过(…仅0.80pp/红线上方25bp)
                     before = seg[:t['start']]
-                    if re.search(r'(距|距离|缓冲|仅|余)[^0-9]{0,4}$', before):
+                    if re.search(r'(距|距离|缓冲|仅|余)[^0-9]{0,4}$', before) \
+                            or re.search(r'(?:上方|下方|above|below|points)'
+                                         r'[^0-9+\-−]{0,4}$', before):
                         continue      # 距离值非常量复述
                     tv = t['value']
                     hit = any(
@@ -512,7 +548,7 @@ def _check_threshold_constant(clause, snapshot, thresholds_by):
                         if e['unit'] in ('percent', cf.CANONICAL_PP))
                     if not hit and _mcl_is_distance(
                             mcl, t, snapshot, thresholds_by,
-                            gpos=m.end() + t['start']):
+                            gpos=m.end() + t['start'], alias_mids=alias_mids):
                         continue      # 距离值复述(距400bp警告线0.80形态)
                     checks.append({
                         'family': 'threshold_constant', 'token': t['raw'],
@@ -522,11 +558,23 @@ def _check_threshold_constant(clause, snapshot, thresholds_by):
     return checks
 
 
+_DIST_TRIGGER_RE = re.compile(
+    r'距离?|缓冲|'
+    r'(?:红线|警戒线|警告线|恐慌线|阈值|门槛|关口|强弱势?边界|边界)'
+    r'(?:之?上|之?下)\s*方?|'
+    r'points?\s+(?:above|below)|(?:above|below)\s+the', re.I)
+
+
 def _check_distance(clause, snapshot, thresholds_by):
-    """距离/距…缓冲: |level−threshold|≈token(pp/bp/index)。"""
+    """距离族: |level−threshold|≈distance token(pp/bp/index)。
+
+    配对式(中英双向): 常量 token(=注册表阈值)与距离 token 无论先后
+    (「距警告线400bp…0.80pp」/「0.59 points below the 104」),
+    任一 (常量,距离) 对满足 |fact−常量|≈距离 → VERIFIED 并消费两者
+    (含紧随的单位复述 25bp(0.25pp))。
+    """
     checks = []
-    m = re.search(r'(距离?|缓冲)[^0-9+\-−]{0,12}', clause)
-    if not m:
+    if not _DIST_TRIGGER_RE.search(clause):
         return checks
     mids = _find_alias(clause)
     mid = mids[0][0] if mids else _CTX_STATE.get('carry_mid')
@@ -536,44 +584,73 @@ def _check_distance(clause, snapshot, thresholds_by):
     if not fact or not _is_num(fact['value']):
         return checks
     reg_vals = [e['value'] for es in thresholds_by.values() for e in es]
-    mcl = _masked_clause(clause, _find_alias(clause))
+    mcl = _masked_clause(clause, mids)
     toks = [t for t in _extract_tokens(mcl)
             if t['kind'] in ('percent', 'pp', 'plain')]
-    # 阈值常量 token = 与任一注册表常量同值者(400bp=4.00/104/5.0)
-    tv = None
-    for t in toks:
-        if any(abs(t['value'] - rv) <= 0.005 + 1e-9 for rv in reg_vals):
-            tv = t['value']
-            break
-    # 距离 token = 距 标记之后、非常量、非水平本身的第一个候选
-    # (m.start 对齐: mcl 与 clause 等长,遮蔽不位移)
-    dt = None
-    for t in toks:
-        if t['start'] < m.start() or \
-                (tv is not None and abs(t['value'] - tv) <= 0.005 + 1e-9) or \
-                abs(t['value'] - fact['value']) <= 0.01:
+    used = set()
+    for i, ct in enumerate(toks):
+        if ct['start'] in used:
             continue
-        dt = t
-        break
-    if dt is None:
-        return checks
-    if tv is None:
-        # 无常量 token: 取使 |fact−rv| 与距离 token 最相符的注册表阈值
-        best = None
-        for rv in reg_vals:
-            miss = abs(abs(fact['value'] - rv) - dt['value'])
-            if best is None or miss < best[0]:
-                best = (miss, rv)
-        if best is None or best[0] > 0.005 + 1e-9:
-            return checks
-        tv = best[1]
-    exp = abs(fact['value'] - tv)
-    ok = _value_matches(dt['value'], round(exp, 4), dt['approx']) or \
-        _display_aligned(dt['raw'], dt['value'], exp)
-    checks.append({'family': 'threshold_distance', 'token': dt['raw'],
-                   'value': dt['value'], 'expected': round(exp, 4),
-                   'status': 'VERIFIED' if ok else 'CONTRADICTED',
-                   'note': f'|{fact["value"]}−{tv}|={exp:.4g}'})
+        if not any(abs(ct['value'] - rv) <= 0.005 + 1e-9 for rv in reg_vals):
+            continue
+        exp = abs(fact['value'] - ct['value'])
+        if exp <= 0.01:
+            continue
+        for dt in toks:
+            if dt['start'] in used or dt is ct:
+                continue
+            if abs(dt['value'] - fact['value']) <= 0.01 or \
+                    any(abs(dt['value'] - rv) <= 0.005 + 1e-9
+                        for rv in reg_vals):
+                continue
+            ok = _value_matches(dt['value'], round(exp, 4), dt['approx']) \
+                or _display_aligned(dt['raw'], dt['value'], exp)
+            if not ok:
+                continue          # 非该常量的距离 → 试下一对
+            used.update({ct['start'], dt['start']})
+            note = f'|{fact["value"]}−{ct["value"]}|={exp:.4g}'
+            toks_join = [ct['raw'], dt['raw']]
+            # 单位复述(25bp(0.25pp)): 同值紧随 token 一并消费
+            for rt in toks:
+                if rt['start'] in used:
+                    continue
+                if abs(rt['value'] - dt['value']) <= 1e-9 and \
+                        0 < rt['start'] - dt['end'] <= 6:
+                    used.add(rt['start'])
+                    toks_join.append(rt['raw'])
+                    break
+            checks.append({'family': 'threshold_distance',
+                           'token': '、'.join(toks_join),
+                           'value': dt['value'], 'expected': round(exp, 4),
+                           'status': 'VERIFIED',
+                           'note': note})
+            break
+    # 声明距离但句内无常量 token(距警告线80bp): 与注册表最近阈值复算
+    # 须句内具名线/阈值词,防止「距前期高点X」类非注册表锚距离被误杀
+    if not checks and re.search(r'线|阈值|threshold', clause, re.I):
+        m = re.search(r'(?:距离?|缓冲)[^0-9+\-−约]{0,6}(约)?\s*'
+                      r'([+\-−]?\d[\d,]*\.?\d*)\s*(pp|bp|个百分点|点|'
+                      r'index points?)?', clause)
+        if m:
+            dtv = _strip_num(m.group(2))
+            if (m.group(3) or '') in ('bp',):
+                dtv = dtv / 100.0
+            if abs(dtv - fact['value']) > 0.01:
+                best = None
+                for rv in reg_vals:
+                    miss = abs(abs(fact['value'] - rv) - dtv)
+                    if best is None or miss < best[0]:
+                        best = (miss, rv)
+                if best is not None:
+                    ok = best[0] <= 0.005 + 1e-9
+                    checks.append({
+                        'family': 'threshold_distance',
+                        'token': m.group(0).strip(), 'value': dtv,
+                        'expected': round(abs(fact['value'] - best[1]), 4),
+                        'status': 'VERIFIED' if ok else 'CONTRADICTED',
+                        'note': f'最近阈值{best[1]:g}距离'
+                                f'={abs(fact["value"] - best[1]):.4g}'
+                                f' vs 文本{dtv:g}'})
     return checks
 
 
@@ -711,35 +788,70 @@ def _check_spread(clause, snapshot, thresholds_by=None):
 
 
 def _check_additivity(clause, snapshot, thresholds_by=None):
-    """可加性: 总变化=贡献A+贡献B / 名义=实际+BEI 恒等式。"""
+    """可加性: 总变化=贡献A+贡献B / 流量总=部分A+部分B / 名义=实际+BEI 恒等式。"""
     checks = []
-    # 形态一: X+Y(贡献)与总token
-    contribs = []
-    for m in re.finditer(r'(贡献|加总|构成|分解)', clause):
-        seg = clause[max(0, m.start() - 60):m.start()]
-        for t in _extract_tokens(seg)[-2:]:
-            if t['kind'] == 'pp':
-                contribs.append(t)
-    if len(contribs) >= 2:
-        total_tok = None
-        for m in re.finditer(r'(分解|构成|加总)', clause):
-            seg_after = clause[m.end():m.end() + 30]
-            for t in _extract_tokens(seg_after):
+    # 等式括注/日期遮蔽后再取 token(0.23+0.01=0.24 复述不算独立贡献)
+    mcl = _masked_clause(clause, _find_alias(clause))
+    # 形态一: 总token(分解/构成标记之前) 与各「贡献」标记之后的 pp 贡献
+    if re.search(r'分解|加总|构成|贡献', clause):
+        contribs = []
+        for m in re.finditer(r'贡献', mcl):
+            for t in _extract_tokens(mcl[m.end():m.end() + 24]):
                 if t['kind'] == 'pp':
-                    total_tok = t
+                    contribs.append(t)
                     break
-        if total_tok is None:
-            # 总=句首第一个 pp(名义端)
-            toks = [t for t in _extract_tokens(clause) if t['kind'] == 'pp']
-            if toks:
-                total_tok = toks[0]
-        if total_tok:
-            s = round(sum(t['value'] for t in contribs[:2]), 4)
+        if len(contribs) >= 2:
+            total_tok = None
+            m0 = re.search(r'分解|构成|加总', mcl)
+            if m0:
+                for t in reversed(_extract_tokens(
+                        mcl[max(0, m0.start() - 60):m0.start()])):
+                    if t['kind'] == 'pp':
+                        total_tok = t
+                        break
+            if total_tok is None:
+                toks = [t for t in _extract_tokens(mcl)
+                        if t['kind'] == 'pp']
+                if toks:
+                    total_tok = toks[0]
+            if total_tok is not None:
+                s = round(sum(t['value'] for t in contribs), 4)
+                ok = _value_matches(round(total_tok['value'], 4), s)
+                join = ([t['raw'] for t in contribs] if ok else
+                        [total_tok['raw']] + [t['raw'] for t in contribs])
+                checks.append({
+                    'family': 'additivity',
+                    'token': '、'.join(join),
+                    'value': total_tok['value'], 'expected': s,
+                    'status': 'VERIFIED' if ok else 'CONTRADICTED',
+                    'note': f'贡献和={s:g} vs 总{total_tok["raw"]}'
+                            f'{"(总归主循环节点复核)" if ok else ""}'})
+    # 形态三: 流量可加(总额=A亿+B亿, 成交额/合计 语境; 排除注册表常量)
+    if re.search(r'成交额|合计|总量', clause):
+        toks = [t for t in _extract_tokens(mcl) if t['kind'] == '亿']
+        reg_cny = [e['value'] for es in (thresholds_by or {}).values()
+                   for e in es if e.get('unit') == 'cny_100m']
+        parts = [t for t in toks
+                 if not any(abs(t['value'] - rv) <= 0.005 + 1e-9
+                            for rv in reg_cny)]
+        if len(parts) >= 3:
+            mtot = re.search(r'成交额|合计|总量', mcl)
+            after = [t for t in parts
+                     if 0 <= t['start'] - mtot.end() <= 30]
+            total_tok = after[0] if after else max(
+                parts, key=lambda t: t['value'])
+            rest = [t for t in parts if t is not total_tok]
+            s = round(sum(t['value'] for t in rest), 4)
             ok = _value_matches(round(total_tok['value'], 4), s)
-            checks.append({'family': 'additivity', 'token': total_tok['raw'],
-                           'value': total_tok['value'], 'expected': s,
-                           'status': 'VERIFIED' if ok else 'CONTRADICTED',
-                           'note': f'贡献和={s:g} vs 总{total_tok["raw"]}'})
+            join = ([t['raw'] for t in rest] if ok else
+                    [total_tok['raw']] + [t['raw'] for t in rest])
+            checks.append({
+                'family': 'additivity_flow',
+                'token': '、'.join(join),
+                'value': total_tok['value'], 'expected': s,
+                'status': 'VERIFIED' if ok else 'CONTRADICTED',
+                'note': f'部分和={s:g} vs 总{total_tok["raw"]}'
+                        f'{"(总归主循环节点复核)" if ok else ""}'})
     # 形态二: A与B加总构成 C(水平恒等式)
     m = re.search(r'加总构成|恒等', clause)
     if m:
@@ -934,12 +1046,386 @@ def _check_prior_reverse(clause, snapshot, thresholds_by=None):
              'note': f'{fact["value"]:g}/(1{pct["value"]:+g}%)={prior:.4g}'}]
 
 
+# ── 语义族检查器(T8 整改轮新增) ────────────────────────────────────
+
+_BAND_LABEL_WORDS = [
+    (re.compile(r'恐慌(区|带|段)'), 'panic'),
+    (re.compile(r'警告(区|带|段)|警戒(区|带|段)'), 'warning'),
+    (re.compile(r'关注(区|带|段)|注意(区|带|段)'), 'attention'),
+]
+
+
+def _check_band_label(clause, snapshot, thresholds_by=None):
+    """带标签断言: 「仍处恐慌区(>500bp)」对照注册表带位(值实际落入哪档)。"""
+    checks = []
+    mids = _find_alias(clause)
+    mid = mids[0][0] if mids else _CTX_STATE.get('carry_mid')
+    if not mid:
+        return checks
+    fact = _fact_of(snapshot, mid)
+    if not fact or not _is_num(fact['value']):
+        return checks
+    bands = sorted([(e['kind'], e['value'])
+                    for e in (thresholds_by or {}).get(mid, [])
+                    if e.get('kind') in ('attention', 'warning', 'panic')
+                    and _is_num(e.get('value'))], key=lambda kv: kv[1])
+    if len(bands) < 2:
+        return checks
+    actual = None
+    for i, (kind, v) in enumerate(bands):
+        upper = bands[i + 1][1] if i + 1 < len(bands) else None
+        if fact['value'] >= v and (upper is None or fact['value'] < upper):
+            actual = kind
+            break
+    if actual is None:
+        return checks
+    for pat, want_kind in _BAND_LABEL_WORDS:
+        m = pat.search(clause)
+        if not m:
+            continue
+        band_kinds = [k for k, _ in bands]
+        want_idx = band_kinds.index(want_kind) if want_kind in band_kinds \
+            else None
+        if want_idx is None:
+            continue
+        # 否定/边界语境: 「尚在警告带下沿之内/未达X区」=声称低于该带
+        below_ctx = bool(re.search(
+            r'下沿之内|下缘之内|下方|以下|未达|未进入|低于|之外|以内',
+            clause[m.end():m.end() + 10]))
+        above_ctx = bool(re.search(
+            r'上沿之上|上方|以上|超过|之上', clause[m.end():m.end() + 10]))
+        if below_ctx or above_ctx:
+            eff_idx = want_idx - 1 if below_ctx else want_idx + 1
+            if eff_idx < 0 or eff_idx >= len(bands):
+                # 声称越出带表之外(如低于最低带)→ 与带表核对
+                checks.append({
+                    'family': 'band_label', 'token': m.group(0),
+                    'metric': mid, 'value': fact['value'],
+                    'expected': bands[want_idx][0],
+                    'status': 'CONTRADICTED'
+                    if (below_ctx and fact['value'] >= bands[0][1]) or
+                       (above_ctx and fact['value'] <= bands[-1][1])
+                    else 'VERIFIED',
+                    'note': f'带表{bands} vs 值{fact["value"]:g}'})
+                continue
+            ok = (band_kinds.index(actual) == eff_idx)
+            note = (f'值{fact["value"]:g}实际处[{actual}]带 vs '
+                    f'声称{"低于" if below_ctx else "高于"}'
+                    f'[{want_kind}]带(应处[{band_kinds[eff_idx]}])')
+        else:
+            ok = (actual == want_kind)
+            note = (f'值{fact["value"]:g}实际处[{actual}]带 '
+                    f'vs 标签[{want_kind}]')
+        checks.append({
+            'family': 'band_label', 'token': m.group(0), 'metric': mid,
+            'value': fact['value'],
+            'expected': '/'.join(f'{k}≥{v:g}' for k, v in bands),
+            'status': 'VERIFIED' if ok else 'CONTRADICTED',
+            'note': note})
+    return checks
+
+
+def _score_band4(v, m1, m2, p1, p2):
+    """macro_scorecard 同构带链(左开右闭): v< m1→-2 … v≥p2→+2。"""
+    if v < m1:
+        return -2
+    if v < m2:
+        return -1
+    if v < p1:
+        return 0
+    if v < p2:
+        return 1
+    return 2
+
+
+def _score_band_rev(v, p05, p03, m01, m03):
+    """失业率3月反向带链(macro_scorecard 同构): 升=负分。"""
+    if v > p05:
+        return -2
+    if v > p03:
+        return -1
+    if v > m01:
+        return 0
+    if v > m03:
+        return 1
+    return 2
+
+
+def _check_score_total(clause, snapshot, thresholds_by=None):
+    """评分卡总分断言: 「通胀总分+3」按快照事实+签字阈值注册表独立复算。"""
+    if '总分' not in clause:
+        return []
+    th = {e['stable_key']: e['value']
+          for es in (thresholds_by or {}).values() for e in es
+          if e.get('stable_key') and _is_num(e.get('value'))}
+    facts = {f['metric_id']: f for f in snapshot.get('facts', [])}
+
+    def _lv(mid):
+        f = facts.get(mid)
+        return f['value'] if f and _is_num(f.get('value')) else None
+
+    def _dv(mid, win, field):
+        f = facts.get(mid)
+        v = ((f or {}).get('derived') or {}).get(win, {}).get(field)
+        return v if _is_num(v) else None
+
+    def _band(mid, v, keys):
+        ks = [th.get(k) for k in keys]
+        if v is None or any(k is None for k in ks):
+            return None
+        return _score_band4(v, *ks)
+
+    # 通胀维度(CORE_CPI m12 pct / BEI_10Y level / WTI_F level / AHE m12 pct)
+    i_parts = [
+        ('CORE_CPI', _band('CORE_CPI', _dv('CORE_CPI', 'm12', 'pct_change'),
+                           ('core_cpi.scorecard.m1', 'core_cpi.scorecard.m2',
+                            'core_cpi.scorecard.p25', 'core_cpi.scorecard.p35'))),
+        ('BEI_10Y', _band('BEI_10Y', _lv('BEI_10Y'),
+                          ('bei_10y.scorecard.m15', 'bei_10y.scorecard.m2',
+                           'bei_10y.scorecard.p23', 'bei_10y.scorecard.p26'))),
+        ('WTI_F', _band('WTI_F', _lv('WTI_F'),
+                        ('wti_f.scorecard.m40', 'wti_f.scorecard.m50',
+                         'wti_f.scorecard.p70', 'wti_f.scorecard.p90'))),
+        ('AHE', _band('AHE', _dv('AHE', 'm12', 'pct_change'),
+                      ('ahe.scorecard.m2', 'ahe.scorecard.m3',
+                       'ahe.scorecard.p35', 'ahe.scorecard.p45'))),
+    ]
+    # 增长维度(UMCSENT level / UNEMPLOYMENT m3 pp 反向 / RSAFS m1 / INDPRO m1)
+    g_un = _dv('UNEMPLOYMENT', 'm3', 'pp_change')
+    g_un_s = _score_band_rev(
+        g_un, th.get('unemployment_3m.scorecard.p05'),
+        th.get('unemployment_3m.scorecard.p03'),
+        th.get('unemployment_3m.scorecard.m01'),
+        th.get('unemployment_3m.scorecard.m03')) \
+        if g_un is not None and all(
+            th.get(k) is not None for k in
+            ('unemployment_3m.scorecard.p05', 'unemployment_3m.scorecard.p03',
+             'unemployment_3m.scorecard.m01', 'unemployment_3m.scorecard.m03'))\
+        else None
+    g_parts = [
+        ('UMCSENT', _band('UMCSENT', _lv('UMCSENT'),
+                          ('umcsent.scorecard.m50', 'umcsent.scorecard.m60',
+                           'umcsent.scorecard.p80', 'umcsent.scorecard.p95'))),
+        ('UNEMPLOYMENT', g_un_s),
+        ('RSAFS', _band('RSAFS', _dv('RSAFS', 'm1', 'pct_change'),
+                        ('rsafs_mom.scorecard.m1', 'rsafs_mom.scorecard.m05',
+                         'rsafs_mom.scorecard.p05', 'rsafs_mom.scorecard.p1'))),
+        ('INDPRO', _band('INDPRO', _dv('INDPRO', 'm1', 'pct_change'),
+                         ('indpro_mom.scorecard.m1', 'indpro_mom.scorecard.m03',
+                          'indpro_mom.scorecard.p03', 'indpro_mom.scorecard.p1'))),
+    ]
+    i_total = sum(s for _, s in i_parts if s is not None) \
+        if all(s is not None for _, s in i_parts) else None
+    g_total = sum(s for _, s in g_parts if s is not None) \
+        if all(s is not None for _, s in g_parts) else None
+
+    checks = []
+    for dim, total, parts in (('通胀', i_total, i_parts),
+                              ('增长', g_total, g_parts)):
+        m = re.search(dim + r'总分\s*([+\-−]?\d+)', clause)
+        if not m:
+            continue
+        claimed = int(m.group(1))
+        if total is None:
+            miss = [mid for mid, s in parts if s is None]
+            checks.append({'family': 'scorecard_total',
+                           'token': m.group(0), 'value': claimed,
+                           'expected': None,
+                           'status': 'INSUFFICIENT_EVIDENCE',
+                           'note': f'成分缺失不计0分: {miss}'})
+            continue
+        ok = claimed == total
+        detail = '+'.join(f'{mid}{s:+d}' for mid, s in parts)
+        checks.append({'family': 'scorecard_total', 'token': m.group(0),
+                       'value': claimed, 'expected': total,
+                       'status': 'VERIFIED' if ok else 'CONTRADICTED',
+                       'note': f'{detail}={total:+d}'})
+    # 体制映射(滞胀/类滞胀/再通胀/衰退; determine_regime 同构)
+    if i_total is not None and g_total is not None and \
+            re.search(r'映射|维持|切换|体制', clause):
+        m = re.search(r'类滞胀|滞胀|再通胀|衰退|过热', clause)
+        if m:
+            floor = th.get('regime.inflation_total.stagflation_floor')
+            zero = th.get('regime.growth_total.zero')
+            if floor is not None and zero is not None:
+                if i_total >= floor:
+                    regime = '类滞胀' if g_total > zero else '滞胀'
+                else:
+                    regime = '再通胀' if g_total > zero else '衰退'
+                claimed_r = m.group(0)
+                ok = (claimed_r == regime)
+                checks.append({'family': 'regime_mapping',
+                               'token': claimed_r, 'value': claimed_r,
+                               'expected': regime,
+                               'status': 'VERIFIED' if ok
+                               else 'CONTRADICTED',
+                               'note': f'i={i_total:+d},g={g_total:+d}'
+                                       f'→{regime} vs 声称{claimed_r}'})
+    return checks
+
+
+def _check_probability_sum(clause, snapshot, thresholds_by=None):
+    """情景概率和: 枚举概率项之和=100%(竖线/顿号枚举或显式「概率和」)。"""
+    if not re.search(r'概率|机率|probability', clause, re.I):
+        return []
+    if not re.search(r'概率和|[｜|]', clause):
+        return []          # 非枚举语境(孤立概率词)不整句求和
+    mcl = _masked_clause(clause, _find_alias(clause))
+    toks = [t for t in _extract_tokens(mcl)
+            if t['kind'] == 'percent' and 0 < t['value'] <= 100]
+    if len(toks) < 3:
+        return []
+    s = round(sum(t['value'] for t in toks), 4)
+    ok = abs(s - 100.0) <= 0.05 + 1e-9
+    return [{'family': 'probability_sum',
+             'token': '、'.join(t['raw'] for t in toks),
+             'value': s, 'expected': 100.0,
+             'status': 'VERIFIED' if ok else 'CONTRADICTED',
+             'note': f'{len(toks)}项概率和={s:g}% vs 100%'}]
+
+
+def _check_target_range(clause, snapshot, thresholds_by=None):
+    """当前目标区间断言: 「当前目标区间4.07–4.32%」对照 DFEDTARL/U。
+
+    前瞻口径(期货隐含/下月, 无「当前/现行」限定)不属事实区间,跳过。
+    """
+    if not re.search(r'目标区间|target range', clause, re.I):
+        return []
+    forward = bool(re.search(r'期货隐含|隐含|预期|下月|次月|对应\d{4}', clause))
+    current = bool(re.search(r'当前|现行|目前|currently', clause, re.I))
+    if forward and not current:
+        return []
+    fl = _fact_of(snapshot, 'DFEDTARL')
+    fu = _fact_of(snapshot, 'DFEDTARU')
+    if not (fl and fu and _is_num(fl.get('value')) and _is_num(fu.get('value'))):
+        return []
+    m = re.search(r'(\d{1,2}(?:\.\d+)?)\s*[–—-]\s*(\d{1,2}(?:\.\d+)?)\s*%'
+                  , clause)
+    if not m:
+        return []
+    lo, hi = float(m.group(1)), float(m.group(2))
+    ok = abs(lo - fl['value']) <= 0.005 + 1e-9 and \
+        abs(hi - fu['value']) <= 0.005 + 1e-9
+    return [{'family': 'target_range', 'token': m.group(0),
+             'value': [lo, hi], 'expected': [fl['value'], fu['value']],
+             'status': 'VERIFIED' if ok else 'CONTRADICTED',
+             'note': f'快照区间[{fl["value"]:g},{fu["value"]:g}]% '
+                     f'vs 文本[{lo:g},{hi:g}]%'}]
+
+
+# ── 叙事-数值方向后置检查(别名免依赖) ────────────────────────────────
+
+def _check_narrative_direction(text, snapshot):
+    """叙事方向词与数值事实相反 → CONTRA(美元走弱 vs DXY 周涨)。"""
+    checks = []
+
+    def _wk(mid, field):
+        f = _fact_of(snapshot, mid)
+        if not f:
+            return None
+        v = ((f.get('derived') or {}).get('week') or {}).get(field)
+        return v if _is_num(v) else None
+
+    for clause in _clause_split(text):
+        dxy_chg = _wk('DXY', 'pct_change')
+        if dxy_chg is not None:
+            # (?<![\d.,]) 挡货币后缀形态(N美元回落=油价跌,非美元叙事)
+            if re.search(r'(?<![\d.,，。])美元(?:指数)?'
+                         r'(?:走弱|贬值|走低|回落)|'
+                         r'dollar(?: index)?\s+(?:weaken|soft)', clause,
+                         re.I) and dxy_chg > 0.05:
+                checks.append({'family': 'narrative_direction',
+                               'token': '美元走弱', 'metric': 'DXY',
+                               'value': dxy_chg, 'expected': '<0',
+                               'status': 'CONTRADICTED',
+                               'note': f'叙事美元走弱 vs DXY周{dxy_chg:+g}%'})
+            if re.search(r'(?<![\d.,，。])美元(?:指数)?'
+                         r'(?:走强|升值|走高|回升)|'
+                         r'dollar(?: index)?\s+(?:strengthen|firm)', clause,
+                         re.I) and dxy_chg < -0.05:
+                checks.append({'family': 'narrative_direction',
+                               'token': '美元走强', 'metric': 'DXY',
+                               'value': dxy_chg, 'expected': '>0',
+                               'status': 'CONTRADICTED',
+                               'note': f'叙事美元走强 vs DXY周{dxy_chg:+g}%'})
+        eur_chg = _wk('EURUSD', 'pct_change')
+        if eur_chg is not None:
+            if re.search(r'欧元(?:升值|上涨|走强)|euro\s+(?:appreciat|'
+                         r'strengthen|rising)', clause, re.I) \
+                    and eur_chg < -0.05:
+                checks.append({'family': 'narrative_direction',
+                               'token': '欧元升值', 'metric': 'EURUSD',
+                               'value': eur_chg, 'expected': '>0',
+                               'status': 'CONTRADICTED',
+                               'note': f'叙事欧元升值 vs EURUSD周'
+                                       f'{eur_chg:+g}%'})
+            if re.search(r'欧元(?:贬值|下跌|走弱)|euro\s+(?:depreciat|'
+                         r'weaken|falling)', clause, re.I) \
+                    and eur_chg > 0.05:
+                checks.append({'family': 'narrative_direction',
+                               'token': '欧元贬值', 'metric': 'EURUSD',
+                               'value': eur_chg, 'expected': '<0',
+                               'status': 'CONTRADICTED',
+                               'note': f'叙事欧元贬值 vs EURUSD周'
+                                       f'{eur_chg:+g}%'})
+        curve = _fact_of(snapshot, 'CURVE_2S10S')
+        if curve and _is_num(curve.get('value')) and \
+                re.search(r'倒挂', clause) and not re.search(
+                    r'不再倒挂|脱离倒挂|告别倒挂|倒挂(?:解除|结束|消失|修复)',
+                    clause):
+            v = curve['value']
+            pp = _wk('CURVE_2S10S', 'pp_change')
+            if v >= 0:
+                checks.append({'family': 'narrative_direction',
+                               'token': '倒挂', 'metric': 'CURVE_2S10S',
+                               'value': v, 'expected': '<0',
+                               'status': 'CONTRADICTED',
+                               'note': f'叙事倒挂 vs 2s10s={v:g}pp(非负)'})
+            elif pp is not None:
+                if re.search(r'加深|恶化|更陡', clause) and pp > 0:
+                    checks.append({'family': 'narrative_direction',
+                                   'token': '倒挂加深', 'metric': 'CURVE_2S10S',
+                                   'value': pp, 'expected': '<0',
+                                   'status': 'CONTRADICTED',
+                                   'note': f'叙事加深 vs 周变化{pp:+g}pp(转浅)'})
+                if re.search(r'缓解|收窄|转浅|陡峭化', clause) and pp < 0:
+                    checks.append({'family': 'narrative_direction',
+                                   'token': '倒挂缓解', 'metric': 'CURVE_2S10S',
+                                   'value': pp, 'expected': '>0',
+                                   'status': 'CONTRADICTED',
+                                   'note': f'叙事缓解 vs 周变化{pp:+g}pp(加深)'})
+    return checks
+
+
 # ── 主检: migration mode ────────────────────────────────────────────
+
+_CONST_UNIT_FAMILY = {
+    'percent': ('percent', cf.CANONICAL_PP),
+    'pp': ('percent', cf.CANONICAL_PP),
+    'plain': ('index_point', 'usd_per_barrel', 'score_point'),
+    '亿': ('cny_100m',),
+}
+
+
+def _registry_const_hit(t, thresholds_by):
+    """token 值=注册表某阈值(单位族相容)→ (metric_id, entry);无则 None。"""
+    fams = _CONST_UNIT_FAMILY.get(t['kind'])
+    if not fams or t['value'] is None:
+        return None
+    for mid, es in (thresholds_by or {}).items():
+        for e in es:
+            if e.get('unit') in fams and _is_num(e.get('value')) and \
+                    abs(t['value'] - e['value']) <= 0.005 + 1e-9:
+                return mid, e
+    return None
+
 
 SPECIAL_CHECKERS = [
     _check_threshold_constant, _check_distance, _check_corr, _check_rank,
     _check_spread, _check_additivity, _check_consecutive,
     _check_compound_count, _check_band_relation, _check_prior_reverse,
+    _check_band_label, _check_score_total, _check_probability_sum,
+    _check_target_range,
 ]
 
 
@@ -959,7 +1445,8 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
     owned_ctx = re.compile(
         r'相关|距离|距警告|警告线|恐慌线|红线|强势阈值|警戒线|正常线上限|'
         r'连续第|周收于|利差|贡献|反推|加总构成|已满足|中性区间|区间上沿|'
-        r'区间下沿|带下沿|带上沿|关口|站上')
+        r'区间下沿|带下沿|带上沿|关口|站上|概率|总分|目标区间|恐慌区|'
+        r'警告区|警戒区|关注带')
     prior_obs = {}
     if prior_anchors:
         for date, anc in sorted(prior_anchors.items()):
@@ -996,15 +1483,39 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
             seg_end_i = clause.find('，', t['end'])
             seg_scoped = clause[seg_start:seg_end_i if seg_end_i > 0
                                 else len(clause)]
+            # 注册表常量路由: 值=注册表阈值 且 句段带阈值语境词 → 常量复述
+            # (104/90/5%/500bp/1万亿 类;防叙事整数值误绑指标水平)
+            if t['kind'] in ('percent', 'pp', 'plain', '亿'):
+                reg_hit = _registry_const_hit(t, thresholds_by)
+                if reg_hit and re.search(
+                        r'阈值|threshold|红线|警戒线|警告线|恐慌线|恐慌区|'
+                        r'底部确认|scorecard|评分', seg_scoped, re.I):
+                    _mid_r, e_r = reg_hit
+                    checks.append({
+                        'family': 'threshold_constant', 'token': t['raw'],
+                        'metric': _mid_r, 'value': t['value'],
+                        'expected': e_r['value'], 'status': 'VERIFIED',
+                        'note': f'{e_r["stable_key"]}常量复述'})
+                    continue
             if owned_ctx.search(seg_scoped):
                 continue            # 语义族检查器辖域(同逗号段)
+            # 前值角色先行(标记式;不依赖绑定): prior_reference 后置核
+            if _prior_role(clause, t):
+                continue
             t = dict(t, ctx=clause[max(0, t['start'] - 24):t['end'] + 24])
+            # 别名绑定: 前向优先(token 之前的最近别名;枚举句 EA-5),
+            # 无前向别名才回退全域最近
             mid, best_d = None, 1e9
-            for m2, s0, e0 in mids_in:
-                d = 0 if (t['start'] < e0 and t['end'] > s0 - 4) else \
-                    min(abs(t['start'] - e0), abs(s0 - t['end']))
-                if d < best_d:
-                    mid, best_d = m2, d
+            prec = [(m2, abs(t['start'] - e0))
+                    for m2, s0, e0 in mids_in if e0 <= t['start'] + 4]
+            if prec:
+                mid, best_d = min(prec, key=lambda h: h[1])
+            else:
+                for m2, s0, e0 in mids_in:
+                    d = 0 if (t['start'] < e0 and t['end'] > s0 - 4) else \
+                        min(abs(t['start'] - e0), abs(s0 - t['end']))
+                    if d < best_d:
+                        mid, best_d = m2, d
             if mid is None and carry_mid is not None and (
                     (t['kind'] in ('percent', 'pp')
                      and (_window_of(clause, t) or _direction_of(clause)))
@@ -1045,7 +1556,7 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                                 f'{mid} 不在快照'})
                 continue
             if _prior_role(clause, t, fact.get('observation_date')):
-                continue            # 前值/上期=prior_reference 辖域
+                continue            # 上期日期限定形态(week of <旧日期>)
             val = _scale_k(t['value'], t['kind'], fact)
             signed = bool(re.search(r'[+\-−]', t['raw'].strip()[:1])) or \
                 t['raw'].strip().startswith(('+', '-', '−'))
@@ -1063,6 +1574,21 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                     '迁移门瞬态(滞后)',
                     as_of_date=str(snapshot['research_as_of'])[:10])
                 fam = 'observation_lag'
+                # 换算复述(约166天(约5个半月)): 月数一致性(约数容差)
+                dm = re.search(r'约?(\d+(?:\.\d+)?)\s*(个)?半?月', clause)
+                if dm:
+                    months = val / 30.4375
+                    mv = float(dm.group(1))
+                    if '半' in dm.group(0):
+                        mv += 0.5     # N个半月 = N+0.5 月
+                    ok_d = abs(months - mv) <= max(0.3, 0.06 * abs(mv))
+                    checks.append({'family': 'lag_duration',
+                                   'token': dm.group(0), 'metric': mid,
+                                   'value': mv, 'expected': round(months, 2),
+                                   'status': 'VERIFIED' if ok_d
+                                   else 'CONTRADICTED',
+                                   'note': f'{val:g}天≈{months:.2f}月 '
+                                           f'vs {dm.group(0)}'})
             elif t['kind'] in ('percent', 'pp'):
                 if (signed or win or direction) and not level_mark:
                     w = win or 'week'
@@ -1168,6 +1694,14 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                                else 'CONTRADICTED',
                                'note': f'锚链/基准 {[v for _, v in prior_vals][:4]}'})
                 break
+    # 叙事-数值方向(后置: 别名免依赖的叙事词 vs 数值事实方向)
+    try:
+        checks.extend(_check_narrative_direction(text, snapshot) or [])
+    except Exception:
+        checks.append({'family': 'narrative_direction', 'token': '',
+                       'value': None, 'expected': None,
+                       'status': 'INSUFFICIENT_EVIDENCE',
+                       'note': 'checker_error(检查器异常降级)'})
     # 聚合
     hard = [c for c in checks if c['status'] == 'CONTRADICTED']
     ok = [c for c in checks if c['status'] == 'VERIFIED']

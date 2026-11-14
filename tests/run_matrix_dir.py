@@ -7,24 +7,28 @@
                                                      # V6 形→须全 VERIFIED
     python3 tests/run_matrix_dir.py --p4             # P4 五处真实值复位
 
-配置 = migration_matrix.load()(仓内 t6 快照/锚链/thresholds),
-与公开面完全一致(HELDOUT-PROTOCOL §4.2「与公开面完全相同的命令与配置」)。
+配置 = migration_matrix.load_era()(仓内 t6 快照/锚链/thresholds;
+条目自带 base_anchor_set 者按其时代取面——公开面与留出面同一命令同一机制)。
 判定: 任一条目不达预期 → 退出码 1;unmapped>0 一并列败(P5)。
 """
 import json
 import sys
 
-from migration_matrix import load
+from migration_matrix import load_era
 from research_contract import text_consistency as tc
 
 
 def run_file(path):
-    snap, prior, thr, _, _ = load()
     items = json.load(open(path))['items']
     is_v5 = 'fault_family' in items[0]        # V5 形态判定
     want = 'CONTRADICTED' if is_v5 else 'VERIFIED'
+    era_cache = {}
     bad, unmapped = [], []
     for it in items:
+        era = it.get('base_anchor_set', '20261114')
+        if era not in era_cache:
+            era_cache[era] = load_era(era)
+        snap, prior, thr = era_cache[era]
         r = tc.check_text(it['text'], snapshot=snap, thresholds=thr,
                           prior_anchors=prior)
         unb = [u['raw'] for u in r['unbound']]
@@ -34,7 +38,7 @@ def run_file(path):
             bad.append((it['id'], r['verdict']))
         print(f"[{'OK' if ok else 'BAD'}] {it['id']}"
               f"{'/' + it['fault_family'] if is_v5 else ''}"
-              f" want={want} got={r['verdict']}"
+              f" era={era} want={want} got={r['verdict']}"
               f" (contra={r['stats']['contradicted']}"
               f" veri={r['stats']['verified']} unbound={len(unb)})")
     print(f"\nTOTAL {len(items) - len(bad)}/{len(items)} 达标;"
@@ -45,17 +49,9 @@ def run_file(path):
 
 
 def run_p4():
-    from migration_matrix import load as _l
-    snap, prior, thr, _, _ = _l()
-    import os
-    live_anc = ('/Users/cast/AI内容/🤖_AI投资项目/每周宏观追踪/'
-                'investment-agent/data/daily')
-    snap08 = json.load(open(os.path.join(
-        live_anc, 'research_snapshot_20261108_v2.json')))
-    prior_v2 = {'2026-10-31': json.load(open(os.path.join(
-        live_anc, 'anchors_20261031.json'))),
-        '2026-11-08': json.load(open(os.path.join(
-            live_anc, 'anchors_20261108.json')))}
+    from migration_matrix import load_era as _le
+    snap, prior, thr = _le('20261114')
+    snap08, prior_v2, _ = _le('20261108')
     cases = [
         ('V1-滞后166天', 'SPX_EPS/PE_TTM滞后166天，本月数据的时效性受限',
          snap, prior),

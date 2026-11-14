@@ -47,6 +47,13 @@ WINDOWS = ('week', 'mtd', 'ytd', 'm1', 'm3', 'm6', 'm12')
 #   calendar_day   = 自然日天数(observation_lag 专用)
 CLAIM_LAYER_UNITS = ('rank_position', 'calendar_day')
 
+# attribution 词表(契约§2: deterministic=工厂派生|model_inferred=模型提交)。
+# T5 增量扩容(申报): 原校验只认 deterministic(T4 波工厂唯一来源);T5 验证面须
+# 可携带外部提交 claim(工单T5「bundle 须可携带 origin=model_inferred;阶段四
+# 真实入口,本波测试用合成注入」)——本常量=该面落点。deterministic-only bundle
+# 的既有校验行为与 attribution_policy 字符串零变化(向后兼容,非破坏性)。
+ALLOWED_ATTRIBUTIONS = ('deterministic', 'model_inferred')
+
 BUNDLE_ID_RE = re.compile(r'^claims_\d{8}$')
 CLAIM_ID_RE = re.compile(r'^CLM-\d{8}-\d{4}$')
 
@@ -79,8 +86,12 @@ def validate_claim(c: dict) -> None:
         raise SchemaError(f'claim_type 非工厂六型: {c["claim_type"]!r}')
     if c['subtype'] not in SUBTYPES[c['claim_type']]:
         raise SchemaError(f'subtype {c["subtype"]!r} 不属 {c["claim_type"]}')
-    if c['attribution'] != 'deterministic':
-        raise SchemaError("工厂产物 attribution 只准 'deterministic'(模型提交=T5+)")
+    if c['attribution'] not in ALLOWED_ATTRIBUTIONS:
+        raise SchemaError(f"attribution 只准 {ALLOWED_ATTRIBUTIONS}: {c['attribution']!r}")
+    if c['attribution'] == 'model_inferred':
+        # 外部提交面(T5 验证器消费;真实提交入口=阶段四): 结构校验照走六型
+        # schema,验证状态机=claim_verifier(强制 SEMANTIC_REVIEW 面)。
+        pass
 
     # 律2/律3: (claim_type, subtype, unit) 三元组定语义
     ct, st = c['claim_type'], c['subtype']
@@ -176,14 +187,23 @@ def make_bundle(*, snapshot_id: str, target_date: str, research_as_of: str,
     counts = {}
     for c in claims:
         counts[c['claim_type']] = counts.get(c['claim_type'], 0) + 1
+    # attribution_policy 随实况派生(T5 增量): 全 deterministic=与 T4 波逐字节同串
+    # (向后兼容钉死);携 model_inferred=外部提交面如实申报。
+    n_model = sum(1 for c in claims if c.get('attribution') == 'model_inferred')
+    if n_model == 0:
+        policy = ('deterministic-only(六型全部确定性派生,'
+                  '零模型调用;model_inferred 提交面=阶段四)')
+    else:
+        policy = (f'mixed(deterministic={len(claims) - n_model}'
+                  f'+model_inferred={n_model};model_inferred=T5 验证面合成注入,'
+                  '真实提交入口=阶段四;验证状态机=claim_verifier 强制 SEMANTIC_REVIEW 面)')
     bundle = {
         'schema_version': SCHEMA_VERSION,
         'bundle_id': f'claims_{target_date}',
         'snapshot_id': snapshot_id,
         'target_date': target_date,
         'research_as_of': research_as_of,
-        'attribution_policy': 'deterministic-only(六型全部确定性派生,'
-                              '零模型调用;model_inferred 提交面=阶段四)',
+        'attribution_policy': policy,
         'registry_fingerprints': registry_fingerprints,
         'counts': counts,
         'claims': claims,

@@ -223,3 +223,75 @@ $ for t in tests/test_*.py(排除 test_model_live):  # tests/ 共 147 件(含新
 5. **formula 文本用 canonical 全名**(|3.2−4.0|=0.8 percentage_point)而非契约示例 pp 缩写后缀——律3「渲染后缀不得反推单位」精神,unit 字段=唯一权威(契约示例为示意非规范)。
 6. BAND_FACT_SPECS/COMPARISON_SPECS=模块内确定性配置表(带出处,非自由文本输入;纯函数输入面=快照+两注册表不变)——Fed 带事实对无注册表配对语义可数据驱动泛化,如实以配置表声明。
 7. PHASE3-LOG 工作树含操作者席 T3 验证节(T4 开工时点为未提交工作树稿)随本 commit 入库(T3 波同款先例)。
+
+---
+
+## T4 操作者席验证(2026-11-14 深夜)
+
+对象=dev/arch-reform-p3@f65b28c(单笔: 新包两件+fixture+套件+记账)。独立复核基=纯克隆 /tmp/reform-verify4。
+
+| # | 项 | 方法 | 结果 |
+|---|---|---|---|
+| 1 | 套件独立复跑 | 纯克隆 T4 套件 | **115/115 PASS** |
+| 2 | CLI 真跑+计数 | factory 跑 fixture→bundle | **109 claims 计数全中**(level 15/change 56/comparison 5/threshold 10/threshold_distance 10/observation_lag 13)+coverage_ledger 9 条诚实缺席+predicate_ledger 7 条 |
+| 3 | 契约字面钉 | bundle 逐值抽验 | HY_OAS 距警告线 **0.80pp**(=11-14 Gate B 误杀事故值,今为结构化 claim 带 thresholds 稳定键溯源);CURVE sign_flip_date=2024-09-05;HY_OAS 距离三档 0.2/0.8/1.8;Fed 带 3.75–4.00/DXY 带 100–104 band 对象;persistence.last_crossing 带穿越日/前后值/方向/现侧,窗内无严格穿越=诚实注记不造 |
+| 4 | fixture 出处 | _fixture_provenance 双 sha256 vs LIVE 源档实算 | **双中**(research_snapshot_20261114_v2=d533be2d…/macro_20261114=cb252655…) |
+| 5 | 静态纯度 | import 面+model/env/net/random 扫描+包清单 | 仅 stdlib+fact_engine(只读)+claim_bundle;扫描唯一命中=注释「model_inferred 提交面=阶段四」;包=3 件(init/factory/bundle),**无 T5/T6 越位**(verifier/render_hook/text_consistency 未落);f65b28c 未改 fact_engine=零伴生改动 |
+| 6 | 纯函数独立咬合 | 篡 fixture HY_OAS fact 3.2→3.5→重跑 | 距离随动=|3.5−thr| 精确复算(0.5/0.5/1.5),claim 总数稳定 109 |
+| 7 | 全量 CI 同款 | 纯克隆 f65b28c tests/test_*.py 逐个(model_live 跳过) | **146 执行 0 红**(含 T4 套件 115 判;p0 纯克隆绿=环境工件定案第三次反证;实现席 worktree 跑 145/1 同前环境差异) |
+
+### 申报裁定(七项)
+
+①fixture 增补 8 件伴生 fact=**采**(comparison/band/rank 真实用例可达性,体积 2.4% 克制);②comparison.diff 无真实正例=**接受**(schema 在册+跨单位拒反例覆盖,真实 diff 正例待后续真实快照自然产生);③谓词产出位置(percentile/sign_flip=predicate_ledger,crossing/last_crossing=threshold.persistence)=**采**(CURVE 零注册表键→序列仅产谓词不入 threshold 面,coverage 自洽);④canonical 全名非 pp 缩写=**采**(律3 原文即此);⑤BAND_FACT_SPECS/COMPARISON_SPECS 带出处配置表=**采**(配置≠白名单税则面;若 T5/T7 发现需数据驱动化再议);⑥⑦随档入库操作者节=T3 同款先例,核对采。附: 终报「fact_engine 只读 import 单位族三常量」措辞偏窄——实引用 fe.metric/load_registry/REGISTRY_PATH 只读 API=正确单源纪律,非文件改动,无碍。
+
+### 结论
+
+T4 工单验收面成立: 六型全确定性(纯函数咬合实证)+每型≥3 真实用例(109 claims 源自真快照,出处哈希双中)+零模型调用(静态扫描+包清单)。故障 A 类消灭路径落地第一块: 「距离0.80pp」从文本猜数变结构化 claim。进 T5(claim_verifier 六状态)。
+
+---
+
+## T5 claim_verifier 六状态确定性验证(2026-11-15 凌晨,接管席)
+
+工单: PHASE3-PLAN T5+契约 §4 状态表(权威)。原派实现席 22:56 后零落盘,按「引擎不空转」授权由本席接管(STATE.md 接管声明在案,防双跑)。实现=**新增** scripts/research_contract/claim_verifier.py(631 行)+tests/test_arch_reform_t5_verifier.py(443 行,46 判);旧 Gate B 零改动(只读对照纪律)。
+
+### 状态机(§4 逐字映射;优先级=不符>反洗数>证据缺失>无路径>陈旧>一致)
+
+| 状态 | 触发 | 发布 |
+|---|---|---|
+| VERIFIED | 独立复算一致+fresh | ✅无披露(computed/delta/tolerance/checker_version 随行) |
+| CONTRADICTED | 数值/证据/阈值/组核验/律3/§3可加性 任一不符 | ❌claim 级修订+机械重渲染(非整报隔离) |
+| INSUFFICIENT_EVIDENCE | 空引用/无值引用/所引事实缺席快照 | ✅须披露 |
+| NOT_VERIFIABLE | deterministic 无验证路径(带归因{路径/原因枚举/可否次级交叉}) | 仅 deterministic 可披露后发布;禁入【事实】区 |
+| STALE | ratio=lag÷freshness.max_calendar_lag_days: ≤1 fresh/≤2 l1/≤3 l2/>3 l3 | ✅须披露;l3 另入 current_frame_forbidden |
+| SEMANTIC_REVIEW_REQUIRED | model_inferred 数值证据缺失或无路径→强制升态 | ⏸超时=剔除+显式披露 |
+
+反洗数(律7/v1.1): model_inferred 数值**有源→对照复算照常 VERIFIED;篡值→CONTRADICTED;证据缺失/无路径→一律 SEMANTIC_REVIEW**,禁经 INSUFFICIENT/NOT_VERIFIABLE 披露后洗出(C3/C5 双反例钉)。
+
+### 验收原文「注入违例每状态≥1 反例咬住」→ 46 判映射
+
+- CONTRADICTED 15 路反例(B1-B15): 九型数值篡改/relation/since 篡/threshold_ref 漂移/证据带值不符/rank 组换位(对位路)+组重复(多重集路)/跨单位 spread(律3,引用与事实一致篡改专打同单位校验)/分解可加性(§3)。
+- SEMANTIC_REVIEW 2 例(C3 空引用/C5 fact 缺席);NOT_VERIFIABLE 1 例(C6 band_edge 对被抽,归因四字段逐项断言)+gate_b 联动(C5 False/C7 True);INSUFFICIENT 4 例(D1/D2/C4 全族);STALE 6 例(A5 契约权威例 JP 74 天=l1/A6 派生继承/E1 l2/E2 l3+禁入现状框架/E3-E4 阈值边界);VERIFIED 基线 107 条零误伤+model 有源照常过(C1)。
+- F/G 面: 裁决写回=契约 §2 示例形状逐字段断言(F1-F2)/双跑逐字节(F3)/超时策略剔除+披露(F4-F5)/纯度静态扫描+MODEL_* 绊线子进程双跑逐字节同输出(F 面外 G1-G3)。
+
+### 执行证据(命令+输出摘录)
+
+1. 基线(工厂 clean bundle 真跑): `verify_bundle(generate_claims_bundle(snapshot_slice_20261114))` →
+   `{"VERIFIED": 107, "CONTRADICTED": 0, ..., "STALE": 2, "total": 109}` + `gate_b_numeric_all_verified: True`;STALE 两条=JP_POLICY_RATE 74d/60d≈1.2(l1,契约 §4 STALE 行权威例数值命中)+DFF−JP spread 继承最差输入 l1(members 细节随裁决)。
+2. 套件: `python3 tests/test_arch_reform_t5_verifier.py` → `结果: 46通过 / 0失败`(A1-G3 全绿)。
+3. 全量(CI 同款逐套,纯克隆 /tmp/t5-pureclone@dev/arch-reform-p3+T5 四件): **147 执行 145 绿 2 红**。2 红=test_rd_r20_state_checkpoint(43/2)+test_rd_r20_state_consistency(11/1)=**既有分支状态面非本波**: 同克隆裸 f65b28c(无 T5 文件)复跑同红同文案(`main 超前 baseline 7 个提交中 1 个不容忍…如 496dc1a`)=与 T5 零相关;根因=reform 分支落后 main(R27 收口+HK 合并链+T-R28-2 对账行在 main 不在本分支),T4 时点 146/0 绿与此不矛盾(彼时 main 未超前)。main 纯克隆今日全绿 145/0(ALL_GREEN,任务档在案)。**分支随 main 收敛(由操作者席定 rebase/merge)后此两面自复绿,无需本波处理**(整改分支未经授权不并 main 纪律不动)。
+4. CLI 冒烟: `python3 scripts/research_contract/claim_verifier.py <bundle> <snapshot> --out r.json`(MODEL_* 绊线 env)=退出 0+双跑逐字节同+summary 与进程内一致(G3)。
+
+### 设计裁决记录(实现中发现,逐条修正)
+
+1. threshold 型 value=float(Fact 水平)+relation/since_date/since_note/persistence=**顶层事实性字段**,验证=值+aux 逐项镜像重算(工厂 build_threshold_claims 口径逐字对照: side_now 同侧取 crossing_date/全窗同侧回窗首注记/末端侧不一致=如实空/序列缺席=series_absent 注记)。
+2. change 族端值锚=**derived.end.value(原始序列值)**,非 fact.value(显示舍入位)——首版误锚致 clean 面 9 条假红(RUT −8.594 vs −8.5939 舍入边界),T4 同锚(S2 复算式)既证,修正后归零。
+3. 派生 claim STALE 继承=**各成员按自身节奏定级后取最差**(members 细节随档),禁跨成员错除(首版 min(cadence)×max(lag) 把 DFF−JP spread 错算 7.4 节奏=l3,修正为 JP 1.2=l1)。
+4. 无值引用归 INSUFFICIENT 薄证据路(§2「引用必带值」结构违约),非证据值不符硬红;引用-事实逐条一致性只对带值引用判。
+5. 跨单位 spread=硬不符(CONTRADICTED,律3 篡改面),禁经 NOT_VERIFIABLE 披露洗出;basis=0 相对变化=predicate_uncomputable 诚实 NV。
+6. 组哨兵=模块级单例(_GROUP_FAIL);每调用 object() 新建实例致 is 比较恒真(实测 rank 组重复反例抓出该缺陷后修正)。
+7. model_inferred 数值+好证据+复算一致=VERIFIED(律7「有权威源→对照复算」,不因 attribution 一刀切——为阶段四语义审查席留正确接口,而非扩大强制面)。
+
+### 遗留与移交
+
+- T6(确定性渲染器 C1)起所有权归还未定(接管声明原约);T5 API 面=verify_bundle/apply_verdicts/timeout_policy+CLI,T6 消费律6=「渲染只吃 VERIFIED,余态入披露区」。
+- 工作树保留原实现席未提交稿(claim_bundle.py attribution 扩展+24/-4+本档 T4 节)随本 commit 入库(T3/T4 波同款先例)。

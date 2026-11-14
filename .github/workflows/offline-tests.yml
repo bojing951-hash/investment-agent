@@ -60,6 +60,9 @@ jobs:
             fi
           done
           exit $fail
+      - name: thresholds 三方对账门 G1-G4(T2·裁定S1第4项,任一门红=CI fail)
+        run: |
+          python3 scripts/thresholds_gate.py
       - name: 研发状态一致性门(R20·Charter10 §3.2,六项任一FAIL即红)
         run: |
           if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then

@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-14 R26 VP旧库LABEL_DRIFT对账 · 排队面候选①(T-R26-1)
-> baseline=70244810155f0f1d30b0ae65db3e246311bc3878 (机器行: rd_checkpoint.py 维护,勿手改)
+> baseline=286c0c6afea0d835bdbd6dada4e3502b11813498 (机器行: rd_checkpoint.py 维护,勿手改)
 
 > **本节=唯一当前态入口**(Charter 10 §3.1)。下方历史快照仅供追溯,以本节+Git HEAD 为准。
 > 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);
@@ -24,7 +24,8 @@
 
 | ID | 状态 | Git证据 | 说明 |
 |---|---|---|---|
-| (空·下轮开轮时新增 T-R27-* 行;T-R26-1 已毕入检查点块 completed_ids) | | | |
+| T-R27-1 | 待合并 | 62dfd18(码波)+45判套件 | Gate B 提取器误杀修复五缺陷(辛/壬/癸/距离/子),两期真实报告全文复验 errors=0;操作者席独立验证四项全绿(R27-OPERATOR-VERIFY.md) |
+| T-R28-1 | 进行中 | (轮开随分支建立落) | 架构整改·阶段三纵向切片开工: dev/arch-reform-p3 分支+worktree 建立+S1 六项落地(工单 T1) |
 
 ### [历史快照·R15 视角,已被上方权威快照取代]
 

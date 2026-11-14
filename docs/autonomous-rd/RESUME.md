@@ -27,14 +27,19 @@
 
 R26=排队面候选①(VP 旧库 LABEL_DRIFT 对账毕,审计两轮闭)。队列按优先级:
 
-1. **R27 候选① R25 审计余留 NIT 收口(小代码面)**: Ni-2 attach 覆写先前 attach 元数据(建议 revisions 化或保留先前块)/Ni-3 _write_report 双文件非原子写(temp+rename)/Ni-4 secondary_metric_ids 与主锚/内部重复(去重或契约明示)/Ni-5 historical_coverage_audit DFF 通道映射(拉取后覆盖报告保守低报——宜与操作者拉取同轮收);预存观察 skipped_step ok=True 渲 [OK|—](SKIP 分支死码)。
-2. **操作者席待办**: ①R26 合并发布(dev/rd-r26-label-drift,盖章=分支最后一笔合规);②**DFF 真实拉取**(R25 移交,网络面: `python3 scripts/macro_collector.py`,macro 档落 DFF 10 年日频序列;拉取后 ia_cli history --metric DFF 出真实序列+S4_history_DFF 转绿;Ni-5 宜随后收);③LIVE 观察 11-14 周六 ZQ 族 weekly 观察钟。
+1. **[进行中·R28·T-R28-1] 架构转型与工程整改·阶段三纵向切片开工(用户新工程令 2026-11-14,六阶段,唯一优先队列)**: 章程原文=docs/autonomous-rd/CHARTER_ARCH_REFORM.md;进度=阶段一/二毕(故障基线含 A-1/A-2/A-3/B/C;契约设计 v1.2 金融席+审计席双放行);实施工单=docs/autonomous-rd/ARCH_REFORM_PHASE3_PLAN.md(T1 S1 六项落地→T2 thresholds v1.0+G1-G4 CI 门→T3 series_store 补 HY_OAS/CURVE→T4 claim_factory 六型→T5 claim_verifier 六状态→T6 确定性渲染 C1→T7 新旧并行对照→T8 迁移门审计席裁决)。工程面=分支 **dev/arch-reform-p3**(基点=R27 修后 main),worktree=**~/investment-agent-reform**(持久位,勿用 /tmp);实现席=引擎轮次或专项子代理(工单 §2);**整改分支未经用户授权不并 main 不动生产;旧路径全程只读可恢复;QA 资产(V5/V6+封存件)留操作者面 ~/agent-loop/ARCH-REFORM/QA/ 禁入本仓(封存面禁读)**。
+2. **R28+ 排队(整改六阶段内)**: 阶段四 Agent Native 统一(周报切片过后复用 Fact→Evidence→Claim→Verification 契约改造 agent_judgment.py 编排接口)→阶段五研发机制(根因决策门/优先级=影响×严重×复发×根因×成本/能力验收六问/状态语义一致门,只加严不放松)→阶段六真实产品验收(Real-World Acceptance Suite 四面)。旧 R27 候选② NIT 余留(Ni-2~5/MW-V1 P2-2)降级排整改期后(P2-2 叙述一致性防线由阶段三 text_consistency+语义席取代)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。六标签首验窗现含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 26, "date": "2026-11-14 09:29 HKT", "branch": "dev/rd-r26-label-drift", "commit": "70244810155f0f1d30b0ae65db3e246311bc3878", "baseline": "70244810155f0f1d30b0ae65db3e246311bc3878", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R26-1"], "next_task": "R27 候选① R25 审计余留 NIT 收口(Ni-2 attach 覆写史/Ni-3 双文件非原子写/Ni-4 副指标重复/Ni-5 coverage 通道映射宜与操作者 DFF 拉取同轮);操作者席: R26 合并发布(dev/rd-r26-label-drift)+DFF 真实拉取+LIVE ZQ 观察钟", "next_round": 27} -->
+<!-- RD-CHECKPOINT v1: json {"round": 27, "date": "2026-11-14 20:23 HKT", "branch": "dev/rd-r27-gateb-extractor", "commit": "286c0c6afea0d835bdbd6dada4e3502b11813498", "baseline": "286c0c6afea0d835bdbd6dada4e3502b11813498", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R27-1"], "next_task": "R28: 架构转型与工程整改·阶段三纵向切片开工(用户工程令唯一优先队列;分支 dev/arch-reform-p3+worktree ~/investment-agent-reform;工单 T1 S1六项落地起步)", "next_round": 28} -->
+
+## 下一步存档(2026-11-14 R27 收口后版)
+
+1. [已毕·R27] **Gate B 提取器误杀修复(T-R27-1,两期实例 11-08+11-14)**: 正道修五缺陷零容差放宽——(辛)英文 ticker 别名标识符边界(SPX_EPS 前缀不再当 SPX,166 天滞后不当价格)/(壬)天数计数守卫(值后紧跟「天」=时长非水平)/(癸)带符号百分数=变化断言(利率/利差/失业率/信心捕获组前加符号 lookbehind,DXY+1.09% 不再当 UST_10Y 水平)/(距离)「距离」入 _SPEC_CONTEXT_RE(0.80pp 距警告线不再当 HY_OAS 水平)/(子)语境前视不跨小句边界(邻句 bleed 不再误跳真阳性)。套件 test_rd_r27_gateb_extractor.py 45 判(真实隔离报告句嵌入 audit/r27_gateb_repro/+当日真实锚点副本;判死红线=三误杀句嵌入零数值错误+真错值句照常❌);两期真实报告全文复验 errors=0。台账 T-R27-1 已毕。
+2. [已毕·R27·操作者席] **独立验证+新工程令落地**: 四项复核全绿(专属 45/45+真实报告全文 errors=0+锚点取证[11-08 复现=v1 原始晨批=事故同基]+干净克隆全仓 143/143)+六门 6/6;验证记录=~/agent-loop/ARCH-REFORM/R27-OPERATOR-VERIFY.md。用户 2026-11-14 下**架构转型与工程整改新工程令**(六阶段,原文落仓 docs/autonomous-rd/CHARTER_ARCH_REFORM.md),阶段一/二当日毕(故障基线+契约设计 v1.2 两席放行),阶段三工单落仓 ARCH_REFORM_PHASE3_PLAN.md;R28 起引擎转向整改队列。
 
 ## 下一步存档(2026-11-14 R26 收口后版)
 

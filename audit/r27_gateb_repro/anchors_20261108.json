@@ -1,0 +1,1860 @@
+{
+ "global_market.data.SPX.close": {
+  "value": 7376.86,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SPX",
+  "quality": "PASS",
+  "fact_id": "SPX@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 7444.2,
+  "low": 7369.55
+ },
+ "global_market.data.NDX.close": {
+  "value": 26989.99,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "NDX",
+  "quality": "PASS",
+  "fact_id": "NDX@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 27316.09,
+  "low": 26887.69
+ },
+ "global_market.data.RUT.close": {
+  "value": 2754.11,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "RUT",
+  "quality": "PASS",
+  "fact_id": "RUT@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 2761.58,
+  "low": 2721.0
+ },
+ "global_market.data.NVDA.close": {
+  "value": 186.64,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "NVDA",
+  "quality": "PASS",
+  "fact_id": "NVDA@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 194.9,
+  "low": 185.22
+ },
+ "global_market.data.AAPL.close": {
+  "value": 342.37,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "AAPL",
+  "quality": "PASS",
+  "fact_id": "AAPL@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 345.79,
+  "low": 338.3
+ },
+ "global_market.data.MSFT.close": {
+  "value": 530.61,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "MSFT",
+  "quality": "PASS",
+  "fact_id": "MSFT@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 538.33,
+  "low": 524.47
+ },
+ "global_market.data.TLT.close": {
+  "value": 81.92,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "TLT",
+  "quality": "PASS",
+  "fact_id": "TLT@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 82.42,
+  "low": 81.71
+ },
+ "global_market.data.HYG.close": {
+  "value": 77.23,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HYG",
+  "quality": "PASS",
+  "fact_id": "HYG@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 77.36,
+  "low": 77.23
+ },
+ "global_market.data.DXY.close": {
+  "value": 102.3,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "DXY",
+  "quality": "PASS",
+  "fact_id": "DXY@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 102.36,
+  "low": 101.55
+ },
+ "global_market.data.EURUSD.close": {
+  "value": 1.12,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "EURUSD",
+  "quality": "PASS",
+  "fact_id": "EURUSD@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 1.12,
+  "low": 1.11
+ },
+ "global_market.data.GOLD.close": {
+  "value": 4074.9,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "GOLD_F",
+  "quality": "PASS",
+  "fact_id": "GOLD_F@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 4116.2,
+  "low": 4035.6
+ },
+ "global_market.data.SILVER.close": {
+  "value": 51.94,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SILVER_F",
+  "quality": "PASS",
+  "fact_id": "SILVER_F@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 52.37,
+  "low": 51.2
+ },
+ "global_market.data.WTI.close": {
+  "value": 90.83,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "WTI_F",
+  "quality": "PASS",
+  "fact_id": "WTI_F@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 92.53,
+  "low": 89.08
+ },
+ "global_market.data.BRENT.close": {
+  "value": 98.32,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BRENT_F",
+  "quality": "PASS",
+  "fact_id": "BRENT_F@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 100.92,
+  "low": 96.71
+ },
+ "global_market.data.EEM.close": {
+  "value": 59.33,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "EEM",
+  "quality": "PASS",
+  "fact_id": "EEM@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 59.77,
+  "low": 59.05
+ },
+ "global_market.data.BTC.close": {
+  "value": 75810.73,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BTC",
+  "quality": "PASS",
+  "fact_id": "BTC@2026-11-08",
+  "obs_date": "2026-11-08",
+  "high": 75878.1,
+  "low": 75585.37
+ },
+ "global_market.data.VIX.close": {
+  "value": 25.64,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "VIX",
+  "quality": "PASS",
+  "fact_id": "VIX@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 27.76,
+  "low": 23.47
+ },
+ "global_market.data.EZU.close": {
+  "value": 65.43,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "EZU",
+  "quality": "PASS",
+  "fact_id": "EZU@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 65.82,
+  "low": 65.0
+ },
+ "global_market.data.FEZ.close": {
+  "value": 65.03,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "FEZ",
+  "quality": "PASS",
+  "fact_id": "FEZ@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 65.45,
+  "low": 64.86
+ },
+ "global_market.data.EWU.close": {
+  "value": 47.22,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "EWU",
+  "quality": "PASS",
+  "fact_id": "EWU@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 47.54,
+  "low": 46.76
+ },
+ "global_market.data.EWG.close": {
+  "value": 41.58,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "EWG",
+  "quality": "PASS",
+  "fact_id": "EWG@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 41.88,
+  "low": 41.42
+ },
+ "global_market.data.EWJ.close": {
+  "value": 88.26,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "EWJ",
+  "quality": "PASS",
+  "fact_id": "EWJ@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 88.98,
+  "low": 87.67
+ },
+ "global_market.data.INDA.close": {
+  "value": 50.89,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "INDA",
+  "quality": "PASS",
+  "fact_id": "INDA@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 51.13,
+  "low": 50.77
+ },
+ "global_market.data.FXI.close": {
+  "value": 34.95,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "FXI",
+  "quality": "PASS",
+  "fact_id": "FXI@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 35.07,
+  "low": 34.59
+ },
+ "global_market.data.GBPUSD=X.close": {
+  "value": 1.35,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "GBPUSD",
+  "quality": "PASS",
+  "fact_id": "GBPUSD@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 1.35,
+  "low": 1.33
+ },
+ "global_market.data.JPY=X.close": {
+  "value": 158.43,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "USDJPY",
+  "quality": "PASS",
+  "fact_id": "USDJPY@2026-11-08",
+  "obs_date": "2026-11-08",
+  "high": 158.43,
+  "low": 158.43
+ },
+ "global_market.data.CNY=X.close": {
+  "value": 6.67,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "USDCNY",
+  "quality": "PASS",
+  "fact_id": "USDCNY@2026-11-08",
+  "obs_date": "2026-11-08",
+  "high": 6.67,
+  "low": 6.66
+ },
+ "global_market.data.IEF.close": {
+  "value": 91.86,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "IEF",
+  "quality": "PASS",
+  "fact_id": "IEF@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 92.17,
+  "low": 91.68
+ },
+ "global_market.data.SHY.close": {
+  "value": 81.63,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SHY",
+  "quality": "PASS",
+  "fact_id": "SHY@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 81.68,
+  "low": 81.56
+ },
+ "global_market.data.LQD.close": {
+  "value": 104.53,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "LQD",
+  "quality": "PASS",
+  "fact_id": "LQD@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 104.82,
+  "low": 104.4
+ },
+ "global_market.data.GLD.close": {
+  "value": 372.52,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "GLD",
+  "quality": "PASS",
+  "fact_id": "GLD@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 373.76,
+  "low": 369.26
+ },
+ "global_market.data.USO.close": {
+  "value": 148.41,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "USO",
+  "quality": "PASS",
+  "fact_id": "USO@2026-11-06",
+  "obs_date": "2026-11-06",
+  "high": 149.41,
+  "low": 146.7
+ },
+ "macro.data.HY_OAS.value": {
+  "value": 3.48,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HY_OAS",
+  "quality": "PASS",
+  "fact_id": "HY_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.HY_OAS.prev": {
+  "value": 3.44,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HY_OAS",
+  "quality": "PASS",
+  "fact_id": "HY_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.HY_OAS.week_chg": {
+  "value": 0.04,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HY_OAS",
+  "quality": "PASS",
+  "fact_id": "HY_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.BB_OAS.value": {
+  "value": 2.13,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BB_OAS",
+  "quality": "PASS",
+  "fact_id": "BB_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.BB_OAS.prev": {
+  "value": 2.09,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BB_OAS",
+  "quality": "PASS",
+  "fact_id": "BB_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.BB_OAS.week_chg": {
+  "value": 0.04,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BB_OAS",
+  "quality": "PASS",
+  "fact_id": "BB_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.B_OAS.value": {
+  "value": 3.67,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "B_OAS",
+  "quality": "PASS",
+  "fact_id": "B_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.B_OAS.prev": {
+  "value": 3.6,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "B_OAS",
+  "quality": "PASS",
+  "fact_id": "B_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.B_OAS.week_chg": {
+  "value": 0.07,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "B_OAS",
+  "quality": "PASS",
+  "fact_id": "B_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.CCC_OAS.value": {
+  "value": 13.2,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CCC_OAS",
+  "quality": "PASS",
+  "fact_id": "CCC_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.CCC_OAS.prev": {
+  "value": 13.27,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CCC_OAS",
+  "quality": "PASS",
+  "fact_id": "CCC_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.CCC_OAS.week_chg": {
+  "value": -0.07,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CCC_OAS",
+  "quality": "PASS",
+  "fact_id": "CCC_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.IG_OAS.value": {
+  "value": 0.93,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "IG_OAS",
+  "quality": "PASS",
+  "fact_id": "IG_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.IG_OAS.prev": {
+  "value": 0.94,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "IG_OAS",
+  "quality": "PASS",
+  "fact_id": "IG_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.IG_OAS.week_chg": {
+  "value": -0.01,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "IG_OAS",
+  "quality": "PASS",
+  "fact_id": "IG_OAS@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_2Y.value": {
+  "value": 4.46,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_2Y",
+  "quality": "PASS",
+  "fact_id": "UST_2Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_2Y.prev": {
+  "value": 4.56,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_2Y",
+  "quality": "PASS",
+  "fact_id": "UST_2Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_2Y.week_chg": {
+  "value": -0.1,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_2Y",
+  "quality": "PASS",
+  "fact_id": "UST_2Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_10Y.value": {
+  "value": 4.84,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_10Y",
+  "quality": "PASS",
+  "fact_id": "UST_10Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_10Y.prev": {
+  "value": 4.94,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_10Y",
+  "quality": "PASS",
+  "fact_id": "UST_10Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_10Y.week_chg": {
+  "value": -0.1,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_10Y",
+  "quality": "PASS",
+  "fact_id": "UST_10Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_30Y.value": {
+  "value": 5.25,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_30Y",
+  "quality": "PASS",
+  "fact_id": "UST_30Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_30Y.prev": {
+  "value": 5.31,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_30Y",
+  "quality": "PASS",
+  "fact_id": "UST_30Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_30Y.week_chg": {
+  "value": -0.06,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_30Y",
+  "quality": "PASS",
+  "fact_id": "UST_30Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.TIPS_5Y.value": {
+  "value": 2.33,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "TIPS_5Y",
+  "quality": "PASS",
+  "fact_id": "TIPS_5Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.TIPS_5Y.prev": {
+  "value": 2.25,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "TIPS_5Y",
+  "quality": "PASS",
+  "fact_id": "TIPS_5Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.TIPS_5Y.week_chg": {
+  "value": 0.08,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "TIPS_5Y",
+  "quality": "PASS",
+  "fact_id": "TIPS_5Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.TIPS_10Y.value": {
+  "value": 2.6,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "TIPS_10Y",
+  "quality": "PASS",
+  "fact_id": "TIPS_10Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.TIPS_10Y.prev": {
+  "value": 2.6,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "TIPS_10Y",
+  "quality": "PASS",
+  "fact_id": "TIPS_10Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.TIPS_10Y.week_chg": {
+  "value": 0.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "TIPS_10Y",
+  "quality": "PASS",
+  "fact_id": "TIPS_10Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.BEI_5Y.value": {
+  "value": 2.29,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BEI_5Y",
+  "quality": "PASS",
+  "fact_id": "BEI_5Y@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "macro.data.BEI_5Y.prev": {
+  "value": 2.46,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BEI_5Y",
+  "quality": "PASS",
+  "fact_id": "BEI_5Y@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "macro.data.BEI_5Y.week_chg": {
+  "value": -0.17,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BEI_5Y",
+  "quality": "PASS",
+  "fact_id": "BEI_5Y@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "macro.data.BEI_10Y.value": {
+  "value": 2.23,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BEI_10Y",
+  "quality": "PASS",
+  "fact_id": "BEI_10Y@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "macro.data.BEI_10Y.prev": {
+  "value": 2.34,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BEI_10Y",
+  "quality": "PASS",
+  "fact_id": "BEI_10Y@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "macro.data.BEI_10Y.week_chg": {
+  "value": -0.11,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "BEI_10Y",
+  "quality": "PASS",
+  "fact_id": "BEI_10Y@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "macro.data.CURVE_2S10S.value": {
+  "value": 0.35,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CURVE_2S10S",
+  "quality": "PASS",
+  "fact_id": "CURVE_2S10S@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "macro.data.CURVE_2S10S.prev": {
+  "value": 0.38,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CURVE_2S10S",
+  "quality": "PASS",
+  "fact_id": "CURVE_2S10S@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "macro.data.CURVE_2S10S.week_chg": {
+  "value": -0.03,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CURVE_2S10S",
+  "quality": "PASS",
+  "fact_id": "CURVE_2S10S@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "macro.data.FED_FUNDS.value": {
+  "value": 3.88,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "FED_FUNDS",
+  "quality": "WARN",
+  "fact_id": "FED_FUNDS@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.FED_FUNDS.prev": {
+  "value": 3.75,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "FED_FUNDS",
+  "quality": "WARN",
+  "fact_id": "FED_FUNDS@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.FED_FUNDS.mom_chg": {
+  "value": 0.13,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "FED_FUNDS",
+  "quality": "WARN",
+  "fact_id": "FED_FUNDS@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.FED_FUNDS.yoy_chg": {
+  "value": -0.21,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "FED_FUNDS",
+  "quality": "WARN",
+  "fact_id": "FED_FUNDS@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.CPI.value": {
+  "value": 336.298,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CPI",
+  "quality": "DEGRADED",
+  "fact_id": "CPI@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.CPI.prev": {
+  "value": 334.131,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CPI",
+  "quality": "DEGRADED",
+  "fact_id": "CPI@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.CPI.mom_pct": {
+  "value": 0.6485,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CPI",
+  "quality": "DEGRADED",
+  "fact_id": "CPI@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.CPI.yoy_pct": {
+  "value": 3.7173,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CPI",
+  "quality": "DEGRADED",
+  "fact_id": "CPI@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.CORE_PCE.value": {
+  "value": 130.902,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CORE_PCE",
+  "quality": "DEGRADED",
+  "fact_id": "CORE_PCE@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.CORE_PCE.prev": {
+  "value": 130.489,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CORE_PCE",
+  "quality": "DEGRADED",
+  "fact_id": "CORE_PCE@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.CORE_PCE.mom_pct": {
+  "value": 0.3165,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CORE_PCE",
+  "quality": "DEGRADED",
+  "fact_id": "CORE_PCE@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.CORE_PCE.yoy_pct": {
+  "value": 3.1212,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CORE_PCE",
+  "quality": "DEGRADED",
+  "fact_id": "CORE_PCE@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.UNEMPLOYMENT.value": {
+  "value": 4.1,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UNEMPLOYMENT",
+  "quality": "WARN",
+  "fact_id": "UNEMPLOYMENT@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.UNEMPLOYMENT.prev": {
+  "value": 4.2,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UNEMPLOYMENT",
+  "quality": "WARN",
+  "fact_id": "UNEMPLOYMENT@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.UNEMPLOYMENT.mom_chg": {
+  "value": -0.1,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UNEMPLOYMENT",
+  "quality": "WARN",
+  "fact_id": "UNEMPLOYMENT@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.UNEMPLOYMENT.yoy_chg": {
+  "value": -0.3,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UNEMPLOYMENT",
+  "quality": "WARN",
+  "fact_id": "UNEMPLOYMENT@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.NFP.value": {
+  "value": 159293.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "NFP",
+  "quality": "WARN",
+  "fact_id": "NFP@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.NFP.prev": {
+  "value": 159128.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "NFP",
+  "quality": "WARN",
+  "fact_id": "NFP@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.NFP.mom_chg": {
+  "value": 165.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "NFP",
+  "quality": "WARN",
+  "fact_id": "NFP@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.NFP.yoy_chg": {
+  "value": 885.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "NFP",
+  "quality": "WARN",
+  "fact_id": "NFP@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.CORE_CPI.value": {
+  "value": 338.896,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CORE_CPI",
+  "quality": "DEGRADED",
+  "fact_id": "CORE_CPI@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.CORE_CPI.prev": {
+  "value": 337.765,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CORE_CPI",
+  "quality": "DEGRADED",
+  "fact_id": "CORE_CPI@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.CORE_CPI.mom_pct": {
+  "value": 0.3348,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CORE_CPI",
+  "quality": "DEGRADED",
+  "fact_id": "CORE_CPI@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.CORE_CPI.yoy_pct": {
+  "value": 2.5658,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CORE_CPI",
+  "quality": "DEGRADED",
+  "fact_id": "CORE_CPI@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.AHE.value": {
+  "value": 38.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "AHE",
+  "quality": "WARN",
+  "fact_id": "AHE@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.AHE.prev": {
+  "value": 37.86,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "AHE",
+  "quality": "WARN",
+  "fact_id": "AHE@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.AHE.mom_pct": {
+  "value": 0.3698,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "AHE",
+  "quality": "WARN",
+  "fact_id": "AHE@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.AHE.yoy_pct": {
+  "value": 3.1208,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "AHE",
+  "quality": "WARN",
+  "fact_id": "AHE@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.ICSA.value": {
+  "value": 189000.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "ICSA",
+  "quality": "WARN",
+  "fact_id": "ICSA@2026-10-31",
+  "obs_date": "2026-10-31"
+ },
+ "macro.data.ICSA.prev": {
+  "value": 195000.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "ICSA",
+  "quality": "WARN",
+  "fact_id": "ICSA@2026-10-31",
+  "obs_date": "2026-10-31"
+ },
+ "macro.data.ICSA.week_chg": {
+  "value": -6000.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "ICSA",
+  "quality": "WARN",
+  "fact_id": "ICSA@2026-10-31",
+  "obs_date": "2026-10-31"
+ },
+ "macro.data.WTI_SPOT_M.value": {
+  "value": 102.07,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "WTI_SPOT_M",
+  "quality": "WARN",
+  "fact_id": "WTI_SPOT_M@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.WTI_SPOT_M.prev": {
+  "value": 97.31,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "WTI_SPOT_M",
+  "quality": "WARN",
+  "fact_id": "WTI_SPOT_M@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.WTI_SPOT_M.mom_pct": {
+  "value": 4.8916,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "WTI_SPOT_M",
+  "quality": "WARN",
+  "fact_id": "WTI_SPOT_M@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.WTI_SPOT_M.yoy_pct": {
+  "value": 67.6302,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "WTI_SPOT_M",
+  "quality": "WARN",
+  "fact_id": "WTI_SPOT_M@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "macro.data.UST_5Y.value": {
+  "value": 4.59,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_5Y",
+  "quality": "PASS",
+  "fact_id": "UST_5Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_5Y.prev": {
+  "value": 4.71,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_5Y",
+  "quality": "PASS",
+  "fact_id": "UST_5Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UST_5Y.week_chg": {
+  "value": -0.12,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UST_5Y",
+  "quality": "PASS",
+  "fact_id": "UST_5Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.data.UMCSENT.value": {
+  "value": 48.1,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UMCSENT",
+  "quality": "DEGRADED",
+  "fact_id": "UMCSENT@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.UMCSENT.prev": {
+  "value": 51.7,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UMCSENT",
+  "quality": "DEGRADED",
+  "fact_id": "UMCSENT@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.UMCSENT.mom_pct": {
+  "value": -6.9632,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UMCSENT",
+  "quality": "DEGRADED",
+  "fact_id": "UMCSENT@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.UMCSENT.yoy_pct": {
+  "value": -12.7042,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UMCSENT",
+  "quality": "DEGRADED",
+  "fact_id": "UMCSENT@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.RSAFS.value": {
+  "value": 745021.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "RSAFS",
+  "quality": "DEGRADED",
+  "fact_id": "RSAFS@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.RSAFS.prev": {
+  "value": 739322.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "RSAFS",
+  "quality": "DEGRADED",
+  "fact_id": "RSAFS@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.RSAFS.mom_pct": {
+  "value": 0.7708,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "RSAFS",
+  "quality": "DEGRADED",
+  "fact_id": "RSAFS@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.RSAFS.yoy_pct": {
+  "value": 6.2876,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "RSAFS",
+  "quality": "DEGRADED",
+  "fact_id": "RSAFS@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.INDPRO.value": {
+  "value": 103.9506,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "INDPRO",
+  "quality": "DEGRADED",
+  "fact_id": "INDPRO@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.INDPRO.prev": {
+  "value": 103.2664,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "INDPRO",
+  "quality": "DEGRADED",
+  "fact_id": "INDPRO@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.INDPRO.mom_pct": {
+  "value": 0.6626,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "INDPRO",
+  "quality": "DEGRADED",
+  "fact_id": "INDPRO@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.INDPRO.yoy_pct": {
+  "value": 2.2452,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "INDPRO",
+  "quality": "DEGRADED",
+  "fact_id": "INDPRO@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.JTSJOL.value": {
+  "value": 7523.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "JTSJOL",
+  "quality": "DEGRADED",
+  "fact_id": "JTSJOL@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.JTSJOL.prev": {
+  "value": 7190.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "JTSJOL",
+  "quality": "DEGRADED",
+  "fact_id": "JTSJOL@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.JTSJOL.mom_chg": {
+  "value": 333.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "JTSJOL",
+  "quality": "DEGRADED",
+  "fact_id": "JTSJOL@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "macro.data.JTSJOL.yoy_chg": {
+  "value": 354.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "JTSJOL",
+  "quality": "DEGRADED",
+  "fact_id": "JTSJOL@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "china.data.上证指数.close": {
+  "value": 3649.1774,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SHCOMP",
+  "quality": "PASS",
+  "fact_id": "SHCOMP@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.上证指数.week_chg": {
+  "value": 1.3937,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SHCOMP",
+  "quality": "PASS",
+  "fact_id": "SHCOMP@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.深证成指.close": {
+  "value": 11175.7805,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SZCI",
+  "quality": "PASS",
+  "fact_id": "SZCI@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.深证成指.week_chg": {
+  "value": 3.1568,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SZCI",
+  "quality": "PASS",
+  "fact_id": "SZCI@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.创业板指.close": {
+  "value": 2465.232,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CHINEXT",
+  "quality": "PASS",
+  "fact_id": "CHINEXT@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.创业板指.week_chg": {
+  "value": 2.138,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CHINEXT",
+  "quality": "PASS",
+  "fact_id": "CHINEXT@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.恒生指数.close": {
+  "value": 24481.86,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HSI",
+  "quality": "PASS",
+  "fact_id": "HSI@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.恒生指数.week_chg": {
+  "value": 5.0975,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HSI",
+  "quality": "PASS",
+  "fact_id": "HSI@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.恒生指数.ytd_chg": {
+  "value": -4.4817,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HSI",
+  "quality": "PASS",
+  "fact_id": "HSI@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.恒生国企指数.close": {
+  "value": 8274.1,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HSCEI",
+  "quality": "PASS",
+  "fact_id": "HSCEI@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.恒生国企指数.week_chg": {
+  "value": 5.2387,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HSCEI",
+  "quality": "PASS",
+  "fact_id": "HSCEI@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.data.恒生国企指数.ytd_chg": {
+  "value": -7.1753,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HSCEI",
+  "quality": "PASS",
+  "fact_id": "HSCEI@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.ah_premium.close": {
+  "value": 129.58,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HSAHP",
+  "quality": "PASS",
+  "fact_id": "HSAHP@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.southbound.net_buy": {
+  "value": 550.65,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SB_FLOW",
+  "quality": "PASS",
+  "fact_id": "SB_FLOW@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.margin.balance": {
+  "value": 11870.89,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "MARGIN_BAL",
+  "quality": "PASS",
+  "fact_id": "MARGIN_BAL@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.valuation.pe": {
+  "value": 16.83,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SH_PE",
+  "quality": "PASS",
+  "fact_id": "SH_PE@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.turnover.sh_amount_billion": {
+  "value": 7726.35,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SH_AMOUNT",
+  "quality": "PASS",
+  "fact_id": "SH_AMOUNT@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.turnover.sz_amount_billion": {
+  "value": 4649.76,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "SZ_COMPONENT_AMOUNT",
+  "quality": "WARN",
+  "fact_id": "SZ_COMPONENT_AMOUNT@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.turnover.total_amount_billion": {
+  "value": 12376.11,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CN_TOTAL_TURNOVER",
+  "quality": "WARN",
+  "fact_id": "CN_TOTAL_TURNOVER@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "china.turnover.volume_billion": {
+  "value": 12376.11,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "CN_TOTAL_TURNOVER",
+  "quality": "WARN",
+  "fact_id": "CN_TOTAL_TURNOVER@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "rate_economy.current_rates.DFF.value": {
+  "value": 3.88,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "DFF",
+  "quality": "PASS",
+  "fact_id": "DFF@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "rate_economy.current_rates.DFEDTARU.value": {
+  "value": 4.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "DFEDTARU",
+  "quality": "PASS",
+  "fact_id": "DFEDTARU@2026-11-07",
+  "obs_date": "2026-11-07"
+ },
+ "rate_economy.current_rates.DFEDTARL.value": {
+  "value": 3.75,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "DFEDTARL",
+  "quality": "PASS",
+  "fact_id": "DFEDTARL@2026-11-07",
+  "obs_date": "2026-11-07"
+ },
+ "macro.derived.REAL_10Y": {
+  "value": 2.61,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "REAL_10Y",
+  "quality": "PASS",
+  "fact_id": "REAL_10Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.derived.REAL_5Y": {
+  "value": 2.3,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "REAL_5Y",
+  "quality": "PASS",
+  "fact_id": "REAL_5Y@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "macro.derived.HY_IG_DIFF": {
+  "value": 2.55,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "HY_IG_DIFF",
+  "quality": "PASS",
+  "fact_id": "HY_IG_DIFF@2026-11-05",
+  "obs_date": "2026-11-05"
+ },
+ "rate_economy.fed_funds_futures.implied_rate": {
+  "value": 4.075,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "ZQ_IMPLIED_AVG",
+  "quality": "PASS",
+  "fact_id": "ZQ_IMPLIED_AVG@2026-11-06",
+  "obs_date": "2026-11-06"
+ },
+ "rate_economy.real_economy.UNRATE.value": {
+  "value": 4.1,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UNEMPLOYMENT",
+  "quality": "WARN",
+  "fact_id": "UNEMPLOYMENT@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "rate_economy.real_economy.UNRATE.prev_value": {
+  "value": 4.2,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UNEMPLOYMENT",
+  "quality": "WARN",
+  "fact_id": "UNEMPLOYMENT@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "rate_economy.real_economy.PAYEMS.value": {
+  "value": 159293.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "NFP",
+  "quality": "WARN",
+  "fact_id": "NFP@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "rate_economy.real_economy.PAYEMS.prev_value": {
+  "value": 159128.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "NFP",
+  "quality": "WARN",
+  "fact_id": "NFP@2026-10-01",
+  "obs_date": "2026-10-01"
+ },
+ "rate_economy.real_economy.UMCSENT.value": {
+  "value": 48.1,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UMCSENT",
+  "quality": "DEGRADED",
+  "fact_id": "UMCSENT@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "rate_economy.real_economy.UMCSENT.prev_value": {
+  "value": 51.7,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "UMCSENT",
+  "quality": "DEGRADED",
+  "fact_id": "UMCSENT@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "rate_economy.real_economy.RSAFS.value": {
+  "value": 745021.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "RSAFS",
+  "quality": "DEGRADED",
+  "fact_id": "RSAFS@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "rate_economy.real_economy.RSAFS.prev_value": {
+  "value": 739322.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "RSAFS",
+  "quality": "DEGRADED",
+  "fact_id": "RSAFS@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "rate_economy.real_economy.INDPRO.value": {
+  "value": 103.9506,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "INDPRO",
+  "quality": "DEGRADED",
+  "fact_id": "INDPRO@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "rate_economy.real_economy.INDPRO.prev_value": {
+  "value": 103.2664,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "INDPRO",
+  "quality": "DEGRADED",
+  "fact_id": "INDPRO@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "rate_economy.real_economy.JTSJOL.value": {
+  "value": 7523.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "JTSJOL",
+  "quality": "DEGRADED",
+  "fact_id": "JTSJOL@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "rate_economy.real_economy.JTSJOL.prev_value": {
+  "value": 7190.0,
+  "source_file": "research_snapshot_20261108.json",
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "metric_id": "JTSJOL",
+  "quality": "DEGRADED",
+  "fact_id": "JTSJOL@2026-09-01",
+  "obs_date": "2026-09-01"
+ },
+ "rate_economy.fed_funds_futures.0.price": {
+  "value": 95.925,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.0.implied_rate": {
+  "value": 4.075,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ },
+ "rate_economy.fed_funds_futures.1.price": {
+  "value": 96.1225,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.1.implied_rate": {
+  "value": 3.8775,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ },
+ "rate_economy.fed_funds_futures.2.price": {
+  "value": 95.985,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.2.implied_rate": {
+  "value": 4.015,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ },
+ "rate_economy.fed_funds_futures.3.price": {
+  "value": 95.925,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.3.implied_rate": {
+  "value": 4.075,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ },
+ "rate_economy.fed_funds_futures.4.price": {
+  "value": 95.88,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.4.implied_rate": {
+  "value": 4.12,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ },
+ "rate_economy.fed_funds_futures.5.price": {
+  "value": 95.835,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.5.implied_rate": {
+  "value": 4.165,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ },
+ "rate_economy.fed_funds_futures.6.price": {
+  "value": 95.78,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.6.implied_rate": {
+  "value": 4.22,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ },
+ "rate_economy.fed_funds_futures.7.price": {
+  "value": 95.745,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.7.implied_rate": {
+  "value": 4.255,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ },
+ "rate_economy.fed_funds_futures.8.price": {
+  "value": 95.7,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.8.implied_rate": {
+  "value": 4.3,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ },
+ "rate_economy.fed_funds_futures.9.price": {
+  "value": 95.68,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.9.implied_rate": {
+  "value": 4.32,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ },
+ "rate_economy.fed_funds_futures.10.price": {
+  "value": 95.67,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_F1_PRICE"
+ },
+ "rate_economy.fed_funds_futures.10.implied_rate": {
+  "value": 4.33,
+  "as_of": "2026-11-08",
+  "tolerance_pct": 1.0,
+  "source_file": "research_snapshot_20261108.json",
+  "metric_id": "ZQ_IMPLIED_AVG"
+ }
+}

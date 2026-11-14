@@ -4,27 +4,27 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-14 R25 R24审计3NIT收口+DFF日频史接线 · 排队面首轮(T-R25-1)
-> baseline=8006b9d222328d74581b33fcc91c4bcbba3778af (机器行: rd_checkpoint.py 维护,勿手改)
+## 权威快照: 2026-11-14 R26 VP旧库LABEL_DRIFT对账 · 排队面候选①(T-R26-1)
+> baseline=70244810155f0f1d30b0ae65db3e246311bc3878 (机器行: rd_checkpoint.py 维护,勿手改)
 
 > **本节=唯一当前态入口**(Charter 10 §3.1)。下方历史快照仅供追溯,以本节+Git HEAD 为准。
 > 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);
 > 一致性门 `python3 scripts/rd_state_consistency.py` 六项全绿方可开工;不一致时禁止开发,先恢复状态(§3.2)。
 
 - **基线(机器面)**: 本节标题后机器行(由 rd_checkpoint.py --finalize 盖章写入,勿手改;检查门§①解析)。
-- **基线**: main = 969252c(v0.20.0-alpha;R24 已合并发布);R25 波次在 `dev/rd-r25-nit-dff` @8006b9d 待操作者合并。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
-- **真实进度**: Charter 10 完结后排队面首轮。**3 NIT 收口**: V1-1 步骤台账语义标签三分(内部步「不适用」消误导读噪音,FAIL 不藏)/V1-2 blocked 路径 md/json 两视图同步(_write_report 不变式)/V2-5 judgment schema **v1.1** falsification 可选 secondary_metric_ids(复合证伪副指标机器锚)。**DFF 日频史接线**: registry **v2.8.5** DFF history_source=macro_collector(事实权威仍 rate 通道)+macro_collector FRED_SERIES 接线(免费现有 key,FED_FUNDS/SOFR 同先例)+normalize_macro 事实权威门(防双通道双事实;真实 31 键审计门恰只拦 DFF)+rhq/wd 历史通道解析;**真实拉取=操作者轮**(拉取前 ia_cli history --metric DFF=no_series 序列为空如实,S4 断点数据面根治待拉取)。
-- **独立审计闭环**: 六维全 PASS **0 BLOCKER 0 MAJOR**(3 MINOR+5 NIT);Mi-1 md 渲 agent_judgment 节/Mi-2 wd 真链 e2e/Mi-3 history_source 注册校验+Ni-1 字样=当场随修(8006b9d);**二轮复核四项闭死无新引入=整体可并入**;余 Ni-2/3/4/5+skipped_step 预存观察排队 R26。
-- **验收层状态**: 九 PASS+AC3 PARTIAL(R19 用户落章不变;本轮无 AC 状态变动=工程质量+数据接线)。
-- **当前任务**: R26 候选=①VP 旧库 5 行 LABEL_DRIFT 对账②R25 审计余留 NIT 收口;操作者席=R25 合并发布+DFF 真实拉取+LIVE 观察钟(11-14 周六 ZQ 族)。
+- **基线**: main = 69a25b5(v0.21.0-alpha;R25 已合并发布);R26 波次在 `dev/rd-r26-label-drift` @7024481 待操作者合并。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
+- **真实进度**: **VP 旧库 5 行 LABEL_DRIFT 对账毕**(R22 遗留台账项,排队面候选①)。根因=5 行(11-10 批 hypotheses[0])存量 verdict 为 v1.0 构建面旧词汇 no_forecast,现行引擎按期限可解析性分化 UNPARSEABLE_HORIZON/NOT_YET_TESTABLE;R22"重建即消"预期对此不成立(build_vp C 层零变动,--build-all 不刷新存量 verdict)。**工具面**: reconcile_label_drift+CLI --reconcile-drift(-all)——可见重贴三层留痕(verdict_history/label_history/reconciliations)+BINDING_VIOLATION 整档拒写+判定标签默认拒(--allow-judgment 放行)+validate_vp 写前全过+原子写+幂等。**真实面**(dev 树 17 档,快照 20261112_v2 同基): 5/5 重贴(002/005/006 词汇现代化;007/010 标签 INSUFFICIENT→NOT_YET_TESTABLE 精度提升,库级 view_label 17 档全 INSUFFICIENT 零变动);全库绑定扫描 **133 BINDING_OK/0 漂移/0 违规**(前态 128+5+0);对账单=audit/R26_LABEL_DRIFT_RECONCILIATION.md。
+- **独立审计闭环**: 四维全 PASS **0 BLOCKER 0 MAJOR**(4 NIT)——前态 128+5+0 法证逆向重构 sha256 双向吻合(证明改动面恰=申报四层无夹带);143/143 全仓回归完整树副本独立复证;变异测试三处全咬;Ni-1/Ni-3/Ni-5 当场随修(7024481),Ni-2 维持与 --build-all 既有模式一致。
+- **验收层状态**: 九 PASS+AC3 PARTIAL(R19 用户落章不变;本轮无 AC 状态变动=存量标签一致性收口,AC3 机器防线从"防新增"进到"清存量")。
+- **当前任务**: R27 候选=R25 审计余留 NIT(Ni-2/3/4/5);操作者席=R26 合并发布+DFF 真实拉取(R25 移交)+LIVE 观察钟。
 - **权限变化(Charter 10 §十)**: LIVE 生产修改自此需用户明确指令,不再随波次自动同步。
-- **检查点(R25·2026-11-14)**: 3 NIT+DFF 离线面毕,审计两轮闭;操作者席待办三件(合并/拉取/LIVE 观察)。
+- **检查点(R26·2026-11-14)**: LABEL_DRIFT 对账毕,审计两轮闭;操作者席待办三件(合并/拉取/LIVE 观察)。
 
 ### 任务台账(机器维护: scripts/rd_checkpoint.py 收口;已毕任务只进 ITERATION_LOG/RESUME 存档,永不回台账)
 
 | ID | 状态 | Git证据 | 说明 |
 |---|---|---|---|
-| T-R26-1 | 进行中 | dev/rd-r26-label-drift(轮开) | R26 候选①: VP 旧库 5 行 LABEL_DRIFT 对账——根因=v1.0 存量 no_forecast 旧词汇 vs 现行引擎 UNPARSEABLE_HORIZON/NOT_YET_TESTABLE 分化,且 build_vp C 层零变动使 --build-all 不刷新(R22"重建即消"预期对此 5 行不成立);处置=可见重贴(verdict_history/label_history 留痕)+真实 17 档复证 |
+| (空·下轮开轮时新增 T-R27-* 行;T-R26-1 已毕入检查点块 completed_ids) | | | |
 
 ### [历史快照·R15 视角,已被上方权威快照取代]
 

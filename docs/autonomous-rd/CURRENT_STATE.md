@@ -24,7 +24,7 @@
 
 | ID | 状态 | Git证据 | 说明 |
 |---|---|---|---|
-| (空·下轮开轮时新增 T-R25-* 行;T-R24-1 已毕入检查点块 completed_ids) | | | |
+| T-R26-1 | 进行中 | dev/rd-r26-label-drift(轮开) | R26 候选①: VP 旧库 5 行 LABEL_DRIFT 对账——根因=v1.0 存量 no_forecast 旧词汇 vs 现行引擎 UNPARSEABLE_HORIZON/NOT_YET_TESTABLE 分化,且 build_vp C 层零变动使 --build-all 不刷新(R22"重建即消"预期对此 5 行不成立);处置=可见重贴(verdict_history/label_history 留痕)+真实 17 档复证 |
 
 ### [历史快照·R15 视角,已被上方权威快照取代]
 

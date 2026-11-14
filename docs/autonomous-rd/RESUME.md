@@ -27,7 +27,7 @@
 
 Charter 10 完结;R25=排队面首轮(3 NIT 收口+DFF 离线接线,审计两轮闭)。队列按优先级:
 
-1. **R26 候选① VP 旧库 5 行 LABEL_DRIFT 对账**(数据刷新轮): 17 档旧库 INSUFFICIENT_EVIDENCE 存量声明 vs 新规则重算分歧(3 例一致映射+2 例 no_forecast→NOT_YET 边界);处置=逐行定重贴或 recompute 注记,可见非静默原则不变。
+1. **[进行中·R26] R26 候选① VP 旧库 5 行 LABEL_DRIFT 对账**(数据刷新轮): 17 档旧库 INSUFFICIENT_EVIDENCE 存量声明 vs 新规则重算分歧(3 例一致映射+2 例 no_forecast→NOT_YET 边界);处置=逐行定重贴或 recompute 注记,可见非静默原则不变。
 2. **R26 候选② R25 审计余留 NIT 收口(小代码面)**: Ni-2 attach 覆写先前 attach 元数据(建议 revisions 化或保留先前块)/Ni-3 _write_report 双文件非原子写(temp+rename)/Ni-4 secondary_metric_ids 与主锚/内部重复(去重或契约明示)/Ni-5 historical_coverage_audit DFF 通道映射(拉取后覆盖报告保守低报——宜与操作者拉取同轮收);预存观察 skipped_step ok=True 渲 [OK|—](SKIP 分支死码)。
 3. **操作者席待办(R25 移交)**: ①R25 合并发布(dev/rd-r25-nit-dff,盖章=分支最后一笔合规);②**DFF 真实拉取**(网络面: `python3 scripts/macro_collector.py`,macro 档落 DFF 10 年日频序列;拉取后 ia_cli history --metric DFF 出真实序列+S4_history_DFF 转绿;Ni-5 宜随后收);③LIVE 观察 11-14 周六 ZQ 族 weekly 观察钟。
 

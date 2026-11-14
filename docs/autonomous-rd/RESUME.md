@@ -27,7 +27,8 @@
 
 R26=排队面候选①(VP 旧库 LABEL_DRIFT 对账毕,审计两轮闭)。队列按优先级:
 
-1. **R27 候选① R25 审计余留 NIT 收口(小代码面)**: Ni-2 attach 覆写先前 attach 元数据(建议 revisions 化或保留先前块)/Ni-3 _write_report 双文件非原子写(temp+rename)/Ni-4 secondary_metric_ids 与主锚/内部重复(去重或契约明示)/Ni-5 historical_coverage_audit DFF 通道映射(拉取后覆盖报告保守低报——宜与操作者拉取同轮收);预存观察 skipped_step ok=True 渲 [OK|—](SKIP 分支死码)。
+1. **[进行中·R27·T-R27-1] Gate B 提取器误杀修复(操作者席 2026-11-14 登记,最高优先——正式周报被 UNVALIDATED 隔离断供,交付=11-16)**: 两期实例(11-08+11-14)——「滞后166天」当价格/「DXY+1.09%」当UST_10Y水平/「距警告线0.80pp」当HY_OAS水平/TLT周涨幅与UST_10Y同行误关联; 模型生成数值本身全对,提取器把变化值/距离值/天数误断言为水平值→假FAIL。修法带测试正道修(11-08遗留登记=MW-V1-AUDIT-DEFERRED.md),须先独立复现三误杀再修,禁放松容差糊过。
+2. **R27 候选② R25 审计余留 NIT 收口(小代码面)**: Ni-2 attach 覆写先前 attach 元数据(建议 revisions 化或保留先前块)/Ni-3 _write_report 双文件非原子写(temp+rename)/Ni-4 secondary_metric_ids 与主锚/内部重复(去重或契约明示)/Ni-5 historical_coverage_audit DFF 通道映射(拉取后覆盖报告保守低报——宜与操作者拉取同轮收);预存观察 skipped_step ok=True 渲 [OK|—](SKIP 分支死码)。
 2. **操作者席待办**: ①R26 合并发布(dev/rd-r26-label-drift,盖章=分支最后一笔合规);②**DFF 真实拉取**(R25 移交,网络面: `python3 scripts/macro_collector.py`,macro 档落 DFF 10 年日频序列;拉取后 ia_cli history --metric DFF 出真实序列+S4_history_DFF 转绿;Ni-5 宜随后收);③LIVE 观察 11-14 周六 ZQ 族 weekly 观察钟。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。

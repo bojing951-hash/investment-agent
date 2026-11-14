@@ -56,6 +56,86 @@ class UnitAlgebraError(ValueError):
     """单位代数违例(跨单位运算/无基准换算/换算值不精确)。"""
 
 
+# ── 联合统计量(契约§2 statistic 型;T6a 补全) ────────────────────
+# 配对口径=correlation_calculator.py 镜像(全价格对日收益率;共同观测日内连接;
+# None 跳过/零基双侧联合丢弃/NaN 浮点如实传播——EZU 采集 FAIL 周窗含 NaN→
+# 相关=nan 即本镜像语义,与 LIVE correlation_20261114.md 输出一致)。
+# 镜像纪律: 两处算法须保持逐句等价;T6 测试用真实冻结档
+# correlation_20261114.md 数值(-0.33/-0.41 等)锁定一致性。
+STATISTIC_PAIRS = (
+    {'a': 'SPX', 'b': 'TLT', 'label': '标普500 vs 20+年国债ETF'},
+    {'a': 'SPX', 'b': 'GOLD_F', 'label': '标普500 vs 黄金期货'},
+    {'a': 'DXY', 'b': 'SPX', 'label': '美元指数 vs 标普500'},
+    {'a': 'DXY', 'b': 'GOLD_F', 'label': '美元指数 vs 黄金期货'},
+    {'a': 'WTI_F', 'b': 'TLT', 'label': 'WTI期货 vs 国债ETF'},
+    {'a': 'WTI_F', 'b': 'EEM', 'label': 'WTI期货 vs 新兴市场ETF'},
+    {'a': 'SPX', 'b': 'EZU', 'label': '标普500 vs 欧元区ETF'},
+    {'a': 'SPX', 'b': 'FXI', 'label': '标普500 vs 中国大盘ETF'},
+    {'a': 'VIX', 'b': 'HYG', 'label': 'VIX vs 高收益债ETF'},
+    {'a': 'BTC', 'b': 'NDX', 'label': '比特币 vs 纳斯达克100'},
+    {'a': 'NIKKEI225', 'b': 'USDJPY', 'label': '日经225 vs 美元/日元'},
+    {'a': 'DAX', 'b': 'EURUSD', 'label': '德国DAX vs 欧元/美元'},
+)
+STATISTIC_WINDOWS = (20, 60)
+STATISTIC_TOL = 0.005               # 文本 2dp 展示值↔全精度复算容差
+
+
+def _is_nan(v) -> bool:
+    """NaN 判定(float nan;JSON 'NaN' token 解析态)。None≠nan(缺席≠失败)。"""
+    return isinstance(v, float) and v != v
+
+
+def _nan_ledger(scope, mid, where):
+    return {'scope': scope, 'metric_id': mid,
+            'reason': 'source_value_nan(采集失败,本期值不可知→' + where +
+                      '不产数值断言=如实缺席;文本载具体数=对 nan 源伪造)'}
+
+
+def paired_daily_returns(series_a: dict, series_b: dict):
+    """共同观测日日收益率对(镜像 correlation_calculator.paired_returns)。
+
+    纪律: None 观测跳过;前值任一侧==0 丢整对;NaN 浮点**不跳**——如实传播
+    (源采集 FAIL 窗→统计量=nan,是可验证事实而非缺席)。
+    """
+    da = {str(d)[:10]: v for d, v in zip(series_a.get('dates', []),
+                                         series_a.get('values', []))}
+    db = {str(d)[:10]: v for d, v in zip(series_b.get('dates', []),
+                                         series_b.get('values', []))}
+    common = sorted(set(da) & set(db))
+    if len(common) < 3:
+        return None, common
+    ra, rb = [], []
+    for i in range(1, len(common)):
+        a0, a1 = da[common[i - 1]], da[common[i]]
+        b0, b1 = db[common[i - 1]], db[common[i]]
+        if a0 is None or a1 is None or b0 is None or b1 is None:
+            continue
+        if a0 == 0 or b0 == 0:
+            continue
+        ra.append(a1 / a0 - 1.0)
+        rb.append(b1 / b0 - 1.0)
+    return (ra, rb), common[1:]
+
+
+def pearson(xs, ys):
+    """皮尔逊相关(镜像 correlation_calculator.pearson;n<3 或零方差→None)。
+
+    NaN 传播: 输入含 NaN→输出 NaN(vx<=0 对 NaN 恒 False,与 LIVE 同路);
+    调用方须以 math.isnan 判 nan 语义,不得把 NaN 当 None 缺席。
+    """
+    n = len(xs)
+    if n < 3:
+        return None
+    mx = sum(xs) / n
+    my = sum(ys) / n
+    cov = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    vx = sum((x - mx) ** 2 for x in xs)
+    vy = sum((y - my) ** 2 for y in ys)
+    if vx <= 0 or vy <= 0:
+        return None
+    return cov / (vx ** 0.5 * vy ** 0.5)
+
+
 def pp_to_bp(v: float) -> float:
     """percentage_point→basis_point = ×100 精确(尾噪声归零后往返相等)。"""
     r = round(v * 100.0, _ALGEBRA_DECIMALS)
@@ -414,9 +494,12 @@ def _claim(claim_type, subtype, metric_id, value, unit, observation_date,
 
 # ── 六型构建器(纯函数) ─────────────────────────────────────────────
 
-def build_level_claims(snapshot, thresholds_by, registry) -> list:
-    claims = []
+def build_level_claims(snapshot, thresholds_by, registry) -> tuple:
+    claims, ledger = [], []
     for fact in snapshot.get('facts', []):
+        if _is_nan(fact['value']):
+            ledger.append(_nan_ledger('level', fact['metric_id'], '水平断言'))
+            continue
         claims.append(_claim(
             'level', 'point', fact['metric_id'], fact['value'], fact['unit'],
             fact['observation_date'], snapshot['research_as_of'],
@@ -474,14 +557,17 @@ def build_level_claims(snapshot, thresholds_by, registry) -> list:
                      'unit': above[0]['unit'],
                      'provenance': _threshold_provenance(above[0], snapshot)}],
                 band_source='thresholds_registry'))
-    return claims
+    return claims, ledger
 
 
-def build_change_claims(snapshot, registry) -> list:
+def build_change_claims(snapshot, registry) -> tuple:
     """变化双轨直读 Fact 层 derived(禁合成另一轨;律2 必带 window+基准)。"""
-    claims = []
+    claims, ledger = [], []
     for fact in snapshot.get('facts', []):
         mid = fact['metric_id']
+        if _is_nan(fact['value']):
+            ledger.append(_nan_ledger('change', mid, '变化断言'))
+            continue
         for win in cb.WINDOWS:
             rec = (fact.get('derived') or {}).get(win)
             if not isinstance(rec, dict) or 'basis_date' not in rec:
@@ -514,7 +600,7 @@ def build_change_claims(snapshot, registry) -> list:
                     fact['observation_date'], snapshot['research_as_of'],
                     evid, basis, formula, window=win,
                     basis_date=bd, basis_value=bv))
-    return claims
+    return claims, ledger
 
 
 def build_comparison_claim(spec, left_fact, right_fact, as_of) -> dict:
@@ -548,7 +634,8 @@ def build_rank_claims(snapshot, registry) -> list:
     for fact in snapshot.get('facts', []):
         m = fe.metric(fact['metric_id'])
         wk = (fact.get('derived') or {}).get('week') or {}
-        if m and m.get('asset_class') == RANK_ASSET_CLASS and 'pct_change' in wk:
+        if m and m.get('asset_class') == RANK_ASSET_CLASS and 'pct_change' in wk \
+                and not _is_nan(wk['pct_change']) and not _is_nan(fact['value']):
             members.append((fact, wk['pct_change']))
     if len(members) < 2:
         return []
@@ -580,6 +667,11 @@ def build_comparison_claims(snapshot, registry) -> tuple:
             ledger.append({'scope': 'comparison', 'name': spec['name'],
                            'reason': 'input_fact_absent(快照缺成员事实=诚实缺席)'})
             continue
+        if _is_nan(lf['value']) or _is_nan(rf['value']):
+            ledger.append({'scope': 'comparison', 'name': spec['name'],
+                           'reason': 'source_value_nan(成员采集失败→配对断言'
+                                     '不产=如实缺席)'})
+            continue
         claims.append(build_comparison_claim(spec, lf, rf, snapshot['research_as_of']))
     claims.extend(build_rank_claims(snapshot, registry))
     return claims, ledger
@@ -604,8 +696,28 @@ def build_threshold_claims(snapshot, thresholds_by, registry) -> tuple:
         fact = facts_by.get(mid)
         if not fact:
             continue
+        if _is_nan(fact['value']):
+            ledger.append(_nan_ledger('threshold', mid, '阈值断言'))
+            continue
         for e in entries:
             if e['unit'] != fact['unit']:
+                # 派生率视图条目分流(T6a 全量快照首跑暴露): scorecard 表
+                # (framework §一 通胀/就业维度)与累计增益条目以率/变动口径
+                # 表述,正当消费面=评分卡引擎/派生视图,非水平阈值面——显式
+                # 入台账(诚实缺席),非静默跳过;无结构标记的真单位违约仍炸。
+                view = None
+                if '.scorecard.' in e['stable_key']:
+                    view = 'scorecard_rate_view'
+                elif '_cumulative_gain' in e['stable_key']:
+                    view = 'derived_cumulative_view'
+                if view:
+                    ledger.append({
+                        'scope': 'threshold', 'metric_id': mid,
+                        'reason': f'{view}(条目单位 {e["unit"]} 属派生率/'
+                                  f'累计视图口径,非水平阈值;水平门不消费='
+                                  f'诚实缺席,消费面=评分卡引擎[既有])',
+                        'stable_key': e['stable_key']})
+                    continue
                 raise UnitAlgebraError(
                     f'阈值单位({e["unit"]})与指标 canonical 单位({fact["unit"]})'
                     f'不一致: {e["stable_key"]}(注册表单位策略违约,禁静默换算)')
@@ -659,6 +771,8 @@ def build_threshold_distance_claims(snapshot, thresholds_by, registry) -> list:
         fact = facts_by.get(mid)
         if not fact:
             continue
+        if _is_nan(fact['value']):
+            continue    # 距离断言同 nan 分流(不产;threshold 台账已记该指标)
         for e in entries:
             if e['unit'] != fact['unit']:
                 continue    # build_threshold_claims 已抛;此处防御性跳过(不重复抛)
@@ -715,6 +829,61 @@ def build_predicate_ledger(snapshot, registry) -> list:
     return out
 
 
+def build_statistic_claims(snapshot: dict, pairs=None) -> tuple:
+    """statistic.correlation 型(契约§2 十型补全,T6a)。
+
+    双成员配对日收益率皮尔逊;窗=STATISTIC_WINDOWS(20/60)。三态如实:
+    - 序列缺席任一侧 → 不产 claim,ledger 诚实缺席(通道未闭合);
+    - 共同观测<3 → 同上;
+    - 窗含 NaN → **产 claim,value=None+nan_reason**(通道闭合但统计量不可
+      计算=可验证事实;文本载具体数即对不上→CONTRADICTED,防 V5-012 型伪造)。
+    """
+    pairs = pairs if pairs is not None else STATISTIC_PAIRS
+    store = snapshot.get('series_store', {})
+    claims, ledger = [], []
+    for p in pairs:
+        a, b = p['a'], p['b']
+        sa, sb = store.get(a), store.get(b)
+        if not sa or not sb:
+            ledger.append({'scope': 'statistic', 'metric_ids': [a, b],
+                           'reason': f'series_absent({a if not sa else b} 不在 '
+                                     f'series_store→配对统计不可产=诚实缺席)'})
+            continue
+        pair, _common = paired_daily_returns(sa, sb)
+        if not pair:
+            ledger.append({'scope': 'statistic', 'metric_ids': [a, b],
+                           'reason': 'common_observations_lt3(共同观测日不足)'
+                                    })
+            continue
+        ra, rb = pair
+        for w in STATISTIC_WINDOWS:
+            r = pearson(ra[-w:], rb[-w:])
+            evid = [_series_shape_ref(a, sa, role='leg_a'),
+                    _series_shape_ref(b, sb, role='leg_b')]
+            formula = (f'pearson(日收益率[-{w}:],{a},{b});共同观测日内连接;'
+                       f'n={min(w, len(ra))}')
+            if r is None:
+                ledger.append({'scope': 'statistic', 'metric_ids': [a, b],
+                               'reason': f'zero_variance_or_lt3(window={w}d)'
+                                         '(零方差/样本不足→统计量不可产)'})
+                continue
+            nan_reason = None
+            value = r
+            if isinstance(r, float) and r != r:          # NaN(propagate 语义)
+                value, nan_reason = None, 'nan_in_window(窗内源含 NaN→相关' \
+                                          '不可计算,如实 None;文本载具体数=伪造)'
+            obs_date = str(sa['dates'][-1])[:10]
+            claims.append(_claim(
+                'statistic', 'correlation', None, value, 'dimensionless',
+                obs_date, snapshot['research_as_of'],
+                evid, [f'series:{a}', f'series:{b}'], formula,
+                metric_ids=[a, b], corr_window_days=w,
+                pair_label=p.get('label'),
+                nan_reason=nan_reason,
+                disclosure=p.get('disclosure', '')))
+    return claims, ledger
+
+
 # ── 总装(纯函数) ───────────────────────────────────────────────────
 
 def generate_claims_bundle(snapshot: dict, *, thresholds: dict = None,
@@ -730,15 +899,17 @@ def generate_claims_bundle(snapshot: dict, *, thresholds: dict = None,
 
     claims = []
     ledger = []
-    lvl = build_level_claims(snapshot, th_by, registry)
-    chg = build_change_claims(snapshot, registry)
+    lvl, lvl_ledger = build_level_claims(snapshot, th_by, registry)
+    chg, chg_ledger = build_change_claims(snapshot, registry)
     cmp_, cmp_ledger = build_comparison_claims(snapshot, registry)
     thr, thr_ledger = build_threshold_claims(snapshot, th_by, registry)
     dist = build_threshold_distance_claims(snapshot, th_by, registry)
     lag = build_observation_lag_claims(snapshot, registry)
+    stat, stat_ledger = build_statistic_claims(snapshot)
     # 稳定序: 型序固定;型内=构建序(facts 序/注册表序,均为输入确定序)
-    claims.extend(lvl + chg + cmp_ + thr + dist + lag)
-    ledger.extend(cmp_ledger + thr_ledger)
+    claims.extend(lvl + chg + cmp_ + thr + dist + lag + stat)
+    ledger.extend(lvl_ledger + chg_ledger + cmp_ledger + thr_ledger
+                  + stat_ledger)
 
     ymd = str(snapshot['target_date'])
     for i, c in enumerate(claims, start=1):

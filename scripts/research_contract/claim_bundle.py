@@ -18,16 +18,16 @@ import re
 # ── schema 常量(契约§2 逐字对齐;扩展点显式声明,禁静默扩) ──────────────
 SCHEMA_VERSION = 'research-claims/1.0'
 
-# 契约顶层八型+新增 statistic/composite_score=十型;**本波工厂只产前六型**
-# (forecast/qualitative_inference=模型提交面[阶段四];statistic/composite_score
-# =后续工单)。validator 对工厂产物(attribution=deterministic)只认六型;
-# 其余型登记在案=接口预留,非本波验收面。
+# 契约顶层八型+新增 statistic/composite_score=十型。工厂产能(T4=六型;
+# T6a 补全 statistic=七型,契约§2 十型闭合的系列派生类落地):
+# forecast/qualitative_inference=模型提交面[阶段四];composite_score=后续工单。
 FACTORY_CLAIM_TYPES = (
     'level', 'change', 'comparison',
     'threshold', 'threshold_distance', 'observation_lag',
+    'statistic',
 )
 RESERVED_CLAIM_TYPES = (
-    'forecast', 'qualitative_inference', 'statistic', 'composite_score',
+    'forecast', 'qualitative_inference', 'composite_score',
 )
 
 SUBTYPES = {
@@ -37,6 +37,7 @@ SUBTYPES = {
     'threshold': ('edge_relation',),
     'threshold_distance': ('absolute_distance',),
     'observation_lag': ('as_of_minus_observation',),
+    'statistic': ('correlation',),
 }
 
 WINDOWS = ('week', 'mtd', 'ytd', 'm1', 'm3', 'm6', 'm12')
@@ -154,6 +155,13 @@ def validate_claim(c: dict) -> None:
             raise SchemaError('level.band 须带 metric_ids(成员≥1)')
         if c['metric_id'] not in (None,) and c['metric_id'] not in c['metric_ids']:
             raise SchemaError('level.band metric_id 须 None 或为成员之一')
+    elif ct == 'statistic':
+        # 联合统计量=恰好双成员(配对统计;非跨 N 成员排名面)
+        if not isinstance(c['metric_ids'], list) or len(c['metric_ids']) != 2 \
+                or not all(isinstance(m, str) and m for m in c['metric_ids']):
+            raise SchemaError('statistic 须带恰好 2 成员 metric_ids(配对统计)')
+        if c['metric_id'] is not None:
+            raise SchemaError('statistic 为双成员断言,metric_id 须 None(用 metric_ids)')
     elif c['metric_ids'] is not None:
         raise SchemaError('单指标断言不得携带 metric_ids(比较型专用)')
     else:
@@ -175,6 +183,19 @@ def validate_claim(c: dict) -> None:
             raise SchemaError('threshold_distance value=|level−threshold| 须非负')
         if c.get('side') not in ('above', 'below'):
             raise SchemaError('threshold_distance 须带 side(水平在阈值的哪一侧)')
+    if ct == 'statistic':
+        # T6a 契约补全(§2 十型): 系列联合统计量。correlation=双侧日收益率
+        # 皮尔逊;value=None 专义「窗内含 nan 源→统计量如实不可计算」(禁以
+        # 具体数冒充,验证器对该 None 语义有硬校验)。
+        if c['unit'] != 'dimensionless':
+            raise SchemaError('statistic.correlation 单位只准 dimensionless')
+        w = c.get('corr_window_days')
+        if not isinstance(w, int) or isinstance(w, bool) or w < 3:
+            raise SchemaError('statistic 须带 corr_window_days(int≥3,pearson 最小样本)')
+        if c['value'] is not None and not isinstance(c['value'], (int, float)):
+            raise SchemaError('statistic value 须数值或 None(nan 如实语义)')
+        if c.get('nan_reason') is not None and c['value'] is not None:
+            raise SchemaError('nan_reason 只配 value=None(窗含 nan 不可计算时)')
 
 
 # ══ bundle 容器 ════════════════════════════════════════════════════

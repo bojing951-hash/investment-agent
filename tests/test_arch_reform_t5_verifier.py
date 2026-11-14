@@ -5,7 +5,8 @@
 
 验收原文: 「注入违例每状态≥1 反例咬住」——本套件对六状态逐一注入:
 
-  A  基线: 工厂 clean bundle 109 条→107 VERIFIED+2 STALE,gate_b=True;
+  A  基线: 工厂 clean bundle 111 条→109 VERIFIED+2 STALE,gate_b=True
+     (T6a 补全 statistic 型: 切片含 DXY×SPX 对→+2 条,基线随契约扩容);
      JP_POLICY_RATE 滞后74天=stale_level_1(契约§4 STALE 行权威例);
      DFF−JP spread 继承最差输入(成员各自节奏定级,禁跨成员错除);
      observation_lag 型(陈旧度计量本身)永不 STALE。
@@ -86,11 +87,11 @@ def mutated(fn):
 print('=' * 72)
 print('[A] 工厂 clean bundle 基线(六状态零误伤)')
 print('=' * 72)
-check('A1 clean 109 条全量裁决零 CONTRADICTED',
-      BASE['summary']['CONTRADICTED'] == 0 and BASE['summary']['total'] == 109,
+check('A1 clean 111 条全量裁决零 CONTRADICTED',
+      BASE['summary']['CONTRADICTED'] == 0 and BASE['summary']['total'] == 111,
       json.dumps(BASE['summary']))
-check('A2 clean 分布=107 VERIFIED+2 STALE(余状态零)',
-      BASE['summary']['VERIFIED'] == 107 and BASE['summary']['STALE'] == 2
+check('A2 clean 分布=109 VERIFIED+2 STALE(余状态零)',
+      BASE['summary']['VERIFIED'] == 109 and BASE['summary']['STALE'] == 2
       and BASE['summary']['INSUFFICIENT_EVIDENCE'] == 0
       and BASE['summary']['NOT_VERIFIABLE'] == 0
       and BASE['summary']['SEMANTIC_REVIEW_REQUIRED'] == 0)

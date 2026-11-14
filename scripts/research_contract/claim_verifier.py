@@ -107,7 +107,10 @@ def _as_of_of(claim: dict, snapshot: dict) -> str:
 def _close(a, b, tol=0.0) -> bool:
     if a is None or b is None:
         return a is b
-    return abs(float(a) - float(b)) <= tol + EPS
+    fa, fb = float(a), float(b)
+    if fa != fa and fb != fb:
+        return True    # NaN↔NaN 同态相等(采集失败=可验证事实,非数值不符)
+    return abs(fa - fb) <= tol + EPS
 
 
 def _stale_grade(lag_days, cadence_days, *, cadence_source):
@@ -311,6 +314,41 @@ def _recompute(claim, snapshot, facts_by, thresholds_by, bundle):
         exp = _days_between(as_of_d, f['observation_date'])
         return exp, 0.0, f'as_of({as_of_d})−observation_date={exp} 自然日', None
 
+    if ct == 'statistic' and st == 'correlation':
+        # T6a: 联合统计量按 snapshot series_store 独立复算(与工厂同式镜像,
+        # 但证据=序列本身,非工厂回声)。nan 语义=通道闭合而统计量不可计算:
+        # claim None↔复算 nan 互证=VERIFIED;载具体数=伪造→硬不符。
+        mids = claim.get('metric_ids') or []
+        if len(mids) != 2:
+            raise _NV('no_verifier_path', secondary=True)
+        a, b = mids
+        sa, sb = store.get(a), store.get(b)
+        if not sa or not sb:
+            raise _NV('evidence_absent', state='INSUFF')
+        pair, _common = cf.paired_daily_returns(sa, sb)
+        if not pair:
+            raise _NV('insufficient_common_observations', state='INSUFF')
+        w = claim.get('corr_window_days')
+        if not isinstance(w, int) or w < 3:
+            raise _NV('no_verifier_path', secondary=True)
+        ra, rb = pair
+        r = cf.pearson(ra[-w:], rb[-w:])
+        if r is None:
+            raise _NV('zero_variance_or_lt3', secondary=True)
+        if isinstance(r, float) and r != r:            # NaN 如实传播
+            if claim.get('value') is None:
+                return None, 0.0, (f'{a}×{b} {w}d 窗含 nan 源→复算=nan,'
+                                   'claim=None 同义互证(如实不可计算)'), None
+            raise ValueError(
+                f'伪造统计量({a}×{b} {w}d 窗含 nan 源,相关不可计算,'
+                f'claim 载具体数 {claim["value"]!r})')
+        val = claim.get('value')
+        if val is None:
+            raise ValueError(
+                f'统计量缺席冒充({a}×{b} {w}d 复算={r:+.4f} 而 claim=None)')
+        return float(r), cf.STATISTIC_TOL, \
+            f'pearson(日收益率[-{w}:],{a},{b})={r:+.4f} 独立复算', None
+
     raise _NV('no_verifier_path')
 
 
@@ -446,7 +484,7 @@ def verify_claim(claim, *, snapshot, thresholds_by, bundle) -> dict:
                                'state': nv.state}
         v['reasons'].append(f'{nv.state.lower()}:{nv.reason}')
     except ValueError as ve:                       # rank 组多重集被篡改
-        v['reasons'].append(f'group:{ve}')
+        v['reasons'].append(f'hard:{ve}')
         expected = _GROUP_FAIL                     # 哨兵:组不符=硬不符
 
     mismatch = False
@@ -470,7 +508,7 @@ def verify_claim(claim, *, snapshot, thresholds_by, bundle) -> dict:
 
     # 3) 状态裁决(优先级: 不符 > 证据缺失(含强制升态) > 无路径 > 陈旧 > 一致)
     bad_ev = any(r.startswith(('evidence_value_mismatch', 'evidence_unit_mismatch',
-                               'threshold_value_drift', 'group:'))
+                               'threshold_value_drift', 'hard:'))
                  for r in v['reasons'])
     refs_thin = (not claim.get('evidence_refs')) or any(
         r.get('value') is None for r in claim.get('evidence_refs') or [])

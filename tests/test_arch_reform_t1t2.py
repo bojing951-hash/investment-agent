@@ -18,6 +18,7 @@ macro_scorecard.py v2.0 源码转录(行为基线=operative truth,裁定#1-6)。
 """
 import contextlib
 import copy
+import hashlib
 import io
 import json
 import os
@@ -425,6 +426,53 @@ class TestS4Gate(unittest.TestCase):
         check('S4 CLI 现行仓退出码=0', rc == 0, str(rc))
 
 
+SIGNED_PROJECTION_SHA256 = '81706edd0295820bf4643fd5a2277a9a6c43ab46e559fe79ac99af315122ce41'
+
+
+def signed_projection(doc):
+    """签字语义投影: 全文档剔除 entries[].provenance.quote(G1 常规维护面,
+    thresholds.json status 原文明示 quote 锚同步免重签), 其余字节全保留。"""
+    d = json.loads(json.dumps(doc, ensure_ascii=False))
+    for e in d.get('entries', []):
+        (e.get('provenance') or {}).pop('quote', None)
+    return json.dumps(d, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+
+
+class TestS4bOperatorHardening(unittest.TestCase):
+    """操作者席验证期硬化(2026-11-14,独立复核发现,非实现席交付面)。
+
+    盲区背景: G1r 按值集合映射(g1_reverse values={e.value} 集合比对), 69 键中
+    49 键值有重复(band 族共享边缘值,如 3.0 被 5 键共享), 重复值键的纯值漂移
+    对 G1-G4 机器不可见(操作者复核实测 hy_oas.attention 3.0→3.1 门全绿;
+    唯一值键 hy_oas.warning 4.0→4.1 则 G1r 红=设计边界咬合)。本钉=签字语义
+    投影哈希: quote 同步免钉(实测不改投影), 任何签字面字节漂移必红。重签
+    流程: 金融席签字 → 同提交更新 SIGNED_PROJECTION_SHA256(重签即显式行为,
+    元规则『任何键值增删改重走金融席签字』的机器面)。"""
+
+    def test_signed_projection_pin(self):
+        h = hashlib.sha256(signed_projection(TH_DOC).encode('utf-8')).hexdigest()
+        check('S4b 签字投影哈希钉在位', h == SIGNED_PROJECTION_SHA256,
+              f'现值 {h[:16]}… 钉值 {SIGNED_PROJECTION_SHA256[:16]}… '
+              '(签字面漂移须重走金融席签字并同提交更新钉)')
+
+    def test_pin_covers_gate_blindspot(self):
+        # 重复值键篡值(设计盲区面): 值集合仍含旧值→G 门实测全绿, 钉必须红。
+        # 若未来 G1r 收紧为逐键映射, 本判据应同步翻转(盲区关闭证据)。
+        t = copy.deepcopy(TH_DOC)
+        for e in t['entries']:
+            if e['stable_key'] == 'hy_oas.attention':
+                e['value'] = float(e['value']) + 0.1
+                break
+        p = os.path.join(tempfile.mkdtemp(), 'th.json')
+        with open(p, 'w', encoding='utf-8') as f:
+            json.dump(t, f, ensure_ascii=False)
+        report, _ = tg.run(thresholds_path=p)
+        check('S4b 盲区复证: 重复值键篡值 G1-G4 仍全绿(设计边界,值集合共享)',
+              not any(report.values()))
+        h = hashlib.sha256(signed_projection(t).encode('utf-8')).hexdigest()
+        check('S4b 投影钉对该篡改红(盲区收口)', h != SIGNED_PROJECTION_SHA256)
+
+
 class TestS5FrameworkEdits(unittest.TestCase):
     """B: framework.md 四处修改在场性(对齐+漂移注记,非静默)。"""
 
@@ -448,7 +496,8 @@ class TestS5FrameworkEdits(unittest.TestCase):
 def main():
     print('══ 架构整改 T1+T2 回归套件(thresholds v1.0 落盘+G1-G4 门)══')
     for cls in (TestS1ThresholdsRegistry, TestS2ScorecardEquivalence,
-                TestS3ValidatorEquivalence, TestS4Gate, TestS5FrameworkEdits):
+                TestS3ValidatorEquivalence, TestS4Gate, TestS4bOperatorHardening,
+                TestS5FrameworkEdits):
         print(f'── {cls.__name__} ──')
         unittest.main(argv=['x', cls.__name__], exit=False, verbosity=0)
     total, bad = len(PASSED) + len(FAILED), len(FAILED)

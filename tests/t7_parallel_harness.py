@@ -313,7 +313,10 @@ results['metrics'] = {
                           ' 修订版VERIFIED/审计前错误版CONTRADICTED 7 CONTRA;'
                           'tests/test_arch_reform_phase4.py 57 PASS;'
                           '哈希已冻结)'),
-        'V7(状态过期)': 'DEFERRED_PHASE5(状态语义一致性;哈希已冻结)'},
+        'V7(状态过期)': ('IMPLEMENTED_PHASE5(rd_state_consistency ⑦ 验收如实'
+                        '+根因门: PASS 行证据形态+RDG 生效线硬核;'
+                        'R20 六项底座扩展非重写,15 判正反两面;'
+                        '哈希已冻结)')},
 }
 print('\n== 七项指标 ==')
 for k, v in results['metrics'].items():

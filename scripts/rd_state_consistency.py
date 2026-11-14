@@ -13,7 +13,7 @@ CI 与检查点管线(rd_checkpoint.py)都以此为硬门;恢复入口(RESUME �
     --state-dir 状态档目录(默认: <repo>/docs/autonomous-rd)
     --quiet     只打印失败项与总结
 
-六项检查(全部 PASS → 退出码 0):
+七项检查(全部 PASS → 退出码 0):
   ① 基线一致   CURRENT_STATE 第一个 `## ` 节必须是 `## 权威快照`(唯一权威入口
                置顶);该节须含 `baseline=<sha>` 机器行;该提交须存在、是 HEAD
                祖先,且 main 尖端被 baseline 包含。main 超前 baseline 的提交只
@@ -41,10 +41,15 @@ CI 与检查点管线(rd_checkpoint.py)都以此为硬门;恢复入口(RESUME �
   ⑥ 目标完整   PRODUCT_GOAL.md 在场且 sha256[:16] 与检查点块 goal_sha 一致
                ——最终目标被任何一方改动都会在此硬失败(用户授权改动须同步
                更新检查点,防目标漂移/防静默删改)。
+  ⑦ 验收如实   验收矩阵 PASS 行必须载证据形态(sha/链接/报告档/QB;裸 PASS
+               禁标=「PASS 只在六问+审计绿后标」的可执行下界)+ 根因决策门:
+               PHASE3-LOG 生效线(RDG-GATE-EFFECTIVE)后任务节必须引用
+               RDG-<date>-<n> 且在 RDG-REGISTRY.md 在场(阶段五 5.4 表#7+5.1;
+               生效线前历史节豁免=机制前实况如实注记,非降标)。
 
 浅克隆降级(CI actions/checkout 默认 depth=1): 祖先关系与历史对象核验降级
 为「存在性/结构」核验并显式注记「浅克隆降级」——结构面(枚举/标记/块解析/
-goal_sha)在 CI 仍全量生效;本地开发树(全历史)六项全量。
+goal_sha)在 CI 仍全量生效;本地开发树(全历史)七项全量。
 
 波次纪律: 基线/容忍语义假设波次串行(一轮开发→合并→下一轮)。交错合并会
 使 main 超前 baseline 的提交落入不容忍类——检查门失败即正确信号(需重新
@@ -84,9 +89,10 @@ AC_STATUSES = ('PASS', 'PARTIAL', 'FAIL', 'NOT_VERIFIED')
 LEDGER_STATUSES = ('进行中', '待合并')  # 台账只收活任务;已毕只进日志/存档
 BLOCK_KEYS = ('round', 'date', 'branch', 'commit', 'completed_ids',
               'next_task', 'next_round', 'baseline', 'goal_sha')
-CHECK_ORDER = ('①', '②', '③', '④', '⑤', '⑥')
+CHECK_ORDER = ('①', '②', '③', '④', '⑤', '⑥', '⑦')
 CHECK_NAMES = {'①': '基线一致', '②': 'RESUME健全', '③': '台账规范',
-               '④': '验收矩阵', '⑤': '日志-台账', '⑥': '目标完整'}
+               '④': '验收矩阵', '⑤': '日志-台账', '⑥': '目标完整',
+               '⑦': '验收如实+根因门'}
 
 
 class GitError(Exception):
@@ -485,6 +491,62 @@ def run_checks(repo, state_dir, rep):
             rep.note('⑥', 'PRODUCT_GOAL sha=%s 与检查点一致' % cur)
     elif blk is not None:
         rep.note('⑥', '检查点块无 goal_sha 字段(② 已记缺字段)')
+
+    # ═══ ⑦ 验收如实+根因门(阶段五 5.4 表#7 + 5.1;前瞻生效,历史节豁免) ═══
+    # 7a: 验收矩阵 PASS 行必须载证据形态(sha/链接/报告档/QB/RDG)——
+    #     「PASS 只在六问+审计绿后标」的可执行下界: 裸 PASS 无证据=FAIL。
+    # 7b: PHASE3-LOG 生效线(<!-- RDG-GATE-EFFECTIVE -->)之后的任务节必须
+    #     引用 RDG-<date>-<n> 且该号在 RDG-REGISTRY.md 在场——根因决策门
+    #     并入任务准入(章程§七 7.1)。生效线之前的历史节豁免(机制前实况)。
+    n_pass_rows = 0
+    for line in fa.splitlines():
+        m = AC_ROW.match(line)
+        if not m or m.group(3).strip() != 'PASS':
+            continue
+        n_pass_rows += 1
+        if not (SHA_TOKEN.search(line) or '.md' in line
+                or re.search(r'\[[^\]]+\]\(', line)
+                or re.search(r'\b(?:R\d+|QB-|RDG-)[-_\w]*', line)):
+            rep.fail('⑦', '验收矩阵 %s=PASS 但证据/差距列无证据形态'
+                     '(sha/链接/报告档/QB/RDG)——裸 PASS 禁标' % m.group(1))
+    # 7b
+    p3 = sd('PHASE3-LOG.md')
+    if not os.path.isfile(p3):
+        rep.note('⑦', 'PHASE3-LOG 未建(非整改仓面,根因门待建后生效)')
+    else:
+        p3t = open(p3, encoding='utf-8').read()
+        if 'RDG-GATE-EFFECTIVE' not in p3t:
+            rep.note('⑦', '根因决策门生效线未落(PHASE3-LOG 无 '
+                     'RDG-GATE-EFFECTIVE 标记)——机制落地前的历史节豁免')
+        else:
+            gated = p3t.split('RDG-GATE-EFFECTIVE', 1)[1]
+            reg_path = sd('RDG-REGISTRY.md')
+            reg_ids = set()
+            if os.path.isfile(reg_path):
+                reg_ids = set(re.findall(r'RDG-\d{8}-\d+',
+                                         open(reg_path, encoding='utf-8')
+                                         .read()))
+            else:
+                rep.fail('⑦', '生效线已落但 RDG-REGISTRY.md 缺席——'
+                         '根因决策记录无处登记')
+            n_gated = 0
+            for sec in re.split(r'^## ', gated, flags=re.M)[1:]:
+                head = sec.splitlines()[0] if sec.splitlines() else ''
+                n_gated += 1
+                cited = set(re.findall(r'RDG-\d{8}-\d+', sec))
+                if not cited:
+                    rep.fail('⑦', '生效线后任务节「%s」未引用根因决策记录 '
+                             'RDG-<date>-<n>(任务准入违约)' % head[:40])
+                miss = cited - reg_ids
+                if miss:
+                    rep.fail('⑦', '任务节「%s」引用 %s 不在 RDG-REGISTRY.md'
+                             % (head[:40], sorted(miss)))
+            if n_gated and not rep.fails.get('⑦'):
+                rep.note('⑦', 'PASS 行 %d 均载证据;生效线后任务节 %d 均过 '
+                         '根因门' % (n_pass_rows, n_gated))
+    if not rep.fails.get('⑦') and n_pass_rows and os.path.isfile(p3) \
+            and 'RDG-GATE-EFFECTIVE' not in open(p3, encoding='utf-8').read():
+        rep.note('⑦', 'PASS 行 %d 均载证据形态' % n_pass_rows)
 
 
 def main():

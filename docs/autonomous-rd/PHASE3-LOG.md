@@ -295,3 +295,102 @@ T4 工单验收面成立: 六型全确定性(纯函数咬合实证)+每型≥3 �
 
 - T6(确定性渲染器 C1)起所有权归还未定(接管声明原约);T5 API 面=verify_bundle/apply_verdicts/timeout_policy+CLI,T6 消费律6=「渲染只吃 VERIFIED,余态入披露区」。
 - 工作树保留原实现席未提交稿(claim_bundle.py attribution 扩展+24/-4+本档 T4 节)随本 commit 入库(T3/T4 波同款先例)。
+
+---
+
+## T6a 契约补全 — statistic 型落地(2026-11-15)
+
+**交付**(ce13174): claim_factory statistic 型(correlation 联合统计量:
+series_store 双序列 paired_daily_returns→pearson 独立复算,nan 源分流=
+通道闭合而统计量不可计算时 claim None↔复算 nan 互证,载具体数=伪造硬不
+符);派生视图阈值路由。**证据**:
+```
+$ python3 tests/test_arch_reform_t6a_statistic.py
+结果: 28通过 / 0失败        # 含 nan 互证/伪造硬不符/窗参非法 NV 反例
+```
+
+## T6b 确定性渲染钩子 — C1 载重墙(2026-11-15)
+
+**交付**(0d7395e): render_hook 数值 span 登记(禁反扫重建=只对照) +
+check_render 闭环;渲染只吃 VERIFIED,余态入披露区(律6)。**证据**:
+```
+$ python3 tests/test_arch_reform_t6b.py
+T6b 判定: 20 PASS / 0 FAIL   # span 登记逐位对照+披露区纪律反例
+```
+
+## T6c 文本一致性引擎 — 断言绑定+语义族检查器(2026-11-15)
+
+**交付**(2565d66+6fe9794): tc 引擎(别名绑定→子句切分→数值 token→
+语义族检查器→未绑清点);P5 收口=未映射数值 token 公开/真实双面归零
+(检查器消费登记+远距合格回退绑定);迁移矩阵公开面 35/35。**证据**:
+```
+$ python3 tests/test_arch_reform_t6c.py
+T6c 判定: 26 PASS / 0 FAIL
+$ python3 tests/run_matrix_dir.py .../V5-INJECTIONS.json → TOTAL 21/21 达标; unmapped=0
+$ python3 tests/run_matrix_dir.py .../V6-PARAPHRASES.json → TOTAL 14/14 达标; unmapped=0
+```
+
+## T7 新旧并行对照 — 真实面双向误杀定性(2026-11-15)
+
+**交付**(0fbd812,跑台工件刷新 e81d363): 夹具面新链 21/21+14/14、旧门
+零触发盲(vacuous);真实报告面新链 0/3(全文 CONTRA 均为绑定引擎叙事面
+误报,FK-1..8 抽样定性)vs 旧门 2/3(V3 被旧正则跨指标误杀)——双向
+误杀如实定性,**未制造成功**: P4 五值全部复位 VERIFIED;V4/V7 序列依赖
+哈希冻结 DEFERRED。**证据**:
+```
+$ python3 tests/t7_parallel_harness.py
+P4 五处全部复位 VERIFIED ✓   # 落档 audit/arch-reform/T7/t7_results.json
+```
+
+## T8 迁移门 — 启封审计→FAIL→整改→复验 PASS(2026-11-15)
+
+**交付**(841e7c9+aafa350+5feba7f+3206565): 指定夹具跑台(公开/留出同
+配置)+P4 模式;独立审计席启封 15 条留出。**轮一 FAIL**(aafa350:
+V6-004/005 变体漏杀、era 路由回退等)→ **整改**(5feba7f: 引擎 12 项
+机制修复+四检查器+叙事方向+时代面 HC)→ **T8-R2 复验 PASS**(3206565:
+P1 留出 6/6+时代双向证、P2 公开 9/9、P6 八套件+封印哈希、P7 机制判据
+——891 行 diff 零留出字面量)。**证据**:
+```
+$ python3 tests/test_arch_reform_t8r.py
+T8R 判定: 31 PASS / 0 FAIL   # 含启封 15 条常备面(9 CONTRA+6 VERIFIED 全中)
+```
+**迁移结论(批准口径,逐字)**: 「合成注入+改写变体集(含留出面)在
+预固定数值标准下通过,真实历史故障样本(V1/V2)复位验证通过」。
+非阻塞遗留 ①-⑦ 如实随档(audit/arch-reform/T8/)。
+
+## 阶段四 — judgment_contract 判定档契约(2026-11-15)
+
+**交付**(15359e8): jc-v1.0-phase4(三类内容分派: 客观事实 tc.check_text/
+统计结论独立复算·百分位公式钉死 100×count(v<cur)/n/经济解释六查)+
+tc-v3-judgment 引擎升版+agent_judgment attach 门控钩子(+26 行,契约未
+全绿拒落位)+V4 冻结夹具(MANIFEST 锚定源哈希)。**V4 双向验收**: 修订
+版 VERIFIED{24查0contra0未绑0六查败}/审计前错误版 CONTRADICTED{7 contra
+含两真实 MAJOR}——错误版抓得住、正确版过得了;两路一致实验 6/6
+(check_text vs claim_verifier 同断言同裁决;一显示步灰区作边界披露)。
+**证据**:
+```
+$ python3 tests/test_arch_reform_phase4.py
+PHASE4 判定: 57 PASS / 0 FAIL
+# 全门阵: t1t2/t3/t4/t5 46/t6a 28/t6b 20/t6c 26/t8r 31 全绿;公开矩阵 unmapped=0
+```
+根因决策: 本任务即 RDG-20261115-002 的处置(追认登记,见 RDG-REGISTRY.md)。
+
+<!-- RDG-GATE-EFFECTIVE 2026-11-15: 此线之后任务节必须引用 RDG-<date>-<n>
+     (rd_state_consistency.py ⑦b 硬门;线前历史节=机制前实况豁免) -->
+
+## 阶段五 — 研发执行机制落地(2026-11-15)
+
+**根因决策**: RDG-20261115-003(整改工作树状态档滞留——①检查门 FAIL
+为正确信号;分类「根因证据不足」,最小处置=同步 main 状态面纯文档,
+「双轨并轨状态同步步骤」待第二实例再定级)。**交付**: ①RD_MECHANISM.md
+入库(5.1 决策门/5.2 优先级公式/5.3 六问/5.4 七项表/5.5 关系);②
+RDG-REGISTRY.md 登记 3 条(001/002 追认+003 生效后首例);③
+rd_state_consistency.py 扩 ⑦ 验收如实+根因门(PASS 行证据形态+生效线
+后任务节 RDG 引用硬核;R20 六项底座不动=扩展非重写);④工作树状态档
+§3.2 对账同步。**证据**:
+```
+$ python3 scripts/rd_state_consistency.py --quiet
+── 总结: 7/7 PASS           # ⑦b 首例 RDG-20261115-003 在场核验(本节即引用)
+```
+六问作答+首轮真实使用记录: RD_MECHANISM.md 附尾(任一问无证据=不标
+能力 PASS 纪律自证)。

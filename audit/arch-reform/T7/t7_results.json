@@ -290,7 +290,7 @@
     "warns": 4
    },
    "runtime_sec": {
-    "new": 0.51,
+    "new": 0.52,
     "old": 0.03
    }
   },
@@ -553,7 +553,7 @@
     "warns": 5
    },
    "runtime_sec": {
-    "new": 0.71,
+    "new": 0.7,
     "old": 0.01
    }
   },
@@ -816,7 +816,7 @@
     "warns": 3
    },
    "runtime_sec": {
-    "new": 0.41,
+    "new": 0.4,
     "old": 0.01
    }
   },
@@ -915,7 +915,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.007
+    "t_new": 0.006
    },
    {
     "id": "V5-013",
@@ -947,7 +947,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.004
+    "t_new": 0.005
    },
    {
     "id": "V5-017",
@@ -979,7 +979,7 @@
     "new": "CONTRADICTED",
     "old": "PASS",
     "old_predicted": "miss",
-    "t_new": 0.006
+    "t_new": 0.007
    },
    {
     "id": "V5-021",
@@ -1053,7 +1053,7 @@
     "old": "PASS",
     "old_predicted": "pass",
     "unbound": 0,
-    "t_new": 0.018
+    "t_new": 0.019
    },
    {
     "id": "V6-009",
@@ -1207,7 +1207,7 @@
    "v6_insuff": 0
   },
   "运行时间": {
-   "new_public_total_sec": 0.2,
+   "new_public_total_sec": 0.21,
    "old_real_reports_sec": 0.05
   },
   "维护复杂度(定性)": {
@@ -1216,7 +1216,7 @@
   },
   "序列依赖条目终态": {
    "V4(R24 判定档)": "IMPLEMENTED_PHASE4(judgment_contract jc-v1.0: 修订版VERIFIED/审计前错误版CONTRADICTED 7 CONTRA;tests/test_arch_reform_phase4.py 57 PASS;哈希已冻结)",
-   "V7(状态过期)": "DEFERRED_PHASE5(状态语义一致性;哈希已冻结)"
+   "V7(状态过期)": "IMPLEMENTED_PHASE5(rd_state_consistency ⑦ 验收如实+根因门: PASS 行证据形态+RDG 生效线硬核;R20 六项底座扩展非重写,15 判正反两面;哈希已冻结)"
   }
  },
  "old_gate_fixture_face": {

@@ -15,7 +15,9 @@
 5. 输出明示: 评分卡=内部模型观点(阈值即模型假设),非客观事实;
    快照data_basis(research_as_of/Gate A)随结果落盘。
 
-保留(结构不变): 阈值与评分档位、体制映射v2.0、两周独立确认规则(ISO周回声剔除)。
+保留(结构不变): 阈值与评分档位语义、体制映射v2.0、两周独立确认规则(ISO周回声剔除);
+阈值数值自 2026-11-14(架构整改T1)起改读 config/thresholds.json(金融席签字 v1.0),
+硬编码常量整族退役,行为与退役前逐值等价(BEI 显示串低侧 1.5 真修除外,冲突#1)。
 """
 
 import os
@@ -38,6 +40,62 @@ DISCLAIMER = ("评分卡=内部模型观点(阈值为模型假设),非客观事�
 # 维度可用<2 → 主流程判DATA_INSUFFICIENT,机制复用零新逻辑。
 ECONOMY_NAMES = {'US': '美国', 'CN': '中国', 'JP': '日本', 'EA': '欧元区'}
 ECONOMY_SCORECARD_PREFIX = 'economy_scorecard_'   # 非US存档前缀(避开US主评分卡glob)
+
+# ══════════════════════════════════════════════════════════════════
+# 阈值注册表接入(ARCH-REFORM T1/裁定书 S1 第1项, 2026-11-14)
+# 硬编码阈值常量整族退役——if/elif 带边界、distance_to_switch 常量与 thresholds
+# 显示串数值全部改读 config/thresholds.json(金融席签字 v1.0,69键)。该文件为
+# 唯一阈值权威;本模块不再持有独立数值常量(G2 对账门差集双侧为空)。
+# BEI 显示串低侧 1.5 误写 2(冲突#1 实锤)随本波真修——这是唯一的行为变更项。
+# ══════════════════════════════════════════════════════════════════
+
+THRESHOLDS_PATH = os.path.join(ROOT_DIR, 'config', 'thresholds.json')
+
+# 本模块消费的注册表键全集(G2 门与代码双侧差集的代码侧锚;增删须同步注册表并重走金融席签字)
+SCORECARD_THRESHOLD_KEYS = (
+    'umcsent.scorecard.m50', 'umcsent.scorecard.m60', 'umcsent.scorecard.p80', 'umcsent.scorecard.p95',
+    'unemployment_3m.scorecard.p05', 'unemployment_3m.scorecard.p03',
+    'unemployment_3m.scorecard.m01', 'unemployment_3m.scorecard.m03',
+    'rsafs_mom.scorecard.m1', 'rsafs_mom.scorecard.m05', 'rsafs_mom.scorecard.p05', 'rsafs_mom.scorecard.p1',
+    'indpro_mom.scorecard.m1', 'indpro_mom.scorecard.m03', 'indpro_mom.scorecard.p03', 'indpro_mom.scorecard.p1',
+    'core_cpi.scorecard.m1', 'core_cpi.scorecard.m2', 'core_cpi.scorecard.p25', 'core_cpi.scorecard.p35',
+    'bei_10y.scorecard.m15', 'bei_10y.scorecard.m2', 'bei_10y.scorecard.p23', 'bei_10y.scorecard.p26',
+    'bei_10y.headline_high',
+    'wti_f.scorecard.m40', 'wti_f.scorecard.m50', 'wti_f.scorecard.p70', 'wti_f.scorecard.p90',
+    'ahe.scorecard.m2', 'ahe.scorecard.m3', 'ahe.scorecard.p35', 'ahe.scorecard.p45',
+    'regime.inflation_total.stagflation_floor', 'regime.growth_total.zero',
+)
+
+_THRESH_CACHE = None
+
+
+def load_thresholds(path=None):
+    """加载签字阈值注册表(缺文件/缺键=fail-closed 明确报错,绝不静默回退硬编码)。"""
+    global _THRESH_CACHE
+    if path is None and _THRESH_CACHE is not None:
+        return _THRESH_CACHE
+    with open(path or THRESHOLDS_PATH, 'r', encoding='utf-8') as f:
+        doc = json.load(f)
+    th = {e['stable_key']: e['value'] for e in doc.get('entries', [])}
+    missing = [k for k in SCORECARD_THRESHOLD_KEYS if k not in th]
+    if missing:
+        raise RuntimeError(f"config/thresholds.json 缺评分卡必需键: {missing}"
+                           "(注册表与代码漂移,须对账门 G2 核并重走金融席签字)")
+    if path is None:
+        _THRESH_CACHE = th
+    return th
+
+
+def TH(key):
+    """取签字阈值(唯一入口;测试可 load_thresholds(path=fixture) 后注入 _THRESH_CACHE)。"""
+    if _THRESH_CACHE is None:
+        load_thresholds()
+    return _THRESH_CACHE[key]
+
+
+def _g(v):
+    """显示串数值格式(50.0→'50', -0.5→'-0.5')——与退役前手写字面量逐串等价。"""
+    return f"{v:g}"
 
 # ══════════════════════════════════════════════════════════════════
 # 快照接入(Layer 3 → Layer 4唯一数据入口)
@@ -114,18 +172,20 @@ def score_growth(facts, economy='US'):
         print(f"\n  📌 增长总分: 无(该经济体阈值口径未定义;可用0项/缺失{len(missing)}项,不以0占位)")
         return scores, None, missing
 
-    # 1. 消费者信心 (UMCSENT, 月频水平)
+    # 1. 消费者信心 (UMCSENT, 月频水平;阈值=签字注册表 umcsent.scorecard.*)
     v, date, why = _take(facts, 'UMCSENT', _level)
     if why is None:
-        if v < 50: s = -2
-        elif v < 60: s = -1
-        elif v < 80: s = 0
-        elif v < 95: s = 1
+        if v < TH('umcsent.scorecard.m50'): s = -2
+        elif v < TH('umcsent.scorecard.m60'): s = -1
+        elif v < TH('umcsent.scorecard.p80'): s = 0
+        elif v < TH('umcsent.scorecard.p95'): s = 1
         else: s = 2
         scores['consumer_confidence'] = {
             'name': '消费者信心(密歇根)', 'value': v, 'date': date, 'score': s,
-            'thresholds': '收缩<60 | 扩张>80',
-            'distance_to_switch': f"距收缩线: {round(v-60,1)}" if v >= 60 else f"已低于收缩线 {round(60-v,1)}"
+            'thresholds': f"收缩<{_g(TH('umcsent.scorecard.m60'))} | 扩张>{_g(TH('umcsent.scorecard.p80'))}",
+            'distance_to_switch': (f"距收缩线: {round(v-TH('umcsent.scorecard.m60'),1)}"
+                                   if v >= TH('umcsent.scorecard.m60')
+                                   else f"已低于收缩线 {round(TH('umcsent.scorecard.m60')-v,1)}")
         }
         print(f"  ✅ 消费者信心: {v} → 评分 {s:+d}")
     else:
@@ -133,20 +193,24 @@ def score_growth(facts, economy='US'):
                         'name': '消费者信心(密歇根)', 'reason': why})
         print(f"  ⚠️ 消费者信心缺失: {why}")
 
-    # 2. 失业率3个月变化 (UNEMPLOYMENT, 引擎m3 pp口径)
+    # 2. 失业率3个月变化 (UNEMPLOYMENT, 引擎m3 pp口径;阈值=unemployment_3m.scorecard.*)
+    # 带(+0.1,+0.3]=0 为代码既成口径(裁定#6 canonical,framework 已补行);显示串『改善<0』
+    # 的 0=方向性描述非边界值(m03 键 semantic_note: 0 非边界值不入表)。
     v, date, why = _take(facts, 'UNEMPLOYMENT', lambda f: _derived(f, 'm3', 'pp_change'))
     if why is None:
         change = v
-        if change > 0.5: s = -2
-        elif change > 0.3: s = -1
-        elif change > -0.1: s = 0
-        elif change > -0.3: s = 1
+        if change > TH('unemployment_3m.scorecard.p05'): s = -2
+        elif change > TH('unemployment_3m.scorecard.p03'): s = -1
+        elif change > TH('unemployment_3m.scorecard.m01'): s = 0
+        elif change > TH('unemployment_3m.scorecard.m03'): s = 1
         else: s = 2
         scores['unemployment_change'] = {
             'name': '失业率3月变化', 'value': change, 'date': date, 'score': s,
             'unit': '百分点',
-            'thresholds': '恶化>+0.3 | 改善<0',
-            'distance_to_switch': f"距恶化线: {round(0.3-change,2)}pp" if change <= 0.3 else f"已超恶化线 {round(change-0.3,2)}pp"
+            'thresholds': f"恶化>+{_g(TH('unemployment_3m.scorecard.p03'))} | 改善<0",
+            'distance_to_switch': (f"距恶化线: {round(TH('unemployment_3m.scorecard.p03')-change,2)}pp"
+                                   if change <= TH('unemployment_3m.scorecard.p03')
+                                   else f"已超恶化线 {round(change-TH('unemployment_3m.scorecard.p03'),2)}pp")
         }
         print(f"  ✅ 失业率3m变化: {change:+.2f}pp → 评分 {s:+d}")
     else:
@@ -154,18 +218,20 @@ def score_growth(facts, economy='US'):
                         'name': '失业率3月变化', 'reason': why})
         print(f"  ⚠️ 失业率3m变化缺失: {why}")
 
-    # 3. 零售销售环比 (RSAFS, 引擎m1 pct口径)
+    # 3. 零售销售环比 (RSAFS, 引擎m1 pct口径;阈值=rsafs_mom.scorecard.*)
     v, date, why = _take(facts, 'RSAFS', lambda f: _derived(f, 'm1', 'pct_change'))
     if why is None:
         mom = v
-        if mom < -1: s = -2
-        elif mom < -0.5: s = -1
-        elif mom < 0.5: s = 0
-        elif mom < 1: s = 1
+        if mom < TH('rsafs_mom.scorecard.m1'): s = -2
+        elif mom < TH('rsafs_mom.scorecard.m05'): s = -1
+        elif mom < TH('rsafs_mom.scorecard.p05'): s = 0
+        elif mom < TH('rsafs_mom.scorecard.p1'): s = 1
         else: s = 2
         scores['retail_sales_mom'] = {
             'name': '零售销售环比', 'value': mom, 'date': date, 'score': s,
-            'unit': '%', 'thresholds': '收缩<-0.5% | 扩张>+0.5%'
+            'unit': '%',
+            'thresholds': (f"收缩<{_g(TH('rsafs_mom.scorecard.m05'))}%"
+                           f" | 扩张>+{_g(TH('rsafs_mom.scorecard.p05'))}%")
         }
         print(f"  ✅ 零售销售MoM: {mom:+.2f}% → 评分 {s:+d}")
     else:
@@ -173,18 +239,21 @@ def score_growth(facts, economy='US'):
                         'name': '零售销售环比', 'reason': why})
         print(f"  ⚠️ 零售销售环比缺失: {why}")
 
-    # 4. 工业生产环比 (INDPRO, 引擎m1 pct口径)
+    # 4. 工业生产环比 (INDPRO, 引擎m1 pct口径;阈值=indpro_mom.scorecard.*,
+    #    2026-11-14 起为 framework 增长表第四项——裁定#5 对齐 operative truth)
     v, date, why = _take(facts, 'INDPRO', lambda f: _derived(f, 'm1', 'pct_change'))
     if why is None:
         mom = v
-        if mom < -1: s = -2
-        elif mom < -0.3: s = -1
-        elif mom < 0.3: s = 0
-        elif mom < 1: s = 1
+        if mom < TH('indpro_mom.scorecard.m1'): s = -2
+        elif mom < TH('indpro_mom.scorecard.m03'): s = -1
+        elif mom < TH('indpro_mom.scorecard.p03'): s = 0
+        elif mom < TH('indpro_mom.scorecard.p1'): s = 1
         else: s = 2
         scores['industrial_production'] = {
             'name': '工业生产环比', 'value': mom, 'date': date, 'score': s,
-            'unit': '%', 'thresholds': '收缩<-0.3% | 扩张>+0.3%'
+            'unit': '%',
+            'thresholds': (f"收缩<{_g(TH('indpro_mom.scorecard.m03'))}%"
+                           f" | 扩张>+{_g(TH('indpro_mom.scorecard.p03'))}%")
         }
         print(f"  ✅ 工业生产MoM: {mom:+.2f}% → 评分 {s:+d}")
     else:
@@ -213,19 +282,23 @@ def score_inflation(facts, economy='US'):
         print(f"\n  📌 通胀总分: 无(该经济体阈值口径未定义;可用0项/缺失{len(missing)}项,不以0占位)")
         return scores, None, missing
 
-    # 1. 核心CPI同比 (CORE_CPI, 引擎m12 pct口径)
+    # 1. 核心CPI同比 (CORE_CPI, 引擎m12 pct口径;阈值=core_cpi.scorecard.*)
     v, date, why = _take(facts, 'CORE_CPI', lambda f: _derived(f, 'm12', 'pct_change'))
     if why is None:
         yoy = v
-        if yoy < 1: s = -2
-        elif yoy < 2: s = -1
-        elif yoy < 2.5: s = 0
-        elif yoy < 3.5: s = 1
+        if yoy < TH('core_cpi.scorecard.m1'): s = -2
+        elif yoy < TH('core_cpi.scorecard.m2'): s = -1
+        elif yoy < TH('core_cpi.scorecard.p25'): s = 0
+        elif yoy < TH('core_cpi.scorecard.p35'): s = 1
         else: s = 2
         scores['core_cpi_yoy'] = {
             'name': '核心CPI同比', 'value': yoy, 'date': date, 'score': s,
-            'unit': '%', 'thresholds': '通缩<2% | 高通胀>3.5%',
-            'distance_to_switch': f"距高通胀线: {round(3.5-yoy,2)}%" if yoy <= 3.5 else f"已超高通胀线 {round(yoy-3.5,2)}%"
+            'unit': '%',
+            'thresholds': (f"通缩<{_g(TH('core_cpi.scorecard.m2'))}%"
+                           f" | 高通胀>{_g(TH('core_cpi.scorecard.p35'))}%"),
+            'distance_to_switch': (f"距高通胀线: {round(TH('core_cpi.scorecard.p35')-yoy,2)}%"
+                                   if yoy <= TH('core_cpi.scorecard.p35')
+                                   else f"已超高通胀线 {round(yoy-TH('core_cpi.scorecard.p35'),2)}%")
         }
         print(f"  ✅ 核心CPI YoY: {yoy:.2f}% → 评分 {s:+d}")
     else:
@@ -233,18 +306,23 @@ def score_inflation(facts, economy='US'):
                         'name': '核心CPI同比', 'reason': why})
         print(f"  ⚠️ 核心CPI同比缺失: {why}")
 
-    # 2. BEI 10Y (T10YIE, 日频水平)
+    # 2. BEI 10Y (T10YIE, 日频水平;阈值=bei_10y.scorecard.* 四带缘+headline_high)
+    # 裁定#1 双级并存: 显示串高通胀线=headline 2.5,评分/距离=band_edge 2.6;
+    # 显示串低侧 1.5 原误写 2(冲突#1 实锤),本波真修=唯一行为变更项(TH 化后逐字对齐注册表)。
     v, date, why = _take(facts, 'BEI_10Y', _level)
     if why is None:
-        if v < 1.5: s = -2
-        elif v < 2: s = -1
-        elif v < 2.3: s = 0
-        elif v < 2.6: s = 1
+        if v < TH('bei_10y.scorecard.m15'): s = -2
+        elif v < TH('bei_10y.scorecard.m2'): s = -1
+        elif v < TH('bei_10y.scorecard.p23'): s = 0
+        elif v < TH('bei_10y.scorecard.p26'): s = 1
         else: s = 2
         scores['bei_10y'] = {
             'name': 'BEI 10Y(通胀预期)', 'value': v, 'date': date, 'score': s,
-            'unit': '%', 'thresholds': '低通胀<2% | 高通胀>2.5%',
-            'distance_to_switch': f"距高通胀线: {round(2.6-v,2)}%" if v <= 2.6 else "已超高通胀线"
+            'unit': '%',
+            'thresholds': (f"低通胀<{_g(TH('bei_10y.scorecard.m15'))}%"
+                           f" | 高通胀>{_g(TH('bei_10y.headline_high'))}%"),
+            'distance_to_switch': (f"距高通胀线: {round(TH('bei_10y.scorecard.p26')-v,2)}%"
+                                   if v <= TH('bei_10y.scorecard.p26') else "已超高通胀线")
         }
         print(f"  ✅ BEI 10Y: {v:.2f}% → 评分 {s:+d}")
     else:
@@ -252,17 +330,19 @@ def score_inflation(facts, economy='US'):
                         'name': 'BEI 10Y(通胀预期)', 'reason': why})
         print(f"  ⚠️ BEI 10Y缺失: {why}")
 
-    # 3. WTI油价 (WTI_F期货, 快照事实;不再自行yfinance)
+    # 3. WTI油价 (WTI_F期货, 快照事实;阈值=wti_f.scorecard.* 评分带,与能源带 wti_f.energy.* 双体系并存)
     v, date, why = _take(facts, 'WTI_F', _level)
     if why is None:
-        if v < 40: s = -2
-        elif v < 50: s = -1
-        elif v < 70: s = 0
-        elif v < 90: s = 1
+        if v < TH('wti_f.scorecard.m40'): s = -2
+        elif v < TH('wti_f.scorecard.m50'): s = -1
+        elif v < TH('wti_f.scorecard.p70'): s = 0
+        elif v < TH('wti_f.scorecard.p90'): s = 1
         else: s = 2
         scores['wti_oil'] = {
             'name': 'WTI油价(期货)', 'value': round(v, 2), 'date': date, 'score': s,
-            'unit': '美元/桶', 'thresholds': '需求担忧<50 | 通胀推升>90',
+            'unit': '美元/桶',
+            'thresholds': (f"需求担忧<{_g(TH('wti_f.scorecard.m50'))}"
+                           f" | 通胀推升>{_g(TH('wti_f.scorecard.p90'))}"),
             'note': '期货主力口径,与EIA现货月均为两个指标'
         }
         print(f"  ✅ WTI油价(期货): ${v:.2f} → 评分 {s:+d}")
@@ -271,18 +351,21 @@ def score_inflation(facts, economy='US'):
                         'name': 'WTI油价(期货)', 'reason': why})
         print(f"  ⚠️ WTI油价缺失: {why}")
 
-    # 4. 平均时薪同比 (AHE, 引擎m12 pct口径)
+    # 4. 平均时薪同比 (AHE, 引擎m12 pct口径;阈值=ahe.scorecard.*,
+    #    低工资头条线按评分列口径=m3(3.0),表头<2%由 m2 键承载——两键并存非冲突)
     v, date, why = _take(facts, 'AHE', lambda f: _derived(f, 'm12', 'pct_change'))
     if why is None:
         yoy = v
-        if yoy < 2: s = -2
-        elif yoy < 3: s = -1
-        elif yoy < 3.5: s = 0
-        elif yoy < 4.5: s = 1
+        if yoy < TH('ahe.scorecard.m2'): s = -2
+        elif yoy < TH('ahe.scorecard.m3'): s = -1
+        elif yoy < TH('ahe.scorecard.p35'): s = 0
+        elif yoy < TH('ahe.scorecard.p45'): s = 1
         else: s = 2
         scores['ahe_yoy'] = {
             'name': '平均时薪同比', 'value': yoy, 'date': date, 'score': s,
-            'unit': '%', 'thresholds': '低工资<3% | 高工资>4.5%'
+            'unit': '%',
+            'thresholds': (f"低工资<{_g(TH('ahe.scorecard.m3'))}%"
+                           f" | 高工资>{_g(TH('ahe.scorecard.p45'))}%")
         }
         print(f"  ✅ 平均时薪 YoY: {yoy:.2f}% → 评分 {s:+d}")
     else:
@@ -307,9 +390,11 @@ def determine_regime(g_total, i_total):
     - 通胀总分 ≥ +3 且增长 ≤ 0 → 滞胀 (Stagflation)
     - 通胀总分 ≥ +3 且增长 > 0 → 类滞胀 (Stagflation-lite)
     注：类滞胀 = 增长尚可但通胀压力主导，不应与再通胀混淆
+    阈值=签字注册表(2026-11-14 起): 滞胀族界=regime.inflation_total.stagflation_floor,
+    增长正负界=regime.growth_total.zero(config/thresholds.json,原硬编码 3/0 退役)。
     """
-    if i_total >= 3:
-        if g_total > 0:
+    if i_total >= TH('regime.inflation_total.stagflation_floor'):
+        if g_total > TH('regime.growth_total.zero'):
             regime = "类滞胀"
             desc = (f"增长勉强为正(+{g_total})但通胀压力主导(+{i_total})。"
                     f"通胀水平偏高且具粘性，不符合再通胀(Reflation)定义。"
@@ -318,8 +403,8 @@ def determine_regime(g_total, i_total):
             regime = "滞胀"
             desc = (f"增长疲软({g_total})叠加高通胀(+{i_total})。"
                     f"经典滞胀格局：央行无法放松，实体承压。")
-    else:  # i_total <= 2
-        if g_total > 0:
+    else:  # i_total <= 2(stagflation_floor 的整数域补集: ≤+2 ⇔ <3)
+        if g_total > TH('regime.growth_total.zero'):
             regime = "再通胀"
             desc = (f"增长回升(+{g_total})伴随温和通胀(+{i_total})。"
                     f"符合Reflation经典定义：产出缺口收窄，物价温和上行。")

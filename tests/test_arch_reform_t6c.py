@@ -182,6 +182,20 @@ check('C3 V5 六族以上地板 100%(全族捕获)',
       fams_covered == all_fams and len(all_fams) >= 6,
       f'{len(fams_covered)}/{len(all_fams)}')
 
+# C4/P5: V6 未映射数值 token=0(manifest 复核+游离扫描口径)
+v6_unmapped = []
+for it in V6:
+    r = ct(it['text'])
+    v6_unmapped += [(it['id'], u['raw']) for u in r['unbound']]
+check('C4 V6 未映射数值 token=0(P5)', not v6_unmapped, str(v6_unmapped))
+
+# C5/P5 对偶: V5 未映射也须为 0(拦截不靠 unbound 兜底)
+v5_unmapped = []
+for it in V5:
+    r = ct(it['text'])
+    v5_unmapped += [(it['id'], u['raw']) for u in r['unbound']]
+check('C5 V5 未映射数值 token=0', not v5_unmapped, str(v5_unmapped))
+
 print('== D 防伪纪律(命中机制族内) ==')
 
 D_MAP = {

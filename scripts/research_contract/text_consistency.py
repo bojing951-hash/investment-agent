@@ -379,13 +379,23 @@ _PRIOR_MARK_RE = re.compile(
     re.I)
 
 
-def _prior_role(clause, token):
+def _prior_role(clause, token, observation_date=None):
     """上期/前值角色标记(位置式: 标记须在 token 之前方算前值;
-    「from X」的 X 在标记后=前值,「to X from Y」的 X 非前值)。"""
+    「from X」的 X 在标记后=前值;「in the week of <早于观测日的日期>」
+    =上期引用)。"""
     for m in _PRIOR_MARK_RE.finditer(clause):
         if m.end() <= token['start'] + 1 and \
                 token['start'] - m.end() <= 28:
             return 'prior'
+    if observation_date:
+        # 日期限定语后随形态: 「printed at 189K in the week of <旧日期>」
+        # ——日期在 token 之后 20 字内=该值的上期身份;其后的变化 token
+        # (rising 6K)不受此日期株连
+        for dm in _DATE_RE.finditer(clause):
+            d = str(dm.group(0))[:10]
+            if len(d) == 10 and d < str(observation_date)[:10] and \
+                    0 <= dm.start() - token['end'] <= 20:
+                return 'prior'
     return None
 
 
@@ -904,9 +914,9 @@ def _check_prior_reverse(clause, snapshot, thresholds_by=None):
     if '反推' not in clause:
         return []
     mids = _find_alias(clause)
-    if not mids:
+    mid = mids[0][0] if mids else _CTX_STATE.get('carry_mid')
+    if not mid:
         return []
-    mid = mids[0][0]
     fact = _fact_of(snapshot, mid)
     if not fact or not _is_num(fact['value']):
         return []
@@ -965,10 +975,14 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
             carry_mid = mids_in[0][0]
             _CTX_STATE['carry_mid'] = carry_mid
         # 语义族检查器先跑(各自消费专属 token;原始子句)
+        consumed = set()           # 检查器已裁决 token(主循环跳过+不落 unbound)
         for fn in SPECIAL_CHECKERS:
             try:
                 for ch in fn(clause, snapshot, thresholds_by) or []:
                     checks.append(ch)
+                    for part in re.split(r'[/、,，]', str(ch.get('token') or '')):
+                        if part.strip():
+                            consumed.add(part.strip())
             except Exception:      # 检查器异常不吞主流程;记录后继续
                 checks.append({'family': getattr(fn, '__name__', '?'),
                                'token': '', 'value': None, 'expected': None,
@@ -976,6 +990,8 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                                'note': 'checker_error(检查器异常降级)'})
         masked = _masked_clause(clause, mids_in)
         for t in _extract_tokens(masked):
+            if t['raw'].strip() in consumed:
+                continue            # 检查器已裁决(如 反推恒等/相关)
             seg_start = clause.rfind('，', 0, t['start']) + 1
             seg_end_i = clause.find('，', t['end'])
             seg_scoped = clause[seg_start:seg_end_i if seg_end_i > 0
@@ -993,10 +1009,31 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                     (t['kind'] in ('percent', 'pp')
                      and (_window_of(clause, t) or _direction_of(clause)))
                     or (t['kind'] in ('亿', 'plain', 'K', 'thousands')
-                        and re.search(r'净减少|净增加|新增|减少|增加',
-                                      t['ctx']))):
-                mid = carry_mid          # 承前句指标(环比下降0.10%/净减少X 形态)
-            if mid is None or (mids_in and best_d > 34):
+                        and re.search(r'净减少|净增加|新增|减少|增加|'
+                                      r'rising|rose|climbed|falling|fell|'
+                                      r'dropped|decline|上升|下降|回落|回升',
+                                      t['ctx']))
+                    or (t['approx'] and _fact_of(snapshot, carry_mid)
+                        and _display_aligned(
+                            t['raw'], t['value'],
+                            _fact_of(snapshot, carry_mid)['value'],
+                            approx=True))):
+                mid = carry_mid          # 承前句指标(环比下降0.10%/净减少X/
+                                        # 约数复述约1.22万亿 形态)
+            if mid is not None and mids_in and best_d > 34:
+                # 句内远距: 合格 token(约数对齐/方向/窗口)回退绑句内首选别名
+                fm = _fact_of(snapshot, mid)
+                if not (fm and (
+                        (t['approx'] and _display_aligned(
+                            t['raw'], t['value'], fm['value'], approx=True))
+                        or (t['kind'] in ('percent', 'pp')
+                            and (_window_of(clause, t)
+                                 or _direction_of(clause)))
+                        or re.search(r'净减少|净增加|新增|减少|增加|rising|'
+                                     r'rose|climbed|falling|fell|dropped|'
+                                     r'decline|上升|下降|回落|回升', t['ctx']))):
+                    mid = None
+            if mid is None:
                 if t['kind'] != 'nan':
                     unbound.append({'raw': t['raw'], 'ctx': t['ctx'][:40],
                                     'zone_fact': facts_zone})
@@ -1007,7 +1044,7 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                                 'zone_fact': facts_zone, 'reason':
                                 f'{mid} 不在快照'})
                 continue
-            if _prior_role(clause, t):
+            if _prior_role(clause, t, fact.get('observation_date')):
                 continue            # 前值/上期=prior_reference 辖域
             val = _scale_k(t['value'], t['kind'], fact)
             signed = bool(re.search(r'[+\-−]', t['raw'].strip()[:1])) or \

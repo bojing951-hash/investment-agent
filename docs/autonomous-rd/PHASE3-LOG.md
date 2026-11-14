@@ -145,3 +145,81 @@ $ python3 scripts/rd_state_consistency.py --repo . --state-dir docs/autonomous-r
 2. **体积增量实测 862.9KB > 预估 ~650KB**(31 键全量直通,禁截断/抽稀/改写,如实入账;对照口径=同快照剔除 macro store 键与平节后的序列化体积)。
 3. **e2eb_query_executor.NO_DATA_CORR_NO_STORE** 拒因串「macro通道序列不经store,既有结构边界」自 T3 起为历史措辞(该消息仅在所查快照 store 真缺席时触发: 手构快照/旧版快照/形态不合规被跳过);改串会动 test_p03_e2eb_b2 既有断言,本波不扩面,申报残留待操作者/审计席裁量。
 4. fact_engine.py 为任务书未列文件的伴生最小改动(单源纪律,行为等价已证,见 B);PHASE3-LOG 本节随档入库操作者席 T1+T2 验证节(T3 开工时点为未提交工作树稿,单独 commit 说明)。
+
+---
+
+## T3 操作者席验证(2026-11-14 深夜)
+
+对象=dev/arch-reform-p3(实现席两笔 0f10022 码波+56fb2df 记账;验证基=纯克隆 /tmp/reform-verify3@56fb2df)。
+
+| # | 项 | 方法 | 结果 |
+|---|---|---|---|
+| 1 | 套件+门独立复跑 | 纯克隆跑 T3 套件+G 门+一致性门 | **43/43 PASS**;thresholds_gate exit=0;rd_state_consistency **6/6** |
+| 2 | 真档逐字独立复核 | 自备副本(macro_20261114.json→/tmp/t3-op-verify,与实现席 tmp 隔离)直调 merge_macro_series,31 键 store 值 vs 档内 series 原文逐字比对 | **31 键入场,不一致=0**;HY_OAS n=785(2023-11-14→2026-11-12)/CURVE_2S10S n=2500(2016-11-14→2026-11-13)/UST_10Y n=2499/WTI_SPOT_M n=120(别名臂实效);notes 恰=档内带 history_note 的 6 键,CURVE_2S10S 无注记不入 ✓ |
+| 3 | 码面审 | git show 0f10022 逐行 | merge_macro_series=与 merge_series_sections 先例同构(权属门/形态门/先占/零改写);别名臂=fe._MACRO_ALIAS 逐字提升单一权威(fact_engine diff 亲核,函数局部同字面搬移);notes 防孤儿(序列未入则注记不入) |
+| 4 | 全量 CI 同款 | 纯克隆 56fb2df tests/test_*.py 逐个(model_live 跳过) | **145 执行 0 红**(含 T3 套件 43 判;p0 在纯克隆绿=环境工件定案再获反证;实现席 worktree 跑的 144/1 红=链式 worktree 环境差异,同 T1+T2 第4项) |
+
+### 四项申报裁定(操作者席)
+
+1. **别名臂: 采**。fe._MACRO_ALIAS 提升=逐字搬移单一权威(非新表非白名单),WTI_SPOT_M 注册表 source=macro_collector 权属实证;不加则 WTI_SPOT_M 月频全史静默缺席=更差。门泛化性质保持。
+2. **体积增量 862.9KB: 接受**。如实入账+对照口径合理(同快照剔除法);本地数据档体积非模型载荷面;禁截断/抽稀/改写符合章程(零数据改写)。预估 ~650KB 为操作者任务书估值误差,记入任务书精度教训。
+3. **NO_DATA_CORR_NO_STORE 措辞残留: 登记不修(缓)**。仅 store 真缺席时触发的拒因串,语义仍正确(拒=对),措辞「不经store」过时;改串动 test_p03_e2eb_b2 既有断言=扩面,留 T7 新旧并行对照波统一处置(该波必触此路径)。
+4. **fact_engine 伴生改动: 采**。任务书未列但为单源纪律必要(别名表模块级),行为零漂移申报+套件全绿背书。
+
+### 结论
+
+T3 工单验收面双证实成立: 「两序列可查询」=快照 store 面(真跑逐字)+rhq 接入点 A 面(套件 D 组);「新鲜度窗判定真实跑」=套件 B 组(EXACT/7 日窗 FALLBACK/8 日窗外 MISSING 零造数)+真跑 EXACT。T3 已毕,可进 T4(claim_factory 六型——谓词已有米下锅)。
+
+---
+
+## T4 claim_factory 六型(2026-11-14)
+
+**范围**: 工单T4——新包 scripts/research_contract/ 只落 claim_factory.py(六型+谓词文法+单位代数)+claim_bundle.py(容器/schema) 两件(claim_verifier=T5、render/text=T6 未碰);fixture=真实快照垂直切片入仓;tests/test_arch_reform_t4_claims.py。零模型调用/零网络/零随机/零 env/零 LIVE 树指向。
+
+### 交付与执行证据
+
+**A. scripts/research_contract/claim_factory.py(新件)** — 六型全确定性派生自 Fact 层+series_store(含 T3 macro 通道序列)+thresholds 注册表+metric_registry:
+- level: fact 值直读零改写;band 子结构两路=①fact 对(BAND_FACT_SPECS: Fed 目标带 3.75–4.00=契约§2 例)②注册表 band_edge 对(DXY 100–104=契约§2 例);value={low,high} 一带对象两数;
+- change: 双轨直读 Fact 层 derived(spec §4.4 单位族单一权威=import fact_engine PRICE_LIKE/RATE/COUNT 三常量,不另造): 价格类→relative/pct_change(percent,basis 必带)/利率类→absolute/pp_change(pp+bp 双 token)/计数类→absolute/abs_change(原单位);禁合成另一轨(SPX 零 absolute、UST_10Y 零 relative=套件钉);
+- comparison: spread/diff 同单位校验(异单位 UnitAlgebraError 拒)/rank=注册表 asset_class 数据驱动族(equity_index 周pct降序);
+- threshold: relation(above/below/at)+since_date(last_crossing 谓词派生)+persistence(last_crossing+crossing_count 全窗);序列缺席→since=None 如实注记;阈值单位≠指标 canonical 单位→抛(注册表单位策略 fail-closed);
+- threshold_distance: |level−threshold|(契约§2 示例 |3.20−4.00|=0.80 复现);无注册表条目指标零产不造(诚实缺席台账);
+- observation_lag: as_of−observation_date 自然日(JP_POLICY_RATE=74 天=契约§4 STALE 行字面复现);
+- 谓词文法(§3 逐字): percentile_rank=100×(严格小于+0.5×并列)/n/窗界=前一年度末观测含当期/min-n 门 20/月频 ytd 禁用;sign_flip_date(CURVE=2024-09-05=契约字面)/last_crossing/crossing_count(遍历计数+min-n)/AND 组合;
+- 单位代数(律3): pp↔bp=×100 精确往返+canonical=percentage_point/basis_point;percent→pp 无基准必抛(唯一合法通道=显式基准);「400bp 与 4.00%」两 token 映射同一 hy_oas.warning claim(threshold_token_matches);跨指标 spread 同单位校验。
+```
+$ python3 scripts/research_contract/claim_factory.py tests/fixtures/t4_claims/snapshot_slice_20261114.json --out /tmp/t4_cli_out
+bundle=claims_20261114 claims=109 → /tmp/t4_cli_out/claims_20261114.json
+counts: {"level": 15, "change": 56, "comparison": 5, "threshold": 10, "threshold_distance": 10, "observation_lag": 13}
+coverage_ledger: 9 条诚实缺席   predicate_ledger: 7 条
+```
+
+**B. scripts/research_contract/claim_bundle.py(新件)** — ResearchClaim v1.0 容器: schema 逐字段校验(三元组/change 律2 基准/evidence 必带值/band 区间对象/comparison 多成员/threshold_ref+provenance 稳定键)+装配+落盘 claims_YYYYMMDD.json(快照旁挂)+读写往返同 validator;零时间戳注入(纯函数确定性;时间身份=快照 research_as_of)。`__init__.py`=五模块布局注记(T5/T6 占位显式)。
+
+**C. tests/fixtures/t4_claims/snapshot_slice_20261114.json(新件,95KB vs 全档 3.9MB)** — LIVE 树最新快照 research_snapshot_20261114_v2.json **只读复制提取**垂直切片: facts 13 指标全字段(工单五指标 SPX/UST_10Y/DXY/HY_OAS/CPI+comparison/band 伴生 8 件,见申报①)+series 6 键(SPX/DXY 尾窗自快照 store;HY_OAS 全史785/UST_10Y 尾130/CURVE_2S10S 自2024-01-01/CPI 全史月频119 自 macro_20261114.json——LIVE 快照 store 早于 T3 通道,序列取自 build_snapshot 同一输入档)。`_fixture_provenance` 随档: 源快照 id+两源档 sha256(快照 d533be2d…/macro cb252655…)+提取日 2026-11-14+逐键切片窗注记。代码零指向 LIVE 树,五新文件零绝对路径零网络(CI 干净克隆安全)。
+
+**D. tests/test_arch_reform_t4_claims.py(新件,115 判)** — S1-S6 六型真实快照用例(验收原文「每型≥3」: level 15/change 56/comparison 5/threshold 10/threshold_distance 10/observation_lag 13,逐值套件内**独立复算**对照非回叫工厂;契约字面五钉: 0.80pp/2024-09-05/74天/3.75–4.00/100–104);U1 单位代数反例(pp↔bp 错值红/percent→pp 无基准拒/400bp≡4.00% 同 claim/跨单位 spread 拒);P1 谓词反例(并列半权 Fraction 手算/min-n 门/月频 ytd 拒/真实 HY_OAS 序列 crossing_count 手数对照=2024 年以来 2 次/last_crossing 独立扫/AND);Z1 零模型断言双面(静态: 三模块源码零模型客户端零 env 零网络零随机零时钟;动态: MODEL_* 绊线环境子进程生成=逐字节同输出+生成全程零网络模块载入);D1 确定性(双跑逐字节相等/claim_id 稳定序/写读往返/九类 schema 变异必红/诚实缺席台账/fixture 出处)。
+```
+$ python3 tests/test_arch_reform_t4_claims.py
+T4 回归: 115 PASS / 0 FAIL (共115判定)   全部通过 ✅
+$ python3 scripts/thresholds_gate.py        → G1-G4 全绿 exit=0
+$ python3 scripts/rd_state_consistency.py --repo . --state-dir docs/autonomous-rd → 6/6 PASS
+```
+
+### 全量回归(诚实面)
+
+```
+$ for t in tests/test_*.py(排除 test_model_live):  # tests/ 共 147 件(含新 T4 套件),执行 146
+  145 exit=0;  1 RED: test_p0_baseline_lock_equivalence.py
+```
+唯一预期红=test_p0_baseline_lock_equivalence(T1+T2 期已定案环境工件: 判据「worktree 副本清单回零」在链式 worktree 不可满足,纯克隆绿;T3 期同判)。T4 改动为纯新增文件,不在该套件触及面。
+
+### 偏离与申报
+
+1. **fixture 增补 8 件伴生 fact**(JP_POLICY_RATE/DFF/IG_OAS/DFEDTARU/DFEDTARL/HY_IG_DIFF/NDX/RUT): 工单字面「五指标…即可」,但 comparison 型需真实同单位对(契约§4 STALE 行「美日利差=新鲜DFF−滞后74天JP利率」字面复现+HY_IG_DIFF=Fact 层既成 spread 对账 2.31)、band 型需 target_band 事实对、rank 需≥2 成员族——只按字面五指标则 comparison 真实用例不可达。体积 95KB 仍属克制(2.4% 全档);逐键 provenance 注记。
+2. **comparison.diff 子类型无真实正例**: 真实对均落 spread(利差语义)/rank;diff 在 schema+builder 在册,以「跨单位拒」反例(UST_10Y−HY_OAS)覆盖其校验面。工单验收=「每型≥3」(型=comparison: 5 例 ✓);diff 子型留待真实语义对出现再入默认 bundle,如实申报。
+3. **谓词产出位置**: percentile_rank/sign_flip 落 bundle.predicate_ledger(事实性派生字段),last_crossing/crossing_count 嵌 threshold claim persistence;六状态机字段预留给 T5(gate=INSUFFICIENT_EVIDENCE 仅事实标注,非验证状态)。
+4. **fact_engine 只读引用零改动**(import 单位族三常量=单一权威纪律;无伴生码面改动,异于 T3 波)。
+5. **formula 文本用 canonical 全名**(|3.2−4.0|=0.8 percentage_point)而非契约示例 pp 缩写后缀——律3「渲染后缀不得反推单位」精神,unit 字段=唯一权威(契约示例为示意非规范)。
+6. BAND_FACT_SPECS/COMPARISON_SPECS=模块内确定性配置表(带出处,非自由文本输入;纯函数输入面=快照+两注册表不变)——Fed 带事实对无注册表配对语义可数据驱动泛化,如实以配置表声明。
+7. PHASE3-LOG 工作树含操作者席 T3 验证节(T4 开工时点为未提交工作树稿)随本 commit 入库(T3 波同款先例)。

@@ -51,20 +51,15 @@ ECONOMY_SCORECARD_PREFIX = 'economy_scorecard_'   # 非US存档前缀(避开US�
 
 THRESHOLDS_PATH = os.path.join(ROOT_DIR, 'config', 'thresholds.json')
 
-# 本模块消费的注册表键全集(G2 门与代码双侧差集的代码侧锚;增删须同步注册表并重走金融席签字)
-SCORECARD_THRESHOLD_KEYS = (
-    'umcsent.scorecard.m50', 'umcsent.scorecard.m60', 'umcsent.scorecard.p80', 'umcsent.scorecard.p95',
-    'unemployment_3m.scorecard.p05', 'unemployment_3m.scorecard.p03',
-    'unemployment_3m.scorecard.m01', 'unemployment_3m.scorecard.m03',
-    'rsafs_mom.scorecard.m1', 'rsafs_mom.scorecard.m05', 'rsafs_mom.scorecard.p05', 'rsafs_mom.scorecard.p1',
-    'indpro_mom.scorecard.m1', 'indpro_mom.scorecard.m03', 'indpro_mom.scorecard.p03', 'indpro_mom.scorecard.p1',
-    'core_cpi.scorecard.m1', 'core_cpi.scorecard.m2', 'core_cpi.scorecard.p25', 'core_cpi.scorecard.p35',
-    'bei_10y.scorecard.m15', 'bei_10y.scorecard.m2', 'bei_10y.scorecard.p23', 'bei_10y.scorecard.p26',
-    'bei_10y.headline_high',
-    'wti_f.scorecard.m40', 'wti_f.scorecard.m50', 'wti_f.scorecard.p70', 'wti_f.scorecard.p90',
-    'ahe.scorecard.m2', 'ahe.scorecard.m3', 'ahe.scorecard.p35', 'ahe.scorecard.p45',
-    'regime.inflation_total.stagflation_floor', 'regime.growth_total.zero',
-)
+# 本模块消费的注册表键全集(G2 门与代码双侧差集的代码侧锚;增删须同步注册表并重走金融席签字)。
+# R41(T8-R2 遗留③,RDG-20261116-011): 平行枚举退役——维度成员键由
+# research_contract/scorecard_spec 单源规格表推导(与 text_consistency
+# 总分复算同源);本模块另消费 headline 显示键+体制映射键。
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from research_contract.scorecard_spec import (             # noqa: E402
+    EXTRA_ENGINE_KEYS, REGIME_THRESHOLD_KEYS, threshold_keys as _spec_keys)
+SCORECARD_THRESHOLD_KEYS = tuple(sorted(
+    set(_spec_keys()) | set(REGIME_THRESHOLD_KEYS) | set(EXTRA_ENGINE_KEYS)))
 
 _THRESH_CACHE = None
 

@@ -20,20 +20,24 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-16 R40 收口后 · 引擎轨道余留)
+## 下一步(2026-11-16 R41 收口后 · 引擎轨道余留)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R40=叙事方向守卫残余登记三项收口已毕(操作者紧凑波;RDG-010 残余登记三项全闭;tid 见存档与 ITERATION_LOG)。队列按优先级:
+R41=T8-R2 余留①②③收口已毕(引擎席;真实面 326 全簇裁定零真错零漂移+双报标记+维度单源;tid 见存档与 ITERATION_LOG)。队列按优先级:
 
-1. **R41+ 引擎轨道续行**: 整改余留: T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码维度(④⑥⑦下次启封随批)/round.sh 双上限=LIVE 部署时;FX 族再暴露交叉盘/对名误读形态则升「主体锚=别名表驱动」(RDG-010 尾注)。每任务先过 RDG 根因决策门(RDG-REGISTRY 登记,⑦门硬核)。
-3. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
+1. **R42+ 引擎轨道续行**: ①**A 族碎片泄漏硬化首位候选**(R41 定性件新证: 元数据/序号/引用ID/小数切分碎片泄漏=154/326 误报 47%,检查面预处理[HTML 注释/生成头剥离+引用ID/碎片过滤]可腰斩真实面误报;每任务先过 RDG 门)②T8-R2 ④era base_anchor_set 必填+⑥重封留出+⑦变异压力轮(下次启封随批)③round.sh 双上限=LIVE 部署时④R41 审计登记项(MINOR-1 S3 饱和值敏感度+NIT-3~5)⑤FX 族再暴露交叉盘/对名误读形态则升「主体锚=别名表驱动」(RDG-010 尾注)。
+2. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 40, "date": "2026-11-16 00:14 HKT", "branch": "main", "commit": "d18e7f32c35ab01175c66a07d47fa18d30c27c8d", "baseline": "d18e7f32c35ab01175c66a07d47fa18d30c27c8d", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R40-1"], "next_task": "R41: 引擎轨道续行=T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码(④⑥⑦下次启封随批)/round.sh 双上限(LIVE 部署时);FX 族再暴露交叉盘形态则升主体锓名别表驱动(RDG-010 尾注);日历门 F=2026-12-05 勿手工提前", "next_round": 41} -->
+<!-- RD-CHECKPOINT v1: json {"round": 41, "date": "2026-11-16 04:18 HKT", "branch": "dev/rd-r41-t8r2-leftovers", "commit": "d14ae290dba5f0aaf84daf7a9be886b1bb7bbfb0", "baseline": "d14ae290dba5f0aaf84daf7a9be886b1bb7bbfb0", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R41-1"], "next_task": "R42: 引擎轨道=A 族碎片泄漏硬化首位候选(R41 定性新证: 154/326=47%,检查面预处理=HTML注释/生成头剥离+引用ID/碎片过滤)+T8-R2 ④⑥⑦下次启封随批/round.sh 双上限(LIVE 部署时)/R41 审计登记 MINOR-1+NIT-3~5;日历门 F=2026-12-05 勿手工提前", "next_round": 42} -->
+
+## 下一步存档(2026-11-16 R41 收口后版)
+
+- [已毕·R41] **T8-R2 余留①②③收口**(T-R41-1;RDG-20261116-011): ①真实面定性(诊断实验)=复跑 T7 三份真实周报 326 token 全簇裁定**全误报零真错**,contra/veri/unbound 与基线 e81d363 逐位零漂移,A 族碎片泄漏 154(47%)居首=硬化首位登记;真实面 0/3 维持/Gate B 继续值守(T7 原判)②band_label 双报 co_anchor 派生标记(状态零变动)③scorecard_spec 单源规格表(tc 表驱动+macro_scorecard 35 键推导+G2 门锚随迁强度不降);独立审计四维 PASS 0 B 0 M **可并入**(MINOR-1+NIT-3~5 登记);新套件 20/0+受影响面绿+全库 164 件(红仅 phase6 波中记账面);分支 dev/rd-r41-t8r2-leftovers;详见 ITERATION_LOG R41 双行与 R41_T8R2_LEFTOVERS_REPORT.md。**操作者席: 合并发布+并轨尖重盖章(R32 判例)**。
 
 ## 下一步存档(2026-11-16 R40 收口后版)
 

@@ -369,7 +369,9 @@ class TestS4Gate(unittest.TestCase):
                     framework_path=os.path.join(ROOT, 'config', 'framework.md'),
                     metrics_path=os.path.join(ROOT, 'config', 'metric_registry.json'),
                     scorecard_path=os.path.join(ROOT, 'scripts', 'macro_scorecard.py'),
-                    validator_path=os.path.join(ROOT, 'scripts', 'data_validator.py'))
+                    validator_path=os.path.join(ROOT, 'scripts', 'data_validator.py'),
+                    spec_path=os.path.join(ROOT, 'scripts', 'research_contract',
+                                           'scorecard_spec.py'))
         args.update(kw)
         report, _ = tg.run(**args)
         return report
@@ -378,6 +380,8 @@ class TestS4Gate(unittest.TestCase):
         th = copy.deepcopy(TH_DOC)
         fw = FW_TEXT
         sc = open(os.path.join(ROOT, 'scripts', 'macro_scorecard.py'), encoding='utf-8').read()
+        sp = open(os.path.join(ROOT, 'scripts', 'research_contract',
+                               'scorecard_spec.py'), encoding='utf-8').read()
         dvs = open(os.path.join(ROOT, 'scripts', 'data_validator.py'), encoding='utf-8').read()
         mr = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'), encoding='utf-8'))
 
@@ -395,10 +399,14 @@ class TestS4Gate(unittest.TestCase):
         # G2×3: 键typo / 声明键被删 / 注册表键无实施(fam向)
         r = self._run_paths(scorecard_path=self._tmp(sc.replace("TH('umcsent.scorecard.m50')", "TH('umcsent.scorecard.m99')"), 'ms.py'))
         check('S4 变异红: G2 TH引用typo键', bool(r['G2']))
-        r = self._run_paths(scorecard_path=self._tmp(sc.replace("'umcsent.scorecard.m50', ", ''), 'ms.py'))
+        # R41 声明面=scorecard_spec 单源: 声明键被删=删 spec 字面量(锚搬家,门牙仍在)
+        r = self._run_paths(spec_path=self._tmp(
+            sp.replace("('umcsent.scorecard.m50', ", "("), 'spec.py'))
         check('S4 变异红: G2 声明键被删(引用漂移)', bool(r['G2']))
-        sc2 = sc.replace("'umcsent.scorecard.m50', ", '').replace("TH('umcsent.scorecard.m50')", '50')
-        r = self._run_paths(scorecard_path=self._tmp(sc2, 'ms.py'))
+        sp2 = sp.replace("('umcsent.scorecard.m50', ", "(")
+        sc2 = sc.replace("TH('umcsent.scorecard.m50')", '50')
+        r = self._run_paths(scorecard_path=self._tmp(sc2, 'ms.py'),
+                            spec_path=self._tmp(sp2, 'spec.py'))
         check('S4 变异红: G2 注册表键退回硬编码无实施+G4裸常量',
               bool(r['G2']) and bool(r['G4']))
         # G3×2: 值误收metric range端点 / validation新档位字段

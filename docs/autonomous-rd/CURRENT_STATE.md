@@ -4,7 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-16 R40 叙事方向守卫残余登记三项收口(T-R40-1)
+## 权威快照: 2026-11-16 R41 T8-R2 余留①②③收口(T-R41-1)
+> baseline=d14ae290dba5f0aaf84daf7a9be886b1bb7bbfb0 (机器行占位: rd_checkpoint.py --finalize 盖章,勿手改)
+
+- **基线**: main = 2798d8a(R40 盖章);本轮=`dev/rd-r41-t8r2-leftovers`(基点 2798d8a;本树开班时停 R38 旧分支而 main 已至 R40=以 main 恢复基面迁移,门 7/7)。
+- **真实进度**: **T8-R2 独立审计遗留§七 1/2/3 全收口**(RDG-20261116-011)。①真实面定性(诊断实验): 复跑器对 T7 三份真实周报全文重跑——V1 53/V2 175/V3 98 与冻结基线 e81d363 contra/veri/unbound 三计数**逐位同零漂移**(checks 总数 V2+3/V3+2=新增 INSUFFICIENT 披露行);**326 token 全簇裁定=全误报零真错**(≈95 簇逐簇原文语境复核,工件=t7_realface_r41.json 双面[runs 机械+adjudication 裁定]);机制族: A 元数据/序号/引用ID/切分碎片泄漏 **154(47%)** 居首→检查面预处理=下一硬化首位(登记未动工);「倒挂」疑问句双时点归因=T8 整改轮既有非 R38 回归;真实面 0/3 维持,全量迁移口径未闭合,Gate B 继续值守(T7 原判)。②band_label 双报: 同指标 level CONTRA 并存时 band_label CONTRA 加 co_anchor 派生标记(LIVE 化报告层去重提示),状态零变动。③score_total 维度单源: scorecard_spec.py(契约内件零 import)2 维×8 行×32 键;tc 复算表驱动+macro_scorecard 35 键改推导+G2 门静态锚随迁(差集双侧空强度不降,t1t2 变异随迁)=新增评分卡指标只改规格表+签字注册表。**独立审计四维 PASS 0 BLOCKER 0 MAJOR=可并入**(报告=audit/arch-reform/R41-AUDIT-REPORT.md;MINOR-1 S3 饱和值敏感度+NIT-3~5 登记;S4 双引擎部分缺失语义差异=既有行为如实锁存)。
+- **验收**: 新套件 tests/test_rd_r41_t8r2_leftovers **20/0**(双报标记/单源规格含双侧同分行为锁+fail-closed+拆接线变异自证/诊断工件机械锁);受影响面 t8r 31/0+t6c 26/0+phase4 57/0+t1t2 90/0+phase3+r38 34/0+r40 17/0+r35 18/0+R20 45/0;全库批跑 **164 件=161 OK+3 红**(红=phase6 波中记账面 D1/D3/D4;R20 两件=台账状态词形被门咬即改即绿);报告=docs/autonomous-rd/R41_T8R2_LEFTOVERS_REPORT.md。
+- **下一步**: R42=引擎轨道余留(T8-R2 ④⑥⑦下次启封随批/round.sh 双上限[LIVE 部署时]/A 族碎片泄漏硬化首位候选/R41 审计登记 MINOR-1+NIT-3~5);日历门 F=2026-12-05/六标签 2026-12 勿手工提前。波次毕待操作者合并(含非纯文档文件→R32 判例并轨尖重盖章)。
+
+### [历史快照·R40 视角,已被上方权威快照取代]
 > baseline=d18e7f32c35ab01175c66a07d47fa18d30c27c8d (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 22110ca(R39 盖章,CI 43730772057 绿);本轮=`dev/rd-r40-narrative-guards`(基点 22110ca;引擎 01:45 开班窗前操作者紧凑波)。
@@ -98,6 +106,7 @@
 
 | ID | 状态 | Git证据 | 说明 |
 |---|---|---|---|
+
 
 ### [历史快照·R26 视角,已被上方权威快照取代]
 

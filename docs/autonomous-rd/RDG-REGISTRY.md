@@ -90,3 +90,23 @@
 - **回看**: 待下一波次复核;若再发生「实现改旧行为而旧套件破」类,
   升架构缺陷(受影响面推导机制缺位)。误判为 Bug 的成本=逐套件打补丁
   而收口门仍缺全库回归步,同类再发。
+
+## RDG-20261115-006 【生效线后】C-real 真跑暴露判定面两缺口
+
+- **问题**: 阶段六 C-real 真跑(2026-11-15 WALCL×SOFR×DXY,用户令执行)暴露
+  两处: ①judgment_contract.build_face 只收 S3 概览,问题目标指标不在选录面
+  时(DXY 实证: S3_overview_US 55 指标无 DXY)面缺该指标事实行;②text_
+  consistency.ALIASES 44/72 无 metric_id 自指(周报中文语料口径),research-
+  run 事实表 id 形态行零绑定(WALCL 行 UNBOUND)。
+- **根因分类**: ☑ 接口或架构缺陷 → 证据: 两处同因族=「面构建/别名表按
+  周报语料口径设计,research-run 结构面(id 形态事实行/L1 行)未覆盖」,
+  R24 面四指标恰全在 S3+别名表内故未暴露;属验收面形态未入设计,非单点
+  实现笔误(两模块同漏)。
+- **处置**: ①build_face 补收 L1_事实层.rows(与 S3 重复保 S3 富结构,
+  fact_id 去重);②ALIASES 逐项补 metric_id 自指(子串重叠如 BB_OAS⊇
+  B_OAS 由 _find_alias 最长占位去重);③phase6 套件 C5-real 机核真跑档
+  (15步/三指标在场/事实区 3 查 VERIFIED 0 unbound)+工件入库 docs/
+  autonomous-rd/phase6c/;④判据5/6 如实: WALCL WARN 周频滞后+S5 取前2
+  注记+L3/L4 declared-not-produced。
+- **回看**: C-real 六判据全过即本条闭环证据;若 research-run 新形态面
+  (如 fanout/多经济体)再暴露同类缺口,升「面构建=按报告形态派生」重构。

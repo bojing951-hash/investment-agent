@@ -59,8 +59,22 @@ def build_face(report):
             if derived:
                 f['derived'] = derived
             facts.append(f)
+    # L1 事实行(问题目标指标)一并入面——S3 概览为选录面,目标指标可能
+    # 不在其列(C-real 实证: DXY);与 S3 重复时保留 S3 富结构(含 changes)。
+    l1_rows = (((report.get('layers') or {}).get('L1_事实层') or {})
+               .get('rows')) or []
+    s3_ids = {f['fact_id'] for f in facts}
+    for r in l1_rows:
+        if r.get('value') is None or not r.get('metric_id'):
+            continue
+        fid = f"{r['metric_id']}@{r.get('observation_date')}"
+        if fid in s3_ids:
+            continue
+        f = dict(r)
+        f['fact_id'] = fid
+        facts.append(f)
     series = {}
-    for st in report['steps']:
+    for st in report.get('steps') or []:
         nm = st.get('step') or ''
         data = (st.get('envelope') or {}).get('data') or {}
         if nm.startswith('S4_history_') and data.get('series'):

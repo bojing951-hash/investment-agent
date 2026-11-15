@@ -101,6 +101,12 @@ ALIASES = {
     'WALCL': ['美联储总资产', '总资产'],
     'M2SL': ['M2货币供应', 'M2'],
 }
+# metric_id 自指补全: 别名表原为周报中文语料口径,research-run 事实表用
+# id 形态(C-real 实证: WALCL 行零绑定);逐项补 id,重叠去重保最长
+# (BB_OAS⊇B_OAS 子串场景由 _find_alias 占位去重处理)。
+for _mid in list(ALIASES):
+    if _mid not in ALIASES[_mid]:
+        ALIASES[_mid].append(_mid)
 
 # 统计配对面孔(相关语境)
 PAIR_ALIASES = [

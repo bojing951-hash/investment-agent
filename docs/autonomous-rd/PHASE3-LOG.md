@@ -439,3 +439,30 @@ $ python3 tests/test_p0_baseline_lock_equivalence.py | tail -2 → 31通过 / 0�
 $ python3 scripts/rd_state_consistency.py --quiet; echo rc=$?  → 7/7 PASS, rc=0
 ```
 全库 154 套件 154 绿(0 红)。
+
+## 阶段六 C-real 真跑收口(2026-11-15, RDG-20261115-004 闭环+RDG-006)
+
+用户令「执行 bash /tmp/run_phase6c_real.sh」——真跑成功(权限分类器放行,
+rc=0): 运行档=dev 树 output/research_runs/20261115T014829Z_美元流动性与
+短端利率_WALCL_缩表进程_SOFR_走势与_DXY_的组合状态,15 步全 ok,
+快照 research_snapshot_20261112_v2(target 11-12=dev 树最新)。
+
+**六判据逐条**: ①run_ok+15 步+L3/L4 declared-not-produced ✓ ②三元
+在场(DXY 102.85 index_point@11-11 日频/SOFR 3.88 percent@11-09 日频/
+WALCL 6748145.0 million_usd@11-04 周频)✓ ③数值一致: 事实区 check_text
+3 查 VERIFIED 0 contra;序列独立复算 DXY 周 +0.553(+0.541%)、SOFR 周
+−0.01pp(3.89→3.88)、WALCL 周 +0.0372%(6745635→6748145)全对 ✓
+④事实区 unbound=0(全文 29 token=zone_fact:false 结构元数据如实注记)✓
+⑤缺口如实: WALCL quality WARN(周频滞后)+S5 compare 取注册表序前 2
+注记+默认经济体面注记 ✓ ⑥判定层未授权=declared-not-produced 诚实终态 ✓。
+
+**真跑暴露两缺口→RDG-20261115-006 修复**(build_face 补收 L1 行+
+ALIASES 44/72 补 id 自指;修复后事实区 3 查 VERIFIED unbound=0);
+phase6 套件 C-real 解除 PENDING→C4(工件入库 docs/autonomous-rd/
+phase6c/)+C5 机核三查;外部工件不在场面(=CI)显式 SKIP 不计判。
+**证据**:
+```
+$ bash /tmp/run_phase6c_real.sh            → rc=0(15 步 ok,L1 n=3)
+$ python3 tests/test_arch_reform_phase6.py → C5a/b/c 全 ✅
+  (28 PASS/1 FAIL= D3 未提交工件自指,提交后复绿)
+```

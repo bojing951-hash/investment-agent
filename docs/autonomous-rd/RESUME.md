@@ -34,7 +34,7 @@ R35=利差辖域披露升位+自对算术守卫已毕(RDG-008/009;独立审计�
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/R25 审计 Ni-2~5/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 35, "date": "2026-11-15 16:50 HKT", "branch": "dev/rd-r35-engine-track", "commit": "dc16ec35105dbbc0d2bd7f04d796ade678919f68", "baseline": "dc16ec35105dbbc0d2bd7f04d796ade678919f68", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R35-1"], "next_task": "R36: 引擎轨道余留(T8-R2 七项①-⑦/round.sh 双上限[LIVE 部署时]);操作者先手=R35 波次合并发布+并轨尖重盖章(R32 判例);日历门 F=2026-12-05 勿手工提前", "next_round": 36} -->
+<!-- RD-CHECKPOINT v1: json {"round": 35, "date": "2026-11-15 17:06 HKT", "branch": "main", "commit": "cf0a8795a259daffea23984f015d4ad5e512e0a4", "baseline": "cf0a8795a259daffea23984f015d4ad5e512e0a4", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R35-1"], "next_task": "R36: 引擎轨道余留(T8-R2 七项①-⑦/round.sh 双上限[LIVE 部署时]);日历门 F=2026-12-05 勿手工提前", "next_round": 36} -->
 
 ## 下一步存档(2026-11-15 R35 收口后版)
 

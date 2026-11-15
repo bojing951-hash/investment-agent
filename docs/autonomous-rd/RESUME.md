@@ -20,20 +20,24 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-15 R33 收口后 · 引擎轨道余留+席位真跑首验)
+## 下一步(2026-11-15 R34 收口后 · 引擎轨道余留)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R33=席位 runtime 接入三件已毕(首审席 narr-facts 建议移交,§8 过渡条款收口;tid 见存档与 ITERATION_LOG)。队列按优先级:
+R34=席位接入真跑首验已毕(runtime 链五环贯通: 披露→唤席→裁决→归档→翻面;tid 见存档与 ITERATION_LOG)。队列按优先级:
 
-1. **R34+ 引擎轨道续行**: 引擎树 dev/arch-reform-p3-t1 自走;操作者/引擎任意席续行。**席位接入真跑首验**: 下一份带 L3/L4 的 research-run 应见「语义审查」节+编排层读 semantic_review.required 唤席(首例闭环=VERDICT 档落 audit/semantic_review/)。整改余留(终报告非阻断清单): T8-R2 七项①-⑦/「利差」裸别名歧义升披露/round.sh 资源双上限硬接线=LIVE 部署时。
+1. **R35+ 引擎轨道续行**: 引擎树 dev/arch-reform-p3-t1 自走;操作者/引擎任意席续行。整改余留(终报告非阻断清单): T8-R2 七项①-⑦/「利差」裸别名歧义升披露/round.sh 资源双上限硬接线=LIVE 部署时。
 2. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/R25 审计 Ni-2~5/OPEN_ISSUES 按需取用。
 
 <!-- RD-CHECKPOINT v1: json {"round": 33, "date": "2026-11-15 14:17 HKT", "branch": "main", "commit": "8235d7b5884ff9c66dba6b945e3bf7bd1d2ea57d", "baseline": "8235d7b5884ff9c66dba6b945e3bf7bd1d2ea57d", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R33-1"], "next_task": "R34: 引擎轨道余留(T8-R2 七项①-⑦/利差裸别名歧义/round.sh 双上限)+席位接入真跑首验;日历门 F=2026-12-05", "next_round": 34} -->
+
+## 下一步存档(2026-11-15 R34 收口后版)
+
+- [已毕·R34] **席位接入真跑首验**(T-R34-1): 真跑 DXY×GOLD_F 全链五环贯通(披露→唤席→REVISE 裁决→归档→翻面);席位真拦下 SCN-A 越界标签=席位存在理由第二证;归档=audit/semantic_review/20261115/;详见 ITERATION_LOG R34 行。
 
 ## 下一步存档(2026-11-15 R33 收口后版)
 

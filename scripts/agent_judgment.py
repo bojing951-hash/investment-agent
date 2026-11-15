@@ -282,6 +282,44 @@ def _registry_metric_ids(root):
             if m.get('metric_id')}
 
 
+def _semantic_review_state(report, root):
+    """R33-①: 语义审计席状态面(常驻席=SEMANTIC-AUDIT-SEAT;§4b/§8)。
+
+    唤起点(ii): L3(定性推断)/L4(条件情景)落位即 required=True——
+    渲染器只标状态+披露(§8 披露开关),真席位调用归编排层(引擎轮读
+    report.semantic_review.required 自动唤席)。席位裁决档=
+    root/audit/semantic_review/YYYYMMDD/VERDICT-<run_ts>*.json
+    (append-only),在案→披露升为裁决摘要;缺席→「叙事语义未经
+    独立裁决」。确定性: 纯文件面判定,零模型零网络。
+    """
+    layers = report.get('layers') or {}
+    l3p = bool((layers.get('L3_AI推断层') or {}).get('produced'))
+    l4p = bool((layers.get('L4_条件情景层') or {}).get('produced'))
+    reasons = ((['l3_qualitative_inference'] if l3p else [])
+               + (['l4_conditional_scenarios'] if l4p else []))
+    state = {'required': bool(reasons), 'reasons': reasons,
+             'seat_invoked': False, 'verdict': None, 'archive': None}
+    if not reasons:
+        return state
+    run_ts = (report.get('run') or {}).get('ts_utc') or ''
+    if not run_ts:
+        return state
+    import glob as _glob
+    for p in sorted(_glob.glob(os.path.join(
+            root, 'audit', 'semantic_review', '*', 'VERDICT-*.json'))):
+        if run_ts not in os.path.basename(p):
+            continue
+        try:
+            v = _load_json(p)
+        except Exception:
+            continue
+        state.update(seat_invoked=True,
+                     verdict=v.get('overall'),
+                     archive=os.path.relpath(p, root))
+        break
+    return state
+
+
 def _write_report(report_dir, report, rj_path):
     """report.json + report.md 同步落盘(两视图一原子语义)。
 
@@ -330,6 +368,9 @@ def attach_judgment(report_dir, judgment_path, root=None,
                            '(诚实拒答类失败且证据面仍可用时由 Agent 声明)'),
             'run_ok_at_attach': run_ok,
         }
+        # R33-①: blocked 面同样落席位状态键(L3 未落位→required=False,
+        # 面键一致;不追溯旧档)
+        report['semantic_review'] = _semantic_review_state(report, root)
         # R25 NIT V1-2: blocked 路径同样重渲 md(拦截记录两视图同步)
         _write_report(report_dir, report, rj_path)
         return {'report_dir': report_dir,
@@ -383,6 +424,9 @@ def attach_judgment(report_dir, judgment_path, root=None,
             layers[layer_key].pop('attribution', None)
 
     report['layers'] = layers
+    # R33-①: 席位状态面随档(确定性面零污染: 新增键,不动
+    # steps/evidence_index/run;编排层读 required 自动唤席)
+    report['semantic_review'] = _semantic_review_state(report, root)
     report['agent_judgment'] = {
         'attached': bool(res['passed'] and contract_ok),
         'attached_at': _now_utc(),
@@ -405,6 +449,7 @@ def attach_judgment(report_dir, judgment_path, root=None,
             'attached': bool(res['passed'] and contract_ok),
             'validation': res,
             'contract_verification': contract,
+            'semantic_review': report['semantic_review'],
             'run_ok_at_attach': run_ok,
             'layers_summary': {
                 'L3_produced': layers['L3_AI推断层']['produced'],

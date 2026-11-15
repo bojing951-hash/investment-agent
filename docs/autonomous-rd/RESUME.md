@@ -20,20 +20,24 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-15 R39 收口后 · 引擎轨道余留)
+## 下一步(2026-11-16 R40 收口后 · 引擎轨道余留)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R39=步骤台账跳过步 executed 优先判已毕(操作者双收口链;tid 见存档与 ITERATION_LOG)。队列按优先级:
+R40=叙事方向守卫残余登记三项收口已毕(操作者紧凑波;RDG-010 残余登记三项全闭;tid 见存档与 ITERATION_LOG)。队列按优先级:
 
-1. **R40+ 引擎轨道续行**: ①**R38 审计登记项**(二轮复核附条件,优先): MAJOR-3b 前置近距标记连杀当前周事实(修法=前看窗含「本周/当周/周内」当前周锚豁免;随修冻结 G5/G7/B2+F5b 回归用例)+MINOR-3(日内/英镑对美元/USD-JPY)+NIT-3(yen 大幅升值非紧邻)②整改余留: T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码维度(④⑥⑦下次启封随批)/round.sh 双上限=LIVE 部署时。每任务先过 RDG 根因决策门(RDG-REGISTRY 登记,⑦门硬核)。
+1. **R41+ 引擎轨道续行**: 整改余留: T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码维度(④⑥⑦下次启封随批)/round.sh 双上限=LIVE 部署时;FX 族再暴露交叉盘/对名误读形态则升「主体锚=别名表驱动」(RDG-010 尾注)。每任务先过 RDG 根因决策门(RDG-REGISTRY 登记,⑦门硬核)。
 3. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 39, "date": "2026-11-15 23:29 HKT", "branch": "main", "commit": "85fcbbc6e68e7858f069c1450780371d5da83168", "baseline": "85fcbbc6e68e7858f069c1450780371d5da83168", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R39-1"], "next_task": "R40: 引擎轨道续行=R38 审计登记项(MAJOR-3b 前看窗当前周锚豁免,随修冻结 G5/G7/B2+F5b 回归/MINOR-3/NIT-3)+T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码(④⑥⑦下次启封随批)/round.sh 双上限=LIVE 部署时;日历门 F=2026-12-05 勿手工提前", "next_round": 40} -->
+<!-- RD-CHECKPOINT v1: json {"round": 40, "date": "2026-11-16 00:14 HKT", "branch": "main", "commit": "d18e7f32c35ab01175c66a07d47fa18d30c27c8d", "baseline": "d18e7f32c35ab01175c66a07d47fa18d30c27c8d", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R40-1"], "next_task": "R41: 引擎轨道续行=T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码(④⑥⑦下次启封随批)/round.sh 双上限(LIVE 部署时);FX 族再暴露交叉盘形态则升主体锓名别表驱动(RDG-010 尾注);日历门 F=2026-12-05 勿手工提前", "next_round": 41} -->
+
+## 下一步存档(2026-11-16 R40 收口后版)
+
+- [已毕·R40] **叙事方向守卫残余登记三项收口**(T-R40-1;R38 独立审计二轮附条件兑现,RDG-010 残余登记全闭): ①MAJOR-3b 当前周锚豁免(标记后锚→恢复核验,冻结 G5/G7/B2;锚在标记前不豁免)②MINOR-3 日内/英镑对美元(F5b)/USD-JPY③NIT-3 yen 幅度副词;新套件 test_rd_r40_narrative_guards 17/0+r38 回归 34/0;分支 dev/rd-r40-narrative-guards;详见 ITERATION_LOG R40 双行。
 
 ## 下一步存档(2026-11-15 R39 收口后版)
 

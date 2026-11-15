@@ -676,7 +676,11 @@ def _render_md(r):
                       f"violations={len(val.get('violations') or [])})"]
     lines += ['', '## 步骤台账', '']
     for s in r['steps']:
-        tag = 'OK ' if s.get('ok') else ('SKIP' if not s.get('executed') else 'FAIL')
+        # R39(R25 审计预存观察): executed 优先判——skipped_step 带 ok=True
+        # (数据面契约: 跳过≠失败),原序 ok 先判→SKIP 分支死码,跳过步渲
+        # [OK |—] 误导(读者以为执行成功)。先判 executed: 跳过步=SKIP+理由。
+        tag = ('SKIP' if not s.get('executed') else
+               ('OK ' if s.get('ok') else 'FAIL'))
         # R2.1 MINOR-3: 语义面单列(进程 ok ≠ 语义产出;诚实拒答/如实
         # unmapped 不与真失败混渲)。
         # R25 NIT V1-1(R24 审计): 按步骤性质三分——信封步(子进程产 JSON
@@ -709,8 +713,9 @@ def _render_md(r):
                 lines.append(f"- [Agent层|不代写] " + '; '.join(
                     n[:120] for n in row['agent_layer_notes']))
             for s in row['steps']:
-                tag = ('OK ' if s.get('ok') else
-                       ('SKIP' if not s.get('executed') else 'FAIL'))
+                # R39: 同步骤台账 executed 优先判(跳过步不再渲 OK)
+                tag = ('SKIP' if not s.get('executed') else
+                       ('OK ' if s.get('ok') else 'FAIL'))
                 extra = s.get('skipped_reason') or s.get('note') or ''
                 sub = '; '.join(s.get('substitutions') or [])
                 lines.append(f"- [{tag}] {s['step']} "

@@ -162,6 +162,50 @@ r = run('本周美元兑日元走弱。', sn=syn)
 check('T4d 对名走弱 vs 周−0.8% 一致不误杀', not nd_checks(r),
       str(nd_checks(r)))
 
+print("== R38-T5 一审审计形态冻结(3 MAJOR+2 MINOR 回归用例) ==")
+r = run('本周美元对日元上涨1.51%,与套息活跃同向。')
+check('T5a FP1/FP2 「美元对日元」一致句(对名=序列升,周+1.51%)零误杀',
+      not nd_checks(r), str(nd_checks(r)))
+r = run('本周美元对日元走低,出口承压。')
+n = nd_checks(r)
+check('T5b MAJOR-1 镜像 「美元对日元走低」真矛盾必红(对名行出手)',
+      len(n) == 1 and n[0]['token'] == '美元兑日元下行'
+      and '日元升值' not in contra_tokens(r), str(n))
+r = run('欧元兑英镑走强,交叉盘波动加大。')
+check('T5c FP12 交叉盘(欧元兑英镑)GBP 行零误杀',
+      not nd_checks(r), str(nd_checks(r)))
+r = run('本周美元走弱，市场预期降息;DXY 103.41（+1.09%）。')
+n = nd_checks(r)
+check('T5d FN9 真阳性恢复(同句后段预期词不连杀,main 行为)',
+      len(n) == 1 and n[0]['token'] == '美元走弱'
+      and n[0]['metric'] == 'DXY', str(n))
+r = run('日元兑美元贬值,套息平仓压力上升。')
+check('T5e FP7 交叉盘内嵌「美元贬值」DXY 行零误杀(守卫回灌旧行)',
+      not any(c['metric'] == 'DXY' for c in nd_checks(r)),
+      str(nd_checks(r)))
+r = run('美元兑欧元升值,欧洲出口受益。')
+check('T5f 交叉盘内嵌「欧元升值」EURUSD 行零误杀',
+      not any(c['metric'] == 'EURUSD' for c in nd_checks(r)),
+      str(nd_checks(r)))
+r = run('美元兑日元本周走低,干预传闻再起。')
+n = nd_checks(r)
+check('T5g MINOR-1 对名+时间状语(本周介入)仍出手',
+      len(n) == 1 and n[0]['token'] == '美元兑日元下行', str(n))
+r = run('USDJPY本周走低。')
+n = nd_checks(r)
+check('T5h MINOR-1 变体 USDJPY+本周+方向词仍出手',
+      len(n) == 1 and n[0]['token'] == '美元兑日元下行', str(n))
+r = run('本周 yen 升值,避险资金流入。')
+n = nd_checks(r)
+check('T5i MINOR-2 中英混排(yen 升值)出手',
+      len(n) == 1 and n[0]['token'] == '日元升值', str(n))
+r = run('日元升值的预期升温。')
+check('T5j 后缀守卫(的预期=预期对象非事实断言)零 fire',
+      not nd_checks(r), str(nd_checks(r)))
+r = run('资产方向判断: USDJPY 下行(日元升值)(置信: 纯逻辑推理)。')
+check('T5k 括注继承宿主模态(方向判断括注)零 fire',
+      not nd_checks(r), str(nd_checks(r)))
+
 n_pass = sum(1 for _, ok, _ in RESULTS if ok)
 print(f"\nR38 判定: {n_pass} PASS / {len(RESULTS) - n_pass} FAIL")
 sys.exit(0 if n_pass == len(RESULTS) else 1)

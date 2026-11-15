@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-16 R42 测试聚合器吞错修复(T-R42-1)
-> baseline=38973ccfa08e56a7b74ecfa0399cdf7d02bda696 (机器行: rd_checkpoint.py 维护,勿手改)
+> baseline=e803b4c449cd91d9604db3b94ae326e3f82d281b (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = a457573(R41 并轨尖重盖章,CI 跑面中);本轮=`dev/rd-r42-agg-error-leak`(基点 a457573;R41 收口链独立验暴露→操作者紧凑波)。
 - **真实进度**: **RDG-20261116-012 收口**——四套件(t1t2/t3/t4/r27)聚合器吞错封死(`_run_case` 收 errors/failures 入 case_errs 计退出码;负证=注入 erroring 测后台账 43/0 仍 exit 1)+TH() 缺键 KeyError→RuntimeError(带键名,兑现 T1 fail-closed 语义,合法键零行为差)+两潜伏测复活(t1t2 test_fail_closed 第二半 _THRESH_CACHE 存/复原替 cache_clear;t4 按 relation='above' 判歧+死赋值清)。**两潜伏错 main 同态既有**(R40 CI 43734958311 即含被吞 ERROR,arch-reform 并轨起潜伏 ~14 轮);**R41 盖章语「164/164 零红」系 exit-code 口径误报,pytest 口径实为 162+2,如实更正**。

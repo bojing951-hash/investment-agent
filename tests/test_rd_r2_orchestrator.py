@@ -254,8 +254,20 @@ def main():
             check("L2 每行带 VP-sidecar 来源",
                   all(r['source']['kind'] == 'vp_sidecar' and r['source']['id']
                       for r in l2_rows) and len(l2_rows) > 0)
-            check("evidence_index 计数=L1+L2 行数",
-                  len(rep['evidence_index']) == len(l1_rows) + len(l2_rows))
+            # R33-③ 升标: 索引=L1+L2+S3 信封行(首审席 narr-facts——
+            # L3 叙事被引数字须可锚);S3 行与 L1 按 metric_id 去重。
+            n_s3 = sum(1 for e in rep['evidence_index']
+                       if e.get('kind') == 's3_envelope')
+            check("evidence_index 计数=L1+L2+S3 信封行(R33-③)",
+                  len(rep['evidence_index'])
+                  == len(l1_rows) + len(l2_rows) + n_s3 and n_s3 > 0)
+            s3_mids = {e.get('metric_id') for e in rep['evidence_index']
+                       if e.get('kind') == 's3_envelope'}
+            check("S3 信封行可锚形态(metric_id+日期 ref)且与 L1 去重",
+                  all('@' in e['ref'] and e.get('metric_id')
+                      for e in rep['evidence_index']
+                      if e.get('kind') == 's3_envelope')
+                  and not (s3_mids & {r['metric_id'] for r in l1_rows}))
             sc = next(s for s in rep['steps'] if s['step'] == 'S10_selfcheck')
             check("S10 自检零缺来源行",
                   sc['selfcheck']['ok'] and sc['selfcheck']['n_rows_missing_ref'] == 0)

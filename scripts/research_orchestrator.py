@@ -225,6 +225,37 @@ def _fact_rows(snap, metric_ids):
     return rows
 
 
+def _s3_envelope_rows(steps, l1_rows):
+    """R33-③: S3_changes 信封在场指标行→证据索引行(kind=s3_envelope)。
+
+    索引行 ref 沿 L1 惯例 `{metric_id}@{observation_date}`;与 L1 已有
+    metric_id 去重(L1 行权威);presence 非 present/缺观测日行不收
+    (缺席数字无可锚面)。
+    """
+    s3 = next((s for s in steps if s.get('step') == 'S3_changes'), {})
+    bac = ((((s3.get('envelope') or {}).get('data') or {})
+            .get('by_asset_class')) or {})
+    seen = {r.get('metric_id') for r in l1_rows}
+    rows = []
+    if not isinstance(bac, dict):
+        return rows
+    for cls_rows in bac.values():
+        if not isinstance(cls_rows, list):
+            continue
+        for row in cls_rows:
+            if not isinstance(row, dict):
+                continue
+            mid = row.get('metric_id')
+            obs = row.get('observation_date')
+            if (not mid or mid in seen or not obs
+                    or row.get('presence', 'present') != 'present'):
+                continue
+            seen.add(mid)
+            rows.append({'ref': f'{mid}@{obs}', 'kind': 's3_envelope',
+                         'metric_id': mid})
+    return rows
+
+
 def vp_face(root):
     """L2 原料: VP sidecar 装载(标签/阶段摘要;缺席如实 None)。"""
     try:
@@ -422,6 +453,11 @@ def run_research(question, root=None, archive=False, out_dir=None,
         evidence_index.append({'ref': r['source']['id'],
                                'kind': r['source']['kind'],
                                'view_label': r['view_label']})
+    # R33-③(首审席建议 narr-facts): S3 信封被引数字入索引——L3 叙事
+    # 常引 changes 面指标(UST_10Y/TLT 等),旧索引只含问题命中(L1)+VP,
+    # 被引数字无可锚行。S3_changes 信封 by_asset_class 全量在场指标入索引
+    # (kind=s3_envelope),按 metric_id 与 L1 去重;缺席/缺值行不收。
+    evidence_index.extend(_s3_envelope_rows(steps, l1_rows))
     missing_ref = [r['metric_id'] for r in l1_rows if not r['source']['id']]
     selfcheck = {'n_evidence_rows': len(evidence_index),
                  'n_rows_missing_ref': len(missing_ref),
@@ -555,8 +591,25 @@ def _render_md(r):
              f"- 问题: {q}",
              f"- 运行: {r['run']['ts_utc']} @ {r['run'].get('git_head')}",
              f"- 快照: {L['L1_事实层'].get('snapshot_id')} "
-             f"(target {L['L1_事实层'].get('target_date')})",
-             '', '## 四层区分', '']
+             f"(target {L['L1_事实层'].get('target_date')})"]
+    # R33-②(首审席 narr-facts): gate_a 状态披露行——首审发现全部步骤
+    # 信封载 gate_a=DEGRADED 而 md 全文零披露。渲染时从各步信封顶层
+    # 汇总(旧档重渲同样生效);降级不阻断,但判断层/读者须知。
+    gates = [(s.get('step'), (s.get('envelope') or {}).get('gate_a'))
+             for s in r.get('steps') or []
+             if isinstance(s.get('envelope'), dict)
+             and s.get('envelope').get('gate_a') is not None]
+    if gates:
+        bad = [g for g in gates if g[1] != 'OK']
+        if bad:
+            kinds = '、'.join(sorted({str(g[1]) for g in bad}))
+            lines.append(f"- 数据门(gate_a): {len(bad)}/{len(gates)} "
+                         f"信封步非 OK({kinds})——缺口/降级明细见步骤台账"
+                         "各步信封 warnings;降级不阻断,判断层须知")
+        else:
+            lines.append(f"- 数据门(gate_a): OK({len(gates)}/{len(gates)} "
+                         "信封步)")
+    lines += ['', '## 四层区分', '']
     l1 = L['L1_事实层']
     lines.append(f"### L1 事实层 available={l1['available']}"
                  + ('' if l1['available'] else f"({l1['note']})"))
@@ -591,6 +644,21 @@ def _render_md(r):
         lines += _render_l4(L['L4_条件情景层']['content'])
     else:
         lines.append(f"> {L['L4_条件情景层']['note']}")
+    # R33-①(席位 runtime 接入;章程 §8 披露开关): L3/L4 在文且席位
+    # 未裁→「叙事语义未经独立裁决」常设披露;席位裁决档在案→升为裁决
+    # 摘要。状态面由 agent_judgment.attach_judgment 写入(旧档无该块
+    # =旧面如实,不追溯)。
+    sr = r.get('semantic_review') or {}
+    if sr.get('required'):
+        if sr.get('seat_invoked'):
+            lines += ['', '## 语义审查(席位已裁)', '',
+                      f"- 席位裁决: {sr.get('verdict')}"
+                      f"(档: {sr.get('archive')})"]
+        else:
+            lines += ['', '## 语义审查(席位待唤起)', '',
+                      '- **叙事语义未经独立裁决**——定性推断/条件情景在文;'
+                      '常驻席位=SEMANTIC-AUDIT-SEAT,编排层应唤席裁决后'
+                      '方可去掉本披露(章程 §4b/§8)']
     # R25 审计 Mi-1: agent_judgment 面入 md(attach/blocked/违规计数)——
     # md-only 读者可见落位状态(旧: 仅 report.json 有,md 零渲染)
     aj = r.get('agent_judgment') or {}
@@ -650,7 +718,9 @@ def _render_md(r):
                              f"{(' | ' + extra) if extra else ''}")
             lines.append('')
     lines += ['', f"## 证据索引({len(r['evidence_index'])} 行)", '']
-    for e in r['evidence_index'][:60]:
+    # R33-③: 索引含 S3 信封行后全量渲(旧 60 行截断按 21 行规模设,
+    # 现规模 ~60+;截断=被引数字锚面不可见,与③目的相悖)
+    for e in r['evidence_index']:
         lines.append(f"- {e['kind']}:{e['ref']}"
                      + (f" → {e['metric_id']}" if e.get('metric_id') else '')
                      + (f" [{e['view_label']}]" if e.get('view_label') else ''))

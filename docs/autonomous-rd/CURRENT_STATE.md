@@ -5,6 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-15 R36 R25 审计余留 NIT 三修·操作者紧凑波(T-R36-1)
+> baseline=6dcc59476690ee2084383a6c20ec8634245703bd (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 0f53463(R35 并轨尖重盖章,CI 43698231614 绿);本轮=`dev/rd-r36-attach-nits`(基点 0f53463;引擎 19:xx 开班窗前操作者席直跑)。
 - **真实进度**: R25 审计余留 Ni-2/3/4 三修全落地(零契约放宽)。**Ni-3** 原子写: `_atomic_write_text`(临时文件+os.replace,同目录=同文件系统)护 report.json/report.md/agent_judgment.json 三写点;`_write_report` 先渲 md 后落盘——渲染异常两文件都不动,跨写中断要么旧全文要么新全文。**Ni-2** attach 历史: `_new_attach_meta` 换代不抹旧,上一轮压缩记录入 `attach_history` 追加链(≤5 轮;blocked 与成功两路径同护;R34 修订闭环 attach→revise→re-attach 形态自此留史)。**Ni-4** 副指标: secondary_metric_ids 与主锚重复/内部重复→SCN-FALS2 契约明示拒(不静默去重)。

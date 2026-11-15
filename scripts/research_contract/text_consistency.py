@@ -1560,16 +1560,19 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
             _CTX_STATE['carry_mid'] = carry_mid
         # 语义族检查器先跑(各自消费专属 token;原始子句)
         consumed = set()           # 检查器已裁决 token(主循环跳过+不落 unbound)
-        spread_fired = False       # 本句价差算术已出手(RDG-008: 披露不重复)
         for fn in SPECIAL_CHECKERS:
             try:
                 for ch in fn(clause, snapshot, thresholds_by) or []:
                     checks.append(ch)
-                    if ch.get('family') == 'spread_arithmetic':
-                        spread_fired = True
                     for part in re.split(r'[/、,，]', str(ch.get('token') or '')):
                         if part.strip():
                             consumed.add(part.strip())
+                    # 价差算术命中值入 consumed(RDG-008 审计修: token 字段
+                    # 为整段匹配串,裸数值 token 须并入被裁集;句级抑制会
+                    # 吞同句异段无关利差数值=MAJOR-1,故弃 flag 用被裁集)
+                    if ch.get('family') == 'spread_arithmetic':
+                        for t2 in _extract_tokens(str(ch.get('token') or '')):
+                            consumed.add(t2['raw'].strip())
             except Exception:      # 检查器异常不吞主流程;记录后继续
                 checks.append({'family': getattr(fn, '__name__', '?'),
                                'token': '', 'value': None, 'expected': None,
@@ -1602,15 +1605,15 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                 # 未被检查器消费的数值 token 落披露面(INSUFFICIENT_EVIDENCE
                 # =契约「须披露可发布」档;不判错不改判聚合)
                 if (_spread_ctx in seg_scoped
-                        and t['kind'] in ('percent', 'pp')
-                        and not spread_fired):
+                        and t['kind'] in ('percent', 'pp')):
                     checks.append({
                         'family': 'spread_ambiguous', 'token': t['raw'],
                         'metric': None, 'value': t['value'],
                         'expected': None,
                         'status': 'INSUFFICIENT_EVIDENCE',
-                        'note': '利差语境数值未验证: 无可算 A vs B 对'
-                                '(句内别名<2/派生利差不在别名表);披露不判错'})
+                        'note': '利差语境数值未验证(非价差算术裁决面: '
+                                '无相异指标对/派生利差不在别名表/'
+                                '算术操作数复述);披露不判错'})
                 continue            # 语义族检查器辖域(同逗号段)
             # 前值角色先行(标记式;不依赖绑定): prior_reference 后置核
             if _prior_role(clause, t):

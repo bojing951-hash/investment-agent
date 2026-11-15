@@ -8,7 +8,9 @@
   2. 真实可算对(DFF−JP_POLICY_RATE 亲算句)必须仍 VERIFIED 且零误披露。
   3. 自对句(高收益债利差 HY_OAS 同指标双别名)必须零 CONTRADICTED
      (main 基线=假红 |v−v|=0,RDG-009)。
-  4. 变异自证: 披露分支摘除→红1复现;相异守卫摘除→红3复现。
+  4. 混合句(同句真对出手+异段无关利差数值)必须各自归位: 命中值入
+     被裁集不复披露,无关数值落披露——句级抑制吞没=独立审计 MAJOR-1 禁止。
+  5. 变异自证: 披露分支摘除→红1复现;相异守卫摘除→红3复现。
 语料出处(真句嵌入,R27 惯例):
   - output/research_runs/20261113T005117Z_美联储政策利率_DFF_与日本政策利率_
     JP_POLICY_RATE_之差_US/report.md L59(情景句)/L41(CON-2 亲算句)
@@ -109,7 +111,7 @@ check('B2 真值 2.31pp→VERIFIED',
 check('B2b 价差已裁→零冗余披露(spread_fired 抑制)',
       fams(r) == [], str(r['checks']))
 
-# B3 真实亲算句(research run L41 形态)仍 VERIFIED 零冗余披露
+# B3 真实亲算句(research run L41 形态)仍 VERIFIED;操作数复述落诚实披露
 SENT_CALC = ('美日政策利差约 +2.84pp'
              '(DFF 3.88% − JP_POLICY_RATE 1.043%, 两绑定事实亲算)。')
 r = ct(SENT_CALC)
@@ -117,7 +119,24 @@ sp = fams(r, 'spread_arithmetic')
 check('B3 真实亲算句 spread_arithmetic VERIFIED',
       len(sp) == 1 and sp[0]['status'] == 'VERIFIED'
       and '|3.88−1.043|=2.837' in sp[0].get('note', ''), str(sp))
-check('B3b 已裁句零冗余披露', fams(r) == [], str(r['checks']))
+check('B3b 命中值不复披露(2.84pp 入被裁集),操作数复述逐个披露',
+      sorted(x['token'] for x in fams(r)) == ['1.043%', '3.88%'],
+      str(fams(r)))
+
+# B4 混合形态判死(独立审计 MAJOR-1 构造句): 同句真对出手+异段无关
+# 利差数值——句级抑制(旧修)会吞 2.5pp;consumed 机制下须各自归位
+SENT_MIX = ('高收益债OAS 3.2%，投资级OAS 0.89%，两者利差 2.31pp，'
+            '另美日利差维持 2.5pp。')
+r = ct(SENT_MIX)
+sp = fams(r, 'spread_arithmetic')
+d = fams(r)
+check('B4 混合句真对出手且命中值不复披露',
+      len(sp) == 1 and sp[0]['status'] == 'VERIFIED'
+      and '2.31' in sp[0].get('note', '')
+      and all(x['token'] != '2.31pp' for x in d), str(sp) + str(d))
+check('B4b 异段无关利差数值落披露(2.5pp 不被句级抑制吞)',
+      [x['token'] for x in d] == ['2.5pp']
+      and d[0]['status'] == 'INSUFFICIENT_EVIDENCE', str(d))
 
 print('== C 自对假阳性歼灭(RDG-20261115-009) ==')
 

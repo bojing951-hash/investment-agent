@@ -34,7 +34,7 @@ R38=叙事方向检查器表驱动扩展已毕(T8-R2 遗留⑤收口,RDG-010;tid
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 38, "date": "2026-11-15 23:16 HKT", "branch": "dev/rd-r38-narrative-coverage", "commit": "928a10ed45d2d1848bba613fde253e6e7e69cb68", "baseline": "928a10ed45d2d1848bba613fde253e6e7e69cb68", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R38-1"], "next_task": "R39: 兄弟席 skip-ledger 预备波收口(轮号待定,worktree 探活先行)+引擎轨道余留(T8-R2 ①②③⑤/R38 审计登记项 MAJOR-3b·MINOR-3·NIT-3);操作者先手=R38 波次合并发布+并轨尖重盖章(R32 判例);日历门 F=2026-12-05 勿手工提前", "next_round": 39} -->
+<!-- RD-CHECKPOINT v1: json {"round": 38, "date": "2026-11-15 23:29 HKT", "branch": "main", "commit": "915aa0daa26f5596f8a86ed557f821418fcbb4db", "baseline": "915aa0daa26f5596f8a86ed557f821418fcbb4db", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R38-1"], "next_task": "R39: 兄弟席 skip-ledger 预备波收口(操作者双收口链第二波,紧接本轮)+引擎轨道余留(T8-R2 ①②③+R38 审计登记项 MAJOR-3b·MINOR-3·NIT-3);日历门 F=2026-12-05 勿手工提前", "next_round": 39} -->
 
 ## 下一步存档(2026-11-15 R38 收口后版)
 

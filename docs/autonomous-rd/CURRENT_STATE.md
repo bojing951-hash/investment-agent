@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-15 R38 叙事方向检查器覆盖面表驱动扩展(T-R38-1)
-> baseline=928a10ed45d2d1848bba613fde253e6e7e69cb68 (机器行: rd_checkpoint.py 维护,勿手改)
+> baseline=915aa0daa26f5596f8a86ed557f821418fcbb4db (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 12648bd(R37 盖章);本轮=`dev/rd-r38-narrative-coverage`(基点 12648bd;开班门①红=main 推进至 R37→基面迁移,门 7/7;兄弟 worktree investment-agent-reform「R39 预备 skip-ledger」注轮号待 R38 落定,未抢其面)。
 - **真实进度**: **T8-R2 遗留⑤收口(零误杀引入)**。RDG-20261115-010(接口或架构缺陷,五因子 4×4×5×3×4=队列首位): _check_narrative_direction 覆盖=逐族 if-块手写枚举(美元/欧元/2s10s 三族),日元/英镑方向叙事零检查——开轮复现 main 亲证: era 20261114 快照含 USDJPY(周+1.51%),「本周日元升值,美元兑日元159.88(+1.51%)」判 VERIFIED 零检查。修=表驱动 _NARR_FX_ROWS(DXY/EURUSD 逐字迁入行为保持+GBPUSD 直读+USDJPY 主体=日元反序[报价对先例]+对名直读行单列)+前瞻/历史语境**逐命中**守卫 _narr_is_forward(前看窗 14+括注宿主窗 20+后缀预期对象;真实实例=20261113T005117Z 资产方向预测句)+交叉盘守卫 (?<![兑/对]) **全族回灌**含 DXY/EURUSD(「日元兑美元贬值」内嵌「美元贬值」main 既存误读一并修)。独立审计两轮: 一审三 MAJOR(对名「对」形态/GBP 交叉盘/守卫整句跳过连杀 FN9 真阳性回退)→修 93364ce→二轮 **可并入(附登记条件)**: 7 项 6 项全闭+30+ 句对抗零误杀+旧族 BP1-BP8 与 main 全 parity。

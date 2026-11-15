@@ -34,7 +34,7 @@ R28=架构整改六阶段全毕+并轨(用户 2026-11-15 批,合并发 v0.24.0-a
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/R25 审计 Ni-2~5/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 28, "date": "2026-11-15 10:15 HKT", "branch": "dev/arch-reform-p3", "commit": "4b9ed9760700e35150cc99150c6523afcd5c1a66", "baseline": "4b9ed9760700e35150cc99150c6523afcd5c1a66", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R28-1", "T-R28-2"], "next_task": "R31: 引擎轨道续行(引擎树 dev/arch-reform-p3-t1 已至 R30 对账轮;整改已并 main=v0.24.0-alpha;LIVE 翻面=用户终端亲跑 /tmp/deploy_v0240_live.py)", "next_round": 31} -->
+<!-- RD-CHECKPOINT v1: json {"round": 28, "date": "2026-11-15 10:38 HKT", "branch": "dev/arch-reform-p3", "commit": "be23e75883bbe063ba8dfab89a0c795c7555a22f", "baseline": "be23e75883bbe063ba8dfab89a0c795c7555a22f", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R28-1", "T-R28-2"], "next_task": "R31: 引擎轨道续行(引擎树 dev/arch-reform-p3-t1 已至 R30 对账轮;整改已并 main=v0.24.0-alpha;LIVE 翻面=用户终端亲跑 /tmp/deploy_v0240_live.py)", "next_round": 31} -->
 
 ## 下一步存档(2026-11-15 R28 收口后版)
 

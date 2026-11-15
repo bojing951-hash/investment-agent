@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-15 R28 架构转型与工程整改·六阶段全毕(T-R28-1)
-> baseline=4b9ed9760700e35150cc99150c6523afcd5c1a66 (机器行: rd_checkpoint.py 维护,勿手改)
+> baseline=be23e75883bbe063ba8dfab89a0c795c7555a22f (机器行: rd_checkpoint.py 维护,勿手改)
 
 > **本节=唯一当前态入口**(Charter 10 §3.1)。下方历史快照仅供追溯,以本节+Git HEAD 为准。
 > 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);

@@ -32,6 +32,8 @@ THRESHOLDS_PATH = os.path.join(ROOT, 'config', 'thresholds.json')
 FRAMEWORK_PATH = os.path.join(ROOT, 'config', 'framework.md')
 METRIC_REGISTRY_PATH = os.path.join(ROOT, 'config', 'metric_registry.json')
 SCORECARD_PATH = os.path.join(ROOT, 'scripts', 'macro_scorecard.py')
+SCORECARD_SPEC_PATH = os.path.join(ROOT, 'scripts', 'research_contract',
+                                   'scorecard_spec.py')
 VALIDATOR_PATH = os.path.join(ROOT, 'scripts', 'data_validator.py')
 
 
@@ -256,16 +258,48 @@ def g1_reverse(entries, fw_text):
 _REGIME_KEYS = {'regime.inflation_total.stagflation_floor', 'regime.growth_total.zero'}
 
 
-def g2(entries, scorecard_src):
+def g2(entries, scorecard_src, spec_src=None):
     """signed registry G2 措辞:『代码常量集合与注册表 scorecard 族键集合差集双侧为空
     (pending 豁免但显式列出)』。scorecard 族=stable_key 含 .scorecard. 段的键+体制两键
     (band_edge 评分带缘);headline 级键(如 bei_10y.headline_high,显示串消费)按
-    two_level_model=叙述级,不属 scorecard 族,但代码读取它仍须在注册表存在(防凭空常量)。"""
+    two_level_model=叙述级,不属 scorecard 族,但代码读取它仍须在注册表存在(防凭空常量)。
+
+    R41 声明面搬家(RDG-20261116-011,强度不降): SCORECARD_THRESHOLD_KEYS 自
+    平行字面枚举改为 scorecard_spec 单源推导(macro_scorecard 消费推导式)——
+    静态锚改为: ①macro_scorecard 推导式在场(scorecard_spec.threshold_keys
+    引用=锚不丢) ②声明键集=spec 源码三处字面量(维度行键+.scorecard. 族+
+    REGIME/EXTRA 两元组),差集语义原样。"""
     fails = []
-    m = re.search(r'SCORECARD_THRESHOLD_KEYS = \((.*?)\)', scorecard_src, re.S)
-    if not m:
-        return ['macro_scorecard.py 缺 SCORECARD_THRESHOLD_KEYS 声明(常量退役锚丢失)'], []
-    declared = set(re.findall(r"'([a-z0-9_.]+)'", m.group(1)))
+    if spec_src is None:
+        # 兼容旧签名: 无 spec 源则退回旧锚(字面枚举形态)
+        m = re.search(r'SCORECARD_THRESHOLD_KEYS = \((.*?)\)', scorecard_src,
+                      re.S)
+        if m:
+            declared = set(re.findall(r"'([a-z0-9_.]+)'", m.group(1)))
+        else:
+            m2 = re.search(r'SCORECARD_THRESHOLD_KEYS = \s*tuple\(', scorecard_src)
+            if not m2:
+                return ['macro_scorecard.py 缺 SCORECARD_THRESHOLD_KEYS 声明'
+                        '(常量退役锚丢失)'], []
+            return ['g2 缺 spec_src(R41 单源形态必须随附 scorecard_spec 源)'], []
+    else:
+        if not re.search(r'SCORECARD_THRESHOLD_KEYS\s*=', scorecard_src):
+            return ['macro_scorecard.py 缺 SCORECARD_THRESHOLD_KEYS 声明'
+                    '(常量退役锚丢失)'], []
+        if not re.search(r'threshold_keys', scorecard_src):
+            return ['macro_scorecard.py SCORECARD_THRESHOLD_KEYS 未由 '
+                    'scorecard_spec.threshold_keys 推导(单源锚丢失)'], []
+        fam = set(re.findall(r"'([a-z0-9_]*\.scorecard\.[a-z0-9_.]+)'",
+                             spec_src))
+        regime = set(re.findall(
+            r"'([a-z0-9_.]+)'",
+            re.search(r'REGIME_THRESHOLD_KEYS = \((.*?)\)',
+                      spec_src, re.S).group(1)))
+        extra = set(re.findall(
+            r"'([a-z0-9_.]+)'",
+            re.search(r'EXTRA_ENGINE_KEYS = \((.*?)\)',
+                      spec_src, re.S).group(1)))
+        declared = fam | regime | extra
     used = set(re.findall(r"TH\('([a-z0-9_.]+)'\)", scorecard_src))
     all_keys = {e['stable_key'] for e in entries if e.get('status') != 'pending'}
     fam = {e['stable_key'] for e in entries
@@ -385,7 +419,7 @@ def g4(validator_src, scorecard_src, entries, metrics_doc):
 # ══════════════════════════════════════════════════════════════════
 
 def run(thresholds_path=None, framework_path=None, metrics_path=None,
-        scorecard_path=None, validator_path=None):
+        scorecard_path=None, validator_path=None, spec_path=None):
     th_path = thresholds_path or THRESHOLDS_PATH
     fw_path = framework_path or FRAMEWORK_PATH
     mr_path = metrics_path or METRIC_REGISTRY_PATH
@@ -398,11 +432,15 @@ def run(thresholds_path=None, framework_path=None, metrics_path=None,
     metrics_doc = json.loads(_read(mr_path))
     sc_src = _read(sc_path)
     dv_src = _read(dv_path)
+    spec_src = None
+    _spec_p = spec_path or SCORECARD_SPEC_PATH
+    if os.path.exists(_spec_p):
+        spec_src = _read(_spec_p)
 
     report = {}
     report['G1_forward'] = g1_forward(entries, fw_text)
     report['G1_reverse'], _hits = g1_reverse(entries, fw_text)
-    report['G2'], pending = g2(entries, sc_src)
+    report['G2'], pending = g2(entries, sc_src, spec_src)
     report['G3'] = g3(entries, metrics_doc)
     report['G4'] = g4(dv_src, sc_src, entries, metrics_doc)
     return report, pending

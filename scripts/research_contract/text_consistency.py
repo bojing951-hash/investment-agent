@@ -21,6 +21,7 @@ import re
 
 from research_contract import claim_factory as cf
 from research_contract import claim_verifier as cv
+from research_contract import scorecard_spec
 
 TEXT_CONSISTENCY_VERSION = 'tc-v3-judgment'
 
@@ -1191,7 +1192,11 @@ def _score_band_rev(v, p05, p03, m01, m03):
 
 
 def _check_score_total(clause, snapshot, thresholds_by=None):
-    """评分卡总分断言: 「通胀总分+3」按快照事实+签字阈值注册表独立复算。"""
+    """评分卡总分断言: 「通胀总分+3」按快照事实+签字阈值注册表独立复算。
+
+    维度组成=scorecard_spec 单源规格表(RDG-20261116-011,与
+    macro_scorecard 同源;新增指标只改规格表+签字注册表,禁此处平行枚举)。
+    """
     if '总分' not in clause:
         return []
     th = {e['stable_key']: e['value']
@@ -1208,59 +1213,28 @@ def _check_score_total(clause, snapshot, thresholds_by=None):
         v = ((f or {}).get('derived') or {}).get(win, {}).get(field)
         return v if _is_num(v) else None
 
-    def _band(mid, v, keys):
+    def _score_row(metric, source, band_kind, keys):
+        """行打分: 取数(source)→带链(std/rev);值或键缺→None(不计0分)。"""
+        v = _lv(metric) if source == ('level',) \
+            else _dv(metric, source[0], source[1])
         ks = [th.get(k) for k in keys]
         if v is None or any(k is None for k in ks):
             return None
-        return _score_band4(v, *ks)
+        return _score_band4(v, *ks) if band_kind == 'std' \
+            else _score_band_rev(v, *ks)
 
-    # 通胀维度(CORE_CPI m12 pct / BEI_10Y level / WTI_F level / AHE m12 pct)
-    i_parts = [
-        ('CORE_CPI', _band('CORE_CPI', _dv('CORE_CPI', 'm12', 'pct_change'),
-                           ('core_cpi.scorecard.m1', 'core_cpi.scorecard.m2',
-                            'core_cpi.scorecard.p25', 'core_cpi.scorecard.p35'))),
-        ('BEI_10Y', _band('BEI_10Y', _lv('BEI_10Y'),
-                          ('bei_10y.scorecard.m15', 'bei_10y.scorecard.m2',
-                           'bei_10y.scorecard.p23', 'bei_10y.scorecard.p26'))),
-        ('WTI_F', _band('WTI_F', _lv('WTI_F'),
-                        ('wti_f.scorecard.m40', 'wti_f.scorecard.m50',
-                         'wti_f.scorecard.p70', 'wti_f.scorecard.p90'))),
-        ('AHE', _band('AHE', _dv('AHE', 'm12', 'pct_change'),
-                      ('ahe.scorecard.m2', 'ahe.scorecard.m3',
-                       'ahe.scorecard.p35', 'ahe.scorecard.p45'))),
-    ]
-    # 增长维度(UMCSENT level / UNEMPLOYMENT m3 pp 反向 / RSAFS m1 / INDPRO m1)
-    g_un = _dv('UNEMPLOYMENT', 'm3', 'pp_change')
-    g_un_s = _score_band_rev(
-        g_un, th.get('unemployment_3m.scorecard.p05'),
-        th.get('unemployment_3m.scorecard.p03'),
-        th.get('unemployment_3m.scorecard.m01'),
-        th.get('unemployment_3m.scorecard.m03')) \
-        if g_un is not None and all(
-            th.get(k) is not None for k in
-            ('unemployment_3m.scorecard.p05', 'unemployment_3m.scorecard.p03',
-             'unemployment_3m.scorecard.m01', 'unemployment_3m.scorecard.m03'))\
-        else None
-    g_parts = [
-        ('UMCSENT', _band('UMCSENT', _lv('UMCSENT'),
-                          ('umcsent.scorecard.m50', 'umcsent.scorecard.m60',
-                           'umcsent.scorecard.p80', 'umcsent.scorecard.p95'))),
-        ('UNEMPLOYMENT', g_un_s),
-        ('RSAFS', _band('RSAFS', _dv('RSAFS', 'm1', 'pct_change'),
-                        ('rsafs_mom.scorecard.m1', 'rsafs_mom.scorecard.m05',
-                         'rsafs_mom.scorecard.p05', 'rsafs_mom.scorecard.p1'))),
-        ('INDPRO', _band('INDPRO', _dv('INDPRO', 'm1', 'pct_change'),
-                         ('indpro_mom.scorecard.m1', 'indpro_mom.scorecard.m03',
-                          'indpro_mom.scorecard.p03', 'indpro_mom.scorecard.p1'))),
-    ]
-    i_total = sum(s for _, s in i_parts if s is not None) \
-        if all(s is not None for _, s in i_parts) else None
-    g_total = sum(s for _, s in g_parts if s is not None) \
-        if all(s is not None for _, s in g_parts) else None
+    dim_parts = {dim: [(metric, _score_row(metric, src, band, keys))
+                       for metric, src, band, keys in rows]
+                 for dim, rows in scorecard_spec.SCORECARD_DIMENSIONS}
+    dim_total = {dim: (sum(s for _, s in parts)
+                       if all(s is not None for _, s in parts) else None)
+                 for dim, parts in dim_parts.items()}
+    i_total = dim_total.get('通胀')
+    g_total = dim_total.get('增长')
 
     checks = []
-    for dim, total, parts in (('通胀', i_total, i_parts),
-                              ('增长', g_total, g_parts)):
+    for dim, parts in dim_parts.items():
+        total = dim_total[dim]
         m = re.search(dim + r'总分\s*([+\-−]?\d+)', clause)
         if not m:
             continue
@@ -1937,6 +1911,20 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                        'value': None, 'expected': None,
                        'status': 'INSUFFICIENT_EVIDENCE',
                        'note': 'checker_error(检查器异常降级)'})
+    # band_label 双报去重提示(T8-R2 遗留②,RDG-20261116-011): 文本值错
+    # (level CONTRA)+标签按快照落带(band_label CONTRA)同指标并存时,带
+    # 判定与 level 判定同锚——加派生标记供报告层去重渲染;状态零变动
+    # (「宁多报不漏报」取向保持,不弱化任一检查)。
+    _lvl_contra_mids = {c.get('metric') for c in checks
+                        if c.get('family') == 'level'
+                        and c.get('status') == 'CONTRADICTED'}
+    for c in checks:
+        if (c.get('family') == 'band_label'
+                and c.get('status') == 'CONTRADICTED'
+                and c.get('metric') in _lvl_contra_mids):
+            c['co_anchor'] = 'level_contradicted'
+            c['note'] = (str(c.get('note') or '') +
+                         ';同指标 level 已另报,带判定按快照落带(可去重渲染)')
     # 聚合
     hard = [c for c in checks if c['status'] == 'CONTRADICTED']
     ok = [c for c in checks if c['status'] == 'VERIFIED']

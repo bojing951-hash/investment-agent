@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-16 R41 T8-R2 余留①②③收口(T-R41-1)
-> baseline=d14ae290dba5f0aaf84daf7a9be886b1bb7bbfb0 (机器行占位: rd_checkpoint.py --finalize 盖章,勿手改)
+> baseline=0c10e91467758f04173e91c8c9978c354fd14892 (机器行占位: rd_checkpoint.py --finalize 盖章,勿手改)
 
 - **基线**: main = 2798d8a(R40 盖章);本轮=`dev/rd-r41-t8r2-leftovers`(基点 2798d8a;本树开班时停 R38 旧分支而 main 已至 R40=以 main 恢复基面迁移,门 7/7)。
 - **真实进度**: **T8-R2 独立审计遗留§七 1/2/3 全收口**(RDG-20261116-011)。①真实面定性(诊断实验): 复跑器对 T7 三份真实周报全文重跑——V1 53/V2 175/V3 98 与冻结基线 e81d363 contra/veri/unbound 三计数**逐位同零漂移**(checks 总数 V2+3/V3+2=新增 INSUFFICIENT 披露行);**326 token 全簇裁定=全误报零真错**(≈95 簇逐簇原文语境复核,工件=t7_realface_r41.json 双面[runs 机械+adjudication 裁定]);机制族: A 元数据/序号/引用ID/切分碎片泄漏 **154(47%)** 居首→检查面预处理=下一硬化首位(登记未动工);「倒挂」疑问句双时点归因=T8 整改轮既有非 R38 回归;真实面 0/3 维持,全量迁移口径未闭合,Gate B 继续值守(T7 原判)。②band_label 双报: 同指标 level CONTRA 并存时 band_label CONTRA 加 co_anchor 派生标记(LIVE 化报告层去重提示),状态零变动。③score_total 维度单源: scorecard_spec.py(契约内件零 import)2 维×8 行×32 键;tc 复算表驱动+macro_scorecard 35 键改推导+G2 门静态锚随迁(差集双侧空强度不降,t1t2 变异随迁)=新增评分卡指标只改规格表+签字注册表。**独立审计四维 PASS 0 BLOCKER 0 MAJOR=可并入**(报告=audit/arch-reform/R41-AUDIT-REPORT.md;MINOR-1 S3 饱和值敏感度+NIT-3~5 登记;S4 双引擎部分缺失语义差异=既有行为如实锁存)。

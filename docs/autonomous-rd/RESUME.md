@@ -33,7 +33,7 @@ R41=T8-R2 余留①②③收口已毕(引擎席;真实面 326 全簇裁定零真
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 41, "date": "2026-11-16 04:18 HKT", "branch": "dev/rd-r41-t8r2-leftovers", "commit": "d14ae290dba5f0aaf84daf7a9be886b1bb7bbfb0", "baseline": "d14ae290dba5f0aaf84daf7a9be886b1bb7bbfb0", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R41-1"], "next_task": "R42: 引擎轨道=A 族碎片泄漏硬化首位候选(R41 定性新证: 154/326=47%,检查面预处理=HTML注释/生成头剥离+引用ID/碎片过滤)+T8-R2 ④⑥⑦下次启封随批/round.sh 双上限(LIVE 部署时)/R41 审计登记 MINOR-1+NIT-3~5;日历门 F=2026-12-05 勿手工提前", "next_round": 42} -->
+<!-- RD-CHECKPOINT v1: json {"round": 41, "date": "2026-11-16 04:24 HKT", "branch": "main", "commit": "0c10e91467758f04173e91c8c9978c354fd14892", "baseline": "0c10e91467758f04173e91c8c9978c354fd14892", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R41-1"], "next_task": "R42: 引擎轨道=A 族碎片泄漏硬化首位候选(R41 定性新证: 154/326=47%,检查面预处理=HTML注释/生成头剥离+引用ID/碎片过滤)+T8-R2 ④⑥⑦下次启封随批/round.sh 双上限(LIVE 部署时)/R41 审计登记 MINOR-1+NIT-3~5;日历门 F=2026-12-05 勿手工提前", "next_round": 42} -->
 
 ## 下一步存档(2026-11-16 R41 收口后版)
 

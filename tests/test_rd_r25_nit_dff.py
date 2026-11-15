@@ -275,8 +275,10 @@ check('复合证伪条件: 合法副指标(在册 1 条)通过',
       res['passed'], str(res['violations'][:2]))
 
 j = base_judgment()
+# R36 Ni-4 收紧: SCN-B 主锚=MID_A,副表不得含主锚(旧夹具 [MID_A, MID_B]
+# 恰含主锚=当时漏洞性通过;现换两条异于主锚的在册指标,用例意图不变)
 j['l4']['scenarios'][1]['rows']['falsification']['secondary_metric_ids'] = [
-    MID_A, MID_B]
+    MID_B, MIDS[2]]
 res = aj.validate_judgment(j, EV_REFS, set(MIDS))
 check('合法副指标多条(在册 2 条)通过', res['passed'])
 

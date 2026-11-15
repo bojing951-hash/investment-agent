@@ -33,7 +33,7 @@ R32=语义审计席开启+首审修订闭环(用户授权「开」,终报告遗�
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/R25 审计 Ni-2~5/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 32, "date": "2026-11-15 12:28 HKT", "branch": "dev/r32-semantic-audit-seat", "commit": "f430c39130ec27c1ee4a6a9c066ef72b83b444ea", "baseline": "f430c39130ec27c1ee4a6a9c066ef72b83b444ea", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R32-1"], "next_task": "R33: 引擎轨道续行(席位 runtime 接入三件: 自动唤起+披露开关/gate_a 披露行/S3 信封入索引;T8-R2 七项/利差歧义随轮)", "next_round": 33} -->
+<!-- RD-CHECKPOINT v1: json {"round": 32, "date": "2026-11-15 13:02 HKT", "branch": "main", "commit": "16bc7effccbfc97d0b1224ea54b0923c397a78ac", "baseline": "16bc7effccbfc97d0b1224ea54b0923c397a78ac", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R32-1"], "next_task": "R33: 引擎轨道续行(席位 runtime 接入三件: 自动唤起+披露开关/gate_a 披露行/S3 信封入索引;T8-R2 七项/利差歧义随轮)", "next_round": 33} -->
 
 ## 下一步存档(2026-11-15 R32 收口后版)
 

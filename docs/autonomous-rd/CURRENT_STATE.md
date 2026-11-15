@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-15 R32 语义审计席开启+首审修订闭环(T-R32-1)
-> baseline=f430c39130ec27c1ee4a6a9c066ef72b83b444ea (机器行: rd_checkpoint.py 维护,勿手改)
+> baseline=16bc7effccbfc97d0b1224ea54b0923c397a78ac (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = f430c39(v0.24.0-alpha,CI 43669531541 绿+Release 445785124+LIVE 已翻面 2026-11-15);本轮=`dev/r32-semantic-audit-seat`。席位章程=docs/autonomous-rd/SEMANTIC-AUDIT-SEAT.md(契约 §4b operative 版)。
 - **真实进度**: 用户 2026-11-15 授权「开」(终报告遗留项)→**语义审计席建成+首审毕**。首审对象=R24 真跑档 20261113T053316Z(l3×2+mech×2+l4×2+narr;证据面=运行档 L1/S3-S6+17 观点档原档回溯)。独立 Subagent 席裁决=**REVISE 三必修零剔除**: ①「年内最平端」被自家序列证伪(最低 0.20@2026-09-21,现值次低=v2 矫枉过正残留)②SCN-B 证伪条件缺加息前提+「持续」无时长 ③VIX 年内 +18.66% 反向事实未披露+「多家预计加息」实测仅 UBS 一家。正面: 二十余数值独立复算全命中;HY_OAS 与 MSIM 独立记述 311bp 外部佐证差 1bp。

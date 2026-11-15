@@ -292,4 +292,10 @@
   「净克隆 164/164 零红」系 exit-code 口径,pytest 口径实为 162+2 潜伏
   错,main 同态既有非 R41 引入——如实注记)。**残余登记**: 无 BLOCKER/
   MAJOR;NIT-A=其余 160 套件多为单类 unittest 直跑天然免疫,如后续新增
-  多类聚合模板须以本守卫套件 §B 清单为锚(新文件加入 GUARD_FILES)。
+  多类聚合模板须以本守卫套件 §B 清单为锚(新文件加入 GUARD_FILES);
+  **pytest 口径潜伏四件套(R42 终验新暴露,陈年非本轮引入)**: test_e2e_
+  frozen14/e2e_orig14/p01_fix1/p01_fix2 各 1 collection error——模块级
+  管线跑 + run_weekly argparse 读 sys.argv,pytest 收集时 argv=pytest 参数
+  →SystemExit(2)→ledger None→模块级 TypeError/IndexError;直跑(argv 干净)
+  与 CI 口径(exit-code)全绿,a457453 同在亲证=陈年;修法=main(argv=…)
+  显式传参或模块级块收束入函数,R43 随批(与聚合器同族=口径盲区)。

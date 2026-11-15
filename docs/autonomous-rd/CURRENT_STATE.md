@@ -9,7 +9,7 @@
 
 - **基线**: main = a457573(R41 并轨尖重盖章,CI 跑面中);本轮=`dev/rd-r42-agg-error-leak`(基点 a457573;R41 收口链独立验暴露→操作者紧凑波)。
 - **真实进度**: **RDG-20261116-012 收口**——四套件(t1t2/t3/t4/r27)聚合器吞错封死(`_run_case` 收 errors/failures 入 case_errs 计退出码;负证=注入 erroring 测后台账 43/0 仍 exit 1)+TH() 缺键 KeyError→RuntimeError(带键名,兑现 T1 fail-closed 语义,合法键零行为差)+两潜伏测复活(t1t2 test_fail_closed 第二半 _THRESH_CACHE 存/复原替 cache_clear;t4 按 relation='above' 判歧+死赋值清)。**两潜伏错 main 同态既有**(R40 CI 43734958311 即含被吞 ERROR,arch-reform 并轨起潜伏 ~14 轮);**R41 盖章语「164/164 零红」系 exit-code 口径误报,pytest 口径实为 162+2,如实更正**。
-- **验收**: 守卫 test_rd_r42_aggregator_error_gate **19/0**(§E=四套件 main() 直跑 rc==0)+四套件 exit=0+受影响面(r41/r38_fx/r40/phase4/G1-G4)全绿;净克隆双口径批跑=终验门(首版 r27 _run_case(x) NameError 即被其暴露→六调用点正名);坑: spot 验 echo+basename+$? 在命令替换后重置=假绿,弃用。
+- **验收**: 守卫 test_rd_r42_aggregator_error_gate **19/0**(§E=四套件 main() 直跑 rc==0)+四套件 exit=0+受影响面(r41/r38_fx/r40/phase4/G1-G4)全绿;净克隆双口径: **exit 口径 165/165 red=0**,pytest 口径红 4=陈年潜伏四件套(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2 模块级管线+argparse 读 pytest argv;a457453 同在,R43 随批);首版 r27 _run_case(x) NameError 即被终验暴露→六调用点正名;坑: spot 验 echo+basename+$? 在命令替换后重置=假绿,弃用。
 - **下一步**: R43=引擎轨道(A 族碎片泄漏硬化首位候选[154/326=47%]+T8-R2 ④⑥⑦ 随批+round.sh 双上限[LIVE 部署时]+R41 审计登记 MINOR-1+NIT-3~5);日历门 F=2026-12-05/六标签 2026-12 勿手工提前。
 
 ### [历史快照·R41 视角,已被上方权威快照取代]

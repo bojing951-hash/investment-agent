@@ -108,7 +108,7 @@ r = ct('高收益债利差 HY OAS 与投资级OAS 利差 2.31pp。')
 sp = fams(r, 'spread_arithmetic')
 check('B2 真值 2.31pp→VERIFIED',
       len(sp) == 1 and sp[0]['status'] == 'VERIFIED', str(sp))
-check('B2b 价差已裁→零冗余披露(spread_fired 抑制)',
+check('B2b 价差已裁→命中值零冗余披露(consumed 被裁集)',
       fams(r) == [], str(r['checks']))
 
 # B3 真实亲算句(research run L41 形态)仍 VERIFIED;操作数复述落诚实披露

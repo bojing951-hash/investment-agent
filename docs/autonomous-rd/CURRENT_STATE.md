@@ -6,7 +6,6 @@
 
 ## 权威快照: 2026-11-15 R35 利差辖域披露升位+自对算术守卫(T-R35-1)
 > baseline=dc16ec35105dbbc0d2bd7f04d796ade678919f68 (机器行: rd_checkpoint.py 维护,勿手改)
-> baseline=(机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 5fde4d6(R34 盖章,CI 绿);本轮=`dev/rd-r35-engine-track`(基点 5fde4d6;引擎席开班门①红=main 推进至 R34→按 RESUME 预告基面迁移,门转 7/7)。
 - **真实进度**: **引擎轨道余留「利差裸别名歧义升披露」项落地(零容差放宽)**。RDG-20261115-008(架构缺陷): tc 利差辖域跳过静默吞数值 token 违反律8/T6 披露律(真实实例=美日利差研究运行句 2.5pp+周报 20261009 双 token 零检查零未映射)→律8 补辖域不豁免注记(强化非放宽)+percent/pp 落 spread_ambiguous 披露(INSUFFICIENT_EVIDENCE 不判错)+价差命中裸数值入 consumed 被裁集+操作数复述照披露。RDG-20261115-009(Bug 新发现): _check_spread 无相异指标守卫→别名+自指同指标自对算术 |v−v|=0 假红(R24/R32 判定句形态 main 基线亲证)→相异守卫+真对取对顺修。独立审计两轮(未参与席): 一审 MAJOR-1(句级抑制吞同句异段无关利差数值)→consumed 修→二轮**闭死四维 PASS 可并入**(残余 K3 同形碰撞=既有语义入回看)。

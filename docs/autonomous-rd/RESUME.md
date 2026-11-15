@@ -25,7 +25,7 @@
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R33=席位 runtime 接入三件(T-R33-1;首审席 narr-facts 建议移交毕,§8 过渡条款收口)。队列按优先级:
+R33=席位 runtime 接入三件已毕(首审席 narr-facts 建议移交,§8 过渡条款收口;tid 见存档与 ITERATION_LOG)。队列按优先级:
 
 1. **R34+ 引擎轨道续行**: 引擎树 dev/arch-reform-p3-t1 自走;操作者/引擎任意席续行。**席位接入真跑首验**: 下一份带 L3/L4 的 research-run 应见「语义审查」节+编排层读 semantic_review.required 唤席(首例闭环=VERDICT 档落 audit/semantic_review/)。整改余留(终报告非阻断清单): T8-R2 七项①-⑦/「利差」裸别名歧义升披露/round.sh 资源双上限硬接线=LIVE 部署时。
 2. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。

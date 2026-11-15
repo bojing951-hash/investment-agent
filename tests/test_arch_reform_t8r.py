@@ -194,19 +194,25 @@ check('PR-1b 本期错值归主循环 CONTRA',
 
 print("== 启封条目常备面(9+6 全数入回归) ==")
 QA = '/Users/cast/agent-loop/ARCH-REFORM/QA/heldout-sealed'
-n_ok = 0
-for fn, want in (('V5-HELDOUT.json', 'CONTRADICTED'),
-                 ('V6-HELDOUT.json', 'VERIFIED')):
-    for it in json.load(open(os.path.join(QA, fn)))['items']:
-        era = it.get('base_anchor_set', '20261114')
-        s, p, _ = load_era(era)
-        rr = tc.check_text(it['text'], snapshot=s, thresholds=thr,
-                           prior_anchors=p)
-        good = rr['verdict'] == want and not rr['unbound']
-        n_ok += good
-        if not good:
-            check(f'heldout {it["id"]}', False, rr['verdict'])
-check(f'启封条目 {n_ok}/15', n_ok == 15)
+if not os.path.isdir(QA):
+    # 六层区分: 封存件=操作者面工件,CI 干净克隆不在场→显式 SKIP 不计判
+    # (t1t2 签字稿同款守卫;本机路径在场=本地全判,CI 面=诚实降面)。
+    print("  ⏭️ 启封条目 15 判 [QA 封存件不在本机(CI 面)——"
+          "登记 PHASE3-LOG T8 节;不以离线面冒充留出验收]")
+else:
+    n_ok = 0
+    for fn, want in (('V5-HELDOUT.json', 'CONTRADICTED'),
+                     ('V6-HELDOUT.json', 'VERIFIED')):
+        for it in json.load(open(os.path.join(QA, fn)))['items']:
+            era = it.get('base_anchor_set', '20261114')
+            s, p, _ = load_era(era)
+            rr = tc.check_text(it['text'], snapshot=s, thresholds=thr,
+                               prior_anchors=p)
+            good = rr['verdict'] == want and not rr['unbound']
+            n_ok += good
+            if not good:
+                check(f'heldout {it["id"]}', False, rr['verdict'])
+    check(f'启封条目 {n_ok}/15', n_ok == 15)
 
 n_pass = sum(1 for _, ok, _ in RESULTS if ok)
 print(f"\nT8R 判定: {n_pass} PASS / {len(RESULTS) - n_pass} FAIL")

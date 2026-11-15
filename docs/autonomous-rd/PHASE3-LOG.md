@@ -466,3 +466,15 @@ $ bash /tmp/run_phase6c_real.sh            → rc=0(15 步 ok,L1 n=3)
 $ python3 tests/test_arch_reform_phase6.py → C5a/b/c 全 ✅
   (28 PASS/1 FAIL= D3 未提交工件自指,提交后复绿)
 ```
+
+### CI 首跑热修(RDG-20261115-007 · 2026-11-15)
+
+v0.24.0 并轨(2c3a377)CI 首跑 run 43667648521 红(注解钉死两套件,非全库):
+
+- t8r 启封节直读 QA 绝对路径无守卫(CI 缺件 FileNotFoundError);修=isdir
+  守卫+显式 SKIP(t1t2 同款)。
+- phase6 B7 的 skip 调用在 def 之前(潜伏 NameError);修=def 上移+A7/D8
+  期望随 T8R_QA 在场性(本机 31 判全数/CI 30 判+SKIP,两面均零 FAIL 才绿)。
+
+验证: 真面 t8r 31/0+phase6 除 D3(未提交修改,门正确咬)全绿;CI 面=进程内
+路径缺席模拟 t8r 30/0 exit0;根因与处置=RDG-REGISTRY 007 条;CI 二跑为准。

@@ -36,6 +36,12 @@ DEV_RUN = ('/Users/cast/investment-agent-dev/output/research_runs/'
 RESULTS = []
 
 
+def skip(name, why):
+    """外部工件不在场(CI 干净克隆)→ 显式 SKIP 不计判(六层区分: 本机
+    真实数据层 vs CI 合成层;SKIP≠PASS,不以离线面冒充真实验收)。"""
+    print(f"  ⏭️ {name}  [{why}]")
+
+
 def check(name, ok, detail=''):
     RESULTS.append((name, bool(ok), detail))
     print(f"  {'✅' if ok else '❌'} {name}" + (f"  [{detail}]"
@@ -80,8 +86,12 @@ rc, out = sh('python3 tests/test_rd_r27_gateb_extractor.py')
 check('A6 历史误判案例①Gate B 提取器五缺陷复位(真实报告 0 数值错)',
       rc == 0 and '45 PASS' in out, out.strip().splitlines()[-1])
 rc, out = sh('python3 tests/test_arch_reform_t8r.py')
+# 启封件在本机(操作者面)→31 判全数;CI 干净克隆→封存段显式 SKIP=30 判
+# (六层区分;期望随工件在场性取值,不降门: 两面都必须零 FAIL 才 rc=0)
+T8R_QA = '/Users/cast/agent-loop/ARCH-REFORM/QA/heldout-sealed'
+t8r_expect = '31 PASS' if os.path.isdir(T8R_QA) else '30 PASS'
 check('A7 历史误判案例②迁移门 T8R(含 V1/V2 真实历史故障复位)',
-      rc == 0 and '31 PASS' in out, out.strip().splitlines()[-1])
+      rc == 0 and t8r_expect in out, out.strip().splitlines()[-1])
 
 # ═══ B. 研究结论正确性 ═══
 print("== B. 研究结论正确性(真实证据 vs 错误解释) ==")
@@ -142,13 +152,6 @@ else:
 
 # ═══ C. 一键研究能力 ═══
 print("== C. 一键研究(det=R24 结构面 + real=2026-11-15 WALCL×SOFR×DXY 真跑) ==")
-
-
-def skip(name, why):
-    """外部工件不在场(CI 干净克隆)→ 显式 SKIP 不计判(六层区分: 本机
-    真实数据层 vs CI 合成层;SKIP≠PASS,不以离线面冒充真实验收)。"""
-    print(f"  ⏭️ {name}  [{why}]")
-
 
 if not os.path.isdir(DEV_RUN):
     skip('C1-det/C2-det/C3-det', 'R24 运行档不在本机(CI 面)—— fixtures/v4 为其锚定副本')
@@ -253,8 +256,8 @@ else:
     check('D7 资源限制: 轮次 $50/150min 双上限+看门狗在场(round.sh)',
           rc == 0 and out.strip() == '2', out.strip())
 rc, out = sh('python3 tests/test_arch_reform_t8r.py | tail -1')
-check('D8 证据可复核性: PHASE3-LOG 所引命令重放同结果(31 PASS 复现)',
-      rc == 0 and '31 PASS' in out, out.strip())
+check('D8 证据可复核性: PHASE3-LOG 所引命令重放同结果(t8r 期望判数复现)',
+      rc == 0 and t8r_expect in out, out.strip())
 
 n_pass = sum(1 for _, ok, _ in RESULTS if ok)
 print(f"\nPHASE6 判定: {n_pass} PASS / {len(RESULTS) - n_pass} FAIL"

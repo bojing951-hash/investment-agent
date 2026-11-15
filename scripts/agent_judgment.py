@@ -256,6 +256,22 @@ def validate_judgment(judgment, evidence_refs, metric_ids):
                                 f'l4.scenarios[{sid}].rows.falsification.'
                                 'secondary_metric_ids',
                                 f'{sm!r} 不在注册表(副指标同须可观测)')
+                    # R36 Ni-4(R25 审计遗留): 重复=口径冗余,契约明示拒
+                    # (不静默去重——审计可选"去重或明示",本仓纪律=显式)。
+                    # 与主锚重复: 主锚由 metric_id 承担,副表再列=同指标
+                    # 双口径;内部重复: 列表语义是集合,重复=凑数或笔误。
+                    anchor_dup = fals.get('metric_id')
+                    if anchor_dup in sec:
+                        bad('SCN-FALS2',
+                            f'l4.scenarios[{sid}].rows.falsification.'
+                            'secondary_metric_ids',
+                            f'{anchor_dup!r} 与主锚 metric_id 重复'
+                            '(主锚已由 metric_id 承担,副表列其余指标)')
+                    for d in sorted({m for m in sec if sec.count(m) > 1}):
+                        bad('SCN-FALS2',
+                            f'l4.scenarios[{sid}].rows.falsification.'
+                            'secondary_metric_ids',
+                            f'{d!r} 在副指标列表内重复(去重后再提)')
         trig = rows.get('trigger') or {}
         if 'trigger' not in type_bad and isinstance(trig, dict) and trig:
             if not (trig.get('condition') or '').strip():
@@ -320,19 +336,60 @@ def _semantic_review_state(report, root):
     return state
 
 
+def _atomic_write_text(path, text):
+    """R36 Ni-3(R25 审计遗留): 临时文件+os.replace 单文件原子写。
+
+    跨写中断(进程杀/磁盘满)=要么旧全文要么新全文,无半写撕裂视图;
+    .tmp 落同目录保证与目标同文件系统(replace 原子性前提)。
+    """
+    tmp = path + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        f.write(text)
+    os.replace(tmp, path)
+
+
 def _write_report(report_dir, report, rj_path):
     """report.json + report.md 同步落盘(两视图一原子语义)。
 
     R25 NIT V1-2(R24 审计): blocked 路径原先只写 json 不重渲 md——md/json
     失同步(旧 md 无门槛拦截记录)。任何改变 report 的路径(含 blocked)退出
     前都经本函数,两视图同步是 attach 的不变式。
+    R36 Ni-3: 两文件各经 _atomic_write_text(先渲 md 后落盘,渲染异常时
+    两文件都不动——旧视图完整保留,不产生 json 新/md 旧的中间态)。
     """
-    with open(rj_path, 'w', encoding='utf-8') as f:
-        json.dump(report, f, ensure_ascii=False, indent=2, default=str)
-    with open(os.path.join(report_dir, 'report.md'), 'w',
-              encoding='utf-8') as f:
-        import research_orchestrator as ro
-        f.write(ro._render_md(report))
+    import research_orchestrator as ro
+    md_text = ro._render_md(report)
+    _atomic_write_text(
+        rj_path, json.dumps(report, ensure_ascii=False, indent=2,
+                            default=str))
+    _atomic_write_text(os.path.join(report_dir, 'report.md'), md_text)
+
+
+def _new_attach_meta(prior, meta):
+    """R36 Ni-2(R25 审计遗留): attach 元数据换代保真。
+
+    原实现整 dict 替换——重 attach(修订后再提/拦截后重跑)会把上一轮
+    attach 记录从报告面抹掉。现把上一轮压缩进 attach_history 追加链
+    (attached/attached_at/judgment_file/schema_version/blocked +
+    validation.passed/contract verdict 摘要),最近 5 轮封顶防无界。
+    """
+    out = dict(meta)
+    if isinstance(prior, dict) and prior.get('attached_at'):
+        rec = {}
+        for k in ('attached', 'attached_at', 'judgment_file',
+                  'schema_version', 'blocked'):
+            if k in prior:
+                rec[k] = prior[k]
+        val = prior.get('validation')
+        if isinstance(val, dict):
+            rec['validation_passed'] = val.get('passed')
+        cv = prior.get('contract_verification')
+        if isinstance(cv, dict):
+            rec['contract_verdict'] = cv.get('verdict')
+        hist = list(prior.get('attach_history') or [])
+        hist.append(rec)
+        out['attach_history'] = hist[-5:]
+    return out
 
 
 def attach_judgment(report_dir, judgment_path, root=None,
@@ -357,17 +414,19 @@ def attach_judgment(report_dir, judgment_path, root=None,
     # ── MINOR-4 门槛: 失败底座默认拒收 ─────────────────────────────
     run_ok = report.get('run_ok')
     if run_ok is False and not allow_failed_run:
-        report['agent_judgment'] = {
-            'attached': False,
-            'attached_at': _now_utc(),
-            'judgment_file': os.path.basename(judgment_path),
-            'schema_version': JUDGMENT_SCHEMA_VERSION,
-            'blocked': 'run_ok_false',
-            'block_note': ('research-run run_ok=False——判断默认不得落在失败'
-                           '证据面上;显式 allow_failed_run=True 才放行'
-                           '(诚实拒答类失败且证据面仍可用时由 Agent 声明)'),
-            'run_ok_at_attach': run_ok,
-        }
+        report['agent_judgment'] = _new_attach_meta(
+            report.get('agent_judgment'),
+            {
+                'attached': False,
+                'attached_at': _now_utc(),
+                'judgment_file': os.path.basename(judgment_path),
+                'schema_version': JUDGMENT_SCHEMA_VERSION,
+                'blocked': 'run_ok_false',
+                'block_note': ('research-run run_ok=False——判断默认不得落在失败'
+                               '证据面上;显式 allow_failed_run=True 才放行'
+                               '(诚实拒答类失败且证据面仍可用时由 Agent 声明)'),
+                'run_ok_at_attach': run_ok,
+            })
         # R33-①: blocked 面同样落席位状态键(L3 未落位→required=False,
         # 面键一致;不追溯旧档)
         report['semantic_review'] = _semantic_review_state(report, root)
@@ -412,9 +471,10 @@ def attach_judgment(report_dir, judgment_path, root=None,
                 'Agent(编排层)研判落位,attribution=ai_inferred;'
                 '纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,'
                 '判断质量归 Agent 与独立审计')
-        with open(os.path.join(report_dir, 'agent_judgment.json'), 'w',
-                  encoding='utf-8') as f:
-            json.dump(judgment, f, ensure_ascii=False, indent=2)
+        # R36 Ni-3: 判定档副本同原子写(与 report.json 同级防撕裂)
+        _atomic_write_text(
+            os.path.join(report_dir, 'agent_judgment.json'),
+            json.dumps(judgment, ensure_ascii=False, indent=2))
     else:
         # R23 MINOR-3(独立审计): 失败重提时清残留 content——
         # produced=False 与旧 content 并存=语义不一致
@@ -427,17 +487,19 @@ def attach_judgment(report_dir, judgment_path, root=None,
     # R33-①: 席位状态面随档(确定性面零污染: 新增键,不动
     # steps/evidence_index/run;编排层读 required 自动唤席)
     report['semantic_review'] = _semantic_review_state(report, root)
-    report['agent_judgment'] = {
-        'attached': bool(res['passed'] and contract_ok),
-        'attached_at': _now_utc(),
-        'judgment_file': os.path.basename(judgment_path),
-        'schema_version': JUDGMENT_SCHEMA_VERSION,
-        'validation': res,
-        'contract_verification': contract,   # 阶段四: 契约验证结果随档
-        # MINOR-4: 落位时的底座状态随档(含 allow_failed_run 越过面)
-        'run_ok_at_attach': run_ok,
-        'allow_failed_run': bool(allow_failed_run and run_ok is False),
-    }
+    report['agent_judgment'] = _new_attach_meta(
+        report.get('agent_judgment'),
+        {
+            'attached': bool(res['passed'] and contract_ok),
+            'attached_at': _now_utc(),
+            'judgment_file': os.path.basename(judgment_path),
+            'schema_version': JUDGMENT_SCHEMA_VERSION,
+            'validation': res,
+            'contract_verification': contract,   # 阶段四: 契约验证结果随档
+            # MINOR-4: 落位时的底座状态随档(含 allow_failed_run 越过面)
+            'run_ok_at_attach': run_ok,
+            'allow_failed_run': bool(allow_failed_run and run_ok is False),
+        })
     if res['passed'] and not contract_ok:    # 纪律绿但契约未全绿=契约门拦截
         report['agent_judgment']['blocked'] = \
             'contract_' + str(contract.get('verdict')).lower()

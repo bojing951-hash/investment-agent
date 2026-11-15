@@ -4,7 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-15 R38 叙事方向检查器覆盖面表驱动扩展(T-R38-1)
+## 权威快照: 2026-11-15 R39 步骤台账跳过步 executed 优先判(T-R39-1)
+> baseline=85fcbbc6e68e7858f069c1450780371d5da83168 (机器行: rd_checkpoint.py 维护,勿手改)
+
+- **基线**: main = R38 并轨尖重盖章(R32 判例,先合并再盖章);本轮=`dev/rd-r39-skip-ledger`(基点 12648bd,码波 cfc3128 净克隆 161/161 零红预验;操作者双收口链第二波=引擎 R38 并轨后紧接收口)。
+- **真实进度**: **R25 审计预存观察收口**(R25 审计 NIT+预存观察至此全清)。缺陷=skipped_step() 数据面 ok=True(跳过≠失败)→台账渲染 ok 先判→跳过步渲 [OK|—] 误导+SKIP 分支死码。修=两处台账(主步骤+十问扇出)executed 优先判: 跳过步渲 [SKIP|—]+skipped_reason 随行,执行步 OK/FAIL 判定不变;**数据面契约(ok=True)刻意保留**(聚合语义不动,只修渲染诚实性)。
+- **验收**: 新套件 tests/test_rd_r39_skip_ledger **7/0**(跳过步 [SKIP|—] 在场且 [OK|—] 缺席/理由披露/[FAIL 不藏失败/扇出台账 [SKIP]/[OK ] 同口径/skipped_step 契约不变);受影响面 r2/r33/席位绿;全库批跑 **161 件**(红仅 phase6 D3+r20 对=波中记账面);分支净克隆 **161/161 零红预验。
+- **下一步**: R40=引擎轨道(T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码[④⑥⑦下次启封随批]+R38 审计登记项 MAJOR-3b[前看窗当前周锚豁免,随修冻结 G5/G7/B2+F5b 回归]/MINOR-3/NIT-3;round.sh 双上限=LIVE 部署时);日历门 F=2026-12-05/六标签 2026-12 勿手工提前。
+
+### [历史快照·R38 视角,已被上方权威快照取代]
 > baseline=915aa0daa26f5596f8a86ed557f821418fcbb4db (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 12648bd(R37 盖章);本轮=`dev/rd-r38-narrative-coverage`(基点 12648bd;开班门①红=main 推进至 R37→基面迁移,门 7/7;兄弟 worktree investment-agent-reform「R39 预备 skip-ledger」注轮号待 R38 落定,未抢其面)。

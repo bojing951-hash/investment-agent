@@ -20,21 +20,24 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-15 R38 收口后 · 引擎轨道余留)
+## 下一步(2026-11-15 R39 收口后 · 引擎轨道余留)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R38=叙事方向检查器表驱动扩展已毕(T8-R2 遗留⑤收口,RDG-010;tid 见存档与 ITERATION_LOG)。队列按优先级:
+R39=步骤台账跳过步 executed 优先判已毕(操作者双收口链;tid 见存档与 ITERATION_LOG)。队列按优先级:
 
-1. **操作者席(先手)**: R38 波次合并发布——分支 `dev/rd-r38-narrative-coverage`(20d28ae+0c9a2da+93364ce+收口 docs 提交),波次含非纯文档文件(scripts/+tests/)→**按 R32 判例于并轨尖重盖章**(先合并再盖章);抽检面=新套件 34/0+受影响 11 套件。
-2. **R39+ 引擎轨道续行**: ①兄弟席 skip-ledger 预备波收口(分支 dev/rd-r39-skip-ledger@~/investment-agent-reform 已备 cfc3128,注「轮号待引擎 R38 落定后 finalize」;进该 worktree 前先探活兄弟会话)②**R38 审计登记项**(二轮复核附条件): MAJOR-3b 前置近距标记连杀当前周事实(修法=前看窗含「本周/当周/周内」当前周锚豁免;随修冻结 G5/G7/B2/F5b 回归用例)+MINOR-3(日内/英镑对美元/USD-JPY)+NIT-3(yen 大幅升值非紧邻)③整改余留: T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码维度(④⑥⑦下次启封随批)/round.sh 双上限=LIVE 部署时。每任务先过 RDG 根因决策门(RDG-REGISTRY 登记,⑦门硬核)。
+1. **R40+ 引擎轨道续行**: ①**R38 审计登记项**(二轮复核附条件,优先): MAJOR-3b 前置近距标记连杀当前周事实(修法=前看窗含「本周/当周/周内」当前周锚豁免;随修冻结 G5/G7/B2+F5b 回归用例)+MINOR-3(日内/英镑对美元/USD-JPY)+NIT-3(yen 大幅升值非紧邻)②整改余留: T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码维度(④⑥⑦下次启封随批)/round.sh 双上限=LIVE 部署时。每任务先过 RDG 根因决策门(RDG-REGISTRY 登记,⑦门硬核)。
 3. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 38, "date": "2026-11-15 23:29 HKT", "branch": "main", "commit": "915aa0daa26f5596f8a86ed557f821418fcbb4db", "baseline": "915aa0daa26f5596f8a86ed557f821418fcbb4db", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R38-1"], "next_task": "R39: 兄弟席 skip-ledger 预备波收口(操作者双收口链第二波,紧接本轮)+引擎轨道余留(T8-R2 ①②③+R38 审计登记项 MAJOR-3b·MINOR-3·NIT-3);日历门 F=2026-12-05 勿手工提前", "next_round": 39} -->
+<!-- RD-CHECKPOINT v1: json {"round": 39, "date": "2026-11-15 23:29 HKT", "branch": "main", "commit": "85fcbbc6e68e7858f069c1450780371d5da83168", "baseline": "85fcbbc6e68e7858f069c1450780371d5da83168", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R39-1"], "next_task": "R40: 引擎轨道续行=R38 审计登记项(MAJOR-3b 前看窗当前周锚豁免,随修冻结 G5/G7/B2+F5b 回归/MINOR-3/NIT-3)+T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码(④⑥⑦下次启封随批)/round.sh 双上限=LIVE 部署时;日历门 F=2026-12-05 勿手工提前", "next_round": 40} -->
+
+## 下一步存档(2026-11-15 R39 收口后版)
+
+- [已毕·R39] **步骤台账跳过步 executed 优先判**(T-R39-1;R25 审计预存观察收口,NIT+观察全清): skipped_step ok=True 数据契约保留,两处台账(主+扇出)改 executed 优先判——跳过步渲 [SKIP|—]+skipped_reason 随行,SKIP 死码复活;新套件 test_rd_r39_skip_ledger 7/0+受影响 r2/r33/席位绿;分支 dev/rd-r39-skip-ledger(码波 cfc3128,净克隆 161/161 零红预验);操作者双收口链第二波(引擎 R38 并轨后紧接);详见 ITERATION_LOG R39 双行。
 
 ## 下一步存档(2026-11-15 R38 收口后版)
 

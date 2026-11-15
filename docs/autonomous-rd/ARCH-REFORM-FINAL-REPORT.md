@@ -135,8 +135,7 @@ PHASE2-CONTRACT-DESIGN v1.2(律1-8)+PHASE4 设计档,落 docs/ARCHITECTURE_V2.md
 T8-R2 ①real-face 0/3 定性 ②band_label 双报 ③_check_score_total 硬编码
 维度 ④era base_anchor_set 必填字段(下次启封随⑥⑦)⑤narrative checker
 仅 3 指标 ⑥重封留出 ⑦变异压力轮;阶段四: 裸「利差」别名歧义吞 token
-(零检查零未映射,登记待升披露)、真实模型语义审计席=NOT_VERIFIED 占位
-(待用户授权);阶段五: 双轨并轨状态同步步骤(待第二实例)、引擎侧
+(零检查零未映射,登记待升披露)、真实模型语义审计席**已开**(2026-11-15 用户授权「开」;首审 R24 真报=REVISE 三必修,修订闭环毕 VERIFIED 23/23;席位=SEMANTIC-AUDIT-SEAT.md+audit/semantic_review/);阶段五: 双轨并轨状态同步步骤(待第二实例)、引擎侧
 round.sh 硬接线(LIVE 部署时);阶段六: C-real 已毕(六判据全过);
 阶段二 T7 V4/V7 哈希冻结=DEFERRED(已注记)。
 

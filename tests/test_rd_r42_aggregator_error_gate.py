@@ -193,11 +193,25 @@ class TestDTHContract(unittest.TestCase):
               str(ms.TH('hy_oas.warning')))
 
 
+class TestEMainExecutes(unittest.TestCase):
+    """§E 四套件 main() 子进程直跑 rc==0——R42 波内实雷免疫(改写时
+    split("'")[1] 取到 argv 字面 'x' 致 _run_case(x) NameError,且操作者
+    spot 验 `echo "$(basename $f) exit=$?"` 的 $? 在命令替换后被重置=全
+    部假绿;本节以子进程真退出码一锤定音)。"""
+
+    def test_four_mains_run_clean(self):
+        for rel in GUARD_FILES:
+            r = subprocess.run([sys.executable, os.path.join(ROOT, rel)],
+                               capture_output=True, text=True, timeout=300)
+            check(f'§E {rel.split("/")[-1]} main() 直跑 rc=0',
+                  r.returncode == 0, f'rc={r.returncode} {r.stdout[-100:]}')
+
+
 def main():
     print('══ R42 聚合器吞错修复守卫套件(RDG-20261116-012)══')
     case_errs = 0
     for cls in (TestAPatternBehavior, TestBSourceGuard, TestCRevivedTests,
-                TestDTHContract):
+                TestDTHContract, TestEMainExecutes):
         print(f'── {cls.__name__} ──')
         case_errs += _run_case(cls)
     total, bad = len(PASSED) + len(FAILED), len(FAILED)

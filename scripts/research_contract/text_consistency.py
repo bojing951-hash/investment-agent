@@ -1354,8 +1354,103 @@ def _check_target_range(clause, snapshot, thresholds_by=None):
 
 # ── 叙事-数值方向后置检查(别名免依赖) ────────────────────────────────
 
+# 前瞻/历史语境守卫(R38/RDG-20261115-010;一审 MAJOR-3 改逐命中粒度):
+# 预测句/历史泛述不对当前周窗核方向;取向=宁漏报不误杀,与 T8R2 审计
+# 「不误杀但也不拦」哲学同向;全族一致(DXY/EURUSD/GBPUSD/USDJPY/
+# CURVE_2S10S)。粒度=逐正则命中(非整句,防真阳性被同句异段预期词连带杀,
+# 一审 FN9 实锤: 「本周美元走弱，市场预期降息」)。
+_NARR_FORWARD_RE = re.compile(
+    r'预计|预期|预测|展望|前瞻|料将|或将|有望|方向判断|纯逻辑|逻辑推理'
+    r'|置信|历史上|历年|历来|曾'
+    r'|expect|forecast|project\b|likely', re.I)
+_NARR_SUFFIX_RE = re.compile(r'(?:的)?(?:预期|预测|展望|概率|押注|期望)')
+_NARR_BEFORE_WIN = 14    # 前瞻/历史标记回看窗(字符)
+_NARR_HOST_WIN = 20      # 括注宿主窗(括注内命中回看开括号前文,窗可更宽)
+
+
+def _narr_is_forward(clause, m):
+    """该叙事命中是否处前瞻/历史语境(不对当前周窗核方向)。
+
+    判据: ①命中点前 14 字符窗内有标记;②命中点在括注内且开括号前 20
+    字符窗内有标记(括注继承宿主句模态;真实实例 20261113T005117Z
+    「资产方向判断: USDJPY 下行(日元升值)」的括注);③命中点紧跟
+    「(的)预期/预测/展望/概率/押注」(「日元升值的预期升温」=预期对象
+    非事实断言)。
+    """
+    before = clause[max(0, m.start() - _NARR_BEFORE_WIN):m.start()]
+    if _NARR_FORWARD_RE.search(before):
+        return True
+    if _NARR_SUFFIX_RE.match(clause, m.end()):
+        return True
+    depth = 0
+    for i in range(m.start() - 1, max(0, m.start() - 40) - 1, -1):
+        if clause[i] in '）)':
+            depth += 1
+        elif clause[i] in '（(':
+            if depth == 0:
+                host = clause[max(0, i - _NARR_HOST_WIN):i]
+                return bool(_NARR_FORWARD_RE.search(host))
+            depth -= 1
+    return False
+
+
+# FX 族规格表(RDG-20261115-010 表驱动;覆盖扩展=加行,不改控制流):
+#   (metric_id, 主体升叙事正则, 主体降叙事正则, 叙事升⇔序列升?, 升token, 降token)
+# - 叙事主体=基准货币(欧元/英镑)⇒直读;USDJPY 叙事主体=计价货币日元⇒反序
+#   (日元升⇔USDJPY 降,direction_semantics 报价对先例)。
+# - 主体锚守卫(全族含 DXY/EURUSD 回灌,一审 MAJOR-2/FP7): (?<![兑/对])
+#   防「美元兑/对日元…」「欧元兑英镑…」「日元兑美元贬值(内嵌美元贬值)」
+#   等交叉盘/对名短语把方向词误锚到非主体币;(?<![\d.,，。])防货币金额
+#   后缀(N美元回落=油价跌/N日元)。
+# - USDJPY 对名直读行(「美元兑/对日元/USDJPY(汇率/本周…)?+方向词」作用
+#   于序列值本身)单列,防「美元兑日元走弱」(=对名走弱=序列降)被主体行
+#   反序误读;时间状语(本周/当周/周内)容许介入(一审 MINOR-1)。
+# - DXY/EURUSD 中文正则与 token 原样迁入(行为保持);英文子正则原样
+#   (=单空格,一审 NIT-1 校正);EURUSD 词汇面较窄为既有口径,新族词汇
+#   宽度随 DXY 口径;yen/pound 加中英混排(yen 升值,一审 MINOR-2)。
+_NARR_FX_ROWS = (
+    ('DXY',
+     r'(?<![\d.,，。])(?<![兑/对])美元(?:指数)?(?:走强|升值|走高|回升)'
+     r'|dollar(?: index)?\s+(?:strengthen|firm)',
+     r'(?<![\d.,，。])(?<![兑/对])美元(?:指数)?(?:走弱|贬值|走低|回落)'
+     r'|dollar(?: index)?\s+(?:weaken|soft)',
+     True, '美元走强', '美元走弱'),
+    ('EURUSD',
+     r'(?<![兑/对])欧元(?:升值|上涨|走强)'
+     r'|euro\s+(?:appreciat|strengthen|rising)',
+     r'(?<![兑/对])欧元(?:贬值|下跌|走弱)'
+     r'|euro\s+(?:depreciat|weaken|falling)',
+     True, '欧元升值', '欧元贬值'),
+    ('GBPUSD',
+     r'(?<![\d.,，。])(?<![兑/对])英镑(?:兑美元)?(?:升值|上涨|走强|回升|走高)'
+     r'|pound(?:\s+sterling)?\s+(?:appreciat|strengthen|rising|升值|走强)',
+     r'(?<![\d.,，。])(?<![兑/对])英镑(?:兑美元)?(?:贬值|下跌|走弱|回落|走低)'
+     r'|pound(?:\s+sterling)?\s+(?:depreciat|weaken|falling|贬值|走弱)',
+     True, '英镑升值', '英镑贬值'),
+    ('USDJPY',
+     r'(?<![\d.,，。])(?<![兑/对])日元(?:兑美元)?(?:升值|上涨|走强|回升|走高)'
+     r'|(?<![\d.,，。])yen\s+(?:appreciat|strengthen|rising|升值|走强)',
+     r'(?<![\d.,，。])(?<![兑/对])日元(?:兑美元)?(?:贬值|下跌|走弱|回落|走低)'
+     r'|(?<![\d.,，。])yen\s+(?:depreciat|weaken|falling|贬值|走弱)',
+     False, '日元升值', '日元贬值'),
+    ('USDJPY',
+     r'(?:美元兑日元|美元对日元|美元/日元|USD\s*/\s*JPY|USDJPY)'
+     r'(?:汇率)?(?:本周|当周|周内)?\s*'
+     r'(?:上行|走高|上涨|回升|走强|升值)',
+     r'(?:美元兑日元|美元对日元|美元/日元|USD\s*/\s*JPY|USDJPY)'
+     r'(?:汇率)?(?:本周|当周|周内)?\s*'
+     r'(?:下行|走低|下跌|回落|走弱|贬值)',
+     True, '美元兑日元上行', '美元兑日元下行'),
+)
+
+
 def _check_narrative_direction(text, snapshot):
-    """叙事方向词与数值事实相反 → CONTRA(美元走弱 vs DXY 周涨)。"""
+    """叙事方向词与数值事实相反 → CONTRA(美元走弱 vs DXY 周涨)。
+
+    R38(RDG-20261115-010)表驱动: FX 族规格=_NARR_FX_ROWS(扩展=加行);
+    前瞻/历史语境逐命中守卫(_narr_is_forward,全族一致);2s10s 倒挂族
+    语义独异(倒挂/加深/缓解+解除语境排除)保持专段。
+    """
     checks = []
 
     def _wk(mid, field):
@@ -1365,51 +1460,44 @@ def _check_narrative_direction(text, snapshot):
         v = ((f.get('derived') or {}).get('week') or {}).get(field)
         return v if _is_num(v) else None
 
+    def _unguarded(clause, pat):
+        """首个非前瞻/历史语境命中(逐命中守卫,一审 MAJOR-3 粒度修)。"""
+        for m in re.finditer(pat, clause, re.I):
+            if not _narr_is_forward(clause, m):
+                return m
+        return None
+
     for clause in _clause_split(text):
-        dxy_chg = _wk('DXY', 'pct_change')
-        if dxy_chg is not None:
-            # (?<![\d.,]) 挡货币后缀形态(N美元回落=油价跌,非美元叙事)
-            if re.search(r'(?<![\d.,，。])美元(?:指数)?'
-                         r'(?:走弱|贬值|走低|回落)|'
-                         r'dollar(?: index)?\s+(?:weaken|soft)', clause,
-                         re.I) and dxy_chg > 0.05:
+        wk_cache = {}
+        for mid, up_re, dn_re, up_is_up, up_tok, dn_tok in _NARR_FX_ROWS:
+            if mid not in wk_cache:
+                wk_cache[mid] = _wk(mid, 'pct_change')
+            chg = wk_cache[mid]
+            if chg is None:
+                continue
+            if up_is_up:      # 直读族: 主体升叙事⇔序列应升
+                up_contra, up_exp = chg < -0.05, '>0'
+                dn_contra, dn_exp = chg > 0.05, '<0'
+            else:             # 反序族(USDJPY 主体=日元): 主体升⇔序列应降
+                up_contra, up_exp = chg > 0.05, '<0'
+                dn_contra, dn_exp = chg < -0.05, '>0'
+            # (?<![\d.,，。]) 挡货币后缀形态(N美元回落=油价跌,非美元叙事)
+            if up_contra and _unguarded(clause, up_re):
                 checks.append({'family': 'narrative_direction',
-                               'token': '美元走弱', 'metric': 'DXY',
-                               'value': dxy_chg, 'expected': '<0',
+                               'token': up_tok, 'metric': mid,
+                               'value': chg, 'expected': up_exp,
                                'status': 'CONTRADICTED',
-                               'note': f'叙事美元走弱 vs DXY周{dxy_chg:+g}%'})
-            if re.search(r'(?<![\d.,，。])美元(?:指数)?'
-                         r'(?:走强|升值|走高|回升)|'
-                         r'dollar(?: index)?\s+(?:strengthen|firm)', clause,
-                         re.I) and dxy_chg < -0.05:
+                               'note': f'叙事{up_tok} vs {mid}周{chg:+g}%'})
+            if dn_contra and _unguarded(clause, dn_re):
                 checks.append({'family': 'narrative_direction',
-                               'token': '美元走强', 'metric': 'DXY',
-                               'value': dxy_chg, 'expected': '>0',
+                               'token': dn_tok, 'metric': mid,
+                               'value': chg, 'expected': dn_exp,
                                'status': 'CONTRADICTED',
-                               'note': f'叙事美元走强 vs DXY周{dxy_chg:+g}%'})
-        eur_chg = _wk('EURUSD', 'pct_change')
-        if eur_chg is not None:
-            if re.search(r'欧元(?:升值|上涨|走强)|euro\s+(?:appreciat|'
-                         r'strengthen|rising)', clause, re.I) \
-                    and eur_chg < -0.05:
-                checks.append({'family': 'narrative_direction',
-                               'token': '欧元升值', 'metric': 'EURUSD',
-                               'value': eur_chg, 'expected': '>0',
-                               'status': 'CONTRADICTED',
-                               'note': f'叙事欧元升值 vs EURUSD周'
-                                       f'{eur_chg:+g}%'})
-            if re.search(r'欧元(?:贬值|下跌|走弱)|euro\s+(?:depreciat|'
-                         r'weaken|falling)', clause, re.I) \
-                    and eur_chg > 0.05:
-                checks.append({'family': 'narrative_direction',
-                               'token': '欧元贬值', 'metric': 'EURUSD',
-                               'value': eur_chg, 'expected': '<0',
-                               'status': 'CONTRADICTED',
-                               'note': f'叙事欧元贬值 vs EURUSD周'
-                                       f'{eur_chg:+g}%'})
+                               'note': f'叙事{dn_tok} vs {mid}周{chg:+g}%'})
         curve = _fact_of(snapshot, 'CURVE_2S10S')
-        if curve and _is_num(curve.get('value')) and \
-                re.search(r'倒挂', clause) and not re.search(
+        m_inv = re.search(r'倒挂', clause)
+        if curve and _is_num(curve.get('value')) and m_inv and \
+                not _narr_is_forward(clause, m_inv) and not re.search(
                     r'不再倒挂|脱离倒挂|告别倒挂|无倒挂|没有倒挂|后无倒挂|'
                     r'倒挂(?:解除|结束|消失|修复)',
                     clause):

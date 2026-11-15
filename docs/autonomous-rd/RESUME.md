@@ -20,20 +20,25 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-15 R36 收口后 · 引擎轨道余留)
+## 下一步(2026-11-15 R38 收口后 · 引擎轨道余留)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R37=R25 审计余留 Ni-5 收口已毕(操作者紧凑波;R25 审计四 NIT 全清;tid 见存档与 ITERATION_LOG)。队列按优先级:
+R38=叙事方向检查器表驱动扩展已毕(T8-R2 遗留⑤收口,RDG-010;tid 见存档与 ITERATION_LOG)。队列按优先级:
 
-1. **R38+ 引擎轨道续行**: 操作者/引擎任意席续行。整改余留(终报告非阻断清单): T8-R2 七项①-⑦(④⑥⑦下次启封随批)/round.sh 资源双上限硬接线=LIVE 部署时;「利差」项已毕(R35)。每任务先过 RDG 根因决策门(RDG-REGISTRY 登记,⑦门硬核)。
-2. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
+1. **操作者席(先手)**: R38 波次合并发布——分支 `dev/rd-r38-narrative-coverage`(20d28ae+0c9a2da+93364ce+收口 docs 提交),波次含非纯文档文件(scripts/+tests/)→**按 R32 判例于并轨尖重盖章**(先合并再盖章);抽检面=新套件 34/0+受影响 11 套件。
+2. **R39+ 引擎轨道续行**: ①兄弟席 skip-ledger 预备波收口(分支 dev/rd-r39-skip-ledger@~/investment-agent-reform 已备 cfc3128,注「轮号待引擎 R38 落定后 finalize」;进该 worktree 前先探活兄弟会话)②**R38 审计登记项**(二轮复核附条件): MAJOR-3b 前置近距标记连杀当前周事实(修法=前看窗含「本周/当周/周内」当前周锚豁免;随修冻结 G5/G7/B2/F5b 回归用例)+MINOR-3(日内/英镑对美元/USD-JPY)+NIT-3(yen 大幅升值非紧邻)③整改余留: T8-R2 ①real-face 0/3 定性②band_label 双报③score_total 硬编码维度(④⑥⑦下次启封随批)/round.sh 双上限=LIVE 部署时。每任务先过 RDG 根因决策门(RDG-REGISTRY 登记,⑦门硬核)。
+3. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 37, "date": "2026-11-15 18:52 HKT", "branch": "main", "commit": "45d4348cf837efefbce18468b64f7817e3af3d39", "baseline": "45d4348cf837efefbce18468b64f7817e3af3d39", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R37-1"], "next_task": "R38: 引擎轨道余留(T8-R2 七项①-⑦/round.sh 双上限[LIVE 部署时]);日历门 F=2026-12-05 勿手工提前", "next_round": 38} -->
+<!-- RD-CHECKPOINT v1: json {"round": 38, "date": "2026-11-15 23:16 HKT", "branch": "dev/rd-r38-narrative-coverage", "commit": "928a10ed45d2d1848bba613fde253e6e7e69cb68", "baseline": "928a10ed45d2d1848bba613fde253e6e7e69cb68", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R38-1"], "next_task": "R39: 兄弟席 skip-ledger 预备波收口(轮号待定,worktree 探活先行)+引擎轨道余留(T8-R2 ①②③⑤/R38 审计登记项 MAJOR-3b·MINOR-3·NIT-3);操作者先手=R38 波次合并发布+并轨尖重盖章(R32 判例);日历门 F=2026-12-05 勿手工提前", "next_round": 39} -->
+
+## 下一步存档(2026-11-15 R38 收口后版)
+
+- [已毕·R38] **叙事方向检查器覆盖面表驱动扩展**(T-R38-1;引擎轨道余留 T8-R2 遗留⑤): RDG-20261115-010(接口或架构缺陷,五因子队列首位;开轮复现=「本周日元升值,美元兑日元159.88(+1.51%)」VERIFIED 零检查)——_NARR_FX_ROWS 表驱动(DXY/EURUSD 逐字迁入+GBPUSD 直读+USDJPY 主体反序+对名直读行)+逐命中前瞻守卫(前看窗 14/括注宿主窗 20/后缀预期对象)+交叉盘守卫 (?<![兑/对]) 全族回灌(main 既存「日元兑美元贬值」误读一并修);独立审计两轮=一审三 MAJOR(对名「对」/GBP 交叉盘/FN9 守卫连杀)→修 93364ce→二轮**可并入(附登记条件)**(残余 MAJOR-3b/MINOR-3/NIT-3 已登记队列);新套件 34/0+变异自证 4/4+受影响 11 套件绿+全库两遍 161 件(红仅 phase6 D3 波中记账面,净树复验 29/0);分支 dev/rd-r38-narrative-coverage;详见 ITERATION_LOG R38 双行。**操作者席: 合并发布+并轨尖重盖章(R32 判例)**。
 
 ## 下一步存档(2026-11-15 R37 收口后版)
 

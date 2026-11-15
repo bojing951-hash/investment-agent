@@ -216,7 +216,7 @@
   渲染面/P4 五值由新链接管;② band_label 以快照事实为锚: 文本值错+标签按
   该错值「看似对」时与 level 双报,无报告层去重提示(LIVE 化障碍);③
   _check_score_total 维度清单硬编码(8 指标×4 stable_key 显式枚举)与
-  macro_scorecard.py 双处同构(该模块 SCORECARD_THRESHOLD_KEYS 33 键平行
+  macro_scorecard.py 双处同构(该模块 SCORECARD_THRESHOLD_KEYS 35 键平行
   枚举),新增评分卡指标须同步改两处=漂移面。
 - **根因分类**: ①☑ 根因证据不足 → 证据: T7 抽样定性 n=12 非全量,后继轮
   (R27 五缺陷修/R35 利差披露/R38-R40 叙事族)是否已消化 FK 面无复跑证据,

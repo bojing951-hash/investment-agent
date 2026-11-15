@@ -82,10 +82,17 @@ def load_thresholds(path=None):
 
 
 def TH(key):
-    """取签字阈值(唯一入口;测试可 load_thresholds(path=fixture) 后注入 _THRESH_CACHE)。"""
+    """取签字阈值(唯一入口;测试可 load_thresholds(path=fixture) 后注入 _THRESH_CACHE)。
+
+    缺键=fail-closed RuntimeError(非裸 KeyError)——R42(RDG-20261116-012)兑现
+    T1/T2 套件 test_fail_closed 契约:键缺席属注册表-代码漂移,须带键名明确报错。
+    """
     if _THRESH_CACHE is None:
         load_thresholds()
-    return _THRESH_CACHE[key]
+    try:
+        return _THRESH_CACHE[key]
+    except KeyError:
+        raise RuntimeError(f'阈值键未注册(注册表与代码漂移): {key}') from None
 
 
 def _g(v):

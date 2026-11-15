@@ -253,3 +253,43 @@
   崩向=红(可接受);NIT-5=S2 35 键断言锚 spec 自身(G2+fail-closed 兜底);
   另: S4 双引擎部分缺失语义差异(tc 保守拒判 vs ms 部分分照判+missing 披露)
   =既有行为如实锁存,非缺陷。
+
+## RDG-20261116-012 【生效线后】测试聚合器吞错(测级异常不进退出码)+两测潜伏漂移
+
+- **问题**: t1t2/t3/t4/r27 四套件 main() 以 `unittest.main(argv=[…], exit=False)`
+  逐类执行,退出码仅由 check() 台账决定——测试方法在到达任何 check() 前抛异常
+  (测级 errors/failures)不进台账→exit 0→CI/批跑照绿。实证(R42 收口时操作者
+  独立验暴露): main@2798d8a(R40,CI 43734958311 绿)上 `python3
+  tests/test_arch_reform_t1t2.py` 输出含 `ERROR: test_fail_closed` 而整文件
+  exit=0;同态 t4 `ERROR: test_d1_schema_mutations` 亦 exit=0。两潜伏根因:
+  (a) TH() 契约漂移——T1/T2 套件断言缺键→RuntimeError,实现裸
+  `_THRESH_CACHE[key]`=KeyError,且套件第二半调用不存在的
+  `load_thresholds.cache_clear()`(lru 从未上过该函数);(b) t4
+  `find(claim_type='threshold', metric_id='HY_OAS')` 单线时代锚——T1 签字
+  注册表落盘(96d265e)后 HY_OAS 扩三线(attention/warning/panic)→find
+  多匹配按约返 None→`thr['relation']=…` TypeError。两者自 arch-reform
+  并轨(R28)起潜伏 ~14 轮,被聚合器漏洞掩护至 R41 收口的 pytest 口径
+  独立验才现形(口径差=CI/引擎/操作者批跑均 exit-code 口径)。
+- **根因分类**: ☑ Bug(测试基建) → 证据: 聚合器设计意图=check 台账+
+  unittest 双轨,实现遗漏把 unittest 结果对象接入退出判定;两测漂移=数据
+  (注册表扩线)与契约(T1 设计档 fail-closed 语义)演进未带动套件锚——
+  均为可定点最小修复,非架构重构项。
+- **五因子(§5.2)**: 用户影响5(验证机器可信度=全库判定的有效性基础)×
+  严重度4(任意测级异常静默通过=假绿面)×复发4(四套件全中+新套件按同
+  模板复制风险)×架构根因3(单点遗漏非结构性)×成本反比5(定点四文件)
+  ≈1200=本轮最高位(操作者紧凑波插队理由: R41 收口链上直接暴露,修复
+  置信度随上下文热度最高)。
+- **处置**: ①四套件统一 `_run_case(cls)` 聚合(TextTestRunner 收
+  errors/failures→case_errs 计入 exit;负证=真实套件注入 erroring 测后
+  台账 43/0 仍 exit=1);②TH() 补 fail-closed 包装(KeyError→RuntimeError
+  带键名,兑现 T1 设计档语义;合法键零行为差);③t1t2 test_fail_closed
+  第二半改 `_THRESH_CACHE` 存/复原注入(替不存在的 cache_clear);④t4
+  find 按 relation='above' 判歧取一(死赋值 `c=` 同步清);⑤守卫套件
+  test_rd_r42_aggregator_error_gate(§A 模式行为子进程证伪/§B 四文件源面
+  守卫防回退/§C 两潜伏测复活直验/§D TH 契约)。
+- **回看**(R42 收口): ①-⑤全落地;四套件 exit=0 且 pytest 口径 101 测
+  全绿;负证注入红/复原绿两态如仪;操作者误报更正入 ITLOG(R41 盖章语
+  「净克隆 164/164 零红」系 exit-code 口径,pytest 口径实为 162+2 潜伏
+  错,main 同态既有非 R41 引入——如实注记)。**残余登记**: 无 BLOCKER/
+  MAJOR;NIT-A=其余 160 套件多为单类 unittest 直跑天然免疫,如后续新增
+  多类聚合模板须以本守卫套件 §B 清单为锚(新文件加入 GUARD_FILES)。

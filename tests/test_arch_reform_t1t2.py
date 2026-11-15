@@ -44,6 +44,18 @@ def check(name, cond, detail=''):
     print(('  ✅ ' if cond else '  ❌ ') + name + (f' [{detail}]' if not cond and detail else ''))
 
 
+def _run_case(cls):
+    """R42(RDG-20261116-012): 逐类跑 unittest 且 errors/failures 计入退出码——
+    旧 unittest.main(exit=False) 只以 check() 台账定退出,测级异常被吞(exit 0)。"""
+    from io import StringIO
+    suite = unittest.TestLoader().loadTestsFromTestCase(cls)
+    res = unittest.TextTestRunner(stream=StringIO(), verbosity=0).run(suite)
+    n = len(res.errors) + len(res.failures)
+    print(f'   unittest: {res.testsRun} tests, {n} error/failure' if n
+          else f'   unittest: {res.testsRun} tests OK')
+    return n
+
+
 TH_DOC = json.load(open(os.path.join(ROOT, 'config', 'thresholds.json'), encoding='utf-8'))
 ENTRIES = TH_DOC['entries']
 FW_TEXT = open(os.path.join(ROOT, 'config', 'framework.md'), encoding='utf-8').read()
@@ -247,14 +259,14 @@ class TestS2ScorecardEquivalence(unittest.TestCase):
         tmp = os.path.join(tempfile.mkdtemp(), 't.json')
         with open(tmp, 'w', encoding='utf-8') as f:
             json.dump({'entries': [{'stable_key': 'a', 'value': 1}]}, f)
+        saved = ms._THRESH_CACHE
         try:
-            ms.load_thresholds.cache_clear()
             ms.load_thresholds(tmp)
             ok = False
         except RuntimeError:
             ok = True
         finally:
-            ms.load_thresholds.cache_clear()
+            ms._THRESH_CACHE = saved
         check('S2 fail-closed: 常量键缺席于注册表文件→RuntimeError', ok)
 
 
@@ -503,16 +515,19 @@ class TestS5FrameworkEdits(unittest.TestCase):
 
 def main():
     print('══ 架构整改 T1+T2 回归套件(thresholds v1.0 落盘+G1-G4 门)══')
+    case_errs = 0
     for cls in (TestS1ThresholdsRegistry, TestS2ScorecardEquivalence,
                 TestS3ValidatorEquivalence, TestS4Gate, TestS4bOperatorHardening,
                 TestS5FrameworkEdits):
         print(f'── {cls.__name__} ──')
-        unittest.main(argv=['x', cls.__name__], exit=False, verbosity=0)
+        case_errs += _run_case(cls)
     total, bad = len(PASSED) + len(FAILED), len(FAILED)
     print(f"\n{'='*60}\nT1+T2 回归: {len(PASSED)} PASS / {len(FAILED)} FAIL (共{total}判定)")
-    if FAILED:
+    if FAILED or case_errs:
         for n, d in FAILED:
             print(f"  ❌ {n} [{d}]")
+        if case_errs:
+            print(f'  ❌ 测级异常×{case_errs}(unittest errors/failures,见上方逐类行)')
         sys.exit(1)
     print('全部通过 ✅')
     sys.exit(0)

@@ -47,6 +47,18 @@ def check(name, cond, detail=''):
     print(('  ✅ ' if cond else '  ❌ ') + name + (f' [{detail}]' if not cond and detail else ''))
 
 
+def _run_case(cls):
+    """R42(RDG-20261116-012): 逐类跑 unittest 且 errors/failures 计入退出码——
+    旧 unittest.main(exit=False) 只以 check() 台账定退出,测级异常被吞(exit 0)。"""
+    from io import StringIO
+    suite = unittest.TestLoader().loadTestsFromTestCase(cls)
+    res = unittest.TextTestRunner(stream=StringIO(), verbosity=0).run(suite)
+    n = len(res.errors) + len(res.failures)
+    print(f'   unittest: {res.testsRun} tests, {n} error/failure' if n
+          else f'   unittest: {res.testsRun} tests OK')
+    return n
+
+
 # ── 合成序列常量(升序 6 点;值任选合法域内,不冒充真实采集) ──
 D6 = ['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13', '2026-11-14']
 V_HY = [5.35, 5.32, 5.28, 5.30, 5.26, 5.20]
@@ -336,15 +348,18 @@ class TestDQueryRegression(unittest.TestCase):
 
 def main():
     print('══ 架构整改 T3 回归套件(series_store 补 macro 通道)══')
+    case_errs = 0
     for cls in (TestAMergeUnit, TestBFreshnessWindow, TestCEndToEnd,
                 TestDQueryRegression):
         print(f'── {cls.__name__} ──')
-        unittest.main(argv=['x', cls.__name__], exit=False, verbosity=0)
+        case_errs += _run_case(cls)
     total, bad = len(PASSED) + len(FAILED), len(FAILED)
     print(f"\n{'='*60}\nT3 回归: {len(PASSED)} PASS / {len(FAILED)} FAIL (共{total}判定)")
-    if FAILED:
+    if FAILED or case_errs:
         for n, d in FAILED:
             print(f"  ❌ {n} [{d}]")
+        if case_errs:
+            print(f'  ❌ 测级异常×{case_errs}(unittest errors/failures,见上方逐类行)')
         sys.exit(1)
     print('全部通过 ✅')
     sys.exit(0)

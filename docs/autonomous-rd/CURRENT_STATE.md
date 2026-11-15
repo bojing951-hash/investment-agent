@@ -4,28 +4,36 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-14 R26 VP旧库LABEL_DRIFT对账 · 排队面候选①(T-R26-1)
-> baseline=286c0c6afea0d835bdbd6dada4e3502b11813498 (机器行: rd_checkpoint.py 维护,勿手改)
+## 权威快照: 2026-11-15 R28 架构转型与工程整改·六阶段全毕(T-R28-1)
+> baseline=4b9ed9760700e35150cc99150c6523afcd5c1a66 (机器行: rd_checkpoint.py 维护,勿手改)
 
 > **本节=唯一当前态入口**(Charter 10 §3.1)。下方历史快照仅供追溯,以本节+Git HEAD 为准。
 > 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);
-> 一致性门 `python3 scripts/rd_state_consistency.py` 六项全绿方可开工;不一致时禁止开发,先恢复状态(§3.2)。
+> 一致性门 `python3 scripts/rd_state_consistency.py` 七项全绿方可开工;不一致时禁止开发,先恢复状态(§3.2)。
 
 - **基线(机器面)**: 本节标题后机器行(由 rd_checkpoint.py --finalize 盖章写入,勿手改;检查门§①解析)。
-- **基线**: main = 69a25b5(v0.21.0-alpha;R25 已合并发布);R26 波次在 `dev/rd-r26-label-drift` @7024481 待操作者合并。**Charter 10**: docs/autonomous-rd/CHARTER_10_RECTIFICATION.md(用户总指令原文)。
-- **真实进度**: **VP 旧库 5 行 LABEL_DRIFT 对账毕**(R22 遗留台账项,排队面候选①)。根因=5 行(11-10 批 hypotheses[0])存量 verdict 为 v1.0 构建面旧词汇 no_forecast,现行引擎按期限可解析性分化 UNPARSEABLE_HORIZON/NOT_YET_TESTABLE;R22"重建即消"预期对此不成立(build_vp C 层零变动,--build-all 不刷新存量 verdict)。**工具面**: reconcile_label_drift+CLI --reconcile-drift(-all)——可见重贴三层留痕(verdict_history/label_history/reconciliations)+BINDING_VIOLATION 整档拒写+判定标签默认拒(--allow-judgment 放行)+validate_vp 写前全过+原子写+幂等。**真实面**(dev 树 17 档,快照 20261112_v2 同基): 5/5 重贴(002/005/006 词汇现代化;007/010 标签 INSUFFICIENT→NOT_YET_TESTABLE 精度提升,库级 view_label 17 档全 INSUFFICIENT 零变动);全库绑定扫描 **133 BINDING_OK/0 漂移/0 违规**(前态 128+5+0);对账单=audit/R26_LABEL_DRIFT_RECONCILIATION.md。
-- **独立审计闭环**: 四维全 PASS **0 BLOCKER 0 MAJOR**(4 NIT)——前态 128+5+0 法证逆向重构 sha256 双向吻合(证明改动面恰=申报四层无夹带);143/143 全仓回归完整树副本独立复证;变异测试三处全咬;Ni-1/Ni-3/Ni-5 当场随修(7024481),Ni-2 维持与 --build-all 既有模式一致。
-- **验收层状态**: 九 PASS+AC3 PARTIAL(R19 用户落章不变;本轮无 AC 状态变动=存量标签一致性收口,AC3 机器防线从"防新增"进到"清存量")。
-- **当前任务**: R27 候选=R25 审计余留 NIT(Ni-2/3/4/5);操作者席=R26 合并发布+DFF 真实拉取(R25 移交)+LIVE 观察钟。
+- **基线**: main = 6128658(v0.23.0-alpha+HK);R28 整改波在 `dev/arch-reform-p3` @3c8b5d4(26提交),用户 2026-11-15 批准并轨→合并发 v0.24.0-alpha。**章程**: docs/autonomous-rd/CHARTER_ARCH_REFORM.md(用户工程令原文);终报告=ARCH-REFORM-FINAL-REPORT.md(§十二九项)。
+- **真实进度**: **架构整改六阶段全毕+收口修复波+C-real 真跑六判据全过**。三真实故障根因=语义非一等可验证数据对象;新架构六接口(数据快照/序列库→自包含证据面→统一 claim 六型→判定档三类内容分派→六状态双向验证→attach 门控)全链落地;research_contract 纯度律(仅 stdlib+契约内件,零模型/零环境/零网络/零随机/零时钟)。T8 迁移门轮一 FAIL 如实在档,整改后 T8-R2 PASS;迁移结论唯一口径=「合成注入+改写变体集(含留出面)在预固定数值标准下通过,真实历史故障样本(V1/V2)复位验证通过」。
+- **验收**: 全库 tests/ **154 套件 154 绿**+rd_state_consistency 门 **7/7**+thresholds G1-G4 69 键 SIGNED+V5 21/21+V6 14/14 unmapped=0;引擎侧 R29 独立复审 T2-T6a 322/0+R30 对账轮独立复证带外链 160/0(台账合并行双锚 6128658+8a73a69)。
+- **C-real(未优化新问题真跑)**: WALCL×SOFR×DXY(用户令执行,20261115T014829Z)——15 步 run_ok;WALCL WARN=周频滞后如实;事实区 3 查全 VERIFIED 零矛盾零未映射;L3/L4 诚实 declared-not-produced;判定面两缺口(面构建/别名表按周报语料口径)正道修并入 3c8b5d4,RDG-006 登记,RDG-004 闭环。跑台脚本+判据=docs/autonomous-rd/phase6c/。
+- **当前任务**: 引擎轨道续行(dev/arch-reform-p3-t1 已至 R30 对账轮,R31 起);LIVE 翻面=用户终端亲跑件(/tmp/deploy_v0240_live.py);F 补证轮日历门 2026-12-05。
 - **权限变化(Charter 10 §十)**: LIVE 生产修改自此需用户明确指令,不再随波次自动同步。
-- **检查点(R26·2026-11-14)**: LABEL_DRIFT 对账毕,审计两轮闭;操作者席待办三件(合并/拉取/LIVE 观察)。
+- **检查点(R28·2026-11-15)**: 整改六阶段+收口修复波+C-real 全毕;T-R28-1/T-R28-2 一并收口移出存档。
 
 ### 任务台账(机器维护: scripts/rd_checkpoint.py 收口;已毕任务只进 ITERATION_LOG/RESUME 存档,永不回台账)
 
 | ID | 状态 | Git证据 | 说明 |
 |---|---|---|---|
-| T-R28-1 | 进行中 | (轮开随分支建立落) | 架构整改·阶段三纵向切片开工: dev/arch-reform-p3 分支+worktree 建立+S1 六项落地(工单 T1) |
-| T-R28-2 | 进行中 | 496dc1a | 带外对账登记(Charter 10 §3.2): 另一操作者会话 HK 采集三路增量修复(腾讯320小窗+持久化兜底+按需回补,治11-12 HSI/HSCEI双源失)经用户批准并入 main(merge=4d5da02,纯克隆 145/145 零红);①检查门拦带外码提交属正确信号→本行登记入证据链;**待操作者收口时移出存档即可**(代码面零待办,验证毕) |
+
+### [历史快照·R26 视角,已被上方权威快照取代]
+
+- **R26(VP 旧库 5 行 LABEL_DRIFT 对账,T-R26-1)已完成**: 分支 `dev/rd-r26-label-drift` @7024481。
+  根因=5 行(11-10 批 hypotheses[0])存量 verdict 为 v1.0 构建面旧词汇 no_forecast,现行引擎按期限
+  可解析性分化 UNPARSEABLE_HORIZON/NOT_YET_TESTABLE;R22"重建即消"预期不成立。工具面
+  reconcile_label_drift+CLI --reconcile-drift(-all) 可见重贴三层留痕+BINDING_VIOLATION 整档拒
+  +原子写幂等;真实面(dev 树 17 档) 5/5 重贴,全库绑定扫描 **133 BINDING_OK/0 漂移/0 违规**;
+  对账单=audit/R26_LABEL_DRIFT_RECONCILIATION.md;独立审计四维 PASS 0 BLOCKER 0 MAJOR(4 NIT,
+  3 随修;前态法证逆向重构 sha256 双向吻合)。已随 v0.22.0-alpha 合并发布。
 
 ### [历史快照·R15 视角,已被上方权威快照取代]
 

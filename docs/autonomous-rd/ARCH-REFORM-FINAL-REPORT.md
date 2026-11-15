@@ -1,10 +1,10 @@
 # 架构整改最终交付报告(章程§十二九项)
 
 > 依据: ~/agent-loop/CHARTER-ARCH-REFORM-2026-11-14.md §十二/§十三。
-> 分支: dev/arch-reform-p3(main=aae0fe0 基点;24 提交 96d265e→a6a7a70;
-> 未并 main——**并轨=用户裁定,未经授权不并**)。
+> 分支: dev/arch-reform-p3(main=aae0fe0 基点;26 提交 96d265e→3c8b5d4;
+> 用户 2026-11-15 批准并轨→合并发 v0.24.0-alpha)。
 > 结论行: 六阶段全毕+收口修复波;全库 154 套件 154 绿;真实面验收 A/B/D
-> 全绿,C-real 未优化新问题真跑=用户亲跑件(PENDING_USER_RUN,如实计)。
+> 全绿,C-real 未优化新问题真跑已毕(用户令执行,六判据全过)。
 
 ---
 
@@ -18,8 +18,9 @@
   冒充内容一致性」(R23 前的 validate_judgment 两 MAJOR 放行=RDG-002)。
 - 「显示值冒充权威值」类: claim 端值锚误锚舍入位(RDG-001,T4/T5 首版
   9 条假红;与 T1/T2 设计裁决同因族,跨两模块)。
-- 判例登记: RDG-REGISTRY.md 五条(001 端值锚/002 判定档脱钩/003 状态档
-  滞留·证据不足类/004 分类器拦截·证据不足类/005 收口全库回归破旧·流程类)。
+- 判例登记: RDG-REGISTRY.md 六条(001 端值锚/002 判定档脱钩/003 状态档
+  滞留·证据不足类/004 分类器拦截·证据不足类·C-real 真跑后闭环/005 收口全库
+  回归破旧·流程类/006 C-real 判定面两缺口·架构类)。
 
 **Bug(局部修不复发)**
 - ⑦a 首版越界扫描(交叉映射 AC 行误伤)——收口修复波修(与④同界)。
@@ -90,10 +91,13 @@ PHASE2-CONTRACT-DESIGN v1.2(律1-8)+PHASE4 设计档,落 docs/ARCHITECTURE_V2.md
   CURVE_2S10S,15 步 run_ok,agent 判定 attach+审计两 MAJOR→修订闭环,
   errors=0)——阶段六 C-det 结构面全绿(报告/judgment 原件在 dev 树,
   副本+MANIFEST.sha256 入 tests/fixtures/v4/)。
-- **C-real(未优化新问题 WALCL×SOFR×DXY)**: 操作者会话被权限分类器拦
-  (RDG-004,不绕过),转用户终端亲跑件 /tmp/run_phase6c_real.sh,判据
-  /tmp/PHASE6C-REAL-ACCEPTANCE.md 六条;套件如实记 PENDING_USER_RUN
-  不计 PASS/FAIL——不以离线测试冒充真实验收。
+- **C-real(未优化新问题 WALCL×SOFR×DXY)**: 已毕(2026-11-15 用户令操作者
+  会话执行)——15 步 run_ok;WALCL WARN=周频滞后如实;事实区 3 查全
+  VERIFIED 零矛盾零未映射;L3/L4 诚实 declared-not-produced;六判据全过
+  (机核=tests/test_arch_reform_phase6.py C4/C5)。真跑暴露判定面两缺口
+  (面构建/别名表按周报语料口径,research-run 事实表未覆盖)→正道修并入
+  3c8b5d4+RDG-006 登记;RDG-004(分类器拦截)随之闭环。跑台脚本+判据
+  持久化=docs/autonomous-rd/phase6c/(仓内权威,/tmp 为易失副本)。
 
 ## 7. 自主研发机制整改有效性
 
@@ -133,12 +137,12 @@ T8-R2 ①real-face 0/3 定性 ②band_label 双报 ③_check_score_total 硬编�
 仅 3 指标 ⑥重封留出 ⑦变异压力轮;阶段四: 裸「利差」别名歧义吞 token
 (零检查零未映射,登记待升披露)、真实模型语义审计席=NOT_VERIFIED 占位
 (待用户授权);阶段五: 双轨并轨状态同步步骤(待第二实例)、引擎侧
-round.sh 硬接线(LIVE 部署时);阶段六: C-real PENDING_USER_RUN;
+round.sh 硬接线(LIVE 部署时);阶段六: C-real 已毕(六判据全过);
 阶段二 T7 V4/V7 哈希冻结=DEFERRED(已注记)。
 
-## 用户待办(两项,均用户终端亲跑)
+## 用户待办(2026-11-15 更新)
 
-1. **C-real**: bash /tmp/run_phase6c_real.sh → 对照 /tmp/PHASE6C-REAL-
-   ACCEPTANCE.md → 把运行目录名回填操作者会话(解除 PENDING)。
-2. **并轨裁定**: dev/arch-reform-p3(96d265e→a6a7a70)是否并 main+
-   LIVE 翻面——整改分支未经授权不并 main;并轨后 CI 首跑+LIVE 翻面脚本。
+1. **C-real**: ~~用户终端亲跑~~ → 已毕(用户令操作者会话执行,六判据全过,
+   见 §6;跑台脚本+判据已入仓 docs/autonomous-rd/phase6c/)。
+2. **并轨裁定**: 已批准(2026-11-15「2,批准」)→ 合并发 v0.24.0-alpha;
+   余下 LIVE 翻面仍走用户终端亲跑先例(/tmp/deploy_v0240_live.py)。

@@ -4,8 +4,16 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-15 R28 架构转型与工程整改·六阶段全毕(T-R28-1)
-> baseline=be23e75883bbe063ba8dfab89a0c795c7555a22f (机器行: rd_checkpoint.py 维护,勿手改)
+## 权威快照: 2026-11-15 R32 语义审计席开启+首审修订闭环(T-R32-1)
+> baseline=f430c39130ec27c1ee4a6a9c066ef72b83b444ea (机器行: rd_checkpoint.py 维护,勿手改)
+
+- **基线**: main = f430c39(v0.24.0-alpha,CI 43669531541 绿+Release 445785124+LIVE 已翻面 2026-11-15);本轮=`dev/r32-semantic-audit-seat`。席位章程=docs/autonomous-rd/SEMANTIC-AUDIT-SEAT.md(契约 §4b operative 版)。
+- **真实进度**: 用户 2026-11-15 授权「开」(终报告遗留项)→**语义审计席建成+首审毕**。首审对象=R24 真跑档 20261113T053316Z(l3×2+mech×2+l4×2+narr;证据面=运行档 L1/S3-S6+17 观点档原档回溯)。独立 Subagent 席裁决=**REVISE 三必修零剔除**: ①「年内最平端」被自家序列证伪(最低 0.20@2026-09-21,现值次低=v2 矫枉过正残留)②SCN-B 证伪条件缺加息前提+「持续」无时长 ③VIX 年内 +18.66% 反向事实未披露+「多家预计加息」实测仅 UBS 一家。正面: 二十余数值独立复算全命中;HY_OAS 与 MSIM 独立记述 311bp 外部佐证差 1bp。
+- **修订闭环**: judgment/report/agent_judgment 三档落修(v2 副本=*_pre_seat_20261115);契约文法归一三发现如实注记(裸基数误绑 level/裸差值误绑 ytd/等式括注掩码遇嵌套括号断裂→expose 2026/n=216)。修订后 verify_judgment=**VERIFIED 23/23 零未映射零矛盾**。
+- **验收**: 新套件 test_semantic_audit_seat **10/0**(章程+归档格式机核,CI 安全零绝对路径);phase6 复跑零红(修订面);归档=audit/semantic_review/20261115/(VERDICT+PROSE 逐字+MANIFEST append-only)。
+- **下一步**: R33 引擎轨道(席位 runtime 接入三件: 自动唤起+披露开关/gate_a 披露行/S3 信封入索引);日历门 F=2026-12-05。
+
+### [历史快照·R28 视角,已被上方权威快照取代]
 
 > **本节=唯一当前态入口**(Charter 10 §3.1)。下方历史快照仅供追溯,以本节+Git HEAD 为准。
 > 核对法: 本节 `baseline=` 机器行必须是 HEAD 祖先(`git merge-base --is-ancestor <baseline> HEAD`);

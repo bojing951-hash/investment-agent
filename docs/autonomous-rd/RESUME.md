@@ -20,21 +20,25 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-15 R28 收口后 · 引擎轨道续行)
+## 下一步(2026-11-15 R32 收口后 · 席位常驻化移交引擎+日历门)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R28=架构整改六阶段全毕+并轨(用户 2026-11-15 批,合并发 v0.24.0-alpha)。队列按优先级:
+R32=语义审计席开启+首审修订闭环(用户授权「开」,终报告遗留项收口)。队列按优先级:
 
-1. **R31+ 引擎轨道续行**: 引擎树 dev/arch-reform-p3-t1 已至 R30 对账轮(独立复证整改带外链 160/0,台账合并行双锚 6128658+8a73a69);R31 起引擎自选队列。整改后余留(终报告非阻断清单): T8-R2 七项①-⑦/阶段四「利差」裸别名歧义升披露/真实模型语义审计席 NOT_VERIFIED 占位(待用户授权)/round.sh 资源双上限硬接线=LIVE 部署时。
-2. **LIVE 翻面 v0.24.0**: 用户终端亲跑 /tmp/deploy_v0240_live.py(先例=deploy_v0230;git archive 面+自适应代理补丁步+三 key 重注入;Charter 10 §十 LIVE 需用户明确指令)。
-3. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
+1. **R33+ 引擎轨道续行**: 引擎树 dev/arch-reform-p3-t1 已至 R31 盖章;R33 起引擎自选。**席位 runtime 接入三件(首审席建议,登记非阻断)**: ①渲染器接语义审计席自动唤起(SEMANTIC_REVIEW_REQUIRED 非空→唤席)+「叙事语义未经独立裁决」披露开关 ②report.md 模板补 gate_a 状态披露行 ③L3 被引 S3 信封数字入证据索引。整改余留(终报告非阻断清单): T8-R2 七项①-⑦/「利差」裸别名歧义升披露/round.sh 资源双上限硬接线。
+2. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/R25 审计 Ni-2~5/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 28, "date": "2026-11-15 10:38 HKT", "branch": "dev/arch-reform-p3", "commit": "be23e75883bbe063ba8dfab89a0c795c7555a22f", "baseline": "be23e75883bbe063ba8dfab89a0c795c7555a22f", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R28-1", "T-R28-2"], "next_task": "R31: 引擎轨道续行(引擎树 dev/arch-reform-p3-t1 已至 R30 对账轮;整改已并 main=v0.24.0-alpha;LIVE 翻面=用户终端亲跑 /tmp/deploy_v0240_live.py)", "next_round": 31} -->
+<!-- RD-CHECKPOINT v1: json {"round": 32, "date": "2026-11-15 12:28 HKT", "branch": "dev/r32-semantic-audit-seat", "commit": "f430c39130ec27c1ee4a6a9c066ef72b83b444ea", "baseline": "f430c39130ec27c1ee4a6a9c066ef72b83b444ea", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R32-1"], "next_task": "R33: 引擎轨道续行(席位 runtime 接入三件: 自动唤起+披露开关/gate_a 披露行/S3 信封入索引;T8-R2 七项/利差歧义随轮)", "next_round": 33} -->
+
+## 下一步存档(2026-11-15 R32 收口后版)
+
+- [已毕·R32] **语义审计席开启+首审修订闭环**(T-R32-1;终报告遗留「真实模型语义审计席 NOT_VERIFIED 占位」项): 用户 2026-11-15 授权「开」;席位=docs/autonomous-rd/SEMANTIC-AUDIT-SEAT.md;首审 R24 真跑档=REVISE 三必修零剔除,修订闭环 VERIFIED 23/23;归档=audit/semantic_review/20261115/。
+- [已毕·R28~R31] R28 收口后版三项全部落地: ①引擎轨道续行(R29 复审 322/0+R30 对账 160/0+R31 盖章毕,其树自走) ②LIVE 翻面 v0.24.0(2026-11-15 用户令执行,七步绿+核验毕) ③日历门外其余余留移交上方队列(R33 项)。
 
 ## 下一步存档(2026-11-15 R28 收口后版)
 

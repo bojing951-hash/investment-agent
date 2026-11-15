@@ -20,20 +20,24 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-15 R32 收口后 · 席位常驻化移交引擎+日历门)
+## 下一步(2026-11-15 R33 收口后 · 引擎轨道余留+席位真跑首验)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R32=语义审计席开启+首审修订闭环(用户授权「开」,终报告遗留项收口)。队列按优先级:
+R33=席位 runtime 接入三件(T-R33-1;首审席 narr-facts 建议移交毕,§8 过渡条款收口)。队列按优先级:
 
-1. **R33+ 引擎轨道续行**: 引擎树 dev/arch-reform-p3-t1 已至 R31 盖章;R33 起引擎自选。**席位 runtime 接入三件(首审席建议,登记非阻断)**: ①渲染器接语义审计席自动唤起(SEMANTIC_REVIEW_REQUIRED 非空→唤席)+「叙事语义未经独立裁决」披露开关 ②report.md 模板补 gate_a 状态披露行 ③L3 被引 S3 信封数字入证据索引。整改余留(终报告非阻断清单): T8-R2 七项①-⑦/「利差」裸别名歧义升披露/round.sh 资源双上限硬接线。
+1. **R34+ 引擎轨道续行**: 引擎树 dev/arch-reform-p3-t1 自走;操作者/引擎任意席续行。**席位接入真跑首验**: 下一份带 L3/L4 的 research-run 应见「语义审查」节+编排层读 semantic_review.required 唤席(首例闭环=VERDICT 档落 audit/semantic_review/)。整改余留(终报告非阻断清单): T8-R2 七项①-⑦/「利差」裸别名歧义升披露/round.sh 资源双上限硬接线=LIVE 部署时。
 2. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/R25 审计 Ni-2~5/OPEN_ISSUES 按需取用。
 
 <!-- RD-CHECKPOINT v1: json {"round": 32, "date": "2026-11-15 13:02 HKT", "branch": "main", "commit": "16bc7effccbfc97d0b1224ea54b0923c397a78ac", "baseline": "16bc7effccbfc97d0b1224ea54b0923c397a78ac", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R32-1"], "next_task": "R33: 引擎轨道续行(席位 runtime 接入三件: 自动唤起+披露开关/gate_a 披露行/S3 信封入索引;T8-R2 七项/利差歧义随轮)", "next_round": 33} -->
+
+## 下一步存档(2026-11-15 R33 收口后版)
+
+- [已毕·R33] **席位 runtime 接入三件**(T-R33-1;首审席 narr-facts 建议,SEMANTIC-AUDIT-SEAT §8 过渡条款收口): ①semantic_review 状态面+md 披露开关 ②gate_a 披露行 ③S3 信封入证据索引;新套件 14/14+全库 156/156;详见 ITERATION_LOG R33 行。
 
 ## 下一步存档(2026-11-15 R32 收口后版)
 

@@ -4,8 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-15 R32 语义审计席开启+首审修订闭环(T-R32-1)
+## 权威快照: 2026-11-15 R33 席位 runtime 接入三件(T-R33-1)
 > baseline=16bc7effccbfc97d0b1224ea54b0923c397a78ac (机器行: rd_checkpoint.py 维护,勿手改)
+
+- **基线**: main = 0c4b6eb(R32 重盖章,CI 43680211676 绿);本轮=`dev/r33-seat-runtime`(基点 0c4b6eb)。
+- **真实进度**: 首审席三条 narr-facts 建议全部移交 runtime(SEMANTIC-AUDIT-SEAT §8 过渡条款收口): ①attach 写 `report.semantic_review` 状态面(required=唤起点 ii L3/L4 落位;seat_invoked/verdict 按 `audit/semantic_review/*/VERDICT-<run_ts>*.json` 命中;编排层读 required 自动唤席——渲染器只标状态+披露,真席位调用归编排层)+md 披露开关(未裁=「叙事语义未经独立裁决」常设披露/已裁=席位裁决摘要行) ②md 补 gate_a 状态披露行(各步信封顶层汇总「n/n 信封步非 OK(态)」;旧档重渲同样生效) ③S3_changes 信封在场指标入证据索引(kind=s3_envelope,与 L1 按 metric_id 去重,缺观测日/缺席行不收;md 索引升全量渲)。
+- **验收**: 新套件 test_rd_r33_seat_runtime **14/14**;受影响面 r2(索引期望升标=L1+L2+S3 去重)/r23/r24/phase4/semantic_audit_seat 全绿;phase6 **29/0**;全库 **156/156 零红**(分支面 8e4ce33)。
+- **下一步**: R34 引擎轨道余留(T8-R2 七项①-⑦/利差裸别名歧义/round.sh 双上限)+席位接入真跑首验(下一份带 L3/L4 的 research-run 应见语义审查节+编排层唤席);日历门 F=2026-12-05。
+
+### [历史快照·R32 视角,已被上方权威快照取代]
 
 - **基线**: main = f430c39(v0.24.0-alpha,CI 43669531541 绿+Release 445785124+LIVE 已翻面 2026-11-15);本轮=`dev/r32-semantic-audit-seat`。席位章程=docs/autonomous-rd/SEMANTIC-AUDIT-SEAT.md(契约 §4b operative 版)。
 - **真实进度**: 用户 2026-11-15 授权「开」(终报告遗留项)→**语义审计席建成+首审毕**。首审对象=R24 真跑档 20261113T053316Z(l3×2+mech×2+l4×2+narr;证据面=运行档 L1/S3-S6+17 观点档原档回溯)。独立 Subagent 席裁决=**REVISE 三必修零剔除**: ①「年内最平端」被自家序列证伪(最低 0.20@2026-09-21,现值次低=v2 矫枉过正残留)②SCN-B 证伪条件缺加息前提+「持续」无时长 ③VIX 年内 +18.66% 反向事实未披露+「多家预计加息」实测仅 UBS 一家。正面: 二十余数值独立复算全命中;HY_OAS 与 MSIM 独立记述 311bp 外部佐证差 1bp。

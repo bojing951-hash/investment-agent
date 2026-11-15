@@ -53,6 +53,18 @@ def check(name, cond, detail=''):
     print(('  ✅ ' if cond else '  ❌ ') + name + (f' [{detail}]' if not cond and detail else ''))
 
 
+def _run_case(cls):
+    """R42(RDG-20261116-012): 逐类跑 unittest 且 errors/failures 计入退出码——
+    旧 unittest.main(exit=False) 只以 check() 台账定退出,测级异常被吞(exit 0)。"""
+    from io import StringIO
+    suite = unittest.TestLoader().loadTestsFromTestCase(cls)
+    res = unittest.TextTestRunner(stream=StringIO(), verbosity=0).run(suite)
+    n = len(res.errors) + len(res.failures)
+    print(f'   unittest: {res.testsRun} tests, {n} error/failure' if n
+          else f'   unittest: {res.testsRun} tests OK')
+    return n
+
+
 def find(claims, **kw):
     """按字段精确匹配取单条(多匹配/零匹配=测试自败)。"""
     hits = [c for c in claims
@@ -256,7 +268,6 @@ class TestS4Threshold(BundleBase):
             ('DXY', 'dxy.weak_bound', 'above', 100.0),
         ]
         for mid, key, rel, tv in cases:
-            c = find(self.claims, claim_type='threshold', metric_id=mid)
             hits = [x for x in self.claims if x['claim_type'] == 'threshold'
                     and x['metric_id'] == mid and x['threshold_ref']['name'] == key]
             check(f'S4 threshold {key}: relation={rel}(水平 vs {tv} 独立判侧)',
@@ -651,8 +662,10 @@ class TestD1DeterminismSchema(BundleBase):
         except cb.SchemaError:
             check('D1 schema 变异红: comparison 携 metric_id(多成员专用 metric_ids)',
                   True)
+        # R42: HY_OAS 三线(attention/warning/panic)→多匹配;按 relation='above'
+        # 判歧取一(T1 落盘前单线时代的老锚,注册表扩线后潜伏 TypeError)。
         thr = copy.deepcopy(find(self.claims, claim_type='threshold',
-                                 metric_id='HY_OAS'))
+                                 metric_id='HY_OAS', relation='above'))
         thr['relation'] = 'inside'
         try:
             cb.validate_claim(thr)
@@ -706,16 +719,19 @@ class TestD1DeterminismSchema(BundleBase):
 
 def main():
     print('══ 架构整改 T4 回归套件(claim_factory 六型+claim_bundle)══')
+    case_errs = 0
     for cls in (TestS1Level, TestS2Change, TestS3Comparison, TestS4Threshold,
                 TestS5Distance, TestS6Lag, TestU1UnitAlgebra, TestP1Predicates,
                 TestZ1ZeroModel, TestD1DeterminismSchema):
         print(f'── {cls.__name__} ──')
-        unittest.main(argv=['x', cls.__name__], exit=False, verbosity=0)
+        case_errs += _run_case(cls)
     total, bad = len(PASSED) + len(FAILED), len(FAILED)
     print(f"\n{'='*60}\nT4 回归: {len(PASSED)} PASS / {len(FAILED)} FAIL (共{total}判定)")
-    if FAILED:
+    if FAILED or case_errs:
         for n, d in FAILED:
             print(f"  ❌ {n} [{d}]")
+        if case_errs:
+            print(f'  ❌ 测级异常×{case_errs}(unittest errors/failures,见上方逐类行)')
         sys.exit(1)
     print('全部通过 ✅')
     sys.exit(0)

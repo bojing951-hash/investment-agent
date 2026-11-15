@@ -45,6 +45,18 @@ def check(name, cond, detail=''):
     print(('  ✅ ' if cond else '  ❌ ') + name + (f' [{detail}]' if not cond and detail else ''))
 
 
+def _run_case(cls):
+    """R42(RDG-20261116-012): 逐类跑 unittest 且 errors/failures 计入退出码——
+    旧 unittest.main(exit=False) 只以 check() 台账定退出,测级异常被吞(exit 0)。"""
+    from io import StringIO
+    suite = unittest.TestLoader().loadTestsFromTestCase(cls)
+    res = unittest.TextTestRunner(stream=StringIO(), verbosity=0).run(suite)
+    n = len(res.errors) + len(res.failures)
+    print(f'   unittest: {res.testsRun} tests, {n} error/failure' if n
+          else f'   unittest: {res.testsRun} tests OK')
+    return n
+
+
 FIX = os.path.join(ROOT, 'audit', 'r27_gateb_repro')
 
 
@@ -296,24 +308,27 @@ class TestClauseLocalHelper(unittest.TestCase):
 
 def main():
     print('══ R27 Gate B 提取器误杀修复套件 ══')
+    case_errs = 0
     print('── Section 1: 两期真实实例全量复验 ──')
-    unittest.main(argv=['x', 'TestRealInstanceRepro'], exit=False, verbosity=0)
+    case_errs += _run_case(TestRealInstanceRepro)
     print('── Section 2: (辛)+(壬) SPX_EPS/滞后N天 ──')
-    unittest.main(argv=['x', 'TestKillOneSixtySix'], exit=False, verbosity=0)
+    case_errs += _run_case(TestKillOneSixtySix)
     print('── Section 3: (癸) 带符号百分数=变化 ──')
-    unittest.main(argv=['x', 'TestSignedPercentIsChange'], exit=False, verbosity=0)
+    case_errs += _run_case(TestSignedPercentIsChange)
     print('── Section 4: (距离)+(子) 阈值距离与小句边界 ──')
-    unittest.main(argv=['x', 'TestDistanceSpecContext'], exit=False, verbosity=0)
+    case_errs += _run_case(TestDistanceSpecContext)
     print('── Section 5: (子) 周变化语境对称面 ──')
-    unittest.main(argv=['x', 'TestChangeCheckClauseBoundary'], exit=False, verbosity=0)
+    case_errs += _run_case(TestChangeCheckClauseBoundary)
     print('── Section 6: _clause_local 单元面 ──')
-    unittest.main(argv=['x', 'TestClauseLocalHelper'], exit=False, verbosity=0)
+    case_errs += _run_case(TestClauseLocalHelper)
 
     total, bad = len(PASSED) + len(FAILED), len(FAILED)
     print(f"\n{'='*60}\nR27 Gate B 误杀修复: {len(PASSED)} PASS / {len(FAILED)} FAIL (共{total}判定)")
-    if FAILED:
+    if FAILED or case_errs:
         for n, d in FAILED:
             print(f"  ❌ {n} [{d}]")
+        if case_errs:
+            print(f'  ❌ 测级异常×{case_errs}(unittest errors/failures,见上方逐类行)')
         sys.exit(1)
     print('全部通过 ✅')
     sys.exit(0)

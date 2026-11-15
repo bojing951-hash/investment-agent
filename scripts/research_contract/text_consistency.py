@@ -10,6 +10,8 @@
      逐 token 绑定指标身份,按工厂 claim 形态构造瞬态 claim,交 claim_verifier
      独立复算;语义族检查器(排名序/可加性/持续性计数/复合条件计数/价差算术/
      先后值角色/方向词)对纯语义错误补位。裁决聚合: 任一硬不符=CONTRADICTED。
+     辖域跳过≠披露豁免(律8/T6,RDG-20261115-008): 检查器辖域内未被消费的
+     数值 token 禁静默吞——利差歧义族先落 spread_ambiguous 披露。
 
 纯度: stdlib+research_contract 只读;零模型/零网络/零随机/零时钟。
 """
@@ -792,9 +794,16 @@ def _check_spread(clause, snapshot, thresholds_by=None):
     if not re.search(r'利差|vs\.?|—|对比', clause):
         return []
     mids = _find_alias(clause)
-    if len(mids) < 2:
+    # 相异指标守卫(RDG-20261115-009): 别名+metric_id 自指可同指一指标
+    # (高收益债利差 HY_OAS),自对算术 |v−v|=0 对任何非零利差复述必假红
+    seen_m, distinct = set(), []
+    for m in mids:
+        if m[0] not in seen_m:
+            seen_m.add(m[0])
+            distinct.append(m)
+    if len(distinct) < 2:
         return []
-    a, b = mids[0][0], mids[1][0]
+    a, b = distinct[0][0], distinct[1][0]
     fa, fb = _fact_of(snapshot, a), _fact_of(snapshot, b)
     if not (fa and fb) or not (_is_num(fa['value']) and _is_num(fb['value'])):
         return []
@@ -1532,6 +1541,9 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
         r'连续第|周收于|利差|贡献|反推|加总构成|已满足|中性区间|区间上沿|'
         r'区间下沿|带下沿|带上沿|关口|站上|概率|总分|目标区间|恐慌区|'
         r'警告区|警戒区|关注带')
+    # 利差辖域披露面(RDG-20261115-008): 检查器未消费的 percent/pp token
+    # 落 spread_ambiguous 披露,禁静默吞(契约律8: 未映射须显式披露)
+    _spread_ctx = '利差'
     prior_obs = {}
     if prior_anchors:
         for date, anc in sorted(prior_anchors.items()):
@@ -1555,6 +1567,12 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                     for part in re.split(r'[/、,，]', str(ch.get('token') or '')):
                         if part.strip():
                             consumed.add(part.strip())
+                    # 价差算术命中值入 consumed(RDG-008 审计修: token 字段
+                    # 为整段匹配串,裸数值 token 须并入被裁集;句级抑制会
+                    # 吞同句异段无关利差数值=MAJOR-1,故弃 flag 用被裁集)
+                    if ch.get('family') == 'spread_arithmetic':
+                        for t2 in _extract_tokens(str(ch.get('token') or '')):
+                            consumed.add(t2['raw'].strip())
             except Exception:      # 检查器异常不吞主流程;记录后继续
                 checks.append({'family': getattr(fn, '__name__', '?'),
                                'token': '', 'value': None, 'expected': None,
@@ -1583,6 +1601,19 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
                         'note': f'{e_r["stable_key"]}常量复述'})
                     continue
             if owned_ctx.search(seg_scoped):
+                # 辖域跳过≠披露豁免(律8/T6;RDG-20261115-008): 利差歧义族
+                # 未被检查器消费的数值 token 落披露面(INSUFFICIENT_EVIDENCE
+                # =契约「须披露可发布」档;不判错不改判聚合)
+                if (_spread_ctx in seg_scoped
+                        and t['kind'] in ('percent', 'pp')):
+                    checks.append({
+                        'family': 'spread_ambiguous', 'token': t['raw'],
+                        'metric': None, 'value': t['value'],
+                        'expected': None,
+                        'status': 'INSUFFICIENT_EVIDENCE',
+                        'note': '利差语境数值未验证(非价差算术裁决面: '
+                                '无相异指标对/派生利差不在别名表/'
+                                '算术操作数复述);披露不判错'})
                 continue            # 语义族检查器辖域(同逗号段)
             # 前值角色先行(标记式;不依赖绑定): prior_reference 后置核
             if _prior_role(clause, t):

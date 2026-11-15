@@ -62,7 +62,7 @@ Rendering & Delivery    → 现有渲染 + 新 text_consistency.py(数值溯源�
 5. 预测vs已发生: forecast 型永不与 level 同渲无标记
 6. 未验证不冒充已验证: 渲染器只接 status=VERIFIED;其余进披露区
 7. AI 给数不自动过: model_inferred 数值 claim 由 verifier 对照 fact/公式复算;不符=CONTRADICTED
-8. 自由文本新数字不绕过: text_consistency 抽取渲染文本全部数值 token,逐一须映射到已验证 claim 或白名单(阈值/日期);**映射=三元(值,单位后缀,claim 角色)兼容(C2,金融席策展轮修正)**——**裸 % 后缀不携带单位信息**(OAS「3.20%」=percentage_point 水平的显示形态,「+2.51%」=percent 相对变化——按律8 原文两类各数十处全部违法=洪泛),故映射主体=manifest 的 claim 角色+值,后缀仅作**否定性排除**(pp/bp 后缀排除 percent 单位映射);值碰撞不可消解→SEMANTIC_REVIEW_REQUIRED,**禁 first-match**(审计席反例②: 水平值 3.20 冒充距离 3.20pp);**白名单税则冻结(C3)**: 计数须走 crossing_count 确定性派生或禁入【事实】标注句,白名单任何新增须金融席签字(与 thresholds 注册表同纪律)——此条不立,追认式闭环将以白名单形态还魂;未映射→SEMANTIC_REVIEW_REQUIRED 清单显式披露
+8. 自由文本新数字不绕过: text_consistency 抽取渲染文本全部数值 token,逐一须映射到已验证 claim 或白名单(阈值/日期);**映射=三元(值,单位后缀,claim 角色)兼容(C2,金融席策展轮修正)**——**裸 % 后缀不携带单位信息**(OAS「3.20%」=percentage_point 水平的显示形态,「+2.51%」=percent 相对变化——按律8 原文两类各数十处全部违法=洪泛),故映射主体=manifest 的 claim 角色+值,后缀仅作**否定性排除**(pp/bp 后缀排除 percent 单位映射);值碰撞不可消解→SEMANTIC_REVIEW_REQUIRED,**禁 first-match**(审计席反例②: 水平值 3.20 冒充距离 3.20pp);**白名单税则冻结(C3)**: 计数须走 crossing_count 确定性派生或禁入【事实】标注句,白名单任何新增须金融席签字(与 thresholds 注册表同纪律)——此条不立,追认式闭环将以白名单形态还魂;未映射→SEMANTIC_REVIEW_REQUIRED 清单显式披露;**语义族检查器辖域跳过不豁免本律(RDG-20261115-008 注记,强化非放宽)**——辖域内(如「利差」歧义族)未被检查器消费的数值 token 同样须映射或显式披露,禁静默吞(真实实例: 20261113T005117Z 美日利差句 token 零检查零未映射)
 
 ## 3. 确定性断言工厂(核心杠杆)
 

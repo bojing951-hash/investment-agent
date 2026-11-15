@@ -1366,6 +1366,9 @@ _NARR_FORWARD_RE = re.compile(
 _NARR_SUFFIX_RE = re.compile(r'(?:的)?(?:预期|预测|展望|概率|押注|期望)')
 _NARR_BEFORE_WIN = 14    # 前瞻/历史标记回看窗(字符)
 _NARR_HOST_WIN = 20      # 括注宿主窗(括注内命中回看开括号前文,窗可更宽)
+# R40 MAJOR-3b(RDG-010 残余): 当前周锚——标记与命中之间出现锚=语句
+# 重新锚定当前周窗,豁免前瞻豁免(G5/G7/B2 恢复 main 拦截)。
+_NARR_CURWEEK_RE = re.compile(r'本周|当周|周内')
 
 
 def _narr_is_forward(clause, m):
@@ -1376,9 +1379,15 @@ def _narr_is_forward(clause, m):
     「资产方向判断: USDJPY 下行(日元升值)」的括注);③命中点紧跟
     「(的)预期/预测/展望/概率/押注」(「日元升值的预期升温」=预期对象
     非事实断言)。
+    R40 MAJOR-3b: 判据①加当前周锚豁免——标记与命中之间(标记之后)
+    出现「本周/当周/周内」→语句已重新锚定当前周,按当前周窗核方向
+    (「通胀预期回落的同时,本周美元走弱」=G5 当前周事实,非预期句)。
+    锚须在标记之后: 锚在标记前(「本周市场预期美元走弱」)仍是预期句,
+    不豁免。
     """
     before = clause[max(0, m.start() - _NARR_BEFORE_WIN):m.start()]
-    if _NARR_FORWARD_RE.search(before):
+    fm = _NARR_FORWARD_RE.search(before)
+    if fm and not _NARR_CURWEEK_RE.search(before[fm.end():]):
         return True
     if _NARR_SUFFIX_RE.match(clause, m.end()):
         return True
@@ -1422,23 +1431,25 @@ _NARR_FX_ROWS = (
      r'|euro\s+(?:depreciat|weaken|falling)',
      True, '欧元升值', '欧元贬值'),
     ('GBPUSD',
-     r'(?<![\d.,，。])(?<![兑/对])英镑(?:兑美元)?(?:升值|上涨|走强|回升|走高)'
+     r'(?<![\d.,，。])(?<![兑/对])英镑(?:兑美元|对美元)?(?:升值|上涨|走强|回升|走高)'
      r'|pound(?:\s+sterling)?\s+(?:appreciat|strengthen|rising|升值|走强)',
-     r'(?<![\d.,，。])(?<![兑/对])英镑(?:兑美元)?(?:贬值|下跌|走弱|回落|走低)'
+     r'(?<![\d.,，。])(?<![兑/对])英镑(?:兑美元|对美元)?(?:贬值|下跌|走弱|回落|走低)'
      r'|pound(?:\s+sterling)?\s+(?:depreciat|weaken|falling|贬值|走弱)',
      True, '英镑升值', '英镑贬值'),
     ('USDJPY',
      r'(?<![\d.,，。])(?<![兑/对])日元(?:兑美元)?(?:升值|上涨|走强|回升|走高)'
-     r'|(?<![\d.,，。])yen\s+(?:appreciat|strengthen|rising|升值|走强)',
+     r'|(?<![\d.,，。])yen\s+(?:大幅|明显|显著|温和|小幅)?\s*'
+     r'(?:appreciat|strengthen|rising|升值|走强)',
      r'(?<![\d.,，。])(?<![兑/对])日元(?:兑美元)?(?:贬值|下跌|走弱|回落|走低)'
-     r'|(?<![\d.,，。])yen\s+(?:depreciat|weaken|falling|贬值|走弱)',
+     r'|(?<![\d.,，。])yen\s+(?:大幅|明显|显著|温和|小幅)?\s*'
+     r'(?:depreciat|weaken|falling|贬值|走弱)',
      False, '日元升值', '日元贬值'),
     ('USDJPY',
-     r'(?:美元兑日元|美元对日元|美元/日元|USD\s*/\s*JPY|USDJPY)'
-     r'(?:汇率)?(?:本周|当周|周内)?\s*'
+     r'(?:美元兑日元|美元对日元|美元/日元|USD\s*/\s*JPY|USD\s*-\s*JPY|USDJPY)'
+     r'(?:汇率)?\s*(?:本周|当周|周内|日内)?\s*'
      r'(?:上行|走高|上涨|回升|走强|升值)',
-     r'(?:美元兑日元|美元对日元|美元/日元|USD\s*/\s*JPY|USDJPY)'
-     r'(?:汇率)?(?:本周|当周|周内)?\s*'
+     r'(?:美元兑日元|美元对日元|美元/日元|USD\s*/\s*JPY|USD\s*-\s*JPY|USDJPY)'
+     r'(?:汇率)?\s*(?:本周|当周|周内|日内)?\s*'
      r'(?:下行|走低|下跌|回落|走弱|贬值)',
      True, '美元兑日元上行', '美元兑日元下行'),
 )

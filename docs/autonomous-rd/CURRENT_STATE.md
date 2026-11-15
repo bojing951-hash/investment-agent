@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-15 R33 席位 runtime 接入三件(T-R33-1)
-> baseline=16bc7effccbfc97d0b1224ea54b0923c397a78ac (机器行: rd_checkpoint.py 维护,勿手改)
+> baseline=8235d7b5884ff9c66dba6b945e3bf7bd1d2ea57d (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 0c4b6eb(R32 重盖章,CI 43680211676 绿);本轮=`dev/r33-seat-runtime`(基点 0c4b6eb)。
 - **真实进度**: 首审席三条 narr-facts 建议全部移交 runtime(SEMANTIC-AUDIT-SEAT §8 过渡条款收口): ①attach 写 `report.semantic_review` 状态面(required=唤起点 ii L3/L4 落位;seat_invoked/verdict 按 `audit/semantic_review/*/VERDICT-<run_ts>*.json` 命中;编排层读 required 自动唤席——渲染器只标状态+披露,真席位调用归编排层)+md 披露开关(未裁=「叙事语义未经独立裁决」常设披露/已裁=席位裁决摘要行) ②md 补 gate_a 状态披露行(各步信封顶层汇总「n/n 信封步非 OK(态)」;旧档重渲同样生效) ③S3_changes 信封在场指标入证据索引(kind=s3_envelope,与 L1 按 metric_id 去重,缺观测日/缺席行不收;md 索引升全量渲)。

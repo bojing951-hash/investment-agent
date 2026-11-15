@@ -412,6 +412,9 @@ def rehearsal():
         'shrink84': (_shrink_84_file, SHRINK_FILES, False),
         'bare85': (_bare_85_file, BARE_FILES, False),
     }
+    wt_base = len([l for l in subprocess.run(
+        ['git', '-C', ROOT, 'worktree', 'list'], capture_output=True,
+        text=True).stdout.splitlines() if l.strip()])
     for label, (mk, files, expect_green) in variants.items():
         wt = tempfile.mkdtemp(prefix=f'wpbr-eq-{label}-')
         r = subprocess.run(['git', '-C', ROOT, 'worktree', 'add', '--detach',
@@ -443,10 +446,11 @@ def rehearsal():
         finally:
             subprocess.run(['git', '-C', ROOT, 'worktree', 'remove',
                             '--force', wt], capture_output=True)
-    check('R-还原 worktree清单回零(副本全移除)',
+    check('R-还原 worktree清单回零(副本全移除,回落套件前基线)',
           len([l for l in subprocess.run(
               ['git', '-C', ROOT, 'worktree', 'list'], capture_output=True,
-              text=True).stdout.splitlines() if l.strip()]) == 1)
+              text=True).stdout.splitlines() if l.strip()])
+          == wt_base)
 
 
 def _evolved_85_file():

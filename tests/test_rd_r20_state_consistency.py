@@ -2,7 +2,7 @@
 """R20(2026-11-12): 研发状态一致性检查门套件(Charter 10 §3.1/§3.2)。
 
 历史失同步根因(R15 快照滞留到 R19)= 状态档手写、无机器校验。本套件锁
-scripts/rd_state_consistency.py 六项检查的正反两面:
+scripts/rd_state_consistency.py 七项检查的正反两面(⑦=阶段五扩展):
 
   C1  正例: 真仓库真状态 → rc=0,①~⑥ 全 PASS(依赖 R20 检查点已 finalize;
       未 finalize 前运行本套件 C1 会如实红=狗粮负例)。
@@ -64,16 +64,16 @@ def fresh_copy():
 
 
 print('═' * 64)
-print('R20 一致性检查门: 六项正反两面(真状态只读,反例走 tempdir 副本)')
+print('R20 一致性检查门: 七项正反两面(真状态只读,反例走 tempdir 副本)')
 print('═' * 64)
 
 # ── C1 正例: 真仓库真状态 ──
 rc, out = run_checker(STATE_DIR)
-check('C1 真状态六项全绿 rc=0', rc == 0
+check('C1 真状态七项全绿 rc=0', rc == 0
       and all(c in out for c in ('①基线一致 PASS', '②RESUME健全 PASS',
                                  '③台账规范 PASS', '④验收矩阵 PASS',
                                  '⑤日志-台账 PASS', '⑥目标完整 PASS'))
-      and '6/6 PASS' in out,
+      and '7/7 PASS' in out,
       'rc=%d\n%s' % (rc, out[-600:]))
 
 # ── C2 ① baseline=不存在提交 ──
@@ -188,6 +188,40 @@ mut_state(tmp, 'PRODUCT_GOAL.md', lambda t: t + '\n(漂移注入)\n')
 rc, out = run_checker(os.path.join(tmp, 'state'))
 check('C10 ⑥ PRODUCT_GOAL 改动→FAIL', rc != 0 and '⑥目标完整 FAIL' in out
       and 'goal_sha' in out, 'rc=%d' % rc)
+shutil.rmtree(tmp)
+
+# ── C11 ⑦a 裸 PASS(证据/差距列无证据形态) ──
+tmp = fresh_copy()
+def bare_pass(t):
+    out = []
+    for line in t.splitlines():
+        if line.startswith('| AC8 |'):
+            out.append('| AC8 | 真实用户可用 | PASS | 好 | 好 |')
+        else:
+            out.append(line)
+    return '\n'.join(out) + '\n'
+mut_state(tmp, 'FINAL_ACCEPTANCE.md', bare_pass)
+rc, out = run_checker(os.path.join(tmp, 'state'))
+check('C11 ⑦a 裸 PASS 无证据→FAIL', rc != 0 and '⑦' in out
+      and '裸 PASS' in out, 'rc=%d' % rc)
+shutil.rmtree(tmp)
+
+# ── C12 ⑦b 生效线后任务节缺 RDG 引用 ──
+tmp = fresh_copy()
+mut_state(tmp, 'PHASE3-LOG.md',
+          lambda t: t + '\n## 探针任务(2026-11-15)\n无根因决策引用。\n')
+rc, out = run_checker(os.path.join(tmp, 'state'))
+check('C12 ⑦b 生效线后任务节无 RDG→FAIL', rc != 0 and '任务准入违约' in out,
+      'rc=%d' % rc)
+shutil.rmtree(tmp)
+
+# ── C13 ⑦b 引用不在登记簿的 RDG 号 ──
+tmp = fresh_copy()
+mut_state(tmp, 'PHASE3-LOG.md',
+          lambda t: t + '\n## 探针任务(2026-11-15)\n引用 RDG-19990101-99。\n')
+rc, out = run_checker(os.path.join(tmp, 'state'))
+check('C13 ⑦b 幽灵 RDG 号→FAIL', rc != 0 and '不在 RDG-REGISTRY' in out,
+      'rc=%d' % rc)
 shutil.rmtree(tmp)
 
 print(f"\nR20 一致性检查门: {PASS} pass / {FAIL} fail")

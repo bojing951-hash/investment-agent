@@ -241,6 +241,11 @@ def make_fact(metric_id, value, observation_date, as_of, source_file, collector,
 # ══ 采集器输出规范化(Layer 1 JSON → 事实记录) ═════════════════════
 
 # global_market_collector 的资产ID → 注册表metric_id(身份映射,含改名历史)
+# macro 采集档 data 键名 → 注册表metric_id 别名(通道键名≠注册表身份时显式
+# 映射,不静默;阶段三 T3 起为模块级单一权威,normalize_macro 与
+# snapshot_builder.merge_macro_series 共用,不两处漂移)
+_MACRO_ALIAS = {'WTI': 'WTI_SPOT_M'}
+
 _GLOBAL_ID_MAP = {"GOLD": "GOLD_F", "SILVER": "SILVER_F", "WTI": "WTI_F", "BRENT": "BRENT_F",
                   "JPY=X": "USDJPY", "CNY=X": "USDCNY", "GBPUSD=X": "GBPUSD"}
 
@@ -284,8 +289,9 @@ def normalize_macro(data, as_of, source_file="macro_*.json"):
     if isinstance(data, dict) and isinstance(data.get('data'), dict):
         data = data['data']
     facts = []
-    # 采集JSON键名 → 注册表metric_id别名(通道键名≠注册表身份时显式映射,不静默)
-    _MACRO_ALIAS = {'WTI': 'WTI_SPOT_M'}
+    # 采集JSON键名 → 注册表metric_id别名(通道键名≠注册表身份时显式映射,不静默)。
+    # 阶段三 T3(2026-11-14)自函数局部提升为模块级单一权威(FIX6-01 纪律:
+    # 别名表不两处维护漂移)——snapshot_builder.merge_macro_series 共用同表。
     for name, item in (data or {}).items():
         mid = _MACRO_ALIAS.get(name, name)
         m = metric(mid)

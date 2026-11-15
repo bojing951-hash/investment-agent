@@ -1,0 +1,11 @@
+# V4 冻结夹具 manifest (build_v4_fixture.py 生成)
+source_run: /Users/cast/investment-agent-dev/output/research_runs/20261113T053316Z_美国高收益债利差_HY_OAS_与_SPX_股价_VIX_波动率_CURVE_2
+source_files_sha256:
+  report.json: 9f6518f586ce4db4e04d0b781a03d3490aa360bfc8e10787892c9d0808d8e516
+  judgment.json: 5a29bff3beb866e81fb60623f79a471d56ab06303990fd7ebddc027e0fc3f4a2
+  judgment_r24_v1_pre_audit_revision.json: 83293bc562644c9e5a67d5f0b62bc4375d32ae57e5c36efc532a22a3d709ba8d
+fixture_files_sha256:
+  evidence_face.json: 369dcefa06af9a1d722a0519afb3c77812dee84608d8367ac16131665886f642
+  judgment_revised.json: 5a29bff3beb866e81fb60623f79a471d56ab06303990fd7ebddc027e0fc3f4a2
+  judgment_pre_audit.json: 83293bc562644c9e5a67d5f0b62bc4375d32ae57e5c36efc532a22a3d709ba8d
+note: report.json 全文以源哈希锚定,不整档入仓;证据面=S3 概览+S4 序列+L2 观点+evidence_index 提取。

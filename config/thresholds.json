@@ -1,0 +1,1513 @@
+{
+ "schema": "investment-agent thresholds registry — DRAFT v0.2 (操作者席裁定已并入)",
+ "status": "v1.0-SIGNED: 金融席终签(2026-11-14,判定与生效条件见 thresholds-curation-note.md §七);本文件=已签字稿 SIGNED-v0.2 落地,除顶层签字元数据与 provenance quote 锚同步(G1 常规维护)外零改动;接 claim_factory/claim_verifier 前 S1 六项落地+CI G1-G4 绿;ISM 四键 status=pending 至补采任务落地并经金融席再签;任何键值增删改重走金融席签字(G 门元规则)",
+ "signed_by": "finreview-contract(金融席终签;六冲突裁定=操作者席,见 adjudication_ref)",
+ "signed_at": "2026-11-14",
+ "adjudication_ref": {
+  "doc": "/Users/cast/agent-loop/ARCH-REFORM/thresholds-adjudication.md",
+  "date": "2026-11-14",
+  "principle": "operative truth(代码实际行为)为基准+诚实注记漂移;framework 与代码不一致一律『对齐+注记』"
+ },
+ "boundary_convention": "机读边界归属=左开右闭(<edge 归上一档):如失业率3m change>+0.3 落 -1 档(裁定#6 钉死;macro_scorecard.py elif 链既成行为一致)",
+ "unit_policy": "阈值单位=所挂指标的 metric_registry canonical 单位(与 Fact 层零换算):利率/通胀 yoy/BEI/REAL→percent;OAS 族→percentage_point;汇率指数/PMI/信心→index_point 族;油价→usd_per_barrel;成交额/两融→cny_100m;南向→hkd_100m;失业率3m变化→percentage_point;评分总分→score_point;历史分位→percentile。源文档 bp→percentage_point 换算×0.01(1pp=100bp);framework『4.5%』→percent 数值同值(阈值与水平同维同基,属单位重述,不违反契约律3『percent↔pp 无基准禁换算』——该律禁的是变化量↔水平的跨维换算)",
+ "two_level_model": "headline=叙述级阈值(framework 表『警戒线/红线/强势/恐慌/通缩/高通胀』列与散文);band_edge=评分/分档级边界(if/elif 带边界)。同值双角色→level 数组双标;值不同→两行(BEI headline 2.5 vs band_edge 2.6,见 conflicts#1)",
+ "kind_vocabulary": "warning(警戒)/red_line(红线)/attention(关注)/panic(恐慌)/strong(强势)/weak(弱势)/tight(偏紧)/demand_distress(需求担忧)/inflation_push(通胀推升)/deflation(通缩)/expansion(扩张)/contraction(收缩)/regime_boundary(体制映射)/scenario_boundary(情景标签)/anomaly_trigger(新论点触发)/normality_direction(方向规范)",
+ "entries": [
+  {
+   "stable_key": "hy_oas.attention",
+   "metric_id": "HY_OAS",
+   "value": 3.0,
+   "unit": "percentage_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "attention",
+   "direction": "above",
+   "source_quote_bp": 300,
+   "provenance": {
+    "doc": "config/framework.md §二 利差阈值与信号表",
+    "locator": "framework/credit_oas_table/HY_row",
+    "quote": "HY OAS | <300bp | 300-400bp | 400-500bp | >500bp"
+   },
+   "semantic_note": "关注带下沿;超此进入『关注』档",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "hy_oas.warning",
+   "metric_id": "HY_OAS",
+   "value": 4.0,
+   "unit": "percentage_point",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "warning",
+   "direction": "above",
+   "source_quote_bp": 400,
+   "provenance": {
+    "doc": "config/framework.md §二 利差阈值与信号表",
+    "locator": "framework/credit_oas_table/HY_row",
+    "quote": "400-500bp(警告)"
+   },
+   "semantic_note": "警告线。11-14 周报 L164『警告线400bp=4.00%，距离0.80pp』即此键;渲染层 bp/pp 双形态须同引本键",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "hy_oas.panic",
+   "metric_id": "HY_OAS",
+   "value": 5.0,
+   "unit": "percentage_point",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "panic",
+   "direction": "above",
+   "source_quote_bp": 500,
+   "provenance": {
+    "doc": "config/framework.md §二 利差阈值与信号表",
+    "locator": "framework/credit_oas_table/HY_row",
+    "quote": ">500bp(恐慌)"
+   },
+   "semantic_note": "恐慌带下沿",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ccc_oas.attention",
+   "metric_id": "CCC_OAS",
+   "value": 8.0,
+   "unit": "percentage_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "attention",
+   "direction": "above",
+   "source_quote_bp": 800,
+   "provenance": {
+    "doc": "config/framework.md §二 利差阈值与信号表",
+    "locator": "framework/credit_oas_table/CCC_row",
+    "quote": "CCC OAS | <800bp | 800-950bp | 950-1000bp | >1000bp"
+   },
+   "semantic_note": "关注带下沿",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ccc_oas.warning",
+   "metric_id": "CCC_OAS",
+   "value": 9.5,
+   "unit": "percentage_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "warning",
+   "direction": "above",
+   "source_quote_bp": 950,
+   "provenance": {
+    "doc": "config/framework.md §二 利差阈值与信号表",
+    "locator": "framework/credit_oas_table/CCC_row",
+    "quote": "950-1000bp(警告)"
+   },
+   "semantic_note": "警告带下沿",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ccc_oas.panic",
+   "metric_id": "CCC_OAS",
+   "value": 10.0,
+   "unit": "percentage_point",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "panic",
+   "direction": "above",
+   "source_quote_bp": 1000,
+   "provenance": {
+    "doc": "config/framework.md §二 利差阈值与信号表",
+    "locator": "framework/credit_oas_table/CCC_row",
+    "quote": ">1000bp(恐慌)"
+   },
+   "semantic_note": "恐慌线。周报 L90/L164/L161『恐慌线1000bp=10.00%』『>1000bp』即此键",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ig_oas.attention",
+   "metric_id": "IG_OAS",
+   "value": 1.0,
+   "unit": "percentage_point",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "attention",
+   "direction": "above",
+   "source_quote_bp": 100,
+   "provenance": {
+    "doc": "config/framework.md §二 利差阈值与信号表",
+    "locator": "framework/credit_oas_table/IG_row",
+    "quote": "IG OAS | <100bp | 100-150bp | 150-200bp | >200bp"
+   },
+   "semantic_note": "周报 L91『正常区（<100bp）』即此键(正常带上沿)",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ig_oas.warning",
+   "metric_id": "IG_OAS",
+   "value": 1.5,
+   "unit": "percentage_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "warning",
+   "direction": "above",
+   "source_quote_bp": 150,
+   "provenance": {
+    "doc": "config/framework.md §二 利差阈值与信号表",
+    "locator": "framework/credit_oas_table/IG_row",
+    "quote": "150-200bp(警告)"
+   },
+   "semantic_note": "警告带下沿",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ig_oas.panic",
+   "metric_id": "IG_OAS",
+   "value": 2.0,
+   "unit": "percentage_point",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "panic",
+   "direction": "above",
+   "source_quote_bp": 200,
+   "provenance": {
+    "doc": "config/framework.md §二 利差阈值与信号表",
+    "locator": "framework/credit_oas_table/IG_row",
+    "quote": ">200bp(恐慌)"
+   },
+   "semantic_note": "恐慌带下沿",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ust_10y.warning",
+   "metric_id": "UST_10Y",
+   "value": 4.5,
+   "unit": "percent",
+   "level": [
+    "headline"
+   ],
+   "kind": "warning",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §三 收益率阈值表",
+    "locator": "framework/rates_table/UST_10Y_row",
+    "quote": "10Y UST | 4.5% | 5.0% | 每周计算"
+   },
+   "semantic_note": "警戒线;表内『当前距离:每周计算』是流程注非阈值,未收录",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ust_10y.red_line",
+   "metric_id": "UST_10Y",
+   "value": 5.0,
+   "unit": "percent",
+   "level": [
+    "headline"
+   ],
+   "kind": "red_line",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §三 收益率阈值表",
+    "locator": "framework/rates_table/UST_10Y_row",
+    "quote": "红线 5.0%"
+   },
+   "semantic_note": "周报 L84『站上5%红线』/L164『红线5.0%，已突破』即此键",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ust_30y.warning",
+   "metric_id": "UST_30Y",
+   "value": 4.8,
+   "unit": "percent",
+   "level": [
+    "headline"
+   ],
+   "kind": "warning",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §三 收益率阈值表",
+    "locator": "framework/rates_table/UST_30Y_row",
+    "quote": "30Y UST | 4.8% | 5.0%"
+   },
+   "semantic_note": "30Y 警戒高于 10Y(4.8 vs 4.5)而红线同为 5.0——非冲突,长端定价特性,如实两行",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ust_30y.red_line",
+   "metric_id": "UST_30Y",
+   "value": 5.0,
+   "unit": "percent",
+   "level": [
+    "headline"
+   ],
+   "kind": "red_line",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §三 收益率阈值表",
+    "locator": "framework/rates_table/UST_30Y_row",
+    "quote": "红线 5.0%"
+   },
+   "semantic_note": "周报 L85『超红线5.0%』即此键",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "real_10y.warning",
+   "metric_id": "REAL_10Y",
+   "value": 2.0,
+   "unit": "percent",
+   "level": [
+    "headline"
+   ],
+   "kind": "warning",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §三 收益率阈值表",
+    "locator": "framework/rates_table/REAL_10Y_row",
+    "quote": "10Y实际利率 | 2.0% | 2.5%"
+   },
+   "semantic_note": "REAL_10Y=派生指标(UST_10Y−BEI_10Y 近似口径,见 fact calc)——阈值挂派生指标,比较时须用同口径 fact",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "real_10y.red_line",
+   "metric_id": "REAL_10Y",
+   "value": 2.5,
+   "unit": "percent",
+   "level": [
+    "headline"
+   ],
+   "kind": "red_line",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §三 收益率阈值表",
+    "locator": "framework/rates_table/REAL_10Y_row",
+    "quote": "红线 2.5%"
+   },
+   "semantic_note": "周报 L87/L108/L160『突破框架红线2.5%』即此键",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "dxy.weak_bound",
+   "metric_id": "DXY",
+   "value": 100.0,
+   "unit": "index_point",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "weak",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §四(散文非表格)",
+    "locator": "framework/fx_prose/dxy_bands",
+    "quote": "DXY < 100: 弱势，利好商品和EM"
+   },
+   "semantic_note": "中性带下沿/弱势带上沿;散文格式源,对账门按行锚",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "dxy.strong_bound",
+   "metric_id": "DXY",
+   "value": 104.0,
+   "unit": "index_point",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "strong",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §四(散文非表格)",
+    "locator": "framework/fx_prose/dxy_bands",
+    "quote": "DXY 100-104: 中性 / DXY > 104: 强势，压制商品和EM"
+   },
+   "semantic_note": "★语义注记:104=强势阈值,非红线——超限语义是『压制商品和EM』的方向判断,不是危机警报;周报 L92『中性区间上沿（100-104）』/L164『强势阈值104，距离0.59』即此键。中性带=本键与 weak_bound 构成的区间对象",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "wti_f.energy.demand_distress",
+   "metric_id": "WTI_F",
+   "value": 70.0,
+   "unit": "usd_per_barrel",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "demand_distress",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §五 油价区间含义表",
+    "locator": "framework/energy_table/row1",
+    "quote": "<70 | 需求担忧/全球衰退信号"
+   },
+   "semantic_note": "能源框架带(与 §一 评分卡带并存双体系,见 wti_f.scorecard.* 及 conflicts#7 注记)",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "wti_f.energy.normal_upper",
+   "metric_id": "WTI_F",
+   "value": 85.0,
+   "unit": "usd_per_barrel",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §五 油价区间含义表",
+    "locator": "framework/energy_table/row2",
+    "quote": "70-85 | 正常均衡"
+   },
+   "semantic_note": "正常均衡上沿=偏紧带下沿;周报 L97/L164『85-90紧平衡区间』『偏紧区间85-90内』混引本带与评分带 90,渲染须引对键",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "wti_f.energy.inflation_push",
+   "metric_id": "WTI_F",
+   "value": 100.0,
+   "unit": "usd_per_barrel",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "inflation_push",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §五 油价区间含义表",
+    "locator": "framework/energy_table/row4",
+    "quote": ">100 | 通胀推升，央行压力"
+   },
+   "semantic_note": "偏紧带上沿/通胀推升下沿",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "wti_f.scorecard.m40",
+   "metric_id": "WTI_F",
+   "value": 40.0,
+   "unit": "usd_per_barrel",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "deflation",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/WTI_row",
+    "quote": "<40=-2, 40-50=-1, 50-70=0, 70-90=+1, >90=+2"
+   },
+   "semantic_note": "评分带 -2/-1 边界;macro_scorecard.py L258-262 实施一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "wti_f.scorecard.m50",
+   "metric_id": "WTI_F",
+   "value": 50.0,
+   "unit": "usd_per_barrel",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "deflation",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/WTI_row",
+    "quote": "通缩阈值<50"
+   },
+   "semantic_note": "评分带 -1/0 边界+通缩头条线;代码 L259 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "wti_f.scorecard.p70",
+   "metric_id": "WTI_F",
+   "value": 70.0,
+   "unit": "usd_per_barrel",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/WTI_row",
+    "quote": "50-70=0, 70-90=+1"
+   },
+   "semantic_note": "评分带 0/+1 边界;注意与能源带 70 同值不同键",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "wti_f.scorecard.p90",
+   "metric_id": "WTI_F",
+   "value": 90.0,
+   "unit": "usd_per_barrel",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "inflation_push",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/WTI_row",
+    "quote": ">90=+2;高通胀阈值>90"
+   },
+   "semantic_note": "评分 +2 触发线+高通胀头条线;周报 L20『跌破90美元阈值（评分+2→+1）』/L163『稳定在90下方』即此键;代码 L261-262 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "core_cpi.scorecard.m1",
+   "metric_id": "CORE_CPI",
+   "value": 1.0,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "deflation",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/CORE_CPI_row",
+    "quote": "<1%=-2, 1-2%=-1"
+   },
+   "semantic_note": "评分 -2/-1 边界;输入=CORE_CPI fact 的 derived.m12.pct_change(代码 L217);macro_scorecard.py L220-224 与 framework 逐带一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "core_cpi.scorecard.m2",
+   "metric_id": "CORE_CPI",
+   "value": 2.0,
+   "unit": "percent",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "deflation",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/CORE_CPI_row",
+    "quote": "通缩阈值<2%"
+   },
+   "semantic_note": "评分 -1/0 边界+通缩头条线",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "core_cpi.scorecard.p25",
+   "metric_id": "CORE_CPI",
+   "value": 2.5,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/CORE_CPI_row",
+    "quote": "2-2.5%=0, 2.5-3.5%=+1"
+   },
+   "semantic_note": "评分 0/+1 边界",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "core_cpi.scorecard.p35",
+   "metric_id": "CORE_CPI",
+   "value": 3.5,
+   "unit": "percent",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "inflation_push",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/CORE_CPI_row",
+    "quote": ">3.5%=+2;高通胀阈值>3.5%"
+   },
+   "semantic_note": "评分 +2 触发线+高通胀头条线;代码 L223-224/L227-228(显示串与 distance 计算均 3.5)自洽——与 BEI 行(见 conflicts#1)对照,CPI 行是『显示=计算=表』的正例",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "bei_10y.scorecard.m15",
+   "metric_id": "BEI_10Y",
+   "value": 1.5,
+   "unit": "percent",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "deflation",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/BEI_row",
+    "quote": "通缩阈值<1.5%;<1.5%=-2, 1.5-2%=-1"
+   },
+   "semantic_note": "评分 -2/-1 边界+通缩头条线;代码 L239-240 实施一致;代码显示串 L246 低侧误写 2 修正=S1 第1项(裁定#1)",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "bei_10y.scorecard.m2",
+   "metric_id": "BEI_10Y",
+   "value": 2.0,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "deflation",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/BEI_row",
+    "quote": "1.5-2%=-1, 2-2.3%=0"
+   },
+   "semantic_note": "评分 -1/0 边界;代码 L240-241 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "bei_10y.scorecard.p23",
+   "metric_id": "BEI_10Y",
+   "value": 2.3,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/BEI_row",
+    "quote": "2-2.3%=0, 2.3-2.6%=+1"
+   },
+   "semantic_note": "评分 0/+1 边界;代码 L241-242 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "bei_10y.scorecard.p26",
+   "metric_id": "BEI_10Y",
+   "value": 2.6,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "inflation_push",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/BEI_row",
+    "quote": "2.3-2.6%=+1, >2.6%=+2"
+   },
+   "semantic_note": "评分 +2 触发线(band_edge);代码 L242-243 与 L247 distance 计算均用 2.6——与头条线 2.5 不同值,见 conflicts#1",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "bei_10y.headline_high",
+   "metric_id": "BEI_10Y",
+   "value": 2.5,
+   "unit": "percent",
+   "level": [
+    "headline"
+   ],
+   "kind": "inflation_push",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/BEI_row",
+    "quote": "高通胀阈值>2.5%"
+   },
+   "semantic_note": "高通胀头条线(叙述级);与 band_edge 2.6(p26 键)双级并存——裁定#1 确认(2026-11-14):头条是叙述阈值、带缘是评分阈值;macro_scorecard 显示串/距离将按 level 从注册表取值(S1 第1项)",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ahe.scorecard.m2",
+   "metric_id": "AHE",
+   "value": 2.0,
+   "unit": "percent",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "deflation",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/AHE_row",
+    "quote": "工资增速(AHE YoY) | <2% | >4.5% | <2%=-2, 2-3%=-1"
+   },
+   "semantic_note": "输入=AHE fact derived.m12.pct_change(代码 L275);评分 -2/-1 边界+低工资头条线;代码 L278 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ahe.scorecard.m3",
+   "metric_id": "AHE",
+   "value": 3.0,
+   "unit": "percent",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "deflation",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/AHE_row",
+    "quote": "2-3%=-1, 3-3.5%=0"
+   },
+   "semantic_note": "评分 -1/0 边界;表头『通缩阈值』列写 <2%、评分规则列低档写 2-3%=-1 且显示串 L285 用『低工资<3%』——表头列与评分列的 2 vs 3 两值并存,倾向按评分列 3 收录(代码 L279 一致),表头 <2% 由 m2 键承载,两键并存不冲突",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ahe.scorecard.p35",
+   "metric_id": "AHE",
+   "value": 3.5,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/AHE_row",
+    "quote": "3-3.5%=0, 3.5-4.5%=+1"
+   },
+   "semantic_note": "评分 0/+1 边界;代码 L280-281 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ahe.scorecard.p45",
+   "metric_id": "AHE",
+   "value": 4.5,
+   "unit": "percent",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "inflation_push",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 通胀维度表",
+    "locator": "framework/scorecard_inflation/AHE_row",
+    "quote": ">4.5%=+2;高通胀阈值>4.5%"
+   },
+   "semantic_note": "评分 +2 触发线+高工资头条线;代码 L281-282/L285 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ism_pmi.scorecard.m48",
+   "metric_id": "ISM_PMI",
+   "value": 48.0,
+   "unit": "index_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "contraction",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/ISM_row",
+    "quote": "ISM制造业PMI | <50 | >52 | <48=-2, 48-50=-1, 50-52=0, 52-55=+1, >55=+2"
+   },
+   "semantic_note": "framework 在册但 macro_scorecard.py 增长维度四项无 ISM(指标集漂移);裁定#5: 维持 pending——framework 对齐代码后 ISM 行移除,补采另立数据任务;激活须金融席再签",
+   "status": "pending",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ism_pmi.scorecard.m50",
+   "metric_id": "ISM_PMI",
+   "value": 50.0,
+   "unit": "index_point",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "contraction",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/ISM_row",
+    "quote": "收缩阈值<50"
+   },
+   "semantic_note": "荣枯线(评分 -1/0 边界+收缩头条线);裁定#5: 维持 pending 同 m48 键",
+   "status": "pending",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ism_pmi.scorecard.p52",
+   "metric_id": "ISM_PMI",
+   "value": 52.0,
+   "unit": "index_point",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/ISM_row",
+    "quote": "扩张阈值>52;50-52=0, 52-55=+1"
+   },
+   "semantic_note": "扩张头条线+评分 0/+1 边界;裁定#5: 维持 pending 同 m48 键",
+   "status": "pending",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "ism_pmi.scorecard.p55",
+   "metric_id": "ISM_PMI",
+   "value": 55.0,
+   "unit": "index_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/ISM_row",
+    "quote": "52-55=+1, >55=+2"
+   },
+   "semantic_note": "评分 +1/+2 边界;裁定#5: 维持 pending 同 m48 键",
+   "status": "pending",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "unemployment_3m.scorecard.p05",
+   "metric_id": "UNEMPLOYMENT",
+   "value": 0.5,
+   "unit": "percentage_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "contraction",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/UNEMPLOYMENT_row",
+    "quote": ">+0.5%=-2, +0.3~0.5%=-1"
+   },
+   "semantic_note": "输入=UNEMPLOYMENT fact derived.m3.pp_change(代码 L137);评分 -2/-1 边界;framework 表(+0.1,+0.3] 空洞按裁定#6 采纳代码口径(0 分),framework 补行=S1 第3项",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "unemployment_3m.scorecard.p03",
+   "metric_id": "UNEMPLOYMENT",
+   "value": 0.3,
+   "unit": "percentage_point",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "contraction",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/UNEMPLOYMENT_row",
+    "quote": "收缩阈值>+0.3%"
+   },
+   "semantic_note": "恶化头条线+评分 -1/0 边界;边界归属=左开右闭(>+0.3 落 -1 档),已升为本表顶层 boundary_convention(裁定#6);代码 L141/L148-149 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "unemployment_3m.scorecard.m01",
+   "metric_id": "UNEMPLOYMENT",
+   "value": -0.1,
+   "unit": "percentage_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/UNEMPLOYMENT_row",
+    "quote": "±0.1%=0, -0.1~-0.3%=+1"
+   },
+   "semantic_note": "评分 0/+1 边界;代码 L142『>-0.1: s=0』⇒(-0.1,+0.3] 全为 0 分,framework 表空洞按裁定#6 采纳此口径为 canonical",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "unemployment_3m.scorecard.m03",
+   "metric_id": "UNEMPLOYMENT",
+   "value": -0.3,
+   "unit": "percentage_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/UNEMPLOYMENT_row",
+    "quote": "-0.1~-0.3%=+1, <-0.3%=+2"
+   },
+   "semantic_note": "评分 +1/+2 边界;『改善<0』扩张头条语义由 0 值承载但 0 非边界值,不入表(方向性描述归谓词层)",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "umcsent.scorecard.m50",
+   "metric_id": "UMCSENT",
+   "value": 50.0,
+   "unit": "index_point_1966",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "contraction",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/UMCSENT_row",
+    "quote": "<50=-2, 50-60=-1"
+   },
+   "semantic_note": "评分 -2/-1 边界;代码 L120-121 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "umcsent.scorecard.m60",
+   "metric_id": "UMCSENT",
+   "value": 60.0,
+   "unit": "index_point_1966",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "contraction",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/UMCSENT_row",
+    "quote": "收缩阈值<60"
+   },
+   "semantic_note": "收缩头条线+评分 -1/0 边界;代码 L121-122/L127-128 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "umcsent.scorecard.p80",
+   "metric_id": "UMCSENT",
+   "value": 80.0,
+   "unit": "index_point_1966",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/UMCSENT_row",
+    "quote": "扩张阈值>80;60-80=0, 80-95=+1"
+   },
+   "semantic_note": "扩张头条线+评分 0/+1 边界;代码 L122-123 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "umcsent.scorecard.p95",
+   "metric_id": "UMCSENT",
+   "value": 95.0,
+   "unit": "index_point_1966",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/UMCSENT_row",
+    "quote": "80-95=+1, >95=+2"
+   },
+   "semantic_note": "评分 +1/+2 边界;代码 L123-124 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "rsafs_mom.scorecard.m1",
+   "metric_id": "RSAFS",
+   "value": -1.0,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "contraction",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/RSAFS_row",
+    "quote": "<-1%=-2, -0.5~-1%=-1"
+   },
+   "semantic_note": "输入=RSAFS fact derived.m1.pct_change(代码 L158);评分 -2/-1 边界;代码 L161-162 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "rsafs_mom.scorecard.m05",
+   "metric_id": "RSAFS",
+   "value": -0.5,
+   "unit": "percent",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "contraction",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/RSAFS_row",
+    "quote": "收缩阈值<-0.5%"
+   },
+   "semantic_note": "收缩头条线+评分 -1/0 边界;代码 L162-163/L168 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "rsafs_mom.scorecard.p05",
+   "metric_id": "RSAFS",
+   "value": 0.5,
+   "unit": "percent",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/RSAFS_row",
+    "quote": "扩张阈值>+0.5%;±0.5%=0, +0.5~1%=+1"
+   },
+   "semantic_note": "扩张头条线+评分 0/+1 边界;代码 L163-164 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "rsafs_mom.scorecard.p1",
+   "metric_id": "RSAFS",
+   "value": 1.0,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表",
+    "locator": "framework/scorecard_growth/RSAFS_row",
+    "quote": "+0.5~1%=+1, >+1%=+2"
+   },
+   "semantic_note": "评分 +1/+2 边界;代码 L164-165 一致",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "indpro_mom.scorecard.m1",
+   "metric_id": "INDPRO",
+   "value": -1.0,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "contraction",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表(2026-11-14 裁定#5 对齐 operative truth 补行;实施源=scripts/macro_scorecard.py 工业生产环比档)",
+    "locator": "framework/scorecard_growth/INDPRO_row",
+    "quote": "<-1%=-2, -0.3~-1%=-1"
+   },
+   "semantic_note": "实施真值在代码(评分每周在跑);裁定#5 采纳(b): framework 增长表将改以 INDPRO 为第四项+漂移注记(S1 第3项);framework 补行落地前本键禁入 headline 叙述,对账门与评分引用不受限",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "indpro_mom.scorecard.m03",
+   "metric_id": "INDPRO",
+   "value": -0.3,
+   "unit": "percent",
+   "level": [
+    "headline",
+    "band_edge"
+   ],
+   "kind": "contraction",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表(2026-11-14 裁定#5 对齐 operative truth 补行;实施源=scripts/macro_scorecard.py 工业生产环比档)",
+    "locator": "framework/scorecard_growth/INDPRO_row",
+    "quote": "收缩阈值<-0.3% | 扩张阈值>+0.3%"
+   },
+   "semantic_note": "评分 -1/0 边界+收缩/扩张头条线(代码自定);裁定#5 同 m1 键注记(framework 补行落地前禁入 headline 叙述)",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "indpro_mom.scorecard.p03",
+   "metric_id": "INDPRO",
+   "value": 0.3,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表(2026-11-14 裁定#5 对齐 operative truth 补行;实施源=scripts/macro_scorecard.py 工业生产环比档)",
+    "locator": "framework/scorecard_growth/INDPRO_row",
+    "quote": "±0.3%=0, +0.3~1%=+1"
+   },
+   "semantic_note": "评分 0/+1 边界;裁定#5 同 m1 键注记",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "indpro_mom.scorecard.p1",
+   "metric_id": "INDPRO",
+   "value": 1.0,
+   "unit": "percent",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "expansion",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 增长维度表(2026-11-14 裁定#5 对齐 operative truth 补行;实施源=scripts/macro_scorecard.py 工业生产环比档)",
+    "locator": "framework/scorecard_growth/INDPRO_row",
+    "quote": "+0.3~1%=+1, >+1%=+2"
+   },
+   "semantic_note": "评分 +1/+2 边界;裁定#5 同 m1 键注记",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "regime.inflation_total.stagflation_floor",
+   "metric_id": "SCORE_INFLATION_TOTAL",
+   "value": 3.0,
+   "unit": "score_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "regime_boundary",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 体制映射(L31-37)+文头绑定注",
+    "locator": "framework/regime_map/inflation_floor",
+    "quote": "通胀总分 ≥ +3;macro_scorecard.py v2.0: 体制阈值 inflation_total >= 3 → 类滞胀"
+   },
+   "semantic_note": "体制映射边界(总分整数域,≤+2 与 ≥+3 无缝);代码 determine_regime L302-309 实施一致;composite_score 型 claim 的判定引用键",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "regime.growth_total.zero",
+   "metric_id": "SCORE_GROWTH_TOTAL",
+   "value": 0.0,
+   "unit": "score_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "regime_boundary",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §一 体制映射",
+    "locator": "framework/regime_map/growth_zero",
+    "quote": "增长 > 0 / 增长 ≤ 0"
+   },
+   "semantic_note": "增长总分正负分界;代码一致;注意与情景矩阵的 +3/+1/0 三档(L154-163)是另一套分界,见 scenario.* 键——两套并存勿混用",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "scenario.growth.strong_floor",
+   "metric_id": "SCORE_GROWTH_TOTAL",
+   "value": 3.0,
+   "unit": "score_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "scenario_boundary",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §八 情景完备性检查表",
+    "locator": "framework/scenario_matrix/growth_strong",
+    "quote": "增长强 (>+3)"
+   },
+   "semantic_note": "情景标签分界非触发阈值;framework 原文中性带下界写 ±1~+3(应为 +1~+3)——原文笔误如实注记,不影响机读(边界 1/3/0)",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "scenario.growth.neutral_floor",
+   "metric_id": "SCORE_GROWTH_TOTAL",
+   "value": 1.0,
+   "unit": "score_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "scenario_boundary",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §八 情景完备性检查表",
+    "locator": "framework/scenario_matrix/growth_neutral",
+    "quote": "增长中性 (+1~+3)"
+   },
+   "semantic_note": "情景标签分界;framework 原文『±1』系『+1』笔误(同上注记)",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "scenario.growth.weak_ceiling",
+   "metric_id": "SCORE_GROWTH_TOTAL",
+   "value": 0.0,
+   "unit": "score_point",
+   "level": [
+    "band_edge"
+   ],
+   "kind": "scenario_boundary",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md §八 情景完备性检查表",
+    "locator": "framework/scenario_matrix/growth_weak",
+    "quote": "增长弱 (<0)"
+   },
+   "semantic_note": "情景弱增长分界(与 regime.growth_total.zero 同值同指标不同键不同用途);通胀低/高分界复用 regime.inflation_total.stagflation_floor 与其 ≤+2 补集,不另立键",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "cn_turnover.bottom_confirm",
+   "metric_id": "CN_TOTAL_TURNOVER",
+   "value": 10000.0,
+   "unit": "cny_100m",
+   "level": [
+    "headline"
+   ],
+   "kind": "volume_confirmation",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §六 底部三条件+量化标准表",
+    "locator": "framework/cn_bottom/turnover",
+    "quote": "全A日成交额 > 1万亿，极度活跃 > 2万亿"
+   },
+   "semantic_note": "口径=全A(Wind/akshare),连续 5 交易日;11-14 快照仅沪深两市近似口径 12,245.39 亿(SH_AMOUNT+SZ_COMPONENT,报告 L32 已标 WARN 近似)——阈值在册而全A口径数据常缺,claim 生成须挂 INSUFFICIENT_EVIDENCE 而非拿两市口径冒充",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "cn_turnover.extreme_active",
+   "metric_id": "CN_TOTAL_TURNOVER",
+   "value": 20000.0,
+   "unit": "cny_100m",
+   "level": [
+    "headline"
+   ],
+   "kind": "volume_confirmation",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §六 底部三条件+量化标准表",
+    "locator": "framework/cn_bottom/turnover_extreme",
+    "quote": "极度活跃: >2万亿/日"
+   },
+   "semantic_note": "同上口径要求",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "sb_flow.5d_cumulative_inflow",
+   "metric_id": "SB_FLOW",
+   "value": 100.0,
+   "unit": "hkd_100m",
+   "level": [
+    "headline"
+   ],
+   "kind": "flow_confirmation",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §六 底部三条件+量化标准表",
+    "locator": "framework/cn_bottom/southbound",
+    "quote": "南向资金净流入 | 5日累计 > 100亿港元 | 港交所每日统计 | 5个交易日滚动"
+   },
+   "semantic_note": "5日滚动口径;11-14 快照仅单日 551.84 亿港元(报告 L32 自注『单日口径，非5日累计，底部三条件的滚动口径无法计算』)——阈值在册、窗口数据常缺,单日值不得冒充 5 日累计过本键",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "margin_bal.5d_cumulative_gain",
+   "metric_id": "MARGIN_BAL",
+   "value": 3.0,
+   "unit": "percent",
+   "level": [
+    "headline"
+   ],
+   "kind": "leverage_confirmation",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §六 底部三条件+量化标准表",
+    "locator": "framework/cn_bottom/margin",
+    "quote": "连续5日净增加且累计增幅 > 3%"
+   },
+   "semantic_note": "复合条件(连续5日净增 ∧ 累计>3%)——谓词 AND 组合,单 3% 数值不足以判",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "anomaly.percentile_high",
+   "metric_id": "ANY",
+   "value": 95.0,
+   "unit": "percentile",
+   "level": [
+    "headline"
+   ],
+   "kind": "anomaly_trigger",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md 论点生命周期 新论点创建规则",
+    "locator": "framework/thesis_rules/anomaly_trigger",
+    "quote": "某项关键指标出现历史分位数 >95% 或 <5% 的极端读数"
+   },
+   "semantic_note": "新论点创建触发线;percentile 统计须按契约§3 谓词口径(公式/min-n 门/含当期)计算,不得用渲染文本里的自报分位",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "anomaly.percentile_low",
+   "metric_id": "ANY",
+   "value": 5.0,
+   "unit": "percentile",
+   "level": [
+    "headline"
+   ],
+   "kind": "anomaly_trigger",
+   "direction": "below",
+   "provenance": {
+    "doc": "config/framework.md 论点生命周期 新论点创建规则",
+    "locator": "framework/thesis_rules/anomaly_trigger",
+    "quote": "历史分位数 >95% 或 <5% 的极端读数"
+   },
+   "semantic_note": "同上",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  },
+  {
+   "stable_key": "brent_wti_spread.normal_direction",
+   "metric_id": "BRENT_MINUS_WTI",
+   "value": 0.0,
+   "unit": "usd_per_barrel",
+   "level": [
+    "headline"
+   ],
+   "kind": "normality_direction",
+   "direction": "above",
+   "provenance": {
+    "doc": "config/framework.md §五 Brent-WTI价差",
+    "locator": "framework/energy_rules/brent_wti",
+    "quote": "正常应为 Brent>WTI。价差倒挂时需解释原因"
+   },
+   "semantic_note": "方向规范非档位:价差>0 为正常,≤0(倒挂)触发解释义务;周报 L98『布伦特-WTI价差7.16美元（正常方向）』即本键;metric_id=派生比较(BRENT_F−WTI_F),无实体 fact,claim 须走 comparison.spread 派生",
+   "curated_by": "finreview-contract",
+   "curated_at": "2026-11-14"
+  }
+ ],
+ "conflicts": [
+  {
+   "id": 1,
+   "title": "BEI 10Y『高通胀线』同函数三值:headline 2.5 vs 评分带缘 2.6 vs 代码显示/计算自相矛盾",
+   "sources": [
+    "framework.md §一 L27 表头列『高通胀阈值>2.5%』",
+    "framework.md §一 L27 评分列『2.3-2.6%=+1, >2.6%=+2』(内蕴 2.6)",
+    "macro_scorecard.py L246 显示串『低通胀<2% | 高通胀>2.5%』(低侧亦错,应为1.5)",
+    "macro_scorecard.py L247 distance_to_switch 计算 2.6"
+   ],
+   "finding": "同一概念在四处取 2.5/2.6 两值;L246 显示串与 L247 计算在同函数内自相矛盾;低侧 1.5 被显示串写成 2",
+   "suggestion": "两级建模即解:headline 2.5 与 band_edge 2.6 两键并存;显示串与 distance 改按 level 从注册表取值;L246 低侧 1.5 属显示 bug",
+   "adjudication": {
+    "ruling": "双级并存(headline=2.5, band_edge=2.6);显示串误写列同步修改清单 S1 第1项",
+    "by": "操作者席 2026-11-14",
+    "sync": "S1: macro_scorecard.py BEI 显示串低侧修正+全部硬编码常量改读 config/thresholds.json"
+   },
+   "authority": "已裁定,并入本稿 v0.2"
+  },
+  {
+   "id": 2,
+   "title": "SPX 合理性区间两套:metric_registry [1000,30000] vs data_validator [2000,10000]",
+   "sources": [
+    "config/metric_registry.json SPX.validation.range",
+    "scripts/data_validator.py L238-242(11-14『SPX范围166<2000』误杀当事)"
+   ],
+   "finding": "下限 1000 vs 2000、上限 30000 vs 10000 双双不一致;validator 硬编码正是 11-14 三误杀之一的载具(滞后天数166被当SPX价格)",
+   "suggestion": "单一权威=metric_registry.validation.range,数值沿用 registry 现值;validator 硬编码退役;清醒边界:区间归一治采集异常,不治身份误绑(A族归新契约)",
+   "adjudication": {
+    "ruling": "归一 registry;validator 数值范围字典整族退役改读 registry(见#3/#4)",
+    "by": "操作者席 2026-11-14",
+    "sync": "S1: data_validator.py L238-251 数值范围字典整族退役"
+   },
+   "authority": "已裁定,并入本稿 v0.2"
+  },
+  {
+   "id": 3,
+   "title": "VIX 合理性区间两套:registry [5,100] vs validator [8,90]",
+   "sources": [
+    "config/metric_registry.json VIX.validation.range",
+    "scripts/data_validator.py L248-252"
+   ],
+   "finding": "同 conflict#2 结构,VIX 版",
+   "suggestion": "归一 registry [5,100];11-08 VIX 误杀(32.0 截尾)是提取器缺陷非区间问题",
+   "adjudication": {
+    "ruling": "同#2: 归一 registry,validator 退役",
+    "by": "操作者席 2026-11-14",
+    "sync": "S1(同#2 整族)"
+   },
+   "authority": "已裁定,并入本稿 v0.2"
+  },
+  {
+   "id": 4,
+   "title": "WTI 合理性区间两套:registry WTI_F [10,300] vs validator [20,200]",
+   "sources": [
+    "config/metric_registry.json WTI_F.validation.range",
+    "scripts/data_validator.py L243-247"
+   ],
+   "finding": "同 conflict#2 结构,WTI 版",
+   "suggestion": "归一 registry [10,300]",
+   "adjudication": {
+    "ruling": "同#2",
+    "by": "操作者席 2026-11-14",
+    "sync": "S1(同#2 整族)"
+   },
+   "authority": "已裁定,并入本稿 v0.2"
+  },
+  {
+   "id": 5,
+   "title": "增长维度指标集漂移:framework 表含 ISM制造业PMI、不含工业生产环比;代码四项=UMCSENT/UNEMPLOYMENT_3M/RSAFS/INDPRO(无 ISM)",
+   "sources": [
+    "framework.md §一 L16-21 增长维度表(第一行=ISM制造业PMI)",
+    "macro_scorecard.py L107-110/L117-189(四项无 ISM;INDPRO L176-189 代码独有)"
+   ],
+   "finding": "指标集合层面不一致——比数值漂移深一层:framework 承诺的 ISM 评分从未实施,代码实施的 INDPRO 评分从未入册;增长总分实为代码四项之和,framework 读者以为含 ISM",
+   "suggestion": "(b) framework 对齐代码最诚实;ISM 补采另立数据任务",
+   "adjudication": {
+    "ruling": "采纳建议(b): framework 对齐代码(operative truth)——INDPRO 四键按代码口径收录;ISM 四键维持 pending 禁入工厂;framework.md 增长维度表改以 INDPRO 为第四项+加漂移注记;ISM 补采另立数据任务(不塞进本注册表终签)",
+    "by": "操作者席 2026-11-14",
+    "sync": "S1: config/framework.md 增长维度表第四项对齐 INDPRO+漂移注记"
+   },
+   "authority": "已裁定,并入本稿 v0.2"
+  },
+  {
+   "id": 6,
+   "title": "失业率3m 评分带 (+0.1,+0.3] 区间 framework 表无归属;代码隐含填 0 分",
+   "sources": [
+    "framework.md §一 L19『>+0.5%=-2, +0.3~0.5%=-1, ±0.1%=0, -0.1~-0.3%=+1, <-0.3%=+2』(+0.1~+0.3 空洞)",
+    "macro_scorecard.py L140-144(elif change > -0.1: s=0 ⇒ (-0.1,+0.3] 全 0)"
+   ],
+   "finding": "framework 表在 +0.1 与 +0.3 之间无档位定义;代码以连续 elif 把该区间归 0 分;边界归属(+0.3 本身落 -1 档)两处一致为右闭",
+   "suggestion": "采纳代码口径为 canonical;framework 补行;边界归属钉死左开右闭",
+   "adjudication": {
+    "ruling": "采纳代码口径;framework 补行;边界钉死左开右闭(已升为本表顶层 boundary_convention)",
+    "by": "操作者席 2026-11-14",
+    "sync": "S1: config/framework.md 失业率 3m 带补行(左开右闭)"
+   },
+   "authority": "已裁定,并入本稿 v0.2"
+  }
+ ],
+ "non_conflict_notes": [
+  "WTI 双带体系并存(§一评分带 40/50/70/90 vs §五能源带 70/85/100)非冲突、两用途:评分卡断言引 wti_f.scorecard.* 键,能源叙事引 wti_f.energy.* 键;11-14 周报 L163/L164 同报并用两体系属合法,但渲染 manifest 须各自引对 stable_key——这正是双键设计的检验用例",
+  "AHE 表头列『通缩阈值<2%』与评分列低档『2-3%=-1』并存:已拆为 m2(表头条线)/m3(评分边界)两键,非冲突",
+  "30Y 与 10Y 红线同为 5.0 而警戒不同(4.8/4.5):长端特性,如实收录",
+  "framework.md 文头『data_validator.py v2.0: MIN_ANCHOR_COUNT = 20』=验证器配置参数,非分析阈值,不入本表(归验证器配置面)",
+  "合理性区间(registry validation.range,110 指标全量在册)与分析阈值概念隔离(设计§5):本表 0 条收录 range 值;conflicts#2-4 只是『区间值的唯一权威归 registry』的归一,不是把 range 搬进本表"
+ ],
+ "excluded_rules": [
+  {
+   "rule": "体制切换确认=两个不同 ISO 周独立复现(framework L37/L221)",
+   "reason": "时间确认规则非数值阈值;归 composite_score 型 claim 的状态机(引用 prior_bundle_ref)"
+  },
+  {
+   "rule": "Sell America 三条件=股跌+债收益率升+美元跌同现(framework L81)",
+   "reason": "复合方向谓词(AND of sign conditions),无数值门槛;归契约§3 谓词文法"
+  },
+  {
+   "rule": "论点失效=连续三周反向(framework L208)",
+   "reason": "时间规则;归论点生命周期引擎"
+  },
+  {
+   "rule": "星级门槛/禁止用语/确信度语言(framework §文风 L236-252)",
+   "reason": "行文规范非市场数据阈值"
+  },
+  {
+   "rule": "政策共振=央行降准/降息+证监会重大政策(framework L114)",
+   "reason": "定性事件条件无数值;归 qualitative_inference"
+  },
+  {
+   "rule": "情景概率总和=100%(framework L150)",
+   "reason": "结构校验约束,契约§7-4 已列机检,非阈值"
+  },
+  {
+   "rule": "全A成交额与近3个月均值对比(framework L120)",
+   "reason": "方法论要求(comparison 型 claim),非固定阈值"
+  }
+ ],
+ "ci_reconciliation_gate_proposal": {
+  "adjudication_status": "裁定书 S1 第4项已采纳: 接 G1-G4 门+元规则,随终签落地",
+  "G1_registry_vs_framework": "每条 entry 的 provenance.quote 须在 framework.md 现行文本逐字命中(文本锚;散文格式按行锚);反向:从 framework.md 表格/散文抽取全部『数值+档位词』token 须能映射到某 stable_key——双向无孤儿。S1 第3项 framework 三处修改落地后须重跑 G1(quote 锚随 framework 文本变更而更新,属正常维护非门红)。framework.md 任何变更触发",
+  "G2_registry_vs_scorecard_code": "macro_scorecard.py 全部数值比较常量(if/elif 带边界+distance_to_switch 常量+thresholds 显示串数值)须与注册表对应键值相等,且代码常量集合与注册表 scorecard 族键集合做差集双侧为空(防再漂移:新增常量不入册=红,入册无实施=黄[pending 键豁免但显式列出]);终态=代码改读注册表(S1 第1项已含),G2 退化为『读取成功+键存在』单元测试",
+  "G3_isolation_assert": "静态断言:本表不得收录任何 metric_registry.validation.range 值;metric_registry 不得新增档位语义字段——两文件键空间隔离",
+  "G4_validator_retirement": "data_validator.py L228-258 数值范围字典(非农上限/SPX/WTI/VIX/A股口径标签)整族退役改读 registry validation.range(裁定#2/#3/#4,S1 第2项);落地后 CI 断言该字典仅剩正则模式、min/max 数值字段为零",
+  "trigger": "framework.md / macro_scorecard.py / metric_registry.json / thresholds 注册表 任一变更",
+  "meta_rule": "对账门红=CI fail;修复只能改源文档或注册表并重走金融席签字,禁止在门内加例外/白名单——防追认式闭环以 CI 例外形态还魂(阶段一教训)"
+ },
+ "curation_scope_note": "v0.2=裁定并入稿(2026-11-14): 六条裁定全部落入 conflicts[].adjudication 与涉裁键注记;S1 四项同步修改清单已核对(见 curation-note §七,另附一条 S1 增补建议:framework §八『±1~+3』笔误顺手修,不阻塞签字)。本稿 69 键:headline 级 39/band_edge 级 55(多键双级);pending 键 4(全 ISM 族,裁定#5 维持 pending 至补采任务落地并金融席再签)。落地路径:本稿经金融席终签后落 config/thresholds.json v1.0+挂 CI G1-G4 门;S1 四项=阶段三实施项,不阻塞签字但阻塞接入(接 claim_factory/claim_verifier 须 S1 落地+G 门绿)。"
+}

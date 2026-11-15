@@ -1,0 +1,481 @@
+{
+ "set_id": "V6-PUBLIC",
+ "version": "1.0",
+ "created": "2026-11-14",
+ "created_by": "QA seat (CHARTER-ARCH-REFORM-2026-11-14 §九; no dev-tree context by design)",
+ "purpose": "正确但表达方式不同的样本：同一已验证数值的合法变体措辞。全部条目必须 PASS——任何一条被新链误杀(false kill)即重大回归。同时记录旧正则门预期：在词序/载体/单位变体下旧门会误杀的标 expected_old_gate=false_kill（11-14 戊案教训：钉死句形换说法即穿透，反向即误杀）。",
+ "anchor_sources": {
+  "20261114": "LIVE data/daily/anchors_20261114.json (research_snapshot_20261114_v2)",
+  "20261108": "LIVE data/daily/anchors_20261108.json"
+ },
+ "discipline": {
+  "all_values_true": "每条文本中全部数值均对照锚点/真实报告原句核实为真；无任何注入错误。",
+  "variants_only": "变体只动措辞/词序/载体/合法单位换算（pp↔bp 精确×100、约数按所示位数取整、万亿换算），不动数值语义。",
+  "expected_verdict": "新契约链对每条的终判必须为 PASS（claim 全 VERIFIED 或带披露的合法状态；渲染无未映射数值）。"
+ },
+ "schema_doc": {
+  "id": "V6-NNN",
+  "base_anchor_set": "对照锚点日期",
+  "variant_group": "同组条目=同一数值事实的不同合法表达",
+  "carrier": "prose | table | footnote | enumeration | english",
+  "text": "样本文本",
+  "verified_values": "文本涉及的全部真值+锚点引用",
+  "expected_new_gate": "PASS（恒为）",
+  "expected_old_gate": {
+   "prediction": "pass | false_kill",
+   "evidence": "旧门真实行为依据；pass 若为「旧门根本不检查该语境」注 vacuous"
+  }
+ },
+ "items": [
+  {
+   "id": "V6-001",
+   "base_anchor_set": "20261114",
+   "variant_group": "HY_OAS 阈值距离-A（真实原句）",
+   "carrier": "prose",
+   "text": "关键阈值监控：HY OAS 3.20%（警告线400bp=4.00%，距离0.80pp）。",
+   "verified_values": [
+    {
+     "role": "HY_OAS level",
+     "value": 3.2,
+     "unit": "percentage_point",
+     "anchor_ref": "macro.data.HY_OAS.value@2026-11-12"
+    },
+    {
+     "role": "threshold 400bp=4.00%",
+     "value": 4.0,
+     "unit": "percentage_point",
+     "anchor_ref": "threshold:hy_oas.warning@v1"
+    },
+    {
+     "role": "distance",
+     "value": 0.8,
+     "unit": "percentage_point",
+     "anchor_ref": "|3.20-4.00|；11-14 报告 L164 原句"
+    }
+   ],
+   "expected_new_gate": "PASS",
+   "expected_old_gate": {
+    "prediction": "false_kill",
+    "evidence": "11-14 真事故：validation_20261114.log L36「❌ [HY_OAS] 偏差: 报告值0.8% vs 锚点现值3.2/前值3.42 均不匹配」——数值全对被误杀。"
+   }
+  },
+  {
+   "id": "V6-002",
+   "base_anchor_set": "20261114",
+   "variant_group": "HY_OAS 阈值距离-B（词序变体）",
+   "carrier": "prose",
+   "text": "HY OAS 3.20%，距400bp警告线0.80个百分点，尚在警告带下沿之内。",
+   "verified_values": [
+    {
+     "role": "distance",
+     "value": 0.8,
+     "unit": "percentage_point",
+     "anchor_ref": "|3.20-4.00|；「个百分点」=pp 全称"
+    }
+   ],
+   "expected_new_gate": "PASS",
+   "expected_old_gate": {
+    "prediction": "false_kill",
+    "evidence": "MW-V1 曾钉「距400bp警告线0.52pp」句形（戊案），但 11-14 证实词序一变即穿透（PHASE1 L39）；反向风险=旧门把 0.80 按值比对锚点 3.2/3.42 误杀（与 V6-001 同机制）。"
+   }
+  },
+  {
+   "id": "V6-003",
+   "base_anchor_set": "20261114",
+   "variant_group": "HY_OAS 阈值距离-C（bp 换算变体）",
+   "carrier": "prose",
+   "text": "HY OAS 3.20%，距警告线尚有80bp缓冲，一周内突破的概率有限。",
+   "verified_values": [
+    {
+     "role": "distance",
+     "value": 80,
+     "unit": "basis_point",
+     "anchor_ref": "|3.20-4.00|=0.80pp=80bp（pp↔bp 精确×100）"
+    }
+   ],
+   "expected_new_gate": "PASS",
+   "expected_old_gate": {
+    "prediction": "false_kill",
+    "evidence": "裸数 80 邻近 HY_OAS 语境；旧门 NUM 抓 80 对照锚点 3.2/3.42 不匹配——与 0.8% 误杀同机制，bp 换算不在旧门单位模型内。"
+   }
+  },
+  {
+   "id": "V6-004",
+   "base_anchor_set": "20261114",
+   "variant_group": "DXY 阈值距离+区间端点（真实原句风格）",
+   "carrier": "prose",
+   "text": "DXY 103.41（强势阈值104，距离0.59），处100-104中性区间上沿；若后续站上104将转为强势区间。",
+   "verified_values": [
+    {
+     "role": "DXY level",
+     "value": 103.41,
+     "unit": "index_point",
+     "anchor_ref": "global_market.data.DXY.close@2026-11-13"
+    },
+    {
+     "role": "distance to 104",
+     "value": 0.59,
+     "unit": "index_point",
+     "anchor_ref": "|103.41-104|；11-14 报告 L164 原句"
+    },
+    {
+     "role": "中性区间",
+     "value": [
+      100,
+      104
+     ],
+     "unit": "index_point",
+     "anchor_ref": "framework.md §四（一带对象两数）"
+    }
+   ],
+   "expected_new_gate": "PASS",
+   "expected_old_gate": {
+    "prediction": "pass",
+    "evidence": "11-14 真实报告含同句而日志未杀 0.59（validation_20261114.log 无 0.59 行）——区间端点/阈值语境被跳过。"
+   }
+  },
+  {
+   "id": "V6-005",
+   "base_anchor_set": "20261114",
+   "variant_group": "滞后天数（真实原句）",
+   "carrier": "prose",
+   "text": "数据缺口：SPX_EPS/PE_TTM滞后166天，本月数据的时效性受限。",
+   "verified_values": [
+    {
+     "role": "SPX_EPS observation_lag",
+     "value": 166,
+     "unit": "day",
+     "anchor_ref": "as_of 2026-11-14 − obs；11-14 报告 L22 原句"
+    }
+   ],
+   "expected_new_gate": "PASS（STALE 披露随文）",
+   "expected_old_gate": {
+    "prediction": "false_kill",
+    "evidence": "11-14 真事故：validation_20261114.log L8/L52「🚨 SPX收盘: 报告=166.0…」「SPX范围: 166.0 < 2000」——滞后天数被当 SPX 价格误杀。"
+   }
+  },
+  {
+   "id": "V6-006",
+   "base_anchor_set": "20261114",
+   "variant_group": "桥式变化表述（+N%至X 家族）",
+   "carrier": "prose",
+   "text": "VIX -24.73%至19.30，恐慌情绪大幅缓解；上一交易日口径约25.6，由-24.73%反推。",
+   "verified_values": [
+    {
+     "role": "VIX level",
+     "value": 19.3,
+     "unit": "index_point",
+     "anchor_ref": "global_market.data.VIX.close@2026-11-13"
+    },
+    {
+     "role": "VIX week change",
+     "value": -24.73,
+     "unit": "percent",
+     "anchor_ref": "11-14 报告 L76/L112（由 25.64→19.30 反推口径如实披露）"
+    },
+    {
+     "role": "prior level 约",
+     "value": "约25.6",
+     "unit": "index_point",
+     "anchor_ref": "11-14 报告 L112 原文「从约25.6降至19.3」"
+    }
+   ],
+   "expected_new_gate": "PASS",
+   "expected_old_gate": {
+    "prediction": "false_kill",
+    "evidence": "11-08 真事故同形：validation_20261108.log L18「🚨 VIX: 报告=32.0, 锚点=25.64」——NUM(?!%) 回溯截尾+32.03% 桥式被当水平；R27 修复截至今仍在 dev 分支未进 LIVE（PHASE1 A-2）。"
+   }
+  },
+  {
+   "id": "V6-007",
+   "base_anchor_set": "20261114",
+   "variant_group": "顿号枚举（邻值并窗风险形态）",
+   "carrier": "enumeration",
+   "text": "【事实】就业与实体：10月失业率4.10%、初请失业金200,000人、零售环比+0.77%（2026-09，DEGRADED）。",
+   "verified_values": [
+    {
+     "role": "UNRATE",
+     "value": 4.1,
+     "unit": "percent",
+     "anchor_ref": "macro.data.UNEMPLOYMENT.value@2026-10-01"
+    },
+    {
+     "role": "ICSA",
+     "value": 200000,
+     "unit": "persons",
+     "anchor_ref": "macro.data.ICSA.value@2026-11-07"
+    },
+    {
+     "role": "RSAFS mom",
+     "value": 0.77,
+     "unit": "percent",
+     "anchor_ref": "rate_economy.real_economy.RSAFS（11-14 报告 L18 同值）"
+    }
+   ],
+   "expected_new_gate": "PASS",
+   "expected_old_gate": {
+    "prediction": "false_kill",
+    "evidence": "11-08 真事故同形：validation_20261108.log L63「❌ [UNRATE] 偏差: 报告值0.77% vs 锚点现值4.1/前值4.2」——顿号并窗把零售环比吞进失业率。LIVE 当前 MW-V1 对部分句形已修，但句读集覆盖面无承诺（R27 仍 dev-only）。"
+   }
+  },
+  {
+   "id": "V6-008",
+   "base_anchor_set": "20261114",
+   "variant_group": "表格载体（多指标同表）",
+   "carrier": "table",
+   "text": "| 资产 | 收盘/水平 | 周涨跌 | 关键信号 |\n|---|---|---|---|\n| 标普500 | 7,561.67 | +2.51% | 风险偏好回升 |\n| VIX | 19.30 | -24.73% | 恐慌指标大幅回落 |\n| 2Y UST | 4.86% | +0.35pp | 短端领涨 |\n| 10Y UST | 5.10% | +0.24pp | 站上5%红线 |\n| HY OAS | 3.20% | -0.22pp | 全线收窄 |\n| DXY | 103.41 | +1.09% | 中性区间上沿（100-104） |\n| WTI期货 | 88.92 | -2.10% | 85-90紧平衡区间下沿 |",
+   "verified_values": [
+    {
+     "role": "SPX/NDX 表列",
+     "value": "7,561.67/+2.51%",
+     "unit": null,
+     "anchor_ref": "global_market.data.SPX.close；11-14 报告 L73 原表"
+    },
+    {
+     "role": "VIX/UST/HY/DXY/WTI",
+     "value": "19.30/-24.73%｜4.86%/+0.35pp｜5.10%/+0.24pp｜3.20%/-0.22pp｜103.41/+1.09%｜88.92/-2.10%",
+     "unit": null,
+     "anchor_ref": "各 anchors_20261114 对应键；11-14 报告 L73-97 原表"
+    }
+   ],
+   "expected_new_gate": "PASS（manifest 逐单元格映射）",
+   "expected_old_gate": {
+    "prediction": "pass",
+    "evidence": "11-14 真实报告同表全 ✅（validation_20261114.log L9/L17/L24 等）——同行「水平|涨跌幅」双列未触发并窗。"
+   }
+  },
+  {
+   "id": "V6-009",
+   "base_anchor_set": "20261114",
+   "variant_group": "脚注载体（阈值常量集中复述）",
+   "carrier": "footnote",
+   "text": "注：本节阈值为框架注册表口径——HY OAS警告线400bp（=4.00%）、恐慌线（HY）500bp、CCC OAS恐慌线1000bp（=10.00%）、IG OAS正常线上限100bp；10Y/30Y UST红线5.0%、10Y实际利率红线2.5%、警戒线4.5%/4.8%；WTI偏紧区间85-100、DXY中性区间100-104。",
+   "verified_values": [
+    {
+     "role": "阈值常量组",
+     "value": "400/500/1000/100bp；5.0/2.5/4.5/4.8%；85-100；100-104",
+     "unit": null,
+     "anchor_ref": "framework.md §二/§三/§四/§五；thresholds 注册表 provenance"
+    }
+   ],
+   "expected_new_gate": "PASS（阈值白名单/注册表映射）",
+   "expected_old_gate": {
+    "prediction": "pass",
+    "evidence": "阈值语境旧门显式跳过（validation_20261114.log L35/L40「阈值/条件语境引用,跳过现值判定」）。"
+   }
+  },
+  {
+   "id": "V6-010",
+   "base_anchor_set": "20261114",
+   "variant_group": "约数+派生利差（跨指标差）",
+   "carrier": "prose",
+   "text": "比较二：美日名义政策利率差——有效联邦基金利率（日频）3.88% vs 日本无担保隔夜拆借利率（月均）1.04%（2026-09，滞后），名义利差约2.84pp（约2.8个百分点），为日元套息方向的核心背景。",
+   "verified_values": [
+    {
+     "role": "DFF",
+     "value": 3.88,
+     "unit": "percent",
+     "anchor_ref": "rate_economy.current_rates.DFF.value@2026-11-12"
+    },
+    {
+     "role": "JP call rate",
+     "value": 1.04,
+     "unit": "percent",
+     "anchor_ref": "11-14 报告 L61（DEGRADED）"
+    },
+    {
+     "role": "spread 精确",
+     "value": 2.84,
+     "unit": "percentage_point",
+     "anchor_ref": "3.88-1.04；11-14 报告 L125 原文「约2.84pp」"
+    },
+    {
+     "role": "spread 约数",
+     "value": "约2.8",
+     "unit": "percentage_point",
+     "anchor_ref": "按所示位数取整：2.84→2.8 合法"
+    }
+   ],
+   "expected_new_gate": "PASS（约数按所示位数取整相等）",
+   "expected_old_gate": {
+    "prediction": "pass",
+    "evidence": "派生利差无检查项（vacuous pass：旧门不看，不等于旧门验证）。"
+   }
+  },
+  {
+   "id": "V6-011",
+   "base_anchor_set": "20261114",
+   "variant_group": "千分位+CJK 复合单位与万亿换算",
+   "carrier": "prose",
+   "text": "【事实】沪深两市成交额（近似口径，WARN）12,245.39亿元（2026-11-13单日，约1.22万亿元）；两融余额11,882.20亿元；南向净流入551.84亿港元（单日口径，非5日累计）。",
+   "verified_values": [
+    {
+     "role": "turnover",
+     "value": 12245.39,
+     "unit": "亿元(CNY)",
+     "anchor_ref": "china.turnover.total_amount_billion@2026-11-13；11-14 报告 L32 原句"
+    },
+    {
+     "role": "万亿换算约数",
+     "value": "约1.22万亿",
+     "unit": "元(CNY)",
+     "anchor_ref": "12245.39亿=1.224539万亿→约1.22（两位小数取整合法）"
+    },
+    {
+     "role": "margin/southbound",
+     "value": "11,882.20亿元 / 551.84亿港元",
+     "unit": null,
+     "anchor_ref": "china.margin.balance / china.southbound.net_buy@2026-11-13"
+    }
+   ],
+   "expected_new_gate": "PASS",
+   "expected_old_gate": {
+    "prediction": "pass",
+    "evidence": "同值 11-14 未被数值比对拦截，仅触发非阻断「⚠️ A股口径」警告（validation_20261114.log L57）。"
+   }
+  },
+  {
+   "id": "V6-012",
+   "base_anchor_set": "20261114",
+   "variant_group": "负值带逗号（方向措辞双写）",
+   "carrier": "prose",
+   "text": "【事实】10月新增人民币贷款-5,846亿元（2026-10-01，WARN），即净减少5,846亿元——方向为负，与“需求疲弱”官方表态互为佐证。",
+   "verified_values": [
+    {
+     "role": "CN new loans",
+     "value": -5846,
+     "unit": "亿元(CNY)",
+     "anchor_ref": "11-14 报告 L33 原句「-5,846亿元」"
+    }
+   ],
+   "expected_new_gate": "PASS（负号+千分位 token 精确解析）",
+   "expected_old_gate": {
+    "prediction": "pass",
+    "evidence": "该指标不在旧门检查面（vacuous pass）。"
+   }
+  },
+  {
+   "id": "V6-013",
+   "base_anchor_set": "20261114",
+   "variant_group": "英文段落+K 单位",
+   "carrier": "english",
+   "text": "US labor data: nonfarm payrolls rose by 165K in October (level: 159,293K), the unemployment rate edged down to 4.10% from 4.20%, and initial claims climbed to 200K in the week of 2026-11-07 (prior 191K, +9K). Rates: 10Y UST at 5.10% (+24bp w/w), 2s10s at 0.27%.",
+   "verified_values": [
+    {
+     "role": "NFP change/level",
+     "value": "165K / 159,293K",
+     "unit": "thousand_persons",
+     "anchor_ref": "macro.data.NFP.mom_chg/value@2026-10-01"
+    },
+    {
+     "role": "UNRATE",
+     "value": "4.10% ← 4.20%",
+     "unit": "percent",
+     "anchor_ref": "macro.data.UNEMPLOYMENT@2026-10-01"
+    },
+    {
+     "role": "ICSA",
+     "value": "200K, +9K",
+     "unit": "persons",
+     "anchor_ref": "macro.data.ICSA@2026-11-07（200,000/191,000 精确换算）"
+    },
+    {
+     "role": "UST_10Y",
+     "value": "5.10%, +24bp(=+0.24pp)",
+     "unit": "percent/basis_point",
+     "anchor_ref": "macro.data.UST_10Y@2026-11-12"
+    },
+    {
+     "role": "2s10s",
+     "value": "0.27%",
+     "unit": "percent",
+     "anchor_ref": "macro.data.CURVE_2S10S@2026-11-13"
+    }
+   ],
+   "expected_new_gate": "PASS（K/bp 换算 token 映射到对应 claim）",
+   "expected_old_gate": {
+    "prediction": "pass",
+    "evidence": "英文段落整体在旧门检查面外（vacuous pass：正则锚定中文关键词，未检查≠验证通过）。"
+   }
+  },
+  {
+   "id": "V6-014",
+   "base_anchor_set": "20261114",
+   "variant_group": "相关系数合法引用+nan 诚实散文",
+   "carrier": "prose",
+   "text": "【推断】美元-黄金20日相关-0.33、60日-0.41（相关非因果）；SPX-黄金20日相关+0.30；SPX-EZU相关性本周为nan（EZU采集FAIL），全球β判断无法量化验证——此为【假设】。",
+   "verified_values": [
+    {
+     "role": "DXY-GOLD 20d/60d",
+     "value": "-0.33 / -0.41",
+     "unit": "dimensionless",
+     "anchor_ref": "11-14 报告 L128 原句"
+    },
+    {
+     "role": "SPX-GOLD 20d",
+     "value": 0.3,
+     "unit": "dimensionless",
+     "anchor_ref": "11-14 报告 L128"
+    },
+    {
+     "role": "SPX-EZU",
+     "value": "nan",
+     "unit": "dimensionless",
+     "anchor_ref": "EZU=nan（anchors_20261114）；11-14 报告 L50 原句"
+    }
+   ],
+   "expected_new_gate": "PASS（nan 诚实披露=INSUFFICIENT_EVIDENCE 带注记发布，合法；载具体数值才违规）",
+   "expected_old_gate": {
+    "prediction": "pass",
+    "evidence": "相关系数无检查项；nan 字符串无数值 token（vacuous pass）。"
+   }
+  }
+ ],
+ "heldout_reference": "另有 6 条同构封存样本（V6-S01..S06，全集 20 条的 30%），内容仅存 heldout-sealed/，哈希见 HELDOUT-MANIFEST.sha256；开发席位在迁移门裁决前禁止读取。启封条件见 HELDOUT-PROTOCOL.md。",
+ "coverage_matrix": {
+  "carrier_mix": {
+   "prose": 9,
+   "table": 1,
+   "footnote": 1,
+   "enumeration": 1,
+   "english": 1,
+   "prose_with_nan": 1
+  },
+  "variant_groups": [
+   "threshold_distance(3变体+真实原句)",
+   "threshold_distance_DXY+区间端点",
+   "observation_lag",
+   "桥式变化+N%至X",
+   "顿号枚举",
+   "表格多指标",
+   "脚注阈值常量",
+   "约数+跨指标差",
+   "千分位+CJK+万亿换算",
+   "负值带逗号",
+   "英文+K/bp单位",
+   "相关系数+nan散文"
+  ],
+  "named_unit_forms": [
+   "pp",
+   "个百分点",
+   "bp(80bp/52bp族/24bp)",
+   "约数(约2.84/约2.8/约1.22万亿)",
+   "千分位+CJK(12,245.39亿元/11,882.20亿元/-5,846亿元/551.84亿港元)",
+   "英文K(200K/165K/159,293K)",
+   "区间端点(100-104/85-90/85-100)",
+   "nan"
+  ],
+  "old_gate_prediction_tally": {
+   "pass": 8,
+   "false_kill": 6,
+   "pass_of_which_vacuous": 6
+  }
+ },
+ "_fixture_provenance": {
+  "copied_from": "~/agent-loop/ARCH-REFORM/QA/V6-PARAPHRASES.json",
+  "scope": "PUBLIC 面复制;heldout-sealed 不入仓(T8 独立审计席专属)",
+  "note": "V6-PUBLIC 改写变体集(14条)",
+  "copied": "2026-11-15",
+  "sha256_source": "8d59db79d7e0688e"
+ }
+}

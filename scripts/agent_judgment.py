@@ -349,8 +349,19 @@ def attach_judgment(report_dir, judgment_path, root=None,
     mids = _registry_metric_ids(root)
     res = validate_judgment(judgment, ev_refs, mids)
 
+    # ── 阶段四钩子: 判定档 vs 自身证据面契约验证 ─────────────────────
+    # 语义全在 research_contract/judgment_contract.py,此处仅挂载+门控:
+    # 客观事实相左(CONTRADICTED)或未全证(NOT_VERIFIED)→拒落位,修档再提。
+    try:
+        from research_contract.judgment_contract import verify_judgment
+        contract = verify_judgment(judgment, report)
+    except Exception as exc:                        # 异常=如实降级,禁静默放行
+        contract = {'verdict': 'NOT_VERIFIED', 'stats': {},
+                    'error': f'{type(exc).__name__}: {exc}'}
+    contract_ok = contract.get('verdict') == 'VERIFIED'
+
     layers = report.get('layers') or {}
-    if res['passed']:
+    if res['passed'] and contract_ok:
         content = copy.deepcopy(judgment)
         for key, layer_key in (('l3', 'L3_AI推断层'), ('l4', 'L4_条件情景层')):
             layers[layer_key]['produced'] = True
@@ -373,19 +384,27 @@ def attach_judgment(report_dir, judgment_path, root=None,
 
     report['layers'] = layers
     report['agent_judgment'] = {
-        'attached': bool(res['passed']),
+        'attached': bool(res['passed'] and contract_ok),
         'attached_at': _now_utc(),
         'judgment_file': os.path.basename(judgment_path),
         'schema_version': JUDGMENT_SCHEMA_VERSION,
         'validation': res,
+        'contract_verification': contract,   # 阶段四: 契约验证结果随档
         # MINOR-4: 落位时的底座状态随档(含 allow_failed_run 越过面)
         'run_ok_at_attach': run_ok,
         'allow_failed_run': bool(allow_failed_run and run_ok is False),
     }
+    if res['passed'] and not contract_ok:    # 纪律绿但契约未全绿=契约门拦截
+        report['agent_judgment']['blocked'] = \
+            'contract_' + str(contract.get('verdict')).lower()
+        report['agent_judgment']['block_note'] = (
+            '判定档与证据面契约验证未全绿(客观事实相左/未全证)——'
+            '修档再提;详见 contract_verification')
     _write_report(report_dir, report, rj_path)
     return {'report_dir': report_dir,
-            'attached': bool(res['passed']),
+            'attached': bool(res['passed'] and contract_ok),
             'validation': res,
+            'contract_verification': contract,
             'run_ok_at_attach': run_ok,
             'layers_summary': {
                 'L3_produced': layers['L3_AI推断层']['produced'],

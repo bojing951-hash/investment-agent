@@ -314,6 +314,53 @@ def merge_series_sections(store, raw):
     return store
 
 
+def merge_macro_series(store, raw):
+    """阶段三 T3(PHASE3-PLAN 工单T3,2026-11-14): macro 通道全史序列入 store(就地并入)。
+
+    根因: 周报路径唯一数据入口=研究快照 series_store(global/china/jp/ea/
+    shiller 五池);macro 通道序列(HY_OAS/CURVE_2S10S/UST_* 等 31 键全史)此前
+    只进 fact 层被剥掉(fact 不保留 series,结构性缺口原登记于
+    research_history_query 模块头 GAP08 §四 PENDING),谓词无米下锅——本函数收口。
+
+    门(泛化非白名单,与 merge_series_sections japan/ea/shiller 先例同构):
+    通道键名经 fe._MACRO_ALIAS(normalize_macro 同一别名表——通道键名≠注册表
+    身份时显式映射,如 WTI→WTI_SPOT_M,单一权威源不两处漂移)解析为注册表
+    metric_id,且 (history_source or source)=='macro_collector'(权属采集器门;
+    history_source 优先回落 source=R25 DFF 双通道先例——事实权威在 rate 通道
+    的指标,历史序列通道仍为 macro 档);未注册键/越权序列不混入计算面。
+    形态: series 须为 {'dates','values'} 双 list 等长非空(升序直通,值零改写
+    零造数,先例=normalize_jp 转换);不合规=诚实跳过不造序列;store 既有键
+    先占不覆盖(五池先占,macro 池殿后)。
+
+    源窗与滞后如实注记(工单原文): 条目携带 history_note 的(如 HY_OAS
+    「源端历史自2023-11-14起…源侧窗口上限,非采集器截断」)随序列入档——写入
+    快照顶层平节 series_store_notes(键=metric_id;无注记键不入该节;series_store
+    值保持 {'dates','values'} 纯净不混注记);序列未入档(门未过/形态不合规)则
+    注记同不入(防孤儿注记)。
+    新鲜度窗: 继承 resolve_inputs 的 macro 档窗(rp.SOURCE_FILE_RULES 7 自然日)
+    ——窗内无档→raw 无 macro 键→本函数零产出,序列诚实缺席不造数。
+
+    返回: notes dict(非空时由调用方写入 snapshot['series_store_notes'])。"""
+    notes = {}
+    if not isinstance(raw.get('macro'), dict):
+        return notes
+    for key, item in ((raw['macro'].get('data')) or {}).items():
+        mid = fe._MACRO_ALIAS.get(key, key) if isinstance(key, str) else None
+        m = fe.metric(mid) if mid else None
+        if m is None or mid in store or not isinstance(item, dict) \
+                or (m.get('history_source') or m.get('source')) != 'macro_collector':
+            continue
+        s = item.get('series')
+        if isinstance(s, dict) and isinstance(s.get('dates'), list) \
+                and isinstance(s.get('values'), list) \
+                and len(s['dates']) == len(s['values']) and s['dates']:
+            store[mid] = s
+            note = item.get('history_note')
+            if isinstance(note, str) and note:
+                notes[mid] = note
+    return notes
+
+
 def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
                    write=True, allow_revision=False, revision_reason=None,
                    trusted_root=None):
@@ -482,7 +529,8 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
         'notes': ['全部事实含metric_id/单位/观测日/来源/质量;派生值附calculation_ref',
                   '本快照为唯一研究数据入口;下游不得自行查找最新采集文件'],
     }
-    # series_store: 相关性等配对序列研究用(全球行情资产+中国/港股指数,新metric_id为键)
+    # series_store: 相关性等配对序列研究用(全球行情资产+中国/港股指数,新metric_id为键;
+    # IA-P1-GAP08 F2 起 jp/ea、Charter6-P2 起 shiller、阶段三 T3 起 macro 全史序列)
     store = {}
     if 'global' in raw:
         inv_map = {v: k for k, v in _GLOBAL_OLD_ID.items()}
@@ -526,8 +574,14 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
                 ks = sorted(s)
                 store[key] = {'dates': ks, 'values': [s[d] for d in ks]}
     store = merge_series_sections(store, raw)
+    # 阶段三 T3(2026-11-14): macro 通道全史序列(HY_OAS/CURVE_2S10S/UST_* 等)
+    # 入 store——周报路径序列库自此覆盖 macro 池;源窗/滞后注记随序列入顶层
+    # 平节 series_store_notes(见 merge_macro_series docstring)。
+    macro_notes = merge_macro_series(store, raw)
     if store:
         snapshot['series_store'] = store
+    if macro_notes:
+        snapshot['series_store_notes'] = macro_notes
 
     if not write:
         return snapshot

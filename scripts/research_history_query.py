@@ -31,10 +31,12 @@
 - IA-P1-GAP08 R47-F3 economy 过滤维度(L130 "economy 字段可作过滤维度"):
   payload 附 registry.economy echo;query_window 可选 economy 参数——过滤
   不命中=如实空窗披露,不造数据;取值域 ECONOMIES(registry 实测值域)。
-- 结构性缺口(登记): series_store 收 global+china+F2 后 jp/ea 价格序列,
-  macro 利率序列不经快照任何位置(fact 不保留 series,fact_engine.py:224-227
-  仅供派生计算);若要求利率亦走 series_store 须改 snapshot_builder 构建段
-  →继续 PENDING 登记于 GAP08 REPORT §四。
+- 结构性缺口(登记→已收口): series_store 收 global+china+F2 后 jp/ea 价格序列;
+  macro 利率序列曾不经快照任何位置(fact 不保留 series,fact_engine.py:224-227
+  仅供派生计算)——**阶段三 T3(2026-11-14)已收口**: snapshot_builder.
+  merge_macro_series 将合规 macro 全史序列(HY_OAS/CURVE_2S10S/UST_* 等)并入
+  snapshot['series_store'](源窗注记平节 series_store_notes),周报路径序列库
+  自此覆盖 macro 池;本模块 macro 接入点 A(直读标准化层输入)不变。
 - R25(2026-11-14) history_source 双通道指标: 注册表可选字段
   history_source(source 指事实权威通道,history_source 指历史序列通道)。
   首例 DFF: source=rate_expectations(current_rates 当日值立事实,flat 单点)

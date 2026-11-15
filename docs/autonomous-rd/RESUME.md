@@ -20,21 +20,27 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-14 R26 检查点后 · 排队面续)
+## 下一步(2026-11-15 R28 收口后 · 引擎轨道续行)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R26=排队面候选①(VP 旧库 LABEL_DRIFT 对账毕,审计两轮闭)。队列按优先级:
+R28=架构整改六阶段全毕+并轨(用户 2026-11-15 批,合并发 v0.24.0-alpha)。队列按优先级:
 
-1. **[进行中·R28·T-R28-1] 架构转型与工程整改·阶段三纵向切片开工(用户新工程令 2026-11-14,六阶段,唯一优先队列)**: 章程原文=docs/autonomous-rd/CHARTER_ARCH_REFORM.md;进度=阶段一/二毕(故障基线含 A-1/A-2/A-3/B/C;契约设计 v1.2 金融席+审计席双放行);实施工单=docs/autonomous-rd/ARCH_REFORM_PHASE3_PLAN.md(T1 S1 六项落地→T2 thresholds v1.0+G1-G4 CI 门→T3 series_store 补 HY_OAS/CURVE→T4 claim_factory 六型→T5 claim_verifier 六状态→T6 确定性渲染 C1→T7 新旧并行对照→T8 迁移门审计席裁决)。工程面=分支 **dev/arch-reform-p3**(基点=R27 修后 main),worktree=**~/investment-agent-reform**(持久位,勿用 /tmp);实现席=引擎轮次或专项子代理(工单 §2);**整改分支未经用户授权不并 main 不动生产;旧路径全程只读可恢复;QA 资产(V5/V6+封存件)留操作者面 ~/agent-loop/ARCH-REFORM/QA/ 禁入本仓(封存面禁读)**。
-2. **R28+ 排队(整改六阶段内)**: 阶段四 Agent Native 统一(周报切片过后复用 Fact→Evidence→Claim→Verification 契约改造 agent_judgment.py 编排接口)→阶段五研发机制(根因决策门/优先级=影响×严重×复发×根因×成本/能力验收六问/状态语义一致门,只加严不放松)→阶段六真实产品验收(Real-World Acceptance Suite 四面)。旧 R27 候选② NIT 余留(Ni-2~5/MW-V1 P2-2)降级排整改期后(P2-2 叙述一致性防线由阶段三 text_consistency+语义席取代)。
+1. **R31+ 引擎轨道续行**: 引擎树 dev/arch-reform-p3-t1 已至 R30 对账轮(独立复证整改带外链 160/0,台账合并行双锚 6128658+8a73a69);R31 起引擎自选队列。整改后余留(终报告非阻断清单): T8-R2 七项①-⑦/阶段四「利差」裸别名歧义升披露/真实模型语义审计席 NOT_VERIFIED 占位(待用户授权)/round.sh 资源双上限硬接线=LIVE 部署时。
+2. **LIVE 翻面 v0.24.0**: 用户终端亲跑 /tmp/deploy_v0240_live.py(先例=deploy_v0230;git archive 面+自适应代理补丁步+三 key 重注入;Charter 10 §十 LIVE 需用户明确指令)。
+3. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
-- [日历门不变] F 补证轮 2026-12-05/六标签首验窗+金油比 2026-12 引擎自动触发,勿手工提前(§八:算法正确性验收不等日历门)。六标签首验窗现含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
-- [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
+- [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/R25 审计 Ni-2~5/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 27, "date": "2026-11-14 20:23 HKT", "branch": "dev/rd-r27-gateb-extractor", "commit": "286c0c6afea0d835bdbd6dada4e3502b11813498", "baseline": "286c0c6afea0d835bdbd6dada4e3502b11813498", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R27-1"], "next_task": "R28: 架构转型与工程整改·阶段三纵向切片开工(用户工程令唯一优先队列;分支 dev/arch-reform-p3+worktree ~/investment-agent-reform;工单 T1 S1六项落地起步)", "next_round": 28} -->
+<!-- RD-CHECKPOINT v1: json {"round": 28, "date": "2026-11-15 10:15 HKT", "branch": "dev/arch-reform-p3", "commit": "4b9ed9760700e35150cc99150c6523afcd5c1a66", "baseline": "4b9ed9760700e35150cc99150c6523afcd5c1a66", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R28-1", "T-R28-2"], "next_task": "R31: 引擎轨道续行(引擎树 dev/arch-reform-p3-t1 已至 R30 对账轮;整改已并 main=v0.24.0-alpha;LIVE 翻面=用户终端亲跑 /tmp/deploy_v0240_live.py)", "next_round": 31} -->
+
+## 下一步存档(2026-11-15 R28 收口后版)
+
+1. [已毕·R28] **架构转型与工程整改·六阶段(T-R28-1,用户工程令 2026-11-14)**: 阶段三 T1-T8 契约六接口落地(thresholds v1.0 SIGNED+G1-G4/series_store/claim 六型/六状态验证/确定性渲染/新旧对照零误杀/迁移门 T8-R2 PASS,轮一 FAIL 如实在档)→阶段四 Agent Native 统一(jc-v1.0-phase4,V4 双向验收 57/0,错误版两 MAJOR 被拦)→阶段五 RDG 根因决策门+①-⑦状态语义一致门(登记簿六条)→阶段六真实面验收(A 金融数值/B 研究结论/D 研发可靠全绿+C-det R24 结构面)→收口修复波(全库 154 套件 154 绿,RDG-005)→终报告 ARCH-REFORM-FINAL-REPORT.md(§十二九项)。分支 dev/arch-reform-p3 26 提交 96d265e→3c8b5d4;用户 2026-11-15 批准并轨→v0.24.0-alpha。台账 T-R28-1 收口。
+2. [已毕·R28] **C-real 未优化新问题真跑**: 用户令执行 WALCL×SOFR×DXY(20261115T014829Z)六判据全过(15 步 run_ok/WALCL WARN=周频滞后如实/事实区 3 查全 VERIFIED 零未映射/L3L4 诚实不产出);判定面两缺口正道修(3c8b5d4;RDG-006 登记,RDG-004 闭环);跑台脚本+判据=docs/autonomous-rd/phase6c/。
+3. [已毕·R28·带外] **HK 采集三路增量修复(T-R28-2,另一操作者会话)**: 腾讯 320 小窗+持久化兜底+按需回补(治 11-12 HSI/HSCEI 双源失),经用户批准并入 main(merge=4d5da02,纯克隆 145/145 零红);按台账注记随本轮收口一并移出存档。
 
 ## 下一步存档(2026-11-14 R27 收口后版)
 

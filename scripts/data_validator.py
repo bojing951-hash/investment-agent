@@ -237,7 +237,13 @@ CHANGE_CHECKS = [
     ("BTC周涨跌", r'(?:BTC(?![a-zA-Z])|比特币)[^)。，；、%]{0,40}?([+-]?[0-9]{1,3}\.[0-9]+)\s*%', r'global_market.*(?:BTC|bitcoin).*(?:change|涨跌|pct|week_chg)', 0.5, 'BTC'),
 ]
 
-# 量级合理性
+# 量级合理性(ARCH-REFORM T1/裁定#2/#3/#4+S1-2a, 2026-11-14):
+# 数值范围字典整族退役——SPX/WTI/VIX 的 min_value/max_value 与非农 max_value_K=1000
+# 硬编码全部删除,数值区间唯一权威=config/metric_registry.json 对应指标 validation.range
+# (按 range_metric_id 映射;概念隔离: 分析阈值在 config/thresholds.json,合理性区间在
+# metric_registry,两文件键空间隔离[G3];11-14「166<2000」误杀载具即此字典)。
+# A股口径标签规则=词汇校验非数值区间,**显式保留原地**(不属数值注册表管辖,裁定S1-2a),
+# 职责边界: 本字典只管"报告文本词汇形态",数值合理性一律走 metric_registry。
 SANITY_CHECKS = {
     "非农月增": {
         "patterns": [
@@ -247,31 +253,52 @@ SANITY_CHECKS = {
             r'非农.*?([0-9]{1,4}(?:\.[0-9]+)?)\s*[MmBb]',
         ],
         "normalize_and_check": True,
-        "max_value_K": 1000,  # 最大100万人 = 1000K
-        "error_msg": "非农月新增不应超过1,000K (100万人)"
+        "range_metric_id": "NFP_MOM_K",  # 注册表单位=persons_thousands;归一化值(人)÷1000后比对
+        "error_msg": "非农月新增超出注册表合理性区间(NFP_MOM_K validation.range)"
     },
     "SPX范围": {
         "patterns": [r'(?:SPX(?![A-Za-z0-9_])|标普500)[^0-9%]*?([0-9]{3,5}(?:\.[0-9]+)?)(?![0-9年月日天])(?!\s*%)'],
-        "min_value": 2000, "max_value": 10000,
-        "error_msg": "SPX收盘价应在2000-10000范围"
+        "range_metric_id": "SPX",
+        "error_msg": "SPX收盘价超出注册表合理性区间(SPX validation.range)"
     },
     "WTI范围": {
         "patterns": [r'(?:WTI(?![A-Za-z0-9_])|油价)\s*(?:收于|收盘|价格|现价|为)?\s*\$?(?:[+-]?[0-9]+(?:\.[0-9]+)?\s*%[^0-9%]*?)?([0-9]{2,3}\.[0-9]+)(?![0-9年月日天])(?!\s*%)'],
-        "min_value": 20, "max_value": 200,
-        "error_msg": "WTI价格应在$20-$200范围"
+        "range_metric_id": "WTI_F",
+        "error_msg": "WTI价格超出注册表合理性区间(WTI_F validation.range)"
     },
     "VIX范围": {
         "patterns": [r'VIX(?![A-Za-z0-9_])[^0-9%]*?(?:[+-]?[0-9]+(?:\.[0-9]+)?\s*%[^0-9%]*?)?([0-9]{1,3}\.[0-9]+)(?![0-9年月日天])(?!\s*%)'],
-        "min_value": 8, "max_value": 90,
-        "error_msg": "VIX应在8-90范围"
+        "range_metric_id": "VIX",
+        "error_msg": "VIX超出注册表合理性区间(VIX validation.range)"
     },
     "A股口径": {
+        # 词汇校验(保留项,S1-2a 裁定显式保留): 只查口径标签在场性,无数值语义
         "patterns": [r'((?:成交额|成交量|turnover)[^。\n]{0,30}(?:亿|billion))'],
         "require_scope_label": True,
         "valid_labels": ["全A", "上证", "沪深", "两市", "主板"],
         "error_msg": "A股成交额必须标注口径（全A/上证/沪深两市/主板）"
     },
 }
+
+# 数值合理性区间唯一权威=metric_registry validation.range(退役后加载器;fail-closed:
+# 注册表缺该指标区间=配置错误,明确报错,不得静默跳过校验)
+_METRIC_REGISTRY_PATH = os.path.join(ROOT_DIR, 'config', 'metric_registry.json')
+_metric_ranges_cache = None
+
+
+def metric_validation_range(metric_id):
+    """读 metric_registry 的 validation.range,返回(float下限, float上限)。"""
+    global _metric_ranges_cache
+    if _metric_ranges_cache is None:
+        with open(_METRIC_REGISTRY_PATH, 'r', encoding='utf-8') as f:
+            doc = json.load(f)
+        _metric_ranges_cache = {m.get('metric_id'): (m.get('validation') or {}).get('range')
+                                for m in doc.get('metrics', [])}
+    rng = _metric_ranges_cache.get(metric_id)
+    if not rng or len(rng) != 2:
+        raise RuntimeError(f"config/metric_registry.json 缺 {metric_id} 的 validation.range"
+                           f"——量级校验 fail-closed(数值区间唯一权威=注册表,不得静默跳过)")
+    return float(rng[0]), float(rng[1])
 
 
 # 禁止用语v2(2026-10-11, 与系统提示词【禁止用语v2】同步)
@@ -1002,16 +1029,22 @@ def validate_report(report_path, anchors, skip_forbidden=False):
             continue
 
         if rule.get('normalize_and_check'):
+            # 非农月增: 归一化到"人"后÷1000 转注册表单位(persons_thousands)比对(T1 退役改读注册表)
+            lo_k, hi_k = metric_validation_range(rule['range_metric_id'])
             for pattern in rule['patterns']:
                 matches = re.findall(pattern, report_text, re.IGNORECASE)
                 for match in matches:
                     val = normalize_number(match)
-                    if val and val > rule['max_value_K'] * 1000:
-                        msg = f"❌ {check_name}: {match} 归一化后={val:,.0f}, 超出合理范围 — {rule['error_msg']}"
+                    if not val:
+                        continue
+                    val_k = val / 1000.0
+                    if val_k > hi_k or val_k < lo_k:
+                        msg = (f"❌ {check_name}: {match} 归一化后={val:,.0f}人(={val_k:g}K),"
+                               f" 超出注册表区间[{lo_k:g},{hi_k:g}]K — {rule['error_msg']}")
                         warnings.append(msg)
                         print(f"  {msg}")
-                    elif val:
-                        print(f"  ✅ {check_name}: {match} (归一化={val:,.0f}, 合理)")
+                    else:
+                        print(f"  ✅ {check_name}: {match} (归一化={val:,.0f}人, 注册表区间内)")
             continue
 
         for pattern in rule['patterns']:
@@ -1019,16 +1052,13 @@ def validate_report(report_path, anchors, skip_forbidden=False):
             for match in matches:
                 try:
                     val = float(match.replace(',', ''))
-                    if 'max_value' in rule and val > rule['max_value']:
-                        msg = f"❌ {check_name}: {val} > {rule['max_value']} — {rule['error_msg']}"
-                        warnings.append(msg)
-                        print(f"  {msg}")
-                    elif 'min_value' in rule and val < rule['min_value']:
-                        msg = f"❌ {check_name}: {val} < {rule['min_value']} — {rule['error_msg']}"
+                    lo, hi = metric_validation_range(rule['range_metric_id'])
+                    if val > hi or val < lo:
+                        msg = f"❌ {check_name}: {val} 超出注册表区间[{lo:g},{hi:g}]({rule['range_metric_id']}) — {rule['error_msg']}"
                         warnings.append(msg)
                         print(f"  {msg}")
                     else:
-                        print(f"  ✅ {check_name}: {val} (合理)")
+                        print(f"  ✅ {check_name}: {val} (合理,注册表区间[{lo:g},{hi:g}])")
                 except ValueError:
                     pass
 

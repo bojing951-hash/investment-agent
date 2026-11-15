@@ -281,6 +281,110 @@ def cn_index_history_period():
     return period
 
 
+# === HK增量修复(2026-11-14, LIVE Gate A 连续FAIL根因) =========================
+# 事故链: 日常采集每日向腾讯请求 2600 根(10y 全窗)→WAF 拒(>320 必拦, C8 已
+# 知)→转 yfinance period='10y' →Yahoo 对日频全量拉取限流(YFRateLimitError,
+# 11-12 起)→hk_indices 空→Gate A core_missing=[HSI,HSCEI] 三连FAIL→weekly
+# 预检拒出。结构性缺陷=HK 深历史无持久化, 每日重拉全窗既是 WAF 拦截面也是
+# Yahoo 限流的滥用模式本身。
+# 修复(登记冻结):
+# - 日常腾讯请求量=HK_TX_DAILY_BARS(默认 320=WAF 实测上限, 夹逼[60,320]);
+# - 本地增量持久化 data/daily/hk_index_history.json(按 ticker 存深窗, 增量
+#   合并: 新日期覆写同日, 升序, 尾裁至 hk_history_bars() 根);
+# - 腾讯小窗成功→合并+落盘+全窗直通(零 Yahoo 调用=治限流);
+# - 腾讯失败且持久化新鲜(末观测≤HK_HISTORY_MAX_GAP_DAYS 天, 默认10)→用
+#   持久化全窗(指标日期=末观测日, 陈旧如实经 date 字段披露, 不冒充当日);
+# - 仅当持久化缺失/陈旧/深度不足(<目标根数一半)时才尝试 yfinance 深窗回补
+#   一次(成功同样合并落盘)——从"每日全量"降为"按需回补";
+# - 三路皆无→None(诚实缺席, Gate A 兜底)。
+def hk_daily_bars():
+    """日常腾讯请求 bar 数(纯函数,现读 env HK_TX_DAILY_BARS)。
+
+    默认 320=腾讯 WAF 实测上限(2026-11-14 复测可达);夹逼 [60,320],
+    非法回落 320。深窗目标仍由 hk_history_bars() 表达(持久化尾裁用)。"""
+    raw = os.environ.get('HK_TX_DAILY_BARS')
+    if raw is None or not str(raw).strip():
+        return 320
+    try:
+        n = int(str(raw).strip())
+    except ValueError:
+        print(f"  ⚠️ HK_TX_DAILY_BARS 非整数({raw!r}),回落默认 320")
+        return 320
+    if n < 60 or n > 320:
+        print(f"  ⚠️ HK_TX_DAILY_BARS={n} 越界(合法 60..320),回落 320")
+        return 320
+    return n
+
+
+def hk_history_max_gap_days():
+    """持久化新鲜度阈值(纯函数,现读 env HK_HISTORY_MAX_GAP_DAYS,默认10)。"""
+    raw = os.environ.get('HK_HISTORY_MAX_GAP_DAYS')
+    try:
+        n = int(str(raw).strip()) if raw and str(raw).strip() else 10
+        return n if n >= 1 else 10
+    except ValueError:
+        return 10
+
+
+def _hk_history_path():
+    """持久化档路径(env HK_HISTORY_FILE 可覆盖,离线测试用)。"""
+    return os.environ.get('HK_HISTORY_FILE') or os.path.join(
+        DATA_DIR, 'daily', 'hk_index_history.json')
+
+
+def _load_hk_history():
+    """读持久化档{ticker: {'dates':[...], 'values':[...]}};缺失/损坏→{}。"""
+    p = _hk_history_path()
+    try:
+        with open(p, encoding='utf-8') as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _save_hk_history(hist):
+    """原子写持久化档(先写 .tmp 再 rename,防半写档)。"""
+    p = _hk_history_path()
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    tmp = p + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(hist, f, ensure_ascii=False)
+    os.replace(tmp, p)
+
+
+def _merge_hk_series(*series_list):
+    """多段 {'dates','values'} 按日合并(后写覆写同日),升序,尾裁 hk_history_bars()。
+
+    纯函数;空段跳过;values 随 dates 对位取自各段原值,零改写零造数。"""
+    by_date = {}
+    for s in series_list:
+        if not s:
+            continue
+        for d, v in zip(s.get('dates') or [], s.get('values') or []):
+            by_date[str(d)[:10]] = v
+    dates = sorted(by_date)
+    cap = hk_history_bars()
+    if len(dates) > cap:
+        dates = dates[-cap:]
+    return {'dates': dates, 'values': [by_date[d] for d in dates]}
+
+
+def _hk_series_fresh(series, today=None):
+    """持久化新鲜判定: 末观测距今天数 ≤ hk_history_max_gap_days()。
+
+    纯函数;空序列→False。today=YYYY-MM-DD(测试注入)。"""
+    if not series or not series.get('dates'):
+        return False
+    t = today or datetime.now().strftime('%Y-%m-%d')
+    try:
+        last = datetime.strptime(str(series['dates'][-1])[:10], '%Y-%m-%d')
+        now = datetime.strptime(t, '%Y-%m-%d')
+    except ValueError:
+        return False
+    return (now - last).days <= hk_history_max_gap_days()
+
+
 def cn_window_start(period, today=None):
     """窗口起点 YYYYMMDD(纯函数,离线可测)。
 
@@ -423,12 +527,15 @@ def _tx_kline_rows(code, bars=None, retries=2):
                 time.sleep(2)
     return []
 
-def _fetch_hk_tencent(ticker, name):
-    """方案1: 腾讯ifzq日K直连(2026-10-17: 恒指/国企连续4日429断供后的可靠主通道)"""
+def _fetch_hk_tencent(ticker, name, bars=None):
+    """方案1: 腾讯ifzq日K直连(2026-10-17: 恒指/国企连续4日429断供后的可靠主通道)
+
+    bars: HK增量修复(2026-11-14)——默认 None→hk_history_bars()(深窗回补语义
+    保留);日常增量路径传 hk_daily_bars()(320=WAF 上限)。"""
     code = HK_TX_CODE.get(ticker)
     if not code:
         return None
-    rows = _tx_kline_rows(code)
+    rows = _tx_kline_rows(code, bars=bars)
     if not rows:
         return None
     m = _hk_metrics_from_daily([d for d, _ in rows], [c for _, c in rows])
@@ -468,25 +575,76 @@ def _fetch_hk_yfinance(ticker, name, retries=1):
     return None
 
 def fetch_hk_indices():
-    """采集港股指数: 腾讯直连(主) → yfinance(备) 双通道"""
+    """采集港股指数: 腾讯小窗增量(主) → 持久化全窗(新鲜兜底) → yfinance 深窗(按需回补)
+
+    HK增量修复(2026-11-14): 日常仅向腾讯请求 hk_daily_bars()(320) 小窗,
+    与本地持久化 hk_index_history.json 增量合并后全窗直通;yfinance 从每日
+    全量降为"持久化缺失/陈旧/深度不足"时的按需回补(治 Yahoo 限流+WAF 拦截
+    双面)。三路皆无→None(Gate A 兜底)。"""
     print("\n📈 采集港股指数...")
     results = {}
+    hist = _load_hk_history()
+    hist_dirty = False
+    target = hk_history_bars()
 
     for ticker, name in HK_INDICES.items():
-        result = _fetch_hk_tencent(ticker, name)
-        src = '腾讯直连'
-        if result is None:
-            print(f"  ⚠️ {name} 腾讯直连失败,转yfinance")
-            result = _fetch_hk_yfinance(ticker, name)
-            src = 'yfinance'
-        if result is None:
-            print(f"  ❌ {name}: 双通道均失败")
-            continue
-        results[ticker] = result
-        wc = result.get('week_chg')
+        persisted = hist.get(ticker) or None
+        # 路径1: 腾讯小窗增量(日常主路)
+        fresh_rows = _fetch_hk_tencent(ticker, name, bars=hk_daily_bars())
+        if fresh_rows is not None:
+            merged = _merge_hk_series(
+                persisted, fresh_rows.get('series'))
+            hist[ticker] = merged
+            hist_dirty = True
+            # 深度不足(首跑/持久化丢失)→按需 yfinance 深窗回补一次
+            if len(merged['dates']) < target // 2:
+                print(f"  ℹ️ {name} 持久化深度不足"
+                      f"({len(merged['dates'])}<{target // 2}),尝试深窗回补")
+                deep = _fetch_hk_yfinance(ticker, name)
+                if deep is not None:
+                    merged = _merge_hk_series(merged, deep['series'])
+                    hist[ticker] = merged
+                    hist_dirty = True
+                    src = '腾讯增量+yfinance回补'
+                else:
+                    src = '腾讯增量(深窗回补不可得,如实浅窗)'
+            else:
+                src = '腾讯增量'
+            m = _hk_metrics_from_daily(merged['dates'], merged['values'])
+            m['series'] = merged
+            m['name'] = name
+            results[ticker] = m
+        elif persisted is not None and _hk_series_fresh(persisted):
+            # 路径2: 腾讯失败但持久化新鲜→全窗直通,零 Yahoo 调用
+            m = _hk_metrics_from_daily(persisted['dates'], persisted['values'])
+            m['series'] = persisted
+            m['name'] = name
+            results[ticker] = m
+            src = f"持久化(腾讯失败,末观测{persisted['dates'][-1]})"
+        else:
+            # 路径3: 按需 yfinance 深窗回补(持久化缺失/陈旧)
+            print(f"  ⚠️ {name} 腾讯小窗失败且持久化不可用,转yfinance深窗回补")
+            deep = _fetch_hk_yfinance(ticker, name)
+            if deep is not None:
+                merged = _merge_hk_series(persisted, deep['series'])
+                hist[ticker] = merged
+                hist_dirty = True
+                m = _hk_metrics_from_daily(merged['dates'], merged['values'])
+                m['series'] = merged
+                m['name'] = name
+                results[ticker] = m
+                src = 'yfinance回补'
+            else:
+                print(f"  ❌ {name}: 三路均失败(腾讯小窗/持久化/yfinance)")
+                continue
+        r = results[ticker]
+        wc = r.get('week_chg')
         tag = f" (周{wc:+.2f}%)" if wc is not None else ""
-        print(f"  ✅ {name}: {result['close']}{tag} [{src}]")
+        print(f"  ✅ {name}: {r['close']}{tag} @{r.get('date')} "
+              f"[{src}; n={len(r['series']['dates'])}]")
 
+    if hist_dirty:
+        _save_hk_history(hist)
     return results
 
 # ============ R058 SB_FLOW 备源回落登记(IA-P0-SB-FLOW-BACKUP-AC-v1.0) ============

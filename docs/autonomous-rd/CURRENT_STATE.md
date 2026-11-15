@@ -4,7 +4,14 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-15 R36 R25 审计余留 NIT 三修·操作者紧凑波(T-R36-1)
+## 权威快照: 2026-11-15 R37 coverage 审计序列权威 history_source 优先(T-R37-1)
+
+- **基线**: main = ee4fbb6(R36 盖章,CI 43701802403 绿);本轮=`dev/rd-r37-history-source-auth`(基点 ee4fbb6;引擎开班窗前操作者紧凑波续跑)。
+- **真实进度**: R25 审计余留 **Ni-5 收口**(R25 审计四 NIT 全清)。缺陷=审计按注册表 source 声明通道判序列事件权威——DFF source=rate_expectations(单点)而 R25 拉取的 10 年日频序列(n=3650)落 macro 通道→序列全判非权威→覆盖面保守低报。修法三处: ①`auth_series_of`(序列事件权威=history_source 优先回落 source,与 R25 装载器口径同源;点事件权威不变)落 global/macro 两序列写点 ②`authority_channel` 同口径(DFF→macro) ③可读性归并双流(序列通道+单点声明通道任一不可读=input_degraded;点流降级不被序列流健康掩盖)。
+- **验收**: 新套件 tests/test_rd_r37_history_source_auth **11/0**(DFF 序列 10 obs 全入权威/macro 点仍非权威/无 history_source 指标零漂移×2/status 不降级);受影响面 w4 36 OK+fix1-4+p1_wp_a 23 OK+r25 44/0;全库批跑 **160 件**(红仅 phase6 D3 波中记账面,净树复验);波次含非纯文档文件→R32 判例并轨尖重盖章。
+- **下一步**: R38 引擎轨道余留(T8-R2 七项①-⑦[④⑥⑦下次启封随批]/round.sh 双上限[LIVE 部署时]);日历门 F=2026-12-05/六标签 2026-12 勿手工提前。
+
+### [历史快照·R36 视角,已被上方权威快照取代]
 > baseline=6dcc59476690ee2084383a6c20ec8634245703bd (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 0f53463(R35 并轨尖重盖章,CI 43698231614 绿);本轮=`dev/rd-r36-attach-nits`(基点 0f53463;引擎 19:xx 开班窗前操作者席直跑)。

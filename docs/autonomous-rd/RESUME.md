@@ -25,15 +25,19 @@
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R36=R25 审计余留 NIT 三修已毕(操作者紧凑波;tid 见存档与 ITERATION_LOG)。队列按优先级:
+R37=R25 审计余留 Ni-5 收口已毕(操作者紧凑波;R25 审计四 NIT 全清;tid 见存档与 ITERATION_LOG)。队列按优先级:
 
-1. **R37+ 引擎轨道续行**: 操作者/引擎任意席续行。整改余留(终报告非阻断清单): T8-R2 七项①-⑦(④⑥⑦下次启封随批)/round.sh 资源双上限硬接线=LIVE 部署时;「利差」项已毕(R35)。每任务先过 RDG 根因决策门(RDG-REGISTRY 登记,⑦门硬核)。
+1. **R38+ 引擎轨道续行**: 操作者/引擎任意席续行。整改余留(终报告非阻断清单): T8-R2 七项①-⑦(④⑥⑦下次启封随批)/round.sh 资源双上限硬接线=LIVE 部署时;「利差」项已毕(R35)。每任务先过 RDG 根因决策门(RDG-REGISTRY 登记,⑦门硬核)。
 2. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
-- [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/R25 审计 Ni-5(DFF 映通道保守低报,宜与 DFF 拉取同轮收)/OPEN_ISSUES 按需取用。
+- [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 <!-- RD-CHECKPOINT v1: json {"round": 36, "date": "2026-11-15 17:46 HKT", "branch": "main", "commit": "6dcc59476690ee2084383a6c20ec8634245703bd", "baseline": "6dcc59476690ee2084383a6c20ec8634245703bd", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R36-1"], "next_task": "R37: 引擎轨道余留(T8-R2 七项①-⑦/round.sh 双上限[LIVE 部署时]);日历门 F=2026-12-05 勿手工提前", "next_round": 37} -->
+
+## 下一步存档(2026-11-15 R37 收口后版)
+
+- [已毕·R37] **coverage 审计序列权威 history_source 优先**(T-R37-1;R25 审计余留 Ni-5 收口,四 NIT 全清): 审计原按 source 声明通道判序列权威——DFF 10 年日频序列(n=3650,macro 通道)全判非权威=保守低报;修=auth_series_of(序列=history_source 优先,点=source)+authority_channel 同口径+可读性双流归并(任一权威通道不可读即 input_degraded,w4 b18 语义保持);新套件 test_rd_r37_history_source_auth 11/0+受影响 w4 族/p1_wp_a/r25 绿;分支 dev/rd-r37-history-source-auth;详见 ITERATION_LOG R37 双行。
 
 ## 下一步存档(2026-11-15 R36 收口后版)
 

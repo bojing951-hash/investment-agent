@@ -743,6 +743,14 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
     def auth_of(mid):
         return _is_auth(registry_by_id[mid]['source'], ch)
 
+    def auth_series_of(mid):
+        """R37 Ni-5(R25 审计余留): 历史序列事件权威=history_source 优先,
+        回落 source——与 workbench_data/research_history_query R25 装载口径
+        一致(DFF 首例: source=rate_expectations 单点权威,history_source=
+        macro_collector 序列)。点事件权威不变(声明通道=单点采集面)。"""
+        m = registry_by_id[mid]
+        return _is_auth(m.get('history_source') or m['source'], ch)
+
     def record_schema_bad(mid, key, auth):
         """FIX3-01: 已注册指标的外层记录非对象——与"未注册"显式拆分:
         取得MetricAcc/登记文件到file_contrib(保留Manifest关联)/文件级schema
@@ -766,7 +774,7 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
             a = acc(mid)
             _add_point(a, item.get('date'), item.get('close'), ch, auth_of(mid), rel, fd_iso, 'point')
             if item.get('series') is not None:
-                _add_series(a, item.get('series'), ch, auth_of(mid), rel, fd_iso, 'series')
+                _add_series(a, item.get('series'), ch, auth_series_of(mid), rel, fd_iso, 'series')
         return
 
     if ch == 'macro':
@@ -781,7 +789,9 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
             a = acc(mid)
             _add_point(a, item.get('date'), item.get('value'), ch, auth_of(mid), rel, fd_iso, 'point')
             if item.get('series') is not None:
-                _add_series(a, item.get('series'), ch, auth_of(mid), rel, fd_iso, 'series')
+                # R37 Ni-5: 序列权威走 history_source(DFF 序列在 macro,
+                # source 声明 rate_expectations 单点)
+                _add_series(a, item.get('series'), ch, auth_series_of(mid), rel, fd_iso, 'series')
             rev = item.get('revision')
             if isinstance(rev, dict) and rev.get('obs_date'):
                 a.revision_events.append({'obs_date': rev.get('obs_date'),
@@ -981,9 +991,17 @@ def extract_file(entry, accs, unmapped, registry_ids, registry_by_id):
 def build_metric_record(m, accs, channel_unreadable, by_channel):
     mid = m['metric_id']
     a = accs.get(mid)
-    reg_channel = REGISTRY_SOURCE_CHANNEL.get(m['source'])
+    # R37 Ni-5: 历史权威通道=history_source 优先,回落 source(与序列事件
+    # 权威口径一致;DFF 序列权威在 macro,单点权威在 rate_economy)。
+    # 通道可读性归并双流: 序列通道+单点声明通道任一有不可读档=输入降级
+    # (点流降级不因序列流健康而被掩盖,反之亦然)。
+    reg_channel = REGISTRY_SOURCE_CHANNEL.get(m.get('history_source') or m['source'])
+    point_channel = REGISTRY_SOURCE_CHANNEL.get(m['source'])
     ch_n = by_channel.get(reg_channel, 0)
     ch_unread = channel_unreadable.get(reg_channel, 0)
+    if point_channel and point_channel != reg_channel:
+        ch_n += by_channel.get(point_channel, 0)
+        ch_unread += channel_unreadable.get(point_channel, 0)
     all_unread = ch_n > 0 and ch_unread == ch_n
     rec = {
         'metric_id': mid, 'display_name': m['display_name'], 'source': m['source'],

@@ -5,6 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-15 R34 席位接入真跑首验(T-R34-1)
+> baseline=81020f0df8df651b602282b8ca342f23a6dd02e9 (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = a4f078b(R33 热修,CI 43686337799 绿);本轮=`dev/r34-seat-first-run`(基点 a4f078b)。
 - **真实进度**: **席位 runtime 链在真实研究运行上首例全链贯通(五环: 披露→唤席→裁决→归档→翻面)**。真跑=美元指数×COMEX黄金期货(20261115T065401Z,run_ok): 46 行证据索引(L1+S3 信封 44)+gate_a 披露行(7/7 DEGRADED)在场;L3/L4 零自报数值 judgment attach 绿(六查 8/8;首两红=E2 缺失环未明写【假设】+SCN 阈值无数字形态,正道修非绕过);真独立席 Subagent 裁决 **REVISE 一必修**(SCN-A「黄金区间震荡」超所引证据+证伪口径参照歧义;CON-1/MECH-1/SCN-B UPHELD;六窗方向底层序列独立复算逐位一致+GLD 交叉佐证;零自报数值声明核验属实);VERDICT 逐字归档+MANIFEST append;修订闭环(direction 改「黄金与美元反向联动」条件式+阈值指明参照;pre_seat 副本留运行档);重 attach 披露翻「席位已裁(REVISE)」。

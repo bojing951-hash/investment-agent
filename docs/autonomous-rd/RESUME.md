@@ -33,7 +33,7 @@ R34=席位接入真跑首验已毕(runtime 链五环贯通: 披露→唤席→�
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/R25 审计 Ni-2~5/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 33, "date": "2026-11-15 14:17 HKT", "branch": "main", "commit": "8235d7b5884ff9c66dba6b945e3bf7bd1d2ea57d", "baseline": "8235d7b5884ff9c66dba6b945e3bf7bd1d2ea57d", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R33-1"], "next_task": "R34: 引擎轨道余留(T8-R2 七项①-⑦/利差裸别名歧义/round.sh 双上限)+席位接入真跑首验;日历门 F=2026-12-05", "next_round": 34} -->
+<!-- RD-CHECKPOINT v1: json {"round": 34, "date": "2026-11-15 15:31 HKT", "branch": "main", "commit": "81020f0df8df651b602282b8ca342f23a6dd02e9", "baseline": "81020f0df8df651b602282b8ca342f23a6dd02e9", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R34-1"], "next_task": "R35: 引擎轨道余留(T8-R2 七项①-⑦/利差裸别名歧义/round.sh 双上限);日历门 F=2026-12-05,六标签 2026-12 勿手工提前", "next_round": 35} -->
 
 ## 下一步存档(2026-11-15 R34 收口后版)
 

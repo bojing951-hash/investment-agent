@@ -35,7 +35,7 @@ R42=测试聚合器吞错修复已毕(操作者紧凑波;RDG-20261116-012 四件
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 41, "date": "2026-11-16 04:24 HKT", "branch": "main", "commit": "0c10e91467758f04173e91c8c9978c354fd14892", "baseline": "0c10e91467758f04173e91c8c9978c354fd14892", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R41-1"], "next_task": "R42: 引擎轨道=A 族碎片泄漏硬化首位候选(R41 定性新证: 154/326=47%,检查面预处理=HTML注释/生成头剥离+引用ID/碎片过滤)+T8-R2 ④⑥⑦下次启封随批/round.sh 双上限(LIVE 部署时)/R41 审计登记 MINOR-1+NIT-3~5;日历门 F=2026-12-05 勿手工提前", "next_round": 42} -->
+<!-- RD-CHECKPOINT v1: json {"round": 42, "date": "2026-11-16 04:57 HKT", "branch": "main", "commit": "38973ccfa08e56a7b74ecfa0399cdf7d02bda696", "baseline": "38973ccfa08e56a7b74ecfa0399cdf7d02bda696", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R42-1"], "next_task": "R43: 引擎轨道=A 族碎片泄漏硬化首位候选(R41 定性件 154/326=47%,检查面预处理=HTML注释/生成头剥离+引用ID/碎片过滤)+T8-R2 ④⑥⑦下次启封随批+round.sh 双上限(LIVE 部署时)+R41 审计登记 MINOR-1+NIT-3~5+新聚合模板入守卫 GUARD_FILES(RDG-012 NIT-A);日历门 F=2026-12-05 勿手工提前", "next_round": 43} -->
 
 ## 下一步存档(2026-11-16 R42 收口后版)
 

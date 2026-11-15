@@ -5,6 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-15 R37 coverage 审计序列权威 history_source 优先(T-R37-1)
+> baseline=45d4348cf837efefbce18468b64f7817e3af3d39 (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = ee4fbb6(R36 盖章,CI 43701802403 绿);本轮=`dev/rd-r37-history-source-auth`(基点 ee4fbb6;引擎开班窗前操作者紧凑波续跑)。
 - **真实进度**: R25 审计余留 **Ni-5 收口**(R25 审计四 NIT 全清)。缺陷=审计按注册表 source 声明通道判序列事件权威——DFF source=rate_expectations(单点)而 R25 拉取的 10 年日频序列(n=3650)落 macro 通道→序列全判非权威→覆盖面保守低报。修法三处: ①`auth_series_of`(序列事件权威=history_source 优先回落 source,与 R25 装载器口径同源;点事件权威不变)落 global/macro 两序列写点 ②`authority_channel` 同口径(DFF→macro) ③可读性归并双流(序列通道+单点声明通道任一不可读=input_degraded;点流降级不被序列流健康掩盖)。

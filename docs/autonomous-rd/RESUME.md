@@ -33,7 +33,7 @@ R37=R25 审计余留 Ni-5 收口已毕(操作者紧凑波;R25 审计四 NIT 全�
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 36, "date": "2026-11-15 17:46 HKT", "branch": "main", "commit": "6dcc59476690ee2084383a6c20ec8634245703bd", "baseline": "6dcc59476690ee2084383a6c20ec8634245703bd", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R36-1"], "next_task": "R37: 引擎轨道余留(T8-R2 七项①-⑦/round.sh 双上限[LIVE 部署时]);日历门 F=2026-12-05 勿手工提前", "next_round": 37} -->
+<!-- RD-CHECKPOINT v1: json {"round": 37, "date": "2026-11-15 18:52 HKT", "branch": "main", "commit": "45d4348cf837efefbce18468b64f7817e3af3d39", "baseline": "45d4348cf837efefbce18468b64f7817e3af3d39", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R37-1"], "next_task": "R38: 引擎轨道余留(T8-R2 七项①-⑦/round.sh 双上限[LIVE 部署时]);日历门 F=2026-12-05 勿手工提前", "next_round": 38} -->
 
 ## 下一步存档(2026-11-15 R37 收口后版)
 

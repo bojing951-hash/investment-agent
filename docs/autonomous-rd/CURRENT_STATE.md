@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-16 R43 pytest 口径四件套收口(T-R43-1)
-> baseline=e803b4c449cd91d9604db3b94ae326e3f82d281b (机器行: rd_checkpoint.py 维护,勿手改)
+> baseline=f244785a9d18fc142822548373fee46d67674395 (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 64a482c(R42 重盖章+残余入册,CI 43762333651 绿);本轮=`dev/rd-r43-pytest-argv`(基点 64a482c;R42 终验暴露的 pytest 口径陈年四件套=操作者紧凑波收口)。
 - **真实进度**: **RDG-012 残余⑦收口**——run_weekly.main(argv=None)+parse_args(argv)(None=CLI 原行为零差;revision_chain 的 sys.argv 猴补路由不受影响)+四件(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2)五调用点显式 argv=[]+尾条件退出拆红支摘冗余 0 支(直跑落尾自然 exit 0 同码;pytest 收集期不再被 SystemExit 打断)。

@@ -49,9 +49,9 @@
     即此因,改中文数字形+无数字标记后放行);未扫描字段保留 Audit-R1 F0x。
 - **修订闭环终审**: 独立席(a-closure-seat)全量只读复算——五项必修全落地、
   CON-3 F06 更正未破坏、零新增 MAJOR/MINOR,残留 1 NIT(RES-01: MECH-2 环3
-  单月窗双形,既有文案不阻断)。**裁定 VERIFIED**,裁决档
+  单月窗双形,既有文案不阻断)。**裁定 UPHELD**(R32 章程词表;原席报告词=VERIFIED,同义),裁决档
   `audit/semantic_review/20261116/VERDICT-20261116T045959Z-01.json`(fresh=True)。
-- **四态终态**: generated ✓ / machine_verified ✓ / review=VERIFIED(fresh) /
+- **四态终态**: generated ✓ / machine_verified ✓ / review=UPHELD(fresh) /
   **deliverable=True**;FULL_REPORT.md 已换 F09 完整装配版(L3/L4 全文内联
   +证据索引+四态节)。
 
@@ -59,7 +59,7 @@
 
 入库(本目录): FULL_REPORT.md / report.md / judgment_mvp.json /
 AGENT_SEAT_ENVELOPE.json / BIGFILES.sha256
-大件(运行目录,sha256 在档): report.json(754KB)/views_digest.json(84KB)/
+大件(**已入库** evidence_pack/=终态刷新,Audit-R1 F05 迁移;旧快照 c8988cce→f9b1bcb9 见本档修订记录;原运行目录 /tmp/mvp_run4/20261116T045959Z_*): report.json(754KB)/views_digest.json(84KB)/
 evidence_index.json/agent_judgment.json
 运行目录: /tmp/mvp_run4/20261116T045959Z_UST_10Y_十年期美债利率上行的宏观传导_对_HY_OAS_高收益债利差与_
 (tmp 会被系统清理;大件以 sha256 为凭,如需原件由 Phase 4 后续任务

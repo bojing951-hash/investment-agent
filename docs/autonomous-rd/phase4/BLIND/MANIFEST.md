@@ -74,7 +74,7 @@
 - **修订闭环终审**: 独立席(blind-closure-seat)n=2492 全样本只读复算
   (年度/滚动 252/分段斜率/分桶/分状态/L2 面 17 份 VP 与 MSIM、UBS 引用
   逐条核对)——八项必修全落地,无阈值放宽无含糊逃避,SCN-A 范例条款完好。
-  **裁定 VERIFIED**;v4 清偿后重挂链绿(validate 零违规+契约门 VERIFIED
+  **裁定 UPHELD**(R32 章程词表;原席报告词=VERIFIED,同义);v4 清偿后重挂链绿(validate 零违规+契约门 VERIFIED
   11/11 unbound=0+attach True)。裁决档
   `audit/semantic_review/20261116/VERDICT-20261116T053623Z-01.json`(fresh=True,
   内含 post_verdict_cleared 两项与 NEW-2/NEW-3 残留清单)。
@@ -82,7 +82,7 @@
   blind_calc2.py HY 段 i=0 环绕伪值(正确 -0.382,定性稳健),下轮更正数值
   并修脚本索引;NEW-3 四项精度 NIT(-0.535→-0.541/-0.55→-0.557/旧常态
   -0.40 偏严/TIPS 基差表述)备查。
-- **四态终态**: generated ✓ / machine_verified ✓ / review=VERIFIED(fresh) /
+- **四态终态**: generated ✓ / machine_verified ✓ / review=UPHELD(fresh) /
   **deliverable=True**;FULL_REPORT.md 已换 F09 完整装配版。
 
 ## 工件
@@ -90,5 +90,5 @@
 入库(本目录): question_prereg.json / blind_calc.py / blind_calc2.py /
 FULL_REPORT.md / report.md / judgment_mvp.json / AGENT_SEAT_ENVELOPE.json /
 BIGFILES.sha256
-大件(运行目录 /tmp/phase4_blind/20261116T053623Z_*,sha256 在档):
+大件(**已入库** evidence_pack/,Audit-R1 F05 迁移;原运行目录 /tmp/phase4_blind/20261116T053623Z_*,sha256 在档):
 report.json / views_digest.json / evidence_index.json / agent_judgment.json

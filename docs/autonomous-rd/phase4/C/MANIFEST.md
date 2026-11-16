@@ -53,15 +53,15 @@
 - **修订闭环终审**: 独立席(bc-closure-seat)python3 只读复算 30+ 项断言
   (相关面全窗+分窗/GOLD 面/事件面/DFF 阶跃日亲验/锚点全中)——两 MAJOR
   证伪逻辑修复均正道落地且边界逻辑独立判过,全部数值逐位吻合,零新增
-  缺陷。**裁定 VERIFIED**,裁决档
+  缺陷。**裁定 UPHELD**(R32 章程词表;原席报告词=VERIFIED,同义),裁决档
   `audit/semantic_review/20261116/VERDICT-20261116T053259Z-01.json`(fresh=True)。
   残留三项既有 NIT(约0.09/约5.1 叙事压缩、4600『其』绑定歧义)列出不阻断。
-- **四态终态**: generated ✓ / machine_verified ✓ / review=VERIFIED(fresh) /
+- **四态终态**: generated ✓ / machine_verified ✓ / review=UPHELD(fresh) /
   **deliverable=True**;FULL_REPORT.md 已换 F09 完整装配版。
 
 ## 工件
 
 入库(本目录): FULL_REPORT.md / report.md / judgment_mvp.json /
 AGENT_SEAT_ENVELOPE.json / BIGFILES.sha256
-大件(运行目录 /tmp/phase4_C/20261116T053259Z_*,sha256 在档):
+大件(**已入库** evidence_pack/,Audit-R1 F05 迁移;原运行目录 /tmp/phase4_C/20261116T053259Z_*,sha256 在档):
 report.json / views_digest.json / evidence_index.json / agent_judgment.json

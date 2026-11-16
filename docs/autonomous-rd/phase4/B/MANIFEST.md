@@ -64,10 +64,10 @@ PMI 10 月/资产 11-11)标注"非同窗对比";S6 类比不含中国宏观序�
     保留 Audit-R1 F0x。
 - **修订闭环终审**: 独立席(bc-closure-seat)全量只读复算 25 项断言——
   全部忠实落地、保护项(F06 改写/run_ok=False 披露)未破坏、逐位吻合、
-  零新增缺陷。**裁定 VERIFIED**,裁决档
+  零新增缺陷。**裁定 UPHELD**(R32 章程词表;原席报告词=VERIFIED,同义),裁决档
   `audit/semantic_review/20261116/VERDICT-20261116T053224Z-01.json`(fresh=True)。
 - **四态终态**: generated ✓ / machine_verified=降级(底座 run_ok=False 诚实
-  拒答类,--allow-failed-run 显式越过)/ review=VERIFIED(fresh)/
+  拒答类,--allow-failed-run 显式越过)/ review=UPHELD(fresh)/
   **deliverable=False(如实)**——F02 四态门拒发: 底座降级不可交付级,
   非缺陷而是门有牙的实证;FULL_REPORT.md 已换 F09 完整装配版。
 
@@ -75,5 +75,5 @@ PMI 10 月/资产 11-11)标注"非同窗对比";S6 类比不含中国宏观序�
 
 入库(本目录): FULL_REPORT.md / report.md / judgment_mvp.json /
 AGENT_SEAT_ENVELOPE.json / BIGFILES.sha256
-大件(运行目录 /tmp/phase4_B/20261116T053224Z_*,sha256 在档):
+大件(**已入库** evidence_pack/,Audit-R1 F05 迁移;原运行目录 /tmp/phase4_B/20261116T053224Z_*,sha256 在档):
 report.json / views_digest.json / evidence_index.json / agent_judgment.json

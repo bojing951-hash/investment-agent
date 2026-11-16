@@ -163,8 +163,8 @@
 
 - generated: true(FULL_REPORT 完整装配: L1+L2+L3/L4 全文内联+证据索引)
 - machine_verified: True(L3∧L4 produced+纪律校验过+底座非降级)
-- review: required=True seat_invoked=False verdict=None fresh=None 修订链档数=0
-- deliverable(可交付): False
+- review: required=True seat_invoked=True verdict=UPHELD fresh=True 修订链档数=1
+- deliverable(可交付): True
 - 内容绑定: content_sha256=agent_judgment(剥离审查键)+report.md 摘要,正文修订即失效旧裁决
 
 ---

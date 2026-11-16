@@ -1,0 +1,93 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "f10-acceptor-seat",
+  "notes": "F10 真正未优化独立任务终审(两轮复议闭环): 出题=本席(未参与修复, 预注册 5 期望存档不外泄), 受测席零提示自选方法 M1-M9, 原样投递逐字执行。round 1 裁 REVISE 三必修(F10-1 前向差分口径误标累计/F10-2 月度口径措辞/F10-3 宏观档版本混用)+G0-G4 全 PASS; 56b0070 修复后 round 2 抓出 F10-5(修订未传播到交付面)裁 REVISE; 0b8b9bd 重渲+三副本同步后终裁 UPHELD。数字面经本席两轮独立复算(真累计 8 数逐位/_12 钉版锚点/双档不变性/脚本重跑逐键等)全中; 核心结论(频率增强+幅度钝化+涨跌不对称)复核成立。F10-6 撤回改 observation, F10-4 NIT 列 DEFERRED。独立性维持: 操作者仅转达修订事实, 未补解法未改设问。",
+  "run_ts": "20261116T114933Z",
+  "content_sha256": "81f353c226b67ebbcbaca65e24b9445061e6d4756a0923fabc303c186e47ea1c",
+  "audited_at": "2026-11-16",
+  "recorded_at": "20261116T125615Z",
+  "counterexamples_sought": [
+    "冻结面完整性: diff 56b0070..0b8b9bd 文件范围核查(防带外改动)——未发现",
+    "副本分叉: 三副本 vs run 目录 diff -q(上轮正此探针抓出 F10-5)——本轮全一致",
+    "evidence_pack==judgment 内容等值 + sha16 亲算复核(f532e3030aeba3c1)——吻合",
+    "旧数字关键词回归: 五个差分旧值全文 0 命中",
+    "残留命中上下文裁定: 0.0106→v2 新值(对撞独立复算)/n=217→作废注内——均良性",
+    "v2 标记在位性: 0.0385/0.0519/n=216/同号延续 四标记逐一确认",
+    "四态诚实读数: semantic_review 裁决槽空缺(required=true/seat_invoked=false/verdict=null)、运行面未自评 deliverable",
+    "attach 链重构: 3 事件无缺环无重复(F10-6 探针)——撤回",
+    "MANIFEST F10-5 修复行与本席独立发现交叉核对——一致",
+    "HEAD 与 commit message 核对——一致(0b8b9bd8f2a5a5c)"
+  ],
+  "items": [
+    {
+      "id": "F10-1-fwd-diff-as-cumulative",
+      "severity": "MAJOR",
+      "verdict": "UPHELD",
+      "detail": "FIXED-VERIFIED: 新前向 8 数与本席 B 段独立复算真累计列逐位一致; f10_calc.py 公式恰=BEI 水平 t+h 减 t; 旧句+「反转回补」叙事明文作废留痕; 新叙事「同号延续而非反转」方向准确; 脚本拷 /tmp 仅改输出路径重跑==committed 输出逐键相等。",
+      "disposition": "PASS(F10-1 必修已落地, 56b0070 验)"
+    },
+    {
+      "id": "F10-2-monthly-caliber-wording",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "FIXED-VERIFIED: docstring/CON-1 basis/agent_declaration 三处口径统一「共同日历月内日变化累计(等价于上月末至本月末)」+更正注留痕。",
+      "disposition": "PASS(F10-2 必修已落地)"
+    },
+    {
+      "id": "F10-3-macro-vintage-mixing",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "FIXED-VERIFIED: 钉版 macro_20261112 后 M9 n=216/2.2@2026-11-10/百分位 0.5、M7 2026=0.0519、S4 n=2498@2026-11-10 全部与本席 _12 档复算逐位一致; 「其余值逐位不变」经 _12/_14 双档全量复算证实; 重挂链 attach 124212Z+validation 零违规+六查 18 项全 VERIFIED 亲验。",
+      "disposition": "PASS(F10-3 必修已落地)"
+    },
+    {
+      "id": "F10-5-revision-not-propagated",
+      "severity": "MAJOR",
+      "verdict": "UPHELD",
+      "detail": "FIXED-VERIFIED(复议 round 2 于 0b8b9bd): 重渲后 FULL_REPORT/report.md/evidence_pack 三副本==run 目录逐字节一致(diff -q); 五个差分旧值 0 命中; 残留 0.0106=v2 新真累计值(4% 档下跌 fwd_5d)对撞独立复算吻合, n=217 仅在明示作废注内; v2 标记(0.0385/0.0519/n=216/同号延续)在渲染面均在位; diff 56b0070..0b8b9bd 仅触四件渲染与副本文件, 冻结面未动。",
+      "disposition": "PASS(F10-5 复议后按席位 required_fix 清偿)"
+    },
+    {
+      "id": "F10-6-attach-history-gap",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "撤回, 改 observation: v2 帧亲验 attach 链 outer=124212Z(当前轮)+history[120403Z,120604Z](完整前两轮)=3 事件无缺环无重复, 与 R36「上一轮压缩进链」设计自洽; v1 帧疑点系压缩设计本身所致且已不可复核。不入 NIT 台账, 以本行 observation 留痕。",
+      "disposition": "WITHDRAWN(改 observation 留痕)"
+    },
+    {
+      "id": "F10-4-wording-precision",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "确认按 DEFERRED 列档: 「逐年走强」「0.0040-0.0060」(2022 实 0.00605)措辞精度问题, 冻结面不动, 不阻断, 如实在档。",
+      "disposition": "LISTED(列档下轮, 不阻断)"
+    }
+  ],
+  "scope": "F10 受测席产物(docs/autonomous-rd/phase4/F10: judgment_mvp.json v2=61015838fae569d0 + f10_calc.py/output + 渲染三副本)",
+  "review_rounds": [
+    {
+      "round": 1,
+      "candidate": "2a190f0/56b0070",
+      "verdict": "REVISE",
+      "required_fix": [
+        "F10-1",
+        "F10-2",
+        "F10-3"
+      ]
+    },
+    {
+      "round": 2,
+      "candidate": "0b8b9bd",
+      "verdict": "REVISE",
+      "required_fix": [
+        "F10-5"
+      ],
+      "note": "三必修本体已验毕"
+    },
+    {
+      "round": 3,
+      "candidate": "0b8b9bd",
+      "verdict": "UPHELD"
+    }
+  ]
+}

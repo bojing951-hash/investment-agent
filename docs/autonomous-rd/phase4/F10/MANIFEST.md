@@ -12,7 +12,7 @@
 |---|---|---|
 | plan | --stage plan --question '<问题逐字>' --out-dir /tmp/phase4_F10 --engine-root ~/investment-agent-dev | run_ok=true; run 目录 20261116T114933Z_布伦特原油价格…; 快照 research_snapshot_20261112_v2(target 20261112); gate_a=DEGRADED(5/5 信封步非 OK, 降级不阻断); 证据索引 64 行; L1 事实 1 行(BEI_10Y 2.2@2026-11-10); L2 n=17 全库 INSUFFICIENT_EVIDENCE(库龄函数, 首验窗 2026-12); L3/L4 produced=false(待本席) |
 | attach | --stage attach --report-dir <run> --judgment docs/autonomous-rd/phase4/F10/judgment_mvp.json | attached=true; validation_passed=true; violations=[](纪律校验+契约门双绿, 一次过门, 无降阈值无删数字) |
-| report | --stage report --report-dir <run> | generated=true; machine_verified=true; L3_produced=true; L4_produced=true; 四态门 review 态= required:true / seat_invoked:false / verdict:null(独立审查席尚未裁决, 诚实状态不阻断交件); deliverable=false / mvp_complete=false 系 review 缺席所致, 如实呈现 |
+| report | --stage report --report-dir <run> | 终渲(裁决后): generated=true; machine_verified=true; L3_produced=true; L4_produced=true; **review=UPHELD(seat_invoked=true, fresh=true, verdicts_n=1); deliverable=true; mvp_complete=true**(中间态: 修订期间两次 render review 缺席=诚实态, 见 v2 修订记录; 裁决档落产品仓 audit/semantic_review 后须以默认 ROOT 终渲方绑定——--engine-root 下审查态在引擎树找档, 属预期文件面行为) |
 
 步骤台账要点: S1-S4 OK; S5_compare 如实 SKIP(命中指标不足 2, 本席对齐改自选内连接并在计算档留痕); S6_analog OK; S8_grounded_qa 引擎面 unmapped(该问题不在确定性 QA 支持类型内, 语义✗如实落档)——判断层由本席补作即本档 L3/L4。
 
@@ -52,6 +52,13 @@ M1 对齐(共同交易日内连接+连续日变化对, n=2494) / M2 全窗 pears
 - **复议新发现 F10-5[MAJOR] 已修**: v2 修订初版未传播到交付面(FULL_REPORT/report.md/evidence_pack 三副本仍 v1 陈旧渲染, 载已作废旧叙事)——重跑 --stage report 重渲后三副本自 run 目录重拷, 逐字节一致, v1 旧数字(0.0279/0.0413 等)已不在渲染面(作废注内的旧值引用系留痕设计); evidence_pack_agent_judgment.json=attach 落位档 v2(sha16 f532e3030aeba3c1)。
 - **F10-6[NIT] 复核为非缺陷**: attach_history 设计=R36「上一轮压缩进链」, 当前轮在外层 meta(124212Z=v2 attach), history[120403Z,120604Z]=完整前两轮台账, 无缺环; 已在复议回复中向验收席说明。
 - **F10-4[NIT] 列档不改**: 「逐年走强」「0.0040-0.0060」(2022 实 0.00605)措辞精度问题, 如实列 DEFERRED, 不阻断。
+
+## 终裁与四态终态(2026-11-16)
+
+- **B 段验收(三轮复议闭环)**: round 1 裁 REVISE 三必修(F10-1/-2/-3)+G0-G4 全 PASS → 56b0070 修复 → round 2 抓出 F10-5(修订未传播到交付面)裁 REVISE → 0b8b9bd 重渲+三副本同步 → round 3 终裁 **UPHELD**(R32 章程词表; 数字面两轮独立复算逐位全中; F10-6 撤回改 observation; F10-4 NIT 列 DEFERRED)。
+- 裁决档: `audit/semantic_review/20261116/VERDICT-20261116T114933Z-01.json`(seat=semantic-audit-seat, counterexamples_sought=10, items=6, fresh=true)。
+- 独立性: 出题席=验收席(未参与修复, 预注册 5 期望存档不外泄), 受测席零提示自选方法, 操作者仅转达修订事实——未补解法/未改设问/未泄露评分预期。
+- **四态终态**: generated ✓ / machine_verified ✓ / review=UPHELD(fresh) / **deliverable=True**; FULL_REPORT.md 含裁决节与四态质量门终值。
 
 ## 工件清单(均在 ~/investment-agent-product/docs/autonomous-rd/phase4/F10/)
 

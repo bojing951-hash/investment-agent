@@ -1181,15 +1181,19 @@ class TestStaticPurity(unittest.TestCase):
     def _tree_and_strings(self):
         tree = ast.parse(_module_source())
         docs = set()
+        # Audit-R1 F04: ast.Str/n.s 在 Python 3.12 已移除——改 ast.Constant
+        # +value 判型(3.8+ 全版本统一;判定面不变,阈值零放宽)
         for node in ast.walk(tree):
             if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef,
                                  ast.ClassDef)):
                 body = node.body
                 if (body and isinstance(body[0], ast.Expr)
-                        and isinstance(body[0].value, ast.Str)):
-                    docs.add(body[0].value.s)
-        strings = [n.s for n in ast.walk(tree)
-                   if isinstance(n, ast.Str) and n.s not in docs]
+                        and isinstance(body[0].value, ast.Constant)
+                        and isinstance(body[0].value.value, str)):
+                    docs.add(body[0].value.value)
+        strings = [n.value for n in ast.walk(tree)
+                   if isinstance(n, ast.Constant) and isinstance(n.value, str)
+                   and n.value not in docs]
         return tree, strings, docs
 
     def test_import_whitelist(self):

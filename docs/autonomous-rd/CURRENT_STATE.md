@@ -5,6 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-16 R43 A 族碎片泄漏硬化(T-R43-1)
+> baseline=88ccfe01b74ce8a73607e7263b7fb6b9742f67b1 (机器行: rd_checkpoint.py 维护,勿手改)
 > baseline=(机器行占位: rd_checkpoint.py --finalize 盖章,勿手改)
 
 - **基线**: main = 64a482c(R42 尾补重盖章);本轮=`dev/rd-r43-fragment-hardening`(基点 64a482c;开班门①红=main 已并 R41+R42→基面迁移,门 7/7)。

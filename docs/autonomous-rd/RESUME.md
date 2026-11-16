@@ -33,7 +33,7 @@ R42=测试聚合器吞错修复已毕+R43=A 族碎片泄漏硬化已毕(引擎�
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
-<!-- RD-CHECKPOINT v1: json {"round": 42, "date": "2026-11-16 05:11 HKT", "branch": "main", "commit": "e803b4c449cd91d9604db3b94ae326e3f82d281b", "baseline": "e803b4c449cd91d9604db3b94ae326e3f82d281b", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R42-1"], "next_task": "R43: 引擎轨道=A 族碎片泄漏硬化首位候选(R41 定性件 154/326=47%,检查面预处理=HTML注释/生成头剥离+引用ID/碎片过滤)+T8-R2 ④⑥⑦下次启封随批+round.sh 双上限(LIVE 部署时)+R41 审计登记 MINOR-1+NIT-3~5+新聚合模板入守卫 GUARD_FILES(RDG-012 NIT-A)+pytest 口径陈年四件套随批修(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2 模块级管线 argparse 读 pytest argv,RDG-012 残余;CI/直跑口径绿=非阻塞);日历门 F=2026-12-05 勿手工提前", "next_round": 43} -->
+<!-- RD-CHECKPOINT v1: json {"round": 43, "date": "2026-11-16 09:22 HKT", "branch": "dev/rd-r43-fragment-hardening", "commit": "88ccfe01b74ce8a73607e7263b7fb6b9742f67b1", "baseline": "88ccfe01b74ce8a73607e7263b7fb6b9742f67b1", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R43-1"], "next_task": "R44: 引擎轨道=B 族评分卡分值列/表内碎片硬化首位候选(R43 后 283 CONTRA 中居首: | +2 | 分值列绑行指标水平+散文总分 增长总分0、通胀总分+3 形态)+T8-R2 ④⑥⑦ 启封随批+R43 审计登记 MINOR-2 表内序号/NIT-2 未闭合注释/NIT-5 r1_vp_stages+R41 审计登记 MINOR-1+NIT-3~5+round.sh 双上限(LIVE 部署时);日历门 F=2026-12-05 勿手工提前", "next_round": 44} -->
 
 ## 下一步存档(2026-11-16 R43 收口后版)
 

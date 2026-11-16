@@ -9,7 +9,14 @@ text_consistency.check_text(迁移门)在**同一批真实周报**上并行跑,�
 
 用法:
   python3 scripts/gate_b_parallel_harness.py --reports output/weekly \
-      [--snapshot data/snapshots/latest.json] [--out audit/gate_b_parallel/]
+      [--snapshot data/snapshots/latest.json] [--anchors-data data/daily_vintage/]
+      [--out audit/gate_b_parallel/]
+
+输入对齐(Audit-R1 F08): 新面快照与旧面锚点均支持**每报告一源**(1:1 对应);
+旧面锚点从各报告自己的数据目录提取(extract_anchors_from_data(data_dir) 注入,
+不触生产),不再在循环外一次性提取——历史多报告跨 vintage 并测时,旧面不得拿
+今日锚点校昨日报告(输入错代=对照失真)。未给 --anchors-data 时如实注记
+「旧面锚点=单一现役 vintage(与各报告自身 vintage 可能不符)」并在行内披露。
 
 迁移判据(MC1-MC4,固定于本件 docstring 与 MIGRATION_CRITERIA——先固定
 后测量,禁事后调标):
@@ -90,6 +97,9 @@ def main(argv=None):
     ap.add_argument('--reports', required=True, nargs='+', help='周报文件/目录(多报一次成套)')
     ap.add_argument('--snapshot', required=True, nargs='+',
                     help='快照 json/目录,与报告一一对应(同源可比: 快照选择影响新面计数)')
+    ap.add_argument('--anchors-data', nargs='+', default=None,
+                    help='旧面锚点数据目录(json vintage),与报告一一对应;缺省=单一现役 vintage'
+                         '(如实注记,历史报告对照时为输入错代)')
     ap.add_argument('--out', default=os.path.join(ROOT, 'audit', 'gate_b_parallel'))
     args = ap.parse_args(argv)
 
@@ -109,21 +119,39 @@ def main(argv=None):
         raise SystemExit(f'快照数({len(snaps)})须与报告数({len(reports)})一致或为 1')
     loaded = [load_snapshot(sp) for sp in snaps]
 
-    # 旧面锚点: 与生产同源(data_validator 自提取)
+    # 旧面锚点(Audit-R1 F08 输入对齐): 每报告可注自己的 vintage 数据目录;
+    # 缺省退回单一现役提取,并在行内如实注记(历史报告=输入错代披露)
     import data_validator
     import io, contextlib
-    buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
-        anchors = data_validator.extract_anchors_from_data()
+    anchor_dirs = list(args.anchors_data or [])
+    if len(anchor_dirs) == 1:
+        anchor_dirs = anchor_dirs * len(reports)
+    if anchor_dirs and len(anchor_dirs) != len(reports):
+        raise SystemExit(f'--anchors-data 数({len(anchor_dirs)})须与报告数({len(reports)})一致或为 1')
+    shared_anchors, shared_note = None, None
+    if not anchor_dirs:
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            shared_anchors = data_validator.extract_anchors_from_data()
+        shared_note = 'single_live_vintage(未给 --anchors-data;历史报告对照时旧面输入错代,如实注记)'
+
+    def _anchors_for(i):
+        if not anchor_dirs:
+            return shared_anchors, shared_note
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            anc = data_validator.extract_anchors_from_data(anchor_dirs[i])
+        return anc, f'per_report_vintage:{anchor_dirs[i]}'
 
     os.makedirs(args.out, exist_ok=True)
     rows = []
-    for rp, (snapshot, snap_path) in zip(reports, loaded):
+    for i, (rp, (snapshot, snap_path)) in enumerate(zip(reports, loaded)):
+        anchors, anchors_src = _anchors_for(i)
         old = run_old_gate_b(rp, anchors)
         new = run_new_gate_b(rp, snapshot)
         rows.append({'report': os.path.basename(rp), 'snapshot_used': snap_path,
-                     'old': old, 'new': new})
-        print(f"{os.path.basename(rp)}: 旧 problems={old.get('count')} 新 contra={new.get('contra')} (verdict={new.get('verdict')})")
+                     'anchors_used': anchors_src, 'old': old, 'new': new})
+        print(f"{os.path.basename(rp)}: 旧 problems={old.get('count')} 新 contra={new.get('contra')} (verdict={new.get('verdict')}) [anchors={anchors_src}]")
 
     # MC2 逐报评估(MC1/MC3/MC4=裁定档/连续期/独立席职责,本件只登记待评)
     mc2_rows = []
@@ -135,7 +163,7 @@ def main(argv=None):
                          'adjudicated_pass': 'PENDING(须裁定档,MC1 同源)'})
     result = {
         'generated_at': hkt_now(),
-        'snapshot_provenance': '每报各自快照(见 comparison[].snapshot_used);跨跑可比性=同快照同 prior_anchors(prior_anchors 未接线=新面计数保守偏高等,如实注记)',
+        'snapshot_provenance': '每报各自快照(见 comparison[].snapshot_used)+各自旧面锚点 vintage(见 comparison[].anchors_used;Audit-R1 F08 输入对齐);跨跑可比性=同快照同锚同 prior_anchors(prior_anchors 未接线=新面计数保守偏高等,如实注记)',
         'migration_criteria': MIGRATION_CRITERIA,
         'comparison': rows,
         'MC2_per_report': mc2_rows,

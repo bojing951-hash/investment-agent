@@ -53,10 +53,30 @@ class TestBFirstMeasurementArtifact(unittest.TestCase):
                 for r in d.get('MC2_per_report', [])))
 
 
+class TestCAuditR1F08InputParity(unittest.TestCase):
+    """§C Audit-R1 F08 输入对齐: 旧面锚点支持每报告一 vintage,不再循环外一次性提取。"""
+
+    def test_f08_faces(self):
+        src = open(os.path.join(ROOT, 'scripts', 'gate_b_parallel_harness.py'),
+                   encoding='utf-8').read()
+        check('§C --anchors-data 参在场', "'--anchors-data'" in src)
+        check('§C 每报告锚点注入(extract_anchors_from_data(data_dir))',
+              'extract_anchors_from_data(anchor_dirs[i])' in src)
+        check('§C 行内 anchors_used 溯源', "'anchors_used': anchors_src" in src)
+        check('§C 缺省单一 vintage 如实注记(输入错代披露)',
+              'single_live_vintage' in src and '输入错代' in src)
+        check('§C 数量校验(1 或 1:1)', '须与报告数' in src)
+        r = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts',
+                           'gate_b_parallel_harness.py'), '--help'],
+                           capture_output=True, text=True, timeout=60)
+        check('§C harness --help rc=0', r.returncode == 0, r.stderr[-100:])
+
+
 def main():
     print('══ Product Convergence Phase 2 守卫 ══')
     errs = 0
-    for cls in (TestAMigrationCriteriaFixed, TestBFirstMeasurementArtifact):
+    for cls in (TestAMigrationCriteriaFixed, TestBFirstMeasurementArtifact,
+                    TestCAuditR1F08InputParity):
         from io import StringIO
         print(f'── {cls.__name__} ──')
         res = unittest.TextTestRunner(stream=StringIO(), verbosity=0).run(

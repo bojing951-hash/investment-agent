@@ -52,6 +52,39 @@
   什么数据;预注册 sha 锁定先于运行;但投递映射注入方法学指定词——
   Phase 5 审计 M-2 如实降级)
 
+## Audit-R1 修订记录(2026-11-16,第一轮外部审计修复)
+
+- **v3→v4(终版 sha256 前 16 位 `afd04c693d1f561a`,v3=`2e150fcde2605152`,
+  审计前旧版=`c5418ed97a8d0c3e`)**:
+  - v3 依第一轮语义复审 8 发现(FIX-1~8)+F01/F06:
+    FIX-1[MAJOR] SCN-B 旧「1月高点回撤逾两成=再耦合早期形态」作废(时序
+    错位+美元腿混淆)→换紧缩窗段落事实(9月窗 -6.58%/UST+54bp/双腿分解);
+    FIX-2[MINOR] SCN-B 证伪美元腿条件化(偏相关或|ΔDXY|<0.3%子样本两口径
+    同向方计);FIX-3[MINOR] SCN-C 补 60 交易日窗;FIX-4[MINOR] 前提反向条款
+    (99.85);FIX-5[MINOR] MECH-1 E3 数值化;FIX-6[MINOR] CON-2 桶值全量复算
+    更正(美元桶 -0.428%/+0.671%,旧合计桶与 n=27/+0.07% 作废);FIX-7/8[NIT]
+    VIX>28 最小样本+REAL_10Y 水平为准前提注记;
+  - v4 = 席位终审裁定的两项不阻断 MINOR 即时清偿(数字未动):
+    FIX-6 残留年限标签「2025年」→「2025年至2026年」;NEW-1 MECH-2 step1
+    作废桶传播(-0.30%/+0.48% → -0.428%/+0.671%,与 CON-2 作废注同源交叉
+    引用),档内自相矛盾消除;
+  - 标记形制映射: 扫描字段(statement/basis)内用无数字标记「复审更正/
+    复审重算更正/复审披露」(数字形 Audit-R1 F0x 会 token 化误绑),未扫描
+    字段保留 Audit-R1 F0x。
+- **修订闭环终审**: 独立席(blind-closure-seat)n=2492 全样本只读复算
+  (年度/滚动 252/分段斜率/分桶/分状态/L2 面 17 份 VP 与 MSIM、UBS 引用
+  逐条核对)——八项必修全落地,无阈值放宽无含糊逃避,SCN-A 范例条款完好。
+  **裁定 VERIFIED**;v4 清偿后重挂链绿(validate 零违规+契约门 VERIFIED
+  11/11 unbound=0+attach True)。裁决档
+  `audit/semantic_review/20261116/VERDICT-20261116T053623Z-01.json`(fresh=True,
+  内含 post_verdict_cleared 两项与 NEW-2/NEW-3 残留清单)。
+- **残留移交下轮(不阻断)**: NEW-2 MECH-3 收窄日 -0.361 系冻结脚本
+  blind_calc2.py HY 段 i=0 环绕伪值(正确 -0.382,定性稳健),下轮更正数值
+  并修脚本索引;NEW-3 四项精度 NIT(-0.535→-0.541/-0.55→-0.557/旧常态
+  -0.40 偏严/TIPS 基差表述)备查。
+- **四态终态**: generated ✓ / machine_verified ✓ / review=VERIFIED(fresh) /
+  **deliverable=True**;FULL_REPORT.md 已换 F09 完整装配版。
+
 ## 工件
 
 入库(本目录): question_prereg.json / blind_calc.py / blind_calc2.py /

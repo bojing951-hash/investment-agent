@@ -1388,6 +1388,239 @@ def cmd_research_attach(args):
 
 
 
+def _r1_plan_core(args, engine_root):
+    """plan 段核心(Audit-R1 F09 抽取): research-run 证据面+工单/索引/摘编落盘。
+
+    返回 (rep, rd, error);error 非 None=orchestrator 失败(如实透传)。
+    """
+    import research_orchestrator as ro
+    try:
+        rep = ro.run_research(args.question, root=engine_root,
+                              archive=bool(getattr(args, 'archive', False)),
+                              out_dir=getattr(args, 'out_dir', None),
+                              engine_root=engine_root)
+    except (OSError, ValueError) as e:
+        return None, None, ('orchestrator_failed', str(e), None)
+    rd = rep.get('report_dir')
+    # 证据索引独立落盘(工单 read_first 引用;report.json 内嵌副本仍在)
+    with open(os.path.join(rd, 'evidence_index.json'), 'w', encoding='utf-8') as f:
+        json.dump(rep.get('evidence_index', []), f, ensure_ascii=False, indent=2)
+    # L2 富内容摘编(确定性装配,零生成): report.json L2 只含 VP sidecar
+    # 验证标签;机构观点原文在 views 库——字段选取入 run 目录供 Agent 席读
+    views_note = 'views 库在场'
+    digest = []
+    try:
+        import view_store as vs
+        for v in vs.load_views(os.path.join(
+                engine_root, 'data', 'institutions', 'views'))['views']:
+            inst = v.get('institution') or {}
+            digest.append({
+                k: v.get(k) for k in (
+                    'view_id', 'report_title', 'publish_date',
+                    'view_horizon', 'subjects', 'core_views',
+                    'forecasts', 'risk_factors')})
+            digest[-1]['institution_name'] = inst.get('name')
+    except (OSError, ValueError, KeyError) as e:
+        views_note = f'views 库不可读/缺席: {e}'
+    with open(os.path.join(rd, 'views_digest.json'), 'w', encoding='utf-8') as f:
+        json.dump({'n': len(digest), 'note': views_note, 'views': digest},
+                  f, ensure_ascii=False, indent=2)
+    envelope_path = os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')
+    work_order = {
+        'role': 'Agent Native 研究席(L3 推断+L4 条件情景真产出)',
+        'question': args.question,
+        'report_dir': rd,
+        'evidence_index_rows': len(rep.get('evidence_index', [])),
+        'read_first': [
+            os.path.join(rd, 'report.json'),
+            os.path.join(rd, 'evidence_index.json'),
+            os.path.join(rd, 'views_digest.json') + '   # L2 机构观点富内容(原文摘编)',
+            'scripts/agent_judgment.py   # judgment schema v1.1 模块 docstring',
+            '.agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)',
+        ],
+        'produce': 'judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/'
+                   'E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件)',
+        'then': ['ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>',
+                 'ia_cli.py research-one --stage report --report-dir <rd>'],
+        'discipline': ['L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造',
+                       '禁改 report.json 的 produced 字段(attach 校验器唯一写者)',
+                       '研究质量十二问逐问答(章程§七)'],
+    }
+    with open(envelope_path, 'w', encoding='utf-8') as f:
+        json.dump(work_order, f, ensure_ascii=False, indent=2)
+    return rep, rd, None
+
+
+def _r1_attach_core(args, engine_root):
+    """attach 段核心(Audit-R1 F09 抽取): 校验+落位。返回 (res, error)。"""
+    import agent_judgment as aj
+    try:
+        res = aj.attach_judgment(
+            args.report_dir, args.judgment, root=engine_root,
+            allow_failed_run=bool(getattr(args, 'allow_failed_run', False)))
+    except (OSError, ValueError, KeyError) as e:
+        return None, ('attach_failed', str(e), None)
+    return res, None
+
+
+def _r1_report_core(args, engine_root):
+    """report 段核心(Audit-R1 F09): FULL_REPORT **完整装配**。
+
+    完整性契约: L1 表+L2 摘编+L3/L4 **全文内联**(produced 时逐条渲染判断
+    原文——旧版仅指路不内联=可交付件不完整)+证据索引表+四态质量门;
+    确定性装配零生成,L3/L4 内容归 Agent 席与独立审计。
+    返回 (ok, data, warnings)。
+    """
+    rd = args.report_dir
+    rj = json.load(open(os.path.join(rd, 'report.json'), encoding='utf-8'))
+    layers = rj.get('layers', {})
+    l3, l4 = layers.get('L3_AI推断层', {}), layers.get('L4_条件情景层', {})
+    l1_rows = layers.get('L1_事实层', {}).get('rows', [])
+    vpf = layers.get('L2_机构观点层', {}).get('views') or {}
+    run_meta = rj.get('run') or {}
+    out_md = os.path.join(rd, 'FULL_REPORT.md')
+    lines = ['# 完整研究报告(一键研究 MVP)', '',
+             '- 问题: ' + (run_meta.get('question') or args.question or ''),
+             f"- run_ok: {rj.get('run_ok')} | 证据行: {len(rj.get('evidence_index', []))}"
+             f" | run.ts_utc: {run_meta.get('ts_utc')}",
+             '', '## L1 事实层(引擎确定性产出)', '',
+             '| 指标 | 值 | 单位 | 观测日 | 质量 | 证据 ref |',
+             '|---|---|---|---|---|---|']
+    for r in l1_rows:
+        src = r.get('source') or {}
+        lines.append(f"| {r.get('metric_id')} | {r.get('value')} | "
+                     f"{r.get('unit')} | {r.get('observation_date')} | "
+                     f"{r.get('quality_status')} | {src.get('id')} |")
+    lines += ['', '## L2 机构观点层(VP sidecar 验证面+views 库摘编)', '',
+              f"- available={vpf.get('available')} n={vpf.get('n')} "
+              f"隔离={vpf.get('n_bad_quarantined')}",
+              f"- 富内容摘编: views_digest.json(在场机构主张原文,机构面=institution_stated)"]
+    vd_path = os.path.join(rd, 'views_digest.json')
+    if os.path.exists(vd_path):
+        vd = json.load(open(vd_path, encoding='utf-8'))
+        for v in vd.get('views', []):
+            lines.append(f"  - {v.get('view_id')} · {v.get('institution_name')}"
+                         f" · {v.get('publish_date')} · {v.get('report_title')}")
+
+    # ── L3/L4 全文内联(Audit-R1 F09 完整装配: 可交付件自含判断原文) ──
+    def _inline_l3(c):
+        cons = (c or {}).get('contradictions') or []
+        mechs = (c or {}).get('mechanism_chains') or []
+        out = []
+        for x in cons:
+            out.append(f"### {x.get('id')} · {x.get('statement', '')}")
+            if x.get('basis'):
+                out += ['- 依据: ' + x['basis']]
+            for ce in x.get('competing_explanations') or []:
+                if isinstance(ce, dict):
+                    out.append('- 竞争性解释: ' + str(ce.get('text') or ce))
+                else:
+                    out.append('- 竞争性解释: ' + str(ce))
+        for m in mechs:
+            out.append(f"### 机制链 {m.get('id')} · {m.get('name', '')}")
+            for lk in m.get('links') or []:
+                s = f"- 环{lk.get('step')} [E{str(lk.get('evidence_level', '')).replace('E', '')}] {lk.get('text', '')}"
+                if lk.get('missing_link_note'):
+                    s += f"\n  - 缺环注记: {lk['missing_link_note']}"
+                out.append(s)
+        return out
+
+    def _inline_l4(c):
+        out = []
+        for s in (c or {}).get('scenarios') or []:
+            rows = s.get('rows') or {}
+            ad = rows.get('asset_direction') or {}
+            fals = rows.get('falsification') or {}
+            trig = rows.get('trigger') or {}
+            out.append(f"### {s.get('id')} · 角色={s.get('role', '')}")
+            out.append('- 情景: ' + str(rows.get('scenario', '')))
+            out.append(f"- 资产方向: {ad.get('direction', '')} | 置信档: {ad.get('confidence_tier', '')}")
+            if ad.get('text'):
+                out.append('  - 依据: ' + str(ad['text']))
+            out.append('- 敏感变量: ' + ', '.join(rows.get('sensitive_variables') or []))
+            out.append(f"- 证伪: 指标={fals.get('metric_id', '')} | 阈值={fals.get('threshold', '')}"
+                       + (f" | 次级={','.join(fals.get('secondary_metric_ids') or [])}" if fals.get('secondary_metric_ids') else ''))
+            out.append(f"- 触发: {trig.get('condition', '')} | 期限: {trig.get('deadline', '')}")
+        return out
+
+    lines += ['', '## L3 AI 推断层(Agent 席真产·全文内联)', '',
+              f"- produced={l3.get('produced')} attribution={l3.get('attribution')}"]
+    if l3.get('produced') and l3.get('content') is not None:
+        lines += _inline_l3(l3.get('content'))
+    else:
+        lines.append('- (未落位: 判断原文不在场,见 report.md/agent_judgment.json)')
+    lines += ['', '## L4 条件情景层(Agent 席真产·全文内联)', '',
+              f"- produced={l4.get('produced')} attribution={l4.get('attribution')}"]
+    if l4.get('produced') and l4.get('content') is not None:
+        lines += _inline_l4(l4.get('content'))
+    else:
+        lines.append('- (未落位: 情景原文不在场,见 report.md/agent_judgment.json)')
+
+    # 证据索引表(可交付件自含追溯面)
+    lines += ['', '## 证据索引', '',
+              '| # | kind | ref | 说明 |', '|---|---|---|---|']
+    for i, e in enumerate(rj.get('evidence_index') or [], 1):
+        lines.append(f"| {i} | {e.get('kind')} | {e.get('ref')} | "
+                     f"{str(e.get('note') or e.get('desc') or '')[:80]} |")
+
+    # ── Audit-R1 F02: 独立审查四态门(生成≠校验≠审查≠可交付) ──
+    import agent_judgment as aj
+    sr = aj._semantic_review_state(rj, engine_root, rd)
+    aj_meta = rj.get('agent_judgment') or {}
+    machine_verified = bool(
+        l3.get('produced') and l4.get('produced')
+        and (aj_meta.get('validation') or {}).get('passed')
+        and aj_meta.get('run_ok_at_attach') is not False)
+    review_ok = (not sr.get('required')) or (
+        sr.get('seat_invoked')
+        and sr.get('verdict') in aj.REVIEW_APPROVED_VERDICTS
+        and sr.get('fresh') is True)
+    deliverable = machine_verified and review_ok
+    warnings = []
+    if not l3.get('produced') or not l4.get('produced'):
+        warnings.append('L3/L4 未全 produced——不冒认完整(G2 门不放过)')
+    elif not ((aj_meta.get('validation') or {}).get('passed')):
+        warnings.append('机器纪律校验未过(violations 在 agent_judgment 档)')
+    elif aj_meta.get('run_ok_at_attach') is False:
+        warnings.append('底座 run_ok=False(降级落位,不可交付级)')
+    elif sr.get('required') and not sr.get('seat_invoked'):
+        warnings.append('独立审查 required=true 但裁决缺席——'
+                        '不得标记 MVP 完成或可验收交付')
+    elif sr.get('required') and sr.get('verdict') not in \
+            aj.REVIEW_APPROVED_VERDICTS:
+        warnings.append(f"独立审查裁决={sr.get('verdict')}"
+                        '(REVISE/FAIL/其他=修订后再交付)')
+    elif sr.get('required') and sr.get('fresh') is not True:
+        warnings.append('裁决未绑定当前正文哈希或已过期(正文修订后须复验'
+                        '生成新裁决记录)')
+    lines += ['', '## 质量状态(Audit-R1 F02 四态)', '',
+              f"- generated: true(FULL_REPORT 完整装配: L1+L2+L3/L4 全文内联+证据索引)",
+              f"- machine_verified: {machine_verified}"
+              "(L3∧L4 produced+纪律校验过+底座非降级)",
+              f"- review: required={sr.get('required')} seat_invoked="
+              f"{sr.get('seat_invoked')} verdict={sr.get('verdict')} "
+              f"fresh={sr.get('fresh')} 修订链档数={sr.get('verdicts_n')}",
+              f"- deliverable(可交付): {deliverable}",
+              '- 内容绑定: content_sha256=agent_judgment(剥离审查键)+'
+              'report.md 摘要,正文修订即失效旧裁决']
+    lines += ['', '---', '渲染纪律: 本件只汇编在场事实(确定性装配),不做新增生成;',
+              'L3/L4 内容归 Agent 席与独立审计,本段不代写。']
+    with open(out_md, 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines) + '\n')
+    data = {
+        'stage': 'report', 'full_report': out_md,
+        'L3_produced': l3.get('produced'),
+        'L4_produced': l4.get('produced'),
+        'generated': True, 'machine_verified': machine_verified,
+        'review': {'required': sr.get('required'),
+                   'seat_invoked': sr.get('seat_invoked'),
+                   'verdict': sr.get('verdict'), 'fresh': sr.get('fresh'),
+                   'verdicts_n': sr.get('verdicts_n'),
+                   'prior_verdicts': sr.get('prior_verdicts') or []},
+        'deliverable': deliverable, 'mvp_complete': deliverable}
+    return deliverable, data, warnings
+
+
 def cmd_research_one(args):
     """一键研究 MVP 单入口(Product Convergence Phase 3/章程§五)。
 
@@ -1396,84 +1629,81 @@ def cmd_research_one(args):
 
     三段式而非单进程: L3/L4 恒由 Agent 席(Agent Native)产生——本命令是
     零模型编排层,plan 段产出 AGENT_SEAT_ENVELOPE(工单),attach 段只验
-    纪律不代写。--engine-root 注入真实数据树(测试/净环境用注入缝)。"""
-    import research_orchestrator as ro
-    stage = getattr(args, 'stage', 'plan')
+    纪律不代写。--engine-root 注入真实数据树(测试/净环境用注入缝)。
+
+    Audit-R1 F09 --stage auto: 单命令全自动链 plan→attach→report——
+    judgment 在场则一命令贯通至 FULL_REPORT;缺席则停 plan 段并给
+    Agent 席工单(Agent Native 暂停点,零模型不代写判断,如实披露)。"""
     engine_root = getattr(args, 'engine_root', None) or ROOT
+    stage = getattr(args, 'stage', 'plan')
+
+    if stage == 'auto':
+        # F09 单命令全自动链: 一次自然语言输入 → 证据面 → (judgment 在场
+        # 则校验落位) → 完整报告。链内各段结果随档,失败段如实截链。
+        if not getattr(args, 'question', None):
+            emit(envelope('research-one', False, {'stage': 'auto'},
+                          error=('bad_args', 'auto 段需 --question', None)),
+                 exit_code=1)
+            return
+        rep, rd, err = _r1_plan_core(args, engine_root)
+        if err:
+            emit(envelope('research-one', False, {'stage': 'auto', 'chain': [
+                {'stage': 'plan', 'ok': False, 'error': list(err)}]}, error=err),
+                 exit_code=1)
+            return
+        chain = [{'stage': 'plan', 'ok': bool(rep.get('run_ok')),
+                  'report_dir': rd, 'run_ok': rep.get('run_ok'),
+                  'agent_seat_envelope': os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')}]
+        if not getattr(args, 'judgment', None):
+            chain.append({'stage': 'pause', 'ok': None,
+                          'note': 'judgment 缺席——Agent Native 暂停点: '
+                                  'Agent 席按工单真产 L3/L4 后携 --judgment 重跑 auto'})
+            emit(envelope('research-one', False, {
+                'stage': 'auto', 'chain': chain,
+                'next': 'Agent 席按 AGENT_SEAT_ENVELOPE.json 真产 judgment → '
+                        '--stage auto --judgment <path> 续链'}, None), exit_code=1)
+            return
+        args.report_dir = rd
+        res, err = _r1_attach_core(args, engine_root)
+        if err or not (res or {}).get('attached'):
+            chain.append({'stage': 'attach', 'ok': False,
+                          'error': list(err) if err else 'attached=false',
+                          'blocked': (res or {}).get('blocked'),
+                          'violations': ((res or {}).get('validation') or {}).get('violations')})
+            emit(envelope('research-one', False, {'stage': 'auto', 'chain': chain},
+                          error=err or ('attach_blocked',
+                                        str((res or {}).get('blocked')), None)),
+                 exit_code=1)
+            return
+        chain.append({'stage': 'attach', 'ok': True,
+                      'validation_passed': (res.get('validation') or {}).get('passed')})
+        ok, data, warns = _r1_report_core(args, engine_root)
+        chain.append({'stage': 'report', 'ok': ok, 'deliverable': data.get('deliverable'),
+                      'full_report': data.get('full_report')})
+        data = dict(data, stage='auto', chain=chain)
+        emit(envelope('research-one', ok, data, warns or None),
+             exit_code=0 if ok else 1)
+        return
 
     if stage == 'plan':
-        try:
-            rep = ro.run_research(args.question, root=engine_root,
-                                  archive=bool(getattr(args, 'archive', False)),
-                                  out_dir=getattr(args, 'out_dir', None),
-                                  engine_root=engine_root)
-        except (OSError, ValueError) as e:
-            emit(envelope('research-one', False, {'stage': 'plan'},
-                          error=('orchestrator_failed', str(e), None)), exit_code=1)
+        rep, rd, err = _r1_plan_core(args, engine_root)
+        if err:
+            emit(envelope('research-one', False, {'stage': 'plan'}, error=err),
+                 exit_code=1)
             return
-        rd = rep.get('report_dir')
-        # 证据索引独立落盘(工单 read_first 引用;report.json 内嵌副本仍在)
-        with open(os.path.join(rd, 'evidence_index.json'), 'w', encoding='utf-8') as f:
-            json.dump(rep.get('evidence_index', []), f, ensure_ascii=False, indent=2)
-        # L2 富内容摘编(确定性装配,零生成): report.json L2 只含 VP sidecar
-        # 验证标签;机构观点原文在 views 库——字段选取入 run 目录供 Agent 席读
-        views_note = 'views 库在场'
-        digest = []
-        try:
-            import view_store as vs
-            for v in vs.load_views(os.path.join(
-                    engine_root, 'data', 'institutions', 'views'))['views']:
-                inst = v.get('institution') or {}
-                digest.append({
-                    k: v.get(k) for k in (
-                        'view_id', 'report_title', 'publish_date',
-                        'view_horizon', 'subjects', 'core_views',
-                        'forecasts', 'risk_factors')})
-                digest[-1]['institution_name'] = inst.get('name')
-        except (OSError, ValueError, KeyError) as e:
-            views_note = f'views 库不可读/缺席: {e}'
-        with open(os.path.join(rd, 'views_digest.json'), 'w', encoding='utf-8') as f:
-            json.dump({'n': len(digest), 'note': views_note, 'views': digest},
-                      f, ensure_ascii=False, indent=2)
-        envelope_path = os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')
-        work_order = {
-            'role': 'Agent Native 研究席(L3 推断+L4 条件情景真产出)',
-            'question': args.question,
-            'report_dir': rd,
-            'evidence_index_rows': len(rep.get('evidence_index', [])),
-            'read_first': [
-                os.path.join(rd, 'report.json'),
-                os.path.join(rd, 'evidence_index.json'),
-                os.path.join(rd, 'views_digest.json') + '   # L2 机构观点富内容(原文摘编)',
-                'scripts/agent_judgment.py   # judgment schema v1.1 模块 docstring',
-                '.agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)',
-            ],
-            'produce': 'judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/'
-                       'E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件)',
-            'then': ['ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>',
-                     'ia_cli.py research-one --stage report --report-dir <rd>'],
-            'discipline': ['L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造',
-                           '禁改 report.json 的 produced 字段(attach 校验器唯一写者)',
-                           '研究质量十二问逐问答(章程§七)'],
-        }
-        with open(envelope_path, 'w', encoding='utf-8') as f:
-            json.dump(work_order, f, ensure_ascii=False, indent=2)
         emit(envelope('research-one', bool(rep.get('run_ok')), {
             'stage': 'plan', 'report_dir': rd, 'run_ok': rep.get('run_ok'),
-            'agent_seat_envelope': envelope_path,
+            'agent_seat_envelope': os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json'),
             'L3_produced': rep['layers']['L3_AI推断层']['produced'],
             'L4_produced': rep['layers']['L4_条件情景层']['produced'],
             'next': 'Agent 席按 AGENT_SEAT_ENVELOPE.json 真产 L3/L4 → attach 段'}))
         return
 
     if stage == 'attach':
-        import agent_judgment as aj
-        try:
-            res = aj.attach_judgment(args.report_dir, args.judgment, root=engine_root,
-                                     allow_failed_run=bool(getattr(args, 'allow_failed_run', False)))
-        except (OSError, ValueError, KeyError) as e:
-            emit(envelope('research-one', False, {'stage': 'attach'},
-                          error=('attach_failed', str(e), None)), exit_code=1)
+        res, err = _r1_attach_core(args, engine_root)
+        if err:
+            emit(envelope('research-one', False, {'stage': 'attach'}, error=err),
+                 exit_code=1)
             return
         emit(envelope('research-one', bool(res.get('attached')), {
             'stage': 'attach', 'report_dir': res.get('report_dir'),
@@ -1485,99 +1715,11 @@ def cmd_research_one(args):
         return
 
     if stage == 'report':
-        rd = args.report_dir
-        rj = json.load(open(os.path.join(rd, 'report.json'), encoding='utf-8'))
-        layers = rj.get('layers', {})
-        l3, l4 = layers.get('L3_AI推断层', {}), layers.get('L4_条件情景层', {})
-        l1_rows = layers.get('L1_事实层', {}).get('rows', [])
-        vpf = layers.get('L2_机构观点层', {}).get('views') or {}
-        out_md = os.path.join(rd, 'FULL_REPORT.md')
-        lines = ['# 完整研究报告(一键研究 MVP)', '',
-                 '- 问题: ' + ((rj.get('run') or {}).get('question') or args.question),
-                 f'- run_ok: {rj.get("run_ok")} | 证据行: {len(rj.get("evidence_index", []))}',
-                 '', '## L1 事实层(引擎确定性产出)', '',
-                 '| 指标 | 值 | 单位 | 观测日 | 质量 | 证据 ref |',
-                 '|---|---|---|---|---|---|']
-        for r in l1_rows:
-            src = r.get('source') or {}
-            lines.append(f"| {r.get('metric_id')} | {r.get('value')} | "
-                         f"{r.get('unit')} | {r.get('observation_date')} | "
-                         f"{r.get('quality_status')} | {src.get('id')} |")
-        lines += ['', '## L2 机构观点层(VP sidecar 验证面+views 库摘编)', '',
-                  f"- available={vpf.get('available')} n={vpf.get('n')} "
-                  f"隔离={vpf.get('n_bad_quarantined')}",
-                  f"- 富内容摘编: views_digest.json(在场机构主张原文,机构面=institution_stated)"]
-        vd_path = os.path.join(rd, 'views_digest.json')
-        if os.path.exists(vd_path):
-            vd = json.load(open(vd_path, encoding='utf-8'))
-            for v in vd.get('views', []):
-                lines.append(f"  - {v.get('view_id')} · {v.get('institution_name')}"
-                             f" · {v.get('publish_date')} · {v.get('report_title')}")
-        lines += ['', '## L3 AI 推断层(Agent 席真产)', '',
-                  f"- produced={l3.get('produced')} attribution={l3.get('attribution')}",
-                  f"- 判断原文: report.md L3 节 + agent_judgment.json 归档副本"]
-        lines += ['', '## L4 条件情景层(Agent 席真产)', '',
-                  f"- produced={l4.get('produced')} attribution={l4.get('attribution')}",
-                  '- 情景五行齐备面: report.md L4 节 + agent_judgment.json 归档副本']
-
-        # ── Audit-R1 F02: 独立审查四态门(生成≠校验≠审查≠可交付) ──
-        import agent_judgment as aj
-        sr = aj._semantic_review_state(rj, engine_root, rd)
-        aj_meta = rj.get('agent_judgment') or {}
-        machine_verified = bool(
-            l3.get('produced') and l4.get('produced')
-            and (aj_meta.get('validation') or {}).get('passed')
-            and aj_meta.get('run_ok_at_attach') is not False)
-        review_ok = (not sr.get('required')) or (
-            sr.get('seat_invoked')
-            and sr.get('verdict') in aj.REVIEW_APPROVED_VERDICTS
-            and sr.get('fresh') is True)
-        deliverable = machine_verified and review_ok
-        warnings = []
-        if not l3.get('produced') or not l4.get('produced'):
-            warnings.append('L3/L4 未全 produced——不冒认完整(G2 门不放过)')
-        elif not ((aj_meta.get('validation') or {}).get('passed')):
-            warnings.append('机器纪律校验未过(violations 在 agent_judgment 档)')
-        elif aj_meta.get('run_ok_at_attach') is False:
-            warnings.append('底座 run_ok=False(降级落位,不可交付级)')
-        elif sr.get('required') and not sr.get('seat_invoked'):
-            warnings.append('独立审查 required=true 但裁决缺席——'
-                            '不得标记 MVP 完成或可验收交付')
-        elif sr.get('required') and sr.get('verdict') not in \
-                aj.REVIEW_APPROVED_VERDICTS:
-            warnings.append(f"独立审查裁决={sr.get('verdict')}"
-                            '(REVISE/FAIL/其他=修订后再交付)')
-        elif sr.get('required') and sr.get('fresh') is not True:
-            warnings.append('裁决未绑定当前正文哈希或已过期(正文修订后须复验'
-                            '生成新裁决记录)')
-        lines += ['', '## 质量状态(Audit-R1 F02 四态)', '',
-                  f"- generated: true(FULL_REPORT 装配完成)",
-                  f"- machine_verified: {machine_verified}"
-                  "(L3∧L4 produced+纪律校验过+底座非降级)",
-                  f"- review: required={sr.get('required')} seat_invoked="
-                  f"{sr.get('seat_invoked')} verdict={sr.get('verdict')} "
-                  f"fresh={sr.get('fresh')} 修订链档数={sr.get('verdicts_n')}",
-                  f"- deliverable(可交付): {deliverable}",
-                  '- 内容绑定: content_sha256=agent_judgment(剥离审查键)+'
-                  'report.md 摘要,正文修订即失效旧裁决']
-        lines += ['', '---', '渲染纪律: 本件只汇编在场事实(确定性装配),不做新增生成;',
-                  'L3/L4 内容归 Agent 席与独立审计,本段不代写。']
-        with open(out_md, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(lines) + '\n')
-        ok = deliverable
-        emit(envelope('research-one', ok, {
-            'stage': 'report', 'full_report': out_md,
-            'L3_produced': l3.get('produced'),
-            'L4_produced': l4.get('produced'),
-            'generated': True, 'machine_verified': machine_verified,
-            'review': {'required': sr.get('required'),
-                       'seat_invoked': sr.get('seat_invoked'),
-                       'verdict': sr.get('verdict'), 'fresh': sr.get('fresh'),
-                       'verdicts_n': sr.get('verdicts_n'),
-                       'prior_verdicts': sr.get('prior_verdicts') or []},
-            'deliverable': deliverable, 'mvp_complete': deliverable},
-            warnings or None), exit_code=0 if ok else 1)
+        ok, data, warns = _r1_report_core(args, engine_root)
+        emit(envelope('research-one', ok, data, warns or None),
+             exit_code=0 if ok else 1)
         return
+
 
 def build_parser():
     p = argparse.ArgumentParser(
@@ -1694,8 +1836,11 @@ def build_parser():
     r1 = sub.add_parser('research-one',
                         help='一键研究 MVP 单入口(plan→Agent 席→attach→report;章程 Phase 3)')
     r1.add_argument('--question', default=None, help='研究问题(plan 段必填)')
-    r1.add_argument('--stage', choices=['plan', 'attach', 'report'], default='plan',
-                    help='plan=research-run+工单;attach=judgment 校验合并;report=完整报告汇编')
+    r1.add_argument('--stage', choices=['plan', 'attach', 'report', 'auto'], default='plan',
+                    help='plan=research-run+工单;attach=judgment 校验合并;'
+                         'report=完整报告汇编(F09: L3/L4 全文内联);'
+                         'auto=单命令全自动链 plan→attach→report(Audit-R1 F09;'
+                         'judgment 缺席则停 plan 段=Agent Native 暂停点)')
     r1.add_argument('--report-dir', default=None, help='attach/report 段必填')
     r1.add_argument('--judgment', default=None, help='attach 段必填(judgment JSON)')
     r1.add_argument('--out-dir', default=None, help='报告目录注入缝(plan 段)')

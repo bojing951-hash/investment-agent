@@ -345,9 +345,16 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
     seq = len([f for f in os.listdir(d) if f.startswith(
         'VERDICT-' + run_ts)]) + 1
     path = os.path.join(d, 'VERDICT-%s-%02d.json' % (run_ts, seq))
-    doc = {'overall': overall, 'reviewer': reviewer, 'notes': notes,
+    # Audit-R1 对齐 R32 席位章程 schema: seat 恒为章程名,audited_at=归档日
+    # (HKT),counterexamples_sought 非空由调用席自证(B3/B4/B5 机核面)。
+    doc = {'seat': 'semantic-audit-seat', 'overall': overall,
+           'reviewer': reviewer, 'notes': notes,
            'run_ts': run_ts, 'content_sha256': content_digest(report_dir),
-           'recorded_at': _now_utc()}
+           'audited_at': day[:4] + '-' + day[4:6] + '-' + day[6:],
+           'recorded_at': _now_utc(),
+           'counterexamples_sought': ((extra or {}).pop(
+               'counterexamples_sought', None)
+               or ['(未记载: 席位简报须补反例面)'])}
     if extra:
         doc.update(extra)
     with open(path, 'w', encoding='utf-8') as f:

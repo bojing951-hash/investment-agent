@@ -8,7 +8,11 @@ REAL_10Y = round(UST_10Y - BEI_10Y, 4) (fact_engine.py 官方派生式)
 """
 import json, math
 
-DEV = '/Users/cast/investment-agent-dev/data/daily'
+import os
+# Audit-R1 F05: 去绝对路径——默认引擎树本地相对解析,可用环境变量
+# IA_ENGINE_DAILY 覆盖(净克隆/异机可复现,免硬编码用户目录)
+DEV = os.environ.get('IA_ENGINE_DAILY',
+                     os.path.expanduser('~/investment-agent-dev/data/daily'))
 
 snap = json.load(open(f'{DEV}/research_snapshot_20261112_v2.json'))
 ss = snap['series_store']

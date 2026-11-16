@@ -3,7 +3,11 @@
 """补充: 弱化起始精确定位+敏感度(beta)+2026 年内路径。数据源同 blind_calc.py"""
 import json, math
 
-DEV = '/Users/cast/investment-agent-dev/data/daily'
+import os
+# Audit-R1 F05: 去绝对路径——默认引擎树本地相对解析,可用环境变量
+# IA_ENGINE_DAILY 覆盖(净克隆/异机可复现,免硬编码用户目录)
+DEV = os.environ.get('IA_ENGINE_DAILY',
+                     os.path.expanduser('~/investment-agent-dev/data/daily'))
 snap = json.load(open(f'{DEV}/research_snapshot_20261112_v2.json'))
 ss = snap['series_store']
 macro = json.load(open(f'{DEV}/macro_20261112.json'))['data']
@@ -108,13 +112,20 @@ for m in [f'2025-{i:02d}' for i in range(1,13)]:
     i0,i1=idx[0],idx[-1]
     print(f'{m} | {gold[i1]:7.1f} | {real[i1]:.2f} | {dxy[i1]:6.2f} | {(gold[i1]/gold[i0]-1)*100:+6.2f}% | {real[i1]-real[i0]:+.2f}pp | {(dxy[i1]/dxy[i0]-1)*100:+5.2f}%')
 
-# 极端日检验: 2025-2026 实际利率大幅上行日(>+5bp)黄金表现
-for lab,lo,hi in [('2017-2024','2017','2024'),('2025-2026','2025','2026')]:
-    big_up=[(dates[i],r_chg[i],g_ret[i]) for i in range(1,n) if lo<=dates[i][:4]<=hi and r_chg[i] is not None and r_chg[i]>=5]
-    big_dn=[(dates[i],r_chg[i],g_ret[i]) for i in range(1,n) if lo<=dates[i][:4]<=hi and r_chg[i] is not None and r_chg[i]<=-5]
+# 极端日检验: 实际利率大幅上行日(>=5bp)黄金表现
+# Audit-R1 F06 修: 旧过滤 r_chg>=5 把 pp 当 bp(5pp=500bp)→n=0 恒空,
+# judgment 所引 n=27/+0.07% 不可由本脚本复现。阈值改 0.05pp 并增补
+# judgment 所引的 2025-2026 美元方向桶与全参考桶(口径对齐,可复算)。
+for lab,lo,hi in [('2017-2024','2017','2024'),('2022-2026','2022','2026'),('2025-2026','2025','2026')]:
+    big_up=[(dates[i],r_chg[i],g_ret[i]) for i in range(1,n) if lo<=dates[i][:4]<=hi and r_chg[i] is not None and r_chg[i]>=0.05]
+    big_dn=[(dates[i],r_chg[i],g_ret[i]) for i in range(1,n) if lo<=dates[i][:4]<=hi and r_chg[i] is not None and r_chg[i]<=-0.05]
     au=sum(x[2] for x in big_up)/max(len(big_up),1); ad=sum(x[2] for x in big_dn)/max(len(big_dn),1)
     pu=sum(1 for x in big_up if x[2]>0)/max(len(big_up),1)*100
     print(f'{lab}: 实际利率日升>=5bp n={len(big_up)} 黄金日均{au:+.3f}% 上涨占比{pu:.0f}% | 日降>=5bp n={len(big_dn)} 黄金日均{ad:+.3f}%')
+for lab,lo,hi in [('2025-2026','2025','2026')]:
+    d_up=[g_ret[i] for i in range(1,n) if lo<=dates[i][:4]<=hi and d_ret[i] is not None and d_ret[i]>0]
+    d_dn=[g_ret[i] for i in range(1,n) if lo<=dates[i][:4]<=hi and d_ret[i] is not None and d_ret[i]<0]
+    print(f'{lab} 美元方向桶: 美元上行日 n={len(d_up)} 黄金日均{sum(d_up)/max(len(d_up),1):+.3f}% | 美元下行日 n={len(d_dn)} 黄金日均{sum(d_dn)/max(len(d_dn),1):+.3f}%')
 
 # HY_OAS 信用利差分状态(2024-2026 样本, 784 天自2023-11)
 HY = dict(zip(macro['HY_OAS']['series']['dates'], macro['HY_OAS']['series']['values']))

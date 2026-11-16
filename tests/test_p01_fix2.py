@@ -605,7 +605,7 @@ def run_pipeline_main(td, fail_scripts=(), snapshot=None):
                 json.dump(snapshot, f, ensure_ascii=False)
         try:
             with contextlib.redirect_stdout(io.StringIO()):
-                run_weekly.main()
+                run_weekly.main([])
             code = 0
         except SystemExit as e:
             code = e.code

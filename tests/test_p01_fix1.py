@@ -460,7 +460,7 @@ print("\n── 9. 关键采集失败传播(FIX-03)")
 
 
 def run_pipeline_main(td, fail_scripts=(), snapshot=None):
-    """在td上运行run_weekly.main(): run_step按脚本名模拟成败(不执行真实采集)。"""
+    """在td上运行run_weekly.main([]): run_step按脚本名模拟成败(不执行真实采集)。"""
     executed = []
 
     def fake_run_step(step_name, script_name, timeout=900, script_dir=None):
@@ -479,7 +479,7 @@ def run_pipeline_main(td, fail_scripts=(), snapshot=None):
                                      'w', encoding='utf-8'), ensure_ascii=False)
         try:
             with contextlib.redirect_stdout(io.StringIO()):
-                run_weekly.main()
+                run_weekly.main([])
             code = 0
         except SystemExit as e:
             code = e.code

@@ -227,6 +227,49 @@ def _clause_split(text):
     return [p for p in (s.strip() for s in parts) if p]
 
 
+# ── 检查面预处理(RDG-20261116-013: 非散文构造物不进断言域) ──────────
+
+_CHECKFACE_COMMENT_RE = re.compile(r'<!--.*?-->', re.DOTALL)
+# 报告头元数据行(生成头;RDG-013 A 族): 标题行 `# 投资周报 20261102–20261108`
+# 与 `生成时间：…（数据截至…/08数据包，Gate A: PASS）`——日期/时间/包序号
+# 非断言值(「/08」碎片曾绑指标)
+_CHECKFACE_META_LINE_RE = re.compile(
+    r'^[ \t]*(?:#{1,6}[ \t]*(?:投资)?周报\b[^\n]*|生成时间[:：][^\n]*)$',
+    re.MULTILINE)
+
+
+def _is_json_object_line(line):
+    """独立行可解析 JSON 对象(provenance 附件判定;数组/坏行不触发)。"""
+    s = line.strip()
+    if not (s.startswith('{') and s.endswith('}')):
+        return False
+    try:
+        obj = json.loads(s)
+    except Exception:
+        return False
+    return isinstance(obj, dict)
+
+
+def _checkface_preprocess(text):
+    """检查面预处理(R43/RDG-20261116-013;R41 定性 A 族 47% 误报治面)。
+
+    ① HTML 注释整体剥离(生成头 `<!-- 生成: … | 模型名 | … -->`/
+       校验头 `<!-- 校验…FAIL(10项警告)…-->`: 16:22:44/5.3/10 等
+       机写数字承前绑指标=误报;未闭合注释不匹配=保守保留);
+    ② 报告头元数据行置换为空白(标题行 `# 投资周报 20261102–20261108`
+       与 `生成时间：…`: 生成头行形态,日期窗/时间/包序号非断言);
+    ③ 独立行可解析 JSON 对象置换为空白(报告内嵌 provenance 行
+       `{"id":1,…,"confidence":1,…,"value":2.6,…}`: id/confidence/
+       value 机写数值非散文断言)。
+    换行结构保持(子句域不变形);不可解析行原样保留(诚实保守)。
+    """
+    text = _CHECKFACE_COMMENT_RE.sub(' ', text)
+    text = _CHECKFACE_META_LINE_RE.sub(' ', text)
+    return '\n'.join(
+        ' ' if _is_json_object_line(ln) else ln
+        for ln in text.split('\n'))
+
+
 def _find_alias(clause, aliases=None):
     """子句内指标身份(最长别名匹配;返回 [(metric, start, end)] 按位置)。"""
     hits = []
@@ -296,7 +339,9 @@ def _extract_tokens(clause):
 # ── 断言域遮罩(别名内数字/结构数字非断言) ──────────────────────────
 
 _STRUCT_PATTERNS = [
-    re.compile(r'\d{1,2}\s*月(?:\d{1,2}\s*日?)?'),   # 10月/10月CPI/9 月(空格容差)
+    # 10月/10月15日/9 月(空格容差);日组须带「日」——RDG-013: `日?` 可选
+    # 时「11月3.8775%」吞「11月3」余碎片「8775%」(小数误切分 A 族)
+    re.compile(r'\d{1,2}\s*月(?:\d{1,2}\s*日)?'),
     re.compile(r'第\s*\d+\s*周'),                    # 连续第5周
     re.compile(r'\d{1,2}日(?=相关|-?day)'),           # 20日/60日相关
     re.compile(r'\d{1,2}-?day'),
@@ -328,6 +373,17 @@ _STRUCT_PATTERNS = [
     # 档案编号非断言值
     re.compile(r'[A-Z]{2,8}(?:-[A-Za-z0-9]+)+'),
     re.compile(r'(?:^|[^A-Za-z0-9])[ELS]\d(?![\w.-])'),
+    # 引用ID([art_9456078c93b846df] 形态;RDG-013 A 族): 证据引用附件
+    # 非断言值(裸 9456078 曾承前绑 DXY)
+    re.compile(r'art_[0-9A-Za-z]{6,}'),
+    # 内部引用序号(论点#3/预测#2;RDG-013 A 族): 观点档案引用非断言值
+    re.compile(r'(?:论点|预测|假设|条件|观点)\s*#\s*\d+'),
+    # 紧凑 ISO 日期窗(20261102–20261108;RDG-013 A 族生成头残形):
+    # 8 位日期对非断言值(松散日期已由 _DATE_RE 面;en-dash 窗不受其辖)
+    re.compile(r'(?<!\d)\d{8}\s*[–—-]\s*\d{8}(?!\d)'),
+    # 子句首列表序号(1./2./3.;RDG-013 A 族): 枚举结构非断言值;
+    # 点后须空白(3.5%/3.8775% 类小数不吞=反误杀边界)
+    re.compile(r'^\d{1,2}\.\s+'),
 ]
 
 
@@ -1606,6 +1662,9 @@ def check_text(text, *, snapshot, thresholds=None, prior_anchors=None,
     """
     thresholds_by = cf.thresholds_by_metric(
         thresholds if thresholds is not None else cf.load_thresholds())
+    # 检查面预处理(RDG-20261116-013): HTML 注释/JSON provenance 行=
+    # 非散文构造物,不进子句域(全下游消费点共用此 text)
+    text = _checkface_preprocess(text)
     checks = []
     unbound = []
     facts_zone = bool(_FACT_ZONE_RE.search(text))

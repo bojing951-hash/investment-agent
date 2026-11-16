@@ -483,7 +483,7 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(run_weekly, 'run_step', fake_step):
         try:
             with contextlib.redirect_stdout(io.StringIO()):
-                run_weekly.main()
+                run_weekly.main([])
             pcode = 0
         except SystemExit as e:
             pcode = e.code
@@ -511,7 +511,7 @@ with tempfile.TemporaryDirectory() as td:
             json.dump(snap, f, ensure_ascii=False)
         try:
             with contextlib.redirect_stdout(io.StringIO()):
-                run_weekly.main()
+                run_weekly.main([])
             pcode = 0
         except SystemExit as e:
             pcode = e.code

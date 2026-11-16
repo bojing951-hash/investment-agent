@@ -62,7 +62,7 @@ def cmd_check(quiet=False):
             bad_changed.append(f'{rel}: 登记={entry["sha256"][:12]} 当前={cur[:12]} (登记于 {entry["registered_at"]})')
         else:
             ok += 1
-    extra = [k for k in reg if k not in GUARDED]
+    extra = [k for k in reg if k not in GUARDED and not k.startswith('_')]  # _meta 等元数据键不算孤儿(与测试§C 同口径)
     if not quiet:
         print(f'目标完整性: {ok}/{len(GUARDED)} 一致')
         for m in bad_missing:

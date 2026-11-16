@@ -605,7 +605,7 @@ def run_pipeline_main(td, fail_scripts=(), snapshot=None):
                 json.dump(snapshot, f, ensure_ascii=False)
         try:
             with contextlib.redirect_stdout(io.StringIO()):
-                run_weekly.main()
+                run_weekly.main(argv=[])
             code = 0
         except SystemExit as e:
             code = e.code
@@ -959,4 +959,7 @@ with tempfile.TemporaryDirectory() as td:
 print("\n" + "=" * 64)
 print(f"结果: {PASS}通过 / {FAIL}失败")
 print("=" * 64)
-sys.exit(1 if FAIL else 0)
+if FAIL:
+    sys.exit(1)
+# R43: 原条件退出(1 if FAIL else 0)的 0 支冗余(直跑落尾自然 exit 0),
+# 摘之使 pytest 收集期不被退出打断(绿=静默完成 0 测试收集)。

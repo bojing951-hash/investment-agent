@@ -1404,7 +1404,7 @@ def cmd_research_one(args):
     if stage == 'plan':
         try:
             rep = ro.run_research(args.question, root=engine_root,
-                                  archive=False,
+                                  archive=bool(getattr(args, 'archive', False)),
                                   out_dir=getattr(args, 'out_dir', None),
                                   engine_root=engine_root)
         except (OSError, ValueError) as e:
@@ -1653,6 +1653,9 @@ def build_parser():
                     help='数据树注入缝(默认=本仓库根;净环境指向真实数据树)')
     r1.add_argument('--allow-failed-run', action='store_true',
                     help='attach 段: run_ok=False 诚实拒答面显式越过(MINOR-4 门槛)')
+    r1.add_argument('--archive', action='store_true',
+                    help='plan 段: 第 11 步归档显式开启(Skill 纪律=默认关,'
+                         '正式任务用户认可后郑重选择)')
     ra = sub.add_parser('research-attach',
                         help='Agent Native L3/L4 判断落位+纪律机器校验(R23/阶段四): '
                              '校验 Agent judgment 并合并进 research-run 报告;'

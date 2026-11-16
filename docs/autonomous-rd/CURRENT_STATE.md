@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-16 R44 A 族碎片泄漏硬化(T-R44-1;引擎波次,原自编号 R43 并轨重编号,撞号注记见 ITERATION_LOG R44 行)
-> baseline=88ccfe01b74ce8a73607e7263b7fb6b9742f67b1 (机器行: rd_checkpoint.py 维护,勿手改)
+> baseline=3286f252aacfbe5d6861ccfe088da56441c9a0d9 (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 64a482c(R42 尾补重盖章);本轮=`dev/rd-r43-fragment-hardening`(基点 64a482c;开班门①红=main 已并 R41+R42→基面迁移,门 7/7)。
 - **真实进度**: **RDG-20261116-013 收口(R41 定性 A 族治面+RDG-012 残余⑦随批)**。①检查面预处理 `_checkface_preprocess`(check_text 入口): HTML 注释(生成头/校验头,DOTALL)剥离+报告头元数据行(`# 投资周报…`/`生成时间：…`)置换+独立行可解析 JSON 对象(provenance)置换;未闭合注释/坏 JSON 行保守保留。②遮罩表补四行: art_ 引用ID/论点·预测#N 序号/紧凑 ISO 日期窗 \d{8}–\d{8}/子句首列表序号(点后须空白=小数反误杀)。③月-日模式日组必选,根治「11月3.8775%」吞「11月3」出碎片「8775%」/「2027年5月4.33%」出「33%」。④随批⑦: run_weekly.main(argv=None) 显式传参,四件套(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2)main([]),pytest 收集口径毒 argv 导入 IMPORT-OK 4/4+负证 SystemExit(2) 亲证。**独立审计四维**: 维度1 初判 FAIL(MAJOR-1=日组必选自产「N月D-D日」裸日号新泄漏)→当场追修(_DATE_RE 日形态扩 D[–—-]D日+§C C4a-c;真实面 283 维持语料 0 命中如实)→其余三维 PASS(removed 逐类抽 5 项回 LIVE 原文全实/added 全 verbatim 零织造/契约面 render 模式不经预处理)→**终判可并入**。**如实更正**: R41 表列 A=154 系簇级主导族归因 token 上界,逐 token 可治面实=50 removed+7 升格;JSON 独立行规则本语料移除 0(V2 全部 20 条 JSON 在块注释内)仍为独立形态防线。

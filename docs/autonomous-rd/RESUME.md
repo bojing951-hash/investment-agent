@@ -34,7 +34,7 @@ R42(聚合器吞错)+R43(pytest 四件套,操作者)+R44(A 族碎片泄漏硬化
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 
-<!-- RD-CHECKPOINT v1: json {"round": 43, "date": "2026-11-16 09:22 HKT", "branch": "dev/rd-r43-fragment-hardening", "commit": "88ccfe01b74ce8a73607e7263b7fb6b9742f67b1", "baseline": "88ccfe01b74ce8a73607e7263b7fb6b9742f67b1", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R43-1"], "next_task": "R44: 引擎轨道=B 族评分卡分值列/表内碎片硬化首位候选(R43 后 283 CONTRA 中居首: | +2 | 分值列绑行指标水平+散文总分 增长总分0、通胀总分+3 形态)+T8-R2 ④⑥⑦ 启封随批+R43 审计登记 MINOR-2 表内序号/NIT-2 未闭合注释/NIT-5 r1_vp_stages+R41 审计登记 MINOR-1+NIT-3~5+round.sh 双上限(LIVE 部署时);日历门 F=2026-12-05 勿手工提前", "next_round": 44} -->
+<!-- RD-CHECKPOINT v1: json {"round": 44, "date": "2026-11-16 12:01 HKT", "branch": "HEAD", "commit": "3286f252aacfbe5d6861ccfe088da56441c9a0d9", "baseline": "3286f252aacfbe5d6861ccfe088da56441c9a0d9", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R44-1"], "next_task": "R45(引擎席): B 族评分卡分值列/表内碎片硬化首位候选(40/283 居首: 评分卡 |+2| 分值列绑行指标水平+散文总分形态)+T8-R2 ④era base_anchor_set 必填+⑥重封留出+⑦变异压力轮启封随批+MINOR-2 表内序号(0 命中)/NIT-2 未闭合注释远端吞随批+R41 审计登记 MINOR-1+NIT-3~5+GUARD_FILES 扩容(RDG-012 NIT-A)+pytest 目录口径迁移候选(操作者 R43 登记: 尾退出全库线性件习语 60+件,面广单独成波)+round.sh 双上限(LIVE 部署时);双席编号=席位标签制先到先取,开轮前核 ITLOG 末行防撞号;操作者席并行=Product Convergence 章程(产出停 dev/product-convergence-mvp);日历门 F=2026-12-05 勿手工提前", "next_round": 45} -->
 ## 下一步存档(2026-11-16 R43 收口后版·操作者席)
 
 - [已毕·R43] **pytest 口径四件套收口**(T-R43-1;RDG-20261116-012 残余⑦;R42 终验暴露陈年): run_weekly.main(argv=None) 参数化(CLI 零差/revision_chain 猴补兼容)+四件五调用点显式 argv=[](裸调读 pytest argv→SystemExit(2)→台账 None→下标崩根因)+尾条件退出拆红支摘冗余 0 支+守卫 23 判(§A 伪 pytest argv 子进程/§B 源面双锚/§C 直跑保持);四件 pytest 单件 rc5=净收集零错;新发现=尾退出全库习语 60+件,目录整跑不适用(R44+ 迁移候选);分支 dev/rd-r43-pytest-argv;详见 ITERATION_LOG R43 行。

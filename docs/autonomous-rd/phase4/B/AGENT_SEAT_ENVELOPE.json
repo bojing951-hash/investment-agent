@@ -1,0 +1,23 @@
+{
+  "role": "Agent Native 研究席(L3 推断+L4 条件情景真产出)",
+  "question": "中国宏观信用与制造业景气: CN_NEW_LOANS 新增贷款与 CN_PMI_MFG 制造业PMI 对 CHINEXT 创业板指与 FXI 中国大盘股的影响",
+  "report_dir": "/tmp/phase4_B/20261116T053224Z_中国宏观信用与制造业景气_CN_NEW_LOANS_新增贷款与_CN_PMI_M",
+  "evidence_index_rows": 65,
+  "read_first": [
+    "/tmp/phase4_B/20261116T053224Z_中国宏观信用与制造业景气_CN_NEW_LOANS_新增贷款与_CN_PMI_M/report.json",
+    "/tmp/phase4_B/20261116T053224Z_中国宏观信用与制造业景气_CN_NEW_LOANS_新增贷款与_CN_PMI_M/evidence_index.json",
+    "/tmp/phase4_B/20261116T053224Z_中国宏观信用与制造业景气_CN_NEW_LOANS_新增贷款与_CN_PMI_M/views_digest.json   # L2 机构观点富内容(原文摘编)",
+    "scripts/agent_judgment.py   # judgment schema v1.1 模块 docstring",
+    ".agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)"
+  ],
+  "produce": "judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件)",
+  "then": [
+    "ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>",
+    "ia_cli.py research-one --stage report --report-dir <rd>"
+  ],
+  "discipline": [
+    "L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造",
+    "禁改 report.json 的 produced 字段(attach 校验器唯一写者)",
+    "研究质量十二问逐问答(章程§七)"
+  ]
+}

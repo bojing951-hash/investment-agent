@@ -100,6 +100,27 @@ class TestBSourceGuard(unittest.TestCase):
               "sys.argv = ['run_weekly.py']" in rc_src)
 
 
+class TestDRound6X6Argv(unittest.TestCase):
+    """§D R44 追修: test_round6 X6 三处 rw.main() 裸调→argv=[](R43 同族,
+    R43 修复面漏件——其时净验脚本 pytest 口径 rc 取自管道尾(tail)=空洞绿,
+    167 件真分类后唯一真红即此件;口径空洞与追修均如实入档 R44 行)。"""
+
+    def test_round6_import_clean_under_foreign_argv(self):
+        code = SIM_IMPORT % {'f': 'test_round6.py', 'm': 'test_round6'}
+        r = subprocess.run([sys.executable, '-c', code], capture_output=True,
+                           text=True, cwd=ROOT, timeout=600)
+        check('§D test_round6 伪 pytest argv 导入 rc=0(X6 修前三败)',
+              r.returncode == 0, f'rc={r.returncode} {r.stderr[-120:]}')
+
+    def test_round6_source_forms(self):
+        src = open(os.path.join(ROOT, 'tests', 'test_round6.py'),
+                   encoding='utf-8').read()
+        check('§D test_round6: 裸调 rw.main() 形态绝迹',
+              'rw.main()\n' not in src and ' rw.main() ' not in src)
+        check('§D test_round6: 显式 rw.main(argv=[]) 三处在场',
+              src.count('rw.main(argv=[])') == 3, str(src.count('rw.main(argv=[])')))
+
+
 class TestCDirectCaliber(unittest.TestCase):
     """§C 直跑口径(CI 口径=python3 tests/x.py)保持绿。"""
 
@@ -114,7 +135,7 @@ class TestCDirectCaliber(unittest.TestCase):
 def main():
     print('══ R43 pytest 口径四件套收口守卫(RDG-20261116-012 残余⑦)══')
     case_errs = 0
-    for cls in (TestAFakePytestCaliber, TestBSourceGuard, TestCDirectCaliber):
+    for cls in (TestAFakePytestCaliber, TestBSourceGuard, TestCDirectCaliber, TestDRound6X6Argv):
         print(f'── {cls.__name__} ──')
         case_errs += _run_case(cls)
     total, bad = len(PASSED) + len(FAILED), len(FAILED)

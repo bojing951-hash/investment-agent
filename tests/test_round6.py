@@ -598,7 +598,7 @@ try:
     code = 'no-exit'
     with contextlib.redirect_stdout(buf):
         try:
-            rw.main()
+            rw.main(argv=[])   # R44追修: argv=显式传参,pytest 收集口径免疫(R43 同族,X6 三败根因)
         except SystemExit as e:
             code = e.code
     out = buf.getvalue()
@@ -610,7 +610,7 @@ try:
     code2 = 'no-exit'
     with contextlib.redirect_stdout(io.StringIO()):
         try:
-            rw.main()
+            rw.main(argv=[])   # R44追修: argv=显式传参,pytest 收集口径免疫(R43 同族,X6 三败根因)
         except SystemExit as e:
             code2 = e.code
     check("X6b 关键失败: exit 1(失败不被静默吞掉)", code2 == 1, str(code2))
@@ -618,7 +618,7 @@ try:
     code3 = 'no-exit'
     with contextlib.redirect_stdout(io.StringIO()):
         try:
-            rw.main()
+            rw.main(argv=[])   # R44追修: argv=显式传参,pytest 收集口径免疫(R43 同族,X6 三败根因)
         except SystemExit as e:
             code3 = e.code
     check("X6c 全部成功: 正常完成不异常退出", code3 == 'no-exit' or code3 == 0, str(code3))

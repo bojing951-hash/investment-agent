@@ -141,8 +141,13 @@ with tempfile.TemporaryDirectory() as td:
     vdir = os.path.join(td, 'audit', 'semantic_review', '20260101')
     os.makedirs(vdir)
     vpath = os.path.join(vdir, 'VERDICT-20260101T000000Z_合成.json')
+    # Audit-R4 条目1: 读取端必填字段校验(reviewer/run_ts/recorded_at
+    # 缺=corrupt)——夹具按完整记录书写,缺字档的阻断面由
+    # test_audit_r4_gate.py J 块锁定
     with open(vpath, 'w', encoding='utf-8') as f:
-        json.dump({'seat': 'R-synth', 'overall': 'REVISE', 'items': []},
+        json.dump({'seat': 'R-synth', 'overall': 'REVISE',
+                   'reviewer': 'R-synth', 'run_ts': '20260101T000000Z',
+                   'recorded_at': '2026-01-01T00:00:00Z', 'items': []},
                   f, ensure_ascii=False)
     st = aj._semantic_review_state(rep3, td)
     check('裁决档命中→seat_invoked+verdict=REVISE+相对档径',

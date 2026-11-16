@@ -35,6 +35,10 @@ if SCRIPTS not in sys.path:
 
 PIPELINE_VERSION = '2.0'
 IA_CLI = os.path.join(ROOT, 'ia_cli.py')
+# Audit-R4 条目5 登记值: 必要指标最低覆盖(历史分析需求下界)。月频 10 年
+# ≈120、日频年千计——12(月频一年)为宽松下界,只拦「最新单点/极短序列
+# 冒充历史分析面」;冻结进每项 spec.min_observations,不随采集结果改判。
+_REQ_MIN_OBSERVATIONS = 12
 # 引擎数据树注入缝(research-one --engine-root;G2 净环境验收同缝):
 # 子进程 ia_cli 与 cwd 改指真实数据树;默认=本仓库根(行为零差)。
 RUN_ROOT = ROOT
@@ -433,29 +437,47 @@ def run_research(question, root=None, archive=False, out_dir=None,
             _s3_mids.update(str(k) for k in _bk)
     _req_items = []
     for _mid in ent['metrics']:
-        if _mid in _fact_mids:
-            _outcome, _basis = 'satisfied', 'L1事实行'
-        elif _mid in _s3_mids:
-            _outcome, _basis = 'satisfied', 'S3信封在场'
-        elif ((_ss.get(_mid) or {}).get('dates')):
-            _outcome, _basis = 'satisfied', f'快照序列(n={len(_ss[_mid]["dates"])})'
+        # Audit-R4 条目5: 需求规格随分类一同冻结(数据形态/时间范围/质量/
+        # 最低覆盖,登记默认值);outcome 按规格评——**最新单点≠历史分析
+        # 需求满足**: L1/S3 只证在场(点位),序列 n≥min_observations 才算
+        # 覆盖达标;n=0 缺席,n<min 为 insufficient_coverage(必要项按
+        # 任务目标缺口处理,attach/report/archive 同源三级分类)。
+        _n_series = len((_ss.get(_mid) or {}).get('dates') or [])
+        if _n_series >= _REQ_MIN_OBSERVATIONS:
+            _outcome = 'satisfied'
+            _basis = f'快照序列(n={_n_series}≥最低覆盖{_REQ_MIN_OBSERVATIONS})'
+        elif _n_series > 0:
+            _outcome = 'insufficient_coverage'
+            _basis = (f'快照序列 n={_n_series} < 最低覆盖'
+                      f'{_REQ_MIN_OBSERVATIONS}(单点/短序列≠历史分析需求)')
+        elif _mid in _fact_mids or _mid in _s3_mids:
+            _outcome = 'insufficient_coverage'
+            _basis = ('仅最新单点在场(L1/S3),无历史序列——单点≠'
+                      '历史分析需求满足')
         else:
-            _outcome, _basis = 'missing', 'L1/S3/快照序列均缺席'
+            _outcome = 'missing'
+            _basis = 'L1/S3/快照序列均缺席'
         _req_items.append({'metric_id': _mid, 'tier': 'required',
                            'basis': '问题词面命中(任务目标)',
+                           'spec': {'form': 'series',
+                                    'window': 'max_available',
+                                    'quality': 'snapshot 序列(OK 行)',
+                                    'min_observations': _REQ_MIN_OBSERVATIONS},
                            'outcome': _outcome, 'outcome_basis': _basis})
     data_requirements = {
-        'frozen_at': 'plan(采集前冻结;分类不随采集结果改判)',
+        'frozen_at': 'plan(采集前冻结;分类与规格不随采集结果改判)',
         'items': _req_items,
         'optional_face': {
             'tier': 'optional',
             'scope': 'S3 上下文指标/L2 机构观点/经济体概览',
-            'note': '可选缺席=降级披露,不构成任务目标缺口;必要缺席='
-                    '任务目标缺口,attach 默认阻塞(显式越过须随档)'},
+            'note': '可选缺席=降级披露,不构成任务目标缺口;必要缺席/'
+                    '覆盖不足=任务目标缺口,attach 默认阻塞(显式越过须随档)'},
     }
-    if any(i['outcome'] == 'missing' for i in _req_items):
+    if any(i['outcome'] in ('missing', 'insufficient_coverage')
+           for i in _req_items):
         notes.append('必要数据缺口: ' + '、'.join(
-            i['metric_id'] for i in _req_items if i['outcome'] == 'missing')
+            i['metric_id'] for i in _req_items
+            if i['outcome'] in ('missing', 'insufficient_coverage'))
             + '(运行前已声明为任务目标,未事后缩减;补齐授权范围内数据'
               '或按降级面显式越过)')
 
@@ -674,16 +696,19 @@ def _render_md(r):
         else:
             lines.append(f"- 数据门(gate_a): OK({len(gates)}/{len(gates)} "
                          "信封步)")
-    # Audit-R2 条目7: 数据需求声明(运行前冻结)——必要缺席=任务目标缺口
+    # Audit-R2 条目7 + Audit-R4 条目5: 数据需求声明(运行前冻结,含规格)
+    # ——必要缺席/覆盖不足=任务目标缺口(最新单点≠历史分析需求满足)
     _dr = ((r.get('run') or {}).get('data_requirements') or {})
     if _dr.get('items'):
+        _gap = sum(1 for i in _dr['items'] if i.get('outcome')
+                   in ('missing', 'insufficient_coverage'))
         lines.append(f"- 数据需求(运行前冻结): 必要 "
                      f"{sum(1 for i in _dr['items'] if i.get('tier') == 'required')}"
-                     f" 项(问题命中),缺席 "
-                     f"{sum(1 for i in _dr['items'] if i.get('outcome') == 'missing')}"
-                     " 项;可选面缺席=降级披露不构成缺口")
+                     f" 项(问题命中,规格=序列/最低覆盖"
+                     f"{(( _dr['items'][0].get('spec') or {}).get('min_observations'))}"
+                     f" 观测),缺口 {_gap} 项;可选面缺席=降级披露不构成缺口")
         for i in _dr['items']:
-            if i.get('outcome') == 'missing':
+            if i.get('outcome') in ('missing', 'insufficient_coverage'):
                 lines.append(f"  - 任务目标缺口: {i['metric_id']}"
                              f"({i.get('outcome_basis')})——未事后缩减,"
                              "补齐授权范围内数据或按降级面显式越过")

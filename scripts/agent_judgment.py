@@ -313,19 +313,48 @@ _DIGEST_VOLATILE_JUDGMENT_KEYS = ('semantic_review',)
 
 
 def content_digest(report_dir, judgment_path=None):
-    """Audit-R2 条目1: 唯一规范化内容来源=report.json(审查与渲染同源)。
+    """Audit-R4 条目2: 唯一规范化内容=**全部实际交付输入源**。
 
-    边界(稳定,禁漂移): canonical(report.json, 剥离易变键 semantic_review)
-    + NUL + canonical(agent_judgment.json, 剥离 semantic_review)。
-    研究事实(L1/L2)、L3/L4 判断、run_ok、运行元数据、attach 台账、
-    版本指针(run.git_head/pipeline_version/快照 id)全在摘要内——
-    只改 report.json 的事实/结论/运行状态即失效旧裁决(Audit-R2 反例①)。
-    report.md/FULL_REPORT=report.json 的渲染视图,**不入摘要**;视图与
-    源的一致性由交付门 copies_consistent 核对(_r1_report_core)——
-    审查绑定的与交付渲染的是同一份规范化内容。
+    边界(稳定,禁漂移): canonical(report.json 剥 semantic_review)
+    + NUL + canonical(agent_judgment 剥 semantic_review)
+    + NUL + canonical(views_digest.json 或 {},缺席稳定)。
+    Audit-R2 v2 口径漏了 views_digest.json——它是 FULL_REPORT L2 摘编
+    行的**直接渲染输入**(机构归属/标题/日期/原文摘编)且是 Agent 席
+    判断输入(read_first),却不在摘要内: 反例=只改 institution_name/
+    report_title,FULL_REPORT 已变而摘要/fresh/deliverable/归档全照过
+    (审查未覆盖实际交付内容)。v3 收口: 任一渲染输入(机构归属、标题、
+    日期、摘编、事实、判断)变化即失效旧裁决。views_digest 由 plan 段
+    一次性确定性装配,裁决落档后无人回写——无循环绑定。
+    report.md/FULL_REPORT=上述三源的渲染视图,**不入摘要**;视图与源
+    的一致性由交付门 copies_consistent 核对(_r1_report_core: report.md
+    =report.json 当前渲染,FULL_REPORT=当前确定性装配)。
     裁决档自身(VERDICT-*.json)不在 report_dir 内,天然不在边界
     (Audit-R1 F02 循环依赖切断面保留)。
     """
+    import hashlib
+    rp = _load_json(os.path.join(report_dir, 'report.json'))
+    for k in _DIGEST_VOLATILE_REPORT_KEYS:
+        rp.pop(k, None)
+    if judgment_path is None:
+        for cand in ('agent_judgment.json', 'judgment_mvp.json'):
+            p = os.path.join(report_dir, cand)
+            if os.path.isfile(p):
+                judgment_path = p
+                break
+    j = _load_json(judgment_path)
+    for k in _DIGEST_VOLATILE_JUDGMENT_KEYS:
+        j.pop(k, None)
+    vd_p = os.path.join(report_dir, 'views_digest.json')
+    vd = _load_json(vd_p) if os.path.isfile(vd_p) else {}
+    return hashlib.sha256(
+        (_canonical(rp) + '\x00' + _canonical(j) + '\x00'
+         + _canonical(vd)).encode('utf-8')).hexdigest()
+
+
+def content_digest_v2(report_dir, judgment_path=None):
+    """Audit-R2 v2 口径(report.json+agent_judgment,不含 views_digest)
+    ——仅存续供裁决重绑迁移验证旧锚(rebind_verdict_digest),
+    不得用于新裁决绑定。"""
     import hashlib
     rp = _load_json(os.path.join(report_dir, 'report.json'))
     for k in _DIGEST_VOLATILE_REPORT_KEYS:
@@ -395,25 +424,86 @@ def _verdicts_for_run(root, run_ts):
 
 
 def _verdict_sort_key(path, doc):
-    """裁决内容序(非 mtime): (代, revision, 日目录, 文件名 seq)。
+    """裁决写入序(Audit-R4 条目1): (日目录, 文件名 seq, 文件名)。
 
-    Audit-R2 条目2: 排序只读档**内容与稳定文件名**——revision=新档全局
-    单调序号(record_semantic_verdict 按在档全数+1 赋号,跨日目录不归零);
-    legacy 档(无 revision 键,含不可解析损坏档)以日目录+文件名序号兜底
-    (写入序的事实承载),恒排新档前。损坏档排序不塌向链首——按文件名
-    序仍可居链尾,最新位损坏即阻断,不得跳过错误记录回退旧 PASS。
-    mtime 不参与: 调换裁决文件 mtime,状态面结果不得变化。
+    排序只读**稳定文件面**——日目录+文件名序号是 append-only 写入纪律
+    的事实承载(同日 seq 单调递增,跨日日串递增),mtime 不参与。
+    Audit-R2 口径按「有 revision 的内容序、损坏档降 legacy 代」分代——
+    反例: 链尾新档(revision=3)截断后解析失败,被降为 legacy 代排到
+    全部 revision 档之前,旧 UPHELD(revision=2)回升为最新,fresh=True
+    交付照过=**裁决先后关系因解析失败而倒退**。Audit-R4 起统一写入序:
+    损坏档占其真实写入位(链尾),最新位损坏即 corrupt_latest 阻断,
+    不得跳过错误记录回退旧裁决。revision 作为**校验不变量**而非排序键:
+    写入序下有效档 revision 必须递增,倒序/重复=order_conflict/
+    duplicate_revision 阻断(_semantic_review_state 校验)。
     """
-    rev = (doc or {}).get('revision')
-    if isinstance(rev, int) and rev > 0:
-        return (1, rev, '', '', '')
     day = os.path.basename(os.path.dirname(path))
     name = os.path.basename(path)
     seq = ''
     m = re.search(r'-(\d+)\.json$', name)
     if m:
         seq = '%06d' % int(m.group(1))
-    return (0, 0, day or '00000000', seq, name)
+    return (day or '00000000', seq, name)
+
+
+def _verdict_write_positions_disagree(keyed):
+    """Audit-R4 条目1 不变量: 写入序下有效档 revision 必须严格递增。
+
+    返回冲突描述串(无冲突=None): 倒序或重复。损坏/legacy 档无 revision
+    不参与本不变量(它们占写入位但无从校验号序——正因无从校验,它们
+    不得静默充当最新放行档,由 _semantic_review_state 单独处理)。
+    """
+    seen = {}
+    for (_, p, v) in keyed:
+        rev = (v or {}).get('revision') if isinstance(v, dict) else None
+        if not (isinstance(rev, int) and rev > 0):
+            continue
+        if rev in seen:
+            return ('duplicate_revision: %s 与 %s 同号 revision=%d'
+                    % (seen[rev], p, rev))
+        seen[rev] = p
+    revs = [((v or {}).get('revision'), p) for (_, p, v) in keyed
+            if isinstance(v, dict)
+            and isinstance((v or {}).get('revision'), int)
+            and (v or {}).get('revision') > 0]
+    for (r1, p1), (r2, p2) in zip(revs, revs[1:]):
+        if r2 <= r1:
+            return ('order_conflict: %s(rev=%d) 写入位晚于 %s(rev=%d)'
+                    ' 但 revision 未递增' % (p2, r2, p1, r1))
+    return None
+
+
+def _verdict_record_error(path, doc, run_ts, run_paths):
+    """Audit-R4 条目1 读取端单档校验: 返回问题描述(None=有效)。
+
+    两级:
+    - 解析级(corrupt): 不可解析/非 dict/缺必填字段(overall/reviewer/
+      run_ts/recorded_at)——文件本身不可读,但写入位仍是事实;
+    - 语义级(invalid_record): **新格式档**(带 revision 键)的 revision
+      非正整数/裁决词越表/run_ts 字段与文件名键不符/predecessor 不指向
+      本 run 任一在档文件——语义可判的违规,无论写入位在哪都阻断
+      (错误 run 档泄入链=链身份污染)。legacy 档(无 revision)仅受
+      解析级约束(v1 前史档,其放行本就被 fresh=None 挡死)。
+    """
+    if not isinstance(doc, dict):
+        return 'corrupt: 不可解析/非对象'
+    for f in VERDICT_REQUIRED_FIELDS:
+        if not doc.get(f):
+            return 'corrupt: 缺必填字段 %s' % f
+    if 'revision' not in doc:
+        return None                      # legacy 前史档: 宽容历史
+    rev = doc.get('revision')
+    if not (isinstance(rev, int) and not isinstance(rev, bool) and rev > 0):
+        return 'invalid_record: revision=%r 非正整数' % (rev,)
+    if doc.get('overall') not in SEAT_VERDICT_VOCAB:
+        return 'invalid_record: 裁决词 %r 越席位词表' % (doc.get('overall'),)
+    if doc.get('run_ts') != run_ts:
+        return ('invalid_record: run_ts 字段=%r 与文件名键=%r 不符'
+                '(错误 run 档)' % (doc.get('run_ts'), run_ts))
+    pred = doc.get('predecessor')
+    if pred is not None and os.path.normpath(pred) not in run_paths:
+        return 'invalid_record: predecessor=%r 不指向本 run 在档文件' % (pred,)
+    return None
 
 
 def record_semantic_verdict(root, report_dir, overall, reviewer,
@@ -429,6 +519,11 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
     predecessor=前一最新档相对路径(首档=None)——裁决顺序由内容字段
     显式承载,不依赖文件系统 mtime;必填字段(overall/reviewer/run_ts/
     recorded_at)缺失即抛 ValueError,损坏档不落盘。
+    Audit-R4 条目1 硬化: revision 赋号下界取 max(在档最大有效号,
+    **全档文件数**)——链上存在损坏档(其 revision 无从读取)时,新号
+    仍严格大于损坏档可能持有的任何号(append-only 下任一档的号≤其
+    写入时的全档数≤当前全档数),复审恢复不与不可读档撞号;写入序
+    (_verdict_sort_key)为裁决顺序权威。
     """
     if not overall or not reviewer:
         raise ValueError('裁决必填字段缺失: overall/reviewer 不得为空')
@@ -449,7 +544,8 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
     prior = _verdicts_for_run(root, run_ts)
     revs = [v.get('revision') for _, v in prior
             if isinstance(v, dict) and isinstance(v.get('revision'), int)]
-    revision = (max(revs) + 1) if revs else (len(prior) + 1)
+    # Audit-R4: 号下界=全档数(含不可读档)——复审恢复不与损坏档撞号
+    revision = max(revs + [len(prior)]) + 1
     predecessor = None
     if prior:
         latest_p, _ = max(
@@ -474,12 +570,13 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
 
 
 def rebind_verdict_digest(root, report_dir, note):
-    """Audit-R2 条目1 迁移面: 摘要口径换代(v1→v2)时的机械重绑。
+    """Audit-R2 条目1 + Audit-R4 条目2/6 迁移面: 摘要口径换代时的机械重绑。
 
-    仅当**内容未变**可重绑: 先验旧锚(最新档 content_sha256 与
-    content_digest_v1(当前内容)一致),再写新档(revision 续链,
-    overall/reviewer 承袭,rebind 块如实记迁移事实)。内容已变则抛
-    ValueError——那不是重绑,是修订,须独立席位复验,不得机械承袭。
+    仅当**内容未变**可重绑: 先验旧锚(最新档 content_sha256 与历史口径
+    v1/v2 之一在当前内容上的复算值一致——证明实际交付内容未改变),
+    再以现行口径(content_digest)写新档(revision 续链,overall/reviewer
+    承袭,rebind 块如实记迁移事实)。内容已变则抛 ValueError——那不是
+    重绑,是修订,须独立席位复验,不得机械承袭(不得直接改 hash 冒充复审)。
     非重审: 判断内容零变化,裁决结论承袭;rebind 块=机器可查的迁移证据。
     """
     report = _load_json(os.path.join(report_dir, 'report.json'))
@@ -493,16 +590,27 @@ def rebind_verdict_digest(root, report_dir, note):
         hits, key=lambda t: _verdict_sort_key(t[0], t[1]))
     if not isinstance(latest, dict) or not latest.get('content_sha256'):
         raise ValueError('最新档无旧锚,不适用机械重绑')
-    if latest['content_sha256'] != content_digest_v1(report_dir):
-        raise ValueError('旧锚与当前内容不符(内容已变)——须独立复验,'
-                         '不得机械重绑')
+    matched = None
+    for algo_name, algo in (
+            ('digest_v1(judgment+report.md)', content_digest_v1),
+            ('digest_v2(report.json+judgment,不含views_digest)',
+             content_digest_v2)):
+        try:
+            if latest['content_sha256'] == algo(report_dir):
+                matched = algo_name
+                break
+        except (OSError, ValueError):
+            continue
+    if matched is None:
+        raise ValueError('旧锚与当前内容不符(任一历史口径均不复配——'
+                         '内容已变)——须独立复验,不得机械重绑')
     return record_semantic_verdict(
         root, report_dir, latest.get('overall'), latest.get('reviewer'),
         notes=(latest.get('notes') or ''),
         extra={'rebind': {
-            'from_algorithm': 'digest_v1(judgment+report.md)',
-            'to_algorithm': 'digest_v2(report.json+judgment)',
-            'verified_v1_match': True,
+            'from_algorithm': matched,
+            'to_algorithm': 'digest_v3(report.json+judgment+views_digest)',
+            'verified_old_match': True,
             'predecessor_archive': os.path.relpath(latest_p, root),
             'note': note}})
 
@@ -522,12 +630,25 @@ def _semantic_review_state(report, root, report_dir=None):
     fresh=None(在场但不冒充新鲜——report 门不放行)。
 
     Audit-R2 条目2 裁决顺序与非法记录(fail-closed):
-    - 定序=内容序 _verdict_sort_key(revision/recorded_at/文件名 seq),
+    - 定序=**写入序** _verdict_sort_key(日目录+文件名 seq+文件名),
       mtime 不参与——调换裁决文件 mtime 结果不变;
     - 最新档损坏(不可解析/缺 overall)→ error='corrupt_latest',
       verdict=None——**不回退旧 PASS**;
     - revision 同号多档 → error='duplicate_revision'——冲突即阻断;
     - 全史保留: prior_verdicts=除最新外全档(含损坏档,如实披露)。
+
+    Audit-R4 条目1 裁决损坏与缺字段不得放行(收紧):
+    - 损坏档占其真实**写入位**,不降代——链尾新档(revision=3)截断后
+      不得让旧 UPHELD(revision=2)回升为最新(裁决先后不因解析失败
+      倒退,反例复现于基线 5fc5df8);
+    - 有效档 revision 是写入序下的校验不变量: 同号=duplicate_revision,
+      晚写位不递增=order_conflict(_verdict_write_positions_disagree);
+    - 读取端逐档校验(_verdict_record_error): 必填字段/目标 run/
+      合法裁决词/revision/predecessor;最新档 corrupt/invalid → 阻断
+      (无法确认有效最新裁决);语义级违规任何写入位阻断;解析级损坏
+      在非最新位=保留失败历史(record_health 披露),经有效复审
+      (更高 revision 新档)可恢复交付;
+    - record_health: 逐档健康面(relpath→问题描述),损坏历史如实可见。
     error 非空时 report 门 review_ok=False(阻断交付)。
     """
     layers = report.get('layers') or {}
@@ -538,7 +659,7 @@ def _semantic_review_state(report, root, report_dir=None):
     state = {'required': bool(reasons), 'reasons': reasons,
              'seat_invoked': False, 'verdict': None, 'archive': None,
              'fresh': None, 'verdicts_n': 0, 'prior_verdicts': [],
-             'error': None}
+             'record_health': {}, 'error': None}
     if not reasons:
         return state
     run_ts = (report.get('run') or {}).get('ts_utc') or ''
@@ -551,18 +672,29 @@ def _semantic_review_state(report, root, report_dir=None):
     state['verdicts_n'] = len(keyed)
     state['prior_verdicts'] = [os.path.relpath(p, root)
                                for _, p, _ in keyed[:-1]]
-    revs = [v.get('revision') for _, _, v in keyed
-            if isinstance(v, dict) and isinstance(v.get('revision'), int)]
     _, latest_p, latest = keyed[-1]
     state['archive'] = os.path.relpath(latest_p, root)
-    if len(revs) != len(set(revs)):
+    # ── 链级不变量: 写入序下有效档 revision 严格递增 ──
+    conflict = _verdict_write_positions_disagree(keyed)
+    if conflict:
         state.update(seat_invoked=True, verdict=None,
-                     error='duplicate_revision')
+                     error=conflict.split(':')[0].strip(),
+                     error_detail=conflict)
         return state
-    if not isinstance(latest, dict) or not latest.get('overall'):
-        state.update(seat_invoked=True, verdict=None,
-                     error='corrupt_latest')
-        return state
+    # ── 逐档校验: 语义级违规任何位阻断;解析级损坏仅最新位阻断 ──
+    run_paths = {os.path.normpath(os.path.relpath(p, root))
+                 for _, p, _ in keyed}
+    for _, p, v in keyed:
+        err = _verdict_record_error(p, v, run_ts, run_paths)
+        if err:
+            state['record_health'][os.path.relpath(p, root)] = err
+            if p == latest_p or err.startswith('invalid_record'):
+                state.update(
+                    seat_invoked=True, verdict=None,
+                    error=('corrupt_latest' if err.startswith('corrupt')
+                           else err),
+                    error_detail='%s @ %s' % (err, os.path.relpath(p, root)))
+                return state
     state.update(seat_invoked=True, verdict=latest.get('overall'))
     bound = latest.get('content_sha256')
     if bound and report_dir:
@@ -631,6 +763,37 @@ def _new_attach_meta(prior, meta):
     return out
 
 
+def blocked_class_of(report):
+    """Audit-R4 条目5: 三级数据缺口分类的唯一规范源(attach/report/archive
+    同源同判,不得各写一套口径)。
+
+    返回 None(run_ok 非 False)或:
+      critical_zero_evidence  L1 事实行=0——任何旗标不放行;
+      required_data_missing   冻结必要项 outcome∈{missing,
+                             insufficient_coverage}(任务目标缺口,
+                             默认阻塞;--allow-failed-run 显式越过随档);
+      optional_data_missing   证据面在场且无必要缺口(诚实拒答类失败)
+                             ——显式旗标+充分披露+有效独立审查后可交付。
+    「存在最新单点」不构成历史分析需求满足(Audit-R4 条目5)——
+    insufficient_coverage 与 missing 同为必要缺口。
+    """
+    if report.get('run_ok') is not False:
+        return None
+    l1_rows = len(((report.get('layers') or {}).get('L1_事实层') or {})
+                  .get('rows') or [])
+    req_missing = [
+        i.get('metric_id') for i in
+        (((report.get('run') or {}).get('data_requirements') or {})
+         .get('items') or [])
+        if i.get('tier') == 'required' and i.get('outcome')
+        in ('missing', 'insufficient_coverage')]
+    if l1_rows == 0:
+        return 'critical_zero_evidence'
+    if req_missing:
+        return 'required_data_missing'
+    return 'optional_data_missing'
+
+
 def attach_judgment(report_dir, judgment_path, root=None,
                     allow_failed_run=False):
     """校验 Agent judgment 并合并进 research-run 报告(半落位=不落位)。
@@ -651,33 +814,20 @@ def attach_judgment(report_dir, judgment_path, root=None,
     judgment = _load_json(judgment_path)
 
     # ── MINOR-4 门槛: 失败底座默认拒收(Audit-R1 F02 分级) ──────────
-    # 规则运行前固定(与 plan 段 run.degradation_policy 同文,双写=互证):
+    # 规则运行前固定(与 plan 段 run.degradation_policy 同文,双写=互证);
+    # Audit-R4 条目5 起分类唯一规范源=blocked_class_of(attach/report/
+    # archive 同源同判),insufficient_coverage 与 missing 同为必要缺口:
     #   critical_zero_evidence: L1 事实行=0(引擎崩溃/全量采集失败)——
     #     判断无处可落,**任何旗标不得放行**(不用 --allow-failed-run 把
     #     关键失败自动变成成功);
-    #   required_data_missing(Audit-R2 条目7): 运行前声明的必要指标
-    #     (问题词面命中,data_requirements tier=required)采集缺席——
-    #     任务目标缺口,默认阻塞;显式 allow_failed_run 才放行并记
-    #     degraded(缺口随档,不得事后把必要改判可选=缩减任务目标);
+    #   required_data_missing: 运行前冻结的必要指标(问题词面命中)采集
+    #     缺席**或覆盖不足**(最新单点≠历史分析需求满足)——任务目标
+    #     缺口,默认阻塞;显式 allow_failed_run 才放行并记 degraded
+    #     (缺口随档,不得事后把必要改判可选=缩减任务目标);
     #   optional_data_missing: L1 事实面在场、失败步=诚实拒答类(如源端
     #     缺席 no_series)——须显式 allow_failed_run=True,落位记 degraded。
     run_ok = report.get('run_ok')
-    if run_ok is False:
-        l1_rows = len(((report.get('layers') or {}).get('L1_事实层') or {})
-                      .get('rows') or [])
-        req_missing = [
-            i.get('metric_id') for i in
-            (((report.get('run') or {}).get('data_requirements') or {})
-             .get('items') or [])
-            if i.get('tier') == 'required' and i.get('outcome') == 'missing']
-        if l1_rows == 0:
-            blocked_class = 'critical_zero_evidence'
-        elif req_missing:
-            blocked_class = 'required_data_missing'
-        else:
-            blocked_class = 'optional_data_missing'
-    else:
-        blocked_class = None
+    blocked_class = blocked_class_of(report)
     if run_ok is False and (blocked_class == 'critical_zero_evidence'
                             or not allow_failed_run):
         report['agent_judgment'] = _new_attach_meta(

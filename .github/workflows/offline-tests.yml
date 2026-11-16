@@ -5,10 +5,13 @@ name: offline-tests
 #   零API密钥、零付费调用、零真实采集——CI环境无需任何secret;
 # - test_model_live.py 为真实模型API验收套件,按契约不得进入CI,显式排除;
 # - FIX3-04修正: 被测模块import面含第三方库(requests/openai/pandas/
-#   fredapi/feedparser/finnhub/tushare/yfinance),CI必须**安装真实依赖**
+#   fredapi/feedparser/finnhub-python/tushare/yfinance),CI必须**安装真实依赖**
 #   (此前"仅标准库"的假设错误,导致首轮8套件import失败——测试本身对依赖的
 #   使用均为离线mock,不发起任何真实API调用);
-# - 显式固定Python 3.11;任一套件失败→工作流失败(exit非零)并记录每套退出码,
+# - Audit-R4 §三.1: 真实 Python 3.11/3.12 CI 矩阵(此前单 3.11——3.12 起
+#   sum() 浮点改 Neumaier 补偿求和,单版矩阵测不出跨版末位分叉;数值规范
+#   已钉 fsum,见 scripts/report_quality_review.py 数值规范登记注释);
+# - 任一套件失败→工作流失败(exit非零)并记录每套退出码,
 #   不得以删除失败用例换取绿色。
 # FIX1轮该文件曾因推送凭据缺workflow scope无法创建而留档于docs/;
 # FIX2轮经SSH正常授权通道首次推送激活(334664f)。
@@ -22,6 +25,10 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
     steps:
       # fetch-depth 0=全量史: R20/R21 状态套件(恢复验收+一致性负例)核验
       # 检查点提交的真实存在性与祖先链,浅克隆会缺历史对象→套件红(实测
@@ -31,7 +38,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
       - name: 安装被测模块import面所需的真实第三方依赖
         run: |
           python -m pip install --upgrade pip
@@ -60,6 +67,22 @@ jobs:
             fi
           done
           exit $fail
+      - name: 失败套件日志打包上传(仅失败时)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: suite-logs-py${{ matrix.python-version }}
+          path: /tmp/suite-logs/
+  gates:
+    # 版本无关的确定性文件门(单跑一次,不随矩阵重复)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
       - name: thresholds 三方对账门 G1-G4(T2·裁定S1第4项,任一门红=CI fail)
         run: |
           python3 scripts/thresholds_gate.py
@@ -71,9 +94,3 @@ jobs:
           python3 scripts/rd_state_consistency.py --repo . --state-dir docs/autonomous-rd
       - name: 研发进展漂移顾问(R21·Charter10 §4.3,非阻塞预警可见性)
         run: python3 scripts/rd_progress_watch.py --repo . --state-dir docs/autonomous-rd
-      - name: 失败套件日志打包上传(仅失败时)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: suite-logs
-          path: /tmp/suite-logs/

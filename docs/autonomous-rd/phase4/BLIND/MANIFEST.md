@@ -128,3 +128,16 @@ FULL_REPORT.md / report.md / judgment_mvp.json / AGENT_SEAT_ENVELOPE.json /
 BIGFILES.sha256
 大件(**已入库** evidence_pack/,Audit-R1 F05 迁移;原运行目录 /tmp/phase4_blind/20261116T053623Z_*,sha256 在档):
 report.json / views_digest.json / evidence_index.json / agent_judgment.json
+
+## Audit-R4 R4-03 同版重放证据包(2026-11-17 新增)
+
+- 新增件: `data_slice/`(原始输入切片: GOLD_F/DXY/VIX + UST_10Y/BEI_10Y/
+  TIPS_10Y/HY_OAS, 逐值拷贝自引擎树 20261112 版两源文件, 哈希在
+  BIGFILES.sha256 与 REPLAY.md)、`blind_calc_output.txt`/`blind_calc2_output.txt`
+  (冻结输出锚)、`blind_independent_recompute.py`(独立实现复算席)、
+  `blind_replay.sh`(一条命令重放入口)、`REPLAY.md`(口径台账)。
+- 一条命令: `sh docs/autonomous-rd/phase4/BLIND/blind_replay.sh` →
+  切片哈希核验 + 双脚本逐字节重放 + 独立复算 64 项正文靶值。
+- 结果(2026-11-17): 切片重放与引擎树原跑逐字节一致; 独立复算 64/64 全中,
+  零正文数值修正(唯一跨路径分歧=带边括注第 4 位小数浮点噪声, REPLAY.md
+  披露)。切片等价性验证方式: 制包时 engine-vs-slice 双跑 diff 为空。

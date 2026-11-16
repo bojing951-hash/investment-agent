@@ -141,8 +141,9 @@ check('T3 归档摘要=裁决锚(bound)',
       man['content_sha256'] == json.load(
           open(vp1, encoding='utf-8'))['content_sha256'])
 check('T4 裁链随包+manifest 裁决面齐',
-      os.path.isfile(os.path.join(arc1, 'verdicts',
-                                  os.path.basename(vp1)))
+      os.path.isfile(os.path.join(arc1, 'verdicts', '%s__%s' % (
+          os.path.basename(os.path.dirname(vp1)),
+          os.path.basename(vp1))))          # Audit-R4 条目4: 日目录__basename 唯一名
       and man['verdict'] == 'VERIFIED' and man['verdicts_n'] == 1)
 check('T5 交付件副本齐(report.json/report.md/FULL_REPORT/'
       'agent_judgment.json)',

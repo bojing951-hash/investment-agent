@@ -1563,19 +1563,36 @@ def _r1_report_core(args, engine_root):
         lines.append(f"| {i} | {e.get('kind')} | {e.get('ref')} | "
                      f"{str(e.get('note') or e.get('desc') or '')[:80]} |")
 
-    # ── Audit-R1 F02 + Audit-R2 条目1/2: 四态门(生成≠校验≠审查≠可交付) ──
+    # ── Audit-R1 F02 + Audit-R2 条目1/2 + Audit-R4 条目2/5: 四态门 ──
+    # (生成≠校验≠审查≠可交付)
     import agent_judgment as aj
     sr = aj._semantic_review_state(rj, engine_root, rd)
     aj_meta = rj.get('agent_judgment') or {}
+    # Audit-R4 条目5: 必要/可选数据规则贯通至 report/archive——分类唯一
+    # 规范源=aj.blocked_class_of(与 attach 同源)。critical_zero_evidence/
+    # required_data_missing 一律拦截;**仅** optional_data_missing 且
+    # attach 时显式 --allow-failed-run 随档、冻结数据需求(含披露面)
+    # 在场时,允许经有效独立审查(deliverable 合取项)后交付。
+    blocked_class = aj.blocked_class_of(rj)
+    _dr_items = ((((rj.get('run') or {}).get('data_requirements') or {})
+                  .get('items')) or [])
+    degraded_ok = (blocked_class == 'optional_data_missing'
+                   and bool(_dr_items)
+                   and aj_meta.get('allow_failed_run') is True)
+    run_state_ok = (rj.get('run_ok') is not False)
     machine_verified = bool(
         l3.get('produced') and l4.get('produced')
         and (aj_meta.get('validation') or {}).get('passed')
-        and aj_meta.get('run_ok_at_attach') is not False
         # Audit-R2 条目1: 当前运行态为准——attach 后 run_ok 翻 False
-        # (改档/重评)不得沿用旧 attach 成功状态
-        and rj.get('run_ok') is not False)
-    # Audit-R2 条目1: 多副本一致性(审查与渲染同版)——report.md 必须=
-    # report.json 的当前渲染;不一致=改了源没渲/渲了别的源,拒绝交付
+        # (改档/重评)不得沿用旧 attach 成功状态;Audit-R4 条目5:
+        # optional 级显式降级路径不受此条一刀切拦截
+        and (aj_meta.get('run_ok_at_attach') is not False or degraded_ok)
+        and (run_state_ok or degraded_ok))
+    # Audit-R2 条目1 + Audit-R4 条目2: 多副本一致性(审查与渲染同版)——
+    # report.md 必须=report.json 的当前渲染;FULL_REPORT.md 在场时必须=
+    # 当前确定性装配(report.json+views_digest.json 同版视图);不一致=
+    # 改了源没渲/渲了别的源/视图被单改,拒绝交付(摘要 v3 已把
+    # views_digest 纳入绑定,渲染输入任何变化旧裁决即失效)
     copies_consistent = True
     copies_note = None
     try:
@@ -1591,20 +1608,32 @@ def _r1_report_core(args, engine_root):
         and sr.get('seat_invoked')
         and sr.get('verdict') in aj.REVIEW_APPROVED_VERDICTS
         and sr.get('fresh') is True)
-    deliverable = machine_verified and review_ok and copies_consistent
     warnings = []
     if not l3.get('produced') or not l4.get('produced'):
         warnings.append('L3/L4 未全 produced——不冒认完整(G2 门不放过)')
     elif not ((aj_meta.get('validation') or {}).get('passed')):
         warnings.append('机器纪律校验未过(violations 在 agent_judgment 档)')
-    elif aj_meta.get('run_ok_at_attach') is False:
-        warnings.append('底座 run_ok=False(降级落位,不可交付级)')
-    elif rj.get('run_ok') is False:
+    elif blocked_class == 'critical_zero_evidence':
+        warnings.append('L1 事实行=0(critical_zero_evidence)——任何旗标'
+                        '不得放行(Audit-R4 条目5)')
+    elif blocked_class == 'required_data_missing':
+        warnings.append('必要数据缺口/覆盖不足(required_data_missing)——'
+                        '任务目标缺口不得交付;不得事后把必要改判可选'
+                        '(Audit-R4 条目5)')
+    elif aj_meta.get('run_ok_at_attach') is False and not degraded_ok:
+        warnings.append('底座 run_ok=False 且非 optional 级显式降级'
+                        '(不可交付级)')
+    elif rj.get('run_ok') is False and not degraded_ok:
         warnings.append('当前运行态 run_ok=False——不得沿用旧 attach '
                         '成功状态交付(Audit-R2)')
+    elif degraded_ok:
+        warnings.append('降级交付(optional_data_missing,显式旗标随档): '
+                        '缺口披露于数据需求面,经有效独立审查后可交付'
+                        '(Audit-R4 条目5)')
     elif sr.get('required') and sr.get('error'):
         warnings.append(f"裁决链非法({sr.get('error')})——最新档损坏/"
-                        '冲突即阻断交付,不回退旧 PASS(Audit-R2)')
+                        '冲突即阻断交付,不回退旧 PASS(Audit-R2/Audit-R4 '
+                        '条目1: 裁决先后不因解析失败倒退)')
     elif sr.get('required') and not sr.get('seat_invoked'):
         warnings.append('独立审查 required=true 但裁决缺席——'
                         '不得标记 MVP 完成或可验收交付')
@@ -1618,37 +1647,73 @@ def _r1_report_core(args, engine_root):
     elif not copies_consistent:
         warnings.append('report.md 与 report.json 渲染不同版(多副本不一致'
                         + (f'; {copies_note}' if copies_note else '')
-                        + ')——拒绝交付(Audit-R2)')
-    lines += ['', '## 质量状态(Audit-R1 F02 四态+Audit-R2 绑定面)', '',
-              f"- generated: true(FULL_REPORT 完整装配: L1+L2+L3/L4 全文内联+证据索引)",
-              f"- machine_verified: {machine_verified}"
-              "(L3∧L4 produced+纪律校验过+底座非降级+当前 run_ok 非 False)",
-              f"- review: required={sr.get('required')} seat_invoked="
-              f"{sr.get('seat_invoked')} verdict={sr.get('verdict')} "
-              f"fresh={sr.get('fresh')} error={sr.get('error')} "
-              f"修订链档数={sr.get('verdicts_n')}",
-              f"- copies_consistent(多副本一致): {copies_consistent}"
-              "(report.md=report.json 当前渲染)",
-              f"- deliverable(可交付): {deliverable}",
-              '- 内容绑定(Audit-R2): content_sha256=canonical(report.json'
-              ' 剥离 semantic_review)+canonical(agent_judgment.json)——'
-              '事实/L3/L4/run_ok/版本指针任一变化即失效旧裁决;'
-              '审查与渲染同源,视图不一致即拒绝交付']
-    lines += ['', '---', '渲染纪律: 本件只汇编在场事实(确定性装配),不做新增生成;',
-              'L3/L4 内容归 Agent 席与独立审计,本段不代写。']
+                        + ')——拒绝交付(Audit-R2/Audit-R4 条目2)')
+
+    # Audit-R4 条目2: FULL_REPORT 视图一致性(在场时)——比对**内容段**
+    # (质量状态节之前的全部装配内容: L1/L2 摘编/L3/L4/证据索引)。
+    # 内容段=report.json+views_digest.json 的纯函数,与摘要 v3 同源;
+    # 质量状态节嵌入活门面(裁决推进/门翻红合法变化),不入比对——
+    # 否则席位复审后重跑 report 会误伤(修订链档数翻新≠篡改)。
+    # views_digest 或视图内容被单改 → 内容段 ≠ 当前装配 → 拒绝交付。
+    _Q_MARKER = '\n## 质量状态'
+    content_text = '\n'.join(lines) + '\n'
+    prev_full = None
+    if os.path.exists(out_md):
+        try:
+            prev_full = open(out_md, encoding='utf-8').read()
+        except OSError as exc:
+            copies_consistent, copies_note = False, repr(exc)
+    if prev_full is not None and \
+            prev_full.split(_Q_MARKER)[0] != content_text:
+        copies_consistent = False
+        copies_note = (copies_note or '') + ' FULL_REPORT.md 内容段与当前装配不同版'
+        warnings.append('FULL_REPORT.md 内容段与当前确定性装配不同版'
+                        '(渲染输入/视图被单改)——拒绝交付(Audit-R4 条目2)')
+
+    def _quality_section(copies_val, deliv_val):
+        return ['', '## 质量状态(Audit-R1 F02 四态+Audit-R2 绑定面+Audit-R4 '
+                '贯通面)', '',
+                f"- generated: true(FULL_REPORT 完整装配: L1+L2+L3/L4 全文内联"
+                f"+证据索引)",
+                f"- machine_verified: {machine_verified}"
+                "(L3∧L4 produced+纪律校验过+底座非降级或 optional 级显式"
+                "降级随档)",
+                f"- run 门(Audit-R4 条目5): blocked_class={blocked_class} "
+                f"degraded_ok={degraded_ok}",
+                f"- review: required={sr.get('required')} seat_invoked="
+                f"{sr.get('seat_invoked')} verdict={sr.get('verdict')} "
+                f"fresh={sr.get('fresh')} error={sr.get('error')} "
+                f"修订链档数={sr.get('verdicts_n')}",
+                f"- copies_consistent(多副本一致): {copies_val}"
+                "(report.md=report.json 当前渲染;FULL_REPORT 内容段=当前"
+                "确定性装配)",
+                f"- deliverable(可交付): {deliv_val}",
+                '- 内容绑定(Audit-R4 条目2): content_sha256=canonical'
+                '(report.json 剥离 semantic_review)+canonical'
+                '(agent_judgment.json)+canonical(views_digest.json)——'
+                '机构归属/标题/日期/摘编/事实/L3/L4/run_ok/版本指针任一变化'
+                '即失效旧裁决;审查与渲染同源,视图不一致即拒绝交付',
+                '', '---', '渲染纪律: 本件只汇编在场事实(确定性装配),不做新增'
+                '生成;L3/L4 内容归 Agent 席与独立审计,本段不代写。']
+
+    deliverable = machine_verified and review_ok and copies_consistent
+    full_text = content_text + '\n'.join(
+        _quality_section(copies_consistent, deliverable)) + '\n'
     with open(out_md, 'w', encoding='utf-8') as f:
-        f.write('\n'.join(lines) + '\n')
+        f.write(full_text)
     data = {
         'stage': 'report', 'full_report': out_md,
         'L3_produced': l3.get('produced'),
         'L4_produced': l4.get('produced'),
         'generated': True, 'machine_verified': machine_verified,
+        'blocked_class': blocked_class, 'degraded_ok': degraded_ok,
         'review': {'required': sr.get('required'),
                    'seat_invoked': sr.get('seat_invoked'),
                    'verdict': sr.get('verdict'), 'fresh': sr.get('fresh'),
                    'error': sr.get('error'), 'archive': sr.get('archive'),
                    'verdicts_n': sr.get('verdicts_n'),
-                   'prior_verdicts': sr.get('prior_verdicts') or []},
+                   'prior_verdicts': sr.get('prior_verdicts') or [],
+                   'record_health': sr.get('record_health') or {}},
         'copies_consistent': copies_consistent,
         'deliverable': deliverable, 'mvp_complete': deliverable}
     return deliverable, data, warnings
@@ -1687,6 +1752,13 @@ def _r1_archive_core(args, engine_root):
     vd = os.path.join(dest, 'verdicts')
     os.makedirs(vd)
     copies = {}
+
+    def _verdict_copy_name(src_path):
+        # Audit-R4 条目4: 跨日同名 basename 冲突——归档名=日目录__basename
+        # (全局唯一),日期目录保留在名内;原件路径另记 source_rel
+        day = os.path.basename(os.path.dirname(src_path))
+        return '%s__%s' % (day, os.path.basename(src_path))
+
     try:
         for fname in ('report.json', 'report.md', 'FULL_REPORT.md',
                       'agent_judgment.json', 'views_digest.json',
@@ -1700,21 +1772,48 @@ def _r1_archive_core(args, engine_root):
                     raise OSError('副本核对失败(字节不等): ' + fname)
                 copies[fname] = hashlib.sha256(a).hexdigest()[:16]
         vchain = []
-        for p, doc in aj._verdicts_for_run(engine_root, run_ts):
-            name = os.path.basename(p)
+        seen_names = set()
+        for p, doc in sorted(
+                aj._verdicts_for_run(engine_root, run_ts),
+                key=lambda t: aj._verdict_sort_key(t[0], t[1])):
+            name = _verdict_copy_name(p)
+            # Audit-R4 条目4: 归档前路径冲突检查(同名=链身份破坏,拒绝)
+            if name in seen_names or os.path.exists(os.path.join(vd, name)):
+                raise OSError('裁决档归档名冲突(非唯一): ' + name)
+            seen_names.add(name)
             _shutil.copy2(p, os.path.join(vd, name))
             if open(p, 'rb').read() != open(os.path.join(vd, name),
                                             'rb').read():
                 raise OSError('裁决档副本核对失败: ' + name)
-            vchain.append({'file': 'verdicts/' + name,
-                           'overall': (doc or {}).get('overall'),
-                           'revision': (doc or {}).get('revision')})
+            vchain.append({
+                'file': 'verdicts/' + name,
+                'source_rel': os.path.relpath(p, engine_root),
+                'overall': (doc or {}).get('overall'),
+                'revision': (doc or {}).get('revision'),
+                'predecessor': (doc or {}).get('predecessor'),
+                'recorded_at': (doc or {}).get('recorded_at'),
+                'sha256': hashlib.sha256(
+                    open(p, 'rb').read()).hexdigest()[:16]})
+        # ── Audit-R4 条目4: 链完整性核对(数量/唯一/哈希/链关系) ──
+        n_src = len(aj._verdicts_for_run(engine_root, run_ts))
+        if len(vchain) != n_src or len(seen_names) != n_src:
+            raise ValueError('裁决链记录数/唯一性核对失败: 链=%d 唯一名=%d '
+                             '源=%d' % (len(vchain), len(seen_names), n_src))
+        name_by_source = {e['source_rel']: e['file'] for e in vchain}
+        for e in vchain:
+            pred = e.get('predecessor')
+            if pred is not None and pred not in name_by_source:
+                raise ValueError('裁决链 predecessor 不在归档集内: %s -> %r'
+                                 % (e['file'], pred))
         # ── 三处摘要核对(run=归档=裁决锚) ──
         sha_run = aj.content_digest(rd)
         sha_arc = aj.content_digest(dest)
         latest = data.get('review') or {}
-        arc_vd = os.path.join(vd, os.path.basename(
-            latest.get('archive') or '')) if latest.get('archive') else None
+        arc_vd = None
+        if latest.get('archive'):
+            arc_vd = os.path.join(
+                vd, _verdict_copy_name(
+                    os.path.join(engine_root, latest['archive'])))
         latest_doc = _load_json_arc(arc_vd) if arc_vd else None
         sha_bound = (latest_doc or {}).get('content_sha256')
         if not (sha_run == sha_arc and sha_arc == sha_bound):
@@ -1726,14 +1825,18 @@ def _r1_archive_core(args, engine_root):
             'question': (rj.get('run') or {}).get('question'),
             'archived_at': ro._now_utc(),
             'content_sha256': sha_run,
-            'digest_algorithm': 'v2(canonical report.json剥离semantic_review'
+            'digest_algorithm': 'v3(canonical report.json剥离semantic_review'
                                 '+canonical agent_judgment.json剥离'
-                                'semantic_review)',
+                                'semantic_review+canonical views_digest.json)'
+                                ' [Audit-R4 条目2]',
             'verdict': latest.get('verdict'), 'fresh': latest.get('fresh'),
             'verdicts_n': latest.get('verdicts_n'),
             'verdict_chain': vchain, 'copies_sha16': copies,
+            'record_health': (data.get('review') or {}).get(
+                'record_health') or {},
             'source_report_dir': rd,
-            'correlation': 'run==archive==verdict-bound(三处一致已核)'}
+            'correlation': 'run==archive==verdict-bound(三处一致已核;'
+                           '裁决链唯一名逐档哈希+predecessor 链关系已核)'}
         aj._atomic_write_text(
             os.path.join(dest, 'ARCHIVE_MANIFEST.json'),
             json.dumps(manifest, ensure_ascii=False, indent=2, default=str))

@@ -4,7 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-16 R44 A 族碎片泄漏硬化(T-R44-1;引擎波次,原自编号 R43 并轨重编号,撞号注记见 ITERATION_LOG R44 行)
+## 权威快照: 2026-11-16 R47 Audit-R2 第二轮外部审计修复与收口(T-R47-1;独立轨道续 R46)
+> baseline=021092f02c52afedf8532fd2b677ca5123110309 (Audit-R2 修复链;docs-only 台账提交在其上,测试面不变)
+
+- **基线**: dev/audit-fix-r1 = 021092f(基点 06e90c1=Audit-R1 冻结尖+CI 报告提交);PR #1 覆盖推送;main 未动。
+- **真实进度**: §二八项全关——①content_digest v2 审查绑定+copies_consistent 同版门+当前运行态优先②裁决内容序+corrupt/duplicate fail-closed+席位词表守卫③BLIND NEW-2/NEW-3 五数值冻结重算更正+独立新席复算 UPHELD(-02)+deliverable=True④F10 重放包(原始输入切片+可配数据根+一条命令逐字节 PASS)⑤pytest 三入口⑥链档反例 12/0⑦plan 冻结 data_requirements+三级 blocked_class⑧main 保护未配置如实登记+Gate B 输入三件套。
+- **验收**: 候选双口径直跑 176/176 rc=0+pytest 175 passed/0 failed;F02 33/0+gate_b 27/0+F09 20/0+席位 10/0+phase6 29/0(净树);G0-G4 分层如实不引用既有声明,终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+docs/autonomous-rd/AUDIT_R2_REPORT.md);main 分支保护未配置=治理发现,建议合并前启用;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R44 视角·引擎轨道,已被上方权威快照取代]
 > baseline=badb4695bfa3e5b2e02a13fb920bcfeaff34fad5 (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 64a482c(R42 尾补重盖章);本轮=`dev/rd-r43-fragment-hardening`(基点 64a482c;开班门①红=main 已并 R41+R42→基面迁移,门 7/7)。

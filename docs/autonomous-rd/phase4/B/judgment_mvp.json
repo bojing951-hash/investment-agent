@@ -2,7 +2,7 @@
   "schema_version": "1.1",
   "agent_declaration": {
     "attribution": "ai_inferred",
-    "note": "Agent Native 研究席(编排层 Agent, 零模型代写)基于本运行确定性证据面作出推断: L1 事实行四行(FXI/CHINEXT/CN_PMI_MFG/CN_NEW_LOANS)+证据索引 65 行+S3 概览与对齐比较步信封+S4 序列(CHINEXT 与 FXI 各十年日度)+L2 机构观点层 17 份 sidecar(观点原文在 views 库 VIEW-*.json, 引用形态 VP-VIEW-*; 机构主张一律 institution_stated, 本档全部判断为 ai_inferred)。证据边界如实披露: (一)本运行 run_ok=False——历史序列步对 CN_PMI_MFG 与 CN_NEW_LOANS 报 no_series(中国宏观序列在本引擎无登记接入点), 两指标仅有快照单点现值, 无历史分布可引, 故本档对二者不作任何年内百分位/区间类表述, 序列类表述仅落在 CHINEXT/FXI; 判断落位将以 --allow-failed-run 显式越过 MINOR-4(诚实拒答类失败且资产面证据可用), 判断质量边界与该越过口径一致。(二)FXI 为美股上市美元计价 ETF 代理(offshore_proxy 席位), 非中国本土指数, 涨跌幅与本土指数不可互换引用。(三)状态类比步的六维特征面不含中国宏观序列, 对本问题不构成相似证据, 本档不引。(四)引擎面数字均派生于报告内证据行原值或按 judgment_contract 钉死口径自 S4 序列复算并注明口径; 机构观点数字仅以 institution_stated 归因转述。判断质量归 Agent 与独立审计。"
+    "note": "Agent Native 研究席(编排层 Agent, 零模型代写)基于本运行确定性证据面作出推断: L1 事实行四行(FXI/CHINEXT/CN_PMI_MFG/CN_NEW_LOANS)+证据索引 65 行+S3 概览与对齐比较步信封+S4 序列(CHINEXT 与 FXI 各十年日度)+L2 机构观点层 17 份 sidecar(观点原文在 views 库 VIEW-*.json, 引用形态 VP-VIEW-*; 机构主张一律 institution_stated, 本档全部判断为 ai_inferred)。证据边界如实披露: (一)本运行 run_ok=False——历史序列步对 CN_PMI_MFG 与 CN_NEW_LOANS 报 no_series(中国宏观序列在本引擎无登记接入点), 两指标仅有快照单点现值, 无历史分布可引, 故本档对二者不作任何年内百分位/区间类表述, 序列类表述仅落在 CHINEXT/FXI; 判断落位将以 --allow-failed-run 显式越过 MINOR-4(诚实拒答类失败且资产面证据可用), 判断质量边界与该越过口径一致。(二)FXI 为美股上市美元计价 ETF 代理(offshore_proxy 席位), 非中国本土指数, 涨跌幅与本土指数不可互换引用。(三)状态类比步的六维特征面不含中国宏观序列, 对本问题不构成相似证据, 本档不引。(四)引擎面数字均派生于报告内证据行原值或按 judgment_contract 钉死口径自 S4 序列复算并注明口径; 机构观点数字仅以 institution_stated 归因转述。判断质量归 Agent 与独立审计。·修订 v2: 依 Phase 5 独立审计 M-1,SCN-B 增补年内全高 4371.9891@2026-06-25 与 -45.3% 主跌浪背景(原档\"10 月高点\"字面为真 但缺主跌浪语境,证伪基准可解读性受损);阈值本身未改"
   },
   "l3": {
     "contradictions": [
@@ -186,7 +186,7 @@
         "id": "SCN-B",
         "role": "反例",
         "rows": {
-          "scenario": "情景B(假设非预测): 增量政策兑现与景气修复——制造业PMI 回到荣枯线上方, 结构性再贷款放量带动信用扩张生效, 离岸资金回流, 创业板指与 FXI 双双修复性上行",
+          "scenario": "情景B(假设非预测): 增量政策兑现与景气修复——制造业PMI 回到荣枯线上方, 结构性再贷款放量带动信用扩张生效, 离岸资金回流, 创业板指与 FXI 双双修复性上行;背景: 创业板 2026 年自 6 月高点 4371.99 已历 -45.3% 主跌浪,本情景\"修复\"指自 11 月低位向 10 月平台回归(仍处主跌浪内部),非趋势反转",
           "asset_direction": {
             "direction": "双资产修复上行(创业板指弹性大于 FXI)",
             "confidence_tier": "纯逻辑推理",
@@ -202,7 +202,7 @@
           ],
           "falsification": {
             "metric_id": "CHINEXT",
-            "threshold": "至期限创业板指从未收于 3043.33(基准: 2026 年 10 月高点 3043.3346@2026-10-09, S4 序列钉死口径)上方且制造业PMI 未出现荣枯线上方读数——修复假设被证伪",
+            "threshold": "至期限创业板指从未收于 3043.33 上方(基准: 2026 年 10 月高点 3043.3346@2026-10-09, S4 序列钉死口径;背景披露: 该点位处 2026 年主跌浪内部——年内全高 4371.9891@2026-06-25, 自全高至年内低点 2391.6518@2026-11-03 回撤 -45.3%,206 个交易日中 181 日收盘高于 3043.33,即\"修复至 10 月高点\"仍较年内全高低约 30%,非收复主跌浪)且制造业PMI 未回荣枯线上方",
             "secondary_metric_ids": [
               "CN_PMI_MFG"
             ]

@@ -614,7 +614,7 @@ with tempfile.TemporaryDirectory() as td:
          mock.patch.object(run_weekly, 'run_step', fake_step):
         try:
             with contextlib.redirect_stdout(io.StringIO()):
-                run_weekly.main()
+                run_weekly.main(argv=[])
             pcode = 0
         except SystemExit as e:
             pcode = e.code
@@ -838,4 +838,7 @@ print(f"结果: {PASS}通过 / {FAIL}失败")
 print("=" * 64)
 print("复核状态: 本结果=开发者离线E2E通过与否; '独立Agent已复核'由Agent4")
 print("另行判定(本套件不得自declare P0-1 PASS)。")
-sys.exit(1 if FAIL else 0)
+if FAIL:
+    sys.exit(1)
+# R43: 原条件退出(1 if FAIL else 0)的 0 支冗余(直跑落尾自然 exit 0),
+# 摘之使 pytest 收集期不被退出打断(绿=静默完成 0 测试收集)。

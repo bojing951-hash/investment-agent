@@ -5,11 +5,12 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-16 R44 A 族碎片泄漏硬化(T-R44-1;引擎波次,原自编号 R43 并轨重编号,撞号注记见 ITERATION_LOG R44 行)
-> baseline=3286f252aacfbe5d6861ccfe088da56441c9a0d9 (机器行: rd_checkpoint.py 维护,勿手改)
+> baseline=28d675540980613d032dc68e95e5face4678c207 (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 64a482c(R42 尾补重盖章);本轮=`dev/rd-r43-fragment-hardening`(基点 64a482c;开班门①红=main 已并 R41+R42→基面迁移,门 7/7)。
 - **真实进度**: **RDG-20261116-013 收口(R41 定性 A 族治面+RDG-012 残余⑦随批)**。①检查面预处理 `_checkface_preprocess`(check_text 入口): HTML 注释(生成头/校验头,DOTALL)剥离+报告头元数据行(`# 投资周报…`/`生成时间：…`)置换+独立行可解析 JSON 对象(provenance)置换;未闭合注释/坏 JSON 行保守保留。②遮罩表补四行: art_ 引用ID/论点·预测#N 序号/紧凑 ISO 日期窗 \d{8}–\d{8}/子句首列表序号(点后须空白=小数反误杀)。③月-日模式日组必选,根治「11月3.8775%」吞「11月3」出碎片「8775%」/「2027年5月4.33%」出「33%」。④随批⑦: run_weekly.main(argv=None) 显式传参,四件套(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2)main([]),pytest 收集口径毒 argv 导入 IMPORT-OK 4/4+负证 SystemExit(2) 亲证。**独立审计四维**: 维度1 初判 FAIL(MAJOR-1=日组必选自产「N月D-D日」裸日号新泄漏)→当场追修(_DATE_RE 日形态扩 D[–—-]D日+§C C4a-c;真实面 283 维持语料 0 命中如实)→其余三维 PASS(removed 逐类抽 5 项回 LIVE 原文全实/added 全 verbatim 零织造/契约面 render 模式不经预处理)→**终判可并入**。**如实更正**: R41 表列 A=154 系簇级主导族归因 token 上界,逐 token 可治面实=50 removed+7 升格;JSON 独立行规则本语料移除 0(V2 全部 20 条 JSON 在块注释内)仍为独立形态防线。
 - **验收**: 真实面复跑工件=t7_realface_r43.json **326→283**(V1 53→50/V2 175→144/V3 98→89;gross removed 50;added 5 条目=7 token 全 verbatim 修复位升格;bad_added 0);新套件 tests/test_rd_r43_checkface_preprocess **23/0**(§A-§E 含变异自证 3 拆全红);受影响面 t8r 31/0+t6c 26/0+phase4 57/0+r27 45/0+r35 18/0+r38 34/0+r40 17/0+r41 20/0+revision_chain 16/0+四件套 33/43/82/109 零败;全库批跑 **166 件=165 OK+1 红**(红=phase6 波中记账面,docs 提交后自愈,审计同判)。残余登记: MINOR-2 表内序号 `| 1. x |`(0 命中)/NIT-2 未闭合注释远端吞/NIT-3 judgment_contract 隐性继承预处理/NIT-5 r1_vp_stages>120s。
+- **并轨追修(操作者席,R44 波内)**: 真 pytest 逐件全量分类(167 件)→R43 修复面漏件 test_round6 X6 三处裸调 argv 化+守卫 §D(26/0);R43「pytest 口径 166/0」声明=管道尾 rc 坑空洞绿,如实修正(真基线 60 绿+106 噪音绿+1 真红本修);pytest 逐件绿判据=rc∈{0,5} 或 rc=3-SystemExit:0。
 - **下一步**: R45(引擎席)=B 族评分卡分值列/表内碎片硬化首位候选(40/283 居首)+T8-R2 ④⑥⑦ 启封随批+MINOR-2/NIT-2 随批+R41 审计登记 MINOR-1+NIT-3~5;日历门 F=2026-12-05/六标签 2026-12 勿手工提前。波次已由操作者席并轨(本 R44 收口波;R32 判例并轨尖重盖章)。
 
 ### [历史快照·R42 视角,已被上方权威快照取代]

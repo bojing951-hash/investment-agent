@@ -45,7 +45,11 @@ import os
 import sys
 from collections import OrderedDict, defaultdict
 
-ENGINE = os.path.expanduser('~/investment-agent-dev')
+# Audit-R2 条目4: 数据根可配置(默认本机引擎树;净目录重放用
+# IA_ENGINE_ROOT 指向含 data/daily/{snapshot,macro} 的目录——
+# F10 data_slice/ 即按此布局,不依赖任何 home//tmp 绝对路径)
+ENGINE = os.environ.get('IA_ENGINE_ROOT',
+                        os.path.expanduser('~/investment-agent-dev'))
 SNAP = os.path.join(ENGINE, 'data/daily/research_snapshot_20261112_v2.json')
 MACRO = os.path.join(ENGINE, 'data/daily/macro_20261112.json')
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),

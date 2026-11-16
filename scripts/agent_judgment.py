@@ -298,15 +298,54 @@ def _registry_metric_ids(root):
             if m.get('metric_id')}
 
 
-def content_digest(report_dir, judgment_path=None):
-    """Audit-R1 F02: 研究正文内容摘要(独立裁决的绑定锚)。
+def _canonical(obj):
+    """稳定规范化 JSON 串(跨 CPython 3.9-3.12 同文同串)。"""
+    return json.dumps(obj, sort_keys=True, ensure_ascii=True,
+                      separators=(',', ':'), default=str)
 
-    边界(稳定,禁漂移): agent_judgment.json(**剥离 semantic_review 键**,
-    修订链/声明=内容面,在内)+ NUL 分隔 + report.md 全文(研究正文)。
-    裁决档自身(VERDICT-*.json)不在边界内——裁决→改文→再裁决的
-    循环依赖由此切断。canonical=json.dumps(sort_keys+ensure_ascii+
-    紧凑分隔符)——跨 CPython 版本与平台稳定(3.9-3.12 同文同摘)。
+
+# Audit-R2 条目1: 摘要边界内须剥离的易变键(审查机制自身状态面,
+# 写入即变——不剥离则裁决落档自噬;其余键全在摘要内,含 attach 台账
+# 与版本指针 run.git_head/pipeline_version——重 attach/换引擎版本即
+# 失效旧裁决,任一交付输入变化不得沿用旧审查)
+_DIGEST_VOLATILE_REPORT_KEYS = ('semantic_review',)
+_DIGEST_VOLATILE_JUDGMENT_KEYS = ('semantic_review',)
+
+
+def content_digest(report_dir, judgment_path=None):
+    """Audit-R2 条目1: 唯一规范化内容来源=report.json(审查与渲染同源)。
+
+    边界(稳定,禁漂移): canonical(report.json, 剥离易变键 semantic_review)
+    + NUL + canonical(agent_judgment.json, 剥离 semantic_review)。
+    研究事实(L1/L2)、L3/L4 判断、run_ok、运行元数据、attach 台账、
+    版本指针(run.git_head/pipeline_version/快照 id)全在摘要内——
+    只改 report.json 的事实/结论/运行状态即失效旧裁决(Audit-R2 反例①)。
+    report.md/FULL_REPORT=report.json 的渲染视图,**不入摘要**;视图与
+    源的一致性由交付门 copies_consistent 核对(_r1_report_core)——
+    审查绑定的与交付渲染的是同一份规范化内容。
+    裁决档自身(VERDICT-*.json)不在 report_dir 内,天然不在边界
+    (Audit-R1 F02 循环依赖切断面保留)。
     """
+    import hashlib
+    rp = _load_json(os.path.join(report_dir, 'report.json'))
+    for k in _DIGEST_VOLATILE_REPORT_KEYS:
+        rp.pop(k, None)
+    if judgment_path is None:
+        for cand in ('agent_judgment.json', 'judgment_mvp.json'):
+            p = os.path.join(report_dir, cand)
+            if os.path.isfile(p):
+                judgment_path = p
+                break
+    j = _load_json(judgment_path)
+    for k in _DIGEST_VOLATILE_JUDGMENT_KEYS:
+        j.pop(k, None)
+    return hashlib.sha256(
+        (_canonical(rp) + '\x00' + _canonical(j)).encode('utf-8')).hexdigest()
+
+
+def content_digest_v1(report_dir, judgment_path=None):
+    """Audit-R1 旧口径(judgment + report.md 全文)——仅存续供裁决重绑
+    迁移验证旧锚(rebind_verdict_digest),不得用于新裁决绑定。"""
     import hashlib
     if judgment_path is None:
         for cand in ('agent_judgment.json', 'judgment_mvp.json'):
@@ -316,25 +355,87 @@ def content_digest(report_dir, judgment_path=None):
                 break
     j = _load_json(judgment_path)
     j.pop('semantic_review', None)
-    canon = json.dumps(j, sort_keys=True, ensure_ascii=True,
-                       separators=(',', ':'), default=str)
     md = open(os.path.join(report_dir, 'report.md'), encoding='utf-8').read()
-    return hashlib.sha256((canon + '\x00' + md).encode('utf-8')).hexdigest()
+    return hashlib.sha256((_canonical(j) + '\x00' + md).encode('utf-8')
+                          ).hexdigest()
 
 
 # Audit-R1 F02: 独立审查可放行档(裁决语汇——席位其余语汇一律不放行)
 REVIEW_APPROVED_VERDICTS = ('VERIFIED', 'PASS', 'UPHELD')
 
+# Audit-R2 条目2: 裁决档必填字段(缺任一=损坏档,最新档损坏即阻断,
+# 不回退旧 PASS)
+VERDICT_REQUIRED_FIELDS = ('overall', 'reviewer', 'run_ts', 'recorded_at')
+
+# R32 席位词表(Audit-R2 收口): 语义审查席裁决档只认章程四词。与四态门
+# 放行词(REVIEW_APPROVED_VERDICTS)是两张表——席位席报告词 VERIFIED/PASS
+# 须映射为 UPHELD 后落档(同义,-01 档先例),越表词落档即抛(B3 机核面)。
+SEAT_VERDICT_VOCAB = ('UPHELD', 'REVISE', 'NOT_VERIFIED', 'REJECT_ENTRY')
+
+
+def _verdicts_for_run(root, run_ts):
+    """按 run_ts 收全裁决档(跨日目录,run_ts 在文件名内)。
+
+    返回 [(path, doc)];doc=None=不可解析(损坏档如实入列,不静默丢)。
+    """
+    import glob as _glob
+    out = []
+    for p in sorted(_glob.glob(os.path.join(
+            root, 'audit', 'semantic_review', '*', 'VERDICT-*.json'))):
+        if run_ts not in os.path.basename(p):
+            continue
+        try:
+            v = _load_json(p)
+            if not isinstance(v, dict):
+                v = None
+        except Exception:
+            v = None
+        out.append((p, v))
+    return out
+
+
+def _verdict_sort_key(path, doc):
+    """裁决内容序(非 mtime): (代, revision, 日目录, 文件名 seq)。
+
+    Audit-R2 条目2: 排序只读档**内容与稳定文件名**——revision=新档全局
+    单调序号(record_semantic_verdict 按在档全数+1 赋号,跨日目录不归零);
+    legacy 档(无 revision 键,含不可解析损坏档)以日目录+文件名序号兜底
+    (写入序的事实承载),恒排新档前。损坏档排序不塌向链首——按文件名
+    序仍可居链尾,最新位损坏即阻断,不得跳过错误记录回退旧 PASS。
+    mtime 不参与: 调换裁决文件 mtime,状态面结果不得变化。
+    """
+    rev = (doc or {}).get('revision')
+    if isinstance(rev, int) and rev > 0:
+        return (1, rev, '', '', '')
+    day = os.path.basename(os.path.dirname(path))
+    name = os.path.basename(path)
+    seq = ''
+    m = re.search(r'-(\d+)\.json$', name)
+    if m:
+        seq = '%06d' % int(m.group(1))
+    return (0, 0, day or '00000000', seq, name)
+
 
 def record_semantic_verdict(root, report_dir, overall, reviewer,
                             notes='', extra=None):
-    """Audit-R1 F02: 独立席裁决落档(append-only,带内容绑定)。
+    """Audit-R1 F02 + Audit-R2 条目2: 独立席裁决落档(append-only,带内容绑定)。
 
     写 root/audit/semantic_review/<YYYYMMDD>/VERDICT-<run_ts>-<seq>.json,
     content_sha256=content_digest(report_dir)(裁决绑定的锚)。修订循环:
     正文修订→摘要变→旧档自动过期(_semantic_review_state 的 fresh=False),
     席位复验后调本函数再写新档——旧失败证据永在档,不覆盖。
+
+    Audit-R2 条目2 定序面: revision=该 run_ts 全档(跨日目录)最大号+1,
+    predecessor=前一最新档相对路径(首档=None)——裁决顺序由内容字段
+    显式承载,不依赖文件系统 mtime;必填字段(overall/reviewer/run_ts/
+    recorded_at)缺失即抛 ValueError,损坏档不落盘。
     """
+    if not overall or not reviewer:
+        raise ValueError('裁决必填字段缺失: overall/reviewer 不得为空')
+    if overall not in SEAT_VERDICT_VOCAB:
+        raise ValueError(f'越表裁决词: {overall!r} 不在 R32 席位词表 '
+                         f'{SEAT_VERDICT_VOCAB}(同义映射: '
+                         'VERIFIED/PASS→UPHELD)')
     report = _load_json(os.path.join(report_dir, 'report.json'))
     run_ts = (report.get('run') or {}).get('ts_utc') or ''
     if not run_ts:
@@ -345,6 +446,15 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
     seq = len([f for f in os.listdir(d) if f.startswith(
         'VERDICT-' + run_ts)]) + 1
     path = os.path.join(d, 'VERDICT-%s-%02d.json' % (run_ts, seq))
+    prior = _verdicts_for_run(root, run_ts)
+    revs = [v.get('revision') for _, v in prior
+            if isinstance(v, dict) and isinstance(v.get('revision'), int)]
+    revision = (max(revs) + 1) if revs else (len(prior) + 1)
+    predecessor = None
+    if prior:
+        latest_p, _ = max(
+            prior, key=lambda t: _verdict_sort_key(t[0], t[1]))
+        predecessor = os.path.relpath(latest_p, root)
     # Audit-R1 对齐 R32 席位章程 schema: seat 恒为章程名,audited_at=归档日
     # (HKT),counterexamples_sought 非空由调用席自证(B3/B4/B5 机核面)。
     doc = {'seat': 'semantic-audit-seat', 'overall': overall,
@@ -352,6 +462,7 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
            'run_ts': run_ts, 'content_sha256': content_digest(report_dir),
            'audited_at': day[:4] + '-' + day[4:6] + '-' + day[6:],
            'recorded_at': _now_utc(),
+           'revision': revision, 'predecessor': predecessor,
            'counterexamples_sought': ((extra or {}).pop(
                'counterexamples_sought', None)
                or ['(未记载: 席位简报须补反例面)'])}
@@ -360,6 +471,40 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(doc, f, ensure_ascii=False, indent=2)
     return path
+
+
+def rebind_verdict_digest(root, report_dir, note):
+    """Audit-R2 条目1 迁移面: 摘要口径换代(v1→v2)时的机械重绑。
+
+    仅当**内容未变**可重绑: 先验旧锚(最新档 content_sha256 与
+    content_digest_v1(当前内容)一致),再写新档(revision 续链,
+    overall/reviewer 承袭,rebind 块如实记迁移事实)。内容已变则抛
+    ValueError——那不是重绑,是修订,须独立席位复验,不得机械承袭。
+    非重审: 判断内容零变化,裁决结论承袭;rebind 块=机器可查的迁移证据。
+    """
+    report = _load_json(os.path.join(report_dir, 'report.json'))
+    run_ts = (report.get('run') or {}).get('ts_utc') or ''
+    if not run_ts:
+        raise ValueError('report.json 缺 run.ts_utc,无法重绑')
+    hits = _verdicts_for_run(root, run_ts)
+    if not hits:
+        raise ValueError('无在档裁决可重绑')
+    latest_p, latest = max(
+        hits, key=lambda t: _verdict_sort_key(t[0], t[1]))
+    if not isinstance(latest, dict) or not latest.get('content_sha256'):
+        raise ValueError('最新档无旧锚,不适用机械重绑')
+    if latest['content_sha256'] != content_digest_v1(report_dir):
+        raise ValueError('旧锚与当前内容不符(内容已变)——须独立复验,'
+                         '不得机械重绑')
+    return record_semantic_verdict(
+        root, report_dir, latest.get('overall'), latest.get('reviewer'),
+        notes=(latest.get('notes') or ''),
+        extra={'rebind': {
+            'from_algorithm': 'digest_v1(judgment+report.md)',
+            'to_algorithm': 'digest_v2(report.json+judgment)',
+            'verified_v1_match': True,
+            'predecessor_archive': os.path.relpath(latest_p, root),
+            'note': note}})
 
 
 def _semantic_review_state(report, root, report_dir=None):
@@ -374,8 +519,16 @@ def _semantic_review_state(report, root, report_dir=None):
 
     Audit-R1 F02 绑定面: 裁决档带 content_sha256 时按当前
     content_digest(report_dir) 判 fresh(True/False);无绑定键的旧档
-    fresh=None(在场但不冒充新鲜——report 门不放行)。同 run_ts 多档
-    (修订循环)取**最新一档**为当前裁决,全档序=修订链(prior_verdicts)。
+    fresh=None(在场但不冒充新鲜——report 门不放行)。
+
+    Audit-R2 条目2 裁决顺序与非法记录(fail-closed):
+    - 定序=内容序 _verdict_sort_key(revision/recorded_at/文件名 seq),
+      mtime 不参与——调换裁决文件 mtime 结果不变;
+    - 最新档损坏(不可解析/缺 overall)→ error='corrupt_latest',
+      verdict=None——**不回退旧 PASS**;
+    - revision 同号多档 → error='duplicate_revision'——冲突即阻断;
+    - 全史保留: prior_verdicts=除最新外全档(含损坏档,如实披露)。
+    error 非空时 report 门 review_ok=False(阻断交付)。
     """
     layers = report.get('layers') or {}
     l3p = bool((layers.get('L3_AI推断层') or {}).get('produced'))
@@ -384,33 +537,33 @@ def _semantic_review_state(report, root, report_dir=None):
                + (['l4_conditional_scenarios'] if l4p else []))
     state = {'required': bool(reasons), 'reasons': reasons,
              'seat_invoked': False, 'verdict': None, 'archive': None,
-             'fresh': None, 'verdicts_n': 0, 'prior_verdicts': []}
+             'fresh': None, 'verdicts_n': 0, 'prior_verdicts': [],
+             'error': None}
     if not reasons:
         return state
     run_ts = (report.get('run') or {}).get('ts_utc') or ''
     if not run_ts:
         return state
-    import glob as _glob
-    hits = []
-    for p in sorted(_glob.glob(os.path.join(
-            root, 'audit', 'semantic_review', '*', 'VERDICT-*.json'))):
-        if run_ts not in os.path.basename(p):
-            continue
-        try:
-            v = _load_json(p)
-        except Exception:
-            continue
-        hits.append((os.path.getmtime(p), p, v))
+    hits = _verdicts_for_run(root, run_ts)
     if not hits:
         return state
-    hits.sort()
-    state['verdicts_n'] = len(hits)
+    keyed = sorted((_verdict_sort_key(p, v), p, v) for p, v in hits)
+    state['verdicts_n'] = len(keyed)
     state['prior_verdicts'] = [os.path.relpath(p, root)
-                               for _, p, _ in hits[:-1]]
-    _, latest_p, latest = hits[-1]
-    state.update(seat_invoked=True,
-                 verdict=latest.get('overall'),
-                 archive=os.path.relpath(latest_p, root))
+                               for _, p, _ in keyed[:-1]]
+    revs = [v.get('revision') for _, _, v in keyed
+            if isinstance(v, dict) and isinstance(v.get('revision'), int)]
+    _, latest_p, latest = keyed[-1]
+    state['archive'] = os.path.relpath(latest_p, root)
+    if len(revs) != len(set(revs)):
+        state.update(seat_invoked=True, verdict=None,
+                     error='duplicate_revision')
+        return state
+    if not isinstance(latest, dict) or not latest.get('overall'):
+        state.update(seat_invoked=True, verdict=None,
+                     error='corrupt_latest')
+        return state
+    state.update(seat_invoked=True, verdict=latest.get('overall'))
     bound = latest.get('content_sha256')
     if bound and report_dir:
         try:
@@ -502,14 +655,27 @@ def attach_judgment(report_dir, judgment_path, root=None,
     #   critical_zero_evidence: L1 事实行=0(引擎崩溃/全量采集失败)——
     #     判断无处可落,**任何旗标不得放行**(不用 --allow-failed-run 把
     #     关键失败自动变成成功);
+    #   required_data_missing(Audit-R2 条目7): 运行前声明的必要指标
+    #     (问题词面命中,data_requirements tier=required)采集缺席——
+    #     任务目标缺口,默认阻塞;显式 allow_failed_run 才放行并记
+    #     degraded(缺口随档,不得事后把必要改判可选=缩减任务目标);
     #   optional_data_missing: L1 事实面在场、失败步=诚实拒答类(如源端
     #     缺席 no_series)——须显式 allow_failed_run=True,落位记 degraded。
     run_ok = report.get('run_ok')
     if run_ok is False:
         l1_rows = len(((report.get('layers') or {}).get('L1_事实层') or {})
                       .get('rows') or [])
-        blocked_class = 'critical_zero_evidence' if l1_rows == 0 \
-            else 'optional_data_missing'
+        req_missing = [
+            i.get('metric_id') for i in
+            (((report.get('run') or {}).get('data_requirements') or {})
+             .get('items') or [])
+            if i.get('tier') == 'required' and i.get('outcome') == 'missing']
+        if l1_rows == 0:
+            blocked_class = 'critical_zero_evidence'
+        elif req_missing:
+            blocked_class = 'required_data_missing'
+        else:
+            blocked_class = 'optional_data_missing'
     else:
         blocked_class = None
     if run_ok is False and (blocked_class == 'critical_zero_evidence'
@@ -530,7 +696,9 @@ def attach_judgment(report_dir, judgment_path, root=None,
                                if blocked_class == 'critical_zero_evidence' else
                                'research-run run_ok=False——判断默认不得落在失败'
                                '证据面上;显式 allow_failed_run=True 才放行'
-                               '(诚实拒答类失败且证据面仍可用时由 Agent 声明)'),
+                               '(required_data_missing=必要指标缺席的任务目标'
+                               '缺口,或 optional_data_missing=诚实拒答类失败'
+                               '且证据面仍可用,由 Agent 显式声明并随档)'),
                 'run_ok_at_attach': run_ok,
             })
         # R33-①: blocked 面同样落席位状态键(L3 未落位→required=False,

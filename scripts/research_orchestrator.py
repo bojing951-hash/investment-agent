@@ -417,6 +417,48 @@ def run_research(question, root=None, archive=False, out_dir=None,
     facts = snap.get('facts') if snap else None
     l1_rows = _fact_rows(snap or {}, set(hist_metrics)) if facts else []
 
+    # ── Audit-R2 条目7: 数据需求声明(分类在采集前冻结,不随结果改判) ──
+    # 必要=问题词面命中指标(任务目标本体);可选=上下文面(S3 信封指标/
+    # L2 机构观点/经济体概览)。采集后只评 outcome(satisfied/missing),
+    # 不得把 missing 的必要项改判可选(事后缩减任务目标=禁止)。
+    # 评据: L1 行 / 快照 series_store 序列在场(S4 history 数据源)。
+    _fact_mids = {r['metric_id'] for r in l1_rows}
+    _ss = (snap or {}).get('series_store') or {}
+    _s3_env = ((next((s.get('envelope') for s in steps
+                      if s.get('step') == 'S3_changes'), {}) or {})
+               .get('data') or {})
+    _s3_mids = set()
+    for _bk in (_s3_env.get('by_asset_class') or {}).values():
+        if isinstance(_bk, dict):
+            _s3_mids.update(str(k) for k in _bk)
+    _req_items = []
+    for _mid in ent['metrics']:
+        if _mid in _fact_mids:
+            _outcome, _basis = 'satisfied', 'L1事实行'
+        elif _mid in _s3_mids:
+            _outcome, _basis = 'satisfied', 'S3信封在场'
+        elif ((_ss.get(_mid) or {}).get('dates')):
+            _outcome, _basis = 'satisfied', f'快照序列(n={len(_ss[_mid]["dates"])})'
+        else:
+            _outcome, _basis = 'missing', 'L1/S3/快照序列均缺席'
+        _req_items.append({'metric_id': _mid, 'tier': 'required',
+                           'basis': '问题词面命中(任务目标)',
+                           'outcome': _outcome, 'outcome_basis': _basis})
+    data_requirements = {
+        'frozen_at': 'plan(采集前冻结;分类不随采集结果改判)',
+        'items': _req_items,
+        'optional_face': {
+            'tier': 'optional',
+            'scope': 'S3 上下文指标/L2 机构观点/经济体概览',
+            'note': '可选缺席=降级披露,不构成任务目标缺口;必要缺席='
+                    '任务目标缺口,attach 默认阻塞(显式越过须随档)'},
+    }
+    if any(i['outcome'] == 'missing' for i in _req_items):
+        notes.append('必要数据缺口: ' + '、'.join(
+            i['metric_id'] for i in _req_items if i['outcome'] == 'missing')
+            + '(运行前已声明为任务目标,未事后缩减;补齐授权范围内数据'
+              '或按降级面显式越过)')
+
     layers = {
         'L1_事实层': {
             'available': snap is not None,
@@ -511,9 +553,15 @@ def run_research(question, root=None, archive=False, out_dir=None,
                     'critical_zero_evidence': (
                         'L1 事实行=0(引擎崩溃/全量采集失败)→拒收判断,'
                         '--allow-failed-run 亦不放行'),
+                    'required_data_missing': (
+                        '运行前声明的必要指标(问题词面命中)采集缺席→'
+                        '任务目标缺口,默认阻塞;显式 --allow-failed-run '
+                        '才放行,落位记 degraded(缺口随档,不得事后改判可选)'),
                     'optional_data_missing': (
                         'L1 事实面在场、失败步=诚实拒答类(源端缺席 no_series)'
-                        '→须显式 --allow-failed-run,落位记 degraded')}},
+                        '→须显式 --allow-failed-run,落位记 degraded')},
+                'data_requirements': data_requirements,
+                },
         'steps': steps,
         'fanout': fan,
         'layers': layers,
@@ -626,6 +674,19 @@ def _render_md(r):
         else:
             lines.append(f"- 数据门(gate_a): OK({len(gates)}/{len(gates)} "
                          "信封步)")
+    # Audit-R2 条目7: 数据需求声明(运行前冻结)——必要缺席=任务目标缺口
+    _dr = ((r.get('run') or {}).get('data_requirements') or {})
+    if _dr.get('items'):
+        lines.append(f"- 数据需求(运行前冻结): 必要 "
+                     f"{sum(1 for i in _dr['items'] if i.get('tier') == 'required')}"
+                     f" 项(问题命中),缺席 "
+                     f"{sum(1 for i in _dr['items'] if i.get('outcome') == 'missing')}"
+                     " 项;可选面缺席=降级披露不构成缺口")
+        for i in _dr['items']:
+            if i.get('outcome') == 'missing':
+                lines.append(f"  - 任务目标缺口: {i['metric_id']}"
+                             f"({i.get('outcome_basis')})——未事后缩减,"
+                             "补齐授权范围内数据或按降级面显式越过")
     lines += ['', '## 四层区分', '']
     l1 = L['L1_事实层']
     lines.append(f"### L1 事实层 available={l1['available']}"

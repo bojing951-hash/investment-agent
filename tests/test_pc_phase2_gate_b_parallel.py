@@ -72,11 +72,53 @@ class TestCAuditR1F08InputParity(unittest.TestCase):
         check('§C harness --help rc=0', r.returncode == 0, r.stderr[-100:])
 
 
+class TestDAuditR2InputFaces(unittest.TestCase):
+    """§D Audit-R2 条目8: 同源比较输入三件套(版本/哈希/日期)+单位基随行。"""
+
+    def test_d_source_anchors(self):
+        src = open(os.path.join(ROOT, 'scripts', 'gate_b_parallel_harness.py'),
+                   encoding='utf-8').read()
+        check('§D 输入三件套函数(_input_face: sha256+bytes+id/as_of)',
+              "def _input_face(path, *, kind)" in src and "'input_id': ident" in src)
+        check('§D 快照面随行', "'snapshot_face': _input_face(snap_path, kind='snapshot')" in src)
+        check('§D 锚点面哈希(序列化锚点字典)',
+              "'anchors_sha256':" in src)
+        check('§D 单位基随行(registry sha256)', "'units_basis': registry_face" in src)
+        check('§D 同源判据注记(全同才同源)',
+              '全同才称同源' in src)
+        check('§D 迁移保持 pending(裁定前不迁)',
+              'PENDING(须裁定档' in src)
+
+    def test_d_input_face_functional(self):
+        import tempfile
+        sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+        import gate_b_parallel_harness as gb
+        with tempfile.NamedTemporaryFile('w', suffix='.json', delete=False,
+                                         encoding='utf-8') as f:
+            json.dump({'snapshot_id': 'snap_test_v1', 'research_as_of': '2026-11-12',
+                       'series_store': {}}, f)
+            p = f.name
+        try:
+            face = gb._input_face(p, kind='snapshot')
+            import hashlib
+            expect = hashlib.sha256(open(p, 'rb').read()).hexdigest()
+            check('§D _input_face 哈希与文件一致', face['sha256'] == expect)
+            check('§D _input_face 版本/日期自述',
+                  face['input_id'] == 'snap_test_v1' and face['as_of'] == '2026-11-12',
+                  str(face))
+            check('§D _input_face 字节数在场', face['bytes'] > 0)
+        finally:
+            os.unlink(p)
+        reg = gb._registry_face()
+        check('§D _registry_face sha256 在场(单位基可考)',
+              reg.get('sha256') not in (None, ''), str(reg.get('sha256'))[:12])
+
+
 def main():
     print('══ Product Convergence Phase 2 守卫 ══')
     errs = 0
     for cls in (TestAMigrationCriteriaFixed, TestBFirstMeasurementArtifact,
-                    TestCAuditR1F08InputParity):
+                    TestCAuditR1F08InputParity, TestDAuditR2InputFaces):
         from io import StringIO
         print(f'── {cls.__name__} ──')
         res = unittest.TextTestRunner(stream=StringIO(), verbosity=0).run(

@@ -43,7 +43,9 @@ class TestAFullAssembly(unittest.TestCase):
         md = open(os.path.join(self.rd, 'FULL_REPORT.md'), encoding='utf-8').read()
         for sec in ('## L1 事实层', '## L2 机构观点层', '## L3 AI 推断层(Agent 席真产·全文内联)',
                     '## L4 条件情景层(Agent 席真产·全文内联)', '## 证据索引',
-                    '## 质量状态(Audit-R1 F02 四态)'):
+                    # Audit-R2 后节题扩为「四态+绑定面」(copies_consistent
+                    # 与内容绑定行并入质量门)——断言随装配面更新
+                    '## 质量状态(Audit-R1 F02 四态+Audit-R2 绑定面)'):
             check(f'§A1 节在场: {sec}', sec in md)
         check('§A1 未落位如实(净树 L3/L4 无判断→不冒充)',
               '(未落位' in md)

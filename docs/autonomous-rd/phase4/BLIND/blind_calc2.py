@@ -133,12 +133,24 @@ common2 = sorted(set(GOLD)&set(REAL)&set(HY))
 g2=[(GOLD[d]/GOLD[common2[i-1]]-1)*100 for i,d in enumerate(common2) if i>0]
 r2=[REAL[d]-REAL[common2[i-1]] for i,d in enumerate(common2) if i>0]
 h2=[HY[d]-HY[common2[i-1]] for i,d in enumerate(common2) if i>0]
+# Audit-R2 条目3(NEW-2 修): DXY 日变化须与 g2/r2/h2 同一前日锚
+# common2[i-1] 构造——旧实现 dts2[i-1] 在 i=0 取到末日(环绕伪值,
+# 首观测的 DXY 日收益=末日→次日的错向变化,收窄桶 -0.361 实为 -0.382)
+x2=[(DXY[d]/DXY[common2[i-1]]-1)*100 for i,d in enumerate(common2) if i>0]
 dts2=common2[1:]
+# Audit-R2 条目3(分组定义统一): 走阔(Δ>0)/收窄(Δ<0)/不变(Δ=0)三组
+# 严格分立——旧实现「收窄日」用 Δ<=0 把不变日混入收窄桶,标签与样本
+# 定义不符;不变日单独披露,相关统计只算严格组
 stress=[i for i in range(len(dts2)) if h2[i]>0]      # 利差走阔日=信用压力
-calm=[i for i in range(len(dts2)) if h2[i]<=0]
-print(f'\n=== 信用利差分状态({dts2[0]}..{dts2[-1]}, HY_OAS 走阔日 vs 收窄日) ===')
+calm=[i for i in range(len(dts2)) if h2[i]<0]        # 严格收窄日
+flat=[i for i in range(len(dts2)) if h2[i]==0]       # 不变日(单列,不入桶)
+print(f'\n=== 信用利差分状态({dts2[0]}..{dts2[-1]}, HY_OAS 走阔/收窄/不变三组严格分立) ===')
 rS,_=pearson([r2[i] for i in stress],[g2[i] for i in stress])
 rC,_=pearson([r2[i] for i in calm],[g2[i] for i in calm])
-rD,_=pearson([(DXY[dts2[i]]/DXY[dts2[i-1]]-1)*100 for i in stress],[g2[i] for i in stress])
-rDc,_=pearson([(DXY[dts2[i]]/DXY[dts2[i-1]]-1)*100 for i in calm],[g2[i] for i in calm])
-print(f'走阔日 n={len(stress)}: GOLD~REAL {rS:+.3f} GOLD~DXY {rD:+.3f} | 收窄日 n={len(calm)}: GOLD~REAL {rC:+.3f} GOLD~DXY {rDc:+.3f}')
+rD,_=pearson([x2[i] for i in stress],[g2[i] for i in stress])
+rDc,_=pearson([x2[i] for i in calm],[g2[i] for i in calm])
+print(f'走阔日 n={len(stress)}: GOLD~REAL {rS:+.3f} GOLD~DXY {rD:+.3f} | 收窄日 n={len(calm)}: GOLD~REAL {rC:+.3f} GOLD~DXY {rDc:+.3f} | 不变日 n={len(flat)}(不入相关桶)')
+if flat:
+    rF,_=pearson([r2[i] for i in flat],[g2[i] for i in flat])
+    rDf,_=pearson([x2[i] for i in flat],[g2[i] for i in flat])
+    print(f'不变日参考(披露,不计入走阔/收窄对比): GOLD~REAL {rF:+.3f} GOLD~DXY {rDf:+.3f}')

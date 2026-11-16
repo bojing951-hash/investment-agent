@@ -1563,19 +1563,35 @@ def _r1_report_core(args, engine_root):
         lines.append(f"| {i} | {e.get('kind')} | {e.get('ref')} | "
                      f"{str(e.get('note') or e.get('desc') or '')[:80]} |")
 
-    # ── Audit-R1 F02: 独立审查四态门(生成≠校验≠审查≠可交付) ──
+    # ── Audit-R1 F02 + Audit-R2 条目1/2: 四态门(生成≠校验≠审查≠可交付) ──
     import agent_judgment as aj
     sr = aj._semantic_review_state(rj, engine_root, rd)
     aj_meta = rj.get('agent_judgment') or {}
     machine_verified = bool(
         l3.get('produced') and l4.get('produced')
         and (aj_meta.get('validation') or {}).get('passed')
-        and aj_meta.get('run_ok_at_attach') is not False)
+        and aj_meta.get('run_ok_at_attach') is not False
+        # Audit-R2 条目1: 当前运行态为准——attach 后 run_ok 翻 False
+        # (改档/重评)不得沿用旧 attach 成功状态
+        and rj.get('run_ok') is not False)
+    # Audit-R2 条目1: 多副本一致性(审查与渲染同版)——report.md 必须=
+    # report.json 的当前渲染;不一致=改了源没渲/渲了别的源,拒绝交付
+    copies_consistent = True
+    copies_note = None
+    try:
+        import research_orchestrator as ro
+        expect_md = ro._render_md(rj)
+        actual_md = open(os.path.join(rd, 'report.md'),
+                         encoding='utf-8').read()
+        copies_consistent = (expect_md == actual_md)
+    except (OSError, ValueError, KeyError) as exc:
+        copies_consistent, copies_note = False, repr(exc)
     review_ok = (not sr.get('required')) or (
-        sr.get('seat_invoked')
+        not sr.get('error')
+        and sr.get('seat_invoked')
         and sr.get('verdict') in aj.REVIEW_APPROVED_VERDICTS
         and sr.get('fresh') is True)
-    deliverable = machine_verified and review_ok
+    deliverable = machine_verified and review_ok and copies_consistent
     warnings = []
     if not l3.get('produced') or not l4.get('produced'):
         warnings.append('L3/L4 未全 produced——不冒认完整(G2 门不放过)')
@@ -1583,6 +1599,12 @@ def _r1_report_core(args, engine_root):
         warnings.append('机器纪律校验未过(violations 在 agent_judgment 档)')
     elif aj_meta.get('run_ok_at_attach') is False:
         warnings.append('底座 run_ok=False(降级落位,不可交付级)')
+    elif rj.get('run_ok') is False:
+        warnings.append('当前运行态 run_ok=False——不得沿用旧 attach '
+                        '成功状态交付(Audit-R2)')
+    elif sr.get('required') and sr.get('error'):
+        warnings.append(f"裁决链非法({sr.get('error')})——最新档损坏/"
+                        '冲突即阻断交付,不回退旧 PASS(Audit-R2)')
     elif sr.get('required') and not sr.get('seat_invoked'):
         warnings.append('独立审查 required=true 但裁决缺席——'
                         '不得标记 MVP 完成或可验收交付')
@@ -1591,18 +1613,27 @@ def _r1_report_core(args, engine_root):
         warnings.append(f"独立审查裁决={sr.get('verdict')}"
                         '(REVISE/FAIL/其他=修订后再交付)')
     elif sr.get('required') and sr.get('fresh') is not True:
-        warnings.append('裁决未绑定当前正文哈希或已过期(正文修订后须复验'
-                        '生成新裁决记录)')
-    lines += ['', '## 质量状态(Audit-R1 F02 四态)', '',
+        warnings.append('裁决未绑定当前内容摘要或已过期(交付输入修订后须'
+                        '复验生成新裁决记录)')
+    elif not copies_consistent:
+        warnings.append('report.md 与 report.json 渲染不同版(多副本不一致'
+                        + (f'; {copies_note}' if copies_note else '')
+                        + ')——拒绝交付(Audit-R2)')
+    lines += ['', '## 质量状态(Audit-R1 F02 四态+Audit-R2 绑定面)', '',
               f"- generated: true(FULL_REPORT 完整装配: L1+L2+L3/L4 全文内联+证据索引)",
               f"- machine_verified: {machine_verified}"
-              "(L3∧L4 produced+纪律校验过+底座非降级)",
+              "(L3∧L4 produced+纪律校验过+底座非降级+当前 run_ok 非 False)",
               f"- review: required={sr.get('required')} seat_invoked="
               f"{sr.get('seat_invoked')} verdict={sr.get('verdict')} "
-              f"fresh={sr.get('fresh')} 修订链档数={sr.get('verdicts_n')}",
+              f"fresh={sr.get('fresh')} error={sr.get('error')} "
+              f"修订链档数={sr.get('verdicts_n')}",
+              f"- copies_consistent(多副本一致): {copies_consistent}"
+              "(report.md=report.json 当前渲染)",
               f"- deliverable(可交付): {deliverable}",
-              '- 内容绑定: content_sha256=agent_judgment(剥离审查键)+'
-              'report.md 摘要,正文修订即失效旧裁决']
+              '- 内容绑定(Audit-R2): content_sha256=canonical(report.json'
+              ' 剥离 semantic_review)+canonical(agent_judgment.json)——'
+              '事实/L3/L4/run_ok/版本指针任一变化即失效旧裁决;'
+              '审查与渲染同源,视图不一致即拒绝交付']
     lines += ['', '---', '渲染纪律: 本件只汇编在场事实(确定性装配),不做新增生成;',
               'L3/L4 内容归 Agent 席与独立审计,本段不代写。']
     with open(out_md, 'w', encoding='utf-8') as f:
@@ -1615,10 +1646,113 @@ def _r1_report_core(args, engine_root):
         'review': {'required': sr.get('required'),
                    'seat_invoked': sr.get('seat_invoked'),
                    'verdict': sr.get('verdict'), 'fresh': sr.get('fresh'),
+                   'error': sr.get('error'), 'archive': sr.get('archive'),
                    'verdicts_n': sr.get('verdicts_n'),
                    'prior_verdicts': sr.get('prior_verdicts') or []},
+        'copies_consistent': copies_consistent,
         'deliverable': deliverable, 'mvp_complete': deliverable}
     return deliverable, data, warnings
+
+
+def _r1_archive_core(args, engine_root):
+    """Audit-R2 条目6: 最终归档=受审版本的完整自包含交付包。
+
+    归档对象=**最终受审版本**: 非 deliverable 一律拒归(先跑 report 门)。
+    内容摘要三处核对: content_digest(run 目录)=content_digest(归档目录)
+    =最新裁决档 content_sha256——报告、裁决、归档同一摘要锚,不一致即
+    拒绝(半写归档目录整体移除,不留毒档)。归档目录 append-only: 已存在
+    即拒绝,不覆盖历史。裁链全档随包(verdicts/),失败证据同在。
+    """
+    import hashlib
+    import shutil as _shutil
+    import agent_judgment as aj
+    import research_orchestrator as ro
+    ok, data, warnings = _r1_report_core(args, engine_root)
+    if not ok or not data.get('deliverable'):
+        return False, {'stage': 'archive', 'blocked': 'not_deliverable',
+                       'review': data.get('review'),
+                       'deliverable': data.get('deliverable')}, \
+            (warnings or []) + ['归档拒绝: 可交付门未放行——归档对象='
+                                '最终受审版本,先过独立审查']
+    rd = args.report_dir
+    rj = json.load(open(os.path.join(rd, 'report.json'), encoding='utf-8'))
+    run_ts = (rj.get('run') or {}).get('ts_utc') or 'unknown'
+    dest = getattr(args, 'archive_dir', None) or os.path.join(
+        ROOT, 'research_archive', os.path.basename(rd.rstrip('/')) or run_ts)
+    if os.path.exists(dest):
+        return False, {'stage': 'archive', 'blocked': 'archive_exists',
+                       'archive_dir': dest}, ['归档目录已存在(append-only,'
+                                              '不覆盖): ' + dest]
+    os.makedirs(dest)
+    vd = os.path.join(dest, 'verdicts')
+    os.makedirs(vd)
+    copies = {}
+    try:
+        for fname in ('report.json', 'report.md', 'FULL_REPORT.md',
+                      'agent_judgment.json', 'views_digest.json',
+                      'evidence_index.json', 'AGENT_SEAT_ENVELOPE.json'):
+            src = os.path.join(rd, fname)
+            if os.path.isfile(src):
+                _shutil.copy2(src, os.path.join(dest, fname))
+                a = open(src, 'rb').read()
+                b = open(os.path.join(dest, fname), 'rb').read()
+                if a != b:
+                    raise OSError('副本核对失败(字节不等): ' + fname)
+                copies[fname] = hashlib.sha256(a).hexdigest()[:16]
+        vchain = []
+        for p, doc in aj._verdicts_for_run(engine_root, run_ts):
+            name = os.path.basename(p)
+            _shutil.copy2(p, os.path.join(vd, name))
+            if open(p, 'rb').read() != open(os.path.join(vd, name),
+                                            'rb').read():
+                raise OSError('裁决档副本核对失败: ' + name)
+            vchain.append({'file': 'verdicts/' + name,
+                           'overall': (doc or {}).get('overall'),
+                           'revision': (doc or {}).get('revision')})
+        # ── 三处摘要核对(run=归档=裁决锚) ──
+        sha_run = aj.content_digest(rd)
+        sha_arc = aj.content_digest(dest)
+        latest = data.get('review') or {}
+        arc_vd = os.path.join(vd, os.path.basename(
+            latest.get('archive') or '')) if latest.get('archive') else None
+        latest_doc = _load_json_arc(arc_vd) if arc_vd else None
+        sha_bound = (latest_doc or {}).get('content_sha256')
+        if not (sha_run == sha_arc and sha_arc == sha_bound):
+            raise ValueError('内容摘要三处核对失败: run=%s archive=%s '
+                             'bound=%s' % (sha_run[:16], sha_arc[:16],
+                                           str(sha_bound)[:16]))
+        manifest = {
+            'stage': 'archive', 'run_ts': run_ts,
+            'question': (rj.get('run') or {}).get('question'),
+            'archived_at': ro._now_utc(),
+            'content_sha256': sha_run,
+            'digest_algorithm': 'v2(canonical report.json剥离semantic_review'
+                                '+canonical agent_judgment.json剥离'
+                                'semantic_review)',
+            'verdict': latest.get('verdict'), 'fresh': latest.get('fresh'),
+            'verdicts_n': latest.get('verdicts_n'),
+            'verdict_chain': vchain, 'copies_sha16': copies,
+            'source_report_dir': rd,
+            'correlation': 'run==archive==verdict-bound(三处一致已核)'}
+        aj._atomic_write_text(
+            os.path.join(dest, 'ARCHIVE_MANIFEST.json'),
+            json.dumps(manifest, ensure_ascii=False, indent=2, default=str))
+    except (OSError, ValueError) as exc:
+        _shutil.rmtree(dest, ignore_errors=True)   # 拒绝交付=不留毒档
+        return False, {'stage': 'archive', 'blocked': 'correlation_failed',
+                       'error': str(exc)}, ['归档拒绝: ' + str(exc)]
+    return True, {'stage': 'archive', 'archive_dir': dest,
+                  'content_sha256': sha_run,
+                  'verdict': latest.get('verdict'),
+                  'verdicts_n': latest.get('verdicts_n'),
+                  'files': sorted(copies)}, []
+
+
+def _load_json_arc(path):
+    try:
+        return json.load(open(path, encoding='utf-8'))
+    except (OSError, ValueError):
+        return None
 
 
 def cmd_research_one(args):
@@ -1638,48 +1772,109 @@ def cmd_research_one(args):
     stage = getattr(args, 'stage', 'plan')
 
     if stage == 'auto':
-        # F09 单命令全自动链: 一次自然语言输入 → 证据面 → (judgment 在场
-        # 则校验落位) → 完整报告。链内各段结果随档,失败段如实截链。
-        if not getattr(args, 'question', None):
+        # F09 单命令全自动链 + Audit-R2 条目6(一次输入到最终归档):
+        # 幂等续链机——每轮自动推进到最远可自主段,人/席位边界如实暂停。
+        # 恢复语义: --report-dir 指既有 run 目录=续链不重新 plan;已 attach
+        # 且无新 --judgment=不重挂(重挂改写 attach 台账→摘要变→无谓作废
+        # 在案裁决绑定)。归档: deliverable 后携 --archive-dir 即链尾直归。
+        if not getattr(args, 'question', None) and \
+                not getattr(args, 'report_dir', None):
             emit(envelope('research-one', False, {'stage': 'auto'},
-                          error=('bad_args', 'auto 段需 --question', None)),
+                          error=('bad_args',
+                                 'auto 段需 --question(新链)或 --report-dir'
+                                 '(恢复既有 run)', None)),
                  exit_code=1)
             return
-        rep, rd, err = _r1_plan_core(args, engine_root)
-        if err:
-            emit(envelope('research-one', False, {'stage': 'auto', 'chain': [
-                {'stage': 'plan', 'ok': False, 'error': list(err)}]}, error=err),
-                 exit_code=1)
-            return
-        chain = [{'stage': 'plan', 'ok': bool(rep.get('run_ok')),
-                  'report_dir': rd, 'run_ok': rep.get('run_ok'),
-                  'agent_seat_envelope': os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')}]
-        if not getattr(args, 'judgment', None):
+        chain = []
+        rd = getattr(args, 'report_dir', None)
+        resuming = bool(rd and os.path.isfile(os.path.join(rd, 'report.json')))
+        if resuming:
+            chain.append({'stage': 'plan', 'ok': None, 'resumed': True,
+                          'report_dir': rd,
+                          'note': '恢复既有 run(--report-dir 在场), 不重新 plan'})
+        else:
+            rep, rd, err = _r1_plan_core(args, engine_root)
+            if err:
+                emit(envelope('research-one', False, {'stage': 'auto',
+                                                      'chain': [
+                        {'stage': 'plan', 'ok': False,
+                         'error': list(err)}]}, error=err),
+                     exit_code=1)
+                return
+            chain.append({'stage': 'plan', 'ok': bool(rep.get('run_ok')),
+                          'report_dir': rd, 'run_ok': rep.get('run_ok'),
+                          'agent_seat_envelope': os.path.join(
+                              rd, 'AGENT_SEAT_ENVELOPE.json')})
+        rj = json.load(open(os.path.join(rd, 'report.json'),
+                            encoding='utf-8'))
+        _ly = rj.get('layers') or {}
+        already = bool(
+            (_ly.get('L3_AI推断层') or {}).get('produced')
+            and (_ly.get('L4_条件情景层') or {}).get('produced')
+            and (rj.get('agent_judgment') or {}).get('attached'))
+        if not getattr(args, 'judgment', None) and not already:
             chain.append({'stage': 'pause', 'ok': None,
                           'note': 'judgment 缺席——Agent Native 暂停点: '
-                                  'Agent 席按工单真产 L3/L4 后携 --judgment 重跑 auto'})
+                                  'Agent 席按工单真产 L3/L4 后携 --judgment '
+                                  '以 --report-dir 续链 auto'})
             emit(envelope('research-one', False, {
                 'stage': 'auto', 'chain': chain,
                 'next': 'Agent 席按 AGENT_SEAT_ENVELOPE.json 真产 judgment → '
-                        '--stage auto --judgment <path> 续链'}, None), exit_code=1)
+                        '--stage auto --report-dir <rd> --judgment <path> '
+                        '续链(不重新 plan)'}, None), exit_code=1)
             return
-        args.report_dir = rd
-        res, err = _r1_attach_core(args, engine_root)
-        if err or not (res or {}).get('attached'):
-            chain.append({'stage': 'attach', 'ok': False,
-                          'error': list(err) if err else 'attached=false',
-                          'blocked': (res or {}).get('blocked'),
-                          'violations': ((res or {}).get('validation') or {}).get('violations')})
-            emit(envelope('research-one', False, {'stage': 'auto', 'chain': chain},
-                          error=err or ('attach_blocked',
-                                        str((res or {}).get('blocked')), None)),
+        if getattr(args, 'judgment', None) or not already:
+            args.report_dir = rd
+            res, err = _r1_attach_core(args, engine_root)
+            if err or not (res or {}).get('attached'):
+                chain.append({'stage': 'attach', 'ok': False,
+                              'error': list(err) if err else 'attached=false',
+                              'blocked': (res or {}).get('blocked'),
+                              'violations': ((res or {}).get('validation')
+                                             or {}).get('violations')})
+                emit(envelope('research-one', False,
+                              {'stage': 'auto', 'chain': chain},
+                              error=err or ('attach_blocked',
+                                            str((res or {}).get('blocked')),
+                                            None)),
+                     exit_code=1)
+                return
+            chain.append({'stage': 'attach', 'ok': True,
+                          'validation_passed': (res.get('validation') or
+                                                {}).get('passed')})
+        else:
+            chain.append({'stage': 'attach', 'ok': True, 'skipped': True,
+                          'note': '已落位且无新 judgment——不重挂'
+                                  '(保在案裁决的摘要绑定)'})
+        ok, data, warns = _r1_report_core(args, engine_root)
+        chain.append({'stage': 'report', 'ok': ok,
+                      'deliverable': data.get('deliverable'),
+                      'review': data.get('review'),
+                      'full_report': data.get('full_report')})
+        if not ok or not data.get('deliverable'):
+            # 独立审查面未放行(缺席/REVISE/裁决链非法/副本不一致)=席位
+            # 暂停点,零模型编排层不代裁——复验落新裁决档后重跑 auto 续链
+            chain.append({'stage': 'review_pause', 'ok': None,
+                          'note': '可交付门未放行(见 report 段 review)——'
+                                  '独立席位复验落新裁决档后重跑 auto '
+                                  '--report-dir 续链(不重新 plan)'})
+            data = dict(data, stage='auto', chain=chain)
+            emit(envelope('research-one', False, data, warns or None),
                  exit_code=1)
             return
-        chain.append({'stage': 'attach', 'ok': True,
-                      'validation_passed': (res.get('validation') or {}).get('passed')})
-        ok, data, warns = _r1_report_core(args, engine_root)
-        chain.append({'stage': 'report', 'ok': ok, 'deliverable': data.get('deliverable'),
-                      'full_report': data.get('full_report')})
+        if getattr(args, 'archive_dir', None):
+            aok, adata, awarns = _r1_archive_core(args, engine_root)
+            chain.append({'stage': 'archive', 'ok': aok,
+                          'archive_dir': adata.get('archive_dir'),
+                          'content_sha256': adata.get('content_sha256'),
+                          'blocked': adata.get('blocked')})
+            ok = bool(ok and aok)
+            warns = list(warns or []) + list(awarns or [])
+        else:
+            chain.append({'stage': 'archive', 'ok': None,
+                          'note': 'deliverable=true——归档经 --archive-dir '
+                                  '<dir> 随本命令直归,或 --stage archive '
+                                  '--archive-dir <dir> 单段归档'})
         data = dict(data, stage='auto', chain=chain)
         emit(envelope('research-one', ok, data, warns or None),
              exit_code=0 if ok else 1)
@@ -1718,6 +1913,19 @@ def cmd_research_one(args):
         ok, data, warns = _r1_report_core(args, engine_root)
         emit(envelope('research-one', ok, data, warns or None),
              exit_code=0 if ok else 1)
+        return
+
+    if stage == 'archive':
+        # Audit-R2 条目6: 最终归档段(归档对象=最终受审版本,摘要三处核对)
+        if not getattr(args, 'report_dir', None):
+            emit(envelope('research-one', False, {'stage': 'archive'},
+                          error=('bad_args', 'archive 段需 --report-dir',
+                                 None)),
+                 exit_code=1)
+            return
+        aok, adata, awarns = _r1_archive_core(args, engine_root)
+        emit(envelope('research-one', aok, adata, awarns or None),
+             exit_code=0 if aok else 1)
         return
 
 
@@ -1836,14 +2044,21 @@ def build_parser():
     r1 = sub.add_parser('research-one',
                         help='一键研究 MVP 单入口(plan→Agent 席→attach→report;章程 Phase 3)')
     r1.add_argument('--question', default=None, help='研究问题(plan 段必填)')
-    r1.add_argument('--stage', choices=['plan', 'attach', 'report', 'auto'], default='plan',
+    r1.add_argument('--stage', choices=['plan', 'attach', 'report', 'auto',
+                                        'archive'], default='plan',
                     help='plan=research-run+工单;attach=judgment 校验合并;'
                          'report=完整报告汇编(F09: L3/L4 全文内联);'
                          'auto=单命令全自动链 plan→attach→report(Audit-R1 F09;'
-                         'judgment 缺席则停 plan 段=Agent Native 暂停点)')
-    r1.add_argument('--report-dir', default=None, help='attach/report 段必填')
+                         'Audit-R2 条目6: --report-dir 恢复不重 plan,deliverable '
+                         '后携 --archive-dir 直归);'
+                         'archive=最终归档段(Audit-R2 条目6: 归档对象=最终'
+                         '受审版本,摘要 run=归档=裁决锚三处核对)')
+    r1.add_argument('--report-dir', default=None, help='attach/report/archive 段必填')
     r1.add_argument('--judgment', default=None, help='attach 段必填(judgment JSON)')
     r1.add_argument('--out-dir', default=None, help='报告目录注入缝(plan 段)')
+    r1.add_argument('--archive-dir', default=None,
+                    help='archive 段/auto 链尾归档目录(缺省=research_archive/'
+                         '<run 目录名>;append-only,已存在即拒)')
     r1.add_argument('--engine-root', default=None,
                     help='数据树注入缝(默认=本仓库根;净环境指向真实数据树)')
     r1.add_argument('--allow-failed-run', action='store_true',

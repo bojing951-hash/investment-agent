@@ -159,13 +159,14 @@
 | 63 | s3_envelope | IG_OAS@2026-11-09 |  |
 | 64 | s3_envelope | HY_IG_DIFF@2026-11-09 |  |
 
-## 质量状态(Audit-R1 F02 四态)
+## 质量状态(Audit-R1 F02 四态+Audit-R2 绑定面)
 
 - generated: true(FULL_REPORT 完整装配: L1+L2+L3/L4 全文内联+证据索引)
-- machine_verified: True(L3∧L4 produced+纪律校验过+底座非降级)
-- review: required=True seat_invoked=True verdict=UPHELD fresh=True 修订链档数=1
+- machine_verified: True(L3∧L4 produced+纪律校验过+底座非降级+当前 run_ok 非 False)
+- review: required=True seat_invoked=True verdict=UPHELD fresh=True error=None 修订链档数=2
+- copies_consistent(多副本一致): True(report.md=report.json 当前渲染)
 - deliverable(可交付): True
-- 内容绑定: content_sha256=agent_judgment(剥离审查键)+report.md 摘要,正文修订即失效旧裁决
+- 内容绑定(Audit-R2): content_sha256=canonical(report.json 剥离 semantic_review)+canonical(agent_judgment.json)——事实/L3/L4/run_ok/版本指针任一变化即失效旧裁决;审查与渲染同源,视图不一致即拒绝交付
 
 ---
 渲染纪律: 本件只汇编在场事实(确定性装配),不做新增生成;

@@ -118,9 +118,14 @@ section('3 ① 席位状态面(_semantic_review_state)')
 with tempfile.TemporaryDirectory() as td:
     rep3 = synth_report()
     st = aj._semantic_review_state(rep3, td)
+    # Audit-R1 F02: 状态面新增 fresh/verdicts_n/prior_verdicts(裁决哈希
+    # 绑定+修订链)常设键;required 语义不变,旧七键等值断言升级为含新键
     check('L3/L4 未落位→required=False',
-          st == {'required': False, 'reasons': [], 'seat_invoked': False,
-                 'verdict': None, 'archive': None}, str(st))
+          st['required'] is False and st['reasons'] == []
+          and st['seat_invoked'] is False and st['verdict'] is None
+          and st['archive'] is None and st['fresh'] is None
+          and st['verdicts_n'] == 0 and st['prior_verdicts'] == [],
+          str(st))
 
     rep3['layers']['L3_AI推断层']['produced'] = True
     rep3['layers']['L4_条件情景层']['produced'] = True

@@ -16,12 +16,17 @@
 产出: <workdir>/ACCEPTANCE_PACKET/{run_log.txt, artifacts/, VERDICT.json}
 VERDICT.json 字段=机器可核(machine-checkable),诚实面:
   steps[]: 每步 {name, cmd, rc, duration}; any_step_failed 如实记;
-  不在 L3 里给「研究质量」结论——那是 G1-G4 门与独立席的职责。
+  baseline_resolved: --baseline 先 rev-parse 成确切 commit 再 checkout(不复检
+  可变引用);不在 L3 里给「研究质量」结论——那是 G1-G4 门与独立席的职责。
+
+安全(Audit-R1 F03): 全链 subprocess argv 列表 + shell=False——question/
+baseline/workdir 均为独立参数,任何 shell 元字符($ ` " 换行空格)按字面文本
+处理,不经 shell 解释;clone 与 checkout 分开调用。日志中 cmd 按 argv 空格
+连接回显(仅展示,不执行)。
 """
 import argparse
 import json
 import os
-import shutil
 import subprocess
 import sys
 import time
@@ -34,13 +39,20 @@ def hkt_now():
     return datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d %H:%M:%S HKT')
 
 
-def sh(cmd, cwd, log_fh, timeout=1800):
-    """跑一步,流式留痕,返回 (rc, duration)。失败不抛——如实入 VERDICT。"""
+def sh(argv, cwd, log_fh, timeout=1800):
+    """跑一步(argv 列表,shell=False),流式留痕,返回 (rc, duration)。
+
+    失败不抛——如实入 VERDICT。cmd 字符串仅为日志回显(argv 空格 join),
+    绝不作为命令执行。
+    """
+    assert isinstance(argv, (list, tuple)) and argv, 'sh() 只收 argv 列表(F03)'
+    cmd = ' '.join(str(a) for a in argv)
     t0 = time.time()
     log_fh.write(f'\n$ {cmd}\n')
     log_fh.flush()
     try:
-        r = subprocess.run(cmd, shell=True, cwd=cwd, stdout=log_fh, stderr=subprocess.STDOUT,
+        r = subprocess.run([str(a) for a in argv], shell=False, cwd=cwd,
+                           stdout=log_fh, stderr=subprocess.STDOUT,
                            timeout=timeout)
         rc = r.returncode
     except subprocess.TimeoutExpired:
@@ -50,6 +62,25 @@ def sh(cmd, cwd, log_fh, timeout=1800):
     log_fh.write(f'[rc={rc} {d}s]\n')
     log_fh.flush()
     return rc, d
+
+
+def resolve_baseline(baseline):
+    """把 --baseline(sha 或分支名)解析为确切 40 位 commit;失败返回 None。
+
+    解析在源仓 REPO_ROOT 做,checkout 用解析结果——净克隆跑的基线在
+    VERDICT 里可复核,不依赖可变引用的二次解析。
+    """
+    try:
+        r = subprocess.run(['git', '-C', REPO_ROOT, 'rev-parse',
+                            baseline + '^{commit}'],
+                           shell=False, capture_output=True, text=True, timeout=60)
+        if r.returncode == 0:
+            sha = r.stdout.strip()
+            if len(sha) == 40:
+                return sha
+    except Exception:
+        pass
+    return None
 
 
 def caliber_product(args):
@@ -65,27 +96,54 @@ def caliber_product(args):
 
     steps = []
 
-    def step(name, cmd, cwd, timeout=1800):
-        rc, d = sh(cmd, cwd, LOG, timeout)
-        steps.append({'name': name, 'cmd': cmd, 'rc': rc, 'duration_s': d})
+    def step(name, argv, cwd, timeout=1800):
+        rc, d = sh(argv, cwd, LOG, timeout)
+        steps.append({'name': name, 'cmd': ' '.join(str(a) for a in argv),
+                      'rc': rc, 'duration_s': d})
         return rc
 
     with open(os.path.join(packet, 'run_log.txt'), 'w', encoding='utf-8') as LOG:
         LOG.write(f'产品验收 L3 净克隆跑 {hkt_now()}\n基线={args.baseline} 问题={args.question}\n')
-        rc = step('clone', f'git clone -q {REPO_ROOT} {clone_dir} && git -C {clone_dir} checkout -q {args.baseline}', workdir, timeout=300)
+        baseline_resolved = resolve_baseline(args.baseline)
+        if baseline_resolved is None:
+            LOG.write(f'[refuse] baseline 无法解析为确切 commit: {args.baseline!r}\n')
+            verdict = {
+                'caliber': 'L3-product',
+                'baseline': args.baseline,
+                'baseline_resolved': None,
+                'question': args.question,
+                'started_at': hkt_now(),
+                'steps': [],
+                'any_step_failed': True,
+                'refused_reason': 'baseline_unresolvable',
+                'honest_boundary': 'L3 只验证净环境可跑+确定性研究面产出;研究质量/真 L3L4 Agent 判断=G 门+独立席职责,不在本 VERDICT 冒认',
+            }
+            with open(os.path.join(packet, 'VERDICT.json'), 'w', encoding='utf-8') as f:
+                json.dump(verdict, f, ensure_ascii=False, indent=2)
+            print(f"packet={packet} refused=baseline_unresolvable")
+            return 1
+        rc = step('clone', ['git', 'clone', '-q', REPO_ROOT, clone_dir], workdir, timeout=300)
+        if rc == 0:
+            rc = step('checkout', ['git', '-C', clone_dir, 'checkout', '-q',
+                                   baseline_resolved], workdir, timeout=60)
         if rc == 0:
             rc = step('gate-consistency',
-                      'python3 scripts/rd_state_consistency.py --quiet', clone_dir)
-            step('gate-checkpoint', 'python3 scripts/rd_checkpoint.py --verify --quiet', clone_dir)
+                      ['python3', 'scripts/rd_state_consistency.py', '--quiet'],
+                      clone_dir)
+            step('gate-checkpoint',
+                 ['python3', 'scripts/rd_checkpoint.py', '--verify', '--quiet'],
+                 clone_dir)
         if rc == 0:
             step('research-run',
-                 f'python3 ia_cli.py research-run --question {json.dumps(args.question, ensure_ascii=False)} '
-                 f'--out-dir {os.path.join(arts, "research_run")}',
+                 ['python3', 'ia_cli.py', 'research-run',
+                  '--question', args.question,
+                  '--out-dir', os.path.join(arts, 'research_run')],
                  clone_dir, timeout=3600)
         # L3 只到确定性研究面+证据包;attach(模型判断)与质量结论=独立席/L4 材料,不在此冒认
         verdict = {
             'caliber': 'L3-product',
             'baseline': args.baseline,
+            'baseline_resolved': baseline_resolved,
             'question': args.question,
             'started_at': hkt_now(),
             'steps': steps,
@@ -102,7 +160,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description='产品验收隔离 runner(四层口径隔离)')
     ap.add_argument('--caliber', choices=['product'], default='product')
     ap.add_argument('--question', required=True, help='研究问题(L3 真实产品动作)')
-    ap.add_argument('--baseline', default='main', help='可信基线(sha 或分支名)')
+    ap.add_argument('--baseline', default='main', help='可信基线(sha 或分支名,先解析为确切 commit)')
     ap.add_argument('--workdir', default=None)
     ap.add_argument('--keep', action='store_true', help='复用已存在 workdir')
     args = ap.parse_args(argv)

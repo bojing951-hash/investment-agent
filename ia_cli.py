@@ -1479,6 +1479,7 @@ def cmd_research_one(args):
             'stage': 'attach', 'report_dir': res.get('report_dir'),
             'attached': res.get('attached'),
             'blocked': res.get('blocked'),
+            'blocked_class': res.get('blocked_class'),
             'validation_passed': (res.get('validation') or {}).get('passed'),
             'violations': (res.get('validation') or {}).get('violations')}))
         return
@@ -1518,15 +1519,64 @@ def cmd_research_one(args):
         lines += ['', '## L4 条件情景层(Agent 席真产)', '',
                   f"- produced={l4.get('produced')} attribution={l4.get('attribution')}",
                   '- 情景五行齐备面: report.md L4 节 + agent_judgment.json 归档副本']
+
+        # ── Audit-R1 F02: 独立审查四态门(生成≠校验≠审查≠可交付) ──
+        import agent_judgment as aj
+        sr = aj._semantic_review_state(rj, engine_root, rd)
+        aj_meta = rj.get('agent_judgment') or {}
+        machine_verified = bool(
+            l3.get('produced') and l4.get('produced')
+            and (aj_meta.get('validation') or {}).get('passed')
+            and aj_meta.get('run_ok_at_attach') is not False)
+        review_ok = (not sr.get('required')) or (
+            sr.get('seat_invoked')
+            and sr.get('verdict') in aj.REVIEW_APPROVED_VERDICTS
+            and sr.get('fresh') is True)
+        deliverable = machine_verified and review_ok
+        warnings = []
+        if not l3.get('produced') or not l4.get('produced'):
+            warnings.append('L3/L4 未全 produced——不冒认完整(G2 门不放过)')
+        elif not ((aj_meta.get('validation') or {}).get('passed')):
+            warnings.append('机器纪律校验未过(violations 在 agent_judgment 档)')
+        elif aj_meta.get('run_ok_at_attach') is False:
+            warnings.append('底座 run_ok=False(降级落位,不可交付级)')
+        elif sr.get('required') and not sr.get('seat_invoked'):
+            warnings.append('独立审查 required=true 但裁决缺席——'
+                            '不得标记 MVP 完成或可验收交付')
+        elif sr.get('required') and sr.get('verdict') not in \
+                aj.REVIEW_APPROVED_VERDICTS:
+            warnings.append(f"独立审查裁决={sr.get('verdict')}"
+                            '(REVISE/FAIL/其他=修订后再交付)')
+        elif sr.get('required') and sr.get('fresh') is not True:
+            warnings.append('裁决未绑定当前正文哈希或已过期(正文修订后须复验'
+                            '生成新裁决记录)')
+        lines += ['', '## 质量状态(Audit-R1 F02 四态)', '',
+                  f"- generated: true(FULL_REPORT 装配完成)",
+                  f"- machine_verified: {machine_verified}"
+                  "(L3∧L4 produced+纪律校验过+底座非降级)",
+                  f"- review: required={sr.get('required')} seat_invoked="
+                  f"{sr.get('seat_invoked')} verdict={sr.get('verdict')} "
+                  f"fresh={sr.get('fresh')} 修订链档数={sr.get('verdicts_n')}",
+                  f"- deliverable(可交付): {deliverable}",
+                  '- 内容绑定: content_sha256=agent_judgment(剥离审查键)+'
+                  'report.md 摘要,正文修订即失效旧裁决']
         lines += ['', '---', '渲染纪律: 本件只汇编在场事实(确定性装配),不做新增生成;',
                   'L3/L4 内容归 Agent 席与独立审计,本段不代写。']
         with open(out_md, 'w', encoding='utf-8') as f:
             f.write('\n'.join(lines) + '\n')
-        ok = bool(l3.get('produced') and l4.get('produced'))
-        emit(envelope('research-one', ok, {'stage': 'report', 'full_report': out_md,
-                                           'L3_produced': l3.get('produced'),
-                                           'L4_produced': l4.get('produced')},
-                      None if ok else ['L3/L4 未全 produced——报告如实标注,不冒认完整(G2 门不放过)']))
+        ok = deliverable
+        emit(envelope('research-one', ok, {
+            'stage': 'report', 'full_report': out_md,
+            'L3_produced': l3.get('produced'),
+            'L4_produced': l4.get('produced'),
+            'generated': True, 'machine_verified': machine_verified,
+            'review': {'required': sr.get('required'),
+                       'seat_invoked': sr.get('seat_invoked'),
+                       'verdict': sr.get('verdict'), 'fresh': sr.get('fresh'),
+                       'verdicts_n': sr.get('verdicts_n'),
+                       'prior_verdicts': sr.get('prior_verdicts') or []},
+            'deliverable': deliverable, 'mvp_complete': deliverable},
+            warnings or None), exit_code=0 if ok else 1)
         return
 
 def build_parser():

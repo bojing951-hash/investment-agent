@@ -48,7 +48,7 @@ import json
 import os
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
@@ -298,7 +298,64 @@ def _registry_metric_ids(root):
             if m.get('metric_id')}
 
 
-def _semantic_review_state(report, root):
+def content_digest(report_dir, judgment_path=None):
+    """Audit-R1 F02: 研究正文内容摘要(独立裁决的绑定锚)。
+
+    边界(稳定,禁漂移): agent_judgment.json(**剥离 semantic_review 键**,
+    修订链/声明=内容面,在内)+ NUL 分隔 + report.md 全文(研究正文)。
+    裁决档自身(VERDICT-*.json)不在边界内——裁决→改文→再裁决的
+    循环依赖由此切断。canonical=json.dumps(sort_keys+ensure_ascii+
+    紧凑分隔符)——跨 CPython 版本与平台稳定(3.9-3.12 同文同摘)。
+    """
+    import hashlib
+    if judgment_path is None:
+        for cand in ('agent_judgment.json', 'judgment_mvp.json'):
+            p = os.path.join(report_dir, cand)
+            if os.path.isfile(p):
+                judgment_path = p
+                break
+    j = _load_json(judgment_path)
+    j.pop('semantic_review', None)
+    canon = json.dumps(j, sort_keys=True, ensure_ascii=True,
+                       separators=(',', ':'), default=str)
+    md = open(os.path.join(report_dir, 'report.md'), encoding='utf-8').read()
+    return hashlib.sha256((canon + '\x00' + md).encode('utf-8')).hexdigest()
+
+
+# Audit-R1 F02: 独立审查可放行档(裁决语汇——席位其余语汇一律不放行)
+REVIEW_APPROVED_VERDICTS = ('VERIFIED', 'PASS', 'UPHELD')
+
+
+def record_semantic_verdict(root, report_dir, overall, reviewer,
+                            notes='', extra=None):
+    """Audit-R1 F02: 独立席裁决落档(append-only,带内容绑定)。
+
+    写 root/audit/semantic_review/<YYYYMMDD>/VERDICT-<run_ts>-<seq>.json,
+    content_sha256=content_digest(report_dir)(裁决绑定的锚)。修订循环:
+    正文修订→摘要变→旧档自动过期(_semantic_review_state 的 fresh=False),
+    席位复验后调本函数再写新档——旧失败证据永在档,不覆盖。
+    """
+    report = _load_json(os.path.join(report_dir, 'report.json'))
+    run_ts = (report.get('run') or {}).get('ts_utc') or ''
+    if not run_ts:
+        raise ValueError('report.json 缺 run.ts_utc,无法绑定裁决')
+    day = datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d')
+    d = os.path.join(root, 'audit', 'semantic_review', day)
+    os.makedirs(d, exist_ok=True)
+    seq = len([f for f in os.listdir(d) if f.startswith(
+        'VERDICT-' + run_ts)]) + 1
+    path = os.path.join(d, 'VERDICT-%s-%02d.json' % (run_ts, seq))
+    doc = {'overall': overall, 'reviewer': reviewer, 'notes': notes,
+           'run_ts': run_ts, 'content_sha256': content_digest(report_dir),
+           'recorded_at': _now_utc()}
+    if extra:
+        doc.update(extra)
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(doc, f, ensure_ascii=False, indent=2)
+    return path
+
+
+def _semantic_review_state(report, root, report_dir=None):
     """R33-①: 语义审计席状态面(常驻席=SEMANTIC-AUDIT-SEAT;§4b/§8)。
 
     唤起点(ii): L3(定性推断)/L4(条件情景)落位即 required=True——
@@ -307,6 +364,11 @@ def _semantic_review_state(report, root):
     root/audit/semantic_review/YYYYMMDD/VERDICT-<run_ts>*.json
     (append-only),在案→披露升为裁决摘要;缺席→「叙事语义未经
     独立裁决」。确定性: 纯文件面判定,零模型零网络。
+
+    Audit-R1 F02 绑定面: 裁决档带 content_sha256 时按当前
+    content_digest(report_dir) 判 fresh(True/False);无绑定键的旧档
+    fresh=None(在场但不冒充新鲜——report 门不放行)。同 run_ts 多档
+    (修订循环)取**最新一档**为当前裁决,全档序=修订链(prior_verdicts)。
     """
     layers = report.get('layers') or {}
     l3p = bool((layers.get('L3_AI推断层') or {}).get('produced'))
@@ -314,13 +376,15 @@ def _semantic_review_state(report, root):
     reasons = ((['l3_qualitative_inference'] if l3p else [])
                + (['l4_conditional_scenarios'] if l4p else []))
     state = {'required': bool(reasons), 'reasons': reasons,
-             'seat_invoked': False, 'verdict': None, 'archive': None}
+             'seat_invoked': False, 'verdict': None, 'archive': None,
+             'fresh': None, 'verdicts_n': 0, 'prior_verdicts': []}
     if not reasons:
         return state
     run_ts = (report.get('run') or {}).get('ts_utc') or ''
     if not run_ts:
         return state
     import glob as _glob
+    hits = []
     for p in sorted(_glob.glob(os.path.join(
             root, 'audit', 'semantic_review', '*', 'VERDICT-*.json'))):
         if run_ts not in os.path.basename(p):
@@ -329,10 +393,25 @@ def _semantic_review_state(report, root):
             v = _load_json(p)
         except Exception:
             continue
-        state.update(seat_invoked=True,
-                     verdict=v.get('overall'),
-                     archive=os.path.relpath(p, root))
-        break
+        hits.append((os.path.getmtime(p), p, v))
+    if not hits:
+        return state
+    hits.sort()
+    state['verdicts_n'] = len(hits)
+    state['prior_verdicts'] = [os.path.relpath(p, root)
+                               for _, p, _ in hits[:-1]]
+    _, latest_p, latest = hits[-1]
+    state.update(seat_invoked=True,
+                 verdict=latest.get('overall'),
+                 archive=os.path.relpath(latest_p, root))
+    bound = latest.get('content_sha256')
+    if bound and report_dir:
+        try:
+            state['fresh'] = (content_digest(report_dir) == bound)
+        except (OSError, ValueError):
+            state['fresh'] = False
+    elif bound:
+        state['fresh'] = None   # 有绑定但无 report_dir 可核=不冒充新鲜
     return state
 
 
@@ -411,9 +490,23 @@ def attach_judgment(report_dir, judgment_path, root=None,
     report = _load_json(rj_path)
     judgment = _load_json(judgment_path)
 
-    # ── MINOR-4 门槛: 失败底座默认拒收 ─────────────────────────────
+    # ── MINOR-4 门槛: 失败底座默认拒收(Audit-R1 F02 分级) ──────────
+    # 规则运行前固定(与 plan 段 run.degradation_policy 同文,双写=互证):
+    #   critical_zero_evidence: L1 事实行=0(引擎崩溃/全量采集失败)——
+    #     判断无处可落,**任何旗标不得放行**(不用 --allow-failed-run 把
+    #     关键失败自动变成成功);
+    #   optional_data_missing: L1 事实面在场、失败步=诚实拒答类(如源端
+    #     缺席 no_series)——须显式 allow_failed_run=True,落位记 degraded。
     run_ok = report.get('run_ok')
-    if run_ok is False and not allow_failed_run:
+    if run_ok is False:
+        l1_rows = len(((report.get('layers') or {}).get('L1_事实层') or {})
+                      .get('rows') or [])
+        blocked_class = 'critical_zero_evidence' if l1_rows == 0 \
+            else 'optional_data_missing'
+    else:
+        blocked_class = None
+    if run_ok is False and (blocked_class == 'critical_zero_evidence'
+                            or not allow_failed_run):
         report['agent_judgment'] = _new_attach_meta(
             report.get('agent_judgment'),
             {
@@ -422,19 +515,27 @@ def attach_judgment(report_dir, judgment_path, root=None,
                 'judgment_file': os.path.basename(judgment_path),
                 'schema_version': JUDGMENT_SCHEMA_VERSION,
                 'blocked': 'run_ok_false',
+                'blocked_class': blocked_class,
                 'block_note': ('research-run run_ok=False——判断默认不得落在失败'
+                               '证据面上;显式 allow_failed_run=True 只放行'
+                               ' optional_data_missing(L1 证据面在场+诚实拒答类'
+                               '失败);critical_zero_evidence 任何旗标不放行'
+                               if blocked_class == 'critical_zero_evidence' else
+                               'research-run run_ok=False——判断默认不得落在失败'
                                '证据面上;显式 allow_failed_run=True 才放行'
                                '(诚实拒答类失败且证据面仍可用时由 Agent 声明)'),
                 'run_ok_at_attach': run_ok,
             })
         # R33-①: blocked 面同样落席位状态键(L3 未落位→required=False,
         # 面键一致;不追溯旧档)
-        report['semantic_review'] = _semantic_review_state(report, root)
+        report['semantic_review'] = _semantic_review_state(
+            report, root, report_dir)
         # R25 NIT V1-2: blocked 路径同样重渲 md(拦截记录两视图同步)
         _write_report(report_dir, report, rj_path)
         return {'report_dir': report_dir,
                 'attached': False,
                 'blocked': 'run_ok_false',
+                'blocked_class': blocked_class,
                 'run_ok_at_attach': run_ok,
                 'layers_summary': {
                     'L3_produced': (report.get('layers', {})
@@ -486,7 +587,8 @@ def attach_judgment(report_dir, judgment_path, root=None,
     report['layers'] = layers
     # R33-①: 席位状态面随档(确定性面零污染: 新增键,不动
     # steps/evidence_index/run;编排层读 required 自动唤席)
-    report['semantic_review'] = _semantic_review_state(report, root)
+    report['semantic_review'] = _semantic_review_state(
+        report, root, report_dir)
     report['agent_judgment'] = _new_attach_meta(
         report.get('agent_judgment'),
         {

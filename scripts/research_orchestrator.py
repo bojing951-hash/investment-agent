@@ -504,7 +504,16 @@ def run_research(question, root=None, archive=False, out_dir=None,
         'pipeline_version': PIPELINE_VERSION,
         'run': {'question': question, 'ts_utc': _now_utc(),
                 'archive_requested': bool(archive),
-                'git_head': _git_head(root)},
+                'git_head': _git_head(root),
+                # Audit-R1 F02: 降级规则**运行前固定**(attach 段同文执行,
+                # 双写互证;运行后不得改判)——可选数据缺失与关键失败分级
+                'degradation_policy': {
+                    'critical_zero_evidence': (
+                        'L1 事实行=0(引擎崩溃/全量采集失败)→拒收判断,'
+                        '--allow-failed-run 亦不放行'),
+                    'optional_data_missing': (
+                        'L1 事实面在场、失败步=诚实拒答类(源端缺席 no_series)'
+                        '→须显式 --allow-failed-run,落位记 degraded')}},
         'steps': steps,
         'fanout': fan,
         'layers': layers,

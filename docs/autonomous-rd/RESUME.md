@@ -33,6 +33,11 @@
 - 日历门(勿手工提前): F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 - R44 引擎队列(R45+ B 族硬化/T8-R2 ④⑥⑦/R41+R43 审计登记项等)**保持暂停未恢复**——原文见下方暂停存档;恢复须用户明示(旧无限研发循环不复原为本轮边界)。
 
+## 下一步存档(2026-11-16 R46 收口后版·操作者席)
+
+- [已毕·R46] **Audit-R1 第一轮外部审计修复与重新验收**(T-R46-1;用户指令独立轨道;分支 dev/audit-fix-r1,基线 c9d5715→冻结面 0b8b9bd): F01-F10 十项全关;F10 独立性重做三轮复议闭环终裁 UPHELD(deliverable=True);独立验收席 G0-G4 全 PASS;全量 185 件=174 套件式 867/0+11 打印式 rc=0+净克隆冒烟绿;终报告=docs/autonomous-rd/AUDIT_R1_REPORT.md(§九终七答);停于等待用户外部审计(未并 main/未推送/未部署/未瘦身/旧循环未恢复)。
+- [对账·R46] **T-R45-1 吸收**: PC 并轨对账行按自带出口条款移出台账(R46 baseline=badb4695 含 main 尖 36c1e7e;证据链=c9d5715+PRODUCT_CONVERGENCE_PHASE6_ACCEPTANCE.md;吸收注同时留 ITERATION_LOG R46 行)。
+
 ## 下一步存档(2026-11-16 R44 后·引擎轨道,暂停待用户——原文保全)
 
 
@@ -48,7 +53,7 @@ R42(聚合器吞错)+R43(pytest 四件套,操作者)+R44(A 族碎片泄漏硬化
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 
-<!-- RD-CHECKPOINT v1: json {"round": 44, "date": "2026-11-16 12:25 HKT", "branch": "HEAD", "commit": "28d675540980613d032dc68e95e5face4678c207", "baseline": "28d675540980613d032dc68e95e5face4678c207", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R44-1"], "next_task": "R45(引擎席): B 族评分卡分值列/表内碎片硬化首位候选(40/283 居首: 评分卡 |+2| 分值列绑行指标水平+散文总分形态)+T8-R2 ④era base_anchor_set 必填+⑥重封留出+⑦变异压力轮启封随批+MINOR-2 表内序号(0 命中)/NIT-2 未闭合注释远端吞随批+R41 审计登记 MINOR-1+NIT-3~5+GUARD_FILES 扩容(RDG-012 NIT-A)+pytest 目录口径迁移候选(R43 登记+R44 真分类基线: 60 绿+106 SystemExit:0 噪音族,判据与拆法已立,面广单独成波)+round.sh 双上限(LIVE 部署时);双席编号=席位标签制先到先取,开轮前核 ITLOG 末行防撞号;操作者席并行=Product Convergence 章程(产出停 dev/product-convergence-mvp);日历门 F=2026-12-05 勿手工提前", "next_round": 45} -->
+<!-- RD-CHECKPOINT v1: json {"round": 46, "date": "2026-11-16 21:02 HKT", "branch": "dev/audit-fix-r1", "commit": "badb4695bfa3e5b2e02a13fb920bcfeaff34fad5", "baseline": "badb4695bfa3e5b2e02a13fb920bcfeaff34fad5", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R46-1"], "next_task": "等待用户外部审计裁定: 读 dev/audit-fix-r1 尖+docs/autonomous-rd/AUDIT_R1_REPORT.md(终七答§九);冻结面=0b8b9bda8f2a5a5c31148dedb7af3e85698951e3;外审批后按用户指令并轨/第二轮/整改——未获确认不并 main 不部署不瘦身不恢复旧研发循环;用户最小动作 2 件=分支保护落地+核验回填(AUDIT_R1_F07_GOVERNANCE.md);R45+ 引擎队列保持暂停原文在 RESUME 暂停存档;日历门 F=2026-12-05 勿手工提前", "next_round": 47} -->
 ## 下一步存档(2026-11-16 R43 收口后版·操作者席)
 
 - [已毕·R43] **pytest 口径四件套收口**(T-R43-1;RDG-20261116-012 残余⑦;R42 终验暴露陈年): run_weekly.main(argv=None) 参数化(CLI 零差/revision_chain 猴补兼容)+四件五调用点显式 argv=[](裸调读 pytest argv→SystemExit(2)→台账 None→下标崩根因)+尾条件退出拆红支摘冗余 0 支+守卫 23 判(§A 伪 pytest argv 子进程/§B 源面双锚/§C 直跑保持);四件 pytest 单件 rc5=净收集零错;新发现=尾退出全库习语 60+件,目录整跑不适用(R44+ 迁移候选);分支 dev/rd-r43-pytest-argv;详见 ITERATION_LOG R43 行。

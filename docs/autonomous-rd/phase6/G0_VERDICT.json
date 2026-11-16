@@ -1,0 +1,34 @@
+{
+  "caliber": "L3-product",
+  "baseline": "HEAD",
+  "question": "SPX 与 VIX 的风险开关结构: 相关性与年内位置",
+  "started_at": "2026-11-16 14:32:11 HKT",
+  "steps": [
+    {
+      "name": "clone",
+      "cmd": "git clone -q /Users/cast/investment-agent-product /tmp/pc_g0_accept/clone && git -C /tmp/pc_g0_accept/clone checkout -q HEAD",
+      "rc": 0,
+      "duration_s": 4.1
+    },
+    {
+      "name": "gate-consistency",
+      "cmd": "python3 scripts/rd_state_consistency.py --quiet",
+      "rc": 0,
+      "duration_s": 0.8
+    },
+    {
+      "name": "gate-checkpoint",
+      "cmd": "python3 scripts/rd_checkpoint.py --verify --quiet",
+      "rc": 0,
+      "duration_s": 0.8
+    },
+    {
+      "name": "research-run",
+      "cmd": "python3 ia_cli.py research-run --question \"SPX 与 VIX 的风险开关结构: 相关性与年内位置\" --out-dir /tmp/pc_g0_accept/ACCEPTANCE_PACKET/artifacts/research_run",
+      "rc": 0,
+      "duration_s": 1.5
+    }
+  ],
+  "any_step_failed": false,
+  "honest_boundary": "L3 只验证净环境可跑+确定性研究面产出;研究质量/真 L3L4 Agent 判断=G 门+独立席职责,不在本 VERDICT 冒认"
+}

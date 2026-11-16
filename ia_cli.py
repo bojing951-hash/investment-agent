@@ -1478,6 +1478,7 @@ def cmd_research_one(args):
         emit(envelope('research-one', bool(res.get('attached')), {
             'stage': 'attach', 'report_dir': res.get('report_dir'),
             'attached': res.get('attached'),
+            'blocked': res.get('blocked'),
             'validation_passed': (res.get('validation') or {}).get('passed'),
             'violations': (res.get('validation') or {}).get('violations')}))
         return
@@ -1491,7 +1492,7 @@ def cmd_research_one(args):
         vpf = layers.get('L2_机构观点层', {}).get('views') or {}
         out_md = os.path.join(rd, 'FULL_REPORT.md')
         lines = ['# 完整研究报告(一键研究 MVP)', '',
-                 f'- 问题: {rj.get("question", args.question)}',
+                 '- 问题: ' + ((rj.get('run') or {}).get('question') or args.question),
                  f'- run_ok: {rj.get("run_ok")} | 证据行: {len(rj.get("evidence_index", []))}',
                  '', '## L1 事实层(引擎确定性产出)', '',
                  '| 指标 | 值 | 单位 | 观测日 | 质量 | 证据 ref |',

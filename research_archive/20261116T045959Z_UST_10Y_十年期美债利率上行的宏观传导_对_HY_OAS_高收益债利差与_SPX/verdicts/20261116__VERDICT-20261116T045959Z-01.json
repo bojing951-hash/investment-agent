@@ -1,0 +1,75 @@
+{
+  "overall": "UPHELD",
+  "reviewer": "SEMANTIC-AUDIT-SEAT",
+  "notes": "Audit-R1 修订闭环终审(独立席python3只读复算): A档 VERIFIED——五项必修(SEM-01~05)全部忠实落地,CON-3 F06更正未破坏,全量数值逐位复算吻合,新缺陷回归扫描零新增MAJOR/MINOR;残留1项NIT(RES-01, MECH-2环3单月窗双形)系既有文案不阻断。标记形制(复审更正 vs Audit-R1 F0x双形)按审查须知不判为缺陷。",
+  "run_ts": "20261116T045959Z",
+  "content_sha256": "60e1746e2d74cf38c771c373c4717369dab297b4c35e515708181b57d0a74e5a",
+  "recorded_at": "20261116T111849Z",
+  "items": [
+    {
+      "id": "SEM-01",
+      "severity": "MAJOR",
+      "verdict": "UPHELD",
+      "detail": "落地。旧句作废换披露计数;独立复算(S4钉死序列2026共同日历n=214对)逐位复现: 日度同向87/反向101、利率上行日52收/49阔/7平、周度利率上行窗10收/13阔、pearson -0.1151;中文数字形数值等价;计数方向诚实(周度实为13阔>10收)。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "SEM-02",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "落地。SCN-A证伪行与trigger统一为固定基准3.34pp@2026-11-09+连续5日>3.84(3.34+0.50=3.84算术核对),弃单月窗理由正确,两行明示同一口径。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "SEM-03",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "落地。SPX腿证伪委托注记与MECH-1环3逐字一致(UST_10Y>5.31且SPX<6848.67同框;5.31=年内高点@2026-10-05、6848.67=7609.63×0.9复算中)。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "SEM-04",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "落地。标签改『证伪条件未触发(从未激活)』并显式与SCN-B式前提缺席分档区分;事实核: HY_OAS自基准以来最高3.48<3.84,未触发属实。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "SEM-05",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "落地。SCN-B前提变体三分档在位,与trigger三腿及真证伪条件逻辑自洽。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "CON3-PRESERVATION",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "F06更正未被破坏: 分层现值/YTD 13.11+4.26/3.50+0.49/2.00+0.31/0.91+0.12/HY_IG_DIFF 2.43@2026-11-09全部独立复算吻合,走阔幅度单调排序4.26>0.49>0.31>0.12成立。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "FULL-RECOMPUTE",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "新缺陷回归扫描零新增MAJOR/MINOR: 终版对attach快照结构性diff恰为5个修订字段,其余未动;周边数值锚点全部复核命中(UST 4.88@11-09/216观测/HY 3.34@11-09/95.6百分位/SPX 7609.63@11-11/VIX 17.74/S5 +0.1067 n=2493/S6 rank-1 2023-03);7份机构观点引文逐字核对全中且均institution_stated;契约门对终版VERIFIED(11:05Z一次CONTRADICTED为ASCII数字token化正常门行为,改中文数字形后放行)。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "RES-01",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "MECH-2环3仍保留单月窗措辞(自3.34升破3.84)——系修订前既有文案、本次未触碰,操作数字仍锚定同一3.84线,不构成口径冲突;后续波次可与SCN-A统一为固定基准表述以消除双形。不阻断。",
+      "disposition": "LISTED(列档下轮,不阻断)"
+    }
+  ],
+  "seat": "semantic-audit-seat",
+  "scope": "A档修订闭环终审",
+  "verdict_audit_r1_dialect": "VERIFIED",
+  "audited_at": "2026-11-16",
+  "counterexamples_sought": [
+    "旧句反向验证: 周度利率上行窗实为13阔>10收,与旧句『收占大部分』方向相反——作废理由经反例复算成立",
+    "修订传播面回归: 终版对attach快照结构性diff恰为5个修订字段,周边数值锚点全复核防修一处坏他处",
+    "机构引文7份逐字对照(MSIM/GS/UBS/Vanguard/BIS/IEA/PIMCO)防编造,institution_stated全验"
+  ]
+}

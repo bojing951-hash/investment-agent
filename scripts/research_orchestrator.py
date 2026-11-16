@@ -290,6 +290,64 @@ def vp_face(root):
             'n_bad_quarantined': len(bad)}
 
 
+def _evaluate_data_requirements(metrics, steps, snap, l1_rows):
+    """Audit-R4 条目5(抽函数可测): 逐必要指标评 outcome。
+
+    判据序: 快照 series_store 序列 → **本管线 S4 history 步已探测的信封**
+    (与 Agent 席所见同源)→ L1/S3 单点在场。仅查快照会把采集档序列
+    (BEI_10Y/UST_10Y 等 macro 源 2400+ 日)误判「仅最新单点在场」;不在
+    进程内另行直读外部数据树(FIX7 信任边界: 采集目录越界不读)。
+    最新单点≠历史分析需求满足——n<min_observations 即 insufficient_coverage,
+    与 missing 同为必要缺口(attach/report/archive 同源三级分类)。
+    """
+    _fact_mids = {r['metric_id'] for r in l1_rows}
+    _ss = (snap or {}).get('series_store') or {}
+    _s3_env = ((next((s.get('envelope') for s in steps
+                      if s.get('step') == 'S3_changes'), {}) or {})
+               .get('data') or {})
+    _s3_mids = set()
+    for _bk in (_s3_env.get('by_asset_class') or {}).values():
+        if isinstance(_bk, dict):
+            _s3_mids.update(str(k) for k in _bk)
+    req_items = []
+    for _mid in metrics:
+        _n_series = len((_ss.get(_mid) or {}).get('dates') or [])
+        _ser_src = '研究快照 series_store'
+        if _n_series == 0:
+            _st = next((s for s in steps
+                        if s.get('step') == f'S4_history_{_mid}'), None)
+            if _st and _st.get('ok'):
+                _s4 = (((_st.get('envelope') or {}).get('data')
+                        or {}).get('series')) or {}
+                if _s4.get('n') is not None:
+                    _n_series = int(_s4['n'])
+                    _ser_src = str(_s4.get('source') or 'S4 history 探测')
+        if _n_series >= _REQ_MIN_OBSERVATIONS:
+            _outcome = 'satisfied'
+            _basis = (f'历史序列 n={_n_series}≥最低覆盖'
+                      f'{_REQ_MIN_OBSERVATIONS}(源={_ser_src})')
+        elif _n_series > 0:
+            _outcome = 'insufficient_coverage'
+            _basis = (f'历史序列 n={_n_series} < 最低覆盖'
+                      f'{_REQ_MIN_OBSERVATIONS}(源={_ser_src};'
+                      f'单点/短序列≠历史分析需求)')
+        elif _mid in _fact_mids or _mid in _s3_mids:
+            _outcome = 'insufficient_coverage'
+            _basis = ('仅最新单点在场(L1/S3),无历史序列——单点≠'
+                      '历史分析需求满足')
+        else:
+            _outcome = 'missing'
+            _basis = 'L1/S3/快照序列均缺席'
+        req_items.append({'metric_id': _mid, 'tier': 'required',
+                          'basis': '问题词面命中(任务目标)',
+                          'spec': {'form': 'series',
+                                   'window': 'max_available',
+                                   'quality': 'snapshot 序列(OK 行)',
+                                   'min_observations': _REQ_MIN_OBSERVATIONS},
+                          'outcome': _outcome, 'outcome_basis': _basis})
+    return req_items
+
+
 def run_research(question, root=None, archive=False, out_dir=None,
                  ia_timeout=180, fanout=False, engine_root=None):
     """十一步一键研究管线;返回完整报告 dict(run_ok=进程层,语义面看各步)。
@@ -426,44 +484,8 @@ def run_research(question, root=None, archive=False, out_dir=None,
     # L2 机构观点/经济体概览)。采集后只评 outcome(satisfied/missing),
     # 不得把 missing 的必要项改判可选(事后缩减任务目标=禁止)。
     # 评据: L1 行 / 快照 series_store 序列在场(S4 history 数据源)。
-    _fact_mids = {r['metric_id'] for r in l1_rows}
-    _ss = (snap or {}).get('series_store') or {}
-    _s3_env = ((next((s.get('envelope') for s in steps
-                      if s.get('step') == 'S3_changes'), {}) or {})
-               .get('data') or {})
-    _s3_mids = set()
-    for _bk in (_s3_env.get('by_asset_class') or {}).values():
-        if isinstance(_bk, dict):
-            _s3_mids.update(str(k) for k in _bk)
-    _req_items = []
-    for _mid in ent['metrics']:
-        # Audit-R4 条目5: 需求规格随分类一同冻结(数据形态/时间范围/质量/
-        # 最低覆盖,登记默认值);outcome 按规格评——**最新单点≠历史分析
-        # 需求满足**: L1/S3 只证在场(点位),序列 n≥min_observations 才算
-        # 覆盖达标;n=0 缺席,n<min 为 insufficient_coverage(必要项按
-        # 任务目标缺口处理,attach/report/archive 同源三级分类)。
-        _n_series = len((_ss.get(_mid) or {}).get('dates') or [])
-        if _n_series >= _REQ_MIN_OBSERVATIONS:
-            _outcome = 'satisfied'
-            _basis = f'快照序列(n={_n_series}≥最低覆盖{_REQ_MIN_OBSERVATIONS})'
-        elif _n_series > 0:
-            _outcome = 'insufficient_coverage'
-            _basis = (f'快照序列 n={_n_series} < 最低覆盖'
-                      f'{_REQ_MIN_OBSERVATIONS}(单点/短序列≠历史分析需求)')
-        elif _mid in _fact_mids or _mid in _s3_mids:
-            _outcome = 'insufficient_coverage'
-            _basis = ('仅最新单点在场(L1/S3),无历史序列——单点≠'
-                      '历史分析需求满足')
-        else:
-            _outcome = 'missing'
-            _basis = 'L1/S3/快照序列均缺席'
-        _req_items.append({'metric_id': _mid, 'tier': 'required',
-                           'basis': '问题词面命中(任务目标)',
-                           'spec': {'form': 'series',
-                                    'window': 'max_available',
-                                    'quality': 'snapshot 序列(OK 行)',
-                                    'min_observations': _REQ_MIN_OBSERVATIONS},
-                           'outcome': _outcome, 'outcome_basis': _basis})
+    _req_items = _evaluate_data_requirements(
+        ent['metrics'], steps, snap, l1_rows)
     data_requirements = {
         'frozen_at': 'plan(采集前冻结;分类与规格不随采集结果改判)',
         'items': _req_items,

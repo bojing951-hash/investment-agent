@@ -381,6 +381,46 @@ check('M5 blocked_class_of 单源: M1 档复算=required_data_missing',
       aj.blocked_class_of(rjM) == 'required_data_missing',
       str(aj.blocked_class_of(rjM)))
 
+# ══ §N: outcome 判定数据源序(R4-06 波内缺陷回归——仅查快照会把采集档 ══
+#    序列误判「仅最新单点」, 抽函数 _evaluate_data_requirements 可测化)
+print('§N outcome 判定数据源序(快照→S4 信封→L1/S3 单点→缺席)')
+
+
+def _s4_step(mid, n, ok=True, source='采集档 macro_20261114.json'):
+    env = {'data': {'series': {'n': n, 'source': source}}} if ok else None
+    return {'step': f'S4_history_{mid}', 'ok': ok, 'envelope': env}
+
+
+N_snap = {'series_store': {'GOLD_F': {'dates': ['d'] * 2514,
+                                       'values': [1.0] * 2514}}}
+N_steps = [_s4_step('BEI_10Y', 2499), _s4_step('CN_PMI_MFG', 1),
+           {'step': 'S4_history_DEAD', 'ok': False, 'envelope': None}]
+N_l1 = [{'metric_id': 'CN_PMI_MFG'}, {'metric_id': 'DEAD_M'}]
+items_n = {i['metric_id']: i for i in ro._evaluate_data_requirements(
+    ['GOLD_F', 'BEI_10Y', 'CN_PMI_MFG', 'DEAD_M', 'NOWHERE_M'],
+    N_steps, N_snap, N_l1)}
+check('N1 快照序列 n≥min → satisfied(源=研究快照)',
+      items_n['GOLD_F']['outcome'] == 'satisfied'
+      and '研究快照' in items_n['GOLD_F']['outcome_basis'],
+      str(items_n['GOLD_F']))
+check('N2 快照缺席+S4 信封 n=2499 → satisfied(BEI 回归案: 源=采集档)',
+      items_n['BEI_10Y']['outcome'] == 'satisfied'
+      and '采集档' in items_n['BEI_10Y']['outcome_basis'],
+      str(items_n['BEI_10Y']))
+check('N3 S4 信封 n=1 → insufficient_coverage(单点/短序列)',
+      items_n['CN_PMI_MFG']['outcome'] == 'insufficient_coverage',
+      str(items_n['CN_PMI_MFG']))
+check('N4 S4 失败但 L1 单点在场 → insufficient_coverage(点≠历史)',
+      items_n['DEAD_M']['outcome'] == 'insufficient_coverage',
+      str(items_n['DEAD_M']))
+check('N5 全源缺席 → missing',
+      items_n['NOWHERE_M']['outcome'] == 'missing',
+      str(items_n['NOWHERE_M']))
+check('N6 规格冻结面(spec 四键+min_observations=12)',
+      items_n['GOLD_F']['spec'].get('min_observations') == 12
+      and set(items_n['GOLD_F']['spec']) >= {'form', 'window', 'quality'},
+      str(items_n['GOLD_F']['spec']))
+
 # ══ 汇总 ═══════════════════════════════════════════════════════════
 print('═' * 64)
 print(f'Audit-R4 判定: {PASS} PASS / {FAIL} FAIL')

@@ -1,0 +1,43 @@
+{
+  "stage": "archive",
+  "run_ts": "20261116T045959Z",
+  "question": "UST_10Y 十年期美债利率上行的宏观传导: 对 HY_OAS 高收益债利差与 SPX 股市估值的影响",
+  "archived_at": "20261116T221913Z",
+  "content_sha256": "40695f40d810a80d2804c06b961ad7976e2f2be005321e41796ff93d6302317e",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 2,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261116__VERDICT-20261116T045959Z-01.json",
+      "source_rel": "audit/semantic_review/20261116/VERDICT-20261116T045959Z-01.json",
+      "overall": "UPHELD",
+      "revision": null,
+      "predecessor": null,
+      "recorded_at": "20261116T111849Z",
+      "sha256": "f32046f16cd53dd7"
+    },
+    {
+      "file": "verdicts/20261117__VERDICT-20261116T045959Z-01.json",
+      "source_rel": "audit/semantic_review/20261117/VERDICT-20261116T045959Z-01.json",
+      "overall": "UPHELD",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261116/VERDICT-20261116T045959Z-01.json",
+      "recorded_at": "20261116T221553Z",
+      "sha256": "8d069cc317c72bdd"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "f9b1bcb96084c25a",
+    "report.md": "56ac5d5e13dd5fe6",
+    "FULL_REPORT.md": "28de99c70b8f2de8",
+    "agent_judgment.json": "0d929aeed32873b4",
+    "views_digest.json": "281eb2c3c8210c32",
+    "evidence_index.json": "e0e65829908c0295",
+    "AGENT_SEAT_ENVELOPE.json": "59e72ae33a9e2c58"
+  },
+  "record_health": {},
+  "source_report_dir": "docs/autonomous-rd/phase4/A/replay_view",
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核)"
+}

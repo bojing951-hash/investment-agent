@@ -1,0 +1,327 @@
+[
+  {
+    "ref": "GOLD_F@2026-11-11",
+    "kind": "snapshot_fact",
+    "metric_id": "GOLD_F"
+  },
+  {
+    "ref": "USDJPY@2026-11-11",
+    "kind": "snapshot_fact",
+    "metric_id": "USDJPY"
+  },
+  {
+    "ref": "DFF@2026-11-09",
+    "kind": "snapshot_fact",
+    "metric_id": "DFF"
+  },
+  {
+    "ref": "JP_POLICY_RATE@2026-09-01",
+    "kind": "snapshot_fact",
+    "metric_id": "JP_POLICY_RATE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-001",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-002",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-003",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-004",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-005",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-006",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-007",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-008",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-009",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-010",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261110-011",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261111-001",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261111-002",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261111-003",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261111-004",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261111-005",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "VP-VIEW-20261111-006",
+    "kind": "vp_sidecar",
+    "view_label": "INSUFFICIENT_EVIDENCE"
+  },
+  {
+    "ref": "SPX@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "SPX"
+  },
+  {
+    "ref": "NDX@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "NDX"
+  },
+  {
+    "ref": "RUT@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "RUT"
+  },
+  {
+    "ref": "SHCOMP@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "SHCOMP"
+  },
+  {
+    "ref": "SZCI@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "SZCI"
+  },
+  {
+    "ref": "CHINEXT@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "CHINEXT"
+  },
+  {
+    "ref": "HSI@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "HSI"
+  },
+  {
+    "ref": "HSCEI@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "HSCEI"
+  },
+  {
+    "ref": "NIKKEI225@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "NIKKEI225"
+  },
+  {
+    "ref": "DAX@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "DAX"
+  },
+  {
+    "ref": "CAC40@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "CAC40"
+  },
+  {
+    "ref": "VIX@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "VIX"
+  },
+  {
+    "ref": "NVDA@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "NVDA"
+  },
+  {
+    "ref": "AAPL@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "AAPL"
+  },
+  {
+    "ref": "MSFT@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "MSFT"
+  },
+  {
+    "ref": "TLT@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "TLT"
+  },
+  {
+    "ref": "IEF@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "IEF"
+  },
+  {
+    "ref": "SHY@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "SHY"
+  },
+  {
+    "ref": "HYG@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "HYG"
+  },
+  {
+    "ref": "LQD@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "LQD"
+  },
+  {
+    "ref": "DXY@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "DXY"
+  },
+  {
+    "ref": "EURUSD@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "EURUSD"
+  },
+  {
+    "ref": "GBPUSD@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "GBPUSD"
+  },
+  {
+    "ref": "USDCNY@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "USDCNY"
+  },
+  {
+    "ref": "SILVER_F@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "SILVER_F"
+  },
+  {
+    "ref": "WTI_F@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "WTI_F"
+  },
+  {
+    "ref": "BRENT_F@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "BRENT_F"
+  },
+  {
+    "ref": "GLD@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "GLD"
+  },
+  {
+    "ref": "USO@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "USO"
+  },
+  {
+    "ref": "EEM@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "EEM"
+  },
+  {
+    "ref": "EZU@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "EZU"
+  },
+  {
+    "ref": "FEZ@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "FEZ"
+  },
+  {
+    "ref": "EWU@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "EWU"
+  },
+  {
+    "ref": "EWG@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "EWG"
+  },
+  {
+    "ref": "EWJ@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "EWJ"
+  },
+  {
+    "ref": "INDA@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "INDA"
+  },
+  {
+    "ref": "FXI@2026-11-11",
+    "kind": "s3_envelope",
+    "metric_id": "FXI"
+  },
+  {
+    "ref": "BTC@2026-11-10",
+    "kind": "s3_envelope",
+    "metric_id": "BTC"
+  },
+  {
+    "ref": "HY_OAS@2026-11-09",
+    "kind": "s3_envelope",
+    "metric_id": "HY_OAS"
+  },
+  {
+    "ref": "BB_OAS@2026-11-09",
+    "kind": "s3_envelope",
+    "metric_id": "BB_OAS"
+  },
+  {
+    "ref": "B_OAS@2026-11-09",
+    "kind": "s3_envelope",
+    "metric_id": "B_OAS"
+  },
+  {
+    "ref": "CCC_OAS@2026-11-09",
+    "kind": "s3_envelope",
+    "metric_id": "CCC_OAS"
+  },
+  {
+    "ref": "IG_OAS@2026-11-09",
+    "kind": "s3_envelope",
+    "metric_id": "IG_OAS"
+  },
+  {
+    "ref": "HY_IG_DIFF@2026-11-09",
+    "kind": "s3_envelope",
+    "metric_id": "HY_IG_DIFF"
+  }
+]

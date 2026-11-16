@@ -298,4 +298,4 @@
   管线跑 + run_weekly argparse 读 sys.argv,pytest 收集时 argv=pytest 参数
   →SystemExit(2)→ledger None→模块级 TypeError/IndexError;直跑(argv 干净)
   与 CI 口径(exit-code)全绿,a457453 同在亲证=陈年;修法=main(argv=…)
-  显式传参或模块级块收束入函数,R43 随批(与聚合器同族=口径盲区)。
+  显式传参或模块级块收束入函数,R43 随批(与聚合器同族=口径盲区)。**[R43 已闭]**: main(argv=None)+parse_args(argv)+五调用点 argv=[]+尾退出拆红支+守卫 23 判(test_rd_r43_pytest_caliber);**R43 新登记(同族扩面)**: 尾条件退出=全库线性件习语 60+件(0 if FAIL==0 else 1 / 0 if n_pass==len(RESULTS) else 1 / 0 if not FAILED else 1 三变体),pytest 逐件口径 rc 语义有效(绿 0/红 3,INTERNALERROR 打印=噪音),目录整跑首个尾退出件即 INTERNALERROR 中断 rc3=不适用;目录口径迁移=R44+ 候选单独成波。

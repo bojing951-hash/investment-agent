@@ -4,8 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-16 R42 测试聚合器吞错修复(T-R42-1)
+## 权威快照: 2026-11-16 R43 pytest 口径四件套收口(T-R43-1)
 > baseline=e803b4c449cd91d9604db3b94ae326e3f82d281b (机器行: rd_checkpoint.py 维护,勿手改)
+
+- **基线**: main = 64a482c(R42 重盖章+残余入册,CI 43762333651 绿);本轮=`dev/rd-r43-pytest-argv`(基点 64a482c;R42 终验暴露的 pytest 口径陈年四件套=操作者紧凑波收口)。
+- **真实进度**: **RDG-012 残余⑦收口**——run_weekly.main(argv=None)+parse_args(argv)(None=CLI 原行为零差;revision_chain 的 sys.argv 猴补路由不受影响)+四件(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2)五调用点显式 argv=[]+尾条件退出拆红支摘冗余 0 支(直跑落尾自然 exit 0 同码;pytest 收集期不再被 SystemExit 打断)。
+- **验收**: 守卫 test_rd_r43_pytest_caliber **23/0**(§A 伪 pytest argv 子进程导入 rc=0[修前 NoneType 崩]/§B 源面防回退[裸调+条件退出双锚,注释避守卫串自绊]/§C 直跑口径保持 rc=0)+真 pytest 四件单件 rc=5 净收集零错+revision_chain 兼容 rc=0;**新发现如实登记**: 尾条件退出=全库线性件习语 grep 实测 60+件(三变体),pytest 逐件口径 rc 语义有效(绿件 rc0/红件 rc3,INTERNALERROR 打印=模块完整跑毕的正常尾属噪音),**目录整跑不适用**(首个尾退出件即 INTERNALERROR 中断 rc3)=R44+ 目录口径迁移候选。
+- **下一步**: R44=引擎轨道(A 族碎片泄漏硬化首位候选[154/326=47%]+T8-R2 ④⑥⑦ 随批+round.sh 双上限[LIVE 部署时]+R41 审计登记 MINOR-1+NIT-3~5+GUARD_FILES 扩容+pytest 目录口径迁移候选);日历门 F=2026-12-05/六标签 2026-12 勿手工提前。
+
+### [历史快照·R42 视角,已被上方权威快照取代]
 
 - **基线**: main = a457573(R41 并轨尖重盖章,CI 跑面中);本轮=`dev/rd-r42-agg-error-leak`(基点 a457573;R41 收口链独立验暴露→操作者紧凑波)。
 - **真实进度**: **RDG-20261116-012 收口**——四套件(t1t2/t3/t4/r27)聚合器吞错封死(`_run_case` 收 errors/failures 入 case_errs 计退出码;负证=注入 erroring 测后台账 43/0 仍 exit 1)+TH() 缺键 KeyError→RuntimeError(带键名,兑现 T1 fail-closed 语义,合法键零行为差)+两潜伏测复活(t1t2 test_fail_closed 第二半 _THRESH_CACHE 存/复原替 cache_clear;t4 按 relation='above' 判歧+死赋值清)。**两潜伏错 main 同态既有**(R40 CI 43734958311 即含被吞 ERROR,arch-reform 并轨起潜伏 ~14 轮);**R41 盖章语「164/164 零红」系 exit-code 口径误报,pytest 口径实为 162+2,如实更正**。

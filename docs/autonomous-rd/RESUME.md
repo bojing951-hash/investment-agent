@@ -20,22 +20,24 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-16 R42 收口后 · 引擎轨道余留)
+## 下一步(2026-11-16 R43 收口后 · 引擎轨道)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-R41=T8-R2 余留①②③收口已毕(引擎席;真实面 326 全簇裁定零真错零漂移+双报标记+维度单源;tid 见存档与 ITERATION_LOG)。队列按优先级:
+R41(引擎 T8-R2 余留①②③)/R42(聚合器吞错)/R43(pytest 口径四件套)连续三波已毕(后两波操作者紧凑波;tid 见存档与 ITERATION_LOG)。队列按优先级:
 
-R42=测试聚合器吞错修复已毕(操作者紧凑波;RDG-20261116-012 四件套+两潜伏测复活+守卫;tid 见存档与 ITERATION_LOG)。队列按优先级:
-
-1. **R43+ 引擎轨道续行**: ①**A 族碎片泄漏硬化首位候选**(R41 定性件新证: 元数据/序号/引用ID/小数切分碎片泄漏=154/326 误报 47%,检查面预处理[HTML 注释/生成头剥离+引用ID/碎片过滤]可腰斩真实面误报;每任务先过 RDG 门)②T8-R2 ④era base_anchor_set 必填+⑥重封留出+⑦变异压力轮(下次启封随批)③round.sh 双上限=LIVE 部署时④R41 审计登记项(MINOR-1 S3 饱和值敏感度+NIT-3~5)⑤FX 族再暴露交叉盘/对名误读形态则升「主体锚=别名表驱动」(RDG-010 尾注)⑥新聚合模板套件须入守卫 GUARD_FILES(RDG-012 NIT-A)⑦**pytest 口径潜伏四件套随批修**(RDG-012 残余: e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2 模块级管线+argparse 读 pytest argv→collection error;修=main(argv=…) 显式传参或模块级块收束;CI/直跑口径无恙=陈年非阻塞)。
+1. **R44+ 引擎轨道续行**: ①**A 族碎片泄漏硬化首位候选**(R41 定性件新证: 元数据/序号/引用ID/小数切分碎片泄漏=154/326 误报 47%,检查面预处理[HTML 注释/生成头剥离+引用ID/碎片过滤]可腰斩真实面误报;每任务先过 RDG 门)②T8-R2 ④era base_anchor_set 必填+⑥重封留出+⑦变异压力轮(下次启封随批)③round.sh 双上限=LIVE 部署时④R41 审计登记项(MINOR-1 S3 饱和值敏感度+NIT-3~5)⑤FX 族再暴露交叉盘/对名误读形态则升「主体锚=别名表驱动」(RDG-010 尾注)⑥新聚合模板套件须入守卫 GUARD_FILES(RDG-012 NIT-A)⑦**pytest 目录整跑口径迁移候选**(R43 新发现: 尾条件退出=全库线性件习语 60+件三变体,pytest 逐件口径 rc 语义有效[绿 0/红 3,INTERNALERROR 打印=噪音],目录整跑首个尾退出件即中断 rc3;迁移=逐件拆红支摘 0 支[R43 四件同法]+守卫锚,面广单独成波)。
 2. **日历门(勿手工提前)**: F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 
 - 每轮开始答「当前最重要产品能力缺口」,结束答「本轮提升了哪项真实研究能力」(§七,写进 ITERATION_LOG 行)。
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 <!-- RD-CHECKPOINT v1: json {"round": 42, "date": "2026-11-16 05:11 HKT", "branch": "main", "commit": "e803b4c449cd91d9604db3b94ae326e3f82d281b", "baseline": "e803b4c449cd91d9604db3b94ae326e3f82d281b", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R42-1"], "next_task": "R43: 引擎轨道=A 族碎片泄漏硬化首位候选(R41 定性件 154/326=47%,检查面预处理=HTML注释/生成头剥离+引用ID/碎片过滤)+T8-R2 ④⑥⑦下次启封随批+round.sh 双上限(LIVE 部署时)+R41 审计登记 MINOR-1+NIT-3~5+新聚合模板入守卫 GUARD_FILES(RDG-012 NIT-A)+pytest 口径陈年四件套随批修(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2 模块级管线 argparse 读 pytest argv,RDG-012 残余;CI/直跑口径绿=非阻塞);日历门 F=2026-12-05 勿手工提前", "next_round": 43} -->
+
+## 下一步存档(2026-11-16 R43 收口后版)
+
+- [已毕·R43] **pytest 口径四件套收口**(T-R43-1;RDG-20261116-012 残余⑦;R42 终验暴露陈年): run_weekly.main(argv=None) 参数化(CLI 零差/revision_chain 猴补兼容)+四件五调用点显式 argv=[](裸调读 pytest argv→SystemExit(2)→台账 None→下标崩根因)+尾条件退出拆红支摘冗余 0 支+守卫 23 判(§A 伪 pytest argv 子进程/§B 源面双锚/§C 直跑保持);四件 pytest 单件 rc5=净收集零错;新发现=尾退出全库习语 60+件,目录整跑不适用(R44+ 迁移候选);分支 dev/rd-r43-pytest-argv;详见 ITERATION_LOG R43 行。
 
 ## 下一步存档(2026-11-16 R42 收口后版)
 

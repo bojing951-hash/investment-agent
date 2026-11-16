@@ -1415,6 +1415,26 @@ def cmd_research_one(args):
         # 证据索引独立落盘(工单 read_first 引用;report.json 内嵌副本仍在)
         with open(os.path.join(rd, 'evidence_index.json'), 'w', encoding='utf-8') as f:
             json.dump(rep.get('evidence_index', []), f, ensure_ascii=False, indent=2)
+        # L2 富内容摘编(确定性装配,零生成): report.json L2 只含 VP sidecar
+        # 验证标签;机构观点原文在 views 库——字段选取入 run 目录供 Agent 席读
+        views_note = 'views 库在场'
+        digest = []
+        try:
+            import view_store as vs
+            for v in vs.load_views(os.path.join(
+                    engine_root, 'data', 'institutions', 'views'))['views']:
+                inst = v.get('institution') or {}
+                digest.append({
+                    k: v.get(k) for k in (
+                        'view_id', 'report_title', 'publish_date',
+                        'view_horizon', 'subjects', 'core_views',
+                        'forecasts', 'risk_factors')})
+                digest[-1]['institution_name'] = inst.get('name')
+        except (OSError, ValueError, KeyError) as e:
+            views_note = f'views 库不可读/缺席: {e}'
+        with open(os.path.join(rd, 'views_digest.json'), 'w', encoding='utf-8') as f:
+            json.dump({'n': len(digest), 'note': views_note, 'views': digest},
+                      f, ensure_ascii=False, indent=2)
         envelope_path = os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')
         work_order = {
             'role': 'Agent Native 研究席(L3 推断+L4 条件情景真产出)',
@@ -1424,7 +1444,8 @@ def cmd_research_one(args):
             'read_first': [
                 os.path.join(rd, 'report.json'),
                 os.path.join(rd, 'evidence_index.json'),
-                'scripts/agent_judgment.py   # judgment schema v1.0 模块 docstring',
+                os.path.join(rd, 'views_digest.json') + '   # L2 机构观点富内容(原文摘编)',
+                'scripts/agent_judgment.py   # judgment schema v1.1 模块 docstring',
                 '.agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)',
             ],
             'produce': 'judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/'
@@ -1466,14 +1487,38 @@ def cmd_research_one(args):
         rj = json.load(open(os.path.join(rd, 'report.json'), encoding='utf-8'))
         layers = rj.get('layers', {})
         l3, l4 = layers.get('L3_AI推断层', {}), layers.get('L4_条件情景层', {})
+        l1_rows = layers.get('L1_事实层', {}).get('rows', [])
+        vpf = layers.get('L2_机构观点层', {}).get('views') or {}
         out_md = os.path.join(rd, 'FULL_REPORT.md')
         lines = ['# 完整研究报告(一键研究 MVP)', '',
                  f'- 问题: {rj.get("question", args.question)}',
-                 f'- 证据行: {len(rj.get("evidence_index", []))}',
-                 f'- L3 AI 推断层: produced={l3.get("produced")}',
-                 f'- L4 条件情景层: produced={l4.get("produced")}',
-                 '', '完整面见 report.json / evidence_index.json / judgment 归档段。',
-                 '渲染纪律: 本件只汇编在场事实(确定性),不做新增生成。']
+                 f'- run_ok: {rj.get("run_ok")} | 证据行: {len(rj.get("evidence_index", []))}',
+                 '', '## L1 事实层(引擎确定性产出)', '',
+                 '| 指标 | 值 | 单位 | 观测日 | 质量 | 证据 ref |',
+                 '|---|---|---|---|---|---|']
+        for r in l1_rows:
+            src = r.get('source') or {}
+            lines.append(f"| {r.get('metric_id')} | {r.get('value')} | "
+                         f"{r.get('unit')} | {r.get('observation_date')} | "
+                         f"{r.get('quality_status')} | {src.get('id')} |")
+        lines += ['', '## L2 机构观点层(VP sidecar 验证面+views 库摘编)', '',
+                  f"- available={vpf.get('available')} n={vpf.get('n')} "
+                  f"隔离={vpf.get('n_bad_quarantined')}",
+                  f"- 富内容摘编: views_digest.json(在场机构主张原文,机构面=institution_stated)"]
+        vd_path = os.path.join(rd, 'views_digest.json')
+        if os.path.exists(vd_path):
+            vd = json.load(open(vd_path, encoding='utf-8'))
+            for v in vd.get('views', []):
+                lines.append(f"  - {v.get('view_id')} · {v.get('institution_name')}"
+                             f" · {v.get('publish_date')} · {v.get('report_title')}")
+        lines += ['', '## L3 AI 推断层(Agent 席真产)', '',
+                  f"- produced={l3.get('produced')} attribution={l3.get('attribution')}",
+                  f"- 判断原文: report.md L3 节 + agent_judgment.json 归档副本"]
+        lines += ['', '## L4 条件情景层(Agent 席真产)', '',
+                  f"- produced={l4.get('produced')} attribution={l4.get('attribution')}",
+                  '- 情景五行齐备面: report.md L4 节 + agent_judgment.json 归档副本']
+        lines += ['', '---', '渲染纪律: 本件只汇编在场事实(确定性装配),不做新增生成;',
+                  'L3/L4 内容归 Agent 席与独立审计,本段不代写。']
         with open(out_md, 'w', encoding='utf-8') as f:
             f.write('\n'.join(lines) + '\n')
         ok = bool(l3.get('produced') and l4.get('produced'))

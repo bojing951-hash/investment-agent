@@ -20,20 +20,22 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-16 R46 Audit-R1 收口后 · 全轨道停等用户)
+## 下一步(2026-11-16 R47 Audit-R2 收口后 · 全轨道停等用户)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-**等待用户外部审计裁定**(Audit-R1 第一轮审计修复与重新验收已收口,收口事实见下方存档节与 ITERATION_LOG R46 行——活动区不载已完成任务号, R34 判例):
+**等待用户外部审计裁定**(Audit-R2 第二轮审计修复已收口,收口事实见下方存档节与 ITERATION_LOG R47 行——活动区不载已完成任务号, R34 判例):
 
-- 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R1_REPORT.md`(终七答在 §九);代码与产品冻结面=0b8b9bda8f2a5a5c31148dedb7af3e85698951e3;F01-F10 全关+独立验收席 G0-G4 全 PASS+F10 独立新题 UPHELD(deliverable=True)。
-- 外审批后动作由用户指令定: 并轨 main / 第二轮审计 / 整改重修;**未获用户确认不自动并 main、不部署、不进入代码瘦身、不恢复旧研发循环**(本轮指令边界, 2026-11-16)。
-- 用户最小动作 2 件(独立于审计裁定): main 分支保护规则集落地+落地后核验回填(见 AUDIT_R1_F07_GOVERNANCE.md;配置就绪=TARGET_PROTECTION_PREP.md)。
+- 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R2_REPORT.md`(七件交付);修复链候选=`021092f02c52afedf8532fd2b677ca5123110309`(双口径直跑 176/176+pytest 175 passed/0 failed),台账 docs 尖=检查点块 commit;八项全关+BLIND 独立复算 UPHELD(deliverable=True)+F10 重放包一条命令 PASS。
+- 外审批后动作由用户指令定: 并轨 main / 继续整改;**未获用户确认不自动并 main、不合并 PR、不部署、不进入代码瘦身、不恢复旧研发循环**(本轮指令边界, 2026-11-16)。
+- 用户最小动作(独立于审计裁定): **main 分支保护实测未配置**(认证 API 404 亲证,AUDIT_R2_REPORT §六)——建议合并 PR #1 前启用(require PR+CI 绿);本轮未改远端权限。
 - 日历门(勿手工提前): F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 - R44 引擎队列(R45+ B 族硬化/T8-R2 ④⑥⑦/R41+R43 审计登记项等)**保持暂停未恢复**——原文见下方暂停存档;恢复须用户明示(旧无限研发循环不复原为本轮边界)。
 
-## 下一步存档(2026-11-16 R46 收口后版·操作者席)
+## 下一步存档(2026-11-16 R47 收口后版·操作者席)
+
+- [已毕·R47] **Audit-R2 第二轮外部审计修复与收口**(T-R47-1;用户指令独立轨道续 R46;分支 dev/audit-fix-r1,基线 06e90c1→修复链 021092f→台账尖): §二八项全关(审查绑定/裁决序/BLIND 五数值冻结重算更正+独立新席复算 UPHELD/F10 重放包/pytest 三入口/链档反例/必要数据分级/治理边界);候选双口径 176/176+175 passed;G0-G4 分层如实终裁归用户;报告=docs/autonomous-rd/AUDIT_R2_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未改远端权限/未瘦身)。
 
 - [已毕·R46] **Audit-R1 第一轮外部审计修复与重新验收**(T-R46-1;用户指令独立轨道;分支 dev/audit-fix-r1,基线 c9d5715→冻结面 0b8b9bd): F01-F10 十项全关;F10 独立性重做三轮复议闭环终裁 UPHELD(deliverable=True);独立验收席 G0-G4 全 PASS;全量 185 件=174 套件式 867/0+11 打印式 rc=0+净克隆冒烟绿;终报告=docs/autonomous-rd/AUDIT_R1_REPORT.md(§九终七答);停于等待用户外部审计(未并 main/未推送/未部署/未瘦身/旧循环未恢复)。
 - [对账·R46] **T-R45-1 吸收**: PC 并轨对账行按自带出口条款移出台账(R46 baseline=badb4695 含 main 尖 36c1e7e;证据链=c9d5715+PRODUCT_CONVERGENCE_PHASE6_ACCEPTANCE.md;吸收注同时留 ITERATION_LOG R46 行)。
@@ -53,7 +55,7 @@ R42(聚合器吞错)+R43(pytest 四件套,操作者)+R44(A 族碎片泄漏硬化
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 
-<!-- RD-CHECKPOINT v1: json {"round": 46, "date": "2026-11-16 21:02 HKT", "branch": "dev/audit-fix-r1", "commit": "badb4695bfa3e5b2e02a13fb920bcfeaff34fad5", "baseline": "badb4695bfa3e5b2e02a13fb920bcfeaff34fad5", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R46-1"], "next_task": "等待用户外部审计裁定: 读 dev/audit-fix-r1 尖+docs/autonomous-rd/AUDIT_R1_REPORT.md(终七答§九);冻结面=0b8b9bda8f2a5a5c31148dedb7af3e85698951e3;外审批后按用户指令并轨/第二轮/整改——未获确认不并 main 不部署不瘦身不恢复旧研发循环;用户最小动作 2 件=分支保护落地+核验回填(AUDIT_R1_F07_GOVERNANCE.md);R45+ 引擎队列保持暂停原文在 RESUME 暂停存档;日历门 F=2026-12-05 勿手工提前", "next_round": 47} -->
+<!-- RD-CHECKPOINT v1: json {"round": 47, "date": "2026-11-17 00:36 HKT", "branch": "dev/audit-fix-r1", "commit": "c382827659af21ead594a216ea1a29baac8d8bfb", "baseline": "c382827659af21ead594a216ea1a29baac8d8bfb", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R47-1"], "next_task": "等待用户外部审计裁定: 读 dev/audit-fix-r1 尖+docs/autonomous-rd/AUDIT_R2_REPORT.md(候选=021092f 修复链+台账 docs 尖);外批后按用户指令并轨/继续整改;main 分支保护未配置=治理发现建议合并前启用(AUDIT_R2_REPORT §六);引擎 R 队列维持暂停;日历门 F=2026-12-05 勿手工提前", "next_round": 48} -->
 ## 下一步存档(2026-11-16 R43 收口后版·操作者席)
 
 - [已毕·R43] **pytest 口径四件套收口**(T-R43-1;RDG-20261116-012 残余⑦;R42 终验暴露陈年): run_weekly.main(argv=None) 参数化(CLI 零差/revision_chain 猴补兼容)+四件五调用点显式 argv=[](裸调读 pytest argv→SystemExit(2)→台账 None→下标崩根因)+尾条件退出拆红支摘冗余 0 支+守卫 23 判(§A 伪 pytest argv 子进程/§B 源面双锚/§C 直跑保持);四件 pytest 单件 rc5=净收集零错;新发现=尾退出全库习语 60+件,目录整跑不适用(R44+ 迁移候选);分支 dev/rd-r43-pytest-argv;详见 ITERATION_LOG R43 行。

@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-16 R47 Audit-R2 第二轮外部审计修复与收口(T-R47-1;独立轨道续 R46)
-> baseline=021092f02c52afedf8532fd2b677ca5123110309 (Audit-R2 修复链;docs-only 台账提交在其上,测试面不变)
+> baseline=c382827659af21ead594a216ea1a29baac8d8bfb (Audit-R2 修复链;docs-only 台账提交在其上,测试面不变)
 
 - **基线**: dev/audit-fix-r1 = 021092f(基点 06e90c1=Audit-R1 冻结尖+CI 报告提交);PR #1 覆盖推送;main 未动。
 - **真实进度**: §二八项全关——①content_digest v2 审查绑定+copies_consistent 同版门+当前运行态优先②裁决内容序+corrupt/duplicate fail-closed+席位词表守卫③BLIND NEW-2/NEW-3 五数值冻结重算更正+独立新席复算 UPHELD(-02)+deliverable=True④F10 重放包(原始输入切片+可配数据根+一条命令逐字节 PASS)⑤pytest 三入口⑥链档反例 12/0⑦plan 冻结 data_requirements+三级 blocked_class⑧main 保护未配置如实登记+Gate B 输入三件套。

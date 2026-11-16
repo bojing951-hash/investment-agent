@@ -35,6 +35,9 @@ if SCRIPTS not in sys.path:
 
 PIPELINE_VERSION = '2.0'
 IA_CLI = os.path.join(ROOT, 'ia_cli.py')
+# 引擎数据树注入缝(research-one --engine-root;G2 净环境验收同缝):
+# 子进程 ia_cli 与 cwd 改指真实数据树;默认=本仓库根(行为零差)。
+RUN_ROOT = ROOT
 
 
 def _now_utc():
@@ -52,7 +55,7 @@ def _run_proc(name, cmdline, timeout=180, argv_label=None):
     try:
         p = subprocess.run(cmdline,
                            capture_output=True, text=True, timeout=timeout,
-                           cwd=ROOT)
+                           cwd=RUN_ROOT)
         rc, out, err = p.returncode, p.stdout, p.stderr
     except subprocess.TimeoutExpired:
         return {'step': name, 'argv': argv_label or cmdline[1:],
@@ -83,7 +86,8 @@ def _run_proc(name, cmdline, timeout=180, argv_label=None):
 
 def run_step(name, argv, timeout=180):
     """跑一步真 ia_cli 子进程(十一步管线主路径)。"""
-    return _run_proc(name, [sys.executable, IA_CLI] + argv, timeout,
+    ia_cli = os.path.join(RUN_ROOT, 'ia_cli.py')
+    return _run_proc(name, [sys.executable, ia_cli] + argv, timeout,
                      argv_label=argv)
 
 
@@ -283,12 +287,16 @@ def vp_face(root):
 
 
 def run_research(question, root=None, archive=False, out_dir=None,
-                 ia_timeout=180, fanout=False):
+                 ia_timeout=180, fanout=False, engine_root=None):
     """十一步一键研究管线;返回完整报告 dict(run_ok=进程层,语义面看各步)。
 
     fanout=True 追加十问扇出面(R3): research_map.QUESTION_COMMANDS 逐条
-    真跑+信封留档,Agent 层问(RQ3/RQ9)declared-not-produced。"""
-    root = root or ROOT
+    真跑+信封留档,Agent 层问(RQ3/RQ9)declared-not-produced。
+    engine_root: 子进程 ia_cli 与 cwd 改指真实数据树(注入缝;默认=本仓库,
+    行为零差)——净克隆验收/单入口 MVP 用。"""
+    global RUN_ROOT
+    RUN_ROOT = engine_root or ROOT
+    root = root or RUN_ROOT
     import workbench_data as wd
     steps = []
     notes = []

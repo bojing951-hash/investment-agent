@@ -1387,6 +1387,102 @@ def cmd_research_attach(args):
          exit_code=0 if res.get('attached') else 1)
 
 
+
+def cmd_research_one(args):
+    """一键研究 MVP 单入口(Product Convergence Phase 3/章程§五)。
+
+    自然语言问题→[plan] research-run 证据面+Agent 席工单→(Agent Native 席
+    真产 L3/L4,禁 produced 造假)→[attach] 纪律校验+合并→[report] 完整报告。
+
+    三段式而非单进程: L3/L4 恒由 Agent 席(Agent Native)产生——本命令是
+    零模型编排层,plan 段产出 AGENT_SEAT_ENVELOPE(工单),attach 段只验
+    纪律不代写。--engine-root 注入真实数据树(测试/净环境用注入缝)。"""
+    import research_orchestrator as ro
+    stage = getattr(args, 'stage', 'plan')
+    engine_root = getattr(args, 'engine_root', None) or ROOT
+
+    if stage == 'plan':
+        try:
+            rep = ro.run_research(args.question, root=engine_root,
+                                  archive=False,
+                                  out_dir=getattr(args, 'out_dir', None),
+                                  engine_root=engine_root)
+        except (OSError, ValueError) as e:
+            emit(envelope('research-one', False, {'stage': 'plan'},
+                          error=('orchestrator_failed', str(e), None)), exit_code=1)
+            return
+        rd = rep.get('report_dir')
+        # 证据索引独立落盘(工单 read_first 引用;report.json 内嵌副本仍在)
+        with open(os.path.join(rd, 'evidence_index.json'), 'w', encoding='utf-8') as f:
+            json.dump(rep.get('evidence_index', []), f, ensure_ascii=False, indent=2)
+        envelope_path = os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')
+        work_order = {
+            'role': 'Agent Native 研究席(L3 推断+L4 条件情景真产出)',
+            'question': args.question,
+            'report_dir': rd,
+            'evidence_index_rows': len(rep.get('evidence_index', [])),
+            'read_first': [
+                os.path.join(rd, 'report.json'),
+                os.path.join(rd, 'evidence_index.json'),
+                'scripts/agent_judgment.py   # judgment schema v1.0 模块 docstring',
+                '.agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)',
+            ],
+            'produce': 'judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/'
+                       'E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件)',
+            'then': ['ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>',
+                     'ia_cli.py research-one --stage report --report-dir <rd>'],
+            'discipline': ['L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造',
+                           '禁改 report.json 的 produced 字段(attach 校验器唯一写者)',
+                           '研究质量十二问逐问答(章程§七)'],
+        }
+        with open(envelope_path, 'w', encoding='utf-8') as f:
+            json.dump(work_order, f, ensure_ascii=False, indent=2)
+        emit(envelope('research-one', bool(rep.get('run_ok')), {
+            'stage': 'plan', 'report_dir': rd, 'run_ok': rep.get('run_ok'),
+            'agent_seat_envelope': envelope_path,
+            'L3_produced': rep['layers']['L3_AI推断层']['produced'],
+            'L4_produced': rep['layers']['L4_条件情景层']['produced'],
+            'next': 'Agent 席按 AGENT_SEAT_ENVELOPE.json 真产 L3/L4 → attach 段'}))
+        return
+
+    if stage == 'attach':
+        import agent_judgment as aj
+        try:
+            res = aj.attach_judgment(args.report_dir, args.judgment, root=engine_root,
+                                     allow_failed_run=bool(getattr(args, 'allow_failed_run', False)))
+        except (OSError, ValueError, KeyError) as e:
+            emit(envelope('research-one', False, {'stage': 'attach'},
+                          error=('attach_failed', str(e), None)), exit_code=1)
+            return
+        emit(envelope('research-one', bool(res.get('attached')), {
+            'stage': 'attach', 'report_dir': res.get('report_dir'),
+            'attached': res.get('attached'),
+            'validation_passed': (res.get('validation') or {}).get('passed'),
+            'violations': (res.get('validation') or {}).get('violations')}))
+        return
+
+    if stage == 'report':
+        rd = args.report_dir
+        rj = json.load(open(os.path.join(rd, 'report.json'), encoding='utf-8'))
+        layers = rj.get('layers', {})
+        l3, l4 = layers.get('L3_AI推断层', {}), layers.get('L4_条件情景层', {})
+        out_md = os.path.join(rd, 'FULL_REPORT.md')
+        lines = ['# 完整研究报告(一键研究 MVP)', '',
+                 f'- 问题: {rj.get("question", args.question)}',
+                 f'- 证据行: {len(rj.get("evidence_index", []))}',
+                 f'- L3 AI 推断层: produced={l3.get("produced")}',
+                 f'- L4 条件情景层: produced={l4.get("produced")}',
+                 '', '完整面见 report.json / evidence_index.json / judgment 归档段。',
+                 '渲染纪律: 本件只汇编在场事实(确定性),不做新增生成。']
+        with open(out_md, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(lines) + '\n')
+        ok = bool(l3.get('produced') and l4.get('produced'))
+        emit(envelope('research-one', ok, {'stage': 'report', 'full_report': out_md,
+                                           'L3_produced': l3.get('produced'),
+                                           'L4_produced': l4.get('produced')},
+                      None if ok else ['L3/L4 未全 produced——报告如实标注,不冒认完整(G2 门不放过)']))
+        return
+
 def build_parser():
     p = argparse.ArgumentParser(
         prog='ia_cli.py',
@@ -1499,6 +1595,18 @@ def build_parser():
                     help='R3 十问扇出: research_map 十问命令清单逐条真跑'
                          '(Agent 层问 RQ3/RQ9 declared-not-produced)')
 
+    r1 = sub.add_parser('research-one',
+                        help='一键研究 MVP 单入口(plan→Agent 席→attach→report;章程 Phase 3)')
+    r1.add_argument('--question', default=None, help='研究问题(plan 段必填)')
+    r1.add_argument('--stage', choices=['plan', 'attach', 'report'], default='plan',
+                    help='plan=research-run+工单;attach=judgment 校验合并;report=完整报告汇编')
+    r1.add_argument('--report-dir', default=None, help='attach/report 段必填')
+    r1.add_argument('--judgment', default=None, help='attach 段必填(judgment JSON)')
+    r1.add_argument('--out-dir', default=None, help='报告目录注入缝(plan 段)')
+    r1.add_argument('--engine-root', default=None,
+                    help='数据树注入缝(默认=本仓库根;净环境指向真实数据树)')
+    r1.add_argument('--allow-failed-run', action='store_true',
+                    help='attach 段: run_ok=False 诚实拒答面显式越过(MINOR-4 门槛)')
     ra = sub.add_parser('research-attach',
                         help='Agent Native L3/L4 判断落位+纪律机器校验(R23/阶段四): '
                              '校验 Agent judgment 并合并进 research-run 报告;'
@@ -1523,7 +1631,8 @@ def main(argv=None):
                 'analog': cmd_analog, 'research': cmd_research, 'archive': cmd_archive,
                 'views': cmd_views, 'research-map': cmd_research_map,
                 'research-run': cmd_research_run,
-                'research-attach': cmd_research_attach}
+                'research-attach': cmd_research_attach,
+                'research-one': cmd_research_one}
     if args.capability == 'archive':
         if args.action == 'save' and not args.question:
             emit(envelope('archive', False, {},

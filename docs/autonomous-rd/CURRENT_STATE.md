@@ -4,7 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-16 R47 Audit-R2 第二轮外部审计修复与收口(T-R47-1;独立轨道续 R46)
+## 权威快照: 2026-11-17 R48 Audit-R4 第四轮审计收尾修复(T-R48-1;独立轨道续 R47)
+> baseline=1d538577a353643a994fda366c46d187f8e9275f (Audit-R2 收口尖=本轮受审基线;docs-only 台账提交在其上,测试面不变)
+
+- **基线**: dev/audit-fix-r1 = 2882932→1d53857(修复链两笔)→台账/报告 docs 尖;PR #1 覆盖推送;main 未动。
+- **真实进度**: §二六项全关——①裁决损坏/缺字段 fail-closed(corrupt_latest 不回退旧 UPHELD,J1-J9)②content_digest v3(+views_digest)审查覆盖实际渲染输入(K1-K4)③BLIND 同版重放包(七序列原始切片+一条命令+独立复算 64/64)④跨日归档全局唯一名+manifest 链(L1-L4;四归档 10/10 全验)⑤必要/可选三级贯通+outcome 判定源序修(M1-M5+N1-N6;B 三面=旗标非万能放行)⑥A/C/BLIND/F10 rebind 机械迁移(旧锚复算一致=内容未变证明)+四任务 deliverable=True,B 必要缺口如实拒答。
+- **验收**: 双口径=直跑 176/176 绿+pytest 176 passed/0 failed;P1 两反例基线(worktree@5fc5df8)误放行→修复面阻断;E2E 真实全链(自然语言问题→plan→判断[契约修订环 VERIFIED 6/0/0]→attach→独立席 116 项复算[113 吻合/3 容忍/0 失配]→UPHELD→deliverable=True→归档三方摘要 78bb07e0 全等);报告=docs/autonomous-rd/AUDIT_R4_REPORT.md;终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R4_REPORT.md;BLIND 重放入口 blind_replay.sh);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R47 视角,已被上方权威快照取代]
 > baseline=c382827659af21ead594a216ea1a29baac8d8bfb (Audit-R2 修复链;docs-only 台账提交在其上,测试面不变)
 
 - **基线**: dev/audit-fix-r1 = 021092f(基点 06e90c1=Audit-R1 冻结尖+CI 报告提交);PR #1 覆盖推送;main 未动。

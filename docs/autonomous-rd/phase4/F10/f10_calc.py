@@ -9,7 +9,7 @@
 
 数据(只读, 引擎树 ~/investment-agent-dev/data/daily/):
 - BRENT_F / WTI_F: research_snapshot_20261112_v2.json series_store(日频)
-- BEI_10Y / BEI_5Y: macro_20261114.json data.<id>.series(日频)
+- BEI_10Y / BEI_5Y: macro_20261112.json data.<id>.series(日频;复审更正: 钉版与运行面同源——旧脚本误用 macro_20261114 致锚点/样本数版本混用,即独立验收 F10-3)
 
 口径自选(全部留痕, 纯 stdlib, 零模型零网络):
 M1 对齐: 日期内连接; 日变化对=(连续共同日的 pct 变化, 差分 pp)。
@@ -19,7 +19,7 @@ M4 60日滚动相关: 负窗/近零窗(|r|<0.1)/高窗(r≥0.3)占比与范围,
    逐月末末值——「时有时无?」的强度维度。
 M5 事件研究: 单日 |chg|≥4%/≥6% 涨跌分组: 当日 ΔBEI 与前向
    5/10/20 日累计 ΔBEI(事件日->h 日后的 BEI 累计变化)——不对称性。
-M6 月度聚合: 自然月(以共同日历月首末观测), 涨/跌 ≥8% 大月分组;
+M6 月度聚合: 共同日历月内日变化累计(油=复利乘积,BEI=逐日差求和,等价于上月末至本月末的月度变化;复审更正: 旧注『月首末观测』与实现不符,即独立验收 F10-2), 涨/跌 ≥8% 大月分组;
    前段窗(2016-2021) vs 后段窗(2022-2026)大涨月「每10%油价 BEI 响应」
    ——「锚定?」的幅度维度; 2022+ 涨/跌不对称比。
 M7 锚定波动检验: BEI_10Y 水平 60日滚动 std 三段均值
@@ -47,7 +47,7 @@ from collections import OrderedDict, defaultdict
 
 ENGINE = os.path.expanduser('~/investment-agent-dev')
 SNAP = os.path.join(ENGINE, 'data/daily/research_snapshot_20261112_v2.json')
-MACRO = os.path.join(ENGINE, 'data/daily/macro_20261114.json')
+MACRO = os.path.join(ENGINE, 'data/daily/macro_20261112.json')
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                    'f10_calc_output.json')
 
@@ -164,7 +164,8 @@ def main():
                 for p in grp:
                     i = idx[p[0]]
                     if i + h < len(pairs):
-                        fwd.append(pairs[i + h][2] - pairs[i][2])
+                        fwd.append(S['BEI_10Y'][pairs[i + h][0]]
+                                   - S['BEI_10Y'][p[0]])  # 真累计: 水平 t+h 减 t(复审更正: 旧实现为两单日变化之差=差分口径)
                 stats['fwd_%dd_pp' % h] = round(mean(fwd), 4)
             ev[side] = stats
         R['events']['abs_ge_%.0fpct' % TH] = ev

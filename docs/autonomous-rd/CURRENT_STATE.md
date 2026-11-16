@@ -4,7 +4,18 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-16 R43 pytest 口径四件套收口(T-R43-1)
+## 权威快照: 2026-11-16 R44 A 族碎片泄漏硬化(T-R44-1;引擎波次,原自编号 R43 并轨重编号,撞号注记见 ITERATION_LOG R44 行)
+> baseline=88ccfe01b74ce8a73607e7263b7fb6b9742f67b1 (机器行: rd_checkpoint.py 维护,勿手改)
+
+- **基线**: main = 64a482c(R42 尾补重盖章);本轮=`dev/rd-r43-fragment-hardening`(基点 64a482c;开班门①红=main 已并 R41+R42→基面迁移,门 7/7)。
+- **真实进度**: **RDG-20261116-013 收口(R41 定性 A 族治面+RDG-012 残余⑦随批)**。①检查面预处理 `_checkface_preprocess`(check_text 入口): HTML 注释(生成头/校验头,DOTALL)剥离+报告头元数据行(`# 投资周报…`/`生成时间：…`)置换+独立行可解析 JSON 对象(provenance)置换;未闭合注释/坏 JSON 行保守保留。②遮罩表补四行: art_ 引用ID/论点·预测#N 序号/紧凑 ISO 日期窗 \d{8}–\d{8}/子句首列表序号(点后须空白=小数反误杀)。③月-日模式日组必选,根治「11月3.8775%」吞「11月3」出碎片「8775%」/「2027年5月4.33%」出「33%」。④随批⑦: run_weekly.main(argv=None) 显式传参,四件套(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2)main([]),pytest 收集口径毒 argv 导入 IMPORT-OK 4/4+负证 SystemExit(2) 亲证。**独立审计四维**: 维度1 初判 FAIL(MAJOR-1=日组必选自产「N月D-D日」裸日号新泄漏)→当场追修(_DATE_RE 日形态扩 D[–—-]D日+§C C4a-c;真实面 283 维持语料 0 命中如实)→其余三维 PASS(removed 逐类抽 5 项回 LIVE 原文全实/added 全 verbatim 零织造/契约面 render 模式不经预处理)→**终判可并入**。**如实更正**: R41 表列 A=154 系簇级主导族归因 token 上界,逐 token 可治面实=50 removed+7 升格;JSON 独立行规则本语料移除 0(V2 全部 20 条 JSON 在块注释内)仍为独立形态防线。
+- **验收**: 真实面复跑工件=t7_realface_r43.json **326→283**(V1 53→50/V2 175→144/V3 98→89;gross removed 50;added 5 条目=7 token 全 verbatim 修复位升格;bad_added 0);新套件 tests/test_rd_r43_checkface_preprocess **23/0**(§A-§E 含变异自证 3 拆全红);受影响面 t8r 31/0+t6c 26/0+phase4 57/0+r27 45/0+r35 18/0+r38 34/0+r40 17/0+r41 20/0+revision_chain 16/0+四件套 33/43/82/109 零败;全库批跑 **166 件=165 OK+1 红**(红=phase6 波中记账面,docs 提交后自愈,审计同判)。残余登记: MINOR-2 表内序号 `| 1. x |`(0 命中)/NIT-2 未闭合注释远端吞/NIT-3 judgment_contract 隐性继承预处理/NIT-5 r1_vp_stages>120s。
+- **下一步**: R45(引擎席)=B 族评分卡分值列/表内碎片硬化首位候选(40/283 居首)+T8-R2 ④⑥⑦ 启封随批+MINOR-2/NIT-2 随批+R41 审计登记 MINOR-1+NIT-3~5;日历门 F=2026-12-05/六标签 2026-12 勿手工提前。波次已由操作者席并轨(本 R44 收口波;R32 判例并轨尖重盖章)。
+
+### [历史快照·R42 视角,已被上方权威快照取代]
+> baseline=e803b4c449cd91d9604db3b94ae326e3f82d281b (机器行: rd_checkpoint.py 维护,勿手改)
+
+### [历史快照·R43 视角·操作者席,已被上方权威快照取代]
 > baseline=f244785a9d18fc142822548373fee46d67674395 (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 64a482c(R42 重盖章+残余入册,CI 43762333651 绿);本轮=`dev/rd-r43-pytest-argv`(基点 64a482c;R42 终验暴露的 pytest 口径陈年四件套=操作者紧凑波收口)。
@@ -14,10 +25,11 @@
 
 ### [历史快照·R42 视角,已被上方权威快照取代]
 
+
 - **基线**: main = a457573(R41 并轨尖重盖章,CI 跑面中);本轮=`dev/rd-r42-agg-error-leak`(基点 a457573;R41 收口链独立验暴露→操作者紧凑波)。
 - **真实进度**: **RDG-20261116-012 收口**——四套件(t1t2/t3/t4/r27)聚合器吞错封死(`_run_case` 收 errors/failures 入 case_errs 计退出码;负证=注入 erroring 测后台账 43/0 仍 exit 1)+TH() 缺键 KeyError→RuntimeError(带键名,兑现 T1 fail-closed 语义,合法键零行为差)+两潜伏测复活(t1t2 test_fail_closed 第二半 _THRESH_CACHE 存/复原替 cache_clear;t4 按 relation='above' 判歧+死赋值清)。**两潜伏错 main 同态既有**(R40 CI 43734958311 即含被吞 ERROR,arch-reform 并轨起潜伏 ~14 轮);**R41 盖章语「164/164 零红」系 exit-code 口径误报,pytest 口径实为 162+2,如实更正**。
-- **验收**: 守卫 test_rd_r42_aggregator_error_gate **19/0**(§E=四套件 main() 直跑 rc==0)+四套件 exit=0+受影响面(r41/r38_fx/r40/phase4/G1-G4)全绿;净克隆双口径: **exit 口径 165/165 red=0**,pytest 口径红 4=陈年潜伏四件套(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2 模块级管线+argparse 读 pytest argv;a457453 同在,R43 随批);首版 r27 _run_case(x) NameError 即被终验暴露→六调用点正名;坑: spot 验 echo+basename+$? 在命令替换后重置=假绿,弃用。
-- **下一步**: R43=引擎轨道(A 族碎片泄漏硬化首位候选[154/326=47%]+T8-R2 ④⑥⑦ 随批+round.sh 双上限[LIVE 部署时]+R41 审计登记 MINOR-1+NIT-3~5);日历门 F=2026-12-05/六标签 2026-12 勿手工提前。
+- **验收**: 守卫 test_rd_r42_aggregator_error_gate **19/0**(§E=四套件 main() 直跑 rc==0)+四套件 exit=0+受影响面(r41/r38_fx/r40/phase4/G1-G4)全绿;净克隆双口径: **exit 口径 165/165 red=0**,pytest 口径红 4=陈年潜伏四件套(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2 模块级管线+argparse 读 pytest argv;a457453 同在,R43 随批=已收);首版 r27 _run_case(x) NameError 即被终验暴露→六调用点正名;坑: spot 验 echo+basename+$? 在命令替换后重置=假绿,弃用。
+- **下一步**: ~~R43=A 族碎片泄漏硬化~~(已毕,见上方权威快照)。
 
 ### [历史快照·R41 视角,已被上方权威快照取代]
 

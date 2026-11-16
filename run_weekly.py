@@ -116,6 +116,10 @@ def run_pipeline(steps, script_dir=None, extra_args_by_script=None):
     return results
 
 def main(argv=None):
+    """argv=None → 真实 sys.argv(CLI);显式传参(如 [])→与宿主 argv 无关
+    (pytest 收集口径防污染: 模块级测试跑流水线时不再误读 pytest 参数,
+    RDG-20261116-012 残余⑦修;操作者 R43 同晨同修(argv=[] 调用点+尾退出拆分),
+    两席撞号实录: 引擎基于 64a482c 自编号 R43,未见操作者 a589095,并轨后引擎波次=R44)。"""
     ap = argparse.ArgumentParser(
         description='投资周报一键流水线(采集→快照→评分→装配→校验)')
     ap.add_argument('--allow-revision', action='store_true',

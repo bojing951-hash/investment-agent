@@ -49,6 +49,9 @@ M1 对齐(共同交易日内连接+连续日变化对, n=2494) / M2 全窗 pears
 - **F10-3 宏观档版本混用**: 复算脚本误采 macro_20261114.json(运行面=S4 注入 macro_20261112.json), 致 M9 锚点 n=217、S4 n=2499 至 2026-11-12、方法七 2026 段 std 0.0521(后者于任一采集档均不可复现=誊写误差)三处版本混用。已钉版 macro_20261112 与运行面同源重算: M9 n=216/2.2@2026-11-10/百分位 0.5、S4 n=2498 至 2026-11-10、方法七 2026=0.0519pp。对齐/分年/滚动/事件同日/月度分组等其余全部引用值钉版前后逐位不变。
 - 重挂链: validate 零违规+契约门 VERIFIED(六查 18 项全 VERIFIED, contradicted=0/unbound=0), attach attached=true。
 - judgment_mvp.json v1(9d8fd3292750a6dd)→ v2(**61015838fae569d0**); f10_calc.py 三处修订均带「复审更正」inline 标记, f10_calc_output.json 全量重产。
+- **复议新发现 F10-5[MAJOR] 已修**: v2 修订初版未传播到交付面(FULL_REPORT/report.md/evidence_pack 三副本仍 v1 陈旧渲染, 载已作废旧叙事)——重跑 --stage report 重渲后三副本自 run 目录重拷, 逐字节一致, v1 旧数字(0.0279/0.0413 等)已不在渲染面(作废注内的旧值引用系留痕设计); evidence_pack_agent_judgment.json=attach 落位档 v2(sha16 f532e3030aeba3c1)。
+- **F10-6[NIT] 复核为非缺陷**: attach_history 设计=R36「上一轮压缩进链」, 当前轮在外层 meta(124212Z=v2 attach), history[120403Z,120604Z]=完整前两轮台账, 无缺环; 已在复议回复中向验收席说明。
+- **F10-4[NIT] 列档不改**: 「逐年走强」「0.0040-0.0060」(2022 实 0.00605)措辞精度问题, 如实列 DEFERRED, 不阻断。
 
 ## 工件清单(均在 ~/investment-agent-product/docs/autonomous-rd/phase4/F10/)
 

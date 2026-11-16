@@ -25,7 +25,7 @@
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-**等待用户外部审计裁定**(Audit-R1 第一轮审计修复与重新验收已收口, T-R46-1):
+**等待用户外部审计裁定**(Audit-R1 第一轮审计修复与重新验收已收口,收口事实见下方存档节与 ITERATION_LOG R46 行——活动区不载已完成任务号, R34 判例):
 
 - 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R1_REPORT.md`(终七答在 §九);代码与产品冻结面=0b8b9bda8f2a5a5c31148dedb7af3e85698951e3;F01-F10 全关+独立验收席 G0-G4 全 PASS+F10 独立新题 UPHELD(deliverable=True)。
 - 外审批后动作由用户指令定: 并轨 main / 第二轮审计 / 整改重修;**未获用户确认不自动并 main、不部署、不进入代码瘦身、不恢复旧研发循环**(本轮指令边界, 2026-11-16)。

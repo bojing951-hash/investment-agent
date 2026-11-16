@@ -1,0 +1,183 @@
+# 一键研究报告(零模型编排 v2.0)
+- 问题: GOLD_F 黄金与美国长期实际利率 REAL_10Y 及美元指数 DXY 的传统反向关系近年是否结构性弱化: 滚动窗口相关与分状态检验(VIX 恐慌时段与普通时段), 对用 UST_10Y 利率与美元信号解释黄金走势框架的含义
+- 运行: 20261116T053623Z @ 3550ca3
+- 快照: research_snapshot_20261112_v2 (target 20261112)
+- 数据门(gate_a): 9/9 信封步非 OK(DEGRADED)——缺口/降级明细见步骤台账各步信封 warnings;降级不阻断,判断层须知
+
+## 四层区分
+
+### L1 事实层 available=True
+- DXY = 102.85 index_point @2026-11-11 [质量:PASS] [来源:snapshot_fact:DXY@2026-11-11]
+- GOLD_F = 4013.4 usd_per_oz @2026-11-11 [质量:PASS] [来源:snapshot_fact:GOLD_F@2026-11-11]
+- VIX = 17.74 index_point @2026-11-11 [质量:PASS] [来源:snapshot_fact:VIX@2026-11-11]
+- UST_10Y = 4.88 percent @2026-11-09 [质量:PASS] [来源:snapshot_fact:UST_10Y@2026-11-09]
+
+### L2 机构观点层 available=True n=17
+- VIEW-20261110-001: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-002: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'PARTIALLY_SUPPORTED', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-003: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'MIXED', 'B': 'MIXED', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-004: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-005: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'PARTIALLY_SUPPORTED', 'B': 'MIXED', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-006: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'PARTIALLY_SUPPORTED', 'B': 'MIXED', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-007: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-008: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-009: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'PARTIALLY_SUPPORTED', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-010: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'PARTIALLY_SUPPORTED', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-011: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-001: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-002: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'PARTIALLY_SUPPORTED', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-003: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'MIXED', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-004: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-005: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'PARTIALLY_SUPPORTED', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-006: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'MIXED', 'B': 'MIXED', 'C': 'INSUFFICIENT_EVIDENCE'}
+
+### L3 AI推断层 produced=True
+> Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计(attribution=ai_inferred)
+- **CON-1**: 【正面回答·AI推断】黄金对美国长期实际利率的传统反向关系近年已发生结构性弱化(弱化不等于失效),弱化起点定位在2025年一季度末至二季度,滚动证据链为: 252日滚动相关在2024-12-31的-0.327、2025-04-30的-0.187、2025-12-31的-0.033、2026-11-09的-0.145一路抬升,而2017年至2024年该滚动相关全程运行于-0.55至-0.16负值带,年度相关在2017年至2024年为-0.169至-0.535,2025年相关塌缩至-0.035(t=-0.55,与零不可分辨),2026年相关部分回摆至-0.160(t=-2.36,仍显著弱于旧常态);对美元指数的传统反向关系未弱化: 2025年与2026年黄金对美元指数的年度相关仍为-0.406与-0.400,252日滚动相关全程为负,敏感度口径(黄金日收益对美元指数日收益的回归斜率,与相关同源)自2017年至2021年的约-1.0加深至2026年的-2.18;分状态结论: 以VIX收盘20为界重估相关,2022年至2026年子样本内恐慌态与普通态的黄金-实际利率相关分别为-0.290与-0.251(两态皆弱),黄金-美元相关分别为-0.413与-0.380(两态皆强),即实际利率链的弱化在恐慌时段与普通时段同样发生、不存在仅限单一时段的证据,美元链在恐慌与普通两类时段均成立。
+  - 依据: 方法与数据: 全部统计为日频变化口径的相关系数——黄金GOLD_F取日收益率,实际利率REAL_10Y取日变化(派生式=UST_10Y−BEI_10Y,引擎fact_engine官方口径),美元指数DXY取日收益率,样本为四序列日历交集2492个样本点(2016-11-14至2026-11-09);滚动窗口252日(辅126日,方向一致: 126日相关在2025-06-30曾短暂至+0.016);分状态相关阈值=VIX收盘20,恐慌态全样本n=777、普通态n=1714计入分状态相关,2022年至2026年子样本恐慌态n=397、普通态n=813按同口径进入相关;辅状态检验以HY_OAS日变化划分信用压力相关样本(走阔日n=318对收窄日n=427)。当前证据锚: GOLD_F=4013.4@2026-11-11,DXY=102.85@2026-11-11,VIX=17.74@2026-11-11,UST_10Y=4.88@2026-11-09,概览面REAL_10Y=2.68@2026-11-09。机构观点面: 库内17份的相关主题覆盖为零直接论述(全部INSUFFICIENT_EVIDENCE),背景锚为MSIM(VP-VIEW-20261111-006)记述的『实际利率主导9月全球加息』与UBS(VP-VIEW-20261111-004)预计的2026年12月与2027年3月各一次25bp加息,均非金价关系论断。
+  - 竞争性解释1: 结构性买盘替代论: 若央行与主权类储备配置者在2025年后成为黄金的边际定价者,则其对实际利率的价格弹性将显著低于投机与ETF头寸,利率信号将被挤出定价——央行购金月度量在引擎注册表内无此数据,该机制在引擎内不可检验,禁止编造数字
+  - 竞争性解释2: 暂时扰动论: 若2025年金价的驱动主要是美元指数大幅走弱叠加地缘与避险的一次性组合冲击,则利率链将在冲击消退后如2018年至2019年先例(当轮弱化约一个季度后回归强负相关)般再耦合,届时双因子框架仅需重估系数
+  - 竞争性解释3: 口径测量论: 若弱化部分来自期货主力连续合约的展期结构或实际利率近似式(名义减盈亏平衡)与TIPS市场口径的基差噪声,则改用TIPS_10Y市场序列重估后弱化幅度将收窄——两口径末日基差仅0.02pp,本路解释力预计有限
+  - 证据: GOLD_F@2026-11-11, UST_10Y@2026-11-09, VIX@2026-11-11
+- **CON-2**: 【AI推断】黄金对美元指数的传统反向关系未弱化且敏感度加深: 年度相关2025年为-0.406、2026年为-0.400,与2017年至2024年相关区间(-0.59至-0.29)相比不降反稳,252日滚动相关在2025年8月至9月一度加深至约-0.46,回归斜率(黄金日收益对美元指数日收益,与相关同口径)自2017年至2021年的约-1.0加深至2025年的-1.145与2026年的-2.18;极端日证据同向: 2025年至2026年美元指数日收益为正的交易日黄金日均收益为负、为负的交易日为正,对称性与旧常态一致甚至更强,故『反向关系整体失效』的说法不成立,失效的是实际利率一腿而非美元一腿。
+  - 依据: 极端日与分状态佐证(与相关证据同源): 美元指数日收益为正日的黄金日均收益约-0.30%、为负日约+0.48%(2025年至2026年合计),强于2017年至2021年(相关口径旧常态约-0.26%对+0.34%);实际利率口径对照: 2025年实际利率单日升幅不低于5个基点的交易日(n=27)黄金日均收益为+0.07%(相关塌缩的微观同源证据,2017年至2024年同口径为-0.52%),同一弱化在美元一侧不存在。证据锚: DXY=102.85@2026-11-11,GOLD_F=4013.4@2026-11-11。
+  - 竞争性解释1: 计价机制稳定论: 若美元计价与全球美元流动性渠道仍是黄金日频波动的一阶来源,则美元腿相关稳定为旧框架的保留部分,框架修订应聚焦利率腿
+  - 竞争性解释2: 共同因子论: 若2026年敏感度加深主要反映美元与黄金同受美国政策与利差冲击的共同因子放大,则斜率加深并非因果弹性倍增,样本扩大后或将回摆
+  - 竞争性解释3: 波动状态论: 若敏感度加深由2026年黄金自身波动率放大机械驱动(分母效应),则经波动率调整后的beta将低于原始斜率,加深幅度被高估
+  - 证据: DXY@2026-11-11, GOLD_F@2026-11-11
+- **CON-3**: 【框架含义·条件式,禁单情景冒充预测】水平口径的补充张力: 黄金与实际利率的全样本水平相关为正(+0.57),十年维度两者同升,反向关系仅存在于变化口径;当前黄金GOLD_F=4013.4@2026-11-11对应REAL_10Y=2.68@2026-11-09的组合,在旧双因子框架下属于利率端理应显著压低金价的区域,而金价仍远高于样本起点。结论分两支: 若未来12个月至18个月滚动相关持续弱于-0.20且黄金在利率上行期保持韧性,则这是需要引入新定价因素的信号(候选: 央行购金、财政贬值溢价、地缘储备需求——引擎注册表内无央行购金月度数据,该首选候选在引擎内不可检验,如实标注);若实际利率链如2018年至2019年先例在约一个季度内再耦合回归强负相关,则本轮弱化更接近暂时扰动,双因子框架仅需重估系数而非重构。本席判断当前证据更支持前一支(弱化已持续约十八个月,深度与时长均超2018年至2019年先例),但两支并存呈现,不冒充确定性预测。
+  - 依据: 先例对照(滚动证据): 2018年至2019年那轮弱化仅使252日相关短暂回到-0.16上方约一个季度,随后回归-0.54;本轮滚动相关自2025年二季度起持续低于-0.20已约十八个月、2025年末起贴零,深度与时长均显著超过先例,故『暂时扰动』分支需要再耦合证据而非默认成立。REAL_10Y由UST_10Y与BEI_10Y派生(引擎fact_engine官方式),分解显示2026年9月后利率上行由实际利率而非通胀预期主导(机构观点MSIM VP-VIEW-20261111-006同向记述),这为检验两分支提供了天然实验窗。证据锚: GOLD_F=4013.4@2026-11-11,UST_10Y=4.88@2026-11-09。
+  - 竞争性解释1: 新定价因素论: 若央行购金与储备多元化在2025年后成为主导边际买家,利率与美元框架将需要新增结构性需求变量——引擎内无该数据,不可检验,此为诚实缺口而非证据支持
+  - 竞争性解释2: 杠杆与仓位论: 若弱化主要由期货投机净多头对利率事件的敏感度下降(仓位结构变化)驱动,则框架形式不变、仅需重估弹性参数
+  - 竞争性解释3: 样本噪声论: 若2025年至2026年相关塌缩部分为重叠窗口与非平稳波动的统计假象,则更短窗与分位数回归将显示弱化幅度收窄,且随样本延长相关将自动回摆
+  - 证据: GOLD_F@2026-11-11, UST_10Y@2026-11-09, VP-VIEW-20261111-006, VP-VIEW-20261111-004
+- **机制链 MECH-1**: 实际利率链弱化传导
+  - E1 滚动证据(本席自算,日频变化口径,252日皮尔逊窗): 黄金日收益对REAL_10Y日变化的相关,2017-11至2024-12全程处于-0.55至-0.16负值带(2024-12-31为-0.327),2025-04-30起持续抬升,2025-12-31达-0.033,2026-11-09为-0.145;分年度2017年至2024年为-0.169至-0.535,2025年为-0.035(t=-0.55,与零不可分辨),2026年为-0.160(t=-2.36);126日辅窗2025-06-30曾短暂至+0.016 [证据: GOLD_F@2026-11-11, UST_10Y@2026-11-09]
+  - E2 传导环缺失: 机会成本渠道的边际定价者或已让位于利率不敏感型买盘(央行与主权储备多元化),此类买盘对实际利率变化的价格弹性显著低于2024年前的投机与ETF头寸 [缺失环: 央行购金月度量在引擎注册表内无此数据——该环为【假设】,在引擎内不可检验,禁止编造数字;可部分观察的替代面(黄金ETF持仓、期货投机仓位序列)亦不在注册表]
+  - E3 证伪口径: 若未来实际利率出现不低于0.5pp量级的上行而金价未现相应量级回撤、且252日滚动相关持续弱于-0.30,则结构性弱化判断成立;若利率上行期金价弹性恢复旧常态(2017年至2024年回归斜率约-6至-10每pp),则弱化为暂时扰动 [证伪指标: REAL_10Y]
+- **机制链 MECH-2**: 美元链完好传导
+  - E1 美元证据(本席自算): 黄金对美元指数的年度相关2025年为-0.406、2026年为-0.400,252日滚动相关全程为负(2025-08-29达-0.461);回归斜率自2017年至2021年的约-1.0加深至2025年的-1.145与2026年的-2.18;2025年至2026年美元指数日收益为正日的黄金日均收益约-0.30%、为负日约+0.48%(2017年至2021年约-0.26%对+0.34%) [证据: DXY@2026-11-11, GOLD_F@2026-11-11]
+  - E2 计价货币与全球美元流动性渠道未被替代品挤出,美元仍是黄金日频波动的一阶解释变量 [缺失环: 敏感度加深的微观结构(计价效应与共同冲击因子无法在引擎内分解),此环为【假设】]
+  - E3 证伪口径: 若美元指数大幅走强期间黄金不再反向(252日滚动相关回到-0.10以内并持续一个季度以上),美元链才算失效 [证伪指标: DXY]
+- **机制链 MECH-3**: 状态依存链(恐慌与普通时段)
+  - E1 状态证据(本席自算,阈值=VIX收盘20): 2022年至2026年子样本恐慌态(n=397)黄金-实际利率相关-0.290、普通态(n=813)为-0.251,两态皆弱;黄金-美元相关恐慌态-0.413、普通态-0.380,两态皆强;全样本恐慌态(n=777)对普通态(n=1714)结论一致;辅检HY_OAS走阔日(n=318)对收窄日(n=427)的黄金-美元相关为-0.367对-0.361,几乎不变 [证据: VIX@2026-11-11, HY_OAS@2026-11-09]
+  - E2 恐慌时段的旧机制为实际利率急降与避险买盘同向推金;2025年后该机制中的利率分量被压缩 [缺失环: 恐慌时段的地缘与财政不确定性溢价不可直接观测,该替代分量的存在为【假设】]
+  - E3 证伪口径: 若下一轮恐慌时段(VIX收于28上方)内黄金与实际利率的日内相关回到-0.40以下的旧常态,则『弱化不分状态』的判断被推翻 [证伪指标: VIX]
+
+### L4 条件情景层 produced=True
+> Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计(attribution=ai_inferred)
+- **SCN-A**(基准)
+  - 情景: 情景A(假设非预测,基准分支): 结构性弱化延续——实际利率链贴零状态持续,黄金对利率上行的弹性维持弱化,价格方向主要由美元指数与非利率因素主导;背景为紧缩再启动(机构观点MSIM记述2026年9月三央行九天内相继加息、UBS预计2026年12月与2027年3月各加息25bp)而金价不再对利率单一信号做旧常态反应
+  - 资产方向判断: 黄金宽幅区间震荡,趋势性判断让位于美元指数方向信号;在美元指数走稳背景下金价对利率上行钝化(置信: 有相关证据) 2025年至2026年滚动相关贴零与美元腿敏感度加深并存的实际样本支持『利率钝化+美元主导』的组合形态
+  - 敏感变量: REAL_10Y, DXY
+  - 证伪指标: REAL_10Y 阈值 基准值2.68@2026-11-09;若REAL_10Y升破2.98(较基准+0.30pp)且其后60个交易日内GOLD_F自4013.4(基准@2026-11-11)累计跌幅不足5%,则『弱化延续』被证伪——利率大幅上行而金价不跌即利率链重新主导定价
+  - 触发条件: 美联储2026年12月或2027年3月会议实际加息(UBS预计路径)且REAL_10Y收于2.98上方(时限 2027-06-30)
+- **SCN-B**(反例)
+  - 情景: 情景B(假设非预测,反例分支): 暂时扰动与再耦合——2025年式脱钩是美元大幅走弱叠加一次性避险冲击的产物,随紧缩周期确立(2026年9月全球加息落地后实际利率主导上行,黄金自2026年1月高点5318.4回撤逾两成已是再耦合的早期形态),实际利率重回定价核心,复制2018年至2019年弱化后回归强负相关的路径
+  - 资产方向判断: 黄金对利率上行恢复旧常态弹性,利率续升阶段金价承压下行(置信: 有历史相似证据) 2018年至2019年先例(弱化约一个季度后回归-0.54)与2026年利率上行月段金价回撤的月度路径同向支持本分支
+  - 敏感变量: REAL_10Y, UST_10Y
+  - 证伪指标: REAL_10Y 阈值 基准值2.68@2026-11-09;若至时限REAL_10Y维持不低于2.90,而GOLD_F对实际利率的252日滚动相关始终未回到-0.30以下(高利率不伴随强负相关),则『再耦合』路径被证伪
+  - 触发条件: 2027年3月末前美联储再加息至少两次(每次25bp)或REAL_10Y收于3.00上方(时限 2027-06-30)
+- **SCN-C**(第三支(新定价因素))
+  - 情景: 情景C(假设非预测,第三分支): 新定价因素主导——结构性买盘(央行购金为首选候选,引擎注册表内无该月度数据=不可检验假说,如实标注)使黄金对利率与美元双信号均部分免疫,即便美元走强金价亦抗跌,金价中枢由结构性需求而非双因子残差决定
+  - 资产方向判断: 黄金对美元走强保持抗跌,中枢上移与利率水平脱钩(置信: 纯逻辑推理) 本分支缺乏引擎内可观测的需求侧序列支撑,仅由2025年相关塌缩+金价新高的组合反推,属纯逻辑推理档
+  - 敏感变量: DXY, GOLD_F
+  - 证伪指标: DXY 阈值 基准值102.85@2026-11-11;若DXY升破105.85(较基准+3.0)且GOLD_F自4013.4(基准@2026-11-11)累计跌幅超过15%,则『新因素主导抗跌』被证伪——美元腿敏感度加深情形下金价无法抗跌
+  - 触发条件: DXY连续20个交易日收于105上方(时限 2027-06-30)
+
+## 语义审查(席位待唤起)
+
+- **叙事语义未经独立裁决**——定性推断/条件情景在文;常驻席位=SEMANTIC-AUDIT-SEAT,编排层应唤席裁决后方可去掉本披露(章程 §4b/§8)
+
+## Agent 判断落位
+
+- attached=True(schema 1.1;violations=0)
+
+## 步骤台账
+
+- [OK |不适用] S1_decompose 
+- [OK |语义✔] S2_doctor 
+- [OK |语义✔] S3_overview_US 
+- [OK |语义✔] S3_changes 
+- [OK |语义✔] S4_history_VIX 
+- [OK |语义✔] S4_history_DXY 
+- [OK |语义✔] S4_history_GOLD_F 
+- [OK |语义✔] S4_history_UST_10Y 
+- [OK |语义✔] S5_compare 命中 4 个指标,compare 仅取注册表序前 2(VIX,DXY);其余 GOLD_F,UST_10Y 以 L1 事实行呈现,如需对比另行单跑
+- [OK |语义✔] S6_analog 
+- [OK |不适用] S7_mode_gate 
+- [OK |语义✗] S8_grounded_qa 
+- [OK |语义✔] S9_views_lint 
+- [OK |不适用] S10_selfcheck 
+- [OK |不适用] S11_archive 默认关(--archive 显式开启;Skill 第 11 步=用户认可后)
+
+## 证据索引(64 行)
+
+- snapshot_fact:DXY@2026-11-11 → DXY
+- snapshot_fact:GOLD_F@2026-11-11 → GOLD_F
+- snapshot_fact:VIX@2026-11-11 → VIX
+- snapshot_fact:UST_10Y@2026-11-09 → UST_10Y
+- vp_sidecar:VP-VIEW-20261110-001 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-002 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-003 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-004 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-005 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-006 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-007 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-008 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-009 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-010 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-011 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-001 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-002 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-003 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-004 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-005 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-006 [INSUFFICIENT_EVIDENCE]
+- s3_envelope:SPX@2026-11-11 → SPX
+- s3_envelope:NDX@2026-11-11 → NDX
+- s3_envelope:RUT@2026-11-11 → RUT
+- s3_envelope:SHCOMP@2026-11-11 → SHCOMP
+- s3_envelope:SZCI@2026-11-11 → SZCI
+- s3_envelope:CHINEXT@2026-11-11 → CHINEXT
+- s3_envelope:HSI@2026-11-11 → HSI
+- s3_envelope:HSCEI@2026-11-11 → HSCEI
+- s3_envelope:NIKKEI225@2026-11-11 → NIKKEI225
+- s3_envelope:DAX@2026-11-11 → DAX
+- s3_envelope:CAC40@2026-11-11 → CAC40
+- s3_envelope:NVDA@2026-11-11 → NVDA
+- s3_envelope:AAPL@2026-11-11 → AAPL
+- s3_envelope:MSFT@2026-11-11 → MSFT
+- s3_envelope:TLT@2026-11-11 → TLT
+- s3_envelope:IEF@2026-11-11 → IEF
+- s3_envelope:SHY@2026-11-11 → SHY
+- s3_envelope:HYG@2026-11-11 → HYG
+- s3_envelope:LQD@2026-11-11 → LQD
+- s3_envelope:EURUSD@2026-11-11 → EURUSD
+- s3_envelope:GBPUSD@2026-11-11 → GBPUSD
+- s3_envelope:USDJPY@2026-11-11 → USDJPY
+- s3_envelope:USDCNY@2026-11-11 → USDCNY
+- s3_envelope:SILVER_F@2026-11-11 → SILVER_F
+- s3_envelope:WTI_F@2026-11-11 → WTI_F
+- s3_envelope:BRENT_F@2026-11-11 → BRENT_F
+- s3_envelope:GLD@2026-11-11 → GLD
+- s3_envelope:USO@2026-11-11 → USO
+- s3_envelope:EEM@2026-11-11 → EEM
+- s3_envelope:EZU@2026-11-11 → EZU
+- s3_envelope:FEZ@2026-11-11 → FEZ
+- s3_envelope:EWU@2026-11-11 → EWU
+- s3_envelope:EWG@2026-11-11 → EWG
+- s3_envelope:EWJ@2026-11-11 → EWJ
+- s3_envelope:INDA@2026-11-11 → INDA
+- s3_envelope:FXI@2026-11-11 → FXI
+- s3_envelope:BTC@2026-11-10 → BTC
+- s3_envelope:HY_OAS@2026-11-09 → HY_OAS
+- s3_envelope:BB_OAS@2026-11-09 → BB_OAS
+- s3_envelope:B_OAS@2026-11-09 → B_OAS
+- s3_envelope:CCC_OAS@2026-11-09 → CCC_OAS
+- s3_envelope:IG_OAS@2026-11-09 → IG_OAS
+- s3_envelope:HY_IG_DIFF@2026-11-09 → HY_IG_DIFF
+
+## 注记
+
+- 命中 5 个指标,历史步骤只取前 4(防噪);其余由 Agent 按需 history --metric 查询

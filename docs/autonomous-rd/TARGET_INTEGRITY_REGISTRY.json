@@ -1,0 +1,25 @@
+{
+  "docs/autonomous-rd/PRODUCT_GOAL.md": {
+    "sha256": "7535a141b2339a13cb4b295447f3677347d9e9427423c7cce0ab59f01641b329",
+    "registered_at": "2026-11-16 11:35",
+    "reason": "初始登记: Product Convergence Phase 1 基线(用户总指令 2026-11-16 晨;AC 矩阵=2026-11-12 用户落章面)"
+  },
+  "docs/autonomous-rd/FINAL_ACCEPTANCE.md": {
+    "sha256": "3502bd81771e0f945c72c7368b3dad363add79120ee272b35b330a210f8c081a",
+    "registered_at": "2026-11-16 11:35",
+    "reason": "初始登记: Product Convergence Phase 1 基线(用户总指令 2026-11-16 晨;AC 矩阵=2026-11-12 用户落章面)"
+  },
+  "docs/autonomous-rd/ACCEPTANCE_CRITERIA.md": {
+    "sha256": "7af8a32bbe3b368b01b68efdf637d27ae6da52f400a482aaf38e4c53a82ea5a3",
+    "registered_at": "2026-11-16 11:35",
+    "reason": "初始登记: Product Convergence Phase 1 基线(用户总指令 2026-11-16 晨;AC 矩阵=2026-11-12 用户落章面)"
+  },
+  "docs/autonomous-rd/CHARTER_PRODUCT_CONVERGENCE.md": {
+    "sha256": "3716d9579e2504c08ce2d29b4e9a0feee927f47aad76649d4d5783e71a600f70",
+    "registered_at": "2026-11-16 11:35",
+    "reason": "初始登记: Product Convergence Phase 1 基线(用户总指令 2026-11-16 晨;AC 矩阵=2026-11-12 用户落章面)"
+  },
+  "_meta": {
+    "last_update": "2026-11-16 11:35"
+  }
+}

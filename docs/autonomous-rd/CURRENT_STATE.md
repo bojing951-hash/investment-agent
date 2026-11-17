@@ -4,7 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-17 R54 Audit-R10 第十轮审计修复(T-R54-1;独立轨道续 R53)
+## 权威快照: 2026-11-18 R55 Audit-R11 第十一轮审计修复(T-R55-1;独立轨道续 R54)
+> baseline=30770afb4fa8609b3e533cb35845c05787595e94…(代码修复固定 SHA;受审基线=0877516 即 Audit-R10 CI 回填尖;受审面=本轮四项)
+
+- **基线**: dev/audit-fix-r1 = 0877516→代码修复提交 30770af(四项修复+29 判据门+五处夹具对齐+复杂度基线登记重锚)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 四项全关——①P1 时间约束完整处理: _q_relative_constraints 全量收集(多约束=unparseable+拆分提示,R7 显式区间优先废止)+年半/小数数量/季度未支持/残余数量扫描,一年半=十八个月=1.5年同窗 months=18,基线六反例全关;②P1 并发写入: store_lock(目录级跨进程 flock 可重入+独立临时名+fsync 原子发布),裁决/查询/工作台归档配号→落盘原子化,6 进程=6 份完整记录,中断不留撕裂终档;③P1 引用扫描禁删: (refs,problems) 二元返回+扫描不完整永久删除全停降级 gzip 字节保全;④P2 工作台缓存: state_fingerprint 指纹键+采集成功 clear+rerun,同进程读到新快照(真实 streamlit 1.50.0 运行时验证)。
+- **验收**: test_audit_r11_gate 29/0(§A10+§G3+§B7+§C4+§D7);报告=docs/autonomous-rd/AUDIT_R11_REPORT.md;反例复现=/tmp/r11_repro_p{1,2,3,4}.py(基线 6+3+1+2 例 BASELINE-BUG→0);电池 184 件 183 绿+phase6 提交后复跑绿(184/184 口径)+九既有门(r4/r5/r6/r7/r8/r9/r10/t3/r42)复跑绿+复放四包(BLIND/F10/新B 105/105/e2e-corrected)PASS+净克隆新门 29/0;worktree 清单全程固定 6。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R11_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R54 视角,已被上方权威快照取代]
 > baseline=f2e385acc7df524ac5e0af801c628fea6d78e539…(代码修复固定 SHA;受审基线=c30bd7d 即 Audit-R9 CI 回填尖;受审面=本轮 P1 时间范围处理)
 
 - **基线**: dev/audit-fix-r1 = c30bd7d→代码修复提交 f2e385a(数量完整词元匹配+研究时点与范围分别处理+29 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。

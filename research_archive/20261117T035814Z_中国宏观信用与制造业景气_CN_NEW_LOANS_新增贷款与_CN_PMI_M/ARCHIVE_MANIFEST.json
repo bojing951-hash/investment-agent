@@ -1,0 +1,43 @@
+{
+  "stage": "archive",
+  "run_ts": "20261117T035814Z",
+  "question": "中国宏观信用与制造业景气: CN_NEW_LOANS 新增贷款与 CN_PMI_MFG 制造业PMI 对 CHINEXT 创业板指与 FXI 中国大盘股的影响",
+  "archived_at": "20261117T051401Z",
+  "content_sha256": "2c6dd41383f01662eb613387e3e531288e6cc15c94ceb556a09c2173b1ba0f5e",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 2,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261117__VERDICT-20261117T035814Z-01.json",
+      "source_rel": "audit/semantic_review/20261117/VERDICT-20261117T035814Z-01.json",
+      "overall": "REVISE",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261117T045615Z",
+      "sha256": "ff4a15cca2a049c1"
+    },
+    {
+      "file": "verdicts/20261117__VERDICT-20261117T035814Z-02.json",
+      "source_rel": "audit/semantic_review/20261117/VERDICT-20261117T035814Z-02.json",
+      "overall": "UPHELD",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261117/VERDICT-20261117T035814Z-01.json",
+      "recorded_at": "20261117T051009Z",
+      "sha256": "01cd0608f83a0af9"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "0d109e4f42408344",
+    "report.md": "76d8708f0243f39c",
+    "FULL_REPORT.md": "d695c5c181b38f6b",
+    "agent_judgment.json": "728c9551174ea03a",
+    "views_digest.json": "281eb2c3c8210c32",
+    "evidence_index.json": "eb46ba2c9e7d3da4",
+    "AGENT_SEAT_ENVELOPE.json": "06b696550327d66e"
+  },
+  "record_health": {},
+  "source_report_dir": "/tmp/audit_r5/B_run/20261117T035814Z_中国宏观信用与制造业景气_CN_NEW_LOANS_新增贷款与_CN_PMI_M",
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核)"
+}

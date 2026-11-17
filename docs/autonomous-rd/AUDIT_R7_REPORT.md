@@ -145,12 +145,13 @@ deliverable)/**严重陈旧续用(stale_for_task,report 拒+archive 拒——
 
 - 分支 `dev/audit-fix-r1`,本轮代码尖=`8620ea8b81e4827a1adb37b92042befaab575811`
   (单波: 三缺口代码+新套件+证据包+注记;PR #1 open,未合并未部署)。
-- CI run <链接填>(gates+3.11+3.12)——终笔回填。
+- CI run [44072231584](https://github.com/bojing951-hash/investment-agent/actions/runs/44072231584)
+  (12dc6cf)三 job **全绿**: `tests (3.11)`/`gates`/`tests (3.12)` 均 success
+  (含本轮新套件 test_audit_r7_gate.py——CI 按 tests/test_*.py 全枚举自动纳入)。
 - 全电池(直跑口径,与 CI 同形): **178 绿+1 已档设计红+1 SKIP**——
   唯一红=`test_arch_reform_phase6` D3「整改树工作面净」在本轮未提交
-  修改件上的提交前红(设计行为,R5/R6 同判例;提交后净树复跑绿),
-  1 SKIP=`test_model_live`(CI 既有跳步)。
-- phase6-D3 提交后复跑与 CI 结果以回填笔为准。
+  修改件上的提交前红(设计行为,R5/R6 同判例),**提交后净树复跑 29 PASS/
+  0 FAIL rc=0(本轮已亲验)**;1 SKIP=`test_model_live`(CI 既有跳步)。
 
 ## 八、剩余限制(如实)
 

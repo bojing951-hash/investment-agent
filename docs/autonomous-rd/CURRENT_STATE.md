@@ -4,7 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-17 R48 Audit-R4 第四轮审计收尾修复(T-R48-1;独立轨道续 R47)
+## 权威快照: 2026-11-17 R49 Audit-R5 第五轮审计收尾修复(T-R49-1;独立轨道续 R48)
+> baseline=09e4ebbb93064ec7df0dcc259a1d5827bdc59f97 (Audit-R4 终笔尖=本轮受审基线;受审面终止说明见其提交)
+
+- **基线**: dev/audit-fix-r1 = 49fb583→波1 82b9398(条目1/2/4 代码+E2E 修正链+BLIND 勘误,CI 44014788431 绿)→波2 09e4ebb(条目5 研究审查链+归档+重放包+收尾报告);PR #1 覆盖推送;main 未动。
+- **真实进度**: 五项全关——①摘要迁移绕过=record_semantic_verdict rebind 面 _rebind_trusted_proofs(manifest verdict_chain sha16+最早 git blob 双通道可信未变证明,不可证明=ValueError 拒)②数据门误放行=blocked_class_of 三级重构(critical_zero_evidence/required_data_missing 不论 run_ok 先判+critical_step_failure 新阻断级+必要观测下界按范围×频率族推导入规格)③新 E2E 三争点修正(r²≈0.114/se 0.686/0.259/段终点 2022-05-25)四副本同步→独立复审席 REVISE(rev2)→修→闭环 UPHELD(rev3)③.9 BLIND 勘误(-0.557 进位错误注记)④裁决格式链校验(format_version=2+digest_algorithm 显式+predecessor 严格前一档+legacy 锚=降级攻击指纹)⑤中国任务 B=CN_PMI_MFG/CN_NEW_LOANS 226 月全史接入(R25 history_source 机制,锚点核验+口径如实注记)→真实研究→契约门规约修订 VERIFIED→独立席 99 项=96+5 必修→REVISE(rev1)→必要修订 18 处+相位块源头严格化→操作者席 57 项全 PASS→同一席闭环 UPHELD(rev2)→归档三方一致+重放包。
+- **验收**: 波1 CI 44014788431 绿(gates+3.11+3.12);波2 首推 CI 44023144279 三 job 红=R20 门②正道拦截(日志 R49 越过检查点块 round 48——波2 收口漏 finalize,单根因三面:gates/tests×2+phase6 D1/D4 包装同检)→按 Charter10 §3.2 对账恢复(finalize 盖章)后复验;报告=docs/autonomous-rd/AUDIT_R5_REPORT.md;终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R5_REPORT.md 七件交付;BLIND/E2E/B 三重放入口);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R48 视角,已被上方权威快照取代]
 > baseline=1d538577a353643a994fda366c46d187f8e9275f (Audit-R2 收口尖=本轮受审基线;docs-only 台账提交在其上,测试面不变)
 
 - **基线**: dev/audit-fix-r1 = 2882932→1d53857(修复链两笔)→台账/报告 docs 尖;PR #1 覆盖推送;main 未动。

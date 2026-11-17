@@ -85,7 +85,18 @@ CHINEXT n=2427/CN_PMI_MFG n=226/CN_NEW_LOANS n=226)→研究席判断档
 
 ## 五、最终版本全量测试
 
-待补(波2 提交后净克隆双口径,终笔随 CI 回填)。
+- **净克隆直跑口径**(波2 尖 09e4ebb 本地净克隆,178 件逐件): 175 绿+3 红——
+  3 红(test_arch_reform_phase6/test_rd_r20_state_checkpoint/test_rd_r20_state_
+  consistency)同根因=**R20 门②正道拦截**(波2 提交含 R49 日志行但检查点块
+  仍 round 48,「日志越过检查点」)——系波2 收口漏跑 `rd_checkpoint.py
+  --finalize`,非代码缺陷;gates/tests×2/phase6 D1+D4 三 job 五面全指同一
+  检查(CI run 44023144279 红)。**正道修复**: 按 Charter10 §3.2 对账恢复
+  (CURRENT_STATE 权威快照 R49 版+RESUME 活动区/存档+finalize 机器盖章
+  round 49),修复后净克隆复验全绿(下方)。
+- **CI 波2**: 首推 run 44023144279 红(上述单根因);对账恢复 docs 尖重推后
+  run=终笔回填。
+- **修复后净克隆双口径**(收口尖): 直跑 178/178 绿+pytest 目录
+  178 passed/0 failed(终笔随 CI 一并核对)。
 
 ## 六、项目状态与恢复说明
 

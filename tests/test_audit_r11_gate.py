@@ -418,7 +418,12 @@ open(startB1, 'w').close()
 for p in psB1:
     p.join(timeout=60)
 resB1 = [qB1.get(timeout=5) for _ in psB1]
-_day = time.strftime('%Y%m%d')
+# R11 热修: 生产 record_semantic_verdict 以北京+8 定日目录(agent_judgment
+# .py:617),门的读取面必须同口径——runner 本地时区(UTC CI 窗)会错位到昨日,
+# files=0 假红(本地复现: TZ=UTC 27/2 → 修后 29/0)。
+import datetime as _dtb  # noqa: E402
+_day = _dtb.datetime.now(
+    _dtb.timezone(_dtb.timedelta(hours=8))).strftime('%Y%m%d')
 _vdir = os.path.join(rootB1, 'audit', 'semantic_review', _day)
 filesB1 = sorted(f for f in os.listdir(_vdir)
                  if f.startswith('VERDICT-')) if os.path.isdir(_vdir) else []

@@ -122,11 +122,13 @@ CI 无 streamlit: 门 §D 以指纹语义(增/改/删/注册表变化→指纹�
 - **复放四包**: BLIND 64/64、F10 rc=0、新 B recompute_r6b 105/105、e2e-corrected 全吻合——研究数值复算与历史实采证据绑定零回退。
 - **夹具修复(非生产行为)**: ①`test_audit_r4_gate.py` L2 当日前缀动态化(20261115/16 硬编码跨午夜误红,判定语义不变);②`test_audit_r6_gate.py` C5-C7 采集档名动态化(save_macro 以运行当日命名,macro_20261117.json 硬编码 11-18 起误红,判定语义不变);③`test_audit_r7_gate.py` T12 对齐(显式区间+相对年限并存→多范围阻断,R7「显式区间优先」口径按本轮指令废止,断言改为 unparseable+拆分并注记);④`test_p03_e2eb_b4.py` 三断言对齐新持久化架构(采集目录常驻 .write.lock 锁文件=互斥域本体,非散落文件;`archive_write_lock` 入公开面白名单=事务组合显式扩面;本模块 open 面收敛为纯读 3 处,两处写入移 store_lock.atomic_write_json)。
 - **复杂度基线重锚(章程§四.4 登记路径)**: `COMPLEXITY_BASELINE.md` 自 Audit-R2 后未重锚,R4-R10 七轮门测试累积+本轮 29 判据门使 test_lines 达 +5.8% 触发 `complexity_baseline.py --check` 红。登记理由: 增量=审计修复轮判据门(每轮外审反例的回归资产,非新增框架/系统/重复模型;生产面 91f/+4.6% 在阈内,唯一新增生产模块 store_lock.py=本轮 P1-② 修复本体)。按 R2 先例 `--write` 重锚(生产 91f/54650L,测试 195f/86455L),重跑 pc_phase1 门 13/0。
+- **CI 首跑红与热修(判定口径,非生产行为)**: 首跑 run 44132467404(b4bdc52)tests 3.11/3.12 两 job 红——新门 B1/B1b 判 `files=0`。根因: 生产 `record_semantic_verdict` 以北京+8 定日目录(agent_judgment.py:617),门读取面用 runner 本地时区定日(CI=UTC 窗,本地=北京)——CI 落昨日目录故 0 文件,六进程本体全 ok。本地 `TZ=UTC` 精确复现 27 PASS/2 FAIL 后,门定日改为生产同款 +8(test_audit_r11_gate.py 热修注记),三时区(UTC/上海/纽约)复跑 29/0。Charter 8 时区时间炸弹同类,登记为坑⑧。
 - **CI**: 最终推送 HEAD 三 job 绿(见尾部回填)。
 - **worktree 清单**: 全程固定 6,零新建。
 
 ## CI 回填
 
+- 首跑: run 44132467404 @ b4bdc52 = tests(3.11)✗ tests(3.12)✗ gates ✓(B1 时区错位,见上热修)。
 【待推送后回填: 最终 HEAD/运行号/三 job 状态】
 
 ## 剩余阻塞

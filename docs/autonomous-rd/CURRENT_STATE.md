@@ -9,7 +9,7 @@
 
 - **基线**: dev/audit-fix-r1 = 0877516→代码修复提交 30770af(四项修复+29 判据门+五处夹具对齐+复杂度基线登记重锚)→报告/状态收口;PR #1 覆盖推送;main 未动。
 - **真实进度**: 四项全关——①P1 时间约束完整处理: _q_relative_constraints 全量收集(多约束=unparseable+拆分提示,R7 显式区间优先废止)+年半/小数数量/季度未支持/残余数量扫描,一年半=十八个月=1.5年同窗 months=18,基线六反例全关;②P1 并发写入: store_lock(目录级跨进程 flock 可重入+独立临时名+fsync 原子发布),裁决/查询/工作台归档配号→落盘原子化,6 进程=6 份完整记录,中断不留撕裂终档;③P1 引用扫描禁删: (refs,problems) 二元返回+扫描不完整永久删除全停降级 gzip 字节保全;④P2 工作台缓存: state_fingerprint 指纹键+采集成功 clear+rerun,同进程读到新快照(真实 streamlit 1.50.0 运行时验证)。
-- **验收**: test_audit_r11_gate 29/0(§A10+§G3+§B7+§C4+§D7);报告=docs/autonomous-rd/AUDIT_R11_REPORT.md;反例复现=/tmp/r11_repro_p{1,2,3,4}.py(基线 6+3+1+2 例 BASELINE-BUG→0);电池 184 件 183 绿+phase6 提交后复跑绿(184/184 口径)+九既有门(r4/r5/r6/r7/r8/r9/r10/t3/r42)复跑绿+复放四包(BLIND/F10/新B 105/105/e2e-corrected)PASS+净克隆新门 29/0;worktree 清单全程固定 6。
+- **验收**: test_audit_r11_gate 29/0(§A10+§G3+§B7+§C4+§D7);报告=docs/autonomous-rd/AUDIT_R11_REPORT.md;反例复现=/tmp/r11_repro_p{1,2,3,4}.py(基线 6+3+1+2 例 BASELINE-BUG→0);电池 184 件 183 绿+phase6 提交后复跑绿(184/184 口径)+九既有门(r4/r5/r6/r7/r8/r9/r10/t3/r42)复跑绿+复放四包(BLIND/F10/新B 105/105/e2e-corrected)PASS+净克隆新门 29/0;worktree 清单全程固定 6;CI 首跑 44132467404 红=门 B1 定日时区错位(判进口径,生产无误),热修后三时区 29/0,终跑见 AUDIT_R11_REPORT 尾部回填。
 - **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R11_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
 
 ### [历史快照·R54 视角,已被上方权威快照取代]

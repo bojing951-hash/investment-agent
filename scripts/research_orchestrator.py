@@ -65,15 +65,28 @@ _WINDOW_MAX_GAP_DAYS = {'daily': 30, 'weekly': 60,
 # 问题词面时间范围提取(Audit-R5 条目2): 仅认**状语性**范围——
 # 近/过去/最近 N 年 或 N 年内/N 年以来;「十年期美债」类资产名
 # (N 年+期/收益率)与四位年份不匹配,防止把资产名误当任务范围。
+# Audit-R10 P1: 数量**完整词元匹配**——数字取整个数量 run(阿拉伯连写
+# 或中文数量字连写),run 前不得是数量字符(防「十二个月」从「二」
+# 起截断为 2、「廿一个月」从「一」起截断为 1);前缀(近/最近/过去)
+# 与数量、数量与单位之间容空格(「近 6 个月」「近 5 年」);中文 run
+# 由 _cn_run_to_int 整体换算(十二/二十/廿一),换算失败=数量无法
+# 完整解析→阻断,不缩短范围。
+_NUM_RUN = r'[0-9零一二两三四五六七八九十百廿卅]+'
+_NUM_RUN_EDGE = r'(?<![0-9零一二两三四五六七八九十百廿卅])'
 _RANGE_YEARS_RE = re.compile(
-    r'(?:近|最近|过去)(一|两|二|三|四|五|六|七|八|九|十|\d+)\s*年'
-    r'|(?<![\d])(\d+|一|两|二|三|四|五|六|七|八|九|十)\s*年(?:以内|以来|内)')
+    r'(?:近|最近|过去)\s*(' + _NUM_RUN + r')\s*年'
+    r'|' + _NUM_RUN_EDGE + r'(' + _NUM_RUN + r')\s*年(?:以内|以来|内)')
 # R9-02: 相对月数词形(近/最近/过去 N 个月;N 个月以内/以来/内)——与
 # 年限词形同构,单位=月;判定器按研究时点倒推 N 个自然月(研究时点
 # 不可核验=窗口不可核验,不回落 max_available)。
+# R10 P1: 完整数量 run+词元边界(同年限);「半年」=6 个月(「半」为
+# 完整数量词,须带近/最近/过去前缀或以内/以来/内后缀,裸「半年」
+# 不认——防「上半年/下半年」类自然年词误配)。
 _RANGE_MONTHS_RE = re.compile(
-    r'(?:近|最近|过去)(一|两|二|三|四|五|六|七|八|九|十|\d+)\s*个月'
-    r'|(?<![\d])(\d+|一|两|二|三|四|五|六|七|八|九|十)\s*个月(?:以内|以来|内)')
+    r'(?:近|最近|过去)\s*(半)\s*年'
+    r'|(?:近|最近|过去)\s*(' + _NUM_RUN + r')\s*个\s*月'
+    r'|' + _NUM_RUN_EDGE + r'(半)\s*年(?:以内|以来|内)'
+    r'|' + _NUM_RUN_EDGE + r'(' + _NUM_RUN + r')\s*个\s*月(?:以内|以来|内)')
 # R9-02: 时间意图在场但表达未支持——诚实失败(unparseable 阻断),
 # 不与「没有时间要求」混同退化为 max_available。确定性词面匹配,
 # 资产名护栏: 上/本周不带「期」(防「上周期」);年序词不含十年期类
@@ -87,8 +100,41 @@ _QTIME_UNSUPPORTED_RE = re.compile(
     r'|(?:\d+|[一两二三四五六七八九十])+\s*(?:周|星期|天|日)(?:以内|以来|内)'
     r'|(?:未来|接下来|此后)\s*(?:\d+|[一两二三四五六七八九十])+\s*'
     r'(?:年|个?月|周|星期|天|日))')
-_CN_NUM = {'一': 1, '两': 2, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6,
-           '七': 7, '八': 8, '九': 9, '十': 10}
+def _cn_run_to_int(tok):
+    """R10 P1: 数量 run→整数(**整体换算**,不逐字截断)。
+
+    阿拉伯数字串直转(四位=日历年形态如「2026年内」,非数量→None);
+    中文数量 run 按十/百/廿/卅进位合成: 十二=12、二十=20、廿一=21、
+    二百零五=205;数字与中文混写(「十2」)、连续数字无进位(「二零二
+    六」年形态)、怪形(「五廿」)换算失败→None——调用方按「数量无法
+    完整解析」阻断,不得缩短范围取部分数字。"""
+    if tok.isdigit():
+        return None if len(tok) == 4 else int(tok)
+    cn_d = {'零': 0, '一': 1, '两': 2, '二': 2, '三': 3, '四': 4,
+            '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
+    cn_u = {'十': 10, '百': 100, '廿': 20, '卅': 30}
+    section, digit, prev_unit = 0, None, True
+    for ch in tok:
+        if ch in cn_d:
+            if ch == '零':
+                if not prev_unit:
+                    return None      # 「二零二六」类连写年形态
+                digit = digit if digit else 0
+            else:
+                if digit:
+                    return None      # 连续数字无进位间隔=怪形
+                digit = cn_d[ch]
+            prev_unit = False
+        else:
+            if ch not in cn_u:
+                return None          # 数字与中文混写(「十2」)无法整体换算
+            u = cn_u[ch]
+            if u in (20, 30) and digit:
+                return None          # 「五廿」类怪形
+            section += (digit or 1) * u if u in (10, 100) else u
+            digit = None
+            prev_unit = True
+    return section + (digit or 0)
 
 
 def _question_range_years(question):
@@ -97,13 +143,17 @@ def _question_range_years(question):
     只认状语性范围(近/过去/最近 N 年、N 年内/以来)——确定性词面
     匹配,不做语义改写;未限定返回 None(用频率族兜底下界)。
     多个匹配取**最大**(更严),资产名(十年期美债)不匹配。
+    R10 P1: 数量 run 整体换算;换算失败返回 ('BAD', raw)——数量无法
+    完整解析=意图在场但不可解析,调用方阻断,不缩短范围。
     """
     years = []
     for m in _RANGE_YEARS_RE.finditer(question or ''):
-        tok = m.group(1) or m.group(2)
+        tok = next((g for g in m.groups() if g), None)
         if tok is None:
             continue
-        y = _CN_NUM.get(tok) if not tok.isdigit() else int(tok)
+        y = _cn_run_to_int(tok)
+        if y is None:
+            return ('BAD', m.group(0))
         if isinstance(y, int) and y > 0:
             years.append(y)
     return max(years) if years else None
@@ -114,13 +164,16 @@ def _question_range_months(question):
 
     与 _question_range_years 同构(近/最近/过去 N 个月、N 个月以内/
     以来/内);多个匹配取最大(更严);「六个月内」类资产/频率词不
-    含「个月」量词不匹配。"""
+    含「个月」量词不匹配。R10 P1: 数量 run 整体换算+「半年」=6;
+    换算失败返回 ('BAD', raw),调用方阻断不缩短范围。"""
     months = []
     for m in _RANGE_MONTHS_RE.finditer(question or ''):
-        tok = m.group(1) or m.group(2)
+        tok = next((g for g in m.groups() if g), None)
         if tok is None:
             continue
-        n = _CN_NUM.get(tok) if not tok.isdigit() else int(tok)
+        n = 6 if tok == '半' else _cn_run_to_int(tok)
+        if n is None:
+            return ('BAD', m.group(0))
         if isinstance(n, int) and n > 0:
             months.append(n)
     return max(months) if months else None
@@ -205,6 +258,58 @@ def _valid_iso_date(s):
         return False
 
 
+def _q_asof_mark(q, s, e):
+    """R10 P1③: 日期词形是否为**研究时点**标记(「以X为研究时点」
+    「研究时点为X」「时点X」)——时点词不是窗口边界;与范围词组合时
+    作为相对窗锚点(as_of)随窗口 spec 携带,不吞掉范围限制。"""
+    after = q[e:e + 10]
+    before = q[max(0, s - 12):s]
+    if re.match(r'\s*(?:作为|为|是)?\s*(?:研究)?时点', after):
+        return True
+    if re.search(r'(?:研究)?时点(?:为|是|[:：])?\s*$', before):
+        return True
+    return False
+
+
+def _q_relative_tail(q, asof_iso):
+    """R10 P1③: 无(剩余)窗口日期词形时的范围收尾——相对月数(含
+    「半年」)/相对年限/去年/前年;asof_iso 非空时作为窗口锚点随
+    spec 携带(None=锚点仍取快照研究时点,词面无冲突)。
+
+    数量换算失败(('BAD', raw) 哨兵)→unparseable 明确拒绝,不缩短
+    范围、不退化为 max_available(R10 P1②)。"""
+    _rm = _question_range_months(q)
+    if isinstance(_rm, tuple):
+        return {'kind': 'unparseable',
+                'reason': f'时间数量 {_rm[1]!r} 无法完整解析(不缩短范围)',
+                'raw': _rm[1],
+                'hint': '数量须为完整数字/中文数量(十二·24·半年),'
+                        '混写或残缺词形不支持'}
+    if _rm:
+        return {'kind': 'relative_months', 'months': _rm,
+                **({'as_of': asof_iso} if asof_iso else {})}
+    _ry = _question_range_years(q)
+    if isinstance(_ry, tuple):
+        return {'kind': 'unparseable',
+                'reason': f'时间数量 {_ry[1]!r} 无法完整解析(不缩短范围)',
+                'raw': _ry[1],
+                'hint': '数量须为完整数字/中文数量(十二·24·半年),'
+                        '混写或残缺词形不支持'}
+    if _ry:
+        return {'kind': 'relative', 'years': _ry,
+                **({'as_of': asof_iso} if asof_iso else {})}
+    if '去年' in q:
+        # R8-02: 「去年」=上一自然年(确定性词形,零语义改写)
+        return {'kind': 'calendar_year', 'offset': -1, 'raw': '去年',
+                **({'as_of': asof_iso} if asof_iso else {})}
+    if re.search(r'(?<!大)前年', q):
+        # R9-02: 「前年」=上上自然年(反例A 词形;负向后视防
+        # 「大前年」误切——大前年在未支持表)
+        return {'kind': 'calendar_year', 'offset': -2, 'raw': '前年',
+                **({'as_of': asof_iso} if asof_iso else {})}
+    return None
+
+
 def _question_window(question):
     """R7-01: 问题词面时间范围统一解析(相对年限+明确日期区间);
     R8-02: 斜杠日期词形+「去年」(自然年,绑定研究时点);
@@ -212,6 +317,10 @@ def _question_window(question):
     但无法解析(unparseable 阻断)。**只有①允许 max_available**;
     时间意图识别与窗口解析分离: 意图在场(日期词形/相对词形/未支持
     时间词)但窗口拿不出=③,不与①混同。
+    R10 P1: ③研究时点与研究范围分别处理——「以X为研究时点,研究
+    过去六个月」的日期词形是**时点标记**而非窗口边界,先剔出再解析
+    范围(不因日期在场丢失范围限制);时点随窗口 spec 携带
+    ('as_of'),多个不同时点=冲突阻断;数量词完整词元匹配(P1②)。
 
     返回:
       None                          未指定范围(max_available 口径)
@@ -226,6 +335,8 @@ def _question_window(question):
        'raw':str}                     序列首观测,判定期数据面回填)
       {'kind':'unparseable',         指定了范围但无法解析/区间倒置/
        'reason':str,'raw':str}       表达未支持——阻断,不回落宽松
+      (各 spec 可选携带 'as_of': 问题声明的研究时点,相对/自然年/
+       单侧终界窗口锚定它而非系统当前时间;无声明则不携带)
     显式区间与相对年限并存时显式区间胜(更具体,相对年限记入 basis)。
     未支持时间词(今年/明年/后年/季度/周天粒度/未来等)→unparseable
     带改写提示,诚实失败不猜(R9-02;不做自然语言全覆盖)。
@@ -246,54 +357,58 @@ def _question_window(question):
                 'reason': f'日期词形 {bad[0]!r} 无法归一为合法日期',
                 'raw': bad[0]}
     _unsup = _QTIME_UNSUPPORTED_RE.search(q)
-    if not parsed:
-        # 无日期词形→时间意图识别在先,窗口解析在后(R9-02 三态):
+    _unsup_ret = None
+    if _unsup:
+        _unsup_ret = {'kind': 'unparseable',
+                      'reason': f'时间表达 {_unsup.group(0)!r} 未支持',
+                      'raw': _unsup.group(0),
+                      'hint': '请改用明确日期区间或受支持表达'
+                              '(近/过去 N 年·N 个月·半年、去年/前年、'
+                              'X以来/截至X、ISO 或斜杠日期)'}
+    # R10 P1③: 剔出研究时点标记日期(时点≠窗口边界);多个不同时点
+    # =冲突,明确阻断不自选(不静默采用更宽松锚点)
+    _asof_isos = []
+    _window_dates = []
+    for (s, e, raw) in parsed:
+        if _q_asof_mark(q, s, e):
+            _asof_isos.append(_norm_qdate(raw, 'start'))
+        else:
+            _window_dates.append((s, e, raw))
+    if len(set(_asof_isos)) > 1:
+        return {'kind': 'unparseable',
+                'reason': (f'研究时点冲突: {"/".join(_asof_isos)}'
+                           '(不得自行择一)'),
+                'raw': '/'.join(_asof_isos)}
+    _asof_iso = _asof_isos[0] if _asof_isos else None
+    _asof_kw = {'as_of': _asof_iso} if _asof_iso else {}
+    if not _window_dates:
+        # 无窗口日期词形→时间意图识别在先,窗口解析在后(R9-02 三态):
         # 未支持时间词→③阻断(先于支持词形判,混合表达不放过);
         # 相对月数(更紧)先于相对年限;自然年词形次之;无范围词=①。
-        if _unsup:
-            return {'kind': 'unparseable',
-                    'reason': f'时间表达 {_unsup.group(0)!r} 未支持',
-                    'raw': _unsup.group(0),
-                    'hint': '请改用明确日期区间或受支持表达'
-                            '(近/过去 N 年·N 个月、去年/前年、'
-                            'X以来/截至X、ISO 或斜杠日期)'}
-        _rm = _question_range_months(q)
-        if _rm:
-            return {'kind': 'relative_months', 'months': _rm}
-        _ry = _question_range_years(q)
-        if _ry:
-            return {'kind': 'relative', 'years': _ry}
-        if '去年' in q:
-            # R8-02: 「去年」=上一自然年(确定性词形,零语义改写)
-            return {'kind': 'calendar_year', 'offset': -1, 'raw': '去年'}
-        if re.search(r'(?<!大)前年', q):
-            # R9-02: 「前年」=上上自然年(反例A 词形;负向后视防
-            # 「大前年」误切——大前年在未支持表)
-            return {'kind': 'calendar_year', 'offset': -2, 'raw': '前年'}
-        return None
-    if len(parsed) == 1:
-        s, e, raw = parsed[0]
+        if _unsup_ret:
+            return _unsup_ret
+        return _q_relative_tail(q, _asof_iso)
+    if len(_window_dates) == 1:
+        s, e, raw = _window_dates[0]
         after = q[e:e + 6]
         before = q[max(0, s - 8):s]
         if re.match(r'\s*(以来|起|开始)', after):
             return {'kind': 'explicit',
                     'start': _norm_qdate(raw, 'start'), 'end': None,
-                    'raw': raw + '以来'}
+                    'raw': raw + '以来', **_asof_kw}
         if re.search(r'(截至|截止|直到)(于)?\s*$', before):
             return {'kind': 'explicit', 'start': None,
-                    'end': _norm_qdate(raw, 'end'), 'raw': '截至' + raw}
-        if _unsup:
+                    'end': _norm_qdate(raw, 'end'), 'raw': '截至' + raw,
+                    **_asof_kw}
+        if _unsup_ret:
             # 单日期提及≠区间,但未支持时间词在场=时间意图未解析
             # (R9-02: 不退化为 max_available)
-            return {'kind': 'unparseable',
-                    'reason': f'时间表达 {_unsup.group(0)!r} 未支持',
-                    'raw': _unsup.group(0),
-                    'hint': '请改用明确日期区间或受支持表达'
-                            '(近/过去 N 年·N 个月、去年/前年、'
-                            'X以来/截至X、ISO 或斜杠日期)'}
-        return None                      # 单日期提及≠区间(如「2026-10的PMI」)
-    # ≥2 个日期词形: 取词面首末(词序倒置=错误区间,不静默重排)
-    first, last = parsed[0], parsed[-1]
+            return _unsup_ret
+        # R10 P1③: 单日期提及≠区间(如「2026-10的PMI」),但范围词在
+        # 场则范围生效——不因日期在场丢失范围限制;无范围词=①
+        return _q_relative_tail(q, _asof_iso)
+    # ≥2 个窗口日期词形: 取词面首末(词序倒置=错误区间,不静默重排)
+    first, last = _window_dates[0], _window_dates[-1]
     iso_first, iso_last = (_norm_qdate(first[2], 'start'),
                            _norm_qdate(last[2], 'end'))
     if iso_first and iso_last and iso_first > iso_last:
@@ -302,7 +417,7 @@ def _question_window(question):
                            f'末词 {last[2]}({iso_last})'),
                 'raw': f'{first[2]}..{last[2]}'}
     return {'kind': 'explicit', 'start': iso_first, 'end': iso_last,
-            'raw': f'{first[2]}..{last[2]}'}
+            'raw': f'{first[2]}..{last[2]}', **_asof_kw}
 
 
 # ── Audit-R7 条目1(R7-01): 日历期望观测数(交易日历口径) ──────────────
@@ -779,8 +894,25 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
         if isinstance(_bk, dict):
             _s3_mids.update(str(k) for k in _bk)
     _range_years = _question_range_years(question)
+    if not isinstance(_range_years, int):
+        # R10 P1②: ('BAD', raw)=数量无法完整解析——min_obs 推导走兜底
+        # (不影响阻断: _qw 同源 unparseable 已拦)
+        _range_years = None
     _qw = _question_window(question)          # R7-01: 显式区间优先
     _as_of = _snap_as_of_date(snap)
+    # R10 P1③: 问题声明研究时点(「以X为研究时点」)优先于快照
+    # target_date——相对/自然年/单侧终界窗口统一锚定问题时点(不用
+    # 系统当前时间);与快照不一致=冲突,在窗口 basis 披露以问题为准,
+    # 不静默换锚。
+    _asof_note = ''
+    _q_asof_iso = (_qw.get('as_of') if isinstance(_qw, dict) else None)
+    if _q_asof_iso and _valid_iso_date(str(_q_asof_iso)[:10]):
+        _qd = date.fromisoformat(str(_q_asof_iso)[:10])
+        if _as_of is not None and _as_of != _qd:
+            _asof_note = (f';问题声明研究时点 {_qd.isoformat()} 与快照 '
+                          f'target_date {_as_of.isoformat()} 不一致,'
+                          f'以问题声明为准')
+        _as_of = _qd
     _reg_by_id = registry or {}
     req_items = []
     for _mid in metrics:
@@ -880,7 +1012,8 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                         'as_of': _as_of.isoformat(),
                         'kind': 'calendar_year',
                         'basis': f'研究时点 {_as_of.isoformat()} 的'
-                                 f'「去年」={_cy} 自然年(词形绑定研究时点)'}
+                                 f'「去年」={_cy} 自然年(词形绑定研究时点)'
+                                 + _asof_note}
         elif _qw is not None and _qw['kind'] == 'relative_months':
             # R9-02: 近/过去 N 个月=研究时点倒推 N 个自然月(相对词形
             # 绑定研究时点,不用系统当前时间;时点不可核验=窗口不可
@@ -899,7 +1032,7 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                         'basis': (f'研究时点 {_as_of.isoformat()} 倒推 '
                                   f'{int(_qw["months"])} 个自然月'
                                   f'({_wm_s.isoformat()}..'
-                                  f'{_as_of.isoformat()})')}
+                                  f'{_as_of.isoformat()})' + _asof_note)}
         elif _rel_years:
             if _as_of is None:
                 _win = {'start': None, 'end': None, 'kind': 'relative',
@@ -911,7 +1044,7 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                 _win = {'start': _ws.isoformat(), 'end': _as_of.isoformat(),
                         'as_of': _as_of.isoformat(), 'kind': 'relative',
                         'basis': f'研究时点 {_as_of.isoformat()} 倒推 '
-                                 f'{_rel_years} 年(日历边界)'}
+                                 f'{_rel_years} 年(日历边界)' + _asof_note}
         elif _qw is not None and _qw['kind'] == 'explicit':
             _ws_iso = _qw.get('start')
             _we_iso = _qw.get('end')
@@ -936,7 +1069,8 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                                   + (';单侧终界(「截至X」): 起点不限'
                                      if _ws_iso is None else '')
                                   + (f';并存相对年限 {_range_years} 年'
-                                     f'(显式区间优先)' if _range_years else ''))}
+                                     f'(显式区间优先)' if _range_years else '')
+                                  + _asof_note)}
             elif _win is None:
                 _win = {'start': None, 'end': None, 'kind': 'explicit',
                         'basis': '问题区间词形无法构成窗口'}

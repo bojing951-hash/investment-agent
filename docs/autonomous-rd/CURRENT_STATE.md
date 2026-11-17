@@ -4,7 +4,16 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-17 R53 Audit-R9 第九轮审计修复(T-R53-1;独立轨道续 R52)
+## 权威快照: 2026-11-17 R54 Audit-R10 第十轮审计修复(T-R54-1;独立轨道续 R53)
+> baseline=f2e385acc7df524ac5e0af801c628fea6d78e539…(代码修复固定 SHA;受审基线=c30bd7d 即 Audit-R9 CI 回填尖;受审面=本轮 P1 时间范围处理)
+
+- **基线**: dev/audit-fix-r1 = c30bd7d→代码修复提交 f2e385a(数量完整词元匹配+研究时点与范围分别处理+29 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: P1 全关——①数量完整词元匹配: _RANGE_YEARS/MONTHS_RE 数量取完整 run(含廿卅)+run 前数量字符负向后视(「十二个月」不截断为 2)+前缀/单位间容空格(「近 6 个月」)+_cn_run_to_int 整体换算(混写/连写年/四位阿拉伯→BAD 哨兵=明确拒绝不缩短范围)+「半年」=6;②时点与范围分别处理: _q_asof_mark 时点标记词形≠窗口边界(范围词不因日期在场丢失)+双时点冲突阻断+问题时点优先于快照 target_date(冲突 basis 披露)+相对窗绑研究时点非系统时间。基线六反例(四误交付 max_available+十二个月内截断 months=2 误交付+正例窗失真)全关。
+- **验收**: test_audit_r10_gate 29/0(§V7+§C5+§A5+§B3+§G4+§P5);报告=docs/autonomous-rd/AUDIT_R10_REPORT.md;反例复现=/tmp/r10_repro.py(基线 6 例 BASELINE-BUG→0);电池 183 件提交树全绿(phase6 提交后复验)+八既有门(r4/r5/r6/r7/r8/r9/t3/r42)复跑绿+复放四包(BLIND/F10/新B 105/105/e2e-corrected)PASS;R8-03 实采证据原样保留;worktree 清单全程固定 6。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R10_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R53 视角,已被上方权威快照取代]
+> (R53 Audit-R9 视角留档;受审面=R9-01/02;修复提交=固定 SHA 74fb612)
 > baseline=74fb612844bc8d6c788061c78d17c814f348ec29 (Audit-R8 CI 回填尖=本轮受审基线;受审面=R9-01/02;修复提交=固定 SHA 74fb612)
 
 - **基线**: dev/audit-fix-r1 = a4fb7c7→单波 74fb612(两缺口代码+33 判据门+三套夹具对齐)→报告/状态收口;PR #1 覆盖推送;main 未动。

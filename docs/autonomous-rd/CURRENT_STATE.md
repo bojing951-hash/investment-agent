@@ -4,7 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-17 R52 Audit-R8 第八轮审计修复(T-R52-1;独立轨道续 R51)
+## 权威快照: 2026-11-17 R53 Audit-R9 第九轮审计修复(T-R53-1;独立轨道续 R52)
+> baseline=74fb612844bc8d6c788061c78d17c814f348ec29 (Audit-R8 CI 回填尖=本轮受审基线;受审面=R9-01/02;修复提交=固定 SHA 74fb612)
+
+- **基线**: dev/audit-fix-r1 = a4fb7c7→单波 74fb612(两缺口代码+33 判据门+三套夹具对齐)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 两缺口全关——①R9-01 有效观测规则覆盖全部数据路径: rhq.effective_series 公共入口=唯一清洗规则四路复用(快照构建 merge_series_sections/merge_macro_series 入 store 前清洗+series_store_clean 核验披露节;工作台 metric_series 快照分支 n=0 诚实拒答+series_clean 披露+series_capable_metrics 统计取有效;判定器快照直读与 S4 信封面吃数组经同一清洗,声明 n/first/last 不采信,dates 为 list 含空=面在场有效 0 据实,dates 缺席=不可核验);基线八反例(快照五状态+信封声明 n)全阻断;交叉矩阵 2 路径×2 范围×8 状态参数化经生产链四段。②R9-02 三态固定(未指定唯一允许 max_available/已解析/无法解析阻断),意图识别与解析分离: relative_months 新词形(研究时点倒推 N 自然月,不用系统当前)+「前年」offset -2+19 个未支持时间词形 unparseable 带提示诚实失败+资产名护栏(十年期/上周期不误配);反例 A(前年 12 月数据)→窗 2024 阻断、反例 B(过去六个月 168 点)→窗内 1 阻断,report/archive 双拒;正例 11 形全保留(含前年全量 2024 窗 12/过去六个月全量窗内 5/2021 回放)。③零回退: 复放四包全 PASS(BLIND/F10/新 B 105/105/e2e-corrected;旧 B 三失配=R6 既档 CONTRADICTED 保全态)+r4~r8 门全绿+电池 182 件 181 绿(phase6 提交后绿)。
+- **验收**: test_audit_r9_gate 33/0(§M 19+§Y 7+§G 4+§S 3);报告=docs/autonomous-rd/AUDIT_R9_REPORT.md;反例复现=/tmp/r9_repro.py(基线 8/8 BASELINE-BUG→修复后全闭);终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R9_REPORT.md;重放入口 BLIND/F10/e2e-corrected/cn-task-b×2);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R52 视角,已被上方权威快照取代]
 > baseline=d3c3dc0aa351f4496522e5bee57a9c12f1ef5593 (Audit-R7 终笔尖=本轮受审基线;受审面=R8-01/02/03;修复提交=固定 SHA d3c3dc0)
 
 - **基线**: dev/audit-fix-r1 = 25f079f→代码修复提交 d3c3dc0(三缺陷+30 判据门)→干净检出两轮实采+证据包/报告/状态收口;PR #1 覆盖推送;main 未动。

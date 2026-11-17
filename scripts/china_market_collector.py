@@ -1160,8 +1160,8 @@ def _tushare_monthly_last(df, col):
             fv = float(v)
         except (TypeError, ValueError):
             continue
-        if fv != fv:                      # NaN→如实跳行
-            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
+            continue                     # R8-01: 非有限值(NaN/±Inf)不入采集史
         ym = (m.group(1), m.group(2))
         if best is None or ym > (best[0], best[1]):
             best = (m.group(1), m.group(2), fv)
@@ -1273,8 +1273,8 @@ def _shrzgm_last(rows):
             fv = float(v)
         except (TypeError, ValueError):
             continue
-        if fv != fv:
-            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
+            continue                     # R8-01: 非有限值(NaN/±Inf)不入采集史
         ym = m.group(1) + '-' + m.group(2)
         if best is None or ym > best[0]:
             best = (ym, fv)
@@ -1308,8 +1308,8 @@ def _macro_last(df, date_col, value_col):
             fv = float(v)
         except (TypeError, ValueError):
             continue
-        if fv != fv:                      # NaN(金十端点未发布行形态)→如实跳行
-            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
+            continue                     # R8-01: 非有限值(NaN/±Inf)不入采集史
         if best is None or d > best[0]:
             best = (d, fv)
     return best
@@ -1330,8 +1330,8 @@ def _macro_last_month(df, month_col, value_col):
             fv = float(v)
         except (TypeError, ValueError):
             continue
-        if fv != fv:
-            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
+            continue                     # R8-01: 非有限值(NaN/±Inf)不入采集史
         if best is None or d > best[0]:
             best = (d, fv)
     return best
@@ -1528,8 +1528,8 @@ def _macro_month_rows(df, month_col, value_col):
             fv = float(v)
         except (TypeError, ValueError):
             continue
-        if fv != fv:
-            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
+            continue                     # R8-01: 非有限值(NaN/±Inf)不入采集史
         key = '%s-01' % d
         if key not in rows:
             rows[key] = fv

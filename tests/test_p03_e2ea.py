@@ -181,12 +181,19 @@ class T1HistoryQueryAccessPoints(unittest.TestCase):
 
     def test_t1d_missing_values_dropped_not_zero_filled(self):
         # 缺值如实缺席(剔除+登记),绝不填0
+        # (Audit-R8 R8-01: clean 登记扩为统一有效性六键——NaN/±Inf/
+        # 非法日期/长度错配同登记;本用例断言子集+新键在场)
         dates = ['2026-01-05', '2026-01-06', '2026-01-07', '2026-01-08']
         values = [1.0, None, 'garbage', 2.0]
         d, v, clean = rhq._clean_series(dates, values)
         self.assertEqual(d, ['2026-01-05', '2026-01-08'])
         self.assertEqual(v, [1.0, 2.0])
-        self.assertEqual(clean, {'n_missing_dropped': 2, 'n_observations': 2})
+        self.assertEqual(clean['n_missing_dropped'], 2)
+        self.assertEqual(clean['n_observations'], 2)
+        for k in ('n_nonfinite_dropped', 'n_invalid_dates_dropped',
+                  'n_length_mismatch'):
+            self.assertIn(k, clean)
+        self.assertEqual(clean['n_nonfinite_dropped'], 0)
 
     def test_t1e_window_query_with_lookback(self):
         win = rhq.query_window(self.rate, START, END, lookback=60)

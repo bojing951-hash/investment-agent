@@ -92,13 +92,16 @@ def _question_range_years(question):
 
 # ── Audit-R7 条目1(R7-01): 明确日期区间解析 ─────────────────────────
 # 日期词形(确定性词面,零语义改写): ISO 全日期/8位紧凑/中文年月日/
-# 年月/年月横线。裸四位数字**不认**(防把 2520 等数量词误当日份),
+# 年月/年月横线/**斜杠日期**(R8-02: 2020/01/01 全日期与 2020/01 年月,
+# 与横线同判)。裸四位数字**不认**(防把 2520 等数量词误当日份),
 # 须带年字或全日期形态。数值词形带 (?<!\d)/(?!\d) 防从长数字串中
 # 切出假日期。无法归一为合法日期(如 2020-13-45)=指定了但无法解析
 # →阻断,不回落 max_available。
 _QDATE_TOKEN_RE = re.compile(
-    r'(?<!\d)(\d{4}-\d{1,2}-\d{1,2})(?!\d)|(?<!\d)(\d{8})(?!\d)|'
-    r'(\d{4}年(?:\d{1,2}月)?(?:\d{1,2}日)?)|(?<!\d)(\d{4}-\d{1,2})(?![-\d])')
+    r'(?<!\d)(\d{4}-\d{1,2}-\d{1,2})(?!\d)|(?<!\d)(\d{4}/\d{1,2}/\d{1,2})(?!\d)|'
+    r'(?<!\d)(\d{8})(?!\d)|'
+    r'(\d{4}年(?:\d{1,2}月)?(?:\d{1,2}日)?)|(?<!\d)(\d{4}-\d{1,2})(?![-\d])|'
+    r'(?<!\d)(\d{4}/\d{1,2})(?![\d/])')
 
 
 def _norm_qdate(tok, side):
@@ -108,6 +111,8 @@ def _norm_qdate(tok, side):
     t = tok.strip()
     y = mo = d = None
     m = re.fullmatch(r'(\d{4})-(\d{1,2})-(\d{1,2})', t)
+    if not m:
+        m = re.fullmatch(r'(\d{4})/(\d{1,2})/(\d{1,2})', t)   # R8-02 斜杠全日期
     if not m:
         m = re.fullmatch(r'(?<!\d)(\d{4})(\d{2})(\d{2})(?!\d)', t)
     if m:
@@ -120,6 +125,8 @@ def _norm_qdate(tok, side):
             d = int(m.group(3)) if m.group(3) else None
         else:
             m = re.fullmatch(r'(?<!\d)(\d{4})-(\d{1,2})(?![-\d])', t)
+            if m is None:
+                m = re.fullmatch(r'(?<!\d)(\d{4})/(\d{1,2})(?![\d/])', t)  # R8-02 斜杠年月
             if m:
                 y, mo = int(m.group(1)), int(m.group(2))
     if y is None:
@@ -152,15 +159,19 @@ def _valid_iso_date(s):
 
 
 def _question_window(question):
-    """R7-01: 问题词面时间范围统一解析(相对年限+明确日期区间)。
+    """R7-01: 问题词面时间范围统一解析(相对年限+明确日期区间);
+    R8-02: 斜杠日期词形+「去年」(自然年,绑定研究时点)。
 
     返回:
       None                          未指定范围(max_available 口径)
       {'kind':'relative','years':N} 近/过去 N 年(端点=研究时点)
+      {'kind':'calendar_year',      「去年」=研究时点上一自然年
+       'offset':-1,'raw':'去年'}    (R8-02: 相对词形绑定研究时点,
+                                    判定器折 [Y-1-01-01, Y-1-12-31])
       {'kind':'explicit',           明确日期区间(start/end 任一侧可无界:
        'start':ISO|None,             'X以来'=起界无终界→end=研究时点;
-       'end':ISO|None,               '截至X'=终界无起界)
-       'raw':str}
+       'end':ISO|None,               '截至X'=终界无起界→窗起=实际
+       'raw':str}                     序列首观测,判定期数据面回填)
       {'kind':'unparseable',         指定了范围但无法解析/区间倒置——
        'reason':str,'raw':str}       阻断,不回落宽松
     显式区间与相对年限并存时显式区间胜(更具体,相对年限记入 basis)。
@@ -186,6 +197,10 @@ def _question_window(question):
         _ry = _question_range_years(q)
         if _ry:
             return {'kind': 'relative', 'years': _ry}
+        if '去年' in q:
+            # R8-02: 「去年」=上一自然年(确定性词形,零语义改写;
+            # 未支持的其他自然语时间词不猜——不支持时诚实失败)
+            return {'kind': 'calendar_year', 'offset': -1, 'raw': '去年'}
         return None
     if len(parsed) == 1:
         s, e, raw = parsed[0]
@@ -266,16 +281,14 @@ def _expected_in_window(freq, d0, d1):
 
 def _effective_window_obs(dates, values, start, end):
     """实际 dates/values → 窗内**有效去重**观测(Audit-R7 条目1:
-    从实际序列计算,不制首末、不用总量冒充)。
+    从实际序列计算,不制首末、不用总量冒充;Audit-R8 R8-01 统一有效性)。
 
-    有效=值可转 float 且非 None(values=None 视为全有效——调用面
-    无值面时只做日期去重);同日去重;窗=[start,end] 闭区间 ISO 字符串
-    比较。返回 (sorted_dates, stats)。"""
+    有效=合法日期+**有限数值**(与采集/清洗/查询同口径: 缺值/不可数值化/
+    NaN/±Infinity 一律无效)——values=None=无有效数值面,**禁 1.0 占位**
+    (占位曾把缺值序列判成满覆盖放行);同日去重;窗=[start,end] 闭区间
+    ISO 字符串比较;长度错配如实登记。返回 (sorted_dates, stats)。"""
     dl = list(dates or [])
-    if values is None:
-        vl = [1.0] * len(dl)
-    else:
-        vl = list(values)
+    vl = list(values) if values is not None else [None] * len(dl)
     seen = {}
     n_invalid = n_dup = 0
     for d, v in zip(dl, vl):
@@ -289,15 +302,19 @@ def _effective_window_obs(dates, values, start, end):
             n_invalid += 1
             continue
         try:
-            float(v)
+            fv = float(v)
         except (TypeError, ValueError):
+            n_invalid += 1
+            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
             n_invalid += 1
             continue
         if ds in seen:
             n_dup += 1
         seen[ds] = True
     return sorted(seen), {'n_invalid_dropped': n_invalid,
-                          'n_duplicate_dates': n_dup}
+                          'n_duplicate_dates': n_dup,
+                          'n_length_mismatch': abs(len(dl) - len(vl))}
 
 
 # ── Audit-R7 条目2(R7-02): 采集状态贯通+任务时效判定 ──────────────────
@@ -691,9 +708,11 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
         _n_series = len((_ss.get(_mid) or {}).get('dates') or [])
         _ser_src = '研究快照 series_store'
         _freq, _first, _last = None, None, None
+        _ser_face_present = False          # R8-01: 序列面在场但可 0 有效
         _ss_dates = list((_ss.get(_mid) or {}).get('dates') or [])
         if _ss_dates:
             _first, _last = _ss_dates[0], _ss_dates[-1]
+            _ser_face_present = True
         if _n_series == 0:
             _st = next((s for s in steps
                         if s.get('step') == f'S4_history_{_mid}'), None)
@@ -702,6 +721,7 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                         or {}).get('series')) or {}
                 if _s4.get('n') is not None:
                     _n_series = int(_s4['n'])
+                    _ser_face_present = True
                     _ser_src = str(_s4.get('source') or 'S4 history 探测')
                     _freq = _s4.get('frequency') or _freq
                     _first = _s4.get('first') or _first
@@ -738,6 +758,21 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
             _win = {'start': None, 'end': None, 'kind': 'unparseable',
                     'basis': f'问题指定了时间范围但无法解析: '
                              f'{_qw["reason"]}'}
+        elif _qw is not None and _qw['kind'] == 'calendar_year':
+            # R8-02: 「去年」=研究时点上一自然年(相对词形绑定研究时点;
+            # 时点不可核验=窗口不可核验,不回落 max_available)
+            if _as_of is None:
+                _win = {'start': None, 'end': None, 'kind': 'calendar_year',
+                        'basis': '研究时点不可核验→「去年」自然年窗口'
+                                 '无法判定'}
+            else:
+                _cy = _as_of.year + int(_qw.get('offset', -1))
+                _win = {'start': '%04d-01-01' % _cy,
+                        'end': '%04d-12-31' % _cy,
+                        'as_of': _as_of.isoformat(),
+                        'kind': 'calendar_year',
+                        'basis': f'研究时点 {_as_of.isoformat()} 的'
+                                 f'「去年」={_cy} 自然年(词形绑定研究时点)'}
         elif _rel_years:
             if _as_of is None:
                 _win = {'start': None, 'end': None, 'kind': 'relative',
@@ -771,6 +806,8 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                         'as_of': (_as_of.isoformat() if _as_of else None),
                         'basis': (f'问题明确日期区间 {_qw["raw"]}'
                                   f'(词面边界)'
+                                  + (';单侧终界(「截至X」): 起点不限'
+                                     if _ws_iso is None else '')
                                   + (f';并存相对年限 {_range_years} 年'
                                      f'(显式区间优先)' if _range_years else ''))}
             elif _win is None:
@@ -780,7 +817,16 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
         _n_in_win, _first_in, _last_in = None, None, None
         _win_detail = None
         _dates_face = None
-        if _win is not None and _win.get('start') and _win.get('end'):
+        # R8-02: 单侧终界(「截至X」,start=None)——已声明支持的单侧边界
+        # 不因 start 缺席必然拒绝: 日期面在场时窗起=实际序列首观测
+        # (起点不限,数据驱动=与 max_available 起点同口径;起侧覆盖恒
+        # 满足,终侧按频率族容差核验)。无日期面=窗口成员不可核验→阻断。
+        _win_single_end = (_win is not None
+                           and _win.get('end') is not None
+                           and _win.get('start') is None
+                           and _win.get('kind') == 'explicit')
+        if _win is not None and _win.get('end') is not None \
+                and (_win.get('start') or _win_single_end):
             # 实际日期面: 快照序列优先;否则 S4 信封 dates(ia_cli 真实
             # 输出恒带;合成信封无 dates=窗口成员不可核验→阻断,不猜)
             if _ss_dates:
@@ -800,7 +846,14 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                         _ser_face = 'S4 信封实际 dates/values'
                 if _dates_face is None:
                     _ser_face = None
-            if _dates_face is not None:
+            if _dates_face is not None and _win_single_end:
+                _face_ds = sorted(str(x)[:10] for x in _dates_face[0]
+                                  if _valid_iso_date(str(x)[:10]))
+                if _face_ds:
+                    _win['start'] = _face_ds[0]
+                    _win['basis'] += (f';单侧终界: 窗起=实际序列首观测'
+                                      f' {_face_ds[0]}(起点不限,R8-02)')
+            if _dates_face is not None and _win.get('start'):
                 _in, _in_stats = _effective_window_obs(
                     _dates_face[0], _dates_face[1],
                     _win['start'], _win['end'])
@@ -908,6 +961,12 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
             _outcome = 'insufficient_coverage'
             _basis = ('仅最新单点在场(L1/S3),无历史序列——单点≠'
                       '历史分析需求满足')
+        elif _ser_face_present:
+            # R8-01: 序列面在场但有效观测 0(NaN/±Inf/缺失/非法日期
+            # 全剔)≠「均缺席」——按实际有效数量如实判不足,禁占位
+            _outcome = 'insufficient_coverage'
+            _basis = (f'序列面在场但有效观测 0(无效数值/非法日期'
+                      f'全剔;源={_ser_src})')
         else:
             _outcome = 'missing'
             _basis = 'L1/S3/快照序列均缺席'
@@ -1294,8 +1353,9 @@ def _git_state(root):
     3. 运行树根 CODE_VERSION.json 印章(引擎树建造时写入:
        git_head/git_diff_sha256/stamped_at——建造侧对源仓的快照指纹)。
     返回 (head|None, source|None, diff_sha256|None)——三级全空=(None,
-    None,None)如实不造版本;diff_sha256=命中仓未提交差异指纹(执行树
-    有修改时可核对)。"""
+    None,None)如实不造版本;diff_sha256=命中仓**未提交差异+未跟踪源码**
+    联合指纹(R8-03: git diff HEAD 不含未跟踪件——新增源码参与执行时
+    指纹必须随之变化,否则同 SHA 不同代码不可区分)。"""
     import hashlib as _hl
     _code_tree = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     _seen = set()
@@ -1310,8 +1370,24 @@ def _git_state(root):
             if p.returncode == 0:
                 d = subprocess.run(['git', 'diff', 'HEAD'],
                                    capture_output=True, timeout=10, cwd=cand)
-                return (p.stdout.strip(), label,
-                        _hl.sha256(d.stdout or b'').hexdigest())
+                h = _hl.sha256()
+                h.update(d.stdout or b'')
+                # R8-03: 未跟踪件(尊重 .gitignore)逐件内容哈希入指纹
+                u = subprocess.run(
+                    ['git', 'ls-files', '--others', '--exclude-standard'],
+                    capture_output=True, text=True, timeout=10, cwd=cand)
+                for rel in sorted(
+                        (u.stdout or '').splitlines()):
+                    rel = rel.strip()
+                    if not rel:
+                        continue
+                    h.update(('\n::untracked:%s::' % rel).encode('utf-8'))
+                    try:
+                        with open(os.path.join(cand, rel), 'rb') as _f:
+                            h.update(_hl.sha256(_f.read()).digest())
+                    except OSError:
+                        h.update(b'::unreadable::')
+                return (p.stdout.strip(), label, h.hexdigest())
         except (OSError, subprocess.SubprocessError):
             pass
     stamp = os.path.join(root or '', 'CODE_VERSION.json')

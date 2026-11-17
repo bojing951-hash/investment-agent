@@ -50,6 +50,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import math
 import os
 import sys
 from datetime import date, timedelta
@@ -90,12 +91,33 @@ ACCESS_POINTS = {
 ECONOMIES = ("US", "CN", "JP", "EA", "HK", "GLOBAL")
 
 
+def _valid_series_date(s):
+    """R8-01: 合法日期=截 10 位后可 fromisoformat 解析(YYYY-MM-DD)。"""
+    try:
+        date.fromisoformat(str(s)[:10])
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
 def _clean_series(dates, values):
-    """序列清洗: 升序去重(同日保留最后)+缺值剔除(不填0),返回清洗登记。"""
+    """序列清洗: 升序去重(同日保留最后)+无效观测剔除(不填0,不造占位)。
+
+    Audit-R8 R8-01 统一有效性规则(采集/清洗/查询/窗口/未限定范围同口径):
+    有效观测=**合法日期+有限数值**——缺值/不可数值化/NaN/±Infinity/
+    非法日期一律剔除并分类登记;values=None=无有效数值面(全剔,禁占位);
+    日期与数值长度错配如实登记(zip 按短侧配对,不静默吞长侧)。
+    合法数值按 float 原样保留(与既有统计口径一致,不量化不改精度)。"""
     seen = {}
-    n_missing = 0
-    for d, v in zip(dates or [], values or []):
+    n_missing = n_nonfinite = n_bad_date = 0
+    dl = list(dates or [])
+    vl = list(values) if values is not None else [None] * len(dl)
+    n_mismatch = abs(len(dl) - len(vl))
+    for d, v in zip(dl, vl):
         ds = str(d)[:10]
+        if not _valid_series_date(ds):
+            n_bad_date += 1
+            continue
         if v is None:
             n_missing += 1
             continue
@@ -104,10 +126,17 @@ def _clean_series(dates, values):
         except (TypeError, ValueError):
             n_missing += 1
             continue
+        if not math.isfinite(fv):
+            n_nonfinite += 1
+            continue
         seen[ds] = fv
     out_dates = sorted(seen)
-    return out_dates, [seen[d] for d in out_dates], {'n_missing_dropped': n_missing,
-                                                     'n_observations': len(out_dates)}
+    return out_dates, [seen[d] for d in out_dates], {
+        'n_missing_dropped': n_missing,
+        'n_nonfinite_dropped': n_nonfinite,
+        'n_invalid_dates_dropped': n_bad_date,
+        'n_length_mismatch': n_mismatch,
+        'n_observations': len(out_dates)}
 
 
 def collection_status_of(prov, last_observation=None, source_sha256=None,

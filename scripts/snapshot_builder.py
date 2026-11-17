@@ -314,7 +314,7 @@ def merge_series_sections(store, raw):
     return store
 
 
-def merge_macro_series(store, raw):
+def merge_macro_series(store, raw, prov_out=None):
     """阶段三 T3(PHASE3-PLAN 工单T3,2026-11-14): macro 通道全史序列入 store(就地并入)。
 
     根因: 周报路径唯一数据入口=研究快照 series_store(global/china/jp/ea/
@@ -337,10 +337,17 @@ def merge_macro_series(store, raw):
     快照顶层平节 series_store_notes(键=metric_id;无注记键不入该节;series_store
     值保持 {'dates','values'} 纯净不混注记);序列未入档(门未过/形态不合规)则
     注记同不入(防孤儿注记)。
+    R7-02 采集状态贯通: 条目携带 provenance 的(如 CN_PMI_MFG
+    fresh/carry_forward)随序列写入快照顶层平节 series_provenance(键=
+    metric_id,原样 dict——文件写入时间/最后成功采集时间/数据统计期由
+    查询层 collection_status_of 统一规范);序列未入档则状态同不入。
     新鲜度窗: 继承 resolve_inputs 的 macro 档窗(rp.SOURCE_FILE_RULES 7 自然日)
     ——窗内无档→raw 无 macro 键→本函数零产出,序列诚实缺席不造数。
 
-    返回: notes dict(非空时由调用方写入 snapshot['series_store_notes'])。"""
+    返回: notes dict(非空时由调用方写入 snapshot['series_store_notes'])。
+    prov_out: 可选 dict 出参——本函数就地填入 {metric_id: provenance}
+    (调用方写入 snapshot['series_provenance'];None=旧调用面不收集,
+    返回值形状不变)。"""
     notes = {}
     if not isinstance(raw.get('macro'), dict):
         return notes
@@ -358,6 +365,9 @@ def merge_macro_series(store, raw):
             note = item.get('history_note')
             if isinstance(note, str) and note:
                 notes[mid] = note
+            prov = item.get('provenance')
+            if prov_out is not None and isinstance(prov, dict) and prov:
+                prov_out[mid] = dict(prov)
     return notes
 
 
@@ -577,11 +587,16 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
     # 阶段三 T3(2026-11-14): macro 通道全史序列(HY_OAS/CURVE_2S10S/UST_* 等)
     # 入 store——周报路径序列库自此覆盖 macro 池;源窗/滞后注记随序列入顶层
     # 平节 series_store_notes(见 merge_macro_series docstring)。
-    macro_notes = merge_macro_series(store, raw)
+    # R7-02: 采集状态(provenance)同门随序列入顶层平节 series_provenance
+    # ——loader/history/判定层自快照取状态,不经旁路。
+    macro_prov = {}
+    macro_notes = merge_macro_series(store, raw, prov_out=macro_prov)
     if store:
         snapshot['series_store'] = store
     if macro_notes:
         snapshot['series_store_notes'] = macro_notes
+    if macro_prov:
+        snapshot['series_provenance'] = macro_prov
 
     if not write:
         return snapshot

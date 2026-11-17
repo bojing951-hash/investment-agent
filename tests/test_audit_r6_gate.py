@@ -207,6 +207,8 @@ check('W1 12 个日频观测/近十年 → 阻断(基线曾误放行)',
       str(w1['spec']['min_observations']) + w1['outcome'])
 
 # W2 反例2(外审): 3000 个观测全在 1990-01-01..1998-03-19,近十年窗 0 有效
+# (R7-01: n_floor 钉值由 252×年数口径(1260)改为日历工作日期望×半额
+#  ——窗 2016-11-17..2026-11-17 工作日 2609 → floor 1304;阻断行为不变)
 w2 = ro._evaluate_data_requirements(
     ['DXY'], [], snapW(store('DXY', daterange(date(1990, 1, 1),
                                                date(1998, 3, 19)))), [],
@@ -215,7 +217,8 @@ _w2w = w2['spec']['window']
 check('W2 3000 个 1990-1998 观测/近十年 → 窗口不归属阻断',
       w2['outcome'] == 'insufficient_coverage'
       and _w2w.get('n_in_window') == 0
-      and _w2w.get('n_floor_in_window') == 1260,
+      and _w2w.get('n_floor_in_window') == 1304
+      and _w2w.get('expected_in_window') == 2609,
       str(_w2w))
 
 # W3 正例: 真实完整十年日频(2016-11-20..2026-11-13)通过

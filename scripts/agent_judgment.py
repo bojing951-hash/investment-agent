@@ -1060,9 +1060,11 @@ def blocked_class_of(report):
     返回 None(无缺口)或:
       critical_zero_evidence  L1 事实行=0——任何旗标不放行;
       required_data_missing   冻结必要项 outcome∈{missing,
-                             insufficient_coverage}(任务目标缺口;
-                             run_ok=true 亦阻断;--allow-failed-run
-                             只解 attach 层,交付层仍拦);
+                             insufficient_coverage,stale_for_task}
+                             (任务目标缺口;run_ok=true 亦阻断;
+                             --allow-failed-run 只解 attach 层,交付层
+                             仍拦;stale_for_task=R7-02 采集状态贯通
+                             判定的数据过期,旧数据不冒充当前研究可用);
       critical_step_failure   run_ok=False 且存在**非诚实拒答**的失败步
                              (S10 自检/来源校验/关键步/进程/未知失败)
                              ——质量与完整性缺口,不得归可选降级;
@@ -1079,7 +1081,7 @@ def blocked_class_of(report):
         (((report.get('run') or {}).get('data_requirements') or {})
          .get('items') or [])
         if i.get('tier') == 'required' and i.get('outcome')
-        in ('missing', 'insufficient_coverage')]
+        in ('missing', 'insufficient_coverage', 'stale_for_task')]
     if l1_rows == 0:
         return 'critical_zero_evidence'
     if req_missing:

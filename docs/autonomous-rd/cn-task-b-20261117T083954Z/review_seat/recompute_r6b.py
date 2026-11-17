@@ -12,12 +12,28 @@
     回归 OLS+Newey-West HAC(lag=4)
   - PMI相位=50严格两侧,=50.0持平月不入组
   - CI百分位=100*count(史<=当前)/n
+
+R7-03 参数化: 数据目录/输出文件默认按 __file__ 相对定位(净检出直接
+可跑),--seat DIR / --out FILE 可覆写;校验失败以非零退出码结束。
 """
 import json
 import math
 import os
+import sys
 
-SEAT = '/tmp/audit_r6/B_seat/seat_data'
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_argv = sys.argv[1:]
+
+
+def _flag(name, default):
+    return _argv[_argv.index(name) + 1] if name in _argv else default
+
+
+SEAT = _flag('--seat', os.path.normpath(
+    os.path.join(_HERE, '..', 'seat_data')))
+# 默认输出=replay 名(不覆写 R6 冻结档 recompute_out.txt=脚本主输出+
+# 席位追加「反例面扫描补充」段,append-only)
+OUT_PATH = _flag('--out', os.path.join(_HERE, 'recompute_replay_out.txt'))
 OUT = []
 
 def log(s=''):
@@ -586,6 +602,13 @@ fails = [c for c in CHECKS if not c[3]]
 for f in fails:
     log(f'FAIL: {f[0]} claimed={f[1]} computed={f[2]}')
 
-with open('/tmp/sr6b/recompute_out.txt', 'w') as fh:
+# R7-03: 输出默认相对 __file__(--out 覆写);任一校验失败→非零退出
+_out_dir = os.path.dirname(os.path.abspath(OUT_PATH))
+if _out_dir and not os.path.isdir(_out_dir):
+    os.makedirs(_out_dir, exist_ok=True)
+with open(OUT_PATH, 'w') as fh:
     fh.write('\n'.join(OUT) + '\n')
-print('\nwritten /tmp/sr6b/recompute_out.txt')
+print(f'\nwritten {os.path.relpath(OUT_PATH, os.getcwd())}'
+      f'  [exit {"0" if n_ok == len(CHECKS) else "1"}]'
+      f'({n_ok}/{len(CHECKS)} OK)')
+sys.exit(0 if n_ok == len(CHECKS) else 1)

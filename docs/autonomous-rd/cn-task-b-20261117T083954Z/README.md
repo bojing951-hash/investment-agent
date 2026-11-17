@@ -18,7 +18,7 @@ R5 冻结输出**逐字节一致**(`seat_calc_output.txt`)。
 | `seat_data/CN_NEW_LOANS.json` | `b29707507f5a6ace861d5e6cdfdccd615d17bfc3008384e691772e0634ad992f` |
 | `seat_data/FXI.json` | `b4c6ce7ee548e1c5730de5d6d6d9cdca535594b8d31567d3f7823630b49f8eb8` |
 | `seat_data/CHINEXT.json` | `f2bab31ea11652762f01c43b9c955f6f5b1a60602d26c33e4786771c2472a1c5` |
-| 正式生成器随档 `macro_20261117.json` | `be1f7680ce7a650e03631b10c6fc4065ed09cf69969cfbcc246a8168ee22c09e` |
+| 正式生成器随档 `macro_20261117.json`(Audit-R7 起随包交付: `macro_input/macro_20261117.json`,provenance 完整含 fetched_at/coverage/revision_policy/observation_anchor) | `be1f7680ce7a650e03631b10c6fc4065ed09cf69969cfbcc246a8168ee22c09e` |
 | 冻结市场快照 `research_snapshot_20261112_v2.json` | `e2e9152557bd7bb86ca53485069ee1874acf91504c255c541dbd7aec12191769`(与 R5/BLIND 同版) |
 
 ## 口径台账
@@ -40,6 +40,17 @@ diff replay_out.txt <repo>/docs/autonomous-rd/cn-task-b-20261117T083954Z/seat_ca
 ```
 
 (脚本以 `__file__` 相对定位 `seat_data/`,不依赖 home//tmp 绝对路径。)
+
+## 独立席复算重放(Audit-R7 R7-03 参数化后,净检出直接可跑)
+
+```sh
+cd <repo> && python3 docs/autonomous-rd/cn-task-b-20261117T083954Z/review_seat/recompute_r6b.py && echo "rc=$? OK"
+```
+
+rc=0 且 105/105 OK;产物 `review_seat/recompute_replay_out.txt` 与冻结档
+`recompute_out.txt` 核心段(汇总行前 162 行)逐行一致——冻结档尾另有席位
+当日追加的「反例面扫描补充」段(append-only,不参与机器比对)。
+`--seat DIR / --out FILE` 可覆写;任一校验失败脚本以非零退出码结束。
 
 ## 判定档 v3 与措辞规约修订
 

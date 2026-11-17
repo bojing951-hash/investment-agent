@@ -481,6 +481,35 @@ def cmd_history(args):
         'source': series['source']}}
     if sub:
         data['series']['unit_subfamily'] = sub
+    # R7-02: 采集状态随信封贯通(文件写入时间/最后成功采集时间/数据
+    # 统期三分);续用与陈旧如实警告——查询层不再静默(old→ok 无警告
+    # 曾让故障注入续存档冒充可用)
+    cstat = series.get('collection_status')
+    if cstat:
+        data['series']['collection_status'] = cstat
+        if cstat.get('mode') == 'carry_forward':
+            warnings.append(
+                f"序列为续用非本轮采集(carry_forward 自 "
+                f"{cstat.get('carry_forward_from', '?')}): 最后成功采集 "
+                f"{cstat.get('last_success_at', '?')},数据统计期至 "
+                f"{cstat.get('last_observation_period', '?')}")
+        _tgt = str((snap or {}).get('target_date') or '')[:10]
+        _lo = str(cstat.get('last_observation_period') or '')[:10]
+        if _tgt and _lo:
+            try:
+                from datetime import date as _d
+                _lag = (_d.fromisoformat(_tgt) - _d.fromisoformat(_lo)).days
+            except ValueError:
+                _lag = None
+            if _lag is not None:
+                import research_orchestrator as _ro
+                _tol = (_ro._WINDOW_TOL_DAYS.get(m.get('frequency')
+                                                  or '') or (0, 0))[1]
+                if _lag > _tol:
+                    warnings.append(
+                        f"序列末观测统计期 {_lo} 落后研究时点 {_tgt} "
+                        f"{_lag} 天>频率族容忍 {_tol} 天(数据陈旧;"
+                        f"采集状态 mode={cstat.get('mode')})")
     if not idx:
         data['series']['note'] = f'窗口 {lo}~{hi} 内无观测'
         warnings.append('所请求时间窗内无任何观测,窗口与序列覆盖不重叠')

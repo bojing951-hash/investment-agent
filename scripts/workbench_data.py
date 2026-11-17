@@ -624,7 +624,10 @@ def series_capable_metrics(snapshot, registry):
 def metric_series(metric_id, snapshot=None, root=None):
     """页面三: 本地真实历史序列。优先快照 series_store,否则按注册表 source
     找最新采集档走 research_history_query.load_metric_series。
-    返回 {'metric_id','label','unit','dates','values','source'} 或 (None, 原因)。"""
+    返回 {'metric_id','label','unit','dates','values','source',
+    'collection_status'?} 或 (None, 原因)——R7-02: 采集状态双路贯通
+    (快照面=series_provenance 平节经 collection_status_of 规范;采集档面=
+    loader 随序列提升),供 ia_cli history 信封与研究判定层同一状态源。"""
     if isinstance(metric_id, dict):  # UI 下拉传入 option 对象时取其 id(2026-11-08 D验收回归)
         metric_id = metric_id.get('metric_id')
     registry = load_registry(root)
@@ -633,9 +636,17 @@ def metric_series(metric_id, snapshot=None, root=None):
         return None, f'注册表无此指标: {metric_id}'
     if snapshot and metric_id in (snapshot.get('series_store') or {}):
         ss = snapshot['series_store'][metric_id]
-        return {'metric_id': metric_id, 'label': m['display_name'],
-                'unit': m.get('unit', ''), 'dates': list(ss['dates']),
-                'values': list(ss['values']), 'source': '研究快照 series_store'}, None
+        import research_history_query as rhq
+        cstat = rhq.collection_status_of(
+            (snapshot.get('series_provenance') or {}).get(metric_id),
+            last_observation=(ss['dates'][-1] if ss.get('dates')
+                              else None))
+        out = {'metric_id': metric_id, 'label': m['display_name'],
+               'unit': m.get('unit', ''), 'dates': list(ss['dates']),
+               'values': list(ss['values']), 'source': '研究快照 series_store'}
+        if cstat:
+            out['collection_status'] = cstat
+        return out, None
     # R25: 历史序列通道=history_source 优先,回落 source(DFF 首例:
     # source=rate_expectations 单点,history_source=macro_collector 序列)
     prefix = SERIES_SOURCE_PREFIX.get(m.get('history_source') or m.get('source'))
@@ -648,16 +659,24 @@ def metric_series(metric_id, snapshot=None, root=None):
     ymd = os.path.basename(files[-1])[len(prefix):len(prefix) + 8]
     import research_history_query as rhq
     try:
-        res = rhq.load_metric_series(metric_id, ymd, data_dir=os.path.dirname(files[-1]))
+        # R7-02: root 即该数据树的持有根(FIX7 可信边界授权缝——生产
+        # 默认=ROOT 与缺省可信根同一,零行为差;engine_root/测试沙箱
+        # 显式传入其树根)
+        res = rhq.load_metric_series(
+            metric_id, ymd, data_dir=os.path.dirname(files[-1]),
+            trusted_root=(root or ROOT))
     except ValueError as e:
         return None, f'该指标无历史序列: {e}'
     dates, values = res.get('dates'), res.get('values')
     if not dates:
         return None, '序列为空'
-    return {'metric_id': metric_id, 'label': res.get('display_name') or m['display_name'],
-            'unit': res.get('unit') or m.get('unit', ''),
-            'dates': list(dates), 'values': list(values),
-            'source': f"采集档 {os.path.basename(res.get('source', {}).get('file', files[-1]))}"}, None
+    out = {'metric_id': metric_id, 'label': res.get('display_name') or m['display_name'],
+           'unit': res.get('unit') or m.get('unit', ''),
+           'dates': list(dates), 'values': list(values),
+           'source': f"采集档 {os.path.basename(res.get('source', {}).get('file', files[-1]))}"}
+    if res.get('collection_status'):
+        out['collection_status'] = res['collection_status']
+    return out, None
 
 
 # ══ AI研究(复用 e2eb 查询栈 / 可选模型解释层 / 研究档案) ═══════════════

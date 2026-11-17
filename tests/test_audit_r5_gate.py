@@ -441,16 +441,52 @@ check('R-j legacy 头(v1 锚)+rebind 档 → 健全(UPHELD fresh, n=2)',
 print('§S 必要数据规格(问题范围×频率推导,不统一 12 替代)')
 
 
+def _s4_dates(freq, first, last, n):
+    """R7-01: S4 信封须带生产形态 dates(ia_cli 真实输出恒带)——
+    daily=周内日序列,monthly=月首序列,截取至 n 个(首端对齐)。"""
+    from datetime import date as _d, timedelta as _td
+    d0, d1 = _d.fromisoformat(first), _d.fromisoformat(last)
+    out = []
+    if freq == 'monthly':
+        y, m = d0.year, d0.month
+        while len(out) < n:
+            iso = '%04d-%02d-01' % (y, m)
+            if iso > last:
+                break
+            out.append(iso)
+            m += 1
+            if m == 13:
+                y, m = y + 1, 1
+        return out
+    d = d0
+    while d <= d1 and len(out) < n:
+        if d.weekday() < 5:
+            out.append(d.isoformat())
+        d += _td(days=1)
+    return out
+
+
 def s4(mid, n, ok=True, freq=None, first=None, last=None):
+    """S4 信封(生产形态: 带 dates/values——R7-01 起窗口判定须实际
+    日期面;不带 dates 的信封=窗口成员不可核验=阻断)。"""
+    if not ok:
+        return {'step': f'S4_history_{mid}', 'ok': ok, 'envelope': None}
+    dates = _s4_dates(freq or 'daily', first, last, n) if first and last \
+        else None
     env = {'data': {'series': {'n': n, 'source': '采集档',
                                'frequency': freq, 'first': first,
-                               'last': last}}} if ok else None
+                               'last': last,
+                               'dates': dates,
+                               'values': ([1.0] * len(dates)
+                                          if dates is not None else None)}}}
     return {'step': f'S4_history_{mid}', 'ok': ok, 'envelope': env}
 
 
 # Audit-R6 R6-01 窗口判据接入后, §S 限定范围用例须带研究时点+时间边界
 # (快照 target_date + 信封 first/last)——负例意图不变: 数量不足/短史
 # 仍阻断,正例=真跨窗才放行(旧字符串 window 断言随判据升级改字典面)。
+# Audit-R7 R7-01: 信封带实际 dates;月频 59/61 月属合理缺口不再硬否决
+# (252×年数/N×12 硬否决废除,改日历期望×半额+断档上限)。
 snap3y = {'target_date': '2026-11-17'}
 q3y = '近三年 TEST_M0 与 TEST_M1 的关系'
 items3y = {i['metric_id']: i for i in ro._evaluate_data_requirements(
@@ -469,17 +505,26 @@ items3y_ok = ro._evaluate_data_requirements(
     ['TEST_M0'], [s4('TEST_M0', 800, freq='daily',
                      first='2023-11-16', last='2026-11-14')],
     snap3y, [], question=q3y)
-check('S2 n=800≥756 且跨任务窗 → satisfied(任务范围内满足)',
+check('S2 n=800 跨任务窗(日历期望×半额) → satisfied',
       items3y_ok[0]['outcome'] == 'satisfied')
 
 items5y_m = ro._evaluate_data_requirements(
     ['PM_M'], [s4('PM_M', 59, freq='monthly',
                   first='2021-12-01', last='2026-10-01')],
     snap3y, [], question='过去五年 PM_M 走势')
-check('S3 月频+过去五年 → min=60, n=59 不足',
+check('S3 月频+过去五年 59/61 月=合理缺口(R7-01 废除 N×12 硬否决) '
+      '→ satisfied(缺口随档披露)',
       items5y_m[0]['spec']['min_observations'] == 60
-      and items5y_m[0]['outcome'] == 'insufficient_coverage',
+      and items5y_m[0]['outcome'] == 'satisfied'
+      and items5y_m[0]['spec']['window'].get('n_in_window') == 59,
       str(items5y_m[0]['spec']))
+items5y_m_short = ro._evaluate_data_requirements(
+    ['PM_M'], [s4('PM_M', 30, freq='monthly',
+                  first='2021-12-01', last='2026-10-01')],
+    snap3y, [], question='过去五年 PM_M 走势')
+check('S3b 月频+过去五年 30 月<半额下界31 → 阻断(真覆盖不足)',
+      items5y_m_short[0]['outcome'] == 'insufficient_coverage',
+      str(items5y_m_short[0]['spec']))
 
 items_nr = ro._evaluate_data_requirements(
     ['TEST_M0'], [s4('TEST_M0', 100, freq='daily')], {}, [],

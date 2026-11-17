@@ -1,0 +1,2 @@
+CN_PMI_MFG n= 226 first= 2008-01-01 last= 2026-10-01 mode= fresh last_success_at= 2026-11-17T11:00:04Z file= macro_20261117.json sha= 1276673ae047b859 warnings= 0
+CN_NEW_LOANS n= 226 first= 2008-01-01 last= 2026-10-01 mode= fresh last_success_at= 2026-11-17T11:00:04Z file= macro_20261117.json sha= 1276673ae047b859 warnings= 0

@@ -141,8 +141,12 @@ check('E5 「截至X」→ 终界无起界',
       qw('截至2025年12月 DXY 走势') == {
           'kind': 'explicit', 'start': None, 'end': '2025-12-31',
           'raw': '截至2025年12月'})
-check('E6 单日期提及≠区间 → None(max_available 口径)',
-      qw('2026年10月的 PMI 如何') is None)
+# R12 P1①(指令⑤)契约更新: 明确研究年份/月份必须纳入要求——裸单日期
+# 提及不再退化为未限定 max_available,按粒度成显式窗(年→日历年/月→自然月)。
+check('E6 单日期提及 → 粒度显式窗(R12: 明确年份纳入要求)',
+      qw('2026年10月的 PMI 如何') == {
+          'kind': 'explicit', 'start': '2026-10-01', 'end': '2026-10-31',
+          'raw': '2026年10月'})
 check('E7 相对年限 → relative(端点=研究时点)',
       qw('近五年 PM_M 走势') == {'kind': 'relative', 'years': 5})
 check('E8 词序倒置 → unparseable 区间倒置(不静默重排)',

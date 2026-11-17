@@ -596,9 +596,16 @@ FC1 = {
 }
 for n, b in FC1.items():
     open(os.path.join(dailyC1, n), 'wb').write(b)
+# R12 P1② 契约对齐: 合成快照须为权威结构(4 通道+status/file/file_date
+# 规范)——结构不完整的快照自 R12 起即扫描异常,不再作为「净扫描」夹具。
 json.dump({'snapshot_id': 'research_snapshot_20260301',
-           'sources_status': {'macro': {'file': 'macro_20260101.json',
-                                        'match': 'EXACT'}}},
+           'sources_status': {
+               'macro': {'status': 'EXACT',
+                         'file': 'macro_20260101.json',
+                         'file_date': '20260101'},
+               'global': {'status': 'MISSING'},
+               'china': {'status': 'MISSING'},
+               'rate_economy': {'status': 'MISSING'}}},
           open(os.path.join(dailyC1, 'research_snapshot_20260301.json'), 'w'))
 open(os.path.join(dailyC1, 'research_snapshot_20260401.json'), 'w').write(
     '{"snapshot_id": "research_snapshot_20260401", "sources_status": '
@@ -641,8 +648,14 @@ FC2 = {
 for n, b in FC2.items():
     open(os.path.join(dailyC2, n), 'wb').write(b)
 json.dump({'snapshot_id': 'research_snapshot_20260125',
-           'sources_status': {'macro': {'file': 'macro_20260120.json',
-                                        'match': 'FALLBACK'}}},
+           # R12 P1② 契约对齐: 权威结构(4 通道/status 规范),净扫描前提
+           'sources_status': {
+               'macro': {'status': 'FALLBACK',
+                         'file': 'macro_20260120.json',
+                         'file_date': '20260120'},
+               'global': {'status': 'MISSING'},
+               'china': {'status': 'MISSING'},
+               'rate_economy': {'status': 'MISSING'}}},
           open(os.path.join(dailyC2, 'research_snapshot_20260125.json'), 'w'))
 repC2 = drt.prune_daily_archives(dailyC2, keep_days=90, now=NOWC)
 check('C2 扫描净 → 常规策略不变(删无引用/保护引用/月度归档/近窗保留)',

@@ -73,32 +73,42 @@ _WINDOW_MAX_GAP_DAYS = {'daily': 30, 'weekly': 60,
 # 完整解析→阻断,不缩短范围。
 # Audit-R11 P1: 十进制小数(「1.5年」)为完整数量形——小数年限折月
 # (1.5年=18 个月);run 前不得是「.」(防小数尾位被截出二次匹配)。
+# Audit-R12 P1: 词法收敛为**单一范围词形扫描器** _QRANGE_RE——年限/
+# 月数/半年/年半共用一个「前缀?+数量+单位+半?+后缀?」骨架,数量
+# 转换与约束提取只有一条路径(不同入口同一规则);「个月」的「个」
+# 可省(「过去十八月」=十八个月,同窗口径);「N个月半」=非整月
+# 明确拒绝;裸词形(无前缀无后缀)只消费词元不构成约束(R9/R10
+# 未限定口径不变),残缺扫描由 _q_residual_bad 收口。
 _NUM_RUN = r'(?:[0-9]+(?:\.[0-9]+)?|[0-9零一二两三四五六七八九十百廿卅]+)'
 _NUM_RUN_EDGE = r'(?<![0-9.零一二两三四五六七八九十百廿卅])'
-# R11 P1: 年限带 (?!半) 前瞻——「一年半」不得被吞成「一年」(反例3:
-# 只匹配一部分=禁,由月数分支以 N×12+6 收编)。
-_RANGE_YEARS_RE = re.compile(
-    r'(?:近|最近|过去)\s*(' + _NUM_RUN + r')\s*年(?!半)'
-    r'|' + _NUM_RUN_EDGE + r'(' + _NUM_RUN + r')\s*年(?!半)(?:以内|以来|内)')
-# R9-02: 相对月数词形(近/最近/过去 N 个月;N 个月以内/以来/内)——与
-# 年限词形同构,单位=月;判定器按研究时点倒推 N 个自然月(研究时点
-# 不可核验=窗口不可核验,不回落 max_available)。
-# R10 P1: 完整数量 run+词元边界(同年限);「半年」=6 个月(「半」为
-# 完整数量词,须带近/最近/过去前缀或以内/以来/内后缀,裸「半年」
-# 不认——防「上半年/下半年」类自然年词误配)。
-_RANGE_MONTHS_RE = re.compile(
-    r'(?:近|最近|过去)\s*(半)\s*年'
-    r'|(?:近|最近|过去)\s*(' + _NUM_RUN + r')\s*个\s*月'
-    r'|' + _NUM_RUN_EDGE + r'(半)\s*年(?:以内|以来|内)'
-    r'|' + _NUM_RUN_EDGE + r'(' + _NUM_RUN + r')\s*个\s*月(?:以内|以来|内)'
-    # R11 P1: 「N年半」=N×12+6 个月(一年半=18=十八个月,同窗口径)
-    r'|(?:近|最近|过去)\s*(' + _NUM_RUN + r')\s*年\s*半'
-    r'|' + _NUM_RUN_EDGE + r'(' + _NUM_RUN + r')\s*年\s*半(?:以内|以来|内)')
-# R11 P1: 范围意图标记在场但数量词未被任何完整匹配消费(「近 20 24个
-# 月」=两个独立数字)→残缺数量=无法完整解析,阻断,不当作未限定。
+_QRANGE_RE = re.compile(
+    r'(?P<pre>(?:近|最近|过去)\s*)?'
+    + _NUM_RUN_EDGE +
+    r'(?P<num>半|' + _NUM_RUN + r')'
+    r'\s*(?P<unit>年|个?\s*月)'
+    r'\s*(?P<half>半)?'
+    r'(?P<suf>以内|以来|内)?')
+# R12 P1: 残缺数量扫描——数量 run 取**贪吃点形**([0-9][0-9.]* 可多
+# 点,「1.2.3年」整体入列,防尾位被 EDGE 拦下逃逸);范围意图标记在
+# 场时,未被完整匹配消费的数量+单位/缺数量单位/缺单位数量=无法完整
+# 解析,阻断,不当作未限定。裸数量(无标记)维持未限定既档语义。
 _QNUM_RESIDUAL_RE = re.compile(
-    _NUM_RUN_EDGE + r'(' + _NUM_RUN + r')\s*(?:个\s*月|年(?!期))')
+    _NUM_RUN_EDGE + r'([0-9][0-9.]*|[零一二两三四五六七八九十百廿卅]+)'
+    r'\s*个?\s*(?:月(?!份)|年(?!期|份))'
+    r'|(?:近|最近|过去)\s*个?\s*月(?!份)'
+    r'|(?:近|最近|过去)\s*年(?!期|份|半)'
+    r'|(?:近|最近|过去)\s*(?:[0-9][0-9.]*|[零一二两三四五六七八九十百廿卅]+)'
+    r'(?!\s*个?\s*(?:月|年|季度|周|星期|天|日))')
 _QRANGE_MARKER_RE = re.compile(r'(?:近|最近|过去|以来|以内|内)')
+# R12 P1: 词形规范化副本(全角数字/全角点→半角)——原始问题保留,
+# 仅解析面消费规范化副本(translate 逐字符 1:1,偏移不变,词面
+# 报告取规范化文本)。
+_FW_TRANS = str.maketrans('０１２３４５６７８９．', '0123456789.')
+
+
+def _norm_question(q):
+    """R12 P1: 解析用规范化副本(全角数字→半角);原始问题不改动。"""
+    return (q or '').translate(_FW_TRANS)
 # R9-02: 时间意图在场但表达未支持——诚实失败(unparseable 阻断),
 # 不与「没有时间要求」混同退化为 max_available。确定性词面匹配,
 # 资产名护栏: 上/本周不带「期」(防「上周期」);年序词不含十年期类
@@ -106,6 +116,11 @@ _QRANGE_MARKER_RE = re.compile(r'(?:近|最近|过去|以来|以内|内)')
 _QTIME_UNSUPPORTED_RE = re.compile(
     r'(今年|明年|后年|大前年|上半年|下半年|年初|年中|年末|月初|月底|月末'
     r'|上(?:个)?季度|本季度|下(?:个)?季度|这(?:个)?季度'
+    # R12 P1(变体探测): 标记词+裸双字未支持单位(「过去季度」「近季度」
+    # 「过去星期」)——无数量无限定词同样=意图在场未支持,确定性拒绝;
+    # 单字单位(天/日/周)裸形刻意不收(「过去日本央行」「过去天量」
+    # 误伤),带数量形由下行既有规则覆盖。
+    r'|(?:近|最近|过去)\s*个?\s*(?:季度|星期)'
     # R11 P1: 数量+季度(「过去六季度」「六个季度」)=意图在场未支持,
     # 确定性拒绝,不退化为未限定
     r'|(?:近|最近|过去)?\s*(?:\d+|[零一二两三四五六七八九十百廿卅]+)'
@@ -160,142 +175,116 @@ def _cn_run_to_int(tok):
     return section + (digit or 0)
 
 
+def _scan_range_forms(q, date_spans=()):
+    """R12 P1: **单一**范围词形扫描器(数量转换与约束提取的唯一路径)。
+
+    逐 _QRANGE_RE 匹配(规范化副本上)产出分类,不同入口(窗口解析/
+    约束收集/年限月数 max 口径)消费同一结果,不得各自再写转换规则:
+      ('bare', (s,e), raw)     裸词形(无前缀无后缀)——只消费词元不构
+                               成约束(R9/R10 未限定口径;词元已消费,
+                               残缺扫描不计);
+      ('months', n, (s,e))     已完整解析的月数约束(含 半年=6、
+                               N年半=N×12+6、个 可省);
+      ('years', y, (s,e))      已完整解析的年限约束(小数原样);
+      ('date_since', (s,e), raw) 日期词重叠且尾缀「以来」=显式起界
+                               (让位日期分支,不按约束计);
+      ('BAD', raw)             已指定但无法完整解析——零值/畸形数量/
+                               N个月半(非整月)/半月(日粒度)/日历年
+                               形态(「2026年内」R10 口径)。
+    date_spans=日期词形区间,重叠分派同 R10/R11 语义。"""
+    forms = []
+    for m in _QRANGE_RE.finditer(_norm_question(q)):
+        pre, suf = m.group('pre'), m.group('suf')
+        num_tok, unit, half = m.group('num'), m.group('unit'), m.group('half')
+        span, raw = (m.start(), m.end()), m.group(0).rstrip()
+        if pre is None and suf is None:
+            forms.append(('bare', None, span, raw))
+            continue
+        if any(not (m.end() <= s or m.start() >= e) for s, e in date_spans):
+            if raw.endswith('以来'):
+                forms.append(('date_since', None, span, raw))
+            else:
+                forms.append(('BAD', None, None, raw))   # 「2026年内」日历年形态
+            continue
+        if num_tok == '半':
+            if unit == '月' or half:
+                forms.append(('BAD', None, None, raw))   # 半月=日粒度/半年半
+            else:
+                forms.append(('months', 6, span, raw))   # 半年=6 个月
+            continue
+        v = _cn_run_to_int(num_tok)
+        if v is None or v <= 0:
+            forms.append(('BAD', None, None, raw))   # 零值/畸形/混写/4位年形
+            continue
+        if unit == '年':
+            if half:
+                if isinstance(v, float):
+                    forms.append(('BAD', None, None, raw))
+                else:
+                    forms.append(('months', v * 12 + 6, span, raw))
+            else:
+                forms.append(('years', v, span, raw))
+        else:                                            # 月(「个」可省)
+            if half or (isinstance(v, float) and not v.is_integer()):
+                forms.append(('BAD', None, None, raw))   # N个月半/非整月
+            else:
+                forms.append(('months', int(v), span, raw))
+    return forms
+
+
 def _question_range_years(question):
     """问题词面声明的分析年限(None=未限定)。
 
-    只认状语性范围(近/过去/最近 N 年、N 年内/以来)——确定性词面
-    匹配,不做语义改写;未限定返回 None(用频率族兜底下界)。
-    多个匹配取**最大**(更严),资产名(十年期美债)不匹配。
-    R10 P1: 数量 run 整体换算;换算失败返回 ('BAD', raw)——数量无法
-    完整解析=意图在场但不可解析,调用方阻断,不缩短范围。
-    R11 P1: 小数年限(「1.5年」)为合法数量→float 原样返回(消费端折月);
-    多范围问题由 _question_window 上游统一阻断,本 helper 的 max() 口径
-    仅服务单约束问题与 min_obs 推导。
-    """
+    R12 P1: 收敛到 _scan_range_forms 单一扫描器(与窗口解析同规则);
+    逐月口径的词形(半年/N年半)不参与年限值。多个匹配取**最大**(更
+    严),资产名(十年期美债)不匹配;换算失败返回 ('BAD', raw)——
+    意图在场但不可解析,调用方阻断,不缩短范围。小数年限(「1.5年」)
+    为合法数量→float 原样返回(消费端折月)。"""
     years = []
-    for v in _iter_range_years(question):
-        if isinstance(v, tuple):
-            return v
-        years.append(v)
+    for form in _scan_range_forms(question):
+        if form[0] == 'BAD':
+            return ('BAD', form[3])
+        if form[0] == 'years':
+            years.append(form[1])
     return max(years) if years else None
 
 
 def _question_range_months(question):
     """R9-02: 问题词面声明的相对月数(None=未限定)。
 
-    与 _question_range_years 同构(近/最近/过去 N 个月、N 个月以内/
-    以来/内);多个匹配取最大(更严);「六个月内」类资产/频率词不
-    含「个月」量词不匹配。R10 P1: 数量 run 整体换算+「半年」=6;
-    换算失败返回 ('BAD', raw),调用方阻断不缩短范围。
-    R11 P1: 「N年半」=N×12+6;非整数月数(「1.5个月」)无法构成自然月
-    窗=无法完整解析→('BAD', raw)。"""
+    R12 P1: 收敛到 _scan_range_forms 单一扫描器;多个匹配取最大(更
+    严);「半年」=6、「N年半」=N×12+6、「个」可省;换算失败返回
+    ('BAD', raw),调用方阻断不缩短范围。"""
     months = []
-    for v in _iter_range_months(question):
-        if isinstance(v, tuple):
-            return v
-        months.append(v)
+    for form in _scan_range_forms(question):
+        if form[0] == 'BAD':
+            return ('BAD', form[3])
+        if form[0] == 'months':
+            months.append(form[1])
     return max(months) if months else None
 
 
-def _iter_range_months(question):
-    """R11 P1: 逐匹配产出月数值(None 跳过;('BAD', raw)=无法完整解析)。
-
-    「N年半」=N×12+6;非整数月数=BAD。_question_range_months(max 口径)
-    与 _q_relative_constraints(全值收集)共用本迭代器。"""
-    for m in _RANGE_MONTHS_RE.finditer(question or ''):
-        tok = next((g for g in m.groups() if g), None)
-        if tok is None:
-            continue
-        if '年半' in m.group(0):
-            y = _cn_run_to_int(tok)
-            if y is None or isinstance(y, float) or y < 1:
-                yield ('BAD', m.group(0))
-                continue
-            yield int(y) * 12 + 6
-            continue
-        n = 6 if tok == '半' else _cn_run_to_int(tok)
-        if n is None:
-            yield ('BAD', m.group(0))
-            continue
-        if isinstance(n, float):
-            if not n.is_integer() or n <= 0:
-                yield ('BAD', m.group(0))
-                continue
-            n = int(n)
-        if n > 0:
-            yield n
-
-
-def _iter_range_years(question):
-    """R11 P1: 逐匹配产出年限值(int|float;('BAD', raw)=无法完整解析)。"""
-    for m in _RANGE_YEARS_RE.finditer(question or ''):
-        tok = next((g for g in m.groups() if g), None)
-        if tok is None:
-            continue
-        y = _cn_run_to_int(tok)
-        if y is None or y <= 0:
-            yield ('BAD', m.group(0))
-            continue
-        yield y
-
-
 def _q_relative_constraints(q, date_spans=()):
-    """R11 P1: 收集问题词面**全部**相对/自然年时间约束(完整收集,
-    不取其一)。
+    """R11/R12 P1: 收集问题词面**全部**相对/自然年时间约束(完整收集,
+    不取其一);数量转换与词形分类收敛于 _scan_range_forms。
 
-    date_spans=日期词形区间(如「2020年」)——与其重叠的数量匹配是
-    **日期词的年形**,不按相对约束计: 后缀「以来」=显式起界(让位日期
-    分支),后缀「以内/内」=日历年形态(R10 口径=数量无法完整解析)。
     返回 (constraints, bad_raw): bad_raw 非空=存在无法完整解析的数量
     (调用方按 unparseable 阻断);constraints={'months': 去重升序列表
-    (含 年半 折月), 'years': 去重升序列表(int|float), 'cal': [(词,
-    offset)]}。多约束并存由 _q_multi_conflict_ret 判定(单窗口接口
-    无法表达多范围任务→提示拆分并阻断,不做多窗口扩展)。"""
-
-    def _overlap_date(m):
-        return any(not (m.end() <= s or m.start() >= e)
-                   for s, e in date_spans)
-
+    (含 年半/半年 折月), 'years': 去重升序列表(int|float),
+    'cal': [(词, offset)]}。多约束并存由 _q_multi_conflict_ret 判定
+    (单窗口接口无法表达多范围任务→提示拆分并阻断,不做多窗口扩展)。"""
     months, years, cal = [], [], []
-    for m in _RANGE_MONTHS_RE.finditer(q or ''):
-        if _overlap_date(m):
-            continue                     # 日期词月形(如「2026年11月」)
-        v = None
-        tok = next((g for g in m.groups() if g), None)
-        if tok is not None:
-            if '年半' in m.group(0):
-                y = _cn_run_to_int(tok)
-                v = ('BAD', m.group(0)) \
-                    if y is None or isinstance(y, float) or y < 1 \
-                    else int(y) * 12 + 6
-            else:
-                n = 6 if tok == '半' else _cn_run_to_int(tok)
-                if n is None:
-                    v = ('BAD', m.group(0))
-                elif isinstance(n, float):
-                    v = ('BAD', m.group(0)) \
-                        if not n.is_integer() or n <= 0 else int(n)
-                elif n > 0:
-                    v = n
-        if isinstance(v, tuple):
-            return None, v[1]
-        if v:
-            months.append(v)
-    for m in _RANGE_YEARS_RE.finditer(q or ''):
-        if _overlap_date(m):
-            if m.group(0).endswith('以来'):
-                continue                 # 「2020年以来」=显式起界,日期分支处理
-            return None, m.group(0)      # 「2026年内」=日历年形态(R10 口径)
-        tok = next((g for g in m.groups() if g), None)
-        if tok is None:
-            continue
-        y = _cn_run_to_int(tok)
-        if y is None or y <= 0:
-            return None, m.group(0)
-        years.append(y)
-    if '去年' in (q or ''):
+    for form in _scan_range_forms(q, date_spans):
+        if form[0] == 'BAD':
+            return None, form[3]
+        if form[0] == 'months':
+            months.append(form[1])
+        elif form[0] == 'years':
+            years.append(form[1])
+    qn = _norm_question(q)
+    if '去年' in qn:
         cal.append(('去年', -1))
-    if re.search(r'(?<!大)前年', q or ''):
+    if re.search(r'(?<!大)前年', qn):
         cal.append(('前年', -2))
     return {'months': sorted(set(months)), 'years': sorted(set(years)),
             'cal': cal}, None
@@ -319,14 +308,18 @@ def _q_multi_conflict_ret(cons, extra_parts=()):
 
 
 def _q_residual_bad(q, covered):
-    """R11 P1: 范围意图标记在场但数量词未被完整匹配消费→残缺数量。
+    """R11/R12 P1: 范围意图标记在场但数量词未被完整匹配消费→残缺数量。
 
-    covered=已被完整匹配/日期词/未支持词覆盖的 (start,end) 区间;无
-    范围意图标记(近/最近/过去/以来/以内/内)时不扫——裸数量(「研究
-    六个月 X」)维持未限定既档语义(R9/R10 口径)。"""
-    if not _QRANGE_MARKER_RE.search(q or ''):
+    covered=已被**约束词形**/日期词/未支持词覆盖的 (start,end) 区间
+    (裸词形不算覆盖——「近 20 24个月」的裸「24个月」仍须被残缺扫描
+    抓住);无范围意图标记(近/最近/过去/以来/以内/内)时不扫——裸
+    数量(「研究六个月 X」)维持未限定既档语义(R9/R10 口径)。
+    R12: 数量 run 取贪吃点形(「1.2.3年」整体入列);新增缺数量单位
+    (「过去年」)与缺单位数量(「近 20 24个月」的「近 20」)两类。"""
+    qn = _norm_question(q)
+    if not _QRANGE_MARKER_RE.search(qn):
         return None
-    for m in _QNUM_RESIDUAL_RE.finditer(q or ''):
+    for m in _QNUM_RESIDUAL_RE.finditer(qn):
         if any(s <= m.start() < e or s < m.end() <= e
                for s, e in covered):
             continue
@@ -453,9 +446,18 @@ def _q_relative_tail(q, asof_iso):
     if cons['years']:
         y = cons['years'][0]
         if isinstance(y, float) and not y.is_integer():
-            # R11: 小数年限=月口径(「1.5年」=18 个月,与十八个月同窗)
+            # R11: 小数年限=月口径(「1.5年」=18 个月,与十八个月同窗);
+            # R12: 数量只能**精确**转换到受支持单位——折月非整数
+            # (「1.1年」=13.2 个月)不得 round/截断,明确拒绝。
+            if not (y * 12).is_integer():
+                return {'kind': 'unparseable',
+                        'reason': (f'时间数量 {y}年 折月={round(y * 12, 6)} '
+                                   '非整数月,无法精确表达(不取整)'),
+                        'raw': f'{y}年',
+                        'hint': '数量须精确换算到受支持单位(1.5年=18 '
+                                '个月);非整月表达不支持,请改写'}
             return {'kind': 'relative_months',
-                    'months': int(round(y * 12)), **_asof_kw}
+                    'months': int(y * 12), **_asof_kw}
         return {'kind': 'relative', 'years': int(y), **_asof_kw}
     if cons['cal']:
         w, off = cons['cal'][0]
@@ -466,6 +468,33 @@ def _q_relative_tail(q, asof_iso):
         # R9-02: 「前年」=上上自然年(反例A 词形)
         return {'kind': 'calendar_year', 'offset': -2, 'raw': '前年',
                 **_asof_kw}
+    return None
+
+
+def _bare_date_window(raw):
+    """R12 P1: 裸日期词形→(start_iso, end_iso) 按词形粒度成窗。
+
+    「YYYY年」→自然年全年;「YYYY年M月」/「YYYY-MM」/斜杠年月→整月;
+    全日期(ISO/斜杠/8位紧凑/年月日)→当日。明确研究时间(年/月/日)
+    必须纳入要求——不再当未限定丢弃;非日期词形返回 None。"""
+    t = raw.strip()
+    m = re.fullmatch(r'(\d{4})年', t)
+    if m:
+        return f'{m.group(1)}-01-01', f'{m.group(1)}-12-31'
+    m = re.fullmatch(r'(\d{4})年(\d{1,2})月', t) \
+        or re.fullmatch(r'(\d{4})-(\d{1,2})', t) \
+        or re.fullmatch(r'(\d{4})/(\d{1,2})', t)
+    if m:
+        y, mo = int(m.group(1)), int(m.group(2))
+        if not 1 <= mo <= 12:
+            return None
+        import calendar as _cal
+        return (f'{y}-{mo:02d}-01',
+                f'{y}-{mo:02d}-{_cal.monthrange(y, mo)[1]:02d}')
+    if re.fullmatch(r'\d{4}-\d{1,2}-\d{1,2}|\d{4}/\d{1,2}/\d{1,2}'
+                    r'|\d{8}|\d{4}年\d{1,2}月\d{1,2}日', t):
+        iso = _norm_qdate(t, 'start')
+        return (iso, iso) if iso else None
     return None
 
 
@@ -503,8 +532,13 @@ def _question_window(question):
     完整解析阻断,不当作未限定。
     未支持时间词(今年/明年/后年/季度/周天粒度/未来等)→unparseable
     带改写提示,诚实失败不猜(R9-02;不做自然语言全覆盖)。
+    R12 P1: 解析用规范化副本(全角数字/点→半角,原始问题保留);
+    「个」可省(过去十八月=十八个月同窗);零值/畸形/贪吃点残缺
+    (1.2.3年)/缺数量单位(过去年)/N个月半/小数折月非整(1.1年)
+    =明确拒绝不 round;裸单日期词=按词形粒度成窗(明确研究年份
+    必须纳入要求),与相对约束并存=多范围阻断。
     """
-    q = question or ''
+    q = _norm_question(question or '')   # R12: 解析用规范化副本(全角→半角)
     toks = [(m.start(), m.end(), m.group(0))
             for m in _QDATE_TOKEN_RE.finditer(q)]
     parsed = []
@@ -528,8 +562,10 @@ def _question_window(question):
                       'hint': '请改用明确日期区间或受支持表达'
                               '(近/过去 N 年·N 个月·半年、去年/前年、'
                               'X以来/截至X、ISO 或斜杠日期)'}
-    # R11 P1: 全约束收集 + 残缺数量扫描(已消费区段=完整匹配/日期词/
-    # 未支持词,不重复计;日期词年形按后缀分派,见 collector 注释)
+    # R11/R12 P1: 全约束收集 + 残缺数量扫描(已消费区段=约束词形/日期词/
+    # 未支持词;裸词形不算覆盖——「近 20 24个月」的裸「24个月」须可被
+    # 残缺扫描抓住;日期词年形按后缀分派,见 _scan_range_forms 注释)
+    _forms = _scan_range_forms(q, [(s, e) for (s, e, _r) in toks])
     _cons, _cons_bad = _q_relative_constraints(
         q, [(s, e) for (s, e, _r) in toks])
     if _cons_bad is not None:
@@ -538,8 +574,7 @@ def _question_window(question):
                 'raw': _cons_bad,
                 'hint': '数量须为完整数字/中文数量(十二·24·半年·1.5年),'
                         '混写或残缺词形不支持'}
-    _covered = [(m.start(), m.end()) for m in _RANGE_MONTHS_RE.finditer(q)]
-    _covered += [(m.start(), m.end()) for m in _RANGE_YEARS_RE.finditer(q)]
+    _covered = [f[2] for f in _forms if f[0] != 'bare' and f[2]]
     _covered += [(s, e) for (s, e, _r) in toks]
     if _unsup:
         _covered.append((_unsup.start(), _unsup.end()))
@@ -607,14 +642,28 @@ def _question_window(question):
             return {'kind': 'explicit', 'start': None,
                     'end': _norm_qdate(raw, 'end'), 'raw': '截至' + raw,
                     **_asof_kw}
+        # R12 P1: 裸单日期词(无时点/以来/截至标记)=明确研究时间——
+        # 按词形粒度成窗(YYYY年→全年/年月→整月/全日期→当日),不再
+        # 当未限定(明确研究年份必须纳入要求);与相对/自然年约束并存
+        # =多范围任务,提示拆分并阻断(不丢任何一侧约束,「分别研究
+        # 过去六个月和2024年」不再只查六个月)。
+        _gran = _bare_date_window(raw)
+        if _gran:
+            _c = _explicit_conflict_ret(raw)
+            if _c['kind'] == 'unparseable':
+                return _c
+            if _unsup_ret or _res_ret:
+                return _unsup_ret or _res_ret
+            return {'kind': 'explicit', 'start': _gran[0], 'end': _gran[1],
+                    'raw': raw, **_asof_kw}
         if _unsup_ret:
             # 单日期提及≠区间,但未支持时间词在场=时间意图未解析
             # (R9-02: 不退化为 max_available)
             return _unsup_ret
         if _res_ret:
             return _res_ret
-        # R10 P1③: 单日期提及≠区间(如「2026-10的PMI」),但范围词在
-        # 场则范围生效——不因日期在场丢失范围限制;无范围词=①
+        # R10 P1③: 单日期提及≠区间(如非词形粒度的日期残余),但范围词
+        # 在场则范围生效——不因日期在场丢失范围限制;无范围词=①
         return _q_relative_tail(q, _asof_iso)
     # ≥2 个窗口日期词形: 取词面首末(词序倒置=错误区间,不静默重排)
     first, last = _window_dates[0], _window_dates[-1]

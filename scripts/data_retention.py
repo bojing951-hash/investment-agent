@@ -54,11 +54,19 @@ def research_referenced_files(daily_dir):
 
     扫描 research_snapshot_*.json 的 sources_status 各通道 file 字段
     (EXACT/FALLBACK 声明)。返回 (refs, problems):
-      refs     = 文件名集合(可解析快照的声明并集);
-      problems = [{'snapshot','error'}] —— 读取失败/JSON 损坏/非对象结构
-                 的快照逐份登记(Audit-R11 P1③: 「无法判断引用」必须与
-                 「没有引用」区分上报,由保留策略据此停止永久删除)。
-    """
+      refs     = 文件名集合(**结构可证明**快照的声明并集);
+      problems = [{'snapshot','error'}] —— 读取失败/JSON 损坏/非对象
+                 结构的快照逐份登记(Audit-R11 P1③: 「无法判断引用」
+                 必须与「没有引用」区分上报,由保留策略据此停止永久
+                 删除)。
+    Audit-R12 P1②: 来源**结构完整性**校验复用权威实现
+    research_provenance.sources_status_problems(纯结构口径,不传
+    data_dir——实体存在/摘要重算属验证流职权,清理扫描只判「声明
+    是否可证明」): 顶层缺失/非对象、通道对象变字符串、状态词非法、
+    EXACT/FALLBACK 缺 file、日历年形态等结构损坏逐份登记为扫描异常
+    ——声明不可证明=引用集不可信=无法判断引用,同样停止永久删除。
+    合法 MISSING({'status':'MISSING'})是可证明结构,不构成异常。"""
+    import research_provenance as _rp   # 局部引入: 保持模块独立可导入
     refs, problems = set(), []
     try:
         names = os.listdir(daily_dir)
@@ -77,11 +85,20 @@ def research_referenced_files(daily_dir):
             problems.append({'snapshot': name,
                              'error': f'非对象结构: {type(snap).__name__}'})
             continue
-        for _ch, st in (snap.get('sources_status') or {}).items():
-            if isinstance(st, dict):
-                f = st.get('file')
-                if isinstance(f, str) and f:
-                    refs.add(os.path.basename(f))
+        # R12 P1②: 复用权威结构校验(顶层/通道对象/状态词/来源文件字段)
+        _tgt = snap.get('target_date')
+        _tgt = str(_tgt) if _tgt is not None else ''
+        _tgt = _tgt if (len(_tgt) >= 8 and _tgt[:8].isdigit()) else None
+        for _pr in _rp.sources_status_problems(snap.get('sources_status'),
+                                               target_ymd=_tgt):
+            problems.append({'snapshot': name, 'error': _pr})
+        _ss = snap.get('sources_status')
+        if isinstance(_ss, dict):
+            for _ch, st in _ss.items():
+                if isinstance(st, dict):
+                    f = st.get('file')
+                    if isinstance(f, str) and f:
+                        refs.add(os.path.basename(f))
     return refs, problems
 
 

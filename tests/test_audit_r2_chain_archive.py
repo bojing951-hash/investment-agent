@@ -100,9 +100,15 @@ def write_verdict(root, rd, overall):
     d = os.path.join(root, 'audit', 'semantic_review', '20261116')
     os.makedirs(d, exist_ok=True)
     seq = len([f for f in os.listdir(d) if run_ts in f]) + 1
+    # Audit-R5 条目4: 合成档须与现行生产写入形一致(revision/predecessor/
+    # format_version/digest_algorithm)——revision-less+v3 锚=删除 revision
+    # 冒充 legacy 的攻击指纹,读取端已阻断
     doc = {'overall': overall, 'reviewer': 'SYNTH-SEAT', 'notes': '',
            'run_ts': run_ts, 'recorded_at': '2026-11-16T12:00:00Z',
-           'content_sha256': aj.content_digest(rd)}
+           'content_sha256': aj.content_digest(rd),
+           'format_version': aj.VERDICT_FORMAT_VERSION,
+           'digest_algorithm': aj.DIGEST_ALGORITHM_CURRENT,
+           'revision': seq, 'predecessor': None}
     p = os.path.join(d, 'VERDICT-%s-%02d.json' % (run_ts, seq))
     json.dump(doc, open(p, 'w', encoding='utf-8'), ensure_ascii=False)
     return p
@@ -120,7 +126,7 @@ shutil.copy(os.path.join(ROOT, 'config', 'metric_registry.json'),
 
 # ── R+S+T: 恢复续链→跳挂→报告→归档(三处摘要核对) ──
 rd1 = make_run(tmp, 'c1')
-vp1 = write_verdict(eroot, rd1, 'VERIFIED')
+vp1 = write_verdict(eroot, rd1, 'UPHELD')
 arc1 = os.path.join(tmp, 'arc1')
 r1 = auto_stage(rd1, eroot, archive_dir=arc1)
 e1 = json.loads(r1.stdout)
@@ -144,7 +150,7 @@ check('T4 裁链随包+manifest 裁决面齐',
       os.path.isfile(os.path.join(arc1, 'verdicts', '%s__%s' % (
           os.path.basename(os.path.dirname(vp1)),
           os.path.basename(vp1))))          # Audit-R4 条目4: 日目录__basename 唯一名
-      and man['verdict'] == 'VERIFIED' and man['verdicts_n'] == 1)
+      and man['verdict'] == 'UPHELD' and man['verdicts_n'] == 1)
 check('T5 交付件副本齐(report.json/report.md/FULL_REPORT/'
       'agent_judgment.json)',
       all(os.path.isfile(os.path.join(arc1, f)) for f in
@@ -178,7 +184,7 @@ check('T7 verdict=REVISE → 拒归(归档对象=最终受审版本)',
 
 # ── T: 副本不一致拒归(改渲染视图) ──
 rd5 = make_run(tmp, 'c5')
-write_verdict(eroot, rd5, 'VERIFIED')
+write_verdict(eroot, rd5, 'UPHELD')
 open(os.path.join(rd5, 'report.md'), 'a', encoding='utf-8').write('\n篡改\n')
 arc5 = os.path.join(tmp, 'arc5')
 r5 = auto_stage(rd5, eroot, archive_dir=arc5)

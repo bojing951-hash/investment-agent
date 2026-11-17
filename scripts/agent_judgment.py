@@ -401,6 +401,22 @@ VERDICT_REQUIRED_FIELDS = ('overall', 'reviewer', 'run_ts', 'recorded_at')
 # 须映射为 UPHELD 后落档(同义,-01 档先例),越表词落档即抛(B3 机核面)。
 SEAT_VERDICT_VOCAB = ('UPHELD', 'REVISE', 'NOT_VERIFIED', 'REJECT_ENTRY')
 
+# ── Audit-R5 条目4: 裁决档格式与摘要算法版本显式可验证 ──────────────
+# 新写档显式携带 format_version+digest_algorithm;读取端: 未知版本按
+# 最严处理(不因缺失/未知获得更宽松权限);format_version 缺席=按档形
+# 推断时代(revision 在场=现行格式,缺席=legacy)——推断结果与显式声明
+# 适用同一套校验,永不更宽。历史口径 algo 仅存续供 rebind 迁移验证。
+VERDICT_FORMAT_VERSION = 2
+DIGEST_ALGORITHM_CURRENT = 'digest_v3'
+DIGEST_ALGORITHMS_HISTORICAL = ('digest_v1', 'digest_v2')
+# 三代口径各自覆盖的交付输入(rebind 未覆盖面=机器推导,禁手工漂移):
+_ALGO_INPUTS = {
+    'digest_v1': ('agent_judgment.json', 'report.md'),
+    'digest_v2': ('report.json', 'agent_judgment.json'),
+    DIGEST_ALGORITHM_CURRENT: ('report.json', 'agent_judgment.json',
+                               'views_digest.json'),
+}
+
 
 def _verdicts_for_run(root, run_ts):
     """按 run_ts 收全裁决档(跨日目录,run_ts 在文件名内)。
@@ -473,25 +489,51 @@ def _verdict_write_positions_disagree(keyed):
     return None
 
 
-def _verdict_record_error(path, doc, run_ts, run_paths):
-    """Audit-R4 条目1 读取端单档校验: 返回问题描述(None=有效)。
+def _verdict_record_error(root, path, doc, run_ts, ordered_run_paths):
+    """Audit-R4 条目1 + Audit-R5 条目4 读取端单档校验: None=有效。
+
+    ordered_run_paths: **写入序**下的本 run 在档相对路径列表(规范序=
+    _verdict_sort_key);本档写入位=其在表中的下标。
 
     两级:
     - 解析级(corrupt): 不可解析/非 dict/缺必填字段(overall/reviewer/
       run_ts/recorded_at)——文件本身不可读,但写入位仍是事实;
-    - 语义级(invalid_record): **新格式档**(带 revision 键)的 revision
-      非正整数/裁决词越表/run_ts 字段与文件名键不符/predecessor 不指向
-      本 run 任一在档文件——语义可判的违规,无论写入位在哪都阻断
-      (错误 run 档泄入链=链身份污染)。legacy 档(无 revision)仅受
-      解析级约束(v1 前史档,其放行本就被 fresh=None 挡死)。
+    - 语义级(invalid_record): revision 非正整数/裁决词越表/run_ts 字段
+      与文件名键不符/format_version 未知/predecessor 缺失或非法——
+      语义可判的违规,无论写入位在哪都阻断。
+
+    Audit-R5 条目4 收紧面(反例复现于基线 49fb583):
+    - 删除 revision 冒充 legacy 不再放行: legacy 形(无 revision 键)
+      只在**首写入位**合法(真 legacy=链头;v1 前史档其放行本就被
+      fresh=None 挡死);非首位无 revision=降级攻击,invalid_record;
+      首位 legacy 档的时代一致性(锚须为历史口径)由
+      _semantic_review_state 的 _legacy_era_error 核验;
+    - 非首档 predecessor 必填且必须指向**紧邻前序**(写入位-1)——
+      指向自己/后续记录/隔位前序/缺席均=断链,invalid_record;
+      首档 predecessor 必须 None(首档无前序,带 pred=指向后续或
+      造链,invalid_record);
+    - format_version 在场但非已知版本=invalid_record(未知版本按最严
+      处理,缺失按档形推断——推断适用同一套校验,永不更宽)。
     """
     if not isinstance(doc, dict):
         return 'corrupt: 不可解析/非对象'
     for f in VERDICT_REQUIRED_FIELDS:
         if not doc.get(f):
             return 'corrupt: 缺必填字段 %s' % f
+    fmt = doc.get('format_version')
+    if fmt is not None and fmt != VERDICT_FORMAT_VERSION:
+        return ('invalid_record: format_version=%r 未知(现行=%d;缺失或'
+                '未知版本不得获得更宽松权限)' % (fmt, VERDICT_FORMAT_VERSION))
+    own_rel = os.path.normpath(os.path.relpath(path, root))
+    try:
+        pos = ordered_run_paths.index(own_rel)
+    except ValueError:                      # 不在本 run 键下(调用面已滤)
+        pos = -1
     if 'revision' not in doc:
-        return None                      # legacy 前史档: 宽容历史
+        if pos != 0:
+            return ('invalid_record: 无 revision 档出现在非首写入位'
+                    '(pos=%d;删除 revision 冒充 legacy 的降级)' % pos)
+        return None                      # 首位 legacy 形: 时代锚另核
     rev = doc.get('revision')
     if not (isinstance(rev, int) and not isinstance(rev, bool) and rev > 0):
         return 'invalid_record: revision=%r 非正整数' % (rev,)
@@ -501,8 +543,23 @@ def _verdict_record_error(path, doc, run_ts, run_paths):
         return ('invalid_record: run_ts 字段=%r 与文件名键=%r 不符'
                 '(错误 run 档)' % (doc.get('run_ts'), run_ts))
     pred = doc.get('predecessor')
-    if pred is not None and os.path.normpath(pred) not in run_paths:
-        return 'invalid_record: predecessor=%r 不指向本 run 在档文件' % (pred,)
+    if pos == 0:
+        if pred is not None:
+            return ('invalid_record: 首档 predecessor 必须 None(实=%r;'
+                    '首档带前序=造链/指向后续)' % (pred,))
+    else:
+        if pred is None:
+            return ('invalid_record: 非首档(pos=%d)缺 predecessor'
+                    '(链断)' % pos)
+        p_norm = os.path.normpath(pred)
+        if p_norm == own_rel:
+            return 'invalid_record: predecessor 指向自己(%r)' % (pred,)
+        if p_norm not in ordered_run_paths:
+            return ('invalid_record: predecessor=%r 不指向本 run 在档文件'
+                    '(跨任务/链外)' % (pred,))
+        if ordered_run_paths.index(p_norm) != pos - 1:
+            return ('invalid_record: predecessor=%r 未指向紧邻前序'
+                    '(指向自己之外的隔位/后续记录=断链)' % (pred,))
     return None
 
 
@@ -558,6 +615,10 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
            'run_ts': run_ts, 'content_sha256': content_digest(report_dir),
            'audited_at': day[:4] + '-' + day[4:6] + '-' + day[6:],
            'recorded_at': _now_utc(),
+           # Audit-R5 条目4: 格式与摘要算法显式可验证(读取端未知版本
+           # 按最严处理;缺席=legacy 时代,时代锚另核)
+           'format_version': VERDICT_FORMAT_VERSION,
+           'digest_algorithm': DIGEST_ALGORITHM_CURRENT,
            'revision': revision, 'predecessor': predecessor,
            'counterexamples_sought': ((extra or {}).pop(
                'counterexamples_sought', None)
@@ -569,15 +630,121 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
     return path
 
 
-def rebind_verdict_digest(root, report_dir, note):
-    """Audit-R2 条目1 + Audit-R4 条目2/6 迁移面: 摘要口径换代时的机械重绑。
+def _sha16_of_file(path):
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(65536), b''):
+            h.update(chunk)
+    return h.hexdigest()[:16]
 
-    仅当**内容未变**可重绑: 先验旧锚(最新档 content_sha256 与历史口径
-    v1/v2 之一在当前内容上的复算值一致——证明实际交付内容未改变),
-    再以现行口径(content_digest)写新档(revision 续链,overall/reviewer
-    承袭,rebind 块如实记迁移事实)。内容已变则抛 ValueError——那不是
-    重绑,是修订,须独立席位复验,不得机械承袭(不得直接改 hash 冒充复审)。
-    非重审: 判断内容零变化,裁决结论承袭;rebind 块=机器可查的迁移证据。
+
+def _git_blob_proof(root, report_dir, latest_rel, name):
+    """Audit-R5 条目1 git 面可信旧证: 最早含旧裁决档(在案路径)的提交
+    里,该交付输入的仓内 blob==当前字节(该提交=旧档在案时点的仓内
+    快照)。旧档/文件不在同一仓内、无提交含它、git 不可用→None
+    (不可证,上层面按不可证处理)。"""
+    import hashlib
+    import subprocess
+    try:
+        top = subprocess.run(
+            ['git', '-C', report_dir, 'rev-parse', '--show-toplevel'],
+            capture_output=True, text=True, timeout=15).stdout.strip()
+        if not top:
+            return None
+        f_rel = os.path.relpath(os.path.join(report_dir, name), top)
+        v_rel = os.path.relpath(
+            os.path.join(root, latest_rel), top)
+        if f_rel.startswith('..') or v_rel.startswith('..'):
+            return None
+        commits = subprocess.run(
+            ['git', '-C', top, 'log', '--reverse', '--format=%H', '--', v_rel],
+            capture_output=True, text=True, timeout=15).stdout.split()
+        if not commits:
+            return None
+        blob = subprocess.run(
+            ['git', '-C', top, 'show', '%s:%s' % (commits[0], f_rel)],
+            capture_output=True, timeout=15).stdout
+        got = hashlib.sha256(blob).hexdigest()[:16] if blob else None
+        return ('git:%s:%s' % (commits[0][:12], f_rel), got)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+
+
+def _rebind_trusted_proofs(root, report_dir, latest_p, latest, matched_key):
+    """Audit-R5 条目1: 旧摘要未覆盖交付输入的可信旧证核验。
+
+    旧口径(v1/v2)锚复配只证明**其覆盖面**未变;未覆盖面(如 v2 之于
+    views_digest.json)须另有可信旧证证明自旧裁决在案时点未变,才允许
+    把通过状态迁移到覆盖全部交付输入的 v3。可信源(其一即可;均非从
+    当前文件临时生成的"旧基准"——禁止自我证明):
+    - 归档 manifest: root/research_archive/*/ARCHIVE_MANIFEST.json 且
+      verdict_chain 含本旧档(source_rel+sha256 前 16 位双吻合)——
+      copies_sha16 为归档时点快照(键缺席=该时点文件缺席,亦为快照事实);
+    - git 提交: 最早含本旧档(在案路径)的提交里该文件 blob==当前。
+    返回 (proofs{文件: {source, sha256_16}}, problems[str]);
+    problems 非空=存在未覆盖输入不可证未变(或已变)。
+    """
+    uncovered = [n for n in _ALGO_INPUTS[DIGEST_ALGORITHM_CURRENT]
+                 if n not in _ALGO_INPUTS[matched_key]]
+    proofs, problems = {}, []
+    latest_rel = os.path.relpath(latest_p, root)
+    latest_sha16 = _sha16_of_file(latest_p)
+    manifests = []
+    arc_dir = os.path.join(root, 'research_archive')
+    if os.path.isdir(arc_dir):
+        import glob as _glob
+        for mp in sorted(_glob.glob(os.path.join(
+                arc_dir, '*', 'ARCHIVE_MANIFEST.json'))):
+            try:
+                m = _load_json(mp)
+            except (OSError, ValueError):
+                continue
+            if any(isinstance(e, dict)
+                   and e.get('source_rel') == latest_rel
+                   and e.get('sha256') == latest_sha16
+                   for e in (m.get('verdict_chain') or [])):
+                manifests.append((os.path.relpath(mp, root), m))
+    for name in uncovered:
+        p = os.path.join(report_dir, name)
+        cur = _sha16_of_file(p) if os.path.isfile(p) else None
+        trust = None
+        for mrel, m in manifests:
+            copies = m.get('copies_sha16') or {}
+            trust = ('archive_manifest:%s#copies_sha16' % mrel,
+                     copies.get(name))
+            break
+        if trust is None:
+            trust = _git_blob_proof(root, report_dir, latest_rel, name)
+        if trust is None:
+            problems.append(
+                '%s 无可信旧证(归档 manifest 与 git 提交均缺席)——旧审查'
+                '是否覆盖该输入不可证' % name)
+            continue
+        src, old = trust
+        if old != cur:
+            problems.append('%s 与可信旧证不符(%s 时点 %r→当前 %r)——'
+                            '新增范围已被修改' % (name, src, old, cur))
+        else:
+            proofs[name] = {'source': src, 'sha256_16': cur}
+    return proofs, problems
+
+
+def rebind_verdict_digest(root, report_dir, note):
+    """Audit-R2 条目1 + Audit-R4 条目2/6 + Audit-R5 条目1 迁移面。
+
+    机械重绑的**全部**前置(缺一即 ValueError,须重新独立审查):
+    1. 旧裁决本身合法有效: 读取端单档校验通过——旧档损坏/违规=旧裁决
+       无效,不得继承其通过状态;
+    2. 旧锚复配: 最新档 content_sha256 与历史口径 v1/v2 之一在当前
+       内容上的复算值一致——证明**旧口径覆盖面**未变;
+    3. 未覆盖面可信旧证: v1/v2 不覆盖的交付输入(如 views_digest.json)
+       须有可信旧快照(归档 manifest copies_sha16 / git 提交 blob)证明
+       自旧裁决在案时点未变——不得从当前文件临时生成"旧基准"自我证明;
+    4. 内容边界一致: 未覆盖面=v3 输入−旧口径输入(机器推导,与普通
+       report/archive 门同一边界),迁移/报告/归档不各写一套。
+    非重审: 判断内容零变化,裁决结论承袭;rebind 块=机器可查的迁移
+    证据(uncovered_inputs_proof 逐输入记可信源与哈希)。
     """
     report = _load_json(os.path.join(report_dir, 'report.json'))
     run_ts = (report.get('run') or {}).get('ts_utc') or ''
@@ -586,33 +753,78 @@ def rebind_verdict_digest(root, report_dir, note):
     hits = _verdicts_for_run(root, run_ts)
     if not hits:
         raise ValueError('无在档裁决可重绑')
-    latest_p, latest = max(
-        hits, key=lambda t: _verdict_sort_key(t[0], t[1]))
+    keyed = sorted((_verdict_sort_key(p, v), p, v) for p, v in hits)
+    ordered = [os.path.normpath(os.path.relpath(p, root))
+               for _, p, _ in keyed]
+    latest_p, latest = keyed[-1][1], keyed[-1][2]
     if not isinstance(latest, dict) or not latest.get('content_sha256'):
         raise ValueError('最新档无旧锚,不适用机械重绑')
-    matched = None
-    for algo_name, algo in (
-            ('digest_v1(judgment+report.md)', content_digest_v1),
-            ('digest_v2(report.json+judgment,不含views_digest)',
-             content_digest_v2)):
+    # (1) 旧裁决时代合法性(legacy 形最新档=旧口径时代,其时代锚一致性
+    # 由 (2) 的复配本身证明)
+    err = _verdict_record_error(root, latest_p, latest, run_ts, ordered)
+    if err:
+        raise ValueError('旧裁决档不合法(%s @ %s)——旧裁决无效不得继承,'
+                         '须重新独立审查'
+                         % (err, os.path.relpath(latest_p, root)))
+    matched_key = None
+    for key, algo in (('digest_v1', content_digest_v1),
+                      ('digest_v2', content_digest_v2)):
         try:
             if latest['content_sha256'] == algo(report_dir):
-                matched = algo_name
+                matched_key = key
                 break
         except (OSError, ValueError):
             continue
-    if matched is None:
+    if matched_key is None:
         raise ValueError('旧锚与当前内容不符(任一历史口径均不复配——'
                          '内容已变)——须独立复验,不得机械重绑')
+    # (3) 未覆盖面可信旧证(v2 不覆盖 views_digest;v1 另不覆盖 report.json)
+    proofs, problems = _rebind_trusted_proofs(
+        root, report_dir, latest_p, latest, matched_key)
+    if problems:
+        raise ValueError(
+            '旧摘要(%s)未覆盖全部交付输入且不可证明未变: %s——旧审查与'
+            '当前完整内容的同一性不可证,须重新独立审查,不得机械重绑'
+            % (matched_key, '; '.join(problems)))
     return record_semantic_verdict(
         root, report_dir, latest.get('overall'), latest.get('reviewer'),
         notes=(latest.get('notes') or ''),
         extra={'rebind': {
-            'from_algorithm': matched,
-            'to_algorithm': 'digest_v3(report.json+judgment+views_digest)',
+            'from_algorithm': matched_key,
+            'to_algorithm': DIGEST_ALGORITHM_CURRENT,
             'verified_old_match': True,
+            'uncovered_inputs_proof': proofs,
             'predecessor_archive': os.path.relpath(latest_p, root),
             'note': note}})
+
+
+def _legacy_era_error(report_dir, doc):
+    """Audit-R5 条目4: legacy 形档(无 revision 键)的时代锚核验。
+
+    真 legacy 档=revision 键出现**之前**写入的前史档,锚当时按历史口径
+    (v1/v2)计算。**攻击指纹**=revision-less 档的锚恰为现行 v3 口径
+    (在当前内容上复配)——真 legacy 不可能持有 v3 锚(v3 出现时新写档
+    已强制带 revision),此形=新格式档被删除 revision 冒充 legacy 且
+    将以 fresh=True 通过交付门,invalid_record 阻断。
+    锚与当前内容任一口径均不复配=被替代的**过时前史裁决**(链中间位
+    常态: 修订前后内容不同),fresh 自然 False,不是攻击,放行为历史;
+    无 report_dir 可核=非交付门调用面,同样不误伤。
+    """
+    if report_dir is None:
+        return None
+    anchor = doc.get('content_sha256')
+    if not anchor:
+        return None          # 无锚 legacy: 由 fresh=None 挡死,不算降级攻击
+    try:
+        cur_v3 = content_digest(report_dir)
+        if anchor == cur_v3 and anchor not in (content_digest_v1(report_dir),
+                                               content_digest_v2(report_dir)):
+            return ('invalid_record: legacy 形档锚为现行 v3 口径(疑似'
+                    '新格式档删除 revision 的降级)')
+    except (OSError, ValueError):
+        return ('invalid_record: legacy 档时代锚不可核验(交付输入件缺失)'
+                '——不可证=阻断')
+    return None
 
 
 def _semantic_review_state(report, root, report_dir=None):
@@ -682,10 +894,10 @@ def _semantic_review_state(report, root, report_dir=None):
                      error_detail=conflict)
         return state
     # ── 逐档校验: 语义级违规任何位阻断;解析级损坏仅最新位阻断 ──
-    run_paths = {os.path.normpath(os.path.relpath(p, root))
-                 for _, p, _ in keyed}
+    ordered = [os.path.normpath(os.path.relpath(p, root))
+               for _, p, _ in keyed]
     for _, p, v in keyed:
-        err = _verdict_record_error(p, v, run_ts, run_paths)
+        err = _verdict_record_error(root, p, v, run_ts, ordered)
         if err:
             state['record_health'][os.path.relpath(p, root)] = err
             if p == latest_p or err.startswith('invalid_record'):
@@ -695,13 +907,35 @@ def _semantic_review_state(report, root, report_dir=None):
                            else err),
                     error_detail='%s @ %s' % (err, os.path.relpath(p, root)))
                 return state
+    # ── Audit-R5 条目4: 首位 legacy 档时代锚核验(删除 revision 冒充
+    # legacy 的单档链: 锚若为现行 v3 口径=新格式档被降级,阻断;真 legacy
+    # 档锚必为历史口径 v1/v2 且在当前内容上复配——无法核验(缺件)亦阻断
+    for _, p, v in keyed:
+        if isinstance(v, dict) and 'revision' not in v:
+            era = _legacy_era_error(report_dir, v)
+            if era:
+                state['record_health'][os.path.relpath(p, root)] = era
+                state.update(seat_invoked=True, verdict=None, error=era,
+                             error_detail='%s @ %s'
+                             % (era, os.path.relpath(p, root)))
+                return state
+            break
     state.update(seat_invoked=True, verdict=latest.get('overall'))
     bound = latest.get('content_sha256')
     if bound and report_dir:
-        try:
-            state['fresh'] = (content_digest(report_dir) == bound)
-        except (OSError, ValueError):
+        # Audit-R5 条目4: 摘要算法版本显式可验证——在场但非现行口径=
+        # 绑定不可核验,fresh=False(缺失=历史档,锚与现行口径比对自然
+        # 失效走 rebind 迁移;未知版本不获得更宽松权限)
+        algo = latest.get('digest_algorithm')
+        if algo is not None and algo != DIGEST_ALGORITHM_CURRENT:
             state['fresh'] = False
+            state['fresh_note'] = ('digest_algorithm=%r 非现行口径'
+                                   % (algo,))
+        else:
+            try:
+                state['fresh'] = (content_digest(report_dir) == bound)
+            except (OSError, ValueError):
+                state['fresh'] = False
     elif bound:
         state['fresh'] = None   # 有绑定但无 report_dir 可核=不冒充新鲜
     return state
@@ -763,22 +997,59 @@ def _new_attach_meta(prior, meta):
     return out
 
 
-def blocked_class_of(report):
-    """Audit-R4 条目5: 三级数据缺口分类的唯一规范源(attach/report/archive
-    同源同判,不得各写一套口径)。
+# 引擎诚实拒答族(Audit-R5 条目2): envelope error kind 词表——这些失败
+# 是"数据面如实缺席/不满足前提"的正确拒答,不是管线完整性缺陷,可按
+# 可选降级面处理;词表之外/无信封/进程面失败=未知失败,不得自动归可选。
+HONEST_REFUSAL_ERROR_KINDS = frozenset(
+    {'no_series', 'insufficient_history', 'insufficient_candidates',
+     'anchor_not_complete'})
 
-    返回 None(run_ok 非 False)或:
+# 阻断交付的数据门类目(Attach 旗标不可越过;仅 optional_data_missing
+# 走显式降级路径)——attach/report/archive 同源引用。
+BLOCKING_BLOCKED_CLASSES = frozenset(
+    {'critical_zero_evidence', 'required_data_missing',
+     'critical_step_failure'})
+
+
+def _step_failure_is_refusal(step):
+    """失败步性质判定(Audit-R5 条目2): 诚实拒答=True(可降级面)。
+
+    依据(按信任序): honest_refusal 豁免标记(编排层已判,如 S6 analog
+    短历史拒答)> 信封 error.kind∈引擎拒答词表。其余(S10 自检失败/
+    来源校验失败/进程失败/超时/未知 kind)=非拒答——关键步骤失败,
+    不得自动归为可选缺失。
+    """
+    if step.get('honest_refusal'):
+        return True
+    env = step.get('envelope')
+    err = env.get('error') if isinstance(env, dict) else None
+    return bool(isinstance(err, dict)
+                and err.get('kind') in HONEST_REFUSAL_ERROR_KINDS)
+
+
+def blocked_class_of(report):
+    """Audit-R4 条目5 + Audit-R5 条目2: 数据缺口/完整性分类唯一规范源
+    (attach/report/archive 同源同判,不得各写一套口径)。
+
+    进程成功、必要数据满足、数据质量合格**分别判断**——run_ok 不再
+    一票豁免: 必要缺口与零证据在 run_ok=true 时同样阻断(反例 2A:
+    history 正常退出+必要指标 n=1 曾误放行)。
+
+    返回 None(无缺口)或:
       critical_zero_evidence  L1 事实行=0——任何旗标不放行;
       required_data_missing   冻结必要项 outcome∈{missing,
-                             insufficient_coverage}(任务目标缺口,
-                             默认阻塞;--allow-failed-run 显式越过随档);
-      optional_data_missing   证据面在场且无必要缺口(诚实拒答类失败)
-                             ——显式旗标+充分披露+有效独立审查后可交付。
+                             insufficient_coverage}(任务目标缺口;
+                             run_ok=true 亦阻断;--allow-failed-run
+                             只解 attach 层,交付层仍拦);
+      critical_step_failure   run_ok=False 且存在**非诚实拒答**的失败步
+                             (S10 自检/来源校验/关键步/进程/未知失败)
+                             ——质量与完整性缺口,不得归可选降级;
+      optional_data_missing   证据面在场、无必要缺口、失败步全部为诚实
+                             拒答(源端缺席类)——显式旗标+充分披露+
+                             有效独立审查后可交付。
     「存在最新单点」不构成历史分析需求满足(Audit-R4 条目5)——
     insufficient_coverage 与 missing 同为必要缺口。
     """
-    if report.get('run_ok') is not False:
-        return None
     l1_rows = len(((report.get('layers') or {}).get('L1_事实层') or {})
                   .get('rows') or [])
     req_missing = [
@@ -791,6 +1062,13 @@ def blocked_class_of(report):
         return 'critical_zero_evidence'
     if req_missing:
         return 'required_data_missing'
+    if report.get('run_ok') is not False:
+        return None
+    non_refusal = [s.get('step') for s in (report.get('steps') or [])
+                   if s.get('executed') and s.get('ok') is False
+                   and not _step_failure_is_refusal(s)]
+    if non_refusal:
+        return 'critical_step_failure'
     return 'optional_data_missing'
 
 
@@ -846,9 +1124,11 @@ def attach_judgment(report_dir, judgment_path, root=None,
                                if blocked_class == 'critical_zero_evidence' else
                                'research-run run_ok=False——判断默认不得落在失败'
                                '证据面上;显式 allow_failed_run=True 才放行'
-                               '(required_data_missing=必要指标缺席的任务目标'
-                               '缺口,或 optional_data_missing=诚实拒答类失败'
-                               '且证据面仍可用,由 Agent 显式声明并随档)'),
+                               '(required_data_missing=必要指标缺席/覆盖不足的'
+                               '任务目标缺口,critical_step_failure=关键步骤/'
+                               '来源校验/未知失败,或 optional_data_missing='
+                               '诚实拒答类失败且证据面仍可用,由 Agent 显式'
+                               '声明并随档;交付层仍按 blocked_class 分级拦截)'),
                 'run_ok_at_attach': run_ok,
             })
         # R33-①: blocked 面同样落席位状态键(L3 未落位→required=False,

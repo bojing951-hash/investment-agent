@@ -35,10 +35,43 @@ if SCRIPTS not in sys.path:
 
 PIPELINE_VERSION = '2.0'
 IA_CLI = os.path.join(ROOT, 'ia_cli.py')
-# Audit-R4 条目5 登记值: 必要指标最低覆盖(历史分析需求下界)。月频 10 年
-# ≈120、日频年千计——12(月频一年)为宽松下界,只拦「最新单点/极短序列
-# 冒充历史分析面」;冻结进每项 spec.min_observations,不随采集结果改判。
+# Audit-R4 条目5 登记值: 必要指标最低覆盖兜底(问题未限定时间范围时的
+# 频率族下界)。Audit-R5 条目2 收紧: **不得统一用"至少 N 个观测"替代
+# 原任务所需历史范围**——问题词面限定范围(近/过去 N 年)时按
+# N 年×频率年观测数推导;月频 10 年≈120、日频年千计,兜底只拦
+# 「最新单点/极短序列冒充历史分析面」;冻结进每项
+# spec.min_observations(含推导口径),不随采集结果改判。
 _REQ_MIN_OBSERVATIONS = 12
+_REQ_MIN_OBSERVATIONS_BY_FREQ = {'daily': 60, 'weekly': 26,
+                                 'monthly': 12, 'quarterly': 4}
+_OBS_PER_YEAR_BY_FREQ = {'daily': 252, 'weekly': 52,
+                         'monthly': 12, 'quarterly': 4}
+# 问题词面时间范围提取(Audit-R5 条目2): 仅认**状语性**范围——
+# 近/过去/最近 N 年 或 N 年内/N 年以来;「十年期美债」类资产名
+# (N 年+期/收益率)与四位年份不匹配,防止把资产名误当任务范围。
+_RANGE_YEARS_RE = re.compile(
+    r'(?:近|最近|过去)(一|两|二|三|四|五|六|七|八|九|十|\d+)\s*年'
+    r'|(?<![\d])(\d+|一|两|二|三|四|五|六|七|八|九|十)\s*年(?:以内|以来|内)')
+_CN_NUM = {'一': 1, '两': 2, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6,
+           '七': 7, '八': 8, '九': 9, '十': 10}
+
+
+def _question_range_years(question):
+    """问题词面声明的分析年限(None=未限定)。
+
+    只认状语性范围(近/过去/最近 N 年、N 年内/以来)——确定性词面
+    匹配,不做语义改写;未限定返回 None(用频率族兜底下界)。
+    多个匹配取**最大**(更严),资产名(十年期美债)不匹配。
+    """
+    years = []
+    for m in _RANGE_YEARS_RE.finditer(question or ''):
+        tok = m.group(1) or m.group(2)
+        if tok is None:
+            continue
+        y = _CN_NUM.get(tok) if not tok.isdigit() else int(tok)
+        if isinstance(y, int) and y > 0:
+            years.append(y)
+    return max(years) if years else None
 # 引擎数据树注入缝(research-one --engine-root;G2 净环境验收同缝):
 # 子进程 ia_cli 与 cwd 改指真实数据树;默认=本仓库根(行为零差)。
 RUN_ROOT = ROOT
@@ -290,8 +323,9 @@ def vp_face(root):
             'n_bad_quarantined': len(bad)}
 
 
-def _evaluate_data_requirements(metrics, steps, snap, l1_rows):
-    """Audit-R4 条目5(抽函数可测): 逐必要指标评 outcome。
+def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
+                                question=None):
+    """Audit-R4 条目5 + Audit-R5 条目2(抽函数可测): 逐必要指标评 outcome。
 
     判据序: 快照 series_store 序列 → **本管线 S4 history 步已探测的信封**
     (与 Agent 席所见同源)→ L1/S3 单点在场。仅查快照会把采集档序列
@@ -299,6 +333,12 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows):
     进程内另行直读外部数据树(FIX7 信任边界: 采集目录越界不读)。
     最新单点≠历史分析需求满足——n<min_observations 即 insufficient_coverage,
     与 missing 同为必要缺口(attach/report/archive 同源三级分类)。
+
+    Audit-R5 条目2: 必要数据要求包含形态/时间范围/频率/质量/覆盖——
+    min_observations 按**任务所需历史范围**推导(问题词面限定"近/过去
+    N 年"→ N 年×频率年观测数;未限定→频率族兜底下界),不得统一用
+    "至少 12 个观测"替代原任务所需历史范围;窗口口径(请求面+实测面
+    first/last)随 spec 冻结。
     """
     _fact_mids = {r['metric_id'] for r in l1_rows}
     _ss = (snap or {}).get('series_store') or {}
@@ -309,10 +349,15 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows):
     for _bk in (_s3_env.get('by_asset_class') or {}).values():
         if isinstance(_bk, dict):
             _s3_mids.update(str(k) for k in _bk)
+    _range_years = _question_range_years(question)
     req_items = []
     for _mid in metrics:
         _n_series = len((_ss.get(_mid) or {}).get('dates') or [])
         _ser_src = '研究快照 series_store'
+        _freq, _first, _last = None, None, None
+        _ss_dates = (_ss.get(_mid) or {}).get('dates') or []
+        if _ss_dates:
+            _first, _last = _ss_dates[0], _ss_dates[-1]
         if _n_series == 0:
             _st = next((s for s in steps
                         if s.get('step') == f'S4_history_{_mid}'), None)
@@ -322,14 +367,34 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows):
                 if _s4.get('n') is not None:
                     _n_series = int(_s4['n'])
                     _ser_src = str(_s4.get('source') or 'S4 history 探测')
-        if _n_series >= _REQ_MIN_OBSERVATIONS:
+                    _freq = _s4.get('frequency') or _freq
+                    _first = _s4.get('first') or _first
+                    _last = _s4.get('last') or _last
+        if _freq is None:
+            _reg_m = ((snap or {}).get('registry_by_id') or {}).get(_mid)
+            _freq = (_reg_m or {}).get('frequency')
+        # min_observations 推导: 任务词面年限>频率族兜底(谁严取谁)
+        if _range_years and _freq in _OBS_PER_YEAR_BY_FREQ:
+            _min_obs = _range_years * _OBS_PER_YEAR_BY_FREQ[_freq]
+            _min_basis = (f'问题限定 {_range_years} 年×'
+                          f'{_freq} 频率年观测 '
+                          f'{_OBS_PER_YEAR_BY_FREQ[_freq]}')
+        else:
+            _min_obs = _REQ_MIN_OBSERVATIONS_BY_FREQ.get(
+                _freq, _REQ_MIN_OBSERVATIONS)
+            _min_basis = (f'问题未限定范围→{_freq or "未知"}频率族兜底'
+                          f'下界(任务范围不得用统一观测数替代)'
+                          if _range_years is None else
+                          f'问题限定 {_range_years} 年但 {_freq or "?"} '
+                          f'频率未知→通用兜底')
+        if _n_series >= _min_obs:
             _outcome = 'satisfied'
-            _basis = (f'历史序列 n={_n_series}≥最低覆盖'
-                      f'{_REQ_MIN_OBSERVATIONS}(源={_ser_src})')
+            _basis = (f'历史序列 n={_n_series}≥最低覆盖{_min_obs}'
+                      f'({_min_basis};源={_ser_src})')
         elif _n_series > 0:
             _outcome = 'insufficient_coverage'
-            _basis = (f'历史序列 n={_n_series} < 最低覆盖'
-                      f'{_REQ_MIN_OBSERVATIONS}(源={_ser_src};'
+            _basis = (f'历史序列 n={_n_series} < 最低覆盖{_min_obs}'
+                      f'({_min_basis};源={_ser_src};'
                       f'单点/短序列≠历史分析需求)')
         elif _mid in _fact_mids or _mid in _s3_mids:
             _outcome = 'insufficient_coverage'
@@ -341,9 +406,17 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows):
         req_items.append({'metric_id': _mid, 'tier': 'required',
                           'basis': '问题词面命中(任务目标)',
                           'spec': {'form': 'series',
-                                   'window': 'max_available',
+                                   'window': ('question_range:'
+                                              f'{_range_years}年'
+                                              if _range_years
+                                              else 'max_available'),
+                                   'frequency': _freq,
                                    'quality': 'snapshot 序列(OK 行)',
-                                   'min_observations': _REQ_MIN_OBSERVATIONS},
+                                   'coverage_observed': {
+                                       'n': _n_series or None,
+                                       'first': _first, 'last': _last},
+                                   'min_observations': _min_obs,
+                                   'min_observations_basis': _min_basis},
                           'outcome': _outcome, 'outcome_basis': _basis})
     return req_items
 
@@ -485,7 +558,7 @@ def run_research(question, root=None, archive=False, out_dir=None,
     # 不得把 missing 的必要项改判可选(事后缩减任务目标=禁止)。
     # 评据: L1 行 / 快照 series_store 序列在场(S4 history 数据源)。
     _req_items = _evaluate_data_requirements(
-        ent['metrics'], steps, snap, l1_rows)
+        ent['metrics'], steps, snap, l1_rows, question=question)
     data_requirements = {
         'frozen_at': 'plan(采集前冻结;分类与规格不随采集结果改判)',
         'items': _req_items,

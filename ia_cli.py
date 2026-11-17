@@ -1574,6 +1574,10 @@ def _r1_report_core(args, engine_root):
     # attach 时显式 --allow-failed-run 随档、冻结数据需求(含披露面)
     # 在场时,允许经有效独立审查(deliverable 合取项)后交付。
     blocked_class = aj.blocked_class_of(rj)
+    # Audit-R5 条目2: 进程成功(run_ok=true)不再一票豁免数据门——
+    # 必要缺口/零证据/关键步骤失败在任何 run_ok 下都阻断交付
+    # (反例 2A: history 正常退出+必要指标 n=1<12 曾误放行)。
+    blocked_hard = blocked_class in aj.BLOCKING_BLOCKED_CLASSES
     _dr_items = ((((rj.get('run') or {}).get('data_requirements') or {})
                   .get('items')) or [])
     degraded_ok = (blocked_class == 'optional_data_missing'
@@ -1619,7 +1623,12 @@ def _r1_report_core(args, engine_root):
     elif blocked_class == 'required_data_missing':
         warnings.append('必要数据缺口/覆盖不足(required_data_missing)——'
                         '任务目标缺口不得交付;不得事后把必要改判可选'
-                        '(Audit-R4 条目5)')
+                        '(Audit-R4 条目5;Audit-R5 条目2: run_ok=true '
+                        '同样阻断)')
+    elif blocked_class == 'critical_step_failure':
+        warnings.append('关键步骤失败/来源校验失败/未知失败'
+                        '(critical_step_failure)——质量与完整性缺口,'
+                        '不得自动归为可选缺失降级交付(Audit-R5 条目2)')
     elif aj_meta.get('run_ok_at_attach') is False and not degraded_ok:
         warnings.append('底座 run_ok=False 且非 optional 级显式降级'
                         '(不可交付级)')
@@ -1696,7 +1705,9 @@ def _r1_report_core(args, engine_root):
                 '', '---', '渲染纪律: 本件只汇编在场事实(确定性装配),不做新增'
                 '生成;L3/L4 内容归 Agent 席与独立审计,本段不代写。']
 
-    deliverable = machine_verified and review_ok and copies_consistent
+    # Audit-R5 条目2: 数据门为独立合取项——run_ok=true 不再豁免必要缺口
+    deliverable = (machine_verified and review_ok and copies_consistent
+                   and not blocked_hard)
     full_text = content_text + '\n'.join(
         _quality_section(copies_consistent, deliverable)) + '\n'
     with open(out_md, 'w', encoding='utf-8') as f:

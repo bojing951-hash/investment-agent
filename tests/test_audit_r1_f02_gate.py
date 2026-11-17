@@ -117,10 +117,35 @@ def write_verdict(root, rd, overall, sha=None, run_ts=None, legacy=False,
     doc = {'overall': overall, 'reviewer': 'SYNTH-SEAT', 'notes': '',
            'run_ts': run_ts,
            'recorded_at': recorded_at or '2026-11-16T12:00:00Z'}
-    if revision is not None:
-        doc['revision'] = revision
     if not legacy:
+        # Audit-R5 条目4: 合成档默认=现行生产写入形(revision/predecessor/
+        # format_version/digest_algorithm)——revision-less+v3 锚=删除
+        # revision 冒充 legacy 的攻击指纹,读取端已阻断(专用反例面在
+        # test_audit_r5_gate.py);legacy=True 才是无锚前史形。
+        # 席位词表: 四态门词 VERIFIED/PASS 须映射 UPHELD 落档(同义,
+        # record_semantic_verdict B3 机核面同款)
+        overall = {'VERIFIED': 'UPHELD', 'PASS': 'UPHELD'}.get(
+            overall, overall)
+        doc['overall'] = overall
         doc['content_sha256'] = sha or aj.content_digest(rd)
+        doc['format_version'] = aj.VERDICT_FORMAT_VERSION
+        doc['digest_algorithm'] = aj.DIGEST_ALGORITHM_CURRENT
+        hits = aj._verdicts_for_run(root, run_ts)
+        if hits:
+            latest_p, _ = max(
+                hits, key=lambda t: aj._verdict_sort_key(t[0], t[1]))
+            doc['predecessor'] = os.path.relpath(latest_p, root)
+        else:
+            doc['predecessor'] = None
+        if revision is not None:
+            doc['revision'] = revision
+        else:
+            revs = [v.get('revision') for _, v in hits
+                    if isinstance(v, dict)
+                    and isinstance(v.get('revision'), int)]
+            doc['revision'] = max(revs + [len(hits)]) + 1
+    elif revision is not None:
+        doc['revision'] = revision
     p = os.path.join(d, 'VERDICT-%s-%02d.json' % (run_ts, seq))
     json.dump(doc, open(p, 'w', encoding='utf-8'), ensure_ascii=False)
     return p
@@ -342,14 +367,36 @@ check('H1 report.md 单独改动 → copies_consistent=False 拒绝交付',
 # H2 重绑迁移: 内容未变 → 重绑成功恢复 fresh;内容已变 → 拒绝机械重绑
 rd17 = make_run(tmp, 'r17')
 legacy_sha = aj.content_digest_v1(rd17)
-write_verdict(eroot, rd17, 'UPHELD', sha=legacy_sha,
-              recorded_at='2026-11-16T10:00:00Z')
+vp17 = write_verdict(eroot, rd17, 'UPHELD', sha=legacy_sha,
+                     recorded_at='2026-11-16T10:00:00Z')
 e17a = json.loads(report_stage(rd17, eroot).stdout)
 check('H2a v1 锚在 v2 口径下不新鲜(fresh=False 不可交付)',
       e17a['data']['review']['fresh'] is False
       and e17a['data']['deliverable'] is False)
+# Audit-R5 条目1: 重绑还须未覆盖面(report.json/views_digest.json)的
+# 可信旧证——无证先拒,再放归档 manifest 快照(合法迁移路径)
+try:
+    aj.rebind_verdict_digest(eroot, rd17, '不应成功(无可信旧证)')
+    g17 = False
+except ValueError:
+    g17 = True
+check('H2b 无可信旧证 → 机械重绑拒绝(旧审查覆盖面不可证)', g17)
+_arc17 = os.path.join(eroot, 'research_archive', 'r17_legacy_archive')
+os.makedirs(_arc17, exist_ok=True)
+_vd17 = os.path.join(rd17, 'views_digest.json')
+json.dump({'run_ts': json.load(open(os.path.join(
+    rd17, 'report.json'), encoding='utf-8'))['run']['ts_utc'],
+    'verdict_chain': [{'source_rel': os.path.relpath(vp17, eroot),
+                       'sha256': aj._sha16_of_file(vp17)}],
+    'copies_sha16': {
+        'report.json': aj._sha16_of_file(
+            os.path.join(rd17, 'report.json')),
+        'views_digest.json': (
+            aj._sha16_of_file(_vd17) if os.path.isfile(_vd17) else None)}},
+    open(os.path.join(_arc17, 'ARCHIVE_MANIFEST.json'), 'w',
+         encoding='utf-8'), ensure_ascii=False)
 rebind_p = aj.rebind_verdict_digest(
-    eroot, rd17, 'Audit-R2 摘要口径迁移回归')
+    eroot, rd17, 'Audit-R2 摘要口径迁移回归(带可信旧证)')
 e17b = json.loads(report_stage(rd17, eroot).stdout)
 check('H2b 内容未变重绑 → fresh=True 可交付+rebind 档在场',
       os.path.isfile(rebind_p)

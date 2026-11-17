@@ -168,13 +168,22 @@ digest_algorithm 现行口径三项共用检查移到 legacy 早退**之前**—
 
 - 回归套件: `tests/test_audit_r6_gate.py` **25/0**(§W/§C/§V);
   `tests/test_audit_r5_gate.py` 29/0(S4 信封重叠修复后,完整历史不误拒)。
-- 全电池(exit 口径,逐件直跑): [待电池完成后回填]
-- CI(最终 HEAD,3.11+3.12): [待推送后回填]
+- 全电池(提交前工作树,exit 口径逐件直跑): **178/179**,唯一红=
+  `tests/test_arch_reform_phase6.py`(rc1=提交前设计行为,提交后绿,见下)。
+- pytest 目录口径(提交后干净树): 首轮(状态文件编辑/盖章中途撞窗)3 failed
+  =2×R20 状态门(phase6 见下)+phase6;该三件单独复跑**3 passed**;提交后
+  全量复跑 **178 passed / 0 failed**(409.9s,证据
+  `/tmp/audit_r6/pytest_caliber_final.txt`;唯一不收集件=test_model_live
+  系 CI 既定排除,R5 同形)。
+- CI(最终代码尖 cb3dd01 全 40 位=
+  `cb3dd019285ab536793170e3d46d2d8bead637f1`): run
+  [44054892682](https://github.com/bojing951-hash/investment-agent/actions/runs/44054892682)
+  **success**——gates+tests(3.11)+tests(3.12)三 job 全绿(2026-11-17T09:21Z 起)。
 
 ## 九、项目状态与恢复说明
 
-- 分支 `dev/audit-fix-r1`(PR #1),本轮波=[待推送后回填];未并 main、
-  未合并 PR、未部署、未改远端权限。
+- 分支 `dev/audit-fix-r1`(PR #1),本轮波=`cb3dd01`(已推送;CI 见 §八);
+  未并 main、未合并 PR、未部署、未改远端权限。
 - 恢复入口=本报告+`docs/autonomous-rd/cn-task-b-20261117T083954Z/`
   (重放包)+归档 `research_archive/20261117T083954Z_…/`+裁决
   `audit/semantic_review/20261117/VERDICT-20261117T083954Z-*.json`;
@@ -184,7 +193,11 @@ digest_algorithm 现行口径三项共用检查移到 legacy 早退**之前**—
 
 ## 十、七项最终交付
 
-1. **HEAD/分支/PR/CI**: [待推送后回填]
+1. **HEAD/分支/PR/CI**: 分支 `dev/audit-fix-r1` 代码尖
+   `cb3dd019285ab536793170e3d46d2d8bead637f1`(PR #1 open);
+   CI run
+   [44054892682](https://github.com/bojing951-hash/investment-agent/actions/runs/44054892682)
+   三 job(gates/3.11/3.12)全绿;终笔 docs 提交见 §九。
 2. **三项缺口关闭表**: §一。
 3. **反例修复前后**: §二/§四(r601/r603 before/after)。
 4. **中国历史正式采集/连续更新/美国刷新后**: §三(step1/2/3/3b+每步查询)。

@@ -102,4 +102,4 @@
 
 ## CI 回填
 
-(推送后回填)
+- 首跑即绿(本轮无热修): run [44145324207](https://github.com/bojing951-hash/investment-agent/actions/runs/44145324207) @ f34f890 = gates+tests(3.11)+tests(3.12) 三 job 全绿,head_sha 逐位复核。链: f5bc514→333e185(代码修复,固定 SHA)→f34f890(状态波+检查点 7/7)→本回填提交。

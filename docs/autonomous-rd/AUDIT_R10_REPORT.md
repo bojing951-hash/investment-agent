@@ -54,7 +54,7 @@
 
 - 电池: `tests/test_*.py` 183 件直跑 182 绿 + phase6(D3 工作面净判据)提交后复跑 rc=0(29 PASS/0 FAIL)——提交树 183/183;**首次失败记录**: phase6 直跑红=册内既档形态(工作树含未提交 R10 改动),非本轮代码缺陷,复验=提交后绿
 - R10 门首跑 28/29: V4 一例为**测试作者预期错误**(「近 20 24个月」=两个独立数字,非单一数量 run,无截断风险,基线亦 None)——换真混写用例(近1十二个月/过去2六个月)后 29/29;生产行为无改动
-- CI: 见下方「CI 回填」(终 HEAD 三 job 全绿后回填)
+- CI: 终 HEAD `23f72cd` run [44115723854](https://github.com/bojing951-hash/investment-agent/actions/runs/44115723854) 三 job(gates / tests 3.11 / tests 3.12)**全绿**;修复代码提交 `f2e385a` 为其第一父(单一连续波,无中间红);干净克隆模拟亦 29/0(R10 门不依赖本机未跟踪状态)
 
 ## 剩余限制(仍未解决的问题)
 
@@ -70,3 +70,7 @@
 - 修复提交: `f2e385a`(代码+新门);状态波与报告为其后续提交
 - 反例复现: `/tmp/r10_repro.py`(基线 6 例 BASELINE-BUG→修复后 0)
 - 新门: `tests/test_audit_r10_gate.py`(29 判据);既有门/电池/复放如上
+
+## CI 回填
+
+- 终 HEAD `23f72cd`(报告+状态收口尖)run [44115723854](https://github.com/bojing951-hash/investment-agent/actions/runs/44115723854) 三 job(gates / tests 3.11 / tests 3.12)**全绿**(2026-11-17T15:33Z 起,completed success);代码修复提交 `f2e385a` 为其第一父;PR #1 已更新至 R1-R10。

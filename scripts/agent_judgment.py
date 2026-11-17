@@ -514,6 +514,13 @@ def _verdict_record_error(root, path, doc, run_ts, ordered_run_paths):
       造链,invalid_record);
     - format_version 在场但非已知版本=invalid_record(未知版本按最严
       处理,缺失按档形推断——推断适用同一套校验,永不更宽)。
+
+    Audit-R6 条目3 收紧面(反例复现于基线 dcb4b17):
+    - 共用校验(裁决词/任务身份 run_ts/算法版本)先于时代分流,legacy
+      形同样过共用面——旧格式仅兼容历史确缺字段(revision/predecessor),
+      不跳过共用校验;
+    - digest_algorithm 逐档核验(不再只检最新档): 在场而非现行口径=
+      invalid_record,任何写入位阻断。
     """
     if not isinstance(doc, dict):
         return 'corrupt: 不可解析/非对象'
@@ -524,6 +531,26 @@ def _verdict_record_error(root, path, doc, run_ts, ordered_run_paths):
     if fmt is not None and fmt != VERDICT_FORMAT_VERSION:
         return ('invalid_record: format_version=%r 未知(现行=%d;缺失或'
                 '未知版本不得获得更宽松权限)' % (fmt, VERDICT_FORMAT_VERSION))
+    # ── Audit-R6 条目3: 共用校验(任务身份/合法裁决词/算法版本)先于时代
+    # 分流——legacy 形(无 revision)只兼容**历史确缺字段**(revision/
+    # predecessor 缺席),不得跳过共用面。反例(基线 dcb4b17 复现): 首档
+    # 删 revision 后 run_ts=WRONG_RUN/overall=UNKNOWN_VERDICT 靠 legacy
+    # 早退放行;首档 digest_algorithm=UNKNOWN_ALGORITHM 因逐档校验缺算法
+    # 版本面而放行——两例均为「只检最新档+legacy 早退」的绕行面。
+    if doc.get('overall') not in SEAT_VERDICT_VOCAB:
+        return 'invalid_record: 裁决词 %r 越席位词表' % (doc.get('overall'),)
+    if doc.get('run_ts') != run_ts:
+        return ('invalid_record: run_ts 字段=%r 与文件名键=%r 不符'
+                '(错误 run 档)' % (doc.get('run_ts'), run_ts))
+    algo = doc.get('digest_algorithm')
+    if algo is not None and algo != DIGEST_ALGORITHM_CURRENT:
+        # 逐档算法版本: 字段只在现行写入端落档(落档值恒=当时现行口径,
+        # 历史档该字段缺席)——在场而非现行值=不可核验口径,按最严阻断;
+        # v1/v2 口径仅存续于 rebind 迁移验证(extra.rebind.from_algorithm),
+        # 不作为裁决档 digest_algorithm 合法值。
+        return ('invalid_record: digest_algorithm=%r 非现行口径(现行=%s;'
+                '在场而非现行=不可核验,逐档阻断)' % (algo,
+                                                    DIGEST_ALGORITHM_CURRENT))
     own_rel = os.path.normpath(os.path.relpath(path, root))
     try:
         pos = ordered_run_paths.index(own_rel)
@@ -537,11 +564,6 @@ def _verdict_record_error(root, path, doc, run_ts, ordered_run_paths):
     rev = doc.get('revision')
     if not (isinstance(rev, int) and not isinstance(rev, bool) and rev > 0):
         return 'invalid_record: revision=%r 非正整数' % (rev,)
-    if doc.get('overall') not in SEAT_VERDICT_VOCAB:
-        return 'invalid_record: 裁决词 %r 越席位词表' % (doc.get('overall'),)
-    if doc.get('run_ts') != run_ts:
-        return ('invalid_record: run_ts 字段=%r 与文件名键=%r 不符'
-                '(错误 run 档)' % (doc.get('run_ts'), run_ts))
     pred = doc.get('predecessor')
     if pos == 0:
         if pred is not None:

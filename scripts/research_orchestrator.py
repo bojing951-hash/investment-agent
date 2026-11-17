@@ -24,7 +24,7 @@ import re
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
@@ -46,6 +46,16 @@ _REQ_MIN_OBSERVATIONS_BY_FREQ = {'daily': 60, 'weekly': 26,
                                  'monthly': 12, 'quarterly': 4}
 _OBS_PER_YEAR_BY_FREQ = {'daily': 252, 'weekly': 52,
                          'monthly': 12, 'quarterly': 4}
+# Audit-R6 条目2(R6-01): 任务窗口边界容忍(天)——研究时点倒推 N 年为
+# [start,end],序列须**跨越**该窗(首观测≤start+容差、末观测≥end-容差,
+# 且窗内有效观测数≥下界半额)——按真实时间边界+交易日历判,不以
+# 252×年数 总量代替窗口归属。容差按频率族: 日频含周末+节假日簇,
+# 周频含停发周;月频/季频含**发布滞后**(PMI 月末+1日/贷款月中发布,
+# 季频+1月惯例)。未知频率不获宽容差(窗口不可核验即阻断)。
+_WINDOW_TOL_DAYS = {'daily': (14, 10), 'weekly': (21, 14),
+                    'monthly': (62, 75), 'quarterly': (95, 130)}
+# 窗内有效观测下界系数(允许缺口=节假日/停发/合理缺席,至多一半缺失)
+_WINDOW_N_FRACTION = 0.5
 # 问题词面时间范围提取(Audit-R5 条目2): 仅认**状语性**范围——
 # 近/过去/最近 N 年 或 N 年内/N 年以来;「十年期美债」类资产名
 # (N 年+期/收益率)与四位年份不匹配,防止把资产名误当任务范围。
@@ -323,9 +333,31 @@ def vp_face(root):
             'n_bad_quarantined': len(bad)}
 
 
+def _parse_ymd(s):
+    """'YYYY-MM-DD'/'YYYYMMDD' 前缀 → date(None=不可解析)。"""
+    if not isinstance(s, str):
+        return None
+    t = s.strip().replace('-', '')[:8]
+    if len(t) == 8 and t.isdigit():
+        try:
+            return datetime.strptime(t, '%Y%m%d').date()
+        except ValueError:
+            return None
+    return None
+
+
+def _snap_as_of_date(snap):
+    """研究时点(权威=快照 target_date,research_as_of 兜底;None=不可核验)。"""
+    for k in ('target_date', 'research_as_of'):
+        d = _parse_ymd((snap or {}).get(k) if isinstance(snap, dict) else None)
+        if d is not None:
+            return d
+    return None
+
+
 def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
-                                question=None):
-    """Audit-R4 条目5 + Audit-R5 条目2(抽函数可测): 逐必要指标评 outcome。
+                                question=None, registry=None):
+    """Audit-R4 条目5 + Audit-R5 条目2 + Audit-R6 条目2(抽函数可测)。
 
     判据序: 快照 series_store 序列 → **本管线 S4 history 步已探测的信封**
     (与 Agent 席所见同源)→ L1/S3 单点在场。仅查快照会把采集档序列
@@ -334,11 +366,22 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
     最新单点≠历史分析需求满足——n<min_observations 即 insufficient_coverage,
     与 missing 同为必要缺口(attach/report/archive 同源三级分类)。
 
-    Audit-R5 条目2: 必要数据要求包含形态/时间范围/频率/质量/覆盖——
-    min_observations 按**任务所需历史范围**推导(问题词面限定"近/过去
-    N 年"→ N 年×频率年观测数;未限定→频率族兜底下界),不得统一用
-    "至少 12 个观测"替代原任务所需历史范围;窗口口径(请求面+实测面
-    first/last)随 spec 冻结。
+    Audit-R5 条目2: min_observations 按**任务所需历史范围**推导(问题
+    词面限定"近/过去 N 年"→ N 年×频率年观测数;未限定→频率族兜底下界)。
+
+    Audit-R6 条目2(R6-01,反例复现于基线 dcb4b17):
+    - 频率取**权威注册表**(registry.by_id,调用面传 S1 已装载面)优先,
+      S4 信封次之,快照内嵌 registry_by_id 兜底——快照路径(序列在场→
+      S4 不跑)不再丢频率(反例1: 12 个日频观测因 freq=None 落 12 兜底
+      满足);
+    - 时间范围按**真实时间边界**判: 研究时点(快照 target_date)倒推
+      N 年为任务窗,序列须跨窗(首观测≤窗起+容差/末观测≥窗止-容差,
+      容差按频率族含节假日/发布滞后)+窗内有效观测≥min_obs 半额
+      (允许合理缺口)——总数量再大也不替代窗口归属(反例2: 3000 个
+      1990-1998 观测对"近十年"窗=0 窗内有效观测);
+    - 未知频率/研究时点不可核验且问题限定范围→**不回落宽松通过**
+      (窗口不可核验=insufficient_coverage);未限定范围问题维持
+      max_available 口径(完整短史不误拒)。
     """
     _fact_mids = {r['metric_id'] for r in l1_rows}
     _ss = (snap or {}).get('series_store') or {}
@@ -350,12 +393,14 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
         if isinstance(_bk, dict):
             _s3_mids.update(str(k) for k in _bk)
     _range_years = _question_range_years(question)
+    _as_of = _snap_as_of_date(snap)
+    _reg_by_id = registry or {}
     req_items = []
     for _mid in metrics:
         _n_series = len((_ss.get(_mid) or {}).get('dates') or [])
         _ser_src = '研究快照 series_store'
         _freq, _first, _last = None, None, None
-        _ss_dates = (_ss.get(_mid) or {}).get('dates') or []
+        _ss_dates = list((_ss.get(_mid) or {}).get('dates') or [])
         if _ss_dates:
             _first, _last = _ss_dates[0], _ss_dates[-1]
         if _n_series == 0:
@@ -370,9 +415,11 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                     _freq = _s4.get('frequency') or _freq
                     _first = _s4.get('first') or _first
                     _last = _s4.get('last') or _last
-        if _freq is None:
-            _reg_m = ((snap or {}).get('registry_by_id') or {}).get(_mid)
-            _freq = (_reg_m or {}).get('frequency')
+        # R6-01: 权威注册表优先(快照路径不丢频率),S4 次之,快照内嵌兜底
+        _freq = ((_reg_by_id.get(_mid) or {}).get('frequency')
+                 or _freq
+                 or (((snap or {}).get('registry_by_id') or {})
+                     .get(_mid) or {}).get('frequency'))
         # min_observations 推导: 任务词面年限>频率族兜底(谁严取谁)
         if _range_years and _freq in _OBS_PER_YEAR_BY_FREQ:
             _min_obs = _range_years * _OBS_PER_YEAR_BY_FREQ[_freq]
@@ -387,10 +434,99 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                           if _range_years is None else
                           f'问题限定 {_range_years} 年但 {_freq or "?"} '
                           f'频率未知→通用兜底')
-        if _n_series >= _min_obs:
+        # ── R6-01: 任务窗口(真实时间边界) ──────────────────────────
+        _win = None
+        if _range_years:
+            if _as_of is None:
+                _win = {'start': None, 'end': None,
+                        'basis': '研究时点不可核验(快照无 target_date/'
+                                 'research_as_of)→窗口不可核验'}
+            else:
+                _ws = _as_of - timedelta(days=int(round(
+                    _range_years * 365.25)))
+                _win = {'start': _ws.isoformat(), 'end': _as_of.isoformat(),
+                        'as_of': _as_of.isoformat(),
+                        'basis': f'研究时点 {_as_of.isoformat()} 倒推 '
+                                 f'{_range_years} 年(日历边界)'}
+        _tol = _WINDOW_TOL_DAYS.get(_freq) if _freq else None
+        _n_in_win, _first_in, _last_in = None, None, None
+        _win_detail = None
+        if _win is not None and _win.get('start'):
+            if _ss_dates:                     # 快照路径: 全日期面逐点判
+                _in = [d for d in _ss_dates
+                       if _win['start'] <= str(d)[:10] <= _win['end']]
+                _n_in_win = len(_in)
+                if _in:
+                    _first_in, _last_in = _in[0], _in[-1]
+            else:                              # S4 路径: 信封 first/last 面
+                # 重叠判定(首≤窗止 且 末≥窗起=序列与任务窗相交);序列早于
+                # 窗起=覆盖窗起(更长历史不得误拒),窗内首点=max(首,窗起)。
+                _f_s, _l_s = (str(_first)[:10] if _first else None), \
+                            (str(_last)[:10] if _last else None)
+                _overlaps = (_f_s is not None and _l_s is not None
+                             and _f_s <= _win['end'] and _l_s >= _win['start'])
+                if _overlaps:
+                    _first_in = (max(_f_s, _win['start']) if _f_s >=
+                                 _win['start'] else _win['start'])
+                    _last_in = (_l_s if _l_s <= _win['end'] else _win['end'])
+                    _n_in_win = _n_series
+                else:
+                    _n_in_win = None
+        # ── 判定序: 窗口不可核验(限定范围+未知频率/时点)先拦 ─────────
+        if _win is not None and (_freq is None or _tol is None):
+            _outcome = 'insufficient_coverage'
+            _basis = (f'问题限定 {_range_years} 年但频率={_freq or "未知"}'
+                      f'不可核验→时间窗口无法判定(不回落宽松通过;'
+                      f'{_min_basis};源={_ser_src})')
+        elif _win is not None and _win.get('start') is None:
+            _outcome = 'insufficient_coverage'
+            _basis = ('研究时点不可核验→任务窗口无法判定(不回落宽松'
+                      '通过;问题限定 %d 年)' % _range_years)
+        elif _n_series >= _min_obs and _win is None:
             _outcome = 'satisfied'
             _basis = (f'历史序列 n={_n_series}≥最低覆盖{_min_obs}'
-                      f'({_min_basis};源={_ser_src})')
+                      f'({_min_basis};源={_ser_src};未限定范围='
+                      f'max_available,总量口径)')
+        elif _n_series >= _min_obs and _win is not None:
+            _fd, _ld = _parse_ymd(_first_in), _parse_ymd(_last_in)
+            _wsd = _parse_ymd(_win['start'])
+            _wed = _parse_ymd(_win['end'])
+            _start_ok = (_fd is not None and _wsd is not None
+                         and (_fd - _wsd).days <= _tol[0])
+            _end_ok = (_ld is not None and _wed is not None
+                       and (_wed - _ld).days <= _tol[1])
+            _n_floor = max(1, int(round(_min_obs * _WINDOW_N_FRACTION)))
+            _n_ok = (_n_in_win is not None and _n_in_win >= _n_floor)
+            if _start_ok and _end_ok and _n_ok:
+                _outcome = 'satisfied'
+                _basis = (f'历史序列 n={_n_series}≥{_min_obs} 且跨任务窗'
+                          f'{_win["start"]}..{_win["end"]}'
+                          f'(窗内有效 n={_n_in_win}≥{_n_floor}'
+                          f'[{_WINDOW_N_FRACTION:.0%} 允许缺口];'
+                          f'边界容差 起+{_tol[0]}天/止-{_tol[1]}天'
+                          f'(频率族含节假日/发布滞后);'
+                          f'{_min_basis};源={_ser_src})')
+            else:
+                _why = []
+                if not _start_ok:
+                    _why.append(f'窗内首观测{_first_in or "缺席"}晚于窗起'
+                                f'+{_tol[0]}天容忍(历史未覆盖任务窗起点)')
+                if not _end_ok:
+                    _why.append(f'窗内末观测{_last_in or "缺席"}早于窗止'
+                                f'-{_tol[1]}天容忍(发布滞后外缺口)')
+                if not _n_ok:
+                    _why.append(f'窗内有效观测 n={_n_in_win or 0}<{_n_floor}'
+                                f'(总量{_n_series}不替代窗口归属)')
+                _outcome = 'insufficient_coverage'
+                _basis = (f'任务窗{_win["start"]}..{_win["end"]}未满足: '
+                          + ';'.join(_why)
+                          + f'({_min_basis};源={_ser_src})')
+            _win_detail = {'n_in_window': _n_in_win,
+                           'first_in_window': _first_in,
+                           'last_in_window': _last_in,
+                           'n_floor_in_window': _n_floor,
+                           'tolerance_days': {'start': _tol[0],
+                                              'end': _tol[1]}}
         elif _n_series > 0:
             _outcome = 'insufficient_coverage'
             _basis = (f'历史序列 n={_n_series} < 最低覆盖{_min_obs}'
@@ -403,18 +539,30 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
         else:
             _outcome = 'missing'
             _basis = 'L1/S3/快照序列均缺席'
+        _spec_win = None
+        if _range_years:
+            _spec_win = dict(_win or {})
+            _spec_win['question_range_years'] = _range_years
+            if _win_detail:
+                _spec_win.update(_win_detail)
+            _spec_win['allowed_gap'] = {
+                'tolerance_days': (_tol if _tol else None),
+                'n_fraction_floor': _WINDOW_N_FRACTION,
+                'basis': '频率族容差(日频节假日簇/月频发布滞后)+'
+                         '窗内半额有效观测下界'}
         req_items.append({'metric_id': _mid, 'tier': 'required',
                           'basis': '问题词面命中(任务目标)',
                           'spec': {'form': 'series',
-                                   'window': ('question_range:'
-                                              f'{_range_years}年'
-                                              if _range_years
-                                              else 'max_available'),
+                                   'window': (_spec_win if _spec_win else
+                                              'max_available'),
                                    'frequency': _freq,
                                    'quality': 'snapshot 序列(OK 行)',
                                    'coverage_observed': {
                                        'n': _n_series or None,
-                                       'first': _first, 'last': _last},
+                                       'first': _first, 'last': _last,
+                                       'n_in_window': _n_in_win,
+                                       'first_in_window': _first_in,
+                                       'last_in_window': _last_in},
                                    'min_observations': _min_obs,
                                    'min_observations_basis': _min_basis},
                           'outcome': _outcome, 'outcome_basis': _basis})
@@ -558,7 +706,8 @@ def run_research(question, root=None, archive=False, out_dir=None,
     # 不得把 missing 的必要项改判可选(事后缩减任务目标=禁止)。
     # 评据: L1 行 / 快照 series_store 序列在场(S4 history 数据源)。
     _req_items = _evaluate_data_requirements(
-        ent['metrics'], steps, snap, l1_rows, question=question)
+        ent['metrics'], steps, snap, l1_rows, question=question,
+        registry=reg.get('by_id'))
     data_requirements = {
         'frozen_at': 'plan(采集前冻结;分类与规格不随采集结果改判)',
         'items': _req_items,

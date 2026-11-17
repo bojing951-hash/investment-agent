@@ -394,8 +394,9 @@ def calc_derived(results):
     return derived
 
 
-def save_macro(results, alerts, derived):
-    """保存宏观数据"""
+def save_macro(results, alerts, derived, cn_history=None):
+    """保存宏观数据(Audit-R6 R6-02: cn_history=中国月度全史续存状态,
+    None=旧调用面不写该键——档内形状兼容)"""
     today_str = datetime.now().strftime('%Y%m%d')
     output = {
         "date": today_str,
@@ -403,10 +404,76 @@ def save_macro(results, alerts, derived):
         "alerts": alerts,
         "derived": derived,
     }
+    if cn_history is not None:
+        output["cn_history"] = cn_history
     path = os.path.join(DATA_DIR, "daily", f"macro_{today_str}.json")
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
     print(f"数据已保存: {path}")
+
+
+# ── Audit-R6 条目2(R6-02): CN 月度全史随档续存 ───────────────────────
+# 基线 dcb4b17 缺口: fetch_all_macro 只拉 FRED,新档不含 CN 键→历史加载
+# 按最新档取序列,上一档的中国历史被"遮蔽"(226 条→0 条,外审复现)。
+# 本函数把正式生成器 china_market_collector.fetch_macro_history 的全史
+# 并入每档;CN 采集失败时从最近档(含当日已写档,同日重跑优先当日)续存
+# 并如实披露(fresh=False + 来源档)——不用陈旧数据冒充新采集、不补造
+# 历史、不静默丢弃。美国宏观刷新自此不可能覆盖中国历史。
+def merge_cn_history(results, data_dir=None):
+    """R6-02: CN_PMI_MFG/CN_NEW_LOANS 全史并入采集档。
+
+    返回 (results, cn_status);cn_status 每键 mode=fresh|carry_forward|absent
+    (随 save_macro 写档内 'cn_history' 键,版本与来源可追溯)。"""
+    import glob as _glob
+    from china_market_collector import fetch_macro_history
+    dd = data_dir or DATA_DIR
+    cn_items = {}
+    try:
+        cn_items = fetch_macro_history() or {}
+    except Exception as e:
+        print(f"  ❌ CN 全史采集异常: {type(e).__name__}: {str(e)[:120]}")
+        cn_items = {}
+    prev_files = sorted(_glob.glob(os.path.join(dd, 'daily', 'macro_*.json')))
+    prev_cn = {}
+    if prev_files:
+        try:
+            with open(prev_files[-1], 'r', encoding='utf-8') as f:
+                prev_cn = (json.load(f).get('data')) or {}
+        except Exception as e:
+            print(f"  ⚠️ CN 续存源档读取失败({prev_files[-1]}): {str(e)[:80]}")
+            prev_cn = {}
+    status = {}
+    for rid in ('CN_PMI_MFG', 'CN_NEW_LOANS'):
+        item = cn_items.get(rid)
+        if item:
+            results[rid] = item
+            prov = item['provenance']
+            status[rid] = {'mode': 'fresh',
+                           'fetched_at': prov['fetched_at'],
+                           'coverage': prov['coverage']}
+            continue
+        old = prev_cn.get(rid)
+        if old and (old.get('series') or {}).get('dates'):
+            carried = dict(old)
+            prov = dict(carried.get('provenance') or {})
+            prov.update({
+                'fresh': False,
+                'carry_forward_from': os.path.basename(prev_files[-1]),
+                'carry_forward_reason':
+                    'Audit-R6 R6-02: 本轮 CN 全史采集失败,续存最近档序列'
+                    '(如实披露=非本轮新采集;不造史)',
+            })
+            carried['provenance'] = prov
+            results[rid] = carried
+            status[rid] = {'mode': 'carry_forward',
+                           'from_file': os.path.basename(prev_files[-1]),
+                           'n': len(old['series']['dates'])}
+            print(f"  ⚠️ {rid}: 本轮采集失败→续存 {status[rid]['from_file']}"
+                  f"(n={status[rid]['n']},披露 carry_forward)")
+        else:
+            status[rid] = {'mode': 'absent'}
+            print(f"  ❌ {rid}: 本轮采集失败且无前档可续存(如实缺席,不造史)")
+    return results, status
 
 
 if __name__ == "__main__":
@@ -414,6 +481,10 @@ if __name__ == "__main__":
     print("=" * 60)
 
     results = fetch_all_macro()
+
+    print("\n" + "=" * 60)
+    print("🇨🇳 中国月度全史(Audit-R6 R6-02 正式入口):")
+    results, cn_history = merge_cn_history(results)
 
     print("\n" + "=" * 60)
     print("📊 信用阈值检查:")
@@ -426,7 +497,7 @@ if __name__ == "__main__":
     for k, v in derived.items():
         print(f"  {k}: {v}")
 
-    save_macro(results, alerts, derived)
+    save_macro(results, alerts, derived, cn_history=cn_history)
 
     print("=" * 60)
     print("✅ 宏观数据采集完成")

@@ -20,22 +20,25 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-17 R49 Audit-R5 收口后 · 全轨道停等用户)
+## 下一步(2026-11-17 R50 Audit-R6 收口后 · 全轨道停等用户)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
-**等待用户外部审计裁定**(Audit-R5 第五轮审计收尾修复已收口,收口事实见下方存档节与 ITERATION_LOG R49 行——活动区不载已完成任务号, R34 判例):
+**等待用户外部审计裁定**(Audit-R6 第六轮审计收尾修复已收口,收口事实见下方存档节与 ITERATION_LOG R50 行——活动区不载已完成任务号, R34 判例):
 
-- 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R5_REPORT.md`(七项最终交付);修复链=波1 `82b9398`(CI 44014788431 绿)+波2 `09e4ebb`(中国任务B 审查链+归档+重放包)+状态收口 docs 尖;五项全关(摘要迁移证明门/数据门三级重构/E2E 修正闭环 UPHELD/裁决格式链校验/CN 226 月全史+研究全链 REVISE→UPHELD);三重放入口=BLIND REPLAY.md+e2e-corrected+cn-task-b 包(空目录一条命令)。
+- 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R6_REPORT.md`(七项最终交付);三缺口+任务B全关(R6-01 窗口覆盖校验/R6-02 CN 全史正式采集+真实网络四步验收/R6-03 裁决链共用校验/任务B=正式数据全链 attach VERIFIED→独立席 105 项 UPHELD→归档);重放入口=BLIND+F10 REPLAY.md+e2e-corrected+cn-task-b×2(R5/R6 两包,空目录一条命令)。
+- **R5 溯源发现(AUDIT_R6_REPORT §七,外审须看)**: R5 中国B旧链存储契约门结论产自含未合并 R45 席位改动的暂存引擎,基线代码重跑=CONTRADICTED(B 族误报类)→该结论基线可复现性 NOT_VERIFIED,旧链按指令原样保留,R6 新链已在基线代码上关闭缝隙;引擎侧 R45 修复合入 main 后两线一致(超出本轮范围,如实移交)。
 - 外审批后动作由用户指令定: 并轨 main / 继续整改;**未获用户确认不自动并 main、不合并 PR、不部署、不进入代码瘦身、不恢复旧研发循环**(本轮指令边界, 2026-11-17)。
 - 用户最小动作(独立于审计裁定): **main 分支保护实测未配置**(认证 API 404 亲证,AUDIT_R2_REPORT §六)——建议合并 PR #1 前启用(require PR+CI 绿);本轮未改远端权限。
 - 日历门(勿手工提前): F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
 - R44 引擎队列(R45+ B 族硬化/T8-R2 ④⑥⑦/R41+R43 审计登记项等)**保持暂停未恢复**——原文见下方暂停存档;恢复须用户明示(旧无限研发循环不复原为本轮边界)。
 
-## 下一步存档(2026-11-17 R49 收口后版·操作者席)
+## 下一步存档(2026-11-17 R50 收口后版·操作者席)
 
-- [已毕·R49] **Audit-R5 第五轮审计收尾修复**(T-R49-1;用户指令独立轨道续 R48;分支 dev/audit-fix-r1,基线 49fb583→波1 82b9398+波2 09e4ebb): 五项全关(摘要迁移 rebind 双通道证明门/数据门 blocked_class_of 三级重构+观测下界族推/E2E 三争点修正+独立席 REVISE→闭环 UPHELD/BLIND 勘误/裁决 format_version=2+链校验六形态/中国任务 B=CN 两指标 226 月全史接入+真实研究+独立席 99 项抽核 5 必修→REVISE→修订 18 处+源头严格化→57 项复算全 PASS→闭环 UPHELD→归档+重放包);波2 首推 CI 44023144279 红=R20 门②正道拦(收口漏 finalize,单根因)→按 §3.2 对账恢复;报告=docs/autonomous-rd/AUDIT_R5_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未改远端权限/未瘦身)。
+- [已毕·R50] **Audit-R6 第六轮审计收尾修复**(T-R50-1;用户指令独立轨道续 R49;分支 dev/audit-fix-r1,基线 dcb4b17→单波): 三缺口+任务B全关(R6-01=频率取权威注册表+任务窗真实边界+窗口归属判据+S4 重叠判定,两基线反例阻断/完整历史不误拒;R6-02=fetch_macro_history 226 月全史+merge 三态+正式接线+registry 注记,真实网络四步验收(净环境→连续→美国刷新不遮蔽→注入失败诚实续存)每步可查询带溯源;R6-03=裁决链共用校验先于 legacy 早退+逐档算法核验,两基线反例阻断;任务B=正式生成器数据全链于基线代码,v3 措辞规约修订数字零改动→attach VERIFIED→独立席 r6-b-review 105 项复算 UPHELD 零必修→归档三方一致 06624da7+重放包 cn-task-b-20261117T083954Z);无回退复验=七链 0 BAD+基线契约重跑 6/7 VERIFIED+BLIND/F10 重放 sha 一致;R5 溯源发现如实披露(engine_cn 漂移不止渲染器);test_audit_r6_gate 25/0+r5_gate 29/0+全电池直跑 178/179(唯一红=phase6-D3 提交前设计行为);报告=docs/autonomous-rd/AUDIT_R6_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未改远端权限/未瘦身)。
+
+- [已毕·R49] **Audit-R5 第五轮审计收尾修复**(T-R49-1;用户指令独立轨道续 R48;分支 dev/audit-fix-r1,基线 49fb583→波1 82b9398+波2 09e4ebb): 五项全关(摘要迁移 rebind 双通道证明门/数据门 blocked_class_of 三级重构+观测下界族推/E2E 三争点修正+独立席 REVISE→闭环 UPHELD/BLIND 勘误/裁决 format_version=2+链校验六形态/中国任务 B=CN 两指标 226 月全史接入+真实研究+独立席 99 项抽核 5 必修→REVISE→修订 18 处+源头严格化→57 项复算全 PASS→闭环 UPHELD→归档+重放包);波2 首推 CI 44023144279 红=R20 门②正道拦(收口漏 finalize,单根因)→按 §3.2 对账恢复;报告=docs/autonomous-rd/AUDIT_R5_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未改远端权限/未瘦身)。**R6 溯源更正**: 其任务B契约门结论产自漂移引擎代码,基线可复现性=NOT_VERIFIED(见 R50 行与 AUDIT_R6_REPORT §七)。
 
 - [已毕·R48] **Audit-R4 第四轮审计收尾修复**(T-R48-1;用户指令独立轨道续 R47;分支 dev/audit-fix-r1,基线 5fc5df8→修复链 2882932+1d53857→台账尖): §二六项全关(裁决 fail-closed/审查覆盖 v3/BLIND 同版重放 64 靶/跨日归档/必要可选贯通+outcome 源序修/A-C-BLIND-F10 rebind+B 如实拒答);P1 两反例基线误放行→修复面阻断;E2E 真实全链(独立席 116 项复算 UPHELD→deliverable=True→归档三方摘要全等);双口径 176/176+176 passed;报告=docs/autonomous-rd/AUDIT_R4_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未改远端权限/未瘦身)。
 
@@ -59,7 +62,7 @@ R42(聚合器吞错)+R43(pytest 四件套,操作者)+R44(A 族碎片泄漏硬化
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 
-<!-- RD-CHECKPOINT v1: json {"round": 49, "date": "2026-11-17 13:33 HKT", "branch": "dev/audit-fix-r1", "commit": "09e4ebbb93064ec7df0dcc259a1d5827bdc59f97", "baseline": "09e4ebbb93064ec7df0dcc259a1d5827bdc59f97", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R49-1"], "next_task": "等待用户外部审计裁定(Audit-R5 收口;dev/audit-fix-r1 尖+AUDIT_R5_REPORT.md;批后按用户指令并轨或整改)", "next_round": 50} -->
+<!-- RD-CHECKPOINT v1: json {"round": 50, "date": "2026-11-17 17:18 HKT", "branch": "dev/audit-fix-r1", "commit": "dcb4b17931f0dea5412e6032730248b4daac62f1", "baseline": "dcb4b17931f0dea5412e6032730248b4daac62f1", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R50-1"], "next_task": "等待用户外部审计裁定(Audit-R6 收口;dev/audit-fix-r1 尖+AUDIT_R6_REPORT.md;批后按用户指令并轨或整改)", "next_round": 51} -->
 ## 下一步存档(2026-11-16 R43 收口后版·操作者席)
 
 - [已毕·R43] **pytest 口径四件套收口**(T-R43-1;RDG-20261116-012 残余⑦;R42 终验暴露陈年): run_weekly.main(argv=None) 参数化(CLI 零差/revision_chain 猴补兼容)+四件五调用点显式 argv=[](裸调读 pytest argv→SystemExit(2)→台账 None→下标崩根因)+尾条件退出拆红支摘冗余 0 支+守卫 23 判(§A 伪 pytest argv 子进程/§B 源面双锚/§C 直跑保持);四件 pytest 单件 rc5=净收集零错;新发现=尾退出全库习语 60+件,目录整跑不适用(R44+ 迁移候选);分支 dev/rd-r43-pytest-argv;详见 ITERATION_LOG R43 行。

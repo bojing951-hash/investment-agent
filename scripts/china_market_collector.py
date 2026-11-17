@@ -1487,6 +1487,103 @@ def fetch_macro():
 
     return out
 
+
+# ── Audit-R6 条目3(R6-02): CN 月度全史正式生成器 ──────────────────────
+# 基线 dcb4b17 缺口: fetch_macro 单点通道丢弃全史(macro_china_pmi/
+# macro_china_new_financial_credit 端点本返全量行,仅取末行);历史依赖
+# macro_20261117.json 手工 cn_history_addendum 补丁,下一日 FRED 刷新档
+# 不含 CN 键→历史加载 0 行。本函数=正式入口: 全史拉取+归一(月度锚=
+# 统计期月首 YYYY-MM-01,与 R5 既有 226 月序列口径逐位一致)+口径/来源/
+# 获取时间/修订口径随档;由 macro_collector.merge_cn_history 随每档续存
+# (美国宏观刷新不遮蔽中国历史)。
+_CN_HISTORY_SPEC = [
+    # (registry_id, akshare 端点, 月份列, 值列, 单位, 定义, 源注记, 修订口径)
+    ('CN_PMI_MFG', 'macro_china_pmi', '月份', '制造业-指数', 'index_point',
+     '国家统计局制造业 PMI(制造业-指数列)',
+     'akshare macro_china_pmi(东方财富),与 fetch_macro 单点通道同源端点',
+     'PMI 不追溯修订(统计局初值即终值口径)'),
+    ('CN_NEW_LOANS', 'macro_china_new_financial_credit', '月份', '当月',
+     'cny_100m',
+     '对实体经济发放的人民币贷款当月新增(人民银行社融口径,'
+     '非全口径新增贷款——全口径对照见 registry calc 注记)',
+     'akshare macro_china_new_financial_credit(东方财富),与 fetch_macro '
+     '单点通道同源端点',
+     '贷款按央行初值,不追溯修订'),
+]
+
+
+def _macro_month_rows(df, month_col, value_col):
+    """月度宏观全史行(Audit-R6 R6-02 纯函数,零网络可注入): 月份列
+    '2026年10月'→统计期月首 'YYYY-MM-01' 锚;NaN/不可数值化/月份不可归一
+    跳行;同月多行取首见(源端无此形,防御);升序去重输出。"""
+    if df is None or len(df) == 0:
+        return []
+    rows = {}
+    for _, row in df.iterrows():
+        d = _norm_month(row.get(month_col))
+        v = row.get(value_col)
+        if d is None or v is None:
+            continue
+        try:
+            fv = float(v)
+        except (TypeError, ValueError):
+            continue
+        if fv != fv:
+            continue
+        key = '%s-01' % d
+        if key not in rows:
+            rows[key] = fv
+    return [(k, rows[k]) for k in sorted(rows)]
+
+
+def fetch_macro_history():
+    """R6-02: CN_PMI_MFG/CN_NEW_LOANS 月度全史正式生成(采集+归一+口径)。
+
+    返回 {registry_id: item}(端点失败→该键缺席,禁 0 填充/禁造史);item 形
+    与 R5 addendum 既有消费面同构(date/value/prev/frequency/unit/definition/
+    source_note/series)并增 provenance(source/fetched_at/coverage/
+    revision_policy/generated_by)——版本与来源可追溯(验收 §4)。
+    """
+    import akshare as ak
+    out = {}
+    fetched_at = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    for (rid, api, mcol, vcol, unit, definition, source_note,
+         rev_policy) in _CN_HISTORY_SPEC:
+        try:
+            with _no_proxy():
+                df = getattr(ak, api)()
+            rows = _macro_month_rows(df, mcol, vcol)
+            if not rows:
+                print(f"  ⚠️ {rid}: 全史无有值行({api}.{vcol})")
+                continue
+            dates = [r[0] for r in rows]
+            values = [r[1] for r in rows]   # 源值直存(不预舍入): 与 R5 已核
+            # 验 226 月序列逐位一致(舍入会引入第 5 位小数起漂移,2015 段
+            # 源值自带小数;锚点核验口径=源端发布精度)
+            out[rid] = {
+                'date': dates[-1], 'value': values[-1],
+                'prev': values[-2] if len(values) > 1 else None,
+                'frequency': 'monthly', 'unit': unit,
+                'definition': definition, 'source_note': source_note,
+                'series': {'dates': dates, 'values': values},
+                'provenance': {
+                    'source': 'akshare_em(%s)' % api,
+                    'fetched_at': fetched_at,
+                    'coverage': {'n': len(dates), 'first': dates[0],
+                                 'last': dates[-1]},
+                    'revision_policy': rev_policy,
+                    'observation_anchor': '统计期月首(YYYY-MM-01)',
+                    'generated_by': 'china_market_collector.fetch_macro_history'
+                                    '(Audit-R6 R6-02 正式入口)',
+                },
+            }
+            print(f"  ✅ {rid}: 全史 n={len(dates)} "
+                  f"({dates[0]}..{dates[-1]}, 末值 {values[-1]})")
+        except Exception as e:
+            print(f"  ❌ {rid}({api}): {type(e).__name__}: {str(e)[:120]}")
+    return out
+
+
 def save_data(all_data):
     """保存数据"""
     date_str = datetime.now().strftime('%Y%m%d')

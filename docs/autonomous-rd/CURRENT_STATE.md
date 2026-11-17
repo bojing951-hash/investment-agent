@@ -4,7 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-17 R49 Audit-R5 第五轮审计收尾修复(T-R49-1;独立轨道续 R48)
+## 权威快照: 2026-11-17 R50 Audit-R6 第六轮审计收尾修复(T-R50-1;独立轨道续 R49)
+> baseline=dcb4b17931f0dea5412e6032730248b4daac62f1 (Audit-R5 终笔尖=本轮受审基线;受审面=R6 三缺口 R6-01/02/03)
+
+- **基线**: dev/audit-fix-r1 = dcb4b17→单波(三缺口代码+套件+任务B 全链+归档+报告+状态收口);PR #1 覆盖推送;main 未动。
+- **真实进度**: 三缺口+任务B全关——①R6-01 窗口覆盖=频率取权威注册表+任务窗 as_of−N×365.25+频率族容差+窗内有效观测按窗口归属+S4 信封重叠判定(序列早于窗起=覆盖不误拒)+未知频率不可核验即阻断+report/archive 同判据;②R6-02 中国历史正式采集=fetch_macro_history 226 月全史(数值逐位=与 R5 已核序列一致,provenance 随档)+merge_cn_history 三态(fresh/carry_forward 保真/absent 零补造)+正式接线+registry 注记;真实网络四步验收全过(净环境→连续二次→美国刷新不遮蔽→注入失败诚实续存),每步可查询带溯源;③R6-03 裁决链共用校验=词表/run_ts/digest 三查先于 legacy 早退+逐档算法核验,两基线反例均阻断,旧链合法形照常;④任务B=正式生成器数据全链于审计基线代码(研究重放逐字节一致)→v3 措辞规约修订(数字零改动)→attach VERIFIED→独立席 105 项复算全吻合 UPHELD→归档三方一致(20261117T083954Z,06624da7);⑤无回退复验=七链 0 BAD+基线契约重跑 6/7 VERIFIED+BLIND/F10 重放 sha 一致;⑥R5 溯源发现=engine_cn 漂移不止渲染器(含未合并 R45 席位 contract 改动),中国B旧链存储契约结论基线重跑 CONTRADICTED=NOT_VERIFIED 如实披露,新链在基线代码关闭缝隙(§七)。
+- **验收**: test_audit_r6_gate 25/0+test_audit_r5_gate 29/0;全电池直跑 178/179(唯一红=phase6-D3 提交前红=设计行为);报告=docs/autonomous-rd/AUDIT_R6_REPORT.md;终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R6_REPORT.md 七件交付;BLIND/F10/e2e/cn-task-b×2 重放入口);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R49 视角,已被上方权威快照取代]
 > baseline=09e4ebbb93064ec7df0dcc259a1d5827bdc59f97 (Audit-R4 终笔尖=本轮受审基线;受审面终止说明见其提交)
 
 - **基线**: dev/audit-fix-r1 = 49fb583→波1 82b9398(条目1/2/4 代码+E2E 修正链+BLIND 勘误,CI 44014788431 绿)→波2 09e4ebb(条目5 研究审查链+归档+重放包+收尾报告);PR #1 覆盖推送;main 未动。

@@ -3504,7 +3504,7 @@
     "adjustment": "none"
    },
    "value_type": "level",
-   "calc": "akshare macro_china_pmi(东方财富)「制造业-指数」列最新观测(国家统计局制造业 PMI);历史序列通道=history_source macro_collector(macro_*采集档 data.CN_PMI_MFG.series,226月全史2008-01..2026-10,2026-10=49.3与统计局发布一致,Audit-R5 条目5)",
+   "calc": "akshare macro_china_pmi(东方财富)「制造业-指数」列最新观测(国家统计局制造业 PMI);历史序列=正式生成器 china_market_collector.fetch_macro_history 全史拉取+归一(月度锚=统计期月首 YYYY-MM-01),经 macro_collector.merge_cn_history 随每档续存(macro_*采集档 data.CN_PMI_MFG.series,Audit-R6 条目2 正式入口,R5 临时 addendum 废止);2026-10=49.3与统计局发布一致(Audit-R5 核验)",
    "validation": {
     "range": [
      30,
@@ -3565,7 +3565,7 @@
    "criticality": "important",
    "status": "active",
    "value_type": "level",
-   "calc": "akshare macro_china_new_financial_credit(东方财富)「当月」列全量月史;实际口径=对实体经济发放的人民币贷款(人民银行社融口径),非全口径新增贷款——累计2026-10=109149亿与央行「前十个月对实体10.91万亿」逐位一致;全口径对照 2026-10=-1000亿/2026-09≈1.08万亿(央行)vs 本列-5846/12734亿(Audit-R5 条目5核验);历史序列通道=history_source macro_collector(macro_*采集档 data.CN_NEW_LOANS.series)",
+   "calc": "akshare macro_china_new_financial_credit(东方财富)「当月」列全量月史;实际口径=对实体经济发放的人民币贷款(人民银行社融口径),非全口径新增贷款——累计2026-10=109149亿与央行「前十个月对实体10.91万亿」逐位一致;全口径对照 2026-10=-1000亿/2026-09≈1.08万亿(央行)vs 本列-5846/12734亿(Audit-R5 核验);历史序列=正式生成器 china_market_collector.fetch_macro_history 全史拉取+归一(月度锚=统计期月首 YYYY-MM-01),经 macro_collector.merge_cn_history 随每档续存(macro_*采集档 data.CN_NEW_LOANS.series,Audit-R6 条目2 正式入口,R5 临时 addendum 废止)",
    "validation": {
     "range": [
      -30000,

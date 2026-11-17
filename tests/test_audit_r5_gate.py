@@ -441,29 +441,41 @@ check('R-j legacy 头(v1 锚)+rebind 档 → 健全(UPHELD fresh, n=2)',
 print('§S 必要数据规格(问题范围×频率推导,不统一 12 替代)')
 
 
-def s4(mid, n, ok=True, freq=None):
+def s4(mid, n, ok=True, freq=None, first=None, last=None):
     env = {'data': {'series': {'n': n, 'source': '采集档',
-                               'frequency': freq}}} if ok else None
+                               'frequency': freq, 'first': first,
+                               'last': last}}} if ok else None
     return {'step': f'S4_history_{mid}', 'ok': ok, 'envelope': env}
 
 
+# Audit-R6 R6-01 窗口判据接入后, §S 限定范围用例须带研究时点+时间边界
+# (快照 target_date + 信封 first/last)——负例意图不变: 数量不足/短史
+# 仍阻断,正例=真跨窗才放行(旧字符串 window 断言随判据升级改字典面)。
+snap3y = {'target_date': '2026-11-17'}
 q3y = '近三年 TEST_M0 与 TEST_M1 的关系'
 items3y = {i['metric_id']: i for i in ro._evaluate_data_requirements(
-    ['TEST_M0'], [s4('TEST_M0', 250, freq='daily')], {}, [],
-    question=q3y)}
+    ['TEST_M0'], [s4('TEST_M0', 250, freq='daily',
+                     first='2023-11-20', last='2026-11-16')],
+    snap3y, [], question=q3y)}
+_win3y = items3y['TEST_M0']['spec']['window']
 check('S1 问题限定近三年+日频 → min=3×252=756, n=250 不足',
       items3y['TEST_M0']['spec']['min_observations'] == 756
       and items3y['TEST_M0']['outcome'] == 'insufficient_coverage'
-      and items3y['TEST_M0']['spec']['window'] == 'question_range:3年',
+      and isinstance(_win3y, dict)
+      and _win3y.get('question_range_years') == 3
+      and _win3y.get('start', '').startswith('2023-11'),
       str(items3y['TEST_M0']['spec']))
 items3y_ok = ro._evaluate_data_requirements(
-    ['TEST_M0'], [s4('TEST_M0', 800, freq='daily')], {}, [], question=q3y)
-check('S2 n=800≥756 → satisfied(任务范围内满足)',
+    ['TEST_M0'], [s4('TEST_M0', 800, freq='daily',
+                     first='2023-11-16', last='2026-11-14')],
+    snap3y, [], question=q3y)
+check('S2 n=800≥756 且跨任务窗 → satisfied(任务范围内满足)',
       items3y_ok[0]['outcome'] == 'satisfied')
 
 items5y_m = ro._evaluate_data_requirements(
-    ['PM_M'], [s4('PM_M', 59, freq='monthly')], {}, [],
-    question='过去五年 PM_M 走势')
+    ['PM_M'], [s4('PM_M', 59, freq='monthly',
+                  first='2021-12-01', last='2026-10-01')],
+    snap3y, [], question='过去五年 PM_M 走势')
 check('S3 月频+过去五年 → min=60, n=59 不足',
       items5y_m[0]['spec']['min_observations'] == 60
       and items5y_m[0]['outcome'] == 'insufficient_coverage',

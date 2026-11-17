@@ -4,7 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-17 R50 Audit-R6 第六轮审计收尾修复(T-R50-1;独立轨道续 R49)
+## 权威快照: 2026-11-17 R51 Audit-R7 第七轮审计收尾修复(T-R51-1;独立轨道续 R50)
+> baseline=8620ea8b81e4827a1adb37b92042befaab575811 (Audit-R6 终笔尖=本轮受审基线;受审面=R7 三缺口 R7-01/02/03)
+
+- **基线**: dev/audit-fix-r1 = 4e2f94c→单波 8620ea8(三缺口代码+新套件+证据包+注记+报告+状态收口);PR #1 覆盖推送;main 未动。
+- **真实进度**: 三缺口全关——①R7-01 任务时间窗口=统一解析入口(相对年限+四类日期词形+侧别缺省+以来/截至+显式胜相对;倒置/非法=不可核验阻断,不落 max_available)+窗内有效观测取实际 dates/values(快照面/S4 信封面同判定,无 dates=阻断)+频率族日历期望×半额替代 252×年数+窗内逐对最大间距断档门;三反例全关(近五年 PMI 窗内实 1 阻断/近十年 BEI 2499 点 satisfied/明确区间 2026 冒充窗内 0 阻断)。②R7-02 采集状态贯通=collection_status_of 唯一口径六点链(loader→snapshot series_provenance→workbench→ia_cli 信封→_freshness_vs_task→blocked_class_of),文件写入/最后成功采集/统计期三分,新 outcome stale_for_task 三级阻断(report/archive 拒),合法续用披露放行,历史回放按回放窗止不误判;九场景全链断言查询/报告/归档面。③R7-03=_git_state 三级版本绑定+run.git_head_source/git_diff_sha256 随档(引擎代码副本不再 null);两轮真网脱敏入仓 r7-evidence/(US 22 项+CN 226 月×2 fresh,11:00:04Z 连续+美刷新不遮蔽,key 零落盘);新 B macro_input 随包 sha be1f7680;recompute_r6b 参数化净检出 105/105 核心段 162 行一致;新旧 B append-only 注记(旧 B CONTRADICTED 3/9=NOT_VERIFIED 处置+新链替代;新 B null 根因+输入侧锚定)。④零削弱复验=R6-03 裁决链/身份算法篡改前驱自指阻断/required 阻断+optional 降级/B 与 E2E 统计/研究归档能力全保留。
+- **验收**: test_audit_r7_gate 37/0(§E 9+§T 13+§G 4+§F 11)+r5_gate 30/0+r6_gate 25/0;全电池直跑 178 绿+1 已档设计红(phase6-D3 提交前红,提交后复跑绿)+1 SKIP;报告=docs/autonomous-rd/AUDIT_R7_REPORT.md;终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R7_REPORT.md;证据入口 r7-evidence/+B 包 macro_input/复算重放+两注记;重放入口 BLIND+F10+e2e-corrected+cn-task-b×2);旧 B CONTRADICTED 面移交不变(引擎侧 R45 合入 main 前);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R50 视角,已被上方权威快照取代]
 > baseline=dcb4b17931f0dea5412e6032730248b4daac62f1 (Audit-R5 终笔尖=本轮受审基线;受审面=R6 三缺口 R6-01/02/03)
 
 - **基线**: dev/audit-fix-r1 = dcb4b17→单波(三缺口代码+套件+任务B 全链+归档+报告+状态收口);PR #1 覆盖推送;main 未动。

@@ -1,0 +1,9 @@
+{
+ "note": "轮前 data/daily 携带面(=该轮采集的原始输入面;逐文件全长哈希)",
+ "files": {
+  "ea_20261105.json": "e6db3ddf226652da114e56652d2ce8f4664462b744d306e631de3454b911aeaa",
+  "japan_20261105.json": "6bba4718759ba12546499c1bdc510a1157b87f9462408e14071967d29e14e7f1",
+  "jp_20261105.json": "7f0bdeb100d332ea9579a594656c2783eed4794b73b624b4436d60fe8ca78ae3",
+  "macro_20261117.json": "951d7b5163c62a3cc633edf71c4a572c31ec6e33ad465a4dce84a89d8424b1f4"
+ }
+}

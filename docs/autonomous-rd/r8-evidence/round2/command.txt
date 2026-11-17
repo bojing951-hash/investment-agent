@@ -1,0 +1,4 @@
+# 脱敏命令(密钥进程内注入,不落盘不日志;代理环境变量清除后直连)
+cd /tmp/audit_r8/clean && FRED_API_KEY=<redacted:LIVE只读授权进程内注入> \
+  /Users/cast/AI内容/venv/bin/python3 scripts/macro_collector.py          # 正式采集+CN全史合并+刷新
+  /Users/cast/AI内容/venv/bin/python3 ia_cli.py history --metric CN_PMI_MFG / CN_NEW_LOANS / UST_10Y

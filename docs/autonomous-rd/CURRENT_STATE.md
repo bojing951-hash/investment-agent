@@ -4,7 +4,15 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-17 R51 Audit-R7 第七轮审计收尾修复(T-R51-1;独立轨道续 R50)
+## 权威快照: 2026-11-17 R52 Audit-R8 第八轮审计修复(T-R52-1;独立轨道续 R51)
+> baseline=d3c3dc0aa351f4496522e5bee57a9c12f1ef5593 (Audit-R7 终笔尖=本轮受审基线;受审面=R8-01/02/03;修复提交=固定 SHA d3c3dc0)
+
+- **基线**: dev/audit-fix-r1 = 25f079f→代码修复提交 d3c3dc0(三缺陷+30 判据门)→干净检出两轮实采+证据包/报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 三缺陷全关——①R8-01 统一有效性规则(合法日期+有限数值=有效观测)四点落位(rhq._clean_series 六键登记禁占位/ro._effective_window_obs 删 1.0 占位/cmc 五检查点非有限统一/终判链「序列面在场但有效观测 0」据实),NaN/±Inf/缺 values/长度错配/全缺失/部分缺失/重复日期/非法日期九族真实格式文件→查询→report/archive 双门贯通;②R8-02 三态区分+斜杠词形+「去年」calendar_year 绑研究时点+「截至X」单侧终界窗起=序列首观测回填,基线三反例(斜杠退化 max_available 交付/去年误放行/截至X 必然拒)全关,七类既有正例全保留;③R8-03 外审最简可验证流程落实: 固定 SHA d3c3dc0 干净 git worktree(status 空)两轮正式实采(US 22 项+CN 226 月 rc=0,round2 fresh 非续存+last_success_at 前移+source_sha256 前移=CN 不被美刷新遮蔽),每轮独立证据目录 r8-evidence/round{1,2}(命令/时戳/代码版本/脱敏日志/原始输入[round2=round1 输出 951d7b51]/信封全长哈希),round1 未被 round2 触碰(重算对勘一致),_git_state 指纹纳入未跟踪源码(B1 三态判据+两轮实测干净态指纹);④零回退=r7/r6/r5/r4 门全绿+电池 181 件 180 绿+phase6 册内红(提交后绿)。
+- **验收**: test_audit_r8_gate 30/0(§V 11+§W 11+§G 3+§B 2);报告=docs/autonomous-rd/AUDIT_R8_REPORT.md(CI 终笔回填);证据=docs/autonomous-rd/r8-evidence/round{1,2};终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R8_REPORT.md;证据入口 r8-evidence/两轮;重放入口沿 R7 包 BLIND/F10/e2e/B);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R51 视角,已被上方权威快照取代]
 > baseline=8620ea8b81e4827a1adb37b92042befaab575811 (Audit-R6 终笔尖=本轮受审基线;受审面=R7 三缺口 R7-01/02/03)
 
 - **基线**: dev/audit-fix-r1 = 4e2f94c→单波 8620ea8(三缺口代码+新套件+证据包+注记+报告+状态收口);PR #1 覆盖推送;main 未动。

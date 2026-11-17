@@ -15,6 +15,7 @@
 重模块(yfinance/e2eb栈)一律函数内惰性导入,保证本模块导入零副作用、轻环境可用。
 """
 import glob
+import hashlib
 import json
 import os
 
@@ -67,6 +68,33 @@ def load_registry(root=None):
     with open(path, encoding='utf-8') as f:
         metrics = json.load(f)['metrics']
     return {'metrics': metrics, 'by_id': {m['metric_id']: m for m in metrics}}
+
+
+def state_fingerprint(root=None):
+    """R11-P2④: 工作台状态输入的内容指纹(快照候选集+指标注册表)。
+
+    latest_snapshot/load_registry 的输入= data/daily/research_snapshot_*.json
+    候选集与 config/metric_registry.json;任何文件的新增/更新/删除
+    (文件集或 mtime_ns/size 变化)都改变指纹。app.py 以指纹为
+    st.cache_data 缓存键——外部采集落盘后无需重启即可读到新快照。
+    纯文件系统操作,零 streamlit 依赖,CI 可独立测试。"""
+    base = root or ROOT
+    parts = []
+    daily = os.path.join(base, 'data', 'daily')
+    for p in sorted(glob.glob(os.path.join(daily,
+                                           'research_snapshot_*.json'))):
+        try:
+            fs = os.stat(p)
+            parts.append(f'{os.path.basename(p)}:{fs.st_mtime_ns}:{fs.st_size}')
+        except OSError:
+            parts.append(f'{os.path.basename(p)}:STAT-ERR')
+    reg = os.path.join(base, 'config', 'metric_registry.json')
+    try:
+        fs = os.stat(reg)
+        parts.append(f'metric_registry.json:{fs.st_mtime_ns}:{fs.st_size}')
+    except OSError:
+        parts.append('metric_registry.json:STAT-ERR')
+    return hashlib.sha256('|'.join(parts).encode('utf-8')).hexdigest()
 
 
 def snapshot_meta(snapshot):
@@ -785,7 +813,11 @@ def ai_explain(question, grounded_text):
 
 def save_to_archive(question, snapshot, root=None, archive_dir=None):
     """页面四: 问题+结果 append-only 落研究档案(复用 research_archive;
-    重新映射以分配当日单调 query_id)。返回 (query_id|None, status|错误说明)。"""
+    重新映射以分配当日单调 query_id)。返回 (query_id|None, status|错误说明)。
+
+    R11 P1②: 配号→映射→执行→落盘在 archive_write_lock 单事务内——
+    并发保存各配唯一号,两次成功=两条完整记录(锁跨进程;执行段在临界
+    区内=工作台为单用户页面,串行化代价可接受,正确性优先)。"""
     if not snapshot:
         return None, '本地无快照,无法归档'
     try:
@@ -793,16 +825,17 @@ def save_to_archive(question, snapshot, root=None, archive_dir=None):
         import research_archive as ra
         import e2eb_query_mapper as qm
         import e2eb_query_executor as qe
-        created = datetime.now(timezone(timedelta(hours=8))).isoformat(timespec='seconds')
-        qid = ra.allocate_query_id(created, archive_dir=archive_dir)
-        seq = int(qid.rsplit('-', 1)[-1])
-        ir = qm.map_question(question, created_at=created, query_seq=seq)
-        execution = qe.execute_query(ir, snapshot=snapshot)
-        # executor 会在 IR 上回绑 target_snapshot_id(D-B4-05④一致性:归档须用执行后IR)
-        status, _path = ra.append_query_record(execution.get('ir', ir),
-                                               snapshot=snapshot,
-                                               execution=execution,
-                                               archive_dir=archive_dir)
+        with ra.archive_write_lock(archive_dir):
+            created = datetime.now(timezone(timedelta(hours=8))).isoformat(timespec='seconds')
+            qid = ra.allocate_query_id(created, archive_dir=archive_dir)
+            seq = int(qid.rsplit('-', 1)[-1])
+            ir = qm.map_question(question, created_at=created, query_seq=seq)
+            execution = qe.execute_query(ir, snapshot=snapshot)
+            # executor 会在 IR 上回绑 target_snapshot_id(D-B4-05④一致性:归档须用执行后IR)
+            status, _path = ra.append_query_record(execution.get('ir', ir),
+                                                   snapshot=snapshot,
+                                                   execution=execution,
+                                                   archive_dir=archive_dir)
         if status != 'written':
             return None, f'档案拒绝写入: {status}'
         return ir.get('query_id', qid), None

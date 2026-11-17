@@ -276,6 +276,18 @@ def _collection_dir(archive_dir):
     return os.path.join(str(archive_dir), ARCHIVE_FAMILY, ARCHIVE_COLLECTION)
 
 
+def archive_write_lock(archive_dir=None):
+    """R11 P1②: 查询档案目录级跨进程写锁(配号→构造→落盘事务组合用)。
+
+    公开 allocate_query_id/append_query_record/write_research_full 各自
+    持本锁(同线程可重入,嵌套不自杀死锁);需要「配号与落盘原子成对」
+    的调用方(如 workbench save_to_archive)用本上下文管理器把整段
+    流程包进同一临界区——跨进程并发下配号唯一,两次成功=两条完整记录。"""
+    import store_lock as sl
+    return sl.store_write_lock(_collection_dir(archive_dir
+                                               or DEFAULT_ARCHIVE_DIR))
+
+
 def list_query_records(archive_dir=None, ymd=None):
     """集合内全部 query_id(排序;ymd 给定时过滤同日子集)。"""
     d = _collection_dir(archive_dir or DEFAULT_ARCHIVE_DIR)
@@ -301,12 +313,17 @@ def _same_day_max_seq(collection_dir, ymd):
 
 
 def allocate_query_id(created_at, archive_dir=None):
-    """同日单调配号: QB-{ymd}-{max+1:03d}(D-B1-10 承接;拼接复用 qir.make_query_id)。"""
+    """同日单调配号: QB-{ymd}-{max+1:03d}(D-B1-10 承接;拼接复用 qir.make_query_id)。
+
+    R11 P1②: 配号在跨进程锁临界区内读当日最大号(单次调用原子);
+    「配号→落盘」须原子成对的调用方用 archive_write_lock 组事务
+    (split 调用天然留隙,落盘端 duplicate 拒绝兜底,不虚报成功)。"""
     if not isinstance(created_at, str) or not qir.ISO_DATE_PREFIX_RE.match(created_at[:10]):
         raise ValueError(f"created_at须为ISO8601字符串: {created_at!r}")
     ymd = created_at[:10].replace("-", "")
-    seq = _same_day_max_seq(_collection_dir(archive_dir or DEFAULT_ARCHIVE_DIR), ymd) + 1
-    return qir.make_query_id(created_at, seq=seq)
+    with archive_write_lock(archive_dir):
+        seq = _same_day_max_seq(_collection_dir(archive_dir or DEFAULT_ARCHIVE_DIR), ymd) + 1
+        return qir.make_query_id(created_at, seq=seq)
 
 
 # ══ append(要点①;D-B4-05) ═══════════════════════════════════════════════
@@ -389,17 +406,19 @@ def append_query_record(ir, *, snapshot, archive_dir=None, execution=None,
         raise ValueError("查询记录未过schema校验(fail-loud): " + ";".join(issues))
     collection = _collection_dir(archive_dir or DEFAULT_ARCHIVE_DIR)
     path = os.path.join(collection, f"{record['query_id']}.json")
-    if os.path.exists(path):                                       # ⑦ 唯一性
-        return STATUS_REJECTED_DUPLICATE, path
-    ymd = record["query_id"][3:11]
-    seq = int(record["query_id"][12:])
-    if seq <= _same_day_max_seq(collection, ymd):                  # ⑦ 同日单调
-        return STATUS_REJECTED_NON_MONOTONIC, path
-    os.makedirs(collection, exist_ok=True)                         # ⑧ 原子落盘
-    _tmp = path + '.tmp'
-    with open(_tmp, 'w', encoding='utf-8') as f:
-        json.dump(record, f, ensure_ascii=False, indent=1, sort_keys=True)
-    os.replace(_tmp, path)
+    # R11 P1②: 唯一性/单调性核验与落盘同一跨进程锁临界区(存在性检查
+    # 与发布之间的竞争关闭);临时文件独立命名+fsync 后原子发布——并发
+    # 同名写要么全成(written),要么明确拒绝,不互相拆台、不留撕裂档。
+    with archive_write_lock(archive_dir):
+        if os.path.exists(path):                                   # ⑦ 唯一性
+            return STATUS_REJECTED_DUPLICATE, path
+        ymd = record["query_id"][3:11]
+        seq = int(record["query_id"][12:])
+        if seq <= _same_day_max_seq(collection, ymd):              # ⑦ 同日单调
+            return STATUS_REJECTED_NON_MONOTONIC, path
+        os.makedirs(collection, exist_ok=True)                     # ⑧ 原子落盘
+        import store_lock as sl
+        sl.atomic_write_json(path, record, indent=1, sort_keys=True)
     return STATUS_WRITTEN, path
 
 
@@ -512,13 +531,13 @@ def write_research_full(collection_dir, payload):
                          + ";".join(issues))
     collection = str(collection_dir)
     path = _research_full_path(collection, payload["query_id"])
-    if os.path.exists(path):
-        return STATUS_REJECTED_DUPLICATE, path
-    os.makedirs(collection, exist_ok=True)
-    _tmp = path + '.tmp'
-    with open(_tmp, 'w', encoding='utf-8') as f:
-        json.dump(payload, f, ensure_ascii=False, indent=1, sort_keys=True)
-    os.replace(_tmp, path)
+    # R11 P1②: 唯一性核验+落盘同临界区;独立临时名+原子发布(同年基档)
+    import store_lock as sl
+    with sl.store_write_lock(collection):
+        if os.path.exists(path):
+            return STATUS_REJECTED_DUPLICATE, path
+        os.makedirs(collection, exist_ok=True)
+        sl.atomic_write_json(path, payload, indent=1, sort_keys=True)
     return STATUS_WRITTEN, path
 
 

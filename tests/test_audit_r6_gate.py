@@ -396,13 +396,15 @@ check('C4 净环境失败 → 双键 absent,零补造',
       and not set(resC4) & {'CN_PMI_MFG', 'CN_NEW_LOANS'})
 
 # C5 save_macro: cn_history 状态键入档;旧调用面(不传)不写键(另目录隔离)
+# (save_macro 以运行当日命名采集档——当日动态,防跨午夜日期炸弹)
+_TODAY_F = 'macro_' + date.today().strftime('%Y%m%d') + '.json'
 mc.DATA_DIR = ctmp
 mc.save_macro(resC3, [], {}, cn_history=stC3)
-dC5 = json.load(open(os.path.join(ctmp, 'daily', 'macro_20261117.json'),
+dC5 = json.load(open(os.path.join(ctmp, 'daily', _TODAY_F),
                      encoding='utf-8'))
 mc.DATA_DIR = c4tmp
 mc.save_macro({'HY_OAS': {'value': 1.0}}, [], {})
-dC5b = json.load(open(os.path.join(c4tmp, 'daily', 'macro_20261117.json'),
+dC5b = json.load(open(os.path.join(c4tmp, 'daily', _TODAY_F),
                       encoding='utf-8'))
 check('C5 档内 cn_history 状态键(传则写/不传不写)',
       dC5['cn_history']['CN_PMI_MFG']['mode'] == 'carry_forward'
@@ -414,13 +416,13 @@ check('C5 档内 cn_history 状态键(传则写/不传不写)',
 resC6, stC6 = mc.merge_cn_history({'HY_OAS': {'value': 3.3}}, data_dir=ctmp)
 check('C6 美国刷新轮(FRED 面+CN 失败) → CN 序列仍在档(遮蔽缺陷关闭)',
       resC6['CN_PMI_MFG']['series']['dates'][-1] == '2026-10-01'
-      and stC6['CN_PMI_MFG']['from_file'] == 'macro_20261117.json'
+      and stC6['CN_PMI_MFG']['from_file'] == _TODAY_F
       and resC6['HY_OAS']['value'] == 3.3,
       json.dumps(stC6.get('CN_PMI_MFG'), ensure_ascii=False))
 
 # C7 同日重跑: 续存源=当日已写档(更新鲜优先)
 check('C7 同日重跑续存当日档',
-      stC6['CN_PMI_MFG']['from_file'] == 'macro_20261117.json')
+      stC6['CN_PMI_MFG']['from_file'] == _TODAY_F)
 
 # C8 registry calc 注记指向正式生成器(R5 临时 addendum 废止)
 regC = json.load(open(os.path.join(ROOT, 'config',

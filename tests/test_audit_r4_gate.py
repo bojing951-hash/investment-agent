@@ -303,7 +303,14 @@ check('L1 跨日三档(两日 -01/-02 撞名) → 归档三档全保留(唯一�
       and man['verdicts_n'] == 3,
       f"ok={e['ok']} files={vfiles}")
 check('L2 唯一名含日目录(basename 冲突消解)',
-      all('__' in f and f.startswith(('20261115', '20261116', '20261117'))
+      all('__' in f and f.startswith(
+          ('20261115', '20261116',
+           # 「当日」档随运行日动态前缀(2026-11-17 硬编码在跨午夜后
+           # 误红——日期敏感夹具修正,判定语义不变)
+           __import__('datetime').datetime.now(
+               __import__('datetime').timezone(
+                   __import__('datetime').timedelta(hours=8))
+           ).strftime('%Y%m%d')))
           for f in vfiles), str(vfiles))
 import hashlib as _hl
 _sha_ok = all(

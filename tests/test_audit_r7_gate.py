@@ -286,17 +286,19 @@ check('T11 指定了但无法解析(2020年13月) → 阻断不回落',
       t11['outcome'] == 'insufficient_coverage'
       and '无法解析' in t11['outcome_basis'], t11['outcome_basis'][:60])
 
-# T12 显式区间与相对年限并存 → 显式胜(相对记入 basis)
+# T12 显式区间与相对年限并存(Audit-R11 P1 语义对齐)
+# R7 原口径「显式区间优先,相对年限记入 basis」=只匹配一部分约束;
+# Audit-R11(2026-11-18)明确「收集全部时间约束,不允许只匹配其中一
+# 部分」→多范围任务=提示拆分并阻断。判据随语义更新,阻断更严。
 t12 = ro._evaluate_data_requirements(
     ['DXY'], [], snapW(store('DXY', weekdayrange(
         date(2022, 1, 3), date(2025, 6, 30)))), [],
     question='近五年 2022年1月至2025年6月 DXY 走势', registry=REG)[0]
 _t12w = t12['spec']['window']
-check('T12 显式区间优先于相对年限(窗口=2022-01-01..2025-06-30)',
-      _t12w.get('kind') == 'explicit'
-      and _t12w.get('start') == '2022-01-01'
-      and _t12w.get('end') == '2025-06-30'
-      and '并存相对年限' in _t12w.get('basis', ''),
+check('T12 显式区间+相对年限并存 → 多范围任务阻断(请拆分;R11 对齐)',
+      _t12w.get('kind') == 'unparseable'
+      and '多个时间范围约束' in str(_t12w.get('basis'))
+      and '拆分' in str(_t12w.get('basis')),
       str(_t12w.get('basis')))
 
 # T13 「X以来」→ 终界=研究时点(数据止 2026-11 与时点对齐通过)

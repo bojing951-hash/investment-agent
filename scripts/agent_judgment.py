@@ -617,38 +617,45 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
     day = datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d')
     d = os.path.join(root, 'audit', 'semantic_review', day)
     os.makedirs(d, exist_ok=True)
-    seq = len([f for f in os.listdir(d) if f.startswith(
-        'VERDICT-' + run_ts)]) + 1
-    path = os.path.join(d, 'VERDICT-%s-%02d.json' % (run_ts, seq))
-    prior = _verdicts_for_run(root, run_ts)
-    revs = [v.get('revision') for _, v in prior
-            if isinstance(v, dict) and isinstance(v.get('revision'), int)]
-    # Audit-R4: 号下界=全档数(含不可读档)——复审恢复不与损坏档撞号
-    revision = max(revs + [len(prior)]) + 1
-    predecessor = None
-    if prior:
-        latest_p, _ = max(
-            prior, key=lambda t: _verdict_sort_key(t[0], t[1]))
-        predecessor = os.path.relpath(latest_p, root)
-    # Audit-R1 对齐 R32 席位章程 schema: seat 恒为章程名,audited_at=归档日
-    # (HKT),counterexamples_sought 非空由调用席自证(B3/B4/B5 机核面)。
-    doc = {'seat': 'semantic-audit-seat', 'overall': overall,
-           'reviewer': reviewer, 'notes': notes,
-           'run_ts': run_ts, 'content_sha256': content_digest(report_dir),
-           'audited_at': day[:4] + '-' + day[4:6] + '-' + day[6:],
-           'recorded_at': _now_utc(),
-           # Audit-R5 条目4: 格式与摘要算法显式可验证(读取端未知版本
-           # 按最严处理;缺席=legacy 时代,时代锚另核)
-           'format_version': VERDICT_FORMAT_VERSION,
-           'digest_algorithm': DIGEST_ALGORITHM_CURRENT,
-           'revision': revision, 'predecessor': predecessor,
-           'counterexamples_sought': ((extra or {}).pop(
-               'counterexamples_sought', None)
-               or ['(未记载: 席位简报须补反例面)'])}
-    if extra:
-        doc.update(extra)
-    with open(path, 'w', encoding='utf-8') as f:
-        json.dump(doc, f, ensure_ascii=False, indent=2)
+    # R11 P1②: 配号/前序读取/落盘同一跨进程锁临界区(锁域=整个
+    # semantic_review 树——跨日目录的 revision 链也在域内);临时文件
+    # 独立命名+fsync 后原子发布,终档存在性在锁内复核,不虚报成功。
+    import store_lock as sl
+    with sl.store_write_lock(os.path.dirname(d)):
+        seq = len([f for f in os.listdir(d) if f.startswith(
+            'VERDICT-' + run_ts)]) + 1
+        path = os.path.join(d, 'VERDICT-%s-%02d.json' % (run_ts, seq))
+        if os.path.exists(path):
+            raise FileExistsError(
+                f'裁决档已存在(锁下配号冲突,拒绝覆盖): {path}')
+        prior = _verdicts_for_run(root, run_ts)
+        revs = [v.get('revision') for _, v in prior
+                if isinstance(v, dict) and isinstance(v.get('revision'), int)]
+        # Audit-R4: 号下界=全档数(含不可读档)——复审恢复不与损坏档撞号
+        revision = max(revs + [len(prior)]) + 1
+        predecessor = None
+        if prior:
+            latest_p, _ = max(
+                prior, key=lambda t: _verdict_sort_key(t[0], t[1]))
+            predecessor = os.path.relpath(latest_p, root)
+        # Audit-R1 对齐 R32 席位章程 schema: seat 恒为章程名,audited_at=归档日
+        # (HKT),counterexamples_sought 非空由调用席自证(B3/B4/B5 机核面)。
+        doc = {'seat': 'semantic-audit-seat', 'overall': overall,
+               'reviewer': reviewer, 'notes': notes,
+               'run_ts': run_ts, 'content_sha256': content_digest(report_dir),
+               'audited_at': day[:4] + '-' + day[4:6] + '-' + day[6:],
+               'recorded_at': _now_utc(),
+               # Audit-R5 条目4: 格式与摘要算法显式可验证(读取端未知版本
+               # 按最严处理;缺席=legacy 时代,时代锚另核)
+               'format_version': VERDICT_FORMAT_VERSION,
+               'digest_algorithm': DIGEST_ALGORITHM_CURRENT,
+               'revision': revision, 'predecessor': predecessor,
+               'counterexamples_sought': ((extra or {}).pop(
+                   'counterexamples_sought', None)
+                   or ['(未记载: 席位简报须补反例面)'])}
+        if extra:
+            doc.update(extra)
+        sl.atomic_write_json(path, doc, indent=2, sort_keys=False)
     return path
 
 

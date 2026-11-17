@@ -391,13 +391,26 @@ check('M5 blocked_class_of 单源: M1 档复算=required_data_missing',
 print('§N outcome 判定数据源序(快照→S4 信封→L1/S3 单点→缺席)')
 
 
+def _iso_days(n):
+    """R9-01 对齐: 合法 ISO 日序 n 个(止 2026-11-14 倒排,周末含——
+    频率未知走 max_available 总量口径,重复/非法日期为 0)。"""
+    from datetime import date as _d, timedelta as _td
+    _d0 = _d(2026, 11, 14)
+    return [(_d0 - _td(days=i)).isoformat() for i in range(n)][::-1]
+
+
 def _s4_step(mid, n, ok=True, source='采集档 macro_20261114.json'):
-    env = {'data': {'series': {'n': n, 'source': source}}} if ok else None
+    # R9-01 对齐: 信封携带 dates/values 数组(生产 ia_cli 形态)——
+    # 判定器不采信声明 n,数量由数组清洗后实得。
+    ds = _iso_days(n)
+    env = {'data': {'series': {'n': n, 'source': source,
+                               'dates': ds, 'values': [1.0] * n}}} \
+        if ok else None
     return {'step': f'S4_history_{mid}', 'ok': ok, 'envelope': env}
 
 
-N_snap = {'series_store': {'GOLD_F': {'dates': ['d'] * 2514,
-                                       'values': [1.0] * 2514}}}
+N_snap = {'series_store': {'GOLD_F': {
+    'dates': _iso_days(2514), 'values': [1.0] * 2514}}}
 N_steps = [_s4_step('BEI_10Y', 2499), _s4_step('CN_PMI_MFG', 1),
            {'step': 'S4_history_DEAD', 'ok': False, 'envelope': None}]
 N_l1 = [{'metric_id': 'CN_PMI_MFG'}, {'metric_id': 'DEAD_M'}]

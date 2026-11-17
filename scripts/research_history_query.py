@@ -100,6 +100,13 @@ def _valid_series_date(s):
         return False
 
 
+def effective_series(dates, values):
+    """R9-01 唯一有效观测清洗规则(公共入口)——快照构建/工作台读取/
+    需求判定/查询 loader 四路同一实现,不另立副本。语义与返回形状同
+    _clean_series: (有效升序去重 dates, 对应 values, 六键登记)。"""
+    return _clean_series(dates, values)
+
+
 def _clean_series(dates, values):
     """序列清洗: 升序去重(同日保留最后)+无效观测剔除(不填0,不造占位)。
 

@@ -68,6 +68,25 @@ _WINDOW_MAX_GAP_DAYS = {'daily': 30, 'weekly': 60,
 _RANGE_YEARS_RE = re.compile(
     r'(?:近|最近|过去)(一|两|二|三|四|五|六|七|八|九|十|\d+)\s*年'
     r'|(?<![\d])(\d+|一|两|二|三|四|五|六|七|八|九|十)\s*年(?:以内|以来|内)')
+# R9-02: 相对月数词形(近/最近/过去 N 个月;N 个月以内/以来/内)——与
+# 年限词形同构,单位=月;判定器按研究时点倒推 N 个自然月(研究时点
+# 不可核验=窗口不可核验,不回落 max_available)。
+_RANGE_MONTHS_RE = re.compile(
+    r'(?:近|最近|过去)(一|两|二|三|四|五|六|七|八|九|十|\d+)\s*个月'
+    r'|(?<![\d])(\d+|一|两|二|三|四|五|六|七|八|九|十)\s*个月(?:以内|以来|内)')
+# R9-02: 时间意图在场但表达未支持——诚实失败(unparseable 阻断),
+# 不与「没有时间要求」混同退化为 max_available。确定性词面匹配,
+# 资产名护栏: 上/本周不带「期」(防「上周期」);年序词不含十年期类
+# 期限(需 年初/年中/年末 等完整词);季度须带上/本/下限定词。
+_QTIME_UNSUPPORTED_RE = re.compile(
+    r'(今年|明年|后年|大前年|上半年|下半年|年初|年中|年末|月初|月底|月末'
+    r'|上(?:个)?季度|本季度|下(?:个)?季度|这(?:个)?季度'
+    r'|上周(?!期)|本周(?!期)|这周(?!期)|下周(?!期)'
+    r'|上(?:个)?月|本月|这(?:个)?月|下(?:个)?月|当月'
+    r'|(?:近|最近|过去)\s*(?:\d+|[一两二三四五六七八九十])+\s*(?:周|星期|天|日)'
+    r'|(?:\d+|[一两二三四五六七八九十])+\s*(?:周|星期|天|日)(?:以内|以来|内)'
+    r'|(?:未来|接下来|此后)\s*(?:\d+|[一两二三四五六七八九十])+\s*'
+    r'(?:年|个?月|周|星期|天|日))')
 _CN_NUM = {'一': 1, '两': 2, '二': 2, '三': 3, '四': 4, '五': 5, '六': 6,
            '七': 7, '八': 8, '九': 9, '十': 10}
 
@@ -88,6 +107,34 @@ def _question_range_years(question):
         if isinstance(y, int) and y > 0:
             years.append(y)
     return max(years) if years else None
+
+
+def _question_range_months(question):
+    """R9-02: 问题词面声明的相对月数(None=未限定)。
+
+    与 _question_range_years 同构(近/最近/过去 N 个月、N 个月以内/
+    以来/内);多个匹配取最大(更严);「六个月内」类资产/频率词不
+    含「个月」量词不匹配。"""
+    months = []
+    for m in _RANGE_MONTHS_RE.finditer(question or ''):
+        tok = m.group(1) or m.group(2)
+        if tok is None:
+            continue
+        n = _CN_NUM.get(tok) if not tok.isdigit() else int(tok)
+        if isinstance(n, int) and n > 0:
+            months.append(n)
+    return max(months) if months else None
+
+
+def _shift_months(d, n):
+    """自然月平移(负数=倒推;日按目标月长收敛,如 3/31−1月=2/28)。
+
+    R9-02 相对月窗用——月粒度边界不引入日历库依赖,负向平移日不越界。"""
+    y, m = d.year, d.month - 1 + n
+    y, m = y + m // 12, m % 12 + 1
+    import calendar as _cal
+    day = min(d.day, _cal.monthrange(y, m)[1])
+    return date(y, m, day)
 
 
 # ── Audit-R7 条目1(R7-01): 明确日期区间解析 ─────────────────────────
@@ -160,21 +207,28 @@ def _valid_iso_date(s):
 
 def _question_window(question):
     """R7-01: 问题词面时间范围统一解析(相对年限+明确日期区间);
-    R8-02: 斜杠日期词形+「去年」(自然年,绑定研究时点)。
+    R8-02: 斜杠日期词形+「去年」(自然年,绑定研究时点);
+    R9-02: 三态固定——①未指定范围(None)②已指定且成功解析③已指定
+    但无法解析(unparseable 阻断)。**只有①允许 max_available**;
+    时间意图识别与窗口解析分离: 意图在场(日期词形/相对词形/未支持
+    时间词)但窗口拿不出=③,不与①混同。
 
     返回:
       None                          未指定范围(max_available 口径)
       {'kind':'relative','years':N} 近/过去 N 年(端点=研究时点)
-      {'kind':'calendar_year',      「去年」=研究时点上一自然年
-       'offset':-1,'raw':'去年'}    (R8-02: 相对词形绑定研究时点,
-                                    判定器折 [Y-1-01-01, Y-1-12-31])
+      {'kind':'relative_months',    近/过去 N 个月(端点=研究时点,
+       'months':N}                  R9-02;时点不可核验=窗口不可核验)
+      {'kind':'calendar_year',      「去年/前年」=研究时点上一/上上
+       'offset':-1|-2,'raw':str}    自然年(相对词形绑定研究时点)
       {'kind':'explicit',           明确日期区间(start/end 任一侧可无界:
        'start':ISO|None,             'X以来'=起界无终界→end=研究时点;
        'end':ISO|None,               '截至X'=终界无起界→窗起=实际
        'raw':str}                     序列首观测,判定期数据面回填)
-      {'kind':'unparseable',         指定了范围但无法解析/区间倒置——
-       'reason':str,'raw':str}       阻断,不回落宽松
+      {'kind':'unparseable',         指定了范围但无法解析/区间倒置/
+       'reason':str,'raw':str}       表达未支持——阻断,不回落宽松
     显式区间与相对年限并存时显式区间胜(更具体,相对年限记入 basis)。
+    未支持时间词(今年/明年/后年/季度/周天粒度/未来等)→unparseable
+    带改写提示,诚实失败不猜(R9-02;不做自然语言全覆盖)。
     """
     q = question or ''
     toks = [(m.start(), m.end(), m.group(0))
@@ -191,16 +245,31 @@ def _question_window(question):
         return {'kind': 'unparseable',
                 'reason': f'日期词形 {bad[0]!r} 无法归一为合法日期',
                 'raw': bad[0]}
+    _unsup = _QTIME_UNSUPPORTED_RE.search(q)
     if not parsed:
-        # 无日期词形→相对年限同入口统一解析(近/过去 N 年;无范围词
-        # =未指定 max_available)——判定器优先消费本函数的 relative 面
+        # 无日期词形→时间意图识别在先,窗口解析在后(R9-02 三态):
+        # 未支持时间词→③阻断(先于支持词形判,混合表达不放过);
+        # 相对月数(更紧)先于相对年限;自然年词形次之;无范围词=①。
+        if _unsup:
+            return {'kind': 'unparseable',
+                    'reason': f'时间表达 {_unsup.group(0)!r} 未支持',
+                    'raw': _unsup.group(0),
+                    'hint': '请改用明确日期区间或受支持表达'
+                            '(近/过去 N 年·N 个月、去年/前年、'
+                            'X以来/截至X、ISO 或斜杠日期)'}
+        _rm = _question_range_months(q)
+        if _rm:
+            return {'kind': 'relative_months', 'months': _rm}
         _ry = _question_range_years(q)
         if _ry:
             return {'kind': 'relative', 'years': _ry}
         if '去年' in q:
-            # R8-02: 「去年」=上一自然年(确定性词形,零语义改写;
-            # 未支持的其他自然语时间词不猜——不支持时诚实失败)
+            # R8-02: 「去年」=上一自然年(确定性词形,零语义改写)
             return {'kind': 'calendar_year', 'offset': -1, 'raw': '去年'}
+        if re.search(r'(?<!大)前年', q):
+            # R9-02: 「前年」=上上自然年(反例A 词形;负向后视防
+            # 「大前年」误切——大前年在未支持表)
+            return {'kind': 'calendar_year', 'offset': -2, 'raw': '前年'}
         return None
     if len(parsed) == 1:
         s, e, raw = parsed[0]
@@ -213,6 +282,15 @@ def _question_window(question):
         if re.search(r'(截至|截止|直到)(于)?\s*$', before):
             return {'kind': 'explicit', 'start': None,
                     'end': _norm_qdate(raw, 'end'), 'raw': '截至' + raw}
+        if _unsup:
+            # 单日期提及≠区间,但未支持时间词在场=时间意图未解析
+            # (R9-02: 不退化为 max_available)
+            return {'kind': 'unparseable',
+                    'reason': f'时间表达 {_unsup.group(0)!r} 未支持',
+                    'raw': _unsup.group(0),
+                    'hint': '请改用明确日期区间或受支持表达'
+                            '(近/过去 N 年·N 个月、去年/前年、'
+                            'X以来/截至X、ISO 或斜杠日期)'}
         return None                      # 单日期提及≠区间(如「2026-10的PMI」)
     # ≥2 个日期词形: 取词面首末(词序倒置=错误区间,不静默重排)
     first, last = parsed[0], parsed[-1]
@@ -691,6 +769,7 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
       max_available 口径(完整短史不误拒)。
     """
     _fact_mids = {r['metric_id'] for r in l1_rows}
+    import research_history_query as rhq   # R9-01: 唯一有效观测清洗规则
     _ss = (snap or {}).get('series_store') or {}
     _s3_env = ((next((s.get('envelope') for s in steps
                       if s.get('step') == 'S3_changes'), {}) or {})
@@ -705,27 +784,54 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
     _reg_by_id = registry or {}
     req_items = []
     for _mid in metrics:
-        _n_series = len((_ss.get(_mid) or {}).get('dates') or [])
+        _n_series = 0
         _ser_src = '研究快照 series_store'
         _freq, _first, _last = None, None, None
         _ser_face_present = False          # R8-01: 序列面在场但可 0 有效
         _ss_dates = list((_ss.get(_mid) or {}).get('dates') or [])
         if _ss_dates:
-            _first, _last = _ss_dates[0], _ss_dates[-1]
             _ser_face_present = True
+        # R9-01: 建档清洗后未入 store(全 NaN/±Inf/非法日期)的序列,
+        # 其「面在场、有效 0」事实由快照核验披露节携带——判定器消费
+        # 该披露据实分类,不误标「均缺席」。
+        elif isinstance(((snap or {}).get('series_store_clean') or {})
+                        .get(_mid), dict):
+            _ser_face_present = True
+        # R9-01: 快照直读过唯一有效观测清洗(rhq.effective_series,
+        # 与查询 loader/工作台同一实现)——n/first/last 取自最终有效
+        # 序列,不信任原始数组长度。
+        if _ss_dates:
+            _cd, _cv, _cst = rhq.effective_series(_ss_dates,
+                                                  (_ss.get(_mid) or {}).get('values'))
+            _n_series = len(_cd)
+            if _cd:
+                _first, _last = _cd[0], _cd[-1]
         if _n_series == 0:
             _st = next((s for s in steps
                         if s.get('step') == f'S4_history_{_mid}'), None)
             if _st and _st.get('ok'):
                 _s4 = (((_st.get('envelope') or {}).get('data')
                         or {}).get('series')) or {}
-                if _s4.get('n') is not None:
-                    _n_series = int(_s4['n'])
+                # R9-01: 信封面吃日期/值数组经同一清洗,不信任声明
+                # n/first/last(生产 ia_cli cmd_history 信封恒携带
+                # 全长 dates/values 数组,声字段仅披露用)。dates 为
+                # list(含空)=序列面在场(S4 探测发生过,清洗后有效 0
+                # 走据实分支,不误标均缺席);dates 缺席=无面,声明 n
+                # 不采信(覆盖不可核验,n 保持 0)。
+                _s4_dates = _s4.get('dates')
+                if isinstance(_s4_dates, list):
                     _ser_face_present = True
-                    _ser_src = str(_s4.get('source') or 'S4 history 探测')
-                    _freq = _s4.get('frequency') or _freq
-                    _first = _s4.get('first') or _first
-                    _last = _s4.get('last') or _last
+                    _cd, _cv, _cst = rhq.effective_series(
+                        _s4_dates, _s4.get('values'))
+                    _n_series = len(_cd)
+                    if _cd:
+                        _ser_src = str(_s4.get('source') or 'S4 history 探测')
+                        _freq = _s4.get('frequency') or _freq
+                        _first = _cd[0]
+                        _last = _cd[-1]
+                    else:
+                        _ser_src = str(_s4.get('source') or 'S4 history 探测')
+                        _freq = _s4.get('frequency') or _freq
         # R6-01: 权威注册表优先(快照路径不丢频率),S4 次之,快照内嵌兜底
         _freq = ((_reg_by_id.get(_mid) or {}).get('frequency')
                  or _freq
@@ -756,8 +862,10 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
         _win = None
         if _qw is not None and _qw['kind'] == 'unparseable':
             _win = {'start': None, 'end': None, 'kind': 'unparseable',
-                    'basis': f'问题指定了时间范围但无法解析: '
-                             f'{_qw["reason"]}'}
+                    'basis': (f'问题指定了时间范围但无法解析: '
+                              f'{_qw["reason"]}'
+                              + (f';{_qw["hint"]}' if _qw.get('hint')
+                                 else ''))}
         elif _qw is not None and _qw['kind'] == 'calendar_year':
             # R8-02: 「去年」=研究时点上一自然年(相对词形绑定研究时点;
             # 时点不可核验=窗口不可核验,不回落 max_available)
@@ -773,6 +881,25 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                         'kind': 'calendar_year',
                         'basis': f'研究时点 {_as_of.isoformat()} 的'
                                  f'「去年」={_cy} 自然年(词形绑定研究时点)'}
+        elif _qw is not None and _qw['kind'] == 'relative_months':
+            # R9-02: 近/过去 N 个月=研究时点倒推 N 个自然月(相对词形
+            # 绑定研究时点,不用系统当前时间;时点不可核验=窗口不可
+            # 核验,不回落 max_available)
+            if _as_of is None:
+                _win = {'start': None, 'end': None,
+                        'kind': 'relative_months',
+                        'basis': '研究时点不可核验(快照无 target_date/'
+                                 'research_as_of)→相对月窗无法判定'}
+            else:
+                _wm_s = _shift_months(_as_of, -int(_qw['months']))
+                _win = {'start': _wm_s.isoformat(),
+                        'end': _as_of.isoformat(),
+                        'as_of': _as_of.isoformat(),
+                        'kind': 'relative_months',
+                        'basis': (f'研究时点 {_as_of.isoformat()} 倒推 '
+                                  f'{int(_qw["months"])} 个自然月'
+                                  f'({_wm_s.isoformat()}..'
+                                  f'{_as_of.isoformat()})')}
         elif _rel_years:
             if _as_of is None:
                 _win = {'start': None, 'end': None, 'kind': 'relative',

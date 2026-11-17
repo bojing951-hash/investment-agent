@@ -574,10 +574,14 @@ def series_capable_metrics(snapshot, registry):
     facts_q = {f.get('metric_id'): f.get('quality_status')
                for f in (snapshot or {}).get('facts', [])}
     stats = {}
+    # R9-01: 两面统计(first/last/n)均取自有效观测核验后序列——与
+    # metric_series/判定层同一清洗规则,不以原始数组长度计 n。
+    import research_history_query as rhq
     for mid, s in ((snapshot or {}).get('series_store') or {}).items():
-        dates = (s or {}).get('dates') or []
-        if dates:
-            stats[mid] = (dates[0], dates[-1], len(dates))
+        cd, cv, _cst = rhq.effective_series((s or {}).get('dates'),
+                                            (s or {}).get('values'))
+        if cd:
+            stats[mid] = (cd[0], cd[-1], len(cd))
     daily = os.path.join(ROOT, 'data', 'daily')
     # Charter6-P2: +shiller_(估值序列月频;series 节直通)
     for prefix in ('macro_', 'global_', 'rate_economy_', 'shiller_'):
@@ -593,8 +597,11 @@ def series_capable_metrics(snapshot, registry):
                     if isinstance(v, dict) and isinstance(v.get('series'), dict) \
                             and v['series'].get('dates'):
                         if k not in stats:      # series_store 优先(快照口径)
-                            dates = v['series']['dates']
-                            stats[k] = (dates[0], dates[-1], len(dates))
+                            cd, cv, _cst = rhq.effective_series(
+                                v['series'].get('dates'),
+                                v['series'].get('values'))
+                            if cd:
+                                stats[k] = (cd[0], cd[-1], len(cd))
         except (OSError, ValueError):
             continue
     out = []
@@ -637,13 +644,21 @@ def metric_series(metric_id, snapshot=None, root=None):
     if snapshot and metric_id in (snapshot.get('series_store') or {}):
         ss = snapshot['series_store'][metric_id]
         import research_history_query as rhq
+        # R9-01: 快照直读同过唯一有效观测清洗(rhq.effective_series,
+        # 与采集档 loader 同一实现)——快照面 n/first/last 亦取自最终
+        # 有效序列,坏值/重复/错配不再以原始数组长度冒充覆盖。
+        cd, cv, cst = rhq.effective_series(ss.get('dates'), ss.get('values'))
+        if not cd:
+            return None, ('快照序列经有效观测核验后为空'
+                          f"(n_observations={cst.get('n_observations', 0)})")
         cstat = rhq.collection_status_of(
             (snapshot.get('series_provenance') or {}).get(metric_id),
-            last_observation=(ss['dates'][-1] if ss.get('dates')
-                              else None))
+            last_observation=cd[-1])
         out = {'metric_id': metric_id, 'label': m['display_name'],
-               'unit': m.get('unit', ''), 'dates': list(ss['dates']),
-               'values': list(ss['values']), 'source': '研究快照 series_store'}
+               'unit': m.get('unit', ''), 'dates': list(cd),
+               'values': list(cv), 'source': '研究快照 series_store',
+               'series_clean': {'raw_n': len(ss.get('dates') or []),
+                                **cst}}
         if cstat:
             out['collection_status'] = cstat
         return out, None

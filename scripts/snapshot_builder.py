@@ -308,13 +308,19 @@ def merge_series_sections(store, raw):
             if m is None or m.get('source') != collector or key in store:
                 continue
             if isinstance(s, dict) and isinstance(s.get('dates'), list) \
-                    and isinstance(s.get('values'), list) \
-                    and len(s['dates']) == len(s['values']) and s['dates']:
-                store[key] = s
+                    and s['dates']:
+                # R9-01: 入 store 前过唯一有效观测清洗(合法日期+有限
+                # 数值+同日去重留末;长度错配短侧配对)——快照消费核验
+                # 序列,坏值不再以原始数组长度冒充覆盖。
+                import research_history_query as rhq   # 函数内导入防环(rhq→sb)
+                cd, cv, _cst = rhq.effective_series(s.get('dates'),
+                                                    s.get('values'))
+                if cd:
+                    store[key] = {'dates': cd, 'values': cv}
     return store
 
 
-def merge_macro_series(store, raw, prov_out=None):
+def merge_macro_series(store, raw, prov_out=None, clean_out=None):
     """阶段三 T3(PHASE3-PLAN 工单T3,2026-11-14): macro 通道全史序列入 store(就地并入)。
 
     根因: 周报路径唯一数据入口=研究快照 series_store(global/china/jp/ea/
@@ -347,7 +353,11 @@ def merge_macro_series(store, raw, prov_out=None):
     返回: notes dict(非空时由调用方写入 snapshot['series_store_notes'])。
     prov_out: 可选 dict 出参——本函数就地填入 {metric_id: provenance}
     (调用方写入 snapshot['series_provenance'];None=旧调用面不收集,
-    返回值形状不变)。"""
+    返回值形状不变)。
+    clean_out: 可选 dict 出参(R9-01)——本函数就地填入
+    {metric_id: {'raw_n': 原始长度, ...六键清洗登记}}(调用方写入快照
+    顶层平节 series_store_clean,作为快照面有效观测核验的披露面;None=
+    旧调用面不收集)。"""
     notes = {}
     if not isinstance(raw.get('macro'), dict):
         return notes
@@ -359,15 +369,23 @@ def merge_macro_series(store, raw, prov_out=None):
             continue
         s = item.get('series')
         if isinstance(s, dict) and isinstance(s.get('dates'), list) \
-                and isinstance(s.get('values'), list) \
-                and len(s['dates']) == len(s['values']) and s['dates']:
-            store[mid] = s
-            note = item.get('history_note')
-            if isinstance(note, str) and note:
-                notes[mid] = note
-            prov = item.get('provenance')
-            if prov_out is not None and isinstance(prov, dict) and prov:
-                prov_out[mid] = dict(prov)
+                and s['dates']:
+            # R9-01: 入 store 前过唯一有效观测清洗(同 merge_series_sections
+            # 同一实现)——n/first/last 从最终有效序列计算,坏值不再以原始
+            # 数组长度冒充覆盖;长度错配按短侧配对如实登记不再整段拒绝。
+            import research_history_query as rhq   # 函数内导入防环(rhq→sb)
+            cd, cv, cst = rhq.effective_series(s.get('dates'),
+                                               s.get('values'))
+            if clean_out is not None:
+                clean_out[mid] = {'raw_n': len(s['dates']), **cst}
+            if cd:
+                store[mid] = {'dates': cd, 'values': cv}
+                note = item.get('history_note')
+                if isinstance(note, str) and note:
+                    notes[mid] = note
+                prov = item.get('provenance')
+                if prov_out is not None and isinstance(prov, dict) and prov:
+                    prov_out[mid] = dict(prov)
     return notes
 
 
@@ -590,13 +608,19 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
     # R7-02: 采集状态(provenance)同门随序列入顶层平节 series_provenance
     # ——loader/history/判定层自快照取状态,不经旁路。
     macro_prov = {}
-    macro_notes = merge_macro_series(store, raw, prov_out=macro_prov)
+    macro_clean = {}
+    macro_notes = merge_macro_series(store, raw, prov_out=macro_prov,
+                                     clean_out=macro_clean)
     if store:
         snapshot['series_store'] = store
     if macro_notes:
         snapshot['series_store_notes'] = macro_notes
     if macro_prov:
         snapshot['series_provenance'] = macro_prov
+    # R9-01: 快照面有效观测核验披露(原始长度+六键清洗登记),供下游与
+    # 外审计核对 series_store 值即核验后序列。
+    if macro_clean:
+        snapshot['series_store_clean'] = macro_clean
 
     if not write:
         return snapshot

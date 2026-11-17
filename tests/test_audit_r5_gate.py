@@ -527,7 +527,8 @@ check('S3b 月频+过去五年 30 月<半额下界31 → 阻断(真覆盖不足)
       str(items5y_m_short[0]['spec']))
 
 items_nr = ro._evaluate_data_requirements(
-    ['TEST_M0'], [s4('TEST_M0', 100, freq='daily')], {}, [],
+    ['TEST_M0'], [s4('TEST_M0', 100, freq='daily',
+                     first='2016-06-01', last='2016-10-21')], {}, [],
     question='TEST_M0 与 TEST_M1 的关系')
 check('S4 未限定范围+日频 → 频率族兜底 60, n=100 满足',
       items_nr[0]['spec']['min_observations'] == 60

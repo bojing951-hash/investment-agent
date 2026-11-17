@@ -109,10 +109,10 @@ sh docs/autonomous-rd/phase4/BLIND/blind_replay.sh
   - tests (3.11): completed **success**
   - tests (3.12): completed **success**
   - gates: completed **success**
-- 本 docs 回填提交(最终 HEAD)的 CI: [本笔推送后以其实际 run 链接回填;若你读到本行仍为方括号,即该链接未落=如实未回填]
+- CI 回填提交 `130d6b0`(docs-only,不改代码与测试)的 CI run **43990342991 全绿**: tests (3.11)/(3.12)/gates 三作业全 success——受审修复面(`2882932`+`1d53857`+`ebd200c`)与其后 docs-only 尾笔在云端两版本矩阵下均绿。
 
 ## 九、最终坐标
 
 - 分支: `dev/audit-fix-r1`(覆盖推送至既有 PR #1: https://github.com/bojing951-hash/investment-agent/pull/1)
-- 修复链: `2882932`(R4-01/02/04/05 代码+R4-03 重放包+CI 3.11/3.12 矩阵)→`1d53857`(R4-06 rebind+四归档+B 重跑+outcome 源序修)→`ebd200c`(E2E 闭合+台账 R48+本报告)→本笔(CI 回填 docs-only)
-- 最终 HEAD: 本笔 docs 提交(见 git log;受审修复面=`2882932`+`1d53857`+`ebd200c`,本笔不改代码与测试)
+- 修复链: `2882932`(R4-01/02/04/05 代码+R4-03 重放包+CI 3.11/3.12 矩阵)→`1d53857`(R4-06 rebind+四归档+B 重跑+outcome 源序修)→`ebd200c`(E2E 闭合+台账 R48+报告)→`130d6b0`(CI 回填 docs-only)→本笔(终笔回链 docs-only)
+- 受审修复面终止于 `ebd200c`(代码与测试);其后均为 docs-only 回填笔(130d6b0 的绿 CI=43990342991;本笔同类不逐笔回链)

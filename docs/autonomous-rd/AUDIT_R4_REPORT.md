@@ -104,10 +104,15 @@ sh docs/autonomous-rd/phase4/BLIND/blind_replay.sh
 
 ## 八、CI 回填(py3.11/3.12)
 
-[待推送后回填: 两版本 run 链接与结果]
+- 修复链尖 `ebd200c` 真实 CI run **43976756703 全绿**:
+  https://github.com/bojing951-hash/investment-agent/actions/runs/43976756703
+  - tests (3.11): completed **success**
+  - tests (3.12): completed **success**
+  - gates: completed **success**
+- 本 docs 回填提交(最终 HEAD)的 CI: [本笔推送后以其实际 run 链接回填;若你读到本行仍为方括号,即该链接未落=如实未回填]
 
 ## 九、最终坐标
 
-- 分支: `dev/audit-fix-r1`(覆盖推送至既有 PR #1)
-- 修复链: `2882932`(R4-01/02/04/05 代码+R4-03 重放包+CI 矩阵)→`1d53857`(R4-06 rebind+四归档+B 重跑+outcome 源序修)→[待: 台账与本报告 docs commit]
-- 最终 HEAD: [待回填]
+- 分支: `dev/audit-fix-r1`(覆盖推送至既有 PR #1: https://github.com/bojing951-hash/investment-agent/pull/1)
+- 修复链: `2882932`(R4-01/02/04/05 代码+R4-03 重放包+CI 3.11/3.12 矩阵)→`1d53857`(R4-06 rebind+四归档+B 重跑+outcome 源序修)→`ebd200c`(E2E 闭合+台账 R48+本报告)→本笔(CI 回填 docs-only)
+- 最终 HEAD: 本笔 docs 提交(见 git log;受审修复面=`2882932`+`1d53857`+`ebd200c`,本笔不改代码与测试)

@@ -60,5 +60,5 @@
 
 ## CI 回填
 
-- 收口尖 `c2e645c`(状态波提交): run [44217524672](https://github.com/bojing951-hash/investment-agent/actions/runs/44217524672) 三 job 全绿(gates / tests 3.11 / tests 3.12),head_sha=`c2e645ca1bf1e1127ce4d2820c2caae9425b3034` 与远端尖逐位复核一致。
-- 本回填提交后的终跑见下一行。
+- 首跑即绿(本轮无热修): 收口尖 `c2e645c` run [44217524672](https://github.com/bojing951-hash/investment-agent/actions/runs/44217524672) 三 job 全绿(gates / tests 3.11 / tests 3.12),head_sha 逐位复核;回填尖 `e2df5b6` run [44218140696](https://github.com/bojing951-hash/investment-agent/actions/runs/44218140696) 三 job 全绿。
+- 链: 1d39ec8→0fb64e4(代码修复,固定 SHA)→c2e645c(状态波+检查点 7/7)→e2df5b6(CI 回填)→本措辞终笔(纯文档,不改代码与判据)。

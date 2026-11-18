@@ -4,7 +4,18 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-18 R60 Audit-R16 第十六轮审计修复(T-R60-1;独立轨道续 R59)
+## 权威快照: 2026-11-18 R61 Audit-R17 第十七轮审计修复(T-R61-1;独立轨道续 R60)
+> baseline=d59713d903930489b59a40faeee9557277c91f65(Audit-R16 CI 回填尖);代码修复固定 SHA=d59713d903930489b59a40faeee9557277c91f65(受审面=共享解析逻辑七修+单指标豁免)
+
+- **基线**: dev/audit-fix-r1 = 264dc14→代码修复提交(并列共用名绑定/只比较限定/空格不变义/另加连接词/缺什么注记/S7 单指标豁免/半年位年复合词界+56 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 唯一目标全关——①`_metric_tenor_map_patterns` 并列中段 数量+单位+?期 允许: 同一共用名绑定到每个期限(「2年期和10年期美债收益率各变了多少」→UST_2Y+UST_10Y);并列段不得含产品词=「2年期国债和10年期美债收益率」不跨产品错绑。②map_entities 位置化重构: 字面命中位置(q.find)与期限映射位置(`_metric_tenor_map_positions`,_norm_question 全角数字翻译保 q/qn 同坐标)统一入表;「只/仅比较」限定=取限定词之后位置的非空子集(三空格变体同 [UST_10Y,UST_30Y],无关 UST_2Y 不再入必需集;移除无关 2Y 仍交付,移除任一指定期限拒绝)。③范围前缀抑制从 lookbehind 移到 `_metric_tenor_map_positions` 匹配时判定——「过去 2年」「过去  2年」等空格变体同抑制(研究时长与债券期限各自识别,空格不改变含义)。④`_QCONT_RE` 连接词 [再又外]→[再又外另]: 「十八个月另加三天」复合尾部拦截(完整处理所有明确的时间分量,超出口径提示改写);基线漏过=18 月照付。⑤`_evaluate_data_requirements` 缺失项 outcome_basis 前缀「缺什么: <指标>(任务窗<起>..<止>)——<缺法>;」(缺失项保留在计划中并写明缺什么)。⑥S7_mode_gate: gate 缺席且历史指标<2(单指标问句无可比对)=honest_refusal=True 豁免(镜像 S6;R16 门 §D G2 判据同步翻正)——单指标 PMI 正常入口全链交付的前提。⑦独立「半年」位年复合词界: num=半+unit=年 且匹配末端后随 报/度/刊 → BAD(「过去半年报/半年度/半年刊」基线误折 6 月——本轮 §E 电池新暴露的既有缺陷,与 N年半 后缀黑名单同口径)。
+- **三组验收(冻结面 2026-11-17,正式 plan/attach/report/archive 逐案退出码)**: 美债并列三形(省写/写全/调序)全 [UST_2Y,UST_10Y,UST_30Y]+窗 2026-05-17..2026-11-17+三项各 124 窗内观测+原始值复算 2Y +81bp(4.07→4.88)/10Y +54bp(4.61→5.15)/30Y +33bp(5.14→5.47)+三链 rc=0 归档各 1 份;逐条移除任一序列 plan 仍列该项+缺什么注记+insufficient_coverage 阻断+零归档。只比较三空格形同 [UST_10Y,UST_30Y]+窗 2024-11-17..2026-11-17+各 497 观测+三链 rc=0;移除无关 UST_2Y 仍交付(必需集不含 2Y);移除 UST_10Y 或 UST_30Y 拒绝。另加/外加/加三天三形全拒(unparseable+提示改写+缺什么注记,S7 honest_refusal,零归档);净十八月窗 2025-05-17..2026-11-17 n=373 交付。单指标 PMI「过去一年半制造业PMI有什么变化？」全链交付(S7 豁免+18 月窗 n=17 satisfied+rc=0 归档 1 份;CN 输入面补全=china_*.json 事实权威通道,注册表 source 门)。
+- **产品验收**: (a) 单指标 PMI 前置检查查清——①S7_mode_gate compare/analog 门对单指标问句不适用(已修=honest_refusal 豁免,不编造 gate);②critical_zero_evidence(L1=0)检查本身适用且正确,PMI 命中系冻结输入面缺 china_*.json(事实权威=china_market_collector,序列走 history_source)——补全输入面后全链交付,非代码缺陷。(b) 独立验收者(零上下文出题席)出题「本周VIX飙升而高收益债利差几乎未动,信用市场是否对股市风险过于自满?」→ 真实 Agent 席(真实快照 20261118 隔离副本,引擎根零写入)plan rc=0+judgment(schema 1.1,3 矛盾×3 竞争解释+3 机制链 E1/E2/E3+3 情景,0 violations,契约 VERIFIED)+attach rc=0;原问句 report rc=1(deliverable=False,blocked=required_data_missing)+archive rc=1+零归档——「本周」未支持词形按设计阻断+改写提示+缺什么注记(R17 契约真实链成立);验收者按引擎提示发修正问句「近一个月VIX飙升而高收益债OAS利差几乎未动,信用市场是否对股市风险过于自满?」→ 全链收口(详见 AUDIT_R17_REPORT §产品验收)。发现两缺口登记 R18 候选: ①日历周表达(本周/上周)未支持;②常用中文同义词形(高收益债利差/投机级利差)不在注册表别名面(必需集只含 VIX=答非所问风险类)。
+- **验收**: test_audit_r17_gate 56/0(§A 映射+抑制锚/§B 复合尾部/§C 正式 plan 七案/§D 七链正反例/§E 参数化回归电池 23 锚;合成裁决显式标记 role=R17-SYNTHETIC-ISOLATED-TEST+judgment 顶层 synthetic:true);报告=docs/autonomous-rd/AUDIT_R17_REPORT.md;反例复现=/tmp/r17_repro.py(五冻结根×17 案+每次输入更换重建快照+正式四阶段逐案退出码,基线/修复双档=/tmp/r17_rows_baseline.json+/tmp/r17_rows_fixed.json);电池 190 件如实计数(189 绿+phase6 提交前预期红,提交树全绿由 CI 复核)+既有门 r4-r16/t3+charter6(p0/p1/p2/p4)复跑全绿+复放四包(BLIND sha feaa1536 逐字节+64/64·F10 sha 6e5fcf4a 逐字节·新B recompute 105/105·e2e 三争点全中)PASS+复杂度基线内(生产 85f/51303L 同口径 +0.16%;research_orchestrator.py 2381→2464 +83 全为本轮修复);CI 见报告尾回填。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R17_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R60 视角,已被上方权威快照取代]
+
 > baseline=83c86c909a51ca396046cb3d21add1914b6204cb…(代码修复固定 SHA;受审基线=fe54e0a 即 Audit-R15 CI 回填尖;受审面=本轮期限映射+完整短语时间解析)
 
 - **基线**: dev/audit-fix-r1 = fe54e0a→代码修复提交(期限值绑定映射+半词黑名单+外加连接词+49 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。

@@ -28,6 +28,7 @@ warnings.filterwarnings('ignore')
 
 import argparse
 import glob
+import hashlib
 import json
 import os
 import re
@@ -1477,6 +1478,43 @@ def _r1_plan_core(args, engine_root):
     }
     with open(envelope_path, 'w', encoding='utf-8') as f:
         json.dump(work_order, f, ensure_ascii=False, indent=2)
+    # Audit-R18: 地图问句工单追加 reader_map 规格(读者报告五面的真产要求;
+    # 对照表/点值/转折候选由引擎 research_plan 给定,判断文字归本席位)
+    _rp = rep.get('research_plan') if isinstance(rep, dict) else None
+    if _rp and _rp.get('map_question'):
+        work_order = json.load(open(envelope_path, encoding='utf-8'))
+        work_order['produce'] += (' + reader_map(地图问句五面: 一句总判断/'
+                                  '各地区环境走位/传导图逐环四件套[观察事实/'
+                                  '因果假设/竞争解释/区分指标]/三个转折[日期/'
+                                  '指标/前后值/谁先变/跟进或背离]/历史段≤3'
+                                  '[年月/相似点/关键差异/其他经济体是否同步/'
+                                  '随后3、6、12个月实际+样本注记])')
+        work_order['reader_map_contract'] = {
+            'spec': 'judgment 顶层 reader_map 对象;字段结构与数值回贴核对'
+                    '见 scripts/research_contract/judgment_contract.py '
+                    '_map_checks(转折前后值按引擎序列月末口径复算,相左='
+                    'CONTRADICTED;空正文/缺面=NOT_VERIFIED)',
+            'engine_faces': {
+                'point_anchors': _rp.get('point_anchors'),
+                'ex_post_offsets': _rp.get('ex_post_offsets'),
+                'point_values_cells': len(
+                    (_rp.get('point_values') or {}).get('cells') or []),
+                'point_values_absent': [
+                    a.get('metric_id')
+                    for a in (_rp.get('point_values') or {}).get('absent') or []],
+                'turning_candidates_top9': [
+                    {'metric_id': c.get('metric_id'), 'from_ym': c.get('from_ym'),
+                     'to_ym': c.get('to_ym'), 'value_before': c.get('value_before'),
+                     'value_after': c.get('value_after'), 'delta': c.get('delta')}
+                    for c in ((_rp.get('turning_candidates') or {})
+                              .get('candidates') or [])],
+                'dimension_gaps': _rp.get('dimension_gaps')},
+            'discipline': ['锚值与转折数值须与引擎面一致(不可虚构)',
+                           '数据不可得的格须明写「数据不可得」+检索范围',
+                           '总判断条件式非预测;历史段=事后陈述非预测'],
+        }
+        with open(envelope_path, 'w', encoding='utf-8') as f:
+            json.dump(work_order, f, ensure_ascii=False, indent=2)
     return rep, rd, None
 
 
@@ -1737,6 +1775,57 @@ def _r1_report_core(args, engine_root):
     # Audit-R5 条目2: 数据门为独立合取项——run_ok=true 不再豁免必要缺口
     deliverable = (machine_verified and review_ok and copies_consistent
                    and not blocked_hard)
+    # ── Audit-R18: 地图问句读者报告(MAP_REPORT.md=可直读可核查交付件) ──
+    # 渲染面=report.json research_plan(对照表/点值/转折候选)+Agent 席
+    # reader_map 原文,确定性装配零生成;在场文件与当前装配不同版=单改/
+    # 改源没渲,copies_consistent 翻 False(与 FULL_REPORT 内容段同口径)。
+    _rp18 = rj.get('research_plan') or {}
+    if _rp18.get('map_question'):
+        import research_map_planner as rmp18
+        _aj_doc = {}
+        _aj_path = os.path.join(rd, 'agent_judgment.json')
+        if os.path.exists(_aj_path):
+            try:
+                _aj_doc = json.load(open(_aj_path, encoding='utf-8'))
+            except (OSError, ValueError):
+                _aj_doc = {}
+        map_md_path = os.path.join(rd, 'MAP_REPORT.md')
+        map_sha_path = os.path.join(rd, 'MAP_REPORT.sha256')
+        map_text = rmp18.render_map_report(rj, _aj_doc, sr)
+        _fresh_sha = hashlib.sha256(map_text.encode('utf-8')).hexdigest()
+        _prev_sha = None
+        if os.path.exists(map_sha_path):
+            try:
+                _prev_sha = open(map_sha_path, encoding='utf-8').read().\
+                    strip().split(' ', 1)[0] or None
+            except OSError as exc:
+                copies_consistent, copies_note = False, repr(exc)
+        _disk_sha = None
+        if os.path.exists(map_md_path):
+            try:
+                _disk_sha = hashlib.sha256(
+                    open(map_md_path, 'rb').read()).hexdigest()
+            except OSError as exc:
+                copies_consistent, copies_note = False, repr(exc)
+        # 防篡改锚(旁挂 sha): 磁盘文件≠锚=单改在场文件——拒付且**不重写**
+        # (证据保全;归档内部重跑本段同样拒,不洗白)。文件未动而装配变=
+        # 合法修订(REVISE 闭环重渲),重写并更新锚。
+        if _prev_sha and _disk_sha and _disk_sha != _prev_sha:
+            copies_consistent = False
+            copies_note = (copies_note or '') + \
+                ' MAP_REPORT.md 与旁挂锚 SHA 不符(单改在场文件)'
+            warnings.append('MAP_REPORT.md 与旁挂锚 MAP_REPORT.sha256 不符'
+                            '(在场文件被单改)——拒绝交付且不重写保全证据'
+                            '(Audit-R18 任务4反例②:必需图表面以在场文件'
+                            '冒充;删除该文件后方可重渲)')
+            deliverable = False
+            _map18_path = map_md_path
+        else:
+            with open(map_md_path, 'w', encoding='utf-8') as f:
+                f.write(map_text)
+            with open(map_sha_path, 'w', encoding='utf-8') as f:
+                f.write(_fresh_sha + '  MAP_REPORT.md\n')
+            _map18_path = map_md_path
     full_text = content_text + '\n'.join(
         _quality_section(copies_consistent, deliverable)) + '\n'
     with open(out_md, 'w', encoding='utf-8') as f:
@@ -1756,6 +1845,8 @@ def _r1_report_core(args, engine_root):
                    'record_health': sr.get('record_health') or {}},
         'copies_consistent': copies_consistent,
         'deliverable': deliverable, 'mvp_complete': deliverable}
+    if _rp18.get('map_question'):
+        data['map_report'] = _map18_path
     return deliverable, data, warnings
 
 
@@ -1781,6 +1872,15 @@ def _r1_archive_core(args, engine_root):
                                 '最终受审版本,先过独立审查']
     rd = args.report_dir
     rj = json.load(open(os.path.join(rd, 'report.json'), encoding='utf-8'))
+    # Audit-R18 任务4反例②: 地图问句读者报告缺席=必需交付件缺失,拒归
+    if (rj.get('research_plan') or {}).get('map_question') and \
+            not os.path.isfile(os.path.join(rd, 'MAP_REPORT.md')):
+        return False, {'stage': 'archive',
+                       'blocked': 'map_required_face_missing',
+                       'note': 'MAP_REPORT.md 缺席(report 段应渲染)'
+                       '——必需图表面缺失阻止正式归档'}, \
+            (warnings or []) + ['归档拒绝: 地图问句读者报告 MAP_REPORT.md '
+                                '缺席(必需图表面缺失)']
     run_ts = (rj.get('run') or {}).get('ts_utc') or 'unknown'
     dest = getattr(args, 'archive_dir', None) or os.path.join(
         ROOT, 'research_archive', os.path.basename(rd.rstrip('/')) or run_ts)
@@ -1800,9 +1900,14 @@ def _r1_archive_core(args, engine_root):
         return '%s__%s' % (day, os.path.basename(src_path))
 
     try:
-        for fname in ('report.json', 'report.md', 'FULL_REPORT.md',
+        _arc_files = ['report.json', 'report.md', 'FULL_REPORT.md',
                       'agent_judgment.json', 'views_digest.json',
-                      'evidence_index.json', 'AGENT_SEAT_ENVELOPE.json'):
+                      'evidence_index.json', 'AGENT_SEAT_ENVELOPE.json']
+        # Audit-R18: 地图问句读者报告随包归档(读者交付件=归档对象本体)
+        # 旁挂锚随包(回读核对=归档侧 sha 与读者侧同锚同判)
+        if (rj.get('research_plan') or {}).get('map_question'):
+            _arc_files += ['MAP_REPORT.md', 'MAP_REPORT.sha256']
+        for fname in _arc_files:
             src = os.path.join(rd, fname)
             if os.path.isfile(src):
                 _shutil.copy2(src, os.path.join(dest, fname))

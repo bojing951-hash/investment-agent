@@ -589,7 +589,7 @@ def _bare_date_window(raw):
     return None
 
 
-def _question_window(question, entity_spans=()):
+def _question_window(question, entity_spans=(), map_time_spans=()):
     """R7-01: 问题词面时间范围统一解析(相对年限+明确日期区间);
     R8-02: 斜杠日期词形+「去年」(自然年,绑定研究时点);
     R9-02: 三态固定——①未指定范围(None)②已指定且成功解析③已指定
@@ -671,8 +671,11 @@ def _question_window(question, entity_spans=()):
     _covered = [f[2] for f in _forms if f[0] != 'bare' and f[2]]
     _covered += [(s, e) for (s, e, _r) in toks]
     _covered += list(entity_spans)   # R15: 研究对象词面=指标期限,非残缺
-    if _unsup:
-        _covered.append((_unsup.start(), _unsup.end()))
+    # Audit-R18: 地图问句点锚/事后偏移词形=已消费时间分量(点/事后语
+    # 义),非范围词形非残缺数量——入覆盖集;仅地图问句透传,非地图
+    # 问句口径零变化(调用方=run_research/_evaluate_data_requirements
+    # 的 map_plan 分支)。
+    _covered += [(s, e) for s, e in (map_time_spans or ())]
     _res_bad = _q_residual_bad(q, _covered)
     _res_ret = None
     if _res_bad:
@@ -1103,15 +1106,21 @@ def map_entities(question, reg):
     q = question.casefold()
     qn = _norm_question(question or '').casefold()
     positions = {}                     # metric_id → 首次命中位置(注册表序)
+    all_hits = {}                      # R18: 全命中位(前导句提过+限定词
+    # 后再提=仍必需;只比较过滤按「限定后有无命中」判,不按首次位)
     for m in (reg.get('metrics') or []):
         mid = (m.get('metric_id') or '')
         names = [mid, m.get('display_name') or '']
-        pos = None
+        hits = []
         for n in names:
             if n:
-                i = q.find(n.casefold())
-                if i >= 0 and (pos is None or i < pos):
-                    pos = i
+                for _m in re.finditer(re.escape(n.casefold()), q):
+                    hits.append(_m.start())
+        hits.sort()
+        if hits:
+            positions[mid] = hits[0]
+            all_hits[mid] = hits
+        pos = positions.get(mid)
         if pos is None:
             # R16+R17: 金融期限按**品种+数值+单位**映射——display_name 含期
             # 限词形(N+单位+期+产品词)的指标,其值绑定形(同数值阿拉伯/
@@ -1128,8 +1137,14 @@ def map_entities(question, reg):
             positions[mid] = pos
     _restrict = re.search(r'(?:只|仅)\s*比较', qn)
     if _restrict:
-        _after = {mid: p for mid, p in positions.items()
-                  if p >= _restrict.end()}
+        # R18: 限定后**任一**命中即保留(基线 57bcb66 缺陷: 前导句
+        # 「我关注10年期美债收益率。」把 UST_10Y 首次位锚在限定词前,
+        # 只记首次位 → 限定短语内的再提被误删——明确指定指标遗漏)。
+        _after = {mid: min(p for p in all_hits.get(mid, [p0])
+                           if p >= _restrict.end())
+                  for mid, p0 in positions.items()
+                  if any(_p >= _restrict.end()
+                         for _p in all_hits.get(mid, [p0]))}
         if _after:
             positions = _after
     metrics = list(positions)
@@ -1376,7 +1391,7 @@ def _snap_as_of_date(snap):
 
 
 def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
-                                question=None, registry=None):
+                                question=None, registry=None, map_plan=None):
     """Audit-R4 条目5 + Audit-R5 条目2 + Audit-R6 条目2(抽函数可测)。
 
     判据序: 快照 series_store 序列 → **本管线 S4 history 步已探测的信封**
@@ -1417,6 +1432,10 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
     # 起止日期——窗口/年限/月数三入口同源让位,plan/report/archive
     # 同一份窗口判定(指标期限不改变窗口)。
     _espans = _entity_spans(question, registry, metrics)
+    # Audit-R18: 地图问句——计划指标 tier=planned(缺数=披露不阻断,分级
+    # 见条目 basis);点锚/事后偏移词形入窗口解析覆盖集(非残缺数量)。
+    _planned_mids = set((map_plan or {}).get('metrics') or [])
+    _map_spans = (map_plan or {}).get('consumed_time_spans') or ()
     _range_years = _question_range_years(question, _espans)
     if not isinstance(_range_years, (int, float)) \
             or isinstance(_range_years, bool):
@@ -1424,7 +1443,8 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
         # (不影响阻断: _qw 同源 unparseable 已拦);R11 P1: 小数年限
         # (1.5)为合法数量,min_obs 按折算整数月推
         _range_years = None
-    _qw = _question_window(question, _espans)  # R7-01: 显式区间优先
+    _qw = _question_window(question, _espans,
+                           map_time_spans=_map_spans)  # R7-01: 显式区间优先
     _as_of = _snap_as_of_date(snap)
     # R10 P1③: 问题声明研究时点(「以X为研究时点」)优先于快照
     # target_date——相对/自然年/单侧终界窗口统一锚定问题时点(不用
@@ -1805,8 +1825,15 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
             _basis = (f'缺什么: {_mid}'
                       + (f'(任务窗{_win_desc})' if _win_desc else '')
                       + f'——{_lack};' + _basis)
-        req_items.append({'metric_id': _mid, 'tier': 'required',
-                          'basis': '问题词面命中(任务目标)',
+        req_items.append({'metric_id': _mid,
+                          'tier': ('planned' if _mid in _planned_mids
+                                   else 'required'),
+                          'basis': ('地图研究计划(引擎按地区×维度选定;'
+                                    '序列缺席/覆盖不足=如实缺数格披露于'
+                                    'research_plan.point_values+MAP_REPORT,'
+                                    '与词面命中的任务目标缺口分级)'
+                                    if _mid in _planned_mids else
+                                    '问题词面命中(任务目标)'),
                           'spec': {'form': 'series',
                                    'window': (_spec_win if _spec_win else
                                               'max_available'),
@@ -1849,10 +1876,39 @@ def run_research(question, root=None, archive=False, out_dir=None,
     # ── S1 拆问题(确定性面) ─────────────────────────────────────────
     reg = wd.load_registry(root)
     ent = map_entities(question, reg)
+    # Audit-R18: 地图问句(多地区×多维度)零词面命中=metrics 空、降级经济体
+    # 概览但 run_ok=True——答非所问面被当正例放行。检测命中→共享研究计划
+    # (取数/报告/验收同一份): 地区×维度指标+缺口、三个对照时点(日历点锚)
+    # 与历史事后窗(事件后偏移)分记、点值面、转折候选(确定性排序)。
+    research_plan = None
+    import research_map_planner as rmp
+    if rmp.detect_map_question(question, ent):
+        _snap0, _snap0_note = wd.latest_snapshot(root)
+        _cutoff = ((_snap0 or {}).get('target_date') or '')[:4] + '-' + \
+            ((_snap0 or {}).get('target_date') or '')[4:6] + '-' + \
+            ((_snap0 or {}).get('target_date') or '')[6:8] \
+            if (_snap0 or {}).get('target_date') else None
+        if not _cutoff:
+            _cutoff = _now_utc()[:10]
+        research_plan = rmp.plan_map(question, ent, reg.get('by_id') or {},
+                                     _cutoff)
+        if _snap0 is not None:
+            research_plan['point_values'] = rmp.point_values(
+                research_plan, _snap0, root)
+            research_plan['turning_candidates'] = rmp.turning_candidates(
+                research_plan, _snap0, root)
+        _merged = list(ent['metrics']) + [
+            m for m in research_plan['metrics']
+            if m not in ent['metrics']]
+        ent = dict(ent, metrics=_merged, note=None,
+                   research_plan=research_plan)
     steps.append({'step': 'S1_decompose', 'executed': True, 'ok': True,
                   'deterministic_face': ent,
                   'agent_face_note': '自然语言深拆/主要矛盾综合=编排层 Agent;'
-                                     '本步只给确定性实体映射'})
+                                     '本步只给确定性实体映射'
+                                     + (';地图问句=共享研究计划已入面'
+                                        '(research_plan)' if research_plan
+                                        else '')})
 
     # ── S2 doctor 体检 ──────────────────────────────────────────────
     steps.append(run_step('S2_doctor', ['doctor'], ia_timeout))
@@ -1869,11 +1925,30 @@ def run_research(question, root=None, archive=False, out_dir=None,
     steps.append(run_step('S3_changes', ['changes'], ia_timeout))
 
     # ── S4 历史可得性(命中指标逐个;未命中=跳过如实) ─────────────────
-    hist_metrics = ent['metrics'][:4]
-    if len(ent['metrics']) > 4:
+    # Audit-R18: 地图问句计划指标不截断(契约面 series_store 须含全量计划
+    # 序列供 reader_map 数值回贴核对;防噪截断只适用于非地图问句)。
+    if research_plan is not None:
+        hist_metrics = list(ent['metrics']) + [
+            m for m in research_plan.get('context_metrics', [])
+            if m not in ent['metrics']]
+    else:
+        hist_metrics = ent['metrics'][:4]
+    if len(ent['metrics']) > 4 and research_plan is None:
         notes.append(f"命中 {len(ent['metrics'])} 个指标,历史步骤只取前 4"
                      f"(防噪);其余由 Agent 按需 history --metric 查询")
+    _absent_series = {a.get('metric_id') for a in
+                      ((research_plan or {}).get('point_values')
+                       or {}).get('absent') or []}
     for mid in hist_metrics:
+        if mid in _absent_series:
+            # Audit-R18: 地图计划指标序列已探明缺席(点值面同源)——S4
+            # 不再硬跑失败子进程,如实跳过+诚实注记(镜像 S6 豁免口径;
+            # 缺数格披露于 point_values.absent+MAP_REPORT,不造数)。
+            steps.append(skipped_step(
+                f'S4_history_{mid}',
+                f'地图计划指标 {mid} 历史序列缺席(point_values 同源探测)'
+                '——如实跳过,该格以「数据不可得」呈现'))
+            continue
         steps.append(run_step(f'S4_history_{mid}',
                               ['history', '--metric', mid], ia_timeout))
     if not hist_metrics:
@@ -1977,7 +2052,7 @@ def run_research(question, root=None, archive=False, out_dir=None,
     # 评据: L1 行 / 快照 series_store 序列在场(S4 history 数据源)。
     _req_items = _evaluate_data_requirements(
         ent['metrics'], steps, snap, l1_rows, question=question,
-        registry=reg.get('by_id'))
+        registry=reg.get('by_id'), map_plan=research_plan)
     data_requirements = {
         'frozen_at': 'plan(采集前冻结;分类与规格不随采集结果改判)',
         'items': _req_items,
@@ -1989,17 +2064,28 @@ def run_research(question, root=None, archive=False, out_dir=None,
     }
     if any(i['outcome'] in ('missing', 'insufficient_coverage',
                             'stale_for_task')
-           for i in _req_items):
+           for i in _req_items if i.get('tier') == 'required'):
         notes.append('必要数据缺口: ' + '、'.join(
             i['metric_id'] for i in _req_items
             if i['outcome'] in ('missing', 'insufficient_coverage',
-                                'stale_for_task'))
+                                'stale_for_task')
+            and i.get('tier') == 'required')
             + '(运行前已声明为任务目标,未事后缩减;补齐授权范围内数据'
               '或按降级面显式越过)')
+    # Audit-R18: 地图计划指标(tier=planned)缺数=缺数格披露(非阻断),
+    # 单独点名与必要缺口分级
+    _planned_gap = [i['metric_id'] for i in _req_items
+                    if i.get('tier') == 'planned'
+                    and i['outcome'] in ('missing', 'insufficient_coverage',
+                                         'stale_for_task')]
+    if _planned_gap:
+        notes.append('地图计划指标缺数(披露不阻断;缺数格=「数据不可得」'
+                     '+检索范围+影响): ' + '、'.join(_planned_gap))
     # R7-02: 陈旧必要数据单独点名(采集状态贯通判定;旧数据冒充当前
     # 研究可用=阻断交付,非普通覆盖缺口)
     _stale_mids = [i['metric_id'] for i in _req_items
-                   if i['outcome'] == 'stale_for_task']
+                   if i['outcome'] == 'stale_for_task'
+                   and i.get('tier') == 'required']
     if _stale_mids:
         notes.append('必要数据陈旧(采集状态贯通,R7-02): ' + '、'.join(
             _stale_mids) + '(末观测统计期落后任务窗止/研究时点超出频率族'
@@ -2121,6 +2207,8 @@ def run_research(question, root=None, archive=False, out_dir=None,
         'notes': notes,
         'run_ok': run_ok,
     }
+    if research_plan is not None:
+        report['research_plan'] = research_plan
 
     out_root = out_dir or os.path.join(root, 'output', 'research_runs')
     run_dir = os.path.join(out_root, f"{report['run']['ts_utc']}_{_slug(question)}")
@@ -2285,6 +2373,26 @@ def _render_md(r):
         else:
             lines.append(f"- 数据门(gate_a): OK({len(gates)}/{len(gates)} "
                          "信封步)")
+    # Audit-R18: 地图问句共享研究计划速览(完整面=report.json research_plan;
+    # 取数/报告/验收同一份,点锚与事后偏移分记)
+    _rp = r.get('research_plan')
+    if _rp and _rp.get('map_question'):
+        _eco = '、'.join(f"{v['label']}({e})" for e, v
+                         in (_rp.get('regions') or {}).items())
+        _dim = '、'.join({'growth': '增长', 'inflation': '通胀',
+                          'policy': '货币政策'}[d]
+                         for d in _rp.get('dimensions') or [])
+        _anc = '、'.join(a['label'] + '@' + a['as_of']
+                         for a in _rp.get('point_anchors') or [])
+        _exp = '/'.join(str(x['months']) + '月'
+                        for x in _rp.get('ex_post_offsets') or [])
+        lines.append(f"- 研究计划(共享): 地区 {_eco} | 维度 {_dim} | "
+                     f"计划指标 {len(_rp.get('metrics') or [])} 项 | "
+                     f"对照点锚 {_anc} | 事后偏移+{_exp}(点锚=截止日−N 月,"
+                     "事后偏移=事件日+N 月,两类分记)")
+        for g in _rp.get('dimension_gaps') or []:
+            lines.append(f"  - 缺口: {g.get('region')}/{g.get('dimension')} "
+                         f"—— {g.get('note')}")
     # Audit-R2 条目7 + Audit-R4 条目5: 数据需求声明(运行前冻结,含规格)
     # ——必要缺席/覆盖不足=任务目标缺口(最新单点≠历史分析需求满足)
     _dr = ((r.get('run') or {}).get('data_requirements') or {})

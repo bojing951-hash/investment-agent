@@ -149,6 +149,11 @@ def validate_judgment(judgment, evidence_refs, metric_ids):
             bad('SCHEMA', f'l3.mechanism_chains[{chid}].links', '机制链空')
         for lk in links:
             lid = f'{chid}.link{lk.get("step", "?")}'
+            # Audit-R18 任务4反例①: 机制正文为空或 None 曾静默放行(链非空
+            # 但环 text 空=读者面空机制)——结构在场≠内容在场,一律拦。
+            if not str(lk.get('text') or '').strip():
+                bad('SCHEMA', f'l3.mechanism_chains[{lid}].text',
+                    '机制环正文为空或 None——空正文不得落位交付/归档')
             lvl = lk.get('evidence_level')
             if lvl not in ('E1', 'E2', 'E3'):
                 bad('SCHEMA', f'l3…[{lid}].evidence_level',
@@ -1037,7 +1042,7 @@ HONEST_REFUSAL_ERROR_KINDS = frozenset(
 # 走显式降级路径)——attach/report/archive 同源引用。
 BLOCKING_BLOCKED_CLASSES = frozenset(
     {'critical_zero_evidence', 'required_data_missing',
-     'critical_step_failure'})
+     'critical_step_failure', 'map_required_face_missing'})
 
 
 def _step_failure_is_refusal(step):
@@ -1094,6 +1099,15 @@ def blocked_class_of(report):
     if req_missing:
         return 'required_data_missing'
     if report.get('run_ok') is not False:
+        # Audit-R18 任务4反例②③: 地图问句必需图表面(对照/走位/传导/
+        # 转折×3/历史)缺席=读者交付件残缺——与必要数据缺口同级阻断
+        # (faces 摘要在 attach 成功时随档;缺席=未 attach 或无面)
+        _rp = report.get('research_plan') or {}
+        if _rp.get('map_question'):
+            _f = ((report.get('agent_judgment') or {})
+                  .get('reader_map_faces')) or {}
+            if not _f.get('complete'):
+                return 'map_required_face_missing'
         return None
     non_refusal = [s.get('step') for s in (report.get('steps') or [])
                    if s.get('executed') and s.get('ok') is False
@@ -1101,6 +1115,37 @@ def blocked_class_of(report):
     if non_refusal:
         return 'critical_step_failure'
     return 'optional_data_missing'
+
+
+def _reader_map_faces_summary(judgment, report):
+    """Audit-R18: 地图问句判定五面粗检(完整判定=judgment_contract._map_checks)。
+
+    返回 None=非地图问句;否则 {'complete', 粗粒度面计数}——complete=False
+    时 blocked_class_of 判 map_required_face_missing(必需图表面缺席与
+    必要数据缺口同级阻断)。"""
+    plan = report.get('research_plan') or {}
+    if not plan.get('map_question'):
+        return None
+    rm = (judgment or {}).get('reader_map') or {}
+    planned = set((plan.get('regions') or {}).keys())
+    regions_ok = bool(planned) and planned.issubset(
+        {r.get('region') for r in rm.get('regions') or []
+         if isinstance(r, dict) and str(r.get('from_to') or '').strip()})
+    turnings_n = len(rm.get('turnings') or [])
+    history_n = len(rm.get('history_periods') or [])
+    return {
+        'complete': bool(
+            str(rm.get('headline_conclusion') or '').strip()
+            and regions_ok
+            and (rm.get('transmission') or [])
+            and turnings_n == 3
+            and 1 <= history_n <= 3),
+        'headline': bool(str(rm.get('headline_conclusion') or '').strip()),
+        'regions_ok': regions_ok,
+        'transmission_chains': len(rm.get('transmission') or []),
+        'turnings_n': turnings_n,
+        'history_n': history_n,
+    }
 
 
 def attach_judgment(report_dir, judgment_path, root=None,
@@ -1238,6 +1283,18 @@ def attach_judgment(report_dir, judgment_path, root=None,
             'run_ok_at_attach': run_ok,
             'allow_failed_run': bool(allow_failed_run and run_ok is False),
         })
+    # Audit-R18: 地图问句 reader_map 面摘要随档(blocked_class_of 的
+    # map_required_face_missing 判据源;深层结构/数值由 judgment_contract
+    # _map_checks 在契约层拦,此处只落粗粒度面——attach 成功才有 complete)
+    _faces = _reader_map_faces_summary(judgment, report)
+    if _faces is not None:
+        if res['passed'] and contract_ok:
+            report['agent_judgment']['reader_map_faces'] = _faces
+        else:
+            report['agent_judgment']['reader_map_faces'] = dict(
+                _faces, complete=False,
+                note='attach 未成功——reader_map 面以缺席论(map_required_'
+                     'face_missing 阻断交付/归档)')
     if res['passed'] and not contract_ok:    # 纪律绿但契约未全绿=契约门拦截
         report['agent_judgment']['blocked'] = \
             'contract_' + str(contract.get('verdict')).lower()

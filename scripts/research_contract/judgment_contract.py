@@ -536,9 +536,13 @@ def verify_judgment(judgment, report, thresholds=None, face=None):
                                      **u})
     six = _six_checks(judgment, face)
     six_bad = [s for s in six if s['status'] != 'VERIFIED']
+    map_checks = _map_checks(judgment, face, report)
+    map_bad = [s for s in map_checks if s['status'] != 'VERIFIED']
+    map_contra = [s for s in map_checks if s['status'] == 'CONTRADICTED']
+    n_contra += len(map_contra)
     if n_contra:
         verdict = 'CONTRADICTED'     # 客观事实错→整体降级,渲染面披露
-    elif unbound_left or six_bad:
+    elif unbound_left or six_bad or map_bad:
         verdict = 'NOT_VERIFIED'
     else:
         verdict = 'VERIFIED'
@@ -546,12 +550,188 @@ def verify_judgment(judgment, report, thresholds=None, face=None):
         'version': JUDGMENT_CONTRACT_VERSION,
         'verdicts': verdicts,
         'six_checks': six,
+        'map_checks': map_checks,
         'unresolved_unbound': unbound_left,
         'verdict': verdict,
         'stats': {
             'checks': len(verdicts), 'contradicted': n_contra,
             'verified': n_ver, 'unbound': len(unbound_left),
-            'six_fail': len(six_bad),
+            'six_fail': len(six_bad), 'map_fail': len(map_bad),
             'n_contradictions': len(l3),
         },
     }
+
+
+# ── Audit-R18: 地图问句 reader_map 契约(结构非空+数值回贴核对) ────────
+
+def _rmp_fallback_month_last(dates, values):
+    """research_map_planner 不可导入时的月末兜底(同口径,无同比派生)。"""
+    out, seen = [], {}
+    for dd, vv in zip(dates or [], values or []):
+        seen[str(dd)[:7]] = vv
+    return [(ym, ym + '-01', v) for ym, v in sorted(seen.items())]
+
+def _map_checks(judgment, face, report):
+    """地图问句判定须含完整 reader_map;数值须与引擎序列回贴一致。
+
+    任务4反例面: 机制正文空/None、必需图表(对照/传导/转折/历史)缺失、
+    明确指定指标遗漏——结构缺席或数值与引擎确定性面相左都在此拦;
+    空正文/缺图表=NOT_VERIFIED(修档再提),数值相左=CONTRADICTED。"""
+    plan = (report or {}).get('research_plan') or {}
+    if not plan.get('map_question'):
+        return []
+    out = []
+
+    def ok(item, note):
+        out.append({'item': item, 'claim_type': 'reader_map',
+                    'status': 'VERIFIED', 'note': note,
+                    'evidence_refs': []})
+
+    def bad(item, note, contra=False):
+        out.append({'item': item, 'claim_type': 'reader_map',
+                    'status': 'CONTRADICTED' if contra else 'NOT_VERIFIED',
+                    'note': note, 'evidence_refs': []})
+
+    rm = judgment.get('reader_map')
+    if not isinstance(rm, dict):
+        bad('reader_map', '地图问句判定须含 reader_map 顶层对象'
+            '(总判断/走位/传导/转折/历史五面)')
+        return out
+    if not str(rm.get('headline_conclusion') or '').strip():
+        bad('reader_map.headline_conclusion', '一句总判断为空或 None')
+    else:
+        ok('reader_map.headline_conclusion', '非空')
+    planned_regions = set((plan.get('regions') or {}).keys())
+    got_regions = {r.get('region') for r in rm.get('regions') or []
+                   if isinstance(r, dict)}
+    if planned_regions - got_regions:
+        bad('reader_map.regions', f'计划地区缺走位条目: '
+            f'{sorted(planned_regions - got_regions)}(每地须写清从什么'
+            '环境走到什么环境)')
+    else:
+        ok('reader_map.regions', f'{len(planned_regions)} 地齐')
+    for r in rm.get('regions') or []:
+        if not str(r.get('from_to') or '').strip():
+            bad(f"reader_map.regions[{r.get('region')}].from_to",
+                '环境走位为空或 None')
+    chains = rm.get('transmission') or []
+    if not chains:
+        bad('reader_map.transmission', '传导图缺席(至少一条链)')
+    for ci, ch in enumerate(chains):
+        links = ch.get('links') or []
+        if not links:
+            bad(f'reader_map.transmission[{ci}].links', '传导链零环')
+        for li, lk in enumerate(links):
+            lid = f'reader_map.transmission[{ci}].links[{li}]'
+            for fld, lbl in (('observed_fact', '观察事实'),
+                             ('causal_hypothesis', '因果假设'),
+                             ('competing_explanation', '竞争解释'),
+                             ('distinguishing_metric', '区分指标')):
+                if not str(lk.get(fld) or '').strip():
+                    bad(f'{lid}.{fld}', f'传导环{lbl}为空或 None')
+            dm = str(lk.get('distinguishing_metric') or '').strip()
+            if dm and dm not in (face.get('series_store') or {}) and \
+                    dm not in (plan.get('metrics') or []) and \
+                    dm not in (plan.get('context_metrics') or []):
+                bad(f'{lid}.distinguishing_metric',
+                    f'区分指标 {dm} 不在计划指标/证据序列面', contra=True)
+    turnings = rm.get('turnings') or []
+    if len(turnings) != 3:
+        bad('reader_map.turnings', f'三个转折须恰为 3(得 {len(turnings)})')
+    cands = (plan.get('turning_candidates') or {}).get('candidates') or []
+    cand_keys = {(c.get('metric_id'), str(c.get('to_ym'))) for c in cands}
+    for ti, t in enumerate(turnings):
+        tid = f'reader_map.turnings[{ti}]'
+        if not str(t.get('date') or '').strip():
+            bad(f'{tid}.date', '转折日期为空')
+        for fld, lbl in (('first_mover', '谁先变'),
+                         ('follow_or_diverge', '跟进/背离')):
+            if not str(t.get(fld) or '').strip():
+                bad(f'{tid}.{fld}', f'{lbl}为空或 None')
+        mid = t.get('metric_id')
+        if mid not in (face.get('series_store') or {}):
+            bad(f'{tid}.metric_id', f'转折指标 {mid} 不在证据序列面',
+                contra=True)
+            continue
+        # 数值回贴: 声明的前/后值 vs 引擎序列月末口径复算(水平序列
+        # 与引擎候选面同口径=同比空间,指数漂移不作转折值)
+        ser = face['series_store'].get(mid) or {}
+        dates, values = ser.get('dates') or [], ser.get('values') or []
+        try:
+            import research_map_planner as _rmp
+            _mon_all = _rmp._monthly_series_for_turning(
+                dates, values, ser.get('unit'))
+        except Exception:
+            _mon_all = _rmp_fallback_month_last(dates, values)
+        _mon_by_ym = {ymq: v for ymq, _d, v in _mon_all}
+        d = str(t.get('date') or '')
+        ym = d[:7]
+        if len(ym) != 7 or not dates:
+            bad(f'{tid}.date', f'转折日期不可解析: {d!r}')
+            continue
+
+        def _month_last(ymq):
+            if ymq in _mon_by_ym:
+                return _mon_by_ym[ymq]
+            best = None
+            for dd, vv in zip(dates, values):
+                if dd[:7] == ymq:
+                    best = vv
+            return best
+
+        after = _month_last(ym)
+        if after is None:
+            bad(f'{tid}', f'转折月 {ym} 序列无观测(不可虚构转折)')
+            continue
+        try:
+            stated_after = float(t.get('value_after'))
+            if abs(stated_after - float(after)) > 1e-6:
+                bad(f'{tid}.value_after', f'后值与引擎月末口径不符'
+                    f'(声明 {stated_after} vs 复算 {after})', contra=True)
+        except (TypeError, ValueError):
+            bad(f'{tid}.value_after', '后值非数值')
+        # 前值: 有 before_date 按其月;否则按引擎候选面 3 月窗
+        bd = str(t.get('before_date') or '')
+        bym = bd[:7]
+        if len(bym) != 7:
+            match = next((c for c in cands
+                          if c.get('metric_id') == mid
+                          and str(c.get('to_ym')) == ym), None)
+            bym = match['from_ym'] if match else None
+        if bym is None:
+            bad(f'{tid}.before_date', '前值基准月缺席(给 before_date 或'
+                '对齐引擎候选面 3 月窗)')
+            continue
+        before = _month_last(bym)
+        if before is None:
+            bad(f'{tid}', f'前值基准月 {bym} 序列无观测')
+            continue
+        try:
+            stated_before = float(t.get('value_before'))
+            if abs(stated_before - float(before)) > 1e-6:
+                bad(f'{tid}.value_before', f'前值与引擎月末口径不符'
+                    f'(声明 {stated_before} vs 复算 {before})', contra=True)
+        except (TypeError, ValueError):
+            bad(f'{tid}.value_before', '前值非数值')
+        if (mid, ym) not in cand_keys:
+            bad(f'{tid}', f'转折 ({mid},{ym}) 不在引擎候选面(前9候选)——'
+                '须引用候选面或在叙述中说明取舍依据', contra=False)
+    hist = rm.get('history_periods') or []
+    if not 1 <= len(hist) <= 3:
+        bad('reader_map.history_periods',
+            f'历史栏须 1..3 段(得 {len(hist)})')
+    for hi, h in enumerate(hist):
+        hid = f'reader_map.history_periods[{hi}]'
+        for fld, lbl in (('period_label', '时期(年月)'),
+                         ('similarity', '相似点'),
+                         ('difference', '关键差异'),
+                         ('other_regions_sync', '其他经济体是否同步')):
+            if not str(h.get(fld) or '').strip():
+                bad(f'{hid}.{fld}', f'{lbl}为空或 None')
+        ex = h.get('ex_post') or {}
+        for k, lbl in (('3m', '随后3个月'), ('6m', '随后6个月'),
+                       ('12m', '随后12个月')):
+            if not str(ex.get(k) or '').strip():
+                bad(f'{hid}.ex_post.{k}', f'{lbl}实际表现为空(不可得须明写'
+                    '「数据不可得」而非留空)')
+    return out

@@ -67,4 +67,4 @@ G1 六形冻结面数据充足(226 点过十八月窗)仍全拒——「即使�
 
 ## CI 回填
 
-- 见尾部(最终 HEAD 三 job 绿,head_sha 逐位复核)。
+- 状态波尖 `7cfa33caf903fac90cfd3fe17161ff36c665993a` → run [44229330001](https://github.com/bojing951-hash/investment-agent/actions/runs/44229330001) completed/**success**,三 job(gates/tests 3.11/tests 3.12)全绿,head_sha 逐位复核一致(电池 187 件在提交树由该 run 全量复核,本地三红预期类全部转绿)。

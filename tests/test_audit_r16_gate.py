@@ -197,8 +197,8 @@ valid_judgment.seq = 0
 def make_run(name, question, req_item):
     """隔离夹具 run(交付面验证): 正式 plan 的判定项原样带入。
 
-    单指标 PMI 问句受 S7_mode_gate 无可比对前置检查影响(既有非回归,
-    整项状态在 §D 如实记录)——交付面按指令以隔离夹具承载正式判定。"""
+    R17 起单指标问句 S7 模式门不适用=诚实豁免(正式链贯通,见
+    test_audit_r17_gate);本夹具仍用于判定面复用(G2/G3 判定带入)。"""
     make_run.seq += 1
     rd = os.path.join(TMPG, name)
     os.makedirs(rd, exist_ok=True)
@@ -390,10 +390,11 @@ def test_audit_r16_gate():
               f"w={_w.get('start')}..{_w.get('end')} "
               f"n={_w.get('n_in_window')} outcome={it.get('outcome')}")
         if not exp:
-            check('§D G2 整项状态记录(单指标 S7 前置检查影响)',
-                  pp.get('run_ok') is False,
-                  f"run_ok={pp.get('run_ok')}(S7_mode_gate 无可比对=既有"
-                  f"非回归,交付面走 §E 隔离夹具)")
+            check('§D G2 整项状态记录(R17 起: 单指标 S7 模式门不适用='
+                  '诚实豁免,run_ok 不因门缺席翻 False)',
+                  pp.get('run_ok') is True,
+                  f"run_ok={pp.get('run_ok')}(S7_mode_gate 单指标"
+                  f"honest_refusal 豁免,R17 契约)")
 
     pg = plan_run(r_full, 'G3', '过去十八个月外加三天的CN_PMI_MFG走势如何?')
     itg = (pg['items'] or [{}])[0]

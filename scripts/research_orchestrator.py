@@ -125,7 +125,10 @@ _QCONT_RE = re.compile(
     # R15: 连接词再扩——「又加上/又加」形(基线「十八个月又加上三天」
     # 按十八个月放行);日单位族扩容 工作日/营业日/自然日(基线「零三个
     # 工作日」逃逸=按十八个月放行)。期限后缀护栏口径不变。
-    r'\s*(?:(?:(?:[再又外]\s*)?加上?|[零又加+])\s*)?'
+    # R17: 连接词扩「另」——「另加」形(基线「十八个月另加三天」复合
+    # 尾部漏过=按十八个月放行);完整处理所有明确的时间分量,超出
+    # 月/年粒度口径的复合量整体拒绝并提示改写。
+    r'\s*(?:(?:(?:[再又外另]\s*)?加上?|[零又加+])\s*)?'
     r'(半|[0-9][0-9.]*|[零一二两三四五六七八九十百廿卅]+)\s*'
     r'(?:个?\s*(?:月(?!份|期)|星期|季度|(?:交易|工作|营业|自然)\s*日'
     r'(?!期|本|常)'
@@ -279,6 +282,14 @@ def _scan_range_forms(q, date_spans=(), entity_spans=()):
                 forms.append(('BAD', None, None, raw))   # 半月类=日粒度/半年半
             elif _craw:
                 forms.append(('BAD', None, None, _craw))  # 半年零三天
+            elif unit_n == '年' and re.match(
+                    r'\s*[报度刊]',
+                    qn[m.end():m.end() + 3]):
+                # R17: 独立「半年」位的年复合词界——「过去半年报/半年
+                # 度/半年刊」的 半年X=术语词形(与 N年半 后缀位黑名单同
+                # 口径:unit 只吞「年」,后随 报/度/刊=更长词),不是时长
+                # ——按十八个月外加三天同族整体拒绝不缩窗。
+                forms.append(('BAD', None, None, raw))
             else:
                 forms.append(('months', 6, span, raw))   # 半年=6 个月
             continue
@@ -1084,25 +1095,44 @@ def run_fanout(root, ia_timeout, mapped_metrics):
 def map_entities(question, reg):
     """确定性实体映射: 指标(metric_id/display_name 折叠子串)+经济体(中文标签反查)。
 
-    匹配不到=如实 unmapped(零翻译零猜测;Agent 可后续补语义层)。"""
+    匹配不到=如实 unmapped(零翻译零猜测;Agent 可后续补语义层)。
+
+    R17: 位置感知——记录每个指标的首次命中位置;「只比较/仅比较」限定
+    必需指标(限定词之后的命中才是必需集,之前的命中如研究时长里误读
+    的期限不再计入;限定词后无任何命中=限定落空,维持全集不凭空清空)。"""
     q = question.casefold()
     qn = _norm_question(question or '').casefold()
-    metrics = []
+    positions = {}                     # metric_id → 首次命中位置(注册表序)
     for m in (reg.get('metrics') or []):
         mid = (m.get('metric_id') or '')
         names = [mid, m.get('display_name') or '']
-        hit = any(n and n.casefold() in q for n in names)
-        if not hit:
-            # R16: 金融期限按**品种+数值+单位**映射——display_name 含期
+        pos = None
+        for n in names:
+            if n:
+                i = q.find(n.casefold())
+                if i >= 0 and (pos is None or i < pos):
+                    pos = i
+        if pos is None:
+            # R16+R17: 金融期限按**品种+数值+单位**映射——display_name 含期
             # 限词形(N+单位+期+产品词)的指标,其值绑定形(同数值阿拉伯/
             # 中文等价,期可选)映射研究对象:「2年美债收益率」→UST_2Y、
             # 「七天逆回购利率」→CN_OMO_7D。产品词尾锚定+数值绑定——
             # 「2年」不会命中 5年期式样(通配只用于已映射指标的跨度豁
             # 免,不用于映射);「7天的数据」无产品词尾不映射(零外溢)。
-            hit = any(p.search(qn) for p in
-                      _metric_tenor_map_patterns(m.get('display_name') or ''))
-        if hit:
-            metrics.append(mid)
+            # R17: 共用名并列段(2年期和10年期美债收益率)绑定每个期限;
+            # 范围前缀(过去/近/最近,容忍空白)抑制时长读法。
+            _ps = _metric_tenor_map_positions(qn, m.get('display_name') or '')
+            if _ps:
+                pos = min(_ps)
+        if pos is not None:
+            positions[mid] = pos
+    _restrict = re.search(r'(?:只|仅)\s*比较', qn)
+    if _restrict:
+        _after = {mid: p for mid, p in positions.items()
+                  if p >= _restrict.end()}
+        if _after:
+            positions = _after
+    metrics = list(positions)
     economies = []
     import workbench_data as wd
     for code, label in (wd.ECONOMY_LABELS or {}).items():
@@ -1165,16 +1195,21 @@ def _int_cn_forms(v):
 
 
 def _metric_tenor_map_patterns(name):
-    """R16: 指标名→**值绑定**期限映射正则(品种+数值+单位)。
+    """R16+R17: 指标名→**值绑定**期限映射正则(品种+数值+单位)。
 
     与 _metric_tenor_forms 的分工: 词形(span 豁免)数量通配——任何
     已映射指标的 N+单位+期+产品词 都不当时长;映射(本函数)数量绑定
     display_name 原数值(阿拉伯/中文等价,2 兼容 二/两)——「2年美债
     收益率」→UST_2Y、「七天逆回购利率」→CN_OMO_7D。产品词尾锚定:
     「过去7天的数据」无产品词,不映射(通配 span 亦不豁免→照旧按
-    时长解析)。数量紧邻范围前缀(过去/近/最近)时不映射——彼时
-    N+单位 是时长不是期限(「过去10年美债收益率」=10 年窗口的
-    美债,不凭空命中 UST_10Y)。名称无期限词形=空表。"""
+    时长解析)。范围前缀抑制不在式样内(见 _metric_tenor_map_positions,
+    R17 改命中时检查以容忍空格)。名称无期限词形=空表。
+
+    R17: 同一并列短语中共用的品种名绑定到每个期限——首期限后允许
+    (和|及|与|、|或)+数量+单位(期可选)的并列中段,产品词尾一次性锚定
+    整个并列:「2年期和10年期美债收益率」首段即映射 UST_2Y。并列中段
+    不得含产品词——「2年期国债和10年期美债收益率」首段后随「国债」,
+    中段断裂,不跨产品错绑。"""
     pats = []
     for m in _TENOR_NAME_RE.finditer(_norm_question(name or '')):
         num_s, unit, tail = m.group('num'), m.group('unit'), m.group('tail')
@@ -1182,10 +1217,37 @@ def _metric_tenor_map_patterns(name):
         for cn in _int_cn_forms(_cn_run_to_int(num_s)):
             alts.append(re.escape(cn))
         pats.append(re.compile(
-            r'(?<!过去)(?<!最近)(?<!近)' + _NUM_RUN_EDGE
+            _NUM_RUN_EDGE
             + '(?:' + '|'.join(alts) + r')\s*'
-            + re.escape(unit) + '期?' + re.escape(tail)))
+            + re.escape(unit) + '期?'
+            + r'(?:\s*(?:和|及|与|、|或)\s*' + _NUM_RUN
+            + r'\s*(?:个?\s*月|年|天)期?)*'
+            + r'\s*' + re.escape(tail)))
     return pats
+
+
+# R17: 范围前缀抑制——数量紧邻 过去/最近/近(容忍空白)时 N+单位 是
+# 研究时长不是债券期限(「过去10年美债收益率」「过去 2年美债收益率」
+# 均不凭空命中期限指标;研究时长与期限各自识别,空格不改变含义)。
+# 固定宽度 lookbehind 穿不透空格,R16 实现漏「过去 2年」形,故改命中
+# 时检查。带「期」或并列连接词=期限读法(范围词形不可能含期),照映射。
+_QRANGE_PREFIX_TAIL_RE = re.compile(r'(?:过去|最近|近)\s*$')
+
+
+def _metric_tenor_map_positions(qn, name):
+    """R17: 值绑定期限映射的全部命中位置(共用名并列段命中含首段)。
+
+    供 map_entities 的位置感知调用(「只比较」限定必需指标的作用域
+    判定)。返回命中起点列表;无命中=空表。"""
+    out = []
+    for pat in _metric_tenor_map_patterns(name):
+        for mm in pat.finditer(qn):
+            _txt = mm.group(0)
+            if ('期' not in _txt) and not re.search(r'[和及与、或]', _txt):
+                if _QRANGE_PREFIX_TAIL_RE.search(qn[:mm.start()]):
+                    continue        # 时长读法: 范围前缀(+空白)紧邻数量
+            out.append(mm.start())
+    return out
 
 
 def _entity_spans(question, reg_by_id, metric_ids):
@@ -1730,6 +1792,19 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                 'max_adjacent_gap_days': _WINDOW_MAX_GAP_DAYS.get(_freq),
                 'basis': '频率族容差(日频节假日簇/月频发布滞后)+'
                          '窗内半额有效观测下界+相邻断档上限(R7-01)'}
+        # R17: 缺失项写明缺什么——指标+要求窗+缺口类别显式入档
+        # (该项保留在计划里,不静默丢;report/archive 同一份判定)。
+        if _outcome != 'satisfied':
+            _win_desc = None
+            if _win is not None and _win.get('start') and _win.get('end'):
+                _win_desc = f'{_win["start"]}..{_win["end"]}'
+            _lack = {'insufficient_coverage': '任务窗窗口成员/覆盖不满足',
+                     'stale_for_task': '满足任务时效的新鲜采集',
+                     'missing': '历史序列(L1/S3/快照序列均缺席)'}.get(
+                        _outcome, _outcome)
+            _basis = (f'缺什么: {_mid}'
+                      + (f'(任务窗{_win_desc})' if _win_desc else '')
+                      + f'——{_lack};' + _basis)
         req_items.append({'metric_id': _mid, 'tier': 'required',
                           'basis': '问题词面命中(任务目标)',
                           'spec': {'form': 'series',
@@ -1862,10 +1937,18 @@ def run_research(question, root=None, archive=False, out_dir=None,
     gate_note = None
     if gate_src == 'S6_analog:data.research_mode_gate':
         gate_note = 'analog 锚点月窗门(compare 未产出对齐门——命中<2 或被拒)'
+    # R17: 单指标问句(命中<2→S5 无可比对、S6 常诚实拒答)模式门不适用
+    # ——诚实豁免不编造 gate,run_ok 不因门缺席翻 False(镜像 S6 豁免;
+    # 多指标问句无可比对门仍红: 可比性在任务范围内,门缺席=如实失败)。
+    _s7_na = gate is None and len(hist_metrics) < 2
     steps.append({'step': 'S7_mode_gate', 'executed': True, 'ok': gate is not None,
-                  'gate': gate, 'gate_source': gate_src, 'note': gate_note or
-                  (None if gate else 'compare/analog 信封未含 gate'
-                          '(本轮无可比对/被拒答)——如实缺席,不编造')})
+                  'gate': gate, 'gate_source': gate_src,
+                  **({'honest_refusal': True} if _s7_na else {}),
+                  'note': gate_note or
+                  ('单指标问句无可比对——模式门不适用,如实豁免不编造 gate(R17)'
+                   if _s7_na else
+                   (None if gate else 'compare/analog 信封未含 gate'
+                           '(本轮无可比对/被拒答)——如实缺席,不编造'))})
 
     # ── S8 接地问答(ia_cli research;archive 开关在此一次性落档) ────
     qa_argv = ['research', '--question', question]

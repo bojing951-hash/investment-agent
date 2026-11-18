@@ -134,7 +134,11 @@ attach→report→archive)。基线三组缺陷全数在档:
 
 ## 六、CI
 
-(待推送后回填)
+- 代码修复提交 `83c86c9` → 状态收口 `181b7b1` 推送后,CI run
+  **44260954645**(head_sha=181b7b1ca8c22e44669fd97c2d2b053cffaf52fa,
+  逐位核对)三 job 全绿: gates ✅ / tests (3.11) ✅ / tests (3.12) ✅
+  ——本回填提交前的提交树全绿由该 run 复核;回填提交(仅 docs)推送后
+  以其自身 run 复核。
 
 ## 七、结论
 

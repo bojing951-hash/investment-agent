@@ -1,0 +1,17 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "R18-INDEPENDENT-REVIEW",
+  "notes": "首审 REVISE 四必修: ①政策事件日期系统性错误(降息实为2025-12-11 3.89→3.64,加息实为2026-09-17 3.63→3.88;CON-1 basis选择性跳月;「政策年内由降转升」对日历2026不成立) ②BEI年变化符号错(+11bp实为-7bp同日/-3bp月末) ③CN「7月起重回荣枯线下」与9月50.1相矛盾 ④历史段CN锚51.7无来源;另MINOR组(CPI基月注记/2018峰值月/JP区间/BEI参照日/link2-3区分指标注记/DFF带状措辞)",
+  "run_ts": "20261118T160925Z",
+  "content_sha256": "6ccd1651ee477ea4c2fddb6b992f665da3f59d947b630add17475350072027f8",
+  "audited_at": "2026-11-19",
+  "recorded_at": "20261118T163233Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

@@ -4,7 +4,16 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-18 R61 Audit-R17 第十七轮审计修复(T-R61-1;独立轨道续 R60)
+## 权威快照: 2026-11-19 R62 Audit-R18 第十八轮审计修复(T-R62-1;独立轨道续 R61)
+> baseline=d3dea052585d2e433d92576afe5f70b144722ddd(Audit-R17 CI 回填尖);代码修复固定 SHA=d3dea052585d2e433d92576afe5f70b144722ddd(受审面=地图问句共享研究计划+读者报告五面契约+防篡改锚)
+
+- **基线**: dev/audit-fix-r1 = 57bcb66→代码修复提交(五文件+新模块 research_map_planner+40 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 五缺陷全关——①原问(四地×三维度×三时点)plan metrics=[]降级「经济体概览」仍 run_ok 可交付归档=答非所问误通过 → `detect_map_question` 严格触发(≥2 经济体∩{US,CN,EA,JP}+≥2 维度词+形状词)+`plan_map` 地区×维度→注册表指标 18 项(planned 分级)+三利率上下文;②「只比较 10 年期…和 30 年期…」前导句把 UST_10Y 首次命中位锚在限定词前被误删(git 双跑证=基线既有)→ map_entities 全命中位记录+限定后任一命中判;③「12个月前」「随后3、6、12个月」残缺数量扫描 unparseable → 点值锚(kind=point, cutoff−N月)与事后偏移锚(kind=ex_post, 事件日+N月)分记+`consumed_time_spans` 透传(仅地图问句,R10-R17 语义保全);④reader_map 五面无契约 → `_map_checks`(headline/regions 走位/传导逐环四件套+区分指标∈计划∪证据面/转折恰 3 且数值回贴引擎月末口径/历史 1..3 段含 ex_post 3/6/12 非空)+机制环正文空/None=SCHEMA 拦+BLOCKING 新类 map_required_face_missing;⑤在场 MAP_REPORT 篡改后归档内部重跑 report 重渲洗白 → 旁挂锚 MAP_REPORT.sha256(磁盘≠锚=单改拒付**不重写**保全证据,归档重跑同拒;文件未动装配变=合法修订重渲更新锚——REVISE 闭环不误伤)。
+- **产品验收(任务⑤真实运行,零合成)**: 原问逐字 plan run_ok(research_plan 18 计划指标+点值 12 格+缺数 7 格如实+转折候选 5);Agent 席真实判决(l3 CON-1+MECH-1 三环 E1/E2/E3+l4 SCN-A/B 证伪阈值带数字+reader_map 五面)attach 首提 2 SCHEMA 纪律修正后 attached=True/契约 VERIFIED;**独立零上下文语义审查: 首审 REVISE 四必修(政策事件日期系统性错误/BEI 年变化符号/CN 荣枯线表述/历史段无源锚)→修订闭环→复验 UPHELD(四必修逐日对值+回归电池 20 项全绿,残留 3 NIT 措辞层记下轮候选)**;report deliverable=True;归档 content_sha256 三处同锚+SHA-256 回读三方 MATCH;读者报告+裁决链三档入仓 docs/autonomous-rd/r18-evidence/。
+- **验收**: test_audit_r18_gate 40/40(§A 识别计划/§B 窗口/§C 正式 plan 冻结根/§D 契约反例×10/§E 交付归档门含篡改拒付+删除恢复+不洗白);既有门 r4-r17+t3+charter6 复跑全绿;电池 189 绿+phase6 提交前预期红(190 件口径);复放四包 PASS;报告=docs/autonomous-rd/AUDIT_R18_REPORT.md;CI 见报告尾回填。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R18_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。R19 候选(复核席残留+本轮注记): ①Q3/Q4 边界措辞(75bp 跨 Q3+Q4)②「年中」作背离期标签偏松③l3 step1 ref 配对装饰性残留④日历周表达(本周/上周,R17 移交)⑤同义词形别名面(高收益债利差等,R17 移交)。
+
+### [历史快照·R61 视角,已被上方权威快照取代]
 > baseline=d59713d903930489b59a40faeee9557277c91f65(Audit-R16 CI 回填尖);代码修复固定 SHA=d59713d903930489b59a40faeee9557277c91f65(受审面=共享解析逻辑七修+单指标豁免)
 
 - **基线**: dev/audit-fix-r1 = 264dc14→代码修复提交(并列共用名绑定/只比较限定/空格不变义/另加连接词/缺什么注记/S7 单指标豁免/半年位年复合词界+56 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。

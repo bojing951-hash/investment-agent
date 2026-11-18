@@ -1,0 +1,17 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "R18-INDEPENDENT-REVIEW",
+  "notes": "闭环复验 UPHELD: 四必修全关(①政策事件日期全量改正: 2025-09-18=4.33→4.08、2025-10-29=4.12→3.87、2025-12-10=3.89→12-11=3.64、2026-09-16=3.63→09-17=3.88 逐日对值;CON-1 basis 全月序列复算吻合;窗口内往返各25bp净0成立 ②BEI 年变化符号: −7bp同日/−3bp月末/+13bp冲高期 复算全对 ③CN 走位: Jul49.2/Aug49.8/Sep50.1/Oct49.3 逐月吻合 ④历史段 CN 锚: 2021-12=50.3、8/12月<50、年末47.0 逐月清点对);MINOR 组全部落地核实;回归电池 20 项全绿(含 2017-18 段 CN 中锚 50.8 补验);残留 3 NIT 措辞层不阻断(Q3/Q4 边界/年中标签/l3 ref 配对装饰),记入下轮候选。独立重算零信任采信,证据面=series_store 原始值直读",
+  "run_ts": "20261118T160925Z",
+  "content_sha256": "90146e0658a5fdc115acdd17c960cd78888e7df8a998dc52e0dd9a6d61c31399",
+  "audited_at": "2026-11-19",
+  "recorded_at": "20261118T163532Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 3,
+  "predecessor": "audit/semantic_review/20261119/VERDICT-20261118T160925Z-02.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

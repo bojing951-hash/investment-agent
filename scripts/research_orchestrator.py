@@ -104,8 +104,8 @@ _QRANGE_RE = re.compile(
     # 后缀组同步收编 期间|之中|当中|里(无前缀形「一年半期间,…有哪些
     # 变化」也构成约束,不退化未限定)。半导体/半衰期(后随导/衰)与
     # 三年半年度((?!年) 词界)不受影响。
-    r'\s*(?P<half>半(?!年)(?=[^一-鿿]|的|之|以|到|至|内|来|左|右'
-    r'|和|与|及|跟|零|又|加|时|里|期|间|当|中|$))?'
+    r'\s*(?P<half>半(?!年|导体|衰[期变]|年度|年报|成品|场|岛|球'
+    r'|径))?'
     r'(?P<suf>以内|以来|内|期间|之中|当中|里)?')
 # Audit-R13 P1: 同一时间短语的**复合尾部**——约束词形之后紧邻(可经
 # 「零/又/加/+」连接)的数量+时间单位=短语内还有未处理的数量或单位
@@ -125,7 +125,7 @@ _QCONT_RE = re.compile(
     # R15: 连接词再扩——「又加上/又加」形(基线「十八个月又加上三天」
     # 按十八个月放行);日单位族扩容 工作日/营业日/自然日(基线「零三个
     # 工作日」逃逸=按十八个月放行)。期限后缀护栏口径不变。
-    r'\s*(?:(?:(?:[再又]\s*)?加上?|[零又加+])\s*)?'
+    r'\s*(?:(?:(?:[再又外]\s*)?加上?|[零又加+])\s*)?'
     r'(半|[0-9][0-9.]*|[零一二两三四五六七八九十百廿卅]+)\s*'
     r'(?:个?\s*(?:月(?!份|期)|星期|季度|(?:交易|工作|营业|自然)\s*日'
     r'(?!期|本|常)'
@@ -1086,11 +1086,22 @@ def map_entities(question, reg):
 
     匹配不到=如实 unmapped(零翻译零猜测;Agent 可后续补语义层)。"""
     q = question.casefold()
+    qn = _norm_question(question or '').casefold()
     metrics = []
     for m in (reg.get('metrics') or []):
         mid = (m.get('metric_id') or '')
         names = [mid, m.get('display_name') or '']
-        if any(n and n.casefold() in q for n in names):
+        hit = any(n and n.casefold() in q for n in names)
+        if not hit:
+            # R16: 金融期限按**品种+数值+单位**映射——display_name 含期
+            # 限词形(N+单位+期+产品词)的指标,其值绑定形(同数值阿拉伯/
+            # 中文等价,期可选)映射研究对象:「2年美债收益率」→UST_2Y、
+            # 「七天逆回购利率」→CN_OMO_7D。产品词尾锚定+数值绑定——
+            # 「2年」不会命中 5年期式样(通配只用于已映射指标的跨度豁
+            # 免,不用于映射);「7天的数据」无产品词尾不映射(零外溢)。
+            hit = any(p.search(qn) for p in
+                      _metric_tenor_map_patterns(m.get('display_name') or ''))
+        if hit:
             metrics.append(mid)
     economies = []
     import workbench_data as wd
@@ -1127,6 +1138,52 @@ def _metric_tenor_forms(name):
         unit, tail = m.group('unit'), m.group('tail')
         pats.append(re.compile(
             _NUM_RUN_EDGE + _NUM_RUN + r'\s*'
+            + re.escape(unit) + '期?' + re.escape(tail)))
+    return pats
+
+
+# R16: 值绑定映射用——阿拉伯数值→中文数量词形(1-99 简单合成;2 兼
+# 容 二/两)。映射式样的数量段固定为 display_name 的原数值或其中文
+# 等价形,「2年美债收益率」只映射 UST_2Y,不会命中 5/10/30 年期式样。
+_CN_DIGITS = '零一二三四五六七八九'
+
+
+def _int_cn_forms(v):
+    if not isinstance(v, int) or v < 1 or v > 99:
+        return []
+    if v < 10:
+        forms = [_CN_DIGITS[v]] + (['两'] if v == 2 else [])
+    elif v == 10:
+        forms = ['十']
+    elif v < 20:
+        forms = ['十' + _CN_DIGITS[v - 10]]
+    elif v % 10 == 0:
+        forms = [_CN_DIGITS[v // 10] + '十']
+    else:
+        forms = [_CN_DIGITS[v // 10] + '十' + _CN_DIGITS[v % 10]]
+    return forms
+
+
+def _metric_tenor_map_patterns(name):
+    """R16: 指标名→**值绑定**期限映射正则(品种+数值+单位)。
+
+    与 _metric_tenor_forms 的分工: 词形(span 豁免)数量通配——任何
+    已映射指标的 N+单位+期+产品词 都不当时长;映射(本函数)数量绑定
+    display_name 原数值(阿拉伯/中文等价,2 兼容 二/两)——「2年美债
+    收益率」→UST_2Y、「七天逆回购利率」→CN_OMO_7D。产品词尾锚定:
+    「过去7天的数据」无产品词,不映射(通配 span 亦不豁免→照旧按
+    时长解析)。数量紧邻范围前缀(过去/近/最近)时不映射——彼时
+    N+单位 是时长不是期限(「过去10年美债收益率」=10 年窗口的
+    美债,不凭空命中 UST_10Y)。名称无期限词形=空表。"""
+    pats = []
+    for m in _TENOR_NAME_RE.finditer(_norm_question(name or '')):
+        num_s, unit, tail = m.group('num'), m.group('unit'), m.group('tail')
+        alts = [re.escape(num_s)]
+        for cn in _int_cn_forms(_cn_run_to_int(num_s)):
+            alts.append(re.escape(cn))
+        pats.append(re.compile(
+            r'(?<!过去)(?<!最近)(?<!近)' + _NUM_RUN_EDGE
+            + '(?:' + '|'.join(alts) + r')\s*'
             + re.escape(unit) + '期?' + re.escape(tail)))
     return pats
 

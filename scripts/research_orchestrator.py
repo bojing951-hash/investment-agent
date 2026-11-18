@@ -79,6 +79,10 @@ _WINDOW_MAX_GAP_DAYS = {'daily': 30, 'weekly': 60,
 # 可省(「过去十八月」=十八个月,同窗口径);「N个月半」=非整月
 # 明确拒绝;裸词形(无前缀无后缀)只消费词元不构成约束(R9/R10
 # 未限定口径不变),残缺扫描由 _q_residual_bad 收口。
+# Audit-R13 P1: 单位**先归一再换算**(unit 词形 '月'/'个月'/'个 月'
+# 含空白变体归一后比较——「半个月」与「半月」「半 个 月」同为日粒度
+# 拒绝,只有 半+年=6 个月);约束词形之后紧邻的复合尾部(数量+时间
+# 单位,可经 零/又/加 连接)由 _QCONT_RE 收口=短语内还有未处理数量。
 _NUM_RUN = r'(?:[0-9]+(?:\.[0-9]+)?|[0-9零一二两三四五六七八九十百廿卅]+)'
 _NUM_RUN_EDGE = r'(?<![0-9.零一二两三四五六七八九十百廿卅])'
 _QRANGE_RE = re.compile(
@@ -86,8 +90,24 @@ _QRANGE_RE = re.compile(
     + _NUM_RUN_EDGE +
     r'(?P<num>半|' + _NUM_RUN + r')'
     r'\s*(?P<unit>年|个?\s*月)'
-    r'\s*(?P<half>半)?'
+    # R13: half 组词界——「半」后随「年」不属 N年半 后缀(「三年半年
+    # 度」的 半年度=术语),让位复合尾部判定;「N个月半」「半年半」
+    # (半 后非 年)仍由 half 组消费=BAD。
+    r'\s*(?P<half>半(?!年))?'
     r'(?P<suf>以内|以来|内)?')
+# Audit-R13 P1: 同一时间短语的**复合尾部**——约束词形之后紧邻(可经
+# 「零/又/加/+」连接)的数量+时间单位=短语内还有未处理的数量或单位
+# (「十八个月零三天」「六个月3天」「半年零一周」「半年以内半年」——
+# 数量词含「半」形)。月/年粒度之外的复合量无法按完整准确的范围核验,
+# 整体拒绝不截断(不取整月部分放行);连接词与数量须直接相邻——
+# 「半年 零售数据」(零后无数量)、「近零渠道」(无前置约束词形)均不
+# 触发;单位词界护栏(月≠月份/年≠年度·年份·年期/日≠日期·日本/周≠
+# 周期)防「六个月半年度报告」类术语误伤。
+_QCONT_RE = re.compile(
+    r'\s*(?:[零又加+]\s*)?'
+    r'(半|[0-9][0-9.]*|[零一二两三四五六七八九十百廿卅]+)\s*'
+    r'(?:个?\s*月(?!份)|年(?!度|份|期)|周(?!期)|星期|天|日(?!期|本|常)'
+    r'|季度)')
 # R12 P1: 残缺数量扫描——数量 run 取**贪吃点形**([0-9][0-9.]* 可多
 # 点,「1.2.3年」整体入列,防尾位被 EDGE 拦下逃逸);范围意图标记在
 # 场时,未被完整匹配消费的数量+单位/缺数量单位/缺单位数量=无法完整
@@ -189,26 +209,48 @@ def _scan_range_forms(q, date_spans=()):
       ('date_since', (s,e), raw) 日期词重叠且尾缀「以来」=显式起界
                                (让位日期分支,不按约束计);
       ('BAD', raw)             已指定但无法完整解析——零值/畸形数量/
-                               N个月半(非整月)/半月(日粒度)/日历年
-                               形态(「2026年内」R10 口径)。
-    date_spans=日期词形区间,重叠分派同 R10/R11 语义。"""
+                               N个月半(非整月)/半月类(日粒度,含
+                               「半个月」「半 个 月」空白变体)/复合尾部
+                               (「十八个月零三天」)/日历年形态
+                               (「2026年内」R10 口径)。
+    date_spans=日期词形区间,重叠分派同 R10/R11 语义。
+    R13 P1: 单位**先归一**('月'/'个月'/'个 月'→'月'/'年')再换算数量;
+    约束词形消费后检查 _QCONT_RE 复合尾部——同一短语内还有未处理的
+    数量或单位=整体拒绝(等价判断/去重只发生在每个范围都完整解析之后,
+    由 _q_relative_constraints 的先 BAD 后 dedup 顺序保证)。"""
     forms = []
-    for m in _QRANGE_RE.finditer(_norm_question(q)):
+    qn = _norm_question(q)
+    for m in _QRANGE_RE.finditer(qn):
         pre, suf = m.group('pre'), m.group('suf')
         num_tok, unit, half = m.group('num'), m.group('unit'), m.group('half')
         span, raw = (m.start(), m.end()), m.group(0).rstrip()
         if pre is None and suf is None:
             forms.append(('bare', None, span, raw))
             continue
+        # R13 P1: 先归一单位——unit 词形含「个」与空白变体('个月'/
+        # '个 月'),归一后比较;「半个月」不再因 unit=='个月' 逃过
+        # 半月类检查(基线缺陷: 误折半年=6 个月放行)。
+        unit_n = ''.join((unit or '').split()).replace('个', '')
         if any(not (m.end() <= s or m.start() >= e) for s, e in date_spans):
             if raw.endswith('以来'):
                 forms.append(('date_since', None, span, raw))
             else:
                 forms.append(('BAD', None, None, raw))   # 「2026年内」日历年形态
             continue
+        # R13 P1: 同一时间短语复合尾部——约束词形之后紧邻(可经
+        # 零/又/加 连接)的数量+时间单位=未处理数量,整体拒绝不截断;
+        # 与日期词重叠时让位日期分支(「近五年 2022年1月至…」的年份
+        # 词形=显式区间,走多范围拆分判定,不作复合量)。
+        _cont = _QCONT_RE.match(qn, m.end())
+        if _cont and any(not (m.end() >= e or _cont.end() <= s)
+                         for s, e in date_spans):
+            _cont = None
+        _craw = raw + _cont.group(0) if _cont else None
         if num_tok == '半':
-            if unit == '月' or half:
-                forms.append(('BAD', None, None, raw))   # 半月=日粒度/半年半
+            if unit_n == '月' or half:
+                forms.append(('BAD', None, None, raw))   # 半月类=日粒度/半年半
+            elif _craw:
+                forms.append(('BAD', None, None, _craw))  # 半年零三天
             else:
                 forms.append(('months', 6, span, raw))   # 半年=6 个月
             continue
@@ -216,17 +258,23 @@ def _scan_range_forms(q, date_spans=()):
         if v is None or v <= 0:
             forms.append(('BAD', None, None, raw))   # 零值/畸形/混写/4位年形
             continue
-        if unit == '年':
-            if half:
-                if isinstance(v, float):
-                    forms.append(('BAD', None, None, raw))
+        if unit_n == '年':
+            if half and isinstance(v, float):
+                forms.append(('BAD', None, None, raw))   # 1.5年半
+            elif half:
+                if _craw:
+                    forms.append(('BAD', None, None, _craw))  # 一年半零三天
                 else:
                     forms.append(('months', v * 12 + 6, span, raw))
+            elif _craw:
+                forms.append(('BAD', None, None, _craw))  # 三年零六个月
             else:
                 forms.append(('years', v, span, raw))
         else:                                            # 月(「个」可省)
             if half or (isinstance(v, float) and not v.is_integer()):
-                forms.append(('BAD', None, None, raw))   # N个月半/非整月
+                forms.append(('BAD', None, None, raw))   # N个月半/0.5个月
+            elif _craw:
+                forms.append(('BAD', None, None, _craw))  # 十八个月零三天
             else:
                 forms.append(('months', int(v), span, raw))
     return forms
@@ -435,7 +483,9 @@ def _q_relative_tail(q, asof_iso):
                 'reason': f'时间数量 {bad!r} 无法完整解析(不缩短范围)',
                 'raw': bad,
                 'hint': '数量须为完整数字/中文数量(十二·24·半年·1.5年),'
-                        '混写或残缺词形不支持'}
+                        '混写或残缺词形不支持;复合量(十八个月零三天/'
+                        '半个月)无法精确核验,请改写为整月/整年表达'
+                        '(半年=6 个月、1.5年=18 个月)'}
     _mret = _q_multi_conflict_ret(cons)
     if _mret:
         return _mret
@@ -573,7 +623,9 @@ def _question_window(question):
                 'reason': f'时间数量 {_cons_bad!r} 无法完整解析(不缩短范围)',
                 'raw': _cons_bad,
                 'hint': '数量须为完整数字/中文数量(十二·24·半年·1.5年),'
-                        '混写或残缺词形不支持'}
+                        '混写或残缺词形不支持;复合量(十八个月零三天/'
+                        '半个月)无法精确核验,请改写为整月/整年表达'
+                        '(半年=6 个月、1.5年=18 个月)'}
     _covered = [f[2] for f in _forms if f[0] != 'bare' and f[2]]
     _covered += [(s, e) for (s, e, _r) in toks]
     if _unsup:

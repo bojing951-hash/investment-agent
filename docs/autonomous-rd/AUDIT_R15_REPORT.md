@@ -63,3 +63,7 @@ N年半+后随虚词族(的/以来/内/以内/里/期间/之中/当中/间/时=1
 - **电池**: 188 件(新增 r15 门)如实计数——**185 绿 / 3 红**,红项全部属提交前预期类: `test_arch_reform_phase6`(工作树未提交)+`test_rd_r20_state_checkpoint`/`test_rd_r20_state_consistency`(ITLOG 已载 R59 行、轮次未 finalize);本状态波提交+`rd_checkpoint --finalize --round 59` 后本地复跑转绿,提交树全绿由 CI 三 job 复核。
 - **复杂度基线**: 生产 85f/51163L vs 51108L(同口径 find scripts 递归,+0.15%)基线内;research_orchestrator.py 2249→2324(+75,全部为本轮修复)。
 - **worktree 清单**: 全程固定 6,零新建。
+
+## CI 回填
+
+- 状态波尖 `f95df226d0c435a262b408355171d1eefdca8105` → run [44238451963](https://github.com/bojing951-hash/investment-agent/actions/runs/44238451963) completed/**success**,三 job(gates/tests 3.11/tests 3.12)全绿,head_sha 逐位复核一致(电池 188 件在提交树由该 run 全量复核,本地三红预期类全部转绿)。

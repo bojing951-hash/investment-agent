@@ -99,9 +99,14 @@ _QRANGE_RE = re.compile(
     # 尾部连接词(零又加——一年半零三天仍 BAD)。后随其它汉字=「半」
     # 开头的行业/术语词形(半导体/半衰期),不属 half 后缀——「过去三
     # 年半导体需求」=三年窗,「半」归行业名。
+    # R15: 后随方位/时间框架虚词扩容(里|期|间|当|中)——「过去一年半
+    # 里/期间」基线 half 不命中=窗缩 1 年(数据不足靠缩短窗口通过);
+    # 后缀组同步收编 期间|之中|当中|里(无前缀形「一年半期间,…有哪些
+    # 变化」也构成约束,不退化未限定)。半导体/半衰期(后随导/衰)与
+    # 三年半年度((?!年) 词界)不受影响。
     r'\s*(?P<half>半(?!年)(?=[^一-鿿]|的|之|以|到|至|内|来|左|右'
-    r'|和|与|及|跟|零|又|加|时|$))?'
-    r'(?P<suf>以内|以来|内)?')
+    r'|和|与|及|跟|零|又|加|时|里|期|间|当|中|$))?'
+    r'(?P<suf>以内|以来|内|期间|之中|当中|里)?')
 # Audit-R13 P1: 同一时间短语的**复合尾部**——约束词形之后紧邻(可经
 # 「零/又/加/+」连接)的数量+时间单位=短语内还有未处理的数量或单位
 # (「十八个月零三天」「六个月3天」「半年零一周」「半年以内半年」——
@@ -117,9 +122,13 @@ _QCONT_RE = re.compile(
     # 单位(「零三个交易日」逃逸);③期限后缀护栏 天/月 不带「期」
     # (「7天期」「1个月期」=指标期限词形,不是复合时长——G3: 期限
     # 不能改变窗口,也不能误报时间解析错误)。
-    r'\s*(?:(?:(?:再\s*)?加上?|[零又加+])\s*)?'
+    # R15: 连接词再扩——「又加上/又加」形(基线「十八个月又加上三天」
+    # 按十八个月放行);日单位族扩容 工作日/营业日/自然日(基线「零三个
+    # 工作日」逃逸=按十八个月放行)。期限后缀护栏口径不变。
+    r'\s*(?:(?:(?:[再又]\s*)?加上?|[零又加+])\s*)?'
     r'(半|[0-9][0-9.]*|[零一二两三四五六七八九十百廿卅]+)\s*'
-    r'(?:个?\s*(?:月(?!份|期)|星期|季度|交易\s*日(?!期|本|常)'
+    r'(?:个?\s*(?:月(?!份|期)|星期|季度|(?:交易|工作|营业|自然)\s*日'
+    r'(?!期|本|常)'
     r'|日(?!期|本|常))'
     r'|年(?!度|份|期)|周(?!期)|天(?!期))')
 # R12 P1: 残缺数量扫描——数量 run 取**贪吃点形**([0-9][0-9.]* 可多
@@ -209,7 +218,7 @@ def _cn_run_to_int(tok):
     return section + (digit or 0)
 
 
-def _scan_range_forms(q, date_spans=()):
+def _scan_range_forms(q, date_spans=(), entity_spans=()):
     """R12 P1: **单一**范围词形扫描器(数量转换与约束提取的唯一路径)。
 
     逐 _QRANGE_RE 匹配(规范化副本上)产出分类,不同入口(窗口解析/
@@ -259,6 +268,11 @@ def _scan_range_forms(q, date_spans=()):
         if _cont and any(not (m.end() >= e or _cont.end() <= s)
                          for s, e in date_spans):
             _cont = None
+        # R15: 复合尾部候选与研究对象(已映射指标期限词形)区间重叠=
+        # 指标期限,让位实体判定(同日期让位口径;期限不改变窗口)。
+        if _cont and any(not (m.end() >= e or _cont.end() <= s)
+                         for s, e in entity_spans):
+            _cont = None
         _craw = raw + _cont.group(0) if _cont else None
         if num_tok == '半':
             if unit_n == '月' or half:
@@ -294,16 +308,17 @@ def _scan_range_forms(q, date_spans=()):
     return forms
 
 
-def _question_range_years(question):
+def _question_range_years(question, entity_spans=()):
     """问题词面声明的分析年限(None=未限定)。
 
     R12 P1: 收敛到 _scan_range_forms 单一扫描器(与窗口解析同规则);
     逐月口径的词形(半年/N年半)不参与年限值。多个匹配取**最大**(更
     严),资产名(十年期美债)不匹配;换算失败返回 ('BAD', raw)——
     意图在场但不可解析,调用方阻断,不缩短范围。小数年限(「1.5年」)
-    为合法数量→float 原样返回(消费端折月)。"""
+    为合法数量→float 原样返回(消费端折月)。
+    R15: entity_spans=研究对象词面区间(指标期限让位,同窗口口径)。"""
     years = []
-    for form in _scan_range_forms(question):
+    for form in _scan_range_forms(question, entity_spans=entity_spans):
         if form[0] == 'BAD':
             return ('BAD', form[3])
         if form[0] == 'years':
@@ -311,14 +326,15 @@ def _question_range_years(question):
     return max(years) if years else None
 
 
-def _question_range_months(question):
+def _question_range_months(question, entity_spans=()):
     """R9-02: 问题词面声明的相对月数(None=未限定)。
 
     R12 P1: 收敛到 _scan_range_forms 单一扫描器;多个匹配取最大(更
     严);「半年」=6、「N年半」=N×12+6、「个」可省;换算失败返回
-    ('BAD', raw),调用方阻断不缩短范围。"""
+    ('BAD', raw),调用方阻断不缩短范围。
+    R15: entity_spans=研究对象词面区间(指标期限让位,同窗口口径)。"""
     months = []
-    for form in _scan_range_forms(question):
+    for form in _scan_range_forms(question, entity_spans=entity_spans):
         if form[0] == 'BAD':
             return ('BAD', form[3])
         if form[0] == 'months':
@@ -326,7 +342,7 @@ def _question_range_months(question):
     return max(months) if months else None
 
 
-def _q_relative_constraints(q, date_spans=()):
+def _q_relative_constraints(q, date_spans=(), entity_spans=()):
     """R11/R12 P1: 收集问题词面**全部**相对/自然年时间约束(完整收集,
     不取其一);数量转换与词形分类收敛于 _scan_range_forms。
 
@@ -336,7 +352,7 @@ def _q_relative_constraints(q, date_spans=()):
     'cal': [(词, offset)]}。多约束并存由 _q_multi_conflict_ret 判定
     (单窗口接口无法表达多范围任务→提示拆分并阻断,不做多窗口扩展)。"""
     months, years, cal = [], [], []
-    for form in _scan_range_forms(q, date_spans):
+    for form in _scan_range_forms(q, date_spans, entity_spans):
         if form[0] == 'BAD':
             return None, form[3]
         if form[0] == 'months':
@@ -481,7 +497,7 @@ def _q_asof_mark(q, s, e):
     return False
 
 
-def _q_relative_tail(q, asof_iso):
+def _q_relative_tail(q, asof_iso, entity_spans=()):
     """R10 P1③: 无(剩余)窗口日期词形时的范围收尾——相对月数(含
     「半年」「N年半」)/相对年限(小数折月)/去年/前年;asof_iso 非空时
     作为窗口锚点随 spec 携带(None=锚点仍取快照研究时点,词面无冲突)。
@@ -491,7 +507,7 @@ def _q_relative_tail(q, asof_iso):
     R11 P1: **全约束收集**——月数/年限/自然年多约束并存=多范围任务,
     单窗口接口无法表达→提示拆分并阻断(不取 max 不择一);小数年限
     折月(1.5年=18 个月,与十八个月/一年半同窗)。"""
-    cons, bad = _q_relative_constraints(q)
+    cons, bad = _q_relative_constraints(q, entity_spans=entity_spans)
     if bad is not None:
         return {'kind': 'unparseable',
                 'reason': f'时间数量 {bad!r} 无法完整解析(不缩短范围)',
@@ -562,7 +578,7 @@ def _bare_date_window(raw):
     return None
 
 
-def _question_window(question):
+def _question_window(question, entity_spans=()):
     """R7-01: 问题词面时间范围统一解析(相对年限+明确日期区间);
     R8-02: 斜杠日期词形+「去年」(自然年,绑定研究时点);
     R9-02: 三态固定——①未指定范围(None)②已指定且成功解析③已指定
@@ -629,9 +645,10 @@ def _question_window(question):
     # R11/R12 P1: 全约束收集 + 残缺数量扫描(已消费区段=约束词形/日期词/
     # 未支持词;裸词形不算覆盖——「近 20 24个月」的裸「24个月」须可被
     # 残缺扫描抓住;日期词年形按后缀分派,见 _scan_range_forms 注释)
-    _forms = _scan_range_forms(q, [(s, e) for (s, e, _r) in toks])
+    _forms = _scan_range_forms(q, [(s, e) for (s, e, _r) in toks],
+                               entity_spans)
     _cons, _cons_bad = _q_relative_constraints(
-        q, [(s, e) for (s, e, _r) in toks])
+        q, [(s, e) for (s, e, _r) in toks], entity_spans)
     if _cons_bad is not None:
         return {'kind': 'unparseable',
                 'reason': f'时间数量 {_cons_bad!r} 无法完整解析(不缩短范围)',
@@ -642,6 +659,7 @@ def _question_window(question):
                         '(半年=6 个月、1.5年=18 个月)'}
     _covered = [f[2] for f in _forms if f[0] != 'bare' and f[2]]
     _covered += [(s, e) for (s, e, _r) in toks]
+    _covered += list(entity_spans)   # R15: 研究对象词面=指标期限,非残缺
     if _unsup:
         _covered.append((_unsup.start(), _unsup.end()))
     _res_bad = _q_residual_bad(q, _covered)
@@ -685,7 +703,7 @@ def _question_window(question):
             return _unsup_ret
         if _res_ret:
             return _res_ret
-        return _q_relative_tail(q, _asof_iso)
+        return _q_relative_tail(q, _asof_iso, entity_spans)
     if len(_window_dates) == 1:
         s, e, raw = _window_dates[0]
         after = q[e:e + 6]
@@ -730,7 +748,7 @@ def _question_window(question):
             return _res_ret
         # R10 P1③: 单日期提及≠区间(如非词形粒度的日期残余),但范围词
         # 在场则范围生效——不因日期在场丢失范围限制;无范围词=①
-        return _q_relative_tail(q, _asof_iso)
+        return _q_relative_tail(q, _asof_iso, entity_spans)
     # ≥2 个窗口日期词形: 取词面首末(词序倒置=错误区间,不静默重排)
     first, last = _window_dates[0], _window_dates[-1]
     iso_first, iso_last = (_norm_qdate(first[2], 'start'),
@@ -1088,6 +1106,59 @@ def map_entities(question, reg):
     return {'metrics': metrics, 'economies': economies, 'note': note}
 
 
+# Audit-R15 P1: 研究对象先于时间范围识别——指标名内的期限词形(数量+
+# 单位+期+产品词,如「7天期逆回购利率」「2年期美债收益率」)派生全形
+# (带期)与简称(去期)两种词形;简称落在问题里时属研究对象词面,其
+# 中的 数量+单位 是指标期限,不是复合时长尾部。
+_TENOR_NAME_RE = re.compile(
+    r'(?P<num>[0-9][0-9.]*|[零一二两三四五六七八九十百廿卅]+)\s*'
+    r'(?P<unit>天|个?\s*月|年)期(?P<tail>[一-鿿]+)')
+
+
+def _metric_tenor_forms(name):
+    """R15: 指标名→期限词形正则(数量通配+期可选)。
+
+    「央行7天期逆回购利率」→ (?<!numrun)(numrun)\\s*天期?逆回购利率——
+    同时命中「7天期逆回购利率」「7天逆回购利率」「七天逆回购利率」
+    (阿拉伯/中文数量词形等价,数量取完整 run 防截断);tail 取期限后的
+    连续汉字(产品词),不跨 ASCII。名称无期限词形=空表。"""
+    pats = []
+    for m in _TENOR_NAME_RE.finditer(_norm_question(name or '')):
+        unit, tail = m.group('unit'), m.group('tail')
+        pats.append(re.compile(
+            _NUM_RUN_EDGE + _NUM_RUN + r'\s*'
+            + re.escape(unit) + '期?' + re.escape(tail)))
+    return pats
+
+
+def _entity_spans(question, reg_by_id, metric_ids):
+    """R15: **已映射指标**的研究对象词面区间(规范化副本上,偏移与
+    _question_window 同源)。
+
+    区间来源: metric_id / display_name 字面 + 期限词形正则(全形/简称/
+    中文数量形)。先识别研究对象、再计算起止日期——落在这些区间内的
+    数量+单位=指标期限(7天期/7天/七天逆回购),不触发复合时长拒绝,
+    也不算残缺数量。只对 map_entities 已命中的指标派生(指标简称不
+    改变窗口,也不凭空扩大实体映射面)。"""
+    qn = _norm_question(question or '').casefold()
+    spans = []
+    for mid in metric_ids or []:
+        entry = (reg_by_id or {}).get(mid) or {}
+        names = [mid or '', entry.get('display_name') or '']
+        for n in names:
+            n = _norm_question(n or '').casefold()
+            if not n:
+                continue
+            i = qn.find(n)
+            while i != -1:
+                spans.append((i, i + len(n)))
+                i = qn.find(n, i + 1)
+        for pat in _metric_tenor_forms(entry.get('display_name') or ''):
+            for m in pat.finditer(qn):
+                spans.append(m.span())
+    return spans
+
+
 def _fact_rows(snap, metric_ids):
     """L1 行: 快照事实直取(逐行 fact_id 证据;不猜不补)。
 
@@ -1223,14 +1294,18 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
     for _bk in (_s3_env.get('by_asset_class') or {}).values():
         if isinstance(_bk, dict):
             _s3_mids.update(str(k) for k in _bk)
-    _range_years = _question_range_years(question)
+    # R15: 先识别研究对象(已映射指标词面区间,含期限简称),再计算
+    # 起止日期——窗口/年限/月数三入口同源让位,plan/report/archive
+    # 同一份窗口判定(指标期限不改变窗口)。
+    _espans = _entity_spans(question, registry, metrics)
+    _range_years = _question_range_years(question, _espans)
     if not isinstance(_range_years, (int, float)) \
             or isinstance(_range_years, bool):
         # R10 P1②: ('BAD', raw)=数量无法完整解析——min_obs 推导走兜底
         # (不影响阻断: _qw 同源 unparseable 已拦);R11 P1: 小数年限
         # (1.5)为合法数量,min_obs 按折算整数月推
         _range_years = None
-    _qw = _question_window(question)          # R7-01: 显式区间优先
+    _qw = _question_window(question, _espans)  # R7-01: 显式区间优先
     _as_of = _snap_as_of_date(snap)
     # R10 P1③: 问题声明研究时点(「以X为研究时点」)优先于快照
     # target_date——相对/自然年/单侧终界窗口统一锚定问题时点(不用

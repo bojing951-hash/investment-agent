@@ -183,6 +183,7 @@ R18 工作树 map_entities 同返 [UST_30Y],证明缺陷②为基线既有非本
 
 ## 八、状态
 
-- 推送/CI: {{PUSH_CI_PLACEHOLDER}}
-- PR #1 更新: R1-R17 → R1-R18({{PR_SECTION}})
+- 推送/CI: dev/audit-fix-r1 = 57bcb66→d3dea05(修复固定 SHA)→**26885739fa132c47dac854de9f20b9f778251143**(状态收口: 报告+证据包+状态波)→CI 回填(仅 docs);PR #1 覆盖推送(R1-R17→R1-R18)。
+- CI: 状态收口 `2688573` 推送后 run **44350710810**(head_sha=26885739fa132c47dac854de9f20b9f778251143,全 40 位逐位核对)三 job 全绿: gates ✅ / tests (3.11) ✅ / tests (3.12) ✅——本回填提交前的提交树全绿由该 run 复核;回填提交(仅 docs)推送后以其自身 run 复核。
+- PR #1 更新: R1-R17 → R1-R18(标题+R18 节: 五缺陷/五文件修复/REVISE→UPHELD 闭环/归档三处同锚+SHA 回读/终跑 CI 链接)。
 - 停等外部审计: 不并 main、不合并 PR、不部署、不开新轮。

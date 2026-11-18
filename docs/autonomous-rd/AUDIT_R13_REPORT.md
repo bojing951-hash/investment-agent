@@ -60,4 +60,5 @@
 
 ## CI 回填
 
-- 见尾部(最终 HEAD 三 job 绿,head_sha 逐位复核)。
+- 收口尖 `c2e645c`(状态波提交): run [44217524672](https://github.com/bojing951-hash/investment-agent/actions/runs/44217524672) 三 job 全绿(gates / tests 3.11 / tests 3.12),head_sha=`c2e645ca1bf1e1127ce4d2820c2caae9425b3034` 与远端尖逐位复核一致。
+- 本回填提交后的终跑见下一行。

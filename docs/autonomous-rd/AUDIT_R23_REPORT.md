@@ -55,3 +55,7 @@
 3. Round-3 残留: EA 增长走位窗内深谷未披露(MINOR)、JP GDP『逐步回升』副词族(NIT)、对质行内宜回贴裁决观测(NIT)——R24 候选。
 4. 契约 check15 bp 池为三利率专用(见五,存档待议是否泛化)。
 5. PR #1 未合并不部署,停等外部审计。
+
+## 九、CI 回填
+
+收口提交 2b8be6c 的 CI run [44593337416](https://github.com/bojing951-hash/investment-agent/actions/runs/44593337416) 三 job 全绿(tests 3.11 / tests 3.12 / gates)。本回填提交后 PR #1 head 即最终受审尖。

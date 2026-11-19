@@ -694,6 +694,24 @@ def _map_checks(judgment, face, report):
                     dm not in (plan.get('context_metrics') or []):
                 bad(f'{lid}.distinguishing_metric',
                     f'区分指标 {dm} 不在计划指标/证据序列面', contra=True)
+            # Audit-R22 任务4(软契约): 竞争解释在场时,主/竞争两侧对同一
+            # 区分指标的不同预期(main_predicts/competing_predicts)与判断
+            # (face_off_verdict)宜分立——旧档无此字段不判错(原文复放必须
+            # 通过),新席应填(渲染层缺席如实注记)。在场时校验形态:
+            # verdict 三态闭集;预期只填一侧=分立不完整。
+            if str(lk.get('competing_explanation') or '').strip():
+                mp_ = str(lk.get('main_predicts') or '').strip()
+                cp_ = str(lk.get('competing_predicts') or '').strip()
+                if bool(mp_) != bool(cp_):
+                    bad(f'{lid}.main_predicts',
+                        '主/竞争解释预期只填一侧——对质面须两侧分立'
+                        '(或两侧都不填,渲染层记尚不能区分)')
+                fv = str(lk.get('face_off_verdict') or '').strip()
+                if fv and fv not in ('支持主解释', '支持竞争解释',
+                                     '尚不能区分'):
+                    bad(f'{lid}.face_off_verdict',
+                        f'对质判断三态闭集外({fv!r})——须为 支持主解释/'
+                        '支持竞争解释/尚不能区分 之一')
     turnings = rm.get('turnings') or []
     if len(turnings) != 3:
         bad('reader_map.turnings', f'三个转折须恰为 3(得 {len(turnings)})')
@@ -1078,29 +1096,104 @@ def _map_checks(judgment, face, report):
             tgt = exp.get(k)
             if not txt or not tgt:
                 continue
+
+            def _eng_recompute(mid, unit):
+                """锚月末→tgt 月末引擎复算值(None=不可复算,不判)。"""
+                ser = (face.get('series_store') or {}).get(mid)
+                if not ser or not ser.get('dates'):
+                    return None
+                d0, v0 = _month_last_obs(ser['dates'], ser['values'], aym)
+                d1, v1 = _month_last_obs(ser['dates'], ser['values'], tgt)
+                if v0 is None or v1 is None or d0 == d1:
+                    return None
+                try:
+                    return (((v1 / v0 - 1.0) * 100.0 if unit == '%'
+                             else v1 - v0), d0, v0, d1, v1)
+                except (TypeError, ZeroDivisionError):
+                    return None
+
+            # Audit-R22 任务3: pp 容差收紧 0.6→0.06——0.85pp 写成 0.35pp
+            # 这类同量级窜写在旧容差下蒙混(% 容差维持 0.6,日内重定价与
+            # 复权噪声留给百分比口径)。
             for mt in re.finditer(
                     r'([A-Z][A-Z0-9_]{1,20})\s*'
                     r'([+\-−]?[0-9]+(?:\.[0-9]+)?)\s*(pp|%)', txt):
                 mid, num, unit = mt.group(1), mt.group(2), mt.group(3)
                 num = float(num.replace('−', '-'))
-                ser = (face.get('series_store') or {}).get(mid)
-                if not ser or not ser.get('dates'):
+                rc = _eng_recompute(mid, unit)
+                if rc is None:
                     continue
-                d0, v0 = _month_last_obs(ser['dates'], ser['values'], aym)
-                d1, v1 = _month_last_obs(ser['dates'], ser['values'], tgt)
-                if v0 is None or v1 is None or d0 == d1:
-                    continue
-                try:
-                    eng_num = ((v1 / v0 - 1.0) * 100.0 if unit == '%'
-                               else v1 - v0)
-                except (TypeError, ZeroDivisionError):
-                    continue
-                if abs(num - eng_num) > 0.6:
+                eng_num, d0, v0, d1, v1 = rc
+                tol = 0.06 if unit == 'pp' else 0.6
+                if abs(num - eng_num) > tol:
                     bad(f'{hid}.ex_post.{k}',
                         f'事后窗数字与引擎不符: {mid} {num:+.2f}{unit} vs '
                         f'锚月{aym}末→{tgt}末复算 {eng_num:+.2f}{unit}'
                         f'({d0}={v0}→{d1}={v1})——编造事后回报',
                         contra=True)
+            # Audit-R22 任务3: 中文别名面——「标普500指数上涨99.00%」一类
+            # 中文窜写在 ASCII ticker 正则下静默漏检。别名(最长匹配优先)
+            # +方向词(上涨/下跌…给隐式符号)+单位词(个百分点=pp)。方向词
+            # 与显式符号矛盾=直接判错;无方向词无符号=符号不明不判(诚实
+            # 缺省,留读者看原文)。
+            _cn = [('标普500指数', 'SPX'), ('标普500', 'SPX'),
+                   ('纳斯达克', 'NASDAQ_COMPOSITE'), ('日经225', 'NIKKEI225'),
+                   ('日经指数', 'NIKKEI225'), ('美元指数', 'DXY'),
+                   ('美国十年期国债收益率', 'UST_10Y'),
+                   ('十年期美债收益率', 'UST_10Y'), ('十年期美债', 'UST_10Y'),
+                   ('美债十年期', 'UST_10Y'), ('美债收益率', 'UST_10Y'),
+                   ('黄金期货', 'GOLD_F'), ('黄金', 'GOLD_F')]
+            _up = ('上涨', '上升', '走高', '攀升', '反弹', '上行', '升高',
+                   '累涨', '涨')
+            _down = ('下跌', '下降', '走低', '回落', '下挫', '下行', '走弱',
+                     '累跌', '跌')
+            _cn_spans = []
+            for alias, mid in _cn:
+                for am in re.finditer(re.escape(alias), txt):
+                    if any(s0 <= am.start() and am.end() <= e0
+                           for s0, e0 in _cn_spans):
+                        continue    # 已被更长别名覆盖(标普500⊂标普500指数)
+                    _cn_spans.append((am.start(), am.end()))
+                    tail = txt[am.end():am.end() + 34]
+                    m2 = re.match(
+                        r'[^0-9+\-−.]{0,16}?([+\-−]?)([0-9]+(?:\.[0-9]+)?)'
+                        r'\s*(个百分点|%)', tail)
+                    if not m2:
+                        continue
+                    sign, num_s, unit_w = m2.groups()
+                    unit = 'pp' if unit_w == '个百分点' else '%'
+                    num = float(num_s)
+                    gap = tail[:m2.start(1)]
+                    v_up = any(w in gap for w in _up)
+                    v_dn = any(w in gap for w in _down)
+                    if sign:
+                        s = -1 if sign in '-−' else 1
+                        if v_up and s < 0 or v_dn and s > 0:
+                            bad(f'{hid}.ex_post.{k}',
+                                f'中文方向词与符号矛盾: 「{alias}'
+                                f'{gap}{sign}{num_s}{unit_w}」——方向说反'
+                                '不蒙混(与 R21 资产月窗带符号比对同口径)',
+                                contra=True)
+                            continue
+                        num = s * num
+                    elif v_up:
+                        num = abs(num)
+                    elif v_dn:
+                        num = -abs(num)
+                    else:
+                        continue          # 无方向无符号=符号不明,不判
+                    rc = _eng_recompute(mid, unit)
+                    if rc is None:
+                        continue
+                    eng_num, d0, v0, d1, v1 = rc
+                    tol = 0.06 if unit == 'pp' else 0.6
+                    if abs(num - eng_num) > tol:
+                        bad(f'{hid}.ex_post.{k}',
+                            f'事后窗数字与引擎不符(中文面): {alias}({mid}) '
+                            f'{num:+.2f}{unit} vs 锚月{aym}末→{tgt}末复算 '
+                            f'{eng_num:+.2f}{unit}({d0}={v0}→{d1}={v1})'
+                            '——编造事后回报',
+                            contra=True)
     # (11) 正文月份扫描: 走位正文里的 YYYY-MM 须落在引擎面月份集(序列
     #     观测月∪锚观测月∪候选窗∪历史结构面∪资产窗)——反例②只把美国
     #     正文观测月改成 2030-07 而校验字段原样时,此为拦截位。
@@ -1163,6 +1256,43 @@ def _map_checks(judgment, face, report):
                 f'指标({sorted(same_month_peers)})均月频观测,同月内先后'
                 '不可分——须如实写明「先后未定」(月频证据只能支持同步时'
                 '不得断言谁先谁后)', contra=True)
+    # (13) Audit-R22 任务3: 观测月串回贴点值格锚序——地区走位正文里的
+    #     「观测 DATE→DATE(→DATE)」串(≥2 个月)须是**同地区某一点值格**
+    #     锚观测月序列(12个月前→3个月前→最新一期)的保序子序列。正文
+    #     把锚观测月改成「序列在场但锚前不可见」的月份(反例③: 美国 GDP
+    #     2025Q2 改 Q3——2025-07 观测在序列 dates 里,月份扫描(11)拦不
+    #     住,但其首发 2025-12-23 晚于 2025-11-19 锚,锚格观测=2025-04)
+    #     时,此为确定性拦截位。
+    _anchor_obs_by_region = {}
+    for _c in (plan.get('point_values') or {}).get('cells') or []:
+        _seq = []
+        for _lbl in ('12个月前', '3个月前', '最新一期'):
+            _a = (_c.get('anchors') or {}).get(_lbl) or {}
+            if _a.get('status') == 'ok' and _a.get('observation_date'):
+                _seq.append(str(_a['observation_date'])[:7])
+        if _seq:
+            _anchor_obs_by_region.setdefault(_c.get('region'), []).append(_seq)
+
+    def _is_subseq(small, big):
+        it = iter(big)
+        return all(x in it for x in small)
+
+    for r in rm.get('regions') or []:
+        _ft = str(r.get('from_to') or '')
+        for mt in re.finditer(
+                r'观测\s*(\d{4}-\d{2}(?:-\d{2})?'
+                r'(?:\s*→\s*\d{4}-\d{2}(?:-\d{2})?)+)', _ft):
+            run = [m[:7] for m in
+                   re.findall(r'\d{4}-\d{2}', mt.group(1))]
+            if len(set(run)) < 2:
+                continue
+            seqs = _anchor_obs_by_region.get(r.get('region')) or []
+            if not any(_is_subseq(run, sq) for sq in seqs):
+                bad(f'reader_map.regions[{r.get("region")}].obs_run',
+                    f'观测月串 {"→".join(run)} 不是任何点值格锚观测序'
+                    '(12个月前→3个月前→最新一期)的保序子序列——正文引用'
+                    '了锚前不可见或不存在的观测月(锚可见性口径;停摆延误'
+                    '观测的首发日晚于锚日,不得入锚序叙述)', contra=True)
     # 历史段样本前提(R21 任务4): us_analog 标明+sample_note 样本注记
     # 必填——类比锚定的序列口径与样本独立性是读者判断可比性的前提。
     for hi, h in enumerate(hist):

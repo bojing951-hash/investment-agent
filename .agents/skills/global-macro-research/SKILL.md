@@ -97,12 +97,13 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 
 ## 一键研究闭环工作流(Agent Native, R23/阶段四)
 
-用户一句话研究问题 → **一次任务内**完成全链,四步:
+用户一句话研究问题 → **一次任务内**完成全链。**默认入口= `research-one`**(单命令四段: plan→attach→report→archive;Audit-R22 起本技能默认研究路径走它,分段旧入口仅作调试):
 
-1. **确定性底座**: `research-run --question "<原问题>"`(可加 `--fanout`)→ 得报告目录(L1 事实行/L2 观点面/**证据索引**=fact_id 与 VP id 清单)
-2. **Agent 研判(你的工作,零模型代写)**: 读报告证据面,撰写 judgment JSON(schema v1.0): L3=矛盾/综合陈述(每条并列≥2 竞争性解释+证据引用)+机制链(每环标 E1/E2/E3);L4=条件情景(≥2 并列,五行齐备)。**每个 evidence_ref 必须取自该报告证据索引原值**,每个敏感变量/证伪指标必须是注册表在册 metric_id——机器校验不认注册表外的引用
-3. **机器校验落位**: `research-attach --report-dir <dir> --judgment <file>` → 全绿=L3/L4 produced=True(attribution=ai_inferred,原文入档+报告重渲);有 violations=按落档明细修订重提,**不得为过校验而稀释判断**(缺竞争性解释就补解释,不是删条目)
-4. **归档**: 用户认可后 `archive save --question ... --answer-text <四层标注成果文本>`(六参直存),研究链闭环
+1. **确定性底座(plan 段)**: `python3 ia_cli.py research-one --stage plan --question "<原问题>"`(可加 `--fanout`)→ 得报告目录+AGENT_SEAT_ENVELOPE 工单(L1 事实行/L2 观点面/**证据索引**=fact_id 与 VP id 清单+reader_map 契约面)
+2. **Agent 研判(你的工作,零模型代写)**: 读工单与证据面,撰写 judgment JSON(schema v1.0): L3=矛盾/综合陈述(每条并列≥2 竞争性解释+证据引用)+机制链(每环标 E1/E2/E3);L4=条件情景(≥2 并列,五行齐备);地图问句再给 reader_map(总判断/四地走位/传导/转折/历史——**传导环竞争解释在场时填 main_predicts/competing_predicts/face_off_verdict 对质三件**,证据不足如实写「尚不能区分」)。**每个 evidence_ref 必须取自该报告证据索引原值**,每个敏感变量/证伪指标必须是注册表在册 metric_id——机器校验不认注册表外的引用
+3. **机器校验落位(attach 段)**: `research-one --stage attach --report-dir <dir> --judgment <file>` → 契约全绿=L3/L4 produced=True(attribution=ai_inferred,原文入档+报告重渲);CONTRADICTED/NOT_VERIFIED=按落档明细修订重提,**不得为过校验而稀释判断**(缺竞争性解释就补解释,不是删条目)
+4. **报告与归档**: `research-one --stage report --report-dir <dir>`(完整读者报告;地图问句附 MAP_REPORT.md)→ 用户认可后 `research-one --stage archive --report-dir <dir>`(九件套直归);`--stage auto` 串前三段
+5. **独立复核**: 正式交付前经独立语义审查席(REVISE→修订→复裁 UPHELD 才可归档转正)
 
 红线: 判断内容 100% 归 Agent(你),校验器/管线零生成零改写;归因永标 ai_inferred;校验是纪律地板不是质量保证——判断质量仍由纪律 4/15/16 与独立审计把关。
 

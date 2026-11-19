@@ -270,14 +270,23 @@ def test_audit_r21_gate():
 
     print('═══ §D 政策四日期+一年窗路径(纯函数/合成序列) ═══')
     pfu = rmp.POLICY_FACE.get('DFEDTARU') or {}
-    pd_ = rmp._policy_dates(pfu, '2026-11-18', market_date='2026-11-17')
-    check('§D DFEDTARU 四日期: 决议=生效=11-18/市场观测=11-17(DFF 配对)'
-          '/统计窗口终点=None(日频决议序列)',
-          pd_.get('decision') == '2026-11-18'
-          and pd_.get('effective') == '2026-11-18'
+    # Audit-R22 任务2 语义修订: 决议/生效锚值变更日(2026-09-17 生效/
+    # 09-16 决议),观测日 11-18=序列打印日;无变更上下文→如实缺席。
+    pd_ = rmp._policy_dates(pfu, '2026-11-18', market_date='2026-11-17',
+                            value_change_date='2026-09-17')
+    check('§D DFEDTARU 四日期: 决议=09-16/生效=09-17(值变更日)/市场观测'
+          '=11-17(DFF 配对)/统计窗口终点=None;打印日≠变更日注记在档',
+          pd_.get('decision') == '2026-09-16'
+          and pd_.get('effective') == '2026-09-17'
           and pd_.get('market_observation') == '2026-11-17'
-          and pd_.get('stat_window_end') is None,
-          json.dumps(pd_, ensure_ascii=False)[:150])
+          and pd_.get('stat_window_end') is None
+          and '打印日' in str(pd_.get('decision_note')),
+          json.dumps(pd_, ensure_ascii=False)[:160])
+    pd_na = rmp._policy_dates(pfu, '2026-11-18', market_date='2026-11-17')
+    check('§D DFEDTARU 无变更上下文: 决议/生效不可推=如实缺席(不虚构)',
+          pd_na.get('decision') is None and pd_na.get('effective') is None
+          and '不可推' in str(pd_na.get('decision_note')),
+          json.dumps(pd_na, ensure_ascii=False)[:120])
     pff = rmp.POLICY_FACE.get('DFF') or {}
     pd2 = rmp._policy_dates(pff, '2026-11-17')
     check('§D DFF(市场均值): 市场观测=自身观测日/无决议日/统计窗=当日',

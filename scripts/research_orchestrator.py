@@ -1907,6 +1907,12 @@ def run_research(question, root=None, archive=False, out_dir=None,
                 _snap0, root)
             research_plan['asset_moves'] = rmp.asset_move_face(
                 _snap0, root, cutoff=_cutoff)
+            # Audit-R22 任务2: 政策事件跨国簇(同一事件合并计数,决议→生效
+            # 分记)+政策文档事实(FOMC 纪要发布日)——从政策行一年窗路径
+            # 确定性派生,渲染与契约同读。
+            research_plan['policy_event_clusters'] = rmp.policy_clusters_from_plan(
+                research_plan)
+            research_plan['policy_doc_facts'] = rmp.POLICY_DOC_FACTS
         _merged = list(ent['metrics']) + [
             m for m in research_plan['metrics']
             if m not in ent['metrics']]

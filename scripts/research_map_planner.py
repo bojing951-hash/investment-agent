@@ -24,6 +24,8 @@
 report 段做数值回贴核对(引擎点值 vs 判断叙述中的数字)。"""
 
 import bisect
+import json
+import os
 import re
 
 # ── 地区×维度指标映射(声明式;入场须注册表在册,否则如实缺口) ────────
@@ -87,53 +89,289 @@ US_RATES_TRIO = ['UST_10Y', 'TIPS_10Y', 'BEI_10Y']
 # 只声明口径,不造日期。
 POLICY_FACE = {
     'DFEDTARU': {'face': '政策目标(宣布值)', 'market_seat_label': 'FOMC目标区间上限',
-                 'decision': '决议日=观测日(FOMC会后当日公布)',
-                 'effective': '生效日=决议日(目标区间即时生效)',
+                 'decision': '决议日=生效日前一日(两日会议次日公布;序列值变更日'
+                             '=生效日)——2026-09 决议 09-16、生效 09-17',
+                 'effective': '生效日=观测日(目标区间自生效日起按新值执行;'
+                             '2022-07 决议 07-27→生效 07-28,七月末上限 2.50)',
+                 'decision_kind': 'prev_day',
                  'stat_window': None,
                  'market_pair': 'DFF',
-                 'market_note': '市场观测=配对 DFF(有效联邦基金利率)同窗观测日'},
+                 'market_note': '市场观测=配对 DFF(有效联邦基金利率)同窗观测日'
+                                '(生效日 DFF 同日跳变可核: 2026-09-17 '
+                                '3.63→3.88)'},
     'DFEDTARL': {'face': '政策目标(宣布值)', 'market_seat_label': 'FOMC目标区间下限',
-                 'decision': '决议日=观测日(FOMC会后当日公布)',
-                 'effective': '生效日=决议日(目标区间即时生效)',
+                 'decision': '决议日=生效日前一日(两日会议次日公布;序列值变更日'
+                             '=生效日)——2026-09 决议 09-16、生效 09-17',
+                 'effective': '生效日=观测日(目标区间自生效日起按新值执行)',
+                 'decision_kind': 'prev_day',
                  'stat_window': None,
                  'market_pair': 'DFF',
-                 'market_note': '市场观测=配对 DFF(有效联邦基金利率)同窗观测日'},
+                 'market_note': '市场观测=配对 DFF(有效联邦基金利率)同窗观测日'
+                                '(生效日 DFF 同日跳变可核: 2026-09-17 '
+                                '3.63→3.88)'},
     'DFF': {'face': '隔夜市场均值(有效利率)', 'market_seat_label': 'NY Fed有效联邦基金利率',
             'decision': None,   # 非决议值: 市场成交的有效利率
             'effective': '观测日=交易日次日发布',
             'stat_window': '日',
             'market_self': True,
-            'market_note': '市场观测日=本序列观测日(自即市场均值口径)'},
+            'market_note': '市场观测日=本序列观测日(自即市场均值口径;生效日'
+                           '跳变与目标变更同日可核)'},
     'CN_POLICY_OVERNIGHT': {'face': '操作目标(隔夜·2026-11-02起新锚)',
                             'market_seat_label': '央行隔夜逆回购中标利率',
-                            'decision': '决议日=公告日(交易日09:20披露)',
+                            'decision': '决议日=公告日=观测日(交易日09:20披露)',
                             'effective': '生效日=操作日当日',
+                            'decision_kind': 'obs_day',
                             'stat_window': None,
                             'market_note': '隔夜市场利率(DR001类)未入库,'
                                            '市场观测日如实缺席'},
     'CN_OMO_7D': {'face': '七天工具(操作利率)', 'market_seat_label': '央行7天逆回购中标利率',
-                  'decision': '决议日=公告日(交易日09:20披露)',
+                  'decision': '决议日=公告日=观测日(交易日09:20披露)',
                   'effective': '生效日=操作日当日',
+                  'decision_kind': 'obs_day',
                   'stat_window': None,
                   'market_note': '七天工具口径单列(2026-11-02 换锚前为操作目标锚)'},
     'CN_LPR_1Y': {'face': '贷款报价(报价基准)', 'market_seat_label': 'LPR 1年期报价',
                   'decision': '公布日=观测日(每月20日09:15,节假日顺延)',
                   'effective': '生效日=公布日',
+                  'decision_kind': 'obs_day',
                   'stat_window': None,
                   'market_note': '报价基准与政策操作目标分列'},
     'ECB_MRO': {'face': '政策目标(宣布值)', 'market_seat_label': 'ECB主要再融资利率',
-                'decision': '决议日=观测日(管委会决议当日公布)',
-                'effective': '生效日=决议日(即时)',
+                'decision': '决议日=生效日前的上一个周四(管委会决议;序列值变更'
+                            '日=生效日=决议后首个周三)——2026-09 决议 09-10、'
+                            '生效 09-16',
+                'effective': '生效日=观测日(ECB惯例: 变更自决议后首个周三生效)',
+                'decision_kind': 'prev_thursday',
                 'stat_window': None},
     'ECB_DFR': {'face': '政策目标(宣布值·操作下限)', 'market_seat_label': 'ECB存款便利利率',
-                'decision': '决议日=观测日(管委会决议当日公布)',
-                'effective': '生效日=决议日(即时)',
+                'decision': '决议日=生效日前的上一个周四(管委会决议;序列值变更'
+                            '日=生效日=决议后首个周三)——2026-09 决议 09-10、'
+                            '生效 09-16',
+                'effective': '生效日=观测日(ECB惯例: 变更自决议后首个周三生效)',
+                'decision_kind': 'prev_thursday',
                 'stat_window': None},
     'JP_POLICY_RATE': {'face': '隔夜市场均值(月均)', 'market_seat_label': '无担保隔夜拆借月均',
                        'decision': None,   # 月均≠决议值: BOJ决议目标另列(JP_POLICY_TARGET)
                        'effective': None,
                        'stat_window': '月'},
 }
+
+# ── Audit-R22 任务2: 政策文件面(叙事源)的发布事实 ─────────────────────────
+# 会议纪要=滞后发布的叙事源: 决议事实以决议日公布为准,不以纪要回填;
+# 纪要自其发布日起才可作为引用来源(发布前一日不可见)。
+POLICY_DOC_FACTS = [
+    {'doc_id': 'FOMC-MINUTES-2026-10',
+     'kind': 'minutes',
+     'title': 'FOMC 2026年10月会议纪要',
+     'meeting_month': '2026-10',
+     'published_on': '2026-11-18',
+     'basis': 'user_directive',
+     'note': '10月会议纪要 2026-11-18 发布(纪要发布≠决议日;引用纪要叙事'
+             '自 11-18 起可见,决议数值仍以决议日公布为准)',
+     'source': 'Audit-R22 验收指令(2026-11-19)'},
+]
+
+
+def policy_doc_visible(doc_id, as_of):
+    """政策文件(纪要类)在 as_of 日是否已发布可引: published_on≤as_of。"""
+    for d in POLICY_DOC_FACTS:
+        if d['doc_id'] == doc_id:
+            return bool(as_of and d['published_on'] <= as_of)
+    return None   # 未登记文件: 无事实面,如实 None(调用方按无据处理)
+
+
+# ── Audit-R22 任务2: 同一事件的跨国信号合并 ───────────────────────────────
+# 政策变动事件(决议日+幅度)按决议日跨地区聚簇(±CLUSTER_DAYS 日内=同一
+# 全球政策事件);簇内逐国分记决议/生效日,月频证据只能说明同步时如实
+# 写「先后未定」(同步性主张上限=月频证据分辨率)。
+_POLICY_CLUSTER_DAYS = 7
+
+
+def policy_event_clusters(events):
+    """events=[{region, metric_id, date(决议日), delta_bp,...}] → 簇列表。
+
+    每簇={'cluster_id','date_from','date_to','regions':[...],
+    'events':[...],'note'}——同簇=同一全球政策事件的多国信号(合并计数,
+    三个转折中算一个事件);note 固定携带月频先后未定纪律。"""
+    evs = sorted((dict(e) for e in events if e.get('date')),
+                 key=lambda e: (e['date'], e.get('region') or '',
+                                e.get('metric_id') or ''))
+    seen = set()
+    dedup = []
+    for e in evs:
+        key = (e.get('region'), e['date'], e.get('delta_bp'))
+        if key in seen:
+            continue
+        seen.add(key)
+        dedup.append(e)
+    evs = dedup
+    clusters = []
+    for e in evs:
+        if not clusters:
+            clusters.append({'events': [e]})
+        else:
+            last_to = max(x['date'] for x in clusters[-1]['events'])
+            if e['date'] > _dshift(last_to, _POLICY_CLUSTER_DAYS):
+                clusters.append({'events': [e]})
+            else:
+                clusters[-1]['events'].append(e)
+    out = []
+    for i, c in enumerate(clusters):
+        ds = [e['date'] for e in c['events']]
+        regions = sorted({e.get('region') or '?' for e in c['events']})
+        multi = len(regions) > 1
+        out.append({
+            'cluster_id': f'POLCLUSTER-{i + 1:02d}',
+            'date_from': min(ds), 'date_to': max(ds), 'regions': regions,
+            'events': c['events'],
+            'same_event_cross_country': multi,
+            'note': ('跨国决议日落在±%d日窗内——按同一全球政策事件合并计数'
+                     '(逐国决议/生效日分记);月频证据只能说明同步时,先后'
+                     '未定' % _POLICY_CLUSTER_DAYS) if multi else
+                    '单地区事件(不跨国产合并)',
+        })
+    return out
+
+
+def _dshift(iso, days):
+    import datetime
+    return (datetime.date.fromisoformat(iso)
+            + datetime.timedelta(days=days)).isoformat()
+
+
+def _dnum(iso):
+    """ISO 日期→YYYYMMDD 整数(间隔天数用;部分日期按前缀保守取)。"""
+    s = str(iso)
+    return int(s[:4] + s[5:7] + s[8:10])
+
+
+def _is_wednesday(iso):
+    import datetime
+    return datetime.date.fromisoformat(iso).weekday() == 2
+
+
+def _last_value_change(dates, values, i):
+    """≤dates[i] 的最近值变更日(相邻有效观测值不同;全序列扫描)。
+
+    None=起点以来无变更(决议/生效不可推,如实缺席)。日频目标序列的
+    观测日多为不变更的打印日——生效日锚在变更日,不在打印日。"""
+    for k in range(i, 0, -1):
+        a, b = values[k - 1], values[k]
+        if a is not None and b is not None and a != b:
+            return dates[k]
+    return None
+
+
+def policy_clusters_from_plan(plan):
+    """从 point_values 政策行的一年窗路径事件建跨国事件簇(编排层调用)。
+
+    事件键=决议日(decision_date;无决议语义的行如实跳过)——「同一事件」
+    按决议日聚,ECB 2026-09-10 与 Fed 2026-09-16 决议落在 ±7 日窗内
+    → 同一全球政策事件(合并计数)。逐事件带 effective_date(=序列值
+    变更日)供四日期分记。"""
+    evs = []
+    for c in (plan.get('point_values') or {}).get('cells') or []:
+        wp = c.get('policy_window_path') or {}
+        for e in wp.get('events') or []:
+            if not e.get('decision_date'):
+                continue
+            evs.append({'region': c.get('region'),
+                        'metric_id': c.get('metric_id'),
+                        'display_name': c.get('display_name'),
+                        'date': e['decision_date'],
+                        'effective_date': e.get('date'),
+                        'delta_bp': e.get('delta_bp'),
+                        'from': e.get('from'), 'to': e.get('to')})
+    clusters = policy_event_clusters(evs)
+    for cl in clusters:
+        for e in cl['events']:
+            e['decision_to_effective_days'] = (
+                (_dnum(e['effective_date']) - _dnum(e['date']))
+                if e.get('effective_date') else None)
+    return {'basis': ('同一事件的跨国信号合并: 各政策行一年窗路径事件按'
+                      '决议日跨地区聚簇(±%d 日)——同簇=同一全球政策事件,'
+                      '三个转折中计一个事件;逐国决议日/生效日分记'
+                      '(决议→生效惯例: Fed=次日,ECB=决议后首个周三,'
+                      'PBOC=宣布即时)。月频证据只能说明同步时,先后未定。'
+                      % _POLICY_CLUSTER_DAYS),
+            'clusters': clusters}
+
+
+# ── Audit-R22 任务4: 历史类比逐窗并列面(经济指标×资产表现) ────────────────
+# 每段历史类比(anchor_ym)×随后 3/6/12 月窗: 确定性并列「经济指标与资产
+# 表现」,逐行附起止期/数值/单位/来源——与 ex_post 正文同一锚月末→
+# 锚+N 月末口径,正文数字可逐位对账。
+_HIST_ECON = [('DFEDTARU', 'Fed 目标区间上限', 'rate'),
+              ('UNEMPLOYMENT', '美国失业率', 'rate'),
+              ('CPI', '美国 CPI(指数)', 'price'),
+              ('INDPRO', '美国工业生产(指数)', 'price')]
+_HIST_ASSET = [('SPX', '标普500', 'price'), ('UST_10Y', '美债十年期', 'rate'),
+               ('DXY', '美元指数', 'price'), ('GOLD_F', '黄金期货', 'price'),
+               ('NIKKEI225', '日经225', 'price')]
+
+
+def _month_end_obs(dates, values, ym):
+    """≤ym 月末的最新有效观测(与 judgment_contract._month_last_obs 同口径)。"""
+    import bisect
+    hi = bisect.bisect_right(dates, ym + '-31')
+    j = hi - 1
+    while j >= 0 and values[j] is None:
+        j -= 1
+    return (dates[j], values[j]) if j >= 0 else (None, None)
+
+
+def history_window_face(history_periods, snap, root):
+    """每段历史类比×{3,6,12}月窗的经济×资产并列面(确定性,渲染层调用)。
+
+    history_periods=[{anchor_ym,...}](Agent 席选定,取 anchor_ym 即可)。
+    行=指标|起期|起值|止期|止值|变化|单位|来源;rate 族变化=pp,
+    price 族变化=%。序列缺席如实入 absent,不以别指标冒充。"""
+    periods = []
+    for h in history_periods or []:
+        aym = str(h.get('anchor_ym') or '')
+        if len(aym) != 7:
+            continue
+        pd_out = {'anchor_ym': aym, 'windows': {}, 'absent': []}
+        for horizon in (3, 6, 12):
+            # 随后 N 个月(锚+N 月末;_shift_months 正 n=向过去平移,
+            # 故取负=向未来)——与 ex_post 正文「随后N个月」同向
+            tgt = _shift_months(aym + '-01', -horizon)[:7]
+            rows = []
+            for mid, label, kind in _HIST_ECON + _HIST_ASSET:
+                grp = ('经济指标' if (mid, label, kind) in _HIST_ECON
+                       else '资产表现')
+                s, _err = _series(mid, snap, root)
+                if not s or not s.get('dates'):
+                    pd_out['absent'].append(f"{mid}({label})")
+                    continue
+                d0, v0 = _month_end_obs(s['dates'], s['values'], aym)
+                d1, v1 = _month_end_obs(s['dates'], s['values'], tgt)
+                if v0 is None or v1 is None or d0 == d1:
+                    pd_out['absent'].append(f"{mid}({label})@{aym}→{tgt}")
+                    continue
+                try:
+                    chg = ((round(v1 - v0, 4) if kind == 'rate'
+                            else round((v1 / v0 - 1.0) * 100.0, 4))
+                           if isinstance(v0, (int, float))
+                           and isinstance(v1, (int, float)) else None)
+                except (TypeError, ZeroDivisionError):
+                    chg = None
+                rows.append({'group': grp, 'metric_id': mid, 'label': label,
+                             'kind': kind,
+                             'from_date': d0, 'from_value': v0,
+                             'to_date': d1, 'to_value': v1,
+                             'change': chg,
+                             'change_unit': ('pp' if kind == 'rate' else '%'),
+                             'unit': s.get('unit'),
+                             'source': s.get('source')})
+            pd_out['windows'][f'{horizon}m'] = {
+                'window_months': horizon, 'target_ym': tgt, 'rows': rows}
+        periods.append(pd_out)
+    return {'basis': ('历史类比逐窗并列面: 锚月末→锚+N 月末(与 ex_post '
+                      '正文同口径);经济指标与资产表现并列,逐行起止期/'
+                      '数值/单位/来源,确定性复算零生成'),
+            'periods': periods}
+
 
 # ── Audit-R20 任务2: 只有最新修订值时标「事后回顾」──────────────────
 # 判定基准=注册表 release_semantics 声明(revision_semantics=
@@ -455,24 +693,32 @@ def _latest_valid_yoy(dates, values, idx):
 def _visible_publish(mid, freq, obs_date):
     """Audit-R20 任务2: 发布日统一入口——日历条目(停摆/延误实录)优先,
     RELEASE_RULES 推定兜底。返回 (publish_date|None, basis_text);
-    basis 保留具体规则文本(随格披露,读者可核)。"""
+    basis 保留具体规则文本(随格披露,读者可核)。
+    Audit-R22 任务1: 条目挂批(batch_id)时 basis 带批号——同批指标的
+    可见性整批一致(CPI+核心CPI 同稿/一次补发两月),读者可按批核。"""
     import release_calendar as rc
     rule_iso, rule_text = _publish_date(mid, freq, obs_date)
     ent = rc.first_publish(mid, obs_date)
     if ent is not None:
+        batch = f";batch={ent['batch_id']}" if ent.get('batch_id') else ''
         return (ent['first_publish'],
-                f"calendar:{ent['entry_id']}({ent['basis']})")
+                f"calendar:{ent['entry_id']}({ent['basis']}{batch})")
     if rule_iso:
         return rule_iso, (rule_text or 'rule:推定')
     return None, 'unavailable'
 
 
-def _policy_dates(face, obs_date, market_date=None):
+def _policy_dates(face, obs_date, market_date=None, value_change_date=None):
     """政策四分面的四日期落位(R21 任务2: 决议日/生效日/市场观测日/
     统计窗口终点分列)。声明式口径(决议日=观测日一类)按观测日落具体
     日期;统计窗口=月→观测月末、日→观测日;市场观测日=配对市场序列
     (market_pair)锚窗内最新观测日,由 point_values 传入(序列面在场才
-    落位)。None=该面无此日期(市场均值无决议日),如实缺席。"""
+    落位)。None=该面无此日期(市场均值无决议日),如实缺席。
+
+    Audit-R22 任务2: 决议/生效分记须以**值变更日**为生效日——观测日只是
+    序列最新打印,未必是变更日(最新锚的日频打印几乎从不是)。调用方传
+    value_change_date=全序列内 ≤obs_date 的最近值变更日;决议日按
+    decision_kind 自生效日回推(Fed=前一交易日、ECB=上一周四)。"""
     if not face:
         return None
     out = {'face': face.get('face'), 'market_seat_label': face.get('market_seat_label'),
@@ -480,6 +726,41 @@ def _policy_dates(face, obs_date, market_date=None):
            'market_note': face.get('market_note'),
            'decision': obs_date if face.get('decision') else None,
            'effective': obs_date if face.get('effective') else None}
+    # Audit-R22 任务2: 决议/生效分记(数据面语义=序列值变更日为生效日)。
+    # Fed 目标: 决议=生效前一日(两日会议次日公布);ECB: 决议=生效前
+    # 上一个周四(变更自决议后首个周三生效,变更日恒为周三)。
+    dk = face.get('decision_kind')
+    if dk in ('prev_day', 'prev_thursday'):
+        eff = value_change_date or (
+            obs_date if dk == 'prev_thursday'
+            and _is_wednesday(obs_date) else None)
+        if dk == 'prev_thursday' and eff and not _is_wednesday(eff):
+            out['decision_note'] = (str(face.get('decision') or '')
+                                    + ';⚠️ 变更日非周三=不规则生效日,'
+                                      '决议日不可推,按观测日记')
+            eff = None
+        if eff is None:
+            # 序列自起点无值变更(或变更日不规则): 决议/生效不可推
+            out['decision'] = None
+            out['effective'] = None
+            out['decision_note'] = (str(face.get('decision') or '')
+                                    + ';当前值自序列在场期无变更实录'
+                                      '(或观测日非变更日且无可回溯变更)'
+                                      '——决议/生效日不可推,不虚构')
+        elif dk == 'prev_day':
+            out['decision'] = _dshift(eff, -1)
+            out['effective'] = eff
+            if eff != obs_date:
+                out['decision_note'] = (str(face.get('decision') or '')
+                                        + f';当前值由该决议设定——观测日'
+                                          f'{obs_date}为序列打印日非变更日')
+        else:
+            out['decision'] = _dshift(eff, -6)
+            out['effective'] = eff
+            if eff != obs_date:
+                out['decision_note'] = (str(face.get('decision') or '')
+                                        + f';当前值由该决议设定——观测日'
+                                          f'{obs_date}为序列打印日非变更日')
     if face.get('market_self'):
         out['market_observation'] = obs_date
     elif market_date:
@@ -499,18 +780,21 @@ def _policy_dates(face, obs_date, market_date=None):
     return out
 
 
-def _policy_window_path(dates, values, cutoff, months=12):
-    """政策序列一年窗路径(R21 任务2): 窗=[截止−12个月,截止]内的
-    变动点(窗内相邻观测值不同)逐点实录(日期/前后值/bp)与净变动——
-    「先降 25bp 再升 25bp 净变动为零」一类事实须整窗可复算,禁以
-    窗首尾两点差冒充路径(先降后升净零时首尾差恰掩盖全部路径)。
-    无变动→events=[]+net_bp=0;窗内无观测→None(不编造)。"""
+def _policy_window_path(dates, values, cutoff, months=12, metric_id=None):
+    """政策序列一年窗路径(R21 任务2;R22 任务2 决议/生效分记): 窗=
+    [截止−12个月,截止]内的变动点(窗内相邻观测值不同)逐点实录(日期/
+    前后值/bp+决议日)与净变动——「先降 25bp 再升 25bp 净变动为零」
+    一类事实须整窗可复算,禁以窗首尾两点差冒充路径(先降后升净零时
+    首尾差恰掩盖全部路径)。无变动→events=[]+net_bp=0;窗内无观测→
+    None(不编造)。事件 date=序列值变更日(=生效日),decision_date=
+    按 POLICY_FACE[metric_id].decision_kind 推(观测日=生效日语义)。"""
     w0 = _shift_months(cutoff, months)
     idx = [k for k, d in enumerate(dates) if w0 <= d <= cutoff]
     if not idx:
         return None
+    dk = (POLICY_FACE.get(metric_id) or {}).get('decision_kind')
     events = []
-    # 变动点按其自身观测日(=决议日)归属窗口: 窗内首观测的前值允许在
+    # 变动点按其自身观测日(=生效日)归属窗口: 窗内首观测的前值允许在
     # 窗启之前(隔月决议序列的现实形态)——否则窗启后首场降息会被漏记,
     # 先降后升的路径从第一格就失真。dates 升序+窗口为日期区间→idx 为
     # 连续索引段,k1-1 要么同在窗内、要么恰在窗启前一格。
@@ -524,19 +808,25 @@ def _policy_window_path(dates, values, cutoff, months=12):
         dbp = round((v1 - v0) * 100)
         if dbp == 0:
             continue   # 月均舍入噪声(值差<0.5bp)不是变动点
-        events.append({'date': dates[k1], 'from': v0, 'to': v1,
-                       'delta_bp': dbp})
+        ev = {'date': dates[k1], 'from': v0, 'to': v1, 'delta_bp': dbp}
+        if dk == 'prev_day':
+            ev['decision_date'] = _dshift(dates[k1], -1)
+        elif dk == 'prev_thursday':
+            import datetime as _dt
+            if _dt.date.fromisoformat(dates[k1]).weekday() == 2:
+                ev['decision_date'] = _dshift(dates[k1], -6)
+        events.append(ev)
     start_v, end_v = values[idx[0]], values[idx[-1]]
     return {'window': [w0, cutoff], 'events': events,
             'window_start_value': start_v, 'window_end_value': end_v,
             'net_bp': round((end_v - start_v) * 100),
             'note': ('窗=[研究截止−12个月,研究截止](_shift_months 正参='
                      '回看,与 ex_post_windows 反向同源);events=窗内观测'
-                     '对其前值的变动点(决议序列按观测日=决议日;前值可在'
-                     '窗启前一格);net_bp=窗首尾观测差(bp)。政策路径'
-                     '月频证据只能支持同步时,先后未定须在正文如实写明;'
-                     '决议日/生效日/市场观测日/统计窗口终点分列见 '
-                     'policy_dates。')}
+                     '对其前值的变动点(date=序列值变更日=生效日,'
+                     'decision_date=决议日;前值可在窗启前一格);net_bp='
+                     '窗首尾观测差(bp)。政策路径月频证据只能支持同步时,'
+                     '先后未定须在正文如实写明;决议日/生效日/市场观测日/'
+                     '统计窗口终点分列见 policy_dates。')}
 
 
 def point_values(plan, snap, root):
@@ -582,7 +872,8 @@ def point_values(plan, snap, root):
                        'vintage_semantics': cell.get('vintage_semantics'),
                        'policy_face': cell.get('policy_face')}
                 if cell.get('policy_face'):
-                    wp = _policy_window_path(dates, values, plan['cutoff'])
+                    wp = _policy_window_path(dates, values, plan['cutoff'],
+                                             metric_id=mid)
                     if wp:
                         row['policy_window_path'] = wp
                 for a in plan['point_anchors']:
@@ -634,7 +925,11 @@ def point_values(plan, snap, root):
                             k = bisect.bisect_right(mser['dates'], a['as_of']) - 1
                             if k >= 0:
                                 mdate = mser['dates'][k]
-                    pdates = _policy_dates(pf_cfg, dates[i], market_date=mdate)
+                    pdates = _policy_dates(
+                        pf_cfg, dates[i], market_date=mdate,
+                        value_change_date=(
+                            _last_value_change(dates, values, i)
+                            if pf_cfg.get('decision_kind') else None))
                     if pdates:
                         v['policy_dates'] = pdates
                     if level_series:
@@ -1030,17 +1325,39 @@ def _distinguishing_obs(rj, cutoff, metric_id):
     return f"(引擎当前面: {dates[k1]}={v1:g})"
 
 
-def render_map_report(rj, judgment_doc, review_state=None):
+def render_map_report(rj, judgment_doc, review_state=None, root=None):
     """MAP_REPORT.md 正文(读者可直读可核查: 关键数字附来源/单位/实际观测日)。
 
     装配面=report.json research_plan(共享计划+点值+转折候选)+Agent 席
     judgment.reader_map 原文;零生成——总判断/走位/传导叙述/转折判断/历史段
     全部来自 reader_map(attach 契约已验非空+数值经 judgment_contract 回贴
-    核对),引擎只排表与落来源。"""
+    核对),引擎只排表与落来源。
+
+    Audit-R22 任务4: root 在场时按运行快照(snapshot_id 定位,不跨快照
+    取数)确定性渲染——首页三件(总判断/四地三时点表/证据最充分传导速览)、
+    主解释vs竞争解释对质表、历史类比逐窗经济×资产并列面。快照不在场=
+    该面如实缺席注记,不虚构。"""
     rp = rj.get('research_plan') or {}
     rm = (judgment_doc or {}).get('reader_map') or {}
     pv = rp.get('point_values') or {}
     run = rj.get('run') or {}
+    # 运行快照(报告段按 snapshot_id 定位;缺席→历史并列面如实缺席)
+    _snap_r = None
+    _snap_note = None
+    if root:
+        _sid = (((rj.get('layers') or {}).get('L1_事实层') or {})
+                or {}).get('snapshot_id')
+        _sp = (os.path.join(root, 'data', 'daily', f'{_sid}.json')
+               if _sid else None)
+        if _sp and os.path.isfile(_sp):
+            try:
+                with open(_sp, encoding='utf-8') as _f:
+                    _snap_r = json.load(_f)
+            except (OSError, ValueError) as _e:
+                _snap_note = f'快照文件不可读({_sp}: {type(_e).__name__})'
+        else:
+            _snap_note = (f'运行快照文件不在场({_sid or "snapshot_id缺席"}'
+                          '——历史并列面不跨快照取数,如实缺席)')
     lines = ['# 全球宏观经济变化地图(读者报告)', '']
     lines.append(f"- 问题: {run.get('question')}")
     lines.append(f"- 研究截止日: {rp.get('cutoff')} | 快照: "
@@ -1121,6 +1438,35 @@ def render_map_report(rj, judgment_doc, review_state=None):
         lines.append(f"> - {g.get('note')}")
     lines.append('')
 
+    # ── Audit-R22 任务4: 首页三件之三——证据最充分传导速览(证据分排序:
+    # 区分指标观测在场的环数;全文详版见「证据最充分的传导机制」节) ──
+    _chains = rm.get('transmission') or []
+    _cut0 = str(rp.get('cutoff') or '')
+    _scored = []
+    for _i, _ch in enumerate(_chains):
+        _sc = sum(1 for _lk in (_ch.get('links') or [])
+                  if _distinguishing_obs(rj, _cut0,
+                                         _lk.get('distinguishing_metric')))
+        _scored.append((_sc, -len(_ch.get('links') or []), _i, _ch))
+    _scored.sort(key=lambda t: (-t[0], t[1], t[2]))
+    if _scored and _scored[0][0] > 0:
+        _best = _scored[0][3]
+        lines += ['## 证据最充分的传导(首页速览)', '']
+        lines.append(f"**{_best.get('chain_name') or _best.get('name') or '传导链'}**"
+                     f"(区分指标观测在场 {_scored[0][0]}"
+                     f'/{len(_best.get("links") or [])} 环——按引擎面证据分排序,'
+                     '竞争链全文见后)')
+        _flow = []
+        for _lk in _best.get('links') or []:
+            _short = str(_lk.get('observed_fact') or '')
+            _flow.append(_short.split('。')[0][:40])
+        lines.append('')
+        lines.append('→ '.join(f'**{t}**' for t in _flow if t))
+        lines.append('')
+        lines.append('每环的因果假设/竞争解释/区分指标与已有观测——'
+                     '见后文传导图节与「主解释 vs 竞争解释」对质表。')
+        lines.append('')
+
     # 政策四分面(R21 任务2: 政策目标/贷款报价/隔夜市场均值分开标明;
     # 决议日/生效日/市场观测日/统计窗口终点四日期分记)
     pol_rows = [c for c in rows if c.get('policy_face')]
@@ -1150,12 +1496,18 @@ def render_map_report(rj, judgment_doc, review_state=None):
                     f"{mtxt} | "
                     f"{pdd.get('stat_window_end') or '—'} |")
         lines.append('')
-        lines.append('> 注: 决议/公布日与生效日同日者=宣布即时生效(FOMC/ECB/'
-                     'PBOC 操作目标);「—」=该口径无此日期(如隔夜市场月均'
-                     '无决议日),如实缺席不以别日冒充;LPR 为报价基准(每月'
-                     '20日公布)与政策操作目标分列。市场观测日=配对市场序列'
-                     '(决议序列锚窗内最新观测)——决议与市场观测不同日时'
-                     '两日分记,不以决议日冒充市场观测日。')
+        lines.append('> 注: 决议日≠生效日时两日分记(Fed 事后次日生效: 2026-09 '
+                     '决议 09-16→生效 09-17;2025-12 决议 12-10→生效 12-11;'
+                     '2022-07 决议 07-27→生效 07-28,七月末上限 2.50;ECB '
+                     '决议后首个周三生效: 2026-09 决议 09-10→生效 09-16;'
+                     'PBOC 逆回购中标价公布即时生效)。序列值变更日=生效日,'
+                     '决议日由央行公告惯例自生效日回推(DFEDTARU/DFEDTARL/'
+                     'DFF 一族;ECB_MRO/ECB_DFR 观测日全为周三=生效日)。'
+                     '「—」=该口径无此日期(如隔夜市场月均无决议日),如实'
+                     '缺席不以别日冒充;LPR 为报价基准(每月20日公布)与政策'
+                     '操作目标分列。市场观测日=配对市场序列(决议序列锚窗内'
+                     '最新观测)——决议与市场观测不同日时两日分记,不以决议日'
+                     '冒充市场观测日。')
         # 政策一年窗路径(R21 任务2: 先降后升净零一类路径须整窗可复算)
         for c in pol_rows:
             wp = c.get('policy_window_path')
@@ -1172,6 +1524,41 @@ def render_map_report(rj, judgment_doc, review_state=None):
                          f"({wp.get('window_start_value')}→"
                          f"{wp.get('window_end_value')})。"
                          f"{wp.get('note')}")
+            # Audit-R22 任务2: 事件行补决议日→生效日间隔(逐事件可核)
+            for e in ev:
+                if e.get('decision_date'):
+                    lines.append(
+                        f"  - 事件 {e.get('date')}(生效): 决议日 "
+                        f"{e.get('decision_date')}→生效日 {e.get('date')}"
+                        f"({e.get('decision_note') or '决议→生效分记'})")
+        # ── Audit-R22 任务2: 跨国政策事件簇(同一事件合并计数) ──
+        pec = rp.get('policy_event_clusters') or {}
+        if pec.get('clusters'):
+            lines += ['', '**跨国政策事件簇(同一事件的跨国信号合并)**', '',
+                      pec.get('basis') or '', '',
+                      '| 簇 | 决议日区间 | 地区 | 事件(决议→生效,Δbp) |'
+                      ' 跨国同一事件 |', '|---|---|---|---|---|']
+            for cl in pec['clusters']:
+                ev_txt = ';'.join(
+                    f"{e.get('display_name') or e.get('metric_id')} "
+                    f"{e.get('date')}→{e.get('effective_date')}"
+                    f"({(e.get('delta_bp') or 0):+d}bp)"
+                    for e in cl.get('events') or [])
+                lines.append(
+                    f"| {cl.get('cluster_id')} | {cl.get('date_from')}.."
+                    f"{cl.get('date_to')} | {'/'.join(cl.get('regions') or [])}"
+                    f" | {ev_txt} | "
+                    f"{'是' if cl.get('same_event_cross_country') else '否'} |")
+            lines.append('')
+        pdf = rp.get('policy_doc_facts') or []
+        if pdf:
+            lines += ['**政策文档事实(公告/纪要发布日)**', '',
+                      '| 文档 | 发布日 | 口径 |', '|---|---|---|']
+            for d in pdf:
+                lines.append(f"| {d.get('title')}({d.get('doc_id')}) | "
+                             f"{d.get('published_on')} | {d.get('basis')}: "
+                             f"{str(d.get('note') or '')[:80]} |")
+            lines.append('')
         lines.append('')
 
     # 美债三利率共同交易日分解(任务3复算面;R21 任务4: 年度判断=同窗年度
@@ -1251,6 +1638,36 @@ def render_map_report(rj, judgment_doc, review_state=None):
                             '(引擎面无该序列观测——如实缺席)'))
         lines.append('')
 
+    # ── Audit-R22 任务4: 主解释 vs 竞争解释对质表(同一指标的不同预期/
+    # 已有观测/判断;预期分立且观测在场才可裁,证据不足=尚不能区分) ──
+    _fo_rows = []
+    for ch in rm.get('transmission') or []:
+        for lk in ch.get('links') or []:
+            if not lk.get('competing_explanation'):
+                continue                      # 无竞争解释=非对质面
+            dm = lk.get('distinguishing_metric')
+            dobs = _distinguishing_obs(rj, str(rp.get('cutoff') or ''), dm)
+            mp_, cp_ = lk.get('main_predicts'), lk.get('competing_predicts')
+            if mp_ and cp_ and dobs:
+                verdict = lk.get('face_off_verdict') or '尚不能区分'
+            else:
+                verdict = '尚不能区分'
+            _fo_rows.append((dm, mp_, cp_, dobs, verdict))
+    if _fo_rows:
+        lines += ['## 主解释 vs 竞争解释(对质表)', '',
+                  '| 区分指标 | 主解释预期 | 竞争解释预期 | 已有观测'
+                  ' | 判断 |', '|---|---|---|---|---|']
+        for dm, mp_, cp_, dobs, verdict in _fo_rows:
+            lines.append(f"| {dm or '—'} | "
+                         f"{mp_ or '(预期未写明——如实缺席)'} | "
+                         f"{cp_ or '(预期未写明——如实缺席)'} | "
+                         f"{dobs or '(引擎面无观测)'} | {verdict} |")
+        lines.append('')
+        lines.append('> 判断口径: 预期分立(两解释对同一指标给出不同预期)'
+                     '且引擎面观测在场才可裁;观测缺席或预期未分立='
+                     '**尚不能区分**(诚实缺省,不以单侧证据裁)。')
+        lines.append('')
+
     # 情景面(任务3: 两个情景的触发与失效方向分别展示——L4 结构面渲染)
     l4sc = ((judgment_doc or {}).get('l4') or {}).get('scenarios') or []
     if l4sc:
@@ -1317,10 +1734,12 @@ def render_map_report(rj, judgment_doc, review_state=None):
         lines.append('</details>')
         lines.append('')
 
-    # 关键数字与来源(附发布日期——Audit-R19 任务1;R20: 日历实录条目优先)
-    lines += ['## 关键数字与来源(实际观测日+发布日期)', '']
+    # 关键数字与来源(附发布日期——Audit-R19 任务1;R20: 日历实录条目优先;
+    # R22 任务1: 发布批次对账——同批指标可见性整批一致,逐批注记)
+    lines += ['## 关键数字与来源(实际观测日+发布日期+发布批次)', '']
     lines.append('| 指标 | 锚 | 值 | 单位 | 实际观测日 | 发布日期(日历实录/规则推定) | 来源 |')
     lines.append('|---|---|---|---|---|---|---|')
+    _pub_batches = {}
     for c in rows:
         for a in anchors:
             v = (c.get('anchors') or {}).get(a) or {}
@@ -1332,12 +1751,33 @@ def render_map_report(rj, judgment_doc, review_state=None):
             pub = v.get('publication_date') or '—'
             rule = v.get('publication_rule')
             pub_txt = f"{pub}({rule})" if rule else pub
+            if 'batch=' in str(rule):
+                _pub_batches.setdefault(
+                    str(rule).split('batch=')[-1].rstrip(')'), set()).add(
+                    f"{c.get('metric_id')}@{str(v.get('observation_date'))[:7]}")
             vin = ('(事后回顾)' if (c.get('vintage_semantics')
                                    or '').startswith('事后回顾') else '')
             lines.append(f"| {c.get('metric_id')} | {a} | "
                          f"{_fmt_val(v.get('value'))}{vin} | {c.get('unit')} | "
                          f"{v.get('observation_date')} | {pub_txt} | "
                          f"{src_txt} |")
+    lines.append('')
+    if _pub_batches:
+        lines.append('> 发布批次对账(batch=同一份官方发布事件,同批指标'
+                     '可见性整批一致——同批多指标/一次补发两月按批核): ')
+        import release_calendar as _rc2
+        for bid, members in sorted(_pub_batches.items()):
+            bd = next((x for x in ((_rc2._load_doc() or {})
+                                   .get('batches') or [])
+                       if x.get('batch_id') == bid), {})
+            lines.append(f"> - {bid}: {bd.get('agency')}·{bd.get('release')}"
+                         f"(首发 {bd.get('published_on')},补发 "
+                         f"{bd.get('backfill_months')} 月)——本报告引用 "
+                         f"{', '.join(sorted(members))}")
+        lines.append('')
+    lines.append('> 修订口径: 标 Δ事后回顾/事后回顾 的值=注册声明最新修订族'
+                 '(当时不可见,历史对照只作回顾);未标=采集时点族。历史值'
+                 '经过修订就在引用处标明——本表即引用处。')
     lines.append('')
 
     # 历史类比(匹配区间/判断截止月/事后窗三面分记——Audit-R19 任务4;
@@ -1376,6 +1816,49 @@ def render_map_report(rj, judgment_doc, review_state=None):
         sn = h.get('sample_note') or h.get('data_note')
         if sn:
             lines.append(f"- 样本注记: {sn}")
+        # ── Audit-R22 任务4: 逐窗并列面(经济指标×资产表现,确定性复算;
+        # 与 ex_post 正文同一锚月末→锚+N 月末口径,数字可逐位对账) ──
+        if len(aym) == 7:
+            if _snap_r is not None:
+                hwf = history_window_face([h], _snap_r, root)
+                hwp = (hwf.get('periods') or [{}])[0]
+                if hwp.get('windows'):
+                    lines.append('- 逐窗并列(经济指标×资产表现,'
+                                 '起止期/数值/单位/来源——确定性复算):')
+                    for k in ('3m', '6m', '12m'):
+                        w = hwp['windows'].get(k) or {}
+                        rows_w = w.get('rows') or []
+                        if not rows_w:
+                            continue
+                        lines.append('')
+                        lines.append(f"  **随后{k[:-1]}个月窗**"
+                                     f"(锚{aym}月末→{w.get('target_ym')}月末):")
+                        lines.append('')
+                        lines.append('  | 组 | 指标 | 起期 | 起值 | 止期 | 止值 |'
+                                     ' 变化 | 单位 | 来源 |')
+                        lines.append('  |---|---|---|---|---|---|---|---|---|')
+                        for r in rows_w:
+                            ch_ = r.get('change')
+                            ch_txt = (f"{ch_:+g}{r.get('change_unit')}"
+                                      if isinstance(ch_, (int, float))
+                                      else '—')
+                            lines.append(
+                                f"  | {r.get('group')} | {r.get('label')}"
+                                f"({r.get('metric_id')}) | {r.get('from_date')}"
+                                f" | {_fmt_val(r.get('from_value'))} | "
+                                f"{r.get('to_date')} | "
+                                f"{_fmt_val(r.get('to_value'))} | {ch_txt} | "
+                                f"{r.get('unit') or '—'} | "
+                                f"{r.get('source') or '—'} |")
+                    if hwp.get('absent'):
+                        lines.append('')
+                        lines.append(f"  > 并列面缺席项(序列/窗端点不可得,"
+                                     f"不冒充): {', '.join(hwp['absent'])}")
+                    lines.append('')
+            else:
+                lines.append(f"- 逐窗并列面: **缺席**——{_snap_note or '运行快照不在场'}"
+                             '(经济×资产并列表须运行快照在场,不跨快照取数)')
+                lines.append('')
         lines.append('')
 
     # 语义审查面

@@ -252,13 +252,17 @@ def test_audit_r20_gate():
     pdt = ((dfed.get('anchors') or {}).get('最新一期') or {}).get('policy_dates') or {}
     jpr = cells2.get(('JP', 'policy', 'JP_POLICY_RATE')) or {}
     jface = (jpr.get('anchors') or {}).get('最新一期') or {}
-    check('§B 政策三日期: DFEDTARU(宣布值)决议日=生效日=观测日,'
-          '统计窗口如实缺席',
-          pdt.get('decision') == pdt.get('effective')
-          == '2026-11-13'
+    # Audit-R22 任务2 语义修订: 决议/生效日锚**值变更日**(合成面 DFEDTARU
+    # 全窗无变更→决议/生效不可推=如实缺席,不虚构);R20 旧口径「决议=生效
+    # =观测日」已被数据面证伪(2026-09 决议 09-16→生效 09-17),真实面
+    # 断言在 r22 门 §C。
+    check('§B 政策三日期: DFEDTARU 合成面无值变更→决议/生效不可推'
+          '(如实缺席不虚构),统计窗口如实缺席',
+          pdt.get('decision') is None and pdt.get('effective') is None
+          and '不可推' in str(pdt.get('decision_note'))
           and pdt.get('stat_window_end') is None
           and (dfed.get('policy_face') or {}).get('face', '').find('目标') >= 0,
-          json.dumps(pdt, ensure_ascii=False)[:130])
+          json.dumps(pdt, ensure_ascii=False)[:160])
     check('§B 口径分列: JP 隔夜市场均值无决议日+统计窗口月末(区别于目标口径)',
           '市场' in str((jpr.get('policy_face') or {}).get('face'))
           and not (jface.get('policy_dates') or {}).get('decision')

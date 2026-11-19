@@ -1,19 +1,64 @@
 {
- "version": "1.1.0",
+ "version": "1.2.0",
  "created": "2026-11-19",
  "updated": "2026-11-19",
- "spec": "Audit-R20 任务2 建立(Audit-R21 权威日期修订): 发布日历=版本化事实文件。条目优先于 research_map_planner.RELEASE_RULES 推定规则——历史对照(vintage)只允许用「当时已发布」的数据,推定规则给不出停摆/延误这类逐事件事实。basis=user_directive=验收指令实录;basis=convention=由同一已证事件按公开时间线推广(推广范围随条目披露)。条目语义: 命中(metric_id+obs_date∈[obs_from,obs_to])→最早可见日=first_publish_on_or_after(实际首发日未逐条实录的以已证最晚补发日为保守可见界,如实注记,fail-closed)。修改本文件须经独立审计席复核(与 metric_registry 同级的事实面)。v1.1.0: R20 初版的「9-10月联邦统计首发 2025-11-19」整批口径按 Audit-R21 指令实录逐项改精确日期(九月CPI 10-24/九月失业率 11-20/Q3 GDP 12-23/十月PCE 2026-01-22),其余未实录系列改保守界条目。",
+ "spec": "Audit-R20 任务2 建立(Audit-R21 权威日期修订;Audit-R22 发布批次模型): 发布日历=版本化事实文件。条目优先于 research_map_planner.RELEASE_RULES 推定规则——历史对照(vintage)只允许用「当时已发布」的数据,推定规则给不出停摆/延误这类逐事件事实。basis=user_directive=验收指令实录;basis=convention=由同一已证事件按公开时间线推广(推广范围随条目披露)。条目语义: 命中(metric_id+obs_date∈[obs_from,obs_to])→最早可见日=first_publish_on_or_after(实际首发日未逐条实录的以已证最晚补发日为保守可见界,如实注记,fail-closed)。v1.2.0: 按官方发布批次关联指标×观测期×首发日×来源×数据版本——batches 节=一次官方发布事件(同批多指标/一次补发两月),条目经 batch_id 挂批;核心CPI 与 CPI 同批(BLS 同一份新闻稿)、十一月失业率 2025-12-16、十月与十一月核心 PCE 一次补发两月(2026-01-22)。修改本文件须经独立审计席复核(与 metric_registry 同级的事实面)。",
+ "batches": [
+  {
+   "batch_id": "BLS-CPI-2025M09-REL",
+   "agency": "BLS",
+   "release": "2025年9月CPI新闻稿(标题CPI与核心CPI同批)",
+   "published_on": "2025-10-24",
+   "metrics": ["CPI", "CORE_CPI"],
+   "obs_months": ["2025-09"],
+   "backfill_months": 1,
+   "note": "同批多指标: 同一份发布稿同时给出标题CPI与核心CPI——两指标该观测月首发日相同(2025-10-24),可见性须整批一致"
+  },
+  {
+   "batch_id": "BLS-EMPSIT-2025M11-REL",
+   "agency": "BLS",
+   "release": "2025年11月就业形势报告",
+   "published_on": "2025-12-16",
+   "metrics": ["UNEMPLOYMENT", "NFP", "AHE"],
+   "obs_months": ["2025-11"],
+   "backfill_months": 1,
+   "basis_note": "失业率首发 2025-12-16=验收指令实录(user_directive);NFP/AHE 同稿发布=同批惯例推广(convention,随格披露)"
+  },
+  {
+   "batch_id": "BEA-PCE-2026M01-REL",
+   "agency": "BEA",
+   "release": "个人收支报告(2025年10月与11月PCE一次补发)",
+   "published_on": "2026-01-22",
+   "metrics": ["CORE_PCE"],
+   "obs_months": ["2025-10", "2025-11"],
+   "backfill_months": 2,
+   "note": "一次补发两月: 停摆积压的2025-10与2025-11两观测月核心PCE在同一份报告发布——两月最早可见日同为2026-01-22"
+  }
+ ],
  "entries": [
   {
    "entry_id": "RC-2025SHUTDOWN-CPI-SEP",
    "basis": "user_directive",
    "metric_id": "CPI",
+   "batch_id": "BLS-CPI-2025M09-REL",
    "obs_from": "2025-09-01",
    "obs_to": "2025-09-01",
    "not_published_as_of": "2025-10-23",
    "first_publish_on_or_after": "2025-10-24",
    "note": "2025-09 观测月 CPI(常规发布 2025-10-15)因 2025 年联邦政府停摆(2025-10-01..11-12)延误至 2025-10-24 发布;验收指令实录: 2025-11-18 与 11-19 时点均应允许该月 CPI(已于 10-24 发布)",
    "source": "Audit-R21 验收指令(2026-11-19)"
+  },
+  {
+   "entry_id": "RC-2025SHUTDOWN-CORECPI-SEP",
+   "basis": "user_directive",
+   "metric_id": "CORE_CPI",
+   "batch_id": "BLS-CPI-2025M09-REL",
+   "obs_from": "2025-09-01",
+   "obs_to": "2025-09-01",
+   "not_published_as_of": "2025-10-23",
+   "first_publish_on_or_after": "2025-10-24",
+   "note": "2025-09 观测月核心CPI与标题CPI同一份BLS新闻稿同批发布(同批=同首发日);验收指令实录: 九月核心CPI自 2025-10-24 可见(10-23 不可见)",
+   "source": "Audit-R22 验收指令(2026-11-19)"
   },
   {
    "entry_id": "RC-2025SHUTDOWN-UNEMP-SEP",
@@ -27,6 +72,18 @@
    "source": "Audit-R21 验收指令(2026-11-19)"
   },
   {
+   "entry_id": "RC-2025SHUTDOWN-UNEMP-NOV",
+   "basis": "user_directive",
+   "metric_id": "UNEMPLOYMENT",
+   "batch_id": "BLS-EMPSIT-2025M11-REL",
+   "obs_from": "2025-11-01",
+   "obs_to": "2025-11-01",
+   "not_published_as_of": "2025-12-15",
+   "first_publish_on_or_after": "2025-12-16",
+   "note": "2025-11 观测月失业率(常规发布 2025-12-05 前后)因停摆后节奏延误;验收指令实录: 十一月失业率自 2025-12-16 可见(12-15 不可见)。注: 2025-10 观测月失业率无实录条目→保守界条目覆盖(先例倒挂如实注记,不虚构)",
+   "source": "Audit-R22 验收指令(2026-11-19)"
+  },
+  {
    "entry_id": "RC-2025SHUTDOWN-GDP-Q3",
    "basis": "user_directive",
    "metric_id": "US_REAL_GDP",
@@ -38,15 +95,16 @@
    "source": "Audit-R21 验收指令(2026-11-19)"
   },
   {
-   "entry_id": "RC-2025SHUTDOWN-PCE-OCT",
+   "entry_id": "RC-2025SHUTDOWN-PCE-OCTNOV",
    "basis": "user_directive",
    "metric_id": "CORE_PCE",
+   "batch_id": "BEA-PCE-2026M01-REL",
    "obs_from": "2025-10-01",
-   "obs_to": "2025-10-01",
+   "obs_to": "2025-11-01",
    "not_published_as_of": "2026-01-21",
    "first_publish_on_or_after": "2026-01-22",
-   "note": "2025-10 观测月核心 PCE(常规发布 2025-11-21 前后)因停摆延误;验收指令实录: 自 2026-01-22 起可见",
-   "source": "Audit-R21 验收指令(2026-11-19)"
+   "note": "2025-10 与 2025-11 两观测月核心PCE(常规应分别于 2025-11-21/12-19 前后发布)因停摆积压,在 2026-01-22 同一份BEA个人收支报告一次补发两月;验收指令实录: 十月与十一月核心PCE均自 2026-01-22 可见(01-21 不可见)",
+   "source": "Audit-R22 验收指令(2026-11-19)"
   },
   {
    "entry_id": "RC-2025SHUTDOWN-REST-CONSERVATIVE",
@@ -56,8 +114,8 @@
    "obs_to": "2025-10-31",
    "not_published_as_of": "2025-11-19",
    "first_publish_on_or_after": "2026-01-22",
-   "note": "2025-09/2025-10 观测月联邦统计中未逐条实录首发的系列(九月CPI/九月失业率/Q3GDP/十月PCE 四项 user_directive 条目优先命中,不在本条范围): 实际首发日未逐条实录,取已证最晚补发日 2026-01-22(十月PCE 实录日)为保守可见界——介于其间的真实首发不虚构,fail-closed 方向如实注记",
-   "source": "Audit-R21: 由停摆事件四项实录日期按公开时间线推广;推广范围=本条 metric_ids×2025-09/10 观测月,减去四项已实录条目"
+   "note": "2025-09/2025-10 观测月联邦统计中未逐条实录首发的系列(九月CPI/九月核心CPI/九月失业率/Q3GDP/十月与十一月PCE/十一月失业率 七项 user_directive 条目优先命中,不在本条范围): 实际首发日未逐条实录,取已证最晚补发日 2026-01-22 为保守可见界——介于其间的真实首发不虚构,fail-closed 方向如实注记",
+   "source": "Audit-R21: 由停摆事件实录日期按公开时间线推广;推广范围=本条 metric_ids×2025-09/10 观测月,减去七项已实录条目"
   }
  ]
 }

@@ -80,6 +80,7 @@ def first_publish(metric_id, obs_date, path=None):
             'entry_id': ent.get('entry_id'),
             'basis': ent.get('basis'),
             'note': ent.get('note'),
+            'batch_id': ent.get('batch_id'),
         }
     return None
 
@@ -98,3 +99,38 @@ def visible_publish_date(metric_id, obs_date, rule_publish, path=None):
     if rule_publish:
         return rule_publish, 'rule:推定'
     return None, 'unavailable'
+
+
+# ── Audit-R22 任务1: 官方发布批次(一次发布事件关联多指标×多观测月) ──────
+def _load_doc(path=None):
+    """读整个日历文档(mtime 缓存与 _load 同路;失败→空档+告警)。"""
+    cal = path or _CAL_PATH
+    try:
+        mtime = os.path.getmtime(cal)
+    except OSError:
+        return {}
+    try:
+        with open(cal, encoding='utf-8') as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def batch_of(metric_id, obs_date, path=None):
+    """查询 (metric_id, obs_date) 命中条目所属的发布批次。
+
+    返回 None=无批次(条目未挂批/无条目);命中返回批次 dict
+    (batch_id/agency/release/published_on/metrics/obs_months/
+    backfill_months/note)。批次=一次官方发布事件: 同批多指标
+    (CPI 与核心CPI 同一份新闻稿)与一次补发两月(PCE 10+11月同稿)
+    都以批次承载——同批指标的可见性整批一致。"""
+    ent = first_publish(metric_id, obs_date, path=path)
+    bid = (ent or {}).get('batch_id')
+    if not bid:
+        return None
+    for b in _load_doc(path).get('batches') or []:
+        if b.get('batch_id') == bid:
+            out = dict(b)
+            out['via_entry'] = ent['entry_id']
+            return out
+    return None

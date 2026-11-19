@@ -1521,7 +1521,17 @@ def _r1_plan_core(args, engine_root):
                     '_map_checks(转折前后值按引擎序列月末口径复算,相左='
                     'CONTRADICTED;空正文/缺面=NOT_VERIFIED;Audit-R19 四阻断:'
                     '错用同比基期/提前引用未发布数据/同一转折重复/历史结果'
-                    '落在匹配期内)',
+                    '落在匹配期内)。Audit-R22: ①走位正文「观测 '
+                    'YYYY-MM→YYYY-MM(→YYYY-MM)」串须是同地区某点值格锚观测'
+                    '序(12个月前→3个月前→最新一期)的保序子序列——锚前'
+                    '不可见的观测(停摆延误月)不得入锚序叙述;②ex_post 正文'
+                    '中文别名面同受同窗复算(标普500指数/美债十年期/美元指数'
+                    '…+上涨/下跌方向词+个百分点/%;方向说反或数值相左='
+                    'CONTRADICTED,pp 容差 0.06);③传导环竞争解释在场时宜填 '
+                    'main_predicts/competing_predicts(主/竞争解释对同一区分'
+                    '指标的不同预期)+face_off_verdict(∈支持主解释/支持竞争'
+                    '解释/尚不能区分——证据不足必须如实写尚不能区分,预期'
+                    '分立且引擎面观测在场才可裁)',
             'engine_faces': {
                 'point_anchors': _rp.get('point_anchors'),
                 'ex_post_offsets': _rp.get('ex_post_offsets'),
@@ -1548,6 +1558,8 @@ def _r1_plan_core(args, engine_root):
                      'dimension': c.get('dimension')}
                     for c in ((_rp.get('turning_candidates') or {})
                               .get('candidates') or [])],
+                'policy_event_clusters': _rp.get('policy_event_clusters'),
+                'policy_doc_facts': _rp.get('policy_doc_facts'),
                 'dimension_gaps': _rp.get('dimension_gaps')},
             'discipline': ['锚值与转折数值须与引擎面一致(不可虚构)',
                            '数据不可得的格须明写「数据不可得」+检索范围',
@@ -1878,7 +1890,7 @@ def _r1_report_core(args, engine_root):
                 _aj_doc = {}
         map_md_path = os.path.join(rd, 'MAP_REPORT.md')
         map_sha_path = os.path.join(rd, 'MAP_REPORT.sha256')
-        map_text = rmp18.render_map_report(rj, _aj_doc, sr)
+        map_text = rmp18.render_map_report(rj, _aj_doc, sr, root=ROOT)
         _fresh_sha = hashlib.sha256(map_text.encode('utf-8')).hexdigest()
         _prev_sha = None
         if os.path.exists(map_sha_path):
@@ -2107,6 +2119,9 @@ def _r1_archive_core(args, engine_root):
             'question': (rj.get('run') or {}).get('question'),
             'archived_at': ro._now_utc(),
             'content_sha256': sha_run,
+            # Audit-R22 任务5: 实际运行代码 SHA 随归档清单落档(与
+            # report.json run.git_head/MAP_REPORT 头同值,三处可核)
+            'run_code_git_head': (rj.get('run') or {}).get('git_head'),
             'digest_algorithm': 'v3(canonical report.json剥离semantic_review'
                                 '+canonical agent_judgment.json剥离'
                                 'semantic_review+canonical views_digest.json)'

@@ -1,0 +1,108 @@
+{
+  "overall": "UPHELD",
+  "reviewer": "SEMANTIC-AUDIT-SEAT",
+  "notes": "Audit-R1 修订闭环终审(独立席python3只读复算,n=2492全样本+年度/滚动/分段斜率/分桶/分状态全量独立重算,L2面17份VP与MSIM/UBS引用逐条核对): BLIND档 VERIFIED——八项必修(FIX-1~8)全部忠实落地,无阈值放宽无含糊逃避,SCN-A范例条款完好,零新增结论级缺陷。裁决附带两项不阻断MINOR(FIX-6年限标签、NEW-1作废桶传播)已按席位自己的required_fix与复算值于裁决后即时清偿(数字未动/仅标签与传播修复,与CON-2作废注同源),清偿后重挂链绿: validate零违规+契约门VERIFIED+attach True。残留NEW-2(冻结脚本i=0环绕伪值-0.361→-0.382,定性稳健)与NEW-3四项精度NIT列档供下轮清偿,不阻断。",
+  "run_ts": "20261116T053623Z",
+  "content_sha256": "faaedde2b9434ed19b704886595ba6642aafd43340d66e367c9ea2304940facd",
+  "recorded_at": "20261116T112304Z",
+  "items": [
+    {
+      "id": "FIX-1-SCN-B-MAJOR",
+      "severity": "MAJOR",
+      "verdict": "UPHELD",
+      "detail": "落地。旧文『自2026年1月高点5318.4回撤逾两成已是再耦合早期形态』作废(时序错位+美元腿混淆),换紧缩窗段落事实;独立复算全部吻合: -24.06%/-24.1%、回撤占全程90.2%=逾九成、9月窗-6.58%/+54bp/+0.49pp/+2.03%、美元腿+6.04%×-2.182≈-13.2pp覆盖-15.4%大部(85%)、双腿分解-8.25pp支撑归因双腿共有;asset_direction.text同步。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "FIX-2-SCN-B-CONDITIONAL",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "落地。美元腿条件化: 控制DXY偏相关或|ΔDXY|<0.3%子样本两口径同向方计成立;同期黄金-美元相关约-0.40(复算-0.400)稀释动机交代。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "FIX-3-SCN-C-WINDOW",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "落地。60个交易日内窗口补齐+补窗理由(无窗则归因失效);证伪方向正确。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "FIX-4-SCN-C-REVERSE",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "落地。DXY回落至99.85(=102.85-3.0算术)下方时同属无从检验保持未触发,与前提缺席条款对称。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "FIX-5-MECH-1-E3",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "落地。E3数值化: ≥0.5pp/60交易日/回撤<3%(旧常态斜率复算-9.574/-7.770/-5.909/-7.024,取下沿算术与数据均合)+滚动相关持续弱于-0.30;与SCN-A同族关系注记。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "FIX-6-CON-2-BUCKETS",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "复算值全部落地: 2025-2026美元桶n=233/-0.428%、n=221/+0.671%;旧-0.30%/+0.48%确认为2022-2026合计桶(-0.303%/+0.483%)且作废;5bp桶n=50/-0.214%(2017-2024同口径n=256/-0.521%);旧n=27/+0.07%不可再现作废成立。残留年限标签一处(2025年→2025年至2026年)——裁决后已按席位required_fix清偿,数字未动。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "FIX-7-MECH-3-MINSAMPLE",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "落地。VIX>28累计≥20个交易日最小样本+理由;当前样本最长连续2日,条款纯为未来段设计。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "FIX-8-SCN-A-NOTE",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "落地。判定前提一律以REAL_10Y水平2.98/2.38为准,加息仅为背景触发器,层级自洽。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "SCN-A-EXEMPLAR-INTACT",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "范例级SCN-A证伪条款逐字比对未被破坏;基准锚2.68与快照facts面一致,双口径披露如实。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "NEW-1-MECH-2-STALE-BUCKET",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "本轮新发现(修订传播不全): MECH-2 step1仍引已作废合计桶-0.30%/+0.48%。裁决后已按席位required_fix清偿: 改为-0.428%/+0.671%(2025年至2026年,与CON-2作废注同源交叉引用),档内自相矛盾消除;重挂链绿(validate零违规+契约VERIFIED+attach True)。",
+      "disposition": "LISTED→CLEARED(裁决后按席位required_fix清偿)"
+    },
+    {
+      "id": "NEW-2-HY-OAS-ARTIFACT",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "既有文案(本轮未触碰): MECH-3 step1收窄日相关-0.361系冻结脚本blind_calc2.py HY段i=0环绕伪值(正确逐日配对-0.382,n=427不变,走阔日-0.367不受影响);『几乎不变』定性在更正值下依然成立。后续波次更正并修脚本i=0索引。",
+      "disposition": "LISTED(列档下轮,不阻断)"
+    },
+    {
+      "id": "NEW-3-PREEXISTING-RESIDUES",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "既有精度残留备查: (a)年度相关2017-2024下沿-0.535应为-0.541(CON-1与MECH-1两处);(b)滚动带下沿-0.55实际-0.557;(c)MECH-3『旧常态-0.40』较复算-0.352/-0.368偏严保守;(d)TIPS基差0.02pp仅对概览锚成立,双口径披露已实质化解。",
+      "disposition": "LISTED(列档下轮,不阻断)"
+    }
+  ],
+  "seat": "semantic-audit-seat",
+  "scope": "BLIND档修订闭环终审",
+  "post_verdict_cleared": [
+    "FIX-6 年限标签(2025年→2025年至2026年,数字未动)",
+    "NEW-1 MECH-2 step1作废桶→-0.428%/+0.671%(2025年至2026年,席位复算值)"
+  ],
+  "post_verdict_chain": "validate passed=True + contract VERIFIED + attach True(清偿后重跑)",
+  "verdict_audit_r1_dialect": "VERIFIED",
+  "audited_at": "2026-11-16",
+  "counterexamples_sought": [
+    "旧值再现反例: n=27/+0.07%在2025单独窗(n=29/+0.184%)与他窗均不可再现→作废成立,非随手作废",
+    "作废桶归因反例: 2022-2026合计桶独立复算-0.303%/+0.483%,证实『旧值实为合计桶误标』的作废理由",
+    "SCN-A范例反例: 证伪条款逐字比对未被修订破坏;锚点2.68/2.66双口径与BEI源端11-10错位2.2bp亲验"
+  ]
+}

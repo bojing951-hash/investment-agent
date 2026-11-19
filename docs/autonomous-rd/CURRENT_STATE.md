@@ -4,7 +4,17 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-19 R63 Audit-R19 第十九轮审计修复(T-R63-1;独立轨道续 R62)
+## 权威快照: 2026-11-19 R65 Audit-R21 第二十一轮审计修复(T-R65-1;独立轨道续 R64)
+> baseline=9667e8df0be26513be6eb85d1041711f4f130d16(Audit-R20 CI 回填尖);代码修复固定 SHA=138e85b(任务 1-4 主体 28 文件)→9667e8d(任务 4 追补资产月窗契约基 4 文件);受审面=地图正式使用验收五任务(历史可见性/政策与转折/正文与归档/读者文件/会话交付)
+
+- **基线**: dev/audit-fix-r1 = 62c973e→138e85b→9667e8d→状态收口;PR #1 覆盖推送;main 未动。(注: R64 收口未旋转本档快照——R63 快照滞留至本轮一并更正,checkpoint/日志链无断。)
+- **真实进度**: 五任务全关——①发布实录日历(user_directive/convention 分级)+锚值按观察期×官方发布日取当时可见版本(11-18/11-19 12 个月前面=Q2 GDP+八月失业率 4.3+九月 CPI 已发布允许;九月失业率 11-20/Q3 GDP 12-23/十月 PCE 2026-01-22 可见;仅修订值标 Δ事后回顾)②CN_OMO_7D 201 观测 23 零值根修+隔夜锚 CN_POLICY_OVERNIGHT 在册(换锚后隔夜展示,七天/LPR 单列)+Fed 先降 25bp 再升 25bp 净 0+四日期分列+月频同步须写先后未定③单源可复算事实+map_anchor_coverage_insufficient 阻断+两相邻交易日 insufficient_history④年度判断同窗年度美债分解打头+历史段美国类比+样本注记+同步/事后分列+传导区分指标+普通问句资产月窗契约基(数字+窗口耦合,带符号比对)。
+- **产品验收(真实工单)**: VIX 工单正式入口全链(9667e8d 隔离树): 契约 VERIFIED(VIX +38.07%/SPX -4.55 资产月窗基)→独立席位级复算→UPHELD→deliverable(FULL_REPORT 正文可读 +38.07% 与 2026-10-19 至 11-17)→归档 b9ee2ab4。一问验收(/tmp/r21_accept=9667e8d 干净面,零同题归档零预填判断,全新 headless 会话只收原问一次+程序性规程): 20261119T120815Z,attach 三轮契约迭代终 VERIFIED,零共享上下文审查 REVISE(4 MAJOR+5 MINOR+4 NIT)→修订 13 处→UPHELD→归档九件套三方一致(5916b8dc);MAP_REPORT 五项逐检过;36 核心格全覆盖(63 ok+3 诚实缺席)。
+- **反例拦截**: 真实工单三反例 8/8(①ex_post 正文串写 +99.00%→契约 CONTRADICTED「编造事后回报」②观测月 2030-07→CONTRADICTED+map_required_face_missing③JP 增长仅最新季度→锚覆盖不足),归档增量=0。
+- **验收**: test_audit_r21_gate 49/0(§A-§I);回归 r18 门 40/0+r19 门 35/0+r20 门 30/0;电池 192 绿(phase6 D3=未提交工作面预期红,docs 提交后复验);证据包 docs/autonomous-rd/r21-evidence/(gates+vix-regression+acceptance 九件套+裁决链+反例 harness);报告=docs/autonomous-rd/AUDIT_R21_REPORT.md;CI 见报告尾回填。
+- **下一步**: 等待用户外部审计裁定(dev/audit-fix-r1 尖+AUDIT_R21_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R63 视角,已被上方权威快照取代]
 > baseline=abba4d1a70a3b6b5e9a0731c63654244500c79a1(Audit-R18 CI 回填尖);代码修复固定 SHA=e6f77e11c2fc4858d1ba5c8f6dab063cba9a084f(受审面=地图问句同比基期/发布纪律/三维转折/历史类比结构面+四阻断器+读者版量化显示)
 
 - **基线**: dev/audit-fix-r1 = 2178b2d→代码修复提交(六文件+1003 行+35 判据门 test_audit_r19_gate)→报告/状态收口;PR #1 覆盖推送;main 未动。

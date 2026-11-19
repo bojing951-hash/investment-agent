@@ -20,11 +20,20 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-19 R62 Audit-R18 收口后 · 全轨道停等用户)
+## 下一步(2026-11-19 R65 Audit-R21 收口后 · 全轨道停等用户)
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
 
+**等待用户外部审计裁定**(Audit-R21 第二十一轮审计修复已收口,收口事实见 ITERATION_LOG R65 行与 AUDIT_R21_REPORT.md——活动区不载已完成任务号,R34 判例):
+
+- 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R21_REPORT.md`;本轮五任务(历史可见性/政策与转折/正文与归档/读者文件/会话交付)全关;修复链 62c973e→138e85b→9667e8d→状态收口;一问验收 20261119T120815Z REVISE(4 MAJOR)→修订 13 处→UPHELD→归档;反例三件 8/8 零归档增量;门 49/0+回归 r18/r19/r20 门全绿+电池 192。
+- 旧 B 契约门 CONTRADICTED 面移交不变(AUDIT_R6_REPORT §七+20261117T035814Z 注记): 引擎侧 R45 修复合入 main 前两代码线行为不一致,超出审计修复轮范围。
+- 外审批后动作由用户指令定: 并轨 main / 继续整改;**未获用户确认不自动并 main、不合并 PR、不部署、不进入代码瘦身、不恢复旧研发循环**(本轮指令边界, 2026-11-18)。
+- 用户最小动作(独立于审计裁定): **main 分支保护实测未配置**(认证 API 404 亲证,AUDIT_R2_REPORT §六)——建议合并 PR #1 前启用(require PR+CI 绿);本轮未改远端权限。
+- 日历门(勿手工提前): F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
+
+## 下一步存档(2026-11-19 R62 后版·R65 收口时归档;R63/R64 收口未换版滞留)
 **等待用户外部审计裁定**(Audit-R18 第十八轮审计修复已收口,收口事实见下方存档节与 ITERATION_LOG R62 行——活动区不载已完成任务号, R34 判例):
 
 - 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R18_REPORT.md`;本轮唯一目标(原问逐字「给我一份全球宏观经济变化地图…」一问走通: 取数/报告/验收共用一份研究计划;「3个月前」日历点与「事件后3个月」事后偏移分记;完整读者报告一句总判断+四地三时点对照+有文字的传导图+三转折按日期+关键数字带来源单位观测日+历史栏≤3段+美国类比标注+样本不足如实;逐条复核央行公告四分+同观测日三利率复算+传导逐环四件套+情景证伪一致+证据不足缩小结论;机制正文空/None、必需图表缺失、明确指标遗漏阻止交付归档+「只比较」两项都保留缺一阻止归档;固定提交→真实 Agent 重生成→复核抽查复算→归档回读 SHA-256→全量离线测试→PR 最终提交 CI)全关。五缺陷: ①原问 plan metrics=[] 答非所问误通过→detect_map_question+plan_map 共享研究计划(取数/报告/验收三段同源)②只比较前导句误删 UST_10Y(git 双跑证基线既有)→map_entities 全命中位+限定后任一命中③「12个月前/随后3、6、12个月」unparseable→点值锚/事后偏移锚分记+consumed_time_spans 透传(仅地图问句,R10-R17 保全)④reader_map 五面无契约→_map_checks+SCHEMA 拦+map_required_face_missing⑤在场 MAP_REPORT 篡改后归档重渲洗白→旁挂锚拒付不重写+合法修订重渲更新锚。产品验收(任务⑤零合成): 原问逐字全链 plan run_ok→Agent 真实判决 attach VERIFIED→独立零上下文审查 REVISE 四必修(政策事件日期系统性错误/BEI 年变化符号/CN 荣枯线/历史段无源锚)→修订闭环→复验 UPHELD(回归电池 20 项全绿)→deliverable=True→归档三处同锚+SHA 回读三方 MATCH→读者报告+裁决链三档入仓 r18-evidence/。门 40/40+既有门 r4-r17+t3+charter6 全绿+电池 189+复放四包 PASS。修复提交固定 SHA=d3dea052585d2e433d92576afe5f70b144722ddd;R19 候选=复核席残留 3 NIT(Q3/Q4 边界/「年中」标签/l3 ref 配对)+R17 移交两项(日历周表达/同义词形别名面);前轮 R1-R17 修复链沿 PR #1 各轮报告,重放入口沿 R7 包。
@@ -33,6 +42,7 @@
 - 外审批后动作由用户指令定: 并轨 main / 继续整改;**未获用户确认不自动并 main、不合并 PR、不部署、不进入代码瘦身、不恢复旧研发循环**(本轮指令边界, 2026-11-18)。
 - 用户最小动作(独立于审计裁定): **main 分支保护实测未配置**(认证 API 404 亲证,AUDIT_R2_REPORT §六)——建议合并 PR #1 前启用(require PR+CI 绿);本轮未改远端权限。
 - 日历门(勿手工提前): F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
+
 
 ## 下一步存档(2026-11-18 R59 收口后版·操作者席)
 - [已毕·R59] **Audit-R15 第十五轮审计修复**(T-R59-1;用户指令独立轨道续 R58;分支 dev/audit-fix-r1,基线 4f9c75d→代码修复提交(固定 SHA=3b1b65e): half 后随白名单再扩+后缀组收编(无前缀形)+_QCONT_RE 连接词与日单位族再扩+_entity_spans 研究对象先识别(期限词形正则)+窗口/年限/月数/尾部/需求判定五入口同源传跨度;72 判据门 test_audit_r15_gate(§A10+§B7+§C6+§D13+§E21+§F18,合成裁决显式标记 role=R15-SYNTHETIC-ISOLATED-TEST)+探测 80 例 0 偏离一处真缺口(期限词形中文数量形)修复复验+十四既有门(r4-r14/t3/r42)+charter6 全绿+复放四包 PASS+复杂度基线内(同口径 +0.15%);报告=AUDIT_R15_REPORT.md;坑=half 白名单与后缀组须同改/期限词形正则三要素(数量通配+期可选+中文数量形)/隔离测试 eval 须传真实注册条目/unparseable hint 在判据面 basis/plan 钉子期望按显式元组传/zsh echo === 再犯;停等外审,不并main不合并PR不部署不开新轮)
@@ -82,7 +92,7 @@ R42(聚合器吞错)+R43(pytest 四件套,操作者)+R44(A 族碎片泄漏硬化
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 
-<!-- RD-CHECKPOINT v1: json {"round": 64, "date": "2026-11-19 15:31 HKT", "branch": "dev/audit-fix-r1", "commit": "abba4d1a70a3b6b5e9a0731c63654244500c79a1", "baseline": "abba4d1a70a3b6b5e9a0731c63654244500c79a1", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R64-1"], "next_task": "停等外部审计(R20);R65候选: provenance noncore_missing截断窗全量化/JP_CPI_TOKYO source_key对齐/R63移交四项", "next_round": 65} -->
+<!-- RD-CHECKPOINT v1: json {"round": 65, "date": "2026-11-19 20:56 HKT", "branch": "dev/audit-fix-r1", "commit": "9667e8df0be26513be6eb85d1041711f4f130d16", "baseline": "9667e8df0be26513be6eb85d1041711f4f130d16", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R65-1"], "next_task": "停等外部审计(R21);R66候选: R64移交三项(provenance noncore_missing截断窗全量化/JP_CPI_TOKYO source_key对齐/R63移交四项)", "next_round": 66} -->
 ## 下一步存档(2026-11-16 R43 收口后版·操作者席)
 
 - [已毕·R43] **pytest 口径四件套收口**(T-R43-1;RDG-20261116-012 残余⑦;R42 终验暴露陈年): run_weekly.main(argv=None) 参数化(CLI 零差/revision_chain 猴补兼容)+四件五调用点显式 argv=[](裸调读 pytest argv→SystemExit(2)→台账 None→下标崩根因)+尾条件退出拆红支摘冗余 0 支+守卫 23 判(§A 伪 pytest argv 子进程/§B 源面双锚/§C 直跑保持);四件 pytest 单件 rc5=净收集零错;新发现=尾退出全库习语 60+件,目录整跑不适用(R44+ 迁移候选);分支 dev/rd-r43-pytest-argv;详见 ITERATION_LOG R43 行。

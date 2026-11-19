@@ -1,0 +1,50 @@
+── 构建冻结面引擎根+plan 阶段(正式 CLI)……
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_u3sq3u_a/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_u3sq3u_a/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_u3sq3u_a/data/daily/anchors_20261117.json (122个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 21, 'DEGRADED': 7, 'FAIL': 0} | core缺失 16 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+═══ §A 同比基期纪律(D1) ═══
+  ✅ §A 严格同基期: 同月在→同比,缺基期→None(非最近前值) — 10.0/None
+  ✅ §A CPI@最新一期 缺基期→derived=None+yoy_status 标注+最近有效同比 — {"status": "ok", "as_of": "2026-11-17", "observation_date": "2026-10-01", "publication_date": "2026-11-13", "publication_rule": "BLS CPI 次月中旬发布(月末+13天
+  ✅ §A 13 个月变化不得写成同比(4.08 不在点值面)
+  ✅ §A 转折同比空间: 缺基期月不出数 — [('2026-01', '2026-01-01', 10.0)]
+═══ §B 发布纪律(D2) ═══
+  ✅ §B GDP 3个月前(锚2026-08-17)→Q2 观测(非 10-29 才公布的 Q3) — {"status": "ok", "as_of": "2026-08-17", "observation_date": "2026-04-01", "publication_date": "2026-07-29", "publication_rule": "B
+  ✅ §B GDP 最新一期→Q3 观测+发布日 2026-10-29(审计给定事实) — {"status": "ok", "as_of": "2026-11-17", "observation_date": "2026-07-01", "publication_date": "2026-10-29", "publication_rule": "B
+  ✅ §B 失业率 12个月前: 9月停摆未发布+11月滞后发布均被排除→交付 8月 4.3(R20 日历实录修正) — {"status": "ok", "as_of": "2025-11-17", "observation_date": "2025-08-01", "publication_date": "2025-09-05", "publication_rule": "B
+  ✅ §B 全格不变量: 发布日≤锚日且发布日随格披露 — []
+═══ §C 覆盖与口径(D6) ═══
+  ✅ §C 中国 PPI 归入价格(通胀)维,不再挂增长维 — inf=['CN_CPI_YOY', 'CN_PPI_YOY'] grw=['CN_PMI_MFG']
+  ✅ §C 日本市场利率在列+央行目标以声明式缺口行分别列示 — ['JP_POLICY_RATE'] gaps=["('JP', 'JP_POLICY_TARGET', 'registry_absent')"]
+  ✅ §C 目标缺口注记写清查过的来源+影响
+═══ §D 转折候选三维(D3) ═══
+  ✅ §D 候选池含增长+通胀+政策三维 — {'policy', 'growth', 'inflation'}
+  ✅ §D 每指标至多一候选
+  ✅ §D 候选窗端点在截止日回看 13 月内
+═══ §E 历史类比结构面(D4) ═══
+  ✅ §E 锚 2022-06 → 3/6/12 月=2022-09/2022-12/2023-06 — {'3m': '2022-09', '6m': '2022-12', '12m': '2023-06'}
+  ✅ §E hist_no_anchor → 契约拦截阻断归档 — reader_map.history_periods[0].anchor_ym=NOT_VERIFIED
+  ✅ §E hist_short_reach → 契约拦截阻断归档 — reader_map.history_periods[0].ex_post_reach=NOT_VERIFIED
+  ✅ §E hist_cutoff_early → 契约拦截阻断归档 — reader_map.history_periods[0].judgment_cutoff_ym=NOT_VERIFIED
+  ✅ §E 历史结果落在匹配期内 → CONTRADICTED(四阻断器④) — {'item': 'reader_map.history_periods[0].aftermath_in_match', 'claim_type': 'reader_map', 'status': 'CONTRADICTED', 'note': "历史结果落在匹配期内: ['2015-06'] ≤ 
+═══ §F 四阻断器+传导达资产(D5/D7) ═══
+  ✅ §F 同一转折重复三次 → 阻断(turnings.duplicate) — {'item': 'reader_map.turnings.duplicate', 'claim_type': 'reader_map', 'status': 'NOT_VERIFIED', 'note': "同一转折重复计数: [('CN_PMI_MFG', '2026-05'
+  ✅ §F 三转折维度覆盖不足(候选池跨三维而全选通胀) → 阻断 — {'item': 'reader_map.turnings.dimension_coverage', 'claim_type': 'reader_map', 'status': 'NOT_VERIFIED', 'note': "三转折维度覆盖不足: 选中 ['inflation'
+  ✅ §F 传导图未连到资产指标 → 阻断 — {'item': 'reader_map.transmission.asset_reach', 'claim_type': 'reader_map', 'status': 'NOT_VERIFIED', 'note': "传导图未连到资产指标(资产面在场 16 项,如 ['UST
+  ✅ §F 错用同比基期(引擎面自检) → CONTRADICTED — {'item': 'point_values.yoy_base', 'claim_type': 'reader_map', 'status': 'CONTRADICTED', 'note': 'CPI@最新一期: 同比值在而基期状态非 ok
+  ✅ §F 提前引用未发布(引擎面自检) → CONTRADICTED — {'item': 'point_values.publication', 'claim_type': 'reader_map', 'status': 'CONTRADICTED', 'note': 'UNEMPLOYMENT@最新一期: 发
+═══ §G 普通读者版量化显示(D8,VIX 样本形状) ═══
+  ✅ §G 读者版渲染 S6 历史比较(rank-1 2023-03+披露)
+  ✅ §G 读者版渲染 S5 量化说明(pearson+n+共同窗)
+  ✅ §G report.md 普通读者版含 S6/S5 节
+═══ §H 端到端正反例(四阻断器守住归档门) ═══
+  ✅ §H 正例 attach → attached=True 契约过 — VERIFIED
+  ✅ §H 正例 report → deliverable — True
+  ✅ §H MAP_REPORT 缺基期格显示「同比不可得」+最近有效同比
+  ✅ §H MAP_REPORT 关键数字表带发布日期列
+  ✅ §H MAP_REPORT 转折表带观测窗口列+历史段带匹配区间/事后窗锚月
+  ✅ §H FULL_REPORT 普通读者版显示 S5 量化说明(pearson 节) — 220Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最/FULL_REPORT.md
+  ✅ §H 正例归档 1 份(独立归档目录) — ok
+  ✅ §H 反例(历史结果落在匹配期内) → 不交付+零归档目录 — dlv=False blocked=not_deliverable
+
+Audit-R19 判定: 35 PASS / 0 FAIL

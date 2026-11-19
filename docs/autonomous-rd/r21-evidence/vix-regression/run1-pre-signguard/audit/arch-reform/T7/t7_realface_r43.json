@@ -1,0 +1,1335 @@
+{
+ "note": "R43 真实面复跑(RDG-20261116-013 验收件;对照=R41 定性件 contradicted_full,三方对账 survivor/removed/added)",
+ "engine": "本分支当前引擎(含 R43 检查面预处理+引用ID/序号遮罩+月-日日组必选)",
+ "baseline": "audit/arch-reform/T7/t7_realface_r41.json",
+ "runs": {
+  "V1": {
+   "file": "weekly_report_20261114_UNVALIDATED.md",
+   "verdict": "CONTRADICTED",
+   "stats": {
+    "checks": 218,
+    "contradicted": 50,
+    "verified": 165,
+    "unbound": 49
+   },
+   "r41_contra": 53,
+   "r43_contra": 50,
+   "removed_total": 5,
+   "survivor_total": 48,
+   "added": [
+    {
+     "key": [
+      "level",
+      "ZQ_IMPLIED_AVG",
+      "3.8775%"
+     ],
+     "n": 1,
+     "verbatim": true
+    },
+    {
+     "key": [
+      "level",
+      "UST_2Y",
+      "3.8775%"
+     ],
+     "n": 1,
+     "verbatim": true
+    }
+   ],
+   "removed": [
+    {
+     "key": [
+      "level",
+      "REAL_10Y",
+      "1."
+     ],
+     "n": 1,
+     "mech": "ordinal(列表序号)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "ZQ_IMPLIED_AVG",
+      "8775%"
+     ],
+     "n": 1,
+     "mech": "decimal_split_or_percent_frag(月日吞数字/注释碎片)",
+     "fragment_gone": true
+    },
+    {
+     "key": [
+      "level",
+      "WTI_F",
+      "3."
+     ],
+     "n": 1,
+     "mech": "ordinal(列表序号)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "DXY",
+      "9456078"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "UST_2Y",
+      "8775%"
+     ],
+     "n": 1,
+     "mech": "decimal_split_or_percent_frag(月日吞数字/注释碎片)",
+     "fragment_gone": true
+    }
+   ],
+   "survivor_sample": [],
+   "clusters": {
+    "level|ZQ_IMPLIED_AVG": {
+     "n": 10,
+     "tokens": [
+      "3.8775%",
+      "4.07%",
+      "4.57%",
+      "4.715%",
+      "50bp",
+      "3.8775%",
+      "4.715%",
+      "约0.84pp"
+     ]
+    },
+    "level|UST_2Y": {
+     "n": 5,
+     "tokens": [
+      "1.86%",
+      "2.21%",
+      "4.07%",
+      "3.8775%",
+      "7"
+     ]
+    },
+    "level|WTI_F": {
+     "n": 5,
+     "tokens": [
+      "7.16",
+      "90",
+      "102.07",
+      "102.07",
+      "102.07"
+     ]
+    },
+    "level|REAL_10Y": {
+     "n": 3,
+     "tokens": [
+      "+0.23pp",
+      "+0.23pp",
+      "+0.23pp"
+     ]
+    },
+    "level|UNEMPLOYMENT": {
+     "n": 2,
+     "tokens": [
+      "159,293千",
+      "+165千"
+     ]
+    },
+    "level|BEI_10Y": {
+     "n": 2,
+     "tokens": [
+      "2.34%",
+      "2.34%"
+     ]
+    },
+    "level|UST_10Y": {
+     "n": 2,
+     "tokens": [
+      "2.84%",
+      "+1.09%"
+     ]
+    },
+    "level|TLT": {
+     "n": 2,
+     "tokens": [
+      "nan",
+      "nan"
+     ]
+    },
+    "change/week|WTI_F": {
+     "n": 2,
+     "tokens": [
+      "-12.88%",
+      "-12.88%"
+     ]
+    },
+    "prior_reference|WTI_F": {
+     "n": 2,
+     "tokens": [
+      "0",
+      "+4"
+     ]
+    },
+    "change/m12|CPI": {
+     "n": 1,
+     "tokens": [
+      "+0.70%"
+     ]
+    },
+    "level|SHCOMP": {
+     "n": 1,
+     "tokens": [
+      "16.77"
+     ]
+    },
+    "change/week|CPI": {
+     "n": 1,
+     "tokens": [
+      "+0.70%"
+     ]
+    },
+    "level|ECB_DFR": {
+     "n": 1,
+     "tokens": [
+      "2.65%"
+     ]
+    },
+    "ranking|None": {
+     "n": 1,
+     "tokens": [
+      "0.27%/0.27%"
+     ]
+    },
+    "prior_reverse_identity|None": {
+     "n": 1,
+     "tokens": [
+      "约25.6"
+     ]
+    },
+    "spread_arithmetic|None": {
+     "n": 1,
+     "tokens": [
+      "差异约3"
+     ]
+    },
+    "level|GOLD_F": {
+     "n": 1,
+     "tokens": [
+      "13"
+     ]
+    },
+    "change/m12|UST_2Y": {
+     "n": 1,
+     "tokens": [
+      "+0.35pp"
+     ]
+    },
+    "scorecard_total|None": {
+     "n": 1,
+     "tokens": [
+      "通胀总分+4"
+     ]
+    },
+    "observation_lag|ECB_DFR": {
+     "n": 1,
+     "tokens": [
+      "348天"
+     ]
+    },
+    "level|CN_SF_FLOW": {
+     "n": 1,
+     "tokens": [
+      "7"
+     ]
+    },
+    "prior_reference|GOLD_F": {
+     "n": 1,
+     "tokens": [
+      "-4.09%"
+     ]
+    },
+    "prior_reference|UST_10Y": {
+     "n": 1,
+     "tokens": [
+      "5.0%"
+     ]
+    },
+    "narrative_direction|CURVE_2S10S": {
+     "n": 1,
+     "tokens": [
+      "倒挂"
+     ]
+    }
+   }
+  },
+  "V2": {
+   "file": "weekly_report_20261108_UNVALIDATED.md",
+   "verdict": "CONTRADICTED",
+   "stats": {
+    "checks": 326,
+    "contradicted": 144,
+    "verified": 177,
+    "unbound": 52
+   },
+   "r41_contra": 175,
+   "r43_contra": 144,
+   "removed_total": 36,
+   "survivor_total": 139,
+   "added": [
+    {
+     "key": [
+      "level",
+      "ZQ_IMPLIED_AVG",
+      "4.33%"
+     ],
+     "n": 3,
+     "verbatim": true
+    },
+    {
+     "key": [
+      "level",
+      "ZQ_IMPLIED_AVG",
+      "3.8775%"
+     ],
+     "n": 1,
+     "verbatim": true
+    },
+    {
+     "key": [
+      "level",
+      "ZQ_IMPLIED_AVG",
+      "4.015%"
+     ],
+     "n": 1,
+     "verbatim": true
+    }
+   ],
+   "removed": [
+    {
+     "key": [
+      "level",
+      "WTI_F",
+      "3"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "GOLD_F",
+      "2."
+     ],
+     "n": 1,
+     "mech": "ordinal(列表序号)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "ZQ_IMPLIED_AVG",
+      "1."
+     ],
+     "n": 1,
+     "mech": "ordinal(列表序号)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "ZQ_IMPLIED_AVG",
+      "33%"
+     ],
+     "n": 3,
+     "mech": "decimal_split_or_percent_frag(月日吞数字/注释碎片)",
+     "fragment_gone": true
+    },
+    {
+     "key": [
+      "level",
+      "DXY",
+      "3"
+     ],
+     "n": 2,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "GOLD_F",
+      "3"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "VIX",
+      "3"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "SHCOMP",
+      "2"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "ZQ_IMPLIED_AVG",
+      "8775%"
+     ],
+     "n": 1,
+     "mech": "decimal_split_or_percent_frag(月日吞数字/注释碎片)",
+     "fragment_gone": true
+    },
+    {
+     "key": [
+      "level",
+      "DXY",
+      "97"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "REAL_10Y",
+      "2.60%"
+     ],
+     "n": 1,
+     "mech": "decimal_split_or_percent_frag(月日吞数字/注释碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "TIPS_10Y",
+      "2.4%"
+     ],
+     "n": 1,
+     "mech": "decimal_split_or_percent_frag(月日吞数字/注释碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "GOLD_F",
+      "4300"
+     ],
+     "n": 2,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "GOLD_F",
+      "1"
+     ],
+     "n": 2,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "CCC_OAS",
+      "2"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "WTI_F",
+      "0.83"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "REAL_10Y",
+      "1"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "REAL_10Y",
+      "2.5%"
+     ],
+     "n": 1,
+     "mech": "decimal_split_or_percent_frag(月日吞数字/注释碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "GOLD_F",
+      "5"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "UST_30Y",
+      "3"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "GOLD_F",
+      "2"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "CORE_CPI",
+      "2.5658"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": true
+    },
+    {
+     "key": [
+      "level",
+      "WTI_F",
+      "110"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "change/week",
+      "GOLD_F",
+      "80%"
+     ],
+     "n": 1,
+     "mech": "decimal_split_or_percent_frag(月日吞数字/注释碎片)",
+     "fragment_gone": true
+    },
+    {
+     "key": [
+      "level",
+      "ZQ_IMPLIED_AVG",
+      "3"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "ZQ_IMPLIED_AVG",
+      "1320bp"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "threshold_constant",
+      "None",
+      "4.33%"
+     ],
+     "n": 1,
+     "mech": "decimal_split_or_percent_frag(月日吞数字/注释碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "REAL_10Y",
+      "4.51%"
+     ],
+     "n": 1,
+     "mech": "decimal_split_or_percent_frag(月日吞数字/注释碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "TIPS_10Y",
+      "10"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "CN_TOTAL_TURNOVER",
+      "1万亿"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "change/week",
+      "GOLD_F",
+      "-0.26%"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    }
+   ],
+   "survivor_sample": [],
+   "clusters": {
+    "level|WTI_F": {
+     "n": 19,
+     "tokens": [
+      "3",
+      "102.07",
+      "+2 ",
+      "+2",
+      "90",
+      "3",
+      "100",
+      "7.49"
+     ]
+    },
+    "level|GOLD_F": {
+     "n": 12,
+     "tokens": [
+      "3",
+      "4200",
+      "3900",
+      "4300",
+      "4300",
+      "15%",
+      "35%",
+      "9"
+     ]
+    },
+    "level|DXY": {
+     "n": 11,
+     "tokens": [
+      "3",
+      "97",
+      "103",
+      "103",
+      "105",
+      "105",
+      "103",
+      "97"
+     ]
+    },
+    "level|REAL_10Y": {
+     "n": 11,
+     "tokens": [
+      "5",
+      "8bp",
+      "2.33%",
+      "+4.51%",
+      "2.60%",
+      "1 ",
+      "1",
+      "2.5%"
+     ]
+    },
+    "change/week|WTI_F": {
+     "n": 6,
+     "tokens": [
+      "-11.01%",
+      "约6%",
+      "-12.10%",
+      "-2.80%",
+      "-11.01%",
+      "35%"
+     ]
+    },
+    "level|UNEMPLOYMENT": {
+     "n": 5,
+     "tokens": [
+      "0.0pp",
+      "0 ",
+      "16.5",
+      "+16.5",
+      "90"
+     ]
+    },
+    "level|ZQ_IMPLIED_AVG": {
+     "n": 5,
+     "tokens": [
+      "4.33%",
+      "4.33%",
+      "3.8775%",
+      "4.015%",
+      "4.33%"
+     ]
+    },
+    "change/week|GOLD_F": {
+     "n": 5,
+     "tokens": [
+      "+4.71%",
+      "20%",
+      "25%",
+      "-2.80%",
+      "-2.80%"
+     ]
+    },
+    "statistic|None": {
+     "n": 4,
+     "tokens": [
+      "25.64",
+      "25.64",
+      "-0.35",
+      "-0.35"
+     ]
+    },
+    "level|BEI_10Y": {
+     "n": 4,
+     "tokens": [
+      "0 ",
+      "2.3",
+      "-12.76%",
+      "2.3%"
+     ]
+    },
+    "change/week|SHCOMP": {
+     "n": 4,
+     "tokens": [
+      "+3.16%",
+      "+5.24%",
+      "+3.16%",
+      "+2.14%"
+     ]
+    },
+    "level|SHCOMP": {
+     "n": 4,
+     "tokens": [
+      "2",
+      "16.83",
+      "4 ",
+      "2"
+     ]
+    },
+    "level|CORE_CPI": {
+     "n": 3,
+     "tokens": [
+      "+1",
+      "2.57%",
+      "1320bp"
+     ]
+    },
+    "change/week|HSI": {
+     "n": 3,
+     "tokens": [
+      "+5.65%",
+      "+5.24%",
+      "+5.65%"
+     ]
+    },
+    "level|BTC": {
+     "n": 3,
+     "tokens": [
+      "2",
+      "75,000",
+      "373.27"
+     ]
+    },
+    "level|VIX": {
+     "n": 3,
+     "tokens": [
+      "3",
+      "20",
+      "20"
+     ]
+    },
+    "level|UST_30Y": {
+     "n": 3,
+     "tokens": [
+      "4.5%",
+      "3 ",
+      "3"
+     ]
+    },
+    "level|NFP": {
+     "n": 2,
+     "tokens": [
+      "16.5",
+      "16.5"
+     ]
+    },
+    "level|SPX": {
+     "n": 2,
+     "tokens": [
+      "3",
+      "+0.72"
+     ]
+    },
+    "level|NDX": {
+     "n": 2,
+     "tokens": [
+      "3",
+      "+0.52"
+     ]
+    },
+    "level|TLT": {
+     "n": 2,
+     "tokens": [
+      "3",
+      "90"
+     ]
+    },
+    "level|SB_FLOW": {
+     "n": 2,
+     "tokens": [
+      "100亿港元",
+      "1万亿"
+     ]
+    },
+    "band_relation|None": {
+     "n": 2,
+     "tokens": [
+      "400bp",
+      "400bp"
+     ]
+    },
+    "level|CCC_OAS": {
+     "n": 2,
+     "tokens": [
+      "-0.26%",
+      "2 "
+     ]
+    },
+    "change/week|HY_OAS": {
+     "n": 2,
+     "tokens": [
+      "1000bp",
+      "1320bp"
+     ]
+    },
+    "change/week|NFP": {
+     "n": 1,
+     "tokens": [
+      "16.5"
+     ]
+    },
+    "level|RSAFS": {
+     "n": 1,
+     "tokens": [
+      "+1 "
+     ]
+    },
+    "level|INDPRO": {
+     "n": 1,
+     "tokens": [
+      "+1 "
+     ]
+    },
+    "level|AHE": {
+     "n": 1,
+     "tokens": [
+      "0 "
+     ]
+    },
+    "threshold_distance|None": {
+     "n": 1,
+     "tokens": [
+      "距离仅1"
+     ]
+    },
+    "regime_mapping|None": {
+     "n": 1,
+     "tokens": [
+      "衰退"
+     ]
+    },
+    "change/week|BEI_10Y": {
+     "n": 1,
+     "tokens": [
+      "0.07pp"
+     ]
+    },
+    "level|ICSA": {
+     "n": 1,
+     "tokens": [
+      "6000"
+     ]
+    },
+    "level|JTSJOL": {
+     "n": 1,
+     "tokens": [
+      "+333千"
+     ]
+    },
+    "level|UMCSENT": {
+     "n": 1,
+     "tokens": [
+      "50"
+     ]
+    },
+    "change/week|NDX": {
+     "n": 1,
+     "tokens": [
+      "-8.80%"
+     ]
+    },
+    "level|RUT": {
+     "n": 1,
+     "tokens": [
+      "2"
+     ]
+    },
+    "level|BRENT_F": {
+     "n": 1,
+     "tokens": [
+      "3"
+     ]
+    },
+    "level|HSI": {
+     "n": 1,
+     "tokens": [
+      "2"
+     ]
+    },
+    "change/week|VIX": {
+     "n": 1,
+     "tokens": [
+      "32.03%"
+     ]
+    },
+    "change/week|SPX": {
+     "n": 1,
+     "tokens": [
+      "-8.80%"
+     ]
+    },
+    "level|IG_OAS": {
+     "n": 1,
+     "tokens": [
+      "200亿美元"
+     ]
+    },
+    "change/week|IG_OAS": {
+     "n": 1,
+     "tokens": [
+      "1000bp"
+     ]
+    },
+    "change/week|SILVER_F": {
+     "n": 1,
+     "tokens": [
+      "+4.71%"
+     ]
+    },
+    "level|UST_10Y": {
+     "n": 1,
+     "tokens": [
+      "2.60%"
+     ]
+    },
+    "level|TIPS_10Y": {
+     "n": 1,
+     "tokens": [
+      "2.4%"
+     ]
+    },
+    "threshold_constant|None": {
+     "n": 1,
+     "tokens": [
+      "850bp"
+     ]
+    },
+    "prior_reference|WTI_F": {
+     "n": 1,
+     "tokens": [
+      "20261019"
+     ]
+    }
+   }
+  },
+  "V3": {
+   "file": "weekly_report_20261024.md",
+   "verdict": "CONTRADICTED",
+   "stats": {
+    "checks": 222,
+    "contradicted": 89,
+    "verified": 130,
+    "unbound": 29
+   },
+   "r41_contra": 98,
+   "r43_contra": 89,
+   "removed_total": 9,
+   "survivor_total": 89,
+   "added": [],
+   "removed": [
+    {
+     "key": [
+      "level",
+      "REAL_10Y",
+      "1"
+     ],
+     "n": 2,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "UST_10Y",
+      "1."
+     ],
+     "n": 1,
+     "mech": "ordinal(列表序号)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "CPI",
+      "3."
+     ],
+     "n": 1,
+     "mech": "ordinal(列表序号)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "DXY",
+      "3"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "UST_30Y",
+      "3"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "GOLD_F",
+      "1"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "SHCOMP",
+      "4"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    },
+    {
+     "key": [
+      "level",
+      "DXY",
+      "9"
+     ],
+     "n": 1,
+     "mech": "comment_json_citation_frag(注释/JSON/引用ID/序号碎片)",
+     "fragment_gone": false
+    }
+   ],
+   "survivor_sample": [],
+   "clusters": {
+    "level|WTI_F": {
+     "n": 8,
+     "tokens": [
+      "+2",
+      "+2 ",
+      "+2",
+      "90",
+      "3",
+      "97.31",
+      "85",
+      "110"
+     ]
+    },
+    "level|REAL_10Y": {
+     "n": 7,
+     "tokens": [
+      "2.64%",
+      "2.5%",
+      "2.64%",
+      "2.5%",
+      "2.5%",
+      "2.64%",
+      "2.2%"
+     ]
+    },
+    "level|DXY": {
+     "n": 7,
+     "tokens": [
+      "3",
+      "100",
+      "1 ",
+      "103 ",
+      "97",
+      "3",
+      "105"
+     ]
+    },
+    "level|UST_10Y": {
+     "n": 6,
+     "tokens": [
+      "-4.52%",
+      "3",
+      "10",
+      "2.64%",
+      "-0.09%",
+      "2.64%"
+     ]
+    },
+    "level|SPX": {
+     "n": 6,
+     "tokens": [
+      "3",
+      "6400",
+      "6200",
+      "6650",
+      "6800",
+      "7400"
+     ]
+    },
+    "level|ZQ_IMPLIED_AVG": {
+     "n": 6,
+     "tokens": [
+      "4.575%",
+      "4.575%",
+      "约70bp",
+      "12",
+      "+0.25%",
+      "850bp"
+     ]
+    },
+    "threshold_constant|None": {
+     "n": 6,
+     "tokens": [
+      "5.29%",
+      "-0.14pp",
+      "0.29pp",
+      "0.29pp",
+      "0.31%",
+      "-0.04pp"
+     ]
+    },
+    "level|BEI_10Y": {
+     "n": 5,
+     "tokens": [
+      "+1 ",
+      "5",
+      "2.48%",
+      "5",
+      "2.48%"
+     ]
+    },
+    "level|INDPRO": {
+     "n": 4,
+     "tokens": [
+      "+1 ",
+      "-1",
+      "-2",
+      "+1"
+     ]
+    },
+    "level|CCC_OAS": {
+     "n": 4,
+     "tokens": [
+      "5",
+      "1000bp",
+      "2",
+      "5"
+     ]
+    },
+    "level|UMCSENT": {
+     "n": 3,
+     "tokens": [
+      "50",
+      "-2",
+      "50"
+     ]
+    },
+    "level|UST_30Y": {
+     "n": 3,
+     "tokens": [
+      "3.885%",
+      "4",
+      "4.5%"
+     ]
+    },
+    "change/week|SHCOMP": {
+     "n": 2,
+     "tokens": [
+      "-4.52%",
+      "-4.52%"
+     ]
+    },
+    "level|UNEMPLOYMENT": {
+     "n": 2,
+     "tokens": [
+      "0.0pp",
+      "0 "
+     ]
+    },
+    "level|GOLD_F": {
+     "n": 2,
+     "tokens": [
+      "2",
+      "4200"
+     ]
+    },
+    "level|SHCOMP": {
+     "n": 2,
+     "tokens": [
+      "2",
+      "3"
+     ]
+    },
+    "change/week|BEI_10Y": {
+     "n": 2,
+     "tokens": [
+      "+0.11pp",
+      "+0.11pp"
+     ]
+    },
+    "change/week|CCC_OAS": {
+     "n": 1,
+     "tokens": [
+      "1340bp"
+     ]
+    },
+    "level|RSAFS": {
+     "n": 1,
+     "tokens": [
+      "+1 "
+     ]
+    },
+    "level|AHE": {
+     "n": 1,
+     "tokens": [
+      "0 "
+     ]
+    },
+    "level|ICSA": {
+     "n": 1,
+     "tokens": [
+      "57"
+     ]
+    },
+    "change/week|BRENT_F": {
+     "n": 1,
+     "tokens": [
+      "5%"
+     ]
+    },
+    "change/week|WTI_F": {
+     "n": 1,
+     "tokens": [
+      "+4.80%"
+     ]
+    },
+    "level|NDX": {
+     "n": 1,
+     "tokens": [
+      "3"
+     ]
+    },
+    "level|RUT": {
+     "n": 1,
+     "tokens": [
+      "2"
+     ]
+    },
+    "level|HY_OAS": {
+     "n": 1,
+     "tokens": [
+      "4"
+     ]
+    },
+    "level|BTC": {
+     "n": 1,
+     "tokens": [
+      "2"
+     ]
+    },
+    "change/week|GOLD_F": {
+     "n": 1,
+     "tokens": [
+      "-0.09%"
+     ]
+    },
+    "level|TIPS_10Y": {
+     "n": 1,
+     "tokens": [
+      "2.2%"
+     ]
+    },
+    "change/m1|WTI_F": {
+     "n": 1,
+     "tokens": [
+      "+15.98%"
+     ]
+    },
+    "level|SB_FLOW": {
+     "n": 1,
+     "tokens": [
+      "133.03"
+     ]
+    }
+   }
+  }
+ },
+ "verdict": "PASS(新增仅修复位升格且 verbatim 在场;removed=A 族治面)"
+}

@@ -1,0 +1,68 @@
+{
+  "overall": "UPHELD",
+  "reviewer": "SEMANTIC-AUDIT-SEAT",
+  "notes": "Audit-R1 修订闭环终审(独立席python3只读复算,C档全部断言独立重算,证据索引与概览信封逐项对照): C档 VERIFIED——上一轮发现全部忠实落地,保护项未破坏,全量数值逐位复算吻合,零新增缺陷。残留三项既有NIT列出不阻断。",
+  "run_ts": "20261116T053259Z",
+  "content_sha256": "860f92e435a30f9c8b488ce508f342ef2cfd187524b78ae67cea0330b2ddd1f0",
+  "recorded_at": "20261116T111808Z",
+  "items": [
+    {
+      "id": "C-MECH1-STEP4",
+      "severity": "MAJOR",
+      "verdict": "UPHELD",
+      "detail": "证伪区重写忠实落地: 第一支=「利差仍处+1.0pp上方(远离零附近,套息存量仍显著为正)而USDJPY急升向145下方方计证伪」+与CON-1解释一确认区互斥不可重叠计分;边界逻辑逐条判过(利差≥+1.0 vs 近零构造性互斥;中间带(0,+1.0)双向不计分=保守留白);旧+2.0pp下方区仅存作废引文,无活体残留。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "C-SCN-C-PREMISE-GATE",
+      "severity": "MAJOR",
+      "verdict": "UPHELD",
+      "detail": "两态条款重写忠实落地: 前提在场=trigger已触发(BRENT_F连续10日>110或核心CPI连续两月高于共识)且利差自基准+2.837pp升破+3.5pp(旧3.3门作废,grep亲验仅存作废注记);FOMC加息明示不构成前提,附反例组合说明旧门误伤机理。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "C-SCN-A-TIER",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "引文已改事件事实并复算吻合: Fed 2026-09再加息后GOLD_F收于1月峰值下方约24.5%(阶跃日2026-09-17 3.63→3.88序列亲验;4013.4 vs 5318.4=−24.54%);附符号误读注记(+0.536为水平相关,引文作废)。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "C-SCN-A-WORDING",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "措辞已改: USDJPY任何方向变动(含跌破150.0的日元走强)记为本情景未触发。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "C-SCN-A-4600",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "S4复算口径注记已补且数值精确: 2026-02后GOLD_F n=197,中位4439.0、p75=4697.8≈约4698;最后收于其上2026-08-27(4664.0)按约4600一线绑定口径为真;已带叙事性阻力参考限定。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "C-FULL-RECOMPUTE",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "全量独立复算吻合: 相关面全窗+0.7667(n=2600)/分窗+0.653(411)、−0.350(284)、−0.735(568)、2026YTD−0.346(224);GOLD面+0.360(2514)/+0.245(395)/−0.917(275)/−0.850(336)/+0.536(217);事件面163.86@2026-07-29→157.58@2026-08-03=−3.83%、DFF阶跃2026-09-17亲验、利差+2.837=3.88−1.043、锚点115.1/147.8/146.38/159.81。修订未引入新缺陷。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "C-RESIDUAL-PREEXISTING",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "三项既有残留(修订前已在、非本轮引入、不阻断): (a)MECH-1 step2约0.09→约5.1pp叙事压缩,精确锚5.103已钉于2024-09;(b)约0.09pp实算0.0994差约1bp;(c)SCN-A-4600『其』绑定歧义,建议后续写明绑定对象。",
+      "disposition": "LISTED(列档下轮,不阻断)"
+    }
+  ],
+  "seat": "semantic-audit-seat",
+  "scope": "C档修订闭环终审",
+  "verdict_audit_r1_dialect": "VERIFIED",
+  "audited_at": "2026-11-16",
+  "counterexamples_sought": [
+    "证伪区互斥反例: 构造中间带(0,+1.0)急升双向不计分案例,验两区构造性不重叠而非口径巧合",
+    "旧3.3门残留反例: grep亲验3.3pp仅存于旧门作废注记,无活体残留",
+    "DFF阶跃日反例: v2勘误3.63@09-16→3.88@09-17序列亲验,排除席位引用错版快照"
+  ]
+}

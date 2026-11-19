@@ -1043,7 +1043,7 @@ HONEST_REFUSAL_ERROR_KINDS = frozenset(
 BLOCKING_BLOCKED_CLASSES = frozenset(
     {'critical_zero_evidence', 'required_data_missing',
      'critical_step_failure', 'map_required_face_missing',
-     'map_core_dimension_missing'})
+     'map_core_dimension_missing', 'map_anchor_coverage_insufficient'})
 
 
 def _step_failure_is_refusal(step):
@@ -1084,6 +1084,12 @@ def blocked_class_of(report):
       optional_data_missing   证据面在场、无必要缺口、失败步全部为诚实
                              拒答(源端缺席类)——显式旗标+充分披露+
                              有效独立审查后可交付。
+    地图问句(run_ok=true 分支内)另有两级:
+      map_required_face_missing    读者报告必需面缺席;
+      map_core_dimension_missing   地区×维度组零 ok 格(R20);
+      map_anchor_coverage_insufficient  组内 ok 锚<2 且空锚无经证实延误
+                             依据(R21)——「仅存最新单点」不构成三时点对照
+                             满足,与 Audit-R4 条目5 同纪律。
     「存在最新单点」不构成历史分析需求满足(Audit-R4 条目5)——
     insufficient_coverage 与 missing 同为必要缺口。
     """
@@ -1114,16 +1120,30 @@ def blocked_class_of(report):
             # 核心维度仍缺则交付草稿;数据面补齐后正例应 12/12 组全绿)。
             _pv = _rp.get('point_values') or {}
             _ok_pairs = set()
+            _ok_anchor_n, _gap_unverified = {}, {}
             for _c in _pv.get('cells') or []:
-                if any(_a.get('status') == 'ok'
-                       for _a in (_c.get('anchors') or {}).values()):
-                    _ok_pairs.add((_c.get('region'), _c.get('dimension')))
+                _g = (_c.get('region'), _c.get('dimension'))
+                for _a in (_c.get('anchors') or {}).values():
+                    if _a.get('status') == 'ok':
+                        _ok_pairs.add(_g)
+                        _ok_anchor_n[_g] = _ok_anchor_n.get(_g, 0) + 1
+                    elif not _a.get('calendar_blocked_observation'):
+                        _gap_unverified[_g] = _gap_unverified.get(_g, 0) + 1
             _planned_pairs = {
                 (_eco, _dim)
                 for _eco, _rf in (_rp.get('regions') or {}).items()
                 for _dim in ((_rf.get('dimensions') or {}) or {})}
             if _planned_pairs - _ok_pairs:
                 return 'map_core_dimension_missing'
+            # Audit-R21 任务3反例③: 序列在场但一组仅剩最新单点(两个历史
+            # 时点留空且无经证实延误依据)=锚覆盖不足——「存在最新单点」
+            # 不构成三时点对照满足(与 Audit-R4 条目5 同纪律),交付草稿
+            # 不进正式归档;经日历实录证实的延误缺口(停摆类)不算未证实。
+            _sparse = sorted(
+                g for g in _planned_pairs
+                if _ok_anchor_n.get(g, 0) < 2 and _gap_unverified.get(g, 0))
+            if _sparse:
+                return 'map_anchor_coverage_insufficient'
         return None
     non_refusal = [s.get('step') for s in (report.get('steps') or [])
                    if s.get('executed') and s.get('ok') is False

@@ -299,7 +299,10 @@ def map_judgment(rd, variant=None):
              'match_window': {'start_ym': '2015-01', 'end_ym': '2015-12'},
              'judgment_cutoff_ym': '2015-12',
              'aftermath_obs_months': ['2016-03', '2016-06', '2016-12'],
-             'data_note': '样本注记: 合成(离线门测试)', 'us_analog': True}]
+             'data_note': '样本注记: 合成(离线门测试)',
+             # R21: sample_note 必填(渲染读 sample_note 回落 data_note;
+             # 契约层两字段分立——样本注记是历史段硬前提)
+             'sample_note': '样本注记: 合成(离线门测试)', 'us_analog': True}]
     if variant == 'history4':
         hist = hist + [dict(hist[0]), dict(hist[0]), dict(hist[0])]
     jd = {

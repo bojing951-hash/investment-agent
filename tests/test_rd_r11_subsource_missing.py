@@ -104,7 +104,7 @@ REG_PATH = os.path.join(ROOT, 'config', 'metric_registry.json')
 with open(REG_PATH, encoding='utf-8') as f:
     REG = json.load(f)
 # R20: 注册表升版 v2.8.6(四地补齐);R11/R12 source_key 事实仍在册
-check("版本 v2.8.6(R20 四地补齐;R25 DFF history_source;R11 落位时 2.8.3,R12 曾升 2.8.4)", REG['version'] == '2.8.6',
+check("版本 v2.8.6(R20 四地补齐;R25 DFF history_source;R11 落位时 2.8.3,R12 曾升 2.8.4)", REG['version'] == '2.8.7',
       REG['version'])
 SKEY_EXPECT = {
     'ECB_DFR': 'ECB_FM_DFR', 'ECB_MRO': 'ECB_FM_MRO',
@@ -125,9 +125,9 @@ check("field_semantics 含 source_key 定义",
       isinstance(REG.get('field_semantics', {}).get('source_key'), str)
       and '子源' in REG['field_semantics']['source_key'])
 # R20: 110→113/108→111(R20 四地补齐 +3,均 active)
-check("指标集零变动: 113 条/111 active(R20 +3)",
-      len(REG['metrics']) == 113
-      and sum(1 for m in REG['metrics'] if m.get('status') == 'active') == 111)
+check("指标集零变动: 114 条/112 active(R21 +1)",  # R21: 113→114/111→112
+      len(REG['metrics']) == 114
+      and sum(1 for m in REG['metrics'] if m.get('status') == 'active') == 112)
 probs = rsem.validate_registry(REG)
 check("registry_semantics 校验零问题(source_key 新字段不破坏封闭词汇校验)",
       not probs, str(probs)[:120])

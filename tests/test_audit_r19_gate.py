@@ -262,7 +262,11 @@ def map_judgment(rd, variant=None):
              'match_window': {'start_ym': '2015-01', 'end_ym': '2015-12'},
              'judgment_cutoff_ym': '2015-12',
              'aftermath_obs_months': ['2016-03', '2016-06', '2016-12'],
-             'data_note': '样本注记: 合成(离线门测试)', 'us_analog': True}]
+             # R21: 样本注记字段名随契约正名 sample_note(渲染同读);
+             # data_note 保留兼容旧档,断言意图不变。
+             'data_note': '样本注记: 合成(离线门测试)',
+             'sample_note': '样本注记: 合成(离线门测试;与当前窗不重叠)',
+             'us_analog': True}]
     if variant == 'hist_no_anchor':
         hist[0].pop('anchor_ym')
         hist[0].pop('match_window')

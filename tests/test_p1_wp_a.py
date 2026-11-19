@@ -156,10 +156,11 @@ class TestEconomyRules(unittest.TestCase):
         # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
         # 94+8→102 / 93+8→101 / 2.2.0→2.3.0 / 聚合 CN 10→18(其余键不动)
         # R20: 110→113(+JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 四地补齐)
-        self.assertEqual(len(REG['metrics']), 113)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL;R20 +3)
-        self.assertEqual(REG['version'], '2.8.6')  # R20(2026-11-19) 四地补齐;曾升 2.8.5(R25 DFF history_source)/2.8.4(R12 japan source_key 补接)/2.8.3(R11 注记细化)/2.8.2(R6-D1 换源)/2.8.0(数据批1)
+        # R21: 113→114(+CN_POLICY_OVERNIGHT 换锚新锚,active;插 CN 块尾)
+        self.assertEqual(len(REG['metrics']), 114)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL;R20 +3;R21 +1)
+        self.assertEqual(REG['version'], '2.8.7')  # R20(2026-11-19) 四地补齐;曾升 2.8.5(R25 DFF history_source)/2.8.4(R12 japan source_key 补接)/2.8.3(R11 注记细化)/2.8.2(R6-D1 换源)/2.8.0(数据批1)
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 111)  # 数据批1 +SPX_EPS/M2SL;R20 +3(均 active)
+                             if m.get('status') == 'active'), 112)  # 数据批1 +SPX_EPS/M2SL;R20 +3;R21 +1(均 active)
         agg = {}
         for m in REG['metrics']:
             agg[m['economy']] = agg.get(m['economy'], 0) + 1
@@ -167,7 +168,8 @@ class TestEconomyRules(unittest.TestCase):
         # Charter6-P2: US 50→52(+SPX_CAPE/SPX_PE_TTM;SPX_PB=unavailable不计)
         # Charter7 P2-3: US 53→55(+SOFR/WALCL);数据批1: US 55→57(+SPX_EPS/M2SL)
         # R20: JP 8→10(+JP_CPI_YOY/JP_REAL_GDP_YOY)/EA 11→12(+EA_REAL_GDP_YOY)
-        self.assertEqual(agg, {'US': 57, 'CN': 18, 'HK': 4, 'JP': 10,
+        # R21: CN 18→19(+CN_POLICY_OVERNIGHT)
+        self.assertEqual(agg, {'US': 57, 'CN': 19, 'HK': 4, 'JP': 10,
                                'EA': 12, 'GLOBAL': 12})
 
     def test_t1b_per_entry_rule_consistency(self):
@@ -239,10 +241,11 @@ class TestEconomyRules(unittest.TestCase):
         # 块内连续性与序仍锁([-17:-8]);CN8 尾序新锁([-8:],锁面净增强)。
         # R20: 三新指标 append 于数组尾→NEW9/CN8/SOX 块整体前移 3 位,块内
         # 连续性与序仍锁;新尾块=JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-23:-14]),
-                         NEW9)                                # append 尾序(WP-A 时点;P2-3/数据批1/R20 后块前移)
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-14:-6]),
-                         CN8)                                 # append 尾序(WP-E;P2-3/数据批1/R20 后块前移)
+        # R21: CN_POLICY_OVERNIGHT 插 CN 块尾→NEW9/CN 块各前移 1 位
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-24:-15]),
+                         NEW9)                                # append 尾序(WP-A 时点;P2-3/数据批1/R20/R21 后块前移)
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-15:-6]),
+                         CN8 + ('CN_POLICY_OVERNIGHT',))      # append 尾序(WP-E;R21 CN 块尾插隔夜锚=CN9)
         # Charter7 P2-3 + 数据批1(2026-11-10): SOFR/WALCL/M2SL append 于数组尾
         self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-6:-3]),
                          ('SOFR', 'WALCL', 'M2SL'))           # append 尾序(P2-3+数据批1;R20 后块前移)
@@ -310,7 +313,8 @@ class TestChannelRegistrationChain(unittest.TestCase):
                          | {'SOFR', 'WALCL'}   # Charter7 P2-3 流动性维
                          | {'SPX_EPS', 'M2SL'}  # 数据批1(2026-11-10)
                          | {'JP_CPI_YOY', 'EA_REAL_GDP_YOY',
-                            'JP_REAL_GDP_YOY'})  # R20 四地补齐
+                            'JP_REAL_GDP_YOY'}   # R20 四地补齐
+                         | {'CN_POLICY_OVERNIGHT'})  # R21 换锚新锚
 
     def test_t2e_run_weekly_thirteen_steps(self):
         src = open(os.path.join(ROOT, 'run_weekly.py'), encoding='utf-8').read()

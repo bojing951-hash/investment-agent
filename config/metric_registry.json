@@ -1,5 +1,5 @@
 {
- "version": "2.8.6",
+ "version": "2.8.7",
  "created": "2026-10-17",
  "spec": "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义",
  "field_semantics": {
@@ -39,7 +39,8 @@
   "同一指标多来源时以source为权威,对账差异写入快照reconciliation节",
   "v2.2.0(2026-11-05,IA-P1-WP-A): 全条目回填 economy/economy_rule/market_seat 三字段(INVENTORY a.3 P1-P8+v1.3 补读 P8-R2/P9/P10+S1-S4 机械规则);新注册 9 条 JP/EA 条目 append 于数组尾(12 候选=复用 3[BOJ_POLICY_RATE≡JP_POLICY_RATE/JGB_10Y/JGB_2Y]+新 9);85→94/active 84→93",
   "v2.3.0(2026-11-06,IA-P1-WP-E): 新注册 8 条 CN 宏观条目 append 于数组尾(G-P1-14..18: LPR 1Y/5Y/CPI 同比/PPI 同比/制造业 PMI/社融增量/新增人民币贷款/央行 7 天逆回购利率[身份预注册 source_symbol=PENDING]);94→102/active 93→101;CN_OMO_7D frequency='daily'=v1.3 裁决(有效利率形态,ECB_DFR 先例)",
-  "v2.4.0(2026-11-09,Charter5 A-fin): 全102条目人工回填结构化时间键 observation_period_kind/release_date_available(市场序列71条 trading_day/true;日历日7条 true;月度统计21条 false;LPR 2条 true;ICSA 仅发布日 true、观测期=周历不登记);依据=各条目release_semantics手写注记,不从frequency推断"
+  "v2.4.0(2026-11-09,Charter5 A-fin): 全102条目人工回填结构化时间键 observation_period_kind/release_date_available(市场序列71条 trading_day/true;日历日7条 true;月度统计21条 false;LPR 2条 true;ICSA 仅发布日 true、观测期=周历不登记);依据=各条目release_semantics手写注记,不从frequency推断",
+  "v2.8.7(2026-11-19,Audit-R21 任务2): +CN_POLICY_OVERNIGHT(央行隔夜逆回购利率,2026-11-02 换锚后的操作目标口径;113→114 条目,active 111→112);CN_OMO_7D 注记补 R21 根修(操作量为零日无成交利率不产观测,23 个 0.0 伪影根除)与换锚口径(七天工具单列);发布日历 v1.1.0 同批(R21 权威日期)"
  ],
  "metrics": [
   {
@@ -3603,7 +3604,7 @@
     "adjustment": "none"
    },
    "value_type": "level",
-   "calc": "人民银行公开市场业务交易公告 7 天期逆回购操作利率(中标/有效利率口径);R20 接线: china_market_collector fetch_macro_series 走查 pbc.gov.cn 125475 列表页(17081 分页),逐公告解析期限|操作利率表,7天期取操作利率(同公告多期限取最小),公告HTML按日期码缓存 DATA_DIR/cache/pboc_omo 支持增量;窗口内(2025-10..2026-10)7天利率恒为1.40,近期公告为隔夜品种(1.25)不覆盖本条目",
+   "calc": "人民银行公开市场业务交易公告 7 天期逆回购操作利率(中标/有效利率口径);R20 接线: china_market_collector fetch_macro_series 走查 pbc.gov.cn 125475 列表页(17081 分页),逐公告解析期限|操作利率表,7天期取操作利率(同公告多期限取最小),公告HTML按日期码缓存 DATA_DIR/cache/pboc_omo 支持增量;窗口内(2025-10..2026-10)7天利率恒为1.40,近期公告为隔夜品种(1.25)不覆盖本条目;R21 根修: 操作量为零日(2026-06/08/09/10 内 23 日,如 2026-08-19)公告无操作利率列(期限|投标量|中标量),解析层拒收量纲格——当日无成交利率不产观测,旧面 0.0 值系投标量误读为利率(伪影)",
    "validation": {
     "range": [
      0.5,
@@ -3614,7 +3615,41 @@
    "freshness": {
     "max_calendar_lag_days": 10
    },
-   "release_semantics": "央行操作室每交易日 09:20 前后披露交易公告(决议日不定期),当日可见;frequency=daily=IA-P1-WP-E v1.3 裁决(有效利率形态,ECB_DFR 先例),决议日语义由本注记承载;R20 已接线: 公告发布日=数据可视角,非公告日沿用最近有效利率(forward-fill 由研究层处理)"
+   "release_semantics": "央行操作室每交易日 09:20 前后披露交易公告(决议日不定期),当日可见;frequency=daily=IA-P1-WP-E v1.3 裁决(有效利率形态,ECB_DFR 先例),决议日语义由本注记承载;R20 已接线: 公告发布日=数据可视角,非公告日沿用最近有效利率(forward-fill 由研究层处理);R21 换锚: 2026-11-02 起政策利率锚=隔夜期(CN_POLICY_OVERNIGHT),本序列=7 天工具口径单列"
+  },
+  {
+   "metric_id": "CN_POLICY_OVERNIGHT",
+   "display_name": "央行隔夜逆回购利率(政策利率锚)",
+   "source": "china_market_collector",
+   "source_symbol": "PBC 公开市场业务交易公告(125475 列表页走查+公告缓存,隔夜期行)",
+   "asset_class": "policy_rate",
+   "frequency": "daily",
+   "observation_period_kind": "calendar_day",
+   "release_date_available": true,
+   "unit": "percent",
+   "calendar": "cn",
+   "economy": "CN",
+   "economy_rule": "P1:calendar=cn",
+   "market_seat": "onshore_local",
+   "criticality": "important",
+   "status": "active",
+   "identity": {
+    "instrument": "macro_series",
+    "adjustment": "none"
+   },
+   "value_type": "level",
+   "calc": "人民银行公开市场业务交易公告 隔夜期逆回购操作利率;Audit-R21 接线: 2026-11-02 起央行将政策利率锚自 7 天期切换为隔夜期(公告自该日仅含隔夜行,1.25%),fetch_macro_series 公告走查同源解析隔夜行产本序列(2026-11-02..在场,操作日=公告日);7 天工具(CN_OMO_7D)与 LPR(CN_LPR_1Y)单列不作废",
+   "validation": {
+    "range": [
+     0.1,
+     5
+    ],
+    "max_week_abs_move": 1.0
+   },
+   "freshness": {
+    "max_calendar_lag_days": 10
+   },
+   "release_semantics": "央行操作室每交易日 09:20 前后披露交易公告,当日可见;本序列=2026-11-02 换锚后的操作目标口径(换锚前无本序列=口径起点,非数据缺失);决议日语义由公告承载"
   },
   {
    "metric_id": "SOFR",

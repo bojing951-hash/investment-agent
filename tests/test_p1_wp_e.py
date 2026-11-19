@@ -234,23 +234,26 @@ class T1RegistryV230(unittest.TestCase):
     def test_t01_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1): 94+8→102/93+8→101/2.2.0→2.3.0/CN 10→18
         # R20: 110→113(+JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 四地补齐)
-        self.assertEqual(len(REG['metrics']), 113)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL;R20 +3)
-        self.assertEqual(REG['version'], '2.8.6')  # R20(2026-11-19) 四地补齐;曾升 2.8.5(R25 DFF history_source)/2.8.4(R12 japan source_key 补接)/2.8.3(R11 注记细化)/2.8.2(R6-D1 换源)/2.8.0(数据批1)
+        # R21: 113→114(+CN_POLICY_OVERNIGHT 换锚新锚,active;插 CN 块尾)
+        self.assertEqual(len(REG['metrics']), 114)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL;R20 +3;R21 +1)
+        self.assertEqual(REG['version'], '2.8.7')  # R20(2026-11-19) 四地补齐;曾升 2.8.5(R25 DFF history_source)/2.8.4(R12 japan source_key 补接)/2.8.3(R11 注记细化)/2.8.2(R6-D1 换源)/2.8.0(数据批1)
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 111)  # 数据批1 +SPX_EPS/M2SL;R20 +3(均 active)
+                             if m.get('status') == 'active'), 112)  # 数据批1 +SPX_EPS/M2SL;R20 +3;R21 +1(均 active)
         agg = {}
         for m in REG['metrics']:
             agg[m['economy']] = agg.get(m['economy'], 0) + 1
         # Charter6-P2: US 50→52(+SPX_CAPE/SPX_PE_TTM)
         # Charter7 P2-3: US 53→55(+SOFR/WALCL);数据批1: US 55→57(+SPX_EPS/M2SL)
         # R20: JP 8→10(+JP_CPI_YOY/JP_REAL_GDP_YOY)/EA 11→12(+EA_REAL_GDP_YOY)
-        self.assertEqual(agg, {'US': 57, 'CN': 18, 'HK': 4, 'JP': 10,
+        # R21: CN 18→19(+CN_POLICY_OVERNIGHT)
+        self.assertEqual(agg, {'US': 57, 'CN': 19, 'HK': 4, 'JP': 10,
                                'EA': 12, 'GLOBAL': 12})
 
     def test_t02_cn8_tail_order_and_common_fields(self):
         # R20: 三新指标 append 尾→CN8/SOX 块整体前移 3 位,块内序不变
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-14:-6]),
-                         CN8_ORDER)                       # append 尾序=终值表序(P2-3/数据批1/R20 后块前移)
+        # R21: CN_POLICY_OVERNIGHT 插 CN 块尾→CN 块=CN8+隔夜锚(CN9),块前移 1 位
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-15:-6]),
+                         CN8_ORDER + ('CN_POLICY_OVERNIGHT',))  # append 尾序=终值表序(P2-3/数据批1/R20/R21 后块前移)
         # Charter7 P2-3 + 数据批1(2026-11-10): SOFR/WALCL/M2SL append 于数组尾
         self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-6:-3]),
                          ('SOFR', 'WALCL', 'M2SL'))       # append 尾序(P2-3+数据批1;R20 后块前移)
@@ -294,13 +297,16 @@ class T1RegistryV230(unittest.TestCase):
                      'china_market_collector fetch_macro_series 走查 pbc.gov.cn 125475 '
                      '列表页(17081 分页),逐公告解析期限|操作利率表,7天期取操作利率(同公告多期限取最小),公告HTML按日期码缓存 '
                      'DATA_DIR/cache/pboc_omo 支持增量;窗口内(2025-10..2026-10)7天利率恒为1.40,'
-                     '近期公告为隔夜品种(1.25)不覆盖本条目'),
+                     '近期公告为隔夜品种(1.25)不覆盖本条目;R21 根修: 操作量为零日(2026-06/08/09/10 内 23 日,如 '
+                     '2026-08-19)公告无操作利率列(期限|投标量|中标量),解析层拒收量纲格——当日无成交利率不产观测,'
+                     '旧面 0.0 值系投标量误读为利率(伪影)'),
             'validation': {'range': [0.5, 5], 'max_week_abs_move': 1.0},
             'freshness': {'max_calendar_lag_days': 10},
             'release_semantics': ("央行操作室每交易日 09:20 "
                                   "前后披露交易公告(决议日不定期),当日可见;frequency=daily=IA-P1-WP-E v1.3 "
                                   "裁决(有效利率形态,ECB_DFR 先例),决议日语义由本注记承载;R20 已接线: "
-                                  "公告发布日=数据可视角,非公告日沿用最近有效利率(forward-fill 由研究层处理)"),
+                                  "公告发布日=数据可视角,非公告日沿用最近有效利率(forward-fill 由研究层处理);"
+                                  "R21 换锚: 2026-11-02 起政策利率锚=隔夜期(CN_POLICY_OVERNIGHT),本序列=7 天工具口径单列"),
         })
 
     def test_t04_semantics_evolution_vintage(self):
@@ -313,7 +319,8 @@ class T1RegistryV230(unittest.TestCase):
                          | {'SOFR', 'WALCL'}  # Charter7 P2-3: +2=27(流动性维)
                          | {'SPX_EPS', 'M2SL'}  # 数据批1(2026-11-10): +2=29
                          | {'JP_CPI_YOY', 'EA_REAL_GDP_YOY',
-                            'JP_REAL_GDP_YOY'})  # R20(2026-11-19): +3=32 四地补齐
+                            'JP_REAL_GDP_YOY'}   # R20(2026-11-19): +3=32 四地补齐
+                         | {'CN_POLICY_OVERNIGHT'})  # R21(2026-11-19): +1=33 换锚新锚
         self.assertEqual(bl.BASELINE_VINTAGE_IDS & CN8, set())      # 不与冻结81撞名
 
     def test_t05_cn_classification_reencode(self):

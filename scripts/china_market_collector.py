@@ -1395,35 +1395,57 @@ def _em_series_rows(url, value_field):
     return [(k, out[k]) for k in sorted(out)]
 
 
+def _pboc_rate_cell_value(cell):
+    """利率单元格 → 数值;带量纲(亿元等)或空→None。
+
+    Audit-R21 任务2: 操作量为零的公告日,表格行形=期限|投标量|中标量
+    (无操作利率列),首量格 '0亿元' 曾被旧解析误读为利率 0.0——序列里
+    23 个零值全部来源于此。修法=利率格必须为纯数值(可带 %),含
+    量纲字样一律拒收(该期限当日无成交利率,如实无观测)。"""
+    if not cell or re.search(r'亿元|万亿', cell):
+        return None
+    m = re.fullmatch(r'([0-9]+(?:\.[0-9]+)?)%?', cell)
+    if not m:
+        return None
+    v = float(m.group(1))
+    # 政策操作利率无 0 值形态(注册表校验域 [0.1,5]):裸 '0' 量格(零操作
+    # 日无量纲变体)同样拒收,不产 0.0 观测。
+    return None if v == 0.0 else v
+
+
 def _pboc_omo_parse_announcement(html_text):
-    """单篇公告 HTML → 该日 7 天逆回购中标利率(表格式形态;无 7 天行→None)。
+    """单篇公告 HTML → {'7天': rate|None, '隔夜': rate|None}。
 
     表格行形(2026-11-19 实测): 期限|操作利率|投标量|中标量,如
     ['7天', '1. 40 %', '…亿元', '…亿元'](操作利率含空格变体→剥离后解析;
-    '隔夜'行不计——本序列=7 天期口径)。同篇多个 7 天行不同率→取首见并
-    告警面交调用方(源端无此形,防御)。"""
+    操作量为零日=期限|投标量|中标量,利率列缺席→该期限 None——
+    Audit-R21: 2026-08-19 等日操作量为零,当日成交利率留空,禁以 0 冒充)。
+    2026-11-02 换锚后公告含 隔夜 行(操作利率列)→ '隔夜' 键产出
+    CN_POLICY_OVERNIGHT 序列。同篇同期限多行不同率→取首见(源端无此形,
+    防御)。"""
     rows = re.findall(r'<tr[^>]*>([\s\S]*?)</tr>', html_text or '')
-    rates = []
+    out = {'7天': None, '隔夜': None}
     for r in rows:
         cells = [re.sub(r'<[^>]+>|&nbsp;|\s+', '', c)
                  for c in re.findall(r'<t[dh][^>]*>([\s\S]*?)</t[dh]>', r)]
-        if len(cells) >= 2 and '7天' in cells[0]:
-            m = re.match(r'([0-9]+(?:\.[0-9]+)?)%?', cells[1])
-            if m:
-                rates.append(float(m.group(1)))
-    if not rates:
-        return None
-    return rates[0] if len(set(rates)) == 1 else min(rates)
+        if len(cells) >= 2 and cells[0] in ('7天', '隔夜') \
+                and out.get(cells[0]) is None:
+            v = _pboc_rate_cell_value(cells[1])
+            if v is not None:
+                out[cells[0]] = v
+    return out
 
 
 def _pboc_omo_walk(back_days=None):
-    """PBOC 公告走查 → [('YYYY-MM-DD', rate)] 升序(7 天逆回购操作日)。
+    """PBOC 公告走查 → {'7天': [(date, rate)], '隔夜': [(date, rate)]} 升序。
 
     列表页 index.html + 17081-N.html 翻页(每页 20 条,新→旧),取公告
     链接(URL 17 位日期码);回看窗=公告日≥today−back_days(默认 500 自然
     日,覆盖地图 12 个月前锚);逐公告先查本地缓存(data/cache/pboc_omo/
-    YYYYMMDD.html)命中不取网,未中→curl 取+写缓存。窗口内无 7 天行的
-    公告日不产观测(隔夜-only 操作日=该日无 7 天口径,如实)。"""
+    YYYYMMDD.html)命中不取网,未中→curl 取+写缓存。窗口内无该期限行的
+    公告日不产观测;操作量为零日=无成交利率(解析层拒收量纲格,
+    Audit-R21 任务2——七天序列 23 个 0.0 伪影的根修,08-19 等日利率
+    留空)。隔夜行自 2026-11-02 换锚后在场 → CN_POLICY_OVERNIGHT。"""
     import datetime as _dt
     import time as _time
     back_days = back_days if back_days is not None else _OMO_BACKFILL_DAYS
@@ -1447,7 +1469,7 @@ def _pboc_omo_walk(back_days=None):
         if new == 0 or (oldest and oldest < floor):
             break
         _time.sleep(0.15)
-    out = {}
+    out = {'7天': {}, '隔夜': {}}
     for href, iso in sorted(links.items(), key=lambda x: x[1], reverse=True):
         code = href.rstrip('/').split('/')[-2]   # …/{17位日期码}/index.html
         cache = os.path.join(PBC_OMO_CACHE_DIR, '%s.html' % code)
@@ -1471,10 +1493,12 @@ def _pboc_omo_walk(back_days=None):
             except Exception:
                 pass
             _time.sleep(0.15)
-        rate = _pboc_omo_parse_announcement(html_text)
-        if rate is not None:
-            out[iso] = rate
-    return [(k, out[k]) for k in sorted(out)]
+        rates = _pboc_omo_parse_announcement(html_text)
+        for tenor, rate in rates.items():
+            if rate is not None:
+                out[tenor][iso] = rate
+    return {k: [(d, v) for d, v in sorted(vs.items())]
+            for k, vs in out.items()}
 
 
 def fetch_macro_series():
@@ -1536,13 +1560,27 @@ def fetch_macro_series():
               f"{type(e).__name__}: {str(e)[:120]}")
 
     omo = _pboc_omo_walk()
-    if omo:
-        out['CN_OMO_7D'] = {'dates': [d for d, _ in omo],
-                            'values': [v for _, v in omo]}
-        print(f"  ✅ series.CN_OMO_7D: n={len(omo)} "
-              f"({omo[0][0]}..{omo[-1][0]}, 末值 {omo[-1][1]})")
+    seven = omo.get('7天') if isinstance(omo, dict) else omo
+    if seven:
+        out['CN_OMO_7D'] = {'dates': [d for d, _ in seven],
+                            'values': [v for _, v in seven]}
+        _zeros = sum(1 for _, v in seven if v == 0)
+        print(f"  ✅ series.CN_OMO_7D: n={len(seven)} "
+              f"({seven[0][0]}..{seven[-1][0]}, 末值 {seven[-1][1]}"
+              f"{', 零值=' + str(_zeros) + '(应为0——操作量为零日无成交利率,不产观测)' if _zeros else ''})")
     else:
         print("  ⚠️ series.CN_OMO_7D: 公告走查无 7 天行(缺席)")
+    on = omo.get('隔夜') if isinstance(omo, dict) else None
+    if on:
+        # Audit-R21 任务2: 2026-11-02 换锚——隔夜逆回购成为操作目标锚,
+        # 七天工具与 LPR 单列(registry/地图政策面同口径)。
+        out['CN_POLICY_OVERNIGHT'] = {'dates': [d for d, _ in on],
+                                      'values': [v for _, v in on]}
+        print(f"  ✅ series.CN_POLICY_OVERNIGHT: n={len(on)} "
+              f"({on[0][0]}..{on[-1][0]}, 末值 {on[-1][1]})")
+    else:
+        print("  ⚠️ series.CN_POLICY_OVERNIGHT: 公告走查无隔夜行"
+              "(2026-11-02 前形态,缺席)")
     return out
 
 

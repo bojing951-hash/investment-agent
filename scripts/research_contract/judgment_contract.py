@@ -18,6 +18,7 @@
 
 纯度: 仅 stdlib + research_contract(tc/cf);零模型/零环境/零网络/零随机。
 """
+import bisect
 import datetime
 import re
 
@@ -991,6 +992,131 @@ def _map_checks(judgment, face, report):
     # (trigger/falsification 阈值形态+算术一致性);R20 任务3 的读者面
     # 要求=MAP_REPORT 渲染层把两情景的触发与失效方向分别展示
     # (render_map_report l4 段),此处不重复立契约。
+    # ── Audit-R21 任务3: 事后正文数值/正文月份/月频时序三阻断 ──────────
+    # (10) 事后正文数值回贴 history_prose_echo: 历史段 ex_post 正文里的
+    #     「METRIC ±N.NN%(/pp)」须与引擎同窗复算一致——反例①只改正文把
+    #     −6.27% 改成 +99.00% 而校验字段原样时,此为唯一确定性拦截位。
+    def _month_last_obs(dates, values, ym):
+        hi_i = bisect.bisect_right(dates, ym + '-31')
+        j = hi_i - 1
+        while j >= 0 and values[j] is None:
+            j -= 1
+        return (dates[j], values[j]) if j >= 0 else (None, None)
+
+    for hi, h in enumerate(hist):
+        hid = f'reader_map.history_periods[{hi}]'
+        aym = str(h.get('anchor_ym') or '')
+        if len(aym) != 7:
+            continue
+        try:
+            import research_map_planner as _rmp4
+            exp = _rmp4.ex_post_windows(aym)
+        except Exception:
+            exp = {'3m': _ym_shift(aym, 3), '6m': _ym_shift(aym, 6),
+                   '12m': _ym_shift(aym, 12)}
+        ex = h.get('ex_post') or {}
+        for k in ('3m', '6m', '12m'):
+            txt = str(ex.get(k) or '')
+            tgt = exp.get(k)
+            if not txt or not tgt:
+                continue
+            for mt in re.finditer(
+                    r'([A-Z][A-Z0-9_]{1,20})\s*'
+                    r'([+\-−]?[0-9]+(?:\.[0-9]+)?)\s*(pp|%)', txt):
+                mid, num, unit = mt.group(1), mt.group(2), mt.group(3)
+                num = float(num.replace('−', '-'))
+                ser = (face.get('series_store') or {}).get(mid)
+                if not ser or not ser.get('dates'):
+                    continue
+                d0, v0 = _month_last_obs(ser['dates'], ser['values'], aym)
+                d1, v1 = _month_last_obs(ser['dates'], ser['values'], tgt)
+                if v0 is None or v1 is None or d0 == d1:
+                    continue
+                try:
+                    eng_num = ((v1 / v0 - 1.0) * 100.0 if unit == '%'
+                               else v1 - v0)
+                except (TypeError, ZeroDivisionError):
+                    continue
+                if abs(num - eng_num) > 0.6:
+                    bad(f'{hid}.ex_post.{k}',
+                        f'事后窗数字与引擎不符: {mid} {num:+.2f}{unit} vs '
+                        f'锚月{aym}末→{tgt}末复算 {eng_num:+.2f}{unit}'
+                        f'({d0}={v0}→{d1}={v1})——编造事后回报',
+                        contra=True)
+    # (11) 正文月份扫描: 走位正文里的 YYYY-MM 须落在引擎面月份集(序列
+    #     观测月∪锚观测月∪候选窗∪历史结构面∪资产窗)——反例②只把美国
+    #     正文观测月改成 2030-07 而校验字段原样时,此为拦截位。
+    eng_months = set()
+    for _ser in (face.get('series_store') or {}).values():
+        eng_months.update(str(d)[:7] for d in _ser.get('dates') or [])
+    for _c in (plan.get('point_values') or {}).get('cells') or []:
+        for _a in (_c.get('anchors') or {}).values():
+            _od = str(_a.get('observation_date') or '')
+            if _od:
+                eng_months.add(_od[:7])
+    for _t in (plan.get('turning_candidates') or {}).get('candidates') or []:
+        eng_months.add(str(_t.get('from_ym') or ''))
+        eng_months.add(str(_t.get('to_ym') or ''))
+    for _h in hist:
+        eng_months.add(str(_h.get('anchor_ym') or ''))
+        eng_months.add(str(_h.get('judgment_cutoff_ym') or ''))
+        _mw = _h.get('match_window') or {}
+        eng_months.add(str(_mw.get('start_ym') or ''))
+        eng_months.add(str(_mw.get('end_ym') or ''))
+        eng_months.update(str(x)[:7]
+                          for x in _h.get('aftermath_obs_months') or [])
+    for _r2 in (plan.get('asset_moves') or {}).get('rows') or []:
+        _w2 = _r2.get('window') or {}
+        eng_months.add(str(_w2.get('from') or '')[:7])
+        eng_months.add(str(_w2.get('to') or '')[:7])
+    eng_months.discard('')
+    for r in rm.get('regions') or []:
+        for mt in re.finditer(r'\d{4}-\d{2}', str(r.get('from_to') or '')):
+            if mt.group(0) not in eng_months:
+                bad(f'reader_map.regions[{r.get("region")}].prose_month',
+                    f'正文月份 {mt.group(0)} 不在引擎面月份集(序列观测月/'
+                    '锚观测月/候选窗/历史窗/资产窗)——正文月份错误'
+                    '(2030-07 类虚构月份的拦截位)', contra=True)
+    # (12) 月频时序纪律: 月频证据只能支持「同步」时,排序主张(率先/领先/
+    #     先变…对同月变动的另一指标)须如实写明「先后未定」——月度观测
+    #     分不出同月内先后,超出证据分辨率的排序=对读者的误导。
+    _order_kw = re.compile(r'率先|领先|先变|先行|首先|最早|先于|更早于|落后|滞后')
+    _tkeys = [(str(t.get('metric_id') or ''), str(t.get('date') or '')[:7])
+              for t in turnings]
+    _cand_pairs = {(str(c.get('metric_id') or ''), str(c.get('to_ym') or ''))
+                   for c in cands}
+    for ti, t in enumerate(turnings):
+        tid = f'reader_map.turnings[{ti}]'
+        own_mid, own_ym = _tkeys[ti]
+        blob_order = str(t.get('first_mover') or '') + str(
+            t.get('follow_or_diverge') or '')
+        if not _order_kw.search(blob_order):
+            continue
+        cited = {m.group(0) for m in re.finditer(r'\d{4}-\d{2}', blob_order)}
+        # 同月他指标变动: 正文引用了本转折月,且该月存在另一指标(≠本
+        # 指标)的转折/候选窗终点——两变动落在同一观测月,月频证据只能
+        # 支持同步,排序主张须如实写明「先后未定」。
+        same_month_peers = {
+            mid2 for mid2, ym2 in set(_tkeys) | _cand_pairs
+            if mid2 != own_mid and ym2 == own_ym and own_ym in cited}
+        if same_month_peers and '先后未定' not in blob_order:
+            bad(f'{tid}.ordering_resolution',
+                f'排序主张超出证据分辨率: {own_mid}@{own_ym} 与同月变动'
+                f'指标({sorted(same_month_peers)})均月频观测,同月内先后'
+                '不可分——须如实写明「先后未定」(月频证据只能支持同步时'
+                '不得断言谁先谁后)', contra=True)
+    # 历史段样本前提(R21 任务4): us_analog 标明+sample_note 样本注记
+    # 必填——类比锚定的序列口径与样本独立性是读者判断可比性的前提。
+    for hi, h in enumerate(hist):
+        hid = f'reader_map.history_periods[{hi}]'
+        if not isinstance(h.get('us_analog'), bool):
+            bad(f'{hid}.us_analog', '历史段须给 us_analog 布尔(美国指标'
+                '类比须标明——三段历史默认锚定美国序列,非美国类比须明示'
+                '锚定口径)')
+        if not str(h.get('sample_note') or '').strip():
+            bad(f'{hid}.sample_note', '历史段须给 sample_note 样本注记'
+                '(样本独立性/与当前研究窗重叠/最新修订口径一类前提——'
+                '读者报告须显示样本注记)')
     return out
 
 

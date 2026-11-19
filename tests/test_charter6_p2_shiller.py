@@ -387,12 +387,13 @@ regj = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),
 ms = regj['metrics']
 # R20: 注册表升版 v2.8.6(四地地图数据面补齐,2026-11-19),R25 history_source 事实仍在册
 check("版本 v2.8.6(R20 四地补齐;曾升2.8.5 R25 DFF history_source/2.8.4 R12 japan source_key补接/2.8.3 R11注记细化/2.8.2 R6-D1换源/2.8.0 数据批1)",
-      regj.get('version') == '2.8.6')
+      regj.get('version') == '2.8.7')
 # R20: +JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 三指标
-check("113项(数据批1 +SPX_EPS/M2SL;R20 四地补齐 +3)", len(ms) == 113, str(len(ms)))
+check("114项(R21 +CN_POLICY_OVERNIGHT 换锚新锚)",  # R21: 113→114
+      len(ms) == 114, str(len(ms)))
 active = [m for m in ms if m.get('status') == 'active']
-# R20: active 108→111(新增三指标均 active)
-check("活跃111项(数据批1 +2;R20 +3)", len(active) == 111, str(len(active)))
+# R20: active 108→111(新增三指标均 active);R21: 111→112(隔夜锚 active)
+check("活跃112项(数据批1 +2;R20 +3;R21 +1)", len(active) == 112, str(len(active)))
 us = [m for m in active if m.get('economy') == 'US']
 check("US 活跃55项(SPX_PB=unavailable不计入;数据批1 +SPX_EPS/M2SL)",
       len(us) == 55, str(len(us)))
@@ -434,12 +435,13 @@ sys.path.insert(0, os.path.join(ROOT, 'tests'))
 from helpers import baseline_locks as bl  # noqa: E402
 va = bl.vintage_additions(fe.load_registry())
 # R20: vintage 29→32(+JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY)
-check("vintage_additions=32(含新4项+P2-3两项+数据批1 SPX_EPS/M2SL;"
-      "R20 四地补齐+3;unavailable同属时点后新增)",
-      len(va) == 32 and {'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB', 'US_REAL_GDP',
+# R21: 32→33(+CN_POLICY_OVERNIGHT 换锚新锚)
+check("vintage_additions=33(含新4项+P2-3两项+数据批1 SPX_EPS/M2SL;"
+      "R20 四地补齐+3;R21 换锚+1;unavailable同属时点后新增)",
+      len(va) == 33 and {'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB', 'US_REAL_GDP',
                          'SOFR', 'WALCL', 'SPX_EPS', 'M2SL',
                          'JP_CPI_YOY', 'EA_REAL_GDP_YOY',
-                         'JP_REAL_GDP_YOY'} <= va,
+                         'JP_REAL_GDP_YOY', 'CN_POLICY_OVERNIGHT'} <= va,
       str(sorted(va)))
 
 print("\n" + "=" * 64)

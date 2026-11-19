@@ -1503,7 +1503,17 @@ def _r1_plan_core(args, engine_root):
                                   '[{metric_id,window_months,chg_pct,window{'
                                   'from,to}}];零段历史类比合法但须 '
                                   'history_zero_case_note(检索范围+原因);'
-                                  'L4 两情景的触发与失效方向将随读者报告'
+                                  'Audit-R21: 历史段须给 us_analog 布尔+'
+                                  'sample_note 样本注记(样本独立性/与当前窗'
+                                  '重叠/修订口径);ex_post 正文资产数字'
+                                  '(METRIC ±N.NN%/pp)会被同窗月末口径复算'
+                                  '(锚月末→锚+N月月末,相左=CONTRADICTED);'
+                                  '走位正文 YYYY-MM 月份须落在引擎面月份集'
+                                  '(2030-07 类虚构月份=CONTRADICTED);排序'
+                                  '主张(率先/领先/最早…)比对的两个指标变动'
+                                  '落在同一观测月时必须写明「先后未定」'
+                                  '(月频证据只能支持同步);L4 两情景的触发'
+                                  '与失效方向将随读者报告'
                                   '展示(结构面沿既有 l4.scenarios 契约)')
         work_order['reader_map_contract'] = {
             'spec': 'judgment 顶层 reader_map 对象;字段结构与数值回贴核对'
@@ -1550,7 +1560,12 @@ def _r1_plan_core(args, engine_root):
                            'rates_decomposition(共同交易日同窗);回报数字→'
                            'asset_returns_echo(同窗复算+窗口两端日);'
                            '情景≥2 个各写触发与失效方向;引用引擎事后回顾'
-                           '序列(最新修订值)的数字不得表述为当时首发值'],
+                           '序列(最新修订值)的数字不得表述为当时首发值',
+                           'R21 纪律: 历史段 us_analog+sample_note 必填;'
+                           'ex_post 资产数字同窗复算(锚月末→锚+N月月末);'
+                           '正文月份须在引擎面月份集内;同月变动的两指标'
+                           '排序主张须写「先后未定」;传导链区分指标将随'
+                           '引擎当前面观测(最新值+近30日变化)渲染'],
         }
         with open(envelope_path, 'w', encoding='utf-8') as f:
             json.dump(work_order, f, ensure_ascii=False, indent=2)
@@ -1745,6 +1760,11 @@ def _r1_report_core(args, engine_root):
         warnings.append('关键步骤失败/来源校验失败/未知失败'
                         '(critical_step_failure)——质量与完整性缺口,'
                         '不得自动归为可选缺失降级交付(Audit-R5 条目2)')
+    elif blocked_class == 'map_anchor_coverage_insufficient':
+        warnings.append('地图锚覆盖不足(map_anchor_coverage_insufficient)'
+                        '——组内 ok 锚<2 且空锚无经证实延误依据,仅存最新'
+                        '单点不构成三时点对照(R21: 草稿可交付,正式归档'
+                        '须组内 ok 锚≥2)')
     elif aj_meta.get('run_ok_at_attach') is False and not degraded_ok:
         warnings.append('底座 run_ok=False 且非 optional 级显式降级'
                         '(不可交付级)')
@@ -1956,6 +1976,30 @@ def _r1_archive_core(args, engine_root):
             (warnings or []) + ['归档拒绝: 核心维度缺数 '
                                 f'{sorted(f"{_e}/{_d}" for _e, _d in (_plp - _okp))}'
                                 '(R20: 草稿可交付,正式归档须 12/12 组齐)']
+    # Audit-R21 任务3反例③: 序列在场但一组仅剩最新单点(历史锚空且无经
+    # 证实延误依据)=锚覆盖不足——归档侧 belt 同判,零归档增量。
+    if _bc_r20 == 'map_anchor_coverage_insufficient':
+        _pvx2 = ((rj.get('research_plan') or {}).get('point_values')
+                 or {})
+        _okn, _gapu = {}, {}
+        for _c in _pvx2.get('cells') or []:
+            _g = (_c.get('region'), _c.get('dimension'))
+            for _a in (_c.get('anchors') or {}).values():
+                if _a.get('status') == 'ok':
+                    _okn[_g] = _okn.get(_g, 0) + 1
+                elif not _a.get('calendar_blocked_observation'):
+                    _gapu[_g] = _gapu.get(_g, 0) + 1
+        _sparse_g = [f'{_e}/{_d}' for (_e, _d) in sorted(_okn)
+                     if _okn[(_e, _d)] < 2 and _gapu.get((_e, _d))]
+        return False, {'stage': 'archive',
+                       'blocked': 'map_anchor_coverage_insufficient',
+                       'sparse_groups': _sparse_g,
+                       'note': '锚覆盖不足: 下列组序列在场但 ok 锚<2 且空锚'
+                               '无经证实延误依据——仅存最新单点不构成三时点'
+                               '对照,交付草稿不进正式归档'}, \
+            (warnings or []) + ['归档拒绝: 锚覆盖不足 ' + str(_sparse_g)
+                                + '(R21: 组内 ok 锚≥2 或空锚须有日历实录'
+                                '证实依据)']
     run_ts = (rj.get('run') or {}).get('ts_utc') or 'unknown'
     dest = getattr(args, 'archive_dir', None) or os.path.join(
         ROOT, 'research_archive', os.path.basename(rd.rstrip('/')) or run_ts)

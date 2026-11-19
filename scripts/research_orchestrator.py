@@ -1941,6 +1941,17 @@ def run_research(question, root=None, archive=False, out_dir=None,
         hist_metrics = list(ent['metrics']) + [
             m for m in research_plan.get('context_metrics', [])
             if m not in ent['metrics']]
+        # Audit-R21 任务3: 地图问句的资产宇宙一并入 S4——历史段 ex_post
+        # 资产数字的契约回贴(history_prose_echo 复算锚月末→锚+N月月末)
+        # 须吃得到引擎资产序列 dates/values;verify_judgment 是纯
+        # (judgment, report) 契约,S4 信封是唯一序列通道。资产缺席以
+        # asset_moves.absent 同源探测为准(缺席者不硬跑失败子进程)。
+        _am_absent = set((research_plan.get('asset_moves') or {})
+                         .get('absent') or [])
+        hist_metrics += [
+            m for m in (((research_plan.get('point_values') or {})
+                         .get('asset_universe')) or [])
+            if m not in hist_metrics and m not in _am_absent]
     else:
         hist_metrics = ent['metrics'][:4]
     if len(ent['metrics']) > 4 and research_plan is None:

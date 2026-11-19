@@ -59,13 +59,13 @@ print("\n[1] 注册表(数据批1面: +SPX_EPS/M2SL,DAX/CAC40 转正;锁随升 v
 _n80 = [n for n in REG_JSON['notes'] if n.startswith('v2.8.0')]
 # R20: 注册表升版 v2.8.6(四地地图数据面补齐),数据批1注记仍在册
 check("版本 v2.8.6(R20 四地补齐)+数据批1注记仍在册",
-      REG_JSON['version'] == '2.8.6'
+      REG_JSON['version'] == '2.8.7'
       and len(_n80) == 1 and 'SPX_EPS' in _n80[0] and 'M2SL' in _n80[0],
       REG_JSON['version'])
 # R20: +JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 三指标(均 active)
-check("113项/111活跃(数据批1 +2;R20 四地补齐 +3)",
-      len(REG_JSON['metrics']) == 113
-      and sum(1 for m in REG_JSON['metrics'] if m['status'] == 'active') == 111,
+check("114项/112活跃(R21 +CN_POLICY_OVERNIGHT 换锚新锚)",  # R21: 113→114/111→112
+      len(REG_JSON['metrics']) == 114
+      and sum(1 for m in REG_JSON['metrics'] if m['status'] == 'active') == 112,
       str(len(REG_JSON['metrics'])))
 probs = rsem.validate_registry(REG_JSON)
 new_errs = [p for p in probs if p.get('severity') == 'error'

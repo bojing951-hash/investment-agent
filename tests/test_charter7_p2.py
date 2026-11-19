@@ -209,7 +209,7 @@ check("注册表 v2.7.0: SOFR/WALCL 条目零结构 error(单位/日历/来源/�
       "枚举全过)", not my_errs, str(my_errs[:2]))
 # R20: 注册表升版 v2.8.6(四地地图数据面补齐),P2-3 注记仍在册
 check("注册表: 版本号在册(R20 后 v2.8.6;P2-3 变更注记仍在)",
-      REG_JSON['version'] == '2.8.6'
+      REG_JSON['version'] == '2.8.7'
       and any('P2-3' in n and 'SOFR' in n for n in REG_JSON['notes']))
 core_ids = rp.core_metric_ids()
 check("Gate A 语义不变: SOFR/WALCL 为 important 非 core(缺席=noncore_missing"

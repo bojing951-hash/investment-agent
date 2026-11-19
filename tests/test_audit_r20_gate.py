@@ -186,17 +186,21 @@ def test_audit_r20_gate():
            == ms.get('DFEDTARL', {}).get('history_source')
            == 'macro_collector'))
     ent = rc.first_publish('US_REAL_GDP', '2025-07-01')
-    check('§A 日历实录: 停摆期 Q3 GDP 首发日=2025-11-19(user_directive)',
-          ent is not None and ent.get('first_publish') == '2025-11-19'
+    # R21: 验收指令实录把 Q3 GDP 首发由整批 2025-11-19 改精确日 2025-12-23
+    # (日历 v1.1.0);断言意图不变(日历实录条目优先),期望值随实录修订。
+    check('§A 日历实录: 停摆期 Q3 GDP 首发日=2025-12-23(user_directive)',
+          ent is not None and ent.get('first_publish') == '2025-12-23'
           and ent.get('basis') == 'user_directive', str(ent))
     ent2 = rc.first_publish('UNEMPLOYMENT', '2025-09-01')
     ent3 = rc.first_publish('UNEMPLOYMENT', '2025-08-01')
-    check('§A 日历实录: 9 月失业率首发 2025-11-19;8 月无条目走规则',
-          ent2 is not None and ent2.get('first_publish') == '2025-11-19'
+    # R21: 9 月失业率首发由整批 11-19 改实录精确日 2025-11-20。
+    check('§A 日历实录: 9 月失业率首发 2025-11-20;8 月无条目走规则',
+          ent2 is not None and ent2.get('first_publish') == '2025-11-20'
           and ent3 is None, f'{ent2}/{ent3}')
     pub, basis = rmp._visible_publish('US_REAL_GDP', 'quarterly', '2025-07-01')
-    check('§A _visible_publish 日历优先: Q3→11-19+basis 带条目号',
-          pub == '2025-11-19' and basis.startswith('calendar:RC-'), f'{pub}|{basis}')
+    # R21: Q3 可见日随日历 v1.1.0 精确化改 2025-12-23。
+    check('§A _visible_publish 日历优先: Q3→12-23+basis 带条目号',
+          pub == '2025-12-23' and basis.startswith('calendar:RC-'), f'{pub}|{basis}')
     pub2, basis2 = rmp._visible_publish('UNEMPLOYMENT', 'monthly', '2025-08-01')
     check('§A _visible_publish 规则兜底: 8 月→09-05+推定规则文本随格',
           pub2 == '2025-09-05' and '推定' in basis2, f'{pub2}|{basis2}')

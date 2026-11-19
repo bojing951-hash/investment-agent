@@ -110,10 +110,11 @@ class T1RegistryIdentity(unittest.TestCase):
         # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
         # 94+8→102 / 93+8→101 / 2.2.0→2.3.0
         # R20: 110→113(+JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 四地补齐)
-        self.assertEqual(len(REG['metrics']), 113, '指标总数须恰为113(85+9+8+1+3Charter6+2P2-3+2数据批1+3R20)')  # 数据批1: +SPX_EPS/M2SL;R20: +3
+        # R21: 113→114(+CN_POLICY_OVERNIGHT 换锚新锚,active)→111→112
+        self.assertEqual(len(REG['metrics']), 114, '指标总数须恰为114(85+9+8+1+3Charter6+2P2-3+2数据批1+3R20+1R21)')  # 数据批1: +SPX_EPS/M2SL;R20: +3;R21: +1
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 111)  # 数据批1 +SPX_EPS/M2SL;R20 +3(新增三指标均 active)
-        self.assertEqual(REG['version'], '2.8.6', '版本号须为2.8.6(R20 四地补齐;曾升2.8.5 R25 DFF history_source/2.8.4 R12 japan source_key 补接/2.8.3 R11 注记细化/2.8.2 R6-D1 换源/2.8.0 数据批1)')
+                             if m.get('status') == 'active'), 112)  # 数据批1 +SPX_EPS/M2SL;R20 +3;R21 +1(新增四指标均 active)
+        self.assertEqual(REG['version'], '2.8.7', '版本号须为2.8.6(R20 四地补齐;曾升2.8.5 R25 DFF history_source/2.8.4 R12 japan source_key 补接/2.8.3 R11 注记细化/2.8.2 R6-D1 换源/2.8.0 数据批1)')
 
     def test_t02_four_entries_full_field_freeze(self):
         # D11 全字段冻结(硬编码逐字段=磁盘实况,任何漂移即红);
@@ -212,8 +213,9 @@ class T1RegistryIdentity(unittest.TestCase):
                          | {'SOFR', 'WALCL'}   # Charter7 P2-3: +2=27(流动性维)
                          | {'SPX_EPS', 'M2SL'}  # 数据批1(2026-11-10): +2=29
                          | {'JP_CPI_YOY', 'EA_REAL_GDP_YOY',
-                            'JP_REAL_GDP_YOY'},  # R20(2026-11-19): +3=32 四地补齐
-                         'vintage_additions 须恰为…∪US_REAL_GDP∪Shiller三条目∪P2-3∪数据批1∪R20三指标(32)')
+                            'JP_REAL_GDP_YOY'}   # R20(2026-11-19): +3=32 四地补齐
+                         | {'CN_POLICY_OVERNIGHT'},  # R21(2026-11-19): +1=33 换锚新锚
+                         'vintage_additions 须恰为…∪US_REAL_GDP∪Shiller三条目∪P2-3∪数据批1∪R20三指标∪R21隔夜锚(33)')
 
 
 class T2ChannelRegistration(unittest.TestCase):

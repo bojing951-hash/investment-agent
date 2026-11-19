@@ -208,7 +208,7 @@ REG_PATH = os.path.join(ROOT, 'config', 'metric_registry.json')
 with open(REG_PATH, encoding='utf-8') as f:
     REG = json.load(f)
 # R20: 注册表升版 v2.8.6(四地补齐);R12 japan source_key 事实仍在册
-check("版本 v2.8.6(R20 四地补齐;R25 DFF history_source;R12 落位时 2.8.4)", REG['version'] == '2.8.6', REG['version'])
+check("版本 v2.8.6(R20 四地补齐;R25 DFF history_source;R12 落位时 2.8.4)", REG['version'] == '2.8.7', REG['version'])
 SKEY_EXPECT = {
     'ECB_DFR': 'ECB_FM_DFR', 'ECB_MRO': 'ECB_FM_MRO',
     'BUND_10Y': 'BBK_WU3146', 'BUND_2Y': 'BBK_WU3141',
@@ -225,9 +225,9 @@ got = {m['metric_id']: m.get('source_key') for m in REG['metrics']
 check("source_key 14 条精确值(R11 7条+japan 4条+R20 3条;JGB 三期限共键 MOF_JGBCME)",
       got == SKEY_EXPECT, got)
 # R20: 110→113/108→111(R20 四地补齐 +3,均 active)
-check("指标集零变动: 113 条/111 active(R20 +3)",
-      len(REG['metrics']) == 113
-      and sum(1 for m in REG['metrics'] if m.get('status') == 'active') == 111)
+check("指标集零变动: 114 条/112 active(R21 +1)",  # R21: 113→114/111→112
+      len(REG['metrics']) == 114
+      and sum(1 for m in REG['metrics'] if m.get('status') == 'active') == 112)
 probs = rsem.validate_registry(REG)
 check("registry_semantics 校验零问题", not probs, str(probs)[:120])
 fs_txt = REG.get('field_semantics', {}).get('source_key', '')

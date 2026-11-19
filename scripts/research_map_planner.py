@@ -23,6 +23,7 @@
 叙述/历史段全部来自 Agent 席 judgment.reader_map,attach 只验结构,
 report 段做数值回贴核对(引擎点值 vs 判断叙述中的数字)。"""
 
+import bisect
 import re
 
 # ── 地区×维度指标映射(声明式;入场须注册表在册,否则如实缺口) ────────
@@ -45,8 +46,11 @@ REGION_DIMENSION_METRICS = {
         # 不作增长代理(旧口径挂在增长维=维度误归)。
         'inflation': [('CN_CPI_YOY', 'CPI同比(月频)'),
                       ('CN_PPI_YOY', 'PPI同比(月频,价格维)')],
-        'policy': [('CN_OMO_7D', '7天逆回购利率(操作目标口径)'),
-                   ('CN_LPR_1Y', 'LPR 1年期(报价基准)')],
+        'policy': [('CN_POLICY_OVERNIGHT', '隔夜逆回购利率(操作目标口径——'
+                                            '2026-11-02 换锚后的政策利率锚)'),
+                   ('CN_OMO_7D', '7天逆回购利率(七天工具口径——换锚前为'
+                                '操作目标,2026-11-02 起单列)'),
+                   ('CN_LPR_1Y', 'LPR 1年期(报价基准,单列)')],
     },
     'EA': {
         # Audit-R20 任务1: 欧元区增长维补齐——EA_REAL_GDP_YOY(FRED
@@ -85,23 +89,38 @@ POLICY_FACE = {
     'DFEDTARU': {'face': '政策目标(宣布值)', 'market_seat_label': 'FOMC目标区间上限',
                  'decision': '决议日=观测日(FOMC会后当日公布)',
                  'effective': '生效日=决议日(目标区间即时生效)',
-                 'stat_window': None},
+                 'stat_window': None,
+                 'market_pair': 'DFF',
+                 'market_note': '市场观测=配对 DFF(有效联邦基金利率)同窗观测日'},
     'DFEDTARL': {'face': '政策目标(宣布值)', 'market_seat_label': 'FOMC目标区间下限',
                  'decision': '决议日=观测日(FOMC会后当日公布)',
                  'effective': '生效日=决议日(目标区间即时生效)',
-                 'stat_window': None},
+                 'stat_window': None,
+                 'market_pair': 'DFF',
+                 'market_note': '市场观测=配对 DFF(有效联邦基金利率)同窗观测日'},
     'DFF': {'face': '隔夜市场均值(有效利率)', 'market_seat_label': 'NY Fed有效联邦基金利率',
             'decision': None,   # 非决议值: 市场成交的有效利率
             'effective': '观测日=交易日次日发布',
-            'stat_window': '日'},
-    'CN_OMO_7D': {'face': '操作目标(操作利率)', 'market_seat_label': '央行7天逆回购中标利率',
+            'stat_window': '日',
+            'market_self': True,
+            'market_note': '市场观测日=本序列观测日(自即市场均值口径)'},
+    'CN_POLICY_OVERNIGHT': {'face': '操作目标(隔夜·2026-11-02起新锚)',
+                            'market_seat_label': '央行隔夜逆回购中标利率',
+                            'decision': '决议日=公告日(交易日09:20披露)',
+                            'effective': '生效日=操作日当日',
+                            'stat_window': None,
+                            'market_note': '隔夜市场利率(DR001类)未入库,'
+                                           '市场观测日如实缺席'},
+    'CN_OMO_7D': {'face': '七天工具(操作利率)', 'market_seat_label': '央行7天逆回购中标利率',
                   'decision': '决议日=公告日(交易日09:20披露)',
                   'effective': '生效日=操作日当日',
-                  'stat_window': None},
+                  'stat_window': None,
+                  'market_note': '七天工具口径单列(2026-11-02 换锚前为操作目标锚)'},
     'CN_LPR_1Y': {'face': '贷款报价(报价基准)', 'market_seat_label': 'LPR 1年期报价',
                   'decision': '公布日=观测日(每月20日09:15,节假日顺延)',
                   'effective': '生效日=公布日',
-                  'stat_window': None},
+                  'stat_window': None,
+                  'market_note': '报价基准与政策操作目标分列'},
     'ECB_MRO': {'face': '政策目标(宣布值)', 'market_seat_label': 'ECB主要再融资利率',
                 'decision': '决议日=观测日(管委会决议当日公布)',
                 'effective': '生效日=决议日(即时)',
@@ -143,6 +162,7 @@ RELEASE_RULES = {
     'CN_PPI_YOY':     ('monthly', 9, '国家统计局次月9日前后发布(月末+9天,推定)'),
     'CN_LPR_1Y':      ('monthly', -11, 'LPR 每月20日09:15公布(观测日=发布日;月末−11天,节假日顺延)'),
     'CN_OMO_7D':      ('daily', 0, '央行操作室交易日09:20披露交易公告(当日可见)'),
+    'CN_POLICY_OVERNIGHT': ('daily', 0, '央行操作室交易日09:20披露交易公告(当日可见;2026-11-02换锚后隔夜行)'),
     'EA_HICP_YOY':    ('monthly', 16, 'Eurostat HICP 终值次月中旬发布(月末+16天,推定)'),
     # Audit-R20 任务1: 四地新增指标的发布节奏(推定规则,随格披露)
     'EA_REAL_GDP_YOY': ('quarterly', 35, 'Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)'),
@@ -447,16 +467,25 @@ def _visible_publish(mid, freq, obs_date):
     return None, 'unavailable'
 
 
-def _policy_dates(face, obs_date):
-    """政策四分面的三日期落位: 声明式口径(决议日=观测日一类)按观测日
-    落具体日期;统计窗口=月→观测月末、日→观测日。None=该面无此日期
-    (市场均值无决议日),如实缺席。"""
+def _policy_dates(face, obs_date, market_date=None):
+    """政策四分面的四日期落位(R21 任务2: 决议日/生效日/市场观测日/
+    统计窗口终点分列)。声明式口径(决议日=观测日一类)按观测日落具体
+    日期;统计窗口=月→观测月末、日→观测日;市场观测日=配对市场序列
+    (market_pair)锚窗内最新观测日,由 point_values 传入(序列面在场才
+    落位)。None=该面无此日期(市场均值无决议日),如实缺席。"""
     if not face:
         return None
     out = {'face': face.get('face'), 'market_seat_label': face.get('market_seat_label'),
            'decision_note': face.get('decision'), 'effective_note': face.get('effective'),
+           'market_note': face.get('market_note'),
            'decision': obs_date if face.get('decision') else None,
            'effective': obs_date if face.get('effective') else None}
+    if face.get('market_self'):
+        out['market_observation'] = obs_date
+    elif market_date:
+        out['market_observation'] = market_date
+    else:
+        out['market_observation'] = None
     sw = face.get('stat_window')
     if sw == '月':
         import calendar
@@ -468,6 +497,46 @@ def _policy_dates(face, obs_date):
     else:
         out['stat_window_end'] = None
     return out
+
+
+def _policy_window_path(dates, values, cutoff, months=12):
+    """政策序列一年窗路径(R21 任务2): 窗=[截止−12个月,截止]内的
+    变动点(窗内相邻观测值不同)逐点实录(日期/前后值/bp)与净变动——
+    「先降 25bp 再升 25bp 净变动为零」一类事实须整窗可复算,禁以
+    窗首尾两点差冒充路径(先降后升净零时首尾差恰掩盖全部路径)。
+    无变动→events=[]+net_bp=0;窗内无观测→None(不编造)。"""
+    w0 = _shift_months(cutoff, months)
+    idx = [k for k, d in enumerate(dates) if w0 <= d <= cutoff]
+    if not idx:
+        return None
+    events = []
+    # 变动点按其自身观测日(=决议日)归属窗口: 窗内首观测的前值允许在
+    # 窗启之前(隔月决议序列的现实形态)——否则窗启后首场降息会被漏记,
+    # 先降后升的路径从第一格就失真。dates 升序+窗口为日期区间→idx 为
+    # 连续索引段,k1-1 要么同在窗内、要么恰在窗启前一格。
+    for k1 in idx:
+        k0 = k1 - 1
+        if k0 < 0:
+            continue   # 序列首观测无前值,其自身变动无从定起
+        v0, v1 = values[k0], values[k1]
+        if v0 is None or v1 is None or v0 == v1:
+            continue
+        dbp = round((v1 - v0) * 100)
+        if dbp == 0:
+            continue   # 月均舍入噪声(值差<0.5bp)不是变动点
+        events.append({'date': dates[k1], 'from': v0, 'to': v1,
+                       'delta_bp': dbp})
+    start_v, end_v = values[idx[0]], values[idx[-1]]
+    return {'window': [w0, cutoff], 'events': events,
+            'window_start_value': start_v, 'window_end_value': end_v,
+            'net_bp': round((end_v - start_v) * 100),
+            'note': ('窗=[研究截止−12个月,研究截止](_shift_months 正参='
+                     '回看,与 ex_post_windows 反向同源);events=窗内观测'
+                     '对其前值的变动点(决议序列按观测日=决议日;前值可在'
+                     '窗启前一格);net_bp=窗首尾观测差(bp)。政策路径'
+                     '月频证据只能支持同步时,先后未定须在正文如实写明;'
+                     '决议日/生效日/市场观测日/统计窗口终点分列见 '
+                     'policy_dates。')}
 
 
 def point_values(plan, snap, root):
@@ -512,6 +581,10 @@ def point_values(plan, snap, root):
                        'source': s.get('source'), 'anchors': {},
                        'vintage_semantics': cell.get('vintage_semantics'),
                        'policy_face': cell.get('policy_face')}
+                if cell.get('policy_face'):
+                    wp = _policy_window_path(dates, values, plan['cutoff'])
+                    if wp:
+                        row['policy_window_path'] = wp
                 for a in plan['point_anchors']:
                     # 发布纪律(R20 任务2: 日历实录条目优先,规则推定兜底):
                     # 只取「观测日≤锚日且发布日≤锚日」的最新观测
@@ -552,7 +625,16 @@ def point_values(plan, snap, root):
                          'publication_basis': basis,
                          'vintage': cell.get('vintage_semantics'),
                          'value': values[i]}
-                    pdates = _policy_dates(cell.get('policy_face'), dates[i])
+                    pf_cfg = cell.get('policy_face') or {}
+                    mdate = None
+                    mp = pf_cfg.get('market_pair')
+                    if mp:
+                        mser = series_cache.get(mp)
+                        if mser and mser.get('dates'):
+                            k = bisect.bisect_right(mser['dates'], a['as_of']) - 1
+                            if k >= 0:
+                                mdate = mser['dates'][k]
+                    pdates = _policy_dates(pf_cfg, dates[i], market_date=mdate)
                     if pdates:
                         v['policy_dates'] = pdates
                     if level_series:
@@ -697,15 +779,24 @@ def turning_candidates(plan, snap, root, top_n=3):
 
 # ── Audit-R20 任务3: 读者正文复算面(同一组可复算事实的确定性部分) ──────
 
-def _trio_window(series, common, d1, days_back):
+def _trio_window(series, common, d1, days_back, min_span_days=None):
     """共同交易日窗: d1 与距 d1−days_back 天最近的共同交易日 d0(≤界日
-    侧),Δ(bp) 与恒等残差。None=窗不可开(端点不足)。"""
+    侧),Δ(bp) 与恒等残差。None=窗不可开(端点不足)。
+    R21 任务3: min_span_days=窗跨度充足界——d0 侧历史不足时(如只剩两个
+    相邻共同交易日),窗实际跨度远短于意图跨度,数字会冒充月度/年度变化;
+    该情形 span_status='insufficient_history',调用方须显示历史不足、
+    不出数。"""
     import datetime
     target = (datetime.date.fromisoformat(d1)
               - datetime.timedelta(days=days_back)).isoformat()
     cand = [d for d in common if d <= target] or common[:-1]
     d0 = min(cand, key=lambda d: abs((datetime.date.fromisoformat(d)
                                       - datetime.date.fromisoformat(target)).days))
+    span = (datetime.date.fromisoformat(d1)
+            - datetime.date.fromisoformat(d0)).days
+    span_status = 'ok'
+    if min_span_days is not None and span < min_span_days:
+        span_status = 'insufficient_history'
     chg = {}
     for mid in US_RATES_TRIO:
         try:
@@ -714,9 +805,8 @@ def _trio_window(series, common, d1, days_back):
         except (TypeError, ValueError):
             return None
     return {
-        'window': {'from': d0, 'to': d1, 'calendar_days_between':
-                   (datetime.date.fromisoformat(d1)
-                    - datetime.date.fromisoformat(d0)).days},
+        'window': {'from': d0, 'to': d1, 'calendar_days_between': span},
+        'span_status': span_status,
         'chg_bp': chg,
         'decomposition': (f"十年期名义 Δ{chg['UST_10Y']:+g}bp = "
                           f"实际 Δ{chg['TIPS_10Y']:+g}bp + 盈亏平衡 "
@@ -754,10 +844,21 @@ def us_rates_trio_face(snap, root, window_days=45):
     if len(common) < 2:
         return {'status': 'absent', 'note': '共同交易日不足两日,无法开月度窗'}
     d1 = common[-1]
-    mwin = _trio_window(series, common, d1, 30)
+    mwin = _trio_window(series, common, d1, 30, min_span_days=15)
     if mwin is None:
         return {'status': 'absent', 'note': '月度窗端点不可开'}
-    ywin = _trio_window(series, common, d1, 365)
+    ywin = _trio_window(series, common, d1, 365, min_span_days=183)
+    if mwin['span_status'] == 'insufficient_history':
+        return {'status': 'insufficient_history',
+                'kind': '共同交易日三利率分解',
+                'window': mwin['window'],
+                'levels_at_to': {mid: series[mid][d1] for mid in US_RATES_TRIO},
+                'note': (f"月度窗历史不足: 共同交易日仅覆盖 "
+                         f"{mwin['window']['calendar_days_between']} 个日历日"
+                         f"(意图 30 天窗,充足界≥15 天)——月度与年度利率变化"
+                         f"均标历史不足,不出数,不以相邻交易日差冒充月度变化"
+                         f"(年度窗同源同判)。"),
+                'recent_common_days': horizon[-10:]}
     out = {
         'status': 'ok', 'kind': '共同交易日三利率分解',
         'window': mwin['window'],
@@ -771,9 +872,17 @@ def us_rates_trio_face(snap, root, window_days=45):
     }
     if ywin is not None:
         out['window_12m'] = ywin['window']
-        out['chg_bp_12m'] = ywin['chg_bp']
-        out['decomposition_12m'] = ywin['decomposition']
-        out['identity_residual_bp_12m'] = ywin['identity_residual_bp']
+        if ywin['span_status'] == 'insufficient_history':
+            out['window_12m_status'] = 'insufficient_history'
+            out['window_12m_note'] = (
+                f"年度窗历史不足: 共同交易日跨度仅 "
+                f"{ywin['window']['calendar_days_between']} 个日历日"
+                f"(意图 365 天窗,充足界≥183 天)——年度利率变化标历史不足,"
+                f"不出数。")
+        else:
+            out['chg_bp_12m'] = ywin['chg_bp']
+            out['decomposition_12m'] = ywin['decomposition']
+            out['identity_residual_bp_12m'] = ywin['identity_residual_bp']
     return out
 
 
@@ -881,6 +990,46 @@ def _fmt_val(v):
     return str(v)
 
 
+def _series_from_report(rj, mid):
+    """report.json 步骤面取序列(与 judgment_contract.build_face 同源口径,
+    本模块不反向依赖契约以免环)。"""
+    for st in rj.get('steps') or []:
+        nm = st.get('step') or ''
+        if nm.startswith('S4_history_') and nm[11:] == mid:
+            return ((st.get('envelope') or {}).get('data') or {}).get('series')
+    return None
+
+
+def _distinguishing_obs(rj, cutoff, metric_id):
+    """区分性观测(R21 任务4): 传导链「能区分竞争解释的指标」须给出
+    读者可见的观测——引擎当前面(最新观测+近30日变化),非仅指标名。
+    序列不在场→None(如实缺席,不编数)。"""
+    m = re.search(r'[A-Z][A-Z0-9_]{1,20}', str(metric_id or ''))
+    if not m or not cutoff:
+        return None
+    ser = _series_from_report(rj, m.group(0))
+    if not ser or not ser.get('dates'):
+        return None
+    dates, values = ser['dates'], ser['values']
+    k1 = bisect.bisect_right(dates, cutoff) - 1
+    if k1 < 0 or values[k1] is None:
+        return None
+    v1 = values[k1]
+    import datetime
+    back = (datetime.date.fromisoformat(cutoff)
+            - datetime.timedelta(days=30)).isoformat()
+    k0 = bisect.bisect_right(dates, back) - 1
+    if not isinstance(v1, (int, float)):
+        return f"(引擎当前面: {dates[k1]}={v1})"
+    if k0 >= 0 and isinstance(values[k0], (int, float)) and values[k0]:
+        chg = v1 - values[k0]
+        tail = ('pp' if '%' in str(ser.get('unit') or '')
+                else f'%({chg / values[k0] * 100:+.2f})')
+        return (f"(引擎当前面: {dates[k1]}={v1:g},"
+                f"近30日Δ{chg:+g}{tail})")
+    return f"(引擎当前面: {dates[k1]}={v1:g})"
+
+
 def render_map_report(rj, judgment_doc, review_state=None):
     """MAP_REPORT.md 正文(读者可直读可核查: 关键数字附来源/单位/实际观测日)。
 
@@ -908,6 +1057,14 @@ def render_map_report(rj, judgment_doc, review_state=None):
     # 一句总判断
     lines += ['## 一句总判断', '', str(rm.get('headline_conclusion') or
                                       '(缺席——attach 契约应已拦截)'), '']
+    _trio0 = rp.get('us_rates_trio') or {}
+    if _trio0.get('chg_bp_12m') is not None:
+        lines.append(f"> 年度判断的同窗年度美债分解: "
+                     f"{_trio0.get('decomposition_12m')}"
+                     f"(窗口 {(_trio0.get('window_12m') or {}).get('from')}"
+                     f"..{(_trio0.get('window_12m') or {}).get('to')};"
+                     f"月度窗另列见下文三利率分解节)")
+        lines.append('')
 
     # 四地三时点对照表
     lines += ['## 四地三时点环境对照', '']
@@ -964,14 +1121,14 @@ def render_map_report(rj, judgment_doc, review_state=None):
         lines.append(f"> - {g.get('note')}")
     lines.append('')
 
-    # 政策四分面(任务2: 政策目标/贷款报价/隔夜市场均分开标明;决定日/
-    # 生效日/统计窗口结束日分别展示)
+    # 政策四分面(R21 任务2: 政策目标/贷款报价/隔夜市场均值分开标明;
+    # 决议日/生效日/市场观测日/统计窗口终点四日期分记)
     pol_rows = [c for c in rows if c.get('policy_face')]
     if pol_rows:
-        lines += ['## 政策口径四分面(目标/报价/市场均值分列;三日期分记)', '']
+        lines += ['## 政策口径四分面(目标/报价/市场均值分列;四日期分记)', '']
         lines.append('| 地区 | 指标 | 口径 | 锚 | 值 | 决议/公布日 | 生效日 | '
-                     '统计窗口结束日 |')
-        lines.append('|---|---|---|---|---|---|---|---|')
+                     '市场观测日 | 统计窗口结束日 |')
+        lines.append('|---|---|---|---|---|---|---|---|---|')
         for c in pol_rows:
             pf = c['policy_face']
             for a in anchors:
@@ -982,38 +1139,62 @@ def render_map_report(rj, judgment_doc, review_state=None):
                 dnote = pdd.get('decision_note')
                 dtxt = (f"{pdd.get('decision')}({dnote})" if dnote
                         else (pdd.get('decision') or '—'))
+                mnote = pdd.get('market_note')
+                mtxt = (f"{pdd.get('market_observation')}({mnote})" if mnote
+                        else (pdd.get('market_observation') or '—'))
                 lines.append(
                     f"| {c.get('region')} | {c.get('display_name')} | "
                     f"{pf.get('face')} | {a} | {_fmt_val(v.get('value'))} | "
                     f"{dtxt} | "
                     f"{pdd.get('effective') or '—'} | "
+                    f"{mtxt} | "
                     f"{pdd.get('stat_window_end') or '—'} |")
         lines.append('')
         lines.append('> 注: 决议/公布日与生效日同日者=宣布即时生效(FOMC/ECB/'
                      'PBOC 操作目标);「—」=该口径无此日期(如隔夜市场月均'
                      '无决议日),如实缺席不以别日冒充;LPR 为报价基准(每月'
-                     '20日公布)与政策操作目标分列。')
+                     '20日公布)与政策操作目标分列。市场观测日=配对市场序列'
+                     '(决议序列锚窗内最新观测)——决议与市场观测不同日时'
+                     '两日分记,不以决议日冒充市场观测日。')
+        # 政策一年窗路径(R21 任务2: 先降后升净零一类路径须整窗可复算)
+        for c in pol_rows:
+            wp = c.get('policy_window_path')
+            if not wp:
+                continue
+            ev = wp.get('events') or []
+            ev_txt = (';'.join(f"{e.get('date')}: {e.get('from')}→"
+                               f"{e.get('to')}({e.get('delta_bp'):+d}bp)"
+                               for e in ev) or '窗内无变动')
+            lines.append(f"- **政策一年窗路径** {c.get('display_name')}: "
+                         f"窗 {wp.get('window')[0]}..{wp.get('window')[1]},"
+                         f"变动点 {ev_txt},净变动 "
+                         f"**{wp.get('net_bp'):+d}bp**"
+                         f"({wp.get('window_start_value')}→"
+                         f"{wp.get('window_end_value')})。"
+                         f"{wp.get('note')}")
         lines.append('')
 
-    # 美债三利率共同交易日分解(任务3复算面)
+    # 美债三利率共同交易日分解(任务3复算面;R21 任务4: 年度判断=同窗年度
+    # 分解打头,月度另列;两窗任一历史不足即显示历史不足不出数)
     trio = rp.get('us_rates_trio') or {}
     if trio.get('status') == 'ok':
         w = trio.get('window') or {}
-        ch = trio.get('chg_bp') or {}
         lines += ['## 美债三利率分解(共同交易日复算)', '']
-        lines.append(f"- 计算窗口: **{w.get('from')} → {w.get('to')}**"
-                     f"(共同交易日;间隔{w.get('calendar_days_between')}个"
-                     f"日历日)")
-        lines.append(f"- 十年期分解: **{trio.get('decomposition')}**"
-                     f"(恒等残差 {trio.get('identity_residual_bp'):+g}bp,"
-                     f"{trio.get('identity_note')})")
         if trio.get('chg_bp_12m') is not None:
             wy = trio.get('window_12m') or {}
-            lines.append(f"- 12 个月窗(地图年度口径): 计算窗口 "
-                         f"**{wy.get('from')} → {wy.get('to')}**,"
+            lines.append(f"- **年度窗(年度判断同窗)**: 计算窗口 "
+                         f"**{wy.get('from')} → {wy.get('to')}**"
+                         f"(间隔{wy.get('calendar_days_between')}个日历日),"
                          f"十年期分解 **{trio.get('decomposition_12m')}**"
                          f"(恒等残差 "
                          f"{trio.get('identity_residual_bp_12m'):+g}bp)")
+        elif trio.get('window_12m_status') == 'insufficient_history':
+            lines.append(f"- 年度窗: **历史不足**——{trio.get('window_12m_note')}")
+        lines.append(f"- 月度窗(另列): 计算窗口 **{w.get('from')} → {w.get('to')}**"
+                     f"(间隔{w.get('calendar_days_between')}个日历日),"
+                     f"十年期分解 **{trio.get('decomposition')}**"
+                     f"(恒等残差 {trio.get('identity_residual_bp'):+g}bp,"
+                     f"{trio.get('identity_note')})")
         lines.append(f"- 期末水平: 名义 {(_fmt_val((trio.get('levels_at_to') or {}).get('UST_10Y')))}"
                      f" / 实际 {(_fmt_val((trio.get('levels_at_to') or {}).get('TIPS_10Y')))}"
                      f" / 盈亏平衡 {(_fmt_val((trio.get('levels_at_to') or {}).get('BEI_10Y')))}"
@@ -1021,6 +1202,9 @@ def render_map_report(rj, judgment_doc, review_state=None):
         lines.append('- 三序列各自最新观测日不同时,以**共同交易日**为准——'
                      '分量与名义才可逐位对账(读者可核)。')
         lines.append('')
+    elif trio.get('status') == 'insufficient_history':
+        lines += ['## 美债三利率分解(共同交易日复算)', '',
+                  f"- **历史不足**: {trio.get('note')}", '']
     elif trio.get('status') == 'absent':
         lines += ['## 美债三利率分解(共同交易日复算)', '',
                   f"- 缺席: {trio.get('note')}", '']
@@ -1060,7 +1244,11 @@ def render_map_report(rj, judgment_doc, review_state=None):
             lines.append(f"{arrow}**{lk.get('observed_fact')}**")
             lines.append(f"   - 因果假设: {lk.get('causal_hypothesis')}")
             lines.append(f"   - 竞争解释: {lk.get('competing_explanation')}")
-            lines.append(f"   - 能区分解释的指标: {lk.get('distinguishing_metric')}")
+            dm = lk.get('distinguishing_metric')
+            dobs = _distinguishing_obs(rj, str(rp.get('cutoff') or ''), dm)
+            lines.append(f"   - 能区分解释的指标: {dm}"
+                         + (f" {dobs}" if dobs else
+                            '(引擎面无该序列观测——如实缺席)'))
         lines.append('')
 
     # 情景面(任务3: 两个情景的触发与失效方向分别展示——L4 结构面渲染)
@@ -1165,7 +1353,8 @@ def render_map_report(rj, judgment_doc, review_state=None):
                      '注记,如实披露)。')
         lines.append('')
     for h in rm.get('history_periods') or []:
-        tag = '(美国指标类比——锚定美国序列)' if h.get('us_analog') else ''
+        tag = '(美国类比——锚定美国序列)' if h.get('us_analog') else \
+            '(非美国类比——须在样本注记写明锚定序列)'
         lines.append(f"### {h.get('period_label')} {tag}")
         mw = h.get('match_window') or {}
         if mw.get('start_ym') and mw.get('end_ym'):
@@ -1174,17 +1363,19 @@ def render_map_report(rj, judgment_doc, review_state=None):
                          "匹配只用当时已发布数据)")
         lines.append(f"- 相似点: {h.get('similarity')}")
         lines.append(f"- 关键差异: {h.get('difference')}")
-        lines.append(f"- 其他经济体是否同步: {h.get('other_regions_sync')}")
+        lines.append(f"- 当时同步性(其他经济体): {h.get('other_regions_sync')}")
         ex = h.get('ex_post') or {}
         aym = str(h.get('anchor_ym') or '')
         exp_win = ex_post_windows(aym) if len(aym) == 7 else {}
+        lines.append('- 随后结果(事后实际——与当时同步性分开,事后陈述非预测):')
         for k, lbl in (('3m', '随后3个月'), ('6m', '随后6个月'),
                        ('12m', '随后12个月')):
             exp_m = exp_win.get(k)
             exp_txt = f"(锚{aym}+{k[:-1]}月→{exp_m})" if exp_m else ''
-            lines.append(f"- {lbl}{exp_txt}: {ex.get(k)}")
-        if h.get('data_note'):
-            lines.append(f"- 样本注记: {h.get('data_note')}")
+            lines.append(f"  - {lbl}{exp_txt}: {ex.get(k)}")
+        sn = h.get('sample_note') or h.get('data_note')
+        if sn:
+            lines.append(f"- 样本注记: {sn}")
         lines.append('')
 
     # 语义审查面

@@ -359,10 +359,14 @@ with tempfile.TemporaryDirectory() as td:
           # R20(2026-11-19): +JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY
           # (R20 四地补齐三指标=序列面接线,无点值叶→fixture 冻结面如实点名,
           # 16→19;Gate A 语义断言不变,仍 DEGRADED+点名)
+          # R21(2026-11-19): +CN_POLICY_OVERNIGHT(换锚新锚,fixture 未带
+          # →如实点名,19→20;语义断言不变)
           and ga.get('noncore_missing') == ['CAC40', 'CN_CPI_YOY',
                                             'CN_LPR_1Y', 'CN_LPR_5Y',
                                             'CN_NEW_LOANS', 'CN_OMO_7D',
-                                            'CN_PMI_MFG', 'CN_PPI_YOY',
+                                            'CN_PMI_MFG',
+                                            'CN_POLICY_OVERNIGHT',
+                                            'CN_PPI_YOY',
                                             'CN_SF_FLOW', 'DAX',
                                             'EA_REAL_GDP_YOY',
                                             'JP_CPI_TOKYO_YOY', 'JP_CPI_YOY',
@@ -383,7 +387,8 @@ with tempfile.TemporaryDirectory() as td:
           # JP_REAL_GDP_YOY,序列面接线无点值叶;与 E2E-02d 同步)
           and rp.load_meta(paths['pack']).get('noncore_missing')
           == ['CAC40', 'CN_CPI_YOY', 'CN_LPR_1Y', 'CN_LPR_5Y',
-             'CN_NEW_LOANS', 'CN_OMO_7D', 'CN_PMI_MFG', 'CN_PPI_YOY',
+             'CN_NEW_LOANS', 'CN_OMO_7D', 'CN_PMI_MFG',
+             'CN_POLICY_OVERNIGHT', 'CN_PPI_YOY',
              'CN_SF_FLOW', 'DAX', 'EA_REAL_GDP_YOY',
              'JP_CPI_TOKYO_YOY', 'JP_CPI_YOY', 'JP_REAL_GDP_YOY',
              'M2SL', 'SOFR', 'SPX_EPS', 'UMCSENT',

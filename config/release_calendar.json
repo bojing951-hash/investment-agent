@@ -1,29 +1,63 @@
 {
- "version": "1.0.0",
+ "version": "1.1.0",
  "created": "2026-11-19",
- "spec": "Audit-R20 任务2: 发布日历=版本化事实文件。条目优先于 research_map_planner.RELEASE_RULES 推定规则——历史对照(vintage)只允许用「当时已发布」的数据,推定规则给不出停摆/延误这类逐事件事实。basis=user_directive=验收指令实录;basis=convention=由同一已证事件按公开时间线推广(推广范围随条目披露)。条目语义: 命中(metric_id+obs_date∈[obs_from,obs_to])→锚日≤not_published_as_of 一律不可见;锚日>not_published_as_of 按 first_publish_on_or_after 为最早可见日(实际首发日未逐条实录,如实注记)。修改本文件须经独立审计席复核(与 metric_registry 同级的事实面)。",
+ "updated": "2026-11-19",
+ "spec": "Audit-R20 任务2 建立(Audit-R21 权威日期修订): 发布日历=版本化事实文件。条目优先于 research_map_planner.RELEASE_RULES 推定规则——历史对照(vintage)只允许用「当时已发布」的数据,推定规则给不出停摆/延误这类逐事件事实。basis=user_directive=验收指令实录;basis=convention=由同一已证事件按公开时间线推广(推广范围随条目披露)。条目语义: 命中(metric_id+obs_date∈[obs_from,obs_to])→最早可见日=first_publish_on_or_after(实际首发日未逐条实录的以已证最晚补发日为保守可见界,如实注记,fail-closed)。修改本文件须经独立审计席复核(与 metric_registry 同级的事实面)。v1.1.0: R20 初版的「9-10月联邦统计首发 2025-11-19」整批口径按 Audit-R21 指令实录逐项改精确日期(九月CPI 10-24/九月失业率 11-20/Q3 GDP 12-23/十月PCE 2026-01-22),其余未实录系列改保守界条目。",
  "entries": [
+  {
+   "entry_id": "RC-2025SHUTDOWN-CPI-SEP",
+   "basis": "user_directive",
+   "metric_id": "CPI",
+   "obs_from": "2025-09-01",
+   "obs_to": "2025-09-01",
+   "not_published_as_of": "2025-10-23",
+   "first_publish_on_or_after": "2025-10-24",
+   "note": "2025-09 观测月 CPI(常规发布 2025-10-15)因 2025 年联邦政府停摆(2025-10-01..11-12)延误至 2025-10-24 发布;验收指令实录: 2025-11-18 与 11-19 时点均应允许该月 CPI(已于 10-24 发布)",
+   "source": "Audit-R21 验收指令(2026-11-19)"
+  },
+  {
+   "entry_id": "RC-2025SHUTDOWN-UNEMP-SEP",
+   "basis": "user_directive",
+   "metric_id": "UNEMPLOYMENT",
+   "obs_from": "2025-09-01",
+   "obs_to": "2025-09-01",
+   "not_published_as_of": "2025-11-19",
+   "first_publish_on_or_after": "2025-11-20",
+   "note": "2025-09 观测月失业率(常规发布 2025-10-06)因停摆延误;验收指令实录: 2025-11-18/11-19 时点只见八月失业率 4.3,九月值自 2025-11-20 起可见",
+   "source": "Audit-R21 验收指令(2026-11-19)"
+  },
   {
    "entry_id": "RC-2025SHUTDOWN-GDP-Q3",
    "basis": "user_directive",
    "metric_id": "US_REAL_GDP",
    "obs_from": "2025-07-01",
    "obs_to": "2025-07-01",
-   "not_published_as_of": "2025-11-18",
-   "first_publish_on_or_after": "2025-11-19",
-   "note": "2025Q3 实际GDP(观测季2025-07-01..09-30,常规advance应10-29发布)因2025年联邦政府停摆(2025-10-01..11-12)延误;验收指令实录: 2025-11-18 时点美国只能看到二季度GDP",
-   "source": "Audit-R20 验收指令(2026-11-19)"
+   "not_published_as_of": "2025-12-22",
+   "first_publish_on_or_after": "2025-12-23",
+   "note": "2025Q3 实际GDP(观测季 2025-07-01..09-30,常规 advance 应 2025-10-29 发布)因停摆延误;验收指令实录: 2025-11-18/11-19 时点只见二季度 GDP,三季度自 2025-12-23 起可见(R20 初版整批 11-19 口径按实录改精确日)",
+   "source": "Audit-R21 验收指令(2026-11-19)"
   },
   {
-   "entry_id": "RC-2025SHUTDOWN-BLS-BEA-SEP-OCT",
-   "basis": "user_directive+convention",
-   "metric_ids": ["UNEMPLOYMENT", "CPI", "CORE_CPI", "CORE_PCE", "INDPRO", "NFP", "AHE"],
+   "entry_id": "RC-2025SHUTDOWN-PCE-OCT",
+   "basis": "user_directive",
+   "metric_id": "CORE_PCE",
+   "obs_from": "2025-10-01",
+   "obs_to": "2025-10-01",
+   "not_published_as_of": "2026-01-21",
+   "first_publish_on_or_after": "2026-01-22",
+   "note": "2025-10 观测月核心 PCE(常规发布 2025-11-21 前后)因停摆延误;验收指令实录: 自 2026-01-22 起可见",
+   "source": "Audit-R21 验收指令(2026-11-19)"
+  },
+  {
+   "entry_id": "RC-2025SHUTDOWN-REST-CONSERVATIVE",
+   "basis": "convention",
+   "metric_ids": ["CPI", "CORE_CPI", "CORE_PCE", "UNEMPLOYMENT", "NFP", "AHE", "INDPRO"],
    "obs_from": "2025-09-01",
    "obs_to": "2025-10-31",
-   "not_published_as_of": "2025-11-18",
-   "first_publish_on_or_after": "2025-11-19",
-   "note": "2025-09/2025-10 观测月的联邦统计(BLS 就业/CPI 族、BEA PCE、Fed G.17)原定发布窗落在停摆期(2025-10-01..11-12)内被延误;UNEMPLOYMENT 2025-09 为验收指令实录锚(该日只见八月失业率4.3%),其余指标为由同一停摆事件按公开时间线推广(convention)——序列里的9/10月观测系事后补发布回填,历史对照锚 2025-11-18 前一律不可见",
-   "source": "Audit-R20 验收指令(2026-11-19)+停摆公开时间线;推广范围=本条 metric_ids"
+   "not_published_as_of": "2025-11-19",
+   "first_publish_on_or_after": "2026-01-22",
+   "note": "2025-09/2025-10 观测月联邦统计中未逐条实录首发的系列(九月CPI/九月失业率/Q3GDP/十月PCE 四项 user_directive 条目优先命中,不在本条范围): 实际首发日未逐条实录,取已证最晚补发日 2026-01-22(十月PCE 实录日)为保守可见界——介于其间的真实首发不虚构,fail-closed 方向如实注记",
+   "source": "Audit-R21: 由停摆事件四项实录日期按公开时间线推广;推广范围=本条 metric_ids×2025-09/10 观测月,减去四项已实录条目"
   }
  ]
 }

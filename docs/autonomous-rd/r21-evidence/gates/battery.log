@@ -194,5 +194,4 @@ GREEN test_task_f_archive_w10.py
 GREEN test_unit_aware_compare.py
 GREEN test_update_contract.py
 TOTAL: 192 green / 1 red
-NOTE: test_arch_reform_phase6 提交后复验 rc=0(提交树对比项)
-phase6 post-commit: RED
+NOTE: test_arch_reform_phase6 红因=?? docs/autonomous-rd/r21-evidence/ 未跟踪证据目录(工作面净检查),docs 收口提交 289104e 后复验 1 passed(2026-11-19T13:0x +08 口径)

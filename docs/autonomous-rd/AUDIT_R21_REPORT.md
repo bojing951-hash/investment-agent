@@ -68,7 +68,9 @@ commit 9667e8d 直跑口径 192 绿/1 红(test_arch_reform_phase6 D3 工作面�
 
 ## 七、CI 与 PR
 
-<!-- CI_PR_PLACEHOLDER -->
+- **链**: 62c973e(R20 收口)→ **138e85b**(修复任务 1-4,28 文件)→ **9667e8d**(任务 4 追补,资产月窗契约基)→ **289104e**(收口: 本报告+r21-evidence+状态四档旋转+checkpoint R65 盖章七门 7/7)→ CI 回填提交(本节)。
+- **CI**: 收口提交 289104e → run [44529070378](https://github.com/bojing951-hash/investment-agent/actions/runs/44529070378) 三 job 绿(gates/tests 3.11/tests 3.12,head_sha 逐位复核);提交树本地 phase6 复跑 1 passed=192/192 全绿口径。
+- **PR #1**: 分支 dev/audit-fix-r1 推送 62c973e..289104e,head 已随更新;PR 描述追加 R21 段(五任务+门 49/49+反例 8/8+36 格覆盖+两链 SHA+CI 链接)。**未合并,停等外部终审**(不并 main、不部署、不开新轮)。
 
 ## 八、证据包
 

@@ -5,7 +5,7 @@
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
 ## 权威快照: 2026-11-19 R63 Audit-R19 第十九轮审计修复(T-R63-1;独立轨道续 R62)
-> baseline=e6f77e11c2fc4858d1ba5c8f6dab063cba9a084f(Audit-R18 CI 回填尖);代码修复固定 SHA=e6f77e11c2fc4858d1ba5c8f6dab063cba9a084f(受审面=地图问句同比基期/发布纪律/三维转折/历史类比结构面+四阻断器+读者版量化显示)
+> baseline=abba4d1a70a3b6b5e9a0731c63654244500c79a1(Audit-R18 CI 回填尖);代码修复固定 SHA=e6f77e11c2fc4858d1ba5c8f6dab063cba9a084f(受审面=地图问句同比基期/发布纪律/三维转折/历史类比结构面+四阻断器+读者版量化显示)
 
 - **基线**: dev/audit-fix-r1 = 2178b2d→代码修复提交(六文件+1003 行+35 判据门 test_audit_r19_gate)→报告/状态收口;PR #1 覆盖推送;main 未动。
 - **真实进度**: 六缺陷全关(D1-D8)——①同比基期错配→月度同比只配去年同月+缺基期标不可得+最近有效同比另列;②提前引用未发布→RELEASE_RULES 发布日推定+锚值发布日≤锚日;③转折候选扩增长维(三维全入池);④历史类比结构化 anchor_ym/match_window/judgment_cutoff_ym/aftermath_obs_months+锚月+N月唯一算术源;⑤契约四阻断器(错用基期/提前引用/转折重复/事后落匹配期=CONTRADICTED)+维度覆盖+传导须达资产;⑥读者版渲染 S6+S5 量化段;另 CN PPI 归价格维+JP 市场利率与目标分别列示+ASSET_UNIVERSE 30。

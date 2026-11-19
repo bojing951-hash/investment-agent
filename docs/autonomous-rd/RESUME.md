@@ -82,7 +82,7 @@ R42(聚合器吞错)+R43(pytest 四件套,操作者)+R44(A 族碎片泄漏硬化
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 
-<!-- RD-CHECKPOINT v1: json {"round": 63, "date": "2026-11-19 11:31 HKT", "branch": "dev/audit-fix-r1", "commit": "e6f77e11c2fc4858d1ba5c8f6dab063cba9a084f", "baseline": "e6f77e11c2fc4858d1ba5c8f6dab063cba9a084f", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R63-1"], "next_task": "等待用户外部审计裁定(Audit-R19 R63 已收口,停等外审;不并 main 不合并 PR 不部署不开新轮);R20 候选=渲染器标签回显重复+attach 幂等时间戳不刷新+R17 移交两项(日历周表达/同义词形别名面)", "next_round": 64} -->
+<!-- RD-CHECKPOINT v1: json {"round": 64, "date": "2026-11-19 15:31 HKT", "branch": "dev/audit-fix-r1", "commit": "abba4d1a70a3b6b5e9a0731c63654244500c79a1", "baseline": "abba4d1a70a3b6b5e9a0731c63654244500c79a1", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R64-1"], "next_task": "停等外部审计(R20);R65候选: provenance noncore_missing截断窗全量化/JP_CPI_TOKYO source_key对齐/R63移交四项", "next_round": 65} -->
 ## 下一步存档(2026-11-16 R43 收口后版·操作者席)
 
 - [已毕·R43] **pytest 口径四件套收口**(T-R43-1;RDG-20261116-012 残余⑦;R42 终验暴露陈年): run_weekly.main(argv=None) 参数化(CLI 零差/revision_chain 猴补兼容)+四件五调用点显式 argv=[](裸调读 pytest argv→SystemExit(2)→台账 None→下标崩根因)+尾条件退出拆红支摘冗余 0 支+守卫 23 判(§A 伪 pytest argv 子进程/§B 源面双锚/§C 直跑保持);四件 pytest 单件 rc5=净收集零错;新发现=尾退出全库习语 60+件,目录整跑不适用(R44+ 迁移候选);分支 dev/rd-r43-pytest-argv;详见 ITERATION_LOG R43 行。

@@ -123,7 +123,8 @@ plan → AGENT_SEAT_ENVELOPE → judgment(attach 契约 VERIFIED,50 锚回贴+�
   使被测面确定性落末路,81.82/999.0 原值通过。
 - **门复核**: R20 gate 30/30、R19 gate 35/35(入口识别修复)、R18 gate 40/40 一次全跑绿;
   邻接面(e2e_orig14/p01_fix4/fix5/fact_engine)回归绿。
-- CI: 提交后 GitHub Actions 三 job 绿(run 见下)。
+- CI: 修复 d123f24+收口 d646496 → run 44480590253 三 job 绿(gates/tests 3.11/tests 3.12),
+  提交树本地复跑 phase6 D3 转绿=干净树 192/192。
 - **登记候选(未改生产码,下轮裁定)**: ① research_provenance.gate_reason_desc 对 noncore_missing
   截断窗 [:16] 而合法名单已 19 项——UMCSENT/WALCL 落出周报降级披露点名(E2E-02d3 已按在场断言
   据实锁定,可见性由 02d/02d2 承载;建议改全量+溢出计数);② 真实面 registry JP_CPI_TOKYO_YOY

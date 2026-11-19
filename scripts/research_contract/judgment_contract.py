@@ -1305,6 +1305,130 @@ def _map_checks(judgment, face, report):
             bad(f'{hid}.sample_note', '历史段须给 sample_note 样本注记'
                 '(样本独立性/与当前研究窗重叠/最新修订口径一类前提——'
                 '读者报告须显示样本注记)')
+    # (14) Audit-R23 任务3: 地区走位正文里的裸季度词元(2025Q2 一类)须为
+    #     该地区 GDP 点值格的锚观测季——非锚观测季(观测在序列但首发晚
+    #     于锚日、或不存在)不得充当对照端点。月份串已由(13)拦截;括号
+    #     内裸季度词元是另一窜写位(反例: 2025Q2 改 2025Q3——Q3 首发
+    #     2025-12-23 晚于 2025-11-19 锚,锚格观测季=Q2)。
+    _gdp_anchor_quarters = {}
+    for _c in (plan.get('point_values') or {}).get('cells') or []:
+        if 'GDP' not in str(_c.get('metric_id') or '').upper():
+            continue
+        for _lbl in ('12个月前', '3个月前', '最新一期'):
+            _a = (_c.get('anchors') or {}).get(_lbl) or {}
+            _od = str(_a.get('observation_date') or '')
+            if _a.get('status') == 'ok' and len(_od) >= 7:
+                _gdp_anchor_quarters.setdefault(
+                    _c.get('region'), set()).add(
+                    '%04dQ%d' % (int(_od[:4]),
+                                 (int(_od[5:7]) - 1) // 3 + 1))
+    for r in rm.get('regions') or []:
+        _ft = str(r.get('from_to') or '')
+        _qs_ok = _gdp_anchor_quarters.get(r.get('region')) or set()
+        for _qm in re.finditer(r'20\d{2}Q[1-4]', _ft):
+            _ctx = _ft[max(0, _qm.start() - 30):_qm.end() + 30]
+            if 'GDP' not in _ctx.upper() and '国内生产总值' not in _ctx:
+                continue
+            if _qs_ok and _qm.group(0) not in _qs_ok:
+                bad(f'reader_map.regions[{r.get("region")}].quarter_token',
+                    f'季度词元 {_qm.group(0)} 不是该地区 GDP 点值格锚'
+                    f'观测季(锚观测季={sorted(_qs_ok)})——正文以锚前未'
+                    '发布或不存在的季度充当对照端点(锚可见性口径;发布'
+                    '实录首发晚于锚日的季度不得入对照叙述)', contra=True)
+    # (15) Audit-R23 任务3: 一句总判断里的基点主张(±Nbp)按引擎三利率
+    #     分解复算——年度主张对年度窗分解(chg_bp_12m)逐位对账(符号+
+    #     显示精度);方向词(上行/下行)与符号矛盾即 CONTRADICTED。读者
+    #     看到的那句话里的利率数字必须可对引擎面核(反例: 名义+97bp 被
+    #     改 −97bp)。
+    _hl = str(rm.get('headline_conclusion') or '')
+    if trio.get('status') == 'ok' and \
+            re.search(r'美债|名义|实际|盈亏平衡|十年期|利率', _hl):
+        _annual_claim = bool(re.search(r'年度|12个月|十二个月|一年', _hl))
+        _bp_pool = set()
+        for _src in (('chg_bp_12m',) if _annual_claim
+                     else ('chg_bp_12m', 'chg_bp')):
+            for _v in (trio.get(_src) or {}).values():
+                if isinstance(_v, (int, float)):
+                    _bp_pool.add(float(_v))
+        for _bm in re.finditer(r'([+−\-±]?)\s*(\d+(?:\.\d+)?)\s*bp', _hl):
+            _claimed = (-1.0 if _bm.group(1) in ('-', '−')
+                        else 1.0) * float(_bm.group(2))
+            if not any(abs(_claimed - _v) <= 1.0 for _v in _bp_pool):
+                bad('reader_map.headline_conclusion.bp',
+                    f'基点主张 {_bm.group(0).strip()} 与引擎三利率分解'
+                    f'不符({"年度窗" if _annual_claim else "年度/月度窗"}'
+                    f'可对值={sorted(_bp_pool)})——读者看到的那句话里的'
+                    '利率分解数字必须与引擎同窗复算一致(含符号与显示'
+                    '精度,容差 1bp)', contra=True)
+                continue
+            _w = _hl[max(0, _bm.start() - 12):_bm.start()]
+            if (re.search(r'下行|下降|回落|走低', _w) and _claimed > 0) or \
+                    (re.search(r'上行|上升|走高|抬升', _w) and _claimed < 0):
+                bad('reader_map.headline_conclusion.bp_direction',
+                    f'方向词与基点符号矛盾({_bm.group(0).strip()} 前文'
+                    f'={_w.strip()!r})——方向、单位、符号须与引擎面一致',
+                    contra=True)
+    # (16) Audit-R23 任务2: 历史段「当时可知」信息截止纪律(as_of 泄漏)
+    #     ——相似/差异/同步性叙述所引数字须为判断截止月末前已可知的
+    #     观测;引用「观测月=截止月但首发晚于截止」的值(如中国 PPI
+    #     六月值于七月上旬才发布、日本 CPI 次月 20 日)即信息截止泄漏,
+    #     晚于截止日的数字须移入事后段叙述。新代码面(plan.asof_
+    #     discipline 标记)起生效;旧档无标记不追溯(原文复放必须通过)。
+    if str(plan.get('asof_discipline') or ''):
+        import research_map_planner as _rmp5
+        for hi, h in enumerate(hist):
+            _cym = str(h.get('judgment_cutoff_ym')
+                       or h.get('anchor_ym') or '')
+            if len(_cym) != 7:
+                continue
+            _prose = ' '.join(str(h.get(k) or '') for k in
+                              ('similarity', 'difference',
+                               'other_regions_sync'))
+            if not _prose.strip():
+                continue
+            try:
+                _aop = (_rmp5.history_asof_face([h], report)
+                        .get('periods') or [{}])[0]
+            except Exception:
+                continue
+            _known = {r2.get('metric_id'): r2
+                      for r2 in _aop.get('known') or []}
+            _after = {r2.get('metric_id'): r2 for r2 in
+                      _aop.get('aftermath') or []
+                      if r2.get('obs_month') == _cym
+                      and isinstance(r2.get('value'), (int, float))}
+            for _mid, _aft in _after.items():
+                _kn = _known.get(_mid)
+                _vis_v = (_kn or {}).get('value')
+                if not isinstance(_vis_v, (int, float)):
+                    continue
+                _aliases = next((al for m2, _l2, al in
+                                 _rmp5._AOF_KEY_METRICS if m2 == _mid),
+                                [_mid])
+                for _al in _aliases:
+                    for _am in re.finditer(re.escape(_al), _prose):
+                        _seg = _prose[_am.end():_am.end() + 40]
+                        for _nm in re.finditer(r'-?\d+(?:\.\d+)?', _seg):
+                            try:
+                                _v = float(_nm.group(0))
+                            except ValueError:
+                                continue
+                            if _v >= 1900 or _v <= -1900:
+                                continue
+                            if abs(_v - float(_aft.get('value'))) <= 0.06 \
+                                    and abs(_v - _vis_v) > 0.06:
+                                bad(f'reader_map.history_periods[{hi}]'
+                                    '.as_of_leak',
+                                    f'{_al} 引用值 {_v:g} =截止月观测 '
+                                    f'{_aft.get("value"):g}(首发 '
+                                f'{_aft.get("visible_from")},晚于截止 '
+                                f'{_aop.get("cutoff_end")})——当时可知值'
+                                f'={_vis_v:g}(观测月 '
+                                f'{(_kn or {}).get("obs_month")},首发 '
+                                f'{(_kn or {}).get("visible_from")});'
+                                '晚于截止日才公布的数字须移入事后段,'
+                                '不得充当当时可知(Audit-R23 任务2)',
+                                contra=True)
     return out
 
 

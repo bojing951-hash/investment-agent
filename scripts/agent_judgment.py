@@ -655,6 +655,11 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
                'format_version': VERDICT_FORMAT_VERSION,
                'digest_algorithm': DIGEST_ALGORITHM_CURRENT,
                'revision': revision, 'predecessor': predecessor,
+               # Audit-R23 任务1: 最终 MAP_REPORT.md 内容段摘要随裁决
+               # 落档——错误版本(在场地图被改)不得沿用旧裁决: 读取端
+               # _semantic_review_state 按此判 fresh,非地图问句/未渲染
+               # =None 不绑(旧档无此键=历史面,内容摘要仍为唯一锚)。
+               'map_report_sha256': map_report_content_sha(report_dir),
                'counterexamples_sought': ((extra or {}).pop(
                    'counterexamples_sought', None)
                    or ['(未记载: 席位简报须补反例面)'])}
@@ -662,6 +667,25 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
             doc.update(extra)
         sl.atomic_write_json(path, doc, indent=2, sort_keys=False)
     return path
+
+
+def map_report_content_sha(report_dir):
+    """Audit-R23 任务1: MAP_REPORT.md 内容段摘要(裁决↔地图绑定锚)。
+
+    内容段=首个「## 语义审查」节之前的一切(对照表/走位/传导/转折/
+    历史类比)——语义审查节在裁决落档后由「待裁」翻「已裁」,属状态面
+    非内容面,排除在外使绑定在裁决前后稳定。文件缺席→None(非地图
+    问句运行/未渲染,不绑)。
+    """
+    import hashlib
+    p = os.path.join(report_dir or '', 'MAP_REPORT.md')
+    try:
+        with open(p, encoding='utf-8') as f:
+            text = f.read()
+    except (OSError, ValueError):
+        return None
+    return hashlib.sha256(
+        text.split('\n## 语义审查')[0].encode('utf-8')).hexdigest()
 
 
 def _sha16_of_file(path):
@@ -972,6 +996,20 @@ def _semantic_review_state(report, root, report_dir=None):
                 state['fresh'] = False
     elif bound:
         state['fresh'] = None   # 有绑定但无 report_dir 可核=不冒充新鲜
+    # ── Audit-R23 任务1: 裁决↔地图内容段绑定——在场 MAP_REPORT.md 与
+    # 裁决落档时的内容段摘要不符=地图被单改,旧裁决不得沿用(fresh=
+    # False)。旧档无 map_report_sha256 键=历史面不追溯(内容摘要仍为
+    # 主锚);绑定键在场且文件缺席=渲染面丢失,同样不冒充新鲜。 ──
+    map_bound = latest.get('map_report_sha256')
+    state['map_report_sha256'] = map_bound
+    if map_bound:
+        cur = map_report_content_sha(report_dir) if report_dir else None
+        if cur != map_bound:
+            state['fresh'] = False
+            state['fresh_note'] = (
+                'MAP_REPORT.md 内容段摘要与裁决绑定不符(在场地图与受审'
+                '版本不同——错误版本不得沿用旧裁决;cur=%s bound=%s)'
+                % ((cur or '缺席')[:12], str(map_bound)[:12]))
     return state
 
 

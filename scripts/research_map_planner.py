@@ -320,18 +320,41 @@ def _month_end_obs(dates, values, ym):
     return (dates[j], values[j]) if j >= 0 else (None, None)
 
 
-def history_window_face(history_periods, snap, root):
+def _hist_series(mid, rj, snap, root):
+    """Audit-R23 任务1: 历史并列面序列解析——冻结源优先。
+
+    冻结源=report.json 的 S4_history_<mid> 信封序列(运行时已定,随
+    report 交付);运行快照仅兜底(信封缺席的序列)。由此读者面数字与
+    快照在场性/被改无关: 同名快照端点被改不影响任何行;无外部快照仍
+    逐位还原。snap=None 且无冻结=如实缺席(不读活数据树冒充运行面)。
+    返回 (series|None, basis|None)。"""
+    if rj is not None:
+        frz = _series_from_report(rj, mid)
+        if frz and frz.get('dates'):
+            return frz, '冻结源(report.json S4_history 信封)'
+    if snap is None:
+        return None, None
+    s, _err = _series(mid, snap, root)
+    return s, ('运行快照' if s and s.get('dates') else None)
+
+
+def history_window_face(history_periods, snap, root, rj=None):
     """每段历史类比×{3,6,12}月窗的经济×资产并列面(确定性,渲染层调用)。
 
     history_periods=[{anchor_ym,...}](Agent 席选定,取 anchor_ym 即可)。
     行=指标|起期|起值|止期|止值|变化|单位|来源;rate 族变化=pp,
-    price 族变化=%。序列缺席如实入 absent,不以别指标冒充。"""
+    price 族变化=%。序列缺席如实入 absent,不以别指标冒充。
+    Audit-R23 任务1: rj 在场时冻结源优先(_hist_series)——正确快照/
+    无外部快照/同名快照被改三种情况渲染逐字节一致。任务4: 窗口两端
+    取到同一条观测(锚后无新观测)时不再整行缺席,入行并注记缺少两期
+    数据(变化不可算,不冒充)。"""
     periods = []
     for h in history_periods or []:
         aym = str(h.get('anchor_ym') or '')
         if len(aym) != 7:
             continue
-        pd_out = {'anchor_ym': aym, 'windows': {}, 'absent': []}
+        pd_out = {'anchor_ym': aym, 'windows': {}, 'absent': [],
+                  'series_basis': []}
         for horizon in (3, 6, 12):
             # 随后 N 个月(锚+N 月末;_shift_months 正 n=向过去平移,
             # 故取负=向未来)——与 ex_post 正文「随后N个月」同向
@@ -340,20 +363,29 @@ def history_window_face(history_periods, snap, root):
             for mid, label, kind in _HIST_ECON + _HIST_ASSET:
                 grp = ('经济指标' if (mid, label, kind) in _HIST_ECON
                        else '资产表现')
-                s, _err = _series(mid, snap, root)
+                s, s_basis = _hist_series(mid, rj, snap, root)
+                if s_basis and (aym, mid, s_basis) not in \
+                        pd_out['series_basis']:
+                    pd_out['series_basis'].append((aym, mid, s_basis))
                 if not s or not s.get('dates'):
                     pd_out['absent'].append(f"{mid}({label})")
                     continue
                 d0, v0 = _month_end_obs(s['dates'], s['values'], aym)
                 d1, v1 = _month_end_obs(s['dates'], s['values'], tgt)
-                if v0 is None or v1 is None or d0 == d1:
+                if v0 is None or v1 is None:
                     pd_out['absent'].append(f"{mid}({label})@{aym}→{tgt}")
                     continue
+                note = None
+                if d0 == d1:
+                    # 任务4: 两端同一条观测=该窗内无新观测,行保留并注记
+                    note = ('窗口两端取到同一条观测'
+                            f'({d0}),缺少两期数据——变化不可算')
                 try:
                     chg = ((round(v1 - v0, 4) if kind == 'rate'
                             else round((v1 / v0 - 1.0) * 100.0, 4))
                            if isinstance(v0, (int, float))
-                           and isinstance(v1, (int, float)) else None)
+                           and isinstance(v1, (int, float))
+                           and d0 != d1 else None)
                 except (TypeError, ZeroDivisionError):
                     chg = None
                 rows.append({'group': grp, 'metric_id': mid, 'label': label,
@@ -363,13 +395,204 @@ def history_window_face(history_periods, snap, root):
                              'change': chg,
                              'change_unit': ('pp' if kind == 'rate' else '%'),
                              'unit': s.get('unit'),
-                             'source': s.get('source')})
+                             'source': s.get('source'),
+                             'note': note})
             pd_out['windows'][f'{horizon}m'] = {
                 'window_months': horizon, 'target_ym': tgt, 'rows': rows}
         periods.append(pd_out)
     return {'basis': ('历史类比逐窗并列面: 锚月末→锚+N 月末(与 ex_post '
                       '正文同口径);经济指标与资产表现并列,逐行起止期/'
-                      '数值/单位/来源,确定性复算零生成'),
+                      '数值/单位/来源,确定性复算零生成;序列源=冻结信封'
+                      '优先/运行快照兜底(Audit-R23 任务1)'),
+            'periods': periods}
+
+
+# ── Audit-R23 任务2: 历史类比「当时可知」发布纪律面 ──────────────────
+# 指令: 修历史信息截止——逐段按判断截止月重算跨国同步性叙述所引数字:
+# 每个关键数字绑定 指标/观测期/值/首次公布日/来源/修订口径;晚于截止日
+# 才公布的观测移入事后段,不得充当「当时可知」。发布日=日历实录优先
+# (release_calendar.visible_publish_date: 停摆延误/经证实条目),规则
+# 推定兜底(_publish_date);EA_HICP 两级发布分记(快报=观测月末(推定)
+# 当时可知,终值=次月中旬)。序列源=冻结信封优先(与任务1同口径)。
+_AOF_KEY_METRICS = [
+    ('CPI', '美国 CPI(指数水平)', ['美国CPI', '美国 CPI']),
+    ('CORE_PCE', '美国核心PCE(指数水平)', ['核心PCE']),
+    ('INDPRO', '美国工业生产(指数)', ['工业生产', 'INDPRO']),
+    ('UNEMPLOYMENT', '美国失业率', ['失业率']),
+    ('US_REAL_GDP', '美国实际GDP', ['实际GDP', 'GDP']),
+    ('CN_PPI_YOY', '中国PPI同比', ['中国PPI', '中国 PPI']),
+    ('CN_CPI_YOY', '中国CPI同比', ['中国CPI', '中国 CPI']),
+    ('EA_HICP_YOY', '欧元区HICP同比', ['HICP']),
+    ('JP_CPI_YOY', '日本CPI同比', ['日本CPI', '日本 CPI']),
+]
+_AOF_GDP_FAMILY = {'US_REAL_GDP', 'EA_REAL_GDP_YOY', 'JP_REAL_GDP_YOY'}
+_EA_FLASH_METRICS = {'EA_HICP_YOY'}
+
+
+def _aof_month_end(ym):
+    import calendar
+    return '%04d-%02d-%02d' % (int(ym[:4]), int(ym[5:7]),
+                               calendar.monthrange(int(ym[:4]),
+                                                   int(ym[5:7]))[1])
+
+
+def _aof_first_pub(mid, obs_date, frequency):
+    """→ (visible_from, first_publish, basis, note)。
+
+    visible_from=最早可知日(快报在则取快报);first_publish=本表所用
+    发布日(终值/日历实录优先);basis 随格披露。"""
+    import release_calendar as rc
+    rule_pub, rule_txt = _publish_date(mid, frequency, obs_date)
+    # 日历实录查询用月首口径(R21/R22 既定调用约定: 条目 obs 窗按
+    # <YYYY-MM>-01 匹配;序列观测日多为月末,直传会跳过 user_directive
+    # 实录条目而误落 REST-CONSERVATIVE 保守界——九月失业率实录
+    # 2025-11-20 须优先于保守界 2026-01-22)。
+    pub, basis = rc.visible_publish_date(mid, obs_date[:7] + '-01',
+                                         rule_pub)
+    flash = None
+    if mid in _EA_FLASH_METRICS:
+        flash = _aof_month_end(obs_date[:7])
+    if pub is None and flash is None:
+        return None, None, basis or 'unavailable', rule_txt or ''
+    if flash and (pub is None or flash < pub):
+        return flash, pub, 'rule:推定(快报月末)', (
+            '快报 %s 当时可知(推定);终值 %s(%s)' % (
+                flash, pub or '—', basis))
+    return pub, pub, basis, ''
+
+
+def _aof_revision_note(mid):
+    if mid in _AOF_GDP_FAMILY:
+        return '事后回顾族(最新修订值,非当时首发值——注册声明)'
+    if mid in _EA_FLASH_METRICS:
+        return '终值(最新修订);当时快报值可能略异,快报日见注记'
+    return '最新修订值(采集口径;首发值可能略异,修订不可回溯)'
+
+
+def _aof_obs_at_month(series, ym):
+    """该月最新非 None 观测 → (obs_date, value) | (None, None)。"""
+    d, v = series.get('dates') or [], series.get('values') or []
+    best = (None, None)
+    for i in range(len(d)):
+        if d[i][:7] == ym and v[i] is not None:
+            if best[0] is None or d[i] >= best[0]:
+                best = (d[i], v[i])
+    return best
+
+
+def history_asof_face(history_periods, rj):
+    """每段历史类比的「当时可知/事后才公布」发布纪律面(确定性)。
+
+    known=截止月末前已可知的最新观测(每数字五字段绑定);aftermath=
+    截止月观测晚于截止公布者+截止后 12 月窗内异常延误/采集缺口行。
+    序列缺席如实入 absent。零生成零网络,纯文件面。"""
+    periods = []
+    for h in history_periods or []:
+        aym = str(h.get('anchor_ym') or '')
+        cym = str(h.get('judgment_cutoff_ym') or aym)
+        if len(cym) != 7:
+            continue
+        cutoff_end = _aof_month_end(cym)
+        pd_out = {'anchor_ym': aym, 'cutoff_ym': cym,
+                  'cutoff_end': cutoff_end, 'known': [], 'aftermath': [],
+                  'absent': []}
+        for mid, label, _aliases in _AOF_KEY_METRICS:
+            s = _series_from_report(rj, mid) if rj is not None else None
+            if not s or not s.get('dates'):
+                pd_out['absent'].append(f"{mid}({label})")
+                continue
+            freq = s.get('frequency') or 'monthly'
+            # ── 当时可知: 可见日 ≤ 截止月末的最新观测 ──
+            months = sorted({d[:7] for d, v in
+                             zip(s['dates'], s['values'])
+                             if v is not None and d[:7] <= cym})
+            known_row = None
+            cutoff_month_row = None
+            for ym in months[-4:]:          # 最近 4 个月足够定可见值
+                od, ov = _aof_obs_at_month(s, ym)
+                if od is None:
+                    continue
+                vf, pub, basis, note = _aof_first_pub(mid, od, freq)
+                row = {'metric_id': mid, 'label': label, 'obs_month': ym,
+                       'obs_date': od, 'value': ov,
+                       'visible_from': vf, 'first_publish': pub,
+                       'pub_basis': basis, 'source': s.get('source'),
+                       'revision_note': _aof_revision_note(mid),
+                       'note': note}
+                if ym == cym:
+                    cutoff_month_row = row
+                if vf and vf <= cutoff_end:
+                    known_row = row        # 保序推进=最新可见
+            if known_row:
+                known_row = dict(known_row)
+                known_row['visible_at_cutoff'] = True
+                pd_out['known'].append(known_row)
+            else:
+                pd_out['absent'].append(f"{mid}({label})@{cym}(截至截止月"
+                                        '无可知观测)')
+            # ── 事后段①: 截止月观测晚于截止公布(常见: 中 PPI/日 CPI
+            #    次月发布——正文引截止月值即信息截止泄漏,须移事后) ──
+            if cutoff_month_row and (
+                    (cutoff_month_row.get('visible_from') or '9999') >
+                    cutoff_end):
+                row = dict(cutoff_month_row)
+                row['delay_note'] = (
+                    '观测月=截止月,首发 %s 晚于截止 %s——当时不可知,'
+                    '移入事后段' % (row.get('visible_from'), cutoff_end))
+                pd_out['aftermath'].append(row)
+            # ── 事后段②: 截止后 12 月窗内 异常延误(首发日晚于常轨
+            #    推定>45天)/采集缺口(应观测月 None)/缺口后恢复发布。
+            #    季频指标只走季度观测月(1/4/7/10)——非季月不是缺口。 ──
+            _is_q = (freq == 'quarterly')
+            prev_hole = False
+            for i in range(1, 13):
+                ym = _shift_months(cym + '-01', -i)[:7]
+                if _is_q and int(ym[5:7]) not in (1, 4, 7, 10):
+                    prev_hole = False
+                    continue
+                od, ov = _aof_obs_at_month(s, ym)
+                if od is None:
+                    pd_out['aftermath'].append({
+                        'metric_id': mid, 'label': label, 'obs_month': ym,
+                        'obs_date': None, 'value': None,
+                        'visible_from': None, 'first_publish': None,
+                        'pub_basis': '观测缺席', 'source': s.get('source'),
+                        'revision_note': _aof_revision_note(mid),
+                        'note': '',
+                        'delay_note': '采集缺口(源端无该月观测——停摆期'
+                                      '未采集/未发布),如实缺席'})
+                    prev_hole = True
+                    continue
+                vf, pub, basis, note = _aof_first_pub(mid, od, freq)
+                late = None
+                try:
+                    import datetime as _dt
+                    normal_pub, _rt = _publish_date(mid, freq, od)
+                    beyond = (_dt.date.fromisoformat(pub or vf or od)
+                              - _dt.date.fromisoformat(normal_pub)).days
+                    if beyond > 45:
+                        late = ('发布延误: 首发 %s 晚于常轨推定 %s %d 天'
+                                '(>45 容差)——停摆期延误类'
+                                % (pub or vf, normal_pub, beyond))
+                except (TypeError, ValueError):
+                    late = None
+                if late or prev_hole:
+                    pd_out['aftermath'].append({
+                        'metric_id': mid, 'label': label, 'obs_month': ym,
+                        'obs_date': od, 'value': ov,
+                        'visible_from': vf, 'first_publish': pub,
+                        'pub_basis': basis, 'source': s.get('source'),
+                        'revision_note': _aof_revision_note(mid),
+                        'note': note,
+                        'delay_note': late or (
+                            '缺口后恢复发布(前一观测月缺席)')})
+                prev_hole = False
+        periods.append(pd_out)
+    return {'basis': ('当时可知面(发布纪律重算): 判断截止月末前已可知的'
+                      '最新观测,逐数字绑定 指标/观测期/值/首次公布日/'
+                      '来源/修订口径;晚于截止日公布者移入事后段。发布日='
+                      '日历实录优先/规则推定兜底;EA_HICP 快报月末(推定)'
+                      '与终值分记。确定性复算零生成(Audit-R23 任务2)'),
             'periods': periods}
 
 
@@ -622,6 +845,10 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
             regions[eco]['dimensions'][dim] = cells
     plan = {
         'map_question': True,
+        # Audit-R23 任务2: 新代码面标记——历史段「当时可知」发布纪律契约
+        # (as_of 泄漏拦截)自本标记起生效;旧档无标记不追溯(原文复放必须
+        # 通过),新运行计划必带。
+        'asof_discipline': 'r23',
         'shared_by': '取数(plan 指标并入 S4/数据需求面)/报告(MAP_REPORT '
                      '对照表与数值回贴)/验收(同一份 plan 判据)——不手填指标代码',
         'regions': regions,
@@ -1317,11 +1544,21 @@ def _distinguishing_obs(rj, cutoff, metric_id):
     if not isinstance(v1, (int, float)):
         return f"(引擎当前面: {dates[k1]}={v1})"
     if k0 >= 0 and isinstance(values[k0], (int, float)) and values[k0]:
-        chg = v1 - values[k0]
-        tail = ('pp' if '%' in str(ser.get('unit') or '')
-                else f'%({chg / values[k0] * 100:+.2f})')
+        v0 = values[k0]
+        chg = v1 - v0
+        _unit = str(ser.get('unit') or '')
+        _is_pct_level = ('%' in _unit or 'percent' in _unit.lower()
+                         or str(ser.get('unit_family') or '') == 'rate')
+        if _is_pct_level:
+            # Audit-R23 任务4: 百分比水平序列(利率/盈亏平衡/同比率)的
+            # 近30日变化=百分点,按基点表述并带两端值与方向词
+            # (2.35→2.19 写为「下降16bp」,不再误标 % 或只给相对幅)。
+            bp = round(chg * 100)
+            direction = '上升' if bp > 0 else ('下降' if bp < 0 else '持平')
+            return (f"(引擎当前面: {dates[k1]}={v1:g},"
+                    f"近30日{v0:g}→{v1:g},{direction}{abs(bp):g}bp)")
         return (f"(引擎当前面: {dates[k1]}={v1:g},"
-                f"近30日Δ{chg:+g}{tail})")
+                f"近30日Δ{chg:+g}%({chg / v0 * 100:+.2f})")
     return f"(引擎当前面: {dates[k1]}={v1:g})"
 
 
@@ -1459,7 +1696,9 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         _flow = []
         for _lk in _best.get('links') or []:
             _short = str(_lk.get('observed_fact') or '')
-            _flow.append(_short.split('。')[0][:40])
+            # Audit-R23 任务4: 整句入链不截断——原 [:40] 把数字拦腰截断
+            # (如「美国CPI同比 2.434→4.」),指标名/数字/单位须完整。
+            _flow.append(_short.split('。')[0])
         lines.append('')
         lines.append('→ '.join(f'**{t}**' for t in _flow if t))
         lines.append('')
@@ -1709,17 +1948,99 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
     lines.append('|---|---|---|---|---|---|')
     turn_rows = sorted(rm.get('turnings') or [],
                        key=lambda t: str(t.get('date') or ''))
+
+    # ── Audit-R23 任务4: 同轮事件并项——同维度且观测窗重叠的转折=同一
+    # 轮事件(如 2026-05 中美再通胀信号: CN_PPI 与 CPI 窗口重叠),并为一
+    # 项计;并项后不足三项时由引擎按候选面证据分补选独立转折(窗口不与
+    # 已用重叠+维度不同,|Δ| 降序)——补选行明确标注「引擎补选·非判断
+    # 席」,不冒充判断。判断席原转折全数保留在 agent_judgment 档。 ──
+    def _t_ym(t):
+        return str(t.get('date') or '')[:7]
+
+    def _t_win_months(cc):
+        out, ym0 = set(), str((cc or {}).get('from_ym') or '')
+        ym1 = str((cc or {}).get('to_ym') or '')
+        if len(ym0) == 7:
+            for i in range(0, 13):
+                m = _shift_months(ym0 + '-01', -i)[:7]
+                if ym1 and m > ym1:
+                    break
+                out.add(m)
+        return out
+
+    episodes = []
     for t in turn_rows:
-        mid, ym = t.get('metric_id'), str(t.get('date') or '')[:7]
-        cc = cand_by_key.get((mid, ym))
-        win = (f"{cc.get('from_ym')}..{cc.get('to_ym')}" if cc
-               else (f"{str(t.get('before_date'))[:7]}..{ym}"
-                     if t.get('before_date') else '—'))
-        lines.append(f"| {t.get('date')} | {t.get('metric_id')} | "
-                     f"{_fmt_val(t.get('value_before'))}→"
-                     f"{_fmt_val(t.get('value_after'))} | {win} | "
-                     f"{t.get('first_mover')} | {t.get('follow_or_diverge')} |")
+        cc = cand_by_key.get((t.get('metric_id'), _t_ym(t)))
+        dim = (cc or {}).get('dimension') or ''
+        wm = _t_win_months(cc)
+        for ep in episodes:
+            if dim and ep['dim'] == dim and (ep['months'] & wm):
+                ep['turnings'].append(t)
+                ep['months'] |= wm
+                break
+        else:
+            episodes.append({'dim': dim, 'months': set(wm), 'turnings': [t]})
+    _merged_note_seen = False
+    for ep in episodes:
+        ts_ = sorted(ep['turnings'], key=lambda t: str(t.get('date') or ''))
+        merged = len(ts_) > 1
+        mid_txt = '+'.join(sorted({str(t.get('metric_id'))
+                                    for t in ts_}))
+        if merged:
+            mid_txt += '(同轮事件并项)'
+            _merged_note_seen = True
+        vals_txt = ';'.join(
+            f"{_fmt_val(t.get('value_before'))}→"
+            f"{_fmt_val(t.get('value_after'))}" for t in ts_)
+        _wins = []
+        for t in ts_:
+            cc = cand_by_key.get((t.get('metric_id'), _t_ym(t)))
+            w_ = (f"{cc.get('from_ym')}..{cc.get('to_ym')}" if cc
+                  else (f"{str(t.get('before_date'))[:7]}..{_t_ym(t)}"
+                        if t.get('before_date') else '—'))
+            if w_ not in _wins:
+                _wins.append(w_)
+        date_txt = '/'.join(sorted({str(t.get('date')) or '—'
+                                    for t in ts_}))
+        lines.append(f"| {date_txt} | {mid_txt} | {vals_txt} | "
+                     f"{'/'.join(_wins)} | "
+                     f"{';'.join(str(t.get('first_mover') or '—') for t in ts_)} | "
+                     f"{';'.join(str(t.get('follow_or_diverge') or '—') for t in ts_)} |")
+    # 并项后不足三项 → 引擎按现有证据补选独立转折(确定性,可核):
+    # 窗口不与已用重叠为硬条件(独立事件);优先不同维度,同维度不同窗
+    # 亦可为独立轮次(候选面维度并不仅两三种);|Δ| 降序。
+    _used_keys = {(t.get('metric_id'), _t_ym(t)) for t in turn_rows}
+    _used_months = set()
+    for ep in episodes:
+        _used_months |= ep['months']
+    _used_dims = {ep['dim'] for ep in episodes if ep['dim']}
+    _engine_picks = []
+    if len(episodes) < 3:
+        _pool = [c for c in cand
+                 if (c.get('metric_id'), str(c.get('to_ym')))
+                 not in _used_keys
+                 and not (_t_win_months(c) & _used_months)
+                 and c.get('delta') is not None]
+        _pool.sort(key=lambda c: (c.get('dimension') in _used_dims,
+                                  -abs(c.get('delta') or 0)))
+        _engine_picks = _pool[:3 - len(episodes)]
+        for c in _engine_picks:
+            lines.append(f"| {c.get('to_ym')}(引擎补选·非判断席) | "
+                         f"{c.get('metric_id')}({c.get('region')}/"
+                         f"{c.get('dimension')},候选面 |Δ| 降序) | "
+                         f"{_fmt_val(c.get('value_before'))}→"
+                         f"{_fmt_val(c.get('value_after'))} | "
+                         f"{c.get('from_ym')}..{c.get('to_ym')} | "
+                         "—(判断席未述此转折) | — |")
     lines.append('')
+    if _merged_note_seen or _engine_picks:
+        lines.append('> 并项与补选口径: 同维度且观测窗重叠的转折=同一轮'
+                     '事件并为一项(如同一轮五月再通胀的中美信号);并项后'
+                     '不足三项时按候选面证据分补选独立转折——窗口不与已'
+                     '用重叠为硬条件(独立事件),优先不同维度、再按 |Δ| '
+                     '降序,标注「引擎补选·非判断席」——判断席原转折全数'
+                     '在 agent_judgment 档,不因渲染并项丢失。')
+        lines.append('')
     if cand:
         lines.append('<details><summary>引擎转折候选面(确定性排序,判断依据可核)</summary>')
         lines.append('')
@@ -1804,6 +2125,56 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         lines.append(f"- 相似点: {h.get('similarity')}")
         lines.append(f"- 关键差异: {h.get('difference')}")
         lines.append(f"- 当时同步性(其他经济体): {h.get('other_regions_sync')}")
+        # ── Audit-R23 任务2: 当时可知面(发布纪律重算,确定性)——同步性
+        # 叙述所引数字逐个绑定 指标/观测期/值/首次公布日/来源/修订口径;
+        # 晚于截止日才公布的移入事后段(信息截止可核,正文引用须对账)。 ──
+        try:
+            aof = history_asof_face([h], rj)
+            aop = (aof.get('periods') or [{}])[0]
+        except Exception:
+            aop = {}
+        if aop.get('known'):
+            lines.append('- **当时可知面(发布纪律重算——引擎确定性)**:')
+            lines.append('')
+            lines.append('  | 指标 | 观测期(最新可见) | 值 | 首次公布日'
+                         ' | 当时可知? | 来源 | 修订口径 |')
+            lines.append('  |---|---|---|---|---|---|---|')
+            for r in aop['known']:
+                pub_txt = str(r.get('visible_from') or '—')
+                if r.get('first_publish') and \
+                        r.get('first_publish') != r.get('visible_from'):
+                    pub_txt += f"(终值 {r.get('first_publish')})"
+                note_txt = (f";{r.get('note')}" if r.get('note') else '')
+                lines.append(
+                    f"  | {r.get('label')}({r.get('metric_id')}) | "
+                    f"{r.get('obs_month')} | {_fmt_val(r.get('value'))} | "
+                    f"{pub_txt}({r.get('pub_basis')}){note_txt} | 是 | "
+                    f"{r.get('source') or '—'} | "
+                    f"{r.get('revision_note')} |")
+            lines.append('')
+            lines.append(f"  > 截止月={aop.get('cutoff_ym')}(月末 "
+                         f"{aop.get('cutoff_end')});known=可见日≤截止月末"
+                         '的最新观测。')
+            if aop.get('aftermath'):
+                lines.append('- **截止日后才公布(事后段——不得充当当时可知)**:')
+                lines.append('')
+                lines.append('  | 指标 | 观测期 | 值 | 首次发布日 | '
+                             '延误/注记 | 来源 |')
+                lines.append('  |---|---|---|---|---|---|')
+                for r in aop['aftermath']:
+                    pub_txt = str(r.get('visible_from')
+                                  or r.get('pub_basis') or '—')
+                    lines.append(
+                        f"  | {r.get('label')}({r.get('metric_id')}) | "
+                        f"{r.get('obs_month')} | "
+                        f"{_fmt_val(r.get('value'))} | {pub_txt} | "
+                        f"{r.get('delay_note') or '—'} | "
+                        f"{r.get('source') or '—'} |")
+                lines.append('')
+            if aop.get('absent'):
+                lines.append(f"  > 当时可知面缺席项(序列不在场,不冒充): "
+                             f"{', '.join(aop['absent'])}")
+                lines.append('')
         ex = h.get('ex_post') or {}
         aym = str(h.get('anchor_ym') or '')
         exp_win = ex_post_windows(aym) if len(aym) == 7 else {}
@@ -1816,48 +2187,55 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         sn = h.get('sample_note') or h.get('data_note')
         if sn:
             lines.append(f"- 样本注记: {sn}")
-        # ── Audit-R22 任务4: 逐窗并列面(经济指标×资产表现,确定性复算;
-        # 与 ex_post 正文同一锚月末→锚+N 月末口径,数字可逐位对账) ──
+        # ── Audit-R22 任务4 + Audit-R23 任务1: 逐窗并列面(经济指标×资产
+        # 表现,确定性复算;与 ex_post 正文同一锚月末→锚+N 月末口径,数字
+        # 可逐位对账)。序列源=冻结信封优先/运行快照兜底——无外部快照
+        # 仍逐位还原,同名快照端点被改不影响任何行。 ──
         if len(aym) == 7:
-            if _snap_r is not None:
-                hwf = history_window_face([h], _snap_r, root)
-                hwp = (hwf.get('periods') or [{}])[0]
-                if hwp.get('windows'):
-                    lines.append('- 逐窗并列(经济指标×资产表现,'
-                                 '起止期/数值/单位/来源——确定性复算):')
-                    for k in ('3m', '6m', '12m'):
-                        w = hwp['windows'].get(k) or {}
-                        rows_w = w.get('rows') or []
-                        if not rows_w:
-                            continue
-                        lines.append('')
-                        lines.append(f"  **随后{k[:-1]}个月窗**"
-                                     f"(锚{aym}月末→{w.get('target_ym')}月末):")
-                        lines.append('')
-                        lines.append('  | 组 | 指标 | 起期 | 起值 | 止期 | 止值 |'
-                                     ' 变化 | 单位 | 来源 |')
-                        lines.append('  |---|---|---|---|---|---|---|---|---|')
-                        for r in rows_w:
-                            ch_ = r.get('change')
-                            ch_txt = (f"{ch_:+g}{r.get('change_unit')}"
-                                      if isinstance(ch_, (int, float))
-                                      else '—')
-                            lines.append(
-                                f"  | {r.get('group')} | {r.get('label')}"
-                                f"({r.get('metric_id')}) | {r.get('from_date')}"
-                                f" | {_fmt_val(r.get('from_value'))} | "
-                                f"{r.get('to_date')} | "
-                                f"{_fmt_val(r.get('to_value'))} | {ch_txt} | "
-                                f"{r.get('unit') or '—'} | "
-                                f"{r.get('source') or '—'} |")
-                    if hwp.get('absent'):
-                        lines.append('')
-                        lines.append(f"  > 并列面缺席项(序列/窗端点不可得,"
-                                     f"不冒充): {', '.join(hwp['absent'])}")
+            hwf = history_window_face([h], _snap_r, root, rj=rj)
+            hwp = (hwf.get('periods') or [{}])[0]
+            _any_rows = any((w or {}).get('rows') for w in
+                            (hwp.get('windows') or {}).values())
+            if _any_rows:
+                lines.append('- 逐窗并列(经济指标×资产表现,'
+                             '起止期/数值/单位/来源——确定性复算;'
+                             '序列源=report.json 冻结信封优先,运行快照'
+                             '兜底):')
+                for k in ('3m', '6m', '12m'):
+                    w = hwp['windows'].get(k) or {}
+                    rows_w = w.get('rows') or []
+                    if not rows_w:
+                        continue
                     lines.append('')
+                    lines.append(f"  **随后{k[:-1]}个月窗**"
+                                 f"(锚{aym}月末→{w.get('target_ym')}月末):")
+                    lines.append('')
+                    lines.append('  | 组 | 指标 | 起期 | 起值 | 止期 | 止值 |'
+                                 ' 变化 | 单位 | 来源 |')
+                    lines.append('  |---|---|---|---|---|---|---|---|---|')
+                    for r in rows_w:
+                        ch_ = r.get('change')
+                        ch_txt = (f"{ch_:+g}{r.get('change_unit')}"
+                                  if isinstance(ch_, (int, float))
+                                  else ('—(' + str(r.get('note') or '')
+                                        + ')' if r.get('note') else '—'))
+                        lines.append(
+                            f"  | {r.get('group')} | {r.get('label')}"
+                            f"({r.get('metric_id')}) | {r.get('from_date')}"
+                            f" | {_fmt_val(r.get('from_value'))} | "
+                            f"{r.get('to_date')} | "
+                            f"{_fmt_val(r.get('to_value'))} | {ch_txt} | "
+                            f"{r.get('unit') or '—'} | "
+                            f"{r.get('source') or '—'} |")
+                if hwp.get('absent'):
+                    lines.append('')
+                    lines.append(f"  > 并列面缺席项(序列/窗端点不可得,"
+                                 f"不冒充): {', '.join(hwp['absent'])}")
+                lines.append('')
             else:
-                lines.append(f"- 逐窗并列面: **缺席**——{_snap_note or '运行快照不在场'}"
-                             '(经济×资产并列表须运行快照在场,不跨快照取数)')
+                lines.append(f"- 逐窗并列面: **缺席**——{_snap_note or '冻结信封与运行快照均不在场'}"
+                             '(经济×资产并列表须 report.json S4 冻结信封'
+                             '或运行快照在场,不跨快照取数/不读活树冒充)')
                 lines.append('')
         lines.append('')
 

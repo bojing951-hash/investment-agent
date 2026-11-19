@@ -1890,7 +1890,10 @@ def _r1_report_core(args, engine_root):
                 _aj_doc = {}
         map_md_path = os.path.join(rd, 'MAP_REPORT.md')
         map_sha_path = os.path.join(rd, 'MAP_REPORT.sha256')
-        map_text = rmp18.render_map_report(rj, _aj_doc, sr, root=ROOT)
+        # Audit-R23 任务1: 地图渲染用调用方指定的 engine_root(原 ROOT=
+        # ia_cli 模块常量——注入树/重放树跑 report 时误读 ia_cli 自有
+        # 数据树,快照定位错树);与 _r1_report_core 其余面同根。
+        map_text = rmp18.render_map_report(rj, _aj_doc, sr, root=engine_root)
         _fresh_sha = hashlib.sha256(map_text.encode('utf-8')).hexdigest()
         _prev_sha = None
         if os.path.exists(map_sha_path):

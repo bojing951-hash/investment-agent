@@ -1889,7 +1889,10 @@ def run_research(question, root=None, archive=False, out_dir=None,
             ((_snap0 or {}).get('target_date') or '')[6:8] \
             if (_snap0 or {}).get('target_date') else None
         if not _cutoff:
-            _cutoff = _now_utc()[:10]
+            # Audit-R20 一问验收实测: 数据树无快照时此回退曾产出
+            # '20261119T0'(_now_utc 是紧凑时间戳,[:10] 非日期)→
+            # _shift_months int('T0') 崩——回退必须给真 ISO 日期。
+            _cutoff = datetime.now(timezone.utc).date().isoformat()
         research_plan = rmp.plan_map(question, ent, reg.get('by_id') or {},
                                      _cutoff)
         if _snap0 is not None:
@@ -1897,6 +1900,13 @@ def run_research(question, root=None, archive=False, out_dir=None,
                 research_plan, _snap0, root)
             research_plan['turning_candidates'] = rmp.turning_candidates(
                 research_plan, _snap0, root)
+            # Audit-R20 任务3: 读者正文复算面——三利率共同交易日分解与
+            # 关键资产月度变化(含计算窗口两端实测日),正文数字=同一份
+            # 可复算事实,渲染零新增生成。
+            research_plan['us_rates_trio'] = rmp.us_rates_trio_face(
+                _snap0, root)
+            research_plan['asset_moves'] = rmp.asset_move_face(
+                _snap0, root, cutoff=_cutoff)
         _merged = list(ent['metrics']) + [
             m for m in research_plan['metrics']
             if m not in ent['metrics']]

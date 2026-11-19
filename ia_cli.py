@@ -1486,14 +1486,25 @@ def _r1_plan_core(args, engine_root):
         work_order['produce'] += (' + reader_map(地图问句五面: 一句总判断/'
                                   '各地区环境走位/传导图逐环四件套[观察事实/'
                                   '因果假设/竞争解释/区分指标]/三个转折[日期/'
-                                  '指标/前后值/谁先变/跟进或背离]/历史段≤3'
+                                  '指标/前后值/谁先变/跟进或背离]/历史段0..3'
                                   '[年月/相似点/关键差异/其他经济体是否同步/'
                                   '随后3、6、12个月实际+样本注记])——Audit-R19: '
                                   '传导须连到资产指标;三转折为不同事件(不同'
                                   '指标-月,至少跨两维度);历史段须带结构化'
                                   'anchor_ym/match_window/judgment_cutoff_ym/'
                                   'aftermath_obs_months(事后窗=锚月+N 月,'
-                                  '事后观测不得落回匹配期内)')
+                                  '事后观测不得落回匹配期内);Audit-R20: '
+                                  '走位叙述含数字须按地区回贴 anchor_echo'
+                                  '[{anchor,metric_id,value,observation_month]'
+                                  '(与引擎点值面逐位一致);三利率分解回贴 '
+                                  'rates_decomposition{window_from,window_to,'
+                                  'nominal_bp,real_bp,bei_bp}(共同交易日面);'
+                                  '叙述含回报/涨跌主张须回贴 asset_returns_echo'
+                                  '[{metric_id,window_months,chg_pct,window{'
+                                  'from,to}}];零段历史类比合法但须 '
+                                  'history_zero_case_note(检索范围+原因);'
+                                  'L4 两情景的触发与失效方向将随读者报告'
+                                  '展示(结构面沿既有 l4.scenarios 契约)')
         work_order['reader_map_contract'] = {
             'spec': 'judgment 顶层 reader_map 对象;字段结构与数值回贴核对'
                     '见 scripts/research_contract/judgment_contract.py '
@@ -1510,12 +1521,16 @@ def _r1_plan_core(args, engine_root):
                     a.get('metric_id')
                     for a in (_rp.get('point_values') or {}).get('absent') or []],
                 'publication_discipline': '锚格值=发布日≤锚日的最新观测;'
-                    'publication_date/publication_rule 随格(推定规则,读者可核)',
+                    'publication_date/publication_basis 随格——R20 起日历实录'
+                    '条目(config/release_calendar.json,如 2025 停摆延误)'
+                    '优先于推定规则,读者可核',
                 'yoy_discipline': '月度同比只配去年同月/季度只配去年同季;'
                     '缺基期格 derived_yoy_pct=null+yoy_status='
                     'no_same_period_base+latest_valid_yoy(最近有效同比及月份)',
                 'asset_universe': ((_rp.get('point_values') or {})
                                    .get('asset_universe') or []),
+                'us_rates_trio': _rp.get('us_rates_trio'),
+                'asset_moves': _rp.get('asset_moves'),
                 'turning_candidates_top9': [
                     {'metric_id': c.get('metric_id'), 'from_ym': c.get('from_ym'),
                      'to_ym': c.get('to_ym'), 'value_before': c.get('value_before'),
@@ -1529,7 +1544,13 @@ def _r1_plan_core(args, engine_root):
                            '总判断条件式非预测;历史段=事后陈述非预测',
                            '同比只可用引擎 ok 基期格的 derived_yoy_pct'
                            '(缺基期=不可得,可另列最近有效同比及月份)',
-                           '锚值/转折只可用发布日≤锚日(研究截止日)的观测'],
+                           '锚值/转折只可用发布日≤锚日(研究截止日)的观测',
+                           'R20 回贴纪律: 走位数字→anchor_echo(值+观测月'
+                           '逐位对账,错月=CONTRADICTED);利率分解→'
+                           'rates_decomposition(共同交易日同窗);回报数字→'
+                           'asset_returns_echo(同窗复算+窗口两端日);'
+                           '情景≥2 个各写触发与失效方向;引用引擎事后回顾'
+                           '序列(最新修订值)的数字不得表述为当时首发值'],
         }
         with open(envelope_path, 'w', encoding='utf-8') as f:
             json.dump(work_order, f, ensure_ascii=False, indent=2)
@@ -1909,6 +1930,32 @@ def _r1_archive_core(args, engine_root):
                        '——必需图表面缺失阻止正式归档'}, \
             (warnings or []) + ['归档拒绝: 地图问句读者报告 MAP_REPORT.md '
                                 '缺席(必需图表面缺失)']
+    # Audit-R20 任务5反例④: 核心维度(地区×维度组)零 ok 格=草稿面,拒归
+    # (与 attach 层 blocked_class_of 同源同判——归档侧 belt、不另立口径)。
+    try:
+        _bc_r20 = aj.blocked_class_of(rj)
+    except Exception:
+        _bc_r20 = None
+    if _bc_r20 == 'map_core_dimension_missing':
+        _pvx = ((rj.get('research_plan') or {}).get('point_values')
+                or {})
+        _okp = {(_c.get('region'), _c.get('dimension'))
+                for _c in _pvx.get('cells') or []
+                if any(_a.get('status') == 'ok'
+                       for _a in (_c.get('anchors') or {}).values())}
+        _plp = {(_e, _d) for _e, _rf in
+                ((rj.get('research_plan') or {}).get('regions')
+                 or {}).items()
+                for _d in ((_rf.get('dimensions') or {}) or {})}
+        return False, {'stage': 'archive',
+                       'blocked': 'map_core_dimension_missing',
+                       'missing_groups': sorted(
+                           f'{_e}/{_d}' for _e, _d in (_plp - _okp)),
+                       'note': '核心维度(地区×维度)整组零 ok 格——'
+                               '按用户指令交付草稿,不进正式归档'}, \
+            (warnings or []) + ['归档拒绝: 核心维度缺数 '
+                                f'{sorted(f"{_e}/{_d}" for _e, _d in (_plp - _okp))}'
+                                '(R20: 草稿可交付,正式归档须 12/12 组齐)']
     run_ts = (rj.get('run') or {}).get('ts_utc') or 'unknown'
     dest = getattr(args, 'archive_dir', None) or os.path.join(
         ROOT, 'research_archive', os.path.basename(rd.rstrip('/')) or run_ts)

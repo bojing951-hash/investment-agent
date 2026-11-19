@@ -130,6 +130,13 @@ class T1TushareFirst(unittest.TestCase):
         em.return_value = em_df([('2026-10-30', 100.0, 1.0), ('2026-11-03', 105.0, 2.0),
                                  ('2026-11-04', 999.0, 3.0)])
         self.addCleanup(mock.patch.stopall)
+        # R20: 四路阶梯前两路直连与腾讯路注入空(离线确定性;零网络纪律),
+        # 使 EM 回落确定命中被 mock 的 akshare_em 末路——原"逐只恰一次"
+        # 断言语义不变
+        _np1 = mock.patch.object(cmc, '_em_klines_direct', return_value=[]).start()
+        _np2 = mock.patch.object(cmc, '_tx_klines', return_value=[]).start()
+        self.addCleanup(_np1.stop)
+        self.addCleanup(_np2.stop)
         with mock.patch.object(cmc, '_index_daily', side_effect=RuntimeError('频率超限')):
             with freeze_clock(FROZEN_AM):
                 with redirect_stdout(io.StringIO()):
@@ -147,7 +154,13 @@ class T2IndexEmFallbackContract(unittest.TestCase):
     """F1: 东财回落契约——行选择/标记/schema/推导/截止函数四向量。"""
 
     def _fallback(self, rows, moment=FROZEN_AM):
+        # R20(2026-11-19): _fetch_index_em 升四路阶梯(东财直连→系统代理→
+        # 腾讯ifzq→akshare_em)——离线锁的注入口=末路 akshare;前两路直连
+        # 与腾讯路注入空(与"源失败→缺席"同法),使被测面确定性落在
+        # akshare_em 包装路,原合成值断言语义零变化(零网络纪律保持)
         with freeze_clock(moment), \
+             mock.patch.object(cmc, '_em_klines_direct', return_value=[]), \
+             mock.patch.object(cmc, '_tx_klines', return_value=[]), \
              mock.patch('akshare.stock_zh_index_daily_em', return_value=em_df(rows)):
             return cmc._fetch_index_em('000001.SH', '上证指数')
 
@@ -164,7 +177,11 @@ class T2IndexEmFallbackContract(unittest.TestCase):
             self.assertIsNone(self._fallback([('2026-11-04', 1.0, 1.0)]))
 
     def test_t2c_em_failure_returns_none(self):
-        with mock.patch('akshare.stock_zh_index_daily_em', side_effect=IOError('断连')):
+        # R20: 前两路直连与腾讯路注入空(离线确定性;见 _fallback 同注),
+        # 末路 akshare 断连→None(失败→缺席不填0语义不变)
+        with mock.patch.object(cmc, '_em_klines_direct', return_value=[]), \
+             mock.patch.object(cmc, '_tx_klines', return_value=[]), \
+             mock.patch('akshare.stock_zh_index_daily_em', side_effect=IOError('断连')):
             with redirect_stdout(io.StringIO()):
                 self.assertIsNone(cmc._fetch_index_em('000001.SH', '上证指数'))
 

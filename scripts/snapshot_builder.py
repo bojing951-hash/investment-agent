@@ -298,11 +298,21 @@ def merge_series_sections(store, raw):
     metric_id 实读
     且 source=权属采集器方可入(防别名行/越权序列混入计算面);形态须为
     {'dates','values'} 等长非空(升序直通,零改写零造数);节缺席=诚实缺席不
-    造序列;store 既有键(global/china/prices 池)先占,series 节不覆盖。"""
+    造序列;store 既有键(global/china/prices 池)先占,series 节不覆盖。
+    Audit-R20(2026-11-19): 同门新增 china_(CN_CPI_YOY/CN_PPI_YOY/CN_LPR_1Y/
+    CN_OMO_7D,权属=china_market_collector)与 jp_(JP_CPI_YOY/JP_CPI_TOKYO_YOY/
+    JP_REAL_GDP_YOY,权属=jp_market_collector)两通道顶层 series 节。"""
     for ch, collector in (('japan', 'japan_rate_collector'),
                           ('ea', 'ea_market_collector'),
                           # Charter6-P2: Shiller 估值全史序列(1871+,月频)
-                          ('shiller', 'shiller_collector')):
+                          ('shiller', 'shiller_collector'),
+                          # Audit-R20(2026-11-19): CN 宏观全史序列
+                          # (EM CPI/PPI+PBOC OMO+LPR,china_ 档顶层 series 节)
+                          ('china', 'china_market_collector'),
+                          # Audit-R20: 日本增长/通胀序列(stat.go.jp CPI+
+                          # FRED GDP,jp_ 档顶层 series 节;prices 节序列
+                          # 另经上方 prices 池,两路键不重叠)
+                          ('jp', 'jp_market_collector')):
         for key, s in (((raw.get(ch) or {}).get('series') or {}).items()):
             m = fe.metric(key) if isinstance(key, str) else None
             if m is None or m.get('source') != collector or key in store:

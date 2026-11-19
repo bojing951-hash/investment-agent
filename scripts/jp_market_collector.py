@@ -17,9 +17,23 @@ jp_YYYYMMDD.json,回退窗5自然日);产出目录 data/daily。
      https://fred.stlouisfed.org/graph/fredgraph.csv?id=NIKKEI225
      → prices.NIKKEI225{close,date,high:null,low:null,series}
 
+Audit-R20(2026-11-19)增长/通胀序列面(12组36格四地地图问句的正式使用):
+  4. 总务省统计局 stat.go.jp CPI 月次 CSV(官方免费公开,零凭证零API key;
+     R19 时点登记为非白名单域——本波随用户 R20 指令(日本 GDP/全国 CPI 优先)
+     正式登记入白名单并接线;东京口径与全国口径分别采集,不以全国冒充东京):
+     https://www.stat.go.jp/data/cpi/2025/csv/zmi2025aa.csv  (全国,2025基)
+     https://www.stat.go.jp/data/cpi/2020/csv/zmi2020aa.csv  (全国,2020基)
+     https://www.stat.go.jp/data/cpi/2025/csv/tmi2025aa.csv  (东京都区部,2025基)
+     https://www.stat.go.jp/data/cpi/2020/csv/tmi2020aa.csv  (东京都区部,2020基)
+     → series.JP_CPI_YOY / series.JP_CPI_TOKYO_YOY
+     (総合指数水平→严格同基期内月度同比;双基期各自算同比后拼接,重叠月以
+     新基期(2025=100)为准,双基期同比差>0.10pp 时 alert 如实披露)
+  5. FRED fredgraph JPNRGDPEXP(实际GDP季频水平,1994+):
+     → series.JP_REAL_GDP_YOY(同季去年比=(本季/去年同季−1)×100;
+     FRED 载荷=最新修订值,无当时发布版本可比→序列注记 hindsight 口径)
+
 诚实缺席(DESIGN §三(a-2) L58+REPORT §零.12⑩ 定值;键不出现,禁 0 占位):
-  - inflation 节整体缺席: JP_CPI_TOKYO_YOY 口径唯日本总务省 stat.go.jp 发布
-    (非白名单域),不以全国CPI冒充东京口径,sources_status 记 MISSING。
+  - 上述任一源失败→series 节该键缺席+sources_status READ_FAIL+alerts 如实。
 
 产出档形(DESIGN §三(a-2) L45-L52 逐字+观测性附加键,REPORT §零.12⑪):
   顶层 date/generated_at/sources_status + 通道节 policy_rates/jgb/inflation/prices
@@ -50,6 +64,21 @@ __all__ = ['FRED_NIKKEI_URL', 'SERIES_WINDOW', 'fetch_nikkei_series',
 
 FRED_NIKKEI_URL = ('https://fred.stlouisfed.org/graph/fredgraph.csv'
                    '?id=NIKKEI225')
+# === Audit-R20(2026-11-19): 日本增长/通胀序列源(官方免费,零凭证) ============
+# stat.go.jp=日本总务省统计局官方站(CPI 月次 CSV 直连);FRED fredgraph 同
+# 通道既有端点形态。URL 常量登记制: 与 sources 节逐字一致(白名单登记面)。
+STATGO_CPI_NATIONAL_2025B = ('https://www.stat.go.jp/data/cpi/2025/csv/'
+                             'zmi2025aa.csv')
+STATGO_CPI_NATIONAL_2020B = ('https://www.stat.go.jp/data/cpi/2020/csv/'
+                             'zmi2020aa.csv')
+STATGO_CPI_TOKYO_2025B = ('https://www.stat.go.jp/data/cpi/2025/csv/'
+                          'tmi2025aa.csv')
+STATGO_CPI_TOKYO_2020B = ('https://www.stat.go.jp/data/cpi/2020/csv/'
+                          'tmi2020aa.csv')
+FRED_JP_GDP_URL = ('https://fred.stlouisfed.org/graph/fredgraph.csv'
+                   '?id=JPNRGDPEXP')
+_UA_R20 = {'User-Agent': 'investment-agent-dev-jp-market-collector/1.1',
+           'Connection': 'close'}
 # === Charter6 收尾(A2 延期①, 2026-11-10): NIKKEI series 窗口与 global 对齐 ====
 # 原 SERIES_WINDOW=251 硬截断(历史窗口参数化前的 1 年实况对齐,注释已过期)——
 # 改读同一 GLOBAL_HISTORY_PERIOD(env_config 校验,默认'10y'),按近似交易日
@@ -131,6 +160,138 @@ def fetch_nikkei_series(raw=None):
     return rows, alerts
 
 
+# ══ Audit-R20: stat.go.jp CPI 月次 CSV 解析 → 严格同基期月度同比序列 ═════
+
+def _parse_statgo_cpi_levels(raw):
+    """stat.go.jp 月次 CSV → 総合指数水平 [('YYYY-MM', level), …](升序)。
+
+    形态实测(2026-11-19, zmi2025aa.csv): 首行=類・品目中日列头,第2列='総合'
+    (第1列'類・品目'标签);前几行为名称/代码/权重行(首列非 YYYYMM 形),
+    数据行首列='202501' 形 6 位年月、第2列=指数水平(2025基=100/2020基=100)。
+    解析纯函数零网络;raw 供离线测试注入(cp932 解码)。"""
+    import csv as _csv
+    import io
+    alerts = []
+    try:
+        text = raw.decode('cp932')
+    except UnicodeDecodeError:
+        alerts.append('statgo CPI CSV cp932 解码失败(尝试utf-8)')
+        text = raw.decode('utf-8', errors='replace')
+    rows = list(_csv.reader(io.StringIO(text)))
+    if len(rows) < 6:
+        return None, ['statgo CPI CSV 行数不足(形态不符)'] + alerts
+    header = rows[0]
+    if len(header) < 2 or header[1].strip() != '総合':
+        return None, [f'stago CPI 列头不符(第2列={header[1] if len(header) > 1 else "?"!r}'
+                       f'≠総合)'] + alerts
+    out = {}
+    for r in rows[1:]:
+        c0 = (r[0] if r else '').strip()
+        if len(c0) == 6 and c0.isdigit() and c0[:2] in ('19', '20'):
+            try:
+                out['%s-%s' % (c0[:4], c0[4:6])] = float(r[1])
+            except (IndexError, ValueError):
+                alerts.append('statgo CPI 数值非法行跳过:%r' % (c0,))
+    if not out:
+        return None, ['statgo CPI 无有效观测行'] + alerts
+    return [(k, out[k]) for k in sorted(out)], alerts
+
+
+def _statgo_yoy(levels):
+    """同基期内月度同比(严格去年同月;缺基期该月不出数)。
+
+    → [('YYYY-MM', yoy_pct), …] 升序;yoy=round((本月/去年同月−1)×100, 2)。"""
+    by = dict(levels)
+    out = []
+    for ym, v in levels:
+        y, m = int(ym[:4]), int(ym[5:7])
+        pym = '%04d-%02d' % (y - 1, m)
+        base = by.get(pym)
+        if base:
+            out.append((ym, round((v / base - 1.0) * 100.0, 2)))
+    return out
+
+
+def _merge_two_base_yoy(old_yoy, new_yoy, label, tol_pp=0.10):
+    """双基期同比拼接: 重叠月以新基期为准,差>tol_pp 时 alert 如实。
+
+    返回 (merged_sorted, alerts)。两基都缺席→([], alerts)。"""
+    alerts = []
+    old, new = dict(old_yoy), dict(new_yoy)
+    for ym in sorted(set(old) & set(new)):
+        if abs(old[ym] - new[ym]) > tol_pp:
+            alerts.append('%s 双基期同比差超%.2fpp(%s: 2020基=%.2f 2025基=%.2f,'
+                          '取2025基)' % (label, tol_pp, ym, old[ym], new[ym]))
+    merged = dict(old)
+    merged.update(new)
+    return [(k, merged[k]) for k in sorted(merged)], alerts
+
+
+def fetch_statgo_cpi_yoy(label, url_2025b, url_2020b,
+                         raw_2025b=None, raw_2020b=None):
+    """stat.go.jp CPI 同比序列获取(全国/东京都区部共用;零凭证直连)。
+
+    → (yoy [('YYYY-MM', pct)], alerts);任一基期源失败→该基期缺席如实
+    (两基都失败→(None, alerts))。raw 注入则零网络(离线测试)。"""
+    alerts = []
+    yoy_parts = []
+    for tag, url, raw in (('2025基', url_2025b, raw_2025b),
+                          ('2020基', url_2020b, raw_2020b)):
+        if raw is None:
+            import urllib.request
+            try:
+                req = urllib.request.Request(url, headers=_UA_R20)
+                with urllib.request.urlopen(req, timeout=60) as r:
+                    raw = r.read()
+            except Exception as e:
+                alerts.append('statgo CPI(%s,%s)获取失败:%s:%s'
+                              % (label, tag, type(e).__name__, e))
+                continue
+        levels, a = _parse_statgo_cpi_levels(raw)
+        alerts.extend(a)
+        if levels:
+            yoy_parts.append(_statgo_yoy(levels))
+    if not yoy_parts:
+        return None, alerts
+    if len(yoy_parts) == 1:
+        return yoy_parts[0], alerts
+    merged, a = _merge_two_base_yoy(yoy_parts[0], yoy_parts[1], label)
+    return merged, alerts + a
+
+
+def _quarterly_yoy(rows):
+    """季频水平序列 → 同季去年比 [('YYYY-MM-01', yoy_pct), …]。
+
+    FRED 季度观测日=季首(YYYY-01/04/07/10-01);严格去年同季(−4 季)配基,
+    缺基期该季不出数;yoy=round((本季/去年同季−1)×100, 2)。"""
+    by = dict(rows)
+    out = []
+    for d, v in rows:
+        y, m = int(d[:4]), int(d[5:7])
+        if m not in (1, 4, 7, 10):
+            continue
+        base_d = '%04d-%02d-01' % (y - 1, m)
+        base = by.get(base_d)
+        if base:
+            out.append((d, round((v / base - 1.0) * 100.0, 2)))
+    return out
+
+
+def fetch_jp_real_gdp_yoy(raw=None):
+    """FRED JPNRGDPEXP 实际GDP季频水平→同季去年比序列。
+
+    → (yoy [('YYYY-MM-01', pct)], alerts);raw 注入则零网络。"""
+    if raw is None:
+        raw, a0 = _fetch_or_alert('FRED-JP-GDP', lambda: jrc._http_get(
+            FRED_JP_GDP_URL, 'fred'))
+        if raw is None:
+            return None, a0
+    rows, alerts = _parse_fred_series(raw)
+    if rows is None:
+        return None, alerts
+    return _quarterly_yoy(rows), alerts
+
+
 def _mof_history(raw):
     """MOF jgbcme 全数据行(升序)→ [(obs, {期限列: 值})];仅次新观测用。
 
@@ -177,7 +338,7 @@ def build_payload(run_date=None, mof_raw=None, fred_policy_raw=None,
     rd = run_date or date.today()
     ymd = rd.strftime('%Y%m%d')
     win = nikkei_series_window() if series_window is None else series_window
-    policy_rates, jgb, prices = {}, {}, {}
+    policy_rates, jgb, prices, inflation = {}, {}, {}, {}
     observations, alerts = {}, []
     sources_status = {}
 
@@ -269,10 +430,61 @@ def build_payload(run_date=None, mof_raw=None, fred_policy_raw=None,
                                             'retrieved_at': None}
         alerts.append('FRED日经源失败→prices 节缺席(如实,不伪造)')
 
-    # ── 诚实缺席(键不出现): inflation 节 ─────────────────────────────────
-    sources_status['JP_CPI_TOKYO'] = {'status': 'MISSING', 'retrieved_at': None}
-    alerts.append('JP_CPI_TOKYO_YOY诚实缺席:东京CPI口径唯stat.go.jp发布'
-                  '(非白名单域),不以全国CPI冒充→inflation 节键不出现')
+    # ── Audit-R20: 日本增长/通胀序列(stat.go.jp CPI + FRED GDP)─────────
+    # series 节=snapshot_builder.merge_series_sections('jp' 通道,
+    # collector='jp_market_collector' 权属门)直读形态 {'dates','values'}。
+    series_out = {}
+    inflation['JP_CPI_YOY'] = None      # 占位: 成功后填点值面
+    t0 = _now_iso()
+    yoy, a = fetch_statgo_cpi_yoy('全国CPI', STATGO_CPI_NATIONAL_2025B,
+                                  STATGO_CPI_NATIONAL_2020B)
+    alerts.extend(a)
+    if yoy:
+        series_out['JP_CPI_YOY'] = {
+            'dates': ['%s-01' % ym for ym, _ in yoy],
+            'values': [v for _, v in yoy]}
+        inflation['JP_CPI_YOY'] = _leaf(yoy[-1][1], '%s-01' % yoy[-1][0],
+                                        yoy[-2][1] if len(yoy) > 1 else None)
+        inflation['JP_CPI_YOY']['freq'] = 'Monthly'
+        observations['JP_CPI_YOY'] = '%s-01' % yoy[-1][0]
+        sources_status['STATGO_CPI_NATIONAL'] = {'status': 'EXACT',
+                                                 'retrieved_at': t0}
+    else:
+        inflation.pop('JP_CPI_YOY', None)
+        sources_status['STATGO_CPI_NATIONAL'] = {'status': 'READ_FAIL',
+                                                 'retrieved_at': t0}
+        alerts.append('stat.go.jp 全国CPI源失败→series.JP_CPI_YOY 缺席(如实)')
+    t0 = _now_iso()
+    yoy_t, a = fetch_statgo_cpi_yoy('東京都区部CPI', STATGO_CPI_TOKYO_2025B,
+                                    STATGO_CPI_TOKYO_2020B)
+    alerts.extend(a)
+    if yoy_t:
+        series_out['JP_CPI_TOKYO_YOY'] = {
+            'dates': ['%s-01' % ym for ym, _ in yoy_t],
+            'values': [v for _, v in yoy_t]}
+        observations['JP_CPI_TOKYO_YOY'] = '%s-01' % yoy_t[-1][0]
+        sources_status['STATGO_CPI_TOKYO'] = {'status': 'EXACT',
+                                              'retrieved_at': t0}
+    else:
+        sources_status['STATGO_CPI_TOKYO'] = {'status': 'READ_FAIL',
+                                              'retrieved_at': t0}
+        alerts.append('stat.go.jp 東京CPI源失败→series.JP_CPI_TOKYO_YOY 缺席'
+                      '(如实)')
+    t0 = _now_iso()
+    gdp_yoy, a = fetch_jp_real_gdp_yoy()
+    alerts.extend(a)
+    if gdp_yoy:
+        series_out['JP_REAL_GDP_YOY'] = {
+            'dates': [d for d, _ in gdp_yoy],
+            'values': [v for _, v in gdp_yoy],
+            'history_note': 'FRED JPNRGDPEXP 载荷=最新修订值(无当时发布版本'
+                            '可比)——研究/渲染面按事后回顾口径标注'}
+        observations['JP_REAL_GDP_YOY'] = gdp_yoy[-1][0]
+        sources_status['FRED_JP_GDP'] = {'status': 'EXACT', 'retrieved_at': t0}
+    else:
+        sources_status['FRED_JP_GDP'] = {'status': 'READ_FAIL',
+                                         'retrieved_at': t0}
+        alerts.append('FRED 日本GDP源失败→series.JP_REAL_GDP_YOY 缺席(如实)')
 
     payload = {
         'date': ymd,
@@ -287,17 +499,30 @@ def build_payload(run_date=None, mof_raw=None, fred_policy_raw=None,
             'FRED_NIKKEI225': {'url': FRED_NIKKEI_URL,
                                'note': 'FRED日频系列NIKKEI225(仅收盘口径,'
                                        'high/low=null)'},
-            'JP_CPI_TOKYO': {'url': None,
-                             'note': '诚实缺席:东京CPI口径源stat.go.jp非白名单域'},
+            'STATGO_CPI_NATIONAL': {
+                'url': STATGO_CPI_NATIONAL_2025B,
+                'note': '总务省统计局全国CPI月次CSV(2025基+2020基拼接;'
+                        '総合指数水平→同基期内严格同月同比,Audit-R20 接线)'},
+            'STATGO_CPI_TOKYO': {
+                'url': STATGO_CPI_TOKYO_2025B,
+                'note': '总务省统计局東京都区部CPI月次CSV(2025基+2020基拼接;'
+                        '东京口径与全国口径分别列示,不以全国冒充东京)'},
+            'FRED_JP_GDP': {'url': FRED_JP_GDP_URL,
+                            'note': 'FRED季频JPNRGDPEXP实际GDP水平→同季去年比'
+                                    '(最新修订值=事后回顾口径,Audit-R20 接线)'},
         },
         'fetched_at': _now_iso(),
         'alerts': alerts,
     }
     for section, obj in (('policy_rates', policy_rates), ('jgb', jgb),
-                         ('prices', prices)):
+                         ('inflation', inflation), ('prices', prices)):
         if obj:
             payload[section] = obj          # 缺席节键不出现(L58)
-    n_series = len(policy_rates) + len(jgb) + len(prices)
+    # Audit-R20: 全史序列节(merge_series_sections 'jp' 通道权属门直读)
+    if series_out:
+        payload['series'] = series_out
+    n_series = (len(policy_rates) + len(jgb) + len(inflation) + len(prices)
+                + len(series_out))
     return payload, n_series
 
 
@@ -318,7 +543,8 @@ def main(argv=None):
     if '--data-dir' in argv:
         data_dir = argv[argv.index('--data-dir') + 1]
     payload, n = build_payload()
-    sections = [k for k in ('policy_rates', 'jgb', 'prices') if k in payload]
+    sections = [k for k in ('policy_rates', 'jgb', 'inflation', 'prices',
+                            'series') if k in payload]
     print(f"[jp_market_collector] run_date={payload['date']} "
           f"sections={sections} observations={payload['observations']}")
     for a in payload['alerts']:

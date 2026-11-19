@@ -233,24 +233,31 @@ class T1RegistryV230(unittest.TestCase):
 
     def test_t01_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1): 94+8→102/93+8→101/2.2.0→2.3.0/CN 10→18
-        self.assertEqual(len(REG['metrics']), 110)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL)
-        self.assertEqual(REG['version'], '2.8.5')  # R25(2026-11-14) DFF history_source;曾升 2.8.4(R12 japan source_key 补接)/2.8.3(R11 注记细化)/2.8.2(R6-D1 换源)/2.8.0(数据批1)
+        # R20: 110→113(+JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 四地补齐)
+        self.assertEqual(len(REG['metrics']), 113)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL;R20 +3)
+        self.assertEqual(REG['version'], '2.8.6')  # R20(2026-11-19) 四地补齐;曾升 2.8.5(R25 DFF history_source)/2.8.4(R12 japan source_key 补接)/2.8.3(R11 注记细化)/2.8.2(R6-D1 换源)/2.8.0(数据批1)
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 108)  # 数据批1 +SPX_EPS/M2SL
+                             if m.get('status') == 'active'), 111)  # 数据批1 +SPX_EPS/M2SL;R20 +3(均 active)
         agg = {}
         for m in REG['metrics']:
             agg[m['economy']] = agg.get(m['economy'], 0) + 1
         # Charter6-P2: US 50→52(+SPX_CAPE/SPX_PE_TTM)
         # Charter7 P2-3: US 53→55(+SOFR/WALCL);数据批1: US 55→57(+SPX_EPS/M2SL)
-        self.assertEqual(agg, {'US': 57, 'CN': 18, 'HK': 4, 'JP': 8,
-                               'EA': 11, 'GLOBAL': 12})
+        # R20: JP 8→10(+JP_CPI_YOY/JP_REAL_GDP_YOY)/EA 11→12(+EA_REAL_GDP_YOY)
+        self.assertEqual(agg, {'US': 57, 'CN': 18, 'HK': 4, 'JP': 10,
+                               'EA': 12, 'GLOBAL': 12})
 
     def test_t02_cn8_tail_order_and_common_fields(self):
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-11:-3]),
-                         CN8_ORDER)                       # append 尾序=终值表序(P2-3/数据批1 后块前移)
+        # R20: 三新指标 append 尾→CN8/SOX 块整体前移 3 位,块内序不变
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-14:-6]),
+                         CN8_ORDER)                       # append 尾序=终值表序(P2-3/数据批1/R20 后块前移)
         # Charter7 P2-3 + 数据批1(2026-11-10): SOFR/WALCL/M2SL append 于数组尾
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-6:-3]),
+                         ('SOFR', 'WALCL', 'M2SL'))       # append 尾序(P2-3+数据批1;R20 后块前移)
+        # R20(2026-11-19): 四地补齐三指标 append 于数组尾(新尾块锁)
         self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-3:]),
-                         ('SOFR', 'WALCL', 'M2SL'))       # append 尾序(P2-3+数据批1)
+                         ('JP_CPI_YOY', 'EA_REAL_GDP_YOY',
+                          'JP_REAL_GDP_YOY'))             # append 尾序(R20 四地补齐)
         for mid in CN8_ORDER:
             m = METRICS[mid]
             self.assertEqual(m['source'], 'china_market_collector', mid)
@@ -264,12 +271,12 @@ class T1RegistryV230(unittest.TestCase):
 
     def test_t03_omo_entry_full_field_freeze(self):
         # D11 全字段冻结(硬编码=磁盘实况);frequency='daily'=v1.3 处置章 §十三.2
-        # 裁决锚;source_symbol='PENDING'=身份预注册(JP_CPI_TOKYO_YOY 先例形态)
+        # 裁决锚;R20(2026-11-19): source_symbol PENDING 解除→PBC 公告走查接线
         self.assertEqual(METRICS['CN_OMO_7D'], {
             'metric_id': 'CN_OMO_7D',
             'display_name': '央行7天期逆回购利率',
             'source': 'china_market_collector',
-            'source_symbol': 'PENDING',
+            'source_symbol': 'PBC 公开市场业务交易公告(125475 列表页走查+公告缓存)',
             'asset_class': 'policy_rate',
             'frequency': 'daily',
             'observation_period_kind': 'calendar_day',
@@ -283,16 +290,17 @@ class T1RegistryV230(unittest.TestCase):
             'status': 'active',
             'identity': {'instrument': 'macro_series', 'adjustment': 'none'},
             'value_type': 'level',
-            'calc': ('人民银行公开市场业务交易公告 7 天期逆回购中标利率(操作利率,'
-                     '有效利率口径);akshare 1.18.47 无逆回购接口→条目=身份预注册,'
-                     '公告行解析函数已随包交付(可注入纯函数),源接线=PENDING'),
+            'calc': ('人民银行公开市场业务交易公告 7 天期逆回购操作利率(中标/有效利率口径);R20 接线: '
+                     'china_market_collector fetch_macro_series 走查 pbc.gov.cn 125475 '
+                     '列表页(17081 分页),逐公告解析期限|操作利率表,7天期取操作利率(同公告多期限取最小),公告HTML按日期码缓存 '
+                     'DATA_DIR/cache/pboc_omo 支持增量;窗口内(2025-10..2026-10)7天利率恒为1.40,'
+                     '近期公告为隔夜品种(1.25)不覆盖本条目'),
             'validation': {'range': [0.5, 5], 'max_week_abs_move': 1.0},
             'freshness': {'max_calendar_lag_days': 10},
-            'release_semantics': ("央行操作室每交易日 09:20 前后披露交易公告(决议日"
-                                  "不定期);frequency='daily'=IA-P1-WP-E v1.3 裁决"
-                                  '(有效利率形态,ECB_DFR 先例),决议日语义由本注记'
-                                  '承载、不扩 FREQUENCY_VALUES;源未接线,数据缺席按'
-                                  ' L58 纪律处理'),
+            'release_semantics': ("央行操作室每交易日 09:20 "
+                                  "前后披露交易公告(决议日不定期),当日可见;frequency=daily=IA-P1-WP-E v1.3 "
+                                  "裁决(有效利率形态,ECB_DFR 先例),决议日语义由本注记承载;R20 已接线: "
+                                  "公告发布日=数据可视角,非公告日沿用最近有效利率(forward-fill 由研究层处理)"),
         })
 
     def test_t04_semantics_evolution_vintage(self):
@@ -303,7 +311,9 @@ class T1RegistryV230(unittest.TestCase):
                          | {'US_REAL_GDP', 'SPX_CAPE', 'SPX_PE_TTM',
                             'SPX_PB'}    # Charter6-P2: +3=25
                          | {'SOFR', 'WALCL'}  # Charter7 P2-3: +2=27(流动性维)
-                         | {'SPX_EPS', 'M2SL'})  # 数据批1(2026-11-10): +2=29
+                         | {'SPX_EPS', 'M2SL'}  # 数据批1(2026-11-10): +2=29
+                         | {'JP_CPI_YOY', 'EA_REAL_GDP_YOY',
+                            'JP_REAL_GDP_YOY'})  # R20(2026-11-19): +3=32 四地补齐
         self.assertEqual(bl.BASELINE_VINTAGE_IDS & CN8, set())      # 不与冻结81撞名
 
     def test_t05_cn_classification_reencode(self):
@@ -329,11 +339,15 @@ class T1RegistryV230(unittest.TestCase):
         # R9: 社融源端点=mofcom 直取(_shrzgm_rows/_shrzgm_last,T4/t57 打桩验证
         # 接线),非 akshare 面——源符号端点段以 'mofcom' 认锚
         endpoints_called.add('mofcom')
+        # R20: CN_CPI_YOY 源切 EM datacenter 实际通道(RPT_ECONOMY_CPI 直取,
+        # 源描述对齐)——源符号端点段以 'eastmoney datacenter RPT_ECONOMY_CPI' 认锚
+        endpoints_called.add('eastmoney datacenter RPT_ECONOMY_CPI')
+        # R20: CN_OMO_7D PENDING 解除→PBC 公告走查接线(pbc.gov.cn 125475 列表页
+        # +公告缓存,采集器内置通道)——源符号整体为通道锚
+        endpoints_called.add('PBC 公开市场业务交易公告(125475 列表页走查+公告缓存)')
         for mid in CN8_ORDER:
             sym = METRICS[mid]['source_symbol']
-            if sym == 'PENDING':
-                self.assertEqual(mid, 'CN_OMO_7D')       # 唯一身份预注册
-                continue
+            self.assertTrue(sym and sym != 'PENDING', mid)  # R20: 身份预注册清零,源符号非空且在册
             self.assertIn(sym.split('.')[0], endpoints_called, mid)  # 端点接线一致
         # identity 分型: flow 两条无 identity(SB_FLOW 先例),宏观六条 macro_series
         for mid in ('CN_SF_FLOW', 'CN_NEW_LOANS'):
@@ -679,16 +693,21 @@ class T6SourceFailureHonestAbsence(unittest.TestCase):
         self.assertIn('PENDING', out.getvalue())        # OMO 缺席有披露
 
     def test_t61_omo_default_loader_pending_none(self):
-        # 默认装载器=PENDING 披露返回 None(零网络零造数);与 registry 身份预注册
-        # (CN_OMO_7D active+source_symbol='PENDING')挂钩=JP_CPI_TOKYO_YOY 同型
+        # 默认装载器=PENDING 披露返回 None(零网络零造数);R20(2026-11-19):
+        # registry CN_OMO_7D PENDING 解除→PBC 公告走查接线(source_symbol 在册
+        # 非空);旧默认装载路径(akshare 免费接口缺席)仍如实 None,不造数
         out = io.StringIO()
         with redirect_stdout(out):
             self.assertIsNone(cmc._omo_rows_default())
             self.assertIsNone(cmc.fetch_omo_7d())
         self.assertIn('PENDING', out.getvalue())
-        self.assertEqual(METRICS['CN_OMO_7D']['source_symbol'], 'PENDING')
+        # R20: 源符号非空且在册(接线串整锚;不再是占位 'PENDING')
+        self.assertEqual(METRICS['CN_OMO_7D']['source_symbol'],
+                         'PBC 公开市场业务交易公告(125475 列表页走查+公告缓存)')
         self.assertEqual(METRICS['CN_OMO_7D']['status'], 'active')
-        self.assertEqual(METRICS['JP_CPI_TOKYO_YOY']['source_symbol'], 'PENDING')
+        # R20: 先例条目同轮解除 PENDING(2025基单档接线,基期缺口如实注记)
+        self.assertEqual(METRICS['JP_CPI_TOKYO_YOY']['source_symbol'],
+                         'stat.go.jp tmi2025aa.csv(2020基 tmi 文件404,基期缺口如实)')
 
 
 if __name__ == '__main__':

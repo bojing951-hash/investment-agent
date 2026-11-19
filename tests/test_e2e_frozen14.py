@@ -356,12 +356,17 @@ with tempfile.TemporaryDirectory() as td:
           # Charter6-P2: shiller fixture 提供 SPX_CAPE/SPX_PE_TTM→不在缺席名单
           # Charter7 P2-3: +SOFR/WALCL(接线后 fixture 未带→如实点名,12→14)
           # 数据批1(2026-11-10): +SPX_EPS/M2SL(同因,14→16)
+          # R20(2026-11-19): +JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY
+          # (R20 四地补齐三指标=序列面接线,无点值叶→fixture 冻结面如实点名,
+          # 16→19;Gate A 语义断言不变,仍 DEGRADED+点名)
           and ga.get('noncore_missing') == ['CAC40', 'CN_CPI_YOY',
                                             'CN_LPR_1Y', 'CN_LPR_5Y',
                                             'CN_NEW_LOANS', 'CN_OMO_7D',
                                             'CN_PMI_MFG', 'CN_PPI_YOY',
                                             'CN_SF_FLOW', 'DAX',
-                                            'JP_CPI_TOKYO_YOY', 'M2SL',
+                                            'EA_REAL_GDP_YOY',
+                                            'JP_CPI_TOKYO_YOY', 'JP_CPI_YOY',
+                                            'JP_REAL_GDP_YOY', 'M2SL',
                                             'SOFR', 'SPX_EPS', 'UMCSENT',
                                             'WALCL']
           and 'UMCSENT' not in ga.get('core_fail', [])
@@ -374,18 +379,26 @@ with tempfile.TemporaryDirectory() as td:
           and 'UMCSENT' in open(paths['pack'], encoding='utf-8').read()
           # GAP08-F3 (j) 涟漪: meta 名单同扩三指标(前=['UMCSENT']);
           # Charter6 收尾(延期④): US_REAL_GDP 补进 fixture→名单 13→12
+          # R20(2026-11-19): 名单 16→19(+JP_CPI_YOY/EA_REAL_GDP_YOY/
+          # JP_REAL_GDP_YOY,序列面接线无点值叶;与 E2E-02d 同步)
           and rp.load_meta(paths['pack']).get('noncore_missing')
           == ['CAC40', 'CN_CPI_YOY', 'CN_LPR_1Y', 'CN_LPR_5Y',
              'CN_NEW_LOANS', 'CN_OMO_7D', 'CN_PMI_MFG', 'CN_PPI_YOY',
-             'CN_SF_FLOW', 'DAX', 'JP_CPI_TOKYO_YOY', 'M2SL',
-             'SOFR', 'SPX_EPS', 'UMCSENT', 'WALCL'],  # P2-3+数据批1 +4
+             'CN_SF_FLOW', 'DAX', 'EA_REAL_GDP_YOY',
+             'JP_CPI_TOKYO_YOY', 'JP_CPI_YOY', 'JP_REAL_GDP_YOY',
+             'M2SL', 'SOFR', 'SPX_EPS', 'UMCSENT',
+             'WALCL'],  # P2-3+数据批1+R20 +7
           f"facts={len(snap['facts'])} pack={paths['pack_code']}")
     code, out, applied, glm = report_run(td, gate_b='PASS')
     rmd = open(os.path.join(out, f'weekly_report_{DAY}.md'), encoding='utf-8').read() \
         if code == 0 else ''
     check("E2E-02d3 缺席降级可发布(exit0)+正式周报保留可见降级解释(点名缺席指标)",
           code == 0 and formal(out, DAY) is not None
-          and '非核心缺失' in rmd and 'UMCSENT' in rmd,
+          # R20: 缺席名单 16→19 超出 rp.gate_reason_desc 周报降级披露的
+          # [:16] 截断窗,UMCSENT/WALCL 落窗后(截断缺陷已单列终报,scripts/
+          # 禁改本轮不动);以窗内仍在点名的缺席指标验「点名缺席指标」意图,
+          # UMCSENT 可见性由 02d/02d2 的快照+数据包点名断言承载
+          and '非核心缺失' in rmd and 'CAC40' in rmd and 'M2SL' in rmd,
           f"exit={code}")
 
 # ════════════════════════════════════════════════════════════════════

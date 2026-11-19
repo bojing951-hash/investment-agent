@@ -717,9 +717,16 @@ def _map_checks(judgment, face, report):
             bad(f'{tid}', f'转折 ({mid},{ym}) 不在引擎候选面(前9候选)——'
                 '须引用候选面或在叙述中说明取舍依据', contra=False)
     hist = rm.get('history_periods') or []
-    if not 1 <= len(hist) <= 3:
+    # Audit-R20 任务3: 历史类比 0..3 段——零段合法但必须写明检索范围与
+    # 原因(不许空白交差);1..3 段时逐段结构核验(下同 R19)。
+    if len(hist) > 3:
         bad('reader_map.history_periods',
-            f'历史栏须 1..3 段(得 {len(hist)})')
+            f'历史栏至多 3 段(得 {len(hist)})')
+    if len(hist) == 0 and not str(
+            rm.get('history_zero_case_note') or '').strip():
+        bad('reader_map.history_zero_case_note',
+            '零段类比须给 history_zero_case_note(检索范围+原因——'
+            'R20: 历史类比取 0..3 段,零段时如实写明,不以空白交差)')
     for hi, h in enumerate(hist):
         hid = f'reader_map.history_periods[{hi}]'
         for fld, lbl in (('period_label', '时期(年月)'),
@@ -842,6 +849,148 @@ def _map_checks(judgment, face, report):
                 f'传导图未连到资产指标(资产面在场 {len(au)} 项,如 '
                 f'{au[:4]}…)——传导链须从冲击连到指标与资产,每环标事实'
                 '或假设')
+
+    # ── Audit-R20 任务3/任务5: 三类数值回贴 + 情景方向(正文数字须与 ──
+    # 引擎确定性面同源对账;错月/错窗/编回报=CONTRADICTED,缺席回贴=
+    # NOT_VERIFIED——四个反例中「正文月份错误/编造回报/提前引用」的
+    # 确定性拦截路径)。
+    # (6) 锚值回贴 anchor_echo: 含数字的走位叙述须按地区回贴锚值
+    #     (数值+观测月与引擎点值面逐位一致)。
+    engine_cell = {}
+    for c in pv.get('cells') or []:
+        for lbl, a in (c.get('anchors') or {}).items():
+            if a.get('status') == 'ok':
+                engine_cell[(c.get('region'), lbl,
+                             c.get('metric_id'))] = a
+    for r in rm.get('regions') or []:
+        region = r.get('region')
+        text = str(r.get('from_to') or '')
+        echoes = r.get('anchor_echo') or []
+        if re.search(r'\d', text) and not echoes:
+            bad(f'reader_map.regions[{region}].anchor_echo',
+                '走位叙述含数字但未回贴锚值(anchor_echo 缺席——叙述数字'
+                '必须可对账引擎点值面,R20 正文月份错误反例的拦截位)')
+        for ei, e in enumerate(echoes):
+            eid = f'reader_map.regions[{region}].anchor_echo[{ei}]'
+            a = engine_cell.get((region, e.get('anchor'), e.get('metric_id')))
+            if a is None:
+                bad(eid, f'锚格不存在或锚前不可见({e.get("metric_id")}@'
+                    f'{e.get("anchor")})——不可虚构不在引擎点值面的锚值'
+                    '(提前引用未发布数据反例的拦截位)', contra=True)
+                continue
+            try:
+                if abs(float(e.get('value')) - float(a.get('value'))) > 5e-3:
+                    bad(eid, f'锚值与引擎不符(声明 {e.get("value")} vs '
+                        f'引擎 {a.get("value")})', contra=True)
+                    continue
+            except (TypeError, ValueError):
+                bad(eid, 'echo 值非数值')
+                continue
+            obs_m = str(e.get('observation_month') or '')[:7]
+            eng_m = str(a.get('observation_date') or '')[:7]
+            if obs_m and obs_m != eng_m:
+                bad(eid, f'观测月不符(声明 {obs_m} vs 引擎 {eng_m})——'
+                    '正文月份错误', contra=True)
+    # (7) 三利率分解回贴 rates_decomposition(引擎共同交易日面在场时必答)。
+    trio = plan.get('us_rates_trio') or {}
+    if trio.get('status') == 'ok':
+        rd_echo = rm.get('rates_decomposition') or {}
+        chg = trio.get('chg_bp') or {}
+        w = trio.get('window') or {}
+        need = {'window_from': w.get('from'), 'window_to': w.get('to'),
+                'nominal_bp': chg.get('UST_10Y'),
+                'real_bp': chg.get('TIPS_10Y'),
+                'bei_bp': chg.get('BEI_10Y')}
+        if not rd_echo:
+            bad('reader_map.rates_decomposition',
+                '三利率共同交易日分解面在场但判定未回贴(rates_decomposition'
+                ' 缺席——正文利率分解数字必须与引擎同窗复算一致)')
+        else:
+            for k, ev in need.items():
+                rv = rd_echo.get(k)
+                if isinstance(ev, (int, float)):
+                    try:
+                        if abs(float(rv) - float(ev)) > 1e-6:
+                            bad('reader_map.rates_decomposition',
+                                f'{k} 与引擎不符(声明 {rv} vs 共同交易日'
+                                f'复算 {ev})——分量与名义须同窗逐位对账',
+                                contra=True)
+                    except (TypeError, ValueError):
+                        bad('reader_map.rates_decomposition',
+                            f'{k} 非数值')
+                elif str(rv or '') != str(ev or ''):
+                    bad('reader_map.rates_decomposition',
+                        f'{k} 与引擎不符(声明 {rv!r} vs {ev!r})', contra=True)
+    # (8) 资产回报回贴 asset_returns_echo(叙述含回报/涨跌主张时必答)。
+    blob_txt = ' '.join(
+        [str(rm.get('headline_conclusion') or '')]
+        + [str(r.get('from_to') or '') for r in rm.get('regions') or []]
+        + [str(lk.get('observed_fact') or '')
+           for ch in chains for lk in ch.get('links') or []])
+    if re.search(r'回报|涨幅|跌幅|上涨|下跌|涨|跌', blob_txt):
+        ar = rm.get('asset_returns_echo') or []
+        if not ar:
+            bad('reader_map.asset_returns_echo',
+                '叙述含回报/涨跌类主张但未回贴资产回报(asset_returns_echo '
+                '缺席——回报数字须可对账引擎同窗复算,R20 编造回报反例的'
+                '拦截位)')
+        else:
+            _cut = str(plan.get('cutoff') or '')
+            if not _cut:
+                bad('reader_map.asset_returns_echo',
+                    '计划截止日缺席,资产回报回贴无法执行')
+            else:
+                try:
+                    import research_map_planner as _rmp3
+                    for ei, e in enumerate(ar):
+                        eid = f'reader_map.asset_returns_echo[{ei}]'
+                        mid = e.get('metric_id')
+                        ser = (face.get('series_store') or {}).get(mid)
+                        if not ser or not (ser.get('dates')):
+                            bad(eid, f'资产 {mid} 不在证据序列面',
+                                contra=True)
+                            continue
+                        try:
+                            _m = int(e.get('window_months'))
+                        except (TypeError, ValueError):
+                            bad(eid, 'window_months 非整数月窗')
+                            continue
+                        eng = _rmp3.asset_move_rows({mid: ser}, _cut,
+                                                    months=_m)
+                        row = next((rr for rr in eng.get('rows') or []
+                                    if rr.get('metric_id') == mid), None)
+                        if row is None:
+                            bad(eid, f'{mid} {_m} 个月窗不可复算(端点缺数)'
+                                '——不可引用无法复算的回报', contra=True)
+                            continue
+                        try:
+                            if abs(float(e.get('chg_pct'))
+                                   - float(row.get('chg_pct'))) > 0.011:
+                                bad(eid, f'回报与引擎不符(声明 '
+                                    f'{e.get("chg_pct")}% vs 同窗复算 '
+                                    f'{row.get("chg_pct")}%)——编造回报数字',
+                                    contra=True)
+                                continue
+                        except (TypeError, ValueError):
+                            bad(eid, 'chg_pct 非数值')
+                            continue
+                        w_echo = e.get('window') or {}
+                        if (str(w_echo.get('from') or '')
+                                != str((row.get('window') or {}).get('from'))
+                                or str(w_echo.get('to') or '')
+                                != str((row.get('window') or {}).get('to'))):
+                            bad(eid, f'计算窗口与引擎不符(声明 '
+                                f'{w_echo.get("from")}..{w_echo.get("to")} vs '
+                                f'{(row.get("window") or {}).get("from")}..'
+                                f'{(row.get("window") or {}).get("to")})——'
+                                '回报主张必须带可复算窗口', contra=True)
+                except ImportError:
+                    bad('reader_map.asset_returns_echo',
+                        'research_map_planner 不可导入,资产回报回贴无法执行')
+    # (9) 情景触发/失效方向: L4 scenarios 结构面已由 _six_checks 逐席校验
+    # (trigger/falsification 阈值形态+算术一致性);R20 任务3 的读者面
+    # 要求=MAP_REPORT 渲染层把两情景的触发与失效方向分别展示
+    # (render_map_report l4 段),此处不重复立契约。
     return out
 
 

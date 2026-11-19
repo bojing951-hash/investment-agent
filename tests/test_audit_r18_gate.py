@@ -73,6 +73,79 @@ Q_ONLY = ('我关注10年期美债收益率。过去半年，只比较10年期�
           '30年期美债收益率。')
 
 
+def _complete_r20_face(dd):
+    """R20 四地补齐注入(与 R19 门同源): 冻结面只有 US+CN_PMI——R20
+    任务1 起 EA/JP 增长等入册,12 组每组至少一格 ok 才可正式交付
+    (agent_judgment map_core_dimension_missing),正例须在补齐面上跑。
+    注入走各通道顶层 series 节(merge_series_sections 权属门校验
+    source=对应采集器),数值=合成(离线标记),观测/发布日满足发布
+    纪律(JP_CPI +20 天→9 月锚前可见等)。"""
+    inj = {
+        'china_20261117.json': {
+            'CN_CPI_YOY': (['2025-10-01', '2026-07-01', '2026-10-01'],
+                           [0.4, 0.5, 0.7]),
+            'CN_OMO_7D': (['2025-11-14', '2026-08-14', '2026-11-13'],
+                          [1.4, 1.4, 1.4])},
+        'ea_20261117.json': {
+            'EA_HICP_YOY': (['2025-10-01', '2026-07-01', '2026-10-01'],
+                            [2.2, 2.1, 2.0]),
+            'EA_REAL_GDP_YOY': (['2025-07-01', '2026-04-01', '2026-07-01'],
+                                [1.2, 1.0, 1.1]),
+            'ECB_MRO': (['2025-11-14', '2026-08-14', '2026-11-13'],
+                        [3.15, 2.65, 2.65])},
+        'jp_20261117.json': {
+            # JP_CPI 月频+20 天: 10 月观测 11-20 才可见→锚前最近=9 月
+            'JP_CPI_YOY': (['2025-09-01', '2026-06-01', '2026-09-01'],
+                           [2.6, 2.8, 2.9]),
+            'JP_REAL_GDP_YOY': (['2025-07-01', '2026-04-01', '2026-07-01'],
+                                [0.6, 0.5, 0.6])},
+        'japan_20261117.json': {
+            'JP_POLICY_RATE': (['2025-10-01', '2026-07-01', '2026-10-01'],
+                               [0.5, 0.75, 0.75])},
+    }
+    for fname, series in inj.items():
+        doc = {'date': '20261117', 'version': 'r18gate-r20face',
+               'series': {mid: {'dates': d, 'values': v,
+                                'note': 'R18 门 R20 四地补齐注入(合成,'
+                                        '离线)'} for mid, (d, v)
+                          in series.items()},
+               **SYN_MARK}
+        json.dump(doc, open(os.path.join(dd, fname), 'w', encoding='utf-8'),
+                  ensure_ascii=False)
+    # R20 政策目标行注入: DFEDTARU/L(冻结面只有 DFF 市场口径)——注册表
+    # history_source=macro_collector,走 macro 档 data 节入 store
+    mp = os.path.join(dd, 'macro_20261117.json')
+    mdoc = json.load(open(mp, encoding='utf-8'))
+    _pol_days = ['2025-11-14', '2026-08-14', '2026-11-13']
+    mdoc['data']['DFEDTARU'] = {'value': 3.75, 'date': '2026-11-13',
+                                'frequency': 'daily', 'unit': 'percent',
+                                'series': {'dates': _pol_days,
+                                           'values': [3.75, 3.75, 3.75]}}
+    mdoc['data']['DFEDTARL'] = {'value': 3.50, 'date': '2026-11-13',
+                                'frequency': 'daily', 'unit': 'percent',
+                                'series': {'dates': _pol_days,
+                                           'values': [3.50, 3.50, 3.50]}}
+    json.dump(mdoc, open(mp, 'w', encoding='utf-8'), ensure_ascii=False)
+    # R20 资产回贴注入: SPX/VIX 日频序列(global 通道,周内日)
+    import datetime as _dt
+    d0, d1 = _dt.date(2026, 9, 28), _dt.date(2026, 11, 13)
+    days = [(d0 + _dt.timedelta(days=i)).isoformat()
+            for i in range((d1 - d0).days + 1)]
+    days = [x for x in days
+            if _dt.date(int(x[:4]), int(x[5:7]), int(x[8:10])).weekday() < 5]
+    n = len(days)
+    spx_v = [round(5997.0 - 92.0 * i / max(n - 1, 1), 2) for i in range(n)]
+    vix_v = [round(16.5 + 6.3 * i / max(n - 1, 1), 2) for i in range(n)]
+    gdoc = {'date': '20261117', 'version': 'r18gate-r20face',
+            'data': {'SPX': {'close': spx_v[-1], 'date': days[-1],
+                             'series': {'dates': days, 'values': spx_v}},
+                     'VIX': {'close': vix_v[-1], 'date': days[-1],
+                             'series': {'dates': days, 'values': vix_v}}},
+            **SYN_MARK}
+    json.dump(gdoc, open(os.path.join(dd, 'global_20261117.json'), 'w',
+                         encoding='utf-8'), ensure_ascii=False)
+
+
 def build_root(mutate):
     """引擎根=仓码+变异冻结面+重建快照(每次更换输入即重建)。"""
     d = tempfile.mkdtemp(prefix='r18gate_')
@@ -87,6 +160,7 @@ def build_root(mutate):
     doc = mutate(doc)
     json.dump(doc, open(os.path.join(dd, 'macro_20261117.json'), 'w',
                         encoding='utf-8'), ensure_ascii=False)
+    _complete_r20_face(dd)
     sb.build_snapshot(target_ymd='20261117', data_dir=dd, out_dir=dd,
                       as_of='2026-11-17T08:36:00+08:00', trusted_root=d)
     return d
@@ -202,6 +276,18 @@ def map_judgment(rd, variant=None):
     regions = [{'region': r, 'from_to': f'{r} 从合成环境A走到合成环境B(离线)'}
                for r in sorted((rp.get('regions') or {}).keys()
                                or ['US', 'CN', 'EA', 'JP'])]
+    # R20 回贴纪律: 三利率共同交易日面在场(trio ok)时判定须回贴
+    # rates_decomposition——夹具按引擎面逐字回贴(数值取自 report 引擎
+    # 复算,非编造),保持 R18 行为断言(attach 正例)在 R20 契约下成立。
+    trio = rp.get('us_rates_trio') or {}
+    reader_map_extra = {}
+    if trio.get('status') == 'ok':
+        _w, _c = trio.get('window') or {}, trio.get('chg_bp') or {}
+        reader_map_extra['rates_decomposition'] = {
+            'window_from': _w.get('from'), 'window_to': _w.get('to'),
+            'nominal_bp': _c.get('UST_10Y'),
+            'real_bp': _c.get('TIPS_10Y'),
+            'bei_bp': _c.get('BEI_10Y')}
     hist = [{'period_label': '2015-2016(合成类比期)',
              'similarity': '合成相似点(离线)',
              'difference': '合成关键差异(离线)',
@@ -257,7 +343,8 @@ def map_judgment(rd, variant=None):
             'transmission': [{'chain_name': '合成传导链(文字传导图)',
                               'links': links}],
             'turnings': turnings,
-            'history_periods': hist}}
+            'history_periods': hist,
+            **reader_map_extra}}
     if variant == 'no_reader_map':
         jd.pop('reader_map')
     elif variant == 'hollow_headline':
@@ -320,11 +407,17 @@ def test_audit_r18_gate():
           '日历点锚' in (plan.get('anchor_semantics_note') or '')
           and '事后偏移' in (plan.get('anchor_semantics_note') or ''),
           f"note={(plan.get('anchor_semantics_note') or '')[:80]}")
-    check('§A 维度缺口如实点名(EA/JP 增长无注册表指标)',
-          any('EA' in (g.get('note') or '') and '增长' in (g.get('note') or '')
-              for g in plan.get('dimension_gaps') or [])
-          and any('JP' in (g.get('note') or '')
-                  for g in plan.get('dimension_gaps') or []),
+    # R20 超越: EA/JP 增长已入册(EA_REAL_GDP_YOY/JP_REAL_GDP_YOY)——
+    # R18 断言的「EA/JP 增长无指标」缺口已被任务1修复闭合;断言意图
+    # (缺口如实点名)保留为: 增长维缺口不再点名 EA/JP,且缺口列表
+    # (如有)仍为结构化 note 而非静默。
+    check('§A 维度缺口如实点名(R20: EA/JP 增长已入册,缺口闭合)',
+          not any('EA' in (g.get('note') or '')
+                  and '增长' in (g.get('note') or '')
+                  for g in plan.get('dimension_gaps') or [])
+          and not any('JP' in (g.get('note') or '')
+                      and '增长' in (g.get('note') or '')
+                      for g in plan.get('dimension_gaps') or []),
           f"gaps={len(plan.get('dimension_gaps') or [])}")
     check('§A 上下文指标含美债三利率(任务3复算面)',
           {'UST_10Y', 'TIPS_10Y', 'BEI_10Y'} <=

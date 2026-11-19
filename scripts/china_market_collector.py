@@ -126,62 +126,156 @@ def _em_last_settled(df):
     return dstr, df.iloc[idx]
 
 
-def _fetch_index_em(code, name):
-    """F1 指数回落(东财,仅 tushare 异常时经 fetch_a_share_indices 进入):
-    返回与 tushare 路径同 schema 的 item + 恰一新增键 via='akshare_em';
-    取值行=date≤_em_max_date() 最后一行(在途行禁用);东财失败/无完结行
-    →None(该指数如实缺失)。单位披露: EM amount 单位=元(tushare 千元),
-    volume 语义=成交量;经 _no_proxy 禁代理直连。"""
+def _em_klines_direct(code, use_system_proxy=False):
+    """东财公开 kline 端点直连(push2his;R20 2026-11-19 实测):
+    akshare 包装层断连(RemoteDisconnected)期间的**同源等价**路径——同一
+    端点同一字段。直连与系统代理两会话各试一轮(当日实测: 出口 IP 被
+    端点间歇性断连,两会话命中其一即返回)。返回 [(date, close, volume,
+    amount)] 升序完结行(date≤_em_max_date());失败→[]。"""
+    em = EM_MAP.get(code)
+    if not em:
+        return []
+    secid = ('1.' if em.startswith('sh') else '0.') + em[2:]
+    sess = requests.Session() if use_system_proxy else _direct_session()
     try:
-        import akshare as ak
-        with _no_proxy():
-            df = ak.stock_zh_index_daily_em(symbol=EM_MAP[code])
-        settled = _em_settled_pairs(df)
-        if not settled:
-            print(f"  ⚠️ {name}({code}) 东财回落无完结行(date≤{_em_max_date()})")
+        r = sess.get(
+            'https://push2his.eastmoney.com/api/qt/stock/kline/get',
+            params={'secid': secid,
+                    'fields1': 'f1,f2,f3,f4,f5,f6',
+                    'fields2': 'f51,f52,f53,f54,f55,f56,f57,f58',
+                    'klt': '101', 'fqt': '0',
+                    'beg': '19900101', 'end': '20500101'},
+            timeout=20, headers={'User-Agent': 'Mozilla/5.0'})
+        klines = ((r.json().get('data') or {}).get('klines')) or []
+    except Exception:
+        return []
+    mx, out = _em_max_date(), []
+    for row in klines:
+        p = str(row).split(',')
+        if len(p) < 7 or p[0] > mx:      # f51日期,f53收盘,f56量,f57额
+            continue
+        try:
+            out.append((p[0], float(p[2]), float(p[5]), float(p[6])))
+        except ValueError:
+            continue
+    return out
+
+
+# 腾讯 ifzq 日K代码(A股指数;R20 2026-11-19 验证: 收盘与东财逐位一致,
+# 2026-11-18 上证 3587.83 两源同值)
+TX_INDEX_MAP = {
+    '000001.SH': 'sh000001',
+    '399001.SZ': 'sz399001',
+    '399006.SZ': 'sz399006',
+    '000300.SH': 'sh000300',
+    '000905.SH': 'sh000905',
+    '000852.SH': 'sh000852',
+}
+
+
+def _tx_klines(code):
+    """腾讯 ifzq fqkline 日K(A股指数第三路;R20 2026-11-19 增):
+    [date,open,close,high,low,volume]——无 amount 列(该路 amount=None,
+    如实缺席不造数)。count=320(≈16 个月浅窗;大 count 触发腾讯 WAF,
+    港股先例「深窗回补不可得,如实浅窗」);完结行 date≤_em_max_date()。
+    返回 [(date, close, volume, None)]。"""
+    tx = TX_INDEX_MAP.get(code)
+    if not tx:
+        return []
+    try:
+        r = _direct_session().get(
+            'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get',
+            params={'param': f'{tx},day,,,320,qfq'}, timeout=20)
+        d = ((r.json().get('data') or {}).get(tx)) or {}
+        bars = d.get('qfqday') or d.get('day') or []
+    except Exception:
+        return []
+    mx, out = _em_max_date(), []
+    for b in bars:
+        if not isinstance(b, (list, tuple)) or len(b) < 6 or str(b[0]) > mx:
+            continue
+        try:
+            out.append((str(b[0]), float(b[2]), float(b[5]), None))
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _fetch_index_em(code, name):
+    """F1 指数回落(东财/腾讯,仅 tushare 异常时经 fetch_a_share_indices
+    进入): 返回与 tushare 路径同 schema 的 item + 新增键 via('em_kline'
+    东财直连/'em_kline_proxy'东财系统代理/'tx_ifzq'腾讯浅窗/'akshare_em'
+    包装末路);取值行=date≤_em_max_date() 最后一行(在途行禁用);四路皆
+    失败/无完结行→None(该指数如实缺失)。单位披露: EM amount 单位=元
+    (tushare 千元),volume 语义=成交量;腾讯路无 amount(None 如实缺席)。
+    R20: 东财端点当日间歇断连→四路阶梯;腾讯浅窗 ≈16 个月在 item 注明。"""
+    rows = _em_klines_direct(code)
+    via = 'em_kline'
+    if not rows:
+        rows = _em_klines_direct(code, use_system_proxy=True)
+        via = 'em_kline_proxy'
+    if not rows:
+        rows = _tx_klines(code)
+        via = 'tx_ifzq'
+    if not rows:
+        try:
+            import akshare as ak
+            with _no_proxy():
+                df = ak.stock_zh_index_daily_em(symbol=EM_MAP[code])
+            settled = _em_settled_pairs(df)
+            rows = [(d, float(df.iloc[i]['close']),
+                     float(df.iloc[i].get('volume', 0) or 0),
+                     float(df.iloc[i].get('amount', 0) or 0))
+                    for d, i in settled]
+            via = 'akshare_em'
+        except Exception as e:
+            print(f"  ⚠️ {name}({code}) 东财回落失败: {e}")
             return None
-        # 数据批1(#10): 与 tushare 主路同窗语义——series=窗口起点起全序列
-        # (EM 端点本就返回全史,按 cn_window_start 过滤);周变化规则不变;
-        # YTD 基准=窗内**当年**首个收盘(非窗口首根)。
-        win_start = cn_window_start(cn_index_history_period()).replace('-', '')
-        win = [p for p in settled if p[0].replace('-', '') >= win_start]
-        year = win[-1][0][:4]
-        dates = [d for d, _ in win]
-        closes = [float(df.iloc[i]['close']) for _, i in win]
-        close = closes[-1]
-        # 周变化与 tushare 路径同规则(倒数第5收盘;不足5根对比首根)
-        week_chg = None
-        if len(closes) >= 5:
-            prev_close = closes[-5]
-            week_chg = round((close - prev_close) / prev_close * 100, 2)
-        elif len(closes) >= 2:
-            prev_close = closes[0]
-            week_chg = round((close - prev_close) / prev_close * 100, 2)
-        # YTD 基准=窗内当年首个收盘(纯函数 _ytd_base_close,同 tushare 主路)
-        ytd_chg = None
-        base = _ytd_base_close(dates, closes, dates[-1].replace('-', ''))
-        if base:
-            ytd_chg = round((close - base) / base * 100, 2)
-        # 东财无 pct_chg 列 → 由前一完结收盘推得(EM同列自洽,非跨源拼接)
-        pct_chg = 0.0
-        if len(closes) >= 2 and closes[-2] > 0:
-            pct_chg = round((close - closes[-2]) / closes[-2] * 100, 2)
-        last_d, last_row = _em_last_settled(df)
-        return {
-            'name': name,
-            'close': close,
-            'pct_chg': pct_chg,
-            'week_chg': week_chg,
-            'ytd_chg': ytd_chg,
-            'volume': float(last_row.get('volume', 0) or 0),
-            'amount': float(last_row.get('amount', 0) or 0),   # 单位: 元
-            'date': last_d.replace('-', ''),                    # →YYYYMMDD,同tushare规格
-            'series': {'dates': dates, 'values': closes},
-            'via': 'akshare_em',
-        }
-    except Exception as e:
-        print(f"  ⚠️ {name}({code}) 东财回落失败: {e}")
+    if not rows:
+        print(f"  ⚠️ {name}({code}) 东财回落无完结行(date≤{_em_max_date()})")
         return None
+    # 数据批1(#10): 与 tushare 主路同窗语义——series=窗口起点起全序列
+    # (EM 端点本就返回全史,按 cn_window_start 过滤);周变化规则不变;
+    # YTD 基准=窗内**当年**首个收盘(非窗口首根)。
+    win_start = cn_window_start(cn_index_history_period()).replace('-', '')
+    win = [p for p in rows if p[0].replace('-', '') >= win_start]
+    dates = [d for d, *_ in win]
+    closes = [c for _, c, _, _ in win]
+    close = closes[-1]
+    # 周变化与 tushare 路径同规则(倒数第5收盘;不足5根对比首根)
+    week_chg = None
+    if len(closes) >= 5:
+        prev_close = closes[-5]
+        week_chg = round((close - prev_close) / prev_close * 100, 2)
+    elif len(closes) >= 2:
+        prev_close = closes[0]
+        week_chg = round((close - prev_close) / prev_close * 100, 2)
+    # YTD 基准=窗内当年首个收盘(纯函数 _ytd_base_close,同 tushare 主路)
+    ytd_chg = None
+    base = _ytd_base_close(dates, closes, dates[-1].replace('-', ''))
+    if base:
+        ytd_chg = round((close - base) / base * 100, 2)
+    # 东财无 pct_chg 列 → 由前一完结收盘推得(EM同列自洽,非跨源拼接)
+    pct_chg = 0.0
+    if len(closes) >= 2 and closes[-2] > 0:
+        pct_chg = round((close - closes[-2]) / closes[-2] * 100, 2)
+    last_d, _lc, last_vol, last_amt = win[-1]
+    item = {
+        'name': name,
+        'close': close,
+        'pct_chg': pct_chg,
+        'week_chg': week_chg,
+        'ytd_chg': ytd_chg,
+        'volume': last_vol,                                   # 单位: 股
+        'amount': last_amt,                                   # 单位: 元;腾讯路 None
+        'date': last_d.replace('-', ''),                      # →YYYYMMDD,同tushare规格
+        'series': {'dates': dates, 'values': closes},
+        'via': via,
+    }
+    if via == 'tx_ifzq':
+        item['note'] = ('腾讯 ifzq 浅窗(≈16 个月,深窗回补不可得,如实浅窗;'
+                        '收盘与东财逐位交叉一致;该路无成交额列)')
+    return item
 
 # 港股（主通道腾讯直连，yfinance备用）
 HK_INDICES = {
@@ -1230,6 +1324,227 @@ def _cache_save_rows(path, df, now_ts):
 
 MOFCOM_SHRZGM_URL = 'https://data.mofcom.gov.cn/datamofcom/front/gnmy/shrzgmQuery'
 
+# ══ Audit-R20(2026-11-19): CN 宏观全史序列(EM 直连 + PBOC 公告走查) ════════
+# 12组36格四地地图问句正式使用: CN_CPI_YOY/CN_PPI_YOY/CN_LPR_1Y/CN_OMO_7D
+# 需要历史序列(旧 fetch_macro 只出当期点值)。源:
+#  - 东方财富 datacenter API(keyless;与 akshare macro_china_* 同源端点
+#    家族,R9 mofcom curl 直取同款先例): RPT_ECONOMY_CPI.NATIONAL_SAME /
+#    RPT_ECONOMY_PPI.BASE_SAME = 全国同比(%)。实测 2026-11-19: CPI 226 月
+#    (2007-10..2026-10,2026-10=0.7 与 tushare 点值一致),PPI 250 月
+#    (2006-01..2026-10,2026-10=5.7 一致)。
+#  - PBOC 公开市场业务交易公告页(www.pbc.gov.cn,官方免费;urllib 直连
+#    502→curl 子进程直取同 R9 先例): 列表页/17081-N.html 翻页,逐公告解析
+#    表格 期限/操作利率 行,7天行→中标利率。公告逐日缓存
+#    data/cache/pboc_omo/ 防生产每日重走全史(首回填后日增量≈1 页)。
+#  - LPR: akshare macro_china_lpr 全量 df(与点值通道同端点,只加全史面)。
+EM_CPI_URL = ('https://datacenter-web.eastmoney.com/api/data/v1/get'
+              '?reportName=RPT_ECONOMY_CPI&columns=ALL&pageSize=500'
+              '&pageNumber=1&sortColumns=REPORT_DATE&sortTypes=-1')
+EM_PPI_URL = ('https://datacenter-web.eastmoney.com/api/data/v1/get'
+              '?reportName=RPT_ECONOMY_PPI&columns=ALL&pageSize=500'
+              '&pageNumber=1&sortColumns=REPORT_DATE&sortTypes=-1')
+PBC_OMO_LIST_URL = ('http://www.pbc.gov.cn/zhengcehuobisi/125207/125213/'
+                    '125431/125475/index.html')
+PBC_OMO_PAGE_URL = ('http://www.pbc.gov.cn/zhengcehuobisi/125207/125213/'
+                    '125431/125475/17081-{page}.html')
+PBC_OMO_CACHE_DIR = os.path.join(DATA_DIR, 'cache', 'pboc_omo')
+# 走查回看窗(自然日): 覆盖地图问句 12 个月前锚+缓冲;env 可覆盖
+# (生产若嫌重可调小——公告缓存使增量日耗≈当日 1 公告)。
+_OMO_BACKFILL_DAYS = int(os.environ.get('CN_OMO_HISTORY_DAYS') or 500)
+
+
+def _curl_get(url, max_time='30'):
+    """curl 子进程 GET(R9 mofcom 先例: 本机 python ssl 栈与部分境内源
+    TLS 协商即断,curl 可通)。失败→None。"""
+    import subprocess
+    try:
+        r = subprocess.run(['curl', '-s', '-L', '--noproxy', '*', '--max-time',
+                            max_time, '-H', 'User-Agent: Mozilla/5.0', url],
+                           capture_output=True, timeout=40)
+        if r.returncode != 0 or not r.stdout:
+            return None
+        return r.stdout
+    except Exception:
+        return None
+
+
+def _em_series_rows(url, value_field):
+    """EM datacenter API → [('YYYY-MM-01', value)] 升序(纯解析+单页拉取;
+    pageSize=500>源端全量 250 行,无翻页需求;失败→None)。"""
+    raw = _curl_get(url)
+    if raw is None:
+        return None
+    try:
+        data = json.loads(raw.decode('utf-8'))
+        rows = ((data.get('result') or {}).get('data')) or []
+    except Exception:
+        return None
+    out = {}
+    for row in rows:
+        d = (row.get('REPORT_DATE') or '')[:7]
+        v = row.get(value_field)
+        if len(d) == 7 and v is not None:
+            try:
+                fv = float(v)
+            except (TypeError, ValueError):
+                continue
+            if fv == fv and fv not in (float('inf'), float('-inf')):
+                out['%s-01' % d] = fv
+    if not out:
+        return None
+    return [(k, out[k]) for k in sorted(out)]
+
+
+def _pboc_omo_parse_announcement(html_text):
+    """单篇公告 HTML → 该日 7 天逆回购中标利率(表格式形态;无 7 天行→None)。
+
+    表格行形(2026-11-19 实测): 期限|操作利率|投标量|中标量,如
+    ['7天', '1. 40 %', '…亿元', '…亿元'](操作利率含空格变体→剥离后解析;
+    '隔夜'行不计——本序列=7 天期口径)。同篇多个 7 天行不同率→取首见并
+    告警面交调用方(源端无此形,防御)。"""
+    rows = re.findall(r'<tr[^>]*>([\s\S]*?)</tr>', html_text or '')
+    rates = []
+    for r in rows:
+        cells = [re.sub(r'<[^>]+>|&nbsp;|\s+', '', c)
+                 for c in re.findall(r'<t[dh][^>]*>([\s\S]*?)</t[dh]>', r)]
+        if len(cells) >= 2 and '7天' in cells[0]:
+            m = re.match(r'([0-9]+(?:\.[0-9]+)?)%?', cells[1])
+            if m:
+                rates.append(float(m.group(1)))
+    if not rates:
+        return None
+    return rates[0] if len(set(rates)) == 1 else min(rates)
+
+
+def _pboc_omo_walk(back_days=None):
+    """PBOC 公告走查 → [('YYYY-MM-DD', rate)] 升序(7 天逆回购操作日)。
+
+    列表页 index.html + 17081-N.html 翻页(每页 20 条,新→旧),取公告
+    链接(URL 17 位日期码);回看窗=公告日≥today−back_days(默认 500 自然
+    日,覆盖地图 12 个月前锚);逐公告先查本地缓存(data/cache/pboc_omo/
+    YYYYMMDD.html)命中不取网,未中→curl 取+写缓存。窗口内无 7 天行的
+    公告日不产观测(隔夜-only 操作日=该日无 7 天口径,如实)。"""
+    import datetime as _dt
+    import time as _time
+    back_days = back_days if back_days is not None else _OMO_BACKFILL_DAYS
+    today = _dt.date.today()
+    floor = (today - _dt.timedelta(days=back_days)).isoformat()
+    links = {}
+    for page in range(1, 40):
+        url = PBC_OMO_LIST_URL if page == 1 else PBC_OMO_PAGE_URL.format(
+            page=page)
+        html = (_curl_get(url) or b'').decode('utf-8', errors='ignore')
+        got = re.findall(
+            r'href="(/zhengcehuobisi/125207/125213/125431/125475/'
+            r'(\d{17,})/index\.html)"', html)
+        new = 0
+        for href, code in got:
+            iso = '%s-%s-%s' % (code[:4], code[4:6], code[6:8])
+            if iso >= floor and href not in links:
+                links[href] = iso
+                new += 1
+        oldest = min(links.values()) if links else None
+        if new == 0 or (oldest and oldest < floor):
+            break
+        _time.sleep(0.15)
+    out = {}
+    for href, iso in sorted(links.items(), key=lambda x: x[1], reverse=True):
+        code = href.rstrip('/').split('/')[-2]   # …/{17位日期码}/index.html
+        cache = os.path.join(PBC_OMO_CACHE_DIR, '%s.html' % code)
+        html_text = None
+        try:
+            with open(cache, 'r', encoding='utf-8', errors='ignore') as f:
+                html_text = f.read()
+        except Exception:
+            pass
+        if html_text is None:
+            raw = _curl_get('http://www.pbc.gov.cn' + href)
+            if raw is None:
+                continue
+            html_text = raw.decode('utf-8', errors='ignore')
+            try:
+                os.makedirs(PBC_OMO_CACHE_DIR, exist_ok=True)
+                tmp = '%s.tmp.%d' % (cache, os.getpid())
+                with open(tmp, 'w', encoding='utf-8') as f:
+                    f.write(html_text)
+                os.replace(tmp, cache)
+            except Exception:
+                pass
+            _time.sleep(0.15)
+        rate = _pboc_omo_parse_announcement(html_text)
+        if rate is not None:
+            out[iso] = rate
+    return [(k, out[k]) for k in sorted(out)]
+
+
+def fetch_macro_series():
+    """Audit-R20: CN 宏观四序列全史(→顶层 series 节;与点值通道并存,
+    点值权威不变)。返回 {metric_id: {'dates','values'}};逐端点容错,
+    失败→该键缺席(禁 0 填充)。"""
+    out = {}
+
+    rows = _em_series_rows(EM_CPI_URL, 'NATIONAL_SAME')
+    if rows:
+        out['CN_CPI_YOY'] = {'dates': [d for d, _ in rows],
+                             'values': [v for _, v in rows]}
+        print(f"  ✅ series.CN_CPI_YOY: n={len(rows)} "
+              f"({rows[0][0]}..{rows[-1][0]}, 末值 {rows[-1][1]})")
+    else:
+        print("  ⚠️ series.CN_CPI_YOY: EM 源失败/无有效行(缺席)")
+
+    rows = _em_series_rows(EM_PPI_URL, 'BASE_SAME')
+    if rows:
+        out['CN_PPI_YOY'] = {'dates': [d for d, _ in rows],
+                             'values': [v for _, v in rows]}
+        print(f"  ✅ series.CN_PPI_YOY: n={len(rows)} "
+              f"({rows[0][0]}..{rows[-1][0]}, 末值 {rows[-1][1]})")
+    else:
+        print("  ⚠️ series.CN_PPI_YOY: EM 源失败/无有效行(缺席)")
+
+    try:
+        import akshare as ak
+        with _no_proxy():
+            df = ak.macro_china_lpr()
+        lpr = []
+        for _, row in df.iterrows():
+            raw_d = str(row.get('TRADE_DATE')).strip()
+            if re.fullmatch(r'\d{8}', raw_d):      # 'YYYYMMDD' 归一防御
+                raw_d = '%s-%s-%s' % (raw_d[:4], raw_d[4:6], raw_d[6:])
+            d = _norm_date(raw_d)
+            v = row.get('LPR1Y')
+            if d is None or v is None:
+                continue
+            try:
+                fv = float(v)
+            except (TypeError, ValueError):
+                continue
+            if fv == fv and fv not in (float('inf'), float('-inf')):
+                lpr.append((d, fv))
+        lpr.sort()
+        if lpr:
+            dedup = {}
+            for d, v in lpr:
+                dedup[d] = v          # 同日多行取末(源端无此形,防御)
+            ks = sorted(dedup)
+            out['CN_LPR_1Y'] = {'dates': ks, 'values': [dedup[k] for k in ks]}
+            print(f"  ✅ series.CN_LPR_1Y: n={len(ks)} "
+                  f"({ks[0]}..{ks[-1]}, 末值 {dedup[ks[-1]]})")
+        else:
+            print("  ⚠️ series.CN_LPR_1Y: 无有效行(macro_china_lpr.LPR1Y)")
+    except Exception as e:
+        print(f"  ❌ series.CN_LPR_1Y(macro_china_lpr): "
+              f"{type(e).__name__}: {str(e)[:120]}")
+
+    omo = _pboc_omo_walk()
+    if omo:
+        out['CN_OMO_7D'] = {'dates': [d for d, _ in omo],
+                            'values': [v for _, v in omo]}
+        print(f"  ✅ series.CN_OMO_7D: n={len(omo)} "
+              f"({omo[0][0]}..{omo[-1][0]}, 末值 {omo[-1][1]})")
+    else:
+        print("  ⚠️ series.CN_OMO_7D: 公告走查无 7 天行(缺席)")
+    return out
+
 
 def _shrzgm_rows():
     """社融增量源端直取(R9,2026-11-12;商务部 mofcom POST;curl 子进程)。
@@ -1634,6 +1949,10 @@ if __name__ == '__main__':
 
     # 8. CN宏观序列(IA-P1-WP-E G-P1-14..18 新增)
     all_data['macro'] = fetch_macro()
+
+    # 9. CN宏观全史序列(Audit-R20: 顶层 series 节,snapshot merge_series_
+    #    sections 'china' 通道权属门直读;点值权威不变)
+    all_data['series'] = fetch_macro_series()
 
     # 保存
     save_data(all_data)

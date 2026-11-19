@@ -1042,7 +1042,8 @@ HONEST_REFUSAL_ERROR_KINDS = frozenset(
 # 走显式降级路径)——attach/report/archive 同源引用。
 BLOCKING_BLOCKED_CLASSES = frozenset(
     {'critical_zero_evidence', 'required_data_missing',
-     'critical_step_failure', 'map_required_face_missing'})
+     'critical_step_failure', 'map_required_face_missing',
+     'map_core_dimension_missing'})
 
 
 def _step_failure_is_refusal(step):
@@ -1108,6 +1109,21 @@ def blocked_class_of(report):
                   .get('reader_map_faces')) or {}
             if not _f.get('complete'):
                 return 'map_required_face_missing'
+            # Audit-R20 任务1/任务5反例④: 12组(地区×维度)每组至少一格
+            # ok——核心维度整组缺数=交付**草稿**,不进正式归档(用户指令:
+            # 核心维度仍缺则交付草稿;数据面补齐后正例应 12/12 组全绿)。
+            _pv = _rp.get('point_values') or {}
+            _ok_pairs = set()
+            for _c in _pv.get('cells') or []:
+                if any(_a.get('status') == 'ok'
+                       for _a in (_c.get('anchors') or {}).values()):
+                    _ok_pairs.add((_c.get('region'), _c.get('dimension')))
+            _planned_pairs = {
+                (_eco, _dim)
+                for _eco, _rf in (_rp.get('regions') or {}).items()
+                for _dim in ((_rf.get('dimensions') or {}) or {})}
+            if _planned_pairs - _ok_pairs:
+                return 'map_core_dimension_missing'
         return None
     non_refusal = [s.get('step') for s in (report.get('steps') or [])
                    if s.get('executed') and s.get('ok') is False
@@ -1133,13 +1149,17 @@ def _reader_map_faces_summary(judgment, report):
          if isinstance(r, dict) and str(r.get('from_to') or '').strip()})
     turnings_n = len(rm.get('turnings') or [])
     history_n = len(rm.get('history_periods') or [])
+    # R20 任务3: 历史类比 0..3 段;零段合法但须带零段注记(检索范围+原因)
+    history_ok = (1 <= history_n <= 3
+                  or (history_n == 0 and str(
+                      rm.get('history_zero_case_note') or '').strip()))
     return {
         'complete': bool(
             str(rm.get('headline_conclusion') or '').strip()
             and regions_ok
             and (rm.get('transmission') or [])
             and turnings_n == 3
-            and 1 <= history_n <= 3),
+            and history_ok),
         'headline': bool(str(rm.get('headline_conclusion') or '').strip()),
         'regions_ok': regions_ok,
         'transmission_chains': len(rm.get('transmission') or []),

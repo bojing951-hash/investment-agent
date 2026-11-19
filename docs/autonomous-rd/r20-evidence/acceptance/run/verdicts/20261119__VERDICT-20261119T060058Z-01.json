@@ -1,0 +1,17 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "R20独立语义审查席",
+  "notes": "抽核约180数全对: 50锚值+3转折+三利率分解(残差0)+8资产回报+45事后窗+37事后经济值+17政策值逐位吻合;发布日纪律(含停摆日历)PASS;结构与越位面PASS。必修4项: ①INDPRO同比低点实为2026-03(0.6861),正文2026-02触底(0.7972)/低点约0.80回升=月错;②CN PMI连续处于荣枯线下方但逐月改善不实: 2025-12/2026-03/04/05/06/09均≥50.0且非单调,仅三锚点<50;③传导环2的2026-11-18=2.21错置: 11-18实测2.19(引擎FULL_REPORT同值),2.21为11-17窗末日值;④rates_decomposition注窗口内共同交易日10个实为22个(10=最近十个共同交易日列表)。修正后可复裁。",
+  "run_ts": "20261119T060058Z",
+  "content_sha256": "d5ab68979b103d5739cff8ea61fbc4b773551ed5c19740198f7330fa0ef2a6a3",
+  "audited_at": "2026-11-19",
+  "recorded_at": "20261119T063911Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

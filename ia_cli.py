@@ -1694,6 +1694,24 @@ def _r1_report_core(args, engine_root):
     except Exception:
         pass
 
+    # Audit-R21 任务4: 普通问句资产月窗表(确定性装配零生成;数字+窗口
+    # +两端实测值一体——R19 纪律: 正文月窗数字必须可核)。地图问句
+    # 同面在读者报告资产表(research_plan.asset_moves),此处补普通
+    # 问句(正文数字=同一份可复算事实)。
+    _am21 = rj.get('asset_moves')
+    if isinstance(_am21, dict) and _am21.get('rows'):
+        lines += ['', '## 资产月窗(近一月·滚动窗最近邻)', '',
+                  '| 指标 | 窗口 | 两端实测值 | 变化 |', '|---|---|---|---|']
+        for _r21 in _am21['rows']:
+            _w21 = _r21.get('window') or {}
+            lines.append(
+                f"| {_r21.get('metric_id')} | {_w21.get('from')}"
+                f"..{_w21.get('to')} | {_r21.get('from_value')}"
+                f"→{_r21.get('to_value')} | {_r21.get('chg_pct'):+g}%"
+                f"({_r21.get('chg_abs'):+g}) |")
+        if _am21.get('window_rule'):
+            lines += ['', f"窗口规则: {_am21['window_rule']}"]
+
     # ── Audit-R1 F02 + Audit-R2 条目1/2 + Audit-R4 条目2/5: 四态门 ──
     # (生成≠校验≠审查≠可交付)
     import agent_judgment as aj

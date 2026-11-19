@@ -494,6 +494,62 @@ def _six_checks(judgment, face):
 
 # ── 主入口 ─────────────────────────────────────────────────────────
 
+def _asset_window_basis(report):
+    """报告资产月窗行(地图 research_plan.asset_moves 与普通问句顶层
+    asset_moves 同构;R21 任务4)。窗口两端实测日=回贴披露面。"""
+    rows = {}
+    for src in (((report or {}).get('research_plan') or {}).get('asset_moves'),
+                (report or {}).get('asset_moves')):
+        for r in (src or {}).get('rows') or []:
+            if r.get('metric_id'):
+                rows[r['metric_id']] = r
+    return rows
+
+
+def _asset_window_recheck(checks, text, rows):
+    """Audit-R21 任务4: 变化断言的另一合法基=资产月窗(滚动 N 月最近邻,
+    与周/MTD 派生窗并行,二者口径不同不得互证错杀)。
+
+    采信条件(全部满足才改判 VERIFIED): 检查为 CONTRADICTED、指标有
+    资产月窗行、声明值与行内 chg_pct/chg_abs 逐位吻合(±0.06)、且
+    **该行窗口两端实测日同现于本字段正文**——数字无窗口=不可核
+    (R19 纪律),耦合披露是回贴的一部分。其余一律原样保留。"""
+    if not rows:
+        return checks
+    fixed = []
+    for ch in checks:
+        if (ch.get('status') == 'CONTRADICTED' and ch.get('metric') in rows
+                and isinstance(ch.get('value'), (int, float))):
+            row = rows[ch['metric']]
+            w = row.get('window') or {}
+            # 声明带符号: token 原文首字符为负号而数值已归正时,
+            # 方向说反(−38.07% vs 面 +38.07)不得借 abs 通道蒙混。
+            _tok = str(ch.get('token') or '').strip()
+            _eff = float(ch['value'])
+            if _tok[:1] in ('−', '-') and _eff > 0:
+                _eff = -_eff
+            matched = None
+            for ref, lbl in ((row.get('chg_pct'), 'chg_pct'),
+                             (row.get('chg_abs'), 'chg_abs')):
+                if (isinstance(ref, (int, float))
+                        and abs(_eff - float(ref)) <= 0.06
+                        and str(w.get('from')) in text
+                        and str(w.get('to')) in text):
+                    matched = (ref, lbl)
+                    break
+            if matched:
+                ref, lbl = matched
+                fixed.append(dict(
+                    ch, status='VERIFIED',
+                    note=(f'资产月窗基复算: {lbl}={ref}(窗口 '
+                          f'{w.get("from")}→{w.get("to")},两端实测日同现'
+                          '正文——数字+窗口耦合可核;与周/MTD 派生窗'
+                          '并行基,R21 任务4)')))
+                continue
+        fixed.append(ch)
+    return fixed
+
+
 def verify_judgment(judgment, report, thresholds=None, face=None):
     """判定档 vs 自身证据面 → {'verdicts','six_checks','verdict','stats'}。
 
@@ -504,6 +560,7 @@ def verify_judgment(judgment, report, thresholds=None, face=None):
         thresholds if thresholds is not None else cf.load_thresholds())
     verdicts, unbound_left = [], []
     n_contra = n_ver = 0
+    _am_rows = _asset_window_basis(report)
     l3 = ((judgment.get('l3') or {}).get('contradictions')) or []
     for con in l3:
         for field in ('statement', 'basis'):
@@ -511,6 +568,7 @@ def verify_judgment(judgment, report, thresholds=None, face=None):
             if not text:
                 continue
             r = tc.check_text(text, snapshot=face, thresholds=thresholds_by)
+            r['checks'] = _asset_window_recheck(r['checks'], text, _am_rows)
             for ch in r['checks']:
                 verdicts.append(dict(
                     {'item': f"{con.get('id')}.{field}", 'claim_type':

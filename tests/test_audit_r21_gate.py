@@ -452,6 +452,76 @@ def test_audit_r21_gate():
     check('§H 三利率分解: 年度窗(年度判断同窗)打头+月度另列',
           '年度窗(年度判断同窗)' in mp and '月度窗(另列)' in mp)
 
+    # ══ [I] 任务4: 普通问句资产月窗契约基(数字+窗口耦合) ═══════════
+    print("\n[I] 资产月窗契约基(非地图问句;滚动窗 vs 周/MTD 派生窗并行)")
+    rep_i = {
+        'run': {'ts_utc': '20261119T120000Z', 'question': '合成'},
+        'steps': [
+            {'step': 'S3_overview_US',
+             'envelope': {'data': {'economies': {'US': {'metrics': [
+                 {'metric_id': 'VIX', 'presence': 'present',
+                  'value': 25.46, 'observation_date': '2026-11-17',
+                  'unit': 'index_point',
+                  'changes': [
+                      {'window': 'week', 'change_unit': 'pct',
+                       'value': 31.9171, 'basis_date': '2026-11-13',
+                       'basis_value': 19.299999}]}]}}}}}],
+        'evidence_index': [{'ref': 'VIX@2026-11-17',
+                            'kind': 'snapshot_fact', 'metric_id': 'VIX'}],
+        'asset_moves': {'rows': [
+            {'metric_id': 'VIX',
+             'window': {'from': '2026-10-19', 'to': '2026-11-17'},
+             'from_value': 18.44, 'to_value': 25.46, 'chg_pct': 38.07,
+             'chg_abs': 7.02}],
+            'window_rule': ('≤2026-11-18 最新观测 vs 最近于2026-10-18 的'
+                            '观测(界日无观测取最近邻)')},
+        'layers': {'L1_事实层': {'rows': []},
+                   'L2_机构观点层': {'views': {}}},
+    }
+    base_i = {'schema_version': '1.1',
+              'agent_declaration': {'attribution': 'ai_inferred'},
+              'l3': {'contradictions': []}, 'l4': {'scenarios': []}}
+
+    def _v_i(stmt, rep=None):
+        return jc.verify_judgment({'l3': {'contradictions': [
+            {'id': 'C-I', 'statement': stmt, 'basis': '',
+             'competing_explanations': ['a', 'b'],
+             'evidence_refs': ['VIX@2026-11-17']}]}}, rep or rep_i)
+
+    # 语句形态纪律: 窗口两端日写在数字之前(与真实工单正文同构)——
+    # tc._prior_role 会把「数字后 20 字内的旧日期」判为上期引用而静默
+    # 跳过,数字+窗口耦合要求两端日出现在字段文本任意位置即可。
+    r_ok = _v_i('VIX 月窗(窗口 2026-10-19 至 2026-11-17,'
+                '两端实测日随行)涨幅 +38.07%')
+    n_ok = [v for v in r_ok['verdicts'] if v.get('value') == 38.07]
+    check('§I +38.07% 带窗口两端日→资产月窗基 VERIFIED',
+          r_ok['verdict'] == 'VERIFIED' and n_ok
+          and n_ok[0]['status'] == 'VERIFIED'
+          and '资产月窗基' in str(n_ok[0].get('note')),
+          json.dumps(n_ok, ensure_ascii=False)[:160])
+    r_abs = _v_i('VIX 月窗(窗口 2026-10-19 至 2026-11-17)上升 +7.02 点')
+    n_abs = [v for v in r_abs['verdicts'] if v.get('value') == 7.02]
+    check('§I chg_abs 基(+7.02 带窗口)→VERIFIED',
+          any(v['status'] == 'VERIFIED' and 'chg_abs' in str(v.get('note'))
+              for v in n_abs),
+          json.dumps(n_abs, ensure_ascii=False)[:160])
+    r_nowin = _v_i('VIX 月窗涨幅 +38.07%(未披露窗口两端日)')
+    check('§I 数字无窗口→不采信(仍按派生窗 CONTRADICTED)',
+          r_nowin['verdict'] == 'CONTRADICTED',
+          r_nowin['verdict'])
+    r_wrong = _v_i('VIX 月窗(窗口 2026-10-19 至 2026-11-17)涨幅 +99.00%')
+    check('§I 窗口在场但数值串写(+99.00%)→CONTRADICTED',
+          r_wrong['verdict'] == 'CONTRADICTED', r_wrong['verdict'])
+    r_negdir = _v_i('VIX 月窗(窗口 2026-10-19 至 2026-11-17)涨幅 −38.07%')
+    check('§I 方向说反(−38.07%)→CONTRADICTED(带符号比对)',
+          r_negdir['verdict'] == 'CONTRADICTED', r_negdir['verdict'])
+    rep_i2 = dict(rep_i)
+    rep_i2['asset_moves'] = None   # 面缺席: 回退纯派生窗口径
+    r_noface = _v_i('VIX 月窗(窗口 2026-10-19 至 2026-11-17)涨幅 +38.07%',
+                    rep=rep_i2)
+    check('§I 面缺席→回退派生窗 CONTRADICTED(并行基不越位)',
+          r_noface['verdict'] == 'CONTRADICTED', r_noface['verdict'])
+
     n_pass = sum(1 for _n, okk, _d in RESULTS if okk)
     n_fail = len(RESULTS) - n_pass
     print(f'\nAudit-R21 判定: {n_pass} PASS / {n_fail} FAIL')

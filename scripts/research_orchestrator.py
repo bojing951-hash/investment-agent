@@ -2066,6 +2066,47 @@ def run_research(question, root=None, archive=False, out_dir=None,
     facts = snap.get('facts') if snap else None
     l1_rows = _fact_rows(snap or {}, set(hist_metrics)) if facts else []
 
+    # ── Audit-R21 任务4: 普通问句的资产月窗面 ──────────────────────
+    # 地图问句的 asset_moves 面住在 research_plan(R20);普通问句(如
+    # 「VIX 飙升而 HY_OAS 未动」)此前无同窗复算面——正文月窗数字
+    # (滚动 N 月最近邻,与周/MTD 派生窗不同基)在契约层只能按派生窗
+    # 复算=系统性 CONTRADICTED,正门入口交不出「+38.07%+窗口」的
+    # 正文(R17 工单回归即卡在此)。修法=问句命中资产宇宙指标时同源
+    # 产面: rmp.asset_move_face(基线 8 资产)+ 问句自有指标行
+    # (asset_move_rows metrics= 参数,窗口算术同一源),报告顶层
+    # asset_moves;契约回贴(资产月窗基)与读者表(报告段确定性渲染)
+    # 同吃。地图问句不重复产(research_plan 内已有)。
+    asset_moves = None
+    if research_plan is None and snap is not None:
+        _hit_am = [m for m in (ent['metrics'] or [])
+                   if m in rmp.ASSET_UNIVERSE]
+        if _hit_am:
+            _td = str(snap.get('target_date') or '')
+            _cut_am = (f'{_td[:4]}-{_td[4:6]}-{_td[6:8]}' if len(_td) >= 8
+                       else datetime.now(timezone.utc).date().isoformat())
+            _am = rmp.asset_move_face(snap, root, cutoff=_cut_am)
+            _extra_am = [m for m in _hit_am
+                         if m not in _am.get('rows', [])
+                         and m not in rmp.ASSET_MOVE_METRICS]
+            if _extra_am:
+                _sm_am = {}
+                for _m in _extra_am:
+                    _s_am, _ = rmp._series(_m, snap, root)
+                    if _s_am and _s_am.get('dates'):
+                        _sm_am[_m] = _s_am
+                _more_am = rmp.asset_move_rows(_sm_am, _cut_am,
+                                               metrics=_extra_am)
+                _am['rows'] = ((_am.get('rows') or [])
+                               + (_more_am.get('rows') or []))
+                _am['absent'] = [m for m in (_am.get('absent') or [])
+                                 if m not in _sm_am] + \
+                    [m for m in _extra_am if m not in _sm_am]
+            _am['question_metrics'] = _hit_am
+            _am['basis_note'] = ('Audit-R21 任务4: 普通问句资产月窗面'
+                                 '(滚动窗最近邻;与地图面同一 rmp 算术源;'
+                                 '问句命中指标行一并入面)')
+            asset_moves = _am
+
     # ── Audit-R2 条目7: 数据需求声明(分类在采集前冻结,不随结果改判) ──
     # 必要=问题词面命中指标(任务目标本体);可选=上下文面(S3 信封指标/
     # L2 机构观点/经济体概览)。采集后只评 outcome(satisfied/missing),
@@ -2230,6 +2271,10 @@ def run_research(question, root=None, archive=False, out_dir=None,
     }
     if research_plan is not None:
         report['research_plan'] = research_plan
+    # Audit-R21 任务4: 普通问句资产月窗面入报告顶层(地图面在
+    # research_plan.asset_moves,两处同构;契约/渲染双侧同读)。
+    if asset_moves is not None:
+        report['asset_moves'] = asset_moves
 
     out_root = out_dir or os.path.join(root, 'output', 'research_runs')
     run_dir = os.path.join(out_root, f"{report['run']['ts_utc']}_{_slug(question)}")

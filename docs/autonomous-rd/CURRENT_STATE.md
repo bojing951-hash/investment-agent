@@ -4,7 +4,16 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-19 R62 Audit-R18 第十八轮审计修复(T-R62-1;独立轨道续 R61)
+## 权威快照: 2026-11-19 R63 Audit-R19 第十九轮审计修复(T-R63-1;独立轨道续 R62)
+> baseline=e6f77e11c2fc4858d1ba5c8f6dab063cba9a084f(Audit-R18 CI 回填尖);代码修复固定 SHA=e6f77e11c2fc4858d1ba5c8f6dab063cba9a084f(受审面=地图问句同比基期/发布纪律/三维转折/历史类比结构面+四阻断器+读者版量化显示)
+
+- **基线**: dev/audit-fix-r1 = 2178b2d→代码修复提交(六文件+1003 行+35 判据门 test_audit_r19_gate)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 六缺陷全关(D1-D8)——①同比基期错配→月度同比只配去年同月+缺基期标不可得+最近有效同比另列;②提前引用未发布→RELEASE_RULES 发布日推定+锚值发布日≤锚日;③转折候选扩增长维(三维全入池);④历史类比结构化 anchor_ym/match_window/judgment_cutoff_ym/aftermath_obs_months+锚月+N月唯一算术源;⑤契约四阻断器(错用基期/提前引用/转折重复/事后落匹配期=CONTRADICTED)+维度覆盖+传导须达资产;⑥读者版渲染 S6+S5 量化段;另 CN PPI 归价格维+JP 市场利率与目标分别列示+ASSET_UNIVERSE 30。
+- **产品验收(真实运行零合成)**: 引擎树=仓码@SHA+LIVE 通道副本+CN 226 月冻结包注入;快照 80 序列/Gate A DEGRADED(4 非核心缺席)/事实 104 核心缺 0;plan 8 转折候选跨三维;Agent 席判决(机制链 3 环每环竞争解释+区分指标+两情景证伪阈值+reader_map 四问五面)attach 四轮契约迭代后 VERIFIED;**独立零上下文语义审查三轮 REVISE(5 必修: 2 MAJOR)→REVISE(1)→UPHELD(裁决链 3 档)**——2 MAJOR=候选窗值串写进转折窗(CORE_CPI)+证伪基线月标错(CORE_PCE),数值各自真实错在窗口归属=席位存在理由第三证;report deliverable=True;archive content_sha256=8ea0485d…=UPHELD 档绑定+SHA-256 回读三方 MATCH;读者报告四问落位(对照表/转折表/传导四件套/历史类比);证据包 docs/autonomous-rd/r19-evidence/;新会话零上下文验收=只输入原问自行发现归档并抽查复算(见 AUDIT_R19_REPORT §七)。
+- **验收**: test_audit_r19_gate 35/35(§A-§H 含四阻断器正反例/读者版量化段/交付归档门);r18 门夹具升级全绿;电池 191/192→提交后 phase6 29 PASS/0 FAIL=有效 192/192;四复放包(BLIND/F10/cn-task-b/e2e-corrected)PASS;报告=docs/autonomous-rd/AUDIT_R19_REPORT.md;CI 见报告尾回填。
+- **下一步**: 等待用户外部审计裁定(dev/audit-fix-r1 尖+AUDIT_R19_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。R20 候选: 渲染器标签回显重复+attach 幂等时间戳不刷新+R17 移交两项(日历周表达/同义词形别名面)。
+
+### [历史快照·R62 视角,已被上方权威快照取代]
 > baseline=d3dea052585d2e433d92576afe5f70b144722ddd(Audit-R17 CI 回填尖);代码修复固定 SHA=d3dea052585d2e433d92576afe5f70b144722ddd(受审面=地图问句共享研究计划+读者报告五面契约+防篡改锚)
 
 - **基线**: dev/audit-fix-r1 = 57bcb66→代码修复提交(五文件+新模块 research_map_planner+40 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。

@@ -123,5 +123,6 @@ VERIFIED(v1 SCN 敏感变量>2;v2 ex_post_reach 月算错;v3-v4 文本一致性�
 ## 九、状态
 
 - 提交链: 2178b2d → e6f77e1(D1-D8+门) → 本报告与状态收口提交
-- CI: 推送后以全 40 位 head_sha 查验三 job 绿(结果见 PR/CI 链接)
+- CI: run 44452073211 三 job 绿(tests 3.12/3.11+gates)@head 44e4437e3f25ec5432c06b494ed7caaeca12de71
+  (https://github.com/bojing951-hash/investment-agent/actions/runs/44452073211)
 - PR #1 更新至 R1-R19;**停等外部审计: 不并 main 不合并 PR 不部署不开新轮**

@@ -1557,8 +1557,10 @@ def _distinguishing_obs(rj, cutoff, metric_id):
             direction = '上升' if bp > 0 else ('下降' if bp < 0 else '持平')
             return (f"(引擎当前面: {dates[k1]}={v1:g},"
                     f"近30日{v0:g}→{v1:g},{direction}{abs(bp):g}bp)")
+        # Audit-R23 收口(NIT-2): 百分比变化分支此前缺最外层右括号
+        # 「(引擎当前面: …(+0.00)」→ 补齐。
         return (f"(引擎当前面: {dates[k1]}={v1:g},"
-                f"近30日Δ{chg:+g}%({chg / v0 * 100:+.2f})")
+                f"近30日Δ{chg:+g}%({chg / v0 * 100:+.2f}))")
     return f"(引擎当前面: {dates[k1]}={v1:g})"
 
 
@@ -1660,8 +1662,15 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
             else:
                 vals.append(f"{mark}{_fmt_val(v.get('value'))}(观测{obs})")
         eco = c.get('region') or ''
+        # Audit-R23 收口(NIT-4): 口径注自身已含指标名时不再叠套
+        # 「制造业PMI(月频)」→ 不渲染成「制造业PMI(制造业PMI(月频))」
+        _dn, _fn = c.get('display_name') or '', c.get('face_note') or ''
+        _fn_core = _fn.split('(')[0].strip()
+        _metric_cell = (f"{_dn}{_fn[len(_fn_core):].strip()}"
+                        if _fn_core and _fn_core in _dn
+                        else f"{_dn}({_fn})")
         lines.append(f"| {eco} | {c.get('dimension')} | "
-                     f"{c.get('display_name')}({c.get('face_note')}) | "
+                     f"{_metric_cell} | "
                      + ' | '.join(vals) + f" | {c.get('unit')} |")
     for ab in pv.get('absent') or []:
         lines.append(f"| {ab.get('region')} | {ab.get('dimension')} | "

@@ -1,0 +1,20 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "independent-zero-context-seat-round2",
+  "notes": "237 复算点(A节修订核验53+B节回归184)。A1-A6 全 PASS: Round-1 五项修订全部正确落实。新 MAJOR(连续性断言专项面检出,系 Round-1 漏检非修订引入,本席如实披露): MECH-2『水平值49.0→49.3持续低于荣枯线50』被序列否定——CN_PMI_MFG 2026-03=50.4/04=50.3/06=50.3/09=50.1 四个月高于50,2026-05=50.0 恰在线上;『未上穿50』为假陈述,触及对质表 CN_PMI_MFG 行『尚不能区分』判断。新 MINOR: EA 走位『持续上行』与 2025-11→2026-01 连降三月矛盾,宜『先回落后震荡上行』。新 NIT: JP 月均『持续上行』有两处 −0.1bp 显示级回落,宜『累计净上行』。",
+  "run_ts": "20261119T173248Z",
+  "content_sha256": "a96c5933aa9bea3b9cafcf7d1c48d4700678cd1a1926ce1b01b1a546bdcd7eb3",
+  "audited_at": "2026-11-20",
+  "recorded_at": "20261119T182514Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261120/VERDICT-20261119T173248Z-01.json",
+  "map_report_sha256": "cc4f1e5529393f3053928519f7ec380a25521b67754402df0f837c3aad389657",
+  "counterexamples_sought": [
+    "连续性断言专项48月值(PMI22+EA13+JP13+UNEMP14+PPI8)=本轮新抓错面",
+    "锚格47格+政策精确日锚15点+三利率双窗恒等9点",
+    "资产月窗4项×3+类比逐窗6格+总判断/情景/转折18点"
+  ]
+}

@@ -4,7 +4,16 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-20 R66 Audit-R22 第二十二轮审计修复(T-R66-1;独立轨道续 R65)
+## 权威快照: 2026-11-20 R67 Audit-R23 第二十三轮审计修复(T-R67-1;独立轨道续 R66)
+> baseline=b316e88b2b4a98e95ab23aeac71a304485e78b0f(Audit-R22 CI 回填尖);代码修复固定 SHA=b316e88(冻结源报告/历史信息截止/正文事实校验/首页转折);受审面=固定审核过的报告+历史信息截止+正文事实校验+首页与三转折+真实一问验收
+
+- **基线**: dev/audit-fix-r1 = d12f6ee→b316e88(修复固定 SHA)→收口提交(渲染器 NIT-2/NIT-4+门 §F2+报告+证据+状态);PR #1 覆盖推送;main 未动。
+- **真实进度**: 五任务全关——①冻结源渲染(历史段=report.json 冻结信封优先+快照兜底+双缺如实缺席;三例逐字节一致含同名快照篡改例;裁决↔内容段摘要绑定+重挂锚攻击自愈语义)②当时可知面(_aof_first_pub 月首口径修=门探针抓出实录条目被保守界遮蔽真缺陷;九组首布翻转逐验;泄漏面门控 asof_discipline=r23)③契约三查(quarter_token/headline bp 常开+as_of_leak 门控;GDP Q2→Q3 与 +97→−97bp 双窜写拦+同义正例过)④首页速览整句+下降16bp 表述+同轮并项+引擎补选+缺少两期注记+尚不能区分⑤一问验收 20261119T173248Z 三轮闭环 REVISE→REVISE→UPHELD(675 点累计独立复算)。
+- **产品验收(真实工单)**: 判断席/审查席双零上下文,操作席只记裁决;R1 REVISE(SCN-A 日期-数值 MAJOR)→R2 REVISE(修订全 PASS+连续性专项新检出 CN_PMI 荣枯线 MAJOR=审查席自曝 R1 漏检)→R3 UPHELD(131 点零错配,对质行重判经独立重推);归档 bd5be016 三方一致+SHA 三处同值 b316e88 全长 40;36 核心格 27/27(R23 recheck);VIX 工单 UPHELD Round-1 零漂移(+38.07% 逐位)。
+- **验收**: test_audit_r23_gate 51/51(§A-§G+§F2 收口 NIT);回归 r18 40/0+r19 35/0+r20 30/0+r21 50/0+r22 36/36;电池见 CI 回填;证据包 docs/autonomous-rd/r23-evidence/(gates+acceptance 九件套+三轮裁决链+vix-regression+recheck R23 版);报告=docs/autonomous-rd/AUDIT_R23_REPORT.md。
+- **下一步**: 等待用户外部审计裁定(dev/audit-fix-r1 尖+AUDIT_R23_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。R68 候选=R3 残留(EA 深谷披露/JP GDP 副词/对质行回贴)+check15 bp 池泛化+R66/R64/R63 移交项。
+
+### [历史快照·R66 视角,已被上方权威快照取代]
 > baseline=b45b810f92e3a44a4c40064e67910a948ebbb36d(Audit-R21 CI 回填尖);代码修复固定 SHA=b45b810(发布批次/政策时序/中文窜写拦截/读者对质面);受审面=历史时点发布批次+政策时序分记+正文窜写拒绝+读者报告补全+真实一问验收
 
 - **基线**: dev/audit-fix-r1 = 1cb8a23→b45b810(修复固定 SHA)→状态收口;PR #1 覆盖推送;main 未动。
@@ -13,6 +22,7 @@
 - **反例拦截**: 真实工单三窜写+同义正例 11/11——①标普+99.00%②美债+0.35pp③GDP 观测串 2025-07 全 CONTRADICTED 不可交付+归档拒绝;④中文同义表述 VERIFIED 不误伤;归档增量=0。
 - **验收**: test_audit_r22_gate 36/0(§A-§G);回归 r18 门 40/0+r19 门 35/0+r20 门 30/0+r21 门 49/0;电池 195 件 193 绿+2 红(均环境类,docs 提交后复验/worktree 序列独立复跑绿);证据包 docs/autonomous-rd/r22-evidence/(gates+acceptance 九件套+vix-regression+反例 harness);报告=docs/autonomous-rd/AUDIT_R22_REPORT.md;CI 见报告尾回填。
 - **下一步**: 等待用户外部审计裁定(dev/audit-fix-r1 尖+AUDIT_R22_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。R67 候选=政策净变动基点口径统一+R64/R63 移交项。
+
 
 ### [历史快照·R65 视角,已被上方权威快照取代]
 > baseline=9667e8df0be26513be6eb85d1041711f4f130d16(Audit-R20 CI 回填尖);代码修复固定 SHA=138e85b(任务 1-4 主体 28 文件)→9667e8d(任务 4 追补资产月窗契约基 4 文件);受审面=地图正式使用验收五任务(历史可见性/政策与转折/正文与归档/读者文件/会话交付)

@@ -516,6 +516,23 @@ def sec_f():
     check('§F 逐窗并列序列源披露: 冻结信封优先/运行快照兜底',
           '序列源=report.json 冻结信封优先' in text
           and '运行快照文件不在场' not in text)
+    # ── Audit-R23 收口(验收席 Round-1 NIT-2/NIT-4,渲染器修) ──────────
+    rj_idx = {'steps': [{'step': 'S4_history_CN_PMI_MFG',
+                         'envelope': {'data': {'series': {
+                             'dates': ['2026-10-20', '2026-11-18'],
+                             'values': [49.2, 49.3],
+                             'unit': 'index_point'}}}}]}
+    s = rmp._distinguishing_obs(rj_idx, '2026-11-19', 'CN_PMI_MFG')
+    check('§F2 NIT-2: 指数序列区分观测括号配平'
+          '(引擎当前面: …近30日Δ…%(…))不再缺右括号',
+          bool(s) and s.count('(') == s.count(')')
+          and s.startswith('(引擎当前面: ') and s.endswith(')'),
+          repr(s))
+    check('§F2 NIT-4: 对照表指标名不叠套(口径注已含名→单层'
+          '制造业PMI(月频),不再「制造业PMI(制造业PMI(月频))」)',
+          '制造业PMI(制造业PMI' not in text
+          and '| 制造业PMI(月频) |' in text,
+          'CN/growth 行单层渲染')
 
 
 # ═══ §G 任务1 正式入口三例重放+窜写 CLI 级 ═══

@@ -1,0 +1,20 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "independent-zero-context-seat-round1",
+  "notes": "R23 VIX 回归 Round-1 零上下文审查: 52 复算点逐位一致(VIX 月窗 +38.07%/+7.02, 2026-10-19 18.44→2026-11-17 25.46);0 MAJOR+3 MINOR(warnings 指针落空/月窗两端点口径未随文注记区间/SCN 证伪阈值中性带)+2 NIT;PROSE 见 verdicts/PROSE-round1.md",
+  "run_ts": "20261119T173250Z",
+  "content_sha256": "a3db4776c5928b8724f57623857a9436ac838e779e7d6bdd13d5cd31d38a9774",
+  "audited_at": "2026-11-20",
+  "recorded_at": "20261119T174306Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": null,
+  "counterexamples_sought": [
+    "VIX 月窗界日与值自 series_store 直算(周日界日最近邻 10-19 口径)",
+    "HY_OAS 窗内区间 3.14–3.48 与两端点口径差=MINOR-2 在档",
+    "SCN-A/B 证伪阈值与中枢不对齐=MINOR-3 在档"
+  ]
+}

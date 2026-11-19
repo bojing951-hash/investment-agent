@@ -1,0 +1,23 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "independent-zero-context-seat-round1",
+  "notes": "307 复算点,306 吻合。MAJOR-1: SCN-A 证伪阈值『较2026-11-18的2.21』日期-数值错配(BEI_10Y@2026-11-18=2.19,2.21 为 2026-11-17 之值),同源三处(MAP情景表/report.md/agent_judgment)。MINOR-1 近30日窗起点未披露;MINOR-2 年内口径未界定;MINOR-3 规程工单原文系操作席转录错误(受审件对实际run.question 覆盖完整,非报告缺陷);NIT×4(双前缀/括号不闭合=渲染器/ECB括号/指标名叠套=渲染器)。修订范围: 席位字段修 MAJOR-1+MINOR-1/2+NIT-1/3;渲染器两项留收口提交修。",
+  "run_ts": "20261119T173248Z",
+  "content_sha256": "cbefb47bf764f7567f47ce55a25c22b4418b55599ddfb25a643d0285f7e88e8f",
+  "audited_at": "2026-11-20",
+  "recorded_at": "20261119T180218Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "05fb963b3d445b1cffe0d13e617a4900c300c786a584d92d98d79bc84ca4aaf1",
+  "counterexamples_sought": [
+    "锚格78点(四地三锚,含诚实缺席对账release_calendar七条停摆条目)",
+    "政策面36点(决议/生效分记+一年窗净变动)",
+    "三利率分解10点(97/104/-7与1/15/-14双窗恒等)",
+    "资产月窗24点(8资产两窗)",
+    "历史类比85点(两段,含事后段与逐窗并列30格)",
+    "总判断走位12点+情景阈值6点+转折候选27点"
+  ]
+}

@@ -734,4 +734,119 @@ def _map_checks(judgment, face, report):
             if not str(ex.get(k) or '').strip():
                 bad(f'{hid}.ex_post.{k}', f'{lbl}实际表现为空(不可得须明写'
                     '「数据不可得」而非留空)')
+        # ── Audit-R19 任务4: 结构化窗口面(匹配区间/判断截止月/事后窗) ──
+        aym = str(h.get('anchor_ym') or '')
+        mw = h.get('match_window') or {}
+        if len(aym) != 7:
+            bad(f'{hid}.anchor_ym', '历史段须给结构化锚月 anchor_ym'
+                '(YYYY-MM,事后窗=锚月+N 月的机器核验基准)')
+        elif not (isinstance(mw, dict) and str(mw.get('start_ym') or '')
+                  and str(mw.get('end_ym') or '')):
+            bad(f'{hid}.match_window', '历史段须给匹配区间 match_window'
+                '{start_ym,end_ym}(判断只用截至 judgment_cutoff_ym 已发布'
+                '的数据;匹配区间与事后窗分记)')
+        else:
+            try:
+                import research_map_planner as _rmp2
+                exp = _rmp2.ex_post_windows(aym)
+            except Exception:
+                exp = {'3m': _ym_shift(aym, 3), '6m': _ym_shift(aym, 6),
+                       '12m': _ym_shift(aym, 12)}
+            aft = [str(x) for x in (h.get('aftermath_obs_months') or [])]
+            if not aft:
+                bad(f'{hid}.aftermath_obs_months',
+                    '历史段须给事后实际观测月 aftermath_obs_months'
+                    '(YYYY-MM 列表——事后窗到达与不落入匹配期两检的基准)')
+            else:
+                missing = [k for k, v in exp.items() if v not in aft]
+                if missing:
+                    bad(f'{hid}.ex_post_reach',
+                        f'事后窗未到达: 锚{aym} 的 {missing} 应分别到 '
+                        f'{[exp[k] for k in missing]}(aftermath_obs_months '
+                        '缺该月——3/6/12 月窗必须实测到月,不可止步窗内)')
+                end_ym = str(mw.get('end_ym'))
+                leaked = [m for m in aft if m <= end_ym]
+                if leaked:
+                    bad(f'{hid}.aftermath_in_match',
+                        f'历史结果落在匹配期内: {leaked} ≤ 匹配区间末月 '
+                        f'{end_ym}——事后实际表现须取匹配窗之外(判断截止'
+                        '月后)的观测,匹配期内数值不是事后结果', contra=True)
+            cut = str(h.get('judgment_cutoff_ym') or '')
+            if not cut:
+                bad(f'{hid}.judgment_cutoff_ym',
+                    '历史段须给判断截止月 judgment_cutoff_ym(YYYY-MM——'
+                    '历史对照只用当时已发布数据的时点界)')
+            elif cut < str(mw.get('end_ym') or ''):
+                bad(f'{hid}.judgment_cutoff_ym',
+                    f'判断截止月 {cut} 早于匹配区间末月 {mw.get("end_ym")}'
+                    '——匹配窗末月数据在截止月尚未发布,不可引用')
+
+    # ── Audit-R19 任务5: 四阻断器 + 任务3 维度覆盖 ────────────────────
+    # (1) 同比基期: 引擎点值面自检——凡给了 derived_yoy_pct 的锚格,基期
+    #     必须=去年同月/同季(缺基期格必须是 None+yoy_status 标注)。
+    pv = plan.get('point_values') or {}
+    for ci, c in enumerate(pv.get('cells') or []):
+        for lbl, a in (c.get('anchors') or {}).items():
+            if a.get('status') != 'ok' or \
+                    not str(a.get('value_kind', '')).startswith('level'):
+                continue
+            if a.get('derived_yoy_pct') is not None and \
+                    a.get('yoy_status') not in (None, 'ok'):
+                bad('point_values.yoy_base',
+                    f'{c.get("metric_id")}@{lbl}: 同比值在而基期状态非 ok'
+                    '(同比基期纪律破坏——缺基期不得给同比数)', contra=True)
+            if a.get('derived_yoy_pct') is None and \
+                    a.get('yoy_status') != 'no_same_period_base':
+                bad('point_values.yoy_base',
+                    f'{c.get("metric_id")}@{lbl}: 水平序列同比缺席但未标 '
+                    'no_same_period_base(缺基期须标不可得+另列最近有效同比)')
+    # (2) 提前引用未发布: 锚格 publication_date 必须 ≤ as_of。
+    for ci, c in enumerate(pv.get('cells') or []):
+        for lbl, a in (c.get('anchors') or {}).items():
+            if a.get('status') != 'ok':
+                continue
+            pub, as_of = str(a.get('publication_date') or ''), \
+                str(a.get('as_of') or '')
+            if pub and as_of and pub > as_of:
+                bad('point_values.publication',
+                    f'{c.get("metric_id")}@{lbl}: 发布日 {pub} 晚于锚日 '
+                    f'{as_of}(历史对照只用当时已发布的数据)', contra=True)
+    # (3) 同一转折重复三次: 三转折 (metric_id, 月) 两两互异 + 维度覆盖。
+    keys = []
+    for t in turnings:
+        keys.append((t.get('metric_id'), str(t.get('date') or '')[:7]))
+    if len(keys) == 3 and len(set(keys)) < 3:
+        dup = [k for k in set(keys) if keys.count(k) > 1]
+        bad('reader_map.turnings.duplicate',
+            f'同一转折重复计数: {dup}(三个转折须为不同事件/不同指标-月)')
+    cand_dim = {c.get('metric_id'): c.get('dimension') for c in cands}
+    sel_dims = {cand_dim.get(k[0]) for k in keys} - {None}
+    pool_dims = {c.get('dimension') for c in cands}
+    if len(keys) == 3 and len(pool_dims - {None}) >= 2 and len(sel_dims) < 2:
+        bad('reader_map.turnings.dimension_coverage',
+            f'三转折维度覆盖不足: 选中 {sorted(sel_dims)} 而候选池跨 '
+            f'{sorted(pool_dims)}(增长/通胀/政策都进入候选后,三转折至少'
+            '跨两维,不同维度的转折不得互相顶替)')
+    # (4) aftermath_in_match 已在历史段逐条拦(contra=True)。
+    # 任务3: 传导图须从冲击连到指标与资产(资产面在场时)。
+    au = pv.get('asset_universe') or []
+    if au:
+        blob = []
+        for ch in chains:
+            for lk in ch.get('links') or []:
+                blob.append(str(lk.get('observed_fact') or ''))
+                blob.append(str(lk.get('distinguishing_metric') or ''))
+        hit = any(a in ' '.join(blob) for a in au)
+        if not hit:
+            bad('reader_map.transmission.asset_reach',
+                f'传导图未连到资产指标(资产面在场 {len(au)} 项,如 '
+                f'{au[:4]}…)——传导链须从冲击连到指标与资产,每环标事实'
+                '或假设')
     return out
+
+
+def _ym_shift(ym, n):
+    """YYYY-MM ± N 月(无依赖兜底;与 research_map_planner 同语义)。"""
+    y, m = int(ym[:4]), int(ym[5:7])
+    tot = y * 12 + (m - 1) + n
+    return '%04d-%02d' % (tot // 12, tot % 12 + 1)

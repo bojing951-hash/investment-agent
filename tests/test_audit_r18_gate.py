@@ -180,7 +180,8 @@ def map_judgment(rd, variant=None):
     links = [
         {'step': 1, 'text': 'E1 环: 引擎序列可验证的观察(合成)',
          'evidence_level': 'E1', 'evidence_refs': refs,
-         'observed_fact': '观察事实: 合成链环一(引擎面)',
+         'observed_fact': '观察事实: 合成链环一(引擎面,传导终点连到资产 '
+                          'UST_10Y 十年期美债收益率,合成)',
          'causal_hypothesis': '因果假设: 合成(假设非预测)',
          'competing_explanation': '竞争解释: 合成竞争解释一',
          'distinguishing_metric': dm},
@@ -188,7 +189,7 @@ def map_judgment(rd, variant=None):
          'evidence_level': 'E2',
          'missing_link_note': '本环为【假设】: 合成缺环注记(离线)',
          'evidence_refs': refs,
-         'observed_fact': '观察事实: 合成链环二',
+         'observed_fact': '观察事实: 合成链环二(资产面 UST_10Y 合成)',
          'causal_hypothesis': '因果假设: 合成二',
          'competing_explanation': '竞争解释: 合成竞争解释二',
          'distinguishing_metric': dm}]
@@ -205,9 +206,13 @@ def map_judgment(rd, variant=None):
              'similarity': '合成相似点(离线)',
              'difference': '合成关键差异(离线)',
              'other_regions_sync': '其他经济体合成同步注记(离线)',
-             'ex_post': {'3m': '随后3个月合成实际表现(离线)',
-                         '6m': '随后6个月合成实际表现(离线)',
-                         '12m': '随后12个月合成实际表现(离线)'},
+             'ex_post': {'3m': '随后3个月合成实际表现(离线,锚+3月=2016-03)',
+                         '6m': '随后6个月合成实际表现(离线,锚+6月=2016-06)',
+                         '12m': '随后12个月合成实际表现(离线,锚+12月=2016-12)'},
+             'anchor_ym': '2015-12',
+             'match_window': {'start_ym': '2015-01', 'end_ym': '2015-12'},
+             'judgment_cutoff_ym': '2015-12',
+             'aftermath_obs_months': ['2016-03', '2016-06', '2016-12'],
              'data_note': '样本注记: 合成(离线门测试)', 'us_analog': True}]
     if variant == 'history4':
         hist = hist + [dict(hist[0]), dict(hist[0]), dict(hist[0])]

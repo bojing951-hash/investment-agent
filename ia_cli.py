@@ -1488,12 +1488,19 @@ def _r1_plan_core(args, engine_root):
                                   '因果假设/竞争解释/区分指标]/三个转折[日期/'
                                   '指标/前后值/谁先变/跟进或背离]/历史段≤3'
                                   '[年月/相似点/关键差异/其他经济体是否同步/'
-                                  '随后3、6、12个月实际+样本注记])')
+                                  '随后3、6、12个月实际+样本注记])——Audit-R19: '
+                                  '传导须连到资产指标;三转折为不同事件(不同'
+                                  '指标-月,至少跨两维度);历史段须带结构化'
+                                  'anchor_ym/match_window/judgment_cutoff_ym/'
+                                  'aftermath_obs_months(事后窗=锚月+N 月,'
+                                  '事后观测不得落回匹配期内)')
         work_order['reader_map_contract'] = {
             'spec': 'judgment 顶层 reader_map 对象;字段结构与数值回贴核对'
                     '见 scripts/research_contract/judgment_contract.py '
                     '_map_checks(转折前后值按引擎序列月末口径复算,相左='
-                    'CONTRADICTED;空正文/缺面=NOT_VERIFIED)',
+                    'CONTRADICTED;空正文/缺面=NOT_VERIFIED;Audit-R19 四阻断:'
+                    '错用同比基期/提前引用未发布数据/同一转折重复/历史结果'
+                    '落在匹配期内)',
             'engine_faces': {
                 'point_anchors': _rp.get('point_anchors'),
                 'ex_post_offsets': _rp.get('ex_post_offsets'),
@@ -1502,16 +1509,27 @@ def _r1_plan_core(args, engine_root):
                 'point_values_absent': [
                     a.get('metric_id')
                     for a in (_rp.get('point_values') or {}).get('absent') or []],
+                'publication_discipline': '锚格值=发布日≤锚日的最新观测;'
+                    'publication_date/publication_rule 随格(推定规则,读者可核)',
+                'yoy_discipline': '月度同比只配去年同月/季度只配去年同季;'
+                    '缺基期格 derived_yoy_pct=null+yoy_status='
+                    'no_same_period_base+latest_valid_yoy(最近有效同比及月份)',
+                'asset_universe': ((_rp.get('point_values') or {})
+                                   .get('asset_universe') or []),
                 'turning_candidates_top9': [
                     {'metric_id': c.get('metric_id'), 'from_ym': c.get('from_ym'),
                      'to_ym': c.get('to_ym'), 'value_before': c.get('value_before'),
-                     'value_after': c.get('value_after'), 'delta': c.get('delta')}
+                     'value_after': c.get('value_after'), 'delta': c.get('delta'),
+                     'dimension': c.get('dimension')}
                     for c in ((_rp.get('turning_candidates') or {})
                               .get('candidates') or [])],
                 'dimension_gaps': _rp.get('dimension_gaps')},
             'discipline': ['锚值与转折数值须与引擎面一致(不可虚构)',
                            '数据不可得的格须明写「数据不可得」+检索范围',
-                           '总判断条件式非预测;历史段=事后陈述非预测'],
+                           '总判断条件式非预测;历史段=事后陈述非预测',
+                           '同比只可用引擎 ok 基期格的 derived_yoy_pct'
+                           '(缺基期=不可得,可另列最近有效同比及月份)',
+                           '锚值/转折只可用发布日≤锚日(研究截止日)的观测'],
         }
         with open(envelope_path, 'w', encoding='utf-8') as f:
             json.dump(work_order, f, ensure_ascii=False, indent=2)
@@ -1629,6 +1647,16 @@ def _r1_report_core(args, engine_root):
     for i, e in enumerate(rj.get('evidence_index') or [], 1):
         lines.append(f"| {i} | {e.get('kind')} | {e.get('ref')} | "
                      f"{str(e.get('note') or e.get('desc') or '')[:80]} |")
+
+    # Audit-R19: 后台已有的历史比较与量化说明确定性入普通读者版
+    # (S6 历史相似结构 top-N+S5 日度相关;R24 VIX 样本佐证的读者面缺口)
+    try:
+        import research_orchestrator as _ro_q
+        _q = _ro_q._render_quant_sections(rj)
+        if _q:
+            lines += [''] + _q
+    except Exception:
+        pass
 
     # ── Audit-R1 F02 + Audit-R2 条目1/2 + Audit-R4 条目2/5: 四态门 ──
     # (生成≠校验≠审查≠可交付)

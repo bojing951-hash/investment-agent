@@ -40,9 +40,11 @@ REGION_DIMENSION_METRICS = {
                    ('DFF', '有效联邦基金利率(日频市场利率)')],
     },
     'CN': {
-        'growth': [('CN_PMI_MFG', '制造业PMI(月频)'),
-                   ('CN_PPI_YOY', 'PPI同比(月频)')],
-        'inflation': [('CN_CPI_YOY', 'CPI同比(月频)')],
+        'growth': [('CN_PMI_MFG', '制造业PMI(月频)')],
+        # Audit-R19 任务2: 中国 PPI 归入价格(通胀)维——出厂价格是价格面,
+        # 不作增长代理(旧口径挂在增长维=维度误归)。
+        'inflation': [('CN_CPI_YOY', 'CPI同比(月频)'),
+                      ('CN_PPI_YOY', 'PPI同比(月频,价格维)')],
         'policy': [('CN_OMO_7D', '7天逆回购利率(操作目标口径)'),
                    ('CN_LPR_1Y', 'LPR 1年期(报价基准)')],
     },
@@ -55,15 +57,89 @@ REGION_DIMENSION_METRICS = {
     'JP': {
         'growth': [],            # 注册表无日本增长指标(如实缺口)
         'inflation': [('JP_CPI_TOKYO_YOY', '东京都CPI同比(月频)')],
+        # Audit-R19 任务2: 隔夜市场利率与央行目标**分别列示**——目标行
+        # 声明式入场,注册表/数据面缺席时以 registry_absent 缺口呈现
+        # (查过的来源+影响随 gap 注记),不以市场月均冒充宣布值。
         'policy': [('JP_POLICY_RATE', '无担保隔夜拆借利率(月均口径——'
-                                     '月均≠政策目标宣布值,任务3四分注记)')],
+                                     '月均≠政策目标宣布值,任务3四分注记)'),
+                   ('JP_POLICY_TARGET', '央行政策目标利率(宣布值口径——'
+                                       '与市场月均分别列示)')],
     },
 }
 # 任务3复算面: 美国十年期 名义/实际/盈亏平衡 三利率同观测日复算
 US_RATES_TRIO = ['UST_10Y', 'TIPS_10Y', 'BEI_10Y']
 
+# ── Audit-R19 任务1: 发布纪律(历史对照只用当时已发布的数据) ────────────
+# 每指标族按官方常规发布节奏给「观测→首次发布」的推定时滞(天)。推定非逐条
+# 实录;规则文本随锚值披露,读者可核。US_REAL_GDP 季度 +29 天以 2026Q3
+# (观测 2026-07-01..09-30,发布 2026-10-29)实测锚定。负值=观测月末前发布
+# (CN_PMI_MFG: 国家统计局当月月末发布当月值)。
+RELEASE_RULES = {
+    'CPI':            ('monthly', 13, 'BLS CPI 次月中旬发布(月末+13天,推定)'),
+    'CORE_CPI':       ('monthly', 13, 'BLS CPI 次月中旬发布(月末+13天,推定)'),
+    'CORE_PCE':       ('monthly', 30, 'BEA 个人收支报告次月末发布(月末+30天,推定)'),
+    'UNEMPLOYMENT':   ('monthly', 5, 'BLS 就业形势报告次月首周发布(月末+5天,推定)'),
+    'INDPRO':         ('monthly', 15, 'G.17 工业生产次月中旬发布(月末+15天,推定)'),
+    'US_REAL_GDP':    ('quarterly', 29, 'BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)'),
+    'CN_PMI_MFG':     ('monthly', -1, '国家统计局当月月末发布(月末−1天,推定)'),
+    'CN_CPI_YOY':     ('monthly', 9, '国家统计局次月9日前后发布(月末+9天,推定)'),
+    'CN_PPI_YOY':     ('monthly', 9, '国家统计局次月9日前后发布(月末+9天,推定)'),
+    'EA_HICP_YOY':    ('monthly', 16, 'Eurostat HICP 终值次月中旬发布(月末+16天,推定)'),
+    'JP_CPI_TOKYO_YOY': ('monthly', 25, '总务省东京CPI次月下旬发布(月末+25天,推定)'),
+    'JP_POLICY_RATE': ('monthly', 5, 'BOJ 月均次月初公布(月末+5天,推定)'),
+    'DFF':            ('daily', 1, 'NY Fed 有效联邦基金利率次日发布(+1天,推定)'),
+    'DFEDTARU':       ('daily', 0, 'FOMC 目标区间决议日当日公布'),
+    'ECB_MRO':        ('daily', 0, 'ECB 决议日当日公布(变更日观测)'),
+    'ECB_DFR':        ('daily', 0, 'ECB 决议日当日公布(变更日观测)'),
+}
+_RELEASE_DEFAULTS = {
+    'monthly': (20, '月频官方发布节奏推定(月末+20天)'),
+    'quarterly': (35, '季频官方发布节奏推定(季末+35天)'),
+    'daily': (1, '日频次日发布推定(+1天)'),
+}
+
+
+def _publish_date(metric_id, frequency, obs_date):
+    """观测日→首次发布日(推定规则)。返回 (publish_date, rule_text)。
+
+    monthly: 观测月末+days;quarterly(季首观测): 季末+days;daily: +days。
+    days<0 = 当月月末前发布(月末+负天数)。"""
+    import calendar
+    if not obs_date:
+        return None, None
+    kind, days, rule = RELEASE_RULES.get(
+        metric_id, (None, None, None))
+    freq = (frequency or kind or 'monthly')
+    if kind is None:
+        days, rule = _RELEASE_DEFAULTS.get(
+            freq, _RELEASE_DEFAULTS['monthly'])
+        kind = freq
+    y, m, d = int(obs_date[:4]), int(obs_date[5:7]), int(obs_date[8:10])
+    if kind == 'quarterly' or (kind != 'daily' and d == 1 and m in (1, 4, 7, 10)
+                               and metric_id == 'US_REAL_GDP'):
+        q_end_m = m + 2                       # 季首观测→季末
+        last = calendar.monthrange(y, q_end_m)[1]
+        base = '%04d-%02d-%02d' % (y, q_end_m, last)
+    elif kind == 'daily':
+        base = obs_date
+    else:                                     # monthly: 观测月末
+        last = calendar.monthrange(y, m)[1]
+        base = '%04d-%02d-%02d' % (y, m, last)
+    import datetime
+    b = datetime.date.fromisoformat(base)
+    return (b + datetime.timedelta(days=days)).isoformat(), rule
+
 DIMENSION_WORDS = [('增长', 'growth'), ('通胀', 'inflation'),
                    ('货币政策', 'policy')]
+
+# Audit-R19 任务3: 传导图须从冲击连到指标与资产——引擎侧资产指标全集
+# (在场性按快照 series_store 判定,plan 的 asset_universe 只列在场者)。
+ASSET_UNIVERSE = ['UST_2Y', 'UST_5Y', 'UST_10Y', 'UST_30Y', 'TIPS_5Y',
+                  'TIPS_10Y', 'BEI_5Y', 'BEI_10Y', 'CURVE_2S10S', 'SPX',
+                  'NDX', 'RUT', 'DAX', 'CAC40', 'NIKKEI225', 'HSI', 'SHCOMP',
+                  'DXY', 'EURUSD', 'USDJPY', 'USDCNY', 'GOLD_F', 'SILVER_F',
+                  'BRENT_F', 'HY_OAS', 'IG_OAS', 'BB_OAS', 'B_OAS',
+                  'CCC_OAS', 'VIX']
 MAP_SHAPE_WORDS = ('地图', '转折', '传导', '结构最像', '环境')
 _DIM_LABEL = {'growth': '增长', 'inflation': '通胀', 'policy': '货币政策'}
 _REGION_LABEL = {'US': '美国', 'CN': '中国', 'EA': '欧元区', 'JP': '日本'}
@@ -191,8 +267,14 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
                                  'metric_id': mid,
                                  'gap': 'registry_absent',
                                  'note': f'计划指标 {mid} 不在注册表(检索范围='
-                                         f'注册表 economy={eco} 面)——该格以'
-                                         f'缺口呈现,不虚构'})
+                                         f'注册表 economy={eco} 面+快照 '
+                                         f'series_store+采集档通道)——{mid} '
+                                         f'历史序列与元数据均不可得,该格以'
+                                         f'「数据不可得」呈现(影响: '
+                                         f'{_REGION_LABEL[eco]}'
+                                         f'{_DIM_LABEL[dim]}环境该口径三时点'
+                                         f'对照不可判,不以相邻口径冒充),'
+                                         f'不虚构'})
                     continue
                 cells.append({'metric_id': mid,
                               'display_name': m.get('display_name'),
@@ -248,28 +330,49 @@ def _obs_at(dates, values, as_of):
 
 
 def _derive_yoy(dates, values, idx):
-    """水平序列在 idx 处的派生同比(找 ~12 月前最近观测;不可得=None)。"""
+    """派生同比(严格同基期: 月度配去年同月/季度配去年同季)。
+
+    Audit-R19 任务1: 基期观测日必须==观测日−12 月(同月/同季),缺基期=None
+    ——不再取「最近前值」(旧口径 13 个月变化会被标成同比)。"""
     if idx is None:
         return None
     d0 = dates[idx]
     target = _shift_months(d0, 12)
     j = _obs_at(dates, values, target)
-    if j is None or j >= idx:
-        return None
+    if j is None or j >= idx or dates[j] != target:
+        return None                       # 基期月缺席≠最近前值可替
     base, cur = values[j], values[idx]
     try:
         if base and base > 0:
             return round((cur / base - 1.0) * 100.0, 2)
     except (TypeError, ZeroDivisionError):
-        return None
+        pass
+    return None
+
+
+def _latest_valid_yoy(dates, values, idx):
+    """idx 之前最近一个「同基期在場」观测的 (observation_date, yoy_pct)。
+
+    Audit-R19 任务1: 缺基期标不可得时可另列最近有效同比及月份——本函数
+    给那个「最近有效」(不虚构,逐点用严格基期复算)。"""
+    for k in range(idx, -1, -1):
+        y = _derive_yoy(dates, values, k)
+        if y is not None:
+            return {'observation_date': dates[k], 'yoy_pct': y}
     return None
 
 
 def point_values(plan, snap, root):
     """对照点值: per region/dimension/metric × anchor。
 
-    序列可得→逐锚取值(水平指数附派生同比);序列不可得→ face='absent'
-    + 缺什么注记(不编造)。返回 {'cells': [...], 'absent': [...]}。"""
+    Audit-R19 任务1 双纪律:
+    - 发布纪律: 锚值=发布日≤锚日的最新观测(_publish_date 推定规则随格披露)
+      ——历史对照只用当时已发布的数据;
+    - 同比基期纪律: 月度同比只配去年同月/季度只配去年同季,缺基期=
+      yoy_status='no_same_period_base'+derived_yoy_pct=None+另列最近有效
+      同比及月份(latest_valid_yoy)——13 个月变化不得写成同比。
+    序列不可得→ absent+缺什么注记(不编造)。返回
+    {'cells': [...], 'absent': [...], 'asset_universe': [...]}。"""
     cells, absent = [], []
     mids = list(dict.fromkeys(plan['metrics'] + plan.get('context_metrics', [])))
     series_cache = {}
@@ -293,27 +396,57 @@ def point_values(plan, snap, root):
                     continue
                 dates, values = s['dates'], s['values']
                 unit = s.get('unit') or ''
+                freq = s.get('frequency') or cell.get('frequency')
                 level_series = _is_level_unit(unit)
                 row = {'region': eco, 'dimension': dim, 'metric_id': mid,
                        'display_name': cell.get('display_name'),
                        'unit': unit, 'face_note': cell.get('face_note'),
                        'source': s.get('source'), 'anchors': {}}
                 for a in plan['point_anchors']:
-                    i = _obs_at(dates, values, a['as_of'])
+                    # 发布纪律: 只取「观测日≤锚日且发布日≤锚日」的最新观测
+                    i = None
+                    for k in range(len(dates) - 1, -1, -1):
+                        if dates[k] > a['as_of']:
+                            continue
+                        pd_iso, _rule = _publish_date(mid, freq, dates[k])
+                        if pd_iso is None or pd_iso <= a['as_of']:
+                            i = k
+                            break
                     if i is None:
                         row['anchors'][a['label']] = {
-                            'status': 'no_observation_on_or_before_anchor',
-                            'as_of': a['as_of']}
+                            'status': 'no_published_observation_on_or_before_'
+                                      'anchor',
+                            'as_of': a['as_of'],
+                            'note': '锚日前无「已发布」观测(发布日按推定规则)'}
                         continue
+                    pub_iso, rule = _publish_date(mid, freq, dates[i])
                     v = {'status': 'ok', 'as_of': a['as_of'],
                          'observation_date': dates[i],
+                         'publication_date': pub_iso,
+                         'publication_rule': rule,
                          'value': values[i]}
                     if level_series:
-                        v['derived_yoy_pct'] = _derive_yoy(dates, values, i)
+                        yoy = _derive_yoy(dates, values, i)
+                        v['derived_yoy_pct'] = yoy
                         v['value_kind'] = 'level(同比须用 derived_yoy_pct)'
+                        if yoy is None:
+                            base_ym = _shift_months(dates[i], 12)
+                            v['yoy_status'] = 'no_same_period_base'
+                            v['yoy_note'] = (
+                                f'同比不可得: 缺{base_ym[:7]}基期观测'
+                                f'(月度同比只配去年同月/季度只配去年同季,'
+                                f'不以最近前值代基期)')
+                            lv = _latest_valid_yoy(dates, values, i)
+                            if lv:
+                                v['latest_valid_yoy'] = lv
+                        else:
+                            v['yoy_status'] = 'ok'
                     row['anchors'][a['label']] = v
                 cells.append(row)
-    return {'cells': cells, 'absent': absent}
+    asset_universe = [k for k in ASSET_UNIVERSE
+                      if k in (snap.get('series_store') or {})]
+    return {'cells': cells, 'absent': absent,
+            'asset_universe': asset_universe}
 
 
 # ── 转折候选(确定性排序;判断归 Agent) ─────────────────────────────────
@@ -327,17 +460,18 @@ def _is_level_unit(unit):
 
 def _monthly_series_for_turning(dates, values, unit):
     """转折探测用月序列: 水平序列转**同比空间**(指数漂移≠转折,同比
-    变化才是环境转折),其余原样月末最新。"""
+    变化才是环境转折),其余原样月末最新。
+
+    Audit-R19 任务1: 同比空间的基期=严格去年同月(ym−12 整月对齐),
+    缺基期该月不出数——不以最近前值代基期(13 个月变化不是同比)。"""
     mon = _monthly_last(dates, values)
     if not _is_level_unit(unit):
         return mon
+    by_ym = {ym: v for ym, _d, v in mon}
     out = []
     for ym, d, v in mon:
-        tgt = _shift_months(ym + '-01', 12)
-        base = None
-        for ym2, d2, v2 in mon:
-            if ym2 <= tgt[:7]:
-                base = v2
+        tgt = _shift_months(ym + '-01', 12)[:7]
+        base = by_ym.get(tgt)
         if base:
             try:
                 out.append((ym, d, round((float(v) / float(base) - 1.0)
@@ -359,13 +493,15 @@ def _monthly_last(dates, values):
 
 
 def turning_candidates(plan, snap, root, top_n=3):
-    """过去 12 个月政策+通胀序列最大 |3 月变化| 排序(候选面)。
+    """过去 12 个月 增长+通胀+政策 三维序列最大 |3 月变化| 排序(候选面)。
 
+    Audit-R19 任务3: 增长、通胀和政策都进入候选池(旧口径硬编码
+    policy+inflation→增长转折零候选);每指标取其最大窗口一候选。
     只列引擎确定性算得出的事实(序列/前后值/日期);「谁先变/跟进/背离」
-    的判断=Agent 席 reader_map.turnings(须引用此候选面或如实说明偏离)。"""
+    的判断=Agent 席 reader_map.turnings(须引用此候选面或如实说明偏离)。
+    候选窗端点月按发布纪律过滤(发布日>研究截止日的月不入窗)。"""
     cutoff = plan['cutoff']
     y0 = cutoff[:7]
-    import sys as _sys
     months_back = []
     for k in range(13):
         months_back.append(_shift_months(f'{y0}-01', k)[ :7])
@@ -373,7 +509,7 @@ def turning_candidates(plan, snap, root, top_n=3):
     cands = []
     seen_mid = set()
     for eco, rface in plan['regions'].items():
-        for dim in ('policy', 'inflation'):
+        for dim in ('growth', 'inflation', 'policy'):
             for cell in rface['dimensions'].get(dim, []):
                 mid = cell['metric_id']
                 if mid in seen_mid:
@@ -382,8 +518,21 @@ def turning_candidates(plan, snap, root, top_n=3):
                 s, _err = _series(mid, snap, root)
                 if not s or not s.get('dates'):
                     continue
+                freq = s.get('frequency') or cell.get('frequency')
+                pub_ok = set()
+                for ym in window:
+                    probe = None
+                    for dd in s['dates']:
+                        if dd[:7] == ym:
+                            probe = dd
+                    if probe is None:
+                        continue
+                    pd_iso, _r = _publish_date(mid, freq, probe)
+                    if pd_iso is None or pd_iso <= cutoff:
+                        pub_ok.add(ym)
                 mon = [(ym, d, v) for ym, d, v in _monthly_series_for_turning(
-                    s['dates'], s['values'], s.get('unit')) if ym in window]
+                    s['dates'], s['values'], s.get('unit'))
+                    if ym in pub_ok]
                 if len(mon) < 4:
                     continue
                 best = None
@@ -403,15 +552,28 @@ def turning_candidates(plan, snap, root, top_n=3):
                     best.update({'region': eco, 'dimension': dim,
                                  'metric_id': mid,
                                  'display_name': cell.get('display_name'),
-                                 'unit': ('同比%(派生于水平序列)'
+                                 'unit': ('同比%(派生于水平序列,严格同基期)'
                                           if _is_level_unit(s.get('unit'))
                                           else s.get('unit'))})
                     cands.append(best)
     cands.sort(key=lambda c: (-abs(c['delta']), c['metric_id']))
     return {'basis': '过去12个月(研究截止日)内 3 个月滚动变化绝对值最大者;'
-                     '确定性计算,仅作候选——三个转折的取舍与谁先变判断归 '
-                     'Agent 席 reader_map',
+                     '增长/通胀/政策三维全部进入候选池(每指标一候选,窗端点'
+                     '已按发布纪律过滤);确定性计算,仅作候选——三个转折的'
+                     '取舍与谁先变判断归 Agent 席 reader_map(三转折须为不同'
+                     '事件,同一转折不得重复计数)',
             'candidates': cands[:max(top_n * 3, 9)], 'top_n_expected': top_n}
+
+
+def ex_post_windows(anchor_ym, months=(3, 6, 12)):
+    """历史类比/转折的事后窗基准月: 锚月+N 月(日历月平移)。
+
+    Audit-R19 任务4: 锚 2022-06 时 3/6/12 个月须分别到 2022-09、2022-12、
+    2023-06——本函数是唯一的窗口算术源(引擎/契约/渲染三面同源)。"""
+    out = {}
+    for m in months:
+        out[f'{m}m'] = _shift_months(f'{anchor_ym}-01', -m)[:7]
+    return out
 
 
 # ── 读者报告渲染(任务2结构;确定性装配零生成,L3 文字归 Agent) ─────────
@@ -473,8 +635,17 @@ def render_map_report(rj, judgment_doc, review_state=None):
                 vals.append('数据不可得')
             elif v.get('value_kind', '').startswith('level'):
                 yoy = v.get('derived_yoy_pct')
-                vals.append(_fmt_val(v.get('value'))
-                            + (f'(同比≈{yoy:g}%)' if yoy is not None else ''))
+                if yoy is not None:
+                    vals.append(_fmt_val(v.get('value')) + f'(同比≈{yoy:g}%)')
+                elif v.get('yoy_status') == 'no_same_period_base':
+                    lv = v.get('latest_valid_yoy') or {}
+                    extra = (f";最近有效同比≈{lv.get('yoy_pct'):g}%@"
+                             f"{str(lv.get('observation_date'))[:7]}"
+                             if lv.get('yoy_pct') is not None else '')
+                    vals.append(_fmt_val(v.get('value'))
+                                + f'(同比不可得: 缺基期{extra})')
+                else:
+                    vals.append(_fmt_val(v.get('value')))
             else:
                 vals.append(_fmt_val(v.get('value')))
         eco = c.get('region') or ''
@@ -513,17 +684,27 @@ def render_map_report(rj, judgment_doc, review_state=None):
             lines.append(f"   - 能区分解释的指标: {lk.get('distinguishing_metric')}")
         lines.append('')
 
-    # 三个转折
+    # 三个转折(按实际事件/发布日期排序;观测窗口单列)
     lines += ['## 过去一年的三个转折(按日期)', '']
-    lines.append('| 日期 | 指标 | 前值→后值 | 谁先变 | 跟进/背离 |')
-    lines.append('|---|---|---|---|---|')
-    for t in rm.get('turnings') or []:
+    cand_by_key = {}
+    cand = (rp.get('turning_candidates') or {}).get('candidates') or []
+    for c in cand:
+        cand_by_key[(c.get('metric_id'), str(c.get('to_ym')))] = c
+    lines.append('| 日期 | 指标 | 前值→后值 | 观测窗口 | 谁先变 | 跟进/背离 |')
+    lines.append('|---|---|---|---|---|---|')
+    turn_rows = sorted(rm.get('turnings') or [],
+                       key=lambda t: str(t.get('date') or ''))
+    for t in turn_rows:
+        mid, ym = t.get('metric_id'), str(t.get('date') or '')[:7]
+        cc = cand_by_key.get((mid, ym))
+        win = (f"{cc.get('from_ym')}..{cc.get('to_ym')}" if cc
+               else (f"{str(t.get('before_date'))[:7]}..{ym}"
+                     if t.get('before_date') else '—'))
         lines.append(f"| {t.get('date')} | {t.get('metric_id')} | "
                      f"{_fmt_val(t.get('value_before'))}→"
-                     f"{_fmt_val(t.get('value_after'))} | "
+                     f"{_fmt_val(t.get('value_after'))} | {win} | "
                      f"{t.get('first_mover')} | {t.get('follow_or_diverge')} |")
     lines.append('')
-    cand = (rp.get('turning_candidates') or {}).get('candidates') or []
     if cand:
         lines.append('<details><summary>引擎转折候选面(确定性排序,判断依据可核)</summary>')
         lines.append('')
@@ -538,10 +719,10 @@ def render_map_report(rj, judgment_doc, review_state=None):
         lines.append('</details>')
         lines.append('')
 
-    # 关键数字与来源
-    lines += ['## 关键数字与来源(实际观测日)', '']
-    lines.append('| 指标 | 锚 | 值 | 单位 | 实际观测日 | 来源 |')
-    lines.append('|---|---|---|---|---|---|')
+    # 关键数字与来源(附发布日期——Audit-R19 任务1)
+    lines += ['## 关键数字与来源(实际观测日+发布日期)', '']
+    lines.append('| 指标 | 锚 | 值 | 单位 | 实际观测日 | 发布日期(推定规则) | 来源 |')
+    lines.append('|---|---|---|---|---|---|---|')
     for c in rows:
         for a in anchors:
             v = (c.get('anchors') or {}).get(a) or {}
@@ -550,23 +731,36 @@ def render_map_report(rj, judgment_doc, review_state=None):
             src = c.get('source')
             src_txt = src if isinstance(src, str) else (
                 (src or {}).get('source') or (src or {}).get('file') or '—')
+            pub = v.get('publication_date') or '—'
+            rule = v.get('publication_rule')
+            pub_txt = f"{pub}({rule})" if rule else pub
             lines.append(f"| {c.get('metric_id')} | {a} | "
                          f"{_fmt_val(v.get('value'))} | {c.get('unit')} | "
-                         f"{v.get('observation_date')} | {src_txt} |")
+                         f"{v.get('observation_date')} | {pub_txt} | "
+                         f"{src_txt} |")
     lines.append('')
 
-    # 历史类比
+    # 历史类比(匹配区间/判断截止月/事后窗三面分记——Audit-R19 任务4)
     lines += ['## 历史上结构最像的时期(可验证;≤3段)', '']
     for h in rm.get('history_periods') or []:
         tag = '(美国指标类比——锚定美国序列)' if h.get('us_analog') else ''
         lines.append(f"### {h.get('period_label')} {tag}")
+        mw = h.get('match_window') or {}
+        if mw.get('start_ym') and mw.get('end_ym'):
+            lines.append(f"- 匹配区间: {mw.get('start_ym')}..{mw.get('end_ym')}"
+                         f"(判断截止月 {h.get('judgment_cutoff_ym') or '—'};"
+                         "匹配只用当时已发布数据)")
         lines.append(f"- 相似点: {h.get('similarity')}")
         lines.append(f"- 关键差异: {h.get('difference')}")
         lines.append(f"- 其他经济体是否同步: {h.get('other_regions_sync')}")
         ex = h.get('ex_post') or {}
-        lines.append(f"- 随后3个月(事件后+3月): {ex.get('3m')}")
-        lines.append(f"- 随后6个月: {ex.get('6m')}")
-        lines.append(f"- 随后12个月: {ex.get('12m')}")
+        aym = str(h.get('anchor_ym') or '')
+        exp_win = ex_post_windows(aym) if len(aym) == 7 else {}
+        for k, lbl in (('3m', '随后3个月'), ('6m', '随后6个月'),
+                       ('12m', '随后12个月')):
+            exp_m = exp_win.get(k)
+            exp_txt = f"(锚{aym}+{k[:-1]}月→{exp_m})" if exp_m else ''
+            lines.append(f"- {lbl}{exp_txt}: {ex.get(k)}")
         if h.get('data_note'):
             lines.append(f"- 样本注记: {h.get('data_note')}")
         lines.append('')

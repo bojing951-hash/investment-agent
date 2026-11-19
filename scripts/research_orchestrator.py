@@ -2345,6 +2345,64 @@ def _render_l4(content):
     return lines
 
 
+def _render_quant_sections(r):
+    """Audit-R19: 普通读者版确定性渲染后台已有的历史比较与量化说明。
+
+    R24 VIX 样本佐证的缺口: S6_analog top-N(候选月/距离/贡献维+披露三行)
+    与 S5_compare 日度相关(pearson_returns+n)只在步骤信封 json 里,读者版
+    report.md/FULL_REPORT 零渲染——后台已有的面读者看不见,只有 Agent 席
+    引用时才间接可见。本节零生成: 全部逐字取自步骤信封;信封缺席=该节
+    如实缺席(不造面)。"""
+    lines = []
+    for s in r.get('steps') or []:
+        if s.get('step') == 'S6_analog' and s.get('ok'):
+            d = (s.get('envelope') or {}).get('data') or {}
+            top = d.get('top') or []
+            if top:
+                lines += ['## 历史相似结构(引擎确定性面·读者版)', '',
+                          f"- 锚点月: {d.get('anchor_month')} | 特征窗: "
+                          f"{d.get('feature_window_months')} 个月 | 排序口径: "
+                          f"{d.get('sort_basis') or '—'}", '',
+                          '| rank | 候选月 | 距离 | 距离分位 |'
+                          ' 主要贡献维(前2) |', '|---|---|---|---|---|']
+                for t in top[:5]:
+                    dims = t.get('dims') or {}
+                    top2 = sorted(
+                        ((dk, dv.get('contribution_share'))
+                         for dk, dv in dims.items()
+                         if isinstance(dv, dict)
+                         and (dv.get('contribution_share') or 0) > 0),
+                        key=lambda x: -x[1])[:2]
+                    t2 = '、'.join(f'{dk} {sh * 100:.1f}%'
+                                   for dk, sh in top2) or '—'
+                    lines.append(f"| {t.get('rank')} | "
+                                 f"{t.get('candidate_month')} | "
+                                 f"{t.get('distance')} | "
+                                 f"{t.get('distance_percentile')} | {t2} |")
+                lines.append('')
+                for dis in d.get('disclosure') or []:
+                    lines.append(f'> {dis}')
+                lines.append('')
+    for s in r.get('steps') or []:
+        if s.get('step') == 'S5_compare' and s.get('ok'):
+            d = (s.get('envelope') or {}).get('data') or {}
+            pr = d.get('pearson_returns')
+            sides = d.get('sides') or []
+            al = d.get('alignment') or {}
+            if pr is not None and len(sides) == 2:
+                pair = '×'.join(str(x.get('metric_id')) for x in sides)
+                try:
+                    pr_txt = round(float(pr), 4)
+                except (TypeError, ValueError):
+                    pr_txt = pr
+                lines += ['## 日度相关(引擎确定性面·读者版)', '',
+                          f'- {pair} 日收益×日变化 pearson = {pr_txt}'
+                          f'(n={al.get("n_change_pairs")} 对,共同窗 '
+                          f'{al.get("common_first")}..{al.get("common_last")}'
+                          ';描述性统计≠因果)', '']
+    return lines
+
+
 def _render_md(r):
     """人类可读面: 四层区分+步骤台账+(可选)十问扇出台账+证据索引。"""
     def argv_str(step):
@@ -2472,6 +2530,10 @@ def _render_md(r):
                       '- **叙事语义未经独立裁决**——定性推断/条件情景在文;'
                       '常驻席位=SEMANTIC-AUDIT-SEAT,编排层应唤席裁决后'
                       '方可去掉本披露(章程 §4b/§8)']
+    # Audit-R19: 后台已有的历史比较与量化说明确定性入读者版(S6/S5)
+    _q = _render_quant_sections(r)
+    if _q:
+        lines += [''] + _q
     # R25 审计 Mi-1: agent_judgment 面入 md(attach/blocked/违规计数)——
     # md-only 读者可见落位状态(旧: 仅 report.json 有,md 零渲染)
     aj = r.get('agent_judgment') or {}

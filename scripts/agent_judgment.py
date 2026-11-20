@@ -1082,7 +1082,8 @@ BLOCKING_BLOCKED_CLASSES = frozenset(
     {'critical_zero_evidence', 'required_data_missing',
      'critical_step_failure', 'map_required_face_missing',
      'map_core_dimension_missing', 'map_anchor_coverage_insufficient',
-     'map_core_dimension_stale'})
+     'map_core_dimension_stale', 'map_current_period_missing',
+     'map_current_period_unverified'})
 
 
 def _step_failure_is_refusal(step):
@@ -1128,7 +1129,13 @@ def blocked_class_of(report):
       map_core_dimension_missing   地区×维度组零 ok 格(R20);
       map_anchor_coverage_insufficient  组内 ok 锚<2 且空锚无经证实延误
                              依据(R21)——「仅存最新单点」不构成三时点对照
-                             满足,与 Audit-R4 条目5 同纪律。
+                             满足,与 Audit-R4 条目5 同纪律;
+      map_current_period_missing   组内当期(最新一期)锚零 ok——他时点
+                             ok 不补当期缺口(R27 任务1: 按所请求时间点
+                             统计覆盖);计划无当期锚不判;
+      map_current_period_unverified 组内当期 ok 锚全部未核验(决策序列
+                             无更晚已证实决议且间隔超决策周期上限,
+                             R27 任务1)——现值有效性无法核验。
     「存在最新单点」不构成历史分析需求满足(Audit-R4 条目5)——
     insufficient_coverage 与 missing 同为必要缺口。
     """
@@ -1168,6 +1175,18 @@ def blocked_class_of(report):
             import research_map_planner as _rmp_grp
             if _rmp_grp.missing_core_groups(_pv, _planned_pairs):
                 return 'map_core_dimension_missing'
+            # Audit-R27 任务1: 必要维度**当期**缺数——按所请求时间点统计
+            # 覆盖,同一时点多个指标不能替代另一个时点: 组内最新一期
+            # 锚零 ok(他时点 ok 不补当期)→交付草稿;计划无当期锚(纯
+            # 历史点问句)不判。判定与渲染共源(current_period_groups)。
+            _has_cur_anchor = any(
+                (a.get('months_before') or 0) == 0
+                for a in (_rp.get('point_anchors') or []))
+            _cur_r27 = _rmp_grp.current_period_groups(
+                _pv, _planned_pairs,
+                has_current_anchor=_has_cur_anchor)
+            if _cur_r27['missing']:
+                return 'map_current_period_missing'
             # Audit-R21 任务3反例③: 序列在场但一组仅剩最新单点(两个历史
             # 时点留空且无经证实延误依据)=锚覆盖不足——「存在最新单点」
             # 不构成三时点对照满足(与 Audit-R4 条目5 同纪律),交付草稿
@@ -1182,6 +1201,11 @@ def blocked_class_of(report):
             import research_map_planner as _rmp_st
             if _rmp_st.stale_only_groups(_pv, _planned_pairs):
                 return 'map_core_dimension_stale'
+            # Audit-R27 任务1: 必要维度当期值全部**无法核验**(无更晚已
+            # 证实决议且无证实间隔超决策周期上限——本地日历未收录≠未
+            # 发生,2024-06-06 ECB 决议复测锚)→交付草稿;判定与渲染共源。
+            if _cur_r27['unverified']:
+                return 'map_current_period_unverified'
         return None
     non_refusal = [s.get('step') for s in (report.get('steps') or [])
                    if s.get('executed') and s.get('ok') is False

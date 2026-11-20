@@ -1513,10 +1513,45 @@ def _map_checks(judgment, face, report):
                 continue
             _known = {r2.get('metric_id'): r2
                       for r2 in _aop.get('known') or []}
-            _after = {r2.get('metric_id'): r2 for r2 in
-                      _aop.get('aftermath') or []
-                      if r2.get('obs_month') == _cym
-                      and isinstance(r2.get('value'), (int, float))}
+            # Audit-R27 任务2: 值泄漏判据自「截止月观测晚于截止公布」扩到
+            # **全部事后数值行**(截止后 12 月窗内异常延误行的值在截止时
+            # 同样不可知——正文引之即泄漏);政策事件行(阶梯变更值,
+            # value_from→value)不入值对账,由日期写回判据与事后段纪律
+            # 约束。
+            _after = {}
+            for r2 in _aop.get('aftermath') or []:
+                if r2.get('kind') != 'policy_event' \
+                        and isinstance(r2.get('value'), (int, float)):
+                    # 首行(截止月观测晚于截止公布——最常见泄漏位)优先,
+                    # 其余延误行不覆盖同指标代表行。
+                    _after.setdefault(r2.get('metric_id'), r2)
+            # Audit-R27 任务2: **事后日期写回「当时」段拒绝**——similarity/
+            # difference/other_regions_sync 三字段属当时叙述(逐项只用
+            # 截止日前已公布的证据),内文显式日期(YYYY-MM-DD/YYYY-MM/
+            # YYYY年M月)严格晚于判断截止月末=事后信息写回当时段,拒绝;
+            # 该类日期只能出现在事后段(ex_post)叙述。
+            for _dm in re.finditer(
+                    r'(\d{4})-(\d{1,2})(?:-(\d{1,2}))?|(\d{4})年(\d{1,2})月',
+                    _prose):
+                _g = _dm.groups()
+                if _g[3]:
+                    _y, _mo, _dd = int(_g[3]), int(_g[4]), None
+                else:
+                    _y, _mo, _dd = int(_g[0]), int(_g[1]), \
+                        (int(_g[2]) if _g[2] else None)
+                if not (1 <= _mo <= 12):
+                    continue
+                _d_iso = '%04d-%02d-%02d' % (
+                    _y, _mo, _dd if _dd else 1)
+                if _d_iso > str(_aop.get('cutoff_end') or '9999-12-31'):
+                    bad(f'reader_map.history_periods[{hi}]'
+                        '.expost_date_written_back',
+                        f'当时叙述含事后日期 {_dm.group(0)}(晚于判断截止'
+                        f'月末 {_aop.get("cutoff_end")})——相似/差异/同步'
+                        '性逐项只用截止日前已公布的证据,晚于截止的观察'
+                        '须移入事后段(ex_post),不得写回「当时」段'
+                        '(Audit-R27 任务2)',
+                        contra=True)
             for _mid, _aft in _after.items():
                 _kn = _known.get(_mid)
                 _vis_v = (_kn or {}).get('value')

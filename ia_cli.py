@@ -1886,20 +1886,44 @@ def _r1_report_core(args, engine_root):
     if not deliverable and blocked_class in (
             'map_core_dimension_missing',
             'map_anchor_coverage_insufficient',
-            'map_core_dimension_stale'):
+            'map_core_dimension_stale',
+            'map_current_period_missing',
+            'map_current_period_unverified'):
         draft_delivered = (machine_verified and review_ok and copies_consistent)
         if draft_delivered:
             warnings.append(
-                '草稿交付(Audit-R25 任务1+Audit-R26 任务2): blocked_class='
-                '%s——带缺口/过期草稿已交付(缺数格如实标注+缺口注记+'
-                '确证过期维度首页标草稿);正式交付与正式归档仍阻断'
-                '(补数后重跑续链)' % blocked_class)
+                '草稿交付(Audit-R25 任务1+Audit-R26 任务2+Audit-R27 '
+                '任务1): blocked_class=%s——带缺口/过期/未核验草稿已交付'
+                '(缺数格如实标注+缺口注记+确证过期维度首页标草稿+当期'
+                '缺失/未核验维度首页标草稿);正式交付与正式归档仍阻断'
+                '(补数/核验后重跑续链)' % blocked_class)
     # ── Audit-R18: 地图问句读者报告(MAP_REPORT.md=可直读可核查交付件) ──
     # 渲染面=report.json research_plan(对照表/点值/转折候选)+Agent 席
     # reader_map 原文,确定性装配零生成;在场文件与当前装配不同版=单改/
     # 改源没渲,copies_consistent 翻 False(与 FULL_REPORT 内容段同口径)。
     _rp18 = rj.get('research_plan') or {}
     if _rp18.get('map_question'):
+        # ── Audit-R27 任务4: 原问随包落盘(engine-owned;与会话首动作
+        #    落盘的树根 question_verbatim_<ts>.txt 分记——本件=运行档内
+        #    自包含,重放命令直接引用)。字节=run.question;在场且异字节=
+        #    副本不一致(拒付);缺席即写。 ──
+        _qv_path = os.path.join(rd, 'question_verbatim.txt')
+        _qv_bytes = str((rj.get('run') or {}).get('question')
+                        or '').encode('utf-8')
+        if os.path.exists(_qv_path):
+            try:
+                if open(_qv_path, 'rb').read() != _qv_bytes:
+                    copies_consistent = False
+                    copies_note = (copies_note or '') + \
+                        ' question_verbatim.txt 与 run.question 字节不等'
+                    warnings.append('question_verbatim.txt 与 run.question '
+                                    '字节不等(单改在场文件)——拒绝交付')
+                    deliverable = False
+            except OSError as exc:
+                copies_consistent, copies_note = False, repr(exc)
+        else:
+            with open(_qv_path, 'wb') as _qvf:
+                _qvf.write(_qv_bytes)
         import research_map_planner as rmp18
         _aj_doc = {}
         _aj_path = os.path.join(rd, 'agent_judgment.json')
@@ -2128,7 +2152,8 @@ def _r1_archive_core(args, engine_root):
         # Audit-R18: 地图问句读者报告随包归档(读者交付件=归档对象本体)
         # 旁挂锚随包(回读核对=归档侧 sha 与读者侧同锚同判)
         if (rj.get('research_plan') or {}).get('map_question'):
-            _arc_files += ['MAP_REPORT.md', 'MAP_REPORT.sha256']
+            _arc_files += ['MAP_REPORT.md', 'MAP_REPORT.sha256',
+                           'question_verbatim.txt']
         for fname in _arc_files:
             src = os.path.join(rd, fname)
             if os.path.isfile(src):

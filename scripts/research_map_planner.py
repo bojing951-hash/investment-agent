@@ -795,6 +795,11 @@ def _publish_date(metric_id, frequency, obs_date):
 
 DIMENSION_WORDS = [('增长', 'growth'), ('通胀', 'inflation'),
                    ('货币政策', 'policy')]
+# Audit-R27 任务1: 政策维子问词形——「日本央行政策利率处于什么水平」
+# 一类子问不含「货币政策」四字;句段(。？！；切分)内命中任一触发词
+# 即该句段判 policy 维(句段作用域,不摊到无该子问的句段/地区)。
+_POLICY_DIM_EXTRA = ('政策利率', '央行', '加息', '降息', '降准', 'LPR',
+                     '逆回购', '利率水平')
 
 # Audit-R19 任务3: 传导图须从冲击连到指标与资产——引擎侧资产指标全集
 # (在场性按快照 series_store 判定,plan 的 asset_universe 只列在场者)。
@@ -809,10 +814,15 @@ _DIM_LABEL = {'growth': '增长', 'inflation': '通胀', 'policy': '货币政策
 _REGION_LABEL = {'US': '美国', 'CN': '中国', 'EA': '欧元区', 'JP': '日本'}
 
 # 点锚词形: 最新一期/最新/当前 | N个月前 | 一年前(=12个月前)
+# Audit-R27 任务1: 显式年月(YYYY年M月)与比较结构(相比/对比…)——
+# 「2026年11月,…相比3个月前各有什么变化」的当期端点由两者落位。
 _POINT_LATEST_RE = re.compile(r'最新(?:一期|数据)?|当前')
 _POINT_MONTHS_RE = re.compile(
     r'(?P<num>[0-9]+|[一二两三四五六七八九十]+)\s*个?\s*月\s*前')
 _POINT_YEARS_RE = re.compile(r'(?P<num>[0-9]+|[一二两三四五六七八九十]+)\s*年\s*前')
+_POINT_EXPLICIT_YM_RE = re.compile(
+    r'(?P<y>[0-9]{4})\s*年\s*(?P<m>[0-9]{1,2})\s*月')
+_POINT_COMPARE_RE = re.compile(r'相比|对比|相较|较之|比起')
 # 事后偏移: 随后/之后/其后 的 N(、M、K)?个月
 _EXPOST_RE = re.compile(
     r'(?:随后|之后|其后)(?P<list>(?:\s*[0-9一二两三四五六七八九十]+\s*[、,，和及]\s*)*'
@@ -877,10 +887,20 @@ def detect_map_question(question, ent):
 
 
 def parse_point_anchors(question, cutoff_iso):
-    """三个对照时点(日历点锚)。返回按 N 降序(12月前→3月前→最新)。
+    """对照时点(日历点锚)。返回按 months_before 降序(12月前→3月前→最新)。
 
     「N个月前」= 研究截止日−N 月的日历点——与「事件发生后N个月」(事后
-    偏移,事件日+N 月)分记两类,见 parse_ex_post_offsets。"""
+    偏移,事件日+N 月)分记两类,见 parse_ex_post_offsets。
+
+    Audit-R27 任务1: 显式年月与比较结构落位——
+    - 「YYYY年M月」= 显式期锚: =研究截止月→**当期锚**(label 统一
+      「最新一期」,键 months_before=0,附 explicit_period 供披露);
+      早于截止月 1..120 月→历史点锚(label=原年月);晚于截止=未来
+      不取(不虚构未来时点);
+    - 比较结构(「…相比N个月前各有什么变化」)隐含当期端点: 存在
+      N个月前锚且问句含相比/对比一类词而「最新一期/当前」词形缺席
+      时补当期锚——对照表恒有当期列与所请求的历史列并列(同一时点
+      多指标不替代另一时点)。"""
     q = question or ''
     months = set()
     for m in _POINT_MONTHS_RE.finditer(q):
@@ -891,12 +911,37 @@ def parse_point_anchors(question, cutoff_iso):
         n = _cn_num(m.group('num'))
         if n and 1 <= n <= 10:
             months.add(n * 12)
+    _cy, _cm = int(cutoff_iso[:4]), int(cutoff_iso[5:7])
+    _explicit_cur = False
+    _explicit_hist = []
+    _seen_ym = set()
+    for m in _POINT_EXPLICIT_YM_RE.finditer(q):
+        y, mo = int(m.group('y')), int(m.group('m'))
+        if not (1 <= mo <= 12):
+            continue
+        n = (_cy * 12 + _cm) - (y * 12 + mo)
+        if n == 0:
+            _explicit_cur = True
+        elif 1 <= n <= 120 and (y, mo) not in _seen_ym:
+            _seen_ym.add((y, mo))
+            _explicit_hist.append(
+                {'kind': 'point', 'label': f'{y}年{mo}月',
+                 'as_of': _shift_months(cutoff_iso, n),
+                 'months_before': n, 'explicit_period': f'{y:04d}-{mo:02d}'})
     anchors = [{'kind': 'point', 'label': f'{n}个月前',
                 'as_of': _shift_months(cutoff_iso, n), 'months_before': n}
                for n in sorted(months, reverse=True)]
-    if _POINT_LATEST_RE.search(q):
-        anchors.append({'kind': 'point', 'label': '最新一期',
-                        'as_of': cutoff_iso, 'months_before': 0})
+    anchors += sorted(_explicit_hist, key=lambda a: -a['months_before'])
+    _wants_current = (_POINT_LATEST_RE.search(q) or _explicit_cur
+                      or (months and _POINT_COMPARE_RE.search(q)))
+    if _wants_current and not any(a['months_before'] == 0
+                                  for a in anchors):
+        _cur = {'kind': 'point', 'label': '最新一期',
+                'as_of': cutoff_iso, 'months_before': 0}
+        if _explicit_cur:
+            _cur['explicit_period'] = f'{_cy:04d}-{_cm:02d}'
+        anchors.append(_cur)
+    anchors.sort(key=lambda a: -a['months_before'])
     return anchors
 
 
@@ -914,54 +959,95 @@ def parse_ex_post_offsets(question):
     return out
 
 
+def _clause_region_dimension_requests(question, ecos):
+    """Audit-R27 任务1: 句段作用域的 地区×维度 请求集合。
+
+    问句按 。？！?！;；\n 切段,段内命中的地区(区名词形)×段内命中的
+    维度(增长/通胀/货币政策+政策子问词形)才入计划——「日本央行政策
+    利率」子问只请求 JP×policy,不以全域全维网格摊大检索面;同一时点
+    多指标不替代另一时点,另一时点/另一维的指标也不替代本子问。
+    全部句段都无地区或无维度(词形分置两段一类)→回退全域全维笛卡尔
+    (与旧口径一致,零回归)。返回 [(region, dimension), ...] 保序。"""
+    segs = re.split(r'[。？！?！;；\n]', _norm_q(question or ''))
+    out = []
+    for seg in segs:
+        if not seg.strip():
+            continue
+        seg_ecos = [e for e in ecos
+                    if _REGION_LABEL.get(e) and _REGION_LABEL[e] in seg]
+        seg_dims = []
+        for w, d in DIMENSION_WORDS:
+            if w in seg and d not in seg_dims:
+                seg_dims.append(d)
+        if 'policy' not in seg_dims and any(
+                w in seg for w in _POLICY_DIM_EXTRA):
+            seg_dims.append('policy')
+        for eco in seg_ecos:
+            for dim in seg_dims:
+                if (eco, dim) not in out:
+                    out.append((eco, dim))
+    return out
+
+
 def plan_map(question, ent, reg_by_id, cutoff_iso):
-    """共享研究计划本体: 地区×维度指标+在场性/缺口、点锚、事后窗。"""
+    """共享研究计划本体: 地区×维度指标+在场性/缺口、点锚、事后窗。
+
+    Audit-R27 任务1: 地区×维度网格改句段作用域请求(_clause_region_
+    dimension_requests)——问句实际请求的组才入计划(他组不摊检索面,
+    也不因他组数据在而掩盖本组缺口);词形分置无法成段请求时回退
+    全域全维(旧口径)。"""
     ecos = [e for e in (ent.get('economies') or [])
             if e in REGION_DIMENSION_METRICS]
     dims = [d for w, d in DIMENSION_WORDS if w in (question or '')]
+    if 'policy' not in dims and any(
+            w in (question or '') for w in _POLICY_DIM_EXTRA):
+        dims.append('policy')
+    _requests = _clause_region_dimension_requests(question, ecos)
+    if not _requests:
+        _requests = [(e, d) for e in ecos for d in dims]
     regions, metrics, gaps = {}, [], []
     for eco in ecos:
         regions[eco] = {'label': _REGION_LABEL[eco], 'dimensions': {}}
-        for dim in dims:
-            cells = []
-            for mid, mnote in REGION_DIMENSION_METRICS[eco].get(dim, []):
-                m = reg_by_id.get(mid)
-                if m is None:
-                    gaps.append({'region': eco, 'dimension': dim,
-                                 'metric_id': mid,
-                                 'gap': 'registry_absent',
-                                 'note': f'计划指标 {mid} 不在注册表(检索范围='
-                                         f'注册表 economy={eco} 面+快照 '
-                                         f'series_store+采集档通道)——{mid} '
-                                         f'历史序列与元数据均不可得,该格以'
-                                         f'「数据不可得」呈现(影响: '
-                                         f'{_REGION_LABEL[eco]}'
-                                         f'{_DIM_LABEL[dim]}环境该口径三时点'
-                                         f'对照不可判,不以相邻口径冒充),'
-                                         f'不虚构'})
-                    continue
-                cells.append({'metric_id': mid,
-                              'display_name': m.get('display_name'),
-                              'face_note': mnote,
-                              'frequency': m.get('frequency'),
-                              'unit': m.get('unit'),
-                              # R20 任务2: 序列修订口径(事后回顾标记的
-                              # 判定基准=注册表声明,见 _vintage_semantics)
-                              'vintage_semantics': _vintage_semantics(m),
-                              # R20 任务2: 政策四分面口径注记(目标/报价/
-                              # 市场均值+决定日/生效日/统计窗口三日期声明)
-                              'policy_face': POLICY_FACE.get(mid)})
-                if mid not in metrics:
-                    metrics.append(mid)
-            if not cells:
+    for eco, dim in _requests:
+        cells = []
+        for mid, mnote in REGION_DIMENSION_METRICS[eco].get(dim, []):
+            m = reg_by_id.get(mid)
+            if m is None:
                 gaps.append({'region': eco, 'dimension': dim,
-                             'metric_id': None, 'gap': 'no_registry_metric',
-                             'note': f'注册表检索范围(economy={eco})无'
-                                     f'{_DIM_LABEL[dim]}维度指标——该格'
-                                     f'环境对照缺席(影响: {_REGION_LABEL[eco]}'
-                                     f'{_DIM_LABEL[dim]}环境三时点对照不可判,'
-                                     f'总判断适用范围相应缩小)'})
-            regions[eco]['dimensions'][dim] = cells
+                             'metric_id': mid,
+                             'gap': 'registry_absent',
+                             'note': f'计划指标 {mid} 不在注册表(检索范围='
+                                     f'注册表 economy={eco} 面+快照 '
+                                     f'series_store+采集档通道)——{mid} '
+                                     f'历史序列与元数据均不可得,该格以'
+                                     f'「数据不可得」呈现(影响: '
+                                     f'{_REGION_LABEL[eco]}'
+                                     f'{_DIM_LABEL[dim]}环境该口径三时点'
+                                     f'对照不可判,不以相邻口径冒充),'
+                                     f'不虚构'})
+                continue
+            cells.append({'metric_id': mid,
+                          'display_name': m.get('display_name'),
+                          'face_note': mnote,
+                          'frequency': m.get('frequency'),
+                          'unit': m.get('unit'),
+                          # R20 任务2: 序列修订口径(事后回顾标记的
+                          # 判定基准=注册表声明,见 _vintage_semantics)
+                          'vintage_semantics': _vintage_semantics(m),
+                          # R20 任务2: 政策四分面口径注记(目标/报价/
+                          # 市场均值+决定日/生效日/统计窗口三日期声明)
+                          'policy_face': POLICY_FACE.get(mid)})
+            if mid not in metrics:
+                metrics.append(mid)
+        if not cells:
+            gaps.append({'region': eco, 'dimension': dim,
+                         'metric_id': None, 'gap': 'no_registry_metric',
+                         'note': f'注册表检索范围(economy={eco})无'
+                                 f'{_DIM_LABEL[dim]}维度指标——该格'
+                                 f'环境对照缺席(影响: {_REGION_LABEL[eco]}'
+                                 f'{_DIM_LABEL[dim]}环境三时点对照不可判,'
+                                 f'总判断适用范围相应缩小)'})
+        regions[eco]['dimensions'][dim] = cells
     plan = {
         'map_question': True,
         # Audit-R25 任务3: 原问逐字入计划——plan/工单/报告/归档同一份原文
@@ -1377,6 +1463,25 @@ def point_values(plan, snap, root):
                                     f'{fo["window"]}天已批准窗口)'
                                     f'——最新一期=过期数据,如实显示末观测日,'
                                     f'不当当期')
+                        elif fo['status'] == 'UNVERIFIED':
+                            # Audit-R27 任务1: 第三态——无更晚已证实决议且
+                            # 无证实间隔超决策周期上限: 本地日历未收录≠
+                            # 未发生,现值是否仍有效无法核验(未核验≠过期:
+                            # 不虚构更晚决议,亦不判新鲜)。
+                            v['freshness'] = 'unverified'
+                            v['freshness_lag_days'] = fo['lag_days']
+                            v['unconfirmed_span_days'] = fo.get(
+                                'unconfirmed_span_days', fo['lag_days'])
+                            v['decision_cycle_bound_days'] = fo.get(
+                                'decision_cycle_bound_days')
+                            v['freshness_note'] = (
+                                f'按政策确认纪律无法核验: 最后确认'
+                                f'{dates[i]}后{v["unconfirmed_span_days"]}天'
+                                f'无已证实决议(超决策周期上限'
+                                f'{v["decision_cycle_bound_days"]}天——本地'
+                                f'日历未收录≠未发生,现值可能已调整而数据'
+                                f'未反映)——标未核验,不以未证实间隔判过期'
+                                f'亦不判新鲜')
                     pf_cfg = cell.get('policy_face') or {}
                     mdate = None
                     mp = pf_cfg.get('market_pair')
@@ -1434,6 +1539,39 @@ def stale_only_groups(point_values, planned_pairs):
     return sorted(g for g in (planned_pairs or ())
                   if latest_ok.get(g)
                   and latest_stale.get(g, 0) == latest_ok[g])
+
+
+def current_period_groups(point_values, planned_pairs,
+                          has_current_anchor=True):
+    """Audit-R27 任务1: 当期缺失/未核验组集合(阻断/渲染共源)。
+
+    按所请求的不同时间点统计覆盖——同一时点多个指标不能替代另一个
+    时点(他时点 ok 不补当期缺口):
+    - missing: 组内「最新一期」锚零 ok(全部不可得/停摆延误)——当期
+      缺失,历史锚 ok 不改判;
+    - unverified: 组内当期 ok 锚全部 freshness=unverified(决策序列无
+      更晚已证实决议且无证实间隔超决策周期上限)——现值无法核验;
+      任一非 unverified 的当期 ok 锚在场即不入列。
+    计划无当期锚(纯历史点问句,如「2024年6月相比2023年6月」)不判
+    (当期非所请求时点,返回空)。返回 {'missing': sorted, 'unverified':
+    sorted},与 blocked_class_of 的 map_current_period_missing /
+    map_current_period_unverified 同源同判。"""
+    if not has_current_anchor:
+        return {'missing': [], 'unverified': []}
+    cur_ok, cur_unver = {}, {}
+    for c in (point_values or {}).get('cells') or []:
+        g = (c.get('region'), c.get('dimension'))
+        la = (c.get('anchors') or {}).get('最新一期') or {}
+        if la.get('status') == 'ok':
+            cur_ok[g] = cur_ok.get(g, 0) + 1
+            if la.get('freshness') == 'unverified':
+                cur_unver[g] = cur_unver.get(g, 0) + 1
+    return {
+        'missing': sorted(g for g in (planned_pairs or ())
+                          if cur_ok.get(g, 0) == 0),
+        'unverified': sorted(g for g in (planned_pairs or ())
+                             if cur_ok.get(g, 0)
+                             and cur_unver.get(g, 0) == cur_ok[g])}
 
 
 def missing_core_groups(point_values, planned_pairs):
@@ -1982,6 +2120,26 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                      f"披露);补数后重跑转正。正式归档对草稿拒绝"
                      f"(map_core_dimension_missing)。")
         lines.append('')
+    # ── Audit-R27 任务1: 当期缺失/未核验 → 首页明确标草稿(同三侧共源) ──
+    _has_cur0 = any((a.get('months_before') or 0) == 0
+                    for a in (rp.get('point_anchors') or []))
+    _cur0 = current_period_groups(pv, _planned0, has_current_anchor=_has_cur0)
+    if _cur0['missing']:
+        _cg = '、'.join(f"{g[0]}×{g[1]}" for g in _cur0['missing'])
+        lines.append(f"> ⚠ **草稿(非正式)**: 必要维度**当期**缺数(当期锚"
+                     f"零 ok 格)——{_cg}。按所请求时间点统计覆盖: 同一时点"
+                     f"多个指标不能替代另一个时点,历史锚 ok 不补当期缺口;"
+                     f"补数后重跑转正。正式归档对草稿拒绝"
+                     f"(map_current_period_missing)。")
+        lines.append('')
+    if _cur0['unverified']:
+        _ug = '、'.join(f"{g[0]}×{g[1]}" for g in _cur0['unverified'])
+        lines.append(f"> ⚠ **草稿(非正式)**: 必要维度当期值**无法核验**——"
+                     f"{_ug}。当期 ok 锚全部未核验(无更晚已证实决议且无"
+                     f"证实间隔超决策周期上限——本地日历未收录≠未发生);"
+                     f"核验(补录决议实录)后重跑转正。正式归档对草稿拒绝"
+                     f"(map_current_period_unverified)。")
+        lines.append('')
     _sparse_groups = sparse_anchor_groups(pv, _planned0)
     if _sparse_groups:
         _gg = '、'.join(f"{g[0]}×{g[1]}" for g in _sparse_groups)
@@ -2050,6 +2208,14 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                                 f"{v.get('freshness_period_lag_days')}天>"
                                 f"{v.get('freshness_window_days')}天已批准窗口)"
                                 if v.get('freshness_period_end') else ''))
+            elif v.get('freshness') == 'unverified':
+                # Audit-R27 任务1: 未核验(≠过期)——无更晚已证实决议且
+                # 无证实间隔超决策周期上限,现值是否仍有效无法核验。
+                stale = (f"⚠未核验:最后确认{v.get('policy_confirm_date')}"
+                         f"后{v.get('unconfirmed_span_days')}天无已证实"
+                         f"决议(超决策周期上限"
+                         f"{v.get('decision_cycle_bound_days')}天,本地日历"
+                         f"未收录≠未发生)")
             else:
                 stale = ''
             if v.get('value_kind', '').startswith('level'):
@@ -2086,6 +2252,19 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                      f"{ab.get('display_name')} | " + ' | '.join(['数据不可得']
                      * len(anchors)) + ' | — |')
     lines.append('')
+    # ── Audit-R27 任务1: 按时点统计覆盖(组级 ok 计数逐锚披露) ──
+    if anchors:
+        _cov_cells = []
+        for _al in anchors:
+            _okg = set()
+            for c in pv.get('cells') or []:
+                va = (c.get('anchors') or {}).get(_al) or {}
+                if va.get('status') == 'ok':
+                    _okg.add((c.get('region'), c.get('dimension')))
+            _cov_cells.append(f"{_al}={len(_okg)}/{len(_planned0)}组ok")
+        lines.append(f"> 按时点统计覆盖(组级——同一时点多个指标不能替代"
+                     f"另一个时点,逐锚分开计数): {';'.join(_cov_cells)}。")
+        lines.append('')
     lines.append('> 缺数格说明(检索范围+影响): ')
     for ab in pv.get('absent') or []:
         lines.append(f"> - {ab.get('note')}")
@@ -2114,7 +2293,9 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
             v = (c.get('anchors') or {}).get(a) or {}
             if v.get('status') == 'ok':
                 _cov.append('⚠过期' if v.get('freshness') == 'stale'
-                            else 'ok')
+                            else ('⚠未核验'
+                                  if v.get('freshness') == 'unverified'
+                                  else 'ok'))
             elif v.get('calendar_blocked_observation'):
                 _cov.append('停摆延误')
             else:
@@ -2135,9 +2316,11 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                      f"| — | — | 序列缺席 |")
     lines.append('')
     lines.append('> 口径: 覆盖=三锚格状态(ok/⚠过期=确证过期仍如实显示末观测'
-                 '/不可得/停摆延误=日历实录证实的延误);统计期末=月频观测月'
-                 '末/季频观测季季末(发布滞后自期末起算);发布日期=日历实录'
-                 '优先+推定规则兜底(括注基准);来源=注册表权威采集器。')
+                 '/⚠未核验=无更晚已证实决议且间隔超决策周期上限,现值有效'
+                 '性无法核验/不可得/停摆延误=日历实录证实的延误);统计期末='
+                 '月频观测月末/季频观测季季末(发布滞后自期末起算);发布日期'
+                 '=日历实录优先+推定规则兜底(括注基准);来源=注册表权威'
+                 '采集器。')
     lines.append('')
 
     # ── Audit-R22 任务4: 首页三件之三——证据最充分传导速览(证据分排序:
@@ -2189,6 +2372,23 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                 dnote = pdd.get('decision_note')
                 dtxt = (f"{pdd.get('decision')}({dnote})" if dnote
                         else (pdd.get('decision') or '—'))
+                if pdd.get('effective') and not pdd.get('decision') \
+                        and pf.get('decision_kind') == 'boj_history':
+                    dtxt = '未核验(实录表无该值变更月,不以回推造日期)'
+                # Audit-R27 任务1: 「距离上次调整过了多久」可核——生效日
+                # 附距研究截止天数(序列值变更日=生效日,数据面语义)。
+                _eff = pdd.get('effective')
+                _etxt = _eff or '—'
+                if _eff and a == '最新一期':
+                    try:
+                        import datetime as _dt_r27
+                        _d_eff = _dt_r27.date.fromisoformat(str(_eff)[:10])
+                        _d_as = _dt_r27.date.fromisoformat(
+                            str(v.get('as_of'))[:10])
+                        _etxt = (f"{_eff}(距研究截止"
+                                 f"{(_d_as - _d_eff).days}天)")
+                    except ValueError:
+                        pass
                 mnote = pdd.get('market_note')
                 mtxt = (f"{pdd.get('market_observation')}({mnote})" if mnote
                         else (pdd.get('market_observation') or '—'))
@@ -2196,7 +2396,7 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                     f"| {c.get('region')} | {c.get('display_name')} | "
                     f"{pf.get('face')} | {a} | {_fmt_val(v.get('value'))} | "
                     f"{dtxt} | "
-                    f"{pdd.get('effective') or '—'} | "
+                    f"{_etxt} | "
                     f"{mtxt} | "
                     f"{pdd.get('stat_window_end') or '—'} |")
         lines.append('')
@@ -2700,6 +2900,28 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                              '或运行快照在场,不跨快照取数/不读活树冒充)')
                 lines.append('')
         lines.append('')
+
+    # ── Audit-R27 任务4: 随包重放面(完整运行 SHA/原问/裁决链/地图摘要/
+    #    一条可执行重放命令)——确定性装配在场事实,零新增生成。 ──
+    _run27 = (rj.get('run') or {}) if isinstance(rj, dict) else {}
+    _sha27 = str(_run27.get('git_head') or '')
+    lines += ['## 重放(随包可执行)', '',
+              '- 完整运行 SHA: `%s`(来源 %s;CODE_VERSION.json 印章'
+              '可核)' % (_sha27 or '(未记录)',
+                         _run27.get('git_head_source') or '—'),
+              '- 原问: 本目录 `question_verbatim.txt`(report 段落盘,'
+              '字节=run.question)',
+              '- 裁决链: `audit/semantic_review/<实录日期>/` 下本 runts '
+              '裁决档——REVISE→UPHELD 时**两条记录都在链**(各绑当时 '
+              'map_report_sha256),逐档可核',
+              '- 地图摘要: 旁挂 `MAP_REPORT.sha256`(本文件 sha256 锚)',
+              '- 重放命令(在交付树根执行;产物落新 run 目录,不改本档):',
+              '',
+              '```',
+              'python3 ia_cli.py research-one --stage auto '
+              '--question-file <本运行档目录>/question_verbatim.txt',
+              '```',
+              '']
 
     # 语义审查面
     lines += ['## 语义审查', '']

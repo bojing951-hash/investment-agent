@@ -337,6 +337,14 @@ def compare_release_availability(release, as_of):
 
 _POLICY = None
 
+# Audit-R27 任务1: 决策驱动序列「无证实间隔」核验上限缺省(天)。央行
+# 决策周期最长约 8 周(Fed/ECB/BOJ 每年 ~8 次议息,最长会期间隔 ~56 天);
+# 90 天≈两轮决策周期后仍无任何已证实决议 = 本地日历未收录≠未发生
+# (2024-06-06 ECB 降息一类: 旧值不能因本地日历没收录新决议就被判新鲜),
+# 现值是否仍有效**无法核验**——第三态 UNVERIFIED: 不判新鲜,亦不以未
+# 证实间隔虚构过期。注册表可按序列覆写(freshness.max_unconfirmed_days)。
+_DEFAULT_MAX_UNCONFIRMED_DAYS = 90
+
 
 def build_policy(registry):
     """注册表metrics → {metric_id: {window,frequency,calendar,basis}}。
@@ -369,7 +377,16 @@ def build_policy(registry):
                     # ≠停更;无此声明不得套用确认纪律)
                     'asset_class': m.get('asset_class'),
                     'decision_dated': bool(
-                        fr.get('decision_dated')) if fr else False}
+                        fr.get('decision_dated')) if fr else False,
+                    # Audit-R27 任务1: 决策驱动序列「无证实间隔」核验上限
+                    # (天,可选覆写;缺省=_DEFAULT_MAX_UNCONFIRMED_DAYS)。
+                    'max_unconfirmed_days': (
+                        (fr.get('max_unconfirmed_days')
+                         if isinstance(fr.get('max_unconfirmed_days'), int)
+                         and not isinstance(
+                             fr.get('max_unconfirmed_days'), bool)
+                         and fr.get('max_unconfirmed_days') > 0 else None)
+                        if fr else None)}
     if problems:
         raise FreshnessPolicyError(
             "W2-FRESHNESS-POLICY-INVALID: 注册表时效窗口不完整/非法 — "
@@ -683,7 +700,11 @@ def assess_observation_freshness(metric_id, obs_date, as_of,
     - 注册表声明 decision_dated 的决策驱动序列(ECB_MRO/ECB_DFR 一族):
       观测日=**政策最后确认日**,无更晚已证实决议(confirmed_later_
       decision=None 或不晚于观测)即 FRESH——不以发布间隔判过期;有更晚
-      已证实决议而数据未反映才 STALE(freshness_basis=policy_confirmation)。"""
+      已证实决议而数据未反映才 STALE(freshness_basis=policy_confirmation)。
+    - Audit-R27 任务1 第三态 UNVERIFIED: decision_dated 序列无更晚已
+      证实决议且无证实间隔>决策周期上限(缺省 90 天,注册表可覆写
+      max_unconfirmed_days)——本地日历未收录≠未发生,现值是否仍有效
+      无法核验(2024-06-06 ECB 决议复测锚),不判新鲜亦不虚构过期。"""
     o = {'metric_id': metric_id, 'obs_date': None, 'as_of': None,
          'lag_days': None, 'window': None, 'frequency': None,
          'observed': {'status': 'MISSING'}, 'fresh': False, 'status': None,
@@ -733,10 +754,26 @@ def assess_observation_freshness(metric_id, obs_date, as_of,
                               f"(首发{cd}≤研究截止{a})而数据未反映——"
                               f"确证过期,不得当作当期政策值"])
             return o
+        # Audit-R27 任务1: 无证实间隔超决策周期上限 → UNVERIFIED(第三态)
+        _bound = pol.get('max_unconfirmed_days')
+        if not isinstance(_bound, int) or isinstance(_bound, bool) \
+                or _bound <= 0:
+            _bound = _DEFAULT_MAX_UNCONFIRMED_DAYS
+        if o['lag_days'] > _bound:
+            o.update(status='UNVERIFIED', fresh=False,
+                     unconfirmed_span_days=o['lag_days'],
+                     decision_cycle_bound_days=_bound,
+                     reasons=[f"最后确认{od}后{o['lag_days']}天无更晚已"
+                              f"证实决议且超决策周期上限{_bound}天——本地"
+                              f"日历未收录≠未发生,现值是否仍有效无法核验: "
+                              f"不判新鲜,亦不以未证实间隔虚构过期"
+                              f"(Audit-R27 任务1)"])
+            return o
         o.update(status='FRESH', fresh=True, reasons=[
             f"决策驱动政策序列: 政策最后确认日={od}"
             + (f";无更晚已证实决议(≤截止{a})" if cd is None
                else f";最近证实决议{cd}未晚于最后确认日")
+            + f";无证实间隔{o['lag_days']}天≤核验上限{_bound}天"
             + "——不以发布间隔判过期"])
         return o
     # ── Audit-R26 任务2: 月/季频窗口自统计期末起算 ──

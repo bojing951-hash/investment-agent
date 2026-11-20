@@ -321,6 +321,43 @@ def daily_face_identity_map(obj):
     return out
 
 
+def daily_face_valid_obs_horizon(obj):
+    """Audit-R27 任务3: 指标身份→最新有效观测日(降级判定第二维度)。
+
+    逐 dates[]/values[] 配对扫描(与身份图同视图): 同身份**计数不变但
+    最新有效观测日回退**(尾部截断后以旧叶补位一类)不再漏判——「条数
+    相同」不掩盖「时点回退」。值 None 的配对不计;非日期形(非字符串/
+    非 YYYY-MM-DD 前缀)不计,不虚构时点。返回 {identity: 'YYYY-MM-DD'}
+    (仅含至少一个有效配对的身份)。"""
+    out = {}
+
+    def walk(node, prefix):
+        if isinstance(node, dict):
+            if not node:
+                return
+            ds, vs = node.get('dates'), node.get('values')
+            if isinstance(ds, list) and isinstance(vs, list):
+                ident = _identity_of(prefix)
+                if ident:
+                    for d, v in zip(ds, vs):
+                        if (v is None or not isinstance(d, str)
+                                or len(d) < 10 or d[4] != '-'):
+                            continue
+                        cur = out.get(ident)
+                        if cur is None or d[:10] > cur:
+                            out[ident] = d[:10]
+            for k, v in node.items():
+                walk(v, f'{prefix}.{k}' if prefix else f'.{k}')
+        elif isinstance(node, list):
+            if not node:
+                return
+            for v in node:
+                walk(v, prefix + '[]')
+
+    walk(obj, '')
+    return out
+
+
 def _superseded_slot(data_dir, stem):
     """在 superseded/ 里为 stem(如 'china_20261120')取不碰撞的时间戳槽位。"""
     sup_dir = os.path.join(data_dir, _SUPERSEDED_DIRNAME)
@@ -426,6 +463,7 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
     forced = os.environ.get('IA_DAILY_ALLOW_OVERWRITE', '') == '1'
     _want_cov = daily_face_coverage(payload)
     _want_ids = daily_face_identity_map(_judgment_view(payload))
+    _want_hz = daily_face_valid_obs_horizon(_judgment_view(payload))
 
     def _stage_candidate(dst):
         # Audit-R26 任务1: 候选tmp全生命周期前半——进程唯一 tmp 名(同日
@@ -441,7 +479,9 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
                 cand = json.load(f)
             if (daily_face_coverage(cand) != _want_cov
                     or daily_face_identity_map(
-                        _judgment_view(cand)) != _want_ids):
+                        _judgment_view(cand)) != _want_ids
+                    or daily_face_valid_obs_horizon(
+                        _judgment_view(cand)) != _want_hz):
                 raise IOError(
                     f'候选文件校验不符(写盘中断/序列化损坏): {tmp}——'
                     f'拒绝换入,规范档不动')
@@ -473,15 +513,24 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
                 except OSError:
                     pass
 
-    if not os.path.exists(path):
-        _commit(_stage_candidate(path), path)
-        return path, 'first', ''
     if forced:
         with _guard_lock(data_dir, fname):
+            # Audit-R27 任务3: 豁免路径首写同样入锁(查存在+提交同一临界区)
+            if not os.path.exists(path):
+                _commit(_stage_candidate(path), path)
+                return path, 'first', ''
             _copy_preserve(data_dir, fname)
             _commit(_stage_candidate(path), path)
         return path, 'forced', 'IA_DAILY_ALLOW_OVERWRITE=1 豁免守卫'
     with _guard_lock(data_dir, fname):
+        # Audit-R27 任务3: 首写「查存在」入锁——检查存在/读取/判降级/
+        # 提交同一临界区。空目录同日并发首写(完整档+缺 CPI 档,任意提交
+        # 顺序): 先到者落规范档,后到者按同一降级判据处置(缺身份/观测
+        # 缩水/时点回退=转存 superseded;身份超集且无回退=覆写),两种
+        # 顺序规范档均收敛到完整数据,不再「后到者静默胜」。
+        if not os.path.exists(path):
+            _commit(_stage_candidate(path), path)
+            return path, 'first', ''
         old_ids, old_paths_n, old_unreadable = None, None, False
         try:
             with open(path, encoding='utf-8') as f:
@@ -512,6 +561,21 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
                     for i in _shrunk[:6])
                 note = (f'有效观测叶子缩水 {len(_shrunk)} 项({_d}'
                         f'{"…" if len(_shrunk) > 6 else ""};null≠有效观测)')
+            else:
+                # Audit-R27 任务3: 同计数时点回退——最新有效观测日后移
+                # (尾部截断后旧叶补位)按降级转存,「条数相同」不掩回退。
+                _hz_old = daily_face_valid_obs_horizon(_judgment_view(old))
+                _back = sorted(
+                    i for i in set(_hz_old) & set(_want_hz)
+                    if _want_hz[i] < _hz_old[i])
+                if _back:
+                    degraded = True
+                    _b = ','.join(
+                        f"{'.'.join(i)}:{_hz_old[i]}→{_want_hz[i]}"
+                        for i in _back[:6])
+                    note = (f'最新有效观测回退 {len(_back)} 项({_b}'
+                            f'{"…" if len(_back) > 6 else ""};'
+                            f'同计数不掩时点回退)')
         if degraded:
             sup = _superseded_slot(data_dir, fname[:-5])
             _commit(_stage_candidate(sup), sup)

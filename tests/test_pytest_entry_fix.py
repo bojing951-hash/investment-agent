@@ -10,18 +10,24 @@ python 插件对命令行直给 .py 绕过 python_files 匹配(isinitpath 分支
 `-k` 筛选与排除套件显式路径直入同根因面。
 
 本套件两分支:
-- pytest 在场(本地开发面): 行为级验证——三入口 rc/收集数/无
-  INTERNALERROR/失败传播/排除契约;
-- pytest 缺席(CI=py3.11 直跑循环, 不装 pytest): 结构级验证——
-  conftest.py 三钩子与判定单一事实源在场, 防修复静默消失。
-  (CI 面套件真值=offline-tests.yml 的 python3 直跑, 与适配器
-  子进程面同构; pytest 入口在 CI 结构性不可验=如实披露, 非绿冒认。)
+- pytest 在场(本地开发面+CI, offline-tests.yml 已装 pytest): 行为级
+  验证——三入口 rc/收集数/无 INTERNALERROR/失败传播/排除契约;
+- pytest 缺席(兜底面): 结构级验证——conftest.py 三钩子与判定单一
+  事实源在场, 防修复静默消失。(CI 面套件真值=offline-tests.yml 的
+  python3 直跑, 与适配器子进程面同构。)
+
+E6 恰执行一次以**副作用计数器文件**为判据(临时套件经环境变量
+ZZ_E6_COUNTER 追加计数, env 沿 E套件→pytest→ScriptSuiteItem 子进程
+链继承): 双收集器=真双执行=计数 2, 与 pytest 对失败输出的渲染次数
+无关(py3.11/3.12 或 CI 环境下 FAILURES 摘要可重复渲染同一行——
+渲染次数≠执行次数, 旧判据误杀即此因, 2026-11-20 run 44670255565)。
 """
 import glob
 import importlib.util
 import os
 import subprocess
 import sys
+import tempfile
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TARGET = 'tests/test_audit_r1_f02_gate.py'
@@ -94,21 +100,53 @@ def behavioral():
     check('E5 排除件未被导入执行',
           'RUN_MODEL_LIVE' not in o and 'INTERNALERROR' not in o)
 
-    # E6 失败传播(临时套件, finally 清理): rc=1 非零真相上浮
+    # E6 失败传播(临时套件, finally 清理): rc=1 非零真相上浮;
+    # 恰执行一次=副作用计数器(env 传路径), 与渲染次数解耦(见模块 docstring)
     tmp = os.path.join(REPO, 'tests', 'test_zz_entryfix_fail_tmp.py')
+    counter = os.path.join(
+        tempfile.gettempdir(), f'zz_e6_counter_{os.getpid()}.txt')
+
+    def _ran_count():
+        if not os.path.exists(counter):
+            return 0
+        with open(counter, encoding='utf-8') as f:
+            return f.read().count('RAN')
+
+    def _summary(o):
+        return next((l for l in o.splitlines() if 'failed' in l), '')[:80]
+
     try:
         with open(tmp, 'w', encoding='utf-8') as f:
-            f.write('import sys\nprint("ZZ-ENTRYFIX-FAIL-RAN")\nsys.exit(7)\n')
+            f.write(
+                'import os, sys\n'
+                'with open(os.environ["ZZ_E6_COUNTER"], "a",'
+                ' encoding="utf-8") as f:\n'
+                '    f.write("RAN\\n")\n'
+                'print("ZZ-ENTRYFIX-FAIL-RAN")\n'
+                'sys.exit(7)\n')
+        os.environ['ZZ_E6_COUNTER'] = counter
+        if os.path.exists(counter):
+            os.remove(counter)
         r = run_pytest(['tests/test_zz_entryfix_fail_tmp.py', '-q'])
         o = out(r)
+        n = _ran_count()
         check('E6 单文件失败 rc=1', r.returncode == 1, o[-300:])
         check('E6 退出码 7 上浮', '套件退出码 7' in o)
-        check('E6 恰执行一次', o.count('ZZ-ENTRYFIX-FAIL-RAN') == 1)
+        check('E6 恰执行一次', n == 1,
+              f'执行次数={n}(计数器副作用) 汇总行: {_summary(o)}')
+        if os.path.exists(counter):
+            os.remove(counter)
         r = run_pytest(['tests/', '-k', 'zz_entryfix_fail_tmp', '-q'])
-        check('E6 -k 筛选下失败 rc=1', r.returncode == 1, out(r)[-300:])
+        o = out(r)
+        n = _ran_count()
+        check('E6 -k 筛选下失败 rc=1', r.returncode == 1, o[-300:])
+        check('E6 -k 筛选下恰执行一次', n == 1,
+              f'执行次数={n}(计数器副作用) 汇总行: {_summary(o)}')
     finally:
-        if os.path.exists(tmp):
-            os.remove(tmp)
+        os.environ.pop('ZZ_E6_COUNTER', None)
+        for p in (tmp, counter):
+            if os.path.exists(p):
+                os.remove(p)
 
 
 def structural():

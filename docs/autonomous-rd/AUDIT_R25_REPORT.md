@@ -83,6 +83,13 @@ PR #1)。四项验收对应本报告四节;新门 tests/test_audit_r25_gate.py 5
   CONTRADICTED;传导链每链≥1 区分指标须引擎可观测(计划∪上下文∪
   快照);转折表指标须同源。
 
+- **验收实雷与机械修复(--question-file)**: 一问验收第一次实测发现
+  席位以 `--question "..."` 手打内联转述原问时全角标点被重排为半角
+  (169字→168字,四记录位彼此一致但均非原文)——修复=两入口增
+  `--question-file`(字节直读仅去尾换行,空/缺双拒)+SKILL 纪律
+  (原问先落盘、树内在场即引用),门 §C3b 判据。第二次会话以
+  树内 run_question_verbatim.txt 直读,四记录位==原文逐字(见 §6)。
+
 ## 4. 归档重放(任务4) — 9 判据(§D)
 
 - **R24 归档包结构修复(本轮实测发现的真缺陷)**: 仓内 r24-evidence/
@@ -137,9 +144,46 @@ PR #1)。四项验收对应本报告四节;新门 tests/test_audit_r25_gate.py 5
   140/43578 同构同叶——守卫判「非降级」放行覆写,系正确判定
   (结构未缩水,值差异=正常更新)。
 
-## 6. 交付面(推送后回填)
+## 6. 交付面
 
-- 代码 SHA / PR SHA / CI 链接。
-- 原问会话(全新无头会话,只发一次原问,169 字逐字)记录: 工单号/
-  数据覆盖/可读地图/独立审查/归档摘要。
-- 合并由用户决定(未合并)。
+### 6.1 原问会话(第二次,逐字修复后)
+
+- 树: /tmp/r68/r25-accept2/install = git archive 14f77ca + 采集验收后的
+  数据面(含 superseded/ 历史+snapshot _v2)+ 树内 run_question_
+  verbatim.txt + 技能(personal-cc --force,engine-path 指向该树)。
+- 会话: 全新无头 Claude Code,**唯一输入=原问 169 字逐字**
+  (claude -p,禁 push/ssh/付费外操作,acceptEdits,看门狗 4h)。
+  2026-11-20 15:24:28 起 15:51:41 止,rc=0,约 27 分钟。
+- **四记录位逐字==原问**: run.question / plan.question_verbatim /
+  AGENT_SEAT_ENVELOPE.question / MAP_REPORT 头部问题行 全部 169 字
+  字节级一致(全角标点保全);question_summary 另存且自声明以原文为准。
+- **独立审查**: SEMANTIC-AUDIT-SEAT 独立上下文裁决 **UPHELD**(rev 1,
+  VERDICT-20261120T072551Z-01);MAP 内容段 sha==裁决绑定(7dcd7535…)。
+- **数据覆盖**: 快照 research_snapshot_20261120_v2(本日新代码采集,
+  15/15 步);地图 22 组×3 锚=66 锚格,63 ok + 3 诚实缺席,8 格带
+  ⚠过期标注(发布频率识别);gate_a=DEGRADED 降级不阻断、逐格披露。
+- **可读地图**: MAP_REPORT.md(99.9KB)随报告交付,含四地三时点对照/
+  转折/传导对质/历史类比;会话终态=交付地图+归档待用户认可。
+- 会话记录: session/seat_a_session.log + transcript(2.1MB)+
+  run_question_verbatim.txt;第一次会话(手打转述实雷)记录于
+  session-attempt1/(PROVENANCE.json 注记缺陷与修复链)。
+- 会话自记收口清单(R26 候选): 引擎渲染层日期元数据统一;
+  CN_LPR 推定发布日与实录口径对齐。
+
+### 6.2 归档摘要(正式归档待用户认可)
+
+- 归档就绪态: UPHELD 链在档+内容摘要绑定+deliverable 开;正式
+  `research-one --stage archive` 按指令「经我认可后」执行。
+- 重放能力已证(§D6): 引擎树+裁决链+冻结快照 → 正式入口重放归档
+  逐位==原档;append-only 拒覆盖+独立新路径两版并存;R22/R23/R24
+  重放回归件在场且绿。
+
+### 6.3 版本与 CI
+
+- 代码链: 524f997 → 217a592(四任务+54 判据门)→ 14f77ca(原问逐字
+  入口 --question-file,门 55 判据)→ 证据提交(本提交,r25-evidence
+  九件套+会话记录)。
+- 全量电池: 198/198(第二次 196+2 环境类——技能副本比对与会话中
+  并行安装竞态,复跑两件全绿)。
+- CI: 推送后以完整 40 位 head_sha 核对(结果见 PR)。
+- **合并由用户决定(未合并;PR #1 保持开放)。**

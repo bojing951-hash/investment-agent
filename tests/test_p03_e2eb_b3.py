@@ -379,8 +379,20 @@ class T4CollectorOffline(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             path = jrc.save_daily(td, payload)
             self.assertEqual(os.path.basename(path), 'japan_20261105.json')
+            # Audit-R27 任务3: 首写「查存在」入锁——锁宿主 superseded/ 随
+            # 首次加锁创建(R26 设计: 锁文件放 superseded/,top-level 零新增
+            # artifact),非残留;原子性断言收紧为全树无 .tmp 半成品。
             self.assertEqual(sorted(os.listdir(td)),
-                             ['japan_20261105.json'], '不得残留 .tmp')
+                             ['japan_20261105.json', 'superseded'],
+                             '顶层=规范档+锁宿主superseded(R26/R27设计)')
+            self.assertEqual(
+                [f for f in os.listdir(os.path.join(td, 'superseded'))
+                 if not f.startswith('.lock.')], [],
+                '首写superseded内无转存档(仅锁文件)')
+            for _root, _dirs, _files in os.walk(td):
+                self.assertFalse(
+                    [f for f in _files if f.endswith('.tmp')],
+                    '不得残留 .tmp')
             with open(path, encoding='utf-8') as f:
                 self.assertEqual(json.load(f), payload)
 

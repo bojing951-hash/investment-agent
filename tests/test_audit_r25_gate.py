@@ -183,7 +183,8 @@ def sec_a():
           .replace('    ', ' ').replace('  ', ' ')
           and "'map_core_dimension_missing'" in ia_src
           # R26 任务2: 草稿口径扩为「任务1+任务2」(缺口类+确证过期类)
-          and '草稿交付(Audit-R25 任务1+Audit-R26 任务2)' in ia_src)
+          and '草稿交付(Audit-R25 任务1+Audit-R26 任务2+Audit-R27 '
+              in ia_src)
     aj_src = open(os.path.join(ROOT, 'scripts', 'agent_judgment.py'),
                   encoding='utf-8').read()
     check('§A15 归档侧草稿 belt: map_core_dimension_missing/map_anchor_'

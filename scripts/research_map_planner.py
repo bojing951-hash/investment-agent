@@ -1436,6 +1436,39 @@ def stale_only_groups(point_values, planned_pairs):
                   and latest_stale.get(g, 0) == latest_ok[g])
 
 
+def missing_core_groups(point_values, planned_pairs):
+    """Audit-R26 验收: 核心维度组零 ok 格集合(阻断/渲染共源)。
+
+    与 agent_judgment.blocked_class_of 的 map_core_dimension_missing
+    同源同判(R20 既档语义): 组内任一锚 status=ok 即有格;全部缺席/不可得
+    → 整组缺数=交付草稿。返回 sorted [(region,dimension),...]。"""
+    ok_pairs = set()
+    for c in (point_values or {}).get('cells') or []:
+        g = (c.get('region'), c.get('dimension'))
+        if any(a.get('status') == 'ok'
+               for a in (c.get('anchors') or {}).values()):
+            ok_pairs.add(g)
+    return sorted(set(planned_pairs or ()) - ok_pairs)
+
+
+def sparse_anchor_groups(point_values, planned_pairs):
+    """Audit-R26 验收: 锚覆盖不足组集合(阻断/渲染共源)。
+
+    与 blocked_class_of 的 map_anchor_coverage_insufficient 同源同判
+    (R21 反例③): 组内 ok 锚<2 且存在未经日历证实延误的空锚——「仅存
+    最新单点」不构成三时点对照满足。返回 sorted [(region,dimension),...]。"""
+    ok_anchor_n, gap_unverified = {}, {}
+    for c in (point_values or {}).get('cells') or []:
+        g = (c.get('region'), c.get('dimension'))
+        for a in (c.get('anchors') or {}).values():
+            if a.get('status') == 'ok':
+                ok_anchor_n[g] = ok_anchor_n.get(g, 0) + 1
+            elif not a.get('calendar_blocked_observation'):
+                gap_unverified[g] = gap_unverified.get(g, 0) + 1
+    return sorted(g for g in (planned_pairs or ())
+                  if ok_anchor_n.get(g, 0) < 2 and gap_unverified.get(g, 0))
+
+
 # ── 转折候选(确定性排序;判断归 Agent) ─────────────────────────────────
 
 def _is_level_unit(unit):
@@ -1936,11 +1969,28 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                  '判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,'
                  '经独立语义审查)')
     lines.append('')
-    # ── Audit-R26 任务2: 必要维度只剩确证过期值 → 首页明确标草稿 ──
+    # ── Audit-R26 验收: 数据面缺口三类 → 首页明确标草稿(渲染/阻断共源) ──
     _planned0 = {
         (_eco, _dim)
         for _eco, _rf in (rp.get('regions') or {}).items()
         for _dim in ((_rf.get('dimensions') or {}) or {})}
+    _miss_groups = missing_core_groups(pv, _planned0)
+    if _miss_groups:
+        _mg = '、'.join(f"{g[0]}×{g[1]}" for g in _miss_groups)
+        lines.append(f"> ⚠ **草稿(非正式)**: 核心维度组缺数(零 ok 格)——{_mg}。"
+                     f"缺数格如实「数据不可得」并随行缺口注记(检索范围"
+                     f"披露);补数后重跑转正。正式归档对草稿拒绝"
+                     f"(map_core_dimension_missing)。")
+        lines.append('')
+    _sparse_groups = sparse_anchor_groups(pv, _planned0)
+    if _sparse_groups:
+        _gg = '、'.join(f"{g[0]}×{g[1]}" for g in _sparse_groups)
+        lines.append(f"> ⚠ **草稿(非正式)**: 必要维度锚覆盖不足(ok 锚<2 且"
+                     f"空锚无经证实延误依据)——{_gg}。「仅存最新单点」不构成"
+                     f"三时点对照满足;补数后重跑转正。正式归档对草稿拒绝"
+                     f"(map_anchor_coverage_insufficient)。")
+        lines.append('')
+    # ── Audit-R26 任务2: 必要维度只剩确证过期值 → 首页明确标草稿 ──
     _stale_groups = stale_only_groups(pv, _planned0)
     if _stale_groups:
         _sg = '、'.join(f"{g[0]}×{g[1]}" for g in _stale_groups)

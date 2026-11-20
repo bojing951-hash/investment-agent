@@ -1158,30 +1158,21 @@ def blocked_class_of(report):
             # ok——核心维度整组缺数=交付**草稿**,不进正式归档(用户指令:
             # 核心维度仍缺则交付草稿;数据面补齐后正例应 12/12 组全绿)。
             _pv = _rp.get('point_values') or {}
-            _ok_pairs = set()
-            _ok_anchor_n, _gap_unverified = {}, {}
-            for _c in _pv.get('cells') or []:
-                _g = (_c.get('region'), _c.get('dimension'))
-                for _a in (_c.get('anchors') or {}).values():
-                    if _a.get('status') == 'ok':
-                        _ok_pairs.add(_g)
-                        _ok_anchor_n[_g] = _ok_anchor_n.get(_g, 0) + 1
-                    elif not _a.get('calendar_blocked_observation'):
-                        _gap_unverified[_g] = _gap_unverified.get(_g, 0) + 1
             _planned_pairs = {
                 (_eco, _dim)
                 for _eco, _rf in (_rp.get('regions') or {}).items()
                 for _dim in ((_rf.get('dimensions') or {}) or {})}
-            if _planned_pairs - _ok_pairs:
+            # Audit-R26 验收: 缺数/锚覆盖判定改走 research_map_planner
+            # 共享实现(missing_core_groups/sparse_anchor_groups)——与
+            # 首页草稿横幅同源同判,阻断与渲染不再两套口径。
+            import research_map_planner as _rmp_grp
+            if _rmp_grp.missing_core_groups(_pv, _planned_pairs):
                 return 'map_core_dimension_missing'
             # Audit-R21 任务3反例③: 序列在场但一组仅剩最新单点(两个历史
             # 时点留空且无经证实延误依据)=锚覆盖不足——「存在最新单点」
             # 不构成三时点对照满足(与 Audit-R4 条目5 同纪律),交付草稿
             # 不进正式归档;经日历实录证实的延误缺口(停摆类)不算未证实。
-            _sparse = sorted(
-                g for g in _planned_pairs
-                if _ok_anchor_n.get(g, 0) < 2 and _gap_unverified.get(g, 0))
-            if _sparse:
+            if _rmp_grp.sparse_anchor_groups(_pv, _planned_pairs):
                 return 'map_anchor_coverage_insufficient'
             # Audit-R26 任务2: 必要维度**只剩确证过期值**——组内最新一期
             # ok 锚全部 freshness=stale(按统计期末/政策最后确认纪律确证),

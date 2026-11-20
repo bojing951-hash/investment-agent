@@ -389,8 +389,134 @@ def sec_d():
           f'rc={rc.returncode}')
 
 
+# ═══ §E 验收增补: 缺数/锚覆盖草稿横幅(渲染/阻断/归档共源) ═══════════
+def sec_e():
+    print('═══ §E 缺数+锚覆盖草稿: 首页横幅+判定共源+SKILL纪律 ═══')
+    # 手造 pv: 共源helper单元语义(与§B5 stale同风格)
+    pv_e = {'cells': [
+        {'region': 'CN', 'dimension': 'inflation',
+         'anchors': {'最新一期': {'status': 'ok'}}},
+        {'region': 'EA', 'dimension': 'growth',
+         'anchors': {'最新一期': {'status': 'ok'},
+                     '12个月前': {'status': 'no_observation'}}},
+        {'region': 'JP', 'dimension': 'policy',
+         'anchors': {'最新一期': {'status': 'ok'},
+                     '12个月前': {'status': 'no_observation',
+                                 'calendar_blocked_observation':
+                                 'calendar:停摆实录'}}},
+        {'region': 'US', 'dimension': 'inflation',
+         'anchors': {'最新一期': {'status': 'ok'},
+                     '3个月前': {'status': 'ok'},
+                     '12个月前': {'status': 'ok'}}}]}
+    pairs_e = {('CN', 'inflation'), ('EA', 'growth'), ('JP', 'policy'),
+               ('US', 'inflation'), ('KR', 'growth')}   # KR 无任何格
+    check('§E1 missing_core_groups: 零ok格组入列(含无cell组)/有ok锚不入',
+          rmp.missing_core_groups(pv_e, pairs_e) == [('KR', 'growth')],
+          str(rmp.missing_core_groups(pv_e, pairs_e)))
+    check('§E2 sparse_anchor_groups: ok锚<2且空锚无证实延误入列/'
+          '日历证实延误豁免/ok锚≥2不入',
+          rmp.sparse_anchor_groups(pv_e, pairs_e) == [('EA', 'growth')],
+          str(rmp.sparse_anchor_groups(pv_e, pairs_e)))
+    # blocked_class_of 等价回归(会话A实雷: 判定在而渲染/交付未出面)
+    rep_e = {'run_ok': True,
+             'layers': {'L1_事实层': {'rows': [{'x': 1}]}},
+             'run': {'data_requirements': {'items': []}},
+             'steps': [],
+             'agent_judgment': {'reader_map_faces': {'complete': True}},
+             'research_plan': {'map_question': True,
+                               'regions': {e: {'dimensions': {d: [{}]}}
+                                           for e, d in pairs_e},
+                               'point_values': pv_e}}
+    check('§E3 blocked_class_of 共源等价: 同pv判出map_core_dimension_missing',
+          aj.blocked_class_of(rep_e) == 'map_core_dimension_missing',
+          str(aj.blocked_class_of(rep_e)))
+    rep_e2 = dict(rep_e, research_plan=dict(
+        rep_e['research_plan'],
+        regions={e: {'dimensions': {d: [{}]}}
+                 for e, d in (('EA', 'growth'), ('JP', 'policy'))}))
+    check('§E4 blocked_class_of: 仅锚覆盖缺口→map_anchor_coverage_insufficient',
+          aj.blocked_class_of(rep_e2) == 'map_anchor_coverage_insufficient',
+          str(aj.blocked_class_of(rep_e2)))
+    # 端到端渲染: EA序列全缺(缺数横幅)+CN仅单点(锚覆盖横幅)+US健康
+    plan_e2 = {'regions': {
+        'EA': {'dimensions': {'inflation': [
+            {'metric_id': 'EA_HICP_YOY', 'display_name': '欧元区HICP同比',
+             'frequency': 'monthly'}]}},
+        'CN': {'dimensions': {'inflation': [
+            {'metric_id': 'CN_CPI_YOY', 'display_name': '居民消费价格指数同比',
+             'frequency': 'monthly'}]}},
+        'US': {'dimensions': {'inflation': [
+            {'metric_id': 'CORE_PCE', 'display_name': '核心PCE',
+             'frequency': 'monthly'}]}}},
+        'metrics': ['EA_HICP_YOY', 'CN_CPI_YOY', 'CORE_PCE'],
+        'context_metrics': [],
+        'point_anchors': [
+            {'kind': 'point', 'label': '12个月前', 'as_of': '2025-11-20',
+             'months_before': 12},
+            {'kind': 'point', 'label': '3个月前', 'as_of': '2026-08-20',
+             'months_before': 3},
+            {'kind': 'point', 'label': '最新一期', 'as_of': '2026-11-20',
+             'months_before': 0}]}
+    snap_e = {'series_store': {
+        'CN_CPI_YOY': {'dates': ['2026-10-01'], 'values': [0.7],
+                       'frequency': 'monthly'},
+        'CORE_PCE': {'dates': ['2025-06-01', '2025-09-01', '2025-10-01',
+                               '2025-11-01', '2026-02-01', '2026-05-01',
+                               '2026-07-01', '2026-08-01', '2026-09-01',
+                               '2026-10-01'],
+                     'values': [2.6, 2.7, 2.8, 2.85, 2.9, 2.95, 3.04,
+                                3.06, 3.09, 3.12],
+                     'frequency': 'monthly'}}}
+    pv_e2 = rmp.point_values(plan_e2, snap_e, ROOT)
+    md_e = rmp.render_map_report(
+        {'research_plan': dict(plan_e2, map_question=True,
+                               point_values=pv_e2, dimension_gaps=[],
+                               cutoff='2026-11-20'),
+         'agent_judgment': {'reader_map': {
+             'headline_conclusion': 'x', 'regions': [], 'transmission': [],
+             'turnings': [], 'history_periods': []}}},
+        {}, {'required': False}, root=ROOT)
+    check('§E5 缺数横幅: 核心维度组缺数+组名+归档拒绝口径',
+          '核心维度组缺数(零 ok 格)' in md_e and 'EA×inflation' in md_e
+          and 'map_core_dimension_missing' in md_e
+          and md_e.index('核心维度组缺数') < md_e.index('## 一句总判断'))
+    check('§E6 锚覆盖横幅: ok锚<2+组名+归档拒绝口径(US不入任一横幅)',
+          '锚覆盖不足' in md_e and 'CN×inflation' in md_e
+          and 'map_anchor_coverage_insufficient' in md_e
+          and 'US×inflation' not in md_e.split('## 一句总判断')[0])
+    check('§E7 横幅位置: 两横幅均在一句总判断之前(首页可见)',
+          md_e.index('核心维度组缺数') < md_e.index('## 一句总判断')
+          and md_e.index('锚覆盖不足') < md_e.index('## 一句总判断'))
+    # 负对照: 全健康组零横幅(完整交付不得误标草稿)
+    plan_e3 = json.loads(json.dumps(plan_e2))
+    plan_e3['regions'] = {'US': plan_e2['regions']['US']}
+    plan_e3['metrics'] = ['CORE_PCE']
+    pv_e3 = rmp.point_values(plan_e3, snap_e, ROOT)
+    md_e3 = rmp.render_map_report(
+        {'research_plan': dict(plan_e3, map_question=True,
+                               point_values=pv_e3, dimension_gaps=[],
+                               cutoff='2026-11-20'),
+         'agent_judgment': {'reader_map': {
+             'headline_conclusion': 'x', 'regions': [], 'transmission': [],
+             'turnings': [], 'history_periods': []}}},
+        {}, {'required': False}, root=ROOT)
+    check('§E8 负对照: 全健康→零草稿横幅(完整交付不误标)',
+          '草稿(非正式)' not in md_e3)
+    # 交付纪律与共源接线(SKILL 草稿纪律句+belt 共源调用)
+    skill_src = open(os.path.join(ROOT, '.agents', 'skills',
+                                  'global-macro-research', 'SKILL.md'),
+                     encoding='utf-8').read()
+    ia_src_e = open(os.path.join(ROOT, 'ia_cli.py'), encoding='utf-8').read()
+    check('§E9 SKILL草稿纪律: draft_delivered必声明+禁即席archive选项',
+          '草稿纪律' in skill_src and 'draft_delivered' in skill_src
+          and '不得' in skill_src and '--stage archive' in skill_src)
+    check('§E10 ia_cli归档belt共源: missing_core_groups接线',
+          'missing_core_groups' in ia_src_e
+          and 'sparse_anchor_groups' in ia_src_e)
+
+
 def main():
-    for sec in (sec_a, sec_b, sec_c, sec_d):
+    for sec in (sec_a, sec_b, sec_c, sec_d, sec_e):
         sec()
     n_pass = sum(1 for _, ok, _ in RESULTS if ok)
     n_fail = len(RESULTS) - n_pass

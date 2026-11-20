@@ -2066,38 +2066,34 @@ def _r1_archive_core(args, engine_root):
     if _bc_r20 == 'map_core_dimension_missing':
         _pvx = ((rj.get('research_plan') or {}).get('point_values')
                 or {})
-        _okp = {(_c.get('region'), _c.get('dimension'))
-                for _c in _pvx.get('cells') or []
-                if any(_a.get('status') == 'ok'
-                       for _a in (_c.get('anchors') or {}).values())}
         _plp = {(_e, _d) for _e, _rf in
                 ((rj.get('research_plan') or {}).get('regions')
                  or {}).items()
                 for _d in ((_rf.get('dimensions') or {}) or {})}
+        # Audit-R26 验收: 组计算与渲染横幅/attach 判定共源
+        # (research_map_planner.missing_core_groups),不另立口径。
+        import research_map_planner as _rmp_aj
+        _miss = _rmp_aj.missing_core_groups(_pvx, _plp)
         return False, {'stage': 'archive',
                        'blocked': 'map_core_dimension_missing',
                        'missing_groups': sorted(
-                           f'{_e}/{_d}' for _e, _d in (_plp - _okp)),
+                           f'{_e}/{_d}' for _e, _d in _miss),
                        'note': '核心维度(地区×维度)整组零 ok 格——'
                                '按用户指令交付草稿,不进正式归档'}, \
             (warnings or []) + ['归档拒绝: 核心维度缺数 '
-                                f'{sorted(f"{_e}/{_d}" for _e, _d in (_plp - _okp))}'
+                                f'{sorted(f"{_e}/{_d}" for _e, _d in _miss)}'
                                 '(R20: 草稿可交付,正式归档须 12/12 组齐)']
     # Audit-R21 任务3反例③: 序列在场但一组仅剩最新单点(历史锚空且无经
     # 证实延误依据)=锚覆盖不足——归档侧 belt 同判,零归档增量。
     if _bc_r20 == 'map_anchor_coverage_insufficient':
         _pvx2 = ((rj.get('research_plan') or {}).get('point_values')
                  or {})
-        _okn, _gapu = {}, {}
-        for _c in _pvx2.get('cells') or []:
-            _g = (_c.get('region'), _c.get('dimension'))
-            for _a in (_c.get('anchors') or {}).values():
-                if _a.get('status') == 'ok':
-                    _okn[_g] = _okn.get(_g, 0) + 1
-                elif not _a.get('calendar_blocked_observation'):
-                    _gapu[_g] = _gapu.get(_g, 0) + 1
-        _sparse_g = [f'{_e}/{_d}' for (_e, _d) in sorted(_okn)
-                     if _okn[(_e, _d)] < 2 and _gapu.get((_e, _d))]
+        _plp2 = {(_e, _d) for _e, _rf in
+                 ((rj.get('research_plan') or {}).get('regions')
+                  or {}).items()
+                 for _d in ((_rf.get('dimensions') or {}) or {})}
+        _sparse_g = [f'{_e}/{_d}' for (_e, _d) in
+                     _rmp_aj.sparse_anchor_groups(_pvx2, _plp2)]
         return False, {'stage': 'archive',
                        'blocked': 'map_anchor_coverage_insufficient',
                        'sparse_groups': _sparse_g,

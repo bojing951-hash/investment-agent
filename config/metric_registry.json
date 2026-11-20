@@ -16,6 +16,7 @@
    "points": "期货点位(百分制价格)"
   },
   "freshness.max_calendar_lag_days": "观测日距研究截止的最大自然日滞后,超出→DEGRADED并披露,不得静默使用",
+  "freshness.decision_dated": "决策驱动序列声明(Audit-R26 任务2): true=观测日为政策最后确认/变更日,时效以「更晚已证实决议」为准(无证实不以间隔判过期);缺键/false=常规统计序列,时效窗按频率族自统计期末起算",
   "release_semantics": "发布时间语义;不可得时按观测日保守处理并在快照披露发布滞后风险",
   "economy": "经济体归属(INVENTORY a.3 规则 P1-P10 机械结果: US/CN/JP/EA/HK/GLOBAL);与 calendar/asset_class/source_symbol 联动,人工不得绕规则改判",
   "economy_rule": "归属规则命中记录(短串 P{序}:{触发});复审与回归对账锚,值须与 INVENTORY a.3 规则表一致",
@@ -2250,7 +2251,9 @@
     "max_week_abs_move": 0.75
    },
    "freshness": {
-    "max_calendar_lag_days": 10
+    "max_calendar_lag_days": 10,
+    "decision_dated": true,
+    "decision_dated_note": "Audit-R26 任务2: 决策驱动政策目标序列——观测日=政策最后确认/变更日;无更晚已证实决议不作过期(利率长期不变≠数据停更),有已证实更晚决议而未反映=确证过期"
    },
    "notes": "与DFEDTARL配合:区间=[下限,上限]"
   },
@@ -2281,7 +2284,9 @@
     "max_week_abs_move": 0.75
    },
    "freshness": {
-    "max_calendar_lag_days": 10
+    "max_calendar_lag_days": 10,
+    "decision_dated": true,
+    "decision_dated_note": "Audit-R26 任务2: 决策驱动政策目标序列——观测日=政策最后确认/变更日;无更晚已证实决议不作过期(利率长期不变≠数据停更),有已证实更晚决议而未反映=确证过期"
    }
   },
   {
@@ -3139,7 +3144,9 @@
     "max_week_abs_move": 1.0
    },
    "freshness": {
-    "max_calendar_lag_days": 10
+    "max_calendar_lag_days": 10,
+    "decision_dated": true,
+    "decision_dated_note": "Audit-R26 任务2: 决策驱动政策目标序列——观测日=政策最后确认/变更日;无更晚已证实决议不作过期(利率长期不变≠数据停更),有已证实更晚决议而未反映=确证过期"
    },
    "release_semantics": "ECB管委会金融政策决议公布后生效并当日更新系列(决议时点约 14:15 CET 新闻会);按观测日保守处理"
   },
@@ -3174,7 +3181,9 @@
     "max_week_abs_move": 1.0
    },
    "freshness": {
-    "max_calendar_lag_days": 10
+    "max_calendar_lag_days": 10,
+    "decision_dated": true,
+    "decision_dated_note": "Audit-R26 任务2: 决策驱动政策目标序列——观测日=政策最后确认/变更日;无更晚已证实决议不作过期(利率长期不变≠数据停更),有已证实更晚决议而未反映=确证过期"
    },
    "release_semantics": "ECB管委会金融政策决议公布后生效并当日更新系列(决议时点约 14:15 CET 新闻会);按观测日保守处理"
   },

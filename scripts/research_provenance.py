@@ -59,6 +59,7 @@ import json
 import math
 import os
 import re
+import shutil
 import sys
 import time
 from datetime import date as _date_cls
@@ -274,6 +275,52 @@ def daily_face_coverage(obj):
     return frozenset(paths), leaves[0]
 
 
+def _identity_of(path):
+    """Audit-R26 任务1: 路径→指标身份(前两段)。
+
+    '.data.CPI.series.values[]'→('data','CPI'),'.series.M2.values[]'→
+    ('series','M2'),'.timestamp'→('timestamp',)。键内含点(如 china 档
+    '000001.SH')的分段位置两侧一致即可比——身份只用于新旧同一 joiner
+    下的自比对,不做跨结构语义解释。单段路径=顶层登记项自成身份。"""
+    seg = path.lstrip('.').split('.')
+    return tuple(seg[:2]) if len(seg) >= 2 else (seg[0],) if seg else ()
+
+
+def daily_face_identity_map(obj):
+    """Audit-R26 任务1: 指标身份→**有效观测**叶子数(降级判定主维度)。
+
+    「按指标身份和有效观测判断降级」:
+    - 身份=载荷内前两段路径(采集档的 metric 容器节点,如 macro 档的
+      data.CPI、ea 档的 series.ECB_FM_MRO);
+    - 有效观测叶=值非 None 的标量叶;None 叶**计身份在场、计有效观测
+      为 0**(「把 CPI 全改为 null」→键在值为 0,判「观测蒸发」而非
+      「身份丢失」——身份丢失=删掉指标容器,两者分记);
+    - 空容器('{}'/'[]' 叶)不计(空容器无观测可失、亦无占位可辨)。
+    返回 {identity: valid_leaf_count}(无路径的空载荷={})。"""
+    out = {}
+
+    def walk(node, prefix):
+        if isinstance(node, dict):
+            if not node:
+                return
+            for k, v in node.items():
+                walk(v, f'{prefix}.{k}' if prefix else f'.{k}')
+        elif isinstance(node, list):
+            if not node:
+                return
+            for v in node:
+                walk(v, prefix + '[]')
+        else:
+            ident = _identity_of(prefix)
+            if ident:
+                out.setdefault(ident, 0)
+                if node is not None:
+                    out[ident] += 1
+
+    walk(obj, '')
+    return out
+
+
 def _superseded_slot(data_dir, stem):
     """在 superseded/ 里为 stem(如 'china_20261120')取不碰撞的时间戳槽位。"""
     sup_dir = os.path.join(data_dir, _SUPERSEDED_DIRNAME)
@@ -287,24 +334,71 @@ def _superseded_slot(data_dir, stem):
     return dst
 
 
-def _preserve_to_superseded(data_dir, fname):
-    """把即将被覆写的规范档移入 superseded/(缺席无动作,返回目标路径)。"""
+def _copy_preserve(data_dir, fname):
+    """把即将被覆写的规范档**副本**存入 superseded/(缺席无动作)。
+
+    Audit-R26 任务1 中断窗口: 用副本不用移动——候选tmp已校验完整后才
+    复制+原子替换;任何中断点(复制中/替换前/替换后)规范档始终保持
+    完整旧档或完整新档之一可读,旧合格数据无「已移走未换入」空窗。"""
     src = os.path.join(data_dir, fname)
     if not os.path.exists(src):
         return None
     dst = _superseded_slot(data_dir, fname[:-5])
-    os.replace(src, dst)
+    with open(src, 'rb') as fi, open(dst, 'xb') as fo:
+        shutil.copyfileobj(fi, fo)
+        fo.flush()
+        os.fsync(fo.fileno())
     return dst
 
 
+def _guard_lock(data_dir, fname):
+    """Audit-R26 任务1: 同日并发守卫锁——superseded/ 内 per-规范文件 flock。
+
+    锁文件放 superseded/(采集目录 top-level 零新增 artifact;该目录对
+    resolve_inputs/data_retention 不可见)。flock 随文件描述符存活——
+    写盘中断崩溃后锁由内核自动释放,残留锁文件不阻塞后续加锁。用法:
+    with _guard_lock(data_dir, fname): ..."""
+    import contextlib
+    import fcntl
+    sup_dir = os.path.join(data_dir, _SUPERSEDED_DIRNAME)
+    os.makedirs(sup_dir, exist_ok=True)
+    lock_path = os.path.join(sup_dir, f'.lock.{fname}')
+
+    @contextlib.contextmanager
+    def _cm():
+        fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o644)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX)
+            yield
+        finally:
+            os.close(fd)   # close=解锁
+
+    return _cm()
+
+
 def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
-    """同日重采集覆写守卫写(Audit-R25 任务1)。
+    """同日重采集覆写守卫写(Audit-R25 任务1 + Audit-R26 任务1 强化)。
 
     data_dir=采集目录(data/daily);channel∈SOURCE_FILE_RULES;date8=
     YYYYMMDD(采集器权威日期);payload=即将落盘的载荷对象。返回
     (path, status, note): path=实际落盘路径(退化时=superseded 槽位);
     status∈{'first','degraded_diverted','overwritten_preserved','forced'};
-    note=退化判据摘要(非退化为空串)。原子写=先 .tmp 后 os.replace。"""
+    note=退化判据摘要(非退化为空串)。
+
+    Audit-R26 任务1 三强化:
+    - **按指标身份和有效观测判降级**(旧=纯结构路径子集/叶子缩水):
+      身份(前两段路径容器)丢失——「删掉 CPI、添加别的指标」非路径
+      子集不再漏判;身份在场但有效观测(非 null 叶)缩水/归零——
+      「CPI 全改为 null」不再漏判。正常数值修订(身份/有效观测不变)
+      仍放行。
+    - **先写完整并校验候选,再原子替换**: 唯一 tmp 名+写全+fsync→回读
+      解析→覆盖指纹与身份图逐位一致→**副本保全旧档**→os.replace+
+      目录 fsync;候选不符=写盘中断/序列化损坏,fail-loud 不换入。
+      副本保全保证任意中断点规范档=完整旧档或完整新档之一(无
+      「旧档已移走、新档未换入」空窗),旧合格数据始终可读。
+    - **同日并发互斥**: 读旧-判定-转存-替换全程 per-文件 flock
+      (superseded/.lock.<fname>);原子替换保证读者任意时刻见到的都是
+      完整旧档或完整新档,旧合格数据并发窗口始终可读。"""
     rule = SOURCE_FILE_RULES.get(channel)
     if rule is None:
         raise ValueError(f'unknown channel: {channel!r}')
@@ -314,45 +408,110 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
     fname = f"{rule['prefix']}{date8}.json"
     path = os.path.join(data_dir, fname)
     forced = os.environ.get('IA_DAILY_ALLOW_OVERWRITE', '') == '1'
+    _want_cov = daily_face_coverage(payload)
+    _want_ids = daily_face_identity_map(payload)
 
-    def _atomic_write(dst):
-        tmp = dst + '.tmp'
-        with open(tmp, 'w', encoding='utf-8') as f:
-            json.dump(payload, f, ensure_ascii=False, indent=indent)
-        os.replace(tmp, dst)
+    def _stage_candidate(dst):
+        # Audit-R26 任务1: 候选tmp全生命周期前半——进程唯一 tmp 名(同日
+        # 并发两写者不共 tmp 互不踩踏)+写全+fsync+回读校验;**不动规范档**。
+        # 校验不符(写盘中断/序列化损坏)=fail-loud,规范档零暴露。
+        tmp = f'{dst}.tmp.{os.getpid()}.{time.monotonic_ns()}'
+        try:
+            with open(tmp, 'w', encoding='utf-8') as f:
+                json.dump(payload, f, ensure_ascii=False, indent=indent)
+                f.flush()
+                os.fsync(f.fileno())
+            with open(tmp, encoding='utf-8') as f:
+                cand = json.load(f)
+            if (daily_face_coverage(cand) != _want_cov
+                    or daily_face_identity_map(cand) != _want_ids):
+                raise IOError(
+                    f'候选文件校验不符(写盘中断/序列化损坏): {tmp}——'
+                    f'拒绝换入,规范档不动')
+        except BaseException:
+            if os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
+            raise
+        return tmp
+
+    def _commit(tmp, dst):
+        # 后半: 原子替换+目录 fsync(替换的目录项落盘);异常/中断清 tmp。
+        try:
+            os.replace(tmp, dst)
+            try:
+                _dfd = os.open(os.path.dirname(dst) or '.', os.O_RDONLY)
+                try:
+                    os.fsync(_dfd)
+                finally:
+                    os.close(_dfd)
+            except OSError:
+                pass
+        finally:
+            if os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
 
     if not os.path.exists(path):
-        _atomic_write(path)
+        _commit(_stage_candidate(path), path)
         return path, 'first', ''
     if forced:
-        _preserve_to_superseded(data_dir, fname)
-        _atomic_write(path)
+        with _guard_lock(data_dir, fname):
+            _copy_preserve(data_dir, fname)
+            _commit(_stage_candidate(path), path)
         return path, 'forced', 'IA_DAILY_ALLOW_OVERWRITE=1 豁免守卫'
-    old_cov, old_n, old_unreadable = None, None, False
-    try:
-        with open(path, encoding='utf-8') as f:
-            old = json.load(f)
-        old_cov, old_n = daily_face_coverage(old)
-    except (OSError, ValueError):
-        old_unreadable = True   # 旧档不可读→无法证明退化,按可覆盖处理(仍保留)
-    note = ''
-    degraded = False
-    if old_cov is not None:
-        new_cov, new_n = daily_face_coverage(payload)
-        if new_cov < old_cov:
-            degraded = True
-            note = f'序列路径 {len(old_cov)}→{len(new_cov)}(丢失 {len(old_cov - new_cov)} 条)'
-        elif new_cov == old_cov and new_n < old_n:
-            degraded = True
-            note = f'路径同构叶子数 {old_n}→{new_n}'
-    if degraded:
-        sup = _superseded_slot(data_dir, fname[:-5])
-        _atomic_write(sup)
-        return sup, 'degraded_diverted', note
-    if old_unreadable:
-        note = '旧档不可读(无法证明退化),按可覆盖处理'
-    _preserve_to_superseded(data_dir, fname)
-    _atomic_write(path)
+    with _guard_lock(data_dir, fname):
+        old_ids, old_paths_n, old_unreadable = None, None, False
+        try:
+            with open(path, encoding='utf-8') as f:
+                old = json.load(f)
+            old_ids = daily_face_identity_map(old)
+            old_paths_n = len(daily_face_coverage(old)[0])
+        except (OSError, ValueError):
+            old_unreadable = True   # 旧档不可读→无法证明退化,按可覆盖处理(仍保留)
+        note = ''
+        degraded = False
+        if old_ids is not None:
+            new_ids = _want_ids
+            _miss = sorted(set(old_ids) - set(new_ids))
+            _shrunk = sorted(
+                i for i in set(old_ids) & set(new_ids)
+                if new_ids[i] < old_ids[i])
+            if _miss:
+                degraded = True
+                _names = ','.join('.'.join(i) for i in _miss[:6])
+                note = (f'指标身份丢失 {len(_miss)} 项({_names}'
+                        f'{"…" if len(_miss) > 6 else ""});'
+                        f'序列路径 {old_paths_n}→{len(_want_cov[0])}'
+                        f'(丢失身份不因新增他指标补足)')
+            elif _shrunk:
+                degraded = True
+                _d = ','.join(
+                    f"{'.'.join(i)}:{old_ids[i]}→{new_ids[i]}"
+                    for i in _shrunk[:6])
+                note = (f'有效观测叶子缩水 {len(_shrunk)} 项({_d}'
+                        f'{"…" if len(_shrunk) > 6 else ""};null≠有效观测)')
+        if degraded:
+            sup = _superseded_slot(data_dir, fname[:-5])
+            _commit(_stage_candidate(sup), sup)
+            return sup, 'degraded_diverted', note
+        if old_unreadable:
+            note = '旧档不可读(无法证明退化),按可覆盖处理'
+        tmp = _stage_candidate(path)
+        try:
+            _copy_preserve(data_dir, fname)
+            _commit(tmp, path)
+        except BaseException:
+            if os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
+            raise
     return path, 'overwritten_preserved', note
 
 # ══ FIX7-01/02(IA-F6-DEF-001): 采集目录祖先路径可信边界 ═══════════════

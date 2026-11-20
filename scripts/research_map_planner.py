@@ -156,6 +156,19 @@ POLICY_FACE = {
                        'decision': None,   # 月均≠决议值: BOJ决议目标另列(JP_POLICY_TARGET)
                        'effective': None,
                        'stat_window': '月'},
+    # Audit-R26 任务3: BoJ 宣布值口径四分面——决议日只认实录表(间隔无
+    # 固定惯例),表外生效日如实「决议日不可推」;市场观测=JP_POLICY_RATE
+    # 月均配对(月均=市场观测,只作市场面不作决议证据)。
+    'JP_POLICY_TARGET': {'face': '政策目标(宣布值)', 'market_seat_label': 'BOJ政策目标利率',
+                         'decision': '决议日=实录表回溯(BOJ_DECISION_HISTORY;'
+                                     '2024-03 决议 03-19、生效 03-21)',
+                         'effective': '生效日=序列值变更日(宣布值自生效日起适用)',
+                         'decision_kind': 'boj_history',
+                         'stat_window': None,
+                         'market_pair': 'JP_POLICY_RATE',
+                         'market_note': '市场观测=配对 JP_POLICY_RATE 月均'
+                                        '(月均≠宣布值——只作市场观测,'
+                                        '不以月均跳变冒充决议事件)'},
 }
 
 # ── Audit-R22 任务2: 政策文件面(叙事源)的发布事实 ─────────────────────────
@@ -432,14 +445,37 @@ _EA_FLASH_METRICS = {'EA_HICP_YOY'}
 # Audit-R24 任务2: 事后政策事件面——政策目标利率族(阶梯型,日频但稀疏
 # 变更;决议日即观测日的口径随格披露)。隔夜/操作利率(高频波动)不入
 # 此面——变更行会淹没事件信号。
+# Audit-R26 任务3: 日本隔夜拆借**月均**(JP_POLICY_RATE)移出本面——月均
+# 是市场观测不是决议值,月均跳变≠决议事件(2024-03 月均跨决议月漂移曾
+# 被当「决议即日」事件入档);政策事件面只收宣布值口径序列。
 _AOF_POLICY_METRICS = [
     ('DFEDTARU', '美联储目标区间上限'),
     ('DFEDTARL', '美联储目标区间下限'),
     ('ECB_MRO', '欧央行主要再融资利率'),
     ('ECB_DFR', '欧央行存款便利利率'),
-    ('JP_POLICY_RATE', '日本政策利率(月均口径)'),
+    ('JP_POLICY_TARGET', '日本央行政策目标利率(宣布值口径)'),
     ('CN_LPR_1Y', '中国LPR(1年)'),
 ]
+
+# Audit-R26 任务3: 日本央行决议/生效实录表(宣布值口径的决议日回溯源)。
+# BoJ 决议-生效间隔无固定惯例(2024-03 为决议 03-19、生效 03-21;后续
+# 加息间隔各异),不得以回推公式造日期——只认逐条实录;生效日不在表内
+# =决议日不可推,如实注记不虚构。新决议经官方公告核验后追加。
+BOJ_DECISION_HISTORY = [
+    # (生效日, 决议日, 事件注记)
+    ('2024-03-21', '2024-03-19',
+     '结束负利率: 无担保隔夜拆借目标 0.10(2016-01 负利率—2024-03 '
+     '0.10 区间上限;决议 03-19[两日会议次日公布]、生效 03-21——'
+     '基准=用户验收指令实录(Audit-R26 任务3回归锚)'),
+]
+
+
+def _boj_decision_of(effective_iso):
+    """生效日→(决议日,注记)|None(不在实录表=不可推,不虚构)。"""
+    for eff, dec, note in BOJ_DECISION_HISTORY:
+        if eff == effective_iso:
+            return dec, note
+    return None
 
 
 def _aof_month_end(ym):
@@ -636,19 +672,37 @@ def history_asof_face(history_periods, rj):
                     continue
                 if prev_v is not None and vi != prev_v and \
                         cutoff_end < di <= win_end:
+                    # Audit-R26 任务3: 决议/生效分记入事后政策事件——
+                    # POLICY_FACE 决议机制在场则解析决议日(Fed/ECB 惯例
+                    # 回推、BoJ 实录表),决议日≠生效日两日分记;无机制
+                    # (报价类)按公布日记。观测日=生效/变更日。
+                    _pf3 = POLICY_FACE.get(pmid) or {}
+                    _pdd3 = _policy_dates(
+                        _pf3, di, value_change_date=di) if _pf3 else None
+                    _dec3 = (_pdd3 or {}).get('decision')
+                    _eff3 = (_pdd3 or {}).get('effective') or di
+                    _pb3 = ('决议%s/生效%s(决议≠生效分记)'
+                            % (_dec3 or '不可推', _eff3)
+                            if _pdd3 else '决议即日(政策目标口径)')
                     pd_out['aftermath'].append({
                         'metric_id': pmid, 'label': plabel,
                         'kind': 'policy_event', 'obs_month': di[:7],
                         'obs_date': di, 'value': vi,
                         'value_from': prev_v,
+                        'decision_date': _dec3,
+                        'effective_date': _eff3,
                         'visible_from': None, 'first_publish': None,
-                        'pub_basis': '决议即日(政策目标口径)',
+                        'pub_basis': _pb3,
                         'source': ps.get('source'),
                         'revision_note': '',
                         'note': '',
-                        'delay_note': ('事后政策事件: %s→%s(观测日=%s,'
+                        'delay_note': ('事后政策事件: %s→%s(观测日=%s%s,'
                                        '截止 %s 后决议——非当时可知)'
-                                       % (prev_v, vi, di, cutoff_end))})
+                                       % (prev_v, vi, di,
+                                          (f',决议{_dec3}、生效{_eff3}'
+                                           if _dec3 and _dec3 != _eff3
+                                           else ''),
+                                           cutoff_end))})
                 prev_v = vi
         periods.append(pd_out)
     return {'basis': ('当时可知面(发布纪律重算): 判断截止月末前已可知的'
@@ -1048,7 +1102,35 @@ def _policy_dates(face, obs_date, market_date=None, value_change_date=None):
     # Fed 目标: 决议=生效前一日(两日会议次日公布);ECB: 决议=生效前
     # 上一个周四(变更自决议后首个周三生效,变更日恒为周三)。
     dk = face.get('decision_kind')
-    if dk in ('prev_day', 'prev_thursday'):
+    if dk == 'boj_history':
+        # Audit-R26 任务3: BoJ 决议/生效分记——生效日=序列值变更日(与
+        # Fed/ECB 同「数据面语义」),决议日**只认实录表**(间隔无固定
+        # 惯例,回推会造日期);表内无该生效日=决议日不可推,如实注记。
+        eff = value_change_date or (
+            obs_date if _boj_decision_of(obs_date) else None)
+        if eff is None:
+            out['decision'] = None
+            out['effective'] = None
+            out['decision_note'] = (str(face.get('decision') or '')
+                                    + ';当前值自序列在场期无变更实录'
+                                      '——决议/生效日不可推,不虚构')
+        else:
+            out['effective'] = eff
+            _rec = _boj_decision_of(eff)
+            if _rec:
+                out['decision'] = _rec[0]
+                out['decision_note'] = (str(face.get('decision') or '')
+                                        + f';实录: 决议{_rec[0]}、生效'
+                                          f'{eff}')
+                if _rec[1]:
+                    out['decision_note'] += f'({_rec[1]})'
+            else:
+                out['decision'] = None
+                out['decision_note'] = (str(face.get('decision') or '')
+                                        + f';生效{eff}不在决议实录表'
+                                          '(BOJ_DECISION_HISTORY)——决议日'
+                                          '不可推,如实缺席')
+    elif dk in ('prev_day', 'prev_thursday'):
         eff = value_change_date or (
             obs_date if dk == 'prev_thursday'
             and _is_wednesday(obs_date) else None)
@@ -1234,22 +1316,67 @@ def point_values(plan, snap, root):
                          'publication_basis': basis,
                          'vintage': cell.get('vintage_semantics'),
                          'value': values[i]}
+                    # Audit-R26 任务2: 三日期分记——统计期末(月/季频自观测
+                    # 日按期首约定推到期末;发布日期=publication_date 在场;
+                    # 政策最后确认日=decision_dated 序列的观测日,下方面
+                    # 另记)。期末入锚供读者区分「期初约定的观测日」与
+                    # 「统计期结束」。
+                    _pe = _fp._period_end_for(
+                        _fp.parse_instant(dates[i]) if dates[i] else None,
+                        freq) if freq in ('monthly', 'quarterly') else None
+                    if _pe is not None:
+                        v['period_end'] = _pe.isoformat()
                     # Audit-R25 任务1: 最新一期锚按指标发布频率识别过期
                     # (EA HICP 停 2025-12、as_of 2026-11 → 滞后>月频窗口
                     # 必须标过期并显示末观测日;历史锚不适用——滞后是
                     # 时点差不是采集缺陷;未注册=无已批准窗口,不作判断)。
+                    # Audit-R26 任务2: 窗口自**统计期末**起算+决策驱动
+                    # 政策序列按政策最后确认纪律(无更晚已证实决议≠过期)。
                     if a.get('months_before') == 0:
+                        _pol = _fp.policy_for(mid) or {}
+                        _confirmed = None
+                        if _pol.get('decision_dated'):
+                            _cal_p = (os.path.join(root, 'config',
+                                                   'release_calendar.json')
+                                      if root else None)
+                            _confirmed = _fp.confirmed_policy_decision_after(
+                                mid, dates[i], a['as_of'],
+                                calendar_path=_cal_p)
                         fo = _fp.assess_observation_freshness(
-                            mid, dates[i], a['as_of'])
+                            mid, dates[i], a['as_of'],
+                            confirmed_later_decision=_confirmed)
+                        if _pol.get('decision_dated'):
+                            v['policy_confirm_date'] = dates[i]
+                            v['freshness_basis'] = fo.get(
+                                'freshness_basis', 'policy_confirmation')
                         if fo['status'] == 'STALE':
                             v['freshness'] = 'stale'
                             v['freshness_lag_days'] = fo['lag_days']
                             v['freshness_window_days'] = fo['window']
-                            v['freshness_note'] = (
-                                f'按发布频率识别为过期({fo["frequency"]}频): '
-                                f'末观测{dates[i]}滞后{fo["lag_days"]}天>'
-                                f'{fo["window"]}天已批准窗口——最新一期'
-                                f'=过期数据,如实显示末观测日,不当当期')
+                            if fo.get('period_end'):
+                                v['freshness_period_end'] = \
+                                    fo['period_end']
+                                v['freshness_period_lag_days'] = \
+                                    fo.get('period_lag_days')
+                            if fo.get('freshness_basis') == \
+                                    'policy_confirmation':
+                                v['freshness_note'] = (
+                                    f'按政策最后确认纪律识别为过期: '
+                                    f'最后确认{dates[i]}后已有更晚决议证实'
+                                    f'({(_confirmed or "")[:10]}首发≤'
+                                    f'{a["as_of"]})而数据未反映——最新一期'
+                                    f'=确证过期,如实显示最后确认日,不当当期')
+                            else:
+                                v['freshness_note'] = (
+                                    f'按发布频率识别为过期'
+                                    f'({fo["frequency"]}频): '
+                                    f'末观测{dates[i]}滞后{fo["lag_days"]}天>'
+                                    f'{fo["window"]}天窗口'
+                                    f'(统计期末{fo.get("period_end")}后'
+                                    f'{fo.get("period_lag_days")}天>'
+                                    f'{fo["window"]}天已批准窗口)'
+                                    f'——最新一期=过期数据,如实显示末观测日,'
+                                    f'不当当期')
                     pf_cfg = cell.get('policy_face') or {}
                     mdate = None
                     mp = pf_cfg.get('market_pair')
@@ -1288,6 +1415,25 @@ def point_values(plan, snap, root):
                       if k in (snap.get('series_store') or {})]
     return {'cells': cells, 'absent': absent,
             'asset_universe': asset_universe}
+
+
+def stale_only_groups(point_values, planned_pairs):
+    """Audit-R26 任务2: 「只剩确证过期值」的必要维度组集合(阻断/渲染共源)。
+
+    组内最新一期(months_before==0)ok 锚全部 freshness=stale → 入列;
+    任一非过期 ok 锚在场即不入列(过期格标注不改组级)。历史锚过期=
+    时点差非缺陷,不参与。返回 sorted [(region,dimension),...]。"""
+    latest_ok, latest_stale = {}, {}
+    for c in (point_values or {}).get('cells') or []:
+        g = (c.get('region'), c.get('dimension'))
+        la = (c.get('anchors') or {}).get('最新一期') or {}
+        if la.get('status') == 'ok':
+            latest_ok[g] = latest_ok.get(g, 0) + 1
+            if la.get('freshness') == 'stale':
+                latest_stale[g] = latest_stale.get(g, 0) + 1
+    return sorted(g for g in (planned_pairs or ())
+                  if latest_ok.get(g)
+                  and latest_stale.get(g, 0) == latest_ok[g])
 
 
 # ── 转折候选(确定性排序;判断归 Agent) ─────────────────────────────────
@@ -1790,6 +1936,19 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                  '判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,'
                  '经独立语义审查)')
     lines.append('')
+    # ── Audit-R26 任务2: 必要维度只剩确证过期值 → 首页明确标草稿 ──
+    _planned0 = {
+        (_eco, _dim)
+        for _eco, _rf in (rp.get('regions') or {}).items()
+        for _dim in ((_rf.get('dimensions') or {}) or {})}
+    _stale_groups = stale_only_groups(pv, _planned0)
+    if _stale_groups:
+        _sg = '、'.join(f"{g[0]}×{g[1]}" for g in _stale_groups)
+        lines.append(f"> ⚠ **草稿(非正式)**: 必要维度只剩确证过期值——{_sg}。"
+                     f"过期值按统计期末/政策最后确认纪律确证(逐格见⚠过期"
+                     f"标注与末观测日);补数后重跑转正。正式归档对草稿拒绝"
+                     f"(map_core_dimension_stale)。")
+        lines.append('')
 
     # 一句总判断
     lines += ['## 一句总判断', '', str(rm.get('headline_conclusion') or
@@ -1826,10 +1985,23 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                 continue
             obs = str(v.get('observation_date'))[:7]
             mark = 'Δ事后回顾 ' if hindsight else ''
-            stale = (f"⚠过期:末观测{v.get('observation_date')}"
-                     f"(滞后{v.get('freshness_lag_days')}天>"
-                     f"{v.get('freshness_window_days')}天窗口)"
-                     if v.get('freshness') == 'stale' else '')
+            if v.get('freshness') == 'stale':
+                if v.get('freshness_basis') == 'policy_confirmation':
+                    stale = (f"⚠过期:政策最后确认"
+                             f"{v.get('policy_confirm_date')}"
+                             f"(已有更晚已证实决议而数据未反映)")
+                else:
+                    stale = (f"⚠过期:末观测{v.get('observation_date')}"
+                             f"(滞后{v.get('freshness_lag_days')}天>"
+                             f"{v.get('freshness_window_days')}天窗口)"
+                             # R26 任务2: 统计期末口径独立成组(括号对完整,
+                             # 末观测四要素token保持连续)
+                             + (f"(统计期末{v.get('freshness_period_end')}后"
+                                f"{v.get('freshness_period_lag_days')}天>"
+                                f"{v.get('freshness_window_days')}天已批准窗口)"
+                                if v.get('freshness_period_end') else ''))
+            else:
+                stale = ''
             if v.get('value_kind', '').startswith('level'):
                 yoy = v.get('derived_yoy_pct')
                 if yoy is not None:
@@ -1869,6 +2041,53 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         lines.append(f"> - {ab.get('note')}")
     for g in rp.get('dimension_gaps') or []:
         lines.append(f"> - {g.get('note')}")
+    lines.append('')
+    # ── Audit-R26 任务2: 逐组覆盖与实际数据来源(每指标: 三锚状态+最新
+    #    一期统计期末+发布日期(推定基准)+来源=注册表权威采集器)──
+    _reg_src = {}
+    try:
+        _reg_p = os.path.join(os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))),
+            'config', 'metric_registry.json')
+        with open(_reg_p, encoding='utf-8') as _rf:
+            for _m in (json.load(_rf).get('metrics') or []):
+                _reg_src[_m.get('metric_id')] = _m.get('source')
+    except (OSError, ValueError):
+        pass
+    lines += ['## 逐组覆盖与实际数据来源', '',
+              '| 地区×维度 | 指标 | ' + ' | '.join(anchors)
+              + ' | 统计期末 | 发布日期 | 来源 |',
+              '|---|---|' + '---|' * (len(anchors) + 3)]
+    for c in rows:
+        _cov = []
+        for a in anchors:
+            v = (c.get('anchors') or {}).get(a) or {}
+            if v.get('status') == 'ok':
+                _cov.append('⚠过期' if v.get('freshness') == 'stale'
+                            else 'ok')
+            elif v.get('calendar_blocked_observation'):
+                _cov.append('停摆延误')
+            else:
+                _cov.append('不可得')
+        _lv = (c.get('anchors') or {}).get('最新一期') or {}
+        _pe = _lv.get('period_end') or '—'
+        _pd = (_lv.get('publication_date') or '—') + \
+            (f"({_lv.get('publication_basis')})"
+             if _lv.get('publication_basis') and
+             _lv.get('publication_date') else '')
+        _src = _reg_src.get(c.get('metric_id')) or c.get('source') or '—'
+        lines.append(f"| {c.get('region')}×{c.get('dimension')} | "
+                     f"{c.get('display_name')} | " + ' | '.join(_cov)
+                     + f" | {_pe} | {_pd} | {_src} |")
+    for ab in pv.get('absent') or []:
+        lines.append(f"| {ab.get('region')}×{ab.get('dimension')} | "
+                     f"{ab.get('display_name')} | 不可得 | 不可得 | 不可得 "
+                     f"| — | — | 序列缺席 |")
+    lines.append('')
+    lines.append('> 口径: 覆盖=三锚格状态(ok/⚠过期=确证过期仍如实显示末观测'
+                 '/不可得/停摆延误=日历实录证实的延误);统计期末=月频观测月'
+                 '末/季频观测季季末(发布滞后自期末起算);发布日期=日历实录'
+                 '优先+推定规则兜底(括注基准);来源=注册表权威采集器。')
     lines.append('')
 
     # ── Audit-R22 任务4: 首页三件之三——证据最充分传导速览(证据分排序:
@@ -1935,7 +2154,9 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                      '决议 09-16→生效 09-17;2025-12 决议 12-10→生效 12-11;'
                      '2022-07 决议 07-27→生效 07-28,七月末上限 2.50;ECB '
                      '决议后首个周三生效: 2026-09 决议 09-10→生效 09-16;'
-                     'PBOC 逆回购中标价公布即时生效)。序列值变更日=生效日,'
+                     'PBOC 逆回购中标价公布即时生效;BoJ 决议日只认实录表'
+                     '(BOJ_DECISION_HISTORY: 2024-03 决议 03-19→生效 03-21,'
+                     '表外生效日如实「决议日不可推」))。序列值变更日=生效日,'
                      '决议日由央行公告惯例自生效日回推(DFEDTARU/DFEDTARL/'
                      'DFF 一族;ECB_MRO/ECB_DFR 观测日全为周三=生效日)。'
                      '「—」=该口径无此日期(如隔夜市场月均无决议日),如实'

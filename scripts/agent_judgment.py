@@ -1081,7 +1081,8 @@ HONEST_REFUSAL_ERROR_KINDS = frozenset(
 BLOCKING_BLOCKED_CLASSES = frozenset(
     {'critical_zero_evidence', 'required_data_missing',
      'critical_step_failure', 'map_required_face_missing',
-     'map_core_dimension_missing', 'map_anchor_coverage_insufficient'})
+     'map_core_dimension_missing', 'map_anchor_coverage_insufficient',
+     'map_core_dimension_stale'})
 
 
 def _step_failure_is_refusal(step):
@@ -1182,6 +1183,14 @@ def blocked_class_of(report):
                 if _ok_anchor_n.get(g, 0) < 2 and _gap_unverified.get(g, 0))
             if _sparse:
                 return 'map_anchor_coverage_insufficient'
+            # Audit-R26 任务2: 必要维度**只剩确证过期值**——组内最新一期
+            # ok 锚全部 freshness=stale(按统计期末/政策最后确认纪律确证),
+            # 无任何当期有效读数: 交付草稿(报告首页明确标草稿),正式归档
+            # 拒绝;组内任一非过期 ok 锚在场即不触发(过期格标注不改级)。
+            # 判定与渲染共源(research_map_planner.stale_only_groups)。
+            import research_map_planner as _rmp_st
+            if _rmp_st.stale_only_groups(_pv, _planned_pairs):
+                return 'map_core_dimension_stale'
         return None
     non_refusal = [s.get('step') for s in (report.get('steps') or [])
                    if s.get('executed') and s.get('ok') is False

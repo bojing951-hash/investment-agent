@@ -86,7 +86,9 @@ def sec_a():
     p4, s4, _ = rp.daily_face_guard_write(d, 'china', '20261120', upgrade)
     canon4 = json.load(open(os.path.join(d, 'china_20261120.json'),
                             encoding='utf-8'))
-    sup_files = os.listdir(os.path.join(d, 'superseded'))
+    # R26 任务1: superseded/ 内并发守卫锁档(.lock.*)非数据档,计数排除
+    sup_files = [f for f in os.listdir(os.path.join(d, 'superseded'))
+                 if not f.startswith('.lock.')]
     check('§A5 升集覆写规范文件+旧档入 superseded/',
           s4 == 'overwritten_preserved' and 'M3' in canon4['series']
           and len(sup_files) == 3, f'superseded={len(sup_files)} 件')
@@ -105,9 +107,12 @@ def sec_a():
     os.environ.pop('IA_DAILY_ALLOW_OVERWRITE', None)
     check('§A7 IA_DAILY_ALLOW_OVERWRITE=1→forced 直写(旧档仍保留)',
           s6 == 'forced' and canon6 == {'tiny': True}
-          and len(os.listdir(os.path.join(d, 'superseded'))) == 5)
-    # superseded 档不冒充规范来源
-    sup_sample = sorted(os.listdir(os.path.join(d, 'superseded')))[0]
+          and len([f for f in os.listdir(os.path.join(d, 'superseded'))
+                   if not f.startswith('.lock.')]) == 5)
+    # superseded 档不冒充规范来源(取真实数据档,跳过守卫锁档)
+    sup_sample = sorted(
+        f for f in os.listdir(os.path.join(d, 'superseded'))
+        if not f.startswith('.lock.'))[0]
     check('§A8 superseded 档非规范来源身份(canonical_source_file 拒绝)',
           rp.canonical_source_file('china', sup_sample) is None)
     # 八采集写点接线(结构面: 每采集器守卫调用在场)
@@ -177,7 +182,8 @@ def sec_a():
           " copies_consistent)" in ia_src.replace('\n', ' ')
           .replace('    ', ' ').replace('  ', ' ')
           and "'map_core_dimension_missing'" in ia_src
-          and '草稿交付(Audit-R25 任务1)' in ia_src)
+          # R26 任务2: 草稿口径扩为「任务1+任务2」(缺口类+确证过期类)
+          and '草稿交付(Audit-R25 任务1+Audit-R26 任务2)' in ia_src)
     aj_src = open(os.path.join(ROOT, 'scripts', 'agent_judgment.py'),
                   encoding='utf-8').read()
     check('§A15 归档侧草稿 belt: map_core_dimension_missing/map_anchor_'

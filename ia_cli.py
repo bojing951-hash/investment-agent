@@ -1885,12 +1885,14 @@ def _r1_report_core(args, engine_root):
     draft_delivered = False
     if not deliverable and blocked_class in (
             'map_core_dimension_missing',
-            'map_anchor_coverage_insufficient'):
+            'map_anchor_coverage_insufficient',
+            'map_core_dimension_stale'):
         draft_delivered = (machine_verified and review_ok and copies_consistent)
         if draft_delivered:
             warnings.append(
-                '草稿交付(Audit-R25 任务1): blocked_class=%s——带缺口草稿'
-                '已交付(缺数格如实标注+缺口注记);正式交付与正式归档仍阻断'
+                '草稿交付(Audit-R25 任务1+Audit-R26 任务2): blocked_class='
+                '%s——带缺口/过期草稿已交付(缺数格如实标注+缺口注记+'
+                '确证过期维度首页标草稿);正式交付与正式归档仍阻断'
                 '(补数后重跑续链)' % blocked_class)
     # ── Audit-R18: 地图问句读者报告(MAP_REPORT.md=可直读可核查交付件) ──
     # 渲染面=report.json research_plan(对照表/点值/转折候选)+Agent 席

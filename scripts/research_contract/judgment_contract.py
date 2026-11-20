@@ -1117,14 +1117,18 @@ def _map_checks(judgment, face, report):
             # 复权噪声留给百分比口径)。
             for mt in re.finditer(
                     r'([A-Z][A-Z0-9_]{1,20})\s*'
-                    r'([+\-−]?[0-9]+(?:\.[0-9]+)?)\s*(pp|%)', txt):
+                    r'([+\-−]?[0-9]+(?:\.[0-9]+)?)\s*个?(pp|%|指数点)',
+                    txt):
                 mid, num, unit = mt.group(1), mt.group(2), mt.group(3)
                 num = float(num.replace('−', '-'))
                 rc = _eng_recompute(mid, unit)
                 if rc is None:
                     continue
                 eng_num, d0, v0, d1, v1 = rc
-                tol = 0.06 if unit == 'pp' else 0.6
+                # Audit-R24 任务3: 指数点=水平差的另一合法记法
+                # (CPI 266.614→271.903 写 +5.29 指数点或 +1.98% 均可核,
+                # 同窗同引擎面;pp/指数点共用 0.06 紧容差)
+                tol = 0.06 if unit in ('pp', '指数点') else 0.6
                 if abs(num - eng_num) > tol:
                     bad(f'{hid}.ex_post.{k}',
                         f'事后窗数字与引擎不符: {mid} {num:+.2f}{unit} vs '
@@ -1157,11 +1161,12 @@ def _map_checks(judgment, face, report):
                     tail = txt[am.end():am.end() + 34]
                     m2 = re.match(
                         r'[^0-9+\-−.]{0,16}?([+\-−]?)([0-9]+(?:\.[0-9]+)?)'
-                        r'\s*(个百分点|%)', tail)
+                        r'\s*个?(个百分点|%|指数点)', tail)
                     if not m2:
                         continue
                     sign, num_s, unit_w = m2.groups()
-                    unit = 'pp' if unit_w == '个百分点' else '%'
+                    unit = ('pp' if unit_w == '个百分点'
+                            else ('指数点' if unit_w == '指数点' else '%'))
                     num = float(num_s)
                     gap = tail[:m2.start(1)]
                     v_up = any(w in gap for w in _up)
@@ -1186,7 +1191,7 @@ def _map_checks(judgment, face, report):
                     if rc is None:
                         continue
                     eng_num, d0, v0, d1, v1 = rc
-                    tol = 0.06 if unit == 'pp' else 0.6
+                    tol = 0.06 if unit in ('pp', '指数点') else 0.6
                     if abs(num - eng_num) > tol:
                         bad(f'{hid}.ex_post.{k}',
                             f'事后窗数字与引擎不符(中文面): {alias}({mid}) '
@@ -1335,14 +1340,17 @@ def _map_checks(judgment, face, report):
                     f'观测季(锚观测季={sorted(_qs_ok)})——正文以锚前未'
                     '发布或不存在的季度充当对照端点(锚可见性口径;发布'
                     '实录首发晚于锚日的季度不得入对照叙述)', contra=True)
-    # (15) Audit-R23 任务3: 一句总判断里的基点主张(±Nbp)按引擎三利率
-    #     分解复算——年度主张对年度窗分解(chg_bp_12m)逐位对账(符号+
-    #     显示精度);方向词(上行/下行)与符号矛盾即 CONTRADICTED。读者
-    #     看到的那句话里的利率数字必须可对引擎面核(反例: 名义+97bp 被
-    #     改 −97bp)。
+    # (15) Audit-R23 任务3 + Audit-R24 任务3: 一句总判断里的基点/百分点
+    #     主张按引擎面复算——年度主张对年度窗分解(chg_bp_12m)逐位对账
+    #     (符号+显示精度);方向词(上行/下行)与符号矛盾即 CONTRADICTED。
+    #     读者看到的那句话里的利率数字必须可对引擎面核(反例: 名义+97bp
+    #     被改 −97bp)。R24 扩展见块内注: 分量归属核(对调拒绝)/日本
+    #     序列池外复算/pp↔bp 双单位等价。
     _hl = str(rm.get('headline_conclusion') or '')
-    if trio.get('status') == 'ok' and \
-            re.search(r'美债|名义|实际|盈亏平衡|十年期|利率', _hl):
+    _jp_ctx24 = bool(re.search(r'日本|日债|JGB', _hl))
+    if (trio.get('status') == 'ok' and
+            re.search(r'美债|名义|实际|盈亏平衡|十年期|利率', _hl)) or \
+            _jp_ctx24:
         _annual_claim = bool(re.search(r'年度|12个月|十二个月|一年', _hl))
         _bp_pool = set()
         for _src in (('chg_bp_12m',) if _annual_claim
@@ -1350,17 +1358,106 @@ def _map_checks(judgment, face, report):
             for _v in (trio.get(_src) or {}).values():
                 if isinstance(_v, (int, float)):
                     _bp_pool.add(float(_v))
-        for _bm in re.finditer(r'([+−\-±]?)\s*(\d+(?:\.\d+)?)\s*bp', _hl):
+        # Audit-R24 任务3: ①归属核——上下文点名「名义/实际/盈亏平衡」时按
+        #   分量逐一对账(池成员资格不够: 名义+104bp/实际+97bp 对调两值
+        #   都在三利率池内,池核放行,归属核拒绝);②池外利率序列——上下文
+        #   点名「日本/日债/JGB」时按引擎 JGB/政策利率序列同窗复算
+        #   (三利率池只住美债;日本+67bp 不在池≠错);③双单位等价——
+        #   +67bp 与 +0.67个百分点 等值对账(精确 pp↔bp 对;无归属的
+        #   百分点主张维持不判=旧档复放不动)。
+        _ATTR24 = (('名义', 'UST_10Y'), ('实际', 'TIPS_10Y'),
+                   ('盈亏平衡', 'BEI_10Y'))
+        _ATTRLBL24 = {'UST_10Y': '名义(UST_10Y)', 'TIPS_10Y': '实际(TIPS_10Y)',
+                      'BEI_10Y': '盈亏平衡(BEI_10Y)'}
+
+        def _jp_chg_bp24():
+            import bisect as _bi
+            import datetime as _dtm
+            for _jm in ('JGB10Y', 'JGB5Y', 'JGB2Y', 'JP_POLICY_RATE'):
+                _js = (face.get('series_store') or {}).get(_jm)
+                if not _js or not _js.get('dates'):
+                    continue
+                _m = {d: v for d, v in zip(_js['dates'], _js['values'])
+                      if v is not None}
+                if len(_m) < 2:
+                    continue
+                _d1 = max(_m)
+                _tgt = (_dtm.date.fromisoformat(_d1)
+                        - _dtm.timedelta(
+                            days=365 if _annual_claim else 30)).isoformat()
+                _cand = [d for d in _m if d <= _tgt] or \
+                    sorted(_m)[:-1]
+                _d0 = min(_cand, key=lambda d: abs(
+                    (_dtm.date.fromisoformat(d)
+                     - _dtm.date.fromisoformat(_tgt)).days))
+                return (round((float(_m[_d1]) - float(_m[_d0])) * 100.0, 2),
+                        _jm, _d0, _d1)
+            return None
+        for _bm in re.finditer(
+                r'([+−\-±]?)\s*(\d+(?:\.\d+)?)\s*(bp|个百分点)', _hl):
             _claimed = (-1.0 if _bm.group(1) in ('-', '−')
                         else 1.0) * float(_bm.group(2))
-            if not any(abs(_claimed - _v) <= 1.0 for _v in _bp_pool):
-                bad('reader_map.headline_conclusion.bp',
-                    f'基点主张 {_bm.group(0).strip()} 与引擎三利率分解'
-                    f'不符({"年度窗" if _annual_claim else "年度/月度窗"}'
-                    f'可对值={sorted(_bp_pool)})——读者看到的那句话里的'
-                    '利率分解数字必须与引擎同窗复算一致(含符号与显示'
-                    '精度,容差 1bp)', contra=True)
-                continue
+            _unit = _bm.group(3)
+            if _unit == '个百分点':
+                _claimed = _claimed * 100.0     # 精确 pp↔bp 对(67bp≡0.67pp)
+            _ctx = _hl[max(0, _bm.start() - 16):_bm.start()]
+            _hits = [(_ctx.rfind(_w), _mid) for _w, _mid in _ATTR24]
+            _hits += [(_ctx.rfind(_w), 'JP') for _w in
+                      ('日本', '日债', 'JGB', '日国债')]
+            _hits = [h for h in _hits if h[0] >= 0]
+            _tag = max(_hits)[1] if _hits else None    # 最靠近数字者胜
+            _num_ok = False
+            if _tag == 'JP':
+                _jc = _jp_chg_bp24()
+                if _jc is None:
+                    bad('reader_map.headline_conclusion.bp_attributed',
+                        f'利率主张 {_bm.group(0).strip()} 归属日本利率,但'
+                        '引擎面无 JGB10Y/JGB5Y/JGB2Y/JP_POLICY_RATE 序列'
+                        '可对账——不可核的利率数字不入总判断(缺序列须写明'
+                        '缺席,不留裸数字)', contra=True)
+                    continue
+                _jbp, _jm, _jd0, _jd1 = _jc
+                _num_ok = abs(_claimed - _jbp) <= 1.0
+                if not _num_ok:
+                    bad('reader_map.headline_conclusion.bp_attributed',
+                        f'利率主张 {_bm.group(0).strip()} 与引擎 {_jm} 同窗'
+                        f'复算不符({_jd0}→{_jd1} 复算 {_jbp:+g}bp;'
+                        + ('年度窗(近365日)' if _annual_claim
+                           else '近30日窗')
+                        + ')——池外利率序列同窗对账(+67bp≡+0.67个百分点'
+                        '双单位等值,含符号,容差 1bp)', contra=True)
+                    continue
+            elif _tag is not None:
+                _av = None
+                for _src in (('chg_bp_12m',) if _annual_claim
+                             else ('chg_bp', 'chg_bp_12m')):
+                    _v = (trio.get(_src) or {}).get(_tag)
+                    if isinstance(_v, (int, float)):
+                        _av = float(_v)
+                        break
+                _num_ok = _av is not None and abs(_claimed - _av) <= 1.0
+                if not _num_ok:
+                    bad('reader_map.headline_conclusion.bp_attributed',
+                        f'基点主张 {_bm.group(0).strip()} 归属'
+                        f'{_ATTRLBL24.get(_tag, _tag)}与引擎该分量不符'
+                        f'({_ATTRLBL24.get(_tag, _tag)}='
+                        f'{_av if _av is not None else "该窗无值"};'
+                        f'{"年度窗" if _annual_claim else "月度/年度窗"})'
+                        '——分量归属后逐一对账: 池内另一分量的值(名义/实际'
+                        '/盈亏平衡对调)不蒙混,容差 1bp', contra=True)
+                    continue
+            else:
+                if _unit == '个百分点':
+                    continue    # 无归属的百分点主张维持不判(旧档复放不动)
+                _num_ok = any(abs(_claimed - _v) <= 1.0 for _v in _bp_pool)
+                if not _num_ok:
+                    bad('reader_map.headline_conclusion.bp',
+                        f'基点主张 {_bm.group(0).strip()} 与引擎三利率分解'
+                        f'不符({"年度窗" if _annual_claim else "年度/月度窗"}'
+                        f'可对值={sorted(_bp_pool)})——读者看到的那句话里的'
+                        '利率分解数字必须与引擎同窗复算一致(含符号与显示'
+                        '精度,容差 1bp)', contra=True)
+                    continue
             _w = _hl[max(0, _bm.start() - 12):_bm.start()]
             if (re.search(r'下行|下降|回落|走低', _w) and _claimed > 0) or \
                     (re.search(r'上行|上升|走高|抬升', _w) and _claimed < 0):
@@ -1429,6 +1526,49 @@ def _map_checks(judgment, face, report):
                                 '晚于截止日才公布的数字须移入事后段,'
                                 '不得充当当时可知(Audit-R23 任务2)',
                                 contra=True)
+    # (17) Audit-R24 任务4: 并项补选交还判断席——同轮并项后不足三项时
+    #     引擎补选的独立转折,判断席须在 reader_map.turning_supplement
+    #     逐项写明 谁先变/何时(从多少到多少=候选面已给,席位须引)/哪些
+    #     经济体跟进或背离;月频序列无法判断先后须写明分辨率界限,缺
+    #     跨国证据须写明缺哪项。新代码面标记(turning_supplement_
+    #     discipline)起生效;旧档无标记不追溯(原文复放必须通过)。
+    #     并项/补选集合与渲染面同源(turning_merge_and_picks 纯函数)。
+    if str(plan.get('turning_supplement_discipline') or ''):
+        import research_map_planner as _rmp6
+        _eps17, _picks17 = _rmp6.turning_merge_and_picks(
+            rm.get('turnings') or [],
+            (plan.get('turning_candidates') or {}).get('candidates')
+            or [])
+        _supp17 = {(str(s.get('metric_id')), str(s.get('to_ym'))): s
+                   for s in (rm.get('turning_supplement') or [])
+                   if isinstance(s, dict)}
+        for _c17 in _picks17:
+            _k17 = (str(_c17.get('metric_id')), str(_c17.get('to_ym')))
+            _sn17 = _supp17.get(_k17) or {}
+            _fm17 = str(_sn17.get('first_mover') or '').strip()
+            _fd17 = str(_sn17.get('follow_or_diverge') or '').strip()
+            _res17 = str(_sn17.get('resolution_note') or '').strip()
+            _gap17 = str(_sn17.get('evidence_gap') or '').strip()
+            _honest17 = bool(
+                (_res17 and ('分辨率' in _res17 or '月频' in _res17))
+                or (_gap17 and ('缺' in _gap17 or '证据' in _gap17)))
+            if not _fm17 and not _honest17:
+                bad('reader_map.turning_supplement',
+                    f'引擎补选转折 {_k17[0]}@{_k17[1]} 未交还判断席——'
+                    '补选项须在 turning_supplement 逐项写明 谁先变/何时/'
+                    '从多少到多少(候选面已给)/哪些经济体跟进或背离;'
+                    '月频无法判断先后写明分辨率,缺跨国证据写明缺哪项'
+                    '(Audit-R24 任务4)')
+                continue
+            if _fm17 and not _fd17 and not _honest17:
+                bad('reader_map.turning_supplement',
+                    f'补选转折 {_k17[0]}@{_k17[1]} 写了谁先变但缺'
+                    '「跟进或背离」——哪些经济体跟进/背离须逐项给出;'
+                    '缺跨国证据就写明缺哪项,不得留空')
+                continue
+            ok('reader_map.turning_supplement',
+               f'补选转折 {_k17[0]}@{_k17[1]} 已交还判断席'
+               f'(first_mover={_fm17[:24] if _fm17 else "(分辨率/证据说明)"})')
     return out
 
 

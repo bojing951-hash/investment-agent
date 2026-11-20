@@ -1912,6 +1912,30 @@ def _r1_report_core(args, engine_root):
         # 防篡改锚(旁挂 sha): 磁盘文件≠锚=单改在场文件——拒付且**不重写**
         # (证据保全;归档内部重跑本段同样拒,不洗白)。文件未动而装配变=
         # 合法修订(REVISE 闭环重渲),重写并更新锚。
+        # ── Audit-R24 任务1: 已裁正文冻结——最新裁决放行(UPHELD 族)且
+        # fresh(主内容锚绑定当前 run)时, 在场 MAP=受审定稿: 受审**内容段**
+        # 按原字节读取与归档, 渲染器漂移(同输入异输出=代码已前进)不改写
+        # 受审字节; 更正/重排走 --new-map-version 另建版本→内容摘要变→
+        # 旧裁决过期→复审后方可交付。内容段与当前装配一致时照常重写
+        # (仅翻新审查尾=状态面, 受审部分字节不变)。 ──
+        _approved24 = (sr.get('verdict') in aj.REVIEW_APPROVED_VERDICTS
+                       and sr.get('fresh') is True and not sr.get('error'))
+        _content_split = '\n## 语义审查'
+        _cur_content24 = _new_content24 = None
+        if _disk_sha is not None:
+            try:
+                with open(map_md_path, encoding='utf-8') as _mf:
+                    _cur_content24 = hashlib.sha256(
+                        _mf.read().split(_content_split)[0]
+                        .encode('utf-8')).hexdigest()
+            except (OSError, ValueError):
+                _cur_content24 = None
+        _new_content24 = hashlib.sha256(
+            map_text.split(_content_split)[0].encode('utf-8')).hexdigest()
+        _frozen24 = (_approved24 and _cur_content24 is not None
+                     and _cur_content24 != _new_content24
+                     and not getattr(args, 'new_map_version', False))
+        map_drift24 = False
         if _prev_sha and _disk_sha and _disk_sha != _prev_sha:
             copies_consistent = False
             copies_note = (copies_note or '') + \
@@ -1922,12 +1946,37 @@ def _r1_report_core(args, engine_root):
                             '冒充;删除该文件后方可重渲)')
             deliverable = False
             _map18_path = map_md_path
+        elif _frozen24:
+            map_drift24 = True
+            warnings.append(
+                '渲染器漂移: 已裁内容段(sha16=%s)≠当前装配(%s)——受审正文'
+                '按原字节交付不改写(裁决绑定的受审定稿权威);更正/重排须 '
+                '--new-map-version 另建版本复审' % (_cur_content24[:16],
+                                                    _new_content24[:16]))
+            _map18_path = map_md_path
         else:
             with open(map_md_path, 'w', encoding='utf-8') as f:
                 f.write(map_text)
             with open(map_sha_path, 'w', encoding='utf-8') as f:
                 f.write(_fresh_sha + '  MAP_REPORT.md\n')
             _map18_path = map_md_path
+        # ── Audit-R24 任务1: --new-map-version 另建版本复审 ──
+        # 显式版本递进: 重渲新版+锚更新+report.json research_plan.map_version
+        # +1(内容摘要随 report.json 变→旧裁决主锚自动过期)——本轮不交付,
+        # 待独立席复审落新裁决(绑定新版双锚)后方可交付/归档。legacy 旧档
+        # 无地图绑定亦经此主锚过期强制复审,不留无绑定即漂的口子。
+        if getattr(args, 'new_map_version', False) and \
+                _rp18.get('map_question'):
+            _mv = int(_rp18.get('map_version') or 1) + 1
+            rj['research_plan']['map_version'] = _mv
+            aj._atomic_write_text(
+                os.path.join(rd, 'report.json'),
+                json.dumps(rj, ensure_ascii=False, indent=2, default=str))
+            deliverable = False
+            warnings.append(
+                '新地图版本已渲染(map_version=%d)——内容摘要已变,旧裁决'
+                '过期;独立席复审落新裁决后方可交付/归档(更正或重排另建'
+                '版本复审,Audit-R24 任务1)' % _mv)
     full_text = content_text + '\n'.join(
         _quality_section(copies_consistent, deliverable)) + '\n'
     with open(out_md, 'w', encoding='utf-8') as f:
@@ -1949,6 +1998,9 @@ def _r1_report_core(args, engine_root):
         'deliverable': deliverable, 'mvp_complete': deliverable}
     if _rp18.get('map_question'):
         data['map_report'] = _map18_path
+        data['map_renderer_drift'] = map_drift24
+        data['map_version'] = (rj.get('research_plan') or {}).get(
+            'map_version') or 1
     return deliverable, data, warnings
 
 
@@ -2117,6 +2169,19 @@ def _r1_archive_core(args, engine_root):
             raise ValueError('内容摘要三处核对失败: run=%s archive=%s '
                              'bound=%s' % (sha_run[:16], sha_arc[:16],
                                            str(sha_bound)[:16]))
+        # ── Audit-R24 任务1: 落盘==裁决核对(地图面) ──
+        # 最新裁决带 map_report_sha256 时, 归档 MAP 内容段摘要必须==裁决
+        # 绑定(已审正文按原字节读取与归档——report 段冻结已裁内容段,
+        # 此处归档侧 belt 复核;不符=归档非受审定稿,拒绝)。legacy 旧档
+        # 无地图绑定=历史面如实注记不追溯(manifest 留档)。
+        map_bound24 = (latest_doc or {}).get('map_report_sha256')
+        map_arc_sha24 = aj.map_report_content_sha(dest)
+        if (rj.get('research_plan') or {}).get('map_question'):
+            if map_bound24 and map_arc_sha24 != map_bound24:
+                raise ValueError('地图内容段与裁决绑定不符: archive=%s '
+                                 'bound=%s(归档非受审定稿)' %
+                                 ((map_arc_sha24 or '缺席')[:16],
+                                  map_bound24[:16]))
         manifest = {
             'stage': 'archive', 'run_ts': run_ts,
             'question': (rj.get('run') or {}).get('question'),
@@ -2135,8 +2200,17 @@ def _r1_archive_core(args, engine_root):
             'record_health': (data.get('review') or {}).get(
                 'record_health') or {},
             'source_report_dir': rd,
+            'map_report_sha256': map_bound24,
+            'map_content_sha256': map_arc_sha24,
+            'map_legacy_no_binding': bool(
+                map_bound24 is None
+                and (rj.get('research_plan') or {}).get('map_question')),
+            'map_renderer_drift': data.get('map_renderer_drift', False),
+            'map_version': data.get('map_version', 1),
             'correlation': 'run==archive==verdict-bound(三处一致已核;'
-                           '裁决链唯一名逐档哈希+predecessor 链关系已核)'}
+                           '裁决链唯一名逐档哈希+predecessor 链关系已核'
+                           ';地图面: 归档内容段==裁决绑定已核/Audit-R24 '
+                           '任务1)'}
         aj._atomic_write_text(
             os.path.join(dest, 'ARCHIVE_MANIFEST.json'),
             json.dumps(manifest, ensure_ascii=False, indent=2, default=str))
@@ -2466,6 +2540,11 @@ def build_parser():
                     help='数据树注入缝(默认=本仓库根;净环境指向真实数据树)')
     r1.add_argument('--allow-failed-run', action='store_true',
                     help='attach 段: run_ok=False 诚实拒答面显式越过(MINOR-4 门槛)')
+    r1.add_argument('--new-map-version', action='store_true',
+                    help='report/archive 段: 地图正文更正或重排时另建新版本'
+                         '(重渲+map_version+1+内容摘要变→旧裁决过期,须复审'
+                         '新裁决后方可交付/归档;已裁版本不受渲染器漂移改写'
+                         '——Audit-R24 任务1)')
     r1.add_argument('--archive', action='store_true',
                     help='plan 段: 第 11 步归档显式开启(Skill 纪律=默认关,'
                          '正式任务用户认可后郑重选择)')

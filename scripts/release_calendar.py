@@ -68,20 +68,46 @@ def first_publish(metric_id, obs_date, path=None):
      'not_published_as_of': 'YYYY-MM-DD'}。obs_date 缺席→None(不推测)。"""
     if not metric_id or not obs_date:
         return None
+    # Audit-R24 任务2: 同名命中多条目(精确实录 vs 区间保守界)→取
+    # obs_from 最晚(最特定)条目——逐期实录优先于 REST-CONSERVATIVE
+    # 推广界,平手按文件序。
+    best = None
     for ent in _load(path):
         mids = ent.get('metric_ids') or ([ent['metric_id']] if ent.get('metric_id') else [])
         if metric_id not in mids:
             continue
         if not (ent.get('obs_from') <= obs_date <= ent.get('obs_to')):
             continue
-        return {
-            'first_publish': ent.get('first_publish_on_or_after'),
-            'not_published_as_of': ent.get('not_published_as_of'),
-            'entry_id': ent.get('entry_id'),
-            'basis': ent.get('basis'),
-            'note': ent.get('note'),
-            'batch_id': ent.get('batch_id'),
-        }
+        if best is None or ent.get('obs_from', '') > best.get('obs_from', ''):
+            best = ent
+    if best is None:
+        return None
+    return {
+        'first_publish': best.get('first_publish_on_or_after'),
+        'not_published_as_of': best.get('not_published_as_of'),
+        'entry_id': best.get('entry_id'),
+        'basis': best.get('basis'),
+        'note': best.get('note'),
+        'batch_id': best.get('batch_id'),
+    }
+
+
+def final_publish(metric_id, obs_date, path=None):
+    """Audit-R24 任务2: 两级发布(EA 快报/终值)的终值日查询。
+
+    条目带 final_publish_on 时返回该日(官方实录);无条目/无字段→None
+    (调用方回落规则推定)。零生成,纯文件面。"""
+    return _final_from_entry(metric_id, obs_date, path)
+
+
+def _final_from_entry(metric_id, obs_date, path):
+    for ent in _load(path):
+        mids = ent.get('metric_ids') or ([ent['metric_id']] if ent.get('metric_id') else [])
+        if metric_id not in mids:
+            continue
+        if not (ent.get('obs_from') <= obs_date <= ent.get('obs_to')):
+            continue
+        return ent.get('final_publish_on')
     return None
 
 

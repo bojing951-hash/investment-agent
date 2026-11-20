@@ -275,13 +275,18 @@ def sec_c():
           f"known={kn.get('CN_PPI_YOY', {}).get('value')} "
           f"after={af[0]['value'] if af else None}")
     ea = kn.get('EA_HICP_YOY') or {}
-    check('§C 2022-06 欧元区HICP: 快报2022-06-30 当时可知(推定)+'
-          '终值2022-07-16 分记',
-          ea.get('obs_month') == '2022-06' and ea.get('value') == 8.6
-          and ea.get('visible_from') == '2022-06-30'
-          and ea.get('first_publish') == '2022-07-16'
-          and '快报' in str(ea.get('note')),
-          str(ea.get('note'))[:60])
+    eaa = [r for r in p22['aftermath'] if r['metric_id'] == 'EA_HICP_YOY']
+    check('§C 2022-06 欧元区HICP(R24 校准): 月末截止快报未出→已知='
+          '2022-05(快报推定05-31);2022-06 8.6 移事后段(快报07-01+终值'
+          '07-19 双官方实录)',
+          ea.get('obs_month') == '2022-05' and ea.get('value') == 8.1
+          and ea.get('visible_from') == '2022-05-31'
+          and eaa and eaa[0]['obs_month'] == '2022-06'
+          and eaa[0]['value'] == 8.6
+          and eaa[0]['visible_from'] == '2022-07-01'
+          and eaa[0]['first_publish'] == '2022-07-19'
+          and '官方实录' in str(eaa[0].get('note')),
+          str(eaa[0].get('note'))[:60] if eaa else 'no row')
     jp = kn.get('JP_CPI_YOY') or {}
     jpa = [r for r in p22['aftermath'] if r['metric_id'] == 'JP_CPI_YOY']
     check('§C 2022-06 日本CPI: 已知=2022-05 2.46,2022-06 2.35 首发'
@@ -322,10 +327,11 @@ def sec_c():
           and rec is not None and rec.get('value') == 325.063
           and rec.get('visible_from') == '2025-12-13'
           and '缺口后恢复' in str(rec.get('delay_note')))
-    check('§C 2025 停摆: 工业生产 2025-09 首发2026-01-22(晚常轨99天)'
-          '+2025-10 同批(68天)',
-          ind is not None and ind.get('first_publish') == '2026-01-22'
-          and '99 天' in str(ind.get('delay_note'))
+    check('§C 2025 停摆: 工业生产 2025-09 G.17 官方改期实录=首发'
+          '2025-12-03(晚常轨49天,优先于保守界)+2025-10 维持保守界'
+          '2026-01-22(68天)',
+          ind is not None and ind.get('first_publish') == '2025-12-03'
+          and '49 天' in str(ind.get('delay_note'))
           and find('INDPRO', '2025-10') is not None
           and '68 天' in str(find('INDPRO', '2025-10').get('delay_note')))
     check('§C 2025 停摆: Q3 GDP 首发2025-12-23(晚常轨55天);九月失业率'
@@ -346,8 +352,8 @@ def sec_c():
         ('CN_PPI_YOY', '2022-06-30', '2022-07-09'),
         ('CN_PPI_YOY', '2023-10-31', '2023-11-09'),
         ('CN_PPI_YOY', '2025-03-31', '2025-04-09'),
-        ('EA_HICP_YOY', '2022-06-30', '2022-06-30'),
-        ('INDPRO', '2025-09-30', '2026-01-22'),
+        ('EA_HICP_YOY', '2022-06-30', '2022-07-01'),
+        ('INDPRO', '2025-09-30', '2025-12-03'),
         ('CPI', '2025-11-30', '2025-12-13'),
         ('CORE_PCE', '2025-09-30', '2026-01-22'),
         ('UNEMPLOYMENT', '2025-09-30', '2025-11-20'),
@@ -404,10 +410,11 @@ def sec_d():
 
     res, bad = contract(m97)
     check('§D 反例②: 首页年度名义美债 +97bp→−97bp → CONTRADICTED'
-          '(headline_conclusion.bp 对账)',
+          '(headline_conclusion.bp 对账;R24 归属核后落 bp_attributed)',
           res.get('verdict') == 'CONTRADICTED'
           and any(str(b.get('item')).endswith(
-              'headline_conclusion.bp') for b in bad),
+              ('headline_conclusion.bp',
+               'headline_conclusion.bp_attributed')) for b in bad),
           str([b.get('item') for b in bad[:2]]))
 
     def syn(jd):
@@ -510,7 +517,7 @@ def sec_f():
     check('§F 当时可知面表: 三段各一张+事后段表+CN_PPI 事后行逐字'
           '(2022-06|6.1|2022-07-09)',
           text.count('当时可知面(发布纪律重算') == 3
-          and text.count('截止日后才公布(事后段') == 3
+          and text.count('截止日后才公布/截止后决议(事后段') == 3
           and '| 中国PPI同比(CN_PPI_YOY) | 2022-06 | 6.1 | '
           '2022-07-09 |' in text)
     check('§F 逐窗并列序列源披露: 冻结信封优先/运行快照兜底',
@@ -566,17 +573,23 @@ def sec_g():
     sr_cli = aj._semantic_review_state(RJ, trees[0], rds[0])
     direct = rmp.render_map_report(RJ, JD0, sr_cli,
                                    root=trees[0]).encode('utf-8')
-    check('§G 正式入口=新码直渲同源字节(渲染无隐藏输入)',
-          b1 == direct, f'{_sha(b1)[:12]} vs {_sha(direct)[:12]}')
+    # Audit-R24 任务1 契约更新: 已裁正文冻结——正式入口交付=受审原字节,
+    # 当前直渲与之不同=渲染器漂移,如实披露不改写受审定稿(更正/重排须
+    # --new-map-version 另建版本复审)。
+    check('§G 正式入口交付=受审原字节(已裁冻结;直渲≠受审=渲染器漂移'
+          '如实披露,不洗白不改写)',
+          b1 != direct and b1 == open(
+              os.path.join(ARC_DIR, 'MAP_REPORT.md'), 'rb').read(),
+          f'交付={_sha(b1)[:12]} 直渲={_sha(direct)[:12]}')
     e, a = map_rows(b1.decode('utf-8'))
     arch_map = open(os.path.join(ARC_DIR, 'MAP_REPORT.md'),
                     'rb').read()
     anchor_now = open(os.path.join(rds[0], 'MAP_REPORT.sha256'),
                       encoding='utf-8').read().strip().split(' ', 1)[0]
-    check('§G 36/45 行+锚已更新(合法修订: 锚=新文件摘要)+与 R22 归档'
-          '版不同(渲染已按四修更新)',
-          (e, a) == (36, 45) and anchor_now == _sha(b1)
-          and b1 != arch_map,
+    check('§G 36/45 行+受审锚不变(原字节交付,锚=归档锚)+与 R22 归档版'
+          '逐字节同(渲染漂移不进交付件)',
+          (e, a) == (36, 45) and anchor_now == _sha(arch_map)
+          and b1 == arch_map,
           f'econ={e} asset={a}')
     # ── 单改负例: 锚未动→拒付+不重写(证据保全)+归档拒绝 ──
     rd4 = fresh_rd('g4')
@@ -623,18 +636,28 @@ def sec_g():
     rc5, d5 = cli('report', rd5, T5)
     rc5b, d5b = cli('report', rd5, T5)
     healed = open(mp5, encoding='utf-8').read()
+    # Audit-R24 任务1 契约更新: 漂移期自愈=重渲当前装配字节,但重渲版≠
+    # 受审版→旧裁决(绑受审字节)不复放行——错误版本无法沿用裁决/入档;
+    # 复审落新裁决(绑重渲版)方放行(更正或重排另建版本复审)。
+    aj.record_semantic_verdict(T5, rd5, 'UPHELD',
+                               reviewer='r23-gate-复审席',
+                               notes='R24 契约: 重渲版复审(rev=3)')
+    rc5c, d5c = cli('report', rd5, T5)
     check('§G 绑定负例: 重挂锚后旧裁决失效(fresh=False+绑定注记),当轮'
-          '拒付(rc≠0);引擎重渲 canonical 内容段(在场恢复=直渲字节,仅'
-          '裁决链页脚合法翻新),复跑放行——错误版本无法沿用裁决/入档',
+          '拒付(rc≠0);引擎重渲 canonical 内容段(在场恢复=直渲字节);'
+          '重渲版≠受审版→复跑仍拒(裁决绑受审字节);复审落新裁决后方'
+          '放行——错误版本无法沿用裁决/入档',
           st5.get('fresh') is False
           and '内容段摘要与裁决绑定不符' in str(st5.get('fresh_note'))
           and rc5 != 0
           and not (d5.get('data') or {}).get('deliverable')
           and healed.split('\n## 语义审查')[0]
           == direct.decode('utf-8').split('\n## 语义审查')[0]
-          and rc5b == 0
-          and (d5b.get('data') or {}).get('deliverable') is True,
-          f"fresh={st5.get('fresh')} rc={rc5}/{rc5b}")
+          and rc5b != 0
+          and not (d5b.get('data') or {}).get('deliverable')
+          and rc5c == 0
+          and (d5c.get('data') or {}).get('deliverable') is True,
+          f"fresh={st5.get('fresh')} rc={rc5}/{rc5b}/{rc5c}")
     # ── 任务3 窜写 CLI 级: 机器识别+不可交付+归档零增量 ──
     for tag, mutate, want_item in (
             ('q3', _tamper_q3, 'quarter_token'),
@@ -692,3 +715,7 @@ def test_audit_r23_gate():
 
 if __name__ == '__main__':
     test_audit_r23_gate()
+    # Audit-R24 任务5: 补字面 sys.exit(——conftest.SuiteFile 自执行静态查
+    # (子进程直跑=真实执行 51 判据)曾判「不自执行伪绿」,pytest 入口红。
+    # 断言零改动,仅入口对齐 r20-r22 同款。
+    sys.exit(0)

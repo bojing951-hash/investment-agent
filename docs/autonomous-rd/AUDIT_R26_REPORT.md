@@ -158,7 +158,9 @@ r7-r25 七门全绿;全量电池与 CI 见第 5 节;两席真实一问会话+残
 - 回归: r7 38/r20 30/r21 50/r22 36/r23 51/r24 74/r25 55 全 PASS。
 - 全量电池 199/199 有效(197 直绿+2 技能副本陈旧重装后 32/0+31/0;
   判据 rc∈{0,5}∨rc=3∧SystemExit:0)。
-- CI: (PENDING_CI)
+- CI: 代码尖 312218b(证据+报告提交)offline-tests run 44776405886
+  **success**(https://github.com/bojing951-hash/investment-agent/actions/runs/44776405886);
+  远端 head=312218b89172919a38341ddeff4df48dc4215b50 与本地一致核对。
 
 ## 6. 残留与移交
 

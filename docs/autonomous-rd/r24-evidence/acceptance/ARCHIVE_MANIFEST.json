@@ -1,0 +1,51 @@
+{
+  "stage": "archive",
+  "run_ts": "20261120T024347Z",
+  "question": "美国、中国、欧元区、日本在12个月前、3个月前和最新一期的增长、通胀、货币政策环境对比;过去一年最重要的三个转折、先后顺序与传导机制;结构最像的历史时期及当时随后3、6、12个月经济与主要资产走势",
+  "archived_at": "20261120T033234Z",
+  "content_sha256": "c6443e7edf1f974b47088b35cfcb310fd76abe2824c18840ea31c8538f0277da",
+  "run_code_git_head": "351a0b605a2ff3dfee7e0bba74f0d4233d41f3f2",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 2,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261120__VERDICT-20261120T024347Z-01.json",
+      "source_rel": "audit/semantic_review/20261120/VERDICT-20261120T024347Z-01.json",
+      "overall": "REVISE",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261120T032417Z",
+      "sha256": "d846d6f01af5cc3c"
+    },
+    {
+      "file": "verdicts/20261120__VERDICT-20261120T024347Z-02.json",
+      "source_rel": "audit/semantic_review/20261120/VERDICT-20261120T024347Z-02.json",
+      "overall": "UPHELD",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261120/VERDICT-20261120T024347Z-01.json",
+      "recorded_at": "20261120T033104Z",
+      "sha256": "70fbc06760a23e43"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "d03e82a233cb0c16",
+    "report.md": "ef2d365fcb8ae2f4",
+    "FULL_REPORT.md": "d0199ba9fdf8caf2",
+    "agent_judgment.json": "991804999fc9a067",
+    "views_digest.json": "e71a18c2e81904ed",
+    "evidence_index.json": "8a4651a7ea43f7e6",
+    "AGENT_SEAT_ENVELOPE.json": "0afe735d916eb608",
+    "MAP_REPORT.md": "e8bab233874998e9",
+    "MAP_REPORT.sha256": "6e0cf0356f13063a"
+  },
+  "record_health": {},
+  "source_report_dir": "output/research_runs/20261120T024347Z_美国_中国_欧元区_日本在12个月前_3个月前和最新一期的增长_通胀_货币政策环/",
+  "map_report_sha256": "abbc4742d4e31163dcfb87dfec65042337580e50dd6cf4905a51120ee0208192",
+  "map_content_sha256": "abbc4742d4e31163dcfb87dfec65042337580e50dd6cf4905a51120ee0208192",
+  "map_legacy_no_binding": false,
+  "map_renderer_drift": false,
+  "map_version": 1,
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定已核/Audit-R24 任务1)"
+}

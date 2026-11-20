@@ -28,6 +28,8 @@ import json
 import os
 import re
 
+import freshness_policy as _fp   # Audit-R25 任务1: 最新一期锚过期识别(已批准窗口)
+
 # ── 地区×维度指标映射(声明式;入场须注册表在册,否则如实缺口) ────────
 # 每格按优先序;「目标/操作/月均」口径注记=任务3央行公告四分面
 # (宣布日/生效日/市场利率月均/政策目标)的引擎侧注解。
@@ -908,6 +910,15 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
             regions[eco]['dimensions'][dim] = cells
     plan = {
         'map_question': True,
+        # Audit-R25 任务3: 原问逐字入计划——plan/工单/报告/归档同一份原文
+        # (后续任何摘写只在 question_summary,不回写本键);MAP 头与
+        # ARCHIVE_MANIFEST 同源引用,验收=逐字节比对 run.question。
+        'question_verbatim': question,
+        'question_summary': (
+            '内部摘要(非原文): 地区%s×维度%s@%s,三时点对照+转折+传导+'
+            '历史类比;仅供检索/日志,交付与验收以 question_verbatim 为准'
+            % ('/'.join(sorted(regions)), '、'.join(sorted(dims)),
+               cutoff_iso)),
         # Audit-R23 任务2: 新代码面标记——历史段「当时可知」发布纪律契约
         # (as_of 泄漏拦截)自本标记起生效;旧档无标记不追溯(原文复放必须
         # 通过),新运行计划必带。
@@ -917,6 +928,10 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         # 分辨率界限与跨国证据缺口如实注记)自本标记起生效;旧档无标记
         # 不追溯(原文复放必须通过)。
         'turning_supplement_discipline': 'r24',
+        # Audit-R25 任务3: 新代码面标记——首页/转折表/传导链先后顺序与
+        # 因果证据一致性契约(日期次序主张自洽+跨面不矛盾/传导链区分
+        # 指标引擎绑定/转折表指标同源)自本标记起生效;旧档无标记不追溯。
+        'cross_face_consistency': 'r25',
         'shared_by': '取数(plan 指标并入 S4/数据需求面)/报告(MAP_REPORT '
                      '对照表与数值回贴)/验收(同一份 plan 判据)——不手填指标代码',
         'regions': regions,
@@ -990,10 +1005,18 @@ def _visible_publish(mid, freq, obs_date):
     RELEASE_RULES 推定兜底。返回 (publish_date|None, basis_text);
     basis 保留具体规则文本(随格披露,读者可核)。
     Audit-R22 任务1: 条目挂批(batch_id)时 basis 带批号——同批指标的
-    可见性整批一致(CPI+核心CPI 同稿/一次补发两月),读者可按批核。"""
+    可见性整批一致(CPI+核心CPI 同稿/一次补发两月),读者可按批核。
+    Audit-R25 任务2: 月/季频观测日统一月首口径查日历(与 _aof_first_pub
+    同一约定, R21/R22 既定调用约定在发布纪律面全量贯通)——条目 obs 窗
+    按 <YYYY-MM>-01 匹配;序列观测日多为月末,直传会跳过实录条目而误落
+    推定兜底(欧元区 2025-03 HICP 月末观测 → 须命中速报 2025-04-01
+    实录,而非月末推定)。日/周频不归一(逐日实录窗按原观测日匹配)。"""
     import release_calendar as rc
+    _cal_obs = (obs_date[:7] + '-01'
+                if freq in ('monthly', 'quarterly') and obs_date
+                else obs_date)
     rule_iso, rule_text = _publish_date(mid, freq, obs_date)
-    ent = rc.first_publish(mid, obs_date)
+    ent = rc.first_publish(mid, _cal_obs)
     if ent is not None:
         batch = f";batch={ent['batch_id']}" if ent.get('batch_id') else ''
         return (ent['first_publish'],
@@ -1211,6 +1234,22 @@ def point_values(plan, snap, root):
                          'publication_basis': basis,
                          'vintage': cell.get('vintage_semantics'),
                          'value': values[i]}
+                    # Audit-R25 任务1: 最新一期锚按指标发布频率识别过期
+                    # (EA HICP 停 2025-12、as_of 2026-11 → 滞后>月频窗口
+                    # 必须标过期并显示末观测日;历史锚不适用——滞后是
+                    # 时点差不是采集缺陷;未注册=无已批准窗口,不作判断)。
+                    if a.get('months_before') == 0:
+                        fo = _fp.assess_observation_freshness(
+                            mid, dates[i], a['as_of'])
+                        if fo['status'] == 'STALE':
+                            v['freshness'] = 'stale'
+                            v['freshness_lag_days'] = fo['lag_days']
+                            v['freshness_window_days'] = fo['window']
+                            v['freshness_note'] = (
+                                f'按发布频率识别为过期({fo["frequency"]}频): '
+                                f'末观测{dates[i]}滞后{fo["lag_days"]}天>'
+                                f'{fo["window"]}天已批准窗口——最新一期'
+                                f'=过期数据,如实显示末观测日,不当当期')
                     pf_cfg = cell.get('policy_face') or {}
                     mdate = None
                     mp = pf_cfg.get('market_pair')
@@ -1787,22 +1826,28 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                 continue
             obs = str(v.get('observation_date'))[:7]
             mark = 'Δ事后回顾 ' if hindsight else ''
+            stale = (f"⚠过期:末观测{v.get('observation_date')}"
+                     f"(滞后{v.get('freshness_lag_days')}天>"
+                     f"{v.get('freshness_window_days')}天窗口)"
+                     if v.get('freshness') == 'stale' else '')
             if v.get('value_kind', '').startswith('level'):
                 yoy = v.get('derived_yoy_pct')
                 if yoy is not None:
                     vals.append(f"{mark}{_fmt_val(v.get('value'))}"
-                                f'(同比≈{yoy:g}%,观测{obs})')
+                                f'(同比≈{yoy:g}%,观测{obs}{stale})')
                 elif v.get('yoy_status') == 'no_same_period_base':
                     lv = v.get('latest_valid_yoy') or {}
                     extra = (f";最近有效同比≈{lv.get('yoy_pct'):g}%@"
                              f"{str(lv.get('observation_date'))[:7]}"
                              if lv.get('yoy_pct') is not None else '')
                     vals.append(f"{mark}{_fmt_val(v.get('value'))}"
-                                f'(同比不可得: 缺基期{extra},观测{obs})')
+                                f'(同比不可得: 缺基期{extra},观测{obs}{stale})')
                 else:
-                    vals.append(f"{mark}{_fmt_val(v.get('value'))}(观测{obs})")
+                    vals.append(f"{mark}{_fmt_val(v.get('value'))}"
+                                f'(观测{obs}{stale})')
             else:
-                vals.append(f"{mark}{_fmt_val(v.get('value'))}(观测{obs})")
+                vals.append(f"{mark}{_fmt_val(v.get('value'))}"
+                            f'(观测{obs}{stale})')
         eco = c.get('region') or ''
         # Audit-R23 收口(NIT-4): 口径注自身已含指标名时不再叠套
         # 「制造业PMI(月频)」→ 不渲染成「制造业PMI(制造业PMI(月频))」

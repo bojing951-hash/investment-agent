@@ -450,7 +450,10 @@ def calc_derived(results):
 
 def save_macro(results, alerts, derived, cn_history=None):
     """保存宏观数据(Audit-R6 R6-02: cn_history=中国月度全史续存状态,
-    None=旧调用面不写该键——档内形状兼容)"""
+    None=旧调用面不写该键——档内形状兼容;Audit-R25 任务1: 同日降级重采集
+    经 daily_face_guard_write 守卫——序列丢失面转存 superseded/,不覆盖
+    同日完整可重放面)"""
+    import research_provenance as rp
     today_str = datetime.now().strftime('%Y%m%d')
     output = {
         "date": today_str,
@@ -460,10 +463,12 @@ def save_macro(results, alerts, derived, cn_history=None):
     }
     if cn_history is not None:
         output["cn_history"] = cn_history
-    path = os.path.join(DATA_DIR, "daily", f"macro_{today_str}.json")
-    with open(path, 'w', encoding='utf-8') as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
-    print(f"数据已保存: {path}")
+    path, status, note = rp.daily_face_guard_write(
+        os.path.join(DATA_DIR, "daily"), 'macro', today_str, output, indent=2)
+    if status == 'degraded_diverted':
+        print(f"同日降级面({note})未覆盖完整档,转存: {path}")
+    else:
+        print(f"数据已保存: {path}")
 
 
 # ── Audit-R6 条目2(R6-02): CN 月度全史随档续存 ───────────────────────

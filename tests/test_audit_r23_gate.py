@@ -321,19 +321,23 @@ def sec_c():
     gdp = find('US_REAL_GDP', '2025-07')
     unp = find('UNEMPLOYMENT', '2025-09')
     check('§C 2025 停摆: CPI 2025-10 采集缺口+2025-11 恢复(首发'
-          '2025-12-13)',
+          '2025-12-18,R25 权威日期修订: 原规则推定 12-13 由 BLS 改期'
+          '实录取代)',
           hole is not None and hole.get('value') is None
           and '采集缺口' in str(hole.get('delay_note'))
           and rec is not None and rec.get('value') == 325.063
-          and rec.get('visible_from') == '2025-12-13'
+          and rec.get('visible_from') == '2025-12-18'
           and '缺口后恢复' in str(rec.get('delay_note')))
     check('§C 2025 停摆: 工业生产 2025-09 G.17 官方改期实录=首发'
-          '2025-12-03(晚常轨49天,优先于保守界)+2025-10 维持保守界'
-          '2026-01-22(68天)',
+          '2025-12-03(晚常轨49天,优先于保守界)+2025-10/11 合并补发'
+          '实录=2025-12-23(R25 权威日期修订: 取代保守界 2026-01-22;'
+          '38天≤45容差故不入延误异常段,可见性仍按实录)',
           ind is not None and ind.get('first_publish') == '2025-12-03'
           and '49 天' in str(ind.get('delay_note'))
-          and find('INDPRO', '2025-10') is not None
-          and '68 天' in str(find('INDPRO', '2025-10').get('delay_note')))
+          and rmp._aof_first_pub('INDPRO', '2025-10-31', 'monthly')[1]
+          == '2025-12-23'
+          and rmp._aof_first_pub('INDPRO', '2025-11-30', 'monthly')[1]
+          == '2025-12-23')
     check('§C 2025 停摆: Q3 GDP 首发2025-12-23(晚常轨55天);九月失业率'
           '实录2025-11-20 优先于保守界(晚常轨46天)',
           gdp is not None and gdp.get('first_publish') == '2025-12-23'
@@ -347,15 +351,17 @@ def sec_c():
           gdp_months and gdp_months <= {'2025-04', '2025-07'},
           str(sorted(gdp_months)))
     # 前一天/当天逐项(指令点名: 三段中国PPI/2022-06 HICP/停摆期工业
-    # 生产与11月CPI与9月核心PCE;保全就业与 Q3 GDP 用例)
+    # 生产与11月CPI与9月核心PCE;保全就业与 Q3 GDP 用例。
+    # R25 权威日期修订: 11月CPI=2025-12-18(BLS改期实录,原规则推定
+    # 12-13);9月核心PCE=2025-12-05(BEA 25-46实录,原保守界2026-01-22))
     flips = [
         ('CN_PPI_YOY', '2022-06-30', '2022-07-09'),
         ('CN_PPI_YOY', '2023-10-31', '2023-11-09'),
         ('CN_PPI_YOY', '2025-03-31', '2025-04-09'),
         ('EA_HICP_YOY', '2022-06-30', '2022-07-01'),
         ('INDPRO', '2025-09-30', '2025-12-03'),
-        ('CPI', '2025-11-30', '2025-12-13'),
-        ('CORE_PCE', '2025-09-30', '2026-01-22'),
+        ('CPI', '2025-11-30', '2025-12-18'),
+        ('CORE_PCE', '2025-09-30', '2025-12-05'),
         ('UNEMPLOYMENT', '2025-09-30', '2025-11-20'),
         ('US_REAL_GDP', '2025-07-31', '2025-12-23'),
     ]

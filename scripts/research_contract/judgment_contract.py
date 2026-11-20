@@ -1349,7 +1349,8 @@ def _map_checks(judgment, face, report):
     _hl = str(rm.get('headline_conclusion') or '')
     _jp_ctx24 = bool(re.search(r'日本|日债|JGB', _hl))
     if (trio.get('status') == 'ok' and
-            re.search(r'美债|名义|实际|盈亏平衡|十年期|利率', _hl)) or \
+            re.search(r'美债|名义|实际|盈亏平衡|十年期|利率'
+                      r'|UST_10Y|TIPS_10Y|BEI_10Y', _hl)) or \
             _jp_ctx24:
         _annual_claim = bool(re.search(r'年度|12个月|十二个月|一年', _hl))
         _bp_pool = set()
@@ -1365,8 +1366,20 @@ def _map_checks(judgment, face, report):
         #   (三利率池只住美债;日本+67bp 不在池≠错);③双单位等价——
         #   +67bp 与 +0.67个百分点 等值对账(精确 pp↔bp 对;无归属的
         #   百分点主张维持不判=旧档复放不动)。
+        # Audit-R25 任务3: ①单位三写法——bp/基点/个基点 同为基点族(不乘
+        #   100;个百分点仍=精确 pp↔bp 对);②归属别名面扩容——中文指标名
+        #   (十年期美债→名义/十年期TIPS→实际/盈亏平衡通胀)与代码名
+        #   (UST_10Y/TIPS_10Y/BEI_10Y)入 _ATTR24;就近取胜规则保证
+        #   「十年期美债实际」按更近的『实际』归 TIPS。对调拒绝随写法
+        #   扩展: 任何写法下 名义+97↔实际+104 互换均被分量对账拒绝。
         _ATTR24 = (('名义', 'UST_10Y'), ('实际', 'TIPS_10Y'),
-                   ('盈亏平衡', 'BEI_10Y'))
+                   ('盈亏平衡', 'BEI_10Y'),
+                   ('UST_10Y', 'UST_10Y'), ('TIPS_10Y', 'TIPS_10Y'),
+                   ('BEI_10Y', 'BEI_10Y'),
+                   ('十年期美债', 'UST_10Y'), ('10年期美债', 'UST_10Y'),
+                   ('美国十年期国债', 'UST_10Y'),
+                   ('十年期TIPS', 'TIPS_10Y'), ('通胀保值', 'TIPS_10Y'),
+                   ('盈亏平衡通胀', 'BEI_10Y'))
         _ATTRLBL24 = {'UST_10Y': '名义(UST_10Y)', 'TIPS_10Y': '实际(TIPS_10Y)',
                       'BEI_10Y': '盈亏平衡(BEI_10Y)'}
 
@@ -1394,12 +1407,22 @@ def _map_checks(judgment, face, report):
                         _jm, _d0, _d1)
             return None
         for _bm in re.finditer(
-                r'([+−\-±]?)\s*(\d+(?:\.\d+)?)\s*(bp|个百分点)', _hl):
+                r'([+−\-±]?)\s*(\d+(?:\.\d+)?)\s*'
+                r'(bp|个百分点|个基点|基点)', _hl):
             _claimed = (-1.0 if _bm.group(1) in ('-', '−')
                         else 1.0) * float(_bm.group(2))
             _unit = _bm.group(3)
             if _unit == '个百分点':
                 _claimed = _claimed * 100.0     # 精确 pp↔bp 对(67bp≡0.67pp)
+            # R25: 基点/个基点 与 bp 同族同值(×1),无换算
+            # R25: 无显式符号时前置方向词定号——「下行7个基点」的符号
+            # 语义由方向词承担,缺号按正值解读会把方向一致的表述误判
+            # 对账不符;显式符号(+7/−7)仍以符号为准(与方向词矛盾由
+            # 下方 bp_direction 拦)。
+            if _bm.group(1) == '':
+                _w_pre = _hl[max(0, _bm.start() - 12):_bm.start()]
+                if re.search(r'下行|下降|回落|走低', _w_pre):
+                    _claimed = -_claimed
             _ctx = _hl[max(0, _bm.start() - 16):_bm.start()]
             _hits = [(_ctx.rfind(_w), _mid) for _w, _mid in _ATTR24]
             _hits += [(_ctx.rfind(_w), 'JP') for _w in
@@ -1569,6 +1592,116 @@ def _map_checks(judgment, face, report):
             ok('reader_map.turning_supplement',
                f'补选转折 {_k17[0]}@{_k17[1]} 已交还判断席'
                f'(first_mover={_fm17[:24] if _fm17 else "(分辨率/证据说明)"})')
+    # (18) Audit-R25 任务3: 首页/转折表/传导链 先后顺序与因果证据一致性。
+    #     三个确定性子面: ①日期次序主张自洽+跨面不矛盾——文本中两日期
+    #     之间的「早于/先于/晚于」主张须与日期事实一致,同一对日期在
+    #     任何两面主张相反次序即 CONTRADICTED;②传导链证据绑定——每条
+    #     链至少一环的 distinguishing_metric 须为引擎可观测指标(计划
+    #     指标∪上下文指标∪快照序列),纯文本因果链不得入传导面;
+    #     ③转折表指标同源——turnings[].metric_id 须出自计划指标或引擎
+    #     转折候选面。新代码面标记(cross_face_consistency)起生效;
+    #     旧档无标记不追溯(原文复放必须通过)。
+    if str(plan.get('cross_face_consistency') or '') == 'r25':
+        _hl18 = str(rm.get('headline_conclusion') or '')
+        _DATE18 = re.compile(r'\d{4}-\d{2}(?:-\d{2})?')
+        _LT18 = re.compile(r'早于|先于')
+        _GT18 = re.compile(r'晚于')
+
+        def _cmp18(a, b):
+            # 同精度或月精度可判: 返回 -1/1;同月混合精度=不可判(None)
+            if a[:7] != b[:7]:
+                return -1 if a < b else 1
+            if len(a) == len(b):
+                return -1 if a < b else (1 if a > b else 0)
+            return None
+
+        _faces18 = [('首页(headline)', [_hl18])]
+        for _ti, _t in enumerate(rm.get('turnings') or []):
+            _faces18.append((f'转折表[{_t.get("metric_id")}]',
+                             [str(_t.get(k) or '') for k in
+                              ('first_mover', 'follow_or_diverge',
+                               'narrative')]))
+        for _s in rm.get('turning_supplement') or []:
+            _faces18.append((f'转折补选[{_s.get("metric_id")}]',
+                             [str(_s.get(k) or '') for k in
+                              ('first_mover', 'follow_or_diverge')]))
+        for _ch18 in rm.get('transmission') or []:
+            for _li, _lk18 in enumerate(_ch18.get('links') or []):
+                _faces18.append(
+                    (f'传导链[{_ch18.get("chain_id") or _ch18.get("title")}]'
+                     f'第{_li + 1}环',
+                     [str(_lk18.get(k) or '') for k in
+                      ('observed_fact', 'causal_hypothesis',
+                       'competing_explanation')]))
+        _claims18 = {}     # frozenset{d1,d2} -> {'lt': d, 'gt': d} 主张面
+        for _fname, _texts in _faces18:
+            for _txt in _texts:
+                _ms = list(_DATE18.finditer(_txt or ''))
+                for _a, _b in zip(_ms, _ms[1:]):
+                    _mid_txt = _txt[_a.end():_b.start()]
+                    if len(_mid_txt) > 40:
+                        continue
+                    _rel = ('lt' if _LT18.search(_mid_txt)
+                            else 'gt' if _GT18.search(_mid_txt) else None)
+                    if _rel is None:
+                        continue
+                    _da, _db = _a.group(0), _b.group(0)
+                    _c = _cmp18(_da, _db)
+                    if _c is None:
+                        continue
+                    _want = -1 if _rel == 'lt' else 1
+                    if _c != _want:
+                        bad('reader_map.cross_face_consistency.date_order',
+                            f'{_fname}: 「{_da}{"早于" if _rel == "lt" else "晚于"}'
+                            f'{_db}」与日期事实矛盾——先后顺序表述必须与'
+                            '日期事实一致(Audit-R25 任务3)', contra=True)
+                    _key = frozenset((_da, _db))
+                    _claims18.setdefault(_key, {}).setdefault(_rel, set()).add(
+                        _fname)
+        for _key, _dirs in _claims18.items():
+            if 'lt' in _dirs and 'gt' in _dirs:
+                _d = sorted(_key)
+                bad('reader_map.cross_face_consistency.date_order',
+                    f'同一对日期 {_d[0]}/{_d[1]} 的先后次序被不同面主张相反'
+                    f'(早于={sorted(_dirs["lt"])};晚于={sorted(_dirs["gt"])})'
+                    '——首页/转折表/传导链对先后顺序的表述必须一致'
+                    '(Audit-R25 任务3)', contra=True)
+            else:
+                _d = sorted(_key)
+                ok('reader_map.cross_face_consistency.date_order',
+                   f'日期次序主张一致: {_d[0]}<{_d[1]}'
+                   f'({"早于" if "lt" in _dirs else "晚于"},'
+                   f'{len(next(iter(_dirs.values())))} 处)')
+        _known18 = set(plan.get('metrics') or []) | \
+            set(plan.get('context_metrics') or [])
+        for _c18 in (plan.get('turning_candidates') or {}).get(
+                'candidates') or []:
+            if _c18.get('metric_id'):
+                _known18.add(_c18['metric_id'])
+        _store18 = set((face.get('series_store') or {}).keys())
+        for _ch18 in rm.get('transmission') or []:
+            _cid = _ch18.get('chain_id') or _ch18.get('title')
+            _bound = [str(_lk18.get('distinguishing_metric') or '')
+                      for _lk18 in _ch18.get('links') or []]
+            _okm = [m for m in _bound if m and (m in _known18 or m in _store18)]
+            if not _okm:
+                bad('reader_map.cross_face_consistency.chain_evidence',
+                    f'传导链[{_cid}] 全部环节的区分指标无一是引擎可观测'
+                    '指标(计划∪上下文∪快照序列)——因果证据纯文本化,'
+                    '传导面须至少一环绑定引擎可对账指标(Audit-R25 任务3)')
+            else:
+                ok('reader_map.cross_face_consistency.chain_evidence',
+                   f'传导链[{_cid}] 区分指标绑定 {len(_okm)}/'
+                   f'{len(_ch18.get("links") or [])} 环')
+        for _t in rm.get('turnings') or []:
+            _tm = str(_t.get('metric_id') or '')
+            if _tm and _tm not in _known18 and _tm not in _store18:
+                bad('reader_map.cross_face_consistency.turning_source',
+                    f'转折表指标 {_tm} 不在计划指标∪转折候选面∪快照序列'
+                    '——转折表须与引擎候选面同源(Audit-R25 任务3)')
+        if rm.get('turnings'):
+            ok('reader_map.cross_face_consistency.turning_source',
+               f'转折表 {len(rm["turnings"])} 项指标与计划/候选面同源')
     return out
 
 

@@ -443,12 +443,15 @@ def build_payload(run_date=None, ecb_dfr_raw=None, ecb_mro_raw=None,
 
 
 def save_daily(data_dir, payload):
-    """原子写 data_dir/ea_{date}.json(先tmp后replace,防半写)。"""
-    path = os.path.join(data_dir, f"ea_{payload['date']}.json")
-    tmp = path + '.tmp'
-    with open(tmp, 'w', encoding='utf-8') as f:
-        json.dump(payload, f, ensure_ascii=False, indent=1)
-    os.replace(tmp, path)
+    """原子写 data_dir/ea_{date}.json(Audit-R25 任务1: 同日降级重采集
+    经 daily_face_guard_write 守卫——序列丢失面转存 superseded/,不覆盖
+    同日完整可重放面)。"""
+    import research_provenance as rp
+    path, status, note = rp.daily_face_guard_write(
+        data_dir, 'ea', payload['date'], payload, indent=1)
+    if status == 'degraded_diverted':
+        print(f'[ea_market_collector] ⚠️ 同日降级面({note})未覆盖完整档,'
+              f'转存 {path}')
     return path
 
 

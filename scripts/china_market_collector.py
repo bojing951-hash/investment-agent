@@ -1938,14 +1938,17 @@ def fetch_macro_history():
 
 
 def save_data(all_data):
-    """保存数据"""
+    """保存数据(Audit-R25 任务1: 同日降级重采集经 daily_face_guard_write
+    守卫——序列丢失面转存 superseded/,不覆盖同日完整可重放面)。"""
+    import research_provenance as rp
     date_str = datetime.now().strftime('%Y%m%d')
     daily_dir = os.path.join(DATA_DIR, 'daily')
-    os.makedirs(daily_dir, exist_ok=True)
 
-    filepath = os.path.join(daily_dir, f'china_{date_str}.json')
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(all_data, f, ensure_ascii=False, indent=2)
+    filepath, status, note = rp.daily_face_guard_write(
+        daily_dir, 'china', date_str, all_data, indent=2)
+    if status == 'degraded_diverted':
+        print(f"\n⚠️ 同日降级面({note})未覆盖完整档,转存: {filepath}")
+        return filepath
 
     size = os.path.getsize(filepath)
     print(f"\n💾 数据已保存: {filepath} ({size} 字节)")

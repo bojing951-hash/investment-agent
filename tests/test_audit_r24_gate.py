@@ -325,9 +325,10 @@ def sec_2():
           and basis.startswith('calendar:RC-2025SHUTDOWN-INDPRO-SEP'),
           f'vf={vf} basis={basis[:48]}')
     vf2, _, b2, _ = vf_pub('INDPRO', '2025-10-31')
-    check('§2 INDPRO 2025-10: 无逐期实录→保守界 2026-01-22(如实)',
-          vf2 == '2026-01-22'
-          and 'REST-CONSERVATIVE' in b2, f'vf={vf2}')
+    check('§2 INDPRO 2025-10: G.17 合并补发实录 2025-12-23(R25 权威日期'
+          '修订: 取代旧保守界 2026-01-22——10+11 月一次补发官方公告)',
+          vf2 == '2025-12-23'
+          and 'INDPRO-OCTNOV' in b2, f'vf={vf2} basis={b2[:52]}')
     # 缺首发证据: 无条目→规则推定且 basis=rule:推定(如实标注,不冒充
     # 官方实录);规则也给不出→unavailable(不虚构精确日)
     vf3, pub3, b3, _ = vf_pub('XX_NO_EVIDENCE', '2026-01-31')

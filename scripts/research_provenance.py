@@ -60,6 +60,7 @@ import math
 import os
 import re
 import sys
+import time
 from datetime import date as _date_cls
 
 import freshness_policy   # FIX1-01: 共享严格时点原语(无环: fp模块级不import rp)
@@ -220,6 +221,139 @@ def canonical_source_file(channel, file):
     except ValueError:
         return None
     return d8
+
+# ══ Audit-R25(R69)任务1: 同日重采集覆写守卫 ══════════════════════════
+# LIVE 缺陷复现(2026-11-20, R24 尝试2 记录在案): 晨间采集中途代理失效→
+# 降级面(序列丢失,china 21→16 节)仍按规范文件名落盘,覆盖同日早前完整面
+# → Gate A 重算面漂移、重放工单字节失配。守卫规则(纯采集写侧原语,
+# 不碰快照/门禁语义;前后缀权威=SOURCE_FILE_RULES 单一事实源):
+# - 规范文件不存在 → 首采直写,status='first';
+# - 已存在且新载荷覆盖**退化**(序列路径集严格缩水,或路径同构但叶子数
+#   严格减少) → 旧完整档原位不动(可重放版本保全),新降级档转存
+#   superseded/{prefix}{date}_{YYYYMMDD_HHMMSS}.json(采集版本保留,
+#   不静默丢弃),status='degraded_diverted';
+# - 已存在且覆盖不退化(扩集/等价) → 旧档先移入 superseded/(同样保留),
+#   再原子写新档,status='overwritten_preserved';
+# - IA_DAILY_ALLOW_OVERWRITE=1 → 显式豁免直写(旧档仍保留),status='forced'。
+# superseded/ 为 data/daily 子目录: resolve_inputs/data_retention 均只扫
+# data/daily 顶层,子目录档不进快照构建面,也不冒充规范来源
+# (canonical_source_file 拒绝含路径成分的文件名)。
+_SUPERSEDED_DIRNAME = 'superseded'
+
+
+def daily_face_coverage(obj):
+    """采集载荷覆盖指纹: (序列路径集, 叶子计数)——Audit-R25 任务1。
+
+    递归遍历 JSON 对象: dict 键入路径;list 以 '[]' 通配(不看下标——
+    历史长度增减不改变结构路径,防把"新增观测"误判成结构漂移)。标量叶
+    (含 None/bool)以自身路径计入集合并计数;空 dict/list 以 '{}'/'[]'
+    后缀记叶(在场证明)。值不比较——同位置数值修订(检测重算)不是
+    覆盖退化。"""
+    paths, leaves = set(), [0]
+
+    def walk(node, prefix):
+        if isinstance(node, dict):
+            if not node:
+                paths.add(prefix + '{}')
+                leaves[0] += 1
+                return
+            for k, v in node.items():
+                walk(v, f'{prefix}.{k}' if prefix else f'.{k}')
+        elif isinstance(node, list):
+            if not node:
+                paths.add(prefix + '[]')
+                leaves[0] += 1
+                return
+            for v in node:
+                walk(v, prefix + '[]')
+        else:
+            paths.add(prefix)
+            leaves[0] += 1
+
+    walk(obj, '')
+    return frozenset(paths), leaves[0]
+
+
+def _superseded_slot(data_dir, stem):
+    """在 superseded/ 里为 stem(如 'china_20261120')取不碰撞的时间戳槽位。"""
+    sup_dir = os.path.join(data_dir, _SUPERSEDED_DIRNAME)
+    os.makedirs(sup_dir, exist_ok=True)
+    base = f"{stem}_{time.strftime('%Y%m%d_%H%M%S')}"
+    dst = os.path.join(sup_dir, base + '.json')
+    n = 1
+    while os.path.exists(dst):
+        dst = os.path.join(sup_dir, f'{base}_{n}.json')
+        n += 1
+    return dst
+
+
+def _preserve_to_superseded(data_dir, fname):
+    """把即将被覆写的规范档移入 superseded/(缺席无动作,返回目标路径)。"""
+    src = os.path.join(data_dir, fname)
+    if not os.path.exists(src):
+        return None
+    dst = _superseded_slot(data_dir, fname[:-5])
+    os.replace(src, dst)
+    return dst
+
+
+def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
+    """同日重采集覆写守卫写(Audit-R25 任务1)。
+
+    data_dir=采集目录(data/daily);channel∈SOURCE_FILE_RULES;date8=
+    YYYYMMDD(采集器权威日期);payload=即将落盘的载荷对象。返回
+    (path, status, note): path=实际落盘路径(退化时=superseded 槽位);
+    status∈{'first','degraded_diverted','overwritten_preserved','forced'};
+    note=退化判据摘要(非退化为空串)。原子写=先 .tmp 后 os.replace。"""
+    rule = SOURCE_FILE_RULES.get(channel)
+    if rule is None:
+        raise ValueError(f'unknown channel: {channel!r}')
+    if not isinstance(date8, str) or not re.fullmatch(r'\d{8}', date8):
+        raise ValueError(f'date8 not YYYYMMDD: {date8!r}')
+    os.makedirs(data_dir, exist_ok=True)
+    fname = f"{rule['prefix']}{date8}.json"
+    path = os.path.join(data_dir, fname)
+    forced = os.environ.get('IA_DAILY_ALLOW_OVERWRITE', '') == '1'
+
+    def _atomic_write(dst):
+        tmp = dst + '.tmp'
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump(payload, f, ensure_ascii=False, indent=indent)
+        os.replace(tmp, dst)
+
+    if not os.path.exists(path):
+        _atomic_write(path)
+        return path, 'first', ''
+    if forced:
+        _preserve_to_superseded(data_dir, fname)
+        _atomic_write(path)
+        return path, 'forced', 'IA_DAILY_ALLOW_OVERWRITE=1 豁免守卫'
+    old_cov, old_n, old_unreadable = None, None, False
+    try:
+        with open(path, encoding='utf-8') as f:
+            old = json.load(f)
+        old_cov, old_n = daily_face_coverage(old)
+    except (OSError, ValueError):
+        old_unreadable = True   # 旧档不可读→无法证明退化,按可覆盖处理(仍保留)
+    note = ''
+    degraded = False
+    if old_cov is not None:
+        new_cov, new_n = daily_face_coverage(payload)
+        if new_cov < old_cov:
+            degraded = True
+            note = f'序列路径 {len(old_cov)}→{len(new_cov)}(丢失 {len(old_cov - new_cov)} 条)'
+        elif new_cov == old_cov and new_n < old_n:
+            degraded = True
+            note = f'路径同构叶子数 {old_n}→{new_n}'
+    if degraded:
+        sup = _superseded_slot(data_dir, fname[:-5])
+        _atomic_write(sup)
+        return sup, 'degraded_diverted', note
+    if old_unreadable:
+        note = '旧档不可读(无法证明退化),按可覆盖处理'
+    _preserve_to_superseded(data_dir, fname)
+    _atomic_write(path)
+    return path, 'overwritten_preserved', note
 
 # ══ FIX7-01/02(IA-F6-DEF-001): 采集目录祖先路径可信边界 ═══════════════
 # 缺陷回顾: FIX6实体核验以realpath(data_dir)为锚——若PROJECT/data本身是

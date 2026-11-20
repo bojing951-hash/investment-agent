@@ -1874,6 +1874,24 @@ def _r1_report_core(args, engine_root):
     # Audit-R5 条目2: 数据门为独立合取项——run_ok=true 不再豁免必要缺口
     deliverable = (machine_verified and review_ok and copies_consistent
                    and not blocked_hard)
+    # ── Audit-R25 任务1: 必要维度缺失仍交付带缺口的草稿 ──
+    # 仅地图**数据面**缺口(map_core_dimension_missing / map_anchor_
+    # coverage_insufficient,R20/R21 既档语义=「核心维度缺则交付草稿」)时,
+    # 已过机器校验+独立审查+副本一致三门的 MAP_REPORT.md 以草稿形态交付:
+    # draft_delivered=true,缺数格如实「数据不可得」+缺口注记随行。正式
+    # 交付(deliverable)与正式归档(archive belt 同判拒)仍阻断——草稿≠
+    # 正稿;其余阻断类(零证据/必要缺口/关键步骤失败/审查面缺口)不适用,
+    # 维持原拒绝路径。
+    draft_delivered = False
+    if not deliverable and blocked_class in (
+            'map_core_dimension_missing',
+            'map_anchor_coverage_insufficient'):
+        draft_delivered = (machine_verified and review_ok and copies_consistent)
+        if draft_delivered:
+            warnings.append(
+                '草稿交付(Audit-R25 任务1): blocked_class=%s——带缺口草稿'
+                '已交付(缺数格如实标注+缺口注记);正式交付与正式归档仍阻断'
+                '(补数后重跑续链)' % blocked_class)
     # ── Audit-R18: 地图问句读者报告(MAP_REPORT.md=可直读可核查交付件) ──
     # 渲染面=report.json research_plan(对照表/点值/转折候选)+Agent 席
     # reader_map 原文,确定性装配零生成;在场文件与当前装配不同版=单改/
@@ -1995,7 +2013,9 @@ def _r1_report_core(args, engine_root):
                    'prior_verdicts': sr.get('prior_verdicts') or [],
                    'record_health': sr.get('record_health') or {}},
         'copies_consistent': copies_consistent,
-        'deliverable': deliverable, 'mvp_complete': deliverable}
+        'deliverable': deliverable, 'mvp_complete': deliverable,
+        'draft_delivered': draft_delivered,
+        'draft_blocked_class': blocked_class if draft_delivered else None}
     if _rp18.get('map_question'):
         data['map_report'] = _map18_path
         data['map_renderer_drift'] = map_drift24
@@ -2326,9 +2346,11 @@ def cmd_research_one(args):
         ok, data, warns = _r1_report_core(args, engine_root)
         chain.append({'stage': 'report', 'ok': ok,
                       'deliverable': data.get('deliverable'),
+                      'draft_delivered': data.get('draft_delivered'),
+                      'draft_blocked_class': data.get('draft_blocked_class'),
                       'review': data.get('review'),
                       'full_report': data.get('full_report')})
-        if not ok or not data.get('deliverable'):
+        if not ok and not data.get('draft_delivered'):
             # 独立审查面未放行(缺席/REVISE/裁决链非法/副本不一致)=席位
             # 暂停点,零模型编排层不代裁——复验落新裁决档后重跑 auto 续链
             chain.append({'stage': 'review_pause', 'ok': None,
@@ -2338,6 +2360,18 @@ def cmd_research_one(args):
             data = dict(data, stage='auto', chain=chain)
             emit(envelope('research-one', False, data, warns or None),
                  exit_code=1)
+            return
+        if data.get('draft_delivered') and not data.get('deliverable'):
+            # Audit-R25 任务1: 带缺口草稿交付(exit 0=读者拿到草稿地图);
+            # 正式归档仍阻断(archive belt 对 map_core_dimension_missing/
+            # map_anchor_coverage_insufficient 同判拒)——补数后重跑续链
+            chain.append({'stage': 'archive', 'ok': None,
+                          'note': '草稿交付(数据面缺口 %s)——正式归档仍'
+                                  '阻断;补数后重跑 auto --report-dir 续链'
+                                  % data.get('draft_blocked_class')})
+            data = dict(data, stage='auto', chain=chain)
+            emit(envelope('research-one', True, data, warns or None),
+                 exit_code=0)
             return
         if getattr(args, 'archive_dir', None):
             aok, adata, awarns = _r1_archive_core(args, engine_root)

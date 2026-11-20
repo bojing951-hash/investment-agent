@@ -281,19 +281,24 @@ def calc_metrics(asset_id, hist):
     }
 
 def save_results(results):
-    """将采集结果保存为JSON和Markdown两种格式"""
+    """将采集结果保存为JSON和Markdown两种格式(Audit-R25 任务1: 同日降级
+    重采集经 daily_face_guard_write 守卫——序列丢失面转存 superseded/,
+    不覆盖同日完整可重放面;.md 摘要恒随最新落盘面重写,不承担重放职责)"""
+    import research_provenance as rp
     today_str = datetime.now().strftime('%Y%m%d')
 
-    # 保存JSON
-    json_path = os.path.join(DATA_DIR, "daily", f"global_{today_str}.json")
+    # 保存JSON(守卫写)
     output = {
         "date": today_str,
         "time": datetime.now().strftime('%H:%M:%S'),
         "count": len(results),
         "data": results,
     }
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
+    json_path, status, note = rp.daily_face_guard_write(
+        os.path.join(DATA_DIR, "daily"), 'global', today_str, output, indent=2)
+    if status == 'degraded_diverted':
+        print(f"同日降级面({note})未覆盖完整档,JSON转存: {json_path}"
+              f"(MD 摘要仍按最新采集重写,不承担重放职责)")
 
     # 保存Markdown表格
     md_path = os.path.join(DATA_DIR, "daily", f"global_{today_str}.md")

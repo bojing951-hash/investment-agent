@@ -723,10 +723,12 @@ def sec_5():
                  os.path.join('tests', 'test_audit_r23_gate.py'), '-q'],
                 cwd=ROOT, capture_output=True, text=True, timeout=1800)
     _tail = (p.stdout or '').strip().splitlines()[-1:] or ['']
+    _errtail = (p.stderr or '').strip().splitlines()[-1:] or ['']
     check('§5 pytest 入口: r23 门收集为 1 用例且子进程直跑真实执行'
           '(conftest.SuiteFile rc==0 判据;51 判据在 pytest 面真实跑)',
           p.returncode == 0 and '1 passed' in (p.stdout or ''),
-          f'rc={p.returncode} {_tail[0][:80]}')
+          f'rc={p.returncode} {_tail[0][:80]}'
+          + (f' stderr:{_errtail[0][:60]}' if p.returncode else ''))
     p2 = _sp.run([sys.executable, os.path.join(ROOT, 'tests',
                                                'test_audit_r23_gate.py')],
                  cwd=ROOT, capture_output=True, text=True, timeout=1800)

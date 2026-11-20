@@ -376,6 +376,22 @@ def _guard_lock(data_dir, fname):
     return _cm()
 
 
+# Audit-R26 任务1: 采集状态/披露区(非观测面)——降级判定只看观测载荷。
+# cn_history=R6/R7 carry_forward 续存披露(mode/coverage 键数随 fresh/
+# carry_forward 形态天然不同),观测序列本体在 data 区逐位不变时
+# 不得因披露区键数变化判降级(实测雷: fresh 5叶/续存3叶曾触发误转存)。
+_GUARD_STATUS_KEYS = ('cn_history',)
+
+
+def _judgment_view(payload):
+    """降级判定视图: 剔除状态/披露区后的观测载荷(非dict原样返回)。"""
+    if not isinstance(payload, dict) or not any(
+            k in payload for k in _GUARD_STATUS_KEYS):
+        return payload
+    return {k: v for k, v in payload.items()
+            if k not in _GUARD_STATUS_KEYS}
+
+
 def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
     """同日重采集覆写守卫写(Audit-R25 任务1 + Audit-R26 任务1 强化)。
 
@@ -409,7 +425,7 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
     path = os.path.join(data_dir, fname)
     forced = os.environ.get('IA_DAILY_ALLOW_OVERWRITE', '') == '1'
     _want_cov = daily_face_coverage(payload)
-    _want_ids = daily_face_identity_map(payload)
+    _want_ids = daily_face_identity_map(_judgment_view(payload))
 
     def _stage_candidate(dst):
         # Audit-R26 任务1: 候选tmp全生命周期前半——进程唯一 tmp 名(同日
@@ -424,7 +440,8 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
             with open(tmp, encoding='utf-8') as f:
                 cand = json.load(f)
             if (daily_face_coverage(cand) != _want_cov
-                    or daily_face_identity_map(cand) != _want_ids):
+                    or daily_face_identity_map(
+                        _judgment_view(cand)) != _want_ids):
                 raise IOError(
                     f'候选文件校验不符(写盘中断/序列化损坏): {tmp}——'
                     f'拒绝换入,规范档不动')
@@ -469,7 +486,7 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
         try:
             with open(path, encoding='utf-8') as f:
                 old = json.load(f)
-            old_ids = daily_face_identity_map(old)
+            old_ids = daily_face_identity_map(_judgment_view(old))
             old_paths_n = len(daily_face_coverage(old)[0])
         except (OSError, ValueError):
             old_unreadable = True   # 旧档不可读→无法证明退化,按可覆盖处理(仍保留)

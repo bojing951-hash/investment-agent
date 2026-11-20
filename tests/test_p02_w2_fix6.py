@@ -58,7 +58,7 @@ DAY = '20261024'
 CPI_KEY = 'macro.data.CPI.value'
 GM_KEY = 'global_market.data.CPI.close'
 CPI_OBS = '2026-09-01'
-STALE_OBS = '2026-08-16'          # lag 70 > CPI窗60
+STALE_OBS = '2026-07-15'          # lag 102>窗60(R26统计期末口径: 期末07-31滞后86>60)
 TODAY = '2026-10-25'
 PASS_N, FAIL_N = 0, 0
 _TMPD = tempfile.mkdtemp(prefix='w2fix6-')
@@ -245,11 +245,11 @@ vC1, rC1 = ae.verify_evidence_items(stale_ev, stale_anchors, as_of_date=None)
 vC2, rC2 = ae.verify_evidence_items(stale_ev, stale_anchors, as_of_date=TODAY)
 qC2 = dv.anchor_time_qualification(CPI_KEY, stale_anchors[CPI_KEY], TODAY)
 check("C1 过期观测对照: None→NOT_ASSESSED保留(未知≠过期,不得预判STALE);"
-      "正式→STALE拒收('数据过期…滞后70>60'),适配接口纯观测lag70/窗60——"
+      "正式→STALE拒收('数据过期…滞后102>60'),适配接口纯观测lag102/窗60——"
       "两个维度各说各话,正式计算精确",
       len(vC1) == 1 and vC1[0]['observation_freshness'] == 'NOT_ASSESSED'
-      and vC2 == [] and '数据过期' in rC2[0][0] and '70' in rC2[0][0]
-      and qC2['observation_freshness']['lag_days'] == 70
+      and vC2 == [] and '数据过期' in rC2[0][0] and '102' in rC2[0][0]
+      and qC2['observation_freshness']['lag_days'] == 102
       and qC2['observation_freshness']['window'] == 60
       and qC2['evidence_eligibility']['status'] == 'STALE',
       f"diag={len(vC1)} formal_rej={rC2[0][0][:40] if rC2 else None}")
@@ -321,7 +321,7 @@ check("F1 已知未来发布(10-29>10-25): 整项拒'点时不可得…晚于研
       ['evidence_eligibility']['usable'] is False,
       rF1[0][0][:50])
 
-check("F2 观测过期(08-16,滞后70>窗60): 拒'数据过期'(C1已证,此处登记为F情形"
+check("F2 观测过期(07-15,滞后102>窗60): 拒'数据过期'(C1已证,此处登记为F情形"
       "之一)", vC2 == [] and '数据过期' in rC2[0][0], '')
 
 badrel_anchors = {CPI_KEY: dict(FIX_ANCHORS[CPI_KEY],

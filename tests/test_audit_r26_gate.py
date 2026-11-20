@@ -89,6 +89,16 @@ def sec_a():
           s3 == 'degraded_diverted' and '叶子' in n3 and 'null≠有效观测' in n3
           and canon3['data']['CPI']['values'] == [310.0, 310.5],
           f'note={n3}')
+    # 采集状态/披露区不参与降级判定(carry_forward 键数天然异于fresh;
+    # 观测序列逐位不变→放行——实测雷: cn_history 5叶→3叶曾误转存)
+    cf = json.loads(json.dumps(full))
+    cf['cn_history'] = {'CPI': {'mode': 'carry_forward',
+                                'carry_forward_from': 'macro_20261119.json',
+                                'carry_forward_reason': '本轮失败续存(披露)'}}
+    _, s_cf, n_cf = rp.daily_face_guard_write(d, 'macro', '20261120', cf)
+    check('§A5b 披露区键数变化+观测不变→放行(carry_forward续存不误判降级)',
+          s_cf == 'overwritten_preserved' and n_cf == '',
+          f'status={s_cf} note={n_cf}')
     # 正常数值修订放行(检测重算不是覆盖退化)
     rev = json.loads(json.dumps(full))
     rev['data']['CPI']['values'][-1] = 311.0

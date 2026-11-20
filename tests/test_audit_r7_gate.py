@@ -465,9 +465,22 @@ def _new_data_root():
     return d
 
 
-def _run_round(droot, fetch_result, us=None):
+class _FixedDT:
+    """R26: 跨日轮模拟——save_macro 用 datetime.now() 取档日,固定到指定日。"""
+
+    def __init__(self, y, m, d):
+        import datetime as _d
+        self._dt = _d.datetime(y, m, d)
+
+    def now(self, tz=None):
+        return self._dt
+
+
+def _run_round(droot, fetch_result, us=None, day=None):
     """一轮正式采集(网络边界注入: fetch_result=伪造返回/异常;写档经
-    生产 save_macro+merge_cn_history)。返回 cn_status。"""
+    生产 save_macro+merge_cn_history;day=(y,m,d)=模拟采集日,缺省=真实
+    当日——Audit-R26 后同日部分面会被守卫转存,跨日续存场景须 day 推进)。
+    返回 cn_status。"""
     mc.DATA_DIR = os.path.join(droot, 'data')
     if isinstance(fetch_result, BaseException):
         def _boom():
@@ -481,7 +494,13 @@ def _run_round(droot, fetch_result, us=None):
     if us:
         results.update(json.loads(json.dumps(us)))
     results, cn_status = mc.merge_cn_history(results, data_dir=mc.DATA_DIR)
-    mc.save_macro(results, [], {}, cn_history=cn_status)
+    _orig_dt = mc.datetime
+    if day:
+        mc.datetime = _FixedDT(*day)
+    try:
+        mc.save_macro(results, [], {}, cn_history=cn_status)
+    finally:
+        mc.datetime = _orig_dt
     return cn_status
 
 
@@ -588,34 +607,61 @@ check('F3 美国宏观刷新 → CN 仍在档 fresh(不遮蔽)',
       and len(q3['dates']) == 226
       and q3['collection_status']['mode'] == 'fresh')
 
-# F4 中国单项失败: PMI 续存披露(carry_forward),仍满足任务窗=可用
+# F4 同日单项失败(部分面): R26守卫转存——旧完整档保持规范,DFF/CN不丢
 st4 = _run_round(d1, {'CN_NEW_LOANS': _cn_item(2008, 1, 2026, 10,
                                                '2026-11-17T08:00:00Z')})
 q4 = _query(d1)
 f4 = _eval_item(d1, '近三年 CN_PMI_MFG 走势', '2026-11-17')
-check('F4 单项失败续存 → carry_forward 如实+仍满足任务窗=披露放行',
-      st4['CN_PMI_MFG']['mode'] == 'carry_forward'
-      and q4['collection_status']['mode'] == 'carry_forward'
+_canon4 = json.load(open(os.path.join(
+    d1, 'data', 'daily', 'macro_%s.json' % _latest_ymd(d1)),
+    encoding='utf-8'))
+_sup4 = [f for f in os.listdir(os.path.join(d1, 'data', 'daily',
+                                            'superseded'))
+         if f.startswith('macro_') and not f.startswith('.lock.')]
+check('F4 同日部分面(丢DFF身份)→守卫转存,规范档保完整(DFF+CN在档)',
+      st4['CN_NEW_LOANS']['mode'] == 'fresh'
+      and 'DFF' in _canon4['data'] and 'CN_PMI_MFG' in _canon4['data']
+      and q4['collection_status']['mode'] == 'fresh'
       and q4['collection_status']['last_success_at']
       == '2026-11-17T06:00:00Z'
-      and q4['collection_status']['last_observation_period']
-      == '2026-10-01'
-      and f4['outcome'] == 'satisfied'
-      and '续用披露' in f4['outcome_basis'],
-      f4['outcome_basis'][-80:])
+      and _sup4
+      and any(json.load(open(os.path.join(d1, 'data', 'daily',
+                                          'superseded', f),
+                                 encoding='utf-8'))
+              ['cn_history']['CN_PMI_MFG']['mode'] == 'carry_forward'
+              for f in _sup4)
+      and f4['outcome'] == 'satisfied',
+      f"canon指标数={len(_canon4['data'])} sup={len(_sup4)}")
 
-# F5 两项失败: 双续存,查询/判定如实
-st5 = _run_round(d1, RuntimeError('CN 端点不可达'))
+# F4c 跨日单项失败: carry_forward 正道(昨日档续存,披露可见,任务窗满足)
+st4c = _run_round(d1, {'CN_NEW_LOANS': _cn_item(2008, 1, 2026, 10,
+                                                '2026-11-18T08:00:00Z')},
+                  day=(2026, 11, 21))
+q4c = _query(d1)
+f4c = _eval_item(d1, '近三年 CN_PMI_MFG 走势', '2026-11-21')
+check('F4c 跨日单项失败续存 → carry_forward 如实+仍满足任务窗=披露放行',
+      st4c['CN_PMI_MFG']['mode'] == 'carry_forward'
+      and q4c['collection_status']['mode'] == 'carry_forward'
+      and q4c['collection_status']['last_success_at']
+      == '2026-11-17T06:00:00Z'
+      and q4c['collection_status']['last_observation_period']
+      == '2026-10-01'
+      and f4c['outcome'] == 'satisfied'
+      and '续用披露' in f4c['outcome_basis'],
+      f4c['outcome_basis'][-80:])
+
+# F5 跨日两项失败: 双续存,查询/判定如实
+st5 = _run_round(d1, RuntimeError('CN 端点不可达'), day=(2026, 11, 22))
 q5 = _query(d1)
 q5b = _query(d1, 'CN_NEW_LOANS')
-f5 = _eval_item(d1, '近三年 CN_PMI_MFG 走势', '2026-11-17')
-check('F5 两项失败 → 双 carry_forward(最后成功采集不冒充本轮)',
+f5 = _eval_item(d1, '近三年 CN_PMI_MFG 走势', '2026-11-22')
+check('F5 跨日两项失败 → 双 carry_forward(最后成功采集不冒充本轮)',
       st5['CN_PMI_MFG']['mode'] == 'carry_forward'
       and st5['CN_NEW_LOANS']['mode'] == 'carry_forward'
       and q5['collection_status']['last_success_at']
       == '2026-11-17T06:00:00Z'
       and q5b['collection_status']['last_success_at']
-      == '2026-11-17T08:00:00Z'
+      == '2026-11-18T08:00:00Z'
       and f5['outcome'] == 'satisfied'
       and f5['spec'].get('collection_status', {}).get('mode')
       == 'carry_forward')
@@ -635,7 +681,7 @@ check('F6 无历史可续用 → absent 如实缺席(查询无序列+判定 miss
       f"q={q6e} outcome={f6['outcome']}")
 
 # F7 合理续用: report 渲染续用披露+可交付(正例)
-rdF7 = make_run(tmp, 'f7', req_items=[f4])
+rdF7 = make_run(tmp, 'f7', req_items=[f4c])
 aj.record_semantic_verdict(eroot, rdF7, 'UPHELD', 'R7-F7')
 eF7 = stage_report(rdF7, eroot)
 mdF7 = open(os.path.join(rdF7, 'report.md'), encoding='utf-8').read()

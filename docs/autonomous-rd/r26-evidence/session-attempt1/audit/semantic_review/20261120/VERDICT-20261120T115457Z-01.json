@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "semantic-audit-seat",
+  "notes": "六审16项: UPHELD 10/REVISE 6,零 NOT_VERIFIED 零 REJECT_ENTRY。必修五处: ①headline 迫使 越过对质表尚不能区分裁界 ②转折①日本列为美国通胀事件跟进+触发全球政策反应 被引擎日本政策路径(2025-12起已加息)反驳并与转折③日本先变自相矛盾——最强反例 ③CON-3/M2环3 不能由该渠道解释 从日变化相关近零跳到机制不存在(美日利差水平仍~2.6pp未排除) ④CON-2 全球风险资产回调 与同报告 DAX+1.71% 冲突 ⑤CN段 与收紧周期背离 在政策取向不可得下过强。反方攻击14发: 引擎分位核(HY_OAS 90.2/CCC 99.9分位支持高企与急剧)、六条归档相关独立复算全落区间、USDCNY 24.6分位支持人民币偏强、CPI基期洞不碍SCN-A可观测。缺口披露(CN/EA/JP序列缺席/EA HICP滞后11月)充分规范。",
+  "run_ts": "20261120T115457Z",
+  "content_sha256": "7a408f5aea6a19402535fa5b6acb1d29b60185e0a5f5e40a50f14bbb87fe8250",
+  "audited_at": "2026-11-20",
+  "recorded_at": "20261120T122620Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "88dda86d27e7aa491c51393e1a19d57e83dcaedf372eba7ee9fcbc6415149065",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

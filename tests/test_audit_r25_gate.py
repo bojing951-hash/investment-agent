@@ -282,6 +282,28 @@ def sec_c():
           and 'question_verbatim' in plan.get('question_summary', ''))
     check('§C3 跨面一致性标记入计划(cross_face_consistency=r25)',
           plan.get('cross_face_consistency') == 'r25')
+    # ── 原问逐字入口: --question-file 字节直读(手打内联会重排标点) ──
+    ia_src = open(os.path.join(ROOT, 'ia_cli.py'), encoding='utf-8').read()
+    qf = os.path.join(TMPG, 'q_verbatim.txt')
+    with open(qf, 'w', encoding='utf-8') as f:
+        f.write(Q + '\n')
+    r_mis = subprocess.run(
+        [sys.executable, os.path.join(ROOT, 'ia_cli.py'), 'research-run'],
+        capture_output=True, text=True, cwd=ROOT, timeout=120)
+    open(os.path.join(TMPG, 'q_empty.txt'), 'w').close()
+    r_emp = subprocess.run(
+        [sys.executable, os.path.join(ROOT, 'ia_cli.py'), 'research-run',
+         '--question-file', os.path.join(TMPG, 'q_empty.txt')],
+        capture_output=True, text=True, cwd=ROOT, timeout=120)
+    check('§C3b 原问逐字入口: --question-file 在场(两入口)+空问句/缺问句'
+          '双拒+仅去尾换行',
+          '--question-file' in ia_src
+          and "rstrip('\\n')" in ia_src
+          and r_mis.returncode != 0
+          and '--question-file' in r_mis.stdout
+          and r_emp.returncode != 0
+          and 'empty_question_file' in r_emp.stdout,
+          f"mis={r_mis.returncode} emp={r_emp.returncode}")
 
     trio = {'status': 'ok',
             'chg_bp': {'UST_10Y': 104.0, 'TIPS_10Y': 97.0,

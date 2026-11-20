@@ -2543,7 +2543,11 @@ def build_parser():
     rr = sub.add_parser('research-run',
                         help='一键研究编排(R2/AC6): 十一步确定性管线,零模型;'
                              'L3 AI推断/L4 条件情景恒 declared-not-produced')
-    rr.add_argument('--question', required=True, help='研究问题原文')
+    rr.add_argument('--question', default=None,
+                    help='研究问题原文(与 --question-file 二选一)')
+    rr.add_argument('--question-file', default=None,
+                    help='原问逐字文件(Audit-R25 任务3: 优先于 --question,'
+                         '字节直读免手打重排标点;仅去尾部换行)')
     rr.add_argument('--archive', action='store_true',
                     help='落档(Skill 第 11 步=用户认可后;默认关)')
     rr.add_argument('--out-dir', default=None,
@@ -2555,6 +2559,9 @@ def build_parser():
     r1 = sub.add_parser('research-one',
                         help='一键研究 MVP 单入口(plan→Agent 席→attach→report;章程 Phase 3)')
     r1.add_argument('--question', default=None, help='研究问题(plan 段必填)')
+    r1.add_argument('--question-file', default=None,
+                    help='原问逐字文件(Audit-R25 任务3: 优先于 --question,'
+                         '字节直读免手打重排标点;仅去尾部换行)')
     r1.add_argument('--stage', choices=['plan', 'attach', 'report', 'auto',
                                         'archive'], default='plan',
                     help='plan=research-run+工单;attach=judgment 校验合并;'
@@ -2601,6 +2608,24 @@ def build_parser():
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
+    # Audit-R25 任务3: 原问逐字传递——--question-file 字节直读优先于
+    # --question(会话/操作者转述会把全角标点重排为半角,169 字变 168
+    # 字的实雷即此;文件仅去尾部换行,其余字节不动)。
+    _qf = getattr(args, 'question_file', None)
+    if _qf:
+        with open(_qf, encoding='utf-8') as f:
+            args.question = f.read().rstrip('\n')
+        if not args.question:
+            emit(envelope(args.capability, False, {},
+                          error=('empty_question_file',
+                                 '--question-file 内容为空: ' + _qf, None)),
+                 exit_code=2)
+    elif args.capability == 'research-run' and not args.question:
+        emit(envelope('research-run', False, {},
+                      error=('missing_question',
+                             'research-run 需要 --question 或 --question-file',
+                             None)),
+             exit_code=2)
     handlers = {'doctor': cmd_doctor, 'update': cmd_update, 'overview': cmd_overview,
                 'changes': cmd_changes, 'history': cmd_history, 'compare': cmd_compare,
                 'analog': cmd_analog, 'research': cmd_research, 'archive': cmd_archive,

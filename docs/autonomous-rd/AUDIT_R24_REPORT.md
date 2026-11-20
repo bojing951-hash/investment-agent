@@ -1,6 +1,7 @@
 # Audit-R24 交付报告(R68)
 
-基线 b0a97f9 → 代码修复 351a0b6(dev/audit-fix-r1,已推 PR #1)。四项验收对应本报告四节;
+基线 b0a97f9 → 代码修复 351a0b6 → 4739127(收口)→ 4cd09c9(CI 热修1)→
+aa71380(CI 热修2)(dev/audit-fix-r1,已推 PR #1)。四项验收对应本报告四节;
 工单号/会话记录/归档摘要见第4节;测试与 CI 见第5节。
 
 ## 0. 环境与工单发现
@@ -99,7 +100,25 @@ analog 纪律块上提至历史节标题正下方。
 - pytest 入口: r23 门补字面 sys.exit(0) 后 pytest tests/test_audit_r23_gate.py -q=1 passed
   ≈9s(51 判据经子进程真实执行);**提交后全量 pytest: 196/196 全绿(0:11:21)**——含
   phase6(D3 工作面净)与全部门的 pytest 入口,首次零红电池(日志 r24-evidence/gates/)。
-- CI: (待填: run 号+三 job 状态)
+- CI(dev/audit-fix-r1 逐 SHA,终态三 job 绿):
+  - run 44669128988(head 4739127)红: tests(3.11/3.12)两 job 红,唯一红=
+    r24 门 §5「pytest 入口」——runner 从未装 pytest,`python3 -m pytest`
+    rc=1 空输出(本地绿=Mac 环境碰巧有 pytest 的环境运气)。
+    修1=4cd09c9: offline-tests.yml pip install 加 pytest(同时落实任务4
+    「pytest 与 CI 均实际执行」)+判据详情补 stderr 尾。
+  - run 44670255565(head 4cd09c9)红: 装上 pytest 后 E 套件转行为支,
+    唯一红=test_pytest_entry_fix「E6 恰执行一次」(15 PASS/1 FAIL)——
+    旧判据数渲染行出现次数,CI(py3.11/3.12+pytest 8.4.2)FAILURES 摘要
+    重复渲染标记行≥2 次(本地 py3.9.6 同版 pytest 计 1,CI=true 亦不复现;
+    渲染次数≠执行次数)。
+    修2=aa71380: E6 判据改副作用计数器(临时套件经 ZZ_E6_COUNTER env
+    追加计数,沿子进程链继承;count==1 判恰执行一次,与渲染解耦)+
+    诊断详情(执行次数+汇总行)+-k 支路同判据+docstring 更新。
+    本地复核: test_pytest_entry_fix 17/0+pytest 入口 1 passed+r24 门 74/0。
+  - run 44672139847(head aa71380)绿: gates+tests(3.11)+tests(3.12)
+    三 job 全 success——任务4「pytest 与 CI 均实际执行 51 项检查」闭环
+    (tests job 经 pip 装 pytest 后 pytest 面真实收集执行;CI 直跑面
+    逐件 python3 同构)。
 
 ## 6. 遗留与移交
 

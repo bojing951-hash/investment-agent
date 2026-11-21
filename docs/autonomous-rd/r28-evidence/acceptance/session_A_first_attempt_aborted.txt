@@ -1,0 +1,11 @@
+# 会话 A 首轮中止实录(诚实记录,2026-11-21 14:06-14:14 HKT)
+- 首轮裸问句会话(14:06:32 起)直入 research-one plan,run_dir 20261121T060719Z:
+  run_ok=False,22 个地图计划指标全缺数(point_values.absent 全列),S4 全跳过。
+- 根因(操作者侧,双因):
+  1) 建造流程漏 R27 的采集步(build_tree 后未跑 run_collect 一轮八采集器)——
+     建造脚本删除当日 china/ea/jp/japan 旧格式面后,树内无人重采;
+  2) LIVE 当日 07:20 morning 轮 macro_20261121.json 为空面(data n=0,采集失败
+     落盘),metric_series 取最新面→22 指标序列全空。
+- 处置: 中止会话(rc=143,SIGTERM),清理其 output/与 question_verbatim_*,
+  树内补跑八采集器一轮+snapshot_builder 重建快照,验证地图指标可解析后重启
+  会话 A(裸问句,与首轮同口径)。首轮产物已删,不计为验收会话。

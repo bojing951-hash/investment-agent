@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "semantic-review-r28",
+  "notes": "F项不通过: 两情景触发条件与前提方向倒置——S1触发(TIPS_10Y月末小于等于2.50且CORE_PCE同比小于3.0)即其自身证伪阈值的单月版,按表注触发等于验证语义构成自相矛盾; S2触发(连续两月CPI均值大于等于4.2且再度上调)属通胀再加速方向,与通缩转折前提相反; 建议两触发对调或按各自前提改写并保留证伪行。A数值抽查全部一致, B缺数如实, C分层与E1E2E3齐备, D样本注记与巧合旗标齐, E月频先后未定与决议日先后有据, G三档同源一致。",
+  "run_ts": "20261121T063746Z",
+  "content_sha256": "2364a2a5cf387e233122b34486cea2c36e7f98ecb00a9dc9b3d54835d775182c",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T065743Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "2d71dfbe62699611b10a216170270ebaf8ee5a07a2a75b1cfe938a8fe059e318",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

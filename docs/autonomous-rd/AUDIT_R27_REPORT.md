@@ -220,9 +220,11 @@ phase6+p03+r7 全绿(r7 三红=夹具日期腐烂,首跑 CI 揭穿后正道修�
   CI 干净克隆缺席(R8/R22 在案坑),本地恰有安装面才过。修复=在场性守卫
   (.claude gitignored 缺席合法豁免,.agents 仓内跟踪面必须在)+内容查
   (.agents);本地/干净克隆双形态 35/0。
-- 全量电池: tests/test_*.py 逐件 rc∈{0,5} 口径(修复后全绿回填)。
-- 远端 CI: 首跑 run 44856874693 红(上述两红, gates job 绿);修复后复跑
-  (回填)。
+- 全量电池: tests/test_*.py 逐件 rc∈{0,5} 口径,修复后全绿(唯一过窗红=
+  phase6 净树自指检查,提交后复跑 29/0 自绿——既档行为)。
+- 远端 CI: 首跑 run 44856874693 红(上述两红;gates job 绿);修复提交
+  746a80d 复跑 **run 44858942833 全绿**。
+  https://github.com/bojing951-hash/investment-agent/actions/runs/44858942833
 
 ## 6. 交付面
 
@@ -245,4 +247,7 @@ phase6+p03+r7 全绿(r7 三红=夹具日期腐烂,首跑 CI 揭穿后正道修�
   用例,门 §D);任务3=§3(一把锁+占位豁免+时点回退,门 §A 七查);任务4=
   §4(三席真跑+全新临时目录包验 A/B/C+REVISE→UPHELD 双记录条款——本轮三席
   均首裁 UPHELD,单记录如实;footer 双记录注记为条件式)。
-- PR SHA/CI: (推送后填)
+- PR 尖=**746a80d**(746a80d85815d1c5cb05b4f839297d1bd5f665e7,
+  dev/audit-fix-r1→PR #1);CI=run 44858942833 绿
+  (https://github.com/bojing951-hash/investment-agent/actions/runs/44858942833)。
+- 交付评论=PR #1 comment 7056049726;正式归档与合并停等用户裁定。

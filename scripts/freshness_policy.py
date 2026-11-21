@@ -723,13 +723,16 @@ def policy_decision_state(metric_id, as_of, calendar_path=None):
 
     纯日历文件面(零网络): 汇总 kind∈{policy_decision, policy_maintenance}
     且 first_publish_on_or_after ≤ as_of(可见)的条目 →
-      present=True | last_decision(最近决议日) | last_effective(最近
-      生效日) | official_target(该决议宣布的官方目标水平) |
+      present=True | last_decision(最近**已生效**决议日) | last_effective
+      (最近生效日) | official_target(该决议宣布的官方目标水平;仅
+      effective_on ≤ as_of 的决议——公告未生效不入当前面) |
       last_maintenance(最近确认维持日) | last_confirmed_on(核验覆盖
       截止=决议首发与维持发布的最近日) | days_since_adjustment
-      (=as_of−生效日。**「距上次调整」按生效日计算**——目标水平自
-      生效日起实际执行,决议日是公告面;两者分记 days_since_decision/
-      days_since_maintenance 一并给出) | records(逐条溯源)。
+      (=as_of−生效日,恒≥0。**「距上次调整」按生效日计算**——目标水平
+      自生效日起实际执行,决议日是公告面;两者分记 days_since_decision/
+      days_since_maintenance 一并给出) | pending_adjustments(已公告
+      待生效决议逐条;Audit-R30 任务2) | pending_target/pending_
+      effective_on(最新待生效目标及其生效日) | records(逐条溯源)。
     无可见政策条目 → {'present': False}——官方记录缺席≠政策未发生,
     调用方如实注记(问句指定官方目标而记录缺席=缺口点名),不虚构。"""
     if calendar_path is None:
@@ -768,9 +771,23 @@ def policy_decision_state(metric_id, as_of, calendar_path=None):
     if not decisions and not maintenances:
         return out
     out['present'] = True
+    # ── Audit-R30 任务2: 生效/待生效分记────────────────────────────
+    # as_of 时点**已生效**(effective_on ≤ as_of)的决议构成当前官方
+    # 目标面;已公告但 effective_on > as_of 的决议不入当前面,落
+    # pending_adjustments(待生效)——2026-09-20 读 BOJ=旧目标可核实
+    # +新目标 1.25 待生效(09-24 切换),days_since_adjustment 恒≥0
+    # (负数日面=把公告当已生效的时点错误,R29 前实雷)。
+    def _eff_of(r):
+        _e = _parse_iso_date(r.get('effective_on')) \
+            if isinstance(r.get('effective_on'), str) else None
+        return _e
+    eff_decs = [r for r in decisions
+                if _eff_of(r) is not None and _eff_of(r) <= _a]
+    pend_decs = [r for r in decisions
+                 if _eff_of(r) is not None and _eff_of(r) > _a]
     last_dec = None
-    if decisions:
-        last_dec = max(decisions, key=lambda r: (
+    if eff_decs:
+        last_dec = max(eff_decs, key=lambda r: (
             r.get('effective_on') or '', r.get('decision_date') or ''))
     last_mnt = (max(maintenances,
                     key=lambda r: r['first_publish'])
@@ -786,6 +803,15 @@ def policy_decision_state(metric_id, as_of, calendar_path=None):
         last_confirmed_on=max(confirm_dates)
         if confirm_dates else None,
         records=decisions + maintenances)
+    if pend_decs:
+        # 待生效决议(公告面已可见): 逐条溯源+便利键(最新待生效目标)。
+        out['pending_adjustments'] = sorted(
+            pend_decs, key=lambda r: (r.get('effective_on') or '',
+                                      r.get('decision_date') or ''))
+        out['pending_target'] = out['pending_adjustments'][-1].get(
+            'target_value')
+        out['pending_effective_on'] = out['pending_adjustments'][-1].get(
+            'effective_on')
     try:
         if out.get('last_effective'):
             out['days_since_adjustment'] = (

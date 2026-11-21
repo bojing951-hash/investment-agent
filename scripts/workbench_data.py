@@ -91,7 +91,24 @@ RATES_ASSET_CLASSES = {'rates_yield', 'policy_rate', 'curve_slope'}
 
 # ══ 快照与注册表 ══════════════════════════════════════════════════════
 def latest_snapshot(root=None):
-    """最新研究快照(修订版感知): 返回 (snapshot_dict|None, path或原因)."""
+    """最新研究快照(修订版感知): 返回 (snapshot_dict|None, path或原因).
+
+    Audit-R30 任务1: IA_SNAPSHOT_PIN=运行级快照钉死 seam。orchestrator
+    在第一次取数前解析一次并置位(绝对路径),计划/子命令/L1 事实/渲染/
+    裁决/归档随后全部经本函数读同一份——S3 期间同日 _v2 落盘不串号
+    (旧工单全程原版;新工单=新进程新解析,选新版)。文件被移走→如实
+    报错拒绝静默回退文件系统解析(fail-closed)。进程退出即失效,
+    不落盘不影响重放/归档面。"""
+    pin = os.environ.get('IA_SNAPSHOT_PIN')
+    if pin:
+        if not os.path.isfile(pin):
+            return None, (f'IA_SNAPSHOT_PIN 钉死快照已不存在({pin})'
+                          '——拒绝静默回退到文件系统解析,如实报错')
+        try:
+            with open(pin, encoding='utf-8') as f:
+                return json.load(f), pin
+        except (OSError, ValueError) as e:
+            return None, f'IA_SNAPSHOT_PIN 钉死快照不可读({pin}): {e}'
     daily = os.path.join(root or ROOT, 'data', 'daily')
     cands = sorted(glob.glob(os.path.join(daily, 'research_snapshot_*.json')))
     if not cands:

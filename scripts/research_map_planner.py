@@ -415,7 +415,9 @@ def history_region_sync_face(history_periods, rj):
 
     逐段(锚=anchor_ym,判断截止月=judgment_cutoff_ym): 美中欧日×
     增长/通胀/货币政策,两端读数=锚−3月与截止月各自≤该月的最新当时
-    可知观测(发布纪律: 可见日≤截止月末;公布日随行)。标签:
+    可知观测(发布纪律: 可见日≤**各自端点**该月末——Audit-R30 任务2
+    起锚−3月端按自己的截止取数,不共用判断截止吃发布面后视;公布日
+    随行)。标签:
     同步=与美国同维度方向一致(双持平亦同);分化=方向相反或一端持平
     一端变动;缺证=序列缺席/无可见观测/同比基期不可见——逐项点名缺
     哪条,不以相邻维度冒充。月频分辨率界限同引擎既档: 两端读数仅给
@@ -428,6 +430,11 @@ def history_region_sync_face(history_periods, rj):
             continue
         cutoff_end = _aof_month_end(cym)
         prior_m = _shift_months(cym + '-01', 3)[:7]
+        # Audit-R30 任务2: 锚−3月端按**自己的**可知截止(该月末)取数
+        # ——原实现两端共用判断截止月末,早端吃进 3 个月发布面后视
+        # (锚−3月观测常于次月上旬发布,判断截止已可见≠当时可知;
+        # as_of 泄漏拦截纪律对两端各自生效)。截止端口径不变。
+        prior_end = _aof_month_end(prior_m)
         rows = []
         for eco, dim, mid, label, kind in _HIST_REGION_DIMS:
             s = _series_from_report(rj, mid) if rj is not None else None
@@ -442,7 +449,7 @@ def history_region_sync_face(history_periods, rj):
             freq = s.get('frequency') or 'monthly'
             r1, why1 = _hist_region_reading(s, cym, cutoff_end, mid, kind,
                                             freq)
-            r0, why0 = _hist_region_reading(s, prior_m, cutoff_end, mid,
+            r0, why0 = _hist_region_reading(s, prior_m, prior_end, mid,
                                             kind, freq)
             row['vintage_note'] = _aof_revision_note(mid)
             if r1 is None or r0 is None:
@@ -952,7 +959,12 @@ def _publish_date(metric_id, frequency, obs_date):
     return (b + datetime.timedelta(days=days)).isoformat(), rule
 
 DIMENSION_WORDS = [('增长', 'growth'), ('通胀', 'inflation'),
-                   ('货币政策', 'policy')]
+                   ('货币政策', 'policy'),
+                   # Audit-R30 任务3: 裸「政策」词形——「增长、通胀和政策
+                   # 哪里分化」并列点名三维,原只识「货币政策」四字形→
+                   # 该问句政策维整列漏检(12 组只成 8 组)。「政策」含于
+                   # 「货币政策」→两词形同值 policy,无重复维。
+                   ('政策', 'policy')]
 # Audit-R29 任务2: 隐含比较维度——问宏观环境/分化「体现在哪些维度」而不点
 # 名任何维度词形时,按声明式全维族(增长+通胀+货币政策)展开: 环境问句
 # 的「维度」语义=三族对照(与地图注册表同族),不虚构新维;证据不足的
@@ -987,7 +999,12 @@ ASSET_UNIVERSE = ['UST_2Y', 'UST_5Y', 'UST_10Y', 'UST_30Y', 'TIPS_5Y',
 # Audit-R29 任务2: 「宏观基本面」与「宏观环境」同族(隐含全维族线索
 # 见 _IMPLICIT_DIM_CUE_RE),形状词相应补「基本面」——否则同族问句
 # 检测与计划两套口径(隐含展开吃到、形判漏检)。
-MAP_SHAPE_WORDS = ('地图', '转折', '传导', '结构最像', '环境', '基本面')
+MAP_SHAPE_WORDS = ('地图', '转折', '传导', '结构最像', '环境', '基本面',
+                   # Audit-R30 任务3: 「哪里分化」的分化词形——R29 隐含
+                   # 维度线索已认 (?:明显)?分化,形判词面漏同族(检测与
+                   # 计划两套口径之续修);OPEN2=环境/NEW2=基本面词形
+                   # 不受影响。
+                   '分化')
 _DIM_LABEL = {'growth': '增长', 'inflation': '通胀', 'policy': '货币政策'}
 _REGION_LABEL = {'US': '美国', 'CN': '中国', 'EA': '欧元区', 'JP': '日本'}
 
@@ -1001,6 +1018,12 @@ _POINT_YEARS_RE = re.compile(r'(?P<num>[0-9]+|[一二两三四五六七八九十
 _POINT_EXPLICIT_YM_RE = re.compile(
     r'(?P<y>[0-9]{4})\s*年\s*(?P<m>[0-9]{1,2})\s*月')
 _POINT_COMPARE_RE = re.compile(r'相比|对比|相较|较之|比起')
+# Audit-R30 任务3: 问句时间窗词形「过去/近/最近 N 个月」——窗语义(范围
+# 两端=窗起+当期),非「N个月前」点语义;原零解析→网格锚空、所问
+# 时间窗在地图面被丢弃。与 _question_window 的 relative_months 同
+# 词形(数据需求窗同源);此处落窗起锚+当期锚+question_window 披露。
+_POINT_WINDOW_RE = re.compile(
+    r'(?:过去|近|最近)\s*(?P<num>[0-9]+|[一二两三四五六七八九十]+)\s*个?\s*月')
 # 事后偏移: 随后/之后/其后 的 N(、M、K)?个月
 _EXPOST_RE = re.compile(
     r'(?:随后|之后|其后)(?P<list>(?:\s*[0-9一二两三四五六七八九十]+\s*[、,，和及]\s*)*'
@@ -1071,6 +1094,27 @@ def detect_map_question(question, ent):
     return len(ecos) >= 2 and len(dims) >= 2 and any(w in q for w in MAP_SHAPE_WORDS)
 
 
+def parse_question_windows(question, cutoff_iso):
+    """问句时间窗(Audit-R30 任务3): 「过去/近/最近 N 个月」→窗列表。
+
+    每窗 {'months': N, 'from': 研究截止日−N月, 'to': 研究截止日,
+    'source': 原词形}。窗语义=范围(两端=窗起+当期),与点锚(「N个
+    月前」)、事后偏移(「随后N个月」)分记三类;调用方(plan_map)
+    落 question_window 披露+窗起入点锚对照,数据需求窗由
+    _question_window 同词形解析(relative_months,单一扫描器口径
+    不变)。数量守卫与点锚一致(1..120;中文数量经 _cn_num)。"""
+    q = question or ''
+    wins = []
+    for m in _POINT_WINDOW_RE.finditer(q):
+        n = _cn_num(m.group('num'))
+        if n and 1 <= n <= 120:
+            wins.append({'months': n,
+                         'from': _shift_months(cutoff_iso, n),
+                         'to': cutoff_iso,
+                         'source': m.group(0)})
+    return wins
+
+
 def parse_point_anchors(question, cutoff_iso):
     """对照时点(日历点锚)。返回按 months_before 降序(12月前→3月前→最新)。
 
@@ -1085,7 +1129,11 @@ def parse_point_anchors(question, cutoff_iso):
     - 比较结构(「…相比N个月前各有什么变化」)隐含当期端点: 存在
       N个月前锚且问句含相比/对比一类词而「最新一期/当前」词形缺席
       时补当期锚——对照表恒有当期列与所请求的历史列并列(同一时点
-      多指标不替代另一时点)。"""
+      多指标不替代另一时点)。
+    Audit-R30 任务3: 时间窗词形(「过去/近/最近 N 个月」)落位——窗起
+    (=截止日−N月)入点锚对照(带 window_start 标记),窗端=当期锚
+    (问句问窗内分化→当期状态即窗端读数);窗自身随 plan 的
+    question_window 披露。"""
     q = question or ''
     months = set()
     for m in _POINT_MONTHS_RE.finditer(q):
@@ -1113,12 +1161,23 @@ def parse_point_anchors(question, cutoff_iso):
                 {'kind': 'point', 'label': f'{y}年{mo}月',
                  'as_of': _shift_months(cutoff_iso, n),
                  'months_before': n, 'explicit_period': f'{y:04d}-{mo:02d}'})
+    _wins = parse_question_windows(q, cutoff_iso)
+    _win_months = {w['months'] for w in _wins}
+    months |= _win_months    # 窗起=截止日−N月,入点锚对照
     anchors = [{'kind': 'point', 'label': f'{n}个月前',
                 'as_of': _shift_months(cutoff_iso, n), 'months_before': n}
                for n in sorted(months, reverse=True)]
     anchors += sorted(_explicit_hist, key=lambda a: -a['months_before'])
+    for a in anchors:        # 窗起标记(点锚恰=窗起时同一锚兼两职,如实)
+        if a.get('months_before') in _win_months and a['kind'] == 'point':
+            a.setdefault(
+                'window_start',
+                '问句时间窗窗起(%s)' % next(
+                    w['source'] for w in _wins
+                    if w['months'] == a['months_before']))
     _wants_current = (_POINT_LATEST_RE.search(q) or _explicit_cur
-                      or (months and _POINT_COMPARE_RE.search(q)))
+                      or (months and _POINT_COMPARE_RE.search(q))
+                      or bool(_wins))
     if _wants_current and not any(a['months_before'] == 0
                                   for a in anchors):
         _cur = {'kind': 'point', 'label': '最新一期',
@@ -1195,7 +1254,12 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
     全域全维(旧口径)。"""
     ecos = [e for e in (ent.get('economies') or [])
             if e in REGION_DIMENSION_METRICS]
-    dims = [d for w, d in DIMENSION_WORDS if w in (question or '')]
+    # Audit-R30 任务3: 裸「政策」与「货币政策」同值 policy——保序去重,
+    # 词形并列命中不产生重复维(下游 regions/dimensions/网格按维消费)。
+    dims = []
+    for _w, _d in DIMENSION_WORDS:
+        if _w in (question or '') and _d not in dims:
+            dims.append(_d)
     if 'policy' not in dims and any(
             w in (question or '') for w in _POLICY_DIM_EXTRA):
         dims.append('policy')
@@ -1298,6 +1362,13 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         'metrics': metrics,
         'context_metrics': [m for m in US_RATES_TRIO],
         'point_anchors': parse_point_anchors(question, cutoff_iso),
+        # Audit-R30 任务3: 问句时间窗(「过去/近/最近 N 个月」)随计划
+        # 落档——窗起入点锚对照(window_start 标记)+窗端=当期锚;
+        # 数据需求窗由 _question_window 同词形解析(relative_months,
+        # 单一扫描器口径),两面对同一窗。无窗词形=None(零回归)。
+        'question_window': (
+            {'windows': parse_question_windows(question, cutoff_iso)}
+            if parse_question_windows(question, cutoff_iso) else None),
         'ex_post_offsets': parse_ex_post_offsets(question),
         'anchor_semantics_note': '「N个月前」=日历点锚(研究截止日−N月);'
                                  '「事件发生后N个月」=事后偏移锚(事件日+N月) '
@@ -1421,6 +1492,12 @@ def _policy_dates(face, obs_date, market_date=None, value_change_date=None,
                 decision=_st.get('last_decision'),
                 effective=_st.get('last_effective'),
                 official_target=_st.get('official_target'),
+                # Audit-R30 任务2: 已公告待生效决议随面——as_of 早于
+                # 生效日时当前面=旧目标(或无已生效决议在档),新目标
+                # 落 pending_adjustments 待生效(09-24 切换)。
+                pending_adjustments=_st.get('pending_adjustments'),
+                pending_target=_st.get('pending_target'),
+                pending_effective_on=_st.get('pending_effective_on'),
                 official_basis='calendar:%s(%s)' % (
                     (_st.get('records') or [{}])[0].get('entry_id'),
                     (_st.get('records') or [{}])[0].get('basis')),
@@ -1770,6 +1847,25 @@ def point_values(plan, snap, root):
                         else:
                             v['yoy_status'] = 'ok'
                     row['anchors'][a['label']] = v
+                # Audit-R30 任务2: 同一期重复观测披露——不同时点锚落位
+                # 同一观测日(月频序列隔月锚/稀疏序列)时逐锚注明「与某锚
+                # 同一观测,无新增观测」,不把同一读数当两个时点的独立
+                # 证据(缺精确基期→缺证同理已在 yoy_status)。
+                _by_obs = {}
+                for _lb, _av in row['anchors'].items():
+                    _od = _av.get('observation_date') if \
+                        isinstance(_av, dict) else None
+                    if _od:
+                        _by_obs.setdefault(_od, []).append(_lb)
+                for _od, _lbs in _by_obs.items():
+                    if len(_lbs) > 1:
+                        for _lb in _lbs:
+                            _others = '/'.join(
+                                sorted(l for l in _lbs if l != _lb))
+                            row['anchors'][_lb].setdefault(
+                                'duplicate_observation_note',
+                                '与%s为同一观测(%s),无新增观测'
+                                % (_others, _od))
                 cells.append(row)
     asset_universe = [k for k in ASSET_UNIVERSE
                       if k in (snap.get('series_store') or {})]
@@ -1918,6 +2014,9 @@ def official_policy_record_face(point_values, planned_pairs, cutoff,
                 'region': eco, 'metric_id': mid,
                 'label': _REGION_LABEL.get(eco, eco),
                 'official_target': st.get('official_target'),
+                'pending_adjustments': st.get('pending_adjustments'),
+                'pending_target': st.get('pending_target'),
+                'pending_effective_on': st.get('pending_effective_on'),
                 'decision': st.get('last_decision'),
                 'effective': st.get('last_effective'),
                 'last_maintenance': st.get('last_maintenance'),
@@ -2824,14 +2923,18 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         if _opr2['rows']:
             lines += ['', '**政策官方记录面(日历实录: 决议/生效/最近维持/'
                           '距上次调整)**', '',
-                      '| 地区 | 官方目标 | 最近决议日 | 生效日 | 最近确认'
-                      '维持 | 核验覆盖截止 | 距上次调整(按生效日) | '
+                      '| 地区 | 官方目标 | 待生效 | 最近决议日 | 生效日 | '
+                      '最近确认维持 | 核验覆盖截止 | 距上次调整(按生效日) | '
                       '距决议 | 距维持 | 溯源 |',
-                      '|---|---|---|---|---|---|---|---|---|---|']
+                      '|---|---|---|---|---|---|---|---|---|---|---|']
             for r in _opr2['rows']:
                 _rec = (r.get('records') or [{}])[0]
+                _pend = ('—' if not r.get('pending_target') else
+                         f"{_fmt_val(r.get('pending_target'))}@"
+                         f"{r.get('pending_effective_on')}(待生效)")
                 lines.append(
                     f"| {r['label']} | {_fmt_val(r.get('official_target'))}"
+                    f" | {_pend}"
                     f" | {r.get('decision') or '—'} | "
                     f"{r.get('effective') or '—'} | "
                     f"{r.get('last_maintenance') or '—'} | "
@@ -2842,11 +2945,15 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                     f"{_rec.get('entry_id')}({_rec.get('basis')}) |")
             lines.append('')
             lines.append('> 注: 距上次调整**按生效日**计算(目标水平自生效'
-                         '日起实际执行;决议日为公告面,两日分记)。确认维持'
+                         '日起实际执行;决议日是公告面,两日分记)。确认维持'
                          '不改变目标水平,但刷新核验覆盖截止(R28 任务2: '
-                         '确认维持也更新核验日期)。官方记录与四分面序列'
-                         '值互核: 记录目标与序列现值冲突时以缺口/过期'
-                         '纪律另判,不以任一面静默覆盖。')
+                         '确认维持也更新核验日期)。**待生效**(Audit-R30 '
+                         '任务2): 研究时点早于生效日的已公告决议——当前'
+                         '官方目标仍为旧值(无已生效决议在档则如实空缺),'
+                         '新目标自生效日起才入「官方目标」列(09-24 切换'
+                         '口径)。官方记录与四分面序列值互核: 记录目标与'
+                         '序列现值冲突时以缺口/过期纪律另判,不以任一面'
+                         '静默覆盖。')
         # 政策一年窗路径(R21 任务2: 先降后升净零一类路径须整窗可复算)
         for c in pol_rows:
             wp = c.get('policy_window_path')

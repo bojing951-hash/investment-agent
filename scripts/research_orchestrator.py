@@ -1877,6 +1877,20 @@ def run_research(question, root=None, archive=False, out_dir=None,
     RUN_ROOT = engine_root or ROOT
     root = root or RUN_ROOT
     import workbench_data as wd
+    # ── Audit-R30 任务1: 快照钉死于第一次取数前──────────────────────
+    # 单一来源原则: 入口解析一次置 IA_SNAPSHOT_PIN(已在场则尊重上游钉
+    # 死,不重解析)——S1 计划、子命令子进程(env 继承)、报告段二次解析
+    # 、L1 事实面全部同一份。S3 期间同日 _v2 落盘不串号;快照缺席/不可
+    # 读的钉死解析如实落 _pin_note(下方各消费面按既有缺快照路径走)。
+    # 钉死=运行级: 函数收尾恢复原值(同进程连续两次 run_research,第二
+    # 次重新解析——新工单选新版,不受首跑残留钉死;上游已钉死则原样
+    # 保留)。
+    _pin_prev = os.environ.get('IA_SNAPSHOT_PIN')
+    if _pin_prev is None:
+        _pin_snap, _pin_note = wd.latest_snapshot(root)
+        if _pin_snap is not None and isinstance(_pin_note, str) \
+                and os.path.isfile(_pin_note):
+            os.environ['IA_SNAPSHOT_PIN'] = _pin_note
     steps = []
     notes = []
 
@@ -2346,6 +2360,10 @@ def run_research(question, root=None, archive=False, out_dir=None,
               encoding='utf-8') as f:
         f.write(_render_md(report))
     report['report_dir'] = run_dir
+    # Audit-R30 任务1: 钉死=运行级——收尾恢复入口前环境(同进程续跑/
+    # 二次 run_research 不吃首跑残留;上游钉死原样保留)。
+    if _pin_prev is None:
+        os.environ.pop('IA_SNAPSHOT_PIN', None)
     return report
 
 

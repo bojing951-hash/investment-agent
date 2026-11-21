@@ -234,9 +234,11 @@ def fetch_ea_real_gdp_yoy(raw=None):
     单次失败致整日面 series 缺席(快照→地图 EA 增长格连锁缺数)。
     网络路径固定 3 次尝试(间隔 2s);raw 注入测试零网络零重试,
     语义不变。全部尝试失败才落 READ_FAIL(如实)。"""
+    # Audit-R30 任务1: alerts 在 raw 注入口同样初始化——原实现只在
+    # 网络分支内赋值,raw 注入直落 parse 段 extend 时 UnboundLocalError
+    # (R29 §A 只测了网络路径,注入路径实雷)。
+    alerts = []
     if raw is None:
-        alerts = []
-        raw = None
         for attempt in range(1, 4):
             raw, a = _fetch_or_alert('FRED-EA-GDP', lambda: _open_url_with(
                 FRED_EA_GDP_URL, _UA_FRED))

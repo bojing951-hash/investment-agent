@@ -1,0 +1,29 @@
+=== R29 实包重放验收 2026-11-21 20:52:37 pkg=/tmp/r29-accept/arc_B2 ===
+--- [0] 严格面(无旗标) ---
+rc=0
+ok= True | mode= byte_equal | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+--- [1] 更换本地日历→重放不变 ---
+rc=0
+ok= True | mode= byte_equal | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+map bytes: IDENTICAL
+--- [2] 重复重放: 新目录+原包不动 ---
+rc=0
+ok= True | mode= byte_equal | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+package: UNTOUCHED
+map bytes: IDENTICAL
+--- [3] 缺冻结件→拒 ---
+rc=1 (期望≠0)
+ok= False | mode= not_map_question | failed= ['frozen_inputs_present', 'frozen_inputs_digests', 'deterministic_rerender']
+frozen/binding: {'frozen_inputs_present': False, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+--- [4] 篡改冻结件一字节→拒 ---
+rc=1 (期望≠0)
+ok= False | mode= not_map_question | failed= ['frozen_inputs_digests', 'deterministic_rerender']
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+--- [5] manifest 冻结摘要单侧改写→拒 ---
+rc=1 (期望≠0)
+ok= False | mode= not_map_question | failed= ['frozen_inputs_digests', 'frozen_inputs_match_report', 'deterministic_rerender']
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': False, 'verdict_binding_threeway': True}
+=== R29 实包重放验收毕 tag=B2m ===

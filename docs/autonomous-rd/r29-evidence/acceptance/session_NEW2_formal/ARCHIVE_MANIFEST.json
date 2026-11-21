@@ -1,0 +1,49 @@
+{
+  "stage": "archive",
+  "run_ts": "20261121T125148Z",
+  "question": "2026年11月,美、日两地的宏观基本面相比三个月前有什么不同?哪些方面分化最明显,哪些方面证据还不足?请附数据与公布时间。",
+  "archived_at": "20261121T131600Z",
+  "content_sha256": "75468f71ffca4557ffbae33ab33f4af8cadd2cd644115e4fb9ceab1164a8fa29",
+  "run_code_git_head": "b7f9ccf69ca59b96275543effcbeca4eafdcc3a0",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 1,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261121__VERDICT-20261121T125148Z-01.json",
+      "source_rel": "audit/semantic_review/20261121/VERDICT-20261121T125148Z-01.json",
+      "overall": "UPHELD",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261121T131413Z",
+      "sha256": "b92d7edaa9934c65"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "43ae3137230348ff",
+    "report.md": "ca0de2b70c15ac0f",
+    "FULL_REPORT.md": "188270e342ccd461",
+    "agent_judgment.json": "7beef9980f25d1fd",
+    "views_digest.json": "e71a18c2e81904ed",
+    "evidence_index.json": "5826718c9c4f0702",
+    "AGENT_SEAT_ENVELOPE.json": "7fe034fe7d1d296e",
+    "MAP_REPORT.md": "7f76578e25f0f470",
+    "MAP_REPORT.sha256": "73d8c2b2aa69fe05",
+    "question_verbatim.txt": "4ca0e143eb4cf137"
+  },
+  "frozen_inputs": {
+    "config/metric_registry.json": "fa396d22175a4814",
+    "config/release_calendar.json": "0e95323fa9543b9e",
+    "data/daily/research_snapshot_20261121.json": "d6d7e1aa48e82e74"
+  },
+  "frozen_inputs_sha256": "45666c8279f5ca92f1ee80e0d07559ebdf11b86f36e6820f72b395a3d9a3570a",
+  "record_health": {},
+  "source_report_dir": "/tmp/r29-accept/install-new/output/research_runs/20261121T125148Z_2026年11月_美_日两地的宏观基本面相比三个月前有什么不同_哪些方面分化最明/",
+  "map_report_sha256": "b68a24f1bfa28de29aed9e1ffc43a3c81ac33137cf761ff393bae70c3bd9df95",
+  "map_content_sha256": "b68a24f1bfa28de29aed9e1ffc43a3c81ac33137cf761ff393bae70c3bd9df95",
+  "map_legacy_no_binding": false,
+  "map_renderer_drift": false,
+  "map_version": 1,
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定已核/Audit-R24 任务1)"
+}

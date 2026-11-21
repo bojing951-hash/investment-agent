@@ -1,0 +1,58 @@
+{
+  "stage": "archive",
+  "run_ts": "20261121T115819Z",
+  "question": "对比角度换一个：2026年11月，美国与欧元区的增长和通胀环境相比3个月前各有什么变化？日本央行政策利率处于什么水平，距离上次调整过了多久？",
+  "archived_at": "20261121T122929Z",
+  "content_sha256": "cc56fe6175da30dde538fe362ae3ab77bd2613793866170f00611081f1271a69",
+  "run_code_git_head": "37b8713063c98d7682f0b3996d715ce9bb57d5ab",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 2,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261121__VERDICT-20261121T115819Z-01.json",
+      "source_rel": "audit/semantic_review/20261121/VERDICT-20261121T115819Z-01.json",
+      "overall": "REVISE",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261121T121930Z",
+      "sha256": "bb7b8675674702a4"
+    },
+    {
+      "file": "verdicts/20261121__VERDICT-20261121T115819Z-02.json",
+      "source_rel": "audit/semantic_review/20261121/VERDICT-20261121T115819Z-02.json",
+      "overall": "UPHELD",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261121/VERDICT-20261121T115819Z-01.json",
+      "recorded_at": "20261121T122715Z",
+      "sha256": "136a806ae090673c"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "7e1a75436fbaace9",
+    "report.md": "193f5dd1bedf2711",
+    "FULL_REPORT.md": "7e6dd64219db982b",
+    "agent_judgment.json": "27204b2348c4b2d4",
+    "views_digest.json": "e71a18c2e81904ed",
+    "evidence_index.json": "07fe30cea4c71b5f",
+    "AGENT_SEAT_ENVELOPE.json": "e3132026381739b4",
+    "MAP_REPORT.md": "db700a05e4ea04d0",
+    "MAP_REPORT.sha256": "50e41dcc040e3f47",
+    "question_verbatim.txt": "7e8821bd0bf9cb29"
+  },
+  "frozen_inputs": {
+    "config/metric_registry.json": "fa396d22175a4814",
+    "config/release_calendar.json": "0e95323fa9543b9e",
+    "data/daily/research_snapshot_20261121.json": "42d8dd9cf9490489"
+  },
+  "frozen_inputs_sha256": "a09e4119a5fd13e55f28caf95c613675ab7373553871c427658fc406ee61089e",
+  "record_health": {},
+  "source_report_dir": "/tmp/r29-accept/install-b/output/research_runs/20261121T115819Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/",
+  "map_report_sha256": "7bb76471ac097b80be2289f38a2e76472e94430e17b2fa6a2a8dc913a8bfab54",
+  "map_content_sha256": "7bb76471ac097b80be2289f38a2e76472e94430e17b2fa6a2a8dc913a8bfab54",
+  "map_legacy_no_binding": false,
+  "map_renderer_drift": false,
+  "map_version": 1,
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定已核/Audit-R24 任务1)"
+}

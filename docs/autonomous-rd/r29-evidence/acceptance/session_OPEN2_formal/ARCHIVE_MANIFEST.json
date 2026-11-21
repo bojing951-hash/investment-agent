@@ -1,0 +1,58 @@
+{
+  "stage": "archive",
+  "run_ts": "20261121T125157Z",
+  "question": "2026年11月,美、欧、中、日四地的宏观环境相比三个月前,哪些经济体之间出现了明显分化?分化主要体现在哪些维度?请给出具体数据和各数据的公布时间,并说明哪些维度证据不足以下结论。",
+  "archived_at": "20261121T131504Z",
+  "content_sha256": "b42a39eef49e96bd606553ba5a76798b737e4e859a892bcbe8e428e6a3cba8f2",
+  "run_code_git_head": "b7f9ccf69ca59b96275543effcbeca4eafdcc3a0",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 2,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261121__VERDICT-20261121T125157Z-01.json",
+      "source_rel": "audit/semantic_review/20261121/VERDICT-20261121T125157Z-01.json",
+      "overall": "UPHELD",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261121T131016Z",
+      "sha256": "a4e6bcc306fbd64a"
+    },
+    {
+      "file": "verdicts/20261121__VERDICT-20261121T125157Z-02.json",
+      "source_rel": "audit/semantic_review/20261121/VERDICT-20261121T125157Z-02.json",
+      "overall": "UPHELD",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261121/VERDICT-20261121T125157Z-01.json",
+      "recorded_at": "20261121T131352Z",
+      "sha256": "46f85bff7ddc5baa"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "f72ef788bdcb026f",
+    "report.md": "5f735d37102bcc01",
+    "FULL_REPORT.md": "7f1dd971b02d2268",
+    "agent_judgment.json": "495abbb84d0ba1a2",
+    "views_digest.json": "e71a18c2e81904ed",
+    "evidence_index.json": "2a05fed1428e8c92",
+    "AGENT_SEAT_ENVELOPE.json": "b41a718d06eeb348",
+    "MAP_REPORT.md": "ff05bdfa9344a1d0",
+    "MAP_REPORT.sha256": "9e89adaac2d9bd08",
+    "question_verbatim.txt": "c8b0cb7685e67cee"
+  },
+  "frozen_inputs": {
+    "config/metric_registry.json": "fa396d22175a4814",
+    "config/release_calendar.json": "0e95323fa9543b9e",
+    "data/daily/research_snapshot_20261121.json": "d6d7e1aa48e82e74"
+  },
+  "frozen_inputs_sha256": "45666c8279f5ca92f1ee80e0d07559ebdf11b86f36e6820f72b395a3d9a3570a",
+  "record_health": {},
+  "source_report_dir": "/tmp/r29-accept/install-open/output/research_runs/20261121T125157Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/",
+  "map_report_sha256": "59a25f0f28e574fa32a03b84329835609283229db3becebb831e077c73bf37be",
+  "map_content_sha256": "59a25f0f28e574fa32a03b84329835609283229db3becebb831e077c73bf37be",
+  "map_legacy_no_binding": false,
+  "map_renderer_drift": false,
+  "map_version": 1,
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定已核/Audit-R24 任务1)"
+}

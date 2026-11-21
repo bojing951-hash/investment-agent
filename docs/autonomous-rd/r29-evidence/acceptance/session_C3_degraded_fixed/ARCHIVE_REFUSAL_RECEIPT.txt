@@ -1,0 +1,14 @@
+=== C3 归档拒绝实录(终 SHA b7f9ccf 树内同代码直调+操作侧归档尝试) ===
+run: 
+map_question: True | run_ok: False
+零 ok 格核心组: [('EA', 'growth'), ('EA', 'inflation')]
+blocked_class_of(报告) = map_core_dimension_missing
+
+--- 操作侧 ia_cli research-one --stage archive 探针 ---
+rc=1 | ok=False | blocked=not_deliverable | deliverable=False
+warnings:
+  - 底座 run_ok=False 且非 optional 级显式降级(不可交付级)
+  - 归档拒绝: 可交付门未放行——归档对象=最终受审版本,先过独立审查
+
+对照: 同形态报告在 37b8713(修复前)归档成功(arc_C2 实录)——
+修复后分类=map_core_dimension_missing(非 optional 级)→归档拒绝。

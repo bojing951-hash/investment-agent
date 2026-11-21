@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "semantic-audit-seat",
+  "notes": "REVISE;必修4(1 MAJOR+3 MINOR)。①MAJOR: 日本决议日级不可得断言被同报告官方记录面证伪——RC-JP-BOJ-TARGET-2026-09(目标1.25/决议2026-09-18/生效2026-09-24/距上次调整58天)在MAP政策官方记录面在场,而CON-2、headline、JP走位、缺数格说明四处宣称决议日级数据不可得并以月均口径51天/约七周作答,两答案未调和(判定档证据面检索范围漏release_calendar通道)。②MINOR: headline十二个月窗逐月上移被自家序列证伪(2026-02..05持平、04与08微降),应改逐级/累计上移。③MINOR: 对质表BEI_10Y与VIX两行竞争侧预期落在UST_2Y/CURVE/HY_OAS上,点名区分指标上预期未分立,VIX两解释均预言高位。④MINOR: 历史段other_regions_sync的日本负利率尾声/欧元区能源冲击无引擎面证据(JP行缺证)未标背景判断。反方攻击6次,均未推翻必修项。",
+  "run_ts": "20261121T115819Z",
+  "content_sha256": "9da646d022229516b756226e5dfe02d83a430eefc12bc71166384f027fd1aca4",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T121930Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "d178e424b0b21c09a79c2b4e25122e173506778fe81af33b947a5214e9c0b71a",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "a09e4119a5fd13e55f28caf95c613675ab7373553871c427658fc406ee61089e"
+}

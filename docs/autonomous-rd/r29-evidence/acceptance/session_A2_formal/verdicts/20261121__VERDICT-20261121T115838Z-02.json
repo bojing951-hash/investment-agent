@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "r29-accept-independent-review-1",
+  "notes": "R29-A1 复裁(对 VERDICT-20261121T115838Z-01 REVISE 的修订闭环复验;六查+地图四查重走,数值面全量重跑)。\n裁决=UPHELD,可交付。\n【R1闭环确认】MAP_REPORT.md 转折表第1行跟进/背离格与 agent_judgment.json reader_map.turnings[0].follow_or_diverge 均已改为: 美联储2025-12-10降息25bp(4.00→3.75),时序上与增长放缓(INDPRO同比2025-11→2026-02)及失业率此前的高位(4.4@2025-09)同窗——动机归因(是否回应增长与就业)不在证据面,此关联为【推断】;其余三经济体无降息跟进。动机归因撤出事实位+【推断】标注+证据面边界声明+研究域措辞(其余三经济体)四点全落;修订句内数值(4.00→3.75/1.7543→0.7972/4.4@2025-09/2.15)均为此前已复算命中值;其余三经济体无降息跟进经快照复验(CN持平/EA两次加息/JP连续加息,窗内无降息)。\n【NIT处置核验】N1: MC-1环4 已改 黄金大跌与美元走强同窗(judgment step4+FULL_REPORT 环4双处),自相矛盾消除;N3: SCN-B 已加注 两核心口径当期背离(CORE_CPI回落vs CORE_PCE同比3.04→3.12上行),前提敏感性声明到位,注内数值与复算一致(judgment+FULL_REPORT双处;MAP情景表本不渲前提句,无回归);N4: 已改 欧央行对称目标(2%)的两倍(MAP走位+judgment from_to);N7: 两处已改 重叠五个日历月,未引入事后日期。N2/N5/N6 为渲染层/引擎层注记,本轮不动、留档,不阻断。\n【数值面零漂移确认(全量重跑,非采信自述)】anchor_echo vs point_values 22格0错;point_values vs 快照全中(DFF按格内观测日2025-11-20=3.88精确命中);转折候选面9/9逐位同(INDPRO 1.7543→0.7972、CPI 2.434→4.1666、CN_PMI -2.3904→1.0101等);资产月窗8/8同;两锚六窗ex_post复算输出与首裁逐字节一致(2022-06锚与2025-03锚全部%/pp;UST_2Y 2.92→4.22/4.41/4.87,HY_OAS 3.55→2.96/2.80/3.28);区分指标30日端点仍全部=2026-10-22观测、算术同;MAP_REPORT.sha256=c1e1e75380016cc58ead0efb1382dadee7f05a9b00602faf8fd9a4c91ed02ad3 与新渲染一致;judgment validation passed=true 零违规,契约六查16/16 VERIFIED,reader_map_faces complete。\n【反方攻击(复裁轮)】(1)修订句新增数值是否引入未核数字——逐个回贴快照,全为已验值;(2)其余三经济体无降息跟进是否过强——快照CN/EA/JP政策路径复验无降息,成立;(3)N3注的3.04→3.12是否新数——与我首裁复算的CORE_PCE yoy(2026-06=3.04,2026-09=3.12)一致;(4)修订是否动及数值面——全量重跑零漂移;(5)新问题扫描——R1/N1/N3/N4/N7五处改动均语义收敛、无越界措辞新增,无新必修项。\n首裁REVISE档=本日 VERDICT-20261121T115838Z-01.json(绑定旧摘要1f911d21…),本档为修订后复裁,两档都在链。",
+  "run_ts": "20261121T115838Z",
+  "content_sha256": "dbbd6a7760610f89a00546e2b5f0b888e7e2c68f9d6f8fa089b4926b04e8509e",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T123456Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261121/VERDICT-20261121T115838Z-01.json",
+  "map_report_sha256": "5797f65eb805d4b1ced6c089816edd0b4c4bd5d9c269bf7bf2fa80a474b10fa9",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "a09e4119a5fd13e55f28caf95c613675ab7373553871c427658fc406ee61089e"
+}

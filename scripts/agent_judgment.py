@@ -1195,7 +1195,14 @@ def blocked_class_of(report, calendar_path=None):
         return 'critical_zero_evidence'
     if req_missing:
         return 'required_data_missing'
-    if report.get('run_ok') is not False:
+    # Audit-R29 任务1(C2 实雷): 地图草稿类判定从 run_ok 门下提出——
+    # 地图内容缺口(核心维度组/锚覆盖/当期/官方目标)是内容面不是进程
+    # 面: TIPS_10Y 等源端诚实缺席把 run_ok 置 False 后,旧序整支跳过
+    # → 缺核心维度的地图落 optional 放行归档(与 R20 起草稿合同相反)。
+    # 非地图问句行为不变(仍走 run_ok→进程类);地图问句先判内容类,
+    # 全绿且 run_ok=False 时照旧落 critical_step_failure/optional。
+    if report.get('run_ok') is not False or \
+            (report.get('research_plan') or {}).get('map_question'):
         # Audit-R18 任务4反例②③: 地图问句必需图表面(对照/走位/传导/
         # 转折×3/历史)缺席=读者交付件残缺——与必要数据缺口同级阻断
         # (faces 摘要在 attach 成功时随档;缺席=未 attach 或无面)
@@ -1268,7 +1275,10 @@ def blocked_class_of(report, calendar_path=None):
                 calendar_path=calendar_path)
             if _opr_g.get('gaps'):
                 return 'map_official_target_missing'
-        return None
+        # 地图内容类全绿: run_ok 健康→无缺口;run_ok=False(诚实源缺席
+        # 类)→落进程类旗标面(optional/critical),不放空手 None。
+        if report.get('run_ok') is not False:
+            return None
     non_refusal = [s.get('step') for s in (report.get('steps') or [])
                    if s.get('executed') and s.get('ok') is False
                    and not _step_failure_is_refusal(s)]

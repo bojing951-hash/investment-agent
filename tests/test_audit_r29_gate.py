@@ -513,10 +513,66 @@ def sec_d():
           '席位冻结摘要与报告冻结面不符' in _d8b, _d8b[:60])
 
 
+# ═══ §E C2 实雷: 地图草稿类判定不受 run_ok 门压制 ═══
+
+def sec_e():
+    print('═══ §E C2 实雷: 地图内容缺口先于进程旗标(合成五面) ═══')
+
+    def mini(run_ok, cells, map_q=True, steps=None):
+        return {
+            'run_ok': run_ok,
+            'layers': {'L1_事实层': {'rows': [{'metric_id': 'X'}]}},
+            'run': {'data_requirements': {'items': [
+                {'metric_id': 'X', 'tier': 'required', 'outcome': 'ok'}]}},
+            'research_plan': {
+                'map_question': map_q,
+                'regions': {'EA': {'dimensions':
+                                   {'growth': {}, 'inflation': {}}}},
+                'point_values': {'cells': cells},
+            },
+            'agent_judgment': {'reader_map_faces': {'complete': True}},
+            'steps': steps or [],
+        }
+
+    GREEN_CELLS = [
+        {'region': 'EA', 'dimension': 'growth',
+         'anchors': {'a': {'status': 'ok'}, 'b': {'status': 'ok'}}},
+        {'region': 'EA', 'dimension': 'inflation',
+         'anchors': {'a': {'status': 'ok'}, 'b': {'status': 'ok'}}},
+    ]
+    # C2 真实形态: TIPS_10Y 源端诚实缺席把 run_ok 置 False 后,缺核心
+    # 维度组(EA 增长+EA 通胀零 ok 格)仍必须判草稿类——修复前旧序
+    # 整支被 run_ok 门跳过→optional 放行归档(arc_C2 实录)。
+    check('§E1 map+run_ok=False+核心组缺数→map_core_dimension_missing',
+          aj.blocked_class_of(mini(False, [])) == 'map_core_dimension_missing',
+          aj.blocked_class_of(mini(False, [])))
+    # B2 合法形态保形: 地图内容全绿、run_ok=False(源端诚实缺席类)
+    # →照旧落 optional_data_missing(席位审查+披露后可交付)。
+    check('§E2 map+run_ok=False+内容全绿→optional_data_missing',
+          aj.blocked_class_of(mini(False, GREEN_CELLS))
+          == 'optional_data_missing',
+          aj.blocked_class_of(mini(False, GREEN_CELLS)))
+    # 旧行为回归: run_ok 健康时地图缺核心照判(修复不动该面)。
+    check('§E3 map+run_ok=True+核心组缺数→map_core_dimension_missing',
+          aj.blocked_class_of(mini(True, [])) == 'map_core_dimension_missing',
+          aj.blocked_class_of(mini(True, [])))
+    # 非地图问句零回归: run_ok=False 走进程类旗标面不变。
+    check('§E4 非map+run_ok=False+无败步→optional_data_missing',
+          aj.blocked_class_of(mini(False, GREEN_CELLS, map_q=False))
+          == 'optional_data_missing')
+    _r5 = mini(False, GREEN_CELLS, map_q=False)
+    _r5['steps'] = [{'step': 's10_selfcheck', 'executed': True,
+                     'ok': False, 'error': 'x'}]
+    check('§E5 非map+run_ok=False+非拒答败步→critical_step_failure',
+          aj.blocked_class_of(_r5) == 'critical_step_failure',
+          aj.blocked_class_of(_r5))
+
+
 sec_a()
 sec_b()
 sec_c()
 sec_d()
+sec_e()
 n_fail = RESULTS.count(False)
 print()
 print('════════════════════════════════════════════════════════════')

@@ -2402,9 +2402,17 @@ def _r1_replay_core(args, engine_root):
              % (len(qv) if qv is not None else -1, len(qv_want)))
     head_mf = manifest.get('run_code_git_head')
     head_rj = (rj.get('run') or {}).get('git_head')
-    _chk('run_code_sha_crosscheck', head_mf and head_mf == head_rj,
-         'manifest=%s report.json.run=%s(完整运行 SHA 两处一致)'
-         % (head_mf or '缺席', head_rj or '缺席'))
+    # Audit-R28 任务4: R28 前旧档 manifest 无 run_code_git_head 键
+    # (未记录≠矛盾)——严格口径照旧拒;--allow-code-mismatch 下随披露
+    # 降级(旧档代码身份本就走该旗标的披露路径,不为旧档放宽严格面)。
+    _xchk_ok = bool(head_mf and head_mf == head_rj) or (
+        head_mf is None and head_rj
+        and getattr(args, 'allow_code_mismatch', False))
+    _chk('run_code_sha_crosscheck', _xchk_ok,
+         'manifest=%s report.json.run=%s(完整运行 SHA 两处一致%s)'
+         % (head_mf or '缺席', head_rj or '缺席',
+            ';旧档未记录键,--allow-code-mismatch 披露降级'
+            if head_mf is None and _xchk_ok else ''))
     try:
         digest_now = aj.content_digest(pkg)
     except Exception as exc:                      # noqa: BLE001

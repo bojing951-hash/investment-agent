@@ -624,6 +624,34 @@ def sec_d():
               and '披露越过' in str(c.get('detail'))
               for c in ((rep14.get('data') or {}).get('checks') or [])),
           f"rc={rc14}")
+    # ── D7 旧档 manifest(R28 前无 run_code_git_head 键) ──
+    pkg7 = os.path.join(TMPG, 'arc_d7_legacy')
+    shutil.copytree(arc6, pkg7)
+    mp7 = os.path.join(pkg7, 'ARCHIVE_MANIFEST.json')
+    man7 = json.load(open(mp7, encoding='utf-8'))
+    man7.pop('run_code_git_head', None)  # R28 前旧档: 键未记录
+    with open(mp7, 'w', encoding='utf-8') as f:
+        json.dump(man7, f, ensure_ascii=False, indent=2, default=str)
+    rc15, rep15 = replay(pkg7, T6, out=os.path.join(TMPG, 'rp_d7a'))
+    d15 = rep15.get('data') or {}
+    xc15 = [c for c in (d15.get('checks') or [])
+            if c.get('check') == 'run_code_sha_crosscheck']
+    check('§D7a 旧档严格面: 键未记录≠一致→crosscheck FAIL 在场且整体'
+          ' 拒(rc=1+blocked=code_version_mismatch)',
+          rc15 != 0 and d15.get('blocked') == 'code_version_mismatch'
+          and xc15 and not xc15[0].get('ok'),
+          f"rc={rc15} blocked={d15.get('blocked')} "
+          f"xc_ok={(xc15[0].get('ok') if xc15 else None)}")
+    rc16, rep16 = replay(pkg7, T6, out=os.path.join(TMPG, 'rp_d7b'),
+                         extra=['--allow-code-mismatch'])
+    d16 = rep16.get('data') or {}
+    check('§D7b 旧档披露降级: --allow-code-mismatch 下旧档未记录键'
+          ' 随披露放行(rc=0+检查明细点名缺席)',
+          rc16 == 0 and any(
+              c.get('check') == 'run_code_sha_crosscheck'
+              and '旧档未记录' in str(c.get('detail'))
+              for c in (d16.get('checks') or [])),
+          f"rc={rc16}")
 
 
 def main():

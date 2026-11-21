@@ -189,6 +189,14 @@ def sec_a():
     check('§A3 草稿纪律收录 R28 两新类(过期未核验混合/缺官方目标)',
           'map_current_period_stale_mix' in skill
           and 'map_official_target_missing' in skill)
+    # (Audit-R28 任务1 整改: 真实会话 B/OPEN 两度即席作答——路由只在技能内,
+    #  非地图形问句不触发技能加载;CLAUDE.md=会话启动必读层使路由不依赖唤起)
+    cm = open(os.path.join(ROOT, 'CLAUDE.md'), encoding='utf-8').read()
+    check('§A4 CLAUDE.md 默认入口路由(必读层): 研究问句一律 research-one'
+          '+不得即席作答+停等用户裁定+模糊按研究问句',
+          '研究问句路由' in cm and 'research-one' in cm
+          and '不得以即席作答' in cm and 'Skill(global-macro-research)' in cm
+          and '停等用户裁定' in cm and '模糊按研究问句处理' in cm)
 
 
 # ═══ §B 任务2: 当期政策与日期(五情景,夹具日历) ═══

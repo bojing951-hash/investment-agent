@@ -22,7 +22,7 @@
   "economy_rule": "归属规则命中记录(短串 P{序}:{触发});复审与回归对账锚,值须与 INVENTORY a.3 规则表一致",
   "market_seat": "市场座位: onshore_local=本币在岸市场/境内序列;offshore_proxy=跨市场离岸代理(US上市ETF);global=全球跨市场定价(商品/加密/汇率/Fed期货)",
   "observation_period_kind": "观测期语义(人工登记,禁从frequency推断): trading_day=市场交易时段观测(假日缺口非缺数)/calendar_day=日历日观测(含24/7市场与日历日生效的政策利率)/calendar_month=日历月统计期;缺键=未登记(ICSA观测期=日历周,枚举无对应值→不登记),输出层如实null不默认",
-  "release_date_available": "逐观测发布日掌握性(人工登记): true=发布日已知或按已知规则(市场序列观测即发布;政策/管理利率决议或操作当日公布,DFF次日;LPR每月20日09:15;ICSA每周四)/false=统计类宏观发布滞后且逐观测发布日本仓未登记;缺键=未登记(null);快照fact层release_date实测值覆盖本登记(数据>登记)",
+  "release_date_available": "逐观测发布日掌握性(人工登记): true=发布日已知或按已知规则(市场序列观测即发布;政策/管理利率决议或操作当日公布,DFF次日;LPR每月20日09:00;ICSA每周四)/false=统计类宏观发布滞后且逐观测发布日本仓未登记;缺键=未登记(null);快照fact层release_date实测值覆盖本登记(数据>登记)",
   "source_key": "指标→采集档内子源状态键(可选;仅当该指标来源采集器在其日档持久化子源级sources_status时登记,如ea_*.json的BBK_WU3146/ECB_FM_MRO、jp_*.json的JP_CPI_TOKYO、japan_*.json(R12起)的MOF_JGBCME/FRED_POLICY)。Gate A非核心缺失注记据此区分: 子源READ_FAIL/MISSING=子源缺席(源端不可得/白名单域未采,非采集遗漏)/子源EXACT而指标缺席=采集遗漏/无该字段或档内证据不可得=采集遗漏或子源缺席不可区分(诚实兜底)"
  },
  "notes": [
@@ -3392,7 +3392,7 @@
     "max_calendar_lag_days": 60,
     "note": "月频:观测日=发布日(每月20日),未发布≠数据缺失"
    },
-   "release_semantics": "LPR 每月20日 09:15 公布(节假日顺延);月频:观测日=发布日,未发布≠数据缺失"
+   "release_semantics": "LPR 每月20日 09:00 公布(节假日顺延);月频:观测日=发布日,未发布≠数据缺失"
   },
   {
    "metric_id": "CN_LPR_5Y",
@@ -3426,7 +3426,7 @@
     "max_calendar_lag_days": 60,
     "note": "月频:观测日=发布日(每月20日),未发布≠数据缺失"
    },
-   "release_semantics": "LPR 每月20日 09:15 公布(节假日顺延);月频:观测日=发布日,未发布≠数据缺失"
+   "release_semantics": "LPR 每月20日 09:00 公布(节假日顺延);月频:观测日=发布日,未发布≠数据缺失"
   },
   {
    "metric_id": "CN_CPI_YOY",

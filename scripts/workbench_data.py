@@ -18,12 +18,52 @@ import glob
 import hashlib
 import json
 import os
+import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.dirname(os.path.abspath(__file__))
 
 ECONOMY_LABELS = {'US': '美国', 'CN': '中国', 'EA': '欧元区', 'JP': '日本',
                   'GLOBAL': '全球', 'HK': '中国香港'}
+
+# ── Audit-R29 任务2: 地区简称(枚举守卫)───────────────────────────────
+# 美/欧/中/日单字简称**只在枚举语境**识别,防「其中」「完美」「日子」类
+# 常用字子串误报;全称(美国/欧元区/中国/日本)匹配路径零变化。
+# 三种守卫形态(确定性,零语义翻译):
+#   ① 顿号/逗号分隔列表 ≥2 项: 「美、欧、中、日四地」「美,欧」
+#   ② ≥3 字连续并排: 「美欧中日」「欧美日」(三字以上意外连排概率极低)
+#   ③ 双字并排+数量词确认: 「欧美两地」「中美两国」「中日四方」一类
+#      (bigram 后随 两|三|四|各+地|国|方|经济体 才采纳)
+_REGION_ABBREV = {'美': 'US', '欧': 'EA', '中': 'CN', '日': 'JP'}
+_REGION_ABBREV_CHARS = ''.join(_REGION_ABBREV)
+_ABBREV_ENUM_RUN_RE = re.compile(
+    '[' + _REGION_ABBREV_CHARS + '](?:[、,，]\\s*['
+    + _REGION_ABBREV_CHARS + '])+')
+_ABBREV_ADJACENT_RUN_RE = re.compile(
+    '[' + _REGION_ABBREV_CHARS + ']{3,}')
+_ABBREV_BIGRAM_QUANT_RE = re.compile(
+    '[' + _REGION_ABBREV_CHARS + ']{2}'
+    '(?=(?:两|三|四|各)\s*(?:地|国|方|经济体))')
+
+
+def economy_abbrev_hits(question):
+    """枚举语境下命中的地区简称(确定性;去重保序代码表)。
+
+    供 orchestrator 经济体识别与地图规划器句段作用域共用——同一守卫
+    同一结果,两处不各写一套。非枚举语境的单字(如「其中」「完美」)
+    不命中,零误报面;返回空表=问题无简称枚举,调用方口径零变化。"""
+    q = question or ''
+    hits, seen = [], set()
+    for rx in (_ABBREV_ENUM_RUN_RE, _ABBREV_ADJACENT_RUN_RE,
+               _ABBREV_BIGRAM_QUANT_RE):
+        for m in rx.finditer(q):
+            for ch in m.group(0):
+                code = _REGION_ABBREV.get(ch)
+                if code and code not in seen:
+                    seen.add(code)
+                    hits.append(code)
+    return hits
+
 # 金融市场变化页纳入的资产类(注册表 asset_class 权威口径)
 MARKET_ASSET_CLASSES = {
     'equity_index', 'single_stock', 'country_etf_proxy', 'bond_etf',

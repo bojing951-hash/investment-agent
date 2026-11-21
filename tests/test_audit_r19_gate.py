@@ -578,8 +578,13 @@ def test_audit_r19_gate():
     check('§H 正例 attach → attached=True 契约过',
           data.get('attached') is True, str(cv_v))
     # 独立语义席裁决(合成席位;R18 门同法): report/archive 的席位门
-    aj.record_semantic_verdict(root, _plan_a_rd, 'UPHELD', SYN_ROLE,
-                               notes='R19 门正例席位(合成隔离)')
+    # R29 任务4: 席位终裁绑定冻结输入摘要(席位仿体随新合同)
+    _fi_a = (rep_a.get('run') or {}).get('frozen_inputs')
+    aj.record_semantic_verdict(
+        root, _plan_a_rd, 'UPHELD', SYN_ROLE,
+        notes='R19 门正例席位(合成隔离)',
+        extra=({'frozen_inputs_sha256': aj.frozen_inputs_digest(_fi_a)}
+               if _fi_a else None))
     rc, data = cli_stage('report', _plan_a_rd, root)
     dlv = data.get('deliverable')
     check('§H 正例 report → deliverable', dlv is True, str(dlv))
@@ -606,8 +611,14 @@ def test_audit_r19_gate():
     rd2 = fresh_dir(_plan_a_rd, 'neg_leak')
     jd_ng = map_judgment(rd2, 'hist_leak')
     cli_stage('attach', rd2, root, judgment=jd_ng)
-    aj.record_semantic_verdict(root, rd2, 'UPHELD', SYN_ROLE,
-                               notes='R19 门反例席位(合成隔离)')
+    _fi_2 = (json.load(open(os.path.join(rd2, 'report.json'),
+                            encoding='utf-8')).get('run')
+             or {}).get('frozen_inputs')
+    aj.record_semantic_verdict(
+        root, rd2, 'UPHELD', SYN_ROLE,
+        notes='R19 门反例席位(合成隔离)',
+        extra=({'frozen_inputs_sha256': aj.frozen_inputs_digest(_fi_2)}
+               if _fi_2 else None))
     rc, data = cli_stage('report', rd2, root)
     arc_neg = os.path.join(ARC, 'neg_leak')
     rc2, data2 = cli_stage('archive', rd2, root, arc=arc_neg)

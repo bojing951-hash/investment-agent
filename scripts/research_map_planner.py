@@ -133,7 +133,9 @@ POLICY_FACE = {
                   'stat_window': None,
                   'market_note': '七天工具口径单列(2026-11-02 换锚前为操作目标锚)'},
     'CN_LPR_1Y': {'face': '贷款报价(报价基准)', 'market_seat_label': 'LPR 1年期报价',
-                  'decision': '公布日=观测日(每月20日09:15,节假日顺延)',
+                  'decision': '公布日=观测日(每月20日09:00,节假日顺延'
+                              '——Audit-R29 任务3: 官方发布时刻统一 09:00,'
+                              '与 release_calendar time=09:00 同口径)',
                   'effective': '生效日=公布日',
                   'decision_kind': 'obs_day',
                   'stat_window': None,
@@ -896,7 +898,7 @@ RELEASE_RULES = {
     'CN_PMI_MFG':     ('monthly', -1, '国家统计局当月月末发布(月末−1天,推定)'),
     'CN_CPI_YOY':     ('monthly', 9, '国家统计局次月9日前后发布(月末+9天,推定)'),
     'CN_PPI_YOY':     ('monthly', 9, '国家统计局次月9日前后发布(月末+9天,推定)'),
-    'CN_LPR_1Y':      ('monthly', -11, 'LPR 每月20日09:15公布(观测日=发布日;月末−11天,节假日顺延)'),
+    'CN_LPR_1Y':      ('monthly', -11, 'LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)'),
     'CN_OMO_7D':      ('daily', 0, '央行操作室交易日09:20披露交易公告(当日可见)'),
     'CN_POLICY_OVERNIGHT': ('daily', 0, '央行操作室交易日09:20披露交易公告(当日可见;2026-11-02换锚后隔夜行)'),
     'EA_HICP_YOY':    ('monthly', 16, 'Eurostat HICP 终值次月中旬发布(月末+16天,推定)'),
@@ -951,6 +953,23 @@ def _publish_date(metric_id, frequency, obs_date):
 
 DIMENSION_WORDS = [('增长', 'growth'), ('通胀', 'inflation'),
                    ('货币政策', 'policy')]
+# Audit-R29 任务2: 隐含比较维度——问宏观环境/分化「体现在哪些维度」而不点
+# 名任何维度词形时,按声明式全维族(增长+通胀+货币政策)展开: 环境问句
+# 的「维度」语义=三族对照(与地图注册表同族),不虚构新维;证据不足的
+# 维度由缺口面逐项如实标注(问句本就要求)。仅当句段含经济体且无任何
+# 显式维度词形时触发(有显式词形=用户已点名,不扩)。
+_IMPLICIT_DIM_CUE_RE = re.compile(
+    r'宏观环境|宏观基本面|(?:明显)?分化|哪些维度|什么维度')
+_IMPLICIT_DIM_ALL = ['growth', 'inflation', 'policy']
+
+
+def implicit_dimension_expansion(seg):
+    """句段隐含维度展开: 命中环境/分化线索且无显式维度→全维族;
+    否则空表(调用方口径零变化)。确定性词形,零语义翻译。"""
+    if _IMPLICIT_DIM_CUE_RE.search(seg or ''):
+        if not any(w in (seg or '') for w, _d in DIMENSION_WORDS):
+            return list(_IMPLICIT_DIM_ALL)
+    return []
 # Audit-R27 任务1: 政策维子问词形——「日本央行政策利率处于什么水平」
 # 一类子问不含「货币政策」四字;句段(。？！；切分)内命中任一触发词
 # 即该句段判 policy 维(句段作用域,不摊到无该子问的句段/地区)。
@@ -965,7 +984,10 @@ ASSET_UNIVERSE = ['UST_2Y', 'UST_5Y', 'UST_10Y', 'UST_30Y', 'TIPS_5Y',
                   'DXY', 'EURUSD', 'USDJPY', 'USDCNY', 'GOLD_F', 'SILVER_F',
                   'BRENT_F', 'HY_OAS', 'IG_OAS', 'BB_OAS', 'B_OAS',
                   'CCC_OAS', 'VIX']
-MAP_SHAPE_WORDS = ('地图', '转折', '传导', '结构最像', '环境')
+# Audit-R29 任务2: 「宏观基本面」与「宏观环境」同族(隐含全维族线索
+# 见 _IMPLICIT_DIM_CUE_RE),形状词相应补「基本面」——否则同族问句
+# 检测与计划两套口径(隐含展开吃到、形判漏检)。
+MAP_SHAPE_WORDS = ('地图', '转折', '传导', '结构最像', '环境', '基本面')
 _DIM_LABEL = {'growth': '增长', 'inflation': '通胀', 'policy': '货币政策'}
 _REGION_LABEL = {'US': '美国', 'CN': '中国', 'EA': '欧元区', 'JP': '日本'}
 
@@ -1034,11 +1056,18 @@ def _shift_months(iso_date, n):
 
 def detect_map_question(question, ent):
     """地图问句形判(严格,防误触发): ≥2 个在册经济体 + ≥2 个维度词 +
-    任一形状词。不满足=完全走既有口径(零回归)。"""
+    任一形状词。不满足=完全走既有口径(零回归)。
+
+    Audit-R29 任务2: 维度词形含隐含展开——「宏观环境/分化…哪些维度」
+    型问句无显式维度词形时按全维族判(与 _clause_region_dimension_
+    requests 同一展开,检测与计划不两套口径);经济体侧由 orchestrator
+    简称枚举守卫先行补齐(ent.economies)。"""
     q = question or ''
     ecos = [e for e in (ent.get('economies') or [])
             if e in REGION_DIMENSION_METRICS]
     dims = {d for w, d in DIMENSION_WORDS if w in q}
+    if not dims:
+        dims = set(implicit_dimension_expansion(q))
     return len(ecos) >= 2 and len(dims) >= 2 and any(w in q for w in MAP_SHAPE_WORDS)
 
 
@@ -1126,11 +1155,17 @@ def _clause_region_dimension_requests(question, ecos):
     (与旧口径一致,零回归)。返回 [(region, dimension), ...] 保序。"""
     segs = re.split(r'[。？！?！;；\n]', _norm_q(question or ''))
     out = []
+    import workbench_data as _wd
     for seg in segs:
         if not seg.strip():
             continue
         seg_ecos = [e for e in ecos
                     if _REGION_LABEL.get(e) and _REGION_LABEL[e] in seg]
+        # Audit-R29 任务2: 句段内简称枚举(与 orchestrator 同一守卫助手;
+        # 「美、欧、中、日四地」句段不再漏检地区)
+        for code in _wd.economy_abbrev_hits(seg):
+            if code in ecos and code not in seg_ecos:
+                seg_ecos.append(code)
         seg_dims = []
         for w, d in DIMENSION_WORDS:
             if w in seg and d not in seg_dims:
@@ -1138,6 +1173,12 @@ def _clause_region_dimension_requests(question, ecos):
         if 'policy' not in seg_dims and any(
                 w in seg for w in _POLICY_DIM_EXTRA):
             seg_dims.append('policy')
+        if not seg_dims and seg_ecos:
+            # Audit-R29 任务2: 隐含比较维度展开(环境/分化型问句→全维族;
+            # 与 detect_map_question 同一展开函数,检测/计划共源)
+            for d in implicit_dimension_expansion(seg):
+                if d not in seg_dims:
+                    seg_dims.append(d)
         for eco in seg_ecos:
             for dim in seg_dims:
                 if (eco, dim) not in out:
@@ -1161,6 +1202,20 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
     _requests = _clause_region_dimension_requests(question, ecos)
     if not _requests:
         _requests = [(e, d) for e in ecos for d in dims]
+    # Audit-R29 任务2: 隐含展开是否实际触发(句段含经济体+环境/分化线索+
+    # 零显式维度)——dimension_source 披露用,与句段请求同一判据
+    _implicit_fired = False
+    if not dims:
+        import workbench_data as _wd
+        for seg in re.split(r'[。？！?！;；\n]', _norm_q(question or '')):
+            if not seg.strip() or implicit_dimension_expansion(seg) != _IMPLICIT_DIM_ALL:
+                continue
+            if (any(_REGION_LABEL.get(e) and _REGION_LABEL[e] in seg
+                    for e in ecos)
+                    or any(c in ecos
+                           for c in _wd.economy_abbrev_hits(seg))):
+                _implicit_fired = True
+                break
     regions, metrics, gaps = {}, [], []
     for eco in ecos:
         regions[eco] = {'label': _REGION_LABEL[eco], 'dimensions': {}}
@@ -1213,8 +1268,16 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         'question_summary': (
             '内部摘要(非原文): 地区%s×维度%s@%s,三时点对照+转折+传导+'
             '历史类比;仅供检索/日志,交付与验收以 question_verbatim 为准'
-            % ('/'.join(sorted(regions)), '、'.join(sorted(dims)),
+            % ('/'.join(sorted(regions)),
+               '、'.join(sorted({d for _e, d in _requests}) or dims),
                cutoff_iso)),
+        # Audit-R29 任务2: 维度来源披露——显式词形 / 隐含全维族展开 /
+        # 句段零命中回退全域全维,三态随计划落档(读者可核网格为何如此)。
+        'dimension_source': (
+            'implicit_macro_environment(问句无显式维度词形,按环境/分化'
+            '线索展开全维族 增长+通胀+货币政策;证据不足维度由缺口面'
+            '逐项标注)' if _implicit_fired else
+            ('explicit_words' if _requests else 'fallback_full_grid')),
         # Audit-R23 任务2: 新代码面标记——历史段「当时可知」发布纪律契约
         # (as_of 泄漏拦截)自本标记起生效;旧档无标记不追溯(原文复放必须
         # 通过),新运行计划必带。

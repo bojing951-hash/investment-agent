@@ -377,7 +377,8 @@ def test_audit_r18_gate():
           f"detect={rmp.detect_map_question(Q_MAP, ent)}")
     for q, why in [
             ('美国12个月前和3个月前的增长、通胀环境怎样？', '单经济体'),
-            ('美国、中国、欧元区、日本的宏观环境地图', '无维度词'),
+            ('美国、中国、欧元区、日本的情况怎么样', '无形状词且无维度词'
+             '(R29 起「宏观环境」型问句=隐含全维族正判,此近失例换形)'),
             ('日本和欧元区的货币政策地图', '经济体不足(严格触发≥2交集)')]:
         _e = ro.map_entities(q, reg)
         check(f'§A 近失({why})「{q[:14]}…」→ 非地图问句(不误触发)',
@@ -577,10 +578,20 @@ def test_audit_r18_gate():
         rc_a, _ = cli_stage('attach', rd, eroot,
                             judgment=judgment or map_judgment(rd))
         if os.path.isfile(os.path.join(rd, 'agent_judgment.json')):
-            aj.record_semantic_verdict(eroot, rd, 'UPHELD', SYN_ROLE)
+            # R29 任务4: 席位终裁绑定冻结输入摘要(席位仿体随新合同)
+            _fi = (json.load(open(os.path.join(rd, 'report.json'),
+                                  encoding='utf-8')).get('run')
+                   or {}).get('frozen_inputs')
+            aj.record_semantic_verdict(
+                eroot, rd, 'UPHELD', SYN_ROLE,
+                extra=({'frozen_inputs_sha256':
+                        aj.frozen_inputs_digest(_fi)} if _fi else None))
         rc_r, d_r = cli_stage('report', rd, eroot)
         arcx = os.path.join(ARC, tag)
-        rc_arc, _ = cli_stage('archive', rd, eroot, arc=arcx)
+        rc_arc, d_arc = cli_stage('archive', rd, eroot, arc=arcx)
+        if rc_arc != 0:
+            print('    [debug] archive 拒绝: %s'
+                  % json.dumps(d_arc, ensure_ascii=False)[:400])
         _mx = glob.glob(os.path.join(arcx, '**', 'ARCHIVE_MANIFEST.json'),
                         recursive=True)
         return rc_a, rc_r, d_r, rc_arc, _mx, arcx

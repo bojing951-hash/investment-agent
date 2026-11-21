@@ -365,8 +365,15 @@ def test_audit_r20_gate():
           '停摆延误' in mdc and '2025-11-19' in mdc)
 
     print('═══ §E 端到端: 正例交付归档+负例D 组级缺数=草稿不归档(P4) ═══')
+    # R29 任务4: 席位终裁绑定冻结输入摘要(席位仿体随新合同)
+    _fi_p = (json.load(open(os.path.join(rd, 'report.json'),
+                            encoding='utf-8')).get('run') or {}
+             ).get('frozen_inputs')
     aj.record_semantic_verdict(root, rd, 'UPHELD', SYN_ROLE,
-                               notes='R20 门正例席位(合成隔离)')
+                               notes='R20 门正例席位(合成隔离)',
+                               extra=({'frozen_inputs_sha256':
+                                       aj.frozen_inputs_digest(_fi_p)}
+                                      if _fi_p else None))
     rc_r, data_r = cli('report', rd, root)
     arc = os.path.join(TMPG, 'arc_pos')
     rc_a, data_a = cli('archive', rd, root, arc=arc)
@@ -382,7 +389,20 @@ def test_audit_r20_gate():
     cli('attach', rd_s, sparse, judgment=r20_judgment(rd_s, sparse))
     aj.record_semantic_verdict(sparse, rd_s, 'UPHELD', SYN_ROLE,
                                notes='R20 门负例D席位(合成隔离;组级缺口'
-                               '与席位无关,照样拦)')
+                               '与席位无关,照样拦)',
+                               extra=({'frozen_inputs_sha256':
+                                       aj.frozen_inputs_digest(
+                                           (json.load(open(
+                                               os.path.join(
+                                                   rd_s, 'report.json'),
+                                               encoding='utf-8'))
+                                            .get('run') or {})
+                                           .get('frozen_inputs'))}
+                                      if (json.load(open(os.path.join(
+                                              rd_s, 'report.json'),
+                                              encoding='utf-8'))
+                                          .get('run') or {}
+                                          ).get('frozen_inputs') else None))
     rc_rs, data_rs = cli('report', rd_s, sparse)
     bc = aj.blocked_class_of(json.load(open(os.path.join(rd_s, 'report.json'),
                                             encoding='utf-8')))

@@ -1483,6 +1483,19 @@ def _r1_plan_core(args, engine_root):
     _rp = rep.get('research_plan') if isinstance(rep, dict) else None
     if _rp and _rp.get('map_question'):
         work_order = json.load(open(envelope_path, encoding='utf-8'))
+        # Audit-R29 任务4: 渲染依赖冻结面随工单落档(席位与地图生成/打包
+        # 同一份输入身份;终裁 extra.frozen_inputs_sha256 与归档/重放同算)
+        _rj_run = {}
+        try:
+            _rj_run = json.load(open(os.path.join(
+                rd, 'report.json'), encoding='utf-8')).get('run') or {}
+        except (OSError, ValueError):
+            pass
+        if _rj_run.get('frozen_inputs'):
+            import agent_judgment as _aj_fi
+            work_order['frozen_inputs'] = _rj_run.get('frozen_inputs')
+            work_order['frozen_inputs_sha256'] = _aj_fi.frozen_inputs_digest(
+                _rj_run.get('frozen_inputs'))
         work_order['produce'] += (' + reader_map(地图问句五面: 一句总判断/'
                                   '各地区环境走位/传导图逐环四件套[观察事实/'
                                   '因果假设/竞争解释/区分指标]/三个转折[日期/'
@@ -1945,7 +1958,13 @@ def _r1_report_core(args, engine_root):
         # Audit-R23 任务1: 地图渲染用调用方指定的 engine_root(原 ROOT=
         # ia_cli 模块常量——注入树/重放树跑 report 时误读 ia_cli 自有
         # 数据树,快照定位错树);与 _r1_report_core 其余面同根。
-        map_text = rmp18.render_map_report(rj, _aj_doc, sr, root=engine_root)
+        # Audit-R29 任务4: 运行目录携带 root_overlay/(计划段冻结的渲染
+        # 依赖: 发布日期历+运行快照)在场时优先——重渲与归档/重放同一份
+        # 输入,engine_root 现状(本地日历被换/快照被清)不影响本段字节。
+        _ov_root = os.path.join(rd, 'root_overlay')
+        map_text = rmp18.render_map_report(
+            rj, _aj_doc, sr,
+            root=(_ov_root if os.path.isdir(_ov_root) else engine_root))
         _fresh_sha = hashlib.sha256(map_text.encode('utf-8')).hexdigest()
         _prev_sha = None
         if os.path.exists(map_sha_path):
@@ -2173,6 +2192,33 @@ def _r1_archive_core(args, engine_root):
                 if a != b:
                     raise OSError('副本核对失败(字节不等): ' + fname)
                 copies[fname] = hashlib.sha256(a).hexdigest()[:16]
+        # ── Audit-R29 任务4: 渲染依赖随包冻结(root_overlay/)──────────
+        # 地图问句包携带运行目录冻结副本(rd/root_overlay/=发布日期历+
+        # 运行快照,计划段落位),归档只做逐件字节+摘要核对(与 run.
+        # frozen_inputs 比)——运行后被改/副本缺失=拒绝入包;重放以
+        # overlay 为重渲 root,与本地日历/快照现状无关。
+        frozen_map = {}
+        _rj_fi = ((rj.get('run') or {}).get('frozen_inputs') or {})
+        if (rj.get('research_plan') or {}).get('map_question') and _rj_fi:
+            for _rel, _sha in sorted(_rj_fi.items()):
+                _src = os.path.join(rd, 'root_overlay', str(_rel))
+                if not os.path.isfile(_src):
+                    raise ValueError('冻结副本运行目录不在场: root_overlay/'
+                                     '%s(渲染依赖须随包冻结,不得缺席交付;'
+                                     '运行目录被清=重跑)' % _rel)
+                _dst = os.path.join(dest, 'root_overlay', str(_rel))
+                os.makedirs(os.path.dirname(_dst), exist_ok=True)
+                _shutil.copy2(_src, _dst)
+                if open(_src, 'rb').read() != open(_dst, 'rb').read():
+                    raise OSError('冻结件副本核对失败(字节不等): ' + str(_rel))
+                _got = hashlib.sha256(
+                    open(_dst, 'rb').read()).hexdigest()[:16]
+                if _got != str(_sha)[:16]:
+                    raise ValueError(
+                        '冻结件与运行时摘要不符: %s manifest_run=%s '
+                        'actual=%s(运行后被改=归档拒绝,重跑后再归档)'
+                        % (_rel, str(_sha)[:16], _got))
+                frozen_map[_rel] = _got
         vchain = []
         seen_names = set()
         for p, doc in sorted(
@@ -2235,6 +2281,18 @@ def _r1_archive_core(args, engine_root):
                                  'bound=%s(归档非受审定稿)' %
                                  ((map_arc_sha24 or '缺席')[:16],
                                   map_bound24[:16]))
+        # ── Audit-R29 任务4: 源摘要匹配终裁──冻结输入集合摘要终裁必须
+        # 在档且==归档聚合(席位信封→终裁→归档→重放同算同核;终裁未绑
+        # =席位没吃到冻结面输入,交付链不完整,拒绝)。
+        _fi_agg = aj.frozen_inputs_digest(frozen_map)
+        if frozen_map:
+            _v_fi = (latest_doc or {}).get('frozen_inputs_sha256')
+            if _v_fi != _fi_agg:
+                raise ValueError(
+                    '终裁冻结输入摘要不符: verdict=%s archive=%s'
+                    '(席位终裁未绑定同一份冻结输入=源摘要失配,拒绝归档;'
+                    '席位须以 AGENT_SEAT_ENVELOPE.frozen_inputs_sha256 '
+                    '落终裁)' % (str(_v_fi)[:16], str(_fi_agg)[:16]))
         manifest = {
             'stage': 'archive', 'run_ts': run_ts,
             'question': (rj.get('run') or {}).get('question'),
@@ -2250,6 +2308,10 @@ def _r1_archive_core(args, engine_root):
             'verdict': latest.get('verdict'), 'fresh': latest.get('fresh'),
             'verdicts_n': latest.get('verdicts_n'),
             'verdict_chain': vchain, 'copies_sha16': copies,
+            # Audit-R29 任务4: 渲染依赖冻结面(地图问句;root_overlay/
+            # 布局=包内重渲 root;缺件/篡改/源摘要失配=重放拒)
+            'frozen_inputs': frozen_map,
+            'frozen_inputs_sha256': _fi_agg,
             'record_health': (data.get('review') or {}).get(
                 'record_health') or {},
             'source_report_dir': rd,
@@ -2310,6 +2372,12 @@ def _r1_replay_core(args, engine_root):
        未声明渲染器漂移(map_renderer_drift=false)时必须逐字节相等;
        声明漂移的包按 R24 纪律以受审冻结字节为准,重渲差异如实披露
        不判负(受审定稿权威)。
+       Audit-R29 任务4: 地图包另携渲染依赖冻结面(root_overlay/=发布
+       日期历+运行快照,manifest.frozen_inputs 逐件 sha16+聚合 sha256)
+       ——在场/摘要/运行面三面核对后,重渲 root 切包内 overlay: 与本地
+       日历/快照现状无关(更换本地日历重放仍逐字节一致);最新裁决档
+       frozen_inputs_sha256 须==归档聚合(源摘要匹配终裁)。R29 前旧档
+       无该键=legacy 重渲 root 不变,零回归。
 
     输出落独立新目录(--replay-out 或缺省 replay_out/<包名>_<ts>/,
     append-only 已存在即拒;重复运行各开新档,**包内零写入**,写毕复算
@@ -2400,6 +2468,38 @@ def _r1_replay_core(args, engine_root):
         _chk('question_verbatim_bytes', qv is not None and qv == qv_want,
              '包内原问 %d 字节 vs manifest.question %d 字节(逐字节)'
              % (len(qv) if qv is not None else -1, len(qv_want)))
+    # ── Audit-R29 任务4: 渲染依赖冻结面(root_overlay/)──────────────
+    # 门①冻结件在场+门②逐件摘要复算+运行面三面核对;门④重渲 root 切
+    # overlay(与本地日历/快照现状无关——更换本地日历重放仍逐字节一致)。
+    # 旧档(R29 前)无 frozen_inputs 键=legacy 行为不变(root=engine_root
+    # 重渲,零回归);终裁源摘要匹配=最新裁决 frozen_inputs_sha256 须在
+    # 档且==归档聚合(席位信封→终裁→归档→重放同算同核)。
+    fi = manifest.get('frozen_inputs') or {}
+    overlay_root = None
+    if fi:
+        fmiss = [rel for rel in fi
+                 if not os.path.isfile(os.path.join(pkg, 'root_overlay',
+                                                    str(rel)))]
+        _chk('frozen_inputs_present', not fmiss,
+             'overlay 缺件=%s(root_overlay/ 布局=渲染依赖随包冻结)'
+             % (fmiss or '无'))
+        fbad = []
+        for rel, want in sorted(fi.items()):
+            _p = os.path.join(pkg, 'root_overlay', str(rel))
+            got = (_sha256_file(_p) or '')[:16]
+            if got != str(want)[:16]:
+                fbad.append('%s: manifest=%s actual=%s'
+                            % (rel, str(want)[:16], got or '缺席'))
+        _chk('frozen_inputs_digests', not fbad,
+             '冻结件摘要不符=%s' % (fbad or '无'))
+        rfi = ((rj.get('run') or {}).get('frozen_inputs') or {})
+        _d = (('run.frozen_inputs=%s manifest=%s(渲染依赖身份三面之一;'
+               '失配=包或报告被单侧改写)'
+               % (sorted(rfi.items()), sorted(fi.items())))
+              if rfi != fi else '一致')
+        _chk('frozen_inputs_match_report', rfi == fi, _d)
+        if not fmiss and not fbad:
+            overlay_root = os.path.join(pkg, 'root_overlay')
     head_mf = manifest.get('run_code_git_head')
     head_rj = (rj.get('run') or {}).get('git_head')
     # Audit-R28 任务4: R28 前旧档 manifest 无 run_code_git_head 键
@@ -2460,6 +2560,15 @@ def _r1_replay_core(args, engine_root):
                                 '=%s' % ((map_sha_now or '缺席')[:16],
                                          str(manifest.get(
                                              'map_content_sha256'))[:16]))
+        if fi:
+            # Audit-R29 任务4: 源摘要匹配终裁——最新裁决档冻结输入摘要
+            # 须在档且==归档聚合(缺席/失配=席位终裁未绑同一份输入)
+            v_fi = (latest_doc or {}).get('frozen_inputs_sha256')
+            if v_fi != manifest.get('frozen_inputs_sha256'):
+                bind_bad.append('终裁冻结输入摘要=%s ≠ manifest=%s'
+                                % ((str(v_fi)[:16] if v_fi else '缺席'),
+                                   str(manifest.get(
+                                       'frozen_inputs_sha256'))[:16]))
     _chk('verdict_binding_threeway', not bind_bad,
          '绑定异常=%s' % (bind_bad or '无(run=归档=裁决锚三面一致)'))
 
@@ -2499,8 +2608,12 @@ def _r1_replay_core(args, engine_root):
         sr_mini = {'verdict': manifest.get('verdict'),
                    'verdicts_n': manifest.get('verdicts_n')}
         try:
-            map_text = rmp.render_map_report(rj, aj_doc, sr_mini,
-                                             root=engine_root)
+            # Audit-R29 任务4: 重渲 root=包内冻结 overlay(R29+ 包)——
+            # 与本地日历/快照现状无关;legacy 旧档无 overlay 时沿用
+            # engine_root(旧行为,零回归)。
+            map_text = rmp.render_map_report(
+                rj, aj_doc, sr_mini,
+                root=(overlay_root or engine_root))
             archived = open(os.path.join(pkg, 'MAP_REPORT.md'),
                             'rb').read()
             byte_equal = map_text.encode('utf-8') == archived

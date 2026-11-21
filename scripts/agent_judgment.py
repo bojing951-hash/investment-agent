@@ -309,6 +309,23 @@ def _canonical(obj):
                       separators=(',', ':'), default=str)
 
 
+def frozen_inputs_digest(mapping):
+    """Audit-R29 任务4: 冻结输入集合摘要(渲染依赖身份锚)。
+
+    输入=relpath→sha16 映射(地图问句运行时实际读的 root 文件逐字节
+    摘要: 发布日期历+运行快照);输出=sorted 'rel:sha16' 行以 \\n 连接
+    后的 sha256。空映射/非映射→None(非地图问句不绑)。
+    五处同算同核: 运行面(report.run.frozen_inputs)→席位信封→
+    终裁(extra.frozen_inputs_sha256)→归档(manifest)→重放(复算)——
+    任何一处本地文件被改而摘要未随=不一致即拒。"""
+    import hashlib
+    if not isinstance(mapping, dict) or not mapping:
+        return None
+    lines = sorted('%s:%s' % (rel, str(sha)[:16])
+                   for rel, sha in mapping.items())
+    return hashlib.sha256('\n'.join(lines).encode('utf-8')).hexdigest()
+
+
 # Audit-R2 条目1: 摘要边界内须剥离的易变键(审查机制自身状态面,
 # 写入即变——不剥离则裁决落档自噬;其余键全在摘要内,含 attach 台账
 # 与版本指针 run.git_head/pipeline_version——重 attach/换引擎版本即

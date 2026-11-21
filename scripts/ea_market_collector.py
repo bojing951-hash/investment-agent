@@ -43,6 +43,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 from datetime import date, datetime, timezone
 
@@ -226,13 +227,33 @@ def _open_url_with(url, headers):
 def fetch_ea_real_gdp_yoy(raw=None):
     """FRED CLVMEURSCAB1GQEA19 → 同季去年比序列;raw 注入则零网络。
 
-    → (yoy [('YYYY-MM-01', pct)], alerts);源失败→(None, alerts)。"""
+    → (yoy [('YYYY-MM-01', pct)], alerts);源失败→(None, alerts)。
+
+    Audit-R29 任务1: 瞬时 TLS 故障重试——R28 当日实采曾因
+    'URLError: EOF occurred in violation of protocol (_ssl.c:1129)'
+    单次失败致整日面 series 缺席(快照→地图 EA 增长格连锁缺数)。
+    网络路径固定 3 次尝试(间隔 2s);raw 注入测试零网络零重试,
+    语义不变。全部尝试失败才落 READ_FAIL(如实)。"""
     if raw is None:
-        raw, a = _fetch_or_alert('FRED-EA-GDP', lambda: _open_url_with(
-            FRED_EA_GDP_URL, _UA_FRED))
+        alerts = []
+        raw = None
+        for attempt in range(1, 4):
+            raw, a = _fetch_or_alert('FRED-EA-GDP', lambda: _open_url_with(
+                FRED_EA_GDP_URL, _UA_FRED))
+            alerts.extend(a)
+            if raw is not None:
+                if attempt > 1:
+                    alerts.append(f'FRED-EA-GDP 第 {attempt} 次尝试成功'
+                                  f'(前 {attempt - 1} 次瞬时失败已重试)')
+                break
+            if attempt < 3:
+                time.sleep(2)
         if raw is None:
-            return None, a
-    rows, alerts = parse_fred_csv(raw)
+            alerts.append('FRED-EA-GDP 3 次尝试均失败(瞬时 TLS/网络类'
+                          '故障重试后仍缺席→series 诚实缺席,如实)')
+            return None, alerts
+    rows, p_alerts = parse_fred_csv(raw)
+    alerts.extend(p_alerts)
     if rows is None:
         return None, alerts
     return _quarterly_yoy(rows), alerts

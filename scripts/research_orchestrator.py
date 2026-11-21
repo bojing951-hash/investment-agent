@@ -18,6 +18,7 @@ fact_id/view_id 级来源)随报告落盘 report.json+report.md。
 纯函数入口: run_research(question, root=None, archive=False, out_dir=None,
 ia_timeout=180) → dict(ia_cli research-run 与测试共用)。
 """
+import hashlib
 import json
 import os
 import re
@@ -1155,6 +1156,12 @@ def map_entities(question, reg):
         if label and (label in question
                       or re.search(r'\b' + re.escape(code.casefold()) + r'\b', q)):
             economies.append(code)
+    # Audit-R29 任务2: 地区简称(枚举守卫)并入经济体识别——「美、欧、中、
+    # 日四地」一类简称问句不再漏检成默认面 US+CN(守卫规则见
+    # workbench_data.economy_abbrev_hits docstring,非枚举语境零命中)。
+    for code in wd.economy_abbrev_hits(question):
+        if code not in economies:
+            economies.append(code)
     note = None
     if not metrics:
         note = ('问题未词面命中任何指标(零模型不做语义翻译);'
@@ -2242,6 +2249,28 @@ def run_research(question, root=None, archive=False, out_dir=None,
                                          [m for m in ent['metrics']]))
 
     _gh, _gh_src, _gh_dirty = _git_state(root)
+    # ── Audit-R29 任务4: 渲染依赖冻结面───────────────────────────────
+    # 地图问句运行时实际读的 root 文件(发布日期历+运行快照+指标注册表
+    # ——render 链经 metric_series 读注册表口径)逐字节摘要随 run 落档
+    # ——席位信封/终裁/归档/重放同算同核(aj.frozen_inputs_digest);
+    # 本地文件运行后被改而摘要未随=重放拒。非地图问句=None 不绑(零
+    # 回归)。快照路径=snap_note(加载成功时即文件路径)。
+    _frozen_inputs = None
+    if research_plan is not None and research_plan.get('map_question'):
+        _frozen_inputs = {}
+        for _rel in ('config/release_calendar.json',
+                     'config/metric_registry.json'):
+            _fp_ = os.path.join(root, _rel)
+            if os.path.isfile(_fp_):
+                _frozen_inputs[_rel] = hashlib.sha256(
+                    open(_fp_, 'rb').read()).hexdigest()[:16]
+        if (snap is not None and isinstance(snap_note, str)
+                and os.path.isfile(snap_note)):
+            _rel = os.path.relpath(snap_note, root)
+            _frozen_inputs[_rel] = hashlib.sha256(
+                open(snap_note, 'rb').read()).hexdigest()[:16]
+        if not _frozen_inputs:
+            _frozen_inputs = None
     report = {
         'schema_version': '2.0',
         'pipeline_version': PIPELINE_VERSION,
@@ -2267,6 +2296,8 @@ def run_research(question, root=None, archive=False, out_dir=None,
                         'L1 事实面在场、失败步=诚实拒答类(源端缺席 no_series)'
                         '→须显式 --allow-failed-run,落位记 degraded')},
                 'data_requirements': data_requirements,
+                # Audit-R29 任务4: 渲染依赖冻结面(地图问句;None=非地图)
+                'frozen_inputs': _frozen_inputs,
                 },
         'steps': steps,
         'fanout': fan,
@@ -2292,6 +2323,22 @@ def run_research(question, root=None, archive=False, out_dir=None,
             out_root, f"{report['run']['ts_utc']}_{_slug(question)}_{n}")
         n += 1
     os.makedirs(run_dir)
+    # Audit-R29 任务4: 渲染依赖冻结副本随运行目录走(rd/root_overlay/)
+    # ——报告段重渲/归档打包/离线重放同一份字节(与本地日历/快照现状
+    # 无关);副本逐字节核对后落位,失败=冻结面缺失如实报错不落半套。
+    if _frozen_inputs:
+        import shutil as _sh
+        for _rel, _sha in sorted(_frozen_inputs.items()):
+            _src = os.path.join(root, _rel)
+            _dst = os.path.join(run_dir, 'root_overlay', _rel)
+            os.makedirs(os.path.dirname(_dst), exist_ok=True)
+            _sh.copy2(_src, _dst)
+            if (open(_src, 'rb').read() != open(_dst, 'rb').read()
+                    or hashlib.sha256(
+                        open(_dst, 'rb').read()).hexdigest()[:16]
+                    != str(_sha)[:16]):
+                raise OSError('冻结面副本核对失败: %s(字节或摘要不符)'
+                              % _rel)
     with open(os.path.join(run_dir, 'report.json'), 'w',
               encoding='utf-8') as f:
         json.dump(report, f, ensure_ascii=False, indent=2, default=str)

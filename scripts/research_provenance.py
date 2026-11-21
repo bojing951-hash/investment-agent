@@ -543,7 +543,14 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
         degraded = False
         if old_ids is not None:
             new_ids = _want_ids
-            _miss = sorted(set(old_ids) - set(new_ids))
+            # Audit-R27 任务3验收补: 占位 null 叶身份不计入「身份丢失」——
+            # 有效观测为 0 的身份不承载数据,其消失(含 null→富容器提升,
+            # 如断网空壳面 ah_premium:null → 后到富面 {close,…})非数据
+            # 损失;真实数据身份(叶数>0)被删仍判丢失。观测蒸发(>0→0)
+            # 走缩水分支不受影响。
+            _miss = sorted(
+                i for i in set(old_ids) - set(new_ids)
+                if old_ids[i] > 0)
             _shrunk = sorted(
                 i for i in set(old_ids) & set(new_ids)
                 if new_ids[i] < old_ids[i])

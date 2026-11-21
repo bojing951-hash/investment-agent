@@ -145,6 +145,40 @@ def sec_a():
           s6 == 'overwritten_preserved' and n6 == ''
           and s7 == 'overwritten_preserved' and n7 == '',
           f'{s6}/{s7}')
+    # 断网空壳面(null 占位)先落、富面后到: null→富容器提升≠身份丢失
+    # (占位 null 叶有效观测=0,不承载数据)——富面须落规范位
+    d4 = os.path.join(TMPG, 'daily_null_shell')
+    shell = {'date': '20261121', 'version': 2,
+             'ah_premium': None, 'margin': None, 'southbound': None,
+             'macro': {}, 'series': {},
+             'a_share_indices': {'000001': {'close': 1.0}}}
+    rich = {'date': '20261121', 'version': 2,
+            'ah_premium': {'close': 128.4, 'date': '2026-11-20',
+                           'signal': 'neutral'},
+            'macro': {'pmi_mfg': {'dates': ['2026-10-01'],
+                                  'values': [50.1]}},
+            'series': {'CN_CPI_YOY': {'dates': ['2026-10-01'],
+                                      'values': [0.3]}},
+            'a_share_indices': {'000001': {'close': 1.1}}}
+    _, s8, _ = rp.daily_face_guard_write(d4, 'china', '20261121', shell)
+    _, s9, n9 = rp.daily_face_guard_write(d4, 'china', '20261121', rich)
+    c9 = json.load(open(os.path.join(d4, 'china_20261121.json'),
+                        encoding='utf-8'))
+    check('§A6 空壳(null占位)先到+富面后到→富面落规范位'
+          '(null→容器提升≠身份丢失;验收实测形态)',
+          s8 == 'first' and s9 == 'overwritten_preserved' and n9 == ''
+          and 'CN_CPI_YOY' in (c9.get('series') or {})
+          and c9['ah_premium']['close'] == 128.4,
+          f'{s8}/{s9} note={n9[:60]}')
+    # 反例保全: 真实数据身份(叶数>0)被删仍判丢失转存
+    d5 = os.path.join(TMPG, 'daily_realloss')
+    rp.daily_face_guard_write(d5, 'macro', '20261121', full)
+    lost = json.loads(json.dumps(full))
+    del lost['data']['CPI']
+    _, s10, n10 = rp.daily_face_guard_write(d5, 'macro', '20261121', lost)
+    check('§A7 真实数据身份被删→仍 degraded_diverted(占位豁免不放松)',
+          s10 == 'degraded_diverted' and '身份丢失' in n10
+          and 'CPI' in n10, f's={s10} note={n10[:60]}')
 
 
 # ═══ §B 任务1: 点锚修正+句段作用域请求 ═════════════════════════════

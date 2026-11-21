@@ -16,6 +16,17 @@ allowed-tools: Bash(python3:*)
 - 价格预测、宏观走势"将会如何"的判断 → 不做;可提供历史与现状事实
 - research 无法映射 ≠ 研究终止: 如实报告 `data.status`(refusal/unmapped),**不猜映射、不用自己知识填空**,随即按拒答导流转工具组合(overview/changes/history/compare)继续研究(见下方"十一步研究工作流"第 8 步)
 
+## 问句路由纪律(默认入口;Audit-R28 任务1)
+
+收到用户消息时先判类,**研究问句一律走正式闭环入口 `research-one`**(单命令四段 plan→attach→report→archive,含独立语义审查与必要修订),由它完成取证、研判、独立审查与报告交付——**不得以即席作答或 overview/changes/history/compare/analog 等工具组合替代正式链回答研究问句**。判类规则:
+
+1. **研究问句**(问宏观/市场/政策的水平、变化、对比、机制、转折、历史对照、观点验证等)→ `research-one --stage plan --question-file <原问文件>` 起步,走完整四段+独立审查(REVISE→修订→复裁 UPHELD),报告交付后**停等用户裁定归档**。首轮第一动作=原问落盘(见"一键研究闭环工作流"第 1 步)
+2. **非研究查问**(环境排障/引擎用法/字段口径/档案检索/档案读取)→ 直接用对应能力(doctor/catalog/archive list 等)
+3. **research-one 拒答后的探索披露**(blocked_class 草稿面已交付时,用户追问缺口细节)→ 可用工具组合做**补充披露**,但结论层仍须标注"基于草稿面"并复述 blocked_class,不得借工具组合把草稿包装成正式结论
+4. 模糊时按 1 处理(多走正式链的代价是多一轮机器校验,反向代价是无审计的即席结论)
+
+安装配置一次后,新会话只输入原问即可——本纪律是技能默认行为,不依赖会话级提示词补充。
+
 ## 第一步:确定引擎路径
 
 ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
@@ -102,7 +113,7 @@ ia_cli.py 位于 investment-agent 仓库根目录。按以下顺序解析:
 1. **确定性底座(plan 段)**: `python3 ia_cli.py research-one --stage plan --question-file <原问文件>`(可加 `--fanout`)→ 得报告目录+AGENT_SEAT_ENVELOPE 工单(L1 事实行/L2 观点面/**证据索引**=fact_id 与 VP id 清单+reader_map 契约面)。**原问逐字纪律(Audit-R25 任务3+Audit-R26 任务4)**: 会话**首轮第一动作**=把当轮收到的用户消息**原样落盘**为独立原问文件——`printf '%s' "$(cat)"` 类字节直写或等价工具写 `question_verbatim_<YYYYMMDD-HHMMSS>.txt`(树内**不预置**任何问题文件;每轮消息一个独立文件,不得复用旧轮文件);已在本轮落盘则直接引用,禁止重写。入口一律 `--question-file` 字节直读;`--question "..."` 手打内联会把全角标点重排成半角(169字→168字实雷),仅作调试用途
 2. **Agent 研判(你的工作,零模型代写)**: 读工单与证据面,撰写 judgment JSON(schema v1.0): L3=矛盾/综合陈述(每条并列≥2 竞争性解释+证据引用)+机制链(每环标 E1/E2/E3);L4=条件情景(≥2 并列,五行齐备);地图问句再给 reader_map(总判断/四地走位/传导/转折/历史——**传导环竞争解释在场时填 main_predicts/competing_predicts/face_off_verdict 对质三件**,证据不足如实写「尚不能区分」)。**转折补选交还(Audit-R24 任务4)**: 同轮事件并项后不足三个转折时,引擎按候选面补选独立转折并在 attach 明细点名——逐项在 reader_map.turning_supplement 写 {metric_id, to_ym, first_mover(谁先变), follow_or_diverge(哪些经济体跟进/背离), resolution_note(月频无法判先后就写明分辨率), evidence_gap(缺跨国证据写明缺哪项)};从多少到多少取候选面前后值原样引用,不编造。**每个 evidence_ref 必须取自该报告证据索引原值**,每个敏感变量/证伪指标必须是注册表在册 metric_id——机器校验不认注册表外的引用
 3. **机器校验落位(attach 段)**: `research-one --stage attach --report-dir <dir> --judgment <file>` → 契约全绿=L3/L4 produced=True(attribution=ai_inferred,原文入档+报告重渲);CONTRADICTED/NOT_VERIFIED=按落档明细修订重提,**不得为过校验而稀释判断**(缺竞争性解释就补解释,不是删条目)。地图问句的数字表述纪律(Audit-R24 任务3): 利率分量的 bp 主张须与归属分量一致(名义/实际/盈亏平衡对调不蒙混),日本等池外利率按引擎序列同窗复算,`+67bp`≡`+0.67个百分点` 双单位等值,指数水平写「+5.29 指数点」或「+1.98%」(水平差与相对幅不可互换)
-4. **报告与归档**: `research-one --stage report --report-dir <dir>`(完整读者报告;地图问句附 MAP_REPORT.md)→ 用户认可后 `research-one --stage archive --report-dir <dir>`(九件套直归);`--stage auto` 串前三段。**草稿纪律(Audit-R26 验收)**: report 段信封若载 `draft_delivered: true`/警告「草稿交付」(blocked_class∈ map_core_dimension_missing / map_anchor_coverage_insufficient / map_core_dimension_stale / map_current_period_missing / map_current_period_unverified——R27 任务1: 当期锚零 ok(他时点 ok 不补当期)或当期 ok 锚全部未核验(无更晚已证实决议且间隔超决策周期上限)同为草稿),交付答复**必须**显式声明「草稿(非正式)」并随行 blocked_class 与受影响组,MAP_REPORT 首页同标——**不得**向用户提供立即 `--stage archive` 选项(正式归档对草稿拒绝,补数后重跑 auto --report-dir 续链);信封 deliverable=true 且无草稿旗标才可按用户认可归档。已裁正文冻结: 总判为 UPHELD/VERIFIED 且内容未变时 report/archive 按**受审原字节**交付,渲染器漂移如实披露不改写;需更正或重排用 `--new-map-version` 另建版本并复审后才可交付(Audit-R24 任务1)
+4. **报告与归档**: `research-one --stage report --report-dir <dir>`(完整读者报告;地图问句附 MAP_REPORT.md)→ 用户认可后 `research-one --stage archive --report-dir <dir>`(九件套直归);`--stage auto` 串前三段。**草稿纪律(Audit-R26 验收)**: report 段信封若载 `draft_delivered: true`/警告「草稿交付」(blocked_class∈ map_core_dimension_missing / map_anchor_coverage_insufficient / map_core_dimension_stale / map_current_period_missing / map_current_period_unverified / map_current_period_stale_mix / map_official_target_missing——R27 任务1: 当期锚零 ok(他时点 ok 不补当期)或当期 ok 锚全部未核验(无更晚已证实决议且间隔超决策周期上限)同为草稿;R28 任务2: 当期只剩过期与未核验值**混合**、或缺问句指定的**官方政策目标记录**(日历无政策决议/维持实录且序列面决议/生效日不可推)亦为草稿),交付答复**必须**显式声明「草稿(非正式)」并随行 blocked_class 与受影响组,MAP_REPORT 首页同标——**不得**向用户提供立即 `--stage archive` 选项(正式归档对草稿拒绝,补数后重跑 auto --report-dir 续链);信封 deliverable=true 且无草稿旗标才可按用户认可归档。已裁正文冻结: 总判为 UPHELD/VERIFIED 且内容未变时 report/archive 按**受审原字节**交付,渲染器漂移如实披露不改写;需更正或重排用 `--new-map-version` 另建版本并复审后才可交付(Audit-R24 任务1)
 5. **独立复核(你自行启动,不等外部指令)**: 正式交付前经独立语义审查席(REVISE→修订→复裁 UPHELD 才可归档转正)。机制: 用**独立上下文**(新会话/子代理,不读你的研判过程)读报告目录与 MAP_REPORT.md,按席位章程裁决后落档——`cd <仓库根> && python3 -c "import sys; sys.path.insert(0,'scripts'); import agent_judgment as aj; aj.record_semantic_verdict('<仓库根>', '<报告目录>', '<UPHELD|REVISE>', reviewer='<席位名>', notes='<裁决要点>')"`(append-only,自动绑内容摘要;REVISE→你修订→重新 attach/report→席位再裁)。裁决档在 `audit/semantic_review/<日期>/VERDICT-*.json`
 
 红线: 判断内容 100% 归 Agent(你),校验器/管线零生成零改写;归因永标 ai_inferred;校验是纪律地板不是质量保证——判断质量仍由纪律 4/15/16 与独立审计把关。

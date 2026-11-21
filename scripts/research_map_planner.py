@@ -353,6 +353,150 @@ def _hist_series(mid, rj, snap, root):
     return s, ('运行快照' if s and s.get('dates') else None)
 
 
+# ── Audit-R28 任务3: 历史段地区×维度同步面(同步/分化/缺证) ───────────────
+# 每段历史类比按判断截止核对美/中/欧/日,逐地区×维度给同步性标签——
+# 确定性面(冻结信封序列+发布纪律),判断叙述(other_regions_sync)引用
+# 本面可核。口径=与美国**同维度**方向对照(美国类比标签保留——锚定
+# 美国序列的 analog 排序不变,本面是其跨国同步性的证据补齐)。
+_HIST_REGION_DIMS = [
+    ('US', 'growth', 'US_REAL_GDP', '实际GDP', 'level_yoy'),
+    ('US', 'inflation', 'CPI', 'CPI', 'level_yoy'),
+    ('US', 'policy', 'DFEDTARU', '目标利率上限', 'level'),
+    ('CN', 'growth', 'CN_PMI_MFG', '制造业PMI', 'level'),
+    ('CN', 'inflation', 'CN_CPI_YOY', 'CPI同比', 'direct'),
+    ('CN', 'policy', 'CN_LPR_1Y', 'LPR(1年)', 'level'),
+    ('EA', 'growth', 'EA_REAL_GDP_YOY', 'GDP同比', 'direct'),
+    ('EA', 'inflation', 'EA_HICP_YOY', 'HICP同比', 'direct'),
+    ('EA', 'policy', 'ECB_MRO', 'MRO利率', 'level'),
+    ('JP', 'growth', 'JP_REAL_GDP_YOY', 'GDP同比', 'direct'),
+    ('JP', 'inflation', 'JP_CPI_YOY', 'CPI同比', 'direct'),
+    ('JP', 'policy', 'JP_POLICY_RATE', '隔夜利率(月均)', 'level'),
+]
+_HIST_DIM_LABEL = {'growth': '增长', 'inflation': '通胀', 'policy': '货币政策'}
+
+
+def _hist_region_reading(s, ym, cutoff_end, mid, kind, freq):
+    """≤ym 的**当时可知**读数 → (value, obs_date, pub)|None+原因。
+
+    当时可知=观测月的可见日(_aof_first_pub)≤截止月末;level_yoy=
+    水平序列取同比(基期观测同样须已可见);direct/level=原值即读数。"""
+    months = sorted({d[:7] for d, v in zip(s.get('dates') or [],
+                                           s.get('values') or [])
+                     if v is not None})[::-1]
+    def _vis_obs(m):
+        od, ov = _aof_obs_at_month(s, m)
+        if od is None:
+            return None
+        vf, _pub, _b, _n = _aof_first_pub(mid, od, freq)
+        if vf and vf <= cutoff_end:
+            return od, ov, vf
+        return None
+    cur = next((r for m in months if m <= ym for r in [_vis_obs(m)] if r),
+               None)
+    if cur is None:
+        return None, 'no_visible_obs'
+    if kind != 'level_yoy':
+        return (cur[1], cur[0], cur[2]), None
+    # 同月配对基期: 基期月自**实际观测月**回推 12 月(非请求月——
+    # 截止月观测常晚于截止公布,实际取到前一月观测,基期须跟观测走)。
+    base_m = _shift_months(cur[0][:7] + '-01', 12)[:7]
+    base = next((r for m in months if m <= base_m for r in [_vis_obs(m)] if r),
+                None)
+    if base is None or not base[1] or cur[1] is None:
+        return None, 'no_visible_base'
+    return (round((cur[1] / base[1] - 1.0) * 100.0, 4),
+            cur[0], cur[2]), None
+
+
+def history_region_sync_face(history_periods, rj):
+    """每段历史类比的地区×维度同步性面(确定性;冻结信封序列)。
+
+    逐段(锚=anchor_ym,判断截止月=judgment_cutoff_ym): 美中欧日×
+    增长/通胀/货币政策,两端读数=锚−3月与截止月各自≤该月的最新当时
+    可知观测(发布纪律: 可见日≤截止月末;公布日随行)。标签:
+    同步=与美国同维度方向一致(双持平亦同);分化=方向相反或一端持平
+    一端变动;缺证=序列缺席/无可见观测/同比基期不可见——逐项点名缺
+    哪条,不以相邻维度冒充。月频分辨率界限同引擎既档: 两端读数仅给
+    方向对照,不判先后。"""
+    periods = []
+    for h in history_periods or []:
+        cym = str(h.get('judgment_cutoff_ym') or h.get('anchor_ym') or '')
+        aym = str(h.get('anchor_ym') or '')
+        if len(cym) != 7:
+            continue
+        cutoff_end = _aof_month_end(cym)
+        prior_m = _shift_months(cym + '-01', 3)[:7]
+        rows = []
+        for eco, dim, mid, label, kind in _HIST_REGION_DIMS:
+            s = _series_from_report(rj, mid) if rj is not None else None
+            row = {'region': eco, 'dimension': dim, 'metric_id': mid,
+                   'label': label,
+                   'dimension_label': _HIST_DIM_LABEL.get(dim, dim)}
+            if not s or not s.get('dates'):
+                row.update(label_sync='缺证',
+                           reason='序列不在场(冻结信封无该序列)')
+                rows.append(row)
+                continue
+            freq = s.get('frequency') or 'monthly'
+            r1, why1 = _hist_region_reading(s, cym, cutoff_end, mid, kind,
+                                            freq)
+            r0, why0 = _hist_region_reading(s, prior_m, cutoff_end, mid,
+                                            kind, freq)
+            row['vintage_note'] = _aof_revision_note(mid)
+            if r1 is None or r0 is None:
+                row.update(
+                    label_sync='缺证',
+                    reason=('截止端无可见观测' if r1 is None
+                            else f'锚−3月端无可见观测')
+                    + (f'({why1})' if r1 is None and why1 else
+                       f'({why0})' if why0 else ''))
+                rows.append(row)
+                continue
+            row.update(
+                prior_value=r0[0], prior_obs=r0[1], prior_pub=r0[2],
+                cutoff_value=r1[0], cutoff_obs=r1[1], cutoff_pub=r1[2])
+            rows.append(row)
+        # 方向与标签(美国=同维基准;两端读数齐备才判)
+        by_key = {(r['region'], r['dimension']): r for r in rows}
+        for (eco, dim, mid, label, kind) in _HIST_REGION_DIMS:
+            r = by_key.get((eco, dim))
+            if r.get('label_sync') == '缺证':
+                continue
+            def _dir(rr):
+                dv = (rr.get('cutoff_value') - rr.get('prior_value'))
+                if dv == 0:
+                    return '持平'
+                return '上行' if dv > 0 else '下行'
+            r['direction'] = _dir(r)
+            r['delta'] = round(r['cutoff_value'] - r['prior_value'], 4)
+            if eco == 'US':
+                r['label_sync'] = '基准(美国类比锚)'
+                continue
+            us = by_key.get(('US', dim)) or {}
+            if us.get('label_sync') == '缺证' or not us.get('direction'):
+                r['label_sync'] = '缺证'
+                r['reason'] = '美国同维基准缺证——无对照方向'
+                continue
+            if r['direction'] == us['direction']:
+                r['label_sync'] = ('同步' if r['direction'] != '持平'
+                                   else '同步(双持平)')
+            else:
+                r['label_sync'] = '分化'
+                r['reason'] = (f"美国{us['direction']}vs该地区"
+                               f"{r['direction']}")
+        periods.append({'anchor_ym': aym, 'cutoff_ym': cym,
+                        'rows': rows})
+    return {'periods': periods,
+            'basis': ('历史段地区×维度同步面: 逐段按判断截止核对美中欧日,'
+                      '两端读数=锚−3月与截止月各自的最新当时可知观测'
+                      '(可见日≤截止月末,公布日随行);标签=与美国同维度'
+                      '方向对照(同步=方向一致,分化=相反或一端持平,'
+                      '缺证=序列缺席/无可见观测/基期不可见,逐项点名)。'
+                      '美国类比标签保留(analog 锚定美国序列),本面补齐'
+                      '跨国同步性证据;月频分辨率只给方向对照不判先后'
+                      '(Audit-R28 任务3)')}
+
+
 def history_window_face(history_periods, snap, root, rj=None):
     """每段历史类比×{3,6,12}月窗的经济×资产并列面(确定性,渲染层调用)。
 
@@ -525,6 +669,16 @@ def _aof_first_pub(mid, obs_date, frequency):
     return pub, pub, basis, ''
 
 
+def _aof_publish_instant(mid, obs_date, root=None):
+    """Audit-R28 任务2: 官方发布时刻('HH:MM')|None——日历条目 time 字段
+    (官方实录,如中国 LPR 每月20日 09:00)。仅读者面显示;可见性比较
+    仍用日期字段(时刻不改变可见性判定口径;推定条目无时刻如实缺席)。"""
+    import release_calendar as rc
+    _p = (os.path.join(root, 'config', 'release_calendar.json')
+          if root else None)
+    return rc.publish_instant(mid, obs_date[:7] + '-01', path=_p)
+
+
 def _aof_revision_note(mid):
     if mid in _AOF_GDP_FAMILY:
         return '事后回顾族(最新修订值,非当时首发值——注册声明)'
@@ -580,6 +734,7 @@ def history_asof_face(history_periods, rj):
                 row = {'metric_id': mid, 'label': label, 'obs_month': ym,
                        'obs_date': od, 'value': ov,
                        'visible_from': vf, 'first_publish': pub,
+                       'publish_instant': _aof_publish_instant(mid, od),
                        'pub_basis': basis, 'source': s.get('source'),
                        'revision_note': _aof_revision_note(mid),
                        'note': note}
@@ -651,6 +806,7 @@ def history_asof_face(history_periods, rj):
                         'metric_id': mid, 'label': label, 'obs_month': ym,
                         'obs_date': od, 'value': ov,
                         'visible_from': vf, 'first_publish': pub,
+                        'publish_instant': _aof_publish_instant(mid, od),
                         'pub_basis': basis, 'source': s.get('source'),
                         'revision_note': _aof_revision_note(mid),
                         'note': note,
@@ -1166,7 +1322,8 @@ def _visible_publish(mid, freq, obs_date):
     return None, 'unavailable'
 
 
-def _policy_dates(face, obs_date, market_date=None, value_change_date=None):
+def _policy_dates(face, obs_date, market_date=None, value_change_date=None,
+                  metric_id=None, as_of=None, calendar_path=None):
     """政策四分面的四日期落位(R21 任务2: 决议日/生效日/市场观测日/
     统计窗口终点分列)。声明式口径(决议日=观测日一类)按观测日落具体
     日期;统计窗口=月→观测月末、日→观测日;市场观测日=配对市场序列
@@ -1176,7 +1333,12 @@ def _policy_dates(face, obs_date, market_date=None, value_change_date=None):
     Audit-R22 任务2: 决议/生效分记须以**值变更日**为生效日——观测日只是
     序列最新打印,未必是变更日(最新锚的日频打印几乎从不是)。调用方传
     value_change_date=全序列内 ≤obs_date 的最近值变更日;决议日按
-    decision_kind 自生效日回推(Fed=前一交易日、ECB=上一周四)。"""
+    decision_kind 自生效日回推(Fed=前一交易日、ECB=上一周四)。
+
+    Audit-R28 任务2: 官方记录优先——metric_id+as_of 在场时先查
+    policy_decision_state(日历 kind=policy_decision/policy_maintenance
+    条目): 记录在场则决议/生效/官方目标/最近维持/距上次调整(按生效日)
+    逐项落位并带溯源,惯例回推仅当无记录;记录缺席走既有口径不变。"""
     if not face:
         return None
     out = {'face': face.get('face'), 'market_seat_label': face.get('market_seat_label'),
@@ -1184,6 +1346,31 @@ def _policy_dates(face, obs_date, market_date=None, value_change_date=None):
            'market_note': face.get('market_note'),
            'decision': obs_date if face.get('decision') else None,
            'effective': obs_date if face.get('effective') else None}
+    if metric_id and as_of:
+        try:
+            import freshness_policy as _fp_r28
+            _st = _fp_r28.policy_decision_state(
+                metric_id, as_of, calendar_path=calendar_path)
+        except Exception:
+            _st = None
+        if _st and _st.get('present'):
+            out.update(
+                decision=_st.get('last_decision'),
+                effective=_st.get('last_effective'),
+                official_target=_st.get('official_target'),
+                official_basis='calendar:%s(%s)' % (
+                    (_st.get('records') or [{}])[0].get('entry_id'),
+                    (_st.get('records') or [{}])[0].get('basis')),
+                last_maintenance=_st.get('last_maintenance'),
+                confirmed_through=_st.get('last_confirmed_on'),
+                days_since_adjustment=_st.get('days_since_adjustment'),
+                days_since_decision=_st.get('days_since_decision'),
+                days_since_maintenance=_st.get('days_since_maintenance'),
+                decision_note=(str(face.get('decision') or '')
+                               + ';官方记录(Audit-R28 任务2): 距上次调整'
+                                 '按**生效日**计算(目标水平自生效日起'
+                                 '实际执行;决议日为公告面,两日分记)'))
+            return out
     # Audit-R22 任务2: 决议/生效分记(数据面语义=序列值变更日为生效日)。
     # Fed 目标: 决议=生效前一日(两日会议次日公布);ECB: 决议=生效前
     # 上一个周四(变更自决议后首个周三生效,变更日恒为周三)。
@@ -1495,7 +1682,12 @@ def point_values(plan, snap, root):
                         pf_cfg, dates[i], market_date=mdate,
                         value_change_date=(
                             _last_value_change(dates, values, i)
-                            if pf_cfg.get('decision_kind') else None))
+                            if pf_cfg.get('decision_kind') else None),
+                        metric_id=cell.get('metric_id'), as_of=a['as_of'],
+                        calendar_path=(
+                            os.path.join(root, 'config',
+                                         'release_calendar.json')
+                            if root else None))
                     if pdates:
                         v['policy_dates'] = pdates
                     if level_series:
@@ -1552,13 +1744,18 @@ def current_period_groups(point_values, planned_pairs,
     - unverified: 组内当期 ok 锚全部 freshness=unverified(决策序列无
       更晚已证实决议且无证实间隔超决策周期上限)——现值无法核验;
       任一非 unverified 的当期 ok 锚在场即不入列。
+    - stale_mix(R28 任务2): 组内当期 ok 锚全为「过期或未核验」且两类
+      并存(必需当期只有过期与未核验值的混合形态)——单一类判定
+      (all-stale→R26 类/all-unverified→R27 类)各自遗漏的混合缺口,
+      交付草稿并逐格点名。
     计划无当期锚(纯历史点问句,如「2024年6月相比2023年6月」)不判
     (当期非所请求时点,返回空)。返回 {'missing': sorted, 'unverified':
-    sorted},与 blocked_class_of 的 map_current_period_missing /
-    map_current_period_unverified 同源同判。"""
+    sorted, 'stale_mix': sorted},与 blocked_class_of 的 map_current_
+    period_missing / map_current_period_unverified / map_current_
+    period_stale_mix 同源同判。"""
     if not has_current_anchor:
-        return {'missing': [], 'unverified': []}
-    cur_ok, cur_unver = {}, {}
+        return {'missing': [], 'unverified': [], 'stale_mix': []}
+    cur_ok, cur_unver, cur_stale = {}, {}, {}
     for c in (point_values or {}).get('cells') or []:
         g = (c.get('region'), c.get('dimension'))
         la = (c.get('anchors') or {}).get('最新一期') or {}
@@ -1566,12 +1763,118 @@ def current_period_groups(point_values, planned_pairs,
             cur_ok[g] = cur_ok.get(g, 0) + 1
             if la.get('freshness') == 'unverified':
                 cur_unver[g] = cur_unver.get(g, 0) + 1
+            elif la.get('freshness') == 'stale':
+                cur_stale[g] = cur_stale.get(g, 0) + 1
     return {
-        'missing': sorted(g for g in (planned_pairs or ())
+        'missing': sorted(g for g in (planned_pairs or [])
                           if cur_ok.get(g, 0) == 0),
-        'unverified': sorted(g for g in (planned_pairs or ())
+        'unverified': sorted(g for g in (planned_pairs or [])
                              if cur_ok.get(g, 0)
-                             and cur_unver.get(g, 0) == cur_ok[g])}
+                             and cur_unver.get(g, 0) == cur_ok[g]),
+        'stale_mix': sorted(
+            g for g in (planned_pairs or [])
+            if cur_ok.get(g, 0)
+            and cur_unver.get(g, 0) and cur_stale.get(g, 0)
+            and cur_unver.get(g, 0) + cur_stale.get(g, 0) == cur_ok[g])}
+
+
+# ── Audit-R28 任务2: 政策官方记录面(缺官方目标=点名缺口交付草稿) ─────────
+# 各地区「官方政策目标」代表口径(问句指定央行目标水平时,交付判定须
+# 官方记录或可推惯例至少其一在场;两者皆缺=缺官方目标)。
+_OFFICIAL_TARGET_METRICS = {'US': 'DFEDTARU', 'EA': 'ECB_MRO',
+                            'JP': 'JP_POLICY_TARGET', 'CN': 'CN_LPR_1Y'}
+# 问句「指定官方目标」判定的两族词形: 地区央行/政策目标词 + 水平/调整
+# 问句词——两族同时在问句在场且指向同一地区,该地区才落「用户指定的
+# 官方目标」要求(只问「货币政策环境」不触发——环境≠目标水平,旧例
+# A 类问句不得因本类新缺口改判)。
+_OFFICIAL_ASK_REGION_WORDS = {
+    'JP': ('日本央行', '日银', 'BOJ', '日本政策利率', '日本央行政策利率'),
+    'US': ('美联储', 'Fed', 'FOMC', '美国政策利率'),
+    'EA': ('欧央行', 'ECB', '欧洲央行', '欧元区政策利率'),
+    'CN': ('人民银行', 'PBOC', '中国央行', 'LPR', '中国政策利率'),
+}
+_OFFICIAL_ASK_LEVEL_WORDS = ('处于什么水平', '什么水平', '水平如何',
+                              '是多少', '多少', '多高', '多低',
+                              '距.*调整', '调整.*多久', '距离上次调整',
+                              '目标利率', '利率目标', '官方目标')
+
+
+def question_official_target_regions(question):
+    """问句点名「官方政策目标」的地区集合(确定性词形判定)。
+
+    判定=地区央行/目标词族 ∩ 水平/调整问句词族(正则搜索)同时在场。
+    空集=问句未指定官方目标(如只问「货币政策环境」)——缺官方目标
+    类不触发,不因新增缺口改判旧问句。"""
+    import re as _re_r28
+    q = str(question or '')
+    if not q:
+        return set()
+    level = any(
+        _re_r28.search(w, q) for w in _OFFICIAL_ASK_LEVEL_WORDS)
+    if not level:
+        return set()
+    return {eco for eco, words in _OFFICIAL_ASK_REGION_WORDS.items()
+            if any(w in q for w in words)}
+
+
+def official_policy_record_face(point_values, planned_pairs, cutoff,
+                                question=None, calendar_path=None):
+    """Audit-R28 任务2: 政策官方记录面(rows+gaps;阻断/渲染共源)。
+
+    对计划内政策维度地区逐一取官方记录(freshness_policy.policy_
+    decision_state,纯日历文件面): 记录在场→决议/生效/官方目标/最近
+    维持/距上次调整(按生效日)逐项入 rows;记录缺席→回退「序列+惯例」
+    可推性判定(当期 ok 锚的 policy_dates 决议日与生效日均可推=可推)。
+    gaps 只对**问句指定官方目标**的地区判(question_official_target_
+    regions 非空且该地区在列——「用户指定的官方目标」缺口才阻断;
+    未点名地区记录缺席如实不入 rows,不触发缺口)。gaps 非空与
+    blocked_class_of 的 map_official_target_missing 同源同判。"""
+    import freshness_policy as _fp_opr
+    rows, gaps = [], []
+    derivable = set()
+    for c in (point_values or {}).get('cells') or []:
+        if c.get('dimension') != 'policy':
+            continue
+        la = (c.get('anchors') or {}).get('最新一期') or {}
+        if la.get('status') != 'ok':
+            continue
+        pdd = c.get('policy_dates') or {}
+        if pdd.get('decision') and pdd.get('effective'):
+            derivable.add(c.get('region'))
+    pol_regions = sorted({eco for eco, dim in (planned_pairs or ())
+                          if dim == 'policy'})
+    required = question_official_target_regions(question)
+    for eco in pol_regions:
+        mid = _OFFICIAL_TARGET_METRICS.get(eco)
+        if not mid:
+            continue
+        st = _fp_opr.policy_decision_state(mid, cutoff,
+                                           calendar_path=calendar_path)
+        if st.get('present'):
+            rows.append({
+                'region': eco, 'metric_id': mid,
+                'label': _REGION_LABEL.get(eco, eco),
+                'official_target': st.get('official_target'),
+                'decision': st.get('last_decision'),
+                'effective': st.get('last_effective'),
+                'last_maintenance': st.get('last_maintenance'),
+                'confirmed_through': st.get('last_confirmed_on'),
+                'days_since_adjustment': st.get('days_since_adjustment'),
+                'days_since_decision': st.get('days_since_decision'),
+                'days_since_maintenance': st.get('days_since_maintenance'),
+                'records': st.get('records')})
+        elif eco in required and eco not in derivable:
+            gaps.append({
+                'region': eco, 'metric_id': mid,
+                'label': _REGION_LABEL.get(eco, eco),
+                'note': (f'{_REGION_LABEL.get(eco, eco)}官方政策目标'
+                         f'({mid})无官方记录(日历无 policy_decision/'
+                         'policy_maintenance 条目)且序列面决议/生效日'
+                         '不可推——问句指定官方目标时现值无官方口径可依,'
+                         '不以市场序列值冒充宣布目标;补录官方决议实录后'
+                         '重跑转正(Audit-R28 任务2)')})
+    return {'rows': rows, 'gaps': gaps,
+            'required_regions': sorted(required)}
 
 
 def missing_core_groups(point_values, planned_pairs):
@@ -2140,6 +2443,34 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                      f"核验(补录决议实录)后重跑转正。正式归档对草稿拒绝"
                      f"(map_current_period_unverified)。")
         lines.append('')
+    # ── Audit-R28 任务2: 当期「过期+未核验」混合 → 首页草稿横幅 ──
+    if _cur0.get('stale_mix'):
+        _xg = '、'.join(f"{g[0]}×{g[1]}" for g in _cur0['stale_mix'])
+        lines.append(f"> ⚠ **草稿(非正式)**: 必要维度当期只有**过期与未"
+                     f"核验值的混合**——{_xg}。当期 ok 锚全部为过期或未"
+                     f"核验(单一类判定各自遗漏的混合形态): 过期格逐格"
+                     f"见⚠标注,未核验格见核验锚注记;补数/核验后重跑"
+                     f"转正。正式归档对草稿拒绝(map_current_period_"
+                     f"stale_mix)。")
+        lines.append('')
+    # ── Audit-R28 任务2: 缺官方目标(问句指定官方目标而无官方记录) ──
+    try:
+        _opr = official_policy_record_face(
+            pv, _planned0, rp.get('cutoff'), question=run.get('question'),
+            calendar_path=(os.path.join(root, 'config',
+                                        'release_calendar.json')
+                           if root else None))
+    except Exception:
+        _opr = {'rows': [], 'gaps': []}
+    if _opr['gaps']:
+        _og = '、'.join(f"{g['label']}({g['metric_id']})" for g in
+                        _opr['gaps'])
+        lines.append(f"> ⚠ **草稿(非正式)**: **缺官方政策目标记录**——"
+                     f"{_og}。日历无政策决议/维持实录条目,序列面决议/"
+                     f"生效日亦不可推,现值无官方口径可依(不以市场序列值"
+                     f"冒充宣布目标);补录官方决议实录后重跑转正。正式"
+                     f"归档对草稿拒绝(map_official_target_missing)。")
+        lines.append('')
     _sparse_groups = sparse_anchor_groups(pv, _planned0)
     if _sparse_groups:
         _gg = '、'.join(f"{g[0]}×{g[1]}" for g in _sparse_groups)
@@ -2414,6 +2745,45 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                      '操作目标分列。市场观测日=配对市场序列(决议序列锚窗内'
                      '最新观测)——决议与市场观测不同日时两日分记,不以决议日'
                      '冒充市场观测日。')
+        # ── Audit-R28 任务2: 政策官方记录面(决议/生效/维持/距上次调整) ──
+        # 官方记录独立于序列面在场——宣布值口径序列缺席(如 JP_POLICY_
+        # TARGET registry_absent)时,官方决议实录仍可回答「目标水平/
+        # 距上次调整」;记录缺席且序列惯例不可推=缺口(首页草稿横幅)。
+        try:
+            _opr2 = official_policy_record_face(
+                pv, _planned0, rp.get('cutoff'),
+                question=run.get('question'),
+                calendar_path=(os.path.join(root, 'config',
+                                            'release_calendar.json')
+                               if root else None))
+        except Exception:
+            _opr2 = {'rows': [], 'gaps': []}
+        if _opr2['rows']:
+            lines += ['', '**政策官方记录面(日历实录: 决议/生效/最近维持/'
+                          '距上次调整)**', '',
+                      '| 地区 | 官方目标 | 最近决议日 | 生效日 | 最近确认'
+                      '维持 | 核验覆盖截止 | 距上次调整(按生效日) | '
+                      '距决议 | 距维持 | 溯源 |',
+                      '|---|---|---|---|---|---|---|---|---|---|']
+            for r in _opr2['rows']:
+                _rec = (r.get('records') or [{}])[0]
+                lines.append(
+                    f"| {r['label']} | {_fmt_val(r.get('official_target'))}"
+                    f" | {r.get('decision') or '—'} | "
+                    f"{r.get('effective') or '—'} | "
+                    f"{r.get('last_maintenance') or '—'} | "
+                    f"{r.get('confirmed_through') or '—'} | "
+                    f"{r.get('days_since_adjustment')}"
+                    f"天 | {r.get('days_since_decision')}天 | "
+                    f"{r.get('days_since_maintenance') or '—'}天 | "
+                    f"{_rec.get('entry_id')}({_rec.get('basis')}) |")
+            lines.append('')
+            lines.append('> 注: 距上次调整**按生效日**计算(目标水平自生效'
+                         '日起实际执行;决议日为公告面,两日分记)。确认维持'
+                         '不改变目标水平,但刷新核验覆盖截止(R28 任务2: '
+                         '确认维持也更新核验日期)。官方记录与四分面序列'
+                         '值互核: 记录目标与序列现值冲突时以缺口/过期'
+                         '纪律另判,不以任一面静默覆盖。')
         # 政策一年窗路径(R21 任务2: 先降后升净零一类路径须整窗可复算)
         for c in pol_rows:
             wp = c.get('policy_window_path')
@@ -2780,6 +3150,44 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         lines.append(f"- 相似点: {h.get('similarity')}")
         lines.append(f"- 关键差异: {h.get('difference')}")
         lines.append(f"- 当时同步性(其他经济体): {h.get('other_regions_sync')}")
+        # ── Audit-R28 任务3: 地区×维度同步面(引擎确定性,冻结信封)——
+        #    逐段核对美中欧日,同步/分化/缺证标签+公布日+数据版本绑定;
+        #    判断叙述引用本面可核(缺证项点名,不以相邻维度冒充)。 ──
+        try:
+            rsf = history_region_sync_face([h], rj)
+            rsp = (rsf.get('periods') or [{}])[0]
+        except Exception:
+            rsp = {}
+        if rsp.get('rows'):
+            lines.append('- **地区×维度同步面(引擎确定性——与美国同维'
+                         '方向对照;公布日/数据版本随行)**:')
+            lines.append('')
+            lines.append('  | 维度 | 地区 | 指标 | 锚−3月(观测/公布) | '
+                         '截止(观测/公布) | 读数变化 | 同步性 |')
+            lines.append('  |---|---|---|---|---|---|---|')
+            for r in rsp['rows']:
+                if r.get('label_sync') == '缺证':
+                    p_txt = c_txt = chg = '—'
+                else:
+                    p_txt = (f"{r.get('prior_value'):g} @ "
+                             f"{r.get('prior_obs')}(公布 "
+                             f"{r.get('prior_pub')})")
+                    c_txt = (f"{r.get('cutoff_value'):g} @ "
+                             f"{r.get('cutoff_obs')}(公布 "
+                             f"{r.get('cutoff_pub')})")
+                    _u = ('pp' if r['dimension'] == 'policy' else '')
+                    chg = (f"{r.get('delta'):+g}{_u}"
+                           f"({r.get('direction')})")
+                lines.append(
+                    f"  | {r['dimension_label']} | {r['region']} | "
+                    f"{r['label']}({r['metric_id']}) | {p_txt} | {c_txt} | "
+                    f"{chg} | {r['label_sync']}"
+                    + (f"——{r.get('reason')}" if r.get('reason') else '')
+                    + ' |')
+            lines.append('')
+            lines.append(f"  > {rsf.get('basis')}。数据版本="
+                         '冻结信封最新修订口径(首发值可能略异,修订不可'
+                         '回溯,逐行随 vintage 注记)。')
         # ── Audit-R23 任务2: 当时可知面(发布纪律重算,确定性)——同步性
         # 叙述所引数字逐个绑定 指标/观测期/值/首次公布日/来源/修订口径;
         # 晚于截止日才公布的移入事后段(信息截止可核,正文引用须对账)。 ──
@@ -2799,6 +3207,12 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                 if r.get('first_publish') and \
                         r.get('first_publish') != r.get('visible_from'):
                     pub_txt += f"(终值 {r.get('first_publish')})"
+                # Audit-R28 任务2: 官方发布时刻随日历实录披露(如 LPR
+                # 每月20日 09:00)——各表统一读官方发布时间,推定条目
+                # 无时刻如实缺席。
+                if r.get('publish_instant'):
+                    pub_txt += (f" {r['publish_instant']}"
+                                '(官方实录时刻)')
                 note_txt = (f";{r.get('note')}" if r.get('note') else '')
                 lines.append(
                     f"  | {r.get('label')}({r.get('metric_id')}) | "
@@ -2820,6 +3234,9 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                 for r in aop['aftermath']:
                     pub_txt = str(r.get('visible_from')
                                   or r.get('pub_basis') or '—')
+                    if r.get('publish_instant'):
+                        pub_txt += (f" {r['publish_instant']}"
+                                    '(官方实录时刻)')
                     val_txt = _fmt_val(r.get('value'))
                     if r.get('kind') == 'policy_event':
                         val_txt = (f"{_fmt_val(r.get('value_from'))}→"

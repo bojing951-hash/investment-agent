@@ -199,8 +199,11 @@ def sec_b():
     cal = json.load(open(os.path.join(ROOT, 'config',
                                       'release_calendar.json'),
                          encoding='utf-8'))
-    check('§B1 日历 v1.4.0+14条目+spec 含 R25 修订记事',
-          cal['version'] == '1.4.0' and len(cal['entries']) == 14
+    # (Audit-R28 任务2: 日历演进至 v1.5.0+17条目(政策记录+官方发布
+    #  时刻);R25 修订记事仍在 spec——断言随结构演进更新,原四项实录
+    #  复测语义不变)
+    check('§B1 日历 v1.5.0+(R25后只增不减)+spec 含 R25 修订记事',
+          cal['version'] >= '1.4.0' and len(cal['entries']) >= 14
           and 'v1.4.0' in cal['spec'] and '2025-12-05' in cal['spec'])
 
     def vis(mid, od, asof):

@@ -89,6 +89,10 @@ def first_publish(metric_id, obs_date, path=None):
         'basis': best.get('basis'),
         'note': best.get('note'),
         'batch_id': best.get('batch_id'),
+        # Audit-R28 任务2: 官方发布时刻(HH:MM)+官方实录旗标——仅随
+        # 读者面显示(如 LPR 每月20日 09:00);可见性比较仍用日期字段。
+        'time': best.get('time'),
+        'official': best.get('official'),
     }
 
 
@@ -160,3 +164,25 @@ def batch_of(metric_id, obs_date, path=None):
             out['via_entry'] = ent['entry_id']
             return out
     return None
+
+
+# ── Audit-R28 任务2: 政策记录条目面(决议/维持;官方目标核验) ──────────────
+def policy_entries(path=None):
+    """kind∈{policy_decision, policy_maintenance} 的条目全表。
+
+    政策记录与发布条目同文件同 schema(v1.5.0): 决议条目带
+    decision_date/effective_on/target_value;维持条目带 decision_date/
+    target_value(确认维持——不改变序列值,但刷新核验覆盖截止)。
+    时间语义判定(距上次调整/核验锚)在 freshness_policy.policy_
+    decision_state;本面只做纯文件读取。"""
+    return [e for e in _load(path)
+            if e.get('kind') in ('policy_decision', 'policy_maintenance')]
+
+
+def publish_instant(metric_id, obs_date, path=None):
+    """命中条目的官方发布时刻('HH:MM')|None(条目 time 字段)。
+
+    仅用于读者面显示「日期 时刻(官方实录)」;可见性/先后比较仍用
+    日期字段——时刻不改变可见性判定口径(推定条目无时刻,如实缺席)。"""
+    ent = first_publish(metric_id, obs_date, path=path)
+    return (ent or {}).get('time')

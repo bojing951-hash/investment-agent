@@ -295,13 +295,16 @@ def sec_c():
     for e, d in sorted(pairs_c):
         regions_c.setdefault(e, {'dimensions': {}})['dimensions'][d] = [{}]
     cur = rmp.current_period_groups(pv_c, pairs_c)
+    # (Audit-R28 任务2: 返回结构新增 stale_mix 键——混合形态分组,
+    #  R27 两键语义不变;断言随结构扩展更新)
     check('§C5 current_period_groups: 当期缺数/未核验分组(他时点ok不补)',
           cur == {'missing': [('EA', 'growth')],
-                  'unverified': [('EA', 'policy')]}, str(cur))
+                  'unverified': [('EA', 'policy')],
+                  'stale_mix': []}, str(cur))
     check('§C6 纯历史点问句(无当期锚)不判当期',
           rmp.current_period_groups(pv_c, pairs_c,
                                     has_current_anchor=False)
-          == {'missing': [], 'unverified': []})
+          == {'missing': [], 'unverified': [], 'stale_mix': []})
     rep_c = {'run_ok': True,
              'layers': {'L1_事实层': {'rows': [{'x': 1}]}},
              'run': {'data_requirements': {'items': []}},

@@ -1552,6 +1552,47 @@ def _map_checks(judgment, face, report):
                         '须移入事后段(ex_post),不得写回「当时」段'
                         '(Audit-R27 任务2)',
                         contra=True)
+            # Audit-R28 任务3: **相对日期的事后事实拒绝写回当时段**——
+            # 「随后/此后/接下来 N 个月…」一类相对事后引用在 similarity/
+            # difference/other_regions_sync 三字段=无绝对日期锚的事后
+            # 事实(R27 拦显式事后日期后,相对词形是无日期版的同一泄漏:
+            # 读者无法核对该"N 个月"自何处起算)。事后走向一律移入
+            # ex_post 段并按锚月末→锚+N 月末口径携带绝对窗口。
+            for _rm28 in re.finditer(
+                    r'(随后|此后|接下来|之后的)[^。;；\n]{0,8}?'
+                    r'(\d+|[一两二三四五六七八九十]{1,3})\s*个月',
+                    _prose):
+                bad(f'reader_map.history_periods[{hi}]'
+                    '.relative_expost_in_asof_segment',
+                    f'当时叙述含相对事后引用「{_rm28.group(0)}」——相似/'
+                    '差异/同步性逐项只用截止日前已公布的证据;事后走向'
+                    '属 ex_post 段(锚月末→锚+N 月末绝对窗口口径),不得'
+                    '以无绝对日期的相对词形写回「当时」段'
+                    '(Audit-R28 任务3)',
+                    contra=True)
+            # Audit-R28 任务3: ex_post 段相对引用**必须携带绝对日期锚**
+            # ——「随后 N 个月」在事后段合法,但该句须点名绝对年月
+            # (锚 YYYY-MM 或窗口端点),否则窗口不可核(哪年哪月起算
+            # 由读者猜=复测不可重复)。
+            for _ek28, _et28 in (h.get('ex_post') or {}).items():
+                _et28 = str(_et28 or '')
+                if not _et28.strip():
+                    continue
+                for _rm28b in re.finditer(
+                        r'(随后|此后|接下来|之后的)[^。;；\n]{0,8}?'
+                        r'(\d+|[一两二三四五六七八九十]{1,3})\s*个月',
+                        _et28):
+                    _sent28 = _et28[max(0, _rm28b.start() - 60):
+                                    _rm28b.end() + 60]
+                    if not re.search(r'\d{4}[-年]\s?\d{1,2}', _sent28):
+                        bad(f'reader_map.history_periods[{hi}]'
+                            '.ex_post.relative_without_absolute_anchor',
+                            f'ex_post[{_ek28}] 含相对窗口「{_rm28b.group(0)}」'
+                            '而句内无绝对年月锚——事后段相对引用必须点名'
+                            '绝对日期(锚 YYYY-MM 或窗口端点),窗口自何'
+                            '处起算须可核(Audit-R28 任务3)',
+                            contra=True)
+                        break
             for _mid, _aft in _after.items():
                 _kn = _known.get(_mid)
                 _vis_v = (_kn or {}).get('value')

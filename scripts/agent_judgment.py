@@ -1083,7 +1083,8 @@ BLOCKING_BLOCKED_CLASSES = frozenset(
      'critical_step_failure', 'map_required_face_missing',
      'map_core_dimension_missing', 'map_anchor_coverage_insufficient',
      'map_core_dimension_stale', 'map_current_period_missing',
-     'map_current_period_unverified'})
+     'map_current_period_unverified', 'map_current_period_stale_mix',
+     'map_official_target_missing'})
 
 
 def _step_failure_is_refusal(step):
@@ -1102,7 +1103,7 @@ def _step_failure_is_refusal(step):
                 and err.get('kind') in HONEST_REFUSAL_ERROR_KINDS)
 
 
-def blocked_class_of(report):
+def blocked_class_of(report, calendar_path=None):
     """Audit-R4 条目5 + Audit-R5 条目2: 数据缺口/完整性分类唯一规范源
     (attach/report/archive 同源同判,不得各写一套口径)。
 
@@ -1135,7 +1136,16 @@ def blocked_class_of(report):
                              统计覆盖);计划无当期锚不判;
       map_current_period_unverified 组内当期 ok 锚全部未核验(决策序列
                              无更晚已证实决议且间隔超决策周期上限,
-                             R27 任务1)——现值有效性无法核验。
+                             R27 任务1)——现值有效性无法核验;
+      map_current_period_stale_mix 组内当期 ok 锚全为过期或未核验且
+                             两类并存(R28 任务2 混合形态——单一类
+                             判定各自遗漏)——混合缺口逐格点名;
+      map_official_target_missing 问句指定官方政策目标而日历无政策
+                             决议/维持实录条目、序列面决议/生效日亦
+                             不可推(R28 任务2)——现值无官方口径可依,
+                             不以市场序列值冒充宣布目标。
+    calendar_path=None 时政策实录面读模块默认日历(生产口径);显式
+    传路径=测试注入缝(空日历=缺实录反例),生产调用不传。
     「存在最新单点」不构成历史分析需求满足(Audit-R4 条目5)——
     insufficient_coverage 与 missing 同为必要缺口。
     """
@@ -1206,6 +1216,24 @@ def blocked_class_of(report):
             # 发生,2024-06-06 ECB 决议复测锚)→交付草稿;判定与渲染共源。
             if _cur_r27['unverified']:
                 return 'map_current_period_unverified'
+            # Audit-R28 任务2: 必要维度当期只有**过期与未核验值的混合**
+            # (单一类判定各自遗漏的混合形态: all-stale→R26 类/all-
+            # unverified→R27 类,混合两不沾)→交付草稿并逐格点名缺口;
+            # 判定与渲染共源(current_period_groups['stale_mix'])。
+            if _cur_r27.get('stale_mix'):
+                return 'map_current_period_stale_mix'
+            # Audit-R28 任务2: **缺官方政策目标记录**——问句指定官方目标
+            # (央行目标水平/距上次调整)而日历无政策决议/维持实录条目,
+            # 序列面决议/生效日亦不可推: 现值无官方口径可依,不以市场
+            # 序列值冒充宣布目标→交付草稿点名缺口;判定与渲染共源
+            # (official_policy_record_face.gaps)。
+            import research_map_planner as _rmp_opr
+            _opr_g = _rmp_opr.official_policy_record_face(
+                _pv, _planned_pairs, _rp.get('cutoff'),
+                question=(report.get('run') or {}).get('question'),
+                calendar_path=calendar_path)
+            if _opr_g.get('gaps'):
+                return 'map_official_target_missing'
         return None
     non_refusal = [s.get('step') for s in (report.get('steps') or [])
                    if s.get('executed') and s.get('ok') is False

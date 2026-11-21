@@ -482,19 +482,35 @@ def sec_d():
           rc7 != 0 and (c7.get('frozen_inputs_digests') is False
                         or c7.get('frozen_inputs_match_report') is False),
           f"rc={rc7}")
-    # D8 终裁未绑冻结摘要→归档拒绝(席位没吃到冻结面=交付链不完整)
+    # D8 裁决后单侧改写运行目录冻结副本→归档拒(report↔副本一致性拦,
+    # 不入包;report 侧改写则先被裁决内容摘要门拦=既有绑定,两路都闭)
     T8 = _build_r29_tree('d8')
     rd8 = _fresh_rd('d8')
     _rewrite_head(rd8, WORKTREE_HEAD)
     _inject_frozen(rd8, T8)
     cli('report', rd8, T8)
     aj.record_semantic_verdict(T8, rd8, 'UPHELD', 'r29gate-seat-nobind')
+    _cp8 = os.path.join(rd8, 'root_overlay', 'config',
+                        'release_calendar.json')
+    _cd8 = json.load(open(_cp8, encoding='utf-8'))
+    _cd8['version'] = 'post-verdict-tamper'
+    json.dump(_cd8, open(_cp8, 'w', encoding='utf-8'), ensure_ascii=False)
     rc8, d8 = cli('archive', rd8, T8, arc=os.path.join(TMPG, 'arc_d8'))
     _d8 = d8.get('data') or {}
-    check('§D8 终裁未绑冻结摘要→归档拒(correlation_failed+点名)',
-          rc8 != 0 and _d8.get('blocked') == 'correlation_failed'
-          and '冻结输入摘要' in str(_d8.get('error')),
+    check('§D8 裁决后单侧改写 rd/root_overlay 冻结副本→归档拒'
+          '(逐件字节/摘要核验拦,不入包)',
+          rc8 != 0 and '冻结件与运行时摘要不符' in str(_d8.get('error')),
           f"rc={rc8} err={str(_d8.get('error'))[:80]}")
+    # D8b 席位 extra 绑异摘要→记录器拒绝落档(绑了别家的身份)
+    try:
+        aj.record_semantic_verdict(
+            T8, rd8, 'UPHELD', 'r29gate-seat-foreign',
+            extra={'frozen_inputs_sha256': 'deadbeef'})
+        _d8b = 'no-raise'
+    except ValueError as e:
+        _d8b = str(e)
+    check('§D8b 席位 extra 绑异摘要→ValueError 拒落档',
+          '席位冻结摘要与报告冻结面不符' in _d8b, _d8b[:60])
 
 
 sec_a()

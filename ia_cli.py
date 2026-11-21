@@ -2283,7 +2283,10 @@ def _r1_archive_core(args, engine_root):
                                   map_bound24[:16]))
         # ── Audit-R29 任务4: 源摘要匹配终裁──冻结输入集合摘要终裁必须
         # 在档且==归档聚合(席位信封→终裁→归档→重放同算同核;终裁未绑
-        # =席位没吃到冻结面输入,交付链不完整,拒绝)。
+        # =席位没吃到冻结面输入,交付链不完整,拒绝)。实雷正道修(同
+        # 轮): 记录器已机械化自动绑定(席位不抄片段也绑;report 侧单侧
+        # 改写由裁决内容摘要门拦,副本侧改写由上方逐件核验拦——两路既
+        # 闭,此处只核终裁绑定)。
         _fi_agg = aj.frozen_inputs_digest(frozen_map)
         if frozen_map:
             _v_fi = (latest_doc or {}).get('frozen_inputs_sha256')

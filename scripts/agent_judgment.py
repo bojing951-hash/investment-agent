@@ -680,6 +680,23 @@ def record_semantic_verdict(root, report_dir, overall, reviewer,
                'counterexamples_sought': ((extra or {}).pop(
                    'counterexamples_sought', None)
                    or ['(未记载: 席位简报须补反例面)'])}
+        # Audit-R29 任务4(实雷正道修): 冻结输入摘要绑定机械化——真实
+        # 席位按 SKILL 逐字抄 python 片段并不可靠(B 会话实测: 复裁
+        # UPHELD 但落裁未带 extra→归档 belt 拒)。绑定是机械面不是判断
+        # 面: 记录器从 report.run.frozen_inputs 自动摸出并落
+        # frozen_inputs_sha256(席位判断义务不变;extra 显式传值须与
+        # 自动值一致,不一致=席位绑了别家的摘要,拒绝落档)。非地图/
+        # R29 前旧档 run 无该键=None 不绑(零回归)。
+        _fi_auto = frozen_inputs_digest(
+            (report.get('run') or {}).get('frozen_inputs'))
+        _fi_extra = (extra or {}).get('frozen_inputs_sha256')
+        if _fi_auto:
+            if _fi_extra and str(_fi_extra) != _fi_auto:
+                raise ValueError(
+                    '席位冻结摘要与报告冻结面不符: extra=%s 报告=%s '
+                    '(席位必须绑定本报告的渲染依赖身份)'
+                    % (str(_fi_extra)[:16], _fi_auto[:16]))
+            doc['frozen_inputs_sha256'] = _fi_auto
         if extra:
             doc.update(extra)
         sl.atomic_write_json(path, doc, indent=2, sort_keys=False)

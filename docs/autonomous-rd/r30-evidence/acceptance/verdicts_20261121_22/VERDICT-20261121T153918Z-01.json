@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "seat-divergence-review-r30c",
+  "notes": "八维全过,UPHELD。a结论-证据绑定: 22格point_values/L1 39行/政策簇/资产窗/转折候选面逐位复算,抽查逾百值零相左。b四层标注: E1/E2/E3分层在档,E2环(CH-1环3/4,CH-2环3)均带缺环注记,E3环证伪指标在册(USDCNY/HY_OAS)。c竞争解释: CON-1/2/3各3条并列(≥2),传导环均有竞争解释+区分指标,对质表6行全『尚不能区分』。d披露: TIPS_10Y缺席(S4步no_series实核)、JP_POLICY_TARGET注册表缺、美CPI/CORE_CPI缺2025-10基期(yoy=no_same_period_base,最近有效3.72/2.57@2026-09复算吻合)、CN隔夜锚三个月前无观测(序列2026-11-02起,实核)、CN_OMO_7D末观测2026-10-30过期22天、JP月均≠目标宣布值、2026-11月均未发布,七项全披露,无相邻口径冒充。e类比: 有效74/扫描1871/distance0.888098/贡献37.2-29.0-24.0%与引擎面全同;事后3/6/12月窗(2022-06-30月末口径)21个数字逐一复算吻合(含VIX+2.91/-7.04/-15.12);相似≠因果≠预测注记在场。f时间口径: 观测月/统计窗/公布日/截止日四分离,九月ECB-Fed并簇先后未定如实写,无未发布数据提前引用(最晚公布2026-11-20≤截止)。g转折: 三转折不同指标-月(CN_PPI2026-05/INDPRO2026-02/JP_CPI2026-02)跨通胀+增长两维,数值与候选面全同;补选turning_supplement四件齐。h降级: run_ok=False与blocked_class=optional_data_missing随档(FULL_REPORT L4+run门行),正文不冒充完整。复算抽查清单: EA_HICP2.9→4.0、JP_CPI1.97→2.44、CN_CPI0.5→0.7、CN_PPI3.5→5.7、ECB_DFR2.25→2.5(决议09-10生效09-16)、DFEDTARU3.75→4.0(09-16/09-17)、DFF3.63→3.88、JP_RATE0.978→1.227(净+67bp六次抬升)、资产八项月窗涨跌幅、事后21值、政策路径变动点(DFEDTARU2/DFF8/ECB4/JP8处)、公布日推定算术19项、BOJ距效58/距决64/距持22天。轻微注记(不影响裁决): ①MAP正文未重述run_ok=False行(FULL_REPORT与report.json在档);②『近30日』窗口(2026-10-22起点)未在使用处内联定义,但VIX19.03/USDJPY158.132均为该日实测值可复算;③资产表DAX/NIKKEI取整显示(百分比精确);④DFEDTARU『11-20确认』系序列打印日语义,四面注记已说明。",
+  "run_ts": "20261121T153918Z",
+  "content_sha256": "57004ce8473ccd7a8940398f4e682c097e0045dbe95873c8a177594ecbffcc78",
+  "audited_at": "2026-11-22",
+  "recorded_at": "20261121T161323Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "39ddcb782ac63c48f34daf3c0878daa6a91954397799fe8a235017bd276297a5",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "1a3414ca6a65809c3cd86133a11f6f62e0c4b1014010d94cee89027c48243108"
+}

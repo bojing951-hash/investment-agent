@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "semantic-audit-seat",
+  "notes": "REVISE(5必修): ①CN走位『人民币偏强』无对照锚(USDCNY单点无历史)——改中性陈述或删定性; ②SCN-B把2022-06正回报挪作宽松定价机制支撑(该窗DFEDTARU继续加息,仅支持结果面)——加机制限定(2025-03其后降息与机制一致/2022-06仅结果面); ③转折表并项注记承诺补选但渲染两行且无补选/无说明——补『其余候选窗均与已用窗重叠,无合格独立第三事件』说明; ④JP_CPI_TOKYO_YOY锚表最新2.69@2026-09与区分指标面2026-10=2.73两处最新不一致——加发布日纪律注记; ⑤TR-B face_off_note『BRENT处高位』未提区分指标面已示近30日-20.69%——旁注降幅并说明转折窗油价观测不在场不能裁。 反方攻击10次: 得手2(①②)、轻微得手3、未得手5; 六查+地图四加查覆盖 headline/四地走位/三链/三转折/三历史段/L3×3/L4×2/对质表/区分指标/降级如实性——降级如实性判为正样本。其余小疵(非必修): SCN-A前提模糊词vs严阈、TR-A期限溢价子变体未配分立预言、历史段2022-05至1.00超出同步表两端点可证范围。",
+  "run_ts": "20261121T170809Z",
+  "content_sha256": "b5aa487b49af889015917bbad4cf422aec77df734ac3f747076a02653f340490",
+  "audited_at": "2026-11-22",
+  "recorded_at": "20261121T174825Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "0b756106ba75fe1916e99eae272168eca7deb3d0423e33deaa5f2bd2a23bdc6c",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "482c9991d6ce255d03d37c260cfd2dd4988bdbe53f8b7117021205530af99d8e"
+}

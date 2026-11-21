@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "semantic-audit-seat",
+  "notes": "三审 REVISE(单点必修, 其余全闭合): 一审①②④⑤与二审③披露入渲染字段均 UPHELD; 唯一未闭合=二审③同条明令的并项行「。;」双标点拼接清理(MAP_REPORT 并项转折行谁先变/跟进背离两列各一处, 全件仅此两处)——成因=引擎 join 以「;」拼接两转折字段, 而前段(T1)字段以句号结尾; 修法=判断席剥除 T1 两字段段尾句号(纯文本, 数值与判断文字零变动), 拼接呈「…;…」; 「先后未定」双现为同月排序纪律强制, 保留。非必修观察: UST_2Y 双基线(4.56@2026-10-30 与对质近30日 4.69)两处均带日期无矛盾但未配对账句; L3-C2「年内高位区间」为无区间证据面的水平断言(在【假设】标签内, -20.69%已并列); face_off_note 理由层未渲染(前两审未要求)。反方攻击12次: 未击穿11、轻度1(BRENT水平断言, 记录不升级)。",
+  "run_ts": "20261121T170809Z",
+  "content_sha256": "c669eff7e7b0ff41514385e9c6f1ccb6a6d730e04706e08f932f9ff89e92f633",
+  "audited_at": "2026-11-22",
+  "recorded_at": "20261121T181230Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 3,
+  "predecessor": "audit/semantic_review/20261122/VERDICT-20261121T170809Z-02.json",
+  "map_report_sha256": "ee871f8650ece61251a05d36031db40d1e8fed0743e8d8ba8b09ef7bf755b58e",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "482c9991d6ce255d03d37c260cfd2dd4988bdbe53f8b7117021205530af99d8e"
+}

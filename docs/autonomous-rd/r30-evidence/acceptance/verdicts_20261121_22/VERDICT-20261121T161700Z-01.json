@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "semantic-review-r30",
+  "notes": "六项全PASS。94项数值抽查对快照series_store全符;JP目标缺册/TIPS_10Y缺席/美CPI缺同月基期/CN隔夜锚无前值/OMO过期22天/L2零条均如实披露;CON各3条并列解释、传导环四件套齐、face_off全数尚不能区分;两情景明写假设非预测、五行齐备、阈值可观测;事后块与当时可知面严格分记;答到哪两地哪条轴粒度。微注:JP一年窗变动点略去两处-1bp微移,净+67bp与六次上调表述仍准确。",
+  "run_ts": "20261121T161700Z",
+  "content_sha256": "48f8fcfa0e6b09380805f8542d10ea702ace1ec6c79cbb00b059d85e3c4972be",
+  "audited_at": "2026-11-22",
+  "recorded_at": "20261121T163114Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "42e8c0289b1e6b91a5019ed04cad2ec69d50babc753ff77a6c714664dd15f571",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "1a3414ca6a65809c3cd86133a11f6f62e0c4b1014010d94cee89027c48243108"
+}

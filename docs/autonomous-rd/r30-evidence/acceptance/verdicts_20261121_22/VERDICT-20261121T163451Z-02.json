@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "Seat-R1-独立语义审查席(零上下文)",
+  "notes": "复审(第二轮,修订后): 三项必修逐位复核查验通过。R1提前引用已除: 全部.md经grep零命中2.73/东京当前面;MAP L137先行端只按已发布值(2026-03 1.49→2026-09 2.69,公布2026-04-25/2026-10-25)陈述并明写2026-10值锚后不可见不作区分面;TR-2第一环distinguishing_metric实核=JP_CPI_YOY(agent_judgment transmission[1].links[0]),其当前面2026-10-01=2.44公布2026-11-20≤锚日可引,Δ+28bp复算正确(2.16→2.44);对质表JP_CPI_YOY行预期面只用东京已发布9月2.69。R2错述已正: MAP L10/L45/L118/L123与FULL CON-1/CON-2/CH-1环1均为「9月(2026-09)起站上2、7-8月1.97/1.98逼近」——与series_store一致(2026-08=1.98<2,首个>2月=2026-09 2.16);T1跟进列「滞后约四个月于2026-09首次站上2(2.16)」月差复算正确(2026-05→2026-09=4个月)。R3错述已正: FULL CON-1「春季站上三后仅夏季两月短暂回落至三下方、秋季重返并创新高」与引擎面逐月核对一致(3.0/3.2|2.8/2.9|3.2/3.8/4.0)。小瑕「破4」已改「达4」(L115)。新错误扫描: 重attach后引擎面复验未变——point_values 12锚值与公布日全部≤2026-11-21、question_window、asset_moves 8行、turning_candidates 4条与series_store地面真值全同;修订引入的新数字(Δ+28bp、差0.53、滞后四个月)全部复算正确;report.md=_render_md(report.json)当前重算一致(True);MAP_REPORT.sha256旁挂锚与在场文件一致;旧错述grep零命中。遗留非阻断注记(同首轮): unparseable双时间窗降级缘由仍仅在report.json run.data_requirements读者面未展开;「日本无决议面」(序列面)与官方记录面RC条目(目标1.25/决议2026-09-18)并存宜一句互指;FULL质量状态行copies_consistent=False系重渲过程的时序快照(比对时在场report.md尚为修订前渲染),当前态已一致,该行由引擎随下轮report刷新。",
+  "run_ts": "20261121T163451Z",
+  "content_sha256": "3efb664cd706e89d18be55a9338175ef2b1ed009d9fa510fa3cb38a24188ab6e",
+  "audited_at": "2026-11-22",
+  "recorded_at": "20261121T170340Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261122/VERDICT-20261121T163451Z-01.json",
+  "map_report_sha256": "635dd0033de10beb34ce6f88d125933e785365ca9944e2ebf7c8d19f817578d4",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "1a3414ca6a65809c3cd86133a11f6f62e0c4b1014010d94cee89027c48243108"
+}

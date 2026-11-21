@@ -227,7 +227,13 @@ check('正确类型母本不受类型锁误伤',
 section('3 MINOR-4 attach 门槛: run_ok=False 默认拒收')
 # ══════════════════════════════════════════════════════════════════
 tmp = tempfile.mkdtemp(prefix='r24_gate_')
-rd, jp = setup_run(tmp, synth_report(run_ok=False))
+# Audit-R1 F02 分级: L1 事实行在场=optional_data_missing(旗标可放行),
+# L1 行=0=critical_zero_evidence(旗标不放行,新规见 F02 套件 D1)。
+# 本节放行用例取 optional 面(L1 行在场)——旧口径「旗标一律放行」废止。
+gate_rows = [{'metric_id': MID_A, 'value': 1.0, 'unit': 'x',
+              'observation_date': '2026-01-10', 'quality_status': 'OK',
+              'source': {'id': 'SYNTH', 'kind': 'snapshot_fact'}}]
+rd, jp = setup_run(tmp, synth_report(run_ok=False, l1_rows=gate_rows))
 res = aj.attach_judgment(rd, jp, root=ROOT)
 check('run_ok=False → blocked=run_ok_false,attached=False',
       res['attached'] is False and res.get('blocked') == 'run_ok_false')
@@ -243,7 +249,7 @@ check('judgment 副本未落(不半落位)',
 
 res = aj.attach_judgment(rd, jp, root=ROOT, allow_failed_run=True)
 rj = json.load(open(os.path.join(rd, 'report.json')))
-check('allow_failed_run=True → 放行落位',
+check('allow_failed_run=True → 放行落位(optional 面)',
       res['attached'] is True
       and rj['layers']['L3_AI推断层']['produced'] is True)
 check('越过面随档可审计',
@@ -298,7 +304,8 @@ check('免锚理由在 md 可见披露', '无锚(明示免锚: 纯概念张力(�
 section('5 ia_cli 命令面: --allow-failed-run+blocked 透传')
 # ══════════════════════════════════════════════════════════════════
 tmp = tempfile.mkdtemp(prefix='r24_cli_')
-rd, jp = setup_run(tmp, synth_report(run_ok=False))
+# F02 分级: CLI 放行用例同样取 optional 面(L1 行在场)
+rd, jp = setup_run(tmp, synth_report(run_ok=False, l1_rows=gate_rows))
 p = subprocess.run(
     [sys.executable, os.path.join(ROOT, 'ia_cli.py'), 'research-attach',
      '--report-dir', rd, '--judgment', jp],

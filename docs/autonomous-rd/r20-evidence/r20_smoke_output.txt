@@ -1,0 +1,14 @@
+  ⚠️ A股代码000300.SH(沪深300)未入注册表,跳过(不造事实)
+  ⚠️ A股代码000905.SH(中证500)未入注册表,跳过(不造事实)
+  ⚠️ A股代码000852.SH(中证1000)未入注册表,跳过(不造事实)
+⛔ 快照已存在且不可变: /tmp/r20_real/data/daily/research_snapshot_20261119.json(须--allow-revision生成新版本)
+  ✅ 快照 series_store 携带 R20 全部新指标+资产序列 — []
+  ✅ 回归锚①: 2025-11-18 美国只见 Q2 GDP(obs 2025-04-01;Q3 停摆 11-19 首发) — {"status": "ok", "as_of": "2025-11-18", "observation_date": "2025-04-01", "publication_date": "2025-07-29", "publication_rule": "BEA GDP 初值季末+29天发布(20
+  ✅ 回归锚②: 12个月前失业率=8月 4.3(9月停摆被日历排除) — {"status": "ok", "as_of": "2025-11-18", "observation_date": "2025-08-01", "publication_date": "2025-09-05", "publication_rule": "BLS 就业形势报告次月首周发布(月末+5
+  ✅ 12组×3锚全 ok(36 时点格) — 缺: []
+  ✅ CN PMI: 2026-05=50.0 / 2026-09=50.1 — 05=50.0 09=50.1
+  ✅ 三利率共同交易日分解 ok(名义=实际+盈亏平衡+残差) — {"status": "ok", "kind": "共同交易日三利率分解", "window": {"from": "2026-10-16", "to": "2026-11-17", "calendar_days_between": 32}, "levels_at_to": {"UST_10Y": 5.1, "TIPS_10Y": 2.8
+  ✅ VIX 月涨幅+计算窗口(读者可核) — {"metric_id": "VIX", "window": {"from": "2026-10-19", "to": "2026-11-18"}, "from_value": 18.440001, "to_value": 24.559999, "chg_pct": 33.19, "chg_abs": 6.12}
+  ✅ 政策三日期(DFEDTARU 决议=生效=观测日) — {"face": "政策目标(宣布值)", "market_seat_label": "FOMC目标区间上限", "decision_note": "决议日=观测日(FOMC会后当日公布)", "effective_note": "生效日=决议日(目标区间即时生效)", "dec
+
+冒烟判定: 7 PASS / 0 FAIL

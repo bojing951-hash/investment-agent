@@ -1,0 +1,52 @@
+{
+  "stage": "archive",
+  "run_ts": "20261116T053623Z",
+  "question": "GOLD_F 黄金与美国长期实际利率 REAL_10Y 及美元指数 DXY 的传统反向关系近年是否结构性弱化: 滚动窗口相关与分状态检验(VIX 恐慌时段与普通时段), 对用 UST_10Y 利率与美元信号解释黄金走势框架的含义",
+  "archived_at": "20261116T221914Z",
+  "content_sha256": "3219089120536fb51ab0103c8962305aa6c34836e9f5e76cbb1c7ba266422aac",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 3,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261116__VERDICT-20261116T053623Z-01.json",
+      "source_rel": "audit/semantic_review/20261116/VERDICT-20261116T053623Z-01.json",
+      "overall": "UPHELD",
+      "revision": null,
+      "predecessor": null,
+      "recorded_at": "20261116T112304Z",
+      "sha256": "f622bad8da809f1a"
+    },
+    {
+      "file": "verdicts/20261116__VERDICT-20261116T053623Z-02.json",
+      "source_rel": "audit/semantic_review/20261116/VERDICT-20261116T053623Z-02.json",
+      "overall": "UPHELD",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261116/VERDICT-20261116T053623Z-01.json",
+      "recorded_at": "20261116T152928Z",
+      "sha256": "bda577a6677977a0"
+    },
+    {
+      "file": "verdicts/20261117__VERDICT-20261116T053623Z-01.json",
+      "source_rel": "audit/semantic_review/20261117/VERDICT-20261116T053623Z-01.json",
+      "overall": "UPHELD",
+      "revision": 3,
+      "predecessor": "audit/semantic_review/20261116/VERDICT-20261116T053623Z-02.json",
+      "recorded_at": "20261116T221520Z",
+      "sha256": "3865339ddf7dafe0"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "8f4484a8bd576853",
+    "report.md": "989e635f6f14935b",
+    "FULL_REPORT.md": "cf902b16c2a41b7a",
+    "agent_judgment.json": "94c938099d42ef6a",
+    "views_digest.json": "281eb2c3c8210c32",
+    "evidence_index.json": "8c62bb1d634b855b",
+    "AGENT_SEAT_ENVELOPE.json": "ddbfab2e2ae5f2a8"
+  },
+  "record_health": {},
+  "source_report_dir": "/tmp/phase4_blind/20261116T053623Z_GOLD_F_黄金与美国长期实际利率_REAL_10Y_及美元指数_DXY_的传",
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核)"
+}

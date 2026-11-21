@@ -127,9 +127,12 @@ class TestT1RealChainAnchors(unittest.TestCase):
         IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移): 94→102(94+8)/v2.2.0→v2.3.0/active 93→101。"""
         reg = fe.load_registry()
         metrics = reg["metrics"]
-        self.assertEqual(len(metrics), 110)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL)
-        self.assertEqual(reg["version"], "2.8.5")  # R25(2026-11-14) DFF history_source;曾升 2.8.4(R12 japan source_key 补接)/2.8.3(R11 注记细化)/2.8.2(R6-D1 换源)/2.8.0(数据批1)
-        self.assertEqual(sum(1 for m in metrics if m.get("status") == "active"), 108)  # 数据批1 +SPX_EPS/M2SL
+        # R20: 110→113(+JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 四地补齐,均 active)
+        # R21: 113→114(+CN_POLICY_OVERNIGHT 换锚新锚,active)
+        self.assertEqual(len(metrics), 114)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL;R20 +3;R21 +1)
+        self.assertEqual(reg["version"], "2.8.7")  # R20(2026-11-19) 四地补齐;曾升 2.8.5(R25 DFF history_source)/2.8.4(R12 japan source_key 补接)/2.8.3(R11 注记细化)/2.8.2(R6-D1 换源)/2.8.0(数据批1)
+        # R21: 111→112(+CN_POLICY_OVERNIGHT 换锚新锚,active)
+        self.assertEqual(sum(1 for m in metrics if m.get("status") == "active"), 112)  # 数据批1 +SPX_EPS/M2SL;R20 +3;R21 +1
 
     def test_t12_mapper_real_registry_golden_question(self):
         """B3 注册效果锚: MB-8 由 ABSENT_REGISTRY(B5 时代 81 注册表)转为注册表命中

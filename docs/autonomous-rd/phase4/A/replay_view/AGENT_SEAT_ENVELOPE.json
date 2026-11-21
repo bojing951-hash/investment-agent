@@ -1,0 +1,22 @@
+{
+  "role": "Agent Native 研究席(L3 推断+L4 条件情景真产出)",
+  "question": "UST_10Y 十年期美债利率上行的宏观传导: 对 HY_OAS 高收益债利差与 SPX 股市估值的影响",
+  "report_dir": "/tmp/mvp_run4/20261116T045959Z_UST_10Y_十年期美债利率上行的宏观传导_对_HY_OAS_高收益债利差与_",
+  "evidence_index_rows": 64,
+  "read_first": [
+    "/tmp/mvp_run4/20261116T045959Z_UST_10Y_十年期美债利率上行的宏观传导_对_HY_OAS_高收益债利差与_/report.json",
+    "/tmp/mvp_run4/20261116T045959Z_UST_10Y_十年期美债利率上行的宏观传导_对_HY_OAS_高收益债利差与_/evidence_index.json",
+    "scripts/agent_judgment.py   # judgment schema v1.0 模块 docstring",
+    ".claude/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)"
+  ],
+  "produce": "judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件)",
+  "then": [
+    "ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>",
+    "ia_cli.py research-one --stage report --report-dir <rd>"
+  ],
+  "discipline": [
+    "L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造",
+    "禁改 report.json 的 produced 字段(attach 校验器唯一写者)",
+    "研究质量十二问逐问答(章程§七)"
+  ]
+}

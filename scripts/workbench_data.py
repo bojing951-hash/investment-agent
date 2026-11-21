@@ -15,14 +15,55 @@
 重模块(yfinance/e2eb栈)一律函数内惰性导入,保证本模块导入零副作用、轻环境可用。
 """
 import glob
+import hashlib
 import json
 import os
+import re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.dirname(os.path.abspath(__file__))
 
 ECONOMY_LABELS = {'US': '美国', 'CN': '中国', 'EA': '欧元区', 'JP': '日本',
                   'GLOBAL': '全球', 'HK': '中国香港'}
+
+# ── Audit-R29 任务2: 地区简称(枚举守卫)───────────────────────────────
+# 美/欧/中/日单字简称**只在枚举语境**识别,防「其中」「完美」「日子」类
+# 常用字子串误报;全称(美国/欧元区/中国/日本)匹配路径零变化。
+# 三种守卫形态(确定性,零语义翻译):
+#   ① 顿号/逗号分隔列表 ≥2 项: 「美、欧、中、日四地」「美,欧」
+#   ② ≥3 字连续并排: 「美欧中日」「欧美日」(三字以上意外连排概率极低)
+#   ③ 双字并排+数量词确认: 「欧美两地」「中美两国」「中日四方」一类
+#      (bigram 后随 两|三|四|各+地|国|方|经济体 才采纳)
+_REGION_ABBREV = {'美': 'US', '欧': 'EA', '中': 'CN', '日': 'JP'}
+_REGION_ABBREV_CHARS = ''.join(_REGION_ABBREV)
+_ABBREV_ENUM_RUN_RE = re.compile(
+    '[' + _REGION_ABBREV_CHARS + '](?:[、,，]\\s*['
+    + _REGION_ABBREV_CHARS + '])+')
+_ABBREV_ADJACENT_RUN_RE = re.compile(
+    '[' + _REGION_ABBREV_CHARS + ']{3,}')
+_ABBREV_BIGRAM_QUANT_RE = re.compile(
+    '[' + _REGION_ABBREV_CHARS + ']{2}'
+    '(?=(?:两|三|四|各)\s*(?:地|国|方|经济体))')
+
+
+def economy_abbrev_hits(question):
+    """枚举语境下命中的地区简称(确定性;去重保序代码表)。
+
+    供 orchestrator 经济体识别与地图规划器句段作用域共用——同一守卫
+    同一结果,两处不各写一套。非枚举语境的单字(如「其中」「完美」)
+    不命中,零误报面;返回空表=问题无简称枚举,调用方口径零变化。"""
+    q = question or ''
+    hits, seen = [], set()
+    for rx in (_ABBREV_ENUM_RUN_RE, _ABBREV_ADJACENT_RUN_RE,
+               _ABBREV_BIGRAM_QUANT_RE):
+        for m in rx.finditer(q):
+            for ch in m.group(0):
+                code = _REGION_ABBREV.get(ch)
+                if code and code not in seen:
+                    seen.add(code)
+                    hits.append(code)
+    return hits
+
 # 金融市场变化页纳入的资产类(注册表 asset_class 权威口径)
 MARKET_ASSET_CLASSES = {
     'equity_index', 'single_stock', 'country_etf_proxy', 'bond_etf',
@@ -67,6 +108,33 @@ def load_registry(root=None):
     with open(path, encoding='utf-8') as f:
         metrics = json.load(f)['metrics']
     return {'metrics': metrics, 'by_id': {m['metric_id']: m for m in metrics}}
+
+
+def state_fingerprint(root=None):
+    """R11-P2④: 工作台状态输入的内容指纹(快照候选集+指标注册表)。
+
+    latest_snapshot/load_registry 的输入= data/daily/research_snapshot_*.json
+    候选集与 config/metric_registry.json;任何文件的新增/更新/删除
+    (文件集或 mtime_ns/size 变化)都改变指纹。app.py 以指纹为
+    st.cache_data 缓存键——外部采集落盘后无需重启即可读到新快照。
+    纯文件系统操作,零 streamlit 依赖,CI 可独立测试。"""
+    base = root or ROOT
+    parts = []
+    daily = os.path.join(base, 'data', 'daily')
+    for p in sorted(glob.glob(os.path.join(daily,
+                                           'research_snapshot_*.json'))):
+        try:
+            fs = os.stat(p)
+            parts.append(f'{os.path.basename(p)}:{fs.st_mtime_ns}:{fs.st_size}')
+        except OSError:
+            parts.append(f'{os.path.basename(p)}:STAT-ERR')
+    reg = os.path.join(base, 'config', 'metric_registry.json')
+    try:
+        fs = os.stat(reg)
+        parts.append(f'metric_registry.json:{fs.st_mtime_ns}:{fs.st_size}')
+    except OSError:
+        parts.append('metric_registry.json:STAT-ERR')
+    return hashlib.sha256('|'.join(parts).encode('utf-8')).hexdigest()
 
 
 def snapshot_meta(snapshot):
@@ -574,10 +642,14 @@ def series_capable_metrics(snapshot, registry):
     facts_q = {f.get('metric_id'): f.get('quality_status')
                for f in (snapshot or {}).get('facts', [])}
     stats = {}
+    # R9-01: 两面统计(first/last/n)均取自有效观测核验后序列——与
+    # metric_series/判定层同一清洗规则,不以原始数组长度计 n。
+    import research_history_query as rhq
     for mid, s in ((snapshot or {}).get('series_store') or {}).items():
-        dates = (s or {}).get('dates') or []
-        if dates:
-            stats[mid] = (dates[0], dates[-1], len(dates))
+        cd, cv, _cst = rhq.effective_series((s or {}).get('dates'),
+                                            (s or {}).get('values'))
+        if cd:
+            stats[mid] = (cd[0], cd[-1], len(cd))
     daily = os.path.join(ROOT, 'data', 'daily')
     # Charter6-P2: +shiller_(估值序列月频;series 节直通)
     for prefix in ('macro_', 'global_', 'rate_economy_', 'shiller_'):
@@ -593,8 +665,11 @@ def series_capable_metrics(snapshot, registry):
                     if isinstance(v, dict) and isinstance(v.get('series'), dict) \
                             and v['series'].get('dates'):
                         if k not in stats:      # series_store 优先(快照口径)
-                            dates = v['series']['dates']
-                            stats[k] = (dates[0], dates[-1], len(dates))
+                            cd, cv, _cst = rhq.effective_series(
+                                v['series'].get('dates'),
+                                v['series'].get('values'))
+                            if cd:
+                                stats[k] = (cd[0], cd[-1], len(cd))
         except (OSError, ValueError):
             continue
     out = []
@@ -624,7 +699,10 @@ def series_capable_metrics(snapshot, registry):
 def metric_series(metric_id, snapshot=None, root=None):
     """页面三: 本地真实历史序列。优先快照 series_store,否则按注册表 source
     找最新采集档走 research_history_query.load_metric_series。
-    返回 {'metric_id','label','unit','dates','values','source'} 或 (None, 原因)。"""
+    返回 {'metric_id','label','unit','dates','values','source',
+    'collection_status'?} 或 (None, 原因)——R7-02: 采集状态双路贯通
+    (快照面=series_provenance 平节经 collection_status_of 规范;采集档面=
+    loader 随序列提升),供 ia_cli history 信封与研究判定层同一状态源。"""
     if isinstance(metric_id, dict):  # UI 下拉传入 option 对象时取其 id(2026-11-08 D验收回归)
         metric_id = metric_id.get('metric_id')
     registry = load_registry(root)
@@ -633,9 +711,25 @@ def metric_series(metric_id, snapshot=None, root=None):
         return None, f'注册表无此指标: {metric_id}'
     if snapshot and metric_id in (snapshot.get('series_store') or {}):
         ss = snapshot['series_store'][metric_id]
-        return {'metric_id': metric_id, 'label': m['display_name'],
-                'unit': m.get('unit', ''), 'dates': list(ss['dates']),
-                'values': list(ss['values']), 'source': '研究快照 series_store'}, None
+        import research_history_query as rhq
+        # R9-01: 快照直读同过唯一有效观测清洗(rhq.effective_series,
+        # 与采集档 loader 同一实现)——快照面 n/first/last 亦取自最终
+        # 有效序列,坏值/重复/错配不再以原始数组长度冒充覆盖。
+        cd, cv, cst = rhq.effective_series(ss.get('dates'), ss.get('values'))
+        if not cd:
+            return None, ('快照序列经有效观测核验后为空'
+                          f"(n_observations={cst.get('n_observations', 0)})")
+        cstat = rhq.collection_status_of(
+            (snapshot.get('series_provenance') or {}).get(metric_id),
+            last_observation=cd[-1])
+        out = {'metric_id': metric_id, 'label': m['display_name'],
+               'unit': m.get('unit', ''), 'dates': list(cd),
+               'values': list(cv), 'source': '研究快照 series_store',
+               'series_clean': {'raw_n': len(ss.get('dates') or []),
+                                **cst}}
+        if cstat:
+            out['collection_status'] = cstat
+        return out, None
     # R25: 历史序列通道=history_source 优先,回落 source(DFF 首例:
     # source=rate_expectations 单点,history_source=macro_collector 序列)
     prefix = SERIES_SOURCE_PREFIX.get(m.get('history_source') or m.get('source'))
@@ -648,16 +742,24 @@ def metric_series(metric_id, snapshot=None, root=None):
     ymd = os.path.basename(files[-1])[len(prefix):len(prefix) + 8]
     import research_history_query as rhq
     try:
-        res = rhq.load_metric_series(metric_id, ymd, data_dir=os.path.dirname(files[-1]))
+        # R7-02: root 即该数据树的持有根(FIX7 可信边界授权缝——生产
+        # 默认=ROOT 与缺省可信根同一,零行为差;engine_root/测试沙箱
+        # 显式传入其树根)
+        res = rhq.load_metric_series(
+            metric_id, ymd, data_dir=os.path.dirname(files[-1]),
+            trusted_root=(root or ROOT))
     except ValueError as e:
         return None, f'该指标无历史序列: {e}'
     dates, values = res.get('dates'), res.get('values')
     if not dates:
         return None, '序列为空'
-    return {'metric_id': metric_id, 'label': res.get('display_name') or m['display_name'],
-            'unit': res.get('unit') or m.get('unit', ''),
-            'dates': list(dates), 'values': list(values),
-            'source': f"采集档 {os.path.basename(res.get('source', {}).get('file', files[-1]))}"}, None
+    out = {'metric_id': metric_id, 'label': res.get('display_name') or m['display_name'],
+           'unit': res.get('unit') or m.get('unit', ''),
+           'dates': list(dates), 'values': list(values),
+           'source': f"采集档 {os.path.basename(res.get('source', {}).get('file', files[-1]))}"}
+    if res.get('collection_status'):
+        out['collection_status'] = res['collection_status']
+    return out, None
 
 
 # ══ AI研究(复用 e2eb 查询栈 / 可选模型解释层 / 研究档案) ═══════════════
@@ -751,7 +853,11 @@ def ai_explain(question, grounded_text):
 
 def save_to_archive(question, snapshot, root=None, archive_dir=None):
     """页面四: 问题+结果 append-only 落研究档案(复用 research_archive;
-    重新映射以分配当日单调 query_id)。返回 (query_id|None, status|错误说明)。"""
+    重新映射以分配当日单调 query_id)。返回 (query_id|None, status|错误说明)。
+
+    R11 P1②: 配号→映射→执行→落盘在 archive_write_lock 单事务内——
+    并发保存各配唯一号,两次成功=两条完整记录(锁跨进程;执行段在临界
+    区内=工作台为单用户页面,串行化代价可接受,正确性优先)。"""
     if not snapshot:
         return None, '本地无快照,无法归档'
     try:
@@ -759,16 +865,17 @@ def save_to_archive(question, snapshot, root=None, archive_dir=None):
         import research_archive as ra
         import e2eb_query_mapper as qm
         import e2eb_query_executor as qe
-        created = datetime.now(timezone(timedelta(hours=8))).isoformat(timespec='seconds')
-        qid = ra.allocate_query_id(created, archive_dir=archive_dir)
-        seq = int(qid.rsplit('-', 1)[-1])
-        ir = qm.map_question(question, created_at=created, query_seq=seq)
-        execution = qe.execute_query(ir, snapshot=snapshot)
-        # executor 会在 IR 上回绑 target_snapshot_id(D-B4-05④一致性:归档须用执行后IR)
-        status, _path = ra.append_query_record(execution.get('ir', ir),
-                                               snapshot=snapshot,
-                                               execution=execution,
-                                               archive_dir=archive_dir)
+        with ra.archive_write_lock(archive_dir):
+            created = datetime.now(timezone(timedelta(hours=8))).isoformat(timespec='seconds')
+            qid = ra.allocate_query_id(created, archive_dir=archive_dir)
+            seq = int(qid.rsplit('-', 1)[-1])
+            ir = qm.map_question(question, created_at=created, query_seq=seq)
+            execution = qe.execute_query(ir, snapshot=snapshot)
+            # executor 会在 IR 上回绑 target_snapshot_id(D-B4-05④一致性:归档须用执行后IR)
+            status, _path = ra.append_query_record(execution.get('ir', ir),
+                                                   snapshot=snapshot,
+                                                   execution=execution,
+                                                   archive_dir=archive_dir)
         if status != 'written':
             return None, f'档案拒绝写入: {status}'
         return ir.get('query_id', qid), None

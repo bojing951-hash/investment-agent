@@ -43,6 +43,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 from datetime import date, datetime, timezone
 
@@ -56,8 +57,27 @@ ECB_DFR_URL = ('https://data-api.ecb.europa.eu/service/data/FM/'
                'B.U2.EUR.4F.KR.DFR.LEV?format=csvdata&startPeriod=1999-01-01')
 ECB_MRO_URL = ('https://data-api.ecb.europa.eu/service/data/FM/'
                'B.U2.EUR.4F.KR.MRR_FR.LEV?format=csvdata&startPeriod=1999-01-01')
-ECB_HICP_URL = ('https://data-api.ecb.europa.eu/service/data/ICP/'
-                'M.U2.N.000000.4.ANR?format=csvdata')
+# Audit-R20(2026-11-19): HICP 数据集换轨——旧 ICP 数据集被 ECB 于 2026-02-04
+# 停用(响应内嵌公告: "the ECB will also discontinue the current Indices of
+# Consumer Prices - ICP dataset and replace it with a new HICP dataset",
+# 实测旧键止于 2025-12)。新 HICP 数据流(ECB_ICP3 结构,键
+# FREQ.REF_AREA.ADJUSTMENT.ICP_ITEM.DATA_PROVIDER.ICP_SUFFIX)实测含全史
+# 1997-01..今(1997-01=2.1,2026-09=3.8,2026-10=4.0),无需双数据集拼接;
+# 重叠月 2025-12 有 1.9(旧)→2.0(新)的口径修订,新数据集为权威面。
+ECB_HICP_URL = ('https://data-api.ecb.europa.eu/service/data/HICP/'
+                'M.U2.N.000000.4D0.ANR?format=csvdata')
+ECB_HICP_URL_LEGACY = ('https://data-api.ecb.europa.eu/service/data/ICP/'
+                       'M.U2.N.000000.4.ANR?format=csvdata')
+# Audit-R20(2026-11-19): 欧元区增长维序列(12组36格四地地图问句正式使用)。
+# FRED fredgraph CLVMEURSCAB1GQEA19=欧元区(19国)实际GDP链式量度季频水平
+# (1995+,免费公开零凭证);同季去年比=(本季/去年同季−1)×100。FRED 载荷=
+# 最新修订值,无当时发布版本可比→序列注记 hindsight 口径。
+FRED_EA_GDP_URL = ('https://fred.stlouisfed.org/graph/fredgraph.csv'
+                   '?id=CLVMEURSCAB1GQEA19')
+# FRED fredgraph 实测(jp 通道 japan_rate_collector 同款结论): 非 curl 形态
+# UA 会被源端 RemoteDisconnected 拒——FRED 源一律带 curl 形态 UA。
+_UA_FRED = {'User-Agent': 'curl/8.0 investment-agent-dev-ea-market-collector/1.1',
+            'Connection': 'close'}
 BBK_10Y_URL = 'https://api.bundesbank.de/timeseries/rest/data/BBK01/WU3146?format=csv'
 BBK_2Y_URL = 'https://api.bundesbank.de/timeseries/rest/data/BBK01/WU3141?format=csv'
 
@@ -148,6 +168,95 @@ def parse_sdmx_csv(raw):
     if not rows:
         return None, ['sdmx无有效观测行'] + alerts
     return rows, alerts
+
+
+# ══ Audit-R20: FRED fredgraph CSV 解析 → 欧元区 GDP 同季去年比序列 ══════
+
+def parse_fred_csv(raw):
+    """FRED fredgraph CSV → [(obs 'YYYY-MM-DD', value), …](升序全序列)。
+
+    形态同 jp 通道 _parse_fred_series 实测: 首行 observation_date,<series_id>;
+    缺失值'.'行跳过。raw 供离线注入。"""
+    alerts = []
+    text = raw.decode('utf-8')
+    lines = [l for l in text.splitlines() if l.strip()]
+    if not lines or not lines[0].startswith('observation_date'):
+        return None, ['fred形态不符(缺observation_date表头)']
+    rows = []
+    for line in lines[1:]:
+        cells = line.split(',')
+        if len(cells) != 2:
+            continue
+        d, v = cells[0].strip(), cells[1].strip()
+        if not v or v == '.':
+            continue
+        try:
+            rows.append((d, float(v)))
+        except ValueError:
+            alerts.append(f'fred数值非法行跳过:{line!r}')
+    if not rows:
+        return None, ['fred无有效观测行'] + alerts
+    return rows, alerts
+
+
+def _quarterly_yoy(rows):
+    """季频水平序列 → 同季去年比 [('YYYY-MM-01', yoy_pct), …]。
+
+    FRED 季度观测日=季首(YYYY-01/04/07/10-01);严格去年同季(−4 季)配基,
+    缺基期该季不出数;yoy=round((本季/去年同季−1)×100, 2)。"""
+    by = dict(rows)
+    out = []
+    for d, v in rows:
+        y, m = int(d[:4]), int(d[5:7])
+        if m not in (1, 4, 7, 10):
+            continue
+        base = by.get('%04d-%02d-01' % (y - 1, m))
+        if base:
+            out.append((d, round((v / base - 1.0) * 100.0, 2)))
+    return out
+
+
+def _open_url_with(url, headers):
+    """单次 HTTP GET(指定 headers;离线测试可注入替身)。"""
+    import urllib.request
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=_TIMEOUT) as r:
+        return r.read()
+
+
+def fetch_ea_real_gdp_yoy(raw=None):
+    """FRED CLVMEURSCAB1GQEA19 → 同季去年比序列;raw 注入则零网络。
+
+    → (yoy [('YYYY-MM-01', pct)], alerts);源失败→(None, alerts)。
+
+    Audit-R29 任务1: 瞬时 TLS 故障重试——R28 当日实采曾因
+    'URLError: EOF occurred in violation of protocol (_ssl.c:1129)'
+    单次失败致整日面 series 缺席(快照→地图 EA 增长格连锁缺数)。
+    网络路径固定 3 次尝试(间隔 2s);raw 注入测试零网络零重试,
+    语义不变。全部尝试失败才落 READ_FAIL(如实)。"""
+    if raw is None:
+        alerts = []
+        raw = None
+        for attempt in range(1, 4):
+            raw, a = _fetch_or_alert('FRED-EA-GDP', lambda: _open_url_with(
+                FRED_EA_GDP_URL, _UA_FRED))
+            alerts.extend(a)
+            if raw is not None:
+                if attempt > 1:
+                    alerts.append(f'FRED-EA-GDP 第 {attempt} 次尝试成功'
+                                  f'(前 {attempt - 1} 次瞬时失败已重试)')
+                break
+            if attempt < 3:
+                time.sleep(2)
+        if raw is None:
+            alerts.append('FRED-EA-GDP 3 次尝试均失败(瞬时 TLS/网络类'
+                          '故障重试后仍缺席→series 诚实缺席,如实)')
+            return None, alerts
+    rows, p_alerts = parse_fred_csv(raw)
+    alerts.extend(p_alerts)
+    if rows is None:
+        return None, alerts
+    return _quarterly_yoy(rows), alerts
 
 
 def _month_to_iso(t):
@@ -280,8 +389,29 @@ def build_payload(run_date=None, ecb_dfr_raw=None, ecb_mro_raw=None,
                               if prev is not None else None),
                 change_period='MoM', freq='Monthly')
             observations['EA_HICP_YOY'] = obs
+            # Audit-R20: HICP 全史入 series 节(月频序列;月统计期=当月首日)
+            series_out['EA_HICP_YOY'] = {
+                'dates': [_month_to_iso(r[0]) for r in rows],
+                'values': [r[1] for r in rows]}
             sources_status['ECB_ICP_HICP'] = {'status': 'EXACT',
                                               'retrieved_at': t0}
+
+    # ── Audit-R20: 欧元区实际GDP 同季去年比(FRED fredgraph)─────────────
+    gdp_yoy, a = fetch_ea_real_gdp_yoy()
+    alerts.extend(a)
+    if gdp_yoy:
+        series_out['EA_REAL_GDP_YOY'] = {
+            'dates': [d for d, _ in gdp_yoy],
+            'values': [v for _, v in gdp_yoy],
+            'history_note': 'FRED CLVMEURSCAB1GQEA19 载荷=最新修订值(无当时'
+                            '发布版本可比)——研究/渲染面按事后回顾口径标注'}
+        observations['EA_REAL_GDP_YOY'] = gdp_yoy[-1][0]
+        sources_status['FRED_EA_GDP'] = {'status': 'EXACT',
+                                         'retrieved_at': _now_iso()}
+    else:
+        sources_status['FRED_EA_GDP'] = {'status': 'READ_FAIL',
+                                         'retrieved_at': None}
+        alerts.append('FRED 欧元区GDP源失败→series.EA_REAL_GDP_YOY 缺席(如实)')
 
     # ── 诚实缺席(键不出现): prices 节 ─────────────────────────────────
     sources_status['DAX'] = {'status': 'MISSING', 'retrieved_at': None}
@@ -300,8 +430,14 @@ def build_payload(run_date=None, ecb_dfr_raw=None, ecb_mro_raw=None,
             'ECB_FM_MRO': {'url': ECB_MRO_URL,
                            'note': 'ECB Data Portal FM主要再融资固定利率(日频)'},
             'ECB_ICP_HICP': {'url': ECB_HICP_URL,
-                             'note': 'ECB Data Portal ICP欧元区HICP年度变化率'
-                                     '(月频;月统计期以当月首日表示)'},
+                             'note': 'ECB Data Portal HICP数据流欧元区HICP年'
+                                     '变化率(月频;月统计期以当月首日表示;'
+                                     '2026-02-04 ICP→HICP 数据集换轨,新数据'
+                                     '集含1997+全史,Audit-R20)'},
+            'FRED_EA_GDP': {'url': FRED_EA_GDP_URL,
+                            'note': 'FRED季频CLVMEURSCAB1GQEA19欧元区实际GDP'
+                                    '链式量度水平→同季去年比(最新修订值=事后'
+                                    '回顾口径,Audit-R20 接线)'},
             'BBK_WU3146': {'url': BBK_10Y_URL,
                            'note': 'Bundesbank BBK01/WU3146 残存期限9-10年档'
                                    '(10Y代理;口径经同域元数据核验)'},
@@ -328,12 +464,15 @@ def build_payload(run_date=None, ecb_dfr_raw=None, ecb_mro_raw=None,
 
 
 def save_daily(data_dir, payload):
-    """原子写 data_dir/ea_{date}.json(先tmp后replace,防半写)。"""
-    path = os.path.join(data_dir, f"ea_{payload['date']}.json")
-    tmp = path + '.tmp'
-    with open(tmp, 'w', encoding='utf-8') as f:
-        json.dump(payload, f, ensure_ascii=False, indent=1)
-    os.replace(tmp, path)
+    """原子写 data_dir/ea_{date}.json(Audit-R25 任务1: 同日降级重采集
+    经 daily_face_guard_write 守卫——序列丢失面转存 superseded/,不覆盖
+    同日完整可重放面)。"""
+    import research_provenance as rp
+    path, status, note = rp.daily_face_guard_write(
+        data_dir, 'ea', payload['date'], payload, indent=1)
+    if status == 'degraded_diverted':
+        print(f'[ea_market_collector] ⚠️ 同日降级面({note})未覆盖完整档,'
+              f'转存 {path}')
     return path
 
 

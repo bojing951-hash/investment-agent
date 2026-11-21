@@ -298,23 +298,39 @@ def merge_series_sections(store, raw):
     metric_id 实读
     且 source=权属采集器方可入(防别名行/越权序列混入计算面);形态须为
     {'dates','values'} 等长非空(升序直通,零改写零造数);节缺席=诚实缺席不
-    造序列;store 既有键(global/china/prices 池)先占,series 节不覆盖。"""
+    造序列;store 既有键(global/china/prices 池)先占,series 节不覆盖。
+    Audit-R20(2026-11-19): 同门新增 china_(CN_CPI_YOY/CN_PPI_YOY/CN_LPR_1Y/
+    CN_OMO_7D,权属=china_market_collector)与 jp_(JP_CPI_YOY/JP_CPI_TOKYO_YOY/
+    JP_REAL_GDP_YOY,权属=jp_market_collector)两通道顶层 series 节。"""
     for ch, collector in (('japan', 'japan_rate_collector'),
                           ('ea', 'ea_market_collector'),
                           # Charter6-P2: Shiller 估值全史序列(1871+,月频)
-                          ('shiller', 'shiller_collector')):
+                          ('shiller', 'shiller_collector'),
+                          # Audit-R20(2026-11-19): CN 宏观全史序列
+                          # (EM CPI/PPI+PBOC OMO+LPR,china_ 档顶层 series 节)
+                          ('china', 'china_market_collector'),
+                          # Audit-R20: 日本增长/通胀序列(stat.go.jp CPI+
+                          # FRED GDP,jp_ 档顶层 series 节;prices 节序列
+                          # 另经上方 prices 池,两路键不重叠)
+                          ('jp', 'jp_market_collector')):
         for key, s in (((raw.get(ch) or {}).get('series') or {}).items()):
             m = fe.metric(key) if isinstance(key, str) else None
             if m is None or m.get('source') != collector or key in store:
                 continue
             if isinstance(s, dict) and isinstance(s.get('dates'), list) \
-                    and isinstance(s.get('values'), list) \
-                    and len(s['dates']) == len(s['values']) and s['dates']:
-                store[key] = s
+                    and s['dates']:
+                # R9-01: 入 store 前过唯一有效观测清洗(合法日期+有限
+                # 数值+同日去重留末;长度错配短侧配对)——快照消费核验
+                # 序列,坏值不再以原始数组长度冒充覆盖。
+                import research_history_query as rhq   # 函数内导入防环(rhq→sb)
+                cd, cv, _cst = rhq.effective_series(s.get('dates'),
+                                                    s.get('values'))
+                if cd:
+                    store[key] = {'dates': cd, 'values': cv}
     return store
 
 
-def merge_macro_series(store, raw):
+def merge_macro_series(store, raw, prov_out=None, clean_out=None):
     """阶段三 T3(PHASE3-PLAN 工单T3,2026-11-14): macro 通道全史序列入 store(就地并入)。
 
     根因: 周报路径唯一数据入口=研究快照 series_store(global/china/jp/ea/
@@ -337,10 +353,21 @@ def merge_macro_series(store, raw):
     快照顶层平节 series_store_notes(键=metric_id;无注记键不入该节;series_store
     值保持 {'dates','values'} 纯净不混注记);序列未入档(门未过/形态不合规)则
     注记同不入(防孤儿注记)。
+    R7-02 采集状态贯通: 条目携带 provenance 的(如 CN_PMI_MFG
+    fresh/carry_forward)随序列写入快照顶层平节 series_provenance(键=
+    metric_id,原样 dict——文件写入时间/最后成功采集时间/数据统计期由
+    查询层 collection_status_of 统一规范);序列未入档则状态同不入。
     新鲜度窗: 继承 resolve_inputs 的 macro 档窗(rp.SOURCE_FILE_RULES 7 自然日)
     ——窗内无档→raw 无 macro 键→本函数零产出,序列诚实缺席不造数。
 
-    返回: notes dict(非空时由调用方写入 snapshot['series_store_notes'])。"""
+    返回: notes dict(非空时由调用方写入 snapshot['series_store_notes'])。
+    prov_out: 可选 dict 出参——本函数就地填入 {metric_id: provenance}
+    (调用方写入 snapshot['series_provenance'];None=旧调用面不收集,
+    返回值形状不变)。
+    clean_out: 可选 dict 出参(R9-01)——本函数就地填入
+    {metric_id: {'raw_n': 原始长度, ...六键清洗登记}}(调用方写入快照
+    顶层平节 series_store_clean,作为快照面有效观测核验的披露面;None=
+    旧调用面不收集)。"""
     notes = {}
     if not isinstance(raw.get('macro'), dict):
         return notes
@@ -352,12 +379,23 @@ def merge_macro_series(store, raw):
             continue
         s = item.get('series')
         if isinstance(s, dict) and isinstance(s.get('dates'), list) \
-                and isinstance(s.get('values'), list) \
-                and len(s['dates']) == len(s['values']) and s['dates']:
-            store[mid] = s
-            note = item.get('history_note')
-            if isinstance(note, str) and note:
-                notes[mid] = note
+                and s['dates']:
+            # R9-01: 入 store 前过唯一有效观测清洗(同 merge_series_sections
+            # 同一实现)——n/first/last 从最终有效序列计算,坏值不再以原始
+            # 数组长度冒充覆盖;长度错配按短侧配对如实登记不再整段拒绝。
+            import research_history_query as rhq   # 函数内导入防环(rhq→sb)
+            cd, cv, cst = rhq.effective_series(s.get('dates'),
+                                               s.get('values'))
+            if clean_out is not None:
+                clean_out[mid] = {'raw_n': len(s['dates']), **cst}
+            if cd:
+                store[mid] = {'dates': cd, 'values': cv}
+                note = item.get('history_note')
+                if isinstance(note, str) and note:
+                    notes[mid] = note
+                prov = item.get('provenance')
+                if prov_out is not None and isinstance(prov, dict) and prov:
+                    prov_out[mid] = dict(prov)
     return notes
 
 
@@ -577,11 +615,22 @@ def build_snapshot(target_ymd=None, data_dir=None, out_dir=None, as_of=None,
     # 阶段三 T3(2026-11-14): macro 通道全史序列(HY_OAS/CURVE_2S10S/UST_* 等)
     # 入 store——周报路径序列库自此覆盖 macro 池;源窗/滞后注记随序列入顶层
     # 平节 series_store_notes(见 merge_macro_series docstring)。
-    macro_notes = merge_macro_series(store, raw)
+    # R7-02: 采集状态(provenance)同门随序列入顶层平节 series_provenance
+    # ——loader/history/判定层自快照取状态,不经旁路。
+    macro_prov = {}
+    macro_clean = {}
+    macro_notes = merge_macro_series(store, raw, prov_out=macro_prov,
+                                     clean_out=macro_clean)
     if store:
         snapshot['series_store'] = store
     if macro_notes:
         snapshot['series_store_notes'] = macro_notes
+    if macro_prov:
+        snapshot['series_provenance'] = macro_prov
+    # R9-01: 快照面有效观测核验披露(原始长度+六键清洗登记),供下游与
+    # 外审计核对 series_store 值即核验后序列。
+    if macro_clean:
+        snapshot['series_store_clean'] = macro_clean
 
     if not write:
         return snapshot

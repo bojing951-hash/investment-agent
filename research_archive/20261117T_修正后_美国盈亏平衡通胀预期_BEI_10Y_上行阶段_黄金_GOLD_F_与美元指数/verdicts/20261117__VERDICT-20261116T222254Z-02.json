@@ -1,0 +1,31 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "r5-e2e-review-seat",
+  "notes": "Audit-R5 条目3 修正后复审(未参与修复的独立席,自写复算实现,未读研究席/修复席脚本)。抽核30项: 28一致+2必修。必修1=CON-1滚动段终点日期错一天(2022年5月26日→5月25日,与已修正的MECH-3自相矛盾);必修2=CON-2美元方程t值末位(+4.5→+4.4,精确4.4489)。三处修正句的统计实质(数值与含义)全部复算成立。次要备注3项(油跌日≤0口径标签/声明BRENT_F n=2515/CON-3 analog面未验证)不阻断。",
+  "run_ts": "20261116T222254Z",
+  "content_sha256": "5c3f5c9b63b21ffea67608306cb34bcbbafaf0001ae1266faf275bcc217ff510",
+  "audited_at": "2026-11-17",
+  "recorded_at": "20261117T040033Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261117/VERDICT-20261116T222254Z-01.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "audit_round": "R5-item3",
+  "must_fix": [
+    {
+      "id": 1,
+      "loc": "l3.contradictions[0].statement(四副本镜像)",
+      "fix": "段终点 2022年5月26日→2022年5月25日"
+    },
+    {
+      "id": 2,
+      "loc": "l3.contradictions[1].statement(四副本镜像)",
+      "fix": "t=+4.5→+4.4(1.152/0.259=4.448)"
+    }
+  ],
+  "recompute_script": "/tmp/sr5r3/recompute.py(独立席自写)"
+}

@@ -1,0 +1,35 @@
+{
+  "stage": "archive",
+  "run_ts": "20261119T153931Z",
+  "question": "近一个月VIX飙升而高收益债OAS利差几乎未动，信用市场是否对股市风险过于自满？",
+  "archived_at": "20261119T154621Z",
+  "content_sha256": "caa54ebd81dada52863ba7f5561b7a554cfba36995bfce82f18e61af65d61c2c",
+  "run_code_git_head": "b45b810f92e3a44a4c40064e67910a948ebbb36d",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 1,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261119__VERDICT-20261119T153931Z-01.json",
+      "source_rel": "audit/semantic_review/20261119/VERDICT-20261119T153931Z-01.json",
+      "overall": "UPHELD",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261119T154542Z",
+      "sha256": "a6e3e454da6d687f"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "69231d757ef94009",
+    "report.md": "c04e42a5da1e2c3f",
+    "FULL_REPORT.md": "7eec6332fa81fdbf",
+    "agent_judgment.json": "e5f5a19bf38c2056",
+    "views_digest.json": "e71a18c2e81904ed",
+    "evidence_index.json": "4748c88a3eec0d5d",
+    "AGENT_SEAT_ENVELOPE.json": "8dd907808d323ed8"
+  },
+  "record_health": {},
+  "source_report_dir": "output/vix/20261119T153931Z_近一个月VIX飙升而高收益债OAS利差几乎未动_信用市场是否对股市风险过于自满/",
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核)"
+}

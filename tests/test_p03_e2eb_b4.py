@@ -156,6 +156,9 @@ ALLOWED_PUBLIC_FUNCS = {"validate_id_conventions", "parse_snapshot_id",
                         # 批2 WI6(2026-11-09)显式扩面: research_full sidecar
                         # (validate/write/load;旧 query_history 契约一字不动)
                         "validate_research_full", "write_research_full",
+                        # Audit-R11 P1②(2026-11-18)显式扩面: 配号→落盘
+                        # 事务组合的公开锁入口(workbench save_to_archive 用)
+                        "archive_write_lock",
                         "load_research_full",
                         # C席观察②(2026-11-10)显式扩面: 按 snapshot_id 加载
                         # 指定快照(归档显式绑定旧版;委托既有私有读取面零新实现)
@@ -368,8 +371,11 @@ class T2IDConventions(B4TestBase):
         _, path = self.append_basic(arch)
         self.assertEqual(path, os.path.join(
             arch, "research_archive", "query_history", "QB-20261105-001.json"))
-        self.assertEqual(sorted(os.listdir(os.path.dirname(path))),
-                         ["QB-20261105-001.json"])          # 零散落文件/索引文件零产生
+        # Audit-R11 P1②: 目录级写锁文件(.write.lock)常驻采集目录=互斥域
+        # 本体;除锁文件外零散落文件/索引文件零产生
+        self.assertEqual([f for f in sorted(os.listdir(os.path.dirname(path)))
+                          if not f.startswith('.')],
+                         ["QB-20261105-001.json"])
 
 
 # ══ T3 digest 绑定(要点③) ═════════════════════════════════════════════════
@@ -630,11 +636,13 @@ class T5WiringPurity(B4TestBase):
             self.assertNotIn(pat, MODULE_SRC, f"源码含原始采集档文件名模式: {pat}")
 
     def test_open_surface_whitelisted(self):
-        # 文件打开面恰3处: 记录原子写/记录读回/快照加载(D-B4-08登记面)
-        # 批2 WI6(2026-11-09)显式扩面: +sidecar 原子写/sidecar 读回 = 恰5处
-        self.assertEqual(MODULE_SRC.count("open("), 5)
-        for func in ("append_query_record", "load_query_record",
-                     "_load_snapshot_for_binding", "write_research_full",
+        # 文件打开面: 记录读回/快照加载/sidecar 读回 = 恰3处
+        # (批2 WI6 曾=5: 记录原子写+sidecar 原子写也在本模块;
+        #  Audit-R11 P1② 2026-11-18 起两处写入移 store_lock.atomic_write_json
+        #  独立临时名+fsync+os.replace 原子发布,本模块 open 面收敛为纯读)
+        self.assertEqual(MODULE_SRC.count("open("), 3)
+        for func in ("load_query_record",
+                     "_load_snapshot_for_binding",
                      "load_research_full"):
             self.assertIn("open(", inspect.getsource(getattr(ra, func)))
 

@@ -3,7 +3,11 @@
 """补充: 弱化起始精确定位+敏感度(beta)+2026 年内路径。数据源同 blind_calc.py"""
 import json, math
 
-DEV = '/Users/cast/investment-agent-dev/data/daily'
+import os
+# Audit-R1 F05: 去绝对路径——默认引擎树本地相对解析,可用环境变量
+# IA_ENGINE_DAILY 覆盖(净克隆/异机可复现,免硬编码用户目录)
+DEV = os.environ.get('IA_ENGINE_DAILY',
+                     os.path.expanduser('~/investment-agent-dev/data/daily'))
 snap = json.load(open(f'{DEV}/research_snapshot_20261112_v2.json'))
 ss = snap['series_store']
 macro = json.load(open(f'{DEV}/macro_20261112.json'))['data']
@@ -108,13 +112,20 @@ for m in [f'2025-{i:02d}' for i in range(1,13)]:
     i0,i1=idx[0],idx[-1]
     print(f'{m} | {gold[i1]:7.1f} | {real[i1]:.2f} | {dxy[i1]:6.2f} | {(gold[i1]/gold[i0]-1)*100:+6.2f}% | {real[i1]-real[i0]:+.2f}pp | {(dxy[i1]/dxy[i0]-1)*100:+5.2f}%')
 
-# 极端日检验: 2025-2026 实际利率大幅上行日(>+5bp)黄金表现
-for lab,lo,hi in [('2017-2024','2017','2024'),('2025-2026','2025','2026')]:
-    big_up=[(dates[i],r_chg[i],g_ret[i]) for i in range(1,n) if lo<=dates[i][:4]<=hi and r_chg[i] is not None and r_chg[i]>=5]
-    big_dn=[(dates[i],r_chg[i],g_ret[i]) for i in range(1,n) if lo<=dates[i][:4]<=hi and r_chg[i] is not None and r_chg[i]<=-5]
+# 极端日检验: 实际利率大幅上行日(>=5bp)黄金表现
+# Audit-R1 F06 修: 旧过滤 r_chg>=5 把 pp 当 bp(5pp=500bp)→n=0 恒空,
+# judgment 所引 n=27/+0.07% 不可由本脚本复现。阈值改 0.05pp 并增补
+# judgment 所引的 2025-2026 美元方向桶与全参考桶(口径对齐,可复算)。
+for lab,lo,hi in [('2017-2024','2017','2024'),('2022-2026','2022','2026'),('2025-2026','2025','2026')]:
+    big_up=[(dates[i],r_chg[i],g_ret[i]) for i in range(1,n) if lo<=dates[i][:4]<=hi and r_chg[i] is not None and r_chg[i]>=0.05]
+    big_dn=[(dates[i],r_chg[i],g_ret[i]) for i in range(1,n) if lo<=dates[i][:4]<=hi and r_chg[i] is not None and r_chg[i]<=-0.05]
     au=sum(x[2] for x in big_up)/max(len(big_up),1); ad=sum(x[2] for x in big_dn)/max(len(big_dn),1)
     pu=sum(1 for x in big_up if x[2]>0)/max(len(big_up),1)*100
     print(f'{lab}: 实际利率日升>=5bp n={len(big_up)} 黄金日均{au:+.3f}% 上涨占比{pu:.0f}% | 日降>=5bp n={len(big_dn)} 黄金日均{ad:+.3f}%')
+for lab,lo,hi in [('2025-2026','2025','2026')]:
+    d_up=[g_ret[i] for i in range(1,n) if lo<=dates[i][:4]<=hi and d_ret[i] is not None and d_ret[i]>0]
+    d_dn=[g_ret[i] for i in range(1,n) if lo<=dates[i][:4]<=hi and d_ret[i] is not None and d_ret[i]<0]
+    print(f'{lab} 美元方向桶: 美元上行日 n={len(d_up)} 黄金日均{sum(d_up)/max(len(d_up),1):+.3f}% | 美元下行日 n={len(d_dn)} 黄金日均{sum(d_dn)/max(len(d_dn),1):+.3f}%')
 
 # HY_OAS 信用利差分状态(2024-2026 样本, 784 天自2023-11)
 HY = dict(zip(macro['HY_OAS']['series']['dates'], macro['HY_OAS']['series']['values']))
@@ -122,12 +133,24 @@ common2 = sorted(set(GOLD)&set(REAL)&set(HY))
 g2=[(GOLD[d]/GOLD[common2[i-1]]-1)*100 for i,d in enumerate(common2) if i>0]
 r2=[REAL[d]-REAL[common2[i-1]] for i,d in enumerate(common2) if i>0]
 h2=[HY[d]-HY[common2[i-1]] for i,d in enumerate(common2) if i>0]
+# Audit-R2 条目3(NEW-2 修): DXY 日变化须与 g2/r2/h2 同一前日锚
+# common2[i-1] 构造——旧实现 dts2[i-1] 在 i=0 取到末日(环绕伪值,
+# 首观测的 DXY 日收益=末日→次日的错向变化,收窄桶 -0.361 实为 -0.382)
+x2=[(DXY[d]/DXY[common2[i-1]]-1)*100 for i,d in enumerate(common2) if i>0]
 dts2=common2[1:]
+# Audit-R2 条目3(分组定义统一): 走阔(Δ>0)/收窄(Δ<0)/不变(Δ=0)三组
+# 严格分立——旧实现「收窄日」用 Δ<=0 把不变日混入收窄桶,标签与样本
+# 定义不符;不变日单独披露,相关统计只算严格组
 stress=[i for i in range(len(dts2)) if h2[i]>0]      # 利差走阔日=信用压力
-calm=[i for i in range(len(dts2)) if h2[i]<=0]
-print(f'\n=== 信用利差分状态({dts2[0]}..{dts2[-1]}, HY_OAS 走阔日 vs 收窄日) ===')
+calm=[i for i in range(len(dts2)) if h2[i]<0]        # 严格收窄日
+flat=[i for i in range(len(dts2)) if h2[i]==0]       # 不变日(单列,不入桶)
+print(f'\n=== 信用利差分状态({dts2[0]}..{dts2[-1]}, HY_OAS 走阔/收窄/不变三组严格分立) ===')
 rS,_=pearson([r2[i] for i in stress],[g2[i] for i in stress])
 rC,_=pearson([r2[i] for i in calm],[g2[i] for i in calm])
-rD,_=pearson([(DXY[dts2[i]]/DXY[dts2[i-1]]-1)*100 for i in stress],[g2[i] for i in stress])
-rDc,_=pearson([(DXY[dts2[i]]/DXY[dts2[i-1]]-1)*100 for i in calm],[g2[i] for i in calm])
-print(f'走阔日 n={len(stress)}: GOLD~REAL {rS:+.3f} GOLD~DXY {rD:+.3f} | 收窄日 n={len(calm)}: GOLD~REAL {rC:+.3f} GOLD~DXY {rDc:+.3f}')
+rD,_=pearson([x2[i] for i in stress],[g2[i] for i in stress])
+rDc,_=pearson([x2[i] for i in calm],[g2[i] for i in calm])
+print(f'走阔日 n={len(stress)}: GOLD~REAL {rS:+.3f} GOLD~DXY {rD:+.3f} | 收窄日 n={len(calm)}: GOLD~REAL {rC:+.3f} GOLD~DXY {rDc:+.3f} | 不变日 n={len(flat)}(不入相关桶)')
+if flat:
+    rF,_=pearson([r2[i] for i in flat],[g2[i] for i in flat])
+    rDf,_=pearson([x2[i] for i in flat],[g2[i] for i in flat])
+    print(f'不变日参考(披露,不计入走阔/收窄对比): GOLD~REAL {rF:+.3f} GOLD~DXY {rDf:+.3f}')

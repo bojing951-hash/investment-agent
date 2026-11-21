@@ -1,0 +1,22 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "SEMANTIC-AUDIT-SEAT",
+  "notes": "Audit-R1 修订闭环终审(独立席python3只读复算): A档 VERIFIED——五项必修(SEM-01~05)全部忠实落地,CON-3 F06更正未破坏,全量数值逐位复算吻合,新缺陷回归扫描零新增MAJOR/MINOR;残留1项NIT(RES-01, MECH-2环3单月窗双形)系既有文案不阻断。标记形制(复审更正 vs Audit-R1 F0x双形)按审查须知不判为缺陷。",
+  "run_ts": "20261116T045959Z",
+  "content_sha256": "40695f40d810a80d2804c06b961ad7976e2f2be005321e41796ff93d6302317e",
+  "audited_at": "2026-11-17",
+  "recorded_at": "20261116T221553Z",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261116/VERDICT-20261116T045959Z-01.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "rebind": {
+    "from_algorithm": "digest_v1(judgment+report.md)",
+    "to_algorithm": "digest_v3(report.json+judgment+views_digest)",
+    "verified_old_match": true,
+    "predecessor_archive": "audit/semantic_review/20261116/VERDICT-20261116T045959Z-01.json",
+    "note": "Audit-R4 R4-06: 摘要口径 v1→v3 迁移重绑(纳入 report.json 全源+views_digest 渲染输入); 旧锚(v1=judgment+report.md)在 replay_view(档案字节拼装,evidence_pack 三件+包顶 report.md)上复算一致=实际交付内容未改变的机器证据, 非复审。原 /tmp 运行目录已被系统回收, 拼装面=v1 锚匹配所覆盖的同一字节集。"
+  }
+}

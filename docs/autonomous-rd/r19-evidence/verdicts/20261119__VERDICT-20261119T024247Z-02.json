@@ -1,0 +1,17 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "R19-独立语义审查席",
+  "notes": "R19第二轮复验(修订闭环记录;零信任: 判决修订前后全文 diff 由本席留档原件核对,数值仍由 research_snapshot_20261118 series_store 直读复算)。\n[修订核对] 与本席留档原版逐行 diff: 变更仅 5 处,与 revision-1 必修清单一一对应,无其他改动。逐项: (1)l3.MECH-1.links[0] 与 reader_map.transmission[0].links[0] 的 observed_fact 均改为 CORE_CPI 同窗 2026-02=2.4725/2026-05=2.8229(+0.3504pp)——复算 2.47246(333.512/325.465)与 2.82294(336.121/326.893),Δ按显示值差 0.3504=引擎 delta 约定,正确;方向表述「核心仅部分跟随,幅度远小于总体」(+0.35pp vs 总体+1.73pp)成立;新断言「再加速主要由总体分项驱动」成立(总体-核心差由 2026-02 的 −0.04pp 走阔至 2026-05 的 +1.34pp,走阔全在非核心分项)。(2)CORE_PCE(2026-09=3.1212,最新已发布值)——复算 130.902/126.94=3.1212 ✓;CORE_PCE 序列末观测=2026-09-01,发布 2026-10-30≤研究截止 2026-11-18,「最新已发布值」成立。(3)6m 块失业率 4.4@2025-09 ✓(series_store UNEMPLOYMENT 2025-09-01=4.4)。(4)12m 块 JP_POLICY_RATE 0.728@2026-03 ✓(2026-03-01=0.728)。(5)data_note 12 月事后窗止点改 2026-03 ✓,与 aftermath_obs_months/窗字段一致。旧错值残留扫描: 「2.9592」「同比同窗 2.8229→」「0.727」「2025-12)」在修订版中零命中。\n[机器面独立复跑] 本席对修订版 agent_judgment.json 直接重跑 judgment_contract.verify_judgment(同一 report.json+face): verdict=VERIFIED,six_fail=0/map_fail=0/contradicted=0——协调方「契约门过」主张独立复现成立。report.json 内嵌 L3 与判决档逐字一致(copies 面核过)。观察(非必修,记录在案): report.json agent_judgment.attached_at 仍为 20261119T025051Z 且 attach_history 未见 031008Z 新条目(重挂同文件名似为幂等更新,时间戳不刷新)——内容绑定以 report.json 内嵌 L3=判决档实核为准,语义不受影响,机制面留引擎侧知悉。\n[四阻断器] 修订未触及转折/窗口/基期/引用日期,四阻断器维持第一轮「均未违」结论。\n[剩余必修](round-1 必修 1 的残留实例,MINOR,一字串修复;修后即可 UPHELD)\n6. 位置=reader_map.transmission[0].links[0].text: 错值=「E1 环: 冲击=总体通胀再加速(核心未跟随)」;正确=「(核心仅部分跟随)」或删去括注;依据=同窗 CORE_CPI 同比 2.4725→2.8229 实为+0.3504pp 上行,「未跟随」绝对化与同对象 observed_fact 已修文本自相矛盾;round-1 必修 1 明令该措辞弱化,observed_fact 两处已改而此步骤标签漏改。影响面注记: render_map_report 渲染链环只用 observed_fact(research_map_planner.py L681),该标签不进读者面;但 agent_judgment.json 为归档交付件,自带矛盾对不应留档。\n其余全部项维持第一轮 PASS(60+ 数值点);本席留档: /tmp/r19_audit/(recompute*.py+orig_judgment.json+MAP_REPORT_preview.md)。overall=REVISE(仅必修 6 一项;修复+重挂后本席复验即转 UPHELD)。",
+  "run_ts": "20261119T024247Z",
+  "content_sha256": "9f3393e421478a38841ca9d8b7e280e48cd794bc024f644c7bc519215657c975",
+  "audited_at": "2026-11-19",
+  "recorded_at": "20261119T032007Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261119/VERDICT-20261119T024247Z-01.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

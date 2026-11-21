@@ -28,6 +28,7 @@ warnings.filterwarnings('ignore')
 
 import argparse
 import glob
+import hashlib
 import json
 import os
 import re
@@ -481,6 +482,35 @@ def cmd_history(args):
         'source': series['source']}}
     if sub:
         data['series']['unit_subfamily'] = sub
+    # R7-02: 采集状态随信封贯通(文件写入时间/最后成功采集时间/数据
+    # 统期三分);续用与陈旧如实警告——查询层不再静默(old→ok 无警告
+    # 曾让故障注入续存档冒充可用)
+    cstat = series.get('collection_status')
+    if cstat:
+        data['series']['collection_status'] = cstat
+        if cstat.get('mode') == 'carry_forward':
+            warnings.append(
+                f"序列为续用非本轮采集(carry_forward 自 "
+                f"{cstat.get('carry_forward_from', '?')}): 最后成功采集 "
+                f"{cstat.get('last_success_at', '?')},数据统计期至 "
+                f"{cstat.get('last_observation_period', '?')}")
+        _tgt = str((snap or {}).get('target_date') or '')[:10]
+        _lo = str(cstat.get('last_observation_period') or '')[:10]
+        if _tgt and _lo:
+            try:
+                from datetime import date as _d
+                _lag = (_d.fromisoformat(_tgt) - _d.fromisoformat(_lo)).days
+            except ValueError:
+                _lag = None
+            if _lag is not None:
+                import research_orchestrator as _ro
+                _tol = (_ro._WINDOW_TOL_DAYS.get(m.get('frequency')
+                                                  or '') or (0, 0))[1]
+                if _lag > _tol:
+                    warnings.append(
+                        f"序列末观测统计期 {_lo} 落后研究时点 {_tgt} "
+                        f"{_lag} 天>频率族容忍 {_tol} 天(数据陈旧;"
+                        f"采集状态 mode={cstat.get('mode')})")
     if not idx:
         data['series']['note'] = f'窗口 {lo}~{hi} 内无观测'
         warnings.append('所请求时间窗内无任何观测,窗口与序列覆盖不重叠')
@@ -1388,6 +1418,1307 @@ def cmd_research_attach(args):
 
 
 
+def _r1_plan_core(args, engine_root):
+    """plan 段核心(Audit-R1 F09 抽取): research-run 证据面+工单/索引/摘编落盘。
+
+    返回 (rep, rd, error);error 非 None=orchestrator 失败(如实透传)。
+    """
+    import research_orchestrator as ro
+    try:
+        rep = ro.run_research(args.question, root=engine_root,
+                              archive=bool(getattr(args, 'archive', False)),
+                              out_dir=getattr(args, 'out_dir', None),
+                              engine_root=engine_root)
+    except (OSError, ValueError) as e:
+        return None, None, ('orchestrator_failed', str(e), None)
+    rd = rep.get('report_dir')
+    # 证据索引独立落盘(工单 read_first 引用;report.json 内嵌副本仍在)
+    with open(os.path.join(rd, 'evidence_index.json'), 'w', encoding='utf-8') as f:
+        json.dump(rep.get('evidence_index', []), f, ensure_ascii=False, indent=2)
+    # L2 富内容摘编(确定性装配,零生成): report.json L2 只含 VP sidecar
+    # 验证标签;机构观点原文在 views 库——字段选取入 run 目录供 Agent 席读
+    views_note = 'views 库在场'
+    digest = []
+    try:
+        import view_store as vs
+        for v in vs.load_views(os.path.join(
+                engine_root, 'data', 'institutions', 'views'))['views']:
+            inst = v.get('institution') or {}
+            digest.append({
+                k: v.get(k) for k in (
+                    'view_id', 'report_title', 'publish_date',
+                    'view_horizon', 'subjects', 'core_views',
+                    'forecasts', 'risk_factors')})
+            digest[-1]['institution_name'] = inst.get('name')
+    except (OSError, ValueError, KeyError) as e:
+        views_note = f'views 库不可读/缺席: {e}'
+    with open(os.path.join(rd, 'views_digest.json'), 'w', encoding='utf-8') as f:
+        json.dump({'n': len(digest), 'note': views_note, 'views': digest},
+                  f, ensure_ascii=False, indent=2)
+    envelope_path = os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')
+    work_order = {
+        'role': 'Agent Native 研究席(L3 推断+L4 条件情景真产出)',
+        'question': args.question,
+        'report_dir': rd,
+        'evidence_index_rows': len(rep.get('evidence_index', [])),
+        'read_first': [
+            os.path.join(rd, 'report.json'),
+            os.path.join(rd, 'evidence_index.json'),
+            os.path.join(rd, 'views_digest.json') + '   # L2 机构观点富内容(原文摘编)',
+            'scripts/agent_judgment.py   # judgment schema v1.1 模块 docstring',
+            '.agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)',
+        ],
+        'produce': 'judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/'
+                   'E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件)',
+        'then': ['ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>',
+                 'ia_cli.py research-one --stage report --report-dir <rd>'],
+        'discipline': ['L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造',
+                       '禁改 report.json 的 produced 字段(attach 校验器唯一写者)',
+                       '研究质量十二问逐问答(章程§七)'],
+    }
+    with open(envelope_path, 'w', encoding='utf-8') as f:
+        json.dump(work_order, f, ensure_ascii=False, indent=2)
+    # Audit-R18: 地图问句工单追加 reader_map 规格(读者报告五面的真产要求;
+    # 对照表/点值/转折候选由引擎 research_plan 给定,判断文字归本席位)
+    _rp = rep.get('research_plan') if isinstance(rep, dict) else None
+    if _rp and _rp.get('map_question'):
+        work_order = json.load(open(envelope_path, encoding='utf-8'))
+        # Audit-R29 任务4: 渲染依赖冻结面随工单落档(席位与地图生成/打包
+        # 同一份输入身份;终裁 extra.frozen_inputs_sha256 与归档/重放同算)
+        _rj_run = {}
+        try:
+            _rj_run = json.load(open(os.path.join(
+                rd, 'report.json'), encoding='utf-8')).get('run') or {}
+        except (OSError, ValueError):
+            pass
+        if _rj_run.get('frozen_inputs'):
+            import agent_judgment as _aj_fi
+            work_order['frozen_inputs'] = _rj_run.get('frozen_inputs')
+            work_order['frozen_inputs_sha256'] = _aj_fi.frozen_inputs_digest(
+                _rj_run.get('frozen_inputs'))
+        work_order['produce'] += (' + reader_map(地图问句五面: 一句总判断/'
+                                  '各地区环境走位/传导图逐环四件套[观察事实/'
+                                  '因果假设/竞争解释/区分指标]/三个转折[日期/'
+                                  '指标/前后值/谁先变/跟进或背离]/历史段0..3'
+                                  '[年月/相似点/关键差异/其他经济体是否同步/'
+                                  '随后3、6、12个月实际+样本注记])——Audit-R19: '
+                                  '传导须连到资产指标;三转折为不同事件(不同'
+                                  '指标-月,至少跨两维度);历史段须带结构化'
+                                  'anchor_ym/match_window/judgment_cutoff_ym/'
+                                  'aftermath_obs_months(事后窗=锚月+N 月,'
+                                  '事后观测不得落回匹配期内);Audit-R20: '
+                                  '走位叙述含数字须按地区回贴 anchor_echo'
+                                  '[{anchor,metric_id,value,observation_month]'
+                                  '(与引擎点值面逐位一致);三利率分解回贴 '
+                                  'rates_decomposition{window_from,window_to,'
+                                  'nominal_bp,real_bp,bei_bp}(共同交易日面);'
+                                  '叙述含回报/涨跌主张须回贴 asset_returns_echo'
+                                  '[{metric_id,window_months,chg_pct,window{'
+                                  'from,to}}];零段历史类比合法但须 '
+                                  'history_zero_case_note(检索范围+原因);'
+                                  'Audit-R21: 历史段须给 us_analog 布尔+'
+                                  'sample_note 样本注记(样本独立性/与当前窗'
+                                  '重叠/修订口径);ex_post 正文资产数字'
+                                  '(METRIC ±N.NN%/pp)会被同窗月末口径复算'
+                                  '(锚月末→锚+N月月末,相左=CONTRADICTED);'
+                                  '走位正文 YYYY-MM 月份须落在引擎面月份集'
+                                  '(2030-07 类虚构月份=CONTRADICTED);排序'
+                                  '主张(率先/领先/最早…)比对的两个指标变动'
+                                  '落在同一观测月时必须写明「先后未定」'
+                                  '(月频证据只能支持同步);L4 两情景的触发'
+                                  '与失效方向将随读者报告'
+                                  '展示(结构面沿既有 l4.scenarios 契约)')
+        work_order['reader_map_contract'] = {
+            'spec': 'judgment 顶层 reader_map 对象;字段结构与数值回贴核对'
+                    '见 scripts/research_contract/judgment_contract.py '
+                    '_map_checks(转折前后值按引擎序列月末口径复算,相左='
+                    'CONTRADICTED;空正文/缺面=NOT_VERIFIED;Audit-R19 四阻断:'
+                    '错用同比基期/提前引用未发布数据/同一转折重复/历史结果'
+                    '落在匹配期内)。Audit-R22: ①走位正文「观测 '
+                    'YYYY-MM→YYYY-MM(→YYYY-MM)」串须是同地区某点值格锚观测'
+                    '序(12个月前→3个月前→最新一期)的保序子序列——锚前'
+                    '不可见的观测(停摆延误月)不得入锚序叙述;②ex_post 正文'
+                    '中文别名面同受同窗复算(标普500指数/美债十年期/美元指数'
+                    '…+上涨/下跌方向词+个百分点/%;方向说反或数值相左='
+                    'CONTRADICTED,pp 容差 0.06);③传导环竞争解释在场时宜填 '
+                    'main_predicts/competing_predicts(主/竞争解释对同一区分'
+                    '指标的不同预期)+face_off_verdict(∈支持主解释/支持竞争'
+                    '解释/尚不能区分——证据不足必须如实写尚不能区分,预期'
+                    '分立且引擎面观测在场才可裁)',
+            'engine_faces': {
+                'point_anchors': _rp.get('point_anchors'),
+                'ex_post_offsets': _rp.get('ex_post_offsets'),
+                'point_values_cells': len(
+                    (_rp.get('point_values') or {}).get('cells') or []),
+                'point_values_absent': [
+                    a.get('metric_id')
+                    for a in (_rp.get('point_values') or {}).get('absent') or []],
+                'publication_discipline': '锚格值=发布日≤锚日的最新观测;'
+                    'publication_date/publication_basis 随格——R20 起日历实录'
+                    '条目(config/release_calendar.json,如 2025 停摆延误)'
+                    '优先于推定规则,读者可核',
+                'yoy_discipline': '月度同比只配去年同月/季度只配去年同季;'
+                    '缺基期格 derived_yoy_pct=null+yoy_status='
+                    'no_same_period_base+latest_valid_yoy(最近有效同比及月份)',
+                'asset_universe': ((_rp.get('point_values') or {})
+                                   .get('asset_universe') or []),
+                'us_rates_trio': _rp.get('us_rates_trio'),
+                'asset_moves': _rp.get('asset_moves'),
+                'turning_candidates_top9': [
+                    {'metric_id': c.get('metric_id'), 'from_ym': c.get('from_ym'),
+                     'to_ym': c.get('to_ym'), 'value_before': c.get('value_before'),
+                     'value_after': c.get('value_after'), 'delta': c.get('delta'),
+                     'dimension': c.get('dimension')}
+                    for c in ((_rp.get('turning_candidates') or {})
+                              .get('candidates') or [])],
+                'policy_event_clusters': _rp.get('policy_event_clusters'),
+                'policy_doc_facts': _rp.get('policy_doc_facts'),
+                'dimension_gaps': _rp.get('dimension_gaps')},
+            'discipline': ['锚值与转折数值须与引擎面一致(不可虚构)',
+                           '数据不可得的格须明写「数据不可得」+检索范围',
+                           '总判断条件式非预测;历史段=事后陈述非预测',
+                           '同比只可用引擎 ok 基期格的 derived_yoy_pct'
+                           '(缺基期=不可得,可另列最近有效同比及月份)',
+                           '锚值/转折只可用发布日≤锚日(研究截止日)的观测',
+                           'R20 回贴纪律: 走位数字→anchor_echo(值+观测月'
+                           '逐位对账,错月=CONTRADICTED);利率分解→'
+                           'rates_decomposition(共同交易日同窗);回报数字→'
+                           'asset_returns_echo(同窗复算+窗口两端日);'
+                           '情景≥2 个各写触发与失效方向;引用引擎事后回顾'
+                           '序列(最新修订值)的数字不得表述为当时首发值',
+                           'R21 纪律: 历史段 us_analog+sample_note 必填;'
+                           'ex_post 资产数字同窗复算(锚月末→锚+N月月末);'
+                           '正文月份须在引擎面月份集内;同月变动的两指标'
+                           '排序主张须写「先后未定」;传导链区分指标将随'
+                           '引擎当前面观测(最新值+近30日变化)渲染'],
+        }
+        with open(envelope_path, 'w', encoding='utf-8') as f:
+            json.dump(work_order, f, ensure_ascii=False, indent=2)
+    return rep, rd, None
+
+
+def _r1_attach_core(args, engine_root):
+    """attach 段核心(Audit-R1 F09 抽取): 校验+落位。返回 (res, error)。"""
+    import agent_judgment as aj
+    try:
+        res = aj.attach_judgment(
+            args.report_dir, args.judgment, root=engine_root,
+            allow_failed_run=bool(getattr(args, 'allow_failed_run', False)))
+    except (OSError, ValueError, KeyError) as e:
+        return None, ('attach_failed', str(e), None)
+    return res, None
+
+
+def _r1_report_core(args, engine_root):
+    """report 段核心(Audit-R1 F09): FULL_REPORT **完整装配**。
+
+    完整性契约: L1 表+L2 摘编+L3/L4 **全文内联**(produced 时逐条渲染判断
+    原文——旧版仅指路不内联=可交付件不完整)+证据索引表+四态质量门;
+    确定性装配零生成,L3/L4 内容归 Agent 席与独立审计。
+    返回 (ok, data, warnings)。
+    """
+    rd = args.report_dir
+    rj = json.load(open(os.path.join(rd, 'report.json'), encoding='utf-8'))
+    layers = rj.get('layers', {})
+    l3, l4 = layers.get('L3_AI推断层', {}), layers.get('L4_条件情景层', {})
+    l1_rows = layers.get('L1_事实层', {}).get('rows', [])
+    vpf = layers.get('L2_机构观点层', {}).get('views') or {}
+    run_meta = rj.get('run') or {}
+    out_md = os.path.join(rd, 'FULL_REPORT.md')
+    lines = ['# 完整研究报告(一键研究 MVP)', '',
+             '- 问题: ' + (run_meta.get('question') or args.question or ''),
+             f"- run_ok: {rj.get('run_ok')} | 证据行: {len(rj.get('evidence_index', []))}"
+             f" | run.ts_utc: {run_meta.get('ts_utc')}",
+             '', '## L1 事实层(引擎确定性产出)', '',
+             '| 指标 | 值 | 单位 | 观测日 | 质量 | 证据 ref |',
+             '|---|---|---|---|---|---|']
+    for r in l1_rows:
+        src = r.get('source') or {}
+        lines.append(f"| {r.get('metric_id')} | {r.get('value')} | "
+                     f"{r.get('unit')} | {r.get('observation_date')} | "
+                     f"{r.get('quality_status')} | {src.get('id')} |")
+    lines += ['', '## L2 机构观点层(VP sidecar 验证面+views 库摘编)', '',
+              f"- available={vpf.get('available')} n={vpf.get('n')} "
+              f"隔离={vpf.get('n_bad_quarantined')}",
+              f"- 富内容摘编: views_digest.json(在场机构主张原文,机构面=institution_stated)"]
+    vd_path = os.path.join(rd, 'views_digest.json')
+    if os.path.exists(vd_path):
+        vd = json.load(open(vd_path, encoding='utf-8'))
+        for v in vd.get('views', []):
+            lines.append(f"  - {v.get('view_id')} · {v.get('institution_name')}"
+                         f" · {v.get('publish_date')} · {v.get('report_title')}")
+
+    # ── L3/L4 全文内联(Audit-R1 F09 完整装配: 可交付件自含判断原文) ──
+    def _inline_l3(c):
+        cons = (c or {}).get('contradictions') or []
+        mechs = (c or {}).get('mechanism_chains') or []
+        out = []
+        for x in cons:
+            out.append(f"### {x.get('id')} · {x.get('statement', '')}")
+            if x.get('basis'):
+                out += ['- 依据: ' + x['basis']]
+            for ce in x.get('competing_explanations') or []:
+                if isinstance(ce, dict):
+                    out.append('- 竞争性解释: ' + str(ce.get('text') or ce))
+                else:
+                    out.append('- 竞争性解释: ' + str(ce))
+        for m in mechs:
+            out.append(f"### 机制链 {m.get('id')} · {m.get('name', '')}")
+            for lk in m.get('links') or []:
+                s = f"- 环{lk.get('step')} [E{str(lk.get('evidence_level', '')).replace('E', '')}] {lk.get('text', '')}"
+                if lk.get('missing_link_note'):
+                    s += f"\n  - 缺环注记: {lk['missing_link_note']}"
+                out.append(s)
+        return out
+
+    def _inline_l4(c):
+        out = []
+        for s in (c or {}).get('scenarios') or []:
+            rows = s.get('rows') or {}
+            ad = rows.get('asset_direction') or {}
+            fals = rows.get('falsification') or {}
+            trig = rows.get('trigger') or {}
+            out.append(f"### {s.get('id')} · 角色={s.get('role', '')}")
+            out.append('- 情景: ' + str(rows.get('scenario', '')))
+            out.append(f"- 资产方向: {ad.get('direction', '')} | 置信档: {ad.get('confidence_tier', '')}")
+            if ad.get('text'):
+                out.append('  - 依据: ' + str(ad['text']))
+            out.append('- 敏感变量: ' + ', '.join(rows.get('sensitive_variables') or []))
+            out.append(f"- 证伪: 指标={fals.get('metric_id', '')} | 阈值={fals.get('threshold', '')}"
+                       + (f" | 次级={','.join(fals.get('secondary_metric_ids') or [])}" if fals.get('secondary_metric_ids') else ''))
+            out.append(f"- 触发: {trig.get('condition', '')} | 期限: {trig.get('deadline', '')}")
+        return out
+
+    lines += ['', '## L3 AI 推断层(Agent 席真产·全文内联)', '',
+              f"- produced={l3.get('produced')} attribution={l3.get('attribution')}"]
+    if l3.get('produced') and l3.get('content') is not None:
+        lines += _inline_l3(l3.get('content'))
+    else:
+        lines.append('- (未落位: 判断原文不在场,见 report.md/agent_judgment.json)')
+    lines += ['', '## L4 条件情景层(Agent 席真产·全文内联)', '',
+              f"- produced={l4.get('produced')} attribution={l4.get('attribution')}"]
+    if l4.get('produced') and l4.get('content') is not None:
+        lines += _inline_l4(l4.get('content'))
+    else:
+        lines.append('- (未落位: 情景原文不在场,见 report.md/agent_judgment.json)')
+
+    # 证据索引表(可交付件自含追溯面)
+    lines += ['', '## 证据索引', '',
+              '| # | kind | ref | 说明 |', '|---|---|---|---|']
+    for i, e in enumerate(rj.get('evidence_index') or [], 1):
+        lines.append(f"| {i} | {e.get('kind')} | {e.get('ref')} | "
+                     f"{str(e.get('note') or e.get('desc') or '')[:80]} |")
+
+    # Audit-R19: 后台已有的历史比较与量化说明确定性入普通读者版
+    # (S6 历史相似结构 top-N+S5 日度相关;R24 VIX 样本佐证的读者面缺口)
+    try:
+        import research_orchestrator as _ro_q
+        _q = _ro_q._render_quant_sections(rj)
+        if _q:
+            lines += [''] + _q
+    except Exception:
+        pass
+
+    # Audit-R21 任务4: 普通问句资产月窗表(确定性装配零生成;数字+窗口
+    # +两端实测值一体——R19 纪律: 正文月窗数字必须可核)。地图问句
+    # 同面在读者报告资产表(research_plan.asset_moves),此处补普通
+    # 问句(正文数字=同一份可复算事实)。
+    _am21 = rj.get('asset_moves')
+    if isinstance(_am21, dict) and _am21.get('rows'):
+        lines += ['', '## 资产月窗(近一月·滚动窗最近邻)', '',
+                  '| 指标 | 窗口 | 两端实测值 | 变化 |', '|---|---|---|---|']
+        for _r21 in _am21['rows']:
+            _w21 = _r21.get('window') or {}
+            lines.append(
+                f"| {_r21.get('metric_id')} | {_w21.get('from')}"
+                f"..{_w21.get('to')} | {_r21.get('from_value')}"
+                f"→{_r21.get('to_value')} | {_r21.get('chg_pct'):+g}%"
+                f"({_r21.get('chg_abs'):+g}) |")
+        if _am21.get('window_rule'):
+            lines += ['', f"窗口规则: {_am21['window_rule']}"]
+
+    # ── Audit-R1 F02 + Audit-R2 条目1/2 + Audit-R4 条目2/5: 四态门 ──
+    # (生成≠校验≠审查≠可交付)
+    import agent_judgment as aj
+    sr = aj._semantic_review_state(rj, engine_root, rd)
+    aj_meta = rj.get('agent_judgment') or {}
+    # Audit-R4 条目5: 必要/可选数据规则贯通至 report/archive——分类唯一
+    # 规范源=aj.blocked_class_of(与 attach 同源)。critical_zero_evidence/
+    # required_data_missing 一律拦截;**仅** optional_data_missing 且
+    # attach 时显式 --allow-failed-run 随档、冻结数据需求(含披露面)
+    # 在场时,允许经有效独立审查(deliverable 合取项)后交付。
+    # Audit-R28 任务2: 政策实录面与渲染同树同源——blocked_class_of
+    # 读 engine_root 日历(注入树/验收树各自的 config),不回落本仓
+    # 默认,判定与地图渲染(同 root)一字不差地一致。
+    blocked_class = aj.blocked_class_of(
+        rj, calendar_path=os.path.join(
+            engine_root, 'config', 'release_calendar.json'))
+    # Audit-R5 条目2: 进程成功(run_ok=true)不再一票豁免数据门——
+    # 必要缺口/零证据/关键步骤失败在任何 run_ok 下都阻断交付
+    # (反例 2A: history 正常退出+必要指标 n=1<12 曾误放行)。
+    blocked_hard = blocked_class in aj.BLOCKING_BLOCKED_CLASSES
+    _dr_items = ((((rj.get('run') or {}).get('data_requirements') or {})
+                  .get('items')) or [])
+    degraded_ok = (blocked_class == 'optional_data_missing'
+                   and bool(_dr_items)
+                   and aj_meta.get('allow_failed_run') is True)
+    run_state_ok = (rj.get('run_ok') is not False)
+    machine_verified = bool(
+        l3.get('produced') and l4.get('produced')
+        and (aj_meta.get('validation') or {}).get('passed')
+        # Audit-R2 条目1: 当前运行态为准——attach 后 run_ok 翻 False
+        # (改档/重评)不得沿用旧 attach 成功状态;Audit-R4 条目5:
+        # optional 级显式降级路径不受此条一刀切拦截
+        and (aj_meta.get('run_ok_at_attach') is not False or degraded_ok)
+        and (run_state_ok or degraded_ok))
+    # Audit-R2 条目1 + Audit-R4 条目2: 多副本一致性(审查与渲染同版)——
+    # report.md 必须=report.json 的当前渲染;FULL_REPORT.md 在场时必须=
+    # 当前确定性装配(report.json+views_digest.json 同版视图);不一致=
+    # 改了源没渲/渲了别的源/视图被单改,拒绝交付(摘要 v3 已把
+    # views_digest 纳入绑定,渲染输入任何变化旧裁决即失效)
+    copies_consistent = True
+    copies_note = None
+    try:
+        import research_orchestrator as ro
+        expect_md = ro._render_md(rj)
+        actual_md = open(os.path.join(rd, 'report.md'),
+                         encoding='utf-8').read()
+        copies_consistent = (expect_md == actual_md)
+    except (OSError, ValueError, KeyError) as exc:
+        copies_consistent, copies_note = False, repr(exc)
+    review_ok = (not sr.get('required')) or (
+        not sr.get('error')
+        and sr.get('seat_invoked')
+        and sr.get('verdict') in aj.REVIEW_APPROVED_VERDICTS
+        and sr.get('fresh') is True)
+    warnings = []
+    if not l3.get('produced') or not l4.get('produced'):
+        warnings.append('L3/L4 未全 produced——不冒认完整(G2 门不放过)')
+    elif not ((aj_meta.get('validation') or {}).get('passed')):
+        warnings.append('机器纪律校验未过(violations 在 agent_judgment 档)')
+    elif blocked_class == 'critical_zero_evidence':
+        warnings.append('L1 事实行=0(critical_zero_evidence)——任何旗标'
+                        '不得放行(Audit-R4 条目5)')
+    elif blocked_class == 'required_data_missing':
+        warnings.append('必要数据缺口/覆盖不足(required_data_missing)——'
+                        '任务目标缺口不得交付;不得事后把必要改判可选'
+                        '(Audit-R4 条目5;Audit-R5 条目2: run_ok=true '
+                        '同样阻断)')
+    elif blocked_class == 'critical_step_failure':
+        warnings.append('关键步骤失败/来源校验失败/未知失败'
+                        '(critical_step_failure)——质量与完整性缺口,'
+                        '不得自动归为可选缺失降级交付(Audit-R5 条目2)')
+    elif blocked_class == 'map_anchor_coverage_insufficient':
+        warnings.append('地图锚覆盖不足(map_anchor_coverage_insufficient)'
+                        '——组内 ok 锚<2 且空锚无经证实延误依据,仅存最新'
+                        '单点不构成三时点对照(R21: 草稿可交付,正式归档'
+                        '须组内 ok 锚≥2)')
+    elif aj_meta.get('run_ok_at_attach') is False and not degraded_ok:
+        warnings.append('底座 run_ok=False 且非 optional 级显式降级'
+                        '(不可交付级)')
+    elif rj.get('run_ok') is False and not degraded_ok:
+        warnings.append('当前运行态 run_ok=False——不得沿用旧 attach '
+                        '成功状态交付(Audit-R2)')
+    elif degraded_ok:
+        warnings.append('降级交付(optional_data_missing,显式旗标随档): '
+                        '缺口披露于数据需求面,经有效独立审查后可交付'
+                        '(Audit-R4 条目5)')
+    elif sr.get('required') and sr.get('error'):
+        warnings.append(f"裁决链非法({sr.get('error')})——最新档损坏/"
+                        '冲突即阻断交付,不回退旧 PASS(Audit-R2/Audit-R4 '
+                        '条目1: 裁决先后不因解析失败倒退)')
+    elif sr.get('required') and not sr.get('seat_invoked'):
+        warnings.append('独立审查 required=true 但裁决缺席——'
+                        '不得标记 MVP 完成或可验收交付')
+    elif sr.get('required') and sr.get('verdict') not in \
+            aj.REVIEW_APPROVED_VERDICTS:
+        warnings.append(f"独立审查裁决={sr.get('verdict')}"
+                        '(REVISE/FAIL/其他=修订后再交付)')
+    elif sr.get('required') and sr.get('fresh') is not True:
+        warnings.append('裁决未绑定当前内容摘要或已过期(交付输入修订后须'
+                        '复验生成新裁决记录)')
+    elif not copies_consistent:
+        warnings.append('report.md 与 report.json 渲染不同版(多副本不一致'
+                        + (f'; {copies_note}' if copies_note else '')
+                        + ')——拒绝交付(Audit-R2/Audit-R4 条目2)')
+
+    # Audit-R4 条目2: FULL_REPORT 视图一致性(在场时)——比对**内容段**
+    # (质量状态节之前的全部装配内容: L1/L2 摘编/L3/L4/证据索引)。
+    # 内容段=report.json+views_digest.json 的纯函数,与摘要 v3 同源;
+    # 质量状态节嵌入活门面(裁决推进/门翻红合法变化),不入比对——
+    # 否则席位复审后重跑 report 会误伤(修订链档数翻新≠篡改)。
+    # views_digest 或视图内容被单改 → 内容段 ≠ 当前装配 → 拒绝交付。
+    _Q_MARKER = '\n## 质量状态'
+    content_text = '\n'.join(lines) + '\n'
+    prev_full = None
+    if os.path.exists(out_md):
+        try:
+            prev_full = open(out_md, encoding='utf-8').read()
+        except OSError as exc:
+            copies_consistent, copies_note = False, repr(exc)
+    if prev_full is not None and \
+            prev_full.split(_Q_MARKER)[0] != content_text:
+        copies_consistent = False
+        copies_note = (copies_note or '') + ' FULL_REPORT.md 内容段与当前装配不同版'
+        warnings.append('FULL_REPORT.md 内容段与当前确定性装配不同版'
+                        '(渲染输入/视图被单改)——拒绝交付(Audit-R4 条目2)')
+
+    def _quality_section(copies_val, deliv_val):
+        return ['', '## 质量状态(Audit-R1 F02 四态+Audit-R2 绑定面+Audit-R4 '
+                '贯通面)', '',
+                f"- generated: true(FULL_REPORT 完整装配: L1+L2+L3/L4 全文内联"
+                f"+证据索引)",
+                f"- machine_verified: {machine_verified}"
+                "(L3∧L4 produced+纪律校验过+底座非降级或 optional 级显式"
+                "降级随档)",
+                f"- run 门(Audit-R4 条目5): blocked_class={blocked_class} "
+                f"degraded_ok={degraded_ok}",
+                f"- review: required={sr.get('required')} seat_invoked="
+                f"{sr.get('seat_invoked')} verdict={sr.get('verdict')} "
+                f"fresh={sr.get('fresh')} error={sr.get('error')} "
+                f"修订链档数={sr.get('verdicts_n')}",
+                f"- copies_consistent(多副本一致): {copies_val}"
+                "(report.md=report.json 当前渲染;FULL_REPORT 内容段=当前"
+                "确定性装配)",
+                f"- deliverable(可交付): {deliv_val}",
+                '- 内容绑定(Audit-R4 条目2): content_sha256=canonical'
+                '(report.json 剥离 semantic_review)+canonical'
+                '(agent_judgment.json)+canonical(views_digest.json)——'
+                '机构归属/标题/日期/摘编/事实/L3/L4/run_ok/版本指针任一变化'
+                '即失效旧裁决;审查与渲染同源,视图不一致即拒绝交付',
+                '', '---', '渲染纪律: 本件只汇编在场事实(确定性装配),不做新增'
+                '生成;L3/L4 内容归 Agent 席与独立审计,本段不代写。']
+
+    # Audit-R5 条目2: 数据门为独立合取项——run_ok=true 不再豁免必要缺口
+    deliverable = (machine_verified and review_ok and copies_consistent
+                   and not blocked_hard)
+    # ── Audit-R25 任务1: 必要维度缺失仍交付带缺口的草稿 ──
+    # 仅地图**数据面**缺口(map_core_dimension_missing / map_anchor_
+    # coverage_insufficient,R20/R21 既档语义=「核心维度缺则交付草稿」)时,
+    # 已过机器校验+独立审查+副本一致三门的 MAP_REPORT.md 以草稿形态交付:
+    # draft_delivered=true,缺数格如实「数据不可得」+缺口注记随行。正式
+    # 交付(deliverable)与正式归档(archive belt 同判拒)仍阻断——草稿≠
+    # 正稿;其余阻断类(零证据/必要缺口/关键步骤失败/审查面缺口)不适用,
+    # 维持原拒绝路径。
+    draft_delivered = False
+    if not deliverable and blocked_class in (
+            'map_core_dimension_missing',
+            'map_anchor_coverage_insufficient',
+            'map_core_dimension_stale',
+            'map_current_period_missing',
+            'map_current_period_unverified',
+            'map_current_period_stale_mix',
+            'map_official_target_missing'):
+        draft_delivered = (machine_verified and review_ok and copies_consistent)
+        if draft_delivered:
+            warnings.append(
+                '草稿交付(Audit-R25 任务1+Audit-R26 任务2+Audit-R27 '
+                '任务1+Audit-R28 任务2): blocked_class=%s——带缺口/过期/'
+                '未核验草稿已交付(缺数格如实标注+缺口注记+确证过期维度'
+                '首页标草稿+当期缺失/未核验/混合维度首页标草稿+缺官方'
+                '目标记录点名缺口);正式交付与正式归档仍阻断'
+                '(补数/核验/补录官方实录后重跑续链)' % blocked_class)
+    # ── Audit-R18: 地图问句读者报告(MAP_REPORT.md=可直读可核查交付件) ──
+    # 渲染面=report.json research_plan(对照表/点值/转折候选)+Agent 席
+    # reader_map 原文,确定性装配零生成;在场文件与当前装配不同版=单改/
+    # 改源没渲,copies_consistent 翻 False(与 FULL_REPORT 内容段同口径)。
+    _rp18 = rj.get('research_plan') or {}
+    if _rp18.get('map_question'):
+        # ── Audit-R27 任务4: 原问随包落盘(engine-owned;与会话首动作
+        #    落盘的树根 question_verbatim_<ts>.txt 分记——本件=运行档内
+        #    自包含,重放命令直接引用)。字节=run.question;在场且异字节=
+        #    副本不一致(拒付);缺席即写。 ──
+        _qv_path = os.path.join(rd, 'question_verbatim.txt')
+        _qv_bytes = str((rj.get('run') or {}).get('question')
+                        or '').encode('utf-8')
+        if os.path.exists(_qv_path):
+            try:
+                if open(_qv_path, 'rb').read() != _qv_bytes:
+                    copies_consistent = False
+                    copies_note = (copies_note or '') + \
+                        ' question_verbatim.txt 与 run.question 字节不等'
+                    warnings.append('question_verbatim.txt 与 run.question '
+                                    '字节不等(单改在场文件)——拒绝交付')
+                    deliverable = False
+            except OSError as exc:
+                copies_consistent, copies_note = False, repr(exc)
+        else:
+            with open(_qv_path, 'wb') as _qvf:
+                _qvf.write(_qv_bytes)
+        import research_map_planner as rmp18
+        _aj_doc = {}
+        _aj_path = os.path.join(rd, 'agent_judgment.json')
+        if os.path.exists(_aj_path):
+            try:
+                _aj_doc = json.load(open(_aj_path, encoding='utf-8'))
+            except (OSError, ValueError):
+                _aj_doc = {}
+        map_md_path = os.path.join(rd, 'MAP_REPORT.md')
+        map_sha_path = os.path.join(rd, 'MAP_REPORT.sha256')
+        # Audit-R23 任务1: 地图渲染用调用方指定的 engine_root(原 ROOT=
+        # ia_cli 模块常量——注入树/重放树跑 report 时误读 ia_cli 自有
+        # 数据树,快照定位错树);与 _r1_report_core 其余面同根。
+        # Audit-R29 任务4: 运行目录携带 root_overlay/(计划段冻结的渲染
+        # 依赖: 发布日期历+运行快照)在场时优先——重渲与归档/重放同一份
+        # 输入,engine_root 现状(本地日历被换/快照被清)不影响本段字节。
+        _ov_root = os.path.join(rd, 'root_overlay')
+        map_text = rmp18.render_map_report(
+            rj, _aj_doc, sr,
+            root=(_ov_root if os.path.isdir(_ov_root) else engine_root))
+        _fresh_sha = hashlib.sha256(map_text.encode('utf-8')).hexdigest()
+        _prev_sha = None
+        if os.path.exists(map_sha_path):
+            try:
+                _prev_sha = open(map_sha_path, encoding='utf-8').read().\
+                    strip().split(' ', 1)[0] or None
+            except OSError as exc:
+                copies_consistent, copies_note = False, repr(exc)
+        _disk_sha = None
+        if os.path.exists(map_md_path):
+            try:
+                _disk_sha = hashlib.sha256(
+                    open(map_md_path, 'rb').read()).hexdigest()
+            except OSError as exc:
+                copies_consistent, copies_note = False, repr(exc)
+        # 防篡改锚(旁挂 sha): 磁盘文件≠锚=单改在场文件——拒付且**不重写**
+        # (证据保全;归档内部重跑本段同样拒,不洗白)。文件未动而装配变=
+        # 合法修订(REVISE 闭环重渲),重写并更新锚。
+        # ── Audit-R24 任务1: 已裁正文冻结——最新裁决放行(UPHELD 族)且
+        # fresh(主内容锚绑定当前 run)时, 在场 MAP=受审定稿: 受审**内容段**
+        # 按原字节读取与归档, 渲染器漂移(同输入异输出=代码已前进)不改写
+        # 受审字节; 更正/重排走 --new-map-version 另建版本→内容摘要变→
+        # 旧裁决过期→复审后方可交付。内容段与当前装配一致时照常重写
+        # (仅翻新审查尾=状态面, 受审部分字节不变)。 ──
+        _approved24 = (sr.get('verdict') in aj.REVIEW_APPROVED_VERDICTS
+                       and sr.get('fresh') is True and not sr.get('error'))
+        _content_split = '\n## 语义审查'
+        _cur_content24 = _new_content24 = None
+        if _disk_sha is not None:
+            try:
+                with open(map_md_path, encoding='utf-8') as _mf:
+                    _cur_content24 = hashlib.sha256(
+                        _mf.read().split(_content_split)[0]
+                        .encode('utf-8')).hexdigest()
+            except (OSError, ValueError):
+                _cur_content24 = None
+        _new_content24 = hashlib.sha256(
+            map_text.split(_content_split)[0].encode('utf-8')).hexdigest()
+        _frozen24 = (_approved24 and _cur_content24 is not None
+                     and _cur_content24 != _new_content24
+                     and not getattr(args, 'new_map_version', False))
+        map_drift24 = False
+        if _prev_sha and _disk_sha and _disk_sha != _prev_sha:
+            copies_consistent = False
+            copies_note = (copies_note or '') + \
+                ' MAP_REPORT.md 与旁挂锚 SHA 不符(单改在场文件)'
+            warnings.append('MAP_REPORT.md 与旁挂锚 MAP_REPORT.sha256 不符'
+                            '(在场文件被单改)——拒绝交付且不重写保全证据'
+                            '(Audit-R18 任务4反例②:必需图表面以在场文件'
+                            '冒充;删除该文件后方可重渲)')
+            deliverable = False
+            _map18_path = map_md_path
+        elif _frozen24:
+            map_drift24 = True
+            warnings.append(
+                '渲染器漂移: 已裁内容段(sha16=%s)≠当前装配(%s)——受审正文'
+                '按原字节交付不改写(裁决绑定的受审定稿权威);更正/重排须 '
+                '--new-map-version 另建版本复审' % (_cur_content24[:16],
+                                                    _new_content24[:16]))
+            _map18_path = map_md_path
+        else:
+            with open(map_md_path, 'w', encoding='utf-8') as f:
+                f.write(map_text)
+            with open(map_sha_path, 'w', encoding='utf-8') as f:
+                f.write(_fresh_sha + '  MAP_REPORT.md\n')
+            _map18_path = map_md_path
+        # ── Audit-R24 任务1: --new-map-version 另建版本复审 ──
+        # 显式版本递进: 重渲新版+锚更新+report.json research_plan.map_version
+        # +1(内容摘要随 report.json 变→旧裁决主锚自动过期)——本轮不交付,
+        # 待独立席复审落新裁决(绑定新版双锚)后方可交付/归档。legacy 旧档
+        # 无地图绑定亦经此主锚过期强制复审,不留无绑定即漂的口子。
+        if getattr(args, 'new_map_version', False) and \
+                _rp18.get('map_question'):
+            _mv = int(_rp18.get('map_version') or 1) + 1
+            rj['research_plan']['map_version'] = _mv
+            aj._atomic_write_text(
+                os.path.join(rd, 'report.json'),
+                json.dumps(rj, ensure_ascii=False, indent=2, default=str))
+            deliverable = False
+            warnings.append(
+                '新地图版本已渲染(map_version=%d)——内容摘要已变,旧裁决'
+                '过期;独立席复审落新裁决后方可交付/归档(更正或重排另建'
+                '版本复审,Audit-R24 任务1)' % _mv)
+    full_text = content_text + '\n'.join(
+        _quality_section(copies_consistent, deliverable)) + '\n'
+    with open(out_md, 'w', encoding='utf-8') as f:
+        f.write(full_text)
+    data = {
+        'stage': 'report', 'full_report': out_md,
+        'L3_produced': l3.get('produced'),
+        'L4_produced': l4.get('produced'),
+        'generated': True, 'machine_verified': machine_verified,
+        'blocked_class': blocked_class, 'degraded_ok': degraded_ok,
+        'review': {'required': sr.get('required'),
+                   'seat_invoked': sr.get('seat_invoked'),
+                   'verdict': sr.get('verdict'), 'fresh': sr.get('fresh'),
+                   'error': sr.get('error'), 'archive': sr.get('archive'),
+                   'verdicts_n': sr.get('verdicts_n'),
+                   'prior_verdicts': sr.get('prior_verdicts') or [],
+                   'record_health': sr.get('record_health') or {}},
+        'copies_consistent': copies_consistent,
+        'deliverable': deliverable, 'mvp_complete': deliverable,
+        'draft_delivered': draft_delivered,
+        'draft_blocked_class': blocked_class if draft_delivered else None}
+    if _rp18.get('map_question'):
+        data['map_report'] = _map18_path
+        data['map_renderer_drift'] = map_drift24
+        data['map_version'] = (rj.get('research_plan') or {}).get(
+            'map_version') or 1
+    return deliverable, data, warnings
+
+
+def _r1_archive_core(args, engine_root):
+    """Audit-R2 条目6: 最终归档=受审版本的完整自包含交付包。
+
+    归档对象=**最终受审版本**: 非 deliverable 一律拒归(先跑 report 门)。
+    内容摘要三处核对: content_digest(run 目录)=content_digest(归档目录)
+    =最新裁决档 content_sha256——报告、裁决、归档同一摘要锚,不一致即
+    拒绝(半写归档目录整体移除,不留毒档)。归档目录 append-only: 已存在
+    即拒绝,不覆盖历史。裁链全档随包(verdicts/),失败证据同在。
+    """
+    import hashlib
+    import shutil as _shutil
+    import agent_judgment as aj
+    import research_orchestrator as ro
+    ok, data, warnings = _r1_report_core(args, engine_root)
+    if not ok or not data.get('deliverable'):
+        return False, {'stage': 'archive', 'blocked': 'not_deliverable',
+                       'review': data.get('review'),
+                       'deliverable': data.get('deliverable')}, \
+            (warnings or []) + ['归档拒绝: 可交付门未放行——归档对象='
+                                '最终受审版本,先过独立审查']
+    rd = args.report_dir
+    rj = json.load(open(os.path.join(rd, 'report.json'), encoding='utf-8'))
+    # Audit-R18 任务4反例②: 地图问句读者报告缺席=必需交付件缺失,拒归
+    if (rj.get('research_plan') or {}).get('map_question') and \
+            not os.path.isfile(os.path.join(rd, 'MAP_REPORT.md')):
+        return False, {'stage': 'archive',
+                       'blocked': 'map_required_face_missing',
+                       'note': 'MAP_REPORT.md 缺席(report 段应渲染)'
+                       '——必需图表面缺失阻止正式归档'}, \
+            (warnings or []) + ['归档拒绝: 地图问句读者报告 MAP_REPORT.md '
+                                '缺席(必需图表面缺失)']
+    # Audit-R20 任务5反例④: 核心维度(地区×维度组)零 ok 格=草稿面,拒归
+    # (与 attach 层 blocked_class_of 同源同判——归档侧 belt、不另立口径)。
+    try:
+        _bc_r20 = aj.blocked_class_of(
+            rj, calendar_path=os.path.join(
+                engine_root, 'config', 'release_calendar.json'))
+    except Exception:
+        _bc_r20 = None
+    if _bc_r20 == 'map_core_dimension_missing':
+        _pvx = ((rj.get('research_plan') or {}).get('point_values')
+                or {})
+        _plp = {(_e, _d) for _e, _rf in
+                ((rj.get('research_plan') or {}).get('regions')
+                 or {}).items()
+                for _d in ((_rf.get('dimensions') or {}) or {})}
+        # Audit-R26 验收: 组计算与渲染横幅/attach 判定共源
+        # (research_map_planner.missing_core_groups),不另立口径。
+        import research_map_planner as _rmp_aj
+        _miss = _rmp_aj.missing_core_groups(_pvx, _plp)
+        return False, {'stage': 'archive',
+                       'blocked': 'map_core_dimension_missing',
+                       'missing_groups': sorted(
+                           f'{_e}/{_d}' for _e, _d in _miss),
+                       'note': '核心维度(地区×维度)整组零 ok 格——'
+                               '按用户指令交付草稿,不进正式归档'}, \
+            (warnings or []) + ['归档拒绝: 核心维度缺数 '
+                                f'{sorted(f"{_e}/{_d}" for _e, _d in _miss)}'
+                                '(R20: 草稿可交付,正式归档须 12/12 组齐)']
+    # Audit-R21 任务3反例③: 序列在场但一组仅剩最新单点(历史锚空且无经
+    # 证实延误依据)=锚覆盖不足——归档侧 belt 同判,零归档增量。
+    if _bc_r20 == 'map_anchor_coverage_insufficient':
+        _pvx2 = ((rj.get('research_plan') or {}).get('point_values')
+                 or {})
+        _plp2 = {(_e, _d) for _e, _rf in
+                 ((rj.get('research_plan') or {}).get('regions')
+                  or {}).items()
+                 for _d in ((_rf.get('dimensions') or {}) or {})}
+        _sparse_g = [f'{_e}/{_d}' for (_e, _d) in
+                     _rmp_aj.sparse_anchor_groups(_pvx2, _plp2)]
+        return False, {'stage': 'archive',
+                       'blocked': 'map_anchor_coverage_insufficient',
+                       'sparse_groups': _sparse_g,
+                       'note': '锚覆盖不足: 下列组序列在场但 ok 锚<2 且空锚'
+                               '无经证实延误依据——仅存最新单点不构成三时点'
+                               '对照,交付草稿不进正式归档'}, \
+            (warnings or []) + ['归档拒绝: 锚覆盖不足 ' + str(_sparse_g)
+                                + '(R21: 组内 ok 锚≥2 或空锚须有日历实录'
+                                '证实依据)']
+    run_ts = (rj.get('run') or {}).get('ts_utc') or 'unknown'
+    dest = getattr(args, 'archive_dir', None) or os.path.join(
+        ROOT, 'research_archive', os.path.basename(rd.rstrip('/')) or run_ts)
+    if os.path.exists(dest):
+        return False, {'stage': 'archive', 'blocked': 'archive_exists',
+                       'archive_dir': dest}, ['归档目录已存在(append-only,'
+                                              '不覆盖): ' + dest]
+    os.makedirs(dest)
+    vd = os.path.join(dest, 'verdicts')
+    os.makedirs(vd)
+    copies = {}
+
+    def _verdict_copy_name(src_path):
+        # Audit-R4 条目4: 跨日同名 basename 冲突——归档名=日目录__basename
+        # (全局唯一),日期目录保留在名内;原件路径另记 source_rel
+        day = os.path.basename(os.path.dirname(src_path))
+        return '%s__%s' % (day, os.path.basename(src_path))
+
+    try:
+        _arc_files = ['report.json', 'report.md', 'FULL_REPORT.md',
+                      'agent_judgment.json', 'views_digest.json',
+                      'evidence_index.json', 'AGENT_SEAT_ENVELOPE.json']
+        # Audit-R18: 地图问句读者报告随包归档(读者交付件=归档对象本体)
+        # 旁挂锚随包(回读核对=归档侧 sha 与读者侧同锚同判)
+        if (rj.get('research_plan') or {}).get('map_question'):
+            _arc_files += ['MAP_REPORT.md', 'MAP_REPORT.sha256',
+                           'question_verbatim.txt']
+        for fname in _arc_files:
+            src = os.path.join(rd, fname)
+            if os.path.isfile(src):
+                _shutil.copy2(src, os.path.join(dest, fname))
+                a = open(src, 'rb').read()
+                b = open(os.path.join(dest, fname), 'rb').read()
+                if a != b:
+                    raise OSError('副本核对失败(字节不等): ' + fname)
+                copies[fname] = hashlib.sha256(a).hexdigest()[:16]
+        # ── Audit-R29 任务4: 渲染依赖随包冻结(root_overlay/)──────────
+        # 地图问句包携带运行目录冻结副本(rd/root_overlay/=发布日期历+
+        # 运行快照,计划段落位),归档只做逐件字节+摘要核对(与 run.
+        # frozen_inputs 比)——运行后被改/副本缺失=拒绝入包;重放以
+        # overlay 为重渲 root,与本地日历/快照现状无关。
+        frozen_map = {}
+        _rj_fi = ((rj.get('run') or {}).get('frozen_inputs') or {})
+        if (rj.get('research_plan') or {}).get('map_question') and _rj_fi:
+            for _rel, _sha in sorted(_rj_fi.items()):
+                _src = os.path.join(rd, 'root_overlay', str(_rel))
+                if not os.path.isfile(_src):
+                    raise ValueError('冻结副本运行目录不在场: root_overlay/'
+                                     '%s(渲染依赖须随包冻结,不得缺席交付;'
+                                     '运行目录被清=重跑)' % _rel)
+                _dst = os.path.join(dest, 'root_overlay', str(_rel))
+                os.makedirs(os.path.dirname(_dst), exist_ok=True)
+                _shutil.copy2(_src, _dst)
+                if open(_src, 'rb').read() != open(_dst, 'rb').read():
+                    raise OSError('冻结件副本核对失败(字节不等): ' + str(_rel))
+                _got = hashlib.sha256(
+                    open(_dst, 'rb').read()).hexdigest()[:16]
+                if _got != str(_sha)[:16]:
+                    raise ValueError(
+                        '冻结件与运行时摘要不符: %s manifest_run=%s '
+                        'actual=%s(运行后被改=归档拒绝,重跑后再归档)'
+                        % (_rel, str(_sha)[:16], _got))
+                frozen_map[_rel] = _got
+        vchain = []
+        seen_names = set()
+        for p, doc in sorted(
+                aj._verdicts_for_run(engine_root, run_ts),
+                key=lambda t: aj._verdict_sort_key(t[0], t[1])):
+            name = _verdict_copy_name(p)
+            # Audit-R4 条目4: 归档前路径冲突检查(同名=链身份破坏,拒绝)
+            if name in seen_names or os.path.exists(os.path.join(vd, name)):
+                raise OSError('裁决档归档名冲突(非唯一): ' + name)
+            seen_names.add(name)
+            _shutil.copy2(p, os.path.join(vd, name))
+            if open(p, 'rb').read() != open(os.path.join(vd, name),
+                                            'rb').read():
+                raise OSError('裁决档副本核对失败: ' + name)
+            vchain.append({
+                'file': 'verdicts/' + name,
+                'source_rel': os.path.relpath(p, engine_root),
+                'overall': (doc or {}).get('overall'),
+                'revision': (doc or {}).get('revision'),
+                'predecessor': (doc or {}).get('predecessor'),
+                'recorded_at': (doc or {}).get('recorded_at'),
+                'sha256': hashlib.sha256(
+                    open(p, 'rb').read()).hexdigest()[:16]})
+        # ── Audit-R4 条目4: 链完整性核对(数量/唯一/哈希/链关系) ──
+        n_src = len(aj._verdicts_for_run(engine_root, run_ts))
+        if len(vchain) != n_src or len(seen_names) != n_src:
+            raise ValueError('裁决链记录数/唯一性核对失败: 链=%d 唯一名=%d '
+                             '源=%d' % (len(vchain), len(seen_names), n_src))
+        name_by_source = {e['source_rel']: e['file'] for e in vchain}
+        for e in vchain:
+            pred = e.get('predecessor')
+            if pred is not None and pred not in name_by_source:
+                raise ValueError('裁决链 predecessor 不在归档集内: %s -> %r'
+                                 % (e['file'], pred))
+        # ── 三处摘要核对(run=归档=裁决锚) ──
+        sha_run = aj.content_digest(rd)
+        sha_arc = aj.content_digest(dest)
+        latest = data.get('review') or {}
+        arc_vd = None
+        if latest.get('archive'):
+            arc_vd = os.path.join(
+                vd, _verdict_copy_name(
+                    os.path.join(engine_root, latest['archive'])))
+        latest_doc = _load_json_arc(arc_vd) if arc_vd else None
+        sha_bound = (latest_doc or {}).get('content_sha256')
+        if not (sha_run == sha_arc and sha_arc == sha_bound):
+            raise ValueError('内容摘要三处核对失败: run=%s archive=%s '
+                             'bound=%s' % (sha_run[:16], sha_arc[:16],
+                                           str(sha_bound)[:16]))
+        # ── Audit-R24 任务1: 落盘==裁决核对(地图面) ──
+        # 最新裁决带 map_report_sha256 时, 归档 MAP 内容段摘要必须==裁决
+        # 绑定(已审正文按原字节读取与归档——report 段冻结已裁内容段,
+        # 此处归档侧 belt 复核;不符=归档非受审定稿,拒绝)。legacy 旧档
+        # 无地图绑定=历史面如实注记不追溯(manifest 留档)。
+        map_bound24 = (latest_doc or {}).get('map_report_sha256')
+        map_arc_sha24 = aj.map_report_content_sha(dest)
+        if (rj.get('research_plan') or {}).get('map_question'):
+            if map_bound24 and map_arc_sha24 != map_bound24:
+                raise ValueError('地图内容段与裁决绑定不符: archive=%s '
+                                 'bound=%s(归档非受审定稿)' %
+                                 ((map_arc_sha24 or '缺席')[:16],
+                                  map_bound24[:16]))
+        # ── Audit-R29 任务4: 源摘要匹配终裁──冻结输入集合摘要终裁必须
+        # 在档且==归档聚合(席位信封→终裁→归档→重放同算同核;终裁未绑
+        # =席位没吃到冻结面输入,交付链不完整,拒绝)。实雷正道修(同
+        # 轮): 记录器已机械化自动绑定(席位不抄片段也绑;report 侧单侧
+        # 改写由裁决内容摘要门拦,副本侧改写由上方逐件核验拦——两路既
+        # 闭,此处只核终裁绑定)。
+        _fi_agg = aj.frozen_inputs_digest(frozen_map)
+        if frozen_map:
+            _v_fi = (latest_doc or {}).get('frozen_inputs_sha256')
+            if _v_fi != _fi_agg:
+                raise ValueError(
+                    '终裁冻结输入摘要不符: verdict=%s archive=%s'
+                    '(席位终裁未绑定同一份冻结输入=源摘要失配,拒绝归档;'
+                    '席位须以 AGENT_SEAT_ENVELOPE.frozen_inputs_sha256 '
+                    '落终裁)' % (str(_v_fi)[:16], str(_fi_agg)[:16]))
+        manifest = {
+            'stage': 'archive', 'run_ts': run_ts,
+            'question': (rj.get('run') or {}).get('question'),
+            'archived_at': ro._now_utc(),
+            'content_sha256': sha_run,
+            # Audit-R22 任务5: 实际运行代码 SHA 随归档清单落档(与
+            # report.json run.git_head/MAP_REPORT 头同值,三处可核)
+            'run_code_git_head': (rj.get('run') or {}).get('git_head'),
+            'digest_algorithm': 'v3(canonical report.json剥离semantic_review'
+                                '+canonical agent_judgment.json剥离'
+                                'semantic_review+canonical views_digest.json)'
+                                ' [Audit-R4 条目2]',
+            'verdict': latest.get('verdict'), 'fresh': latest.get('fresh'),
+            'verdicts_n': latest.get('verdicts_n'),
+            'verdict_chain': vchain, 'copies_sha16': copies,
+            # Audit-R29 任务4: 渲染依赖冻结面(地图问句;root_overlay/
+            # 布局=包内重渲 root;缺件/篡改/源摘要失配=重放拒)
+            'frozen_inputs': frozen_map,
+            'frozen_inputs_sha256': _fi_agg,
+            'record_health': (data.get('review') or {}).get(
+                'record_health') or {},
+            'source_report_dir': rd,
+            'map_report_sha256': map_bound24,
+            'map_content_sha256': map_arc_sha24,
+            'map_legacy_no_binding': bool(
+                map_bound24 is None
+                and (rj.get('research_plan') or {}).get('map_question')),
+            'map_renderer_drift': data.get('map_renderer_drift', False),
+            'map_version': data.get('map_version', 1),
+            'correlation': 'run==archive==verdict-bound(三处一致已核;'
+                           '裁决链唯一名逐档哈希+predecessor 链关系已核'
+                           ';地图面: 归档内容段==裁决绑定已核/Audit-R24 '
+                           '任务1)'}
+        aj._atomic_write_text(
+            os.path.join(dest, 'ARCHIVE_MANIFEST.json'),
+            json.dumps(manifest, ensure_ascii=False, indent=2, default=str))
+    except (OSError, ValueError) as exc:
+        _shutil.rmtree(dest, ignore_errors=True)   # 拒绝交付=不留毒档
+        return False, {'stage': 'archive', 'blocked': 'correlation_failed',
+                       'error': str(exc)}, ['归档拒绝: ' + str(exc)]
+    return True, {'stage': 'archive', 'archive_dir': dest,
+                  'content_sha256': sha_run,
+                  'verdict': latest.get('verdict'),
+                  'verdicts_n': latest.get('verdicts_n'),
+                  'files': sorted(copies)}, []
+
+
+def _load_json_arc(path):
+    try:
+        return json.load(open(path, encoding='utf-8'))
+    except (OSError, ValueError):
+        return None
+
+
+def _r1_replay_core(args, engine_root):
+    """Audit-R28 任务4: 离线重放——归档交付包四门自验证+逐字节核对。
+
+    重放对象=archive 段产出的完整交付包(ARCHIVE_MANIFEST.json+九件套+
+    地图三件套+verdicts/ 裁决链)。包内自包含重放所需全部输入: 完整运行
+    SHA(manifest.run_code_git_head,与 report.json run.git_head 交叉核对)、
+    原问(question_verbatim.txt,字节=manifest.question)、冻结输入与快照
+    标识(report.json 冻结面+AGENT_SEAT_ENVELOPE.json)、views_digest.json、
+    判定(agent_judgment.json)、裁决链(verdicts/ 逐档 sha16)、地图哈希
+    (MAP_REPORT.sha256 全文件锚+裁决 map_report_sha256 内容段锚)。
+
+    四道门(任一不过即拒 rc=1,点名细节):
+    ① 缺件: 必需件清单逐名在场核验(verdicts/ 按 manifest 链逐档核);
+    ② 篡改: manifest.copies_sha16 逐件复算+地图全文件锚+content_digest
+       重算+原问逐字节——expected/actual 双值点名;
+    ③ 裁决绑定: 链档 sha16+predecessor 关系+最新裁决档 content_sha256
+       与 manifest.content_sha256、map_report_sha256 与归档地图内容段
+       摘要三面核对;
+    ④ 确定性重渲: 以包内冻结输入(report.json+agent_judgment.json+审查
+       状态面)按**当前代码**重渲 MAP_REPORT.md,与归档字节逐字节比对。
+       代码版本须==manifest.run_code_git_head(逐字节核对只对录制代码
+       有意义;--allow-code-mismatch 显式越过并降级为披露)。manifest
+       未声明渲染器漂移(map_renderer_drift=false)时必须逐字节相等;
+       声明漂移的包按 R24 纪律以受审冻结字节为准,重渲差异如实披露
+       不判负(受审定稿权威)。
+       Audit-R29 任务4: 地图包另携渲染依赖冻结面(root_overlay/=发布
+       日期历+运行快照,manifest.frozen_inputs 逐件 sha16+聚合 sha256)
+       ——在场/摘要/运行面三面核对后,重渲 root 切包内 overlay: 与本地
+       日历/快照现状无关(更换本地日历重放仍逐字节一致);最新裁决档
+       frozen_inputs_sha256 须==归档聚合(源摘要匹配终裁)。R29 前旧档
+       无该键=legacy 重渲 root 不变,零回归。
+
+    输出落独立新目录(--replay-out 或缺省 replay_out/<包名>_<ts>/,
+    append-only 已存在即拒;重复运行各开新档,**包内零写入**,写毕复算
+    包摘要证原档未动)。"""
+    import agent_judgment as aj
+    import research_orchestrator as ro
+    import research_map_planner as rmp
+
+    pkg = getattr(args, 'package', None)
+    if not pkg or not os.path.isdir(pkg):
+        return False, {'stage': 'replay', 'blocked': 'bad_args',
+                       'note': '--package 缺失或不是目录: %r' % (pkg,)}, \
+            ['重放拒绝: --package 缺失或不是目录: %r' % (pkg,)]
+    pkg = os.path.abspath(pkg)
+    checks = []
+
+    def _chk(name, ok, detail=''):
+        checks.append({'check': name, 'ok': bool(ok), 'detail': str(detail)})
+        return bool(ok)
+
+    def _sha256_file(path):
+        try:
+            return hashlib.sha256(open(path, 'rb').read()).hexdigest()
+        except OSError:
+            return None
+
+    # ── 门0: manifest 在场可解析 ──
+    mf_path = os.path.join(pkg, 'ARCHIVE_MANIFEST.json')
+    manifest = _load_json_arc(mf_path)
+    if not _chk('manifest_present_parseable', bool(manifest), mf_path):
+        return False, {'stage': 'replay', 'package': pkg,
+                       'blocked': 'manifest_missing_or_corrupt',
+                       'checks': checks}, \
+            ['重放拒绝: ARCHIVE_MANIFEST.json 缺席或不可解析(' + mf_path
+             + ')——包不完整(Audit-R28 任务4 门①)']
+    rj = _load_json_arc(os.path.join(pkg, 'report.json')) or {}
+    map_q = bool((rj.get('research_plan') or {}).get('map_question'))
+
+    # ── 门①: 缺件(必需清单+裁决链逐档) ──
+    base_req = ['ARCHIVE_MANIFEST.json', 'report.json', 'report.md',
+                'FULL_REPORT.md', 'agent_judgment.json', 'views_digest.json',
+                'evidence_index.json', 'AGENT_SEAT_ENVELOPE.json']
+    if map_q:
+        base_req += ['MAP_REPORT.md', 'MAP_REPORT.sha256',
+                     'question_verbatim.txt']
+    missing = [f for f in base_req
+               if not os.path.isfile(os.path.join(pkg, f))]
+    chain = manifest.get('verdict_chain') or []
+    vmiss = [e.get('file') for e in chain
+             if not os.path.isfile(os.path.join(pkg, str(e.get('file'))))]
+    _chk('completeness_files', not missing and not vmiss,
+         '缺件=%s 裁决链缺档=%s' % (missing or '无', vmiss or '无'))
+    _chk('verdict_chain_nonempty', bool(chain),
+         '链档数=%d(archive 段交付门要求≥1 在案裁决)' % len(chain))
+
+    # ── 门②: 篡改(逐件哈希+地图锚+内容摘要+原问字节) ──
+    copies = manifest.get('copies_sha16') or {}
+    tamper = []
+    for fname, want in sorted(copies.items()):
+        got = _sha256_file(os.path.join(pkg, fname))
+        got16 = got[:16] if got else None
+        if got16 != want:
+            tamper.append('%s: manifest=%s actual=%s'
+                          % (fname, want, got16))
+    unrecorded = [f for f in base_req
+                  if f != 'ARCHIVE_MANIFEST.json' and f not in copies]
+    _chk('copies_sha16_match', not tamper and not unrecorded,
+         '哈希不符=%s 清单漏记=%s' % (tamper or '无', unrecorded or '无'))
+    if map_q:
+        anchor = None
+        try:
+            anchor = open(os.path.join(pkg, 'MAP_REPORT.sha256'),
+                          encoding='utf-8').read().strip().split(' ', 1)[0]\
+                or None
+        except OSError:
+            pass
+        disk = _sha256_file(os.path.join(pkg, 'MAP_REPORT.md'))
+        _chk('map_fullfile_anchor', anchor and disk and anchor == disk,
+             '锚=%s 实测=%s(旁挂锚=防单改在场文件)' %
+             ((anchor or '缺席')[:16], (disk or '缺席')[:16]))
+        qv = None
+        try:
+            qv = open(os.path.join(pkg, 'question_verbatim.txt'),
+                      'rb').read()
+        except OSError:
+            pass
+        qv_want = str(manifest.get('question') or '').encode('utf-8')
+        _chk('question_verbatim_bytes', qv is not None and qv == qv_want,
+             '包内原问 %d 字节 vs manifest.question %d 字节(逐字节)'
+             % (len(qv) if qv is not None else -1, len(qv_want)))
+    # ── Audit-R29 任务4: 渲染依赖冻结面(root_overlay/)──────────────
+    # 门①冻结件在场+门②逐件摘要复算+运行面三面核对;门④重渲 root 切
+    # overlay(与本地日历/快照现状无关——更换本地日历重放仍逐字节一致)。
+    # 旧档(R29 前)无 frozen_inputs 键=legacy 行为不变(root=engine_root
+    # 重渲,零回归);终裁源摘要匹配=最新裁决 frozen_inputs_sha256 须在
+    # 档且==归档聚合(席位信封→终裁→归档→重放同算同核)。
+    fi = manifest.get('frozen_inputs') or {}
+    overlay_root = None
+    if fi:
+        fmiss = [rel for rel in fi
+                 if not os.path.isfile(os.path.join(pkg, 'root_overlay',
+                                                    str(rel)))]
+        _chk('frozen_inputs_present', not fmiss,
+             'overlay 缺件=%s(root_overlay/ 布局=渲染依赖随包冻结)'
+             % (fmiss or '无'))
+        fbad = []
+        for rel, want in sorted(fi.items()):
+            _p = os.path.join(pkg, 'root_overlay', str(rel))
+            got = (_sha256_file(_p) or '')[:16]
+            if got != str(want)[:16]:
+                fbad.append('%s: manifest=%s actual=%s'
+                            % (rel, str(want)[:16], got or '缺席'))
+        _chk('frozen_inputs_digests', not fbad,
+             '冻结件摘要不符=%s' % (fbad or '无'))
+        rfi = ((rj.get('run') or {}).get('frozen_inputs') or {})
+        _d = (('run.frozen_inputs=%s manifest=%s(渲染依赖身份三面之一;'
+               '失配=包或报告被单侧改写)'
+               % (sorted(rfi.items()), sorted(fi.items())))
+              if rfi != fi else '一致')
+        _chk('frozen_inputs_match_report', rfi == fi, _d)
+        if not fmiss and not fbad:
+            overlay_root = os.path.join(pkg, 'root_overlay')
+    head_mf = manifest.get('run_code_git_head')
+    head_rj = (rj.get('run') or {}).get('git_head')
+    # Audit-R28 任务4: R28 前旧档 manifest 无 run_code_git_head 键
+    # (未记录≠矛盾)——严格口径照旧拒;--allow-code-mismatch 下随披露
+    # 降级(旧档代码身份本就走该旗标的披露路径,不为旧档放宽严格面)。
+    _xchk_ok = bool(head_mf and head_mf == head_rj) or (
+        head_mf is None and head_rj
+        and getattr(args, 'allow_code_mismatch', False))
+    _chk('run_code_sha_crosscheck', _xchk_ok,
+         'manifest=%s report.json.run=%s(完整运行 SHA 两处一致%s)'
+         % (head_mf or '缺席', head_rj or '缺席',
+            ';旧档未记录键,--allow-code-mismatch 披露降级'
+            if head_mf is None and _xchk_ok else ''))
+    try:
+        digest_now = aj.content_digest(pkg)
+    except Exception as exc:                      # noqa: BLE001
+        digest_now = 'error:%r' % (exc,)
+    _chk('content_digest_match', digest_now == manifest.get('content_sha256'),
+         '重算=%s manifest=%s(摘要算法=manifest.digest_algorithm)'
+         % (str(digest_now)[:16],
+            str(manifest.get('content_sha256'))[:16]))
+
+    # ── 门③: 裁决绑定(链哈希+predecessor+最新档双锚) ──
+    vbad = []
+    src_names = {str(e.get('source_rel')) for e in chain}
+    for e in chain:
+        vf = str(e.get('file'))
+        got16 = (_sha256_file(os.path.join(pkg, vf)) or '')[:16]
+        if got16 != e.get('sha256'):
+            vbad.append('%s: manifest=%s actual=%s'
+                        % (vf, e.get('sha256'), got16 or '缺席'))
+        pred = e.get('predecessor')
+        # predecessor=源树 source_rel(与 archive 段链关系核对同口径),
+        # 须落在归档链的 source_rel 集合内
+        if pred is not None and pred not in src_names:
+            vbad.append('%s: predecessor=%r 不在归档链内'
+                        % (vf, pred))
+    _chk('verdict_chain_hashes', not vbad, '链档异常=%s' % (vbad or '无'))
+    latest_doc, bind_bad = None, []
+    if chain:
+        # vchain 落 manifest 时已按写入序排序(archive 段),链尾=最新
+        latest_e = chain[-1]
+        latest_doc = _load_json_arc(
+            os.path.join(pkg, str(latest_e.get('file')))) or {}
+        if latest_doc.get('content_sha256') != manifest.get('content_sha256'):
+            bind_bad.append('最新裁决 content_sha256=%s ≠ manifest=%s'
+                            % (str(latest_doc.get('content_sha256'))[:16],
+                               str(manifest.get('content_sha256'))[:16]))
+        if map_q:
+            map_sha_now = aj.map_report_content_sha(pkg)
+            bound = latest_doc.get('map_report_sha256')
+            if bound and map_sha_now != bound:
+                bind_bad.append('地图内容段=%s ≠ 裁决绑定=%s'
+                                % ((map_sha_now or '缺席')[:16],
+                                   bound[:16]))
+            if map_sha_now != manifest.get('map_content_sha256'):
+                bind_bad.append('地图内容段=%s ≠ manifest.map_content_sha256'
+                                '=%s' % ((map_sha_now or '缺席')[:16],
+                                         str(manifest.get(
+                                             'map_content_sha256'))[:16]))
+        if fi:
+            # Audit-R29 任务4: 源摘要匹配终裁——最新裁决档冻结输入摘要
+            # 须在档且==归档聚合(缺席/失配=席位终裁未绑同一份输入)
+            v_fi = (latest_doc or {}).get('frozen_inputs_sha256')
+            if v_fi != manifest.get('frozen_inputs_sha256'):
+                bind_bad.append('终裁冻结输入摘要=%s ≠ manifest=%s'
+                                % ((str(v_fi)[:16] if v_fi else '缺席'),
+                                   str(manifest.get(
+                                       'frozen_inputs_sha256'))[:16]))
+    _chk('verdict_binding_threeway', not bind_bad,
+         '绑定异常=%s' % (bind_bad or '无(run=归档=裁决锚三面一致)'))
+
+    # ── 门④: 代码版本+确定性重渲逐字节核对 ──
+    # 代码身份=**本次重放进程实际运行的代码树**(ia_cli 所在 ROOT,非
+    # engine_root 数据树)——git 库优先,git archive 干净树回落
+    # CODE_VERSION.json 印章(与 orchestrator._git_state 三级链同源;
+    # ROOT 即代码树时 run_root=code_tree 同级命中,印章为终级)。
+    # SHA 比对前缀容忍(印章可能短 SHA,git 恒全 40 位)。
+    cur_head, _cur_src, _cur_dirty = ro._git_state(ROOT)
+    _sha_eq = lambda a, b: bool(           # noqa: E731 前缀容忍比对
+        a and b and (a == b or (len(a) >= 7 and len(b) >= 7
+                                and (a.startswith(b) or b.startswith(a)))))
+    code_match = _sha_eq(cur_head, head_mf)
+    if not code_match and not getattr(args, 'allow_code_mismatch', False):
+        return False, {'stage': 'replay', 'package': pkg,
+                       'blocked': 'code_version_mismatch',
+                       'checks': checks,
+                       'note': '当前代码 HEAD=%s ≠ 包记录运行 SHA=%s——'
+                               '逐字节核对只对录制代码有意义;确要以异版'
+                               '代码重放须 --allow-code-mismatch(降级为'
+                               '披露)' % (cur_head or '(git 不可用)',
+                                          head_mf or '缺席')}, \
+            ['重放拒绝: 代码版本不符——当前=%s 包=%s(Audit-R28 任务4 门④)'
+             % (cur_head or '(git 不可用)', head_mf or '缺席')]
+    _chk('code_version_match',
+         code_match or getattr(args, 'allow_code_mismatch', False),
+         '当前=%s 包=%s%s' % (cur_head or '(git 不可用)', head_mf or '缺席',
+                              '' if code_match
+                              else '(--allow-code-mismatch 披露越过)'))
+    render_mode = 'not_map_question'
+    if map_q:
+        aj_doc = _load_json_arc(
+            os.path.join(pkg, 'agent_judgment.json')) or {}
+        # 审查状态面从包内重建(渲染尾部唯一消费 verdict/verdicts_n 两键,
+        # 与 report 段 sr 同源同值——manifest 两字段即 sr 落档值)
+        sr_mini = {'verdict': manifest.get('verdict'),
+                   'verdicts_n': manifest.get('verdicts_n')}
+        try:
+            # Audit-R29 任务4: 重渲 root=包内冻结 overlay(R29+ 包)——
+            # 与本地日历/快照现状无关;legacy 旧档无 overlay 时沿用
+            # engine_root(旧行为,零回归)。
+            map_text = rmp.render_map_report(
+                rj, aj_doc, sr_mini,
+                root=(overlay_root or engine_root))
+            archived = open(os.path.join(pkg, 'MAP_REPORT.md'),
+                            'rb').read()
+            byte_equal = map_text.encode('utf-8') == archived
+        except Exception as exc:                  # noqa: BLE001
+            map_text, archived, byte_equal = None, None, False
+            _chk('deterministic_rerender', False,
+                 '重渲异常: %r' % (exc,))
+            render_mode = 'render_error'
+        else:
+            drift_declared = bool(manifest.get('map_renderer_drift'))
+            if byte_equal:
+                render_mode = 'byte_equal'
+                _chk('deterministic_rerender', True,
+                     '冻结输入按当前代码重渲与归档 MAP_REPORT.md '
+                     '逐字节相等(%d 字节)' % len(archived))
+            elif drift_declared:
+                render_mode = 'drift_disclosed'
+                _chk('deterministic_rerender', True,
+                     'manifest 声明渲染器漂移(map_renderer_drift=true)'
+                     '——受审冻结字节权威(R24 纪律),重渲差异披露不判负')
+            else:
+                _chk('deterministic_rerender', False,
+                     '重渲≠归档字节而 manifest 未声明漂移——包或代码'
+                     '一致性存疑(重渲 sha16=%s 归档 sha16=%s)'
+                     % ((hashlib.sha256(
+                         map_text.encode('utf-8')).hexdigest())[:16],
+                        (hashlib.sha256(archived)).hexdigest()[:16]))
+
+    # ── 汇总+落档(独立新目录,包内零写入) ──
+    ok = all(c['ok'] for c in checks)
+    out_dir = getattr(args, 'replay_out', None)
+    if out_dir is None:
+        out_dir = os.path.join(
+            os.path.dirname(pkg), 'replay_out',
+            '%s_%s' % (os.path.basename(pkg.rstrip('/')) or 'pkg',
+                       ro._now_utc()))
+    if os.path.exists(out_dir):
+        return False, {'stage': 'replay', 'package': pkg,
+                       'blocked': 'replay_out_exists', 'checks': checks,
+                       'replay_out': out_dir}, \
+            ['重放拒绝: 输出目录已存在(append-only 不覆盖): ' + out_dir]
+    os.makedirs(out_dir)
+    # 写毕后复算包内关键摘要,证重放零写入、原档保留
+    post_pkg_digest = None
+    try:
+        post_pkg_digest = aj.content_digest(pkg)
+    except Exception as exc:                      # noqa: BLE001
+        post_pkg_digest = 'error:%r' % (exc,)
+    untouched = post_pkg_digest == manifest.get('content_sha256')
+    checks.append({'check': 'package_untouched_postwrite',
+                   'ok': bool(untouched),
+                   'detail': '写毕复算包摘要=%s(与 manifest 一致=原档'
+                             '未被重放触碰)' % str(post_pkg_digest)[:16]})
+    ok = ok and untouched
+    replay_doc = {
+        'stage': 'replay', 'package': pkg, 'replayed_at': ro._now_utc(),
+        'replay_code_head': cur_head, 'package_run_head': head_mf,
+        'question': manifest.get('question'),
+        'verdict': manifest.get('verdict'), 'verdicts_n':
+            manifest.get('verdicts_n'),
+        'render_mode': render_mode, 'checks': checks, 'ok': ok,
+        'command': ('python3 ia_cli.py research-one --stage replay '
+                    '--package %s' % pkg)}
+    aj._atomic_write_text(
+        os.path.join(out_dir, 'REPLAY_REPORT.json'),
+        json.dumps(replay_doc, ensure_ascii=False, indent=2, default=str))
+    lines = ['# 离线重放报告(Audit-R28 任务4)', '',
+             '- 交付包: `%s`' % pkg,
+             '- 完整运行 SHA: `%s`(当前重放代码 `%s`)' % (head_mf,
+                                                        cur_head or '(?)'),
+             '- 原问: %s' % (manifest.get('question') or '(未记录)'),
+             '- 裁决: %s(链 %s 档)' % (manifest.get('verdict'),
+                                          manifest.get('verdicts_n')),
+             '- 重渲模式: %s' % render_mode, '', '## 检查明细', '']
+    for c in checks:
+        lines.append('- [%s] %s%s' % ('PASS' if c['ok'] else 'FAIL',
+                                      c['check'],
+                                      ('——' + c['detail']) if c.get('detail')
+                                      else ''))
+    lines += ['', '## 结论', '',
+              '重放%s: %d 项检查 %d 过 %d 拒。' % (
+                  '通过' if ok else '拒绝', len(checks),
+                  sum(1 for c in checks if c['ok']),
+                  sum(1 for c in checks if not c['ok'])),
+              '重复运行另开新档,原包未写入(post-write 摘要复核在档)。']
+    aj._atomic_write_text(
+        os.path.join(out_dir, 'REPLAY_REPORT.md'),
+        '\n'.join(lines) + '\n')
+    if map_q and map_text is not None:
+        aj._atomic_write_text(
+            os.path.join(out_dir, 'MAP_REPLAY_RENDER.md'), map_text)
+    return ok, {'stage': 'replay', 'package': pkg, 'replay_out': out_dir,
+                'render_mode': render_mode, 'ok': ok,
+                'failed_checks': [c['check'] for c in checks
+                                  if not c['ok']],
+                'checks': checks, 'checks_n': len(checks),
+                'command': replay_doc['command']}, \
+        ([] if ok else ['重放拒绝: ' + '; '.join(
+            '%s(%s)' % (c['check'], c['detail']) for c in checks
+            if not c['ok'])])
+
+
 def cmd_research_one(args):
     """一键研究 MVP 单入口(Product Convergence Phase 3/章程§五)。
 
@@ -1396,138 +2727,193 @@ def cmd_research_one(args):
 
     三段式而非单进程: L3/L4 恒由 Agent 席(Agent Native)产生——本命令是
     零模型编排层,plan 段产出 AGENT_SEAT_ENVELOPE(工单),attach 段只验
-    纪律不代写。--engine-root 注入真实数据树(测试/净环境用注入缝)。"""
-    import research_orchestrator as ro
-    stage = getattr(args, 'stage', 'plan')
+    纪律不代写。--engine-root 注入真实数据树(测试/净环境用注入缝)。
+
+    Audit-R1 F09 --stage auto: 单命令全自动链 plan→attach→report——
+    judgment 在场则一命令贯通至 FULL_REPORT;缺席则停 plan 段并给
+    Agent 席工单(Agent Native 暂停点,零模型不代写判断,如实披露)。"""
     engine_root = getattr(args, 'engine_root', None) or ROOT
+    stage = getattr(args, 'stage', 'plan')
+
+    if stage == 'auto':
+        # F09 单命令全自动链 + Audit-R2 条目6(一次输入到最终归档):
+        # 幂等续链机——每轮自动推进到最远可自主段,人/席位边界如实暂停。
+        # 恢复语义: --report-dir 指既有 run 目录=续链不重新 plan;已 attach
+        # 且无新 --judgment=不重挂(重挂改写 attach 台账→摘要变→无谓作废
+        # 在案裁决绑定)。归档: deliverable 后携 --archive-dir 即链尾直归。
+        if not getattr(args, 'question', None) and \
+                not getattr(args, 'report_dir', None):
+            emit(envelope('research-one', False, {'stage': 'auto'},
+                          error=('bad_args',
+                                 'auto 段需 --question(新链)或 --report-dir'
+                                 '(恢复既有 run)', None)),
+                 exit_code=1)
+            return
+        chain = []
+        rd = getattr(args, 'report_dir', None)
+        resuming = bool(rd and os.path.isfile(os.path.join(rd, 'report.json')))
+        if resuming:
+            chain.append({'stage': 'plan', 'ok': None, 'resumed': True,
+                          'report_dir': rd,
+                          'note': '恢复既有 run(--report-dir 在场), 不重新 plan'})
+        else:
+            rep, rd, err = _r1_plan_core(args, engine_root)
+            if err:
+                emit(envelope('research-one', False, {'stage': 'auto',
+                                                      'chain': [
+                        {'stage': 'plan', 'ok': False,
+                         'error': list(err)}]}, error=err),
+                     exit_code=1)
+                return
+            chain.append({'stage': 'plan', 'ok': bool(rep.get('run_ok')),
+                          'report_dir': rd, 'run_ok': rep.get('run_ok'),
+                          'agent_seat_envelope': os.path.join(
+                              rd, 'AGENT_SEAT_ENVELOPE.json')})
+        rj = json.load(open(os.path.join(rd, 'report.json'),
+                            encoding='utf-8'))
+        _ly = rj.get('layers') or {}
+        already = bool(
+            (_ly.get('L3_AI推断层') or {}).get('produced')
+            and (_ly.get('L4_条件情景层') or {}).get('produced')
+            and (rj.get('agent_judgment') or {}).get('attached'))
+        if not getattr(args, 'judgment', None) and not already:
+            chain.append({'stage': 'pause', 'ok': None,
+                          'note': 'judgment 缺席——Agent Native 暂停点: '
+                                  'Agent 席按工单真产 L3/L4 后携 --judgment '
+                                  '以 --report-dir 续链 auto'})
+            emit(envelope('research-one', False, {
+                'stage': 'auto', 'chain': chain,
+                'next': 'Agent 席按 AGENT_SEAT_ENVELOPE.json 真产 judgment → '
+                        '--stage auto --report-dir <rd> --judgment <path> '
+                        '续链(不重新 plan)'}, None), exit_code=1)
+            return
+        if getattr(args, 'judgment', None) or not already:
+            args.report_dir = rd
+            res, err = _r1_attach_core(args, engine_root)
+            if err or not (res or {}).get('attached'):
+                chain.append({'stage': 'attach', 'ok': False,
+                              'error': list(err) if err else 'attached=false',
+                              'blocked': (res or {}).get('blocked'),
+                              'violations': ((res or {}).get('validation')
+                                             or {}).get('violations')})
+                emit(envelope('research-one', False,
+                              {'stage': 'auto', 'chain': chain},
+                              error=err or ('attach_blocked',
+                                            str((res or {}).get('blocked')),
+                                            None)),
+                     exit_code=1)
+                return
+            chain.append({'stage': 'attach', 'ok': True,
+                          'validation_passed': (res.get('validation') or
+                                                {}).get('passed')})
+        else:
+            chain.append({'stage': 'attach', 'ok': True, 'skipped': True,
+                          'note': '已落位且无新 judgment——不重挂'
+                                  '(保在案裁决的摘要绑定)'})
+        ok, data, warns = _r1_report_core(args, engine_root)
+        chain.append({'stage': 'report', 'ok': ok,
+                      'deliverable': data.get('deliverable'),
+                      'draft_delivered': data.get('draft_delivered'),
+                      'draft_blocked_class': data.get('draft_blocked_class'),
+                      'review': data.get('review'),
+                      'full_report': data.get('full_report')})
+        if not ok and not data.get('draft_delivered'):
+            # 独立审查面未放行(缺席/REVISE/裁决链非法/副本不一致)=席位
+            # 暂停点,零模型编排层不代裁——复验落新裁决档后重跑 auto 续链
+            chain.append({'stage': 'review_pause', 'ok': None,
+                          'note': '可交付门未放行(见 report 段 review)——'
+                                  '独立席位复验落新裁决档后重跑 auto '
+                                  '--report-dir 续链(不重新 plan)'})
+            data = dict(data, stage='auto', chain=chain)
+            emit(envelope('research-one', False, data, warns or None),
+                 exit_code=1)
+            return
+        if data.get('draft_delivered') and not data.get('deliverable'):
+            # Audit-R25 任务1: 带缺口草稿交付(exit 0=读者拿到草稿地图);
+            # 正式归档仍阻断(archive belt 对 map_core_dimension_missing/
+            # map_anchor_coverage_insufficient 同判拒)——补数后重跑续链
+            chain.append({'stage': 'archive', 'ok': None,
+                          'note': '草稿交付(数据面缺口 %s)——正式归档仍'
+                                  '阻断;补数后重跑 auto --report-dir 续链'
+                                  % data.get('draft_blocked_class')})
+            data = dict(data, stage='auto', chain=chain)
+            emit(envelope('research-one', True, data, warns or None),
+                 exit_code=0)
+            return
+        if getattr(args, 'archive_dir', None):
+            aok, adata, awarns = _r1_archive_core(args, engine_root)
+            chain.append({'stage': 'archive', 'ok': aok,
+                          'archive_dir': adata.get('archive_dir'),
+                          'content_sha256': adata.get('content_sha256'),
+                          'blocked': adata.get('blocked')})
+            ok = bool(ok and aok)
+            warns = list(warns or []) + list(awarns or [])
+        else:
+            chain.append({'stage': 'archive', 'ok': None,
+                          'note': 'deliverable=true——归档经 --archive-dir '
+                                  '<dir> 随本命令直归,或 --stage archive '
+                                  '--archive-dir <dir> 单段归档'})
+        data = dict(data, stage='auto', chain=chain)
+        emit(envelope('research-one', ok, data, warns or None),
+             exit_code=0 if ok else 1)
+        return
 
     if stage == 'plan':
-        try:
-            rep = ro.run_research(args.question, root=engine_root,
-                                  archive=bool(getattr(args, 'archive', False)),
-                                  out_dir=getattr(args, 'out_dir', None),
-                                  engine_root=engine_root)
-        except (OSError, ValueError) as e:
-            emit(envelope('research-one', False, {'stage': 'plan'},
-                          error=('orchestrator_failed', str(e), None)), exit_code=1)
+        rep, rd, err = _r1_plan_core(args, engine_root)
+        if err:
+            emit(envelope('research-one', False, {'stage': 'plan'}, error=err),
+                 exit_code=1)
             return
-        rd = rep.get('report_dir')
-        # 证据索引独立落盘(工单 read_first 引用;report.json 内嵌副本仍在)
-        with open(os.path.join(rd, 'evidence_index.json'), 'w', encoding='utf-8') as f:
-            json.dump(rep.get('evidence_index', []), f, ensure_ascii=False, indent=2)
-        # L2 富内容摘编(确定性装配,零生成): report.json L2 只含 VP sidecar
-        # 验证标签;机构观点原文在 views 库——字段选取入 run 目录供 Agent 席读
-        views_note = 'views 库在场'
-        digest = []
-        try:
-            import view_store as vs
-            for v in vs.load_views(os.path.join(
-                    engine_root, 'data', 'institutions', 'views'))['views']:
-                inst = v.get('institution') or {}
-                digest.append({
-                    k: v.get(k) for k in (
-                        'view_id', 'report_title', 'publish_date',
-                        'view_horizon', 'subjects', 'core_views',
-                        'forecasts', 'risk_factors')})
-                digest[-1]['institution_name'] = inst.get('name')
-        except (OSError, ValueError, KeyError) as e:
-            views_note = f'views 库不可读/缺席: {e}'
-        with open(os.path.join(rd, 'views_digest.json'), 'w', encoding='utf-8') as f:
-            json.dump({'n': len(digest), 'note': views_note, 'views': digest},
-                      f, ensure_ascii=False, indent=2)
-        envelope_path = os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')
-        work_order = {
-            'role': 'Agent Native 研究席(L3 推断+L4 条件情景真产出)',
-            'question': args.question,
-            'report_dir': rd,
-            'evidence_index_rows': len(rep.get('evidence_index', [])),
-            'read_first': [
-                os.path.join(rd, 'report.json'),
-                os.path.join(rd, 'evidence_index.json'),
-                os.path.join(rd, 'views_digest.json') + '   # L2 机构观点富内容(原文摘编)',
-                'scripts/agent_judgment.py   # judgment schema v1.1 模块 docstring',
-                '.agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)',
-            ],
-            'produce': 'judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/'
-                       'E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件)',
-            'then': ['ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>',
-                     'ia_cli.py research-one --stage report --report-dir <rd>'],
-            'discipline': ['L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造',
-                           '禁改 report.json 的 produced 字段(attach 校验器唯一写者)',
-                           '研究质量十二问逐问答(章程§七)'],
-        }
-        with open(envelope_path, 'w', encoding='utf-8') as f:
-            json.dump(work_order, f, ensure_ascii=False, indent=2)
         emit(envelope('research-one', bool(rep.get('run_ok')), {
             'stage': 'plan', 'report_dir': rd, 'run_ok': rep.get('run_ok'),
-            'agent_seat_envelope': envelope_path,
+            'agent_seat_envelope': os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json'),
             'L3_produced': rep['layers']['L3_AI推断层']['produced'],
             'L4_produced': rep['layers']['L4_条件情景层']['produced'],
             'next': 'Agent 席按 AGENT_SEAT_ENVELOPE.json 真产 L3/L4 → attach 段'}))
         return
 
     if stage == 'attach':
-        import agent_judgment as aj
-        try:
-            res = aj.attach_judgment(args.report_dir, args.judgment, root=engine_root,
-                                     allow_failed_run=bool(getattr(args, 'allow_failed_run', False)))
-        except (OSError, ValueError, KeyError) as e:
-            emit(envelope('research-one', False, {'stage': 'attach'},
-                          error=('attach_failed', str(e), None)), exit_code=1)
+        res, err = _r1_attach_core(args, engine_root)
+        if err:
+            emit(envelope('research-one', False, {'stage': 'attach'}, error=err),
+                 exit_code=1)
             return
         emit(envelope('research-one', bool(res.get('attached')), {
             'stage': 'attach', 'report_dir': res.get('report_dir'),
             'attached': res.get('attached'),
             'blocked': res.get('blocked'),
+            'blocked_class': res.get('blocked_class'),
             'validation_passed': (res.get('validation') or {}).get('passed'),
             'violations': (res.get('validation') or {}).get('violations')}))
         return
 
     if stage == 'report':
-        rd = args.report_dir
-        rj = json.load(open(os.path.join(rd, 'report.json'), encoding='utf-8'))
-        layers = rj.get('layers', {})
-        l3, l4 = layers.get('L3_AI推断层', {}), layers.get('L4_条件情景层', {})
-        l1_rows = layers.get('L1_事实层', {}).get('rows', [])
-        vpf = layers.get('L2_机构观点层', {}).get('views') or {}
-        out_md = os.path.join(rd, 'FULL_REPORT.md')
-        lines = ['# 完整研究报告(一键研究 MVP)', '',
-                 '- 问题: ' + ((rj.get('run') or {}).get('question') or args.question),
-                 f'- run_ok: {rj.get("run_ok")} | 证据行: {len(rj.get("evidence_index", []))}',
-                 '', '## L1 事实层(引擎确定性产出)', '',
-                 '| 指标 | 值 | 单位 | 观测日 | 质量 | 证据 ref |',
-                 '|---|---|---|---|---|---|']
-        for r in l1_rows:
-            src = r.get('source') or {}
-            lines.append(f"| {r.get('metric_id')} | {r.get('value')} | "
-                         f"{r.get('unit')} | {r.get('observation_date')} | "
-                         f"{r.get('quality_status')} | {src.get('id')} |")
-        lines += ['', '## L2 机构观点层(VP sidecar 验证面+views 库摘编)', '',
-                  f"- available={vpf.get('available')} n={vpf.get('n')} "
-                  f"隔离={vpf.get('n_bad_quarantined')}",
-                  f"- 富内容摘编: views_digest.json(在场机构主张原文,机构面=institution_stated)"]
-        vd_path = os.path.join(rd, 'views_digest.json')
-        if os.path.exists(vd_path):
-            vd = json.load(open(vd_path, encoding='utf-8'))
-            for v in vd.get('views', []):
-                lines.append(f"  - {v.get('view_id')} · {v.get('institution_name')}"
-                             f" · {v.get('publish_date')} · {v.get('report_title')}")
-        lines += ['', '## L3 AI 推断层(Agent 席真产)', '',
-                  f"- produced={l3.get('produced')} attribution={l3.get('attribution')}",
-                  f"- 判断原文: report.md L3 节 + agent_judgment.json 归档副本"]
-        lines += ['', '## L4 条件情景层(Agent 席真产)', '',
-                  f"- produced={l4.get('produced')} attribution={l4.get('attribution')}",
-                  '- 情景五行齐备面: report.md L4 节 + agent_judgment.json 归档副本']
-        lines += ['', '---', '渲染纪律: 本件只汇编在场事实(确定性装配),不做新增生成;',
-                  'L3/L4 内容归 Agent 席与独立审计,本段不代写。']
-        with open(out_md, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(lines) + '\n')
-        ok = bool(l3.get('produced') and l4.get('produced'))
-        emit(envelope('research-one', ok, {'stage': 'report', 'full_report': out_md,
-                                           'L3_produced': l3.get('produced'),
-                                           'L4_produced': l4.get('produced')},
-                      None if ok else ['L3/L4 未全 produced——报告如实标注,不冒认完整(G2 门不放过)']))
+        ok, data, warns = _r1_report_core(args, engine_root)
+        emit(envelope('research-one', ok, data, warns or None),
+             exit_code=0 if ok else 1)
         return
+
+    if stage == 'replay':
+        # Audit-R28 任务4: 离线重放段(交付包四门自验证+确定性重渲
+        # 逐字节核对;输出独立新目录,包内零写入)
+        rok, rdata, rwarns = _r1_replay_core(args, engine_root)
+        emit(envelope('research-one', rok, rdata, rwarns or None),
+             exit_code=0 if rok else 1)
+        return
+
+    if stage == 'archive':
+        # Audit-R2 条目6: 最终归档段(归档对象=最终受审版本,摘要三处核对)
+        if not getattr(args, 'report_dir', None):
+            emit(envelope('research-one', False, {'stage': 'archive'},
+                          error=('bad_args', 'archive 段需 --report-dir',
+                                 None)),
+                 exit_code=1)
+            return
+        aok, adata, awarns = _r1_archive_core(args, engine_root)
+        emit(envelope('research-one', aok, adata, awarns or None),
+             exit_code=0 if aok else 1)
+        return
+
 
 def build_parser():
     p = argparse.ArgumentParser(
@@ -1632,7 +3018,11 @@ def build_parser():
     rr = sub.add_parser('research-run',
                         help='一键研究编排(R2/AC6): 十一步确定性管线,零模型;'
                              'L3 AI推断/L4 条件情景恒 declared-not-produced')
-    rr.add_argument('--question', required=True, help='研究问题原文')
+    rr.add_argument('--question', default=None,
+                    help='研究问题原文(与 --question-file 二选一)')
+    rr.add_argument('--question-file', default=None,
+                    help='原问逐字文件(Audit-R25 任务3: 优先于 --question,'
+                         '字节直读免手打重排标点;仅去尾部换行)')
     rr.add_argument('--archive', action='store_true',
                     help='落档(Skill 第 11 步=用户认可后;默认关)')
     rr.add_argument('--out-dir', default=None,
@@ -1644,18 +3034,49 @@ def build_parser():
     r1 = sub.add_parser('research-one',
                         help='一键研究 MVP 单入口(plan→Agent 席→attach→report;章程 Phase 3)')
     r1.add_argument('--question', default=None, help='研究问题(plan 段必填)')
-    r1.add_argument('--stage', choices=['plan', 'attach', 'report'], default='plan',
-                    help='plan=research-run+工单;attach=judgment 校验合并;report=完整报告汇编')
-    r1.add_argument('--report-dir', default=None, help='attach/report 段必填')
+    r1.add_argument('--question-file', default=None,
+                    help='原问逐字文件(Audit-R25 任务3: 优先于 --question,'
+                         '字节直读免手打重排标点;仅去尾部换行)')
+    r1.add_argument('--stage', choices=['plan', 'attach', 'report', 'auto',
+                                        'archive', 'replay'], default='plan',
+                    help='plan=research-run+工单;attach=judgment 校验合并;'
+                         'report=完整报告汇编(F09: L3/L4 全文内联);'
+                         'auto=单命令全自动链 plan→attach→report(Audit-R1 F09;'
+                         'Audit-R2 条目6: --report-dir 恢复不重 plan,deliverable '
+                         '后携 --archive-dir 直归);'
+                         'archive=最终归档段(Audit-R2 条目6: 归档对象=最终'
+                         '受审版本,摘要 run=归档=裁决锚三处核对);'
+                         'replay=离线重放段(Audit-R28 任务4: 归档交付包'
+                         '四门自验证+确定性重渲逐字节核对,--package 指包)')
+    r1.add_argument('--report-dir', default=None, help='attach/report/archive 段必填')
     r1.add_argument('--judgment', default=None, help='attach 段必填(judgment JSON)')
     r1.add_argument('--out-dir', default=None, help='报告目录注入缝(plan 段)')
+    r1.add_argument('--archive-dir', default=None,
+                    help='archive 段/auto 链尾归档目录(缺省=research_archive/'
+                         '<run 目录名>;append-only,已存在即拒)')
     r1.add_argument('--engine-root', default=None,
                     help='数据树注入缝(默认=本仓库根;净环境指向真实数据树)')
     r1.add_argument('--allow-failed-run', action='store_true',
                     help='attach 段: run_ok=False 诚实拒答面显式越过(MINOR-4 门槛)')
+    r1.add_argument('--new-map-version', action='store_true',
+                    help='report/archive 段: 地图正文更正或重排时另建新版本'
+                         '(重渲+map_version+1+内容摘要变→旧裁决过期,须复审'
+                         '新裁决后方可交付/归档;已裁版本不受渲染器漂移改写'
+                         '——Audit-R24 任务1)')
     r1.add_argument('--archive', action='store_true',
                     help='plan 段: 第 11 步归档显式开启(Skill 纪律=默认关,'
                          '正式任务用户认可后郑重选择)')
+    r1.add_argument('--package', default=None,
+                    help='replay 段必填: 归档交付包目录(含 '
+                         'ARCHIVE_MANIFEST.json+九件套+地图三件套+verdicts/)')
+    r1.add_argument('--replay-out', default=None,
+                    help='replay 段: 输出目录(缺省=<包旁>/replay_out/'
+                         '<包名>_<ts>/;append-only 已存在即拒,重复运行'
+                         '各开新档,包内零写入)')
+    r1.add_argument('--allow-code-mismatch', action='store_true',
+                    help='replay 段: 当前代码≠包记录运行 SHA 时显式越过'
+                         '(逐字节核对降级为披露;默认拒绝——逐字节相等只对'
+                         '录制代码有意义)')
     ra = sub.add_parser('research-attach',
                         help='Agent Native L3/L4 判断落位+纪律机器校验(R23/阶段四): '
                              '校验 Agent judgment 并合并进 research-run 报告;'
@@ -1675,6 +3096,24 @@ def build_parser():
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
+    # Audit-R25 任务3: 原问逐字传递——--question-file 字节直读优先于
+    # --question(会话/操作者转述会把全角标点重排为半角,169 字变 168
+    # 字的实雷即此;文件仅去尾部换行,其余字节不动)。
+    _qf = getattr(args, 'question_file', None)
+    if _qf:
+        with open(_qf, encoding='utf-8') as f:
+            args.question = f.read().rstrip('\n')
+        if not args.question:
+            emit(envelope(args.capability, False, {},
+                          error=('empty_question_file',
+                                 '--question-file 内容为空: ' + _qf, None)),
+                 exit_code=2)
+    elif args.capability == 'research-run' and not args.question:
+        emit(envelope('research-run', False, {},
+                      error=('missing_question',
+                             'research-run 需要 --question 或 --question-file',
+                             None)),
+             exit_code=2)
     handlers = {'doctor': cmd_doctor, 'update': cmd_update, 'overview': cmd_overview,
                 'changes': cmd_changes, 'history': cmd_history, 'compare': cmd_compare,
                 'analog': cmd_analog, 'research': cmd_research, 'archive': cmd_archive,

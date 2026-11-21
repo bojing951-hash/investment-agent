@@ -1,0 +1,4 @@
+2026-11-20 10:13:14 binary=/Users/cast/.vscode/extensions/anthropic.claude-code-2.1.328-darwin-arm64/resources/native-binary/claude
+Permission allow rule (/Users/cast/.claude/settings.json): Bash(mv trader-c* "📖_文档与笔记/") has a wildcard before the rest of the command, so it also matches any options inserted at that position and approves them without a prompt. Replace that * with the exact value you mean, or only use * after the subcommand.
+Claude Code doesn't recognize the model "glm-5.3", so it assumes a context window of 1m tokens. Update Claude Code, or see https://code.claude.com/docs/en/model-config#correct-the-window-for-a-gateway-or-custom-model-id to set the window.
+[claude-code:unrecognized_model] {"model":"glm-5.3","query_source":"sdk"}

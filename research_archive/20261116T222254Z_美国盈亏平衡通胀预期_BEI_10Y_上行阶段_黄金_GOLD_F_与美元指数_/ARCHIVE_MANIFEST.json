@@ -1,0 +1,34 @@
+{
+  "stage": "archive",
+  "run_ts": "20261116T222254Z",
+  "question": "美国盈亏平衡通胀预期(BEI_10Y)上行阶段,黄金(GOLD_F)与美元指数(DXY)的相对表现: 通胀预期变化如何影响金价与美元的传统跷跷板关系",
+  "archived_at": "20261116T230653Z",
+  "content_sha256": "78bb07e09de91bd0a6aaaea893d883607e82bff3dc195a35a34c690768205923",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 1,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261117__VERDICT-20261116T222254Z-01.json",
+      "source_rel": "audit/semantic_review/20261117/VERDICT-20261116T222254Z-01.json",
+      "overall": "UPHELD",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261116T230548Z",
+      "sha256": "252057d984f2a63c"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "6fe2b81174d3f8c4",
+    "report.md": "11a759bcae14ac2b",
+    "FULL_REPORT.md": "d5bb997f62d3517d",
+    "agent_judgment.json": "3574c4a405ebf02b",
+    "views_digest.json": "281eb2c3c8210c32",
+    "evidence_index.json": "54e75076df8be069",
+    "AGENT_SEAT_ENVELOPE.json": "be691ba53a180b20"
+  },
+  "record_health": {},
+  "source_report_dir": "/tmp/audit_r4/E2E/20261116T222254Z_美国盈亏平衡通胀预期_BEI_10Y_上行阶段_黄金_GOLD_F_与美元指数_",
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核)"
+}

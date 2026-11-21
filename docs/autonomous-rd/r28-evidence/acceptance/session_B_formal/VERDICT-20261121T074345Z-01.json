@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "独立语义审查席-零上下文",
+  "notes": "A:抽查30+数值全对引擎面PASS。B:窗口/派生同比/月均≠目标注记PASS。C=MAJOR:判断层称决议日与目标宣布值口径缺席、距上次调整只能给区间(21-51天),与同报告引擎官方记录面RC-JP-BOJ-TARGET(目标1.25、决议2026-09-18、生效09-24、距上次调整58天、10-30确认维持)冲突,区间不含58天,CON-3两解释实已被该记录裁明。D PASS。E=MINOR:2022-06段同步句用8.6(2022-06观测,快报07-01)未标事后。F结构PASS但JP缺席断言失实入MAJOR。G五行齐备PASS。H无编造PASS。必修:CON-3/日本段/一句总判断整合官方记录面并撤只能给区间表述;8.6补事后标注。",
+  "run_ts": "20261121T074345Z",
+  "content_sha256": "f566a83cd29c9dcb79992953837371118ed0c8c5d63f84fc96409225179f7f82",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T080626Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "24ba29d342b73d2bb00c40212ba269e70be962e4f85c506199b2402ac87774d7",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

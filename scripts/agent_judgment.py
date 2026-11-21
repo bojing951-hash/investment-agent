@@ -48,7 +48,7 @@ import json
 import os
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if ROOT not in sys.path:
@@ -149,6 +149,11 @@ def validate_judgment(judgment, evidence_refs, metric_ids):
             bad('SCHEMA', f'l3.mechanism_chains[{chid}].links', '机制链空')
         for lk in links:
             lid = f'{chid}.link{lk.get("step", "?")}'
+            # Audit-R18 任务4反例①: 机制正文为空或 None 曾静默放行(链非空
+            # 但环 text 空=读者面空机制)——结构在场≠内容在场,一律拦。
+            if not str(lk.get('text') or '').strip():
+                bad('SCHEMA', f'l3.mechanism_chains[{lid}].text',
+                    '机制环正文为空或 None——空正文不得落位交付/归档')
             lvl = lk.get('evidence_level')
             if lvl not in ('E1', 'E2', 'E3'):
                 bad('SCHEMA', f'l3…[{lid}].evidence_level',
@@ -298,7 +303,623 @@ def _registry_metric_ids(root):
             if m.get('metric_id')}
 
 
-def _semantic_review_state(report, root):
+def _canonical(obj):
+    """稳定规范化 JSON 串(跨 CPython 3.9-3.12 同文同串)。"""
+    return json.dumps(obj, sort_keys=True, ensure_ascii=True,
+                      separators=(',', ':'), default=str)
+
+
+def frozen_inputs_digest(mapping):
+    """Audit-R29 任务4: 冻结输入集合摘要(渲染依赖身份锚)。
+
+    输入=relpath→sha16 映射(地图问句运行时实际读的 root 文件逐字节
+    摘要: 发布日期历+运行快照);输出=sorted 'rel:sha16' 行以 \\n 连接
+    后的 sha256。空映射/非映射→None(非地图问句不绑)。
+    五处同算同核: 运行面(report.run.frozen_inputs)→席位信封→
+    终裁(extra.frozen_inputs_sha256)→归档(manifest)→重放(复算)——
+    任何一处本地文件被改而摘要未随=不一致即拒。"""
+    import hashlib
+    if not isinstance(mapping, dict) or not mapping:
+        return None
+    lines = sorted('%s:%s' % (rel, str(sha)[:16])
+                   for rel, sha in mapping.items())
+    return hashlib.sha256('\n'.join(lines).encode('utf-8')).hexdigest()
+
+
+# Audit-R2 条目1: 摘要边界内须剥离的易变键(审查机制自身状态面,
+# 写入即变——不剥离则裁决落档自噬;其余键全在摘要内,含 attach 台账
+# 与版本指针 run.git_head/pipeline_version——重 attach/换引擎版本即
+# 失效旧裁决,任一交付输入变化不得沿用旧审查)
+_DIGEST_VOLATILE_REPORT_KEYS = ('semantic_review',)
+_DIGEST_VOLATILE_JUDGMENT_KEYS = ('semantic_review',)
+
+
+def content_digest(report_dir, judgment_path=None):
+    """Audit-R4 条目2: 唯一规范化内容=**全部实际交付输入源**。
+
+    边界(稳定,禁漂移): canonical(report.json 剥 semantic_review)
+    + NUL + canonical(agent_judgment 剥 semantic_review)
+    + NUL + canonical(views_digest.json 或 {},缺席稳定)。
+    Audit-R2 v2 口径漏了 views_digest.json——它是 FULL_REPORT L2 摘编
+    行的**直接渲染输入**(机构归属/标题/日期/原文摘编)且是 Agent 席
+    判断输入(read_first),却不在摘要内: 反例=只改 institution_name/
+    report_title,FULL_REPORT 已变而摘要/fresh/deliverable/归档全照过
+    (审查未覆盖实际交付内容)。v3 收口: 任一渲染输入(机构归属、标题、
+    日期、摘编、事实、判断)变化即失效旧裁决。views_digest 由 plan 段
+    一次性确定性装配,裁决落档后无人回写——无循环绑定。
+    report.md/FULL_REPORT=上述三源的渲染视图,**不入摘要**;视图与源
+    的一致性由交付门 copies_consistent 核对(_r1_report_core: report.md
+    =report.json 当前渲染,FULL_REPORT=当前确定性装配)。
+    裁决档自身(VERDICT-*.json)不在 report_dir 内,天然不在边界
+    (Audit-R1 F02 循环依赖切断面保留)。
+    """
+    import hashlib
+    rp = _load_json(os.path.join(report_dir, 'report.json'))
+    for k in _DIGEST_VOLATILE_REPORT_KEYS:
+        rp.pop(k, None)
+    if judgment_path is None:
+        for cand in ('agent_judgment.json', 'judgment_mvp.json'):
+            p = os.path.join(report_dir, cand)
+            if os.path.isfile(p):
+                judgment_path = p
+                break
+    j = _load_json(judgment_path)
+    for k in _DIGEST_VOLATILE_JUDGMENT_KEYS:
+        j.pop(k, None)
+    vd_p = os.path.join(report_dir, 'views_digest.json')
+    vd = _load_json(vd_p) if os.path.isfile(vd_p) else {}
+    return hashlib.sha256(
+        (_canonical(rp) + '\x00' + _canonical(j) + '\x00'
+         + _canonical(vd)).encode('utf-8')).hexdigest()
+
+
+def content_digest_v2(report_dir, judgment_path=None):
+    """Audit-R2 v2 口径(report.json+agent_judgment,不含 views_digest)
+    ——仅存续供裁决重绑迁移验证旧锚(rebind_verdict_digest),
+    不得用于新裁决绑定。"""
+    import hashlib
+    rp = _load_json(os.path.join(report_dir, 'report.json'))
+    for k in _DIGEST_VOLATILE_REPORT_KEYS:
+        rp.pop(k, None)
+    if judgment_path is None:
+        for cand in ('agent_judgment.json', 'judgment_mvp.json'):
+            p = os.path.join(report_dir, cand)
+            if os.path.isfile(p):
+                judgment_path = p
+                break
+    j = _load_json(judgment_path)
+    for k in _DIGEST_VOLATILE_JUDGMENT_KEYS:
+        j.pop(k, None)
+    return hashlib.sha256(
+        (_canonical(rp) + '\x00' + _canonical(j)).encode('utf-8')).hexdigest()
+
+
+def content_digest_v1(report_dir, judgment_path=None):
+    """Audit-R1 旧口径(judgment + report.md 全文)——仅存续供裁决重绑
+    迁移验证旧锚(rebind_verdict_digest),不得用于新裁决绑定。"""
+    import hashlib
+    if judgment_path is None:
+        for cand in ('agent_judgment.json', 'judgment_mvp.json'):
+            p = os.path.join(report_dir, cand)
+            if os.path.isfile(p):
+                judgment_path = p
+                break
+    j = _load_json(judgment_path)
+    j.pop('semantic_review', None)
+    md = open(os.path.join(report_dir, 'report.md'), encoding='utf-8').read()
+    return hashlib.sha256((_canonical(j) + '\x00' + md).encode('utf-8')
+                          ).hexdigest()
+
+
+# Audit-R1 F02: 独立审查可放行档(裁决语汇——席位其余语汇一律不放行)
+REVIEW_APPROVED_VERDICTS = ('VERIFIED', 'PASS', 'UPHELD')
+
+# Audit-R2 条目2: 裁决档必填字段(缺任一=损坏档,最新档损坏即阻断,
+# 不回退旧 PASS)
+VERDICT_REQUIRED_FIELDS = ('overall', 'reviewer', 'run_ts', 'recorded_at')
+
+# R32 席位词表(Audit-R2 收口): 语义审查席裁决档只认章程四词。与四态门
+# 放行词(REVIEW_APPROVED_VERDICTS)是两张表——席位席报告词 VERIFIED/PASS
+# 须映射为 UPHELD 后落档(同义,-01 档先例),越表词落档即抛(B3 机核面)。
+SEAT_VERDICT_VOCAB = ('UPHELD', 'REVISE', 'NOT_VERIFIED', 'REJECT_ENTRY')
+
+# ── Audit-R5 条目4: 裁决档格式与摘要算法版本显式可验证 ──────────────
+# 新写档显式携带 format_version+digest_algorithm;读取端: 未知版本按
+# 最严处理(不因缺失/未知获得更宽松权限);format_version 缺席=按档形
+# 推断时代(revision 在场=现行格式,缺席=legacy)——推断结果与显式声明
+# 适用同一套校验,永不更宽。历史口径 algo 仅存续供 rebind 迁移验证。
+VERDICT_FORMAT_VERSION = 2
+DIGEST_ALGORITHM_CURRENT = 'digest_v3'
+DIGEST_ALGORITHMS_HISTORICAL = ('digest_v1', 'digest_v2')
+# 三代口径各自覆盖的交付输入(rebind 未覆盖面=机器推导,禁手工漂移):
+_ALGO_INPUTS = {
+    'digest_v1': ('agent_judgment.json', 'report.md'),
+    'digest_v2': ('report.json', 'agent_judgment.json'),
+    DIGEST_ALGORITHM_CURRENT: ('report.json', 'agent_judgment.json',
+                               'views_digest.json'),
+}
+
+
+def _verdicts_for_run(root, run_ts):
+    """按 run_ts 收全裁决档(跨日目录,run_ts 在文件名内)。
+
+    返回 [(path, doc)];doc=None=不可解析(损坏档如实入列,不静默丢)。
+    """
+    import glob as _glob
+    out = []
+    for p in sorted(_glob.glob(os.path.join(
+            root, 'audit', 'semantic_review', '*', 'VERDICT-*.json'))):
+        if run_ts not in os.path.basename(p):
+            continue
+        try:
+            v = _load_json(p)
+            if not isinstance(v, dict):
+                v = None
+        except Exception:
+            v = None
+        out.append((p, v))
+    return out
+
+
+def _verdict_sort_key(path, doc):
+    """裁决写入序(Audit-R4 条目1): (日目录, 文件名 seq, 文件名)。
+
+    排序只读**稳定文件面**——日目录+文件名序号是 append-only 写入纪律
+    的事实承载(同日 seq 单调递增,跨日日串递增),mtime 不参与。
+    Audit-R2 口径按「有 revision 的内容序、损坏档降 legacy 代」分代——
+    反例: 链尾新档(revision=3)截断后解析失败,被降为 legacy 代排到
+    全部 revision 档之前,旧 UPHELD(revision=2)回升为最新,fresh=True
+    交付照过=**裁决先后关系因解析失败而倒退**。Audit-R4 起统一写入序:
+    损坏档占其真实写入位(链尾),最新位损坏即 corrupt_latest 阻断,
+    不得跳过错误记录回退旧裁决。revision 作为**校验不变量**而非排序键:
+    写入序下有效档 revision 必须递增,倒序/重复=order_conflict/
+    duplicate_revision 阻断(_semantic_review_state 校验)。
+    """
+    day = os.path.basename(os.path.dirname(path))
+    name = os.path.basename(path)
+    seq = ''
+    m = re.search(r'-(\d+)\.json$', name)
+    if m:
+        seq = '%06d' % int(m.group(1))
+    return (day or '00000000', seq, name)
+
+
+def _verdict_write_positions_disagree(keyed):
+    """Audit-R4 条目1 不变量: 写入序下有效档 revision 必须严格递增。
+
+    返回冲突描述串(无冲突=None): 倒序或重复。损坏/legacy 档无 revision
+    不参与本不变量(它们占写入位但无从校验号序——正因无从校验,它们
+    不得静默充当最新放行档,由 _semantic_review_state 单独处理)。
+    """
+    seen = {}
+    for (_, p, v) in keyed:
+        rev = (v or {}).get('revision') if isinstance(v, dict) else None
+        if not (isinstance(rev, int) and rev > 0):
+            continue
+        if rev in seen:
+            return ('duplicate_revision: %s 与 %s 同号 revision=%d'
+                    % (seen[rev], p, rev))
+        seen[rev] = p
+    revs = [((v or {}).get('revision'), p) for (_, p, v) in keyed
+            if isinstance(v, dict)
+            and isinstance((v or {}).get('revision'), int)
+            and (v or {}).get('revision') > 0]
+    for (r1, p1), (r2, p2) in zip(revs, revs[1:]):
+        if r2 <= r1:
+            return ('order_conflict: %s(rev=%d) 写入位晚于 %s(rev=%d)'
+                    ' 但 revision 未递增' % (p2, r2, p1, r1))
+    return None
+
+
+def _verdict_record_error(root, path, doc, run_ts, ordered_run_paths):
+    """Audit-R4 条目1 + Audit-R5 条目4 读取端单档校验: None=有效。
+
+    ordered_run_paths: **写入序**下的本 run 在档相对路径列表(规范序=
+    _verdict_sort_key);本档写入位=其在表中的下标。
+
+    两级:
+    - 解析级(corrupt): 不可解析/非 dict/缺必填字段(overall/reviewer/
+      run_ts/recorded_at)——文件本身不可读,但写入位仍是事实;
+    - 语义级(invalid_record): revision 非正整数/裁决词越表/run_ts 字段
+      与文件名键不符/format_version 未知/predecessor 缺失或非法——
+      语义可判的违规,无论写入位在哪都阻断。
+
+    Audit-R5 条目4 收紧面(反例复现于基线 49fb583):
+    - 删除 revision 冒充 legacy 不再放行: legacy 形(无 revision 键)
+      只在**首写入位**合法(真 legacy=链头;v1 前史档其放行本就被
+      fresh=None 挡死);非首位无 revision=降级攻击,invalid_record;
+      首位 legacy 档的时代一致性(锚须为历史口径)由
+      _semantic_review_state 的 _legacy_era_error 核验;
+    - 非首档 predecessor 必填且必须指向**紧邻前序**(写入位-1)——
+      指向自己/后续记录/隔位前序/缺席均=断链,invalid_record;
+      首档 predecessor 必须 None(首档无前序,带 pred=指向后续或
+      造链,invalid_record);
+    - format_version 在场但非已知版本=invalid_record(未知版本按最严
+      处理,缺失按档形推断——推断适用同一套校验,永不更宽)。
+
+    Audit-R6 条目3 收紧面(反例复现于基线 dcb4b17):
+    - 共用校验(裁决词/任务身份 run_ts/算法版本)先于时代分流,legacy
+      形同样过共用面——旧格式仅兼容历史确缺字段(revision/predecessor),
+      不跳过共用校验;
+    - digest_algorithm 逐档核验(不再只检最新档): 在场而非现行口径=
+      invalid_record,任何写入位阻断。
+    """
+    if not isinstance(doc, dict):
+        return 'corrupt: 不可解析/非对象'
+    for f in VERDICT_REQUIRED_FIELDS:
+        if not doc.get(f):
+            return 'corrupt: 缺必填字段 %s' % f
+    fmt = doc.get('format_version')
+    if fmt is not None and fmt != VERDICT_FORMAT_VERSION:
+        return ('invalid_record: format_version=%r 未知(现行=%d;缺失或'
+                '未知版本不得获得更宽松权限)' % (fmt, VERDICT_FORMAT_VERSION))
+    # ── Audit-R6 条目3: 共用校验(任务身份/合法裁决词/算法版本)先于时代
+    # 分流——legacy 形(无 revision)只兼容**历史确缺字段**(revision/
+    # predecessor 缺席),不得跳过共用面。反例(基线 dcb4b17 复现): 首档
+    # 删 revision 后 run_ts=WRONG_RUN/overall=UNKNOWN_VERDICT 靠 legacy
+    # 早退放行;首档 digest_algorithm=UNKNOWN_ALGORITHM 因逐档校验缺算法
+    # 版本面而放行——两例均为「只检最新档+legacy 早退」的绕行面。
+    if doc.get('overall') not in SEAT_VERDICT_VOCAB:
+        return 'invalid_record: 裁决词 %r 越席位词表' % (doc.get('overall'),)
+    if doc.get('run_ts') != run_ts:
+        return ('invalid_record: run_ts 字段=%r 与文件名键=%r 不符'
+                '(错误 run 档)' % (doc.get('run_ts'), run_ts))
+    algo = doc.get('digest_algorithm')
+    if algo is not None and algo != DIGEST_ALGORITHM_CURRENT:
+        # 逐档算法版本: 字段只在现行写入端落档(落档值恒=当时现行口径,
+        # 历史档该字段缺席)——在场而非现行值=不可核验口径,按最严阻断;
+        # v1/v2 口径仅存续于 rebind 迁移验证(extra.rebind.from_algorithm),
+        # 不作为裁决档 digest_algorithm 合法值。
+        return ('invalid_record: digest_algorithm=%r 非现行口径(现行=%s;'
+                '在场而非现行=不可核验,逐档阻断)' % (algo,
+                                                    DIGEST_ALGORITHM_CURRENT))
+    own_rel = os.path.normpath(os.path.relpath(path, root))
+    try:
+        pos = ordered_run_paths.index(own_rel)
+    except ValueError:                      # 不在本 run 键下(调用面已滤)
+        pos = -1
+    if 'revision' not in doc:
+        if pos != 0:
+            return ('invalid_record: 无 revision 档出现在非首写入位'
+                    '(pos=%d;删除 revision 冒充 legacy 的降级)' % pos)
+        return None                      # 首位 legacy 形: 时代锚另核
+    rev = doc.get('revision')
+    if not (isinstance(rev, int) and not isinstance(rev, bool) and rev > 0):
+        return 'invalid_record: revision=%r 非正整数' % (rev,)
+    pred = doc.get('predecessor')
+    if pos == 0:
+        if pred is not None:
+            return ('invalid_record: 首档 predecessor 必须 None(实=%r;'
+                    '首档带前序=造链/指向后续)' % (pred,))
+    else:
+        if pred is None:
+            return ('invalid_record: 非首档(pos=%d)缺 predecessor'
+                    '(链断)' % pos)
+        p_norm = os.path.normpath(pred)
+        if p_norm == own_rel:
+            return 'invalid_record: predecessor 指向自己(%r)' % (pred,)
+        if p_norm not in ordered_run_paths:
+            return ('invalid_record: predecessor=%r 不指向本 run 在档文件'
+                    '(跨任务/链外)' % (pred,))
+        if ordered_run_paths.index(p_norm) != pos - 1:
+            return ('invalid_record: predecessor=%r 未指向紧邻前序'
+                    '(指向自己之外的隔位/后续记录=断链)' % (pred,))
+    return None
+
+
+def record_semantic_verdict(root, report_dir, overall, reviewer,
+                            notes='', extra=None):
+    """Audit-R1 F02 + Audit-R2 条目2: 独立席裁决落档(append-only,带内容绑定)。
+
+    写 root/audit/semantic_review/<YYYYMMDD>/VERDICT-<run_ts>-<seq>.json,
+    content_sha256=content_digest(report_dir)(裁决绑定的锚)。修订循环:
+    正文修订→摘要变→旧档自动过期(_semantic_review_state 的 fresh=False),
+    席位复验后调本函数再写新档——旧失败证据永在档,不覆盖。
+
+    Audit-R2 条目2 定序面: revision=该 run_ts 全档(跨日目录)最大号+1,
+    predecessor=前一最新档相对路径(首档=None)——裁决顺序由内容字段
+    显式承载,不依赖文件系统 mtime;必填字段(overall/reviewer/run_ts/
+    recorded_at)缺失即抛 ValueError,损坏档不落盘。
+    Audit-R4 条目1 硬化: revision 赋号下界取 max(在档最大有效号,
+    **全档文件数**)——链上存在损坏档(其 revision 无从读取)时,新号
+    仍严格大于损坏档可能持有的任何号(append-only 下任一档的号≤其
+    写入时的全档数≤当前全档数),复审恢复不与不可读档撞号;写入序
+    (_verdict_sort_key)为裁决顺序权威。
+    """
+    if not overall or not reviewer:
+        raise ValueError('裁决必填字段缺失: overall/reviewer 不得为空')
+    if overall not in SEAT_VERDICT_VOCAB:
+        raise ValueError(f'越表裁决词: {overall!r} 不在 R32 席位词表 '
+                         f'{SEAT_VERDICT_VOCAB}(同义映射: '
+                         'VERIFIED/PASS→UPHELD)')
+    report = _load_json(os.path.join(report_dir, 'report.json'))
+    run_ts = (report.get('run') or {}).get('ts_utc') or ''
+    if not run_ts:
+        raise ValueError('report.json 缺 run.ts_utc,无法绑定裁决')
+    day = datetime.now(timezone(timedelta(hours=8))).strftime('%Y%m%d')
+    d = os.path.join(root, 'audit', 'semantic_review', day)
+    os.makedirs(d, exist_ok=True)
+    # R11 P1②: 配号/前序读取/落盘同一跨进程锁临界区(锁域=整个
+    # semantic_review 树——跨日目录的 revision 链也在域内);临时文件
+    # 独立命名+fsync 后原子发布,终档存在性在锁内复核,不虚报成功。
+    import store_lock as sl
+    with sl.store_write_lock(os.path.dirname(d)):
+        seq = len([f for f in os.listdir(d) if f.startswith(
+            'VERDICT-' + run_ts)]) + 1
+        path = os.path.join(d, 'VERDICT-%s-%02d.json' % (run_ts, seq))
+        if os.path.exists(path):
+            raise FileExistsError(
+                f'裁决档已存在(锁下配号冲突,拒绝覆盖): {path}')
+        prior = _verdicts_for_run(root, run_ts)
+        revs = [v.get('revision') for _, v in prior
+                if isinstance(v, dict) and isinstance(v.get('revision'), int)]
+        # Audit-R4: 号下界=全档数(含不可读档)——复审恢复不与损坏档撞号
+        revision = max(revs + [len(prior)]) + 1
+        predecessor = None
+        if prior:
+            latest_p, _ = max(
+                prior, key=lambda t: _verdict_sort_key(t[0], t[1]))
+            predecessor = os.path.relpath(latest_p, root)
+        # Audit-R1 对齐 R32 席位章程 schema: seat 恒为章程名,audited_at=归档日
+        # (HKT),counterexamples_sought 非空由调用席自证(B3/B4/B5 机核面)。
+        doc = {'seat': 'semantic-audit-seat', 'overall': overall,
+               'reviewer': reviewer, 'notes': notes,
+               'run_ts': run_ts, 'content_sha256': content_digest(report_dir),
+               'audited_at': day[:4] + '-' + day[4:6] + '-' + day[6:],
+               'recorded_at': _now_utc(),
+               # Audit-R5 条目4: 格式与摘要算法显式可验证(读取端未知版本
+               # 按最严处理;缺席=legacy 时代,时代锚另核)
+               'format_version': VERDICT_FORMAT_VERSION,
+               'digest_algorithm': DIGEST_ALGORITHM_CURRENT,
+               'revision': revision, 'predecessor': predecessor,
+               # Audit-R23 任务1: 最终 MAP_REPORT.md 内容段摘要随裁决
+               # 落档——错误版本(在场地图被改)不得沿用旧裁决: 读取端
+               # _semantic_review_state 按此判 fresh,非地图问句/未渲染
+               # =None 不绑(旧档无此键=历史面,内容摘要仍为唯一锚)。
+               'map_report_sha256': map_report_content_sha(report_dir),
+               'counterexamples_sought': ((extra or {}).pop(
+                   'counterexamples_sought', None)
+                   or ['(未记载: 席位简报须补反例面)'])}
+        # Audit-R29 任务4(实雷正道修): 冻结输入摘要绑定机械化——真实
+        # 席位按 SKILL 逐字抄 python 片段并不可靠(B 会话实测: 复裁
+        # UPHELD 但落裁未带 extra→归档 belt 拒)。绑定是机械面不是判断
+        # 面: 记录器从 report.run.frozen_inputs 自动摸出并落
+        # frozen_inputs_sha256(席位判断义务不变;extra 显式传值须与
+        # 自动值一致,不一致=席位绑了别家的摘要,拒绝落档)。非地图/
+        # R29 前旧档 run 无该键=None 不绑(零回归)。
+        _fi_auto = frozen_inputs_digest(
+            (report.get('run') or {}).get('frozen_inputs'))
+        _fi_extra = (extra or {}).get('frozen_inputs_sha256')
+        if _fi_auto:
+            if _fi_extra and str(_fi_extra) != _fi_auto:
+                raise ValueError(
+                    '席位冻结摘要与报告冻结面不符: extra=%s 报告=%s '
+                    '(席位必须绑定本报告的渲染依赖身份)'
+                    % (str(_fi_extra)[:16], _fi_auto[:16]))
+            doc['frozen_inputs_sha256'] = _fi_auto
+        if extra:
+            doc.update(extra)
+        sl.atomic_write_json(path, doc, indent=2, sort_keys=False)
+    return path
+
+
+def map_report_content_sha(report_dir):
+    """Audit-R23 任务1: MAP_REPORT.md 内容段摘要(裁决↔地图绑定锚)。
+
+    内容段=首个「## 语义审查」节之前的一切(对照表/走位/传导/转折/
+    历史类比)——语义审查节在裁决落档后由「待裁」翻「已裁」,属状态面
+    非内容面,排除在外使绑定在裁决前后稳定。文件缺席→None(非地图
+    问句运行/未渲染,不绑)。
+    """
+    import hashlib
+    p = os.path.join(report_dir or '', 'MAP_REPORT.md')
+    try:
+        with open(p, encoding='utf-8') as f:
+            text = f.read()
+    except (OSError, ValueError):
+        return None
+    return hashlib.sha256(
+        text.split('\n## 语义审查')[0].encode('utf-8')).hexdigest()
+
+
+def _sha16_of_file(path):
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(65536), b''):
+            h.update(chunk)
+    return h.hexdigest()[:16]
+
+
+def _git_blob_proof(root, report_dir, latest_rel, name):
+    """Audit-R5 条目1 git 面可信旧证: 最早含旧裁决档(在案路径)的提交
+    里,该交付输入的仓内 blob==当前字节(该提交=旧档在案时点的仓内
+    快照)。旧档/文件不在同一仓内、无提交含它、git 不可用→None
+    (不可证,上层面按不可证处理)。"""
+    import hashlib
+    import subprocess
+    try:
+        top = subprocess.run(
+            ['git', '-C', report_dir, 'rev-parse', '--show-toplevel'],
+            capture_output=True, text=True, timeout=15).stdout.strip()
+        if not top:
+            return None
+        f_rel = os.path.relpath(os.path.join(report_dir, name), top)
+        v_rel = os.path.relpath(
+            os.path.join(root, latest_rel), top)
+        if f_rel.startswith('..') or v_rel.startswith('..'):
+            return None
+        commits = subprocess.run(
+            ['git', '-C', top, 'log', '--reverse', '--format=%H', '--', v_rel],
+            capture_output=True, text=True, timeout=15).stdout.split()
+        if not commits:
+            return None
+        blob = subprocess.run(
+            ['git', '-C', top, 'show', '%s:%s' % (commits[0], f_rel)],
+            capture_output=True, timeout=15).stdout
+        got = hashlib.sha256(blob).hexdigest()[:16] if blob else None
+        return ('git:%s:%s' % (commits[0][:12], f_rel), got)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+
+
+def _rebind_trusted_proofs(root, report_dir, latest_p, latest, matched_key):
+    """Audit-R5 条目1: 旧摘要未覆盖交付输入的可信旧证核验。
+
+    旧口径(v1/v2)锚复配只证明**其覆盖面**未变;未覆盖面(如 v2 之于
+    views_digest.json)须另有可信旧证证明自旧裁决在案时点未变,才允许
+    把通过状态迁移到覆盖全部交付输入的 v3。可信源(其一即可;均非从
+    当前文件临时生成的"旧基准"——禁止自我证明):
+    - 归档 manifest: root/research_archive/*/ARCHIVE_MANIFEST.json 且
+      verdict_chain 含本旧档(source_rel+sha256 前 16 位双吻合)——
+      copies_sha16 为归档时点快照(键缺席=该时点文件缺席,亦为快照事实);
+    - git 提交: 最早含本旧档(在案路径)的提交里该文件 blob==当前。
+    返回 (proofs{文件: {source, sha256_16}}, problems[str]);
+    problems 非空=存在未覆盖输入不可证未变(或已变)。
+    """
+    uncovered = [n for n in _ALGO_INPUTS[DIGEST_ALGORITHM_CURRENT]
+                 if n not in _ALGO_INPUTS[matched_key]]
+    proofs, problems = {}, []
+    latest_rel = os.path.relpath(latest_p, root)
+    latest_sha16 = _sha16_of_file(latest_p)
+    manifests = []
+    arc_dir = os.path.join(root, 'research_archive')
+    if os.path.isdir(arc_dir):
+        import glob as _glob
+        for mp in sorted(_glob.glob(os.path.join(
+                arc_dir, '*', 'ARCHIVE_MANIFEST.json'))):
+            try:
+                m = _load_json(mp)
+            except (OSError, ValueError):
+                continue
+            if any(isinstance(e, dict)
+                   and e.get('source_rel') == latest_rel
+                   and e.get('sha256') == latest_sha16
+                   for e in (m.get('verdict_chain') or [])):
+                manifests.append((os.path.relpath(mp, root), m))
+    for name in uncovered:
+        p = os.path.join(report_dir, name)
+        cur = _sha16_of_file(p) if os.path.isfile(p) else None
+        trust = None
+        for mrel, m in manifests:
+            copies = m.get('copies_sha16') or {}
+            trust = ('archive_manifest:%s#copies_sha16' % mrel,
+                     copies.get(name))
+            break
+        if trust is None:
+            trust = _git_blob_proof(root, report_dir, latest_rel, name)
+        if trust is None:
+            problems.append(
+                '%s 无可信旧证(归档 manifest 与 git 提交均缺席)——旧审查'
+                '是否覆盖该输入不可证' % name)
+            continue
+        src, old = trust
+        if old != cur:
+            problems.append('%s 与可信旧证不符(%s 时点 %r→当前 %r)——'
+                            '新增范围已被修改' % (name, src, old, cur))
+        else:
+            proofs[name] = {'source': src, 'sha256_16': cur}
+    return proofs, problems
+
+
+def rebind_verdict_digest(root, report_dir, note):
+    """Audit-R2 条目1 + Audit-R4 条目2/6 + Audit-R5 条目1 迁移面。
+
+    机械重绑的**全部**前置(缺一即 ValueError,须重新独立审查):
+    1. 旧裁决本身合法有效: 读取端单档校验通过——旧档损坏/违规=旧裁决
+       无效,不得继承其通过状态;
+    2. 旧锚复配: 最新档 content_sha256 与历史口径 v1/v2 之一在当前
+       内容上的复算值一致——证明**旧口径覆盖面**未变;
+    3. 未覆盖面可信旧证: v1/v2 不覆盖的交付输入(如 views_digest.json)
+       须有可信旧快照(归档 manifest copies_sha16 / git 提交 blob)证明
+       自旧裁决在案时点未变——不得从当前文件临时生成"旧基准"自我证明;
+    4. 内容边界一致: 未覆盖面=v3 输入−旧口径输入(机器推导,与普通
+       report/archive 门同一边界),迁移/报告/归档不各写一套。
+    非重审: 判断内容零变化,裁决结论承袭;rebind 块=机器可查的迁移
+    证据(uncovered_inputs_proof 逐输入记可信源与哈希)。
+    """
+    report = _load_json(os.path.join(report_dir, 'report.json'))
+    run_ts = (report.get('run') or {}).get('ts_utc') or ''
+    if not run_ts:
+        raise ValueError('report.json 缺 run.ts_utc,无法重绑')
+    hits = _verdicts_for_run(root, run_ts)
+    if not hits:
+        raise ValueError('无在档裁决可重绑')
+    keyed = sorted((_verdict_sort_key(p, v), p, v) for p, v in hits)
+    ordered = [os.path.normpath(os.path.relpath(p, root))
+               for _, p, _ in keyed]
+    latest_p, latest = keyed[-1][1], keyed[-1][2]
+    if not isinstance(latest, dict) or not latest.get('content_sha256'):
+        raise ValueError('最新档无旧锚,不适用机械重绑')
+    # (1) 旧裁决时代合法性(legacy 形最新档=旧口径时代,其时代锚一致性
+    # 由 (2) 的复配本身证明)
+    err = _verdict_record_error(root, latest_p, latest, run_ts, ordered)
+    if err:
+        raise ValueError('旧裁决档不合法(%s @ %s)——旧裁决无效不得继承,'
+                         '须重新独立审查'
+                         % (err, os.path.relpath(latest_p, root)))
+    matched_key = None
+    for key, algo in (('digest_v1', content_digest_v1),
+                      ('digest_v2', content_digest_v2)):
+        try:
+            if latest['content_sha256'] == algo(report_dir):
+                matched_key = key
+                break
+        except (OSError, ValueError):
+            continue
+    if matched_key is None:
+        raise ValueError('旧锚与当前内容不符(任一历史口径均不复配——'
+                         '内容已变)——须独立复验,不得机械重绑')
+    # (3) 未覆盖面可信旧证(v2 不覆盖 views_digest;v1 另不覆盖 report.json)
+    proofs, problems = _rebind_trusted_proofs(
+        root, report_dir, latest_p, latest, matched_key)
+    if problems:
+        raise ValueError(
+            '旧摘要(%s)未覆盖全部交付输入且不可证明未变: %s——旧审查与'
+            '当前完整内容的同一性不可证,须重新独立审查,不得机械重绑'
+            % (matched_key, '; '.join(problems)))
+    return record_semantic_verdict(
+        root, report_dir, latest.get('overall'), latest.get('reviewer'),
+        notes=(latest.get('notes') or ''),
+        extra={'rebind': {
+            'from_algorithm': matched_key,
+            'to_algorithm': DIGEST_ALGORITHM_CURRENT,
+            'verified_old_match': True,
+            'uncovered_inputs_proof': proofs,
+            'predecessor_archive': os.path.relpath(latest_p, root),
+            'note': note}})
+
+
+def _legacy_era_error(report_dir, doc):
+    """Audit-R5 条目4: legacy 形档(无 revision 键)的时代锚核验。
+
+    真 legacy 档=revision 键出现**之前**写入的前史档,锚当时按历史口径
+    (v1/v2)计算。**攻击指纹**=revision-less 档的锚恰为现行 v3 口径
+    (在当前内容上复配)——真 legacy 不可能持有 v3 锚(v3 出现时新写档
+    已强制带 revision),此形=新格式档被删除 revision 冒充 legacy 且
+    将以 fresh=True 通过交付门,invalid_record 阻断。
+    锚与当前内容任一口径均不复配=被替代的**过时前史裁决**(链中间位
+    常态: 修订前后内容不同),fresh 自然 False,不是攻击,放行为历史;
+    无 report_dir 可核=非交付门调用面,同样不误伤。
+    """
+    if report_dir is None:
+        return None
+    anchor = doc.get('content_sha256')
+    if not anchor:
+        return None          # 无锚 legacy: 由 fresh=None 挡死,不算降级攻击
+    try:
+        cur_v3 = content_digest(report_dir)
+        if anchor == cur_v3 and anchor not in (content_digest_v1(report_dir),
+                                               content_digest_v2(report_dir)):
+            return ('invalid_record: legacy 形档锚为现行 v3 口径(疑似'
+                    '新格式档删除 revision 的降级)')
+    except (OSError, ValueError):
+        return ('invalid_record: legacy 档时代锚不可核验(交付输入件缺失)'
+                '——不可证=阻断')
+    return None
+
+
+def _semantic_review_state(report, root, report_dir=None):
     """R33-①: 语义审计席状态面(常驻席=SEMANTIC-AUDIT-SEAT;§4b/§8)。
 
     唤起点(ii): L3(定性推断)/L4(条件情景)落位即 required=True——
@@ -307,6 +928,32 @@ def _semantic_review_state(report, root):
     root/audit/semantic_review/YYYYMMDD/VERDICT-<run_ts>*.json
     (append-only),在案→披露升为裁决摘要;缺席→「叙事语义未经
     独立裁决」。确定性: 纯文件面判定,零模型零网络。
+
+    Audit-R1 F02 绑定面: 裁决档带 content_sha256 时按当前
+    content_digest(report_dir) 判 fresh(True/False);无绑定键的旧档
+    fresh=None(在场但不冒充新鲜——report 门不放行)。
+
+    Audit-R2 条目2 裁决顺序与非法记录(fail-closed):
+    - 定序=**写入序** _verdict_sort_key(日目录+文件名 seq+文件名),
+      mtime 不参与——调换裁决文件 mtime 结果不变;
+    - 最新档损坏(不可解析/缺 overall)→ error='corrupt_latest',
+      verdict=None——**不回退旧 PASS**;
+    - revision 同号多档 → error='duplicate_revision'——冲突即阻断;
+    - 全史保留: prior_verdicts=除最新外全档(含损坏档,如实披露)。
+
+    Audit-R4 条目1 裁决损坏与缺字段不得放行(收紧):
+    - 损坏档占其真实**写入位**,不降代——链尾新档(revision=3)截断后
+      不得让旧 UPHELD(revision=2)回升为最新(裁决先后不因解析失败
+      倒退,反例复现于基线 5fc5df8);
+    - 有效档 revision 是写入序下的校验不变量: 同号=duplicate_revision,
+      晚写位不递增=order_conflict(_verdict_write_positions_disagree);
+    - 读取端逐档校验(_verdict_record_error): 必填字段/目标 run/
+      合法裁决词/revision/predecessor;最新档 corrupt/invalid → 阻断
+      (无法确认有效最新裁决);语义级违规任何写入位阻断;解析级损坏
+      在非最新位=保留失败历史(record_health 披露),经有效复审
+      (更高 revision 新档)可恢复交付;
+    - record_health: 逐档健康面(relpath→问题描述),损坏历史如实可见。
+    error 非空时 report 门 review_ok=False(阻断交付)。
     """
     layers = report.get('layers') or {}
     l3p = bool((layers.get('L3_AI推断层') or {}).get('produced'))
@@ -314,25 +961,89 @@ def _semantic_review_state(report, root):
     reasons = ((['l3_qualitative_inference'] if l3p else [])
                + (['l4_conditional_scenarios'] if l4p else []))
     state = {'required': bool(reasons), 'reasons': reasons,
-             'seat_invoked': False, 'verdict': None, 'archive': None}
+             'seat_invoked': False, 'verdict': None, 'archive': None,
+             'fresh': None, 'verdicts_n': 0, 'prior_verdicts': [],
+             'record_health': {}, 'error': None}
     if not reasons:
         return state
     run_ts = (report.get('run') or {}).get('ts_utc') or ''
     if not run_ts:
         return state
-    import glob as _glob
-    for p in sorted(_glob.glob(os.path.join(
-            root, 'audit', 'semantic_review', '*', 'VERDICT-*.json'))):
-        if run_ts not in os.path.basename(p):
-            continue
-        try:
-            v = _load_json(p)
-        except Exception:
-            continue
-        state.update(seat_invoked=True,
-                     verdict=v.get('overall'),
-                     archive=os.path.relpath(p, root))
-        break
+    hits = _verdicts_for_run(root, run_ts)
+    if not hits:
+        return state
+    keyed = sorted((_verdict_sort_key(p, v), p, v) for p, v in hits)
+    state['verdicts_n'] = len(keyed)
+    state['prior_verdicts'] = [os.path.relpath(p, root)
+                               for _, p, _ in keyed[:-1]]
+    _, latest_p, latest = keyed[-1]
+    state['archive'] = os.path.relpath(latest_p, root)
+    # ── 链级不变量: 写入序下有效档 revision 严格递增 ──
+    conflict = _verdict_write_positions_disagree(keyed)
+    if conflict:
+        state.update(seat_invoked=True, verdict=None,
+                     error=conflict.split(':')[0].strip(),
+                     error_detail=conflict)
+        return state
+    # ── 逐档校验: 语义级违规任何位阻断;解析级损坏仅最新位阻断 ──
+    ordered = [os.path.normpath(os.path.relpath(p, root))
+               for _, p, _ in keyed]
+    for _, p, v in keyed:
+        err = _verdict_record_error(root, p, v, run_ts, ordered)
+        if err:
+            state['record_health'][os.path.relpath(p, root)] = err
+            if p == latest_p or err.startswith('invalid_record'):
+                state.update(
+                    seat_invoked=True, verdict=None,
+                    error=('corrupt_latest' if err.startswith('corrupt')
+                           else err),
+                    error_detail='%s @ %s' % (err, os.path.relpath(p, root)))
+                return state
+    # ── Audit-R5 条目4: 首位 legacy 档时代锚核验(删除 revision 冒充
+    # legacy 的单档链: 锚若为现行 v3 口径=新格式档被降级,阻断;真 legacy
+    # 档锚必为历史口径 v1/v2 且在当前内容上复配——无法核验(缺件)亦阻断
+    for _, p, v in keyed:
+        if isinstance(v, dict) and 'revision' not in v:
+            era = _legacy_era_error(report_dir, v)
+            if era:
+                state['record_health'][os.path.relpath(p, root)] = era
+                state.update(seat_invoked=True, verdict=None, error=era,
+                             error_detail='%s @ %s'
+                             % (era, os.path.relpath(p, root)))
+                return state
+            break
+    state.update(seat_invoked=True, verdict=latest.get('overall'))
+    bound = latest.get('content_sha256')
+    if bound and report_dir:
+        # Audit-R5 条目4: 摘要算法版本显式可验证——在场但非现行口径=
+        # 绑定不可核验,fresh=False(缺失=历史档,锚与现行口径比对自然
+        # 失效走 rebind 迁移;未知版本不获得更宽松权限)
+        algo = latest.get('digest_algorithm')
+        if algo is not None and algo != DIGEST_ALGORITHM_CURRENT:
+            state['fresh'] = False
+            state['fresh_note'] = ('digest_algorithm=%r 非现行口径'
+                                   % (algo,))
+        else:
+            try:
+                state['fresh'] = (content_digest(report_dir) == bound)
+            except (OSError, ValueError):
+                state['fresh'] = False
+    elif bound:
+        state['fresh'] = None   # 有绑定但无 report_dir 可核=不冒充新鲜
+    # ── Audit-R23 任务1: 裁决↔地图内容段绑定——在场 MAP_REPORT.md 与
+    # 裁决落档时的内容段摘要不符=地图被单改,旧裁决不得沿用(fresh=
+    # False)。旧档无 map_report_sha256 键=历史面不追溯(内容摘要仍为
+    # 主锚);绑定键在场且文件缺席=渲染面丢失,同样不冒充新鲜。 ──
+    map_bound = latest.get('map_report_sha256')
+    state['map_report_sha256'] = map_bound
+    if map_bound:
+        cur = map_report_content_sha(report_dir) if report_dir else None
+        if cur != map_bound:
+            state['fresh'] = False
+            state['fresh_note'] = (
+                'MAP_REPORT.md 内容段摘要与裁决绑定不符(在场地图与受审'
+                '版本不同——错误版本不得沿用旧裁决;cur=%s bound=%s)'
+                % ((cur or '缺席')[:12], str(map_bound)[:12]))
     return state
 
 
@@ -392,6 +1103,225 @@ def _new_attach_meta(prior, meta):
     return out
 
 
+# 引擎诚实拒答族(Audit-R5 条目2): envelope error kind 词表——这些失败
+# 是"数据面如实缺席/不满足前提"的正确拒答,不是管线完整性缺陷,可按
+# 可选降级面处理;词表之外/无信封/进程面失败=未知失败,不得自动归可选。
+HONEST_REFUSAL_ERROR_KINDS = frozenset(
+    {'no_series', 'insufficient_history', 'insufficient_candidates',
+     'anchor_not_complete'})
+
+# 阻断交付的数据门类目(Attach 旗标不可越过;仅 optional_data_missing
+# 走显式降级路径)——attach/report/archive 同源引用。
+BLOCKING_BLOCKED_CLASSES = frozenset(
+    {'critical_zero_evidence', 'required_data_missing',
+     'critical_step_failure', 'map_required_face_missing',
+     'map_core_dimension_missing', 'map_anchor_coverage_insufficient',
+     'map_core_dimension_stale', 'map_current_period_missing',
+     'map_current_period_unverified', 'map_current_period_stale_mix',
+     'map_official_target_missing'})
+
+
+def _step_failure_is_refusal(step):
+    """失败步性质判定(Audit-R5 条目2): 诚实拒答=True(可降级面)。
+
+    依据(按信任序): honest_refusal 豁免标记(编排层已判,如 S6 analog
+    短历史拒答)> 信封 error.kind∈引擎拒答词表。其余(S10 自检失败/
+    来源校验失败/进程失败/超时/未知 kind)=非拒答——关键步骤失败,
+    不得自动归为可选缺失。
+    """
+    if step.get('honest_refusal'):
+        return True
+    env = step.get('envelope')
+    err = env.get('error') if isinstance(env, dict) else None
+    return bool(isinstance(err, dict)
+                and err.get('kind') in HONEST_REFUSAL_ERROR_KINDS)
+
+
+def blocked_class_of(report, calendar_path=None):
+    """Audit-R4 条目5 + Audit-R5 条目2: 数据缺口/完整性分类唯一规范源
+    (attach/report/archive 同源同判,不得各写一套口径)。
+
+    进程成功、必要数据满足、数据质量合格**分别判断**——run_ok 不再
+    一票豁免: 必要缺口与零证据在 run_ok=true 时同样阻断(反例 2A:
+    history 正常退出+必要指标 n=1 曾误放行)。
+
+    返回 None(无缺口)或:
+      critical_zero_evidence  L1 事实行=0——任何旗标不放行;
+      required_data_missing   冻结必要项 outcome∈{missing,
+                             insufficient_coverage,stale_for_task}
+                             (任务目标缺口;run_ok=true 亦阻断;
+                             --allow-failed-run 只解 attach 层,交付层
+                             仍拦;stale_for_task=R7-02 采集状态贯通
+                             判定的数据过期,旧数据不冒充当前研究可用);
+      critical_step_failure   run_ok=False 且存在**非诚实拒答**的失败步
+                             (S10 自检/来源校验/关键步/进程/未知失败)
+                             ——质量与完整性缺口,不得归可选降级;
+      optional_data_missing   证据面在场、无必要缺口、失败步全部为诚实
+                             拒答(源端缺席类)——显式旗标+充分披露+
+                             有效独立审查后可交付。
+    地图问句(run_ok=true 分支内)另有两级:
+      map_required_face_missing    读者报告必需面缺席;
+      map_core_dimension_missing   地区×维度组零 ok 格(R20);
+      map_anchor_coverage_insufficient  组内 ok 锚<2 且空锚无经证实延误
+                             依据(R21)——「仅存最新单点」不构成三时点对照
+                             满足,与 Audit-R4 条目5 同纪律;
+      map_current_period_missing   组内当期(最新一期)锚零 ok——他时点
+                             ok 不补当期缺口(R27 任务1: 按所请求时间点
+                             统计覆盖);计划无当期锚不判;
+      map_current_period_unverified 组内当期 ok 锚全部未核验(决策序列
+                             无更晚已证实决议且间隔超决策周期上限,
+                             R27 任务1)——现值有效性无法核验;
+      map_current_period_stale_mix 组内当期 ok 锚全为过期或未核验且
+                             两类并存(R28 任务2 混合形态——单一类
+                             判定各自遗漏)——混合缺口逐格点名;
+      map_official_target_missing 问句指定官方政策目标而日历无政策
+                             决议/维持实录条目、序列面决议/生效日亦
+                             不可推(R28 任务2)——现值无官方口径可依,
+                             不以市场序列值冒充宣布目标。
+    calendar_path=None 时政策实录面读模块默认日历(生产口径);显式
+    传路径=测试注入缝(空日历=缺实录反例),生产调用不传。
+    「存在最新单点」不构成历史分析需求满足(Audit-R4 条目5)——
+    insufficient_coverage 与 missing 同为必要缺口。
+    """
+    l1_rows = len(((report.get('layers') or {}).get('L1_事实层') or {})
+                  .get('rows') or [])
+    req_missing = [
+        i.get('metric_id') for i in
+        (((report.get('run') or {}).get('data_requirements') or {})
+         .get('items') or [])
+        if i.get('tier') == 'required' and i.get('outcome')
+        in ('missing', 'insufficient_coverage', 'stale_for_task')]
+    if l1_rows == 0:
+        return 'critical_zero_evidence'
+    if req_missing:
+        return 'required_data_missing'
+    # Audit-R29 任务1(C2 实雷): 地图草稿类判定从 run_ok 门下提出——
+    # 地图内容缺口(核心维度组/锚覆盖/当期/官方目标)是内容面不是进程
+    # 面: TIPS_10Y 等源端诚实缺席把 run_ok 置 False 后,旧序整支跳过
+    # → 缺核心维度的地图落 optional 放行归档(与 R20 起草稿合同相反)。
+    # 非地图问句行为不变(仍走 run_ok→进程类);地图问句先判内容类,
+    # 全绿且 run_ok=False 时照旧落 critical_step_failure/optional。
+    if report.get('run_ok') is not False or \
+            (report.get('research_plan') or {}).get('map_question'):
+        # Audit-R18 任务4反例②③: 地图问句必需图表面(对照/走位/传导/
+        # 转折×3/历史)缺席=读者交付件残缺——与必要数据缺口同级阻断
+        # (faces 摘要在 attach 成功时随档;缺席=未 attach 或无面)
+        _rp = report.get('research_plan') or {}
+        if _rp.get('map_question'):
+            _f = ((report.get('agent_judgment') or {})
+                  .get('reader_map_faces')) or {}
+            if not _f.get('complete'):
+                return 'map_required_face_missing'
+            # Audit-R20 任务1/任务5反例④: 12组(地区×维度)每组至少一格
+            # ok——核心维度整组缺数=交付**草稿**,不进正式归档(用户指令:
+            # 核心维度仍缺则交付草稿;数据面补齐后正例应 12/12 组全绿)。
+            _pv = _rp.get('point_values') or {}
+            _planned_pairs = {
+                (_eco, _dim)
+                for _eco, _rf in (_rp.get('regions') or {}).items()
+                for _dim in ((_rf.get('dimensions') or {}) or {})}
+            # Audit-R26 验收: 缺数/锚覆盖判定改走 research_map_planner
+            # 共享实现(missing_core_groups/sparse_anchor_groups)——与
+            # 首页草稿横幅同源同判,阻断与渲染不再两套口径。
+            import research_map_planner as _rmp_grp
+            if _rmp_grp.missing_core_groups(_pv, _planned_pairs):
+                return 'map_core_dimension_missing'
+            # Audit-R27 任务1: 必要维度**当期**缺数——按所请求时间点统计
+            # 覆盖,同一时点多个指标不能替代另一个时点: 组内最新一期
+            # 锚零 ok(他时点 ok 不补当期)→交付草稿;计划无当期锚(纯
+            # 历史点问句)不判。判定与渲染共源(current_period_groups)。
+            _has_cur_anchor = any(
+                (a.get('months_before') or 0) == 0
+                for a in (_rp.get('point_anchors') or []))
+            _cur_r27 = _rmp_grp.current_period_groups(
+                _pv, _planned_pairs,
+                has_current_anchor=_has_cur_anchor)
+            if _cur_r27['missing']:
+                return 'map_current_period_missing'
+            # Audit-R21 任务3反例③: 序列在场但一组仅剩最新单点(两个历史
+            # 时点留空且无经证实延误依据)=锚覆盖不足——「存在最新单点」
+            # 不构成三时点对照满足(与 Audit-R4 条目5 同纪律),交付草稿
+            # 不进正式归档;经日历实录证实的延误缺口(停摆类)不算未证实。
+            if _rmp_grp.sparse_anchor_groups(_pv, _planned_pairs):
+                return 'map_anchor_coverage_insufficient'
+            # Audit-R26 任务2: 必要维度**只剩确证过期值**——组内最新一期
+            # ok 锚全部 freshness=stale(按统计期末/政策最后确认纪律确证),
+            # 无任何当期有效读数: 交付草稿(报告首页明确标草稿),正式归档
+            # 拒绝;组内任一非过期 ok 锚在场即不触发(过期格标注不改级)。
+            # 判定与渲染共源(research_map_planner.stale_only_groups)。
+            import research_map_planner as _rmp_st
+            if _rmp_st.stale_only_groups(_pv, _planned_pairs):
+                return 'map_core_dimension_stale'
+            # Audit-R27 任务1: 必要维度当期值全部**无法核验**(无更晚已
+            # 证实决议且无证实间隔超决策周期上限——本地日历未收录≠未
+            # 发生,2024-06-06 ECB 决议复测锚)→交付草稿;判定与渲染共源。
+            if _cur_r27['unverified']:
+                return 'map_current_period_unverified'
+            # Audit-R28 任务2: 必要维度当期只有**过期与未核验值的混合**
+            # (单一类判定各自遗漏的混合形态: all-stale→R26 类/all-
+            # unverified→R27 类,混合两不沾)→交付草稿并逐格点名缺口;
+            # 判定与渲染共源(current_period_groups['stale_mix'])。
+            if _cur_r27.get('stale_mix'):
+                return 'map_current_period_stale_mix'
+            # Audit-R28 任务2: **缺官方政策目标记录**——问句指定官方目标
+            # (央行目标水平/距上次调整)而日历无政策决议/维持实录条目,
+            # 序列面决议/生效日亦不可推: 现值无官方口径可依,不以市场
+            # 序列值冒充宣布目标→交付草稿点名缺口;判定与渲染共源
+            # (official_policy_record_face.gaps)。
+            import research_map_planner as _rmp_opr
+            _opr_g = _rmp_opr.official_policy_record_face(
+                _pv, _planned_pairs, _rp.get('cutoff'),
+                question=(report.get('run') or {}).get('question'),
+                calendar_path=calendar_path)
+            if _opr_g.get('gaps'):
+                return 'map_official_target_missing'
+        # 地图内容类全绿: run_ok 健康→无缺口;run_ok=False(诚实源缺席
+        # 类)→落进程类旗标面(optional/critical),不放空手 None。
+        if report.get('run_ok') is not False:
+            return None
+    non_refusal = [s.get('step') for s in (report.get('steps') or [])
+                   if s.get('executed') and s.get('ok') is False
+                   and not _step_failure_is_refusal(s)]
+    if non_refusal:
+        return 'critical_step_failure'
+    return 'optional_data_missing'
+
+
+def _reader_map_faces_summary(judgment, report):
+    """Audit-R18: 地图问句判定五面粗检(完整判定=judgment_contract._map_checks)。
+
+    返回 None=非地图问句;否则 {'complete', 粗粒度面计数}——complete=False
+    时 blocked_class_of 判 map_required_face_missing(必需图表面缺席与
+    必要数据缺口同级阻断)。"""
+    plan = report.get('research_plan') or {}
+    if not plan.get('map_question'):
+        return None
+    rm = (judgment or {}).get('reader_map') or {}
+    planned = set((plan.get('regions') or {}).keys())
+    regions_ok = bool(planned) and planned.issubset(
+        {r.get('region') for r in rm.get('regions') or []
+         if isinstance(r, dict) and str(r.get('from_to') or '').strip()})
+    turnings_n = len(rm.get('turnings') or [])
+    history_n = len(rm.get('history_periods') or [])
+    # R20 任务3: 历史类比 0..3 段;零段合法但须带零段注记(检索范围+原因)
+    history_ok = (1 <= history_n <= 3
+                  or (history_n == 0 and str(
+                      rm.get('history_zero_case_note') or '').strip()))
+    return {
+        'complete': bool(
+            str(rm.get('headline_conclusion') or '').strip()
+            and regions_ok
+            and (rm.get('transmission') or [])
+            and turnings_n == 3
+            and history_ok),
+        'headline': bool(str(rm.get('headline_conclusion') or '').strip()),
+        'regions_ok': regions_ok,
+        'transmission_chains': len(rm.get('transmission') or []),
+        'turnings_n': turnings_n,
+        'history_n': history_n,
+    }
+
+
 def attach_judgment(report_dir, judgment_path, root=None,
                     allow_failed_run=False):
     """校验 Agent judgment 并合并进 research-run 报告(半落位=不落位)。
@@ -411,9 +1341,23 @@ def attach_judgment(report_dir, judgment_path, root=None,
     report = _load_json(rj_path)
     judgment = _load_json(judgment_path)
 
-    # ── MINOR-4 门槛: 失败底座默认拒收 ─────────────────────────────
+    # ── MINOR-4 门槛: 失败底座默认拒收(Audit-R1 F02 分级) ──────────
+    # 规则运行前固定(与 plan 段 run.degradation_policy 同文,双写=互证);
+    # Audit-R4 条目5 起分类唯一规范源=blocked_class_of(attach/report/
+    # archive 同源同判),insufficient_coverage 与 missing 同为必要缺口:
+    #   critical_zero_evidence: L1 事实行=0(引擎崩溃/全量采集失败)——
+    #     判断无处可落,**任何旗标不得放行**(不用 --allow-failed-run 把
+    #     关键失败自动变成成功);
+    #   required_data_missing: 运行前冻结的必要指标(问题词面命中)采集
+    #     缺席**或覆盖不足**(最新单点≠历史分析需求满足)——任务目标
+    #     缺口,默认阻塞;显式 allow_failed_run 才放行并记 degraded
+    #     (缺口随档,不得事后把必要改判可选=缩减任务目标);
+    #   optional_data_missing: L1 事实面在场、失败步=诚实拒答类(如源端
+    #     缺席 no_series)——须显式 allow_failed_run=True,落位记 degraded。
     run_ok = report.get('run_ok')
-    if run_ok is False and not allow_failed_run:
+    blocked_class = blocked_class_of(report)
+    if run_ok is False and (blocked_class == 'critical_zero_evidence'
+                            or not allow_failed_run):
         report['agent_judgment'] = _new_attach_meta(
             report.get('agent_judgment'),
             {
@@ -422,19 +1366,31 @@ def attach_judgment(report_dir, judgment_path, root=None,
                 'judgment_file': os.path.basename(judgment_path),
                 'schema_version': JUDGMENT_SCHEMA_VERSION,
                 'blocked': 'run_ok_false',
+                'blocked_class': blocked_class,
                 'block_note': ('research-run run_ok=False——判断默认不得落在失败'
+                               '证据面上;显式 allow_failed_run=True 只放行'
+                               ' optional_data_missing(L1 证据面在场+诚实拒答类'
+                               '失败);critical_zero_evidence 任何旗标不放行'
+                               if blocked_class == 'critical_zero_evidence' else
+                               'research-run run_ok=False——判断默认不得落在失败'
                                '证据面上;显式 allow_failed_run=True 才放行'
-                               '(诚实拒答类失败且证据面仍可用时由 Agent 声明)'),
+                               '(required_data_missing=必要指标缺席/覆盖不足的'
+                               '任务目标缺口,critical_step_failure=关键步骤/'
+                               '来源校验/未知失败,或 optional_data_missing='
+                               '诚实拒答类失败且证据面仍可用,由 Agent 显式'
+                               '声明并随档;交付层仍按 blocked_class 分级拦截)'),
                 'run_ok_at_attach': run_ok,
             })
         # R33-①: blocked 面同样落席位状态键(L3 未落位→required=False,
         # 面键一致;不追溯旧档)
-        report['semantic_review'] = _semantic_review_state(report, root)
+        report['semantic_review'] = _semantic_review_state(
+            report, root, report_dir)
         # R25 NIT V1-2: blocked 路径同样重渲 md(拦截记录两视图同步)
         _write_report(report_dir, report, rj_path)
         return {'report_dir': report_dir,
                 'attached': False,
                 'blocked': 'run_ok_false',
+                'blocked_class': blocked_class,
                 'run_ok_at_attach': run_ok,
                 'layers_summary': {
                     'L3_produced': (report.get('layers', {})
@@ -486,7 +1442,8 @@ def attach_judgment(report_dir, judgment_path, root=None,
     report['layers'] = layers
     # R33-①: 席位状态面随档(确定性面零污染: 新增键,不动
     # steps/evidence_index/run;编排层读 required 自动唤席)
-    report['semantic_review'] = _semantic_review_state(report, root)
+    report['semantic_review'] = _semantic_review_state(
+        report, root, report_dir)
     report['agent_judgment'] = _new_attach_meta(
         report.get('agent_judgment'),
         {
@@ -500,6 +1457,18 @@ def attach_judgment(report_dir, judgment_path, root=None,
             'run_ok_at_attach': run_ok,
             'allow_failed_run': bool(allow_failed_run and run_ok is False),
         })
+    # Audit-R18: 地图问句 reader_map 面摘要随档(blocked_class_of 的
+    # map_required_face_missing 判据源;深层结构/数值由 judgment_contract
+    # _map_checks 在契约层拦,此处只落粗粒度面——attach 成功才有 complete)
+    _faces = _reader_map_faces_summary(judgment, report)
+    if _faces is not None:
+        if res['passed'] and contract_ok:
+            report['agent_judgment']['reader_map_faces'] = _faces
+        else:
+            report['agent_judgment']['reader_map_faces'] = dict(
+                _faces, complete=False,
+                note='attach 未成功——reader_map 面以缺席论(map_required_'
+                     'face_missing 阻断交付/归档)')
     if res['passed'] and not contract_ok:    # 纪律绿但契约未全绿=契约门拦截
         report['agent_judgment']['blocked'] = \
             'contract_' + str(contract.get('verdict')).lower()

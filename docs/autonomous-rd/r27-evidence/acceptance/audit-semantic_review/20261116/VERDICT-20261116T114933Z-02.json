@@ -1,0 +1,22 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "f10-acceptor-seat",
+  "notes": "F10 真正未优化独立任务终审(两轮复议闭环): 出题=本席(未参与修复, 预注册 5 期望存档不外泄), 受测席零提示自选方法 M1-M9, 原样投递逐字执行。round 1 裁 REVISE 三必修(F10-1 前向差分口径误标累计/F10-2 月度口径措辞/F10-3 宏观档版本混用)+G0-G4 全 PASS; 56b0070 修复后 round 2 抓出 F10-5(修订未传播到交付面)裁 REVISE; 0b8b9bd 重渲+三副本同步后终裁 UPHELD。数字面经本席两轮独立复算(真累计 8 数逐位/_12 钉版锚点/双档不变性/脚本重跑逐键等)全中; 核心结论(频率增强+幅度钝化+涨跌不对称)复核成立。F10-6 撤回改 observation, F10-4 NIT 列 DEFERRED。独立性维持: 操作者仅转达修订事实, 未补解法未改设问。",
+  "run_ts": "20261116T114933Z",
+  "content_sha256": "40ccf9ab0abdf38796722afcd02c72cc4bd2654c86bb8efba9aecb0da1a829d5",
+  "audited_at": "2026-11-16",
+  "recorded_at": "20261116T144841Z",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261116/VERDICT-20261116T114933Z-01.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "rebind": {
+    "from_algorithm": "digest_v1(judgment+report.md)",
+    "to_algorithm": "digest_v2(report.json+judgment)",
+    "verified_v1_match": true,
+    "predecessor_archive": "audit/semantic_review/20261116/VERDICT-20261116T114933Z-01.json",
+    "note": "Audit-R2 条目1 摘要口径迁移(digest v1→v2): 内容未变经旧锚验证, 裁决结论承袭; 判断内容零变化, 非重审"
+  }
+}

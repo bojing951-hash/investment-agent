@@ -1,0 +1,27 @@
+== 0. CODE_VERSION 印章 ==
+{
+ "git_head": "b7cc80b",
+ "git_diff_sha256": null,
+ "stamped_at": "2026-11-21T08:52:40+08:00"
+}PASS: 印章=b7cc80b
+== 1. 原问逐字核对 ==
+落盘原问文件: /tmp/r70/r27-accept/install-degraded/question_verbatim_20261121-100646.txt
+409eef0c8cec2aa0634d9cd7e6fb6280739b20dd35fe5c134bf43cdd963d2488  /tmp/r70/r27-accept/install-degraded/question_verbatim_20261121-100646.txt
+2c5917f3002651a25180ca004bb11686cdf5d44aef12d8693ee3960200397cb9  /tmp/r70/question_A.txt
+PASS: 逐字一致(唯一差异=文件级尾部换行,-p 传参剥离,非内容差)
+== 2. 运行SHA+随包原问+裁决链+地图哈希+重放面 ==
+run_dir: 20261121T020733Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最
+git_head= b7cc80b | source= code_version_stamp
+PASS (期望 b7cc80b)
+question_verbatim.txt 字节=run.question: True
+MAP_REPORT.sha256 一致: True | 5bdc1691c1696850
+首页草稿横幅: ['核心维度组缺数']
+逐组覆盖表在场: True
+按时点统计覆盖行在场: True
+重放面: footer在场+原问件+裁决链双记录+命令: True
+对照表当期列(最新一期): True
+裁决链(20261121T020733Z): [('VERDICT-20261121T020733Z-01.json', 'UPHELD', 'rev1')]
+blocked_class: (无)
+
+== 3. 归档拒绝独立复演(操作者直跑) ==
+strict rc=1 (ok=false, blocked=not_deliverable, deliverable=false, verdict=UPHELD)

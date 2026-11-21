@@ -18,6 +18,7 @@
 import ast
 import hashlib
 import json
+import math
 import os
 import subprocess
 import sys
@@ -363,7 +364,10 @@ def _golden_doc(window_kind):
                            [_per("20261026", 2), _per("20261102", 3),
                             _per("20261109", 4), _per("20261116", 6),
                             _per("20261123", 1)]),
-            "mean_coverage": sum(p["coverage"] for p in (
+            # 数值规范(Audit-R4 §三.2): 黄金聚合=math.fsum(与被测模块
+            # 同口径;CPython 3.12 起 sum() 浮点改 Neumaier 补偿求和,
+            # 3.11- 直加——sum() 口径跨版本末位分叉,fsum 唯一稳定)
+            "mean_coverage": math.fsum(p["coverage"] for p in (
                 [_per("20261102", 3), _per("20261109", 4),
                  _per("20261116", 6), _per("20261123", 1)] if monthly else
                 [_per("20261026", 2), _per("20261102", 3),
@@ -404,7 +408,9 @@ GOLDEN_MONTHLY_DOC = _golden_doc("monthly")
 GOLDEN_QUARTERLY_DOC = _golden_doc("quarterly")
 
 GOLDEN_MONTHLY_DOC_SHA256 = (
-    "5e5e5e96161a49b104abb8031c9bef14dee56568454548d438b19059dbddd5f2")
+    # Audit-R4 §三.2 重算(数值规范=fsum 正确舍入聚合,跨 3.9-3.12 稳定;
+    # 旧值 5e5e5e96… 系 sum() 直加口径,3.12 起 Neumaier 求和末位分叉)
+    "81d1e0f4bbfd7e767c44cd92f438f12f6b1696c9e499e5adb9b2455556c17470")
 GOLDEN_QUARTERLY_DOC_SHA256 = (
     "ff3c41fe89ba709da72f7e66d104b6c2d4369139068e6d2582484c0a65a2b4eb")
 GOLDEN_PRD_STATISTICS_SHA256 = (
@@ -525,12 +531,18 @@ class TestGoldenFirstPrinciples(unittest.TestCase):
             GOLDEN_MONTHLY_BRIEFING_SHA256)
 
     def test_golden_rate_literals(self):
-        # 首原理: 2/(2+1) 命中率、逐报告覆盖率均值(P-D-06 口径=先比率后均值)、
-        # 29/10 星级均值
+        # 首原理: 2/(2+1) 命中率、逐报告覆盖率均值(P-D-06 口径=先比率
+        # 后均值)、29/10 星级均值。均值黄金=有理数精确值的最邻近双精度
+        # (7/12);断言两侧同用版本稳定算法(fsum=正确舍入和,除以 4=精确
+        # 2 的幂缩放),不放宽容差也不换字面量——口径见 Audit-R4 §三.2
+        from fractions import Fraction
         self.assertEqual(GOLDEN_PRD_STATISTICS["counts"]["hit_rate"], 2 / 3)
         self.assertEqual(
             GOLDEN_MONTHLY_DOC["dimensions"]["coverage"]["mean_coverage"],
-            (3 / 6 + 4 / 6 + 6 / 6 + 1 / 6) / 4)
+            float(Fraction(3 + 4 + 6 + 1, 6 * 4)))
+        self.assertEqual(
+            math.fsum((3 / 6, 4 / 6, 6 / 6, 1 / 6)) / 4,
+            float(Fraction(7, 12)))
         self.assertEqual(GOLDEN_MONTHLY_DOC["dimensions"]
                          ["argument_completeness"]["mean_confidence"], 29 / 10)
 
@@ -1206,6 +1218,9 @@ class TestOrchestrator(unittest.TestCase):
 class TestStaticPurity(unittest.TestCase):
 
     def _strings(self):
+        # Audit-R1 F04: ast.Str/n.s 在 Python 3.12 已移除(3.8 起弃用)——
+        # 旧写法在 3.12 直接 AttributeError。改用 ast.Constant+value 判型
+        # (3.8+ 全版本统一;判定面不变: 仅字符串字面量入列,阈值零放宽)。
         tree = ast.parse(_module_source())
         docs = set()
         for node in ast.walk(tree):
@@ -1213,10 +1228,12 @@ class TestStaticPurity(unittest.TestCase):
                                  ast.AsyncFunctionDef, ast.ClassDef)):
                 body = node.body
                 if (body and isinstance(body[0], ast.Expr)
-                        and isinstance(body[0].value, ast.Str)):
-                    docs.add(body[0].value.s)
-        return [n.s for n in ast.walk(tree)
-                if isinstance(n, ast.Str) and n.s not in docs]
+                        and isinstance(body[0].value, ast.Constant)
+                        and isinstance(body[0].value.value, str)):
+                    docs.add(body[0].value.value)
+        return [n.value for n in ast.walk(tree)
+                if isinstance(n, ast.Constant) and isinstance(n.value, str)
+                and n.value not in docs]
 
     def test_import_whitelist(self):
         tree = ast.parse(_module_source())
@@ -1227,6 +1244,7 @@ class TestStaticPurity(unittest.TestCase):
             elif isinstance(node, ast.ImportFrom) and node.module:
                 roots.add(node.module.split(".")[0])
         self.assertEqual(roots, {"json", "os", "re", "sys", "datetime",
+                                 "math",   # Audit-R4 §三.2: fsum 数值规范
                                  "allocation_engine", "prediction_review",
                                  "research_provenance"})
 

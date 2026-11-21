@@ -1,0 +1,43 @@
+{
+  "stage": "archive",
+  "run_ts": "20261116T053259Z",
+  "question": "美日政策利率分化: DFF 与 JP_POLICY_RATE 之差 对 USDJPY 日元汇率与 GOLD_F 黄金的影响",
+  "archived_at": "20261116T221913Z",
+  "content_sha256": "52c1a26904bb689d88757dd31cfb4b224f77e00e9f87fbfc8e8a679b4c1e2ec2",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 2,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261116__VERDICT-20261116T053259Z-01.json",
+      "source_rel": "audit/semantic_review/20261116/VERDICT-20261116T053259Z-01.json",
+      "overall": "UPHELD",
+      "revision": null,
+      "predecessor": null,
+      "recorded_at": "20261116T111808Z",
+      "sha256": "270a3d6865838690"
+    },
+    {
+      "file": "verdicts/20261117__VERDICT-20261116T053259Z-01.json",
+      "source_rel": "audit/semantic_review/20261117/VERDICT-20261116T053259Z-01.json",
+      "overall": "UPHELD",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261116/VERDICT-20261116T053259Z-01.json",
+      "recorded_at": "20261116T221520Z",
+      "sha256": "5b886d09f130fa7f"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "8da384308128aff3",
+    "report.md": "d69f7c71d7f94571",
+    "FULL_REPORT.md": "40d986b4a20f5c64",
+    "agent_judgment.json": "82b26a72af0be0a0",
+    "views_digest.json": "281eb2c3c8210c32",
+    "evidence_index.json": "d9f8978615de7025",
+    "AGENT_SEAT_ENVELOPE.json": "12cb4bc8382870ca"
+  },
+  "record_health": {},
+  "source_report_dir": "/tmp/phase4_C/20261116T053259Z_美日政策利率分化_DFF_与_JP_POLICY_RATE_之差_对_USDJP",
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核)"
+}

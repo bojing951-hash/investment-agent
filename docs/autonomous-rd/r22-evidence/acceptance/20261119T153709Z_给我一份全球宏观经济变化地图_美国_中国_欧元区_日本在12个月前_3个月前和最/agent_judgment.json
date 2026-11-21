@@ -1,0 +1,730 @@
+{
+  "schema_version": "1.1",
+  "agent_declaration": {
+    "attribution": "ai_inferred",
+    "seat": "Seat-A(投资研究引擎 Agent 判断席)",
+    "engine_root": "/tmp/r22",
+    "code_stamp": "b45b810",
+    "snapshot_id": "research_snapshot_20261119",
+    "notes": "全部数字取自本 run 引擎面(research_plan.point_values/turning_candidates/us_rates_trio/asset_moves/policy_event_clusters + S4 序列面经引擎函数复算);零引擎面外数字。"
+  },
+  "l3": {
+    "contradictions": [
+      {
+        "id": "CON-1",
+        "statement": "过去一年的全球主线是通胀中枢上移与货币政策再定价,而不是增长衰退: 四地增长大体平稳(美国温和放缓、欧元区与日本回升、中国低位修复),而通胀同比普遍上移(美欧生产与消费价格走高、日本先回落再回升);政策取向上 Fed 先降后升净变动为零、ECB 转入连续加息、日本以市场口径渐进收紧、中国按兵不动并更换政策利率锚——政策与通胀的组合在四地分化,而非同步紧缩。",
+        "basis": "证据面: 引擎三时点点值面与转折候选面(CPI、CORE_PCE、CN_PPI_YOY、CN_PMI_MFG、EA_HICP_YOY、JP_CPI_YOY、INDPRO、US_REAL_GDP、EA_REAL_GDP_YOY、JP_REAL_GDP_YOY、JP_POLICY_RATE),政策事件簇与点值面(DFEDTARU、DFF、ECB_DFR、央行七天逆回购利率、隔夜新锚、LPR 报价利率)。",
+        "competing_explanations": [
+          "供给驱动解释: 若通胀上移主要由供给端(能源与运输瓶颈、行业供给侧整合)驱动,则其将随供给修复自行回落,政策无须持续紧缩——将观察到 BEI_10Y 与大宗价格领先回落、核心通胀跟随下行。",
+          "需求过热解释: 若通胀上移由需求过热(财政扩张与工资-物价循环)驱动,则将具有黏性,政策须维持紧缩甚至加码——将观察到 CORE_PCE 增速持续高于目标且 UNEMPLOYMENT 维持低位。",
+          "巧合叠加解释: 若美欧中通胀同窗上移主要是各地基数与口径因素的巧合,则后续月份跨区相关性将减弱、各自独立波动。"
+        ],
+        "evidence_refs": [
+          "CPI@2026-10-01",
+          "CORE_PCE@2026-09-01",
+          "EA_HICP_YOY@2026-10-01",
+          "JP_CPI_YOY@2026-09-01",
+          "CN_PMI_MFG@2026-10-01",
+          "INDPRO@2026-10-01"
+        ]
+      },
+      {
+        "id": "CON-2",
+        "statement": "十年期美债名义利率的过去一年上行几乎全部由实际利率承载,盈亏平衡通胀率反而小幅回落——市场定价的是「实际利率型」紧缩,通胀预期并未脱锚。曲线较一年前更平,与期限溢价主导的形态不符。",
+        "basis": "证据面: 引擎共同交易日三利率分解(十年期名义、十年期实际、十年期盈亏平衡三序列同窗复算;快照事实见 evidence_refs),曲线与风险资产对照面(快照事实见 evidence_refs)。",
+        "competing_explanations": [
+          "期限溢价解释: 若上行主要来自财政供给与期限溢价,则 BEI_10Y 将与名义利率同升、CURVE_2S10S 将趋势性陡峭化——当前年窗盈亏平衡小幅回落且曲线较一年前更平,与该解释的主方向不符,但尚不能排除财政因素的边际贡献。",
+          "自然利率解释: 若实际利率上行源于增长预期改善推升自然利率,则风险资产将与实际利率同涨——而近一月 SPX 回撤与 TIPS_10Y 上行反向,与该解释不相容(窗口尚短,不能定论)。"
+        ],
+        "evidence_refs": [
+          "UST_10Y@2026-11-17",
+          "TIPS_10Y@2026-11-17",
+          "BEI_10Y@2026-11-18",
+          "CURVE_2S10S@2026-11-18",
+          "SPX@2026-11-18"
+        ]
+      },
+      {
+        "id": "CON-3",
+        "statement": "近一月风险资产与黄金同步回撤、波动率抬升、美元走强,方向上与实际利率上行一致;但现有单月窗口不足以在「政策/实际利率驱动」与「增长担忧驱动」之间作出裁决。",
+        "basis": "证据面: 引擎资产月窗复算(SPX、NIKKEI225、GOLD_F、VIX、DAX、DXY、SHCOMP)与 TIPS_10Y 月窗复算、信用利差月度对照(HY_OAS、IG_OAS)。",
+        "competing_explanations": [
+          "实际利率驱动: 若压制来自贴现率上行,则零票息的 GOLD_F 对 TIPS_10Y 的弹性应最大、DXY 偏强——与本月黄金回撤最深、美元走强的组合相容。",
+          "增长担忧驱动: 若回撤源于盈利预期下修,则 HY_OAS 走阔将领先或同步于股指、利率将因避险反而下行——当前月窗信用利差变动温和(约收窄),证据尚不足以支持该侧。"
+        ],
+        "evidence_refs": [
+          "SPX@2026-11-18",
+          "GOLD_F@2026-11-18",
+          "VIX@2026-11-18",
+          "DXY@2026-11-18",
+          "HY_OAS@2026-11-17",
+          "TIPS_10Y@2026-11-17"
+        ]
+      }
+    ],
+    "mechanism_chains": [
+      {
+        "id": "CH-1",
+        "name": "全球通胀上移→政策再定价→实际利率上行→风险资产承压",
+        "links": [
+          {
+            "step": 1,
+            "text": "美中欧通胀于 2026-02→2026-05 同窗上移: 美国CPI同比 2.434→4.1666、中国 CN_PPI_YOY 同比 -0.9→3.9、欧元区 EA_HICP_YOY 同比 1.9→3.2(引擎转折候选面,月频);美国 CORE_PCE 同比由 2.85(2025-08 观测)升至 3.12(2026-09 观测)。",
+            "evidence_level": "E1",
+            "evidence_refs": [
+              "CPI@2026-10-01",
+              "CORE_PCE@2026-09-01",
+              "EA_HICP_YOY@2026-10-01"
+            ]
+          },
+          {
+            "step": 2,
+            "text": "政策再定价跟进: ECB 于 2026-06-11、2026-09-10 各加息 25bp(ECB_DFR 2.0→2.5);Fed 于 2026-09-16 加息 25bp(DFEDTARU 3.75→4.0,与 ECB 决议构成跨国同一政策事件簇);日本以无担保隔夜拆借月均口径渐进抬升(JP_POLICY_RATE 0.477→1.227);中国 CN_OMO_7D 1.4 与 CN_LPR_1Y 3.0 按兵不动(政策背离端)。",
+            "evidence_level": "E1",
+            "evidence_refs": [
+              "ECB_DFR@2026-09-16",
+              "ECB_MRO@2026-09-16",
+              "JP_POLICY_RATE@2026-10-01"
+            ]
+          },
+          {
+            "step": 3,
+            "text": "美债长端名义利率上行几乎全部由实际利率承载: 年度窗 UST_10Y +97bp = TIPS_10Y +104bp + BEI_10Y -7bp(2025-11-17→2026-11-17 共同交易日复算);月度窗名义 +1bp = 实际 +15bp + 盈亏平衡 -14bp(2026-10-16→2026-11-17)。",
+            "evidence_level": "E2",
+            "evidence_refs": [
+              "UST_10Y@2026-11-17",
+              "TIPS_10Y@2026-11-17",
+              "BEI_10Y@2026-11-18"
+            ],
+            "missing_link_note": "缺失环【假设】: 政策利率→长端实际利率的映射为假设——引擎面无远期政策曲线或期限溢价分解的直接观测,仅能以 TIPS_10Y 与政策决议窗口的同向变动间接支持。"
+          },
+          {
+            "step": 4,
+            "text": "高实际利率对风险资产与非孳息资产估值形成压制: 近一月 SPX -4.77%、NIKKEI225 -9.08%、GOLD_F -10.39%、SHCOMP -3.84%、VIX +33.19%、DXY +1.76%,DAX +2.87% 逆势(月窗复算,两端观测日随行披露)。",
+            "evidence_level": "E3",
+            "falsification_metric": "TIPS_10Y"
+          }
+        ]
+      },
+      {
+        "id": "CH-2",
+        "name": "美国增长温和降温→政策两难(与通胀主链并列的竞争通道)",
+        "links": [
+          {
+            "step": 1,
+            "text": "美国增长面: 实际GDP同比 2.42(2025Q2)→2.19(2026Q2)→2.07(2026Q3,事后回顾口径);失业率 4.3→4.1→4.1;INDPRO 同比 1.19→1.25→2.15(先于 2026-02 一度降至 0.7972 后回升)。",
+            "evidence_level": "E1",
+            "evidence_refs": [
+              "US_REAL_GDP@2026-07-01",
+              "UNEMPLOYMENT@2026-10-01",
+              "INDPRO@2026-10-01"
+            ]
+          },
+          {
+            "step": 2,
+            "text": "增长温和降温与通胀上移并存使政策进入两难: 若增长进一步走弱而通胀居高,则紧缩的可持续性存疑——该环为叙事推断,非引擎直接可验证。",
+            "evidence_level": "E3",
+            "falsification_metric": "UNEMPLOYMENT"
+          }
+        ]
+      }
+    ]
+  },
+  "l4": {
+    "scenarios": [
+      {
+        "id": "S1-紧缩延续",
+        "role": "基准(主解释延续)",
+        "rows": {
+          "scenario": "假设(非预测): 通胀中枢上移与政策再紧缩延续,实际利率维持高位甚至进一步上行,增长温和降温但不衰退。",
+          "asset_direction": {
+            "direction": "长久期成长股指(SPX/NDX)与黄金(GOLD_F)承压、VIX 中枢抬升、DXY 偏强;现金与短久期相对占优。",
+            "confidence_tier": "有相关证据",
+            "evidence_refs": [
+              "TIPS_10Y@2026-11-17",
+              "GOLD_F@2026-11-18",
+              "VIX@2026-11-18",
+              "SPX@2026-11-18"
+            ]
+          },
+          "sensitive_variables": [
+            "TIPS_10Y",
+            "BEI_10Y"
+          ],
+          "falsification": {
+            "metric_id": "TIPS_10Y",
+            "threshold": "TIPS_10Y 月末值自 2026-11 的 2.89 回落至 2.50 下方并连续两个月维持(实际利率趋势性下行即推翻本情景主通道)",
+            "secondary_metric_ids": [
+              "BEI_10Y"
+            ]
+          },
+          "trigger": {
+            "condition": "BEI_10Y 月末维持在 2.2 附近或以下(名义上行继续由实际利率承载)且 Fed 再加息一次或点阵图上修",
+            "deadline": "2027-05-19"
+          }
+        }
+      },
+      {
+        "id": "S2-通胀快速回落→宽松重定价",
+        "role": "反例(与基准并列检验)",
+        "rows": {
+          "scenario": "假设(非预测): 通胀回落速度快于政策反应,市场转向宽松定价,重演 2023-10 锚点之后利率见顶回落、风险资产与黄金上行的历史相似路径。",
+          "asset_direction": {
+            "direction": "股指与黄金反弹、DXY 走弱、VIX 回落(历史相似样本 2023-10 锚后 12 个月 SPX +36.04%、黄金期货 +37.86%)。",
+            "confidence_tier": "有历史相似证据",
+            "evidence_refs": [
+              "SPX@2026-11-18",
+              "GOLD_F@2026-11-18"
+            ]
+          },
+          "sensitive_variables": [
+            "BEI_10Y",
+            "CPI"
+          ],
+          "falsification": {
+            "metric_id": "BEI_10Y",
+            "threshold": "BEI_10Y 月末升破 2.60 并连续两个月维持(通胀预期脱锚上行,宽松重定价前提失效)"
+          },
+          "trigger": {
+            "condition": "CPI 同比(引擎派生口径)连续两个月回落,且 Fed 在最后一次加息后按兵不动超过两个会议周期",
+            "deadline": "2027-05-19"
+          }
+        }
+      }
+    ]
+  },
+  "reader_map": {
+    "headline_conclusion": "过去一年全球宏观的主线不是衰退而是通胀中枢上移后的政策再定价: 美欧中通胀同比走高、增长大体平稳,美债十年期名义利率年度窗上行几乎全部由实际利率承载(名义+97bp=实际+104bp+盈亏平衡-7bp,共同交易日复算);Fed 先降后升净变动为零、ECB 连续两次加息、日本渐进收紧、中国按兵不动并换锚,四地政策分化;近一月风险资产与黄金回撤、波动率上行,是实际利率上行与增长担忧的叠加,单月证据尚不能区分主因——后续走向取决于通胀回落速度与政策反应的赛跑(条件判断,非预测)。",
+    "regions": [
+      {
+        "region": "US",
+        "from_to": "增长: 由温和扩张小幅降温——实际GDP同比约2.4%(2025Q2)→2.1%(2026Q3,事后回顾口径),失业率4.3%→4.1%持平,工业生产同比1.2%→2.2%回升(观测 2025-08→2026-07→2026-10)。通胀: 中枢上移——CPI同比3.0%经2026年春季跳升(候选面2026-05达4.17)后最新有效读数3.7%(2026-09),核心CPI同比3.0%→2.5%(观测 2025-09→2026-07→2026-10,最新格缺基期以最近有效同比注记),核心PCE同比2.9%→3.1%(观测 2025-08→2026-06→2026-09)。货币政策: 先松后紧——2025-12降息25bp至3.75%、2026-09加息25bp回到4.00%上限(观测 2025-11→2026-08→2026-11,DFEDTARU/DFF同窗),一年净变动为零而方向已由降转升。",
+        "anchor_echo": [
+          {
+            "anchor": "12个月前",
+            "metric_id": "UNEMPLOYMENT",
+            "value": 4.3,
+            "observation_month": "2025-08"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "UNEMPLOYMENT",
+            "value": 4.1,
+            "observation_month": "2026-07"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "UNEMPLOYMENT",
+            "value": 4.1,
+            "observation_month": "2026-10"
+          },
+          {
+            "anchor": "12个月前",
+            "metric_id": "CPI",
+            "value": 324.245,
+            "observation_month": "2025-09"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "CPI",
+            "value": 332.813,
+            "observation_month": "2026-07"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "CPI",
+            "value": 337.476,
+            "observation_month": "2026-10"
+          },
+          {
+            "anchor": "12个月前",
+            "metric_id": "DFEDTARU",
+            "value": 4.0,
+            "observation_month": "2025-11"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "DFEDTARU",
+            "value": 3.75,
+            "observation_month": "2026-08"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "DFEDTARU",
+            "value": 4.0,
+            "observation_month": "2026-11"
+          }
+        ]
+      },
+      {
+        "region": "CN",
+        "from_to": "增长: 低位修复——制造业PMI三期位于荣枯线下方(49.0→49.2→49.3)但同比降幅收窄转正(-2.2%→-0.2%→+0.6%,派生同比口径)。通胀: 生产端完成由通缩到再通胀的转正——PPI同比-2.1%→3.5%→5.7%(观测 2025-10→2026-07→2026-10),CPI同比0.2%→0.5%→0.7%温和。货币政策: 克制按兵——7天逆回购利率1.40%三期持稳、LPR 3.0%持稳,2026-11-02起政策利率锚换为隔夜逆回购利率(最新1.25%,观测 2026-11;换锚前后两口径锚前锚后分记),未随再通胀收紧,与欧美紧缩转向形成政策背离。",
+        "anchor_echo": [
+          {
+            "anchor": "12个月前",
+            "metric_id": "CN_PMI_MFG",
+            "value": 49.0,
+            "observation_month": "2025-10"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "CN_PMI_MFG",
+            "value": 49.2,
+            "observation_month": "2026-07"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "CN_PMI_MFG",
+            "value": 49.3,
+            "observation_month": "2026-10"
+          },
+          {
+            "anchor": "12个月前",
+            "metric_id": "CN_PPI_YOY",
+            "value": -2.1,
+            "observation_month": "2025-10"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "CN_PPI_YOY",
+            "value": 3.5,
+            "observation_month": "2026-07"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "CN_PPI_YOY",
+            "value": 5.7,
+            "observation_month": "2026-10"
+          },
+          {
+            "anchor": "12个月前",
+            "metric_id": "CN_CPI_YOY",
+            "value": 0.2,
+            "observation_month": "2025-10"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "CN_CPI_YOY",
+            "value": 0.5,
+            "observation_month": "2026-07"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "CN_CPI_YOY",
+            "value": 0.7,
+            "observation_month": "2026-10"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "CN_POLICY_OVERNIGHT",
+            "value": 1.25,
+            "observation_month": "2026-11"
+          },
+          {
+            "anchor": "12个月前",
+            "metric_id": "CN_OMO_7D",
+            "value": 1.4,
+            "observation_month": "2025-11"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "CN_OMO_7D",
+            "value": 1.4,
+            "observation_month": "2026-08"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "CN_OMO_7D",
+            "value": 1.4,
+            "observation_month": "2026-10"
+          },
+          {
+            "anchor": "12个月前",
+            "metric_id": "CN_LPR_1Y",
+            "value": 3.0,
+            "observation_month": "2025-10"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "CN_LPR_1Y",
+            "value": 3.0,
+            "observation_month": "2026-10"
+          }
+        ]
+      },
+      {
+        "region": "EA",
+        "from_to": "增长: 稳步回升——实际GDP同比1.1%→1.2%→1.3%(观测 2025-07→2026-04→2026-07)。通胀: 四地上移最陡——HICP同比2.1%→2.9%→4.0%(观测 2025-10→2026-07→2026-10),已明显高于目标。货币政策: 由中性偏松转入紧缩——2026-06与2026-09各加息25bp,存款便利利率2.0%→2.25%→2.5%(观测 2025-06→2026-06→2026-09,决议与生效分记),为四地中最先转向连续加息者。",
+        "anchor_echo": [
+          {
+            "anchor": "12个月前",
+            "metric_id": "EA_REAL_GDP_YOY",
+            "value": 1.11,
+            "observation_month": "2025-07"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "EA_REAL_GDP_YOY",
+            "value": 1.19,
+            "observation_month": "2026-04"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "EA_REAL_GDP_YOY",
+            "value": 1.28,
+            "observation_month": "2026-07"
+          },
+          {
+            "anchor": "12个月前",
+            "metric_id": "EA_HICP_YOY",
+            "value": 2.1,
+            "observation_month": "2025-10"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "EA_HICP_YOY",
+            "value": 2.9,
+            "observation_month": "2026-07"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "EA_HICP_YOY",
+            "value": 4.0,
+            "observation_month": "2026-10"
+          },
+          {
+            "anchor": "12个月前",
+            "metric_id": "ECB_DFR",
+            "value": 2.0,
+            "observation_month": "2025-06"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "ECB_DFR",
+            "value": 2.25,
+            "observation_month": "2026-06"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "ECB_DFR",
+            "value": 2.5,
+            "observation_month": "2026-09"
+          }
+        ]
+      },
+      {
+        "region": "JP",
+        "from_to": "增长: 温和回升——实际GDP同比0.6%→0.8%→1.2%(观测 2025-07→2026-04→2026-07)。通胀: 先回落再回升——全国CPI同比2.9%→1.7%→2.2%(观测 2025-09→2026-06→2026-09),东京都CPI同比最新2.7%(2026-09,速报口径)。货币政策: 渐进收紧——无担保隔夜拆借月均0.48%→0.98%→1.23%(观测 2025-10→2026-07→2026-10,月均口径非政策目标宣布值);注: 政策目标宣布值口径(JP_POLICY_TARGET)不在注册表,该格数据不可得,不以相邻口径冒充。与美国2025-12曾降息不同,日本全窗维持抬升方向,构成方向性背离后于2026-09被Fed的再加息部分收敛。",
+        "anchor_echo": [
+          {
+            "anchor": "12个月前",
+            "metric_id": "JP_REAL_GDP_YOY",
+            "value": 0.63,
+            "observation_month": "2025-07"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "JP_REAL_GDP_YOY",
+            "value": 0.8,
+            "observation_month": "2026-04"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "JP_REAL_GDP_YOY",
+            "value": 1.16,
+            "observation_month": "2026-07"
+          },
+          {
+            "anchor": "12个月前",
+            "metric_id": "JP_CPI_YOY",
+            "value": 2.91,
+            "observation_month": "2025-09"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "JP_CPI_YOY",
+            "value": 1.67,
+            "observation_month": "2026-06"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "JP_CPI_YOY",
+            "value": 2.16,
+            "observation_month": "2026-09"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "JP_CPI_TOKYO_YOY",
+            "value": 1.6,
+            "observation_month": "2026-06"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "JP_CPI_TOKYO_YOY",
+            "value": 2.69,
+            "observation_month": "2026-09"
+          },
+          {
+            "anchor": "12个月前",
+            "metric_id": "JP_POLICY_RATE",
+            "value": 0.477,
+            "observation_month": "2025-10"
+          },
+          {
+            "anchor": "3个月前",
+            "metric_id": "JP_POLICY_RATE",
+            "value": 0.978,
+            "observation_month": "2026-07"
+          },
+          {
+            "anchor": "最新一期",
+            "metric_id": "JP_POLICY_RATE",
+            "value": 1.227,
+            "observation_month": "2026-10"
+          }
+        ]
+      }
+    ],
+    "transmission": [
+      {
+        "chain_name": "通胀上移→政策再定价→实际利率上行→风险资产承压(证据最充分)",
+        "links": [
+          {
+            "observed_fact": "2026-02→2026-05 同窗通胀上移: 美国CPI同比 2.434→4.1666、中国 CN_PPI_YOY -0.9→3.9、欧元区 EA_HICP_YOY 1.9→3.2(引擎转折候选面,月频);美国 CORE_PCE 同比 2.85(2025-08)→3.12(2026-09)。",
+            "causal_hypothesis": "全球价格压力(供给与需求混合)经贸易品、大宗与预期渠道跨区传导,通胀中枢同步上移。",
+            "competing_explanation": "三地通胀同窗上移是本地独立因素(中国行业供给侧整合、欧元区能源与基数、美国服务黏性)的巧合叠加,非全球传导。",
+            "distinguishing_metric": "CPI",
+            "main_predicts": "全球传导成立时,美国CPI与 CN_PPI_YOY、EA_HICP_YOY 的后续读数应继续同向,且 BRENT_F 等大宗领先。",
+            "competing_predicts": "巧合叠加下,后续各地通胀将各自走走停停、跨区相关性低,BRENT_F 无领先结构。",
+            "face_off_verdict": "尚不能区分"
+          },
+          {
+            "observed_fact": "政策再定价跟进: ECB 2026-06-11、2026-09-10 各+25bp(ECB_DFR 2.0→2.5);Fed 2026-09-16 +25bp(DFEDTARU 3.75→4.0,决议构成跨国同一事件簇);日本 JP_POLICY_RATE 月均 0.477→1.227 渐进抬升;中国 CN_OMO_7D 1.4 与 CN_LPR_1Y 3.0 按兵不动。",
+            "causal_hypothesis": "央行对通胀上移作出反应,政策利率进入再紧缩轨道(决议→生效分记: Fed 次日生效、ECB 决议后首周三生效)。",
+            "competing_explanation": "政策变动主要反映增长韧性与汇率/金融稳定考量,而非通胀驱动。",
+            "distinguishing_metric": "BEI_10Y",
+            "main_predicts": "通胀驱动型紧缩下,市场通胀预期应受控(BEI_10Y 稳或降),紧缩由实际利率承载。",
+            "competing_predicts": "若紧缩源于通胀预期本身脱锚,BEI_10Y 将与政策利率同向上行。",
+            "face_off_verdict": "支持主解释"
+          },
+          {
+            "observed_fact": "美债利率上行由实际利率承载: 年度窗 UST_10Y +97bp = TIPS_10Y +104bp + BEI_10Y -7bp(2025-11-17→2026-11-17 共同交易日);月度窗 +1bp = +15bp − 14bp(2026-10-16→2026-11-17);期末名义5.10/实际2.89/盈亏平衡2.21。",
+            "causal_hypothesis": "政策重定价抬高实际利率曲线,长端名义跟随实际利率而非通胀预期。",
+            "competing_explanation": "长端上行主要由财政供给与期限溢价推升,与政策预期无关。",
+            "distinguishing_metric": "TIPS_10Y",
+            "main_predicts": "政策驱动下 TIPS_10Y 与 UST_2Y 同向、BEI_10Y 稳定。",
+            "competing_predicts": "期限溢价驱动下长端升而短端稳、CURVE_2S10S 趋势陡峭化、BEI_10Y 同升。",
+            "face_off_verdict": "尚不能区分"
+          },
+          {
+            "observed_fact": "风险资产近一月承压: SPX -4.77%、NIKKEI225 -9.08%、GOLD_F -10.39%、SHCOMP -3.84%、VIX +33.19%、DXY +1.76%,DAX +2.87% 逆势(月窗,两端观测日随行披露)。",
+            "causal_hypothesis": "高实际利率压低长久期风险资产与非孳息黄金的估值,并支撑美元。",
+            "competing_explanation": "回撤由增长担忧与盈利预期下修驱动,与利率无关。",
+            "distinguishing_metric": "TIPS_10Y",
+            "main_predicts": "实际利率驱动下 GOLD_F 对 TIPS_10Y 弹性最大、VIX 与 TIPS_10Y 同向上行。",
+            "competing_predicts": "增长担忧驱动下 HY_OAS 走阔领先于股指、利率因避险反而下行。",
+            "face_off_verdict": "尚不能区分"
+          }
+        ]
+      },
+      {
+        "chain_name": "中国再通胀→名义增长修复(与主链并列的政策背离通道)",
+        "links": [
+          {
+            "observed_fact": "中国 CN_PPI_YOY -2.1(2025-10)→5.7(2026-10) 完成转正,CN_PMI_MFG 派生同比 -2.2%→+0.6% 修复而水平仍在荣枯线下(49.0→49.3),CN_CPI_YOY 0.2→0.7 温和;SHCOMP 月窗 -3.84%。",
+            "causal_hypothesis": "生产端再通胀带动名义增长与企业盈利修复,量价先后共振。",
+            "competing_explanation": "PPI 上行只是上游供给收缩的价格效应,量(PMI 低于50)价(PPI 高企)背离,未形成盈利修复。",
+            "distinguishing_metric": "CN_PMI_MFG",
+            "main_predicts": "若量价共振,PMI 将升破 50 且 SHCOMP 转强。",
+            "competing_predicts": "若仅价格效应,PMI 维持 50 下方而 PPI 冲高回落。",
+            "face_off_verdict": "尚不能区分"
+          }
+        ]
+      }
+    ],
+    "turnings": [
+      {
+        "date": "2026-05-01",
+        "before_date": "2026-02-01",
+        "metric_id": "CN_PPI_YOY",
+        "value_before": -0.9,
+        "value_after": 3.9,
+        "first_mover": "中国生产端价格是本轮全球通胀上移中最陡的一环(候选面 Δ=4.8,居全部候选之首);与 CN_PMI_MFG(增长维)同月转正、与美国 CPI/EA_HICP 同窗上移——月频证据下三地先后未定。",
+        "follow_or_diverge": "政策背离端: 中国央行未随再通胀收紧(CN_OMO_7D 1.4、LPR 3.0 持稳),与随后的 ECB(2026-06-11 起)与 Fed(2026-09-16)加息方向相反——中国以再通胀修复名义增长,欧美以紧缩应对通胀。"
+      },
+      {
+        "date": "2026-05-01",
+        "before_date": "2026-02-01",
+        "metric_id": "CPI",
+        "value_before": 2.434,
+        "value_after": 4.1666,
+        "first_mover": "美国消费通胀在 2026-02→2026-05 窗口跳升(候选面 Δ=1.73);与 CN_PPI、EA_HICP 同窗——月频证据下先后未定;相对政策端,通胀读数先行(春季)而 Fed 加息在 2026-09,货币政策跟进滞后约一个季度以上。",
+        "follow_or_diverge": "跟进: ECB 于 2026-06-11、2026-09-10 两次加息,Fed 于 2026-09-16 加息(与 ECB 构成同一跨国事件簇);背离: 中国政策利率按兵不动、日本延续渐进收紧——四地对同一通胀冲击的政策反应分化。"
+      },
+      {
+        "date": "2026-02-01",
+        "before_date": "2025-11-01",
+        "metric_id": "INDPRO",
+        "value_before": 1.7543,
+        "value_after": 0.7972,
+        "first_mover": "美国增长动能先行降温的一环: INDPRO 同比由 2025-11 的 1.7543 降至 2026-02 的 0.7972(候选窗 2025-11..2026-02);与 JP_CPI_YOY 同月(2026-02)回落——月频下先后未定。",
+        "follow_or_diverge": "暂态而非趋势: 此后 INDPRO 同比 2026-07 回升至 1.25、2026-10 至 2.15,失业率 2026-10 与 2026-07 持平于 4.1——增长降温未延续,政策矛盾 subsequently 由增长侧转回通胀侧。"
+      }
+    ],
+    "history_periods": [
+      {
+        "period_label": "2025-03(高估值+高实际利率+通胀预期温和的「完美定价」状态)",
+        "anchor_ym": "2025-03",
+        "match_window": {
+          "start_ym": "2024-03",
+          "end_ym": "2025-03"
+        },
+        "judgment_cutoff_ym": "2025-03",
+        "aftermath_obs_months": [
+          "2025-06",
+          "2025-09",
+          "2026-03"
+        ],
+        "similarity": "引擎六维类比距离最近(候选 1871 扫描、簇去重后排序第一,distance 分位最低): 高估值(SPX_CAPE 高分位)、实际利率高位(TIPS_10Y 水平高)、波动率中低位、曲线平坦——与当前「高估值+高实际利率+BEI 温和」结构最像。",
+        "difference": "当时 Fed 处于高位按兵不动期(DFEDTARU 4.50,其后 2025 年内转向连续降息至 3.75),而当前 Fed 已于 2026-09 重新加息;当时美国 CPI 同比约 2.4%(水平 319.785 对 312.345 的引擎派生同比)、中国 PPI 同比 -2.5% 仍在通缩——通胀上移尚未启动,与当前「通胀已上移+再紧缩」不同。",
+        "other_regions_sync": "部分同步: 欧元区 HICP 同比 2.2% 温和、日本 CPI 同比 3.6% 偏高、中国 PPI 同比 -2.5% 通缩——未成全球通胀共振;政策上 ECB 存款利率 2.5% 按兵不动、日本政策利率 0.48% 低位,与当前紧缩转向不同步。",
+        "ex_post": {
+          "3m": "SPX +10.57%、NIKKEI225 +13.67%、黄金期货上涨5.92%、DXY -7.03%(2025-03-31→2025-06-30 月末口径)。",
+          "6m": "SPX +19.18%、黄金期货上涨24.03%、DXY -6.18%;DFEDTARU -0.25pp(Fed 于 2025-09 启动降息)。",
+          "12m": "SPX +16.33%、NIKKEI225 +43.37%、黄金期货上涨48.83%;DFEDTARU -0.75pp(至 2026-03 上限 3.75),DXY -4.08%——降息周期叠加金价上行,风险资产与黄金双强。"
+        },
+        "us_analog": true,
+        "sample_note": "美国特征向量类比(引擎 analog 六维 expanding-z;TOP-N 簇去重后排序第一);事后 12m 窗(至 2026-03)与当前研究窗(2025-11 起)部分重叠,该段资产路径包含当前已知行情,样本独立性弱于更早锚;数值口径=运行快照最新修订值,事后窗=锚月末→锚+N 月末。"
+      },
+      {
+        "period_label": "2022-06(通胀冲击+央行激进紧缩开启,实际利率急升)",
+        "anchor_ym": "2022-06",
+        "match_window": {
+          "start_ym": "2021-06",
+          "end_ym": "2022-06"
+        },
+        "judgment_cutoff_ym": "2022-06",
+        "aftermath_obs_months": [
+          "2022-09",
+          "2022-12",
+          "2023-06"
+        ],
+        "similarity": "通胀同比高企触发政策连续紧缩、实际利率快速上行、股债初始双杀——与当前「通胀上移+再紧缩+实际利率承载上行」的传导方向最像(引擎类比距离第二近)。",
+        "difference": "量级不同: 当时通胀绝对水平远高(欧元区 HICP 同比 8.6% 对当前 4.0%),紧缩幅度与速度远大(Fed 其后 12 个月加息 350bp,对当前 Fed 一年净 0bp 后单次 25bp);当前估值更高、通胀预期(BEI)更低,属于「温和版」而非同量级。",
+        "other_regions_sync": "同步性高: 欧元区 HICP 同比 8.6%(能源冲击)、中国 PPI 同比 6.1%、日本 CPI 同比 2.4%——全球通胀共振;但政策不同步: Fed 已在加息,ECB 尚未启动(锚点月存款利率仍 -0.50%,首加息在锚后),日本政策利率约 -0.04% 仍处负利率。",
+        "ex_post": {
+          "3m": "SPX -5.28%、黄金期货下跌7.49%、美元指数上涨7.10%;UST_10Y +0.85pp、TIPS_10Y +1.03pp、BEI_10Y -0.18pp,DFEDTARU +1.50pp——实际利率冲击主导,与当前月窗结构(名义平、实际升、盈亏平衡降)同构。",
+          "6m": "SPX +1.43%(年末反弹),DFEDTARU +2.75pp,UST_10Y +0.90pp,VIX -24.52%。",
+          "12m": "SPX +17.57%、NIKKEI225 +25.75%、黄金期货上涨6.76%;DFEDTARU +3.50pp(上限至 5.25),UST_10Y +0.83pp、TIPS_10Y +0.94pp、BEI_10Y -0.11pp——紧缩顶峰后风险资产修复,通胀预期全程受控。"
+        },
+        "us_analog": true,
+        "sample_note": "美国特征向量类比(引擎 analog 距离第二);样本独立——匹配窗 2021-06..2022-06 与当前研究窗(2025-11..2026-11)不重叠;HY_OAS/IG_OAS 序列自 2023-11 起才有数据(源端三年窗),本段信用维并列面缺席,如实注记不冒充;数值=最新修订口径。"
+      },
+      {
+        "period_label": "2023-10(高实际利率+高长端利率的「久期顶部」状态)",
+        "anchor_ym": "2023-10",
+        "match_window": {
+          "start_ym": "2022-10",
+          "end_ym": "2023-10"
+        },
+        "judgment_cutoff_ym": "2023-10",
+        "aftermath_obs_months": [
+          "2024-01",
+          "2024-04",
+          "2024-10"
+        ],
+        "similarity": "长端名义与实际利率同处高位(锚月末 UST_10Y 4.88、TIPS_10Y 2.46)、高估值+波动率中位——与当前「高实际利率+高估值」结构相近(引擎类比距离第三近),是 S2 情景(宽松重定价)的历史相似样本。",
+        "difference": "政策方向相反: 当时 DFEDTARU 5.50 处紧缩终点、市场开始定价转向,而当前 Fed 刚重新加息;当时通胀已在回落通道(美国核心通胀下行),当前通胀同比再上行。",
+        "other_regions_sync": "部分同步: 欧元区 HICP 同比 2.9% 已回落、日本 CPI 同比 3.3% 仍偏高、中国 PPI 同比 -2.6% 通缩——非共振;ECB 存款利率 4.00% 高位按兵不动,日本政策利率约 -0.02% 尚未正常化,政策周期错位。",
+        "ex_post": {
+          "3m": "SPX +15.54%、UST_10Y -0.89pp、TIPS_10Y -0.73pp——利率见顶回落,风险资产反弹。",
+          "6m": "SPX +20.07%、黄金期货上涨15.47%、UST_10Y -0.19pp。",
+          "12m": "SPX +36.04%、黄金期货上涨37.86%、NIKKEI225 +26.65%;DFEDTARU -0.50pp(2024-09 首次降息),UST_10Y -0.60pp——久期顶部确认后的股金双牛。"
+        },
+        "us_analog": true,
+        "sample_note": "美国特征向量类比(引擎 analog 距离第三);样本独立——匹配窗 2022-10..2023-10 与当前研究窗不重叠;事后窗 2024-01..2024-10;数值=最新修订口径,事后窗=锚月末→锚+N 月末。"
+      }
+    ],
+    "rates_decomposition": {
+      "window_from": "2026-10-16",
+      "window_to": "2026-11-17",
+      "nominal_bp": 1.0,
+      "real_bp": 15.0,
+      "bei_bp": -14.0
+    },
+    "asset_returns_echo": [
+      {
+        "metric_id": "SPX",
+        "window_months": 1,
+        "chg_pct": -4.77,
+        "window": {
+          "from": "2026-10-19",
+          "to": "2026-11-18"
+        }
+      },
+      {
+        "metric_id": "SHCOMP",
+        "window_months": 1,
+        "chg_pct": -3.84,
+        "window": {
+          "from": "2026-10-19",
+          "to": "2026-11-18"
+        }
+      },
+      {
+        "metric_id": "DAX",
+        "window_months": 1,
+        "chg_pct": 2.87,
+        "window": {
+          "from": "2026-10-19",
+          "to": "2026-11-17"
+        }
+      },
+      {
+        "metric_id": "NIKKEI225",
+        "window_months": 1,
+        "chg_pct": -9.08,
+        "window": {
+          "from": "2026-10-19",
+          "to": "2026-11-18"
+        }
+      },
+      {
+        "metric_id": "VIX",
+        "window_months": 1,
+        "chg_pct": 33.19,
+        "window": {
+          "from": "2026-10-19",
+          "to": "2026-11-18"
+        }
+      },
+      {
+        "metric_id": "DXY",
+        "window_months": 1,
+        "chg_pct": 1.76,
+        "window": {
+          "from": "2026-10-19",
+          "to": "2026-11-18"
+        }
+      },
+      {
+        "metric_id": "GOLD_F",
+        "window_months": 1,
+        "chg_pct": -10.39,
+        "window": {
+          "from": "2026-10-19",
+          "to": "2026-11-18"
+        }
+      },
+      {
+        "metric_id": "UST_10Y",
+        "window_months": 1,
+        "chg_pct": -0.97,
+        "window": {
+          "from": "2026-10-19",
+          "to": "2026-11-17"
+        }
+      }
+    ]
+  }
+}

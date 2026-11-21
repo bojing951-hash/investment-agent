@@ -1,0 +1,18 @@
+=== R28 实包重放验收 2026-11-21 15:10:53 pkg=~/investment-agent-product/research_archive/20261117T_修正后_美国盈亏平衡通胀预期_BEI_10Y_上行阶段_黄金_GOLD_F_与美元指数 ===
+    候选代码=2679629132fe939d756b3b26136473a910929291
+--- [0] 严格面: 旧档键未记录→拒(rc=1) ---
+rc=1 blocked= code_version_mismatch | crosscheck_ok= [False]
+--- [1] 披露降级重放: 干净目录一条命令(逐字节) ---
+rc=0
+ok= True | render_mode= not_map_question | checks_n= 10 | failed= []
+crosscheck detail: manifest=缺席 report.json.run=ad2f6e4(完整运行 SHA 两处一致;旧档未记录键,--allow-code-mismatch 披露降级)
+--- [2] 重复运行: 新输出目录+原包不动 ---
+rc=0 | package_before=3e7e243816b1253f package_after=3e7e243816b1253f unchanged=YES
+--- [3] 缺件拒绝(副本抽 views_digest.json) ---
+rc=1
+failed_checks= ['completeness_files', 'copies_sha16_match', 'content_digest_match', 'package_untouched_postwrite']
+--- [4] 篡改拒绝(副本翻转 report.md 一字节;该包=非地图问句无 MAP_REPORT) ---
+tampered byte @ 17
+rc=1
+failed_checks: ['copies_sha16_match']
+=== 重放验收五步完 2026-11-21 15:10:54 输出根=/tmp/r70/r28-accept/replay-clean/20261121T151053 ===

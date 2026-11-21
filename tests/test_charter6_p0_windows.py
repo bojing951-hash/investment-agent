@@ -14,6 +14,7 @@ Charter6-P0 采集窗口扩展 回归测试(2026-11-09;A2 §4-P0 规格对应)
 运行: python3 tests/test_charter6_p0_windows.py(脚本式,与CI一致;勿用pytest收集)
 """
 import gzip
+import json
 import os
 import re
 import shutil
@@ -170,7 +171,16 @@ def make_daily_dir():
         f.write(gzip.compress(b'{"prev": true}'))
     for name in LAYOUT:
         with open(os.path.join(daily, name), 'w', encoding='utf-8') as f:
-            f.write('{"stub": 1}')
+            if name.startswith('research_snapshot_'):
+                # R12 P1② 契约对齐: 快照须为权威四通道结构——无来源声明
+                # 的 stub 自 R12 起即结构损坏(停删),合法无引用=全 MISSING。
+                json.dump({'sources_status': {
+                    'global': {'status': 'MISSING'},
+                    'macro': {'status': 'MISSING'},
+                    'china': {'status': 'MISSING'},
+                    'rate_economy': {'status': 'MISSING'}}}, f)
+            else:
+                f.write('{"stub": 1}')
     return daily
 
 

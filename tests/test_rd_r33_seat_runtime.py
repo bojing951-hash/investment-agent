@@ -118,9 +118,14 @@ section('3 ① 席位状态面(_semantic_review_state)')
 with tempfile.TemporaryDirectory() as td:
     rep3 = synth_report()
     st = aj._semantic_review_state(rep3, td)
+    # Audit-R1 F02: 状态面新增 fresh/verdicts_n/prior_verdicts(裁决哈希
+    # 绑定+修订链)常设键;required 语义不变,旧七键等值断言升级为含新键
     check('L3/L4 未落位→required=False',
-          st == {'required': False, 'reasons': [], 'seat_invoked': False,
-                 'verdict': None, 'archive': None}, str(st))
+          st['required'] is False and st['reasons'] == []
+          and st['seat_invoked'] is False and st['verdict'] is None
+          and st['archive'] is None and st['fresh'] is None
+          and st['verdicts_n'] == 0 and st['prior_verdicts'] == [],
+          str(st))
 
     rep3['layers']['L3_AI推断层']['produced'] = True
     rep3['layers']['L4_条件情景层']['produced'] = True
@@ -136,8 +141,13 @@ with tempfile.TemporaryDirectory() as td:
     vdir = os.path.join(td, 'audit', 'semantic_review', '20260101')
     os.makedirs(vdir)
     vpath = os.path.join(vdir, 'VERDICT-20260101T000000Z_合成.json')
+    # Audit-R4 条目1: 读取端必填字段校验(reviewer/run_ts/recorded_at
+    # 缺=corrupt)——夹具按完整记录书写,缺字档的阻断面由
+    # test_audit_r4_gate.py J 块锁定
     with open(vpath, 'w', encoding='utf-8') as f:
-        json.dump({'seat': 'R-synth', 'overall': 'REVISE', 'items': []},
+        json.dump({'seat': 'R-synth', 'overall': 'REVISE',
+                   'reviewer': 'R-synth', 'run_ts': '20260101T000000Z',
+                   'recorded_at': '2026-01-01T00:00:00Z', 'items': []},
                   f, ensure_ascii=False)
     st = aj._semantic_review_state(rep3, td)
     check('裁决档命中→seat_invoked+verdict=REVISE+相对档径',

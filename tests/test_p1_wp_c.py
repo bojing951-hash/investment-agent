@@ -269,7 +269,9 @@ class T07T08DataPackEconomySection(unittest.TestCase):
                           # Charter6-P2: US 49→51(+SPX_CAPE/SPX_PE_TTM)
                           # Charter7 P2-3: US 51→53(+SOFR/WALCL;unavailable不计入覆盖)
                           # 数据批1(2026-11-10): US 53→55(+SPX_EPS/M2SL)
-                          '美国(US)=55项; 中国(CN)=18项; 日本(JP)=8项; 欧元区(EA)=11项', md)
+                          # R20(2026-11-19): JP 8→10(+JP_CPI_YOY/JP_REAL_GDP_YOY)/EA 11→12(+EA_REAL_GDP_YOY)
+                          # R21(2026-11-19): CN 18→19(+CN_POLICY_OVERNIGHT 换锚新锚)
+                          '美国(US)=55项; 中国(CN)=19项; 日本(JP)=10项; 欧元区(EA)=12项', md)
             # JP/EA通道披露(快照顶层sources_status; 通道名 japan/jp/ea)
             self.assertIn('日本通道披露: japan=EXACT(japan_%s.json), jp=EXACT(jp_%s.json)'
                           % (YMD, YMD), md)

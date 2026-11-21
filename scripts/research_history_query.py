@@ -50,6 +50,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import math
 import os
 import sys
 from datetime import date, timedelta
@@ -90,12 +91,40 @@ ACCESS_POINTS = {
 ECONOMIES = ("US", "CN", "JP", "EA", "HK", "GLOBAL")
 
 
+def _valid_series_date(s):
+    """R8-01: 合法日期=截 10 位后可 fromisoformat 解析(YYYY-MM-DD)。"""
+    try:
+        date.fromisoformat(str(s)[:10])
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def effective_series(dates, values):
+    """R9-01 唯一有效观测清洗规则(公共入口)——快照构建/工作台读取/
+    需求判定/查询 loader 四路同一实现,不另立副本。语义与返回形状同
+    _clean_series: (有效升序去重 dates, 对应 values, 六键登记)。"""
+    return _clean_series(dates, values)
+
+
 def _clean_series(dates, values):
-    """序列清洗: 升序去重(同日保留最后)+缺值剔除(不填0),返回清洗登记。"""
+    """序列清洗: 升序去重(同日保留最后)+无效观测剔除(不填0,不造占位)。
+
+    Audit-R8 R8-01 统一有效性规则(采集/清洗/查询/窗口/未限定范围同口径):
+    有效观测=**合法日期+有限数值**——缺值/不可数值化/NaN/±Infinity/
+    非法日期一律剔除并分类登记;values=None=无有效数值面(全剔,禁占位);
+    日期与数值长度错配如实登记(zip 按短侧配对,不静默吞长侧)。
+    合法数值按 float 原样保留(与既有统计口径一致,不量化不改精度)。"""
     seen = {}
-    n_missing = 0
-    for d, v in zip(dates or [], values or []):
+    n_missing = n_nonfinite = n_bad_date = 0
+    dl = list(dates or [])
+    vl = list(values) if values is not None else [None] * len(dl)
+    n_mismatch = abs(len(dl) - len(vl))
+    for d, v in zip(dl, vl):
         ds = str(d)[:10]
+        if not _valid_series_date(ds):
+            n_bad_date += 1
+            continue
         if v is None:
             n_missing += 1
             continue
@@ -104,10 +133,50 @@ def _clean_series(dates, values):
         except (TypeError, ValueError):
             n_missing += 1
             continue
+        if not math.isfinite(fv):
+            n_nonfinite += 1
+            continue
         seen[ds] = fv
     out_dates = sorted(seen)
-    return out_dates, [seen[d] for d in out_dates], {'n_missing_dropped': n_missing,
-                                                     'n_observations': len(out_dates)}
+    return out_dates, [seen[d] for d in out_dates], {
+        'n_missing_dropped': n_missing,
+        'n_nonfinite_dropped': n_nonfinite,
+        'n_invalid_dates_dropped': n_bad_date,
+        'n_length_mismatch': n_mismatch,
+        'n_observations': len(out_dates)}
+
+
+def collection_status_of(prov, last_observation=None, source_sha256=None,
+                         file=None):
+    """R7-02: 采集 provenance(或已规范化状态)→ 规范采集状态(唯一口径,
+    loader/工作台/判定层共用,不两处漂移)。
+
+    语义三分离: 文件写入时间(file_date,由调用面 source 携带)/最后成功
+    采集时间(last_success_at=provenance.fetched_at;carry_forward 时为
+    原采集时间不冒充本轮)/数据统计期(last_observation_period=序列末
+    观测)。fresh=False=续用(carry_forward_from/reason 如实);无
+    provenance 档(旧档/他源)→ None,不造状态。已含 mode 键的规范化
+    状态直通重规整(幂等)。"""
+    if not isinstance(prov, dict) or not prov:
+        return None
+    mode = prov.get('mode') or (
+        'carry_forward' if prov.get('fresh') is False
+        else ('fresh' if prov.get('fetched_at') else 'unknown'))
+    out = {'mode': mode,
+           'last_success_at': prov.get('last_success_at')
+           or prov.get('fetched_at'),
+           'last_observation_period': (prov.get('last_observation_period')
+                                       or last_observation),
+           'carry_forward_from': prov.get('carry_forward_from'),
+           'carry_forward_reason': prov.get('carry_forward_reason')}
+    if source_sha256:
+        out['source_sha256'] = source_sha256
+    if file:
+        out['file'] = file
+    cov = prov.get('coverage')
+    if isinstance(cov, dict) and cov:
+        out['coverage'] = cov
+    return {k: v for k, v in out.items() if v is not None}
 
 
 def load_metric_series(metric_id, source_date_ymd, as_of=None, data_dir=None,
@@ -118,7 +187,10 @@ def load_metric_series(metric_id, source_date_ymd, as_of=None, data_dir=None,
     as_of: 研究截止 ISO 时点(缺省=source_date 日末,北京时间)——供标准化层
     时效判定,保证回放确定性(不用墙钟)。
     返回 dict: metric_id/unit/frequency/calendar/quality_status/observation_date/
-    value/dates[]/values[]/series_clean/source{access_point,file,file_date,sha256,exact}。
+    value/dates[]/values[]/series_clean/source{access_point,file,file_date,sha256,exact}
+    /collection_status(R7-02: 采集状态随序列贯通——mode/last_success_at/
+    last_observation_period/carry_forward_from/carry_forward_reason/
+    source_sha256;区分文件写入时间/最后成功采集时间/数据统计期)。
     """
     m = fe.metric(metric_id)
     if m is None:
@@ -173,7 +245,13 @@ def load_metric_series(metric_id, source_date_ymd, as_of=None, data_dir=None,
                 'source': {'access_point': ACCESS_POINTS['macro'],
                            'file': os.path.basename(info['file']),
                            'file_date': info['file_date'], 'exact': info['exact'],
-                           'sha256': sha}}
+                           'sha256': sha},
+                # R7-02: 采集状态随序列贯通(macro 面;快照面经
+                # snapshot['series_provenance']→wd.metric_series 同口径)
+                'collection_status': collection_status_of(
+                    item.get('provenance'), last_observation=(
+                        dates[-1] if dates else None),
+                    source_sha256=sha, file=os.path.basename(info['file']))}
 
     if src in ('global_market_collector', 'jp_market_collector',
                'ea_market_collector', 'shiller_collector'):

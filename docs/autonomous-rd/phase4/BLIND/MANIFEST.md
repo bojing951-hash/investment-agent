@@ -52,10 +52,92 @@
   什么数据;预注册 sha 锁定先于运行;但投递映射注入方法学指定词——
   Phase 5 审计 M-2 如实降级)
 
+## Audit-R1 修订记录(2026-11-16,第一轮外部审计修复)
+
+- **v3→v4(终版 sha256 前 16 位 `afd04c693d1f561a`,v3=`2e150fcde2605152`,
+  审计前旧版=`c5418ed97a8d0c3e`)**:
+  - v3 依第一轮语义复审 8 发现(FIX-1~8)+F01/F06:
+    FIX-1[MAJOR] SCN-B 旧「1月高点回撤逾两成=再耦合早期形态」作废(时序
+    错位+美元腿混淆)→换紧缩窗段落事实(9月窗 -6.58%/UST+54bp/双腿分解);
+    FIX-2[MINOR] SCN-B 证伪美元腿条件化(偏相关或|ΔDXY|<0.3%子样本两口径
+    同向方计);FIX-3[MINOR] SCN-C 补 60 交易日窗;FIX-4[MINOR] 前提反向条款
+    (99.85);FIX-5[MINOR] MECH-1 E3 数值化;FIX-6[MINOR] CON-2 桶值全量复算
+    更正(美元桶 -0.428%/+0.671%,旧合计桶与 n=27/+0.07% 作废);FIX-7/8[NIT]
+    VIX>28 最小样本+REAL_10Y 水平为准前提注记;
+  - v4 = 席位终审裁定的两项不阻断 MINOR 即时清偿(数字未动):
+    FIX-6 残留年限标签「2025年」→「2025年至2026年」;NEW-1 MECH-2 step1
+    作废桶传播(-0.30%/+0.48% → -0.428%/+0.671%,与 CON-2 作废注同源交叉
+    引用),档内自相矛盾消除;
+  - 标记形制映射: 扫描字段(statement/basis)内用无数字标记「复审更正/
+    复审重算更正/复审披露」(数字形 Audit-R1 F0x 会 token 化误绑),未扫描
+    字段保留 Audit-R1 F0x。
+- **修订闭环终审**: 独立席(blind-closure-seat)n=2492 全样本只读复算
+  (年度/滚动 252/分段斜率/分桶/分状态/L2 面 17 份 VP 与 MSIM、UBS 引用
+  逐条核对)——八项必修全落地,无阈值放宽无含糊逃避,SCN-A 范例条款完好。
+  **裁定 UPHELD**(R32 章程词表;原席报告词=VERIFIED,同义);v4 清偿后重挂链绿(validate 零违规+契约门 VERIFIED
+  11/11 unbound=0+attach True)。裁决档
+  `audit/semantic_review/20261116/VERDICT-20261116T053623Z-01.json`(fresh=True,
+  内含 post_verdict_cleared 两项与 NEW-2/NEW-3 残留清单)。
+- **残留移交下轮(不阻断)**: NEW-2 MECH-3 收窄日 -0.361 系冻结脚本
+  blind_calc2.py HY 段 i=0 环绕伪值(正确 -0.382,定性稳健),下轮更正数值
+  并修脚本索引;NEW-3 四项精度 NIT(-0.535→-0.541/-0.55→-0.557/旧常态
+  -0.40 偏严/TIPS 基差表述)备查。
+- **四态终态**: generated ✓ / machine_verified ✓ / review=UPHELD(fresh) /
+  **deliverable=True**;FULL_REPORT.md 已换 F09 完整装配版。
+
+## Audit-R2 修订记录(2026-11-16,第二轮外部审计修复·条目3)
+
+- **v4→v5(attach 副本 sha256 前 16 位 `94c938099d42ef6a`,v4=`afd04c693d1f561a`)**:
+  清偿上轮移交的 NEW-2/NEW-3 残留,全部自冻结原始序列重算
+  (不复用开发报告数值):
+  - **NEW-2[脚本缺陷+数值]**: blind_calc2.py HY_OAS 段 i=0 环绕伪值
+    (dts2[i-1] 末日回绕)已修——严格三桶分立(走阔/严格收窄/不变单列),
+    不变日不再混入收窄桶。MECH-3 更正: 收窄态 -0.361(旧,环绕伪值+
+    混桶)→ **-0.401**(严格收窄日 n=365 对走阔日 n=318;不变日 n=62
+    单列参考);『几乎不变』表述作废,但两态均强负相关,辅检方向不变。
+  - **NEW-3[精度四项]**: ①年度相关深端 -0.535(2017)→ **-0.541(2019)**;
+    ②滚动 252 带 -0.55~-0.16 → **-0.558(2020-02-24)~-0.162**(带内
+    均值≈-0.40);③证伪触发线『-0.40 以下』偏严作废 → 回到旧常态带内
+    即深于 -0.30(八个旧常态年份中四年浅于 -0.40,如 -0.35 亦属回归,
+    应触发推翻);④TIPS 基差表述更正——按本档逐日对齐派生式,派生值与
+    TIPS_10Y 直读同日同值(2.66),末日基差 0.00pp;概览面 2.68 系引擎
+    末日观测锚混入更新一日的盈亏平衡观测(观测日锚差,非口径基差);
+    阈值锚维持冻结事实面 2.68,直读口径并列披露(CON-3/SCN-A/SCN-B
+    锚值 2.68/2.98/2.38/2.90 均未动)。
+  - 扫描字段更正标记保持无数字形制(「复审更正/复审重算更正」),未扫描
+    字段保留 Audit-R2 前缀。
+- **修订后重新审查(旧裁决不复用)**: 旧 UPHELD(-01)随内容修订失效
+  (fresh=False,链内保留);修正档重过契约门(VERIFIED 11/0/0,
+  unbound=0)→ 重挂链绿(digest `6178d550…`)→ **独立新席
+  (blind-r2-reviewer,自写复算代码/冻结数据起点,不含预期值)全量复算**
+  ——分带边缘/年度深端/严格三桶 n 与相关/双口径基差/偏严判据逐项吻合,
+    四项撤换旧值逐项确认原值确错 → **VERDICT-20261116T053623Z-02.json
+  overall UPHELD**(原席报告词=VERIFIED,按 R32 席位词表同义映射,档内
+  注记;附三项不阻断观察: pooled 斜率口径措辞/SCN-B +25bp 与锚差细微
+  /≈25% 松分解量级),verdicts_n=2。
+- **四态终态(Audit-R2 面)**: generated ✓ / machine_verified ✓ /
+  review=UPHELD(fresh) / copies_consistent ✓ / **deliverable=True,
+  mvp_complete=True**;运行目录与 evidence_pack 副本已同步
+  (BIGFILES.sha256 重出),judgment_mvp.json 源与 attach 副本一致
+  (差异仅台账面)。
+
 ## 工件
 
 入库(本目录): question_prereg.json / blind_calc.py / blind_calc2.py /
 FULL_REPORT.md / report.md / judgment_mvp.json / AGENT_SEAT_ENVELOPE.json /
 BIGFILES.sha256
-大件(运行目录 /tmp/phase4_blind/20261116T053623Z_*,sha256 在档):
+大件(**已入库** evidence_pack/,Audit-R1 F05 迁移;原运行目录 /tmp/phase4_blind/20261116T053623Z_*,sha256 在档):
 report.json / views_digest.json / evidence_index.json / agent_judgment.json
+
+## Audit-R4 R4-03 同版重放证据包(2026-11-17 新增)
+
+- 新增件: `data_slice/`(原始输入切片: GOLD_F/DXY/VIX + UST_10Y/BEI_10Y/
+  TIPS_10Y/HY_OAS, 逐值拷贝自引擎树 20261112 版两源文件, 哈希在
+  BIGFILES.sha256 与 REPLAY.md)、`blind_calc_output.txt`/`blind_calc2_output.txt`
+  (冻结输出锚)、`blind_independent_recompute.py`(独立实现复算席)、
+  `blind_replay.sh`(一条命令重放入口)、`REPLAY.md`(口径台账)。
+- 一条命令: `sh docs/autonomous-rd/phase4/BLIND/blind_replay.sh` →
+  切片哈希核验 + 双脚本逐字节重放 + 独立复算 64 项正文靶值。
+- 结果(2026-11-17): 切片重放与引擎树原跑逐字节一致; 独立复算 64/64 全中,
+  零正文数值修正(唯一跨路径分歧=带边括注第 4 位小数浮点噪声, REPLAY.md
+  披露)。切片等价性验证方式: 制包时 engine-vs-slice 双跑 diff 为空。

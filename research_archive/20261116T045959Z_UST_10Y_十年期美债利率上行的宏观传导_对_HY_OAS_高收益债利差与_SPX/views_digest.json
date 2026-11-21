@@ -1,0 +1,1593 @@
+{
+  "n": 17,
+  "note": "views 库在场",
+  "views": [
+    {
+      "view_id": "VIEW-20261110-001",
+      "report_title": "World Economic Outlook, October 2026: Resilience Under Strain, Urgent Choices",
+      "publish_date": "2026-10-13",
+      "view_horizon": "18m",
+      "subjects": [
+        "US_rates",
+        "US_growth",
+        "CN_macro",
+        "EA_macro",
+        "JP_macro",
+        "fixed_income"
+      ],
+      "core_views": [
+        {
+          "statement": "全球增长将放缓至2026年的3.1%,并于2027年反弹至3.4%。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The World Economic Outlook projects global growth to slow to 3.1 percent in 2026 and rebound to 3.4 percent in 2027."
+        },
+        {
+          "statement": "全球总体通胀2026年将上升至4.7%,2027年回落至4.1%。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Global headline inflation is projected to rise to 4.7 percent in 2026 before easing to 4.1 percent in 2027."
+        },
+        {
+          "statement": "全球经济具有韧性,但韧性日益不均且代价高昂。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "the global economy is resilient but resilience is increasingly uneven and costly"
+        },
+        {
+          "statement": "增长分歧扩大:处于科技(AI)价值链之外的能源进口经济体面临最困难的前景。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Energy-importing economies outside the technology value chain are identified as facing the most difficult outlook."
+        },
+        {
+          "statement": "财政空间亟需重建。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Fiscal space needs to be urgently rebuilt."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "global_real_GDP_growth_2026",
+          "value_or_direction": "3.1%",
+          "horizon": "CY2026",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "global_real_GDP_growth_2027",
+          "value_or_direction": "3.4%",
+          "horizon": "CY2027",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "global_headline_inflation_2026",
+          "value_or_direction": "4.7%",
+          "horizon": "CY2026",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "global_headline_inflation_2027",
+          "value_or_direction": "4.1%",
+          "horizon": "CY2027",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "下行风险占主导:冲突进一步升级、对AI的预期重估、贸易紧张重现、财政脆弱性。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Further escalation in conflicts. A reassessment of expectations surrounding artificial intelligence (AI). Renewed trade tensions. Fiscal vulnerabilities."
+        },
+        {
+          "statement": "上行可能:AI投资动能更强、AI带来的生产率提升、地缘政治与贸易紧张持续缓和。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "Stronger momentum in AI investment. Productivity gains from AI. A sustained easing of geopolitical and trade tensions."
+        }
+      ],
+      "institution_name": "International Monetary Fund"
+    },
+    {
+      "view_id": "VIEW-20261110-002",
+      "report_title": "Federal Reserve issues FOMC statement (October 28, 2026)",
+      "publish_date": "2026-10-28",
+      "view_horizon": "3m",
+      "subjects": [
+        "US_rates",
+        "US_growth"
+      ],
+      "core_views": [
+        {
+          "statement": "委员会决定将联邦基金利率目标区间维持在3.75%至4.0%,以支持美联储双重使命。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The Committee decided to maintain the target range for the federal funds rate at 3-3/4 to 4 percent, in support of the Federal Reserve's dual mandate."
+        },
+        {
+          "statement": "经济活动正强劲扩张;尽管不确定性因地缘政治等因素仍高,国内支出保持韧性。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Economic activity is expanding at a strong pace. While uncertainty remains elevated owing, in part, to geopolitical developments, domestic spending has been resilient."
+        },
+        {
+          "statement": "生产率增长强劲,资本投资稳健;就业增长与劳动力增长同步,失业率变化不大。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Productivity growth is strong, and capital investment is robust. Job gains have kept pace with the workforce, and the unemployment rate has changed little."
+        },
+        {
+          "statement": "通胀仍然高企;积累更多信息将帮助委员会确定确保通胀及时回归2%目标的适当政策立场。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Inflation remains elevated. The accumulation of more information will help the Committee determine the policy stance appropriate to ensure a timely return of inflation to the Committee's 2 percent goal."
+        },
+        {
+          "statement": "委员会承诺实现价格稳定。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The Committee will deliver price stability."
+        },
+        {
+          "statement": "本次决议以10比2票通过;Lisa D. Cook与Beth M. Hammack投反对票,主张本次会议加息25个基点。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Voting against the monetary policy action were Lisa D. Cook and Beth M. Hammack, who preferred to raise the target range for the federal funds rate by 1/4 percentage point at this meeting."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "fed_funds_target_range",
+          "value_or_direction": "维持3.75%-4.00%",
+          "horizon": "当前(会后即刻)",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "inflation_path",
+          "value_or_direction": "回归2%目标(未给时间表,称待更多信息积累)",
+          "horizon": "未指明",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "不确定性仍然高企,部分归因于地缘政治发展。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "uncertainty remains elevated owing, in part, to geopolitical developments"
+        }
+      ],
+      "institution_name": "Federal Reserve (Board of Governors / FOMC)"
+    },
+    {
+      "view_id": "VIEW-20261110-003",
+      "report_title": "Cyclical Outlook: Growth Holds, Risks Widen",
+      "publish_date": "2026-10-06",
+      "view_horizon": "6m",
+      "subjects": [
+        "US_rates",
+        "US_growth",
+        "CN_macro",
+        "EA_macro",
+        "JP_macro",
+        "fixed_income",
+        "credit",
+        "commodities",
+        "equities"
+      ],
+      "core_views": [
+        {
+          "statement": "基线情景:美联储及其他主要央行最终无需完全兑现当前市场定价的加息幅度。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Our baseline is that the Federal Reserve and other major central banks ultimately won't need to fully deliver the amount of interest rate hikes currently priced into markets."
+        },
+        {
+          "statement": "基线情景:全球增长稳定延续,通胀随能源价格冲击消退而回落。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We therefore expect stable global growth to continue in our baseline while inflation moderates as the energy price shock fades."
+        },
+        {
+          "statement": "中东冲突推高能源价格,已引发市场定价加息并推高债券收益率;连锁效应包括美国房贷利率上升、企业与政府偿债成本增加,可能抑制增长。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Energy prices, driven sharply higher by the conflict in the Middle East, have increased headline inflation. That has sparked a shift in monetary policy expectations since the conflict began, with markets pricing in interest rate hikes and pushing bond yields higher."
+        },
+        {
+          "statement": "全球主要经济体中中国是例外:持续已久的房地产下行、内需疲弱与充裕的现有制造业产能压制经济活动与通胀。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The main exception is China, where a prolonged and ongoing housing downturn, weak domestic demand, and abundant existing manufacturing capacity weigh on activity and inflation."
+        },
+        {
+          "statement": "预计Kevin Warsh主席领导下的美联储将保持其总体政策框架与2%通胀目标,但美联储沟通方式的变化可能造成前端利率波动。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We expect the Fed under Chair Kevin Warsh to preserve its broad policy framework and 2% inflation target, although changes in Fed communication could generate volatility in front-end rates."
+        },
+        {
+          "statement": "收益率上行的主因是能源价格及其对货币政策预期的影响推高实际收益率,而非通胀预期或财政担忧;期限溢价保持稳定。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Higher energy prices, and their impact on monetary policy expectations, have been the main driver pushing real yields higher."
+        },
+        {
+          "statement": "财政方面美法两国债务轨迹最具挑战;英国、意大利、日本脆弱(日本因近期增支政策日益加剧)但在当前财政计划下仍可持续。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Two countries stand out with more challenging debt trajectories: the U.S. and France."
+        },
+        {
+          "statement": "投资立场:在中央情景良性但尾部肥厚之际,组合应能在多种情景下保持韧性;当前起始收益率下仍强力支持持有债券。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "In a world where the central scenario is benign but the tails are fat, investors should look to build portfolios that can be resilient across a variety of scenarios."
+        },
+        {
+          "statement": "久期配置:仍认为中期(5-7年)美债有吸引力,并随收益率上升对长久期债券趋于更积极。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We still find intermediate (five- to seven-year) Treasuries attractive and are becoming more constructive on longer-dated bonds as yields rise."
+        },
+        {
+          "statement": "信贷立场:利差偏紧、AI相关相关性上升,强调选择性、相对价值与下行缓释;在直接借贷领域投资者恐将失望于近年回报。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "credit spreads are tight, and AI-related correlations are rising as more debt gets issued in the sector"
+        },
+        {
+          "statement": "建议以大宗商品与选择性实物资产对冲供给侧风险,补充久期在增长走弱情景下的对冲功能。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "Commodities and select real assets can complement duration by providing exposure to the very scarcity and supply pressures that could challenge both economic growth and conventional financial assets."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "US_real_neutral_rate_r_star",
+          "value_or_direction": "约1.5%(疫情前约0.5%,多模型估计中值)",
+          "horizon": "当前水平估计",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "fed_policy_path_baseline",
+          "value_or_direction": "无需完全兑现市场定价的加息",
+          "horizon": "6-12个月",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "CN_activity_inflation",
+          "value_or_direction": "受压制(房地产下行+内需弱+产能充裕)",
+          "horizon": "6-12个月",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "global_growth",
+          "value_or_direction": "稳定(基线)",
+          "horizon": "6-12个月",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "global_inflation",
+          "value_or_direction": "随能源冲击消退而回落",
+          "horizon": "6-12个月",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "风险1:AI投资(增长主要引擎)减速或收缩——周期内彻底的AI资本开支崩塌看似不太可能,但增速放缓即会削弱GDP贡献;中期内AI泡沫破裂仍是重大风险。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "AI investment, the principal engine of economic growth, slows or contracts"
+        },
+        {
+          "statement": "风险2:能源供给冲击恶化、能源价格超出市场预期(霍尔木兹海峡、厄尔尼诺经食品/化肥/航运渠道)。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The energy supply shock worsens and energy prices exceed market expectations"
+        },
+        {
+          "statement": "风险3:金融条件骤然收紧(更严格的央行政策、投资者要求更多补偿、高利率暴露脆弱性并引发金融市场事故)。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Financial conditions tighten abruptly"
+        },
+        {
+          "statement": "三个缓冲相互关联:一个失效会对其他缓冲施加额外压力,故两侧结果分布均呈肥尾。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Because AI capex, household wealth, and financial conditions have become increasingly interconnected, a failure of one buffer could place additional pressure on the others."
+        }
+      ],
+      "institution_name": "PIMCO"
+    },
+    {
+      "view_id": "VIEW-20261110-004",
+      "report_title": "Can AI Investment Drive S&P 500 Earnings Even Higher?",
+      "publish_date": "2026-09-23",
+      "view_horizon": "12m",
+      "subjects": [
+        "equities",
+        "US_growth",
+        "US_rates"
+      ],
+      "core_views": [
+        {
+          "statement": "基准情形:未来几年标普500盈利增长减速而非崩塌。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Our base case is for S&P 500 earnings growth to decelerate, not collapse, in coming years"
+        },
+        {
+          "statement": "近期估值无泡沫迹象:因股价未能跟上盈利飙升,远期市盈率已从一年前的23倍降至19倍,与10年均值持平。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Because equity prices have failed to keep pace with surging earnings, near-term valuations show no hint of a bubble"
+        },
+        {
+          "statement": "但周期调整市盈率(席勒PE)已升至历史最高区间之一,低于1999-2000峰值但高于2021年水平;若当前盈利不可持续,'平均'估值也可能昂贵。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "even an 'average' multiple may be expensive if current earnings are unsustainable"
+        },
+        {
+          "statement": "预计AI投资对盈利的推动将逐渐过渡为AI生产率带来的增长;能源价格与利率是这些预测的近期宏观风险,AI的影响才是企业盈利最大的长期问题。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Energy prices and interest rates create near-term macro risks around these forecasts, but the impact of AI is the biggest long-term question for corporate earnings"
+        },
+        {
+          "statement": "2026年标普500 EPS增长近一半来自AI投资;超大规模云厂商今年资本开支将达8000亿美元,较2025年增长94%。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The largest US hyperscaler companies are on track to spend $800 billion on capital expenditures this year, an increase of 94% over 2025."
+        },
+        {
+          "statement": "大型科技公司2026年二季度录得约1500亿美元对私营公司的未实现投资收益,相当于标普500 EPS的12%;预计2026下半年还有更多,2027年贡献将大幅缩小。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "Large technology companies recorded roughly $150 billion of unrealized investment gains in private companies in the second quarter of 2026, translating to 12% of S&P 500 EPS."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "SPX_12m_target",
+          "value_or_direction": "8700(自2026-09-21的7764起)",
+          "horizon": "12个月",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "SPX_EPS_2027",
+          "value_or_direction": "$415(约+11%)",
+          "horizon": "CY2027",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "SPX_EPS_2028",
+          "value_or_direction": "$460(约+11%)",
+          "horizon": "CY2028",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "hyperscaler_capex_2027",
+          "value_or_direction": "$1.2万亿",
+          "horizon": "CY2027",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "hyperscaler_capex_2028",
+          "value_or_direction": "$1.4万亿",
+          "horizon": "CY2028",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "SPX_forward_PE_assumption",
+          "value_or_direction": "约19倍(接近当前水平)",
+          "horizon": "12个月",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "能源价格与利率构成近期宏观风险;折旧负担上升削弱AI对盈利的提振;未实现投资收益2027年贡献大幅缩水。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": ""
+        },
+        {
+          "statement": "超大规模资本开支近年持续超共识,潜在意外使标普500盈利结果区间很宽。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Hyperscaler capex has consistently surprised relative to consensus estimates during the last few years, and the potential for additional surprises going forward creates a wide range of potential S&P 500 earnings outcomes"
+        }
+      ],
+      "institution_name": "Goldman Sachs"
+    },
+    {
+      "view_id": "VIEW-20261110-005",
+      "report_title": "Monetary policy decisions (29 October 2026)",
+      "publish_date": "2026-10-29",
+      "view_horizon": "3m",
+      "subjects": [
+        "EA_macro",
+        "fixed_income"
+      ],
+      "core_views": [
+        {
+          "statement": "管理委员会决定维持三大关键利率不变。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The Governing Council today decided to keep the three key ECB interest rates unchanged."
+        },
+        {
+          "statement": "能源价格持续上涨,对通胀前景构成上行风险、对增长前景构成下行风险。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Energy prices have continued to rise, posing upside risks to the inflation outlook and downside risks to the growth outlook."
+        },
+        {
+          "statement": "能源冲击的全部影响仍在显现,但迄今为止基础通胀保持大体稳定,工资尚未出现实质性反应;能源冲击的幅度扩大与持续时间延长及其对间接与二轮效应的影响,可能推高通胀并压低增长。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The increased magnitude and duration of the energy shock, as well as the implications for indirect and second-round effects, are likely to drive up inflation and lower growth."
+        },
+        {
+          "statement": "自上次会议以来金融条件已经收紧,这可能抑制通胀与增长。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Financing conditions have tightened since the Governing Council's last meeting, which is likely to weigh on inflation and growth."
+        },
+        {
+          "statement": "管理委员会承诺设定货币政策以确保通胀在中期稳定于2%目标;将采取数据依赖、逐次会议的方式,不预先承诺特定利率路径。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The Governing Council is not pre-committing to a particular rate path."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "ECB_deposit_facility_rate",
+          "value_or_direction": "维持2.50%",
+          "horizon": "当前(会后即刻)",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "ECB_main_refi_rate",
+          "value_or_direction": "维持2.65%",
+          "horizon": "当前(会后即刻)",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "ECB_marginal_lending_rate",
+          "value_or_direction": "维持2.90%",
+          "horizon": "当前(会后即刻)",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "EA_inflation_medium_term",
+          "value_or_direction": "稳定于2%目标(政策承诺,未给时间表)",
+          "horizon": "中期",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "通胀上行风险与增长下行风险并存(能源冲击双侧风险)。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "posing upside risks to the inflation outlook and downside risks to the growth outlook"
+        },
+        {
+          "statement": "不确定性处于高位。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "the current elevated uncertainty"
+        }
+      ],
+      "institution_name": "European Central Bank"
+    },
+    {
+      "view_id": "VIEW-20261110-006",
+      "report_title": "Statement on Monetary Policy (October 30, 2026)",
+      "publish_date": "2026-10-30",
+      "view_horizon": "3m",
+      "subjects": [
+        "JP_macro",
+        "fixed_income",
+        "equities"
+      ],
+      "core_views": [
+        {
+          "statement": "货币政策会议以8比1多数决定,引导无担保隔夜拆借利率维持在1.25%左右。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The Bank will encourage the uncollateralized overnight call rate to remain at around 1.25 percent."
+        },
+        {
+          "statement": "决定将ETF持有量出售规模提高至约为市场成交值的0.1%,出售步伐定为每年约8600亿日元(账面价值),较此前每年约3300亿日元大幅加快。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The Bank decided to sell its ETF holdings at a scale of about 0.1 percent of the trading value in the market, and set the pace of sales at about 860 billion yen per year (on a book value basis)."
+        },
+        {
+          "statement": "日本央行自2026年1月开始出售ETF,迄今在避免对市场造成重大影响的情况下顺利执行。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The Bank started its sales of ETFs in January 2026, and has been conducting these sales smoothly while avoiding a major impact on the market."
+        },
+        {
+          "statement": "反对委员高田创认为,基础CPI通胀已达价格稳定目标,局面已转向新阶段,央行需要加快步伐使政策利率向中性利率靠拢,以便灵活应对;他主张引导隔夜拆借利率至1.50%左右,该提案被多数票否决。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Takata Hajime considered that, with underlying CPI inflation having reached the price stability target, the situation had shifted to a new phase in which the Bank needs to step up the pace of bringing the policy interest rate closer to the neutral interest rate"
+        },
+        {
+          "statement": "提高出售步伐的依据:股票市场成交值持续扩大(以2026年1-9月东证Prime市场成交值与同期出售ETF的市价/账面比计算)。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "Meanwhile, the trading value in the stock market has been expanding. Given these developments, at the MPM held today, the Bank decided to sell its ETF holdings at a scale of about 0.1 percent of the trading value in the market"
+        },
+        {
+          "statement": "新出售步伐自2027年1月起实施;可根据金融市场状况变化在年度步伐范围内临时调整或暂停出售;J-REIT出售维持每年约50亿日元(账面价值)。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "A temporary adjustment in the sales amount or a suspension of sales may be made within the range of the annual sales pace in response to changes in financial market conditions."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "BOJ_policy_rate",
+          "value_or_direction": "维持约1.25%",
+          "horizon": "会议间期间(至下次会议)",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "BOJ_ETF_sales_pace",
+          "value_or_direction": "约8600亿日元/年(账面价值,市值约2.46万亿日元),自2027年1月起",
+          "horizon": "2027年起年度步伐",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "BOJ_JREIT_sales_pace",
+          "value_or_direction": "维持约50亿日元/年(账面价值)",
+          "horizon": "持续",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "声明明示市场敏感度条款:可因金融市场状况变化在年度步伐范围内临时调整出售额或暂停出售。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "A temporary adjustment in the sales amount or a suspension of sales may be made within the range of the annual sales pace in response to changes in financial market conditions."
+        },
+        {
+          "statement": "政策利率决定存在分歧:高田创反对维持1.25%,主张加快升至1.50%(认为基础通胀已达目标、应更快向中性利率靠拢);8比1被否。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "He proposed that the Bank set the guideline for money market operations as follows: the Bank would encourage the uncollateralized overnight call rate to remain at around 1.5 percent. The proposal was defeated by a majority vote."
+        }
+      ],
+      "institution_name": "Bank of Japan"
+    },
+    {
+      "view_id": "VIEW-20261110-007",
+      "report_title": "China Economic Update, July 2026: Rebalancing Growth",
+      "publish_date": "2026-07-01",
+      "view_horizon": "18m",
+      "subjects": [
+        "CN_macro"
+      ],
+      "core_views": [
+        {
+          "statement": "最新一期中国经济简报预计2026年中国增速放缓至4.4%。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The latest China Economic Update projected China's growth to slow to 4.4% in 2026."
+        },
+        {
+          "statement": "由于向消费的再平衡进程仍然渐进,预计2027年增速进一步放缓至4.3%。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Growth is expected to ease further to 4.3% in 2027, as progress in rebalancing the economy toward consumption remains gradual."
+        },
+        {
+          "statement": "经济面临逆风:旷日持久的房地产部门下行、信心低迷、内需疲弱带来的通缩压力,以及全球贸易政策转向带来的不确定性上升。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "the economy faces headwinds including a protracted property sector downturn, subdued confidence, deflationary pressure from weak domestic demand, and heightened uncertainty from shifting global trade policies"
+        },
+        {
+          "statement": "官方描述的增长动能与政策应对:在宽松宏观政策与强劲出口支撑下增长动能保持稳健;当局已增加财政刺激以提振国内活动,并辅以货币宽松支持流动性与降低融资成本。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The authorities have increased fiscal stimulus to boost domestic activity, alongside monetary easing to support market liquidity and lower financing costs."
+        },
+        {
+          "statement": "结构性判断:投资与出口导向制造业的高增长模式已大体到达极限,并导致经济与环境失衡;需要更强的生产率增长与经济结构转变(从制造转向高价值服务、从投资转向消费、从高碳转向低碳)。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "China's strong growth relied on investment and export-oriented manufacturing, an approach that has largely reached its limits and led to economic and environmental imbalances."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "CN_real_GDP_growth_2026",
+          "value_or_direction": "4.4%",
+          "horizon": "CY2026",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "CN_real_GDP_growth_2027",
+          "value_or_direction": "4.3%",
+          "horizon": "CY2027",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "风险集中在:贸易政策不确定性上升、信心低迷、房地产部门持续调整。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "heightened uncertainty from shifting global trade policies"
+        }
+      ],
+      "institution_name": "World Bank"
+    },
+    {
+      "view_id": "VIEW-20261110-008",
+      "report_title": "U.S. midterms: what they mean for investors (Bulletin)",
+      "publish_date": "2026-11-04",
+      "view_horizon": "6m",
+      "subjects": [
+        "US_growth",
+        "equities"
+      ],
+      "core_views": [
+        {
+          "statement": "BII快评:民主党赢得2026年中期选举参众两院控制权,在翻转多个共和党席位后改变华盛顿权力格局。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Democrats have won control of the House and Senate in the U.S. midterm elections, shifting the balance of power in Washington after flipping key Republican-held seats across the country."
+        },
+        {
+          "statement": "BII判断:这一结果可能使特朗普总统更难推动新立法。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The outcome could make it harder for President Donald Trump to advance new legislation."
+        }
+      ],
+      "forecasts": [],
+      "risk_factors": [],
+      "institution_name": "BlackRock"
+    },
+    {
+      "view_id": "VIEW-20261110-009",
+      "report_title": "A Firmer Fed — Global Fixed Income Bulletin",
+      "publish_date": "2026-09-18",
+      "view_horizon": "3m",
+      "subjects": [
+        "US_rates",
+        "EA_macro",
+        "JP_macro",
+        "fixed_income",
+        "credit",
+        "fx"
+      ],
+      "core_views": [
+        {
+          "statement": "8月行情主线是发达市场收益率曲线内部的分化而非利率方向性移动:短端收益率因投资者重新评估政策周期可能转回紧缩而上升,长端稳定或下行,曲线趋平。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Short-dated yields rose as investors reassessed the likelihood that the policy cycle could shift back toward tightening, while long-dated yields were stable or lower, leaving curves flatter across most major markets."
+        },
+        {
+          "statement": "美联储沟通是当月核心政策事件:7月底会议维持3.50%-3.75%不变(尽管三票主张加息25bp)后,市场以9月加息接近完全定价进入8月;7月CPI偏软一度压低预期,随后Warsh主席Jackson Hole讲话重申2% PCE目标、称金融条件限制性不足、强调基础通胀需进一步改善(PCE通胀3.7%),被解读为明显更鹰,9月加息预期回升至超过一半。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Chair Warsh's Jackson Hole address reaffirmed the Fed's 2% personal consumption expenditures (PCE) inflation target, characterized financial conditions as insufficiently restrictive, and emphasized the need for further progress on underlying inflation."
+        },
+        {
+          "statement": "日本10年期收益率升至1990年代中期以来最高,反映对日本央行进一步紧缩的预期与对财政扩张的担忧。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Japanese yields reached their highest levels since the mid-1990s, reflecting expectations for further Bank of Japan tightening alongside concerns around fiscal expansion."
+        },
+        {
+          "statement": "久期立场:维持发达市场长久期立场,选择性配置在增长对金融条件收紧更脆弱、估值有吸引力的区域(加拿大/新西兰短端利率、含法国在内的选择性欧元区久期)。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "we maintain a long-duration stance across developed markets, expressed selectively in regions where growth appears more vulnerable to tighter financial conditions and valuations are compelling"
+        },
+        {
+          "statement": "通胀仍是核心宏观风险:继续看好通过美债盈亏平衡通胀(中期与更长端)对冲'通胀高于目标持续更久'的风险。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We continue to see value in hedging portfolios against the risk that inflation remains above target for longer than markets currently anticipate."
+        },
+        {
+          "statement": "新兴市场债券超配:实际收益率高、收益生成韧性、部分国家基本面改善使其仍具吸引力。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Emerging market sovereign and corporate debt remains an attractive opportunity, supported by elevated real yields, resilient income generation, and improving fundamentals in select countries."
+        },
+        {
+          "statement": "信用立场:因估值紧、进一步压缩空间有限而低配投资级;小幅超配高收益(偏向高质量BB/B);区域上欧优于美,美国内部偏好金融与公用事业。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We remain underweight investment grade corporates due to tight valuations and limited scope for broad-based spread compression."
+        },
+        {
+          "statement": "基线判断:实质性需求破坏情景不是基线;低而正的增长(受财政支出、能源相关投资、AI与基建资本开支支撑)与大体良性的违约环境一致。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We continue to believe a meaningful demand-destruction scenario is not the base case."
+        },
+        {
+          "statement": "证券化产品超配:当前票息机构MBS相对其他高评级固收板块具吸引力(收益率、再融资风险下降、夏季走阔后的相对价值改善);非机构RMBS为结构信用中较有吸引力的机会集。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We continue to view current-coupon agency MBS as attractive relative to other high-quality fixed income sectors, supported by compelling all-in yields, reduced prepayment risk, and improved relative value following the widening seen earlier in the summer."
+        },
+        {
+          "statement": "外汇:偏好选择性高息新兴市场货币,核心多墨西哥比索、以欧元/瑞郎/瑞典克朗等低息欧洲货币融资。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "Our positive view is focused on the Mexican peso, funded against lower-yielding European currencies including the euro, Swiss franc, and Swedish krona."
+        },
+        {
+          "statement": "总结论:评级/区域/部门间的分化持续;利差仍处历史紧位且政策前景日益偏向重新紧缩,票息、相对价值与主动选券是超额回报的主要来源。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "With spreads still near historically tight levels and the policy outlook increasingly skewed toward renewed tightening, carry, relative value, and active security selection remained the primary drivers of excess return."
+        },
+        {
+          "statement": "AI与数据中心融资仍是一级发行的重要构成,强化了在较新、资本更密集领域内部的选择性需求。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "AI and data-center financing also remained an important feature of primary issuance, reinforcing the need for selectivity within newer and more capital-intensive areas of the market."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "MSIM_DM_duration_stance",
+          "value_or_direction": "长久期(选择性:加/新短端、欧元区含法国)",
+          "horizon": "战术配置(月度更新至修订)",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_EM_debt_stance",
+          "value_or_direction": "超配",
+          "horizon": "战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_IG_credit_stance",
+          "value_or_direction": "低配",
+          "horizon": "战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_HY_credit_stance",
+          "value_or_direction": "小幅超配(偏高质量)",
+          "horizon": "战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_securitized_stance",
+          "value_or_direction": "超配(机构MBS+非机构RMBS)",
+          "horizon": "战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "US_10y_yield_endAug2026",
+          "value_or_direction": "4.75%(月+1.5bp)",
+          "horizon": "已实现数据",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "US_PCE_inflation_Aug2026",
+          "value_or_direction": "3.7%",
+          "horizon": "已实现数据",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "fed_hike_expectation_repricing",
+          "value_or_direction": "9月加息预期回升至>50%(8月末市场定价,MSIM对市场状态的描述)",
+          "horizon": "1个月",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "政策前景日益偏向重新紧缩;央行再度收紧的可能性强化了对强利息覆盖、可控到期结构发行人的偏好。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The possibility of renewed central-bank tightening reinforces our preference for issuers with strong interest coverage, manageable maturity profiles, and durable cash-flow generation."
+        },
+        {
+          "statement": "机构MBS近期主要风险:波动率再度上升或长端急剧波动。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "A renewed rise in volatility or a sharp move in the long end would remain the principal near-term risks"
+        },
+        {
+          "statement": "EM风险:更高的全球收益率、持续通胀与地缘不确定性。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Higher global yields, persistent inflation, and geopolitical uncertainty remain important risks"
+        }
+      ],
+      "institution_name": "Morgan Stanley Investment Management (MSIM)"
+    },
+    {
+      "view_id": "VIEW-20261110-010",
+      "report_title": "Oil Market Report - October 2026",
+      "publish_date": "2026-10-14",
+      "view_horizon": "18m",
+      "subjects": [
+        "commodities",
+        "US_growth",
+        "EA_macro"
+      ],
+      "core_views": [
+        {
+          "statement": "2026年全球石油需求预计平均下降2.6 mb/d(4Q26同比-2.5 mb/d),降至102.4 mb/d——高油价与经济前景恶化所致的需求破坏。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "World oil demand is forecast to fall by 2.5 mb/d y-o-y in 4Q26 and 2.6 mb/d on average in 2026."
+        },
+        {
+          "statement": "2027年仅部分复苏(+2 mb/d),全年油品使用量仍将比2025年低620 kb/d(0.6%)。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "A partial recovery, of 2 mb/d, will leave 2027 global oil use 620 kb/d, or 0.6%, below 2025 levels."
+        },
+        {
+          "statement": "供给:2026年全球石油供应年均下降5.8 mb/d至100.7 mb/d,2027年逆转为+7.7 mb/d;但海湾新一轮袭击使复苏脆弱。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Oil supply is projected to post an average annual decline of 5.8 mb/d, to 100.7 mb/d, this year, before reversing course and rising by 7.7 mb/d in 2027."
+        },
+        {
+          "statement": "油市平衡预计到2026年底前维持短缺,受限的中质馏分油(柴油)供应可能持续到2027年很久;盈余只在2027年才出现。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "oil market balances are forecast to remain in deficit through the end of the year, with constrained middle distillate supplies likely to persist well into 2027"
+        },
+        {
+          "statement": "创纪录柴油价格已在产生广泛经济后果:推高商品成本并影响实际收入、经济活动与通胀。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Record diesel prices are already having broad economic consequences by raising the cost of goods and impacting real incomes, economic activity, and inflation."
+        },
+        {
+          "statement": "本轮上涨为供给驱动而非需求拉动:两年来需求增长预测累计砍去约5 mb/d,价格上行源于中东冲突后产品供应受限。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "supply constraints, rather than demand strength, were the main price driver"
+        },
+        {
+          "statement": "IEA对2026年余下时间的预测基本维持不变——尽管海湾出口强劲恢复,但出于安全局势高度紧张的审慎,未据此上调供给假设。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "left our projections for the remainder of the year largely unchanged given heightened security concerns"
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "global_oil_demand_2026",
+          "value_or_direction": "102.4 mb/d(年均-2.6 mb/d;4Q26同比-2.5 mb/d)",
+          "horizon": "2026全年",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "global_oil_demand_2027",
+          "value_or_direction": "部分复苏+2 mb/d,全年仍比2025年低620 kb/d(0.6%)",
+          "horizon": "2027全年",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "global_oil_supply_2026",
+          "value_or_direction": "100.7 mb/d(年均-5.8 mb/d;9月已达102.3 mb/d,环比+2.5)",
+          "horizon": "2026全年",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "global_oil_supply_2027",
+          "value_or_direction": "+7.7 mb/d",
+          "horizon": "2027全年",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "market_balance_4Q26",
+          "value_or_direction": "维持短缺至2026年底",
+          "horizon": "至2026年底",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "market_balance_2027",
+          "value_or_direction": "转为盈余(上半年逐步、下半年明显)",
+          "horizon": "2027",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "North_Sea_Dated_crude",
+          "value_or_direction": "9月$116.89/bbl(环比+$26.17);报告撰写时约$134/bbl;布伦特期货自9月初+13%至约$107/bbl",
+          "horizon": "已实现数据+撰写时点",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "wholesale_diesel_price",
+          "value_or_direction": "9月中旬新加坡>$200/bbl,欧美约$220/bbl创历史新高;基准价格仍约为原油价格与危机前水平的近两倍",
+          "horizon": "已实现数据",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "refinery_runs",
+          "value_or_direction": "10月81.3 mb/d(季节性低点)→年底84.6 mb/d;2026年均81.7(-2.3),2027年+2.8",
+          "horizon": "至2027",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "gasoil_balance",
+          "value_or_direction": "紧张延续至2027年很久;补充库存不太可能在2027年下半年前开始,取决于中东产品供应恢复",
+          "horizon": "至2027",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "能源基础设施或油轮交通再遇袭,威胁海湾供给复苏并可能在2027年盈余出现前引发更多动荡。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "oil markets may experience more turmoil in the months ahead before any eventual surplus emerges in 2027"
+        },
+        {
+          "statement": "创纪录油轮运费推高交付成本并侵蚀炼厂利润→亚洲/欧洲炼厂或被迫经济性减产,进一步收紧柴油。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "record tanker rates are raising delivered crude costs and eroding refinery margins"
+        },
+        {
+          "statement": "季节性风险:晚季飓风威胁美国墨西哥湾沿岸炼油/出口;乌克兰无人机打击俄炼厂持续约束其柴油出口。",
+          "attribution": "institution_stated",
+          "basis": "paraphrase",
+          "quote": "a late-season hurricane impacting the US Gulf Coast"
+        }
+      ],
+      "institution_name": "International Energy Agency (IEA)"
+    },
+    {
+      "view_id": "VIEW-20261110-011",
+      "report_title": "Big Picture: Mapping Europe's Barbell",
+      "publish_date": "2026-09-22",
+      "view_horizon": "other",
+      "subjects": [
+        "EA_macro",
+        "equities"
+      ],
+      "core_views": [
+        {
+          "statement": "主旨:政策与资本配置的新方向为欧洲创造了一批新的投资机会(官方页面摘要句,即'杠铃'命题本身)。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "New directions of policy and capital allocation have created a fresh set of European investment opportunities."
+        },
+        {
+          "statement": "命题内容:优先次序的重排(reordering of priorities)对欧洲意味着什么——视频版由Kandhari拆解,指向欧洲政策重心变化下的资产映射。",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "In this Big Picture video, Jitania Kandhari breaks down what the reordering of priorities means for Europe."
+        }
+      ],
+      "forecasts": [],
+      "risk_factors": [],
+      "institution_name": "Morgan Stanley Investment Management (MSIM)"
+    },
+    {
+      "view_id": "VIEW-20261111-001",
+      "report_title": "2026年第二季度中国货币政策执行报告(内容摘要)",
+      "publish_date": "2026-08-12",
+      "view_horizon": "6m",
+      "subjects": [
+        "CN_macro",
+        "fx",
+        "credit"
+      ],
+      "core_views": [
+        {
+          "statement": "继续实施适度宽松的货币政策,发挥存量政策与增量政策集成效应,为巩固经济稳中向好态势创造适宜的货币金融环境",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "中国人民银行坚持以习近平新时代中国特色社会主义思想为指导,坚决落实党中央、国务院决策部署,继续实施适度宽松的货币政策,发挥存量政策与增量政策集成效应,为巩固经济稳中向好态势创造适宜的货币金融环境。"
+        },
+        {
+          "statement": "保持银行体系流动性充裕,综合运用逆回购、MLF、国债买卖等多种工具",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "综合运用逆回购、中期借贷便利、国债买卖操作等多种货币政策工具,保持流动性充裕。"
+        },
+        {
+          "statement": "完善短端利率调控机制:公开市场新增隔夜逆回购品种,临时正/逆回购操作区间宽度由70个基点收窄至50个基点",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "完善短端利率调控机制,在公开市场操作中增加隔夜逆回购操作品种,并将临时正、逆回购操作区间宽度由70个基点收窄至50个基点,增强货币市场利率调控的精准性、有效性。"
+        },
+        {
+          "statement": "创设境外央行回购工具,便利境外央行类机构的人民币流动性管理和人民币债券资产配置",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "创设境外央行回购工具,便利境外央行类机构的人民币流动性管理和人民币债券资产配置。"
+        },
+        {
+          "statement": "推动社会综合融资成本低位运行:下调结构性货币政策工具利率0.25个百分点",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "下调结构性货币政策工具利率0.25个百分点,持续推进明示企业贷款综合融资成本工作,降低融资中间费用。"
+        },
+        {
+          "statement": "结构性支持扩容:合并支农支小再贷款与再贴现额度,增加科技创新和技术改造再贷款额度,单设1万亿元民营企业再贷款",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "合并使用支农支小再贷款与再贴现额度,增加支农支小再贷款以及科技创新和技术改造再贷款额度,单设1万亿元民营企业再贷款,合并设立科技创新与民营企业债券风险分担工具,进一步助力经济结构转型优化。"
+        },
+        {
+          "statement": "外部环境判断:世界经济增长动能疲弱,供给冲击和输入型通胀压力持续,全球通胀抬升,主要经济体央行货币政策趋向调整",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "当前外部环境更加复杂多变,世界经济增长动能疲弱,地缘冲突和经贸摩擦多发频发,供给冲击和输入型通胀压力影响仍在持续,全球通胀水平有所抬升,主要经济体央行货币政策趋向调整。"
+        },
+        {
+          "statement": "下阶段加大逆周期调节力度,及时谋划出台增量政策,加力扩大内需",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "充分发挥各项存量政策效能,及时谋划出台务实管用的增量政策,加大逆周期调节力度,加力扩大内需、优化供给,推动经济持续向新向优向好发展。"
+        },
+        {
+          "statement": "汇率政策:坚持有管理的浮动汇率制度,保持汇率弹性,防范汇率超调风险,保持人民币汇率在合理均衡水平上的基本稳定",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "坚持以市场供求为基础、参考一篮子货币进行调节、有管理的浮动汇率制度,保持汇率弹性,发挥汇率调节宏观经济和国际收支自动稳定器功能,综合施策,增强外汇市场韧性,稳定市场预期,防范汇率超调风险,保持人民币汇率在合理均衡水平上的基本稳定。"
+        },
+        {
+          "statement": "推动货币政策操作框架改革完善,引导货币市场短端利率围绕政策利率平稳运行",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "平稳有序推动货币政策操作框架改革完善,更好引导货币市场短端利率围绕政策利率平稳运行。"
+        },
+        {
+          "statement": "坚决守住不发生系统性金融风险的底线,稳妥有序推动重点领域风险处置",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "拓展丰富中央银行宏观审慎和金融稳定功能,创新金融工具,维护金融市场平稳运行,坚决守住不发生系统性金融风险的底线。"
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "社会融资规模与货币供应量增长",
+          "value_or_direction": "同经济增长、价格总水平预期目标相匹配(未公布具体数字目标)",
+          "horizon": "下阶段",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "输入型通胀压力与全球通胀抬升、主要经济体货币政策转向调整构成外部风险",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "供给冲击和输入型通胀压力影响仍在持续,全球通胀水平有所抬升,主要经济体央行货币政策趋向调整。"
+        },
+        {
+          "statement": "汇率超调风险",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "增强外汇市场韧性,稳定市场预期,防范汇率超调风险,保持人民币汇率在合理均衡水平上的基本稳定。"
+        }
+      ],
+      "institution_name": "中国人民银行 (People's Bank of China)"
+    },
+    {
+      "view_id": "VIEW-20261111-002",
+      "report_title": "OECD Economic Outlook Interim Report, September 2026 — Weathering Successive Shocks (官方新闻稿)",
+      "publish_date": "2026-09-23",
+      "view_horizon": "18m",
+      "subjects": [
+        "US_growth",
+        "EA_macro",
+        "CN_macro",
+        "commodities"
+      ],
+      "core_views": [
+        {
+          "statement": "全球经济抵御中东冲突引发的能源供给冲击的表现好于预期,但持续的通胀压力与不确定性正在拖累近期前景",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The global economy has weathered the energy supply shock triggered by the conflict in the Middle East better than expected, but continued inflationary pressures and uncertainty are weighing on the near-term outlook, according to the OECD's latest Interim Economic Outlook."
+        },
+        {
+          "statement": "秘书长Cormann:增长持稳好于预期,但吸收能源冲击的缓冲正在耗尽,增长弱于去年且通胀再度上升",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Global growth has held up better than expected, but the buffers that absorbed the energy shock are being depleted. Growth is weaker than last year and inflation is rising again,"
+        },
+        {
+          "statement": "政策建议:政府需将支持精准投向最需要之处,并让公共支出回到可持续轨道",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Governments need to target support where it is most needed and get public spending on a sustainable track."
+        },
+        {
+          "statement": "政策建议:央行应保持警惕,确保通胀预期得到良好锚定",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Central banks should remain vigilant and ensure inflation expectations are well-anchored."
+        },
+        {
+          "statement": "风险整体偏向下行",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Risks remain tilted to the downside."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "全球GDP增长",
+          "value_or_direction": "2026年2.9%",
+          "horizon": "2026",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "全球GDP增长",
+          "value_or_direction": "2027年3.0%",
+          "horizon": "2027",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "美国GDP增长",
+          "value_or_direction": "2026年2.2%,2027年放缓至2.1%",
+          "horizon": "2026-2027",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "欧元区GDP增长",
+          "value_or_direction": "2026与2027年均为1%",
+          "horizon": "2026-2027",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "中国GDP增长",
+          "value_or_direction": "2026年4.5%,2027年4.2%",
+          "horizon": "2026-2027",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "G20通胀",
+          "value_or_direction": "2026年4.1%,2027年回落至3.6%",
+          "horizon": "2026-2027",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "快速增长的AI投资日益依赖外部融资,若预期回报未能兑现,可能放大市场修正",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Rapid AI investment is boosting growth but it is increasingly relying on external financing, which could amplify a market correction if expected returns do not materialise."
+        },
+        {
+          "statement": "长期主权债收益率上升带来的财政压力(与增长下行风险并列的风险来源)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Rising long-term sovereign bond yields are increasing fiscal pressures on governments."
+        }
+      ],
+      "institution_name": "经济合作与发展组织 (OECD)"
+    },
+    {
+      "view_id": "VIEW-20261111-003",
+      "report_title": "BIS Quarterly Review, September 2026 — Overview: Yields climb, yet risk appetite holds firm",
+      "publish_date": "2026-09-14",
+      "view_horizon": "3m",
+      "subjects": [
+        "fixed_income",
+        "US_rates",
+        "equities",
+        "credit"
+      ],
+      "core_views": [
+        {
+          "statement": "审查期内投资者风险偏好虽有起伏,但总体证明具有韧性(收益率上行未引发全面去风险)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Yet while investors' risk appetite ebbed and flowed, it proved resilient on the whole."
+        },
+        {
+          "statement": "审查期内地缘紧张再起,考验了上半年以来的正面市场动能",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "In the review period flare-ups in geopolitical tensions tested the positive momentum that had characterised the first half of the year."
+        },
+        {
+          "statement": "高利率前景叠加市场对估值与科技业可能过度投资的不安,扰动了AI驱动的股票动能",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The prospects of higher rates stemming from these macroeconomic challenges compounded markets' unease about valuations and possible overinvestment in the tech sector, disrupting the equity momentum driven by artificial intelligence (AI)."
+        },
+        {
+          "statement": "专题发现:私人信贷通过基于现金流与无形资产的借贷,为2020年后向数字经济的转型提供了融资",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Private credit helped finance the post-2020 shift to the digital economy by lending against cash flows and intangible assets."
+        }
+      ],
+      "forecasts": [],
+      "risk_factors": [
+        {
+          "statement": "财政负担可持续性的持续担忧对市场构成额外压力",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "On top of that, lingering concerns about the sustainability of fiscal burdens added to the pressure."
+        }
+      ],
+      "institution_name": "国际清算银行 (Bank for International Settlements)"
+    },
+    {
+      "view_id": "VIEW-20261111-004",
+      "report_title": "House View Briefcase: How will Fed rate hikes impact markets?",
+      "publish_date": "2026-11-09",
+      "view_horizon": "6m",
+      "subjects": [
+        "US_rates",
+        "US_growth",
+        "equities",
+        "fixed_income",
+        "credit"
+      ],
+      "core_views": [
+        {
+          "statement": "美联储未来数月 likely 加息以压低通胀,预计2026年12月与2027年3月加息",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The Federal Reserve is likely to raise interest rates in the coming months as it seeks to bring down inflation. We expect rate hikes in December 2026 and March 2027."
+        },
+        {
+          "statement": "预计12月与3月各加息25个基点;近期联储沟通暗示渐进耐心路径",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We expect 25-basis-point rate hikes from the Fed in December and March. Recent Fed communication suggests a patient approach."
+        },
+        {
+          "statement": "投资观点:温和紧缩周期不会颠覆美国经济或股票行情",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We expect the Fed to raise rates by 25 basis points in December 2026 and March 2027, and do not believe a measured tightening cycle will derail the US economy or equity rally."
+        },
+        {
+          "statement": "固定收益评级Attractive:通过短至中久期高质量债券与较强投资级发行人的中等期限信用增厚组合收益",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We rate fixed income as Attractive and see opportunities to add portfolio income through short- to medium-duration high-quality bonds and medium-maturity credit from stronger investment grade issuers."
+        },
+        {
+          "statement": "盈利增长应能帮助股票吸收温和上行的收益率(前提:美国增长保持稳健)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We forecast S&P 500 earnings growth of 25% in 2026 and 14% in 2027, which should help equities absorb moderately higher yields while US economic growth remains firm."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "联邦基金利率",
+          "value_or_direction": "2026年12月加息25bp",
+          "horizon": "2026-12",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "联邦基金利率",
+          "value_or_direction": "2027年3月再加息25bp",
+          "horizon": "2027-03",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "标普500盈利增长",
+          "value_or_direction": "2026年+25%",
+          "horizon": "2026",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "标普500盈利增长",
+          "value_or_direction": "2027年+14%",
+          "horizon": "2027",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "通胀持续高于预期构成进一步加息、更高收益率的风险(9月核心CPI已高于共识)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "September consumer price inflation was higher than consensus forecasts. The core rate, which excludes food and energy, rose to 2.6% on an annual basis."
+        }
+      ],
+      "institution_name": "UBS"
+    },
+    {
+      "view_id": "VIEW-20261111-005",
+      "report_title": "Active Fixed Income Perspectives, Q4 2026: Looking through the fog",
+      "publish_date": "2026-10-23",
+      "view_horizon": "6m",
+      "subjects": [
+        "US_rates",
+        "fixed_income",
+        "credit",
+        "US_growth"
+      ],
+      "core_views": [
+        {
+          "statement": "尽管通胀、赤字、地缘与利率不确定性持续,固定收益的配置理由反而增强:更高收益率提供有吸引力的票息收入并实质性改善了预期回报",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Despite ongoing uncertainty around inflation, deficits, geopolitics, and interest rates, the case for fixed income has strengthened. Higher yields provide attractive income and have materially improved prospective returns."
+        },
+        {
+          "statement": "近期收益率上行的驱动更多来自韧性增长与更高的实际收益率,而非更高的长期通胀预期(与通胀预期脱锚情形相区隔的关键判断)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Importantly, the recent rise in yields has been driven more by resilient growth and higher real yields than by higher long-term inflation expectations."
+        },
+        {
+          "statement": "全球债券收益率处于约二十年来最高位附近,固定收益在一篮子可能经济结果下都提供价值",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "With global bond yields near their highest levels in roughly two decades, we believe fixed income offers value across a range of potential economic outcomes."
+        },
+        {
+          "statement": "配置立场:低配主权风险,转向风险调整回报更具吸引力的板块;基金层面对美国久期与曲线相对基准取中性",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "we remain underweight sovereign risk in favor of sectors we view as providing more attractive risk-adjusted return potential. At the fund level, we are neutral on U.S. duration and the curve relative to benchmarks."
+        },
+        {
+          "statement": "细分板块:再定价后的MBS具吸引力,对投资级信用与证券化资产保持建设性;市政债曲线远端高等级债存在有意义的价值",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We see attractive opportunities in MBS following the recent repricing and remain constructive on investment-grade credit and securitized assets, where yields continue to offer compelling income potential."
+        },
+        {
+          "statement": "全球利率相对价值:超配德债相对美债,叠加日本的短久期与曲线趋平敞口",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "In global rates markets, we favor select relative value opportunities, including an overweight to German bunds versus U.S. Treasuries and short duration and curve flattening exposures in Japan."
+        },
+        {
+          "statement": "高收益率与更大的市场分化扩大了主动投资者的机会集,重点布局估值改善与选券优势更大的领域",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Higher yields and greater dispersion across fixed income markets have expanded the opportunity set for active investors."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "Vanguard_sovereign_risk_stance",
+          "value_or_direction": "低配(相对其他板块)",
+          "horizon": "Q4战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "Vanguard_US_duration_stance",
+          "value_or_direction": "中性(相对基准,含曲线)",
+          "horizon": "Q4战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "Vanguard_bunds_vs_USTs_stance",
+          "value_or_direction": "超配德债相对美债",
+          "horizon": "Q4战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "Vanguard_JGB_stance",
+          "value_or_direction": "短久期+曲线趋平敞口",
+          "horizon": "Q4战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "Vanguard_IG_credit_stance",
+          "value_or_direction": "建设性(constructive)",
+          "horizon": "Q4战术配置",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "政策与地缘风险仍在焦点(通胀/赤字/地缘/利率四重不确定性)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Despite ongoing uncertainty around inflation, deficits, geopolitics, and interest rates, the case for fixed income has strengthened."
+        }
+      ],
+      "institution_name": "Vanguard"
+    },
+    {
+      "view_id": "VIEW-20261111-006",
+      "report_title": "Real Rates Take the Lead — Global Fixed Income Bulletin (Macro Insight, October 2026)",
+      "publish_date": "2026-10-16",
+      "view_horizon": "3m",
+      "subjects": [
+        "US_rates",
+        "EA_macro",
+        "JP_macro",
+        "fixed_income",
+        "credit",
+        "fx"
+      ],
+      "core_views": [
+        {
+          "statement": "9月是全球紧缩周期到来之月:Fed、ECB、BOJ在九天内相继加息,发达市场国债收益率在大多数主要市场与期限上急剧抛售",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "September was the month the global tightening cycle arrived. The Federal Reserve, the European Central Bank and the Bank of Japan all raised rates within nine days of each other"
+        },
+        {
+          "statement": "本轮调整的突出特征在于来源:是实际收益率而非通胀预期(标题论点Real Rates Take the Lead)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The striking feature was where the adjustment came from: real yields rather than inflation expectations."
+        },
+        {
+          "statement": "10年期实际收益率上行49bp而盈亏平衡仅走阔5bp——几乎全部变动是实际利率重定价而非通胀预期,且发生在布伦特触及106美元/桶的月份,属罕见组合;这表明投资者认可央行在应对能源冲击而非放任通胀",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Crucially, 10-year real yields rose 49bps while breakevens widened only 5bps, so almost the entire move was a repricing of real rates rather than of inflation expectations, an unusual split in a month when Brent crude reached $106 a barrel."
+        },
+        {
+          "statement": "信用按质量等级广泛重定价:IG相对韧性,最弱的高收益板块大幅走阔;CCC连续两月在两个方向上都跑输,是比单月更有信息量的信号",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Credit then repriced broadly in order of quality, with investment grade proving relatively resilient while the weakest high yield cohorts gapped wider."
+        },
+        {
+          "statement": "总结论:政策已在移动且Fed自身预测指向更多加息,票息、相对价值与主动选券相对广义信用beta的溢价上升而非下降",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "With policy now moving and the Fed's own projections pointing to more, the premium on carry, relative value and active security selection over broad credit beta rose rather than fell."
+        },
+        {
+          "statement": "宏观基线:增长已被证明有韧性,但日益限制性货币政策的影响预计在未来数季更加显现;增长将日益「符合」而非「超越」预期",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "we expect it to increasingly meet rather than exceed expectations as the cumulative effects of higher rates work through the economy"
+        },
+        {
+          "statement": "久期立场:保留选择性长久期偏好(最强表达为新西兰相对美国利率),但因近期波动整体降低久期风险(尤其美国);美债10Y正接近对企业、消费者与住房活动日益具限制性的水平",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "we believe the U.S. 10-year Treasury is approaching levels that should become increasingly restrictive for corporate, consumer, and housing activity"
+        },
+        {
+          "statement": "通胀仍是核心宏观风险,维持美债10Y盈亏平衡通胀敞口以对冲通胀高于目标更久的风险",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "Inflation remains a central macro risk, and we maintain exposure to U.S. 10-year breakevens."
+        },
+        {
+          "statement": "EM债:开始降低超配(强劲表现后估值偏紧、全球政策环境支持度下降),组合风险降至多年低位,偏好有可识别催化剂的本地利率与国别机会",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We have started reducing our overweight on emerging market (EM) debt following a period of strong performance, tight credit valuations, and a less supportive global policy backdrop."
+        },
+        {
+          "statement": "信用:维持低配IG(估值紧对宏观与利率波动缓冲有限)、小幅超配高质量HY;撤销对欧元区IG相对美国的广泛偏好,改为区域均衡+选券优先;开始愿意考虑已大幅重定价的科技/超大规模数据中心相关发行",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We no longer maintain a broad preference for European investment grade over the U.S."
+        },
+        {
+          "statement": "证券化:整体维持超配但内部日益分化;机构MBS因波动大幅变便宜,正评估在估值更具吸引力时重建敞口,而非视之为无条件高信念超配",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We remain overweight securitized products, although our view within the sector has become increasingly differentiated."
+        },
+        {
+          "statement": "外汇:偏好日元相对美元并以期权限制下行风险;9月美元走强印证驱动汇率的是相对实际收益率而非政策方向本身",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We favor the Japanese yen relative to the U.S. dollar, while using options to help limit downside risk."
+        },
+        {
+          "statement": "杠杆贷款:中性立场(相对吸引力下降,更重选择性与利差补偿)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "We maintain a neutral stance on leveraged loans."
+        }
+      ],
+      "forecasts": [
+        {
+          "target": "Fed_further_hike_outlook",
+          "value_or_direction": "Fed自身预测多数参与者指向年内至少再加息一次(MSIM对点阵图的记述)",
+          "horizon": "2026年内",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_DM_duration_stance",
+          "value_or_direction": "选择性长久期(最强表达:新西兰相对美国),整体久期风险已降低(尤其美国)",
+          "horizon": "战术配置(月度更新)",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_curve_stance",
+          "value_or_direction": "全球曲线方向大致中性;美加曲线形状差异+日本长端趋平的相对价值",
+          "horizon": "战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_EM_debt_stance",
+          "value_or_direction": "由超配转为开始降低超配(较前一期转向)",
+          "horizon": "战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_IG_credit_stance",
+          "value_or_direction": "低配(撤销欧IG相对美IG偏好,区域均衡)",
+          "horizon": "战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_HY_credit_stance",
+          "value_or_direction": "小幅超配,限高质量BB/单B发行人",
+          "horizon": "战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_securitized_stance",
+          "value_or_direction": "超配(内部差异化;机构MBS评估重建而非无条件高信念)",
+          "horizon": "战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "MSIM_FX_stance",
+          "value_or_direction": "日元相对美元偏好(期权保护)",
+          "horizon": "战术配置",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "US_10y_yield_endSep2026",
+          "value_or_direction": "5.28%(月+53bp,2023年以来首次上穿5%)",
+          "horizon": "已实现数据(2026-09-30)",
+          "attribution": "institution_stated"
+        },
+        {
+          "target": "US_HY_OAS_endSep2026",
+          "value_or_direction": "311bp(月+50bp;CCC走阔150bp至1007bp)",
+          "horizon": "已实现数据(2026-09-30)",
+          "attribution": "institution_stated"
+        }
+      ],
+      "risk_factors": [
+        {
+          "statement": "通胀与政策风险仍反对过度的方向性敞口(近端风险下久期取均衡而非激进)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "This creates a more balanced duration opportunity, even as near-term inflation and policy risks argue against taking excessive directional exposure."
+        },
+        {
+          "statement": "AI相关发行预计增长且未来在基准中权重上升,参与门槛保持高(建设/融资/执行风险的补偿要求)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The threshold for participation remains high, particularly given the expected growth in AI-related issuance and the increasing weight these securities may ultimately represent within fixed income benchmarks."
+        },
+        {
+          "statement": "机构MBS近期关键问题是技术性需求(银行/海外投资者/对冲基金/REIT需先见美债收益率企稳)",
+          "attribution": "institution_stated",
+          "basis": "verbatim_quote",
+          "quote": "The principal near-term question is technical demand, as banks, overseas investors, hedge funds, and REITs remain sensitive to stabilization in Treasury yields before increasing purchases."
+        }
+      ],
+      "institution_name": "Morgan Stanley Investment Management (MSIM)"
+    }
+  ]
+}

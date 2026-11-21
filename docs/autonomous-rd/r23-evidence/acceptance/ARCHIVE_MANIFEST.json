@@ -1,0 +1,55 @@
+{
+  "stage": "archive",
+  "run_ts": "20261119T173248Z",
+  "question": "给我一份全球宏观经济变化地图。美国、中国、欧元区、日本在12个月前、3个月前和最新一期，分别处于什么增长、通胀和货币政策环境？过去一年最重要的三个转折是什么，谁先变，谁跟进或背离？证据最充分的传导机制是什么，还有什么解释，哪个指标能区分它们？历史上哪些时期结构最像，当时其他经济体是否同步，随后3、6、12个月经济和主要资产实际怎么走？",
+  "archived_at": "20261119T184252Z",
+  "content_sha256": "bd5be016e546321e3b1cf5caaa365793063cceec358e9c3ba7c69c728740c821",
+  "run_code_git_head": "b316e88b2b4a98e95ab23aeac71a304485e78b0f",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 3,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261120__VERDICT-20261119T173248Z-01.json",
+      "source_rel": "audit/semantic_review/20261120/VERDICT-20261119T173248Z-01.json",
+      "overall": "REVISE",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261119T180218Z",
+      "sha256": "089d678b44e00d59"
+    },
+    {
+      "file": "verdicts/20261120__VERDICT-20261119T173248Z-02.json",
+      "source_rel": "audit/semantic_review/20261120/VERDICT-20261119T173248Z-02.json",
+      "overall": "REVISE",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261120/VERDICT-20261119T173248Z-01.json",
+      "recorded_at": "20261119T182514Z",
+      "sha256": "3f75274120701669"
+    },
+    {
+      "file": "verdicts/20261120__VERDICT-20261119T173248Z-03.json",
+      "source_rel": "audit/semantic_review/20261120/VERDICT-20261119T173248Z-03.json",
+      "overall": "UPHELD",
+      "revision": 3,
+      "predecessor": "audit/semantic_review/20261120/VERDICT-20261119T173248Z-02.json",
+      "recorded_at": "20261119T184238Z",
+      "sha256": "8bd52ddf4945c239"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "32ed7db8b63e93fc",
+    "report.md": "62d486dfa89495ce",
+    "FULL_REPORT.md": "f3bdc4782f127a6c",
+    "agent_judgment.json": "72b62ba7bbf68d0f",
+    "views_digest.json": "e71a18c2e81904ed",
+    "evidence_index.json": "8a4651a7ea43f7e6",
+    "AGENT_SEAT_ENVELOPE.json": "ba1f4caf4da1e5e3",
+    "MAP_REPORT.md": "a742bacc74f89dae",
+    "MAP_REPORT.sha256": "35d19b5fac00c9a8"
+  },
+  "record_health": {},
+  "source_report_dir": "/tmp/r23/output/r23map/20261119T173248Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最",
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核)"
+}

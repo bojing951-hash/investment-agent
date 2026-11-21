@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "independent-semantic-seat-B",
+  "notes": "数字抽查全过: 22指标三锚矩阵、9转折候选、利率分解12月窗95=103-8自原始序列复算相符、8资产行、3政策簇、OAS与油价多窗、类比事后窗端点均逐位一致。纪律B至H逐项核过,情景两支假设非预测齐备。反例搜寻: 曲线走平0.54至0.28、核心CPI回落、CCC年内+4.76pp、2022-06股修复均已被报告自披露,无漏报实质反例。微瑕: 一句总判断称SPX两位数回调,月窗实为-9.52%,正文数值正确,不构成修订级错误。",
+  "run_ts": "20261121T005508Z",
+  "content_sha256": "8dc6ef56f721ea75908f5ea09d3e84c5e42879e3af6cf1bd21f891c30b691b2c",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T011728Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "9822272f3db5dac45e3e69892326c090849db8cdedc8a67c33252ed5fcc1de42",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

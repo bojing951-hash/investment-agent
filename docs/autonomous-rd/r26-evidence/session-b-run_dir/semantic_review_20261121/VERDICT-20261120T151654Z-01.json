@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "semantic-review-agent",
+  "notes": "复裁UPHELD。三必改核过:①EA「自2026-05起持续回升」改「2026-06回落至2.8后持续回升」,与HICP路径(3.2/2.8/2.9/3.2/3.8/4.0)一致,T2同步;②headline核心/标题分置(「双双回升且标题读数明显…核心读数大体持平:PCE 3.04→3.1212、核心CPI 2.47→2.5658」),消除与C1 basis矛盾;③SCN-1日元腿改条件式「若BOJ续紧则…逻辑推演」,basis明示证据档适用权益/波动两腿并披露反向事实。修订新引入数值亲算:USDJPY 157.806→159.61=+1.1432%精确,观测日2026-10-19/11-19与序列相符。建议项全落实:C3「台阶式上行」(本轮最高1.227为真);T1补「其余候选窗均与已用窗重叠」经候选面逐窗复核为真;「12个月窗实距13个月、读数偏高」正确。三件修订字符串一致,旧句「逐月抬升」「自2026-05起持续回升」全档清除。非阻断注记:日元反向事实数值仅存判定档basis,渲染件不显basis行,留渲染器任务。六查复查无新越界;证伪条款未动,前提级标注与可观测性维持。首轮REVISE裁决档见同日VERDICT-20261120T142412Z-01同席流程。",
+  "run_ts": "20261120T151654Z",
+  "content_sha256": "41b81d1b6658b95dca46ac8e428899507123c3ac50f09706123d2d100159dca6",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261120T161803Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "899c09a79d2ece606bb8c9e490a2851e894d7b8b52abcc122f1945dbba1546aa",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

@@ -63,6 +63,15 @@ FRED_SERIES = {
     # 数据批1(2026-11-10,#M2SL 可选项): M2货币供应月末存量(月频,H.6)——
     # 流动性数量维,与WALCL资产负债表维互补;免费FRED序列/现有key同模式
     "M2SL": "M2SL",
+    # Audit-R20(2026-11-19): 联邦基金目标区间上/下限(日频,2008-12 起)——
+    # 12组36格四地地图问句政策维三口径(目标/市场/报价)分列的美国目标面。
+    # DFF 同款双轨纪律: 事实权威仍在 rate_expectations(current_rates 当日
+    # 值,registry source),本通道只载历史序列(registry history_source=
+    # macro_collector);fact_engine.normalize_macro 按 source 权威门拒立
+    # 双事实。FRED fredgraph keyless 直取兜底见 _fetch_fredgraph(引擎树
+    # 无 key 环境可跑,LIVE 有 key 时走 fredapi 原路)。
+    "DFEDTARU": "DFEDTARU",
+    "DFEDTARL": "DFEDTARL",
 }
 
 # === Charter6-P0(A2 §4-P0, 2026-11-09): 采集窗口参数化 ======================
@@ -149,6 +158,8 @@ SERIES_FREQ = {
     "WALCL": "weekly",            # P2-3: H.4.1 周三水平(周四发布)
     "SOFR": "daily",              # P2-3: 担保隔夜融资利率(营业日)
     "DFF": "daily",               # R25: 有效联邦基金利率(营业日;仅历史序列面)
+    "DFEDTARU": "daily",          # R20: 目标区间上限(FOMC 决议台阶;仅历史序列面)
+    "DFEDTARL": "daily",          # R20: 目标区间下限(FOMC 决议台阶;仅历史序列面)
     "M2SL": "monthly",            # 数据批1: H.6 M2月末存量
     # 其余(BAML利差/DGS收益率/DFII/T5YIE/T10Y2Y)=daily
 }
@@ -185,6 +196,8 @@ SERIES_UNITS = {
     # R25: DFF 利率语义(%)——与 SOFR/UST 同族;仅历史序列面(事实权威
     # 在 rate_expectations,见 FRED_SERIES 注)
     "DFF": ("rate", "%"),
+    "DFEDTARU": ("rate", "%"),
+    "DFEDTARL": ("rate", "%"),
     # 首跑校准(2026-11-10): FRED原始单位=百万美元(存原始值惯例,RSAFS同例)
     "WALCL": ("index", "百万美元(美联储总资产,周三水平)"),
     # 数据批1: M2SL 月频存量(流动性数量维,与WALCL资产负债表维互补)
@@ -305,8 +318,46 @@ def detect_revisions(name, results, today_str):
     return None
 
 
+def _fetch_fredgraph(series_id, obs_start):
+    """FRED fredgraph.csv keyless 直取(Audit-R20): 无 FRED_API_KEY 环境
+    (引擎树/干净 clone)的兜底通道——与 fredapi 同一数据面(最新修订值),
+    窗口过滤 observation_start≤obs。形态同 japan_rate_collector 'fred' 实测:
+    首行 observation_date,<id>;缺失值'.'行跳过;非 curl 形态 UA 会被源端
+    RemoteDisconnected 拒(jp 通道同款结论)。失败→raise(调用方如实降级)。"""
+    import urllib.request
+    url = ('https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s'
+           % series_id)
+    req = urllib.request.Request(url, headers={
+        'User-Agent': 'curl/8.0 investment-agent-dev-macro-collector/1.1',
+        'Connection': 'close'})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        text = r.read().decode('utf-8')
+    lines = [l for l in text.splitlines() if l.strip()]
+    if not lines or not lines[0].startswith('observation_date'):
+        raise ValueError('fredgraph形态不符(%s)' % series_id)
+    dates, values = [], []
+    for line in lines[1:]:
+        cells = line.split(',')
+        if len(cells) != 2:
+            continue
+        d, v = cells[0].strip(), cells[1].strip()
+        if not v or v == '.' or d < obs_start:
+            continue
+        try:
+            values.append(float(v))
+            dates.append(d)
+        except ValueError:
+            continue
+    if not dates:
+        raise ValueError('fredgraph无有效观测(%s)' % series_id)
+    return dates, values
+
+
 def fetch_all_macro():
-    """采集所有FRED数据(第四轮P0-3: 按系列频率分别计算变化,附窗口元数据与修订检测)"""
+    """采集所有FRED数据(第四轮P0-3: 按系列频率分别计算变化,附窗口元数据与修订检测)
+
+    Audit-R20: FRED_API_KEY 缺席时逐系列回落 fredgraph keyless 直取
+    (引擎树/干净 clone 可跑;LIVE 有 key 走 fredapi 原路零变化)。"""
     results = {}
     today_str = datetime.now().strftime('%Y%m%d')
     obs_start = macro_observation_start()
@@ -314,33 +365,36 @@ def fetch_all_macro():
           f"(MACRO_HISTORY_YEARS={_history_years()})")
     for name, series_id in FRED_SERIES.items():
         try:
-            data = fred.get_series(series_id, observation_start=obs_start)
-            clean = data.dropna()
-            if len(clean) > 0:
-                latest = float(clean.iloc[-1])
-                latest_date = clean.index[-1].strftime('%Y-%m-%d')
-                freq = SERIES_FREQ.get(name, 'daily')
+            if FRED_API_KEY:
+                data = fred.get_series(series_id, observation_start=obs_start)
+                clean = data.dropna()
+                if len(clean) == 0:
+                    print(f"  ⚠️ {name}: 空数据")
+                    continue
                 dates = [d.strftime('%Y-%m-%d') for d in clean.index]
                 values = [float(v) for v in clean.values]
-                item = {"value": round(latest, 4), "date": latest_date, "frequency": freq}
-                # 第七轮Layer2: 附加原始序列(事实引擎统一计算收益/环比,替代各处自带口径)
-                item["series"] = {"dates": dates, "values": values}
-                # 修复轮③: 源端历史上限如实注记(ICE BofA族3年滚动窗等)
-                note = series_history_note(dates, obs_start)
-                if note:
-                    item["history_note"] = note
-                    print(f"  ⚠️ {name}: {note}")
-                item.update(compute_series_changes(dates, values, freq,
-                                                   unit=SERIES_UNITS.get(name)))
-                rev = detect_revisions(name, {name: item}, today_str)
-                if rev:
-                    item["revision"] = rev
-                results[name] = item
-                chg_disp = item.get('week_chg', item.get('mom_chg'))
-                print(f"  ✅ {name:15s}: {latest:.4f} ({freq},变化{chg_disp:+.4f})" if isinstance(chg_disp, (int, float))
-                      else f"  ✅ {name:15s}: {latest:.4f} ({freq})")
             else:
-                print(f"  ⚠️ {name}: 空数据")
+                dates, values = _fetch_fredgraph(series_id, obs_start)
+            latest = values[-1]
+            latest_date = dates[-1]
+            freq = SERIES_FREQ.get(name, 'daily')
+            item = {"value": round(latest, 4), "date": latest_date, "frequency": freq}
+            # 第七轮Layer2: 附加原始序列(事实引擎统一计算收益/环比,替代各处自带口径)
+            item["series"] = {"dates": dates, "values": values}
+            # 修复轮③: 源端历史上限如实注记(ICE BofA族3年滚动窗等)
+            note = series_history_note(dates, obs_start)
+            if note:
+                item["history_note"] = note
+                print(f"  ⚠️ {name}: {note}")
+            item.update(compute_series_changes(dates, values, freq,
+                                               unit=SERIES_UNITS.get(name)))
+            rev = detect_revisions(name, {name: item}, today_str)
+            if rev:
+                item["revision"] = rev
+            results[name] = item
+            chg_disp = item.get('week_chg', item.get('mom_chg'))
+            print(f"  ✅ {name:15s}: {latest:.4f} ({freq},变化{chg_disp:+.4f})" if isinstance(chg_disp, (int, float))
+                  else f"  ✅ {name:15s}: {latest:.4f} ({freq})")
         except Exception as e:
             print(f"  ❌ {name}: {str(e)[:50]}")
     return results
@@ -394,8 +448,12 @@ def calc_derived(results):
     return derived
 
 
-def save_macro(results, alerts, derived):
-    """保存宏观数据"""
+def save_macro(results, alerts, derived, cn_history=None):
+    """保存宏观数据(Audit-R6 R6-02: cn_history=中国月度全史续存状态,
+    None=旧调用面不写该键——档内形状兼容;Audit-R25 任务1: 同日降级重采集
+    经 daily_face_guard_write 守卫——序列丢失面转存 superseded/,不覆盖
+    同日完整可重放面)"""
+    import research_provenance as rp
     today_str = datetime.now().strftime('%Y%m%d')
     output = {
         "date": today_str,
@@ -403,10 +461,78 @@ def save_macro(results, alerts, derived):
         "alerts": alerts,
         "derived": derived,
     }
-    path = os.path.join(DATA_DIR, "daily", f"macro_{today_str}.json")
-    with open(path, 'w', encoding='utf-8') as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
-    print(f"数据已保存: {path}")
+    if cn_history is not None:
+        output["cn_history"] = cn_history
+    path, status, note = rp.daily_face_guard_write(
+        os.path.join(DATA_DIR, "daily"), 'macro', today_str, output, indent=2)
+    if status == 'degraded_diverted':
+        print(f"同日降级面({note})未覆盖完整档,转存: {path}")
+    else:
+        print(f"数据已保存: {path}")
+
+
+# ── Audit-R6 条目2(R6-02): CN 月度全史随档续存 ───────────────────────
+# 基线 dcb4b17 缺口: fetch_all_macro 只拉 FRED,新档不含 CN 键→历史加载
+# 按最新档取序列,上一档的中国历史被"遮蔽"(226 条→0 条,外审复现)。
+# 本函数把正式生成器 china_market_collector.fetch_macro_history 的全史
+# 并入每档;CN 采集失败时从最近档(含当日已写档,同日重跑优先当日)续存
+# 并如实披露(fresh=False + 来源档)——不用陈旧数据冒充新采集、不补造
+# 历史、不静默丢弃。美国宏观刷新自此不可能覆盖中国历史。
+def merge_cn_history(results, data_dir=None):
+    """R6-02: CN_PMI_MFG/CN_NEW_LOANS 全史并入采集档。
+
+    返回 (results, cn_status);cn_status 每键 mode=fresh|carry_forward|absent
+    (随 save_macro 写档内 'cn_history' 键,版本与来源可追溯)。"""
+    import glob as _glob
+    from china_market_collector import fetch_macro_history
+    dd = data_dir or DATA_DIR
+    cn_items = {}
+    try:
+        cn_items = fetch_macro_history() or {}
+    except Exception as e:
+        print(f"  ❌ CN 全史采集异常: {type(e).__name__}: {str(e)[:120]}")
+        cn_items = {}
+    prev_files = sorted(_glob.glob(os.path.join(dd, 'daily', 'macro_*.json')))
+    prev_cn = {}
+    if prev_files:
+        try:
+            with open(prev_files[-1], 'r', encoding='utf-8') as f:
+                prev_cn = (json.load(f).get('data')) or {}
+        except Exception as e:
+            print(f"  ⚠️ CN 续存源档读取失败({prev_files[-1]}): {str(e)[:80]}")
+            prev_cn = {}
+    status = {}
+    for rid in ('CN_PMI_MFG', 'CN_NEW_LOANS'):
+        item = cn_items.get(rid)
+        if item:
+            results[rid] = item
+            prov = item['provenance']
+            status[rid] = {'mode': 'fresh',
+                           'fetched_at': prov['fetched_at'],
+                           'coverage': prov['coverage']}
+            continue
+        old = prev_cn.get(rid)
+        if old and (old.get('series') or {}).get('dates'):
+            carried = dict(old)
+            prov = dict(carried.get('provenance') or {})
+            prov.update({
+                'fresh': False,
+                'carry_forward_from': os.path.basename(prev_files[-1]),
+                'carry_forward_reason':
+                    'Audit-R6 R6-02: 本轮 CN 全史采集失败,续存最近档序列'
+                    '(如实披露=非本轮新采集;不造史)',
+            })
+            carried['provenance'] = prov
+            results[rid] = carried
+            status[rid] = {'mode': 'carry_forward',
+                           'from_file': os.path.basename(prev_files[-1]),
+                           'n': len(old['series']['dates'])}
+            print(f"  ⚠️ {rid}: 本轮采集失败→续存 {status[rid]['from_file']}"
+                  f"(n={status[rid]['n']},披露 carry_forward)")
+        else:
+            status[rid] = {'mode': 'absent'}
+            print(f"  ❌ {rid}: 本轮采集失败且无前档可续存(如实缺席,不造史)")
+    return results, status
 
 
 if __name__ == "__main__":
@@ -414,6 +540,10 @@ if __name__ == "__main__":
     print("=" * 60)
 
     results = fetch_all_macro()
+
+    print("\n" + "=" * 60)
+    print("🇨🇳 中国月度全史(Audit-R6 R6-02 正式入口):")
+    results, cn_history = merge_cn_history(results)
 
     print("\n" + "=" * 60)
     print("📊 信用阈值检查:")
@@ -426,7 +556,7 @@ if __name__ == "__main__":
     for k, v in derived.items():
         print(f"  {k}: {v}")
 
-    save_macro(results, alerts, derived)
+    save_macro(results, alerts, derived, cn_history=cn_history)
 
     print("=" * 60)
     print("✅ 宏观数据采集完成")

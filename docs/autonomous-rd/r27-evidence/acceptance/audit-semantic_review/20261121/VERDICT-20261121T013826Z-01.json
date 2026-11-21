@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "fresh-context-semantic-seat",
+  "notes": "抽核(python自算,非只读文): ①锚值对照18格(US_GDP/UNEMP/INDPRO/CPI/CORE_CPI/CORE_PCE×双锚,EA_GDP/HICP×双锚,JP_POLICY×双锚)对回report.json point_values与序列原值逐位一致;②同比派生10项独立复算全中(GDP 2.19→2.07/INDPRO 1.25→2.15/CPI 3.3与3.72@09/CORE_CPI 2.47与2.57@09/CORE_PCE 3.04→3.12);CPI与CORE_CPI 2026-10缺2025-10基期如实标不可得,INDPRO 2025-10基期在场故2.15%可派生——不冒充核实;③JP政策路径: 6变动格(2025-12/2026-01/06/07/09/10)与净+67bp(0.557→1.227)自序列复算全中,+24.9bp与引擎18bp/复算18.4bp双口径如实并记,2026-11格缺席披露,距截止21~51日=约三至七周只给月格上下界未冒充决议日,JP_POLICY_TARGET注册表缺席披露;④利率三分解月窗-8=+8-16与年窗+95=+103-8自UST/TIPS原始序列共同交易日复算全中;⑤资产月窗8行复算全中(SPX-9.52/NIKKEI-12.67/VIX+92.09/GOLD-15等);⑥转折候选7条与analog当时可知面12值+事后三窗全部端点(含DFEDTARU 4.5/4.25/3.75自快照series_store独立核)逐位一致。语义层: 三子问(美欧增长通胀变化/JP利率水平/距上次调整多久)全答且条件式;四层标注/竞争解释并列/E1引擎可验E2缺环注记E3叙事+证伪指标/情景五行齐备;发布日≤锚日纪律逐格核过。反例搜寻两处命中但均措辞级不翻结论: [MINOR]转折表INDPRO后续称自2026-02低点回升(agent_judgment turnings[2]+MAP转折表行3),序列2026-03同比0.6861低于2026-02的0.7972,全段真实低点在3月(候选窗端点读法可辩护,建议下轮渲染收紧为2026-03一度更低后回升);[MINOR]agent_judgment T1 face_off_note称USDJPY于157.5-159.9区间高位震荡,近30日窗(10-22起)实际min 156.49(10-23),11月窗(157.498-159.875)则与所述精确一致——窗义含混,该注未渲染入MAP正文;[NIT]MAP表头四地三时点与口径行承诺-12月时点列但实表仅三地区两锚列(plan point_anchors=2);[NIT]L1 EURUSD显示1.1为引擎2位舍入(判断层全文1.0973无误);[NIT]BEI两引擎面(系列2.16@11-19 vs 三分解共同交易日2.19@11-18)并存已注共同交易日口径。方向/月份/单位(pp-bp)/事后冒充预测逐项攻过无命中。",
+  "run_ts": "20261121T013826Z",
+  "content_sha256": "81b389859bc2ebd2d50acba6433c65b7bf19bb44982f319b80f73c714a774b50",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T020346Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "d4196ac86b0f72527415ed4c2db755b5a5e5f9d6cb8858c0e36efe1d1082eff6",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

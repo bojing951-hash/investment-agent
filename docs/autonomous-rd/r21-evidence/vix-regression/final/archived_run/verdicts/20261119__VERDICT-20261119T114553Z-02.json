@@ -1,0 +1,17 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "R21-VIX-REVIEW-SEAT",
+  "notes": "独立席复算(位级,第二裁=attach 刷新后终态内容): VIX 2026-10-19(18.440001)->2026-11-17(25.459999) +38.07%/+7.02;SPX 同窗 -4.55%/-350.20;HY_OAS 2026-10-19(3.29)->2026-11-16(3.34) +0.05pp(+1.52%)——三组与判断正文/资产月窗面/契约verdicts逐位一致;SCN-A/B 证伪阈值锚(3.34@2026-11-16,VIX>25 vs 25.46)与面一致;HY_OAS 0.05 为利差语境披露(spread_ambiguous,不判错);NIT(记录不改判): 正文以 pp 表述利差绝对变动,与面行 chg_abs=0.05 同源同值。",
+  "run_ts": "20261119T114553Z",
+  "content_sha256": "b9ee2ab4ccaf95261e1c410f12d7893642ca47bed369165280092c1ca2cc80ba",
+  "audited_at": "2026-11-19",
+  "recorded_at": "20261119T114802Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261119/VERDICT-20261119T114553Z-01.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

@@ -337,6 +337,14 @@ def compare_release_availability(release, as_of):
 
 _POLICY = None
 
+# Audit-R27 任务1: 决策驱动序列「无证实间隔」核验上限缺省(天)。央行
+# 决策周期最长约 8 周(Fed/ECB/BOJ 每年 ~8 次议息,最长会期间隔 ~56 天);
+# 90 天≈两轮决策周期后仍无任何已证实决议 = 本地日历未收录≠未发生
+# (2024-06-06 ECB 降息一类: 旧值不能因本地日历没收录新决议就被判新鲜),
+# 现值是否仍有效**无法核验**——第三态 UNVERIFIED: 不判新鲜,亦不以未
+# 证实间隔虚构过期。注册表可按序列覆写(freshness.max_unconfirmed_days)。
+_DEFAULT_MAX_UNCONFIRMED_DAYS = 90
+
 
 def build_policy(registry):
     """注册表metrics → {metric_id: {window,frequency,calendar,basis}}。
@@ -362,7 +370,23 @@ def build_policy(registry):
         out[mid] = {'window': w, 'frequency': freq,
                     'calendar': m.get('calendar'),
                     'source': m.get('source'),   # FIX1-03: 锚点家族↔权威来源绑定用
-                    'basis': 'registry(approved)'}
+                    'basis': 'registry(approved)',
+                    # Audit-R26 任务2: 三日期分离所需注册面——asset_class
+                    # (policy_rate 族走政策最后确认纪律)+ decision_dated
+                    # (决策驱动序列声明: 观测日=最后确认/变更日,长期不变
+                    # ≠停更;无此声明不得套用确认纪律)
+                    'asset_class': m.get('asset_class'),
+                    'decision_dated': bool(
+                        fr.get('decision_dated')) if fr else False,
+                    # Audit-R27 任务1: 决策驱动序列「无证实间隔」核验上限
+                    # (天,可选覆写;缺省=_DEFAULT_MAX_UNCONFIRMED_DAYS)。
+                    'max_unconfirmed_days': (
+                        (fr.get('max_unconfirmed_days')
+                         if isinstance(fr.get('max_unconfirmed_days'), int)
+                         and not isinstance(
+                             fr.get('max_unconfirmed_days'), bool)
+                         and fr.get('max_unconfirmed_days') > 0 else None)
+                        if fr else None)}
     if problems:
         raise FreshnessPolicyError(
             "W2-FRESHNESS-POLICY-INVALID: 注册表时效窗口不完整/非法 — "
@@ -600,7 +624,186 @@ def verify_anchor_identity(anchor_key, info=None):
 
 # ══ 三问分离判定原语 ═════════════════════════════════════════════
 
-def assess_observation_freshness(metric_id, obs_date, as_of):
+def _period_end_for(obs, frequency):
+    """Audit-R26 任务2: 统计期末——观测日约定(月频=月初/季频=季首)本身
+    不含「统计期已结束」信息,而发布滞后自统计期**结束**起算。月频→观测
+    月的月末;季频→观测月所在季的季末月月末(1→3/4→6/7→9/10→12,与
+    FRED 季频序列季首日约定一致);日/周频→观测日当日(统计期即日)。
+    频率未知→None(不推定期末,调用方按原观测滞后口径)。"""
+    import calendar as _cal
+    if not isinstance(obs, date):
+        return None
+    y, m = obs.year, obs.month
+    if frequency == 'monthly':
+        return date(y, m, _cal.monthrange(y, m)[1])
+    if frequency == 'quarterly':
+        em = m + 2 - ((m - 1) % 3)   # 季首月→季末月(7→9,10→12,不跨年)
+        return date(y, em, _cal.monthrange(y, em)[1])
+    if frequency in ('daily', 'weekly'):
+        return obs
+    return None
+
+
+def confirmed_policy_decision_after(metric_id, obs_date, as_of,
+                                    calendar_path=None):
+    """Audit-R26 任务2: 决策驱动政策序列的「更晚已证实决议」查证。
+
+    release_calendar.json 条目面(纯文件,零网络): 存在 metric_id 匹配、
+    观测期晚于 obs_date、且首发日 first_publish_on_or_after ≤ as_of 的
+    条目 → 返回该首发日(=已证实数据应反映而未反映的决议);否则 None。
+    无条目=无证实——**不得**以「间隔久了」虚构政策序列过期(利率长期
+    不变是政策事实,不是采集缺口)。"""
+    if calendar_path is None:
+        calendar_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'config', 'release_calendar.json')
+    try:
+        with open(calendar_path, encoding='utf-8') as f:
+            cal = json.load(f)
+    except (OSError, ValueError):
+        return None
+    best = None
+    for e in (cal.get('entries') or []):
+        if e.get('metric_id') != metric_id:
+            continue
+        fp_ = e.get('first_publish_on_or_after')
+        of = e.get('obs_from')
+        _fp = _parse_iso_date(fp_) if isinstance(fp_, str) else None
+        _of = _parse_iso_date(of) if isinstance(of, str) else None
+        _a = _parse_iso_date(as_of) if isinstance(as_of, str) else (
+            as_of if isinstance(as_of, date) else None)
+        _o = _parse_iso_date(obs_date) if isinstance(obs_date, str) else (
+            obs_date if isinstance(obs_date, date) else None)
+        if not (_fp and _of and _a and _o):
+            continue
+        if _of > _o and _fp <= _a and (best is None or _fp > best):
+            best = _fp
+    return best.isoformat() if best else None
+
+
+def latest_policy_maintenance(metric_id, obs_date, as_of, calendar_path=None):
+    """Audit-R28 任务2: 决策驱动政策序列的「更晚确认维持」查证。
+
+    release_calendar.json 政策维持条目(kind=policy_maintenance)面:
+    存在 metric_id 匹配、发布晚于 obs_date、且 first_publish_on_or_after
+    ≤ as_of 的维持条目 → 返回该发布日;否则 None。确认维持**不改变
+    序列值**,但把「现值有效性」的核验锚从最后观测日推进到维持确认日
+    ——无证实间隔按核验锚起算,不以未刷新的观测日虚报未核验
+    (确认维持也更新核验日期)。"""
+    if calendar_path is None:
+        calendar_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'config', 'release_calendar.json')
+    try:
+        with open(calendar_path, encoding='utf-8') as f:
+            cal = json.load(f)
+    except (OSError, ValueError):
+        return None
+    best = None
+    for e in (cal.get('entries') or []):
+        if e.get('metric_id') != metric_id:
+            continue
+        if e.get('kind') != 'policy_maintenance':
+            continue
+        fp_ = e.get('first_publish_on_or_after')
+        _fp = _parse_iso_date(fp_) if isinstance(fp_, str) else None
+        _a = _parse_iso_date(as_of) if isinstance(as_of, str) else (
+            as_of if isinstance(as_of, date) else None)
+        _o = _parse_iso_date(obs_date) if isinstance(obs_date, str) else (
+            obs_date if isinstance(obs_date, date) else None)
+        if not (_fp and _a and _o):
+            continue
+        if _fp > _o and _fp <= _a and (best is None or _fp > best):
+            best = _fp
+    return best.isoformat() if best else None
+
+
+def policy_decision_state(metric_id, as_of, calendar_path=None):
+    """Audit-R28 任务2: 政策官方记录状态(决议/生效/维持/距上次调整)。
+
+    纯日历文件面(零网络): 汇总 kind∈{policy_decision, policy_maintenance}
+    且 first_publish_on_or_after ≤ as_of(可见)的条目 →
+      present=True | last_decision(最近决议日) | last_effective(最近
+      生效日) | official_target(该决议宣布的官方目标水平) |
+      last_maintenance(最近确认维持日) | last_confirmed_on(核验覆盖
+      截止=决议首发与维持发布的最近日) | days_since_adjustment
+      (=as_of−生效日。**「距上次调整」按生效日计算**——目标水平自
+      生效日起实际执行,决议日是公告面;两者分记 days_since_decision/
+      days_since_maintenance 一并给出) | records(逐条溯源)。
+    无可见政策条目 → {'present': False}——官方记录缺席≠政策未发生,
+    调用方如实注记(问句指定官方目标而记录缺席=缺口点名),不虚构。"""
+    if calendar_path is None:
+        calendar_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'config', 'release_calendar.json')
+    out = {'present': False, 'metric_id': metric_id, 'as_of': str(as_of)}
+    try:
+        with open(calendar_path, encoding='utf-8') as f:
+            cal = json.load(f)
+    except (OSError, ValueError):
+        return out
+    _a = _parse_iso_date(as_of) if isinstance(as_of, str) else (
+        as_of if isinstance(as_of, date) else None)
+    if _a is None:
+        return out
+    decisions, maintenances = [], []
+    for e in (cal.get('entries') or []):
+        if e.get('metric_id') != metric_id:
+            continue
+        if e.get('kind') not in ('policy_decision', 'policy_maintenance'):
+            continue
+        fp_ = e.get('first_publish_on_or_after')
+        _fp = _parse_iso_date(fp_) if isinstance(fp_, str) else None
+        if _fp is None or _fp > _a:
+            continue        # 截止时点尚未可见的记录不进入状态面
+        rec = {'entry_id': e.get('entry_id'), 'kind': e.get('kind'),
+               'basis': e.get('basis'),
+               'first_publish': _fp.isoformat(),
+               'decision_date': e.get('decision_date'),
+               'effective_on': e.get('effective_on'),
+               'target_value': e.get('target_value'),
+               'note': e.get('note')}
+        (decisions if e.get('kind') == 'policy_decision'
+         else maintenances).append(rec)
+    if not decisions and not maintenances:
+        return out
+    out['present'] = True
+    last_dec = None
+    if decisions:
+        last_dec = max(decisions, key=lambda r: (
+            r.get('effective_on') or '', r.get('decision_date') or ''))
+    last_mnt = (max(maintenances,
+                    key=lambda r: r['first_publish'])
+                if maintenances else None)
+    confirm_dates = [r['first_publish'] for r in decisions + maintenances]
+    out.update(
+        last_decision=(last_dec or {}).get('decision_date'),
+        last_effective=(last_dec or {}).get('effective_on'),
+        official_target=(last_dec or {}).get('target_value'),
+        last_decision_publish=(last_dec or {}).get('first_publish'),
+        last_maintenance=(last_mnt or {}).get('decision_date')
+        or (last_mnt or {}).get('first_publish'),
+        last_confirmed_on=max(confirm_dates)
+        if confirm_dates else None,
+        records=decisions + maintenances)
+    try:
+        if out.get('last_effective'):
+            out['days_since_adjustment'] = (
+                _a - _parse_iso_date(out['last_effective'])).days
+        if out.get('last_decision'):
+            out['days_since_decision'] = (
+                _a - _parse_iso_date(out['last_decision'])).days
+        if out.get('last_maintenance'):
+            out['days_since_maintenance'] = (
+                _a - _parse_iso_date(out['last_maintenance'])).days
+    except (TypeError, ValueError):
+        pass
+    return out
+
+
+def assess_observation_freshness(metric_id, obs_date, as_of,
+                                 confirmed_later_decision=None,
+                                 calendar_path=None):
     """纯观测时效判定(W2-FIX5-01 / DEF-001): 只回答A已观测+C滞后窗两问,
     **绝不消费release_date**——发布时间属于B点时维度,不得改变纯观测新鲜度结论
     (反例: CPI观测2026-09-01/as_of 2026-10-24/发布2026-10-28/窗60——纯观测
@@ -608,7 +811,25 @@ def assess_observation_freshness(metric_id, obs_date, as_of):
     综合判定assess()复用本函数(同一份解析与已批准窗口,无第二套政策分叉)。
     输入契约与返回键同assess()的观测维度部分(fresh/status/lag_days/window/
     frequency/observed/reasons;status∈FRESH/STALE/NOT_OBSERVED/INVALID_DATE/
-    FUTURE_DATE/UNREGISTERED),无point_in_time键。"""
+    FUTURE_DATE/UNREGISTERED),无point_in_time键。
+
+    Audit-R26 任务2(三日期分离):
+    - 月/季频窗口自**统计期末**起算(新增键 period_end/period_lag_days;
+      lag_days 仍=as_of−观测日,消费方语义不变)。观测日=期首约定,发布
+      滞后自期结束起算——旧口径把「季首约定+季后发布」误判过期(Q3 GDP
+      观测 07-01、advance 发布 ~10-30,as_of 11 月即伪 STALE)。
+    - 注册表声明 decision_dated 的决策驱动序列(ECB_MRO/ECB_DFR 一族):
+      观测日=**政策最后确认日**,无更晚已证实决议(confirmed_later_
+      decision=None 或不晚于观测)即 FRESH——不以发布间隔判过期;有更晚
+      已证实决议而数据未反映才 STALE(freshness_basis=policy_confirmation)。
+    - Audit-R27 任务1 第三态 UNVERIFIED: decision_dated 序列无更晚已
+      证实决议且无证实间隔>决策周期上限(缺省 90 天,注册表可覆写
+      max_unconfirmed_days)——本地日历未收录≠未发生,现值是否仍有效
+      无法核验(2024-06-06 ECB 决议复测锚),不判新鲜亦不虚构过期。
+    - Audit-R28 任务2 确认维持刷新: 更晚**确认维持**(kind=
+      policy_maintenance,发布晚于观测且 ≤ 截止)把核验锚自观测日
+      推进到维持发布日——无证实间隔按核验锚起算(calendar_path
+      显式传 False 可关断查证,单测隔离用)。"""
     o = {'metric_id': metric_id, 'obs_date': None, 'as_of': None,
          'lag_days': None, 'window': None, 'frequency': None,
          'observed': {'status': 'MISSING'}, 'fresh': False, 'status': None,
@@ -639,6 +860,76 @@ def assess_observation_freshness(metric_id, obs_date, as_of):
     if od > a:
         o.update(status='FUTURE_DATE', fresh=False,
                  reasons=[f"观测日{od}晚于研究截止{a}(未来数据,非法时点)"])
+        return o
+    # ── Audit-R26 任务2: 统计期末推导(月/季频) ──
+    pe = _period_end_for(od, pol['frequency'])
+    if pe is not None:
+        o['period_end'] = pe.isoformat()
+        o['period_lag_days'] = (a - pe).days
+    # ── Audit-R26 任务2: 决策驱动政策序列(注册表 decision_dated 声明)——
+    # 政策最后确认纪律: STALE 须有更晚**已证实**决议(数据应反映而未反映);
+    # 无证实不得以间隔虚构过期(利率长期不变=政策事实非采集缺口)。
+    if pol.get('decision_dated'):
+        o['freshness_basis'] = 'policy_confirmation'
+        cd = _parse_iso_date(confirmed_later_decision) \
+            if isinstance(confirmed_later_decision, str) else None
+        if cd is not None and cd > od and cd <= a:
+            o.update(status='STALE', fresh=False,
+                     reasons=[f"政策最后确认日{od}后已有更晚决议证实"
+                              f"(首发{cd}≤研究截止{a})而数据未反映——"
+                              f"确证过期,不得当作当期政策值"])
+            return o
+        # Audit-R28 任务2: 确认维持刷新核验锚——更晚可见的 policy_
+        # maintenance 记录(发布晚于观测日)证明现值经官方复核维持,
+        # 无证实间隔自维持发布日起算(不以未刷新的观测日虚报未核验)。
+        _maint = None
+        if calendar_path is not False:
+            _maint = latest_policy_maintenance(
+                metric_id, od, a, calendar_path=calendar_path)
+        _anchor = od
+        if _maint is not None:
+            _md = _parse_iso_date(_maint)
+            if _md is not None and _md > _anchor:
+                _anchor = _md
+        _span_days = (a - _anchor).days
+        # Audit-R27 任务1: 无证实间隔超决策周期上限 → UNVERIFIED(第三态)
+        _bound = pol.get('max_unconfirmed_days')
+        if not isinstance(_bound, int) or isinstance(_bound, bool) \
+                or _bound <= 0:
+            _bound = _DEFAULT_MAX_UNCONFIRMED_DAYS
+        if _span_days > _bound:
+            o.update(status='UNVERIFIED', fresh=False,
+                     unconfirmed_span_days=_span_days,
+                     decision_cycle_bound_days=_bound,
+                     reasons=[f"核验锚{_anchor}后{_span_days}天无更晚已"
+                              f"证实决议/维持且超决策周期上限{_bound}天"
+                              f"——本地日历未收录≠未发生,现值是否仍有效"
+                              f"无法核验: 不判新鲜,亦不以未证实间隔虚构"
+                              f"过期(Audit-R27 任务1;R28 任务2 核验锚="
+                              f"max(观测{od},确认维持{_maint or '无'})"])
+            return o
+        o.update(status='FRESH', fresh=True, reasons=[
+            f"决策驱动政策序列: 政策最后确认日={od}"
+            + (f";无更晚已证实决议(≤截止{a})" if cd is None
+               else f";最近证实决议{cd}未晚于最后确认日")
+            + (f";确认维持{_maint}(R28 任务2: 核验锚刷新)" if _maint
+               else '')
+            + f";无证实间隔{_span_days}天≤核验上限{_bound}天"
+            + "——不以发布间隔判过期"])
+        return o
+    # ── Audit-R26 任务2: 月/季频窗口自统计期末起算 ──
+    if pe is not None and o.get('period_lag_days') is not None:
+        if o['period_lag_days'] > pol['window']:
+            o.update(status='STALE', fresh=False,
+                     reasons=[f"统计期末{pe}后{o['period_lag_days']}天>"
+                              f"{pol['window']}天已批准窗口({pol['frequency']}频;"
+                              f"观测日{od}=期首约定;应发布期未发布或采集失败,"
+                              f"不得当作最新一期)"])
+            return o
+        o.update(status='FRESH', fresh=True, reasons=[
+            f"统计期末{pe}后{o['period_lag_days']}天≤{pol['window']}天"
+            f"已批准窗口({pol['frequency']}频;观测日{od}=期首约定,"
+            f"滞后{o['lag_days']}天)"])
         return o
     if o['lag_days'] > pol['window']:
         o.update(status='STALE', fresh=False,

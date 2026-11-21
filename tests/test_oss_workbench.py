@@ -59,7 +59,9 @@ SYN_SNAP = {
 
 print('══ ① 工作台数据层 ══')
 registry = wd.load_registry()
-check('注册表加载(110项,与文件一致)', len(registry['metrics']) == 110,  # 数据批1: +SPX_EPS/M2SL
+# R20: 注册表 110→113(JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY)
+check('注册表加载(114项,与文件一致)',  # R21: 113→114
+      len(registry['metrics']) == 114,  # 数据批1: +SPX_EPS/M2SL;R20 四地补齐 +3
       f"got {len(registry['metrics'])}")
 
 rows = wd.overview_rows(SYN_SNAP, registry, 'US')

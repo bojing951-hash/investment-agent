@@ -1,0 +1,172 @@
+# 一键研究报告(零模型编排 v2.0)
+- 问题: UST_10Y 十年期美债利率上行的宏观传导: 对 HY_OAS 高收益债利差与 SPX 股市估值的影响
+- 运行: 20261116T045959Z @ 3550ca3
+- 快照: research_snapshot_20261112_v2 (target 20261112)
+- 数据门(gate_a): 9/9 信封步非 OK(DEGRADED)——缺口/降级明细见步骤台账各步信封 warnings;降级不阻断,判断层须知
+
+## 四层区分
+
+### L1 事实层 available=True
+- SPX = 7609.63 index_point @2026-11-11 [质量:PASS] [来源:snapshot_fact:SPX@2026-11-11]
+- HY_OAS = 3.34 percentage_point @2026-11-09 [质量:PASS] [来源:snapshot_fact:HY_OAS@2026-11-09]
+- UST_10Y = 4.88 percent @2026-11-09 [质量:PASS] [来源:snapshot_fact:UST_10Y@2026-11-09]
+
+### L2 机构观点层 available=True n=17
+- VIEW-20261110-001: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-002: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'PARTIALLY_SUPPORTED', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-003: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'MIXED', 'B': 'MIXED', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-004: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-005: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'PARTIALLY_SUPPORTED', 'B': 'MIXED', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-006: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'PARTIALLY_SUPPORTED', 'B': 'MIXED', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-007: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-008: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-009: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'PARTIALLY_SUPPORTED', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-010: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'PARTIALLY_SUPPORTED', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261110-011: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-001: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-002: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'PARTIALLY_SUPPORTED', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-003: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'MIXED', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-004: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'INSUFFICIENT_EVIDENCE', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-005: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'INSUFFICIENT_EVIDENCE', 'B': 'PARTIALLY_SUPPORTED', 'C': 'INSUFFICIENT_EVIDENCE'}
+- VIEW-20261111-006: view_label=INSUFFICIENT_EVIDENCE 阶段摘要={'A': 'MIXED', 'B': 'MIXED', 'C': 'INSUFFICIENT_EVIDENCE'}
+
+### L3 AI推断层 produced=True
+> Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计(attribution=ai_inferred)
+- **CON-1**: 十年期美债利率上行向高收益利差的传导在 2026 年样本内呈条件性而非机械性: UST_10Y 现值为 4.88,年内区间 3.97-5.31、年内上行 0.70pp;HY_OAS 现值为 3.34,处 2026 年 227 个观测中第 95.6 百分位、年内区间 2.60-3.48、年内走阔 0.53pp;周窗切片为 SPX +3.16%/VIX -30.81%/HY_OAS -0.08pp,而年内利率与利差的日度同向八十七天、反向一百零一天,近乎对开,利率上行日收阔各半(五十二收/四十九阔/七平),周度利率上行窗十收对十三阔(复审更正: 旧文『利率上行的大部分窗口利差不升反收』的频率断言与证据面复算不符,予以作废,以本行计数为准)——「利率升→利差阔」在日度与周度频率上均非稳定关系,只在紧缩被定价为政策冲击的窗口(机构记叙 9 月为全球加息月,Fed/ECB/BOJ 九天内相继加息)同框,传导中介是紧缩定价而非利率水平本身。
+  - 依据: L1 三事实+S3 信封周窗(HYG 价格周窗平稳、TLT/IEF/LQD 价格周窗走弱)+S4 序列统计(年内区间/百分位/样本数按钉死口径自 S4 序列复算: UST_10Y 2026 年 216 个观测、HY_OAS 2026 年 227 个观测;逐月月末路径与逐日同向/反向天数、日度相关系数的计算披露见 MECH-2 环 2)+机构观点库记叙(紧缩事件: MSIM;风险偏好韧性: BIS;配置吸收: Vanguard;加息路径: UBS;能源需求破坏: IEA)
+  - 竞争性解释1: 增长韧性归因(良性读法): 利率上行由韧性增长与实际收益率推动(机构观点: Vanguard 判断收益率上行更多来自韧性增长与更高实际收益率而非长期通胀预期;PIMCO 基线为能源冲击消退后通胀回落、央行无需完全兑现市场定价的加息),信用走阔主要反映能源需求破坏对高收益发行人的行业冲击(机构记述 IEA 预计 2026 年全球石油需求平均下降 2.6 mb/d)——若此读法成立,利差与利率水平将持续弱相关,股信分化=行业风险再定价而非系统性压力
+  - 竞争性解释2: 紧缩兑现归因(政策通道读法): 传导经由政策紧缩预期而非利率水平——机构记叙 9 月全球加息月信用按质量等级广泛重定价,机构观点 UBS 预计 2026-12 与 2027-03 各加息 25bp;若后续加息落地,9 月式「紧缩定价→利差走阔」将重复,当前利差对利率的弱敏感是市场尚未定价而非免疫,利差将转向领先指标
+  - 竞争性解释3: 配置吸收归因(技术面读法): 机构观点 Vanguard 判断更高收益率实质性改善固定收益预期回报、配置理由增强,BIS 记叙审查期内风险偏好虽有起伏但总体韧性——票息驱动的配置买盘把利差走阔约束在缓行区间,HYG 价格周窗仅微动而利差年内仍走阔,两者并存说明利差上行尚未转化为价格压力;若配置买盘撤退,缓行将转为失序
+  - 证据: UST_10Y@2026-11-09, HY_OAS@2026-11-09, SPX@2026-11-11, VIX@2026-11-11, HYG@2026-11-11, VP-VIEW-20261111-006, VP-VIEW-20261111-005, VP-VIEW-20261111-003, VP-VIEW-20261111-004, VP-VIEW-20261110-003, VP-VIEW-20261110-010
+- **CON-2**: 折现率通道在股票维未兑现、机构面读法分裂: 2026 年内 UST_10Y 上行 0.70pp 的同期 SPX 上涨 11.16%、现值为 7609.63,两资产同涨;机构观点 GS 判断远期PE 19 倍处十年均值附近、股价未跟上盈利故近期估值无泡沫迹象,但同源 GS 亦承认席勒PE处历史最高区间之一、若盈利不可持续则平均估值也将昂贵,BIS 记叙高利率前景叠加估值与科技过度投资的不安已扰动 AI 驱动的股票动能——估值对利率上行的脆弱性取决于盈利可持续性,而非折现率单一变量;信用维利差已升至年内高位区、股票与波动率维风险偏好周内大幅扩张,两维信号当前相反。
+  - 依据: S5_compare 信封(SPX×UST_10Y 十年日度相关,数值见 MECH-1 环 1)+S3 年内窗口(SPX 年内上涨 11.16%;波动率维 VIX 周窗大幅回落;信用维 HY_OAS 处年内高位)+机构观点库(GS/UBS/BIS 对估值-利率敏感度的分歧);引擎内无 SPX 估值序列可验(SPX_CAPE 止于 2026-10、SPX_PE_TTM 止于 2026-06,S6 锚点估值维覆盖为零,如实缺席,不以前值冒充)
+  - 竞争性解释1: 盈利主导论: 盈利增长吸收折现率上行——机构观点 UBS 预计温和加息路径下美股盈利继续增长且不会颠覆股票行情,GS 判断股价未跟上盈利、远期PE 无泡沫迹象;若盈利兑现,利率与股指同涨是理性定价而非市场忽视风险
+  - 竞争性解释2: 风险偏好滞后论: 股票维尚未定价紧缩——信用维已处年内高位而波动率维周内大幅回落,机构记叙 BIS 观点风险偏好总体韧性;若紧缩完全兑现,信用已开始的方向将向股票与波动率传导,当前股票强势是滞后而非独立稳态
+  - 竞争性解释3: 盈利质量脆弱论: 机构记述 GS 观点 2026 年盈利增长近一半来自 AI 投资、大科技二季度约 1500 亿美元未实现投资收益相当于美股每股盈利的 12% 且 2027 年贡献将大幅缩小;若利率续升与盈利质量恶化叠加,估值通道将先于盈利通道受损——远期PE 的「不贵」以盈利可持续为前提
+  - 证据: UST_10Y@2026-11-09, SPX@2026-11-11, HY_OAS@2026-11-09, VIX@2026-11-11, VP-VIEW-20261110-004, VP-VIEW-20261111-004, VP-VIEW-20261111-003
+- **CON-3**: 高收益利差面的内部读数分裂: 复合 HY_OAS 现值为 3.34、处 2026 年 227 个观测中第 95.6 百分位、年内走阔 0.53pp,而走阔幅度沿评级下沉单调放大,尾部层级最大(Audit-R1 F06 更正: 旧文「增量几乎全部来自尾部层级」系贡献份额表述——无各评级存量余额权重,复合利差增量的层级贡献不可算,该句作废——可证面仅为走阔幅度排序)——CCC_OAS 现值为 13.11、年内走阔 4.26pp,B_OAS 现值为 3.5、年内走阔 0.49pp,BB_OAS 现值为 2、年内走阔 0.31pp,IG_OAS 现值为 0.91、年内走阔 0.12pp,HY_IG_DIFF 现值为 2.43;「系统性信用收紧开始」与「尾部投机层孤立再定价」两种读法在引擎内不可判别,判定依赖对 CCC 层领先-滞后关系的假设(该分层形态与机构记叙的 9 月信用按质量等级重定价一致)。
+  - 依据: S3 信封分层事实(五指标现值与年内窗口,层级走阔幅度单调递增: CCC≫B>BB>IG)+S4 复合序列统计(百分位/样本数按钉死口径复算)+机构记叙 MSIM 观点: 信用按质量等级广泛重定价、投资级相对韧性而最弱高收益板块大幅走阔、CCC 连续两月在两个方向上都跑输
+  - 竞争性解释1: 尾部先行论: CCC 层领先、复合层随后跟涨的信用压力扩散论——机构记叙 9 月信用重定价已按质量排序展开;若压力沿质量阶梯传染,BB 与 IG 将随后走阔,复合 HY_OAS 将脱离缓行;此环为假设: 引擎内无分层领先-滞后回归渠道,不可机器验证
+  - 竞争性解释2: 孤立尾部论: 能源需求破坏局限于最深投机层的行业性再定价论——机构记述 IEA 预计 2026 年全球石油需求平均下降 2.6 mb/d、本轮油价上行为供给驱动,高杠杆能源发行人现金流首当其冲,而 BB 与 IG 层稳定说明系统性信用健康;若能源价格回落,CCC 层将率先收窄
+  - 竞争性解释3: 再融资敏感论: 利率传导的选择性兑现论——利率上行对再融资成本的冲击在最弱信用层被杠杆与久期放大,CCC 走阔是利率传导的体现而非利率传导的例外;若加息兑现且高利率持续,走阔将自 CCC 向 BB 蔓延,该论与尾部先行论的差别在传导主体(政策利率 vs 违约预期)
+  - 证据: HY_OAS@2026-11-09, CCC_OAS@2026-11-09, B_OAS@2026-11-09, BB_OAS@2026-11-09, IG_OAS@2026-11-09, HY_IG_DIFF@2026-11-09, VP-VIEW-20261111-006, VP-VIEW-20261110-010
+- **机制链 MECH-1**: 折现率通道: UST_10Y 上行→实际收益率重定价→股票估值与盈利的赛跑
+  - E1 E1(引擎直接可验证): UST_10Y 4.88@2026-11-09(周 +0.02pp 自 4.86@2026-11-06,年内 +0.70pp 自 4.18@2025-12-31;S4 序列 2026 年 216 个观测、区间 3.97-5.31,2 月低点 3.97@2026-02-27、10 月高点 5.31@2026-10-05 后回落 43bp,序列最新 4.98@2026-11-10);SPX 7609.63@2026-11-11(周 +3.16%、年内 +11.16% 自 6845.5@2025-12-31;2026 年 217 个观测、区间 6343.72@2026-03-30 至 7818.93@2026-10-06,现值处年内第 71.4 百分位——以上均 L1/S3/S4 钉死口径计算);S5_compare 信封: SPX 日收益×UST_10Y 日变化 pearson +0.1067(n=2493 对,共同窗 2016-11-14 至 2026-11-10)——十年样本内股票-利率日度联动为弱正相关,「利率升→股票估值压」的稳定负通道在引擎可验面上不存在 [证据: UST_10Y@2026-11-09, SPX@2026-11-11]
+  - E2 E2(引擎部分支持): 折现率→估值压缩环。机构面一致归因本轮收益率上行由实际收益率主导(机构观点 MSIM 记述 10 年实际收益率上行 49bp 而盈亏平衡仅走阔 5bp;Vanguard 判断上行来自韧性增长与实际收益率而非通胀预期),机构观点 GS 记述远期PE 19 倍处十年均值附近、UBS 预计盈利增长应能吸收温和上行的收益率(2026 年 EPS +25%、2027 年 +14%)——缺失环【假设】: 引擎内无 SPX 估值序列(SPX_CAPE 止于 2026-10、SPX_PE_TTM 止于 2026-06、S6 锚点估值维覆盖为零,如实缺席)亦无盈利-利率弹性序列,「盈利增长抵消折现率上行」环为假设,仅机构面支持、不可机器验证;若盈利不及机构预期,该环立即失效 [缺失环: 缺失环【假设】: 引擎无 SPX 估值序列与盈利-利率弹性序列(SPX_CAPE/SPX_PE_TTM 发布滞后缺席、S6 估值维覆盖为零),「盈利增长抵消折现率上行」环为假设,仅机构面支持不可机器验证]
+  - E3 E3(纯叙事,给证伪指标): 若折现率通道接管——UST_10Y 升破年内高点 5.31(2026-10-05 基准)且 SPX 自 7609.63(2026-11-11 基准)回撤逾 10%(跌破 6848.67)——则「盈利吸收论」被证伪、估值通道先于盈利通道受损成立;反之若利率上行而 SPX 同创年内新高(升破 7818.93@2026-10-06),则折现率通道对估值的压制在本轮被证伪。观察指标: SPX(辅 UST_10Y 水平) [证伪指标: SPX]
+- **机制链 MECH-2**: 信用溢价通道: UST_10Y 上行→紧缩定价→HY_OAS 分层走阔
+  - E1 E1(引擎直接可验证): HY_OAS 3.34pp@2026-11-09(周 -0.08pp 自 3.42@2026-11-06,年内 +0.53pp 自 2.81@2025-12-31;S4 序列 2026 年 227 个观测、区间 2.60-3.48,8 月低点 2.60@2026-08-28、11 月高点 3.48@2026-11-05,序列最新 3.20@2026-11-12,现值处年内第 95.6 百分位);分层事实(S3 信封): CCC_OAS 13.11(年内 +4.26pp 自 8.85)≫B_OAS 3.50(+0.49)＞BB_OAS 2.00(+0.31)＞IG_OAS 0.91(+0.12);VIX 17.74(周 -30.81% 自 25.64@2026-11-06)——信用维处年内高位而波动率维风险偏好周内大幅扩张,两维反向 [证据: HY_OAS@2026-11-09, CCC_OAS@2026-11-09, VIX@2026-11-11]
+  - E2 E2(引擎部分支持): 传导条件环。自 S4 序列逐月计算月末值: 4-8 月 UST_10Y 自 4.40 升至 4.75 期间 HY_OAS 反收紧至 8 月低点 2.60;9 月(机构记叙 Fed/ECB/BOJ 九天内相继加息的全球紧缩月)HY_OAS 月末自 2.63 走阔至 3.12(+0.49pp);10 月利率回落(月末 5.29→4.94)而利差续阔至 3.44;年内日度同向 87 天/反向 101 天、日度变化 pearson -0.115(n=214 对,本席按 S4 序列逐日计算)——缺失环【假设】: 假设传导经由「政策紧缩定价」中介而非利率水平本身;引擎内无 HY_OAS×UST_10Y 相关或事件研究渠道(S5_compare 仅含 SPX×UST_10Y 一对),9 月同框不排除时序巧合(S6 纪律: 相似≠因果),因果方向与幅度不可机器验证 [缺失环: 缺失环【假设】: 假设传导经由政策紧缩定价中介而非利率水平;引擎无 HY_OAS×UST_10Y 相关/事件研究渠道(S5 仅 SPX×UST_10Y 一对),9 月同框可能是巧合,因果方向与幅度不可机器验证]
+  - E3 E3(纯叙事,给证伪指标): 若「紧缩定价→利差走阔」通道成立——UST_10Y 再上行(升破 5.31)时 HY_OAS 应同向走阔、CCC 层先行;若 UST_10Y 升破 5.31 而 HY_OAS 反向收紧至 3.00 以下(自 3.34@2026-11-09),该通道被证伪(利差由违约预期与行业基本面主导、与政策利率定价脱钩);若 HY_OAS 单月走阔超 50bp(自 3.34 升破 3.84),通道加速被证实。观察指标: HY_OAS(辅 CCC_OAS 分层) [证伪指标: HY_OAS]
+
+### L4 条件情景层 produced=True
+> Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计(attribution=ai_inferred)
+- **SCN-A**(基准)
+  - 情景: 情景A(假设非预测): 增长韧性延续、利率缓升由实际收益率主导——机构面加息预期部分兑现(UBS 预计 2026-12 与 2027-03 各 +25bp;PIMCO 基线为央行无需完全兑现市场定价的加息幅度),通胀预期保持锚定;传导呈质量分层缓行: CCC 尾部续阔、复合 HY_OAS 于年内区间(2.60-3.48pp)高位段缓行震荡,SPX 由盈利增长吸收折现率上行、于年内区间(6343.72-7818.93)高位段震荡而非趋势重估。
+  - 资产方向判断: HY_OAS 于年内区间(2.60-3.48pp)高位段缓行震荡/SPX 高位区间震荡(置信: 有相关证据) 缓行区上沿参照年内高点 3.48@2026-11-05、失序判定线 3.84 见证伪行(不超出证据明示区间另造区间标签);支持证据为相关而非因果: 样本内 4-8 月「利率升-利差收」一例、9 月紧缩月「政策冲击-利差急阔」一例(MECH-2 环 2)、机构面 GS/UBS 盈利吸收论与 BIS 风险偏好韧性记叙;S6 状态类比锚点 2026-11 的 rank-1 相似月为 2023-03(距离 0.4866,rates 维贡献 74.6%),引擎披露原文「相似≠因果, 更非预测: TOP-N 是历史状态距离最近的时期, 当时之后的演变只是历史记录」——事后演变按纪律不外推,且锚点估值维覆盖为零、相似结构主要由利率维塑造,外推依据更弱;引擎无利率→利差/估值的条件回归渠道,方向弹性不可验,置信取相关档下限
+  - 敏感变量: UST_10Y, HY_OAS
+  - 证伪指标: HY_OAS 阈值 收盘自基准 3.34pp@2026-11-09 升破 3.84pp 且连续 5 个交易日维持其上——基准的「缓行/高位震荡」假设被证伪(转入失序走阔)。操作口径(复审更正: 旧文『单月走阔>50bp』与本情景 trigger 的固定基准口径在缓慢爬升路径下不等价——数月缓升至 3.84 上方可触发 trigger 而无任何单月 50bp 形态,弃单月窗,以固定基准+五日维持为唯一操作条件)证伪条件未触发(复审更正标签: 本档为证伪条件从未激活,非 SCN-B 式前提缺席——两者分档口径不同): HY_OAS 自基准从未升破 3.84pp——「缓行/高位震荡」未被证伪,基准假设在档;期限届满仍无形态=情景自然过期,不追溯计为证伪或支持。SPX 腿证伪委托(复审补注): 本行仅监 HY_OAS;SPX 腿的证伪按 MECH-1 环3 口径计(UST_10Y>5.31 与 SPX 收盘<6848.67 同框⇒盈利吸收论证伪),命中时在此披露并计分,不在本行重复设阈。
+  - 触发条件: HY_OAS 日收盘 >3.84pp 连续 5 个交易日(固定基准 3.34pp@2026-11-09,不另设单月窗,与证伪行同一口径)(时限 2027-03-31)
+- **SCN-B**(反例)
+  - 情景: 情景B(假设非预测): 紧缩完全兑现且利率上行动能切换——UBS 加息路径(2026-12 与 2027-03 各 +25bp)兑现,且收益率上行的主导因子自实际收益率切换为通胀预期脱锚或期限溢价(机构记叙 9 月为「10 年实际 +49bp 而盈亏平衡仅 +5bp」的罕见组合,若反转即为切换信号);折现率通道完全接管: HY_OAS 脱离年内区间上沿向 4.5pp 以上失序走阔(CCC 层先行,9-11 月样本内 CCC 年内已 +4.26pp 为其前兆形态),SPX 自 7609.63 回撤逾 10%(跌破 6848.67),VIX 重上 25.64(2026-11-06 基准)上方。
+  - 资产方向判断: SPX 下行 + HY_OAS 失序走阔(CCC 先行)(置信: 纯逻辑推理) 利差腿有 9 月紧缩月样本内一例同框支持(MECH-2 环 2),股票腿十年日度相关为弱正(+0.1067,S5 信封)不支持负传导、样本内无利率升破 5.31 后的股票观测——整环无历史相似证据支撑,取最低档纯逻辑推理并标明条件式框架;触发前提(加息兑现)本身为机构预测,观点库阶段 C 到期预测验证未到期不可判(17 份 sidecar 全 INSUFFICIENT_EVIDENCE)
+  - 敏感变量: UST_10Y, CCC_OAS
+  - 证伪指标: UST_10Y 阈值 反例情景被证伪: 至 2027-06-30,UST_10Y 未升破 5.31pp(2026-10-05 年内高点基准)且 HY_OAS 自 3.34pp(2026-11-09 基准)回落至 3.00pp 以下——「折现率通道接管」假设落空,情景失效前提缺席=未触发(Audit-R1 F01 补): 若 UST_10Y 从未升破 5.31pp 系因紧缩路径本身未兑现(FOMC 未加息)而非动能切换失灵,则本情景记未触发(前提不在场),不与『紧缩已兑现但通道未接管』的真证伪混计——两者至期限届满分档披露。前提变体分档(复审补): 若 UST_10Y 破 5.31pp 但非加息兑现驱动(期限溢价/通胀预期路径)且 HY_OAS 未及 3.84pp,不满足 trigger 亦非动能切换失灵,至期限届满按未触发分档披露,与真证伪/前提缺席三分并列。
+  - 触发条件: 2026-12 或 2027-03 议息会议加息落地后 60 日内: UST_10Y 升破 5.31pp 且 HY_OAS 同步 >3.84pp 同框出现(紧缩兑现且利差加速=反例情景启动)(时限 2027-06-30)
+
+## 语义审查(席位待唤起)
+
+- **叙事语义未经独立裁决**——定性推断/条件情景在文;常驻席位=SEMANTIC-AUDIT-SEAT,编排层应唤席裁决后方可去掉本披露(章程 §4b/§8)
+
+## Agent 判断落位
+
+- attached=True(schema 1.1;violations=0)
+
+## 步骤台账
+
+- [OK |不适用] S1_decompose 
+- [OK |语义✔] S2_doctor 
+- [OK |语义✔] S3_overview_US 
+- [OK |语义✔] S3_overview_CN 
+- [OK |语义✔] S3_changes 
+- [OK |语义✔] S4_history_SPX 
+- [OK |语义✔] S4_history_UST_10Y 
+- [OK |语义✔] S4_history_HY_OAS 
+- [OK |语义✔] S5_compare 命中 3 个指标,compare 仅取注册表序前 2(SPX,UST_10Y);其余 HY_OAS 以 L1 事实行呈现,如需对比另行单跑
+- [OK |语义✔] S6_analog 
+- [OK |不适用] S7_mode_gate 
+- [OK |语义✗] S8_grounded_qa 
+- [OK |语义✔] S9_views_lint 
+- [OK |不适用] S10_selfcheck 
+- [OK |不适用] S11_archive 默认关(--archive 显式开启;Skill 第 11 步=用户认可后)
+
+## 证据索引(64 行)
+
+- snapshot_fact:SPX@2026-11-11 → SPX
+- snapshot_fact:HY_OAS@2026-11-09 → HY_OAS
+- snapshot_fact:UST_10Y@2026-11-09 → UST_10Y
+- vp_sidecar:VP-VIEW-20261110-001 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-002 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-003 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-004 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-005 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-006 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-007 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-008 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-009 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-010 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261110-011 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-001 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-002 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-003 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-004 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-005 [INSUFFICIENT_EVIDENCE]
+- vp_sidecar:VP-VIEW-20261111-006 [INSUFFICIENT_EVIDENCE]
+- s3_envelope:NDX@2026-11-11 → NDX
+- s3_envelope:RUT@2026-11-11 → RUT
+- s3_envelope:SHCOMP@2026-11-11 → SHCOMP
+- s3_envelope:SZCI@2026-11-11 → SZCI
+- s3_envelope:CHINEXT@2026-11-11 → CHINEXT
+- s3_envelope:HSI@2026-11-11 → HSI
+- s3_envelope:HSCEI@2026-11-11 → HSCEI
+- s3_envelope:NIKKEI225@2026-11-11 → NIKKEI225
+- s3_envelope:DAX@2026-11-11 → DAX
+- s3_envelope:CAC40@2026-11-11 → CAC40
+- s3_envelope:VIX@2026-11-11 → VIX
+- s3_envelope:NVDA@2026-11-11 → NVDA
+- s3_envelope:AAPL@2026-11-11 → AAPL
+- s3_envelope:MSFT@2026-11-11 → MSFT
+- s3_envelope:TLT@2026-11-11 → TLT
+- s3_envelope:IEF@2026-11-11 → IEF
+- s3_envelope:SHY@2026-11-11 → SHY
+- s3_envelope:HYG@2026-11-11 → HYG
+- s3_envelope:LQD@2026-11-11 → LQD
+- s3_envelope:DXY@2026-11-11 → DXY
+- s3_envelope:EURUSD@2026-11-11 → EURUSD
+- s3_envelope:GBPUSD@2026-11-11 → GBPUSD
+- s3_envelope:USDJPY@2026-11-11 → USDJPY
+- s3_envelope:USDCNY@2026-11-11 → USDCNY
+- s3_envelope:GOLD_F@2026-11-11 → GOLD_F
+- s3_envelope:SILVER_F@2026-11-11 → SILVER_F
+- s3_envelope:WTI_F@2026-11-11 → WTI_F
+- s3_envelope:BRENT_F@2026-11-11 → BRENT_F
+- s3_envelope:GLD@2026-11-11 → GLD
+- s3_envelope:USO@2026-11-11 → USO
+- s3_envelope:EEM@2026-11-11 → EEM
+- s3_envelope:EZU@2026-11-11 → EZU
+- s3_envelope:FEZ@2026-11-11 → FEZ
+- s3_envelope:EWU@2026-11-11 → EWU
+- s3_envelope:EWG@2026-11-11 → EWG
+- s3_envelope:EWJ@2026-11-11 → EWJ
+- s3_envelope:INDA@2026-11-11 → INDA
+- s3_envelope:FXI@2026-11-11 → FXI
+- s3_envelope:BTC@2026-11-10 → BTC
+- s3_envelope:BB_OAS@2026-11-09 → BB_OAS
+- s3_envelope:B_OAS@2026-11-09 → B_OAS
+- s3_envelope:CCC_OAS@2026-11-09 → CCC_OAS
+- s3_envelope:IG_OAS@2026-11-09 → IG_OAS
+- s3_envelope:HY_IG_DIFF@2026-11-09 → HY_IG_DIFF
+
+## 注记
+
+- 问题未命中经济体,S3 用默认面 US+CN(清单默认,非问题语义判断;Agent 可按需补查其它经济体)

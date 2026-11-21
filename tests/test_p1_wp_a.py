@@ -155,18 +155,22 @@ class TestEconomyRules(unittest.TestCase):
     def test_t1a_counts_version_aggregate(self):
         # IA-P1-WP-E v1.3 域化(§十三.1 从属锁迁移,同型不弱化):
         # 94+8→102 / 93+8→101 / 2.2.0→2.3.0 / 聚合 CN 10→18(其余键不动)
-        self.assertEqual(len(REG['metrics']), 110)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL)
-        self.assertEqual(REG['version'], '2.8.5')  # R25(2026-11-14) DFF history_source;曾升 2.8.4(R12 japan source_key 补接)/2.8.3(R11 注记细化)/2.8.2(R6-D1 换源)/2.8.0(数据批1)
+        # R20: 110→113(+JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 四地补齐)
+        # R21: 113→114(+CN_POLICY_OVERNIGHT 换锚新锚,active;插 CN 块尾)
+        self.assertEqual(len(REG['metrics']), 114)  # 数据批1: +SPX_EPS/M2SL(前 Charter7 P2-3 +SOFR/WALCL;R20 +3;R21 +1)
+        self.assertEqual(REG['version'], '2.8.7')  # R20(2026-11-19) 四地补齐;曾升 2.8.5(R25 DFF history_source)/2.8.4(R12 japan source_key 补接)/2.8.3(R11 注记细化)/2.8.2(R6-D1 换源)/2.8.0(数据批1)
         self.assertEqual(sum(1 for m in REG['metrics']
-                             if m.get('status') == 'active'), 108)  # 数据批1 +SPX_EPS/M2SL
+                             if m.get('status') == 'active'), 112)  # 数据批1 +SPX_EPS/M2SL;R20 +3;R21 +1(均 active)
         agg = {}
         for m in REG['metrics']:
             agg[m['economy']] = agg.get(m['economy'], 0) + 1
         # 定值=REPORT §零.12⑥(85 实测聚合+P9×2+P10×7)+CN 宏观八条目(P1:calendar=cn)
         # Charter6-P2: US 50→52(+SPX_CAPE/SPX_PE_TTM;SPX_PB=unavailable不计)
         # Charter7 P2-3: US 53→55(+SOFR/WALCL);数据批1: US 55→57(+SPX_EPS/M2SL)
-        self.assertEqual(agg, {'US': 57, 'CN': 18, 'HK': 4, 'JP': 8,
-                               'EA': 11, 'GLOBAL': 12})
+        # R20: JP 8→10(+JP_CPI_YOY/JP_REAL_GDP_YOY)/EA 11→12(+EA_REAL_GDP_YOY)
+        # R21: CN 18→19(+CN_POLICY_OVERNIGHT)
+        self.assertEqual(agg, {'US': 57, 'CN': 19, 'HK': 4, 'JP': 10,
+                               'EA': 12, 'GLOBAL': 12})
 
     def test_t1b_per_entry_rule_consistency(self):
         """逐条断言: economy==classify 结果且 economy_rule 前缀==命中规则序。"""
@@ -235,13 +239,20 @@ class TestEconomyRules(unittest.TestCase):
         # IA-P1-WP-E v1.3 域化(§十三.1 同族同型迁移,第10断言位·如实登记见
         # WP-E REPORT §零.13): CN 宏观八条目 append 于数组尾→NEW9 尾块前移,
         # 块内连续性与序仍锁([-17:-8]);CN8 尾序新锁([-8:],锁面净增强)。
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-20:-11]),
-                         NEW9)                                # append 尾序(WP-A 时点;P2-3/数据批1 后块前移)
-        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-11:-3]),
-                         CN8)                                 # append 尾序(WP-E;P2-3/数据批1 后块前移)
+        # R20: 三新指标 append 于数组尾→NEW9/CN8/SOX 块整体前移 3 位,块内
+        # 连续性与序仍锁;新尾块=JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY
+        # R21: CN_POLICY_OVERNIGHT 插 CN 块尾→NEW9/CN 块各前移 1 位
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-24:-15]),
+                         NEW9)                                # append 尾序(WP-A 时点;P2-3/数据批1/R20/R21 后块前移)
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-15:-6]),
+                         CN8 + ('CN_POLICY_OVERNIGHT',))      # append 尾序(WP-E;R21 CN 块尾插隔夜锚=CN9)
         # Charter7 P2-3 + 数据批1(2026-11-10): SOFR/WALCL/M2SL append 于数组尾
+        self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-6:-3]),
+                         ('SOFR', 'WALCL', 'M2SL'))           # append 尾序(P2-3+数据批1;R20 后块前移)
+        # R20(2026-11-19): 四地补齐三指标 append 于数组尾(新尾块锁)
         self.assertEqual(tuple(m['metric_id'] for m in REG['metrics'][-3:]),
-                         ('SOFR', 'WALCL', 'M2SL'))           # append 尾序(P2-3+数据批1)
+                         ('JP_CPI_YOY', 'EA_REAL_GDP_YOY',
+                          'JP_REAL_GDP_YOY'))                 # append 尾序(R20 四地补齐)
         self.assertEqual(METRICS['JP_POLICY_RATE']['source_symbol'],
                          'IRSTCI01JPM156N')                   # 复用概念同源
         for mid in NEW9:
@@ -293,13 +304,17 @@ class TestChannelRegistrationChain(unittest.TestCase):
         ok, why = bl.evolution_legal()
         self.assertTrue(ok, why)
         # IA-P1-WP-E v1.3 域化(§十三.1): vintage 13→21(∪CN 宏观八条目)
+        # R20(2026-11-19): 四地补齐 +3(∪JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY)
         self.assertEqual(set(bl.vintage_additions()),
                          {'JP_POLICY_RATE', 'JGB2Y', 'JGB5Y', 'JGB10Y'}
                          | set(NEW9) | set(CN8)
                          | {'US_REAL_GDP', 'SPX_CAPE', 'SPX_PE_TTM',
                             'SPX_PB'}        # Charter6-P1 §2#1 + P2 §2#5/#6
                          | {'SOFR', 'WALCL'}   # Charter7 P2-3 流动性维
-                         | {'SPX_EPS', 'M2SL'})  # 数据批1(2026-11-10)
+                         | {'SPX_EPS', 'M2SL'}  # 数据批1(2026-11-10)
+                         | {'JP_CPI_YOY', 'EA_REAL_GDP_YOY',
+                            'JP_REAL_GDP_YOY'}   # R20 四地补齐
+                         | {'CN_POLICY_OVERNIGHT'})  # R21 换锚新锚
 
     def test_t2e_run_weekly_thirteen_steps(self):
         src = open(os.path.join(ROOT, 'run_weekly.py'), encoding='utf-8').read()
@@ -355,14 +370,37 @@ class TestChannelRegistrationChain(unittest.TestCase):
 
 
 # ══ T3 要点③: jp_market_collector 离线(raw 注入,零网络)════════════════
+# R20: 日本增长/通胀序列(stat.go.jp CPI 双基+FRED GDP)接线——build_payload
+# 未暴露 raw 注入口,离线夹具以 mock 注入 fetch_statgo_cpi_yoy /
+# fetch_jp_real_gdp_yoy 返回值(合成数据,零网络,与 SYN_* 同纪律)
+SYN_STATGO_YOY_NATIONAL = ([('2026-08', 2.8), ('2026-09', 2.9),
+                            ('2026-10', 3.0)], [])
+SYN_STATGO_YOY_TOKYO = ([('2026-08', 2.5), ('2026-09', 2.6),
+                         ('2026-10', 2.7)], [])
+SYN_JP_GDP_YOY = ([('2025-07-01', 0.8), ('2025-10-01', 0.9),
+                   ('2026-01-01', 1.0), ('2026-04-01', 1.1)], [])
+SYN_STATGO_FAIL = (None, ['statgo CPI 源失败(合成注入)'])
+SYN_JP_GDP_FAIL = (None, ['FRED 日本GDP源失败(合成注入)'])
+
+
+def _r20_statgo_side_effect(label, *_a, **_k):
+    """R20: statgo 获取器 mock 分派(全国/東京都区部两路合成序列)。"""
+    return SYN_STATGO_YOY_NATIONAL if label == '全国CPI' else SYN_STATGO_YOY_TOKYO
+
+
 class TestJpCollectorOffline(unittest.TestCase):
 
     def test_t3a_full_success_payload(self):
-        p, n = jp.build_payload(
-            run_date=__import__('datetime').date(2026, 11, 5),
-            mof_raw=SYN_MOF, fred_policy_raw=SYN_FRED_POLICY,
-            fred_nikkei_raw=SYN_FRED_NIKKEI)
-        self.assertEqual(n, 4)
+        # R20: 新序列三源 mock 注入成功(离线),原四源仍 raw 注入
+        with mock.patch.object(jp, 'fetch_statgo_cpi_yoy',
+                               side_effect=_r20_statgo_side_effect), \
+                mock.patch.object(jp, 'fetch_jp_real_gdp_yoy',
+                                  return_value=SYN_JP_GDP_YOY):
+            p, n = jp.build_payload(
+                run_date=__import__('datetime').date(2026, 11, 5),
+                mof_raw=SYN_MOF, fred_policy_raw=SYN_FRED_POLICY,
+                fred_nikkei_raw=SYN_FRED_NIKKEI)
+        self.assertEqual(n, 8)
         self.assertEqual(p['date'], '20261105')
         # jgb 节: 末行值+prev=次新行;JGB5Y 不入 a-2 面
         self.assertEqual(p['jgb']['JGB_10Y'],
@@ -385,26 +423,51 @@ class TestJpCollectorOffline(unittest.TestCase):
         self.assertEqual(nk['series'],
                          {'2026-10-30': 38250.0, '2026-11-02': 38100.5,
                           '2026-11-04': 38000.25})
-        # 诚实缺席: inflation 节键不出现(禁0占位),sources_status 如实
-        self.assertNotIn('inflation', p)
-        self.assertEqual(p['sources_status']['JP_CPI_TOKYO']['status'],
-                         'MISSING')
+        # R20: inflation 节由缺席转为接线(真实点值面,禁0占位纪律不变)
+        self.assertEqual(p['inflation']['JP_CPI_YOY'],
+                         {'value': 3.0, 'unit': 'percent', 'date': '2026-10-01',
+                          'prev_value': 2.9, 'freq': 'Monthly'})
+        # R20: series 节三序列(stat.go.jp 全国/东京 + FRED GDP)
+        self.assertEqual(p['series']['JP_CPI_YOY'],
+                         {'dates': ['2026-08-01', '2026-09-01', '2026-10-01'],
+                          'values': [2.8, 2.9, 3.0]})
+        self.assertEqual(p['series']['JP_CPI_TOKYO_YOY']['values'],
+                         [2.5, 2.6, 2.7])
+        self.assertEqual(p['series']['JP_REAL_GDP_YOY']['values'],
+                         [0.8, 0.9, 1.0, 1.1])
+        self.assertIn('history_note', p['series']['JP_REAL_GDP_YOY'])
+        # R20: 旧 JP_CPI_TOKYO=MISSING 面由 STATGO_CPI_TOKYO 接线取代
+        for src in ('STATGO_CPI_NATIONAL', 'STATGO_CPI_TOKYO', 'FRED_JP_GDP'):
+            self.assertEqual(p['sources_status'][src]['status'], 'EXACT')
         for st in p['sources_status'].values():
             self.assertIn(st['status'], ('EXACT', 'READ_FAIL', 'MISSING'))
-        self.assertTrue(any('JP_CPI_TOKYO' in a for a in p['alerts']))
+        self.assertFalse(any('JP_CPI_TOKYO' in a for a in p['alerts']))  # R20: 成功→无缺席警报
 
     def test_t3b_source_failure_missing_not_zero(self):
         """要点③核心: 源失败→节缺席+READ_FAIL+alerts,不填0。"""
-        p, n = jp.build_payload(
-            run_date=__import__('datetime').date(2026, 11, 5),
-            mof_raw=SYN_BAD, fred_policy_raw=SYN_BAD,
-            fred_nikkei_raw=SYN_BAD)
+        # R20: 新序列源(STATGO 两路+FRED GDP)同样注入失败,失败→缺席意图覆盖新面
+        with mock.patch.object(jp, 'fetch_statgo_cpi_yoy',
+                               return_value=SYN_STATGO_FAIL), \
+                mock.patch.object(jp, 'fetch_jp_real_gdp_yoy',
+                                  return_value=SYN_JP_GDP_FAIL):
+            p, n = jp.build_payload(
+                run_date=__import__('datetime').date(2026, 11, 5),
+                mof_raw=SYN_BAD, fred_policy_raw=SYN_BAD,
+                fred_nikkei_raw=SYN_BAD)
         self.assertEqual(n, 0)
         self.assertNotIn('jgb', p)
         self.assertNotIn('policy_rates', p)
         self.assertNotIn('prices', p)
-        for src in ('MOF_JGBCME', 'FRED_POLICY', 'FRED_NIKKEI225'):
+        # R20: 新序列失败→inflation/series 节缺席(不填0)
+        self.assertNotIn('inflation', p)
+        self.assertNotIn('series', p)
+        for src in ('MOF_JGBCME', 'FRED_POLICY', 'FRED_NIKKEI225',
+                    'STATGO_CPI_NATIONAL', 'STATGO_CPI_TOKYO', 'FRED_JP_GDP'):
             self.assertEqual(p['sources_status'][src]['status'], 'READ_FAIL')
+        # R20: 新序列缺席警报如实(不冒充)
+        self.assertTrue(any('JP_CPI_YOY' in a for a in p['alerts']))
+        self.assertTrue(any('JP_CPI_TOKYO_YOY' in a for a in p['alerts']))
+        self.assertTrue(any('JP_REAL_GDP_YOY' in a for a in p['alerts']))
         # 全系列缺席→main exit 1 不落盘
         with mock.patch.object(jp, 'build_payload',
                                return_value=(p, 0)), \
@@ -414,8 +477,13 @@ class TestJpCollectorOffline(unittest.TestCase):
 
     def test_t3c_network_never_in_tests(self):
         """要点③离线性: 全 raw 注入下 _http_get 零调用(mock 计数=0)。"""
-        with mock.patch.object(jp.jrc, '_http_get',
-                               side_effect=AssertionError('网络出站')) as g:
+        # R20: 新序列获取器一并 mock(其内部出站口归零),离线纪律覆盖新面
+        with mock.patch.object(jp, 'fetch_statgo_cpi_yoy',
+                               side_effect=_r20_statgo_side_effect), \
+                mock.patch.object(jp, 'fetch_jp_real_gdp_yoy',
+                                  return_value=SYN_JP_GDP_YOY), \
+                mock.patch.object(jp.jrc, '_http_get',
+                                  side_effect=AssertionError('网络出站')) as g:
             jp.build_payload(
                 run_date=__import__('datetime').date(2026, 11, 5),
                 mof_raw=SYN_MOF, fred_policy_raw=SYN_FRED_POLICY,
@@ -424,20 +492,31 @@ class TestJpCollectorOffline(unittest.TestCase):
 
     def test_t3d_partial_failure_single_source(self):
         """单源失败不阻断另一源(B3 D10 语义)。"""
-        p, n = jp.build_payload(
-            run_date=__import__('datetime').date(2026, 11, 5),
-            mof_raw=SYN_MOF, fred_policy_raw=SYN_BAD,
-            fred_nikkei_raw=SYN_FRED_NIKKEI)
-        self.assertEqual(n, 3)
+        # R20: 新序列三源注入成功(单源失败面仍由 FRED_POLICY 承担)
+        with mock.patch.object(jp, 'fetch_statgo_cpi_yoy',
+                               side_effect=_r20_statgo_side_effect), \
+                mock.patch.object(jp, 'fetch_jp_real_gdp_yoy',
+                                  return_value=SYN_JP_GDP_YOY):
+            p, n = jp.build_payload(
+                run_date=__import__('datetime').date(2026, 11, 5),
+                mof_raw=SYN_MOF, fred_policy_raw=SYN_BAD,
+                fred_nikkei_raw=SYN_FRED_NIKKEI)
+        self.assertEqual(n, 7)  # R20: 3→7(jgb2+prices1+inflation1+series3)
         self.assertIn('jgb', p)
         self.assertNotIn('policy_rates', p)
         self.assertIn('prices', p)
+        self.assertIn('series', p)  # R20: 单源失败不阻断新序列节
 
     def test_t3e_save_daily_roundtrip(self):
-        p, _n = jp.build_payload(
-            run_date=__import__('datetime').date(2026, 11, 5),
-            mof_raw=SYN_MOF, fred_policy_raw=SYN_FRED_POLICY,
-            fred_nikkei_raw=SYN_FRED_NIKKEI)
+        # R20: 新序列获取器 mock 注入(离线),roundtrip 语义不变
+        with mock.patch.object(jp, 'fetch_statgo_cpi_yoy',
+                               side_effect=_r20_statgo_side_effect), \
+                mock.patch.object(jp, 'fetch_jp_real_gdp_yoy',
+                                  return_value=SYN_JP_GDP_YOY):
+            p, _n = jp.build_payload(
+                run_date=__import__('datetime').date(2026, 11, 5),
+                mof_raw=SYN_MOF, fred_policy_raw=SYN_FRED_POLICY,
+                fred_nikkei_raw=SYN_FRED_NIKKEI)
         with tempfile.TemporaryDirectory() as td:
             path = jp.save_daily(td, p)
             self.assertEqual(os.path.basename(path), 'jp_20261105.json')

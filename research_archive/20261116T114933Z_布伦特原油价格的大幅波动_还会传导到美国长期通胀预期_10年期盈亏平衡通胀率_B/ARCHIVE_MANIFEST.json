@@ -1,0 +1,52 @@
+{
+  "stage": "archive",
+  "run_ts": "20261116T114933Z",
+  "question": "布伦特原油价格的大幅波动,还会传导到美国长期通胀预期(10年期盈亏平衡通胀率 BEI_10Y)吗?近年有时油价暴涨、长期通胀预期明显跟着走高,有时油价暴跌、预期却似乎纹丝不动——这种传导究竟是在减弱、已被「锚定」,还是本来就时有时无?",
+  "archived_at": "20261116T221914Z",
+  "content_sha256": "209ea7ecc23dbaf2d6dda39fca237b47795ad3f2b9f2323e8f5d9f55369e62e0",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 3,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261116__VERDICT-20261116T114933Z-01.json",
+      "source_rel": "audit/semantic_review/20261116/VERDICT-20261116T114933Z-01.json",
+      "overall": "UPHELD",
+      "revision": null,
+      "predecessor": null,
+      "recorded_at": "20261116T125615Z",
+      "sha256": "d4cf8326d6e21535"
+    },
+    {
+      "file": "verdicts/20261116__VERDICT-20261116T114933Z-02.json",
+      "source_rel": "audit/semantic_review/20261116/VERDICT-20261116T114933Z-02.json",
+      "overall": "UPHELD",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261116/VERDICT-20261116T114933Z-01.json",
+      "recorded_at": "20261116T144841Z",
+      "sha256": "aa44591d9860851a"
+    },
+    {
+      "file": "verdicts/20261117__VERDICT-20261116T114933Z-01.json",
+      "source_rel": "audit/semantic_review/20261117/VERDICT-20261116T114933Z-01.json",
+      "overall": "UPHELD",
+      "revision": 3,
+      "predecessor": "audit/semantic_review/20261116/VERDICT-20261116T114933Z-02.json",
+      "recorded_at": "20261116T221520Z",
+      "sha256": "4c781c68a3defae8"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "a59cdb3345094042",
+    "report.md": "0d5c0b88071ce9e0",
+    "FULL_REPORT.md": "e2ed24275c9e71f2",
+    "agent_judgment.json": "f532e3030aeba3c1",
+    "views_digest.json": "281eb2c3c8210c32",
+    "evidence_index.json": "008bee9b325c1b83",
+    "AGENT_SEAT_ENVELOPE.json": "baa41ba54063b068"
+  },
+  "record_health": {},
+  "source_report_dir": "/tmp/phase4_F10/20261116T114933Z_布伦特原油价格的大幅波动_还会传导到美国长期通胀预期_10年期盈亏平衡通胀率_B",
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核)"
+}

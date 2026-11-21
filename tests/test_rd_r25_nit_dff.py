@@ -318,10 +318,11 @@ check('主锚 metric_id 缺席仍拒收(副指标不顶替主锚)',
       'SCN-FALS' in codes(res))
 
 # ══════════════════════════════════════════════════════════════════
-section('4 DFF 日频史接线(registry v2.8.5+权威门+history_source 解析)')
+section('4 DFF 日频史接线(registry v2.8.6+权威门+history_source 解析)')
 # ══════════════════════════════════════════════════════════════════
-check('registry 版本 v2.8.5(R25 DFF history_source;曾升2.8.4 R12 japan source_key补接/2.8.3 R11注记细化/2.8.2 R6-D1换源/2.8.0 数据批1)',
-      REG_JSON['version'] == '2.8.5', REG_JSON['version'])
+# R20: 注册表升版 2.8.5→2.8.6(四地地图数据面补齐,2026-11-19),R25 history_source 事实仍在册
+check('registry 版本 v2.8.6(R20 四地补齐;曾升2.8.5 R25 DFF history_source/2.8.4 R12 japan source_key补接/2.8.3 R11注记细化/2.8.2 R6-D1换源/2.8.0 数据批1)',
+      REG_JSON['version'] == '2.8.7', REG_JSON['version'])
 dff = REG['by_id'].get('DFF') or {}
 check('DFF 事实权威通道不变(source=rate_expectations)',
       dff.get('source') == 'rate_expectations', str(dff.get('source')))

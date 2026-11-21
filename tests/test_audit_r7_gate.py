@@ -560,7 +560,8 @@ d1 = _new_data_root()
 st1 = _run_round(d1, {'CN_PMI_MFG': _cn_item(2008, 1, 2026, 10,
                                              '2026-11-17T02:00:00Z'),
                       'CN_NEW_LOANS': _cn_item(2008, 1, 2026, 10,
-                                               '2026-11-17T02:00:00Z')})
+                                               '2026-11-17T02:00:00Z')},
+                  day=(2026, 11, 20))
 q1 = _query(d1)
 f1 = _eval_snap_item(d1, 'CN_PMI_MFG 走势', '2026-11-17')
 check('F1 首次采集 fresh → 查询 collection_status 三分'
@@ -587,7 +588,8 @@ check('F1b merge_macro_series provenance → prov_out 平节(返回形状不变)
 
 # F2 连续第二次采集 fresh: last_success_at 前移,统计期不变
 st2 = _run_round(d1, {'CN_PMI_MFG': _cn_item(2008, 1, 2026, 10,
-                                             '2026-11-17T04:00:00Z')})
+                                             '2026-11-17T04:00:00Z')},
+                  day=(2026, 11, 20))
 q2 = _query(d1)
 check('F2 连续第二次采集 → fresh 复跑成功(最后成功采集前移)',
       st2['CN_PMI_MFG']['mode'] == 'fresh'
@@ -600,7 +602,8 @@ check('F2 连续第二次采集 → fresh 复跑成功(最后成功采集前移)
 st3 = _run_round(d1, {'CN_PMI_MFG': _cn_item(2008, 1, 2026, 10,
                                              '2026-11-17T06:00:00Z')},
                  us={'DFF': {'value': 4.33, 'date': '2026-11-14',
-                             'frequency': 'daily'}})
+                             'frequency': 'daily'}},
+                 day=(2026, 11, 20))
 q3 = _query(d1)
 check('F3 美国宏观刷新 → CN 仍在档 fresh(不遮蔽)',
       st3['CN_PMI_MFG']['mode'] == 'fresh'
@@ -608,8 +611,12 @@ check('F3 美国宏观刷新 → CN 仍在档 fresh(不遮蔽)',
       and q3['collection_status']['mode'] == 'fresh')
 
 # F4 同日单项失败(部分面): R26守卫转存——旧完整档保持规范,DFF/CN不丢
+# (Audit-R27 CI 修: d1 序列 st1..st4 钉 day=2026-11-20——原依赖真实当日,
+#  日历走到 11-21 后 F4c 的 day=(11,21) 由跨日变同日,守卫正道转存致
+#  F4c/F5/F7 断言红=夹具日期腐烂,非代码回归;钉死后序列永冻结)
 st4 = _run_round(d1, {'CN_NEW_LOANS': _cn_item(2008, 1, 2026, 10,
-                                               '2026-11-17T08:00:00Z')})
+                                               '2026-11-17T08:00:00Z')},
+                  day=(2026, 11, 20))
 q4 = _query(d1)
 f4 = _eval_item(d1, '近三年 CN_PMI_MFG 走势', '2026-11-17')
 _canon4 = json.load(open(os.path.join(

@@ -548,10 +548,16 @@ def sec_e():
           and 'ia_cli.py research-one --stage auto' in md_e)
     for p in ('.claude/skills/global-macro-research/SKILL.md',
               '.agents/skills/global-macro-research/SKILL.md'):
-        s = open(os.path.join(ROOT, p), encoding='utf-8').read()
-        check(f'§E4 SKILL 草稿纪律扩类: {os.path.basename(p)}'
-              if False else
-              f'§E4 SKILL 草稿纪律含两类新 blocked_class({p.split("/")[0]})',
+        fp = os.path.join(ROOT, p)
+        if not os.path.exists(fp):
+            # .claude 安装面 gitignored——CI 干净克隆合法缺席(在场性守卫);
+            # .agents 仓内跟踪面缺席=真 FAIL
+            check(f'§E4 技能面在场守卫({p.split("/")[0]};'
+                  '.claude gitignored 缺席合法)',
+                  os.path.exists(fp) or p.startswith('.claude'))
+            continue
+        s = open(fp, encoding='utf-8').read()
+        check(f'§E4 SKILL 草稿纪律含两类新 blocked_class({p.split("/")[0]})',
               'map_current_period_missing' in s
               and 'map_current_period_unverified' in s)
 

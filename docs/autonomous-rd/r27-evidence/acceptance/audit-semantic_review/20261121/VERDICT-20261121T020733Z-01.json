@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "semantic-audit-seat",
+  "notes": "四层标注与E1/E2/E3分野如实:E2三环均附缺环注记、E3全部非预测化,机制链M3如实披露加息而日元未升的反例观测;传导对质三件真并列,两处支持主解释均有在场观测支撑(TIPS上行伴SPX跌VIX升曲线平、全资产同跌伴DXY强),TR-2按诚实缺省裁尚不能区分并披露原始观测面;转折三事件跨维度跨地区、数值与候选面逐项一致,同窗与±7日聚簇的先后表述尊重月频分辨率;历史段相似≠因果围栏、2025-03重叠样本降级、2023-10巧合警示齐备,事后块全标历史记录非预测,抽算二十余数值与L1底座全对上;缺格(EA两序列、JP_POLICY_TARGET、CPI基期)如实呈现未以相邻口径冒充——轻微保留: 文头「经独立语义审查」渲染时早于本席裁决(正文已如实标待裁,属时序措辞非实质缺陷),转折1「升至2026-05并转正」与实际2026-03转正略有出入但同档他处已写明",
+  "run_ts": "20261121T020733Z",
+  "content_sha256": "369b1046c323a6fb1b8477439e42dd8f0867bbec8cfae0cd6243afb4fceeed52",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T022737Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "a0a202cf615c33ada0bc0e89d01dce883770ddd00154049c9d86ec8e542dffd3",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "SEMANTIC-AUDIT-SEAT",
+  "notes": "Audit-R1 修订闭环终审(独立席python3只读复算,B档全部断言独立重算,证据索引与概览信封逐项对照): B档 VERIFIED——上一轮发现全部忠实落地,保护项未破坏,全量数值逐位复算吻合,零新增缺陷。",
+  "run_ts": "20261116T053224Z",
+  "content_sha256": "9f63cfd1fedf451b3c7e728e5cd727b45f1844d2c39ac39b72691e4cbdd1264a",
+  "audited_at": "2026-11-17",
+  "recorded_at": "20261116T221749Z",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261116/VERDICT-20261116T053224Z-01.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "rebind": {
+    "from_algorithm": "digest_v1(judgment+report.md)",
+    "to_algorithm": "digest_v3(report.json+judgment+views_digest)",
+    "verified_old_match": true,
+    "predecessor_archive": "audit/semantic_review/20261116/VERDICT-20261116T053224Z-01.json",
+    "note": "Audit-R4 R4-06: 摘要口径换代迁移重绑(v2/v1→v3); 旧锚复算一致=判断内容未改变的机器证据, 非复审。B 交付态维持 deliverable=False(必要数据缺口如实拒答), 重绑仅为审查绑定面口径连贯。"
+  }
+}

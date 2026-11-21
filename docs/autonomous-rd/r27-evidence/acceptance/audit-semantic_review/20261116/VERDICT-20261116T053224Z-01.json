@@ -1,0 +1,61 @@
+{
+  "overall": "UPHELD",
+  "reviewer": "SEMANTIC-AUDIT-SEAT",
+  "notes": "Audit-R1 修订闭环终审(独立席python3只读复算,B档全部断言独立重算,证据索引与概览信封逐项对照): B档 VERIFIED——上一轮发现全部忠实落地,保护项未破坏,全量数值逐位复算吻合,零新增缺陷。",
+  "run_ts": "20261116T053224Z",
+  "content_sha256": "1e01abc08f9e9a42a399ae6784e8960d09a1f3d2f2ce309dc190bdfe8b612763",
+  "recorded_at": "20261116T111808Z",
+  "items": [
+    {
+      "id": "B-SCN-C-PREMISE-GATE",
+      "severity": "MINOR",
+      "verdict": "UPHELD",
+      "detail": "两态条款已落地: 失速前提=「制造业PMI进一步下行且PPI高企不落」;前提从未在场(如PMI回荣枯线上方或PPI自5.0显著回落)而两资产仅守住低点→记未触发不计证伪;『持续守稳』窗口以期限日2027-03-31界定(至期限周收盘始终不低于31.59)。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "B-SCN-B-COUNT",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "计数与阈值双口径对齐亲算吻合: 2026年206观测中收盘>精确基准3043.3346=181日(主计数),>取整3043.33=182日;差异归因正确(2026-10-09收盘=3043.3346本身高于3043.33,序列亲验)。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "B-SCN-B-GATE-VS-TRIGGER",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "两腿口径注记已补: 前提在场判据以制造业PMI主前提为准,信用腿(新增贷款放量)由trigger观测、不计入前提判据。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "B-CON3-REF",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "追溯性注记已补且事实核对成立: PPI 5.0/CPI 0.9为概览步信封数值不在证据索引内(65行亲验0命中),两融22945.61亿元@2026-11-10同口径;三值与S3概览信封逐位一致。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "B-PRESERVATION",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "F06 PPI条件推断改写完整保留;run_ok=False诚实拒答降级披露未破坏;剪刀差中文数字四点一个百分点与PPI−CPI=5.0−0.9=4.1pp等价成立。",
+      "disposition": "PASS(必修已落地)"
+    },
+    {
+      "id": "B-FULL-RECOMPUTE",
+      "severity": "NIT",
+      "verdict": "UPHELD",
+      "detail": "全量独立复算逐位吻合: 206观测/年内−19.7025%/第4.9百分位(实算4.85)/周窗+4.3337(基准2465.232)、FXI−2.9468(基准34.950001)、USDCNY−0.3888(基准6.688)/合计7.2805≈7.28/pearson 0.3620708(2344变化对)/全高4371.9891@2026-06-25、低点2391.6518@2026-11-03、回撤−45.3%/FXI低点31.59@2026-06-26。修订未引入新缺陷。",
+      "disposition": "PASS(必修已落地)"
+    }
+  ],
+  "seat": "semantic-audit-seat",
+  "scope": "B档修订闭环终审",
+  "verdict_audit_r1_dialect": "VERIFIED",
+  "audited_at": "2026-11-16",
+  "counterexamples_sought": [
+    "阈值双口径反例: 2026-10-09收盘恰=3043.3346,>精确基准181 vs >取整182,两口径归因独立复算",
+    "no_series声明反例: 证据索引65行grep亲验CN_PPI/CPI/MARGIN_BAL零命中,证『概览信封不在索引』注记属实",
+    "run_ok=False保护项反例: agent_declaration全文在档+report run_ok=False亲验,降级披露未被修订破坏"
+  ]
+}

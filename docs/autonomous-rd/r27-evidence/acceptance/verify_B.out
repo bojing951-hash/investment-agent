@@ -1,0 +1,24 @@
+== 0. CODE_VERSION 印章 ==
+{
+ "git_head": "b7cc80b",
+ "git_diff_sha256": null,
+ "stamped_at": "2026-11-21T08:52:40+08:00"
+}PASS: 印章=b7cc80b
+== 1. 原问逐字核对 ==
+落盘原问文件: /tmp/r70/r27-accept/install/question_verbatim_20261121-093732.txt
+7e8821bd0bf9cb29941183f646ef7c678c20c501bec9a6759abf4246ce690e27  /tmp/r70/r27-accept/install/question_verbatim_20261121-093732.txt
+7e8821bd0bf9cb29941183f646ef7c678c20c501bec9a6759abf4246ce690e27  /tmp/r70/question_B.txt
+PASS: 字节一致
+== 2. 运行SHA+随包原问+裁决链+地图哈希+重放面 ==
+run_dir: 20261121T013826Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什
+git_head= b7cc80b | source= code_version_stamp
+PASS (期望 b7cc80b)
+question_verbatim.txt 字节=run.question: True
+MAP_REPORT.sha256 一致: True | da799e369c0e6ad7
+首页草稿横幅: (无=完整交付)
+逐组覆盖表在场: True
+按时点统计覆盖行在场: True
+重放面: footer在场+原问件+裁决链双记录+命令: True
+对照表当期列(最新一期): True
+裁决链(20261121T013826Z): [('VERDICT-20261121T013826Z-01.json', 'UPHELD', 'rev1')]
+blocked_class: (无)

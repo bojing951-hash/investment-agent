@@ -1,0 +1,58 @@
+{
+  "stage": "archive",
+  "run_ts": "20261122T145134Z",
+  "question": "2026年11月,日本和欧元区最近六个月的通胀与政策环境有什么不同?哪些方面分化,哪些证据不足?请给出具体数据和各数据的公布时间。",
+  "archived_at": "20261122T184455Z",
+  "content_sha256": "15c3dd6e5776e48f221b9ea6bb5f9c03038919d03dbbe79f780ce8e7ff85aa41",
+  "run_code_git_head": "ca916cdca7b749282e498d8c8f0eac8bf43b7372",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 2,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261123__VERDICT-20261122T145134Z-01.json",
+      "source_rel": "audit/semantic_review/20261123/VERDICT-20261122T145134Z-01.json",
+      "overall": "REVISE",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261122T183221Z",
+      "sha256": "323a98989be4ce6b"
+    },
+    {
+      "file": "verdicts/20261123__VERDICT-20261122T145134Z-02.json",
+      "source_rel": "audit/semantic_review/20261123/VERDICT-20261122T145134Z-02.json",
+      "overall": "UPHELD",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261123/VERDICT-20261122T145134Z-01.json",
+      "recorded_at": "20261122T184423Z",
+      "sha256": "69fb3bc9c1d9dd60"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "9911956fd02fb8a3",
+    "report.md": "daaf8e633aff8cb9",
+    "FULL_REPORT.md": "a202bca1cdb3443c",
+    "agent_judgment.json": "712085795c56bace",
+    "views_digest.json": "e71a18c2e81904ed",
+    "evidence_index.json": "0e2995f5a28ee8a2",
+    "AGENT_SEAT_ENVELOPE.json": "f6d2e604a692306a",
+    "MAP_REPORT.md": "30107dccb40e0852",
+    "MAP_REPORT.sha256": "8b3d378922f465bf",
+    "question_verbatim.txt": "df5cf86710641114"
+  },
+  "frozen_inputs": {
+    "config/metric_registry.json": "fa396d22175a4814",
+    "config/release_calendar.json": "e44fd2aa5ced0310",
+    "data/daily/research_snapshot_20261122_v2.json": "4278fafd7128c96c"
+  },
+  "frozen_inputs_sha256": "73d74da0477258752a9f0aee74aaab848722ff50bb56ee39ba394c600cbcd00d",
+  "record_health": {},
+  "source_report_dir": "output/research_runs/20261122T145134Z_2026年11月_日本和欧元区最近六个月的通胀与政策环境有什么不同_哪些方面分化",
+  "map_report_sha256": "a6cc6761a4c95845cc83d7d0443510d4e662262ed2d48467f675fe119fd800dc",
+  "map_content_sha256": "a6cc6761a4c95845cc83d7d0443510d4e662262ed2d48467f675fe119fd800dc",
+  "map_legacy_no_binding": false,
+  "map_renderer_drift": false,
+  "map_version": 1,
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定已核/Audit-R24 任务1)"
+}

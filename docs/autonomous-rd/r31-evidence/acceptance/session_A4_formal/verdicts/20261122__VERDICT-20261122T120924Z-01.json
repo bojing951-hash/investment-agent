@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "independent-semantic-seat-r31",
+  "notes": "独立复算全过: A数值回贴=21格x3锚与走位全对;三转折(CPI 2.434->4.1666/INDPRO 1.7543->0.7972/JP_CPI 2.9->1.27)与补选(TOKYO 1.6->2.69)按S4序列月末口径逐位复算一致;CPI/CORE_CPI同比不可得处理诚实(最近有效3.7173/2.5658 vs 报告3.72/2.57);利率三分解12m +91=+102-11与月窗-8=+11-19残差0复算一致;资产8行与JP隔夜月均0.557->1.227(+67bp)复算一致;近30日面(BRENT -20.69%/USDJPY +2.05%/BEI -19bp,基日2026-10-23)复算一致。B历史事后=3锚x3/6/12月x资产与经济指标按月末口径全部复算一致(与引擎事后块锚后首观测口径的约1pp系统差已如实披露,不计错)。C时间语义=ECB 06-11Thu->06-17Wed与09-10Thu->09-16Wed(决议日=惯例回推已披露);DFF 2025-12-11 -25bp与2026-09-17 +25bp净0与序列一致;BOJ 09-18/09-24与维持10-30对release_calendar;CN换锚2026-11-02=序列首日;12m锚63格publication_date<=as_of零违例(停摆月后继观测发布日均晚于锚日);同窗指标一律写先后未定,东京CPI 09值首发10-25晚于BOJ决议已明示不得归因。D过度主张=情景均假设非预测+证伪阈值;历史段只作对照且自曝内部分歧与非独立样本;相似!=因果!=预测与TOP-N符号一致率分歧警示随行。E诚实缺口=OMO_7D滞后23天/JP_POLICY_TARGET缺席/CN隔夜两锚无观测/DFEDTARU缺席/信用维缺席与单维主导警示均如实。F矛盾扫描=各面数字方向互恰(BEI 2.16@11-19共同交易日vs 2.15@11-20当前面为不同观测日均真);竞争解释>=2在场;E2/E3标注与内容相符。发现(NIT级,不构成修订): (1)JP政策路径6变动点漏列2026-03->04月均0.728->0.727的-1bp漂移(月均噪声非决议,净+67bp不受影响); (2)总判断美欧中通胀的中国腿为PPI,细面均已明示; (3)US_REAL_GDP等显示值为四舍五入(差<0.05)。无MAJOR/MINOR数字、方向、时间语义或编造问题。",
+  "run_ts": "20261122T120924Z",
+  "content_sha256": "73f2dd4fa532a9c62bc2da63a35df7f0630a70556b53c3763ba193d22d93eb9a",
+  "audited_at": "2026-11-22",
+  "recorded_at": "20261122T125005Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "f7f0f6d425d589b439be8ad63d5fa00d6a65b0fda14dd71f47e49572aa47db8a",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "30e219e39cbdc1fe8d633628d0503b9c33a01df7ec81f54deb30cc76e4622dfd"
+}

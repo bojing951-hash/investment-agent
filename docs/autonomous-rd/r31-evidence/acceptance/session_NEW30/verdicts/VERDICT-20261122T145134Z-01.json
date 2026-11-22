@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "independent-semantic-review-r31",
+  "notes": "必修1项: M1-DIVERGE-TRANSMIT环1[E1]两地水平差区间「约1.3-1.9个百分点」与冻结快照不符——EA_HICP vs JP_CPI窗内2026-05..2026-10逐月差实际0.93..1.67pp(2026-07仅0.93,无月达1.9),下界虚高约0.4pp,出现在agent_judgment/judgment_agent_v1/report.json内嵌/report.md/FULL_REPORT五处副本,须同步修正后再交付;NIT4项登记(本轮新高限定词/T3水平差口径混用/近30日命名/EA发布推定规则与历史实录微差)不阻交付。抽核: 140+数字点逐位对账(52点序列值含去年同月基期与ECB止点、35行L1事实值+质量态、8行资产月窗独立复算、三利率分解恒等、BOJ一年窗6变动点+67bp、决议生效星期与75/67/73/31天距、近30日窗锚定、发布日历v1.5.0实录、pearson0.264·n=45、GateA 7缺8降、sha与四副本一致)除必修-1外全部通过;纪律面(证据分级/缺数格如实/口径分记/推定标注/尚未验证/竞争解释并列/证伪阈值含数字时限/决议生效分记/同比基期=去年同月/决议前可见性)全部合规。必修清单已写入运行目录REVIEW_REVISE_REQUIRED.md。",
+  "run_ts": "20261122T145134Z",
+  "content_sha256": "14f48577c14ffed86717b165fa241847bb9f75c2167d6c8b79581bfa91a4a2c0",
+  "audited_at": "2026-11-23",
+  "recorded_at": "20261122T183221Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "a6cc6761a4c95845cc83d7d0443510d4e662262ed2d48467f675fe119fd800dc",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "73d74da0477258752a9f0aee74aaab848722ff50bb56ee39ba394c600cbcd00d"
+}

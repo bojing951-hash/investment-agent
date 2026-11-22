@@ -119,9 +119,21 @@ def latest_snapshot(root=None):
     return snap, (path_or_reason if snap else path_or_reason)
 
 
+def resolved_registry_path(root=None):
+    """Audit-R31 任务2: 注册表路径钉死解析(IA_REGISTRY_PIN 运行级 seam)。
+
+    钉死在场→优先于本地路径(orchestrator 入口字节冻结副本;上游/重放
+    已钉死则尊重)——计划/核验/渲染/子命令子进程统一读冻结输入,本地
+    注册表运行中被改不串号。无钉死→原语义。"""
+    pin = os.environ.get('IA_REGISTRY_PIN')
+    if pin:
+        return pin
+    return os.path.join(root or ROOT, 'config', 'metric_registry.json')
+
+
 def load_registry(root=None):
     """指标注册表(单一权威): 返回 {'metrics': list, 'by_id': {id: metric}}."""
-    path = os.path.join(root or ROOT, 'config', 'metric_registry.json')
+    path = resolved_registry_path(root)
     with open(path, encoding='utf-8') as f:
         metrics = json.load(f)['metrics']
     return {'metrics': metrics, 'by_id': {m['metric_id']: m for m in metrics}}

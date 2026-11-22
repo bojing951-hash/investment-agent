@@ -412,7 +412,10 @@ _DEFAULT_REGISTRY_PATH = os.path.join(
 
 def _load_default_policy():
     global _POLICY
-    with open(_DEFAULT_REGISTRY_PATH, 'r', encoding='utf-8') as f:
+    # Audit-R31 任务2: IA_REGISTRY_PIN 钉死在场→读冻结副本(与 fe.load_
+    # registry 同口径;不 import fe 避环,自行解析 env)。
+    _p = os.environ.get('IA_REGISTRY_PIN') or _DEFAULT_REGISTRY_PATH
+    with open(_p, 'r', encoding='utf-8') as f:
         reg = json.load(f)
     _POLICY = build_policy(reg)
     return _POLICY
@@ -653,10 +656,10 @@ def confirmed_policy_decision_after(metric_id, obs_date, as_of,
     条目 → 返回该首发日(=已证实数据应反映而未反映的决议);否则 None。
     无条目=无证实——**不得**以「间隔久了」虚构政策序列过期(利率长期
     不变是政策事实,不是采集缺口)。"""
-    if calendar_path is None:
-        calendar_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'config', 'release_calendar.json')
+    # Audit-R31 任务2: IA_CALENDAR_PIN 钉死在场→冻结副本优先于本地日历
+    # (orchestrator 入口置位;与发布可见性面同口径)。
+    import release_calendar as _rc
+    calendar_path = _rc.resolved_calendar_path(calendar_path)
     try:
         with open(calendar_path, encoding='utf-8') as f:
             cal = json.load(f)
@@ -690,10 +693,10 @@ def latest_policy_maintenance(metric_id, obs_date, as_of, calendar_path=None):
     序列值**,但把「现值有效性」的核验锚从最后观测日推进到维持确认日
     ——无证实间隔按核验锚起算,不以未刷新的观测日虚报未核验
     (确认维持也更新核验日期)。"""
-    if calendar_path is None:
-        calendar_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'config', 'release_calendar.json')
+    # Audit-R31 任务2: IA_CALENDAR_PIN 钉死在场→冻结副本优先于本地日历
+    # (orchestrator 入口置位;与发布可见性面同口径)。
+    import release_calendar as _rc
+    calendar_path = _rc.resolved_calendar_path(calendar_path)
     try:
         with open(calendar_path, encoding='utf-8') as f:
             cal = json.load(f)
@@ -735,10 +738,10 @@ def policy_decision_state(metric_id, as_of, calendar_path=None):
       effective_on(最新待生效目标及其生效日) | records(逐条溯源)。
     无可见政策条目 → {'present': False}——官方记录缺席≠政策未发生,
     调用方如实注记(问句指定官方目标而记录缺席=缺口点名),不虚构。"""
-    if calendar_path is None:
-        calendar_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'config', 'release_calendar.json')
+    # Audit-R31 任务2: IA_CALENDAR_PIN 钉死在场→冻结副本优先于本地日历
+    # (orchestrator 入口置位;与发布可见性面同口径)。
+    import release_calendar as _rc
+    calendar_path = _rc.resolved_calendar_path(calendar_path)
     out = {'present': False, 'metric_id': metric_id, 'as_of': str(as_of)}
     try:
         with open(calendar_path, encoding='utf-8') as f:

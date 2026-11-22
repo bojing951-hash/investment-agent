@@ -41,8 +41,16 @@ COUNT_UNITS = {'persons', 'persons_thousands'}
 # ══ 注册表 ════════════════════════════════════════════════════════
 
 def load_registry(path=None, force=False):
-    """加载并校验指标注册表(唯一身份源)。"""
+    """加载并校验指标注册表(唯一身份源)。
+
+    Audit-R31 任务2: IA_REGISTRY_PIN 运行级钉死——钉死在场且未显式传
+    path 时读冻结副本(orchestrator 入口字节冻结;子命令子进程 env 继承
+    同一份);显式路径优先于钉死,缓存语义与既有口径一致(最近一次
+    load 覆盖默认缓存=调用方可依赖的污染-恢复契约,p02_w2 原样)。"""
     global _REGISTRY_CACHE
+    _pin = os.environ.get('IA_REGISTRY_PIN')
+    if path is None and _pin:
+        path = _pin
     if _REGISTRY_CACHE is not None and not force and path is None:
         return _REGISTRY_CACHE
     p = path or REGISTRY_PATH
@@ -164,6 +172,33 @@ def compute_period_returns(dates, values, unit, calendar, as_of=None):
     # m1/m3/m6/m12: 日历月锚定(m12=同比基准)
     for n, key in ((1, "m1"), (3, "m3"), (6, "m6"), (12, "m12")):
         target = tc.months_before(date.fromisoformat(end_d), n)
+        if n == 12:
+            # Audit-R31 任务3: m12=同比基期——必须去年**同月**(与地图面
+            # R19 严格口径对齐): 13 个月前等更早观测不得冒充同比,同月
+            # 无观测=缺基期如实标注(最近可得基期披露),消费面按缺证
+            # 处理。同月内优先取≤锚日最后观测(既有数值零变化);该月
+            # 仅有晚于锚日的观测(月末戳月频序列)仍=同月基期。
+            _tm = target.isoformat()[:7]
+            _same_le = [i for i in range(end_i + 1)
+                        if ds[i][:7] == _tm and ds[i] <= target.isoformat()]
+            _same = _same_le or [i for i in range(end_i + 1)
+                                 if ds[i][:7] == _tm]
+            if _same:
+                i = _same[-1]
+                emit(key, i, ds[i], vs[i],
+                     f"end−12自然月(去年同月{_tm})锚定,同比基期=该月观测"
+                     + ("(≤锚日最后观测)" if _same is _same_le
+                        else "(该月晚于锚日观测,仍=去年同月基期)"))
+            else:
+                _c0 = [i for i in range(end_i + 1)
+                       if ds[i] <= target.isoformat()]
+                _nb = ds[_c0[-1]][:7] if _c0 else None
+                out[key] = {
+                    "available": False,
+                    "reason": ("缺基期: 去年同月(%s)无观测%s——同比基期须"
+                               "同月,不以更早观测冒充(13 个月前≠同比)"
+                               % (_tm, f",最近可得基期={_nb}" if _nb else ""))}
+            continue
         # ≤target 的最后观测(含当日)
         cands = [i for i in range(end_i + 1) if ds[i] <= target.isoformat()]
         if cands:

@@ -377,11 +377,12 @@ _HIST_REGION_DIMS = [
 _HIST_DIM_LABEL = {'growth': '增长', 'inflation': '通胀', 'policy': '货币政策'}
 
 
-def _hist_region_reading(s, ym, cutoff_end, mid, kind, freq):
+def _hist_region_reading(s, ym, cutoff_end, mid, kind, freq, root=None):
     """≤ym 的**当时可知**读数 → (value, obs_date, pub)|None+原因。
 
     当时可知=观测月的可见日(_aof_first_pub)≤截止月末;level_yoy=
-    水平序列取同比(基期观测同样须已可见);direct/level=原值即读数。"""
+    水平序列取同比(基期观测同样须已可见);direct/level=原值即读数。
+    root 在场→日历实录查询绑该树(Audit-R31 任务2 重放口径)。"""
     months = sorted({d[:7] for d, v in zip(s.get('dates') or [],
                                            s.get('values') or [])
                      if v is not None})[::-1]
@@ -389,7 +390,7 @@ def _hist_region_reading(s, ym, cutoff_end, mid, kind, freq):
         od, ov = _aof_obs_at_month(s, m)
         if od is None:
             return None
-        vf, _pub, _b, _n = _aof_first_pub(mid, od, freq)
+        vf, _pub, _b, _n = _aof_first_pub(mid, od, freq, root=root)
         if vf and vf <= cutoff_end:
             return od, ov, vf
         return None
@@ -410,7 +411,7 @@ def _hist_region_reading(s, ym, cutoff_end, mid, kind, freq):
             cur[0], cur[2]), None
 
 
-def history_region_sync_face(history_periods, rj):
+def history_region_sync_face(history_periods, rj, root=None):
     """每段历史类比的地区×维度同步性面(确定性;冻结信封序列)。
 
     逐段(锚=anchor_ym,判断截止月=judgment_cutoff_ym): 美中欧日×
@@ -448,9 +449,9 @@ def history_region_sync_face(history_periods, rj):
                 continue
             freq = s.get('frequency') or 'monthly'
             r1, why1 = _hist_region_reading(s, cym, cutoff_end, mid, kind,
-                                            freq)
+                                            freq, root=root)
             r0, why0 = _hist_region_reading(s, prior_m, prior_end, mid,
-                                            kind, freq)
+                                            kind, freq, root=root)
             row['vintage_note'] = _aof_revision_note(mid)
             if r1 is None or r0 is None:
                 row.update(
@@ -638,28 +639,33 @@ def _aof_month_end(ym):
                                                    int(ym[5:7]))[1])
 
 
-def _aof_first_pub(mid, obs_date, frequency):
+def _aof_first_pub(mid, obs_date, frequency, root=None):
     """→ (visible_from, first_publish, basis, note)。
 
     visible_from=最早可知日(快报在则取快报);first_publish=本表所用
     发布日(终值/日历实录优先);basis 随格披露。
     Audit-R24 任务2: EA 快报日=日历实录优先(逐期官方实录——快报非
     「月末」恒等式: 2021-05/2022-06 两观测月快报实为次月 1 日),
-    无条目回落月末推定并随格披露。"""
+    无条目回落月末推定并随格披露。
+    Audit-R31 任务2 补: root 在场→日历实录查询绑该树 config 日历
+    (重放=包内 overlay 日历,不再漏读引擎本地日历;无 root 原语义=
+    钉死或引擎默认)。"""
     import release_calendar as rc
+    _p = (os.path.join(root, 'config', 'release_calendar.json')
+          if root else None)
     rule_pub, rule_txt = _publish_date(mid, frequency, obs_date)
     # 日历实录查询用月首口径(R21/R22 既定调用约定: 条目 obs 窗按
     # <YYYY-MM>-01 匹配;序列观测日多为月末,直传会跳过 user_directive
     # 实录条目而误落 REST-CONSERVATIVE 保守界——九月失业率实录
     # 2025-11-20 须优先于保守界 2026-01-22)。
     pub, basis = rc.visible_publish_date(mid, obs_date[:7] + '-01',
-                                         rule_pub)
+                                         rule_pub, path=_p)
     if mid in _EA_FLASH_METRICS:
-        ent = rc.first_publish(mid, obs_date[:7] + '-01')
+        ent = rc.first_publish(mid, obs_date[:7] + '-01', path=_p)
         if ent is not None and ent.get('first_publish'):
             # 逐期实录: 快报日+终值日都来自官方新闻稿编号实录。
             flash = ent['first_publish']
-            final = rc.final_publish(mid, obs_date[:7] + '-01')
+            final = rc.final_publish(mid, obs_date[:7] + '-01', path=_p)
             basis = f"calendar:{ent['entry_id']}({ent['basis']})"
             if final:
                 return flash, final, basis, (
@@ -707,12 +713,15 @@ def _aof_obs_at_month(series, ym):
     return best
 
 
-def history_asof_face(history_periods, rj):
+def history_asof_face(history_periods, rj, root=None):
     """每段历史类比的「当时可知/事后才公布」发布纪律面(确定性)。
 
     known=截止月末前已可知的最新观测(每数字五字段绑定);aftermath=
     截止月观测晚于截止公布者+截止后 12 月窗内异常延误/采集缺口行。
-    序列缺席如实入 absent。零生成零网络,纯文件面。"""
+    序列缺席如实入 absent。零生成零网络,纯文件面。
+    Audit-R31 任务2 补: root 在场→日历实录查询绑该树(重放读包内
+    overlay 日历,不漏读引擎本地——与任务2「重放统一读冻结输入」
+    同口径)。"""
     periods = []
     for h in history_periods or []:
         aym = str(h.get('anchor_ym') or '')
@@ -739,11 +748,13 @@ def history_asof_face(history_periods, rj):
                 od, ov = _aof_obs_at_month(s, ym)
                 if od is None:
                     continue
-                vf, pub, basis, note = _aof_first_pub(mid, od, freq)
+                vf, pub, basis, note = _aof_first_pub(mid, od, freq,
+                                                      root=root)
                 row = {'metric_id': mid, 'label': label, 'obs_month': ym,
                        'obs_date': od, 'value': ov,
                        'visible_from': vf, 'first_publish': pub,
-                       'publish_instant': _aof_publish_instant(mid, od),
+                       'publish_instant': _aof_publish_instant(mid, od,
+                                                              root=root),
                        'pub_basis': basis, 'source': s.get('source'),
                        'revision_note': _aof_revision_note(mid),
                        'note': note}
@@ -797,7 +808,8 @@ def history_asof_face(history_periods, rj):
                                       '未采集/未发布),如实缺席'})
                     prev_hole = True
                     continue
-                vf, pub, basis, note = _aof_first_pub(mid, od, freq)
+                vf, pub, basis, note = _aof_first_pub(mid, od, freq,
+                                                      root=root)
                 late = None
                 try:
                     import datetime as _dt
@@ -815,7 +827,8 @@ def history_asof_face(history_periods, rj):
                         'metric_id': mid, 'label': label, 'obs_month': ym,
                         'obs_date': od, 'value': ov,
                         'visible_from': vf, 'first_publish': pub,
-                        'publish_instant': _aof_publish_instant(mid, od),
+                        'publish_instant': _aof_publish_instant(mid, od,
+                                                               root=root),
                         'pub_basis': basis, 'source': s.get('source'),
                         'revision_note': _aof_revision_note(mid),
                         'note': note,
@@ -2010,7 +2023,7 @@ def official_policy_record_face(point_values, planned_pairs, cutoff,
         st = _fp_opr.policy_decision_state(mid, cutoff,
                                            calendar_path=calendar_path)
         if st.get('present'):
-            rows.append({
+            _row = {
                 'region': eco, 'metric_id': mid,
                 'label': _REGION_LABEL.get(eco, eco),
                 'official_target': st.get('official_target'),
@@ -2024,7 +2037,21 @@ def official_policy_record_face(point_values, planned_pairs, cutoff,
                 'days_since_adjustment': st.get('days_since_adjustment'),
                 'days_since_decision': st.get('days_since_decision'),
                 'days_since_maintenance': st.get('days_since_maintenance'),
-                'records': st.get('records')})
+                'records': st.get('records')}
+            # Audit-R31 任务3: 问句点名当前官方目标而 as_of 时点无已生效
+            # 决议、仅有待生效公告→当前值**缺证**明标(不得以待生效值
+            # 冒充当前官方目标;生效日起才入官方目标列)。
+            if (eco in required and _row['official_target'] is None
+                    and st.get('pending_target') is not None):
+                _row['current_target_missing_evidence'] = True
+                _row['current_target_missing_note'] = (
+                    '当前官方目标缺证——研究时点 %s 无已生效决议在档,'
+                    '仅有待生效公告(目标 %s,决议日 %s,生效日 %s);'
+                    '待生效值不得写成当时已生效的官方目标'
+                    % (cutoff, st.get('pending_target'),
+                       st.get('last_decision'),
+                       st.get('pending_effective_on')))
+            rows.append(_row)
         elif eco in required and eco not in derivable:
             gaps.append({
                 'region': eco, 'metric_id': mid,
@@ -2227,7 +2254,7 @@ def _trio_window(series, common, d1, days_back, min_span_days=None):
     }
 
 
-def us_rates_trio_face(snap, root, window_days=45):
+def us_rates_trio_face(snap, root, window_days=45, cutoff=None):
     """美国十年期三利率**共同交易日**复算: 名义=实际+盈亏平衡 的对账面。
 
     R19 缺陷: 正文利率分解用了三个序列各自的最新观测日(非同日),分量的
@@ -2236,7 +2263,10 @@ def us_rates_trio_face(snap, root, window_days=45):
     identity_residual_bp = ΔUST −(ΔTIPS+ΔBEI)(同日同窗,读者可逐位核)。
     R20: 另附 12 个月窗(d1−365 最近共同日)——地图问句的年headline
     「名义+100bp=实际+107bp+盈亏平衡−7bp」一类年窗数字同样须共同日
-    同窗对账(年窗恒等残差逐位披露)。"""
+    同窗对账(年窗恒等残差逐位披露)。
+    Audit-R31 任务1: cutoff 在场=问题声明研究时点——d1 与窗口取
+    「≤cutoff 的最近共同日」(历史研究不吃快照当前面;None=序列最新,
+    既有口径零回归)。"""
     import datetime
     series = {}
     for mid in US_RATES_TRIO:
@@ -2249,6 +2279,9 @@ def us_rates_trio_face(snap, root, window_days=45):
     common = sorted(set(series[US_RATES_TRIO[0]])
                     & set(series[US_RATES_TRIO[1]])
                     & set(series[US_RATES_TRIO[2]]))
+    if cutoff:
+        # R31: 时点约束先落位(时点晚于序列末日=取序列末日,不虚构未来)
+        common = [d for d in common if d <= cutoff] or common
     horizon = [d for d in common
                if d >= (datetime.date.fromisoformat(common[-1])
                         - datetime.timedelta(days=window_days)).isoformat()]
@@ -2565,6 +2598,17 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
     lines.append(f"- 研究截止日: {rp.get('cutoff')} | 快照: "
                  f"{(rj.get('layers', {}).get('L1_事实层', {}) or {}).get('snapshot_id')}"
                  f" | 运行: {run.get('ts_utc')} | 代码: {run.get('git_head')}")
+    # Audit-R31 任务1: 问题声明研究时点披露——计划/取数/覆盖/政策/报告
+    # 全链绑定时点;与快照 target_date 不一致=如实点名(历史研究不吃
+    # 快照当前面,发布纪律下只取「观测日≤时点且发布日≤时点」数据)。
+    _asd = rp.get('as_of_declared')
+    if _asd:
+        _diff = (';与快照 target_date %s 不一致,以问题声明为准'
+                 % _asd.get('snapshot_target_date')
+                 if _asd.get('differs_from_snapshot') else '')
+        lines.append(f"- 研究时点口径: {_asd.get('basis')}{_diff}——"
+                     "本报告全部窗口/锚点/政策面绑定该时点(数据=当时"
+                     "已发布面,后来发布的数据不回填)")
     lines.append('- 口径: 三个对照时点=日历点锚(截止日−12月/−3月/最新一期);'
                  '「随后3、6、12个月」=事件后偏移(转折/类比基准日+N月)'
                  '——两类时间含义不同,分记不混同')
@@ -2932,8 +2976,11 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                 _pend = ('—' if not r.get('pending_target') else
                          f"{_fmt_val(r.get('pending_target'))}@"
                          f"{r.get('pending_effective_on')}(待生效)")
+                _tgt = (_fmt_val(r.get('official_target'))
+                        if not r.get('current_target_missing_evidence')
+                        else '缺证(仅有待生效公告)')
                 lines.append(
-                    f"| {r['label']} | {_fmt_val(r.get('official_target'))}"
+                    f"| {r['label']} | {_tgt}"
                     f" | {_pend}"
                     f" | {r.get('decision') or '—'} | "
                     f"{r.get('effective') or '—'} | "
@@ -2943,6 +2990,9 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                     f"天 | {r.get('days_since_decision')}天 | "
                     f"{r.get('days_since_maintenance') or '—'}天 | "
                     f"{_rec.get('entry_id')}({_rec.get('basis')}) |")
+                if r.get('current_target_missing_note'):
+                    lines.append(f"  - ⚠ {r['label']}: "
+                                 f"{r['current_target_missing_note']}")
             lines.append('')
             lines.append('> 注: 距上次调整**按生效日**计算(目标水平自生效'
                          '日起实际执行;决议日是公告面,两日分记)。确认维持'
@@ -3324,7 +3374,7 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         #    逐段核对美中欧日,同步/分化/缺证标签+公布日+数据版本绑定;
         #    判断叙述引用本面可核(缺证项点名,不以相邻维度冒充)。 ──
         try:
-            rsf = history_region_sync_face([h], rj)
+            rsf = history_region_sync_face([h], rj, root=root)
             rsp = (rsf.get('periods') or [{}])[0]
         except Exception:
             rsp = {}
@@ -3362,7 +3412,7 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         # 叙述所引数字逐个绑定 指标/观测期/值/首次公布日/来源/修订口径;
         # 晚于截止日才公布的移入事后段(信息截止可核,正文引用须对账)。 ──
         try:
-            aof = history_asof_face([h], rj)
+            aof = history_asof_face([h], rj, root=root)
             aop = (aof.get('periods') or [{}])[0]
         except Exception:
             aop = {}

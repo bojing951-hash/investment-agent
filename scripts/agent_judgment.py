@@ -29,6 +29,9 @@
           sensitive_variables=list/falsification=dict/trigger=dict——
           错型原先静默绕过下游检查,现在显式拒收)
 - SCN-ASSUM 情景行须含"假设"(明写假设非预测)
+- POL-EFF 决议-生效成对(Audit-R31 任务3;policy_events 在场时启用):
+          段落含政策词形+已知决议日词形时,须配该决议生效日词形或
+          待生效/尚未生效/未生效 标注——次月末才生效不得写成当时已发生
 - SCN-DIR 资产方向判断=方向+置信层级(三档枚举: 有历史相似证据/有相关证据/纯逻辑推理)
 - SCN-SENS 敏感变量 1-2 个且均为注册表在册 metric_id
 - SCN-FALS 证伪指标=在册 metric_id+可观测阈值非空
@@ -75,11 +78,84 @@ def _load_json(path):
         return json.load(f)
 
 
-def validate_judgment(judgment, evidence_refs, metric_ids):
+def collect_policy_events(calendar_path=None):
+    """Audit-R31 任务3: 决议-生效成对纪律的**确定性事件面**。
+
+    读发布日期历(经 release_calendar._load——IA_CALENDAR_PIN 钉死在场
+    时读冻结副本,与运行/重放同源)的 policy_decision 条目,产出
+    [{'metric_id', 'decision_date', 'effective_on'}];无日历/无条目=[]
+    (规则按缺席处理,不虚构)。生效日=决议日(即时生效)的条目也返回
+    (成对口径统一,匹配侧自然放行)。
+
+    显式路径缺席=直接空面(不触发 _load 的缺席告警 print——该告警走
+    stdout 会污染 ia_cli JSON 单流信封,夹具树无日历时 attach 段信封
+    解析即碎;R18 §D 实证)。"""
+    try:
+        import release_calendar as _rc
+        if calendar_path is not None and not os.path.isfile(calendar_path):
+            return []
+        events = []
+        for e in _rc._load(calendar_path):
+            if e.get('kind') != 'policy_decision':
+                continue
+            dd, eff = e.get('decision_date'), e.get('effective_on')
+            if isinstance(dd, str) and isinstance(eff, str):
+                events.append({'metric_id': e.get('metric_id'),
+                               'decision_date': dd[:10],
+                               'effective_on': eff[:10]})
+        return events
+    except Exception:
+        return []
+
+
+_POL_EFF_WORDS = ('利率', '政策', '加息', '降息', '目标', 'LPR', 'BOJ',
+                  '日银', '欧央行', '欧洲央行', '美联储', '央行', '决议',
+                  'policy', 'rate')
+
+
+def _date_word_forms(iso):
+    """ISO 日期的中文/紧凑/斜杠词形集(文本子串匹配用,与点锚词形同族)。
+
+    Audit-R31 任务3 补: 补零/不补零两形都收(「2026/4/28」「2026年4月28日」
+    与补零形同判——子串代理对零填充不敏感,漏形=漏拦)。"""
+    y, m, d = iso[:4], int(iso[5:7]), int(iso[8:10])
+    return {iso, '%s/%s/%s' % (y, iso[5:7], iso[8:10]),
+            '%s/%d/%d' % (y, m, d), '%s-%d-%d' % (y, m, d),
+            '%s年%s月%s日' % (y, iso[5:7], iso[8:10]),
+            '%s年%d月%d日' % (y, m, d),
+            '%d月%d日' % (m, d), '%02d月%02d日' % (m, d),
+            y + iso[5:7] + iso[8:10]}
+
+
+def _judgment_text_segments(judgment):
+    """判断文档内全部自然语言段(逐条带定位),POL-EFF 子串代理消费。"""
+    segs = []
+
+    def _walk(node, where):
+        if isinstance(node, str):
+            if node.strip():
+                segs.append((where, node))
+        elif isinstance(node, dict):
+            for k, v in node.items():
+                _walk(v, f'{where}.{k}' if where else str(k))
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                _walk(v, f'{where}[{i}]')
+
+    for top in ('l3', 'l4', 'reader_map'):
+        _walk((judgment or {}).get(top), top)
+    return segs
+
+
+def validate_judgment(judgment, evidence_refs, metric_ids,
+                      policy_events=None):
     """纪律结构校验(内容零改写零生成)。
 
     judgment: Agent 提交的 dict(schema v1.1);evidence_refs: 本报告证据索引
     ref 集合(set);metric_ids: 注册表在册 metric_id 集合(set)。
+    policy_events(Audit-R31 任务3,可选): collect_policy_events() 的决议
+    事件面——在场时启用 POL-EFF 决议-生效成对纪律;缺席=None 不启用
+    (既有调用方零回归)。
     返回 {'passed', 'violations': [(code, where, detail)], 'n_*'}。
     """
     v = []
@@ -289,6 +365,31 @@ def validate_judgment(judgment, evidence_refs, metric_ids):
             except ValueError:
                 bad('SCN-TRIG', f'l4.scenarios[{sid}].rows.trigger.deadline',
                     f'时限须真日期 YYYY-MM-DD(得 {dl!r})')
+
+    # ── Audit-R31 任务3: POL-EFF 决议-生效成对纪律 ────────────────
+    # 历史正文关联政策事件时,决议日提及须配生效日(或显式待生效标注)
+    # ——「次月末才生效」不得写成当时已发生。确定性子串代理(与
+    # ASSUMPTION_MARK 同口径): 段落含政策词形+已知决议日词形,而同段
+    # 无该决议的生效日词形且无 待生效/尚未生效/未生效 标注=违规。
+    # policy_events=None(未传日历面)=规则不启用,既有调用方零回归。
+    if policy_events:
+        for where, text in _judgment_text_segments(judgment):
+            if not any(w in text for w in _POL_EFF_WORDS):
+                continue
+            for ev in policy_events:
+                if not any(f in text
+                           for f in _date_word_forms(ev['decision_date'])):
+                    continue
+                if any(f in text
+                       for f in _date_word_forms(ev['effective_on'])):
+                    continue
+                if any(m in text for m in ('待生效', '尚未生效', '未生效')):
+                    continue
+                bad('POL-EFF', where,
+                    '提及决议日 %s(%s)但未配生效日 %s,亦无待生效标注——'
+                    '决议与生效分记,次月末才生效不得写成当时已发生'
+                    % (ev['decision_date'], ev['metric_id'],
+                       ev['effective_on']))
 
     return {'passed': not v, 'violations': v,
             'n_contradictions': len(contras),
@@ -1403,7 +1504,13 @@ def attach_judgment(report_dir, judgment_path, root=None,
     ev_refs = {e.get('ref') for e in report.get('evidence_index') or []
                if e.get('ref')}
     mids = _registry_metric_ids(root)
-    res = validate_judgment(judgment, ev_refs, mids)
+    # Audit-R31 任务3: 决议-生效成对纪律启用——日历面取自运行树
+    # (IA_CALENDAR_PIN 钉死在场时经 release_calendar 冻结副本,与
+    # 运行/重放同源);无日历=规则按缺席不启用(零回归)。
+    res = validate_judgment(
+        judgment, ev_refs, mids,
+        policy_events=collect_policy_events(
+            os.path.join(root, 'config', 'release_calendar.json')))
 
     # ── 阶段四钩子: 判定档 vs 自身证据面契约验证 ─────────────────────
     # 语义全在 research_contract/judgment_contract.py,此处仅挂载+门控:

@@ -431,8 +431,12 @@ check('G3 satisfied 项 → 不因窗口判据阻断(可交付正例对照)',
 
 # G4 生产接线: run_research 调用面传 _question_window 所在判据链
 import inspect  # noqa: E402
+# Audit-R31 任务2: run_research 拆为钉死包装层+_run_research_body 主体
+# (三输入钉死+异常安全释放)——注册表接线在主体,锚随代码实构走
+# (契约实质不变: S1 调用面传权威注册表)。
 check('G4 run_research 传 registry=权威注册表(判据链接线不变)',
-      'registry=reg.get' in inspect.getsource(ro.run_research))
+      'registry=reg.get' in (inspect.getsource(ro.run_research)
+                             + inspect.getsource(ro._run_research_body)))
 
 # ══ §F: R7-02 采集状态贯通九场景(collector→loader→工作台→判定→门) ══
 print('§F 采集状态贯通九场景(查询/报告/归档面断言)')

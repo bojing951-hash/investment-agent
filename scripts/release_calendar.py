@@ -29,9 +29,29 @@ _lock = threading.Lock()
 _cache = {'mtime': None, 'entries': [], 'warned': False}
 
 
+def resolved_calendar_path(path=None):
+    """Audit-R31 任务2: 日历路径钉死解析(IA_CALENDAR_PIN 运行级 seam)。
+
+    钉死在场→优先于调用方传入路径与引擎默认路径——orchestrator 在第一
+    次取数前把 config/release_calendar.json 的入口字节冻结副本钉进 env,
+    计划/核验/历史渲染/发布批次/子命令子进程(env 继承)统一读冻结输入:
+    本地日历运行中被改不串号。无钉死→原语义(path 或引擎默认)。
+    钉死文件被移除→_load 抛错拒绝静默换源(fail-closed,与快照钉死
+    同口径;无钉死的缺席仍走既有告警+规则回落面)。"""
+    pin = os.environ.get('IA_CALENDAR_PIN')
+    if pin:
+        return pin
+    return path or _CAL_PATH
+
+
 def _load(path=None):
     """读条目(mtime 缓存;失败→空表+一次性告警)。"""
-    cal = path or _CAL_PATH
+    cal = resolved_calendar_path(path)
+    _pin = os.environ.get('IA_CALENDAR_PIN')
+    if _pin and not os.path.isfile(_pin):
+        raise FileNotFoundError(
+            'IA_CALENDAR_PIN 钉死日历已不存在(%s)——拒绝静默回退到'
+            '本地日历/规则推定,如实报错' % _pin)
     try:
         mtime = os.path.getmtime(cal)
     except OSError:

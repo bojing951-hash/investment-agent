@@ -287,8 +287,12 @@ check('W9 S4 信封 12 观测/近十年 → 阻断',
 
 # W10 生产接线: run_research 调用面传权威注册表(S1 已装载面)
 import inspect  # noqa: E402
+# Audit-R31 任务2: run_research 拆为钉死包装层+_run_research_body 主体
+# (三输入钉死+异常安全释放)——注册表接线在主体,锚随代码实构走
+# (契约实质不变: S1 调用面传权威注册表)。
 check('W10 run_research 传 registry=权威注册表',
-      'registry=reg.get' in inspect.getsource(ro.run_research))
+      'registry=reg.get' in (inspect.getsource(ro.run_research)
+                             + inspect.getsource(ro._run_research_body)))
 
 # W11 report/archive 同判: 反例1 规格注入 run → 两门同拒
 rdW = make_run(tmp, 'w11', req_items=[w1])

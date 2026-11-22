@@ -509,6 +509,77 @@ def _q_asof_mark(q, s, e):
     return False
 
 
+def _q_is_bare_year_month(raw):
+    """Audit-R31 任务1: 裸年月词形(YYYY年M月/YYYY-M/YYYY/M)——无日
+    分量、无 以来/截至 前后缀、非时点标记(时点形先由 _q_asof_mark
+    分派)。全年形(YYYY年)与全日期形不在此列(它们=R12 明确研究
+    时间窗口,与相对窗并存仍按多范围阻断)。"""
+    return bool(re.fullmatch(r'\d{4}年\d{1,2}月|\d{4}-\d{1,2}|\d{4}/\d{1,2}',
+                             (raw or '').strip()))
+
+
+def _q_month_end(y, m):
+    import calendar as _cal
+    if not (1 <= int(m) <= 12):
+        return None
+    return '%04d-%02d-%02d' % (int(y), int(m),
+                               _cal.monthrange(int(y), int(m))[1])
+
+
+def _question_asof_declared(question, entity_spans=()):
+    """Audit-R31 任务1: 问题声明的**研究截止日**(统一时点解析)。
+
+    两形(与 _question_window 同一扫描器/同一判据,不另写转换规则):
+    - 显式时点标记(「以X为研究时点/研究时点为X/时点X」)→X;多时点
+      冲突→(None, None)不择一(阻断由 _question_window 负责);
+    - 裸**单**年月+**恰好一个**相对回看约束(「2026年11月,……最近
+      六个月」)→该年月按**月末**时点化为研究截止日(一个截止日+一个
+      回看窗);其余组合(双相对/相对+自然年/显式区间+相对/裸全年形/
+      残缺数量)不合并——真冲突仍拒绝。
+    无声明→(None, None): 快照 target_date 口径不变(零回归)。
+
+    消费面: run_research 计划截止日(plan cutoff → 点锚/政策窗/资产
+    月窗/渲染全链)+窗口 spec 的 as_of 同源(覆盖检查)——历史研究
+    不吃快照当前面。"""
+    q = _norm_question(question or '')
+    toks = [(m.start(), m.end(), m.group(0))
+            for m in _QDATE_TOKEN_RE.finditer(q)]
+    asof_isos, ym_raws = [], []
+    for (s, e, raw) in toks:
+        if _norm_qdate(raw, 'start') is None:
+            continue
+        if _q_asof_mark(q, s, e):
+            asof_isos.append(_norm_qdate(raw, 'start'))
+        elif _q_is_bare_year_month(raw):
+            ym_raws.append(raw)
+    if asof_isos:
+        if len(set(asof_isos)) > 1:
+            return None, None
+        return asof_isos[0], f'问题声明研究时点 {asof_isos[0]}(显式时点标记)'
+    if len(ym_raws) != 1:
+        return None, None
+    cons, bad = _q_relative_constraints(
+        q, [(s, e) for (s, e, _r) in toks], entity_spans)
+    if bad is not None:
+        return None, None
+    _single = ((len(cons['months']) == 1 and not cons['years']
+                and not cons['cal'])
+               or (len(cons['years']) == 1 and not cons['months']
+                   and not cons['cal']
+                   and isinstance(cons['years'][0], int)))
+    if not _single:
+        return None, None
+    m = re.fullmatch(r'(\d{4})年(\d{1,2})月|(\d{4})-(\d{1,2})'
+                     r'|(\d{4})/(\d{1,2})', ym_raws[0].strip())
+    iso = _q_month_end(m.group(1) or m.group(3) or m.group(5),
+                       m.group(2) or m.group(4) or m.group(6))
+    if iso is None:
+        return None, None
+    return iso, (f'裸年月 {ym_raws[0].strip()} 按月末时点化为研究截止日 '
+                 f'{iso},与单一相对回看窗合并(一个截止日+一个回看窗;'
+                 f'真冲突组合仍拒绝)')
+
+
 def _q_relative_tail(q, asof_iso, entity_spans=()):
     """R10 P1③: 无(剩余)窗口日期词形时的范围收尾——相对月数(含
     「半年」「N年半」)/相对年限(小数折月)/去年/前年;asof_iso 非空时
@@ -741,6 +812,24 @@ def _question_window(question, entity_spans=(), map_time_spans=()):
             return {'kind': 'explicit', 'start': None,
                     'end': _norm_qdate(raw, 'end'), 'raw': '截至' + raw,
                     **_asof_kw}
+        # Audit-R31 任务1: 裸单年月+**恰好一个**相对回看约束=一个截止日
+        # +一个回看窗(年月按月末时点化=研究截止日,相对词形=回看窗,
+        # as_of 随 spec 携带锚定)——NEW30 类「2026年11月+最近六个月」
+        # 不再判多范围。其余组合(双相对/相对+自然年/裸全年形/全日期形
+        # +相对)仍走多范围阻断: 真冲突不合并。判据与
+        # _question_asof_declared 同一扫描器(该函数是同一判据的计划面
+        # 消费口,两边不各写规则)。
+        if _q_is_bare_year_month(raw) and _asof_iso is None:
+            _u_iso, _u_basis = _question_asof_declared(q, entity_spans)
+            if _u_iso:
+                if _unsup_ret or _res_ret:
+                    return _unsup_ret or _res_ret
+                if _cons['months'] and len(_cons['months']) == 1:
+                    return {'kind': 'relative_months',
+                            'months': _cons['months'][0], 'as_of': _u_iso,
+                            'raw': raw, 'basis': _u_basis}
+                return {'kind': 'relative', 'years': int(_cons['years'][0]),
+                        'as_of': _u_iso, 'raw': raw, 'basis': _u_basis}
         # R12 P1: 裸单日期词(无时点/以来/截至标记)=明确研究时间——
         # 按词形粒度成窗(YYYY年→全年/年月→整月/全日期→当日),不再
         # 当未限定(明确研究年份必须纳入要求);与相对/自然年约束并存
@@ -1865,6 +1954,64 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
     return req_items
 
 
+def _pin_frozen_inputs(wd, root):
+    """Audit-R31 任务2: 三输入钉死(快照/注册表/日历)于第一次取数前。
+
+    - 快照=R30 口径(latest_snapshot 解析一次,钉原文件绝对路径;上游
+      已钉死则尊重,不重解析);
+    - 注册表/日历=入口**字节冻结副本**(temp 目录)——本地文件运行中被
+      改,计划/核验/历史渲染/发布批次仍读同一份(冻结摘要与归档
+      root_overlay 副本取自钉死字节,见 _pinned_frozen_src)。
+    返回 (本函数置位的 env 键列表, 冻结 temp 目录|None);收尾经
+    _release_frozen_inputs 释放(env 恢复+临时副本删除)。"""
+    import tempfile
+    set_keys = []
+    tmpdir = None
+    if os.environ.get('IA_SNAPSHOT_PIN') is None:
+        _pin_snap, _pin_note = wd.latest_snapshot(root)
+        if _pin_snap is not None and isinstance(_pin_note, str) \
+                and os.path.isfile(_pin_note):
+            os.environ['IA_SNAPSHOT_PIN'] = _pin_note
+            set_keys.append('IA_SNAPSHOT_PIN')
+    for _envk, _rel in (('IA_REGISTRY_PIN', 'config/metric_registry.json'),
+                        ('IA_CALENDAR_PIN', 'config/release_calendar.json')):
+        if os.environ.get(_envk):
+            continue                       # 上游已钉死:尊重
+        _src = os.path.join(root, _rel)
+        if not os.path.isfile(_src):
+            continue                       # 本地缺席:不虚构冻结件
+        if tmpdir is None:
+            tmpdir = tempfile.mkdtemp(prefix='ia_frozen_inputs_')
+        _dst = os.path.join(tmpdir, os.path.basename(_rel))
+        with open(_src, 'rb') as _f:
+            _bytes = _f.read()
+        with open(_dst, 'wb') as _f:
+            _f.write(_bytes)
+        os.environ[_envk] = _dst
+        set_keys.append(_envk)
+    return set_keys, tmpdir
+
+
+def _release_frozen_inputs(set_keys, tmpdir):
+    """钉死释放: 只摘本运行置位的键(上游钉死原样保留)+删冻结临时副本。"""
+    for _k in set_keys:
+        os.environ.pop(_k, None)
+    if tmpdir:
+        import shutil as _sh
+        _sh.rmtree(tmpdir, ignore_errors=True)
+
+
+def _pinned_frozen_src(root, rel):
+    """Audit-R31 任务2: 冻结摘要/归档副本取钉死字节(钉死在场→env 路径,
+    否则本地路径)——运行中被改的本地注册表/日历不进 frozen_inputs 与
+    root_overlay(与计划/渲染实际所读同一份字节)。"""
+    _envk = {'config/release_calendar.json': 'IA_CALENDAR_PIN',
+             'config/metric_registry.json': 'IA_REGISTRY_PIN'}.get(rel)
+    if _envk and os.environ.get(_envk):
+        return os.environ[_envk]
+    return os.path.join(root, rel)
+
+
 def run_research(question, root=None, archive=False, out_dir=None,
                  ia_timeout=180, fanout=False, engine_root=None):
     """十一步一键研究管线;返回完整报告 dict(run_ok=进程层,语义面看各步)。
@@ -1872,25 +2019,31 @@ def run_research(question, root=None, archive=False, out_dir=None,
     fanout=True 追加十问扇出面(R3): research_map.QUESTION_COMMANDS 逐条
     真跑+信封留档,Agent 层问(RQ3/RQ9)declared-not-produced。
     engine_root: 子进程 ia_cli 与 cwd 改指真实数据树(注入缝;默认=本仓库,
-    行为零差)——净克隆验收/单入口 MVP 用。"""
+    行为零差)——净克隆验收/单入口 MVP 用。
+
+    Audit-R31 任务2: 三输入钉死+**异常安全释放**——入口置位(第一次取数
+    前),任何退出路径(含中途异常)收尾恢复环境并清理冻结副本;同进程
+    二次 run_research 重新解析(新工单选新版),不吃首跑残留钉死。"""
     global RUN_ROOT
     RUN_ROOT = engine_root or ROOT
     root = root or RUN_ROOT
     import workbench_data as wd
-    # ── Audit-R30 任务1: 快照钉死于第一次取数前──────────────────────
-    # 单一来源原则: 入口解析一次置 IA_SNAPSHOT_PIN(已在场则尊重上游钉
-    # 死,不重解析)——S1 计划、子命令子进程(env 继承)、报告段二次解析
-    # 、L1 事实面全部同一份。S3 期间同日 _v2 落盘不串号;快照缺席/不可
-    # 读的钉死解析如实落 _pin_note(下方各消费面按既有缺快照路径走)。
-    # 钉死=运行级: 函数收尾恢复原值(同进程连续两次 run_research,第二
-    # 次重新解析——新工单选新版,不受首跑残留钉死;上游已钉死则原样
-    # 保留)。
-    _pin_prev = os.environ.get('IA_SNAPSHOT_PIN')
-    if _pin_prev is None:
-        _pin_snap, _pin_note = wd.latest_snapshot(root)
-        if _pin_snap is not None and isinstance(_pin_note, str) \
-                and os.path.isfile(_pin_note):
-            os.environ['IA_SNAPSHOT_PIN'] = _pin_note
+    _set_keys, _frozen_tmp = _pin_frozen_inputs(wd, root)
+    try:
+        return _run_research_body(question, root=root, archive=archive,
+                                  out_dir=out_dir, ia_timeout=ia_timeout,
+                                  fanout=fanout, engine_root=engine_root)
+    finally:
+        _release_frozen_inputs(_set_keys, _frozen_tmp)
+
+
+def _run_research_body(question, root=None, archive=False, out_dir=None,
+                       ia_timeout=180, fanout=False, engine_root=None):
+    """run_research 主体(钉死由包装层置位/释放;见 run_research 文档)。"""
+    global RUN_ROOT
+    RUN_ROOT = engine_root or ROOT
+    root = root or RUN_ROOT
+    import workbench_data as wd
     steps = []
     notes = []
 
@@ -1914,8 +2067,27 @@ def run_research(question, root=None, archive=False, out_dir=None,
             # '20261119T0'(_now_utc 是紧凑时间戳,[:10] 非日期)→
             # _shift_months int('T0') 崩——回退必须给真 ISO 日期。
             _cutoff = datetime.now(timezone.utc).date().isoformat()
+        # Audit-R31 任务1: 问题声明研究时点统一——显式时点标记或裸年月+
+        # 单一相对窗合并截止日**优先于**快照 target_date: 计划/点锚/
+        # 政策窗/资产月窗/渲染 cutoff 全链绑定该时点(数据面=发布纪律
+        # 下「观测日≤时点且发布日≤时点」的最新观测——10 月观测、
+        # 11 月发布的通胀不入 2026-08-21 历史研究);覆盖检查经
+        # spec.as_of 同源。与快照不一致=如实披露,不静默改判。
+        _asof_dec, _asof_basis = _question_asof_declared(
+            question, _entity_spans(question, reg.get('by_id') or {},
+                                    list(ent['metrics'])))
+        if _asof_dec:
+            _cutoff = _asof_dec
         research_plan = rmp.plan_map(question, ent, reg.get('by_id') or {},
                                      _cutoff)
+        if _asof_basis:
+            _snap_td = str((_snap0 or {}).get('target_date') or '')
+            research_plan['as_of_declared'] = {
+                'as_of': _asof_dec, 'basis': _asof_basis,
+                'snapshot_target_date': _snap_td,
+                'differs_from_snapshot': bool(
+                    _snap_td[:4] + '-' + _snap_td[4:6] + '-'
+                    + _snap_td[6:8] != _asof_dec if _snap_td else True)}
         if _snap0 is not None:
             research_plan['point_values'] = rmp.point_values(
                 research_plan, _snap0, root)
@@ -1925,7 +2097,7 @@ def run_research(question, root=None, archive=False, out_dir=None,
             # 关键资产月度变化(含计算窗口两端实测日),正文数字=同一份
             # 可复算事实,渲染零新增生成。
             research_plan['us_rates_trio'] = rmp.us_rates_trio_face(
-                _snap0, root)
+                _snap0, root, cutoff=_cutoff)
             research_plan['asset_moves'] = rmp.asset_move_face(
                 _snap0, root, cutoff=_cutoff)
             # Audit-R22 任务2: 政策事件跨国簇(同一事件合并计数,决议→生效
@@ -2274,7 +2446,7 @@ def run_research(question, root=None, archive=False, out_dir=None,
         _frozen_inputs = {}
         for _rel in ('config/release_calendar.json',
                      'config/metric_registry.json'):
-            _fp_ = os.path.join(root, _rel)
+            _fp_ = _pinned_frozen_src(root, _rel)
             if os.path.isfile(_fp_):
                 _frozen_inputs[_rel] = hashlib.sha256(
                     open(_fp_, 'rb').read()).hexdigest()[:16]
@@ -2343,7 +2515,7 @@ def run_research(question, root=None, archive=False, out_dir=None,
     if _frozen_inputs:
         import shutil as _sh
         for _rel, _sha in sorted(_frozen_inputs.items()):
-            _src = os.path.join(root, _rel)
+            _src = _pinned_frozen_src(root, _rel)
             _dst = os.path.join(run_dir, 'root_overlay', _rel)
             os.makedirs(os.path.dirname(_dst), exist_ok=True)
             _sh.copy2(_src, _dst)
@@ -2360,10 +2532,8 @@ def run_research(question, root=None, archive=False, out_dir=None,
               encoding='utf-8') as f:
         f.write(_render_md(report))
     report['report_dir'] = run_dir
-    # Audit-R30 任务1: 钉死=运行级——收尾恢复入口前环境(同进程续跑/
-    # 二次 run_research 不吃首跑残留;上游钉死原样保留)。
-    if _pin_prev is None:
-        os.environ.pop('IA_SNAPSHOT_PIN', None)
+    # Audit-R31 任务2: 钉死释放移入包装层 try/finally(异常路径同样
+    # 释放;见 run_research)。
     return report
 
 

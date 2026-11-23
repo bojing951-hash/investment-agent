@@ -1239,6 +1239,113 @@ def sec_h():
           f"gold={g7.get('result')} GOLD_F={f7.get('quality_status')}")
 
 
+# ═══ §I 真跑实中②: 东京CPI发布节奏推定规则(官方实录校正) ═══
+# 官方实录(总务省統計局「消費者物価指数(CPI) 結果」页 https://www.stat.go.jp/
+# data/cpi/1.html ,2026-11-23 取): 東京都区部 2026年10月分(中旬速報値)
+# 〔2026年10月30日公表〕/2026年6月分(中旬速報値)〔2026年6月26日公表〕;
+# 全国 2026年10月分〔2026年11月20日公表〕。速报值当月末发布、领先全国口径
+# 约三周。
+TOKYO_CPI_OFFICIAL = {'2026-10': '2026-10-30', '2026-06': '2026-06-26'}
+NATIONAL_CPI_OFFICIAL = {'2026-10': '2026-11-20'}
+
+
+def sec_i():
+    """真跑实中(2026-11-23 T3 判断席备稿): 点值格 JP_CPI_TOKYO_YOY「最新
+    一期」取 2026-09(2.69,推定发布 2026-10-25),而同序列月道路径含 2026-10
+    (2.73)——两面不一致。基线 RELEASE_RULES 把东京排在「次月下旬(月末
+    +25天)」: 比官方实录晚约一个月,且晚于全国口径(+20天)——与引擎自述
+    「东京速报领先全国口径发布」相反。后果: ①已发布读数被判锚前不可见
+    (格缺最新月);②随格披露的公布日期错约一个月(T3 原问点名「各数据
+    的公布时间」);③历史截止视图规则②误剔最新月。"""
+    print('═══ §I 真跑实中②: 东京CPI发布节奏推定规则(官方实录校正) ═══')
+    pub_oct, rule = rmp._publish_date('JP_CPI_TOKYO_YOY', 'monthly',
+                                      '2026-10-01')
+    check('§I1 规则校正: 东京 2026-10 观测推定发布日=2026-10-30(基线 '
+          '2026-11-25 次月下旬),规则文本=当月末发布',
+          pub_oct == '2026-10-30' and '次月下旬' not in (rule or '')
+          and '当月末' in (rule or ''),
+          f'pub={pub_oct} rule={rule}')
+    est = {ym: rmp._publish_date('JP_CPI_TOKYO_YOY', 'monthly',
+                                 ym + '-01')[0]
+           for ym in TOKYO_CPI_OFFICIAL}
+    nat = {ym: rmp._publish_date('JP_CPI_YOY', 'monthly', ym + '-01')[0]
+           for ym in NATIONAL_CPI_OFFICIAL}
+    check('§I2 官方实录锚: 推定发布日不早于实录(10月分=2026-10-30 逐日'
+          '相符;6月分推定 06-29≥实录 06-26=保守),且东京速报早于全国口径'
+          '(全国 10月分推定 11-20=实录)',
+          est.get('2026-10') == TOKYO_CPI_OFFICIAL['2026-10']
+          and est.get('2026-06', '') >= TOKYO_CPI_OFFICIAL['2026-06']
+          and all(est[y] < nat[y] for y in est if y in nat)
+          and nat.get('2026-10') == NATIONAL_CPI_OFFICIAL['2026-10'],
+          f'est={est} nat={nat}')
+
+    def _visible(obs, as_of):
+        p, _b = rmp._visible_publish('JP_CPI_TOKYO_YOY', 'monthly', obs)
+        return bool(p) and p <= as_of
+    check('§I3 可见性边界: 10月分 10-29 不可见/10-30 可见;11月分(推定 '
+          '11-29)于研究截止 11-23 不可见',
+          not _visible('2026-10-01', '2026-10-29')
+          and _visible('2026-10-01', '2026-10-30')
+          and not _visible('2026-11-01', '2026-11-23')
+          and _visible('2026-11-01', '2026-11-29'),
+          f"oct29={_visible('2026-10-01', '2026-10-29')} "
+          f"nov23={_visible('2026-11-01', '2026-11-23')}")
+    # I4 历史截止视图规则②(提交的 11 月冻结快照内的真实东京序列)
+    sr = json.load(open(SNAP_SRC, encoding='utf-8'))['series_store'][
+        'JP_CPI_TOKYO_YOY']
+    tdates = [str(x)[:10] for x in sr.get('dates') or []]
+    tvals = sr.get('values') or []
+    last = {}
+    for a in ('2026-10-29', '2026-10-30', CUT_AUG):
+        _d, _v, inf = eg.gate_series('JP_CPI_TOKYO_YOY', 'monthly', tdates,
+                                     tvals, a)
+        last[a] = (inf.get('last_eligible'),
+                   (inf.get('first_dropped') or {}).get('reason'),
+                   (inf.get('first_dropped') or {}).get('publish'))
+    check('§I4 历史截止视图规则②(真实序列): 截止 10-29 末合规=09 月观测/'
+          '10-30=10 月观测(基线仍 09 月: 推定 11-25 误剔);截止 08-21 末合规'
+          '=07 月观测(基线 06 月: 07 月观测推定 08-25 被误剔)',
+          '2026-10-01' in tdates
+          and last['2026-10-29'][0] == '2026-09-01'
+          and last['2026-10-30'][0] == '2026-10-01'
+          and last[CUT_AUG][0] == '2026-07-01'
+          and last[CUT_AUG][1] == 'late_publication',
+          f'last={last}')
+    # I5 真实计划点值格: T3 原问×冻结快照(as_of 11-22)
+    _t, rep, _md, _seen = _offline_plan('tokyo', Q_T3)
+    allc = ((rep.get('research_plan') or {}).get('point_values') or {}
+            ).get('cells') or []
+    cells = [c for c in allc if c.get('metric_id') == 'JP_CPI_TOKYO_YOY']
+    v_new = ((cells[0].get('anchors') or {}).get('最新一期') or {}) \
+        if cells else {}
+
+    def _latest(mid):
+        return next((((c.get('anchors') or {}).get('最新一期') or {})
+                     for c in allc if c.get('metric_id') == mid), {})
+    check('§I5 真实计划点值格(T3 原问×冻结快照 as_of 11-22): 东京「最新一期」'
+          '=2026-10 观测 2.73/公布 2026-10-30(基线 2026-09 观测 2.69/'
+          '公布 2026-10-25)',
+          len(cells) == 1 and v_new.get('status') == 'ok'
+          and v_new.get('observation_date') == '2026-10-01'
+          and v_new.get('value') == 2.73
+          and v_new.get('publication_date') == '2026-10-30',
+          f'cell={v_new}')
+    jp_n, ea = _latest('JP_CPI_YOY'), _latest('EA_HICP_YOY')
+    check('§I6 相邻口径不受影响: 全国 CPI「最新一期」仍=2026-10 观测/'
+          '公布 11-20(=官方实录),HICP 仍=2026-10 观测/公布 11-16;全网格'
+          '公布日>锚日的格=0',
+          jp_n.get('observation_date') == '2026-10-01'
+          and jp_n.get('publication_date') == '2026-11-20'
+          and ea.get('observation_date') == '2026-10-01'
+          and ea.get('publication_date') == '2026-11-16'
+          and all(x.get('publication_date', '') <= x.get('as_of', '')
+                  for c in allc
+                  for x in (c.get('anchors') or {}).values()
+                  if x.get('status') == 'ok'),
+          f"jp={ {k: jp_n.get(k) for k in ('observation_date', 'publication_date')} } "
+          f"ea={ {k: ea.get(k) for k in ('observation_date', 'publication_date')} }")
+
+
 def main():
     print('Audit-R32 门 (HEAD %s)' % WORKTREE_HEAD[:12])
     try:
@@ -1247,6 +1354,7 @@ def main():
         sec_c()
         sec_d()
         sec_h()
+        sec_i()
     finally:
         n_ok = sum(1 for x in RESULTS if x)
         n = len(RESULTS)

@@ -1713,6 +1713,101 @@ def sec_j():
     shutil.rmtree(t, ignore_errors=True)
 
 
+# ═══ §K 正式验收独立席范围外观察(工单A 第1轮 EO-1): LPR 推定发布日早于实际公布日 ═══
+LPR_MONTHLY_START = '2019-09-20'      # 月度 LPR 起点(观测日=公布日);此前为逐日报价
+
+
+def sec_k():
+    """正式验收(工单A 独立审查第1轮,引擎面规则观察 EO-1): CN_LPR_1Y 的推定
+    发布规则=「观测月末−11天」,只在 31 天月份等于 20 日;该序列按实际公布日
+    记观测日(遇非工作日顺延: 2022-02-21、2022-03-21、2022-08-22),故推定日
+    比实际公布日早 1–4 天(2019-09 起 87 点中 49 点)。发布日随格披露与 REP
+    同步面标签因此写错公布日;转折候选面窗端点月只按推定日过滤——截止日
+    落在推定日与公布日之间时,尚未公布的读数入窗(任务1 规则②: 晚发布
+    不入;取数入口先剔晚观测,不受影响)。修正两处: 规则改为「观测日=发布
+    日,当日可见」(与 CN_OMO_7D 同形);转折候选面补「观测日≤截止日」一道
+    (规则面无关的纵深守卫)。日历实录(RC-CN-LPR-*)仍优先。"""
+    print('═══ §K 正式验收席观察: LPR 推定发布日早于实际公布日(规则②) ═══')
+    kind, days, rule = rmp.RELEASE_RULES['CN_LPR_1Y']
+    check('§K1 规则形态: CN_LPR_1Y 推定发布日=观测日(序列按实际公布日记载;'
+          '基线「月末−11天」仅 31 天月份=20 日)',
+          kind == 'daily' and days == 0 and '观测日=发布日' in (rule or ''),
+          'rule=%r' % (rmp.RELEASE_RULES['CN_LPR_1Y'],))
+    sr = json.load(open(SNAP_SRC, encoding='utf-8'))['series_store'][
+        'CN_LPR_1Y']
+    ldates = [str(x)[:10] for x in sr.get('dates') or []]
+    lvals = sr.get('values') or []
+    monthly = [d for d in ldates if d >= LPR_MONTHLY_START]
+    early = [d for d in monthly
+             if rmp._publish_date('CN_LPR_1Y', 'monthly', d)[0] != d]
+    check('§K2 真实序列逐点: 2019-09 起 87 个月度观测推定发布日全部=实际公布日'
+          '(基线 49 点早 1–4 天,如 2022-06-20→06-19、2021-02-20→02-17)',
+          len(monthly) == 87 and not early,
+          f'early={len(early)} {early[:6]}')
+    vis = {d: rmp._visible_publish('CN_LPR_1Y', 'monthly', d)[0]
+           for d in ('2022-06-20', '2022-02-21', '2022-08-22', '2026-10-20')}
+    check('§K3 规划器可见发布日(REP 同步面同入口): 2022-06 观测=06-20(基线 '
+          '06-19)/02-21(基线 02-17)/08-22(基线 08-20)/2026-10 观测=10-20',
+          vis == {'2022-06-20': '2022-06-20', '2022-02-21': '2022-02-21',
+                  '2022-08-22': '2022-08-22', '2026-10-20': '2026-10-20'},
+          f'vis={vis}')
+    last = {}
+    for a in ('2022-06-19', '2022-06-20'):
+        _d, _v, inf = eg.gate_series('CN_LPR_1Y', 'monthly', ldates, lvals, a)
+        fd = inf.get('first_dropped') or {}
+        last[a] = (inf.get('last_eligible'), fd.get('date'), fd.get('reason'))
+    check('§K4 取数入口历史截止视图(真实序列,回归): 截止 2022-06-19 末合规='
+          '05-20 观测、首个剔除=06-20 观测(晚观测;入口先剔观测日,规则修正'
+          '前后同判);截止 06-20 末合规=06-20',
+          last == {'2022-06-19': ('2022-05-20', '2022-06-20',
+                                  'late_observation'),
+                   '2022-06-20': ('2022-06-20', '2022-07-20',
+                                  'late_observation')},
+          f'last={last}')
+
+    # 转折候选面(turning_candidates): 窗端点月原只按「推定发布日≤截止日」
+    # 过滤、无「观测日≤截止日」一道 → 截止 2020-04-19(周日)时 04-20 公布
+    # 的 4 月 LPR(1Y 4.15→3.85)被推定 04-19 放行入窗,并成为最大三月变化
+    # 候选(基线实测 to_date=2020-04-20 > 截止日)。
+    snap = json.load(open(SNAP_SRC, encoding='utf-8'))
+    lplan = {'cutoff': '2020-04-19',
+             'regions': {'CN': {'dimensions': {'policy': [
+                 {'metric_id': 'CN_LPR_1Y', 'display_name': 'LPR 1Y'}]}}}}
+
+    def _lpr_cand():
+        out = rmp.turning_candidates(lplan, snap, ROOT)
+        return [c for c in out['candidates']
+                if c['metric_id'] == 'CN_LPR_1Y']
+    cand = _lpr_cand()
+    check('§K5 转折候选面(规则修正后): 截止 2020-04-19 → CN_LPR_1Y 候选窗'
+          '端点月 ≤ 截止日(基线把 04-20 才公布的 4 月读数入窗: '
+          '2020-01 4.15→2020-04 3.85)',
+          len(cand) == 1 and cand[0]['to_date'] <= lplan['cutoff']
+          and cand[0]['to_date'] != '2020-04-20',
+          f'{[(c["from_ym"], c["to_ym"], c["to_date"], c["value_before"], c["value_after"], c["delta"]) for c in cand]}')
+    keep = rmp.RELEASE_RULES.get('CN_LPR_1Y')
+    try:
+        rmp.RELEASE_RULES['CN_LPR_1Y'] = (
+            'monthly', -11,
+            'LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;'
+            'Audit-R29 官方时刻)')
+        cand2 = _lpr_cand()
+    finally:
+        rmp.RELEASE_RULES['CN_LPR_1Y'] = keep
+    check('§K6 转折候选面纵深守卫(规则面无关): 把推定规则临时换回「月末−11天」'
+          '(推定日早于观测日的任意序列同形),窗端点月仍须观测日≤截止日',
+          len(cand2) == 1 and cand2[0]['to_date'] <= lplan['cutoff']
+          and cand2[0]['to_date'] == (cand[0]['to_date'] if cand else None),
+          f'{[(c["to_ym"], c["to_date"]) for c in cand2]}')
+    cal = {d: rmp._visible_publish('CN_LPR_1Y', 'monthly', d)
+           for d in ('2025-11-20', '2026-11-20')}
+    check('§K7 日历实录仍优先(回归): 2025-11/2026-11 观测发布日=当月 20 日且'
+          '口径注明日历条目(RC-CN-LPR-2025M11/2026M11)',
+          all(v[0] == k and 'RC-CN-LPR-' in (v[1] or '')
+              for k, v in cal.items()),
+          f'cal={ {k: (v[0], (v[1] or "")[:40]) for k, v in cal.items()} }')
+
+
 def main():
     print('Audit-R32 门 (HEAD %s)' % WORKTREE_HEAD[:12])
     try:
@@ -1723,6 +1818,7 @@ def main():
         sec_h()
         sec_i()
         sec_j()
+        sec_k()
     finally:
         n_ok = sum(1 for x in RESULTS if x)
         n = len(RESULTS)

@@ -1548,7 +1548,30 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
     # 不静默换锚。
     _asof_note = ''
     _q_asof_iso = (_qw.get('as_of') if isinstance(_qw, dict) else None)
-    if _q_asof_iso and _valid_iso_date(str(_q_asof_iso)[:10]):
+    # Audit-R32 任务1: 证据口径截止日(取数入口统一,快照截止视图随行)
+    # 优先于问题声明时点——声明月末晚于快照实际覆盖日时 orchestrator
+    # 已夹紧到覆盖日(_resolve_evidence_asof),窗口端=夹紧后时点;声明
+    # 早于覆盖日时二者相等。窗口端超出证据覆盖=必然误判陈旧/缺证。
+    _eg_blk = (snap.get('evidence_gate') if isinstance(snap, dict) else None) \
+        or {}
+    _eg_asof = str(_eg_blk.get('as_of') or '')[:10]
+    if _eg_asof and _valid_iso_date(_eg_asof):
+        _qd = date.fromisoformat(_eg_asof)
+        if _as_of is not None and _as_of != _qd:
+            _src_td = str(_eg_blk.get('source_target_date') or '')
+            if _q_asof_iso and str(_q_asof_iso)[:10] > _eg_asof:
+                _asof_note = (f';问题声明研究时点 {str(_q_asof_iso)[:10]} '
+                              f'晚于快照实际覆盖日 {_eg_asof}(月末未到/'
+                              f'数据未到)——研究截止日取实际覆盖日'
+                              f'(证据口径已截止)')
+            elif _q_asof_iso:
+                _asof_note = (f';问题声明研究时点 {_eg_asof} 与快照 '
+                              f'target_date {_src_td or _as_of.isoformat()} '
+                              f'不一致,以问题声明为准(证据口径已截止)')
+            else:
+                _asof_note = (f';研究截止日 {_eg_asof}(证据口径)')
+        _as_of = _qd
+    elif _q_asof_iso and _valid_iso_date(str(_q_asof_iso)[:10]):
         _qd = date.fromisoformat(str(_q_asof_iso)[:10])
         if _as_of is not None and _as_of != _qd:
             _asof_note = (f';问题声明研究时点 {_qd.isoformat()} 与快照 '
@@ -1962,34 +1985,97 @@ def _pin_frozen_inputs(wd, root):
     - 注册表/日历=入口**字节冻结副本**(temp 目录)——本地文件运行中被
       改,计划/核验/历史渲染/发布批次仍读同一份(冻结摘要与归档
       root_overlay 副本取自钉死字节,见 _pinned_frozen_src)。
-    返回 (本函数置位的 env 键列表, 冻结 temp 目录|None);收尾经
-    _release_frozen_inputs 释放(env 恢复+临时副本删除)。"""
+    返回 (本函数置位的 env 键列表, 冻结 temp 目录|None, 快照覆盖日
+    ISO|None);收尾经 _release_frozen_inputs 释放(env 恢复+临时副本删除)。
+    Audit-R32 任务3: 初始化**中途失败**(快照已钉/临时副本已建后注册表
+    或日历读取失败)=先释放已置位键与临时副本再上抛——半套钉死不得残留
+    到同进程下一工单(下一工单须重新解析选中新快照)。"""
     import tempfile
     set_keys = []
     tmpdir = None
-    if os.environ.get('IA_SNAPSHOT_PIN') is None:
-        _pin_snap, _pin_note = wd.latest_snapshot(root)
-        if _pin_snap is not None and isinstance(_pin_note, str) \
-                and os.path.isfile(_pin_note):
-            os.environ['IA_SNAPSHOT_PIN'] = _pin_note
-            set_keys.append('IA_SNAPSHOT_PIN')
-    for _envk, _rel in (('IA_REGISTRY_PIN', 'config/metric_registry.json'),
-                        ('IA_CALENDAR_PIN', 'config/release_calendar.json')):
-        if os.environ.get(_envk):
-            continue                       # 上游已钉死:尊重
-        _src = os.path.join(root, _rel)
-        if not os.path.isfile(_src):
-            continue                       # 本地缺席:不虚构冻结件
-        if tmpdir is None:
-            tmpdir = tempfile.mkdtemp(prefix='ia_frozen_inputs_')
-        _dst = os.path.join(tmpdir, os.path.basename(_rel))
-        with open(_src, 'rb') as _f:
-            _bytes = _f.read()
-        with open(_dst, 'wb') as _f:
-            _f.write(_bytes)
-        os.environ[_envk] = _dst
-        set_keys.append(_envk)
-    return set_keys, tmpdir
+    snap_td = None
+    try:
+        if os.environ.get('IA_SNAPSHOT_PIN') is None:
+            _pin_snap, _pin_note = wd.latest_snapshot(root)
+            if _pin_snap is not None and isinstance(_pin_note, str) \
+                    and os.path.isfile(_pin_note):
+                os.environ['IA_SNAPSHOT_PIN'] = _pin_note
+                set_keys.append('IA_SNAPSHOT_PIN')
+        _cov_snap, _cov_note = wd.latest_snapshot(root)
+        if isinstance(_cov_snap, dict):
+            _td = str(_cov_snap.get('target_date') or '')
+            if len(_td) == 8 and _td.isdigit():
+                snap_td = '%s-%s-%s' % (_td[:4], _td[4:6], _td[6:8])
+        for _envk, _rel in (('IA_REGISTRY_PIN', 'config/metric_registry.json'),
+                            ('IA_CALENDAR_PIN', 'config/release_calendar.json')):
+            if os.environ.get(_envk):
+                continue                       # 上游已钉死:尊重
+            _src = os.path.join(root, _rel)
+            if not os.path.isfile(_src):
+                continue                       # 本地缺席:不虚构冻结件
+            if tmpdir is None:
+                tmpdir = tempfile.mkdtemp(prefix='ia_frozen_inputs_')
+            _dst = os.path.join(tmpdir, os.path.basename(_rel))
+            with open(_src, 'rb') as _f:
+                _bytes = _f.read()
+            with open(_dst, 'wb') as _f:
+                _f.write(_bytes)
+            os.environ[_envk] = _dst
+            set_keys.append(_envk)
+    except BaseException:
+        _release_frozen_inputs(set_keys, tmpdir)
+        raise
+    return set_keys, tmpdir, snap_td
+
+
+def _resolve_evidence_asof(question, root, reg_by_id, metric_ids,
+                           coverage_iso):
+    """Audit-R32 任务1: 运行级研究截止日(统一证据口径)解析。
+
+    → (as_of_iso|None, info|None):
+    - 问句声明研究时点(显式标记/裸年月+单一相对窗→月末)=requested;
+    - 实际覆盖日 coverage_iso=快照 target_date;requested 晚于覆盖日
+      (「2026年11月」月末 11-30 而快照止于 11-22)→as_of=覆盖日且
+      clamped_to_coverage=True(请求月末≠实际覆盖日,如实披露;月末未到
+      只能交截至实际日期的结果——报告/席位信封/渲染同读本块);
+    - 无声明→as_of=覆盖日(快照版本日: 快照在场即当时可得)。
+    无快照→(None, None)(既有无快照口径不变)。"""
+    if not coverage_iso:
+        return None, None
+    req, basis = _question_asof_declared(
+        question, _entity_spans(question, reg_by_id or {}, metric_ids))
+    info = {'coverage_date': coverage_iso,
+            'requested_as_of': req, 'requested_basis': basis,
+            'clamped_to_coverage': False}
+    if req and req > coverage_iso:
+        info.update(clamped_to_coverage=True,
+                    requested_month_end=req if basis and '裸年月' in basis
+                    else None,
+                    actual_coverage_date=coverage_iso,
+                    note=('问句请求的研究时点 %s 晚于快照实际覆盖日 %s'
+                          '(月末未到/数据未到)——研究截止日取实际覆盖日,'
+                          '交付为截至实际日期的结果(非请求月末的完整结果)'
+                          % (req, coverage_iso)))
+        return coverage_iso, info
+    if req:
+        info['note'] = '问句声明研究时点 %s' % req
+        return req, info
+    # 裸年月在场但相对约束非单一(「2026年11月…最近六个月…去年同月」)
+    # =R31 既档不按时点化合并;如实点名(截止日=快照版本日,不晚于该月)
+    _bare = sorted({m.group(0).strip() for m in
+                    _QDATE_TOKEN_RE.finditer(_norm_question(question or ''))
+                    if _norm_qdate(m.group(0), 'start') is not None
+                    and _q_is_bare_year_month(m.group(0))})
+    if _bare:
+        info['bare_year_month'] = _bare[0]
+        info['note'] = ('问句含裸年月 %s 但相对回看约束非单一(不按时点化'
+                        '合并,R31 既档口径)——研究截止日=快照版本日 %s'
+                        '(不晚于该年月;该月末完整结果须待数据覆盖后重跑)'
+                        % (_bare[0], coverage_iso))
+    else:
+        info['note'] = ('问句未声明研究时点——研究截止日=快照版本日 %s'
+                        % coverage_iso)
+    return coverage_iso, info
 
 
 def _release_frozen_inputs(set_keys, tmpdir):
@@ -2028,18 +2114,43 @@ def run_research(question, root=None, archive=False, out_dir=None,
     RUN_ROOT = engine_root or ROOT
     root = root or RUN_ROOT
     import workbench_data as wd
-    _set_keys, _frozen_tmp = _pin_frozen_inputs(wd, root)
+    import evidence_gate as eg
+    _set_keys, _frozen_tmp, _cov = _pin_frozen_inputs(wd, root)
+    _asof_info = None
     try:
+        # Audit-R32 任务1: 运行级研究截止日(统一证据口径)——第一次取数
+        # 前解析并置位 IA_EVIDENCE_ASOF(S3–S8 子进程继承): 声明时点或
+        # 快照版本日;请求月末晚于实际覆盖=夹到覆盖日并如实披露。上游
+        # 已置位(attach/report/archive/replay 自工单重建)则尊重。
+        if eg.evidence_asof():
+            _asof_info = {'upstream_pin': True, 'as_of': eg.evidence_asof(),
+                          'coverage_date': _cov}
+        else:
+            try:
+                _reg0 = wd.load_registry(root)
+                _ent0 = map_entities(question, _reg0)
+                _asof, _asof_info = _resolve_evidence_asof(
+                    question, root, _reg0.get('by_id') or {},
+                    list(_ent0['metrics']), _cov)
+            except Exception as _e:            # 解析失败如实入档,不静默
+                _asof, _asof_info = None, {
+                    'error': f'{type(_e).__name__}: {_e}'}
+            if _asof:
+                os.environ[eg.ENV_KEY] = _asof
+                _set_keys.append(eg.ENV_KEY)
         return _run_research_body(question, root=root, archive=archive,
                                   out_dir=out_dir, ia_timeout=ia_timeout,
-                                  fanout=fanout, engine_root=engine_root)
+                                  fanout=fanout, engine_root=engine_root,
+                                  _asof_info=_asof_info)
     finally:
         _release_frozen_inputs(_set_keys, _frozen_tmp)
 
 
 def _run_research_body(question, root=None, archive=False, out_dir=None,
-                       ia_timeout=180, fanout=False, engine_root=None):
-    """run_research 主体(钉死由包装层置位/释放;见 run_research 文档)。"""
+                       ia_timeout=180, fanout=False, engine_root=None,
+                       _asof_info=None):
+    """run_research 主体(钉死由包装层置位/释放;见 run_research 文档)。
+    _asof_info=包装层解析的研究截止日信息(Audit-R32 任务1;None=未解析)。"""
     global RUN_ROOT
     RUN_ROOT = engine_root or ROOT
     root = root or RUN_ROOT
@@ -2056,6 +2167,10 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
     # 与历史事后窗(事件后偏移)分记、点值面、转折候选(确定性排序)。
     research_plan = None
     import research_map_planner as rmp
+    import evidence_gate as _eg
+    # Audit-R32 任务1: 研究截止日=运行级证据口径(包装层解析,IA_EVIDENCE_
+    # ASOF 在场;截止视图快照 target_date 即该日)——与取数入口同一口径。
+    _eg_asof = _eg.evidence_asof()
     if rmp.detect_map_question(question, ent):
         _snap0, _snap0_note = wd.latest_snapshot(root)
         _cutoff = ((_snap0 or {}).get('target_date') or '')[:4] + '-' + \
@@ -2076,18 +2191,47 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
         _asof_dec, _asof_basis = _question_asof_declared(
             question, _entity_spans(question, reg.get('by_id') or {},
                                     list(ent['metrics'])))
-        if _asof_dec:
+        if _eg_asof:
+            # Audit-R32: 证据口径截止日为准(声明时点晚于覆盖日已夹紧,
+            # 见 _resolve_evidence_asof——截止视图与 cutoff 永不分叉)
+            _cutoff = _eg_asof
+        elif _asof_dec:
             _cutoff = _asof_dec
         research_plan = rmp.plan_map(question, ent, reg.get('by_id') or {},
                                      _cutoff)
-        if _asof_basis:
-            _snap_td = str((_snap0 or {}).get('target_date') or '')
-            research_plan['as_of_declared'] = {
-                'as_of': _asof_dec, 'basis': _asof_basis,
-                'snapshot_target_date': _snap_td,
-                'differs_from_snapshot': bool(
-                    _snap_td[:4] + '-' + _snap_td[4:6] + '-'
-                    + _snap_td[6:8] != _asof_dec if _snap_td else True)}
+        if _asof_info or _asof_basis:
+            _eg0 = (_snap0 or {}).get('evidence_gate') or {}
+            _snap_td = str(_eg0.get('source_target_date')
+                           or ((_snap0 or {}).get('target_date') or '')) \
+                if _snap0 is not None else ''
+            if len(_snap_td) == 8 and _snap_td.isdigit():
+                _snap_td = '%s-%s-%s' % (_snap_td[:4], _snap_td[4:6],
+                                         _snap_td[6:8])
+            if _asof_info:
+                research_plan['as_of_declared'] = {
+                    'as_of': _cutoff,
+                    'basis': _asof_info.get('requested_basis'),
+                    'snapshot_target_date': _snap_td,
+                    'differs_from_snapshot': bool(
+                        _snap_td and _snap_td != _cutoff),
+                    'requested_as_of': _asof_info.get('requested_as_of'),
+                    'clamped_to_coverage': bool(
+                        _asof_info.get('clamped_to_coverage')),
+                    'coverage_date': _asof_info.get('coverage_date'),
+                    'requested_month_end': _asof_info.get(
+                        'requested_month_end'),
+                    'actual_coverage_date': _asof_info.get(
+                        'actual_coverage_date'),
+                    'bare_year_month': _asof_info.get('bare_year_month'),
+                    'upstream_pin': bool(_asof_info.get('upstream_pin')),
+                    'error': _asof_info.get('error'),
+                    'note': _asof_info.get('note')}
+            else:
+                research_plan['as_of_declared'] = {
+                    'as_of': _asof_dec, 'basis': _asof_basis,
+                    'snapshot_target_date': _snap_td,
+                    'differs_from_snapshot': bool(
+                        _snap_td != _asof_dec if _snap_td else True)}
         if _snap0 is not None:
             research_plan['point_values'] = rmp.point_values(
                 research_plan, _snap0, root)
@@ -2264,6 +2408,25 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
     snap, snap_note = wd.latest_snapshot(root)
     facts = snap.get('facts') if snap else None
     l1_rows = _fact_rows(snap or {}, set(hist_metrics)) if facts else []
+    # Audit-R32 任务1: 证据口径披露——数据版本不可得(注册表最新修订口径且
+    # 无 as-of 版本快照)的序列点名;晚观测/晚发布不入证据面(取数入口已剔)
+    _eg_blk = (snap.get('evidence_gate') if isinstance(snap, dict) else None) \
+        or {}
+    _eg_excl = list(((_eg_blk.get('vintage') or {}).get('excluded_series'))
+                    or [])
+    if _eg_excl:
+        notes.append('序列无可引用观测(证据口径: 整条自证据面剔除——%s): %s'
+                     % (_eg_blk.get('as_of'), '、'.join(_eg_excl)))
+    _eg_rev = list(((_eg_blk.get('vintage') or {}).get('revised_series'))
+                   or [])
+    _eg_nv = int(((_eg_blk.get('counts') or {})
+                  .get('series_observations_version_unavailable')) or 0)
+    if _eg_rev and _eg_nv:
+        notes.append('数据版本口径(证据口径③: 注册表声明最新修订口径且无 '
+                     '≤研究截止 %s 的快照版本——只引用已过首个修订周期的观测,'
+                     '%d 个未过首修周期观测=当时数据版本不可得已剔除;引用值='
+                     '最新修订版,不得表述为当时首发值): %s'
+                     % (_eg_blk.get('as_of'), _eg_nv, '、'.join(_eg_rev)))
 
     # ── Audit-R21 任务4: 普通问句的资产月窗面 ──────────────────────
     # 地图问句的 asset_moves 面住在 research_plan(R20);普通问句(如
@@ -2455,8 +2618,26 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
             _rel = os.path.relpath(snap_note, root)
             _frozen_inputs[_rel] = hashlib.sha256(
                 open(snap_note, 'rb').read()).hexdigest()[:16]
+        # Audit-R32 任务1/3: 证据口径所用 as-of 版本快照(规则③a)一并冻结
+        # ——截止视图由(源快照, 版本快照, 日历, 注册表, as_of)确定,重放须
+        # 同一份字节;缺件=冻结面不完整,重放拒。
+        _eg_snap = (snap or {}).get('evidence_gate') or {}
+        _vrel = ((_eg_snap.get('vintage') or {}).get('vintage_snapshot'))
+        if _vrel:
+            _vp_ = os.path.join(root, _vrel)
+            if os.path.isfile(_vp_):
+                _frozen_inputs[os.path.relpath(_vp_, root)] = hashlib.sha256(
+                    open(_vp_, 'rb').read()).hexdigest()[:16]
         if not _frozen_inputs:
             _frozen_inputs = None
+    # Audit-R32 任务1: 证据口径块随 run 落档(截止日/来源快照/规则/剔除计数/
+    # 版本口径)——attach/report/archive/replay 同读本块重建 IA_EVIDENCE_ASOF
+    _eg_run = ((snap or {}).get('evidence_gate') if isinstance(snap, dict)
+               else None)
+    if _eg_run is None and isinstance(_asof_info, dict):
+        _eg_run = {'discipline': 'r32', 'as_of': _eg.evidence_asof(),
+                   'as_of_info': _asof_info,
+                   'note': '快照缺席——截止日仅来自问句/无快照口径'}
     report = {
         'schema_version': '2.0',
         'pipeline_version': PIPELINE_VERSION,
@@ -2468,6 +2649,9 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
                 # 引擎树(代码副本)运行不再 git_head=null 失绑
                 'git_head_source': _gh_src,
                 'git_diff_sha256': _gh_dirty,
+                # Audit-R32 任务1: 研究截止日(统一证据口径)+截止视图块
+                'evidence_asof': _eg.evidence_asof(),
+                'evidence_gate': _eg_run,
                 # Audit-R1 F02: 降级规则**运行前固定**(attach 段同文执行,
                 # 双写互证;运行后不得改判)——可选数据缺失与关键失败分级
                 'degradation_policy': {
@@ -2689,6 +2873,17 @@ def _render_quant_sections(r):
                 lines.append('')
                 for dis in d.get('disclosure') or []:
                     lines.append(f'> {dis}')
+                # Audit-R32 任务1: 历史类比的事后结果明确标注——候选月由
+                # 事后全窗口数据筛得;候选月之后发生的一切(含随后 3/6/12
+                # 个月结果)均为事后结果,不是当时可知,更不是对未来的预测。
+                # 只在 r32 证据口径在场的报告上渲染(run.evidence_gate)——
+                # 旧档重渲须逐字节不变(裁决绑定受审字节,不得被新行漂移)。
+                if isinstance((r.get('run') or {}).get('evidence_gate'), dict):
+                    lines.append('> **事后结果标注**: 候选月=事后筛得的相似'
+                                 '结构(相似度用到候选月全窗口数据);候选月'
+                                 '**之后**的经济与资产表现为事后结果(事后≠当时'
+                                 '可知,事后≠预测)——引用须以「事后实际」措辞,'
+                                 '不得表述为当时可知或对本次的预测(纪律17)。')
                 lines.append('')
     for s in r.get('steps') or []:
         if s.get('step') == 'S5_compare' and s.get('ok'):
@@ -2758,6 +2953,56 @@ def _render_md(r):
         for g in _rp.get('dimension_gaps') or []:
             lines.append(f"  - 缺口: {g.get('region')}/{g.get('dimension')} "
                          f"—— {g.get('note')}")
+    # Audit-R32 任务1: 研究截止日与证据口径(取数入口统一)——读者版可见:
+    # 截止日/源快照版本日/三规则剔除计数/版本不可得序列;请求月末晚于实际
+    # 覆盖日=如实披露(交付为截至实际日期的结果,非请求月末完整结果)
+    _eg = ((r.get('run') or {}).get('evidence_gate') or {})
+    if isinstance(_eg, dict) and _eg.get('as_of'):
+        _c = _eg.get('counts') or {}
+        lines.append(f"- 研究截止日(证据口径 r32): {_eg.get('as_of')} | "
+                     f"源快照 {_eg.get('source_snapshot_id')}(版本日 "
+                     f"{_eg.get('source_target_date')}) | 事实: 保留 "
+                     f"{_c.get('facts_kept')} / 重建 {_c.get('facts_rebuilt')}"
+                     f" / 剔除 {_c.get('facts_dropped')}+版本 "
+                     f"{_c.get('facts_excluded_version')} | 序列剔观测 "
+                     f"{_c.get('series_observations_dropped')} | 版本不可得"
+                     f"剔除 {_c.get('series_excluded_version')} 条"
+                     + (' | 历史截止(晚观测/晚发布/当时不可得版本不入证据面)'
+                        if _eg.get('historical_view') else ' | 快照版本日'))
+        _ex = list(((_eg.get('vintage') or {}).get('excluded_series')) or [])
+        if _ex:
+            lines.append(f"  - 序列无可引用观测(已自证据面剔除): "
+                         f"{'、'.join(_ex)}")
+        _rv = list(((_eg.get('vintage') or {}).get('revised_series')) or [])
+        _nv = _c.get('series_observations_version_unavailable')
+        if _rv and _nv:
+            lines.append(f"  - 修订口径序列(无 as-of 版本快照): 只引用已过"
+                         f"首个修订周期的观测,{_nv} 个观测=当时只见首发值而"
+                         f"手头只有最新修订值,已剔除;引用值=最新修订版,不得"
+                         f"表述为当时首发值: {'、'.join(_rv)}")
+        _v = _eg.get('vintage') or {}
+        if _v.get('vintage_snapshot'):
+            lines.append(f"  - as-of 版本快照: {_v.get('vintage_snapshot')}"
+                         f"({_v.get('vintage_snapshot_id')})")
+    # 时点口径两行同样只在 r32 证据口径在场时渲染(旧档 as_of_declared
+    # 无 clamped_to_coverage 键,但 elif 分支会命中旧地图档→逐字节漂移)。
+    _ad = ((_rp or {}).get('as_of_declared') or {})
+    if _ad.get('clamped_to_coverage'):
+        lines.append(f"- 请求月末 {_ad.get('requested_month_end')} 晚于快照"
+                     f"实际覆盖日 {_ad.get('actual_coverage_date')}(月末未到/"
+                     f"数据未到)——研究截止日=实际覆盖日,交付为截至实际日期"
+                     f"的结果(非请求月末的完整结果)")
+    elif (_ad.get('bare_year_month') and _ad.get('as_of')
+          and isinstance(_eg, dict) and _eg.get('as_of')):
+        lines.append(f"- 问句含裸年月 {_ad.get('bare_year_month')} 但相对"
+                     f"回看约束非单一(不按时点化合并,R31 既档口径)——研究"
+                     f"截止日=快照版本日 {_ad.get('as_of')}(不晚于该年月;"
+                     f"该月末完整结果须待数据覆盖后重跑)")
+    elif (_ad.get('as_of') and _ad.get('basis') and _rp
+          and _rp.get('map_question')
+          and isinstance(_eg, dict) and _eg.get('as_of')):
+        lines.append(f"- 研究时点口径: {_ad.get('basis')}——截止日 "
+                     f"{_ad.get('as_of')}")
     # Audit-R2 条目7 + Audit-R4 条目5: 数据需求声明(运行前冻结,含规格)
     # ——必要缺席/覆盖不足=任务目标缺口(最新单点≠历史分析需求满足)
     _dr = ((r.get('run') or {}).get('data_requirements') or {})

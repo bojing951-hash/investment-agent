@@ -32,6 +32,11 @@
 - POL-EFF 决议-生效成对(Audit-R31 任务3;policy_events 在场时启用):
           段落含政策词形+已知决议日词形时,须配该决议生效日词形或
           待生效/尚未生效/未生效 标注——次月末才生效不得写成当时已发生
+          (Audit-R32 任务2 精化: as_of 在场时按实体/断言时点/决议日/
+          生效日逐事件核验——POL-EFF-DATE 生效日写成早于官方生效日/
+          POL-EFF-REL 相对生效词形早于官方生效间隔/POL-EFF-EARLY-CLAIM
+          生效前「已生效/目前」断言/POL-EFF-PENDING-AS-CURRENT 待生效值
+          写成当前值;实体词形不绑=不触发)
 - SCN-DIR 资产方向判断=方向+置信层级(三档枚举: 有历史相似证据/有相关证据/纯逻辑推理)
 - SCN-SENS 敏感变量 1-2 个且均为注册表在册 metric_id
 - SCN-FALS 证伪指标=在册 metric_id+可观测阈值非空
@@ -46,7 +51,9 @@
       attach_judgment(report_dir, judgment_path, root=None) → dict(校验不过
       则 produced 保持 False,violations 落档,绝不半落位)。
 """
+import contextlib
 import copy
+import hashlib
 import json
 import os
 import re
@@ -83,9 +90,15 @@ def collect_policy_events(calendar_path=None):
 
     读发布日期历(经 release_calendar._load——IA_CALENDAR_PIN 钉死在场
     时读冻结副本,与运行/重放同源)的 policy_decision 条目,产出
-    [{'metric_id', 'decision_date', 'effective_on'}];无日历/无条目=[]
+    [{'metric_id', 'decision_date', 'effective_on', 'entity',
+    'target_value', 'entry_id', 'first_publish'}];无日历/无条目=[]
     (规则按缺席处理,不虚构)。生效日=决议日(即时生效)的条目也返回
     (成对口径统一,匹配侧自然放行)。
+
+    Audit-R32 任务2 补: entity(实体=决议归属经济体,由 metric_id 映射,
+    供正文实体绑定——美联储段落不因日银决议日同日而误判)、target_value
+    (宣布目标水平,供「待生效值写成当前值」判定)、first_publish(公告
+    可见日,供研究时点前的决议不参与判定)。
 
     显式路径缺席=直接空面(不触发 _load 的缺席告警 print——该告警走
     stdout 会污染 ia_cli JSON 单流信封,夹具树无日历时 attach 段信封
@@ -100,12 +113,120 @@ def collect_policy_events(calendar_path=None):
                 continue
             dd, eff = e.get('decision_date'), e.get('effective_on')
             if isinstance(dd, str) and isinstance(eff, str):
-                events.append({'metric_id': e.get('metric_id'),
+                mid = e.get('metric_id')
+                tv = e.get('target_value')
+                events.append({'metric_id': mid,
                                'decision_date': dd[:10],
-                               'effective_on': eff[:10]})
+                               'effective_on': eff[:10],
+                               'entity': _POL_METRIC_ENTITY.get(mid),
+                               'target_value': (float(tv)
+                                                if isinstance(tv, (int, float))
+                                                else None),
+                               'entry_id': e.get('entry_id'),
+                               'first_publish': str(
+                                   e.get('first_publish_on_or_after')
+                                   or e.get('decision_date'))[:10]})
         return events
     except Exception:
         return []
+
+
+# ── Audit-R32 任务2: 政策核验按实体/断言时点/决议日/生效日 ──────────────
+# 实体词形(正文绑定: 段落只提别家央行时不套本事件——R31 子串代理无实体
+# 绑定,同日决议的美日段落会交叉误判);决议→生效惯例偏移(日):
+#   即日/当天/立即=0,次日/翌日=1——相对生效词形折算成隐含生效日与官方
+#   实录 effective_on 比对,隐含日早于官方=提前生效。
+_POL_METRIC_ENTITY = {'JP_POLICY_TARGET': 'JP', 'ECB_MRO': 'EA',
+                      'DFEDTARU': 'US', 'CN_LPR_1Y': 'CN'}
+_POL_ENTITY_WORDS = {
+    'JP': ('日本央行', '日银', 'BOJ', '日本', '日圆', '日元', '日债'),
+    'EA': ('欧央行', '欧洲央行', 'ECB', '欧元区', '欧洲', '欧元'),
+    'US': ('美联储', 'Fed', 'FOMC', '美国', '美元', '美债'),
+    'CN': ('人民银行', 'PBOC', '中国央行', 'LPR', '中国', '人民币'),
+}
+_POL_PENDING_MARKS = ('待生效', '尚未生效', '未生效', '将于', '拟于',
+                      '计划于', '将升', '将降', '将上调', '将下调', '将调',
+                      '将生效', '起将', '将自', '起生效', '日后生效',
+                      '后生效', '待实施', '即将生效')
+_POL_CURRENT_MARKS = ('已生效', '已经生效', '生效后', '现行', '目前', '当前',
+                      '现在', '现为', '已降至', '已升至', '已上调至',
+                      '已下调至', '已调整为', '处于')
+_POL_REL_EFF = (                # (正则, 隐含生效偏移日)
+    (r'(?:决议|决定|宣布|公布|公告|调整|降息|加息|上调|下调)[^,，。;；:：?？]{0,8}?(次日|翌日|第二天)生效', 1),
+    (r'(?:自|从)(?:决议|决定|宣布|公布|公告)(?:日)?(?:起)?(?:的)?(?:次日|翌日|第二天)起?生效', 1),
+    (r'(?:决议|决定|宣布|公布|公告|调整|降息|加息|上调|下调)[^,，。;；:：?？]{0,8}?(即日|当天|当日|立即|即刻|即时|随即|马上)生效', 0),
+    (r'(?:决议|决定|宣布|公布|公告|调整|降息|加息|上调|下调)(?:即|便|就)生效', 0),
+)
+_POL_REL_CUT_WORDS = ('次日', '翌日', '第二天', '即日', '当天', '当日',
+                      '立即', '即刻', '即时', '随即', '马上', '天后', '日后',
+                      '周后', '月后', '小时后')
+_POL_DATE_TOKEN = re.compile(
+    r'(\d{4})年(\d{1,2})月(\d{1,2})日|(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})'
+    r'|(\d{4})(\d{2})(\d{2})|(?<![\d年])(\d{1,2})月(\d{1,2})日')
+
+
+def _pol_bound_events(text, events):
+    """正文段绑定到的政策事件(实体绑定: 段落提了别家实体而未提本实体
+    →不绑;无实体信息的事件(R31 旧调用方)=按原口径绑)。"""
+    out = []
+    for ev in events:
+        ent = ev.get('entity')
+        if ent:
+            has_own = any(w in text for w in _POL_ENTITY_WORDS.get(ent, ()))
+            has_other = any(
+                w in text for k, ws in _POL_ENTITY_WORDS.items()
+                if k != ent for w in ws)
+            if has_other and not has_own:
+                continue
+        out.append(ev)
+    return out
+
+
+def _pol_date_tokens(text):
+    """正文日期词元 → [(iso|None, month, day, start_idx, end_idx)];
+    无年份形(9月24日)iso=None(由调用方按决议日年份折算)。"""
+    out = []
+    for m in _POL_DATE_TOKEN.finditer(text):
+        if m.group(1):
+            iso = '%04d-%02d-%02d' % (int(m.group(1)), int(m.group(2)),
+                                      int(m.group(3)))
+            mm, dd = int(m.group(2)), int(m.group(3))
+        elif m.group(4):
+            iso = '%04d-%02d-%02d' % (int(m.group(4)), int(m.group(5)),
+                                      int(m.group(6)))
+            mm, dd = int(m.group(5)), int(m.group(6))
+        elif m.group(7):
+            iso = '%s-%s-%s' % (m.group(7), m.group(8), m.group(9))
+            mm, dd = int(m.group(8)), int(m.group(9))
+        else:
+            iso, mm, dd = None, int(m.group(10)), int(m.group(11))
+        out.append((iso, mm, dd, m.start(), m.end()))
+    return out
+
+
+def _pol_days(a, b):
+    try:
+        return (datetime.fromisoformat(str(b)[:10]).date()
+                - datetime.fromisoformat(str(a)[:10]).date()).days
+    except (ValueError, TypeError):
+        return None
+
+
+def _pol_value_in_text(value, text):
+    """宣布目标水平在正文以独立数字出现(1.25 / 1.25% / 约1.25%;不匹配
+    更长数字的片段,如 11.25 或 1.255)。"""
+    forms = set()
+    for fmt in ('%g', '%.2f', '%.3f'):
+        s = fmt % value
+        forms.add(s)
+        if s.endswith('.00'):
+            forms.add(s[:-3])
+        elif s.endswith('0') and '.' in s:
+            forms.add(s[:-1])
+    for s in forms:
+        if re.search(r'(?<![\d.])' + re.escape(s) + r'(?![\d])', text):
+            return True
+    return False
 
 
 _POL_EFF_WORDS = ('利率', '政策', '加息', '降息', '目标', 'LPR', 'BOJ',
@@ -148,7 +269,7 @@ def _judgment_text_segments(judgment):
 
 
 def validate_judgment(judgment, evidence_refs, metric_ids,
-                      policy_events=None):
+                      policy_events=None, as_of=None):
     """纪律结构校验(内容零改写零生成)。
 
     judgment: Agent 提交的 dict(schema v1.1);evidence_refs: 本报告证据索引
@@ -156,6 +277,10 @@ def validate_judgment(judgment, evidence_refs, metric_ids,
     policy_events(Audit-R31 任务3,可选): collect_policy_events() 的决议
     事件面——在场时启用 POL-EFF 决议-生效成对纪律;缺席=None 不启用
     (既有调用方零回归)。
+    as_of(Audit-R32 任务2,可选): 断言时点=研究截止日(ISO)——在场时
+    启用时点类规则(POL-EFF-EARLY-CLAIM / PENDING-AS-CURRENT: 截止日早于
+    生效日而正文以现行口径断言);实体绑定与生效日核对(POL-EFF-DATE/
+    REL)不依赖时点。None=仅 R31 成对纪律+实体绑定。
     返回 {'passed', 'violations': [(code, where, detail)], 'n_*'}。
     """
     v = []
@@ -373,23 +498,111 @@ def validate_judgment(judgment, evidence_refs, metric_ids,
     # 无该决议的生效日词形且无 待生效/尚未生效/未生效 标注=违规。
     # policy_events=None(未传日历面)=规则不启用,既有调用方零回归。
     if policy_events:
+        # Audit-R32 任务2: 断言时点=研究截止日(as_of 在场才启用时点类
+        # 规则;None=仅 R31 成对纪律+实体绑定,既有调用方零回归)
+        _asof = None
+        if isinstance(as_of, str) and len(as_of) >= 10:
+            try:
+                _asof = datetime.fromisoformat(as_of[:10]).date().isoformat()
+            except ValueError:
+                _asof = None
         for where, text in _judgment_text_segments(judgment):
             if not any(w in text for w in _POL_EFF_WORDS):
                 continue
-            for ev in policy_events:
-                if not any(f in text
-                           for f in _date_word_forms(ev['decision_date'])):
+            bound = _pol_bound_events(text, policy_events)
+            if not bound:
+                continue
+            _pend = any(m in text for m in _POL_PENDING_MARKS)
+            for ev in bound:
+                # 公告在研究时点尚不可见的决议不参与判定(当时无从提及)
+                if (_asof and ev.get('first_publish')
+                        and ev['first_publish'] > _asof):
                     continue
-                if any(f in text
-                       for f in _date_word_forms(ev['effective_on'])):
+                dec_in = any(f in text
+                             for f in _date_word_forms(ev['decision_date']))
+                eff_in = any(f in text
+                             for f in _date_word_forms(ev['effective_on']))
+                if not (dec_in or eff_in):
+                    _ent = ev.get('entity')
+                    _tv = ev.get('target_value')
+                    # POL-EFF-PENDING-AS-CURRENT: 研究时点早于生效日,
+                    # 段落写本实体政策目标=待生效目标值而无任何待生效/
+                    # 将然标注、无决议/生效日期——把待生效值写成了当前值
+                    if (_asof and _ent and _tv is not None
+                            and _asof < ev['effective_on'] and not _pend
+                            and any(w in text
+                                    for w in _POL_ENTITY_WORDS.get(_ent, ()))
+                            and _pol_value_in_text(_tv, text)
+                            and any(w in text for w in _POL_EFF_WORDS)):
+                        bad('POL-EFF-PENDING-AS-CURRENT', where,
+                            '研究时点 %s 早于 %s 决议(%s)生效日 %s,正文'
+                            '以当前口径写目标值 %s(=待生效值)而无待生效/'
+                            '将然标注——待生效值不得写成当时已生效的官方'
+                            '目标' % (_asof, ev['metric_id'],
+                                      ev['decision_date'],
+                                      ev['effective_on'], _tv))
                     continue
-                if any(m in text for m in ('待生效', '尚未生效', '未生效')):
-                    continue
-                bad('POL-EFF', where,
-                    '提及决议日 %s(%s)但未配生效日 %s,亦无待生效标注——'
-                    '决议与生效分记,次月末才生效不得写成当时已发生'
-                    % (ev['decision_date'], ev['metric_id'],
-                       ev['effective_on']))
+                _ddec, _deff = ev['decision_date'], ev['effective_on']
+                lag = _pol_days(_ddec, _deff)
+                _spec = []
+                # POL-EFF-DATE: 正文写出的生效日≠官方实录且早于官方生效日
+                # (落在[决议日,生效日)内)——「日期齐全但提前生效」。
+                # 「生效」须紧随该日期词元(到下一日期词元之前,≤14 字),
+                # 不把「9月18日决议,9月22日生效」的决议日误读为生效日。
+                _toks = _pol_date_tokens(text)
+                for _i, (iso, mm, dd, st_i, endi) in enumerate(_toks):
+                    _nxt = _toks[_i + 1][3] if _i + 1 < len(_toks) else len(text)
+                    _win = text[endi:min(_nxt, endi + 14)]
+                    for _rw in _POL_REL_CUT_WORDS:
+                        _k = _win.find(_rw)
+                        if _k >= 0:
+                            _win = _win[:_k]     # 相对生效词形另由 REL 判
+                    if '生效' not in _win:
+                        continue
+                    tok = iso or '%s-%02d-%02d' % (_ddec[:4], mm, dd)
+                    if tok == _deff or tok == _ddec and _deff == _ddec:
+                        continue
+                    if tok == _ddec:
+                        _spec.append(
+                            '正文把 %s 决议日 %s 写成生效日——官方实录'
+                            ' 生效日为 %s(决议→生效 %s 天),不得提前'
+                            % (ev['metric_id'], _ddec, _deff, lag))
+                    elif _ddec <= tok < _deff:
+                        _spec.append(
+                            '正文生效日 %s 与官方实录不符(早于官方生效日 '
+                            '%s;决议日 %s)——%s 决议 %s 生效,不得提前'
+                            % (tok, _deff, _ddec, ev['metric_id'], _deff))
+                # POL-EFF-REL: 相对生效词形折算隐含生效日早于官方生效日
+                # (「决议次日起生效」vs 官方 6 天后生效)——相对日期提前生效
+                if lag and lag > 0:
+                    for pat, off in _POL_REL_EFF:
+                        _m = re.search(pat, text)
+                        if _m and off < lag:
+                            _spec.append(
+                                '相对生效词形「%s」隐含决议+%d天生效,早于'
+                                '官方实录生效日 %s(决议 %s,+%d天)——不得以'
+                                '相对日期提前生效'
+                                % (_m.group(0), off, _deff, _ddec, lag))
+                            break
+                if _spec:
+                    for _d in _spec:
+                        bad('POL-EFF-DATE' if '相对生效' not in _d
+                            else 'POL-EFF-REL', where, _d)
+                elif dec_in and not eff_in and not any(
+                        m in text for m in ('待生效', '尚未生效', '未生效')):
+                    # R31 成对纪律(原口径): 决议日提及须配生效日或待生效标注
+                    bad('POL-EFF', where,
+                        '提及决议日 %s(%s)但未配生效日 %s,亦无待生效标注——'
+                        '决议与生效分记,次月末才生效不得写成当时已发生'
+                        % (_ddec, ev['metric_id'], _deff))
+                # POL-EFF-EARLY-CLAIM: 研究时点早于生效日,段落却以现行
+                # 口径断言(已生效/现行/目前…)且无待生效/将然标注
+                if (_asof and _asof < _deff and not _pend
+                        and any(m in text for m in _POL_CURRENT_MARKS)):
+                    bad('POL-EFF-EARLY-CLAIM', where,
+                        '研究时点 %s 早于 %s 决议(%s)生效日 %s,正文以'
+                        '现行/已生效口径断言而无待生效标注——断言时点'
+                        '尚未生效' % (_asof, ev['metric_id'], _ddec, _deff))
 
     return {'passed': not v, 'violations': v,
             'n_contradictions': len(contras),
@@ -1423,8 +1636,128 @@ def _reader_map_faces_summary(judgment, report):
     }
 
 
+class WorkOrderPinsError(ValueError):
+    """Audit-R32 任务3: 工单冻结输入缺件/篡改(attach/report/archive 拒绝,
+    fail-closed)。code ∈ {frozen_input_missing, frozen_input_tampered,
+    frozen_input_unreadable}。"""
+
+    def __init__(self, code, detail):
+        super().__init__(f'{code}: {detail}')
+        self.code = code
+        self.detail = detail
+
+
+_PIN_ENV_KEYS = ('IA_SNAPSHOT_PIN', 'IA_CALENDAR_PIN', 'IA_REGISTRY_PIN',
+                 'IA_EVIDENCE_ASOF')
+
+
+@contextlib.contextmanager
+def work_order_pins(report_dir, root=None):
+    """Audit-R32 任务3: 工单级冻结输入钉死(attach/report/archive/replay 共用)。
+
+    读 <report_dir>/report.json 的 run.frozen_inputs {rel: sha16},逐件核对
+    <report_dir>/root_overlay/<rel> 在场且 sha256[:16] 一致;不一致=缺件/
+    篡改→WorkOrderPinsError(拒绝交付与归档,不回落引擎本地文件)。核对
+    通过后,with 块内置位 IA_SNAPSHOT_PIN / IA_CALENDAR_PIN /
+    IA_REGISTRY_PIN → overlay 内对应文件(快照=源快照,evidence_gate.
+    source_snapshot_id 指名;as-of 版本快照只作版本依据不作钉死),并置位
+    IA_EVIDENCE_ASOF=run.evidence_gate.as_of——同进程内任何日历/注册表/
+    快照/取数读取都走本工单冻结字节(引擎本地日历被换不影响判定与重渲)。
+    退出 with 恢复原 env(上游已钉死的键不覆盖=尊重上游)。
+    legacy 档(无 frozen_inputs,R29 前)=不钉(零回归),yield info 如实记。
+    yield info = {'pinned', 'legacy', 'files', 'calendar_path',
+    'registry_path', 'snapshot_path', 'as_of', 'upstream_pins'}。"""
+    root = root or ROOT
+    info = {'pinned': False, 'legacy': False, 'files': {},
+            'calendar_path': None, 'registry_path': None,
+            'snapshot_path': None, 'as_of': None, 'upstream_pins': {}}
+    rp = os.path.join(report_dir, 'report.json')
+    if not os.path.isfile(rp):
+        raise WorkOrderPinsError('frozen_input_missing',
+                                 f'report.json 缺席: {report_dir}')
+    rj = _load_json(rp)
+    run = rj.get('run') or {}
+    fi = run.get('frozen_inputs') or {}
+    info['legacy'] = not fi
+    saved = {k: os.environ.get(k) for k in _PIN_ENV_KEYS}
+    set_keys = []
+    try:
+        if fi:
+            _snaps = []
+            for rel, sha in sorted(fi.items()):
+                pth = os.path.join(report_dir, 'root_overlay', str(rel))
+                if not os.path.isfile(pth):
+                    raise WorkOrderPinsError(
+                        'frozen_input_missing',
+                        f'冻结输入缺件: root_overlay/{rel}(工单冻结面须随'
+                        f'运行目录/交付包走,不得以引擎本地文件顶替)')
+                try:
+                    got = hashlib.sha256(open(pth, 'rb').read()).hexdigest()[:16]
+                except OSError as exc:
+                    raise WorkOrderPinsError('frozen_input_unreadable',
+                                             f'root_overlay/{rel}: {exc}')
+                if got != str(sha)[:16]:
+                    raise WorkOrderPinsError(
+                        'frozen_input_tampered',
+                        f'冻结输入摘要不符: root_overlay/{rel} 期望 {sha} '
+                        f'实测 {got}(运行后被改或包被篡改)')
+                info['files'][rel] = got
+                base = os.path.basename(str(rel))
+                if base == 'release_calendar.json':
+                    info['calendar_path'] = pth
+                elif base == 'metric_registry.json':
+                    info['registry_path'] = pth
+                elif base.startswith('research_snapshot_'):
+                    _snaps.append((rel, pth))
+            _eg = run.get('evidence_gate') or {}
+            _vrel = ((_eg.get('vintage') or {}).get('vintage_snapshot'))
+            _src_id = _eg.get('source_snapshot_id')
+            _pick = next((pth for rel, pth in _snaps
+                          if _src_id and os.path.basename(str(rel))[:-5]
+                          == str(_src_id)), None)
+            if _pick is None:
+                _pick = next((pth for rel, pth in _snaps
+                              if str(rel) != str(_vrel)), None)
+            if _pick is None and _snaps:
+                _pick = max(_snaps, key=lambda x: x[0])[1]
+            info['snapshot_path'] = _pick
+            for k, pth in (('IA_SNAPSHOT_PIN', _pick),
+                           ('IA_CALENDAR_PIN', info['calendar_path']),
+                           ('IA_REGISTRY_PIN', info['registry_path'])):
+                if not pth:
+                    continue
+                if os.environ.get(k):
+                    info['upstream_pins'][k] = os.environ[k]
+                    continue                      # 上游已钉死: 尊重
+                os.environ[k] = pth
+                set_keys.append(k)
+            info['pinned'] = True
+        _asof = ((run.get('evidence_gate') or {}).get('as_of')
+                 if isinstance(run.get('evidence_gate'), dict) else None)
+        if isinstance(_asof, str) and len(_asof) == 10:
+            info['as_of'] = _asof
+            if not os.environ.get('IA_EVIDENCE_ASOF'):
+                os.environ['IA_EVIDENCE_ASOF'] = _asof
+                set_keys.append('IA_EVIDENCE_ASOF')
+        yield info
+    finally:
+        for k in set_keys:
+            if saved.get(k) is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = saved[k]
+
+
 def attach_judgment(report_dir, judgment_path, root=None,
                     allow_failed_run=False):
+    """校验入口(Audit-R32 任务3): 工单冻结输入核对+钉死后落位。"""
+    with work_order_pins(report_dir, root) as _pins:
+        return _attach_judgment_pinned(report_dir, judgment_path, root,
+                                       allow_failed_run, _pins)
+
+
+def _attach_judgment_pinned(report_dir, judgment_path, root,
+                            allow_failed_run, pins):
     """校验 Agent judgment 并合并进 research-run 报告(半落位=不落位)。
 
     校验通过: layers L3/L4 produced=True+attribution=ai_inferred+判断原文,
@@ -1456,7 +1789,8 @@ def attach_judgment(report_dir, judgment_path, root=None,
     #   optional_data_missing: L1 事实面在场、失败步=诚实拒答类(如源端
     #     缺席 no_series)——须显式 allow_failed_run=True,落位记 degraded。
     run_ok = report.get('run_ok')
-    blocked_class = blocked_class_of(report)
+    blocked_class = blocked_class_of(
+        report, calendar_path=(pins.get('calendar_path') or None))
     if run_ok is False and (blocked_class == 'critical_zero_evidence'
                             or not allow_failed_run):
         report['agent_judgment'] = _new_attach_meta(
@@ -1507,10 +1841,17 @@ def attach_judgment(report_dir, judgment_path, root=None,
     # Audit-R31 任务3: 决议-生效成对纪律启用——日历面取自运行树
     # (IA_CALENDAR_PIN 钉死在场时经 release_calendar 冻结副本,与
     # 运行/重放同源);无日历=规则按缺席不启用(零回归)。
+    # Audit-R32 任务2: 断言时点=本工单研究截止日(run.evidence_asof,
+    # 旧档回退 research_plan.cutoff)——政策核验按实体/断言时点/决议日/
+    # 生效日四要素。
+    _asof = ((report.get('run') or {}).get('evidence_asof')
+             or (report.get('research_plan') or {}).get('cutoff'))
+    _cal_path = (pins.get('calendar_path')
+                 or os.path.join(root, 'config', 'release_calendar.json'))
     res = validate_judgment(
         judgment, ev_refs, mids,
-        policy_events=collect_policy_events(
-            os.path.join(root, 'config', 'release_calendar.json')))
+        policy_events=collect_policy_events(_cal_path),
+        as_of=_asof if isinstance(_asof, str) else None)
 
     # ── 阶段四钩子: 判定档 vs 自身证据面契约验证 ─────────────────────
     # 语义全在 research_contract/judgment_contract.py,此处仅挂载+门控:

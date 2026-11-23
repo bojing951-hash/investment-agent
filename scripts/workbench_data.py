@@ -106,9 +106,11 @@ def latest_snapshot(root=None):
                           '——拒绝静默回退到文件系统解析,如实报错')
         try:
             with open(pin, encoding='utf-8') as f:
-                return json.load(f), pin
+                snap = json.load(f)
         except (OSError, ValueError) as e:
             return None, f'IA_SNAPSHOT_PIN 钉死快照不可读({pin}): {e}'
+        import evidence_gate as _eg
+        return _eg.apply(snap, root or ROOT), pin
     daily = os.path.join(root or ROOT, 'data', 'daily')
     cands = sorted(glob.glob(os.path.join(daily, 'research_snapshot_*.json')))
     if not cands:
@@ -116,6 +118,13 @@ def latest_snapshot(root=None):
     ymd = os.path.basename(cands[-1]).replace('research_snapshot_', '').split('_v')[0][:8]
     import research_provenance as rp
     snap, path_or_reason = rp.select_snapshot(ymd, daily)
+    if snap:
+        # Audit-R32 任务1: 截止规则放在取数入口——IA_EVIDENCE_ASOF 在场时
+        # 返回截止视图(晚观测/晚发布/版本口径三规则,见 evidence_gate);
+        # 所有经本函数取数的面(S3–S8 子进程/L1/L2/证据索引/渲染/契约/
+        # 归档/重放)共用同一证据口径。未置位=原样(零回归)。
+        import evidence_gate as _eg
+        snap = _eg.apply(snap, root or ROOT)
     return snap, (path_or_reason if snap else path_or_reason)
 
 
@@ -738,6 +747,15 @@ def metric_series(metric_id, snapshot=None, root=None):
     m = registry['by_id'].get(metric_id)
     if m is None:
         return None, f'注册表无此指标: {metric_id}'
+    import evidence_gate as _eg
+    _ex = (snapshot or {}).get('series_store', {}).get(metric_id) \
+        if snapshot else None
+    if isinstance(_ex, dict) and _ex.get('evidence_gate_excluded'):
+        # Audit-R32 任务1 规则③: 截止视图已剔除(最新修订口径无 as-of
+        # 版本)——如实返回原因,不回落采集档通道取更晚版本
+        _x = _ex['evidence_gate_excluded']
+        return None, ('数据版本不可得(证据口径): %s——%s'
+                      % (_x.get('reason'), _x.get('detail')))
     if snapshot and metric_id in (snapshot.get('series_store') or {}):
         ss = snapshot['series_store'][metric_id]
         import research_history_query as rhq
@@ -758,7 +776,12 @@ def metric_series(metric_id, snapshot=None, root=None):
                                 **cst}}
         if cstat:
             out['collection_status'] = cstat
-        return out, None
+        # Audit-R32 任务1: 取数入口截止(调用方自带未截止快照时同样受
+        # 规则①②约束;已截止序列幂等;调用方自带**未截止**快照的修订口径
+        # 序列在历史截止下不可引用——版本日由 apply_to_series 按快照
+        # target_date 判,截止视图快照 target_date=as_of 放行)
+        return _eg.apply_to_series((out, None), metric_id, m.get('frequency'),
+                                   meta=m, snapshot=snapshot)
     # R25: 历史序列通道=history_source 优先,回落 source(DFF 首例:
     # source=rate_expectations 单点,history_source=macro_collector 序列)
     prefix = SERIES_SOURCE_PREFIX.get(m.get('history_source') or m.get('source'))
@@ -768,6 +791,18 @@ def metric_series(metric_id, snapshot=None, root=None):
     files = sorted(glob.glob(os.path.join(root or ROOT, 'data', 'daily', f'{prefix}*.json')))
     if not files:
         return None, f'本地无 {prefix}* 采集档——请先运行 python3 run_weekly.py'
+    # Audit-R32 任务1 规则③: 注册表声明最新修订口径的序列在研究截止下
+    # 只取采集日 ≤ 截止的采集档(采集日=版本日);无→版本不可得,不取更晚
+    # 版本冒充当时值
+    _vc = not _eg.is_revised(m)
+    if _eg.evidence_asof() and not _vc:
+        files, _dropped_ymd = _eg.collection_vintage_files(files, _eg.evidence_asof())
+        if not files:
+            return None, ('数据版本不可得: 注册表声明最新修订口径'
+                          '(release_semantics=latest_vintage),最新采集档 '
+                          f'{_dropped_ymd} 晚于研究截止 {_eg.evidence_asof()}'
+                          '——当时所见值不可得,不取最新修订值冒充')
+        _vc = True
     ymd = os.path.basename(files[-1])[len(prefix):len(prefix) + 8]
     import research_history_query as rhq
     try:
@@ -788,7 +823,8 @@ def metric_series(metric_id, snapshot=None, root=None):
            'source': f"采集档 {os.path.basename(res.get('source', {}).get('file', files[-1]))}"}
     if res.get('collection_status'):
         out['collection_status'] = res['collection_status']
-    return out, None
+    return _eg.apply_to_series((out, None), metric_id, m.get('frequency'),
+                               meta=m, version_confirmed=_vc)
 
 
 # ══ AI研究(复用 e2eb 查询栈 / 可选模型解释层 / 研究档案) ═══════════════

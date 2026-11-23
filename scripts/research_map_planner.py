@@ -402,10 +402,14 @@ def _hist_region_reading(s, ym, cutoff_end, mid, kind, freq, root=None):
         return (cur[1], cur[0], cur[2]), None
     # 同月配对基期: 基期月自**实际观测月**回推 12 月(非请求月——
     # 截止月观测常晚于截止公布,实际取到前一月观测,基期须跟观测走)。
+    # Audit-R32 任务2: 基期=去年**同月**(季频=同季——季戳+12 月落同季),
+    # 与主引擎 m12 同口径(fact_engine Audit-R31 任务3: 13 个月前≠同比);
+    # 原实现 m <= base_m 会取到 13 个月前及更早的观测冒充基期。同月
+    # 无观测=缺基期即缺证,不以更早观测替代。
     base_m = _shift_months(cur[0][:7] + '-01', 12)[:7]
-    base = next((r for m in months if m <= base_m for r in [_vis_obs(m)] if r),
-                None)
+    base = _vis_obs(base_m)
     if base is None or not base[1] or cur[1] is None:
+        # 原因码保持 R30 既档字面(旧档重渲逐字节不变);基期月不入文案。
         return None, 'no_visible_base'
     return (round((cur[1] / base[1] - 1.0) * 100.0, 4),
             cur[0], cur[2]), None
@@ -1969,6 +1973,13 @@ _OFFICIAL_ASK_LEVEL_WORDS = ('处于什么水平', '什么水平', '水平如何
                               '是多少', '多少', '多高', '多低',
                               '距.*调整', '调整.*多久', '距离上次调整',
                               '目标利率', '利率目标', '官方目标')
+# Audit-R32 任务2: 指代形(「两地央行…各处于什么水平」)回指绑定用——
+# 地区 plain 名(全文点名)与指代计数词(含「央行」的小句内)
+_OFFICIAL_REGION_PLAIN = {
+    'JP': ('日本',), 'EA': ('欧元区', '欧洲'),
+    'US': ('美国', '美联储'), 'CN': ('中国',)}
+_OFFICIAL_DEICTIC_WORDS = ('两地', '两国', '两家', '各自', '各处于', '各为',
+                           '二者', '两者', '各方', '各地')
 
 
 def question_official_target_regions(question):
@@ -1976,7 +1987,16 @@ def question_official_target_regions(question):
 
     判定=地区央行/目标词族 ∩ 水平/调整问句词族(正则搜索)同时在场。
     空集=问句未指定官方目标(如只问「货币政策环境」)——缺官方目标
-    类不触发,不因新增缺口改判旧问句。"""
+    类不触发,不因新增缺口改判旧问句。
+
+    Audit-R32 任务2: 指代形补绑——「日本和欧元区的…: 两地央行当前
+    官方政策目标利率各处于什么水平」以「两地央行」回指前文点名的经济
+    体,原词族(日本央行/欧央行…)在场性判空→问句明确要求官方目标而
+    要求面为空(缺口判定整段关闭)。规则: 含「央行」+水平词的小句内无
+    显式地区央行词形而带指代计数词(两地/两国/两家/各自…)时,绑定到
+    问句全文以**地区 plain 名**点名的经济体(日本/欧元区/美国/中国);
+    显式词形命中优先(「日本央行政策利率处于什么水平」只绑 JP,不因
+    全文另有「美国」而扩绑)。"""
     import re as _re_r28
     q = str(question or '')
     if not q:
@@ -1985,8 +2005,21 @@ def question_official_target_regions(question):
         _re_r28.search(w, q) for w in _OFFICIAL_ASK_LEVEL_WORDS)
     if not level:
         return set()
-    return {eco for eco, words in _OFFICIAL_ASK_REGION_WORDS.items()
-            if any(w in q for w in words)}
+    req = {eco for eco, words in _OFFICIAL_ASK_REGION_WORDS.items()
+           if any(w in q for w in words)}
+    if '央行' in q:
+        named = {eco for eco, words in _OFFICIAL_REGION_PLAIN.items()
+                 if any(w in q for w in words)}
+        for clause in _re_r28.split(r'[,，。;；:?？\n]', q):
+            if '央行' not in clause:
+                continue
+            if any(w in clause
+                   for words in _OFFICIAL_ASK_REGION_WORDS.values()
+                   for w in words):
+                continue                       # 显式词形小句=已绑
+            if any(w in clause for w in _OFFICIAL_DEICTIC_WORDS):
+                req |= named
+    return req
 
 
 def official_policy_record_face(point_values, planned_pairs, cutoff,
@@ -2043,14 +2076,33 @@ def official_policy_record_face(point_values, planned_pairs, cutoff,
             # 冒充当前官方目标;生效日起才入官方目标列)。
             if (eco in required and _row['official_target'] is None
                     and st.get('pending_target') is not None):
+                # 待生效决议的决议日取自待生效条目(仅有待生效公告时
+                # last_decision=None——无已生效决议,不得写成「决议日 None」)
+                _pdec = next((p.get('decision_date') for p in
+                              (st.get('pending_adjustments') or [])
+                              if isinstance(p, dict)
+                              and p.get('decision_date')), None)
                 _row['current_target_missing_evidence'] = True
+                _row['pending_decision'] = _pdec
                 _row['current_target_missing_note'] = (
                     '当前官方目标缺证——研究时点 %s 无已生效决议在档,'
                     '仅有待生效公告(目标 %s,决议日 %s,生效日 %s);'
                     '待生效值不得写成当时已生效的官方目标'
                     % (cutoff, st.get('pending_target'),
-                       st.get('last_decision'),
+                       _pdec or st.get('last_decision'),
                        st.get('pending_effective_on')))
+                # Audit-R32 任务2: 行级缺口——R31 只落行标记不落 gaps,
+                # blocked_class_of 读 gaps 判→「问现行官方目标×只有待
+                # 生效公告」仍按正稿交付/可归档(行标记与交付判定不同判)。
+                # 同一缺口入 gaps: 行级缺口/首页草稿/正式归档拒绝同判。
+                gaps.append({
+                    'region': eco, 'metric_id': mid,
+                    'label': _REGION_LABEL.get(eco, eco),
+                    'gap': 'current_target_missing_evidence',
+                    'pending_target': st.get('pending_target'),
+                    'pending_decision': _pdec,
+                    'pending_effective_on': st.get('pending_effective_on'),
+                    'note': _row['current_target_missing_note']})
             rows.append(_row)
         elif eco in required and eco not in derivable:
             gaps.append({
@@ -2602,13 +2654,45 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
     # 全链绑定时点;与快照 target_date 不一致=如实点名(历史研究不吃
     # 快照当前面,发布纪律下只取「观测日≤时点且发布日≤时点」数据)。
     _asd = rp.get('as_of_declared')
-    if _asd:
+    _eg_hdr = run.get('evidence_gate') or {}
+    _r32_hdr = isinstance(_eg_hdr, dict) and bool(_eg_hdr.get('as_of'))
+    # r32 报告 as_of_declared 恒在场(含未声明形,basis=None)——声明形才渲
+    # 本行;旧档(无 evidence_gate)条件不变=字节不变
+    if _asd and (_asd.get('basis') or not _r32_hdr):
         _diff = (';与快照 target_date %s 不一致,以问题声明为准'
                  % _asd.get('snapshot_target_date')
                  if _asd.get('differs_from_snapshot') else '')
         lines.append(f"- 研究时点口径: {_asd.get('basis')}{_diff}——"
                      "本报告全部窗口/锚点/政策面绑定该时点(数据=当时"
                      "已发布面,后来发布的数据不回填)")
+    # Audit-R32 任务1: 请求月末 vs 实际覆盖日(月末未到=只交截至实际日期
+    # 的结果)+证据口径行——只在 r32 字段在场时渲染(旧档重渲字节不变)
+    if isinstance(_asd, dict) and _asd.get('clamped_to_coverage'):
+        lines.append(
+            f"- 请求月末/实际覆盖日: 请求 {_asd.get('requested_month_end')}"
+            f" | 快照实际覆盖 {_asd.get('actual_coverage_date')} | 研究"
+            f"截止日={_asd.get('as_of')}——月末未到/数据未到,本报告=截至"
+            "实际日期的结果(非请求月末的完整结果)")
+    elif (_r32_hdr and isinstance(_asd, dict)
+          and _asd.get('bare_year_month')):
+        lines.append(
+            f"- 研究截止日口径: 问句含裸年月 {_asd.get('bare_year_month')} "
+            f"但相对回看约束非单一(不按时点化合并,R31 既档口径)——研究"
+            f"截止日=快照版本日 {_asd.get('as_of')}(不晚于该年月;该月末"
+            "完整结果须待数据覆盖后重跑)")
+    if isinstance(_eg_hdr, dict) and _eg_hdr.get('as_of'):
+        _c_hdr = _eg_hdr.get('counts') or {}
+        lines.append(
+            f"- 证据口径(r32): 截止日 {_eg_hdr.get('as_of')} | 源快照 "
+            f"{_eg_hdr.get('source_snapshot_id')}(版本日 "
+            f"{_eg_hdr.get('source_target_date')}) | 事实: 保留 "
+            f"{_c_hdr.get('facts_kept')} / 重建 {_c_hdr.get('facts_rebuilt')}"
+            f" / 剔除 {_c_hdr.get('facts_dropped')}+版本 "
+            f"{_c_hdr.get('facts_excluded_version')} | 序列剔观测 "
+            f"{_c_hdr.get('series_observations_dropped')}"
+            + (' | 历史截止视图: 晚观测/晚发布/当时不可得数据版本不入'
+               '证据面;历史类比的事后结果已标注(事后≠当时可知,事后≠预测)'
+               if _eg_hdr.get('historical_view') else ' | 快照版本日口径'))
     lines.append('- 口径: 三个对照时点=日历点锚(截止日−12月/−3月/最新一期);'
                  '「随后3、6、12个月」=事件后偏移(转折/类比基准日+N月)'
                  '——两类时间含义不同,分记不混同')
@@ -2671,11 +2755,35 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
     if _opr['gaps']:
         _og = '、'.join(f"{g['label']}({g['metric_id']})" for g in
                         _opr['gaps'])
-        lines.append(f"> ⚠ **草稿(非正式)**: **缺官方政策目标记录**——"
-                     f"{_og}。日历无政策决议/维持实录条目,序列面决议/"
-                     f"生效日亦不可推,现值无官方口径可依(不以市场序列值"
-                     f"冒充宣布目标);补录官方决议实录后重跑转正。正式"
-                     f"归档对草稿拒绝(map_official_target_missing)。")
+        # Audit-R32 任务2: 「问现行官方目标×只有待生效公告」=行级缺口与
+        # 首页草稿同判——文案分记(待生效≠无实录;待生效值不得冒充现值)
+        _pend = [g for g in _opr['gaps']
+                 if g.get('gap') == 'current_target_missing_evidence']
+        _nogap = [g for g in _opr['gaps']
+                  if g.get('gap') != 'current_target_missing_evidence']
+        _segs = []
+        if _nogap:
+            _segs.append(
+                '、'.join(f"{g['label']}({g['metric_id']})" for g in _nogap)
+                + ': 日历无政策决议/维持实录条目,序列面决议/生效日亦不可推,'
+                  '现值无官方口径可依(不以市场序列值冒充宣布目标);补录官方'
+                  '决议实录后重跑转正')
+        if _pend:
+            _p0 = _pend[0]
+            _pn = str(_p0.get('note') or '')
+            _pdetail = ('研究时点 ' + _pn.split('研究时点 ', 1)[1].split(';', 1)[0]
+                        if '研究时点 ' in _pn else
+                        f"待生效目标 {_p0.get('pending_target')}"
+                        f"(生效日 {_p0.get('pending_effective_on')})")
+            _segs.append(
+                '、'.join(f"{g['label']}({g['metric_id']})" for g in _pend)
+                + f": **当前官方政策目标缺证(仅有待生效公告)**——{_pdetail};"
+                  '待生效值不得写成当时已生效的官方目标,不以市场序列值'
+                  '冒充宣布目标;生效日之后重跑,或改问「已公布待生效决定」'
+                  '转正')
+        lines.append(f"> ⚠ **草稿(非正式)**: **缺官方政策目标**——"
+                     f"{'; '.join(_segs)}。正式归档对草稿拒绝"
+                     f"(map_official_target_missing)。")
         lines.append('')
     _sparse_groups = sparse_anchor_groups(pv, _planned0)
     if _sparse_groups:
@@ -3483,6 +3591,16 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
             exp_m = exp_win.get(k)
             exp_txt = f"(锚{aym}+{k[:-1]}月→{exp_m})" if exp_m else ''
             lines.append(f"  - {lbl}{exp_txt}: {ex.get(k)}")
+        # Audit-R32 任务1: 历史类比的事后结果明确标注(候选相似期由事后
+        # 全窗口数据筛得;其后表现=事后实际,当时不可知,亦非预测)——
+        # 只在 r32 证据口径在场的报告上渲染(旧档重渲逐字节不变)
+        if isinstance(run.get('evidence_gate'), dict) and \
+                (run.get('evidence_gate') or {}).get('as_of'):
+            lines.append(
+                '  > **事后结果标注**: 候选相似期=事后以全窗口数据筛得'
+                '(相似度用到候选期之后的数据);候选期**之后**的经济与资产'
+                '表现为事后实际结果——当时不可知,亦非对本次的预测;引用须以'
+                '「事后实际」措辞,不得表述为当时可知或预测(纪律17)。')
         sn = h.get('sample_note') or h.get('data_note')
         if sn:
             lines.append(f"- 样本注记: {sn}")

@@ -1610,6 +1610,30 @@ def _r1_attach_core(args, engine_root):
 
 
 def _r1_report_core(args, engine_root):
+    """report 段入口(Audit-R32 任务3): 工单冻结输入核对+钉死→装配核心。
+
+    冻结输入缺件/篡改=拒绝交付(fail-closed): 返回 deliverable=False +
+    blocked=frozen_inputs_invalid + 核对明细,archive 段据此拒绝(不回落
+    引擎本地快照/日历/注册表重渲)。legacy 档(无 frozen_inputs)不钉。"""
+    import agent_judgment as _aj_p
+    try:
+        with _aj_p.work_order_pins(args.report_dir, engine_root) as _pins:
+            return _r1_report_core_pinned(args, engine_root, _pins)
+    except _aj_p.WorkOrderPinsError as e:
+        return False, {
+            'stage': 'report', 'deliverable': False,
+            'blocked': 'frozen_inputs_invalid',
+            'draft_delivered': False,
+            'frozen_inputs_check': {'ok': False, 'code': e.code,
+                                    'detail': e.detail},
+            'generated': False, 'machine_verified': False,
+            'copies_consistent': False,
+            'full_report': os.path.join(args.report_dir, 'FULL_REPORT.md'),
+        }, ['冻结输入核对失败(%s)——拒绝交付与归档,不回落引擎本地'
+            '快照/日历/注册表: %s' % (e.code, e.detail)]
+
+
+def _r1_report_core_pinned(args, engine_root, pins):
     """report 段核心(Audit-R1 F09): FULL_REPORT **完整装配**。
 
     完整性契约: L1 表+L2 摘编+L3/L4 **全文内联**(produced 时逐条渲染判断
@@ -1628,8 +1652,23 @@ def _r1_report_core(args, engine_root):
     lines = ['# 完整研究报告(一键研究 MVP)', '',
              '- 问题: ' + (run_meta.get('question') or args.question or ''),
              f"- run_ok: {rj.get('run_ok')} | 证据行: {len(rj.get('evidence_index', []))}"
-             f" | run.ts_utc: {run_meta.get('ts_utc')}",
-             '', '## L1 事实层(引擎确定性产出)', '',
+             f" | run.ts_utc: {run_meta.get('ts_utc')}"]
+    # Audit-R32 任务1: 研究截止日与证据口径一行(与 report.md 读者面同源;
+    # 旧档无 run.evidence_gate=不渲染,归档字节不变)
+    _eg_hdr = run_meta.get('evidence_gate') or {}
+    if isinstance(_eg_hdr, dict) and _eg_hdr.get('as_of'):
+        _c_hdr = _eg_hdr.get('counts') or {}
+        lines.append(
+            f"- 研究截止日(证据口径 r32): {_eg_hdr.get('as_of')} | "
+            f"源快照 {_eg_hdr.get('source_snapshot_id')}(版本日 "
+            f"{_eg_hdr.get('source_target_date')}) | 事实: 保留 "
+            f"{_c_hdr.get('facts_kept')} / 重建 {_c_hdr.get('facts_rebuilt')}"
+            f" / 剔除 {_c_hdr.get('facts_dropped')}+版本 "
+            f"{_c_hdr.get('facts_excluded_version')} | 序列剔观测 "
+            f"{_c_hdr.get('series_observations_dropped')}"
+            + (' | 历史截止(晚观测/晚发布/当时不可得版本不入证据面)'
+               if _eg_hdr.get('historical_view') else ' | 快照版本日'))
+    lines += ['', '## L1 事实层(引擎确定性产出)', '',
              '| 指标 | 值 | 单位 | 观测日 | 质量 | 证据 ref |',
              '|---|---|---|---|---|---|']
     for r in l1_rows:
@@ -1751,8 +1790,8 @@ def _r1_report_core(args, engine_root):
     # 读 engine_root 日历(注入树/验收树各自的 config),不回落本仓
     # 默认,判定与地图渲染(同 root)一字不差地一致。
     blocked_class = aj.blocked_class_of(
-        rj, calendar_path=os.path.join(
-            engine_root, 'config', 'release_calendar.json'))
+        rj, calendar_path=(pins.get('calendar_path') or os.path.join(
+            engine_root, 'config', 'release_calendar.json')))
     # Audit-R5 条目2: 进程成功(run_ok=true)不再一票豁免数据门——
     # 必要缺口/零证据/关键步骤失败在任何 run_ok 下都阻断交付
     # (反例 2A: history 正常退出+必要指标 n=1<12 曾误放行)。
@@ -2078,6 +2117,27 @@ def _r1_report_core(args, engine_root):
 
 
 def _r1_archive_core(args, engine_root):
+    """archive 段入口(Audit-R32 任务3): 工单冻结输入核对+钉死→归档核心。
+
+    冻结输入缺件/篡改=拒绝归档(fail-closed,rc≠0,不建归档目录)。"""
+    import agent_judgment as _aj_a
+    try:
+        with _aj_a.work_order_pins(args.report_dir, engine_root) as _pins:
+            return _r1_archive_core_pinned(args, engine_root, _pins)
+    except _aj_a.WorkOrderPinsError as e:
+        # 文案沿用归档既有两族措辞(缺件=「冻结副本运行目录不在场」/
+        # 篡改=「冻结件与运行时摘要不符」),既有核验口径不变
+        _msg = ('冻结件与运行时摘要不符: ' if e.code == 'frozen_input_tampered'
+                else '冻结副本运行目录不在场: ') + e.detail
+        return False, {'stage': 'archive', 'blocked':
+                       'frozen_inputs_invalid',
+                       'frozen_inputs_check': {'ok': False, 'code': e.code,
+                                               'detail': e.detail},
+                       'error': _msg, 'deliverable': False}, [
+            '归档拒绝: ' + _msg]
+
+
+def _r1_archive_core_pinned(args, engine_root, pins):
     """Audit-R2 条目6: 最终归档=受审版本的完整自包含交付包。
 
     归档对象=**最终受审版本**: 非 deliverable 一律拒归(先跑 report 门)。
@@ -2090,8 +2150,14 @@ def _r1_archive_core(args, engine_root):
     import shutil as _shutil
     import agent_judgment as aj
     import research_orchestrator as ro
+    # 经模块级入口(自核对+自钉死;本函数外层 work_order_pins 已置位的键
+    # 上游优先不重复置位,嵌套安全)——保持既有可替换缝(R18 §E 等
+    # 以 _r1_report_core 为注入点),归档侧仍以本工单 pins 的冻结日历判。
     ok, data, warnings = _r1_report_core(args, engine_root)
     if not ok or not data.get('deliverable'):
+        if data.get('blocked') == 'frozen_inputs_invalid':
+            return False, dict(data, stage='archive',
+                               archive_dir=None), list(warnings or [])
         return False, {'stage': 'archive', 'blocked': 'not_deliverable',
                        'review': data.get('review'),
                        'deliverable': data.get('deliverable')}, \
@@ -2112,8 +2178,8 @@ def _r1_archive_core(args, engine_root):
     # (与 attach 层 blocked_class_of 同源同判——归档侧 belt、不另立口径)。
     try:
         _bc_r20 = aj.blocked_class_of(
-            rj, calendar_path=os.path.join(
-                engine_root, 'config', 'release_calendar.json'))
+            rj, calendar_path=(pins.get('calendar_path') or os.path.join(
+                engine_root, 'config', 'release_calendar.json')))
     except Exception:
         _bc_r20 = None
     if _bc_r20 == 'map_core_dimension_missing':
@@ -2329,6 +2395,13 @@ def _r1_archive_core(args, engine_root):
                            '裁决链唯一名逐档哈希+predecessor 链关系已核'
                            ';地图面: 归档内容段==裁决绑定已核/Audit-R24 '
                            '任务1)'}
+        # Audit-R32 任务1/3: 研究截止日与证据口径块随清单落档(重放/回读
+        # 同读;旧档无 run.evidence_gate=不加键,清单字节不变)
+        _eg_man = (rj.get('run') or {}).get('evidence_gate')
+        if isinstance(_eg_man, dict) and _eg_man:
+            manifest['evidence_gate'] = _eg_man
+            manifest['evidence_asof'] = (rj.get('run') or {}).get(
+                'evidence_asof')
         aj._atomic_write_text(
             os.path.join(dest, 'ARCHIVE_MANIFEST.json'),
             json.dumps(manifest, ensure_ascii=False, indent=2, default=str))
@@ -2614,9 +2687,14 @@ def _r1_replay_core(args, engine_root):
             # Audit-R29 任务4: 重渲 root=包内冻结 overlay(R29+ 包)——
             # 与本地日历/快照现状无关;legacy 旧档无 overlay 时沿用
             # engine_root(旧行为,零回归)。
-            map_text = rmp.render_map_report(
-                rj, aj_doc, sr_mini,
-                root=(overlay_root or engine_root))
+            # Audit-R32 任务3: 重渲同样经工单冻结输入核对+钉死(日历/
+            # 注册表/源快照=包内 overlay;IA_EVIDENCE_ASOF=清单/报告所记
+            # 研究截止日)——引擎本地日历被换不影响重放字节;overlay 缺
+            # 件/篡改=核对失败→render_error(fail-closed)。
+            with aj.work_order_pins(pkg, engine_root):
+                map_text = rmp.render_map_report(
+                    rj, aj_doc, sr_mini,
+                    root=(overlay_root or engine_root))
             archived = open(os.path.join(pkg, 'MAP_REPORT.md'),
                             'rb').read()
             byte_equal = map_text.encode('utf-8') == archived

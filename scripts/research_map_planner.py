@@ -2051,7 +2051,13 @@ def official_policy_record_face(point_values, planned_pairs, cutoff,
         la = (c.get('anchors') or {}).get('最新一期') or {}
         if la.get('status') != 'ok':
             continue
-        pdd = c.get('policy_dates') or {}
+        # Audit-R32 正式入口验收: 规划器把 policy_dates 写在**锚**上
+        # (point_values: v['policy_dates']=pdates;政策四分面表同读
+        # 锚级)——原读格级键=真管线恒空→「序列+惯例可推」回退整段失效
+        # (T3 原问真跑: EA 政策格锚上决议/生效日均可推,仍被判「无官方
+        # 记录」缺口=草稿;门测试夹具把键写在格级才通过)。先读锚级(真
+        # 管线形状),格级键仅作旧夹具形状兼容。
+        pdd = la.get('policy_dates') or c.get('policy_dates') or {}
         if pdd.get('decision') and pdd.get('effective'):
             derivable.add(c.get('region'))
     pol_regions = sorted({eco for eco, dim in (planned_pairs or ())

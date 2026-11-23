@@ -628,14 +628,16 @@ def sec_b():
           f"B={sorted(rmp.question_official_target_regions(Q_B))}")
     pairs = {('JP', 'policy'), ('EA', 'policy')}
     # EA 日历无 ECB 实录条目——真管线里 EA 政策格 policy_dates 由序列+惯例
-    # 可推(决议 09-10→生效 09-16)=可推地区不触发缺口(R28 既档口径)
+    # 可推(决议 09-10→生效 09-16)=可推地区不触发缺口(R28 既档口径)。
+    # Audit-R32 正式入口验收: 规划器把 policy_dates 写在**锚**上(格级键
+    # 缺席)——夹具按真管线形状写锚级;格级键仅作旧夹具形状兼容(§B3b4)。
+    _ea_pd = {'decision': '2026-09-10', 'effective': '2026-09-16'}
     pv = {'cells': [
-        {'region': 'JP', 'dimension': 'policy',
+        {'region': 'JP', 'dimension': 'policy', 'metric_id': 'JP_POLICY_RATE',
          'anchors': {'最新一期': {'status': 'ok'}}},
-        {'region': 'EA', 'dimension': 'policy',
-         'anchors': {'最新一期': {'status': 'ok'}},
-         'policy_dates': {'decision': '2026-09-10',
-                          'effective': '2026-09-16'}}]}
+        {'region': 'EA', 'dimension': 'policy', 'metric_id': 'ECB_MRO',
+         'anchors': {'最新一期': {'status': 'ok',
+                                 'policy_dates': dict(_ea_pd)}}}]}
     face_real = rmp.official_policy_record_face(
         pv, pairs, '2026-11-22', question=Q_T3,
         calendar_path=os.path.join(ROOT, 'config', 'release_calendar.json'))
@@ -671,6 +673,112 @@ def sec_b():
           and face_real.get('required_regions') == ['EA', 'JP']
           and len(gnd) == 1 and '无官方记录' in str(gnd[0].get('note')),
           f'real_gaps={face_real.get("gaps")} ea_noderiv={gnd}')
+    # B3b4 锚级键在读(真管线形状)+旧格级键兼容+当期锚非 ok 不算可推
+    pv_legacy = {'cells': [
+        {'region': 'JP', 'dimension': 'policy',
+         'anchors': {'最新一期': {'status': 'ok'}}},
+        {'region': 'EA', 'dimension': 'policy',
+         'anchors': {'最新一期': {'status': 'ok'}},
+         'policy_dates': dict(_ea_pd)}]}
+    face_lg = rmp.official_policy_record_face(
+        pv_legacy, pairs, '2026-11-22', question=Q_T3,
+        calendar_path=os.path.join(ROOT, 'config', 'release_calendar.json'))
+    pv_notok = {'cells': [
+        {'region': 'JP', 'dimension': 'policy',
+         'anchors': {'最新一期': {'status': 'ok'}}},
+        {'region': 'EA', 'dimension': 'policy',
+         'anchors': {'最新一期': {'status': 'missing',
+                                 'policy_dates': dict(_ea_pd)},
+                     '3个月前': {'status': 'ok',
+                                'policy_dates': dict(_ea_pd)}}}]}
+    face_nk = rmp.official_policy_record_face(
+        pv_notok, pairs, '2026-11-22', question=Q_T3,
+        calendar_path=os.path.join(ROOT, 'config', 'release_calendar.json'))
+    gnk = [g for g in face_nk.get('gaps') or [] if g.get('region') == 'EA']
+    pv_half = {'cells': [
+        {'region': 'JP', 'dimension': 'policy',
+         'anchors': {'最新一期': {'status': 'ok'}}},
+        {'region': 'EA', 'dimension': 'policy',
+         'anchors': {'最新一期': {'status': 'ok', 'policy_dates': {
+             'decision': '2026-09-10', 'effective': None}}}}]}
+    face_hf = rmp.official_policy_record_face(
+        pv_half, pairs, '2026-11-22', question=Q_T3,
+        calendar_path=os.path.join(ROOT, 'config', 'release_calendar.json'))
+    check('§B3b4 可推性读数: 锚级 policy_dates(真管线形状)判可推;旧格级键'
+          '兼容;当期锚非 ok(仅历史锚可推)→不可推=缺口;决议/生效缺一'
+          '→不可推=缺口',
+          not face_lg.get('gaps') and len(gnk) == 1
+          and '无官方记录' in str(gnk[0].get('note'))
+          and [g.get('region') for g in face_hf.get('gaps') or []] == ['EA'],
+          f'legacy={face_lg.get("gaps")} notok={gnk} half={face_hf.get("gaps")}')
+    # B3b3 真管线回归: 真计划点值格(T3 原问×提交的 11 月冻结快照,离线
+    # plan,S 步替身)直取后判定——修复前(读格级键)真管线恒判 EA 缺口
+    # (正式入口真跑复现: 草稿 map_official_target_missing),修复后零缺口。
+    _t3o, _res3o, _md3o, _seen3o = _offline_plan('t3opr', Q_T3)
+    rep3o = json.load(open(os.path.join(_res3o['report_dir'], 'report.json'),
+                           encoding='utf-8'))
+    rp3o = rep3o.get('research_plan') or {}
+    pv3o = rp3o.get('point_values') or {}
+    pairs3o = {(eco, dim)
+               for eco, _rf in (rp3o.get('regions') or {}).items()
+               for dim in ((_rf.get('dimensions') or {}) or {})}
+    ea3o = [c for c in pv3o.get('cells') or []
+            if c.get('region') == 'EA' and c.get('dimension') == 'policy']
+    la3o = ((ea3o[0].get('anchors') or {}).get('最新一期') or {}) if ea3o else {}
+    pd3o = la3o.get('policy_dates') or {}
+    face3o = rmp.official_policy_record_face(
+        pv3o, pairs3o, rp3o.get('cutoff'), question=Q_T3,
+        calendar_path=os.path.join(_t3o, 'config', 'release_calendar.json'))
+    check('§B3b3 真管线回归(T3 原问×冻结快照真计划点值格): EA 政策格 '
+          'policy_dates 在锚上(决议 2026-09-10/生效 2026-09-16)、格级键'
+          '缺席;官方记录面零缺口、要求地区={EA,JP}(「序列+惯例可推」'
+          '回退在真管线生效)',
+          len(ea3o) >= 1
+          and all('policy_dates' not in c for c in ea3o)
+          and pd3o.get('decision') == '2026-09-10'
+          and pd3o.get('effective') == '2026-09-16'
+          and not face3o.get('gaps')
+          and face3o.get('required_regions') == ['EA', 'JP']
+          and [r.get('region') for r in face3o.get('rows') or []] == ['JP'],
+          f'ea_cells={len(ea3o)} anchor_pd={pd3o.get("decision")}/'
+          f'{pd3o.get("effective")} gaps={face3o.get("gaps")}')
+    # 真管线对照(修复前后读数面): 抽去锚级 policy_dates(=修复前唯一读到的
+    # 格级键缺席)→EA 缺口点名;blocked_class_of 同源同判(真点值格+真地区
+    # 计划,R28 门最小 report 形状): 原样→None,抽去→map_official_target_missing
+    import copy as _copy_r32
+    pv_strip = _copy_r32.deepcopy(pv3o)
+    for _c in pv_strip.get('cells') or []:
+        for _a in (_c.get('anchors') or {}).values():
+            _a.pop('policy_dates', None)
+
+    def _rep_real(pv_x):
+        return {'run_ok': True,
+                'layers': {'L1_事实层': {'rows': [{'x': 1}]}},
+                'run': {'question': Q_T3, 'data_requirements': {'items': []}},
+                'steps': [],
+                'agent_judgment': {'reader_map_faces': {'complete': True}},
+                'research_plan': {'map_question': True,
+                                  'cutoff': rp3o.get('cutoff'),
+                                  'point_anchors': [{'label': '最新一期',
+                                                     'months_before': 0}],
+                                  'regions': rp3o.get('regions') or {},
+                                  'point_values': pv_x}}
+
+    _cal3o = os.path.join(_t3o, 'config', 'release_calendar.json')
+    _face_st = rmp.official_policy_record_face(
+        pv_strip, pairs3o, rp3o.get('cutoff'), question=Q_T3,
+        calendar_path=_cal3o)
+    _bc_real = aj.blocked_class_of(_rep_real(pv3o), calendar_path=_cal3o)
+    _bc_strip = aj.blocked_class_of(_rep_real(pv_strip), calendar_path=_cal3o)
+    check('§B3b5 真管线对照: 抽去锚级 policy_dates(=修复前读数面)→EA 缺口'
+          '点名+blocked_class=map_official_target_missing;原样→零缺口+'
+          'blocked_class=None(缺口判定确由锚级读数驱动)',
+          [g.get('region') for g in _face_st.get('gaps') or []] == ['EA']
+          and not face3o.get('gaps')
+          and _bc_strip == 'map_official_target_missing'
+          and _bc_real is None,
+          f'strip_gaps={_face_st.get("gaps")} bc_real={_bc_real} '
+          f'bc_strip={_bc_strip}')
     check('§B3b2 仅有待生效公告(决议 11-18/生效 12-01/目标 1.5)→gaps 点名 '
           'JP current_target_missing_evidence+待生效值/决议日/生效日',
           len(gp) == 1 and gp[0].get('region') == 'JP'

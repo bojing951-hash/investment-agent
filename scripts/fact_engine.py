@@ -878,6 +878,17 @@ def cross_metric_checks(facts):
     by_id = {f.get('metric_id'): f for f in facts if isinstance(f, dict) and f.get('metric_id')}
     recon = []
 
+    def attach(fact, msg):
+        """跨指标问题附于事实后**就地重定级**(Audit-R32,2026-11-23): 声明状态
+        须恒等于 grade_issues(issues)(research_provenance.fact_issues_problems
+        同一口径)。原实现只追加issue不重定级——已定级PASS的事实带着DEGRADED
+        问题出门,Gate A重算判"声明与依据矛盾"→整份快照非法(status=None,
+        干净安装真跑 2026-11-23 实中: 金期货盘中bar与ETF收盘周窗口不同向)。"""
+        had = isinstance(fact.get('issues'), list)
+        fact.setdefault('issues', []).append({"category": "cross-metric", "severity": "DEGRADED", "message": msg})
+        if had or not fact.get('quality_status'):
+            fact['quality_status'] = grade_issues(fact['issues'])
+
     def check_pair(a, b, fn, label, tol=None):
         fa, fb = by_id.get(a), by_id.get(b)
         if not fa or not fb:
@@ -888,7 +899,7 @@ def cross_metric_checks(facts):
         ok, detail = fn(va, vb)
         if not ok:
             msg = f"{label}: {a}={va} vs {b}={vb} ({detail})"
-            (fa.setdefault('issues', []).append({"category": "cross-metric", "severity": "DEGRADED", "message": msg}))
+            attach(fa, msg)
             recon.append({"type": "cross-metric", "check": label, "result": "violation", "detail": msg})
 
     check_pair("DFEDTARL", "DFEDTARU", lambda lo, hi: (lo <= hi, "下限>上限"), "目标区间次序")
@@ -900,24 +911,38 @@ def cross_metric_checks(facts):
     # 在统一收益口径的周变化上(derived.week.pct_change,期前收盘基准);同源双
     # 观测周方向相反=口径/数据异常,DEGRADED披露不判错;任一周变化不可得=不
     # 伪造结论,如实登记 insufficient。
+    # Audit-R32(2026-11-23): 同窗前提——两载体的周变化须锚同一基准日(期前
+    # 最后观测)才可比。期货有夜盘/盘中bar而ETF只到上一收盘时(如北京时区周一
+    # 白天: GOLD_F观测日=当周盘中,GLD=上周五),两个"周"是不同窗口,方向相反
+    # 不是数据异常证据——登记 insufficient(写明两基准日),不附issue。
     gf, ge = by_id.get("GOLD_F"), by_id.get("GLD")
     if gf and ge:
         wg = (gf.get('derived') or {}).get('week') or {}
         we = (ge.get('derived') or {}).get('week') or {}
         pg, pe = wg.get('pct_change'), we.get('pct_change')
-        if isinstance(pg, (int, float)) and isinstance(pe, (int, float)) \
+        bg = wg.get('basis_date') or gf.get('observation_date')
+        be = we.get('basis_date') or ge.get('observation_date')
+        # 周变化须为有限数值: nan/inf 不是可比的收益(旧实现 nan×x<0 恒False,
+        # 把"GLD周+nan%"登记成"周方向一致"——t6 夹具实录)
+        def _num(x):
+            return isinstance(x, (int, float)) and not isinstance(x, bool) \
+                and x == x and abs(x) != float('inf')
+        if _num(pg) and _num(pe) \
            and wg.get('available') is not False and we.get('available') is not False:
-            if pg * pe < 0:
+            if bg != be:
+                recon.append({"type": "cross-metric", "check": "黄金双载体方向",
+                              "result": "insufficient",
+                              "detail": f"双载体周窗口不可比(周基准GOLD_F {bg} vs GLD {be}: 观测日不同,两个周变化不是同一窗口),不比对方向不伪造结论"})
+            elif pg * pe < 0:
                 msg = (f"黄金双载体方向: GOLD_F周{pg:+.2f}% vs GLD周{pe:+.2f}%"
                        "(同源双观测周方向相反,口径/数据异常须复核)")
-                gf.setdefault('issues', []).append(
-                    {"category": "cross-metric", "severity": "DEGRADED", "message": msg})
+                attach(gf, msg)
                 recon.append({"type": "cross-metric", "check": "黄金双载体方向",
                               "result": "violation", "detail": msg})
             else:
                 recon.append({"type": "cross-metric", "check": "黄金双载体方向",
                               "result": "consistent",
-                              "detail": f"周方向一致(GOLD_F{pg:+.2f}%/GLD{pe:+.2f}%)"})
+                              "detail": f"周方向一致(GOLD_F{pg:+.2f}%/GLD{pe:+.2f}%,周基准{bg})"})
         else:
             recon.append({"type": "cross-metric", "check": "黄金双载体方向",
                           "result": "insufficient",

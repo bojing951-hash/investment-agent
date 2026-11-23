@@ -1084,6 +1084,136 @@ def sec_d():
     shutil.rmtree(t, ignore_errors=True)
 
 
+def sec_h():
+    """干净安装真跑实中(2026-11-23 update --yes: 10/15 Gate A 失败,status=None,
+    illegal_quality "GOLD_F=quality_status='PASS'与issues重算'DEGRADED'不一致")
+    ——基线 72dab1c 同现。根因两处: ①cross_metric_checks 把 DEGRADED issue
+    附到已定级 PASS 的事实上不重定级; ②金双载体方向比对不要求同窗(期货
+    周一盘中介bar vs ETF 上周五收盘=两个不同的周),方向相反不是异常证据。"""
+    from datetime import date, timedelta
+    import fact_engine as fe
+    import research_provenance as rpv
+    import snapshot_builder as sb
+    print('═══ §H 真跑实中: 快照质量声明一致性(跨指标重定级+金双载体同窗前提) ═══')
+    AS = '2026-11-23T18:00:22+08:00'
+
+    def mk(mid, val, obs, basis, pct):
+        f = fe.make_fact(mid, val, obs, AS, 'global_20261123.json',
+                         'global_market_collector')
+        f['derived'] = {'week': {'basis_date': basis, 'basis_value': 100.0,
+                                 'pct_change': pct, 'sessions_in_window': 1,
+                                 'expected_sessions': 2}}
+        f['issues'] = fe.validate_fact(
+            f, {'close': val, 'date': obs}, fe.metric(mid), as_of_date=AS[:10])
+        f['quality_status'] = fe.grade_issues(f['issues'])
+        return f
+
+    def gold(recon):
+        return next((r for r in recon
+                     if r.get('check') == '黄金双载体方向'), {})
+
+    # H1 真跑形态: 期货周一盘中(obs 11-23,周基准 11-20,+2.80%) vs
+    #    ETF 上周五收盘(obs 11-20,周基准 11-13,−9.17%)——不可比,不附issue
+    gf, ge = mk('GOLD_F', 3614.0, '2026-11-23', '2026-11-20', 2.8048), \
+        mk('GLD', 322.87, '2026-11-20', '2026-11-13', -9.1659)
+    recon = fe.cross_metric_checks([gf, ge])
+    g = gold(recon)
+    check('§H1 不同周窗口(真跑形态): 金双载体登记 insufficient(写明两基准日)'
+          '+GOLD_F 不附跨指标issue+声明=重算 PASS',
+          g.get('result') == 'insufficient' and '2026-11-20' in g.get('detail', '')
+          and '2026-11-13' in g.get('detail', '')
+          and not any(i.get('category') == 'cross-metric' for i in gf['issues'])
+          and gf['quality_status'] == 'PASS'
+          and rpv.fact_issues_problems(gf, 'GOLD_F') == [],
+          f"g={g} status={gf['quality_status']} "
+          f"probs={rpv.fact_issues_problems(gf, 'GOLD_F')}")
+    # H2 同窗反向=真违规: issue 附上且就地重定级(声明==重算)
+    gf, ge = mk('GOLD_F', 3614.0, '2026-11-20', '2026-11-13', 2.8048), \
+        mk('GLD', 322.87, '2026-11-20', '2026-11-13', -9.1659)
+    recon = fe.cross_metric_checks([gf, ge])
+    check('§H2 同窗反向: violation+GOLD_F 就地重定级 DEGRADED(声明==grade_issues)'
+          '+fact_issues_problems 空(基线: 声明PASS≠重算DEGRADED)',
+          gold(recon).get('result') == 'violation'
+          and gf['quality_status'] == 'DEGRADED'
+          and gf['quality_status'] == fe.grade_issues(gf['issues'])
+          and rpv.fact_issues_problems(gf, 'GOLD_F') == [],
+          f"status={gf['quality_status']} probs={rpv.fact_issues_problems(gf, 'GOLD_F')}")
+    # H3 同窗同向 / H4 nan 周变化(旧: nan×x<0 恒False→误登"一致")
+    gf, ge = mk('GOLD_F', 3614.0, '2026-11-20', '2026-11-13', -2.0), \
+        mk('GLD', 322.87, '2026-11-20', '2026-11-13', -9.1659)
+    r3 = gold(fe.cross_metric_checks([gf, ge]))
+    gf, ge = mk('GOLD_F', 3614.0, '2026-11-20', '2026-11-13', -2.0), \
+        mk('GLD', 322.87, '2026-11-20', '2026-11-13', float('nan'))
+    r4 = gold(fe.cross_metric_checks([gf, ge]))
+    check('§H3 同窗同向=consistent(细节带周基准日); nan 周变化=insufficient',
+          r3.get('result') == 'consistent' and '2026-11-13' in r3.get('detail', '')
+          and r4.get('result') == 'insufficient',
+          f"r3={r3} r4={r4}")
+    # H5 check_pair 路径同修: 目标区间下限>上限 → DFEDTARL 重定级
+    fl = fe.make_fact('DFEDTARL', 4.25, '2026-11-20', AS,
+                      'rate_economy_20261123.json', 'rate_expectations')
+    fu = fe.make_fact('DFEDTARU', 4.00, '2026-11-20', AS,
+                      'rate_economy_20261123.json', 'rate_expectations')
+    for f in (fl, fu):
+        f['issues'] = []
+        f['quality_status'] = fe.grade_issues(f['issues'])
+    r5 = {r.get('check'): r for r in fe.cross_metric_checks([fl, fu])}
+    check('§H5 check_pair 同修: 下限>上限 violation + DFEDTARL 重定级 DEGRADED',
+          r5.get('目标区间次序', {}).get('result') == 'violation'
+          and fl['quality_status'] == 'DEGRADED'
+          and rpv.fact_issues_problems(fl, 'DFEDTARL') == [],
+          f"status={fl['quality_status']} probs={rpv.fact_issues_problems(fl, 'DFEDTARL')}")
+    # H6 正式路径: snapshot_builder.build_snapshot(采集目录=迷你可信根)
+    def _series(last, last_val, prev_val=100.0, weeks=8):
+        d0 = date.fromisoformat(last) - timedelta(days=7 * weeks)
+        ds, vs, d = [], [], d0
+        while d <= date.fromisoformat(last):
+            if d.weekday() < 5:
+                ds.append(d.isoformat())
+                vs.append(last_val if d.isoformat() == last else prev_val)
+            d += timedelta(days=1)
+        return {'dates': ds, 'values': vs}
+
+    def _build(tag, gold_last, gold_val, gld_last, gld_val):
+        # 量级取真跑值(GOLD_F 3614/基准 3515.4=+2.80%;GLD 322.87/基准 355.45=−9.17%)
+        t, _snap = _mk_tree(tag, with_snapshot=False)
+        raw = {'date': '20261123', 'data': {
+            'GOLD_F': dict({'close': gold_val, 'date': gold_last},
+                           series=_series(gold_last, gold_val, 3515.4)),
+            'GLD': dict({'close': gld_val, 'date': gld_last},
+                        series=_series(gld_last, gld_val, 355.45))}}
+        json.dump(raw, open(os.path.join(t, 'data', 'daily',
+                                         'global_20261123.json'), 'w',
+                            encoding='utf-8'))
+        snap = sb.build_snapshot(target_ymd='20261123',
+                                 data_dir=os.path.join(t, 'data', 'daily'),
+                                 out_dir=os.path.join(t, 'out'), as_of=AS,
+                                 write=True, trusted_root=t)
+        ga = snap.get('gate_a') or {}
+        gfact = next((f for f in snap.get('facts', [])
+                      if f.get('metric_id') == 'GOLD_F'), {})
+        return ga, gold(snap.get('reconciliation') or []), gfact
+
+    ga6, g6, f6 = _build('gold_unlike', '2026-11-23', 3614.0, '2026-11-20', 322.87)
+    check('§H6 正式路径(真跑形态): build_snapshot Gate A 状态合法(非None)+'
+          'illegal_quality 空+金双载体 insufficient+GOLD_F PASS',
+          ga6.get('status') in ('PASS', 'DEGRADED', 'FAIL')
+          and not ga6.get('illegal_quality')
+          and g6.get('result') == 'insufficient'
+          and f6.get('quality_status') == 'PASS',
+          f"status={ga6.get('status')} illegal={ga6.get('illegal_quality')} "
+          f"gold={g6.get('result')} GOLD_F={f6.get('quality_status')}")
+    ga7, g7, f7 = _build('gold_like', '2026-11-20', 3614.0, '2026-11-20', 322.87)
+    check('§H7 正式路径(同窗反向): Gate A 状态合法+illegal_quality 空+'
+          'violation+GOLD_F DEGRADED(基线此处=None: 整份快照非法)',
+          ga7.get('status') in ('PASS', 'DEGRADED', 'FAIL')
+          and not ga7.get('illegal_quality')
+          and g7.get('result') == 'violation'
+          and f7.get('quality_status') == 'DEGRADED',
+          f"status={ga7.get('status')} illegal={ga7.get('illegal_quality')} "
+          f"gold={g7.get('result')} GOLD_F={f7.get('quality_status')}")
+
+
 def main():
     print('Audit-R32 门 (HEAD %s)' % WORKTREE_HEAD[:12])
     try:
@@ -1091,6 +1221,7 @@ def main():
         sec_b()
         sec_c()
         sec_d()
+        sec_h()
     finally:
         n_ok = sum(1 for x in RESULTS if x)
         n = len(RESULTS)

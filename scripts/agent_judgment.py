@@ -160,6 +160,8 @@ _POL_REL_EFF = (                # (正则, 隐含生效偏移日)
 _POL_REL_CUT_WORDS = ('次日', '翌日', '第二天', '即日', '当天', '当日',
                       '立即', '即刻', '即时', '随即', '马上', '天后', '日后',
                       '周后', '月后', '小时后')
+_POL_EFF_NEXT = re.compile(     # 「生效」标签前置: 生效(日|于|为|…)+日期词元
+    r'(?:日期|日|于|为|是|自|:|：|\s|\(|（){0,3}(?=\d)')
 _POL_DATE_TOKEN = re.compile(
     r'(\d{4})年(\d{1,2})月(\d{1,2})日|(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})'
     r'|(\d{4})(\d{2})(\d{2})|(?<![\d年])(\d{1,2})月(\d{1,2})日')
@@ -547,18 +549,36 @@ def validate_judgment(judgment, evidence_refs, metric_ids,
                 _spec = []
                 # POL-EFF-DATE: 正文写出的生效日≠官方实录且早于官方生效日
                 # (落在[决议日,生效日)内)——「日期齐全但提前生效」。
-                # 「生效」须紧随该日期词元(到下一日期词元之前,≤14 字),
-                # 不把「9月18日决议,9月22日生效」的决议日误读为生效日。
+                # 「生效」绑定到它所支配的那一个日期词元:
+                #   标签前置(生效Y / 生效日Y / 生效于Y)→其后日期 Y;
+                #   其余(日期前置 X生效)→其前日期词元(≤14 字、无相对词)。
+                # 两向都不把成对表述里的决议日读成生效日:
+                # 「9月18日决议,9月22日生效」(日期前置)与
+                # 「决议9月18日(生效9月24日)」(标签前置)同判。
                 _toks = _pol_date_tokens(text)
-                for _i, (iso, mm, dd, st_i, endi) in enumerate(_toks):
-                    _nxt = _toks[_i + 1][3] if _i + 1 < len(_toks) else len(text)
-                    _win = text[endi:min(_nxt, endi + 14)]
-                    for _rw in _POL_REL_CUT_WORDS:
-                        _k = _win.find(_rw)
-                        if _k >= 0:
-                            _win = _win[:_k]     # 相对生效词形另由 REL 判
-                    if '生效' not in _win:
+                _start_ix = {t[3]: _i for _i, t in enumerate(_toks)}
+                for _m in re.finditer('生效', text):
+                    _p = _m.start()
+                    _gi = None
+                    _nx = _POL_EFF_NEXT.match(text, _p + 2)
+                    if _nx:
+                        _gi = _start_ix.get(_nx.end())
+                    if _gi is None:
+                        for _i in range(len(_toks) - 1, -1, -1):
+                            iso, mm, dd, st_i, endi = _toks[_i]
+                            _nxt = (_toks[_i + 1][3] if _i + 1 < len(_toks)
+                                    else len(text))
+                            if not (endi <= _p
+                                    and _p + 2 <= min(_nxt, endi + 14)):
+                                continue
+                            if any(rw in text[endi:_p]
+                                   for rw in _POL_REL_CUT_WORDS):
+                                break     # 相对生效词形另由 REL 判
+                            _gi = _i
+                            break
+                    if _gi is None:
                         continue
+                    iso, mm, dd, st_i, endi = _toks[_gi]
                     tok = iso or '%s-%02d-%02d' % (_ddec[:4], mm, dd)
                     if tok == _deff or tok == _ddec and _deff == _ddec:
                         continue

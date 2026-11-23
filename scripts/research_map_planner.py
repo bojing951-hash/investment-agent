@@ -1618,14 +1618,21 @@ def _policy_dates(face, obs_date, market_date=None, value_change_date=None,
     return out
 
 
-def _policy_window_path(dates, values, cutoff, months=12, metric_id=None):
+def _policy_window_path(dates, values, cutoff, months=12, metric_id=None,
+                        carry_start=False):
     """政策序列一年窗路径(R21 任务2;R22 任务2 决议/生效分记): 窗=
     [截止−12个月,截止]内的变动点(窗内相邻观测值不同)逐点实录(日期/
     前后值/bp+决议日)与净变动——「先降 25bp 再升 25bp 净变动为零」
     一类事实须整窗可复算,禁以窗首尾两点差冒充路径(先降后升净零时
     首尾差恰掩盖全部路径)。无变动→events=[]+net_bp=0;窗内无观测→
     None(不编造)。事件 date=序列值变更日(=生效日),decision_date=
-    按 POLICY_FACE[metric_id].decision_kind 推(观测日=生效日语义)。"""
+    按 POLICY_FACE[metric_id].decision_kind 推(观测日=生效日语义)。
+
+    carry_start(Audit-R32 真跑验收): True=净变动取「窗启时在值(窗内首
+    观测的前值)→窗末观测」=变动点之和。决议日观测的阶梯序列(欧央行
+    两档利率)窗内首观测已是升后值——按窗内首观测计,净 +25bp 与同列
+    两个 +25bp 变动点不闭合;月均序列同理(窗内首月均值已含升息)。
+    False=既有口径(窗内首观测→窗末),旧档重渲字节不变。"""
     w0 = _shift_months(cutoff, months)
     idx = [k for k, d in enumerate(dates) if w0 <= d <= cutoff]
     if not idx:
@@ -1654,20 +1661,44 @@ def _policy_window_path(dates, values, cutoff, months=12, metric_id=None):
             if _dt.date.fromisoformat(dates[k1]).weekday() == 2:
                 ev['decision_date'] = _dshift(dates[k1], -6)
         events.append(ev)
-    start_v, end_v = values[idx[0]], values[idx[-1]]
+    start_k = idx[0]
+    if carry_start and start_k > 0 and values[start_k - 1] is not None:
+        start_k -= 1          # 窗启时在值=窗内首观测的前值(值在窗启时仍生效)
+    start_v, end_v = values[start_k], values[idx[-1]]
+    if not carry_start:
+        return {'window': [w0, cutoff], 'events': events,
+                'window_start_value': start_v, 'window_end_value': end_v,
+                'net_bp': round((end_v - start_v) * 100),
+                'note': ('窗=[研究截止−12个月,研究截止](_shift_months 正参='
+                         '回看,与 ex_post_windows 反向同源);events=窗内观测'
+                         '对其前值的变动点(date=序列值变更日=生效日,'
+                         'decision_date=决议日;前值可在窗启前一格);net_bp='
+                         '窗首尾观测差(bp)。政策路径月频证据只能支持同步时,'
+                         '先后未定须在正文如实写明;决议日/生效日/市场观测日/'
+                         '统计窗口终点分列见 policy_dates。')}
+    net_sum = sum(e['delta_bp'] for e in events)
+    net_ends = round((end_v - start_v) * 100)
     return {'window': [w0, cutoff], 'events': events,
             'window_start_value': start_v, 'window_end_value': end_v,
-            'net_bp': round((end_v - start_v) * 100),
+            'window_start_observation': dates[start_k],
+            'net_bp': net_sum,
             'note': ('窗=[研究截止−12个月,研究截止](_shift_months 正参='
                      '回看,与 ex_post_windows 反向同源);events=窗内观测'
                      '对其前值的变动点(date=序列值变更日=生效日,'
                      'decision_date=决议日;前值可在窗启前一格);net_bp='
-                     '窗首尾观测差(bp)。政策路径月频证据只能支持同步时,'
-                     '先后未定须在正文如实写明;决议日/生效日/市场观测日/'
-                     '统计窗口终点分列见 policy_dates。')}
+                     '变动点之和=窗启时在值→窗末观测之差(bp);窗启时在值='
+                     '窗内首观测的前值(其观测日可在窗启之前,该值在窗启时'
+                     '仍在生效;窗内首观测即序列首观测时取其自身)。'
+                     '政策路径月频证据只能支持同步时,先后未定须在正文如实'
+                     '写明;决议日/生效日/市场观测日/统计窗口终点分列见 '
+                     'policy_dates。'
+                     + (f'逐变动点舍入合计 {net_sum:+d}bp 与窗启时在值→'
+                        f'窗末首尾差 {net_ends:+d}bp 相差 '
+                        f'{abs(net_sum - net_ends)}bp(月均序列逐点舍入)。'
+                        if net_sum != net_ends else ''))}
 
 
-def point_values(plan, snap, root):
+def point_values(plan, snap, root, carry_policy_start=None):
     """对照点值: per region/dimension/metric × anchor。
 
     Audit-R19 任务1 双纪律:
@@ -1677,8 +1708,14 @@ def point_values(plan, snap, root):
       yoy_status='no_same_period_base'+derived_yoy_pct=None+另列最近有效
       同比及月份(latest_valid_yoy)——13 个月变化不得写成同比。
     序列不可得→ absent+缺什么注记(不编造)。返回
-    {'cells': [...], 'absent': [...], 'asset_universe': [...]}。"""
+    {'cells': [...], 'absent': [...], 'asset_universe': [...]}。
+    carry_policy_start: 政策一年窗路径净变动口径(None=按运行级证据口径
+    在场与否判:r32 截止规则在取数入口在场→窗启时在值→窗末=变动点之和;
+    旧档/无快照口径不变,见 _policy_window_path)。"""
     cells, absent = [], []
+    if carry_policy_start is None:
+        import evidence_gate as _eg
+        carry_policy_start = bool(_eg.evidence_asof())
     mids = list(dict.fromkeys(plan['metrics'] + plan.get('context_metrics', [])))
     series_cache = {}
     for mid in mids:
@@ -1711,7 +1748,8 @@ def point_values(plan, snap, root):
                        'policy_face': cell.get('policy_face')}
                 if cell.get('policy_face'):
                     wp = _policy_window_path(dates, values, plan['cutoff'],
-                                             metric_id=mid)
+                                             metric_id=mid,
+                                             carry_start=carry_policy_start)
                     if wp:
                         row['policy_window_path'] = wp
                 for a in plan['point_anchors']:
@@ -2626,6 +2664,39 @@ def _distinguishing_obs(rj, cutoff, metric_id):
     return f"(引擎当前面: {dates[k1]}={v1:g})"
 
 
+_ANCHOR_CALIBER_STD = ('- 口径: 三个对照时点=日历点锚(截止日−12月/−3月/最新一期);'
+                       '「随后3、6、12个月」=事件后偏移(转折/类比基准日+N月)'
+                       '——两类时间含义不同,分记不混同')
+_CN_COUNT = {1: '一', 2: '两', 3: '三', 4: '四', 5: '五', 6: '六',
+             7: '七', 8: '八', 9: '九', 10: '十'}
+
+
+def _anchor_caliber_line(point_anchors):
+    """「口径」行的对照时点段=按实际点锚渲染(Audit-R32 真跑验收: 两锚
+    问句「6个月前/最新一期」「3个月前/最新一期」曾被写成固定的三个对照
+    时点)。标准三锚(12个月前/3个月前/最新一期)=原文逐字;其余=点数与
+    逐锚描述(相对锚=截止日−N个月,显式年月锚=该年月,当期=最新一期)。"""
+    pas = point_anchors or []
+    std = [(12, '12个月前'), (3, '3个月前'), (0, '最新一期')]
+    got = [(a.get('months_before'), a.get('label')) for a in pas]
+    if not pas or got == std:
+        return _ANCHOR_CALIBER_STD
+    desc = []
+    for a in pas:
+        mb, lab = a.get('months_before'), str(a.get('label') or '')
+        if not mb:
+            desc.append('最新一期')
+        elif lab == f'{mb}个月前':
+            desc.append(f'截止日−{mb}个月')
+        else:
+            desc.append(lab)
+    n = len(pas)
+    num = _CN_COUNT.get(n, str(n))
+    return (f'- 口径: {num}个对照时点=日历点锚({"/".join(desc)});'
+            '「随后3、6、12个月」=事件后偏移(转折/类比基准日+N月)'
+            '——两类时间含义不同,分记不混同')
+
+
 def render_map_report(rj, judgment_doc, review_state=None, root=None):
     """MAP_REPORT.md 正文(读者可直读可核查: 关键数字附来源/单位/实际观测日)。
 
@@ -2676,17 +2747,33 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         _diff = (';与快照 target_date %s 不一致,以问题声明为准'
                  % _asd.get('snapshot_target_date')
                  if _asd.get('differs_from_snapshot') else '')
+        # r32 报告点名研究截止日(夹紧形: 请求月末≠截止日,「该时点」
+        # 所指不明);旧档(无 evidence_gate)文本不变=字节不变
+        _bind = (f"本报告全部窗口/锚点/政策面绑定研究截止日 "
+                 f"{_asd.get('as_of')}"
+                 if _r32_hdr and _asd.get('as_of') else
+                 "本报告全部窗口/锚点/政策面绑定该时点")
         lines.append(f"- 研究时点口径: {_asd.get('basis')}{_diff}——"
-                     "本报告全部窗口/锚点/政策面绑定该时点(数据=当时"
-                     "已发布面,后来发布的数据不回填)")
+                     f"{_bind}(数据=当时已发布面,后来发布的数据不回填)")
     # Audit-R32 任务1: 请求月末 vs 实际覆盖日(月末未到=只交截至实际日期
     # 的结果)+证据口径行——只在 r32 字段在场时渲染(旧档重渲字节不变)
     if isinstance(_asd, dict) and _asd.get('clamped_to_coverage'):
-        lines.append(
-            f"- 请求月末/实际覆盖日: 请求 {_asd.get('requested_month_end')}"
-            f" | 快照实际覆盖 {_asd.get('actual_coverage_date')} | 研究"
-            f"截止日={_asd.get('as_of')}——月末未到/数据未到,本报告=截至"
-            "实际日期的结果(非请求月末的完整结果)")
+        if _asd.get('requested_month_end'):
+            lines.append(
+                f"- 请求月末/实际覆盖日: 请求 "
+                f"{_asd.get('requested_month_end')}"
+                f" | 快照实际覆盖 {_asd.get('actual_coverage_date')} | 研究"
+                f"截止日={_asd.get('as_of')}——月末未到/数据未到,本报告=截至"
+                "实际日期的结果(非请求月末的完整结果)")
+        else:
+            # 显式时点标记晚于覆盖日(非月末形): 同一夹紧规则,按请求时点
+            # 披露(请求月末缺席不得渲成 None)
+            lines.append(
+                f"- 请求研究时点/实际覆盖日: 请求 "
+                f"{_asd.get('requested_as_of')}"
+                f" | 快照实际覆盖 {_asd.get('actual_coverage_date')} | 研究"
+                f"截止日={_asd.get('as_of')}——请求时点未到/数据未到,本报告="
+                "截至实际日期的结果(非请求时点的完整结果)")
     elif (_r32_hdr and isinstance(_asd, dict)
           and _asd.get('bare_year_month')):
         lines.append(
@@ -2707,12 +2794,38 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
             + (' | 历史截止视图: 晚观测/晚发布/当时不可得数据版本不入'
                '证据面;历史类比的事后结果已标注(事后≠当时可知,事后≠预测)'
                if _eg_hdr.get('historical_view') else ' | 快照版本日口径'))
-    lines.append('- 口径: 三个对照时点=日历点锚(截止日−12月/−3月/最新一期);'
-                 '「随后3、6、12个月」=事件后偏移(转折/类比基准日+N月)'
-                 '——两类时间含义不同,分记不混同')
+        # Audit-R32 真跑修复: 信封/report.md 载 gate_a 状态而读者页零披露——
+        # 证据口径行后渲数据门总体状态与名单(按 snapshot_id 定位的运行快照,
+        # 不跨快照取数);快照不在场=如实缺席注记。旧档(无 evidence_gate)
+        # 不渲染=字节不变
+        _ga_r = (_snap_r.get('gate_a') if isinstance(_snap_r, dict) else None)
+        if isinstance(_ga_r, dict) and _ga_r.get('status'):
+
+            def _gl(_k):
+                return '、'.join(_ga_r.get(_k) or []) or '无'
+            lines.append(
+                f"- 数据门(Gate A,源快照采集面): {_ga_r.get('status')}——核心缺口 "
+                f"{_gl('core_missing')} | 核心失败 {_gl('core_fail')} | 非核心"
+                f"失败 {_gl('noncore_fail')} | 非核心缺席 {_gl('noncore_missing')}"
+                f" | 非核心降级 {_gl('noncore_degraded')}"
+                "——缺席/降级数据不得进入研究结论;逐指标注记见快照 "
+                "gate_a.noncore_missing_detail,信封步状态见步骤台账")
+        elif _snap_note:
+            lines.append(f"- 数据门(Gate A): {_snap_note}(总体状态不跨快照"
+                         "取数,如实缺席)")
+    # r32 报告按实际点锚渲染对照时点口径(两锚问句不写三个对照时点);
+    # 旧档(无 evidence_gate)=原文逐字
+    lines.append(_anchor_caliber_line(rp.get('point_anchors'))
+                 if _r32_hdr else _ANCHOR_CALIBER_STD)
+    # Audit-R32 真跑修复: 裁决缺席时同页两处表述矛盾(分工行写「经独立语义
+    # 审查」而审查面写「独立席位待裁」)——r32 报告按裁决在场与否如实渲染;
+    # 旧档(无 evidence_gate)=原文逐字
+    _div_tail = (('经独立语义审查)' if (review_state or {}).get('verdict')
+                 else '独立语义审查待裁)')
+                if _r32_hdr else '经独立语义审查)')
     lines.append('- 分工: 表格与数值=引擎确定性面(每格附实际观测日);'
                  '判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,'
-                 '经独立语义审查)')
+                 + _div_tail)
     lines.append('')
     # ── Audit-R26 验收: 数据面缺口三类 → 首页明确标草稿(渲染/阻断共源) ──
     _planned0 = {
@@ -3135,12 +3248,15 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
             ev_txt = (';'.join(f"{e.get('date')}: {e.get('from')}→"
                                f"{e.get('to')}({e.get('delta_bp'):+d}bp)"
                                for e in ev) or '窗内无变动')
+            # 窗启时在值的来源观测(r32 变动点之和口径才带该键;旧档无=不变)
+            _ws = (f";窗启时在值取 {wp['window_start_observation']} 观测"
+                   if wp.get('window_start_observation') else '')
             lines.append(f"- **政策一年窗路径** {c.get('display_name')}: "
                          f"窗 {wp.get('window')[0]}..{wp.get('window')[1]},"
                          f"变动点 {ev_txt},净变动 "
                          f"**{wp.get('net_bp'):+d}bp**"
                          f"({wp.get('window_start_value')}→"
-                         f"{wp.get('window_end_value')})。"
+                         f"{wp.get('window_end_value')}{_ws})。"
                          f"{wp.get('note')}")
             # Audit-R22 任务2: 事件行补决议日→生效日间隔(逐事件可核)
             for e in ev:

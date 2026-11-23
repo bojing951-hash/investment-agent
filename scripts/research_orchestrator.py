@@ -1560,8 +1560,16 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
         if _as_of is not None and _as_of != _qd:
             _src_td = str(_eg_blk.get('source_target_date') or '')
             if _q_asof_iso and str(_q_asof_iso)[:10] > _eg_asof:
-                _asof_note = (f';问题声明研究时点 {str(_q_asof_iso)[:10]} '
-                              f'晚于快照实际覆盖日 {_eg_asof}(月末未到/'
+                _q_iso = str(_q_asof_iso)[:10]
+                import calendar as _cal
+                try:        # 月末形(裸年月时点化)与非月末显式时点分写
+                    _me = (int(_q_iso[8:10]) == _cal.monthrange(
+                        int(_q_iso[:4]), int(_q_iso[5:7]))[1])
+                except ValueError:
+                    _me = False
+                _asof_note = (f';问题声明研究时点 {_q_iso} '
+                              f'晚于快照实际覆盖日 {_eg_asof}'
+                              f'({"月末未到" if _me else "请求时点未到"}/'
                               f'数据未到)——研究截止日取实际覆盖日'
                               f'(证据口径已截止)')
             elif _q_asof_iso:
@@ -2048,14 +2056,26 @@ def _resolve_evidence_asof(question, root, reg_by_id, metric_ids,
             'requested_as_of': req, 'requested_basis': basis,
             'clamped_to_coverage': False}
     if req and req > coverage_iso:
+        _rm = req if basis and '裸年月' in basis else None
         info.update(clamped_to_coverage=True,
-                    requested_month_end=req if basis and '裸年月' in basis
-                    else None,
+                    requested_month_end=_rm,
                     actual_coverage_date=coverage_iso,
                     note=('问句请求的研究时点 %s 晚于快照实际覆盖日 %s'
-                          '(月末未到/数据未到)——研究截止日取实际覆盖日,'
-                          '交付为截至实际日期的结果(非请求月末的完整结果)'
-                          % (req, coverage_iso)))
+                          '(%s)——研究截止日取实际覆盖日,'
+                          '交付为截至实际日期的结果(非请求%s的完整结果)'
+                          % (req, coverage_iso,
+                             '月末未到/数据未到' if _rm
+                             else '请求时点未到/数据未到',
+                             '月末' if _rm else '时点')))
+        if _rm:
+            # 真跑验收(Audit-R32 任务4): 夹紧形的口径文字里请求月末只称
+            # 「请求研究时点」——研究截止日=实际覆盖日(计划/读者报告/报告/
+            # 席位信封/归档同读 basis;不得把请求月末写成研究截止日)
+            info['requested_basis'] = (
+                f'{basis.split(" 按月末时点化为", 1)[0]} 按月末时点化为'
+                f'请求研究时点 {req}(晚于快照实际覆盖日 {coverage_iso})'
+                f'→研究截止日取实际覆盖日 {coverage_iso},与单一相对回看窗'
+                '合并(一个截止日+一个回看窗;真冲突组合仍拒绝)')
         return coverage_iso, info
     if req:
         info['note'] = '问句声明研究时点 %s' % req
@@ -2233,8 +2253,11 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
                     'differs_from_snapshot': bool(
                         _snap_td != _asof_dec if _snap_td else True)}
         if _snap0 is not None:
+            # 政策一年窗路径净变动口径随运行级证据口径(r32=窗启时在值→
+            # 窗末=变动点之和;无 evidence_gate 的旧口径不变)
             research_plan['point_values'] = rmp.point_values(
-                research_plan, _snap0, root)
+                research_plan, _snap0, root,
+                carry_policy_start=bool(_eg_asof))
             research_plan['turning_candidates'] = rmp.turning_candidates(
                 research_plan, _snap0, root)
             # Audit-R20 任务3: 读者正文复算面——三利率共同交易日分解与
@@ -2991,10 +3014,18 @@ def _render_md(r):
     # 无 clamped_to_coverage 键,但 elif 分支会命中旧地图档→逐字节漂移)。
     _ad = ((_rp or {}).get('as_of_declared') or {})
     if _ad.get('clamped_to_coverage'):
-        lines.append(f"- 请求月末 {_ad.get('requested_month_end')} 晚于快照"
-                     f"实际覆盖日 {_ad.get('actual_coverage_date')}(月末未到/"
-                     f"数据未到)——研究截止日=实际覆盖日,交付为截至实际日期"
-                     f"的结果(非请求月末的完整结果)")
+        if _ad.get('requested_month_end'):
+            lines.append(f"- 请求月末 {_ad.get('requested_month_end')} 晚于快照"
+                         f"实际覆盖日 {_ad.get('actual_coverage_date')}"
+                         f"(月末未到/数据未到)——研究截止日=实际覆盖日,交付为"
+                         f"截至实际日期的结果(非请求月末的完整结果)")
+        else:
+            # 显式时点标记晚于覆盖日(非月末形): 同一夹紧规则,按请求时点
+            # 披露(请求月末缺席不得渲成 None)
+            lines.append(f"- 请求研究时点 {_ad.get('requested_as_of')} 晚于"
+                         f"快照实际覆盖日 {_ad.get('actual_coverage_date')}"
+                         f"(请求时点未到/数据未到)——研究截止日=实际覆盖日,"
+                         f"交付为截至实际日期的结果(非请求时点的完整结果)")
     elif (_ad.get('bare_year_month') and _ad.get('as_of')
           and isinstance(_eg, dict) and _eg.get('as_of')):
         lines.append(f"- 问句含裸年月 {_ad.get('bare_year_month')} 但相对"

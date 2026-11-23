@@ -2966,9 +2966,12 @@ def _render_md(r):
                      f" / 剔除 {_c.get('facts_dropped')}+版本 "
                      f"{_c.get('facts_excluded_version')} | 序列剔观测 "
                      f"{_c.get('series_observations_dropped')} | 版本不可得"
-                     f"剔除 {_c.get('series_excluded_version')} 条"
+                     f"剔除 "
+                     f"{_c.get('series_observations_version_unavailable')}"
+                     f" 个观测"
                      + (' | 历史截止(晚观测/晚发布/当时不可得版本不入证据面)'
-                        if _eg.get('historical_view') else ' | 快照版本日'))
+                        if _eg.get('historical_view')
+                        else ' | 快照版本日口径(截止日=快照版本日)'))
         _ex = list(((_eg.get('vintage') or {}).get('excluded_series')) or [])
         if _ex:
             lines.append(f"  - 序列无可引用观测(已自证据面剔除): "

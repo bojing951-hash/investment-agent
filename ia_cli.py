@@ -1667,7 +1667,8 @@ def _r1_report_core_pinned(args, engine_root, pins):
             f"{_c_hdr.get('facts_excluded_version')} | 序列剔观测 "
             f"{_c_hdr.get('series_observations_dropped')}"
             + (' | 历史截止(晚观测/晚发布/当时不可得版本不入证据面)'
-               if _eg_hdr.get('historical_view') else ' | 快照版本日'))
+               if _eg_hdr.get('historical_view')
+               else ' | 快照版本日口径(截止日=快照版本日)'))
     lines += ['', '## L1 事实层(引擎确定性产出)', '',
              '| 指标 | 值 | 单位 | 观测日 | 质量 | 证据 ref |',
              '|---|---|---|---|---|---|']

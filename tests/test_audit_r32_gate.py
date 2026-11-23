@@ -319,6 +319,34 @@ def sec_a():
           and bool(seen.get('cal'))
           and all(os.environ.get(k) is None for k in aj._PIN_ENV_KEYS),
           f'seen={ {k: bool(v) for k, v in seen.items()} }')
+    # A2h 读者面证据口径行(report.md): 版本不可得计数=evidence_gate.counts
+    # 的整数观测数(渲染键与计数键同名;读不存在的键=「None 条」——真跑
+    # AUG 复验时发现);非历史截止视图收尾不留悬空「快照版本日」
+    import copy
+    _nv = (egb.get('counts') or {}).get(
+        'series_observations_version_unavailable')
+
+    def _hdr(md_):
+        return [ln for ln in md_.splitlines()
+                if '研究截止日(证据口径 r32)' in ln]
+    _h1 = _hdr(md)
+    _rep2 = copy.deepcopy(rep)
+    _rep2['run']['evidence_gate']['historical_view'] = False
+    _h2 = _hdr(ro._render_md(_rep2))
+    check('§A2h report.md 证据口径行: 版本不可得剔除=整数观测数(%s 个'
+          '观测)、无「None」;历史截止视图尾注在位' % _nv,
+          isinstance(_nv, int)
+          and len(_h1) == 1
+          and ('版本不可得剔除 %d 个观测' % _nv) in _h1[0]
+          and 'None' not in _h1[0]
+          and _h1[0].rstrip().endswith('当时不可得版本不入证据面)'),
+          _h1[0] if _h1 else md[:300])
+    check('§A2i 同一行在快照版本日口径(非历史截止)收尾=「快照版本日口径'
+          '(截止日=快照版本日)」,无悬空词、无「None」',
+          len(_h2) == 1
+          and _h2[0].rstrip().endswith('快照版本日口径(截止日=快照版本日)')
+          and 'None' not in _h2[0],
+          _h2[0] if _h2 else 'no header')
     # A3 真 CLI 步命令(history/overview/changes)在钉死环境下读截止视图
     env = {'IA_SNAPSHOT_PIN': os.path.join(
                t, 'data', 'daily', 'research_snapshot_20261122_v2.json'),
@@ -900,6 +928,16 @@ def sec_c():
           rc2 == 0 and dd2.get('deliverable') is True
           and dd2.get('blocked_class') is None and map_a == map_b,
           f"rc2={rc2} dd2={ {k: dd2.get(k) for k in ('deliverable', 'blocked_class', 'blocked')} } eq={map_a == map_b}")
+    _fp = open(os.path.join(rd4, 'FULL_REPORT.md'), encoding='utf-8').read()
+    _fh = [ln for ln in _fp.splitlines() if '研究截止日(证据口径 r32)' in ln]
+    check('§C4b2 FULL_REPORT 证据口径行(快照版本日口径,report 阶段重渲): '
+          '尾注完整,无「None」/悬空「快照版本日」',
+          len(_fh) == 1
+          and _fh[0].rstrip().endswith('快照版本日口径(截止日=快照版本日)')
+          and 'None' not in _fh[0]
+          and not any(ln.rstrip().endswith('| 快照版本日')
+                      for ln in _fp.splitlines()),
+          _fh[0] if _fh else _fp[:300])
     arc = os.path.join(TMPG, 'arc_swap')
     rc3, d3 = cli('archive', rd4, T4, arc=arc)
     man3 = json.load(open(os.path.join(arc, 'ARCHIVE_MANIFEST.json'),

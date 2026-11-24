@@ -1022,6 +1022,77 @@ def sec_t2():
 
 
 
+# ══ 任务1 更正: 旧工单重渲染零漂移 ═══════════════════════════════════════
+# 入库运行档的读者报告(已裁/待裁两形)按现行代码重渲染,哈希须与清单逐项
+# 一致——清单由审计基线 f053afe 代码对同一批入库档生成(tests/fixtures_r33/
+# legacy_render_sha.json;渲染与路径无关)。任何令旧工单正文变化的改动在此
+# 拦下(任务1 首版 ecba122 曾令 R26 旧工单多出「政策文档事实」表)。
+LEGACY_MANIFEST = os.path.join(HERE, 'fixtures_r33', 'legacy_render_sha.json')
+_DECIDED_RE = re.compile(r'^- 席位已裁: (\S+)\(裁决链 (\d+) 档\)', re.M)
+
+
+def _legacy_renders(keys=None):
+    """→ {运行档相对路径#已裁|待裁: sha256[:16]}(只渲染清单在场的运行档)。"""
+    want = {k.split('#')[0] for k in (keys or ())}
+    out = {}
+    acc = os.path.join(ROOT, 'docs', 'autonomous-rd')
+    for mp in sorted(glob.glob(acc + '/**/MAP_REPORT.md', recursive=True)):
+        d = os.path.dirname(mp)
+        rel = os.path.relpath(d, ROOT)
+        if want and rel not in want:
+            continue
+        if not (os.path.isfile(os.path.join(d, 'report.json'))
+                and os.path.isfile(os.path.join(d, 'agent_judgment.json'))):
+            continue
+        rj = json.load(open(os.path.join(d, 'report.json'), encoding='utf-8'))
+        jd = json.load(open(os.path.join(d, 'agent_judgment.json'),
+                            encoding='utf-8'))
+        m = _DECIDED_RE.search(open(mp, encoding='utf-8').read())
+        root = (os.path.join(d, 'root_overlay')
+                if os.path.isdir(os.path.join(d, 'root_overlay')) else None)
+        forms = ([('decided', {'verdict': m.group(1),
+                                'verdicts_n': int(m.group(2))})] if m else []) \
+            + [('pending', None)]
+        for form, rs in forms:
+            new = rmp.render_map_report(rj, jd, rs, root)
+            out[rel + '#' + form] = hashlib.sha256(
+                new.encode('utf-8')).hexdigest()[:16]
+    return out
+
+
+def sec_t1_h():
+    print('§T1-h 任务1 更正: 旧工单重渲染零漂移(基线代码清单逐项比对)')
+    check('§T1-h0 基线代码重渲染清单在场', os.path.isfile(LEGACY_MANIFEST))
+    if not os.path.isfile(LEGACY_MANIFEST):
+        return
+    man = json.load(open(LEGACY_MANIFEST, encoding='utf-8'))
+    check('§T1-h1 清单覆盖 r20–r32 入库运行档(≥ 60 项)',
+          len(man) >= 60, len(man))
+    got = _legacy_renders(man.keys())
+    miss = sorted(k for k in man if k not in got)
+    bad = sorted(k for k in man if k in got and got[k] != man[k])
+    check('§T1-h2 清单内运行档全部在场', not miss, miss[:3])
+    check('§T1-h3 旧工单正文逐项零漂移(已裁+待裁两形)', not bad, bad[:3])
+    # 定点: R26 旧工单(计划带政策文档事实、无扣留键、无政策行)
+    d = os.path.join(ROOT, 'docs', 'autonomous-rd', 'r26-evidence',
+                     'session-b-run_dir')
+    rj = json.load(open(os.path.join(d, 'report.json'), encoding='utf-8'))
+    jd = json.load(open(os.path.join(d, 'agent_judgment.json'),
+                        encoding='utf-8'))
+    rp = rj.get('research_plan') or {}
+    check('§T1-h4 定点旧档=计划带政策文档事实而无扣留键(旧口径)',
+          bool(rp.get('policy_doc_facts'))
+          and 'policy_doc_withheld' not in rp)
+    legacy = rmp.render_map_report(rj, jd, None)
+    check('§T1-h5 旧口径档: 政策面缺席分支零新增行(无政策文档事实表)',
+          '政策文档事实' not in legacy)
+    rj2 = copy.deepcopy(rj)
+    rj2['research_plan']['policy_doc_withheld'] = []
+    new = rmp.render_map_report(rj2, jd, None)
+    check('§T1-h6 新口径档(计划带扣留键): 政策面缺席仍列可见文档清单',
+          '**政策文档事实(公告/纪要发布日)**' in new)
+
+
 def main():
     print('Audit-R33 门 (HEAD %s)' % WORKTREE_HEAD[:12])
     try:
@@ -1033,6 +1104,7 @@ def main():
         sec_t1_e()
         sec_t1_f()
         sec_t1_g()
+        sec_t1_h()
     finally:
         n_ok = sum(1 for x in RESULTS if x)
         n = len(RESULTS)

@@ -3332,8 +3332,11 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         lines.append('')
     else:
         # Audit-R33 任务1: 政策面整段缺席时政策文档两清单仍如实列出(不因
-        # 分支静默;旧档无 policy_doc_withheld 键=零新增行)
-        lines += _policy_doc_lines()
+        # 分支静默)。仅新口径计划入场(计划带 policy_doc_withheld 键=
+        # 经发布日期过滤的两清单);旧档无此键=原语义零新增行(任务1
+        # 更正: ecba122 曾令 R26 旧工单重渲染多出可见表)。
+        if 'policy_doc_withheld' in rp:
+            lines += _policy_doc_lines()
 
     # 美债三利率共同交易日分解(任务3复算面;R21 任务4: 年度判断=同窗年度
     # 分解打头,月度另列;两窗任一历史不足即显示历史不足不出数)

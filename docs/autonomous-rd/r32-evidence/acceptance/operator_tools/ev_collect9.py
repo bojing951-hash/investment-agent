@@ -858,7 +858,10 @@ OPERATOR_TOOLS = ['fold_x.sh', 'fold_y.sh', 'fold_y2.sh', 'seatlib_r32.py', 'dry
                   'doctor_y.sh', 'doctor_w.sh', 'doctor_v.sh', 'mk_receipt.py', 'mk_receipt6.py', 'mk_receipt8.py',
                   'mk_receipt9.py', 'gen_docs9.py', 'fix_dryrun_new30.sh',
                   'z_deliver.sh', 'w_deliver.sh', 'v_deliver.sh', 'z_replay.sh', 'w_replay.sh', 'v_replay.sh',
-                  'w_stage.sh', 'v_stage.sh', 'zdry.sh', 'zmapdiff.py', 'zsumm.py', 'carry_yz.py']
+                  'w_stage.sh', 'v_stage.sh', 'zdry.sh', 'zmapdiff.py', 'zsumm.py', 'carry_yz.py',
+                  # receipt / correction round: CI wait, PR comment, re-download replays at the correction commit
+                  'ci_wait.sh', 'scan_pr_text.py', 'pr_comment.sh',
+                  'chain_C.sh', 'chain_C2.sh', 'summ_r32v_c.py', 'xgen_cmp.py']
 
 
 def section_folds():

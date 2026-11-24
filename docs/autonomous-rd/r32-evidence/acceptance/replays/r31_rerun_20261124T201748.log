@@ -1,0 +1,6 @@
+=== r31_rerun (B2 alone, after the batch run aborted on the audit-baseline fetch) sha=12edab84aeebc7f765b9a06ddc382ef0c0efa39e
+reason: r31_all_20261124T195313.log — session_B2_formal end rc=128 (five fetch attempts failed); console of that attempt kept in the session dir as console_attempt1_aborted_network.log
+command: zsh scripts/redl_r31.sh 12edab84aeebc7f765b9a06ddc382ef0c0efa39e session_B2_formal B2dl   (no other process running)
+=== R32 从提交重下 R31 入库包重放 2026-11-24 20:17:48 sha=12edab84aeebc7f765b9a06ddc382ef0c0efa39e session=session_B2_formal ===
+=== 毕 2026-11-24 20:18:02 session=session_B2_formal ===
+rc=0 (as reported by the launching shell when the run ended)

@@ -14,6 +14,9 @@
 #   [5] 引擎=包记录运行版本(git archive manifest.run_code_git_head+印章, R31 D2
 #       同法): 三包同法, 七步重放(replay_real_r32.sh: 严格/换本地日历/独立引擎
 #       目录/重复/缺件/篡改/清单单侧改写; 控制台标题沿用「六步」字样)
+#   [1b] 取参照提交(审计基线 72dab1c 树清单、包记录的运行 SHA 供引擎 git archive): https 与 ssh
+#        交替重试(公共主机 https 端点时常连接超时;对象按内容寻址,两种传输取到同一对象),控制台
+#        记明所用传输
 # 产物在 /tmp/r32-accept/redl/<sha7>/r31_<session>/ 下, console.log 为总回执.
 # 引擎目录按提交共用: /tmp/r32-accept/redl/engine_<sha7>.
 set -eu
@@ -30,12 +33,20 @@ ENGINE=/tmp/r32-accept/redl/engine_$SHA7
 mkdir -p "$D"
 cd "$D"
 
-fetch_sha() {  # fetch_sha <sha> <label>: fetch one commit (depth 1) with retries; the public host times out at times
-  local sha="$1" label="$2" i
+SSH_URL=git@github.com:bojing951-hash/investment-agent.git
+fetch_sha() {  # fetch_sha <sha> <label>: fetch one commit (depth 1). The public host's https endpoint times out
+               # at times (connect timeouts of 75 s), so the attempts alternate https (origin) and ssh; the
+               # fetched object is the same either way (object ids are content-addressed). The transport used
+               # is written to the console.
+  local sha="$1" label="$2" i url via
   for i in 1 2 3 4 5; do
-    if git -C src fetch -q --depth 1 origin "$sha" 2> "fetch_$label.err"; then return 0; fi
-    echo "fetch of the $label ($sha) attempt $i failed: $(tail -1 "fetch_$label.err" | cut -c1-160)" | tee -a console.log
-    [ "$i" -lt 5 ] && sleep 20
+    if [ $((i % 2)) -eq 1 ]; then url=origin; via=https; else url="$SSH_URL"; via=ssh; fi
+    if git -c core.sshCommand='ssh -o ConnectTimeout=25 -o BatchMode=yes' -C src fetch -q --depth 1 "$url" "$sha" 2> "fetch_$label.err"; then
+      echo "fetch of the $label ($sha): ok over $via (attempt $i)" | tee -a console.log
+      return 0
+    fi
+    echo "fetch of the $label ($sha) attempt $i ($via) failed: $(tail -1 "fetch_$label.err" | cut -c1-160)" | tee -a console.log
+    [ "$i" -lt 5 ] && sleep 15
   done
   return 1
 }

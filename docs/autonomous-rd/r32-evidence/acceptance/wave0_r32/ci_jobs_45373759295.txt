@@ -1,0 +1,5 @@
+run 45373759295 | head b7ff06bfc0f5ea1265a3e65100a57aa0c45093ed (receipt commit, docs-only) | workflow offline-tests | completed / success | created 2026-11-24T10:19:55Z
+run 45373759295 | total_count 3
+  job 138374385618 | gates | completed / success | 2026-11-24T10:19:58Z -> 2026-11-24T10:20:05Z
+  job 138374386259 | tests (3.12) | completed / success | 2026-11-24T10:19:58Z -> 2026-11-24T10:27:05Z
+  job 138374386333 | tests (3.11) | completed / success | 2026-11-24T10:20:00Z -> 2026-11-24T10:26:30Z

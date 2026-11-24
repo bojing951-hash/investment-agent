@@ -1,0 +1,82 @@
+12edab8/r31_session_A4_formal
+  archived MAP_REPORT.md sha16=811b161d05f3206b
+  20261124T195319 strict                       rendered sha16=811b161d05f3206b render_mode=byte_equal == archived
+  20261124T195319 calendar-swapped             rendered sha16=811b161d05f3206b render_mode=byte_equal == archived
+  20261124T195319 engine-dir-minus-one-entry   rendered sha16=811b161d05f3206b render_mode=byte_equal == archived
+  20261124T195319 repeat                       rendered sha16=811b161d05f3206b render_mode=byte_equal == archived
+12edab8/r31_session_B2_formal
+  archived MAP_REPORT.md sha16=10a11da6990be845
+  20261124T201752 strict                       rendered sha16=10a11da6990be845 render_mode=byte_equal == archived
+  20261124T201752 calendar-swapped             rendered sha16=10a11da6990be845 render_mode=byte_equal == archived
+  20261124T201752 engine-dir-minus-one-entry   rendered sha16=10a11da6990be845 render_mode=byte_equal == archived
+  20261124T201752 repeat                       rendered sha16=10a11da6990be845 render_mode=byte_equal == archived
+12edab8/r31_session_NEW30
+  archived MAP_REPORT.md sha16=30107dccb40e0852
+  20261124T200017 strict                       rendered sha16=30107dccb40e0852 render_mode=byte_equal == archived
+  20261124T200017 calendar-swapped             rendered sha16=30107dccb40e0852 render_mode=byte_equal == archived
+  20261124T200017 engine-dir-minus-one-entry   rendered sha16=30107dccb40e0852 render_mode=byte_equal == archived
+  20261124T200017 repeat                       rendered sha16=30107dccb40e0852 render_mode=byte_equal == archived
+12edab8/r32v_session_A_formal
+  archived MAP_REPORT.md sha16=b19b007c2ecbf1e0
+  20261124T194033 strict                       rendered sha16=b19b007c2ecbf1e0 render_mode=byte_equal == archived
+  20261124T194033 calendar-swapped             rendered sha16=b19b007c2ecbf1e0 render_mode=byte_equal == archived
+  20261124T194033 engine-dir-minus-one-entry   rendered sha16=b19b007c2ecbf1e0 render_mode=byte_equal == archived
+  20261124T194033 repeat                       rendered sha16=b19b007c2ecbf1e0 render_mode=byte_equal == archived
+12edab8/r32v_session_B_formal
+  archived MAP_REPORT.md sha16=b9b0916548473b2c
+  20261124T194203 strict                       rendered sha16=b9b0916548473b2c render_mode=byte_equal == archived
+  20261124T194203 calendar-swapped             rendered sha16=b9b0916548473b2c render_mode=byte_equal == archived
+  20261124T194203 engine-dir-minus-one-entry   rendered sha16=b9b0916548473b2c render_mode=byte_equal == archived
+  20261124T194203 repeat                       rendered sha16=b9b0916548473b2c render_mode=byte_equal == archived
+12edab8/r32v_session_NEW30
+  archived MAP_REPORT.md sha16=c33dc7dc8f961e22
+  20261124T194139 strict                       rendered sha16=c33dc7dc8f961e22 render_mode=byte_equal == archived
+  20261124T194139 calendar-swapped             rendered sha16=c33dc7dc8f961e22 render_mode=byte_equal == archived
+  20261124T194139 engine-dir-minus-one-entry   rendered sha16=c33dc7dc8f961e22 render_mode=byte_equal == archived
+  20261124T194139 repeat                       rendered sha16=c33dc7dc8f961e22 render_mode=byte_equal == archived
+12edab8/r32v_session_T3_formal
+  archived MAP_REPORT.md sha16=56dea8f77346d464
+  20261124T194107 strict                       rendered sha16=56dea8f77346d464 render_mode=byte_equal == archived
+  20261124T194107 calendar-swapped             rendered sha16=56dea8f77346d464 render_mode=byte_equal == archived
+  20261124T194107 engine-dir-minus-one-entry   rendered sha16=56dea8f77346d464 render_mode=byte_equal == archived
+  20261124T194107 repeat                       rendered sha16=56dea8f77346d464 render_mode=byte_equal == archived
+f46fdcb/r31_session_A4_formal
+  archived MAP_REPORT.md sha16=811b161d05f3206b
+  20261124T175448 strict                       rendered sha16=811b161d05f3206b render_mode=byte_equal == archived
+  20261124T175448 calendar-swapped             rendered sha16=811b161d05f3206b render_mode=byte_equal == archived
+  20261124T175448 engine-dir-minus-one-entry   rendered sha16=811b161d05f3206b render_mode=byte_equal == archived
+  20261124T175448 repeat                       rendered sha16=811b161d05f3206b render_mode=byte_equal == archived
+f46fdcb/r31_session_B2_formal
+  archived MAP_REPORT.md sha16=10a11da6990be845
+  20261124T180150 strict                       rendered sha16=10a11da6990be845 render_mode=byte_equal == archived
+  20261124T180150 calendar-swapped             rendered sha16=10a11da6990be845 render_mode=byte_equal == archived
+  20261124T180150 engine-dir-minus-one-entry   rendered sha16=10a11da6990be845 render_mode=byte_equal == archived
+  20261124T180150 repeat                       rendered sha16=10a11da6990be845 render_mode=byte_equal == archived
+f46fdcb/r31_session_NEW30
+  archived MAP_REPORT.md sha16=30107dccb40e0852
+  no recording-engine work root (no replay outputs in this generation)
+f46fdcb/r32v_session_A_formal
+  archived MAP_REPORT.md sha16=b19b007c2ecbf1e0
+  20261124T175951 strict                       rendered sha16=b19b007c2ecbf1e0 render_mode=byte_equal == archived
+  20261124T175951 calendar-swapped             rendered sha16=b19b007c2ecbf1e0 render_mode=byte_equal == archived
+  20261124T175951 engine-dir-minus-one-entry   rendered sha16=b19b007c2ecbf1e0 render_mode=byte_equal == archived
+  20261124T175951 repeat                       rendered sha16=b19b007c2ecbf1e0 render_mode=byte_equal == archived
+f46fdcb/r32v_session_B_formal
+  archived MAP_REPORT.md sha16=b9b0916548473b2c
+  20261124T180134 strict                       rendered sha16=b9b0916548473b2c render_mode=byte_equal == archived
+  20261124T180134 calendar-swapped             rendered sha16=b9b0916548473b2c render_mode=byte_equal == archived
+  20261124T180134 engine-dir-minus-one-entry   rendered sha16=b9b0916548473b2c render_mode=byte_equal == archived
+  20261124T180134 repeat                       rendered sha16=b9b0916548473b2c render_mode=byte_equal == archived
+f46fdcb/r32v_session_NEW30
+  archived MAP_REPORT.md sha16=c33dc7dc8f961e22
+  20261124T180120 strict                       rendered sha16=c33dc7dc8f961e22 render_mode=byte_equal == archived
+  20261124T180120 calendar-swapped             rendered sha16=c33dc7dc8f961e22 render_mode=byte_equal == archived
+  20261124T180120 engine-dir-minus-one-entry   rendered sha16=c33dc7dc8f961e22 render_mode=byte_equal == archived
+  20261124T180120 repeat                       rendered sha16=c33dc7dc8f961e22 render_mode=byte_equal == archived
+f46fdcb/r32v_session_T3_formal
+  archived MAP_REPORT.md sha16=56dea8f77346d464
+  20261124T180104 strict                       rendered sha16=56dea8f77346d464 render_mode=byte_equal == archived
+  20261124T180104 calendar-swapped             rendered sha16=56dea8f77346d464 render_mode=byte_equal == archived
+  20261124T180104 engine-dir-minus-one-entry   rendered sha16=56dea8f77346d464 render_mode=byte_equal == archived
+  20261124T180104 repeat                       rendered sha16=56dea8f77346d464 render_mode=byte_equal == archived
+XGEN_RESULT: MISMATCH (mismatches=1)

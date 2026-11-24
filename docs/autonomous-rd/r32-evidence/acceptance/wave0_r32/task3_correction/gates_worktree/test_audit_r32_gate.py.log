@@ -1,0 +1,130 @@
+Audit-R32 门 (HEAD b7ff06bfc0f5)
+═══ §A 任务1: 统一研究截止日和证据资格 ═══
+  ✅ §A1 复现: 提交的 AUG 计划(R31 aug_plan)截止 2026-08-21 而 L1 事实 31/31、证据引用 56/56 晚于截止日(基线缺陷在档) — cutoff=2026-08-21 L1=31 late=31 EI=56 late=56
+  ✅ §A2a 截止日与回看窗: cutoff=2026-08-21,窗 2026-02-21..08-21 — cutoff=2026-08-21 win={'months': 6, 'from': '2026-02-21', 'to': '2026-08-21', 'source': '最近六个月'}
+  ✅ §A2b L1 事实零晚观测(31/31→0),证据索引零晚引用(56/56→0) — L1=35 late=0 EI=35 late=0
+  ✅ §A2c run.evidence_gate 在档: as_of/历史截止视图/源快照/逐序列末合规观测≤截止日 — as_of=2026-08-21 series=90 counts={'facts_kept': 1, 'facts_rebuilt': 85, 'facts_dropped': 19, 'facts_excluded_version': 0, 'series_observations_dropped': 3811, 'series_observations_version_unavailable': 3, 'series_excluded': 1, 'series_n': 90}
+  ✅ §A2d 规则①晚观测: 日频 2026-08-21 收盘当晚未发布→末合规 2026-08-20(SPX/USDJPY);ECB 09-16 变更日观测剔除(末 06-17) — SPX=2026-08-20 MRO=2026-06-17
+  ✅ §A2e 规则②晚发布: 8 月 CPI/HICP 观测 9 月才发布→不可引用,末合规=7 月观测(JP_CPI_YOY 1.97 于 08-20 已发布=可引用) — JP={'date': '2026-08-01', 'reason': 'late_publication', 'publish': '2026-09-20'} EA={'date': '2026-08-01', 'reason': 'late_publication', 'publish': '2026-09-16'}
+  ✅ §A2f 规则③数据版本: 注册表声明最新修订口径且无 ≤截止日快照版本——Q2 GDP 观测当时只有初值,逐点剔除(JP/EA/US_REAL_GDP reason=data_version_unavailable) — JP_GDP={'date': '2026-04-01', 'reason': 'data_version_unavailable', 'publish': '2026-08-14', 'version_available_on': '2026-09-14'}
+  ✅ §A2g S 步子进程共用同一口径: 步进程环境 IA_EVIDENCE_ASOF=2026-08-21+快照/日历钉死在位;返回后全部释放 — seen={'asof': True, 'snap': True, 'cal': True}
+  ✅ §A2h report.md 证据口径行: 版本不可得剔除=整数观测数(3 个观测)、无「None」;历史截止视图尾注在位 — - 研究截止日(证据口径 r32): 2026-08-21 | 源快照 research_snapshot_20261122_v2(版本日 2026-11-22) | 事实: 保留 1 / 重建 85 / 剔除 19+版本 0 | 序列剔观测 3811 | 版本不可得剔除 3 个观测 | 历史截止(晚观测/晚发布/当时不可得版本不入证据面)
+  ✅ §A2i 同一行在快照版本日口径(非历史截止)收尾=「快照版本日口径(截止日=快照版本日)」,无悬空词、无「None」 — - 研究截止日(证据口径 r32): 2026-08-21 | 源快照 research_snapshot_20261122_v2(版本日 2026-11-22) | 事实: 保留 1 / 重建 85 / 剔除 19+版本 0 | 序列剔观测 3811 | 版本不可得剔除 3 个观测 | 快照版本日口径(截止日=快照版本日)
+  ✅ §A3 S3/S4 真命令同口径: history SPX 末=08-20/JP_CPI_YOY 末=07-01;overview JP 与 changes 全部观测日≤08-21 — SPX=2026-08-20 JP=2026-07-01 ov_max=2026-08-20 ch_max=2026-08-20
+  ✅ §A4a gate_series 规则②: 8 月 CPI 观测(09-13 发布)剔除,6/7 月保留 — kept=['2026-06-01', '2026-07-01'] info={'n_in': 3, 'n_kept': 2, 'n_late_observation': 0, 'n_late_publication': 1, 'n_version_unavailable': 0, 'first_dropped': {'date': '2026-08-01', 'reason': 'late_publication', 'publish': '2026-09-13'}, 'last_eligible': '2026-07-01'}
+  ✅ §A4b gate_series 规则③: 声明修订序列 Q2 观测(07-29 首发,08-29 首修)当时版本不可得剔除;未声明修订=保留 — revised={'n_in': 3, 'n_kept': 1, 'n_late_observation': 0, 'n_late_publication': 1, 'n_version_unavailable': 1, 'first_dropped': {'date': '2026-04-01', 'reason': 'data_version_unavailable', 'publish': '2026-07-29', 'version_available_on': '2026-08-29'}, 'last_eligible': '2026-01-01'} plain={'n_in': 3
+  ✅ §A4c 快照版本日口径(非历史视图)=快照在场即当时可得: 105 事实零剔除零重建(周频/月频末点不按推定滞后误剔);历史截止视图=晚观测事实全数重建/剔除,零晚观测 — v0={'facts_kept': 105, 'facts_rebuilt': 0, 'facts_dropped': 0, 'facts_excluded_version': 0, 'series_observations_dropped': 0, 'series_observations_version_unavailable': 0, 'series_excluded': 0, 'series_n': 90} v1={'facts_kept': 1, 'facts_rebuilt': 85, 'facts_dropped': 19, 'facts_excluded_version': 0
+  ✅ §A5 NEW30: 请求月末 2026-11-30 晚于实际覆盖日 2026-11-22→研究截止日=实际覆盖日+两侧日期同时披露(clamped_to_coverage) — cutoff=2026-11-22 ad={'as_of': '2026-11-22', 'requested_month_end': '2026-11-30', 'actual_coverage_date': '2026-11-22', 'clamped_to_coverage': True}
+  ✅ §A6a 旧档重渲逐字节==归档 MAP_REPORT(A4 正式包,重渲 root=包内 root_overlay;新行全部 r32 门控,不漂移旧字节) — legacy=811b161d05f3 arch=811b161d05f3
+  ✅ §A6b r32 报告: 历史类比「事后结果标注」在场(候选期之后=事后实际,当时不可知≠预测);旧档无此行 — n_lines=674
+═══ §B 任务2: 历史同比与政策核验 ═══
+  ✅ §B1a 反例: 只有 13 个月前观测(2020-06)无去年同月(2020-07)→缺基期即缺证(None+no_visible_base),不以 13 个月前冒充同比 — r=None why=no_visible_base
+  ✅ §B1b 同月在场→同比=+10.0%,与主引擎 m12 同口径(同月基期);主引擎对 13 个月前反例同判缺基期(available=False) — planner=(10.0, '2021-07-01', '2021-08-13') engine_basis=2020-07-01 engine13=False
+  ✅ §B1c 季频同季: 只有 2025Q1 无 2025Q2→缺证;2025Q2 在场→+3.0% — q_missing=None why=no_visible_base q_ok=(3.0, '2026-04-01', '2026-07-29')
+  ✅ §B2a 政策事件面: JP 2026-09-18 决议/09-24 生效/目标 1.25 (实体 JP) — [{'metric_id': 'JP_POLICY_TARGET', 'decision_date': '2026-09-18', 'effective_on': '2026-09-24', 'entity': 'JP', 'target_value': 1.25, 'entry_id': 'RC-JP-BOJ-TARGET-2026-09', 'first_publish': '2026-09-18'}]
+  ✅ §B2b 用例①相对日期提前生效(as_of 09-20): 「自决议次日起生效」=09-19 早于官方 09-24→POL-EFF-REL — ['POL-EFF-REL']
+  ✅ §B2c 用例②日期齐全但提前生效: 「9月22日生效」早于官方 09-24→POL-EFF-DATE — ['POL-EFF-DATE']
+  ✅ §B2d 用例③正确待生效: 09-24 生效+尚未生效标注→零违规;成对无断言→零违规 — [] []
+  ✅ §B2d2 标签前置成对形(决议X(生效Y…)/决议X生效Y/决议日X、生效日Y)→零违规(「生效」绑定其后日期 Y=官方生效日) — [] [] [] []
+  ✅ §B2d3 标签前置但生效日提前(决议X生效Y′/决议X(生效Y′))→POL-EFF-DATE 恰一条;「X日决议生效」无生效日→POL-EFF-DATE — ['POL-EFF-DATE'] ['POL-EFF-DATE'] ['POL-EFF-DATE']
+  ✅ §B2e 待生效值写成当前值(无日期)→POL-EFF-PENDING-AS-CURRENT;生效后同一句→零违规 — ['POL-EFF-PENDING-AS-CURRENT'] []
+  ✅ §B2f 日期成对正确但断言提前(「目前」早于生效日)→POL-EFF-EARLY-CLAIM;生效后→零违规 — ['POL-EFF-EARLY-CLAIM'] []
+  ✅ §B2g 实体核验: 美联储/欧央行/中国同日文字不绑日银事件(零违规);日银决议日无生效无标注→POL-EFF(R31 既档;无 as_of 同判) — us=[] ea=[] cn=[] jp=['POL-EFF']
+  ✅ §B3a T3 路由: 地图问句+官方目标地区={EA,JP}(「两地央行」指代绑定);B 问句只绑 JP;A/NEW30 不绑 — T3=['EA', 'JP'] B=['JP']
+  ✅ §B3b 真实日历(截止 11-22): JP 目标 1.25 已生效→零缺证;EA 无日历实录但序列面决议/生效日可推→不触发;EA 不可推→缺口点名「无官方记录」(不以市场序列值冒充) — real_gaps=[] ea_noderiv=[{'region': 'EA', 'metric_id': 'ECB_MRO', 'label': '欧元区', 'note': '欧元区官方政策目标(ECB_MRO)无官方记录(日历无 policy_decision/policy_maintenance 条目)且序列面决议/生效日不可推——问句指定官方目标时现值无官方口径可依,不以市场序列值冒充宣布目标;补录官方决议实录后重跑转正(Audit-R28 任务2)'}]
+  ✅ §B3b4 可推性读数: 锚级 policy_dates(真管线形状)判可推;旧格级键兼容;当期锚非 ok(仅历史锚可推)→不可推=缺口;决议/生效缺一→不可推=缺口 — legacy=[] notok=[{'region': 'EA', 'metric_id': 'ECB_MRO', 'label': '欧元区', 'note': '欧元区官方政策目标(ECB_MRO)无官方记录(日历无 policy_decision/policy_maintenance 条目)且序列面决议/生效日不可推——问句指定官方目标时现值无官方口径可依,不以市场序列值冒充宣布目标;补录官方决议实录后重跑转正(Audit-R28 任务2)'}] half=[{'region': 'EA', 'metric_id': 'ECB_MRO', 'label': '欧元区', 'note': 
+  ✅ §B3b3 真管线回归(T3 原问×冻结快照真计划点值格): EA 政策格 policy_dates 在锚上(决议 2026-09-10/生效 2026-09-16)、格级键缺席;官方记录面零缺口、要求地区={EA,JP}(「序列+惯例可推」回退在真管线生效) — ea_cells=2 anchor_pd=2026-09-10/2026-09-16 gaps=[]
+  ✅ §B3b5 真管线对照: 抽去锚级 policy_dates(=修复前读数面)→EA 缺口点名+blocked_class=map_official_target_missing;原样→零缺口+blocked_class=None(缺口判定确由锚级读数驱动) — strip_gaps=[{'region': 'EA', 'metric_id': 'ECB_MRO', 'label': '欧元区', 'note': '欧元区官方政策目标(ECB_MRO)无官方记录(日历无 policy_decision/policy_maintenance 条目)且序列面决议/生效日不可推——问句指定官方目标时现值无官方口径可依,不以市场序列值冒充宣布目标;补录官方决议实录后重跑转正(Audit-R28 任务2)'}] bc_real=None bc_strip=map_official_target_missing
+  ✅ §B3b2 仅有待生效公告(决议 11-18/生效 12-01/目标 1.5)→gaps 点名 JP current_target_missing_evidence+待生效值/决议日/生效日 — pending=[{'region': 'JP', 'metric_id': 'JP_POLICY_TARGET', 'label': '日本', 'gap': 'current_target_missing_evidence', 'pending_target': 1.5, 'pending_decision': '2026-11-18', 'pending_effective_on': '2026-12-01', 'note': '当前官方目标缺证——研究时点 2026-11-22 无已生效决议在档,仅有待生效公告(目标 1.5,决议日 2026-11-18,生效日 2026-12-01)
+  ✅ §B3c 行级缺口同判: JP 行 current_target_missing_evidence=True+official_target=None(待生效值不入官方目标列) — rows={'EA': (None, None), 'JP': (None, 1.5)}
+  ✅ §B4a 真实管线: T3 问句×仅有待生效公告→report rc≠0+草稿交付+blocked_class=map_official_target_missing(重渲前后同判) — rc0=1 bc0=map_official_target_missing rc1=1 draft=True bc=map_official_target_missing
+  ✅ §B4b 首页草稿同判: 地图首页=「草稿(非正式):缺官方政策目标」+「当前官方政策目标缺证(仅有待生效公告)」+待生效值/生效日+原问=T3 — map_head='# 全球宏观经济变化地图(读者报告)\n\n- 问题: 2026年11月,日本和欧元区的通胀与政策环境:两地央行当前官方政策目标利率各处于什么水平?最近六个月有无已决议但尚未生效的调整?两地通胀同比最新读数相比去年同月如何?请给出具体数据和各数据的公布时间。\n- 研究截止日: 2026-11-19 | 快照: research_snapshot_20261119 | 运行: 20261119T1732'
+  ✅ §B4c 正式归档拒绝同判: blocked=not_deliverable,零归档目录 — rc=1 blocked=not_deliverable
+  ✅ §B4d 完整报告面同判: FULL_REPORT 质量状态节 run 门 blocked_class=map_official_target_missing+deliverable(可交付)=False — full_len=11344 tail='dit-R4 条目2): content_sha256=canonical(report.json 剥离 semantic_review)+canonical(agent_judgment.json)+canonical(views_digest.json)——机构归属/标题/日期/摘编/事实/L3/L4/run_ok/版本指针任一变化即失效旧裁决;审查与渲染同源,视图不一致即拒绝交付\n\n---\n渲染纪律: 本件只汇编在场事实(确定性装配),不做新增生成;L3/L4 内容归 Agent 席与独立审计,本段不代写。\n'
+═══ §C 任务3: 冻结/裁决/交付链共用本工单冻结输入 ═══
+  ✅ §C0 复现前提: 重建的更正前形态=两份裁决件按无日目录前缀名存放(VERDICT-20261122T145134Z-01/-02.json),git blob 即更正前入库对象 — blobs=['7d6e537c', '9877ee57']
+  ✅ §C0a 复现: 更正前形态的 R31 NEW30 包按清单原样解包→重放拒绝(rc=1: completeness_files 裁决链缺档 2+verdict_chain_hashes 缺席),其余门(冻结件/运行 SHA/内容摘要)全绿——缺件必须拒绝 — rc=1 failed=['completeness_files', 'verdict_chain_hashes', 'verdict_binding_threeway']
+  ✅ §C0b 更正后: 入库 R31 NEW30 包裁决件名=清单所记名(同两件 blob,仅改名;REVISE→UPHELD 两档链齐)→按清单原样解包零不符→本引擎重放仅版本门拒(blocked=code_version_mismatch;包绑定运行 SHA=ca916cd),完整性/裁决链哈希/终裁绑定/冻结三查/内容摘要全绿 — bad=[] rc=1 blocked=code_version_mismatch not_true=[]
+  ✅ §C0c 七个入库归档包(R31 A4/B2/NEW30+R32 A/B/T3/NEW30)按清单原样解包: 清单绑定件逐件在场且 sha16 相符(零不符),裁决链末裁 UPHELD,R31 NEW30 与 R32 B 为 REVISE→UPHELD 两档链 — state(不符/裁决档/清单外)={'r31/session_A4_formal': [0, 1, 2], 'r31/session_B2_formal': [0, 1, 2], 'r31/session_NEW30': [0, 2, 8], 'r32/session_A_formal': [0, 1, 0], 'r32/session_B_formal': [0, 2, 0], 'r32/session_T3_formal': [0, 1, 0], 'r32/session_NEW30': [0, 1, 0]}
+  ✅ §C1 work_order_pins: overlay 逐件 sha16 核对通过→钉死日历/注册表/源快照;旧档(无 evidence_gate)as_of 不钉;退出恢复 — info={'pinned': True, 'calendar_path': '/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_1w_mirmy/rd_pins/root_overlay/config/release_calendar.json', 'snapshot_path': '/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_1w_mirmy/rd_pins/root_overlay/data/daily/research_snapshot_20261122
+  ✅ §C2 缺件→frozen_input_missing;篡改(删一条日历)→frozen_input_tampered(不回落引擎本地文件)
+  ✅ §C3 report 对篡改冻结件: rc=1+blocked=frozen_inputs_invalid+code=frozen_input_tampered+MAP_REPORT 字节不变 — rc=1 data={'blocked': 'frozen_inputs_invalid', 'frozen_inputs_check': {'ok': False, 'code': 'frozen_input_tampered', 'detail': '冻结输入摘要不符: root_overlay/config/release_calendar.json 期望 e44fd2aa5ced0310 实测 72fd0da49cb752f6(运行后被改或包被篡改)'}}
+  ✅ §C3b archive 对篡改冻结件: 拒绝(frozen_inputs_invalid+「冻结件与运行时摘要不符」)+零归档目录 — rc=1 blocked=frozen_inputs_invalid err=冻结件与运行时摘要不符: 冻结输入摘要不符: root_overlay/config/release_calendar.json 期望 e44fd2aa5ced0310 实测 72fd0da49cb752f6(运行后被改或包被篡改)
+  ✅ §C3c archive 对缺件包: 拒绝(frozen_inputs_invalid+frozen_input_missing) — rc=1 {'ok': False, 'code': 'frozen_input_missing', 'detail': '冻结输入缺件: root_overlay/config/release_calendar.json(工单冻结面须随运行目录/交付包走,不得以引擎本地文件顶替)'}
+  ✅ §C4a 基线: NEW30 复本(运行 SHA=HEAD+r32 证据口径)report(旧裁决过期=不可交付)→新裁决 UPHELD 落档→report rc=0 可交付 — rc0=1 rc1=0 dd1={'deliverable': True, 'blocked_class': None, 'blocked': None}
+  ✅ §C4b 引擎本地日历被换(删日银 09-18 决议实录): report 仍 rc=0 可交付(判定读 overlay 冻结日历)+MAP_REPORT 逐字节不变 — rc2=0 dd2={'deliverable': True, 'blocked_class': None, 'blocked': None} eq=True
+  ✅ §C4b2 FULL_REPORT 证据口径行(快照版本日口径,report 阶段重渲): 尾注完整,无「None」/悬空「快照版本日」 — - 研究截止日(证据口径 r32): 2026-11-22 | 源快照 research_snapshot_20261122_v2(版本日 2026-11-22) | 事实: 保留 105 / 重建 0 / 剔除 0+版本 0 | 序列剔观测 0 | 快照版本日口径(截止日=快照版本日)
+  ✅ §C4c archive: 包内带 root_overlay+manifest 记 evidence_gate/evidence_asof+运行 SHA=HEAD — rc3=0 keys=['evidence_asof', 'evidence_gate']
+  ✅ §C4d r32 包工单钉死: as_of=2026-11-22 自 run.evidence_gate 带入(IA_EVIDENCE_ASOF 钉死=研究席/证据索引/重放同口径);退出恢复 — as_of=2026-11-22 inside={'IA_SNAPSHOT_PIN': True, 'IA_CALENDAR_PIN': True, 'IA_REGISTRY_PIN': True, 'IA_EVIDENCE_ASOF': True}
+  ✅ §C5a 重放(引擎日历被换 T4s)rc=0+byte_equal+零失败检查;重复重放(正常 T4)同=byte_equal(确定性) — rc4=0 byte_equal [] | rc5=0 byte_equal []
+  ✅ §C5b 包内冻结日历被改→重放拒绝(冻结摘要不符);快照缺件→拒绝(fail-closed,不回落引擎本地文件) — rc6=1 ['frozen_inputs_digests', 'deterministic_rerender'] | rc7=1 ['frozen_inputs_present', 'frozen_inputs_digests', 'deterministic_rerender']
+  ✅ §C6 冻结初始化中途失败两场景(快照已钉后读取异常/临时副本+注册表已钉后日历读取失败)→异常如实上抛+env 无残留+临时副本清理;下一工单选新快照 _v2(覆盖日 11-22)后释放复原 — a=True/[] b=True/[]/[] pick=/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_1w_mirmy/tree_freeze/data/daily/research_snapshot_20261122_v2.json cov=2026-11-22 left_c=[]
+═══ §D 任务4: T3 原问 --question-file 原样输入 ═══
+  ✅ §D1 plan 段经 --question-file: 问句逐字=文件字节(run.question/research_plan.question_verbatim/席位信封三处同句;report 段question_verbatim.txt 同字节——见 §C4 归档包) — rc=0 len=282 q='2026年11月,日本和欧元区的通胀与政策环境:两地央行当前' verbatim='2026年11月,日本和欧元区的通胀与政策环境:两地央行当前'
+  ✅ §D2 T3 路由: 地图问句+官方目标地区 {EA,JP} 进计划(计划内政策对含 JP/EA)+欧日地区在场 — regions=['EA', 'JP'] otr=None
+  ✅ §D3 2026年11月=裸年月+双相对约束(最近六个月/去年同月)=R31 既档不按时点化合并: 截止日=快照版本日 11-22(不晚于该月)+如实点名裸年月(首页/读者版披露;NEW30 单一相对窗=月末夹紧形,见 §A5) — cutoff=2026-11-22 ad={'clamped_to_coverage': False, 'bare_year_month': '2026年11月', 'as_of': '2026-11-22', 'requested_month_end': None}
+  ✅ §D4 工单/席位面: AGENT_SEAT_ENVELOPE 在场+证据索引落盘+run.evidence_gate.as_of=2026-11-22(研究席与证据同口径) — rd=/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_1w_mirmy/tree_t3/out/20261124T113110Z_2026年11月_日本和欧元区的通胀与政策环境_两地央行当前官方政策目标利率各处 eg=2026-11-22 fi=['config/metric_registry.json', 'config/release_calendar.json', 'data/daily/research_snapshot_20261122_v2.json']
+═══ §H 真跑实中: 快照质量声明一致性(跨指标重定级+金双载体同窗前提) ═══
+  ✅ §H1 不同周窗口(真跑形态): 金双载体登记 insufficient(写明两基准日)+GOLD_F 不附跨指标issue+声明=重算 PASS — g={'type': 'cross-metric', 'check': '黄金双载体方向', 'result': 'insufficient', 'detail': '双载体周窗口不可比(周基准GOLD_F 2026-11-20 vs GLD 2026-11-13: 观测日不同,两个周变化不是同一窗口),不比对方向不伪造结论'} status=PASS probs=[]
+  ✅ §H2 同窗反向: violation+GOLD_F 就地重定级 DEGRADED(声明==grade_issues)+fact_issues_problems 空(基线: 声明PASS≠重算DEGRADED) — status=DEGRADED probs=[]
+  ✅ §H3 同窗同向=consistent(细节带周基准日); nan 周变化=insufficient — r3={'type': 'cross-metric', 'check': '黄金双载体方向', 'result': 'consistent', 'detail': '周方向一致(GOLD_F-2.00%/GLD-9.17%,周基准2026-11-13)'} r4={'type': 'cross-metric', 'check': '黄金双载体方向', 'result': 'insufficient', 'detail': '双载体周变化不可得(derived.week缺失/不可用),不伪造方向结论'}
+  ✅ §H5 check_pair 同修: 下限>上限 violation + DFEDTARL 重定级 DEGRADED — status=DEGRADED probs=[]
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_1w_mirmy/tree_gold_unlike/out/research_snapshot_20261123.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_1w_mirmy/tree_gold_unlike/out/research_snapshot_20261123.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_1w_mirmy/tree_gold_unlike/out/anchors_20261123.json (2个)
+   Gate A: FAIL | 事实 2 | 质量 {'PASS': 2, 'DEGRADED': 0, 'FAIL': 0} | core缺失 31 | 非核心缺失 77项(AAPL,AHE,BB_OAS,BEI_10Y,BEI_5Y)…
+  ✅ §H6 正式路径(真跑形态): build_snapshot Gate A 状态合法(非None)+illegal_quality 空+金双载体 insufficient+GOLD_F PASS — status=FAIL illegal=[] gold=insufficient GOLD_F=PASS
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_1w_mirmy/tree_gold_like/out/research_snapshot_20261123.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_1w_mirmy/tree_gold_like/out/research_snapshot_20261123.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_1w_mirmy/tree_gold_like/out/anchors_20261123.json (2个)
+   Gate A: FAIL | 事实 2 | 质量 {'PASS': 1, 'DEGRADED': 1, 'FAIL': 0} | core缺失 31 | 非核心缺失 77项(AAPL,AHE,BB_OAS,BEI_10Y,BEI_5Y)…
+  ✅ §H7 正式路径(同窗反向): Gate A 状态合法+illegal_quality 空+violation+GOLD_F DEGRADED(基线此处=None: 整份快照非法) — status=FAIL illegal=[] gold=violation GOLD_F=DEGRADED
+═══ §I 真跑实中②: 东京CPI发布节奏推定规则(官方实录校正) ═══
+  ✅ §I1 规则校正: 东京 2026-10 观测推定发布日=2026-10-30(基线 2026-11-25 次月下旬),规则文本=当月末发布 — pub=2026-10-30 rule=总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)
+  ✅ §I2 官方实录锚: 推定发布日不早于实录(10月分=2026-10-30 逐日相符;6月分推定 06-29≥实录 06-26=保守),且东京速报早于全国口径(全国 10月分推定 11-20=实录) — est={'2026-10': '2026-10-30', '2026-06': '2026-06-29'} nat={'2026-10': '2026-11-20'}
+  ✅ §I3 可见性边界: 10月分 10-29 不可见/10-30 可见;11月分(推定 11-29)于研究截止 11-23 不可见 — oct29=False nov23=False
+  ✅ §I4 历史截止视图规则②(真实序列): 截止 10-29 末合规=09 月观测/10-30=10 月观测(基线仍 09 月: 推定 11-25 误剔);截止 08-21 末合规=07 月观测(基线 06 月: 07 月观测推定 08-25 被误剔) — last={'2026-10-29': ('2026-09-01', 'late_publication', '2026-10-30'), '2026-10-30': ('2026-10-01', None, None), '2026-08-21': ('2026-07-01', 'late_publication', '2026-08-30')}
+  ✅ §I5 真实计划点值格(T3 原问×冻结快照 as_of 11-22): 东京「最新一期」=2026-10 观测 2.73/公布 2026-10-30(基线 2026-09 观测 2.69/公布 2026-10-25) — cell={'status': 'ok', 'as_of': '2026-11-22', 'observation_date': '2026-10-01', 'publication_date': '2026-10-30', 'publication_rule': '总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)', 'publication_basis': '总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)'
+  ✅ §I6 相邻口径不受影响: 全国 CPI「最新一期」仍=2026-10 观测/公布 11-20(=官方实录),HICP 仍=2026-10 观测/公布 11-16;全网格公布日>锚日的格=0 — jp={'observation_date': '2026-10-01', 'publication_date': '2026-11-20'} ea={'observation_date': '2026-10-01', 'publication_date': '2026-11-16'}
+§J 真跑验收发现的渲染缺陷(请求月末误标研究截止日/对照时点标签/政策路径净变动)
+  ✅ §J1a NEW30(夹紧形)读者报告「研究时点口径」行: 请求月末 2026-11-30 只称请求研究时点,研究截止日=实际覆盖日 2026-11-22,绑定句点名截止日(基线: 同一行写「按月末时点化为研究截止日 2026-11-30…绑定该时点」,与上下两行的研究截止日相抵) — - 研究时点口径: 裸年月 2026年11月 按月末时点化为请求研究时点 2026-11-30(晚于快照实际覆盖日 2026-11-22)→研究截止日取实际覆盖日 2026-11-22,与单一相对回看窗合并(一个截止日+一个回看窗;真冲突组合仍拒绝)——本报告全部窗口/锚点/政策面绑定研究截止日 2026-11-22(数据=当时已发布面,后来发布的数据不回填)
+  ✅ §J1b 同页头部任何一行不得把 2026-11-30 写成研究截止日;头部无 None;计划面 as_of_declared.basis 同口径(席位信封/报告/归档同读该字段) — [] | 裸年月 2026年11月 按月末时点化为请求研究时点 2026-11-30(晚于快照实际覆盖日 2026-11-22)→研究截止日取实际覆盖日 2026-11-22,与单一相对回看窗合并(一个截止日+一个回看窗;真冲突组合仍拒绝)
+  ✅ §J2a 两锚问句(NEW30: 6个月前/最新一期)「口径」行按实际锚渲染——基线写「三个对照时点=…−12月/−3月/最新一期」(本问无 12 个月前/3 个月前锚) — - 口径: 两个对照时点=日历点锚(截止日−6个月/最新一期);「随后3、6、12个月」=事件后偏移(转折/类比基准日+N月)——两类时间含义不同,分记不混同
+  ✅ §J1c 显式时点问(AUG,未夹紧): 研究时点口径行=问题声明研究时点 2026-08-21,绑定句点名研究截止日 2026-08-21(计划/取数/渲染同一截止日) — - 研究时点口径: 问题声明研究时点 2026-08-21(显式时点标记);与快照 target_date 2026-11-22 不一致,以问题声明为准——本报告全部窗口/锚点/政策面绑定研究截止日 2026-08-21(数据=当时已发布面,后来发布的数据不回填)
+  ✅ §J1d 显式时点标记晚于覆盖日(2026-12-15>2026-11-22): 研究截止日=实际覆盖日 2026-11-22,读者报告披露行=「请求研究时点/实际覆盖日: 请求 2026-12-15 | 快照实际覆盖 2026-11-22 | 研究截止日=2026-11-22」(基线渲「请求 None」),报告同步披露且无 None — cutoff=2026-11-22 line=- 请求研究时点/实际覆盖日: 请求 2026-12-15 | 快照实际覆盖 2026-11-22 | 研究截止日=2026-11-22——请求时点未到/数据未到,本报告=截至实际日期的结果(非请求时点的完整结果) ad={'requested_month_end': None, 'requested_as_of': '2026-12-15', 'clamped_to_coverage': True}
+  ✅ §J2b 三标准锚问句(A)「口径」行=旧文本逐字;两锚问句 B=「两个对照时点=日历点锚(截止日−3个月/最新一期)」;run 无 evidence_gate 的旧档形态重渲=旧文本(旧档字节不漂移,§A6a 全文比对同证) — A=- 口径: 三个对照时点=日历点锚(截止日−12月/−3月/最新一期);「随后3、6、12个月」=事件后偏移(转折/类比基准日+N月)——两类时间含义不同,分记 B=- 口径: 两个对照时点=日历点锚(截止日−3个月/最新一期);「随后3、6、12个月」=事件后偏移(转折/类比基准日+N月)——两类时间含义不同,分记不混同
+  ✅ §J3a 阶梯序列(决议日观测)一年窗: 净变动=窗启时在值→窗末=变动点之和(+50bp,2.0→2.5);基线口径(窗内首观测→窗末=+25bp)与同列两个 +25bp 变动点不闭合;无证据口径(旧档)口径不变=+25bp — carry={'net_bp': 50, 'window_start_value': 2.0} legacy={'net_bp': 25, 'window_start_value': 2.25}
+  ✅ §J3b 真实计划(T3 原问×冻结快照): 每条政策一年窗路径 净变动==Σ变动点(欧央行两序列两次各 +25bp→+50bp,窗启时在值 2.0/2.15);基线: 欧央行净 +25bp 对两个 +25bp 变动点、日本月均 +67bp 对六变动点之和 75 — net={'ECB_MRO': 50, 'ECB_DFR': 50, 'JP_POLICY_RATE': 75} sums={'ECB_MRO': 50, 'ECB_DFR': 50, 'JP_POLICY_RATE': 75}
+  ✅ §J3c 读者报告政策一年窗路径行: 「净变动 **+50bp**(2.0→2.5;窗启时在值取 <观测日> 观测)」与变动点逐点闭合,窗启时在值的来源观测日可核,口径注记写明=变动点之和 — - **政策一年窗路径** 欧央行存款便利利率: 窗 2025-11-22..2026-11-22,变动点 2026-06-17: 2.0→2.25(+25bp);2026-09-16: 2.25→2.5(+25bp),净变动 **+50bp**(2.0→2.5;窗启时在值取 2025-06-11 观测)。窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=变动点之和=窗启时在值
+  ✅ §J4a 真实计划(T3×冻结快照)读者报告头部: 「数据门(Gate A,源快照采集面)」一行=运行快照 gate_a 的状态与五张名单(DEGRADED;非核心缺席七项含 JP_CPI_TOKYO_YOY;非核心降级八项含 ECB_DFR/ECB_MRO),紧随证据口径行且全页仅一行(基线: 读者页无数据门状态行) — - 数据门(Gate A,源快照采集面): DEGRADED——核心缺口 无 | 核心失败 无 | 非核心失败 无 | 非核心缺席 BUND_10Y、BUND_2Y、CN_OMO_7D、CN_POLICY_OVERNIGHT、EA_REAL_GDP_YOY、JP_CPI_TOKYO_YOY、JP_REAL_GDP_YOY | 非核心降级 CN_SF_FLOW、ECB_DFR、ECB_MRO、JTSJOL、M2SL、SPX_EPS、SPX_PE_TTM、US_REAL_GDP——缺席/降级数据不得进入研究结论;逐指标注记见快照 gate_a.noncore_missing_detail,信封步状
+  ✅ §J4b 旧档(无 evidence_gate)重渲无数据门状态行(旧档字节不漂移);运行快照不在场=如实缺席注记(不跨快照取数) — - 数据门(Gate A): 运行快照文件不在场(research_snapshot_absent——历史并列面不跨快照取数,如实缺席)(总体状态不跨快照取数,如实缺席)
+  ✅ §J5a 真实计划(T3×冻结快照)裁决缺席: 分工行如实写「独立语义审查待裁」(基线: 裁决缺席即写「经独立语义审查」) — 判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,独立语义审查待裁)
+  ✅ §J5b 裁决在场(席位已裁)=「经独立语义审查」且审查面同页一致;旧档(无 evidence_gate)裁决缺席仍为原文(旧档字节不漂移) — _map 原文(attribution=ai_inferred,经独立语义审查) | _map 原文(attribution=ai_inferred,经独立语义审查)
+═══ §K 正式验收席观察: LPR 推定发布日早于实际公布日(规则②) ═══
+  ✅ §K1 规则形态: CN_LPR_1Y 推定发布日=观测日(序列按实际公布日记载;基线「月末−11天」仅 31 天月份=20 日) — rule=('daily', 0, 'LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)')
+  ✅ §K2 真实序列逐点: 2019-09 起 87 个月度观测推定发布日全部=实际公布日(基线 49 点早 1–4 天,如 2022-06-20→06-19、2021-02-20→02-17) — early=0 []
+  ✅ §K3 规划器可见发布日(REP 同步面同入口): 2022-06 观测=06-20(基线 06-19)/02-21(基线 02-17)/08-22(基线 08-20)/2026-10 观测=10-20 — vis={'2022-06-20': '2022-06-20', '2022-02-21': '2022-02-21', '2022-08-22': '2022-08-22', '2026-10-20': '2026-10-20'}
+  ✅ §K4 取数入口历史截止视图(真实序列,回归): 截止 2022-06-19 末合规=05-20 观测、首个剔除=06-20 观测(晚观测;入口先剔观测日,规则修正前后同判);截止 06-20 末合规=06-20 — last={'2022-06-19': ('2022-05-20', '2022-06-20', 'late_observation'), '2022-06-20': ('2022-06-20', '2022-07-20', 'late_observation')}
+  ✅ §K5 转折候选面(规则修正后): 截止 2020-04-19 → CN_LPR_1Y 候选窗端点月 ≤ 截止日(基线把 04-20 才公布的 4 月读数入窗: 2020-01 4.15→2020-04 3.85) — [('2019-06', '2019-09', '2019-09-20', 4.31, 4.2, -0.11)]
+  ✅ §K6 转折候选面纵深守卫(规则面无关): 把推定规则临时换回「月末−11天」(推定日早于观测日的任意序列同形),窗端点月仍须观测日≤截止日 — [('2019-09', '2019-09-20')]
+  ✅ §K7 日历实录仍优先(回归): 2025-11/2026-11 观测发布日=当月 20 日且口径注明日历条目(RC-CN-LPR-2025M11/2026M11) — cal={'2025-11-20': ('2025-11-20', 'calendar:RC-CN-LPR-2025M11(convention)'), '2026-11-20': ('2026-11-20', 'calendar:RC-CN-LPR-2026M11(user_directiv')}
+═══ §L 裁决后交付状态面: 仅差审查状态短语=状态面等价 ═══
+  ✅ §L1 前置: 裁决缺席 report rc≠0,当前装配落盘——分工行尾「独立语义审查待裁)」+审查尾「独立席位待裁」 — rc0=1 div='on=ai_inferred,独立语义审查待裁)'
+  ✅ §L2 裁决 UPHELD 后 report: rc=0 可交付;分工行尾「经独立语义审查)」+审查尾「席位已裁: UPHELD(裁决链 1 档)」;全文无「待裁」;无「渲染器漂移」警告(renderer_drift=False,status_refreshed=True) — rc1=0 deliv=True drift=False refresh=True pending=0 w=[]
+  ✅ §L3 受审内容未被改写: 裁决前后内容段逐行对比恰 1 行不同(=分工行状态短语),其余逐字节相同;旁挂锚=新全文 sha256;裁决仍新鲜(fresh=True);裁决档绑定=受审时(待裁形)内容段摘要 — dlines=1 fresh=True
+  ✅ §L4 重复 report 幂等: rc=0,字节不变,不再记状态面翻新 — rc=0 refresh=False
+  ✅ §L5 归档: rc=0;清单 map_binding_status_equivalent=true/map_renderer_drift=false;归档件==运行目录件;map_report_sha256=裁决档绑定,map_content_sha256=归档内容段原字节摘要(待裁形/已裁形两摘要并存,清单注明状态面等价) — rc2=0 equiv=True drift=False
+  ✅ §L6 重放: rc=0(绑定三方核对按状态面等价通过;当前代码重渲与归档件逐字节相等) — rc3=0 mode=byte_equal failed=[]
+  ✅ §L7a 裁决后单改正文(旁挂锚未动): 拒绝交付且不重写(保全证据);警告点名旁挂锚不符;不记状态面翻新 — rc=1 deliv=False
+  ✅ §L7b 正文改版+重锚: 裁决过期(fresh=False)→本轮拒绝交付、不记状态面翻新;改版件被当前装配重渲覆盖(改版不得洗白);下一轮恢复可交付 — rc=1 fresh=False rc2=0
+  ✅ §L7c 渲染器真漂移(包装器令当前代码在正文多出一行): 冻结分支照旧——report rc=0+「渲染器漂移」披露+受审字节不改写(map_renderer_drift=True,不记状态面翻新);归档 rc=0 清单 drift=true+状态面等价注记(先前已翻新的受审件);重放 rc=0 — rc=0 drift=True rc4=0 drift_m=True rc5=0 mode=byte_equal
+  ✅ §L8 判定函数: 状态面等价只认「分工」行尾短语——裁决前后全文等价=True;正文改一字=False;状态短语出现在其他行不算状态面;绑定匹配=原字节/已裁形/待裁形三口径之一 — eq01=True eq_x=False
+  ✅ §L9a 归档代码落档: 同印章归档清单无 archive_code_git_head 键(清单字节不变);另印章下归档 rc=0——清单 archive_code_git_head=归档印章,run_code_git_head=运行印章,correlation 点名「裁决后再交付」;包内地图==运行目录件 — rc6=0 arc_head=aaaaaaaaaaaa same_stamp_key=False
+  ✅ §L9b 归档印章代码严格重放: rc=0——门④按「当前=归档代码(裁决后再交付包,清单已声明)」通过,其余检查全过+逐字节相等;重放报告落档 package_archive_head 与「归档代码 SHA」行 — rc7=0 c7=当前=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 包=b7ff06bfc0f5ea1265a3e65100a57aa0c4 mode=byte_equal
+  ✅ §L9c 运行印章代码严格重放同一包: rc=0(当前==运行 SHA 的经典口径照旧成立,逐字节相等) — rc8=0 mode=byte_equal
+  ✅ §L9d 第三印章代码严格重放: 拒(code_version_mismatch);--allow-code-mismatch: 放行并披露越过 — rc9=1 blocked=code_version_mismatch rc10=0
+  ✅ §L9e 同渲染两印章包: 裁决在场时的再裁决绑定=已裁形内容段摘要;report 不记状态面翻新;另印章归档 rc=0——清单携 archive_code_git_head(=归档印章)而无 map_binding_status_equivalent;裁决链 2 档 — rc11=0 refresh=False rc12=0 arc_head=aaaaaaaaaaaa equiv_key=False n=2
+  ✅ §L9f 归档印章代码严格重放同渲染包: 拒(rc=1+code_version_mismatch,不落输出目录)——归档≠录制: 交付字节即执行印章渲染,录制代码=运行印章代码;拒绝注记点明清单另记的归档代码与「须以运行印章代码重放」 — rc13=1 blocked=code_version_mismatch note=露);清单另记归档代码 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa(同渲染包: 交付字节即运行印章渲染,须以运行印章代码严格重放)
+  ✅ §L9f2 显式越过(--allow-code-mismatch): 归档印章代码放行=披露(检查明细点名越过;重放报告注记写明异版代码越过版本门、不写「清单已声明状态面等价」)+逐字节相等;重放报告落档 package_archive_head — rc13b=0 mode=byte_equal c=ea1265a3e65100a57aa0c45093ed(--allow-code-mismatch 披露越过)
+  ✅ §L9g 运行印章代码严格重放同一包: rc=0+逐字节相等(录制代码);第三印章照旧拒(code_version_mismatch) — rc14=0 rc15=1
+=== R32 门: 111/111 ===

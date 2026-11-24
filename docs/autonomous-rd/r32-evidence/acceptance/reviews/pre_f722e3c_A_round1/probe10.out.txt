@@ -1,0 +1,96 @@
+S6 envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+top n=5
+top[0] keys: ['rank', 'candidate_month', 'distance', 'n_missing', 'distance_percentile', 'dims', 'features_detail', 'norm_wsum', 'accounted_wsum', 'missing_features', 'missing_wsum', 'cluster_members', 'aftermath']
+--- rank=1 month=2025-03 distance=0.752676 pct=0.0 n_missing=2
+  dims: {"growth": 3.1e-05, "inflation": 0.09839, "rates": 0.379555, "credit": 0.0, "volatility": 0.459775, "valuation": 0.062249}
+  missing: {"HY_IG_gap_level": "hist_17<36", "HY_OAS_level": "hist_17<36"}
+  feat ICSA_4w_avg gap=-0.01865167126187639
+  feat BEI_10Y_level gap=-0.7371997391228496
+  feat UST_10Y_level gap=0.30692993301655047
+  feat UST_10Y_d12m gap=1.0681179054515606
+  feat TIPS_10Y_level gap=0.6047341615786503
+  feat TIPS_10Y_d12m gap=1.2987313782747847
+  feat CURVE_2S10S_level gap=-0.1454138743723481
+  feat CURVE_2S10S_d12m gap=-1.510640020634042
+  feat VIX_level gap=1.1927740496128167
+  feat SPX_rv21 gap=0.5199612852766063
+  feat SPX_CAPE_level gap=0.4787723956445604
+  extra key aftermath: {"label": "事后(起点=候选锚点月之后首个观测(次月首日起),终点=候选月+N 月内(该月末日界)最后观测,非预测,不参与相似度;逐窗实际起止观测日随 {资产}_window 随行,可自行复算)", "unavailable_horizons": {"SPX": [], "UST_10Y": [], "DXY": [], "GOLD_F": []}, "SPX": {"1m": -1.136321, "3m": 10.152197, "6m": 18.735613, "12m": 15.896309}, "SPX_window": {"1m": {"start": "2025-04-01", "end": "2025-04-30"}, "3m": {"start": "2025-04-01", "end": "2025-06-30"}, "6m": {"start": "2025-04-01", "end": "2025-09-30"}, "12m": {"start": "2025-04-01", "end": "2026-03-31"}}, "SPX_unit": "pct", "UST_10Y": {"1m": 0.0, "3m": 0.07, "6m": -0.01, "12m": 0.13}, "UST_10Y_window": {"1m": {"start": "2025-04-01", "end": "2025-04-30"}, "3m": {"start": "2025-04-01", "end": "2025-06-30"}, "6m": {"start": "2025-04-01", "end": "2025-09-30"}, "12m": {"start": "2025-04-01", "end": "2026-03-31"}}, "UST_10Y_unit": "pp", "DXY": {"1m": -4.594284, "3m": -7.078462, "6m": -6.224827, "12m": -4.124307}, "DXY_window": {"1m": {"start": "2025-04-01", "end": "2025-04-30"}, "3m": {"start": "2025-04-01", "end": "2025-06-30"}, "6m": {"start": "2025-04-01", "end": "2025-09-30"}, "12m": {"start": "2025-04-01", "end": "2026-03-31"}}, "DXY_unit": "pct", "GOLD_F": {"1m": 5.502228, "3m": 5.139859, "6m": 23.115065, "12m": 47.730454}, "GOLD_F_window": {"1m": {"start": "2025-04-01", "end": "2025-04-30"}, "3m": {"start": "2025-04-01", "end": "2025-06-30"}, "6m": {"start": "2025-04-01", "end": "2025-09-30"}, "12m": {"start": "2025-04-01", "end": "2026-03-31"}}, "GOLD_F_unit": "pct"}
+  cluster_members n=20
+--- rank=2 month=2022-06 distance=0.809859 pct=1.3699 n_missing=2
+  dims: {"growth": 0.000437, "inflation": 0.10908, "rates": 0.49642, "credit": 0.0, "volatility": 0.072586, "valuation": 0.321477}
+  missing: {"HY_IG_gap_level": "no_value_at_candidate_month", "HY_OAS_level": "no_value_at_candidate_month"}
+  feat ICSA_4w_avg gap=0.07475001720739155
+  feat BEI_10Y_level gap=-0.8351890124818587
+  feat UST_10Y_level gap=0.3121962919285848
+  feat UST_10Y_d12m gap=-0.918026572145416
+  feat TIPS_10Y_level gap=0.9389753064346678
+  feat TIPS_10Y_d12m gap=-1.743654533669492
+  feat CURVE_2S10S_level gap=1.2477876819818694
+  feat CURVE_2S10S_d12m gap=1.4304049174045037
+  feat VIX_level gap=0.5480988345234459
+  feat SPX_rv21 gap=-0.0950572898735742
+  feat SPX_CAPE_level gap=1.1706872999579463
+  extra key aftermath: {"label": "事后(起点=候选锚点月之后首个观测(次月首日起),终点=候选月+N 月内(该月末日界)最后观测,非预测,不参与相似度;逐窗实际起止观测日随 {资产}_window 随行,可自行复算)", "unavailable_horizons": {"SPX": [], "UST_10Y": [], "DXY": [], "GOLD_F": []}, "SPX": {"1m": 7.972121, "3m": -6.266386, "6m": 0.370424, "12m": 16.339761}, "SPX_window": {"1m": {"start": "2022-07-01", "end": "2022-07-29"}, "3m": {"start": "2022-07-01", "end": "2022-09-30"}, "6m": {"start": "2022-07-01", "end": "2022-12-30"}, "12m": {"start": "2022-07-01", "end": "2023-06-30"}}, "SPX_unit": "pct", "UST_10Y": {"1m": -0.21, "3m": 0.95, "6m": 1.0, "12m": 0.93}, "UST_10Y_window": {"1m": {"start": "2022-07-01", "end": "2022-07-29"}, "3m": {"start": "2022-07-01", "end": "2022-09-30"}, "6m": {"start": "2022-07-01", "end": "2022-12-30"}, "12m": {"start": "2022-07-01", "end": "2023-06-30"}}, "UST_10Y_unit": "pp", "DXY": {"1m": 0.722849, "3m": 6.638771, "6m": -1.540805, "12m": -2.120977}, "DXY_window": {"1m": {"start": "2022-07-01", "end": "2022-07-29"}, "3m": {"start": "2022-07-01", "end": "2022-09-30"}, "6m": {"start": "2022-07-01", "end": "2022-12-30"}, "12m": {"start": "2022-07-01", "end": "2023-06-30"}}, "DXY_unit": "pct", "GOLD_F": {"1m": -2.142658, "3m": -7.188454, "6m": 1.371077, "12m": 7.099641}, "GOLD_F_window": {"1m": {"start": "2022-07-01", "end": "2022-07-29"}, "3m": {"start": "2022-07-01", "end": "2022-09-30"}, "6m": {"start": "2022-07-01", "end": "2022-12-30"}, "12m": {"start": "2022-07-01", "end": "2023-06-30"}}, "GOLD_F_unit": "pct"}
+  cluster_members n=23
+--- rank=3 month=2023-10 distance=1.075424 pct=28.7671 n_missing=2
+  dims: {"growth": 5.5e-05, "inflation": 0.074075, "rates": 0.105553, "credit": 0.0, "volatility": 0.616624, "valuation": 0.203693}
+  missing: {"HY_IG_gap_level": "no_value_at_candidate_month", "HY_OAS_level": "no_value_at_candidate_month"}
+  feat ICSA_4w_avg gap=0.035334842234589714
+  feat BEI_10Y_level gap=-0.9139421606842004
+  feat UST_10Y_level gap=-0.8936575586578173
+  feat UST_10Y_d12m gap=0.35895031112949866
+  feat TIPS_10Y_level gap=-0.6165810951341142
+  feat TIPS_10Y_d12m gap=0.3586069633388548
+  feat CURVE_2S10S_level gap=0.8512824121983923
+  feat CURVE_2S10S_d12m gap=-1.0064985818758172
+  feat VIX_level gap=1.8293363371832396
+  feat SPX_rv21 gap=1.1353388494767063
+  feat SPX_CAPE_level gap=1.2374397137918467
+  extra key aftermath: {"label": "事后(起点=候选锚点月之后首个观测(次月首日起),终点=候选月+N 月内(该月末日界)最后观测,非预测,不参与相似度;逐窗实际起止观测日随 {资产}_window 随行,可自行复算)", "unavailable_horizons": {"SPX": [], "UST_10Y": [], "DXY": [], "GOLD_F": []}, "SPX": {"1m": 7.785532, "3m": 14.34191, "6m": 18.82625, "12m": 34.630459}, "SPX_window": {"1m": {"start": "2023-11-01", "end": "2023-11-30"}, "3m": {"start": "2023-11-01", "end": "2024-01-31"}, "6m": {"start": "2023-11-01", "end": "2024-04-30"}, "12m": {"start": "2023-11-01", "end": "2024-10-31"}}, "SPX_unit": "pct", "UST_10Y": {"1m": -0.4, "3m": -0.78, "6m": -0.08, "12m": -0.49}, "UST_10Y_window": {"1m": {"start": "2023-11-01", "end": "2023-11-30"}, "3m": {"start": "2023-11-01", "end": "2024-01-31"}, "6m": {"start": "2023-11-01", "end": "2024-04-30"}, "12m": {"start": "2023-11-01", "end": "2024-10-31"}}, "UST_10Y_unit": "pp", "DXY": {"1m": -3.162422, "3m": -3.37762, "6m": -0.617511, "12m": -2.713318}, "DXY_window": {"1m": {"start": "2023-11-01", "end": "2023-11-30"}, "3m": {"start": "2023-11-01", "end": "2024-01-31"}, "6m": {"start": "2023-11-01", "end": "2024-04-30"}, "12m": {"start": "2023-11-01", "end": "2024-10-31"}}, "DXY_unit": "pct", "GOLD_F": {"1m": 2.545911, "3m": 3.064146, "6m": 15.869177, "12m": 38.329562}, "GOLD_F_window": {"1m": {"start": "2023-11-01", "end": "2023-11-30"}, "3m": {"start": "2023-11-01", "end": "2024-01-31"}, "6m": {"start": "2023-11-01", "end": "2024-04-30"}, "12m": {"start": "2023-11-01", "end": "2024-10-31"}}, "GOLD_F_unit": "pct"}
+  cluster_members n=10
+--- rank=4 month=2021-02 distance=1.244216 pct=60.274 n_missing=2
+  dims: {"growth": 0.013455, "inflation": 0.083357, "rates": 0.767989, "credit": 0.0, "volatility": 0.130224, "valuation": 0.004975}
+  missing: {"HY_IG_gap_level": "no_value_at_candidate_month", "HY_OAS_level": "no_value_at_candidate_month"}
+  feat ICSA_4w_avg gap=-0.6373126232262263
+  feat BEI_10Y_level gap=-1.1216790908794376
+  feat UST_10Y_level gap=2.405395323600238
+  feat UST_10Y_d12m gap=-0.09496706567488611
+  feat TIPS_10Y_level gap=3.3578509480699203
+  feat TIPS_10Y_d12m gap=1.1481980817504813
+  feat CURVE_2S10S_level gap=-2.201486136946536
+  feat CURVE_2S10S_d12m gap=-2.7706510899925427
+  feat VIX_level gap=0.6122040695439028
+  feat SPX_rv21 gap=0.9672557703475146
+  feat SPX_CAPE_level gap=0.22374203274904758
+  extra key aftermath: {"label": "事后(起点=候选锚点月之后首个观测(次月首日起),终点=候选月+N 月内(该月末日界)最后观测,非预测,不参与相似度;逐窗实际起止观测日随 {资产}_window 随行,可自行复算)", "unavailable_horizons": {"SPX": [], "UST_10Y": [], "DXY": [], "GOLD_F": []}, "SPX": {"1m": 1.821453, "3m": 7.747405, "6m": 15.912064, "12m": 12.099991}, "SPX_window": {"1m": {"start": "2021-03-01", "end": "2021-03-31"}, "3m": {"start": "2021-03-01", "end": "2021-05-28"}, "6m": {"start": "2021-03-01", "end": "2021-08-31"}, "12m": {"start": "2021-03-01", "end": "2022-02-28"}}, "SPX_unit": "pct", "UST_10Y": {"1m": 0.29, "3m": 0.13, "6m": -0.15, "12m": 0.38}, "UST_10Y_window": {"1m": {"start": "2021-03-01", "end": "2021-03-31"}, "3m": {"start": "2021-03-01", "end": "2021-05-28"}, "6m": {"start": "2021-03-01", "end": "2021-08-31"}, "12m": {"start": "2021-03-01", "end": "2022-02-28"}}, "UST_10Y_unit": "pp", "DXY": {"1m": 2.405538, "3m": -1.109405, "6m": 1.746481, "12m": 6.228029}, "DXY_window": {"1m": {"start": "2021-03-01", "end": "2021-03-31"}, "3m": {"start": "2021-03-01", "end": "2021-05-28"}, "6m": {"start": "2021-03-01", "end": "2021-08-31"}, "12m": {"start": "2021-03-01", "end": "2022-02-28"}}, "DXY_unit": "pct", "GOLD_F": {"1m": -0.53395, "3m": 10.417876, "6m": 5.519441, "12m": 10.313404}, "GOLD_F_window": {"1m": {"start": "2021-03-01", "end": "2021-03-31"}, "3m": {"start": "2021-03-01", "end": "2021-05-28"}, "6m": {"start": "2021-03-01", "end": "2021-08-31"}, "12m": {"start": "2021-03-01", "end": "2022-02-28"}}, "GOLD_F_unit": "pct"}
+  cluster_members n=16
+--- rank=5 month=2020-01 distance=1.312664 pct=73.9726 n_missing=5
+  dims: {"growth": 0.006558, "inflation": 0.122143, "rates": 0.73051, "credit": 0.0, "volatility": 0.08657, "valuation": 0.054219}
+  missing: {"CURVE_2S10S_d12m": "hist_27<36", "HY_IG_gap_level": "no_value_at_candidate_month", "HY_OAS_level": "no_value_at_candidate_month", "TIPS_10Y_d12m": "hist_27<36", "UST_10Y_d12m": "hist_27<36"}
+  feat ICSA_4w_avg gap=0.46942951530329613
+  feat BEI_10Y_level gap=1.4324841039159708
+  feat UST_10Y_level gap=3.785493325713139
+  feat TIPS_10Y_level gap=4.215136425168296
+  feat CURVE_2S10S_level gap=0.7935092461842441
+  feat VIX_level gap=0.41780938843819393
+  feat SPX_rv21 gap=0.8916389299263981
+  feat SPX_CAPE_level gap=0.7792696027727088
+  extra key aftermath: {"label": "事后(起点=候选锚点月之后首个观测(次月首日起),终点=候选月+N 月内(该月末日界)最后观测,非预测,不参与相似度;逐窗实际起止观测日随 {资产}_window 随行,可自行复算)", "unavailable_horizons": {"SPX": [], "UST_10Y": [], "DXY": [], "GOLD_F": []}, "SPX": {"1m": -9.070705, "3m": -10.35698, "6m": 0.68331, "12m": 14.3223}, "SPX_window": {"1m": {"start": "2020-02-03", "end": "2020-02-28"}, "3m": {"start": "2020-02-03", "end": "2020-04-30"}, "6m": {"start": "2020-02-03", "end": "2020-07-31"}, "12m": {"start": "2020-02-03", "end": "2021-01-29"}}, "SPX_unit": "pct", "UST_10Y": {"1m": -0.41, "3m": -0.9, "6m": -0.99, "12m": -0.43}, "UST_10Y_window": {"1m": {"start": "2020-02-03", "end": "2020-02-28"}, "3m": {"start": "2020-02-03", "end": "2020-04-30"}, "6m": {"start": "2020-02-03", "end": "2020-07-31"}, "12m": {"start": "2020-02-03", "end": "2021-01-29"}}, "UST_10Y_unit": "pp", "DXY": {"1m": 0.337417, "3m": 1.247438, "6m": -4.406958, "12m": -7.382414}, "DXY_window": {"1m": {"start": "2020-02-03", "end": "2020-02-28"}, "3m": {"start": "2020-02-03", "end": "2020-04-30"}, "6m": {"start": "2020-02-03", "end": "2020-07-31"}, "12m": {"start": "2020-02-03", "end": "2021-01-29"}}, "DXY_unit": "pct", "GOLD_F": {"1m": -0.830584, "3m": 6.784175, "6m": 24.448397, "12m": 17.125292}, "GOLD_F_window": {"1m": {"start": "2020-02-03", "end": "2020-02-28"}, "3m": {"start": "2020-02-03", "end": "2020-04-30"}, "6m": {"start": "2020-02-03", "end": "2020-07-31"}, "12m": {"start": "2020-02-03", "end": "2021-01-29"}}, "GOLD_F_unit": "pct"}
+  cluster_members n=5
+candidates summary: {"scanned": 1871, "valid": 74, "dropped_overlap": 12, "dropped_insufficient": 1785, "n_independent_clusters_topN": 5, "cluster_dedup": "TOP-N 簇去重: 候选月相差<12 个月=同簇(事后窗重叠),每簇仅保留排序最优代表;准入/距离/分位计算不变"}
+env.ok: true
+env.capability: "analog"
+env.engine_root: "/private/tmp/r32-accept/final2"
+env.snapshot_id: "research_snapshot_20261123"
+env.target_date: "20261123"
+env.research_as_of: "2026-11-23"
+env.gate_a: "DEGRADED"
+env.warnings: ["候选侧维度缺席: 信用(credit)在全部有效候选上无有效特征,不进入任何距离——未覆盖维度可能是共同驱动(缺变量),相似性解释力受限", "2023-10: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(波动 contribution_share=0.62)", "2021-02: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.77)", "2020-01: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.73)", "锚点维度 增长(growth) 覆盖率 0.17(<0.5), 该维特征部分弃用", "锚点维度 通胀(inflation) 覆盖率 0.33(<0.5), 该维特征部分弃用"]
+gate_a (S6): "DEGRADED"
+warnings (S6): ["候选侧维度缺席: 信用(credit)在全部有效候选上无有效特征,不进入任何距离——未覆盖维度可能是共同驱动(缺变量),相似性解释力受限", "2023-10: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(波动 contribution_share=0.62)", "2021-02: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.77)", "2020-01: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.73)", "锚点维度 增长(growth) 覆盖率 0.17(<0.5), 该维特征部分弃用", "锚点维度 通胀(inflation) 覆盖率 0.33(<0.5), 该维特征部分弃用"]
+kw 覆盖 at 23055: 长折算)", "HY_IG_gap_d12m": "hist_25<36点(=36个月史按网格步长折算)", "SPX_PE_TTM_level": "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)"}}, "warnings": ["候选侧维度缺席: 信用(credit)在全部有效候选上无有效特征,不进入任何距离——未覆盖维度可能是共同驱动(缺变量),相似性解释力受限", "2023-10: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(波动 contribution_share=0.62)", "2021-02: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.77)", "2020-01: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.73)", "锚点维度 增长(growth) 覆盖率 0.17(<0.5), 该维特征部分弃用", "锚点维度 通胀(inflation) 覆盖率 0.33(<0.5), 该维特征部分弃用"]}
+kw coverage at 397: ": "DEGRADED", "data": {"anchor_month": "2026-11", "feature_window_months": 12, "state_vector": {"growth": {"features": {"ICSA_4w_avg": {"value": 197750.0, "z": -0.3206747602320721, "hist_n": 120}}, "coverage": 0.1667}, "inflation": {"features": {"BEI_10Y_level": {"value": 2.15, "z": 0.08346018602588887, "hist_n": 121}}, "coverage": 0.3333}, "rates": {"features": {"UST_10Y_level": {"value": 5.04, "z": 1.66637547864167, "hist_n": 121}, "UST_10Y_d12m": {"value": 1.0200000000000005, "z": 0.8349448096688624, "hist_n": 109}, "TIPS_10Y_level": {"value": 2.88, "z": 1.8718474704157886, "hist_n": 121},
+kw aftermath at 4956: "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11"], "aftermath": {"label": "事后(起点=候选锚点月之后首个观测(次月首日起),终点=候选月+N 月内(该月末日界)最后观测,非预测,不参与相似度;逐窗实际起止观测日随 {资产}_window 随行,可自行复算)", "unavailable_horizons": {"SPX": [], "UST_10Y": [], "DXY": [], "GOLD_F": []}, "SPX": {"1m": -1.136321, "3m": 10.152197, "6m": 18.735613, "12m": 15.896309}, "SPX_window": {"1m": {"start": "2025-04-01", "end": "2025-04-30"}, "3m": {"start": "2025-04-01", "end": "2025-06-30"}, "6m": {"s
+kw ex_post at -1: -
+kw 事后 at 2491:  13, "wsum": 0.541667}, "candidates": {"scanned": 1871, "valid": 74, "dropped_overlap": 12, "dropped_insufficient": 1785, "n_independent_clusters_topN": 5, "cluster_dedup": "TOP-N 簇去重: 候选月相差<12 个月=同簇(事后窗重叠),每簇仅保留排序最优代表;准入/距离/分位计算不变"}, "sort_basis": "(n_missing, distance, month) — 缺席特征多者降位,名次非纯距离序,比较相似度请以 distance 字段为准", "top": [{"rank": 1, "candidate_month": "2025-03", "distance": 0.752676, "n_missing": 2, "distance_percentile": 0.0, "dims": {"growth": {"contribution_share": 3.1e-05, "z_gap": 0.004224}, "inflation": {"contribution_share": 0.09839, "z_gap": 0.236093}, "rates": {"contribution_sh

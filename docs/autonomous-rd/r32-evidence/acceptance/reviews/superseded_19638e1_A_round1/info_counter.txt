@@ -1,0 +1,9 @@
+counter SPX~USDJPY daily 1m: n=21 pearson=0.191 | SPXdn&USDJPYup=3 SPXdn&USDJPYdn=9 SPXup&USDJPYdn=2 SPXup&USDJPYup=7
+counter 1m window total: SPX -5.51% USDJPY +1.82% (2026-10-23→2026-11-23)
+counter SPX~USDJPY daily 3m: n=64 pearson=0.166 | SPXdn&USDJPYup=17 SPXdn&USDJPYdn=20 SPXup&USDJPYdn=7 SPXup&USDJPYup=20
+counter 3m window total: SPX -5.87% USDJPY +0.28% (2026-08-24→2026-11-23)
+counter SPX~USDJPY daily 12m: n=250 pearson=0.032 | SPXdn&USDJPYup=70 SPXdn&USDJPYdn=52 SPXup&USDJPYdn=48 SPXup&USDJPYup=80
+counter 12m window total: SPX +7.44% USDJPY +1.70% (2025-11-24→2026-11-23)
+counter HY_OAS: number of strict-7d widenings >= +0.29pp in series history: 29 of 781 weeks; latest 1w +0.29pp
+counter BEI_10Y at 2026-05-04 = 2.5 ; TIPS_10Y change 2026-02-27→2026-05-04 (bp) = 23.0
+counter VIX~USDJPY daily 1m: pearson=-0.191 n=21

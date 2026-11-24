@@ -1,0 +1,809 @@
+{
+ "n": 107,
+ "ok": 107,
+ "mismatch": 0,
+ "rows": [
+  {
+   "item": "EA_HICP_YOY@2026-10",
+   "judgment": 4.0,
+   "independent": 4.0,
+   "ok": true
+  },
+  {
+   "item": "EA_HICP_YOY@2026-04",
+   "judgment": 3.0,
+   "independent": 3.0,
+   "ok": true
+  },
+  {
+   "item": "EA_HICP_YOY@2025-10",
+   "judgment": 2.1,
+   "independent": 2.1,
+   "ok": true
+  },
+  {
+   "item": "EA_HICP_YOY@2026-05",
+   "judgment": 3.2,
+   "independent": 3.2,
+   "ok": true
+  },
+  {
+   "item": "EA_HICP_YOY@2026-06",
+   "judgment": 2.8,
+   "independent": 2.8,
+   "ok": true
+  },
+  {
+   "item": "EA_HICP_YOY@2026-07",
+   "judgment": 2.9,
+   "independent": 2.9,
+   "ok": true
+  },
+  {
+   "item": "EA_HICP_YOY@2026-08",
+   "judgment": 3.2,
+   "independent": 3.2,
+   "ok": true
+  },
+  {
+   "item": "EA_HICP_YOY@2026-09",
+   "judgment": 3.8,
+   "independent": 3.8,
+   "ok": true
+  },
+  {
+   "item": "EA_HICP_YOY@2026-02",
+   "judgment": 1.9,
+   "independent": 1.9,
+   "ok": true
+  },
+  {
+   "item": "EA_HICP_YOY@2026-01",
+   "judgment": 1.7,
+   "independent": 1.7,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2026-10",
+   "judgment": 2.44,
+   "independent": 2.44,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2026-04",
+   "judgment": 1.38,
+   "independent": 1.38,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2025-10",
+   "judgment": 2.99,
+   "independent": 2.99,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2026-05",
+   "judgment": 1.53,
+   "independent": 1.53,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2026-06",
+   "judgment": 1.67,
+   "independent": 1.67,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2026-07",
+   "judgment": 1.97,
+   "independent": 1.97,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2026-08",
+   "judgment": 1.98,
+   "independent": 1.98,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2026-09",
+   "judgment": 2.16,
+   "independent": 2.16,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2026-02",
+   "judgment": 1.27,
+   "independent": 1.27,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2025-11",
+   "judgment": 2.9,
+   "independent": 2.9,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2025-09",
+   "judgment": 2.91,
+   "independent": 2.91,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_YOY@2025-01",
+   "judgment": 4.03,
+   "independent": 4.03,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_TOKYO_YOY@2026-10",
+   "judgment": 2.73,
+   "independent": 2.73,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_TOKYO_YOY@2026-09",
+   "judgment": 2.69,
+   "independent": 2.69,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_TOKYO_YOY@2026-08",
+   "judgment": 1.9,
+   "independent": 1.9,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_TOKYO_YOY@2026-06",
+   "judgment": 1.6,
+   "independent": 1.6,
+   "ok": true
+  },
+  {
+   "item": "JP_CPI_TOKYO_YOY@2026-04",
+   "judgment": 1.42,
+   "independent": 1.42,
+   "ok": true
+  },
+  {
+   "item": "EA gap latest 4.0-2.44",
+   "judgment": 1.56,
+   "independent": 1.56,
+   "ok": true
+  },
+  {
+   "item": "EA yoy change 4.0-2.1",
+   "judgment": 1.9,
+   "independent": 1.9,
+   "ok": true
+  },
+  {
+   "item": "JP yoy change 2.44-2.99",
+   "judgment": -0.55,
+   "independent": -0.55,
+   "ok": true
+  },
+  {
+   "item": "EA from 2026-06",
+   "judgment": 1.2,
+   "independent": 1.2,
+   "ok": true
+  },
+  {
+   "item": "JP from 2026-06",
+   "judgment": 0.77,
+   "independent": 0.77,
+   "ok": true
+  },
+  {
+   "item": "EA from 2026-05",
+   "judgment": 0.8,
+   "independent": 0.8,
+   "ok": true
+  },
+  {
+   "item": "JP from 2026-05",
+   "judgment": 0.91,
+   "independent": 0.91,
+   "ok": true
+  },
+  {
+   "item": "EA-JP monthly gap range 0.93-1.67",
+   "judgment": [
+    0.93,
+    1.67
+   ],
+   "independent": [
+    0.93,
+    1.67
+   ],
+   "ok": true
+  },
+  {
+   "item": "2026-09 gap national/tokyo vs EA",
+   "judgment": [
+    -1.64,
+    -1.11
+   ],
+   "independent": [
+    -1.64,
+    -1.11
+   ],
+   "ok": true
+  },
+  {
+   "item": "EA latest is 12-month max",
+   "judgment": true,
+   "independent": true,
+   "ok": true
+  },
+  {
+   "item": "EA 12-month min at 2026-01 = 1.7",
+   "judgment": [
+    "2026-01",
+    1.7
+   ],
+   "independent": [
+    "2026-01",
+    1.7
+   ],
+   "ok": true
+  },
+  {
+   "item": "JP 12-month min at 2026-02 = 1.27",
+   "judgment": [
+    "2026-02",
+    1.27
+   ],
+   "independent": [
+    "2026-02",
+    1.27
+   ],
+   "ok": true
+  },
+  {
+   "item": "ECB_MRO last obs",
+   "judgment": "2026-09-16",
+   "independent": "2026-09-16",
+   "ok": true
+  },
+  {
+   "item": "ECB_MRO value at last obs",
+   "judgment": 2.65,
+   "independent": 2.65,
+   "ok": true
+  },
+  {
+   "item": "ECB_DFR value at last obs",
+   "judgment": 2.5,
+   "independent": 2.5,
+   "ok": true
+  },
+  {
+   "item": "ECB_MRO 2025-06-11=2.15",
+   "judgment": 2.15,
+   "independent": 2.15,
+   "ok": true
+  },
+  {
+   "item": "ECB_DFR 2025-06-11=2.0",
+   "judgment": 2.0,
+   "independent": 2.0,
+   "ok": true
+  },
+  {
+   "item": "ECB_MRO 2026-06-17=2.4",
+   "judgment": 2.4,
+   "independent": 2.4,
+   "ok": true
+  },
+  {
+   "item": "ECB_DFR 2026-06-17=2.25",
+   "judgment": 2.25,
+   "independent": 2.25,
+   "ok": true
+  },
+  {
+   "item": "ECB last obs -> cutoff days",
+   "judgment": 68,
+   "independent": 68,
+   "ok": true
+  },
+  {
+   "item": "ECB hold 2025-06-11 -> 2026-06-17 days",
+   "judgment": 371,
+   "independent": 371,
+   "ok": true
+  },
+  {
+   "item": "ECB two changes apart days",
+   "judgment": 91,
+   "independent": 91,
+   "ok": true
+  },
+  {
+   "item": "ECB eff 09-16 -> BOJ eff 09-24 days",
+   "judgment": 8,
+   "independent": 8,
+   "ok": true
+  },
+  {
+   "item": "BOJ decision 09-18 -> cutoff-less: 10-30 -> cutoff days",
+   "judgment": 24,
+   "independent": 24,
+   "ok": true
+  },
+  {
+   "item": "JP_POLICY_RATE monthly path",
+   "judgment": [
+    0.478,
+    0.557,
+    0.728,
+    0.728,
+    0.728,
+    0.727,
+    0.727,
+    0.841,
+    0.978,
+    0.977,
+    1.043,
+    1.227
+   ],
+   "independent": [
+    0.478,
+    0.557,
+    0.728,
+    0.728,
+    0.728,
+    0.727,
+    0.727,
+    0.841,
+    0.978,
+    0.977,
+    1.043,
+    1.227
+   ],
+   "ok": true
+  },
+  {
+   "item": "JP 6m anchor-to-anchor bp",
+   "judgment": 50,
+   "independent": 50.0,
+   "ok": true
+  },
+  {
+   "item": "JP four in-window steps sum bp",
+   "judgment": 50,
+   "independent": 50.0,
+   "ok": true
+  },
+  {
+   "item": "JP 12m 0.478 -> 1.227 bp",
+   "judgment": 75,
+   "independent": 75.0,
+   "ok": true
+  },
+  {
+   "item": "level gap MRO 2.65 - 1.25",
+   "judgment": 1.4,
+   "independent": 1.4,
+   "ok": true
+  },
+  {
+   "item": "level gap DFR 2.5 - 1.25",
+   "judgment": 1.25,
+   "independent": 1.25,
+   "ok": true
+  },
+  {
+   "item": "SPX 2026-10-23->2026-11-20 pct",
+   "judgment": -9.36,
+   "independent": -9.36,
+   "ok": true
+  },
+  {
+   "item": "NIKKEI225 2026-10-23->2026-11-20 pct",
+   "judgment": -9.98,
+   "independent": -9.98,
+   "ok": true
+  },
+  {
+   "item": "DAX 2026-10-23->2026-11-20 pct",
+   "judgment": -1.5,
+   "independent": -1.5,
+   "ok": true
+  },
+  {
+   "item": "CAC40 2026-10-23->2026-11-20 pct",
+   "judgment": 1.86,
+   "independent": 1.86,
+   "ok": true
+  },
+  {
+   "item": "VIX 2026-10-23->2026-11-20 pct",
+   "judgment": 84.5,
+   "independent": 84.52,
+   "ok": true
+  },
+  {
+   "item": "EURUSD 2026-10-23->2026-11-20 pct",
+   "judgment": -2.24,
+   "independent": -2.24,
+   "ok": true
+  },
+  {
+   "item": "USDJPY 2026-10-23->2026-11-20 pct",
+   "judgment": 2.05,
+   "independent": 2.05,
+   "ok": true
+  },
+  {
+   "item": "DXY 2026-10-23->2026-11-20 pct",
+   "judgment": 1.96,
+   "independent": 1.96,
+   "ok": true
+  },
+  {
+   "item": "SPX 2026-10-23->2026-11-23 pct",
+   "judgment": -5.51,
+   "independent": -5.51,
+   "ok": true
+  },
+  {
+   "item": "DAX 2026-10-23->2026-11-23 pct",
+   "judgment": 0.11,
+   "independent": 0.11,
+   "ok": true
+  },
+  {
+   "item": "VIX 2026-10-23->2026-11-23 pct",
+   "judgment": 38.87,
+   "independent": 38.87,
+   "ok": true
+  },
+  {
+   "item": "EURUSD 2026-10-23->2026-11-23 pct",
+   "judgment": -2.51,
+   "independent": -2.51,
+   "ok": true
+  },
+  {
+   "item": "USDJPY 2026-10-23->2026-11-23 pct",
+   "judgment": 1.82,
+   "independent": 1.82,
+   "ok": true
+  },
+  {
+   "item": "DXY 2026-10-23->2026-11-23 pct",
+   "judgment": 2.23,
+   "independent": 2.23,
+   "ok": true
+  },
+  {
+   "item": "VIX 10-23 / 11-13 / 11-20 / 11-23 levels (2 decimals)",
+   "judgment": [
+    19.45,
+    19.3,
+    35.89,
+    27.01
+   ],
+   "independent": [
+    19.45,
+    19.3,
+    35.89,
+    27.01
+   ],
+   "ok": true
+  },
+  {
+   "item": "VIX 11-23 vs 11-20 pct (one decimal in the judgment)",
+   "judgment": -24.7,
+   "independent": -24.7,
+   "ok": true
+  },
+  {
+   "item": "VIX daily pct 2026-11-16 (prev 2026-11-13)",
+   "judgment": 18.7,
+   "independent": 18.7,
+   "ok": true
+  },
+  {
+   "item": "VIX daily pct 2026-11-20 (prev 2026-11-19)",
+   "judgment": 26.2,
+   "independent": 26.2,
+   "ok": true
+  },
+  {
+   "item": "SPX 11-13->11-20 pct",
+   "judgment": -8.61,
+   "independent": -8.61,
+   "ok": true
+  },
+  {
+   "item": "NIKKEI225 11-13->11-20 pct",
+   "judgment": -7.7,
+   "independent": -7.7,
+   "ok": true
+  },
+  {
+   "item": "DAX 11-13->11-20 pct",
+   "judgment": -7.28,
+   "independent": -7.28,
+   "ok": true
+  },
+  {
+   "item": "CAC40 11-13->11-20 pct",
+   "judgment": -5.27,
+   "independent": -5.27,
+   "ok": true
+  },
+  {
+   "item": "VIX 11-04->11-05 pct",
+   "judgment": 69.66,
+   "independent": 69.66,
+   "ok": true
+  },
+  {
+   "item": "VIX 11-11 vs 11-05 pct",
+   "judgment": -37.93,
+   "independent": -37.93,
+   "ok": true
+  },
+  {
+   "item": "SPX 11-05 daily pct",
+   "judgment": -4.36,
+   "independent": -4.36,
+   "ok": true
+  },
+  {
+   "item": "NIKKEI225 11-06 daily pct",
+   "judgment": -5.96,
+   "independent": -5.96,
+   "ok": true
+  },
+  {
+   "item": "VIX jump start -> 10-30 days",
+   "judgment": 14,
+   "independent": 14,
+   "ok": true
+  },
+  {
+   "item": "VIX jump start -> ECB 09-16 days",
+   "judgment": 58,
+   "independent": 58,
+   "ok": true
+  },
+  {
+   "item": "VIX jump end -> 10-30 days",
+   "judgment": 21,
+   "independent": 21,
+   "ok": true
+  },
+  {
+   "item": "VIX jump end -> ECB 09-16 days",
+   "judgment": 65,
+   "independent": 65,
+   "ok": true
+  },
+  {
+   "item": "EURJPY synth 10-23 / 11-20 / 11-23",
+   "judgment": [
+    175.61,
+    175.19,
+    174.32
+   ],
+   "independent": [
+    175.61,
+    175.19,
+    174.32
+   ],
+   "ok": true
+  },
+  {
+   "item": "EURJPY synth pct 11-20 vs 10-23",
+   "judgment": -0.24,
+   "independent": -0.24,
+   "ok": true
+  },
+  {
+   "item": "EURJPY synth pct 11-23 vs 10-23",
+   "judgment": -0.73,
+   "independent": -0.73,
+   "ok": true
+  },
+  {
+   "item": "UST_10Y last obs / value",
+   "judgment": [
+    "2026-11-19",
+    5.04
+   ],
+   "independent": [
+    "2026-11-19",
+    5.04
+   ],
+   "ok": true
+  },
+  {
+   "item": "US 10Y trio monthly window bp (nominal/real/bei)",
+   "judgment": [
+    -8.0,
+    11.0,
+    -19.0
+   ],
+   "independent": [
+    -8,
+    11,
+    -19
+   ],
+   "ok": true
+  },
+  {
+   "item": "Fed funds target band at cutoff",
+   "judgment": [
+    3.75,
+    4.0
+   ],
+   "independent": [
+    3.75,
+    4.0
+   ],
+   "ok": true
+  },
+  {
+   "item": "Fed last change date in series",
+   "judgment": [
+    "2026-09-17"
+   ],
+   "independent": [
+    "2026-09-17"
+   ],
+   "ok": true
+  },
+  {
+   "item": "S1 premise levels compatible with cutoff readings: EA>=3.5, JP>=2.0, gap>=1.5",
+   "judgment": [
+    true,
+    true,
+    true
+   ],
+   "independent": [
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "item": "S1 trigger threshold EA>=4.0 equals the latest reading (not yet met/failed before 2026-11 reading)",
+   "judgment": 4.0,
+   "independent": 4.0,
+   "ok": true
+  },
+  {
+   "item": "S2 falsification side (two months >=3.5) not yet met: latest EA 4.0 >= 3.5",
+   "judgment": true,
+   "independent": true,
+   "ok": true
+  },
+  {
+   "item": "publication of 2026-11 / 2026-12 obs by engine rule (EA +16d, JP +20d) all before deadline 2027-02-15",
+   "judgment": [
+    true,
+    true,
+    true,
+    true
+   ],
+   "independent": [
+    true,
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "item": "those publication dates",
+   "judgment": [
+    "2026-12-16",
+    "2026-12-20",
+    "2027-01-16",
+    "2027-01-20"
+   ],
+   "independent": [
+    "2026-12-16",
+    "2026-12-20",
+    "2027-01-16",
+    "2027-01-20"
+   ],
+   "ok": true
+  },
+  {
+   "item": "EA 2026-04 reading publication by rule (+16d) = 2026-05-16",
+   "judgment": "2026-05-16",
+   "independent": "2026-05-16",
+   "ok": true
+  },
+  {
+   "item": "JP 2026-04 reading publication by rule (+20d) = 2026-05-20",
+   "judgment": "2026-05-20",
+   "independent": "2026-05-20",
+   "ok": true
+  },
+  {
+   "item": "analog scanned / valid",
+   "judgment": [
+    1871,
+    74
+   ],
+   "independent": [
+    1871,
+    74
+   ],
+   "ok": true
+  },
+  {
+   "item": "analog TOP1 month / distance",
+   "judgment": [
+    "2025-03",
+    0.727
+   ],
+   "independent": [
+    "2025-03",
+    0.727
+   ],
+   "ok": true
+  },
+  {
+   "item": "contract token verdicts: 5 tokens, VERIFIED 4 / STALE 1",
+   "judgment": [
+    5,
+    {
+     "VERIFIED": 4,
+     "STALE": 1
+    }
+   ],
+   "independent": [
+    5,
+    {
+     "STALE": 1,
+     "VERIFIED": 4
+    }
+   ],
+   "ok": true
+  },
+  {
+   "item": "the single STALE token is ECB_DFR 2.5% and value==expected",
+   "judgment": [
+    1,
+    "ECB_DFR",
+    "2.5%",
+    true
+   ],
+   "independent": [
+    1,
+    "ECB_DFR",
+    "2.5%",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "item": "STALE token expected value == last ECB_DFR observation",
+   "judgment": 2.5,
+   "independent": 2.5,
+   "ok": true
+  },
+  {
+   "item": "contract six_checks count / all VERIFIED",
+   "judgment": [
+    16,
+    16
+   ],
+   "independent": [
+    16,
+    16
+   ],
+   "ok": true
+  }
+ ]
+}

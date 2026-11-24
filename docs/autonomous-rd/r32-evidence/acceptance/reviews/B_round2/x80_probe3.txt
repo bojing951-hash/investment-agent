@@ -1,0 +1,641 @@
+run dir listing: ['AGENT_SEAT_ENVELOPE.json', 'FULL_REPORT.md', 'MAP_REPORT.md', 'MAP_REPORT.sha256', 'agent_judgment.json', 'evidence_index.json', 'question_verbatim.txt', 'report.json', 'report.md', 'root_overlay', 'views_digest.json']
+root_overlay listing: ['config', 'data']
+  overlay file: root_overlay/config/metric_registry.json
+  overlay file: root_overlay/config/release_calendar.json
+  overlay file: root_overlay/data/daily/research_snapshot_20261123.json
+calendar path: /tmp/r32-accept/final6/output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/root_overlay/config/release_calendar.json  type=dict  top keys=['batches', 'created', 'entries', 'spec', 'updated', 'version']
+calendar entries: 18
+   RC-2025SHUTDOWN-CPI-SEP | 2025-10-24 | ['basis', 'batch_id', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to', 'source']
+   RC-2025SHUTDOWN-CORECPI-SEP | 2025-10-24 | ['basis', 'batch_id', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to', 'source']
+   RC-2025SHUTDOWN-UNEMP-SEP | 2025-11-20 | ['basis', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to', 'source']
+   RC-2025SHUTDOWN-UNEMP-NOV | 2025-12-16 | ['basis', 'batch_id', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to', 'source']
+   RC-2025SHUTDOWN-GDP-Q3 | 2025-12-23 | ['basis', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to', 'source']
+   RC-2025SHUTDOWN-PCE-OCTNOV | 2026-01-22 | ['basis', 'batch_id', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to', 'source']
+   RC-EA-HICP-2021M05 | 2021-06-01 | ['basis', 'entry_id', 'final_publish_on', 'first_publish_on_or_after', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to']
+   RC-EA-HICP-2022M06 | 2022-07-01 | ['basis', 'entry_id', 'final_publish_on', 'first_publish_on_or_after', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to']
+   RC-2025SHUTDOWN-INDPRO-SEP | 2025-12-03 | ['basis', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to']
+   RC-EA-HICP-2025M03 | 2025-04-01 | ['basis', 'entry_id', 'final_publish_on', 'first_publish_on_or_after', 'metric_id', 'note', 'obs_from', 'obs_to']
+   RC-2025SHUTDOWN-CPI-NOV | 2025-12-18 | ['basis', 'batch_id', 'entry_id', 'first_publish_on_or_after', 'metric_ids', 'note', 'obs_from', 'obs_to']
+   RC-2025SHUTDOWN-PCE-SEP | 2025-12-05 | ['basis', 'batch_id', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'note', 'obs_from', 'obs_to']
+   RC-2025SHUTDOWN-INDPRO-OCTNOV | 2025-12-23 | ['basis', 'batch_id', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'note', 'obs_from', 'obs_to']
+   RC-2025SHUTDOWN-REST-CONSERVATIVE | 2026-01-22 | ['basis', 'entry_id', 'first_publish_on_or_after', 'metric_ids', 'not_published_as_of', 'note', 'obs_from', 'obs_to', 'source']
+   RC-JP-BOJ-TARGET-2026-09 | 2026-09-18 | ['basis', 'decision_date', 'effective_on', 'entry_id', 'first_publish_on_or_after', 'kind', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to', 'source', 'target_value']
+   RC-JP-BOJ-MAINT-2026-10 | 2026-10-30 | ['basis', 'decision_date', 'entry_id', 'first_publish_on_or_after', 'kind', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to', 'source', 'target_value']
+   RC-CN-LPR-2025M11 | 2025-11-20 | ['basis', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'note', 'obs_from', 'obs_to', 'official', 'source', 'time']
+   RC-CN-LPR-2026M11 | 2026-11-20 | ['basis', 'entry_id', 'first_publish_on_or_after', 'metric_id', 'not_published_as_of', 'note', 'obs_from', 'obs_to', 'official', 'source', 'time']
+ERR: []
+cat ('A', 'A 截止时点')  n=19
+cat ('A', 'AN 历史相似结构表独立复算')  n=98
+cat ('B', 'B 锚点格')  n=27
+cat ('B', "B' 发布纪律")  n=47
+cat ('C', 'C 同比派生')  n=49
+cat ('D', 'D 政策口径')  n=48
+cat ('E', 'E 利率分解')  n=24
+cat ('F', 'F 资产与汇率窗')  n=47
+cat ('G', 'G 转折面直算')  n=42
+cat ('H', 'H 诚实缺席与门面')  n=54
+cat ('I', 'I 情景可观测性')  n=17
+cat ('K', 'K 渲染一致性')  n=5
+cat ('L', 'L 引擎渲染表')  n=11
+cat ('M', 'M 条目支撑')  n=5
+cat ('X', 'X 补充核验')  n=6
+cat ('Y', 'Y 记号覆盖闭合')  n=46
+ALL=494 NEW=51 ALLP=545 COUNTED=479 INFO=['K02b', 'K04', 'Y43', 'Y46'] DUP=[('B04', 'B03'), ('C48', 'B13'), ('C49', 'B14'), ('D15', 'B17'), ('D18', 'B18'), ('D20', 'D13'), ('D21', 'D13'), ('D22', 'D13'), ('D23', 'D13'), ('D24', 'B17'), ('H37', 'E04'), ('H38', 'E05'), ('H39', 'E06'), ('I11', 'B18'), ('Y05', 'Y04'), ('Y12', 'E12'), ('Y13', 'E13'), ('Y14', 'E14'), ('Y15', 'E09'), ('Y16', 'E22'), ('Y17', 'E23'), ('Y19', 'E06'), ('Y20', 'F28'), ('Y21', 'F31'), ('Y22', 'F34'), ('Y23', 'E01'), ('Y25', 'E18'), ('Y26', 'E03'), ('Y27', 'D47'), ('Y29', 'F18'), ('Y30', 'F19'), ('Y31', 'F21'), ('G01', 'C21'), ('G02', 'C22'), ('G03', 'Y36'), ('G05', 'C34'), ('G06', 'C35'), ('G08', 'C36'), ('G09', 'B15'), ('G10', 'B16'), ('G13', 'C24'), ('G14', 'C25'), ('G16', 'C26'), ('G17', 'C27'), ('G19', 'C28'), ('G20', 'C29'), ('G21', 'Y37'), ('G23', 'C32'), ('G24', 'C33'), ('G27', 'C06'), ('G28', 'D19'), ('G29', 'D14'), ('G30', 'B17'), ('G33', 'D17'), ('G34', 'D32'), ('G35', 'B18'), ('G36', 'D33'), ('G42', 'F27'), ('M1a', 'F19'), ('M1b', 'F21'), ('M1c', 'F18'), ('M3a', 'Y09')]
+non-ok counted: []
+--- NEW points ---
+G01 ok=True comp=2.434004 rep=2.434 cls=dup | 
+G02 ok=True comp=4.166615 rep=4.1666 cls=dup | 
+G03 ok=True comp=1.732611 rep=1.7326 cls=dup | 
+G04 ok=True comp=CPI:1.7326 rep=CPI:1.7326 cls=counted | 
+G05 ok=True comp=1.9 rep=1.9 cls=dup | 
+G06 ok=True comp=3.2 rep=3.2 cls=dup | 
+G07 ok=True comp=1.3 rep=1.3 cls=counted | 
+G08 ok=True comp=2.8 rep=2.8 cls=dup | 
+G09 ok=True comp=2.9 rep=2.9 cls=dup | 
+G10 ok=True comp=4.0 rep=4.0 cls=dup | 
+G11 ok=True comp=True rep=True cls=counted | 
+G12 ok=True comp=2026-10 rep=2026-10 cls=counted | 
+G13 ok=True comp=2.472462 rep=2.4725 cls=dup | 
+G14 ok=True comp=2.822942 rep=2.8229 cls=dup | 
+G15 ok=True comp=True rep=True cls=counted | 核心 +0.3505 / headline +1.7326
+G16 ok=True comp=2.446163 rep=2.4462 cls=dup | 
+G17 ok=True comp=2.565841 rep=2.5658 cls=dup | 
+G18 ok=True comp=True rep=True cls=counted | 
+G19 ok=True comp=1.754312 rep=1.7543 cls=dup | 
+G20 ok=True comp=0.797236 rep=0.7972 cls=dup | 
+G21 ok=True comp=-0.957076 rep=-0.9571 cls=dup | 
+G22 ok=True comp=INDPRO:0.9571 rep=INDPRO:0.9571 cls=counted | 增长维候选 [('INDPRO', -0.9571), ('UNEMPLOYMENT', -0.2)]
+G23 ok=True comp=4.5 rep=4.5 cls=dup | 
+G24 ok=True comp=4.4 rep=4.4 cls=dup | 
+G25 ok=True comp=True rep=True cls=counted | 
+G26 ok=True comp=2026-03 rep=2026-03 cls=counted | ['2025-11:1.7543', '2025-12:1.1630', '2026-01:0.9735', '2026-02:0.7972', '2026-03:0.6861', '2026-04:1.4327', '2026-05:1.7105', '2026-06:1.4671', '2026-07:1.2498', '2026-08:1.4472', '2026-09:2.1421', '
+G27 ok=True comp=2.149685 rep=2.15 cls=dup | 
+G28 ok=True comp=0.727 rep=0.727 cls=dup | 
+G29 ok=True comp=0.841 rep=0.841 cls=dup | 
+G30 ok=True comp=0.978 rep=0.978 cls=dup | 
+G31 ok=True comp=3 rep=3 cls=counted | ['2026-01:+17.1bp', '2026-06:+11.4bp', '2026-07:+13.7bp', '2026-09:+6.6bp', '2026-10:+18.4bp']
+G32 ok=True comp=17/11 rep=17/11 cls=counted | 
+G33 ok=True comp=1.043 rep=1.043 cls=dup | 
+G34 ok=True comp=6.6 rep=7 cls=dup | 
+G35 ok=True comp=1.227 rep=1.227 cls=dup | 
+G36 ok=True comp=18.4 rep=18 cls=dup | 
+G37 ok=True comp=inflation:CPI growth:INDPRO policy:JP_POLICY_RATE rep=inflation:CPI growth:INDPRO policy:JP_POLICY_RATE cls=counted | 
+G38 ok=True comp=CPI@2026-02→2026-05,INDPRO@2025-11→2026-02,JP_POLICY_RATE@2026-04→2026-07 rep=CPI@2026-02→2026-05,INDPRO@2025-11→2026-02,JP_POLICY_RATE@2026-04→2026-07 cls=counted | 
+G39 ok=True comp=True rep=True cls=counted | 
+G40 ok=True comp=2026-05 rep=2026-05 cls=counted | 
+G41 ok=True comp=1.093972@2026-11-23 rep=1.093972@2026-11-23 cls=counted | 
+G42 ok=True comp=-5.524538 rep=-5.52 cls=dup | 
+L09 ok=True comp=True rep=True cls=counted | 渲染行 [[1, '2025-03', 0.727212, 0.0], [2, '2022-06', 0.791806, 1.3699], [3, '2023-10', 1.054168, 30.137], [4, '2021-02', 1.284945, 69.863], [5, '2020-01', 1.357685, 71.2329]]
+L10 ok=True comp=True rep=True cls=counted | 渲染行 [[1, '2025-03', 0.727212, 0.0], [2, '2022-06', 0.791806, 1.3699], [3, '2023-10', 1.054168, 30.137], [4, '2021-02', 1.284945, 69.863], [5, '2020-01', 1.357685, 71.2329]]
+L11 ok=True comp=True rep=True cls=counted | 行 [170, 173]
+L12 ok=True comp=True rep=True cls=counted | 节为 MAP_REPORT.md 第 199–202 行
+M1a ok=True comp=-0.127235 rep=-0.13 cls=dup | 
+M1b ok=True comp=0.292041 rep=0.29 cls=dup | 
+M1c ok=True comp=1.823071 rep=1.82 cls=dup | 
+M2a ok=True comp=24 rep=24 cls=counted | 
+M3a ok=True comp=0.023 rep=0.023 cls=dup | 
+--- EX keys ---
+analog_pool_fit = [73, [0, 1, 22, 51, 52]]
+analog_rep_cluster_sizes = [20, 23, 10, 16, 5]
+analog_rep_dropped_at_anchor = {"UNEMPLOYMENT_level": "no_value_at_anchor", "NFP_3m_chg": "no_value_at_anchor", "INDPRO_yoy": "no_value_at_anchor", "RSAFS_yoy": "no_value_at_anchor", "GDP_yoy": "no_value_at_anchor", "CORE_CPI_yoy": "no_value_at_anchor", "CPI_yoy": "no_value_at_anchor", "FED_FUNDS_level": "no_value_at_anchor", "FED_FUNDS_d12m": "no_value_at_anchor", "HY_OAS_d12m": "hist_25<36", "HY_IG_gap_d12m": "hist_25<36", "SPX_PE_TTM_level": "no_value_at_anchor"}
+analog_rep_first_last_candidate = ["2019-10", "2025-11"]
+analog_rep_sorted_head = [["2025-03", 0.727212, 2, 0.0, ["HY_IG_gap_level", "HY_OAS_level"]], ["2022-06", 0.791806, 2, 1.37, ["HY_IG_gap_level", "HY_OAS_level"]], ["2022-05", 0.844702, 2, 2.74, ["HY_IG_gap_level", "HY_OAS_level"]], ["2024-12", 0.906631, 2, 4.11, ["HY_IG_gap_level", "HY_OAS_level"]], ["2025-04", 0.912489, 2, 5.48, ["HY_IG_gap_level", "HY_OAS_level"]], ["2025-05", 0.923456, 2, 6.85, ["HY_IG_gap_level", "HY_OAS_level"]], ["2025-02", 0.939808, 2, 8.22, ["HY_IG_gap_level", "HY_OAS_level"]], ["2022-01", 0.949676, 2, 9.59, ["HY_IG_gap_level", "HY_OAS_level"]], ["2025-10", 0.949829, 2, 10.96, ["HY_IG_gap_leve
+analog_rows = [["1", "2025-03", "0.727212", "0.0"], ["2", "2022-06", "0.791806", "1.3699"], ["3", "2023-10", "1.054168", "30.137"], ["4", "2021-02", "1.284945", "69.863"], ["5", "2020-01", "1.357685", "71.2329"]]
+analog_top1_missing = ["HY_IG_gap_level", "HY_OAS_level"]
+analog_top2_missing = ["HY_IG_gap_level", "HY_OAS_level"]
+analog_top3_missing = ["HY_IG_gap_level", "HY_OAS_level"]
+analog_top4_missing = ["HY_IG_gap_level", "HY_OAS_level"]
+analog_top5_missing = ["CURVE_2S10S_d12m", "HY_IG_gap_level", "HY_OAS_level", "TIPS_10Y_d12m", "UST_10Y_d12m"]
+anchor_cells = [{"anchor": "3个月前", "metric_id": "US_REAL_GDP", "value": 24408.011, "observation_month": "2026-04"}, {"anchor": "最新一期", "metric_id": "US_REAL_GDP", "value": 24611.077, "observation_month": "2026-07"}, {"anchor": "3个月前", "metric_id": "UNEMPLOYMENT", "value": 4.1, "observation_month": "2026-07"}, {"anchor": "最新一期", "metric_id": "UNEMPLOYMENT", "value": 4.1, "observation_month": "2026-10"}, {"anchor": "3个月前", "metric_id": "INDPRO", "value": 103.1675, "observation_month": "2026-07"}, {"anchor": "最新一期", "metric_id": "INDPRO", "value": 103.3954, "observation_month": "2026-10"}, {"anchor": "3个月前", "m
+bei_12m_low = [[2.15, "2026-11-20"], [2.16, "2026-11-19"], [2.18, "2026-06-24"], [2.19, "2026-11-18"]]
+bei_feb_may = {"first": ["2026-02-02", 2.35], "last": ["2026-05-29", 2.38], "min": ["2026-02-27", 2.25], "max": ["2026-05-04", 2.5], "endpoint_chg_bp": 2.9999999999999805}
+brent_month_means = {"2025-10": 63.95391300000001, "2026-07": 84.51227327272728, "2026-08": 88.07571385714284, "2026-09": 102.25666595238094, "2026-10": 108.33727236363637, "2026-11(to 11-23)": 94.89687487499998}
+brent_release_day = {"2026-10-13": 105.690002, "2026-10-16": 109.860001, "2026-10-30": 117.639999, "2026-11-13": 95.839996, "2026-11-16": 92.440002}
+cal_conservative = {"entry_id": "RC-2025SHUTDOWN-REST-CONSERVATIVE", "basis": "convention", "metric_ids": ["CPI", "CORE_CPI", "CORE_PCE", "UNEMPLOYMENT", "NFP", "AHE", "INDPRO"], "obs_from": "2025-09-01", "obs_to": "2025-10-31", "not_published_as_of": "2025-11-19", "first_publish_on_or_after": "2026-01-22", "note": "2025-09/2025-10 观测月联邦统计中未逐条实录首发的系列(九月CPI/九月核心CPI/九月失业率/Q3GDP/十月与十一月PCE/十一月失业率 七项 user_directive 条目优先命中,不在本条范围): 实际首发日未逐条实录,取已证最晚补发日 2026-01-22 为保守可见界——介于其间的真实首发不虚构,fail-closed 方向如实注记", "source": "Audit-R21: 由停摆事件实录日期按公开时间线推广;推广范围=本条 metric_ids×2025-09/10 观测月,减去七项已实录条目"}
+cal_entries_compact = [{"entry_id": "RC-2025SHUTDOWN-CPI-SEP", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "first_publish_on_or_after": "2025-10-24", "source": "Audit-R21 验收指令(2026-11-19)"}, {"entry_id": "RC-2025SHUTDOWN-CORECPI-SEP", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "first_publish_on_or_after": "2025-10-24", "source": "Audit-R22 验收指令(2026-11-19)"}, {"entry_id": "RC-2025SHUTDOWN-UNEMP-SEP", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "first_publish_on_or_after": "2025-11-20", "source": "Audit-R21 验收指令(2026-11-19)"}, {"entry_id": "RC-2025SHUTDOWN-UNEMP-NOV", "obs_from": "2025-11-01", "ob
+cal_entries_published_after_1030 = ["RC-CN-LPR-2026M11@2026-11-20"]
+cal_jp_maint = {"entry_id": "RC-JP-BOJ-MAINT-2026-10", "kind": "policy_maintenance", "basis": "user_directive", "metric_id": "JP_POLICY_TARGET", "obs_from": "2026-10-30", "obs_to": "2099-12-31", "decision_date": "2026-10-30", "target_value": 1.25, "not_published_as_of": "2026-10-29", "first_publish_on_or_after": "2026-10-30", "note": "日本央行 2026-10-30 会议确认维持政策目标利率约1.25%不变——确认维持不改变目标水平,但更新核验覆盖截止(R28 任务2: 确认维持也更新核验日期)", "source": "Audit-R28 验收指令(2026-11-21)"}
+cal_jp_target = {"entry_id": "RC-JP-BOJ-TARGET-2026-09", "kind": "policy_decision", "basis": "user_directive", "metric_id": "JP_POLICY_TARGET", "obs_from": "2026-09-18", "obs_to": "2099-12-31", "decision_date": "2026-09-18", "effective_on": "2026-09-24", "target_value": 1.25, "not_published_as_of": "2026-09-17", "first_publish_on_or_after": "2026-09-18", "note": "日本央行政策目标利率(宣布值口径)2026-09-18 决议、2026-09-24 生效,目标水平约1.25%——R28 验收指令实录(2026-11-21 复测基线);距上次调整按生效日计算", "source": "Audit-R28 验收指令(2026-11-21)"}
+cal_policy_entries = [{"entry_id": "RC-JP-BOJ-TARGET-2026-09", "kind": "policy_decision", "basis": "user_directive", "metric_id": "JP_POLICY_TARGET", "obs_from": "2026-09-18", "obs_to": "2099-12-31", "decision_date": "2026-09-18", "effective_on": "2026-09-24", "target_value": 1.25, "not_published_as_of": "2026-09-17", "first_publish_on_or_after": "2026-09-18", "note": "日本央行政策目标利率(宣布值口径)2026-09-18 决议、2026-09-24 生效,目标水平约1.25%——R28 验收指令实录(2026-11-21 复测基线);距上次调整按生效日计算", "source": "Audit-R28 验收指令(2026-11-21)"}, {"entry_id": "RC-JP-BOJ-MAINT-2026-10", "kind": "policy_maintenance", "basis": "user_directive", "metric_id":
+cal_policy_entries_in_window = []
+cells_values = {"US_REAL_GDP@2026-04": 24408.011, "US_REAL_GDP@2026-07": 24611.077, "UNEMPLOYMENT@2026-07": 4.1, "UNEMPLOYMENT@2026-10": 4.1, "INDPRO@2026-07": 103.1675, "INDPRO@2026-10": 103.3954, "CPI@2026-07": 332.813, "CPI@2026-10": 337.476, "CORE_CPI@2026-07": 336.789, "CORE_CPI@2026-10": 339.9, "CORE_PCE@2026-06": 129.969, "CORE_PCE@2026-09": 130.902, "EA_REAL_GDP_YOY@2026-04": 1.19, "EA_REAL_GDP_YOY@2026-07": 1.28, "EA_HICP_YOY@2026-07": 2.9, "EA_HICP_YOY@2026-10": 4.0, "JP_POLICY_RATE@2026-07": 0.978, "JP_POLICY_RATE@2026-10": 1.227}
+dfedtaru_trans = [["2024-12-19", 4.75, 4.5], ["2025-09-18", 4.5, 4.25], ["2025-10-30", 4.25, 4.0], ["2025-12-11", 4.0, 3.75], ["2026-09-17", 3.75, 4.0]]
+ea_gt_us = ["2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2026-09"]
+ea_gt_us_months = ["2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03", "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09", "2026-09"]
+ea_minus_us_2026_09 = -332.498
+ecb_dfr_change = ["2026-09-16", 2.25, 2.5]
+ecb_dfr_trans = [["2025-03-12", 2.75, 2.5], ["2025-04-23", 2.5, 2.25], ["2025-06-11", 2.25, 2.0], ["2026-06-17", 2.0, 2.25], ["2026-09-16", 2.25, 2.5]]
+evidence_index_ids_n = 63
+evidence_index_jp_inflation = []
+gdp_common_gaps = [["2025-07-01", "2026-01-01"]]
+jgb_facts = [{"fact_id": "JGB2Y@2026-11-19", "metric_id": "JGB2Y", "display_name": "2年期日债收益率", "value": 1.853, "unit": "percent", "value_type": "yield_or_spread_level", "observation_date": "2026-11-19", "as_of": "2026-11-23T22:53:47+08:00", "source": {"collector": "japan_rate_collector", "file": "japan_20261123.json", "retrieved_at": null}, "calculation_ref": null, "calc": "MOF日本国债收益率曲线(jgbcme)2年期最新收盘观测(每营业日发布,非营业日无新观测)", "identity": {"instrument": "index_rate_series", "adjustment": "none"}, "quality_status": "PASS", "issues": []}, {"fact_id": "JGB5Y@2026-11-19", "metric_id": "JGB5Y", "display_name": "5年期
+jp_cpi_yoy_store = {"2026-02": 1.27, "2026-05": 1.53, "2026-06": 1.67, "2026-07": 1.97, "2026-08": 1.98, "2026-09": 2.16, "2026-10": 2.44}
+jp_diffs_bp = {"2025-12-01": 7.9, "2026-01-01": 17.1, "2026-02-01": 0.0, "2026-03-01": 0.0, "2026-04-01": -0.1, "2026-05-01": 0.0, "2026-06-01": 11.4, "2026-07-01": 13.7, "2026-08-01": -0.1, "2026-09-01": 6.6, "2026-10-01": 18.4}
+jp_mid_diffs_all = ["1987-01:+0.0154", "1987-06:+0.0118", "1987-07:-0.0123", "1987-08:+0.0201", "1987-10:-0.0142", "1987-11:+0.0268", "1990-08:+0.0193", "1991-06:+0.0079", "1991-08:+0.0238", "1992-03:-0.0293", "1992-05:-0.0213", "1992-06:+0.0078", "1993-01:+0.0048", "1993-05:+0.0280", "1993-06:+0.0077", "1993-11:-0.0125", "1994-03:+0.0099", "1994-06:-0.0280", "1994-07:+0.0194", "1994-11:+0.0297", "1994-12:+0.0260", "1995-03:-0.0283", "1995-11:-0.0062", "1995-12:-0.0015", "1996-01:+0.0073", "1996-02:-0.0083", "1996-03:-0.0025", "1996-05:-0.0171", "1996-06:+0.0029", "1996-07:+0.0107", "1996-09:+0.0238", "1996-10:+
+jp_monthly = {"2025-11-01": 0.478, "2025-12-01": 0.557, "2026-01-01": 0.728, "2026-02-01": 0.728, "2026-03-01": 0.728, "2026-04-01": 0.727, "2026-05-01": 0.727, "2026-06-01": 0.841, "2026-07-01": 0.978, "2026-08-01": 0.977, "2026-09-01": 1.043, "2026-10-01": 1.227}
+md_segments_not_in_judgment = {"report.md": 219, "MAP_REPORT.md": 177, "FULL_REPORT.md": 103}
+md_segments_not_in_judgment_marked = {"report.md": ["7: 缺口: JP/policy —— 计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构", "66: Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计(attribution=ai_inferred)", "68: 竞争性解释1: 【假设】若美欧通胀抬升主要源于能源与进口成本的持续传导(弱欧元放大输入压力;弱欧元一项有在场读数——欧元兑美元 2026-11-23 为 1.093972,近 12 个月窗最低,三个月(2026-08-19→2026-11-23)-5.52%,11-23 为盘中快照),则 headline 强于 core 的结构应延续,且同比读数在数月内维持高位。", "69: 竞争性解释2: 【假设】若抬升主要来自低基数与一次性扰动(统计口径、季节性、能源基数),则未来数月同比应自行回落——近一月 BEI_10Y 走低(共同交易日窗 20
+paths = {"CPI": {"2025-01-01": 2.991, "2025-02-01": 2.8016, "2025-03-01": 2.382, "2025-04-01": 2.3254, "2025-05-01": 2.3773, "2025-06-01": 2.6805, "2025-07-01": 2.7426, "2025-08-01": 2.9386, "2025-09-01": 3.0226, "2025-10-01": null, "2025-11-01": 2.6964, "2025-12-01": 2.6533, "2026-01-01": 2.3912, "2026-02-01": 2.434, "2026-03-01": 3.286, "2026-04-01": 3.7792, "2026-05-01": 4.1666, "2026-06-01": 3.4635, "2026-07-01": 3.3039, "2026-08-01": 3.353, "2026-09-01": 3.7173, "2026-10-01": null}, "CORE_CPI": {"2025-01-01": 3.283, "2025-02-01": 3.1376, "2025-03-01": 2.8088, "2025-04-01": 2.776, "2025-05-01": 2.
+pv_rules = {"US_REAL_GDP": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)", "UNEMPLOYMENT": "BLS 就业形势报告次月首周发布(月末+5天,推定)", "INDPRO": "G.17 工业生产次月中旬发布(月末+15天,推定)", "CPI": "BLS CPI 次月中旬发布(月末+13天,推定)", "CORE_CPI": "BLS CPI 次月中旬发布(月末+13天,推定)", "CORE_PCE": "BEA 个人收支报告次月末发布(月末+30天,推定)", "EA_REAL_GDP_YOY": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)", "EA_HICP_YOY": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)", "JP_POLICY_RATE": "BOJ 月均次月初公布(月末+5天,推定)"}
+rates_endpoints = {"UST_10Y": {"2025-11-19": 4.13, "2026-08-19": 4.65, "2026-10-20": 5.12, "2026-11-19": 5.04}, "TIPS_10Y": {"2025-11-19": 1.86, "2026-08-19": 2.35, "2026-10-20": 2.77, "2026-11-19": 2.88}, "BEI_10Y": {"2025-11-19": 2.27, "2026-08-19": 2.3, "2026-10-20": 2.35, "2026-11-19": 2.16}}
+reader_map_tokens_missing_MAP = []
+reader_map_tokens_n = 389
+rules_days = {"US_REAL_GDP": 29, "UNEMPLOYMENT": 5, "INDPRO": 15, "CPI": 13, "CORE_CPI": 13, "CORE_PCE": 30, "EA_REAL_GDP_YOY": 35, "EA_HICP_YOY": 16, "JP_POLICY_RATE": 5}
+semantic_review = {"verdict": "REVISE", "verdicts_n": 1, "map_report_sha256": "810d19656348c9d6d0ecec6324c54ae85cd285185d7aa13525dbd4ca1b45b432"}
+series_tail = {"CPI": ["2016-11-01", "2026-10-01", 119], "CORE_CPI": ["2016-11-01", "2026-10-01", 119], "CORE_PCE": ["2016-11-01", "2026-09-01", 119], "INDPRO": ["2016-11-01", "2026-10-01", 120], "UNEMPLOYMENT": ["2016-11-01", "2026-10-01", 119], "US_REAL_GDP": ["2016-10-01", "2026-07-01", 40], "EA_HICP_YOY": ["1997-01-01", "2026-10-01", 358], "EA_REAL_GDP_YOY": ["1996-01-01", "2026-07-01", 123], "JP_POLICY_RATE": ["1985-07-01", "2026-10-01", 496]}
+spx_vix_levels = {"SPX": {"2026-08-19": 7707.97998, "2026-10-23": 7623.680176, "2026-11-19": 7175.830078, "2026-11-20": 6910.390137, "2026-11-23": 7203.850098}, "VIX": {"2026-08-19": 14.89, "2026-10-23": 19.450001, "2026-11-20": 35.889999, "2026-11-23": 27.01}}
+strings_in_no_file = ["$.agent_declaration.produced_by | Agent 研究席(操作者会话经正式入口 ia_cli research-one 代持席位, 换问轮 20261123T235121Z, 2", "$.agent_declaration.basis | 读本轮 AGENT_SEAT_ENVELOPE 工单、证据索引(63行)、点值格(9格)、转折候选面(候选池7、top3)、美国三利率分解、", "$.reader_map.transmission[0].chain_id | CH-INFL-RATES-RISKOFF", "$.reader_map.transmission[0].title | 通胀读数抬升→利率结构→风险资产", "$.reader_map.transmission[0].links[0].verdict_note | 本问三窗方向一致向下(三个月窗 -14bp、近一月 -19bp、12 个月窗 -11bp),均合竞争解释「走低或持平」、不合主解释「走高或维", "$.reader_map.transmission[0].links[1].verdict_note | 三个月窗实际 +53bp 主导名义 +39bp、12 个月窗实际 +102bp 主导名义 +91bp，两窗名义上行确由实际利率分量主导；但期", "$.reader_map
+strings_n_ge12 = 97
+tokens_missing_all = []
+tokens_missing_nonrendered_fields = ["$.agent_declaration.basis | 100%", "$.reader_map.turnings[0].narrative | 2.4725", "$.reader_map.turnings[0].narrative | 2.5658", "$.reader_map.turnings[1].narrative | 2026-03", "$.quality_gate_notes[0] | +08"]
+tokens_n = 625
+tokens_nonrendered_n = 140
+usdjpy_pctl = {"12m": {"le_share": 71.04247104247104, "lt_share": 70.65637065637065, "mid": 70.84942084942085, "n": 259}, "all": {"le_share": 96.57823913879277, "lt_share": 96.53979238754326, "mid": 96.559015763168, "n": 2601}, "first": "2016-11-23"}
+verbatim_cov = {"report.md": 55, "MAP_REPORT.md": 41, "FULL_REPORT.md": 53}
+--- V ---
+anchor = "2026-11"
+bei = 2.15
+bei0821 = ["2026-08-21", 2.34]
+bei1119 = 2.16
+bm = {"first": ["2026-02-02", 2.35], "last": ["2026-05-29", 2.38], "min": ["2026-02-27", 2.25], "max": ["2026-05-04", 2.5], "endpoint_chg_bp": 2.9999999999999805}
+cal = {"n": 18, "pub": ["RC-CN-LPR-2026M11@2026-11-20"], "boj": ["RC-JP-BOJ-MAINT-2026-10@2026-10-30", "RC-JP-BOJ-TARGET-2026-09@2026-09-18"], "ver": "1.5.0"}
+cand = {"scanned": 1871, "valid": 74, "dropped_overlap": 12, "dropped_insufficient": 1785, "n_independent_clusters_topN": 5, "cluster_dedup": "TOP-N 簇去重: 候选月相差<12 个月=同簇(事后窗重叠),每簇仅保留排序最优代表;准入/距离/分位计算不变"}
+cc = {"05": 2.8229420636110225, "06": 2.5657850563697515, "07": 2.4665177892309265, "08": 2.4461631786472537, "09": 2.565840844021827, "10": null}
+cpi = {"05": 4.166614684049641, "06": 3.463530729385411, "07": 3.303856050706311, "08": 3.353016322755642, "09": 3.7172508442689933, "10": null}
+cpi26 = [["2026-01", 2.391201432150014], ["2026-02", 2.4340041103732224], ["2026-03", 3.2859577528651984], ["2026-04", 3.7792458367415627], ["2026-05", 4.166614684049641], ["2026-06", 3.463530729385411], ["2026-07", 3.303856050706311], ["2026-08", 3.353016322755642], ["2026-09", 3.7172508442689933]]
+cpi_max_ym = "2026-05"
+ea = {"02": 1.9, "05": 3.2, "06": 2.8, "07": 2.9, "08": 3.2, "09": 3.8, "10": 4.0}
+ea_max_ym = "2026-10"
+eagdp = {"a": 1.19, "b": 1.28}
+eng_top5 = [[1, "2025-03", 0.727212, 0.0], [2, "2022-06", 0.791806, 1.3699], [3, "2023-10", 1.054168, 30.137], [4, "2021-02", 1.284945, 69.863], [5, "2020-01", 1.357685, 71.2329]]
+ev = {"n": 63, "jpin": [], "eabe": ["BEI_5Y", "BEI_10Y"], "jp": ["JP_POLICY_RATE"], "pol": [], "ea": ["EA_HICP_YOY"]}
+full_expost_lines = [170, 173]
+g = {"c02": 2.4340041103732224, "c05": 4.166614684049641, "e02": 1.9, "e05": 3.2, "k02": 2.4724624767640258, "k05": 2.8229420636110225, "j04": 0.727, "j06": 0.841, "j07": 0.978, "j08": 0.977, "j09": 1.043, "j10": 1.227}
+gdp = {"a": 2.1915745328897174, "b": 2.0657392375537764}
+history_zero_case_note = "检索范围=引擎 analog 候选面。本问为「三个月增通胀对照+政策利率水平与时长」问句,焦点在两锚点当前对照,非历史相似检索;相似候选的事后表现只是历史记录(事后结果≠当时可知)、不参与相似度,零段呈现以避免以事后冒充预测(相似≠因果≠预测)。结构化锚(两期点值格+决议日历+资产月窗)已足够支撑问句,无历史段需求。"
+ip = {"05": 1.7104852647686464, "06": 1.4671087964445606, "07": 1.2498282528902616, "08": 1.4471875439730608, "09": 2.1420702679308956, "10": 2.1496845963475453}
+ip_trough = "2026-03"
+ipx = {"x07": 103.1675, "x09": 103.8458, "x10": 103.3954, "b07": 101.894, "b10": 101.2195}
+ipyo = [["2025-11", 1.7543117556713783], ["2025-12", 1.1629935222018384], ["2026-01", 0.9734701648033584], ["2026-02", 0.7972359848188892], ["2026-03", 0.6860622087798474], ["2026-04", 1.4327401241398308], ["2026-05", 1.7104852647686464], ["2026-06", 1.4671087964445606], ["2026-07", 1.2498282528902616], ["2026-08", 1.4471875439730608], ["2026-09", 2.1420702679308956], ["2026-10", 2.1496845963475453]]
+jp_first = "1985-07-01"
+jp_last = "2026-10-01"
+jp_steps_2026 = [["2026-01", 17.099999999999994, 0.557, 0.728], ["2026-06", 11.399999999999999, 0.727, 0.841], ["2026-07", 13.700000000000001, 0.841, 0.978], ["2026-09", 6.599999999999994, 0.977, 1.043], ["2026-10", 18.400000000000016, 1.043, 1.227]]
+jpc = {"2026-02": 1.27, "2026-05": 1.53, "2026-06": 1.67, "2026-07": 1.97, "2026-08": 1.98, "2026-09": 2.16, "2026-10": 2.44}
+map_analog_section = [199, 202]
+pce09 = 3.1211596029620203
+s6 = {"anchor_month": "2026-11", "feature_window_months": 12, "state_vector": {"growth": {"features": {"ICSA_4w_avg": {"value": 197750.0, "z": -0.3206747602320721, "hist_n": 120}}, "coverage": 0.1667}, "inflation": {"features": {"BEI_10Y_level": {"value": 2.15, "z": 0.08346018602588887, "hist_n": 121}}, "coverage": 0.3333}, "rates": {"features": {"UST_10Y_level": {"value": 5.04, "z": 1.66637547864167, "hist_n": 121}, "UST_10Y_d12m": {"value": 1.0200000000000005, "z": 0.8349448096688624, "hist_n": 109}, "TIPS_10Y_level": {"value": 2.88, "z": 1.8718474704157886, "hist_n": 121}, "TIPS_10Y_d12m": {"value": 1.0899999999999999, "z": 1.0416374106158215, "hist_n": 109}, "CURVE_2S10S_level": {"value": 0.29, "z": -0.08886508395812924, "hist_n": 121}, "CURVE_2S10S_d12m": {"value": -0.26000000000000006, "z": -0.2940401880574893, "hist_n": 109}}, "coverage": 0.75}, "credit": {"features": {"HY_OAS_level": 
+tips = 2.88
+un = {"a": 4.1, "b": 4.1}
+usdjpy = {"u": 159.347, "u0819": 159.550003, "u1023": 156.494003, "le21": ["2026-08-21", 158.882996]}
+z_bei = 0.08346018602588887
+--- AJ DUMP (全文) ---
+{
+ "schema_version": "1.1",
+ "agent_declaration": {
+  "attribution": "ai_inferred",
+  "produced_by": "Agent 研究席(操作者会话经正式入口 ia_cli research-one 代持席位, 换问轮 20261123T235121Z, 2026-11-23)",
+  "basis": "读本轮 AGENT_SEAT_ENVELOPE 工单、证据索引(63行)、点值格(9格)、转折候选面(候选池7、top3)、美国三利率分解、资产月窗、发布日历政策事件实录后独立研判;日本央行官方目标水平与距上次调整天数由本席按发布日历条目(决议日/生效日)与研究截止日独立复算;引擎只供确定性证据,判断内容 100% 归 Agent。"
+ },
+ "l3": {
+  "contradictions": [
+   {
+    "id": "C1-INFL-SYNC",
+    "statement": "美欧通胀环境较 3 个月前同步走高、欧元区幅度更大。欧元区 EA_HICP_YOY 最新读数明显走高、水平高于美国(最新可比同月仅略高、幅度很小,且 HICP 与 CPI 口径不同;数值与观测月见走位对照;两地最新可比同月为九月，为 2023-09 以来首个高于美国的可比月份(2022-07 至 2023-09 曾持续高于美国));美国 CPI 指数水平最新报 337.476(观测 2026-10;3 个月前锚前值 332.813,观测 2026-07;同比派生口径 2026-10 因缺上年同月基期观测不可得(2025-10 为序列库缺采,非上年同月未发布),最近有效同比见走位对照),CORE_CPI 报 339.9(观测 2026-10),CORE_PCE 报 130.902(观测 2026-09)。美国 headline 与核心口径同向上行,但读数水平在最新可比同月低于欧元区。市场口径: BEI_10Y 水平为 2.15(观测 2026-11-20)。供给侧读数对账见传导面第一环(近三个月布伦特原油端点微降系窗末急跌所致;在通胀观测月口径下油价月均走高、与两地通胀同向,不构成对「能源持续传导」的反向事实,十一月回落仅为对此后读数的前瞻事实【尚未验证】)。",
+    "evidence_refs": [
+     "EA_HICP_YOY@2026-10-01",
+     "CPI@2026-10-01",
+     "CORE_CPI@2026-10-01",
+     "CORE_PCE@2026-09-01",
+     "BEI_10Y@2026-11-20",
+     "EURUSD@2026-11-23"
+    ],
+    "competing_explanations": [
+     "【假设】若美欧通胀抬升主要源于能源与进口成本的持续传导(弱欧元放大输入压力;弱欧元一项有在场读数——欧元兑美元 2026-11-23 为 1.093972,近 12 个月窗最低,三个月(2026-08-19→2026-11-23)-5.52%,11-23 为盘中快照),则 headline 强于 core 的结构应延续,且同比读数在数月内维持高位。",
+     "【假设】若抬升主要来自低基数与一次性扰动(统计口径、季节性、能源基数),则未来数月同比应自行回落——近一月 BEI_10Y 走低(共同交易日窗 2026-10-20→2026-11-19 变动 -19bp,水平 2.15%@2026-11-20)与市场未定价持续通胀的解读相容。"
+    ]
+   },
+   {
+    "id": "C2-GROWTH-STABLE",
+    "statement": "两地硬数据增长面大体平稳、并非本期主导变化(软数据不在本问证据面,未纳入;口径注记: 此处工业生产按指数水平表述,与通胀的同比口径不同,其同比口径的三个月变动见走位对照)。US_REAL_GDP(季频水平)最新报 24611.077(观测 2026-07 季),UNEMPLOYMENT 最新报 4.1(观测 2026-10),其 3 个月前锚前值为 4.1(观测 2026-07);INDPRO 报 103.3954(观测 2026-10),3 个月前锚前值为 103.1675(观测 2026-07)。欧元区实际 GDP 同比读数在引擎点值面仅微幅变动(见走位对照),增长端未见方向性转折。",
+    "evidence_refs": [
+     "US_REAL_GDP@2026-07-01",
+     "UNEMPLOYMENT@2026-10-01",
+     "INDPRO@2026-10-01"
+    ],
+    "competing_explanations": [
+     "【假设】若美国工业生产同比回升(1.25→2.15,引擎派生口径)代表制造业周期回暖,则增长动能已重新加速(所引最新读数为 2026-10)，失业率低位与此相容(本解释的可观察期限与阈值【假设】: 观测月 2026-11、2026-12 两期读数,按引擎推定发布规则分别自 2026-12-15、2027-01-15 可见;两期同比均不低于 2.15%(2026-10 水平)则本解释成立,两期均低于 1.25%(2026-07 水平)则本解释不成立;其余情形不裁定)。",
+     "【假设】若工业读数回升主要为基数效应或单月波动,则增长面应视为走平,实际 GDP 同比的小幅回落(2.19→2.07,引擎派生口径)更代表主趋势(本解释的可观察期限与阈值【假设】: 同上两期读数;两期同比均低于 1.25%(2026-07 水平)则本解释成立,两期均不低于 2.15%(2026-10 水平)则本解释不成立;其余情形不裁定)。"
+    ]
+   },
+   {
+    "id": "C3-JP-POLICY",
+    "statement": "日本政策利率处于抬升通道,官方目标与市场口径相互印证。官方口径: 发布日历实录(RC-JP-BOJ-TARGET-2026-09)日本央行政策目标利率约一点二五,2026-09-18 决议、2026-09-24 生效,2026-10-30 会议确认维持不变(RC-JP-BOJ-MAINT-2026-10);至研究截止 2026-11-23 距上次调整按生效日六十天、按决议日六十六天(约两个月)。月均口径的 12 个月净变动为正七十五个基点(『窗启时在值(2025-11 月均零点四七八)→窗末观测(2026-10 月均一点二二七)』,即窗内六个变动点之和(取整基点口径),引擎『政策一年窗路径』面板同口径);仅自窗内首观测(2025-12 月均)起算为正六十七个基点(数字见走位面与披露块)。市场口径: JP_POLICY_RATE 月均最新一期(观测 2026-10)报 1.227%,3 个月前锚前值为 0.978(观测 2026-07)——该序列为无担保隔夜拆借利率月均口径,非政策目标宣布值;宣布目标序列 JP_POLICY_TARGET 在引擎注册表不可得(格=数据不可得,不以相邻口径冒充),官方水平仅见于发布日历实录。月均口径的最近一级台阶落在 2026-09→2026-10 之交(次月为决议生效后首个整月),与决议-生效记录相容。汇率面: USDJPY 水平为 159.35(观测 2026-11-23，盘中快照、非收盘价)。",
+    "evidence_refs": [
+     "JP_POLICY_RATE@2026-10-01",
+     "USDJPY@2026-11-23"
+    ],
+    "competing_explanations": [
+     "【假设】若月均台阶主要反映日本央行面对通胀与汇率压力的连续上调,则后续月均应呈现更高中枢的平台,下月月均应维持当前水平附近(本解释下的可观察带宽: 2026-11 月均落在 1.197 至 1.257 之间(两位小数显示约 1.20 至 1.26),即较 2026-10 月均 1.227 上下不超过 0.03——2026-02 至 2026-05 与 2026-08 的相邻月均差均不超过 0.001,取更宽的带作容差;读数跌破带下沿则本解释不成立)。",
+     "【假设】若台阶包含决议跨月生效的均值效应(决议后次月月均=新水平整月)与资金面季节性,则单月读数变化不完全等于连续上调,需以决议日历为准——引擎日历 2026-09-18 决议(2026-09-24 生效,落在 2026-09 最后一周:2026-08 月均 0.977→2026-09 月均 1.043，仅 +7bp)与 2026-10-30 确认维持(2026-10 月均 1.227,+18bp)之后暂无新条目,下月是否有新决议尚未验证;本解释的失效条件【假设】: 其后无新决议条目而月均再现台阶(相邻月均变动达到 0.03 或以上;持平月份的相邻月均差均不超过 0.001,已见台阶均不小于 0.066),或决议生效次月月均偏离新目标水平超过 0.03(本次 2026-10 月均 1.227 较目标水平 1.25 低 0.023,在容差内)。带宽 1.20 至 1.26 对两解释同向,只作共同下限;两解释的区分观测=其后是否出现新的决议条目。"
+    ]
+   }
+  ],
+  "mechanism_chains": [
+   {
+    "id": "M1-JP-RATE-PATH",
+    "links": [
+     {
+      "step": 1,
+      "evidence_level": "E1",
+      "evidence_refs": [
+       "JP_POLICY_RATE@2026-10-01"
+      ],
+      "text": "观察: JP_POLICY_RATE 月均自 2025-11 的 0.478(窗启时在值)经 2025-12 的 0.557 抬升至 2026-10 的 1.227，近 12 个月政策窗(2025-11-23..2026-11-23)净变动 +75bp(引擎『政策一年窗路径』口径=窗启时在值→窗末观测,即六个变动点之和(取整 bp 口径: 六步直和 75.1bp、窗启至窗末端点差 74.9bp,均取整为 +75bp)；仅自窗内首观测 2025-12 月均起算为 +67bp)，呈多级台阶(2025-12 0.557、2026-01 0.728、2026-06 0.841、2026-07 0.978、2026-09 1.043、2026-10 1.227)。"
+     },
+     {
+      "step": 2,
+      "evidence_level": "E2",
+      "evidence_refs": [
+       "JP_POLICY_RATE@2026-10-01"
+      ],
+      "text": "传导【假设】: 政策利率中枢上移→日元融资成本上升→套息结构边际压缩;本引擎无日本套息持仓与中长端融资成本(国债收益率)序列——JP_POLICY_RATE 本身为无担保隔夜拆借利率月均,仅覆盖隔夜一端,此环为【假设】。",
+      "missing_link_note": "本问证据面未纳入日本套息持仓与日本国债收益率(快照事实面仅有 2026-11-19 点值 JGB 2/5/10 年 1.853/2.235/2.87,序列库无历史、未入证据索引),该环为【假设】;可核环节仅政策利率路径本身(E1)。"
+     },
+     {
+      "step": 3,
+      "evidence_level": "E2",
+      "evidence_refs": [
+       "USDJPY@2026-11-23",
+       "NIKKEI225@2026-11-20"
+      ],
+      "text": "资产面观察与对照: USDJPY 最新报 159.35(观测 2026-11-23，盘中快照、非收盘价),NIKKEI225 近一月(2026-10-23→2026-11-20)下跌 9.98%;若加息传导单一成立,应见 USDJPY 走低与股指承压并存——当前 USDJPY 报 159.35、近一月(2026-10-23→2026-11-23)不降反升 1.82%(三个月 2026-08-19→2026-11-23 为 -0.13%;按 3 个月前锚 2026-08-23 的最近观测 2026-08-21 起算为 +0.29%,两口径下日元均未走强),仍处高位(近 12 个月窗内约第 71 百分位、序列库全史 2016-11-23 起约第 96.6 百分位)而股指已明显回落,组合更接近「风险收缩+日元仍处低位」的混合态(「利差仍高」为本问证据面外的【假设】: 无日美利差序列),传导方向证据不单一。",
+      "missing_link_note": "USDJPY 方向受多因子驱动(利差/风险情绪/干预预期),与加息传导的当期一致性无法在引擎面单一归因,该环归【假设】层;区分指标=USDJPY。"
+     }
+    ]
+   }
+  ]
+ },
+ "l4": {
+  "scenarios": [
+   {
+    "id": "S1-INFL-STICKY",
+    "rows": {
+     "scenario": "【假设·非预测】美欧通胀延续当前抬升动能: 至 2027-01 发布(即至 2026-12 观测月;2027-01 观测月的规则发布日 2027-02-16 晚于期限 2027-02-15),EA_HICP_YOY 同比维持 3.5% 以上(证伪线为 3.0%,3.0% 至 3.5% 之间为缓冲带),美国 CORE_PCE 同比维持 3.0% 以上,美欧政策面维持紧缩偏向【假设·美欧政策利率不在本问证据面】(日本月均中枢不低于当前台阶)。",
+     "asset_direction": {
+      "direction": "在此假设下,实际利率与无风险利率中枢承压上行,利率敏感资产(高估值成长股、黄金)相对走弱,美元指数相对非美货币偏强;此为方向性推演,非幅度预测",
+      "confidence_tier": "有相关证据",
+      "evidence_refs": [
+       "TIPS_10Y@2026-11-19",
+       "BEI_10Y@2026-11-20",
+       "SPX@2026-11-23"
+      ]
+     },
+     "sensitive_variables": [
+      "EA_HICP_YOY",
+      "CORE_PCE"
+     ],
+     "falsification": {
+      "metric_id": "EA_HICP_YOY",
+      "threshold": "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比(对应 2026-11、2026-12 观测月,规则发布日 2026-12-16、2027-01-16,均不晚于期限 2027-02-15)连续两个月低于 3.0%(情景陈述的界为 3.5%,3.0% 至 3.5% 之间为缓冲带——情景陈述在该带内不成立但未达证伪线),通胀粘性假设被证伪",
+      "secondary_metric_ids": [
+       "CORE_PCE"
+      ]
+     },
+     "trigger": {
+      "condition": "2026-12 或 2027-01 发布的 EA_HICP_YOY 同比 ≥4.2% 且 CORE_PCE 同比 ≥3.2%,同时 TIPS_10Y 高于 3.0%",
+      "deadline": "2027-02-15"
+     }
+    }
+   },
+   {
+    "id": "S2-INFL-FADE",
+    "rows": {
+     "scenario": "【假设·非预测】当前美欧通胀抬升以一次性因素(能源基数、汇率进口传导)为主: 至 2027-01 发布(即至 2026-12 观测月),EA_HICP_YOY 同比回落至 3.0% 以下(触发线为 3.4%,3.0% 至 3.4% 之间为缓冲带),美国 CORE_PCE 同比回落至 2.8% 以下,市场重新定价宽松。",
+     "asset_direction": {
+      "direction": "在此假设下,通胀补偿与实际利率双双回落,风险资产修复、黄金重新走强、美元走弱;该方向与近一月观察(共同交易日窗 2026-10-20→2026-11-19 实际利率 +11bp 而风险资产回落)相反,属并列反例情景",
+      "confidence_tier": "纯逻辑推理",
+      "evidence_refs": [
+       "BEI_10Y@2026-11-20",
+       "SPX@2026-11-23"
+      ]
+     },
+     "sensitive_variables": [
+      "EA_HICP_YOY",
+      "CORE_PCE"
+     ],
+     "falsification": {
+      "metric_id": "EA_HICP_YOY",
+      "threshold": "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比均不低于 4.0%(情景陈述的界为 3.0%,3.0% 至 4.0% 之间为缓冲带——在该带内既未触发也未证伪),一次性因素假设被证伪",
+      "secondary_metric_ids": [
+       "CORE_PCE"
+      ]
+     },
+     "trigger": {
+      "condition": "EA_HICP_YOY 同比连续两个月回落且最新值 ≤3.4%(至情景陈述的界 3.0% 之间为缓冲带),同时 BEI_10Y 低于 2.0%",
+      "deadline": "2027-02-15"
+     }
+    }
+   }
+  ]
+ },
+ "reader_map": {
+  "headline_conclusion": "过去三个月,美国与欧元区增长环境大体平稳(美国 GDP 同比微降、失业率走平、工业生产同比回升(水平变化很小);欧元区 GDP 同比微升),通胀环境同步走高且欧元区幅度更大(HICP 同比至 2026-10 达 4.0%);日本央行官方政策目标利率约 1.25%(2026-09-18 决议、2026-09-24 生效,2026-10-30 确认维持,发布日历实录),市场口径无担保隔夜拆借月均利率最新为 1.227%(2026-10),距上次调整按生效日 60 天、按决议日 66 天(日历核验覆盖止于 2026-10-30,其后至截止日的 24 天引擎日历无条目);近一月市场呈风险收缩组合(标普500指数与日经225 走低、VIX 抬升、美元指数走强;11-23 值为盘中快照(非收盘价),幅度对快照时点敏感)。",
+  "regions": [
+   {
+    "region": "US",
+    "from_to": "增长环境大体平稳、边际略缓、工业生产同比回升: 实际 GDP 同比 2026Q2 为 2.19%、2026Q3 为 2.07%(季观测 2026-04→2026-07;GDP 水平 24408.011→24611.077 billion_usd,最新修订口径;最新观测 2026-07-01 距截止日 145 天,超过注册表最大日历滞后 120 天,为截止日前最新已发布观测,引擎契约标注 STALE——数值一致、观测滞后超过注册表节奏,Gate A 列于非核心降级名单,按降级口径引用),失业率 4.1%(2026-07)至 4.1%(2026-10)两锚持平(中间 2026-09 为 4.2),工业生产同比 1.25%(2026-07)→2.15%(2026-10;指数水平 103.1675→103.3954，仅 +0.22%，其中 2026-10 环比 -0.43%，同比抬升含基数效应: 上年 2025-07→2025-10 基数下行 0.66%)。通胀环境温和抬升、headline 强于核心: CPI 同比 3.3%(2026-07)→最近有效 3.72%(2026-09;2026-10 同比因缺上年同月基期观测不可得——2025-10 为序列库缺采,冻结日历保守界条目以 2026-01-22 为该月联邦统计的可见界;指数水平 332.813→337.476),核心 CPI 同比 2.47%(2026-07)→2.57%(2026-09;2026-10 同比同样缺上年同月基期观测，指数水平 2026-07 336.789→2026-10 339.9),核心 PCE 同比 3.04%(2026-06)→3.12%(2026-09;指数水平 129.969→130.902;最新观测 2026-09-01 距截止日 83 天,超过注册表最大日历滞后 60 天,为截止日前最新已发布观测,引擎契约标注 STALE——数值一致、观测滞后超过注册表节奏,按降级口径引用(该序列不在 Gate A 缺口或降级名单))。",
+    "anchor_echo": [
+     {
+      "anchor": "3个月前",
+      "metric_id": "US_REAL_GDP",
+      "value": 24408.011,
+      "observation_month": "2026-04"
+     },
+     {
+      "anchor": "最新一期",
+      "metric_id": "US_REAL_GDP",
+      "value": 24611.077,
+      "observation_month": "2026-07"
+     },
+     {
+      "anchor": "3个月前",
+      "metric_id": "UNEMPLOYMENT",
+      "value": 4.1,
+      "observation_month": "2026-07"
+     },
+     {
+      "anchor": "最新一期",
+      "metric_id": "UNEMPLOYMENT",
+      "value": 4.1,
+      "observation_month": "2026-10"
+     },
+     {
+      "anchor": "3个月前",
+      "metric_id": "INDPRO",
+      "value": 103.1675,
+      "observation_month": "2026-07"
+     },
+     {
+      "anchor": "最新一期",
+      "metric_id": "INDPRO",
+      "value": 103.3954,
+      "observation_month": "2026-10"
+     },
+     {
+      "anchor": "3个月前",
+      "metric_id": "CPI",
+      "value": 332.813,
+      "observation_month": "2026-07"
+     },
+     {
+      "anchor": "最新一期",
+      "metric_id": "CPI",
+      "value": 337.476,
+      "observation_month": "2026-10"
+     },
+     {
+      "anchor": "3个月前",
+      "metric_id": "CORE_CPI",
+      "value": 336.789,
+      "observation_month": "2026-07"
+     },
+     {
+      "anchor": "最新一期",
+      "metric_id": "CORE_CPI",
+      "value": 339.9,
+      "observation_month": "2026-10"
+     },
+     {
+      "anchor": "3个月前",
+      "metric_id": "CORE_PCE",
+      "value": 129.969,
+      "observation_month": "2026-06"
+     },
+     {
+      "anchor": "最新一期",
+      "metric_id": "CORE_PCE",
+      "value": 130.902,
+      "observation_month": "2026-09"
+     }
+    ]
+   },
+   {
+    "region": "EA",
+    "from_to": "增长环境平稳: 实际 GDP 同比 2026Q2 为 1.19%、2026Q3 为 1.28%(季观测 2026-04→2026-07,最新修订口径;最新观测距截止日 145 天，超过注册表最大日历滞后 120 天，按降级口径引用);通胀环境显著走高: HICP 同比 2.9%(2026-07)→4.0%(2026-10),三个月上行 1.1 个百分点,为两地通胀面最大变化;且自 2026-02 的 1.9 抬升至 2026-05 的 3.2，2026-06 回落至 2.8 后再度上行至 2026-10 的 4.0，读数为年内新高。",
+    "anchor_echo": [
+     {
+      "anchor": "3个月前",
+      "metric_id": "EA_REAL_GDP_YOY",
+      "value": 1.19,
+      "observation_month": "2026-04"
+     },
+     {
+      "anchor": "最新一期",
+      "metric_id": "EA_REAL_GDP_YOY",
+      "value": 1.28,
+      "observation_month": "2026-07"
+     },
+     {
+      "anchor": "3个月前",
+      "metric_id": "EA_HICP_YOY",
+      "value": 2.9,
+      "observation_month": "2026-07"
+     },
+     {
+      "anchor": "最新一期",
+      "metric_id": "EA_HICP_YOY",
+      "value": 4.0,
+      "observation_month": "2026-10"
+     }
+    ]
+   },
+   {
+    "region": "JP",
+    "from_to": "政策环境处持续正常化通道: 官方口径——发布日历实录政策目标利率约 1.25%,2026-09-18 决议、2026-09-24 生效,2026-10-30 会议确认维持;至研究截止 2026-11-23,距上次调整按生效日 60 天、按决议日 66 天(约两个月)。市场口径——无担保隔夜拆借利率(月均口径,非政策目标宣布值)最新一期(2026-10)为 1.227%,3 个月前锚(2026-07)为 0.978%;月均序列台阶式抬升(2025-12 0.557、2026-01 0.728、2026-06 0.841、2026-07 0.978、2026-09 1.043、2026-10 1.227),近 12 个月政策窗净变动 +75bp(窗启时在值 2025-11 月均 0.478→窗末 2026-10 月均 1.227,引擎『政策一年窗路径』面板同口径;仅自窗内首观测 2025-12 月均起算为 +67bp)。次月月均尚未发布,此后是否有新决议引擎日历无条目——宣布目标序列(JP_POLICY_TARGET)注册表不可得,检索范围=注册表 economy=JP 面+快照 series_store+采集档通道,不以相邻口径冒充宣布值。",
+    "anchor_echo": [
+     {
+      "anchor": "3个月前",
+      "metric_id": "JP_POLICY_RATE",
+      "value": 0.978,
+      "observation_month": "2026-07"
+     },
+     {
+      "anchor": "最新一期",
+      "metric_id": "JP_POLICY_RATE",
+      "value": 1.227,
+      "observation_month": "2026-10"
+     }
+    ]
+   }
+  ],
+  "transmission": [
+   {
+    "chain_id": "CH-INFL-RATES-RISKOFF",
+    "title": "通胀读数抬升→利率结构→风险资产",
+    "links": [
+     {
+      "observed_fact": "2026-07→2026-10,欧元区 HICP 同比由 2.9% 升至 4.0%;美国 CPI 同比最近有效值(2026-09)3.72% 亦高于 2026-07 的 3.3%,美欧通胀同步抬升。区分指标 BEI_10Y 在本问三窗方向一致向下: 与本问同口径的三个月窗(2026-08-19→2026-11-19)自 2.30 回落至 2.16(-14bp)，近一月共同交易日窗(2026-10-20→2026-11-19)变动 -19bp、12 个月窗(2025-11-19→2026-11-19)变动 -11bp，最新 2.15(观测 2026-11-20，12 个月窗内最低)，均合竞争解释「走低或持平」，而通胀读数仍处高位(欧元区 2026-10 达 4.0、为年内新高；美国 CPI 同比 2026-09 回升至 3.72，仍低于 2026-05 高点 4.17)——按判断口径(预期分立且引擎面观测在场),本环区分指标上的在场观测支持竞争解释「走低或持平」、不合主解释「走高或维持高位」;两点限定如实注记: 竞争解释的另一半(通胀读数数月内自行回落)为前瞻含义,截至截止日尚未兑现(欧元区 2026-10 读数 4.0 为年内新高；美国 CPI 同比 2026-09 回升至 3.72，仍低于 2026-05 的 4.17);更早的通胀上行段(三个月窗 2026-02→2026-05) BEI_10Y 自 2026-02-27 的 2.25 升至 2026-05-04 的 2.50,合主解释,但属另一事件窗,不改本窗裁定。供给侧对账(能源前提 vs 在场读数): 布伦特原油(BRENT_F)近三个月自 2026-08-19 的 91.62 至 2026-11-23 的 88.19 为 -3.74%(近一月 116.72→88.19 为 -24.44%,11-23 为盘中快照;近 12 个月 +38.86%),但该端点差来自窗末急跌: 窗内先升至 2026-10-23 的 116.72(较窗启 +27.40%)、窗内高点 117.64(2026-10-30),窗内 68 个观测中 61 个不低于窗启值;按序列库日值计的月均 2026-07 84.51→2026-09 102.26(+21.0%)→2026-10 108.34(+28.2%),2026-10 月均较 2025-10 月均 63.95 高 69.4%——在本问所解释的 2026-09/2026-10 观测月,油价与两地通胀同向走高,不构成对「能源持续传导」的反向事实;油价回落发生在 11 月、晚于上述观测月(这些读数的各个发布日(2026-10-13、2026-10-16、2026-10-30、2026-11-13、2026-11-16)当日油价在 92.44 至 117.64 之间,均不低于窗启值 91.62;2026-10-13 至 2026-11-16 整段区间内的最低值为 2026-11-10 的 91.49,低于窗启值,但该日不是所列读数的发布日),只对此后读数构成「能源基数消退」的同向前瞻事实【尚未验证】;该读数不在本环区分指标上,不改裁定。",
+      "causal_hypothesis": "【假设】若抬升源于能源/进口成本与通胀预期的持续传导,则应观察到盈亏平衡通胀走高与政策紧缩预期升温。",
+      "competing_explanation": "若抬升主要来自低基数、弱欧元一次性进口传导或统计口径扰动,则 BEI_10Y 不必然走高,通胀读数可在数月内自行回落。",
+      "distinguishing_metric": "BEI_10Y",
+      "main_predicts": "主解释(成本/预期持续传导)预期 BEI_10Y 走高或维持高位",
+      "competing_predicts": "竞争解释(一次性基数/进口扰动)预期 BEI_10Y 走低或持平",
+      "face_off_verdict": "支持竞争解释",
+      "verdict_note": "本问三窗方向一致向下(三个月窗 -14bp、近一月 -19bp、12 个月窗 -11bp),均合竞争解释「走低或持平」、不合主解释「走高或维持高位」——支持竞争解释;竞争解释「通胀读数数月内自行回落」的一半尚未兑现(欧元区 2026-10 读数 4.0 为年内新高)与更早的 2026-02-27→2026-05-04 上行段合主解释,均作限定注记,不改本窗裁定。"
+     },
+     {
+      "observed_fact": "美国十年期名义利率 2026-11-19 报 5.04%,近一月共同交易日窗(2026-10-20→2026-11-19)变动 -8bp,其中实际利率(TIPS_10Y)+11bp、盈亏平衡(BEI_10Y)-19bp。与本问同口径的三个月窗(2026-08-19→2026-11-19)名义 +39bp=实际 +53bp+盈亏平衡 -14bp(残差 0)，12 个月窗(2025-11-19→2026-11-19)名义 +91bp=实际 +102bp+盈亏平衡 -11bp(残差 0)——两窗名义上行均由实际利率主导(实际分量幅度超过名义变动)；三个月、近一月、12 个月三窗均为「实际利率上行、盈亏平衡回落」(实际利率 +53/+11/+102bp、盈亏平衡 -14/-19/-11bp)：三个月窗与 12 个月窗的名义利率上行由实际利率分量主导；但增长前景、期限溢价或财政供给主导的解释同样预期实际利率(TIPS_10Y)上行并可与盈亏平衡回落并存——按「名义=实际+盈亏平衡」恒等式，通胀读数走高而盈亏平衡回落、名义利率仍上行时，上行只能来自实际分量——两解释在区分指标 TIPS_10Y 上的预期方向不分立(TIPS_10Y 仅为对照位;证据索引内的曲线形状指标 CURVE_2S10S 同窗(2026-08-19→2026-11-19)自 0.46 降至 0.28,近端 UST_2Y +57bp 的幅度大于 UST_10Y +39bp——近端领涨、曲线趋平,对竞争解释中「期限溢价或财政供给主导」一支(其预期为长端利率上行更多、曲线趋陡)或有区分力,本环未以该指标裁定)；单月窗名义利率 -8bp 由盈亏平衡 -19bp 主导，亦不构成任一侧的区分证据——尚不能区分。",
+      "causal_hypothesis": "【假设】若央行面对通胀读数抬升而维持紧缩偏向,实际利率应成为名义利率的主导上行分量。",
+      "competing_explanation": "若名义利率走势主要由增长前景、期限溢价或财政供给主导,则实际分量与通胀读数可以背离(通胀走高而盈亏平衡回落即属此类组合)。",
+      "distinguishing_metric": "TIPS_10Y",
+      "main_predicts": "主解释(紧缩偏向)预期 TIPS_10Y 上行主导名义利率变动",
+      "competing_predicts": "竞争解释(增长前景/期限溢价/财政供给主导)同样预期 TIPS_10Y 上行并可与盈亏平衡回落并存，两解释在区分指标 TIPS_10Y 上预期方向不分立",
+      "face_off_verdict": "尚不能区分",
+      "verdict_note": "三个月窗实际 +53bp 主导名义 +39bp、12 个月窗实际 +102bp 主导名义 +91bp，两窗名义上行确由实际利率分量主导；但期限溢价/财政供给/增长前景主导同样预期该组合，两解释在 TIPS_10Y 上的预期方向不分立——尚不能区分；单月窗名义 -8bp(实际 +11bp、盈亏平衡 -19bp)不构成任一侧的区分证据；主解释前件(央行紧缩偏向)在本环证据面未举证(本问计划指标面未纳入美欧政策利率序列)。"
+     },
+     {
+      "observed_fact": "近一月(2026-10-23→2026-11-20/23)SPX 下跌 5.51%(共同交易日窗 2026-10-23→2026-11-19 为 -5.87%,方向不变)、NIKKEI225 下跌 9.98%、GOLD_F 下跌 8.05%、DXY 上涨 2.23%、VIX 上涨 38.87%(19.45→27.01;11-23 值为盘中快照(非收盘价))——股金同跌而美元与波动率齐升的风险收缩组合(非全区域同步: 引擎资产月窗同窗 DAX +0.11%,持平未跌;DAX 的 11-23 值同为盘中快照)。同窗 TIPS_10Y 2.66→2.88(+22bp，2026-10-23→2026-11-19)；同日收盘口径(2026-10-23→2026-11-20): 标普500指数 -9.36%、VIX +84.52%；三个月收盘口径(2026-08-19→2026-11-20): 标普500指数 -10.35%、VIX +141.03%(14.89→35.89)，同窗 TIPS_10Y +53bp(利率序列止于 2026-11-19)。VIX 的涨幅幅度提示流动性/仓位因素可能叠加，单月窗不能完全区分。",
+      "causal_hypothesis": "【假设】若实际利率上行与紧缩预期是主因,则利率敏感资产(成长股、黄金)承压、美元走强的组合应与 TIPS_10Y 上行同现。",
+      "competing_explanation": "若风险收缩由增长担忧主导(仓位/流动性冲击至多放大跌幅,不必然带来避险买盘),则应见避险买盘压低利率(TIPS_10Y 走低)而非上行;黄金下跌也可能仅是前期涨幅回吐。",
+      "distinguishing_metric": "TIPS_10Y",
+      "main_predicts": "主解释(贴现率渠道)预期 TIPS_10Y 上行与 SPX 走弱同现",
+      "competing_predicts": "竞争解释(增长担忧主导)预期 TIPS_10Y 走低与 SPX 走弱同现",
+      "face_off_verdict": "支持主解释",
+      "verdict_note": "本月窗口 TIPS_10Y +22bp(2026-10-23→2026-11-19)与 SPX -5.51%(2026-10-23→2026-11-23)同现,方向组合与贴现率渠道一致而与纯增长担忧相悖;VIX 38.87% 的幅度提示流动性/仓位因素可能叠加,单月窗口不能完全区分。"
+     }
+    ]
+   }
+  ],
+  "turnings": [
+   {
+    "date": "2026-05",
+    "metric_id": "CPI",
+    "before_date": "2026-02",
+    "value_before": 2.434,
+    "value_after": 4.1666,
+    "first_mover": "美国 headline CPI 同比在 2026-02→2026-05 由 2.434 升至 4.1666(引擎同比空间),为候选池内最大单段变动。",
+    "follow_or_diverge": "欧元区 EA_HICP_YOY 同月(2026-05)同步由 1.9 升至 3.2(引擎同比空间),美欧通胀同月抬升、月频证据先后未定(同维度同窗,计为同一轮事件,不另列一行);其后欧元区读数 2026-06 回落至 2.8，2026-07 为 2.9、2026-10 为 4.0(越过 2026-05 的 3.2);日本端属政策利率维度,未在通胀维同步。",
+    "narrative": "美国通胀转折: 三个月上行 1.7326 个百分点;同窗核心口径亦同向上行(2026-02→2026-05 同比自 2.4725 升至 2.8229，涨幅小于 headline)。候选池另载核心口径转折 CORE_CPI@2026-08(2026-05→2026-08 同比自 2.8229 回落至 2.4462，其后 2026-09 回升至 2.5658)，该段晚于 headline 上行段，不构成「headline 上行段由非核心分项主导」的证据【假设: 引擎无分项构成数据，不可归因到具体成分】。欧元区 HICP 同比同窗上行 1.3 个百分点(2026-02→2026-05 由 1.9 升至 3.2)，并延续为欧元区当前环境的主导变化(2026-10 达 4.0)。"
+   },
+   {
+    "date": "2026-02",
+    "metric_id": "INDPRO",
+    "before_date": "2025-11",
+    "value_before": 1.7543,
+    "value_after": 0.7972,
+    "first_mover": "美国工业生产同比在 2025-11→2026-02 由 1.7543 降至 0.7972(引擎同比空间,三个月变动 -0.9571),为增长维候选池内最大的三个月变化;同一窗口美国失业率由 4.5 降至 4.4(2026-02),就业端未同向走弱。",
+    "follow_or_diverge": "欧元区端: 本问证据面无欧元区工业生产序列(缺该项,增长维月频证据对欧元区不可判);欧元区实际 GDP 同比为季频且按降级口径引用,引擎点值面读数仅微幅变动(数值见走位对照),不足以判定跟进或背离。",
+    "narrative": "美国工业生产同比回落: 三个月下降 0.9571 个百分点,2026-03 见底后回升,至 2026-10 为 2.15(见走位对照);窗口(2025-11→2026-02)止于通胀转折窗(2026-02→2026-05)的起点月份,两窗仅在该月相接。"
+   },
+   {
+    "date": "2026-07",
+    "metric_id": "JP_POLICY_RATE",
+    "before_date": "2026-04",
+    "value_before": 0.727,
+    "value_after": 0.978,
+    "first_mover": "日本政策利率通道: 无担保隔夜拆借月均 2026-04 0.727→2026-07 0.978(经 2026-06 0.841 过渡),为 2026 年内第三个上行月均台阶(此前: 2026-01 +17bp、2026-06 +11bp)。",
+    "follow_or_diverge": "本问计划指标面未纳入美欧政策利率序列(政策事件簇为空;发布日历政策条目仅 2 条、均为日本央行实录),跨国跟进/背离在政策维度依本问证据不可判(快照序列库内另有、未纳入本问证据索引的同月变动: 美联储目标区间上限 3.75→4.00 于 2026-09-17、欧央行存款便利利率 2.25→2.50 于 2026-09-16,与日本央行 2026-09-18 决议(2026-09-24 生效)同月,不作为本档证据);美国端本问仅见会议纪要条目: FOMC 2026年10月会议纪要 2026-11-18 发布,纪要发布≠决议日;月频月均证据的台阶时点与决议日的先后未定。",
+    "narrative": "日本政策利率台阶: 该通道此后续升(2026-09 1.043(+7bp)、2026-10 1.227(+18bp)),发布日历实录最近一次政策决议为 2026-09-18(2026-09-24 生效),与月均台阶相容。"
+   }
+  ],
+  "history_periods": [],
+  "history_zero_case_note": "检索范围=引擎 analog 候选面。本问为「三个月增通胀对照+政策利率水平与时长」问句,焦点在两锚点当前对照,非历史相似检索;相似候选的事后表现只是历史记录(事后结果≠当时可知)、不参与相似度,零段呈现以避免以事后冒充预测(相似≠因果≠预测)。结构化锚(两期点值格+决议日历+资产月窗)已足够支撑问句,无历史段需求。",
+  "rates_decomposition": {
+   "window_from": "2026-10-20",
+   "window_to": "2026-11-19",
+   "nominal_bp": -8.0,
+   "real_bp": 11.0,
+   "bei_bp": -19.0
+  },
+  "asset_returns_echo": [
+   {
+    "metric_id": "SPX",
+    "window_months": 1,
+    "chg_pct": -5.51,
+    "window": {
+     "from": "2026-10-23",
+     "to": "2026-11-23"
+    }
+   },
+   {
+    "metric_id": "NIKKEI225",
+    "window_months": 1,
+    "chg_pct": -9.98,
+    "window": {
+     "from": "2026-10-23",
+     "to": "2026-11-20"
+    }
+   },
+   {
+    "metric_id": "GOLD_F",
+    "window_months": 1,
+    "chg_pct": -8.05,
+    "window": {
+     "from": "2026-10-23",
+     "to": "2026-11-23"
+    }
+   },
+   {
+    "metric_id": "DXY",
+    "window_months": 1,
+    "chg_pct": 2.23,
+    "window": {
+     "from": "2026-10-23",
+     "to": "2026-11-23"
+    }
+   },
+   {
+    "metric_id": "VIX",
+    "window_months": 1,
+    "chg_pct": 38.87,
+    "window": {
+     "from": "2026-10-23",
+     "to": "2026-11-23"
+    }
+   }
+  ]
+ },
+ "quality_gate_notes": [
+  "证据与口径: 研究截止日=快照版本日 2026-11-23(research_as_of 2026-11-23T22:53:47+08:00；截止时点纽约 09:53、法兰克福 15:53、东京 23:53、上海 22:53)。截止时点美股与德法股指常规时段进行中，SPX、VIX、GOLD_F、DXY 与外汇的当日值均为截止时点的盘中快照(非收盘价)；NIKKEI225 止于 2026-11-20 收盘。同日收盘口径对照(2026-10-23→2026-11-20): 标普500指数 -9.36%、VIX +84.52%。",
+  "对质面: 传导面 3 环均列出主/竞争两侧预期: 贴现率渠道环(区分指标 TIPS_10Y 相对 SPX)两侧预期分立且有在场观测，判断=支持主解释 ×1；另 2 环中, BEI_10Y 环两侧预期分立(走高或维持高位 对 走低或持平)且有在场观测(本问三窗方向一致向下、最新水平为十二个月窗内最低)，判断=支持竞争解释 ×1;TIPS_10Y 相对名义利率环两解释在该指标上预期方向不分立，判断=尚不能区分 ×1(逐环两侧相容观测与裁定所依据的窗口见传导面正文；verdict_note 字段不进渲染，理由已写入 observed_fact)。竞争解释: L3 三条矛盾陈述各并列 2、2、2 种解释。",
+  "证伪面: 两情景各给出可观测触发条件与失效阈值，期限均为 2027-02-15；日本央行决议 2026-09-18(生效 2026-09-24，目标水平 1.25)与 2026-10-30 会议确认维持取自冻结发布日历 v1.5.0 实录(维持条目无生效日，正文不为其挂生效日)；冻结日历无美欧决议/生效实录条目，美国端仅有会议纪要文档事实 FOMC-MINUTES-2026-10(FOMC 2026年10月会议纪要，2026-11-18 发布；纪要发布≠决议日)。机制链三环证据分级 E1/E2/E2，两处 E2 环的区分指标与缺环注记见机制链正文。",
+  "数据面: Gate A=DEGRADED——核心缺口 零 项、非核心缺口 七 项(BUND_10Y、BUND_2Y、CN_OMO_7D、CN_POLICY_OVERNIGHT、EA_REAL_GDP_YOY、JP_CPI_TOKYO_YOY、JP_REAL_GDP_YOY)、非核心降级 八 项(CN_SF_FLOW、ECB_DFR、ECB_MRO、JTSJOL、M2SL、SPX_EPS、SPX_PE_TTM、US_REAL_GDP)；本档引用的非核心缺口指标 一 项(EA_REAL_GDP_YOY)在序列库内有存量观测(最新观测 2026-07-01，距截止日 145 天，超过注册表最大日历滞后 120 天——与 US_REAL_GDP 同龄同倍数，按同一过期口径披露)，按降级口径引用。美国 CPI 与核心 CPI 2026-10 同比均缺 2025-10 基期(当月同比不可得)。任务窗口(2026-11-01..2026-11-30)内 9 个计划指标的观测数均为 0(引擎判定均为覆盖不足——截止日 2026-11-23 尚无 11 月观测)，本档以截止日前最新已发布观测与 3 个月前锚作答，11 月完整结果须待数据覆盖后重跑。引擎契约对两处引用标注 STALE(数值一致、观测滞后超过注册表节奏，须披露): CORE_PCE(观测 2026-09-01，距截止日 83 天，为注册表最大日历滞后 60 天的 1.4 倍)；US_REAL_GDP(观测 2026-07-01，距截止日 145 天，为注册表最大日历滞后 120 天的 1.2 倍)，两者均为该序列在截止日前的最新已发布观测。证据引用共 20 条(矛盾陈述 11、机制链 4、情景唯一指标 5;三面去重后为 14 条不同引用)，全部解析到本轮冻结快照 research_snapshot_20261123 的证据索引。",
+  "政策口径披露: ①引擎『政策一年窗路径』面板按『窗启时在值(2025-11 月均 0.478)→窗末观测(2026-10 月均 1.227)』计净变动，显示 +75bp(等于窗内六个变动点之和)，与本档正文口径一致；仅自窗内首观测(2025-12 月均 0.557)起算为 +67bp(另一口径,仅作另列)。②官方目标(JP_POLICY_TARGET)序列不在注册表，目标水平 1.25 仅见于冻结发布日历实录；在册序列 JP_POLICY_RATE 为无担保隔夜拆借月均口径，非目标宣布值。③本问计划指标面未纳入美欧政策利率序列，跨国政策跟进/背离在政策维度依本问证据不可判(快照序列库内另有、未纳入本问证据索引的同月变动: 美联储目标区间上限 3.75→4.00 于 2026-09-17、欧央行存款便利利率 2.25→2.50 于 2026-09-16,与日本央行 2026-09-18 决议(2026-09-24 生效)同月,不作为本档证据)。",
+  "引擎缺口披露(原第①项「政策一年窗路径的净变动口径」已由引擎修复消除——面板现按『窗启时在值→窗末观测』计净变动,与本档口径一致;余三项为待裁定残留，本轮未改引擎): ②文本一致性别名表未收录 EA_HICP_YOY 等部分计划指标——本档矛盾陈述对这些指标以不带数字的写法表述，走位/转折/传导面的数字以独立席位复算为准；矛盾陈述中部分关键数字(日本央行目标水平与净变动)以中文数字书写，不在契约面阿拉伯数字绑定之列，同样只能人工复算；③传导链接的 verdict_note 字段与转折面的 narrative 字段不进渲染(裁定理由须写入 observed_fact)；④Gate A 非核心缺口清单列入有序列库存量观测的指标(正文按降级口径披露)。"
+ ]
+}
+--- s6 keys ---
+anchor_month = "2026-11"
+feature_window_months = 12
+state_vector = {"growth": {"features": {"ICSA_4w_avg": {"value": 197750.0, "z": -0.3206747602320721, "hist_n": 120}}, "coverage": 0.1667}, "inflation": {"features": {"BEI_10Y_level": {"value": 2.15, "z": 0.08346018602588887, "hist_n": 121}}, "coverage": 0.3333}, "rates": {"features": {"UST_10Y_level": {"value": 5.04, "z": 1.66637547864167, "hist_n": 121}, "UST_10Y_d12m": {"value": 1.0200000000000005, "z": 0.8349448096688624, "hist_n": 109}, "TIPS_10Y_level": {"value": 2.88, "z": 1.8718474704157886, "hist_n": 121}, "TIPS_10Y_d12m": {"value": 1.0899999999999999, "z": 1.0416374106158215, "hist_n": 109}, "CURVE_2S10S_level": {"value": 0.29, "z": -0.08886508395812924, "hist_n": 121}, "CURVE_2S10S_d12m": {"value
+normalization = {"method": "expanding z (t≤各自锚点月末; μ/σ=含当期历史均值/总体标准差σ)", "min_history_months": 36, "min_observations_note": "36 个月史按网格自然步长折算观测数: 月网格 36 点/季网格 12 点(步长=相邻网格键月差中位数;36 个季观测=9 年系旧实现误设,Charter7-4b 已修)"}
+weights = {"growth": 0.166667, "inflation": 0.166667, "rates": 0.166667, "credit": 0.166667, "volatility": 0.166667, "valuation": 0.166667}
+feature_set = {"basis": "anchor_admitted(统一特征集: 距离特征面由锚点侧准入结果唯一决定,Charter7-2)", "features": ["BEI_10Y_level", "CURVE_2S10S_d12m", "CURVE_2S10S_level", "HY_IG_gap_level", "HY_OAS_level", "ICSA_4w_avg", "SPX_CAPE_level", "SPX_rv21", "TIPS_10Y_d12m", "TIPS_10Y_level", "UST_10Y_d12m", "UST_10Y_level", "VIX_level"], "n_features": 13, "wsum": 0.541667}
+candidates = {"scanned": 1871, "valid": 74, "dropped_overlap": 12, "dropped_insufficient": 1785, "n_independent_clusters_topN": 5, "cluster_dedup": "TOP-N 簇去重: 候选月相差<12 个月=同簇(事后窗重叠),每簇仅保留排序最优代表;准入/距离/分位计算不变"}
+sort_basis = "(n_missing, distance, month) — 缺席特征多者降位,名次非纯距离序,比较相似度请以 distance 字段为准"
+top = [{"rank": 1, "candidate_month": "2025-03", "distance": 0.727212, "n_missing": 2, "distance_percentile": 0.0, "dims": {"growth": {"contribution_share": 3.4e-05, "z_gap": 0.004224}, "inflation": {"contribution_share": 0.105401, "z_gap": 0.236093}, "rates": {"contribution_share": 0.4066, "z_gap": 0.463709}, "credit": {"contribution_share": 0.0, "z_gap": 0.0}, "volatility": {"contribution_share": 0.421281, "z_gap": 0.472006}, "valuation": {"contribution_share": 0.066684, "z_gap": 0.18779}}, "features_detail": {"ICSA_4w_avg": {"anchor_z": -0.3206747602320721, "cand_z": -0.3020230889701957, "gap": -0.01865167126187639, "w_norm": 0.051282}, "BEI_10Y_level": {"anchor_z": 0.08346018602588887, "cand_z
+dispersion = {"topN_aftermath_sign_agreement": {"SPX_1m": 0.6, "SPX_3m": 0.6, "SPX_6m": 1.0, "SPX_12m": 1.0, "UST_10Y_1m": 0.8, "UST_10Y_3m": 0.6, "UST_10Y_6m": 0.8, "UST_10Y_12m": 0.6, "DXY_1m": 0.6, "DXY_3m": 0.6, "DXY_6m": 0.8, "DXY_12m": 0.8, "GOLD_F_1m": 0.6, "GOLD_F_3m": 0.8, "GOLD_F_6m": 1.0, "GOLD_F_12m": 1.0}, "basis": "TOP-N 独立簇代表(候选月相差<12个月=同簇只计代表)", "n_independent_clusters": 5}
+research_mode_gate = {"descriptive": "available", "event_study": "blocked: 存在无发布日特征指标(月度宏观发布日不可得), 不得按发布日对齐/不得声称事件研究", "realtime_info_set": "available(查询起点月窗内存在跨日vintage快照:20261123;可经select_snapshot点时取版)", "note": "当时市场所见状态可能与修订后档案值不同"}
+disclosure = ["相似≠因果, 更非预测: TOP-N 是历史状态距离最近的时期, 当时之后的演变只是历史记录", "特征为最新修订口径的描述性对齐, 不代表当时市场信息集(research_mode_gate)", "距离分位=该候选在全部有效候选中的相对位置, 不是概率"]
+features_dropped_at_anchor = {"UNEMPLOYMENT_level": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "NFP_3m_chg": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "INDPRO_yoy": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "RSAFS_yoy": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "GDP_yoy": "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)", "CORE_CPI_yoy": "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)", "CPI_yoy": "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)", "FED_FUNDS_level": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "FED_FUNDS_d12m": "release_lag(序列止于2026-10,锚点月
+--- point record sample ---
+{"id": "A01", "cat": "A 截止时点", "where": "quality_gate_notes[0]「research_as_of 2026-11-23T22:53:47+08:00」", "key": "snapshot.research_as_of", "computed": "2026-11-23T22:53:47+08:00", "reported": "2026-11-23T22:53:47+08:00", "ok": true, "note": "", "_src": "p1a.json", "_cls": "counted", "_sig": null, "_toks": "set()"}
+{"id": "Y46", "cat": "Y 记号覆盖闭合", "where": "信息项: 转折面「日本端…未在通胀维同步」——本问证据索引内日本通胀序列数 / 序列库内 JP_CPI_YOY 2026-02→2026-05 变动(pp)", "key": "report.json evidence_index / series_store.JP_CPI_YOY(证据索引外)", "computed": "0/+0.26", "reported": "0/+0.26", "ok": true, "note": "证据索引 63 条; JP_CPI_YOY 月值={'2026-02': 1.27, '2026-05': 1.53, '2026-06': 1.67, '2026-07': 1.97, '2026-08': 1.98, '2026-09': 2.16, '2026-10': 2.44}", "_src": "p6.json", "_cls": "info", "_sig": null, "_toks": "set()"}
+--- Z ---
+美国 CPI 同比 2026-05..2026-10(严格同基期) | series_store.CPI 各月 ÷ 上年同月 | "05:4.1666; 06:3.4635; 07:3.3039; 08:3.3530; 09:3.7173; 10:NA"
+美国 CORE_CPI 同比 2026-05..2026-10 | series_store.CORE_CPI 各月 ÷ 上年同月 | "05:2.8229; 06:2.5658; 07:2.4665; 08:2.4462; 09:2.5658; 10:NA"
+欧元区 EA_HICP_YOY 2026-02..2026-10 | series_store.EA_HICP_YOY | "02:1.9; 05:3.2; 06:2.8; 07:2.9; 08:3.2; 09:3.8; 10:4.0"
+2026-09 欧元区减美国 CPI 同比(pp) | series_store.EA_HICP_YOY 2026-09-01 减 CPI 同比 2026-09 | "0.0827"
+美国 INDPRO 同比 2026-05..2026-10 | series_store.INDPRO 各月 ÷ 上年同月 | "05:1.7105; 06:1.4671; 07:1.2498; 08:1.4472; 09:2.1421; 10:2.1497"
+INDPRO 指数水平三个月变化 2026-07→2026-10 | series_store.INDPRO.values[116] (dates[116]=2026-07-01)→series_store.INDPRO.values[119] (dates[119]=2026-10-01) | "103.1675→103.3954 = +0.2209%"
+INDPRO 基期指数变化 2025-07→2025-10 | series_store.INDPRO.values[104] (dates[104]=2025-07-01)→series_store.INDPRO.values[107] (dates[107]=2025-10-01) | "101.894→101.2195 = -0.6620%"
+INDPRO 最新单月环比 2026-09→2026-10 | series_store.INDPRO.values[118] (dates[118]=2026-09-01)→series_store.INDPRO.values[119] (dates[119]=2026-10-01) | "103.8458→103.3954 = -0.4337%"
+走位对照: 失业率 / 美国 GDP 同比 / 欧元区 GDP 同比(3 个月前→最新) | series_store.UNEMPLOYMENT, US_REAL_GDP(同比), EA_REAL_GDP_YOY 2026-04-01→2026-07-01 | "4.1→4.1 / 2.19→2.07 / 1.19→1.28"
+情景相容性读数: CORE_PCE 同比 2026-09 / TIPS_10Y 2026-11-19 / BEI_10Y 2026-11-20 | series_store.CORE_PCE(同比), TIPS_10Y, BEI_10Y | "3.1212 / 2.88 / 2.15"
+传导环1 窗启日稳健性: BEI_10Y 自 3 个月前锚最近观测起算至 2026-11-19 | series_store.BEI_10Y.values[2435] (dates[2435]=2026-08-21)→series_store.BEI_10Y.values[2496] (dates[2496]=2026-11-19) | "2.34→2.16 = -18.0bp"
+BEI_10Y 三个月窗 2026-02→2026-05 的窗端点与窗内极值 | series_store.BEI_10Y 2026-02-01..2026-05-31 | {"first": ["2026-02-02", 2.35], "last": ["2026-05-29", 2.38], "min": ["2026-02-27", 2.25], "max": ["2026-05-04", 2.5], "endpoint_chg_bp": 2.9999999999999805}
+序列库内 JP_CPI_YOY(未入本问证据索引)2026-02..2026-10 | series_store.JP_CPI_YOY | {"2026-02": 1.27, "2026-05": 1.53, "2026-06": 1.67, "2026-07": 1.97, "2026-08": 1.98, "2026-09": 2.16, "2026-10": 2.44}
+JP_POLICY_RATE 相邻月均差介于 0.001–0.03 的月份(全序列) | series_store.JP_POLICY_RATE; 序列起 1985-07-01 止 2026-10-01 | "225 个月, 最后一个 2024-03:+0.0280"
+证据索引(report.json evidence_index)行数与相关序列 | report.json evidence_index[*].metric_id | {"n": 63, "jpin": [], "eabe": ["BEI_5Y", "BEI_10Y"], "jp": ["JP_POLICY_RATE"], "pol": [], "ea": ["EA_HICP_YOY"]}
+冻结发布日历: 条目总数 / 2026-10-31..2026-11-23 已发布条目 / 日本央行条目 | root_overlay/config/release_calendar.json entries | {"n": 18, "pub": ["RC-CN-LPR-2026M11@2026-11-20"], "boj": ["RC-JP-BOJ-MAINT-2026-10@2026-10-30", "RC-JP-BOJ-TARGET-2026-09@2026-09-18"], "ver": "1.5.0"}
+历史相似面: 锚点月 / 候选池计数 / 锚点 BEI_10Y_level 的 z | report.json steps[S6_analog].envelope.data(anchor_month, candidates, state_vector) | "2026-11 / {'scanned': 1871, 'valid': 74, 'dropped_overlap': 12, 'dropped_insufficient': 1785, 'n_independent_clusters_topN': 5, 'cluster_dedup': 'TOP-N 簇去重: 候选月相差<12 个月=同簇(事后窗重叠),每簇仅保留排序最优代表;准入/距离/分位计算不变'} / 0.08346018602588887"

@@ -1,0 +1,73 @@
+32 :: c: 20261123T235157Z - 研究截止日(证据口径 r32): 2026-11-23 | 源快照 
+105 :: 20261123(版本日 2026-11-23) | 事实: 保留 105 / 重建 0 / 剔除 0+版本 0 
+26672.85 :: | PASS | SPX@2026-11-23 | | NDX | 26672.85 | index_point | 202
+2581.79 :: | PASS | NDX@2026-11-23 | | RUT | 2581.79 | index_point | 202
+104.08 :: | PASS | RUT@2026-11-20 | | DXY | 104.08 | index_point | 202
+3685.2 ::  | EURUSD@2026-11-23 | | GOLD_F | 3685.2 | usd_per_oz | 2026
+43.88 ::  GOLD_F@2026-11-23 | | SILVER_F | 43.88 | usd_per_oz | 2026
+88.19 :: SILVER_F@2026-11-23 | | BRENT_F | 88.19 | usd_per_barrel | 
+8022.62 :: PASS | DAX@2026-11-23 | | CAC40 | 8022.62 | index_point | 202
+6.65 ::  | USDJPY@2026-11-23 | | USDCNY | 6.65 | cny_per_usd | 202
+3.52 ::  | USDCNY@2026-11-23 | | HY_OAS | 3.52 | percentage_point 
+13.61 ::  | B_OAS@2026-11-19 | | CCC_OAS | 13.61 | percentage_point 
+0.94 :: | CCC_OAS@2026-11-19 | | IG_OAS | 0.94 | percentage_point 
+4.76 ::  | IG_OAS@2026-11-19 | | UST_2Y | 4.76 | percent | 2026-11
+5.4 ::  UST_10Y@2026-11-19 | | UST_30Y | 5.4 | percent | 2026-11
+2.64 ::  UST_30Y@2026-11-19 | | TIPS_5Y | 2.64 | percent | 2026-11
+2.88 :: TIPS_5Y@2026-11-19 | | TIPS_10Y | 2.88 | percent | 2026-11
+2.18 ::  TIPS_10Y@2026-11-19 | | BEI_5Y | 2.18 | percent | 2026-11
+0.29 :: _10Y@2026-11-20 | | CURVE_2S10S | 0.29 | percentage_point 
+4.86 :: RVE_2S10S@2026-11-20 | | UST_5Y | 4.86 | percent | 2026-11
+3538.948 ::  | UST_5Y@2026-11-19 | | SHCOMP | 3538.948 | index_point | 202
+22383.74 :: ASS | SHCOMP@2026-11-23 | | HSI | 22383.74 | index_point | 202
+7 :: t_fact | GOLD_F@2026-11-23 |  | | 7 | snapshot_fact | S
+8 :: fact | SILVER_F@2026-11-23 |  | | 8 | snapshot_fact | B
+27 :: t | CURVE_2S10S@2026-11-20 |  | | 27 | snapshot_fact | U
+28 :: t_fact | UST_5Y@2026-11-19 |  | | 28 | snapshot_fact | S
+31 :: act | NIKKEI225@2026-11-20 |  | | 31 | snapshot_fact | J
+33 :: _fact | ECB_DFR@2026-09-16 |  | | 33 | snapshot_fact | E
+34 :: _fact | ECB_MRO@2026-09-16 |  | | 34 | snapshot_fact | E
+36 ::  JP_POLICY_RATE@2026-10-01 |  | | 36 | s3_envelope | SZC
+37 :: envelope | SZCI@2026-11-23 |  | | 37 | s3_envelope | CHI
+38 :: elope | CHINEXT@2026-11-23 |  | | 38 | s3_envelope | HSC
+39 :: nvelope | HSCEI@2026-11-23 |  | | 39 | s3_envelope | NVD
+41 :: envelope | AAPL@2026-11-23 |  | | 41 | s3_envelope | MSF
+42 :: envelope | MSFT@2026-11-23 |  | | 42 | s3_envelope | TLT
+43 :: _envelope | TLT@2026-11-23 |  | | 43 | s3_envelope | IEF
+44 :: _envelope | IEF@2026-11-23 |  | | 44 | s3_envelope | SHY
+45 :: _envelope | SHY@2026-11-23 |  | | 45 | s3_envelope | HYG
+46 :: _envelope | HYG@2026-11-23 |  | | 46 | s3_envelope | LQD
+48 :: velope | GBPUSD@2026-11-23 |  | | 48 | s3_envelope | WTI
+49 :: nvelope | WTI_F@2026-11-23 |  | | 49 | s3_envelope | GLD
+51 :: _envelope | USO@2026-11-23 |  | | 51 | s3_envelope | EEM
+52 :: _envelope | EEM@2026-11-23 |  | | 52 | s3_envelope | EZU
+54 :: _envelope | FEZ@2026-11-23 |  | | 54 | s3_envelope | EWU
+55 :: _envelope | EWU@2026-11-23 |  | | 55 | s3_envelope | EWG
+56 :: _envelope | EWG@2026-11-23 |  | | 56 | s3_envelope | EWJ
+57 :: _envelope | EWJ@2026-11-23 |  | | 57 | s3_envelope | IND
+59 :: _envelope | FXI@2026-11-23 |  | | 59 | s3_envelope | BTC
+0.727212 :: |---|---|---|---| | 1 | 2025-03 | 0.727212 | 0.0 | volatility 
+0.0 :: -|---| | 1 | 2025-03 | 0.727212 | 0.0 | volatility 42.1%、
+42.1 :: -03 | 0.727212 | 0.0 | volatility 42.1%、rates 40.7% | | 2 
+40.7 :: 12 | 0.0 | volatility 42.1%、rates 40.7% | | 2 | 2022-06 | 
+0.791806 :: .1%、rates 40.7% | | 2 | 2022-06 | 0.791806 | 1.3699 | rates 51
+1.3699 :: 0.7% | | 2 | 2022-06 | 0.791806 | 1.3699 | rates 51.9%、valua
+51.9 :: 22-06 | 0.791806 | 1.3699 | rates 51.9%、valuation 33.6% | 
+33.6 ::  | 1.3699 | rates 51.9%、valuation 33.6% | | 3 | 2023-10 | 
+2023 :: tes 51.9%、valuation 33.6% | | 3 | 2023-10 | 1.054168 | 30.
+1.054168 :: valuation 33.6% | | 3 | 2023-10 | 1.054168 | 30.137 | volatili
+30.137 :: 3.6% | | 3 | 2023-10 | 1.054168 | 30.137 | volatility 60.1%、
+60.1 ::  | 1.054168 | 30.137 | volatility 60.1%、valuation 21.2% | 
+21.2 :: .137 | volatility 60.1%、valuation 21.2% | | 4 | 2021-02 | 
+1.284945 :: valuation 21.2% | | 4 | 2021-02 | 1.284945 | 69.863 | rates 72
+69.863 :: 1.2% | | 4 | 2021-02 | 1.284945 | 69.863 | rates 72.0%、volat
+72.0 :: 21-02 | 1.284945 | 69.863 | rates 72.0%、volatility 18.4% |
+18.4 :: | 69.863 | rates 72.0%、volatility 18.4% | | 5 | 2020-01 | 
+2020 :: es 72.0%、volatility 18.4% | | 5 | 2020-01 | 1.357685 | 71.
+1.357685 :: olatility 18.4% | | 5 | 2020-01 | 1.357685 | 71.2329 | rates 6
+71.2329 :: 8.4% | | 5 | 2020-01 | 1.357685 | 71.2329 | rates 68.3%、volat
+68.3 :: 0-01 | 1.357685 | 71.2329 | rates 68.3%、volatility 14.6% |
+14.6 ::  71.2329 | rates 68.3%、volatility 14.6% |  > 相似≠因果, 更非预测: 
+0.264 :: ICP_YOY×ECB_MRO 日收益×日变化 pearson = 0.264(n=45 对,共同窗 1999-01.
+1999 :: 收益×日变化 pearson = 0.264(n=45 对,共同窗 1999-01..2026-09;描述性统计≠因
+256 ::  - 内容绑定(Audit-R4 条目2): content_sha256=canonical(report.js

@@ -1,0 +1,61 @@
+weekday 2025-12-10 = Wed
+weekday 2025-12-11 = Thu
+weekday 2026-06-11 = Thu
+weekday 2026-06-17 = Wed
+weekday 2026-09-10 = Thu
+weekday 2026-09-16 = Wed
+weekday 2026-09-17 = Thu
+weekday 2026-09-18 = Fri
+weekday 2026-09-24 = Thu
+weekday 2026-08-30 = Sun
+weekday 2026-09-29 = Tue
+weekday 2026-09-13 = Sun
+weekday 2026-05-13 = Wed
+horizon SPX: 12m +8.03% [2025-11-19→2026-11-19] | 3m -6.90% [2026-08-19→2026-11-19] | 1m -6.96% [2026-10-20→2026-11-19] | judgment-1m-basis -5.51% [2026-10-23→2026-11-23]
+horizon NIKKEI225: 12m +22.47% [2025-11-19→2026-11-19] | 3m -9.00% [2026-08-19→2026-11-19] | 1m -7.23% [2026-10-20→2026-11-19] | judgment-1m-basis -9.98% [2026-10-23→2026-11-20]
+horizon SHCOMP: 12m -9.35% [2025-11-19→2026-11-19] | 3m -8.13% [2026-08-19→2026-11-19] | 1m -4.22% [2026-10-20→2026-11-19] | judgment-1m-basis -4.11% [2026-10-23→2026-11-23]
+horizon DAX: 12m +9.93% [2025-11-19→2026-11-19] | 3m -2.41% [2026-08-19→2026-11-19] | 1m +0.63% [2026-10-20→2026-11-19] | judgment-1m-basis +0.11% [2026-10-23→2026-11-23]
+horizon CAC40: 12m +1.60% [2025-11-19→2026-11-19] | 3m -4.95% [2026-08-19→2026-11-19] | 1m +3.09% [2026-10-20→2026-11-19] | judgment-1m-basis +3.08% [2026-10-23→2026-11-23]
+horizon GOLD_F: 12m -9.73% [2025-11-19→2026-11-19] | 3m -18.92% [2026-08-19→2026-11-19] | 1m -11.03% [2026-10-20→2026-11-19] | judgment-1m-basis -8.05% [2026-10-23→2026-11-23]
+horizon DXY: 12m +3.66% [2025-11-19→2026-11-19] | 3m +5.13% [2026-08-19→2026-11-19] | 1m +2.13% [2026-10-20→2026-11-19] | judgment-1m-basis +2.23% [2026-10-23→2026-11-23]
+horizon VIX: 12m +20.20% [2025-11-19→2026-11-19] | 3m +91.00% [2026-08-19→2026-11-19] | 1m +64.30% [2026-10-20→2026-11-19] | judgment-1m-basis +38.87% [2026-10-23→2026-11-23]
+horizon USDJPY: 12m +2.46% [2025-11-19→2026-11-19] | 3m -0.11% [2026-08-19→2026-11-19] | 1m +0.54% [2026-10-20→2026-11-19] | judgment-1m-basis +1.82% [2026-10-23→2026-11-23]
+horizon USDCNY: 12m -6.19% [2025-11-19→2026-11-19] | 3m -1.11% [2026-08-19→2026-11-19] | 1m -0.35% [2026-10-20→2026-11-19] | judgment-1m-basis -0.35% [2026-10-23→2026-11-23]
+horizon BRENT_F: 12m +44.83% [2025-11-19→2026-11-19] | 3m +0.39% [2026-08-19→2026-11-19] | 1m -15.45% [2026-10-20→2026-11-19] | judgment-1m-basis -24.44% [2026-10-23→2026-11-23]
+horizon HY_OAS: 12m +11.04% [2025-11-19→2026-11-19] | 3m +28.94% [2026-08-19→2026-11-19] | 1m +5.71% [2026-10-20→2026-11-19] | judgment-1m-basis +4.14% [2026-10-23→2026-11-19]
+horizon UST_10Y: 12m +22.03% [2025-11-19→2026-11-19] | 3m +8.39% [2026-08-19→2026-11-19] | 1m -1.56% [2026-10-20→2026-11-19] | judgment-1m-basis +0.80% [2026-10-23→2026-11-19]
+horizon TIPS_10Y: 12m +54.84% [2025-11-19→2026-11-19] | 3m +22.55% [2026-08-19→2026-11-19] | 1m +3.97% [2026-10-20→2026-11-19] | judgment-1m-basis +8.27% [2026-10-23→2026-11-19]
+horizon BEI_10Y: 12m -4.85% [2025-11-19→2026-11-19] | 3m -6.09% [2026-08-19→2026-11-19] | 1m -8.09% [2026-10-20→2026-11-19] | judgment-1m-basis -8.12% [2026-10-23→2026-11-20]
+SPX~USDJPY daily intraday-2026-11-23: days=21; sum USDJPY %chg on SPX-down days +0.17%, on SPX-up days +1.65%
+SPX~USDJPY daily intraday-2026-11-23: 6 largest |USDJPY| daily moves (date, SPX %, USDJPY %): 2026-11-12 -0.35 +0.65; 2026-11-06 +0.31 -0.54; 2026-11-09 +2.35 +0.50; 2026-11-11 +1.31 +0.46; 2026-10-27 +0.60 +0.45; 2026-11-04 +1.58 +0.35
+SPX~USDJPY daily intraday-2026-11-23: 6 largest |SPX| daily moves (date, SPX %, USDJPY %): 2026-11-05 -4.36 -0.07; 2026-11-23 +4.25 -0.23; 2026-11-20 -3.70 +0.20; 2026-11-09 +2.35 +0.50; 2026-11-19 -2.02 -0.08; 2026-11-16 -1.92 -0.06
+SPX~USDJPY daily close-basis: days=20; sum USDJPY %chg on SPX-down days +0.17%, on SPX-up days +1.88%
+SPX~USDJPY daily close-basis: 6 largest |USDJPY| daily moves (date, SPX %, USDJPY %): 2026-11-12 -0.35 +0.65; 2026-11-06 +0.31 -0.54; 2026-11-09 +2.35 +0.50; 2026-11-11 +1.31 +0.46; 2026-10-27 +0.60 +0.45; 2026-11-04 +1.58 +0.35
+SPX~USDJPY daily close-basis: 6 largest |SPX| daily moves (date, SPX %, USDJPY %): 2026-11-05 -4.36 -0.07; 2026-11-20 -3.70 +0.20; 2026-11-09 +2.35 +0.50; 2026-11-19 -2.02 -0.08; 2026-11-16 -1.92 -0.06; 2026-10-30 -1.82 -0.02
+visible EA_HICP_YOY before ECB 2026-06-11: 2026-05-01 2026-05-31
+visible EA_HICP_YOY before ECB 2026-09-10: 2026-08-01 2026-08-31
+visible JP_CPI_YOY before BoJ 2026-09-18: 2026-07-01 2026-08-20
+visible CPI before Fed 2026-09-16: 2026-08-01 2026-09-13
+visible CORE_PCE before Fed 2026-09-16: 2026-07-01 2026-08-30
+visible CPI before ECB 2026-06-11 (US proxy): 2026-04-01 2026-05-13
+visible CPI before ECB 2026-09-10 (US proxy): 2026-07-01 2026-08-13
+visible CPI before BoJ 2026-09-18 (US proxy): 2026-08-01 2026-09-13
+path EA_HICP_YOY 2026-01..2026-10: 2026-01=1.7 2026-02=1.9 2026-03=2.6 2026-04=3.0 2026-05=3.2 2026-06=2.8 2026-07=2.9 2026-08=3.2 2026-09=3.8 2026-10=4.0
+path JP_CPI_YOY 2026-01..2026-10: 2026-01=1.51 2026-02=1.27 2026-03=1.46 2026-04=1.38 2026-05=1.53 2026-06=1.67 2026-07=1.97 2026-08=1.98 2026-09=2.16 2026-10=2.44
+path CPI 2026-01..2026-10: 2026-01=326.588 2026-02=327.46 2026-03=330.293 2026-04=332.407 2026-05=333.979 2026-06=332.568 2026-07=332.813 2026-08=334.131 2026-09=336.298 2026-10=337.476
+CN_NEW_LOANS first/last obs: 2008-01-01 / 2026-10-01 n=226
+CN_NEW_LOANS last 16 months: 2025-07=-4296.0(yoy +431.7%) 2025-08=6253.0(yoy -39.9%) 2025-09=16081.0(yoy -18.5%) 2025-10=-154.0(yoy -105.2%) 2025-11=4096.0(yoy -21.5%) 2025-12=9804.0(yoy +16.7%) 2026-01=49016.0(yoy -6.1%) 2026-02=8458.0(yoy +29.6%) 2026-03=31522.0(yoy -17.6%) 2026-04=-4006.0(yoy -553.2%) 2026-05=4965.0(yoy -16.2%) 2026-06=17650.0(yoy -25.2%) 2026-07=-5896.0(yoy +37.2%) 2026-08=552.0(yoy -91.2%) 2026-09=12734.0(yoy -20.8%) 2026-10=-5846.0(yoy +3696.1%)
+series_store metric count: 92
+series_store names containing JGB / CN_ / CAPITAL / FLOW: CN_CPI_YOY CN_LPR_1Y CN_NEW_LOANS CN_OMO_7D CN_PMI_MFG CN_POLICY_OVERNIGHT CN_PPI_YOY
+series_store all names: AAPL AHE BB_OAS BEI_10Y BEI_5Y BRENT_F BTC B_OAS CAC40 CCC_OAS CHINEXT CN_CPI_YOY CN_LPR_1Y CN_NEW_LOANS CN_OMO_7D CN_PMI_MFG CN_POLICY_OVERNIGHT CN_PPI_YOY CORE_CPI CORE_PCE CPI CURVE_2S10S DAX DFEDTARL DFEDTARU DFF DXY EA_HICP_YOY EA_REAL_GDP_YOY ECB_DFR ECB_MRO EEM EURUSD EWG EWJ EWU EZU FED_FUNDS FEZ FXI GBPUSD GLD GOLD_F HSCEI HSI HYG HY_OAS ICSA IEF IG_OAS INDA INDPRO JP_CPI_TOKYO_YOY JP_CPI_YOY JP_POLICY_RATE JP_REAL_GDP_YOY JTSJOL LQD M2SL MSFT NDX NFP NIKKEI225 NVDA RSAFS RUT SHCOMP SHY SILVER_F SOFR SPX SPX_CAPE SPX_EPS SPX_PE_TTM SZCI TIPS_10Y TIPS_5Y TLT UMCSENT UNEMPLOYMENT USDCNY USDJPY USO UST_10Y UST_2Y UST_30Y UST_5Y US_REAL_GDP VIX WALCL WTI_F WTI_SPOT_M
+engine policy_window_path DFEDTARU: window=['2025-11-23', '2026-11-23'] start=4.0 end=4.0 net_bp=0 events(date,from,to,delta_bp,decision)=2025-12-11:4.0→3.75(-25)[dec 2025-12-10] 2026-09-17:3.75→4.0(25)[dec 2026-09-16]
+engine policy_window_path DFF: window=['2025-11-23', '2026-11-23'] start=3.88 end=3.88 net_bp=0 events(date,from,to,delta_bp,decision)=2025-11-28:3.88→3.89(1)[dec None] 2025-12-11:3.89→3.64(-25)[dec None] 2026-05-07:3.64→3.63(-1)[dec None] 2026-05-19:3.63→3.62(-1)[dec None] 2026-06-15:3.62→3.63(1)[dec None] 2026-07-08:3.63→3.62(-1)[dec None] 2026-07-14:3.62→3.63(1)[dec None] 2026-09-17:3.63→3.88(25)[dec None]
+engine policy_window_path CN_POLICY_OVERNIGHT: window=['2025-11-23', '2026-11-23'] start=1.25 end=1.25 net_bp=0 events(date,from,to,delta_bp,decision)=
+engine policy_window_path CN_OMO_7D: window=['2025-11-23', '2026-11-23'] start=1.4 end=1.4 net_bp=0 events(date,from,to,delta_bp,decision)=
+engine policy_window_path CN_LPR_1Y: window=['2025-11-23', '2026-11-23'] start=3.0 end=3.0 net_bp=0 events(date,from,to,delta_bp,decision)=
+engine policy_window_path ECB_MRO: window=['2025-11-23', '2026-11-23'] start=2.4 end=2.65 net_bp=25 events(date,from,to,delta_bp,decision)=2026-06-17:2.15→2.4(25)[dec 2026-06-11] 2026-09-16:2.4→2.65(25)[dec 2026-09-10]
+engine policy_window_path ECB_DFR: window=['2025-11-23', '2026-11-23'] start=2.25 end=2.5 net_bp=25 events(date,from,to,delta_bp,decision)=2026-06-17:2.0→2.25(25)[dec 2026-06-11] 2026-09-16:2.25→2.5(25)[dec 2026-09-10]
+engine policy_window_path JP_POLICY_RATE: window=['2025-11-23', '2026-11-23'] start=0.557 end=1.227 net_bp=67 events(date,from,to,delta_bp,decision)=2025-12-01:0.478→0.557(8)[dec None] 2026-01-01:0.557→0.728(17)[dec None] 2026-06-01:0.727→0.841(11)[dec None] 2026-07-01:0.841→0.978(14)[dec None] 2026-09-01:0.977→1.043(7)[dec None] 2026-10-01:1.043→1.227(18)[dec None]
+engine policy cluster POLCLUSTER-01 2025-12-10..2025-12-10 regions=['US'] events=DFEDTARU dec 2025-12-10 eff 2025-12-11 4.0→3.75 -25
+engine policy cluster POLCLUSTER-02 2026-06-11..2026-06-11 regions=['EA'] events=ECB_DFR dec 2026-06-11 eff 2026-06-17 2.0→2.25 25
+engine policy cluster POLCLUSTER-03 2026-09-10..2026-09-16 regions=['EA', 'US'] events=ECB_DFR dec 2026-09-10 eff 2026-09-16 2.25→2.5 25 DFEDTARU dec 2026-09-16 eff 2026-09-17 3.75→4.0 25

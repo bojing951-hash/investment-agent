@@ -1,0 +1,22 @@
+24141c01a73daa44e56e380320f46bb0f7cbd723
+2026-11-24 14:04:57 +0800
+Audit-R32 正式验收修复: 裁决后再交付包随清单落档归档代码+重放版本门认归档代码
+
+正式验收发现(facc9a8 下对 36499bb 运行的工单再交付): 归档清单只记运行
+SHA,不记归档代码——运行=执行印章、交付字节=归档印章(状态面翻新)的两印章
+包不自述;且在任何单一印章下都无法严格重放(运行印章代码不认状态面等价
+→绑定核对拒;归档印章代码被重放门④拒 code_version_mismatch)。
+
+修复(渲染未改;同印章归档清单字节不变):
+- archive 段: 归档代码≠运行 SHA 时清单加 archive_code_git_head,correlation
+  点名「裁决后再交付」
+- replay 段: 门④对清单已声明 map_binding_status_equivalent 且携
+  archive_code_git_head 的包,当前代码==归档代码即视为录制代码(逐字节
+  核对的对象正是归档代码所产交付字节);第三印章照旧拒;重放报告落档
+  package_archive_head 与「归档代码 SHA」行(旧档无此键=报告字节不变)
+- test_audit_r32_gate §L9(4 判,包装器只改「当前代码 HEAD」声明): facc9a8
+  复现 §L9a/§L9b 红→修复后全绿;§L9c 运行印章代码严格重放照旧成立;
+  §L9d 第三印章严格重放拒、显式越过=披露
+
+Co-Authored-By: Claude Code <noreply@anthropic.com>
+

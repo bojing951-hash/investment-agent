@@ -1,0 +1,51 @@
+engine sync tables parsed: [('2022-06', 12), ('2023-10', 12), ('2025-03', 12)]
+engine cells: 36
+  seat-rule vs engine-table 2022-06 CN growth: seat=分化 engine=分化 (MAP_REPORT.md L461) OK
+  seat-rule vs engine-table 2022-06 CN inflation: seat=同步 engine=同步 (MAP_REPORT.md L462) OK
+  seat-rule vs engine-table 2022-06 CN policy: seat=分化 engine=分化 (MAP_REPORT.md L463) OK
+  seat-rule vs engine-table 2022-06 EA growth: seat=同步 engine=同步 (MAP_REPORT.md L464) OK
+  seat-rule vs engine-table 2022-06 EA inflation: seat=同步 engine=同步 (MAP_REPORT.md L465) OK
+  seat-rule vs engine-table 2022-06 EA policy: seat=分化 engine=分化 (MAP_REPORT.md L466) OK
+  seat-rule vs engine-table 2022-06 JP growth: seat=同步 engine=同步 (MAP_REPORT.md L467) OK
+  seat-rule vs engine-table 2022-06 JP inflation: seat=同步 engine=同步 (MAP_REPORT.md L468) OK
+  seat-rule vs engine-table 2022-06 JP policy: seat=分化 engine=分化 (MAP_REPORT.md L469) OK
+  seat-rule vs engine-table 2022-06 US growth: seat=下行 engine=下行 (MAP_REPORT.md L458) OK
+  seat-rule vs engine-table 2022-06 US inflation: seat=上行 engine=上行 (MAP_REPORT.md L459) OK
+  seat-rule vs engine-table 2022-06 US policy: seat=上行 engine=上行 (MAP_REPORT.md L460) OK
+  seat-rule vs engine-table 2023-10 CN growth: seat=同步 engine=同步 (MAP_REPORT.md L585) OK
+  seat-rule vs engine-table 2023-10 CN inflation: seat=分化 engine=分化 (MAP_REPORT.md L586) OK
+  seat-rule vs engine-table 2023-10 CN policy: seat=分化 engine=分化 (MAP_REPORT.md L587) OK
+  seat-rule vs engine-table 2023-10 EA growth: seat=分化 engine=分化 (MAP_REPORT.md L588) OK
+  seat-rule vs engine-table 2023-10 EA inflation: seat=分化 engine=分化 (MAP_REPORT.md L589) OK
+  seat-rule vs engine-table 2023-10 EA policy: seat=分化 engine=分化 (MAP_REPORT.md L590) OK
+  seat-rule vs engine-table 2023-10 JP growth: seat=分化 engine=分化 (MAP_REPORT.md L591) OK
+  seat-rule vs engine-table 2023-10 JP inflation: seat=分化 engine=分化 (MAP_REPORT.md L592) OK
+  seat-rule vs engine-table 2023-10 JP policy: seat=分化 engine=分化 (MAP_REPORT.md L593) OK
+  seat-rule vs engine-table 2023-10 US growth: seat=上行 engine=上行 (MAP_REPORT.md L582) OK
+  seat-rule vs engine-table 2023-10 US inflation: seat=上行 engine=上行 (MAP_REPORT.md L583) OK
+  seat-rule vs engine-table 2023-10 US policy: seat=持平 engine=持平 (MAP_REPORT.md L584) OK
+  seat-rule vs engine-table 2025-03 CN growth: seat=分化 engine=分化 (MAP_REPORT.md L343) OK
+  seat-rule vs engine-table 2025-03 CN inflation: seat=分化 engine=分化 (MAP_REPORT.md L344) OK
+  seat-rule vs engine-table 2025-03 CN policy: seat=同步 engine=同步 (MAP_REPORT.md L345) OK
+  seat-rule vs engine-table 2025-03 EA growth: seat=分化 engine=分化 (MAP_REPORT.md L346) OK
+  seat-rule vs engine-table 2025-03 EA inflation: seat=分化 engine=分化 (MAP_REPORT.md L347) OK
+  seat-rule vs engine-table 2025-03 EA policy: seat=分化 engine=分化 (MAP_REPORT.md L348) OK
+  seat-rule vs engine-table 2025-03 JP growth: seat=同步 engine=同步 (MAP_REPORT.md L349) OK
+  seat-rule vs engine-table 2025-03 JP inflation: seat=同步 engine=同步 (MAP_REPORT.md L350) OK
+  seat-rule vs engine-table 2025-03 JP policy: seat=分化 engine=分化 (MAP_REPORT.md L351) OK
+  seat-rule vs engine-table 2025-03 US growth: seat=下行 engine=下行 (MAP_REPORT.md L340) OK
+  seat-rule vs engine-table 2025-03 US inflation: seat=上行 engine=上行 (MAP_REPORT.md L341) OK
+  seat-rule vs engine-table 2025-03 US policy: seat=持平 engine=持平 (MAP_REPORT.md L342) OK
+seat-rule labels vs engine table: 36 cells, mismatches 0
+engine direction notes vs engine table: mismatches 0
+  judgment 2025-03 CN inflation=分化 ; engine table=分化 (L344) OK ; lead word=部分同步
+  judgment 2025-03 EA inflation=分化 ; engine table=分化 (L347) OK ; lead word=部分同步
+  judgment 2025-03 JP inflation=同步 ; engine table=同步 (L350) OK ; lead word=部分同步
+  judgment 2022-06 CN inflation=同步 ; engine table=同步 (L462) OK ; lead word=同步
+  judgment 2022-06 EA inflation=同步 ; engine table=同步 (L465) OK ; lead word=同步
+  judgment 2022-06 JP inflation=同步 ; engine table=同步 (L468) OK ; lead word=同步
+  judgment 2023-10 CN inflation=分化 ; engine table=分化 (L586) OK ; lead word=不同步
+  judgment 2023-10 EA inflation=分化 ; engine table=分化 (L589) OK ; lead word=不同步
+  judgment 2023-10 JP inflation=分化 ; engine table=分化 (L592) OK ; lead word=不同步
+judgment inflation labels vs engine table: 9 cells, mismatches 0
+ledger rewritten: rows=952 counted=910 ok=910 informational=42 (present-rows -> informational: 3, judgment rows added: 9)

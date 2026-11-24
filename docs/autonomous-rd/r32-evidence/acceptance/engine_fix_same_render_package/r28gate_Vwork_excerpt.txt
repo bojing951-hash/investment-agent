@@ -1,0 +1,17 @@
+# Excerpt: tests/test_audit_r28_gate.py run on the working tree of the reverted commit 37691b7 (wrong turn)
+# Source: the full offline battery of that working tree (raw logs stay outside the repository).
+# Only the three red checks and the tally are copied; every other check of this gate passed.
+# What they show: with the gate-4 relaxation tried at 37691b7, a package whose recorded code SHA differs
+# from the current HEAD was no longer refused (D6a), the explicit --allow-code-mismatch override lost its
+# meaning (D6b) and an old archive whose key is not recorded was no longer refused by the cross-check (D7a).
+# The relaxation was reverted; at the final stamp cf33de3 the gate is 37/37 again (gate_r28_final_cf33de3.log).
+# The lines below are the battery output, unedited.
+
+ ❌ §D6a 代码版本门: 包记录 SHA≠当前 HEAD→拒(rc=1+code_version_mismatch+不落输出目录) — rc12=0 rc13=0 blocked=None
+ ❌ §D6b --allow-code-mismatch: 显式越过降级为披露(rc=0,版本差异在检查明细) — rc=0
+ ❌ §D7a 旧档严格面: 键未记录≠一致→crosscheck FAIL 在场且整体 拒(rc=1+blocked=code_version_mismatch) — rc=1 blocked=None xc_ok=False
+
+==== Audit-R28 gate: 34/37 PASS ====
+  FAIL §D6a 代码版本门: 包记录 SHA≠当前 HEAD→拒(rc=1+code_version_mismatch+不落输出目录) — rc12=0 rc13=0 blocked=None
+  FAIL §D6b --allow-code-mismatch: 显式越过降级为披露(rc=0,版本差异在检查明细) — rc=0
+  FAIL §D7a 旧档严格面: 键未记录≠一致→crosscheck FAIL 在场且整体 拒(rc=1+blocked=code_version_mismatch) — rc=1 blocked=None xc_ok=False

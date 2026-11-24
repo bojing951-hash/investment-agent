@@ -1,0 +1,43 @@
+═══ §A 同日首写并发: 一把锁/两序保完整/时点回退转存 ═══
+  ✅ §A1 顺序一(完整先到): 缺CPI档→degraded_diverted+规范档保完整 — first/degraded_diverted note=指标身份丢失 1 项(data.CPI);序列路径 5→3(丢失身份不因新增他指标补足)
+  ✅ §A2 顺序二(缺CPI先到): 完整档覆写落位+规范档=完整数据 — first/overwritten_preserved note=
+  ✅ §A3 空目录真并发首写: 规范档=完整数据(任意交错) — statuses=['degraded_diverted', 'first']
+  ✅ §A4 同计数时点回退→degraded_diverted(「条数相同」不掩回退) — s=degraded_diverted note=最新有效观测回退 1 项(data.CPI:2026-11-01→2026-10-01;同计数不掩时点回退)
+  ✅ §A5 正常数值修订+前向追加→放行(旧语义保全) — overwritten_preserved/overwritten_preserved
+  ✅ §A6 空壳(null占位)先到+富面后到→富面落规范位(null→容器提升≠身份丢失;验收实测形态) — first/overwritten_preserved note=
+  ✅ §A7 真实数据身份被删→仍 degraded_diverted(占位豁免不放松) — s=degraded_diverted note=指标身份丢失 1 项(data.CPI);序列路径 5→3(丢失身份不因新增他指标补足)
+═══ §B 点锚: 显式年月/比较结构/句段作用域 ═══
+  ✅ §B1 会话B原问: 当期(2026年11月=截止月)+3个月前双锚 — [('3个月前', 3, None), ('最新一期', 0, '2026-11')]
+  ✅ §B2 会话A原问: 12个月前/3个月前/最新一期三锚不变(零回归)
+  ✅ §B3 纯历史点问句: 显式历史锚入列+不虚构当期锚 — [('2023年6月', 41), ('2024年6月', 29)]
+  ✅ §B4 句段作用域: B问=US/EA×增长通胀+JP×policy(无跨段摊派) — [('US', 'growth'), ('US', 'inflation'), ('EA', 'growth'), ('EA', 'inflation'), ('JP', 'policy')]
+  ✅ §B5 句段作用域: A问单句全组=12组全网格(零回归) — 12
+  ✅ §B6 词形分置无段请求→plan_map 回退全域全维笛卡尔(旧口径) — {('CN', 'growth'), ('US', 'growth'), ('CN', 'inflation'), ('US', 'inflation')}
+  ✅ §B7 plan_map(B问): 计划组=请求组(JP×policy在/US×policy不在) — [('EA', 'growth'), ('EA', 'inflation'), ('JP', 'policy'), ('US', 'growth'), ('US', 'inflation')]
+═══ §C 政策时效 UNVERIFIED+当期缺失/未核验草稿 ═══
+  ✅ §C1 复测(本地日历未收录新决议): 旧值不判新鲜→UNVERIFIED — UNVERIFIED lag=179
+  ✅ §C2 复测(日历收录决议): 确证过期→STALE(不因第三态放松)
+  ✅ §C3 边界: 无证实间隔≤90天FRESH/91天UNVERIFIED(利率长期不变≠无法核验) — FRESH/UNVERIFIED
+  ✅ §C4 会话A形态(滞后65天无证实)→FRESH(不误伤完整交付)
+  ✅ §C5 current_period_groups: 当期缺数/未核验分组(他时点ok不补) — {'missing': [('EA', 'growth')], 'unverified': [('EA', 'policy')], 'stale_mix': []}
+  ✅ §C6 纯历史点问句(无当期锚)不判当期
+  ✅ §C7 blocked_class_of 共源: 当期缺数→map_current_period_missing — map_current_period_missing
+  ✅ §C8 blocked_class_of 共源: 当期全未核验→map_current_period_unverified — map_current_period_unverified
+  ✅ §C9 阻断类目入 BLOCKING(attach/报告/归档同源)
+  ✅ §C10 端到端: 空日历+滞后191天→当期锚 freshness=unverified — {'status': 'ok', 'freshness': 'unverified', 'unconfirmed_span_days': 191}
+  ✅ §C11 未核验草稿横幅+归档拒绝口径(首页可见)
+  ✅ §C12 对照表/覆盖表 ⚠未核验 标注+按时点统计覆盖行
+  ✅ §C13 当期缺数草稿横幅(他时点ok不补当期)
+═══ §D 历史正文: 事后日期写回拒绝+延误行值泄漏 ═══
+  ✅ §D1 事后日期写回「当时」段→拒绝(expost_date_written_back) — ['reader_map.history_periods[0].expost_date_written_back']
+  ✅ §D2 当时可知改写(含当时日期)→不误伤(VERIFIED) — []
+  ✅ §D3 延误行值(-2.2,首发2025-06-01)被当时正文引用→as_of_leak — ['中国PPI 引用值 -2.2 =截止月观测 -2.2(首发 2025-06-01,晚于截止 2025-03-31)——当时可知值=-2.1(']
+═══ §E 随包重放: SHA/原问/裁决链/摘要/重放命令 ═══
+  ✅ §E1 report 段落盘 question_verbatim.txt(字节=run.question,在场异字节拒付)
+  ✅ §E2 归档件集含原问文件(随包直存)
+  ✅ §E3 重放面四件+可执行命令(SHA/原问/裁决链双记录/摘要)
+  ✅ §E4 SKILL 草稿纪律含两类新 blocked_class(.claude)
+  ✅ §E4 SKILL 草稿纪律含两类新 blocked_class(.agents)
+
+════════════════════════════════════════════════════════════
+Audit-R27 门: 35 PASS / 0 FAIL (共 35 判据)

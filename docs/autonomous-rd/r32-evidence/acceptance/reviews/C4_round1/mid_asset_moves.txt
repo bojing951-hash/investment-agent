@@ -1,0 +1,96 @@
+{
+ "status": "ok",
+ "window_months": 1,
+ "window_rule": "≤2026-11-23 最新观测 vs 最近于2026-10-23 的观测(界日无观测取最近邻;两端实际观测日随行披露)",
+ "rows": [
+  {
+   "metric_id": "SPX",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 7623.680176,
+   "to_value": 7203.850098,
+   "chg_pct": -5.51,
+   "chg_abs": -419.8301
+  },
+  {
+   "metric_id": "SHCOMP",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 3690.4753,
+   "to_value": 3538.948,
+   "chg_pct": -4.11,
+   "chg_abs": -151.5273
+  },
+  {
+   "metric_id": "DAX",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 25181.650391,
+   "to_value": 25209.449219,
+   "chg_pct": 0.11,
+   "chg_abs": 27.7988
+  },
+  {
+   "metric_id": "NIKKEI225",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-20"
+   },
+   "from_value": 62693.16,
+   "to_value": 56436.65,
+   "chg_pct": -9.98,
+   "chg_abs": -6256.51
+  },
+  {
+   "metric_id": "VIX",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 19.450001,
+   "to_value": 27.01,
+   "chg_pct": 38.87,
+   "chg_abs": 7.56
+  },
+  {
+   "metric_id": "DXY",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 101.809998,
+   "to_value": 104.079002,
+   "chg_pct": 2.23,
+   "chg_abs": 2.269
+  },
+  {
+   "metric_id": "GOLD_F",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 4007.899902,
+   "to_value": 3685.199951,
+   "chg_pct": -8.05,
+   "chg_abs": -322.7
+  },
+  {
+   "metric_id": "UST_10Y",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-19"
+   },
+   "from_value": 5.0,
+   "to_value": 5.04,
+   "chg_pct": 0.8,
+   "chg_abs": 0.04
+  }
+ ],
+ "absent": []
+}

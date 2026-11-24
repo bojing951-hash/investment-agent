@@ -1,0 +1,43 @@
+{
+ "field_semantics": {
+  "unit": {
+   "percent": "百分比水平(收益率/通胀率)",
+   "percentage_point": "百分点(利差/利率变化的正确单位)",
+   "index_point": "指数点位(无量纲)",
+   "usd": "美元",
+   "cny_100m": "亿元人民币",
+   "hkd_100m": "亿港元",
+   "persons": "人",
+   "persons_thousands": "千人",
+   "ratio": "倍数/比率",
+   "points": "期货点位(百分制价格)"
+  },
+  "freshness.max_calendar_lag_days": "观测日距研究截止的最大自然日滞后,超出→DEGRADED并披露,不得静默使用",
+  "freshness.decision_dated": "决策驱动序列声明(Audit-R26 任务2): true=观测日为政策最后确认/变更日,时效以「更晚已证实决议」为准(无证实不以间隔判过期);缺键/false=常规统计序列,时效窗按频率族自统计期末起算",
+  "release_semantics": "发布时间语义;不可得时按观测日保守处理并在快照披露发布滞后风险",
+  "economy": "经济体归属(INVENTORY a.3 规则 P1-P10 机械结果: US/CN/JP/EA/HK/GLOBAL);与 calendar/asset_class/source_symbol 联动,人工不得绕规则改判",
+  "economy_rule": "归属规则命中记录(短串 P{序}:{触发});复审与回归对账锚,值须与 INVENTORY a.3 规则表一致",
+  "market_seat": "市场座位: onshore_local=本币在岸市场/境内序列;offshore_proxy=跨市场离岸代理(US上市ETF);global=全球跨市场定价(商品/加密/汇率/Fed期货)",
+  "observation_period_kind": "观测期语义(人工登记,禁从frequency推断): trading_day=市场交易时段观测(假日缺口非缺数)/calendar_day=日历日观测(含24/7市场与日历日生效的政策利率)/calendar_month=日历月统计期;缺键=未登记(ICSA观测期=日历周,枚举无对应值→不登记),输出层如实null不默认",
+  "release_date_available": "逐观测发布日掌握性(人工登记): true=发布日已知或按已知规则(市场序列观测即发布;政策/管理利率决议或操作当日公布,DFF次日;LPR每月20日09:00;ICSA每周四)/false=统计类宏观发布滞后且逐观测发布日本仓未登记;缺键=未登记(null);快照fact层release_date实测值覆盖本登记(数据>登记)",
+  "source_key": "指标→采集档内子源状态键(可选;仅当该指标来源采集器在其日档持久化子源级sources_status时登记,如ea_*.json的BBK_WU3146/ECB_FM_MRO、jp_*.json的JP_CPI_TOKYO、japan_*.json(R12起)的MOF_JGBCME/FRED_POLICY)。Gate A非核心缺失注记据此区分: 子源READ_FAIL/MISSING=子源缺席(源端不可得/白名单域未采,非采集遗漏)/子源EXACT而指标缺席=采集遗漏/无该字段或档内证据不可得=采集遗漏或子源缺席不可区分(诚实兜底)"
+ },
+ "notes": [
+  "v2.8.6(R20,2026-11-19): 四地地图数据面补齐——新增 JP_CPI_YOY(stat.go.jp双基拼接)/EA_REAL_GDP_YOY(FRED)/JP_REAL_GDP_YOY(FRED);CN_OMO_7D 公告走查接线(源PENDING解除);JP_CPI_TOKYO_YOY 接线(2025基单档,基期缺口如实);EA_HICP_YOY 源切官方替代流程HICP(ICP 2026-02-04停用);DFEDTARU/L 增 history_source=macro_collector(DFF双轨纪律);CN_CPI/PPI 源描述对齐 EM datacenter 实际通道",
+  "v2.8.4(R12,2026-11-12): japan 通道 source_key 补接(R11 审计 MINOR 收口)——japan_rate_collector 日档顶层新增子源级 sources_status 节(键词汇对齐 jp_market_collector 同上游源: MOF_JGBCME/FRED_POLICY;EXACT=取数解析出有效观测/READ_FAIL=获取或整体解析失败,列级坏值仍 EXACT 由 alerts 披露;旧档无该节不受影响)。接线4条: JP_POLICY_RATE→FRED_POLICY,JGB2Y/JGB5Y/JGB10Y→MOF_JGBCME。Gate A 兜底话术同步三分支归因(注册表未登记子源键/未提供采集目录/档内无记录,不再一律归咎档内)。指标集与通道零变动(108 active 不变),noncore_missing 成员与 Gate 状态判定零变动(纯话术层)。",
+  "v2.8.3(R11,2026-11-12): noncore_missing 注记细化——新增可选字段 source_key(指标→采集档内子源状态键;ea/jp 采集器日档已持久化 sources_status 节)。Gate A 重算在\"来源文件在场而指标缺席\"时按子源实际状态分类: READ_FAIL/MISSING=子源缺席(源端不可得/白名单域未采,非采集遗漏),EXACT=采集遗漏,证据不可得=采集遗漏或子源缺席不可区分(诚实兜底;P2台账R10候选①收口)。接线7条: ECB_DFR/ECB_MRO/BUND_10Y/BUND_2Y/EA_HICP_YOY/JP_CPI_TOKYO_YOY/NIKKEI225。指标集与通道零变动(108 active 不变),noncore_missing 成员与 Gate 状态判定零变动(纯话术层)。",
+  "v2.8.2(R9,2026-11-12): CN_SF_FLOW 社融增量换通道——akshare macro_china_shrzgm(本机 LibreSSL 2.8.3 与 mofcom TLS 协商即断)→china_market_collector 直取 mofcom shrzgmQuery.tiosfs(curl 子进程);商务部镜像现值至 2026-04(7 个月滞后→noncore_degraded 如实,优于缺席)。BUND_10Y/BUND_2Y 维持 BBK 网络层封锁登记(四路证据);JP_CPI_TOKYO_YOY 维持 PENDING(e-stat 免费注册/白名单域=待裁定)。",
+  "v2.8.1(2026-11-11,R6-D1 源切换): CN_CPI_YOY/CN_PPI_YOY 采集换源——akshare金十族停更(1.18.47实测 cpi/ppi_yearly 返回尾值 2008-02/2006-01,停更后持续写旧值)→tushare pro cn_cpi.nt_yoy/cn_ppi.ppi_yoy(现有token只读,实测202609新鲜);source_symbol同步(tushare_pro.cn_cpi.nt_yoy/tushare_pro.cn_ppi.ppi_yoy);月度统计期→月末观测日;110条/108 active不变",
+  "v2.8.0(2026-11-10,数据批1): +SPX_EPS(Shiller E列月频1871+,盈利维,与SPX_CAPE/SPX_PE_TTM同源同频同vintage)+M2SL(FRED月频流动性数量维,与WALCL资产负债表维互补);DAX/CAC40 从PENDING预注册转正(source改global_market_collector,Yahoo ^GDAXI/^FCHI 日线;ea通道保持零依赖白名单纪律);108→110条(106→108 active)。首跑真实拉取随本批批准(现有key/免费源/只读),详见 docs/P2_DATA_GAP_LEDGER.md 数据批1首跑登记",
+  "v2.7.0(2026-11-10,Charter7 P2-3): +SOFR/WALCL(FRED免费序列/现有FRED_API_KEY/零新凭证——美国流动性维首批落地,Case A 七维矩阵流动性维 US 侧从✗→可采;源端已接线: FRED_SERIES+SERIES_FREQ+SERIES_UNITS,首跑真实拉取需协调方批准,批准前 active 条目缺席=noncore_missing 如实披露,详见 docs/P2_DATA_GAP_LEDGER.md);首跑校准(同日,版本内修订): WALCL源端原始单位=百万美元,单位口径由billion_usd校正为million_usd+原始值量程(存原始值惯例,RSAFS同例,零换算);106→108条",
+  "v2.6.0(2026-11-09,Charter6-P2 估值面): +SPX_CAPE/SPX_PE_TTM(Shiller ie_data.xls 月频1871+,新通道shiller,免Key;revision_semantics=latest_vintage_asof_collected 全局披露见上条)+SPX_PB 登记不可得(status=unavailable 新词汇:无免费干净源不以proxy冒充,不入active面);估值维序列(analog六维状态向量估值输入)落地",
+  "v2.5.0(2026-11-09,Charter6-P1): +US_REAL_GDP(GDPC1,季频'quarterly'词汇扩;单位词汇+billion_usd);JP_POLICY_RATE/ECB_DFR/ECB_MRO 全史序列通道落档(japan_/ea_ 档 series 节,快照 series_store 直通);全库修订口径 revision_semantics=latest_vintage_asof_collected(FRED通道返回最新修订值,研究引用历史值须随附该披露,A2 §3.1)",
+  "YTD/MTD/周变化等收益率派生值不单独注册——由事实引擎统一收益引擎计算并附带calculation_ref",
+  "月频指标未发布≠缺失/无效;新鲜度窗按月频45天",
+  "同一指标多来源时以source为权威,对账差异写入快照reconciliation节",
+  "v2.2.0(2026-11-05,IA-P1-WP-A): 全条目回填 economy/economy_rule/market_seat 三字段(INVENTORY a.3 P1-P8+v1.3 补读 P8-R2/P9/P10+S1-S4 机械规则);新注册 9 条 JP/EA 条目 append 于数组尾(12 候选=复用 3[BOJ_POLICY_RATE≡JP_POLICY_RATE/JGB_10Y/JGB_2Y]+新 9);85→94/active 84→93",
+  "v2.3.0(2026-11-06,IA-P1-WP-E): 新注册 8 条 CN 宏观条目 append 于数组尾(G-P1-14..18: LPR 1Y/5Y/CPI 同比/PPI 同比/制造业 PMI/社融增量/新增人民币贷款/央行 7 天逆回购利率[身份预注册 source_symbol=PENDING]);94→102/active 93→101;CN_OMO_7D frequency='daily'=v1.3 裁决(有效利率形态,ECB_DFR 先例)",
+  "v2.4.0(2026-11-09,Charter5 A-fin): 全102条目人工回填结构化时间键 observation_period_kind/release_date_available(市场序列71条 trading_day/true;日历日7条 true;月度统计21条 false;LPR 2条 true;ICSA 仅发布日 true、观测期=周历不登记);依据=各条目release_semantics手写注记,不从frequency推断",
+  "v2.8.7(2026-11-19,Audit-R21 任务2): +CN_POLICY_OVERNIGHT(央行隔夜逆回购利率,2026-11-02 换锚后的操作目标口径;113→114 条目,active 111→112);CN_OMO_7D 注记补 R21 根修(操作量为零日无成交利率不产观测,23 个 0.0 伪影根除)与换锚口径(七天工具单列);发布日历 v1.1.0 同批(R21 权威日期)"
+ ]
+}

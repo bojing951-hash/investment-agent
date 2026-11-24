@@ -1,0 +1,70 @@
+#0 [MAJOR] agent_judgment.json → l3.contradictions[C4-EVIDENCE-BOUNDARY].statement 末句；渲染于 FULL_REPORT.md 第 73 行、report.md 第 95 行(MAP_REPORT.md 0 处)
+   note: 「两种口径下美日股指跌幅均相近」与证据相左。冻结快照 series_store 直算: 引擎窗(2026-10-23→2026-11-23，止于盘中快照)SPX 7623.680176→7203.850098 = -5.51%，NIKKEI225 62693.16→56436.65(止于 2026-11-20) = -9.98%，相差 4.47 个百分点(约 1.81 倍)，不相近；只有收盘口径(→2026-11-20)SPX 6910.390137 即 -9.36% 对 NIKKEI225 -9.98%(差 0.62 个百分点)相近。同档传导第 3 环把引擎窗 SPX 与 SHCOMP(-4.11%)之间 1.40 个百分点的落差称作「不足两个百分点、该排序弱化」并裁「尚不能区分」，按同一尺度 4.47 个百分点的美日落差不能称相近；引擎窗下标普离上证综指比离日经更近。该句五个收盘口径数字本身无误，错在跨口径的比较结论。
+   original: 同日收盘口径(2026-10-23→2026-11-20)近一月： 标普500指数下跌百分之九点三六、日经225下跌百分之九点九八、上证综指下跌百分之四点二五、DAX 下跌百分之一点五零、VIX 上涨百分之八十四点五二，两种口径下美日股指跌幅均相近。
+   fix: 同日收盘口径(2026-10-23→2026-11-20)近一月： 标普500指数下跌百分之九点三六、日经225下跌百分之九点九八、上证综指下跌百分之四点二五、DAX 下跌百分之一点五零、VIX 上涨百分之八十四点五二；收盘口径下美日股指跌幅相近且深于中国与欧洲，但引擎窗(2026-10-23→2026-11-23，止于盘中快照)下标普500指数下跌百分之五点五一、日经225下跌百分之九点九八，两者相差约四点四七个百分点，并不相近，标普与上证综指(下跌百分之四点一一)的落差仅一点四零个百分点。
+
+#1 [MINOR] agent_judgment.json → reader_map.transmission[CH-POLICY-RATES-ASSETS].links[1].observed_fact；MAP_REPORT.md 第 186 行(复算清单 #183)
+   note: 「最新 2.16(观测 2026-11-19)」是三利率共同交易日窗的窗末值；series_store.BEI_10Y 最新观测为 2.15@2026-11-20，同环 evidence_refs 引用的也是 BEI_10Y@2026-11-20，MAP 第 189、200 行引擎面显示 2026-11-20=2.15。两窗变动 -19bp / -11bp 无误，结论不变。
+   original: …12 个月窗(2025-11-19→2026-11-19)变动 -11bp，最新 2.16(观测 2026-11-19)——两个窗口盈亏平衡均回落…
+   fix: …12 个月窗(2025-11-19→2026-11-19)变动 -11bp，窗末 2.16(2026-11-19)，最新观测 2.15(2026-11-20)——两个窗口盈亏平衡均回落…
+
+#2 [MINOR] agent_judgment.json → quality_gate_notes[2]（证伪面；复算清单 #170）
+   note: 「日历内仅有 FOMC 2026年10月会议纪要条目」出处标错。冻结日历 v1.5.0 共 18 条(美国数据发布停摆或改期 11 条、欧元区 HICP 3 条、日本央行政策 2 条、中国 LPR 2 条)，没有任何美国政策决议或会议纪要条目；纪要发布日 2026-11-18 出自 report.json → research_plan.policy_doc_facts[0](basis=user_directive)。同句前半「冻结日历无美国政策条目」正确，前后自相矛盾。日期本身无误(#169)，该注记不进三份报告。
+   original: …冻结日历无美国政策条目)，日历内仅有 FOMC 2026年10月会议纪要条目(2026-11-18 发布，纪要发布≠决议日)。
+   fix: …冻结日历无美国政策与纪要条目)，引擎政策文件面载 FOMC 2026年10月会议纪要 2026-11-18 发布(纪要发布≠决议日)。
+
+#3 [MINOR] agent_judgment.json → l3.contradictions[C3-GROWTH-LIMITED].statement 首句
+   note: 「可判证据只显示各经济体状态延续，未见经济体之间的方向性分化」强于自列数据。series_store 直算: 美国实际 GDP 同比 2.1916%(2026Q1)→2.0657%(2026Q2) 回落，日本 GDP 同比 0.8→1.16 回升，美国 INDPRO 同比 1.2498→2.1497 上升；经济体之间确有小幅方向差异，只是幅度小、指标间不一致。小结「证据不足以单独成论」保守，与数据相容，不构成 MAJOR。
+   original: 增长维： 可判证据只显示各经济体状态延续，未见经济体之间的方向性分化。
+   fix: 增长维： 可判证据显示各经济体以状态延续为主，经济体之间仅有小幅方向差异(美国 GDP 同比小幅回落、日本回升、美国工业生产同比上升)，幅度小且指标间不一致。
+
+#4 [MINOR] agent_judgment.json → l3.contradictions[C2-INFLATION-DIVERGENCE].statement 首句；reader_map.headline_conclusion；对比 reader_map.turnings[1].follow_or_diverge / narrative(渲染于 MAP_REPORT.md 第 219 行)
+   note: C2 与标题写「三地读数方向同向」「方向上未见经济体之间的反向」「分化在水平而非方向」，转折面写「美日通胀方向分化」「日本通胀回升而美国核心通胀缓和，方向分化」，没有任何一句调和。两处窗口不同且各自写明: C2 = 三个月前锚到最新(美国核心CPI同比 2.4665→2.5658、日本全国 1.97→2.44 均升)；转折 = 2026-05→2026-08 美国核心CPI同比 2.8229→2.4462 回落，对 2026-06→2026-09 东京都 1.6→2.69 上行。不构成数字性矛盾。
+   original: 通胀维： 三地读数方向同向(均高于三个月前)，分化体现在水平…
+   fix: 通胀维： 三个月对照窗内三地读数方向同向(均高于三个月前)，分化体现在水平(转折面的美日通胀方向分化指 2026-05→2026-08 美国核心CPI同比回落对 2026-06→2026-09 东京都同比上行，窗口终点不晚于三个月前锚)…
+
+#5 [MINOR] agent_judgment.json → reader_map.transmission[CH-POLICY-RATES-ASSETS].links[0]、links[1] 的 face_off_verdict / competing_predicts / verdict_note；MAP_REPORT.md 第 199–200 行对质表
+   note: 两环 face_off_verdict 均为「支持主解释」，强于证据: (a) 第 1 环竞争解释的预期「TIPS_10Y 不随政策分化系统性上行」不是「变动由通胀预期、估值与仓位驱动」的必然推论；(b) 12 个月窗内美国政策先降后升净 0(2025-12-11 -25bp、2026-09-17 +25bp)而 TIPS_10Y +102bp，政策归因有限；(c) 盈亏平衡回落(-19bp / -11bp)与「因通胀压力收紧且政策可信」相容，同窗通胀读数在走高(日本 1.97→2.44、美国 3.30→3.72、中国 PPI 3.5→5.7)；(d) 分解面只含美国国债(series_store 无日本、中国国债收益率序列)。verdict_note 已写明「裁定限于方向一致，幅度与归因保留」「该读法不与主解释冲突」「指标仅覆盖美国国债市场」，但该字段不进渲染，读者只见两个「支持主解释」。
+   fix: 两环标签改为「方向一致、归因未定(尚不能区分)」，或把 verdict_note 的保留句并入可渲染字段；第 1 环竞争预期改为与竞争解释等价的表述。
+
+#6 [MINOR] agent_judgment.json → l4.scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS] / [SCN-B-POLICY-CONVERGES] 的 scenario / trigger / falsification；MAP_REPORT.md 第 212 行脚注
+   note: 两情景方向互补但不穷尽、不自洽。以截止日读数(DFEDTARU 上限 4.0、JP_POLICY_RATE 2026-10 月均 1.227、CN_LPR_1Y 3.0)代入，两情景均未触发亦未证伪，「美日不再加码且中国不动」的平台态无归属；SCN-B 文本「或美国降回 3.75」不在其触发条件(以中国 LPR 下调为必要条件)与证伪条件内；SCN-B 触发用日本月均 ≤1.28，情景文本用「不再高于 1.227」；SCN-A 证伪只列上限回落至 3.75 以下或日本月均回落至 1.17 以下，不覆盖「上限停在 4.0、不再加码」的主要落空形态。三组阈值均为在库可观测序列，两情景均标【假设·非预测】，截止日未作认定，故不构成「证伪条件不可观测」。
+   fix: 补平台态归属或明示两情景不穷尽；把「美国降回 3.75」写入 SCN-B 触发或删去；统一日本阈值；SCN-A 证伪增列「至 2027-02-28 DFEDTARU 上限未再上调」。
+
+#7 [MINOR] agent_judgment.json → l3.mechanism_chains[M2-CN-PPI-CPI-SCISSORS].links[1].missing_link_note
+   note: 区分指标 CN_PPI_YOY 回落至 3.0 以下对两个分支(上游传导挤压利润 → 政策维持；PPI 向 CPI 传导 → 政策空间收窄)都没有区分力，PPI 回落只说明高位消退。series_store 直算 2026-07→2026-10: CN_PPI_YOY 3.5→5.7(+2.2 个百分点)，CN_CPI_YOY 0.5→0.7(+0.2 个百分点)，剪刀差由 3.0 扩至 5.0 个百分点。
+   original: …区分指标=CN_PPI_YOY(若三个月内 CN_PPI_YOY 回落至 3.0 以下，上游传导假设减弱)。
+   fix: …区分指标=CN_CPI_YOY 相对 CN_PPI_YOY： 若至 2027-02-23 前 CN_CPI_YOY 随 PPI 同向上行(剪刀差收窄)，传导分支增强；若 PPI 回落而 CPI 仍低位，挤压分支随前提消退；当前剪刀差由 3.0 扩至 5.0 个百分点，尚无传导迹象。
+
+#8 [MINOR] agent_judgment.json → l3.contradictions[C1-POLICY-DIVERGENCE].competing_explanations[0]；[C2-INFLATION-DIVERGENCE].competing_explanations[0]、[1]
+   note: C1 竞争解释(一)点名「能源价格」为共同冲击变量，该变量在 series_store 在场而判断档未对质，也未说明不对质的理由: WTI_F 87.06(2026-08-21)→82.02(2026-11-23) 即 -5.79%，BRENT_F 94.39→88.19 即 -6.57%，月度现货均价 WTI_SPOT_M 83.9(2026-08)→102.07(2026-10) 即 +21.66%。C2 两条解释所需的通胀分项(能源食品对服务工资)证据面没有，判断档未写明不可区分。事实结论不受影响。
+   fix: C1 对能源价格做一次对质或写明不对质的理由；C2 写明「本证据面无分项数据，两解释不可区分」。
+
+#9 [MINOR] 对比 report.json → research_plan.point_values.cells[US_REAL_GDP / JP_REAL_GDP_YOY / JP_CPI_YOY].vintage_semantics 与 MAP_REPORT.md 第 255–260、267–268、280 行；判断档 l3 的 C2 / C3 与 reader_map.regions[US / JP].from_to、anchor_echo
+   note: 美国实际 GDP、日本实际 GDP 同比、日本全国 CPI 同比共 6 个锚格在引擎面标为「事后回顾(最新修订值,非当时首发值)」，MAP 点值表逐格标「(事后回顾)」并有修订口径说明；判断档引用了这 6 个值(24408.011、24611.077、0.8、1.16、1.97、2.44)，全文不含「事后回顾」「最新修订值」。判断档没有把修订值称作当时首发值，不构成事后信息冒充；但三个月前锚的严格历史时点值可能是当期初值，判断档未转述该口径。
+   fix: 在「证据与口径」注记补一句: 美国实际 GDP、日本实际 GDP 同比、日本全国 CPI 同比的锚格值为最新修订族(事后回顾口径)，三个月前锚的严格历史时点值可能为当期初值。
+
+#10 [NIT] agent_judgment.json → l3.contradictions[C1-POLICY-DIVERGENCE].statement 首句
+   note: 「政策维是四地中方向最清晰的分化」: 欧元区政策序列缺席，实为可比三地，句末已自限；建议改「可比口径下三地中」。
+
+#11 [NIT] agent_judgment.json → l3.contradictions[C1-POLICY-DIVERGENCE].statement
+   note: 「分化体现在中美、日中之间方向相反(收紧对未变)」: 「未变」不是反方向，建议改「分化体现在中美、日中之间(收紧对未变)」。
+
+#12 [NIT] agent_judgment.json → reader_map.turnings[0].first_mover
+   note: 「…是其后持续收紧的起点」: 日本月均已在 2025-12、2026-01 两次上调(0.478→0.557→0.728)，2026-08 亦微降(0.978→0.977)；「起点」应限定为候选窗起点。
+
+#13 [NIT] agent_judgment.json → reader_map.regions[US].from_to(核心CPI 括号)
+   note: 「核心CPI 同比 2.47%(2026-07 月)→最近有效 2.57%(2026-09；指数 336.789→339.9；发布 2026-08-13→2026-11-13…)」: 括号内同比期(2026-09)、指数期(2026-10)与发布日分属三个时点，建议分开写。
+
+#14 [NIT] agent_judgment.json → l3.mechanism_chains[M1-POLICY-RATES-ASSETS].links[2].text
+   note: 原始浮点外露「19.450001→27.01」「19.450001→35.889999」(共 2 处)，同档传导第 3 环与「证据与口径」注记写 19.45→27.01、19.45→35.89。
+
+#15 [NIT] agent_judgment.json → quality_gate_notes[6]②
+   note: 「本工单路径面未载净变动字段」对 AGENT_SEAT_ENVELOPE.json 成立(该文件内 net_bp 出现 0 次)，但 report.json → research_plan.point_values.cells[*].policy_window_path.net_bp 与 MAP_REPORT.md 第 121 行政策路径表载「净变动 +67bp(0.557→1.227)」；建议写明所指文件。
+
+#16 [NIT] agent_judgment.json → quality_gate_notes[0]
+   note: 「席位常识为日本当日为勤劳感谢日休市，未经本轮证据面核实」: 已自标未核实；建议核实后保留或删去。
+
+#17 [NIT] agent_judgment.json → l3.mechanism_chains[M2-CN-PPI-CPI-SCISSORS].links[1].missing_link_note
+   note: 「三个月内」未给具体日期(按截止日 2026-11-23 应为 2027-02-23 前后)。
+

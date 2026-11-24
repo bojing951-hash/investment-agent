@@ -1,0 +1,2237 @@
+{
+ "rows": [
+  {
+   "cat": "⑩一致性",
+   "where": "report.json layers.L3_AI推断层.content",
+   "needle": null,
+   "found": true,
+   "src": "report.json L3 content 与 agent_judgment.json l3 逐键相等",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "report.json layers.L4_条件情景层.content",
+   "needle": null,
+   "found": true,
+   "src": "report.json L4 content 与 agent_judgment.json l4 逐键相等",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "FULL_REPORT.md/report.md",
+   "needle": null,
+   "found": true,
+   "src": "FULL_REPORT.md/report.md 逐字包含判断档字符串数(矛盾陈述)",
+   "computed": 3,
+   "claimed": 3,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "FULL_REPORT.md/report.md",
+   "needle": null,
+   "found": true,
+   "src": "FULL_REPORT.md/report.md 逐字包含判断档字符串数(矛盾陈述竞争解释)",
+   "computed": 6,
+   "claimed": 6,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "FULL_REPORT.md/report.md",
+   "needle": null,
+   "found": true,
+   "src": "FULL_REPORT.md/report.md 逐字包含判断档字符串数(机制链四环文本)",
+   "computed": 4,
+   "claimed": 4,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "FULL_REPORT.md/report.md",
+   "needle": null,
+   "found": true,
+   "src": "FULL_REPORT.md/report.md 逐字包含判断档字符串数(情景前提行)",
+   "computed": 2,
+   "claimed": 2,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(reader_map 标题与地区段)",
+   "computed": 3,
+   "claimed": 3,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(传导三环观察/假设/预期)",
+   "computed": 15,
+   "claimed": 15,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(转折先行/同向两栏)",
+   "computed": 6,
+   "claimed": 6,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(历史零段注记)",
+   "computed": 1,
+   "claimed": 1,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(情景证伪阈/触发条件/资产方向)",
+   "computed": 6,
+   "claimed": 6,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(传导三环对质裁定)",
+   "computed": 3,
+   "claimed": 3,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "Q0",
+   "needle": "共 20 条 snapshot_fact 引用,全部解析到本报告证据索引;零悬空引用",
+   "found": true,
+   "src": "agent_judgment.json l3 全部 evidence_refs; report.json evidence_index; 快照 series_store 是否含该指标@该日",
+   "computed": [
+    20,
+    20,
+    20
+   ],
+   "claimed": [
+    20,
+    20,
+    20
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "观察:",
+   "found": true,
+   "src": "agent_judgment.json l3.mechanism_chains[0].links[].evidence_level(观察环=E1,传导/归因环=E2)",
+   "computed": [
+    "E1",
+    "E1",
+    "E2",
+    "E2"
+   ],
+   "claimed": [
+    "E1",
+    "E1",
+    "E2",
+    "E2"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "Q1",
+   "needle": "每条矛盾陈述并列 2 条(均标【假设】或如实并列)",
+   "found": true,
+   "src": "agent_judgment.json l3.contradictions[].competing_explanations 条数与是否以【假设】起首",
+   "computed": [
+    [
+     2,
+     2,
+     2
+    ],
+    true
+   ],
+   "claimed": [
+    [
+     2,
+     2,
+     2
+    ],
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "Q1",
+   "needle": "支持主解释 0·支持竞争解释 0·尚不能区分 3",
+   "found": true,
+   "src": "reader_map.transmission[0].links[].face_off_verdict 计数",
+   "computed": [
+    0,
+    0,
+    3
+   ],
+   "claimed": [
+    0,
+    0,
+    3
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "agent_declaration",
+   "needle": null,
+   "found": true,
+   "src": "agent_judgment.json agent_declaration.basis 含『证据索引(60行)、点值格(6格)』; report.json evidence_index 行数; research_plan.point_values.cells 格数",
+   "computed": [
+    true
+   ],
+   "claimed": [
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "agent_declaration",
+   "needle": null,
+   "found": true,
+   "src": "report.json evidence_index 行数; research_plan.point_values.cells 格数",
+   "computed": [
+    60,
+    6
+   ],
+   "claimed": [
+    60,
+    6
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑫盘中口径",
+   "where": "Q4",
+   "needle": "快照采集于 2026-11-23T22:53:47+08:00(纽约 09:53、柏林 15:53、东京 23:53、上海 22:53)",
+   "found": true,
+   "src": "快照 research_as_of; 独立换算四地当地时间",
+   "computed": [
+    "2026-11-23T22:53:47+08:00",
+    "09:53",
+    "15:53",
+    "23:53",
+    "22:53"
+   ],
+   "claimed": [
+    "2026-11-23T22:53:47+08:00",
+    "09:53",
+    "15:53",
+    "23:53",
+    "22:53"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑫盘中口径",
+   "where": "Q4",
+   "needle": "SPX/VIX/DAX/CAC40 的截止日值与外汇/DXY 值均为盘中快照、非收盘价",
+   "found": true,
+   "src": "快照 series_store 中 SPX/VIX/DAX/CAC40/EURUSD/USDJPY/DXY 在 2026-11-23 是否有观测; 采集时刻(纽约/柏林)早于当地收盘",
+   "computed": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑫盘中口径",
+   "where": "Q4",
+   "needle": "席位跨地区对照统一采用 2026-11-20 同日收盘口径",
+   "found": true,
+   "src": "SPX/NIKKEI225/DAX/CAC40/VIX 在 2026-11-20 是否均有观测",
+   "computed": [
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑬非VERIFIED披露",
+   "where": "Q4",
+   "needle": "欧央行序列止于 2026-09-16(距截止 68 天,超注册表 10 天新鲜度阈,Gate A 列 degraded",
+   "found": true,
+   "src": "report.json agent_judgment.contract_verification.verdicts[].status 计数; 判断档全文是否出现 STALE 字样",
+   "computed": [
+    1,
+    4,
+    false
+   ],
+   "claimed": [
+    1,
+    4,
+    false
+   ],
+   "ok": true,
+   "note": "ECB_DFR 2.5% 契约状态=STALE(值=期望 2.5,证据过期所致): 判断档披露成因(68 天/degraded)而未写明『契约验证非 VERIFIED』,见 MINOR-6"
+  },
+  {
+   "cat": "⑬非VERIFIED披露",
+   "where": "C2",
+   "needle": "欧央行存款便利利率(ECB_DFR,操作下限口径)最新生效水平 2.5%",
+   "found": true,
+   "src": "report.json contract_verification.verdicts[ECB_DFR].{token,value,expected}",
+   "computed": [
+    [
+     "2.5%",
+     2.5,
+     2.5
+    ]
+   ],
+   "claimed": [
+    [
+     "2.5%",
+     2.5,
+     2.5
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑭缺口披露",
+   "where": "Q4",
+   "needle": "JP_POLICY_TARGET 注册表不可得、宣布值仅发布日历实录",
+   "found": true,
+   "src": "report.json run.data_requirements.items: 六条 planned 项 outcome=insufficient_coverage 且 window.kind=unparseable(多范围无法解析); 判断档是否出现『缺口/任务目标/无法解析/多范围/降级面』字样",
+   "computed": [
+    [
+     6,
+     [
+      "insufficient_coverage"
+     ],
+     [
+      "unparseable"
+     ]
+    ],
+    []
+   ],
+   "claimed": [
+    [
+     6,
+     [
+      "insufficient_coverage"
+     ],
+     [
+      "unparseable"
+     ]
+    ],
+    []
+   ],
+   "ok": true,
+   "note": "见 MINOR-5"
+  },
+  {
+   "cat": "⑭代码缺口",
+   "where": "Q5",
+   "needle": "judgment_contract._map_checks (13))锚标签硬编码「12个月前/3个月前/最新一期」",
+   "found": true,
+   "src": "安装树 scripts/research_contract/judgment_contract.py: 是否存在硬编码锚标签行,及其前 60 行内是否有 (13) 注释",
+   "computed": [
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true
+   ],
+   "ok": true,
+   "note": "硬编码行号=[1274, 1322]"
+  },
+  {
+   "cat": "⑭代码缺口",
+   "where": "Q5",
+   "needle": "本问锚为「6个月前/最新一期」",
+   "found": true,
+   "src": "report.json research_plan.point_anchors[].label",
+   "computed": [
+    "6个月前",
+    "最新一期"
+   ],
+   "claimed": [
+    "6个月前",
+    "最新一期"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑭代码缺口",
+   "where": "Q5",
+   "needle": "text_consistency.ALIASES 静态别名表未覆盖 JP_CPI_YOY/EA_HICP_YOY/JP_CPI_TOKYO_YOY/JP_POLICY_TARGET/ECB_MRO",
+   "found": true,
+   "src": "安装树 scripts/research_contract/text_consistency.py ALIASES 键是否含上述五指标",
+   "computed": [
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "claimed": [
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑭代码缺口",
+   "where": "Q5",
+   "needle": "带别名指标的最新值带指标 id 由契约逐位核验",
+   "found": true,
+   "src": "ALIASES 含 CPI; 契约验证 verdicts 的 metric 均为 ALIASES 键",
+   "computed": [
+    true,
+    [
+     "ECB_DFR",
+     "JP_POLICY_RATE",
+     "SPX",
+     "USDJPY",
+     "VIX"
+    ],
+    true
+   ],
+   "claimed": [
+    true,
+    [
+     "ECB_DFR",
+     "JP_POLICY_RATE",
+     "SPX",
+     "USDJPY",
+     "VIX"
+    ],
+    true
+   ],
+   "ok": true,
+   "note": "『机构归因式引用跳过』的运行期行为未在代码执行面核验"
+  },
+  {
+   "cat": "⑭代码缺口",
+   "where": "Q5",
+   "needle": "引擎报告文字「观测日全为周三」对变更点序列表述过宽(两序列含非周三观测)",
+   "found": true,
+   "src": "MAP_REPORT.md 含该文字; 两序列非周三观测数",
+   "computed": [
+    true,
+    9,
+    21
+   ],
+   "claimed": [
+    true,
+    9,
+    21
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "report.json layers.L3_AI推断层.content",
+   "needle": null,
+   "found": true,
+   "src": "report.json L3 content 与 agent_judgment.json l3 逐键相等",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "report.json layers.L4_条件情景层.content",
+   "needle": null,
+   "found": true,
+   "src": "report.json L4 content 与 agent_judgment.json l4 逐键相等",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "FULL_REPORT.md/report.md",
+   "needle": null,
+   "found": true,
+   "src": "FULL_REPORT.md/report.md 逐字包含判断档字符串数(矛盾陈述)",
+   "computed": 3,
+   "claimed": 3,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "FULL_REPORT.md/report.md",
+   "needle": null,
+   "found": true,
+   "src": "FULL_REPORT.md/report.md 逐字包含判断档字符串数(矛盾陈述竞争解释)",
+   "computed": 6,
+   "claimed": 6,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "FULL_REPORT.md/report.md",
+   "needle": null,
+   "found": true,
+   "src": "FULL_REPORT.md/report.md 逐字包含判断档字符串数(机制链四环文本)",
+   "computed": 4,
+   "claimed": 4,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "FULL_REPORT.md/report.md",
+   "needle": null,
+   "found": true,
+   "src": "FULL_REPORT.md/report.md 逐字包含判断档字符串数(情景前提行)",
+   "computed": 2,
+   "claimed": 2,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(reader_map 标题与地区段)",
+   "computed": 3,
+   "claimed": 3,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(传导三环观察/假设/预期)",
+   "computed": 15,
+   "claimed": 15,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(转折先行/同向两栏)",
+   "computed": 6,
+   "claimed": 6,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(历史零段注记)",
+   "computed": 1,
+   "claimed": 1,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(情景证伪阈/触发条件/资产方向)",
+   "computed": 6,
+   "claimed": 6,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "MAP_REPORT.md",
+   "needle": null,
+   "found": true,
+   "src": "MAP_REPORT.md 逐字包含判断档字符串数(传导三环对质裁定)",
+   "computed": 3,
+   "claimed": 3,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "Q0",
+   "needle": "共 20 条 snapshot_fact 引用,全部解析到本报告证据索引;零悬空引用",
+   "found": true,
+   "src": "agent_judgment.json l3 全部 evidence_refs; report.json evidence_index; 快照 series_store 是否含该指标@该日",
+   "computed": [
+    20,
+    20,
+    20
+   ],
+   "claimed": [
+    20,
+    20,
+    20
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "观察:",
+   "found": true,
+   "src": "agent_judgment.json l3.mechanism_chains[0].links[].evidence_level(观察环=E1,传导/归因环=E2)",
+   "computed": [
+    "E1",
+    "E1",
+    "E2",
+    "E2"
+   ],
+   "claimed": [
+    "E1",
+    "E1",
+    "E2",
+    "E2"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "Q1",
+   "needle": "每条矛盾陈述并列 2 条(均标【假设】或如实并列)",
+   "found": true,
+   "src": "agent_judgment.json l3.contradictions[].competing_explanations 条数与是否以【假设】起首",
+   "computed": [
+    [
+     2,
+     2,
+     2
+    ],
+    true
+   ],
+   "claimed": [
+    [
+     2,
+     2,
+     2
+    ],
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "Q1",
+   "needle": "支持主解释 0·支持竞争解释 0·尚不能区分 3",
+   "found": true,
+   "src": "reader_map.transmission[0].links[].face_off_verdict 计数",
+   "computed": [
+    0,
+    0,
+    3
+   ],
+   "claimed": [
+    0,
+    0,
+    3
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "agent_declaration",
+   "needle": null,
+   "found": true,
+   "src": "agent_judgment.json agent_declaration.basis 含『证据索引(60行)、点值格(6格)』; report.json evidence_index 行数; research_plan.point_values.cells 格数",
+   "computed": [
+    true
+   ],
+   "claimed": [
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩一致性",
+   "where": "agent_declaration",
+   "needle": null,
+   "found": true,
+   "src": "report.json evidence_index 行数; research_plan.point_values.cells 格数",
+   "computed": [
+    60,
+    6
+   ],
+   "claimed": [
+    60,
+    6
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑫盘中口径",
+   "where": "Q4",
+   "needle": "快照采集于 2026-11-23T22:53:47+08:00(纽约 09:53、柏林 15:53、东京 23:53、上海 22:53)",
+   "found": true,
+   "src": "快照 research_as_of; 独立换算四地当地时间",
+   "computed": [
+    "2026-11-23T22:53:47+08:00",
+    "09:53",
+    "15:53",
+    "23:53",
+    "22:53"
+   ],
+   "claimed": [
+    "2026-11-23T22:53:47+08:00",
+    "09:53",
+    "15:53",
+    "23:53",
+    "22:53"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑫盘中口径",
+   "where": "Q4",
+   "needle": "SPX/VIX/DAX/CAC40 的截止日值与外汇/DXY 值均为盘中快照、非收盘价",
+   "found": true,
+   "src": "快照 series_store 中 SPX/VIX/DAX/CAC40/EURUSD/USDJPY/DXY 在 2026-11-23 是否有观测; 采集时刻(纽约/柏林)早于当地收盘",
+   "computed": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑫盘中口径",
+   "where": "Q4",
+   "needle": "席位跨地区对照统一采用 2026-11-20 同日收盘口径",
+   "found": true,
+   "src": "SPX/NIKKEI225/DAX/CAC40/VIX 在 2026-11-20 是否均有观测",
+   "computed": [
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑬非VERIFIED披露",
+   "where": "Q4",
+   "needle": "欧央行序列止于 2026-09-16(距截止 68 天,超注册表 10 天新鲜度阈,Gate A 列 degraded",
+   "found": true,
+   "src": "report.json agent_judgment.contract_verification.verdicts[].status 计数; 判断档全文是否出现 STALE 字样",
+   "computed": [
+    1,
+    4,
+    false
+   ],
+   "claimed": [
+    1,
+    4,
+    false
+   ],
+   "ok": true,
+   "note": "ECB_DFR 2.5% 契约状态=STALE(值=期望 2.5,证据过期所致): 判断档披露成因(68 天/degraded)而未写明『契约验证非 VERIFIED』,见 MINOR-6"
+  },
+  {
+   "cat": "⑬非VERIFIED披露",
+   "where": "C2",
+   "needle": "欧央行存款便利利率(ECB_DFR,操作下限口径)最新生效水平 2.5%",
+   "found": true,
+   "src": "report.json contract_verification.verdicts[ECB_DFR].{token,value,expected}",
+   "computed": [
+    [
+     "2.5%",
+     2.5,
+     2.5
+    ]
+   ],
+   "claimed": [
+    [
+     "2.5%",
+     2.5,
+     2.5
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑭缺口披露",
+   "where": "Q4",
+   "needle": "JP_POLICY_TARGET 注册表不可得、宣布值仅发布日历实录",
+   "found": true,
+   "src": "report.json run.data_requirements.items: 六条 planned 项 outcome=insufficient_coverage 且 window.kind=unparseable(多范围无法解析); 判断档是否出现『缺口/任务目标/无法解析/多范围/降级面』字样",
+   "computed": [
+    [
+     6,
+     [
+      "insufficient_coverage"
+     ],
+     [
+      "unparseable"
+     ]
+    ],
+    []
+   ],
+   "claimed": [
+    [
+     6,
+     [
+      "insufficient_coverage"
+     ],
+     [
+      "unparseable"
+     ]
+    ],
+    []
+   ],
+   "ok": true,
+   "note": "见 MINOR-5"
+  },
+  {
+   "cat": "⑭代码缺口",
+   "where": "Q5",
+   "needle": "judgment_contract._map_checks (13))锚标签硬编码「12个月前/3个月前/最新一期」",
+   "found": true,
+   "src": "安装树 scripts/research_contract/judgment_contract.py: 是否存在硬编码锚标签行,及其前 60 行内是否有 (13) 注释",
+   "computed": [
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true
+   ],
+   "ok": true,
+   "note": "硬编码行号=[1274, 1322]"
+  },
+  {
+   "cat": "⑭代码缺口",
+   "where": "Q5",
+   "needle": "本问锚为「6个月前/最新一期」",
+   "found": true,
+   "src": "report.json research_plan.point_anchors[].label",
+   "computed": [
+    "6个月前",
+    "最新一期"
+   ],
+   "claimed": [
+    "6个月前",
+    "最新一期"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑭代码缺口",
+   "where": "Q5",
+   "needle": "text_consistency.ALIASES 静态别名表未覆盖 JP_CPI_YOY/EA_HICP_YOY/JP_CPI_TOKYO_YOY/JP_POLICY_TARGET/ECB_MRO",
+   "found": true,
+   "src": "安装树 scripts/research_contract/text_consistency.py ALIASES 键是否含上述五指标",
+   "computed": [
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "claimed": [
+    false,
+    false,
+    false,
+    false,
+    false
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑭代码缺口",
+   "where": "Q5",
+   "needle": "带别名指标的最新值带指标 id 由契约逐位核验",
+   "found": true,
+   "src": "ALIASES 含 CPI; 契约验证 verdicts 的 metric 均为 ALIASES 键",
+   "computed": [
+    true,
+    [
+     "ECB_DFR",
+     "JP_POLICY_RATE",
+     "SPX",
+     "USDJPY",
+     "VIX"
+    ],
+    true
+   ],
+   "claimed": [
+    true,
+    [
+     "ECB_DFR",
+     "JP_POLICY_RATE",
+     "SPX",
+     "USDJPY",
+     "VIX"
+    ],
+    true
+   ],
+   "ok": true,
+   "note": "『机构归因式引用跳过』的运行期行为未在代码执行面核验"
+  },
+  {
+   "cat": "⑭代码缺口",
+   "where": "Q5",
+   "needle": "引擎报告文字「观测日全为周三」对变更点序列表述过宽(两序列含非周三观测)",
+   "found": true,
+   "src": "MAP_REPORT.md 含该文字; 两序列非周三观测数",
+   "computed": [
+    true,
+    9,
+    21
+   ],
+   "claimed": [
+    true,
+    9,
+    21
+   ],
+   "ok": true,
+   "note": ""
+  }
+ ],
+ "errors": [],
+ "F": {
+  "unrendered": {
+   "传导三环 verdict_note": {
+    "MAP": 0,
+    "FULL": 0,
+    "report": 0,
+    "n": 3
+   },
+   "转折 narrative": {
+    "MAP": 0,
+    "FULL": 0,
+    "report": 0,
+    "n": 3
+   }
+  },
+  "fragments": {
+   "371 天": [
+    false,
+    false,
+    false
+   ],
+   "反向观察": [
+    false,
+    false,
+    false
+   ],
+   "非当时首发值": [
+    true,
+    false,
+    false
+   ],
+   "对质基准": [
+    false,
+    false,
+    false
+   ],
+   "谷底月前的 BOJ": [
+    false,
+    false,
+    false
+   ],
+   "2026-03 1.46": [
+    false,
+    false,
+    false
+   ],
+   "尚不能区分": [
+    true,
+    true,
+    true
+   ],
+   "已决议而尚未生效": [
+    true,
+    true,
+    true
+   ]
+  },
+  "refs": [
+   "JP_CPI_YOY@2026-10-01",
+   "EA_HICP_YOY@2026-10-01",
+   "ECB_MRO@2026-09-16",
+   "ECB_DFR@2026-09-16",
+   "JP_POLICY_RATE@2026-10-01",
+   "USDJPY@2026-11-23",
+   "SPX@2026-11-23",
+   "VIX@2026-11-23",
+   "ECB_DFR@2026-09-16",
+   "ECB_MRO@2026-09-16",
+   "EA_HICP_YOY@2026-10-01",
+   "JP_CPI_YOY@2026-10-01",
+   "ECB_DFR@2026-09-16",
+   "JP_POLICY_RATE@2026-10-01",
+   "EURUSD@2026-11-23",
+   "USDJPY@2026-11-23",
+   "NIKKEI225@2026-11-20",
+   "DAX@2026-11-23",
+   "SPX@2026-11-23",
+   "VIX@2026-11-23"
+  ],
+  "cv_stats": {
+   "checks": 5,
+   "contradicted": 0,
+   "verified": 4,
+   "unbound": 0,
+   "six_fail": 0,
+   "map_fail": 0,
+   "n_contradictions": 3
+  },
+  "data_req": [
+   [
+    "EA_HICP_YOY",
+    "planned",
+    "insufficient_coverage",
+    "unparseable"
+   ],
+   [
+    "ECB_MRO",
+    "planned",
+    "insufficient_coverage",
+    "unparseable"
+   ],
+   [
+    "ECB_DFR",
+    "planned",
+    "insufficient_coverage",
+    "unparseable"
+   ],
+   [
+    "JP_CPI_YOY",
+    "planned",
+    "insufficient_coverage",
+    "unparseable"
+   ],
+   [
+    "JP_CPI_TOKYO_YOY",
+    "planned",
+    "insufficient_coverage",
+    "unparseable"
+   ],
+   [
+    "JP_POLICY_RATE",
+    "planned",
+    "insufficient_coverage",
+    "unparseable"
+   ]
+  ],
+  "evidence_gate": {
+   "discipline": "r32",
+   "as_of": "2026-11-23",
+   "source_snapshot_id": "research_snapshot_20261123",
+   "source_target_date": "2026-11-23",
+   "historical_view": false,
+   "publication_basis": "snapshot_presence",
+   "rules": [
+    "①观测日≤as_of",
+    "②发布日≤as_of(历史截止: 日历实录优先/RELEASE_RULES 推定)",
+    "③值版本: as-of 快照版本优先;无则注册表未声明修订=值不随版本变(可引用);声明最新修订口径=观测须已过首个修订周期(首发日+1发布周期≤as_of),否则当时数据版本不可得逐点剔除"
+   ],
+   "vintage": {
+    "basis": "snapshot_vintage",
+    "vintage_snapshot": null,
+    "vintage_snapshot_id": null,
+    "vintage_error": null,
+    "revised_series": [],
+    "excluded_series": []
+   },
+   "counts": {
+    "facts_kept": 105,
+    "facts_rebuilt": 0,
+    "facts_dropped": 0,
+    "facts_excluded_version": 0,
+    "series_observations_dropped": 0,
+    "series_observations_version_unavailable": 0,
+    "series_excluded": 0,
+    "series_n": 92
+   },
+   "series": {
+    "SPX": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "NDX": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "RUT": {
+     "n_in": 2512,
+     "n_kept": 2512,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-20",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "NVDA": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "AAPL": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "MSFT": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "TLT": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "HYG": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "DXY": {
+     "n_in": 2515,
+     "n_kept": 2515,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "EURUSD": {
+     "n_in": 2601,
+     "n_kept": 2601,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "GOLD_F": {
+     "n_in": 2515,
+     "n_kept": 2515,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "SILVER_F": {
+     "n_in": 2514,
+     "n_kept": 2514,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "WTI_F": {
+     "n_in": 2515,
+     "n_kept": 2515,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "BRENT_F": {
+     "n_in": 2516,
+     "n_kept": 2516,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "EEM": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "BTC": {
+     "n_in": 3652,
+     "n_kept": 3652,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-22",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "VIX": {
+     "n_in": 2515,
+     "n_kept": 2515,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "EZU": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "FEZ": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "EWU": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "EWG": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "DAX": {
+     "n_in": 2538,
+     "n_kept": 2538,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CAC40": {
+     "n_in": 2559,
+     "n_kept": 2559,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "EWJ": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "INDA": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "FXI": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "GBPUSD": {
+     "n_in": 2601,
+     "n_kept": 2601,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "USDJPY": {
+     "n_in": 2601,
+     "n_kept": 2601,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "USDCNY": {
+     "n_in": 2600,
+     "n_kept": 2600,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "IEF": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "SHY": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "LQD": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "GLD": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "USO": {
+     "n_in": 2513,
+     "n_kept": 2513,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "SHCOMP": {
+     "n_in": 2428,
+     "n_kept": 2428,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "SZCI": {
+     "n_in": 2428,
+     "n_kept": 2428,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CHINEXT": {
+     "n_in": 2428,
+     "n_kept": 2428,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "HSI": {
+     "n_in": 320,
+     "n_kept": 320,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "HSCEI": {
+     "n_in": 320,
+     "n_kept": 320,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "NIKKEI225": {
+     "n_in": 2520,
+     "n_kept": 2520,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-20",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "JP_POLICY_RATE": {
+     "n_in": 496,
+     "n_kept": 496,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "ECB_DFR": {
+     "n_in": 69,
+     "n_kept": 69,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-09-16",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "ECB_MRO": {
+     "n_in": 48,
+     "n_kept": 48,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-09-16",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "EA_HICP_YOY": {
+     "n_in": 358,
+     "n_kept": 358,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "EA_REAL_GDP_YOY": {
+     "n_in": 123,
+     "n_kept": 123,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-07-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "SPX_CAPE": {
+     "n_in": 1751,
+     "n_kept": 1751,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "SPX_PE_TTM": {
+     "n_in": 1869,
+     "n_kept": 1869,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-09-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "SPX_EPS": {
+     "n_in": 1869,
+     "n_kept": 1869,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-09-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CN_CPI_YOY": {
+     "n_in": 226,
+     "n_kept": 226,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CN_PPI_YOY": {
+     "n_in": 250,
+     "n_kept": 250,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CN_LPR_1Y": {
+     "n_in": 1540,
+     "n_kept": 1540,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-20",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CN_OMO_7D": {
+     "n_in": 201,
+     "n_kept": 201,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-30",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CN_POLICY_OVERNIGHT": {
+     "n_in": 16,
+     "n_kept": 16,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "JP_CPI_YOY": {
+     "n_in": 70,
+     "n_kept": 70,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "JP_CPI_TOKYO_YOY": {
+     "n_in": 10,
+     "n_kept": 10,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "JP_REAL_GDP_YOY": {
+     "n_in": 127,
+     "n_kept": 127,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-07-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "HY_OAS": {
+     "n_in": 786,
+     "n_kept": 786,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "BB_OAS": {
+     "n_in": 786,
+     "n_kept": 786,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "B_OAS": {
+     "n_in": 786,
+     "n_kept": 786,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CCC_OAS": {
+     "n_in": 786,
+     "n_kept": 786,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "IG_OAS": {
+     "n_in": 785,
+     "n_kept": 785,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "UST_2Y": {
+     "n_in": 2497,
+     "n_kept": 2497,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "UST_10Y": {
+     "n_in": 2497,
+     "n_kept": 2497,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "UST_30Y": {
+     "n_in": 2497,
+     "n_kept": 2497,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "TIPS_5Y": {
+     "n_in": 2497,
+     "n_kept": 2497,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "TIPS_10Y": {
+     "n_in": 2497,
+     "n_kept": 2497,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "BEI_5Y": {
+     "n_in": 2498,
+     "n_kept": 2498,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-20",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "BEI_10Y": {
+     "n_in": 2498,
+     "n_kept": 2498,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-20",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CURVE_2S10S": {
+     "n_in": 2498,
+     "n_kept": 2498,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-20",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "FED_FUNDS": {
+     "n_in": 120,
+     "n_kept": 120,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CPI": {
+     "n_in": 119,
+     "n_kept": 119,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CORE_PCE": {
+     "n_in": 119,
+     "n_kept": 119,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-09-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "UNEMPLOYMENT": {
+     "n_in": 119,
+     "n_kept": 119,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "NFP": {
+     "n_in": 120,
+     "n_kept": 120,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CORE_CPI": {
+     "n_in": 119,
+     "n_kept": 119,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "AHE": {
+     "n_in": 120,
+     "n_kept": 120,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "ICSA": {
+     "n_in": 521,
+     "n_kept": 521,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-14",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "WTI_SPOT_M": {
+     "n_in": 120,
+     "n_kept": 120,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "UST_5Y": {
+     "n_in": 2497,
+     "n_kept": 2497,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "UMCSENT": {
+     "n_in": 120,
+     "n_kept": 120,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "RSAFS": {
+     "n_in": 120,
+     "n_kept": 120,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "INDPRO": {
+     "n_in": 120,
+     "n_kept": 120,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "JTSJOL": {
+     "n_in": 119,
+     "n_kept": 119,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-09-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "US_REAL_GDP": {
+     "n_in": 40,
+     "n_kept": 40,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-07-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "SOFR": {
+     "n_in": 2157,
+     "n_kept": 2157,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-20",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "WALCL": {
+     "n_in": 522,
+     "n_kept": 522,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-18",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "DFF": {
+     "n_in": 3649,
+     "n_kept": 3649,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-19",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "M2SL": {
+     "n_in": 119,
+     "n_kept": 119,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-09-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "DFEDTARU": {
+     "n_in": 3653,
+     "n_kept": 3653,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "DFEDTARL": {
+     "n_in": 3653,
+     "n_kept": 3653,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-11-23",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CN_PMI_MFG": {
+     "n_in": 226,
+     "n_kept": 226,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    },
+    "CN_NEW_LOANS": {
+     "n_in": 226,
+     "n_kept": 226,
+     "n_late_observation": 0,
+     "n_late_publication": 0,
+     "n_version_unavailable": 0,
+     "first_dropped": null,
+     "last_eligible": "2026-10-01",
+     "vintage": "snapshot_vintage",
+     "excluded": false
+    }
+   },
+   "note": "截止视图=快照版本日(as_of=target_date): 快照在场即当时可得,证据面与源快照一致(只剔晚观测)"
+  },
+  "degradation_policy": {
+   "critical_zero_evidence": "L1 事实行=0(引擎崩溃/全量采集失败)→拒收判断,--allow-failed-run 亦不放行",
+   "required_data_missing": "运行前声明的必要指标(问题词面命中)采集缺席→任务目标缺口,默认阻塞;显式 --allow-failed-run 才放行,落位记 degraded(缺口随档,不得事后改判可选)",
+   "optional_data_missing": "L1 事实面在场、失败步=诚实拒答类(源端缺席 no_series)→须显式 --allow-failed-run,落位记 degraded"
+  },
+  "semantic_review": {
+   "required": true,
+   "reasons": [
+    "l3_qualitative_inference",
+    "l4_conditional_scenarios"
+   ],
+   "seat_invoked": false,
+   "verdict": null,
+   "archive": null,
+   "fresh": null,
+   "verdicts_n": 0,
+   "prior_verdicts": [],
+   "record_health": {},
+   "error": null
+  },
+  "asof_discipline": [
+   "r23",
+   [],
+   "2026-11-23"
+  ],
+  "info": {
+   "sha": {
+    "agent_judgment.json": "4fd24ab3936fd100c407ca48d32bca3d1fa03428de72f51084f687b8fc548bc5",
+    "report.json": "9c43be62ade381eeacb0fbe89ea378ce7ed5ad75443288bd6e5a8b40b7c0d83b",
+    "MAP_REPORT.md": "6cf62be25b8e8008b9047121b432f765369eed4a43d239af625af2c3e2f4a819"
+   },
+   "frozen_overlay_eq_tree": {
+    "config/release_calendar.json": true,
+    "config/metric_registry.json": true,
+    "data/daily/research_snapshot_20261123.json": true
+   },
+   "frozen_inputs": {
+    "config/release_calendar.json": "e44fd2aa5ced0310",
+    "config/metric_registry.json": "fa396d22175a4814",
+    "data/daily/research_snapshot_20261123.json": "2d650f1128cdd356"
+   },
+   "stamp_in_report": true,
+   "run_ts": "20261123T235139Z",
+   "written_at": "2026-11-24T08:25:44+08:00"
+  }
+ }
+}

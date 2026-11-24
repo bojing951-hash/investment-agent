@@ -1,0 +1,94 @@
+### DFEDTARU first=2016-11-23 last=2026-11-23 n=3653
+   change points in window [2025-11-23,2026-11-23]:
+      2025-12-11 (Thu) 4.0 -> 3.75  (-25 bp)  prev obs 2025-12-10
+      2026-09-17 (Thu) 3.75 -> 4.0  (+25 bp)  prev obs 2026-09-16
+   last obs on/before W0: ('2025-11-23', 4.0) ; last obs before W0: ('2025-11-22', 4.0) ; last obs: ('2026-11-23', 4.0) (lag 0 days)
+   last change before window: ('2025-10-30', 4.0)
+### DFF first=2016-11-23 last=2026-11-19 n=3649
+   change points in window [2025-11-23,2026-11-23]:
+      2025-11-28 (Fri) 3.88 -> 3.89  (+1 bp)  prev obs 2025-11-27
+      2025-12-11 (Thu) 3.89 -> 3.64  (-25 bp)  prev obs 2025-12-10
+      2026-05-07 (Thu) 3.64 -> 3.63  (-1 bp)  prev obs 2026-05-06
+      2026-05-19 (Tue) 3.63 -> 3.62  (-1 bp)  prev obs 2026-05-18
+      2026-06-15 (Mon) 3.62 -> 3.63  (+1 bp)  prev obs 2026-06-14
+      2026-07-08 (Wed) 3.63 -> 3.62  (-1 bp)  prev obs 2026-07-07
+      2026-07-14 (Tue) 3.62 -> 3.63  (+1 bp)  prev obs 2026-07-13
+      2026-09-17 (Thu) 3.63 -> 3.88  (+25 bp)  prev obs 2026-09-16
+   last obs on/before W0: ('2025-11-23', 3.88) ; last obs before W0: ('2025-11-22', 3.88) ; last obs: ('2026-11-19', 3.88) (lag 4 days)
+   last change before window: ('2025-11-13', 3.88)
+### ECB_DFR first=1999-01-01 last=2026-09-16 n=69
+   change points in window [2025-11-23,2026-11-23]:
+      2026-06-17 (Wed) 2.0 -> 2.25  (+25 bp)  prev obs 2025-06-11
+      2026-09-16 (Wed) 2.25 -> 2.5  (+25 bp)  prev obs 2026-06-17
+   last obs on/before W0: ('2025-06-11', 2.0) ; last obs before W0: ('2025-06-11', 2.0) ; last obs: ('2026-09-16', 2.5) (lag 68 days)
+   last change before window: ('2025-06-11', 2.0)
+### ECB_MRO first=1999-01-01 last=2026-09-16 n=48
+   change points in window [2025-11-23,2026-11-23]:
+      2026-06-17 (Wed) 2.15 -> 2.4  (+25 bp)  prev obs 2025-06-11
+      2026-09-16 (Wed) 2.4 -> 2.65  (+25 bp)  prev obs 2026-06-17
+   last obs on/before W0: ('2025-06-11', 2.15) ; last obs before W0: ('2025-06-11', 2.15) ; last obs: ('2026-09-16', 2.65) (lag 68 days)
+   last change before window: ('2025-06-11', 2.15)
+### CN_OMO_7D first=2025-10-09 last=2026-10-30 n=201
+   change points in window [2025-11-23,2026-11-23]:
+   last obs on/before W0: ('2025-11-14', 1.4) ; last obs before W0: ('2025-11-14', 1.4) ; last obs: ('2026-10-30', 1.4) (lag 24 days)
+   last change before window: None
+### CN_POLICY_OVERNIGHT first=2026-11-02 last=2026-11-23 n=16
+   change points in window [2025-11-23,2026-11-23]:
+   last obs on/before W0: None ; last obs before W0: None ; last obs: ('2026-11-23', 1.25) (lag 0 days)
+   last change before window: None
+### CN_LPR_1Y first=2013-10-25 last=2026-11-20 n=1540
+   change points in window [2025-11-23,2026-11-23]:
+   last obs on/before W0: ('2025-11-20', 3.0) ; last obs before W0: ('2025-11-20', 3.0) ; last obs: ('2026-11-20', 3.0) (lag 3 days)
+   last change before window: ('2025-05-20', 3.0)
+### claims
+   DFEDTARU window change points = [2025-12-11 -25, 2026-09-17 +25] mine=[('2025-12-11', -25), ('2026-09-17', 25)] claim=[('2025-12-11', -25), ('2026-09-17', 25)] OK
+   Fed 2025-12-11 from 4.0 -> 3.75                          mine=(4.0, 3.75)                    claim=(4.0, 3.75)                OK
+   Fed 2026-09-17 from 3.75 -> 4.0                          mine=(3.75, 4.0)                    claim=(3.75, 4.0)                OK
+   decision date = effective-1 day for 2025-12-11           mine=2025-12-10                     claim=2025-12-10                 OK
+   decision 2026-09-16 is weekday before Wed 2026-09-17     mine=2026-09-16                     claim=2026-09-16                 OK
+   net bp in window (start-in-force -> end)                 mine=0                              claim=0                          OK
+   prior Fed change (before window) effective 2025-10-30 from 4.25 -> 4.0 mine=('2025-10-30', 4.0)            claim=('2025-10-30', 4.0)        OK
+   DFF change points in window                              mine=[('2025-11-28', 1.0), ('2025-12-11', -25.0), ('2026-05-07', -1.0), ('2026-05-19', -1.0), ('2026-06-15', 1.0), ('2026-07-08', -1.0), ('2026-07-14', 1.0), ('2026-09-17', 25.0)] claim=[('2025-11-28', 1), ('2025-12-11', -25), ('2026-05-07', -1), ('2026-05-19', -1), ('2026-06-15', 1), ('2026-07-08', -1), ('2026-07-14', 1), ('2026-09-17', 25)] OK
+   DFF 2026-09-17 3.63 -> 3.88                              mine=(3.63, 3.88)                   claim=(3.63, 3.88)               OK
+   DFF @2026-09-16 = 3.63                                   mine=3.63                           claim=3.63                       OK
+   DFF latest 3.88 @2026-11-19                              mine=('2026-11-19', 3.88)           claim=('2026-11-19', 3.88)       OK
+   DFF around 2025-11-20..30: [('2025-11-17', 3.88), ('2025-11-18', 3.88), ('2025-11-19', 3.88), ('2025-11-20', 3.88), ('2025-11-21', 3.88), ('2025-11-22', 3.88), ('2025-11-23', 3.88), ('2025-11-24', 3.88), ('2025-11-25', 3.88), ('2025-11-26', 3.88), ('2025-11-27', 3.88), ('2025-11-28', 3.89), ('2025-11-29', 3.89), ('2025-11-30', 3.89), ('2025-12-01', 3.89), ('2025-12-02', 3.89), ('2025-12-03', 3.89), ('2025-12-04', 3.89), ('2025-12-05', 3.89), ('2025-12-06', 3.89), ('2025-12-07', 3.89), ('2025-12-08', 3.89), ('2025-12-09', 3.89), ('2025-12-10', 3.89), ('2025-12-11', 3.64), ('2025-12-12', 3.64)]
+   DFF weekday sample (last 12): [('2026-11-08', 'Sun', 3.88), ('2026-11-09', 'Mon', 3.88), ('2026-11-10', 'Tue', 3.88), ('2026-11-11', 'Wed', 3.88), ('2026-11-12', 'Thu', 3.88), ('2026-11-13', 'Fri', 3.88), ('2026-11-14', 'Sat', 3.88), ('2026-11-15', 'Sun', 3.88), ('2026-11-16', 'Mon', 3.88), ('2026-11-17', 'Tue', 3.88), ('2026-11-18', 'Wed', 3.88), ('2026-11-19', 'Thu', 3.88)]
+   ECB_DFR window changes                                   mine=[('2026-06-17', 2.0, 2.25), ('2026-09-16', 2.25, 2.5)] claim=[('2026-06-17', 2.0, 2.25), ('2026-09-16', 2.25, 2.5)] OK
+   ECB_DFR last obs / lag days                              mine=('2026-09-16', 68)             claim=('2026-09-16', 68)         OK
+   ECB_DFR value in force at window start                   mine=('2025-06-11', 2.0)            claim=('2025-06-11', 2.0)        OK
+   ECB_DFR first obs inside window                          mine=('2026-06-17', 2.25)           claim=('2026-06-17', 2.25)       OK
+   ECB_MRO window changes                                   mine=[('2026-06-17', 2.15, 2.4), ('2026-09-16', 2.4, 2.65)] claim=[('2026-06-17', 2.15, 2.4), ('2026-09-16', 2.4, 2.65)] OK
+   ECB_MRO last obs / lag days                              mine=('2026-09-16', 68)             claim=('2026-09-16', 68)         OK
+   ECB_MRO value in force at window start                   mine=('2025-06-11', 2.15)           claim=('2025-06-11', 2.15)       OK
+   ECB_MRO first obs inside window                          mine=('2026-06-17', 2.4)            claim=('2026-06-17', 2.4)        OK
+   ECB effective 2026-06-17 weekday                         mine=Wed                            claim=Wed                        OK
+   ECB effective 2026-09-16 weekday                         mine=Wed                            claim=Wed                        OK
+   prev Thursday before 2026-06-17 = 2026-06-11             mine=2026-06-11                     claim=2026-06-11                 OK
+   weekday of 2026-06-11                                    mine=Thu                            claim=Thu                        OK
+   prev Thursday before 2026-09-16 = 2026-09-10             mine=2026-09-10                     claim=2026-09-10                 OK
+   weekday of 2026-09-10                                    mine=Thu                            claim=Thu                        OK
+   ECB net bp (start-in-force -> end) DFR                   mine=50                             claim=50                         OK
+   ECB alt net bp (first obs in window -> end) DFR          mine=25                             claim=25                         OK
+   JP monthly steps (bp, 1 decimal): [('2025-12', 7.9), ('2026-01', 17.1), ('2026-04', -0.1), ('2026-06', 11.4), ('2026-07', 13.7), ('2026-08', -0.1), ('2026-09', 6.6), ('2026-10', 18.4)]
+   JP step months (>=5bp) = 12,01,06,07,09,10               mine=['2025-12', '2026-01', '2026-06', '2026-07', '2026-09', '2026-10'] claim=['2025-12', '2026-01', '2026-06', '2026-07', '2026-09', '2026-10'] OK
+   JP step sizes rounded to whole bp = +8/+17/+11/+14/+7/+18 mine=[8, 17, 11, 14, 7, 18]         claim=[8, 17, 11, 14, 7, 18]     OK
+   JP rounding moves about 0.1bp at 2026-04, 2026-08        mine=[('2026-04', -0.1), ('2026-08', -0.1)] claim=[('2026-04', -0.1), ('2026-08', -0.1)] OK
+   JP no other nonzero month in window                      mine=8                              claim=8                          OK
+   JP sum of steps = 74.9bp                                 mine=74.9                           claim=74.9                       OK
+   JP net from 2025-11 0.478 -> 1.227 = 74.9bp              mine=74.9                           claim=74.9                       OK
+   JP alt net from 2025-12 0.557 -> 1.227 = 67.0bp          mine=67.0                           claim=67.0                       OK
+   calendar JP_POLICY_TARGET: {'entry_id': 'RC-JP-BOJ-TARGET-2026-09', 'kind': 'policy_decision', 'basis': 'user_directive', 'metric_id': 'JP_POLICY_TARGET', 'obs_from': '2026-09-18', 'obs_to': '2099-12-31', 'decision_date': '2026-09-18', 'effective_on': '2026-09-24', 'target_value': 1.25, 'not_published_as_of': '2026-09-17', 'first_publish_on_or_after': '2026-09-18'}
+   calendar JP_POLICY_TARGET: {'entry_id': 'RC-JP-BOJ-MAINT-2026-10', 'kind': 'policy_maintenance', 'basis': 'user_directive', 'metric_id': 'JP_POLICY_TARGET', 'obs_from': '2026-10-30', 'obs_to': '2099-12-31', 'decision_date': '2026-10-30', 'target_value': 1.25, 'not_published_as_of': '2026-10-29', 'first_publish_on_or_after': '2026-10-30'}
+   JP_POLICY_TARGET in series_store                         mine=False                          claim=False                      OK
+   JP_POLICY_TARGET in metric_registry                      mine=False                          claim=False                      OK
+   CN_OMO_7D all values in window are 1.4 (no change)       mine=[1.4]                          claim=[1.4]                      OK
+   CN_OMO_7D last obs / lag days                            mine=('2026-10-30', 24)             claim=('2026-10-30', 24)         OK
+   CN_LPR_1Y all values in window are 3.0                   mine=[3.0]                          claim=[3.0]                      OK
+   CN_POLICY_OVERNIGHT first obs                            mine=('2026-11-02', 1.25)           claim=('2026-11-02', 1.25)       OK
+   CN_POLICY_OVERNIGHT all values 1.25                      mine=[1.25]                         claim=[1.25]                     OK
+   CN_POLICY_OVERNIGHT last obs                             mine=('2026-11-23', 1.25)           claim=('2026-11-23', 1.25)       OK
+   CN_OMO_7D obs from 2026-10-20: [('2026-10-26', 1.4), ('2026-10-27', 1.4), ('2026-10-28', 1.4), ('2026-10-29', 1.4), ('2026-10-30', 1.4)]
+   CN_NEW_LOANS last obs: ('2026-10-01', -5846.0)
+====================================================================================================
+POINTS=42 MISMATCHES=0

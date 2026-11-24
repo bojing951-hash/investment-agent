@@ -1,0 +1,12 @@
+L28: | CN | policy | 央行7天期逆回购利率(7天逆回购利率(七天工具口径——换锚前为操作目标,2026-11-02 起单列)) | 1.4(观测2026-08) | 1.4(观测2026-10⚠过期:末观测2026-10-30(滞后24天>10天窗口)(统计期末2026-10-30后24天>10天已批准窗口)) | percent |
+L64: | CN×policy | 央行7天期逆回购利率 | ok | ⚠过期 | — | 2026-10-30(央行操作室交易日09:20披露交易公告(当日可见)) | china_market_collector |
+L83: > 口径: 覆盖=三锚格状态(ok/⚠过期=确证过期仍如实显示末观测/⚠未核验=无更晚已证实决议且间隔超决策周期上限,现值有效性无法核验/不可得/停摆延误=日历实录证实的延误);统计期末=月频观测月末/季频观测季季末(发布滞后自期末起算);发布日期=日历实录优先+推定规则兜底(括注基准);来源=注册表权威采集器。
+MAP 含「12个月前」=0; 含「−12月」=1; 含「-12月」=0; 含「－12月」=0; 含「研究截止−12个月」=6
+MAP 含「支持主解释」=2; 「尚不能区分」=2; 「两情景方向互补」=1; 「经独立语义审查」=1; 「独立席位待裁」=1
+MAP 行数=239
+steps n=66
+executed=True 且 semantic_ok≠True 的步骤: [('S1_decompose', True, True, None, None, None), ('S7_mode_gate', True, True, None, None, None), ('S8_grounded_qa', True, True, False, 0, None), ('S10_selfcheck', True, True, None, None, None), ('S11_archive', True, True, None, None, '默认关(--archive 显式开启;Skill 第 11 步=用户认可后)')]
+executed=False 的步骤: [('S4_history_EA_REAL_GDP_YOY', '地图计划指标 EA_REAL_GDP_YOY 历史序列缺席(point_values 同源探测)——如实跳过,该格以「数'), ('S4_history_EA_HICP_YOY', '地图计划指标 EA_HICP_YOY 历史序列缺席(point_values 同源探测)——如实跳过,该格以「数据不可得'), ('S4_history_ECB_MRO', '地图计划指标 ECB_MRO 历史序列缺席(point_values 同源探测)——如实跳过,该格以「数据不可得」呈现'), ('S4_history_ECB_DFR', '地图计划指标 ECB_DFR 历史序列缺席(point_values 同源探测)——如实跳过,该格以「数据不可得」呈现')]
+S3–S6 步数=59, 其中 semantic_ok=True: 55
+契约 family 计数: {'level': (13, {'VERIFIED': 11, 'STALE': 2}), 'change/week': (4, {'VERIFIED': 4})}
+six_checks 中 C4 opposing: [{'item': 'C4-EVIDENCE-BOUNDARY', 'check': 'opposing', 'status': 'VERIFIED', 'note': '无未消化的相反证据'}]

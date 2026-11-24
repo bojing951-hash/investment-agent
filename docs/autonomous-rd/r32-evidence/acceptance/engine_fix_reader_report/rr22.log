@@ -1,0 +1,57 @@
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_fsa_cuhb/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_fsa_cuhb/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_fsa_cuhb/data/daily/anchors_20261117.json (119个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 21, 'DEGRADED': 7, 'FAIL': 0} | core缺失 16 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+═══ §A 发布批次: 同批多指标/一次补发两月/前一天-当天 ═══
+  ✅ §A 核心CPI 2025-09: 首发日 2025-10-24/前一天 10-23 不可见/挂批 — {"first_publish": "2025-10-24", "not_published_as_of": "2025-10-23", "entry_id": "RC-2025SHUTDOWN-CORECPI-SEP", "basis":
+  ✅ §A 同批多指标: CPI 与核心CPI 同一份 BLS 新闻稿(整批一致) — {'batch_id': 'BLS-CPI-2025M09-REL', 'agency': 'BLS', 'release': '2025年9月CPI新闻稿(标题CPI与核心CPI同批)', 'published_on': '2025-10
+  ✅ §A 十一月失业率: 首发日 2025-12-16/前一天 12-15 不可见/就业形势报告批(含 NFP/AHE) — {"batch_id": "BLS-EMPSIT-2025M11-REL", "agency": "BLS", "release": "2025年11月就业形势报告", "published_on": "2025-12-16", "metr
+  ✅ §A 一次补发两月: 2025-10 与 11 核心PCE 同批 2026-01-22 首发(01-21 不可见,backfill=2) — {"batch_id": "BEA-PCE-2026M01-REL", "agency": "BEA", "release": "个人收支报告(2025年10月与11月PCE一次补发)", "published_on": "2026-01-22", "metr
+  ✅ §A 发布依据随批号披露(读者可按批核) — calendar:RC-2025SHUTDOWN-CORECPI-SEP(user_directive;batch=BLS-CPI-2025M09-REL)
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_247x_ljs/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_247x_ljs/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_247x_ljs/data/daily/anchors_20261117.json (119个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 21, 'DEGRADED': 7, 'FAIL': 0} | core缺失 16 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_247x_ljs/data/daily/research_snapshot_20261117_v2.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_247x_ljs/data/daily/research_snapshot_20261117_v2.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_247x_ljs/data/daily/anchors_20261117.json (119个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 21, 'DEGRADED': 7, 'FAIL': 0} | core缺失 16 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+═══ §B 六族: 2025-11-19 面只见当时已发布观测 ═══
+  ✅ §B CPI: 12个月前锚=2025-09(10-24 已发布可引,日历实录) — {"status": "ok", "as_of": "2025-11-19", "observation_date": "2025-09-01", "publication_date": "2025-10-24", "publication_rule": "c
+  ✅ §B 失业率: 12个月前锚=2025-08(八月 4.3;九月 11-20 才可见故不可引) — {"status": "ok", "as_of": "2025-11-19", "observation_date": "2025-08-01", "publication_dat|九月首发=2025-11-20
+  ✅ §B GDP: 12个月前锚=2025-04(Q2;Q3 12-23 才可见故不可引) — {"status": "ok", "as_of": "2025-11-19", "observation_date": "2025-04-01", "publication_dat|Q3首发=2025-12-23
+  ✅ §B 工业生产: 12个月前锚≤2025-08(09/10 月保守界 2026-01-22) — {"status": "ok", "as_of": "2025-11-19", "observation_date": "2025-08-01", "publication_date": "2025-09-15", "p
+  ✅ §B 核心CPI: 2025-11-19 面最近可见=2025-09(同批 10-24 首发) — 2025-09-01|2025-10-24|calendar:RC-2025SHUTDOWN-CORECPI-SEP(user_directive;batch=BLS-CPI-2025M09-REL)
+  ✅ §B 核心PCE: 2025-11-19 面最近可见≤2025-08(09/10 月积压至 2026-01-22,不提前引用) — 2025-08-01|2025-09-30
+═══ §C 政策时序: 决议/生效分记+纪要发布日+路径复算 ═══
+  ✅ §C ECB 2026-09: 决议 09-10→生效 09-16(值变更日=生效日) — {"face": "政策目标(宣布值)", "market_seat_label": "ECB主要再融资利率", "decision_note": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——202
+  ✅ §C Fed 2026-09: 决议 09-16→生效 09-17(次日生效) — {"face": "政策目标(宣布值)", "market_seat_label": "FOMC目标区间上限", "decision_note": "决议日=生效日前一日(两日会议次日公布;序列值变更日=生效日)——2026-09 决议 0
+  ✅ §C 2022-07: 决议 07-27→生效 07-28(七月末上限 2.50 的由来) — {"face": "政策目标(宣布值)", "market_seat_label": "FOMC目标区间上限", "decision_note": "决议日=生效日前一日(两日会议次日公布;序列值变更日=生效日)——2026-09 决议 0
+  ✅ §C ECB 不规则生效日(变更日非周三): 决议不可推=如实缺席
+  ✅ §C FOMC 十月纪要: 11-18 可见/11-17 不可见
+  ✅ §C 一年窗路径: 先降 25(决议 12-10)再升 25(决议 09-16)净零 — ['2025-12-11', '2026-09-17']
+═══ §D 同一事件的跨国信号合并(决议日 ±7 日聚簇) ═══
+  ✅ §D Fed(决议 09-16)+ECB(决议 09-10)合并=同一全球政策事件 — {"cluster_id": "POLCLUSTER-02", "date_from": "2026-09-10", "date_to": "2026-09-16", "regions": ["EA", "US"], "events": [{"region": "EA", "metric_id": 
+  ✅ §D 逐事件决议→生效间隔: Fed=1 日/ECB=6 日(分记不混同) — {'2026-09-10': 6, '2026-09-16': 1}
+  ✅ §D 远端单国事件独立成簇(非跨国) — {"cluster_id": "POLCLUSTER-01", "date_from": "2026-05-20", "date_to": "2026-05-20", "regions": ["CN"
+═══ §E 三窜写拦截+原文/中文同义正例(真实工单档案) ═══
+  ✅ §E 正例: 原文未动 → VERIFIED(契约改动零漂移) — []
+  ✅ §E 反例①中文: 标普500指数上涨99.00%(引擎 −5.28)→CONTRADICTED — ['事后窗数字与引擎不符(中文面): 标普500指数(SPX) +99.00% vs 锚月2022-06末→2022-09末复算 -5.28%(2022-06-30']
+  ✅ §E 反例②pp 窜写: +0.35 个百分点(引擎 +0.85,容差 0.06)→CONTRADICTED — ['事后窗数字与引擎不符(中文面): 美国十年期国债收益率(UST_10Y) +0.35pp vs 锚月2022-06末→2022-09末复算 +0.85pp(20']
+  ✅ §E 反例②ASCII: UST_10Y +0.35pp 同拦(pp 容差收紧生效) — ['事后窗数字与引擎不符: UST_10Y +0.35pp vs 锚月2022-06末→2022-09末复算 +0.85pp']
+  ✅ §E 反例③观测串: GDP Q2→Q3(2025-07 在序列但锚前不可见)→CONTRADICTED — ['观测月串 2025-07→2026-04→2026-07 不是任何点值格锚观测序(12个月前→3个月前→最新一期)的保序子序列——正文引用了锚前不可见或不存在的']
+  ✅ §E 正例: 含义相同的正确中文表述 → VERIFIED(同义改写不误伤) — []
+═══ §F 读者渲染: 首页三件/对质表/逐窗并列/决议生效分记 ═══
+  ✅ §F 核准: 2022-07 月末 Fed 目标上限=2.50(决议 07-27 生效 07-28后七月末观测即 2.50) — 2022-07-31=2.5
+  ✅ §F 逐窗并列: 2022-06 锚 3 月窗 DFEDTARU 1.75→3.00(+1.25pp) — {"group": "经济指标", "metric_id": "DFEDTARU", "label": "Fed 目标区间上限", "kind": "rate", "from_date": "2022-06-30", "from_value": 1.75, "to_date": "2022-09-3
+  ✅ §F 首页三件: 总判断+四地三时点表+证据最充分传导速览 — 节次序核对
+  ✅ §F 对质表: 主解释 vs 竞争解释(预期分立+已有观测+判断;未分立环=尚不能区分) — 对质面渲染
+  ✅ §F 决议→生效分记渲染: 事件行带决议日(09-16→09-17) — 政策节渲染
+  ✅ §F 纪要事实行: FOMC 十月纪要 11-18 发布
+  ✅ §F 历史段逐窗并列表在读者面(起止期/数值/单位/来源列) — 并列面渲染
+  ✅ §F root 缺席分支: 逐窗并列面=缺席注记(不跨快照取数)
+═══ §G 溯源: 运行代码 SHA+批次对账+修订口径 ═══
+  ✅ §G MAP_REPORT 头带运行代码 SHA(与 report.run.git_head 同值) — 头行核对
+  ✅ §G 发布批次对账节(同批指标按批列示)+修订口径注记 — 对账节渲染
+
+== R22 门: 36/36 PASS ==

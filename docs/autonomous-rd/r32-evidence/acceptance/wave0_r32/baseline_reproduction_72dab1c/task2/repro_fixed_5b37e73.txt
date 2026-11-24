@@ -1,0 +1,11 @@
+tree= /tmp/r32-accept/install
+[hist 13m-only ] (None, 'no_visible_base')
+[engine m12 13m] {'available': False, 'reason': '缺基期: 去年同月(2020-07)无观测,最近可得基期=2020-06——同比基期须同月,不以更早观测冒充(13 个月前≠同比)'}
+[hist q-only-Q1] (None, 'no_visible_obs')
+[events] JP RC-JP-BOJ-TARGET-2026-09 = [{'metric_id': 'JP_POLICY_TARGET', 'decision_date': '2026-09-18', 'effective_on': '2026-09-24', 'entity': 'JP', 'target_value': 1.25, 'entry_id': 'RC-JP-BOJ-TARGET-2026-09', 'first_publish': '2026-09-18'}]
+[pol ①相对日期提前生效] ['POL-EFF-REL']
+[pol ②日期齐全但提前生效] ['POL-EFF-DATE']
+[pol ③正确待生效] []
+[pol ④待生效值写成当前值] ['POL-EFF-PENDING-AS-CURRENT']
+[pol ⑤断言提前(目前)] ['POL-EFF-EARLY-CLAIM']
+[pol ④生效后同句(09-25)] []

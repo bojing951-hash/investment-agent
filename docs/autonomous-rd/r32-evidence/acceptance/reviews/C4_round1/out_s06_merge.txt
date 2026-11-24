@@ -1,0 +1,5 @@
+TOTAL points = 397 | mismatches = 2
+by file: {'pts_a.json': 101, 'pts_b.json': 84, 'pts_c.json': 106, 'pts_d.json': 89, 's06': 17}
+  MISMATCH E25 | pts_a.json | WTI_F 2026-11-09..11-23 全部 < 锚(受审稿『11-09 起再度跌破该锚』的字面持续性; 实测 11 个观测中 9 个低于锚, 11-12=88.74、11-13=88.56 回到锚上方) | calc= False | report= True | 
+  MISMATCH X16 | s06 | run_ok=true 且 ok=False 的步骤仅 S8_grounded_qa(地图问句不属其支持的问题类型; 受审稿未提及, NIT-4) | calc= False | report= True | []
+table lines 399

@@ -1,0 +1,34 @@
+mechanism_chains n = 1
+MCHAIN keys: ['id', 'links']
+   id = "M1-JP-RATE-PATH"
+  LINK 0 keys: ['evidence_level', 'evidence_refs', 'step', 'text']
+      step = 1
+      evidence_level = "E1"
+      evidence_refs = ["JP_POLICY_RATE@2026-10-01"]
+      text = "观察: JP_POLICY_RATE 月均自 2025-11 的 0.478(窗启时在值)经 2025-12 的 0.557 抬升至 2026-10 的 1.227，近 12 个月政策窗(2025-11-23..2026-11-23)净变动 +75bp(引擎『政策一年窗路径』口径=窗启时在值→窗末观测,即六个变动点之和；仅自窗内首观测 2025-12 月均起算为 +67bp)，呈多级台阶(2025-12 0.557、2026-01 0.728、2026-06 0.841、2026-07 0.978、2026-09 1.043、2026-10 1.227)。"
+  LINK 1 keys: ['evidence_level', 'evidence_refs', 'missing_link_note', 'step', 'text']
+      step = 2
+      evidence_level = "E2"
+      evidence_refs = ["JP_POLICY_RATE@2026-10-01"]
+      text = "传导【假设】: 政策利率中枢上移→日元融资成本上升→套息结构边际压缩;本引擎无日本套息持仓与中长端融资成本(国债收益率)序列——JP_POLICY_RATE 本身为无担保隔夜拆借利率月均,仅覆盖隔夜一端,此环为【假设】。"
+      missing_link_note = "本引擎无日本套息持仓与中长端融资成本(国债收益率)序列,该环为【假设】,缺环待采;可核环节仅政策利率路径本身(E1)。"
+  LINK 2 keys: ['evidence_level', 'evidence_refs', 'missing_link_note', 'step', 'text']
+      step = 3
+      evidence_level = "E2"
+      evidence_refs = ["USDJPY@2026-11-23", "NIKKEI225@2026-11-20"]
+      text = "资产面观察与对照: USDJPY 最新报 159.35(观测 2026-11-23，盘中快照、非收盘价),NIKKEI225 近一月(2026-10-23→2026-11-20)下跌 9.98%;若加息传导单一成立,应见 USDJPY 走低与股指承压并存——当前 USDJPY 仍处高位(近 12 个月窗内约第 71 百分位)而股指已明显回落,组合更接近「风险收缩+日元仍处低位」的混合态(「利差仍高」为本问证据面外的【假设】: 无日美利差序列),传导方向证据不单一。"
+      missing_link_note = "USDJPY 方向受多因子驱动(利差/风险情绪/干预预期),与加息传导的当期一致性无法在引擎面单一归因,该环归【假设】层;区分指标=USDJPY。"
+
+L4 keys: ['scenarios']
+SCEN S1-INFL-STICKY ['asset_direction', 'falsification', 'scenario', 'sensitive_variables', 'trigger']
+    scenario = "【假设·非预测】美欧通胀延续当前抬升动能: 至 2027-01 发布(即至 2026-12 观测月;2027-01 观测月的规则发布日 2027-02-16 晚于期限 2027-02-15),EA_HICP_YOY 同比维持 3.5% 以上,美国 CORE_PCE 同比维持 3.0% 以上,美欧政策面维持紧缩偏向【假设·美欧政策利率不在本问证据面】(日本月均中枢不低于当前台阶)。"
+    asset_direction = {"direction": "在此假设下,实际利率与无风险利率中枢承压上行,利率敏感资产(高估值成长股、黄金)相对走弱,美元指数相对非美货币偏强;此为方向性推演,非幅度预测", "confidence_tier": "有相关证据", "evidence_refs": ["TIPS_10Y@2026-11-19", "BEI_10Y@2026-11-20", "SPX@2026-11-23"]}
+    sensitive_variables = ["EA_HICP_YOY", "CORE_PCE"]
+    falsification = {"metric_id": "EA_HICP_YOY", "threshold": "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比(对应 2026-11、2026-12 观测月,规则发布日 2026-12-16、2027-01-16,均不晚于期限 2027-02-15)连续两个月低于 3.0%,通胀粘性假设被证伪", "secondary_metric_ids": ["CORE_PCE"]}
+    trigger = {"condition": "2026-12 或 2027-01 发布的 EA_HICP_YOY 同比 ≥4.2% 且 CORE_PCE 同比 ≥3.2%,同时 TIPS_10Y 高于 3.0%", "deadline": "2027-02-15"}
+SCEN S2-INFL-FADE ['asset_direction', 'falsification', 'scenario', 'sensitive_variables', 'trigger']
+    scenario = "【假设·非预测】当前美欧通胀抬升以一次性因素(能源基数、汇率进口传导)为主: 至 2027-01 发布(即至 2026-12 观测月),EA_HICP_YOY 同比回落至 3.0% 以下,美国 CORE_PCE 同比回落至 2.8% 以下,市场重新定价宽松。"
+    asset_direction = {"direction": "在此假设下,通胀补偿与实际利率双双回落,风险资产修复、黄金重新走强、美元走弱;该方向与近一月观察(共同交易日窗 2026-10-20→2026-11-19 实际利率 +11bp 而风险资产回落)相反,属并列反例情景", "confidence_tier": "纯逻辑推理", "evidence_refs": ["BEI_10Y@2026-11-20", "SPX@2026-11-23"]}
+    sensitive_variables = ["EA_HICP_YOY", "CORE_PCE"]
+    falsification = {"metric_id": "EA_HICP_YOY", "threshold": "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比均不低于 4.0%,一次性因素假设被证伪", "secondary_metric_ids": ["CORE_PCE"]}
+    trigger = {"condition": "EA_HICP_YOY 同比连续两个月回落且最新值 ≤3.4%,同时 BEI_10Y 低于 2.0%", "deadline": "2027-02-15"}

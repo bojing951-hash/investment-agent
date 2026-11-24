@@ -1,0 +1,22 @@
+agent_judgment keys: ['attached', 'attached_at', 'judgment_file', 'schema_version', 'validation', 'contract_verification', 'run_ok_at_attach', 'allow_failed_run', 'reader_map_faces']
+  attached = true
+  attached_at = "20261123T190509Z"
+  judgment_file = "judgment3_A.json"
+  schema_version = "1.1"
+  validation = {"passed": true, "violations": [], "n_contradictions": 3, "n_mechanism_chains": 2, "n_scenarios": 2}
+  run_ok_at_attach = true
+  allow_failed_run = false
+  reader_map_faces = {"complete": true, "headline": true, "regions_ok": true, "transmission_chains": 2, "turnings_n": 3, "history_n": 3}
+contract_verification keys: ['version', 'verdicts', 'six_checks', 'map_checks', 'unresolved_unbound', 'verdict', 'stats']
+  version = "jc-v1.0-phase4"
+  six_checks = [{"item": "C1", "check": "relevant", "status": "VERIFIED", "note": "17 实据引用"}, {"item": "C1", "check": "supports", "status": "VERIFIED", "note": "引用逐项对得上"}, {"item": "C1", "check": "competing", "status": "VERIFIED", "note": "3 并列解释(阈值≥2)"}, {"item": "C1", "check": "opposing", "status": "VERIFIED", "note": "无未消化的相反证据"}, {"item": "C2", "check": "relevant", "status": "VERIFIED", "note": "4 实据引用"}, {"item": "C2", "check": "supports", "status": "VERIFIED", "note": "引用逐项对得上"}, {"item": "C2", "check": "competing", "status": "VERIFIED", "note": "2 并列解释(阈值≥2)"}, {"item": "C2", "check": "opposing", "sta
+  map_checks = [{"item": "reader_map.headline_conclusion", "claim_type": "reader_map", "status": "VERIFIED", "note": "非空", "evidence_refs": []}, {"item": "reader_map.regions", "claim_type": "reader_map", "status": "VERIFIED", "note": "4 地齐", "evidence_refs": []}, {"item": "reader_map.turning_supplement", "claim_type": "reader_map", "status": "VERIFIED", "note": "补选转折 JP_CPI_TOKYO_YOY@2026-09 已交还判断席(first_mover=东京都CPI同比自1.6升至2.69(2026-)", "evidence_refs": []}, {"item": "reader_map.cross_face_consistency.date_order", "claim_type": "reader_map", "status": "VERIFIED", "note": "日期次序主张一致: 2025-11<2026-02(早于,1 处)",
+  unresolved_unbound = []
+  verdict = "VERIFIED"
+  stats = {"checks": 14, "contradicted": 0, "verified": 14, "unbound": 0, "six_fail": 0, "map_fail": 0, "n_contradictions": 3}
+verdicts n=14 by status: {'VERIFIED': 14}
+by claim_type: {'objective_fact': 14}
+by family: {'level': 14}
+items covered: 2
+   C1.statement ['VERIFIED', 'VERIFIED', 'VERIFIED', 'VERIFIED', 'VERIFIED', 'VERIFIED', 'VERIFIED', 'VERIFIED', 'VERIFIED', 'VERIFIED', 'VERIFIED']
+   C3.statement ['VERIFIED', 'VERIFIED', 'VERIFIED']

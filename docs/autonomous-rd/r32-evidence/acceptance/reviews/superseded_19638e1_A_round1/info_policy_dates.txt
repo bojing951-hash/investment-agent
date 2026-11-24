@@ -1,0 +1,39 @@
+Japan policy record row: ['日本', '1.25', '—', '2026-09-18', '2026-09-24', '2026-10-30', '2026-10-30', '60天', '66天', '24天', 'RC-JP-BOJ-TARGET-2026-09(user_directive)']
+ECB_DFR changes: [('2026-06-17', 2.0, 2.25), ('2026-09-16', 2.25, 2.5)] | ECB_MRO changes: [('2026-06-17', 2.15, 2.4), ('2026-09-16', 2.4, 2.65)] | DFEDTARU changes: [('2025-12-11', 4.0, 3.75), ('2026-09-17', 3.75, 4.0)]
+距研究截止 cells: [(('2026-09-16', 68), [97, 100]), (('2026-09-17', 67), [106]), (('2026-10-30', 24), [93]), (('2026-11-19', 4), [109]), (('2026-11-20', 3), [90]), (('2026-11-23', 0), [94])]
+appended 33 rows; ledger now rows=1045 counted=1002 ok=1001 mismatch=1 info=43
+  OK  policy BoJ decision date | computed="2026-09-18" | reported="2026-09-18"
+  OK  policy BoJ effective date | computed="2026-09-24" | reported="2026-09-24"
+  OK  policy BoJ official target value | computed=1.25 | reported=1.25
+  OK  policy Japan latest maintenance decision date | computed="2026-10-30" | reported="2026-10-30"
+  OK  policy Japan verification coverage end | computed="2026-10-30" | reported="2026-10-30"
+  OK  policy Japan days since last change (by effective date) | computed=60 | reported=60
+  OK  policy Japan days since decision | computed=66 | reported=66
+  OK  policy Japan days since maintenance | computed=24 | reported=24
+  OK  policy pending decision effective after cutoff | computed=true | reported=true
+  OK  policy calendar has no Fed/ECB record entries | computed=true | reported=true
+  OK  policy decision date POLCLUSTER-01 US DFEDTARU (convention back-calculation) | computed="2025-12-10" | reported="2025-12-10"
+  OK  policy effective date POLCLUSTER-01 US DFEDTARU (= series change date) | computed="2025-12-11" | reported="2025-12-11"
+  OK  policy value before POLCLUSTER-01 US DFEDTARU | computed=4.0 | reported=4.0
+  OK  policy value after POLCLUSTER-01 US DFEDTARU | computed=3.75 | reported=3.75
+  OK  policy decision date POLCLUSTER-02 EA ECB_DFR (convention back-calculation) | computed="2026-06-11" | reported="2026-06-11"
+  OK  policy effective date POLCLUSTER-02 EA ECB_DFR (= series change date) | computed="2026-06-17" | reported="2026-06-17"
+  OK  policy value before POLCLUSTER-02 EA ECB_DFR | computed=2.0 | reported=2.0
+  OK  policy value after POLCLUSTER-02 EA ECB_DFR | computed=2.25 | reported=2.25
+  OK  policy decision date POLCLUSTER-03 EA ECB_DFR (convention back-calculation) | computed="2026-09-10" | reported="2026-09-10"
+  OK  policy effective date POLCLUSTER-03 EA ECB_DFR (= series change date) | computed="2026-09-16" | reported="2026-09-16"
+  OK  policy value before POLCLUSTER-03 EA ECB_DFR | computed=2.25 | reported=2.25
+  OK  policy value after POLCLUSTER-03 EA ECB_DFR | computed=2.5 | reported=2.5
+  OK  policy decision date POLCLUSTER-03 US DFEDTARU (convention back-calculation) | computed="2026-09-16" | reported="2026-09-16"
+  OK  policy effective date POLCLUSTER-03 US DFEDTARU (= series change date) | computed="2026-09-17" | reported="2026-09-17"
+  OK  policy value before POLCLUSTER-03 US DFEDTARU | computed=3.75 | reported=3.75
+  OK  policy value after POLCLUSTER-03 US DFEDTARU | computed=4.0 | reported=4.0
+  OK  policy lag to research cutoff: 2026-09-16 | computed=68 | reported=68
+  OK  policy lag to research cutoff: 2026-09-17 | computed=67 | reported=67
+  OK  policy lag to research cutoff: 2026-10-30 | computed=24 | reported=24
+  OK  policy lag to research cutoff: 2026-11-19 | computed=4 | reported=4
+  OK  policy lag to research cutoff: 2026-11-20 | computed=3 | reported=3
+  OK  policy lag to research cutoff: 2026-11-23 | computed=0 | reported=0
+  OK  policy days since last change at cutoff (US by effective date / EA by effective date / JP by effective date) | computed="US 67 / EA 68 / JP 60" | reported=null
+sections: {'anchors': 275, 'monthly': 187, 'daily': 133, 'history': 293, 'sync': 45, 'misc': 69}
+info by section: {'history': 3, 'sync': 36, 'misc': 4}

@@ -1,0 +1,60 @@
+# cmp_runs
+# old: /tmp/r32-accept/final5/output/research_runs/20261123T213320Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什
+# new: /tmp/r32-accept/final6/output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什
+# old run 20261123T213320Z git_head 8f9055d6e556 | new run 20261123T235121Z git_head 36499bb78a18
+## report.json/research_plan | leaves compared 673 | identical 673 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/evidence_index | leaves compared 189 | identical 189 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 346 | identical 334 | real diff 11 | path/run-id only 0 | only-old 0 | only-new 1
+   REAL DIFF (11):
+     /L3_AI推断层/content/contradictions[C1-INFL-SYNC]/competing_explanations[0]
+        old: "【假设】若美欧通胀抬升主要源于能源与进口成本的持续传导(弱欧元放大输入压力),则 headline 强于 core 的结构应延续,且同比读数在数月内维持高位。"
+        new: "【假设】若美欧通胀抬升主要源于能源与进口成本的持续传导(弱欧元放大输入压力;弱欧元一项有在场读数——欧元兑美元 2026-11-23 为 1.093972,近 12 个月窗最低,三个月 -5.52%,11-23 为盘中快照),则 headline 强于 core 的结构应延续,且同比读数在数月内维持高位。"
+     /L3_AI推断层/content/contradictions[C1-INFL-SYNC]/statement
+        old: "美欧通胀环境较 3 个月前同步走高、欧元区幅度更大。欧元区 EA_HICP_YOY 最新读数明显走高、水平高于美国(数值与观测月见走位对照;两地最新可比同月为九月，为 2023-09 以来首个高于美国的可比月份(2022-07 至 2023-09 曾持续高于美国));美国 CPI 指数水平最新报 337.476(观测 2026-10;3 个月前锚前值 332.813,观测 2026-07;同比派生口径 2026-10 因缺上年同月基期观测不可得,最近有效同比见走位对照),CORE_CPI 报 339.9(观测 2026-10),CORE_PCE 报 130.902(观测 2026-09)。美
+        new: "美欧通胀环境较 3 个月前同步走高、欧元区幅度更大。欧元区 EA_HICP_YOY 最新读数明显走高、水平高于美国(最新可比同月仅略高、幅度很小,且 HICP 与 CPI 口径不同;数值与观测月见走位对照;两地最新可比同月为九月，为 2023-09 以来首个高于美国的可比月份(2022-07 至 2023-09 曾持续高于美国));美国 CPI 指数水平最新报 337.476(观测 2026-10;3 个月前锚前值 332.813,观测 2026-07;同比派生口径 2026-10 因缺上年同月基期观测不可得(2025-10 为序列库缺采,非上年同月未发布),最近有效同比见走位对照),COR
+     /L3_AI推断层/content/contradictions[C2-GROWTH-STABLE]/statement
+        old: "两地硬数据增长面大体平稳、并非本期主导变化(软数据不在本问证据面,未纳入)。US_REAL_GDP(季频水平)最新报 24611.077(观测 2026-07 季),UNEMPLOYMENT 最新报 4.1(观测 2026-10),其 3 个月前锚前值为 4.1(观测 2026-07);INDPRO 报 103.3954(观测 2026-10),3 个月前锚前值为 103.1675(观测 2026-07)。欧元区实际 GDP 同比读数在引擎点值面仅微幅变动(见走位对照),增长端未见方向性转折。"
+        new: "两地硬数据增长面大体平稳、并非本期主导变化(软数据不在本问证据面,未纳入;口径注记: 此处工业生产按指数水平表述,与通胀的同比口径不同,其同比口径的三个月变动见走位对照)。US_REAL_GDP(季频水平)最新报 24611.077(观测 2026-07 季),UNEMPLOYMENT 最新报 4.1(观测 2026-10),其 3 个月前锚前值为 4.1(观测 2026-07);INDPRO 报 103.3954(观测 2026-10),3 个月前锚前值为 103.1675(观测 2026-07)。欧元区实际 GDP 同比读数在引擎点值面仅微幅变动(见走位对照),增长端未见方向性转折。"
+     /L3_AI推断层/content/contradictions[C3-JP-POLICY]/competing_explanations[0]
+        old: "【假设】若月均台阶主要反映日本央行面对通胀与汇率压力的连续上调,则后续月均应呈现更高中枢的平台,下月月均应维持当前水平附近。"
+        new: "【假设】若月均台阶主要反映日本央行面对通胀与汇率压力的连续上调,则后续月均应呈现更高中枢的平台,下月月均应维持当前水平附近(本解释下的可观察带宽: 2026-11 月均落在 1.20 至 1.26 之间,即较 2026-10 月均上下不超过 0.03——2026-02 至 2026-05 与 2026-08 的相邻月均差均不超过 0.001,取更宽的带作容差;读数跌破带下沿则本解释不成立)。"
+     /L3_AI推断层/content/mechanism_chains[M1-JP-RATE-PATH]/links[1]/missing_link_note
+        old: "本引擎无日本套息持仓与中长端融资成本(国债收益率)序列,该环为【假设】,缺环待采;可核环节仅政策利率路径本身(E1)。"
+        new: "本问证据面未纳入日本套息持仓与日本国债收益率(快照事实面仅有 2026-11-19 点值 JGB 2/5/10 年 1.853/2.235/2.87,序列库无历史、未入证据索引),该环为【假设】;可核环节仅政策利率路径本身(E1)。"
+     /L3_AI推断层/content/mechanism_chains[M1-JP-RATE-PATH]/links[2]/text
+        old: "资产面观察与对照: USDJPY 最新报 159.35(观测 2026-11-23，盘中快照、非收盘价),NIKKEI225 近一月(2026-10-23→2026-11-20)下跌 9.98%;若加息传导单一成立,应见 USDJPY 走低与股指承压并存——当前 USDJPY 仍处高位(近 12 个月窗内约第 71 百分位)而股指已明显回落,组合更接近「风险收缩+日元仍处低位」的混合态(「利差仍高」为本问证据面外的【假设】: 无日美利差序列),传导方向证据不单一。"
+        new: "资产面观察与对照: USDJPY 最新报 159.35(观测 2026-11-23，盘中快照、非收盘价),NIKKEI225 近一月(2026-10-23→2026-11-20)下跌 9.98%;若加息传导单一成立,应见 USDJPY 走低与股指承压并存——当前 USDJPY 报 159.35、近一月(2026-10-23→2026-11-23)不降反升 1.82%(三个月 -0.13%),仍处高位(近 12 个月窗内约第 71 百分位、序列库全史 2016-11-23 起约第 96.6 百分位)而股指已明显回落,组合更接近「风险收缩+日元仍处低位」的混合态(「利差仍高」为本问证据面外的【假
+     /L4_条件情景层/content/scenarios[S1-INFL-STICKY]/rows/falsification/threshold
+        old: "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比(对应 2026-11、2026-12 观测月,规则发布日 2026-12-16、2027-01-16,均不晚于期限 2027-02-15)连续两个月低于 3.0%,通胀粘性假设被证伪"
+        new: "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比(对应 2026-11、2026-12 观测月,规则发布日 2026-12-16、2027-01-16,均不晚于期限 2027-02-15)连续两个月低于 3.0%(情景陈述的界为 3.5%,3.0% 至 3.5% 之间为缓冲带——情景陈述在该带内不成立但未达证伪线),通胀粘性假设被证伪"
+     /L4_条件情景层/content/scenarios[S1-INFL-STICKY]/rows/scenario
+        old: "【假设·非预测】美欧通胀延续当前抬升动能: 至 2027-01 发布(即至 2026-12 观测月;2027-01 观测月的规则发布日 2027-02-16 晚于期限 2027-02-15),EA_HICP_YOY 同比维持 3.5% 以上,美国 CORE_PCE 同比维持 3.0% 以上,美欧政策面维持紧缩偏向【假设·美欧政策利率不在本问证据面】(日本月均中枢不低于当前台阶)。"
+        new: "【假设·非预测】美欧通胀延续当前抬升动能: 至 2027-01 发布(即至 2026-12 观测月;2027-01 观测月的规则发布日 2027-02-16 晚于期限 2027-02-15),EA_HICP_YOY 同比维持 3.5% 以上(证伪线为 3.0%,3.0% 至 3.5% 之间为缓冲带),美国 CORE_PCE 同比维持 3.0% 以上,美欧政策面维持紧缩偏向【假设·美欧政策利率不在本问证据面】(日本月均中枢不低于当前台阶)。"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/falsification/threshold
+        old: "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比均不低于 4.0%,一次性因素假设被证伪"
+        new: "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比均不低于 4.0%(情景陈述的界为 3.0%,3.0% 至 4.0% 之间为缓冲带——在该带内既未触发也未证伪),一次性因素假设被证伪"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/scenario
+        old: "【假设·非预测】当前美欧通胀抬升以一次性因素(能源基数、汇率进口传导)为主: 至 2027-01 发布(即至 2026-12 观测月),EA_HICP_YOY 同比回落至 3.0% 以下,美国 CORE_PCE 同比回落至 2.8% 以下,市场重新定价宽松。"
+        new: "【假设·非预测】当前美欧通胀抬升以一次性因素(能源基数、汇率进口传导)为主: 至 2027-01 发布(即至 2026-12 观测月),EA_HICP_YOY 同比回落至 3.0% 以下(触发线为 3.4%,3.0% 至 3.4% 之间为缓冲带),美国 CORE_PCE 同比回落至 2.8% 以下,市场重新定价宽松。"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/trigger/condition
+        old: "EA_HICP_YOY 同比连续两个月回落且最新值 ≤3.4%,同时 BEI_10Y 低于 2.0%"
+        new: "EA_HICP_YOY 同比连续两个月回落且最新值 ≤3.4%(至情景陈述的界 3.0% 之间为缓冲带),同时 BEI_10Y 低于 2.0%"
+   only-new (1):
+     /L3_AI推断层/content/contradictions[C1-INFL-SYNC]/evidence_refs[5]
+        old: "<absent>"
+        new: "EURUSD@2026-11-23"
+## report.json/run.evidence_gate | leaves compared 850 | identical 850 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 319 | identical 319 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+   tree-state (install-tree standard-update ledger, not research evidence): ['[3]/data/last_run/…']
+## report.json/steps[*].envelope | leaves compared 140340 | identical 140292 | real diff 0 | path/run-id only 48 | only-old 0 | only-new 0
+   path/run-id-only sample: ['[10]/engine_root', '[11]/engine_root', '[12]/engine_root']
+# report.json totals: real diff 11 | only-old 0 | only-new 1
+## evidence_index.json | leaves compared 189 | identical 189 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 223 | identical 220 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+   path/run-id-only sample: ['/read_first[0]', '/read_first[1]', '/read_first[2]']
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261123.json'] | new ['research_snapshot_20261123.json']
+   research_snapshot_20261123.json sha256 old 2d650f1128cdd356 new 2d650f1128cdd356 equal True

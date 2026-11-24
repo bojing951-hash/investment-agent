@@ -1,0 +1,10 @@
+rr32 rc=0 === R32 门: 79/79 === 
+rr31 rc=0 === R31 门: 43/43 === 
+rr28 rc=0   ✅ §D6a 代码版本门: 包记录 SHA≠当前 HEAD→拒(rc=1+code_version_mismatch+不落输出目录) — rc12=0 rc13=1 blocked=code_version_mismatch ==== Audit-R28 gate: 37/37 PASS ==== 
+rr21 rc=0 
+rr22 rc=0 == R22 门: 36/36 PASS == 
+rr30 rc=0 Audit-R30 门: 快照钉死/时点/自然问窗 Audit-R30 门: 37 PASS / 0 FAIL (共 37 判据) 
+rr27 rc=0 Audit-R27 门: 35 PASS / 0 FAIL (共 35 判据) 
+rr26 rc=0 
+rr25 rc=0 
+rr20 rc=0 

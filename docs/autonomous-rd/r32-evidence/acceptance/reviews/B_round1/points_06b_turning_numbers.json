@@ -1,0 +1,296 @@
+{
+ "block": "⑥",
+ "title": "转折表叙述数字回贴",
+ "rows": [
+  {
+   "block": "⑥",
+   "id": "N1-CPI 同比 2026-02",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI[2026-02-01, 2025-02-01]",
+   "kind": "point",
+   "computed": 2.434004,
+   "claim": 2.434,
+   "match": true,
+   "detail": "直算 2.434 → 取 2 位 2.43; 报告 2.434; "
+  },
+  {
+   "block": "⑥",
+   "id": "N2-CPI 同比 2026-05",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI[2026-05-01, 2025-05-01]",
+   "kind": "point",
+   "computed": 4.166615,
+   "claim": 4.1666,
+   "match": true,
+   "detail": "直算 4.16661 → 取 4 位 4.1666; 报告 4.1666; "
+  },
+  {
+   "block": "⑥",
+   "id": "N3-EA_HICP_YOY 2026-05",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-05-01]",
+   "kind": "point",
+   "computed": 3.2,
+   "claim": 3.2,
+   "match": true,
+   "detail": "直算 3.2 → 取 2 位 3.2; 报告 3.2; "
+  },
+  {
+   "block": "⑥",
+   "id": "N4-EA_HICP_YOY 2026-06",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-06-01]",
+   "kind": "point",
+   "computed": 2.8,
+   "claim": 2.8,
+   "match": true,
+   "detail": "直算 2.8 → 取 2 位 2.8; 报告 2.8; "
+  },
+  {
+   "block": "⑥",
+   "id": "N5-EA_HICP_YOY 2026-07",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-07-01]",
+   "kind": "point",
+   "computed": 2.9,
+   "claim": 2.9,
+   "match": true,
+   "detail": "直算 2.9 → 取 2 位 2.9; 报告 2.9; "
+  },
+  {
+   "block": "⑥",
+   "id": "N6-EA_HICP_YOY 2026-10",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-10-01]",
+   "kind": "point",
+   "computed": 4.0,
+   "claim": 4.0,
+   "match": true,
+   "detail": "直算 4 → 取 2 位 4.0; 报告 4.0; "
+  },
+  {
+   "block": "⑥",
+   "id": "N7-「2026-10 的 4.0 越过 2026-05 的 3.2」",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-05-01, 2026-10-01]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑥",
+   "id": "N8-CORE_CPI 同比 2026-02",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI[2026-02-01, 2025-02-01]",
+   "kind": "point",
+   "computed": 2.472462,
+   "claim": 2.4725,
+   "match": true,
+   "detail": "直算 2.47246 → 取 4 位 2.4725; 报告 2.4725; "
+  },
+  {
+   "block": "⑥",
+   "id": "N9-CORE_CPI 同比 2026-05",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI[2026-05-01, 2025-05-01]",
+   "kind": "point",
+   "computed": 2.822942,
+   "claim": 2.8229,
+   "match": true,
+   "detail": "直算 2.82294 → 取 4 位 2.8229; 报告 2.8229; "
+  },
+  {
+   "block": "⑥",
+   "id": "N10-「同窗核心涨幅小于 headline」",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI/CPI[2026-02, 2026-05]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 核心 Δ0.3505 < headline Δ1.7326"
+  },
+  {
+   "block": "⑥",
+   "id": "N11-CORE_CPI 同比 2026-08",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI[2026-08-01, 2025-08-01]",
+   "kind": "point",
+   "computed": 2.446163,
+   "claim": 2.4462,
+   "match": true,
+   "detail": "直算 2.44616 → 取 4 位 2.4462; 报告 2.4462; "
+  },
+  {
+   "block": "⑥",
+   "id": "N12-CORE_CPI 同比 2026-09(四位)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI[2026-09-01, 2025-09-01]",
+   "kind": "point",
+   "computed": 2.565841,
+   "claim": 2.5658,
+   "match": true,
+   "detail": "直算 2.56584 → 取 4 位 2.5658; 报告 2.5658; "
+  },
+  {
+   "block": "⑥",
+   "id": "N13-EA_HICP_YOY 同窗上行(百分点)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-02-01, 2026-05-01]",
+   "kind": "point",
+   "computed": 1.3,
+   "claim": 1.3,
+   "match": true,
+   "detail": "直算 1.3 → 取 2 位 1.3; 报告 1.3; "
+  },
+  {
+   "block": "⑥",
+   "id": "N14-INDPRO 同比 2025-11",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2025-11-01, 2024-11-01]",
+   "kind": "point",
+   "computed": 1.754312,
+   "claim": 1.7543,
+   "match": true,
+   "detail": "直算 1.75431 → 取 4 位 1.7543; 报告 1.7543; "
+  },
+  {
+   "block": "⑥",
+   "id": "N15-INDPRO 同比 2026-02",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2026-02-01, 2025-02-01]",
+   "kind": "point",
+   "computed": 0.797236,
+   "claim": 0.7972,
+   "match": true,
+   "detail": "直算 0.797236 → 取 4 位 0.7972; 报告 0.7972; "
+  },
+  {
+   "block": "⑥",
+   "id": "N16-INDPRO 三个月变化(百分点)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2025-11..2026-02]",
+   "kind": "point",
+   "computed": -0.957076,
+   "claim": -0.9571,
+   "match": true,
+   "detail": "直算 -0.957076 → 取 4 位 -0.9571; 报告 -0.9571; "
+  },
+  {
+   "block": "⑥",
+   "id": "N17-失业率 2025-11",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2025-11-01]",
+   "kind": "point",
+   "computed": 4.5,
+   "claim": 4.5,
+   "match": true,
+   "detail": "直算 4.5 → 取 2 位 4.5; 报告 4.5; "
+  },
+  {
+   "block": "⑥",
+   "id": "N18-失业率 2026-02",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-02-01]",
+   "kind": "point",
+   "computed": 4.4,
+   "claim": 4.4,
+   "match": true,
+   "detail": "直算 4.4 → 取 2 位 4.4; 报告 4.4; "
+  },
+  {
+   "block": "⑥",
+   "id": "N19-「就业端未同向走弱」(同窗失业率下降)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2025-11-01, 2026-02-01]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑥",
+   "id": "N20-「2026-03 见底后回升」: INDPRO 同比 2026 年内低点=2026-03, 其后各月均高于低点",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2026-01..2026-10]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 逐月同比(非单调, 06/07 回落但高于低点) 2026-01:0.97, 2026-02:0.80, 2026-03:0.69, 2026-04:1.43, 2026-05:1.71, 2026-06:1.47, 2026-07:1.25, 2026-08:1.45, 2026-09:2.14, 2026-10:2.15"
+  },
+  {
+   "block": "⑥",
+   "id": "N21-INDPRO 同比 2026-10",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2026-10-01, 2025-10-01]",
+   "kind": "point",
+   "computed": 2.149685,
+   "claim": 2.15,
+   "match": true,
+   "detail": "直算 2.14968 → 取 2 位 2.15; 报告 2.15; "
+  },
+  {
+   "block": "⑥",
+   "id": "N22-JP_POLICY_RATE 2026-04",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-04-01]",
+   "kind": "point",
+   "computed": 0.727,
+   "claim": 0.727,
+   "match": true,
+   "detail": "直算 0.727 → 取 2 位 0.73; 报告 0.727; "
+  },
+  {
+   "block": "⑥",
+   "id": "N23-JP_POLICY_RATE 2026-07",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-07-01]",
+   "kind": "point",
+   "computed": 0.978,
+   "claim": 0.978,
+   "match": true,
+   "detail": "直算 0.978 → 取 2 位 0.98; 报告 0.978; "
+  },
+  {
+   "block": "⑥",
+   "id": "N24-JP_POLICY_RATE 2026-06(过渡)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-06-01]",
+   "kind": "point",
+   "computed": 0.841,
+   "claim": 0.841,
+   "match": true,
+   "detail": "直算 0.841 → 取 2 位 0.84; 报告 0.841; "
+  },
+  {
+   "block": "⑥",
+   "id": "N25-「2026 年内第三个上行月均台阶(此前 2026-01 +17bp、2026-06 +11bp)」",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2025-09..2026-10]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 2026 年上行台阶(取整 bp): [('2026-01', 17), ('2026-06', 11), ('2026-07', 14), ('2026-09', 7), ('2026-10', 18)]"
+  },
+  {
+   "block": "⑥",
+   "id": "N26-JP_POLICY_RATE 2026-09",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-09-01]",
+   "kind": "point",
+   "computed": 1.043,
+   "claim": 1.043,
+   "match": true,
+   "detail": "直算 1.043 → 取 2 位 1.04; 报告 1.043; "
+  },
+  {
+   "block": "⑥",
+   "id": "N27-JP_POLICY_RATE 2026-10",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-10-01]",
+   "kind": "point",
+   "computed": 1.227,
+   "claim": 1.227,
+   "match": true,
+   "detail": "直算 1.227 → 取 2 位 1.23; 报告 1.227; "
+  },
+  {
+   "block": "⑥",
+   "id": "N28-台阶 2026-09 变动(bp, 整数)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-08-01, 2026-09-01]",
+   "kind": "point",
+   "computed": 6.6,
+   "claim": 7,
+   "match": true,
+   "detail": "直算 6.6 → 取 0 位 7.0; 报告 7; "
+  },
+  {
+   "block": "⑥",
+   "id": "N29-台阶 2026-10 变动(bp, 整数)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-09-01, 2026-10-01]",
+   "kind": "point",
+   "computed": 18.4,
+   "claim": 18,
+   "match": true,
+   "detail": "直算 18.4 → 取 0 位 18.0; 报告 18; "
+  }
+ ]
+}

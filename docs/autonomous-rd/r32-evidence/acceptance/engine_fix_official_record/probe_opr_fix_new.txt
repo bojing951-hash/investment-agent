@@ -1,0 +1,11 @@
+engine scripts: ~/investment-agent-product/scripts
+planner file  : ~/investment-agent-product/scripts/research_map_planner.py
+question      : 2026年11月,日本和欧元区的通胀与政策环境:两地央行当前官方政策目标利率各处于什么水平?最近六个月有无已决议但尚未生
+cutoff        : 2026-11-23 | planned pairs: [('EA', 'inflation'), ('EA', 'policy'), ('JP', 'inflation'), ('JP', 'policy')]
+CELL EA ECB_MRO            latest.status=ok cell.policy_dates=absent anchor.policy_dates.decision=2026-09-10 effective=2026-09-16
+CELL EA ECB_DFR            latest.status=ok cell.policy_dates=absent anchor.policy_dates.decision=2026-09-10 effective=2026-09-16
+CELL JP JP_POLICY_RATE     latest.status=ok cell.policy_dates=absent anchor.policy_dates.decision=None effective=None
+required_regions: ['EA', 'JP']
+rows            : [('JP', 'JP_POLICY_TARGET', 1.25)]
+gaps            : []
+blocked_class_of signature: (report, calendar_path=None)

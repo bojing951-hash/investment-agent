@@ -1,0 +1,29 @@
+diff --git a/scripts/research_map_planner.py b/scripts/research_map_planner.py
+index f0776ef..ee4f5ba 100644
+--- a/scripts/research_map_planner.py
++++ b/scripts/research_map_planner.py
+@@ -922,7 +922,10 @@ RELEASE_RULES = {
+     'CN_PMI_MFG':     ('monthly', -1, '国家统计局当月月末发布(月末−1天,推定)'),
+     'CN_CPI_YOY':     ('monthly', 9, '国家统计局次月9日前后发布(月末+9天,推定)'),
+     'CN_PPI_YOY':     ('monthly', 9, '国家统计局次月9日前后发布(月末+9天,推定)'),
+-    'CN_LPR_1Y':      ('monthly', -11, 'LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)'),
++    # Audit-R32 §K(正式验收工单A 独立审查第1轮 EO-1): 序列按实际公布日记
++    # 观测日(遇非工作日顺延),原「月末−11天」只在 31 天月份=20 日,把公布日
++    # 推早 1–4 天(2019-09 起 87 点中 49 点)→ 改「观测日=发布日,当日可见」
++    'CN_LPR_1Y':      ('daily', 0, 'LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)'),
+     'CN_OMO_7D':      ('daily', 0, '央行操作室交易日09:20披露交易公告(当日可见)'),
+     'CN_POLICY_OVERNIGHT': ('daily', 0, '央行操作室交易日09:20披露交易公告(当日可见;2026-11-02换锚后隔夜行)'),
+     'EA_HICP_YOY':    ('monthly', 16, 'Eurostat HICP 终值次月中旬发布(月末+16天,推定)'),
+@@ -2281,6 +2284,12 @@ def turning_candidates(plan, snap, root, top_n=3):
+                             probe = dd
+                     if probe is None:
+                         continue
++                    if probe > cutoff:
++                        # Audit-R32 §K: 观测日晚于截止日的月不入窗(与点值
++                        # 锚「观测日≤锚日且发布日≤锚日」同一口径)——推定
++                        # 发布日不晚于观测日的序列(如按公布日记的 LPR)
++                        # 不得因推定日放行晚观测
++                        continue
+                     pd_iso, _r = _visible_publish(mid, freq, probe)
+                     if pd_iso is None or pd_iso <= cutoff:
+                         pub_ok.add(ym)

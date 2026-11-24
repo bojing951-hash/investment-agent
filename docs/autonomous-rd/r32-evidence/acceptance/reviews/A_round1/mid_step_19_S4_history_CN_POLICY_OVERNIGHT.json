@@ -1,0 +1,68 @@
+{
+ "ok": true,
+ "capability": "history",
+ "engine_root": "/private/tmp/r32-accept/final6",
+ "snapshot_id": "research_snapshot_20261123",
+ "target_date": "20261123",
+ "research_as_of": "2026-11-23",
+ "gate_a": "DEGRADED",
+ "data": {
+  "series": {
+   "metric_id": "CN_POLICY_OVERNIGHT",
+   "label": "央行隔夜逆回购利率(政策利率锚)",
+   "unit": "percent",
+   "unit_family": "rate",
+   "frequency": "daily",
+   "identity": {
+    "instrument": "macro_series",
+    "is_proxy": false,
+    "proxy_of": null,
+    "adjustment": "none",
+    "market_seat": "onshore_local",
+    "economy": "CN"
+   },
+   "calc": "人民银行公开市场业务交易公告 隔夜期逆回购操作利率;Audit-R21 接线: 2026-11-02 起央行将政策利率锚自 7 天期切换为隔夜期(公告自该日仅含隔夜行,1.25%),fetch_macro_series 公告走查同源解析隔夜行产本序列(2026-11-02..在场,操作日=公告日);7 天工具(CN_OMO_7D)与 LPR(CN_LPR_1Y)单列不作废",
+   "n": 16,
+   "first": "2026-11-02",
+   "last": "2026-11-23",
+   "dates": [
+    "2026-11-02",
+    "2026-11-03",
+    "2026-11-04",
+    "2026-11-05",
+    "2026-11-06",
+    "2026-11-09",
+    "2026-11-10",
+    "2026-11-11",
+    "2026-11-12",
+    "2026-11-13",
+    "2026-11-16",
+    "2026-11-17",
+    "2026-11-18",
+    "2026-11-19",
+    "2026-11-20",
+    "2026-11-23"
+   ],
+   "values": [
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25,
+    1.25
+   ],
+   "source": "研究快照 series_store"
+  }
+ },
+ "warnings": []
+}

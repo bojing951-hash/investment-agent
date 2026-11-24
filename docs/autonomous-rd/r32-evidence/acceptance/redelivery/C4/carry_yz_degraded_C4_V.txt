@@ -1,0 +1,15 @@
+a94668e51bd6f2a7      16897  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/AGENT_SEAT_ENVELOPE.json
+75c281ebd5a360f6      26983  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/FULL_REPORT.md
+46b61bd4d4c9ec5a      54050  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/MAP_REPORT.md
+efbde6cdd44d29a4         80  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/MAP_REPORT.sha256
+7f9bcc62b5f1cd69      59765  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/agent_judgment.json
+37dd6407534bacbf       6538  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/evidence_index.json
+c8b0cb7685e67cee        248  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/question_verbatim.txt
+7e76d525aa5f6809    4669858  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/report.json
+36f3e1e5f4bd9aa8      43742  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/report.md
+e71a18c2e81904ed         56  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/views_digest.json
+fa396d22175a4814     125590  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/root_overlay/config/metric_registry.json
+e44fd2aa5ced0310      16009  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/root_overlay/config/release_calendar.json
+2de337533ef5fbac    5006177  output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/root_overlay/data/daily/research_snapshot_20261123.json
+16d682d9da71c5e1      18943  audit/semantic_review/20261124/VERDICT-20261123T235101Z-01.json
+carried 1 run dir(s) + verdict records: files=14 bytes=10044936, all sha256 equal to source

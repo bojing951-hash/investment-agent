@@ -1,0 +1,140 @@
+== C1-POLICY-DIVERGENCE class_b consumed set() n_b 0
+ [0] aliases=[] tokens=[]
+      政策维是四地中方向最清晰的分化： 美国与日本同向收紧、中国在可比口径上未变
+ [1] aliases=[] tokens=[]
+      美国联邦基金目标区间上限(引擎序列 DFEDTARU)三个月前锚为三点七五、最新为四，上限上调二十五
+ [2] aliases=[] tokens=[]
+      引擎政策事件簇记 2026-09-16 决议、2026-09-17 生效(决议日系引擎按生效日前一日推定)
+ [3] aliases=[] tokens=[]
+      近一年事件簇先降后升(2025-12-10 决议、2025-12-11 生效，下调二十五)
+ [4] aliases=[] tokens=[]
+      净变动为零
+ [5] aliases=['DFF', 'DFF'] tokens=[('3.63', 'plain')]
+      有效联邦基金利率(DFF)三个月前锚前值 3.63(观测 2026-08-22)
+ [6] aliases=['DFF'] tokens=[('3.88', 'plain')]
+      DFF 最新一期为 3.88(观测 2026-11-19，发布 2026-11-20，引擎推定规则，非日历实录)
+ [7] aliases=['JP_POLICY_RATE', 'JP_POLICY_RATE'] tokens=[('0.978', 'plain')]
+      日本 JP_POLICY_RATE(无担保隔夜拆借月均口径，非政策目标宣布值)三个月前锚前值 0.978(观测 2026-07)
+ [8] aliases=['JP_POLICY_RATE'] tokens=[('1.227', 'plain')]
+      JP_POLICY_RATE 最新一期为 1.227(观测 2026-10，发布 2026-11-05，引擎推定规则，非日历实录)
+ [9] aliases=[] tokens=[]
+      发布日历实录： 日本央行 2026-09-18 决议、2026-09-24 生效(宣布目标水平约一点二五)
+ [10] aliases=[] tokens=[]
+      2026-10-30 会议确认维持(维持条目无生效日)
+ [11] aliases=[] tokens=[]
+      美日两次决议日期相隔两日，属同一周内的同步收紧
+ [12] aliases=[] tokens=[]
+      美国决议日为引擎推定、日本决议日为日历实录，本档不据此排序先后
+ [13] aliases=['CN_LPR_1Y'] tokens=[('3', 'plain')]
+      中国 CN_LPR_1Y 三个月前锚前值 3(观测 2026-08-20)
+ [14] aliases=['CN_LPR_1Y'] tokens=[('3', 'plain')]
+      CN_LPR_1Y 最新一期为 3(观测 2026-11-20，发布 2026-11-20，发布日历实录)
+ [15] aliases=[] tokens=[]
+      中国七天逆回购利率三个月前锚与末次已发布观测均为一点四(末次 2026-10-30，引擎注记为过期： 末观测滞后二十四天、超出十天发布频率窗口)
+ [16] aliases=[] tokens=[]
+      隔夜利率(引擎注记 2026-11-02 换锚后的操作目标锚)的序列在三个月前锚(2026-08-23)前无已发布观测，该口径三个月对照不可得
+ [17] aliases=[] tokens=[]
+      综上，分化体现在中美、日中之间方向相反(收紧对未变)
+ [18] aliases=[] tokens=[]
+      美日之间为同步而非分化
+ [19] aliases=[] tokens=[]
+      「中国未变」仅就一年期 LPR 与七天逆回购口径成立
+ [20] aliases=[] tokens=[]
+      欧元区政策序列缺席，不纳入对照
+== C2-INFLATION-DIVERGENCE class_b consumed set() n_b 0
+ [0] aliases=[] tokens=[]
+      通胀维： 三地读数方向同向(均高于三个月前)
+ [1] aliases=['CN_CPI_YOY', 'CN_PPI_YOY'] tokens=[]
+      分化体现在水平，即日本回升至百分之二点四四、美国最近有效同比在三点七以上、中国CPI低位而PPI高位
+ [2] aliases=['CPI'] tokens=[]
+      日本全国消费者物价同比(引擎序列 JP_CPI_YOY)三个月前锚为百分之一点九七(观测 2026-07)
+ [3] aliases=[] tokens=[]
+      最新为百分之二点四四(观测 2026-10，发布 2026-11-20，引擎推定规则，非日历实录)
+ [4] aliases=['CPI'] tokens=[]
+      东京都同比(引擎序列 JP_CPI_TOKYO_YOY)由百分之一点八五升至百分之二点七三(三个月前锚观测 2026-07
+ [5] aliases=[] tokens=[]
+      最新观测 2026-10，发布 2026-10-30，引擎推定规则并含官方实测锚，非日历实录
+ [6] aliases=[] tokens=[]
+      该序列不在本轮证据索引，按降级口径引用)
+ [7] aliases=['CPI'] tokens=[('337.476', 'plain')]
+      美国 CPI 指数水平最新一期为 337.476(观测 2026-10，发布 2026-11-13，引擎推定规则，非日历实录)
+ [8] aliases=['CPI'] tokens=[]
+      CPI 最新月同比因缺上年同月基期观测不可得，最近有效同比百分之三点七二(观测 2026-09)
+ [9] aliases=[] tokens=[]
+      高于 2026-07 的百分之三点三零
+ [10] aliases=['CORE_CPI'] tokens=[('339.9', 'plain')]
+      CORE_CPI 最新一期为 339.9(观测 2026-10，发布 2026-11-13，引擎推定规则，非日历实录)
+ [11] aliases=['CORE_CPI'] tokens=[]
+      CORE_CPI 最近有效同比百分之二点五七(观测 2026-09)
+ [12] aliases=[] tokens=[]
+      高于 2026-07 的百分之二点四七
+ [13] aliases=['CORE_PCE'] tokens=[('130.902', 'plain')]
+      CORE_PCE 最新一期为 130.902(观测 2026-09，发布 2026-10-30，引擎推定规则，非日历实录)
+ [14] aliases=['CORE_PCE'] tokens=[]
+      CORE_PCE 同比由 2026-06 的百分之三点零四升至 2026-09 的百分之三点一二
+ [15] aliases=['CN_CPI_YOY'] tokens=[('0.5', 'plain')]
+      中国 CN_CPI_YOY 三个月前锚前值 0.5(观测 2026-07-01)
+ [16] aliases=['CN_CPI_YOY'] tokens=[('0.7', 'plain')]
+      CN_CPI_YOY 最新一期为 0.7(观测 2026-10，发布 2026-11-09，引擎推定规则，非日历实录)
+ [17] aliases=['CN_PPI_YOY'] tokens=[('3.5', 'plain')]
+      CN_PPI_YOY 三个月前锚前值 3.5(观测 2026-07-01)
+ [18] aliases=['CN_PPI_YOY'] tokens=[('5.7', 'plain')]
+      CN_PPI_YOY 最新一期为 5.7(观测 2026-10，发布 2026-11-09，引擎推定规则，非日历实录)
+ [19] aliases=['CN_CPI_YOY', 'CN_PPI_YOY'] tokens=[]
+      中国CPI低位而PPI高位并存
+ [20] aliases=['CN_CPI_YOY'] tokens=[]
+      分化因此体现在水平： 中国CPI远低于美国与日本
+ [21] aliases=[] tokens=[]
+      方向上未见经济体之间的反向
+== C3-GROWTH-LIMITED class_b consumed set() n_b 0
+ [0] aliases=[] tokens=[]
+      增长维： 可判证据只显示各经济体状态延续，未见经济体之间的方向性分化
+ [1] aliases=['US_REAL_GDP', 'US_REAL_GDP'] tokens=[('24611.077', 'plain')]
+      美国实际 GDP(US_REAL_GDP)最新一期为 24611.077(十亿美元，季观测 2026-07，发布 2026-10-29，引擎推定规则并含官方实测锚，非日历实录)
+ [2] aliases=['US_REAL_GDP'] tokens=[]
+      美国 GDP 同比百分之二点零七，低于三个月前锚所在季的百分之二点一九
+ [3] aliases=['UNEMPLOYMENT', 'UNEMPLOYMENT'] tokens=[('4.1', 'plain')]
+      失业率(UNEMPLOYMENT)三个月前锚前值 4.1(观测 2026-07-01)
+ [4] aliases=['UNEMPLOYMENT'] tokens=[('4.1', 'plain')]
+      UNEMPLOYMENT 最新一期为 4.1(观测 2026-10，发布 2026-11-05，引擎推定规则，非日历实录)
+ [5] aliases=['INDPRO', 'INDPRO'] tokens=[('103.3954', 'plain')]
+      工业生产指数(INDPRO)最新一期为 103.3954(观测 2026-10，发布 2026-11-15，引擎推定规则，非日历实录)
+ [6] aliases=['INDPRO'] tokens=[]
+      INDPRO 同比百分之二点一五，高于三个月前锚的百分之一点二五
+ [7] aliases=['CN_PMI_MFG', 'CN_PMI_MFG'] tokens=[('49.2', 'plain')]
+      中国制造业 PMI(CN_PMI_MFG)三个月前锚前值 49.2(观测 2026-07-01)
+ [8] aliases=['CN_PMI_MFG'] tokens=[('49.3', 'plain')]
+      CN_PMI_MFG 最新一期为 49.3(观测 2026-10，发布 2026-10-30，引擎推定规则，非日历实录)
+ [9] aliases=[] tokens=[]
+      两期均在荣枯线下方
+ [10] aliases=['US_REAL_GDP', 'US_REAL_GDP'] tokens=[]
+      日本实际 GDP 同比(引擎序列 JP_REAL_GDP_YOY)由 2026-04 的百分之零点八零升至 2026-07 的百分之一点一六(最新一期发布 2026-11-14，引擎推定规则，非日历实录
+ [11] aliases=[] tokens=[]
+      三个月前锚所在季发布 2026-08-14
+ [12] aliases=[] tokens=[]
+      该序列不在本轮证据索引，按降级口径引用)
+ [13] aliases=['UNEMPLOYMENT'] tokens=[]
+      小结： 美国增长面同比读数有升有降、失业率持平，中国制造业景气在荣枯线下方，日本增长读数高于三个月前
+ [14] aliases=[] tokens=[]
+      增长维的「经济体之间分化」证据不足以单独成论，欧元区增长序列缺席不纳入对照
+== C4-EVIDENCE-BOUNDARY class_b consumed set() n_b 0
+ [0] aliases=[] tokens=[]
+      证据边界(对应问题第三问)： 欧元区增长、通胀、政策三维序列在本证据面全部缺席(检索范围=快照 series_store+注册表采集档通道)
+ [1] aliases=[] tokens=[]
+      涉及欧元区的横向分化均证据不足
+ [2] aliases=['DAX'] tokens=[('25209.45', 'plain')]
+      欧元区资产面在场(DAX 最新一期为 25209.45(观测 2026-11-23，盘中快照、非收盘价))
+ [3] aliases=[] tokens=[]
+      但资产价格是预期与定价的混合，不替代宏观基本面
+ [4] aliases=[] tokens=[]
+      市场面(独立证据层)： 引擎近一月窗(2026-10-23→2026-11-23
+ [5] aliases=['NIKKEI225', 'SPX', 'NIKKEI225', 'SHCOMP', 'DAX', 'VIX'] tokens=[('-5.51%', 'percent'), ('-4.11%', 'percent'), ('+0.11%', 'percent'), ('+38.87%', 'percent')]
+      NIKKEI225 止于 2026-11-20 收盘)SPX -5.51%、NIKKEI225 -9.98%、SHCOMP -4.11%、DAX +0.11%、VIX +38.87%，该窗止于盘中快照(非收盘价)
+ [6] aliases=['SPX', 'NIKKEI225', 'SHCOMP', 'DAX', 'VIX'] tokens=[]
+      同日收盘口径(2026-10-23→2026-11-20)近一月： 标普500指数下跌百分之九点三六、日经225下跌百分之九点九八、上证综指下跌百分之四点二五、DAX 下跌百分之一点五零、VIX 上涨百分之八十四点五二，两种口径下美日股指跌幅均相近
+ [7] aliases=[] tokens=[]
+      市场表现的分化是事实，把跌幅差直接当作宏观环境分化属推断而非事实
+ [8] aliases=[] tokens=[]
+      凡以「美、欧、中、日四地」为主语的横向分化结论，在本证据面均证据不足
+ [9] aliases=['CPI'] tokens=[]
+      另有两项口径不可得： 美国 CPI 最新月同比(缺上年同月基期观测)与中国隔夜政策利率的三个月前锚(序列自 2026-11-02 起)

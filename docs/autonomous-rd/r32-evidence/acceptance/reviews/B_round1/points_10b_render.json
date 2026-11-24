@@ -1,0 +1,46 @@
+{
+ "block": "⑩",
+ "title": "读者报告渲染一致性: 判断文字逐串回贴 + verdict_note/narrative 不进渲染",
+ "rows": [
+  {
+   "block": "⑩",
+   "id": "R1-判断正文串(陈述/并列解释/机制链/情景/走位/传导/类比注记)在读者报告(MAP_REPORT/FULL_REPORT/report)逐字在场条数",
+   "source": "agent_judgment.json(l3/l4/reader_map) ↔ MAP_REPORT.md/FULL_REPORT.md/report.md",
+   "kind": "point",
+   "computed": 59,
+   "claim": 59,
+   "match": true,
+   "detail": "直算 59 → 取 0 位 59; 报告 59; 应渲染 59 串; 未逐字在场: []"
+  },
+  {
+   "block": "⑩",
+   "id": "R3-美国走位段(渲染面)未含 CORE_PCE(83 天/60 天)与 US_REAL_GDP(145 天/120 天)的契约 STALE 滞后披露(该披露仅在 quality_gate_notes[3])",
+   "source": "agent_judgment.json:reader_map.regions[US].from_to; quality_gate_notes[3]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 披露落位: 仅在不进渲染的字段"
+  },
+  {
+   "block": "⑩",
+   "id": "R1b-quality_gate_notes 六条在读者报告中的渲染情况",
+   "source": "发现(记 MINOR, 不计复算偏离): 六条质量门披露均不进读者报告渲染; 关键词在场情况 {\"盘中快照标注\": [\"MAP_REPORT.md\"], \"STALE字样\": [], \"滞后83天(CORE_PCE)\": [], \"滞后145天\": [\"MAP_REPORT.md\"], \"按降级口径引用\": [\"MAP_REPORT.md\"], \"缺基期\": [\"MAP_REPORT.md\", \"FULL_REPORT.md\", \"report.md\"], \"政策条目仅2条\": [\"MAP_REPORT.md\"]}",
+   "kind": "probe",
+   "computed": "agent_judgment.json:quality_gate_notes ↔ MAP_REPORT.md/FULL_REPORT.md/report.md",
+   "claim": "未渲染 6/6",
+   "match": null,
+   "detail": "探针(不计点): "
+  },
+  {
+   "block": "⑩",
+   "id": "R2-「verdict_note 字段与转折面 narrative 字段不进渲染」: 该类串在三个渲染文件中均不出现",
+   "source": "agent_judgment.json:reader_map.transmission[*].links[*].verdict_note; reader_map.turnings[*].narrative",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 该类串 6 条; 泄漏 0: []"
+  }
+ ]
+}

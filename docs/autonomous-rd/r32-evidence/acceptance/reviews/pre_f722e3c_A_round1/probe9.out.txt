@@ -1,0 +1,912 @@
+{
+ "fact_id": "BRENT_F@2026-11-23",
+ "value": 88.83,
+ "observation_date": "2026-11-23",
+ "derived": {
+  "end": {
+   "date": "2026-11-23",
+   "value": 88.830002,
+   "sessions_available": 2516
+  },
+  "week": {
+   "basis_date": "2026-11-20",
+   "basis_value": 92.57,
+   "window": "ISO周(2026-11-23起)之前最后观测为基准",
+   "sessions_in_window": 1,
+   "expected_sessions": 2,
+   "pct_change": -4.0402,
+   "formula": "(2026-11-23值/2026-11-20值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "mtd": {
+   "basis_date": "2026-10-30",
+   "basis_value": 117.639999,
+   "window": "前一日历月(2026-10)最后观测为基准",
+   "sessions_in_window": 16,
+   "expected_sessions": 17,
+   "pct_change": -24.49,
+   "formula": "(2026-11-23值/2026-10-30值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "ytd": {
+   "basis_date": "2025-12-31",
+   "basis_value": 60.849998,
+   "window": "前一年度(2025)最后观测为基准",
+   "sessions_in_window": 225,
+   "expected_sessions": 226,
+   "pct_change": 45.9819,
+   "formula": "(2026-11-23值/2025-12-31值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m1": {
+   "basis_date": "2026-10-23",
+   "basis_value": 116.720001,
+   "window": "end−1自然月(2026-10-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 21,
+   "expected_sessions": 22,
+   "pct_change": -23.8948,
+   "formula": "(2026-11-23值/2026-10-23值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m3": {
+   "basis_date": "2026-08-21",
+   "basis_value": 94.389999,
+   "window": "end−3自然月(2026-08-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 65,
+   "expected_sessions": 66,
+   "pct_change": -5.8905,
+   "formula": "(2026-11-23值/2026-08-21值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m6": {
+   "basis_date": "2026-05-22",
+   "basis_value": 103.540001,
+   "window": "end−6自然月(2026-05-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 127,
+   "expected_sessions": 128,
+   "pct_change": -14.2071,
+   "formula": "(2026-11-23值/2026-05-22值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m12": {
+   "basis_date": "2025-11-21",
+   "basis_value": 62.560001,
+   "window": "end−12自然月(去年同月2025-11)锚定,同比基期=该月观测(≤锚日最后观测)",
+   "sessions_in_window": 251,
+   "expected_sessions": 252,
+   "pct_change": 41.9917,
+   "formula": "(2026-11-23值/2025-11-21值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  }
+ },
+ "quality_status": "PASS",
+ "issues": [],
+ "release_note": null
+}
+{
+ "fact_id": "VIX@2026-11-23",
+ "value": 30.24,
+ "observation_date": "2026-11-23",
+ "derived": {
+  "end": {
+   "date": "2026-11-23",
+   "value": 30.24,
+   "sessions_available": 2515
+  },
+  "week": {
+   "basis_date": "2026-11-20",
+   "basis_value": 35.889999,
+   "window": "ISO周(2026-11-23起)之前最后观测为基准",
+   "sessions_in_window": 1,
+   "expected_sessions": 2,
+   "pct_change": -15.7425,
+   "formula": "(2026-11-23值/2026-11-20值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "mtd": {
+   "basis_date": "2026-10-30",
+   "basis_value": 19.42,
+   "window": "前一日历月(2026-10)最后观测为基准",
+   "sessions_in_window": 16,
+   "expected_sessions": 17,
+   "pct_change": 55.7158,
+   "formula": "(2026-11-23值/2026-10-30值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "ytd": {
+   "basis_date": "2025-12-31",
+   "basis_value": 14.95,
+   "window": "前一年度(2025)最后观测为基准",
+   "sessions_in_window": 227,
+   "expected_sessions": 226,
+   "pct_change": 102.2742,
+   "formula": "(2026-11-23值/2025-12-31值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m1": {
+   "basis_date": "2026-10-23",
+   "basis_value": 19.450001,
+   "window": "end−1自然月(2026-10-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 21,
+   "expected_sessions": 22,
+   "pct_change": 55.4756,
+   "formula": "(2026-11-23值/2026-10-23值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m3": {
+   "basis_date": "2026-08-21",
+   "basis_value": 15.13,
+   "window": "end−3自然月(2026-08-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 66,
+   "expected_sessions": 66,
+   "pct_change": 99.8678,
+   "formula": "(2026-11-23值/2026-08-21值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m6": {
+   "basis_date": "2026-05-22",
+   "basis_value": 16.700001,
+   "window": "end−6自然月(2026-05-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 129,
+   "expected_sessions": 128,
+   "pct_change": 81.0778,
+   "formula": "(2026-11-23值/2026-05-22值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m12": {
+   "basis_date": "2025-11-21",
+   "basis_value": 23.43,
+   "window": "end−12自然月(去年同月2025-11)锚定,同比基期=该月观测(≤锚日最后观测)",
+   "sessions_in_window": 253,
+   "expected_sessions": 252,
+   "pct_change": 29.0653,
+   "formula": "(2026-11-23值/2025-11-21值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  }
+ },
+ "quality_status": "PASS",
+ "issues": [],
+ "release_note": null
+}
+{
+ "fact_id": "DAX@2026-11-23",
+ "value": 25039.1,
+ "observation_date": "2026-11-23",
+ "derived": {
+  "end": {
+   "date": "2026-11-23",
+   "value": 25039.099609,
+   "sessions_available": 2538
+  },
+  "week": {
+   "basis_date": "2026-11-20",
+   "basis_value": 24802.779297,
+   "window": "ISO周(2026-11-23起)之前最后观测为基准",
+   "sessions_in_window": 1,
+   "expected_sessions": 2,
+   "pct_change": 0.9528,
+   "formula": "(2026-11-23值/2026-11-20值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "mtd": {
+   "basis_date": "2026-10-30",
+   "basis_value": 25818.210938,
+   "window": "前一日历月(2026-10)最后观测为基准",
+   "sessions_in_window": 16,
+   "expected_sessions": 17,
+   "pct_change": -3.0177,
+   "formula": "(2026-11-23值/2026-10-30值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "ytd": {
+   "basis_date": "2025-12-30",
+   "basis_value": 24490.410156,
+   "window": "前一年度(2025)最后观测为基准",
+   "sessions_in_window": 229,
+   "expected_sessions": 234,
+   "pct_change": 2.2404,
+   "formula": "(2026-11-23值/2025-12-30值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m1": {
+   "basis_date": "2026-10-23",
+   "basis_value": 25181.650391,
+   "window": "end−1自然月(2026-10-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 21,
+   "expected_sessions": 22,
+   "pct_change": -0.5661,
+   "formula": "(2026-11-23值/2026-10-23值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m3": {
+   "basis_date": "2026-08-21",
+   "basis_value": 26136.560547,
+   "window": "end−3自然月(2026-08-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 66,
+   "expected_sessions": 67,
+   "pct_change": -4.1989,
+   "formula": "(2026-11-23值/2026-08-21值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m6": {
+   "basis_date": "2026-05-22",
+   "basis_value": 24888.560547,
+   "window": "end−6自然月(2026-05-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 131,
+   "expected_sessions": 132,
+   "pct_change": 0.6049,
+   "formula": "(2026-11-23值/2026-05-22值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m12": {
+   "basis_date": "2025-11-21",
+   "basis_value": 23091.869141,
+   "window": "end−12自然月(去年同月2025-11)锚定,同比基期=该月观测(≤锚日最后观测)",
+   "sessions_in_window": 253,
+   "expected_sessions": 260,
+   "pct_change": 8.4325,
+   "formula": "(2026-11-23值/2025-11-21值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  }
+ },
+ "quality_status": "PASS",
+ "issues": [],
+ "release_note": null
+}
+{
+ "fact_id": "USDJPY@2026-11-23",
+ "value": 158.96,
+ "observation_date": "2026-11-23",
+ "derived": {
+  "end": {
+   "date": "2026-11-23",
+   "value": 158.955994,
+   "sessions_available": 2601
+  },
+  "week": {
+   "basis_date": "2026-11-20",
+   "basis_value": 159.707001,
+   "window": "ISO周(2026-11-23起)之前最后观测为基准",
+   "sessions_in_window": 1,
+   "expected_sessions": 2,
+   "pct_change": -0.4702,
+   "formula": "(2026-11-23值/2026-11-20值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "mtd": {
+   "basis_date": "2026-10-30",
+   "basis_value": 157.804001,
+   "window": "前一日历月(2026-10)最后观测为基准",
+   "sessions_in_window": 16,
+   "expected_sessions": 17,
+   "pct_change": 0.73,
+   "formula": "(2026-11-23值/2026-10-30值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "ytd": {
+   "basis_date": "2025-12-31",
+   "basis_value": 156.412994,
+   "window": "前一年度(2025)最后观测为基准",
+   "sessions_in_window": 232,
+   "expected_sessions": 234,
+   "pct_change": 1.6258,
+   "formula": "(2026-11-23值/2025-12-31值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m1": {
+   "basis_date": "2026-10-23",
+   "basis_value": 156.494003,
+   "window": "end−1自然月(2026-10-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 21,
+   "expected_sessions": 22,
+   "pct_change": 1.5732,
+   "formula": "(2026-11-23值/2026-10-23值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m3": {
+   "basis_date": "2026-08-21",
+   "basis_value": 158.882996,
+   "window": "end−3自然月(2026-08-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 66,
+   "expected_sessions": 67,
+   "pct_change": 0.0459,
+   "formula": "(2026-11-23值/2026-08-21值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m6": {
+   "basis_date": "2026-05-22",
+   "basis_value": 159.018005,
+   "window": "end−6自然月(2026-05-23)锚定,取≤该日最后观测",
+   "sessions_in_window": 131,
+   "expected_sessions": 132,
+   "pct_change": -0.039,
+   "formula": "(2026-11-23值/2026-05-22值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  },
+  "m12": {
+   "basis_date": "2025-11-21",
+   "basis_value": 157.369003,
+   "window": "end−12自然月(去年同月2025-11)锚定,同比基期=该月观测(≤锚日最后观测)",
+   "sessions_in_window": 259,
+   "expected_sessions": 262,
+   "pct_change": 1.0085,
+   "formula": "(2026-11-23值/2025-11-21值−1)×100",
+   "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+  }
+ },
+ "quality_status": "PASS",
+ "issues": [],
+ "release_note": null
+}
+{
+ "fact_id": "HY_OAS@2026-11-19",
+ "value": 3.52,
+ "observation_date": "2026-11-19",
+ "derived": {
+  "end": {
+   "date": "2026-11-19",
+   "value": 3.52,
+   "sessions_available": 786
+  },
+  "week": {
+   "basis_date": "2026-11-13",
+   "basis_value": 3.23,
+   "window": "ISO周(2026-11-16起)之前最后观测为基准",
+   "sessions_in_window": 4,
+   "expected_sessions": 5,
+   "pp_change": 0.29,
+   "bp_change": 29.0,
+   "formula": "2026-11-19值−2026-11-13值(百分点;1pp=100bp)"
+  },
+  "mtd": {
+   "basis_date": "2026-10-30",
+   "basis_value": 3.44,
+   "window": "前一日历月(2026-10)最后观测为基准",
+   "sessions_in_window": 14,
+   "expected_sessions": 15,
+   "pp_change": 0.08,
+   "bp_change": 8.0,
+   "formula": "2026-11-19值−2026-10-30值(百分点;1pp=100bp)"
+  },
+  "ytd": {
+   "basis_date": "2025-12-31",
+   "basis_value": 2.81,
+   "window": "前一年度(2025)最后观测为基准",
+   "sessions_in_window": 233,
+   "expected_sessions": 224,
+   "pp_change": 0.71,
+   "bp_change": 71.0,
+   "formula": "2026-11-19值−2025-12-31值(百分点;1pp=100bp)"
+  },
+  "m1": {
+   "basis_date": "2026-10-19",
+   "basis_value": 3.29,
+   "window": "end−1自然月(2026-10-19)锚定,取≤该日最后观测",
+   "sessions_in_window": 23,
+   "expected_sessions": 24,
+   "pp_change": 0.23,
+   "bp_change": 23.0,
+   "formula": "2026-11-19值−2026-10-19值(百分点;1pp=100bp)"
+  },
+  "m3": {
+   "basis_date": "2026-08-19",
+   "basis_value": 2.73,
+   "window": "end−3自然月(2026-08-19)锚定,取≤该日最后观测",
+   "sessions_in_window": 66,
+   "expected_sessions": 66,
+   "pp_change": 0.79,
+   "bp_change": 79.0,
+   "formula": "2026-11-19值−2026-08-19值(百分点;1pp=100bp)"
+  },
+  "m6": {
+   "basis_date": "2026-05-19",
+   "basis_value": 2.86,
+   "window": "end−6自然月(2026-05-19)锚定,取≤该日最后观测",
+   "sessions_in_window": 133,
+   "expected_sessions": 129,
+   "pp_change": 0.66,
+   "bp_change": 66.0,
+   "formula": "2026-11-19值−2026-05-19值(百分点;1pp=100bp)"
+  },
+  "m12": {
+   "basis_date": "2025-11-19",
+   "basis_value": 3.17,
+   "window": "end−12自然月(去年同月2025-11)锚定,同比基期=该月观测(≤锚日最后观测)",
+   "sessions_in_window": 263,
+   "expected_sessions": 252,
+   "pp_change": 0.35,
+   "bp_change": 35.0,
+   "formula": "2026-11-19值−2025-11-19值(百分点;1pp=100bp)"
+  }
+ },
+ "quality_status": "PASS",
+ "issues": [],
+ "release_note": null
+}
+{
+ "fact_id": "BEI_10Y@2026-11-20",
+ "value": 2.15,
+ "observation_date": "2026-11-20",
+ "derived": {
+  "end": {
+   "date": "2026-11-20",
+   "value": 2.15,
+   "sessions_available": 2498
+  },
+  "week": {
+   "basis_date": "2026-11-13",
+   "basis_value": 2.24,
+   "window": "ISO周(2026-11-16起)之前最后观测为基准",
+   "sessions_in_window": 5,
+   "expected_sessions": 6,
+   "pp_change": -0.09,
+   "bp_change": -9.0,
+   "formula": "2026-11-20值−2026-11-13值(百分点;1pp=100bp)"
+  },
+  "mtd": {
+   "basis_date": "2026-10-30",
+   "basis_value": 2.34,
+   "window": "前一日历月(2026-10)最后观测为基准",
+   "sessions_in_window": 14,
+   "expected_sessions": 16,
+   "pp_change": -0.19,
+   "bp_change": -19.0,
+   "formula": "2026-11-20值−2026-10-30值(百分点;1pp=100bp)"
+  },
+  "ytd": {
+   "basis_date": "2025-12-31",
+   "basis_value": 2.25,
+   "window": "前一年度(2025)最后观测为基准",
+   "sessions_in_window": 223,
+   "expected_sessions": 225,
+   "pp_change": -0.1,
+   "bp_change": -10.0,
+   "formula": "2026-11-20值−2025-12-31值(百分点;1pp=100bp)"
+  },
+  "m1": {
+   "basis_date": "2026-10-20",
+   "basis_value": 2.35,
+   "window": "end−1自然月(2026-10-20)锚定,取≤该日最后观测",
+   "sessions_in_window": 22,
+   "expected_sessions": 24,
+   "pp_change": -0.2,
+   "bp_change": -20.0,
+   "formula": "2026-11-20值−2026-10-20值(百分点;1pp=100bp)"
+  },
+  "m3": {
+   "basis_date": "2026-08-20",
+   "basis_value": 2.34,
+   "window": "end−3自然月(2026-08-20)锚定,取≤该日最后观测",
+   "sessions_in_window": 63,
+   "expected_sessions": 66,
+   "pp_change": -0.19,
+   "bp_change": -19.0,
+   "formula": "2026-11-20值−2026-08-20值(百分点;1pp=100bp)"
+  },
+  "m6": {
+   "basis_date": "2026-05-20",
+   "basis_value": 2.44,
+   "window": "end−6自然月(2026-05-20)锚定,取≤该日最后观测",
+   "sessions_in_window": 126,
+   "expected_sessions": 129,
+   "pp_change": -0.29,
+   "bp_change": -29.0,
+   "formula": "2026-11-20值−2026-05-20值(百分点;1pp=100bp)"
+  },
+  "m12": {
+   "basis_date": "2025-11-20",
+   "basis_value": 2.24,
+   "window": "end−12自然月(去年同月2025-11)锚定,同比基期=该月观测(≤锚日最后观测)",
+   "sessions_in_window": 250,
+   "expected_sessions": 252,
+   "pp_change": -0.09,
+   "bp_change": -9.0,
+   "formula": "2026-11-20值−2025-11-20值(百分点;1pp=100bp)"
+  }
+ },
+ "quality_status": "PASS",
+ "issues": [],
+ "release_note": null
+}
+{
+ "fact_id": "JP_POLICY_RATE@2026-10-01",
+ "value": 1.227,
+ "observation_date": "2026-10-01",
+ "derived": null,
+ "quality_status": "WARN",
+ "issues": [
+  {
+   "category": "release",
+   "severity": "WARN",
+   "message": "JP_POLICY_RATE发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+  }
+ ],
+ "release_note": null
+}
+
+=== report.agent_judgment keys ===
+['attached', 'attached_at', 'judgment_file', 'schema_version', 'validation', 'contract_verification', 'run_ok_at_attach', 'allow_failed_run', 'reader_map_faces']
+=== contract_verification ===
+{
+ "version": "jc-v1.0-phase4",
+ "verdicts": [
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "UST_10Y"
+   ],
+   "family": "level",
+   "token": "5.04",
+   "metric": "UST_10Y",
+   "value": 5.04,
+   "expected": 5.04,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 UST_10Y@2026-11-19=5.04"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "TIPS_10Y"
+   ],
+   "family": "level",
+   "token": "2.88",
+   "metric": "TIPS_10Y",
+   "value": 2.88,
+   "expected": 2.88,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 TIPS_10Y@2026-11-19=2.88"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "BEI_10Y"
+   ],
+   "family": "level",
+   "token": "2.15",
+   "metric": "BEI_10Y",
+   "value": 2.15,
+   "expected": 2.15,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 BEI_10Y@2026-11-20=2.15"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "VIX"
+   ],
+   "family": "level",
+   "token": "30.24",
+   "metric": "VIX",
+   "value": 30.24,
+   "expected": 30.24,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 VIX@2026-11-23=30.24"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "HY_OAS"
+   ],
+   "family": "level",
+   "token": "3.52",
+   "metric": "HY_OAS",
+   "value": 3.52,
+   "expected": 3.52,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 HY_OAS@2026-11-19=3.52"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "USDJPY"
+   ],
+   "family": "level",
+   "token": "158.96",
+   "metric": "USDJPY",
+   "value": 158.96,
+   "expected": 158.96,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 USDJPY@2026-11-23=158.96"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "DFF"
+   ],
+   "family": "level",
+   "token": "3.88",
+   "metric": "DFF",
+   "value": 3.88,
+   "expected": 3.88,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 DFF@2026-11-19=3.88"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "JP_POLICY_RATE"
+   ],
+   "family": "level",
+   "token": "1.227",
+   "metric": "JP_POLICY_RATE",
+   "value": 1.227,
+   "expected": 1.227,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_PPI_YOY"
+   ],
+   "family": "level",
+   "token": "5.7",
+   "metric": "CN_PPI_YOY",
+   "value": 5.7,
+   "expected": 5.7,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_CPI_YOY"
+   ],
+   "family": "level",
+   "token": "0.7",
+   "metric": "CN_CPI_YOY",
+   "value": 0.7,
+   "expected": 0.7,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_PMI_MFG"
+   ],
+   "family": "level",
+   "token": "49.3",
+   "metric": "CN_PMI_MFG",
+   "value": 49.3,
+   "expected": 49.3,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3"
+  },
+  {
+   "item": "C3.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_PPI_YOY"
+   ],
+   "family": "level",
+   "token": "5.7",
+   "metric": "CN_PPI_YOY",
+   "value": 5.7,
+   "expected": 5.7,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7"
+  },
+  {
+   "item": "C3.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_CPI_YOY"
+   ],
+   "family": "level",
+   "token": "0.7",
+   "metric": "CN_CPI_YOY",
+   "value": 0.7,
+   "expected": 0.7,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7"
+  },
+  {
+   "item": "C3.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_PMI_MFG"
+   ],
+   "family": "level",
+   "token": "49.3",
+   "metric": "CN_PMI_MFG",
+   "value": 49.3,
+   "expected": 49.3,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3"
+  }
+ ],
+ "six_checks": [
+  {
+   "item": "C1",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "17 实据引用"
+  },
+  {
+   "item": "C1",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C1",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "3 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C1",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "C2",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "4 实据引用"
+  },
+  {
+   "item": "C2",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上; 披露: UST_10Y@2026-11-19 未在文本展开"
+  },
+  {
+   "item": "C2",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C2",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "未讨论的被引指标(披露): ['UST_10Y']"
+  },
+  {
+   "item": "C3",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "4 实据引用"
+  },
+  {
+   "item": "C3",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上; 披露: USDCNY@2026-11-23 未在文本展开"
+  },
+  {
+   "item": "C3",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "3 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C3",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "未讨论的被引指标(披露): ['USDCNY']"
+  },
+  {
+   "item": "SCN1",
+   "check": "overreach",
+   "status": "VERIFIED",
+   "note": "tier=有历史相似证据 条件式✓"
+  },
+  {
+   "item": "SCN1",
+   "check": "falsifiable",
+   "status": "VERIFIED",
+   "note": "指标+阈值形态✓"
+  },
+  {
+   "item": "SCN2",
+   "check": "overreach",
+   "status": "VERIFIED",
+   "note": "tier=有历史相似证据 条件式✓"
+  },
+  {
+   "item": "SCN2",
+   "check": "falsifiable",
+   "status": "VERIFIED",
+   "note": "指标+阈值形态✓"
+  }
+ ],
+ "map_checks": [
+  {
+   "item": "reader_map.headline_conclusion",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "非空",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.regions",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "4 地齐",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.turning_supplement",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "补选转折 JP_CPI_TOKYO_YOY@2026-09 已交还判断席(first_mover=东京都CPI同比自1.6升至2.69(2026-)",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.date_order",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "日期次序主张一致: 2025-11<2026-02(早于,1 处)",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.chain_evidence",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "传导链[TR1] 区分指标绑定 3/3 环",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.chain_evidence",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "传导链[TR2] 区分指标绑定 1/1 环",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.turning_source",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "转折表 3 项指标与计划/候选面同源",
+   "evidence_refs": []
+  }
+ ],
+ "unresolved_unbound": [],
+ "verdict": "VERIFIED",
+ "stats": {
+  "checks": 14,
+  "contradicted": 0,
+  "verified": 14,
+  "unbound": 0,
+  "six_fail": 0,
+  "map_fail": 0,
+  "n_contradictions": 3
+ }
+}
+attached: True
+attached_at: 20261123T133613Z
+judgment_file: judgment2_A.json
+schema_version: 1.1
+validation: {"passed": true, "violations": [], "n_contradictions": 3, "n_mechanism_chains": 2, "n_scenarios": 2}
+run_ok_at_attach: True
+allow_failed_run: False
+reader_map_faces: {"complete": true, "headline": true, "regions_ok": true, "transmission_chains": 2, "turnings_n": 3, "history_n": 3}

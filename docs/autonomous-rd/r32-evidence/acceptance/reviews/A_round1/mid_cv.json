@@ -1,0 +1,390 @@
+{
+ "version": "jc-v1.0-phase4",
+ "verdicts": [
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "DFF"
+   ],
+   "family": "level",
+   "token": "3.88",
+   "metric": "DFF",
+   "value": 3.88,
+   "expected": 3.88,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 DFF@2026-11-19=3.88"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "UST_10Y"
+   ],
+   "family": "level",
+   "token": "5.04",
+   "metric": "UST_10Y",
+   "value": 5.04,
+   "expected": 5.04,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 UST_10Y@2026-11-19=5.04"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "TIPS_10Y"
+   ],
+   "family": "level",
+   "token": "2.88",
+   "metric": "TIPS_10Y",
+   "value": 2.88,
+   "expected": 2.88,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 TIPS_10Y@2026-11-19=2.88"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "BEI_10Y"
+   ],
+   "family": "level",
+   "token": "2.15",
+   "metric": "BEI_10Y",
+   "value": 2.15,
+   "expected": 2.15,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 BEI_10Y@2026-11-20=2.15"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "VIX"
+   ],
+   "family": "level",
+   "token": "27.01",
+   "metric": "VIX",
+   "value": 27.01,
+   "expected": 27.01,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 VIX@2026-11-23=27.01"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "HY_OAS"
+   ],
+   "family": "level",
+   "token": "3.52",
+   "metric": "HY_OAS",
+   "value": 3.52,
+   "expected": 3.52,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 HY_OAS@2026-11-19=3.52"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "USDJPY"
+   ],
+   "family": "level",
+   "token": "159.35",
+   "metric": "USDJPY",
+   "value": 159.35,
+   "expected": 159.35,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 USDJPY@2026-11-23=159.35"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "DFF"
+   ],
+   "family": "level",
+   "token": "3.88",
+   "metric": "DFF",
+   "value": 3.88,
+   "expected": 3.88,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 DFF@2026-11-19=3.88"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "JP_POLICY_RATE"
+   ],
+   "family": "level",
+   "token": "1.227",
+   "metric": "JP_POLICY_RATE",
+   "value": 1.227,
+   "expected": 1.227,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_PPI_YOY"
+   ],
+   "family": "level",
+   "token": "5.7",
+   "metric": "CN_PPI_YOY",
+   "value": 5.7,
+   "expected": 5.7,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_CPI_YOY"
+   ],
+   "family": "level",
+   "token": "0.7",
+   "metric": "CN_CPI_YOY",
+   "value": 0.7,
+   "expected": 0.7,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7"
+  },
+  {
+   "item": "C1.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_PMI_MFG"
+   ],
+   "family": "level",
+   "token": "49.3",
+   "metric": "CN_PMI_MFG",
+   "value": 49.3,
+   "expected": 49.3,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3"
+  },
+  {
+   "item": "C3.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_PPI_YOY"
+   ],
+   "family": "level",
+   "token": "5.7",
+   "metric": "CN_PPI_YOY",
+   "value": 5.7,
+   "expected": 5.7,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7"
+  },
+  {
+   "item": "C3.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_CPI_YOY"
+   ],
+   "family": "level",
+   "token": "0.7",
+   "metric": "CN_CPI_YOY",
+   "value": 0.7,
+   "expected": 0.7,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7"
+  },
+  {
+   "item": "C3.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_PMI_MFG"
+   ],
+   "family": "level",
+   "token": "49.3",
+   "metric": "CN_PMI_MFG",
+   "value": 49.3,
+   "expected": 49.3,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3"
+  }
+ ],
+ "six_checks": [
+  {
+   "item": "C1",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "17 实据引用"
+  },
+  {
+   "item": "C1",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C1",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "3 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C1",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "C2",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "4 实据引用"
+  },
+  {
+   "item": "C2",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C2",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C2",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "C3",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "4 实据引用"
+  },
+  {
+   "item": "C3",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上; 披露: USDCNY@2026-11-23 未在文本展开"
+  },
+  {
+   "item": "C3",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "3 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C3",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "未讨论的被引指标(披露): ['USDCNY']"
+  },
+  {
+   "item": "SCN1",
+   "check": "overreach",
+   "status": "VERIFIED",
+   "note": "tier=有历史相似证据 条件式✓"
+  },
+  {
+   "item": "SCN1",
+   "check": "falsifiable",
+   "status": "VERIFIED",
+   "note": "指标+阈值形态✓"
+  },
+  {
+   "item": "SCN2",
+   "check": "overreach",
+   "status": "VERIFIED",
+   "note": "tier=有历史相似证据 条件式✓"
+  },
+  {
+   "item": "SCN2",
+   "check": "falsifiable",
+   "status": "VERIFIED",
+   "note": "指标+阈值形态✓"
+  }
+ ],
+ "map_checks": [
+  {
+   "item": "reader_map.headline_conclusion",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "非空",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.regions",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "4 地齐",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.turning_supplement",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "补选转折 JP_CPI_TOKYO_YOY@2026-09 已交还判断席(first_mover=东京都CPI同比自1.6升至2.69(2026-)",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.date_order",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "日期次序主张一致: 2025-11<2026-02(早于,1 处)",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.chain_evidence",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "传导链[TR1] 区分指标绑定 3/3 环",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.chain_evidence",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "传导链[TR2] 区分指标绑定 1/1 环",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.turning_source",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "转折表 3 项指标与计划/候选面同源",
+   "evidence_refs": []
+  }
+ ],
+ "unresolved_unbound": [],
+ "verdict": "VERIFIED",
+ "stats": {
+  "checks": 15,
+  "contradicted": 0,
+  "verified": 15,
+  "unbound": 0,
+  "six_fail": 0,
+  "map_fail": 0,
+  "n_contradictions": 3
+ }
+}

@@ -1,0 +1,204 @@
+=== A
+report.json: canon sha old=209b906aa6bab703 new=293e2c9692d84e90 | differing paths=14
+   .agent_judgment
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.attribution
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.content
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.note
+      old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+      new: "零模型管线: 本层(矛盾综合/推断)须编排层 Agent 补作,attribution=ai_inferred——本管线绝不代写。补作纪律: 四层标注(事实/推断/假设/尚未验证)+并列竞争性解释(Skill 纪律4/第9步);机制链每环标 E1(引擎直接可验证)/E2(部分支持,缺环明写【假设】)/E3(纯叙事,须给证伪指标)(纪律15)"
+   .layers.L3_AI推断层.produced
+      old: true
+      new: false
+   .layers.L4_条件情景层.attribution
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L4_条件情景层.content
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L4_条件情景层.note
+      old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+      new: "条件推演五行(纪律16: 情景[明写假设非预测]/资产方向判断[方向+置信层级]/敏感变量[1-2 个引擎指标]/证伪指标[可观测阈值]/触发条件[可观测条件+时限];单一情景不得单独呈现,至少并列基准与反例)归编排层 Agent;不冒充预测——本管线绝不代写"
+   .layers.L4_条件情景层.produced
+      old: true
+      new: false
+   .research_plan.point_values.cells[13].anchors.3个月前.publication_basis
+      old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+      new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+   .research_plan.point_values.cells[13].anchors.3个月前.publication_rule
+      old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+      new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+   .semantic_review
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .steps[0].deterministic_face.research_plan.point_values.cells[13].anchors.3个月前.publication_basis
+      old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+      new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+   .steps[0].deterministic_face.research_plan.point_values.cells[13].anchors.3个月前.publication_rule
+      old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+      new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+AGENT_SEAT_ENVELOPE.json: canon sha old=7f5a293e4f64a8f2 new=7f5a293e4f64a8f2 | differing paths=0
+evidence_index.json: byte-identical
+views_digest.json: byte-identical
+=== B
+report.json: canon sha old=c35067aea97c204c new=840b21f9b1b2c723 | differing paths=10
+   .agent_judgment
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.attribution
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.content
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.note
+      old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+      new: "零模型管线: 本层(矛盾综合/推断)须编排层 Agent 补作,attribution=ai_inferred——本管线绝不代写。补作纪律: 四层标注(事实/推断/假设/尚未验证)+并列竞争性解释(Skill 纪律4/第9步);机制链每环标 E1(引擎直接可验证)/E2(部分支持,缺环明写【假设】)/E3(纯叙事,须给证伪指标)(纪律15)"
+   .layers.L3_AI推断层.produced
+      old: true
+      new: false
+   .layers.L4_条件情景层.attribution
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L4_条件情景层.content
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L4_条件情景层.note
+      old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+      new: "条件推演五行(纪律16: 情景[明写假设非预测]/资产方向判断[方向+置信层级]/敏感变量[1-2 个引擎指标]/证伪指标[可观测阈值]/触发条件[可观测条件+时限];单一情景不得单独呈现,至少并列基准与反例)归编排层 Agent;不冒充预测——本管线绝不代写"
+   .layers.L4_条件情景层.produced
+      old: true
+      new: false
+   .semantic_review
+      old: "ONLY_OLD"
+      new: "MISSING"
+AGENT_SEAT_ENVELOPE.json: canon sha old=1086144fbc56b8a0 new=1086144fbc56b8a0 | differing paths=0
+evidence_index.json: byte-identical
+views_digest.json: byte-identical
+=== T3
+report.json: canon sha old=961fc5137f13868f new=f7b6be21bf25c83b | differing paths=10
+   .agent_judgment
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.attribution
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.content
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.note
+      old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+      new: "零模型管线: 本层(矛盾综合/推断)须编排层 Agent 补作,attribution=ai_inferred——本管线绝不代写。补作纪律: 四层标注(事实/推断/假设/尚未验证)+并列竞争性解释(Skill 纪律4/第9步);机制链每环标 E1(引擎直接可验证)/E2(部分支持,缺环明写【假设】)/E3(纯叙事,须给证伪指标)(纪律15)"
+   .layers.L3_AI推断层.produced
+      old: true
+      new: false
+   .layers.L4_条件情景层.attribution
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L4_条件情景层.content
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L4_条件情景层.note
+      old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+      new: "条件推演五行(纪律16: 情景[明写假设非预测]/资产方向判断[方向+置信层级]/敏感变量[1-2 个引擎指标]/证伪指标[可观测阈值]/触发条件[可观测条件+时限];单一情景不得单独呈现,至少并列基准与反例)归编排层 Agent;不冒充预测——本管线绝不代写"
+   .layers.L4_条件情景层.produced
+      old: true
+      new: false
+   .semantic_review
+      old: "ONLY_OLD"
+      new: "MISSING"
+AGENT_SEAT_ENVELOPE.json: canon sha old=02a5ec3c49a97b81 new=02a5ec3c49a97b81 | differing paths=0
+evidence_index.json: byte-identical
+views_digest.json: byte-identical
+=== N30
+report.json: canon sha old=ef245f12bafcb3fe new=262198d15aebbe27 | differing paths=10
+   .agent_judgment
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.attribution
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.content
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.note
+      old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+      new: "零模型管线: 本层(矛盾综合/推断)须编排层 Agent 补作,attribution=ai_inferred——本管线绝不代写。补作纪律: 四层标注(事实/推断/假设/尚未验证)+并列竞争性解释(Skill 纪律4/第9步);机制链每环标 E1(引擎直接可验证)/E2(部分支持,缺环明写【假设】)/E3(纯叙事,须给证伪指标)(纪律15)"
+   .layers.L3_AI推断层.produced
+      old: true
+      new: false
+   .layers.L4_条件情景层.attribution
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L4_条件情景层.content
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L4_条件情景层.note
+      old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+      new: "条件推演五行(纪律16: 情景[明写假设非预测]/资产方向判断[方向+置信层级]/敏感变量[1-2 个引擎指标]/证伪指标[可观测阈值]/触发条件[可观测条件+时限];单一情景不得单独呈现,至少并列基准与反例)归编排层 Agent;不冒充预测——本管线绝不代写"
+   .layers.L4_条件情景层.produced
+      old: true
+      new: false
+   .semantic_review
+      old: "ONLY_OLD"
+      new: "MISSING"
+AGENT_SEAT_ENVELOPE.json: canon sha old=8584678f53ae2043 new=8584678f53ae2043 | differing paths=0
+evidence_index.json: byte-identical
+views_digest.json: byte-identical
+=== C4
+report.json: canon sha old=52fdb9f7f7faedd0 new=f87bd4eba00e8a4e | differing paths=14
+   .agent_judgment
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.attribution
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.content
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L3_AI推断层.note
+      old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+      new: "零模型管线: 本层(矛盾综合/推断)须编排层 Agent 补作,attribution=ai_inferred——本管线绝不代写。补作纪律: 四层标注(事实/推断/假设/尚未验证)+并列竞争性解释(Skill 纪律4/第9步);机制链每环标 E1(引擎直接可验证)/E2(部分支持,缺环明写【假设】)/E3(纯叙事,须给证伪指标)(纪律15)"
+   .layers.L3_AI推断层.produced
+      old: true
+      new: false
+   .layers.L4_条件情景层.attribution
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L4_条件情景层.content
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .layers.L4_条件情景层.note
+      old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+      new: "条件推演五行(纪律16: 情景[明写假设非预测]/资产方向判断[方向+置信层级]/敏感变量[1-2 个引擎指标]/证伪指标[可观测阈值]/触发条件[可观测条件+时限];单一情景不得单独呈现,至少并列基准与反例)归编排层 Agent;不冒充预测——本管线绝不代写"
+   .layers.L4_条件情景层.produced
+      old: true
+      new: false
+   .research_plan.point_values.cells[13].anchors.3个月前.publication_basis
+      old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+      new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+   .research_plan.point_values.cells[13].anchors.3个月前.publication_rule
+      old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+      new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+   .semantic_review
+      old: "ONLY_OLD"
+      new: "MISSING"
+   .steps[0].deterministic_face.research_plan.point_values.cells[13].anchors.3个月前.publication_basis
+      old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+      new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+   .steps[0].deterministic_face.research_plan.point_values.cells[13].anchors.3个月前.publication_rule
+      old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+      new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+AGENT_SEAT_ENVELOPE.json: canon sha old=d2846f9713d7bcbb new=d2846f9713d7bcbb | differing paths=0
+evidence_index.json: byte-identical
+views_digest.json: byte-identical
+=== AUG
+report.json: canon sha old=b2d940458aaeda71 new=b2d940458aaeda71 | differing paths=0
+AGENT_SEAT_ENVELOPE.json: canon sha old=34ca25b57275e35e new=34ca25b57275e35e | differing paths=0
+evidence_index.json: byte-identical
+views_digest.json: byte-identical

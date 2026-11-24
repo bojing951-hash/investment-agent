@@ -1,0 +1,11 @@
+whole     pre ad7b4cd00975b8b5 (80735 chars) | delivered b19b007c2ecbf1e0 (80732 chars) | same=False
+content   pre 7632b6baba36c2d0 (693 lines) | delivered 60bafa86c478f86f (693 lines)
+content lines differing: 1
+  L8
+    - - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,独立语义审查待裁)
+    + - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,经独立语义审查)
+sidecar anchor == sha256(delivered file): True
+review tail lines: ['- 席位已裁: UPHELD(裁决链 1 档)']
+「独立语义审查待裁」 pre 1 / delivered 0 ; 「待裁」 total pre 2 / delivered 0 ; 「席位已裁」 pre 0 / delivered 1
+verdict record 20261124/VERDICT-20261123T235103Z-01.json sha256 1e5a8f106c662c483bf9a9f63b6f3cb0c7ac50b37560b0a4a9f9caa32f50c130 identical_in_post_fix_tree=True
+verdict records for run 20261123T235103Z: 1

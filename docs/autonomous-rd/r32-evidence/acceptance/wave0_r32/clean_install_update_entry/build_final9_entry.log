@@ -1,0 +1,4 @@
+=== build entry tree @ cf33de3a9942578b71cecb45077b7a505d8fca01  dest=/tmp/r32-accept/final9-entry  2026-11-24 15:57:47 +0800
+pip rc=0
+模型API(三参配齐): False | FRED: True | TUSHARE: True
+=== entry tree ready: 1707 files (excl. .venv); .env present? no; CODE_VERSION git_head=cf33de3a9942578b71cecb45077b7a505d8fca01

@@ -1,0 +1,83 @@
+diff --git a/ia_cli.py b/ia_cli.py
+index 4602ff1..d612b3d 100644
+--- a/ia_cli.py
++++ b/ia_cli.py
+@@ -2441,8 +2441,9 @@ def _r1_archive_core_pinned(args, engine_root, pins):
+                 '/Audit-R32 正式验收)')
+         # Audit-R32 正式验收: 裁决后再交付包(运行=执行印章、交付字节=归档
+         # 印章,如状态面翻新)随清单落档归档代码 SHA——仅当归档代码≠运行
+-        # SHA 时加键(同印章归档清单字节不变);重放门④对已声明状态面
+-        # 等价的再交付包认归档代码为录制代码(见重放段)
++        # SHA 时加键(同印章归档清单字节不变);重放门④只对已声明状态面
++        # 等价的再交付包认归档代码为录制代码,同渲染包仍以运行印章代码
++        # 为录制代码(见重放段)
+         try:
+             _arc_head = ro._git_state(ROOT)[0]
+         except Exception:       # noqa: BLE001 印章不可得=不加键
+@@ -2504,7 +2505,8 @@ def _r1_replay_core(args, engine_root):
+        代码版本须==manifest.run_code_git_head(逐字节核对只对录制代码
+        有意义;--allow-code-mismatch 显式越过并降级为披露;Audit-R32
+        正式验收: 清单已声明状态面等价且携 archive_code_git_head 的
+-       裁决后再交付包,当前代码==归档代码亦成立)。manifest
++       裁决后再交付包,当前代码==归档代码亦成立;同渲染包的录制代码=
++       运行印章代码,归档印章代码照旧拒)。manifest
+        未声明渲染器漂移(map_renderer_drift=false)时必须逐字节相等;
+        声明漂移的包按 R24 纪律以受审冻结字节为准,重渲差异如实披露
+        不判负(受审定稿权威)。
+@@ -2736,10 +2738,14 @@ def _r1_replay_core(args, engine_root):
+     cur_head, _cur_src, _cur_dirty = ro._git_state(ROOT)
+     _sha_eq = _sha_eq_tol
+     code_match = _sha_eq(cur_head, head_mf)
+-    # Audit-R32 正式验收: 裁决后再交付包(运行 SHA=执行印章;交付字节=归档
+-    # 印章所产,清单 map_binding_status_equivalent+archive_code_git_head 已
++    # Audit-R32 正式验收: 裁决后再交付包(运行 SHA=执行印章;状态面由归档
++    # 印章翻新,清单 map_binding_status_equivalent+archive_code_git_head 已
+     # 声明)——当前代码==归档代码时同为"录制代码"(逐字节核对的对象正是
+-    # 归档代码所产交付字节);其余异版照旧拒。
++    # 归档代码所产交付字节);其余异版照旧拒。同渲染包(运行印章渲染时
++    # 裁决已在场,清单携 archive_code_git_head 而无状态面等价声明):交付
++    # 字节全由运行印章代码所产,录制代码=运行印章代码——归档印章代码照旧
++    # 拒(归档≠录制: 否则任一旧运行目录经新代码归档即可绕过版本门;
++    # --allow-code-mismatch 显式越过并披露)。
+     _arc_head = manifest.get('archive_code_git_head')
+     _redeliv = bool(not code_match and _arc_head
+                     and manifest.get('map_binding_status_equivalent')
+@@ -2752,8 +2758,15 @@ def _r1_replay_core(args, engine_root):
+                        'note': '当前代码 HEAD=%s ≠ 包记录运行 SHA=%s——'
+                                '逐字节核对只对录制代码有意义;确要以异版'
+                                '代码重放须 --allow-code-mismatch(降级为'
+-                               '披露)' % (cur_head or '(git 不可用)',
+-                                          head_mf or '缺席')}, \
++                               '披露)%s'
++                               % (cur_head or '(git 不可用)',
++                                  head_mf or '缺席',
++                                  ';清单另记归档代码 %s(同渲染包: 交付'
++                                  '字节即运行印章渲染,须以运行印章代码'
++                                  '严格重放)' % _arc_head
++                                  if (_arc_head and not manifest.get(
++                                      'map_binding_status_equivalent'))
++                                  else '')}, \
+             ['重放拒绝: 代码版本不符——当前=%s 包=%s(Audit-R28 任务4 门④)'
+              % (cur_head or '(git 不可用)', head_mf or '缺席')]
+     _chk('code_version_match',
+@@ -2863,8 +2876,18 @@ def _r1_replay_core(args, engine_root):
+                                           manifest.get('verdicts_n')),
+              '- 重渲模式: %s' % render_mode, '', '## 检查明细', '']
+     if _arc_head:
+-        lines[4:4] = ['- 归档代码 SHA: `%s`(裁决后再交付包: 运行=执行印章、'
+-                      '交付字节=归档印章;清单已声明状态面等价)' % _arc_head]
++        # 注记按实际放行路径写: 严格放行且当前代码=归档代码(清单已声明
++        # 状态面等价)/严格放行且当前代码=运行印章代码(录制代码)/异版代码
++        # 经 --allow-code-mismatch 越过版本门(只作披露,不写该声明)
++        if _redeliv:
++            _note = ('(裁决后再交付包: 运行=执行印章、交付字节=归档印章;'
++                     '清单已声明状态面等价)')
++        elif code_match:
++            _note = '(清单另记归档代码;本次由运行印章代码=录制代码严格重放)'
++        else:
++            _note = ('(裁决后再交付包;本次为异版代码经 --allow-code-mismatch '
++                     '越过版本门后的披露性重放,非录制代码)')
++        lines[4:4] = ['- 归档代码 SHA: `%s`%s' % (_arc_head, _note)]
+     for c in checks:
+         lines.append('- [%s] %s%s' % ('PASS' if c['ok'] else 'FAIL',
+                                       c['check'],

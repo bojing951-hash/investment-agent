@@ -1,0 +1,9 @@
+2025-03: reconciled 18 window values with the ledger; negative risk-asset/gold windows: none
+2023-10: reconciled 18 window values with the ledger; negative risk-asset/gold windows: ['SHCOMP 3m -7.63']
+  OK  C2 2025-03 risk assets & GOLD_F windows positive (5 metrics x 3/6/12m) | computed="15/15" | reported="多数窗走强"
+  OK  C2 2025-03 DXY negative in 3/6/12m windows | computed="3/3" | reported="DXY 走弱"
+  OK  C2 2023-10 risk assets & GOLD_F windows positive (5 metrics x 3/6/12m) | computed="14/15 (SHCOMP 3m -7.63)" | reported="多数窗走强(2023-10段上证指数三个月窗为负,属例外)"
+  OK  C2 2023-10 DXY negative in 3/6/12m windows | computed="3/3" | reported="DXY 走弱"
+appended 4 rows; ledger now rows=1049 counted=1006 ok=1005 mismatch=1 info=43
+sections: {'anchors': 275, 'monthly': 187, 'daily': 133, 'history': 297, 'sync': 45, 'misc': 69}
+items: {'MINOR': 9, 'NIT': 11}; counterattacks: 29; notes len: 2624

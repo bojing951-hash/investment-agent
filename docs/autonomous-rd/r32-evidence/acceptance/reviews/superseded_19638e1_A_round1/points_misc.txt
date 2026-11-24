@@ -1,0 +1,20 @@
+OK|Gate A status|computed=DEGRADED|reported=DEGRADED|src=snapshot gate_a|note=judgment: 本轮 Gate A 判 DEGRADED
+OK|Gate A core_missing count|computed=0|reported=0|src=snapshot gate_a.core_missing|note=
+OK|Gate A noncore_missing count|computed=7|reported=7|src=snapshot gate_a.noncore_missing|note=
+OK|Gate A noncore_degraded count|computed=8|reported=8|src=snapshot gate_a.noncore_degraded|note=
+OK|Gate A noncore missing metrics with stock observations|computed=5: CN_OMO_7D CN_POLICY_OVERNIGHT EA_REAL_GDP_YOY JP_CPI_TOKYO_YOY JP_REAL_GDP_YOY|reported=5|src=snapshot gate_a.noncore_missing x series_store|note=缺口指标中有五项在序列库内仍有存量观测
+OK|all unique evidence refs point to an observation|computed=|reported=none unresolved|src=judgment evidence_refs x series_store|note=n_unique=20
+OK|evidence refs count, L3 scope (contradictions + mechanism chains)|computed=41|reported=41|src=agent_judgment l3.*.evidence_refs|note=quality note says 证据引用共 41 条 without naming the scope; L4 scenarios add 9 more refs (total 50)
+OK|turning[0] CPI before|computed=2.434|reported=2.434|src=series_store CPI@2026-02|note=
+OK|turning[0] CPI after|computed=4.1666|reported=4.1666|src=series_store CPI@2026-05|note=
+OK|turning[0] CPI window|computed=2026-02→2026-05|reported=None|src=judgment turnings|note=dimension=inflation
+OK|turning[1] INDPRO before|computed=1.7543|reported=1.7543|src=series_store INDPRO@2025-11|note=
+OK|turning[1] INDPRO after|computed=0.7972|reported=0.7972|src=series_store INDPRO@2026-02|note=
+OK|turning[1] INDPRO window|computed=2025-11→2026-02|reported=None|src=judgment turnings|note=dimension=growth
+OK|turning[2] JP_CPI_YOY before|computed=2.9|reported=2.9|src=series_store JP_CPI_YOY@2025-11|note=
+OK|turning[2] JP_CPI_YOY after|computed=1.27|reported=1.27|src=series_store JP_CPI_YOY@2026-02|note=
+OK|turning[2] JP_CPI_YOY window|computed=2025-11→2026-02|reported=None|src=judgment turnings|note=dimension=inflation
+OK|turning supplement JP_CPI_TOKYO_YOY from|computed=1.6|reported=1.6|src=series_store JP_CPI_TOKYO_YOY@2026-06|note=
+OK|turning supplement JP_CPI_TOKYO_YOY to|computed=2.69|reported=2.69|src=series_store JP_CPI_TOKYO_YOY@2026-09|note=
+OK|candidate CN_CPI_YOY 2026-01|computed=0.2|reported=0.2|src=series_store CN_CPI_YOY@2026-01|note=
+OK|candidate CN_PPI_YOY 2026-02|computed=-0.9|reported=-0.9|src=series_store CN_PPI_YOY@2026-02|note=

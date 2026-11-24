@@ -1,0 +1,9 @@
+=== build degraded tree @ 19638e1487e1e5729b9645ce621c3435d0635d08  dest=/tmp/r32-accept/final3-degraded  src=/tmp/r32-accept/final3  2026-11-23 22:57:14 +0800
+pip rc=0
+   MD:   /private/tmp/r32-accept/final3-degraded/data/daily/research_snapshot_20261123.md
+   锚点: /private/tmp/r32-accept/final3-degraded/data/daily/anchors_20261123.json (200个)
+   Gate A: DEGRADED | 事实 102 | 质量 {'PASS': 72, 'DEGRADED': 7, 'FAIL': 0} | core缺失 0 | 非核心缺失 10项(BUND_10Y,BUND_2Y,CN_OMO_7D,CN_POLICY_OVERNIGHT,EA_HICP_YOY)…
+snapshot research_snapshot_20261123.json | series n= 88 | EA policy/inflation/growth series present: []
+sources_status {"global": {"status": "EXACT", "file": "global_20261123.json", "file_date": "20261123", "sha256": "64d76ec934f659c2686964ccac164331f8da046a3cc211d4a8f9ec7e1e935524"}, "macro": {"status": "EXACT", "file": "macro_20261123.json", "file_date": "20261123", "sha256": "edbf6e09a88fe18940c4d75c55a611486c672
+=== degraded tree ready: 9567 files; .env present? no; CODE_VERSION git_head=19638e1487e1e5729b9645ce621c3435d0635d08
+build_degraded rc=0

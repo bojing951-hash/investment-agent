@@ -1,0 +1,5 @@
+# Deliveries made at 24141c0 after the execution-stamp verdicts (superseded).
+# Receipts and manifests only; the packages stay in the isolated archive area outside the
+# repository. The same work orders were re-delivered at the final stamp cf33de3 (redelivery/).
+# Replay facts of the B package at this stamp: Wstrict = refused at gate 4 (the finding),
+# Ystrict = rc=0 byte-equal (the execution-stamp code = recording code).

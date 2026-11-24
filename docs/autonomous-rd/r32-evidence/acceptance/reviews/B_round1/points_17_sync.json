@@ -1,0 +1,100 @@
+{
+ "block": "④查",
+ "title": "同步性: 受审稿同步主张 vs 引擎地区×维度面",
+ "rows": [
+  {
+   "block": "④查",
+   "id": "Y1-「美欧通胀同月抬升」: 候选面 CPI 与 EA_HICP_YOY 的最大变动窗同为 2026-02..2026-05",
+   "source": "report.json:research_plan.turning_candidates.candidates[metric_id=CPI|EA_HICP_YOY]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; CPI 窗 2026-02..2026-05; EA_HICP_YOY 窗 2026-02..2026-05"
+  },
+  {
+   "block": "④查",
+   "id": "Y2-同窗内美欧同比逐月同向(2026-03..05 各月相对窗启 2026-02 均上行)→「同月抬升」与序列面一致",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI(同比直算)/EA_HICP_YOY[2026-02..2026-05]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; [{\"ym\": \"2026-03\", \"us_cpi_yoy\": [2.434, 3.286], \"ea_hicp_yoy\": [1.9, 2.6], \"same_dir\": true}, {\"ym\": \"2026-04\", \"us_cpi_yoy\": [2.434, 3.7792], \"ea_hicp_yoy\": [1.9, 3.0], \"same_dir\": true}, {\"ym\": \"2026-05\", \"us_cpi_yoy\": [2.434, 4.1666], \"ea_hicp_yoy\": [1.9, 3.2], \"same_dir\": true}]"
+  },
+  {
+   "block": "④查",
+   "id": "Y3-「美欧通胀环境较 3 个月前同步走高」: 通胀维四格(美 CPI/核心 CPI/核心 PCE、欧 HICP)两锚间全部上行, 且格内同比与 series_store 直算一致",
+   "source": "report.json:research_plan.point_values.cells[metric_id].anchors; series_store 直算",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; {\"CPI\": {\"anchors\": [\"3个月前\", \"最新一期\"], \"obs\": [\"2026-07-01\", \"2026-10-01\"], \"yoy_months\": [\"2026-07\", \"2026-09\"], \"cell_yoy\": [3.3, 3.72], \"own_yoy\": [3.3039, 3.7173], \"up\": true, \"cell_eq_own\": true}, \"CORE_CPI\": {\"anchors\": [\"3个月前\", \"最新一期\"], \"obs\": [\"2026-07-01\", \"2026-10-01\"], \"yoy_months\": [\"2026-07\", \"2026-09\"], \"cell_yoy\": [2.47, 2.57], \"own_yoy\": [2.4665, 2.5658], \"up\": true, \"cell_eq_own\": true}, \"CORE_PCE\": {\"anchors\": [\"3个月前\", \"最新一期\"], \"obs\": [\"2026-06-01\", \"2026-09-01\"], \"yoy_months\": [\"2026-06\", \"2026-09\"], \"cell_yoy\": [3.04, 3.12], \"own_yoy\": [3.0412, 3.1212], \"up\": true, \"cell_eq_own\": true}, \"EA_HICP_YOY\": {\"anchors\": [\"3个月前\", \"最新一期\"], \"obs\": [\"2026-07-01\", \"2026-10-01\"], \"yoy_months\": [\"2026-07\", \"2026-10\"], \"cell_yoy\": [2.9, 4.0], \"own_yoy\": [2.9, 4.0], \"up\": true, \"cell_eq_own\": true}}"
+  },
+  {
+   "block": "④查",
+   "id": "Y4-增长维两锚方向(美 GDP 同比微降/失业率持平/工业生产同比回升;欧 GDP 同比不降)→「大体平稳」与序列面不相左(各变动<0.9pp 且正负互见)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.US_REAL_GDP/UNEMPLOYMENT/INDPRO[2026-07→2026-10]、US_REAL_GDP/EA_REAL_GDP_YOY[2026-04→2026-07]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; {\"US_REAL_GDP_yoy\": [2.1916, 2.0657], \"UNEMPLOYMENT\": [4.1, 4.1], \"INDPRO_yoy\": [1.2498, 2.1497], \"EA_REAL_GDP_YOY\": [1.19, 1.28]}"
+  },
+  {
+   "block": "④查",
+   "id": "Y5-同步主张的时间分辨率限定词在场(「月频证据先后未定」「同月」)",
+   "source": "文本性质核对, 不计点",
+   "kind": "probe",
+   "computed": "agent_judgment.json:reader_map.turnings[*]",
+   "claim": {
+    "月频证据先后未定": true,
+    "同月": true,
+    "不可判": true
+   },
+   "match": null,
+   "detail": "探针(不计点): "
+  },
+  {
+   "block": "④查",
+   "id": "Y6-受审稿未对美欧政策维下同步/分化断言(表述为「不可判」),且引擎政策事件簇为空(无跨国同步面可供引用)",
+   "source": "report.json:research_plan.policy_event_clusters.clusters; agent_judgment.json:reader_map.turnings",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; clusters 条数 0"
+  },
+  {
+   "block": "④查",
+   "id": "Y7-引擎 dimension_gaps 恰为 JP_POLICY_TARGET registry_absent 一条,与受审稿的官方目标缺席披露一致",
+   "source": "report.json:research_plan.dimension_gaps; agent_judgment.json:l3.contradictions[C3-JP-POLICY]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; [{\"region\": \"JP\", \"dimension\": \"policy\", \"metric_id\": \"JP_POLICY_TARGET\", \"gap\": \"registry_absent\", \"note\": \"计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构\"}]"
+  },
+  {
+   "block": "④查",
+   "id": "Y8-引擎 dimension_gaps 条数",
+   "source": "report.json:research_plan.dimension_gaps",
+   "kind": "point",
+   "computed": 1,
+   "claim": 1,
+   "match": true,
+   "detail": "直算 1 → 取 0 位 1; 报告 1; "
+  },
+  {
+   "block": "④查",
+   "id": "Y9-C3 竞争解释容差依据「2026-02 至 2026-05 与 2026-08 的相邻月均差均不超过 0.001」(月均台阶按落入月计: 2026-08 档=2026-07→2026-08)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-02..2026-05,2026-07,2026-08]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; {\"monthly\": {\"2026-02\": 0.728, \"2026-03\": 0.728, \"2026-04\": 0.727, \"2026-05\": 0.727, \"2026-07\": 0.978, \"2026-08\": 0.977}, \"adjacent_diff\": {\"2026-02->2026-03\": 0.0, \"2026-03->2026-04\": -0.001, \"2026-04->2026-05\": 0.0, \"2026-07->2026-08\": -0.001}}"
+  }
+ ]
+}

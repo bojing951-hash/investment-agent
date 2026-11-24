@@ -1,0 +1,175 @@
+{
+ "points": [
+  {
+   "id": "I01",
+   "cat": "I 情景可观测性",
+   "where": "S1 falsification「规则发布日 2026-12-16、2027-01-16」(2026-11 观测月)",
+   "key": "EA_HICP_YOY 规则 2026-11-30 + 16天",
+   "computed": "2026-12-16",
+   "reported": "2026-12-16",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I02",
+   "cat": "I 情景可观测性",
+   "where": "同上(2026-12 观测月)",
+   "key": "EA_HICP_YOY 规则 2026-12-31 + 16天",
+   "computed": "2027-01-16",
+   "reported": "2027-01-16",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I03",
+   "cat": "I 情景可观测性",
+   "where": "S1 scenario「2027-01 观测月的规则发布日 2027-02-16」",
+   "key": "EA_HICP_YOY 规则 2027-01-31 + 16天",
+   "computed": "2027-02-16",
+   "reported": "2027-02-16",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I04",
+   "cat": "I 情景可观测性",
+   "where": "「晚于期限 2027-02-15」",
+   "key": "2027-02-16 > 2027-02-15",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I05",
+   "cat": "I 情景可观测性",
+   "where": "「均不晚于期限 2027-02-15」(2026-12-16、2027-01-16)",
+   "key": "max ≤ 2027-02-15",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I06",
+   "cat": "I 情景可观测性",
+   "where": "S1 截止日未被证伪(最新 EA_HICP_YOY ≥ 证伪线 3.0)",
+   "key": "series_store.EA_HICP_YOY 2026-10-01",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "EA=4.0"
+  },
+  {
+   "id": "I07",
+   "cat": "I 情景可观测性",
+   "where": "S1 触发条件截止日未满足(≥4.2 且 CORE_PCE ≥3.2 且 TIPS_10Y >3.0)",
+   "key": "EA_HICP_YOY 2026-10 / CORE_PCE 同比 2026-09 / TIPS_10Y 2026-11-19",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "EA=4.0 PCE=3.1212 TIPS=2.88"
+  },
+  {
+   "id": "I08",
+   "cat": "I 情景可观测性",
+   "where": "S2 截止日未证伪亦未落空(2026-09 为 3.8 <4.0, 单月不构成两月证伪)",
+   "key": "series_store.EA_HICP_YOY 2026-09-01",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I09",
+   "cat": "I 情景可观测性",
+   "where": "S2 触发条件截止日未满足(最新 ≤3.4 且 BEI_10Y <2.0)",
+   "key": "EA_HICP_YOY 2026-10-01 / BEI_10Y 2026-11-20",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "EA=4.0 BEI=2.15"
+  },
+  {
+   "id": "I10",
+   "cat": "I 情景可观测性",
+   "where": "S2「该方向与近一月观察(共同交易日窗 2026-10-20→2026-11-19 实际利率 +11bp 而风险资产回落)相反」之前提在场",
+   "key": "TIPS_10Y 近一月 >0 且 SPX 近一月 <0",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "TIPS=+11bp SPX=-5.51%"
+  },
+  {
+   "id": "I11",
+   "cat": "I 情景可观测性",
+   "where": "S1「日本月均中枢不低于当前台阶」之当前台阶",
+   "key": "series_store.JP_POLICY_RATE 2026-10-01",
+   "computed": 1.227,
+   "reported": 1.227,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I12",
+   "cat": "I 情景可观测性",
+   "where": "S1 内部一致: 证伪线 3.0 < 情景界 3.5 < 触发线 4.2",
+   "key": "阈值序",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I13",
+   "cat": "I 情景可观测性",
+   "where": "S2 内部一致: 情景界 3.0 < 触发线 3.4 < 证伪线 4.0",
+   "key": "阈值序",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I14",
+   "cat": "I 情景可观测性",
+   "where": "两情景期限均为 2027-02-15",
+   "key": "S1/S2 trigger.deadline",
+   "computed": "2027-02-15/2027-02-15",
+   "reported": "2027-02-15/2027-02-15",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I15",
+   "cat": "I 情景可观测性",
+   "where": "两情景敏感变量均为序列库在场序列(EA_HICP_YOY、CORE_PCE)",
+   "key": "series_store 在场性",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I16",
+   "cat": "I 情景可观测性",
+   "where": "两情景区分/触发指标(TIPS_10Y、BEI_10Y)为序列库在场序列",
+   "key": "series_store 在场性",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "I17",
+   "cat": "I 情景可观测性",
+   "where": "S2「连续两个月回落」在期限内可观测: 截止期限前恰有两个 EA_HICP_YOY 发布日(2026-12-16、2027-01-16)",
+   "key": "规则发布日 ≤ 2027-02-15 的 EA_HICP_YOY 观测月(2026-11 起)",
+   "computed": "2026-11,2026-12",
+   "reported": "2026-11,2026-12",
+   "ok": true,
+   "note": ""
+  }
+ ],
+ "extra": {}
+}

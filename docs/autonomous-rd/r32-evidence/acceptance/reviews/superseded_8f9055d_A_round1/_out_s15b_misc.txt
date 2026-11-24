@@ -1,0 +1,170 @@
+### ⑪ Gate A vs judgment quality note (report.json gate + snapshot gate_a)
+   core_missing count                                         mine=0                              claim=0                        OK
+   noncore_missing list (7)                                   mine=['BUND_10Y', 'BUND_2Y', 'CN_OMO_7D', 'CN_POLICY_OVERNIGHT', 'EA_REAL_GDP_YOY', 'JP_CPI_TOKYO_YOY', 'JP_REAL_GDP_YOY'] claim=['BUND_10Y', 'BUND_2Y', 'CN_OMO_7D', 'CN_POLICY_OVERNIGHT', 'EA_REAL_GDP_YOY', 'JP_CPI_TOKYO_YOY', 'JP_REAL_GDP_YOY'] OK
+   noncore_degraded list (8)                                  mine=['CN_SF_FLOW', 'ECB_DFR', 'ECB_MRO', 'JTSJOL', 'M2SL', 'SPX_EPS', 'SPX_PE_TTM', 'US_REAL_GDP'] claim=['CN_SF_FLOW', 'ECB_DFR', 'ECB_MRO', 'JTSJOL', 'M2SL', 'SPX_EPS', 'SPX_PE_TTM', 'US_REAL_GDP'] OK
+   missing metrics with stock observations in series_store (5) mine=['CN_OMO_7D', 'CN_POLICY_OVERNIGHT', 'EA_REAL_GDP_YOY', 'JP_CPI_TOKYO_YOY', 'JP_REAL_GDP_YOY'] claim=['CN_OMO_7D', 'CN_POLICY_OVERNIGHT', 'EA_REAL_GDP_YOY', 'JP_CPI_TOKYO_YOY', 'JP_REAL_GDP_YOY'] OK
+   CN_OMO_7D last obs                                         mine=('2026-10-30', 1.4)   (info)
+   CN_POLICY_OVERNIGHT last obs                               mine=('2026-11-23', 1.25)   (info)
+   EA_REAL_GDP_YOY last obs                                   mine=('2026-07-01', 1.28)   (info)
+   JP_CPI_TOKYO_YOY last obs                                  mine=('2026-10-01', 2.73)   (info)
+   JP_REAL_GDP_YOY last obs                                   mine=('2026-07-01', 1.16)   (info)
+   JP_POLICY_TARGET in series_store                           mine=False                          claim=False                    OK
+   JP_POLICY_TARGET in metric registry                        mine=False                          claim=False                    OK
+   JGB series in series_store                                 mine=[]                             claim=[]                       OK
+   JGB single-point facts                                     mine=3                              claim=3                        OK
+   JGB facts                                                  mine=['JGB2Y@2026-11-19', 'JGB5Y@2026-11-19', 'JGB10Y@2026-11-19']   (info)
+### evidence_refs counts (judgment)
+   contradiction refs / mechanism-chain refs / scenario refs  mine=(25, 16, 9)   (info)
+   L3 refs incl. mechanism chains (judgment: 41)              mine=41                             claim=41                       OK
+   L3 + L4 refs (judgment: 50)                                mine=50                             claim=50                       OK
+   distinct refs (20)                                         mine=20                             claim=20                       OK
+   every L3/L4 ref resolves to an observation in series_store (metric@date) mine=[]                             claim=[]                       OK
+   L3 competing explanations per statement (3/2/3)            mine=[3, 2, 3]                      claim=[3, 2, 3]                OK
+### ⑧ analog dims / diffs for 2022-06 and 2023-10 (report.json steps[61] S6_analog)
+   top list length                                            mine=5   (info)
+   top[1] keys                                                mine=['accounted_wsum', 'aftermath', 'candidate_month', 'cluster_members', 'dims', 'distance', 'distance_percentile', 'features_detail', 'missing_features', 'missing_wsum', 'n_missing', 'norm_wsum', 'rank']   (info)
+   top[1] month                                               mine=2022-06                        claim=2022-06                  OK
+   top[1] distance                                            mine=0.7918                         claim=0.7918                   OK
+   top[1] percentile                                          mine=1.37                           claim=1.37                     OK
+   top[1] contribution shares pct                             mine={'growth': 0.0, 'inflation': 11.4, 'rates': 51.9, 'volatility': 3.0, 'valuation': 33.6}   (info)
+   top[1] share rates                                         mine=51.9                           claim=51.9                     OK
+   top[1] share valuation                                     mine=33.6                           claim=33.6                     OK
+   top[1] share inflation                                     mine=11.4                           claim=11.4                     OK
+   top[1] share volatility                                    mine=3.0                            claim=3.0                      OK
+   top[1].features_detail                                     mine={"ICSA_4w_avg": {"anchor_z": -0.3206747602320721, "cand_z": -0.39542477743946364, "gap": 0.07475001720739155, "w_norm": 0.051282}, "BEI_10Y_level": {"anchor_z": 0.08346018602588887, "cand_z": 0.9186491985077476, "gap": -0.8351890124818587, "w_norm": 0.102564}, "UST_10Y_level": {"anchor_z": 1.66637547864167, "cand_z": 1.3541791867130852, "gap": 0.3121962919285848, "w_norm": 0.038462}, "UST_10Y_d12m": {"anchor_z": 0.8349448096688624, "cand_z": 1.7529713818142785, "gap": -0.918026572145416, "w_norm": 0.038462}, "TIPS_10Y_level": {"anchor_z": 1.8718474704157886, "cand_z": 0.9328721639811208, "gap": 0.9389753064346678, "w_norm": 0.038462}, "TIPS_10Y_d12m": {"anchor_z": 1.0416374106158215, "cand_z": 2.7852919442853135, "gap": -1.743654533669492, "w_norm": 0.038462}, "CURVE_2S10S_level": {"anchor_z": -0.08886508395812924, "cand_z": -1.3366527659399987, "gap": 1.2477876819818694, "w_norm": 0.038462}, "CURVE_2S10S_d12m": {"anchor_z": -0.2940401880574893, "cand_z": -1.724445105461993, "gap": 1.4304049174045037, "w_norm": 0.038462}, "VIX_level": {"anchor_z": 1.197861037490781, "cand_z": 1.1052258638650787, "gap": 0.09263517362570228, "w_norm": 0.153846}, "SPX_rv21": {"anchor_z": 1.463619804756194, "cand_z": 1.1275840800884527, "gap": 0.33603572466774123, "w_norm": 0.153846}, "SPX_CAPE_level": {"anchor_z": 2.8169497441414015, "cand_z": 1.6462624441834552, "gap": 1.1706872999579463, "w_norm": 0.153846}}   (info)
+   top[1] missing_features                                    mine={'HY_IG_gap_level': 'no_value_at_candidate_month', 'HY_OAS_level': 'no_value_at_candidate_month'}   (info)
+   top[2] keys                                                mine=['accounted_wsum', 'aftermath', 'candidate_month', 'cluster_members', 'dims', 'distance', 'distance_percentile', 'features_detail', 'missing_features', 'missing_wsum', 'n_missing', 'norm_wsum', 'rank']   (info)
+   top[2] month                                               mine=2023-10                        claim=2023-10                  OK
+   top[2] distance                                            mine=1.0542                         claim=1.0542                   OK
+   top[2] percentile                                          mine=30.14                          claim=30.14                    OK
+   top[2] contribution shares pct                             mine={'growth': 0.0, 'inflation': 7.7, 'rates': 11.0, 'volatility': 60.1, 'valuation': 21.2}   (info)
+   top[2] share volatility                                    mine=60.1                           claim=60.1                     OK
+   top[2] share valuation                                     mine=21.2                           claim=21.2                     OK
+   top[2] share rates                                         mine=11.0                           claim=11.0                     OK
+   top[2] share inflation                                     mine=7.7                            claim=7.7                      OK
+   top[2].features_detail                                     mine={"ICSA_4w_avg": {"anchor_z": -0.3206747602320721, "cand_z": -0.3560096024666618, "gap": 0.035334842234589714, "w_norm": 0.051282}, "BEI_10Y_level": {"anchor_z": 0.08346018602588887, "cand_z": 0.9974023467100893, "gap": -0.9139421606842004, "w_norm": 0.102564}, "UST_10Y_level": {"anchor_z": 1.66637547864167, "cand_z": 2.5600330372994873, "gap": -0.8936575586578173, "w_norm": 0.038462}, "UST_10Y_d12m": {"anchor_z": 0.8349448096688624, "cand_z": 0.47599449853936376, "gap": 0.35895031112949866, "w_norm": 0.038462}, "TIPS_10Y_level": {"anchor_z": 1.8718474704157886, "cand_z": 2.4884285655499028, "gap": -0.6165810951341142, "w_norm": 0.038462}, "TIPS_10Y_d12m": {"anchor_z": 1.0416374106158215, "cand_z": 0.6830304472769667, "gap": 0.3586069633388548, "w_norm": 0.038462}, "CURVE_2S10S_level": {"anchor_z": -0.08886508395812924, "cand_z": -0.9401474961565215, "gap": 0.8512824121983923, "w_norm": 0.038462}, "CURVE_2S10S_d12m": {"anchor_z": -0.2940401880574893, "cand_z": 0.7124583938183279, "gap": -1.0064985818758172, "w_norm": 0.038462}, "VIX_level": {"anchor_z": 1.197861037490781, "cand_z": -0.17601163879471496, "gap": 1.373872676285496, "w_norm": 0.153846}, "SPX_rv21": {"anchor_z": 1.463619804756194, "cand_z": -0.10281205926182774, "gap": 1.5664318640180217, "w_norm": 0.153846}, "SPX_CAPE_level": {"anchor_z": 2.8169497441414015, "cand_z": 1.5795100303495548, "gap": 1.2374397137918467, "w_norm": 0.153846}}   (info)
+   top[2] missing_features                                    mine={'HY_IG_gap_level': 'no_value_at_candidate_month', 'HY_OAS_level': 'no_value_at_candidate_month'}   (info)
+### publication-visibility claims (TR1 link 2 / M1 step 2) — rule dates from planner RELEASE_RULES + weekday
+   CPI 2026-04 rule publication date                          mine=2026-05-13                     claim=2026-05-13               OK
+   CPI 2026-04 rule date weekday                              mine=Wed   (info)
+   CPI 2026-05 rule publication date                          mine=2026-06-13                     claim=2026-06-13               OK
+   CPI 2026-05 rule date weekday                              mine=Sat                            claim=Sat                      OK
+   CPI 2026-07 rule publication date                          mine=2026-08-13                     claim=2026-08-13               OK
+   CPI 2026-07 rule date weekday                              mine=Thu   (info)
+   CPI 2026-08 rule publication date                          mine=2026-09-13                     claim=2026-09-13               OK
+   CPI 2026-08 rule date weekday                              mine=Sun                            claim=Sun                      OK
+   CPI 2026-09 rule publication date                          mine=2026-10-13                     claim=2026-10-13               OK
+   CPI 2026-09 rule date weekday                              mine=Tue   (info)
+   CORE_PCE 2026-07 rule publication date                     mine=2026-08-30                     claim=2026-08-30               OK
+   CORE_PCE 2026-07 rule date weekday                         mine=Sun                            claim=Sun                      OK
+   EA_HICP_YOY 2026-04 rule publication date                  mine=2026-05-16                     claim=2026-05-16               OK
+   EA_HICP_YOY 2026-04 rule date weekday                      mine=Sat   (info)
+   EA_HICP_YOY 2026-07 rule publication date                  mine=2026-08-16                     claim=2026-08-16               OK
+   EA_HICP_YOY 2026-07 rule date weekday                      mine=Sun   (info)
+   EA_HICP_YOY 2026-08 rule publication date                  mine=2026-09-16                     claim=2026-09-16               OK
+   EA_HICP_YOY 2026-08 rule date weekday                      mine=Wed   (info)
+   JP_CPI_YOY 2026-07 rule publication date                   mine=2026-08-20                     claim=2026-08-20               OK
+   JP_CPI_YOY 2026-07 rule date weekday                       mine=Thu   (info)
+   CPI latest visible obs month before 2026-06-11             mine=2026-04                        claim=2026-04                  OK
+   CPI latest visible value before 2026-06-11                 mine=3.78                           claim=3.78                     OK
+   CPI latest visible obs month before 2026-09-10             mine=2026-07                        claim=2026-07                  OK
+   CPI latest visible value before 2026-09-10                 mine=3.3                            claim=3.3                      OK
+   CPI latest visible obs month before 2026-09-16             mine=2026-08                        claim=2026-08                  OK
+   CPI latest visible value before 2026-09-16                 mine=3.35                           claim=3.35                     OK
+   CPI latest visible obs month before 2026-09-18             mine=2026-08                        claim=2026-08                  OK
+   CPI latest visible value before 2026-09-18                 mine=3.35                           claim=3.35                     OK
+   CORE_PCE latest visible obs month before 2026-09-16        mine=2026-07                        claim=2026-07                  OK
+   CORE_PCE latest visible value before 2026-09-16            mine=3.0                            claim=3.0                      OK
+   EA_HICP_YOY latest visible obs month before 2026-06-11     mine=2026-04                        claim=2026-04                  OK
+   EA_HICP_YOY latest visible value before 2026-06-11         mine=3.0                            claim=3.0                      OK
+   EA_HICP_YOY latest visible obs month before 2026-09-10     mine=2026-07                        claim=2026-07                  OK
+   EA_HICP_YOY latest visible value before 2026-09-10         mine=2.9                            claim=2.9                      OK
+   JP_CPI_YOY latest visible obs month before 2026-09-18      mine=2026-07                        claim=2026-07                  OK
+   JP_CPI_YOY latest visible value before 2026-09-18          mine=1.97                           claim=1.97                     OK
+   CPI 2026-09 yoy published after the Sept decisions (2026-10-13 > 2026-09-18) mine=False                          claim=False                    OK
+   EA HICP 2026-08 not visible at 2026-09-10                  mine=False                          claim=False                    OK
+   EA HICP 2026-08 visible at 2026-09-16                      mine=True                           claim=True                     OK
+   CPI 2026-05 yoy 4.17                                       mine=4.17                           claim=4.17                     OK
+   CPI 2026-09 yoy 3.72                                       mine=3.72                           claim=3.72                     OK
+   CPI 2026-10 yoy missing base                               mine=None                           claim=None                     OK
+   CPI 2026-11 yoy base (2025-11 level) present               mine=True                           claim=True                     OK
+   CPI 2025-10 level absent                                   mine=None                           claim=None                     OK
+   CORE_PCE 2026-05 yoy 3.16                                  mine=3.16                           claim=3.16                     OK
+   CORE_PCE 2026-07 yoy 3.00                                  mine=3.0                            claim=3.0                      OK
+   CORE_PCE 2026-09 yoy 3.12                                  mine=3.12                           claim=3.12                     OK
+   CORE_CPI 2026-02 yoy 2.47                                  mine=2.47                           claim=2.47                     OK
+   CORE_CPI 2026-05 yoy 2.82                                  mine=2.82                           claim=2.82                     OK
+### policy date conventions (TR1 link 2)
+   ECB decision = previous Thursday of 2026-06-17             mine=2026-06-11                     claim=2026-06-11               OK
+   ECB decision = previous Thursday of 2026-09-16             mine=2026-09-10                     claim=2026-09-10               OK
+   Fed decision = effective minus 1 day of 2026-09-17         mine=2026-09-16                     claim=2026-09-16               OK
+   Fed decision = effective minus 1 day of 2025-12-11         mine=2025-12-10                     claim=2025-12-10               OK
+   ECB_DFR 2026-06-17                                         mine=2.25                           claim=2.25                     OK
+   ECB_DFR 2026-09-16                                         mine=2.5                            claim=2.5                      OK
+   ECB_DFR latest obs on/before 2026-06-16 (change-point series) mine=('2025-06-11', 2.0)   (info)
+   ECB_DFR level in force before 2026-06-17                   mine=2.0                            claim=2.0                      OK
+   ECB_DFR policy-window net change (2.0 -> 2.5) bp           mine=50                             claim=50                       OK
+   ECB_MRO policy-window net change bp                        mine=50                             claim=50                       OK
+   DFF path 2025-12-10/11, 2026-09-16/17                      mine=[3.89, 3.64, 3.63, 3.88]   (info)
+   DFF 2025-11-21..27 (before the 11-28 print)                mine=[('2025-11-17', 3.88), ('2025-11-18', 3.88), ('2025-11-19', 3.88), ('2025-11-20', 3.88), ('2025-11-21', 3.88), ('2025-11-22', 3.88), ('2025-11-23', 3.88), ('2025-11-24', 3.88), ('2025-11-25', 3.88), ('2025-11-26', 3.88), ('2025-11-27', 3.88), ('2025-11-28', 3.89)]   (info)
+   DFF change 2025-12-11 (bp)                                 mine=-25                            claim=-25                      OK
+   DFF change 2026-09-17 (bp)                                 mine=25                             claim=25                       OK
+   DFEDTARU 2025-12-11 ->                                     mine=3.75                           claim=3.75                     OK
+   DFEDTARU 2026-09-17 ->                                     mine=4.0                            claim=4.0                      OK
+   DFEDTARU value before 2025-10-30 cut                       mine=('2025-10-29', 4.25)   (info)
+   DFF value before the 2025-10-30 cut (2025-10-29)           mine=('2025-10-29', 4.12)   (info)
+### BOJ calendar entries (frozen calendar)
+   BOJ entries count                                          mine=2                              claim=2                        OK
+   BOJ decision date                                          mine=2026-09-18                     claim=2026-09-18               OK
+   BOJ effective date                                         mine=2026-09-24                     claim=2026-09-24               OK
+   BOJ target_value                                           mine=1.25                           claim=1.25                     OK
+   BOJ maintenance entry                                      mine={'decision_date': '2026-10-30', 'target_value': 1.25, 'first_publish_on_or_after': '2026-10-30'}   (info)
+   calendar has Fed/ECB decision entries                      mine=[]   (info)
+   Fed minutes entry published 2026-11-18                     mine=[]                             claim=[]                       OK
+### misc series facts quoted in TR links / C1
+   BEI_10Y 2026-06-10 = 2.34                                  mine=2.34                           claim=2.34                     OK
+   BRENT_F 2026-06 month-end 72.92                            mine=72.92                          claim=72.92                    OK
+   BRENT_F 2026-02 month-end 72.48                            mine=72.48                          claim=72.48                    OK
+   EA HICP 2026-10 is window max (4.0)                        mine=('2026-10', 4.0)               claim=('2026-10', 4.0)         OK
+   CN PPI 2026-10 is window max (5.7)                         mine=('2026-10', 5.7)               claim=('2026-10', 5.7)         OK
+   CN PPI window min                                          mine=('2025-11', -2.2)              claim=('2025-11', -2.2)        OK
+   CN CPI window min (anchor 12m ago 2025-10 = 0.2)           mine=0.2                            claim=0.2                      OK
+   CN CPI window max date/value                               mine=('2026-02-01', 1.3)            claim=('2026-02-01', 1.3)      OK
+   CN CPI 3m-ago anchor (2026-07 = 0.5)                       mine=0.5                            claim=0.5                      OK
+   CN PPI swing pp (window min->max)                          mine=7.9                            claim=7.9                      OK
+   price-metric swings over the window (pp)                   mine={'CN_PPI_YOY': 7.9, 'CPI': 1.78, 'CORE_PCE': 0.44, 'CORE_CPI': 0.38, 'EA_HICP_YOY': 2.3, 'JP_CPI_YOY': 1.63, 'CN_CPI_YOY': 1.1, 'JP_CPI_TOKYO_YOY': 1.43}   (info)
+   largest price swing among listed price metrics is CN_PPI_YOY mine=CN_PPI_YOY                     claim=CN_PPI_YOY               OK
+   CPI yoy latest (2026-09) vs year-earlier (2025-09): higher mine=True                           claim=True                     OK
+   CPI yoy 2025-09 / 2026-09                                  mine=(3.0226, 3.7173)   (info)
+   CORE_PCE yoy 2025-08/09 vs 2026-08/09                      mine=[2.8513, 2.8171, 3.0344, 3.1212]   (info)
+   CN overnight: first obs                                    mine=('2026-11-02', 1.25)           claim=('2026-11-02', 1.25)     OK
+   CN overnight: all values 1.25                              mine=[1.25]                         claim=[1.25]                   OK
+   CN overnight: last obs                                     mine=('2026-11-23', 1.25)           claim=('2026-11-23', 1.25)     OK
+   CN_OMO_7D window values                                    mine=[1.4]                          claim=[1.4]                    OK
+   CN_LPR_1Y window values                                    mine=[3.0]                          claim=[3.0]                    OK
+   CN_NEW_LOANS last obs                                      mine=2026-10                        claim=2026-10                  OK
+### ⑨ scenario thresholds vs cutoff readings
+   SCN1 trigger: latest CPI yoy (2026-09) >= 3.5 (not yet triggered for 2026-11/12; pending) mine=3.72                           claim=3.72                     OK
+   SCN1 falsification not met: CPI yoy >= 2.5                 mine=True                           claim=True                     OK
+   SCN1 falsification not met: CORE_PCE yoy >= 2.8            mine=True                           claim=True                     OK
+   SCN2 falsification not met: BEI_10Y latest >= 1.8          mine=('2026-11-20', 2.15)           claim=('2026-11-20', 2.15)     OK
+   SCN2 falsification arithmetic: 2.15 - 1.77 (bp)            mine=38                             claim=38                       OK
+   SCN2 threshold distance: 2.15 - 1.80 (bp)                  mine=35                             claim=35                       OK
+   M1 step 4 falsification not met: HY_OAS latest < 4.61      mine=True                           claim=True                     OK
+   SCN1 deadline                                              mine=2027-02-28                     claim=2027-02-28               OK
+   SCN1 trigger condition                                     mine=美国2026-11或2026-12月CPI同比继续≥3.5,或欧央行/美联储再加息(生效日=DFEDTARU/ECB_DFR 序列变更日，决议日按引擎惯例自生效日回推【推断】；冻结发布日历暂无两家实录条目)   (info)
+   SCN2 deadline                                              mine=2027-02-28                     claim=2027-02-28               OK
+   SCN2 trigger condition                                     mine=欧央行或美联储下一次决议为降息或明确暂停指引(生效日=DFEDTARU/ECB_DFR 序列变更日，决议日按引擎惯例自生效日回推【推断】；冻结发布日历暂无两家实录条目),或美国CPI同比自 2026-11 观测月起连续两个月回落(2026-   (info)
+### ① cutoff / ⑫ time conversions
+   snapshot research_as_of                                    mine=2026-11-23T22:53:47+08:00      claim=2026-11-23T22:53:47+08:00 OK
+   snapshot target_date                                       mine=20261123                       claim=20261123                 OK
+   cutoff in New York (EST, UTC-5)                            mine=09:53                          claim=09:53                    OK
+   cutoff in Frankfurt (CET, UTC-1)                           mine=15:53                          claim=15:53                    OK
+   cutoff in Tokyo (JST, UTC+9)                               mine=23:53                          claim=23:53                    OK
+   cutoff in Shanghai (CST, UTC+8)                            mine=22:53                          claim=22:53                    OK
+   no cited daily series has observations after the cutoff date mine=[]                             claim=[]                       OK
+   latest observation date anywhere in series_store <= cutoff mine=True                           claim=True                     OK
+   latest observation date anywhere                           mine=2026-11-23   (info)
+   weekday 2026-11-23                                         mine=Mon   (info)
+====================================================================================================
+POINTS=122 MISMATCHES=0

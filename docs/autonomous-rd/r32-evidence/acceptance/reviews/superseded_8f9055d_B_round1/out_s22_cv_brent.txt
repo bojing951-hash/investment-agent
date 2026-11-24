@@ -1,0 +1,27 @@
+VERDICT VERIFIED | CPI | 337.476 | recompute:Fact 直读 CPI@2026-10-01=337.476
+VERDICT VERIFIED | CORE_CPI | 339.9 | recompute:Fact 直读 CORE_CPI@2026-10-01=339.9
+VERDICT STALE | CORE_PCE | 130.902 | recompute:Fact 直读 CORE_PCE@2026-09-01=130.902
+VERDICT VERIFIED | BEI_10Y | 2.15 | recompute:Fact 直读 BEI_10Y@2026-11-20=2.15
+VERDICT STALE | US_REAL_GDP | 24611.077 | recompute:Fact 直读 US_REAL_GDP@2026-07-01=24611.077
+VERDICT VERIFIED | UNEMPLOYMENT | 4.1 | recompute:Fact 直读 UNEMPLOYMENT@2026-10-01=4.1
+VERDICT VERIFIED | INDPRO | 103.3954 | recompute:Fact 直读 INDPRO@2026-10-01=103.3954
+VERDICT VERIFIED | JP_POLICY_RATE | 1.227 | recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227
+VERDICT VERIFIED | USDJPY | 159.35 | recompute:Fact 直读 USDJPY@2026-11-23=159.35
+STATS {'checks': 9, 'contradicted': 0, 'verified': 7, 'unbound': 0, 'six_fail': 0, 'map_fail': 0, 'n_contradictions': 3}
+KEY version "jc-v1.0-phase4"
+KEY six_checks [{"item": "C1-INFL-SYNC", "check": "relevant", "status": "VERIFIED", "note": "5 实据引用"}, {"item": "C1-INFL-SYNC", "check": "supports", "status": "VERIFIED", "note": "引用逐项对得上"}, {"item": "C1-INFL-SYNC", "check": "competing", "status": "VERIFIED", "note": "2 并列解释(阈值≥2)"}, {"item": "C1-INFL-SYNC", "check": "opposing", "status": "VERIFIED", "note": "无未消化的相反证据"}, {"item": "C2-GROWTH-STABLE", "check": "relevant", "status": "VERIFIED", "note": "3 实据引用"}, {"item": "C2-GROWTH-STABLE", "check": "supports",
+KEY map_checks [{"item": "reader_map.headline_conclusion", "claim_type": "reader_map", "status": "VERIFIED", "note": "非空", "evidence_refs": []}, {"item": "reader_map.regions", "claim_type": "reader_map", "status": "VERIFIED", "note": "3 地齐", "evidence_refs": []}, {"item": "reader_map.cross_face_consistency.chain_evidence", "claim_type": "reader_map", "status": "VERIFIED", "note": "传导链[CH-INFL-RATES-RISKOFF] 区分指标绑定 3/3 环", "evidence_refs": []}, {"item": "reader_map.cross_face_consistency.turning_source", "claim
+KEY unresolved_unbound []
+KEY verdict "VERIFIED"
+BRENT 2026-10-15..2026-11-23:
+2026-10-15=105.92; 2026-10-16=109.86; 2026-10-19=109.55; 2026-10-20=108.79; 2026-10-21=108.82; 2026-10-22=113.17; 2026-10-23=116.72; 2026-10-26=115.81; 2026-10-27=113.88; 2026-10-28=115.32; 2026-10-29=114.88; 2026-10-30=117.64; 2026-11-02=104.77; 2026-11-03=103.60; 2026-11-04=94.62; 2026-11-05=98.29; 2026-11-06=98.32; 2026-11-09=92.57; 2026-11-10=91.49; 2026-11-11=92.76; 2026-11-12=95.82; 2026-11-13=95.84; 2026-11-16=92.44; 2026-11-17=93.14; 2026-11-18=91.95; 2026-11-19=91.98; 2026-11-20=92.57; 2026-11-23=88.19
+BRENT 2026-08-10..2026-08-31:
+2026-08-10=87.72; 2026-08-11=88.91; 2026-08-12=88.98; 2026-08-13=87.07; 2026-08-14=88.52; 2026-08-17=90.87; 2026-08-18=91.02; 2026-08-19=91.62; 2026-08-20=93.78; 2026-08-21=94.39; 2026-08-24=92.17; 2026-08-25=88.58; 2026-08-26=87.84; 2026-08-27=89.70; 2026-08-28=89.31; 2026-08-31=90.49
+first below 91.62: ['2026-08-25', '2026-08-26', '2026-08-27'] count below: 7 of 68
+days >= 91.62 in window: 61
+BRENT on 2026-09-11 104.610001
+BRENT on 2026-10-15 105.919998
+BRENT on 2026-11-13 95.839996
+BRENT on 2026-11-16 92.440002
+BRENT on 2026-08-13 87.07
+BRENT on 2026-08-16 None

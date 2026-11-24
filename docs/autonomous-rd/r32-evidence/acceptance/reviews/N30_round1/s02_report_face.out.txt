@@ -1,0 +1,1466 @@
+===== run =====
+question = "2026年11月,日本和欧元区最近六个月的通胀与政策环境有什么不同?哪些方面分化,哪些证据不足?请给出具体数据和各数据的公布时间。"
+ts_utc = "20261123T235157Z"
+git_head = "36499bb78a18dea1ff2b027074088b0ba404c3b8"
+git_head_source = "code_version_stamp"
+git_diff_sha256 = null
+evidence_asof = "2026-11-23"
+degradation_policy = {
+ "critical_zero_evidence": "L1 事实行=0(引擎崩溃/全量采集失败)→拒收判断,--allow-failed-run 亦不放行",
+ "required_data_missing": "运行前声明的必要指标(问题词面命中)采集缺席→任务目标缺口,默认阻塞;显式 --allow-failed-run 才放行,落位记 degraded(缺口随档,不得事后改判可选)",
+ "optional_data_missing": "L1 事实面在场、失败步=诚实拒答类(源端缺席 no_series)→须显式 --allow-failed-run,落位记 degraded"
+}
+archive_requested = false
+evidence_gate = {
+ "discipline": "r32",
+ "as_of": "2026-11-23",
+ "source_snapshot_id": "research_snapshot_20261123",
+ "source_target_date": "2026-11-23",
+ "historical_view": false,
+ "publication_basis": "snapshot_presence",
+ "rules": [
+  "①观测日≤as_of",
+  "②发布日≤as_of(历史截止: 日历实录优先/RELEASE_RULES 推定)",
+  "③值版本: as-of 快照版本优先;无则注册表未声明修订=值不随版本变(可引用);声明最新修订口径=观测须已过首个修订周期(首发日+1发布周期≤as_of),否则当时数据版本不可得逐点剔除"
+ ],
+ "vintage": {
+  "basis": "snapshot_vintage",
+  "vintage_snapshot": null,
+  "vintage_snapshot_id": null,
+  "vintage_error": null,
+  "revised_series": [],
+  "excluded_series": []
+ },
+ "counts": {
+  "facts_kept": 105,
+  "facts_rebuilt": 0,
+  "facts_dropped": 0,
+  "facts_excluded_version": 0,
+  "series_observations_dropped": 0,
+  "series_observations_version_unavailable": 0,
+  "series_excluded": 0,
+  "series_n": 92
+ },
+ "series": {
+  "SPX": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "NDX": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "RUT": {
+   "n_in": 2512,
+   "n_kept": 2512,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-20",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "NVDA": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "AAPL": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "MSFT": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "TLT": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": 
+frozen_inputs = {
+ "config/release_calendar.json": "e44fd2aa5ced0310",
+ "config/metric_registry.json": "fa396d22175a4814",
+ "data/daily/research_snapshot_20261123.json": "2d650f1128cdd356"
+}
+data_requirements = {
+ "frozen_at": "plan(采集前冻结;分类与规格不随采集结果改判)",
+ "items": [
+  {
+   "metric_id": "EA_HICP_YOY",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-05-23",
+     "end": "2026-11-23",
+     "as_of": "2026-11-23",
+     "kind": "relative_months",
+     "basis": "研究时点 2026-11-23 倒推 6 个自然月(2026-05-23..2026-11-23)",
+     "n_in_window": 5,
+     "first_in_window": "2026-06-01",
+     "last_in_window": "2026-10-01",
+     "expected_in_window": 7,
+     "n_floor_in_window": 4,
+     "max_adjacent_gap_days": 31,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 358,
+     "first": "1997-01-01",
+     "last": "2026-10-01",
+     "n_in_window": 5,
+     "first_in_window": "2026-06-01",
+     "last_in_window": "2026-10-01"
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "satisfied",
+   "outcome_basis": "任务窗2026-05-23..2026-11-23跨窗满足: 窗内有效去重 n=5(日历期望7×50%下界4;边界容差 起+62天/止-75天;最大间距31天≤130天;总量 n=358;问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "ECB_MRO",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-05-23",
+     "end": "2026-11-23",
+     "as_of": "2026-11-23",
+     "kind": "relative_months",
+     "basis": "研究时点 2026-11-23 倒推 6 个自然月(2026-05-23..2026-11-23)",
+     "n_in_window": 2,
+     "first_in_window": "2026-06-17",
+     "last_in_window": "2026-09-16",
+     "expected_in_window": 131,
+     "n_floor_in_window": 66,
+     "max_adjacent_gap_days": 91,
+     "max_gap_limit_days": 30,
+     "tolerance_days": {
+      "start": 14,
+      "end": 10
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       14,
+       10
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 30,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "daily",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 48,
+     "first": "1999-01-01",
+     "last": "2026-09-16",
+     "n_in_window": 2,
+     "first_in_window": "2026-06-17",
+     "last_in_window": "2026-09-16"
+    },
+    "min_observations": 60,
+    "min_observations_basis": "问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: ECB_MRO(任务窗2026-05-23..2026-11-23)——任务窗窗口成员/覆盖不满足;任务窗2026-05-23..2026-11-23未满足: 窗内首观测2026-06-17晚于窗起+14天容忍(历史未覆盖任务窗起点);窗内末观测2026-09-16早于窗止-10天容忍(发布滞后外缺口);窗内有效观测 n=2<66(日历期望131×半额;总量48不替代窗口归属);窗内观测最大相邻间距91天>频率族断档上限30天(严重断档)(问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "ECB_DFR",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-05-23",
+     "end": "2026-11-23",
+     "as_of": "2026-11-23",
+     "kind": "relative_months",
+     "basis": "研究时点 2026-11-23 倒推 6 个自然月(2026-05-23..2026-11-23)",
+     "n_in_window": 2,
+     "first_in_window": "2026-06-17",
+     "last_in_window": "2026-09-16",
+     "expected_in_window": 131,
+     "n_floor_in_window": 66,
+     "max_adjacent_gap_days": 91,
+     "max_gap_limit_days": 30,
+     "tolerance_days": {
+      "start": 14,
+      "end": 10
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       14,
+       10
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 30,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "daily",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 69,
+     "first": "1999-01-01",
+     "last": "2026-09-16",
+     "n_in_window": 2,
+     "first_in_window": "2026-06-17",
+     "last_in_window": "2026-09-16"
+    },
+    "min_observations": 60,
+    "min_observations_basis": "问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: ECB_DFR(任务窗2026-05-23..2026-11-23)——任务窗窗口成员/覆盖不满足;任务窗2026-05-23..2026-11-23未满足: 窗内首观测2026-06-17晚于窗起+14天容忍(历史未覆盖任务窗起点);窗内末观测2026-09-16早于窗止-10天容忍(发布滞后外缺口);窗内有效观测 n=2<66(日历期望131×半额;总量69不替代窗口归属);窗内观测最大相邻间距91天>频率族断档上限30天(严重断档)(问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "JP_CPI_YOY",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-05-23",
+     "end": "2026-11-23",
+     "as_of": "2026-11-23",
+     "kind": "relative_months",
+     "basis": "研究时点 2026-11-23 倒推 6 个自然月(2026-05-23..2026-11-23)",
+     "n_in_window": 5,
+     "first_in_window": "2026-06-01",
+     "last_in_window": "2026-10-01",
+     "expected_in_window": 7,
+     "n_floor_in_window": 4,
+     "max_adjacent_gap_days": 31,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 70,
+     "first": "2021-01-01",
+     "last": "2026-10-01",
+     "n_in_window": 5,
+     "first_in_window": "2026-06-01",
+     "last_in_window": "2026-10-01"
+    },
+
+
+===== research_plan =====
+--- map_question = true
+--- question_verbatim = "2026年11月,日本和欧元区最近六个月的通胀与政策环境有什么不同?哪些方面分化,哪些证据不足?请给出具体数据和各数据的公布时间。"
+--- question_summary = "内部摘要(非原文): 地区EA/JP×维度inflation、policy@2026-11-23,三时点对照+转折+传导+历史类比;仅供检索/日志,交付与验收以 question_verbatim 为准"
+--- dimension_source = "explicit_words"
+--- asof_discipline = "r23"
+--- turning_supplement_discipline = "r24"
+--- cross_face_consistency = "r25"
+--- shared_by = "取数(plan 指标并入 S4/数据需求面)/报告(MAP_REPORT 对照表与数值回贴)/验收(同一份 plan 判据)——不手填指标代码"
+--- regions = {
+ "EA": {
+  "label": "欧元区",
+  "dimensions": {
+   "inflation": [
+    {
+     "metric_id": "EA_HICP_YOY",
+     "display_name": "欧元区HICP同比",
+     "face_note": "HICP同比(月频)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+     "policy_face": null
+    }
+   ],
+   "policy": [
+    {
+     "metric_id": "ECB_MRO",
+     "display_name": "欧央行主要再融资利率",
+     "face_note": "欧央行主要再融资利率(政策目标口径)",
+     "frequency": "daily",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "政策目标(宣布值)",
+      "market_seat_label": "ECB主要再融资利率",
+      "decision": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16",
+      "effective": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)",
+      "decision_kind": "prev_thursday",
+      "stat_window": null
+     }
+    },
+    {
+     "metric_id": "ECB_DFR",
+     "display_name": "欧央行存款便利利率",
+     "face_note": "欧央行存款便利利率(操作下限口径)",
+     "frequency": "daily",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "政策目标(宣布值·操作下限)",
+      "market_seat_label": "ECB存款便利利率",
+      "decision": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16",
+      "effective": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)",
+      "decision_kind": "prev_thursday",
+      "stat_window": null
+     }
+    }
+   ]
+  }
+ },
+ "JP": {
+  "label": "日本",
+  "dimensions": {
+   "inflation": [
+    {
+     "metric_id": "JP_CPI_YOY",
+     "display_name": "全国CPI同比(日本)",
+     "face_note": "全国CPI同比(月频,官方主口径)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+     "policy_face": null
+    },
+    {
+     "metric_id": "JP_CPI_TOKYO_YOY",
+     "display_name": "东京都CPI同比",
+     "face_note": "东京都CPI同比(月频,速报先行口径;2025基单档→2026-01起)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": null
+    }
+   ],
+   "policy": [
+    {
+     "metric_id": "JP_POLICY_RATE",
+     "display_name": "日本无担保隔夜拆借利率(月均)",
+     "face_note": "无担保隔夜拆借利率(月均口径——月均≠政策目标宣布值,任务3四分注记)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "隔夜市场均值(月均)",
+      "market_seat_label": "无担保隔夜拆借月均",
+      "decision": null,
+      "effective": null,
+      "stat_window": "月"
+     }
+    }
+   ]
+  }
+ }
+}
+--- dimensions = [
+ "inflation",
+ "policy"
+]
+--- metrics = [
+ "EA_HICP_YOY",
+ "ECB_MRO",
+ "ECB_DFR",
+ "JP_CPI_YOY",
+ "JP_CPI_TOKYO_YOY",
+ "JP_POLICY_RATE"
+]
+--- context_metrics = [
+ "UST_10Y",
+ "TIPS_10Y",
+ "BEI_10Y"
+]
+--- point_anchors = [
+ {
+  "kind": "point",
+  "label": "6个月前",
+  "as_of": "2026-05-23",
+  "months_before": 6,
+  "window_start": "问句时间窗窗起(最近六个月)"
+ },
+ {
+  "kind": "point",
+  "label": "最新一期",
+  "as_of": "2026-11-23",
+  "months_before": 0,
+  "explicit_period": "2026-11"
+ }
+]
+--- question_window = {
+ "windows": [
+  {
+   "months": 6,
+   "from": "2026-05-23",
+   "to": "2026-11-23",
+   "source": "最近六个月"
+  }
+ ]
+}
+--- ex_post_offsets = []
+--- anchor_semantics_note = "「N个月前」=日历点锚(研究截止日−N月);「事件发生后N个月」=事后偏移锚(事件日+N月) ——两类分记,前者用于三时点对照,后者用于转折/历史类比的随后 3/6/12 月事后窗"
+--- dimension_gaps = [
+ {
+  "region": "JP",
+  "dimension": "policy",
+  "metric_id": "JP_POLICY_TARGET",
+  "gap": "registry_absent",
+  "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"
+ }
+]
+--- cutoff = "2026-11-23"
+--- consumed_time_spans = []
+--- as_of_declared = {
+ "as_of": "2026-11-23",
+ "basis": "裸年月 2026年11月 按月末时点化为请求研究时点 2026-11-30(晚于快照实际覆盖日 2026-11-23)→研究截止日取实际覆盖日 2026-11-23,与单一相对回看窗合并(一个截止日+一个回看窗;真冲突组合仍拒绝)",
+ "snapshot_target_date": "2026-11-23",
+ "differs_from_snapshot": false,
+ "requested_as_of": "2026-11-30",
+ "clamped_to_coverage": true,
+ "coverage_date": "2026-11-23",
+ "requested_month_end": "2026-11-30",
+ "actual_coverage_date": "2026-11-23",
+ "bare_year_month": null,
+ "upstream_pin": false,
+ "error": null,
+ "note": "问句请求的研究时点 2026-11-30 晚于快照实际覆盖日 2026-11-23(月末未到/数据未到)——研究截止日取实际覆盖日,交付为截至实际日期的结果(非请求月末的完整结果)"
+}
+
+--- point_values = {
+ "cells": [
+  {
+   "region": "EA",
+   "dimension": "inflation",
+   "metric_id": "EA_HICP_YOY",
+   "display_name": "欧元区HICP同比",
+   "unit": "percent",
+   "face_note": "HICP同比(月频)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "6个月前": {
+     "status": "ok",
+     "as_of": "2026-05-23",
+     "observation_date": "2026-04-01",
+     "publication_date": "2026-05-16",
+     "publication_rule": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)",
+     "publication_basis": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 3.0,
+     "period_end": "2026-04-30"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-16",
+     "publication_rule": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)",
+     "publication_basis": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 4.0,
+     "period_end": "2026-10-31"
+    }
+   },
+   "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+   "policy_face": null
+  },
+  {
+   "region": "EA",
+   "dimension": "policy",
+   "metric_id": "ECB_MRO",
+   "display_name": "欧央行主要再融资利率",
+   "unit": "percent",
+   "face_note": "欧央行主要再融资利率(政策目标口径)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "6个月前": {
+     "status": "ok",
+     "as_of": "2026-05-23",
+     "observation_date": "2025-06-11",
+     "publication_date": "2025-06-11",
+     "publication_rule": "ECB 决议日当日公布(变更日观测)",
+     "publication_basis": "ECB 决议日当日公布(变更日观测)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 2.15,
+     "policy_dates": {
+      "face": "政策目标(宣布值)",
+      "market_seat_label": "ECB主要再融资利率",
+      "decision_note": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16",
+      "effective_note": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)",
+      "market_note": null,
+      "decision": "2025-06-05",
+      "effective": "2025-06-11",
+      "market_observation": null,
+      "stat_window_end": null
+     }
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-09-16",
+     "publication_date": "2026-09-16",
+     "publication_rule": "ECB 决议日当日公布(变更日观测)",
+     "publication_basis": "ECB 决议日当日公布(变更日观测)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 2.65,
+     "policy_confirm_date": "2026-09-16",
+     "freshness_basis": "policy_confirmation",
+     "policy_dates": {
+      "face": "政策目标(宣布值)",
+      "market_seat_label": "ECB主要再融资利率",
+      "decision_note": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16",
+      "effective_note": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)",
+      "market_note": null,
+      "decision": "2026-09-10",
+      "effective": "2026-09-16",
+      "market_observation": null,
+      "stat_window_end": null
+     }
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": {
+    "face": "政策目标(宣布值)",
+    "market_seat_label": "ECB主要再融资利率",
+    "decision": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16",
+    "effective": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)",
+    "decision_kind": "prev_thursday",
+    "stat_window": null
+   },
+   "policy_window_path": {
+    "window": [
+     "2025-11-23",
+     "2026-11-23"
+    ],
+    "events": [
+     {
+      "date": "2026-06-17",
+      "from": 2.15,
+      "to": 2.4,
+      "delta_bp": 25,
+      "decision_date": "2026-06-11"
+     },
+     {
+      "date": "2026-09-16",
+      "from": 2.4,
+      "to": 2.65,
+      "delta_bp": 25,
+      "decision_date": "2026-09-10"
+     }
+    ],
+    "window_start_value": 2.15,
+    "window_end_value": 2.65,
+    "window_start_observation": "2025-06-11",
+    "net_bp": 50,
+    "note": "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=变动点之和=窗启时在值→窗末观测之差(bp);窗启时在值=窗内首观测的前值(其观测日可在窗启之前,该值在窗启时仍在生效;窗内首观测即序列首观测时取其自身)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+   }
+  },
+  {
+   "region": "EA",
+   "dimension": "policy",
+   "metric_id": "ECB_DFR",
+   "display_name": "欧央行存款便利利率",
+   "unit": "percent",
+   "face_note": "欧央行存款便利利率(操作下限口径)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "6个月前": {
+     "status": "ok",
+     "as_of": "2026-05-23",
+     "observation_date": "2025-06-11",
+     "publication_date": "2025-06-11",
+     "publication_rule": "ECB 决议日当日公布(变更日观测)",
+     "publication_basis": "ECB 决议日当日公布(变更日观测)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 2.0,
+     "policy_dates": {
+      "face": "政策目标(宣布值·操作下限)",
+      "market_seat_label": "ECB存款便利利率",
+      "decision_note": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16",
+      "effective_note": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)",
+      "market_note": null,
+      "decision": "2025-06-05",
+      "effective": "2025-06-11",
+      "market_observation": null,
+      "stat_window_end": null
+     }
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-09-16",
+     "publication_date": "2026-09-16",
+     "publication_rule": "ECB 决议日当日公布(变更日观测)",
+     "publication_basis": "ECB 决议日当日公布(变更日观测)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 2.5,
+     "policy_confirm_date": "2026-09-16",
+     "freshness_basis": "policy_confirmation",
+     "policy_dates": {
+      "face": "政策目标(宣布值·操作下限)",
+      "market_seat_label": "ECB存款便利利率",
+      "decision_note": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16",
+      "effective_note": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)",
+      "market_note": null,
+      "decision": "2026-09-10",
+      "effective": "2026-09-16",
+      "market_observation": null,
+      "stat_window_end": null
+     }
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": {
+    "face": "政策目标(宣布值·操作下限)",
+    "market_seat_label": "ECB存款便利利率",
+    "decision": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16",
+    "effective": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)",
+    "decision_kind": "prev_thursday",
+    "stat_window": null
+   },
+   "policy_window_path": {
+    "window": [
+     "2025-11-23",
+     "2026-11-23"
+    ],
+    "events": [
+     {
+      "date": "2026-06-17",
+      "from": 2.0,
+      "to": 2.25,
+      "delta_bp": 25,
+      "decision_date": "2026-06-11"
+     },
+     {
+      "date": "2026-09-16",
+      "from": 2.25,
+      "to": 2.5,
+      "delta_bp": 25,
+      "decision_date": "2026-09-10"
+     }
+    ],
+    "window_start_value": 2.0,
+    "window_end_value": 2.5,
+    "window_start_observation": "2025-06-11",
+    "net_bp": 50,
+    "note": "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=变动点之和=窗启时在值→窗末观测之差(bp);窗启时在值=窗内首观测的前值(其观测日可在窗启之前,该值在窗启时仍在生效;窗内首观测即序列首观测时取其自身)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+   }
+  },
+  {
+   "region": "JP",
+   "dimension": "inflation",
+   "metric_id": "JP_CPI_YOY",
+   "display_name": "全国CPI同比(日本)",
+   "unit": "percent",
+   "face_note": "全国CPI同比(月频,官方主口径)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "6个月前": {
+     "status": "ok",
+     "as_of": "2026-05-23",
+     "observation_date": "2026-04-01",
+     "publication_date": "2026-05-20",
+     "publication_rule": "总务省全国CPI次月中旬发布(月末+20天,推定)",
+     "publication_basis": "总务省全国CPI次月中旬发布(月末+20天,推定)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 1.38,
+     "period_end": "2026-04-30"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-20",
+     "publication_rule": "总务省全国CPI次月中旬发布(月末+20天,推定)",
+     "publication_basis": "总务省全国CPI次月中旬发布(月末+20天,推定)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 2.44,
+     "period_end": "2026-10-31"
+    }
+   },
+   "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+   "policy_face": null
+  },
+  {
+   "region": "JP",
+   "dimension": "inflation",
+   "metric_id": "JP_CPI_TOKYO_YOY",
+   "display_name": "东京都CPI同比",
+   "unit": "percent",
+   "face_note": "东京都CPI同比(月频,速报先行口径;2025基单档→2026-01起)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "6个月前": {
+     "status": "ok",
+     "as_of": "2026-05-23",
+     "observation_date": "2026-04-01",
+     "publication_date": "2026-04-29",
+     "publication_rule": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)",
+     "publication_basis": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 1.42,
+     "period_end": "2026-04-30"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-10-30",
+     "publication_rule": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)",
+     "publication_basis": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 2.73,
+     "period_end": "2026-10-31"
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "JP",
+   "dimension": "policy",
+   "metric_id": "JP_POLICY_RATE",
+   "display_name": "日本无担保隔夜拆借利率(月均)",
+   "unit": "percent",
+   "face_note": "无担保隔夜拆借利率(月均口径——月均≠政策目标宣布值,任务3四分注记)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "6个月前": {
+     "status": "ok",
+     "as_of": "2026-05-23",
+     "observation_date": "2026-04-01",
+     "publication_date": "2026-05-05",
+     "publication_rule": "BOJ 月均次月初公布(月末+5天,推定)",
+     "publication_basis": "BOJ 月均次月初公布(月末+5天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 0.727,
+     "period_end": "2026-04-30",
+     "policy_dates": {
+      "face": "隔夜市场均值(月均)",
+      "market_seat_label": "无担保隔夜拆借月均",
+      "decision_note": null,
+      "effective_note": null,
+      "market_note": null,
+      "decision": null,
+      "effective": null,
+      "market_observation": null,
+      "stat_window_end": "2026-04-30"
+     }
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-05",
+     "publication_rule": "BOJ 月均次月初公布(月末+5天,推定)",
+     "publication_basis": "BOJ 月均次月初公布(月末+5天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 1.227,
+     "period_end": "2026-10-31",
+     "policy_dates": {
+      "face": "隔夜市场均值(月均)",
+      "market_seat_label": "无担保隔夜拆借月均",
+      "decision_note": null,
+      "effective_note": null,
+      "market_note": null,
+      "decision": null,
+      "effective": null,
+      "market_observation": null,
+      "stat_window_end": "2026-10-31"
+     }
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": {
+    "face": "隔夜市场均值(月均)",
+    "market_seat_label": "无担保隔夜拆借月均",
+    "decision": null,
+    "effective": null,
+    "stat_window": "月"
+   },
+   "policy_window_path": {
+    "window": [
+     "2025-11-23",
+     "2026-11-23"
+    ],
+    "events": [
+     {
+      "date": "2025-12-01",
+      "from": 0.478,
+      "to": 0.557,
+      "delta_bp": 8
+     },
+     {
+      "date": "2026-01-01",
+      "from": 0.557,
+      "to": 0.728,
+      "delta_bp": 17
+     },
+     {
+      "date": "2026-06-01",
+      "from": 0.727,
+      "to": 0.841,
+      "delta_bp": 11
+     },
+     {
+      "date": "2026-07-01",
+      "from": 0.841,
+      "to": 0.978,
+      "delta_bp": 14
+     },
+     {
+      "date": "2026-09-01",
+      "from": 0.977,
+      "to": 1.043,
+      "delta_bp": 7
+     },
+     {
+      "date": "2026-10-01",
+      "from": 1.043,
+      "to": 1.227,
+      "delta_bp": 18
+     }
+    ],
+    "window_start_value": 0.478,
+    "window_end_value": 1.227,
+    "window_start_observation": "2025-11-01",
+    "net_bp": 75,
+    "note": "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=变动点之和=窗启时在值→窗末观测之差(bp);窗启时在值=窗内首观测的前值(其观测日可在窗启之前,该值在窗启时仍在生效;窗内首观测即序列首观测时取其自身)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+   }
+  }
+ ],
+ "absent": [],
+ "asset_universe": [
+  "UST_2Y",
+  "UST_5Y",
+  "UST_10Y",
+  "UST_30Y",
+  "TIPS_5Y",
+  "TIPS_10Y",
+  "BEI_5Y",
+  "BEI_10Y",
+  "CURVE_2S10S",
+  "SPX",
+  "NDX",
+  "RUT",
+  "DAX",
+  "CAC40",
+  "NIKKEI225",
+  "HSI",
+  "SHCOMP",
+  "DXY",
+  "EURUSD",
+  "USDJPY",
+  "USDCNY",
+  "GOLD_F",
+  "SILVER_F",
+  "BRENT_F",
+  "HY_OAS",
+  "IG_OAS",
+  "BB_OAS",
+  "B_OAS",
+  "CCC_OAS",
+  "VIX"
+ ]
+}
+
+--- turning_candidates = {
+ "basis": "过去12个月(研究截止日)内 3 个月滚动变化绝对值最大者;增长/通胀/政策三维全部进入候选池(每指标一候选,窗端点已按发布纪律过滤);确定性计算,仅作候选——三个转折的取舍与谁先变判断归 Agent 席 reader_map(三转折须为不同事件,同一转折不得重复计数)",
+ "candidates": [
+  {
+   "from_ym": "2025-11",
+   "to_ym": "2026-02",
+   "from_date": "2025-11-01",
+   "to_date": "2026-02-01",
+   "value_before": 2.9,
+   "value_after": 1.27,
+   "delta": -1.63,
+   "region": "JP",
+   "dimension": "inflation",
+   "metric_id": "JP_CPI_YOY",
+   "display_name": "全国CPI同比(日本)",
+   "unit": "percent"
+  },
+  {
+   "from_ym": "2026-02",
+   "to_ym": "2026-05",
+   "from_date": "2026-02-01",
+   "to_date": "2026-05-01",
+   "value_before": 1.9,
+   "value_after": 3.2,
+   "delta": 1.3,
+   "region": "EA",
+   "dimension": "inflation",
+   "metric_id": "EA_HICP_YOY",
+   "display_name": "欧元区HICP同比",
+   "unit": "percent"
+  },
+  {
+   "from_ym": "2026-06",
+   "to_ym": "2026-09",
+   "from_date": "2026-06-01",
+   "to_date": "2026-09-01",
+   "value_before": 1.6,
+   "value_after": 2.69,
+   "delta": 1.09,
+   "region": "JP",
+   "dimension": "inflation",
+   "metric_id": "JP_CPI_TOKYO_YOY",
+   "display_name": "东京都CPI同比",
+   "unit": "percent"
+  },
+  {
+   "from_ym": "2026-04",
+   "to_ym": "2026-07",
+   "from_date": "2026-04-01",
+   "to_date": "2026-07-01",
+   "value_before": 0.727,
+   "value_after": 0.978,
+   "delta": 0.251,
+   "region": "JP",
+   "dimension": "policy",
+   "metric_id": "JP_POLICY_RATE",
+   "display_name": "日本无担保隔夜拆借利率(月均)",
+   "unit": "percent"
+  }
+ ],
+ "top_n_expected": 3
+}
+
+--- us_rates_trio = {
+ "status": "ok",
+ "kind": "共同交易日三利率分解",
+ "window": {
+  "from": "2026-10-20",
+  "to": "2026-11-19",
+  "calendar_days_between": 30
+ },
+ "levels_at_to": {
+  "UST_10Y": 5.04,
+  "TIPS_10Y": 2.88,
+  "BEI_10Y": 2.16
+ },
+ "chg_bp": {
+  "UST_10Y": -8.0,
+  "TIPS_10Y": 11.0,
+  "BEI_10Y": -19.0
+ },
+ "decomposition": "十年期名义 Δ-8bp = 实际 Δ+11bp + 盈亏平衡 Δ-19bp",
+ "identity_residual_bp": 0.0,
+ "identity_note": "名义=实际+盈亏平衡 的恒等残差(同日同窗;非零=源端口径差,逐位披露不吸收)",
+ "recent_common_days": [
+  "2026-11-05",
+  "2026-11-06",
+  "2026-11-09",
+  "2026-11-10",
+  "2026-11-12",
+  "2026-11-13",
+  "2026-11-16",
+  "2026-11-17",
+  "2026-11-18",
+  "2026-11-19"
+ ],
+ "window_12m": {
+  "from": "2025-11-19",
+  "to": "2026-11-19",
+  "calendar_days_between": 365
+ },
+ "chg_bp_12m": {
+  "UST_10Y": 91.0,
+  "TIPS_10Y": 102.0,
+  "BEI_10Y": -11.0
+ },
+ "decomposition_12m": "十年期名义 Δ+91bp = 实际 Δ+102bp + 盈亏平衡 Δ-11bp",
+ "identity_residual_bp_12m": 0.0
+}
+
+--- asset_moves = {
+ "status": "ok",
+ "window_months": 1,
+ "window_rule": "≤2026-11-23 最新观测 vs 最近于2026-10-23 的观测(界日无观测取最近邻;两端实际观测日随行披露)",
+ "rows": [
+  {
+   "metric_id": "SPX",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 7623.680176,
+   "to_value": 7203.850098,
+   "chg_pct": -5.51,
+   "chg_abs": -419.8301
+  },
+  {
+   "metric_id": "SHCOMP",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 3690.4753,
+   "to_value": 3538.948,
+   "chg_pct": -4.11,
+   "chg_abs": -151.5273
+  },
+  {
+   "metric_id": "DAX",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 25181.650391,
+   "to_value": 25209.449219,
+   "chg_pct": 0.11,
+   "chg_abs": 27.7988
+  },
+  {
+   "metric_id": "NIKKEI225",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-20"
+   },
+   "from_value": 62693.16,
+   "to_value": 56436.65,
+   "chg_pct": -9.98,
+   "chg_abs": -6256.51
+  },
+  {
+   "metric_id": "VIX",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 19.450001,
+   "to_value": 27.01,
+   "chg_pct": 38.87,
+   "chg_abs": 7.56
+  },
+  {
+   "metric_id": "DXY",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 101.809998,
+   "to_value": 104.079002,
+   "chg_pct": 2.23,
+   "chg_abs": 2.269
+  },
+  {
+   "metric_id": "GOLD_F",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 4007.899902,
+   "to_value": 3685.199951,
+   "chg_pct": -8.05,
+   "chg_abs": -322.7
+  },
+  {
+   "metric_id": "UST_10Y",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-19"
+   },
+   "from_value": 5.0,
+   "to_value": 5.04,
+   "chg_pct": 0.8,
+   "chg_abs": 0.04
+  }
+ ],
+ "absent": []
+}
+
+--- policy_event_clusters = {
+ "basis": "同一事件的跨国信号合并: 各政策行一年窗路径事件按决议日跨地区聚簇(±7 日)——同簇=同一全球政策事件,三个转折中计一个事件;逐国决议日/生效日分记(决议→生效惯例: Fed=次日,ECB=决议后首个周三,PBOC=宣布即时)。月频证据只能说明同步时,先后未定。",
+ "clusters": [
+  {
+   "cluster_id": "POLCLUSTER-01",
+   "date_from": "2026-06-11",
+   "date_to": "2026-06-11",
+   "regions": [
+    "EA"
+   ],
+   "events": [
+    {
+     "region": "EA",
+     "metric_id": "ECB_DFR",
+     "display_name": "欧央行存款便利利率",
+     "date": "2026-06-11",
+     "effective_date": "2026-06-17",
+     "delta_bp": 25,
+     "from": 2.0,
+     "to": 2.25,
+     "decision_to_effective_days": 6
+    }
+   ],
+   "same_event_cross_country": false,
+   "note": "单地区事件(不跨国产合并)"
+  },
+  {
+   "cluster_id": "POLCLUSTER-02",
+   "date_from": "2026-09-10",
+   "date_to": "2026-09-10",
+   "regions": [
+    "EA"
+   ],
+   "events": [
+    {
+     "region": "EA",
+     "metric_id": "ECB_DFR",
+     "display_name": "欧央行存款便利利率",
+     "date": "2026-09-10",
+     "effective_date": "2026-09-16",
+     "delta_bp": 25,
+     "from": 2.25,
+     "to": 2.5,
+     "decision_to_effective_days": 6
+    }
+   ],
+   "same_event_cross_country": false,
+   "note": "单地区事件(不跨国产合并)"
+  }
+ ]
+}
+
+--- policy_doc_facts = [
+ {
+  "doc_id": "FOMC-MINUTES-2026-10",
+  "kind": "minutes",
+  "title": "FOMC 2026年10月会议纪要",
+  "meeting_month": "2026-10",
+  "published_on": "2026-11-18",
+  "basis": "user_directive",
+  "note": "10月会议纪要 2026-11-18 发布(纪要发布≠决议日;引用纪要叙事自 11-18 起可见,决议数值仍以决议日公布为准)",
+  "source": "Audit-R22 验收指令(2026-11-19)"
+ }
+]
+
+===== semantic_review =====
+{
+ "required": true,
+ "reasons": [
+  "l3_qualitative_inference",
+  "l4_conditional_scenarios"
+ ],
+ "seat_invoked": false,
+ "verdict": null,
+ "archive": null,
+ "fresh": null,
+ "verdicts_n": 0,
+ "prior_verdicts": [],
+ "record_health": {},
+ "error": null
+}
+
+===== report.agent_judgment (meta) =====
+attached = true
+attached_at = "20261124T033553Z"
+judgment_file = "judgment6_N30.json"
+schema_version = "1.1"
+validation = {
+ "passed": true,
+ "violations": [],
+ "n_contradictions": 3,
+ "n_mechanism_chains": 1,
+ "n_scenarios": 2
+}
+run_ok_at_attach = true
+allow_failed_run = false
+reader_map_faces = {
+ "complete": true,
+ "headline": true,
+ "regions_ok": true,
+ "transmission_chains": 1,
+ "turnings_n": 3,
+ "history_n": 0
+}
+
+===== contract_verification =====
+--- version = "jc-v1.0-phase4"
+--- verdict = "VERIFIED"
+--- stats = {
+ "checks": 5,
+ "contradicted": 0,
+ "verified": 4,
+ "unbound": 0,
+ "six_fail": 0,
+ "map_fail": 0,
+ "n_contradictions": 3
+}
+--- six_checks = [
+ {
+  "item": "C1-INFL-DIVERGE",
+  "check": "relevant",
+  "status": "VERIFIED",
+  "note": "2 实据引用"
+ },
+ {
+  "item": "C1-INFL-DIVERGE",
+  "check": "supports",
+  "status": "VERIFIED",
+  "note": "引用逐项对得上; 披露: JP_CPI_YOY@2026-10-01 未在文本展开; EA_HICP_YOY@2026-10-01 未在文本展开"
+ },
+ {
+  "item": "C1-INFL-DIVERGE",
+  "check": "competing",
+  "status": "VERIFIED",
+  "note": "2 并列解释(阈值≥2)"
+ },
+ {
+  "item": "C1-INFL-DIVERGE",
+  "check": "opposing",
+  "status": "VERIFIED",
+  "note": "未讨论的被引指标(披露): ['JP_CPI_YOY', 'EA_HICP_YOY']"
+ },
+ {
+  "item": "C2-POLICY-SYNC-LEVEL-GAP",
+  "check": "relevant",
+  "status": "VERIFIED",
+  "note": "6 实据引用"
+ },
+ {
+  "item": "C2-POLICY-SYNC-LEVEL-GAP",
+  "check": "supports",
+  "status": "VERIFIED",
+  "note": "引用逐项对得上"
+ },
+ {
+  "item": "C2-POLICY-SYNC-LEVEL-GAP",
+  "check": "competing",
+  "status": "VERIFIED",
+  "note": "2 并列解释(阈值≥2)"
+ },
+ {
+  "item": "C2-POLICY-SYNC-LEVEL-GAP",
+  "check": "opposing",
+  "status": "VERIFIED",
+  "note": "无未消化的相反证据"
+ },
+ {
+  "item": "C3-EVIDENCE-GAPS",
+  "check": "relevant",
+  "status": "VERIFIED",
+  "note": "3 实据引用"
+ },
+ {
+  "item": "C3-EVIDENCE-GAPS",
+  "check": "supports",
+  "status": "VERIFIED",
+  "note": "引用逐项对得上; 披露: JP_POLICY_RATE@2026-10-01 未在文本展开; EA_HICP_YOY@2026-10-01 未在文本展开"
+ },
+ {
+  "item": "C3-EVIDENCE-GAPS",
+  "check": "competing",
+  "status": "VERIFIED",
+  "note": "2 并列解释(阈值≥2)"
+ },
+ {
+  "item": "C3-EVIDENCE-GAPS",
+  "check": "opposing",
+  "status": "VERIFIED",
+  "note": "未讨论的被引指标(披露): ['JP_POLICY_RATE', 'EA_HICP_YOY']"
+ },
+ {
+  "item": "S1-DIVERGE-PERSIST",
+  "check": "overreach",
+  "status": "VERIFIED",
+  "note": "tier=有相关证据 条件式✓"
+ },
+ {
+  "item": "S1-DIVERGE-PERSIST",
+  "check": "falsifiable",
+  "status": "VERIFIED",
+  "note": "指标+阈值形态✓"
+ },
+ {
+  "item": "S2-CONVERGE",
+  "check": "overreach",
+  "status": "VERIFIED",
+  "note": "tier=纯逻辑推理 条件式✓"
+ },
+ {
+  "item": "S2-CONVERGE",
+  "check": "falsifiable",
+  "status": "VERIFIED",
+  "note": "指标+阈值形态✓"
+ }
+]
+--- map_checks = [
+ {
+  "item": "reader_map.headline_conclusion",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "非空",
+  "evidence_refs": []
+ },
+ {
+  "item": "reader_map.regions",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "2 地齐",
+  "evidence_refs": []
+ },
+ {
+  "item": "reader_map.cross_face_consistency.date_order",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "日期次序主张一致: 2026-09-18<2026-09-29(晚于,1 处)",
+  "evidence_refs": []
+ },
+ {
+  "item": "reader_map.cross_face_consistency.chain_evidence",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "传导链[CH-INFL-POLICY-RISKOFF] 区分指标绑定 3/3 环",
+  "evidence_refs": []
+ },
+ {
+  "item": "reader_map.cross_face_consistency.turning_source",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "转折表 3 项指标与计划/候选面同源",
+  "evidence_refs": []
+ }
+]
+--- unresolved_unbound = []
+--- verdicts (all) = [
+ {
+  "item": "C2-POLICY-SYNC-LEVEL-GAP.statement",
+  "claim_type": "objective_fact",
+  "unit": "",
+  "evidence_refs": [
+   "ECB_DFR"
+  ],
+  "family": "level",
+  "token": "2.5%",
+  "metric": "ECB_DFR",
+  "value": 2.5,
+  "expected": 2.5,
+  "status": "STALE",
+  "note": "recompute:Fact 直读 ECB_DFR@2026-09-16=2.5"
+ },
+ {
+  "item": "C2-POLICY-SYNC-LEVEL-GAP.statement",
+  "claim_type": "objective_fact",
+  "unit": "",
+  "evidence_refs": [
+   "JP_POLICY_RATE"
+  ],
+  "family": "level",
+  "token": "1.227%",
+  "metric": "JP_POLICY_RATE",
+  "value": 1.227,
+  "expected": 1.227,
+  "status": "VERIFIED",
+  "note": "recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227"
+ },
+ {
+  "item": "C2-POLICY-SYNC-LEVEL-GAP.statement",
+  "claim_type": "objective_fact",
+  "unit": "",
+  "evidence_refs": [
+   "USDJPY"
+  ],
+  "family": "level",
+  "token": "159.35",
+  "metric": "USDJPY",
+  "value": 159.35,
+  "expected": 159.35,
+  "status": "VERIFIED",
+  "note": "recompute:Fact 直读 USDJPY@2026-11-23=159.35"
+ },
+ {
+  "item": "C2-POLICY-SYNC-LEVEL-GAP.statement",
+  "claim_type": "objective_fact",
+  "unit": "",
+  "evidence_refs": [
+   "SPX"
+  ],
+  "family": "level",
+  "token": "7203.85",
+  "metric": "SPX",
+  "value": 7203.85,
+  "expected": 7203.85,
+  "status": "VERIFIED",
+  "note": "recompute:Fact 直读 SPX@2026-11-23=7203.85"
+ },
+ {
+  "item": "C2-POLICY-SYNC-LEVEL-GAP.statement",
+  "claim_type": "objective_fact",
+  "unit": "",
+  "evidence_refs": [
+   "VIX"
+  ],
+  "family": "level",
+  "token": "27.01",
+  "metric": "VIX",
+  "value": 27.01,
+  "expected": 27.01,
+  "status": "VERIFIED",
+  "note": "recompute:Fact 直读 VIX@2026-11-23=27.01"
+ }
+]

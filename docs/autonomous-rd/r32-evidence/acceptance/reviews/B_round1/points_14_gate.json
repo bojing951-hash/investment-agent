@@ -1,0 +1,152 @@
+{
+ "block": "⑭",
+ "title": "交付门/Gate A 缺口披露与序列面一致",
+ "rows": [
+  {
+   "block": "⑭",
+   "id": "F1-Gate A 状态 DEGRADED",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:gate_a.status",
+   "computed": "DEGRADED",
+   "claim": "DEGRADED",
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "⑭",
+   "id": "F1-核心缺口 0 项",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:gate_a.core_missing",
+   "computed": [],
+   "claim": [],
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "⑭",
+   "id": "F1-非核心缺口七项(名单一致)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:gate_a.noncore_missing",
+   "computed": [
+    "BUND_10Y",
+    "BUND_2Y",
+    "CN_OMO_7D",
+    "CN_POLICY_OVERNIGHT",
+    "EA_REAL_GDP_YOY",
+    "JP_CPI_TOKYO_YOY",
+    "JP_REAL_GDP_YOY"
+   ],
+   "claim": [
+    "BUND_10Y",
+    "BUND_2Y",
+    "CN_OMO_7D",
+    "CN_POLICY_OVERNIGHT",
+    "EA_REAL_GDP_YOY",
+    "JP_CPI_TOKYO_YOY",
+    "JP_REAL_GDP_YOY"
+   ],
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "⑭",
+   "id": "F1-非核心降级八项(名单一致)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:gate_a.noncore_degraded",
+   "computed": [
+    "CN_SF_FLOW",
+    "ECB_DFR",
+    "ECB_MRO",
+    "JTSJOL",
+    "M2SL",
+    "SPX_EPS",
+    "SPX_PE_TTM",
+    "US_REAL_GDP"
+   ],
+   "claim": [
+    "CN_SF_FLOW",
+    "ECB_DFR",
+    "ECB_MRO",
+    "JTSJOL",
+    "M2SL",
+    "SPX_EPS",
+    "SPX_PE_TTM",
+    "US_REAL_GDP"
+   ],
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "⑭",
+   "id": "F1-EA_REAL_GDP_YOY 在非核心缺口清单内但序列库有存量观测",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_REAL_GDP_YOY",
+   "computed": [
+    true,
+    123,
+    [
+     "2026-07-01",
+     1.28
+    ]
+   ],
+   "claim": [
+    true,
+    "有存量观测, 最新 2026-07-01"
+   ],
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "⑭",
+   "id": "F1-EA_REAL_GDP_YOY 在事实面缺席(facts 无该指标)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:facts[metric_id=EA_REAL_GDP_YOY]",
+   "computed": [],
+   "claim": [],
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "⑭",
+   "id": "F2-任务窗 2026-11-01..11-30 内 9 个计划指标观测数均为 0",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store[US_REAL_GDP,UNEMPLOYMENT,INDPRO,CPI,CORE_CPI,CORE_PCE,EA_REAL_GDP_YOY,EA_HICP_YOY,JP_POLICY_RATE].dates",
+   "computed": {
+    "US_REAL_GDP": 0,
+    "UNEMPLOYMENT": 0,
+    "INDPRO": 0,
+    "CPI": 0,
+    "CORE_CPI": 0,
+    "CORE_PCE": 0,
+    "EA_REAL_GDP_YOY": 0,
+    "EA_HICP_YOY": 0,
+    "JP_POLICY_RATE": 0
+   },
+   "claim": "all 0",
+   "match": true,
+   "detail": "直数"
+  },
+  {
+   "block": "⑭",
+   "id": "F3-证据引用计数: 矛盾陈述/机制链/情景",
+   "source": "agent_judgment.json:l3.contradictions[*].evidence_refs; l3.mechanism_chains[*].links[*].evidence_refs; l4.scenarios[*].rows",
+   "computed": {
+    "contradictions": 11,
+    "mechanism": 4,
+    "scenarios_all": 9,
+    "scenarios_unique": 5,
+    "total(c+m+uniq_s)": 20
+   },
+   "claim": {
+    "contradictions": 10,
+    "mechanism": 4,
+    "scenarios": 5,
+    "total": 19
+   },
+   "match": false,
+   "detail": "逐条直数(矛盾陈述 6+3+2; 机制链 1+1+2; 情景唯一指标 TIPS_10Y/BEI_10Y/SPX/EA_HICP_YOY/CORE_PCE)"
+  },
+  {
+   "block": "⑭",
+   "id": "F3-矛盾陈述+机制链 evidence_refs 全部解析到证据索引",
+   "source": "evidence_index.json[*].ref",
+   "computed": [],
+   "claim": [],
+   "match": true,
+   "detail": "带日期引用 15 条; 未解析=[]"
+  }
+ ]
+}

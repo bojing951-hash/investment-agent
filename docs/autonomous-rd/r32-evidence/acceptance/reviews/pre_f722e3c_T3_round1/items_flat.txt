@@ -1,0 +1,104 @@
+[00] MAJOR | where: agent_judgment.json reader_map.turnings[1].follow_or_diverge(转折 T2:欧元区 HICP 同比 2026-05);MAP_REPORT.md L168;report.md / FULL_REPORT.md 转折表同句
+  note: T2 的同窗为 2026-02→2026-05;series_store.JP_CPI_YOY 该窗由 1.27 升至 1.53(+0.26),并非下行,与欧元区同向上行,且与 T1 叙述「此后总体回升」自相矛盾。「同窗下行/两地背离」方向与证据相左。
+  original: 日本端同窗通胀下行(2026-05 1.53),两地背离;ECB 随后首次上调(2026-06-11 决议、2026-06-17 生效),跟进方向一致,月频先后未定。
+  fix: 日本端同窗通胀自谷底回升(2026-02 1.27→2026-05 1.53),与欧元区同向上行、同窗并未背离;ECB 随后首次上调(2026-06-17 生效;决议日 2026-06-11 为引擎按惯例回推),跟进方向一致,月频先后未定。
+
+[01] MAJOR | where: agent_judgment.json reader_map.turnings[0].follow_or_diverge(转折 T1:日本全国 CPI 同比 2026-02);MAP_REPORT.md L168;report.md / FULL_REPORT.md 转折表同句
+  note: T1 的窗为 2025-11→2026-02;该窗内 series_store.EA_HICP_YOY 由 2.1 降至 1.9(2025-11 2.1、2025-12 2.0、2026-01 1.7、2026-02 1.9),与日本同向下行;所引「1.9→3.2」属 2026-02→2026-05 另一窗。「同期反向上行」不成立。
+  original: 同期欧元区 HICP 反向上行(2026-02 1.9→2026-05 3.2),两地通胀转折方向相反;月频证据下两个转折的相对先后未定。
+  fix: 日本 2025-11→2026-02 下行期内,欧元区 HICP 亦小幅下行(2.1→1.9),两地同向;其后欧元区于 2026-02→2026-05 转为上行(1.9→3.2)——两个转折符号相反、时间错位、以 2026-02 相接,月频证据下谁先转折不可判。
+
+[02] MAJOR | where: agent_judgment.json l3.mechanism_chains[0].links[0].text(M1 step1,E1 观察环);reader_map.regions[1].from_to(日本走位同句);MAP_REPORT.md L127
+  note: series_store.JP_CPI_YOY 2025-06=3.27 高于 2025-07 的 3.1,2025 年内最大为 2025-01 的 4.03;「2025-07 高点」关系词错,引擎 S4_history 面亦无高点标记。日本走位同句「2025-07 高点 3.1 回落至 2026-02 的 1.27,此后总体回升」同改。
+  original: JP_CPI_YOY 自 2025-07 高点 3.1 回落至 2026-02 的 1.27,此后总体回升至 2026-10 的 2.44。
+  fix: JP_CPI_YOY 自 2025 年初高位(2025-01 4.03)持续回落,经 2025-07 的 3.1 至 2026-02 的 1.27,此后总体回升至 2026-10 的 2.44。(日本走位同句改为「2025 年初高位(2025-01 4.03)持续回落,经 2025-07 的 3.1 至 2026-02 的 1.27,此后总体回升」。)
+
+[03] MAJOR | where: agent_judgment.json reader_map.transmission[0].links[0].face_off_verdict(「支持主解释」)与 verdict_note(对质表第 1 行);MAP_REPORT.md L149、L153;与 l3.contradictions[1].competing_explanations[1] 自相矛盾
+  note: 越裁:两解释对同一指标(决议前可见读数)的预期未分立——程序驱动解释的预期是「无稳定先后关系、平稳期亦可加息」,并不预言「决议前读数不高」;n=2 的两次加息前读数抬升对两种解释同样相容。按报告自述对质口径(MAP L153:预期分立且引擎面观测在场才可裁)应为「尚不能区分」,且与同档 C2 竞争解释「月频证据下两种驱动不可区分」矛盾。未披露的反向事实:2025-06-11 至 2026-06-16 间 ECB 利率维持 2.15/2.0 未动,而 HICP 已由 2026-01 的 1.7 升至 2026-04 的 3.0(2026-05-16 公布)。「决议前读数低于 5 月峰值」仅按终值日计成立(冻结日历三条 EA_HICP 实录显示快报在次月 1 日,按快报则 09-10 前可见 2026-08=3.2)。
+  original: 两次 ECB 决议前均已见通胀读数高于年初水平(2026-06-11 决议前可见 2026-04=3.0、2026-09-10 决议前可见 2026-07=2.9,均高于 2026-02 的 1.9;2026-09-10 决议前可见读数低于 5 月峰值 3.2),与读数驱动相容;但样本仅两次、月频分辨有限,程序驱动不被排除——本月窗口裁定,置信有限。
+  fix: face_off_verdict 改「尚不能区分」;verdict_note 改:「两次 ECB 决议前均已见通胀读数高于 2026-02 的 1.9(2026-06-11 决议前可见 2026-04=3.0、2026-09-10 决议前可见 2026-07=2.9),与读数驱动相容;但程序驱动解释对『决议前读数是否抬升』不作相反预期,且 2025-06-11 至 2026-06-16 间利率维持 2.15/2.0 而 HICP 已由 1.7(2026-01)升至 3.0(2026-04),样本仅两次——两种驱动在月频证据下不可区分。」
+
+[04] MAJOR | where: agent_judgment.json reader_map.transmission[0].links[1].verdict_note(对质表第 2 行);l3.mechanism_chains[0].links[2].text(M1 step3 末句「当前仅水平观测…方向对质不可判」);MAP_REPORT.md L150
+  note: 依据失实:同一快照事实行 derived.m1 给出近一月(2026-10-23→11-23)EURUSD −2.29%、USDJPY +1.57%、DXY +2.06%——欧元、日元同向对美元走弱;MAP L150 该行自身即展示引擎当前面「近30日 1.12215→1.09649(−2.29%)」。观测与竞争解释(两汇率同向随美元)相容,与主解释(方向分立/高利率货币相对走强)的预期不符;两解释对同一指标预言不同且观测在场,按 MAP L153 属可裁,却称不可裁且理由不成立。
+  original: 引擎面仅水平观测,利率→汇率为近零渠道(无本地数据支持方向依据),方向对质不可判,如实留白。
+  fix: 引擎近一月面(2026-10-23→11-23):EURUSD −2.29%、USDJPY +1.57%、DXY +2.06%——欧元与日元同向对美元走弱,与竞争解释(美元全局主导)相容,主解释『方向分立』的预期与本月观测不符;窗内无两地政策变动、单月窗,裁「支持竞争解释(本月窗口,置信有限)」。M1 step3 末句同改:「当前近一月观测为两货币同向对美元走弱(EURUSD 1.0965、月内 −2.29%;USDJPY 158.96、月内 +1.57%;均观测 2026-11-23,11-23 值为当日实时快照、非收盘价),与利差主导的『反向组合』预期不符,本月窗口偏向美元全局解释(置信有限)。」
+
+[05] MAJOR | where: agent_judgment.json reader_map.transmission[0].links[2].verdict_note(对质表第 3 行);MAP_REPORT.md L151
+  note: 主解释的预期之一是「两地股指弱于美股」。同日口径(至 2026-11-20)SPX −9.36%、NIKKEI225 −9.98%、DAX −1.50%、CAC40 +1.86%:日本仅弱 0.62 个百分点,欧元区股指显著强于美股——与主解释在欧元区一端相反;注记只举 NIKKEI225 跌幅大于 DAX 与 SPX 并称「方向与紧缩叙事相容」,未披露 DAX/CAC40 对美股的反向事实,且以端点日不同的 DAX(至 11-23 盘中)与 SPX(至 11-20)相比。另:VIX 跳升集中于 11-13→11-20 周(19.30→35.89),距两地最近政策日 2026-10-30 已隔两周(11-13 起),11-23 已回落 15.7%——两项观测均偏竞争解释(冲击主导)。裁定词「尚不能区分」可保留,依据须如实。
+  original: 单月窗三地同跌无法区分两地政策与全局冲击(NIKKEI225 跌幅大于 DAX 与 SPX,方向与紧缩叙事相容但幅度差亦可由仓位/汇率解释);两解释均与观测相容,留待后续窗复检。
+  fix: 单月窗(同日口径至 2026-11-20):SPX −9.36%、NIKKEI225 −9.98%、DAX −1.50%、CAC40 +1.86%——日本股指仅略弱于美股,欧元区股指强于美股,与主解释『两地股指弱于美股』在欧元区一端不符;VIX 跳升集中于 11-13→11-20 周(19.30→35.89),距两地最近政策日(2026-10-30)已隔两周,观测偏向全局冲击解释;单月窗不足以排除紧缩叙事,留待后续窗复检。
+
+[06] MAJOR | where: agent_judgment.json l3.contradictions[1].statement(C2);reader_map.headline_conclusion;reader_map.regions[0].from_to(欧元区走位「决议日公布」);l3.mechanism_chains[0].links[1].text(M1 step2);MAP_REPORT.md L59–L66、L124
+  note: 问句四问之一是「各数据的公布时间」。冻结发布日历无任何 ECB 实录;注册表 ECB_MRO/ECB_DFR 记「ECB管委会金融政策决议公布后生效并当日更新系列」(决议日=生效日=变更日 2026-09-16);引擎发布面 point_values…publication_date=2026-09-16(关键数字表同;规则文本「ECB 决议日当日公布(变更日观测)」把决议日等同于变更日观测)。判断档以引擎 prev_thursday 惯例回推的 09-10 为决议日并称「决议日当日公布」,使同一数据点出现两个公布日(09-10 对 09-16),且决议日在事实位无推断标注;MAP L10 自称「序列面决议/生效日亦不可推」,与 L66「决议日由央行公告惯例自生效日回推」并存。6 个月前锚行的 2025-06-05 同属惯例回推。
+  original: 欧央行主要再融资利率(ECB_MRO,政策目标口径)最新生效水平为 2.65%,观测=生效日 2026-09-16,决议日 2026-09-10,决议日当日公布。
+  fix: 欧央行主要再融资利率(ECB_MRO,政策目标口径)最新生效水平为 2.65%,序列变更日=生效日 2026-09-16,引擎发布面公布日 2026-09-16;决议日 2026-09-10 系引擎按『生效日前上一个周四』惯例自变更日回推【推断】(冻结发布日历无 ECB 实录,决议公布日未能核实)。(标题结论、欧元区走位、M1 step2、对质表第 1 行的「2026-09-10 决议」同加「引擎按惯例回推」注;欧元区走位「决议日公布」改「序列变更日 2026-09-16 公布」。)
+
+[07] MAJOR | where: agent_judgment.json reader_map.history_zero_case_note;MAP_REPORT.md L205
+  note: 与证据面相左:report.json steps[S6_analog] executed=True、ok=True、argv=['analog'],envelope scanned=1871、valid=74,TOP5 首位候选 2025-03(距离 0.752676);FULL_REPORT.md 含「历史相似结构(引擎确定性面·读者版)」表;引擎内部摘要 question_summary 亦列「历史类比」。零段呈现本身不违规(问句未请求历史相似对照),违规在缺口理由陈述不实。
+  original: 检索范围=引擎 analog 能力未启用(本问未请求历史相似对照,问句焦点为当前水平、最近六个月决议与同比对照);三时点锚(6个月前/最新一期)+发布日历实录+序列面已足够支撑问句,零历史段呈现以避免以事后冒充预测;如需「两地通胀一升一降+同向收紧」的历史相似检索,可另行发起 analog 问句。
+  fix: 检索范围=研判席本轮未采用历史相似段:引擎 analog 面已运行(report.json steps[S6_analog]:扫描 1871、有效 74、TOP5,首位候选 2025-03 距离 0.752676;完整报告「历史相似结构」表),本问未请求历史相似对照(焦点为当前水平、最近六个月决议与同比对照),三时点锚+发布日历实录+序列面已足够支撑问句,零历史段呈现以避免以事后冒充预测;如需「两地通胀一升一降+同向收紧」的历史相似检索,可另行发起 analog 问句。
+
+[08] MINOR | where: MAP_REPORT.md L75/L78「净变动 **+25bp**(2.25→2.5)/(2.4→2.65)」、L81「净变动 **+67bp**(0.557→1.227)」;agent_judgment.json reader_map.regions[1].from_to(日本走位)
+  note: 窗 2025-11-23..2026-11-23 的窗启在值为 2.0/2.15(2025-06-11 起)→窗末 2.5/2.65=+50bp,同句列两步各 +25bp;日本六步之和 +75bp、窗启在值 0.478→1.227=+74.9bp。引擎 net_bp 取「窗内首末观测差」(漏计窗内首步/舍入),括注已披露端点,但「净变动」一词与同句所列变动点之和不一致。
+  original: 近 12 个月政策窗净 +67bp
+  fix: 改称「窗内末次观测对首步前值之差」,或改用窗启在值口径并注明:「近 12 个月月均由 0.478 升至 1.227(约 +75bp;引擎窗内净 +67bp 不含 2025-12 首步 +8bp)」。
+
+[09] MINOR | where: agent_judgment.json l3.contradictions[2].statement(C3 首两句)
+  note: 以事实位陈述「断档/源端缺席」:snapshot.sources_status.ea.status=EXACT(采集档 ea_20261123.json 当日入场);事实行 issues[0] 为 frequency 类「ECB_DFR观测日滞后68天(>10天有效窗,daily频;未发布或采集失败,不得当作最新一期)」(成因留两可;注册表 freshness.max_calendar_lag_days=10);注册表 decision_dated 注记「无更晚已证实决议不作过期」。「断档/源端缺席」是解释而非观测,应标【推断】或改述为「序列止于 2026-09-16」;后文【尚未验证】与两解释并列部分合规。
+  original: ECB 数据面断档使 2026-09-16 之后的决议面在引擎不可见。
+  fix: ECB_MRO/ECB_DFR 序列止于 2026-09-16(观测日距截止 68 天,超过注册表 10 天新鲜度阈,Gate A 列 degraded),其后的决议面在引擎不可见;采集档 sources_status.ea=EXACT(2026-11-23 入场),是否另有新决议不可判,属【尚未验证】。
+
+[10] MINOR | where: agent_judgment.json l3.contradictions[2].competing_explanations[0]
+  note: 「生产观察登记 ECB 504」在只读面(快照、发布日历、注册表、report.json 引擎面、证据索引)无此登记,数字无出处。
+  original: 若断档纯为源端技术缺席(生产观察登记 ECB 504)而实际无新决议
+  fix: 若序列止于 2026-09-16 纯属源端未更新而实际无新决议,则 2.65%/2.50% 即最新水平(与 2026-09-16 变更后无新事件相容)。
+
+[11] MINOR | where: agent_judgment.json l4.scenarios[0].rows.trigger.condition 与 falsification.threshold(S1);l4.scenarios[1].rows.trigger.condition(S2)
+  note: 指标均在册、期限在前、方向互补,不构成不可观测;口径可改进:S1 触发「VIX 高于 30」未绑日期,且截止日读数 30.24(盘中值)已满足,不具前瞻区分力;S1 前提「维持 3.5% 以上」与证伪「两月均 <3.0%」之间留有 [3.0,3.5) 未定带;S2 触发「≤3.4%」宽于其前提「<3.0%」;两情景陈述含 ECB/BOJ 政策分量(「再上调一级」「按兵不动」)而触发/证伪只含通胀与 VIX。
+  original: 2026-12 或 2027-01 发布的 EA_HICP_YOY 同比 ≥4.0% 且 JP_CPI_YOY 同比 ≥2.0%,同时 VIX 高于 30
+  fix: VIX 条件绑定观测日(如 2027-01 最后收盘)或改用月末收盘口径;证伪阈值与前提对齐(如两月均低于 3.5%);S2 触发与前提对齐(最新值 <3.0%);补 ECB/BOJ 决议分量或声明政策分量不设触发。
+
+[12] MINOR | where: MAP_REPORT.md L41(东京都CPI同比 ok | ok)与判断档口径披露 quality_gate_notes[4];snapshot gate_a.noncore_missing
+  note: 快照 gate_a.noncore_missing 含 JP_CPI_TOKYO_YOY(noncore_missing_detail:「来源文件在场而指标缺席(采集遗漏或子源缺席——档内无该指标子源状态记录,不可区分)」),MAP 覆盖表该格记「ok | ok」,判断档 C1 引用东京最新读数 2.73 而未披露该列名(series_store 中东京序列 n=10 至 2026-10 在场,L1 无事实行,数值可用);Gate A 如实披露不完整。
+  original: 
+  fix: 口径披露补一句:快照 Gate A 将 JP_CPI_TOKYO_YOY 列入 noncore_missing(来源文件在场而指标缺席),本报告东京值取自 series_store 在场序列(2026-01..2026-10,10 期),L1 无事实行。
+
+[13] MINOR | where: agent_judgment.json l3.contradictions[0].statement(C1「官方实录公表日同为 2026-11-20,引擎外旁证」);reader_map.regions[1].from_to;quality_gate_notes[4]
+  note: 冻结发布日历无 JP_CPI_YOY 条目,注册表 release_semantics 仅「每月中旬(通常周五)发布上月全国CPI」,只读面不能核此「官方实录」;东京 2026-10-30 可由注册表规则文本「官方实录锚 2026年10月分=2026-10-30」旁证。已标引擎外,宜写明出处或删「官方实录」字样。
+  original: 官方实录公表日同为 2026-11-20,引擎外旁证
+  fix: 全国: 最新读数发布 2026-11-20(引擎推定规则,非日历实录;引擎外旁证从略或注明出处)。
+
+[14] MINOR | where: agent_judgment.json l3.mechanism_chains[0].links[2].text 与 links[3].text(M1 step3/step4);reader_map.transmission[0].links[1].observed_fact、links[2].observed_fact;l4.scenarios[0].rows.trigger.condition
+  note: 事实行 calc 记「VIX指数收盘」「指数收盘点位」,与「非收盘价」说明相反;快照时间 2026-11-23T20:41:34+08:00(=12:41Z),美股常规时段收盘值此时尚不可能入场,VIX 30.24 的时点/口径在证据面不可核(11-20 收盘 35.89)。M1 step4、资产月窗(+55.5%)与 S1 触发(VIX>30)均以其为端点,同一月窗内混用收盘与盘中口径;研判席的时点说明与 research_as_of 相容,属可改进。
+  original: 11-23 值为当日实时快照(非收盘价)
+  fix: 并列 11-20 收盘口径:VIX 35.89(月窗 +84.5%)、DAX 24802.78(月窗 −1.50%);11-23 盘中值仅作旁注。
+
+[15] MINOR | where: agent_judgment.json l3.mechanism_chains[0].links[1].text(M1 step2);reader_map.regions[1].from_to;reader_map.turnings[2].narrative
+  note: 冻结日历对 BOJ 仅有 2026-09-18 决议与 2026-10-30 维持两条;2025-12、2026-01、2026-06、2026-07 四次月均台阶(合计 +50bp)在日历中无对应决议实录,引擎 JP_POLICY_RATE 的 policy_face decision/effective 均为 null。「相容」仅对 2026-09 以后可核,宜限定范围。
+  original: 月均口径 0.727→1.227 的台阶与决议-生效记录相容
+  fix: 月均口径 2026-09 1.043→2026-10 1.227 的台阶与 2026-09-18 决议、2026-09-24 生效(目标约 1.25%)相容;2025-12 至 2026-07 的四次月均台阶在冻结日历无对应决议实录,仅作市场口径陈述。
+
+[16] MINOR | where: agent_judgment.json l3.contradictions[0].statement(C1 日本同比对照)与口径披露 quality_gate_notes[4]
+  note: 注册表 JP_CPI_YOY calc 记「zmi2025aa(2025基)+zmi2020aa(2020基)双档水平值,各自基期内做严格同月同比后拼接(新基优先,重叠差>0.10pp 告警)」;报告与判断档的口径披露未提及拼接口径,2026-10 对 2025-10 的对照落在哪一基期档只读面不可核。不影响 −0.55pp 的方向,属披露可改进。
+  original: 
+  fix: 口径披露补:全国 CPI 同比为 2025 基/2020 基拼接序列(各自基期内同月同比,新基优先,重叠差>0.10pp 告警)。
+
+[17] NIT | where: MAP_REPORT.md L66(注,引擎面行文)
+  note: 「ECB_MRO/ECB_DFR 观测日全为周三=生效日」:series_store 中 MRO 9/48、DFR 21/69 条观测非周三(均不晚于 2008-10-09),其后全为周三;「全为」宜改「2008-10 以来」。
+  original: 
+  fix: 
+
+[18] NIT | where: MAP_REPORT.md L7(口径行,引擎面行文)
+  note: 「三个对照时点=日历点锚(截止日−12月/−3月/最新一期)」与本问实际锚(6个月前/最新一期)不符;判断档已在引擎缺口披露①说明,读者版宜随锚渲染。
+  original: 
+  fix: 
+
+[19] NIT | where: agent_judgment.json l3.mechanism_chains[0].links[2].text、reader_map.transmission[0].links[1].observed_fact「EURUSD 最新 1.1」
+  note: EURUSD 水平写作 1.1(事实行两位有效数字;序列值 1.096491,MAP L139/L150 作 1.09649),同档 USDJPY 保留两位小数,精度不一。
+  original: 
+  fix: 
+
+[20] NIT | where: agent_judgment.json M1 step4、reader_map.transmission[0].links[2].observed_fact;MAP_REPORT.md L81
+  note: 「(+55.5%(至 2026-11-23,…))」括号嵌套;L81 变动点省略 2026-04 的 0.728→0.727(−0.1bp)微动(不影响结论)。
+  original: 
+  fix: 

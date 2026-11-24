@@ -1,0 +1,11 @@
+engine scripts: /tmp/r32-accept/final3/scripts
+planner file  : /tmp/r32-accept/final3/scripts/research_map_planner.py
+question      : 2026年11月,日本和欧元区的通胀与政策环境:两地央行当前官方政策目标利率各处于什么水平?最近六个月有无已决议但尚未生
+cutoff        : 2026-11-23 | planned pairs: [('EA', 'inflation'), ('EA', 'policy'), ('JP', 'inflation'), ('JP', 'policy')]
+CELL EA ECB_MRO            latest.status=ok cell.policy_dates=absent anchor.policy_dates.decision=2026-09-10 effective=2026-09-16
+CELL EA ECB_DFR            latest.status=ok cell.policy_dates=absent anchor.policy_dates.decision=2026-09-10 effective=2026-09-16
+CELL JP JP_POLICY_RATE     latest.status=ok cell.policy_dates=absent anchor.policy_dates.decision=None effective=None
+required_regions: ['EA', 'JP']
+rows            : [('JP', 'JP_POLICY_TARGET', 1.25)]
+gaps            : [{"region": "EA", "metric_id": "ECB_MRO", "label": "欧元区", "note": "欧元区官方政策目标(ECB_MRO)无官方记录(日历无 policy_decision/policy_maintenance 条目)且序列面决议/生效日不可推——问句指定官方目标时现值无官方口径可依,不以市场序列值冒充宣布目标;补录官方决议实录后重跑转正(Audit-R28 任务2)"}]
+blocked_class_of signature: (report, calendar_path=None)

@@ -1,0 +1,51 @@
+frozen calendar: no entry for CPI / EA_HICP_YOY / JP_CPI_YOY observation months from 2026 on (18 entries scanned) -> convention rules of section 0.3 apply
+
+== CPI (observation month, publish date by rule, value = year-on-year %)
+  obs 2026-01-01  pub(by rule) 2026-02-13  value 2.3912
+  obs 2026-02-01  pub(by rule) 2026-03-13  value 2.4340
+  obs 2026-03-01  pub(by rule) 2026-04-13  value 3.2860
+  obs 2026-04-01  pub(by rule) 2026-05-13  value 3.7792
+  obs 2026-05-01  pub(by rule) 2026-06-13  value 4.1666
+  obs 2026-06-01  pub(by rule) 2026-07-13  value 3.4635
+  obs 2026-07-01  pub(by rule) 2026-08-13  value 3.3039
+  obs 2026-08-01  pub(by rule) 2026-09-13  value 3.3530
+  obs 2026-09-01  pub(by rule) 2026-10-13  value 3.7173
+  obs 2026-10-01  pub(by rule) 2026-11-13  value n/a (base-month observation absent)
+
+== EA_HICP_YOY (observation month, publish date by rule, value)
+  obs 2026-01-01  pub(by rule) 2026-01-31  value 1.7000
+  obs 2026-02-01  pub(by rule) 2026-02-28  value 1.9000
+  obs 2026-03-01  pub(by rule) 2026-03-31  value 2.6000
+  obs 2026-04-01  pub(by rule) 2026-04-30  value 3.0000
+  obs 2026-05-01  pub(by rule) 2026-05-31  value 3.2000
+  obs 2026-06-01  pub(by rule) 2026-06-30  value 2.8000
+  obs 2026-07-01  pub(by rule) 2026-07-31  value 2.9000
+  obs 2026-08-01  pub(by rule) 2026-08-31  value 3.2000
+  obs 2026-09-01  pub(by rule) 2026-09-30  value 3.8000
+  obs 2026-10-01  pub(by rule) 2026-10-31  value 4.0000
+
+== JP_CPI_YOY (observation month, publish date by rule, value)
+  obs 2026-01-01  pub(by rule) 2026-02-20  value 1.5100
+  obs 2026-02-01  pub(by rule) 2026-03-20  value 1.2700
+  obs 2026-03-01  pub(by rule) 2026-04-20  value 1.4600
+  obs 2026-04-01  pub(by rule) 2026-05-20  value 1.3800
+  obs 2026-05-01  pub(by rule) 2026-06-20  value 1.5300
+  obs 2026-06-01  pub(by rule) 2026-07-20  value 1.6700
+  obs 2026-07-01  pub(by rule) 2026-08-20  value 1.9700
+  obs 2026-08-01  pub(by rule) 2026-09-20  value 1.9800
+  obs 2026-09-01  pub(by rule) 2026-10-20  value 2.1600
+  obs 2026-10-01  pub(by rule) 2026-11-20  value 2.4400
+
+ECB decision 2026-06-11: latest visible EA_HICP_YOY = obs 2026-05-01 (published by rule 2026-05-31 <= decision), value 3.2000; next observation 2026-06-01 published by rule 2026-06-30 (> decision) value 2.8000
+
+ECB decision 2026-09-10: latest visible EA_HICP_YOY = obs 2026-08-01 (published by rule 2026-08-31 <= decision), value 3.2000; next observation 2026-09-01 published by rule 2026-09-30 (> decision) value 3.8000
+
+Fed decision 2026-09-16: latest visible CPI = obs 2026-08-01 (published by rule 2026-09-13 <= decision), value 3.3530; next observation 2026-09-01 published by rule 2026-10-13 (> decision) value 3.7173
+
+BoJ decision 2026-09-18: latest visible JP_CPI_YOY = obs 2026-07-01 (published by rule 2026-08-20 <= decision), value 1.9700; next observation 2026-08-01 published by rule 2026-09-20 (> decision) value 1.9800
+
+US CPI latest visible before 2026-06-11: obs 2026-04-01 (published by rule 2026-05-13), yoy 3.7792
+US CPI latest visible before 2026-09-10: obs 2026-07-01 (published by rule 2026-08-13), yoy 3.3039
+US CPI latest visible before 2026-09-16: obs 2026-08-01 (published by rule 2026-09-13), yoy 3.3530
+US CPI latest visible before 2026-09-18: obs 2026-08-01 (published by rule 2026-09-13), yoy 3.3530
+US CPI 2026-09 observation: published by rule 2026-10-13, yoy 3.7173 (after all four decision dates)

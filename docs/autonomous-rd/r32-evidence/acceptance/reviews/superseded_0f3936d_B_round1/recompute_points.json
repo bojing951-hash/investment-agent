@@ -1,0 +1,2758 @@
+{
+ "recompute_points": 190,
+ "recompute_mismatches": 1,
+ "points": [
+  {
+   "cat": "①",
+   "id": "A1-cutoff-report",
+   "source": "report.run.evidence_gate.as_of / MAP_REPORT header",
+   "computed": "2026-11-23",
+   "reported": "2026-11-23",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "①",
+   "id": "A2-cutoff-snapshot",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:target_date",
+   "computed": "20261123",
+   "reported": "20261123",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "①",
+   "id": "A3-asof-claim",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:research_as_of",
+   "computed": "2026-11-23T22:53:47+08:00",
+   "reported": "2026-11-23T22:53:47+08:00",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "①",
+   "id": "A4-local-clocks",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:research_as_of (UTC+0 固定标准时偏移换算)",
+   "computed": {
+    "纽约": "09:53",
+    "法兰克福": "15:53",
+    "东京": "23:53",
+    "上海": "22:53"
+   },
+   "reported": {
+    "纽约": "09:53",
+    "法兰克福": "15:53",
+    "东京": "23:53",
+    "上海": "22:53"
+   },
+   "match": true,
+   "note": "11 月纽约=EST(-5)/法兰克福=CET(+1),由 22:53:47+08:00=14:53:47Z 换算"
+  },
+  {
+   "cat": "①",
+   "id": "A5-no-post-cutoff-obs",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store[*].dates max",
+   "computed": "2026-11-23",
+   "reported": "<=2026-11-23",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "①",
+   "id": "A5b-late-series-count",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store (date>2026-11-23)",
+   "computed": 0,
+   "reported": 0,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "①",
+   "id": "A6-cited-last-obs-dates",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store[*] last date",
+   "computed": {
+    "SPX": "2026-11-23",
+    "VIX": "2026-11-23",
+    "GOLD_F": "2026-11-23",
+    "DXY": "2026-11-23",
+    "USDJPY": "2026-11-23",
+    "NIKKEI225": "2026-11-20",
+    "BEI_10Y": "2026-11-20",
+    "TIPS_10Y": "2026-11-19",
+    "UST_10Y": "2026-11-19",
+    "EA_HICP_YOY": "2026-10-01",
+    "CPI": "2026-10-01",
+    "CORE_CPI": "2026-10-01",
+    "INDPRO": "2026-10-01",
+    "UNEMPLOYMENT": "2026-10-01",
+    "JP_POLICY_RATE": "2026-10-01",
+    "CORE_PCE": "2026-09-01",
+    "US_REAL_GDP": "2026-07-01",
+    "EA_REAL_GDP_YOY": "2026-07-01"
+   },
+   "reported": {
+    "SPX": "2026-11-23",
+    "VIX": "2026-11-23",
+    "GOLD_F": "2026-11-23",
+    "DXY": "2026-11-23",
+    "USDJPY": "2026-11-23",
+    "NIKKEI225": "2026-11-20",
+    "BEI_10Y": "2026-11-20",
+    "TIPS_10Y": "2026-11-19",
+    "UST_10Y": "2026-11-19",
+    "EA_HICP_YOY": "2026-10-01",
+    "CPI": "2026-10-01",
+    "CORE_CPI": "2026-10-01",
+    "INDPRO": "2026-10-01",
+    "UNEMPLOYMENT": "2026-10-01",
+    "JP_POLICY_RATE": "2026-10-01",
+    "CORE_PCE": "2026-09-01",
+    "US_REAL_GDP": "2026-07-01",
+    "EA_REAL_GDP_YOY": "2026-07-01"
+   },
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "①",
+   "id": "A7-anchor-publication<=anchor-asof",
+   "source": "report.research_plan.point_values.cells[*].anchors.*.publication_date vs as_of",
+   "computed": {
+    "US_REAL_GDP|3个月前": [
+     "2026-04-01",
+     "2026-07-29",
+     "2026-08-23"
+    ],
+    "US_REAL_GDP|最新一期": [
+     "2026-07-01",
+     "2026-10-29",
+     "2026-11-23"
+    ],
+    "UNEMPLOYMENT|3个月前": [
+     "2026-07-01",
+     "2026-08-05",
+     "2026-08-23"
+    ],
+    "UNEMPLOYMENT|最新一期": [
+     "2026-10-01",
+     "2026-11-05",
+     "2026-11-23"
+    ],
+    "INDPRO|3个月前": [
+     "2026-07-01",
+     "2026-08-15",
+     "2026-08-23"
+    ],
+    "INDPRO|最新一期": [
+     "2026-10-01",
+     "2026-11-15",
+     "2026-11-23"
+    ],
+    "CPI|3个月前": [
+     "2026-07-01",
+     "2026-08-13",
+     "2026-08-23"
+    ],
+    "CPI|最新一期": [
+     "2026-10-01",
+     "2026-11-13",
+     "2026-11-23"
+    ],
+    "CORE_CPI|3个月前": [
+     "2026-07-01",
+     "2026-08-13",
+     "2026-08-23"
+    ],
+    "CORE_CPI|最新一期": [
+     "2026-10-01",
+     "2026-11-13",
+     "2026-11-23"
+    ],
+    "CORE_PCE|3个月前": [
+     "2026-06-01",
+     "2026-07-30",
+     "2026-08-23"
+    ],
+    "CORE_PCE|最新一期": [
+     "2026-09-01",
+     "2026-10-30",
+     "2026-11-23"
+    ],
+    "EA_REAL_GDP_YOY|3个月前": [
+     "2026-04-01",
+     "2026-08-04",
+     "2026-08-23"
+    ],
+    "EA_REAL_GDP_YOY|最新一期": [
+     "2026-07-01",
+     "2026-11-04",
+     "2026-11-23"
+    ],
+    "EA_HICP_YOY|3个月前": [
+     "2026-07-01",
+     "2026-08-16",
+     "2026-08-23"
+    ],
+    "EA_HICP_YOY|最新一期": [
+     "2026-10-01",
+     "2026-11-16",
+     "2026-11-23"
+    ],
+    "JP_POLICY_RATE|3个月前": [
+     "2026-07-01",
+     "2026-08-05",
+     "2026-08-23"
+    ],
+    "JP_POLICY_RATE|最新一期": [
+     "2026-10-01",
+     "2026-11-05",
+     "2026-11-23"
+    ]
+   },
+   "reported": "all publication_date<=as_of",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "①",
+   "id": "A8-publication-rule-arithmetic",
+   "source": "period_end + 规则天数 vs engine publication_date",
+   "computed": {
+    "US_REAL_GDP|3个月前": [
+     "2026-07-29",
+     "2026-07-29"
+    ],
+    "US_REAL_GDP|最新一期": [
+     "2026-10-29",
+     "2026-10-29"
+    ],
+    "UNEMPLOYMENT|3个月前": [
+     "2026-08-05",
+     "2026-08-05"
+    ],
+    "UNEMPLOYMENT|最新一期": [
+     "2026-11-05",
+     "2026-11-05"
+    ],
+    "INDPRO|3个月前": [
+     "2026-08-15",
+     "2026-08-15"
+    ],
+    "INDPRO|最新一期": [
+     "2026-11-15",
+     "2026-11-15"
+    ],
+    "CPI|3个月前": [
+     "2026-08-13",
+     "2026-08-13"
+    ],
+    "CPI|最新一期": [
+     "2026-11-13",
+     "2026-11-13"
+    ],
+    "CORE_CPI|3个月前": [
+     "2026-08-13",
+     "2026-08-13"
+    ],
+    "CORE_CPI|最新一期": [
+     "2026-11-13",
+     "2026-11-13"
+    ],
+    "CORE_PCE|3个月前": [
+     "2026-07-30",
+     "2026-07-30"
+    ],
+    "CORE_PCE|最新一期": [
+     "2026-10-30",
+     "2026-10-30"
+    ],
+    "EA_REAL_GDP_YOY|3个月前": [
+     "2026-08-04",
+     "2026-08-04"
+    ],
+    "EA_REAL_GDP_YOY|最新一期": [
+     "2026-11-04",
+     "2026-11-04"
+    ],
+    "EA_HICP_YOY|3个月前": [
+     "2026-08-16",
+     "2026-08-16"
+    ],
+    "EA_HICP_YOY|最新一期": [
+     "2026-11-16",
+     "2026-11-16"
+    ],
+    "JP_POLICY_RATE|3个月前": [
+     "2026-08-05",
+     "2026-08-05"
+    ],
+    "JP_POLICY_RATE|最新一期": [
+     "2026-11-05",
+     "2026-11-05"
+    ]
+   },
+   "reported": "逐项相等",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B1-GDP-3m",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.US_REAL_GDP@2026-04-01",
+   "computed": 24408.011,
+   "reported": 24408.011,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B2-GDP-latest",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.US_REAL_GDP@2026-07-01",
+   "computed": 24611.077,
+   "reported": 24611.077,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "B3-GDP-yoy-Q2",
+   "source": "series_store.US_REAL_GDP 24408.011 / 23884.563",
+   "computed": 2.1915745328897174,
+   "reported": 2.19,
+   "match": true,
+   "note": "基期=2025-04-01 同季"
+  },
+  {
+   "cat": "③",
+   "id": "B4-GDP-yoy-Q3",
+   "source": "series_store.US_REAL_GDP 24611.077 / 24112.966",
+   "computed": 2.0657392375537764,
+   "reported": 2.07,
+   "match": true,
+   "note": "基期=2025-07-01 同季"
+  },
+  {
+   "cat": "②",
+   "id": "B5-UNEMP-3m",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT@2026-07-01",
+   "computed": 4.1,
+   "reported": 4.1,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B6-UNEMP-latest",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT@2026-10-01",
+   "computed": 4.1,
+   "reported": 4.1,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B7-INDPRO-3m",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO@2026-07-01",
+   "computed": 103.1675,
+   "reported": 103.1675,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B8-INDPRO-latest",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO@2026-10-01",
+   "computed": 103.3954,
+   "reported": 103.3954,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "B9-INDPRO-yoy-07",
+   "source": "series_store.INDPRO 103.1675 / 101.894",
+   "computed": 1.2498282528902616,
+   "reported": 1.25,
+   "match": true,
+   "note": "基期=2025-07-01 同月"
+  },
+  {
+   "cat": "③",
+   "id": "B10-INDPRO-yoy-10",
+   "source": "series_store.INDPRO 103.3954 / 101.2195",
+   "computed": 2.1496845963475453,
+   "reported": 2.15,
+   "match": true,
+   "note": "基期=2025-10-01 同月"
+  },
+  {
+   "cat": "⑩",
+   "id": "B11-INDPRO-level-chg",
+   "source": "INDPRO 2026-10 / 2026-07",
+   "computed": 0.2209,
+   "reported": 0.22,
+   "match": true,
+   "note": "走位面「仅 +0.22%」"
+  },
+  {
+   "cat": "⑩",
+   "id": "B12-INDPRO-mom-10",
+   "source": "INDPRO 2026-10 / 2026-09 (103.3954 / 103.8458)",
+   "computed": -0.4337,
+   "reported": -0.43,
+   "match": true,
+   "note": "「2026-10 环比 -0.43%」"
+  },
+  {
+   "cat": "⑩",
+   "id": "B13-INDPRO-base-2025",
+   "source": "INDPRO 2025-10 / 2025-07 (101.2195 / 101.894)",
+   "computed": -0.662,
+   "reported": -0.66,
+   "match": true,
+   "note": "「上年 2025-07→2025-10 基数下行 0.66%」"
+  },
+  {
+   "cat": "②",
+   "id": "B14-CPI-3m",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI@2026-07-01",
+   "computed": 332.813,
+   "reported": 332.813,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B15-CPI-latest",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI@2026-10-01",
+   "computed": 337.476,
+   "reported": 337.476,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "B16-CPI-yoy-07",
+   "source": "series_store.CPI 332.813 / 322.169",
+   "computed": 3.303856050706311,
+   "reported": 3.3,
+   "match": true,
+   "note": "基期=2025-07-01 同月"
+  },
+  {
+   "cat": "③",
+   "id": "B17-CPI-yoy-10-NA",
+   "source": "series_store.CPI 2026-10 与 2025-10",
+   "computed": {
+    "yoy": null,
+    "pair": [
+     337.476,
+     null
+    ]
+   },
+   "reported": "不可得(缺2025-10基期)",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "B17b-CPI-yoy-10-if-substituted",
+   "source": "CPI 2026-10 / 2025-11 (相邻月替代口径,报告未使用)",
+   "computed": 3.82,
+   "reported": "报告未给出该数",
+   "match": true,
+   "note": "反方核: 若以相邻月替代会得 3.82%, 报告如实标不可得"
+  },
+  {
+   "cat": "③",
+   "id": "B18-CPI-latest-valid-yoy",
+   "source": "series_store.CPI 336.298 / 324.245",
+   "computed": {
+    "date": "2026-09-01",
+    "yoy": 3.7173
+   },
+   "reported": {
+    "date": "2026-09-01",
+    "yoy": 3.72
+   },
+   "match": true,
+   "note": "最近有效同比=2026-09"
+  },
+  {
+   "cat": "③",
+   "id": "B18b-CPI-latest-valid-is-09",
+   "source": "series_store.CPI 最后观测=2026-10(同比不可得)",
+   "computed": "2026-10-01",
+   "reported": "2026-10-01",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B19-CCPI-3m",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI@2026-07-01",
+   "computed": 336.789,
+   "reported": 336.789,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B20-CCPI-latest",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI@2026-10-01",
+   "computed": 339.9,
+   "reported": 339.9,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "B21-CCPI-yoy-07",
+   "source": "series_store.CORE_CPI 336.789 / 328.682",
+   "computed": 2.4665177892309265,
+   "reported": 2.47,
+   "match": true,
+   "note": "基期=2025-07-01 同月"
+  },
+  {
+   "cat": "③",
+   "id": "B22-CCPI-yoy-10-NA",
+   "source": "series_store.CORE_CPI 2026-10 与 2025-10",
+   "computed": {
+    "yoy": null,
+    "pair": [
+     339.9,
+     null
+    ]
+   },
+   "reported": "不可得(缺2025-10基期)",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "B23-CCPI-latest-valid-yoy",
+   "source": "series_store.CORE_CPI 338.896 / 330.418",
+   "computed": {
+    "date": "2026-09-01",
+    "yoy": 2.5658
+   },
+   "reported": {
+    "date": "2026-09-01",
+    "yoy": 2.57
+   },
+   "match": true,
+   "note": "最近有效同比=2026-09"
+  },
+  {
+   "cat": "②",
+   "id": "B24-CPCE-3m",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE@2026-06-01",
+   "computed": 129.969,
+   "reported": 129.969,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B25-CPCE-latest",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE@2026-09-01",
+   "computed": 130.902,
+   "reported": 130.902,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B25b-CPCE-3m-anchor-month",
+   "source": "CORE_PCE 2026-07 观测在库值 / 规则发布日(月末+30) vs 3个月前锚 as_of",
+   "computed": {
+    "CPCE@2026-07": 130.148,
+    "pub_2026-07": "2026-08-30",
+    "pub_2026-06": "2026-07-30",
+    "anchor_as_of": "2026-08-23",
+    "engine_anchor_obs": "2026-06-01"
+   },
+   "reported": {
+    "CPCE@2026-07": 130.148,
+    "pub_2026-07": "2026-08-30",
+    "pub_2026-06": "2026-07-30",
+    "anchor_as_of": "2026-08-23",
+    "engine_anchor_obs": "2026-06-01"
+   },
+   "match": true,
+   "note": "2026-07 观测在库但 2026-08-30 才发布(晚于锚 as_of 2026-08-23)→3个月前锚取 2026-06 与引擎格一致(可见性口径,非缺席口径;席位首版此检以『观测缺席』为假设有误,已更正)"
+  },
+  {
+   "cat": "③",
+   "id": "B26-CPCE-yoy-06",
+   "source": "series_store.CORE_PCE 129.969 / 126.133",
+   "computed": 3.041234252733216,
+   "reported": 3.04,
+   "match": true,
+   "note": "基期=2025-06-01 同月"
+  },
+  {
+   "cat": "③",
+   "id": "B27-CPCE-yoy-09",
+   "source": "series_store.CORE_PCE 130.902 / 126.94",
+   "computed": 3.1211596029620203,
+   "reported": 3.12,
+   "match": true,
+   "note": "基期=2025-09-01 同月"
+  },
+  {
+   "cat": "②",
+   "id": "B28-EAGDP-3m",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_REAL_GDP_YOY@2026-04-01",
+   "computed": 1.19,
+   "reported": 1.19,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B29-EAGDP-latest",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_REAL_GDP_YOY@2026-07-01",
+   "computed": 1.28,
+   "reported": 1.28,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B30-EAHICP-3m",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY@2026-07-01",
+   "computed": 2.9,
+   "reported": 2.9,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B31-EAHICP-latest",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY@2026-10-01",
+   "computed": 4.0,
+   "reported": 4.0,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩",
+   "id": "B32-EAHICP-delta",
+   "source": "EA_HICP_YOY 2026-10 − 2026-07",
+   "computed": 1.1,
+   "reported": 1.1,
+   "match": true,
+   "note": "「三个月上行 1.1 个百分点」"
+  },
+  {
+   "cat": "②",
+   "id": "B33-EAHICP-2026-02",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY@2026-02-01",
+   "computed": 1.9,
+   "reported": 1.9,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B34-EAHICP-2026-05",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY@2026-05-01",
+   "computed": 3.2,
+   "reported": 3.2,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B35-EAHICP-2026-06",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY@2026-06-01",
+   "computed": 2.8,
+   "reported": 2.8,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥",
+   "id": "B36-EAHICP-year-high",
+   "source": "EA_HICP_YOY 2026 年内最大值",
+   "computed": {
+    "max": 4.0,
+    "at": [
+     "2026-10-01"
+    ]
+   },
+   "reported": {
+    "max": 4.0,
+    "at": [
+     "2026-10-01"
+    ]
+   },
+   "match": true,
+   "note": "「读数为年内新高」"
+  },
+  {
+   "cat": "②",
+   "id": "B36b-EAHICP-2026-path",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY 2026 全年",
+   "computed": [
+    [
+     "2026-01",
+     1.7
+    ],
+    [
+     "2026-02",
+     1.9
+    ],
+    [
+     "2026-03",
+     2.6
+    ],
+    [
+     "2026-04",
+     3.0
+    ],
+    [
+     "2026-05",
+     3.2
+    ],
+    [
+     "2026-06",
+     2.8
+    ],
+    [
+     "2026-07",
+     2.9
+    ],
+    [
+     "2026-08",
+     3.2
+    ],
+    [
+     "2026-09",
+     3.8
+    ],
+    [
+     "2026-10",
+     4.0
+    ]
+   ],
+   "reported": "见 note",
+   "match": true,
+   "note": "2026-01=1.7; 2026-02=1.9; 2026-03=2.6; 2026-04=3.0; 2026-05=3.2; 2026-06=2.8; 2026-07=2.9; 2026-08=3.2; 2026-09=3.8; 2026-10=4.0"
+  },
+  {
+   "cat": "②",
+   "id": "B37-JPR-3m",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE@2026-07-01",
+   "computed": 0.978,
+   "reported": 0.978,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B38-JPR-latest",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE@2026-10-01",
+   "computed": 1.227,
+   "reported": 1.227,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B39-JPR-step-2025-11",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE@2025-11-01",
+   "computed": 0.478,
+   "reported": 0.478,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B39-JPR-step-2025-12",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE@2025-12-01",
+   "computed": 0.557,
+   "reported": 0.557,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B39-JPR-step-2026-01",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE@2026-01-01",
+   "computed": 0.728,
+   "reported": 0.728,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B39-JPR-step-2026-04",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE@2026-04-01",
+   "computed": 0.727,
+   "reported": 0.727,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B39-JPR-step-2026-05",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE@2026-05-01",
+   "computed": 0.727,
+   "reported": 0.727,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B39-JPR-step-2026-06",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE@2026-06-01",
+   "computed": 0.841,
+   "reported": 0.841,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B39-JPR-step-2026-08",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE@2026-08-01",
+   "computed": 0.977,
+   "reported": 0.977,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B39-JPR-step-2026-09",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE@2026-09-01",
+   "computed": 1.043,
+   "reported": 1.043,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "B40-JPR-full-path",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE 2025-10..2026-10",
+   "computed": [
+    [
+     "2025-10",
+     0.477
+    ],
+    [
+     "2025-11",
+     0.478
+    ],
+    [
+     "2025-12",
+     0.557
+    ],
+    [
+     "2026-01",
+     0.728
+    ],
+    [
+     "2026-02",
+     0.728
+    ],
+    [
+     "2026-03",
+     0.728
+    ],
+    [
+     "2026-04",
+     0.727
+    ],
+    [
+     "2026-05",
+     0.727
+    ],
+    [
+     "2026-06",
+     0.841
+    ],
+    [
+     "2026-07",
+     0.978
+    ],
+    [
+     "2026-08",
+     0.977
+    ],
+    [
+     "2026-09",
+     1.043
+    ],
+    [
+     "2026-10",
+     1.227
+    ]
+   ],
+   "reported": "见 note",
+   "match": true,
+   "note": "2025-10=0.477; 2025-11=0.478; 2025-12=0.557; 2026-01=0.728; 2026-02=0.728; 2026-03=0.728; 2026-04=0.727; 2026-05=0.727; 2026-06=0.841; 2026-07=0.978; 2026-08=0.977; 2026-09=1.043; 2026-10=1.227"
+  },
+  {
+   "cat": "⑤",
+   "id": "B45-JPR-net-engine",
+   "source": "JP_POLICY_RATE 2026-10 − 2025-12 (bp)",
+   "computed": 67.0,
+   "reported": 67,
+   "match": true,
+   "note": "引擎政策窗口径(窗首观测 2025-12)"
+  },
+  {
+   "cat": "⑤",
+   "id": "B46-JPR-net-alt",
+   "source": "JP_POLICY_RATE 2026-10 − 2025-11 (bp)",
+   "computed": 74.9,
+   "reported": 75,
+   "match": true,
+   "note": "窗启时在值口径"
+  },
+  {
+   "cat": "②",
+   "id": "B47-JPR-step-deltas",
+   "source": "JP_POLICY_RATE 相邻月均差 (bp)",
+   "computed": {
+    "2025-12": 8,
+    "2026-01": 17,
+    "2026-06": 11,
+    "2026-07": 14,
+    "2026-09": 7,
+    "2026-10": 18
+   },
+   "reported": {
+    "2025-12": 8,
+    "2026-01": 17,
+    "2026-06": 11,
+    "2026-07": 14,
+    "2026-09": 7,
+    "2026-10": 18
+   },
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥",
+   "id": "B48-JPR-2026-upsteps",
+   "source": "JP_POLICY_RATE 2026 年内月均上行台阶",
+   "computed": [
+    [
+     "2026-01",
+     0.728
+    ],
+    [
+     "2026-06",
+     0.841
+    ],
+    [
+     "2026-07",
+     0.978
+    ],
+    [
+     "2026-09",
+     1.043
+    ],
+    [
+     "2026-10",
+     1.227
+    ]
+   ],
+   "reported": "2026-01,06,07 (+09,10)",
+   "match": true,
+   "note": "「2026-07 为 2026 年内第三个上行月均台阶(此前 2026-01 +17bp、2026-06 +11bp)」"
+  },
+  {
+   "cat": "④",
+   "id": "C1-BOJ-decision",
+   "source": "release_calendar.entries[RC-JP-BOJ-TARGET-2026-09].decision_date",
+   "computed": "2026-09-18",
+   "reported": "2026-09-18",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C2-BOJ-effective",
+   "source": "release_calendar.entries[RC-JP-BOJ-TARGET-2026-09].effective_on",
+   "computed": "2026-09-24",
+   "reported": "2026-09-24",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C3-BOJ-target",
+   "source": "release_calendar.entries[RC-JP-BOJ-TARGET-2026-09].target_value",
+   "computed": 1.25,
+   "reported": 1.25,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C4-BOJ-maintain",
+   "source": "release_calendar.entries[RC-JP-BOJ-MAINT-2026-10]",
+   "computed": {
+    "decision_date": "2026-10-30",
+    "target_value": 1.25,
+    "kind": "policy_maintenance"
+   },
+   "reported": {
+    "decision_date": "2026-10-30",
+    "target_value": 1.25,
+    "kind": "policy_maintenance"
+   },
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C5-days-effective",
+   "source": "2026-11-23 − 2026-09-24",
+   "computed": 60,
+   "reported": 60,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C6-days-decision",
+   "source": "2026-11-23 − 2026-09-18",
+   "computed": 66,
+   "reported": 66,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C7-days-maintain",
+   "source": "2026-11-23 − 2026-10-30 (MAP 官方记录面「距维持」)",
+   "computed": 24,
+   "reported": 24,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C8-policy-entries",
+   "source": "release_calendar.entries kind=policy_*",
+   "computed": [
+    [
+     "RC-JP-BOJ-TARGET-2026-09",
+     "2026-09-18"
+    ],
+    [
+     "RC-JP-BOJ-MAINT-2026-10",
+     "2026-10-30"
+    ]
+   ],
+   "reported": "2 条,均日本央行",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C8b-no-later-boj",
+   "source": "release_calendar JP_POLICY_TARGET 条目 decision_date 最大值",
+   "computed": "2026-10-30",
+   "reported": "2026-10-30",
+   "match": true,
+   "note": "「此后是否有新决议引擎日历无条目」"
+  },
+  {
+   "cat": "⑭",
+   "id": "C9-target-series-absent",
+   "source": "metric_registry.metrics[*].metric_id + snapshot.series_store keys",
+   "computed": {
+    "in_registry": false,
+    "in_store": false
+   },
+   "reported": {
+    "in_registry": false,
+    "in_store": false
+   },
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C10-calendar-version",
+   "source": "release_calendar.version",
+   "computed": "1.5.0",
+   "reported": "v1.5.0",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C12-JPR-registry-name",
+   "source": "metric_registry JP_POLICY_RATE.display_name",
+   "computed": "日本无担保隔夜拆借利率(月均)",
+   "reported": "日本无担保隔夜拆借利率(月均)",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C13-first-full-month",
+   "source": "生效日 2026-09-24 之后首个整月",
+   "computed": "2026-10",
+   "reported": "2026-10",
+   "match": true,
+   "note": "9-24 生效→10 月为首个整月;月均台阶落在 2026-09→2026-10 之交"
+  },
+  {
+   "cat": "④",
+   "id": "C14-FOMC-minutes",
+   "source": "report.research_plan.policy_doc_facts",
+   "computed": [
+    [
+     "FOMC-MINUTES-2026-10",
+     "2026-11-18"
+    ]
+   ],
+   "reported": [
+    [
+     "FOMC-MINUTES-2026-10",
+     "2026-11-18"
+    ]
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C14b-minutes<=cutoff",
+   "source": "FOMC 纪要发布日 ≤ 研究截止日",
+   "computed": true,
+   "reported": true,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "④",
+   "id": "C15-policy-clusters-empty",
+   "source": "report.research_plan.policy_event_clusters.clusters",
+   "computed": [],
+   "reported": [],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D1-UST-1m-bp",
+   "source": "UST_10Y 2026-11-19 − 2026-10-20 (5.12→5.04)",
+   "computed": -8.0,
+   "reported": -8,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D2-TIPS-1m-bp",
+   "source": "TIPS_10Y 2026-11-19 − 2026-10-20 (2.77→2.88)",
+   "computed": 11.0,
+   "reported": 11,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D3-BEI-1m-bp",
+   "source": "BEI_10Y 2026-11-19 − 2026-10-20 (2.35→2.16)",
+   "computed": -19.0,
+   "reported": -19,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D4-identity-1m",
+   "source": "名义 − (实际+盈亏平衡)",
+   "computed": -0.0,
+   "reported": 0,
+   "match": true,
+   "note": "残差 0"
+  },
+  {
+   "cat": "⑤",
+   "id": "D5-levels-1119",
+   "source": "UST_10Y/TIPS_10Y/BEI_10Y @2026-11-19",
+   "computed": [
+    5.04,
+    2.88,
+    2.16
+   ],
+   "reported": [
+    5.04,
+    2.88,
+    2.16
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D5b-BEI-level-1120",
+   "source": "BEI_10Y@2026-11-20",
+   "computed": 2.15,
+   "reported": 2.15,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D6-UST-3m-bp",
+   "source": "UST_10Y 2026-11-19 − 2026-08-19 (4.65→5.04)",
+   "computed": 39.0,
+   "reported": 39,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D6-TIPS-3m-bp",
+   "source": "TIPS_10Y 2026-11-19 − 2026-08-19 (2.35→2.88)",
+   "computed": 53.0,
+   "reported": 53,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D6-BEI-3m-bp",
+   "source": "BEI_10Y 2026-11-19 − 2026-08-19 (2.3→2.16)",
+   "computed": -14.0,
+   "reported": -14,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D6-identity-3m",
+   "source": "名义 − (实际+盈亏平衡)",
+   "computed": -0.0,
+   "reported": 0,
+   "match": true,
+   "note": "残差 0"
+  },
+  {
+   "cat": "⑤",
+   "id": "D8-BEI-3m-from",
+   "source": "BEI_10Y@2026-08-19",
+   "computed": 2.3,
+   "reported": 2.3,
+   "match": true,
+   "note": "「自 2.30 回落至 2.16」"
+  },
+  {
+   "cat": "⑤",
+   "id": "D7-UST-12m-bp",
+   "source": "UST_10Y 2026-11-19 − 2025-11-19 (4.13→5.04)",
+   "computed": 91.0,
+   "reported": 91,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D7-TIPS-12m-bp",
+   "source": "TIPS_10Y 2026-11-19 − 2025-11-19 (1.86→2.88)",
+   "computed": 102.0,
+   "reported": 102,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D7-BEI-12m-bp",
+   "source": "BEI_10Y 2026-11-19 − 2025-11-19 (2.27→2.16)",
+   "computed": -11.0,
+   "reported": -11,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D7-identity-12m",
+   "source": "名义 − (实际+盈亏平衡)",
+   "computed": 0.0,
+   "reported": 0,
+   "match": true,
+   "note": "残差 0"
+  },
+  {
+   "cat": "⑤",
+   "id": "D7b-days-12m",
+   "source": "日历日间隔 2025-11-19→2026-11-19",
+   "computed": 365,
+   "reported": 365,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D6b-days-1m",
+   "source": "日历日间隔 2026-10-20→2026-11-19",
+   "computed": 30,
+   "reported": 30,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D10-BEI-12m-min",
+   "source": "BEI_10Y [2025-11-19..2026-11-20] 最小值",
+   "computed": {
+    "min": 2.15,
+    "at": [
+     "2026-11-20"
+    ],
+    "n": 252
+   },
+   "reported": {
+    "min": 2.15,
+    "at": [
+     "2026-11-20"
+    ]
+   },
+   "match": true,
+   "note": "「12 个月窗内最低」"
+  },
+  {
+   "cat": "⑤",
+   "id": "D11-BEI-0227",
+   "source": "BEI_10Y@2026-02-27",
+   "computed": 2.25,
+   "reported": 2.25,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D11-BEI-0504",
+   "source": "BEI_10Y@2026-05-04",
+   "computed": 2.5,
+   "reported": 2.5,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "D11b-BEI-engine-30d",
+   "source": "BEI_10Y 2026-11-20 − 2026-10-23 (2.34→2.15)",
+   "computed": [
+    -19.0,
+    2.34,
+    2.15
+   ],
+   "reported": [
+    -19,
+    2.34,
+    2.15
+   ],
+   "match": true,
+   "note": "MAP 对质表引擎面「近30日2.34→2.15,下降19bp」= fact m1 窗(席位首版此检误用 2026-10-21 起点得 -22bp,已更正为引擎窗)"
+  },
+  {
+   "cat": "⑤",
+   "id": "D12-TIPS-1023",
+   "source": "TIPS_10Y 2026-11-19 − 2026-10-23 (2.66→2.88)",
+   "computed": 22.0,
+   "reported": 22,
+   "match": true,
+   "note": "「同窗 TIPS_10Y 2.66→2.88(+22bp)」"
+  },
+  {
+   "cat": "⑤",
+   "id": "D12b-TIPS-levels-1023",
+   "source": "TIPS_10Y @2026-10-23 / @2026-11-19",
+   "computed": [
+    2.66,
+    2.88
+   ],
+   "reported": [
+    2.66,
+    2.88
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E1-SPX-chg",
+   "source": "SPX 2026-10-23→2026-11-23 (7623.680176→7203.850098)",
+   "computed": -5.5069,
+   "reported": -5.51,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E1-SPX-ends",
+   "source": "series_store.SPX @2026-10-23 / @2026-11-23",
+   "computed": [
+    7623.680176,
+    7203.850098
+   ],
+   "reported": [
+    7623.68,
+    7203.85
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E2-NIKKEI225-chg",
+   "source": "NIKKEI225 2026-10-23→2026-11-20 (62693.16→56436.65)",
+   "computed": -9.9796,
+   "reported": -9.98,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E2-NIKKEI225-ends",
+   "source": "series_store.NIKKEI225 @2026-10-23 / @2026-11-20",
+   "computed": [
+    62693.16,
+    56436.65
+   ],
+   "reported": [
+    62693.2,
+    56436.65
+   ],
+   "match": true,
+   "note": "MAP 表起值显示 1 位小数(62693.2),序列值 62693.16→按显示精度比对(席位首版按 2 位比对有误,已更正)"
+  },
+  {
+   "cat": "⑤",
+   "id": "E3-GOLD_F-chg",
+   "source": "GOLD_F 2026-10-23→2026-11-23 (4007.899902→3685.199951)",
+   "computed": -8.0516,
+   "reported": -8.05,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E3-GOLD_F-ends",
+   "source": "series_store.GOLD_F @2026-10-23 / @2026-11-23",
+   "computed": [
+    4007.899902,
+    3685.199951
+   ],
+   "reported": [
+    4007.9,
+    3685.2
+   ],
+   "match": true,
+   "note": "MAP 表起值显示 1 位小数(62693.2),序列值 62693.16→按显示精度比对(席位首版按 2 位比对有误,已更正)"
+  },
+  {
+   "cat": "⑤",
+   "id": "E4-DXY-chg",
+   "source": "DXY 2026-10-23→2026-11-23 (101.809998→104.079002)",
+   "computed": 2.2287,
+   "reported": 2.23,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E4-DXY-ends",
+   "source": "series_store.DXY @2026-10-23 / @2026-11-23",
+   "computed": [
+    101.809998,
+    104.079002
+   ],
+   "reported": [
+    101.81,
+    104.079
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E5-VIX-chg",
+   "source": "VIX 2026-10-23→2026-11-23 (19.450001→27.01)",
+   "computed": 38.8689,
+   "reported": 38.87,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E5-VIX-ends",
+   "source": "series_store.VIX @2026-10-23 / @2026-11-23",
+   "computed": [
+    19.450001,
+    27.01
+   ],
+   "reported": [
+    19.45,
+    27.01
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "E6-USDJPY",
+   "source": "series_store.USDJPY@2026-11-23",
+   "computed": 159.347,
+   "reported": 159.35,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E7-SPX-close-basis",
+   "source": "SPX 2026-11-20 / 2026-10-23 (7623.680176→6910.390137)",
+   "computed": -9.3562,
+   "reported": -9.36,
+   "match": true,
+   "note": "同日收盘口径"
+  },
+  {
+   "cat": "⑤",
+   "id": "E8-VIX-close-basis",
+   "source": "VIX 2026-11-20 / 2026-10-23 (19.450001→35.889999)",
+   "computed": 84.5244,
+   "reported": 84.52,
+   "match": true,
+   "note": "同日收盘口径"
+  },
+  {
+   "cat": "⑤",
+   "id": "E9-SPX-3m-close",
+   "source": "SPX 2026-11-20 / 2026-08-19 (7707.97998→6910.390137)",
+   "computed": -10.3476,
+   "reported": -10.35,
+   "match": true,
+   "note": "三个月收盘口径"
+  },
+  {
+   "cat": "⑤",
+   "id": "E10-VIX-3m-close",
+   "source": "VIX 2026-11-20 / 2026-08-19 (14.89→35.889999)",
+   "computed": 141.0342,
+   "reported": 141.03,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E10b-VIX-3m-ends",
+   "source": "VIX @2026-08-19 / @2026-11-20",
+   "computed": [
+    14.89,
+    35.889999
+   ],
+   "reported": [
+    14.89,
+    35.89
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤",
+   "id": "E11-UST-asset-row",
+   "source": "UST_10Y 2026-11-19 / 2026-10-23 (5.0→5.04)",
+   "computed": 0.8,
+   "reported": 0.8,
+   "match": true,
+   "note": "MAP 资产月窗行 +0.8%"
+  },
+  {
+   "cat": "④",
+   "id": "E12-SPX-common-to-1119",
+   "source": "SPX 2026-11-19 / 2026-10-23 (7623.680176→7175.830078)",
+   "computed": -5.8745,
+   "reported": "未载(席位补充核)",
+   "match": true,
+   "note": "反方核: 与 TIPS_10Y 同止于 11-19 的 SPX 同窗跌幅"
+  },
+  {
+   "cat": "③",
+   "id": "F1-CPI-yoy-02",
+   "source": "CPI 2026-02 / 2025-02",
+   "computed": 2.434,
+   "reported": 2.434,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "F1-CPI-yoy-05",
+   "source": "CPI 2026-05 / 2025-05",
+   "computed": 4.1666,
+   "reported": 4.1666,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥",
+   "id": "F1-CPI-delta",
+   "source": "CPI 同比 2026-05 − 2026-02",
+   "computed": 1.7326,
+   "reported": 1.7326,
+   "match": true,
+   "note": "「三个月上行 1.7326 个百分点」"
+  },
+  {
+   "cat": "⑥",
+   "id": "F2-CPI-yoy-2026-max",
+   "source": "CPI 同比 2026 年内最大值",
+   "computed": {
+    "max": 4.1666,
+    "at": [
+     "2026-05"
+    ]
+   },
+   "reported": {
+    "max": 4.1666,
+    "at": [
+     "2026-05"
+    ]
+   },
+   "match": true,
+   "note": "「2026-05 高点 4.17」"
+  },
+  {
+   "cat": "②",
+   "id": "F2b-CPI-yoy-2026-path",
+   "source": "CPI 同比 2026 逐月",
+   "computed": [
+    [
+     "2026-01",
+     2.3912
+    ],
+    [
+     "2026-02",
+     2.434
+    ],
+    [
+     "2026-03",
+     3.286
+    ],
+    [
+     "2026-04",
+     3.7792
+    ],
+    [
+     "2026-05",
+     4.1666
+    ],
+    [
+     "2026-06",
+     3.4635
+    ],
+    [
+     "2026-07",
+     3.3039
+    ],
+    [
+     "2026-08",
+     3.353
+    ],
+    [
+     "2026-09",
+     3.7173
+    ],
+    [
+     "2026-10",
+     null
+    ]
+   ],
+   "reported": "见 note",
+   "match": true,
+   "note": "2026-01=2.3912; 2026-02=2.434; 2026-03=3.286; 2026-04=3.7792; 2026-05=4.1666; 2026-06=3.4635; 2026-07=3.3039; 2026-08=3.353; 2026-09=3.7173; 2026-10=None"
+  },
+  {
+   "cat": "③",
+   "id": "F3-CCPI-yoy-2026-02",
+   "source": "CORE_CPI 2026-02 / 上年同月",
+   "computed": 2.4725,
+   "reported": 2.4725,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "F3-CCPI-yoy-2026-05",
+   "source": "CORE_CPI 2026-05 / 上年同月",
+   "computed": 2.8229,
+   "reported": 2.8229,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "F3-CCPI-yoy-2026-08",
+   "source": "CORE_CPI 2026-08 / 上年同月",
+   "computed": 2.4462,
+   "reported": 2.4462,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "F3-CCPI-yoy-2026-09",
+   "source": "CORE_CPI 2026-09 / 上年同月",
+   "computed": 2.5658,
+   "reported": 2.5658,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "F3b-CCPI-yoy-2026-path",
+   "source": "CORE_CPI 同比 2026 逐月",
+   "computed": [
+    [
+     "2026-01",
+     2.512
+    ],
+    [
+     "2026-02",
+     2.4725
+    ],
+    [
+     "2026-03",
+     2.6022
+    ],
+    [
+     "2026-04",
+     2.7433
+    ],
+    [
+     "2026-05",
+     2.8229
+    ],
+    [
+     "2026-06",
+     2.5658
+    ],
+    [
+     "2026-07",
+     2.4665
+    ],
+    [
+     "2026-08",
+     2.4462
+    ],
+    [
+     "2026-09",
+     2.5658
+    ],
+    [
+     "2026-10",
+     null
+    ]
+   ],
+   "reported": "见 note",
+   "match": true,
+   "note": "2026-01=2.512; 2026-02=2.4725; 2026-03=2.6022; 2026-04=2.7433; 2026-05=2.8229; 2026-06=2.5658; 2026-07=2.4665; 2026-08=2.4462; 2026-09=2.5658; 2026-10=None"
+  },
+  {
+   "cat": "③",
+   "id": "F4-INDPRO-yoy-2025-11",
+   "source": "INDPRO 2025-11 / 2024-11",
+   "computed": 1.7543,
+   "reported": 1.7543,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "F4-INDPRO-yoy-2026-02",
+   "source": "INDPRO 2026-02 / 2025-02",
+   "computed": 0.7972,
+   "reported": 0.7972,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "F5-CPCE-yoy-2025-11",
+   "source": "CORE_PCE 2025-11 / 2024-11",
+   "computed": 2.7212,
+   "reported": 2.7212,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "③",
+   "id": "F5-CPCE-yoy-2026-02",
+   "source": "CORE_PCE 2026-02 / 2025-02",
+   "computed": 2.9592,
+   "reported": 2.9592,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "②",
+   "id": "F6-UNEMP-05-08",
+   "source": "UNEMPLOYMENT @2026-05-01 / @2026-08-01",
+   "computed": [
+    4.3,
+    4.1
+   ],
+   "reported": [
+    4.3,
+    4.1
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥",
+   "id": "F7-pool-max",
+   "source": "report.research_plan.turning_candidates.candidates |Δ| 最大者",
+   "computed": {
+    "metric": "CPI",
+    "delta": 1.7326,
+    "n_pool": 7
+   },
+   "reported": {
+    "metric": "CPI",
+    "delta": 1.7326,
+    "n_pool": 7
+   },
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥",
+   "id": "F7b-pool-recompute",
+   "source": "候选池 7 项前值→后值 series_store 复算",
+   "computed": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ],
+   "reported": "7/7 一致",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥",
+   "id": "F8-rank-2026-09",
+   "source": "EA_HICP_YOY@2026-09 vs CPI 同比 2026-09",
+   "computed": {
+    "EA": 3.8,
+    "US": 3.7173
+   },
+   "reported": "EA > US",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥",
+   "id": "F8b-rank-crossings",
+   "source": "EA_HICP_YOY vs CPI 同比 全史可比月份位次 (series_store 直算)",
+   "computed": {
+    "n_comparable": 106,
+    "first": "2017-11",
+    "months_EA_gt_US_earlier_than_2026-09": 15,
+    "earlier_crossing_span": [
+     "2022-07",
+     "2023-09"
+    ],
+    "consecutive_EA_lt_US_right_before_2026-09": 34,
+    "2026_rank": [
+     "EA<US",
+     "EA<US",
+     "EA<US",
+     "EA<US",
+     "EA<US",
+     "EA<US",
+     "EA<US",
+     "EA<US",
+     "EA>US"
+    ]
+   },
+   "reported": "「两地最新可比同月为九月,更早月份位次有交叉」",
+   "match": true,
+   "note": "字面属实: 2022-07..2023-09 共 15 个月 EA>US;但其后 2023-10..2026-08 连续 34 个可比月均 EA<US,2026-09 为 2023-09 以来首次反超——陈述未给时间范围(见 MINOR)"
+  },
+  {
+   "cat": "⑥",
+   "id": "F8c-ea-path-2026",
+   "source": "EA_HICP_YOY 2026 逐月",
+   "computed": [
+    [
+     "2026-01",
+     1.7
+    ],
+    [
+     "2026-02",
+     1.9
+    ],
+    [
+     "2026-03",
+     2.6
+    ],
+    [
+     "2026-04",
+     3.0
+    ],
+    [
+     "2026-05",
+     3.2
+    ],
+    [
+     "2026-06",
+     2.8
+    ],
+    [
+     "2026-07",
+     2.9
+    ],
+    [
+     "2026-08",
+     3.2
+    ],
+    [
+     "2026-09",
+     3.8
+    ],
+    [
+     "2026-10",
+     4.0
+    ]
+   ],
+   "reported": "见 note",
+   "match": true,
+   "note": "2026-01=1.7; 2026-02=1.9; 2026-03=2.6; 2026-04=3.0; 2026-05=3.2; 2026-06=2.8; 2026-07=2.9; 2026-08=3.2; 2026-09=3.8; 2026-10=4.0"
+  },
+  {
+   "cat": "⑩",
+   "id": "F9-headline>core",
+   "source": "CPI 同比 2026-09 vs CORE_CPI 同比 2026-09",
+   "computed": [
+    3.7173,
+    2.5658
+   ],
+   "reported": "headline 3.72 > core 2.57",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩",
+   "id": "F10-magnitude-EA-vs-US",
+   "source": "HICP 同比 Δ(07→10) vs CPI 同比 Δ(07→09 最近有效)",
+   "computed": [
+    1.1,
+    0.41
+   ],
+   "reported": "欧元区幅度更大",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑪",
+   "id": "G1-gate-a-status",
+   "source": "snapshot.gate_a.status",
+   "computed": "DEGRADED",
+   "reported": "DEGRADED",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑪",
+   "id": "G1b-core-missing",
+   "source": "snapshot.gate_a.core_missing",
+   "computed": [],
+   "reported": [],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑪",
+   "id": "G1c-noncore-missing",
+   "source": "snapshot.gate_a.noncore_missing",
+   "computed": [
+    "BUND_10Y",
+    "BUND_2Y",
+    "CN_OMO_7D",
+    "CN_POLICY_OVERNIGHT",
+    "EA_REAL_GDP_YOY",
+    "JP_CPI_TOKYO_YOY",
+    "JP_REAL_GDP_YOY"
+   ],
+   "reported": [
+    "BUND_10Y",
+    "BUND_2Y",
+    "CN_OMO_7D",
+    "CN_POLICY_OVERNIGHT",
+    "EA_REAL_GDP_YOY",
+    "JP_CPI_TOKYO_YOY",
+    "JP_REAL_GDP_YOY"
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑪",
+   "id": "G1d-noncore-degraded",
+   "source": "snapshot.gate_a.noncore_degraded",
+   "computed": [
+    "CN_SF_FLOW",
+    "ECB_DFR",
+    "ECB_MRO",
+    "JTSJOL",
+    "M2SL",
+    "SPX_EPS",
+    "SPX_PE_TTM",
+    "US_REAL_GDP"
+   ],
+   "reported": [
+    "CN_SF_FLOW",
+    "ECB_DFR",
+    "ECB_MRO",
+    "JTSJOL",
+    "M2SL",
+    "SPX_EPS",
+    "SPX_PE_TTM",
+    "US_REAL_GDP"
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑪",
+   "id": "G2-EAGDP-age",
+   "source": "series_store.EA_REAL_GDP_YOY 末观测距截止日天数 / 注册表 max_calendar_lag_days",
+   "computed": [
+    145,
+    120,
+    1.208
+   ],
+   "reported": [
+    145,
+    120,
+    1.208
+   ],
+   "match": true,
+   "note": "「145 天,超过 120 天;与 US_REAL_GDP 同龄同倍数」"
+  },
+  {
+   "cat": "⑪",
+   "id": "G2b-EAGDP-has-stock",
+   "source": "series_store.EA_REAL_GDP_YOY 观测数",
+   "computed": 123,
+   "reported": ">0(存量观测在库)",
+   "match": true,
+   "note": "列入非核心缺口清单但库内有存量观测——判断档已披露"
+  },
+  {
+   "cat": "⑪",
+   "id": "G3-USGDP-age",
+   "source": "US_REAL_GDP 末观测距截止日天数 / 注册表上限 / 倍数",
+   "computed": [
+    145,
+    120,
+    1.208
+   ],
+   "reported": [
+    145,
+    120,
+    1.208
+   ],
+   "match": true,
+   "note": "「1.2 倍」"
+  },
+  {
+   "cat": "⑪",
+   "id": "G4-CPCE-age",
+   "source": "CORE_PCE 末观测距截止日天数 / 注册表上限 / 倍数",
+   "computed": [
+    83,
+    60,
+    1.383
+   ],
+   "reported": [
+    83,
+    60,
+    1.383
+   ],
+   "match": true,
+   "note": "「83 天,为 60 天的 1.4 倍」"
+  },
+  {
+   "cat": "⑪",
+   "id": "G5-task-window-empty",
+   "source": "report.run.data_requirements.items[*].spec.window.n_in_window",
+   "computed": {
+    "US_REAL_GDP": 0,
+    "UNEMPLOYMENT": 0,
+    "INDPRO": 0,
+    "CPI": 0,
+    "CORE_CPI": 0,
+    "CORE_PCE": 0,
+    "EA_REAL_GDP_YOY": 0,
+    "EA_HICP_YOY": 0,
+    "JP_POLICY_RATE": 0
+   },
+   "reported": "9 项均为 0",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑪",
+   "id": "G5b-outcomes",
+   "source": "report.run.data_requirements.items[*].outcome",
+   "computed": [
+    "insufficient_coverage"
+   ],
+   "reported": [
+    "insufficient_coverage"
+   ],
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑪",
+   "id": "G6-ref-count",
+   "source": "agent_judgment.l3/l4 evidence_refs 计数",
+   "computed": {
+    "C": 10,
+    "M": 4,
+    "S": 5,
+    "total": 19
+   },
+   "reported": {
+    "C": 10,
+    "M": 4,
+    "S": 5,
+    "total": 19
+   },
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑪",
+   "id": "G6b-refs-resolve",
+   "source": "evidence_refs ∩ report.evidence_index",
+   "computed": [],
+   "reported": "全部解析",
+   "match": true,
+   "note": "证据索引键样例: ['AAPL@2026-11-23', 'BB_OAS@2026-11-19']"
+  },
+  {
+   "cat": "⑪",
+   "id": "G8-facts-count",
+   "source": "report.run.evidence_gate.counts",
+   "computed": {
+    "facts_kept": 105,
+    "facts_rebuilt": 0,
+    "facts_dropped": 0,
+    "facts_excluded_version": 0,
+    "series_observations_dropped": 0
+   },
+   "reported": {
+    "facts_kept": 105,
+    "facts_rebuilt": 0,
+    "facts_dropped": 0,
+    "facts_excluded_version": 0,
+    "series_observations_dropped": 0
+   },
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑪",
+   "id": "G8b-facts-len",
+   "source": "snapshot.facts 长度",
+   "computed": 105,
+   "reported": 105,
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑬",
+   "id": "H1-stale-items",
+   "source": "report.agent_judgment.contract_verification.verdicts status!=VERIFIED",
+   "computed": [
+    [
+     "CORE_PCE",
+     "130.902",
+     "STALE",
+     "recompute:Fact 直读 CORE_PCE@2026-09-01=130.902"
+    ],
+    [
+     "US_REAL_GDP",
+     "24611.077",
+     "STALE",
+     "recompute:Fact 直读 US_REAL_GDP@2026-07-01=24611.077"
+    ]
+   ],
+   "reported": "CORE_PCE 与 US_REAL_GDP 两项 STALE",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑬",
+   "id": "H2-stale-values-equal",
+   "source": "contract_verification STALE 项 value==expected",
+   "computed": true,
+   "reported": true,
+   "match": true,
+   "note": "「数值一致、观测滞后超过注册表节奏」"
+  },
+  {
+   "cat": "⑬",
+   "id": "H3-stale-disclosure",
+   "source": "agent_judgment.quality_gate_notes[3]",
+   "computed": true,
+   "reported": true,
+   "match": true,
+   "note": "STALE 指标/观测期/滞后天数披露"
+  },
+  {
+   "cat": "⑬",
+   "id": "H4-contract-stats",
+   "source": "contract_verification.stats",
+   "computed": {
+    "checks": 9,
+    "contradicted": 0,
+    "verified": 7,
+    "unbound": 0,
+    "six_fail": 0,
+    "map_fail": 0,
+    "n_contradictions": 3
+   },
+   "reported": {
+    "checks": 9,
+    "verified": 7,
+    "contradicted": 0
+   },
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑪",
+   "id": "I1-evidence-index-rows",
+   "source": "report.evidence_index 长度",
+   "computed": 63,
+   "reported": 63,
+   "match": true,
+   "note": "agent_declaration「证据索引(63行)」/FULL_REPORT「证据行: 63」"
+  },
+  {
+   "cat": "②",
+   "id": "I2-point-cells",
+   "source": "report.research_plan.point_values.cells 长度",
+   "computed": 9,
+   "reported": 9,
+   "match": true,
+   "note": "agent_declaration「点值格(9格)」"
+  },
+  {
+   "cat": "④",
+   "id": "I3-maintain-no-effective",
+   "source": "release_calendar.entries[RC-JP-BOJ-MAINT-2026-10] 是否含 effective_on 键",
+   "computed": false,
+   "reported": false,
+   "match": true,
+   "note": "「维持条目无生效日,正文不为其挂生效日」"
+  },
+  {
+   "cat": "②",
+   "id": "I4-anchor-echo-vs-grid",
+   "source": "agent_judgment.reader_map.regions[*].anchor_echo vs report.research_plan.point_values.cells[*].anchors",
+   "computed": "18/18",
+   "reported": "18/18 值与观测月一致",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦",
+   "id": "I5-USDJPY-12m-position",
+   "source": "USDJPY [2025-11-23..2026-11-23] 末值/窗内最小/最大/末值分位",
+   "computed": {
+    "last": [
+     "2026-11-23",
+     159.347
+    ],
+    "min": 152.453,
+    "max": 163.864,
+    "pct_rank": 71.0,
+    "n": 259,
+    "m1_pct": 1.82,
+    "m3_pct": -0.13
+   },
+   "reported": {
+    "last": "2026-11-23=159.347",
+    "min": 152.453,
+    "max": 163.864,
+    "pct_rank": 71.0,
+    "n": 259,
+    "m1_pct": 1.82,
+    "m3_pct": -0.13
+   },
+   "match": true,
+   "note": "「USDJPY 仍处高位」: 12 个月窗内约 71% 分位(窗内最大 163.864),近一月 +1.82%、三个月 -0.13%"
+  },
+  {
+   "cat": "§4",
+   "id": "I6-BEI-earlier-leg-endpoints",
+   "source": "BEI_10Y [2026-02-20..2026-05-04] 窗内最小/最大;月末对照 2026-02-27→2026-05-29",
+   "computed": {
+    "window_min": [
+     "2026-02-27",
+     2.25
+    ],
+    "window_max": [
+     "2026-05-04",
+     2.5
+    ],
+    "month_end_05-29": 2.38,
+    "me_to_me_bp": 13.0
+   },
+   "reported": {
+    "window_min": "2026-02-27=2.25",
+    "window_max": "2026-05-04=2.5",
+    "month_end_05-29": 2.38,
+    "me_to_me_bp": 13
+   },
+   "match": true,
+   "note": "判断档两端点=该窗最小值→最大值(05-04 亦为 2026 年内最高);月末对月末仅 +13bp——端点未注明「段内峰值」(见 MINOR)"
+  },
+  {
+   "cat": "⑨",
+   "id": "J0-hicp-release-schedule",
+   "source": "EA_HICP_YOY 观测月→规则发布日(月末+16,引擎同规则)",
+   "computed": {
+    "2026-09": "2026-10-16",
+    "2026-10": "2026-11-16",
+    "2026-11": "2026-12-16",
+    "2026-12": "2027-01-16",
+    "2027-01": "2027-02-16"
+   },
+   "reported": {
+    "2026-10": "2026-11-16",
+    "2026-11": "2026-12-16",
+    "2026-12": "2027-01-16",
+    "2027-01": "2027-02-16"
+   },
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨",
+   "id": "J1-S1-trigger-not-met",
+   "source": "截止日读数: EA_HICP_YOY@2026-10 / CORE_PCE 同比@2026-09 / TIPS_10Y@2026-11-19",
+   "computed": {
+    "EA": 4.0,
+    "CORE_PCE_yoy": 3.12,
+    "TIPS": 2.88
+   },
+   "reported": {
+    "EA": "<4.2",
+    "CORE_PCE_yoy": "<3.2",
+    "TIPS": "<3.0"
+   },
+   "match": true,
+   "note": "S1 触发条件在截止日尚未到达=待验证情景"
+  },
+  {
+   "cat": "⑨",
+   "id": "J2-S1-state-holds-at-cutoff",
+   "source": "同上三项读数 vs S1 情景状态(维持 3.5% 以上 / 3.0% 以上)",
+   "computed": {
+    "EA": 4.0,
+    "CORE_PCE_yoy": 3.12
+   },
+   "reported": {
+    "EA": ">=3.5",
+    "CORE_PCE_yoy": ">=3.0"
+   },
+   "match": true,
+   "note": "S1 前提与截止日读数相容(未被证伪)"
+  },
+  {
+   "cat": "⑨",
+   "id": "J3-S2-trigger-not-met",
+   "source": "截止日读数: EA_HICP_YOY 2026-09→2026-10 / BEI_10Y@2026-11-20",
+   "computed": {
+    "EA_09": 3.8,
+    "EA_10": 4.0,
+    "BEI": 2.15
+   },
+   "reported": {
+    "EA": "未连续回落",
+    "BEI": ">2.0"
+   },
+   "match": true,
+   "note": "S2 触发条件尚未到达"
+  },
+  {
+   "cat": "⑨",
+   "id": "J4-S2-falsifier-reachable",
+   "source": "S2 证伪: 2026-12 与 2027-01 两月发布=2026-11/2026-12 观测月(2026-12-16/2027-01-16),期限 2027-02-15",
+   "computed": {
+    "releases": [
+     "2026-12-16",
+     "2027-01-16"
+    ],
+    "<=deadline": true
+   },
+   "reported": "两次发布均在期限内=可观测可触发",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨",
+   "id": "J5-S1-falsifier-reachable",
+   "source": "S1 证伪字面「2027-01 前发布…连续两个月低于 3.0%」直算",
+   "computed": {
+    "obs_months_released_before_2027-01": [
+     "2026-09",
+     "2026-10",
+     "2026-11"
+    ],
+    "release_dates": [
+     "2026-10-16",
+     "2026-11-16",
+     "2026-12-16"
+    ],
+    "consecutive_pairs(obs_month,reading)": [
+     [
+      "2026-09",
+      3.8,
+      "2026-10",
+      4.0
+     ],
+     [
+      "2026-10",
+      4.0,
+      "2026-11",
+      null
+     ]
+    ],
+    "reachable": false
+   },
+   "reported": "证伪条件可观测且与截止日读数相容(可触发)",
+   "match": false,
+   "note": "偏离: 截止日后、2027-01 前只剩 2026-11 观测月一次发布(2026-12-16);可与它相邻的 2026-10 读数=4.0 已于 2026-11-16 发布→「连续两个月低于 3.0%」在 2027-01 前不可能成立,S1 证伪条件按字面不可触发(见 MAJOR-1)"
+  },
+  {
+   "cat": "⑨",
+   "id": "J6-scenarios-complementary",
+   "source": "S1 状态(维持 3.5% 以上/3.0% 以上) vs S2 状态(回落至 3.0% 以下/2.8% 以下)",
+   "computed": "S1=延续上行, S2=回落;资产方向 S1=利率上/风险资产弱/美元强, S2=通胀补偿与实际利率回落/风险资产与黄金修复/美元弱",
+   "reported": "方向互补",
+   "match": true,
+   "note": "两情景方向互补非孤证;S1 证伪阈(<3.0)与 S2 证伪阈(>=4.0)互补"
+  },
+  {
+   "cat": "⑨",
+   "id": "J7-trigger-release-window",
+   "source": "S1 触发「2026-12 或 2027-01 发布」对应发布日",
+   "computed": [
+    "2026-12-16",
+    "2027-01-16"
+   ],
+   "reported": "均 <= 2027-02-15",
+   "match": true,
+   "note": "2027-01 观测月发布日 2027-02-16 晚于期限→「至 2027-01」只能指发布月(2026-11/2026-12 观测月)"
+  },
+  {
+   "cat": "⑭",
+   "id": "K1-plan-has-no-US-EA-policy-rate",
+   "source": "report.run.data_requirements.items[*].metric_id",
+   "computed": [
+    "CORE_CPI",
+    "CORE_PCE",
+    "CPI",
+    "EA_HICP_YOY",
+    "EA_REAL_GDP_YOY",
+    "INDPRO",
+    "JP_POLICY_RATE",
+    "UNEMPLOYMENT",
+    "US_REAL_GDP"
+   ],
+   "reported": "不含美欧政策利率序列",
+   "match": true,
+   "note": "「本问计划指标面未纳入美欧政策利率序列」属实"
+  },
+  {
+   "cat": "⑭",
+   "id": "K2-store-has-US-EA-policy-rates",
+   "source": "series_store DFEDTARU/DFEDTARL/ECB_DFR/ECB_MRO/FED_FUNDS [2026-08-19..2026-11-23] 变更点",
+   "computed": {
+    "DFEDTARU": [
+     [
+      "2026-09-17",
+      3.75,
+      4.0
+     ]
+    ],
+    "DFEDTARL": [
+     [
+      "2026-09-17",
+      3.5,
+      3.75
+     ]
+    ],
+    "DFF": [
+     [
+      "2026-09-17",
+      3.63,
+      3.88
+     ]
+    ],
+    "FED_FUNDS": [
+     [
+      "2026-09-01",
+      3.63,
+      3.75
+     ],
+     [
+      "2026-10-01",
+      3.75,
+      3.88
+     ]
+    ],
+    "ECB_DFR": [
+     [
+      "2026-09-16",
+      2.25,
+      2.5
+     ]
+    ],
+    "ECB_MRO": [
+     [
+      "2026-09-16",
+      2.4,
+      2.65
+     ]
+    ]
+   },
+   "reported": "判断档未引用(称「依本问证据不可判」)",
+   "match": true,
+   "note": "快照在库但不在本问计划指标面/证据索引: 美联储目标区间上限 2026-09-17 起 3.75→4.00(+25bp),欧央行存款便利利率 2026-09-16 起 2.25→2.50(+25bp)——与日本央行 2026-09-18 决议同月收紧;计划面/证据索引确未纳入(披露口径见 MINOR)"
+  },
+  {
+   "cat": "⑭",
+   "id": "K3-JGB-registered-not-collected",
+   "source": "metric_registry JGB2Y/5Y/10Y 在册; series_store 是否在库",
+   "computed": {
+    "registered": true,
+    "in_store": []
+   },
+   "reported": {
+    "registered": true,
+    "in_store": []
+   },
+   "match": true,
+   "note": "「本引擎无日本融资成本/套息持仓序列」: 套息持仓序列确无;JGB 收益率在册但本轮未采,JP_POLICY_RATE 本身即隔夜资金利率月均(措辞见 NIT)"
+  },
+  {
+   "cat": "§4",
+   "id": "K4-UMCSENT-anchor-window",
+   "source": "UMCSENT @2026-07-01 / @2026-10-01",
+   "computed": [
+    55.2,
+    48.0
+   ],
+   "reported": [
+    55.2,
+    48.0
+   ],
+   "match": true,
+   "note": "判断档未引用的软数据(不在本问计划指标面与证据索引,仅快照在库): 锚窗内回落 7.2 点(见六查 C2)"
+  },
+  {
+   "cat": "§4",
+   "id": "K5-EURUSD-3m",
+   "source": "EURUSD 2026-11-23 / 2026-08-19",
+   "computed": -5.52,
+   "reported": -5.52,
+   "match": true,
+   "note": "「弱欧元放大输入压力」前提: 三个月 -5.52%、近一月 -2.51%,同向"
+  },
+  {
+   "cat": "§4",
+   "id": "K6-BRENT-windows",
+   "source": "BRENT_F 近一月/三个月/12 个月",
+   "computed": [
+    -24.44,
+    -3.74,
+    38.86
+   ],
+   "reported": [
+    -24.44,
+    -3.74,
+    38.86
+   ],
+   "match": true,
+   "note": "能源前提的在场对照: 近一月 -24.44%,判断档未引用(见六查 C1)"
+  },
+  {
+   "cat": "⑩",
+   "id": "K7-MAP-asset-row-SHCOMP",
+   "source": "SHCOMP 2026-10-23→2026-11-23 (3690.4753→3538.948)",
+   "computed": [
+    -4.1059,
+    3690.4753,
+    3538.948
+   ],
+   "reported": [
+    -4.11,
+    3690.48,
+    3538.95
+   ],
+   "match": true,
+   "note": "MAP 资产月窗表引擎行(判断档未引用)"
+  },
+  {
+   "cat": "⑩",
+   "id": "K7-MAP-asset-row-DAX",
+   "source": "DAX 2026-10-23→2026-11-23 (25181.650391→25209.449219)",
+   "computed": [
+    0.1104,
+    25181.650391,
+    25209.449219
+   ],
+   "reported": [
+    0.11,
+    25181.7,
+    25209.4
+   ],
+   "match": true,
+   "note": "MAP 资产月窗表引擎行(判断档未引用)"
+  },
+  {
+   "cat": "⑧",
+   "id": "L1-analog-top-face",
+   "source": "report.steps[S6_analog].envelope.data.top",
+   "computed": [
+    [
+     1,
+     "2025-03",
+     0.727212
+    ],
+    [
+     2,
+     "2022-06",
+     0.791806
+    ],
+    [
+     3,
+     "2023-10",
+     1.054168
+    ],
+    [
+     4,
+     "2021-02",
+     1.284945
+    ],
+    [
+     5,
+     "2020-01",
+     1.357685
+    ]
+   ],
+   "reported": "FULL_REPORT「历史相似结构」5 段",
+   "match": true,
+   "note": "引擎候选面 5 段(候选月全窗数据事后筛得)"
+  },
+  {
+   "cat": "⑧",
+   "id": "L2-history-zero-case",
+   "source": "agent_judgment.reader_map.history_periods / history_zero_case_note; report.agent_judgment.reader_map_faces.history_n",
+   "computed": {
+    "history_periods": [],
+    "history_n": 0,
+    "note_len": 159
+   },
+   "reported": {
+    "history_periods": [],
+    "history_n": 0,
+    "note": "在场"
+   },
+   "match": true,
+   "note": "零段类比: 引擎候选 5 段在场,判断档未采纳任何段、未引任何候选数字(无可复算数字);事后结果≠当时可知的表述与引擎注记一致"
+  },
+  {
+   "cat": "⑫",
+   "id": "M1-intraday-label",
+   "source": "agent_judgment 全文「盘中快照」出现次数 / 报告内 2026-11-23 日频值(SPX/VIX/GOLD_F/DXY/USDJPY)",
+   "computed": {
+    "n_label": 5,
+    "as_of": "2026-11-23T22:53:47+08:00"
+   },
+   "reported": {
+    "n_label": ">=4",
+    "as_of": "2026-11-23T22:53:47+08:00"
+   },
+   "match": true,
+   "note": "截止日当日值均带「盘中快照、非收盘价」说明;与 research_as_of(纽约 09:53)相容"
+  },
+  {
+   "cat": "①",
+   "id": "M2-map-sha-anchor",
+   "source": "MAP_REPORT.sha256 vs sha256(MAP_REPORT.md)",
+   "computed": [
+    "e1e13eb95ec77e7f",
+    "e1e13eb95ec77e7f"
+   ],
+   "reported": "相等",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩",
+   "id": "M3-unrendered-fields",
+   "source": "MAP_REPORT.md 是否含 verdict_note / narrative 专有句",
+   "computed": {
+    "verdict_note": [
+     false,
+     false,
+     false
+    ],
+    "narrative": [
+     false,
+     false,
+     false
+    ]
+   },
+   "reported": "均不进渲染(与 quality_gate_notes 一致)",
+   "match": true,
+   "note": ""
+  },
+  {
+   "cat": "⑩",
+   "id": "M4-reader-map-verbatim",
+   "source": "MAP_REPORT.md 含判断档 headline/走位/传导/转折/情景证伪与触发原文",
+   "computed": "17/17",
+   "reported": "全部逐字渲染",
+   "match": true,
+   "note": "读者报告判断文字=判断档原文(含 S1 证伪句)"
+  },
+  {
+   "cat": "⑫",
+   "id": "M5-map-cutoff-header",
+   "source": "MAP_REPORT.md 研究截止日行",
+   "computed": true,
+   "reported": true,
+   "match": true,
+   "note": ""
+  }
+ ]
+}

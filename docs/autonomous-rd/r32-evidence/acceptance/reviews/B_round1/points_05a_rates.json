@@ -1,0 +1,338 @@
+{
+ "block": "⑤",
+ "title": "三利率分解(名义/实际/盈亏平衡)与汇率面读数",
+ "rows": [
+  {
+   "block": "⑤",
+   "id": "A0-UST_10Y 序列末端观测日/值",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UST_10Y",
+   "computed": [
+    "2026-11-19",
+    5.04,
+    2497,
+    "2016-11-23"
+   ],
+   "claim": "利率三序列止于 2026-11-19(BEI_10Y 止于 2026-11-20)",
+   "match": true,
+   "detail": "末观测 2026-11-19=5.04; 首观测 2016-11-23; n=2497"
+  },
+  {
+   "block": "⑤",
+   "id": "A0-TIPS_10Y 序列末端观测日/值",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y",
+   "computed": [
+    "2026-11-19",
+    2.88,
+    2497,
+    "2016-11-23"
+   ],
+   "claim": "利率三序列止于 2026-11-19(BEI_10Y 止于 2026-11-20)",
+   "match": true,
+   "detail": "末观测 2026-11-19=2.88; 首观测 2016-11-23; n=2497"
+  },
+  {
+   "block": "⑤",
+   "id": "A0-BEI_10Y 序列末端观测日/值",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y",
+   "computed": [
+    "2026-11-20",
+    2.15,
+    2498,
+    "2016-11-23"
+   ],
+   "claim": "利率三序列止于 2026-11-19(BEI_10Y 止于 2026-11-20)",
+   "match": true,
+   "detail": "末观测 2026-11-20=2.15; 首观测 2016-11-23; n=2498"
+  },
+  {
+   "block": "⑤",
+   "id": "A1-近一月窗名义 UST_10Y 变动(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UST_10Y[2026-10-20..2026-11-19]",
+   "kind": "point",
+   "computed": -8.0,
+   "claim": -8,
+   "match": true,
+   "detail": "直算 -8 → 取 2 位 -8.0; 报告 -8; 窗 5.12→5.04"
+  },
+  {
+   "block": "⑤",
+   "id": "A2-近一月窗实际 TIPS_10Y 变动(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y[2026-10-20..2026-11-19]",
+   "kind": "point",
+   "computed": 11.0,
+   "claim": 11,
+   "match": true,
+   "detail": "直算 11 → 取 2 位 11.0; 报告 11; 窗 2.77→2.88"
+  },
+  {
+   "block": "⑤",
+   "id": "A3-近一月窗盈亏平衡 BEI_10Y 变动(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2026-10-20..2026-11-19]",
+   "kind": "point",
+   "computed": -19.0,
+   "claim": -19,
+   "match": true,
+   "detail": "直算 -19 → 取 2 位 -19.0; 报告 -19; 窗 2.35→2.16"
+  },
+  {
+   "block": "⑤",
+   "id": "A4-近一月窗名义=实际+盈亏平衡 残差(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UST_10Y/TIPS_10Y/BEI_10Y",
+   "kind": "point",
+   "computed": 0.0,
+   "claim": 0,
+   "match": true,
+   "detail": "直算 0 → 取 1 位 0.0; 报告 0; 恒等残差"
+  },
+  {
+   "block": "⑤",
+   "id": "A5-期末水平 UST_10Y@2026-11-19",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UST_10Y[2026-11-19]",
+   "kind": "point",
+   "computed": 5.04,
+   "claim": 5.04,
+   "match": true,
+   "detail": "直算 5.04 → 取 2 位 5.04; 报告 5.04; "
+  },
+  {
+   "block": "⑤",
+   "id": "A6-期末水平 TIPS_10Y@2026-11-19",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y[2026-11-19]",
+   "kind": "point",
+   "computed": 2.88,
+   "claim": 2.88,
+   "match": true,
+   "detail": "直算 2.88 → 取 2 位 2.88; 报告 2.88; "
+  },
+  {
+   "block": "⑤",
+   "id": "A7-期末水平 BEI_10Y@2026-11-19",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2026-11-19]",
+   "kind": "point",
+   "computed": 2.16,
+   "claim": 2.16,
+   "match": true,
+   "detail": "直算 2.16 → 取 2 位 2.16; 报告 2.16; "
+  },
+  {
+   "block": "⑤",
+   "id": "A8-最新 BEI_10Y@2026-11-20",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2026-11-20]",
+   "kind": "point",
+   "computed": 2.15,
+   "claim": 2.15,
+   "match": true,
+   "detail": "直算 2.15 → 取 2 位 2.15; 报告 2.15; "
+  },
+  {
+   "block": "⑤",
+   "id": "A9-名义水平=实际+盈亏平衡(同日 2026-11-19)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UST_10Y/TIPS_10Y/BEI_10Y[2026-11-19]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 5.04 vs 2.88+2.16"
+  },
+  {
+   "block": "⑤",
+   "id": "A10-三个月窗名义 UST_10Y 变动(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UST_10Y[2026-08-19..2026-11-19]",
+   "kind": "point",
+   "computed": 39.0,
+   "claim": 39,
+   "match": true,
+   "detail": "直算 39 → 取 2 位 39.0; 报告 39; 窗 4.65→5.04"
+  },
+  {
+   "block": "⑤",
+   "id": "A10-三个月窗实际 TIPS_10Y 变动(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y[2026-08-19..2026-11-19]",
+   "kind": "point",
+   "computed": 53.0,
+   "claim": 53,
+   "match": true,
+   "detail": "直算 53 → 取 2 位 53.0; 报告 53; 窗 2.35→2.88"
+  },
+  {
+   "block": "⑤",
+   "id": "A10-三个月窗盈亏平衡 BEI_10Y 变动(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2026-08-19..2026-11-19]",
+   "kind": "point",
+   "computed": -14.0,
+   "claim": -14,
+   "match": true,
+   "detail": "直算 -14 → 取 2 位 -14.0; 报告 -14; 窗 2.3→2.16"
+  },
+  {
+   "block": "⑤",
+   "id": "A11-三个月窗 BEI_10Y 窗启水平",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2026-08-19]",
+   "kind": "point",
+   "computed": 2.3,
+   "claim": 2.3,
+   "match": true,
+   "detail": "直算 2.3 → 取 2 位 2.3; 报告 2.3; "
+  },
+  {
+   "block": "⑤",
+   "id": "A12-三个月窗 BEI_10Y 窗末水平",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2026-11-19]",
+   "kind": "point",
+   "computed": 2.16,
+   "claim": 2.16,
+   "match": true,
+   "detail": "直算 2.16 → 取 2 位 2.16; 报告 2.16; "
+  },
+  {
+   "block": "⑤",
+   "id": "A13-三个月窗恒等残差(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UST_10Y/TIPS_10Y/BEI_10Y",
+   "kind": "point",
+   "computed": -0.0,
+   "claim": 0,
+   "match": true,
+   "detail": "直算 -3.90799e-14 → 取 1 位 -0.0; 报告 0; 恒等残差"
+  },
+  {
+   "block": "⑤",
+   "id": "A14-三个月窗「名义上行由实际利率主导」(实际分量幅度>名义变动)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y/UST_10Y[2026-08-19..2026-11-19]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 实际 +53 > 名义 +39"
+  },
+  {
+   "block": "⑤",
+   "id": "A15-12个月窗名义 UST_10Y 变动(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UST_10Y[2025-11-19..2026-11-19]",
+   "kind": "point",
+   "computed": 91.0,
+   "claim": 91,
+   "match": true,
+   "detail": "直算 91 → 取 2 位 91.0; 报告 91; 窗 4.13→5.04"
+  },
+  {
+   "block": "⑤",
+   "id": "A15-12个月窗实际 TIPS_10Y 变动(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y[2025-11-19..2026-11-19]",
+   "kind": "point",
+   "computed": 102.0,
+   "claim": 102,
+   "match": true,
+   "detail": "直算 102 → 取 2 位 102.0; 报告 102; 窗 1.86→2.88"
+  },
+  {
+   "block": "⑤",
+   "id": "A15-12个月窗盈亏平衡 BEI_10Y 变动(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2025-11-19..2026-11-19]",
+   "kind": "point",
+   "computed": -11.0,
+   "claim": -11,
+   "match": true,
+   "detail": "直算 -11 → 取 2 位 -11.0; 报告 -11; 窗 2.27→2.16"
+  },
+  {
+   "block": "⑤",
+   "id": "A16-12个月窗恒等残差(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UST_10Y/TIPS_10Y/BEI_10Y",
+   "kind": "point",
+   "computed": 0.0,
+   "claim": 0,
+   "match": true,
+   "detail": "直算 1.59872e-14 → 取 1 位 0.0; 报告 0; 恒等残差"
+  },
+  {
+   "block": "⑤",
+   "id": "A17-12个月窗「名义上行由实际利率主导」(实际分量幅度>名义变动)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y/UST_10Y[2025-11-19..2026-11-19]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 实际 +102 > 名义 +91"
+  },
+  {
+   "block": "⑤",
+   "id": "A18-三窗同为「实际上行、盈亏平衡回落」",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y/BEI_10Y 三窗",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 实际 +11/+53/+102bp; 盈亏平衡 -19/-14/-11bp"
+  },
+  {
+   "block": "⑤",
+   "id": "A19-同窗 TIPS_10Y 窗启 2026-10-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y[2026-10-23]",
+   "kind": "point",
+   "computed": 2.66,
+   "claim": 2.66,
+   "match": true,
+   "detail": "直算 2.66 → 取 2 位 2.66; 报告 2.66; "
+  },
+  {
+   "block": "⑤",
+   "id": "A20-同窗 TIPS_10Y 变动(bp, 2026-10-23→2026-11-19)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y[2026-10-23..2026-11-19]",
+   "kind": "point",
+   "computed": 22.0,
+   "claim": 22,
+   "match": true,
+   "detail": "直算 22 → 取 2 位 22.0; 报告 22; "
+  },
+  {
+   "block": "⑤",
+   "id": "A21-BEI_10Y 最新 2.15(2026-11-20)为 12 个月窗(2025-11-20..2026-11-20)最低",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2025-11-20..2026-11-20]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 窗内最低 2026-11-20=2.15; 窗内观测数=251"
+  },
+  {
+   "block": "⑤",
+   "id": "A21b-BEI_10Y 最新值为 12 个月窗(2025-11-23..2026-11-23)最低",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2025-11-23..2026-11-23]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 窗内最低 2026-11-20=2.15; 观测数=249"
+  },
+  {
+   "block": "⑤",
+   "id": "A22-BEI_10Y 2026-02-27",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2026-02-27]",
+   "kind": "point",
+   "computed": 2.25,
+   "claim": 2.25,
+   "match": true,
+   "detail": "直算 2.25 → 取 2 位 2.25; 报告 2.25; "
+  },
+  {
+   "block": "⑤",
+   "id": "A23-BEI_10Y 2026-05-04",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2026-05-04]",
+   "kind": "point",
+   "computed": 2.5,
+   "claim": 2.5,
+   "match": true,
+   "detail": "直算 2.5 → 取 2 位 2.5; 报告 2.5; "
+  },
+  {
+   "block": "⑤",
+   "id": "A24-更早通胀上行段 BEI_10Y 上行(2026-02-27→2026-05-04)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[2026-02-27, 2026-05-04]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  }
+ ]
+}

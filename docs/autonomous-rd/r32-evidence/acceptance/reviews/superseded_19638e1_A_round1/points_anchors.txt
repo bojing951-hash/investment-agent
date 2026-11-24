@@ -1,0 +1,275 @@
+OK|US_REAL_GDP@12m:value|computed=23884.563|reported=23884.563|src=series_store.US_REAL_GDP@2025-04-01 (pub 2025-07-29)|note=judgment reader_map.regions[0].anchor_echo[0]
+OK|US_REAL_GDP@12m:obs_month|computed=2025-04|reported=2025-04|src=series_store.US_REAL_GDP dates|note=judgment reader_map.regions[0].anchor_echo[0]
+OK|US_REAL_GDP@12m:engine_cell_value|computed=23884.563|reported=23884.563|src=report.json cells.US_REAL_GDP.anchors[12个月前].value|note=
+OK|US_REAL_GDP@12m:engine_cell_obs_month|computed=2025-04|reported=2025-04|src=report.json cells.US_REAL_GDP.anchors[12个月前].observation_date|note=
+OK|US_REAL_GDP@12m:yoy_vs_engine_cell|computed=2.4206|reported=2.42|src=series_store US_REAL_GDP yoy(2025-04-01)|note=yoy_status=ok
+OK|US_REAL_GDP@3m:value|computed=24408.011|reported=24408.011|src=series_store.US_REAL_GDP@2026-04-01 (pub 2026-07-29)|note=judgment reader_map.regions[0].anchor_echo[1]
+OK|US_REAL_GDP@3m:obs_month|computed=2026-04|reported=2026-04|src=series_store.US_REAL_GDP dates|note=judgment reader_map.regions[0].anchor_echo[1]
+OK|US_REAL_GDP@3m:engine_cell_value|computed=24408.011|reported=24408.011|src=report.json cells.US_REAL_GDP.anchors[3个月前].value|note=
+OK|US_REAL_GDP@3m:engine_cell_obs_month|computed=2026-04|reported=2026-04|src=report.json cells.US_REAL_GDP.anchors[3个月前].observation_date|note=
+OK|US_REAL_GDP@3m:yoy_vs_engine_cell|computed=2.1916|reported=2.19|src=series_store US_REAL_GDP yoy(2026-04-01)|note=yoy_status=ok
+OK|US_REAL_GDP@now:value|computed=24611.077|reported=24611.077|src=series_store.US_REAL_GDP@2026-07-01 (pub 2026-10-29)|note=judgment reader_map.regions[0].anchor_echo[2]
+OK|US_REAL_GDP@now:obs_month|computed=2026-07|reported=2026-07|src=series_store.US_REAL_GDP dates|note=judgment reader_map.regions[0].anchor_echo[2]
+OK|US_REAL_GDP@now:engine_cell_value|computed=24611.077|reported=24611.077|src=report.json cells.US_REAL_GDP.anchors[最新一期].value|note=
+OK|US_REAL_GDP@now:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.US_REAL_GDP.anchors[最新一期].observation_date|note=
+OK|US_REAL_GDP@now:yoy_vs_engine_cell|computed=2.0657|reported=2.07|src=series_store US_REAL_GDP yoy(2026-07-01)|note=yoy_status=ok
+OK|UNEMPLOYMENT@12m:value|computed=4.4|reported=4.4|src=series_store.UNEMPLOYMENT@2025-09-01 (pub 2025-11-20)|note=judgment reader_map.regions[0].anchor_echo[3]
+OK|UNEMPLOYMENT@12m:obs_month|computed=2025-09|reported=2025-09|src=series_store.UNEMPLOYMENT dates|note=judgment reader_map.regions[0].anchor_echo[3]
+OK|UNEMPLOYMENT@12m:engine_cell_value|computed=4.4|reported=4.4|src=report.json cells.UNEMPLOYMENT.anchors[12个月前].value|note=
+OK|UNEMPLOYMENT@12m:engine_cell_obs_month|computed=2025-09|reported=2025-09|src=report.json cells.UNEMPLOYMENT.anchors[12个月前].observation_date|note=
+OK|UNEMPLOYMENT@3m:value|computed=4.1|reported=4.1|src=series_store.UNEMPLOYMENT@2026-07-01 (pub 2026-08-05)|note=judgment reader_map.regions[0].anchor_echo[4]
+OK|UNEMPLOYMENT@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.UNEMPLOYMENT dates|note=judgment reader_map.regions[0].anchor_echo[4]
+OK|UNEMPLOYMENT@3m:engine_cell_value|computed=4.1|reported=4.1|src=report.json cells.UNEMPLOYMENT.anchors[3个月前].value|note=
+OK|UNEMPLOYMENT@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.UNEMPLOYMENT.anchors[3个月前].observation_date|note=
+OK|UNEMPLOYMENT@now:value|computed=4.1|reported=4.1|src=series_store.UNEMPLOYMENT@2026-10-01 (pub 2026-11-05)|note=judgment reader_map.regions[0].anchor_echo[5]
+OK|UNEMPLOYMENT@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.UNEMPLOYMENT dates|note=judgment reader_map.regions[0].anchor_echo[5]
+OK|UNEMPLOYMENT@now:engine_cell_value|computed=4.1|reported=4.1|src=report.json cells.UNEMPLOYMENT.anchors[最新一期].value|note=
+OK|UNEMPLOYMENT@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.UNEMPLOYMENT.anchors[最新一期].observation_date|note=
+OK|INDPRO@12m:value|computed=101.6247|reported=101.6247|src=series_store.INDPRO@2025-08-01 (pub 2025-09-15)|note=judgment reader_map.regions[0].anchor_echo[6]
+OK|INDPRO@12m:obs_month|computed=2025-08|reported=2025-08|src=series_store.INDPRO dates|note=judgment reader_map.regions[0].anchor_echo[6]
+OK|INDPRO@12m:engine_cell_value|computed=101.6247|reported=101.6247|src=report.json cells.INDPRO.anchors[12个月前].value|note=
+OK|INDPRO@12m:engine_cell_obs_month|computed=2025-08|reported=2025-08|src=report.json cells.INDPRO.anchors[12个月前].observation_date|note=
+OK|INDPRO@12m:yoy_vs_engine_cell|computed=1.1887|reported=1.19|src=series_store INDPRO yoy(2025-08-01)|note=yoy_status=ok
+OK|INDPRO@3m:value|computed=103.1675|reported=103.1675|src=series_store.INDPRO@2026-07-01 (pub 2026-08-15)|note=judgment reader_map.regions[0].anchor_echo[7]
+OK|INDPRO@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.INDPRO dates|note=judgment reader_map.regions[0].anchor_echo[7]
+OK|INDPRO@3m:engine_cell_value|computed=103.1675|reported=103.1675|src=report.json cells.INDPRO.anchors[3个月前].value|note=
+OK|INDPRO@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.INDPRO.anchors[3个月前].observation_date|note=
+OK|INDPRO@3m:yoy_vs_engine_cell|computed=1.2498|reported=1.25|src=series_store INDPRO yoy(2026-07-01)|note=yoy_status=ok
+OK|INDPRO@now:value|computed=103.3954|reported=103.3954|src=series_store.INDPRO@2026-10-01 (pub 2026-11-15)|note=judgment reader_map.regions[0].anchor_echo[8]
+OK|INDPRO@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.INDPRO dates|note=judgment reader_map.regions[0].anchor_echo[8]
+OK|INDPRO@now:engine_cell_value|computed=103.3954|reported=103.3954|src=report.json cells.INDPRO.anchors[最新一期].value|note=
+OK|INDPRO@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.INDPRO.anchors[最新一期].observation_date|note=
+OK|INDPRO@now:yoy_vs_engine_cell|computed=2.1497|reported=2.15|src=series_store INDPRO yoy(2026-10-01)|note=yoy_status=ok
+OK|CPI@12m:value|computed=324.245|reported=324.245|src=series_store.CPI@2025-09-01 (pub 2025-10-24)|note=judgment reader_map.regions[0].anchor_echo[9]
+OK|CPI@12m:obs_month|computed=2025-09|reported=2025-09|src=series_store.CPI dates|note=judgment reader_map.regions[0].anchor_echo[9]
+OK|CPI@12m:engine_cell_value|computed=324.245|reported=324.245|src=report.json cells.CPI.anchors[12个月前].value|note=
+OK|CPI@12m:engine_cell_obs_month|computed=2025-09|reported=2025-09|src=report.json cells.CPI.anchors[12个月前].observation_date|note=
+OK|CPI@12m:yoy_vs_engine_cell|computed=3.0226|reported=3.02|src=series_store CPI yoy(2025-09-01)|note=yoy_status=ok
+OK|CPI@3m:value|computed=332.813|reported=332.813|src=series_store.CPI@2026-07-01 (pub 2026-08-13)|note=judgment reader_map.regions[0].anchor_echo[10]
+OK|CPI@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.CPI dates|note=judgment reader_map.regions[0].anchor_echo[10]
+OK|CPI@3m:engine_cell_value|computed=332.813|reported=332.813|src=report.json cells.CPI.anchors[3个月前].value|note=
+OK|CPI@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.CPI.anchors[3个月前].observation_date|note=
+OK|CPI@3m:yoy_vs_engine_cell|computed=3.3039|reported=3.3|src=series_store CPI yoy(2026-07-01)|note=yoy_status=ok
+OK|CPI@now:value|computed=337.476|reported=337.476|src=series_store.CPI@2026-10-01 (pub 2026-11-13)|note=judgment reader_map.regions[0].anchor_echo[11]
+OK|CPI@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.CPI dates|note=judgment reader_map.regions[0].anchor_echo[11]
+OK|CPI@now:engine_cell_value|computed=337.476|reported=337.476|src=report.json cells.CPI.anchors[最新一期].value|note=
+OK|CPI@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.CPI.anchors[最新一期].observation_date|note=
+OK|CPI@now:yoy_vs_engine_cell|computed=None|reported=None|src=series_store CPI yoy(2026-10-01)|note=yoy_status=no_same_period_base | null handling
+OK|CORE_CPI@12m:value|computed=330.418|reported=330.418|src=series_store.CORE_CPI@2025-09-01 (pub 2025-10-24)|note=judgment reader_map.regions[0].anchor_echo[12]
+OK|CORE_CPI@12m:obs_month|computed=2025-09|reported=2025-09|src=series_store.CORE_CPI dates|note=judgment reader_map.regions[0].anchor_echo[12]
+OK|CORE_CPI@12m:engine_cell_value|computed=330.418|reported=330.418|src=report.json cells.CORE_CPI.anchors[12个月前].value|note=
+OK|CORE_CPI@12m:engine_cell_obs_month|computed=2025-09|reported=2025-09|src=report.json cells.CORE_CPI.anchors[12个月前].observation_date|note=
+OK|CORE_CPI@12m:yoy_vs_engine_cell|computed=3.02|reported=3.02|src=series_store CORE_CPI yoy(2025-09-01)|note=yoy_status=ok
+OK|CORE_CPI@3m:value|computed=336.789|reported=336.789|src=series_store.CORE_CPI@2026-07-01 (pub 2026-08-13)|note=judgment reader_map.regions[0].anchor_echo[13]
+OK|CORE_CPI@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.CORE_CPI dates|note=judgment reader_map.regions[0].anchor_echo[13]
+OK|CORE_CPI@3m:engine_cell_value|computed=336.789|reported=336.789|src=report.json cells.CORE_CPI.anchors[3个月前].value|note=
+OK|CORE_CPI@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.CORE_CPI.anchors[3个月前].observation_date|note=
+OK|CORE_CPI@3m:yoy_vs_engine_cell|computed=2.4665|reported=2.47|src=series_store CORE_CPI yoy(2026-07-01)|note=yoy_status=ok
+OK|CORE_CPI@now:value|computed=339.9|reported=339.9|src=series_store.CORE_CPI@2026-10-01 (pub 2026-11-13)|note=judgment reader_map.regions[0].anchor_echo[14]
+OK|CORE_CPI@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.CORE_CPI dates|note=judgment reader_map.regions[0].anchor_echo[14]
+OK|CORE_CPI@now:engine_cell_value|computed=339.9|reported=339.9|src=report.json cells.CORE_CPI.anchors[最新一期].value|note=
+OK|CORE_CPI@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.CORE_CPI.anchors[最新一期].observation_date|note=
+OK|CORE_CPI@now:yoy_vs_engine_cell|computed=None|reported=None|src=series_store CORE_CPI yoy(2026-10-01)|note=yoy_status=no_same_period_base | null handling
+OK|CORE_PCE@12m:value|computed=126.646|reported=126.646|src=series_store.CORE_PCE@2025-08-01 (pub 2025-09-30)|note=judgment reader_map.regions[0].anchor_echo[15]
+OK|CORE_PCE@12m:obs_month|computed=2025-08|reported=2025-08|src=series_store.CORE_PCE dates|note=judgment reader_map.regions[0].anchor_echo[15]
+OK|CORE_PCE@12m:engine_cell_value|computed=126.646|reported=126.646|src=report.json cells.CORE_PCE.anchors[12个月前].value|note=
+OK|CORE_PCE@12m:engine_cell_obs_month|computed=2025-08|reported=2025-08|src=report.json cells.CORE_PCE.anchors[12个月前].observation_date|note=
+OK|CORE_PCE@12m:yoy_vs_engine_cell|computed=2.8513|reported=2.85|src=series_store CORE_PCE yoy(2025-08-01)|note=yoy_status=ok
+OK|CORE_PCE@3m:value|computed=129.969|reported=129.969|src=series_store.CORE_PCE@2026-06-01 (pub 2026-07-30)|note=judgment reader_map.regions[0].anchor_echo[16]
+OK|CORE_PCE@3m:obs_month|computed=2026-06|reported=2026-06|src=series_store.CORE_PCE dates|note=judgment reader_map.regions[0].anchor_echo[16]
+OK|CORE_PCE@3m:engine_cell_value|computed=129.969|reported=129.969|src=report.json cells.CORE_PCE.anchors[3个月前].value|note=
+OK|CORE_PCE@3m:engine_cell_obs_month|computed=2026-06|reported=2026-06|src=report.json cells.CORE_PCE.anchors[3个月前].observation_date|note=
+OK|CORE_PCE@3m:yoy_vs_engine_cell|computed=3.0412|reported=3.04|src=series_store CORE_PCE yoy(2026-06-01)|note=yoy_status=ok
+OK|CORE_PCE@now:value|computed=130.902|reported=130.902|src=series_store.CORE_PCE@2026-09-01 (pub 2026-10-30)|note=judgment reader_map.regions[0].anchor_echo[17]
+OK|CORE_PCE@now:obs_month|computed=2026-09|reported=2026-09|src=series_store.CORE_PCE dates|note=judgment reader_map.regions[0].anchor_echo[17]
+OK|CORE_PCE@now:engine_cell_value|computed=130.902|reported=130.902|src=report.json cells.CORE_PCE.anchors[最新一期].value|note=
+OK|CORE_PCE@now:engine_cell_obs_month|computed=2026-09|reported=2026-09|src=report.json cells.CORE_PCE.anchors[最新一期].observation_date|note=
+OK|CORE_PCE@now:yoy_vs_engine_cell|computed=3.1212|reported=3.12|src=series_store CORE_PCE yoy(2026-09-01)|note=yoy_status=ok
+OK|DFEDTARU@12m:value|computed=4.0|reported=4.0|src=series_store.DFEDTARU@2025-11-23 (pub 2025-11-23)|note=judgment reader_map.regions[0].anchor_echo[18]
+OK|DFEDTARU@12m:obs_month|computed=2025-11|reported=2025-11|src=series_store.DFEDTARU dates|note=judgment reader_map.regions[0].anchor_echo[18]
+OK|DFEDTARU@12m:engine_cell_value|computed=4.0|reported=4.0|src=report.json cells.DFEDTARU.anchors[12个月前].value|note=
+OK|DFEDTARU@12m:engine_cell_obs_month|computed=2025-11|reported=2025-11|src=report.json cells.DFEDTARU.anchors[12个月前].observation_date|note=
+OK|DFEDTARU@3m:value|computed=3.75|reported=3.75|src=series_store.DFEDTARU@2026-08-23 (pub 2026-08-23)|note=judgment reader_map.regions[0].anchor_echo[19]
+OK|DFEDTARU@3m:obs_month|computed=2026-08|reported=2026-08|src=series_store.DFEDTARU dates|note=judgment reader_map.regions[0].anchor_echo[19]
+OK|DFEDTARU@3m:engine_cell_value|computed=3.75|reported=3.75|src=report.json cells.DFEDTARU.anchors[3个月前].value|note=
+OK|DFEDTARU@3m:engine_cell_obs_month|computed=2026-08|reported=2026-08|src=report.json cells.DFEDTARU.anchors[3个月前].observation_date|note=
+OK|DFEDTARU@now:value|computed=4.0|reported=4.0|src=series_store.DFEDTARU@2026-11-23 (pub 2026-11-23)|note=judgment reader_map.regions[0].anchor_echo[20]
+OK|DFEDTARU@now:obs_month|computed=2026-11|reported=2026-11|src=series_store.DFEDTARU dates|note=judgment reader_map.regions[0].anchor_echo[20]
+OK|DFEDTARU@now:engine_cell_value|computed=4.0|reported=4.0|src=report.json cells.DFEDTARU.anchors[最新一期].value|note=
+OK|DFEDTARU@now:engine_cell_obs_month|computed=2026-11|reported=2026-11|src=report.json cells.DFEDTARU.anchors[最新一期].observation_date|note=
+OK|DFF@12m:value|computed=3.88|reported=3.88|src=series_store.DFF@2025-11-22 (pub 2025-11-23)|note=judgment reader_map.regions[0].anchor_echo[21]
+OK|DFF@12m:obs_month|computed=2025-11|reported=2025-11|src=series_store.DFF dates|note=judgment reader_map.regions[0].anchor_echo[21]
+OK|DFF@12m:engine_cell_value|computed=3.88|reported=3.88|src=report.json cells.DFF.anchors[12个月前].value|note=
+OK|DFF@12m:engine_cell_obs_month|computed=2025-11|reported=2025-11|src=report.json cells.DFF.anchors[12个月前].observation_date|note=
+OK|DFF@3m:value|computed=3.63|reported=3.63|src=series_store.DFF@2026-08-22 (pub 2026-08-23)|note=judgment reader_map.regions[0].anchor_echo[22]
+OK|DFF@3m:obs_month|computed=2026-08|reported=2026-08|src=series_store.DFF dates|note=judgment reader_map.regions[0].anchor_echo[22]
+OK|DFF@3m:engine_cell_value|computed=3.63|reported=3.63|src=report.json cells.DFF.anchors[3个月前].value|note=
+OK|DFF@3m:engine_cell_obs_month|computed=2026-08|reported=2026-08|src=report.json cells.DFF.anchors[3个月前].observation_date|note=
+OK|DFF@now:value|computed=3.88|reported=3.88|src=series_store.DFF@2026-11-19 (pub 2026-11-20)|note=judgment reader_map.regions[0].anchor_echo[23]
+OK|DFF@now:obs_month|computed=2026-11|reported=2026-11|src=series_store.DFF dates|note=judgment reader_map.regions[0].anchor_echo[23]
+OK|DFF@now:engine_cell_value|computed=3.88|reported=3.88|src=report.json cells.DFF.anchors[最新一期].value|note=
+OK|DFF@now:engine_cell_obs_month|computed=2026-11|reported=2026-11|src=report.json cells.DFF.anchors[最新一期].observation_date|note=
+OK|CN_PMI_MFG@12m:value|computed=49.0|reported=49.0|src=series_store.CN_PMI_MFG@2025-10-01 (pub 2025-10-31)|note=judgment reader_map.regions[1].anchor_echo[0]
+OK|CN_PMI_MFG@12m:obs_month|computed=2025-10|reported=2025-10|src=series_store.CN_PMI_MFG dates|note=judgment reader_map.regions[1].anchor_echo[0]
+OK|CN_PMI_MFG@12m:engine_cell_value|computed=49.0|reported=49.0|src=report.json cells.CN_PMI_MFG.anchors[12个月前].value|note=
+OK|CN_PMI_MFG@12m:engine_cell_obs_month|computed=2025-10|reported=2025-10|src=report.json cells.CN_PMI_MFG.anchors[12个月前].observation_date|note=
+OK|CN_PMI_MFG@3m:value|computed=49.2|reported=49.2|src=series_store.CN_PMI_MFG@2026-07-01 (pub 2026-07-31)|note=judgment reader_map.regions[1].anchor_echo[1]
+OK|CN_PMI_MFG@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.CN_PMI_MFG dates|note=judgment reader_map.regions[1].anchor_echo[1]
+OK|CN_PMI_MFG@3m:engine_cell_value|computed=49.2|reported=49.2|src=report.json cells.CN_PMI_MFG.anchors[3个月前].value|note=
+OK|CN_PMI_MFG@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.CN_PMI_MFG.anchors[3个月前].observation_date|note=
+OK|CN_PMI_MFG@now:value|computed=49.3|reported=49.3|src=series_store.CN_PMI_MFG@2026-10-01 (pub 2026-10-31)|note=judgment reader_map.regions[1].anchor_echo[2]
+OK|CN_PMI_MFG@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.CN_PMI_MFG dates|note=judgment reader_map.regions[1].anchor_echo[2]
+OK|CN_PMI_MFG@now:engine_cell_value|computed=49.3|reported=49.3|src=report.json cells.CN_PMI_MFG.anchors[最新一期].value|note=
+OK|CN_PMI_MFG@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.CN_PMI_MFG.anchors[最新一期].observation_date|note=
+OK|CN_CPI_YOY@12m:value|computed=0.2|reported=0.2|src=series_store.CN_CPI_YOY@2025-10-01 (pub 2025-11-09)|note=judgment reader_map.regions[1].anchor_echo[3]
+OK|CN_CPI_YOY@12m:obs_month|computed=2025-10|reported=2025-10|src=series_store.CN_CPI_YOY dates|note=judgment reader_map.regions[1].anchor_echo[3]
+OK|CN_CPI_YOY@12m:engine_cell_value|computed=0.2|reported=0.2|src=report.json cells.CN_CPI_YOY.anchors[12个月前].value|note=
+OK|CN_CPI_YOY@12m:engine_cell_obs_month|computed=2025-10|reported=2025-10|src=report.json cells.CN_CPI_YOY.anchors[12个月前].observation_date|note=
+OK|CN_CPI_YOY@3m:value|computed=0.5|reported=0.5|src=series_store.CN_CPI_YOY@2026-07-01 (pub 2026-08-09)|note=judgment reader_map.regions[1].anchor_echo[4]
+OK|CN_CPI_YOY@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.CN_CPI_YOY dates|note=judgment reader_map.regions[1].anchor_echo[4]
+OK|CN_CPI_YOY@3m:engine_cell_value|computed=0.5|reported=0.5|src=report.json cells.CN_CPI_YOY.anchors[3个月前].value|note=
+OK|CN_CPI_YOY@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.CN_CPI_YOY.anchors[3个月前].observation_date|note=
+OK|CN_CPI_YOY@now:value|computed=0.7|reported=0.7|src=series_store.CN_CPI_YOY@2026-10-01 (pub 2026-11-09)|note=judgment reader_map.regions[1].anchor_echo[5]
+OK|CN_CPI_YOY@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.CN_CPI_YOY dates|note=judgment reader_map.regions[1].anchor_echo[5]
+OK|CN_CPI_YOY@now:engine_cell_value|computed=0.7|reported=0.7|src=report.json cells.CN_CPI_YOY.anchors[最新一期].value|note=
+OK|CN_CPI_YOY@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.CN_CPI_YOY.anchors[最新一期].observation_date|note=
+OK|CN_PPI_YOY@12m:value|computed=-2.1|reported=-2.1|src=series_store.CN_PPI_YOY@2025-10-01 (pub 2025-11-09)|note=judgment reader_map.regions[1].anchor_echo[6]
+OK|CN_PPI_YOY@12m:obs_month|computed=2025-10|reported=2025-10|src=series_store.CN_PPI_YOY dates|note=judgment reader_map.regions[1].anchor_echo[6]
+OK|CN_PPI_YOY@12m:engine_cell_value|computed=-2.1|reported=-2.1|src=report.json cells.CN_PPI_YOY.anchors[12个月前].value|note=
+OK|CN_PPI_YOY@12m:engine_cell_obs_month|computed=2025-10|reported=2025-10|src=report.json cells.CN_PPI_YOY.anchors[12个月前].observation_date|note=
+OK|CN_PPI_YOY@3m:value|computed=3.5|reported=3.5|src=series_store.CN_PPI_YOY@2026-07-01 (pub 2026-08-09)|note=judgment reader_map.regions[1].anchor_echo[7]
+OK|CN_PPI_YOY@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.CN_PPI_YOY dates|note=judgment reader_map.regions[1].anchor_echo[7]
+OK|CN_PPI_YOY@3m:engine_cell_value|computed=3.5|reported=3.5|src=report.json cells.CN_PPI_YOY.anchors[3个月前].value|note=
+OK|CN_PPI_YOY@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.CN_PPI_YOY.anchors[3个月前].observation_date|note=
+OK|CN_PPI_YOY@now:value|computed=5.7|reported=5.7|src=series_store.CN_PPI_YOY@2026-10-01 (pub 2026-11-09)|note=judgment reader_map.regions[1].anchor_echo[8]
+OK|CN_PPI_YOY@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.CN_PPI_YOY dates|note=judgment reader_map.regions[1].anchor_echo[8]
+OK|CN_PPI_YOY@now:engine_cell_value|computed=5.7|reported=5.7|src=report.json cells.CN_PPI_YOY.anchors[最新一期].value|note=
+OK|CN_PPI_YOY@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.CN_PPI_YOY.anchors[最新一期].observation_date|note=
+OK|CN_POLICY_OVERNIGHT@now:value|computed=1.25|reported=1.25|src=series_store.CN_POLICY_OVERNIGHT@2026-11-23 (pub 2026-11-23)|note=judgment reader_map.regions[1].anchor_echo[9]
+OK|CN_POLICY_OVERNIGHT@now:obs_month|computed=2026-11|reported=2026-11|src=series_store.CN_POLICY_OVERNIGHT dates|note=judgment reader_map.regions[1].anchor_echo[9]
+OK|CN_POLICY_OVERNIGHT@now:engine_cell_value|computed=1.25|reported=1.25|src=report.json cells.CN_POLICY_OVERNIGHT.anchors[最新一期].value|note=
+OK|CN_POLICY_OVERNIGHT@now:engine_cell_obs_month|computed=2026-11|reported=2026-11|src=report.json cells.CN_POLICY_OVERNIGHT.anchors[最新一期].observation_date|note=
+OK|CN_OMO_7D@12m:value|computed=1.4|reported=1.4|src=series_store.CN_OMO_7D@2025-11-14 (pub 2025-11-14)|note=judgment reader_map.regions[1].anchor_echo[10]
+OK|CN_OMO_7D@12m:obs_month|computed=2025-11|reported=2025-11|src=series_store.CN_OMO_7D dates|note=judgment reader_map.regions[1].anchor_echo[10]
+OK|CN_OMO_7D@12m:engine_cell_value|computed=1.4|reported=1.4|src=report.json cells.CN_OMO_7D.anchors[12个月前].value|note=
+OK|CN_OMO_7D@12m:engine_cell_obs_month|computed=2025-11|reported=2025-11|src=report.json cells.CN_OMO_7D.anchors[12个月前].observation_date|note=
+OK|CN_OMO_7D@3m:value|computed=1.4|reported=1.4|src=series_store.CN_OMO_7D@2026-08-21 (pub 2026-08-21)|note=judgment reader_map.regions[1].anchor_echo[11]
+OK|CN_OMO_7D@3m:obs_month|computed=2026-08|reported=2026-08|src=series_store.CN_OMO_7D dates|note=judgment reader_map.regions[1].anchor_echo[11]
+OK|CN_OMO_7D@3m:engine_cell_value|computed=1.4|reported=1.4|src=report.json cells.CN_OMO_7D.anchors[3个月前].value|note=
+OK|CN_OMO_7D@3m:engine_cell_obs_month|computed=2026-08|reported=2026-08|src=report.json cells.CN_OMO_7D.anchors[3个月前].observation_date|note=
+OK|CN_OMO_7D@now:value|computed=1.4|reported=1.4|src=series_store.CN_OMO_7D@2026-10-30 (pub 2026-10-30)|note=judgment reader_map.regions[1].anchor_echo[12]
+OK|CN_OMO_7D@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.CN_OMO_7D dates|note=judgment reader_map.regions[1].anchor_echo[12]
+OK|CN_OMO_7D@now:engine_cell_value|computed=1.4|reported=1.4|src=report.json cells.CN_OMO_7D.anchors[最新一期].value|note=
+OK|CN_OMO_7D@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.CN_OMO_7D.anchors[最新一期].observation_date|note=
+OK|CN_LPR_1Y@12m:value|computed=3.0|reported=3.0|src=series_store.CN_LPR_1Y@2025-11-20 (pub 2025-11-20)|note=judgment reader_map.regions[1].anchor_echo[13]
+OK|CN_LPR_1Y@12m:obs_month|computed=2025-11|reported=2025-11|src=series_store.CN_LPR_1Y dates|note=judgment reader_map.regions[1].anchor_echo[13]
+OK|CN_LPR_1Y@12m:engine_cell_value|computed=3.0|reported=3.0|src=report.json cells.CN_LPR_1Y.anchors[12个月前].value|note=
+OK|CN_LPR_1Y@12m:engine_cell_obs_month|computed=2025-11|reported=2025-11|src=report.json cells.CN_LPR_1Y.anchors[12个月前].observation_date|note=
+OK|CN_LPR_1Y@3m:value|computed=3.0|reported=3.0|src=series_store.CN_LPR_1Y@2026-08-20 (pub 2026-08-20)|note=judgment reader_map.regions[1].anchor_echo[14]
+OK|CN_LPR_1Y@3m:obs_month|computed=2026-08|reported=2026-08|src=series_store.CN_LPR_1Y dates|note=judgment reader_map.regions[1].anchor_echo[14]
+OK|CN_LPR_1Y@3m:engine_cell_value|computed=3.0|reported=3.0|src=report.json cells.CN_LPR_1Y.anchors[3个月前].value|note=
+OK|CN_LPR_1Y@3m:engine_cell_obs_month|computed=2026-08|reported=2026-08|src=report.json cells.CN_LPR_1Y.anchors[3个月前].observation_date|note=
+OK|CN_LPR_1Y@now:value|computed=3.0|reported=3.0|src=series_store.CN_LPR_1Y@2026-11-20 (pub 2026-11-20)|note=judgment reader_map.regions[1].anchor_echo[15]
+OK|CN_LPR_1Y@now:obs_month|computed=2026-11|reported=2026-11|src=series_store.CN_LPR_1Y dates|note=judgment reader_map.regions[1].anchor_echo[15]
+OK|CN_LPR_1Y@now:engine_cell_value|computed=3.0|reported=3.0|src=report.json cells.CN_LPR_1Y.anchors[最新一期].value|note=
+OK|CN_LPR_1Y@now:engine_cell_obs_month|computed=2026-11|reported=2026-11|src=report.json cells.CN_LPR_1Y.anchors[最新一期].observation_date|note=
+OK|EA_REAL_GDP_YOY@12m:value|computed=1.11|reported=1.11|src=series_store.EA_REAL_GDP_YOY@2025-07-01 (pub 2025-11-04)|note=judgment reader_map.regions[2].anchor_echo[0]
+OK|EA_REAL_GDP_YOY@12m:obs_month|computed=2025-07|reported=2025-07|src=series_store.EA_REAL_GDP_YOY dates|note=judgment reader_map.regions[2].anchor_echo[0]
+OK|EA_REAL_GDP_YOY@12m:engine_cell_value|computed=1.11|reported=1.11|src=report.json cells.EA_REAL_GDP_YOY.anchors[12个月前].value|note=
+OK|EA_REAL_GDP_YOY@12m:engine_cell_obs_month|computed=2025-07|reported=2025-07|src=report.json cells.EA_REAL_GDP_YOY.anchors[12个月前].observation_date|note=
+OK|EA_REAL_GDP_YOY@3m:value|computed=1.19|reported=1.19|src=series_store.EA_REAL_GDP_YOY@2026-04-01 (pub 2026-08-04)|note=judgment reader_map.regions[2].anchor_echo[1]
+OK|EA_REAL_GDP_YOY@3m:obs_month|computed=2026-04|reported=2026-04|src=series_store.EA_REAL_GDP_YOY dates|note=judgment reader_map.regions[2].anchor_echo[1]
+OK|EA_REAL_GDP_YOY@3m:engine_cell_value|computed=1.19|reported=1.19|src=report.json cells.EA_REAL_GDP_YOY.anchors[3个月前].value|note=
+OK|EA_REAL_GDP_YOY@3m:engine_cell_obs_month|computed=2026-04|reported=2026-04|src=report.json cells.EA_REAL_GDP_YOY.anchors[3个月前].observation_date|note=
+OK|EA_REAL_GDP_YOY@now:value|computed=1.28|reported=1.28|src=series_store.EA_REAL_GDP_YOY@2026-07-01 (pub 2026-11-04)|note=judgment reader_map.regions[2].anchor_echo[2]
+OK|EA_REAL_GDP_YOY@now:obs_month|computed=2026-07|reported=2026-07|src=series_store.EA_REAL_GDP_YOY dates|note=judgment reader_map.regions[2].anchor_echo[2]
+OK|EA_REAL_GDP_YOY@now:engine_cell_value|computed=1.28|reported=1.28|src=report.json cells.EA_REAL_GDP_YOY.anchors[最新一期].value|note=
+OK|EA_REAL_GDP_YOY@now:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.EA_REAL_GDP_YOY.anchors[最新一期].observation_date|note=
+OK|EA_HICP_YOY@12m:value|computed=2.1|reported=2.1|src=series_store.EA_HICP_YOY@2025-10-01 (pub 2025-10-31)|note=judgment reader_map.regions[2].anchor_echo[3]
+OK|EA_HICP_YOY@12m:obs_month|computed=2025-10|reported=2025-10|src=series_store.EA_HICP_YOY dates|note=judgment reader_map.regions[2].anchor_echo[3]
+OK|EA_HICP_YOY@12m:engine_cell_value|computed=2.1|reported=2.1|src=report.json cells.EA_HICP_YOY.anchors[12个月前].value|note=
+OK|EA_HICP_YOY@12m:engine_cell_obs_month|computed=2025-10|reported=2025-10|src=report.json cells.EA_HICP_YOY.anchors[12个月前].observation_date|note=
+OK|EA_HICP_YOY@3m:value|computed=2.9|reported=2.9|src=series_store.EA_HICP_YOY@2026-07-01 (pub 2026-07-31)|note=judgment reader_map.regions[2].anchor_echo[4]
+OK|EA_HICP_YOY@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.EA_HICP_YOY dates|note=judgment reader_map.regions[2].anchor_echo[4]
+OK|EA_HICP_YOY@3m:engine_cell_value|computed=2.9|reported=2.9|src=report.json cells.EA_HICP_YOY.anchors[3个月前].value|note=
+OK|EA_HICP_YOY@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.EA_HICP_YOY.anchors[3个月前].observation_date|note=
+OK|EA_HICP_YOY@now:value|computed=4.0|reported=4.0|src=series_store.EA_HICP_YOY@2026-10-01 (pub 2026-10-31)|note=judgment reader_map.regions[2].anchor_echo[5]
+OK|EA_HICP_YOY@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.EA_HICP_YOY dates|note=judgment reader_map.regions[2].anchor_echo[5]
+OK|EA_HICP_YOY@now:engine_cell_value|computed=4.0|reported=4.0|src=report.json cells.EA_HICP_YOY.anchors[最新一期].value|note=
+OK|EA_HICP_YOY@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.EA_HICP_YOY.anchors[最新一期].observation_date|note=
+OK|ECB_MRO@12m:value|computed=2.15|reported=2.15|src=series_store.ECB_MRO@2025-06-11 (pub 2025-06-11)|note=judgment reader_map.regions[2].anchor_echo[6]
+OK|ECB_MRO@12m:obs_month|computed=2025-06|reported=2025-06|src=series_store.ECB_MRO dates|note=judgment reader_map.regions[2].anchor_echo[6]
+OK|ECB_MRO@12m:engine_cell_value|computed=2.15|reported=2.15|src=report.json cells.ECB_MRO.anchors[12个月前].value|note=
+OK|ECB_MRO@12m:engine_cell_obs_month|computed=2025-06|reported=2025-06|src=report.json cells.ECB_MRO.anchors[12个月前].observation_date|note=
+OK|ECB_MRO@3m:value|computed=2.4|reported=2.4|src=series_store.ECB_MRO@2026-06-17 (pub 2026-06-17)|note=judgment reader_map.regions[2].anchor_echo[7]
+OK|ECB_MRO@3m:obs_month|computed=2026-06|reported=2026-06|src=series_store.ECB_MRO dates|note=judgment reader_map.regions[2].anchor_echo[7]
+OK|ECB_MRO@3m:engine_cell_value|computed=2.4|reported=2.4|src=report.json cells.ECB_MRO.anchors[3个月前].value|note=
+OK|ECB_MRO@3m:engine_cell_obs_month|computed=2026-06|reported=2026-06|src=report.json cells.ECB_MRO.anchors[3个月前].observation_date|note=
+OK|ECB_MRO@now:value|computed=2.65|reported=2.65|src=series_store.ECB_MRO@2026-09-16 (pub 2026-09-16)|note=judgment reader_map.regions[2].anchor_echo[8]
+OK|ECB_MRO@now:obs_month|computed=2026-09|reported=2026-09|src=series_store.ECB_MRO dates|note=judgment reader_map.regions[2].anchor_echo[8]
+OK|ECB_MRO@now:engine_cell_value|computed=2.65|reported=2.65|src=report.json cells.ECB_MRO.anchors[最新一期].value|note=
+OK|ECB_MRO@now:engine_cell_obs_month|computed=2026-09|reported=2026-09|src=report.json cells.ECB_MRO.anchors[最新一期].observation_date|note=
+OK|ECB_DFR@12m:value|computed=2.0|reported=2.0|src=series_store.ECB_DFR@2025-06-11 (pub 2025-06-11)|note=judgment reader_map.regions[2].anchor_echo[9]
+OK|ECB_DFR@12m:obs_month|computed=2025-06|reported=2025-06|src=series_store.ECB_DFR dates|note=judgment reader_map.regions[2].anchor_echo[9]
+OK|ECB_DFR@12m:engine_cell_value|computed=2.0|reported=2.0|src=report.json cells.ECB_DFR.anchors[12个月前].value|note=
+OK|ECB_DFR@12m:engine_cell_obs_month|computed=2025-06|reported=2025-06|src=report.json cells.ECB_DFR.anchors[12个月前].observation_date|note=
+OK|ECB_DFR@3m:value|computed=2.25|reported=2.25|src=series_store.ECB_DFR@2026-06-17 (pub 2026-06-17)|note=judgment reader_map.regions[2].anchor_echo[10]
+OK|ECB_DFR@3m:obs_month|computed=2026-06|reported=2026-06|src=series_store.ECB_DFR dates|note=judgment reader_map.regions[2].anchor_echo[10]
+OK|ECB_DFR@3m:engine_cell_value|computed=2.25|reported=2.25|src=report.json cells.ECB_DFR.anchors[3个月前].value|note=
+OK|ECB_DFR@3m:engine_cell_obs_month|computed=2026-06|reported=2026-06|src=report.json cells.ECB_DFR.anchors[3个月前].observation_date|note=
+OK|ECB_DFR@now:value|computed=2.5|reported=2.5|src=series_store.ECB_DFR@2026-09-16 (pub 2026-09-16)|note=judgment reader_map.regions[2].anchor_echo[11]
+OK|ECB_DFR@now:obs_month|computed=2026-09|reported=2026-09|src=series_store.ECB_DFR dates|note=judgment reader_map.regions[2].anchor_echo[11]
+OK|ECB_DFR@now:engine_cell_value|computed=2.5|reported=2.5|src=report.json cells.ECB_DFR.anchors[最新一期].value|note=
+OK|ECB_DFR@now:engine_cell_obs_month|computed=2026-09|reported=2026-09|src=report.json cells.ECB_DFR.anchors[最新一期].observation_date|note=
+OK|JP_REAL_GDP_YOY@12m:value|computed=0.63|reported=0.63|src=series_store.JP_REAL_GDP_YOY@2025-07-01 (pub 2025-11-14)|note=judgment reader_map.regions[3].anchor_echo[0]
+OK|JP_REAL_GDP_YOY@12m:obs_month|computed=2025-07|reported=2025-07|src=series_store.JP_REAL_GDP_YOY dates|note=judgment reader_map.regions[3].anchor_echo[0]
+OK|JP_REAL_GDP_YOY@12m:engine_cell_value|computed=0.63|reported=0.63|src=report.json cells.JP_REAL_GDP_YOY.anchors[12个月前].value|note=
+OK|JP_REAL_GDP_YOY@12m:engine_cell_obs_month|computed=2025-07|reported=2025-07|src=report.json cells.JP_REAL_GDP_YOY.anchors[12个月前].observation_date|note=
+OK|JP_REAL_GDP_YOY@3m:value|computed=0.8|reported=0.8|src=series_store.JP_REAL_GDP_YOY@2026-04-01 (pub 2026-08-14)|note=judgment reader_map.regions[3].anchor_echo[1]
+OK|JP_REAL_GDP_YOY@3m:obs_month|computed=2026-04|reported=2026-04|src=series_store.JP_REAL_GDP_YOY dates|note=judgment reader_map.regions[3].anchor_echo[1]
+OK|JP_REAL_GDP_YOY@3m:engine_cell_value|computed=0.8|reported=0.8|src=report.json cells.JP_REAL_GDP_YOY.anchors[3个月前].value|note=
+OK|JP_REAL_GDP_YOY@3m:engine_cell_obs_month|computed=2026-04|reported=2026-04|src=report.json cells.JP_REAL_GDP_YOY.anchors[3个月前].observation_date|note=
+OK|JP_REAL_GDP_YOY@now:value|computed=1.16|reported=1.16|src=series_store.JP_REAL_GDP_YOY@2026-07-01 (pub 2026-11-14)|note=judgment reader_map.regions[3].anchor_echo[2]
+OK|JP_REAL_GDP_YOY@now:obs_month|computed=2026-07|reported=2026-07|src=series_store.JP_REAL_GDP_YOY dates|note=judgment reader_map.regions[3].anchor_echo[2]
+OK|JP_REAL_GDP_YOY@now:engine_cell_value|computed=1.16|reported=1.16|src=report.json cells.JP_REAL_GDP_YOY.anchors[最新一期].value|note=
+OK|JP_REAL_GDP_YOY@now:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.JP_REAL_GDP_YOY.anchors[最新一期].observation_date|note=
+OK|JP_CPI_YOY@12m:value|computed=2.99|reported=2.99|src=series_store.JP_CPI_YOY@2025-10-01 (pub 2025-11-20)|note=judgment reader_map.regions[3].anchor_echo[3]
+OK|JP_CPI_YOY@12m:obs_month|computed=2025-10|reported=2025-10|src=series_store.JP_CPI_YOY dates|note=judgment reader_map.regions[3].anchor_echo[3]
+OK|JP_CPI_YOY@12m:engine_cell_value|computed=2.99|reported=2.99|src=report.json cells.JP_CPI_YOY.anchors[12个月前].value|note=
+OK|JP_CPI_YOY@12m:engine_cell_obs_month|computed=2025-10|reported=2025-10|src=report.json cells.JP_CPI_YOY.anchors[12个月前].observation_date|note=
+OK|JP_CPI_YOY@3m:value|computed=1.97|reported=1.97|src=series_store.JP_CPI_YOY@2026-07-01 (pub 2026-08-20)|note=judgment reader_map.regions[3].anchor_echo[4]
+OK|JP_CPI_YOY@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.JP_CPI_YOY dates|note=judgment reader_map.regions[3].anchor_echo[4]
+OK|JP_CPI_YOY@3m:engine_cell_value|computed=1.97|reported=1.97|src=report.json cells.JP_CPI_YOY.anchors[3个月前].value|note=
+OK|JP_CPI_YOY@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.JP_CPI_YOY.anchors[3个月前].observation_date|note=
+OK|JP_CPI_YOY@now:value|computed=2.44|reported=2.44|src=series_store.JP_CPI_YOY@2026-10-01 (pub 2026-11-20)|note=judgment reader_map.regions[3].anchor_echo[5]
+OK|JP_CPI_YOY@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.JP_CPI_YOY dates|note=judgment reader_map.regions[3].anchor_echo[5]
+OK|JP_CPI_YOY@now:engine_cell_value|computed=2.44|reported=2.44|src=report.json cells.JP_CPI_YOY.anchors[最新一期].value|note=
+OK|JP_CPI_YOY@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.JP_CPI_YOY.anchors[最新一期].observation_date|note=
+OK|JP_CPI_TOKYO_YOY@3m:value|computed=1.85|reported=1.85|src=series_store.JP_CPI_TOKYO_YOY@2026-07-01 (pub 2026-07-30)|note=judgment reader_map.regions[3].anchor_echo[6]
+OK|JP_CPI_TOKYO_YOY@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.JP_CPI_TOKYO_YOY dates|note=judgment reader_map.regions[3].anchor_echo[6]
+OK|JP_CPI_TOKYO_YOY@3m:engine_cell_value|computed=1.85|reported=1.85|src=report.json cells.JP_CPI_TOKYO_YOY.anchors[3个月前].value|note=
+OK|JP_CPI_TOKYO_YOY@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.JP_CPI_TOKYO_YOY.anchors[3个月前].observation_date|note=
+OK|JP_CPI_TOKYO_YOY@now:value|computed=2.73|reported=2.73|src=series_store.JP_CPI_TOKYO_YOY@2026-10-01 (pub 2026-10-30)|note=judgment reader_map.regions[3].anchor_echo[7]
+OK|JP_CPI_TOKYO_YOY@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.JP_CPI_TOKYO_YOY dates|note=judgment reader_map.regions[3].anchor_echo[7]
+OK|JP_CPI_TOKYO_YOY@now:engine_cell_value|computed=2.73|reported=2.73|src=report.json cells.JP_CPI_TOKYO_YOY.anchors[最新一期].value|note=
+OK|JP_CPI_TOKYO_YOY@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.JP_CPI_TOKYO_YOY.anchors[最新一期].observation_date|note=
+OK|JP_POLICY_RATE@12m:value|computed=0.477|reported=0.477|src=series_store.JP_POLICY_RATE@2025-10-01 (pub 2025-11-05)|note=judgment reader_map.regions[3].anchor_echo[8]
+OK|JP_POLICY_RATE@12m:obs_month|computed=2025-10|reported=2025-10|src=series_store.JP_POLICY_RATE dates|note=judgment reader_map.regions[3].anchor_echo[8]
+OK|JP_POLICY_RATE@12m:engine_cell_value|computed=0.477|reported=0.477|src=report.json cells.JP_POLICY_RATE.anchors[12个月前].value|note=
+OK|JP_POLICY_RATE@12m:engine_cell_obs_month|computed=2025-10|reported=2025-10|src=report.json cells.JP_POLICY_RATE.anchors[12个月前].observation_date|note=
+OK|JP_POLICY_RATE@3m:value|computed=0.978|reported=0.978|src=series_store.JP_POLICY_RATE@2026-07-01 (pub 2026-08-05)|note=judgment reader_map.regions[3].anchor_echo[9]
+OK|JP_POLICY_RATE@3m:obs_month|computed=2026-07|reported=2026-07|src=series_store.JP_POLICY_RATE dates|note=judgment reader_map.regions[3].anchor_echo[9]
+OK|JP_POLICY_RATE@3m:engine_cell_value|computed=0.978|reported=0.978|src=report.json cells.JP_POLICY_RATE.anchors[3个月前].value|note=
+OK|JP_POLICY_RATE@3m:engine_cell_obs_month|computed=2026-07|reported=2026-07|src=report.json cells.JP_POLICY_RATE.anchors[3个月前].observation_date|note=
+OK|JP_POLICY_RATE@now:value|computed=1.227|reported=1.227|src=series_store.JP_POLICY_RATE@2026-10-01 (pub 2026-11-05)|note=judgment reader_map.regions[3].anchor_echo[10]
+OK|JP_POLICY_RATE@now:obs_month|computed=2026-10|reported=2026-10|src=series_store.JP_POLICY_RATE dates|note=judgment reader_map.regions[3].anchor_echo[10]
+OK|JP_POLICY_RATE@now:engine_cell_value|computed=1.227|reported=1.227|src=report.json cells.JP_POLICY_RATE.anchors[最新一期].value|note=
+OK|JP_POLICY_RATE@now:engine_cell_obs_month|computed=2026-10|reported=2026-10|src=report.json cells.JP_POLICY_RATE.anchors[最新一期].observation_date|note=
+OK|JP_POLICY_TARGET not in registry|computed=False|reported=absent|src=snapshot series_store keys|note=judgment: plan metric not in registry
+OK|CN_POLICY_OVERNIGHT no obs before 3m anchor|computed=None|reported=absent|src=series_store CN_POLICY_OVERNIGHT|note=
+OK|CN_POLICY_OVERNIGHT first obs = 2026-11-02|computed=2026-11-02|reported=2026-11-02|src=series_store CN_POLICY_OVERNIGHT dates|note=headline: 2026-11-02 anchor switch
+OK|CN_POLICY_OVERNIGHT flat since first obs|computed=[1.25]|reported=single value 1.25|src=series_store CN_POLICY_OVERNIGHT values|note=flat at first observation
+OK|JP_CPI_TOKYO_YOY no published obs before 12m anchor|computed=None|reported=absent|src=series_store JP_CPI_TOKYO_YOY|note=
+OK|no observation after cutoff|computed=2026-11-23(SPX)|reported=<=2026-11-23|src=series_store all series max date|note=research_as_of=2026-11-23T22:53:47+08:00
+OK|snapshot research_as_of date|computed=2026-11-23|reported=2026-11-23|src=snapshot research_as_of|note=
+OK|snapshot target_date|computed=20261123|reported=20261123|src=snapshot target_date|note=

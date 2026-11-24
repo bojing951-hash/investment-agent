@@ -1,0 +1,74 @@
+# Gate A block of the snapshot built by the first standard-entry run at the final stamp cf33de3 (2026-11-24T08:10:06Z, rc=1)
+# Source: data/daily/research_snapshot_20261124.json of the clean install tree (immutable file; kept in the tree, not copied:
+# it carries collected market data). research_as_of=2026-11-24T16:36:45+08:00 target_date=20261124 snapshot_id=research_snapshot_20261124
+# Step 2 (A股港股数据采集) was stopped by the 900 s per-step limit, so no china_<date>.json existed when the snapshot was built.
+# Values below are the Gate A block as stored; copied verbatim as JSON.
+
+{
+ "status": "FAIL",
+ "core_missing": [
+  "CN_TOTAL_TURNOVER",
+  "HSAHP",
+  "HSCEI",
+  "HSI",
+  "SHCOMP",
+  "SH_AMOUNT",
+  "SZCI"
+ ],
+ "core_fail": [],
+ "noncore_fail": [],
+ "noncore_missing": [
+  "BUND_10Y",
+  "BUND_2Y",
+  "CHINEXT",
+  "CN_CPI_YOY",
+  "CN_LPR_1Y",
+  "CN_LPR_5Y",
+  "CN_NEW_LOANS",
+  "CN_OMO_7D",
+  "CN_PMI_MFG",
+  "CN_POLICY_OVERNIGHT",
+  "CN_PPI_YOY",
+  "CN_SF_FLOW",
+  "EA_REAL_GDP_YOY",
+  "JP_CPI_TOKYO_YOY",
+  "JP_REAL_GDP_YOY",
+  "MARGIN_BAL",
+  "SB_FLOW",
+  "SH_PE",
+  "SZ_COMPONENT_AMOUNT"
+ ],
+ "note": "缺失/失败数据已披露,不得进入研究结论;单个资产缺失不阻断其余研究;非核心FAIL按降级披露(注册表criticality为权威)",
+ "noncore_missing_detail": {
+  "CHINEXT": "来源文件缺失(china:MISSING)",
+  "SB_FLOW": "来源文件缺失(china:MISSING)",
+  "MARGIN_BAL": "来源文件缺失(china:MISSING)",
+  "SH_PE": "来源文件缺失(china:MISSING)",
+  "SZ_COMPONENT_AMOUNT": "来源文件缺失(china:MISSING)",
+  "JP_CPI_TOKYO_YOY": "来源文件在场而指标缺席(采集遗漏或子源缺席——档内无该指标子源状态记录,不可区分)",
+  "BUND_10Y": "子源缺席(ea档记录:BBK_WU3146=READ_FAIL——源端不可得/未采,非采集遗漏)",
+  "BUND_2Y": "子源缺席(ea档记录:BBK_WU3141=READ_FAIL——源端不可得/未采,非采集遗漏)",
+  "CN_LPR_1Y": "来源文件缺失(china:MISSING)",
+  "CN_LPR_5Y": "来源文件缺失(china:MISSING)",
+  "CN_CPI_YOY": "来源文件缺失(china:MISSING)",
+  "CN_PPI_YOY": "来源文件缺失(china:MISSING)",
+  "CN_PMI_MFG": "来源文件缺失(china:MISSING)",
+  "CN_SF_FLOW": "来源文件缺失(china:MISSING)",
+  "CN_NEW_LOANS": "来源文件缺失(china:MISSING)",
+  "CN_OMO_7D": "来源文件缺失(china:MISSING)",
+  "CN_POLICY_OVERNIGHT": "来源文件缺失(china:MISSING)",
+  "EA_REAL_GDP_YOY": "来源文件在场且子源FRED_EA_GDP取数成功而指标缺席(采集遗漏——采集器已取到而事实未生成)",
+  "JP_REAL_GDP_YOY": "来源文件在场且子源FRED_JP_GDP取数成功而指标缺席(采集遗漏——采集器已取到而事实未生成)"
+ },
+ "noncore_degraded": [
+  "ECB_DFR",
+  "ECB_MRO",
+  "JTSJOL",
+  "M2SL",
+  "NVDA",
+  "SPX_EPS",
+  "SPX_PE_TTM",
+  "US_REAL_GDP"
+ ],
+ "illegal_quality": []
+}

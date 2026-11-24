@@ -1,0 +1,9 @@
+[
+ {
+  "region": "JP",
+  "dimension": "policy",
+  "metric_id": "JP_POLICY_TARGET",
+  "gap": "registry_absent",
+  "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"
+ }
+]

@@ -1,0 +1,50 @@
+Standard update entry `ia_cli update --yes` (clean install trees); times in HKT = UTC+8; per-step limit 900 s;
+step 2 = 8 tushare calls spaced >= 61 s (about 11 min fixed) + about 290 PBOC announcement pages (one fetch each on a fresh tree)
+
+stamp 36499bb (execution stamp), standard entry
+  receipt YENTRY_update_20261123T235033Z.meta: 07:50:33..08:06:34 HKT, rc=0
+  step 1 output: live file, payload time 07:51:06, written 07:51:06
+  step 2 output: live file, payload time 2026-11-24 07:51:07, written 08:03:27 -> 740 s after the step-1 file
+  step 3 output (live macro file) written 08:04:34
+  PBOC announcement pages fetched in the run window: 289 pages, 08:01:36..08:03:27 HKT (0.4 s per page)
+
+stamp 24141c0 (superseded stamp), standard entry
+  receipt WENTRY_update_20261124T061823Z.meta: 14:18:23..14:36:07 HKT, rc=0
+  step 1 output: live file, payload time 14:19:06, written 14:19:06
+  step 2 output: live file, payload time 2026-11-24 14:19:08, written 14:31:30 -> 743 s after the step-1 file
+  step 3 output (live macro file) written 14:32:51
+  PBOC announcement pages fetched in the run window: 291 pages, 14:28:42..14:31:29 HKT (0.6 s per page)
+
+stamp cf33de3 (final stamp), standard entry, first run of the day
+  receipt VENTRY_update_20261124T081006Z.meta: 16:10:06..16:36:46 HKT, rc=1
+  step 1 output: replaced by a later run of the day; its preserved copy global_20261124_20261124_165833.json carries payload time 16:12:43
+  step 2 output: NO china file written in the run window (live file is from a later run: 16:55:18)
+  step 3 output (live macro file) written 17:10:41 (from a later run of the day)
+  PBOC announcement pages fetched in the run window: 93 pages, 16:23:58..16:27:45 HKT (2.5 s per page)
+  walk began 675 s after the step-1 file; last cached page vs step-1 file + 900 s: 16:27:45 vs 16:27:43 (+3 s)
+  -> the pages stop at the 900 s limit within one page interval: the limit stopped step 2 in the walk
+
+stamp cf33de3 (final stamp), step-2 script run directly (diagnosis)
+  receipt VSTEP2DIAG_step2diag.meta: 16:42:39..16:55:19 HKT, rc=0
+  step 1 output: replaced by a later run of the day; its preserved copy global_20261124_20261124_165833.json carries payload time 16:12:43
+  step 2 run directly (no limit): finished 16:55:18 = 759 s after its start; live china file payload time 2026-11-24 16:42:41, written 16:55:18
+  step 3 output (live macro file) written 17:10:41 (from a later run of the day)
+  PBOC announcement pages fetched in the run window: 198 pages, 16:53:16..16:55:18 HKT (0.6 s per page)
+
+stamp cf33de3 (final stamp), standard entry, same-day re-run (revision option)
+  receipt VRENTRY_update_20261124T085814Z.meta: 16:58:14..17:13:01 HKT, rc=0
+  step 1 output: live file, payload time 16:58:32, written 16:58:33
+  step 2 finished 17:09:06 = 633 s after the step-1 file (limit 900 s): payload time 2026-11-24 16:58:34; the candidate was NOT 
+  swapped in - written to the same-day superseded slot china_20261124_20261124_170906.json: it lacks one indicator identity (valuation: 
+  6 identities against 7 in the live file), so the complete live file written 16:55:18 (payload time 2026-11-24 16:42:41) 
+  stayed and fed the new snapshot
+  step 3 output (live macro file) written 17:10:41
+  PBOC announcement pages fetched in the run window: 0 (all cache hits of the earlier runs of the day)
+
+How to read it: step 2 = (about 11 min of mandated waiting) + (page count x PBOC response time). On the three
+fresh trees the walk took 111 s (289 pages at 0.4 s), 167 s (291 pages at 0.6 s) and, at 2.5 s per page, was
+cut after 93 pages at the limit; with a warm cache the direct run and the re-run took 760 s and about 10.5 min
+of step 2. The pipeline prints the cause line of a step that hits the limit, but the entry receipt keeps only
+output tails and the pipeline log has no step durations or cause, so the cause is read here from file times.
+One earlier reading is quoted in the report, not here: the step-1 file of the first run showed the write time
+16:12:45 at 16:40 HKT, before the re-run replaced it (its payload time 16:12:43 agrees within 2 s).

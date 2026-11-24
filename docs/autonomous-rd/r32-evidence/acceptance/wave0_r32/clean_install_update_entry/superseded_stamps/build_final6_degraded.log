@@ -1,0 +1,7 @@
+=== build degraded tree @ 36499bb78a18dea1ff2b027074088b0ba404c3b8  dest=/tmp/r32-accept/final6-degraded  2026-11-24 07:45:46 +0800
+pip rc=0
+模型API(三参配齐): False | FRED: True | TUSHARE: True
+degraded data == final3-degraded/data
+snapshot research_snapshot_20261123 | series n=88 | research_as_of 2026-11-23T22:58:11+08:00 | EA series with data: 0 []
+=== degraded tree ready: 1726 files (excl. .venv); .env present? no; CODE_VERSION git_head=36499bb78a18dea1ff2b027074088b0ba404c3b8
+build degraded rc=0

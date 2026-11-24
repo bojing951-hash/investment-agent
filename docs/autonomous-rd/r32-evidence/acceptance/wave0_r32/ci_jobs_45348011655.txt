@@ -1,0 +1,6 @@
+run 45348011655 | total_count 3
+  job 138287189249 | tests (3.12) | completed / failure | 2026-11-24T07:26:33Z -> 2026-11-24T07:35:36Z
+     step 运行全部离线测试套件(排除test_model_live,记录每套退出码) failure
+  job 138287189656 | tests (3.11) | completed / failure | 2026-11-24T07:26:34Z -> 2026-11-24T07:34:56Z
+     step 运行全部离线测试套件(排除test_model_live,记录每套退出码) failure
+  job 138287189742 | gates | completed / success | 2026-11-24T07:26:34Z -> 2026-11-24T07:26:40Z

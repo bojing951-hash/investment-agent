@@ -1,0 +1,78 @@
+##### ③ 冻结输入 sha256 前16位
+config/release_calendar.json 信封=e44fd2aa5ced0310 实测=e44fd2aa5ced0310 一致
+config/metric_registry.json 信封=fa396d22175a4814 实测=fa396d22175a4814 一致
+data/daily/research_snapshot_20261123.json 信封=2de337533ef5fbac 实测=2de337533ef5fbac 一致
+
+##### ① 类比面中的 36 / dropped 特征原因
+step[60] S6_analog keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+  36 @ $.envelope.data.normalization.min_history_months
+  str @ $.envelope.data.normalization.min_observations_note => 36 个月史按网格自然步长折算观测数: 月网格 36 点/季网格 12 点(步长=相邻网格键月差中位数;36 个季观测=9 年系旧实现误设,Charter7-4b 已修)
+  str @ $.envelope.data.top[0].missing_features.HY_IG_gap_level => hist_17<36
+  str @ $.envelope.data.top[0].missing_features.HY_OAS_level => hist_17<36
+  str @ $.envelope.data.top[4].missing_features.CURVE_2S10S_d12m => hist_27<36
+  str @ $.envelope.data.top[4].missing_features.TIPS_10Y_d12m => hist_27<36
+  str @ $.envelope.data.top[4].missing_features.UST_10Y_d12m => hist_27<36
+  str @ $.envelope.data.features_dropped_at_anchor.HY_OAS_d12m => hist_25<36点(=36个月史按网格步长折算)
+  str @ $.envelope.data.features_dropped_at_anchor.HY_IG_gap_d12m => hist_25<36点(=36个月史按网格步长折算)
+  face @ $.envelope.data.candidates.dropped_overlap => 12
+  face @ $.envelope.data.candidates.dropped_insufficient => 1785
+  face @ $.envelope.data.top[0].n_missing => 2
+  face @ $.envelope.data.top[0].missing_features.HY_IG_gap_level => "hist_17<36"
+  face @ $.envelope.data.top[0].missing_features.HY_OAS_level => "hist_17<36"
+  face @ $.envelope.data.top[0].missing_wsum => 0.083333
+  face @ $.envelope.data.top[1].n_missing => 2
+  face @ $.envelope.data.top[1].missing_features.HY_IG_gap_level => "no_value_at_candidate_month"
+  face @ $.envelope.data.top[1].missing_features.HY_OAS_level => "no_value_at_candidate_month"
+  face @ $.envelope.data.top[1].missing_wsum => 0.083333
+  face @ $.envelope.data.top[2].n_missing => 2
+  face @ $.envelope.data.top[2].missing_features.HY_IG_gap_level => "no_value_at_candidate_month"
+  face @ $.envelope.data.top[2].missing_features.HY_OAS_level => "no_value_at_candidate_month"
+  face @ $.envelope.data.top[2].missing_wsum => 0.083333
+  face @ $.envelope.data.top[3].n_missing => 2
+  face @ $.envelope.data.top[3].missing_features.HY_IG_gap_level => "no_value_at_candidate_month"
+  face @ $.envelope.data.top[3].missing_features.HY_OAS_level => "no_value_at_candidate_month"
+  face @ $.envelope.data.top[3].missing_wsum => 0.083333
+  face @ $.envelope.data.top[4].n_missing => 5
+  face @ $.envelope.data.top[4].missing_features.CURVE_2S10S_d12m => "hist_27<36"
+  face @ $.envelope.data.top[4].missing_features.HY_IG_gap_level => "no_value_at_candidate_month"
+  face @ $.envelope.data.top[4].missing_features.HY_OAS_level => "no_value_at_candidate_month"
+  face @ $.envelope.data.top[4].missing_features.TIPS_10Y_d12m => "hist_27<36"
+  face @ $.envelope.data.top[4].missing_features.UST_10Y_d12m => "hist_27<36"
+  face @ $.envelope.data.top[4].missing_wsum => 0.145833
+  face @ $.envelope.data.features_dropped_at_anchor.UNEMPLOYMENT_level => "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+  face @ $.envelope.data.features_dropped_at_anchor.NFP_3m_chg => "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+  face @ $.envelope.data.features_dropped_at_anchor.INDPRO_yoy => "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+  face @ $.envelope.data.features_dropped_at_anchor.RSAFS_yoy => "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+  face @ $.envelope.data.features_dropped_at_anchor.GDP_yoy => "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)"
+  face @ $.envelope.data.features_dropped_at_anchor.CORE_CPI_yoy => "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)"
+  face @ $.envelope.data.features_dropped_at_anchor.CPI_yoy => "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)"
+  face @ $.envelope.data.features_dropped_at_anchor.FED_FUNDS_level => "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+  face @ $.envelope.data.features_dropped_at_anchor.FED_FUNDS_d12m => "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+  face @ $.envelope.data.features_dropped_at_anchor.HY_OAS_d12m => "hist_25<36点(=36个月史按网格步长折算)"
+  face @ $.envelope.data.features_dropped_at_anchor.HY_IG_gap_d12m => "hist_25<36点(=36个月史按网格步长折算)"
+  face @ $.envelope.data.features_dropped_at_anchor.SPX_PE_TTM_level => "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)"
+
+##### ② 补全/backfill/干净/降级 字样(report.json 与信封)
+[report.json] 补全 命中 0 处
+[report.json] backfill 命中 0 处
+[report.json] 干净 @ $.layers.L2_机构观点层.views.note => …VP sidecar 缺席(data/ 本地层;干净 clone 常态)…
+[report.json] 干净 命中 1 处
+[report.json] clean_install 命中 0 处
+[report.json] historical_backfill 命中 0 处
+[envelope] 补全 命中 0 处
+[envelope] backfill 命中 0 处
+[envelope] 干净 命中 0 处
+[envelope] clean_install 命中 0 处
+[envelope] historical_backfill 命中 0 处
+
+run 段键: ['question', 'ts_utc', 'archive_requested', 'git_head', 'git_head_source', 'git_diff_sha256', 'evidence_asof', 'evidence_gate', 'degradation_policy', 'data_requirements', 'frozen_inputs']
+run.degradation_policy: {"critical_zero_evidence": "L1 事实行=0(引擎崩溃/全量采集失败)→拒收判断,--allow-failed-run 亦不放行", "required_data_missing": "运行前声明的必要指标(问题词面命中)采集缺席→任务目标缺口,默认阻塞;显式 --allow-failed-run 才放行,落位记 degraded(缺口随档,不得事后改判可选)", "optional_data_missing": "L1 事实面在场、失败步=诚实拒答类(源端缺席 no_series)→须显式 --allow-failed-run,落位记 degraded"}
+  run.question = '2026年11月,美、欧、中、日四地的宏观环境相比三个月前,哪些经济体之间出现了明显分化?分化主要体现在哪些维度?请给出具体数据和各数据的公布时间,并说明哪些维度证据不足以下结论。'
+  run.ts_utc = '20261123T235101Z'
+  run.archive_requested = False
+  run.git_head = '36499bb78a18dea1ff2b027074088b0ba404c3b8'
+  run.git_head_source = 'code_version_stamp'
+  run.git_diff_sha256 = None
+  run.evidence_asof = '2026-11-23'
+
+MAP_REPORT 含『降级』次数: 6  含『补全』: 0

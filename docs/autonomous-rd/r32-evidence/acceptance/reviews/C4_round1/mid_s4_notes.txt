@@ -1,0 +1,168 @@
+S3_overview_US | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['economies', 'supported_hint']
+S3_overview_EA | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['economies', 'supported_hint']
+S3_overview_CN | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['economies', 'supported_hint']
+S3_overview_JP | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['economies', 'supported_hint']
+S4_history_US_REAL_GDP | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_UNEMPLOYMENT | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_INDPRO | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CPI | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CORE_CPI | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CORE_PCE | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_DFEDTARU | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_DFF | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_EA_REAL_GDP_YOY | ok=True exit=None semantic_ok=None | note=None
+   warnings=null
+   data keys=[]
+S4_history_EA_HICP_YOY | ok=True exit=None semantic_ok=None | note=None
+   warnings=null
+   data keys=[]
+S4_history_ECB_MRO | ok=True exit=None semantic_ok=None | note=None
+   warnings=null
+   data keys=[]
+S4_history_ECB_DFR | ok=True exit=None semantic_ok=None | note=None
+   warnings=null
+   data keys=[]
+S4_history_CN_PMI_MFG | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CN_CPI_YOY | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CN_PPI_YOY | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CN_POLICY_OVERNIGHT | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CN_OMO_7D | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CN_LPR_1Y | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_JP_REAL_GDP_YOY | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_JP_CPI_YOY | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_JP_CPI_TOKYO_YOY | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_JP_POLICY_RATE | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_UST_10Y | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_TIPS_10Y | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_BEI_10Y | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_UST_2Y | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_UST_5Y | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_UST_30Y | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_TIPS_5Y | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_BEI_5Y | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CURVE_2S10S | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_SPX | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_NDX | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_RUT | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_DAX | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CAC40 | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_NIKKEI225 | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_HSI | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_SHCOMP | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_DXY | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_EURUSD | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_USDJPY | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_USDCNY | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_GOLD_F | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_SILVER_F | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_BRENT_F | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_HY_OAS | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_IG_OAS | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_BB_OAS | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_B_OAS | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_CCC_OAS | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']
+S4_history_VIX | ok=True exit=0 semantic_ok=True | note=None
+   warnings=[]
+   data keys=['series']

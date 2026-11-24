@@ -1,0 +1,50 @@
+[
+ [
+  "A.1",
+  "s10_cells.py",
+  "_out_s10_cells.txt",
+  "快照 series_store.<metric> dates/values + 冻结日历 root_overlay/config/release_calendar.json + report.json /research_plan 点值格 + agent_judgment.json /reader_map/regions[*] 走位与锚格叙述(席位自拟发布可见性表,独立于引擎规划器)"
+ ],
+ [
+  "A.2",
+  "s11_monthly.py",
+  "_out_s11_monthly.txt",
+  "快照 series_store 月频序列(同比=当月观测/去年同月观测-1) + agent_judgment.json /l3、/reader_map/turnings、/l4 文字中的月频数字"
+ ],
+ [
+  "A.3",
+  "s12_policy.py",
+  "_out_s12_policy.txt",
+  "快照 series_store 政策利率序列(DFEDTARU/DFEDTARL/DFF/ECB_MRO/ECB_DFR/JP_POLICY_RATE/CN_LPR_1Y/CN_OMO_7D/CN_POLICY_OVERNIGHT) + 冻结日历条目 + report.json 政策路径面"
+ ],
+ [
+  "A.4",
+  "s13_rates_assets.py",
+  "_out_s13_rates.txt",
+  "快照 series_store 日频序列(UST_10Y/TIPS_10Y/BEI_10Y/SPX/NIKKEI225/DAX/CAC40/SHCOMP/VIX/DXY/GOLD_F/BRENT_F/HY_OAS/USDJPY/USDCNY 等) + agent_judgment.json /l3/contradictions[0]、/l3/mechanism_chains、/reader_map 文字中的日频数字"
+ ],
+ [
+  "A.5",
+  "s14_history.py",
+  "_out_s14_history.txt",
+  "快照 series_store(事后月末表、同步面两端取值、同比基期) + 冻结日历(发布日) + MAP_REPORT.md 同步表(第337-354/455-472/579-596行) + report.json 相似检索面 + agent_judgment.json /reader_map/history_periods"
+ ],
+ [
+  "A.6",
+  "s15b_misc.py",
+  "_out_s15b_misc.txt",
+  "report.json /agent_judgment/contract_verification、/steps 相似检索面、gate + 快照 gate_a + 冻结日历 + 指标注册表 + agent_judgment.json /l3、/l4、quality_gate_notes"
+ ],
+ [
+  "A.7",
+  "s26_final.py",
+  "_out_s26_final.txt",
+  "AGENT_SEAT_ENVELOPE.json /reader_map_contract/engine_faces/turning_candidates_top9 + 快照 series_store(CN_PPI_YOY/CN_PMI_MFG/BEI_10Y) + agent_judgment.json 原句 + MAP_REPORT.md/FULL_REPORT.md/MAP_REPORT.sha256 + report.json 附件记录与契约验证"
+ ],
+ [
+  "A.8",
+  "s33_cov.py",
+  "_out_s33_cov.txt",
+  "report.json /steps[61](S6_analog)/envelope/data/state_vector/<dim>/coverage 与 /top[*](候选月缺失特征) + agent_judgment.json /l3/contradictions[1]/competing_explanations[1]"
+ ]
+]

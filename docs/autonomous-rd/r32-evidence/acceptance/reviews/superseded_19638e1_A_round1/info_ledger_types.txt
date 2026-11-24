@@ -1,0 +1,374 @@
+rows=1012 counted=970 info=42 mismatch=1
+computed types (counted): {'float': 613, 'str': 328, 'NoneType': 6, 'bool': 9, 'list': 4, 'int': 10}
+reported types (counted): {'float': 226, 'str': 723, 'NoneType': 3, 'bool': 14, 'int': 4}
+computed types (info): {'str': 42}
+-- rows with computed None (counted):
+    anchors | CPI@now:yoy_vs_engine_cell | reported=None | ok=True
+    anchors | CORE_CPI@now:yoy_vs_engine_cell | reported=None | ok=True
+    anchors | CN_POLICY_OVERNIGHT no obs before 3m anchor | reported='absent' | ok=True
+    anchors | JP_CPI_TOKYO_YOY no published obs before 12m anchor | reported='absent' | ok=True
+    monthly | CPI yoy 2026-10 | reported=None | ok=True
+    monthly | CPI yoy 2026-10 absent (base 2025-10 missing) | reported='absent' | ok=True
+-- rows with bool computed:
+    anchors | JP_POLICY_TARGET not in registry | reported='absent' | ok=True
+    monthly | CPI yoy after peak never exceeds peak | reported=True | ok=True
+    monthly | CORE_PCE yoy after peak never exceeds peak | reported=True | ok=True
+    monthly | EA HICP 连续上行 2026-01..2026-05 | reported=True | ok=True
+    monthly | EA HICP 再度上行 2026-07..2026-10 | reported=True | ok=True
+    monthly | CN PPI 连升 2025-11..2026-05 | reported=True | ok=True
+    monthly | JP CPI 持续回升自 2026-05 起 (monotonic up to 2026-10) | reported=True | ok=True
+    monthly | candidate face sorted by |delta| descending (9 rows) | reported=True | ok=True
+    monthly | turnings[0] 'CPI = 候选面最大美欧值' (|delta| max among US+EA candidates) | reported=True | ok=True
+-- rows with str computed:
+    anchors | US_REAL_GDP@12m:obs_month | computed=2025-04 | reported=2025-04
+    anchors | US_REAL_GDP@12m:engine_cell_obs_month | computed=2025-04 | reported=2025-04
+    anchors | US_REAL_GDP@3m:obs_month | computed=2026-04 | reported=2026-04
+    anchors | US_REAL_GDP@3m:engine_cell_obs_month | computed=2026-04 | reported=2026-04
+    anchors | US_REAL_GDP@now:obs_month | computed=2026-07 | reported=2026-07
+    anchors | US_REAL_GDP@now:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | UNEMPLOYMENT@12m:obs_month | computed=2025-09 | reported=2025-09
+    anchors | UNEMPLOYMENT@12m:engine_cell_obs_month | computed=2025-09 | reported=2025-09
+    anchors | UNEMPLOYMENT@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | UNEMPLOYMENT@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | UNEMPLOYMENT@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | UNEMPLOYMENT@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | INDPRO@12m:obs_month | computed=2025-08 | reported=2025-08
+    anchors | INDPRO@12m:engine_cell_obs_month | computed=2025-08 | reported=2025-08
+    anchors | INDPRO@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | INDPRO@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | INDPRO@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | INDPRO@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | CPI@12m:obs_month | computed=2025-09 | reported=2025-09
+    anchors | CPI@12m:engine_cell_obs_month | computed=2025-09 | reported=2025-09
+    anchors | CPI@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | CPI@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | CPI@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | CPI@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | CORE_CPI@12m:obs_month | computed=2025-09 | reported=2025-09
+    anchors | CORE_CPI@12m:engine_cell_obs_month | computed=2025-09 | reported=2025-09
+    anchors | CORE_CPI@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | CORE_CPI@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | CORE_CPI@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | CORE_CPI@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | CORE_PCE@12m:obs_month | computed=2025-08 | reported=2025-08
+    anchors | CORE_PCE@12m:engine_cell_obs_month | computed=2025-08 | reported=2025-08
+    anchors | CORE_PCE@3m:obs_month | computed=2026-06 | reported=2026-06
+    anchors | CORE_PCE@3m:engine_cell_obs_month | computed=2026-06 | reported=2026-06
+    anchors | CORE_PCE@now:obs_month | computed=2026-09 | reported=2026-09
+    anchors | CORE_PCE@now:engine_cell_obs_month | computed=2026-09 | reported=2026-09
+    anchors | DFEDTARU@12m:obs_month | computed=2025-11 | reported=2025-11
+    anchors | DFEDTARU@12m:engine_cell_obs_month | computed=2025-11 | reported=2025-11
+    anchors | DFEDTARU@3m:obs_month | computed=2026-08 | reported=2026-08
+    anchors | DFEDTARU@3m:engine_cell_obs_month | computed=2026-08 | reported=2026-08
+    anchors | DFEDTARU@now:obs_month | computed=2026-11 | reported=2026-11
+    anchors | DFEDTARU@now:engine_cell_obs_month | computed=2026-11 | reported=2026-11
+    anchors | DFF@12m:obs_month | computed=2025-11 | reported=2025-11
+    anchors | DFF@12m:engine_cell_obs_month | computed=2025-11 | reported=2025-11
+    anchors | DFF@3m:obs_month | computed=2026-08 | reported=2026-08
+    anchors | DFF@3m:engine_cell_obs_month | computed=2026-08 | reported=2026-08
+    anchors | DFF@now:obs_month | computed=2026-11 | reported=2026-11
+    anchors | DFF@now:engine_cell_obs_month | computed=2026-11 | reported=2026-11
+    anchors | CN_PMI_MFG@12m:obs_month | computed=2025-10 | reported=2025-10
+    anchors | CN_PMI_MFG@12m:engine_cell_obs_month | computed=2025-10 | reported=2025-10
+    anchors | CN_PMI_MFG@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | CN_PMI_MFG@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | CN_PMI_MFG@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | CN_PMI_MFG@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | CN_CPI_YOY@12m:obs_month | computed=2025-10 | reported=2025-10
+    anchors | CN_CPI_YOY@12m:engine_cell_obs_month | computed=2025-10 | reported=2025-10
+    anchors | CN_CPI_YOY@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | CN_CPI_YOY@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | CN_CPI_YOY@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | CN_CPI_YOY@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | CN_PPI_YOY@12m:obs_month | computed=2025-10 | reported=2025-10
+    anchors | CN_PPI_YOY@12m:engine_cell_obs_month | computed=2025-10 | reported=2025-10
+    anchors | CN_PPI_YOY@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | CN_PPI_YOY@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | CN_PPI_YOY@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | CN_PPI_YOY@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | CN_POLICY_OVERNIGHT@now:obs_month | computed=2026-11 | reported=2026-11
+    anchors | CN_POLICY_OVERNIGHT@now:engine_cell_obs_month | computed=2026-11 | reported=2026-11
+    anchors | CN_OMO_7D@12m:obs_month | computed=2025-11 | reported=2025-11
+    anchors | CN_OMO_7D@12m:engine_cell_obs_month | computed=2025-11 | reported=2025-11
+    anchors | CN_OMO_7D@3m:obs_month | computed=2026-08 | reported=2026-08
+    anchors | CN_OMO_7D@3m:engine_cell_obs_month | computed=2026-08 | reported=2026-08
+    anchors | CN_OMO_7D@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | CN_OMO_7D@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | CN_LPR_1Y@12m:obs_month | computed=2025-11 | reported=2025-11
+    anchors | CN_LPR_1Y@12m:engine_cell_obs_month | computed=2025-11 | reported=2025-11
+    anchors | CN_LPR_1Y@3m:obs_month | computed=2026-08 | reported=2026-08
+    anchors | CN_LPR_1Y@3m:engine_cell_obs_month | computed=2026-08 | reported=2026-08
+    anchors | CN_LPR_1Y@now:obs_month | computed=2026-11 | reported=2026-11
+    anchors | CN_LPR_1Y@now:engine_cell_obs_month | computed=2026-11 | reported=2026-11
+    anchors | EA_REAL_GDP_YOY@12m:obs_month | computed=2025-07 | reported=2025-07
+    anchors | EA_REAL_GDP_YOY@12m:engine_cell_obs_month | computed=2025-07 | reported=2025-07
+    anchors | EA_REAL_GDP_YOY@3m:obs_month | computed=2026-04 | reported=2026-04
+    anchors | EA_REAL_GDP_YOY@3m:engine_cell_obs_month | computed=2026-04 | reported=2026-04
+    anchors | EA_REAL_GDP_YOY@now:obs_month | computed=2026-07 | reported=2026-07
+    anchors | EA_REAL_GDP_YOY@now:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | EA_HICP_YOY@12m:obs_month | computed=2025-10 | reported=2025-10
+    anchors | EA_HICP_YOY@12m:engine_cell_obs_month | computed=2025-10 | reported=2025-10
+    anchors | EA_HICP_YOY@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | EA_HICP_YOY@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | EA_HICP_YOY@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | EA_HICP_YOY@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | ECB_MRO@12m:obs_month | computed=2025-06 | reported=2025-06
+    anchors | ECB_MRO@12m:engine_cell_obs_month | computed=2025-06 | reported=2025-06
+    anchors | ECB_MRO@3m:obs_month | computed=2026-06 | reported=2026-06
+    anchors | ECB_MRO@3m:engine_cell_obs_month | computed=2026-06 | reported=2026-06
+    anchors | ECB_MRO@now:obs_month | computed=2026-09 | reported=2026-09
+    anchors | ECB_MRO@now:engine_cell_obs_month | computed=2026-09 | reported=2026-09
+    anchors | ECB_DFR@12m:obs_month | computed=2025-06 | reported=2025-06
+    anchors | ECB_DFR@12m:engine_cell_obs_month | computed=2025-06 | reported=2025-06
+    anchors | ECB_DFR@3m:obs_month | computed=2026-06 | reported=2026-06
+    anchors | ECB_DFR@3m:engine_cell_obs_month | computed=2026-06 | reported=2026-06
+    anchors | ECB_DFR@now:obs_month | computed=2026-09 | reported=2026-09
+    anchors | ECB_DFR@now:engine_cell_obs_month | computed=2026-09 | reported=2026-09
+    anchors | JP_REAL_GDP_YOY@12m:obs_month | computed=2025-07 | reported=2025-07
+    anchors | JP_REAL_GDP_YOY@12m:engine_cell_obs_month | computed=2025-07 | reported=2025-07
+    anchors | JP_REAL_GDP_YOY@3m:obs_month | computed=2026-04 | reported=2026-04
+    anchors | JP_REAL_GDP_YOY@3m:engine_cell_obs_month | computed=2026-04 | reported=2026-04
+    anchors | JP_REAL_GDP_YOY@now:obs_month | computed=2026-07 | reported=2026-07
+    anchors | JP_REAL_GDP_YOY@now:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | JP_CPI_YOY@12m:obs_month | computed=2025-10 | reported=2025-10
+    anchors | JP_CPI_YOY@12m:engine_cell_obs_month | computed=2025-10 | reported=2025-10
+    anchors | JP_CPI_YOY@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | JP_CPI_YOY@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | JP_CPI_YOY@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | JP_CPI_YOY@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | JP_CPI_TOKYO_YOY@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | JP_CPI_TOKYO_YOY@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | JP_CPI_TOKYO_YOY@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | JP_CPI_TOKYO_YOY@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | JP_POLICY_RATE@12m:obs_month | computed=2025-10 | reported=2025-10
+    anchors | JP_POLICY_RATE@12m:engine_cell_obs_month | computed=2025-10 | reported=2025-10
+    anchors | JP_POLICY_RATE@3m:obs_month | computed=2026-07 | reported=2026-07
+    anchors | JP_POLICY_RATE@3m:engine_cell_obs_month | computed=2026-07 | reported=2026-07
+    anchors | JP_POLICY_RATE@now:obs_month | computed=2026-10 | reported=2026-10
+    anchors | JP_POLICY_RATE@now:engine_cell_obs_month | computed=2026-10 | reported=2026-10
+    anchors | CN_POLICY_OVERNIGHT first obs = 2026-11-02 | computed=2026-11-02 | reported=2026-11-02
+    anchors | no observation after cutoff | computed=2026-11-23(SPX) | reported=<=2026-11-23
+    anchors | snapshot research_as_of date | computed=2026-11-23 | reported=2026-11-23
+    anchors | snapshot target_date | computed=20261123 | reported=20261123
+    monthly | CPI yoy peak month (valid yoy) | computed=2026-05 | reported=2026-05
+    monthly | CPI yoy low month | computed=2026-01 | reported=2026-01
+    monthly | CORE_PCE yoy peak month | computed=2026-05 | reported=2026-05
+    monthly | CORE_PCE latest obs month = 2026-09 | computed=2026-09 | reported=2026-09
+    monthly | CORE_PCE 2026-10 not visible at cutoff | computed=absent | reported=>2026-11-23
+    monthly | EA HICP low month | computed=2026-01 | reported=2026-01
+    monthly | EA HICP high month (本轮最高) | computed=2026-10 | reported=2026-10
+    monthly | EA HICP 2026-03起加速 (inc03>inc02) | computed=0.70 vs 0.20 | reported=inc03>inc02
+    monthly | EA HICP 2026-08至10加速 (each increment > 2026-07 increment) | computed=0.10 0.30 0.60 0.20 | reported=d08,d09,d10 > d07
+    monthly | CN PPI low month (window) | computed=2025-11 | reported=2025-11
+    monthly | CN PPI latest = window high | computed=2026-10 | reported=2026-10
+    monthly | CN PPI largest 12m swing among four regions | computed=7.80 vs max 1.90 | reported=largest
+    monthly | CN PMI months above 50 | computed=2025-12=50.1 2026-03=50.4 2026-04=50.3 2026-06=50.3 2026-09= | reported=2025-12=50.1 2026-03=50.4 2026-04=50.3 2026-06=50.3 2026-09=
+    monthly | CN PMI other months within 49.0..49.8 | computed=49.0..49.8 | reported=49.0..49.8
+    monthly | JP CPI low = 2026-02 since 2025-01 | computed=2026-02 | reported=2026-02
+    monthly | JP CPI rebound 2025-09 | computed=2.91 vs 2.72 | reported=up
+    monthly | JP CPI rebound 2025-10 | computed=2.99 vs 2.91 | reported=up
+    monthly | JP CPI first uptick month after trough = 2026-03 | computed=1.46 vs 1.27 | reported=up
+    monthly | JP policy small rounding changes only in 2026-04 and 2026-08 | computed=2026-04:-0.10bp 2026-08:-0.10bp | reported=2026-04 and 2026-08
+    monthly | JP policy no decline >= 0.5bp in window | computed= | reported=none
+    monthly | JP policy first in-window hike >= 1bp | computed=2025-12 | reported=2025-12
+    monthly | CPI obs month visible before 2026-06-11 | computed=2026-04 | reported=2026-04
+    monthly | CPI obs month visible before 2026-09-10 | computed=2026-07 | reported=2026-07
+    monthly | CPI obs month visible before 2026-09-16 | computed=2026-08 | reported=2026-08
+    monthly | CPI obs month visible before 2026-09-18 | computed=2026-08 | reported=2026-08
+    monthly | CPI 2026-09 obs published after 2026-09-18 | computed=2026-10-13 | reported=>2026-09-18
+    monthly | CN_NEW_LOANS latest obs month | computed=2026-10 | reported=2026-10
+    daily | BEI_10Y range after 2026-06-17 | computed=2.15..2.40 | reported=2.15..2.40
+    daily | rates_decomposition window | computed=2026-10-20..2026-11-19 | reported=2026-10-20..2026-11-19
+    daily | HY_OAS series high date | computed=2025-04-07 | reported=2025-04-07
+    daily | HY_OAS first date (自 2023-11-21 起) | computed=2023-11-21 | reported=2023-11-21
+    daily | HY_OAS last earlier date with value >= current | computed=2025-05-09 | reported=2025-05-09
+    daily | DFEDTARU anchor observation dates | computed=2025-11-23|2026-08-23|2026-11-23 | reported=2025-11-23|2026-08-23|2026-11-23
+    daily | DFF anchor observation dates | computed=2025-11-22|2026-08-22|2026-11-19 | reported=2025-11-22|2026-08-22|2026-11-19
+    daily | ECB_DFR anchor observation dates | computed=2025-06-11|2026-06-17|2026-09-16 | reported=2025-06-11|2026-06-17|2026-09-16
+    daily | ECB_MRO anchor observation dates | computed=2025-06-11|2026-06-17|2026-09-16 | reported=2025-06-11|2026-06-17|2026-09-16
+    daily | CN_LPR_1Y anchor observation dates | computed=2025-11-20|2026-08-20|2026-11-20 | reported=2025-11-20|2026-08-20|2026-11-20
+    daily | CN_OMO_7D anchor observation dates | computed=2025-11-14|2026-08-21|2026-10-30 | reported=2025-11-14|2026-08-21|2026-10-30
+    daily | DFEDTARU changes in window | computed=2025-12-11:4→3.75 2026-09-17:3.75→4 | reported=2025-12-11:4→3.75 2026-09-17:3.75→4
+    daily | DFF changes >=20bp in window | computed=2025-12-11:3.89→3.64 2026-09-17:3.63→3.88 | reported=2025-12-11:3.89→3.64 2026-09-17:3.63→3.88
+    daily | ECB_DFR changes since 2025-06 | computed=2026-06-17:2→2.25 2026-09-16:2.25→2.5 | reported=2026-06-17:2→2.25 2026-09-16:2.25→2.5
+    daily | ECB_MRO changes since 2025-06 | computed=2026-06-17:2.15→2.4 2026-09-16:2.4→2.65 | reported=2026-06-17:2.15→2.4 2026-09-16:2.4→2.65
+    daily | ECB series end date | computed=2026-09-16/2026-09-16 | reported=2026-09-16
+    daily | CN_LPR_1Y no change in window | computed= | reported=none
+    daily | CN_OMO_7D no change in window | computed= | reported=none
+    daily | last observation date SPX | computed=2026-11-23 | reported=2026-11-23
+    daily | last observation date DAX | computed=2026-11-23 | reported=2026-11-23
+    daily | last observation date CAC40 | computed=2026-11-23 | reported=2026-11-23
+    daily | last observation date VIX | computed=2026-11-23 | reported=2026-11-23
+    daily | last observation date GOLD_F | computed=2026-11-23 | reported=2026-11-23
+    daily | last observation date DXY | computed=2026-11-23 | reported=2026-11-23
+    daily | last observation date BRENT_F | computed=2026-11-23 | reported=2026-11-23
+    daily | last observation date USDJPY | computed=2026-11-23 | reported=2026-11-23
+    daily | last observation date SHCOMP | computed=2026-11-23 | reported=2026-11-23
+    daily | last observation date NIKKEI225 | computed=2026-11-20 | reported=2026-11-20
+    daily | last observation date UST_10Y | computed=2026-11-19 | reported=2026-11-19
+    daily | last observation date TIPS_10Y | computed=2026-11-19 | reported=2026-11-19
+    daily | last observation date BEI_10Y | computed=2026-11-20 | reported=2026-11-20
+    daily | last observation date HY_OAS | computed=2026-11-19 | reported=2026-11-19
+    daily | last observation date DFF | computed=2026-11-19 | reported=2026-11-19
+    daily | last observation date DFEDTARU | computed=2026-11-23 | reported=2026-11-23
+    daily | last observation date CN_POLICY_OVERNIGHT | computed=2026-11-23 | reported=2026-11-23
+    history | 2025-03 candidate month = engine rank 1 | computed=2025-03 | reported=2025-03
+    history | 2025-03 gap direction CURVE_2S10S 12月变化 | computed=- | reported=-
+    history | 2025-03 gap direction TIPS_10Y 12月变化 | computed=+ | reported=+
+    history | 2025-03 gap direction UST_10Y 12月变化 | computed=+ | reported=+
+    history | 2025-03 all |gap|>1 features listed | computed=CURVE_2S10S_d12m TIPS_10Y_d12m UST_10Y_d12m | reported=CURVE_2S10S_d12m TIPS_10Y_d12m UST_10Y_d12m
+    history | 2025-03 missing feature HY_IG_gap_level disclosed | computed=hist_17<36 | reported=True
+    history | 2025-03 missing feature HY_OAS_level disclosed | computed=hist_17<36 | reported=True
+    history | 2025-03 match window = 12 months ending at candidate month | computed=2024-04..2025-03 | reported=2024-04..2025-03
+    history | 2025-03 3m start month | computed=2025-03 | reported=2025-03
+    history | 2025-03 3m end month | computed=2025-06 | reported=2025-06
+    history | 2025-03 6m start month | computed=2025-03 | reported=2025-03
+    history | 2025-03 6m end month | computed=2025-09 | reported=2025-09
+    history | 2025-03 12m start month | computed=2025-03 | reported=2025-03
+    history | 2025-03 12m end month | computed=2026-03 | reported=2026-03
+    history | 2025-03 latest visible EA_HICP_YOY at 2025-03-31 | computed=2025-02 | reported=2025-02
+    history | 2025-03 latest visible JP_CPI_YOY at 2025-03-31 | computed=2025-02 | reported=2025-02
+    history | 2025-03 latest visible CN_PPI_YOY at 2025-03-31 | computed=2025-02 | reported=2025-02
+    history | 2025-03 latest visible CN_CPI_YOY at 2025-03-31 | computed=2025-02 | reported=2025-02
+    history | 2022-06 candidate month = engine rank 2 | computed=2022-06 | reported=2022-06
+    history | 2022-06 gap direction TIPS_10Y 12月变化 | computed=- | reported=-
+    history | 2022-06 gap direction CURVE_2S10S 12月变化 | computed=+ | reported=+
+    history | 2022-06 gap direction CURVE_2S10S水平 | computed=+ | reported=+
+    history | 2022-06 gap direction SPX CAPE | computed=+ | reported=+
+    history | 2022-06 all |gap|>1 features listed | computed=CURVE_2S10S_d12m CURVE_2S10S_level SPX_CAPE_level TIPS_10Y_d | reported=CURVE_2S10S_d12m CURVE_2S10S_level SPX_CAPE_level TIPS_10Y_d
+    history | 2022-06 missing feature HY_IG_gap_level disclosed | computed=no_value_at_candidate_month | reported=True
+    history | 2022-06 missing feature HY_OAS_level disclosed | computed=no_value_at_candidate_month | reported=True
+    history | 2022-06 match window = 12 months ending at candidate month | computed=2021-07..2022-06 | reported=2021-07..2022-06
+    history | 2022-06 3m start month | computed=2022-06 | reported=2022-06
+    history | 2022-06 3m end month | computed=2022-09 | reported=2022-09
+    history | 2022-06 6m start month | computed=2022-06 | reported=2022-06
+    history | 2022-06 6m end month | computed=2022-12 | reported=2022-12
+    history | 2022-06 12m start month | computed=2022-06 | reported=2022-06
+    history | 2022-06 12m end month | computed=2023-06 | reported=2023-06
+    history | 2022-06 latest visible EA_HICP_YOY at 2022-06-30 | computed=2022-05 | reported=2022-05
+    history | 2022-06 latest visible JP_CPI_YOY at 2022-06-30 | computed=2022-05 | reported=2022-05
+    history | 2022-06 latest visible CN_PPI_YOY at 2022-06-30 | computed=2022-05 | reported=2022-05
+    history | 2022-06 latest visible CN_CPI_YOY at 2022-06-30 | computed=2022-05 | reported=2022-05
+    history | 2023-10 candidate month = engine rank 3 | computed=2023-10 | reported=2023-10
+    history | 2023-10 gap direction SPX 21日已实现波动 | computed=+ | reported=+
+    history | 2023-10 gap direction VIX水平 | computed=+ | reported=+
+    history | 2023-10 gap direction SPX CAPE | computed=+ | reported=+
+    history | 2023-10 gap direction CURVE_2S10S 12月变化 | computed=- | reported=-
+    history | 2023-10 all |gap|>1 features listed | computed=CURVE_2S10S_d12m SPX_CAPE_level SPX_rv21 VIX_level | reported=CURVE_2S10S_d12m SPX_CAPE_level SPX_rv21 VIX_level
+    history | 2023-10 missing feature HY_IG_gap_level disclosed | computed=no_value_at_candidate_month | reported=True
+    history | 2023-10 missing feature HY_OAS_level disclosed | computed=no_value_at_candidate_month | reported=True
+    history | 2023-10 match window = 12 months ending at candidate month | computed=2022-11..2023-10 | reported=2022-11..2023-10
+    history | 2023-10 3m start month | computed=2023-10 | reported=2023-10
+    history | 2023-10 3m end month | computed=2024-01 | reported=2024-01
+    history | 2023-10 6m start month | computed=2023-10 | reported=2023-10
+    history | 2023-10 6m end month | computed=2024-04 | reported=2024-04
+    history | 2023-10 12m start month | computed=2023-10 | reported=2023-10
+    history | 2023-10 12m end month | computed=2024-10 | reported=2024-10
+    history | 2023-10 latest visible EA_HICP_YOY at 2023-10-31 | computed=2023-10 | reported=2023-10
+    history | 2023-10 latest visible JP_CPI_YOY at 2023-10-31 | computed=2023-09 | reported=2023-09
+    history | 2023-10 latest visible CN_PPI_YOY at 2023-10-31 | computed=2023-09 | reported=2023-09
+    history | 2023-10 latest visible CN_CPI_YOY at 2023-10-31 | computed=2023-09 | reported=2023-09
+    history | C2 2022-06 3m equities all negative | computed=SPX-5.28 NIKKEI225-1.73 DAX-5.24 SHCOMP-11.01 | reported=all negative
+    history | C2 2022-06 12m equities positive except SHCOMP | computed=SPX+17.57 NIKKEI225+25.75 DAX+26.32 SHCOMP-5.78 | reported=SHCOMP<0, others>0
+    history | candidates scanned/valid/dropped | computed=1871/74/12/1785 | reported=1871/74/12/1785
+    sync | sync 2025-03 US growth label | computed=下行 | reported=下行
+    sync | sync 2025-03 US inflation label | computed=上行 | reported=上行
+    sync | sync 2025-03 US policy label | computed=持平 | reported=持平
+    sync | sync 2025-03 CN growth label | computed=分化 | reported=分化
+    sync | sync 2025-03 CN inflation label | computed=分化 | reported=分化
+    sync | sync 2025-03 CN policy label | computed=同步 | reported=同步
+    sync | sync 2025-03 EA growth label | computed=分化 | reported=分化
+    sync | sync 2025-03 EA inflation label | computed=分化 | reported=分化
+    sync | sync 2025-03 EA policy label | computed=分化 | reported=分化
+    sync | sync 2025-03 JP growth label | computed=同步 | reported=同步
+    sync | sync 2025-03 JP inflation label | computed=同步 | reported=同步
+    sync | sync 2025-03 JP policy label | computed=分化 | reported=分化
+    sync | sync 2022-06 US growth label | computed=下行 | reported=下行
+    sync | sync 2022-06 US inflation label | computed=上行 | reported=上行
+    sync | sync 2022-06 US policy label | computed=上行 | reported=上行
+    sync | sync 2022-06 CN growth label | computed=分化 | reported=分化
+    sync | sync 2022-06 CN inflation label | computed=同步 | reported=同步
+    sync | sync 2022-06 CN policy label | computed=分化 | reported=分化
+    sync | sync 2022-06 EA growth label | computed=同步 | reported=同步
+    sync | sync 2022-06 EA inflation label | computed=同步 | reported=同步
+    sync | sync 2022-06 EA policy label | computed=分化 | reported=分化
+    sync | sync 2022-06 JP growth label | computed=同步 | reported=同步
+    sync | sync 2022-06 JP inflation label | computed=同步 | reported=同步
+    sync | sync 2022-06 JP policy label | computed=分化 | reported=分化
+    sync | sync 2023-10 US growth label | computed=上行 | reported=上行
+    sync | sync 2023-10 US inflation label | computed=上行 | reported=上行
+    sync | sync 2023-10 US policy label | computed=持平 | reported=持平
+    sync | sync 2023-10 CN growth label | computed=同步 | reported=同步
+    sync | sync 2023-10 CN inflation label | computed=分化 | reported=分化
+    sync | sync 2023-10 CN policy label | computed=分化 | reported=分化
+    sync | sync 2023-10 EA growth label | computed=分化 | reported=分化
+    sync | sync 2023-10 EA inflation label | computed=分化 | reported=分化
+    sync | sync 2023-10 EA policy label | computed=分化 | reported=分化
+    sync | sync 2023-10 JP growth label | computed=分化 | reported=分化
+    sync | sync 2023-10 JP inflation label | computed=分化 | reported=分化
+    sync | sync 2023-10 JP policy label | computed=分化 | reported=分化
+    misc | Gate A status | computed=DEGRADED | reported=DEGRADED
+    misc | Gate A noncore missing metrics with stock observations | computed=5: CN_OMO_7D CN_POLICY_OVERNIGHT EA_REAL_GDP_YOY JP_CPI_TOKY | reported=5
+    misc | all unique evidence refs point to an observation | computed= | reported=none unresolved
+    sync | sync 2025-03 judgment CN inflation label | computed=分化 | reported=分化
+    sync | sync 2025-03 judgment EA inflation label | computed=分化 | reported=分化
+    sync | sync 2025-03 judgment JP inflation label | computed=同步 | reported=同步
+    sync | sync 2022-06 judgment CN inflation label | computed=同步 | reported=同步
+    sync | sync 2022-06 judgment EA inflation label | computed=同步 | reported=同步
+    sync | sync 2022-06 judgment JP inflation label | computed=同步 | reported=同步
+    sync | sync 2023-10 judgment CN inflation label | computed=分化 | reported=分化
+    sync | sync 2023-10 judgment EA inflation label | computed=分化 | reported=分化
+    sync | sync 2023-10 judgment JP inflation label | computed=分化 | reported=分化
+    monthly | candidate[0] CN_PPI_YOY window = seat max |3-apart change| | computed=2026-02..2026-05 | reported=2026-02..2026-05
+    monthly | candidate[1] CN_PMI_MFG window = seat max |3-apart change| | computed=2026-02..2026-05 | reported=2026-02..2026-05
+    monthly | candidate[2] CPI window = seat max |3-apart change| | computed=2026-02..2026-05 | reported=2026-02..2026-05
+    monthly | candidate[3] JP_CPI_YOY window = seat max |3-apart change| | computed=2025-11..2026-02 | reported=2025-11..2026-02
+    monthly | candidate[4] EA_HICP_YOY window = seat max |3-apart change| | computed=2026-02..2026-05 | reported=2026-02..2026-05
+    monthly | candidate[5] JP_CPI_TOKYO_YOY window = seat max |3-apart change| | computed=2026-06..2026-09 | reported=2026-06..2026-09
+    monthly | candidate[6] CN_CPI_YOY window = seat max |3-apart change| | computed=2026-01..2026-04 | reported=2026-01..2026-04
+    monthly | candidate[7] INDPRO window = seat max |3-apart change| | computed=2025-11..2026-02 | reported=2025-11..2026-02
+    monthly | candidate[8] CORE_CPI window = seat max |3-apart change| | computed=2026-05..2026-08 | reported=2026-05..2026-08
+    misc | evidence ref CPI@2026-10-01 | computed=观测 2026-10-01=337.476 | reported=CPI@2026-10-01(证据索引在列=True)
+    misc | evidence ref CORE_PCE@2026-09-01 | computed=观测 2026-09-01=130.902 | reported=CORE_PCE@2026-09-01(证据索引在列=True)
+    misc | evidence ref EA_HICP_YOY@2026-10-01 | computed=观测 2026-10-01=4.0 | reported=EA_HICP_YOY@2026-10-01(证据索引在列=True)
+    misc | evidence ref CN_PPI_YOY@2026-10-31 | computed=观测 2026-10-01=5.7 | reported=CN_PPI_YOY@2026-10-31(证据索引在列=True)
+    misc | evidence ref DFF@2026-11-19 | computed=观测 2026-11-19=3.88 | reported=DFF@2026-11-19(证据索引在列=True)
+    misc | evidence ref ECB_DFR@2026-09-16 | computed=观测 2026-09-16=2.5 | reported=ECB_DFR@2026-09-16(证据索引在列=True)
+    misc | evidence ref JP_POLICY_RATE@2026-10-01 | computed=观测 2026-10-01=1.227 | reported=JP_POLICY_RATE@2026-10-01(证据索引在列=True)
+    misc | evidence ref UST_10Y@2026-11-19 | computed=观测 2026-11-19=5.04 | reported=UST_10Y@2026-11-19(证据索引在列=True)
+    misc | evidence ref TIPS_10Y@2026-11-19 | computed=观测 2026-11-19=2.88 | reported=TIPS_10Y@2026-11-19(证据索引在列=True)
+    misc | evidence ref BEI_10Y@2026-11-20 | computed=观测 2026-11-20=2.15 | reported=BEI_10Y@2026-11-20(证据索引在列=True)
+    misc | evidence ref SPX@2026-11-23 | computed=观测 2026-11-23=7203.850098 | reported=SPX@2026-11-23(证据索引在列=True)
+    misc | evidence ref NIKKEI225@2026-11-20 | computed=观测 2026-11-20=56436.65 | reported=NIKKEI225@2026-11-20(证据索引在列=True)
+    misc | evidence ref GOLD_F@2026-11-23 | computed=观测 2026-11-23=3685.199951 | reported=GOLD_F@2026-11-23(证据索引在列=True)
+    misc | evidence ref DXY@2026-11-23 | computed=观测 2026-11-23=104.079002 | reported=DXY@2026-11-23(证据索引在列=True)
+    misc | evidence ref VIX@2026-11-23 | computed=观测 2026-11-23=27.01 | reported=VIX@2026-11-23(证据索引在列=True)
+    misc | evidence ref HY_OAS@2026-11-19 | computed=观测 2026-11-19=3.52 | reported=HY_OAS@2026-11-19(证据索引在列=True)
+    misc | evidence ref USDJPY@2026-11-23 | computed=观测 2026-11-23=159.347 | reported=USDJPY@2026-11-23(证据索引在列=True)
+    misc | evidence ref CN_CPI_YOY@2026-10-31 | computed=观测 2026-10-01=0.7 | reported=CN_CPI_YOY@2026-10-31(证据索引在列=True)
+    misc | evidence ref CN_LPR_1Y@2026-11-20 | computed=观测 2026-11-20=3.0 | reported=CN_LPR_1Y@2026-11-20(证据索引在列=True)
+    misc | evidence ref USDCNY@2026-11-23 | computed=观测 2026-11-23=6.6542 | reported=USDCNY@2026-11-23(证据索引在列=True)
+-- rows with non-str non-bool reported (non numeric):
+-- info rows by id prefix:
+    ('history', '2022-06') 1
+    ('history', '2023-10') 1
+    ('history', '2025-03') 1
+    ('misc', 'turning[0]') 1
+    ('misc', 'turning[1]') 1
+    ('misc', 'turning[2]') 1
+    ('sync', 'sync') 36
+-- info rows (non-sync):
+    history | 2025-03 sync labels present
+    history | 2022-06 sync labels present
+    history | 2023-10 sync labels present
+    misc | turning[0] CPI window
+    misc | turning[1] INDPRO window
+    misc | turning[2] JP_CPI_YOY window
+-- max id length: 65; max note length: 94; max src length: 120
+-- rows whose cells contain a newline or pipe:
+    note | CPI@now:yoy_vs_engine_cell | 'yoy_status=no_same_period_base | null handling'
+    note | CORE_CPI@now:yoy_vs_engine_cell | 'yoy_status=no_same_period_base | null handling'
+    note | CPI yoy 2026-10 | 'from_to narrative | null handling'
+    id | 2025-03 all |gap|>1 features listed | '2025-03 all |gap|>1 features listed'
+    id | 2022-06 all |gap|>1 features listed | '2022-06 all |gap|>1 features listed'
+   total such rows: 38

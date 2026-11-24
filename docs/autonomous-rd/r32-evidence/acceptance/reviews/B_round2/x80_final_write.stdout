@@ -1,0 +1,4 @@
+WRITTEN
+/tmp/r32-accept/review6/B_round2/PROSE-round2.md sha256=d366586085e2fe3c1437622e59202186e6460844de140b956498d81b45eb917b bytes=136967
+/tmp/r32-accept/review6/B_round2/VERDICT-round2.json sha256=f557e9d994791792dcf2f55ae472d2ea6e4cebeb005e1bb4689fd5fff3d80308 bytes=18986
+VERDICT=UPHELD points=479 mismatches=0 MAJOR=0 MINOR=6 NIT=6 attacks=20 info=4 dup=66 renamed=65

@@ -1,0 +1,4 @@
+# Dry run of the status-surface fix on scratch COPIES of the execution-stamp run directories
+# (before the fix was committed); not the formal deliveries. Formal deliveries of the closed work
+# orders were then made at facc9a8 and 24141c0 (both superseded) and at the final stamp cf33de3
+# (redelivery/).

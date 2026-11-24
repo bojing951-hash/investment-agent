@@ -1,0 +1,35 @@
+Same-day re-collection guard at the final stamp cf33de3 (clean install tree final9-entry), read-only recomputation
+with the tree's own scripts/research_provenance.py: identity = first two path segments of each leaf;
+valid leaf = scalar leaf with a value other than None. Times in HKT.
+
+1. Files of the day per channel: live file vs files kept under data/daily/superseded/
+   (a superseded file whose payload time is later than the live file's = a candidate that was NOT swapped
+    in; an earlier one = the previous version kept when the live file was replaced)
+   china         live: written 2026-11-24 16:55:18, time field 2026-11-24 16:42:41 | superseded china_20261124_20261124_170906.json: time field 2026-11-24 16:58:34 -> candidate NOT swapped in (diverted) [payload time fields]
+   ea            live: written 2026-11-24 17:12:55, time field 2026-11-24T09:12:55Z | superseded ea_20261124_20261124_171255.json: time field 2026-11-24T08:36:26Z -> previous version (live file was replaced) [payload time fields]
+   global        live: written 2026-11-24 16:58:33, time field 16:58:32 | superseded global_20261124_20261124_165833.json: time field 16:12:43 -> previous version (live file was replaced) [payload time fields]
+   japan         live: written 2026-11-24 17:11:43, time field 2026-11-24T09:11:43Z | superseded japan_20261124_20261124_171143.json: time field 2026-11-24T08:33:54Z -> previous version (live file was replaced) [payload time fields]
+   jp            live: written 2026-11-24 17:12:04, time field 2026-11-24T09:12:04Z | superseded jp_20261124_20261124_171204.json: time field 2026-11-24T08:34:58Z -> previous version (live file was replaced) [payload time fields]
+   macro         live: written 2026-11-24 17:10:41, time field (none) | superseded macro_20261124_20261124_171041.json: time field (none) -> previous version (live file was replaced) [file write times]
+   rate_economy  live: written 2026-11-24 17:11:38, time field 2026-11-24T17:11:38.692071 | superseded rate_economy_20261124_20261124_171138.json: time field 2026-11-24T16:33:39.118825 -> previous version (live file was replaced) [payload time fields]
+   shiller       live: written 2026-11-24 17:12:59, time field 2026-11-24T09:12:59Z | superseded shiller_20261124_20261124_171259.json: time field 2026-11-24T08:36:45Z -> previous version (live file was replaced) [payload time fields]
+
+2. Step-2 (A股港股数据采集) china file of the day
+   live file     : written 2026-11-24 16:55:18, payload timestamp 2026-11-24 16:42:41, identities 51
+   diverted cand.: written 2026-11-24 17:09:06, payload timestamp 2026-11-24 16:58:34, identities 50
+3. Guard inputs: identities present in the live file and missing from the candidate (valid leaves > 0): 2
+   missing identity valuation.note (valid leaves in live file: 1)
+   missing identity valuation.via (valid leaves in live file: 1)
+   identities only in the candidate: valuation.000001
+   identities with fewer valid leaves in the candidate: 0
+   -> "identity lost" branch taken: candidate diverted (status degraded_diverted)
+
+4. valuation block of each file (keys only, no market values)
+   live file           valuation keys: 000300.SH, 000905.SH, 000852.SH, pe, date (str), via (str), note (str)
+   diverted candidate  valuation keys: 000001.SH, 000300.SH, 000905.SH, 000852.SH, pe, date (str)
+
+5. Reading: the live file came from the direct run of the step-2 script, in which one valuation request
+   hit a read timeout through the local proxy and the fallback source supplied three indices plus the two
+   source-note keys via/note. The re-run collected four index valuations (000001.SH restored) but carries
+   no via/note keys; the guard counts those two note keys as indicator identities, so the complete
+   re-collection is judged to have lost 2 identities and is not swapped in.

@@ -1,0 +1,20 @@
+# seat output directory listing (bytes  path); files under scratch subdirectories, files > 2.5 MB and earlier drafts (*.before-*) are listed only
+     553  s06_tail.py
+     721  s05_show.py
+     856  s02_get.py
+     864  s04_probe.py
+    1152  s01_struct.py
+    1866  s03_lib.py
+    2104  s14_check_originals.py
+    2841  _dump_turning.json
+    2927  s12_build_prose.py
+    4317  s11_probe.py
+    7057  _dump_aj.json
+   12066  _protocol.md
+   15328  _dump_point_values.json
+   16962  VERDICT-round1.json
+   18187  s13_build_verdict.py
+   40521  recompute_points.txt
+   57844  s10_recompute.py
+   60176  recompute_points.json
+   66718  PROSE-round1.md

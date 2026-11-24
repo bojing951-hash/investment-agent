@@ -1,0 +1,52 @@
+TOP KEYS ['agent_declaration', 'l3', 'l4', 'quality_gate_notes', 'reader_map', 'schema_version']
+C1.statement TAIL: '心口径同向上行,但读数水平在最新可比同月低于欧元区。市场口径: BEI_10Y 水平为 2.15(观测 2026-11-20)。供给侧读数对账见传导面第一环(近三个月布伦特原油微降而两地通胀走高,对「能源持续传导」为反向事实【尚未验证】)。'
+L0 keys ['causal_hypothesis', 'competing_explanation', 'competing_predicts', 'distinguishing_metric', 'face_off_verdict', 'main_predicts', 'observed_fact', 'verdict_note']
+L0.observed_fact SUPPLY TAIL: '供给侧对账(能源前提 vs 在场读数): 布伦特原油(BRENT_F)近三个月自 2026-08-19 的 91.62 至 2026-11-23 的 88.19 为 -3.74%(近一月 116.72→88.19 为 -24.44%,11-23 为盘中快照;近 12 个月 +38.86%)——三个月窗内油价微降而两地通胀走高,对「能源持续传导」前提为反向事实、对「能源基数消退」为同向事实【尚未验证】;该读数不在本环区分指标上,不改裁定。'
+L0.face_off_verdict: '尚不能区分'
+L0.verdict_note: '本问三窗方向一致向下: 三个月窗 -14bp、近一月 -19bp、12 个月窗 -11bp，均合竞争解释「走低或持平」；更早的 2026-02-27→2026-05-04 上行段(2.25→2.50)合主解释，且竞争解释「通胀读数数月内自行回落」的一半尚未兑现(欧元区 2026-10 读数 4.0 为年内新高)——尚不能区分。'
+L0.main_predicts: '主解释(成本/预期持续传导)预期 BEI_10Y 走高或维持高位'
+L0.competing_predicts: '竞争解释(一次性基数/进口扰动)预期 BEI_10Y 走低或持平'
+QGN1: '对质面: 传导面 3 环均列出主/竞争两侧预期: 贴现率渠道环(区分指标 TIPS_10Y 相对 SPX)两侧预期分立且有在场观测，判断=支持主解释 ×1；另 2 环(区分指标 BEI_10Y；TIPS_10Y 相对名义利率——两解释在该指标上预期方向不分立)判断=尚不能区分 ×2(逐环两侧相容观测与裁定所依据的窗口见传导面正文；verdict_note 字段不进渲染，理由已写入 observed_fact)。竞争解释: L3 三条矛盾陈述各并列 2、2、2 种解释。'
+MAP 11 '## 一句总判断'
+MAP 17 '## 四地三时点环境对照'
+MAP 36 '## 逐组覆盖与实际数据来源'
+MAP 52 '## 证据最充分的传导(首页速览)'
+MAP 60 '## 政策口径四分面(目标/报价/市场均值分列;四日期分记)'
+MAP 84 '## 美债三利率分解(共同交易日复算)'
+MAP 91 '## 关键资产月度变化(含计算窗口)'
+MAP 106 '## 各地区环境走位(从什么环境走到什么环境)'
+MAP 108 '### 美国'
+MAP 111 '### 欧元区'
+MAP 114 '### 日本'
+MAP 117 '## 证据最充分的传导机制(有文字的传导图)'
+MAP 119 '### 传导链'
+MAP 133 '## 主解释 vs 竞争解释(对质表)'
+MAP 137 '| BEI_10Y | 主解释(成本/预期持续传导)预期 BEI_10Y 走高或维持高位 | 竞争解释(一次性基数/进口扰动)预期 BEI_10Y 走低或持平 | (引擎当前面: 2026-11-20=2.15,近30日2.34→2.15,下降19bp) | 尚不能区分 |'
+MAP 138 '| TIPS_10Y | 主解释(紧缩偏向)预期 TIPS_10Y 上行主导名义利率变动 | 竞争解释(增长前景/期限溢价/财政供给主导)同样预期 TIPS_10Y 上行并可与盈亏平衡回落并存，两解释在区分指标 TIPS_10Y 上预期方向不分立 | (引擎当前面: 2026-11-19=2.88,近30日2.66→2.88,上升22bp) | 尚不能区分 |'
+MAP 139 '| TIPS_10Y | 主解释(贴现率渠道)预期 TIPS_10Y 上行与 SPX 走弱同现 | 竞争解释(增长担忧主导)预期 TIPS_10Y 走低与 SPX 走弱同现 | (引擎当前面: 2026-11-19=2.88,近30日2.66→2.88,上升22bp) | 支持主解释 |'
+MAP 143 '## 情景(触发与失效方向分别验证)'
+MAP 152 '## 过去一年的三个转折(按日期)'
+MAP 175 '## 关键数字与来源(实际观测日+发布日期+发布批次)'
+MAP 200 '## 历史上结构最像的时期(可验证;≤3段)'
+MAP 204 '## 重放(随包可执行)'
+MAP 216 '## 语义审查'
+TURNINGS: [{"date": "2026-05", "metric_id": "CPI", "before_date": "2026-02", "value_before": 2.434, "value_after": 4.1666, "first_mover": "美国 headline CPI 同比在 2026-02→2026-05 由 2.434 升至 4.1666(引擎同比空间),为候选池内最大单段变动。", "follow_or_diverge": "欧元区 EA_HICP_YOY 同月(2026-05)同步由 1.9 升至 3.2(引擎同比空间),美欧通胀同月抬升、月频证据先后未定;日本端属政策利率维度,未在通胀维同步。", "narrative": "美国通胀转折: 三个月上行 1.7326 个百分点;同窗核心口径亦同向上行(2026-02→2026-05 同比自 2.4725 升至 2.8229，涨幅小于 headline)。候选池另载核心口径转折 CORE_CPI@2026-08(2026-05→2026-08 同比自 2.8229 回落至 2.4462，其后 2026-09 回升至 2.5658)，该段晚于 headline 上行段，不构成「headline 上行段由非核心分项主导」的证据【假设: 引擎无分项构成数据，不可归因到具体成分】。"}, {"date": "2026-05", "metric_id": "EA_HICP_YOY", "before_date": "2026-02", "value_before": 1.9, "value_after": 3.2, "first_mover": "欧元区 HICP 同比 2026-02→2026-05 由 1.9 升至 3.2(引擎同比空间)。", "follow_or_diverge": "美国 CPI 同月(2026-05)同步抬升(2.434→4.1666),美欧同月先后未定;该转折后欧元区读数 2026-06 回落至 2.8，其后 2026-07 为 2.9、2026-10 为 4.0(越过 2026-05 的 3.2)。", "narrative": "欧元区通胀转折: 三个月上行 1.3 个百分点(其后 2026-06 回落至 2.8 后再度上行)，并延续为当前环境的主导变化(2026-10 达 4.0)。"}, {"date": "2026-07", "metric_id": "JP_POLICY_RATE", "before_date": "2026-04", "value_before": 0.727, "value_after": 0.978, "first_mover": "日本政策利率通道: 无担保隔夜拆借月均 2026-04 0.727→2026-07 0.978(经 2026-06 0.841 过渡),为 2026 年内第三个上行月均台阶(此前: 2026-01 +17bp、2026-06 +11bp)。", "follow_or_diverge": "本问计划指标面未纳入美欧政策利率序列(政策事件簇为空;发布日历政策条目仅 2 条、均为日本央行实录),跨国跟进/背离在政策维度依本问证据不可判(快照序列库内另有、未纳入本问证据索引的同月变动: 美联储目标区间上限 3.75→4.00 于 2026-09-17、欧央行存款便利利率 2.25→2.50 于 2026-09-16,与日本央行 2026-09-18 决议(2026-09-24 生效)同月,不作为本档证据);美国端本问仅见会议纪要条目: FOMC 2026年10月会议纪要 2026-11-18 发布,纪要发布≠决议日;月频月均证据的台阶时点与决议日的先后未定。", "narrative": "日本政策利率台阶: 该通道此后续升(2026-09 1.043(+7bp)、2026-10 1.227(+18bp)),发布日历实录最近一次政策决议为 2026-09-18(2026-09-24 生效),与月均台阶相容。"}]
+RM keys ['asset_returns_echo', 'headline_conclusion', 'history_periods', 'history_zero_case_note', 'rates_decomposition', 'regions', 'transmission', 'turnings']
+M1 keys ['chain_id', 'links', 'title']
+M1 links n 3
+LINK 0 ['causal_hypothesis', 'competing_explanation', 'competing_predicts', 'distinguishing_metric', 'face_off_verdict', 'main_predicts', 'observed_fact', 'verdict_note']
+   competing_explanation = '若抬升主要来自低基数、弱欧元一次性进口传导或统计口径扰动,则 BEI_10Y 不必然走高,通胀读数可在数月内自行回落。'
+   competing_predicts = '竞争解释(一次性基数/进口扰动)预期 BEI_10Y 走低或持平'
+   main_predicts = '主解释(成本/预期持续传导)预期 BEI_10Y 走高或维持高位'
+   face_off_verdict = '尚不能区分'
+LINK 1 ['causal_hypothesis', 'competing_explanation', 'competing_predicts', 'distinguishing_metric', 'face_off_verdict', 'main_predicts', 'observed_fact', 'verdict_note']
+   competing_explanation = '若名义利率走势主要由增长前景、期限溢价或财政供给主导,则实际分量与通胀读数可以背离(通胀走高而盈亏平衡回落即属此类组合)。'
+   competing_predicts = '竞争解释(增长前景/期限溢价/财政供给主导)同样预期 TIPS_10Y 上行并可与盈亏平衡回落并存，两解释在区分指标 TIPS_10Y 上预期方向不分立'
+   main_predicts = '主解释(紧缩偏向)预期 TIPS_10Y 上行主导名义利率变动'
+   face_off_verdict = '尚不能区分'
+LINK 2 ['causal_hypothesis', 'competing_explanation', 'competing_predicts', 'distinguishing_metric', 'face_off_verdict', 'main_predicts', 'observed_fact', 'verdict_note']
+   competing_explanation = '若风险收缩由增长担忧或仓位/流动性冲击主导,则应见避险买盘压低利率(TIPS_10Y 走低)而非上行;黄金下跌也可能仅是前期涨幅回吐。'
+   competing_predicts = '竞争解释(增长担忧主导)预期 TIPS_10Y 走低与 SPX 走弱同现'
+   main_predicts = '主解释(贴现率渠道)预期 TIPS_10Y 上行与 SPX 走弱同现'
+   face_off_verdict = '支持主解释'
+SCEN keys [['id', 'rows'], ['id', 'rows']]

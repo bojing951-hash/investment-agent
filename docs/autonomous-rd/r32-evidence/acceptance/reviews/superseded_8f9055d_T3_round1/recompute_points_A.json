@@ -1,0 +1,2661 @@
+{
+ "part": "A",
+ "n": 181,
+ "n_ok": 181,
+ "n_mismatch": 0,
+ "rows": [
+  {
+   "id": "A001",
+   "cat": "①",
+   "where": "研究截止日",
+   "src": "snapshot.target_date / report.json:research_plan.cutoff",
+   "computed": "2026-11-23",
+   "reported": "2026-11-23",
+   "lit": "2026-11-23",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A002",
+   "cat": "①",
+   "where": "证据截止",
+   "src": "report.json:run.evidence_asof vs research_plan.cutoff",
+   "computed": "2026-11-23",
+   "reported": "2026-11-23",
+   "lit": "截至研究截止 2026-11-23",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A003",
+   "cat": "①",
+   "where": "快照时间戳",
+   "src": "snapshot.research_as_of",
+   "computed": "2026-11-23T22:53:47+08:00",
+   "reported": "2026-11-23T22:53:47+08:00",
+   "lit": "2026-11-23T22:53:47+08:00",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A004",
+   "cat": "①",
+   "where": "快照时间戳时区换算",
+   "src": "snapshot.research_as_of -> NewYork 本地时间",
+   "computed": "09:53",
+   "reported": "09:53",
+   "lit": "纽约 09:53",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A005",
+   "cat": "①",
+   "where": "快照时间戳时区换算",
+   "src": "snapshot.research_as_of -> Berlin 本地时间",
+   "computed": "15:53",
+   "reported": "15:53",
+   "lit": "柏林 15:53",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A006",
+   "cat": "①",
+   "where": "快照时间戳时区换算",
+   "src": "snapshot.research_as_of -> Tokyo 本地时间",
+   "computed": "23:53",
+   "reported": "23:53",
+   "lit": "东京 23:53",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A007",
+   "cat": "①",
+   "where": "快照时间戳时区换算",
+   "src": "snapshot.research_as_of -> Shanghai 本地时间",
+   "computed": "22:53",
+   "reported": "22:53",
+   "lit": "上海 22:53",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A008",
+   "cat": "①",
+   "where": "晚于截止日的日期字面",
+   "src": "agent_judgment.json 全文正则扫描+逐处路径归类",
+   "computed": {
+    "2026-11-24": [
+     ".agent_declaration.written_at"
+    ],
+    "2027-02-15": [
+     ".l4.scenarios[0].rows.scenario",
+     ".l4.scenarios[0].rows.trigger.deadline",
+     ".l4.scenarios[1].rows.scenario",
+     ".l4.scenarios[1].rows.trigger.deadline",
+     ".quality_gate_notes[3]"
+    ]
+   },
+   "reported": "仅成文时间戳(agent_declaration.written_at)或情景时限(l4.scenarios 与 quality_gate_notes[3] 证伪面注记)",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "2026-11-24 仅为成文时间戳(written_at); 2027-02-15 仅为情景时限",
+   "sev": ""
+  },
+  {
+   "id": "A009",
+   "cat": "①",
+   "where": "晚于截止月的月份字面",
+   "src": "agent_judgment.json 全文正则扫描+逐处路径归类",
+   "computed": {
+    "2026-12": [
+     ".l4.scenarios[0].rows.falsification.threshold",
+     ".l4.scenarios[0].rows.scenario",
+     ".l4.scenarios[0].rows.trigger.condition",
+     ".l4.scenarios[1].rows.falsification.threshold",
+     ".l4.scenarios[1].rows.scenario",
+     ".l4.scenarios[1].rows.trigger.condition"
+    ],
+    "2027-01": [
+     ".l4.scenarios[0].rows.scenario",
+     ".l4.scenarios[1].rows.scenario"
+    ]
+   },
+   "reported": "仅情景观测月/入档月(l4.scenarios)",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "截止月后月份须仅出现在情景层(前瞻标注【假设·非预测】)",
+   "sev": ""
+  },
+  {
+   "id": "A010",
+   "cat": "①",
+   "where": "最近六个月窗口",
+   "src": "cutoff-6月 vs judgment",
+   "computed": "2026-05-23",
+   "reported": "2026-05-23",
+   "lit": "最近六个月(2026-05-23..2026-11-23)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A011",
+   "cat": "①",
+   "where": "引擎窗口端点",
+   "src": "report.json:research_plan.question_window",
+   "computed": "2026-05-23..2026-11-23",
+   "reported": "2026-05-23..2026-11-23",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A012",
+   "cat": "①",
+   "where": "代码印章",
+   "src": "report.json:run.git_head / CODE_VERSION.json:git_head",
+   "computed": true,
+   "reported": true,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "8f9055d6e556",
+   "sev": ""
+  },
+  {
+   "id": "A013",
+   "cat": "①",
+   "where": "冻结输入哈希",
+   "src": "sha256(config/release_calendar.json) 前16位 vs report.json:run.frozen_inputs",
+   "computed": "e44fd2aa5ced0310",
+   "reported": "e44fd2aa5ced0310",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "运行目录 overlay 副本=e44fd2aa5ced0310, 协议印章=e44fd2aa5ced0310, 三者一致",
+   "sev": ""
+  },
+  {
+   "id": "A014",
+   "cat": "①",
+   "where": "冻结输入哈希",
+   "src": "sha256(config/metric_registry.json) 前16位 vs report.json:run.frozen_inputs",
+   "computed": "fa396d22175a4814",
+   "reported": "fa396d22175a4814",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "运行目录 overlay 副本=fa396d22175a4814, 协议印章=fa396d22175a4814, 三者一致",
+   "sev": ""
+  },
+  {
+   "id": "A015",
+   "cat": "①",
+   "where": "冻结输入哈希",
+   "src": "sha256(data/daily/research_snapshot_20261123.json) 前16位 vs report.json:run.frozen_inputs",
+   "computed": "2d650f1128cdd356",
+   "reported": "2d650f1128cdd356",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "运行目录 overlay 副本=2d650f1128cdd356, 协议印章=2d650f1128cdd356, 三者一致",
+   "sev": ""
+  },
+  {
+   "id": "A016",
+   "cat": "①",
+   "where": "读者报告校验",
+   "src": "MAP_REPORT.sha256 vs sha256(MAP_REPORT.md)",
+   "computed": "4648912e2d368e2cafe16313832b09002cdfe00bbebf2f01e43866c0164ce2e0",
+   "reported": "4648912e2d368e2cafe16313832b09002cdfe00bbebf2f01e43866c0164ce2e0",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A017",
+   "cat": "①",
+   "where": "发布日(推定规则)",
+   "src": "research_snapshot_20261123.json:series_store 月末+20天 vs point_values.publication_date",
+   "computed": "2026-11-20",
+   "reported": "2026-11-20",
+   "lit": "发布 2026-11-20",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A018",
+   "cat": "①",
+   "where": "发布日(推定规则)",
+   "src": "research_snapshot_20261123.json:series_store 月末+16天 vs point_values.publication_date",
+   "computed": "2026-11-16",
+   "reported": "2026-11-16",
+   "lit": "发布 2026-11-16",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A019",
+   "cat": "①",
+   "where": "发布日(推定规则)",
+   "src": "research_snapshot_20261123.json:series_store 月末-1天 vs point_values.publication_date",
+   "computed": "2026-10-30",
+   "reported": "2026-10-30",
+   "lit": "发布 2026-10-30",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A020",
+   "cat": "①",
+   "where": "发布日(推定规则)",
+   "src": "JP_POLICY_RATE 月末+5天 vs point_values.publication_date",
+   "computed": "2026-11-05",
+   "reported": "2026-11-05",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "判断档正文未给出 JP_POLICY_RATE 的发布日(仅观测月)",
+   "sev": ""
+  },
+  {
+   "id": "A021",
+   "cat": "①",
+   "where": "六个月前锚可见性",
+   "src": "research_snapshot_20261123.json:series_store + 推定规则: 发布日≤2026-05-23 的最新观测月; 次月发布日=2026-06-20",
+   "computed": "2026-04",
+   "reported": "2026-04",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A022",
+   "cat": "①",
+   "where": "六个月前锚可见性",
+   "src": "research_snapshot_20261123.json:series_store + 推定规则: 发布日≤2026-05-23 的最新观测月; 次月发布日=2026-06-16",
+   "computed": "2026-04",
+   "reported": "2026-04",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A023",
+   "cat": "①",
+   "where": "六个月前锚可见性",
+   "src": "research_snapshot_20261123.json:series_store + 推定规则: 发布日≤2026-05-23 的最新观测月; 次月发布日=2026-05-30",
+   "computed": "2026-04",
+   "reported": "2026-04",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A024",
+   "cat": "①",
+   "where": "六个月前锚可见性",
+   "src": "research_snapshot_20261123.json:series_store + 推定规则: 发布日≤2026-05-23 的最新观测月; 次月发布日=2026-06-05",
+   "computed": "2026-04",
+   "reported": "2026-04",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "A025",
+   "cat": "①",
+   "where": "日历优先/无实录",
+   "src": "release_calendar.json:entries 命中检索",
+   "computed": [],
+   "reported": [],
+   "lit": "引擎推定规则、非日历实录",
+   "lit_found": true,
+   "ok": true,
+   "note": "命中空集=只能用推定规则",
+   "sev": ""
+  },
+  {
+   "id": "A026",
+   "cat": "①",
+   "where": "EA HICP 日历实录形态",
+   "src": "release_calendar.json:entries EA_HICP_YOY(3 条): 快报日=次月首日 且 有终值日",
+   "computed": [
+    3,
+    true
+   ],
+   "reported": [
+    3,
+    true
+   ],
+   "lit": "次月首日快报+月中终值",
+   "lit_found": true,
+   "ok": true,
+   "note": "实录: RC-EA-HICP-2021M05 快报 2021-06-01/终值 2021-06-17; RC-EA-HICP-2022M06 快报 2022-07-01/终值 2022-07-19; RC-EA-HICP-2025M03 快报 2025-04-01/终值 2025-04-16",
+   "sev": ""
+  },
+  {
+   "id": "B001",
+   "cat": "②",
+   "where": "EA 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-04]+推定规则(发布日≤2026-05-23)",
+   "computed": 3.0,
+   "reported": 3.0,
+   "lit": "3.0%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B002",
+   "cat": "②",
+   "where": "EA 点值格",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-04]+推定规则(发布日≤2026-05-23) 观测日",
+   "computed": "2026-04-01",
+   "reported": "2026-04-01",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B003",
+   "cat": "②",
+   "where": "EA anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-04]+推定规则(发布日≤2026-05-23)",
+   "computed": [
+    3.0,
+    "2026-04"
+   ],
+   "reported": [
+    3.0,
+    "2026-04"
+   ],
+   "lit": "3.0%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B004",
+   "cat": "②",
+   "where": "EA 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-10]+推定规则(发布日≤2026-11-23)",
+   "computed": 4.0,
+   "reported": 4.0,
+   "lit": "4.0%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B005",
+   "cat": "②",
+   "where": "EA 点值格",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-10]+推定规则(发布日≤2026-11-23) 观测日",
+   "computed": "2026-10-01",
+   "reported": "2026-10-01",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B006",
+   "cat": "②",
+   "where": "EA anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-10]+推定规则(发布日≤2026-11-23)",
+   "computed": [
+    4.0,
+    "2026-10"
+   ],
+   "reported": [
+    4.0,
+    "2026-10"
+   ],
+   "lit": "4.0%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B007",
+   "cat": "②",
+   "where": "EA 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO 发布日≤2026-05-23 的最后观测",
+   "computed": 2.15,
+   "reported": 2.15,
+   "lit": "2.15%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B008",
+   "cat": "②",
+   "where": "EA 点值格",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO 发布日≤2026-05-23 的最后观测 观测日",
+   "computed": "2025-06-11",
+   "reported": "2025-06-11",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B009",
+   "cat": "②",
+   "where": "EA anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO 发布日≤2026-05-23 的最后观测",
+   "computed": [
+    2.15,
+    "2025-06"
+   ],
+   "reported": [
+    2.15,
+    "2025-06"
+   ],
+   "lit": "2.15%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B010",
+   "cat": "②",
+   "where": "EA 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO 发布日≤2026-11-23 的最后观测",
+   "computed": 2.65,
+   "reported": 2.65,
+   "lit": "2.65%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B011",
+   "cat": "②",
+   "where": "EA 点值格",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO 发布日≤2026-11-23 的最后观测 观测日",
+   "computed": "2026-09-16",
+   "reported": "2026-09-16",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B012",
+   "cat": "②",
+   "where": "EA anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO 发布日≤2026-11-23 的最后观测",
+   "computed": [
+    2.65,
+    "2026-09"
+   ],
+   "reported": [
+    2.65,
+    "2026-09"
+   ],
+   "lit": "2.65%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B013",
+   "cat": "②",
+   "where": "EA 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.ECB_DFR 发布日≤2026-05-23 的最后观测",
+   "computed": 2.0,
+   "reported": 2.0,
+   "lit": "2.0%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B014",
+   "cat": "②",
+   "where": "EA 点值格",
+   "src": "research_snapshot_20261123.json:series_store.ECB_DFR 发布日≤2026-05-23 的最后观测 观测日",
+   "computed": "2025-06-11",
+   "reported": "2025-06-11",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B015",
+   "cat": "②",
+   "where": "EA anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.ECB_DFR 发布日≤2026-05-23 的最后观测",
+   "computed": [
+    2.0,
+    "2025-06"
+   ],
+   "reported": [
+    2.0,
+    "2025-06"
+   ],
+   "lit": "2.0%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B016",
+   "cat": "②",
+   "where": "EA 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.ECB_DFR 发布日≤2026-11-23 的最后观测",
+   "computed": 2.5,
+   "reported": 2.5,
+   "lit": "2.5%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B017",
+   "cat": "②",
+   "where": "EA 点值格",
+   "src": "research_snapshot_20261123.json:series_store.ECB_DFR 发布日≤2026-11-23 的最后观测 观测日",
+   "computed": "2026-09-16",
+   "reported": "2026-09-16",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B018",
+   "cat": "②",
+   "where": "EA anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.ECB_DFR 发布日≤2026-11-23 的最后观测",
+   "computed": [
+    2.5,
+    "2026-09"
+   ],
+   "reported": [
+    2.5,
+    "2026-09"
+   ],
+   "lit": "2.5%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B019",
+   "cat": "②",
+   "where": "JP 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-04]+推定规则(发布日≤2026-05-23)",
+   "computed": 1.38,
+   "reported": 1.38,
+   "lit": "1.38%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B020",
+   "cat": "②",
+   "where": "JP 点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-04]+推定规则(发布日≤2026-05-23) 观测日",
+   "computed": "2026-04-01",
+   "reported": "2026-04-01",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B021",
+   "cat": "②",
+   "where": "JP anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-04]+推定规则(发布日≤2026-05-23)",
+   "computed": [
+    1.38,
+    "2026-04"
+   ],
+   "reported": [
+    1.38,
+    "2026-04"
+   ],
+   "lit": "1.38%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B022",
+   "cat": "②",
+   "where": "JP 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-10]+推定规则(发布日≤2026-11-23)",
+   "computed": 2.44,
+   "reported": 2.44,
+   "lit": "2.44%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B023",
+   "cat": "②",
+   "where": "JP 点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-10]+推定规则(发布日≤2026-11-23) 观测日",
+   "computed": "2026-10-01",
+   "reported": "2026-10-01",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B024",
+   "cat": "②",
+   "where": "JP anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-10]+推定规则(发布日≤2026-11-23)",
+   "computed": [
+    2.44,
+    "2026-10"
+   ],
+   "reported": [
+    2.44,
+    "2026-10"
+   ],
+   "lit": "2.44%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B025",
+   "cat": "②",
+   "where": "JP 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_TOKYO_YOY[2026-04]+推定规则(发布日≤2026-05-23)",
+   "computed": 1.42,
+   "reported": 1.42,
+   "lit": "1.42%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B026",
+   "cat": "②",
+   "where": "JP 点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_TOKYO_YOY[2026-04]+推定规则(发布日≤2026-05-23) 观测日",
+   "computed": "2026-04-01",
+   "reported": "2026-04-01",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B027",
+   "cat": "②",
+   "where": "JP anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_TOKYO_YOY[2026-04]+推定规则(发布日≤2026-05-23)",
+   "computed": [
+    1.42,
+    "2026-04"
+   ],
+   "reported": [
+    1.42,
+    "2026-04"
+   ],
+   "lit": "1.42%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B028",
+   "cat": "②",
+   "where": "JP 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_TOKYO_YOY[2026-10]+推定规则(发布日≤2026-11-23)",
+   "computed": 2.73,
+   "reported": 2.73,
+   "lit": "2.73%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B029",
+   "cat": "②",
+   "where": "JP 点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_TOKYO_YOY[2026-10]+推定规则(发布日≤2026-11-23) 观测日",
+   "computed": "2026-10-01",
+   "reported": "2026-10-01",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B030",
+   "cat": "②",
+   "where": "JP anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_TOKYO_YOY[2026-10]+推定规则(发布日≤2026-11-23)",
+   "computed": [
+    2.73,
+    "2026-10"
+   ],
+   "reported": [
+    2.73,
+    "2026-10"
+   ],
+   "lit": "2.73%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B031",
+   "cat": "②",
+   "where": "JP 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-04]+推定规则(发布日≤2026-05-23)",
+   "computed": 0.727,
+   "reported": 0.727,
+   "lit": "0.727%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B032",
+   "cat": "②",
+   "where": "JP 点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-04]+推定规则(发布日≤2026-05-23) 观测日",
+   "computed": "2026-04-01",
+   "reported": "2026-04-01",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B033",
+   "cat": "②",
+   "where": "JP anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-04]+推定规则(发布日≤2026-05-23)",
+   "computed": [
+    0.727,
+    "2026-04"
+   ],
+   "reported": [
+    0.727,
+    "2026-04"
+   ],
+   "lit": "0.727%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B034",
+   "cat": "②",
+   "where": "JP 走位/点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-10]+推定规则(发布日≤2026-11-23)",
+   "computed": 1.227,
+   "reported": 1.227,
+   "lit": "1.227%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B035",
+   "cat": "②",
+   "where": "JP 点值格",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-10]+推定规则(发布日≤2026-11-23) 观测日",
+   "computed": "2026-10-01",
+   "reported": "2026-10-01",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "B036",
+   "cat": "②",
+   "where": "JP anchor_echo",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-10]+推定规则(发布日≤2026-11-23)",
+   "computed": [
+    1.227,
+    "2026-10"
+   ],
+   "reported": [
+    1.227,
+    "2026-10"
+   ],
+   "lit": "1.227%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C001",
+   "cat": "③",
+   "where": "C1 去年同月基期",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2025-10-01]",
+   "computed": 2.99,
+   "reported": 2.99,
+   "lit": "去年同月(2025-10)为百分之二点九九",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C002",
+   "cat": "③",
+   "where": "C1 同比读数差",
+   "src": "JP_CPI_YOY 2026-10 − 2025-10",
+   "computed": -0.55,
+   "reported": -0.55,
+   "lit": "回落约零点五五个百分点",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C003",
+   "cat": "③",
+   "where": "C1 基期=同月(非相邻月)",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY dates 含 2025-10-01",
+   "computed": true,
+   "reported": true,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C004",
+   "cat": "③",
+   "where": "C1 去年同月基期",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2025-10-01]",
+   "computed": 2.1,
+   "reported": 2.1,
+   "lit": "去年同月(2025-10)为百分之二点一",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C005",
+   "cat": "③",
+   "where": "C1 同比读数差",
+   "src": "EA_HICP_YOY 2026-10 − 2025-10",
+   "computed": 1.9,
+   "reported": 1.9,
+   "lit": "抬升一点九个百分点",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C006",
+   "cat": "③",
+   "where": "C1 基期=同月(非相邻月)",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY dates 含 2025-10-01",
+   "computed": true,
+   "reported": true,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C007",
+   "cat": "③",
+   "where": "C1 东京基期缺席",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_TOKYO_YOY[2025-10-01]",
+   "computed": null,
+   "reported": null,
+   "lit": "序列自 2026-01 起,去年同月基期观测不可得",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C008",
+   "cat": "③",
+   "where": "C1 东京序列起点",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_TOKYO_YOY 首观测",
+   "computed": "2026-01-01",
+   "reported": "2026-01-01",
+   "lit": "序列自 2026-01 起",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C009",
+   "cat": "③",
+   "where": "总判断 方向词",
+   "src": "JP_CPI_YOY 2026-10 < 2025-10",
+   "computed": true,
+   "reported": true,
+   "lit": "低于去年同月(2025-10 为 2.99)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C010",
+   "cat": "③",
+   "where": "总判断 方向词",
+   "src": "EA_HICP_YOY 2026-10 > 2025-10",
+   "computed": true,
+   "reported": true,
+   "lit": "高于去年同月(2025-10 为 2.1)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C011",
+   "cat": "③",
+   "where": "总判断 较六个月前锚",
+   "src": "JP_CPI_YOY/EA_HICP_YOY 2026-10 vs 2026-04",
+   "computed": true,
+   "reported": true,
+   "lit": "较六个月前锚两地读数均上行",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C012",
+   "cat": "③",
+   "where": "JP 走位",
+   "src": "JP_CPI_YOY 2025-10 − 2026-10",
+   "computed": 0.55,
+   "reported": 0.55,
+   "lit": "低 0.55 个百分点",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C013",
+   "cat": "③",
+   "where": "EA 走位",
+   "src": "EA_HICP_YOY 2026-10 − 2025-10",
+   "computed": 1.9,
+   "reported": 1.9,
+   "lit": "高 1.9 个百分点",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C014",
+   "cat": "③",
+   "where": "EA 走位 关系词",
+   "src": "EA_HICP_YOY 近十二个月(2025-11..2026-10)最大值",
+   "computed": [
+    "2026-10",
+    4.0
+   ],
+   "reported": [
+    "2026-10",
+    4.0
+   ],
+   "lit": "最新读数为近十二个月最高",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C015",
+   "cat": "③",
+   "where": "EA 走位 谷底",
+   "src": "EA_HICP_YOY 近十二个月最小值",
+   "computed": [
+    "2026-01",
+    1.7
+   ],
+   "reported": [
+    "2026-01",
+    1.7
+   ],
+   "lit": "2026-01 谷底 1.7",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C016",
+   "cat": "③",
+   "where": "JP 走位 谷底",
+   "src": "JP_CPI_YOY 近十二个月最小值",
+   "computed": [
+    "2026-02",
+    1.27
+   ],
+   "reported": [
+    "2026-02",
+    1.27
+   ],
+   "lit": "至 2026-02 的 1.27",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C017",
+   "cat": "③",
+   "where": "JP 同比口径",
+   "src": "metric_registry.json:JP_CPI_YOY.calc",
+   "computed": true,
+   "reported": true,
+   "lit": "2025基/2020基 拼接 同月同比(新基优先,重叠差>0.10pp 告警)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "C018",
+   "cat": "③",
+   "where": "EA 同比口径",
+   "src": "metric_registry.json:EA_HICP_YOY.calc 含『年度变化率』",
+   "computed": true,
+   "reported": true,
+   "lit": "欧元区HICP同比",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D001",
+   "cat": "④",
+   "where": "C2 ECB_MRO 最后观测日",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO[-1]",
+   "computed": "2026-09-16",
+   "reported": "2026-09-16",
+   "lit": "观测=序列变更日=生效日 2026-09-16",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D002",
+   "cat": "④",
+   "where": "C2 ECB_MRO 现行水平",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO[2026-09-16]",
+   "computed": 2.65,
+   "reported": 2.65,
+   "lit": "最新生效水平为 二点六五",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D003",
+   "cat": "④",
+   "where": "C2 ECB_DFR 现行水平",
+   "src": "research_snapshot_20261123.json:series_store.ECB_DFR[2026-09-16]",
+   "computed": 2.5,
+   "reported": 2.5,
+   "lit": "最新生效水平 2.5%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D004",
+   "cat": "④",
+   "where": "C2 ECB_DFR 同日",
+   "src": "research_snapshot_20261123.json:series_store.ECB_DFR[-1] 日期",
+   "computed": "2026-09-16",
+   "reported": "2026-09-16",
+   "lit": "同一变更日(2026-09-16)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D005",
+   "cat": "④",
+   "where": "政策变更点",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO 变更点 2026-06-17",
+   "computed": [
+    "2026-06-17",
+    2.15,
+    2.4,
+    25
+   ],
+   "reported": [
+    "2026-06-17",
+    2.15,
+    2.4,
+    25
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D006",
+   "cat": "④",
+   "where": "政策变更点",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO 变更点 2026-09-16",
+   "computed": [
+    "2026-09-16",
+    2.4,
+    2.65,
+    25
+   ],
+   "reported": [
+    "2026-09-16",
+    2.4,
+    2.65,
+    25
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D007",
+   "cat": "④",
+   "where": "政策变更点",
+   "src": "research_snapshot_20261123.json:series_store.ECB_DFR 变更点 2026-06-17",
+   "computed": [
+    "2026-06-17",
+    2.0,
+    2.25,
+    25
+   ],
+   "reported": [
+    "2026-06-17",
+    2.0,
+    2.25,
+    25
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D008",
+   "cat": "④",
+   "where": "政策变更点",
+   "src": "research_snapshot_20261123.json:series_store.ECB_DFR 变更点 2026-09-16",
+   "computed": [
+    "2026-09-16",
+    2.25,
+    2.5,
+    25
+   ],
+   "reported": [
+    "2026-09-16",
+    2.25,
+    2.5,
+    25
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D009",
+   "cat": "④",
+   "where": "生效日=周三",
+   "src": "weekday(2026-09-16)",
+   "computed": "Wed",
+   "reported": "Wed",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D010",
+   "cat": "④",
+   "where": "生效日=周三",
+   "src": "weekday(2026-06-17)",
+   "computed": "Wed",
+   "reported": "Wed",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D011",
+   "cat": "④",
+   "where": "C2 决议日(回推)",
+   "src": "生效日前上一个周四(2026-09-16)",
+   "computed": "2026-09-10",
+   "reported": "2026-09-10",
+   "lit": "决议日 2026-09-10 系引擎按",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D012",
+   "cat": "④",
+   "where": "C2 决议日(回推)",
+   "src": "生效日前上一个周四(2026-06-17)",
+   "computed": "2026-06-11",
+   "reported": "2026-06-11",
+   "lit": "对应决议日 2026-06-11",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D013",
+   "cat": "④",
+   "where": "传导环1 间隔",
+   "src": "2026-09-16 − 2026-06-17 (天)",
+   "computed": 91,
+   "reported": 91,
+   "lit": "两次变更相隔 91 天",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D014",
+   "cat": "④",
+   "where": "C3 观测滞后",
+   "src": "cutoff − 2026-09-16 (天)",
+   "computed": 68,
+   "reported": 68,
+   "lit": "六十八天",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D015",
+   "cat": "④",
+   "where": "C3 滞后(总判断)",
+   "src": "cutoff − 2026-09-16 (天)",
+   "computed": 68,
+   "reported": 68,
+   "lit": "距截止 68 天",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D016",
+   "cat": "④",
+   "where": "C3 新鲜度阈",
+   "src": "metric_registry.json:ECB_MRO.freshness.max_calendar_lag_days",
+   "computed": 10,
+   "reported": 10,
+   "lit": "超过注册表新鲜度阈十天",
+   "lit_found": true,
+   "ok": true,
+   "note": "注册表同处另有 decision_dated 注记(无更晚已证实决议不作过期);引擎点值格 freshness_basis=policy_confirmation/status=ok——见问题清单 MINOR",
+   "sev": ""
+  },
+  {
+   "id": "D017",
+   "cat": "④",
+   "where": "C3 Gate A",
+   "src": "snapshot.gate_a.noncore_degraded 含 ECB_MRO/ECB_DFR",
+   "computed": [
+    "ECB_MRO",
+    "ECB_DFR"
+   ],
+   "reported": [
+    "ECB_MRO",
+    "ECB_DFR"
+   ],
+   "lit": "Gate A 两序列列于 degraded 名单",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D018",
+   "cat": "④",
+   "where": "C3 L1 质量",
+   "src": "report.json:L1 rows quality_status",
+   "computed": [
+    "DEGRADED",
+    "DEGRADED"
+   ],
+   "reported": [
+    "DEGRADED",
+    "DEGRADED"
+   ],
+   "lit": "L1 事实行 quality_status=DEGRADED",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D019",
+   "cat": "④",
+   "where": "C3 日历无 ECB 实录",
+   "src": "release_calendar.json:entries",
+   "computed": [],
+   "reported": [],
+   "lit": "对欧央行无实录条目",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D020",
+   "cat": "④",
+   "where": "C2 BOJ 决议日",
+   "src": "release_calendar.json:RC-JP-BOJ-TARGET-2026-09.decision_date",
+   "computed": "2026-09-18",
+   "reported": "2026-09-18",
+   "lit": "约一点二五,2026-09-18 决议、2026-09-24 生效",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D021",
+   "cat": "④",
+   "where": "C2 BOJ 生效日",
+   "src": "release_calendar.json:RC-JP-BOJ-TARGET-2026-09.effective_on",
+   "computed": "2026-09-24",
+   "reported": "2026-09-24",
+   "lit": "2026-09-24 生效",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D022",
+   "cat": "④",
+   "where": "C2 BOJ 目标值",
+   "src": "release_calendar.json:RC-JP-BOJ-TARGET-2026-09.target_value",
+   "computed": 1.25,
+   "reported": 1.25,
+   "lit": "约一点二五",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D023",
+   "cat": "④",
+   "where": "C2 BOJ 确认维持",
+   "src": "release_calendar.json:RC-JP-BOJ-MAINT-2026-10",
+   "computed": [
+    "2026-10-30",
+    1.25,
+    "policy_maintenance"
+   ],
+   "reported": [
+    "2026-10-30",
+    1.25,
+    "policy_maintenance"
+   ],
+   "lit": "2026-10-30 会议确认维持不变(无新调整、无生效变动)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D024",
+   "cat": "④",
+   "where": "C2 无待生效决定",
+   "src": "release_calendar.json 全部条目 effective_on > 截止日 计数",
+   "computed": [],
+   "reported": [],
+   "lit": "可核行动均已生效、无未生效决议",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D025",
+   "cat": "④",
+   "where": "C2 维持后天数",
+   "src": "cutoff − 2026-10-30 (天)",
+   "computed": 24,
+   "reported": 24,
+   "lit": "二十四天内",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D026",
+   "cat": "④",
+   "where": "读者报告 距上次调整",
+   "src": "cutoff − effective_on / decision_date / 维持日 (天)",
+   "computed": "60天|66天|24天",
+   "reported": "60天|66天|24天",
+   "lit": "| 60天 | 66天 | 24天 | RC-JP-BOJ-TARGET-2026-09(user_directive) |",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D027",
+   "cat": "④",
+   "where": "BOJ 首发日",
+   "src": "RC-JP-BOJ-TARGET-2026-09.first_publish_on_or_after",
+   "computed": "2026-09-18",
+   "reported": "2026-09-18",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D028",
+   "cat": "④",
+   "where": "C2 窗内上调次数",
+   "src": "ECB_MRO 变更点落在 [2026-05-23, 2026-11-23]",
+   "computed": 2,
+   "reported": 2,
+   "lit": "窗内两次上调",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D029",
+   "cat": "④",
+   "where": "JP 走位 目标口径缺席",
+   "src": "metric_registry.json:metrics 含 JP_POLICY_TARGET",
+   "computed": false,
+   "reported": false,
+   "lit": "注册表无 JP_POLICY_TARGET",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D030",
+   "cat": "④",
+   "where": "C2 月均≠宣布值",
+   "src": "metric_registry.json:JP_POLICY_RATE.calc",
+   "computed": true,
+   "reported": true,
+   "lit": "月均口径非宣布值",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D031",
+   "cat": "④",
+   "where": "传导环2 联邦基金目标区间",
+   "src": "research_snapshot_20261123.json:series_store.DFEDTARL/DFEDTARU[2026-11-23]",
+   "computed": [
+    3.75,
+    4.0
+   ],
+   "reported": [
+    3.75,
+    4.0
+   ],
+   "lit": "联邦基金目标区间 3.75%–4.00%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D032",
+   "cat": "④",
+   "where": "传导环2 美联储生效日",
+   "src": "research_snapshot_20261123.json:series_store.DFEDTARU 最后变更点",
+   "computed": "2026-09-17",
+   "reported": "2026-09-17",
+   "lit": "美联储 2026-09-17 生效",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D033",
+   "cat": "④",
+   "where": "传导环2 索引外引用披露",
+   "src": "report.json:evidence_index 含 DFEDTARL/U",
+   "computed": [],
+   "reported": [],
+   "lit": "不在本轮证据索引",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D034",
+   "cat": "④",
+   "where": "JP 走位 近12月净变动",
+   "src": "JP_POLICY_RATE 2026-10 − 2025-11 (bp)",
+   "computed": 75.0,
+   "reported": 75,
+   "lit": "约 +75bp",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D035",
+   "cat": "④",
+   "where": "JP 走位 变动点之和",
+   "src": "JP_POLICY_RATE 窗内(>2025-11-23)变动点 bp 之和",
+   "computed": 75,
+   "reported": 75,
+   "lit": "净 +75bp=六个变动点之和",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D036",
+   "cat": "④",
+   "where": "JP 走位 变动点个数",
+   "src": "同上 变动点个数",
+   "computed": 6,
+   "reported": 6,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D037",
+   "cat": "④",
+   "where": "JP 走位 一年窗",
+   "src": "research_plan.point_values.JP_POLICY_RATE.policy_window_path.window",
+   "computed": "2025-11-23..2026-11-23",
+   "reported": "2025-11-23..2026-11-23",
+   "lit": "窗口 2025-11-23..2026-11-23",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D038",
+   "cat": "④",
+   "where": "M1-2 月均台阶",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE 2026-09/2026-10",
+   "computed": [
+    1.043,
+    1.227
+   ],
+   "reported": [
+    1.043,
+    1.227
+   ],
+   "lit": "1.043→1.227",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D039",
+   "cat": "④",
+   "where": "C2 月均锚",
+   "src": "JP_POLICY_RATE 2026-04 / 2026-10",
+   "computed": [
+    0.727,
+    1.227
+   ],
+   "reported": [
+    0.727,
+    1.227
+   ],
+   "lit": "最新一期报 1.227%,六个月前锚前值为零点七二七",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D040",
+   "cat": "④",
+   "where": "C2 月均起点",
+   "src": "JP_POLICY_RATE 2025-11",
+   "computed": 0.478,
+   "reported": 0.478,
+   "lit": "自 2025-11 月均零点四七八升至 2026-10 月均一点二二七",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D041",
+   "cat": "④",
+   "where": "读者报告 一年窗净变动闭合",
+   "src": "ECB_MRO policy_window_path 净变动 vs 变动点之和 vs 序列首尾差",
+   "computed": [
+    50,
+    50,
+    50
+   ],
+   "reported": [
+    50,
+    50,
+    50
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "D042",
+   "cat": "④",
+   "where": "读者报告 一年窗净变动闭合",
+   "src": "ECB_DFR policy_window_path 净变动 vs 变动点之和 vs 序列首尾差",
+   "computed": [
+    50,
+    50,
+    50
+   ],
+   "reported": [
+    50,
+    50,
+    50
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E001",
+   "cat": "⑤",
+   "where": "rates_decomposition 名义",
+   "src": "research_snapshot_20261123.json:series_store.UST_10Y 2026-10-20→2026-11-19 (bp) (5.12→5.04)",
+   "computed": -8.0,
+   "reported": -8.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E001b",
+   "cat": "⑤",
+   "where": "rates_decomposition 名义(引擎面)",
+   "src": "research_plan.us_rates_trio.chg_bp.UST_10Y vs reader_map",
+   "computed": -8.0,
+   "reported": -8.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E002b",
+   "cat": "⑤",
+   "where": "rates_decomposition 实际(引擎面)",
+   "src": "us_rates_trio.chg_bp.TIPS_10Y vs reader_map",
+   "computed": 11.0,
+   "reported": 11.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E003b",
+   "cat": "⑤",
+   "where": "rates_decomposition 盈亏平衡(引擎面)",
+   "src": "us_rates_trio.chg_bp.BEI_10Y vs reader_map",
+   "computed": -19.0,
+   "reported": -19.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E002",
+   "cat": "⑤",
+   "where": "rates_decomposition 实际",
+   "src": "TIPS_10Y 2026-10-20→2026-11-19 (bp) (2.77→2.88)",
+   "computed": 11.0,
+   "reported": 11.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E003",
+   "cat": "⑤",
+   "where": "rates_decomposition 盈亏平衡",
+   "src": "BEI_10Y 2026-10-20→2026-11-19 (bp) (2.35→2.16)",
+   "computed": -19.0,
+   "reported": -19.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E004",
+   "cat": "⑤",
+   "where": "名义=实际+盈亏平衡",
+   "src": "Δ名义 − (Δ实际+ΔBEI) 残差(bp)",
+   "computed": -0.0,
+   "reported": 0.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E005",
+   "cat": "⑤",
+   "where": "水平恒等",
+   "src": "2026-11-19: UST_10Y − (TIPS_10Y+BEI_10Y)",
+   "computed": 0.0,
+   "reported": 0.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E006",
+   "cat": "⑤",
+   "where": "rates_decomposition 窗起",
+   "src": "UST_10Y 2026-10-20 在场=三序列共同日",
+   "computed": "2026-10-20",
+   "reported": "2026-10-20",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E007",
+   "cat": "⑤",
+   "where": "rates_decomposition 窗止",
+   "src": "三序列共同交易日最后一天 vs us_rates_trio.window.to(三序列各自最后观测 2026-11-19/2026-11-19/2026-11-20)",
+   "computed": "2026-11-19",
+   "reported": "2026-11-19",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "引擎窗=共同交易日; BEI_10Y 单独另有 2026-11-20 观测(名义/实际无同日观测,不入共同窗)",
+   "sev": ""
+  },
+  {
+   "id": "E008",
+   "cat": "⑤",
+   "where": "12个月窗 名义",
+   "src": "UST_10Y 2025-11-19→2026-11-19 (bp)",
+   "computed": 91.0,
+   "reported": 91.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E009",
+   "cat": "⑤",
+   "where": "12个月窗 实际",
+   "src": "TIPS_10Y 2025-11-19→2026-11-19 (bp)",
+   "computed": 102.0,
+   "reported": 102.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E010",
+   "cat": "⑤",
+   "where": "12个月窗 盈亏平衡",
+   "src": "BEI_10Y 2025-11-19→2026-11-19 (bp)",
+   "computed": -11.0,
+   "reported": -11.0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E011",
+   "cat": "⑤",
+   "where": "asset_returns_echo",
+   "src": "research_snapshot_20261123.json:series_store.NIKKEI225 2026-10-23→2026-11-20",
+   "computed": -9.98,
+   "reported": -9.98,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "窗口 2026-10-23..2026-11-20(引擎 asset_moves 同窗)",
+   "sev": ""
+  },
+  {
+   "id": "E012",
+   "cat": "⑤",
+   "where": "asset_returns_echo",
+   "src": "research_snapshot_20261123.json:series_store.DAX 2026-10-23→2026-11-23",
+   "computed": 0.11,
+   "reported": 0.11,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "窗口 2026-10-23..2026-11-23(引擎 asset_moves 同窗)",
+   "sev": ""
+  },
+  {
+   "id": "E013",
+   "cat": "⑤",
+   "where": "asset_returns_echo",
+   "src": "research_snapshot_20261123.json:series_store.SPX 2026-10-23→2026-11-23",
+   "computed": -5.51,
+   "reported": -5.51,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "窗口 2026-10-23..2026-11-23(引擎 asset_moves 同窗)",
+   "sev": ""
+  },
+  {
+   "id": "E014",
+   "cat": "⑤",
+   "where": "asset_returns_echo",
+   "src": "research_snapshot_20261123.json:series_store.VIX 2026-10-23→2026-11-23",
+   "computed": 38.87,
+   "reported": 38.87,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "窗口 2026-10-23..2026-11-23(引擎 asset_moves 同窗)",
+   "sev": ""
+  },
+  {
+   "id": "E015",
+   "cat": "⑤",
+   "where": "M1-4 VIX 盘中较收盘",
+   "src": "VIX 2026-11-23 vs 2026-11-20",
+   "computed": -24.74,
+   "reported": -24.7,
+   "lit": "较 2026-11-20 收盘 -24.7%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "E016",
+   "cat": "⑤",
+   "where": "M1-3 UST_10Y",
+   "src": "UST_10Y 最后观测",
+   "computed": [
+    "2026-11-19",
+    5.04
+   ],
+   "reported": [
+    "2026-11-19",
+    5.04
+   ],
+   "lit": "UST_10Y 最新 5.04%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F001",
+   "cat": "⑥",
+   "where": "转折1 候选面同源",
+   "src": "research_plan.turning_candidates.candidates",
+   "computed": [
+    [
+     "2025-11",
+     "2026-02",
+     2.9,
+     1.27
+    ]
+   ],
+   "reported": [
+    [
+     "2025-11",
+     "2026-02",
+     2.9,
+     1.27
+    ]
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F002",
+   "cat": "⑥",
+   "where": "转折1 前值",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2025-11]",
+   "computed": 2.9,
+   "reported": 2.9,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F003",
+   "cat": "⑥",
+   "where": "转折1 后值",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-02]",
+   "computed": 1.27,
+   "reported": 1.27,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F004",
+   "cat": "⑥",
+   "where": "转折1 幅度",
+   "src": "后值−前值",
+   "computed": -1.63,
+   "reported": -1.63,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F005",
+   "cat": "⑥",
+   "where": "转折2 候选面同源",
+   "src": "research_plan.turning_candidates.candidates",
+   "computed": [
+    [
+     "2026-02",
+     "2026-05",
+     1.9,
+     3.2
+    ]
+   ],
+   "reported": [
+    [
+     "2026-02",
+     "2026-05",
+     1.9,
+     3.2
+    ]
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F006",
+   "cat": "⑥",
+   "where": "转折2 前值",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-02]",
+   "computed": 1.9,
+   "reported": 1.9,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F007",
+   "cat": "⑥",
+   "where": "转折2 后值",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-05]",
+   "computed": 3.2,
+   "reported": 3.2,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F008",
+   "cat": "⑥",
+   "where": "转折2 幅度",
+   "src": "后值−前值",
+   "computed": 1.3,
+   "reported": 1.3,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F009",
+   "cat": "⑥",
+   "where": "转折3 候选面同源",
+   "src": "research_plan.turning_candidates.candidates",
+   "computed": [
+    [
+     "2026-04",
+     "2026-07",
+     0.727,
+     0.978
+    ]
+   ],
+   "reported": [
+    [
+     "2026-04",
+     "2026-07",
+     0.727,
+     0.978
+    ]
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F010",
+   "cat": "⑥",
+   "where": "转折3 前值",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-04]",
+   "computed": 0.727,
+   "reported": 0.727,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F011",
+   "cat": "⑥",
+   "where": "转折3 后值",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-07]",
+   "computed": 0.978,
+   "reported": 0.978,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F012",
+   "cat": "⑥",
+   "where": "转折3 幅度",
+   "src": "后值−前值",
+   "computed": 0.251,
+   "reported": 0.251,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F013",
+   "cat": "⑥",
+   "where": "转折1 关系词",
+   "src": "候选池 |delta| 最大者",
+   "computed": "JP_CPI_YOY@2026-02",
+   "reported": "JP_CPI_YOY@2026-02",
+   "lit": "候选池内最大单段变动",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F014",
+   "cat": "⑥",
+   "where": "转折1 首变",
+   "src": "JP_CPI_YOY 2025-11→2026-02",
+   "computed": [
+    2.9,
+    1.27
+   ],
+   "reported": [
+    2.9,
+    1.27
+   ],
+   "lit": "2025-11→2026-02 由 2.9 降至 1.27(三个月 -1.63 个百分点",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F015",
+   "cat": "⑥",
+   "where": "转折1 同向",
+   "src": "EA_HICP_YOY 2025-11→2026-02",
+   "computed": [
+    2.1,
+    1.9
+   ],
+   "reported": [
+    2.1,
+    1.9
+   ],
+   "lit": "同期欧元区 HICP 亦下行(2025-11 2.1→2026-02 1.9)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F016",
+   "cat": "⑥",
+   "where": "转折1 谷底相邻",
+   "src": "两序列近十二个月谷底月",
+   "computed": [
+    "2026-01",
+    "2026-02"
+   ],
+   "reported": [
+    "2026-01",
+    "2026-02"
+   ],
+   "lit": "两地谷底相邻(欧元区 2026-01 的 1.7、日本 2026-02 的 1.27)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F017",
+   "cat": "⑥",
+   "where": "转折1 谷底月相差",
+   "src": "谷底月差(月): 日本谷底月 − 欧元区谷底月",
+   "computed": 1,
+   "reported": 1,
+   "lit": "按谷底月欧元区(2026-01)先于日本(2026-02)一个月转入上行",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F018",
+   "cat": "⑥",
+   "where": "转折1 候选面排序",
+   "src": "候选面转折日(区间终点月)",
+   "computed": [
+    "2026-02",
+    "2026-05"
+   ],
+   "reported": [
+    "2026-02",
+    "2026-05"
+   ],
+   "lit": "则为日本(2026-02)先于欧元区(2026-05)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F019",
+   "cat": "⑥",
+   "where": "转折1 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-03]",
+   "computed": 1.46,
+   "reported": 1.46,
+   "lit": "2026-03 1.46",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F020",
+   "cat": "⑥",
+   "where": "转折1 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-04]",
+   "computed": 1.38,
+   "reported": 1.38,
+   "lit": "2026-04 1.38",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F021",
+   "cat": "⑥",
+   "where": "转折1 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-05]",
+   "computed": 1.53,
+   "reported": 1.53,
+   "lit": "2026-05 1.53",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F022",
+   "cat": "⑥",
+   "where": "转折1 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-06]",
+   "computed": 1.67,
+   "reported": 1.67,
+   "lit": "2026-06 1.67",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F023",
+   "cat": "⑥",
+   "where": "转折1 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-07]",
+   "computed": 1.97,
+   "reported": 1.97,
+   "lit": "2026-07 1.97",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F024",
+   "cat": "⑥",
+   "where": "转折1 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-08]",
+   "computed": 1.98,
+   "reported": 1.98,
+   "lit": "2026-08 1.98",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F025",
+   "cat": "⑥",
+   "where": "转折1 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-09]",
+   "computed": 2.16,
+   "reported": 2.16,
+   "lit": "2026-09 2.16",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F026",
+   "cat": "⑥",
+   "where": "转折1 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-10]",
+   "computed": 2.44,
+   "reported": 2.44,
+   "lit": "2026-10 2.44",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F027",
+   "cat": "⑥",
+   "where": "转折1 叙述 BOJ 台阶",
+   "src": "JP_POLICY_RATE[2026-01]",
+   "computed": 0.728,
+   "reported": 0.728,
+   "lit": "BOJ 月均台阶(2026-01 0.728)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F028",
+   "cat": "⑥",
+   "where": "转折2 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-06]",
+   "computed": 2.8,
+   "reported": 2.8,
+   "lit": "2026-06 2.8",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F029",
+   "cat": "⑥",
+   "where": "转折2 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-07]",
+   "computed": 2.9,
+   "reported": 2.9,
+   "lit": "2026-07 2.9",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F030",
+   "cat": "⑥",
+   "where": "转折2 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-08]",
+   "computed": 3.2,
+   "reported": 3.2,
+   "lit": "2026-08 3.2",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F031",
+   "cat": "⑥",
+   "where": "转折2 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-09]",
+   "computed": 3.8,
+   "reported": 3.8,
+   "lit": "2026-09 3.8",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F032",
+   "cat": "⑥",
+   "where": "转折2 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-10]",
+   "computed": 4.0,
+   "reported": 4.0,
+   "lit": "2026-10 4.0",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F033",
+   "cat": "⑥",
+   "where": "转折2 日本同窗",
+   "src": "JP_CPI_YOY 2026-02→2026-05",
+   "computed": [
+    1.27,
+    1.53
+   ],
+   "reported": [
+    1.27,
+    1.53
+   ],
+   "lit": "2026-02 1.27→2026-05 1.53",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F034",
+   "cat": "⑥",
+   "where": "转折2 先后未定",
+   "src": "同月分辨率不可判→须写『先后未定』",
+   "computed": true,
+   "reported": true,
+   "lit": "月频先后未定",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F035",
+   "cat": "⑥",
+   "where": "转折3 过渡月",
+   "src": "JP_POLICY_RATE[2026-06]",
+   "computed": 0.841,
+   "reported": 0.841,
+   "lit": "经 2026-06 0.841 过渡",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F036",
+   "cat": "⑥",
+   "where": "转折3 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-08]",
+   "computed": 0.977,
+   "reported": 0.977,
+   "lit": "2026-08 0.977",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F037",
+   "cat": "⑥",
+   "where": "转折3 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-09]",
+   "computed": 1.043,
+   "reported": 1.043,
+   "lit": "2026-09 1.043",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F038",
+   "cat": "⑥",
+   "where": "转折3 叙述路径",
+   "src": "research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-10]",
+   "computed": 1.227,
+   "reported": 1.227,
+   "lit": "2026-10 1.227",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F039",
+   "cat": "⑥",
+   "where": "转折3 先后未定",
+   "src": "月频台阶 vs 欧央行变更日→须写『先后未定』",
+   "computed": true,
+   "reported": true,
+   "lit": "先后未定",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "F040",
+   "cat": "⑥",
+   "where": "三转折=不同事件",
+   "src": "转折 (metric_id,date) 去重数 / 指标维度数 / 地区数",
+   "computed": [
+    3,
+    2,
+    2
+   ],
+   "reported": [
+    3,
+    2,
+    2
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "三个不同事件(JP_CPI_YOY@2026-02 / EA_HICP_YOY@2026-05 / JP_POLICY_RATE@2026-07); 指标维度=通胀(日/欧元区两序列)+政策; 地区 JP/EA",
+   "sev": ""
+  }
+ ]
+}

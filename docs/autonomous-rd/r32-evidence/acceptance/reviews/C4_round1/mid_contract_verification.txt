@@ -1,0 +1,444 @@
+{
+ "version": "jc-v1.0-phase4",
+ "verdicts": [
+  {
+   "item": "C1-POLICY-DIVERGENCE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "DFF"
+   ],
+   "family": "level",
+   "token": "3.88",
+   "metric": "DFF",
+   "value": 3.88,
+   "expected": 3.88,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 DFF@2026-11-19=3.88"
+  },
+  {
+   "item": "C1-POLICY-DIVERGENCE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "JP_POLICY_RATE"
+   ],
+   "family": "level",
+   "token": "1.227",
+   "metric": "JP_POLICY_RATE",
+   "value": 1.227,
+   "expected": 1.227,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227"
+  },
+  {
+   "item": "C1-POLICY-DIVERGENCE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_LPR_1Y"
+   ],
+   "family": "level",
+   "token": "3",
+   "metric": "CN_LPR_1Y",
+   "value": 3.0,
+   "expected": 3.0,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_LPR_1Y@2026-11-20=3.0"
+  },
+  {
+   "item": "C2-INFLATION-DIVERGENCE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CPI"
+   ],
+   "family": "level",
+   "token": "337.476",
+   "metric": "CPI",
+   "value": 337.476,
+   "expected": 337.476,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CPI@2026-10-01=337.476"
+  },
+  {
+   "item": "C2-INFLATION-DIVERGENCE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CORE_CPI"
+   ],
+   "family": "level",
+   "token": "339.9",
+   "metric": "CORE_CPI",
+   "value": 339.9,
+   "expected": 339.9,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CORE_CPI@2026-10-01=339.9"
+  },
+  {
+   "item": "C2-INFLATION-DIVERGENCE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CORE_PCE"
+   ],
+   "family": "level",
+   "token": "130.902",
+   "metric": "CORE_PCE",
+   "value": 130.902,
+   "expected": 130.902,
+   "status": "STALE",
+   "note": "recompute:Fact 直读 CORE_PCE@2026-09-01=130.902"
+  },
+  {
+   "item": "C2-INFLATION-DIVERGENCE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_CPI_YOY"
+   ],
+   "family": "level",
+   "token": "0.7",
+   "metric": "CN_CPI_YOY",
+   "value": 0.7,
+   "expected": 0.7,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7"
+  },
+  {
+   "item": "C2-INFLATION-DIVERGENCE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_PPI_YOY"
+   ],
+   "family": "level",
+   "token": "5.7",
+   "metric": "CN_PPI_YOY",
+   "value": 5.7,
+   "expected": 5.7,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7"
+  },
+  {
+   "item": "C3-GROWTH-LIMITED.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "US_REAL_GDP"
+   ],
+   "family": "level",
+   "token": "24611.077",
+   "metric": "US_REAL_GDP",
+   "value": 24611.077,
+   "expected": 24611.077,
+   "status": "STALE",
+   "note": "recompute:Fact 直读 US_REAL_GDP@2026-07-01=24611.077"
+  },
+  {
+   "item": "C3-GROWTH-LIMITED.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "UNEMPLOYMENT"
+   ],
+   "family": "level",
+   "token": "4.1",
+   "metric": "UNEMPLOYMENT",
+   "value": 4.1,
+   "expected": 4.1,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 UNEMPLOYMENT@2026-10-01=4.1"
+  },
+  {
+   "item": "C3-GROWTH-LIMITED.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "INDPRO"
+   ],
+   "family": "level",
+   "token": "103.3954",
+   "metric": "INDPRO",
+   "value": 103.3954,
+   "expected": 103.3954,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 INDPRO@2026-10-01=103.3954"
+  },
+  {
+   "item": "C3-GROWTH-LIMITED.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CN_PMI_MFG"
+   ],
+   "family": "level",
+   "token": "49.3",
+   "metric": "CN_PMI_MFG",
+   "value": 49.3,
+   "expected": 49.3,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3"
+  },
+  {
+   "item": "C4-EVIDENCE-BOUNDARY.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "DAX"
+   ],
+   "family": "level",
+   "token": "25209.45",
+   "metric": "DAX",
+   "value": 25209.45,
+   "expected": 25209.45,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 DAX@2026-11-23=25209.45"
+  },
+  {
+   "item": "C4-EVIDENCE-BOUNDARY.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "SPX"
+   ],
+   "family": "change/week",
+   "token": "-5.51%",
+   "metric": "SPX",
+   "value": -5.51,
+   "expected": 4.2466,
+   "status": "VERIFIED",
+   "note": "资产月窗基复算: chg_pct=-5.51(窗口 2026-10-23→2026-11-23,两端实测日同现正文——数字+窗口耦合可核;与周/MTD 派生窗并行基,R21 任务4)"
+  },
+  {
+   "item": "C4-EVIDENCE-BOUNDARY.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "SHCOMP"
+   ],
+   "family": "change/week",
+   "token": "-4.11%",
+   "metric": "SHCOMP",
+   "value": -4.11,
+   "expected": 0.1459,
+   "status": "VERIFIED",
+   "note": "资产月窗基复算: chg_pct=-4.11(窗口 2026-10-23→2026-11-23,两端实测日同现正文——数字+窗口耦合可核;与周/MTD 派生窗并行基,R21 任务4)"
+  },
+  {
+   "item": "C4-EVIDENCE-BOUNDARY.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "DAX"
+   ],
+   "family": "change/week",
+   "token": "+0.11%",
+   "metric": "DAX",
+   "value": 0.11,
+   "expected": 1.6396,
+   "status": "VERIFIED",
+   "note": "资产月窗基复算: chg_pct=0.11(窗口 2026-10-23→2026-11-23,两端实测日同现正文——数字+窗口耦合可核;与周/MTD 派生窗并行基,R21 任务4)"
+  },
+  {
+   "item": "C4-EVIDENCE-BOUNDARY.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "VIX"
+   ],
+   "family": "change/week",
+   "token": "+38.87%",
+   "metric": "VIX",
+   "value": 38.87,
+   "expected": -24.7423,
+   "status": "VERIFIED",
+   "note": "资产月窗基复算: chg_pct=38.87(窗口 2026-10-23→2026-11-23,两端实测日同现正文——数字+窗口耦合可核;与周/MTD 派生窗并行基,R21 任务4)"
+  }
+ ],
+ "six_checks": [
+  {
+   "item": "C1-POLICY-DIVERGENCE",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "4 实据引用"
+  },
+  {
+   "item": "C1-POLICY-DIVERGENCE",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C1-POLICY-DIVERGENCE",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C1-POLICY-DIVERGENCE",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "C2-INFLATION-DIVERGENCE",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "6 实据引用"
+  },
+  {
+   "item": "C2-INFLATION-DIVERGENCE",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C2-INFLATION-DIVERGENCE",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C2-INFLATION-DIVERGENCE",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "C3-GROWTH-LIMITED",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "4 实据引用"
+  },
+  {
+   "item": "C3-GROWTH-LIMITED",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C3-GROWTH-LIMITED",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C3-GROWTH-LIMITED",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "C4-EVIDENCE-BOUNDARY",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "5 实据引用"
+  },
+  {
+   "item": "C4-EVIDENCE-BOUNDARY",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C4-EVIDENCE-BOUNDARY",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C4-EVIDENCE-BOUNDARY",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "SCN-A-POLICY-DIVERGENCE-EXTENDS",
+   "check": "overreach",
+   "status": "VERIFIED",
+   "note": "tier=有相关证据 条件式✓"
+  },
+  {
+   "item": "SCN-A-POLICY-DIVERGENCE-EXTENDS",
+   "check": "falsifiable",
+   "status": "VERIFIED",
+   "note": "指标+阈值形态✓"
+  },
+  {
+   "item": "SCN-B-POLICY-CONVERGES",
+   "check": "overreach",
+   "status": "VERIFIED",
+   "note": "tier=有相关证据 条件式✓"
+  },
+  {
+   "item": "SCN-B-POLICY-CONVERGES",
+   "check": "falsifiable",
+   "status": "VERIFIED",
+   "note": "指标+阈值形态✓"
+  }
+ ],
+ "map_checks": [
+  {
+   "item": "reader_map.headline_conclusion",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "非空",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.regions",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "4 地齐",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.turning_supplement",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "补选转折 INDPRO@2026-02 已交还判断席(first_mover=美国工业生产指数同比(INDPRO)2025-1)",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.date_order",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "日期次序主张一致: 2026-09-16<2026-09-18(早于,1 处)",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.date_order",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "日期次序主张一致: 2026-07<2026-08-23(早于,1 处)",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.chain_evidence",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "传导链[CH-POLICY-RATES-ASSETS] 区分指标绑定 3/3 环",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.turning_source",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "转折表 3 项指标与计划/候选面同源",
+   "evidence_refs": []
+  }
+ ],
+ "unresolved_unbound": [],
+ "verdict": "VERIFIED",
+ "stats": {
+  "checks": 17,
+  "contradicted": 0,
+  "verified": 15,
+  "unbound": 0,
+  "six_fail": 0,
+  "map_fail": 0,
+  "n_contradictions": 4
+ }
+}

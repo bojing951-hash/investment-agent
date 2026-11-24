@@ -1,0 +1,12 @@
+{
+ "step": "S10_selfcheck",
+ "executed": true,
+ "ok": true,
+ "n_views_quarantined": 0,
+ "selfcheck": {
+  "n_evidence_rows": 69,
+  "n_rows_missing_ref": 0,
+  "ok": true
+ },
+ "note": null
+}

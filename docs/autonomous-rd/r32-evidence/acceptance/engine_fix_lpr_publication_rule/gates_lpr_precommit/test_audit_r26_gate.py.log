@@ -1,0 +1,54 @@
+═══ §A 采集守卫强化: 身份+有效观测+原子+中断+并发 ═══
+  ✅ §A1 首采直写(first)
+  ✅ §A2 身份图单元: 前两段身份+null叶计0+空容器不计
+  ✅ §A3 删CPI+加新指标→degraded_diverted(身份丢失不因新增补足) — note=指标身份丢失 1 项(data.CPI);序列路径 5→5(丢失身份不因新增他指标补足)
+  ✅ §A4 降级版本完整保留在 superseded/
+  ✅ §A5 CPI全null→degraded_diverted(观测蒸发≠结构变化,null≠有效观测) — note=有效观测叶子缩水 1 项(data.CPI:4→2;null≠有效观测)
+  ✅ §A5b 披露区键数变化+观测不变→放行(carry_forward续存不误判降级) — status=overwritten_preserved note=
+  ✅ §A6 正常数值修订→覆写放行
+  ✅ §A7 写盘中断→候选校验不符fail-loud(规范档不动/tmp清/superseded不增) — broke=True tmp=[] sup 4→4
+  ✅ §A8 同日并发4写者: 全部正常覆写+规范档=完整新档之一 — statuses=['overwritten_preserved']
+  ✅ §A9 并发窗口旧合格数据始终可读(读者300次零失败) — bad=0
+  ✅ §A10 并发转存4份旧档全部完整入superseded/且tmp零残留 — sup=4
+  ✅ §A11 豁免旗标forced直写(旧档副本仍保留)
+═══ §B 最新一期: 统计期末/政策确认/草稿/覆盖表 ═══
+  ✅ §B1 US_REAL_GDP: Q3观测07-01期末09-30→FRESH(旧口径141>120伪STALE) — pe=2026-09-30 pel=51 lag=142
+  ✅ §B1 EA_REAL_GDP_YOY: Q3观测07-01期末09-30→FRESH(旧口径141>120伪STALE) — pe=2026-09-30 pel=51 lag=142
+  ✅ §B1 JP_REAL_GDP_YOY: Q3观测07-01期末09-30→FRESH(旧口径141>120伪STALE) — pe=2026-09-30 pel=51 lag=142
+  ✅ §B2 EA_HICP停2025-12→STALE(自统计期末起算) — pel=324 w=60
+  ✅ §B3 ECB_MRO决议驱动: 无更晚证实决议不过期/有之→STALE — v1=FRESH v2=STALE
+  ✅ §B4 注册表: ECB_MRO/ECB_DFR/DFEDTARU/DFEDTARL声明decision_dated — ['DFEDTARL', 'DFEDTARU', 'ECB_DFR', 'ECB_MRO']
+  ✅ §B5 stale_only_groups: 全stale组入列/有非stale锚不入/历史锚不参与 — [('EA', 'inflation'), ('JP', 'growth')]
+  ✅ §B6 map_core_dimension_stale: 草稿元组+belt阻断类双在场
+  ✅ §B7 首页草稿横幅: EA×inflation+正式归档拒绝口径
+  ✅ §B8 逐组覆盖与实际数据来源表: 三锚状态+统计期末+发布日期+来源
+  ✅ §B9 判定侧同源: point_values面直接判出同一stale-only组
+═══ §C 历史章节: 月均移出政策面+BoJ实录表分记 ═══
+  ✅ §C1 JP_POLICY_RATE(月均)移出政策事件面(月均=市场观测≠决议)
+  ✅ §C2 JP_POLICY_TARGET入面: boj_history+配对市场月均+口径注记
+  ✅ §C3 实录表锚: 2024-03-19决议/03-21生效(用户验收指令实录)
+  ✅ §C4 _policy_dates boj_history: 生效=值变更日/决议=实录回溯 — 决议日=实录表回溯(BOJ_DECISION_HISTORY;2024-03 决议 03-19、生效 03-21);实录: 决议2024-03-19、生效202
+  ✅ §C5 表外生效日→决议日不可推(如实注记不虚构)
+  ✅ §C6 序列在场期无变更→决议/生效双不可推
+  ✅ §C7 R25既得面保留: 当时可知纪律+发布日推定在场
+═══ §D 原问逐字: 首轮落盘+字节直读+新原文入计划 ═══
+  ✅ §D1 SKILL纪律: 首轮第一动作=当轮消息原样落盘独立原问文件
+  ✅ §D2 入口纪律: --question-file字节直读优先/内联仅调试
+  ✅ §D3 计划收 question_verbatim=原文(含全角标点不重排)
+  ✅ §D4 第二问→新原文入计划(不复用旧轮原文)
+  ✅ §D5 草稿入口: 缺口类+确证过期类并列+任务1+任务2口径
+  ✅ §D6 空原问文件→拒绝(empty_question_file不静默) — rc=2
+═══ §E 缺数+锚覆盖草稿: 首页横幅+判定共源+SKILL纪律 ═══
+  ✅ §E1 missing_core_groups: 零ok格组入列(含无cell组)/有ok锚不入 — [('KR', 'growth')]
+  ✅ §E2 sparse_anchor_groups: ok锚<2且空锚无证实延误入列/日历证实延误豁免/ok锚≥2不入 — [('EA', 'growth')]
+  ✅ §E3 blocked_class_of 共源等价: 同pv判出map_core_dimension_missing — map_core_dimension_missing
+  ✅ §E4 blocked_class_of: 仅锚覆盖缺口→map_anchor_coverage_insufficient — map_anchor_coverage_insufficient
+  ✅ §E5 缺数横幅: 核心维度组缺数+组名+归档拒绝口径
+  ✅ §E6 锚覆盖横幅: ok锚<2+组名+归档拒绝口径(US不入任一横幅)
+  ✅ §E7 横幅位置: 两横幅均在一句总判断之前(首页可见)
+  ✅ §E8 负对照: 全健康→零草稿横幅(完整交付不误标)
+  ✅ §E9 SKILL草稿纪律: draft_delivered必声明+禁即席archive选项
+  ✅ §E10 ia_cli归档belt共源: missing_core_groups接线
+
+════════════════════════════════════════════════════════════
+判定: 46 PASS / 0 FAIL

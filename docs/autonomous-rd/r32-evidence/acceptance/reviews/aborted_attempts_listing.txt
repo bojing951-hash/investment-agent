@@ -1,0 +1,45 @@
+# review attempts aborted on interface errors (no verdict formed) — listing only
+
+# review attempts at stamp 36499bb aborted before any verdict (launched against run directories that did not yet carry the report-stage artefacts; stopped after ~10 minutes; no verdict formed) — listing only
+     678  _aborted/A_round1_no_reader_reports/x04_cells.py
+     719  _aborted/A_round1_no_reader_reports/x06_explore.py
+     937  _aborted/A_round1_no_reader_reports/x03_explore.py
+    1159  _aborted/A_round1_no_reader_reports/x05_rates.txt
+    1173  _aborted/A_round1_no_reader_reports/x07_series_inventory.py
+    1361  _aborted/B_round1_no_reader_reports/explore_derived.py
+    1373  _aborted/A_round1_no_reader_reports/x01_explore.py
+    1374  _aborted/A_round1_no_reader_reports/x05_explore.py
+    1562  review_aborted/N30_round1_attempt1/explore_structure.py
+    1604  _aborted/A_round1_no_reader_reports/x05_assets.txt
+    1673  review_aborted/N30_round1_attempt1/dump_envelopes.py
+    1798  review_aborted/N30_round1_attempt1/extract_report.py
+    1965  review_aborted/N30_round1_attempt1/dump_calendar_registry.py
+    2264  review_aborted/B_round1_attempt1/s0_explore.py
+    2290  _aborted/B_round1_no_reader_reports/extract_engine.py
+    2402  review_aborted/N30_round1_attempt1/dump_series.py
+    2427  review_aborted/B_round1_attempt1/s1_engine_faces.py
+    2532  _aborted/B_round1_no_reader_reports/probe_structure.py
+    2653  _aborted/A_round1_no_reader_reports/x02_explore.py
+    2755  review_aborted/N30_round1_attempt1/extract_env_bits.py
+    2782  _aborted/B_round1_no_reader_reports/explore_series.py
+    2806  _aborted/A_round1_no_reader_reports/x05_policy.txt
+    3366  _aborted/B_round1_no_reader_reports/probe_detail.py
+    3484  _aborted/A_round1_no_reader_reports/x05_turning.txt
+    8069  _aborted/A_round1_no_reader_reports/x07_out.txt
+   10895  _aborted/B_round1_no_reader_reports/probe_detail.out
+   12589  _aborted/B_round1_no_reader_reports/explore_series.out
+   12676  _aborted/B_round1_no_reader_reports/_protocol.md
+   12729  _aborted/A_round1_no_reader_reports/_protocol.md
+   15801  _aborted/A_round1_no_reader_reports/x03_out.txt
+   17347  review_aborted/B_round1_attempt1/s0_explore.out.txt
+   31489  _aborted/A_round1_no_reader_reports/x06_analog.txt
+   40313  _aborted/B_round1_no_reader_reports/explore_derived.out
+   45420  _aborted/A_round1_no_reader_reports/x02_out.txt
+   60272  _aborted/A_round1_no_reader_reports/x04_out.txt
+   60454  review_aborted/N30_round1_attempt1/_series_dump.txt
+   65133  _aborted/B_round1_no_reader_reports/engine_faces.txt
+   66735  _aborted/A_round1_no_reader_reports/x06_changes.txt
+   68701  review_aborted/B_round1_attempt1/s1_engine_faces.out.txt
+  123788  review_aborted/N30_round1_attempt1/_report_extract.txt
+  148908  review_aborted/N30_round1_attempt1/_env_bits.txt
+  948020  review_aborted/N30_round1_attempt1/_envelopes.txt

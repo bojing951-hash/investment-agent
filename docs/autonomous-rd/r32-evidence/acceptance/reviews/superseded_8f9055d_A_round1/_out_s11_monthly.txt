@@ -1,0 +1,358 @@
+### US CPI yoy (derived, same-month base)
+   2025-08 2.9386
+   2025-09 3.0226
+   2025-10 None
+   2025-11 2.6964
+   2025-12 2.6533
+   2026-01 2.3912
+   2026-02 2.434
+   2026-03 3.286
+   2026-04 3.7792
+   2026-05 4.1666
+   2026-06 3.4635
+   2026-07 3.3039
+   2026-08 3.353
+   2026-09 3.7173
+   2026-10 None
+-- claims --
+   CPI yoy 2026-02 = 2.434                        mine=2.434                      claim=2.434                      OK
+   CPI yoy 2026-05 = 4.1666 (peak 4.17)           mine=4.1666                     claim=4.1666                     OK
+   CPI yoy 2026-06                                mine=3.46                       (info only, not counted)
+   CPI yoy 2026-07 = 3.30                         mine=3.3                        claim=3.3                        OK
+   CPI yoy 2026-08 = 3.35                         mine=3.35                       claim=3.35                       OK
+   CPI yoy 2026-09 = 3.72                         mine=3.72                       claim=3.72                       OK
+   CPI yoy 2026-10 missing base                   mine=None                       claim=None                       OK
+   CPI yoy 2026-04 = 3.78                         mine=3.78                       claim=3.78                       OK
+   peak of CPI yoy in window is 2026-05           mine=2026-05                    claim=2026-05                    OK
+   low of CPI yoy is 2026-01                      mine=2026-01                    claim=2026-01                    OK
+   CPI yoy 2026-01 (low)                          mine=2.391                      (info only, not counted)
+   all post-2026-05 CPI yoy < 4.1666              mine=True                       claim=True                       OK
+### US CORE_CPI yoy
+   2025-08 3.1118
+   2025-09 3.02
+   2025-10 None
+   2025-11 2.599
+   2025-12 2.6465
+   2026-01 2.512
+   2026-02 2.4725
+   2026-03 2.6022
+   2026-04 2.7433
+   2026-05 2.8229
+   2026-06 2.5658
+   2026-07 2.4665
+   2026-08 2.4462
+   2026-09 2.5658
+   2026-10 None
+   CORE_CPI yoy 2026-02 = 2.47                    mine=2.47                       claim=2.47                       OK
+   CORE_CPI yoy 2026-05 = 2.82                    mine=2.82                       claim=2.82                       OK
+   CORE_CPI yoy 2026-05 = 2.8229                  mine=2.8229                     claim=2.8229                     OK
+   CORE_CPI yoy 2026-08 = 2.4462                  mine=2.4462                     claim=2.4462                     OK
+   CORE_CPI delta 05->08 = -0.3767 (rounded endpoints) mine=-0.3767                    claim=-0.3767                    OK
+   CORE_CPI delta 05->08 unrounded = -0.3768      mine=-0.3768                    claim=-0.3768                    OK
+   CORE_CPI yoy 2026-07 = 2.47 (3m anchor)        mine=2.47                       claim=2.47                       OK
+   CORE_CPI latest valid yoy 2026-09 = 2.57       mine=2.57                       claim=2.57                       OK
+   CORE_CPI yoy 2025-09 = 3.02                    mine=3.02                       claim=3.02                       OK
+### US CORE_PCE yoy
+   2025-07 2.8412
+   2025-08 2.8513
+   2025-09 2.8171
+   2025-10 2.7048
+   2025-11 2.7212
+   2025-12 2.872
+   2026-01 2.938
+   2026-02 2.9592
+   2026-03 3.1052
+   2026-04 3.0839
+   2026-05 3.1617
+   2026-06 3.0412
+   2026-07 2.9953
+   2026-08 3.0344
+   2026-09 3.1212
+   CORE_PCE yoy 2025-08 = 2.85                    mine=2.85                       claim=2.85                       OK
+   CORE_PCE yoy 2026-05 = 3.16 (peak)             mine=3.16                       claim=3.16                       OK
+   CORE_PCE yoy 2026-06 = 3.04                    mine=3.04                       claim=3.04                       OK
+   CORE_PCE yoy 2026-07 = 3.00                    mine=3.0                        claim=3.0                        OK
+   CORE_PCE yoy 2026-08                           mine=3.03                       (info only, not counted)
+   CORE_PCE yoy 2026-09 = 3.12                    mine=3.12                       claim=3.12                       OK
+   CORE_PCE peak month in window                  mine=2026-05                    claim=2026-05                    OK
+   post-peak CORE_PCE never above 3.16            mine=True                       claim=True                       OK
+### US INDPRO yoy
+   2025-06 0.5793
+   2025-07 1.9188
+   2025-08 1.1887
+   2025-09 1.8632
+   2025-10 1.7593
+   2025-11 1.7543
+   2025-12 1.163
+   2026-01 0.9735
+   2026-02 0.7972
+   2026-03 0.6861
+   2026-04 1.4327
+   2026-05 1.7105
+   2026-06 1.4671
+   2026-07 1.2498
+   2026-08 1.4472
+   2026-09 2.1421
+   2026-10 2.1497
+   INDPRO yoy 2025-11 = 1.7543                    mine=1.7543                     claim=1.7543                     OK
+   INDPRO yoy 2026-02 = 0.7972                    mine=0.7972                     claim=0.7972                     OK
+   INDPRO yoy 2026-03 = 0.69 (low)                mine=0.69                       claim=0.69                       OK
+   INDPRO yoy low month in window                 mine=2026-03                    claim=2026-03                    OK
+   INDPRO halved: 0.7972/1.7543 < 0.5             mine=True                       claim=True                       OK
+### US GDP yoy by quarter
+   2025Q2 level=23884.563 yoy=2.421
+   2025Q3 level=24112.966 yoy=2.601
+   2025Q4 level=24125.479 yoy=2.046
+   2026Q1 level=24274.383 yoy=2.639
+   2026Q2 level=24408.011 yoy=2.192
+   2026Q3 level=24611.077 yoy=2.066
+### CN PMI (level, yoy, vs 50) 2025-11..2026-10
+   2024-09 level=49.8 yoy=-0.8 diff_pt=-0.4
+   2024-10 level=50.1 yoy=1.21 diff_pt=0.6
+   2024-11 level=50.3 yoy=1.82 diff_pt=0.9
+   2024-12 level=50.1 yoy=2.24 diff_pt=1.1
+   2025-01 level=49.1 yoy=-0.2 diff_pt=-0.1
+   2025-02 level=50.2 yoy=2.24 diff_pt=1.1
+   2025-03 level=50.5 yoy=-0.59 diff_pt=-0.3
+   2025-04 level=49.0 yoy=-2.78 diff_pt=-1.4
+   2025-05 level=49.5 yoy=0.0 diff_pt=0.0
+   2025-06 level=49.7 yoy=0.4 diff_pt=0.2
+   2025-07 level=49.3 yoy=-0.2 diff_pt=-0.1
+   2025-08 level=49.4 yoy=0.61 diff_pt=0.3
+   2025-09 level=49.8 yoy=0.0 diff_pt=0.0
+   2025-10 level=49.0 yoy=-2.2 diff_pt=-1.1
+   2025-11 level=49.2 yoy=-2.19 diff_pt=-1.1
+   2025-12 level=50.1 yoy=0.0 diff_pt=0.0
+   2026-01 level=49.3 yoy=0.41 diff_pt=0.2
+   2026-02 level=49.0 yoy=-2.39 diff_pt=-1.2
+   2026-03 level=50.4 yoy=-0.2 diff_pt=-0.1
+   2026-04 level=50.3 yoy=2.65 diff_pt=1.3
+   2026-05 level=50.0 yoy=1.01 diff_pt=0.5
+   2026-06 level=50.3 yoy=1.21 diff_pt=0.6
+   2026-07 level=49.2 yoy=-0.2 diff_pt=-0.1
+   2026-08 level=49.8 yoy=0.81 diff_pt=0.4
+   2026-09 level=50.1 yoy=0.6 diff_pt=0.3
+   2026-10 level=49.3 yoy=0.61 diff_pt=0.3
+   >50: [('2025-12', 50.1), ('2026-03', 50.4), ('2026-04', 50.3), ('2026-06', 50.3), ('2026-09', 50.1)]
+   =50: [('2026-05', 50.0)]
+   <50: [('2025-11', 49.2), ('2026-01', 49.3), ('2026-02', 49.0), ('2026-07', 49.2), ('2026-08', 49.8), ('2026-10', 49.3)]
+   months >50 = [2025-12,2026-03,2026-04,2026-06,2026-09] mine=['2025-12', '2026-03', '2026-04', '2026-06', '2026-09'] claim=['2025-12', '2026-03', '2026-04', '2026-06', '2026-09'] OK
+   values >50 = 50.1/50.4/50.3/50.3/50.1          mine=[50.1, 50.4, 50.3, 50.3, 50.1] claim=[50.1, 50.4, 50.3, 50.3, 50.1] OK
+   2026-05 == 50.0                                mine=50.0                       claim=50.0                       OK
+   below-50 range = 49.0..49.8                    mine=(49.0, 49.8)               claim=(49.0, 49.8)               OK
+   2025-11 level: 49.2
+   PMI yoy 2025-10 = -2.2 (diff -1.1pt)           mine=(-2.2, -1.1)               claim=(-2.2, -1.1)               OK
+   PMI yoy 2026-07 = -0.2 (diff -0.1pt)           mine=(-0.2, -0.1)               claim=(-0.2, -0.1)               OK
+   PMI yoy 2026-10 = 0.6/0.61 (diff +0.3pt)       mine=(0.61, 0.3)                claim=(0.61, 0.3)                OK
+   PMI candidate 2026-02 yoy = -2.3904            mine=-2.3904                    claim=-2.3904                    OK
+   PMI candidate 2026-05 yoy = 1.0101             mine=1.0101                     claim=1.0101                     OK
+### CN_CPI_YOY (published yoy series) 2024-09..last
+   first=2008-01-01 last=2026-10-01 n=226
+   2024-09 0.4
+   2024-10 0.3
+   2024-11 0.2
+   2024-12 0.1
+   2025-01 0.5
+   2025-02 -0.7
+   2025-03 -0.1
+   2025-04 -0.1
+   2025-05 -0.1
+   2025-06 0.1
+   2025-07 0.0
+   2025-08 -0.4
+   2025-09 -0.3
+   2025-10 0.2
+   2025-11 0.7
+   2025-12 0.8
+   2026-01 0.2
+   2026-02 1.3
+   2026-03 1.0
+   2026-04 1.2
+   2026-05 1.2
+   2026-06 1.0
+   2026-07 0.5
+   2026-08 0.8
+   2026-09 0.9
+   2026-10 0.7
+### CN_PPI_YOY (published yoy series) 2024-09..last
+   first=2006-01-01 last=2026-10-01 n=250
+   2024-09 -2.8
+   2024-10 -2.9
+   2024-11 -2.5
+   2024-12 -2.3
+   2025-01 -2.3
+   2025-02 -2.2
+   2025-03 -2.5
+   2025-04 -2.7
+   2025-05 -3.3
+   2025-06 -3.6
+   2025-07 -3.6
+   2025-08 -2.9
+   2025-09 -2.3
+   2025-10 -2.1
+   2025-11 -2.2
+   2025-12 -1.9
+   2026-01 -1.4
+   2026-02 -0.9
+   2026-03 0.5
+   2026-04 2.8
+   2026-05 3.9
+   2026-06 4.1
+   2026-07 3.5
+   2026-08 3.8
+   2026-09 5.0
+   2026-10 5.7
+### EA_HICP_YOY (published yoy series) 2024-09..last
+   first=1997-01-01 last=2026-10-01 n=358
+   2024-09 1.7
+   2024-10 2.0
+   2024-11 2.2
+   2024-12 2.4
+   2025-01 2.5
+   2025-02 2.3
+   2025-03 2.2
+   2025-04 2.2
+   2025-05 1.9
+   2025-06 2.0
+   2025-07 2.0
+   2025-08 2.0
+   2025-09 2.2
+   2025-10 2.1
+   2025-11 2.1
+   2025-12 2.0
+   2026-01 1.7
+   2026-02 1.9
+   2026-03 2.6
+   2026-04 3.0
+   2026-05 3.2
+   2026-06 2.8
+   2026-07 2.9
+   2026-08 3.2
+   2026-09 3.8
+   2026-10 4.0
+### JP_CPI_YOY (published yoy series) 2024-09..last
+   first=2021-01-01 last=2026-10-01 n=70
+   2024-09 2.5
+   2024-10 2.25
+   2024-11 2.92
+   2024-12 3.62
+   2025-01 4.03
+   2025-02 3.66
+   2025-03 3.62
+   2025-04 3.56
+   2025-05 3.49
+   2025-06 3.27
+   2025-07 3.1
+   2025-08 2.72
+   2025-09 2.91
+   2025-10 2.99
+   2025-11 2.9
+   2025-12 2.13
+   2026-01 1.51
+   2026-02 1.27
+   2026-03 1.46
+   2026-04 1.38
+   2026-05 1.53
+   2026-06 1.67
+   2026-07 1.97
+   2026-08 1.98
+   2026-09 2.16
+   2026-10 2.44
+### JP_CPI_TOKYO_YOY (published yoy series) 2024-09..last
+   first=2026-01-01 last=2026-10-01 n=10
+   2026-01 1.6
+   2026-02 1.62
+   2026-03 1.49
+   2026-04 1.42
+   2026-05 1.3
+   2026-06 1.6
+   2026-07 1.85
+   2026-08 1.9
+   2026-09 2.69
+   2026-10 2.73
+### JP_POLICY_RATE (published yoy series) 2024-09..last
+   first=1985-07-01 last=2026-10-01 n=496
+   2024-09 0.227
+   2024-10 0.227
+   2024-11 0.227
+   2024-12 0.227
+   2025-01 0.293
+   2025-02 0.478
+   2025-03 0.477
+   2025-04 0.477
+   2025-05 0.477
+   2025-06 0.477
+   2025-07 0.478
+   2025-08 0.477
+   2025-09 0.477
+   2025-10 0.477
+   2025-11 0.478
+   2025-12 0.557
+   2026-01 0.728
+   2026-02 0.728
+   2026-03 0.728
+   2026-04 0.727
+   2026-05 0.727
+   2026-06 0.841
+   2026-07 0.978
+   2026-08 0.977
+   2026-09 1.043
+   2026-10 1.227
+### claim checks CN
+   CN_PPI monthly path 2025-11..2026-10           mine=[]                         (info only, not counted)
+   CN_PPI path                                    mine=[('2025-11', -2.2), ('2025-12', -1.9), ('2026-01', -1.4), ('2026-02', -0.9), ('2026-03', 0.5), ('2026-04', 2.8), ('2026-05', 3.9), ('2026-06', 4.1), ('2026-07', 3.5), ('2026-08', 3.8), ('2026-09', 5.0), ('2026-10', 5.7)] (info only, not counted)
+   CN_PPI months with mom decline after low       mine=['2026-07']                (info only, not counted)
+   CN_PPI 2025-11 low of window                   mine=2025-11                    claim=2025-11                    OK
+   CN_PPI low value                               mine=-2.2                       (info only, not counted)
+   CN_PPI non-decreasing after low (连升)           mine=False                      claim=True                       <<< MISMATCH
+   CN_PPI 2026-02 = -0.9                          mine=-0.9                       claim=-0.9                       OK
+   CN_PPI 2026-05 = 3.9                           mine=3.9                        claim=3.9                        OK
+   CN_PPI 2026-07 = 3.5                           mine=3.5                        claim=3.5                        OK
+   CN_PPI 2026-10 = 5.7 (window max)              mine=(5.7, True)                claim=(5.7, True)                OK
+   CN_CPI 2026-02..05 within 1.0..1.3             mine=[1.3, 1.0, 1.2, 1.2]       (info only, not counted)
+   CN_CPI 2026-02..05 all in [1.0,1.3]            mine=True                       claim=True                       OK
+   CN_CPI candidate 2026-01 0.2 -> 2026-04 1.2    mine=(0.2, 1.2)                 claim=(0.2, 1.2)                 OK
+   largest price swing among four (PPI -2.1 -> 5.7 = 7.8pp) mine=7.8                        claim=7.8                        OK
+### claim checks EA
+   EA HICP 2026-01 low = 1.7                      mine=1.7                        claim=1.7                        OK
+   EA HICP 2026-02 = 1.9                          mine=1.9                        claim=1.9                        OK
+   EA HICP 2026-04 = 3.0                          mine=3.0                        claim=3.0                        OK
+   EA HICP 2026-05 = 3.2                          mine=3.2                        claim=3.2                        OK
+   EA HICP 2026-06 = 2.8                          mine=2.8                        claim=2.8                        OK
+   EA HICP 2026-07 = 2.9                          mine=2.9                        claim=2.9                        OK
+   EA HICP 2026-08 = 3.2                          mine=3.2                        claim=3.2                        OK
+   EA HICP 2026-10 = 4.0                          mine=4.0                        claim=4.0                        OK
+   EA HICP increments 07,08,09,10 = +0.1,+0.3,+0.6,+0.2 mine=(0.1, 0.3, 0.6, 0.2)       claim=(0.1, 0.3, 0.6, 0.2)       OK
+   EA HICP 4.0 is window max (本轮最高)               mine=True                       claim=True                       OK
+   EA HICP all-series max (for context)           mine=10.6                       (info only, not counted)
+   EA HICP monotone up 2026-01..2026-05           mine=True                       claim=True                       OK
+### claim checks JP
+   JP CPI 2025-01 high = 4.03                     mine=4.03                       claim=4.03                       OK
+   JP CPI high month (2024-06..2026-02)           mine=2025-01                    claim=2025-01                    OK
+   JP CPI 2025-08 2.72 (mom -0.38)
+   JP CPI 2025-09 2.91 (mom 0.19)
+   JP CPI 2025-10 2.99 (mom 0.08)
+   JP CPI 2025-11 2.9 (mom -0.09)
+   JP CPI 2025-12 2.13 (mom -0.77)
+   JP CPI 2026-01 1.51 (mom -0.62)
+   JP CPI 2026-02 1.27 (mom -0.24)
+   JP CPI 2026-03 1.46 (mom 0.19)
+   JP CPI 2026-04 1.38 (mom -0.08)
+   JP CPI 2026-05 1.53 (mom 0.15)
+   JP CPI 2026-06 1.67 (mom 0.14)
+   JP CPI 2026-07 1.97 (mom 0.3)
+   JP CPI 2026-08 1.98 (mom 0.01)
+   JP CPI 2026-09 2.16 (mom 0.18)
+   JP CPI 2026-10 2.44 (mom 0.28)
+   JP CPI path 2025-11 2.9 / 12 2.13 / 2026-01 1.51 / 02 1.27 mine=(2.9, 2.13, 1.51, 1.27)    claim=(2.9, 2.13, 1.51, 1.27)    OK
+   JP CPI 2026-03 = 1.46, 2026-04 = 1.38          mine=(1.46, 1.38)               claim=(1.46, 1.38)               OK
+   JP CPI 2026-07 = 1.97, 2026-10 = 2.44          mine=(1.97, 2.44)               claim=(1.97, 2.44)               OK
+   JP CPI low month 2026-02                       mine=2026-02                    claim=2026-02                    OK
+   JP CPI rising every month from 2026-05         mine=True                       claim=True                       OK
+   Tokyo 2026-06 = 1.6, 2026-09 = 2.69, 2026-08 = 1.9, 2026-07 = 1.85, 2026-10 = 2.73 mine=(1.6, 2.69, 1.9, 1.85, 2.73) claim=(1.6, 2.69, 1.9, 1.85, 2.73) OK
+   Tokyo series first month                       mine=2026-01                    (info only, not counted)
+### latest consumer-price readings: EA 4.0 highest among four (latest obs month)
+   US CPI latest valid yoy 3.72@2026-09 (2026-10 n/a); JP 2.44; CN 0.7; EA 4.0
+   EA 4.0 > US 3.72, JP 2.44, CN 0.7              mine=True                       claim=True                       OK
+====================================================================================================
+POINTS=69 MISMATCHES=1

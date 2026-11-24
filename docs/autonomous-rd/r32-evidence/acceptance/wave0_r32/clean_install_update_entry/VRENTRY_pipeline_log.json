@@ -1,0 +1,121 @@
+{
+ "run_at": "2026-11-24T16:58:14",
+ "run_date": "2026-11-24",
+ "duration_sec": 886.4,
+ "steps": [
+  {
+   "name": "1/15 全球市场数据采集",
+   "ok": true,
+   "critical": true,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "2/15 A股港股数据采集",
+   "ok": true,
+   "critical": true,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "3/15 宏观数据采集",
+   "ok": true,
+   "critical": true,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "4/15 新闻采集与分析",
+   "ok": true,
+   "critical": false,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "5/15 利率预期与实体经济",
+   "ok": true,
+   "critical": true,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "6/15 日本利率与国债曲线(japan_)",
+   "ok": true,
+   "critical": false,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "7/15 日本市场数据采集(jp_)",
+   "ok": true,
+   "critical": false,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "8/15 欧元区市场数据采集(ea_)",
+   "ok": true,
+   "critical": false,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "9/15 Shiller估值采集(shiller_)",
+   "ok": true,
+   "critical": false,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "10/15 研究快照构建(Gate A)",
+   "ok": true,
+   "critical": true,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "11/15 宏观体制评分卡(消费快照)",
+   "ok": true,
+   "critical": true,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "12/15 跨资产相关性(消费快照)",
+   "ok": true,
+   "critical": false,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "13/15 数据汇总打包",
+   "ok": true,
+   "critical": true,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "14/15 数据校验与锚点生成",
+   "ok": true,
+   "critical": true,
+   "skipped": false,
+   "skip_reason": null
+  },
+  {
+   "name": "15/15 日档保留策略(90天全量+月度归档)",
+   "ok": true,
+   "critical": false,
+   "skipped": false,
+   "skip_reason": null
+  }
+ ],
+ "success_count": 15,
+ "research_target_date": "20261124",
+ "snapshot_id": "research_snapshot_20261124_v2",
+ "snapshot_file": "research_snapshot_20261124_v2.json",
+ "snapshot_digest": "2fd36e91d5f7ec31",
+ "gate_a": "DEGRADED",
+ "gate_a_reason": null,
+ "allow_formal_report": true,
+ "allow_state_writeback": true
+}

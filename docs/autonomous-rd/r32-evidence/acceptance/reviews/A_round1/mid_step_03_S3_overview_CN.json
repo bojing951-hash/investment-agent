@@ -1,0 +1,827 @@
+{
+ "ok": true,
+ "capability": "overview",
+ "engine_root": "/private/tmp/r32-accept/final6",
+ "snapshot_id": "research_snapshot_20261123",
+ "target_date": "20261123",
+ "research_as_of": "2026-11-23",
+ "gate_a": "DEGRADED",
+ "data": {
+  "economies": {
+   "CN": {
+    "label": "中国",
+    "n_metrics": 19,
+    "n_missing": 2,
+    "metrics": [
+     {
+      "metric_id": "USDCNY",
+      "display_name": "美元兑人民币",
+      "unit": "cny_per_usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "fx_rate",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "global",
+       "economy": "CN"
+      },
+      "calc": "即期汇率(上涨=人民币贬值)",
+      "unit_subfamily": "fx",
+      "value": 6.65,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.1845,
+        "basis_date": "2026-11-20",
+        "basis_value": 6.6665,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -0.1021,
+        "basis_date": "2026-10-30",
+        "basis_value": 6.661,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -4.887,
+        "basis_date": "2025-12-31",
+        "basis_value": 6.9961,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 232,
+        "expected_sessions": 234,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "FXI",
+      "display_name": "iShares中国大盘ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "中国大盘股(成分含港股上市中资股,非A股指数)",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "CN"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 31.59,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 1.1687,
+        "basis_date": "2026-11-20",
+        "basis_value": 31.23,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -4.4891,
+        "basis_date": "2026-10-30",
+        "basis_value": 33.080002,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -16.8654,
+        "basis_date": "2025-12-31",
+        "basis_value": 38.004642,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "SHCOMP",
+      "display_name": "上证指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "指数收盘点位",
+      "value": 3538.948,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 0.1459,
+        "basis_date": "2026-11-20",
+        "basis_value": 3533.7929,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -1.669,
+        "basis_date": "2026-10-30",
+        "basis_value": 3599.0166,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -10.8317,
+        "basis_date": "2025-12-31",
+        "basis_value": 3968.8401,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 214,
+        "expected_sessions": 216,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "SZCI",
+      "display_name": "深证成指",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "指数收盘点位",
+      "value": 10454.3695,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 1.9303,
+        "basis_date": "2026-11-20",
+        "basis_value": 10256.3885,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -3.5021,
+        "basis_date": "2026-10-30",
+        "basis_value": 10833.7839,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -22.7035,
+        "basis_date": "2025-12-31",
+        "basis_value": 13525.0228,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 214,
+        "expected_sessions": 216,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "CHINEXT",
+      "display_name": "创业板指",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "指数收盘点位",
+      "value": 2280.2043,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 3.0774,
+        "basis_date": "2026-11-20",
+        "basis_value": 2212.1274,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -5.528,
+        "basis_date": "2026-10-30",
+        "basis_value": 2413.6291,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -28.8142,
+        "basis_date": "2025-12-31",
+        "basis_value": 3203.1717,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 214,
+        "expected_sessions": 216,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "MARGIN_BAL",
+      "display_name": "两融余额(沪深)",
+      "unit": "cny_100m",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "leverage",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "融资融券余额存量(亿元)",
+      "value": 21797.96,
+      "presence": "present",
+      "value_type": "outstanding_balance",
+      "observation_date": "2026-11-20",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "SH_PE",
+      "display_name": "上证市盈率",
+      "unit": "ratio",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "valuation",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "上证指数整体PE(TTM)",
+      "value": 15.58,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "SH_AMOUNT",
+      "display_name": "沪市成交额(全市场)",
+      "unit": "cny_100m",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "volume_amount",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "上交所全部成交金额(亿元;Tushare 000001.SH amount,千元→亿)",
+      "value": 7385.0,
+      "presence": "present",
+      "value_type": "daily_turnover",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "SZ_COMPONENT_AMOUNT",
+      "display_name": "深证成指成分成交额",
+      "unit": "cny_100m",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "volume_amount",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "深证成指成分股成交金额(亿元;非深市全市场,全市场须用399106.SZ)",
+      "value": 4091.88,
+      "presence": "present",
+      "value_type": "daily_turnover",
+      "observation_date": "2026-11-23",
+      "quality_status": "WARN",
+      "issues": [
+       {
+        "category": "completeness",
+        "severity": "WARN",
+        "message": "深证成指成分口径(非深市全市场,全市场须399106.SZ)"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "CN_TOTAL_TURNOVER",
+      "display_name": "沪深两市成交额(近似口径)",
+      "unit": "cny_100m",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "volume_amount",
+      "identity": {
+       "instrument": "aggregate",
+       "is_proxy": true,
+       "proxy_of": "沪深两市全市场成交额(深市部分以成分近似)",
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "沪市全市场+深证成指成分(亿元)——注意:现口径非严格沪深全市场(深市全市场需399106.SZ),标注为近似",
+      "value": 11476.88,
+      "presence": "present",
+      "value_type": "daily_turnover",
+      "observation_date": "2026-11-23",
+      "quality_status": "WARN",
+      "issues": [
+       {
+        "category": "completeness",
+        "severity": "WARN",
+        "message": "口径=沪市全市场+深证成指成分(近似,非严格沪深全市场)"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "CN_LPR_1Y",
+      "display_name": "贷款市场报价利率(LPR)1年期",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "monthly",
+      "asset_class": "macro_rate",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "akshare macro_china_lpr(东方财富)TRADE_DATE/LPR1Y 列最新观测(1年期 LPR,%)",
+      "value": 3.0,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-20",
+      "quality_status": "WARN",
+      "issues": [
+       {
+        "category": "release",
+        "severity": "WARN",
+        "message": "CN_LPR_1Y发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "CN_LPR_5Y",
+      "display_name": "贷款市场报价利率(LPR)5年期",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "monthly",
+      "asset_class": "macro_rate",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "akshare macro_china_lpr(东方财富)TRADE_DATE/LPR5Y 列最新观测(5年期以上 LPR,%)",
+      "value": 3.5,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-20",
+      "quality_status": "WARN",
+      "issues": [
+       {
+        "category": "release",
+        "severity": "WARN",
+        "message": "CN_LPR_5Y发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "CN_CPI_YOY",
+      "display_name": "居民消费价格指数(CPI)同比",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "monthly",
+      "asset_class": "macro_index",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "全国 CPI 当月同比(%);R20 源切换: china_market_collector fetch_macro_series 经东方财富数据中台 RPT_ECONOMY_CPI(NATIONAL_SAME 列,REPORT_DATE 降序,2008-01..2026-10 共226月),免key;与统计局公布口径一致",
+      "value": 0.7,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-10-31",
+      "quality_status": "WARN",
+      "issues": [
+       {
+        "category": "release",
+        "severity": "WARN",
+        "message": "CN_CPI_YOY发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "CN_PPI_YOY",
+      "display_name": "工业生产者出厂价格指数(PPI)同比",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "monthly",
+      "asset_class": "macro_index",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "全国 PPI 全部工业品当月同比(%);R20 源切换: china_market_collector fetch_macro_series 经东方财富数据中台 RPT_ECONOMY_PPI(BASE_SAME 列,2006-01..2026-10 共250月),免key",
+      "value": 5.7,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-10-31",
+      "quality_status": "WARN",
+      "issues": [
+       {
+        "category": "release",
+        "severity": "WARN",
+        "message": "CN_PPI_YOY发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "CN_PMI_MFG",
+      "display_name": "制造业PMI",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "monthly",
+      "asset_class": "macro_index",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "akshare macro_china_pmi(东方财富)「制造业-指数」列最新观测(国家统计局制造业 PMI);历史序列=正式生成器 china_market_collector.fetch_macro_history 全史拉取+归一(月度锚=统计期月首 YYYY-MM-01),经 macro_collector.merge_cn_history 随每档续存(macro_*采集档 data.CN_PMI_MFG.series,Audit-R6 条目2 正式入口,R5 临时 addendum 废止);2026-10=49.3与统计局发布一致(Audit-R5 核验)",
+      "value": 49.3,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-10-01",
+      "quality_status": "WARN",
+      "issues": [
+       {
+        "category": "release",
+        "severity": "WARN",
+        "message": "CN_PMI_MFG发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "CN_SF_FLOW",
+      "display_name": "社会融资规模增量",
+      "unit": "cny_100m",
+      "unit_family": "price",
+      "frequency": "monthly",
+      "asset_class": "flow",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "mofcom shrzgmQuery 行 date(YYYYMM)/tiosfs(社会融资规模增量)最新有值观测(当月新增社融,亿元人民币;月度流量非存量;R9 直取,akshare 壳因本机 TLS 栈不可用而弃)",
+      "value": 6245.0,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-04-01",
+      "quality_status": "DEGRADED",
+      "issues": [
+       {
+        "category": "release",
+        "severity": "WARN",
+        "message": "CN_SF_FLOW发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+       },
+       {
+        "category": "frequency",
+        "severity": "DEGRADED",
+        "message": "CN_SF_FLOW观测日滞后236天(>60天有效窗,monthly频;未发布或采集失败,不得当作最新一期)"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "CN_NEW_LOANS",
+      "display_name": "新增人民币贷款(对实体经济口径)",
+      "unit": "cny_100m",
+      "unit_family": "price",
+      "frequency": "monthly",
+      "asset_class": "flow",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "akshare macro_china_new_financial_credit(东方财富)「当月」列全量月史;实际口径=对实体经济发放的人民币贷款(人民银行社融口径),非全口径新增贷款——累计2026-10=109149亿与央行「前十个月对实体10.91万亿」逐位一致;全口径对照 2026-10=-1000亿/2026-09≈1.08万亿(央行)vs 本列-5846/12734亿(Audit-R5 核验);历史序列=正式生成器 china_market_collector.fetch_macro_history 全史拉取+归一(月度锚=统计期月首 YYYY-MM-01),经 macro_collector.merge_cn_history 随每档续存(macro_*采集档 data.CN_NEW_LOANS.series,Audit-R6 条目2 正式入口,R5 临时 addendum 废止)",
+      "value": -5846.0,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-10-01",
+      "quality_status": "WARN",
+      "issues": [
+       {
+        "category": "release",
+        "severity": "WARN",
+        "message": "CN_NEW_LOANS发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "CN_OMO_7D",
+      "display_name": "央行7天期逆回购利率",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "policy_rate",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "人民银行公开市场业务交易公告 7 天期逆回购操作利率(中标/有效利率口径);R20 接线: china_market_collector fetch_macro_series 走查 pbc.gov.cn 125475 列表页(17081 分页),逐公告解析期限|操作利率表,7天期取操作利率(同公告多期限取最小),公告HTML按日期码缓存 DATA_DIR/cache/pboc_omo 支持增量;窗口内(2025-10..2026-10)7天利率恒为1.40,近期公告为隔夜品种(1.25)不覆盖本条目;R21 根修: 操作量为零日(2026-06/08/09/10 内 23 日,如 2026-08-19)公告无操作利率列(期限|投标量|中标量),解析层拒收量纲格——当日无成交利率不产观测,旧面 0.0 值系投标量误读为利率(伪影)",
+      "value": null,
+      "presence": "missing",
+      "absence_reason": "来源文件在场而指标缺席(采集遗漏或子源缺席——注册表未登记该指标子源状态键,不可区分)",
+      "observation_date": null,
+      "quality_status": "MISSING",
+      "source": "china_market_collector",
+      "changes": []
+     },
+     {
+      "metric_id": "CN_POLICY_OVERNIGHT",
+      "display_name": "央行隔夜逆回购利率(政策利率锚)",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "policy_rate",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "人民银行公开市场业务交易公告 隔夜期逆回购操作利率;Audit-R21 接线: 2026-11-02 起央行将政策利率锚自 7 天期切换为隔夜期(公告自该日仅含隔夜行,1.25%),fetch_macro_series 公告走查同源解析隔夜行产本序列(2026-11-02..在场,操作日=公告日);7 天工具(CN_OMO_7D)与 LPR(CN_LPR_1Y)单列不作废",
+      "value": null,
+      "presence": "missing",
+      "absence_reason": "来源文件在场而指标缺席(采集遗漏或子源缺席——注册表未登记该指标子源状态键,不可区分)",
+      "observation_date": null,
+      "quality_status": "MISSING",
+      "source": "china_market_collector",
+      "changes": []
+     }
+    ],
+    "observation_span": {
+     "earliest": "2026-04-01",
+     "latest": "2026-11-23"
+    }
+   }
+  },
+  "supported_hint": "当前支持的完整研究问题类型(基于本地快照事实作答):\n  1) 美日政策利率差(触发词: 政策利率差)\n  2) 美日10年期国债收益率差(触发词: 10年期/十年期…收益率差;附美端2s10s)\n  3) 美元兑日元水平与近期走势(触发词: 美元兑日元/USDJPY/日元汇率)\n  4) 美国政策利率水平(触发词: 联邦基金/美联储利率/美国政策利率)\n  支持附加: as_of 日期限定 / 单经济体问题转概览。\n交易、持仓、收益承诺、个股买卖等投资建议类问题属于越界(out_of_scope),本系统为研究工具,不提供投资建议。"
+ },
+ "warnings": []
+}

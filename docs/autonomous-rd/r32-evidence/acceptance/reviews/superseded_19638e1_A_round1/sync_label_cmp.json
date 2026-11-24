@@ -1,0 +1,74 @@
+[
+ {
+  "period": "2025-03",
+  "region": "CN",
+  "dimension": "inflation",
+  "judgment_label": "分化",
+  "engine_label": null,
+  "engine_path": null
+ },
+ {
+  "period": "2025-03",
+  "region": "EA",
+  "dimension": "inflation",
+  "judgment_label": "分化",
+  "engine_label": null,
+  "engine_path": null
+ },
+ {
+  "period": "2025-03",
+  "region": "JP",
+  "dimension": "inflation",
+  "judgment_label": "同步",
+  "engine_label": null,
+  "engine_path": null
+ },
+ {
+  "period": "2022-06",
+  "region": "CN",
+  "dimension": "inflation",
+  "judgment_label": "同步",
+  "engine_label": null,
+  "engine_path": null
+ },
+ {
+  "period": "2022-06",
+  "region": "EA",
+  "dimension": "inflation",
+  "judgment_label": "同步",
+  "engine_label": null,
+  "engine_path": null
+ },
+ {
+  "period": "2022-06",
+  "region": "JP",
+  "dimension": "inflation",
+  "judgment_label": "同步",
+  "engine_label": null,
+  "engine_path": null
+ },
+ {
+  "period": "2023-10",
+  "region": "CN",
+  "dimension": "inflation",
+  "judgment_label": "分化",
+  "engine_label": null,
+  "engine_path": null
+ },
+ {
+  "period": "2023-10",
+  "region": "EA",
+  "dimension": "inflation",
+  "judgment_label": "分化",
+  "engine_label": null,
+  "engine_path": null
+ },
+ {
+  "period": "2023-10",
+  "region": "JP",
+  "dimension": "inflation",
+  "judgment_label": "分化",
+  "engine_label": null,
+  "engine_path": null
+ }
+]

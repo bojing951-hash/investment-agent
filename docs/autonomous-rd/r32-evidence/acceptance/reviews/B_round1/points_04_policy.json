@@ -1,0 +1,579 @@
+{
+ "block": "④",
+ "title": "政策面: 冻结日历条目/距上次调整/月均口径台阶",
+ "rows": [
+  {
+   "block": "④",
+   "id": "D1-RC-JP-BOJ-TARGET-2026-09 在场且 kind=policy_decision",
+   "source": "root_overlay/config/release_calendar.json:entries[entry_id=RC-JP-BOJ-TARGET-2026-09]",
+   "computed": "policy_decision",
+   "claim": "policy_decision",
+   "match": true,
+   "detail": "{\"entry_id\": \"RC-JP-BOJ-TARGET-2026-09\", \"kind\": \"policy_decision\", \"basis\": \"user_directive\", \"metric_id\": \"JP_POLICY_TARGET\", \"obs_from\": \"2026-09-18\", \"obs_to\": \"2099-12-31\", \"decision_date\": \"2026-09-18\", \"effective_on\": \"2026-09-24\", \"target_value\": 1.25, \"not_published_as_of\": \"2026-09-17\", \"first_publish_on_or_after\": \"2026-09-18\", \"note\": \"日本央行政策目标利率(宣布值口径)2026-09-18 决议、2026-09-24 生效,目标水平约1.25%——R28 验收指令实录(2026-11-21 复测基线);距上次调整按生效日计算\", \"source\": \"Audit-R28 验收指令(2026-11-21)\"}"
+  },
+  {
+   "block": "④",
+   "id": "D1-决议日 decision_date",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-TARGET-2026-09.decision_date",
+   "computed": "2026-09-18",
+   "claim": "2026-09-18",
+   "match": true,
+   "detail": "直算/直读"
+  },
+  {
+   "block": "④",
+   "id": "D1-生效日 effective_on",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-TARGET-2026-09.effective_on",
+   "computed": "2026-09-24",
+   "claim": "2026-09-24",
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "④",
+   "id": "D1-目标水平 target_value(约一点二五)",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-TARGET-2026-09.target_value",
+   "computed": 1.25,
+   "claim": 1.25,
+   "match": true,
+   "detail": "直算 1.25 → 取 2 位 1.25; 报告 1.25; "
+  },
+  {
+   "block": "④",
+   "id": "D1-公告可见日 first_publish_on_or_after=决议日",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-TARGET-2026-09.first_publish_on_or_after",
+   "computed": "2026-09-18",
+   "claim": "2026-09-18",
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "④",
+   "id": "D1-决议日≤截止日(可引用)",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-TARGET-2026-09",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "decision 2026-09-18 / effective 2026-09-24 vs cutoff 2026-11-23"
+  },
+  {
+   "block": "④",
+   "id": "D2-RC-JP-BOJ-MAINT-2026-10 在场且 kind=policy_maintenance",
+   "source": "root_overlay/config/release_calendar.json:entries[entry_id=RC-JP-BOJ-MAINT-2026-10]",
+   "computed": "policy_maintenance",
+   "claim": "policy_maintenance",
+   "match": true,
+   "detail": "{\"entry_id\": \"RC-JP-BOJ-MAINT-2026-10\", \"kind\": \"policy_maintenance\", \"basis\": \"user_directive\", \"metric_id\": \"JP_POLICY_TARGET\", \"obs_from\": \"2026-10-30\", \"obs_to\": \"2099-12-31\", \"decision_date\": \"2026-10-30\", \"target_value\": 1.25, \"not_published_as_of\": \"2026-10-29\", \"first_publish_on_or_after\": \"2026-10-30\", \"note\": \"日本央行 2026-10-30 会议确认维持政策目标利率约1.25%不变——确认维持不改变目标水平,但更新核验覆盖截止(R28 任务2: 确认维持也更新核验日期)\", \"source\": \"Audit-R28 验收指令(2026-11-21)\"}"
+  },
+  {
+   "block": "④",
+   "id": "D2-确认维持日 2026-10-30",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-MAINT-2026-10.decision_date",
+   "computed": "2026-10-30",
+   "claim": "2026-10-30",
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "④",
+   "id": "D2-维持条目目标水平",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-MAINT-2026-10.target_value",
+   "computed": 1.25,
+   "claim": 1.25,
+   "match": true,
+   "detail": "直算 1.25 → 取 2 位 1.25; 报告 1.25; "
+  },
+  {
+   "block": "④",
+   "id": "D2-维持条目无生效日(正文不为其挂生效日)",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-MAINT-2026-10",
+   "computed": false,
+   "claim": false,
+   "match": true,
+   "detail": "键集=['entry_id', 'kind', 'basis', 'metric_id', 'obs_from', 'obs_to', 'decision_date', 'target_value', 'not_published_as_of', 'first_publish_on_or_after', 'note', 'source']"
+  },
+  {
+   "block": "④",
+   "id": "D3-距上次调整(按生效日 2026-09-24→截止日)天数",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-TARGET-2026-09.effective_on ; 快照 research_as_of",
+   "computed": 60,
+   "claim": 60,
+   "match": true,
+   "detail": "日历日直算"
+  },
+  {
+   "block": "④",
+   "id": "D3-距上次调整(按决议日 2026-09-18→截止日)天数",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-TARGET-2026-09.decision_date",
+   "computed": 66,
+   "claim": 66,
+   "match": true,
+   "detail": "日历日直算"
+  },
+  {
+   "block": "④",
+   "id": "D3-距确认维持(2026-10-30→截止日)天数=24(其后日历无条目)",
+   "source": "root_overlay/config/release_calendar.json:RC-JP-BOJ-MAINT-2026-10.decision_date",
+   "computed": 24,
+   "claim": 24,
+   "match": true,
+   "detail": "日历日直算"
+  },
+  {
+   "block": "④",
+   "id": "D4-日历政策条目共 2 条且均为日本央行实录; 维持后无新条目",
+   "source": "root_overlay/config/release_calendar.json:entries(kind=policy_*)",
+   "computed": [
+    "RC-JP-BOJ-TARGET-2026-09",
+    "RC-JP-BOJ-MAINT-2026-10"
+   ],
+   "claim": [
+    "RC-JP-BOJ-TARGET-2026-09",
+    "RC-JP-BOJ-MAINT-2026-10"
+   ],
+   "match": true,
+   "detail": "政策条目=['RC-JP-BOJ-TARGET-2026-09', 'RC-JP-BOJ-MAINT-2026-10']; metric_ids=['JP_POLICY_TARGET']; 2026-10-30 之后的新条目=[]"
+  },
+  {
+   "block": "④",
+   "id": "D4-冻结日历无美欧决议/生效实录条目",
+   "source": "root_overlay/config/release_calendar.json:entries",
+   "computed": [
+    "JP_POLICY_TARGET"
+   ],
+   "claim": [
+    "JP_POLICY_TARGET"
+   ],
+   "match": true,
+   "detail": "政策条目 metric_id 集合"
+  },
+  {
+   "block": "④",
+   "id": "D4-冻结日历版本 v1.5.0",
+   "source": "root_overlay/config/release_calendar.json:version",
+   "computed": "1.5.0",
+   "claim": "1.5.0",
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "④",
+   "id": "D5-JP_POLICY_RATE 月均 2025-11..2026-10 逐月值",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE",
+   "computed": [
+    [
+     "2025-10",
+     0.477
+    ],
+    [
+     "2025-11",
+     0.478
+    ],
+    [
+     "2025-12",
+     0.557
+    ],
+    [
+     "2026-01",
+     0.728
+    ],
+    [
+     "2026-02",
+     0.728
+    ],
+    [
+     "2026-03",
+     0.728
+    ],
+    [
+     "2026-04",
+     0.727
+    ],
+    [
+     "2026-05",
+     0.727
+    ],
+    [
+     "2026-06",
+     0.841
+    ],
+    [
+     "2026-07",
+     0.978
+    ],
+    [
+     "2026-08",
+     0.977
+    ],
+    [
+     "2026-09",
+     1.043
+    ],
+    [
+     "2026-10",
+     1.227
+    ]
+   ],
+   "claim": {
+    "2025-11": 0.478,
+    "2025-12": 0.557,
+    "2026-01": 0.728,
+    "2026-06": 0.841,
+    "2026-07": 0.978,
+    "2026-09": 1.043,
+    "2026-10": 1.227,
+    "2026-08": 0.977,
+    "2026-04": 0.727
+   },
+   "match": true,
+   "detail": "受审稿引用月逐月对账"
+  },
+  {
+   "block": "④",
+   "id": "D5-月均相邻变动点(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE(相邻月差)",
+   "computed": [
+    [
+     "2025-11",
+     0.477,
+     0.478,
+     0.1
+    ],
+    [
+     "2025-12",
+     0.478,
+     0.557,
+     7.9
+    ],
+    [
+     "2026-01",
+     0.557,
+     0.728,
+     17.1
+    ],
+    [
+     "2026-02",
+     0.728,
+     0.728,
+     0.0
+    ],
+    [
+     "2026-03",
+     0.728,
+     0.728,
+     0.0
+    ],
+    [
+     "2026-04",
+     0.728,
+     0.727,
+     -0.1
+    ],
+    [
+     "2026-05",
+     0.727,
+     0.727,
+     0.0
+    ],
+    [
+     "2026-06",
+     0.727,
+     0.841,
+     11.4
+    ],
+    [
+     "2026-07",
+     0.841,
+     0.978,
+     13.7
+    ],
+    [
+     "2026-08",
+     0.978,
+     0.977,
+     -0.1
+    ],
+    [
+     "2026-09",
+     0.977,
+     1.043,
+     6.6
+    ],
+    [
+     "2026-10",
+     1.043,
+     1.227,
+     18.4
+    ]
+   ],
+   "claim": "2025-12 +8; 2026-01 +17; 2026-06 +11; 2026-07 +14; 2026-09 +7; 2026-10 +18",
+   "match": true,
+   "detail": "变动点(≥0.5bp)逐点"
+  },
+  {
+   "block": "④",
+   "id": "D5-12 个月政策窗净变动(bp): 2025-11 月均→2026-10 月均",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-10]-[2025-11]",
+   "computed": 74.9,
+   "claim": 75,
+   "match": true,
+   "detail": "直算 74.9 → 取 0 位 75.0; 报告 75; "
+  },
+  {
+   "block": "④",
+   "id": "D5-仅自窗内首观测 2025-12 月均起算(bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-10]-[2025-12]",
+   "computed": 67.0,
+   "claim": 67,
+   "match": true,
+   "detail": "直算 67 → 取 0 位 67.0; 报告 67; "
+  },
+  {
+   "block": "④",
+   "id": "D5-净变动=窗内六个变动点之和(按所述整数 bp 精度)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE(变动点求和)",
+   "computed": {
+    "六点整数bp之和": 75,
+    "变动点数": 6,
+    "端点差取整": 75
+   },
+   "claim": {
+    "sum": 75,
+    "n": 6
+   },
+   "match": true,
+   "detail": "整数 bp: 8+17+11+14+7+18=75; 端点差 74.9000bp→75; 变动点数=6"
+  },
+  {
+   "block": "④",
+   "id": "D5-注记: 六点两位小数直和 75.1bp vs 端点差 74.9bp(阈值下漂移)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE",
+   "computed": {
+    "六点两位小数直和(bp)": 75.1,
+    "端点差(bp)": 74.9,
+    "阈值下漂移(bp)": [
+     [
+      "2025-11",
+      0.1
+     ],
+     [
+      "2026-04",
+      -0.1
+     ],
+     [
+      "2026-08",
+      -0.1
+     ]
+    ]
+   },
+   "claim": "恒等仅在整数 bp 显示精度成立",
+   "match": true,
+   "detail": "直和 75.10 − 端点差 74.90 = 0.20bp; 阈值下漂移=[('2025-11', 0.1), ('2026-04', -0.1), ('2026-08', -0.1)](计入 NIT, 不计偏离)"
+  },
+  {
+   "block": "④",
+   "id": "D5-2026-02→05 与 2026-07→08 相邻月均差均 ≤0.001(=0.1bp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE",
+   "computed": [
+    [
+     "2026-03",
+     0.0
+    ],
+    [
+     "2026-04",
+     -0.1
+    ],
+    [
+     "2026-05",
+     0.0
+    ],
+    [
+     "2026-08",
+     -0.1
+    ]
+   ],
+   "claim": true,
+   "match": true,
+   "detail": "相邻月均差(bp): [('2026-03', 0.0), ('2026-04', -0.1), ('2026-05', 0.0), ('2026-08', -0.1)]"
+  },
+  {
+   "block": "④",
+   "id": "D5-2026 年内上行月均台阶: 01/06/07 为头三个(2026-07 为第三个)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE",
+   "computed": [
+    "2026-01",
+    "2026-06",
+    "2026-07",
+    "2026-09",
+    "2026-10"
+   ],
+   "claim": [
+    "2026-01",
+    "2026-06",
+    "2026-07",
+    "2026-09",
+    "2026-10"
+   ],
+   "match": true,
+   "detail": "2026 年内变动点序列=['2026-01', '2026-06', '2026-07', '2026-09', '2026-10']"
+  },
+  {
+   "block": "④",
+   "id": "D5-2026-04→2026-07 锚 0.727→0.978(经 2026-06 0.841)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-04],[2026-06],[2026-07]",
+   "computed": [
+    0.727,
+    0.841,
+    0.978
+   ],
+   "claim": [
+    0.727,
+    0.841,
+    0.978
+   ],
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "④",
+   "id": "D5-最近一级台阶=2026-09→2026-10(其后无更新观测)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE.dates",
+   "computed": "2026-10",
+   "claim": "2026-10",
+   "match": true,
+   "detail": "末变动点=('2026-10', 1.043, 1.227, 18.4)"
+  },
+  {
+   "block": "④",
+   "id": "D6-DFEDTARU 变动日与前后值",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.DFEDTARU",
+   "computed": [
+    [
+     "2026-09-17",
+     3.75,
+     4.0
+    ]
+   ],
+   "claim": [
+    "2026-09-17",
+    3.75,
+    4.0
+   ],
+   "match": true,
+   "detail": "2026-06 起变动点=[('2026-09-17', 3.75, 4.0)]; 末观测=('2026-11-23', 4.0)"
+  },
+  {
+   "block": "④",
+   "id": "D6-ECB_DFR 变动日与前后值",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.ECB_DFR",
+   "computed": [
+    [
+     "2026-06-17",
+     2.0,
+     2.25
+    ],
+    [
+     "2026-09-16",
+     2.25,
+     2.5
+    ]
+   ],
+   "claim": [
+    "2026-09-16",
+    2.25,
+    2.5
+   ],
+   "match": true,
+   "detail": "2026-06 起变动点=[('2026-06-17', 2.0, 2.25), ('2026-09-16', 2.25, 2.5)]; 末观测=('2026-09-16', 2.5)"
+  },
+  {
+   "block": "④",
+   "id": "D6-DFEDTARU/ECB_DFR 不在本问证据索引(63 行)",
+   "source": "evidence_index.json",
+   "computed": [],
+   "claim": [],
+   "match": true,
+   "detail": "证据索引中命中的政策序列"
+  },
+  {
+   "block": "④",
+   "id": "D7-注册表无 JP_POLICY_TARGET",
+   "source": "root_overlay/config/metric_registry.json:metrics[metric_id=JP_POLICY_TARGET]",
+   "computed": false,
+   "claim": false,
+   "match": true,
+   "detail": "直查"
+  },
+  {
+   "block": "④",
+   "id": "D7-注册表 economy=JP 面",
+   "source": "root_overlay/config/metric_registry.json:metrics[economy=JP]",
+   "computed": [
+    "EWJ",
+    "JGB10Y",
+    "JGB2Y",
+    "JGB5Y",
+    "JP_CPI_TOKYO_YOY",
+    "JP_CPI_YOY",
+    "JP_POLICY_RATE",
+    "JP_REAL_GDP_YOY",
+    "NIKKEI225",
+    "USDJPY"
+   ],
+   "claim": "含 JP_POLICY_RATE, 不含政策目标序列",
+   "match": true,
+   "detail": "JP 面=['EWJ', 'JGB10Y', 'JGB2Y', 'JGB5Y', 'JP_CPI_TOKYO_YOY', 'JP_CPI_YOY', 'JP_POLICY_RATE', 'JP_REAL_GDP_YOY', 'NIKKEI225', 'USDJPY']"
+  },
+  {
+   "block": "④",
+   "id": "D7-快照 series_store 无 JP_POLICY_TARGET",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store",
+   "computed": false,
+   "claim": false,
+   "match": true,
+   "detail": "直查"
+  },
+  {
+   "block": "④",
+   "id": "D7-JP_POLICY_RATE 注册表口径=无担保隔夜拆借利率月均(非目标宣布值)",
+   "source": "root_overlay/config/metric_registry.json:metrics[JP_POLICY_RATE].calc/value_type",
+   "computed": [
+    "monthly_avg_rate",
+    "FRED系列IRSTCI01JPM156N最新观测(日本无担保隔夜拆借利率月均,"
+   ],
+   "claim": "monthly_avg_rate / 日本无担保隔夜拆借利率月均",
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "④",
+   "id": "D8-FOMC-MINUTES-2026-10 发布日 2026-11-18",
+   "source": "report.json:research_plan.policy_doc_facts[0]",
+   "computed": [
+    [
+     "FOMC-MINUTES-2026-10",
+     "2026-11-18",
+     "minutes"
+    ]
+   ],
+   "claim": [
+    [
+     "FOMC-MINUTES-2026-10",
+     "2026-11-18",
+     "minutes"
+    ]
+   ],
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "④",
+   "id": "D8-政策事件簇为空",
+   "source": "report.json:research_plan.policy_event_clusters.clusters",
+   "computed": [],
+   "claim": [],
+   "match": true,
+   "detail": "直读"
+  }
+ ]
+}

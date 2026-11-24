@@ -1,0 +1,5 @@
+as_of 2026-11-23 | validate_judgment passed True violations 0
+verify_judgment verdict VERIFIED stats {"checks": 9, "contradicted": 0, "verified": 7, "unbound": 0, "six_fail": 0, "map_fail": 0, "n_contradictions": 3}
+  V STALE | C1-INFL-SYNC.statement | CORE_PCE | claim 130.902 | recompute:Fact 直读 CORE_PCE@2026-09-01=130.902
+  V STALE | C2-GROWTH-STABLE.statement | US_REAL_GDP | claim 24611.077 | recompute:Fact 直读 US_REAL_GDP@2026-07-01=24611.077
+rc=0

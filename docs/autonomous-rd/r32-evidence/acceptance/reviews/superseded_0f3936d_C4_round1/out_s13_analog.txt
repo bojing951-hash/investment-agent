@@ -1,0 +1,169 @@
+=== S6_analog
+step = "S6_analog"
+argv = ["analog"]
+executed = true
+ok = true
+exit_code = 0
+semantic_ok = true
+note = null
+duration_ms = 3459
+envelope.ok = true
+envelope.capability = "analog"
+envelope.engine_root = "/private/tmp/r32-accept/final4-degraded"
+envelope.snapshot_id = "research_snapshot_20261123"
+envelope.target_date = "20261123"
+envelope.research_as_of = "2026-11-23"
+envelope.gate_a = "DEGRADED"
+envelope.data keys: ['anchor_month', 'candidates', 'disclosure', 'dispersion', 'feature_set', 'feature_window_months', 'features_dropped_at_anchor', 'normalization', 'research_mode_gate', 'sort_basis', 'state_vector', 'top', 'weights']
+data.anchor_month = "2026-11"
+data.feature_window_months = 12
+data.state_vector {dict 6}
+data.state_vector.growth {dict 2}
+data.state_vector.growth.features {dict 1}
+data.state_vector.growth.features.ICSA_4w_avg {dict 3}
+data.state_vector.growth.features.ICSA_4w_avg.value = 197750.0
+data.state_vector.growth.features.ICSA_4w_avg.z = -0.3206747602320721
+data.state_vector.growth.features.ICSA_4w_avg.hist_n = 120
+data.state_vector.growth.coverage = 0.1667
+data.state_vector.inflation {dict 2}
+data.state_vector.inflation.features {dict 1}
+data.state_vector.inflation.features.BEI_10Y_level {dict 3}
+data.state_vector.inflation.features.BEI_10Y_level.value = 2.15
+data.state_vector.inflation.features.BEI_10Y_level.z = 0.08346018602588887
+data.state_vector.inflation.features.BEI_10Y_level.hist_n = 121
+data.state_vector.inflation.coverage = 0.3333
+data.state_vector.rates {dict 2}
+data.state_vector.rates.features {dict 6}
+data.state_vector.rates.features.UST_10Y_level {dict 3}
+data.state_vector.rates.features.UST_10Y_level.value = 5.04
+data.state_vector.rates.features.UST_10Y_level.z = 1.66637547864167
+data.state_vector.rates.features.UST_10Y_level.hist_n = 121
+data.state_vector.rates.features.UST_10Y_d12m {dict 3}
+data.state_vector.rates.features.UST_10Y_d12m.value = 1.0200000000000005
+data.state_vector.rates.features.UST_10Y_d12m.z = 0.8349448096688624
+data.state_vector.rates.features.UST_10Y_d12m.hist_n = 109
+data.state_vector.rates.features.TIPS_10Y_level {dict 3}
+data.state_vector.rates.features.TIPS_10Y_level.value = 2.88
+data.state_vector.rates.features.TIPS_10Y_level.z = 1.8718474704157886
+data.state_vector.rates.features.TIPS_10Y_level.hist_n = 121
+data.state_vector.rates.features.TIPS_10Y_d12m {dict 3}
+data.state_vector.rates.features.TIPS_10Y_d12m.value = 1.0899999999999999
+data.state_vector.rates.features.TIPS_10Y_d12m.z = 1.0416374106158215
+data.state_vector.rates.features.TIPS_10Y_d12m.hist_n = 109
+data.state_vector.rates.features.CURVE_2S10S_level {dict 3}
+data.state_vector.rates.features.CURVE_2S10S_level.value = 0.29
+data.state_vector.rates.features.CURVE_2S10S_level.z = -0.08886508395812924
+data.state_vector.rates.features.CURVE_2S10S_level.hist_n = 121
+data.state_vector.rates.features.CURVE_2S10S_d12m {dict 3}
+data.state_vector.rates.features.CURVE_2S10S_d12m.value = -0.26000000000000006
+data.state_vector.rates.features.CURVE_2S10S_d12m.z = -0.2940401880574893
+data.state_vector.rates.features.CURVE_2S10S_d12m.hist_n = 109
+data.state_vector.rates.coverage = 0.75
+data.state_vector.credit {dict 2}
+data.state_vector.credit.features {dict 2}
+data.state_vector.credit.features.HY_OAS_level {dict 3}
+data.state_vector.credit.features.HY_OAS_level.value = 3.52
+data.state_vector.credit.features.HY_OAS_level.z = 1.3415604778001688
+data.state_vector.credit.features.HY_OAS_level.hist_n = 37
+data.state_vector.credit.features.HY_IG_gap_level {dict 3}
+data.state_vector.credit.features.HY_IG_gap_level.value = 2.58
+data.state_vector.credit.features.HY_IG_gap_level.z = 1.5630692832378703
+data.state_vector.credit.features.HY_IG_gap_level.hist_n = 37
+data.state_vector.credit.coverage = 0.5
+data.state_vector.volatility {dict 2}
+data.state_vector.volatility.features {dict 2}
+data.state_vector.volatility.features.VIX_level {dict 3}
+data.state_vector.volatility.features.VIX_level.value = 27.01
+data.state_vector.volatility.features.VIX_level.z = 1.197861037490781
+data.state_vector.volatility.features.VIX_level.hist_n = 121
+data.state_vector.volatility.features.SPX_rv21 {dict 3}
+data.state_vector.volatility.features.SPX_rv21.value = 0.2973222702651734
+data.state_vector.volatility.features.SPX_rv21.z = 1.463619804756194
+data.state_vector.volatility.features.SPX_rv21.hist_n = 120
+data.state_vector.volatility.coverage = 1.0
+data.state_vector.valuation {dict 2}
+data.state_vector.valuation.features {dict 1}
+data.state_vector.valuation.features.SPX_CAPE_level {dict 3}
+data.state_vector.valuation.features.SPX_CAPE_level.value = 39.37447698728812
+data.state_vector.valuation.features.SPX_CAPE_level.z = 2.8169497441414015
+data.state_vector.valuation.features.SPX_CAPE_level.hist_n = 1751
+data.state_vector.valuation.coverage = 0.5
+data.normalization {dict 3}
+data.normalization.method = "expanding z (t≤各自锚点月末; μ/σ=含当期历史均值/总体标准差σ)"
+data.normalization.min_history_months = 36
+data.normalization.min_observations_note = "36 个月史按网格自然步长折算观测数: 月网格 36 点/季网格 12 点(步长=相邻网格键月差中位数;36 个季观测=9 年系旧实现误设,Charter7-4b 已修)"
+data.weights {dict 6}
+data.weights.growth = 0.166667
+data.weights.inflation = 0.166667
+data.weights.rates = 0.166667
+data.weights.credit = 0.166667
+data.weights.volatility = 0.166667
+data.weights.valuation = 0.166667
+data.feature_set {dict 4}
+data.feature_set.basis = "anchor_admitted(统一特征集: 距离特征面由锚点侧准入结果唯一决定,Charter7-2)"
+data.feature_set.features [list 13] ["BEI_10Y_level", "CURVE_2S10S_d12m", "CURVE_2S10S_level", "HY_IG_gap_level", "HY_OAS_level", "ICSA_4w_avg", "SPX_CAPE_level", "SPX_rv21", "TIPS_10Y_d12m", "TIPS_10Y_level", "UST_10Y_d12m", "UST_10Y_level", "VIX_level"]
+data.feature_set.n_features = 13
+data.feature_set.wsum = 0.541667
+data.candidates {dict 6}
+data.candidates.scanned = 1871
+data.candidates.valid = 74
+data.candidates.dropped_overlap = 12
+data.candidates.dropped_insufficient = 1785
+data.candidates.n_independent_clusters_topN = 5
+data.candidates.cluster_dedup = "TOP-N 簇去重: 候选月相差<12 个月=同簇(事后窗重叠),每簇仅保留排序最优代表;准入/距离/分位计算不变"
+data.sort_basis = "(n_missing, distance, month) — 缺席特征多者降位,名次非纯距离序,比较相似度请以 distance 字段为准"
+data.top [list 5] [{"rank": 1, "candidate_month": "2025-03", "distance": 0.727212, "n_missing": 2, "distance_percentile": 0.0, "dims": {"growth": {"contribution_share": 3.4e-05, "z_gap": 0.004224}, "inflation": {"contribution_share": 0.105401, "z_gap": 0.236093}, "rates": {"contribution_share": 0.4066, "z_gap": 0.463709}, "credit": {"contribution_share": 0.0, "z_gap": 0.0}, "volatility": {"contribution_share": 0.421281, "z_gap": 0.472006}, "valuation": {"contribution_share": 0.066684, "z_gap": 0.18779}}, "features_detail": {"ICSA_4w_avg": {"anchor_z": -0.3206747602320721, "cand_z": -0.3020230889701957, "gap": -0.01865167126187639, "w_norm": 0.051282}, "BEI_10Y_level": {"anchor_z": 0.08346018602588887, "cand_z..
+data.dispersion {dict 3}
+data.dispersion.topN_aftermath_sign_agreement {dict 16}
+data.dispersion.topN_aftermath_sign_agreement.SPX_1m = 0.6
+data.dispersion.topN_aftermath_sign_agreement.SPX_3m = 0.6
+data.dispersion.topN_aftermath_sign_agreement.SPX_6m = 1.0
+data.dispersion.topN_aftermath_sign_agreement.SPX_12m = 1.0
+data.dispersion.topN_aftermath_sign_agreement.UST_10Y_1m = 0.8
+data.dispersion.topN_aftermath_sign_agreement.UST_10Y_3m = 0.6
+data.dispersion.topN_aftermath_sign_agreement.UST_10Y_6m = 0.8
+data.dispersion.topN_aftermath_sign_agreement.UST_10Y_12m = 0.6
+data.dispersion.topN_aftermath_sign_agreement.DXY_1m = 0.6
+data.dispersion.topN_aftermath_sign_agreement.DXY_3m = 0.6
+data.dispersion.topN_aftermath_sign_agreement.DXY_6m = 0.8
+data.dispersion.topN_aftermath_sign_agreement.DXY_12m = 0.8
+data.dispersion.topN_aftermath_sign_agreement.GOLD_F_1m = 0.6
+data.dispersion.topN_aftermath_sign_agreement.GOLD_F_3m = 0.8
+data.dispersion.topN_aftermath_sign_agreement.GOLD_F_6m = 1.0
+data.dispersion.topN_aftermath_sign_agreement.GOLD_F_12m = 1.0
+data.dispersion.basis = "TOP-N 独立簇代表(候选月相差<12个月=同簇只计代表)"
+data.dispersion.n_independent_clusters = 5
+data.research_mode_gate {dict 4}
+data.research_mode_gate.descriptive = "available"
+data.research_mode_gate.event_study = "blocked: 存在无发布日特征指标(月度宏观发布日不可得), 不得按发布日对齐/不得声称事件研究"
+data.research_mode_gate.realtime_info_set = "available(查询起点月窗内存在跨日vintage快照:20261123;可经select_snapshot点时取版)"
+data.research_mode_gate.note = "当时市场所见状态可能与修订后档案值不同"
+data.disclosure [list 3] ["相似≠因果, 更非预测: TOP-N 是历史状态距离最近的时期, 当时之后的演变只是历史记录", "特征为最新修订口径的描述性对齐, 不代表当时市场信息集(research_mode_gate)", "距离分位=该候选在全部有效候选中的相对位置, 不是概率"]
+data.features_dropped_at_anchor {dict 12}
+data.features_dropped_at_anchor.UNEMPLOYMENT_level = "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+data.features_dropped_at_anchor.NFP_3m_chg = "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+data.features_dropped_at_anchor.INDPRO_yoy = "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+data.features_dropped_at_anchor.RSAFS_yoy = "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+data.features_dropped_at_anchor.GDP_yoy = "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)"
+data.features_dropped_at_anchor.CORE_CPI_yoy = "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)"
+data.features_dropped_at_anchor.CPI_yoy = "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)"
+data.features_dropped_at_anchor.FED_FUNDS_level = "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+data.features_dropped_at_anchor.FED_FUNDS_d12m = "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)"
+data.features_dropped_at_anchor.HY_OAS_d12m = "hist_25<36点(=36个月史按网格步长折算)"
+data.features_dropped_at_anchor.HY_IG_gap_d12m = "hist_25<36点(=36个月史按网格步长折算)"
+data.features_dropped_at_anchor.SPX_PE_TTM_level = "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)"
+envelope.warnings = ["候选侧维度缺席: 信用(credit)在全部有效候选上无有效特征,不进入任何距离——未覆盖维度可能是共同驱动(缺变量),相似性解释力受限", "2023-10: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(波动 contribution_share=0.60)", "2021-02: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.72)", "2020-01: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.68)", "锚点维度 增长(growth) 覆盖率 0.17(<0.5), 该维特征部分弃用", "锚点维度 通胀(inflation) 覆盖率 0.33(<0.5), 该维特征部分弃用"]
+=== S7_mode_gate
+step = "S7_mode_gate"
+executed = true
+ok = true
+gate = {"descriptive": "available", "event_study": "blocked: 无发布日, 不得按发布日对齐/不得声称事件研究", "realtime_info_set": "available(现役快照即当前时点信息集;跨日vintage=1个[20261123];同日_vN修订不构成跨日vintage)", "realtime_vintage_dates": ["20261123"]}
+gate_source = "S5_compare:data.alignment.research_mode_gate"
+note = null
+=== S10_selfcheck
+step = "S10_selfcheck"
+executed = true
+ok = true
+n_views_quarantined = 0
+selfcheck = {"n_evidence_rows": 69, "n_rows_missing_ref": 0, "ok": true}
+note = null

@@ -1,0 +1,25 @@
+═══ §B 任务2: 历史同比与政策核验 ═══
+  ✅ §B1a 反例: 只有 13 个月前观测(2020-06)无去年同月(2020-07)→缺基期即缺证(None+no_visible_base),不以 13 个月前冒充同比 — r=None why=no_visible_base
+  ✅ §B1b 同月在场→同比=+10.0%,与主引擎 m12 同口径(同月基期);主引擎对 13 个月前反例同判缺基期(available=False) — planner=(10.0, '2021-07-01', '2021-08-13') engine_basis=2020-07-01 engine13=False
+  ✅ §B1c 季频同季: 只有 2025Q1 无 2025Q2→缺证;2025Q2 在场→+3.0% — q_missing=None why=no_visible_base q_ok=(3.0, '2026-04-01', '2026-07-29')
+  ✅ §B2a 政策事件面: JP 2026-09-18 决议/09-24 生效/目标 1.25 (实体 JP) — [{'metric_id': 'JP_POLICY_TARGET', 'decision_date': '2026-09-18', 'effective_on': '2026-09-24', 'entity': 'JP', 'target_value': 1.25, 'entry_id': 'RC-JP-BOJ-TARGET-2026-09', 'first_publish': '2026-09-18'}]
+  ✅ §B2b 用例①相对日期提前生效(as_of 09-20): 「自决议次日起生效」=09-19 早于官方 09-24→POL-EFF-REL — ['POL-EFF-REL']
+  ✅ §B2c 用例②日期齐全但提前生效: 「9月22日生效」早于官方 09-24→POL-EFF-DATE — ['POL-EFF-DATE']
+  ✅ §B2d 用例③正确待生效: 09-24 生效+尚未生效标注→零违规;成对无断言→零违规 — [] []
+  ✅ §B2d2 标签前置成对形(决议X(生效Y…)/决议X生效Y/决议日X、生效日Y)→零违规(「生效」绑定其后日期 Y=官方生效日) — [] [] [] []
+  ✅ §B2d3 标签前置但生效日提前(决议X生效Y′/决议X(生效Y′))→POL-EFF-DATE 恰一条;「X日决议生效」无生效日→POL-EFF-DATE — ['POL-EFF-DATE'] ['POL-EFF-DATE'] ['POL-EFF-DATE']
+  ✅ §B2e 待生效值写成当前值(无日期)→POL-EFF-PENDING-AS-CURRENT;生效后同一句→零违规 — ['POL-EFF-PENDING-AS-CURRENT'] []
+  ✅ §B2f 日期成对正确但断言提前(「目前」早于生效日)→POL-EFF-EARLY-CLAIM;生效后→零违规 — ['POL-EFF-EARLY-CLAIM'] []
+  ✅ §B2g 实体核验: 美联储/欧央行/中国同日文字不绑日银事件(零违规);日银决议日无生效无标注→POL-EFF(R31 既档;无 as_of 同判) — us=[] ea=[] cn=[] jp=['POL-EFF']
+  ✅ §B3a T3 路由: 地图问句+官方目标地区={EA,JP}(「两地央行」指代绑定);B 问句只绑 JP;A/NEW30 不绑 — T3=['EA', 'JP'] B=['JP']
+  ✅ §B3b 真实日历(截止 11-22): JP 目标 1.25 已生效→零缺证;EA 无日历实录但序列面决议/生效日可推→不触发;EA 不可推→缺口点名「无官方记录」(不以市场序列值冒充) — real_gaps=[] ea_noderiv=[{'region': 'EA', 'metric_id': 'ECB_MRO', 'label': '欧元区', 'note': '欧元区官方政策目标(ECB_MRO)无官方记录(日历无 policy_decision/policy_maintenance 条目)且序列面决议/生效日不可推——问句指定官方目标时现值无官方口径可依,不以市场序列值冒充宣布目标;补录官方决议实录后重跑转正(Audit-R28 任务2)'}]
+  ✅ §B3b4 可推性读数: 锚级 policy_dates(真管线形状)判可推;旧格级键兼容;当期锚非 ok(仅历史锚可推)→不可推=缺口;决议/生效缺一→不可推=缺口 — legacy=[] notok=[{'region': 'EA', 'metric_id': 'ECB_MRO', 'label': '欧元区', 'note': '欧元区官方政策目标(ECB_MRO)无官方记录(日历无 policy_decision/policy_maintenance 条目)且序列面决议/生效日不可推——问句指定官方目标时现值无官方口径可依,不以市场序列值冒充宣布目标;补录官方决议实录后重跑转正(Audit-R28 任务2)'}] half=[{'region': 'EA', 'metric_id': 'ECB_MRO', 'label': '欧元区', 'note': 
+  ✅ §B3b3 真管线回归(T3 原问×冻结快照真计划点值格): EA 政策格 policy_dates 在锚上(决议 2026-09-10/生效 2026-09-16)、格级键缺席;官方记录面零缺口、要求地区={EA,JP}(「序列+惯例可推」回退在真管线生效) — ea_cells=2 anchor_pd=2026-09-10/2026-09-16 gaps=[]
+  ✅ §B3b5 真管线对照: 抽去锚级 policy_dates(=修复前读数面)→EA 缺口点名+blocked_class=map_official_target_missing;原样→零缺口+blocked_class=None(缺口判定确由锚级读数驱动) — strip_gaps=[{'region': 'EA', 'metric_id': 'ECB_MRO', 'label': '欧元区', 'note': '欧元区官方政策目标(ECB_MRO)无官方记录(日历无 policy_decision/policy_maintenance 条目)且序列面决议/生效日不可推——问句指定官方目标时现值无官方口径可依,不以市场序列值冒充宣布目标;补录官方决议实录后重跑转正(Audit-R28 任务2)'}] bc_real=None bc_strip=map_official_target_missing
+  ✅ §B3b2 仅有待生效公告(决议 11-18/生效 12-01/目标 1.5)→gaps 点名 JP current_target_missing_evidence+待生效值/决议日/生效日 — pending=[{'region': 'JP', 'metric_id': 'JP_POLICY_TARGET', 'label': '日本', 'gap': 'current_target_missing_evidence', 'pending_target': 1.5, 'pending_decision': '2026-11-18', 'pending_effective_on': '2026-12-01', 'note': '当前官方目标缺证——研究时点 2026-11-22 无已生效决议在档,仅有待生效公告(目标 1.5,决议日 2026-11-18,生效日 2026-12-01)
+  ✅ §B3c 行级缺口同判: JP 行 current_target_missing_evidence=True+official_target=None(待生效值不入官方目标列) — rows={'EA': (None, None), 'JP': (None, 1.5)}
+  ✅ §B4a 真实管线: T3 问句×仅有待生效公告→report rc≠0+草稿交付+blocked_class=map_official_target_missing(重渲前后同判) — rc0=1 bc0=map_official_target_missing rc1=1 draft=True bc=map_official_target_missing
+  ✅ §B4b 首页草稿同判: 地图首页=「草稿(非正式):缺官方政策目标」+「当前官方政策目标缺证(仅有待生效公告)」+待生效值/生效日+原问=T3 — map_head='# 全球宏观经济变化地图(读者报告)\n\n- 问题: 2026年11月,日本和欧元区的通胀与政策环境:两地央行当前官方政策目标利率各处于什么水平?最近六个月有无已决议但尚未生效的调整?两地通胀同比最新读数相比去年同月如何?请给出具体数据和各数据的公布时间。\n- 研究截止日: 2026-11-19 | 快照: research_snapshot_20261119 | 运行: 20261119T1732'
+  ✅ §B4c 正式归档拒绝同判: blocked=not_deliverable,零归档目录 — rc=1 blocked=not_deliverable
+  ✅ §B4d 完整报告面同判: FULL_REPORT 质量状态节 run 门 blocked_class=map_official_target_missing+deliverable(可交付)=False — full_len=11344 tail='dit-R4 条目2): content_sha256=canonical(report.json 剥离 semantic_review)+canonical(agent_judgment.json)+canonical(views_digest.json)——机构归属/标题/日期/摘编/事实/L3/L4/run_ok/版本指针任一变化即失效旧裁决;审查与渲染同源,视图不一致即拒绝交付\n\n---\n渲染纪律: 本件只汇编在场事实(确定性装配),不做新增生成;L3/L4 内容归 Agent 席与独立审计,本段不代写。\n'
+=== test_audit_r32_gate sec_b: 23/23 ===

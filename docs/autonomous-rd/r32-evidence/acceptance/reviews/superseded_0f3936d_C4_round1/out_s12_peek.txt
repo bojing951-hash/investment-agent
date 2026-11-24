@@ -1,0 +1,89 @@
+=== snapshot top keys
+snapshot_id = "research_snapshot_20261123"
+research_as_of = "2026-11-23T22:58:11+08:00"
+target_date = "20261123"
+timezone = "Asia/Shanghai"
+sources_status {dict 8} keys=['china', 'ea', 'global', 'japan', 'jp', 'macro', 'rate_economy', 'shiller']
+fed_futures_curve [list 11] first={"ticker": "ZQ=F", "name": "近月(活跃月)", "price": 95.85, "implied_avg_rate": 4.15, "source": "yfinance"}
+facts [list 102] first={"fact_id": "SPX@2026-11-23", "metric_id": "SPX", "display_name": "标普500指数", "value": 7203.85, "unit": "index_point", "value_type": "level", "observation_date": "2026-11-23", "as_of": "2026-11-23T22:58:11+08:00", "source": {"collector": "global_market_collector", "file": "global_20261123.json", "ret..(2559)
+reconciliation [list 12] first={"type": "cross-metric", "check": "黄金双载体方向", "result": "consistent", "detail": "周方向一致(GOLD_F+4.83%/GLD+4.10%,周基准2026-11-20)"}
+quality {dict 3} keys=['counts', 'missing_core', 'overall']
+gate_a {dict 9} keys=['core_fail', 'core_missing', 'illegal_quality', 'noncore_degraded', 'noncore_fail', 'noncore_missing', 'noncore_missing_detail', 'note', 'status']
+notes [list 2] first="全部事实含metric_id/单位/观测日/来源/质量;派生值附calculation_ref"
+series_store: 88 series
+series_store_notes {dict 6} keys=['BB_OAS', 'B_OAS', 'CCC_OAS', 'HY_OAS', 'IG_OAS', 'SOFR']
+series_provenance {dict 2} keys=['CN_NEW_LOANS', 'CN_PMI_MFG']
+series_store_clean {dict 36} keys=['AHE', 'BB_OAS', 'BEI_10Y', 'BEI_5Y', 'B_OAS', 'CCC_OAS', 'CN_NEW_LOANS', 'CN_PMI_MFG', 'CORE_CPI', 'CORE_PCE', 'CPI', 'CURVE_2S10S', 'DFEDTARL', 'DFEDTARU', 'DFF', 'FED_FUNDS', 'HY_OAS', 'ICSA', 'IG_OAS', 'INDPRO', 'JTSJOL', 'M2SL', 'NFP', 'RSAFS', 'SOFR', 'TIPS_10Y', 'TIPS_5Y', 'UMCSENT', 'UNEMPLOYMENT', 'UST_10Y', 'UST_2Y', 'UST_30Y', 'UST_5Y', 'US_REAL_GDP', 'WALCL', 'WTI_SPOT_M']
+=== gate_a
+gate_a.status = "DEGRADED"
+gate_a.core_missing = []
+gate_a.core_fail = []
+gate_a.noncore_fail = []
+gate_a.noncore_missing = ["BUND_10Y", "BUND_2Y", "CN_OMO_7D", "CN_POLICY_OVERNIGHT", "EA_HICP_YOY", "EA_REAL_GDP_YOY", "ECB_DFR", "ECB_MRO", "JP_CPI_TOKYO_YOY", "JP_REAL_GDP_YOY"]
+gate_a.note = "缺失/失败数据已披露,不得进入研究结论;单个资产缺失不阻断其余研究;非核心FAIL按降级披露(注册表criticality为权威)"
+gate_a.noncore_missing_detail = {"JP_CPI_TOKYO_YOY": "来源文件在场而指标缺席(采集遗漏或子源缺席——档内无该指标子源状态记录,不可区分)", "ECB_DFR": "来源文件缺失(ea:MISSING)", "ECB_MRO": "来源文件缺失(ea:MISSING)", "BUND_10Y": "来源文件缺失(ea:MISSING)", "BUND_2Y": "来源文件缺失(ea:MISSING)", "EA_HICP_YOY": "来源文件缺失(ea:MISSING)", "CN_OMO_7D": "来源文件在场而指标缺席(采集遗漏或子源缺席——注册表未登记该指标子源状态键,不可区分)", "CN_POLICY_OVERNIGHT": "来源文件在场而指标缺席(采集遗漏或子源缺席——注册表未登记该指标子源状态键,不可区分)", "EA_REAL_GDP_YOY": "来源文件缺失(ea:MISSING)", "JP_REAL_GDP_YOY": "来源文件在场且子源FRED_JP_GDP取数成功而指标缺席(采集遗漏——采集器已取到而事实未生成)"}
+gate_a.noncore_degraded = ["CN_SF_FLOW", "JTSJOL", "M2SL", "SPX_EPS", "SPX_PE_TTM", "US_REAL_GDP"]
+gate_a.illegal_quality = []
+=== sources_status
+sources_status.global = {"status": "EXACT", "file": "global_20261123.json", "file_date": "20261123", "sha256": "64d76ec934f659c2686964ccac164331f8da046a3cc211d4a8f9ec7e1e935524"}
+sources_status.macro = {"status": "EXACT", "file": "macro_20261123.json", "file_date": "20261123", "sha256": "edbf6e09a88fe18940c4d75c55a611486c67283347da5cb547b9be2b17ddeaf1"}
+sources_status.china = {"status": "EXACT", "file": "china_20261123.json", "file_date": "20261123", "sha256": "d0510c1410fd304b6c64af2165a161b69fb34bcb16dc71e3c5e8d03dd4627edb"}
+sources_status.rate_economy = {"status": "EXACT", "file": "rate_economy_20261123.json", "file_date": "20261123", "sha256": "2a217144d4b43566e788b4863d90a9d2408d5a10b0b9b5f053c8ca5b602c3a39"}
+sources_status.japan = {"status": "EXACT", "file": "japan_20261123.json", "file_date": "20261123", "sha256": "7512389faf4844df14f85002661cb882b5fe4b323fe83b3d108df9f93297e8c0"}
+sources_status.jp = {"status": "EXACT", "file": "jp_20261123.json", "file_date": "20261123", "sha256": "55f773b3a1b92afd2b3dfe8dc875158a11a4f6457c4c05154a20cd3d68a748bb"}
+=== quality
+quality.overall = "DEGRADED"
+quality.missing_core = []
+quality.counts = {"PASS": 72, "DEGRADED": 7, "FAIL": 0}
+=== series_store metric ids
+AAPL, AHE, BB_OAS, BEI_10Y, BEI_5Y, BRENT_F, BTC, B_OAS, CAC40, CCC_OAS, CHINEXT, CN_CPI_YOY, CN_LPR_1Y, CN_NEW_LOANS, CN_OMO_7D, CN_PMI_MFG, CN_POLICY_OVERNIGHT, CN_PPI_YOY, CORE_CPI, CORE_PCE, CPI, CURVE_2S10S, DAX, DFEDTARL, DFEDTARU, DFF, DXY, EEM, EURUSD, EWG, EWJ, EWU, EZU, FED_FUNDS, FEZ, FXI, GBPUSD, GLD, GOLD_F, HSCEI, HSI, HYG, HY_OAS, ICSA, IEF, IG_OAS, INDA, INDPRO, JP_CPI_TOKYO_YOY, JP_CPI_YOY, JP_POLICY_RATE, JP_REAL_GDP_YOY, JTSJOL, LQD, M2SL, MSFT, NDX, NFP, NIKKEI225, NVDA, RSAFS, RUT, SHCOMP, SHY, SILVER_F, SOFR, SPX, SPX_CAPE, SPX_EPS, SPX_PE_TTM, SZCI, TIPS_10Y, TIPS_5Y, TLT, UMCSENT, UNEMPLOYMENT, USDCNY, USDJPY, USO, UST_10Y, UST_2Y, UST_30Y, UST_5Y, US_REAL_GDP, VIX, WALCL, WTI_F, WTI_SPOT_M
+JP*: JP_CPI_TOKYO_YOY, JP_CPI_YOY, JP_POLICY_RATE, JP_REAL_GDP_YOY
+CN*: CN_CPI_YOY, CN_LPR_1Y, CN_NEW_LOANS, CN_OMO_7D, CN_PMI_MFG, CN_POLICY_OVERNIGHT, CN_PPI_YOY
+EA*: 
+ECB*: 
+BUND*: 
+DE*: 
+=== evidence_index rows 0..2
+{"ref": "SPX@2026-11-23", "kind": "snapshot_fact", "metric_id": "SPX"}
+{"ref": "NDX@2026-11-23", "kind": "snapshot_fact", "metric_id": "NDX"}
+{"ref": "RUT@2026-11-20", "kind": "snapshot_fact", "metric_id": "RUT"}
+evidence_index row keys: ['kind', 'metric_id', 'ref']
+=== research_plan.dimension_gaps
+[{"region": "JP", "dimension": "policy", "metric_id": "JP_POLICY_TARGET", "gap": "registry_absent", "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"}]
+=== research_plan.policy_doc_facts
+[{"doc_id": "FOMC-MINUTES-2026-10", "kind": "minutes", "title": "FOMC 2026年10月会议纪要", "meeting_month": "2026-10", "published_on": "2026-11-18", "basis": "user_directive", "note": "10月会议纪要 2026-11-18 发布(纪要发布≠决议日;引用纪要叙事自 11-18 起可见,决议数值仍以决议日公布为准)", "source": "Audit-R22 验收指令(2026-11-19)"}]
+=== research_plan.policy_event_clusters
+{"basis": "同一事件的跨国信号合并: 各政策行一年窗路径事件按决议日跨地区聚簇(±7 日)——同簇=同一全球政策事件,三个转折中计一个事件;逐国决议日/生效日分记(决议→生效惯例: Fed=次日,ECB=决议后首个周三,PBOC=宣布即时)。月频证据只能说明同步时,先后未定。", "clusters": [{"cluster_id": "POLCLUSTER-01", "date_from": "2025-12-10", "date_to": "2025-12-10", "regions": ["US"], "events": [{"region": "US", "metric_id": "DFEDTARU", "display_name": "联邦基金目标区间上限", "date": "2025-12-10", "effective_date": "2025-12-11", "delta_bp": -25, "from": 4.0, "to": 3.75, "decision_to_effective_days": 1}], "same_event_cross_country": false, "note": "单地区事件(不跨国产合并)"}, {"cluster_id": "POLCLUSTER-02", "date_from": "2026-09-16", "date_to": "2026-09-16", "regions": ["US"], "events": [{"region": "US", "metric_id": "DFEDTARU", "display_name": "联邦基金目标区间上限", "date": "2026-09-16", "effective_date": "2026-09-17", "delta_bp": 25, "from": 3.75, "to": 4.0, "decision_to_effective_days": 1}], "same_event_cross_country": false, "note": "单地区事件(不跨国产合并)"}]}
+=== research_plan.us_rates_trio
+{"status": "ok", "kind": "共同交易日三利率分解", "window": {"from": "2026-10-20", "to": "2026-11-19", "calendar_days_between": 30}, "levels_at_to": {"UST_10Y": 5.04, "TIPS_10Y": 2.88, "BEI_10Y": 2.16}, "chg_bp": {"UST_10Y": -8.0, "TIPS_10Y": 11.0, "BEI_10Y": -19.0}, "decomposition": "十年期名义 Δ-8bp = 实际 Δ+11bp + 盈亏平衡 Δ-19bp", "identity_residual_bp": 0.0, "identity_note": "名义=实际+盈亏平衡 的恒等残差(同日同窗;非零=源端口径差,逐位披露不吸收)", "recent_common_days": ["2026-11-05", "2026-11-06", "2026-11-09", "2026-11-10", "2026-11-12", "2026-11-13", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19"], "window_12m": {"from": "2025-11-19", "to": "2026-11-19", "calendar_days_between": 365}, "chg_bp_12m": {"UST_10Y": 91.0, "TIPS_10Y": 102.0, "BEI_10Y": -11.0}, "decomposition_12m": "十年期名义 Δ+91bp = 实际 Δ+102bp + 盈亏平衡 Δ-11bp", "identity_residual_bp_12m": 0.0}
+=== research_plan.asset_moves
+{"status": "ok", "window_months": 1, "window_rule": "≤2026-11-23 最新观测 vs 最近于2026-10-23 的观测(界日无观测取最近邻;两端实际观测日随行披露)", "rows": [{"metric_id": "SPX", "window": {"from": "2026-10-23", "to": "2026-11-23"}, "from_value": 7623.680176, "to_value": 7203.850098, "chg_pct": -5.51, "chg_abs": -419.8301}, {"metric_id": "SHCOMP", "window": {"from": "2026-10-23", "to": "2026-11-23"}, "from_value": 3690.4753, "to_value": 3538.948, "chg_pct": -4.11, "chg_abs": -151.5273}, {"metric_id": "DAX", "window": {"from": "2026-10-23", "to": "2026-11-23"}, "from_value": 25181.650391, "to_value": 25209.449219, "chg_pct": 0.11, "chg_abs": 27.7988}, {"metric_id": "NIKKEI225", "window": {"from": "2026-10-23", "to": "2026-11-20"}, "from_value": 62693.16, "to_value": 56436.65, "chg_pct": -9.98, "chg_abs": -6256.51}, {"metric_id": "VIX", "window": {"from": "2026-10-23", "to": "2026-11-23"}, "from_value": 19.450001, "to_value": 27.01, "chg_pct": 38.87, "chg_abs": 7.56}, {"metric_id": "DXY", "window": {"from": "2026-10-23", "to": "2026-11-23"}, "from_value": 101.809998, "to_value": 104.079002, "chg_pct": 2.23, "chg_abs": 2.269}, {"metric_id": "GOLD_F", "window": {"from": "2026-10-23", "to": "2026-11-23"}, "from_value": 4007.899902, "to_value": 3685.199951, "chg_pct": -8.05, "chg_abs": -322.7}, {"metric_id": "UST_10Y", "window": {"from": "2026-10-23", "to": "2026-11-19"}, "from_value": 5.0, "to_value": 5.04, "chg_pct": 0.8, "chg_abs": 0.04}], "absent": []}
+=== research_plan.turning_candidates
+{"basis": "过去12个月(研究截止日)内 3 个月滚动变化绝对值最大者;增长/通胀/政策三维全部进入候选池(每指标一候选,窗端点已按发布纪律过滤);确定性计算,仅作候选——三个转折的取舍与谁先变判断归 Agent 席 reader_map(三转折须为不同事件,同一转折不得重复计数)", "candidates": [{"from_ym": "2026-02", "to_ym": "2026-05", "from_date": "2026-02-01", "to_date": "2026-05-01", "value_before": -0.9, "value_after": 3.9, "delta": 4.8, "region": "CN", "dimension": "inflation", "metric_id": "CN_PPI_YOY", "display_name": "工业生产者出厂价格指数(PPI)同比", "unit": "percent"}, {"from_ym": "2026-02", "to_ym": "2026-05", "from_date": "2026-02-01", "to_date": "2026-05-01", "value_before": -2.3904, "value_after": 1.0101, "delta": 3.4005, "region": "CN", "dimension": "growth", "metric_id": "CN_PMI_MFG", "display_name": "制造业PMI", "unit": "同比%(派生于水平序列,严格同基期)"}, {"from_ym": "2026-02", "to_ym": "2026-05", "from_date": "2026-02-01", "to_date": "2026-05-01", "value_before": 2.434, "value_after": 4.1666, "delta": 1.7326, "region": "US", "dimension": "inflation", "metric_id": "CPI", "display_name": "CPI物价指数(SA)", "unit": "同比%(派生于水平序列,严格同基期)"}, {"from_ym": "2025-11", "to_ym": "2026-02", "from_date": "2025-11-01", "to_date": "2026-02-01", "value_before": 2.9, "value_after": 1.27, "delta": -1.63, "region": "JP", "dimension": "inflation", "metric_id": "JP_CPI_YOY", "display_name": "全国CPI同比(日本)", "unit": "percent"}, {"from_ym": "2026-06", "to_ym": "2026-09", "from_date": "2026-06-01", "to_date": "2026-09-01", "value_before": 1.6, "value_after": 2.69, "delta": 1.09, "region": "JP", "dimension": "inflation", "metric_id": "JP_CPI_TOKYO_YOY", "display_name": "东京都CPI同比", "unit": "percent"}, {"from_ym": "2026-01", "to_ym": "2026-04", "from_date": "2026-01-01", "to_date": "2026-04-01", "value_before": 0.2, "value_after": 1.2, "delta": 1.0, "region": "CN", "dimension": "inflation", "metric_id": "CN_CPI_YOY", "display_name": "居民消费价格指数(CPI)同比", "unit": "percent"}, {"from_ym": "2025-11", "to_ym": "2026-02", "from_date": "2025-11-01", "to_date": "2026-02-01", "value_before": 1.7543, "value_after": 0.7972, "delta": -0.9571, "region": "US", "dimension": "growth", "metric_id": "INDPRO", "display_name": "工业生产指数(SA)", "unit": "同比%(派生于水平序列,严格同基期)"}, {"from_ym": "2026-05", "to_ym": "2026-08", "from_date": "2026-05-01", "to_date": "2026-08-01", "value_before": 2.8229, "value_after": 2.4462, "delta": -0.3767, "region": "US", "dimension": "inflation", "metric_id": "CORE_CPI", "display_name": "核心CPI(SA,剔除食品能源)", "unit": "同比%(派生于水平序列,严格同基期)"}, {"from_ym": "2026-04", "to_ym": "2026-07", "from_date": "2026-04-01", "to_date": "2026-07-01", "value_before": 0.727, "value_after": 0.978, "delta": 0.251, "region": "JP", "dimension": "policy", "metric_id": "JP_POLICY_RATE", "display_name": "日本无担保隔夜拆借利率(月均)", "unit": "percent"}], "top_n_expected": 3}
+=== research_plan.point_anchors / as_of_declared / cutoff / ex_post_offsets / question_window
+point_anchors = [{"kind": "point", "label": "3个月前", "as_of": "2026-08-23", "months_before": 3}, {"kind": "point", "label": "最新一期", "as_of": "2026-11-23", "months_before": 0, "explicit_period": "2026-11"}]
+as_of_declared = {"as_of": "2026-11-23", "basis": null, "snapshot_target_date": "2026-11-23", "differs_from_snapshot": false, "requested_as_of": null, "clamped_to_coverage": false, "coverage_date": "2026-11-23", "requested_month_end": null, "actual_coverage_date": null, "bare_year_month": "2026年11月", "upstream_pin": false, "error": null, "note": "问句含裸年月 2026年11月 但相对回看约束非单一(不按时点化合并,R31 既档口径)——研究截止日=快照版本日 2026-11-23(不晚于该年月;该月末完整结果须待数据覆盖后重跑)"}
+cutoff = "2026-11-23"
+ex_post_offsets = []
+question_window = null
+anchor_semantics_note = "「N个月前」=日历点锚(研究截止日−N月);「事件发生后N个月」=事后偏移锚(事件日+N月) ——两类分记,前者用于三时点对照,后者用于转折/历史类比的随后 3/6/12 月事后窗"
+=== registry top keys: ['created', 'field_semantics', 'metrics', 'notes', 'spec', 'version']
+reg.version = "2.8.7"
+reg.created = "2026-10-17"
+reg.spec = "第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义"
+reg.field_semantics {dict 10} sample keys=['economy', 'economy_rule', 'freshness.decision_dated', 'freshness.max_calendar_lag_days', 'market_seat', 'observation_period_kind', 'release_date_available', 'release_semantics', 'source_key', 'unit']
+   JP-like keys in field_semantics: []
+reg.notes [list 16] first="v2.8.6(R20,2026-11-19): 四地地图数据面补齐——新增 JP_CPI_YOY(stat.go.jp双基拼接)/EA_REAL_GDP_YOY(FRED)/JP_REAL_GDP_YOY(FRED);CN_OMO_7D 公告走查接线(源PENDING解除);JP_CPI_TOKYO_YOY 接线(2025基单档,基期缺口如实);EA_HICP_YOY 源切官方替代流程HICP(ICP 2026-02-04停用);DFEDTARU/L 增 history_source=macro_collector(DFF双轨纪律);CN_CPI/PPI 源描述对齐 EM datacenter 实际通道"
+reg.metrics [list 114] first={"metric_id": "SPX", "display_name": "标普500指数", "source": "global_market_collector", "source_symbol": "^GSPC", "asset_class": "equity_index", "frequency": "daily", "observation_period_kind": "trading_day", "release_date_available": true, "unit": "index_point", "calendar": "us_equity", "economy": "US", "economy_rule": "P8:calendar=us_equity", "market_seat": "onshore_local", "criticality": "core", "..(647)
+=== calendar top keys: ['batches', 'created', 'entries', 'spec', 'updated', 'version']
+cal.version = "1.5.0"
+cal.created = "2026-11-19"
+cal.updated = "2026-11-21"
+cal.spec = "Audit-R20 任务2 建立(Audit-R21 权威日期修订;Audit-R22 发布批次模型): 发布日历=版本化事实文件。条目优先于 research_map_planner.RELEASE_RULES 推定规则——历史对照(vintage)只允许用「当时已发布」的数据,推定规则给不出停摆/延误这类逐事件事实。basis=user_directive=验收指令实录;basis=convention=由同一已证事件按公开时间线推广(推广范围随条目披露)。条目语义: 命中(metric_id+obs_date∈[obs_from,obs_to])→最早可见日=first_publish..(1934)
+cal.batches [list 6]
+cal.entries [list 18]
+   {"entry_id": "RC-2025SHUTDOWN-GDP-Q3", "basis": "user_directive", "metric_id": "US_REAL_GDP", "obs_from": "2025-07-01", "obs_to": "2025-07-01", "not_published_as_of": "2025-12-22", "first_publish_on_or_after": "2025-12-23", "note": "2025Q3 实际GDP(观测季 2025-07-01..09-30,常规 advance 应 2025-10-29 发布)因停摆延误;验收指令实录: 2025-11-18/11-19 时点只见二季度 GDP,三季度自 2025-12-23 起可见(R20 初版整批 11-19 口径按实录改精确日)", "source": "Audit-R21 验收指令(2026-11-19)"}
+   {"entry_id": "RC-JP-BOJ-TARGET-2026-09", "kind": "policy_decision", "basis": "user_directive", "metric_id": "JP_POLICY_TARGET", "obs_from": "2026-09-18", "obs_to": "2099-12-31", "decision_date": "2026-09-18", "effective_on": "2026-09-24", "target_value": 1.25, "not_published_as_of": "2026-09-17", "first_publish_on_or_after": "2026-09-18", "note": "日本央行政策目标利率(宣布值口径)2026-09-18 决议、2026-09-24 生效,目标水平约1.25%——R28 验收指令实录(2026-11-21 复测基线);距上次调整按生效日计算", "source": "Audit-R28 验收指令(2026-11-21)"}
+   {"entry_id": "RC-JP-BOJ-MAINT-2026-10", "kind": "policy_maintenance", "basis": "user_directive", "metric_id": "JP_POLICY_TARGET", "obs_from": "2026-10-30", "obs_to": "2099-12-31", "decision_date": "2026-10-30", "target_value": 1.25, "not_published_as_of": "2026-10-29", "first_publish_on_or_after": "2026-10-30", "note": "日本央行 2026-10-30 会议确认维持政策目标利率约1.25%不变——确认维持不改变目标水平,但更新核验覆盖截止(R28 任务2: 确认维持也更新核验日期)", "source": "Audit-R28 验收指令(2026-11-21)"}
+   {"entry_id": "RC-CN-LPR-2025M11", "basis": "convention", "metric_id": "CN_LPR_1Y", "obs_from": "2025-11-01", "obs_to": "2025-11-30", "first_publish_on_or_after": "2025-11-20", "time": "09:00", "official": true, "note": "2025-11 观测月中国 LPR(1年期): 2025-11-20 09:00(北京时间)官方发布——LPR 各表统一读官方发布时间(每月20日 09:00 官方实录;时刻仅读者面显示,可见性比较仍用日期)", "source": "Audit-R30 验收指令(2025-11 与 2026-11 两期官方日期+09:00 统一;2025-11 观测=在库真实序列,发布日按官方节奏每月20日)"}
+   {"entry_id": "RC-CN-LPR-2026M11", "basis": "user_directive", "metric_id": "CN_LPR_1Y", "obs_from": "2026-11-01", "obs_to": "2026-11-30", "not_published_as_of": "2026-11-19", "first_publish_on_or_after": "2026-11-20", "time": "09:00", "official": true, "note": "2026-11 观测月中国 LPR(1年期): 2026-11-20 09:00(北京时间)官方发布——LPR 各表统一读官方发布时间(每月20日 09:00 官方实录;时刻仅读者面显示,可见性比较仍用日期)", "source": "Audit-R28 验收指令(2026-11-21 复测 2026-11-20 09:00)"}

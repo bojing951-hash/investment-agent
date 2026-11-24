@@ -1,0 +1,61 @@
+# cmp_runs
+# old: /tmp/r32-accept/final5-degraded/output/research_runs/20261123T213414Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了
+# new: /tmp/r32-accept/final6-degraded/output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了
+# old run 20261123T213414Z git_head 8f9055d6e556 | new run 20261123T235101Z git_head 36499bb78a18
+## report.json/research_plan | leaves compared 1327 | identical 1325 | real diff 2 | path/run-id only 0 | only-old 0 | only-new 0
+   REAL DIFF (2):
+     /point_values/cells[CN_LPR_1Y]/anchors/3个月前/publication_basis
+        old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+        new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+     /point_values/cells[CN_LPR_1Y]/anchors/3个月前/publication_rule
+        old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+        new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+## report.json/evidence_index | leaves compared 207 | identical 207 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 430 | identical 420 | real diff 8 | path/run-id only 0 | only-old 0 | only-new 2
+   REAL DIFF (8):
+     /L3_AI推断层/content/contradictions[C1-POLICY-DIVERGENCE]/competing_explanations[0]
+        old: "【假设】若美日收紧是对同一全球冲击(能源价格、通胀预期)的同向反应，中国维持不变源于自身通胀读数结构(中国CPI低位)，则政策分化属同一事件的不同幅度，后续美日应继续同步。能源价格变量未获对质: 三个月窗内原油期货价格回落而月度现货均价八月低于十月，方向不一致，且证据面无分地区能源价格序列，不足以区分两解释。"
+        new: "【假设】若美日收紧是对同一全球冲击(能源价格、通胀预期)的同向反应，中国维持不变源于自身通胀读数结构(中国CPI低位)，则政策分化属同一事件的不同幅度，后续美日应继续同步。能源价格变量未获对质: 三个月窗内原油期货截至 10 月底上升、11 月回落——WTI_F 87.06(2026-08-21)→104.12(2026-10-30，+19.60%)→82.02(2026-11-23 盘中快照，较三个月前锚 -5.79%、较 10-30 回落 21.23%)，BRENT_F 94.39→117.64(+24.63%)→88.19(-6.57%，较 10-30 回落 25.03%)；月度现货均
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/direction
+        old: "若实际利率高位与波动中枢抬升延续(近一月共同交易日窗 2026-10-20→2026-11-19 实际利率(TIPS_10Y)+11bp、引擎月窗 VIX +38.87%、DXY +2.23%)，风险资产承压且美元指数(DXY)相对人民币与日元偏强。"
+        new: "若实际利率高位与波动中枢抬升延续(近一月共同交易日窗 2026-10-20→2026-11-19 实际利率(TIPS_10Y)+11bp、引擎月窗 VIX +38.87%、DXY +2.23%)，风险资产承压且美元偏强(对日元走强: 同窗 USDJPY 156.494→159.347 为 +1.82%；对人民币并未走强: 同窗 USDCNY 6.6779→6.6542 为 -0.35%)。"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/evidence_refs[1]
+        old: "TIPS_10Y@2026-11-19"
+        new: "USDJPY@2026-11-23"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/evidence_refs[2]
+        old: "VIX@2026-11-23"
+        new: "USDCNY@2026-11-23"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/falsification/threshold
+        old: "若至 2027-02-28 DFEDTARU 上限未再上调(未达 4.25，含停在 4 与回落至 3.75 以下) 或 JP_POLICY_RATE 月均回落至 1.17 以下，政策分化延续情景被证伪"
+        new: "若至 2027-02-28 触发条件未同时满足(DFEDTARU 上限未达 4.25，或 JP_POLICY_RATE 月均低于 1.28，或 CN_LPR_1Y 不再为 3)，政策分化延续情景被证伪"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/trigger/condition
+        old: "下次美联储决议后 DFEDTARU 上限 ≥4.25 且 日本月均 JP_POLICY_RATE ≥1.28，同时 CN_LPR_1Y 仍为 3"
+        new: "至 2027-02-28 DFEDTARU 上限 ≥4.25 且 JP_POLICY_RATE 月均 ≥1.28(以期限前已发布的最新月均为准)，同时 CN_LPR_1Y 仍为 3(证伪条件为本条件的补集)"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/scenario
+        old: "【假设·非预测】政策分化收敛: 至 2027-02，美日不再加码(DFEDTARU 上限不再高于 4、JP_POLICY_RATE 月均不高于 1.28)，中国转向宽松(CN_LPR_1Y 下调至 2.90 或以下)；政策方向分化收敛。美国转向降息(上限回落至 3.75 以下)不属于本情景的收敛形态；美日不再加码而中国未变的平台态不属任一情景，两情景互补而不穷尽。"
+        new: "【假设·非预测】政策分化收敛: 至 2027-02，美日不再加码(DFEDTARU 上限不再高于 4、JP_POLICY_RATE 月均低于 1.28)，中国转向宽松(CN_LPR_1Y 下调至 2.90 或以下)；政策方向分化收敛。美国转向降息(上限回落至 3.75 以下)不属于本情景的收敛形态；美日不再加码而中国未变的平台态不属任一情景，两情景互补而不穷尽。"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/trigger/condition
+        old: "CN_LPR_1Y 报 2.90 或以下(下调)且 DFEDTARU 上限 ≤4，同时 JP_POLICY_RATE 月均低于 1.28(与延续情景的 ≥1.28 互补)"
+        new: "CN_LPR_1Y 报 2.90 或以下(下调)且 DFEDTARU 上限 ≤4，同时 JP_POLICY_RATE 月均低于 1.28(与延续情景的 ≥1.28 互补；月均同以期限前已发布的最新值为准)"
+   only-new (2):
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/evidence_refs[3]
+        old: "<absent>"
+        new: "TIPS_10Y@2026-11-19"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/evidence_refs[4]
+        old: "<absent>"
+        new: "VIX@2026-11-23"
+## report.json/run.evidence_gate | leaves compared 814 | identical 814 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 740 | identical 740 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+   tree-state (install-tree standard-update ledger, not research evidence): ['[3]/data/last_run/…']
+## report.json/steps[*].envelope | leaves compared 160118 | identical 160060 | real diff 0 | path/run-id only 58 | only-old 0 | only-new 0
+   path/run-id-only sample: ['[10]/engine_root', '[11]/engine_root', '[12]/engine_root']
+# report.json totals: real diff 10 | only-old 0 | only-new 2
+## evidence_index.json | leaves compared 207 | identical 207 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 271 | identical 268 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+   path/run-id-only sample: ['/read_first[0]', '/read_first[1]', '/read_first[2]']
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261123.json'] | new ['research_snapshot_20261123.json']
+   research_snapshot_20261123.json sha256 old 2de337533ef5fbac new 2de337533ef5fbac equal True

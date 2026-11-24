@@ -1,0 +1,426 @@
+{
+ "JP": {
+  "label": "日本",
+  "n_metrics": 10,
+  "n_missing": 2,
+  "metrics": [
+   {
+    "metric_id": "USDJPY",
+    "display_name": "美元兑日元",
+    "unit": "jpy_per_usd",
+    "unit_family": "price",
+    "frequency": "daily",
+    "asset_class": "fx_rate",
+    "identity": {
+     "instrument": null,
+     "is_proxy": false,
+     "proxy_of": null,
+     "adjustment": null,
+     "market_seat": "global",
+     "economy": "JP"
+    },
+    "calc": "即期汇率(上涨=美元升值;与EURUSD方向语义相反,表述须注意)",
+    "unit_subfamily": "fx",
+    "value": 159.35,
+    "presence": "present",
+    "value_type": "level",
+    "observation_date": "2026-11-23",
+    "quality_status": "PASS",
+    "issues": [],
+    "as_of": "2026-11-23T22:53:47+08:00",
+    "source": {
+     "collector": "global_market_collector",
+     "file": "global_20261123.json"
+    },
+    "changes": [
+     {
+      "window": "week",
+      "change_unit": "pct",
+      "value": -0.2254,
+      "basis_date": "2026-11-20",
+      "basis_value": 159.707001,
+      "end_date": "2026-11-23",
+      "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+      "sessions_in_window": 1,
+      "expected_sessions": 2,
+      "formula": "(2026-11-23值/2026-11-20值−1)×100",
+      "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+     },
+     {
+      "window": "mtd",
+      "change_unit": "pct",
+      "value": 0.9778,
+      "basis_date": "2026-10-30",
+      "basis_value": 157.804001,
+      "end_date": "2026-11-23",
+      "window_semantics": "前一日历月(2026-10)最后观测为基准",
+      "sessions_in_window": 16,
+      "expected_sessions": 17,
+      "formula": "(2026-11-23值/2026-10-30值−1)×100",
+      "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+     },
+     {
+      "window": "ytd",
+      "change_unit": "pct",
+      "value": 1.8758,
+      "basis_date": "2025-12-31",
+      "basis_value": 156.412994,
+      "end_date": "2026-11-23",
+      "window_semantics": "前一年度(2025)最后观测为基准",
+      "sessions_in_window": 232,
+      "expected_sessions": 234,
+      "formula": "(2026-11-23值/2025-12-31值−1)×100",
+      "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+     }
+    ]
+   },
+   {
+    "metric_id": "EWJ",
+    "display_name": "iShares日本ETF",
+    "unit": "usd",
+    "unit_family": "price",
+    "frequency": "daily",
+    "asset_class": "country_etf_proxy",
+    "identity": {
+     "instrument": "etf",
+     "is_proxy": true,
+     "proxy_of": "日本股市指数",
+     "adjustment": "auto_adjust(分红复权)",
+     "market_seat": "offshore_proxy",
+     "economy": "JP"
+    },
+    "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+    "value": 86.99,
+    "presence": "present",
+    "value_type": "level",
+    "observation_date": "2026-11-23",
+    "quality_status": "PASS",
+    "issues": [],
+    "as_of": "2026-11-23T22:53:47+08:00",
+    "source": {
+     "collector": "global_market_collector",
+     "file": "global_20261123.json"
+    },
+    "changes": [
+     {
+      "window": "week",
+      "change_unit": "pct",
+      "value": 4.267,
+      "basis_date": "2026-11-20",
+      "basis_value": 83.43,
+      "end_date": "2026-11-23",
+      "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+      "sessions_in_window": 1,
+      "expected_sessions": 2,
+      "formula": "(2026-11-23值/2026-11-20值−1)×100",
+      "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+     },
+     {
+      "window": "mtd",
+      "change_unit": "pct",
+      "value": -6.3718,
+      "basis_date": "2026-10-30",
+      "basis_value": 92.910004,
+      "end_date": "2026-11-23",
+      "window_semantics": "前一日历月(2026-10)最后观测为基准",
+      "sessions_in_window": 16,
+      "expected_sessions": 17,
+      "formula": "(2026-11-23值/2026-10-30值−1)×100",
+      "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+     },
+     {
+      "window": "ytd",
+      "change_unit": "pct",
+      "value": 8.3263,
+      "basis_date": "2025-12-31",
+      "basis_value": 80.30368,
+      "end_date": "2026-11-23",
+      "window_semantics": "前一年度(2025)最后观测为基准",
+      "sessions_in_window": 225,
+      "expected_sessions": 226,
+      "formula": "(2026-11-23值/2025-12-31值−1)×100",
+      "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+     }
+    ]
+   },
+   {
+    "metric_id": "JP_POLICY_RATE",
+    "display_name": "日本无担保隔夜拆借利率(月均)",
+    "unit": "percent",
+    "unit_family": "rate",
+    "frequency": "monthly",
+    "asset_class": "policy_rate",
+    "identity": {
+     "instrument": "macro_series",
+     "is_proxy": false,
+     "proxy_of": null,
+     "adjustment": "none",
+     "market_seat": "onshore_local",
+     "economy": "JP"
+    },
+    "calc": "FRED系列IRSTCI01JPM156N最新观测(日本无担保隔夜拆借利率月均,OECD/BOJ口径;政策利率operative信号,与BOJ决议目标值口径不同,决议值变更时点见release_semantics)",
+    "value": 1.227,
+    "presence": "present",
+    "value_type": "monthly_avg_rate",
+    "observation_date": "2026-10-01",
+    "quality_status": "WARN",
+    "issues": [
+     {
+      "category": "release",
+      "severity": "WARN",
+      "message": "JP_POLICY_RATE发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+     }
+    ],
+    "as_of": "2026-11-23T22:53:47+08:00",
+    "source": {
+     "collector": "japan_rate_collector",
+     "file": "japan_20261123.json"
+    },
+    "changes": []
+   },
+   {
+    "metric_id": "JGB2Y",
+    "display_name": "2年期日债收益率",
+    "unit": "percent",
+    "unit_family": "rate",
+    "frequency": "daily",
+    "asset_class": "rates_yield",
+    "identity": {
+     "instrument": "index_rate_series",
+     "is_proxy": false,
+     "proxy_of": null,
+     "adjustment": "none",
+     "market_seat": "onshore_local",
+     "economy": "JP"
+    },
+    "calc": "MOF日本国债收益率曲线(jgbcme)2年期最新收盘观测(每营业日发布,非营业日无新观测)",
+    "value": 1.853,
+    "presence": "present",
+    "value_type": "yield_or_spread_level",
+    "observation_date": "2026-11-19",
+    "quality_status": "PASS",
+    "issues": [],
+    "as_of": "2026-11-23T22:53:47+08:00",
+    "source": {
+     "collector": "japan_rate_collector",
+     "file": "japan_20261123.json"
+    },
+    "changes": []
+   },
+   {
+    "metric_id": "JGB5Y",
+    "display_name": "5年期日债收益率",
+    "unit": "percent",
+    "unit_family": "rate",
+    "frequency": "daily",
+    "asset_class": "rates_yield",
+    "identity": {
+     "instrument": "index_rate_series",
+     "is_proxy": false,
+     "proxy_of": null,
+     "adjustment": "none",
+     "market_seat": "onshore_local",
+     "economy": "JP"
+    },
+    "calc": "MOF日本国债收益率曲线(jgbcme)5年期最新收盘观测(每营业日发布,非营业日无新观测)",
+    "value": 2.235,
+    "presence": "present",
+    "value_type": "yield_or_spread_level",
+    "observation_date": "2026-11-19",
+    "quality_status": "PASS",
+    "issues": [],
+    "as_of": "2026-11-23T22:53:47+08:00",
+    "source": {
+     "collector": "japan_rate_collector",
+     "file": "japan_20261123.json"
+    },
+    "changes": []
+   },
+   {
+    "metric_id": "JGB10Y",
+    "display_name": "10年期日债收益率",
+    "unit": "percent",
+    "unit_family": "rate",
+    "frequency": "daily",
+    "asset_class": "rates_yield",
+    "identity": {
+     "instrument": "index_rate_series",
+     "is_proxy": false,
+     "proxy_of": null,
+     "adjustment": "none",
+     "market_seat": "onshore_local",
+     "economy": "JP"
+    },
+    "calc": "MOF日本国债收益率曲线(jgbcme)10年期最新收盘观测(每营业日发布,非营业日无新观测)",
+    "value": 2.87,
+    "presence": "present",
+    "value_type": "yield_or_spread_level",
+    "observation_date": "2026-11-19",
+    "quality_status": "PASS",
+    "issues": [],
+    "as_of": "2026-11-23T22:53:47+08:00",
+    "source": {
+     "collector": "japan_rate_collector",
+     "file": "japan_20261123.json"
+    },
+    "changes": []
+   },
+   {
+    "metric_id": "JP_CPI_TOKYO_YOY",
+    "display_name": "东京都CPI同比",
+    "unit": "percent",
+    "unit_family": "rate",
+    "frequency": "monthly",
+    "asset_class": "macro_index",
+    "identity": {
+     "instrument": "macro_series",
+     "is_proxy": false,
+     "proxy_of": null,
+     "adjustment": "none",
+     "market_seat": "onshore_local",
+     "economy": "JP"
+    },
+    "calc": "总务省统计局东京都区部CPI(含生鲜食品综合)同比;jp_market_collector fetch_statgo_cpi_yoy 走 stat.go.jp CSV(cp932),2025基 tmi2025aa 有文件、2020基 tmi2020aa 404→基期内同月同比仅2026-01..2026-10 十个月(统计窗口短,如实注记),后续统计局补挂 2020 基东京档后自动延长",
+    "value": null,
+    "presence": "missing",
+    "absence_reason": "来源文件在场而指标缺席(采集遗漏或子源缺席——档内无该指标子源状态记录,不可区分)",
+    "observation_date": null,
+    "quality_status": "MISSING",
+    "source": "jp_market_collector",
+    "changes": []
+   },
+   {
+    "metric_id": "NIKKEI225",
+    "display_name": "日经225指数",
+    "unit": "index_point",
+    "unit_family": "price",
+    "frequency": "daily",
+    "asset_class": "equity_index",
+    "identity": {
+     "instrument": "index",
+     "is_proxy": false,
+     "proxy_of": null,
+     "adjustment": "none",
+     "market_seat": "onshore_local",
+     "economy": "JP"
+    },
+    "calc": "FRED系列NIKKEI225(Nikkei Inc. 口径)东京收盘点位(日经225价格指数,未复权)",
+    "value": 56436.65,
+    "presence": "present",
+    "value_type": "level",
+    "observation_date": "2026-11-20",
+    "quality_status": "PASS",
+    "issues": [],
+    "as_of": "2026-11-23T22:53:47+08:00",
+    "source": {
+     "collector": "jp_market_collector",
+     "file": "jp_20261123.json"
+    },
+    "changes": [
+     {
+      "window": "week",
+      "change_unit": "pct",
+      "value": -7.6963,
+      "basis_date": "2026-11-13",
+      "basis_value": 61142.35,
+      "end_date": "2026-11-20",
+      "window_semantics": "ISO周(2026-11-16起)之前最后观测为基准",
+      "sessions_in_window": 5,
+      "expected_sessions": 6,
+      "formula": "(2026-11-20值/2026-11-13值−1)×100",
+      "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+     },
+     {
+      "window": "mtd",
+      "change_unit": "pct",
+      "value": -10.8286,
+      "basis_date": "2026-10-30",
+      "basis_value": 63290.11,
+      "end_date": "2026-11-20",
+      "window_semantics": "前一日历月(2026-10)最后观测为基准",
+      "sessions_in_window": 14,
+      "expected_sessions": 16,
+      "formula": "(2026-11-20值/2026-10-30值−1)×100",
+      "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+     },
+     {
+      "window": "ytd",
+      "change_unit": "pct",
+      "value": 12.1121,
+      "basis_date": "2025-12-30",
+      "basis_value": 50339.48,
+      "end_date": "2026-11-20",
+      "window_semantics": "前一年度(2025)最后观测为基准",
+      "sessions_in_window": 215,
+      "expected_sessions": 233,
+      "formula": "(2026-11-20值/2025-12-30值−1)×100",
+      "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+     }
+    ]
+   },
+   {
+    "metric_id": "JP_CPI_YOY",
+    "display_name": "全国CPI同比(日本)",
+    "unit": "percent",
+    "unit_family": "rate",
+    "frequency": "monthly",
+    "asset_class": "macro_index",
+    "identity": {
+     "instrument": "macro_series",
+     "is_proxy": false,
+     "proxy_of": null,
+     "adjustment": "none",
+     "market_seat": "onshore_local",
+     "economy": "JP"
+    },
+    "calc": "日本全国消费者物价指数(综合同比,含生鲜食品);jp_market_collector fetch_statgo_cpi_yoy 取 stat.go.jp zmi2025aa(2025基)+zmi2020aa(2020基)双档水平值,各自基期内做严格同月同比后拼接(新基优先,重叠差>0.10pp 告警),覆盖2021-01..2026-09;与官方公布值抽验一致(2026-09=2.16 vs 官方2.1)",
+    "value": 2.44,
+    "presence": "present",
+    "value_type": "level",
+    "observation_date": "2026-10-01",
+    "quality_status": "WARN",
+    "issues": [
+     {
+      "category": "release",
+      "severity": "WARN",
+      "message": "JP_CPI_YOY发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+     }
+    ],
+    "as_of": "2026-11-23T22:53:47+08:00",
+    "source": {
+     "collector": "jp_market_collector",
+     "file": "jp_20261123.json"
+    },
+    "changes": []
+   },
+   {
+    "metric_id": "JP_REAL_GDP_YOY",
+    "display_name": "日本实际GDP同比",
+    "unit": "percent",
+    "unit_family": "rate",
+    "frequency": "quarterly",
+    "asset_class": "macro_index",
+    "identity": {
+     "instrument": "macro_series",
+     "is_proxy": false,
+     "proxy_of": null,
+     "adjustment": "none",
+     "market_seat": "onshore_local",
+     "economy": "JP"
+    },
+    "calc": "日本实际GDP同比;jp_market_collector 取 FRED JPNRGDPEXP(实际支出法GDP,2015价,季调,1994+),严格同季去年比(_quarterly_yoy),2000-01..2026-07 共127季;FRED 口径=最新修订值→研究层须标事后回顾",
+    "value": null,
+    "presence": "missing",
+    "absence_reason": "来源文件在场且子源FRED_JP_GDP取数成功而指标缺席(采集遗漏——采集器已取到而事实未生成)",
+    "observation_date": null,
+    "quality_status": "MISSING",
+    "source": "jp_market_collector",
+    "changes": []
+   }
+  ],
+  "observation_span": {
+   "earliest": "2026-10-01",
+   "latest": "2026-11-23"
+  }
+ }
+}

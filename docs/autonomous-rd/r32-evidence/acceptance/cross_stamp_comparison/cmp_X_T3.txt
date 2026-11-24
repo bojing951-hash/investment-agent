@@ -1,0 +1,299 @@
+# cmp_runs
+# old: /tmp/r32-accept/final4/output/research_runs/20261123T193215Z_2026年11月_日本和欧元区的通胀与政策环境_两地央行当前官方政策目标利率各处
+# new: /tmp/r32-accept/final5/output/research_runs/20261123T213336Z_2026年11月_日本和欧元区的通胀与政策环境_两地央行当前官方政策目标利率各处
+# old run 20261123T193215Z git_head 0f3936dd7eb7 | new run 20261123T213336Z git_head 8f9055d6e556
+## report.json/research_plan | leaves compared 616 | identical 604 | real diff 9 | path/run-id only 0 | only-old 0 | only-new 3
+   REAL DIFF (9):
+     /point_values/cells[ECB_DFR]/policy_window_path/net_bp
+        old: 25
+        new: 50
+     /point_values/cells[ECB_DFR]/policy_window_path/note
+        old: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+        new: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=变动点之和=窗启时在值→窗末观测之差(bp);窗启时在值=窗内首观测的前值(其观测日可在窗启之前,该值在窗启时仍在生效;窗内首观测即序列首观测时取其自身)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+     /point_values/cells[ECB_DFR]/policy_window_path/window_start_value
+        old: 2.25
+        new: 2.0
+     /point_values/cells[ECB_MRO]/policy_window_path/net_bp
+        old: 25
+        new: 50
+     /point_values/cells[ECB_MRO]/policy_window_path/note
+        old: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+        new: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=变动点之和=窗启时在值→窗末观测之差(bp);窗启时在值=窗内首观测的前值(其观测日可在窗启之前,该值在窗启时仍在生效;窗内首观测即序列首观测时取其自身)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+     /point_values/cells[ECB_MRO]/policy_window_path/window_start_value
+        old: 2.4
+        new: 2.15
+     /point_values/cells[JP_POLICY_RATE]/policy_window_path/net_bp
+        old: 67
+        new: 75
+     /point_values/cells[JP_POLICY_RATE]/policy_window_path/note
+        old: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+        new: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=变动点之和=窗启时在值→窗末观测之差(bp);窗启时在值=窗内首观测的前值(其观测日可在窗启之前,该值在窗启时仍在生效;窗内首观测即序列首观测时取其自身)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+     /point_values/cells[JP_POLICY_RATE]/policy_window_path/window_start_value
+        old: 0.557
+        new: 0.478
+   only-new (3):
+     /point_values/cells[ECB_DFR]/policy_window_path/window_start_observation
+        old: "<absent>"
+        new: "2025-06-11"
+     /point_values/cells[ECB_MRO]/policy_window_path/window_start_observation
+        old: "<absent>"
+        new: "2025-06-11"
+     /point_values/cells[JP_POLICY_RATE]/policy_window_path/window_start_observation
+        old: "<absent>"
+        new: "2025-11-01"
+## report.json/evidence_index | leaves compared 180 | identical 180 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 332 | identical 253 | real diff 4 | path/run-id only 0 | only-old 75 | only-new 0
+   REAL DIFF (4):
+     /L3_AI推断层/note
+        old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+        new: "零模型管线: 本层(矛盾综合/推断)须编排层 Agent 补作,attribution=ai_inferred——本管线绝不代写。补作纪律: 四层标注(事实/推断/假设/尚未验证)+并列竞争性解释(Skill 纪律4/第9步);机制链每环标 E1(引擎直接可验证)/E2(部分支持,缺环明写【假设】)/E3(纯叙事,须给证伪指标)(纪律15)"
+     /L3_AI推断层/produced
+        old: true
+        new: false
+     /L4_条件情景层/note
+        old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+        new: "条件推演五行(纪律16: 情景[明写假设非预测]/资产方向判断[方向+置信层级]/敏感变量[1-2 个引擎指标]/证伪指标[可观测阈值]/触发条件[可观测条件+时限];单一情景不得单独呈现,至少并列基准与反例)归编排层 Agent;不冒充预测——本管线绝不代写"
+     /L4_条件情景层/produced
+        old: true
+        new: false
+   only-old (75):
+     /L3_AI推断层/attribution
+        old: "ai_inferred"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-INFL-DIVERGE]/competing_explanations[0]
+        old: "【假设】若欧元区抬升主要源于能源与进口价格的持续传导、而日本读数回落主要反映 2025 年秋季高基数消退,则 headline 同比的两地剪刀差应在未来数月收敛——引擎无分项构成与基数贡献序列,此归因不可在引擎面验证。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-INFL-DIVERGE]/competing_explanations[1]
+        old: "【假设】若两地差异主要由需求与政策组合驱动(欧元区内需偏热 vs 日本紧缩压制),则后续核心口径与读数路径应持续分化——同样缺分项与需求面证据,两种解释不可区分,如实并列。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-INFL-DIVERGE]/evidence_refs[0]
+        old: "JP_CPI_YOY@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-INFL-DIVERGE]/evidence_refs[1]
+        old: "EA_HICP_YOY@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-INFL-DIVERGE]/id
+        old: "C1-INFL-DIVERGE"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-INFL-DIVERGE]/statement
+        old: "两地通胀同比最新读数相比去年同月方向相反。日本全国CPI同比最新读数百分之二点四四(观测 2026-10,发布 2026-11-20,引擎推定规则、非日历实录),去年同月(2025-10)为百分之二点九九,回落约零点五五个百分点;欧元区HICP同比最新读数百分之四点零(观测 2026-10,发布 2026-11-16,引擎推定规则、非日历实录),去年同月(2025-10)为百分之二点一,抬升一点九个百分点——同期对照呈「日本回落、欧元区抬升」。东京都CPI同比(中旬速报先行口径)最新读数百分之二点七三(观测 2026-10,发布 2026-10-30,引擎推定规则、非日历实录),序列自 20
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-POLICY-SYNC]/competing_explanations[0]
+        old: "【假设】若两地收紧主要由通胀读数驱动,则后续决议节奏应与读数联动——欧元区 4.0% 高位下紧缩延续概率高,日本读数回升下正常化延续。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-POLICY-SYNC]/competing_explanations[1]
+        old: "【假设】若收紧主要反映政策正常化程序与汇率/金融稳定考量(日本尤甚),则决议节奏可与当期读数脱钩——月频证据下两种驱动不可区分,且引擎无央行表态文本序列。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-POLICY-SYNC]/evidence_refs[0]
+        old: "ECB_MRO@2026-09-16"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-POLICY-SYNC]/evidence_refs[1]
+        old: "ECB_DFR@2026-09-16"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-POLICY-SYNC]/evidence_refs[2]
+        old: "JP_POLICY_RATE@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-POLICY-SYNC]/evidence_refs[3]
+        old: "USDJPY@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-POLICY-SYNC]/evidence_refs[4]
+        old: "SPX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-POLICY-SYNC]/evidence_refs[5]
+        old: "VIX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-POLICY-SYNC]/id
+        old: "C2-POLICY-SYNC"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-POLICY-SYNC]/statement
+        old: "两地政策利率同向收紧,最近六个月(2026-05-23..2026-11-23)可核行动均已生效、无未生效决议。欧元区方面: 欧央行主要再融资利率(ECB_MRO,政策目标口径)最新生效水平为 二点六五,观测=序列变更日=生效日 2026-09-16(引擎发布面;冻结发布日历对欧央行无实录条目),决议日 2026-09-10 系引擎按『生效日前上一个周四』惯例自变更日回推,属【推断】而非实录。欧央行存款便利利率(ECB_DFR,操作下限口径)最新生效水平 2.5%,同一变更日(2026-09-16)。窗内两次上调(2026-06-17 与 2026-09-16 生效,各二十五个基点;对应决议
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-ECB-VISIBILITY]/competing_explanations[0]
+        old: "【假设】若序列止于生效日仅反映源端未再更新(此后实际无新决议),则 ECB_MRO 的 2.65%/ECB_DFR 的 2.5% 即最新水平,与 2026-09-16 变更后无新事件相容。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-ECB-VISIBILITY]/competing_explanations[1]
+        old: "【假设】若断档期间实际发生了新决议,则当前读数低估最新水平——两种解释在引擎面不可区分,需官网核对方可裁(引擎外补充,须单独标注,待用户授权)。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-ECB-VISIBILITY]/evidence_refs[0]
+        old: "ECB_DFR@2026-09-16"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-ECB-VISIBILITY]/evidence_refs[1]
+        old: "ECB_MRO@2026-09-16"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-ECB-VISIBILITY]/id
+        old: "C3-ECB-VISIBILITY"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-ECB-VISIBILITY]/statement
+        old: "欧央行序列止于最近一次变更日: ECB_MRO/ECB_DFR 序列最后观测均为 2026-09-16(观测日距研究截止 2026-11-23 六十八天,超过注册表新鲜度阈十天,当日快照 Gate A 两序列列于 degraded 名单,L1 事实行 quality_status=DEGRADED;发布日历(最新版,2026-11-21 更新)对欧央行无实录条目,「决议日=生效日前上一个周四」的推定只对已入序列的变更可用。因此「2026-09-16 之后是否有新决议(含已决议未生效)」在引擎面不可判,属【尚未验证】;本报告关于欧央行无未生效决议的结论仅覆盖引擎可见面。"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/id
+        old: "M1-INFL-POLICY-ASSET"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[0]/evidence_level
+        old: "E1"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[0]/evidence_refs[0]
+        old: "EA_HICP_YOY@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[0]/evidence_refs[1]
+        old: "JP_CPI_YOY@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[0]/step
+        old: 1
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[0]/text
+        old: "观察: 通胀路径——EA_HICP_YOY 2026-02 的 1.9 升至 2026-05 的 3.2(2026-06 一度回落至 2.8)、2026-10 达 4.0;JP_CPI_YOY 自 2025-01 高点 4.03 持续回落,经 2025-07 的 3.1 至 2026-02 的 1.27,此后总体回升(非逐月单调)至 2026-10 的 2.44。口径: JP_CPI_YOY 为注册表 2025基/2020基 spliced 同月同比(新基优先,重叠差>0.10pp 告警)。"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[1]/evidence_level
+        old: "E1"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[1]/evidence_refs[0]
+        old: "ECB_DFR@2026-09-16"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[1]/evidence_refs[1]
+        old: "JP_POLICY_RATE@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[1]/step
+        old: 2
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[1]/text
+        old: "观察: 政策面跟进——ECB 两次变更各 25bp: 2026-06-17 生效,MRO 2.15→2.4、DFR 2.0→2.25,决议日 2026-06-11 系引擎按『生效日前上一个周四』惯例自变更日回推【推断】;2026-09-16 生效,MRO 2.4→2.65、DFR 2.25→2.5,决议日 2026-09-10 同为惯例回推【推断】;冻结发布日历无 ECB 实录,发布面=序列变更日。BOJ 2026-09-18 决议(2026-09-24 生效)目标 1.25%(发布日历实录),2026-10-30 会议确认维持;月均口径 JP_POLICY_RATE 2026-09→202
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[2]/evidence_level
+        old: "E2"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[2]/evidence_refs[0]
+        old: "EURUSD@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[2]/evidence_refs[1]
+        old: "USDJPY@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[2]/missing_link_note
+        old: "引擎无政策差-汇率联动通道证据(近零渠道),该环为【假设】;区分指标=EURUSD/USDJPY,方向留白不裁。"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[2]/step
+        old: 3
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[2]/text
+        old: "传导【假设】: 若政策利差主导汇率,两地同向收紧但水平差(MRO 2.65% vs BOJ 目标 1.25%)应体现于 EURUSD/USDJPY 方向分立——本月窗两口径下两货币同对美元走弱、同向随美元指数,方向分立未出现,美元全局主导的竞争解释在本月窗获支持(置信有限;EURJPY 交叉盘不在证据面,利差渠道不可直接检验)。汇率月窗(窗起 2026-10-23 收盘): 至 2026-11-20 收盘 EURUSD 由 1.1221 降至 1.0970(-2.24%)、USDJPY 由 156.494 升至 159.707(+2.05%)、DXY 由 101.81 升至 103.81(+
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[3]/evidence_level
+        old: "E2"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[3]/evidence_refs[0]
+        old: "NIKKEI225@2026-11-20"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[3]/evidence_refs[1]
+        old: "DAX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[3]/evidence_refs[2]
+        old: "SPX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[3]/evidence_refs[3]
+        old: "VIX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[3]/missing_link_note
+        old: "归因环节为【假设】(单月窗、多因子叠加);区分指标=VIX,须待后续窗复检方向是否与政策日历联动。"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[3]/step
+        old: 4
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-INFL-POLICY-ASSET]/links[3]/text
+        old: "资产面观察与对照: 近一月同日收盘口径(窗起 2026-10-23 收盘→2026-11-20 收盘): SPX 下跌 9.36%、NIKKEI225 下跌 9.98%、DAX 下跌 1.50%、CAC40 上涨 1.86%;VIX 由 19.45 升至 35.89(+84.5%),末六个交易日收盘路径 11-13 19.30→11-16 22.91→11-17 25.46→11-18 24.56→11-19 28.44→11-20 35.89,跳升集中于末五个交易日(2026-11-13→2026-11-20,19.30→35.89)。引擎资产月窗回贴面(止于截止日): SPX -5.51
+        new: "<absent>"
+     /L4_条件情景层/attribution
+        old: "ai_inferred"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/id
+        old: "S1-STICKY-TIGHTEN"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/asset_direction/confidence_tier
+        old: "有相关证据"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/asset_direction/direction
+        old: "在此假设下,两地无风险利率与实际利率中枢承压上行,利率敏感资产(高估值股指)相对承压、波动率维持高位;此为方向性推演,非幅度预测"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/asset_direction/evidence_refs[0]
+        old: "NIKKEI225@2026-11-20"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/asset_direction/evidence_refs[1]
+        old: "VIX@2026-11-23"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/falsification/metric_id
+        old: "EA_HICP_YOY"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/falsification/secondary_metric_ids[0]
+        old: "JP_CPI_YOY"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/falsification/threshold
+        old: "若观测月 2026-11 与 2026-12 两月欧元区 HICP 同比均低于 3.5%(前提水平),粘性假设被证伪;政策分量(再有上调)不设数值触发,以决议实录核验"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/scenario
+        old: "【假设·非预测】通胀粘性延续: 至 2026-12 观测月(读数按引擎发布规则于 2027-01 入档,早于时限 2027-02-15),欧元区 HICP 同比维持 3.5% 以上、ECB 再有至少一次 +25bp 上调(决议后按惯例生效);日本全国 CPI 同比维持 2.0% 以上、BOJ 政策目标再上调一级(或月均中枢续升,目标现约 1.25%)。"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/sensitive_variables[0]
+        old: "EA_HICP_YOY"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/sensitive_variables[1]
+        old: "JP_CPI_YOY"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/trigger/condition
+        old: "观测月 2026-11 或 2026-12 的 EA_HICP_YOY 同比 ≥4.0% 且同观测月 JP_CPI_YOY 同比 ≥2.0%(以引擎发布规则入档的读数为准),同时 VIX 在该读数入档日前最近一个交易日收盘高于 30;政策分量(再上调)不设数值触发,以决议实录核验"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S1-STICKY-TIGHTEN]/rows/trigger/deadline
+        old: "2027-02-15"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/id
+        old: "S2-INFL-FADE"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/asset_direction/confidence_tier
+        old: "纯逻辑推理"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/asset_direction/direction
+        old: "在此假设下,通胀预期与实际利率回落,风险资产修复、波动率回落;该方向与近一月观察(SPX 下跌 9.36%、NIKKEI225 下跌 9.98%、DAX 下跌 1.50%、CAC40 上涨 1.86%、VIX 上涨)相反,属并列反例情景"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/asset_direction/evidence_refs[0]
+        old: "VIX@2026-11-23"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/asset_direction/evidence_refs[1]
+        old: "NIKKEI225@2026-11-20"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/falsification/metric_id
+        old: "EA_HICP_YOY"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/falsification/secondary_metric_ids[0]
+        old: "JP_CPI_YOY"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/falsification/threshold
+        old: "若观测月 2026-11 与 2026-12 两月 EA_HICP_YOY 同比均不低于 3.5%(未回落),「以一次性因素为主、回落至 3.0% 以下」的前提被证伪;政策分量(按兵不动)不设数值触发,以决议实录核验"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/scenario
+        old: "【假设·非预测】当前欧元区通胀抬升以一次性因素(能源基数、进口传导)为主: 至 2026-12 观测月(读数按引擎发布规则于 2027-01 入档,早于时限 2027-02-15),EA_HICP_YOY 同比回落至 3.0% 以下、ECB 按兵不动;日本全国 CPI 同比回落至 2.0% 以下、BOJ 维持目标约 1.25% 不变。"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/sensitive_variables[0]
+        old: "EA_HICP_YOY"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/sensitive_variables[1]
+        old: "JP_CPI_YOY"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/trigger/condition
+        old: "观测月 2026-11 与 2026-12 两月 EA_HICP_YOY 同比连续回落且 2026-12 观测月读数低于 3.0%(前提水平),同时 VIX 在该读数入档日前最近一个交易日收盘低于 25;政策分量(ECB 按兵不动/BOJ 维持)不设数值触发,以决议实录核验"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[S2-INFL-FADE]/rows/trigger/deadline
+        old: "2027-02-15"
+        new: "<absent>"
+## report.json/run.evidence_gate | leaves compared 850 | identical 850 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 154 | identical 154 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+   tree-state (install-tree standard-update ledger, not research evidence): ['[3]/data/last_run/…']
+## report.json/steps[*].envelope | leaves compared 136540 | identical 136496 | real diff 0 | path/run-id only 44 | only-old 0 | only-new 0
+   path/run-id-only sample: ['[10]/engine_root', '[11]/engine_root', '[12]/engine_root']
+# report.json totals: real diff 13 | only-old 75 | only-new 3
+## evidence_index.json | leaves compared 180 | identical 180 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 233 | identical 230 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+   path/run-id-only sample: ['/read_first[0]', '/read_first[1]', '/read_first[2]']
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261123.json'] | new ['research_snapshot_20261123.json']
+   research_snapshot_20261123.json sha256 old 2d650f1128cdd356 new 2d650f1128cdd356 equal True

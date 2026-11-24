@@ -1,0 +1,842 @@
+[
+{
+"id": "I01",
+"face": "snapshot.series_store",
+"key": "JP_CPI_YOY@2026-07",
+"calc": 1.97,
+"calc_str": "1.97",
+"report": 1.97,
+"ok": true,
+"note": ""
+},
+{
+"id": "I02",
+"face": "snapshot.series_store",
+"key": "JP_CPI_YOY@2026-10",
+"calc": 2.44,
+"calc_str": "2.44",
+"report": 2.44,
+"ok": true,
+"note": ""
+},
+{
+"id": "I03",
+"face": "snapshot.series_store",
+"key": "JP_CPI_YOY 末观测月",
+"calc": "2026-10",
+"calc_str": "2026-10",
+"report": "2026-10",
+"ok": true,
+"note": ""
+},
+{
+"id": "I04",
+"face": "snapshot.series_store",
+"key": "JP_CPI_TOKYO_YOY@2026-07",
+"calc": 1.85,
+"calc_str": "1.85",
+"report": 1.85,
+"ok": true,
+"note": ""
+},
+{
+"id": "I05",
+"face": "snapshot.series_store",
+"key": "JP_CPI_TOKYO_YOY@2026-10",
+"calc": 2.73,
+"calc_str": "2.73",
+"report": 2.73,
+"ok": true,
+"note": ""
+},
+{
+"id": "I06",
+"face": "snapshot.series_store",
+"key": "JP_CPI_TOKYO_YOY@2026-06",
+"calc": 1.6,
+"calc_str": "1.6",
+"report": 1.6,
+"ok": true,
+"note": ""
+},
+{
+"id": "I07",
+"face": "snapshot.series_store",
+"key": "JP_CPI_TOKYO_YOY@2026-09",
+"calc": 2.69,
+"calc_str": "2.69",
+"report": 2.69,
+"ok": true,
+"note": ""
+},
+{
+"id": "I08",
+"face": "snapshot.series_store",
+"key": "东京都同比 2026-09 - 2026-06 (pp)",
+"calc": 1.0899999999999999,
+"calc_str": "1.09",
+"report": 1.09,
+"ok": true,
+"note": ""
+},
+{
+"id": "I09",
+"face": "snapshot.series_store",
+"key": "JP_CPI_TOKYO_YOY 序列首观测",
+"calc": "2026-01",
+"calc_str": "2026-01",
+"report": "2026-01",
+"ok": true,
+"note": ""
+},
+{
+"id": "I10",
+"face": "snapshot.series_store",
+"key": "CPI@2026-10",
+"calc": 337.476,
+"calc_str": "337.476",
+"report": 337.476,
+"ok": true,
+"note": ""
+},
+{
+"id": "I11",
+"face": "snapshot.series_store",
+"key": "CPI@2026-07",
+"calc": 332.813,
+"calc_str": "332.813",
+"report": 332.813,
+"ok": true,
+"note": ""
+},
+{
+"id": "I12",
+"face": "snapshot.series_store",
+"key": "CPI 无 2025-10 观测(同比基期缺)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "有 2025-09=324.245, 2025-11=325.063"
+},
+{
+"id": "I13",
+"face": "snapshot.series_store",
+"key": "CPI 同比 2026-09 (基期 2025-09) %",
+"calc": 3.7172508442689933,
+"calc_str": "3.72",
+"report": 3.72,
+"ok": true,
+"note": ""
+},
+{
+"id": "I14",
+"face": "snapshot.series_store",
+"key": "CPI 同比 2026-07 (基期 2025-07) %",
+"calc": 3.303856050706311,
+"calc_str": "3.30",
+"report": 3.3,
+"ok": true,
+"note": ""
+},
+{
+"id": "I15",
+"face": "snapshot.series_store",
+"key": "CPI 2026-10 为最新月且其同比不可得、2026-09 为最近有效同比",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "I16",
+"face": "snapshot.series_store",
+"key": "CORE_CPI@2026-10",
+"calc": 339.9,
+"calc_str": "339.9",
+"report": 339.9,
+"ok": true,
+"note": ""
+},
+{
+"id": "I17",
+"face": "snapshot.series_store",
+"key": "CORE_CPI@2026-07",
+"calc": 336.789,
+"calc_str": "336.789",
+"report": 336.789,
+"ok": true,
+"note": ""
+},
+{
+"id": "I18",
+"face": "snapshot.series_store",
+"key": "CORE_CPI 无 2025-10 观测",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "I19",
+"face": "snapshot.series_store",
+"key": "CORE_CPI 同比 2026-09 %",
+"calc": 2.565840844021827,
+"calc_str": "2.57",
+"report": 2.57,
+"ok": true,
+"note": ""
+},
+{
+"id": "I20",
+"face": "snapshot.series_store",
+"key": "CORE_CPI 同比 2026-07 %",
+"calc": 2.4665177892309265,
+"calc_str": "2.47",
+"report": 2.47,
+"ok": true,
+"note": ""
+},
+{
+"id": "I21",
+"face": "snapshot.series_store",
+"key": "CORE_PCE@2026-09",
+"calc": 130.902,
+"calc_str": "130.902",
+"report": 130.902,
+"ok": true,
+"note": ""
+},
+{
+"id": "I22",
+"face": "snapshot.series_store",
+"key": "CORE_PCE@2026-06",
+"calc": 129.969,
+"calc_str": "129.969",
+"report": 129.969,
+"ok": true,
+"note": ""
+},
+{
+"id": "I23",
+"face": "snapshot.series_store",
+"key": "CORE_PCE 同比 2026-06 %",
+"calc": 3.041234252733216,
+"calc_str": "3.04",
+"report": 3.04,
+"ok": true,
+"note": ""
+},
+{
+"id": "I24",
+"face": "snapshot.series_store",
+"key": "CORE_PCE 同比 2026-09 %",
+"calc": 3.1211596029620203,
+"calc_str": "3.12",
+"report": 3.12,
+"ok": true,
+"note": ""
+},
+{
+"id": "I25",
+"face": "snapshot.series_store",
+"key": "CORE_PCE 末观测月",
+"calc": "2026-09",
+"calc_str": "2026-09",
+"report": "2026-09",
+"ok": true,
+"note": ""
+},
+{
+"id": "I26",
+"face": "snapshot.series_store",
+"key": "CN_CPI_YOY@2026-07",
+"calc": 0.5,
+"calc_str": "0.5",
+"report": 0.5,
+"ok": true,
+"note": ""
+},
+{
+"id": "I27",
+"face": "snapshot.series_store",
+"key": "CN_CPI_YOY@2026-10",
+"calc": 0.7,
+"calc_str": "0.7",
+"report": 0.7,
+"ok": true,
+"note": ""
+},
+{
+"id": "I28",
+"face": "snapshot.series_store",
+"key": "CN_PPI_YOY@2026-07",
+"calc": 3.5,
+"calc_str": "3.5",
+"report": 3.5,
+"ok": true,
+"note": ""
+},
+{
+"id": "I29",
+"face": "snapshot.series_store",
+"key": "CN_PPI_YOY@2026-10",
+"calc": 5.7,
+"calc_str": "5.7",
+"report": 5.7,
+"ok": true,
+"note": ""
+},
+{
+"id": "I30",
+"face": "snapshot.series_store",
+"key": "CN_CPI_YOY@2026-10 序列日期(=点值格观测日 2026-10-01; 证据索引标签 2026-10-31 为期末口径, 受审稿已披露两口径不同)",
+"calc": "2026-10-01",
+"calc_str": "2026-10-01",
+"report": "2026-10-01",
+"ok": true,
+"note": ""
+},
+{
+"id": "I30b",
+"face": "report.json evidence_index[*].ref",
+"key": "证据索引对 CN_CPI_YOY/CN_PPI_YOY 最新一期的引用标签(期末口径)",
+"calc": "CN_CPI_YOY@2026-10-31,CN_PPI_YOY@2026-10-31",
+"calc_str": "CN_CPI_YOY@2026-10-31,CN_PPI_YOY@2026-10-31",
+"report": "CN_CPI_YOY@2026-10-31,CN_PPI_YOY@2026-10-31",
+"ok": true,
+"note": ""
+},
+{
+"id": "I31",
+"face": "snapshot.series_store",
+"key": "剪刀差 2026-07 = PPI-CPI (pp)",
+"calc": 3.0,
+"calc_str": "3.0",
+"report": 3.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "I32",
+"face": "snapshot.series_store",
+"key": "剪刀差 2026-10 = PPI-CPI (pp)",
+"calc": 5.0,
+"calc_str": "5.0",
+"report": 5.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "I33",
+"face": "snapshot.series_store",
+"key": "美国 CPI 同比 3.72(2026-09) > 3.30(2026-07)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "I34",
+"face": "snapshot.series_store",
+"key": "美国核心CPI同比 2.57(2026-09) > 2.47(2026-07)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "I35",
+"face": "snapshot.series_store",
+"key": "美国核心PCE同比 3.12(2026-09) > 3.04(2026-06)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "I36",
+"face": "snapshot.series_store",
+"key": "日本 2.44>1.97、东京 2.73>1.85、中国CPI 0.7>0.5、PPI 5.7>3.5",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "T01",
+"face": "snapshot.series_store",
+"key": "CORE_CPI 同比 2026-05 %",
+"calc": 2.8229420636110225,
+"calc_str": "2.8229",
+"report": 2.8229,
+"ok": true,
+"note": ""
+},
+{
+"id": "T02",
+"face": "snapshot.series_store",
+"key": "CORE_CPI 同比 2026-08 %",
+"calc": 2.4461631786472537,
+"calc_str": "2.4462",
+"report": 2.4462,
+"ok": true,
+"note": ""
+},
+{
+"id": "T03",
+"face": "snapshot.series_store",
+"key": "CORE_CPI 同比 2026-09 %",
+"calc": 2.565840844021827,
+"calc_str": "2.5658",
+"report": 2.5658,
+"ok": true,
+"note": ""
+},
+{
+"id": "T04",
+"face": "snapshot.series_store",
+"key": "核心CPI同比 所引两位四位小数之差 2026-08 − 2026-05 (pp)(未舍入差 -0.376779, 四舍五入为 -0.3768)",
+"calc": -0.37670000000000003,
+"calc_str": "-0.3767",
+"report": -0.3767,
+"ok": true,
+"note": ""
+},
+{
+"id": "T04b",
+"face": "report.json research_plan.turning_candidates.candidates[CORE_CPI].delta",
+"key": "引擎候选面 CORE_CPI delta(受审稿『三个月回落 0.3767 个百分点』)",
+"calc": -0.3767,
+"calc_str": "-0.3767",
+"report": -0.3767,
+"ok": true,
+"note": ""
+},
+{
+"id": "T05",
+"face": "snapshot.series_store",
+"key": "CPI 同比 2026-02 %",
+"calc": 2.4340041103732224,
+"calc_str": "2.434",
+"report": 2.434,
+"ok": true,
+"note": ""
+},
+{
+"id": "T06",
+"face": "snapshot.series_store",
+"key": "CPI 同比 2026-05 %",
+"calc": 4.166614684049641,
+"calc_str": "4.1666",
+"report": 4.1666,
+"ok": true,
+"note": ""
+},
+{
+"id": "T07",
+"face": "snapshot.series_store",
+"key": "CN_CPI_YOY@2026-01",
+"calc": 0.2,
+"calc_str": "0.2",
+"report": 0.2,
+"ok": true,
+"note": ""
+},
+{
+"id": "T08",
+"face": "snapshot.series_store",
+"key": "CN_CPI_YOY@2026-04",
+"calc": 1.2,
+"calc_str": "1.2",
+"report": 1.2,
+"ok": true,
+"note": ""
+},
+{
+"id": "T09",
+"face": "snapshot.series_store",
+"key": "INDPRO 同比 2025-11 %",
+"calc": 1.7543117556713783,
+"calc_str": "1.7543",
+"report": 1.7543,
+"ok": true,
+"note": ""
+},
+{
+"id": "T10",
+"face": "snapshot.series_store",
+"key": "INDPRO 同比 2026-02 %",
+"calc": 0.7972359848188892,
+"calc_str": "0.7972",
+"report": 0.7972,
+"ok": true,
+"note": ""
+},
+{
+"id": "T11",
+"face": "snapshot.series_store",
+"key": "INDPRO 同比 2026-02 - 2025-11 (pp)",
+"calc": -0.9570757708524891,
+"calc_str": "-0.9571",
+"report": -0.9571,
+"ok": true,
+"note": ""
+},
+{
+"id": "T12",
+"face": "snapshot.series_store",
+"key": "CN_PMI_MFG@2026-02",
+"calc": 49.0,
+"calc_str": "49.0",
+"report": 49.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "T13",
+"face": "snapshot.series_store",
+"key": "CN_PMI_MFG@2026-05",
+"calc": 50.0,
+"calc_str": "50.0",
+"report": 50.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "T14",
+"face": "snapshot.series_store",
+"key": "CN_PMI_MFG 同比 2026-02 %",
+"calc": -2.390438247011961,
+"calc_str": "-2.3904",
+"report": -2.3904,
+"ok": true,
+"note": ""
+},
+{
+"id": "T15",
+"face": "snapshot.series_store",
+"key": "CN_PMI_MFG 同比 2026-05 %",
+"calc": 1.0101010101010166,
+"calc_str": "1.0101",
+"report": 1.0101,
+"ok": true,
+"note": ""
+},
+{
+"id": "T16",
+"face": "report.json research_plan.turning_candidates.candidates",
+"key": "候选池 9 项",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "[('CN_PPI_YOY', '2026-02', '2026-05'), ('CN_PMI_MFG', '2026-02', '2026-05'), ('CPI', '2026-02', '2026-05'), ('JP_CPI_YOY', '2025-11', '2026-02'), ('JP_CPI_TOKYO_YOY', '2026-06', '2026-09'), ('CN_CPI_YOY', '2026-01', '2026-04'), ('INDPRO', '2025-11', '2026-02'), ('CORE_CPI', '2026-05', '2026-08'), ('JP_POLICY_RATE', '2026-04', '2026-07')]"
+},
+{
+"id": "T17",
+"face": "report.json turning_candidates",
+"key": "候选池 9 项的指标与窗口与正文所述一致",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "{'CN_PPI_YOY': ('2026-02', '2026-05'), 'CN_PMI_MFG': ('2026-02', '2026-05'), 'CPI': ('2026-02', '2026-05'), 'JP_CPI_YOY': ('2025-11', '2026-02'), 'JP_CPI_TOKYO_YOY': ('2026-06', '2026-09'), 'CN_CPI_YOY': ('2026-01', '2026-04'), 'INDPRO': ('2025-11', '2026-02'), 'CORE_CPI': ('2026-05', '2026-08'), 'JP_POLICY_RATE': ('2026-04', '2026-07')}"
+},
+{
+"id": "T18",
+"face": "snapshot.series_store",
+"key": "CN_PPI_YOY@2026-02 / @2026-05 (与引擎候选面 value_before/value_after)",
+"calc": 0.0,
+"calc_str": "0.0",
+"report": 0.0,
+"ok": true,
+"note": "直算 -0.9→3.9; 引擎 -0.9→3.9"
+},
+{
+"id": "T19",
+"face": "snapshot.series_store",
+"key": "JP_CPI_YOY@2026-02",
+"calc": 1.27,
+"calc_str": "1.27",
+"report": 1.27,
+"ok": true,
+"note": "与引擎候选面 value_after 比对"
+},
+{
+"id": "T20",
+"face": "report.json turning_candidates",
+"key": "除三项所取转折外, 其余 6 项窗口终点 ≤ 2026-05",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "G01",
+"face": "snapshot.series_store",
+"key": "US_REAL_GDP@2026-07",
+"calc": 24611.077,
+"calc_str": "24611.077",
+"report": 24611.077,
+"ok": true,
+"note": ""
+},
+{
+"id": "G02",
+"face": "snapshot.series_store",
+"key": "US_REAL_GDP@2026-04",
+"calc": 24408.011,
+"calc_str": "24408.011",
+"report": 24408.011,
+"ok": true,
+"note": ""
+},
+{
+"id": "G03",
+"face": "snapshot.series_store",
+"key": "US_REAL_GDP 同比 2026-07 (基期 2025-07) %",
+"calc": 2.0657392375537764,
+"calc_str": "2.07",
+"report": 2.07,
+"ok": true,
+"note": ""
+},
+{
+"id": "G04",
+"face": "snapshot.series_store",
+"key": "US_REAL_GDP 同比 2026-04 (基期 2025-04) %",
+"calc": 2.1915745328897174,
+"calc_str": "2.19",
+"report": 2.19,
+"ok": true,
+"note": ""
+},
+{
+"id": "G05",
+"face": "snapshot.series_store",
+"key": "US_REAL_GDP 末观测季",
+"calc": "2026-07",
+"calc_str": "2026-07",
+"report": "2026-07",
+"ok": true,
+"note": ""
+},
+{
+"id": "G06",
+"face": "snapshot.series_store",
+"key": "UNEMPLOYMENT@2026-07",
+"calc": 4.1,
+"calc_str": "4.1",
+"report": 4.1,
+"ok": true,
+"note": ""
+},
+{
+"id": "G07",
+"face": "snapshot.series_store",
+"key": "UNEMPLOYMENT@2026-10",
+"calc": 4.1,
+"calc_str": "4.1",
+"report": 4.1,
+"ok": true,
+"note": ""
+},
+{
+"id": "G08",
+"face": "snapshot.series_store",
+"key": "UNEMPLOYMENT 末观测月",
+"calc": "2026-10",
+"calc_str": "2026-10",
+"report": "2026-10",
+"ok": true,
+"note": ""
+},
+{
+"id": "G09",
+"face": "snapshot.series_store",
+"key": "INDPRO@2026-10",
+"calc": 103.3954,
+"calc_str": "103.3954",
+"report": 103.3954,
+"ok": true,
+"note": ""
+},
+{
+"id": "G10",
+"face": "snapshot.series_store",
+"key": "INDPRO@2026-07",
+"calc": 103.1675,
+"calc_str": "103.1675",
+"report": 103.1675,
+"ok": true,
+"note": ""
+},
+{
+"id": "G11",
+"face": "snapshot.series_store",
+"key": "INDPRO 同比 2026-10 %",
+"calc": 2.1496845963475453,
+"calc_str": "2.15",
+"report": 2.15,
+"ok": true,
+"note": ""
+},
+{
+"id": "G12",
+"face": "snapshot.series_store",
+"key": "INDPRO 同比 2026-07 %",
+"calc": 1.2498282528902616,
+"calc_str": "1.25",
+"report": 1.25,
+"ok": true,
+"note": ""
+},
+{
+"id": "G13",
+"face": "snapshot.series_store",
+"key": "INDPRO 末观测月",
+"calc": "2026-10",
+"calc_str": "2026-10",
+"report": "2026-10",
+"ok": true,
+"note": ""
+},
+{
+"id": "G14",
+"face": "snapshot.series_store",
+"key": "CN_PMI_MFG@2026-07",
+"calc": 49.2,
+"calc_str": "49.2",
+"report": 49.2,
+"ok": true,
+"note": ""
+},
+{
+"id": "G15",
+"face": "snapshot.series_store",
+"key": "CN_PMI_MFG@2026-10",
+"calc": 49.3,
+"calc_str": "49.3",
+"report": 49.3,
+"ok": true,
+"note": ""
+},
+{
+"id": "G16",
+"face": "snapshot.series_store",
+"key": "JP_REAL_GDP_YOY@2026-04",
+"calc": 0.8,
+"calc_str": "0.80",
+"report": 0.8,
+"ok": true,
+"note": ""
+},
+{
+"id": "G17",
+"face": "snapshot.series_store",
+"key": "JP_REAL_GDP_YOY@2026-07",
+"calc": 1.16,
+"calc_str": "1.16",
+"report": 1.16,
+"ok": true,
+"note": ""
+},
+{
+"id": "G18",
+"face": "snapshot.series_store",
+"key": "JP_REAL_GDP_YOY 末观测季",
+"calc": "2026-07",
+"calc_str": "2026-07",
+"report": "2026-07",
+"ok": true,
+"note": ""
+},
+{
+"id": "G19",
+"face": "snapshot.series_store",
+"key": "两期 PMI 均在荣枯线下方(49.2、49.3 < 50)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "V01",
+"face": "report.json research_plan.point_values.cells",
+"key": "按引擎所载发布规则独立重算: 35 个 status=ok 锚格的(观测日,值)=『发布日≤锚日的最后观测』且逐位一致 (35/35)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "[('CN_POLICY_OVERNIGHT', 'anc', 'no_published_observation_on_or_before_anchor', 'mine=None')]"
+},
+{
+"id": "V01b",
+"face": "report.json research_plan.point_values.cells",
+"key": "CN_POLICY_OVERNIGHT 三个月前锚: 发布日≤2026-08-23 的观测不存在(独立重算)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "[('CN_POLICY_OVERNIGHT', 'anc', 'no_published_observation_on_or_before_anchor', 'mine=None')]"
+},
+{
+"id": "V02",
+"face": "agent_judgment.json reader_map.regions[*].anchor_echo",
+"key": "anchor_echo 35 项: 值与观测月=『发布日≤锚日的最后观测』(独立按发布规则重算), 逐位一致",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "[]"
+},
+{
+"id": "V03",
+"face": "report.json research_plan.point_values.cells",
+"key": "点值格 18 格 + 缺席 4 格",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "V04",
+"face": "report.json research_plan.point_values.cells",
+"key": "CORE_PCE 锚=2026-06(2026-07 发布晚于锚)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "V05",
+"face": "report.json research_plan.point_values.cells",
+"key": "US_REAL_GDP 锚=2026-04(Q3 发布 2026-10-29 晚于锚)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "V06",
+"face": "report.json research_plan.point_values.cells",
+"key": "JP_REAL_GDP_YOY 锚=2026-04",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+}
+]

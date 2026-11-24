@@ -1,0 +1,68 @@
+{
+ "produced": true,
+ "note": "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计",
+ "attribution": "ai_inferred",
+ "content": {
+  "scenarios": [
+   {
+    "id": "S1-INFL-STICKY",
+    "rows": {
+     "scenario": "【假设·非预测】美欧通胀延续当前抬升动能: 至 2027-01 发布(即至 2026-12 观测月;2027-01 观测月的规则发布日 2027-02-16 晚于期限 2027-02-15),EA_HICP_YOY 同比维持 3.5% 以上(证伪线为 3.0%,3.0% 至 3.5% 之间为缓冲带),美国 CORE_PCE 同比维持 3.0% 以上,美欧政策面维持紧缩偏向【假设·美欧政策利率不在本问证据面】(日本月均中枢不低于当前台阶)。",
+     "asset_direction": {
+      "direction": "在此假设下,实际利率与无风险利率中枢承压上行,利率敏感资产(高估值成长股、黄金)相对走弱,美元指数相对非美货币偏强;此为方向性推演,非幅度预测",
+      "confidence_tier": "有相关证据",
+      "evidence_refs": [
+       "TIPS_10Y@2026-11-19",
+       "BEI_10Y@2026-11-20",
+       "SPX@2026-11-23"
+      ]
+     },
+     "sensitive_variables": [
+      "EA_HICP_YOY",
+      "CORE_PCE"
+     ],
+     "falsification": {
+      "metric_id": "EA_HICP_YOY",
+      "threshold": "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比(对应 2026-11、2026-12 观测月,规则发布日 2026-12-16、2027-01-16,均不晚于期限 2027-02-15)连续两个月低于 3.0%(情景陈述的界为 3.5%,3.0% 至 3.5% 之间为缓冲带——情景陈述在该带内不成立但未达证伪线),通胀粘性假设被证伪",
+      "secondary_metric_ids": [
+       "CORE_PCE"
+      ]
+     },
+     "trigger": {
+      "condition": "2026-12 或 2027-01 发布的 EA_HICP_YOY 同比 ≥4.2% 且 CORE_PCE 同比 ≥3.2%,同时 TIPS_10Y 高于 3.0%",
+      "deadline": "2027-02-15"
+     }
+    }
+   },
+   {
+    "id": "S2-INFL-FADE",
+    "rows": {
+     "scenario": "【假设·非预测】当前美欧通胀抬升以一次性因素(能源基数、汇率进口传导)为主: 至 2027-01 发布(即至 2026-12 观测月),EA_HICP_YOY 同比回落至 3.0% 以下(触发线为 3.4%,3.0% 至 3.4% 之间为缓冲带),美国 CORE_PCE 同比回落至 2.8% 以下,市场重新定价宽松。",
+     "asset_direction": {
+      "direction": "在此假设下,通胀补偿与实际利率双双回落,风险资产修复、黄金重新走强、美元走弱;该方向与近一月观察(共同交易日窗 2026-10-20→2026-11-19 实际利率 +11bp 而风险资产回落)相反,属并列反例情景",
+      "confidence_tier": "纯逻辑推理",
+      "evidence_refs": [
+       "BEI_10Y@2026-11-20",
+       "SPX@2026-11-23"
+      ]
+     },
+     "sensitive_variables": [
+      "EA_HICP_YOY",
+      "CORE_PCE"
+     ],
+     "falsification": {
+      "metric_id": "EA_HICP_YOY",
+      "threshold": "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比均不低于 4.0%(情景陈述的界为 3.0%,3.0% 至 4.0% 之间为缓冲带——在该带内既未触发也未证伪),一次性因素假设被证伪",
+      "secondary_metric_ids": [
+       "CORE_PCE"
+      ]
+     },
+     "trigger": {
+      "condition": "EA_HICP_YOY 同比连续两个月回落且最新值 ≤3.4%(至情景陈述的界 3.0% 之间为缓冲带),同时 BEI_10Y 低于 2.0%",
+      "deadline": "2027-02-15"
+     }
+    }
+   }
+  ]
+ }
+}

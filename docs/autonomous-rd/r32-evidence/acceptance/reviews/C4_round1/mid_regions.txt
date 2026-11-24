@@ -1,0 +1,305 @@
+{
+ "US": {
+  "label": "美国",
+  "dimensions": {
+   "growth": [
+    {
+     "metric_id": "US_REAL_GDP",
+     "display_name": "美国实际GDP(SAAR)",
+     "face_note": "实际GDP(季频水平)",
+     "frequency": "quarterly",
+     "unit": "billion_usd",
+     "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+     "policy_face": null
+    },
+    {
+     "metric_id": "UNEMPLOYMENT",
+     "display_name": "失业率(U-3)",
+     "face_note": "失业率(月频)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": null
+    },
+    {
+     "metric_id": "INDPRO",
+     "display_name": "工业生产指数(SA)",
+     "face_note": "工业生产指数(月频水平)",
+     "frequency": "monthly",
+     "unit": "index_point_2017",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": null
+    }
+   ],
+   "inflation": [
+    {
+     "metric_id": "CPI",
+     "display_name": "CPI物价指数(SA)",
+     "face_note": "CPI(月频水平,同比派生)",
+     "frequency": "monthly",
+     "unit": "index_point_1982_84",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": null
+    },
+    {
+     "metric_id": "CORE_CPI",
+     "display_name": "核心CPI(SA,剔除食品能源)",
+     "face_note": "核心CPI(月频水平,同比派生)",
+     "frequency": "monthly",
+     "unit": "index_point_1982_84",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": null
+    },
+    {
+     "metric_id": "CORE_PCE",
+     "display_name": "核心PCE(SA)",
+     "face_note": "核心PCE(月频水平,同比派生)",
+     "frequency": "monthly",
+     "unit": "index_point_2017",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": null
+    }
+   ],
+   "policy": [
+    {
+     "metric_id": "DFEDTARU",
+     "display_name": "联邦基金目标区间上限",
+     "face_note": "联邦基金目标区间上限(政策目标口径)",
+     "frequency": "daily",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "政策目标(宣布值)",
+      "market_seat_label": "FOMC目标区间上限",
+      "decision": "决议日=生效日前一日(两日会议次日公布;序列值变更日=生效日)——2026-09 决议 09-16、生效 09-17",
+      "effective": "生效日=观测日(目标区间自生效日起按新值执行;2022-07 决议 07-27→生效 07-28,七月末上限 2.50)",
+      "decision_kind": "prev_day",
+      "stat_window": null,
+      "market_pair": "DFF",
+      "market_note": "市场观测=配对 DFF(有效联邦基金利率)同窗观测日(生效日 DFF 同日跳变可核: 2026-09-17 3.63→3.88)"
+     }
+    },
+    {
+     "metric_id": "DFF",
+     "display_name": "有效联邦基金利率(日频)",
+     "face_note": "有效联邦基金利率(日频市场利率)",
+     "frequency": "daily",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "隔夜市场均值(有效利率)",
+      "market_seat_label": "NY Fed有效联邦基金利率",
+      "decision": null,
+      "effective": "观测日=交易日次日发布",
+      "stat_window": "日",
+      "market_self": true,
+      "market_note": "市场观测日=本序列观测日(自即市场均值口径;生效日跳变与目标变更同日可核)"
+     }
+    }
+   ]
+  }
+ },
+ "EA": {
+  "label": "欧元区",
+  "dimensions": {
+   "growth": [
+    {
+     "metric_id": "EA_REAL_GDP_YOY",
+     "display_name": "欧元区实际GDP同比",
+     "face_note": "实际GDP同比(季频,FRED最新修订值→事后回顾口径)",
+     "frequency": "quarterly",
+     "unit": "percent",
+     "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+     "policy_face": null
+    }
+   ],
+   "inflation": [
+    {
+     "metric_id": "EA_HICP_YOY",
+     "display_name": "欧元区HICP同比",
+     "face_note": "HICP同比(月频)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+     "policy_face": null
+    }
+   ],
+   "policy": [
+    {
+     "metric_id": "ECB_MRO",
+     "display_name": "欧央行主要再融资利率",
+     "face_note": "欧央行主要再融资利率(政策目标口径)",
+     "frequency": "daily",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "政策目标(宣布值)",
+      "market_seat_label": "ECB主要再融资利率",
+      "decision": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16",
+      "effective": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)",
+      "decision_kind": "prev_thursday",
+      "stat_window": null
+     }
+    },
+    {
+     "metric_id": "ECB_DFR",
+     "display_name": "欧央行存款便利利率",
+     "face_note": "欧央行存款便利利率(操作下限口径)",
+     "frequency": "daily",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "政策目标(宣布值·操作下限)",
+      "market_seat_label": "ECB存款便利利率",
+      "decision": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16",
+      "effective": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)",
+      "decision_kind": "prev_thursday",
+      "stat_window": null
+     }
+    }
+   ]
+  }
+ },
+ "CN": {
+  "label": "中国",
+  "dimensions": {
+   "growth": [
+    {
+     "metric_id": "CN_PMI_MFG",
+     "display_name": "制造业PMI",
+     "face_note": "制造业PMI(月频)",
+     "frequency": "monthly",
+     "unit": "index_point",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": null
+    }
+   ],
+   "inflation": [
+    {
+     "metric_id": "CN_CPI_YOY",
+     "display_name": "居民消费价格指数(CPI)同比",
+     "face_note": "CPI同比(月频)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": null
+    },
+    {
+     "metric_id": "CN_PPI_YOY",
+     "display_name": "工业生产者出厂价格指数(PPI)同比",
+     "face_note": "PPI同比(月频,价格维)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": null
+    }
+   ],
+   "policy": [
+    {
+     "metric_id": "CN_POLICY_OVERNIGHT",
+     "display_name": "央行隔夜逆回购利率(政策利率锚)",
+     "face_note": "隔夜逆回购利率(操作目标口径——2026-11-02 换锚后的政策利率锚)",
+     "frequency": "daily",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "操作目标(隔夜·2026-11-02起新锚)",
+      "market_seat_label": "央行隔夜逆回购中标利率",
+      "decision": "决议日=公告日=观测日(交易日09:20披露)",
+      "effective": "生效日=操作日当日",
+      "decision_kind": "obs_day",
+      "stat_window": null,
+      "market_note": "隔夜市场利率(DR001类)未入库,市场观测日如实缺席"
+     }
+    },
+    {
+     "metric_id": "CN_OMO_7D",
+     "display_name": "央行7天期逆回购利率",
+     "face_note": "7天逆回购利率(七天工具口径——换锚前为操作目标,2026-11-02 起单列)",
+     "frequency": "daily",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "七天工具(操作利率)",
+      "market_seat_label": "央行7天逆回购中标利率",
+      "decision": "决议日=公告日=观测日(交易日09:20披露)",
+      "effective": "生效日=操作日当日",
+      "decision_kind": "obs_day",
+      "stat_window": null,
+      "market_note": "七天工具口径单列(2026-11-02 换锚前为操作目标锚)"
+     }
+    },
+    {
+     "metric_id": "CN_LPR_1Y",
+     "display_name": "贷款市场报价利率(LPR)1年期",
+     "face_note": "LPR 1年期(报价基准,单列)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "贷款报价(报价基准)",
+      "market_seat_label": "LPR 1年期报价",
+      "decision": "公布日=观测日(每月20日09:00,节假日顺延——Audit-R29 任务3: 官方发布时刻统一 09:00,与 release_calendar time=09:00 同口径)",
+      "effective": "生效日=公布日",
+      "decision_kind": "obs_day",
+      "stat_window": null,
+      "market_note": "报价基准与政策操作目标分列"
+     }
+    }
+   ]
+  }
+ },
+ "JP": {
+  "label": "日本",
+  "dimensions": {
+   "growth": [
+    {
+     "metric_id": "JP_REAL_GDP_YOY",
+     "display_name": "日本实际GDP同比",
+     "face_note": "实际GDP同比(季频,FRED最新修订值→事后回顾口径)",
+     "frequency": "quarterly",
+     "unit": "percent",
+     "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+     "policy_face": null
+    }
+   ],
+   "inflation": [
+    {
+     "metric_id": "JP_CPI_YOY",
+     "display_name": "全国CPI同比(日本)",
+     "face_note": "全国CPI同比(月频,官方主口径)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+     "policy_face": null
+    },
+    {
+     "metric_id": "JP_CPI_TOKYO_YOY",
+     "display_name": "东京都CPI同比",
+     "face_note": "东京都CPI同比(月频,速报先行口径;2025基单档→2026-01起)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": null
+    }
+   ],
+   "policy": [
+    {
+     "metric_id": "JP_POLICY_RATE",
+     "display_name": "日本无担保隔夜拆借利率(月均)",
+     "face_note": "无担保隔夜拆借利率(月均口径——月均≠政策目标宣布值,任务3四分注记)",
+     "frequency": "monthly",
+     "unit": "percent",
+     "vintage_semantics": "as_collected(采集时点值)",
+     "policy_face": {
+      "face": "隔夜市场均值(月均)",
+      "market_seat_label": "无担保隔夜拆借月均",
+      "decision": null,
+      "effective": null,
+      "stat_window": "月"
+     }
+    }
+   ]
+  }
+ }
+}

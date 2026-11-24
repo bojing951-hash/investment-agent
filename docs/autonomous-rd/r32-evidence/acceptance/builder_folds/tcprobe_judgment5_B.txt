@@ -1,0 +1,61 @@
+== C1-INFL-SYNC class_b consumed set() n_b 0
+ [0] aliases=[] tokens=[]
+      美欧通胀环境较 3 个月前同步走高、欧元区幅度更大
+ [1] aliases=[] tokens=[]
+      欧元区 EA_HICP_YOY 最新读数明显走高、水平高于美国(数值与观测月见走位对照
+ [2] aliases=[] tokens=[]
+      两地最新可比同月为九月，为 2023-09 以来首个高于美国的可比月份(2022-07 至 2023-09 曾持续高于美国))
+ [3] aliases=['CPI'] tokens=[('337.476', 'plain')]
+      美国 CPI 指数水平最新报 337.476(观测 2026-10
+ [4] aliases=[] tokens=[('332.813', 'plain')]
+      3 个月前锚前值 332.813,观测 2026-07
+ [5] aliases=[] tokens=[]
+      同比派生口径 2026-10 因缺上年同月基期观测不可得,最近有效同比见走位对照)
+ [6] aliases=['CORE_CPI'] tokens=[('339.9', 'plain')]
+      CORE_CPI 报 339.9(观测 2026-10)
+ [7] aliases=['CORE_PCE'] tokens=[('130.902', 'plain')]
+      CORE_PCE 报 130.902(观测 2026-09)
+ [8] aliases=[] tokens=[]
+      美国 headline 与核心口径同向上行,但读数水平在最新可比同月低于欧元区
+ [9] aliases=['BEI_10Y'] tokens=[('2.15', 'plain')]
+      市场口径: BEI_10Y 水平为 2.15(观测 2026-11-20)
+ [10] aliases=['BRENT_F'] tokens=[]
+      供给侧读数对账见传导面第一环(近三个月布伦特原油微降而两地通胀走高,对「能源持续传导」为反向事实【尚未验证】)
+== C2-GROWTH-STABLE class_b consumed set() n_b 0
+ [0] aliases=[] tokens=[]
+      两地硬数据增长面大体平稳、并非本期主导变化(软数据不在本问证据面,未纳入)
+ [1] aliases=['US_REAL_GDP'] tokens=[('24611.077', 'plain')]
+      US_REAL_GDP(季频水平)最新报 24611.077(观测 2026-07 季)
+ [2] aliases=['UNEMPLOYMENT'] tokens=[('4.1', 'plain')]
+      UNEMPLOYMENT 最新报 4.1(观测 2026-10)
+ [3] aliases=[] tokens=[('4.1', 'plain')]
+      其 3 个月前锚前值为 4.1(观测 2026-07)
+ [4] aliases=['INDPRO'] tokens=[('103.3954', 'plain')]
+      INDPRO 报 103.3954(观测 2026-10)
+ [5] aliases=[] tokens=[('103.1675', 'plain')]
+      3 个月前锚前值为 103.1675(观测 2026-07)
+ [6] aliases=['US_REAL_GDP'] tokens=[]
+      欧元区实际 GDP 同比读数在引擎点值面仅微幅变动(见走位对照)
+ [7] aliases=[] tokens=[]
+      增长端未见方向性转折
+== C3-JP-POLICY class_b consumed set() n_b 0
+ [0] aliases=[] tokens=[]
+      日本政策利率处于抬升通道,官方目标与市场口径相互印证
+ [1] aliases=[] tokens=[]
+      官方口径: 发布日历实录(RC-JP-BOJ-TARGET-2026-09)日本央行政策目标利率约一点二五,2026-09-18 决议、2026-09-24 生效,2026-10-30 会议确认维持不变(RC-JP-BOJ-MAINT-2026-10)
+ [2] aliases=[] tokens=[]
+      至研究截止 2026-11-23 距上次调整按生效日六十天、按决议日六十六天(约两个月)
+ [3] aliases=[] tokens=[]
+      月均口径的 12 个月净变动有两种起算口径: 引擎『政策一年窗路径』面板按窗内首观测起算为正六十七个基点，按『窗启时在值(2025-11 月均零点四七八)→窗末观测』为正七十五个基点，两种口径本档并列披露(数字见走位面与披露块)
+ [4] aliases=['JP_POLICY_RATE', 'JP_POLICY_RATE'] tokens=[('1.227%', 'percent'), ('0.978', 'plain')]
+      市场口径: JP_POLICY_RATE 月均最新一期(观测 2026-10)报 1.227%,3 个月前锚前值为 0.978(观测 2026-07)——该序列为无担保隔夜拆借利率月均口径,非政策目标宣布值
+ [5] aliases=[] tokens=[]
+      宣布目标序列 JP_POLICY_TARGET 在引擎注册表不可得(格=数据不可得,不以相邻口径冒充)
+ [6] aliases=[] tokens=[]
+      官方水平仅见于发布日历实录
+ [7] aliases=[] tokens=[]
+      月均口径的最近一级台阶落在 2026-09→2026-10 之交(次月为决议生效后首个整月)
+ [8] aliases=[] tokens=[]
+      与决议-生效记录相容
+ [9] aliases=['USDJPY'] tokens=[('159.35', 'plain')]
+      汇率面: USDJPY 水平为 159.35(观测 2026-11-23，盘中快照、非收盘价)

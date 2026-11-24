@@ -1,0 +1,168 @@
+{
+ "block": "⑤",
+ "title": "汇率面读数(USDJPY 百分位 / EURUSD)",
+ "rows": [
+  {
+   "block": "⑤",
+   "id": "C1-USDJPY 2026-11-23 水平",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY[2026-11-23]",
+   "kind": "point",
+   "computed": 159.347,
+   "claim": 159.35,
+   "match": true,
+   "detail": "直算 159.347 → 取 2 位 159.35; 报告 159.35; "
+  },
+  {
+   "block": "⑤",
+   "id": "C2-USDJPY 近一月变动(%)(2026-10-23→2026-11-23)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY[2026-10-23, 2026-11-23]",
+   "kind": "point",
+   "computed": 1.823071,
+   "claim": 1.82,
+   "match": true,
+   "detail": "直算 1.82307 → 取 2 位 1.82; 报告 1.82; "
+  },
+  {
+   "block": "⑤",
+   "id": "C3-USDJPY 三个月变动(%)(2026-08-19→2026-11-23)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY[2026-08-19, 2026-11-23]",
+   "kind": "point",
+   "computed": -0.127235,
+   "claim": -0.13,
+   "match": true,
+   "detail": "直算 -0.127235 → 取 2 位 -0.13; 报告 -0.13; "
+  },
+  {
+   "block": "⑤",
+   "id": "C3b-USDJPY 三个月变动(替代口径: 日历锚 2026-08-23 最近观测起)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY[≤2026-08-23..2026-11-23]",
+   "kind": "probe",
+   "computed": {
+    "窗启": [
+     "2026-08-21",
+     158.882996
+    ],
+    "chg_pct": 0.29
+   },
+   "claim": -0.13,
+   "match": null,
+   "detail": "探针(不计点): 受审稿「三个月」未写窗启日; 本文其他处三个月窗启=2026-08-19; 日历锚口径下符号相反"
+  },
+  {
+   "block": "⑤",
+   "id": "C3c-USDJPY 三个月变动(替代口径: ≤2026-08-20 最近观测起)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY[≤2026-08-20..2026-11-23]",
+   "kind": "probe",
+   "computed": {
+    "窗启": [
+     "2026-08-20",
+     158.276001
+    ],
+    "chg_pct": 0.68
+   },
+   "claim": -0.13,
+   "match": null,
+   "detail": "探针(不计点): 替代口径探针"
+  },
+  {
+   "block": "⑤",
+   "id": "C4-USDJPY 12 个月窗内百分位≈71",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY[2025-11-23..2026-11-23]",
+   "kind": "point",
+   "computed": {
+    "n": 259,
+    "leq_frac": 71.04247104247105,
+    "lt_frac": 70.65637065637065,
+    "midrank": 70.84942084942085,
+    "rank_m1": 70.93023255813954
+   },
+   "claim": "约第 71 百分位",
+   "match": true,
+   "detail": "四种常用定义 ['70.66', '71.04', '70.85', '70.93'] (n=259); 受审稿「约第 71」"
+  },
+  {
+   "block": "⑤",
+   "id": "C5-USDJPY 序列库全史百分位≈96.6",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY[全史≤2026-11-23]",
+   "kind": "point",
+   "computed": {
+    "n": 2601,
+    "leq_frac": 96.57823913879278,
+    "lt_frac": 96.53979238754326,
+    "midrank": 96.559015763168,
+    "rank_m1": 96.57692307692308,
+    "first": "2016-11-23",
+    "last": "2026-11-23"
+   },
+   "claim": "约第 96.6 百分位(全史 2016-11-23 起)",
+   "match": true,
+   "detail": "首观测 2016-11-23; 四种常用定义 ['96.54', '96.58', '96.56', '96.58'] (n=2601); 受审稿「约第 96.6」"
+  },
+  {
+   "block": "⑤",
+   "id": "C6-USDJPY 序列库首观测日=2016-11-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY[0]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 首观测 2016-11-23"
+  },
+  {
+   "block": "⑤",
+   "id": "C7-USDJPY「近一月不降反升」",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY[2026-10-23, 2026-11-23]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑤",
+   "id": "C8-EURUSD 2026-11-23 水平",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EURUSD[2026-11-23]",
+   "kind": "point",
+   "computed": 1.093972,
+   "claim": 1.093972,
+   "match": true,
+   "detail": "直算 1.09397 → 取 6 位 1.093972; 报告 1.093972; "
+  },
+  {
+   "block": "⑤",
+   "id": "C9-EURUSD 三个月变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EURUSD[2026-08-19, 2026-11-23]",
+   "kind": "point",
+   "computed": -5.524538,
+   "claim": -5.52,
+   "match": true,
+   "detail": "直算 -5.52454 → 取 2 位 -5.52; 报告 -5.52; "
+  },
+  {
+   "block": "⑤",
+   "id": "C9b-EURUSD 三个月变动(替代口径: 日历锚 2026-08-23 最近观测起)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EURUSD[≤2026-08-23..2026-11-23]",
+   "kind": "probe",
+   "computed": {
+    "窗启": [
+     "2026-08-21",
+     1.168784
+    ],
+    "chg_pct": -6.4
+   },
+   "claim": -5.52,
+   "match": null,
+   "detail": "探针(不计点): 受审稿「三个月」未写窗启日; 本文其他处三个月窗启=2026-08-19"
+  },
+  {
+   "block": "⑤",
+   "id": "C10-EURUSD 2026-11-23 为近 12 个月窗(2025-11-23..2026-11-23)最低",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EURUSD[2025-11-23..2026-11-23]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 窗内最低 2026-11-23=1.093972; 观测数=259"
+  }
+ ]
+}

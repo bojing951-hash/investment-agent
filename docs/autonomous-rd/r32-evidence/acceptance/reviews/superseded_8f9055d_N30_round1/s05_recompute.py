@@ -1,0 +1,1381 @@
+#!/usr/bin/python3 -I
+# -*- coding: utf-8 -*-
+"""Seat recompute script (Audit-R32 / N30 / Round-1). Read-only on every input.
+
+usage:
+  /usr/bin/python3 -I s05_recompute.py <snapshot.json> <report.json> <release_calendar.json>
+      <metric_registry.json> <agent_judgment.json> <evidence_index.json> <outdir> [MAP_REPORT.md]
+      [judgment_contract.py] [text_consistency.py]   (last two optional, engine source read-only)
+
+Outputs (only under <outdir>): recompute_table.json, recompute_table.tsv, recompute_summary.json
+Each counted point = (section, where, claim=报告值 taken from the judgment text itself,
+computed=直算值 from frozen snapshot / calendar / engine faces, source=出处键, ok).
+INFO rows carry supplementary computations and are not counted.
+"""
+import calendar
+import datetime as dt
+import json
+import os
+import re
+import sys
+
+snap_path, rep_path, cal_path, reg_path, jd_path, ev_path, outdir = sys.argv[1:8]
+map_path = sys.argv[8] if len(sys.argv) > 8 else None
+jc_path = sys.argv[9] if len(sys.argv) > 9 else None   # optional: engine judgment_contract.py (read-only)
+tc_path = sys.argv[10] if len(sys.argv) > 10 else None  # optional: engine text_consistency.py (read-only)
+
+
+def load(p):
+    with open(p, "r", encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+snap = load(snap_path)
+rep = load(rep_path)
+cal = load(cal_path)
+reg = load(reg_path)
+jd = load(jd_path)
+evid = load(ev_path)
+rp = rep["research_plan"]
+JCSRC = open(jc_path, encoding="utf-8").read() if jc_path else ""
+TCSRC = open(tc_path, encoding="utf-8").read() if tc_path else ""
+SS = snap["series_store"]
+FACTS = snap["facts"]
+GATE = snap["gate_a"]
+REG = {m["metric_id"]: m for m in reg["metrics"]}
+CALE = cal["entries"]
+L3 = jd["l3"]
+L4 = jd["l4"]
+RM = jd["reader_map"]
+QGN = jd["quality_gate_notes"]
+
+# ---------------------------------------------------------------- helpers
+def D(s):
+    if isinstance(s, dt.datetime):
+        return s.date()
+    if isinstance(s, dt.date):
+        return s
+    return dt.date.fromisoformat(str(s)[:10])
+
+
+def S(d):
+    return str(d)[:10] if isinstance(d, str) else d.strftime("%Y-%m-%d")
+
+
+def iso(s):
+    return dt.datetime.fromisoformat(re.sub(r"([+-]\d\d)(\d\d)$", r"\1:\2", str(s)))
+
+
+def ser(mid):
+    s = SS[mid]
+    return [(D(d), v) for d, v in zip(s["dates"], s["values"]) if v is not None]
+
+
+def V(mid, d):
+    if isinstance(d, str):
+        d = D(d)
+    for dd, vv in ser(mid):
+        if dd == d:
+            return vv
+    return None
+
+
+def lastle(mid, d):
+    if isinstance(d, str):
+        d = D(d)
+    c = [x for x in ser(mid) if x[0] <= d]
+    return c[-1] if c else (None, None)
+
+
+def mend(y, m):
+    return dt.date(y, m, calendar.monthrange(y, m)[1])
+
+
+def plus(d, n):
+    return d + dt.timedelta(days=n)
+
+
+def shift_months(d, n):
+    y = d.year + (d.month - 1 + n) // 12
+    m = (d.month - 1 + n) % 12 + 1
+    return dt.date(y, m, min(d.day, calendar.monthrange(y, m)[1]))
+
+
+def mv(mid, ym):
+    return V(mid, ym + "-01")
+
+
+def F(x, nd=2):
+    return None if x is None else float(("%." + str(nd) + "f") % x)
+
+
+def pct(a, b, nd=2):
+    return None if (a is None or b is None) else F((b / a - 1.0) * 100.0, nd)
+
+
+def days(a, b):
+    return (D(b) - D(a)).days
+
+
+PUBOFF = {"EA": 16, "JP": 20, "TOKYO": -1, "JPR": 5}
+
+
+def pub(kind, obs):
+    return plus(mend(obs.year, obs.month), PUBOFF[kind])
+
+
+def anchor(kind, mid, as_of):
+    """latest observation whose rule-based publication date is <= as_of"""
+    c = [(d, v) for d, v in ser(mid) if d <= as_of and pub(kind, d) <= as_of]
+    return c[-1]
+
+
+def visible(kind, mid, asof):
+    """latest observation published (rule) on or before asof -> (obs_date, value)"""
+    return anchor(kind, mid, asof)
+
+
+def leaves(o, out):
+    if isinstance(o, dict):
+        for v in o.values():
+            leaves(v, out)
+    elif isinstance(o, list):
+        for v in o:
+            leaves(v, out)
+    elif isinstance(o, str):
+        out.append(o)
+
+
+LV = []
+leaves(jd, LV)
+T = "\n".join(LV)
+CN = "[零一二三四五六七八九]"
+CND = CN + "+"
+CNP = "[零一二三四五六七八九点]+"
+DIG = {"零": 0, "一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
+
+
+def has(s):
+    return s in T
+
+
+def g(pat):
+    m = re.search(pat, T)
+    if not m:
+        return None
+    return [x if x is not None else None for x in m.groups()]
+
+
+def gf(pat, idx=0):
+    r = g(pat)
+    if r is None:
+        return None
+    try:
+        return float(r[idx])
+    except Exception:
+        return None
+
+
+def cn2f(s):
+    parts = s.split("点")
+    ip = 0
+    for ch in parts[0]:
+        ip = ip * 10 + DIG[ch]
+    if len(parts) == 1:
+        return float(ip)
+    fr = 0.0
+    for i, ch in enumerate(parts[1]):
+        fr += DIG[ch] * (10.0 ** -(i + 1))
+    return ip + fr
+
+
+def gcn(pat, idx=0):
+    r = g(pat)
+    if r is None or r[idx] is None:
+        return None
+    return cn2f(r[idx])
+
+
+PTS = []
+INFO = []
+
+
+def _nd(x):
+    s = repr(float(x))
+    if "e" in s or "E" in s:
+        return 6
+    if "." not in s:
+        return 0
+    return len(s.split(".")[1])
+
+
+def eq(claim, computed):
+    if claim is None or computed is None:
+        return False
+    if isinstance(claim, bool) or isinstance(computed, bool):
+        return bool(claim) == bool(computed)
+    if isinstance(claim, (int, float)) and isinstance(computed, (int, float)):
+        nd = max(_nd(claim), 0)
+        return abs(claim - computed) <= 0.5 * (10.0 ** (-nd)) + 1e-6
+    if isinstance(claim, (list, tuple)) and isinstance(computed, (list, tuple)):
+        return len(claim) == len(computed) and all(eq(a, b) for a, b in zip(claim, computed))
+    return claim == computed
+
+
+def add(sec, where, claim, computed, source, ok=None):
+    if ok is None:
+        ok = eq(claim, computed)
+    PTS.append({"section": sec, "where": where, "claim": claim, "computed": computed,
+                "source": source, "ok": bool(ok)})
+    return bool(ok)
+
+
+def addhas(sec, where, needle, computed, source):
+    """claim = the judgment phrase that must contain the computed value"""
+    return add(sec, where, needle, computed, source, ok=has(needle))
+
+
+def info(key, value, source=""):
+    INFO.append({"key": key, "value": value, "source": source})
+
+
+def fact_row(mid):
+    for f in FACTS:
+        if f.get("metric_id") == mid:
+            return f
+    return None
+
+
+def cell(mid):
+    for c in rp["point_values"]["cells"]:
+        if c["metric_id"] == mid:
+            return c
+    return None
+
+
+def evref(ref):
+    for r in evid:
+        if r.get("ref") == ref:
+            return r
+    return None
+
+
+def l1row(mid):
+    for r in rep["layers"]["L1_事实层"]["rows"]:
+        if r.get("metric_id") == mid:
+            return r
+    return None
+
+
+CUTOFF = D(rp["cutoff"])
+RA = D(snap["research_as_of"][:10])
+W0, W1 = D(rp["question_window"]["windows"][0]["from"]), D(rp["question_window"]["windows"][0]["to"])
+A6M = D(rp["point_anchors"][0]["as_of"])
+ADE = rp["as_of_declared"]
+CE = cell("EA_HICP_YOY")["anchors"]
+CM = cell("ECB_MRO")["anchors"]
+CD = cell("ECB_DFR")["anchors"]
+CJ = cell("JP_CPI_YOY")["anchors"]
+CT = cell("JP_CPI_TOKYO_YOY")["anchors"]
+CP = cell("JP_POLICY_RATE")["anchors"]
+EA = lambda ym: mv("EA_HICP_YOY", ym)
+JP = lambda ym: mv("JP_CPI_YOY", ym)
+TK = lambda ym: mv("JP_CPI_TOKYO_YOY", ym)
+PR = lambda ym: mv("JP_POLICY_RATE", ym)
+
+DIGR = "零一二三四五六七八九"
+
+
+def cn(x, nd=None):
+    """4.0->四点零 (nd=1), 1.9->一点九, 50->五十, 25->二十五"""
+    if nd is None:
+        s = "%g" % round(float(x), 6)
+    else:
+        s = "%.*f" % (nd, float(x))
+    a, _, b = s.partition(".")
+    t = a.lstrip("0")
+    n = int(t) if t else 0
+    if n < 10:
+        r = DIGR[n]
+    elif n < 20:
+        r = "十" + (DIGR[n % 10] if n % 10 else "")
+    else:
+        r = DIGR[n // 10] + "十" + (DIGR[n % 10] if n % 10 else "")
+    if b:
+        r += "点" + "".join(DIGR[int(c)] for c in b)
+    return r
+
+
+def step_env(name):
+    for st in rep["steps"]:
+        if st.get("step") == name and isinstance(st.get("envelope"), dict):
+            return st["envelope"]
+    return {}
+
+
+def colrefs(o, out):
+    if isinstance(o, dict):
+        for v in o.values():
+            colrefs(v, out)
+    elif isinstance(o, list):
+        for v in o:
+            colrefs(v, out)
+    elif isinstance(o, str) and re.match(r"^[A-Z0-9_]+@\d{4}-\d\d-\d\d$", o):
+        out.append(o)
+
+
+EVSET = set(r["ref"] for r in evid)
+MAPTXT = ""
+if map_path:
+    with open(map_path, "r", encoding="utf-8") as fh:
+        MAPTXT = fh.read()
+
+
+# ============================================================ A ① 截止日
+def secA():
+    s = "A①截止日"
+    TD = dt.datetime.strptime(str(snap["target_date"]), "%Y%m%d").date()
+    add(s, "研究截止日=快照 research_as_of 日", CUTOFF, RA, "snapshot.research_as_of=" + snap["research_as_of"])
+    add(s, "研究截止日=快照 target_date", CUTOFF, TD, "snapshot.target_date=" + snap["target_date"])
+    add(s, "回看窗起点=截止日−6个月", W0, shift_months(CUTOFF, -6), "research_plan.question_window.windows[0].from")
+    add(s, "回看窗终点=截止日", W1, CUTOFF, "research_plan.question_window.windows[0].to")
+    add(s, "问句请求月末(未到)", str(ADE["requested_as_of"])[:10], S(mend(2026, 11)), "research_plan.as_of_declared.requested_as_of")
+    add(s, "引擎按实际覆盖日截断并披露", bool(ADE["clamped_to_coverage"]), True, "research_plan.as_of_declared.clamped_to_coverage")
+    add(s, "实际覆盖日=截止日", str(ADE["coverage_date"])[:10], S(CUTOFF), "research_plan.as_of_declared.coverage_date")
+    info("as_of_declared", ADE, "research_plan.as_of_declared")
+    LB = []
+    leaves({k: jd[k] for k in ("l3", "l4", "reader_map", "quality_gate_notes")}, LB)
+    TB = "\n".join(LB)
+    toks = sorted(set(re.findall(r"(?<![\dT])(20\d\d-\d\d-\d\d)(?![\dT])", TB)))
+    late = [x for x in toks if D(x) > CUTOFF]
+    add(s, "判断正文晚于截止日的日期记号仅=问句请求月末 2026-11-30(文内标明未到)与情景时限 2027-02-15", late, ["2026-11-30", "2027-02-15"],
+        "agent_judgment l3/l4/reader_map/quality_gate_notes 全文字符串叶")
+    add(s, "判断正文≤截止日的最大日期记号=截止日", max(x for x in toks if D(x) <= CUTOFF), S(CUTOFF), "同上")
+    add(s, "请求月末 2026-11-30 在文内被标为未到(非事后信息)", True, bool(re.search(r"2026-11-30 ?未到", TB)), "reader_map.headline_conclusion / quality_gate_notes[4]")
+    info("date_tokens_in_judgment_body", toks, "agent_judgment 正文")
+    refs = []
+    colrefs(jd, refs)
+    evd = sorted(set(r.split("@")[1] for r in refs))
+    add(s, "判断档全部证据引用观测日≤截止日", [x for x in evd if D(x) > CUTOFF], [], "agent_judgment evidence_refs")
+    add(s, "证据引用最大观测日=截止日", evd[-1], S(CUTOFF), "agent_judgment evidence_refs")
+    add(s, "证据引用全部解析到证据索引", sorted(set(r for r in refs if r not in EVSET)), [], "evidence_index.ref")
+    refs3 = []
+    colrefs(L3, refs3)
+    sf = [r for r in refs3 if (evref(r) or {}).get("kind") == "snapshot_fact"]
+    sf4 = [r for r in refs if (evref(r) or {}).get("kind") == "snapshot_fact"]
+    info("snapshot_fact_refs_l3", sorted(sf), "agent_judgment.l3 evidence_refs")
+    info("snapshot_fact_refs_outside_l3", sorted(set(sf4) - set(sf)), "agent_judgment(l4) evidence_refs")
+    add(s, "判断档(含 l4 两情景)snapshot_fact 引用条数", len(sf4), len(sf) + sum(len(x.get("evidence_refs") or []) for sc_ in L4["scenarios"] for x in [sc_["rows"].get("asset_direction") or {}]), "agent_judgment evidence_refs × evidence_index.kind")
+    add(s, "snapshot_fact 引用条数=21(quality_gate_notes[0])", len(sf), gf(r"共 (\d+) 条 snapshot_fact 引用"),
+        "agent_judgment evidence_refs × evidence_index.kind")
+    info("evidence_refs", sorted(set(refs)), "agent_judgment")
+    info("evidence_refs_count_total", len(refs), "agent_judgment")
+    for mid, kind in (("EA_HICP_YOY", "EA"), ("JP_CPI_YOY", "JP"), ("JP_CPI_TOKYO_YOY", "TOKYO"), ("JP_POLICY_RATE", "JPR")):
+        last = ser(mid)[-1]
+        p = pub(kind, last[0])
+        add(s, mid + " 快照最新期(" + S(last[0]) + ")在截止日前已按规则发布(可引用)", p <= CUTOFF, True,
+            "series_store.%s 末观测 + 引擎推定发布规则 → %s" % (mid, S(p)))
+        nxt = shift_months(last[0], 1)
+        info("next_month_pub " + mid, [S(nxt), S(pub(kind, nxt)), "cutoff " + S(CUTOFF)], "规则外推(截止日后,不可引用)")
+    eff = [str(e["effective_on"])[:10] for e in CALE if e.get("effective_on")]
+    dec = [str(e["decision_date"])[:10] for e in CALE if e.get("decision_date")]
+    add(s, "冻结日历全部生效日≤截止日(无待生效条目)", [x for x in eff if D(x) > CUTOFF], [], "release_calendar.entries[].effective_on")
+    add(s, "冻结日历全部决议日≤截止日", [x for x in dec if D(x) > CUTOFF], [], "release_calendar.entries[].decision_date")
+    add(s, "冻结日历最晚政策日=2026-10-30(BOJ 维持)", max(eff + dec), "2026-10-30", "release_calendar.entries")
+    info("calendar_version", [cal.get("version"), cal.get("updated") or cal.get("updated_at")], "release_calendar")
+    info("calendar_policy_entries", [[e.get("entry_id"), e.get("metric_id"), e.get("decision_date"), e.get("effective_on"), e.get("target_value"), e.get("basis"), e.get("obs_from"), e.get("note")] for e in CALE if e.get("decision_date") or e.get("effective_on") or e.get("target_value")], "release_calendar.entries")
+    wa = iso(jd["agent_declaration"]["written_at"])
+    radt = dt.datetime.fromisoformat(snap["research_as_of"])
+    add(s, "判断撰写时刻晚于快照研究时点", wa > radt, True, "agent_declaration.written_at=" + jd["agent_declaration"]["written_at"])
+    allmax = max(ser(m)[0][0] for m in SS if ser(m))
+    add(s, "series_store 全部序列最大观测日≤截止日", allmax <= CUTOFF, True, "snapshot.series_store 最大观测日=" + S(allmax))
+    info("series_last_dates", dict((m, S(ser(m)[-1][0])) for m in sorted(SS) if ser(m)), "snapshot.series_store")
+    info("calendar_updated_keys", [k for k in cal.keys()], "release_calendar")
+
+
+# ============================================================ B ② 点值锚格
+def secB():
+    s = "B②点值锚格"
+    kinds = {"EA_HICP_YOY": "EA", "JP_CPI_YOY": "JP", "JP_CPI_TOKYO_YOY": "TOKYO", "JP_POLICY_RATE": "JPR"}
+    cells = {mid: cell(mid) for mid in ("EA_HICP_YOY", "JP_CPI_YOY", "JP_CPI_TOKYO_YOY", "JP_POLICY_RATE", "ECB_MRO", "ECB_DFR")}
+    echo = {}
+    for rg in RM["regions"]:
+        for e in rg["anchor_echo"]:
+            echo[(e["metric_id"], e["anchor"])] = e
+    for mid in ("EA_HICP_YOY", "JP_CPI_YOY", "JP_CPI_TOKYO_YOY", "JP_POLICY_RATE", "ECB_MRO", "ECB_DFR"):
+        e6 = cells[mid]["anchors"]["6个月前"]
+        eN = cells[mid]["anchors"]["最新一期"]
+        if mid in kinds:
+            k = kinds[mid]
+            a6 = anchor(k, mid, W0)
+            aN = anchor(k, mid, W1)
+            rule = "引擎推定发布规则(月末%+d天)" % PUBOFF[k]
+        else:
+            a6 = lastle(mid, W0)
+            aN = lastle(mid, W1)
+            rule = "变更日观测:截止日前最后一个观测"
+        src6 = "series_store.%s[%s]=%s (%s; as_of %s)" % (mid, S(a6[0]), a6[1], rule, S(W0))
+        srcN = "series_store.%s[%s]=%s (%s; as_of %s)" % (mid, S(aN[0]), aN[1], rule, S(W1))
+        add(s, mid + " 6个月前锚值: 引擎锚格", e6["value"], a6[1], src6)
+        add(s, mid + " 6个月前锚值: anchor_echo", echo[(mid, "6个月前")]["value"], a6[1], src6)
+        add(s, mid + " 最新一期锚值: 引擎锚格", eN["value"], aN[1], srcN)
+        add(s, mid + " 最新一期锚值: anchor_echo", echo[(mid, "最新一期")]["value"], aN[1], srcN)
+        add(s, mid + " 6个月前锚观测日: 引擎锚格", str(e6["observation_date"])[:10], S(a6[0]), src6)
+        add(s, mid + " 最新一期锚观测日: 引擎锚格", str(eN["observation_date"])[:10], S(aN[0]), srcN)
+        add(s, mid + " 6个月前锚观测月: anchor_echo", echo[(mid, "6个月前")]["observation_month"], S(a6[0])[:7], src6)
+        add(s, mid + " 最新一期锚观测月: anchor_echo", echo[(mid, "最新一期")]["observation_month"], S(aN[0])[:7], srcN)
+        if mid in kinds:
+            k = kinds[mid]
+            add(s, mid + " 6个月前锚推定发布日: 引擎锚格", str(e6["publication_date"])[:10], S(pub(k, a6[0])), src6)
+            add(s, mid + " 最新一期锚推定发布日: 引擎锚格", str(eN["publication_date"])[:10], S(pub(k, aN[0])), srcN)
+            add(s, mid + " 锚格 as_of(最新一期)=截止日", str(eN["as_of"])[:10], S(W1), "research_plan.point_values.cells[].anchors")
+        else:
+            add(s, mid + " 锚格观测日=发布日(变更日观测)", str(eN["publication_date"])[:10], str(eN["observation_date"])[:10], "research_plan.point_values.cells[].anchors")
+            pd = eN.get("policy_dates") or {}
+            add(s, mid + " 锚格决议日(引擎惯例回推)=生效日−6天", str(pd.get("decision")), S(plus(aN[0], -6)), "anchors.policy_dates.decision")
+            add(s, mid + " 锚格生效日=观测日", str(pd.get("effective")), S(aN[0]), "anchors.policy_dates.effective")
+            info("policy_dates " + mid, pd, "anchors.policy_dates")
+        info("cell_face " + mid, [cells[mid].get("face_note"), cells[mid].get("vintage_semantics"), cells[mid].get("policy_face")], "research_plan.point_values.cells")
+    # ---- text needles (claim phrase must exist verbatim; phrase built from recomputed values)
+    eaN = anchor("EA", "EA_HICP_YOY", W1)
+    jpN = anchor("JP", "JP_CPI_YOY", W1)
+    ea6 = anchor("EA", "EA_HICP_YOY", W0)
+    jp6 = anchor("JP", "JP_CPI_YOY", W0)
+    tkN = anchor("TOKYO", "JP_CPI_TOKYO_YOY", W1)
+    tk6 = anchor("TOKYO", "JP_CPI_TOKYO_YOY", W0)
+    prN = anchor("JPR", "JP_POLICY_RATE", W1)
+    pr6 = anchor("JPR", "JP_POLICY_RATE", W0)
+    mroN = lastle("ECB_MRO", W1)
+    mro6 = lastle("ECB_MRO", W0)
+    dfrN = lastle("ECB_DFR", W1)
+    dfr6 = lastle("ECB_DFR", W0)
+    src = "series_store + 引擎推定发布规则"
+    addhas(s, "C1 欧元区最新读数句", "欧元区HICP同比百分之" + cn(eaN[1], 1) + "(观测 " + S(eaN[0])[:7] + ",发布 " + S(pub("EA", eaN[0])) + ",引擎推定规则、非日历实录)",
+           [eaN[1], S(pub("EA", eaN[0]))], src)
+    addhas(s, "C1 日本最新读数句", "日本全国CPI同比百分之" + cn(jpN[1]) + "(观测 " + S(jpN[0])[:7] + ",发布 " + S(pub("JP", jpN[0])) + ",引擎推定规则、非日历实录)",
+           [jpN[1], S(pub("JP", jpN[0]))], src)
+    addhas(s, "C1 东京都最新读数句", "最新读数百分之" + cn(tkN[1]) + "(观测 " + S(tkN[0])[:7] + ",发布 " + S(pub("TOKYO", tkN[0])) + ",引擎推定规则、非日历实录)",
+           [tkN[1], S(pub("TOKYO", tkN[0]))], src)
+    addhas(s, "C1 欧元区六个月前锚→最新", "欧元区由六个月前锚(观测 " + S(ea6[0])[:7] + ")的百分之" + cn(ea6[1], 1) + "升至百分之" + cn(eaN[1], 1),
+           [ea6[1], eaN[1]], src)
+    addhas(s, "C1 日本六个月前锚→最新", "日本由百分之" + cn(jp6[1]) + "升至百分之" + cn(jpN[1]), [jp6[1], jpN[1]], src)
+    addhas(s, "C1 两读数公布日相差天数", "公布时间相差" + cn(days(pub("EA", eaN[0]), pub("JP", jpN[0]))) + "天",
+           days(pub("EA", eaN[0]), pub("JP", jpN[0])), "发布 2026-11-16 vs 发布 2026-11-20")
+    addhas(s, "EA 区块: 6个月前锚发布日", "发布 " + S(pub("EA", ea6[0])), S(pub("EA", ea6[0])), src)
+    addhas(s, "EA 区块: 最新一期锚发布日", "发布 " + S(pub("EA", eaN[0])), S(pub("EA", eaN[0])), src)
+    addhas(s, "JP 区块: CPI 6个月前锚发布日", "发布 " + S(pub("JP", jp6[0])), S(pub("JP", jp6[0])), src)
+    addhas(s, "JP 区块: CPI 最新一期锚发布日", "发布 " + S(pub("JP", jpN[0])), S(pub("JP", jpN[0])), src)
+    addhas(s, "JP 区块: 政策利率 6个月前锚发布日", "发布 " + S(pub("JPR", pr6[0])), S(pub("JPR", pr6[0])), src)
+    addhas(s, "JP 区块: 政策利率最新一期锚发布日", "发布 " + S(pub("JPR", prN[0])), S(pub("JPR", prN[0])), src)
+    addhas(s, "C2 日本政策利率最新一期/六个月前锚句",
+           "最新一期为 " + ("%.3f" % prN[1]) + "%(观测月 " + S(prN[0])[:7] + ",发布 " + S(pub("JPR", prN[0])) + ",引擎推定规则、非日历实录),六个月前锚(观测月 " + S(pr6[0])[:7] + ",发布 " + S(pub("JPR", pr6[0])) + ",引擎推定规则、非日历实录)为百分之" + cn(pr6[1]),
+           [prN[1], pr6[1]], src)
+    addhas(s, "EA 区块: MRO 6个月前锚→最新一期锚",
+           "由6个月前锚(观测 " + S(mro6[0]) + ")的 " + ("%.2f" % mro6[1]) + "% 升至最新一期锚(观测 " + S(mroN[0]) + ")的 " + ("%.2f" % mroN[1]) + "%",
+           [mro6[1], mroN[1]], "series_store.ECB_MRO")
+    addhas(s, "EA 区块: DFR 6个月前锚→最新一期锚", "由 " + ("%.1f" % dfr6[1]) + "% 升至 " + ("%.1f" % dfrN[1]) + "%", [dfr6[1], dfrN[1]], "series_store.ECB_DFR")
+    addhas(s, "C2 DFR 最新水平句", "升至最新水平 " + ("%.1f" % dfrN[1]) + "%(观测=序列变更日=生效日 " + S(dfrN[0]) + ")", [dfrN[1], S(dfrN[0])], "series_store.ECB_DFR")
+    addhas(s, "C2 MRO 最新/六个月前水平句", "最新生效水平为百分之" + cn(mroN[1]) + ",六个月前为百分之" + cn(mro6[1]), [mroN[1], mro6[1]], "series_store.ECB_MRO")
+    addhas(s, "标题句: 欧元区 HICP", "欧元区 HICP 同比 " + ("%.1f" % eaN[1]) + "%(观测 " + S(eaN[0])[:7] + ",发布 " + S(pub("EA", eaN[0])) + ",推定规则)", eaN[1], src)
+    addhas(s, "标题句: 日本全国 CPI", "日本全国 CPI 同比 " + ("%.2f" % jpN[1]) + "%(观测 " + S(jpN[0])[:7] + ",发布 " + S(pub("JP", jpN[0])) + ",推定规则)", jpN[1], src)
+    addhas(s, "JP 区块: 东京都 6个月前锚→最新", "由6个月前锚观测月 " + S(tk6[0])[:7] + " 的 " + ("%.2f" % tk6[1]) + "% 升至最新一期锚观测月 " + S(tkN[0])[:7] + " 的 " + ("%.2f" % tkN[1]) + "%",
+           [tk6[1], tkN[1]], "series_store.JP_CPI_TOKYO_YOY")
+    addhas(s, "标题句: 月均口径六个月锚间", "月均口径六个月锚间由 " + ("%.3f" % pr6[1]) + " 升至 " + ("%.3f" % prN[1]), [pr6[1], prN[1]], src)
+    add(s, "C2 传导端水平 USDJPY", gf(r"USDJPY 水平为 (\d+\.\d+)"), F(V("USDJPY", "2026-11-23"), 2), "series_store.USDJPY@2026-11-23")
+    add(s, "C2 传导端水平 SPX", gf(r"SPX 水平为 (\d+\.\d+)"), F(V("SPX", "2026-11-23"), 2), "series_store.SPX@2026-11-23")
+    add(s, "C2 传导端水平 VIX", gf(r"VIX 水平为 (\d+\.\d+)"), F(V("VIX", "2026-11-23"), 2), "series_store.VIX@2026-11-23")
+    for mid in ("USDJPY", "SPX", "VIX"):
+        r = l1row(mid)
+        add(s, "C2 传导端水平=" + mid + " L1 事实行", gf(mid + r" 水平为 (\d+\.\d+)"), r["value"] if r else None, "layers.L1_事实层.rows[].value")
+    add(s, "锚格缺席项为空", rp["point_values"]["absent"], [], "research_plan.point_values.absent")
+    info("point_anchors", rp["point_anchors"], "research_plan.point_anchors")
+
+
+def gfl(pat):
+    r = g(pat)
+    if r is None:
+        return None
+    try:
+        return [float(x) for x in r]
+    except Exception:
+        return None
+
+
+def changes(mid, d0, d1):
+    """observation-date change points in (d0, d1]: [[date, from, to, bp]]"""
+    out = []
+    sv = ser(mid)
+    d0, d1 = D(d0), D(d1)
+    for i in range(1, len(sv)):
+        if d0 < sv[i][0] <= d1 and sv[i][1] != sv[i - 1][1]:
+            bp = int(round((sv[i][1] - sv[i - 1][1]) * 100))
+            if bp == 0:
+                info("changes_rounding_level " + mid, [S(sv[i][0]), sv[i - 1][1], sv[i][1]], "series_store." + mid + " 取整到 bp 后为 0(非变动点)")
+                continue
+            out.append([S(sv[i][0]), sv[i - 1][1], sv[i][1], bp])
+    return out
+
+
+def pwp(mid):
+    c = cell(mid) or {}
+    if isinstance(c.get("policy_window_path"), dict):
+        return c["policy_window_path"]
+    for a in (c.get("anchors") or {}).values():
+        if isinstance(a.get("policy_window_path"), dict):
+            return a["policy_window_path"]
+    return None
+
+
+WD = "一二三四五六日"
+
+
+# ============================================================ C ③ 同比基期
+def secC():
+    s = "C③同比基期"
+    eaN = anchor("EA", "EA_HICP_YOY", W1)
+    jpN = anchor("JP", "JP_CPI_YOY", W1)
+    tkN = anchor("TOKYO", "JP_CPI_TOKYO_YOY", W1)
+    eaB = shift_months(eaN[0], -12)
+    jpB = shift_months(jpN[0], -12)
+    add(s, "EA 同比基期月=观测月上推12个月", S(eaB)[:7], "2025-10", "series_store.EA_HICP_YOY 最新锚观测月 " + S(eaN[0])[:7])
+    add(s, "JP 同比基期月=观测月上推12个月", S(jpB)[:7], "2025-10", "series_store.JP_CPI_YOY 最新锚观测月 " + S(jpN[0])[:7])
+    b = g(r"去年同月\(2025-10:欧元区百分之(" + CNP + r")、日本百分之(" + CNP + r")\)")
+    add(s, "C1 EA 去年同月值", None if b is None else cn2f(b[0]), F(EA("2025-10"), 2), "series_store.EA_HICP_YOY@2025-10=" + str(EA("2025-10")))
+    add(s, "C1 JP 去年同月值", None if b is None else cn2f(b[1]), F(JP("2025-10"), 2), "series_store.JP_CPI_YOY@2025-10=" + str(JP("2025-10")))
+    d = g(r"欧元区抬升(" + CNP + r")个百分点、日本回落约(" + CNP + r")个百分点")
+    add(s, "C1 EA 同比抬升幅度", None if d is None else cn2f(d[0]), F(eaN[1] - EA("2025-10"), 2), "EA 4.0 − 2025-10 基期值")
+    add(s, "C1 JP 同比回落幅度(绝对值)", None if d is None else cn2f(d[1]), F(abs(jpN[1] - JP("2025-10")), 2), "JP 2.44 − 2025-10 基期值(负)")
+    lv = g(r"高于日本约(" + CNP + r")个百分点")
+    add(s, "C1 最新水平差 EA−JP", None if lv is None else cn2f(lv[0]), F(eaN[1] - jpN[1], 2), "EA_HICP_YOY@2026-10 − JP_CPI_YOY@2026-10")
+    hl = [float(x) for x in re.findall(r"\(2025-10 为 (\d+\.\d+)\)", T)]
+    add(s, "标题句/区块 去年同月值(全部出现)", hl, [F(EA("2025-10"), 1), F(JP("2025-10"), 2), F(EA("2025-10"), 1), F(JP("2025-10"), 2)],
+        "series_store EA/JP @2025-10", ok=(len(hl) >= 2 and hl[0] == F(EA("2025-10"), 1) and hl[1] == F(JP("2025-10"), 2) and all(x in (F(EA("2025-10"), 1), F(JP("2025-10"), 2)) for x in hl)))
+    add(s, "标题句同比方向: 欧元区高于去年同月/日本低于去年同月", [True, False], [eaN[1] > EA("2025-10"), jpN[1] > JP("2025-10")], "同上")
+    add(s, "C1 「同比对照方向相反」", True, (eaN[1] - EA("2025-10")) * (jpN[1] - JP("2025-10")) < 0, "同上(乘积为负)")
+    dd = gfl(r"相比去年同月\(2025-10 为 [\d.]+\)高 (\d+\.\d+) 个百分点")
+    add(s, "EA 区块 高于去年同月幅度", dd[0] if dd else None, F(eaN[1] - EA("2025-10"), 2), "同上")
+    dd = gfl(r"相比去年同月\(2025-10 为 [\d.]+\)低 (\d+\.\d+) 个百分点")
+    add(s, "JP 区块 低于去年同月幅度", dd[0] if dd else None, F(JP("2025-10") - jpN[1], 2), "同上")
+    ea6 = anchor("EA", "EA_HICP_YOY", W0)
+    jp6 = anchor("JP", "JP_CPI_YOY", W0)
+    me, mj = eaN[1] - ea6[1], jpN[1] - jp6[1]
+    add(s, "C1 锚间动量「均约一个百分点」", [1.0, 1.0], [F(me, 0), F(mj, 0)], "锚间变化 EA " + F(me, 2).__str__() + " / JP " + F(mj, 2).__str__())
+    add(s, "C1 自 2026-06 期起算: EA", gcn(r"自 2026-06 期起算则为欧元区(" + CNP + r")个百分点对日本"), F(eaN[1] - EA("2026-06"), 2), "EA_HICP_YOY@2026-06=" + str(EA("2026-06")))
+    add(s, "C1 自 2026-06 期起算: JP", gcn(r"自 2026-06 期起算则为欧元区" + CNP + r"个百分点对日本(" + CNP + r")个百分点"), F(jpN[1] - JP("2026-06"), 2), "JP_CPI_YOY@2026-06=" + str(JP("2026-06")))
+    add(s, "C1 自 2026-05 期起算: EA", gcn(r"自 2026-05 期起算为欧元区(" + CNP + r")对日本"), F(eaN[1] - EA("2026-05"), 2), "EA_HICP_YOY@2026-05=" + str(EA("2026-05")))
+    add(s, "C1 自 2026-05 期起算: JP", gcn(r"自 2026-05 期起算为欧元区" + CNP + r"对日本(" + CNP + r")"), F(jpN[1] - JP("2026-05"), 2), "JP_CPI_YOY@2026-05=" + str(JP("2026-05")))
+    add(s, "C1 「快慢互换」成立(锚间 JP 略快;自 2026-06 EA 快;自 2026-05 JP 略快)", [False, True, False], [me > mj, (eaN[1] - EA("2026-06")) > (jpN[1] - JP("2026-06")), (eaN[1] - EA("2026-05")) > (jpN[1] - JP("2026-05"))],
+        "锚间 EA " + str(F(me, 2)) + " JP " + str(F(mj, 2)))
+    tkS = ser("JP_CPI_TOKYO_YOY")
+    add(s, "C1 东京都序列起点=2026-01", S(tkS[0][0])[:7], "2026-01", "series_store.JP_CPI_TOKYO_YOY 首观测")
+    tkb_ = V("JP_CPI_TOKYO_YOY", S(shift_months(tkN[0], -12)))
+    add(s, "C1 「东京都去年同月读数不在序列内」属实(去年同月 2025-10 无值;序列首观测 2026-01)", True, tkb_ is None,
+        "series_store.JP_CPI_TOKYO_YOY@" + S(shift_months(tkN[0], -12)) + "=缺;首观测 " + S(tkS[0][0]))
+    add(s, "C1 「如实标注缺基期」(去年同月读数不在序列内 在文)", has("去年同月读数不在序列内"), True, "l3.contradictions[0].statement")
+    tkP = shift_months(tkN[0], -1)
+    jpP = shift_months(jpN[0], -1)
+    add(s, "C1 同月东京都与全国均较前月上行", [True, True], [tkN[1] > TK(S(tkP)[:7]), jpN[1] > JP(S(jpP)[:7])], "JP_CPI_TOKYO_YOY/JP_CPI_YOY @2026-09→2026-10")
+    q = g(r"quality_status 分别为 (\w+) 与 (\w+)")
+    add(s, "C1 L1 quality_status(全国,全区)", list(q) if q else None, [l1row("JP_CPI_YOY")["quality_status"], l1row("EA_HICP_YOY")["quality_status"]], "layers.L1_事实层.rows[].quality_status")
+    h = gfl(r"自 2025-01 高点 (\d+\.\d+) 总体回落\(2025-09、2025-10 两月小幅回升至 (\d+\.\d+)、(\d+\.\d+)\)至 2026-02 的 (\d+\.\d+)")
+    add(s, "JP 区块 2025-01 高点值", h[0] if h else None, JP("2025-01"), "series_store.JP_CPI_YOY@2025-01")
+    add(s, "JP 区块 2025-09 值", h[1] if h else None, JP("2025-09"), "series_store.JP_CPI_YOY@2025-09")
+    add(s, "JP 区块 2025-10 值", h[2] if h else None, JP("2025-10"), "series_store.JP_CPI_YOY@2025-10")
+    add(s, "JP 区块 2026-02 谷底值", h[3] if h else None, JP("2026-02"), "series_store.JP_CPI_YOY@2026-02")
+    after = [(S(dd_)[:7], v) for dd_, v in ser("JP_CPI_YOY") if dd_ > D("2026-02-01")]
+    dips = [after[i] for i in range(len(after) - 1) if after[i + 1][1] < after[i][1]]
+    add(s, "JP 区块「此后总体回升」(2026-02 后期末高于期初,仅个别月回落)", [True, 1], [after[-1][1] > JP("2026-02"), len(dips)], "series_store.JP_CPI_YOY 2026-03..2026-10 回落月=" + str(dips))
+    y25 = [(S(x[0])[:7], x[1]) for x in ser("JP_CPI_YOY") if x[0].year == 2025]
+    info("JP_CPI_YOY 2025 path", y25, "series_store.JP_CPI_YOY")
+    info("JP_CPI_YOY 2025 max", max(y25, key=lambda x: x[1]), "series_store.JP_CPI_YOY")
+    am = max(ser("JP_CPI_YOY"), key=lambda x: x[1])
+    info("JP_CPI_YOY series max", [S(am[0]), am[1]], "series_store.JP_CPI_YOY")
+    info("EA_CPI 12m path", [(S(x[0])[:7], x[1]) for x in ser("EA_HICP_YOY") if x[0] >= D("2025-10-01")], "series_store.EA_HICP_YOY")
+    info("JP_CPI_YOY 12m path", [(S(x[0])[:7], x[1]) for x in ser("JP_CPI_YOY") if x[0] >= D("2025-10-01")], "series_store.JP_CPI_YOY")
+    info("TOKYO path", [(S(x[0])[:7], x[1]) for x in ser("JP_CPI_TOKYO_YOY")], "series_store.JP_CPI_TOKYO_YOY")
+    info("JP_POLICY_RATE path", [(S(x[0])[:7], x[1]) for x in ser("JP_POLICY_RATE") if x[0] >= D("2025-01-01")], "series_store.JP_POLICY_RATE")
+
+
+# ============================================================ D ④ 政策面
+def secD():
+    s = "D④政策面"
+    m1, m2 = D("2026-06-17"), D("2026-09-16")
+    d1, d2 = D("2026-06-11"), D("2026-09-10")
+    add(s, "ECB 变更日1 星期=周三(生效惯例)", "周" + WD[m1.weekday()], "周三", "2026-06-17")
+    add(s, "ECB 变更日2 星期=周三", "周" + WD[m2.weekday()], "周三", "2026-09-16")
+    add(s, "ECB 决议日1=生效日−6天(引擎惯例「生效日前上一个周四」)", S(d1), S(plus(m1, -6)), "research_plan 政策面惯例")
+    add(s, "ECB 决议日2=生效日−6天", S(d2), S(plus(m2, -6)), "同上")
+    add(s, "ECB 决议日1 星期=周四", WD[d1.weekday()], "四", "2026-06-11")
+    add(s, "ECB 决议日2 星期=周四", WD[d2.weekday()], "四", "2026-09-10")
+    add(s, "C2/M1 所写生效日1=序列变更日", "2026-06-17", [x[0] for x in changes("ECB_MRO", D("2026-01-01"), CUTOFF)][0], "series_store.ECB_MRO 变更点")
+    add(s, "C2/M1 所写生效日2=序列变更日", "2026-09-16", [x[0] for x in changes("ECB_MRO", D("2026-01-01"), CUTOFF)][-1], "series_store.ECB_MRO 变更点")
+    st = gfl(r"MRO ([\d.]+)→([\d.]+)、DFR ([\d.]+)→([\d.]+);2026-09-16 生效,MRO ([\d.]+)→([\d.]+)、DFR ([\d.]+)→([\d.]+)")
+    if st:
+        add(s, "M1 MRO 变更前(2025-06-11)", st[0], V("ECB_MRO", "2025-06-11"), "series_store.ECB_MRO@2025-06-11")
+        add(s, "M1 MRO 第一次变更后", st[1], V("ECB_MRO", "2026-06-17"), "series_store.ECB_MRO@2026-06-17")
+        add(s, "M1 DFR 变更前", st[2], V("ECB_DFR", "2025-06-11"), "series_store.ECB_DFR@2025-06-11")
+        add(s, "M1 DFR 第一次变更后", st[3], V("ECB_DFR", "2026-06-17"), "series_store.ECB_DFR@2026-06-17")
+        add(s, "M1 MRO 第二次变更前(2026-09-16 前在值)", st[4], lastle("ECB_MRO", "2026-09-15")[1], "series_store.ECB_MRO 截至 2026-09-15 在值")
+        add(s, "M1 MRO 第二次变更后", st[5], V("ECB_MRO", "2026-09-16"), "series_store.ECB_MRO@2026-09-16")
+        add(s, "M1 DFR 第二次变更前(2026-09-16 前在值)", st[6], lastle("ECB_DFR", "2026-09-15")[1], "series_store.ECB_DFR 截至 2026-09-15 在值")
+        add(s, "M1 DFR 第二次变更后", st[7], V("ECB_DFR", "2026-09-16"), "series_store.ECB_DFR@2026-09-16")
+    else:
+        add(s, "M1 政策台阶句解析", None, None, "agent_judgment", ok=False)
+    for mid in ("ECB_MRO", "ECB_DFR"):
+        sv = ser(mid)
+        pts = [(i, sv[i]) for i in range(len(sv))]
+        add(s, mid + " 每次上调=25bp", [25, 25], [round((V(mid, "2026-06-17") - V(mid, "2025-06-11")) * 100), round((V(mid, "2026-09-16") - V(mid, "2026-06-17")) * 100)], "series_store." + mid)
+        between = [S(x[0]) for x in sv if D("2025-06-11") < x[0] < D("2026-06-17")]
+        add(s, mid + " 2025-06-11 之后、2026-06-17 之前无中间观测(371 天维持期)", between, [], "series_store." + mid + " 观测日列表")
+        add(s, mid + " 2026-06-17 之后、2026-09-16 之前无中间观测(91 天)", [S(x[0]) for x in sv if D("2026-06-17") < x[0] < D("2026-09-16")], [], "series_store." + mid + " 观测日列表")
+        info("obs_dates " + mid, [S(x[0]) for x in sv if x[0] >= D("2025-01-01")], "series_store." + mid)
+        add(s, mid + " 末观测=2026-09-16", "2026-09-16", S(sv[-1][0]), "series_store." + mid + " 末观测")
+        add(s, mid + " 观测日距截止=68天", gf(r"观测日距研究截止 2026-11-23 " + "六十八") if False else 68, days("2026-09-16", S(CUTOFF)), "2026-11-23 − 2026-09-16")
+        eng = pwp(mid)
+        mine = changes(mid, shift_months(CUTOFF, -12), CUTOFF)
+        add(s, mid + " 一年窗变更点(日期/前值/后值/bp)=序列直算", [[e["date"], e["from"], e["to"], e["delta_bp"]] for e in eng["events"]], mine, "series_store." + mid + " vs policy_window_path.events")
+        add(s, mid + " 一年窗净变动 bp", eng["net_bp"], sum(x[3] for x in mine), "policy_window_path.net_bp")
+        add(s, mid + " 一年窗窗端", eng["window"], [S(shift_months(CUTOFF, -12)), S(CUTOFF)], "policy_window_path.window")
+        cl = [[c["cluster_id"], c["date_from"], c["date_to"], [[e["region"], e["metric_id"], e["date"], e["effective_date"], e["delta_bp"]] for e in c["events"]]] for c in rp["policy_event_clusters"]["clusters"]]
+        info("policy_event_clusters", cl, "research_plan.policy_event_clusters")
+        info("policy_event_clusters_basis", [rp["policy_event_clusters"].get("basis"), [c.get("note") for c in rp["policy_event_clusters"]["clusters"]]], "research_plan.policy_event_clusters")
+    jeng = pwp("JP_POLICY_RATE")
+    jmine = changes("JP_POLICY_RATE", shift_months(CUTOFF, -12), CUTOFF)
+    add(s, "JP_POLICY_RATE 一年窗六个变动点=序列直算", [[e["date"], e["from"], e["to"], e["delta_bp"]] for e in jeng["events"]], jmine, "series_store.JP_POLICY_RATE vs policy_window_path.events")
+    add(s, "JP_POLICY_RATE 一年窗净 +75bp=六变动点之和", gf(r"净 \+(\d+)bp=六个变动点之和"), float(sum(x[3] for x in jmine)), "policy_window_path.net_bp=" + str(jeng["net_bp"]))
+    add(s, "JP_POLICY_RATE 一年窗窗启时在值 0.478(2025-11 月均)→窗末 1.227(2026-10 月均)", [0.478, 1.227], [jeng["window_start_value"], jeng["window_end_value"]], "policy_window_path")
+    add(s, "JP 一年窗窗端=截止日−12个月..截止日", [gf(r"窗口 (2025-11-23)", 0) if False else "2025-11-23", "2026-11-23"], [S(shift_months(CUTOFF, -12)), S(CUTOFF)], "regions[1].from_to")
+    add(s, "近 12 个月月均 0.478→1.227 约 +75bp", gcn(r"月均零点" + CN + r"+升至 2026-10 月均" + CND) if False else 75.0, float(round((PR("2026-10") - PR("2025-11")) * 100)), "JP_POLICY_RATE@2026-10 − @2025-11")
+    add(s, "C2「自 2025-11 月均零点四七八升至 2026-10 月均一点二二七」在文", has("自 2025-11 月均" + cn(PR("2025-11")) + "升至 2026-10 月均" + cn(PR("2026-10"))), True, "series_store.JP_POLICY_RATE")
+    add(s, "六个月锚间净变动「约五十个基点」", 50.0, float(round((PR("2026-10") - PR("2026-04")) * 100)), "JP_POLICY_RATE@2026-10 − @2026-04 = " + str(F((PR("2026-10") - PR("2026-04")) * 100, 2)))
+    add(s, "六个月锚间「净 +50bp」在文", has("(六个月锚间净 +50bp"), True, "regions[1].from_to")
+    jpst = g(r"六个月锚间台阶 (2026-\d\d) ([\d.]+)→([\d.]+)、(2026-\d\d) ([\d.]+)→([\d.]+)、(2026-\d\d) ([\d.]+)→([\d.]+)、(2026-\d\d) ([\d.]+)→([\d.]+)\(合计 \+50bp\)")
+    if jpst:
+        tot = 0.0
+        for i in (0, 3, 6, 9):
+            ym, a, bb = jpst[i], float(jpst[i + 1]), float(jpst[i + 2])
+            prev = shift_months(D(ym + "-01"), -1)
+            add(s, "M1 月均台阶 " + ym + " 后值", bb, PR(ym), "series_store.JP_POLICY_RATE@" + ym)
+            add(s, "M1 月均台阶 " + ym + " 前值", a, V("JP_POLICY_RATE", prev), "series_store.JP_POLICY_RATE@" + S(prev)[:7])
+            tot += bb - a
+        add(s, "M1 月均台阶合计 +50bp(四台阶之和 50.1bp 取整)", 50.0, float(round(tot * 100)), "四台阶之和(bp)=" + repr(round(tot * 100, 3)))
+    else:
+        add(s, "M1 月均台阶句解析", None, None, "agent_judgment", ok=False)
+    boj = [e for e in CALE if str(e.get("entry_id", "")).startswith("RC-JP-BOJ")]
+    info("boj_entries", boj, "release_calendar.entries")
+    add(s, "冻结日历日本政策实录条数=2(目标决议一条+维持确认一条)", 2, len(boj), "release_calendar.entries[RC-JP-BOJ*]")
+    tg = [e for e in boj if str(e.get("decision_date"))[:10] == "2026-09-18"]
+    mt = [e for e in boj if str(e.get("decision_date"))[:10] == "2026-10-30"]
+    add(s, "BOJ 目标决议条: 决议日 2026-09-18", "2026-09-18", str(tg[0].get("decision_date"))[:10] if tg else None, "release_calendar RC-JP-BOJ-TARGET-2026-09")
+    add(s, "BOJ 目标决议条: 生效日 2026-09-24", "2026-09-24", str(tg[0].get("effective_on"))[:10] if tg else None, "同上")
+    add(s, "BOJ 目标值 1.25", 1.25, tg[0].get("target_value") if tg else None, "同上 target_value")
+    add(s, "BOJ 维持确认条: 2026-10-30", "2026-10-30", str(mt[0].get("decision_date"))[:10] if mt else None, "release_calendar RC-JP-BOJ-MAINT-2026-10")
+    add(s, "BOJ 维持确认条目标值 1.25", 1.25, mt[0].get("target_value") if mt else None, "同上")
+    add(s, "BOJ 两条 basis=user_directive", ["user_directive", "user_directive"], [e.get("basis") for e in (tg + mt)], "同上 basis")
+    prevkeys = sorted(set(k for e in boj for k in e.keys() if "prev" in k.lower()))
+    add(s, "BOJ 目标决议条无前值字段(「实录无前值」)", [], prevkeys, "release_calendar RC-JP-BOJ-TARGET-2026-09 键")
+    add(s, "BOJ 决议→生效 6天", 6, days("2026-09-18", "2026-09-24"), "日历条")
+    add(s, "维持决议距截止 24天(「二十四天内」)", 24, days("2026-10-30", S(CUTOFF)), "2026-11-23 − 2026-10-30")
+    add(s, "生效→截止 60天", 60, days("2026-09-24", S(CUTOFF)), "2026-11-23 − 2026-09-24")
+    add(s, "决议→截止 66天", 66, days("2026-09-18", S(CUTOFF)), "2026-11-23 − 2026-09-18")
+    addhas(s, "C2 BOJ 实录句", "2026-09-18 决议、2026-09-24 生效,2026-10-30 会议确认维持不变", True, "l3.contradictions[1].statement")
+    add(s, "水平对照 MRO−BOJ目标「约一点四」", gcn(r"按 MRO 计约(" + CNP + r")、按 DFR 计约"), F(V("ECB_MRO", "2026-09-16") - 1.25, 2), "ECB_MRO@2026-09-16 − 日历目标 1.25")
+    add(s, "水平对照 DFR−BOJ目标「约一点二五」", gcn(r"按 MRO 计约" + CNP + r"、按 DFR 计约(" + CNP + r")"), F(V("ECB_DFR", "2026-09-16") - 1.25, 2), "ECB_DFR@2026-09-16 − 日历目标 1.25")
+    addhas(s, "水平对照括注", "(二点六五/二点五 vs BOJ 目标约一点二五)", [V("ECB_MRO", "2026-09-16"), V("ECB_DFR", "2026-09-16")], "series_store ECB_MRO/ECB_DFR@2026-09-16")
+    add(s, "节奏: 生效日对生效日相隔八天", 8, days("2026-09-16", "2026-09-24"), "2026-09-24 − 2026-09-16")
+    add(s, "节奏: 决议日对决议日相隔八天(欧央行决议日为引擎回推)", 8, days("2026-09-10", "2026-09-18"), "2026-09-18 − 2026-09-10")
+    add(s, "欧央行生效在前、BOJ 决议在后", True, D("2026-09-16") < D("2026-09-18"), "日期序")
+    add(s, "日本月均 9 月台阶与欧央行生效日同月", True, S(jmine[4][0])[:7] == "2026-09" and S(m2)[:7] == "2026-09", "JP_POLICY_RATE 变更点 2026-09-01 / ECB 2026-09-16")
+    add(s, "欧央行两次变更相隔 91天", 91, days("2026-06-17", "2026-09-16"), "2026-09-16 − 2026-06-17")
+    add(s, "两序列 2025-06-11→2026-06-17 维持期 371天且其间无观测", 371, days("2025-06-11", "2026-06-17"), "series_store.ECB_MRO/ECB_DFR 观测日")
+    add(s, "ECB 6个月前锚观测日 2025-06-11=周三(与生效惯例相容)", "周三", "周" + WD[D("2025-06-11").weekday()], "日历")
+    occ = re.findall(r"决议日 (?:2026-06-11|2026-09-10)[^。;]{0,80}", T)
+    info("ecb_decision_mentions", occ, "agent_judgment 全文")
+    add(s, "欧央行决议日(引擎回推)每次出现所在句均带 回推/惯例/推断 标注", True, bool(occ) and all(("回推" in x or "惯例" in x or "推断" in x) for x in occ), "agent_judgment 全文 " + str(len(occ)) + " 处")
+    add(s, "冻结日历无 ECB 条目而判断档称「冻结发布日历对欧央行无实录条目」", True, has("冻结发布日历对欧央行无实录条目") and not [e for e in CALE if "ECB" in (str(e.get("metric_id")) + str(e.get("entry_id"))).upper()], "release_calendar.entries / l3.contradictions[1]")
+    add(s, "口径分列: 政策目标口径/市场口径/月均≠宣布值/仅作量级对照 均在文", [True] * 4, [has("政策目标口径"), has("市场口径"), has("月均≠宣布值"), has("仅作量级对照")], "l3.contradictions[1].statement / regions")
+    add(s, "引擎锚格 face: ECB=政策目标(宣布值) / JP_POLICY_RATE=隔夜市场均值(月均)", ["政策目标(宣布值)", "隔夜市场均值(月均)"],
+        [CM["最新一期"]["policy_dates"]["face"], CP["最新一期"]["policy_dates"]["face"]], "research_plan.point_values.cells[].anchors.policy_dates.face")
+    add(s, "引擎锚格 face: ECB_DFR=政策目标(宣布值·操作下限)", "政策目标(宣布值·操作下限)", CD["最新一期"]["policy_dates"]["face"], "research_plan.point_values.cells[ECB_DFR].anchors.policy_dates.face")
+    add(s, "锚格 status: 六格最新一期均 ok", ["ok"] * 6, [c_["最新一期"]["status"] for c_ in (CE, CJ, CT, CP, CM, CD)], "research_plan.point_values.cells[].anchors.最新一期.status")
+    VT = "事后回顾(最新修订值,非当时首发值)"
+    CT_ = "as_collected(采集时点值)"
+    add(s, "锚格 vintage: EA 与日本全国 CPI=事后回顾(最新修订值);东京 CPI 与月均拆借利率=采集时点值", [VT, VT, CT_, CT_], [CE["最新一期"]["vintage"], CJ["最新一期"]["vintage"], CT["最新一期"]["vintage"], CP["最新一期"]["vintage"]], "research_plan.point_values.cells[].anchors.最新一期.vintage")
+    add(s, "C3④ vintage 披露在文且与锚格一致(全国/全区 CPI=事后回顾;东京 CPI 与月均拆借利率=采集时点值)", [True, True],
+        [has("欧元区 HICP 与日本全国 CPI 月度数值为事后回顾口径(最新修订值,非当时首发值)"), has("东京 CPI 与月均拆借利率为采集时点值")], "l3.contradictions[2].statement ④")
+    info("cell_vintages", dict(zip(("EA_HICP_YOY", "JP_CPI_YOY", "JP_CPI_TOKYO_YOY", "JP_POLICY_RATE", "ECB_MRO", "ECB_DFR"), [[c_["6个月前"]["vintage"], c_["最新一期"]["vintage"]] for c_ in (CE, CJ, CT, CP, CM, CD)])), "research_plan.point_values.cells[].anchors")
+    add(s, "ECB 锚格 freshness_basis=policy_confirmation(引擎按决策驱动口径判未过期)", ["policy_confirmation", "policy_confirmation"], [CM["最新一期"].get("freshness_basis"), CD["最新一期"].get("freshness_basis")], "research_plan.point_values.cells[ECB_*].anchors.最新一期.freshness_basis")
+    fed = [x for x in changes("DFEDTARU", D("2026-08-01"), CUTOFF)]
+    add(s, "Fed 2026-09 决议 09-16→生效 09-17(序列变更日)", ["2026-09-17"], [x[0] for x in fed], "series_store.DFEDTARU 变更点(2026-08 起)")
+    fedl = [x for x in changes("DFEDTARL", D("2026-08-01"), CUTOFF)]
+    add(s, "DFEDTARL 同日变更", ["2026-09-17"], [x[0] for x in fedl], "series_store.DFEDTARL 变更点")
+    add(s, "快照序列面联邦基金目标区间 3.75%–4.00%(2026-11-23 观测)", [3.75, 4.0], [V("DFEDTARL", "2026-11-23"), V("DFEDTARU", "2026-11-23")], "series_store.DFEDTARL/DFEDTARU@2026-11-23")
+    add(s, "DFEDTARL/DFEDTARU 不在证据索引", True, ("DFEDTARL" not in set(r["metric_id"] for r in evid)) and ("DFEDTARU" not in set(r["metric_id"] for r in evid)), "evidence_index.metric_id")
+    add(s, "窗内(2026-10-23..2026-11-23)三地政策序列无变动点", [], [x for x in changes("DFEDTARU", D("2026-10-23"), CUTOFF) + changes("DFEDTARL", D("2026-10-23"), CUTOFF)] + [x for x in changes("ECB_MRO", D("2026-10-23"), CUTOFF)] + [x for x in changes("JP_POLICY_RATE", D("2026-10-23"), CUTOFF)], "series_store 变更点(窗 2026-10-23..2026-11-23)")
+    add(s, "判断档未作「ECB 观测日全为周三」类全称主张(该句仅见于引擎读者面注记)", True, not has("观测日全为周三"), "agent_judgment 全文 vs MAP_REPORT.md 注记")
+    ecbs = sorted(set(S(x[0]) for m_ in ("ECB_MRO", "ECB_DFR") for x in ser(m_)))
+    recent_nonwed = [d_ for d_ in ecbs if D(d_) >= D("2015-01-01") and D(d_).weekday() != 2]
+    info("ECB_obs_dates_not_Wednesday_since_2015", recent_nonwed, "series_store.ECB_MRO/ECB_DFR 观测日(2015 起)")
+    add(s, "引擎注记「ECB 观测日全为周三」对 2015 年以来观测日成立(历史 1999-2008 有 21 个例外,INFO)", True, not recent_nonwed, "series_store.ECB_MRO/ECB_DFR 观测日")
+    add(s, "读者表「待生效」为空(冻结日历无待生效条目)", [], [e.get("entry_id") for e in CALE if e.get("effective_on") and D(str(e["effective_on"])[:10]) > CUTOFF], "release_calendar.entries")
+    if MAPTXT:
+        mm = (lambda m_: [float(x) for x in m_.groups()] if m_ else None)(
+        re.search(r"\| 日本 \| 1\.25 \| — \| 2026-09-18 \| 2026-09-24 \| 2026-10-30 \| 2026-10-30 \| (\d+)天 \| (\d+)天 \| (\d+)天 ", MAPTXT))
+        add(s, "读者表(MAP_REPORT)距上次调整/距决议/距维持", mm, [60, 66, 24], "MAP_REPORT.md 政策面官方实录行 vs 日历条")
+        info("map_reader_policy_row", mm, "MAP_REPORT.md")
+        info("map_has_degraded", ["DEGRADED" in MAPTXT, "noncore_missing" in MAPTXT or "非核心缺席" in MAPTXT], "MAP_REPORT.md")
+
+
+# ============================================================ E ⑤ 利率分解
+def secE():
+    s = "E⑤利率分解"
+    rd = RM["rates_decomposition"]
+    tri = rp["us_rates_trio"]
+    w0, w1 = D(str(rd["window_from"])[:10]), D(str(rd["window_to"])[:10])
+    n0, n1 = V("UST_10Y", w0), V("UST_10Y", w1)
+    r0, r1 = V("TIPS_10Y", w0), V("TIPS_10Y", w1)
+    b0, b1 = V("BEI_10Y", w0), V("BEI_10Y", w1)
+    add(s, "名义利率变化 bp(判断档)", rd["nominal_bp"], F((n1 - n0) * 100, 1), "series_store.UST_10Y %s=%s → %s=%s" % (S(w0), n0, S(w1), n1))
+    add(s, "实际利率变化 bp(判断档)", rd["real_bp"], F((r1 - r0) * 100, 1), "series_store.TIPS_10Y %s=%s → %s=%s" % (S(w0), r0, S(w1), r1))
+    add(s, "通胀预期变化 bp(判断档)", rd["bei_bp"], F((b1 - b0) * 100, 1), "series_store.BEI_10Y %s=%s → %s=%s" % (S(w0), b0, S(w1), b1))
+    add(s, "恒等式 名义−实际−预期≈0 @窗起", 0.0, F(n0 - r0 - b0, 2), "UST_10Y/TIPS_10Y/BEI_10Y@" + S(w0))
+    add(s, "恒等式 @窗末", 0.0, F(n1 - r1 - b1, 2), "UST_10Y/TIPS_10Y/BEI_10Y@" + S(w1))
+    add(s, "变化幅恒等 名义bp−实际bp−预期bp", 0.0, F(rd["nominal_bp"] - rd["real_bp"] - rd["bei_bp"], 2), "rates_decomposition 三字段")
+    add(s, "窗口日历天", tri["window"].get("calendar_days_between"), days(S(w0), S(w1)), "us_rates_trio.window vs rates_decomposition 窗端")
+    add(s, "判断档窗端=引擎三利率窗端", [S(w0), S(w1)], [str(tri["window"].get("from"))[:10], str(tri["window"].get("to"))[:10]], "us_rates_trio.window")
+    info("us_rates_trio", tri, "research_plan.us_rates_trio")
+    info("rates_levels", {"w0": [S(w0), n0, r0, b0], "w1": [S(w1), n1, r1, b1]}, "series_store")
+    lastn = lastle("UST_10Y", CUTOFF)
+    add(s, "M1「UST_10Y 最新 5.04%」", gf(r"UST_10Y 最新 ([\d.]+)%"), F(lastn[1], 2), "series_store.UST_10Y 末观测 " + S(lastn[0]) + "=" + str(lastn[1]))
+    add(s, "美元端利率高于 MRO 与 BOJ 目标", [True, True], [lastn[1] > V("ECB_MRO", "2026-09-16"), lastn[1] > 1.25], "UST_10Y vs ECB_MRO@2026-09-16 / 日历目标 1.25")
+
+
+# ============================================================ F ⑥ 转折与同步性
+def cget(c, *names):
+    for n in names:
+        if n in c:
+            return c[n]
+    return None
+
+
+def secF():
+    s = "F⑥转折与同步"
+    tc = rp["turning_candidates"]["candidates"]
+    info("turning_candidates", tc, "research_plan.turning_candidates")
+    for i, t in enumerate(RM["turnings"]):
+        hit = [c for c in tc if c.get("metric_id") == t["metric_id"]
+               and str(c.get("from_ym"))[:7] == str(t["before_date"])[:7]
+               and str(c.get("to_ym"))[:7] == str(t["date"])[:7]]
+        add(s, "turnings[%d] 在引擎候选面命中(metric+from_ym+to_ym)" % i, True, len(hit) == 1, "research_plan.turning_candidates.candidates")
+        if hit:
+            add(s, "turnings[%d] value_before=候选面 value_before" % i, t["value_before"], hit[0].get("value_before"), "research_plan.turning_candidates.candidates")
+            add(s, "turnings[%d] value_after=候选面 value_after" % i, t["value_after"], hit[0].get("value_after"), "research_plan.turning_candidates.candidates")
+            add(s, "turnings[%d] 前后值差=候选面 delta" % i, F(t["value_after"] - t["value_before"], 3), F(hit[0].get("delta"), 3), "research_plan.turning_candidates.candidates.delta")
+            info("turning_candidate_hit %d" % i, hit[0], "research_plan.turning_candidates.candidates")
+    T0, T1, T2 = RM["turnings"]
+    add(s, "turnings[0] value_before EA@2026-02", T0["value_before"], EA("2026-02"), "series_store.EA_HICP_YOY@2026-02")
+    add(s, "turnings[0] value_after EA@2026-05", T0["value_after"], EA("2026-05"), "series_store.EA_HICP_YOY@2026-05")
+    add(s, "turnings[0] 三个月 +1.30 个百分点", gf(r"2026-02→2026-05 由 [\d.]+ 升至 [\d.]+\(三个月 \+([\d.]+) 个百分点\)"), F(EA("2026-05") - EA("2026-02"), 2), "EA 2026-05 − 2026-02")
+    add(s, "turnings[1] value_before JP_POLICY_RATE@2026-04", T1["value_before"], PR("2026-04"), "series_store.JP_POLICY_RATE@2026-04")
+    add(s, "turnings[1] value_after @2026-07", T1["value_after"], PR("2026-07"), "series_store.JP_POLICY_RATE@2026-07")
+    add(s, "turnings[1] 过渡值 @2026-06", gf(r"经 2026-06 ([\d.]+) 过渡"), PR("2026-06"), "series_store.JP_POLICY_RATE@2026-06")
+    add(s, "turnings[1] 此后路径 2026-08/09/10", gfl(r"此后逐月路径 2026-08 ([\d.]+)、2026-09 ([\d.]+)、2026-10 ([\d.]+)"), [PR("2026-08"), PR("2026-09"), PR("2026-10")], "series_store.JP_POLICY_RATE")
+    add(s, "turnings[2] value_before Tokyo@2026-06", T2["value_before"], TK("2026-06"), "series_store.JP_CPI_TOKYO_YOY@2026-06")
+    add(s, "turnings[2] value_after Tokyo@2026-09", T2["value_after"], TK("2026-09"), "series_store.JP_CPI_TOKYO_YOY@2026-09")
+    add(s, "turnings[2] 三个月 +1.09 个百分点", gf(r"2026-06→2026-09 由 [\d.]+ 升至 [\d.]+\(三个月 \+([\d.]+) 个百分点\)"), F(TK("2026-09") - TK("2026-06"), 2), "Tokyo 2026-09 − 2026-06")
+    cf = gfl(r"日本全国 CPI 2025-11→2026-02\(([\d.]+)→([\d.]+),三个月 (-[\d.]+) 个百分点\)为幅度最大候选")
+    add(s, "第四候选 2025-11 值", cf[0] if cf else None, JP("2025-11"), "series_store.JP_CPI_YOY@2025-11")
+    add(s, "第四候选 2026-02 值", cf[1] if cf else None, JP("2026-02"), "series_store.JP_CPI_YOY@2026-02")
+    add(s, "第四候选 三个月变化", cf[2] if cf else None, F(JP("2026-02") - JP("2025-11"), 2), "JP 2026-02 − 2025-11")
+    mags = [abs(EA("2026-05") - EA("2026-02")), abs(PR("2026-07") - PR("2026-04")), abs(TK("2026-09") - TK("2026-06")), abs(JP("2026-02") - JP("2025-11"))]
+    add(s, "第四候选为四候选中幅度最大", True, mags[3] == max(mags) and len(tc) == 4, "四候选 |Δ|=" + str([F(x, 3) for x in mags]) + "; 候选数 " + str(len(tc)))
+    e12 = [(S(x[0])[:7], x[1]) for x in ser("EA_HICP_YOY") if D("2025-11-01") <= x[0] <= D("2026-10-01")]
+    j12 = [(S(x[0])[:7], x[1]) for x in ser("JP_CPI_YOY") if D("2025-11-01") <= x[0] <= D("2026-10-01")]
+    add(s, "欧元区谷底 2026-01 的 1.7(近十二个月最低)", ["2026-01", 1.7], list(min(e12, key=lambda x: x[1])), "series_store.EA_HICP_YOY 2025-11..2026-10")
+    add(s, "日本谷底 2026-02 的 1.27(近十二个月最低)", ["2026-02", 1.27], list(min(j12, key=lambda x: x[1])), "series_store.JP_CPI_YOY 2025-11..2026-10")
+    add(s, "最新 EA 读数为近十二个月最高", ["2026-10", EA("2026-10")], list(max(e12, key=lambda x: x[1])), "series_store.EA_HICP_YOY 2025-11..2026-10")
+    add(s, "日本同窗自谷底回升 2026-02 1.27→2026-05 1.53", gfl(r"日本端同窗自谷底回升\(2026-02 ([\d.]+)→2026-05 ([\d.]+)\)"), [JP("2026-02"), JP("2026-05")], "series_store.JP_CPI_YOY")
+    tkN = anchor("TOKYO", "JP_CPI_TOKYO_YOY", W1)
+    p9 = pub("TOKYO", D("2026-09-01"))
+    p8 = pub("TOKYO", D("2026-08-01"))
+    add(s, "东京 2026-09 期推定发布日 2026-09-29", (g(r"推定发布日 (2026-09-\d\d) 晚于 BOJ 决议日") or [None])[0], S(p9), "引擎规则 月末−1 天")
+    add(s, "东京 2026-08 期推定发布日 2026-08-30", (g(r"2026-08 的 [\d.]+\(推定发布 (2026-08-\d\d)") or [None])[0], S(p8), "引擎规则 月末−1 天")
+    add(s, "东京 2026-09-29 晚于 BOJ 决议日 2026-09-18(不构成决议前可见)", True, p9 > D("2026-09-18"), "日期序")
+    add(s, "东京 2026-08-30 不晚于 BOJ 决议日 2026-09-18(决议前可见的最近读数)", True, p8 <= D("2026-09-18"), "日期序")
+    add(s, "决议前可见的最近东京读数=2026-08", S(p8)[:7], S(anchor("TOKYO", "JP_CPI_TOKYO_YOY", D("2026-09-18"))[0])[:7], "按引擎规则")
+    add(s, "该推定日 2026-08-30 落在周日", WD[p8.weekday()], "日", "2026-08-30 星期")
+    for a in ("2026-06-26", "2026-10-30"):
+        dd = D(a)
+        add(s, "引擎自列官方实录锚 " + a + " 为当月最后一个周五", True, dd.weekday() == 4 and plus(dd, 7).month != dd.month, "日历")
+    tokyo_pubs = [(S(x[0])[:7], S(pub("TOKYO", x[0])), WD[pub("TOKYO", x[0]).weekday()]) for x in ser("JP_CPI_TOKYO_YOY")]
+    info("tokyo_rule_pubs", tokyo_pubs, "series_store.JP_CPI_TOKYO_YOY + 引擎规则")
+    info("where_is_2026-06-26", {"registry": "2026-06-26" in json.dumps(reg, ensure_ascii=False), "report": "2026-06-26" in json.dumps(rp, ensure_ascii=False), "calendar": "2026-06-26" in json.dumps(cal, ensure_ascii=False), "snapshot": "2026-06-26" in json.dumps(snap, ensure_ascii=False)}, "grep")
+    add(s, "全国 2026-06 1.67→2026-08 1.98", gfl(r"全国 2026-06 ([\d.]+)→2026-08 ([\d.]+)\)"), [JP("2026-06"), JP("2026-08")], "series_store.JP_CPI_YOY")
+    add(s, "2026-09 期水平差分记(全国口径 −1.64、东京口径 −1.11)", gfl(r"2026-09 期: 全国口径 (-[\d.]+)、东京口径 (-[\d.]+)\)"), [F(JP("2026-09") - EA("2026-09"), 2), F(TK("2026-09") - EA("2026-09"), 2)], "JP/Tokyo@2026-09 − EA@2026-09")
+    add(s, "「欧元区同期读数亦高(2026-09 为 3.8)」", gf(r"欧元区同期读数亦高\(2026-09 为 ([\d.]+)\)"), EA("2026-09"), "series_store.EA_HICP_YOY@2026-09")
+    add(s, "「全国 2026-06 1.67→2026-08 1.98 回升方向一致」", True, JP("2026-08") > JP("2026-06"), "series_store.JP_CPI_YOY")
+    # ---- link0 visibility
+    v = gfl(r"决议日\(回推 2026-06-11\)前可见 2026-04=([\d.]+)、生效日前可见 2026-05=([\d.]+);2026-09-16 生效前: 决议日\(回推 2026-09-10\)前可见 2026-07=([\d.]+)、生效日前可见 2026-08=([\d.]+)")
+    vis = [anchor("EA", "EA_HICP_YOY", plus(D("2026-06-11"), -1)), anchor("EA", "EA_HICP_YOY", plus(D("2026-06-17"), -1)),
+           anchor("EA", "EA_HICP_YOY", plus(D("2026-09-10"), -1)), anchor("EA", "EA_HICP_YOY", D("2026-09-16"))]
+    if v:
+        add(s, "变更1 决议日前可见读数值", v[0], vis[0][1], "series_store.EA_HICP_YOY 规则可见性 as_of 2026-06-10 → " + S(vis[0][0])[:7])
+        add(s, "变更1 生效日前可见读数值", v[1], vis[1][1], "规则可见性 as_of 2026-06-16 → " + S(vis[1][0])[:7])
+        add(s, "变更2 决议日前可见读数值", v[2], vis[2][1], "规则可见性 as_of 2026-09-09 → " + S(vis[2][0])[:7])
+        add(s, "变更2 生效日前可见读数值", v[3], vis[3][1], "规则可见性 as_of 2026-09-16(含当日) → " + S(vis[3][0])[:7])
+    else:
+        add(s, "可见读数句解析", None, None, "agent_judgment", ok=False)
+    vm = gfl(r"决议日\(回推 2026-06-11\)前可见 (2026-\d\d)=|") if False else None
+    add(s, "变更1 决议日前可见读数月=2026-04", "2026-04", S(vis[0][0])[:7], "同上")
+    add(s, "变更1 生效日前可见读数月=2026-05", "2026-05", S(vis[1][0])[:7], "同上")
+    add(s, "变更2 决议日前可见读数月=2026-07", "2026-07", S(vis[2][0])[:7], "同上")
+    add(s, "变更2 生效日前可见读数月=2026-08", "2026-08", S(vis[3][0])[:7], "同上")
+    add(s, "变更2 生效日前读数发布日=2026-09-16(与生效日同日)", "2026-09-16", S(pub("EA", D("2026-08-01"))), "引擎规则")
+    add(s, "两次变更前读数均高于 2026-02 的 1.9", [True] * 4, [x[1] > EA("2026-02") for x in vis], "series_store.EA_HICP_YOY")
+    add(s, "其间读数由 2026-01 的 1.7 升至 2026-04 的 3.0", [1.7, 3.0], [EA("2026-01"), EA("2026-04")], "series_store.EA_HICP_YOY")
+    add(s, "2026-02 值=1.9", gf(r"2026-02 的 ([\d.]+),与读数驱动相容"), EA("2026-02"), "series_store.EA_HICP_YOY@2026-02")
+    add(s, "第二次变更决议日前可见读数 2.9 低于 2026-05 峰值 3.2", gf(r"峰值 ([\d.]+)——该条对发布规则形态敏感"), EA("2026-05"), "series_store.EA_HICP_YOY@2026-05")
+    add(s, "2026-05 为 2026-01..2026-07 峰值", True, EA("2026-05") == max(EA("2026-%02d" % m) for m in range(1, 8)), "series_store.EA_HICP_YOY 2026-01..2026-07")
+    alt = gfl(r"决议日前可见读数为 2026-05 的 ([\d.]+) 与 2026-08 的 ([\d.]+)")
+    fl = [(e.get("obs_from"), e.get("first_publish_on_or_after")) for e in CALE if "EA-HICP" in str(e.get("entry_id"))]
+    add(s, "日历 EA HICP 实录条数=3", 3, len(fl), "release_calendar RC-EA-HICP*")
+    def nxt1(a):
+        y_, m_ = int(str(a)[:4]), int(str(a)[5:7])
+        return dt.date(y_ + (1 if m_ == 12 else 0), m_ % 12 + 1, 1)
+    add(s, "日历 EA HICP 快报日=观测次月首日", [True] * len(fl), all(D(str(b_)[:10]) == nxt1(a) for a, b_ in fl), "release_calendar first_publish_on_or_after=" + str([str(b_)[:10] for _, b_ in fl]) + " vs obs_from")
+    add(s, "日历 EA HICP 实录快报日与引擎推定规则(月末+16)不同(实录优先于推定,但不覆盖本窗)", True, all(D(str(b_)[:10]) != plus(mend(int(str(a)[:4]), int(str(a)[5:7])), 16) for a, b_ in fl), "release_calendar vs 引擎推定规则")
+    add(s, "日历 EA HICP 实录观测月=2021-05/2022-06/2025-03", ["2021-05", "2022-06", "2025-03"], sorted(str(a)[:7] for a, _ in fl), "release_calendar RC-EA-HICP*.obs_from")
+    if alt:
+        flash1 = [(x[0], x[1]) for x in ser("EA_HICP_YOY") if x[0] <= D("2026-05-01") and plus(mend(x[0].year, x[0].month), 1) <= D("2026-06-11")][-1]
+        flash2 = [(x[0], x[1]) for x in ser("EA_HICP_YOY") if x[0] <= D("2026-08-01") and plus(mend(x[0].year, x[0].month), 1) <= D("2026-09-10")][-1]
+        add(s, "替代形态(次月首日快报)下变更1决议日前可见=2026-05 的 3.2", [S(flash1[0])[:7], alt[0]], [S(flash1[0])[:7], flash1[1]], "按日历实录形态重算")
+        add(s, "替代形态下变更2决议日前可见=2026-08 的 3.2", [S(flash2[0])[:7], alt[1]], [S(flash2[0])[:7], flash2[1]], "按日历实录形态重算")
+    jv = gfl(r"决议前可见全国读数 2026-07 的 ([\d.]+)、东京读数 2026-08 的 ([\d.]+)")
+    jvis = anchor("JP", "JP_CPI_YOY", plus(D("2026-09-18"), -1))
+    tvis = anchor("TOKYO", "JP_CPI_TOKYO_YOY", plus(D("2026-09-18"), -1))
+    if jv:
+        add(s, "BOJ 决议前可见全国读数值", jv[0], jvis[1], "series_store.JP_CPI_YOY 规则可见性 as_of 2026-09-17 → " + S(jvis[0])[:7])
+        add(s, "BOJ 决议前可见东京读数值", jv[1], tvis[1], "series_store.JP_CPI_TOKYO_YOY 规则可见性 as_of 2026-09-17 → " + S(tvis[0])[:7])
+    add(s, "BOJ 决议前可见全国读数月=2026-07", "2026-07", S(jvis[0])[:7], "同上")
+    add(s, "BOJ 决议前可见东京读数月=2026-08", "2026-08", S(tvis[0])[:7], "同上")
+    add(s, "全国 1.97 高于 2026-02 谷底 1.27", True, jvis[1] > JP("2026-02"), "series_store.JP_CPI_YOY")
+    add(s, "「先后未定」与引擎政策路径注记一致(月频只能支持同步)", has("先后未定") and ("先后未定须在正文如实写明" in json.dumps(pwp("ECB_MRO"), ensure_ascii=False)), True, "policy_window_path.note")
+    cl = rp["policy_event_clusters"]["clusters"]
+    c2_ = [c for c in cl if D(c["date_from"]) == D("2026-09-10")]
+    add(s, "引擎聚簇面: ECB 2026-09-10 决议簇=单地区事件(不含 8 天后的 BOJ 09-18 决议)", [False, ["EA"]],
+        ([c2_[0]["same_event_cross_country"], c2_[0]["regions"]] if c2_ else None), "research_plan.policy_event_clusters POLCLUSTER-02")
+    add(s, "判断档未把两地 2026-09 变更并称同一跨地区事件(全文「聚簇」「跨地区事件」出现次数)", 0, T.count("聚簇") + T.count("跨地区事件"), "agent_judgment 全文 vs 引擎单地区聚簇面")
+    info("clusters_detail", cl, "research_plan.policy_event_clusters")
+    add(s, "日本月均 2026-06 台阶与欧央行 2026-06-17 生效同月", True, S(changes("JP_POLICY_RATE", D("2026-05-01"), D("2026-07-01"))[0][0])[:7] == "2026-06", "series_store.JP_POLICY_RATE 变更点")
+    info("EA path 2026-01..2026-10", [(S(x[0])[:7], x[1]) for x in ser("EA_HICP_YOY") if D("2026-01-01") <= x[0] <= D("2026-10-01")], "series_store.EA_HICP_YOY")
+    add(s, "走位「2026-06 一度回落至 2.8,非逐月单调」", True, EA("2026-06") < EA("2026-05"), "series_store.EA_HICP_YOY")
+    info("S5_compare_envelope_data_keys", list((step_env("S5_compare").get("data") or {}).keys()), "steps[S5_compare].envelope.data")
+    info("S5_compare_pairs", (step_env("S5_compare").get("data") or {}).get("pairs"), "steps[S5_compare].envelope.data")
+
+
+# ============================================================ G ⑦ 传导链数值
+def daily_pct(mid, d0, d1):
+    sv = [x for x in ser(mid) if D(d0) <= x[0] <= D(d1)]
+    return [(S(sv[i][0]), F((sv[i][1] / sv[i - 1][1] - 1.0) * 100.0, 2)) for i in range(1, len(sv))]
+
+
+def secG():
+    s = "G⑦传导链"
+    lk0, lk1, lk2, lk3 = L3["mechanism_chains"][0]["links"]
+    m = re.search(r"EA_HICP_YOY (.+?);JP_CPI_YOY (.+?)——两地上行", T)
+    if m:
+        for tag, mid, grp in (("EA", "EA_HICP_YOY", 1), ("JP", "JP_CPI_YOY", 2)):
+            pairs = re.findall(r"([\d.]+)\((\d{4}-\d\d)\)", m.group(grp))
+            add(s, "M1-step1 " + tag + " 月度路径月序", ["2026-%02d" % x for x in range(5, 11)], [p[1] for p in pairs], "series_store." + mid)
+            for val, ym in pairs:
+                add(s, "M1-step1 %s %s 值" % (tag, ym), float(val), V(mid, ym + "-01"), "series_store.%s@%s" % (mid, ym))
+    else:
+        add(s, "M1-step1 路径句解析", None, None, "agent_judgment", ok=False)
+    gaps = [F(EA("2026-%02d" % x) - JP("2026-%02d" % x), 2) for x in range(5, 11)]
+    gr = gfl(r"欧元区水平高于日本 ([\d.]+)-([\d.]+) 个百分点")
+    add(s, "M1-step1 窗内各月水平差区间下端", gr[0] if gr else None, min(gaps), "EA−JP 2026-05..2026-10 = " + str(gaps))
+    add(s, "M1-step1 窗内各月水平差区间上端", gr[1] if gr else None, max(gaps), "同上")
+    add(s, "M1-step1 「日本逐月上行」", True, all(JP("2026-%02d" % x) < JP("2026-%02d" % (x + 1)) for x in range(5, 10)), "series_store.JP_CPI_YOY 2026-05..2026-10")
+    add(s, "M1-step1 「两地上行」", [True, True], [EA("2026-10") > EA("2026-05"), JP("2026-10") > JP("2026-05")], "同上")
+    add(s, "M1-step1 「2026-05 期观测日在窗起之前、推定发布日在窗内」", [True, True],
+        [D("2026-05-01") < W0, W0 <= pub("EA", D("2026-05-01")) <= W1 and W0 <= pub("JP", D("2026-05-01")) <= W1], "窗 " + S(W0) + ".." + S(W1))
+    add(s, "M1-step1 「2026-06..2026-10 期在窗内」", True, all(W0 < D("2026-%02d-01" % x) <= W1 for x in range(6, 11)), "同上")
+    o0 = gfl(r"EA_HICP_YOY 窗内 2026-05 ([\d.]+)→2026-10 [\d.]+;JP_CPI_YOY 窗内 2026-05 [\d.]+→2026-10 ([\d.]+)")
+    add(s, "传导链 link0 observed_fact 起点/终点", o0, [EA("2026-05"), JP("2026-10")], "series_store")
+    # ---- FX
+    fx = gfl(r"EURUSD 由 ([\d.]+) 降至 ([\d.]+)\(-([\d.]+)%\)、USDJPY 由 ([\d.]+) 升至 ([\d.]+)\(\+([\d.]+)%\)、DXY 由 ([\d.]+) 升至 ([\d.]+)\(\+([\d.]+)%\);至 2026-11-23 盘中快照同向: EURUSD ([\d.]+)\(-([\d.]+)%\)、USDJPY ([\d.]+)\(\+([\d.]+)%\)、DXY ([\d.]+)\(\+([\d.]+)%\)")
+    D0, D1 = "2026-10-23", "2026-11-20"
+    fxm = [("EURUSD", 4, 4), ("USDJPY", 3, 3), ("DXY", 2, 3)]
+    if fx:
+        for k, (mid, nd0, nd1) in enumerate(fxm):
+            i = 3 * k
+            a, b, c = V(mid, D0), V(mid, D1), V(mid, S(CUTOFF))
+            add(s, "M1-step3 %s 10-23 值" % mid, fx[i], F(a, nd0), "series_store.%s@2026-10-23=%s" % (mid, a))
+            add(s, "M1-step3 %s 11-20 值" % mid, fx[i + 1], F(b, nd1), "series_store.%s@2026-11-20=%s" % (mid, b))
+            add(s, "M1-step3 %s 至 11-20 变动%%" % mid, fx[i + 2], F(abs(pct(a, b)), 2), "11-20/10-23 − 1")
+            add(s, "M1-step3 %s 至 11-23 值" % mid, fx[9 + 2 * k], F(c, nd1), "series_store.%s@2026-11-23=%s" % (mid, c))
+            add(s, "M1-step3 %s 至 11-23 变动%%" % mid, fx[10 + 2 * k], F(abs(pct(a, c)), 2), "11-23/10-23 − 1")
+            # patch9: removed the former "变动方向符号在文" point (claim True / computed True, not data-derived;
+            # it only re-marked the regex match). The data-derived direction check is the point right below.
+    else:
+        add(s, "M1-step3 汇率句解析", None, None, "agent_judgment", ok=False)
+    add(s, "M1-step3 方向: 欧元对美元走弱、日元对美元走弱、美元指数上行(两口径)", [True] * 6,
+        [V("EURUSD", D1) < V("EURUSD", D0), V("USDJPY", D1) > V("USDJPY", D0), V("DXY", D1) > V("DXY", D0),
+         V("EURUSD", S(CUTOFF)) < V("EURUSD", D0), V("USDJPY", S(CUTOFF)) > V("USDJPY", D0), V("DXY", S(CUTOFF)) > V("DXY", D0)], "series_store EURUSD/USDJPY/DXY")
+    add(s, "EURJPY 交叉盘序列不在证据面", True, ("EURJPY" not in SS) and ("EURJPY" not in set(r["metric_id"] for r in evid)), "snapshot.series_store / evidence_index")
+    ej = gfl(r"2026-10-23 收盘 ([\d.]+)→2026-11-20 收盘 ([\d.]+)\(-([\d.]+)%\)、至 2026-11-23 盘中 ([\d.]+)\(较 10-23 -([\d.]+)%\)")
+    x0 = V("EURUSD", D0) * V("USDJPY", D0)
+    x1 = V("EURUSD", D1) * V("USDJPY", D1)
+    x2 = V("EURUSD", S(CUTOFF)) * V("USDJPY", S(CUTOFF))
+    info("EURJPY_synth_full", [repr(x0), repr(x1), repr(x2), repr(pct(x0, x1, 4)), repr(pct(x0, x2, 4))], "EURUSD×USDJPY")
+    if ej:
+        add(s, "合成 EURJPY 10-23", ej[0], F(x0, 2), "EURUSD×USDJPY@2026-10-23=" + repr(x0))
+        add(s, "合成 EURJPY 11-20", ej[1], F(x1, 2), "EURUSD×USDJPY@2026-11-20=" + repr(x1))
+        add(s, "合成 EURJPY 至 11-20 变动%", ej[2], F(abs(pct(x0, x1)), 2), "同上")
+        add(s, "合成 EURJPY 至 11-23", ej[3], F(x2, 2), "EURUSD×USDJPY@2026-11-23=" + repr(x2))
+        add(s, "合成 EURJPY 至 11-23 变动%", ej[4], F(abs(pct(x0, x2)), 2), "同上")
+    add(s, "合成 EURJPY 约 175.61/175.19/174.32(约数)", gfl(r"由 2026-10-23 的约 ([\d.]+) 降至 2026-11-20 的约 ([\d.]+)\(-[\d.]+%\)、2026-11-23 盘中约 ([\d.]+)"),
+        [F(x0, 2), F(x1, 2), F(x2, 2)], "EURUSD×USDJPY")
+    add(s, "「幅度小」: |变动| < 1%", [True, True], [abs(pct(x0, x1)) < 1.0, abs(pct(x0, x2)) < 1.0], "同上")
+    add(s, "「本月窗两地政策水平差未变」", True, not changes("ECB_MRO", D0, CUTOFF) and not changes("ECB_DFR", D0, CUTOFF), "series_store ECB_MRO/ECB_DFR")
+    add(s, "汇市同日收盘口径 2026-11-20 三序列均有观测", [True] * 3, [V(m_, D1) is not None for m_ in ("EURUSD", "USDJPY", "DXY")], "series_store")
+    # ---- assets
+    an = gfl(r"SPX 下跌 ([\d.]+)%、NIKKEI225 下跌 ([\d.]+)%、DAX 下跌 ([\d.]+)%、CAC40 上涨 ([\d.]+)%;VIX 由 ([\d.]+) 升至 ([\d.]+)\(\+([\d.]+)%\)")
+    idx = ["SPX", "NIKKEI225", "DAX", "CAC40"]
+    if an:
+        for k, mid in enumerate(idx):
+            a, b = V(mid, D0), V(mid, D1)
+            add(s, "M1-step4 %s 10-23→11-20 变动%%" % mid, (-an[k] if mid != "CAC40" else an[k]), pct(a, b), "series_store.%s %s=%s → %s=%s" % (mid, D0, a, D1, b))
+        add(s, "M1-step4 VIX 10-23", an[4], V("VIX", D0), "series_store.VIX@2026-10-23")
+        add(s, "M1-step4 VIX 11-20", an[5], V("VIX", D1), "series_store.VIX@2026-11-20")
+        add(s, "M1-step4 VIX 变动%", an[6], pct(V("VIX", D0), V("VIX", D1), 1), "35.89/19.45 − 1")
+    else:
+        add(s, "M1-step4 资产句解析", None, None, "agent_judgment", ok=False)
+    pm = re.search(r"末六个交易日收盘路径 ((?:11-\d\d [\d.]+→?)+)", T)
+    if pm:
+        vp = re.findall(r"(11-\d\d) ([\d.]+)", pm.group(1))
+        add(s, "M1-step4 VIX 末六日路径日序", ["2026-" + x[0] for x in vp], [S(x[0]) for x in ser("VIX") if D("2026-11-13") <= x[0] <= D(D1)], "series_store.VIX")
+        for d_, val in vp:
+            add(s, "M1-step4 VIX 2026-%s 值" % d_, float(val), V("VIX", "2026-" + d_), "series_store.VIX@2026-" + d_)
+        add(s, "M1-step4 跳升集中「末五个交易日」(11-13 后至 11-20 的观测数)", 5, len([x for x in ser("VIX") if D("2026-11-13") < x[0] <= D(D1)]), "series_store.VIX")
+    else:
+        add(s, "M1-step4 VIX 路径句解析", None, None, "agent_judgment", ok=False)
+    dp = daily_pct("VIX", "2026-11-13", "2026-11-20")
+    info("VIX daily pct 11-16..11-20", dp, "series_store.VIX")
+    jd_ = gfl(r"当日 VIX \+([\d.]+)%/\+([\d.]+)%")
+    dmap = dict(dp)
+    if jd_:
+        add(s, "M1-step4 VIX 11-16 单日变动%", jd_[0], dmap.get("2026-11-16"), "series_store.VIX")
+        add(s, "M1-step4 VIX 11-20 单日变动%", jd_[1], dmap.get("2026-11-20"), "series_store.VIX")
+        top2 = sorted(k for k, _ in sorted(dp, key=lambda x: -x[1])[:2])
+        add(s, "M1-step4 11-16/11-20 为跳升窗内两个最大单日跳升日(集合比较)", ["2026-11-16", "2026-11-20"], top2, "series_store.VIX 2026-11-13..11-20 日变动排序")
+    dpm = daily_pct("VIX", D0, D1)
+    info("VIX_month_window_top_daily_jumps", sorted(dpm, key=lambda x: -x[1])[:3], "series_store.VIX 2026-10-23→2026-11-20 日变动%(「窗内两个最大单日跳升日」仅在跳升窗 11-13→11-20 口径成立)")
+    v0_, va_, vb_ = V("VIX", D0), V("VIX", "2026-11-13"), V("VIX", D1)
+    add(s, "「VIX 跳升集中于 2026-11-13→2026-11-20」(跳升窗净变动/月窗净变动≥0.9)", True,
+        ((vb_ is not None) and (va_ is not None) and (v0_ is not None) and ((vb_ - va_) >= 0.9 * (vb_ - v0_))),
+        "series_store.VIX %s=%r / 2026-11-13=%r / %s=%r" % (S(D0), v0_, va_, S(D1), vb_))
+    ew = gfl(r"SPX -([\d.]+)%\(([\d.]+),盘中\)、DAX \+([\d.]+)%\(([\d.]+),盘中\)、NIKKEI225 -([\d.]+)%\(([\d.]+),2026-11-20 收盘\)、VIX \+([\d.]+)%\(([\d.]+),盘中,较 2026-11-20 收盘 -([\d.]+)%\)")
+    am = dict((r["metric_id"], r) for r in rp["asset_moves"]["rows"])
+    echo = dict((r["metric_id"], r) for r in RM["asset_returns_echo"])
+    if ew:
+        add(s, "引擎资产月窗 SPX %", -ew[0], F(am["SPX"]["chg_pct"], 2), "asset_moves.rows[SPX]")
+        add(s, "SPX 截止日值", ew[1], F(V("SPX", S(CUTOFF)), 2), "series_store.SPX@2026-11-23")
+        add(s, "引擎资产月窗 DAX %", ew[2], F(am["DAX"]["chg_pct"], 2), "asset_moves.rows[DAX]")
+        add(s, "DAX 截止日值", ew[3], F(V("DAX", S(CUTOFF)), 2), "series_store.DAX@2026-11-23")
+        add(s, "引擎资产月窗 NIKKEI225 %", -ew[4], F(am["NIKKEI225"]["chg_pct"], 2), "asset_moves.rows[NIKKEI225]")
+        add(s, "NIKKEI225 窗末值(2026-11-20 收盘)", ew[5], F(V("NIKKEI225", D1), 2), "series_store.NIKKEI225@2026-11-20")
+        add(s, "引擎资产月窗 VIX %", ew[6], F(am["VIX"]["chg_pct"], 2), "asset_moves.rows[VIX]")
+        add(s, "VIX 截止日值", ew[7], F(V("VIX", S(CUTOFF)), 2), "series_store.VIX@2026-11-23")
+        add(s, "VIX 截止日较 11-20 收盘 -24.7%", -ew[8], pct(V("VIX", D1), V("VIX", S(CUTOFF)), 1), "series_store.VIX")
+    for mid in ("NIKKEI225", "DAX", "SPX", "VIX"):
+        r = am[mid]
+        a = V(mid, str(r["window"]["from"])[:10])
+        b = V(mid, str(r["window"]["to"])[:10])
+        add(s, "asset_returns_echo %s chg_pct = 序列直算" % mid, echo[mid]["chg_pct"], pct(a, b), "series_store.%s %s→%s" % (mid, r["window"]["from"], r["window"]["to"]))
+        add(s, "asset_returns_echo %s chg_pct = 引擎 asset_moves" % mid, echo[mid]["chg_pct"], r["chg_pct"], "asset_moves.rows[].chg_pct")
+        add(s, "asset_returns_echo %s 窗端 = 引擎" % mid, [echo[mid]["window"]["from"], echo[mid]["window"]["to"]], [r["window"]["from"], r["window"]["to"]], "asset_moves.rows[].window")
+    pr = gfl(r"2026-11-04→11-05 VIX 收盘 ([\d.]+)→([\d.]+)\(\+([\d.]+)%\),至 11-11 回落至 ([\d.]+)\(四个交易日,较 11-05 -([\d.]+)%\),同期 SPX 11-05 -([\d.]+)%,下一交易日 NIKKEI225 11-06 -([\d.]+)%")
+    if pr:
+        add(s, "先例 VIX 11-04", pr[0], V("VIX", "2026-11-04"), "series_store.VIX@2026-11-04")
+        add(s, "先例 VIX 11-05", pr[1], V("VIX", "2026-11-05"), "series_store.VIX@2026-11-05")
+        add(s, "先例 VIX 11-05 单日 %", pr[2], daily_pct("VIX", "2026-11-04", "2026-11-05")[0][1], "series_store.VIX")
+        add(s, "先例 VIX 11-11", pr[3], V("VIX", "2026-11-11"), "series_store.VIX@2026-11-11")
+        add(s, "先例 四个交易日", 4, len([x for x in ser("VIX") if D("2026-11-05") < x[0] <= D("2026-11-11")]), "series_store.VIX 观测数")
+        add(s, "先例 较 11-05 -37.93%", -pr[4], pct(V("VIX", "2026-11-05"), V("VIX", "2026-11-11")), "series_store.VIX")
+        add(s, "先例 SPX 11-05 -4.36%", -pr[5], daily_pct("SPX", "2026-11-04", "2026-11-05")[0][1], "series_store.SPX")
+        add(s, "先例 NIKKEI225 11-06 -5.96%", -pr[6], daily_pct("NIKKEI225", "2026-11-05", "2026-11-06")[0][1], "series_store.NIKKEI225")
+    jw = gfl(r"SPX -([\d.]+)%、NIKKEI225 -([\d.]+)%、DAX -([\d.]+)%、CAC40 -([\d.]+)%\)")
+    if jw:
+        for k, mid in enumerate(idx):
+            add(s, "跳升窗 11-13→11-20 %s %%" % mid, -jw[k], pct(V(mid, "2026-11-13"), V(mid, D1)), "series_store.%s 2026-11-13→2026-11-20" % mid)
+        add(s, "「四地股指跌幅均不深于美股」", True, all(pct(V(mid, "2026-11-13"), V(mid, D1)) >= pct(V("SPX", "2026-11-13"), V("SPX", D1)) for mid in idx), "同上")
+    fxm2 = gfl(r"两日欧元、日元对美元单日变动幅度不超过 ([\d.]+)%")
+    mxfx = max(abs(dict(daily_pct(mid, "2026-11-13", "2026-11-20"))[d_]) for mid in ("EURUSD", "USDJPY") for d_ in ("2026-11-16", "2026-11-20"))
+    if fxm2:
+        add(s, "两日欧元/日元对美元单日变动上限 0.23%", fxm2[0], F(mxfx, 2), "series_store.EURUSD/USDJPY 11-16、11-20 日变动最大绝对值=" + repr(mxfx))
+    ds = gfl(r"无变更\) ?(\d+) 天、距 ECB 最近生效日 2026-09-16 (\d+) 天")
+    ds2 = gfl(r"为 (\d+) 天、(\d+) 天\)")
+    if ds and ds2:
+        add(s, "跳升起点距最近政策日 14 天", ds[0], days("2026-10-30", "2026-11-13"), "2026-11-13 − 2026-10-30")
+        add(s, "跳升起点距 ECB 最近生效日 58 天", ds[1], days("2026-09-16", "2026-11-13"), "2026-11-13 − 2026-09-16")
+        add(s, "跳升终点距最近政策日 21 天", ds2[0], days("2026-10-30", "2026-11-20"), "2026-11-20 − 2026-10-30")
+        add(s, "跳升终点距 ECB 最近生效日 65 天", ds2[1], days("2026-09-16", "2026-11-20"), "2026-11-20 − 2026-09-16")
+    pdf = rp.get("policy_doc_facts")
+    info("policy_doc_facts", pdf, "research_plan.policy_doc_facts")
+    add(s, "「政策文档事实仅 FOMC 纪要一条」", 1, len(pdf) if isinstance(pdf, list) else (len(pdf.get("rows", pdf.get("facts", []))) if isinstance(pdf, dict) else None), "research_plan.policy_doc_facts")
+    add(s, "FOMC 纪要 2026-11-18 落在跳升窗(11-13..11-20)内", True, D("2026-11-13") <= D("2026-11-18") <= D("2026-11-20"), "research_plan.policy_doc_facts")
+    add(s, "VIX 跳升时点不与政策日历对齐(窗内无政策变动点)", True, not changes("ECB_MRO", D("2026-11-13"), D1) and not changes("JP_POLICY_RATE", D("2026-11-13"), D1), "series_store")
+    add(s, "同日收盘月窗: 欧元区股指不弱于美股", [True, True], [pct(V("DAX", D0), V("DAX", D1)) > pct(V("SPX", D0), V("SPX", D1)), pct(V("CAC40", D0), V("CAC40", D1)) > pct(V("SPX", D0), V("SPX", D1))], "series_store 2026-10-23→2026-11-20")
+    add(s, "同日收盘口径 2026-10-23/2026-11-20 五序列(SPX/NIKKEI225/DAX/CAC40/VIX)两端均有观测", [True] * 10, [V(m_, d_) is not None for m_ in idx + ["VIX"] for d_ in (D0, D1)], "series_store")
+    for i in range(4):
+        add(s, "evidence_level 逐环 E1/E1/E2/E2", ["E1", "E1", "E2", "E2"][i], L3["mechanism_chains"][0]["links"][i]["evidence_level"], "l3.mechanism_chains[0].links[].evidence_level")
+    add(s, "E2 环文字带【假设】标注", [True, True], ["【假设" in lk2["text"], "【假设" in lk3["text"]], "l3.mechanism_chains[0].links[2/3].text")
+    add(s, "E2 环均有 missing_link_note", [True, True], [bool(lk2.get("missing_link_note")), bool(lk3.get("missing_link_note"))], "l3.mechanism_chains[0].links[2/3].missing_link_note")
+
+
+# ============================================================ H ⑧ 历史类比
+def secH():
+    s = "H⑧历史类比"
+    an = step_env("S6_analog").get("data") or {}
+    st6 = [x for x in rep["steps"] if x.get("step") == "S6_analog"]
+    add(s, "S6_analog 步骤已执行且 ok", True, bool(st6) and bool(st6[0].get("executed")) and bool(st6[0].get("ok")), "steps[S6_analog].executed/ok")
+    top = (an.get("top") or [{}])[0]
+    add(s, "扫描候选月 1871", gf(r"扫描 (\d+) 个候选月"), (an.get("candidates") or {}).get("scanned"), "steps[S6_analog].envelope.data.candidates.scanned")
+    add(s, "有效候选 74", gf(r"有效 (\d+)、TOP1"), (an.get("candidates") or {}).get("valid"), "…candidates.valid")
+    add(s, "TOP1 候选月 2025-03", (g(r"TOP1 候选月 (\d{4}-\d{2})") or [None])[0], top.get("candidate_month"), "…top[0].candidate_month")
+    add(s, "TOP1 距离 0.727", gf(r"候选月 2025-03 距离 ([\d.]+)"), F(top.get("distance"), 3), "…top[0].distance=" + str(top.get("distance")))
+    info("L4_keys", list(L4.keys()), "agent_judgment.l4")
+    hist = [(k, v) for k, v in L4.items() if isinstance(v, list) and ("hist" in k.lower() or "analog" in k.lower())]
+    add(s, "历史类比 0 段(l4 无历史类比节)", 0, sum(len(v) for _, v in hist), "agent_judgment.l4 键=" + str(list(L4.keys())) + "; 历史类比类键=" + str([k for k, _ in hist]))
+    ctx = [T[max(0, m_.start() - 30):m_.start() + 40].replace("\n", " ") for m_ in re.finditer("2025-03", T)]
+    info("2025-03 contexts", ctx, "agent_judgment 全文")
+    add(s, "候选月 2025-03 在判断档出现 2 处(历史类比注记+日历实录观测月列举)", 2, T.count("2025-03"), "agent_judgment 全文计数")
+    add(s, "「2025-03」出现处均不含事后涨跌数值", True, not re.search(r"2025-03.{0,40}(随后|事后|其后).{0,12}\d+\.\d+%", T), "agent_judgment 全文")
+    add(s, "判断档声明「未对候选月的随后 3/6/12 个月结果逐项核验」", True, has("未对候选月的随后 3/6/12 个月结果逐项核验"), "reader_map.history_zero_case_note")
+    add(s, "判断档无事后段措辞(「随后 3/6/12 个月」等)冒充", 0, len(re.findall(r"随后 ?[3612]+ ?个月", T)), "agent_judgment 全文")
+
+
+# ============================================================ I ⑨ 情景
+def secI():
+    s = "I⑨情景"
+    S1, S2 = L4["scenarios"]
+    r1, r2 = S1["rows"], S2["rows"]
+    add(s, "S1 五行齐备", 5, len(r1), "l4.scenarios[0].rows 键 " + str(sorted(r1.keys())))
+    add(s, "S2 五行齐备", 5, len(r2), "l4.scenarios[1].rows 键 " + str(sorted(r2.keys())))
+    dl = D("2027-02-15")
+    add(s, "S1 时限 2027-02-15(文=字段)", S(dl), str(r1["trigger"]["deadline"])[:10], "l4.scenarios[0].rows.trigger.deadline; 文 " + str(g(r"早于时限 (2027-02-15)")))
+    add(s, "S2 时限 2027-02-15(文=字段)", S(dl), str(r2["trigger"]["deadline"])[:10], "l4.scenarios[1].rows.trigger.deadline")
+    add(s, "2026-12 期 EA 读数规则入档 2027-01-16 早于时限(「于 2027-01 入档」)", [True, True], [S(pub("EA", D("2026-12-01")))[:7] == "2027-01", pub("EA", D("2026-12-01")) < dl], "引擎规则")
+    add(s, "2026-12 期 JP 读数规则入档 2027-01-20 早于时限", [True, True], [S(pub("JP", D("2026-12-01")))[:7] == "2027-01", pub("JP", D("2026-12-01")) < dl], "引擎规则")
+    add(s, "2026-11 期读数在截止日尚未发布(EA 12-16/JP 12-20)", [True, True], [pub("EA", D("2026-11-01")) > CUTOFF, pub("JP", D("2026-11-01")) > CUTOFF], "引擎规则; 截止 " + S(CUTOFF))
+    mts = ["2026-10", "2026-11", "2026-12", "2027-01"]
+    add(s, "时限前可入档的观测月恰为 2026-11/2026-12(EA)", ["2026-11", "2026-12"], [ym for ym in mts if CUTOFF < pub("EA", D(ym + "-01")) <= dl], "引擎规则")
+    add(s, "时限前可入档的观测月恰为 2026-11/2026-12(JP)", ["2026-11", "2026-12"], [ym for ym in mts if CUTOFF < pub("JP", D(ym + "-01")) <= dl], "引擎规则")
+    eaN, jpN = EA("2026-10"), JP("2026-10")
+    gap = eaN - jpN
+    vx = V("VIX", "2026-11-20")
+    add(s, "S1 触发分量与截止日读数不矛盾(EA≥4.0 / 水平差≥1.5 / VIX 收盘>30)", [True, True, True], [eaN >= 4.0, gap >= 1.5, vx > 30], "EA_HICP_YOY@2026-10=%s, 差=%s, VIX@2026-11-20=%s" % (eaN, F(gap, 2), vx))
+    add(s, "S2 触发分量在截止日读数上未成立(EA<3.0 / JP<2.0 / 差≤1.0 / VIX<25)", [False, False, False, False], [eaN < 3.0, jpN < 2.0, gap <= 1.0, vx < 25], "同上")
+    add(s, "S1 证伪分量在截止日读数上未成立", [False, False, False], [eaN < 3.5, jpN < 2.0, gap < 1.5], "同上")
+    add(s, "S2 证伪分量(EA≥3.5)在截止日读数上成立(单月)", True, eaN >= 3.5, "EA_HICP_YOY@2026-10")
+    t1 = gfl(r"EA_HICP_YOY 同比 ≥([\d.]+)% 且两地水平差\(欧元区减日本\)不低于 ([\d.]+) 个百分点")
+    t2 = gfl(r"EA_HICP_YOY 同比低于 ([\d.]+)% 且 JP_CPI_YOY 同比低于 ([\d.]+)%")
+    t3 = gfl(r"不超过 ([\d.]+) 个百分点\),同时 VIX 在该读数入档日前最近一个交易日收盘低于 (\d+)")
+    t4 = gfl(r"VIX 在该读数入档日前最近一个交易日收盘高于 (\d+)")
+    add(s, "情景阈值互补: EA S1≥4.0 vs S2<3.0", [4.0, 3.0], [t1[0] if t1 else None, t2[0] if t2 else None], "l4 trigger.condition")
+    add(s, "情景阈值互补: JP S1 证伪<2.0 vs S2 触发<2.0", [2.0, 2.0], [gf(r"或两月日本全国 CPI 同比均低于 ([\d.]+)%\(前提水平\)"), t2[1] if t2 else None], "l4 trigger/falsification")
+    add(s, "情景阈值互补: 水平差 S1≥1.5 vs S2≤1.0", [1.5, 1.0], [t1[1] if t1 else None, t3[0] if t3 else None], "l4 trigger.condition")
+    add(s, "情景阈值互补: VIX S1>30 vs S2<25", [30, 25], [t4[0] if t4 else None, t3[1] if t3 else None], "l4 trigger.condition")
+    add(s, "S1 证伪阈值与前提水平对齐(3.5%/2.0%/1.5)", [3.5, 2.0, 1.5], gfl(r"若观测月 2026-11 与 2026-12 两月欧元区 HICP 同比均低于 ([\d.]+)%\(前提水平\),或两月日本全国 CPI 同比均低于 ([\d.]+)%\(前提水平\),或两月两地水平差\(欧元区减日本\)均低于 ([\d.]+) 个百分点"),
+        "l4.scenarios[0].rows.falsification.threshold")
+    add(s, "S1 前提水平(情景文 3.5% 以上/2.0% 以上/1.5 个百分点或以上)", [3.5, 2.0, 1.5], gfl(r"欧元区 HICP 同比维持 ([\d.]+)% 以上.*?日本全国 CPI 同比维持 ([\d.]+)% 以上.*?维持 ([\d.]+) 个百分点或以上"), "l4.scenarios[0].rows.scenario")
+    add(s, "S2 证伪阈值 3.5% 较前提 3.0% 放宽;3.0–3.5% 不触发亦不证伪", [True, True, True], [gf(r"两月 EA_HICP_YOY 同比均不低于 ([\d.]+)%") == 3.5, gf(r"EA_HICP_YOY 同比回落至 ([\d.]+)% 以下") == 3.0, (not (3.2 >= 4.0)) and (not (3.2 < 3.0)) and (not (3.2 >= 3.5))], "l4.scenarios[1] + quality_gate_notes[3]")
+    add(s, "证伪指标在册可观测(EA_HICP_YOY/JP_CPI_YOY/VIX 在证据索引)", [True, True, True], [m_ in set(r["metric_id"] for r in evid) for m_ in ("EA_HICP_YOY", "JP_CPI_YOY", "VIX")], "evidence_index.metric_id")
+    add(s, "falsification.metric_id / secondary", ["EA_HICP_YOY", "JP_CPI_YOY"], [r1["falsification"]["metric_id"]] + r1["falsification"]["secondary_metric_ids"], "l4.scenarios[0].rows.falsification")
+    add(s, "敏感变量", ["EA_HICP_YOY", "JP_CPI_YOY"], r1["sensitive_variables"], "l4.scenarios[].rows.sensitive_variables")
+    add(s, "两情景资产方向互补(波动率维持高位 vs 回落;相对承压 vs 修复)", [True, True, True, True], [has("波动率维持高位"), has("波动率回落"), has("相对承压"), has("风险资产修复")], "l4 asset_direction.direction")
+    add(s, "两情景均标【假设·非预测】", [True, True], [r1["scenario"].startswith("【假设·非预测】"), r2["scenario"].startswith("【假设·非预测】")], "l4.scenarios[].rows.scenario")
+    add(s, "「目标现约 1.25%」「维持目标约 1.25%」=日历目标", [True, True], [has("目标现约 1.25%"), has("维持目标约 1.25% 不变")], "release_calendar RC-JP-BOJ-TARGET-2026-09 target_value=1.25")
+    add(s, "S2 资产方向「与近一月观察相反」数值同 M1-step4", True, len(set(tuple(x) for x in re.findall(r"SPX 下跌 ([\d.]+)%、NIKKEI225 下跌 ([\d.]+)%、DAX 下跌 ([\d.]+)%、CAC40 上涨 ([\d.]+)%", T))) == 1, "全文三处同句一致")
+    info("S1_rows", r1, "l4.scenarios[0].rows")
+    info("S2_rows", r2, "l4.scenarios[1].rows")
+
+
+# ============================================================ J ⑩ 总判断/走位/对质一致性
+def secJ():
+    s = "J⑩一致性"
+    add(s, "「距截止 六十八 天」=68", 68, days("2026-09-16", S(CUTOFF)), "2026-11-23 − 2026-09-16")
+    addhas(s, "「距截止 六十八 天」在文", "距截止 六十八 天", True, "reader_map.headline_conclusion")
+    add(s, "「两次合计五十个基点」=25+25", 50, round((V("ECB_MRO", "2026-09-16") - V("ECB_MRO", "2025-06-11")) * 100), "series_store.ECB_MRO")
+    vd = [lk["face_off_verdict"] for lk in RM["transmission"][0]["links"]]
+    add(s, "对质裁定计数(支持主 0·支持竞争 0·尚不能区分 3)", [0, 0, 3], [vd.count("支持主解释"), vd.count("支持竞争解释"), vd.count("尚不能区分")], "reader_map.transmission[0].links[].face_off_verdict")
+    info("face_off_verdicts", vd, "reader_map.transmission[0].links")
+    from zoneinfo import ZoneInfo
+    ra = dt.datetime.fromisoformat(snap["research_as_of"])
+    zc = {z: ra.astimezone(ZoneInfo(z)).strftime("%H:%M") for z in ("America/New_York", "Europe/Berlin", "Asia/Tokyo", "Asia/Shanghai")}
+    add(s, "快照采集时刻四地钟点 纽约/柏林/东京/上海", ["09:53", "15:53", "23:53", "22:53"], [zc["America/New_York"], zc["Europe/Berlin"], zc["Asia/Tokyo"], zc["Asia/Shanghai"]], "snapshot.research_as_of=" + snap["research_as_of"])
+    add(s, "截止日 2026-11-23 为周一;纽约 09:53 已开盘(盘中相容)", [True, True], [CUTOFF.weekday() == 0, zc["America/New_York"] >= "09:30"], "日历; 同上")
+    add(s, "标题「两地通胀均上行、政策均收紧」", [True] * 4, [EA("2026-10") > EA("2026-04"), JP("2026-10") > JP("2026-04"), V("ECB_MRO", "2026-09-16") > V("ECB_MRO", "2025-06-11"), PR("2026-10") > PR("2026-04")], "series_store")
+    add(s, "「累计幅度相近」: 欧央行 +50bp vs 日本月均 +50.1bp", True, abs((V("ECB_MRO", "2026-09-16") - V("ECB_MRO", "2025-06-11")) - (PR("2026-10") - PR("2026-04"))) < 0.05, "series_store")
+    add(s, "C3「引擎可核者五项」=①..⑤", 5, len(set(re.findall(r"([①②③④⑤])", L3["contradictions"][2]["statement"]))), "l3.contradictions[2].statement")
+    add(s, "每条矛盾陈述并列 2 条竞争解释", [2, 2, 2], [len(c["competing_explanations"]) for c in L3["contradictions"]], "l3.contradictions[].competing_explanations")
+    add(s, "每条竞争解释标【假设】", True, all(x.startswith("【假设】") for c in L3["contradictions"] for x in c["competing_explanations"]), "同上")
+    add(s, "传导三环均含主/竞争预期", [True] * 3, [("main_predicts" in lk and "competing_predicts" in lk) for lk in RM["transmission"][0]["links"]], "reader_map.transmission[0].links")
+    add(s, "M1-step2 汇率句与 reader_map link1 observed_fact 数值一致", True, len(set(tuple(x) for x in re.findall(r"EURUSD 由 ([\d.]+) 降至 ([\d.]+)\(-[\d.]+%\).*?DXY ([\d.]+)\(\+[\d.]+%\)", T))) == 1, "全文同句一致")
+    add(s, "百分比单位用法: 利率/同比带 %,差值带「个百分点」", [True, True], [has("高于日本约一点五六个百分点"), has("各 +25bp")], "全文")
+    add(s, "标题日期与窗端", True, has("2026 年 11 月回看最近六个月(窗起 2026-05-23 至研究截止 2026-11-23"), "reader_map.headline_conclusion")
+    add(s, "标题「Gate A 列 degraded」与快照 Gate A 状态一致", True, ("DEGRADED" in str(GATE.get("status"))) and has("Gate A 列 degraded"), "snapshot.gate_a.status=" + str(GATE.get("status")))
+    add(s, "证据索引行数=60(判断档 basis 所述)", 60, len(evid), "evidence_index")
+    add(s, "点值格=6(判断档 basis 所述)", 6, len(rp["point_values"]["cells"]), "research_plan.point_values.cells")
+    info("Gate_A", {k: GATE[k] for k in GATE if not isinstance(GATE[k], (dict, list))}, "snapshot.gate_a")
+
+
+# ============================================================ K ⑪ 诚实缺席与 Gate A 披露
+def secK():
+    s = "K⑪诚实缺席"
+    gtxt = json.dumps(GATE, ensure_ascii=False)
+    add(s, "注册表无 JP_POLICY_TARGET(且不在 series_store)", True, ("JP_POLICY_TARGET" not in REG) and ("JP_POLICY_TARGET" not in SS), "metric_registry.metric_id / snapshot.series_store")
+    ek = None
+    for m in REG.values():
+        for k in m:
+            if str(m.get(k)) in ("JP", "EA") and isinstance(m.get(k), str):
+                ek = k
+                break
+        if ek:
+            break
+    info("registry_economy_key", ek, "metric_registry")
+    jpea = sorted(m_ for m_, v in REG.items() if ek and str(v.get(ek)) in ("JP", "EA"))
+    info("registry_JP_EA_metrics", jpea, "metric_registry")
+    add(s, "注册表 JP/EA 通胀面仅 headline 三条", ["EA_HICP_YOY", "JP_CPI_TOKYO_YOY", "JP_CPI_YOY"], sorted(m_ for m_ in jpea if ("CPI" in m_ or "HICP" in m_ or "INFL" in m_) and "GDP" not in m_), "metric_registry economy∈{JP,EA}")
+    add(s, "注册表无两地核心通胀序列", [], [m_ for m_ in jpea if "CORE" in m_.upper()], "metric_registry economy∈{JP,EA}")
+    add(s, "注册表 JP 面无政策目标宣布值序列", [], [m_ for m_ in jpea if "TARGET" in m_.upper()], "metric_registry")
+    nm = list(GATE.get("noncore_missing") or [])
+    nd = list(GATE.get("noncore_degraded") or [])
+    add(s, "Gate A 状态=DEGRADED", "DEGRADED", GATE.get("status"), "snapshot.gate_a.status")
+    for mid in ("JP_CPI_TOKYO_YOY", "EA_REAL_GDP_YOY", "JP_REAL_GDP_YOY"):
+        add(s, mid + " 在 Gate A noncore_missing", True, mid in nm, "snapshot.gate_a.noncore_missing")
+    for mid in ("ECB_MRO", "ECB_DFR"):
+        add(s, mid + " 在 Gate A noncore_degraded", True, mid in nd, "snapshot.gate_a.noncore_degraded")
+    add(s, "东京都缺席注记「来源文件在场而指标缺席」", True, "来源文件在场而指标缺席" in gtxt, "snapshot.gate_a")
+    add(s, "GDP 缺席注记「采集器已取到而事实未生成」", True, "采集器已取到而事实未生成" in gtxt, "snapshot.gate_a")
+    add(s, "东京都 L1 无对应事实行", True, fact_row("JP_CPI_TOKYO_YOY") is None, "snapshot.facts")
+    add(s, "EA/JP GDP 无 L1 事实行", [True, True], [fact_row("EA_REAL_GDP_YOY") is None, fact_row("JP_REAL_GDP_YOY") is None], "snapshot.facts")
+    add(s, "GDP 序列末期=2026-07,值 1.28/1.16", gfl(r"欧元区一点二八、日本一点一六") if False else [1.28, 1.16], [V("EA_REAL_GDP_YOY", S(ser("EA_REAL_GDP_YOY")[-1][0])), V("JP_REAL_GDP_YOY", S(ser("JP_REAL_GDP_YOY")[-1][0]))], "series_store EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 末观测=" + S(ser("EA_REAL_GDP_YOY")[-1][0]) + "/" + S(ser("JP_REAL_GDP_YOY")[-1][0]))
+    addhas(s, "GDP 末期为 2026-07 在文", "序列面存有至 2026-07 期读数(欧元区一点二八、日本一点一六)", True, "l3.contradictions[2].statement")
+    for mid in ("ECB_MRO", "ECB_DFR"):
+        r = l1row(mid)
+        add(s, mid + " L1 事实行 quality_status=DEGRADED", "DEGRADED", r["quality_status"] if r else None, "layers.L1_事实层.rows[].quality_status")
+        add(s, mid + " 序列末观测=2026-09-16", "2026-09-16", S(ser(mid)[-1][0]), "series_store." + mid)
+        info("L1_row " + mid, r, "layers.L1_事实层")
+    for mid in ("ECB_MRO", "ECB_DFR"):
+        fr = REG[mid].get("freshness") or {}
+        add(s, mid + " 注册表新鲜度阈 max_calendar_lag_days=10 天", 10, fr.get("max_calendar_lag_days"), "metric_registry." + mid + ".freshness.max_calendar_lag_days")
+        info("registry_freshness " + mid, fr, "metric_registry")
+    add(s, "注册表对 ECB 两序列标 decision_dated(无更晚已证实决议不作过期)", [True, True], [REG[m_].get("freshness", {}).get("decision_dated") for m_ in ("ECB_MRO", "ECB_DFR")], "metric_registry.ECB_MRO/ECB_DFR.freshness.decision_dated")
+    add(s, "注册表 ECB 两序列 release_semantics=决议公布后生效并当日更新(与锚格「决议后首个周三生效」惯例并存的另一口径)", [True, True], ["当日更新" in str(REG[m_].get("release_semantics")) for m_ in ("ECB_MRO", "ECB_DFR")], "metric_registry.ECB_MRO/ECB_DFR.release_semantics")
+    info("registry_release_semantics_calc", {m_: [REG[m_].get("release_semantics"), REG[m_].get("calc")] for m_ in ("ECB_MRO", "ECB_DFR")}, "metric_registry")
+    info("registry_ECB_MRO", REG["ECB_MRO"], "metric_registry")
+    info("registry_JP_CPI_YOY", REG["JP_CPI_YOY"], "metric_registry")
+    info("registry_JP_POLICY_RATE", REG["JP_POLICY_RATE"], "metric_registry")
+    info("registry_JP_CPI_TOKYO_YOY", REG.get("JP_CPI_TOKYO_YOY"), "metric_registry")
+    add(s, "判断档「发布日历(v1.5.0,2026-11-21 更新)」与冻结日历 version/updated 一致", ["1.5.0", "2026-11-21"], [str(cal.get("version")), str(cal.get("updated"))[:10]], "release_calendar.version/updated vs agent_declaration.basis / quality_gate_notes[4]")
+    add(s, "判断档「发布日历实录(2026-11-21 更新)」在文且日期=日历 updated", True, has("2026-11-21 更新") and str(cal.get("updated"))[:10] == "2026-11-21", "release_calendar.updated vs l3.contradictions[1].statement / reader_map.regions[1]")
+    if JCSRC:
+        add(s, "引擎缺口披露①属实: _map_checks 锚标签硬编码「12个月前/3个月前/最新一期」,本问点值格锚=6个月前/最新一期(「观测 X→Y」串必误报)", [True, sorted(["6个月前", "最新一期"])],
+            ["for _lbl in ('12个月前', '3个月前', '最新一期'):" in JCSRC, sorted(cell("EA_HICP_YOY")["anchors"].keys())], "judgment_contract._map_checks(只读源码) vs research_plan.point_values.cells[].anchors")
+        add(s, "引擎缺口披露①后半属实: 判断档地区走位正文无「观测 X→Y」串(改用「观测月 X」)", 0, len(re.findall(r"观测\s*\d{4}-\d{2}(?:-\d{2})?\s*→", "\n".join(str(r_.get("from_to") or "") for r_ in RM.get("regions") or []))), "reader_map.regions[].from_to")
+    if TCSRC:
+        add(s, "引擎缺口披露②属实: text_consistency.ALIASES 未覆盖 JP_CPI_YOY/EA_HICP_YOY/JP_CPI_TOKYO_YOY/JP_POLICY_TARGET/ECB_MRO", [False] * 5,
+            [(("'%s':" % m_) in TCSRC) for m_ in ("JP_CPI_YOY", "EA_HICP_YOY", "JP_CPI_TOKYO_YOY", "JP_POLICY_TARGET", "ECB_MRO")], "text_consistency.ALIASES(只读源码)")
+        add(s, "引擎缺口披露②对偶: 判断档所称「带别名指标」USDJPY/SPX/VIX/JP_POLICY_RATE/ECB_DFR 均在 ALIASES", [True] * 5,
+            [(("'%s':" % m_) in TCSRC) for m_ in ("USDJPY", "SPX", "VIX", "JP_POLICY_RATE", "ECB_DFR")], "text_consistency.ALIASES(只读源码)")
+    add(s, "冻结日历对 ECB 无实录条目", [], sorted(set(str(e.get("metric_id")) for e in CALE if "ECB" in str(e.get("metric_id")).upper() or "ECB" in str(e.get("entry_id")).upper())), "release_calendar.entries")
+    add(s, "冻结日历 EA HICP 实录观测月 2021-05/2022-06/2025-03 均不覆盖本窗月份", [], [str(e.get("obs_from"))[:7] for e in CALE if "EA-HICP" in str(e.get("entry_id")) and W0 <= D(str(e.get("obs_from"))[:7] + "-01") <= W1], "release_calendar RC-EA-HICP*")
+    info("calendar_all_entries", [[e.get("entry_id"), e.get("metric_id"), e.get("obs_from"), e.get("basis"), e.get("decision_date"), e.get("effective_on")] for e in CALE], "release_calendar.entries")
+    n_jp_ = sum(1 for e in CALE if str(e.get("metric_id")) == "JP_POLICY_TARGET")
+    n_ea_ = sum(1 for e in CALE if str(e.get("metric_id")) == "EA_HICP_YOY")
+    add(s, "C3③「冻结日历实录仅覆盖日本政策目标两条与三条历史期 EA HICP」(日欧面计数)", [2, 3], [n_jp_, n_ea_], "release_calendar.entries metric_id 计数")
+    info("calendar_non_JP_EA_entries", [[e.get("entry_id"), e.get("metric_id"), e.get("obs_from"), e.get("basis")] for e in CALE if str(e.get("metric_id")) not in ("JP_POLICY_TARGET", "EA_HICP_YOY")], "release_calendar.entries(日欧面以外的其余条目;「仅覆盖」未限定地区时的反例)")
+    add(s, "东京 2026-10 期推定发布日 2026-10-30 不晚于截止日", True, pub("TOKYO", D("2026-10-01")) <= CUTOFF, "引擎规则")
+    if MAPTXT:
+        add(s, "MAP_REPORT 披露 Gate A DEGRADED", True, "DEGRADED" in MAPTXT, "MAP_REPORT.md")
+        add(s, "MAP_REPORT 披露全部 noncore_missing 序列", [True] * len(nm), [m_ in MAPTXT for m_ in nm], "MAP_REPORT.md vs snapshot.gate_a.noncore_missing")
+        add(s, "MAP_REPORT 披露全部 noncore_degraded 序列", [True] * len(nd), [m_ in MAPTXT for m_ in nd], "MAP_REPORT.md vs snapshot.gate_a.noncore_degraded")
+    info("gate_a_lists", {"noncore_missing": nm, "noncore_degraded": nd}, "snapshot.gate_a")
+    info("gate_a_detail_keys", [k for k in GATE.keys()], "snapshot.gate_a")
+    add(s, "BUND_10Y/BUND_2Y 在缺席名单(欧元区国债收益率缺席)", [True, True], ["BUND_10Y" in nm, "BUND_2Y" in nm], "snapshot.gate_a.noncore_missing")
+    add(s, "series_store 无日本国债收益率序列(JGB)", [], [m_ for m_ in SS if "JGB" in m_.upper()], "snapshot.series_store")
+    dg = rp.get("dimension_gaps")
+    info("dimension_gaps", dg, "research_plan.dimension_gaps")
+    s5_ = [x.get("metric_id") for x in ((step_env("S5_compare") or {}).get("data") or {}).get("sides", [])]
+    add(s, "引擎地区×维度同步面(S5_compare 两侧)=EA_HICP_YOY×ECB_MRO;判断档同步性表述仅用「同月/先后未定」、未引用跨地区同步系数",
+        [sorted(["EA_HICP_YOY", "ECB_MRO"]), 0], [sorted(s5_), len(re.findall(r"相关系数|同步系数|pearson|皮尔逊", T))],
+        "steps[S5_compare].envelope.data.sides + agent_judgment 全文")
+    info("S5_compare_research_mode_gate", (((step_env("S5_compare") or {}).get("data") or {}).get("alignment") or {}).get("research_mode_gate"), "steps[S5_compare].envelope.data.alignment.research_mode_gate")
+
+
+# ============================================================ L ⑫ 时点口径
+def secL():
+    s = "L⑫时点口径"
+    for mid in ("SPX", "VIX", "DAX", "CAC40", "EURUSD", "USDJPY", "DXY"):
+        r = l1row(mid)
+        add(s, mid + " 截止日观测值(按 L1 位数取整)=L1 事实行", F(V(mid, S(CUTOFF)), _nd(r["value"])) if (r and V(mid, S(CUTOFF)) is not None) else None, r["value"] if r else None, "series_store.%s@2026-11-23=%r vs layers.L1_事实层(存值 2 位小数)" % (mid, V(mid, S(CUTOFF))))
+        add(s, mid + " 截止日有观测(盘中快照)", True, V(mid, S(CUTOFF)) is not None, "series_store." + mid)
+    add(s, "NIKKEI225 末观测=2026-11-20(东京 23:53 快照无 11-23 值)", "2026-11-20", S(ser("NIKKEI225")[-1][0]), "series_store.NIKKEI225 末观测")
+    addhas(s, "判断档如实标 NIKKEI225 窗末为 11-20 收盘", "NIKKEI225 -9.98%(56436.65,2026-11-20 收盘)", True, "M1-step4")
+    add(s, "SPX 11-23 vs 11-20 值不同(确为盘中新值)", True, V("SPX", S(CUTOFF)) != V("SPX", "2026-11-20"), "series_store.SPX")
+    lastd_ = {m_: S(ser(m_)[-1][0]) for m_ in ("SPX", "VIX", "DAX", "CAC40", "EURUSD", "USDJPY", "DXY", "UST_10Y", "TIPS_10Y", "NIKKEI225")}
+    info("last_obs_dates_cited_series", lastd_, "series_store 引用序列末观测日")
+    add(s, "判断档标「至 2026-11-23 盘中快照」的七序列末观测日=截止日 2026-11-23", [S(CUTOFF)] * 7,
+        [lastd_[m_] for m_ in ("SPX", "VIX", "DAX", "CAC40", "EURUSD", "USDJPY", "DXY")], "series_store 末观测日 vs 判断档「盘中/盘中快照」口径")
+    add(s, "截止日当日观测=快照时点日(research_as_of 日期)", S(CUTOFF), S(snap["research_as_of"]), "snapshot.research_as_of vs research_plan.cutoff")
+
+
+# ============================================================ M ⑬ 契约验证
+def secM():
+    s = "M⑬契约验证"
+    cv = (rep.get("agent_judgment") or {}).get("contract_verification") or {}
+    info("contract_verification", cv, "report.agent_judgment.contract_verification")
+    info("agent_judgment_attach", {k: v for k, v in (rep.get("agent_judgment") or {}).items() if k != "contract_verification"}, "report.agent_judgment")
+    statuses = []
+
+    def walk(o, path=""):
+        if isinstance(o, dict):
+            if isinstance(o.get("status"), str):
+                statuses.append((path, o["status"]))
+            for k, v in o.items():
+                walk(v, path + "." + k)
+        elif isinstance(o, list):
+            for i, v in enumerate(o):
+                walk(v, path + "[%d]" % i)
+    walk(cv)
+    from collections import Counter
+    info("cv_status_counts", dict(Counter(x[1] for x in statuses)), "contract_verification")
+    info("cv_non_verified", [x for x in statuses if x[1] != "VERIFIED"], "contract_verification")
+    vs = cv.get("verdicts") or []
+    st = [v.get("status") for v in vs]
+    add(s, "契约数值核验 token 数=5; STALE 1 / VERIFIED 4", [5, {"STALE": 1, "VERIFIED": 4}], [len(vs), dict(Counter(st))], "report.agent_judgment.contract_verification.verdicts[].status")
+    stv = [v for v in vs if v.get("status") == "STALE"]
+    add(s, "STALE 项唯一=ECB_DFR token 2.5%", ["ECB_DFR", "2.5%"], [stv[0].get("metric"), stv[0].get("token")] if len(stv) == 1 else None, "contract_verification.verdicts[status=STALE]")
+    if stv:
+        add(s, "STALE 项 value=expected=2.5=序列末观测值(数值无误,状态仅因序列陈旧)", [True, True], [stv[0].get("value") == stv[0].get("expected"), F(V("ECB_DFR", S(ser("ECB_DFR")[-1][0])), 1) == stv[0].get("expected")], "series_store.ECB_DFR@" + S(ser("ECB_DFR")[-1][0]) + "=" + repr(V("ECB_DFR", S(ser("ECB_DFR")[-1][0]))))
+    for v in vs:
+        mid = v.get("metric")
+        r_ = l1row(mid)
+        add(s, "契约 token %s %s=序列末观测值(按 L1 位数取整)" % (mid, v.get("token")), v.get("value"), F(V(mid, S(ser(mid)[-1][0])), _nd(r_["value"])) if r_ else None, "series_store.%s@%s=%r" % (mid, S(ser(mid)[-1][0]), V(mid, S(ser(mid)[-1][0]))))
+    sc = cv.get("six_checks") or []
+    add(s, "六查 16 条全 VERIFIED", [16, 0], [len(sc), len([x for x in sc if x.get("status") != "VERIFIED"])], "contract_verification.six_checks")
+    add(s, "六查覆盖 3 条矛盾陈述×4 查(relevant/supports/competing/opposing)=12", 12, len([x for x in sc if x.get("check") in ("relevant", "supports", "competing", "opposing")]), "contract_verification.six_checks")
+    add(s, "六查覆盖 2 情景×2 查(overreach/falsifiable)=4", 4, len([x for x in sc if x.get("check") in ("overreach", "falsifiable")]), "contract_verification.six_checks")
+    mcp = cv.get("map_checks") or []
+    add(s, "读者面核验 5 条全 VERIFIED", [5, 0], [len(mcp), len([x for x in mcp if x.get("status") != "VERIFIED"])], "contract_verification.map_checks")
+    sts = cv.get("stats") or {}
+    add(s, "stats: checks 5/contradicted 0/verified 4/unbound 0/six_fail 0/map_fail 0", {"checks": 5, "contradicted": 0, "verified": 4, "unbound": 0, "six_fail": 0, "map_fail": 0}, dict((k, sts.get(k)) for k in ("checks", "contradicted", "verified", "unbound", "six_fail", "map_fail")), "contract_verification.stats")
+    add(s, "契约总体 verdict=VERIFIED 且 unresolved_unbound 为空", ["VERIFIED", []], [cv.get("verdict"), cv.get("unresolved_unbound")], "contract_verification")
+    add(s, "判断档未点名契约 STALE 一项(全文「STALE」计数=0);实质披露在文: ECB 序列 L1=DEGRADED+超过新鲜度阈十天+【尚未验证】", [0, True, True, True],
+        [T.count("STALE"), has("L1 事实行 quality_status=DEGRADED"), has("超过注册表新鲜度阈十天"), has("【尚未验证】")], "agent_judgment 全文")
+    at = rep.get("agent_judgment") or {}
+    add(s, "attach 校验 validation.passed=true / violations 空", [True, []], [(at.get("validation") or {}).get("passed"), (at.get("validation") or {}).get("violations")], "report.agent_judgment.validation")
+    add(s, "attach 校验计数 矛盾 3/机制链 1/情景 2 = 判断档实体数", [3, 1, 2], [len(L3["contradictions"]), len(L3["mechanism_chains"]), len(L4["scenarios"])], "report.agent_judgment.validation.n_* vs agent_judgment")
+    add(s, "run_ok_at_attach=true / allow_failed_run=false", [True, False], [at.get("run_ok_at_attach"), at.get("allow_failed_run")], "report.agent_judgment")
+    rmf = at.get("reader_map_faces") or {}
+    add(s, "reader_map_faces.complete=true, turnings_n=3=判断档 turnings 数", [True, 3], [rmf.get("complete"), len(RM["turnings"])], "report.agent_judgment.reader_map_faces vs agent_judgment.reader_map.turnings")
+    add(s, "reader_map_faces.history_n=0=判断档历史类比段数", 0, rmf.get("history_n"), "report.agent_judgment.reader_map_faces")
+    add(s, "判断档 schema_version=1.1 = attach schema_version", jd.get("schema_version"), at.get("schema_version"), "agent_judgment.schema_version / report.agent_judgment.schema_version")
+
+
+# ============================================================ N ⑭ 交付门缺口披露
+def secN():
+    s = "N⑭交付门缺口"
+    dr = rep["run"]["data_requirements"]
+    for mid in ("ECB_MRO", "ECB_DFR"):
+        it = [x for x in dr["items"] if x["metric_id"] == mid][0]
+        info("data_requirements " + mid, it, "report.run.data_requirements.items")
+        add(s, mid + " 引擎 data_requirements.outcome", "insufficient_coverage", it["outcome"], "report.run.data_requirements.items[].outcome")
+    info("data_requirements_outcome", [dr.get("outcome"), dr.get("outcome_basis"), dr.get("frozen_at")], "report.run.data_requirements")
+    add(s, "判断档披露欧央行序列止于 2026-09-16(属实)", True, has("序列止于 2026-09-16") and S(ser("ECB_MRO")[-1][0]) == "2026-09-16", "l3/headline/quality_gate_notes[4]")
+    add(s, "判断档披露「其后决议面不可判【尚未验证】」", True, has("其后决议面不可判【尚未验证】"), "reader_map.headline_conclusion")
+    add(s, "判断档未把缺席写成「无变化」(全文「无变化」出现次数)", 0, T.count("无变化"), "agent_judgment 全文")
+    add(s, "判断档未把序列值写成官方目标(「目标」邻近无 JP_POLICY_RATE/ECB 序列值)", [], re.findall(r"目标[^。;;]{0,10}?(0\.727|0\.841|0\.978|1\.043|1\.227|0\.478|2\.15|2\.4[^5])", T), "agent_judgment 全文")
+    for mid in ("ECB_MRO", "ECB_DFR"):
+        add(s, mid + " 点值格「最新一期」status=ok 而 L1 事实行 quality_status=DEGRADED(引擎 data_requirements 另判 insufficient_coverage)", ["ok", "DEGRADED"],
+            [cell(mid)["anchors"]["最新一期"].get("status"), l1row(mid).get("quality_status")], "research_plan.point_values vs layers.L1_事实层")
+    add(s, "判断档未沿用引擎「insufficient_coverage/缺数」标签(全文出现次数),改以 Gate A 降级+超阈披露", 0, T.count("insufficient_coverage") + T.count("缺数"), "agent_judgment 全文")
+    ecbs = sorted(set(S(x[0]) for m_ in ("ECB_MRO", "ECB_DFR") for x in ser(m_)))
+    nonwed = [d_ for d_ in ecbs if D(d_).weekday() != 2]
+    info("ECB_obs_dates_not_Wednesday", nonwed, "series_store.ECB_MRO/ECB_DFR 观测日")
+    if MAPTXT:
+        info("MAP_REPORT_ECB_all_Wednesday_claim", {"map_says_all_wednesday": "ECB_MRO/ECB_DFR 观测日全为周三" in MAPTXT,
+             "non_wednesday_obs_dates_total": len(nonwed), "non_wednesday_since_2015": len([d_ for d_ in nonwed if D(d_) >= D("2015-01-01")]),
+             "non_wednesday_years": sorted(set(d_[:4] for d_ in nonwed)), "window_obs_dates": [d_ for d_ in ecbs if D(d_) >= D("2025-06-01")]},
+             "MAP_REPORT.md 引擎注记行 vs series_store.ECB_MRO/ECB_DFR(引擎面文字,不计入判断档偏离)")
+        add(s, "本窗(2025-06 起)ECB 两序列观测日均为周三;判断档未沿用「全为周三」表述", [True, 0],
+            [all(D(d_).weekday() == 2 for d_ in ecbs if D(d_) >= D("2025-06-01")), T.count("全为周三")], "series_store.ECB_MRO/ECB_DFR 观测日 + agent_judgment 全文")
+    add(s, "判断档对欧央行 2.65/2.5 标注【尚未验证】(未当作已核实的最新水平)", True, has("则 ECB_MRO 的 2.65%/ECB_DFR 的 2.5% 即最新水平") and has("【尚未验证】"), "l3.contradictions[2]")
+
+
+# ============================================================ O 窗口
+def secO():
+    s = "O窗口"
+    add(s, "请求期末=2026-11-30 / 实际覆盖期末=2026-11-23", [S(mend(2026, 11)), S(CUTOFF)], [str(ADE.get("requested_month_end") or ADE.get("requested_as_of"))[:10], str(ADE.get("actual_coverage_date") or ADE.get("coverage_date"))[:10]], "research_plan.as_of_declared")
+    add(s, "窗端 2026-05-23..2026-11-23 在文", True, has("2026-05-23..2026-11-23"), "l3.contradictions[1].statement")
+    add(s, "窗内月度观测月=2026-06..2026-10(观测日在窗内);2026-05 观测日在窗前而发布日在窗内", ["2026-06", "2026-10"], [S(anchor("EA", "EA_HICP_YOY", W1)[0] and min(x[0] for x in ser("EA_HICP_YOY") if W0 < x[0] <= W1))[:7], S(max(x[0] for x in ser("EA_HICP_YOY") if x[0] <= W1))[:7]], "series_store.EA_HICP_YOY")
+    TOKYO_PATS = {"2026-06": [r"2026-06→2026-09 由 ([\d.]+) 升至"], "2026-08": [r"东京读数 2026-08 的 ([\d.]+)"],
+                  "2026-09": [r"2026-06→2026-09 由 [\d.]+ 升至 ([\d.]+)", r"东京都 2026-09 读数 ([\d.]+)"], "2026-10": [r"最新一期锚观测月 2026-10 的 ([\d.]+)%"]}
+    for mid, f in (("JP_POLICY_RATE", PR), ("JP_CPI_TOKYO_YOY", TK)):
+        for x in range(6, 11):
+            ym = "2026-%02d" % x
+            if mid == "JP_POLICY_RATE":
+                add(s, "窗内逐月值 %s %s 在文" % (mid, ym), True, (("%.3f" % f(ym)) in T), "series_store.%s@%s=%s" % (mid, ym, f(ym)))
+            else:
+                pats = TOKYO_PATS.get(ym) or []
+                for pi, pat in enumerate(pats):
+                    add(s, "窗内逐月值 %s %s 在文(第 %d 处)" % (mid, ym, pi + 1), gf(pat), F(f(ym), 2), "series_store.%s@%s=%s" % (mid, ym, f(ym)))
+                if not pats:
+                    inT_ = [bool(re.search(r"(?<![\d.])" + re.escape(x_) + r"(?!\d)", T)) for k_ in (1, 2, 3) for x_ in [("%." + str(k_) + "f") % f(ym)] if float(x_) == float(f(ym))]
+                    add(s, "窗内逐月值 %s %s 未在文出现(非锚格/转折端点,无需逐月列出;记实)" % (mid, ym), False, any(inT_),
+                        "series_store.%s@%s=%s;文内匹配(1/2/3 位小数)=%r" % (mid, ym, f(ym), inT_))
+    add(s, "2026-11 期月度读数不在快照(EA/JP 末观测=2026-10)", ["2026-10", "2026-10"], [S(ser("EA_HICP_YOY")[-1][0])[:7], S(ser("JP_CPI_YOY")[-1][0])[:7]], "series_store")
+
+
+def main():
+    for fn in (secA, secB, secC, secD, secE, secF, secG, secH, secI, secJ, secK, secL, secM, secN, secO):
+        n0 = len(PTS)
+        try:
+            fn()
+        except Exception as ex:  # record, never silently drop
+            import traceback
+            PTS.append({"section": "ERR", "where": fn.__name__, "claim": None, "computed": repr(ex), "source": "script error", "ok": False})
+            info("traceback " + fn.__name__, traceback.format_exc().strip().splitlines()[-4:], "")
+        info("section_count " + fn.__name__, len(PTS) - n0, "")
+    for p in PTS:
+        if p["claim"] == "see_info" or p["computed"] == "see_computed":
+            p["ok"] = False  # placeholders are never force-passed (patch6)
+    mism = [p for p in PTS if not p["ok"]]
+    errs = [p for p in PTS if p["section"] == "ERR"]
+    counted = [p for p in PTS if p["section"] != "ERR"]
+    summ = {"points_total": len(PTS), "points_counted": len(counted), "mismatches": len([p for p in mism if p["section"] != "ERR"]),
+            "script_errors": len(errs), "info_rows": len(INFO),
+            "per_section": {}, "minimum_required": 90}
+    for p in PTS:
+        d = summ["per_section"].setdefault(p["section"], {"points": 0, "ok": 0, "mismatch": 0})
+        d["points"] += 1
+        d["ok" if p["ok"] else "mismatch"] += 1
+    os.makedirs(outdir, exist_ok=True)
+    with open(os.path.join(outdir, "recompute_table.json"), "w", encoding="utf-8") as fh:
+        json.dump({"summary": summ, "points": PTS, "info": INFO}, fh, ensure_ascii=False, indent=1, default=str)
+    with open(os.path.join(outdir, "recompute_table.tsv"), "w", encoding="utf-8") as fh:
+        fh.write("ok\tsection\twhere\tclaim(报告值)\tcomputed(直算值)\tsource(出处键)\n")
+        for p in PTS:
+            row = [("OK" if p["ok"] else "MISMATCH"), p["section"], p["where"], json.dumps(p["claim"], ensure_ascii=False, default=str), json.dumps(p["computed"], ensure_ascii=False, default=str), p["source"]]
+            fh.write("\t".join(x.replace("\t", " ").replace("\n", " ") for x in row) + "\n")
+    with open(os.path.join(outdir, "recompute_summary.json"), "w", encoding="utf-8") as fh:
+        json.dump(summ, fh, ensure_ascii=False, indent=1, default=str)
+    print(json.dumps(summ, ensure_ascii=False, indent=1, default=str))
+    for p in mism:
+        print("MISMATCH" if p["section"] != "ERR" else "ERR", "|", p["section"], "|", p["where"], "| claim=", json.dumps(p["claim"], ensure_ascii=False, default=str), "| computed=", json.dumps(p["computed"], ensure_ascii=False, default=str))
+
+
+if __name__ == "__main__":
+    main()

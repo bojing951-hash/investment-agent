@@ -1,0 +1,11 @@
+tree= /tmp/r32-accept/baseline
+[hist 13m-only ] ((10.0, '2021-07-01', '2021-08-13'), None)
+[engine m12 13m] {'available': False, 'reason': '缺基期: 去年同月(2020-07)无观测,最近可得基期=2020-06——同比基期须同月,不以更早观测冒充(13 个月前≠同比)'}
+[hist q-only-Q1] (None, 'no_visible_obs')
+[events] JP RC-JP-BOJ-TARGET-2026-09 = []
+[pol ①相对日期提前生效] ['POL-EFF']
+[pol ②日期齐全但提前生效] ['POL-EFF']
+[pol ③正确待生效] []
+[pol ④待生效值写成当前值] []
+[pol ⑤断言提前(目前)] []
+[pol ④生效后同句(09-25)] []

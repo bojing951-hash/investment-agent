@@ -1,0 +1,285 @@
+=== carry 2026-11-24 16:04:58
+carry base (A,T3,B,N30) rc=0 | carried 4 run dir(s) + verdict records: files=57 bytes=38016467, all sha256 equal to source
+carry degraded (C4) rc=0 | carried 1 run dir(s) + verdict records: files=14 bytes=10044936, all sha256 equal to source
+carry aug (AUG) rc=0 | carried 1 run dir(s) + verdict records: files=8 bytes=8236657, all sha256 equal to source
+=== v_deliver T3 (16:04:59)
+== report T3 (2026-11-24 16:04:59)
+/tmp/r32-accept/out/VT3_report_20261124T080459Z.json rc=0
+report rc=0 receipt: /tmp/r32-accept/out/VT3_report_20261124T080459Z.json
+zmapdiff rc=0 -> /tmp/r32-accept/out/vmapdiff_T3.txt
+whole     pre 6cf62be25b8e8008 (19212 chars) | delivered 56dea8f77346d464 (19209 chars) | same=False
+content   pre 2bfa6bd5fa9c3822 (217 lines) | delivered 99949f361d737e60 (217 lines)
+content lines differing: 1
+  L9
+    - - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,独立语义审查待裁)
+    + - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,经独立语义审查)
+sidecar anchor == sha256(delivered file): True
+review tail lines: ['- **零段类比**——检索范围与原因: 历史类比 0 段(契约允许 0..3 段,零段如实写明)。引擎 analog 能力本轮已执行(S6_analog: 扫描 1871 个候选�
+「独立语义审查待裁」 pre 1 / delivered 0 ; 「待裁」 total pre 2 / delivered 0 ; 「席位已裁」 pre 0 / delivered 1
+verdict record 20261124/VERDICT-20261123T235139Z-01.json sha256 44c1129a7114ddb3acff57e8499a32bf8930e017d1b9fe8bfa4a23b6a36866cb identical_in_post_fix_tree=True
+verdict records for run 20261123T235139Z: 1
+== archive T3 (2026-11-24 16:05:00)
+/tmp/r32-accept/out/VT3_archive_20261124T080500Z.json rc=0
+archive rc=0 receipt: /tmp/r32-accept/out/VT3_archive_20261124T080500Z.json | archive dir present: yes
+=== v_deliver A (16:05:00)
+== report A (2026-11-24 16:05:00)
+/tmp/r32-accept/out/VA_report_20261124T080500Z.json rc=0
+report rc=0 receipt: /tmp/r32-accept/out/VA_report_20261124T080500Z.json
+zmapdiff rc=0 -> /tmp/r32-accept/out/vmapdiff_A.txt
+whole     pre ad7b4cd00975b8b5 (80735 chars) | delivered b19b007c2ecbf1e0 (80732 chars) | same=False
+content   pre 7632b6baba36c2d0 (693 lines) | delivered 60bafa86c478f86f (693 lines)
+content lines differing: 1
+  L8
+    - - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,独立语义审查待裁)
+    + - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,经独立语义审查)
+sidecar anchor == sha256(delivered file): True
+review tail lines: ['- 席位已裁: UPHELD(裁决链 1 档)']
+「独立语义审查待裁」 pre 1 / delivered 0 ; 「待裁」 total pre 2 / delivered 0 ; 「席位已裁」 pre 0 / delivered 1
+verdict record 20261124/VERDICT-20261123T235103Z-01.json sha256 1e5a8f106c662c483bf9a9f63b6f3cb0c7ac50b37560b0a4a9f9caa32f50c130 identical_in_post_fix_tree=True
+verdict records for run 20261123T235103Z: 1
+== archive A (2026-11-24 16:05:00)
+/tmp/r32-accept/out/VA_archive_20261124T080500Z.json rc=0
+archive rc=0 receipt: /tmp/r32-accept/out/VA_archive_20261124T080500Z.json | archive dir present: yes
+=== v_deliver B (16:05:01)
+== report B (2026-11-24 16:05:01)
+/tmp/r32-accept/out/VB_report_20261124T080501Z.json rc=0
+report rc=0 receipt: /tmp/r32-accept/out/VB_report_20261124T080501Z.json
+zmapdiff rc=0 -> /tmp/r32-accept/out/vmapdiff_B.txt
+whole     pre 142afb718c98d8b6 (19384 chars) | delivered b9b0916548473b2c (19384 chars) | same=False
+content   pre ffa8fbc9c0283d32 (214 lines) | delivered ffa8fbc9c0283d32 (214 lines)
+content lines differing: 0
+sidecar anchor == sha256(delivered file): True
+review tail lines: ['- 席位已裁: UPHELD(裁决链 2 档)']
+「独立语义审查待裁」 pre 0 / delivered 0 ; 「待裁」 total pre 0 / delivered 0 ; 「席位已裁」 pre 1 / delivered 1
+verdict record 20261124/VERDICT-20261123T235121Z-01.json sha256 c686f34a7761ab3c848420bb9bddb80bc3a925189ecf583b15db6ffa2302d844 identical_in_post_fix_tree=True
+verdict record 20261124/VERDICT-20261123T235121Z-02.json sha256 fc2f513b13e00b3ab5a775194e5d87c15368dad6f602997657137d865c673433 identical_in_post_fix_tree=True
+verdict records for run 20261123T235121Z: 2
+== archive B (2026-11-24 16:05:01)
+/tmp/r32-accept/out/VB_archive_20261124T080501Z.json rc=0
+archive rc=0 receipt: /tmp/r32-accept/out/VB_archive_20261124T080501Z.json | archive dir present: yes
+=== v_deliver N30 (16:05:02)
+== report N30 (2026-11-24 16:05:02)
+/tmp/r32-accept/out/VN30_report_20261124T080502Z.json rc=0
+report rc=0 receipt: /tmp/r32-accept/out/VN30_report_20261124T080502Z.json
+zmapdiff rc=0 -> /tmp/r32-accept/out/vmapdiff_N30.txt
+whole     pre c571378cf7580743 (20817 chars) | delivered c33dc7dc8f961e22 (20814 chars) | same=False
+content   pre a346624312e0fac4 (217 lines) | delivered 8be9dfb2195b966c (217 lines)
+content lines differing: 1
+  L10
+    - - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,独立语义审查待裁)
+    + - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,经独立语义审查)
+sidecar anchor == sha256(delivered file): True
+review tail lines: ['- **零段类比**——检索范围与原因: 历史类比 0 段(契约允许 0..3 段,零段如实写明)。引擎 analog 能力本轮已执行(S6_analog: 扫描 1871 个候选�
+「独立语义审查待裁」 pre 1 / delivered 0 ; 「待裁」 total pre 2 / delivered 0 ; 「席位已裁」 pre 0 / delivered 1
+verdict record 20261124/VERDICT-20261123T235157Z-01.json sha256 684e780344337208753ec8393c9051557c0ba2718e3e053674f2409f5cb447d7 identical_in_post_fix_tree=True
+verdict records for run 20261123T235157Z: 1
+== archive N30 (2026-11-24 16:05:02)
+/tmp/r32-accept/out/VN30_archive_20261124T080502Z.json rc=0
+archive rc=0 receipt: /tmp/r32-accept/out/VN30_archive_20261124T080502Z.json | archive dir present: yes
+=== v_deliver C4 (16:05:03)
+== report C4 (2026-11-24 16:05:03)
+/tmp/r32-accept/out/VC4_report_20261124T080503Z.json rc=1
+report rc=1 receipt: /tmp/r32-accept/out/VC4_report_20261124T080503Z.json
+zmapdiff rc=0 -> /tmp/r32-accept/out/vmapdiff_C4.txt
+whole     pre 46b61bd4d4c9ec5a (31165 chars) | delivered b41da606d88eff27 (31162 chars) | same=False
+content   pre 9422eb842505f46d (298 lines) | delivered bd516559de30576f (298 lines)
+content lines differing: 1
+  L9
+    - - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,独立语义审查待裁)
+    + - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,经独立语义审查)
+sidecar anchor == sha256(delivered file): True
+review tail lines: ['- **零段类比**——检索范围与原因: 历史类比取零段(契约允许 0..3 段，如实写明)。检索范围=引擎六维状态类比面(锚月 2026-11，12 个月特
+「独立语义审查待裁」 pre 1 / delivered 0 ; 「待裁」 total pre 2 / delivered 0 ; 「席位已裁」 pre 0 / delivered 1
+verdict record 20261124/VERDICT-20261123T235101Z-01.json sha256 16d682d9da71c5e1297980d196fbd54e775b3b91a88bec467fd3998bcdc59dcd identical_in_post_fix_tree=True
+verdict records for run 20261123T235101Z: 1
+== archive C4 (2026-11-24 16:05:03)
+/tmp/r32-accept/out/VC4_archive_20261124T080503Z.json rc=1
+archive rc=1 receipt: /tmp/r32-accept/out/VC4_archive_20261124T080503Z.json | archive dir present: no
+=== v_replay T3 (16:05:04)
+== Vstrict  engine=/tmp/r32-accept/final9 flag=none  (16:05:04)
+rc=0
+ok=True | rc-level blocked=None | render_mode=byte_equal | failed=None | checks ok 16/16
+   [ok] map_fullfile_anchor | 锚=56dea8f77346d464 实测=56dea8f77346d464(旁挂锚=防单改在场文件)
+   [ok] verdict_binding_threeway | 绑定异常=无(run=归档=裁决锚三面一致;地图内容段与裁决绑定仅差审查状态短语,清单已声明)
+   [ok] code_version_match | 当前=cf33de3a9942578b71cecb45077b7a505d8fca01 包=36499bb78a18dea1ff2b027074088b0ba404c3b8(当前=归档代码 cf33de3a9942578b71cecb45077b7a505d8fca01: 裁决后再交付包,清单已声明)
+   [ok] deterministic_rerender | 冻结输入按当前代码重渲与归档 MAP_REPORT.md 逐字节相等(33998 字节)
+== Ystrict  engine=/tmp/r32-accept/final6 flag=none  (16:05:05)
+rc=1
+ok=False | rc-level blocked=None | render_mode=byte_equal | failed=None | checks ok 15/16
+   [ok] map_fullfile_anchor | 锚=56dea8f77346d464 实测=56dea8f77346d464(旁挂锚=防单改在场文件)
+   [XX] verdict_binding_threeway | 绑定异常=['地图内容段=99949f361d737e60 ≠ 裁决绑定=2bfa6bd5fa9c3822']
+   [ok] code_version_match | 当前=36499bb78a18dea1ff2b027074088b0ba404c3b8 包=36499bb78a18dea1ff2b027074088b0ba404c3b8
+   [ok] deterministic_rerender | 冻结输入按当前代码重渲与归档 MAP_REPORT.md 逐字节相等(33998 字节)
+   warning: 重放拒绝: verdict_binding_threeway(绑定异常=['地图内容段=99949f361d737e60 ≠ 裁决绑定=2bfa6bd5fa9c3822'])
+=== v_replay A (16:05:06)
+== Vstrict  engine=/tmp/r32-accept/final9 flag=none  (16:05:06)
+rc=0
+ok=True | rc-level blocked=None | render_mode=byte_equal | failed=None | checks ok 16/16
+   [ok] map_fullfile_anchor | 锚=b19b007c2ecbf1e0 实测=b19b007c2ecbf1e0(旁挂锚=防单改在场文件)
+   [ok] verdict_binding_threeway | 绑定异常=无(run=归档=裁决锚三面一致;地图内容段与裁决绑定仅差审查状态短语,清单已声明)
+   [ok] code_version_match | 当前=cf33de3a9942578b71cecb45077b7a505d8fca01 包=36499bb78a18dea1ff2b027074088b0ba404c3b8(当前=归档代码 cf33de3a9942578b71cecb45077b7a505d8fca01: 裁决后再交付包,清单已声明)
+   [ok] deterministic_rerender | 冻结输入按当前代码重渲与归档 MAP_REPORT.md 逐字节相等(131375 字节)
+== Ystrict  engine=/tmp/r32-accept/final6 flag=none  (16:05:06)
+rc=1
+ok=False | rc-level blocked=None | render_mode=byte_equal | failed=None | checks ok 15/16
+   [ok] map_fullfile_anchor | 锚=b19b007c2ecbf1e0 实测=b19b007c2ecbf1e0(旁挂锚=防单改在场文件)
+   [XX] verdict_binding_threeway | 绑定异常=['地图内容段=60bafa86c478f86f ≠ 裁决绑定=7632b6baba36c2d0']
+   [ok] code_version_match | 当前=36499bb78a18dea1ff2b027074088b0ba404c3b8 包=36499bb78a18dea1ff2b027074088b0ba404c3b8
+   [ok] deterministic_rerender | 冻结输入按当前代码重渲与归档 MAP_REPORT.md 逐字节相等(131375 字节)
+   warning: 重放拒绝: verdict_binding_threeway(绑定异常=['地图内容段=60bafa86c478f86f ≠ 裁决绑定=7632b6baba36c2d0'])
+=== v_replay N30 (16:05:07)
+== Vstrict  engine=/tmp/r32-accept/final9 flag=none  (16:05:07)
+rc=0
+ok=True | rc-level blocked=None | render_mode=byte_equal | failed=None | checks ok 16/16
+   [ok] map_fullfile_anchor | 锚=c33dc7dc8f961e22 实测=c33dc7dc8f961e22(旁挂锚=防单改在场文件)
+   [ok] verdict_binding_threeway | 绑定异常=无(run=归档=裁决锚三面一致;地图内容段与裁决绑定仅差审查状态短语,清单已声明)
+   [ok] code_version_match | 当前=cf33de3a9942578b71cecb45077b7a505d8fca01 包=36499bb78a18dea1ff2b027074088b0ba404c3b8(当前=归档代码 cf33de3a9942578b71cecb45077b7a505d8fca01: 裁决后再交付包,清单已声明)
+   [ok] deterministic_rerender | 冻结输入按当前代码重渲与归档 MAP_REPORT.md 逐字节相等(37004 字节)
+== Ystrict  engine=/tmp/r32-accept/final6 flag=none  (16:05:07)
+rc=1
+ok=False | rc-level blocked=None | render_mode=byte_equal | failed=None | checks ok 15/16
+   [ok] map_fullfile_anchor | 锚=c33dc7dc8f961e22 实测=c33dc7dc8f961e22(旁挂锚=防单改在场文件)
+   [XX] verdict_binding_threeway | 绑定异常=['地图内容段=8be9dfb2195b966c ≠ 裁决绑定=a346624312e0fac4']
+   [ok] code_version_match | 当前=36499bb78a18dea1ff2b027074088b0ba404c3b8 包=36499bb78a18dea1ff2b027074088b0ba404c3b8
+   [ok] deterministic_rerender | 冻结输入按当前代码重渲与归档 MAP_REPORT.md 逐字节相等(37004 字节)
+   warning: 重放拒绝: verdict_binding_threeway(绑定异常=['地图内容段=8be9dfb2195b966c ≠ 裁决绑定=a346624312e0fac4'])
+=== v_replay B override (16:05:08)
+== Vstrict  engine=/tmp/r32-accept/final9 flag=none  (16:05:08)
+rc=1
+ok=False | rc-level blocked=code_version_mismatch | render_mode=None | failed=None | checks ok 13/13
+   [ok] map_fullfile_anchor | 锚=b9b0916548473b2c 实测=b9b0916548473b2c(旁挂锚=防单改在场文件)
+   [ok] verdict_binding_threeway | 绑定异常=无(run=归档=裁决锚三面一致)
+   warning: 重放拒绝: 代码版本不符——当前=cf33de3a9942578b71cecb45077b7a505d8fca01 包=36499bb78a18dea1ff2b027074088b0ba404c3b8(Audit-R28 任务4 门④)
+== Ystrict  engine=/tmp/r32-accept/final6 flag=none  (16:05:08)
+rc=0
+ok=True | rc-level blocked=None | render_mode=byte_equal | failed=None | checks ok 16/16
+   [ok] map_fullfile_anchor | 锚=b9b0916548473b2c 实测=b9b0916548473b2c(旁挂锚=防单改在场文件)
+   [ok] verdict_binding_threeway | 绑定异常=无(run=归档=裁决锚三面一致)
+   [ok] code_version_match | 当前=36499bb78a18dea1ff2b027074088b0ba404c3b8 包=36499bb78a18dea1ff2b027074088b0ba404c3b8
+   [ok] deterministic_rerender | 冻结输入按当前代码重渲与归档 MAP_REPORT.md 逐字节相等(33481 字节)
+== Voverride  engine=/tmp/r32-accept/final9 flag=--allow-code-mismatch  (16:05:09)
+rc=0
+ok=True | rc-level blocked=None | render_mode=byte_equal | failed=None | checks ok 16/16
+   [ok] map_fullfile_anchor | 锚=b9b0916548473b2c 实测=b9b0916548473b2c(旁挂锚=防单改在场文件)
+   [ok] verdict_binding_threeway | 绑定异常=无(run=归档=裁决锚三面一致)
+   [ok] code_version_match | 当前=cf33de3a9942578b71cecb45077b7a505d8fca01 包=36499bb78a18dea1ff2b027074088b0ba404c3b8(--allow-code-mismatch 披露越过)
+   [ok] deterministic_rerender | 冻结输入按当前代码重渲与归档 MAP_REPORT.md 逐字节相等(33481 字节)
+=== AUG plan at V (16:05:09)
+/tmp/r32-accept/out/VAUG_plan_20261124T080509Z.json rc=0
+newest AUG run: 20261124T080605Z_以_2026_08_21_为研究时点_日本和欧元区最近六个月的通胀与政策环境
+count_late rc=0
+== /tmp/r32-accept/final9-aug/output/research_runs/20261124T080605Z_以_2026_08_21_为研究时点_日本和欧元区最近六个月的通胀与政策环境/report.json
+   run.git_head=cf33de3a9942578b71cecb45077b7a505d8fca01 source=code_version_stamp
+   cutoff=2026-08-21 as_of_declared=2026-08-21 effective=2026-08-21
+   L1 rows: total=31 late(>cutoff)=0
+   evidence_index: total=55 late(>cutoff)=0 nodate=0
+   late by kind: {}
+   late evidence refs: []
+=== summary (16:06:06)
+== T3 report VT3_report_20261124T080459Z.json rc=0
+   report.deliverable = True
+   report.map_status_refreshed = True
+   report.map_renderer_drift = False
+   review.fresh = True | review.verdict = UPHELD
+   warnings = []
+   snapshot_id = None | research_as_of = None | target_date = None
+   data keys = ['L3_produced', 'L4_produced', 'blocked_class', 'copies_consistent', 'degraded_ok', 'deliverable', 'draft_blocked_class', 'draft_delivered', 'full_report', 'generated', 'machine_verified', 'map_renderer_drift', 'map
+== T3 archive VT3_archive_20261124T080500Z.json rc=0
+   archive.verdict = UPHELD
+   archive.verdicts_n = 1
+   archive.archive_dir = ...235139Z_2026年11月_日本和欧元区的通胀与政策环境_两地央行当前官方政策目标利率各处
+   manifest.archive_code_git_head = cf33de3a9942578b71cecb45077b7a505d8fca01
+   manifest.content_sha256 = db46ca7959ea8653a6dfddb71c14e98f145321eb6103e4ae657414446a4b3c66
+   manifest.copies_sha16 = {'report.json': '9c43be62ade381ee', 'report.md': '9d2a20a99b723096', 'FULL_REPORT.md': 'f56ff1f1be5b6135', 'agent_judgme
+   manifest.correlation = run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定(仅差审查状态短语=状态面等价)已核/Audit-R32
+   manifest.digest_algorithm = v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [A
+   manifest.frozen_inputs_sha256 = a67fced54f2be76a212eb2c022f3477f3694188588a2e4b96ca34e433dbb0beb
+   manifest.map_binding_status_equivalent = True
+   manifest.map_content_sha256 = 99949f361d737e6081e736e4e6a5cba6c01247bc586709ff9c78d948204093cd
+   manifest.map_renderer_drift = False
+   manifest.map_report_sha256 = 2bfa6bd5fa9c38221e287865bd852dd06e786f9d53eb5531d183303222f51f90
+   manifest.run_code_git_head = 36499bb78a18dea1ff2b027074088b0ba404c3b8
+   manifest.files = None
+== A report VA_report_20261124T080500Z.json rc=0
+   report.deliverable = True
+   report.map_status_refreshed = True
+   report.map_renderer_drift = False
+   review.fresh = True | review.verdict = UPHELD
+   warnings = []
+   snapshot_id = None | research_as_of = None | target_date = None
+   data keys = ['L3_produced', 'L4_produced', 'blocked_class', 'copies_consistent', 'degraded_ok', 'deliverable', 'draft_blocked_class', 'draft_delivered', 'full_report', 'generated', 'machine_verified', 'map_renderer_drift', 'map
+== A archive VA_archive_20261124T080500Z.json rc=0
+   archive.verdict = UPHELD
+   archive.verdicts_n = 1
+   archive.archive_dir = ...235103Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最
+   manifest.archive_code_git_head = cf33de3a9942578b71cecb45077b7a505d8fca01
+   manifest.content_sha256 = f9d761c4151a358dec8a63469712187201599b8b3ba113da29bb4158cad9cb73
+   manifest.copies_sha16 = {'report.json': '1560717532dcf041', 'report.md': 'd11fd98da9f490c3', 'FULL_REPORT.md': '07116fa7aa48b501', 'agent_judgme
+   manifest.correlation = run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定(仅差审查状态短语=状态面等价)已核/Audit-R32
+   manifest.digest_algorithm = v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [A
+   manifest.frozen_inputs_sha256 = a67fced54f2be76a212eb2c022f3477f3694188588a2e4b96ca34e433dbb0beb
+   manifest.map_binding_status_equivalent = True
+   manifest.map_content_sha256 = 60bafa86c478f86f0aeec748f2bfcb6739fc7b312a70c32017a2d3c4a5573e82
+   manifest.map_renderer_drift = False
+   manifest.map_report_sha256 = 7632b6baba36c2d0ab5b1d7fa54b0755767295fb713ffee629e5ddb42da0dc7b
+   manifest.run_code_git_head = 36499bb78a18dea1ff2b027074088b0ba404c3b8
+   manifest.files = None
+== B report VB_report_20261124T080501Z.json rc=0
+   report.deliverable = True
+   report.map_status_refreshed = False
+   report.map_renderer_drift = False
+   review.fresh = True | review.verdict = UPHELD
+   warnings = []
+   snapshot_id = None | research_as_of = None | target_date = None
+   data keys = ['L3_produced', 'L4_produced', 'blocked_class', 'copies_consistent', 'degraded_ok', 'deliverable', 'draft_blocked_class', 'draft_delivered', 'full_report', 'generated', 'machine_verified', 'map_renderer_drift', 'map
+== B archive VB_archive_20261124T080501Z.json rc=0
+   archive.verdict = UPHELD
+   archive.verdicts_n = 2
+   archive.archive_dir = ...235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什
+   manifest.archive_code_git_head = cf33de3a9942578b71cecb45077b7a505d8fca01
+   manifest.content_sha256 = 6d8a36053e4224fe9f0172201f3a89600fd97d7d4219b9cf484c4b4b73ac1a98
+   manifest.copies_sha16 = {'report.json': '3c93d4fa549d7057', 'report.md': '720874e8a838969e', 'FULL_REPORT.md': 'd35cd39c7978795e', 'agent_judgme
+   manifest.correlation = run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定已核/Audit-R24 任务1);归档代码=cf33de3a9942≠运�
+   manifest.digest_algorithm = v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [A
+   manifest.frozen_inputs_sha256 = a67fced54f2be76a212eb2c022f3477f3694188588a2e4b96ca34e433dbb0beb
+   manifest.map_content_sha256 = ffa8fbc9c0283d32dd0af9f884452c16b3e345420ae99c65136c0d5026b44702
+   manifest.map_renderer_drift = False
+   manifest.map_report_sha256 = ffa8fbc9c0283d32dd0af9f884452c16b3e345420ae99c65136c0d5026b44702
+   manifest.run_code_git_head = 36499bb78a18dea1ff2b027074088b0ba404c3b8
+   manifest.files = None
+== N30 report VN30_report_20261124T080502Z.json rc=0
+   report.deliverable = True
+   report.map_status_refreshed = True
+   report.map_renderer_drift = False
+   review.fresh = True | review.verdict = UPHELD
+   warnings = []
+   snapshot_id = None | research_as_of = None | target_date = None
+   data keys = ['L3_produced', 'L4_produced', 'blocked_class', 'copies_consistent', 'degraded_ok', 'deliverable', 'draft_blocked_class', 'draft_delivered', 'full_report', 'generated', 'machine_verified', 'map_renderer_drift', 'map
+== N30 archive VN30_archive_20261124T080502Z.json rc=0
+   archive.verdict = UPHELD
+   archive.verdicts_n = 1
+   archive.archive_dir = ...235157Z_2026年11月_日本和欧元区最近六个月的通胀与政策环境有什么不同_哪些方面分化
+   manifest.archive_code_git_head = cf33de3a9942578b71cecb45077b7a505d8fca01
+   manifest.content_sha256 = bb7ab46162ac0f2889d7b48171eb9975ff8fd59b5f202b97831c4f33c31c797d
+   manifest.copies_sha16 = {'report.json': '809b7e78abc6129b', 'report.md': '7af0397e5ebcfcbe', 'FULL_REPORT.md': '20f4dbae65001e6d', 'agent_judgme
+   manifest.correlation = run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定(仅差审查状态短语=状态面等价)已核/Audit-R32
+   manifest.digest_algorithm = v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [A
+   manifest.frozen_inputs_sha256 = a67fced54f2be76a212eb2c022f3477f3694188588a2e4b96ca34e433dbb0beb
+   manifest.map_binding_status_equivalent = True
+   manifest.map_content_sha256 = 8be9dfb2195b966c33cf428bbf475d14b88b78d7885130cfac1fa118ed828353
+   manifest.map_renderer_drift = False
+   manifest.map_report_sha256 = a346624312e0fac454af901f15b98038fd522c3adae3541c156b856f65ef3a06
+   manifest.run_code_git_head = 36499bb78a18dea1ff2b027074088b0ba404c3b8
+   manifest.files = None
+== C4 report VC4_report_20261124T080503Z.json rc=1
+   report.deliverable = False
+   report.map_status_refreshed = True
+   report.map_renderer_drift = False
+   review.fresh = True | review.verdict = UPHELD
+   warnings = ['草稿交付(Audit-R25 任务1+Audit-R26 任务2+Audit-R27 任务1+Audit-R28 任务2): blocked_class=map_core_dimension_missing——带缺口/过期/未核验草稿已交付(缺数格如实标注+缺口注记+确�
+   snapshot_id = None | research_as_of = None | target_date = None
+   data keys = ['L3_produced', 'L4_produced', 'blocked_class', 'copies_consistent', 'degraded_ok', 'deliverable', 'draft_blocked_class', 'draft_delivered', 'full_report', 'generated', 'machine_verified', 'map_renderer_drift', 'map
+== C4 archive VC4_archive_20261124T080503Z.json rc=1
+   archive.blocked = not_deliverable
+   archive.deliverable = False
+=== done 2026-11-24 16:06:06

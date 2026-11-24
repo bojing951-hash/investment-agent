@@ -1,0 +1,88 @@
+l3.contradictions[0].statement | 一 | 反,此为问句所求「分化」的第一主面。但就问句的最近
+l3.contradictions[0].statement | 1 | 席),点值取自快照序列面、L1 无对应事实行;去年
+l3.contradictions[1].statement | 一 | ,决议日系引擎按『生效日前上一个周四』惯例自变更日
+l3.contradictions[1].statement | 四 | 日系引擎按『生效日前上一个周四』惯例自变更日回推、
+l3.contradictions[1].statement | 一 | Y_RATE,市场口径)最新一期为 1.227%(
+l3.contradictions[1].statement | 二 | 二五)。节奏对照: 欧央行第二次变更 2026-0
+l3.contradictions[1].statement | 二 | 称,此为问句所求「分化」的第二主面与「证据不足」的
+l3.contradictions[1].statement | 一 | 的第二主面与「证据不足」的第一项。传导端与资产端证
+l3.contradictions[2].statement | 一 | 擎自列官方实录锚的「当月最后一个周五」形态不完全一
+l3.contradictions[2].statement | 五 | 官方实录锚的「当月最后一个周五」形态不完全一致,可
+l3.contradictions[2].statement | 一 | 当月最后一个周五」形态不完全一致,可见性结论不受影
+l3.contradictions[2].statement | 十 | 对照不对称: 欧元区两年期与十年期国债收益率在册,
+l3.contradictions[2].statement | 二 | 或未采,非采集遗漏);日本端二年、五年、十年期国债
+l3.contradictions[2].statement | 五 | ,非采集遗漏);日本端二年、五年、十年期国债收益率
+l3.contradictions[2].statement | 十 | 集遗漏);日本端二年、五年、十年期国债收益率事实行
+l3.contradictions[2].statement | 一 | 条序列均不在本问证据索引,该一维无法对照(指标 i
+l3.mechanism_chains[0].links[0].text | 一 | 行(欧元区 2026-06 一度回落至 2.8,非
+l3.mechanism_chains[0].links[1].text | 一 | 10 均为引擎按『生效日前上一个周四』惯例自变更日
+l3.mechanism_chains[0].links[1].text | 四 | 均为引擎按『生效日前上一个周四』惯例自变更日回推【
+l3.mechanism_chains[0].links[2].text | 10 | 期未纳入美元端利率(UST_10Y 最新 5.04%
+l3.mechanism_chains[0].links[2].missing_link_note | 零 | 政策差-汇率联动通道证据(近零渠道),该环为【假设
+l3.mechanism_chains[0].links[3].text | 一 | 资产面观察与对照: 近一月同日收盘口径(窗起
+l3.mechanism_chains[0].links[3].text | 225 | 跌 9.36%、NIKKEI225 下跌 9.98%、
+l3.mechanism_chains[0].links[3].text | 40 | X 下跌 1.50%、CAC40 上涨 1.86%;
+l3.mechanism_chains[0].links[3].text | 225 | .45,盘中)、NIKKEI225 -9.98%(56
+l3.mechanism_chains[0].links[3].text | 一 | 11-05 -4.36%,下一交易日 NIKKEI
+l3.mechanism_chains[0].links[3].text | 225 | %,下一交易日 NIKKEI225 11-06 -5.
+l3.mechanism_chains[0].links[3].text | 225 |  -8.61%、NIKKEI225 -7.70%、DA
+l3.mechanism_chains[0].links[3].text | 40 | DAX -7.28%、CAC40 -5.27%),两
+l3.mechanism_chains[0].links[3].text | 三 | 8 发布,落在跳升窗内,属第三类候选驱动【假设·归
+l3.mechanism_chains[0].links[3].text | 一 | 美股,两点不利于紧缩主因,单一归因于两地政策不可证
+l4.scenarios[0].rows.scenario | 一 | 5% 以上、ECB 再有至少一次 +25bp 上调
+l4.scenarios[0].rows.scenario | 一 | 以上、BOJ 政策目标再上调一级(或月均中枢续升,
+l4.scenarios[0].rows.trigger.condition | 一 | VIX 在该读数入档日前最近一个交易日收盘高于 3
+l4.scenarios[1].rows.scenario | 一 | 【假设·非预测】分化收敛(一次性因素主导): 当
+l4.scenarios[1].rows.scenario | 一 | 导): 当前欧元区通胀抬升以一次性因素(能源基数、
+l4.scenarios[1].rows.falsification.threshold | 一 | 于 3.5%(未回落),「以一次性因素为主、回落至
+l4.scenarios[1].rows.trigger.condition | 一 | VIX 在该读数入档日前最近一个交易日收盘低于 2
+reader_map.headline_conclusion | 六 | 持;发布日历实录),月均口径六个月锚间由 0.72
+reader_map.transmission[0].links[0].verdict_note | 二 | 路径与『按季程序』相容,且第二次变更的决议日前可见
+reader_map.transmission[0].links[0].verdict_note | 一 | .2,此条反向观察不成立(另一条 371 天反向观
+reader_map.transmission[0].links[0].verdict_note | 一 | ),与读数驱动相容,但样本仅一次。读数驱动与程序驱
+reader_map.transmission[0].links[1].observed_fact | 10 | 立未纳入美元端利率(UST_10Y 最新 5.04%
+reader_map.transmission[0].links[1].verdict_note | 一 | 26-11-23 盘中快照)一致: 欧元与日元同对
+reader_map.transmission[0].links[1].verdict_note | 10 | 美元端利率高于两地(UST_10Y 最新 5.04%
+reader_map.transmission[0].links[1].verdict_note | 一 | —尚不能区分。置信有限: 仅一个月窗、窗内三地均无
+reader_map.transmission[0].links[2].observed_fact | 一 | 近一月同日收盘口径(窗起
+reader_map.transmission[0].links[2].observed_fact | 225 | 跌 9.36%、NIKKEI225 下跌 9.98%、
+reader_map.transmission[0].links[2].observed_fact | 40 | X 下跌 1.50%、CAC40 上涨 1.86%;
+reader_map.transmission[0].links[2].observed_fact | 225 | .45,盘中)、NIKKEI225 -9.98%(56
+reader_map.transmission[0].links[2].observed_fact | 一 | 快速回落』预期在本跳升上仅有一个盘中观测(2026
+reader_map.transmission[0].links[2].competing_explanation | 三 | 全球风险事件/仓位冲击主导,三地同跌与两地政策面只
+reader_map.transmission[0].links[2].verdict_note | 40 | DAX -1.50%、CAC40 +1.86% vs
+reader_map.transmission[0].links[2].verdict_note | 225 |  -8.61%、NIKKEI225 -7.70%、DA
+reader_map.transmission[0].links[2].verdict_note | 40 | DAX -7.28%、CAC40 -5.27%),两
+reader_map.transmission[0].links[2].verdict_note | 三 | 历事件),落在跳升窗内,属第三类候选驱动,本对质(
+reader_map.transmission[0].links[2].verdict_note | 一 | 快速回落』预期在本跳升上仅有一个盘中观测(2026
+reader_map.transmission[0].links[2].verdict_note | 27.01 | 2026-11-23 快照 27.01,较 2026-11
+reader_map.transmission[0].links[2].verdict_note | 一 | 4.7%,非收盘),同窗另有一次收盘口径先例——2
+reader_map.transmission[0].links[2].verdict_note | 一 | 11-05 -4.36%,下一交易日 NIKKEI
+reader_map.transmission[0].links[2].verdict_note | 225 | %,下一交易日 NIKKEI225 11-06 -5.
+reader_map.turnings[0].follow_or_diverge | 一 | 日回推【推断】)——跟进方向一致,月频先后未定。引
+reader_map.turnings[0].narrative | 一 | .0(其中 2026-06 一度回落至 2.8),
+reader_map.turnings[1].narrative | 一 | 1.227;发布日历实录最近一次目标调整为 202
+reader_map.turnings[2].first_mover | 1 | ng,读数取自快照序列面、L1 无对应事实行)20
+reader_map.turnings[2].follow_or_diverge | 一 | 26-10-30 的当月最后一个周五形态不完全一致
+reader_map.turnings[2].follow_or_diverge | 五 | 10-30 的当月最后一个周五形态不完全一致,可见
+reader_map.turnings[2].follow_or_diverge | 一 | 的当月最后一个周五形态不完全一致,可见性结论不受影
+reader_map.turnings[2].narrative | 一 | →2026-08 的回升方向一致(全国 2026-
+reader_map.history_zero_case_note | 6 | alog 能力本轮已执行(S6_analog: 扫
+reader_map.history_zero_case_note | 1 | 个候选月、有效 74、TOP1 候选月 2025-
+reader_map.history_zero_case_note | 3 | 索,席位亦未对候选月的随后 3/6/12 个月结果
+reader_map.history_zero_case_note | 6 | 席位亦未对候选月的随后 3/6/12 个月结果逐项
+reader_map.history_zero_case_note | 12 | 亦未对候选月的随后 3/6/12 个月结果逐项核验,
+reader_map.history_zero_case_note | 一 | 事后结果充数;如需「两地通胀一升一降+同向收紧」的
+reader_map.history_zero_case_note | 一 | 结果充数;如需「两地通胀一升一降+同向收紧」的历史
+quality_gate_notes[2] | 一 | 决议日——引擎按『生效日前上一个周四』惯例自序列变
+quality_gate_notes[2] | 四 | ——引擎按『生效日前上一个周四』惯例自序列变更日回
+quality_gate_notes[2] | 1 | 无序列支撑环节=【假设】(M1 step3/ste
+quality_gate_notes[3] | 1 | 2)与 VIX 收盘口径,S1 证伪阈值与前提水平
+quality_gate_notes[3] | 零 | 议实录核验(冻结日历对欧央行零条实录,欧央行分量须
+quality_gate_notes[4] | 六 | 布值(净变动两种口径并列: 六个月锚间为一口径,近
+quality_gate_notes[4] | 一 | 两种口径并列: 六个月锚间为一口径,近 12 个月
+quality_gate_notes[4] | 一 | 近 12 个月月均与引擎政策一年窗路径为同口径——
+quality_gate_notes[5] | 一 | 「12个月前/3个月前/最新一期」,本问锚为「6个
+quality_gate_notes[5] | 一 | 」,本问锚为「6个月前/最新一期」,「观测 X→Y
+quality_gate_notes[5] | 一 | 本档陈述层对无别名指标的数值一律用中文数字表述,带
+quality_gate_notes[5] | 一 | 按快照在场判可见,两面口径不一(已登记待用户裁定是

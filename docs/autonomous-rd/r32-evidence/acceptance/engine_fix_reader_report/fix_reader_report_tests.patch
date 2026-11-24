@@ -1,0 +1,240 @@
+diff --git a/tests/test_audit_r32_gate.py b/tests/test_audit_r32_gate.py
+index d36ef20..47e3014 100644
+--- a/tests/test_audit_r32_gate.py
++++ b/tests/test_audit_r32_gate.py
+@@ -1492,6 +1492,227 @@ def sec_i():
+           f"ea={ {k: ea.get(k) for k in ('observation_date', 'publication_date')} }")
+ 
+ 
++# ═══ §J 真跑验收发现的渲染缺陷(正式入口四问验收运行+独立席范围外观察) ═══
++_LEGACY_ANCHOR_LINE = ('- 口径: 三个对照时点=日历点锚(截止日−12月/−3月/最新一期);'
++                       '「随后3、6、12个月」=事件后偏移(转折/类比基准日+N月)'
++                       '——两类时间含义不同,分记不混同')
++_SR0 = {'verdict': None, 'verdicts_n': 0}
++
++
++def _map_head(rep, root):
++    """计划回执→读者报告全文(无研判档形态=plan 段渲染;只读)."""
++    return rmp.render_map_report(rep, None, _SR0, root=root)
++
++
++def _one_line(mm, prefix):
++    ls = [l for l in mm.splitlines() if l.startswith(prefix)]
++    return ls[0] if len(ls) == 1 else ''
++
++
++def sec_j():
++    print('§J 真跑验收发现的渲染缺陷(请求月末误标研究截止日/对照时点标签/'
++          '政策路径净变动)')
++    # J1 NEW30 夹紧形: 请求月末只称请求研究时点,研究截止日=实际覆盖日
++    t, rep, _md, _ = _offline_plan('j_new30', Q_NEW30)
++    rp = rep.get('research_plan') or {}
++    ad = rp.get('as_of_declared') or {}
++    mm = _map_head(rep, t)
++    bl = _one_line(mm, '- 研究时点口径')
++    check('§J1a NEW30(夹紧形)读者报告「研究时点口径」行: 请求月末 2026-11-30 只称'
++          '请求研究时点,研究截止日=实际覆盖日 2026-11-22,绑定句点名截止日(基线: '
++          '同一行写「按月末时点化为研究截止日 2026-11-30…绑定该时点」,与上下两行'
++          '的研究截止日相抵)',
++          len([l for l in mm.splitlines() if l.startswith('- 研究时点口径')]) == 1
++          and '研究截止日 2026-11-30' not in bl
++          and '请求研究时点 2026-11-30' in bl
++          and '2026-11-22' in bl
++          and '绑定研究截止日 2026-11-22' in bl, bl[:260])
++    head = mm.splitlines()[:12]
++    # 「研究截止日」标签紧邻 2026-11-30(=把请求月末写成研究截止日);
++    # 披露行「请求 2026-11-30 | … | 研究截止日=2026-11-22」不在此列
++    _mis = [l for l in head
++            if re.search(r'研究截止日[=:：\s]*=?\s*2026-11-30', l)]
++    check('§J1b 同页头部任何一行不得把 2026-11-30 写成研究截止日;头部无 '
++          'None;计划面 as_of_declared.basis 同口径(席位信封/报告/归档同读'
++          '该字段)',
++          not _mis
++          and '研究截止日 2026-11-30' not in str(ad.get('basis'))
++          and not any('None' in l for l in head)
++          and ad.get('as_of') == '2026-11-22'
++          and ad.get('requested_month_end') == '2026-11-30',
++          (str(_mis[:1]) + ' | ' + str(ad.get('basis'))[:200]))
++    anchors = [(a.get('label'), a.get('months_before')) for a in
++               (rp.get('point_anchors') or [])]
++    al = _one_line(mm, '- 口径: ')
++    check('§J2a 两锚问句(NEW30: 6个月前/最新一期)「口径」行按实际锚渲染——基线'
++          '写「三个对照时点=…−12月/−3月/最新一期」(本问无 12 个月前/3 个月前锚)',
++          [a[0] for a in anchors] == ['6个月前', '最新一期']
++          and al.startswith('- 口径: 两个对照时点=日历点锚(截止日−6个月/最新一期);')
++          and '三个对照时点' not in al and '−12月' not in al, al[:200])
++    shutil.rmtree(t, ignore_errors=True)
++    # J1c 显式时点问(未夹紧): 绑定句点名研究截止日
++    t, rep, _md, _ = _offline_plan('j_aug', Q_AUG)
++    bl = _one_line(_map_head(rep, t), '- 研究时点口径')
++    check('§J1c 显式时点问(AUG,未夹紧): 研究时点口径行=问题声明研究时点 '
++          '2026-08-21,绑定句点名研究截止日 2026-08-21(计划/取数/渲染同一截止日)',
++          ('问题声明研究时点 2026-08-21' in bl
++           and '绑定研究截止日 2026-08-21' in bl), bl[:200])
++    shutil.rmtree(t, ignore_errors=True)
++    # J1d 显式时点标记晚于覆盖日(非月末形): 同一夹紧规则,披露按请求时点
++    # (基线: 请求月末缺席→读者报告/报告渲「请求 None」)
++    Q_DEC = '以 2026-12-15 为研究时点，日本和欧元区最近六个月的通胀与政策环境'
++    t, rep, md_d, _ = _offline_plan('j_dec', Q_DEC)
++    rp_d = rep.get('research_plan') or {}
++    ad_d = rp_d.get('as_of_declared') or {}
++    mm_d = _map_head(rep, t)
++    _dl = _one_line(mm_d, '- 请求研究时点/实际覆盖日: ')
++    check('§J1d 显式时点标记晚于覆盖日(2026-12-15>2026-11-22): 研究截止日='
++          '实际覆盖日 2026-11-22,读者报告披露行=「请求研究时点/实际覆盖日: '
++          '请求 2026-12-15 | 快照实际覆盖 2026-11-22 | 研究截止日=2026-11-22」'
++          '(基线渲「请求 None」),报告同步披露且无 None',
++          rp_d.get('cutoff') == '2026-11-22'
++          and ad_d.get('clamped_to_coverage') is True
++          and ad_d.get('requested_month_end') is None
++          and ad_d.get('requested_as_of') == '2026-12-15'
++          and _dl.startswith('- 请求研究时点/实际覆盖日: 请求 2026-12-15'
++                             ' | 快照实际覆盖 2026-11-22 | 研究截止日=2026-11-22')
++          and '- 请求月末/实际覆盖日' not in mm_d
++          and not any('None' in l for l in mm_d.splitlines()[:12])
++          and '- 请求研究时点 2026-12-15 晚于快照实际覆盖日 2026-11-22'
++          '(请求时点未到/数据未到)' in md_d
++          and '请求 None' not in md_d
++          and '请求时点未到/数据未到' in json.dumps(rp_d, ensure_ascii=False),
++          f"cutoff={rp_d.get('cutoff')} line={(_dl or _one_line(mm_d, '- 请求月末/实际覆盖日'))[:120]} "
++          f"ad={ {k: ad_d.get(k) for k in ('requested_month_end', 'requested_as_of', 'clamped_to_coverage')} }")
++    shutil.rmtree(t, ignore_errors=True)
++    # J2b 三标准锚问句(A): 「口径」行=旧文本逐字;两锚问句 B 同步
++    t, rep, _md, _ = _offline_plan('j_a', Q_A)
++    al_a = _one_line(_map_head(rep, t), '- 口径: ')
++    shutil.rmtree(t, ignore_errors=True)
++    t, rep, _md, _ = _offline_plan('j_b', Q_B)
++    al_b = _one_line(_map_head(rep, t), '- 口径: ')
++    rj2 = json.loads(json.dumps(rep))
++    (rj2.setdefault('run', {})).pop('evidence_gate', None)
++    legacy_b = rmp.render_map_report(rj2, None, _SR0, root=t)
++    shutil.rmtree(t, ignore_errors=True)
++    check('§J2b 三标准锚问句(A)「口径」行=旧文本逐字;两锚问句 B=「两个对照时点'
++          '=日历点锚(截止日−3个月/最新一期)」;run 无 evidence_gate 的旧档形态重渲'
++          '=旧文本(旧档字节不漂移,§A6a 全文比对同证)',
++          al_a == _LEGACY_ANCHOR_LINE
++          and al_b.startswith('- 口径: 两个对照时点=日历点锚(截止日−3个月/最新一期);')
++          and _one_line(legacy_b, '- 口径: ') == _LEGACY_ANCHOR_LINE,
++          f"A={al_a[:80]} B={al_b[:80]}")
++    # J3 政策一年窗路径: 净变动=变动点之和(窗启时在值→窗末)
++    d3 = ['2025-06-11', '2026-06-17', '2026-09-16']
++    v3 = [2.0, 2.25, 2.5]
++    wp = rmp._policy_window_path(d3, v3, '2026-11-22', metric_id='ECB_DFR',
++                                 carry_start=True)
++    wp0 = rmp._policy_window_path(d3, v3, '2026-11-22', metric_id='ECB_DFR')
++    check('§J3a 阶梯序列(决议日观测)一年窗: 净变动=窗启时在值→窗末=变动点之和'
++          '(+50bp,2.0→2.5);基线口径(窗内首观测→窗末=+25bp)与同列两个 +25bp '
++          '变动点不闭合;无证据口径(旧档)口径不变=+25bp',
++          wp.get('net_bp') == 50 == sum(e['delta_bp'] for e in wp['events'])
++          and wp.get('window_start_value') == 2.0
++          and wp.get('window_start_observation') == '2025-06-11'
++          and wp0.get('net_bp') == 25
++          and wp0.get('window_start_value') == 2.25,
++          f"carry={ {k: wp.get(k) for k in ('net_bp', 'window_start_value')} } "
++          f"legacy={ {k: wp0.get(k) for k in ('net_bp', 'window_start_value')} }")
++    t, rep, _md, _ = _offline_plan('j_t3', Q_T3)
++    cells = ((rep.get('research_plan') or {}).get('point_values') or {}
++             ).get('cells') or []
++    wps = {c['metric_id']: c['policy_window_path'] for c in cells
++           if c.get('policy_window_path')}
++    sums = {k: sum(e['delta_bp'] for e in (w.get('events') or []))
++            for k, w in wps.items()}
++    check('§J3b 真实计划(T3 原问×冻结快照): 每条政策一年窗路径 净变动==Σ变动点'
++          '(欧央行两序列两次各 +25bp→+50bp,窗启时在值 2.0/2.15);基线: 欧央行净 '
++          '+25bp 对两个 +25bp 变动点、日本月均 +67bp 对六变动点之和 75',
++          bool(wps) and all(wps[k].get('net_bp') == sums[k] for k in wps)
++          and wps.get('ECB_DFR', {}).get('net_bp') == 50
++          and wps.get('ECB_MRO', {}).get('net_bp') == 50
++          and wps['ECB_DFR'].get('window_start_value') == 2.0
++          and wps['ECB_MRO'].get('window_start_value') == 2.15
++          and all('变动点之和' in str(w.get('note')) for w in wps.values()),
++          f"net={ {k: w.get('net_bp') for k, w in wps.items()} } sums={sums}")
++    mm = _map_head(rep, t)
++    pl = [l for l in mm.splitlines() if l.startswith('- **政策一年窗路径**')]
++    check('§J3c 读者报告政策一年窗路径行: 「净变动 **+50bp**(2.0→2.5;窗启时'
++          '在值取 <观测日> 观测)」与变动点逐点闭合,窗启时在值的来源观测日'
++          '可核,口径注记写明=变动点之和',
++          any(l.startswith('- **政策一年窗路径** 欧央行存款便利利率: ')
++              and '净变动 **+50bp**(2.0→2.5;窗启时在值取 ' in l
++              and ' 观测)。' in l and '变动点之和' in l
++              for l in pl), (pl[0][:300] if pl else 'no policy path line'))
++    shutil.rmtree(t, ignore_errors=True)
++    # J4 读者页数据门总体状态行(基线: 信封/report.md 载 gate_a=DEGRADED,
++    # 读者页零披露——T3 轮一独立审查 #15)
++    t, rep, _md, _ = _offline_plan('j_ga', Q_T3)
++    mm = _map_head(rep, t)
++    _sid = (((rep.get('layers') or {}).get('L1_事实层') or {})
++            or {}).get('snapshot_id')
++    with open(os.path.join(t, 'data', 'daily', f'{_sid}.json'),
++              encoding='utf-8') as _f:
++        _gax = json.load(_f).get('gate_a') or {}
++
++    def _lx(_k):
++        return '、'.join(_gax.get(_k) or []) or '无'
++    _exp = (f"- 数据门(Gate A,源快照采集面): {_gax.get('status')}——核心缺口 "
++            f"{_lx('core_missing')} | 核心失败 {_lx('core_fail')} | 非核心失败 "
++            f"{_lx('noncore_fail')} | 非核心缺席 {_lx('noncore_missing')} | "
++            f"非核心降级 {_lx('noncore_degraded')}——缺席/降级数据不得进入研究"
++            "结论;逐指标注记见快照 gate_a.noncore_missing_detail,信封步状态"
++            "见步骤台账")
++    _gl = _one_line(mm, '- 数据门(Gate A')
++    _mml = mm.splitlines()
++    _pos_ga = next((i for i, l in enumerate(_mml)
++                    if l.startswith('- 数据门(Gate A')), None)
++    _pos_ev = next((i for i, l in enumerate(_mml)
++                    if l.startswith('- 证据口径(r32)')), None)
++    check('§J4a 真实计划(T3×冻结快照)读者报告头部: 「数据门(Gate A,源快照'
++          '采集面)」一行=运行快照 gate_a 的状态与五张名单(DEGRADED;非核心'
++          '缺席七项含 JP_CPI_TOKYO_YOY;非核心降级八项含 ECB_DFR/ECB_MRO),'
++          '紧随证据口径行且全页仅一行(基线: 读者页无数据门状态行)',
++          _gl == _exp
++          and _gax.get('status') == 'DEGRADED'
++          and len(_gax.get('noncore_missing') or []) == 7
++          and len(_gax.get('noncore_degraded') or []) == 8
++          and 'ECB_DFR' in _gl and 'ECB_MRO' in _gl
++          and 'JP_CPI_TOKYO_YOY' in _gl
++          and _pos_ev is not None and _pos_ga == _pos_ev + 1,
++          _gl[:300])
++    rj_noga = json.loads(json.dumps(rep))
++    (rj_noga.setdefault('run', {})).pop('evidence_gate', None)
++    _leg = rmp.render_map_report(rj_noga, None, _SR0, root=t)
++    rj_miss = json.loads(json.dumps(rep))
++    rj_miss['layers']['L1_事实层']['snapshot_id'] = 'research_snapshot_absent'
++    _mis = _one_line(rmp.render_map_report(rj_miss, None, _SR0, root=t),
++                     '- 数据门(Gate A')
++    check('§J4b 旧档(无 evidence_gate)重渲无数据门状态行(旧档字节不漂移);'
++          '运行快照不在场=如实缺席注记(不跨快照取数)',
++          '- 数据门(Gate A' not in _leg
++          and _mis.startswith('- 数据门(Gate A): 运行快照文件不在场(')
++          and '(总体状态不跨快照取数,如实缺席)' in _mis, _mis[:200])
++    # J5 读者报告分工行(基线: 裁决缺席仍写「经独立语义审查」,与同页审查面
++    # 「独立席位待裁」矛盾——B 轮一独立审查 NIT)
++    _div = _one_line(mm, '- 分工: ')
++    check('§J5a 真实计划(T3×冻结快照)裁决缺席: 分工行如实写「独立语义审查待裁」(基线: 裁决缺席即写「经独立语义审查」)',
++          _div.endswith('独立语义审查待裁)') and '经独立语义审查' not in _div,
++          _div[-60:])
++    _mm_rv = rmp.render_map_report(rep, None, {'verdict': 'UPHELD', 'verdicts_n': 1},
++                                   root=t)
++    _div_rv = _one_line(_mm_rv, '- 分工: ')
++    _div_leg = _one_line(_leg, '- 分工: ')
++    check('§J5b 裁决在场(席位已裁)=「经独立语义审查」且审查面同页一致;'
++          '旧档(无 evidence_gate)裁决缺席仍为原文(旧档字节不漂移)',
++          _div_rv.endswith('经独立语义审查)')
++          and '- 席位已裁: UPHELD(裁决链 1 档)' in _mm_rv
++          and _div_leg.endswith('经独立语义审查)')
++          and '- 独立席位待裁' in _leg,
++          _div_rv[-40:] + ' | ' + _div_leg[-40:])
++    shutil.rmtree(t, ignore_errors=True)
++
++
+ def main():
+     print('Audit-R32 门 (HEAD %s)' % WORKTREE_HEAD[:12])
+     try:
+@@ -1501,6 +1722,7 @@ def main():
+         sec_d()
+         sec_h()
+         sec_i()
++        sec_j()
+     finally:
+         n_ok = sum(1 for x in RESULTS if x)
+         n = len(RESULTS)

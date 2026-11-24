@@ -1,0 +1,962 @@
+RUN {"git_head": "36499bb78a18dea1ff2b027074088b0ba404c3b8", "evidence_asof": "2026-11-23"}
+RUN KEYS ['question', 'ts_utc', 'archive_requested', 'git_head', 'git_head_source', 'git_diff_sha256', 'evidence_asof', 'evidence_gate', 'degradation_policy', 'data_requirements', 'frozen_inputs']
+RP KEYS ['map_question', 'question_verbatim', 'question_summary', 'dimension_source', 'asof_discipline', 'turning_supplement_discipline', 'cross_face_consistency', 'shared_by', 'regions', 'dimensions', 'metrics', 'context_metrics', 'point_anchors', 'question_window', 'ex_post_offsets', 'anchor_semantics_note', 'dimension_gaps', 'cutoff', 'consumed_time_spans', 'as_of_declared', 'point_values', 'turning_candidates', 'us_rates_trio', 'asset_moves', 'policy_event_clusters', 'policy_doc_facts']
+===== point_anchors
+[
+ {
+  "kind": "point",
+  "label": "3个月前",
+  "as_of": "2026-08-23",
+  "months_before": 3
+ },
+ {
+  "kind": "point",
+  "label": "最新一期",
+  "as_of": "2026-11-23",
+  "months_before": 0,
+  "explicit_period": "2026-11"
+ }
+]
+===== point_values
+{
+ "cells": [
+  {
+   "region": "US",
+   "dimension": "growth",
+   "metric_id": "US_REAL_GDP",
+   "display_name": "美国实际GDP(SAAR)",
+   "unit": "billion_usd",
+   "face_note": "实际GDP(季频水平)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-04-01",
+     "publication_date": "2026-07-29",
+     "publication_rule": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+     "publication_basis": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 24408.011,
+     "period_end": "2026-06-30",
+     "derived_yoy_pct": 2.19,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-10-29",
+     "publication_rule": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+     "publication_basis": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 24611.077,
+     "period_end": "2026-09-30",
+     "derived_yoy_pct": 2.07,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    }
+   },
+   "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+   "policy_face": null
+  },
+  {
+   "region": "US",
+   "dimension": "growth",
+   "metric_id": "UNEMPLOYMENT",
+   "display_name": "失业率(U-3)",
+   "unit": "percent",
+   "face_note": "失业率(月频)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-05",
+     "publication_rule": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+     "publication_basis": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 4.1,
+     "period_end": "2026-07-31"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-05",
+     "publication_rule": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+     "publication_basis": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 4.1,
+     "period_end": "2026-10-31"
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "US",
+   "dimension": "growth",
+   "metric_id": "INDPRO",
+   "display_name": "工业生产指数(SA)",
+   "unit": "index_point_2017",
+   "face_note": "工业生产指数(月频水平)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-15",
+     "publication_rule": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+     "publication_basis": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 103.1675,
+     "period_end": "2026-07-31",
+     "derived_yoy_pct": 1.25,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-15",
+     "publication_rule": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+     "publication_basis": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 103.3954,
+     "period_end": "2026-10-31",
+     "derived_yoy_pct": 2.15,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "US",
+   "dimension": "inflation",
+   "metric_id": "CPI",
+   "display_name": "CPI物价指数(SA)",
+   "unit": "index_point_1982_84",
+   "face_note": "CPI(月频水平,同比派生)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-13",
+     "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 332.813,
+     "period_end": "2026-07-31",
+     "derived_yoy_pct": 3.3,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-13",
+     "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 337.476,
+     "period_end": "2026-10-31",
+     "derived_yoy_pct": null,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "no_same_period_base",
+     "yoy_note": "同比不可得: 缺2025-10基期观测(月度同比只配去年同月/季度只配去年同季,不以最近前值代基期)",
+     "latest_valid_yoy": {
+      "observation_date": "2026-09-01",
+      "yoy_pct": 3.72
+     }
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "US",
+   "dimension": "inflation",
+   "metric_id": "CORE_CPI",
+   "display_name": "核心CPI(SA,剔除食品能源)",
+   "unit": "index_point_1982_84",
+   "face_note": "核心CPI(月频水平,同比派生)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-13",
+     "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 336.789,
+     "period_end": "2026-07-31",
+     "derived_yoy_pct": 2.47,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-13",
+     "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 339.9,
+     "period_end": "2026-10-31",
+     "derived_yoy_pct": null,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "no_same_period_base",
+     "yoy_note": "同比不可得: 缺2025-10基期观测(月度同比只配去年同月/季度只配去年同季,不以最近前值代基期)",
+     "latest_valid_yoy": {
+      "observation_date": "2026-09-01",
+      "yoy_pct": 2.57
+     }
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "US",
+   "dimension": "inflation",
+   "metric_id": "CORE_PCE",
+   "display_name": "核心PCE(SA)",
+   "unit": "index_point_2017",
+   "face_note": "核心PCE(月频水平,同比派生)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-06-01",
+     "publication_date": "2026-07-30",
+     "publication_rule": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+     "publication_basis": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 129.969,
+     "period_end": "2026-06-30",
+     "derived_yoy_pct": 3.04,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-09-01",
+     "publication_date": "2026-10-30",
+     "publication_rule": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+     "publication_basis": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 130.902,
+     "period_end": "2026-09-30",
+     "derived_yoy_pct": 3.12,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "EA",
+   "dimension": "growth",
+   "metric_id": "EA_REAL_GDP_YOY",
+   "display_name": "欧元区实际GDP同比",
+   "unit": "percent",
+   "face_note": "实际GDP同比(季频,FRED最新修订值→事后回顾口径)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-04-01",
+     "publication_date": "2026-08-04",
+     "publication_rule": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)",
+     "publication_basis": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 1.19,
+     "period_end": "2026-06-30"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-11-04",
+     "publication_rule": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)",
+     "publication_basis": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 1.28,
+     "period_end": "2026-09-30"
+    }
+   },
+   "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+   "policy_face": null
+  },
+  {
+   "region": "EA",
+   "dimension": "inflation",
+   "metric_id": "EA_HICP_YOY",
+   "display_name": "欧元区HICP同比",
+   "unit": "percent",
+   "face_note": "HICP同比(月频)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-16",
+     "pu
+===== turning_candidates
+{
+ "basis": "过去12个月(研究截止日)内 3 个月滚动变化绝对值最大者;增长/通胀/政策三维全部进入候选池(每指标一候选,窗端点已按发布纪律过滤);确定性计算,仅作候选——三个转折的取舍与谁先变判断归 Agent 席 reader_map(三转折须为不同事件,同一转折不得重复计数)",
+ "candidates": [
+  {
+   "from_ym": "2026-02",
+   "to_ym": "2026-05",
+   "from_date": "2026-02-01",
+   "to_date": "2026-05-01",
+   "value_before": 2.434,
+   "value_after": 4.1666,
+   "delta": 1.7326,
+   "region": "US",
+   "dimension": "inflation",
+   "metric_id": "CPI",
+   "display_name": "CPI物价指数(SA)",
+   "unit": "同比%(派生于水平序列,严格同基期)"
+  },
+  {
+   "from_ym": "2026-02",
+   "to_ym": "2026-05",
+   "from_date": "2026-02-01",
+   "to_date": "2026-05-01",
+   "value_before": 1.9,
+   "value_after": 3.2,
+   "delta": 1.3,
+   "region": "EA",
+   "dimension": "inflation",
+   "metric_id": "EA_HICP_YOY",
+   "display_name": "欧元区HICP同比",
+   "unit": "percent"
+  },
+  {
+   "from_ym": "2025-11",
+   "to_ym": "2026-02",
+   "from_date": "2025-11-01",
+   "to_date": "2026-02-01",
+   "value_before": 1.7543,
+   "value_after": 0.7972,
+   "delta": -0.9571,
+   "region": "US",
+   "dimension": "growth",
+   "metric_id": "INDPRO",
+   "display_name": "工业生产指数(SA)",
+   "unit": "同比%(派生于水平序列,严格同基期)"
+  },
+  {
+   "from_ym": "2026-05",
+   "to_ym": "2026-08",
+   "from_date": "2026-05-01",
+   "to_date": "2026-08-01",
+   "value_before": 2.8229,
+   "value_after": 2.4462,
+   "delta": -0.3767,
+   "region": "US",
+   "dimension": "inflation",
+   "metric_id": "CORE_CPI",
+   "display_name": "核心CPI(SA,剔除食品能源)",
+   "unit": "同比%(派生于水平序列,严格同基期)"
+  },
+  {
+   "from_ym": "2026-04",
+   "to_ym": "2026-07",
+   "from_date": "2026-04-01",
+   "to_date": "2026-07-01",
+   "value_before": 0.727,
+   "value_after": 0.978,
+   "delta": 0.251,
+   "region": "JP",
+   "dimension": "policy",
+   "metric_id": "JP_POLICY_RATE",
+   "display_name": "日本无担保隔夜拆借利率(月均)",
+   "unit": "percent"
+  },
+  {
+   "from_ym": "2025-11",
+   "to_ym": "2026-02",
+   "from_date": "2025-11-01",
+   "to_date": "2026-02-01",
+   "value_before": 2.7212,
+   "value_after": 2.9592,
+   "delta": 0.238,
+   "region": "US",
+   "dimension": "inflation",
+   "metric_id": "CORE_PCE",
+   "display_name": "核心PCE(SA)",
+   "unit": "同比%(派生于水平序列,严格同基期)"
+  },
+  {
+   "from_ym": "2026-05",
+   "to_ym": "2026-08",
+   "from_date": "2026-05-01",
+   "to_date": "2026-08-01",
+   "value_before": 4.3,
+   "value_after": 4.1,
+   "delta": -0.2,
+   "region": "US",
+   "dimension": "growth",
+   "metric_id": "UNEMPLOYMENT",
+   "display_name": "失业率(U-3)",
+   "unit": "percent"
+  }
+ ],
+ "top_n_expected": 3
+}
+===== us_rates_trio
+{
+ "status": "ok",
+ "kind": "共同交易日三利率分解",
+ "window": {
+  "from": "2026-10-20",
+  "to": "2026-11-19",
+  "calendar_days_between": 30
+ },
+ "levels_at_to": {
+  "UST_10Y": 5.04,
+  "TIPS_10Y": 2.88,
+  "BEI_10Y": 2.16
+ },
+ "chg_bp": {
+  "UST_10Y": -8.0,
+  "TIPS_10Y": 11.0,
+  "BEI_10Y": -19.0
+ },
+ "decomposition": "十年期名义 Δ-8bp = 实际 Δ+11bp + 盈亏平衡 Δ-19bp",
+ "identity_residual_bp": 0.0,
+ "identity_note": "名义=实际+盈亏平衡 的恒等残差(同日同窗;非零=源端口径差,逐位披露不吸收)",
+ "recent_common_days": [
+  "2026-11-05",
+  "2026-11-06",
+  "2026-11-09",
+  "2026-11-10",
+  "2026-11-12",
+  "2026-11-13",
+  "2026-11-16",
+  "2026-11-17",
+  "2026-11-18",
+  "2026-11-19"
+ ],
+ "window_12m": {
+  "from": "2025-11-19",
+  "to": "2026-11-19",
+  "calendar_days_between": 365
+ },
+ "chg_bp_12m": {
+  "UST_10Y": 91.0,
+  "TIPS_10Y": 102.0,
+  "BEI_10Y": -11.0
+ },
+ "decomposition_12m": "十年期名义 Δ+91bp = 实际 Δ+102bp + 盈亏平衡 Δ-11bp",
+ "identity_residual_bp_12m": 0.0
+}
+===== asset_moves
+{
+ "status": "ok",
+ "window_months": 1,
+ "window_rule": "≤2026-11-23 最新观测 vs 最近于2026-10-23 的观测(界日无观测取最近邻;两端实际观测日随行披露)",
+ "rows": [
+  {
+   "metric_id": "SPX",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 7623.680176,
+   "to_value": 7203.850098,
+   "chg_pct": -5.51,
+   "chg_abs": -419.8301
+  },
+  {
+   "metric_id": "SHCOMP",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 3690.4753,
+   "to_value": 3538.948,
+   "chg_pct": -4.11,
+   "chg_abs": -151.5273
+  },
+  {
+   "metric_id": "DAX",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 25181.650391,
+   "to_value": 25209.449219,
+   "chg_pct": 0.11,
+   "chg_abs": 27.7988
+  },
+  {
+   "metric_id": "NIKKEI225",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-20"
+   },
+   "from_value": 62693.16,
+   "to_value": 56436.65,
+   "chg_pct": -9.98,
+   "chg_abs": -6256.51
+  },
+  {
+   "metric_id": "VIX",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 19.450001,
+   "to_value": 27.01,
+   "chg_pct": 38.87,
+   "chg_abs": 7.56
+  },
+  {
+   "metric_id": "DXY",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 101.809998,
+   "to_value": 104.079002,
+   "chg_pct": 2.23,
+   "chg_abs": 2.269
+  },
+  {
+   "metric_id": "GOLD_F",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-23"
+   },
+   "from_value": 4007.899902,
+   "to_value": 3685.199951,
+   "chg_pct": -8.05,
+   "chg_abs": -322.7
+  },
+  {
+   "metric_id": "UST_10Y",
+   "window": {
+    "from": "2026-10-23",
+    "to": "2026-11-19"
+   },
+   "from_value": 5.0,
+   "to_value": 5.04,
+   "chg_pct": 0.8,
+   "chg_abs": 0.04
+  }
+ ],
+ "absent": []
+}
+===== policy_event_clusters
+{
+ "basis": "同一事件的跨国信号合并: 各政策行一年窗路径事件按决议日跨地区聚簇(±7 日)——同簇=同一全球政策事件,三个转折中计一个事件;逐国决议日/生效日分记(决议→生效惯例: Fed=次日,ECB=决议后首个周三,PBOC=宣布即时)。月频证据只能说明同步时,先后未定。",
+ "clusters": []
+}
+===== policy_doc_facts
+[
+ {
+  "doc_id": "FOMC-MINUTES-2026-10",
+  "kind": "minutes",
+  "title": "FOMC 2026年10月会议纪要",
+  "meeting_month": "2026-10",
+  "published_on": "2026-11-18",
+  "basis": "user_directive",
+  "note": "10月会议纪要 2026-11-18 发布(纪要发布≠决议日;引用纪要叙事自 11-18 起可见,决议数值仍以决议日公布为准)",
+  "source": "Audit-R22 验收指令(2026-11-19)"
+ }
+]
+===== dimension_gaps
+[
+ {
+  "region": "JP",
+  "dimension": "policy",
+  "metric_id": "JP_POLICY_TARGET",
+  "gap": "registry_absent",
+  "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"
+ }
+]
+===== contract_verification
+{
+ "version": "jc-v1.0-phase4",
+ "verdicts": [
+  {
+   "item": "C1-INFL-SYNC.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CPI"
+   ],
+   "family": "level",
+   "token": "337.476",
+   "metric": "CPI",
+   "value": 337.476,
+   "expected": 337.476,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CPI@2026-10-01=337.476"
+  },
+  {
+   "item": "C1-INFL-SYNC.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CORE_CPI"
+   ],
+   "family": "level",
+   "token": "339.9",
+   "metric": "CORE_CPI",
+   "value": 339.9,
+   "expected": 339.9,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CORE_CPI@2026-10-01=339.9"
+  },
+  {
+   "item": "C1-INFL-SYNC.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CORE_PCE"
+   ],
+   "family": "level",
+   "token": "130.902",
+   "metric": "CORE_PCE",
+   "value": 130.902,
+   "expected": 130.902,
+   "status": "STALE",
+   "note": "recompute:Fact 直读 CORE_PCE@2026-09-01=130.902"
+  },
+  {
+   "item": "C1-INFL-SYNC.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "BEI_10Y"
+   ],
+   "family": "level",
+   "token": "2.15",
+   "metric": "BEI_10Y",
+   "value": 2.15,
+   "expected": 2.15,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 BEI_10Y@2026-11-20=2.15"
+  },
+  {
+   "item": "C2-GROWTH-STABLE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "US_REAL_GDP"
+   ],
+   "family": "level",
+   "token": "24611.077",
+   "metric": "US_REAL_GDP",
+   "value": 24611.077,
+   "expected": 24611.077,
+   "status": "STALE",
+   "note": "recompute:Fact 直读 US_REAL_GDP@2026-07-01=24611.077"
+  },
+  {
+   "item": "C2-GROWTH-STABLE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "UNEMPLOYMENT"
+   ],
+   "family": "level",
+   "token": "4.1",
+   "metric": "UNEMPLOYMENT",
+   "value": 4.1,
+   "expected": 4.1,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 UNEMPLOYMENT@2026-10-01=4.1"
+  },
+  {
+   "item": "C2-GROWTH-STABLE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "INDPRO"
+   ],
+   "family": "level",
+   "token": "103.3954",
+   "metric": "INDPRO",
+   "value": 103.3954,
+   "expected": 103.3954,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 INDPRO@2026-10-01=103.3954"
+  },
+  {
+   "item": "C3-JP-POLICY.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "JP_POLICY_RATE"
+   ],
+   "family": "level",
+   "token": "1.227%",
+   "metric": "JP_POLICY_RATE",
+   "value": 1.227,
+   "expected": 1.227,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227"
+  },
+  {
+   "item": "C3-JP-POLICY.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "USDJPY"
+   ],
+   "family": "level",
+   "token": "159.35",
+   "metric": "USDJPY",
+   "value": 159.35,
+   "expected": 159.35,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 USDJPY@2026-11-23=159.35"
+  }
+ ],
+ "six_checks": [
+  {
+   "item": "C1-INFL-SYNC",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "6 实据引用"
+  },
+  {
+   "item": "C1-INFL-SYNC",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上; 披露: EURUSD@2026-11-23 未在文本展开"
+  },
+  {
+   "item": "C1-INFL-SYNC",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C1-INFL-SYNC",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "未讨论的被引指标(披露): ['EURUSD']"
+  },
+  {
+   "item": "C2-GROWTH-STABLE",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "3 实据引用"
+  },
+  {
+   "item": "C2-GROWTH-STABLE",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C2-GROWTH-STABLE",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C2-GROWTH-STABLE",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "C3-JP-POLICY",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "2 实据引用"
+  },
+  {
+   "item": "C3-JP-POLICY",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C3-JP-POLICY",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C3-JP-POLICY",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "S1-INFL-STICKY",
+   "check": "overreach",
+   "status": "VERIFIED",
+   "note": "tier=有相关证据 条件式✓"
+  },
+  {
+   "item": "S1-INFL-STICKY",
+   "check": "falsifiable",
+   "status": "VERIFIED",
+   "note": "指标+阈值形态✓"
+  },
+  {
+   "item": "S2-INFL-FADE",
+   "check": "overreach",
+   "status": "VERIFIED",
+   "note": "tier=纯逻辑推理 条件式✓"
+  },
+  {
+   "item": "S2-INFL-FADE",
+   "check": "falsifiable",
+   "status": "VERIFIED",
+   "note": "指标+阈值形态✓"
+  }
+ ],
+ "map_checks": [
+  {
+   "item": "reader_map.headline_conclusion",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "非空",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.regions",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "3 地齐",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.chain_evidence",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "传导链[CH-INFL-RATES-RISKOFF] 区分指标绑定 3/3 环",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.turning_source",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "转折表 3 项指标与计划/候选面同源",
+   "evidence_refs": []
+  }
+ ],
+ "unresolved_unbound": [],
+ "verdict": "VERIFIED",
+ "stats": {
+  "checks": 9,
+  "contradicted": 0,
+  "verified": 7,
+  "unbound": 0,
+  "six_fail": 0,
+  "map_fail": 0,
+  "n_contradictions": 3
+ }
+}
+===== semantic_review
+{
+ "required": true,
+ "reasons": [
+  "l3_qualitative_inference",
+  "l4_conditional_scenarios"
+ ],
+ "seat_invoked": true,
+ "verdict": "REVISE",
+ "archive": "audit/semantic_review/20261124/VERDICT-20261123T235121Z-01.json",
+ "fresh": false,
+ "verdicts_n": 1,
+ "prior_verdicts": [],
+ "record_health": {},
+ "error": null,
+ "map_report_sha256": "810d19656348c9d6d0ecec6324c54ae85cd285185d7aa13525dbd4ca1b45b432"
+}
+===== evidence_index n 63
+{"ref": "SPX@2026-11-23", "kind": "snapshot_fact", "metric_id": "SPX"}
+{"ref": "NDX@2026-11-23", "kind": "snapshot_fact", "metric_id": "NDX"}
+{"ref": "RUT@2026-11-20", "kind": "snapshot_fact", "metric_id": "RUT"}
+{"ref": "DXY@2026-11-23", "kind": "snapshot_fact", "metric_id": "DXY"}
+{"ref": "EURUSD@2026-11-23", "kind": "snapshot_fact", "metric_id": "EURUSD"}
+{"ref": "GOLD_F@2026-11-23", "kind": "snapshot_fact", "metric_id": "GOLD_F"}
+{"ref": "SILVER_F@2026-11-23", "kind": "snapshot_fact", "metric_id": "SILVER_F"}
+{"ref": "BRENT_F@2026-11-23", "kind": "snapshot_fact", "metric_id": "BRENT_F"}
+{"ref": "VIX@2026-11-23", "kind": "snapshot_fact", "metric_id": "VIX"}
+{"ref": "DAX@2026-11-23", "kind": "snapshot_fact", "metric_id": "DAX"}
+{"ref": "CAC40@2026-11-23", "kind": "snapshot_fact", "metric_id": "CAC40"}
+{"ref": "USDJPY@2026-11-23", "kind": "snapshot_fact", "metric_id": "USDJPY"}
+{"ref": "USDCNY@2026-11-23", "kind": "snapshot_fact", "metric_id": "USDCNY"}
+{"ref": "HY_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "HY_OAS"}
+{"ref": "BB_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "BB_OAS"}
+{"ref": "B_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "B_OAS"}
+{"ref": "CCC_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "CCC_OAS"}
+{"ref": "IG_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "IG_OAS"}
+{"ref": "UST_2Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "UST_2Y"}
+{"ref": "UST_10Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "UST_10Y"}
+{"ref": "UST_30Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "UST_30Y"}
+{"ref": "TIPS_5Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "TIPS_5Y"}
+{"ref": "TIPS_10Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "TIPS_10Y"}
+{"ref": "BEI_5Y@2026-11-20", "kind": "snapshot_fact", "metric_id": "BEI_5Y"}
+{"ref": "BEI_10Y@2026-11-20", "kind": "snapshot_fact", "metric_id": "BEI_10Y"}
+{"ref": "CURVE_2S10S@2026-11-20", "kind": "snapshot_fact", "metric_id": "CURVE_2S10S"}
+{"ref": "CPI@2026-10-01", "kind": "snapshot_fact", "metric_id": "CPI"}
+{"ref": "CORE_PCE@2026-09-01", "kind": "snapshot_fact", "metric_id": "CORE_PCE"}
+{"ref": "UNEMPLOYMENT@2026-10-01", "kind": "snapshot_fact", "metric_id": "UNEMPLOYMENT"}
+{"ref": "CORE_CPI@2026-10-01", "kind": "snapshot_fact", "metric_id": "CORE_CPI"}
+{"ref": "UST_5Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "UST_5Y"}
+{"ref": "INDPRO@2026-10-01", "kind": "snapshot_fact", "metric_id": "INDPRO"}
+{"ref": "US_REAL_GDP@2026-07-01", "kind": "snapshot_fact", "metric_id": "US_REAL_GDP"}
+{"ref": "SHCOMP@2026-11-23", "kind": "snapshot_fact", "metric_id": "SHCOMP"}
+{"ref": "HSI@2026-11-23", "kind": "snapshot_fact", "metric_id": "HSI"}
+{"ref": "NIKKEI225@2026-11-20", "kind": "snapshot_fact", "metric_id": "NIKKEI225"}
+{"ref": "EA_HICP_YOY@2026-10-01", "kind": "snapshot_fact", "metric_id": "EA_HICP_YOY"}
+{"ref": "JP_POLICY_RATE@2026-10-01", "kind": "snapshot_fact", "metric_id": "JP_POLICY_RATE"}
+{"ref": "SZCI@2026-11-23", "kind": "s3_envelope", "metric_id": "SZCI"}
+{"ref": "CHINEXT@2026-11-23", "kind": "s3_envelope", "metric_id": "CHINEXT"}
+{"ref": "HSCEI@2026-11-23", "kind": "s3_envelope", "metric_id": "HSCEI"}
+{"ref": "NVDA@2026-11-23", "kind": "s3_envelope", "metric_id": "NVDA"}
+{"ref": "AAPL@2026-11-23", "kind": "s3_envelope", "metric_id": "AAPL"}
+{"ref": "MSFT@2026-11-23", "kind": "s3_envelope", "metric_id": "MSFT"}
+{"ref": "TLT@2026-11-23", "kind": "s3_envelope", "metric_id": "TLT"}
+{"ref": "IEF@2026-11-23", "kind": "s3_envelope", "metric_id": "IEF"}
+{"ref": "SHY@2026-11-23", "kind": "s3_envelope", "metric_id": "SHY"}
+{"ref": "HYG@2026-11-23", "kind": "s3_envelope", "metric_id": "HYG"}
+{"ref": "LQD@2026-11-23", "kind": "s3_envelope", "metric_id": "LQD"}
+{"ref": "GBPUSD@2026-11-23", "kind": "s3_envelope", "metric_id": "GBPUSD"}
+{"ref": "WTI_F@2026-11-23", "kind": "s3_envelope", "metric_id": "WTI_F"}
+{"ref": "GLD@2026-11-23", "kind": "s3_envelope", "metric_id": "GLD"}
+{"ref": "USO@2026-11-23", "kind": "s3_envelope", "metric_id": "USO"}
+{"ref": "EEM@2026-11-23", "kind": "s3_envelope", "metric_id": "EEM"}
+{"ref": "EZU@2026-11-23", "kind": "s3_envelope", "metric_id": "EZU"}
+{"ref": "FEZ@2026-11-23", "kind": "s3_envelope", "metric_id": "FEZ"}
+{"ref": "EWU@2026-11-23", "kind": "s3_envelope", "metric_id": "EWU"}
+{"ref": "EWG@2026-11-23", "kind": "s3_envelope", "metric_id": "EWG"}
+{"ref": "EWJ@2026-11-23", "kind": "s3_envelope", "metric_id": "EWJ"}
+{"ref": "INDA@2026-11-23", "kind": "s3_envelope", "metric_id": "INDA"}
+{"ref": "FXI@2026-11-23", "kind": "s3_envelope", "metric_id": "FXI"}
+{"ref": "BTC@2026-11-22", "kind": "s3_envelope", "metric_id": "BTC"}
+{"ref": "HY_IG_DIFF@2026-11-19", "kind": "s3_envelope", "metric_id": "HY_IG_DIFF"}
+===== agent_judgment keys ['attached', 'attached_at', 'judgment_file', 'schema_version', 'validation', 'contract_verification', 'run_ok_at_attach', 'allow_failed_run', 'attach_history', 'reader_map_faces']
+steps 52 [('S1_decompose', True), ('S2_doctor', True), ('S3_overview_US', True), ('S3_overview_EA', True), ('S3_overview_JP', True), ('S3_changes', True), ('S4_history_US_REAL_GDP', True), ('S4_history_UNEMPLOYMENT', True), ('S4_history_INDPRO', True), ('S4_history_CPI', True), ('S4_history_CORE_CPI', True), ('S4_history_CORE_PCE', True), ('S4_history_EA_REAL_GDP_YOY', True), ('S4_history_EA_HICP_YOY', True), ('S4_history_JP_POLICY_RATE', True), ('S4_history_UST_10Y', True), ('S4_history_TIPS_10Y', True), ('S4_history_BEI_10Y', True), ('S4_history_UST_2Y', True), ('S4_history_UST_5Y', True), ('S4_history_UST_30Y', True), ('S4_history_TIPS_5Y', True), ('S4_history_BEI_5Y', True), ('S4_history_CURVE_2S10S', True), ('S4_history_SPX', True), ('S4_history_NDX', True), ('S4_history_RUT', True), ('S4_history_DAX', True), ('S4_history_CAC40', True), ('S4_history_NIKKEI225', True), ('S4_history_HSI', True), ('S4_history_SHCOMP', True), ('S4_history_DXY', True), ('S4_history_EURUSD', True), ('S4_history_USDJPY', True), ('S4_history_USDCNY', True), ('S4_history_GOLD_F', True), ('S4_history_SILVER_F', True), ('S4_history_BRENT_F', True), ('S4_history_HY_OAS', True), ('S4_history_IG_OAS', True), ('S4_history_BB_OAS', True), ('S4_history_B_OAS', True), ('S4_history_CCC_OAS', True), ('S4_history_VIX', True), ('S5_compare', True), ('S6_analog', True), ('S7_mode_gate', True), ('S8_grounded_qa', True), ('S9_views_lint', True), ('S10_selfcheck', True), ('S11_archive', True)]

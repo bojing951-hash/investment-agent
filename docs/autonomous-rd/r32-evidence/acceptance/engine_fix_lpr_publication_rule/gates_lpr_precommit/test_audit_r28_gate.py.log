@@ -1,0 +1,44 @@
+═══ §A 任务1: 默认入口纪律(SKILL.md 问句路由) ═══
+  ✅ §A1 问句路由纪律段在场: 研究问句→research-one 全链(取证→研判→独立审查→报告交付→停等用户裁定归档)
+  ✅ §A2 安装一次后新会话只输入原问(默认入口形态)
+  ✅ §A3 草稿纪律收录 R28 两新类(过期未核验混合/缺官方目标)
+  ✅ §A4 CLAUDE.md 默认入口路由(必读层): 研究问句一律 research-one+不得即席作答+停等用户裁定+模糊按研究问句
+═══ §B 任务2: 政策实录三态+官方时刻+按生效日 ═══
+  ✅ §B1① ECB 决议缺档: 决议在场→确证 STALE 引用官方记录;缺档→UNVERIFIED(本地日历未收录≠未发生,不虚构过期) — conf=STALE miss=UNVERIFIED
+  ✅ §B2② 确认维持也更新核验日期: 维持2026-10-30→FRESH 间隔22;无维持→UNVERIFIED 120(锚=观测日) — maint=FRESH nomaint=UNVERIFIED
+  ✅ §B3⑤ 日银官方记录面: 目标1.25/决议09-18/生效09-24/维持10-30,距上次调整=58(按生效日)/距决议64/距维持22 — {'official_target': 1.25, 'days_since_adjustment': 58}
+  ✅ §B4 无记录指标→present=False(不虚构官方面)
+  ✅ §B5 LPR 官方时刻: 2026-11 观测月 09:00;10 月无条目→None
+  ✅ §B6③ current_period_groups 混合形态: EA/policy 入 stale_mix(单一类判定各自遗漏),US 两组净 — {'missing': [], 'unverified': [], 'stale_mix': [('EA', 'policy')]}
+  ✅ §B7④ 缺指定目标: B 问句(点名日银+水平/距调整)×无实录→gaps 点名 JP/JP_POLICY_TARGET;有实录→gaps 空+rows 带官方双日与按生效日 58 天(复测基准 2026-11-21) — gaps=[{'region': 'JP', 'metric_id': 'JP_POLICY_TARGET', 'label': '日本', 'note': '日本官方政策目标(JP_POLICY_TARGET)无官方记录(日历无 policy_decision/policy_maintenance 条目)且序列面决议/生效日不可推——问句指定官方目标时现值无官方口径可依,不以市场序列值冒充宣布目标;补录官方决议实录后重跑转正(Audit-R28 任务2)'}]
+  ✅ §B8 问句域限定: A 类环境问句(无央行目标词)不触发官方目标要求(旧例不改判)
+  ✅ §B9③ blocked_class_of: 混合当期→map_current_period_stale_mix
+  ✅ §B10④ blocked_class_of: B 问句×无实录→map_official_target_missing;有实录→None
+═══ §B 集成: 混合/缺实录→草稿交付+归档拒绝(真实管线) ═══
+  ✅ §B11③ 真实管线: 混合当期→rc=1+草稿交付+blocked=map_current_period_stale_mix — rc=1 draft=True bc=map_current_period_stale_mix
+  ✅ §B12③ 归档拒绝: 草稿≠正稿(not_deliverable belt) — rc=1 blocked=not_deliverable
+  ✅ §B13④ 真实管线: B 换问×无实录→rc=1+草稿+点名缺口+归档拒绝 — rc=1 draft=True bc=map_official_target_missing
+═══ §C 任务3: 地区×维度同步面+相对日期双规则 ═══
+  ✅ §C1 同步面: 真实工单逐段 12 行(美中欧日×三维度),标签族=同步/同步(双持平)/分化/缺证,美国行=基准(美国类比锚)或缺证,非缺证行带两端值+两端公布日 — periods=2 rows=24
+  ✅ §C2 分段如实: 覆盖段零缺证+分化/同步齐现;未覆盖段全 12 行缺证+点名(无可见观测/美国同维基准缺证) — p0=['分化', '同步', '同步(双持平)', '基准(美国类比锚)'] p1缺证=12
+  ✅ §C3 基线增量干净: r23 夹具基线不含 R28 两规则违例(既档违例如实在册,非本轮回归) — ['reader_map.headline_conclusion.bp_attributed', 'reader_map.history_periods[0].expost_date_written_back', 'reader_map.history_periods[1].expost_date_written_back']
+  ✅ §C4 相对事后引用拒绝写回当时段(similarity 含「此后 N 个月」→contra) — ['reader_map.history_periods[0].relative_expost_in_asof_segment']
+  ✅ §C5 ex_post 相对窗口须携带绝对年月锚(无锚→contra) — ['reader_map.history_periods[0].ex_post.relative_without_absolute_anchor']
+  ✅ §C6 正例: 同句带绝对年月锚(±60 字窗)→该规则不触发 — []
+  ✅ §C7 渲染冒烟: 政策官方记录面+按生效日列+同步面全部落版(r23 历史段早于 LPR 实录月,时刻列缺席=如实) — len=51105
+═══ §D 任务4: 离线重放四门(逐字节/重复/缺件/篡改/漂移/版本) ═══
+  ✅ §D1a 基线包就绪: report→裁决→report→archive 全链 rc=0(drift=False,运行 SHA=当前 HEAD) — rc2=0 rc3=0 drift=False
+  ✅ §D1b 一条命令离线重放: rc=0+render_mode=byte_equal+全检查过+REPLAY_REPORT 落档 — rc=0 mode=byte_equal failed=[]
+  ✅ §D2 重复运行: 缺省输出各开新档(时间戳目录)+原包零写入(MAP 字节/摘要复核)+已存在目录拒绝 — out=/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r28gate_9teebqia/replay_out/arc_d1_20261123T234147Z
+  ✅ §D3a 缺件拒绝: rc=1+completeness_files FAIL+点名缺失件 — rc=1
+  ✅ §D3b 裁决链缺档拒绝: rc=1+点名 verdicts 档名 — rc=1 vf=20261124__VERDICT-20261119T173248Z-01.json
+  ✅ §D4a 篡改拒绝(地图): rc=1+全文件锚 FAIL(锚≠实测) — ['copies_sha16_match', 'map_fullfile_anchor', 'deterministic_rerender']
+  ✅ §D4b 篡改拒绝(冻结输入): rc=1+copies_sha16+content_digest 双 FAIL(expected/actual 点名) — ['copies_sha16_match', 'content_digest_match', 'deterministic_rerender', 'package_untouched_postwrite']
+  ✅ §D5a 漂移包就绪: 变渲染(日历去实录)不改摘要→冻结分支+drift=True 归档(rc=0) — rcd=0 drift=True
+  ✅ §D5b 声明漂移的包: 受审冻结字节权威,重渲差异披露不判负(rc=0+drift_disclosed) — rc=0 mode=drift_disclosed
+  ✅ §D6a 代码版本门: 包记录 SHA≠当前 HEAD→拒(rc=1+code_version_mismatch+不落输出目录) — rc12=0 rc13=1 blocked=code_version_mismatch
+  ✅ §D6b --allow-code-mismatch: 显式越过降级为披露(rc=0,版本差异在检查明细) — rc=0
+  ✅ §D7a 旧档严格面: 键未记录≠一致→crosscheck FAIL 在场且整体 拒(rc=1+blocked=code_version_mismatch) — rc=1 blocked=code_version_mismatch xc_ok=False
+  ✅ §D7b 旧档披露降级: --allow-code-mismatch 下旧档未记录键 随披露放行(rc=0+检查明细点名缺席) — rc=0
+
+==== Audit-R28 gate: 37/37 PASS ====

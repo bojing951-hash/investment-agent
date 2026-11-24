@@ -1,0 +1,413 @@
+research_as_of=2026-11-23T22:53:47+08:00 target_date=20261123
+==============================================================================================================
+[US_REAL_GDP/12个月前] anchor 2025-11-23 -> obs 2025-04-01 val 23884.563 pub 2025-07-29 (rule:QE+29)
+     obs_date                         mine=2025-04-01                   claim=2025-04-01                   OK
+     value                            mine=23884.563                    claim=23884.563                    OK
+     pub_date                         mine=2025-07-29                   claim=2025-07-29                   OK
+     echo.value                       mine=23884.563                    claim=23884.563                    OK
+     echo.obs_month                   mine=2025-04                      claim=2025-04                      OK
+     yoy_pct(derived)                 mine=2.42                         claim=2.42                         OK
+[US_REAL_GDP/3个月前] anchor 2026-08-23 -> obs 2026-04-01 val 24408.011 pub 2026-07-29 (rule:QE+29)
+     obs_date                         mine=2026-04-01                   claim=2026-04-01                   OK
+     value                            mine=24408.011                    claim=24408.011                    OK
+     pub_date                         mine=2026-07-29                   claim=2026-07-29                   OK
+     echo.value                       mine=24408.011                    claim=24408.011                    OK
+     echo.obs_month                   mine=2026-04                      claim=2026-04                      OK
+     yoy_pct(derived)                 mine=2.19                         claim=2.19                         OK
+[US_REAL_GDP/最新一期] anchor 2026-11-23 -> obs 2026-07-01 val 24611.077 pub 2026-10-29 (rule:QE+29)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=24611.077                    claim=24611.077                    OK
+     pub_date                         mine=2026-10-29                   claim=2026-10-29                   OK
+     echo.value                       mine=24611.077                    claim=24611.077                    OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+     yoy_pct(derived)                 mine=2.07                         claim=2.07                         OK
+==============================================================================================================
+[UNEMPLOYMENT/12个月前] anchor 2025-11-23 -> obs 2025-09-01 val 4.4 pub 2025-11-20 (cal:RC-2025SHUTDOWN-UNEMP-SEP)
+     obs_date                         mine=2025-09-01                   claim=2025-09-01                   OK
+     value                            mine=4.4                          claim=4.4                          OK
+     pub_date                         mine=2025-11-20                   claim=2025-11-20                   OK
+     echo.value                       mine=4.4                          claim=4.4                          OK
+     echo.obs_month                   mine=2025-09                      claim=2025-09                      OK
+[UNEMPLOYMENT/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 4.1 pub 2026-08-05 (rule:ME+5)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=4.1                          claim=4.1                          OK
+     pub_date                         mine=2026-08-05                   claim=2026-08-05                   OK
+     echo.value                       mine=4.1                          claim=4.1                          OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+[UNEMPLOYMENT/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 4.1 pub 2026-11-05 (rule:ME+5)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=4.1                          claim=4.1                          OK
+     pub_date                         mine=2026-11-05                   claim=2026-11-05                   OK
+     echo.value                       mine=4.1                          claim=4.1                          OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+==============================================================================================================
+[INDPRO/12个月前] anchor 2025-11-23 -> obs 2025-08-01 val 101.6247 pub 2025-09-15 (rule:ME+15)
+     obs_date                         mine=2025-08-01                   claim=2025-08-01                   OK
+     value                            mine=101.6247                     claim=101.6247                     OK
+     pub_date                         mine=2025-09-15                   claim=2025-09-15                   OK
+     echo.value                       mine=101.6247                     claim=101.6247                     OK
+     echo.obs_month                   mine=2025-08                      claim=2025-08                      OK
+     yoy_pct(derived)                 mine=1.19                         claim=1.19                         OK
+     yoy_status                       mine=ok                           claim=ok                           OK
+[INDPRO/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 103.1675 pub 2026-08-15 (rule:ME+15)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=103.1675                     claim=103.1675                     OK
+     pub_date                         mine=2026-08-15                   claim=2026-08-15                   OK
+     echo.value                       mine=103.1675                     claim=103.1675                     OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+     yoy_pct(derived)                 mine=1.25                         claim=1.25                         OK
+     yoy_status                       mine=ok                           claim=ok                           OK
+[INDPRO/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 103.3954 pub 2026-11-15 (rule:ME+15)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=103.3954                     claim=103.3954                     OK
+     pub_date                         mine=2026-11-15                   claim=2026-11-15                   OK
+     echo.value                       mine=103.3954                     claim=103.3954                     OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+     yoy_pct(derived)                 mine=2.15                         claim=2.15                         OK
+     yoy_status                       mine=ok                           claim=ok                           OK
+==============================================================================================================
+[CPI/12个月前] anchor 2025-11-23 -> obs 2025-09-01 val 324.245 pub 2025-10-24 (cal:RC-2025SHUTDOWN-CPI-SEP)
+     obs_date                         mine=2025-09-01                   claim=2025-09-01                   OK
+     value                            mine=324.245                      claim=324.245                      OK
+     pub_date                         mine=2025-10-24                   claim=2025-10-24                   OK
+     echo.value                       mine=324.245                      claim=324.245                      OK
+     echo.obs_month                   mine=2025-09                      claim=2025-09                      OK
+     yoy_pct(derived)                 mine=3.02                         claim=3.02                         OK
+     yoy_status                       mine=ok                           claim=ok                           OK
+[CPI/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 332.813 pub 2026-08-13 (rule:ME+13)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=332.813                      claim=332.813                      OK
+     pub_date                         mine=2026-08-13                   claim=2026-08-13                   OK
+     echo.value                       mine=332.813                      claim=332.813                      OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+     yoy_pct(derived)                 mine=3.3                          claim=3.3                          OK
+     yoy_status                       mine=ok                           claim=ok                           OK
+[CPI/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 337.476 pub 2026-11-13 (rule:ME+13)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=337.476                      claim=337.476                      OK
+     pub_date                         mine=2026-11-13                   claim=2026-11-13                   OK
+     echo.value                       mine=337.476                      claim=337.476                      OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+     yoy_pct(derived)                 mine=None                         claim=None                         OK
+     yoy_status                       mine=no_base                      claim=no_base                      OK
+==============================================================================================================
+[CORE_CPI/12个月前] anchor 2025-11-23 -> obs 2025-09-01 val 330.418 pub 2025-10-24 (cal:RC-2025SHUTDOWN-CORECPI-SEP)
+     obs_date                         mine=2025-09-01                   claim=2025-09-01                   OK
+     value                            mine=330.418                      claim=330.418                      OK
+     pub_date                         mine=2025-10-24                   claim=2025-10-24                   OK
+     echo.value                       mine=330.418                      claim=330.418                      OK
+     echo.obs_month                   mine=2025-09                      claim=2025-09                      OK
+     yoy_pct(derived)                 mine=3.02                         claim=3.02                         OK
+     yoy_status                       mine=ok                           claim=ok                           OK
+[CORE_CPI/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 336.789 pub 2026-08-13 (rule:ME+13)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=336.789                      claim=336.789                      OK
+     pub_date                         mine=2026-08-13                   claim=2026-08-13                   OK
+     echo.value                       mine=336.789                      claim=336.789                      OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+     yoy_pct(derived)                 mine=2.47                         claim=2.47                         OK
+     yoy_status                       mine=ok                           claim=ok                           OK
+[CORE_CPI/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 339.9 pub 2026-11-13 (rule:ME+13)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=339.9                        claim=339.9                        OK
+     pub_date                         mine=2026-11-13                   claim=2026-11-13                   OK
+     echo.value                       mine=339.9                        claim=339.9                        OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+     yoy_pct(derived)                 mine=None                         claim=None                         OK
+     yoy_status                       mine=no_base                      claim=no_base                      OK
+==============================================================================================================
+[CORE_PCE/12个月前] anchor 2025-11-23 -> obs 2025-08-01 val 126.646 pub 2025-09-30 (rule:ME+30)
+     obs_date                         mine=2025-08-01                   claim=2025-08-01                   OK
+     value                            mine=126.646                      claim=126.646                      OK
+     pub_date                         mine=2025-09-30                   claim=2025-09-30                   OK
+     echo.value                       mine=126.646                      claim=126.646                      OK
+     echo.obs_month                   mine=2025-08                      claim=2025-08                      OK
+     yoy_pct(derived)                 mine=2.85                         claim=2.85                         OK
+     yoy_status                       mine=ok                           claim=ok                           OK
+[CORE_PCE/3个月前] anchor 2026-08-23 -> obs 2026-06-01 val 129.969 pub 2026-07-30 (rule:ME+30)
+     obs_date                         mine=2026-06-01                   claim=2026-06-01                   OK
+     value                            mine=129.969                      claim=129.969                      OK
+     pub_date                         mine=2026-07-30                   claim=2026-07-30                   OK
+     echo.value                       mine=129.969                      claim=129.969                      OK
+     echo.obs_month                   mine=2026-06                      claim=2026-06                      OK
+     yoy_pct(derived)                 mine=3.04                         claim=3.04                         OK
+     yoy_status                       mine=ok                           claim=ok                           OK
+[CORE_PCE/最新一期] anchor 2026-11-23 -> obs 2026-09-01 val 130.902 pub 2026-10-30 (rule:ME+30)
+     obs_date                         mine=2026-09-01                   claim=2026-09-01                   OK
+     value                            mine=130.902                      claim=130.902                      OK
+     pub_date                         mine=2026-10-30                   claim=2026-10-30                   OK
+     echo.value                       mine=130.902                      claim=130.902                      OK
+     echo.obs_month                   mine=2026-09                      claim=2026-09                      OK
+     yoy_pct(derived)                 mine=3.12                         claim=3.12                         OK
+     yoy_status                       mine=ok                           claim=ok                           OK
+==============================================================================================================
+[DFEDTARU/12个月前] anchor 2025-11-23 -> latest obs on/before: ('2025-11-23', 4.0) ; engine: obs=2025-11-23 val=4.0 status=ok
+     obs_date                         mine=2025-11-23                   claim=2025-11-23                   OK
+     value                            mine=4.0                          claim=4.0                          OK
+     echo.value                       mine=4.0                          claim=4.0                          OK
+     echo.obs_month                   mine=2025-11                      claim=2025-11                      OK
+[DFEDTARU/3个月前] anchor 2026-08-23 -> latest obs on/before: ('2026-08-23', 3.75) ; engine: obs=2026-08-23 val=3.75 status=ok
+     obs_date                         mine=2026-08-23                   claim=2026-08-23                   OK
+     value                            mine=3.75                         claim=3.75                         OK
+     echo.value                       mine=3.75                         claim=3.75                         OK
+     echo.obs_month                   mine=2026-08                      claim=2026-08                      OK
+[DFEDTARU/最新一期] anchor 2026-11-23 -> latest obs on/before: ('2026-11-23', 4.0) ; engine: obs=2026-11-23 val=4.0 status=ok
+     obs_date                         mine=2026-11-23                   claim=2026-11-23                   OK
+     value                            mine=4.0                          claim=4.0                          OK
+     echo.value                       mine=4.0                          claim=4.0                          OK
+     echo.obs_month                   mine=2026-11                      claim=2026-11                      OK
+==============================================================================================================
+[DFF/12个月前] anchor 2025-11-23 -> latest obs on/before: ('2025-11-23', 3.88) ; engine: obs=2025-11-22 val=3.88 status=ok
+   latest obs not yet published at anchor (pub 2025-11-24 > anchor 2025-11-23); engine obs=2025-11-22 val=3.88
+   -> OK (engine used previous published obs ('2025-11-22', 3.88))
+[DFF/3个月前] anchor 2026-08-23 -> latest obs on/before: ('2026-08-23', 3.63) ; engine: obs=2026-08-22 val=3.63 status=ok
+   latest obs not yet published at anchor (pub 2026-08-24 > anchor 2026-08-23); engine obs=2026-08-22 val=3.63
+   -> OK (engine used previous published obs ('2026-08-22', 3.63))
+[DFF/最新一期] anchor 2026-11-23 -> latest obs on/before: ('2026-11-19', 3.88) ; engine: obs=2026-11-19 val=3.88 status=ok
+     obs_date                         mine=2026-11-19                   claim=2026-11-19                   OK
+     value                            mine=3.88                         claim=3.88                         OK
+     echo.value                       mine=3.88                         claim=3.88                         OK
+     echo.obs_month                   mine=2026-11                      claim=2026-11                      OK
+==============================================================================================================
+[CN_PMI_MFG/12个月前] anchor 2025-11-23 -> obs 2025-10-01 val 49.0 pub 2025-10-30 (rule:ME+-1)
+     obs_date                         mine=2025-10-01                   claim=2025-10-01                   OK
+     value                            mine=49.0                         claim=49.0                         OK
+     pub_date                         mine=2025-10-30                   claim=2025-10-30                   OK
+     echo.value                       mine=49.0                         claim=49.0                         OK
+     echo.obs_month                   mine=2025-10                      claim=2025-10                      OK
+[CN_PMI_MFG/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 49.2 pub 2026-07-30 (rule:ME+-1)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=49.2                         claim=49.2                         OK
+     pub_date                         mine=2026-07-30                   claim=2026-07-30                   OK
+     echo.value                       mine=49.2                         claim=49.2                         OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+[CN_PMI_MFG/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 49.3 pub 2026-10-30 (rule:ME+-1)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=49.3                         claim=49.3                         OK
+     pub_date                         mine=2026-10-30                   claim=2026-10-30                   OK
+     echo.value                       mine=49.3                         claim=49.3                         OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+==============================================================================================================
+[CN_CPI_YOY/12个月前] anchor 2025-11-23 -> obs 2025-10-01 val 0.2 pub 2025-11-09 (rule:ME+9)
+     obs_date                         mine=2025-10-01                   claim=2025-10-01                   OK
+     value                            mine=0.2                          claim=0.2                          OK
+     pub_date                         mine=2025-11-09                   claim=2025-11-09                   OK
+     echo.value                       mine=0.2                          claim=0.2                          OK
+     echo.obs_month                   mine=2025-10                      claim=2025-10                      OK
+[CN_CPI_YOY/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 0.5 pub 2026-08-09 (rule:ME+9)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=0.5                          claim=0.5                          OK
+     pub_date                         mine=2026-08-09                   claim=2026-08-09                   OK
+     echo.value                       mine=0.5                          claim=0.5                          OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+[CN_CPI_YOY/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 0.7 pub 2026-11-09 (rule:ME+9)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=0.7                          claim=0.7                          OK
+     pub_date                         mine=2026-11-09                   claim=2026-11-09                   OK
+     echo.value                       mine=0.7                          claim=0.7                          OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+==============================================================================================================
+[CN_PPI_YOY/12个月前] anchor 2025-11-23 -> obs 2025-10-01 val -2.1 pub 2025-11-09 (rule:ME+9)
+     obs_date                         mine=2025-10-01                   claim=2025-10-01                   OK
+     value                            mine=-2.1                         claim=-2.1                         OK
+     pub_date                         mine=2025-11-09                   claim=2025-11-09                   OK
+     echo.value                       mine=-2.1                         claim=-2.1                         OK
+     echo.obs_month                   mine=2025-10                      claim=2025-10                      OK
+[CN_PPI_YOY/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 3.5 pub 2026-08-09 (rule:ME+9)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=3.5                          claim=3.5                          OK
+     pub_date                         mine=2026-08-09                   claim=2026-08-09                   OK
+     echo.value                       mine=3.5                          claim=3.5                          OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+[CN_PPI_YOY/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 5.7 pub 2026-11-09 (rule:ME+9)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=5.7                          claim=5.7                          OK
+     pub_date                         mine=2026-11-09                   claim=2026-11-09                   OK
+     echo.value                       mine=5.7                          claim=5.7                          OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+==============================================================================================================
+[CN_POLICY_OVERNIGHT/12个月前] anchor 2025-11-23 -> latest obs on/before: None ; engine: obs=None val=None status=no_published_observation_on_or_before_anchor
+   -> consistent (series has no obs on/before anchor)
+[CN_POLICY_OVERNIGHT/3个月前] anchor 2026-08-23 -> latest obs on/before: None ; engine: obs=None val=None status=no_published_observation_on_or_before_anchor
+   -> consistent (series has no obs on/before anchor)
+[CN_POLICY_OVERNIGHT/最新一期] anchor 2026-11-23 -> latest obs on/before: ('2026-11-23', 1.25) ; engine: obs=2026-11-23 val=1.25 status=ok
+     obs_date                         mine=2026-11-23                   claim=2026-11-23                   OK
+     value                            mine=1.25                         claim=1.25                         OK
+     echo.value                       mine=1.25                         claim=1.25                         OK
+     echo.obs_month                   mine=2026-11                      claim=2026-11                      OK
+==============================================================================================================
+[CN_OMO_7D/12个月前] anchor 2025-11-23 -> latest obs on/before: ('2025-11-14', 1.4) ; engine: obs=2025-11-14 val=1.4 status=ok
+     obs_date                         mine=2025-11-14                   claim=2025-11-14                   OK
+     value                            mine=1.4                          claim=1.4                          OK
+     echo.value                       mine=1.4                          claim=1.4                          OK
+     echo.obs_month                   mine=2025-11                      claim=2025-11                      OK
+[CN_OMO_7D/3个月前] anchor 2026-08-23 -> latest obs on/before: ('2026-08-21', 1.4) ; engine: obs=2026-08-21 val=1.4 status=ok
+     obs_date                         mine=2026-08-21                   claim=2026-08-21                   OK
+     value                            mine=1.4                          claim=1.4                          OK
+     echo.value                       mine=1.4                          claim=1.4                          OK
+     echo.obs_month                   mine=2026-08                      claim=2026-08                      OK
+[CN_OMO_7D/最新一期] anchor 2026-11-23 -> latest obs on/before: ('2026-10-30', 1.4) ; engine: obs=2026-10-30 val=1.4 status=ok
+     obs_date                         mine=2026-10-30                   claim=2026-10-30                   OK
+     value                            mine=1.4                          claim=1.4                          OK
+     echo.value                       mine=1.4                          claim=1.4                          OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+==============================================================================================================
+[CN_LPR_1Y/12个月前] anchor 2025-11-23 -> latest obs on/before: ('2025-11-20', 3.0) ; engine: obs=2025-11-20 val=3.0 status=ok
+     obs_date                         mine=2025-11-20                   claim=2025-11-20                   OK
+     value                            mine=3.0                          claim=3.0                          OK
+     echo.value                       mine=3.0                          claim=3.0                          OK
+     echo.obs_month                   mine=2025-11                      claim=2025-11                      OK
+[CN_LPR_1Y/3个月前] anchor 2026-08-23 -> latest obs on/before: ('2026-08-20', 3.0) ; engine: obs=2026-08-20 val=3.0 status=ok
+     obs_date                         mine=2026-08-20                   claim=2026-08-20                   OK
+     value                            mine=3.0                          claim=3.0                          OK
+     echo.value                       mine=3.0                          claim=3.0                          OK
+     echo.obs_month                   mine=2026-08                      claim=2026-08                      OK
+[CN_LPR_1Y/最新一期] anchor 2026-11-23 -> latest obs on/before: ('2026-11-20', 3.0) ; engine: obs=2026-11-20 val=3.0 status=ok
+     obs_date                         mine=2026-11-20                   claim=2026-11-20                   OK
+     value                            mine=3.0                          claim=3.0                          OK
+     echo.value                       mine=3.0                          claim=3.0                          OK
+     echo.obs_month                   mine=2026-11                      claim=2026-11                      OK
+==============================================================================================================
+[EA_REAL_GDP_YOY/12个月前] anchor 2025-11-23 -> obs 2025-07-01 val 1.11 pub 2025-11-04 (rule:QE+35)
+     obs_date                         mine=2025-07-01                   claim=2025-07-01                   OK
+     value                            mine=1.11                         claim=1.11                         OK
+     pub_date                         mine=2025-11-04                   claim=2025-11-04                   OK
+     echo.value                       mine=1.11                         claim=1.11                         OK
+     echo.obs_month                   mine=2025-07                      claim=2025-07                      OK
+[EA_REAL_GDP_YOY/3个月前] anchor 2026-08-23 -> obs 2026-04-01 val 1.19 pub 2026-08-04 (rule:QE+35)
+     obs_date                         mine=2026-04-01                   claim=2026-04-01                   OK
+     value                            mine=1.19                         claim=1.19                         OK
+     pub_date                         mine=2026-08-04                   claim=2026-08-04                   OK
+     echo.value                       mine=1.19                         claim=1.19                         OK
+     echo.obs_month                   mine=2026-04                      claim=2026-04                      OK
+[EA_REAL_GDP_YOY/最新一期] anchor 2026-11-23 -> obs 2026-07-01 val 1.28 pub 2026-11-04 (rule:QE+35)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=1.28                         claim=1.28                         OK
+     pub_date                         mine=2026-11-04                   claim=2026-11-04                   OK
+     echo.value                       mine=1.28                         claim=1.28                         OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+==============================================================================================================
+[EA_HICP_YOY/12个月前] anchor 2025-11-23 -> obs 2025-10-01 val 2.1 pub 2025-11-16 (rule:ME+16)
+     obs_date                         mine=2025-10-01                   claim=2025-10-01                   OK
+     value                            mine=2.1                          claim=2.1                          OK
+     pub_date                         mine=2025-11-16                   claim=2025-11-16                   OK
+     echo.value                       mine=2.1                          claim=2.1                          OK
+     echo.obs_month                   mine=2025-10                      claim=2025-10                      OK
+[EA_HICP_YOY/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 2.9 pub 2026-08-16 (rule:ME+16)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=2.9                          claim=2.9                          OK
+     pub_date                         mine=2026-08-16                   claim=2026-08-16                   OK
+     echo.value                       mine=2.9                          claim=2.9                          OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+[EA_HICP_YOY/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 4.0 pub 2026-11-16 (rule:ME+16)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=4.0                          claim=4.0                          OK
+     pub_date                         mine=2026-11-16                   claim=2026-11-16                   OK
+     echo.value                       mine=4.0                          claim=4.0                          OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+==============================================================================================================
+[ECB_MRO/12个月前] anchor 2025-11-23 -> latest obs on/before: ('2025-06-11', 2.15) ; engine: obs=2025-06-11 val=2.15 status=ok
+     obs_date                         mine=2025-06-11                   claim=2025-06-11                   OK
+     value                            mine=2.15                         claim=2.15                         OK
+     echo.value                       mine=2.15                         claim=2.15                         OK
+     echo.obs_month                   mine=2025-06                      claim=2025-06                      OK
+[ECB_MRO/3个月前] anchor 2026-08-23 -> latest obs on/before: ('2026-06-17', 2.4) ; engine: obs=2026-06-17 val=2.4 status=ok
+     obs_date                         mine=2026-06-17                   claim=2026-06-17                   OK
+     value                            mine=2.4                          claim=2.4                          OK
+     echo.value                       mine=2.4                          claim=2.4                          OK
+     echo.obs_month                   mine=2026-06                      claim=2026-06                      OK
+[ECB_MRO/最新一期] anchor 2026-11-23 -> latest obs on/before: ('2026-09-16', 2.65) ; engine: obs=2026-09-16 val=2.65 status=ok
+     obs_date                         mine=2026-09-16                   claim=2026-09-16                   OK
+     value                            mine=2.65                         claim=2.65                         OK
+     echo.value                       mine=2.65                         claim=2.65                         OK
+     echo.obs_month                   mine=2026-09                      claim=2026-09                      OK
+==============================================================================================================
+[ECB_DFR/12个月前] anchor 2025-11-23 -> latest obs on/before: ('2025-06-11', 2.0) ; engine: obs=2025-06-11 val=2.0 status=ok
+     obs_date                         mine=2025-06-11                   claim=2025-06-11                   OK
+     value                            mine=2.0                          claim=2.0                          OK
+     echo.value                       mine=2.0                          claim=2.0                          OK
+     echo.obs_month                   mine=2025-06                      claim=2025-06                      OK
+[ECB_DFR/3个月前] anchor 2026-08-23 -> latest obs on/before: ('2026-06-17', 2.25) ; engine: obs=2026-06-17 val=2.25 status=ok
+     obs_date                         mine=2026-06-17                   claim=2026-06-17                   OK
+     value                            mine=2.25                         claim=2.25                         OK
+     echo.value                       mine=2.25                         claim=2.25                         OK
+     echo.obs_month                   mine=2026-06                      claim=2026-06                      OK
+[ECB_DFR/最新一期] anchor 2026-11-23 -> latest obs on/before: ('2026-09-16', 2.5) ; engine: obs=2026-09-16 val=2.5 status=ok
+     obs_date                         mine=2026-09-16                   claim=2026-09-16                   OK
+     value                            mine=2.5                          claim=2.5                          OK
+     echo.value                       mine=2.5                          claim=2.5                          OK
+     echo.obs_month                   mine=2026-09                      claim=2026-09                      OK
+==============================================================================================================
+[JP_REAL_GDP_YOY/12个月前] anchor 2025-11-23 -> obs 2025-07-01 val 0.63 pub 2025-11-14 (rule:QE+45)
+     obs_date                         mine=2025-07-01                   claim=2025-07-01                   OK
+     value                            mine=0.63                         claim=0.63                         OK
+     pub_date                         mine=2025-11-14                   claim=2025-11-14                   OK
+     echo.value                       mine=0.63                         claim=0.63                         OK
+     echo.obs_month                   mine=2025-07                      claim=2025-07                      OK
+[JP_REAL_GDP_YOY/3个月前] anchor 2026-08-23 -> obs 2026-04-01 val 0.8 pub 2026-08-14 (rule:QE+45)
+     obs_date                         mine=2026-04-01                   claim=2026-04-01                   OK
+     value                            mine=0.8                          claim=0.8                          OK
+     pub_date                         mine=2026-08-14                   claim=2026-08-14                   OK
+     echo.value                       mine=0.8                          claim=0.8                          OK
+     echo.obs_month                   mine=2026-04                      claim=2026-04                      OK
+[JP_REAL_GDP_YOY/最新一期] anchor 2026-11-23 -> obs 2026-07-01 val 1.16 pub 2026-11-14 (rule:QE+45)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=1.16                         claim=1.16                         OK
+     pub_date                         mine=2026-11-14                   claim=2026-11-14                   OK
+     echo.value                       mine=1.16                         claim=1.16                         OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+==============================================================================================================
+[JP_CPI_YOY/12个月前] anchor 2025-11-23 -> obs 2025-10-01 val 2.99 pub 2025-11-20 (rule:ME+20)
+     obs_date                         mine=2025-10-01                   claim=2025-10-01                   OK
+     value                            mine=2.99                         claim=2.99                         OK
+     pub_date                         mine=2025-11-20                   claim=2025-11-20                   OK
+     echo.value                       mine=2.99                         claim=2.99                         OK
+     echo.obs_month                   mine=2025-10                      claim=2025-10                      OK
+[JP_CPI_YOY/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 1.97 pub 2026-08-20 (rule:ME+20)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=1.97                         claim=1.97                         OK
+     pub_date                         mine=2026-08-20                   claim=2026-08-20                   OK
+     echo.value                       mine=1.97                         claim=1.97                         OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+[JP_CPI_YOY/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 2.44 pub 2026-11-20 (rule:ME+20)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=2.44                         claim=2.44                         OK
+     pub_date                         mine=2026-11-20                   claim=2026-11-20                   OK
+     echo.value                       mine=2.44                         claim=2.44                         OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+==============================================================================================================
+[JP_CPI_TOKYO_YOY/12个月前] no published observation on/before anchor; engine status=no_published_observation_on_or_before_anchor
+   -> consistent (both absent)
+[JP_CPI_TOKYO_YOY/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 1.85 pub 2026-07-30 (rule:ME+-1)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=1.85                         claim=1.85                         OK
+     pub_date                         mine=2026-07-30                   claim=2026-07-30                   OK
+     echo.value                       mine=1.85                         claim=1.85                         OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+[JP_CPI_TOKYO_YOY/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 2.73 pub 2026-10-30 (rule:ME+-1)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=2.73                         claim=2.73                         OK
+     pub_date                         mine=2026-10-30                   claim=2026-10-30                   OK
+     echo.value                       mine=2.73                         claim=2.73                         OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+==============================================================================================================
+[JP_POLICY_RATE/12个月前] anchor 2025-11-23 -> obs 2025-10-01 val 0.477 pub 2025-11-05 (rule:ME+5)
+     obs_date                         mine=2025-10-01                   claim=2025-10-01                   OK
+     value                            mine=0.477                        claim=0.477                        OK
+     pub_date                         mine=2025-11-05                   claim=2025-11-05                   OK
+     echo.value                       mine=0.477                        claim=0.477                        OK
+     echo.obs_month                   mine=2025-10                      claim=2025-10                      OK
+[JP_POLICY_RATE/3个月前] anchor 2026-08-23 -> obs 2026-07-01 val 0.978 pub 2026-08-05 (rule:ME+5)
+     obs_date                         mine=2026-07-01                   claim=2026-07-01                   OK
+     value                            mine=0.978                        claim=0.978                        OK
+     pub_date                         mine=2026-08-05                   claim=2026-08-05                   OK
+     echo.value                       mine=0.978                        claim=0.978                        OK
+     echo.obs_month                   mine=2026-07                      claim=2026-07                      OK
+[JP_POLICY_RATE/最新一期] anchor 2026-11-23 -> obs 2026-10-01 val 1.227 pub 2026-11-05 (rule:ME+5)
+     obs_date                         mine=2026-10-01                   claim=2026-10-01                   OK
+     value                            mine=1.227                        claim=1.227                        OK
+     pub_date                         mine=2026-11-05                   claim=2026-11-05                   OK
+     echo.value                       mine=1.227                        claim=1.227                        OK
+     echo.obs_month                   mine=2026-10                      claim=2026-10                      OK
+==============================================================================================================
+POINTS=320 MISMATCHES=0

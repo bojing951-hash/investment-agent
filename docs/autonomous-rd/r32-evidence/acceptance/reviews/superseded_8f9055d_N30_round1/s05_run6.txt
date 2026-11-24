@@ -1,0 +1,91 @@
+{
+ "points_total": 534,
+ "points_counted": 533,
+ "mismatches": 0,
+ "script_errors": 1,
+ "info_rows": 102,
+ "per_section": {
+  "A①截止日": {
+   "points": 24,
+   "ok": 24,
+   "mismatch": 0
+  },
+  "B②点值锚格": {
+   "points": 94,
+   "ok": 94,
+   "mismatch": 0
+  },
+  "C③同比基期": {
+   "points": 28,
+   "ok": 28,
+   "mismatch": 0
+  },
+  "D④政策面": {
+   "points": 90,
+   "ok": 90,
+   "mismatch": 0
+  },
+  "E⑤利率分解": {
+   "points": 10,
+   "ok": 10,
+   "mismatch": 0
+  },
+  "F⑥转折与同步": {
+   "points": 71,
+   "ok": 71,
+   "mismatch": 0
+  },
+  "G⑦传导链": {
+   "points": 64,
+   "ok": 64,
+   "mismatch": 0
+  },
+  "ERR": {
+   "points": 1,
+   "ok": 0,
+   "mismatch": 1
+  },
+  "H⑧历史类比": {
+   "points": 10,
+   "ok": 10,
+   "mismatch": 0
+  },
+  "I⑨情景": {
+   "points": 27,
+   "ok": 27,
+   "mismatch": 0
+  },
+  "J⑩一致性": {
+   "points": 18,
+   "ok": 18,
+   "mismatch": 0
+  },
+  "K⑪诚实缺席": {
+   "points": 34,
+   "ok": 34,
+   "mismatch": 0
+  },
+  "L⑫时点口径": {
+   "points": 18,
+   "ok": 18,
+   "mismatch": 0
+  },
+  "M⑬契约验证": {
+   "points": 21,
+   "ok": 21,
+   "mismatch": 0
+  },
+  "N⑭交付门缺口": {
+   "points": 9,
+   "ok": 9,
+   "mismatch": 0
+  },
+  "O窗口": {
+   "points": 15,
+   "ok": 15,
+   "mismatch": 0
+  }
+ },
+ "minimum_required": 90
+}
+ERR | ERR | secG | claim= null | computed= "TypeError(\"'<=' not supported between instances of 'datetime.date' and 'str'\")"

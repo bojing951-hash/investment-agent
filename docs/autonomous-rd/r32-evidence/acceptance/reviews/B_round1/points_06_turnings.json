@@ -1,0 +1,346 @@
+{
+ "block": "⑥",
+ "title": "转折候选面: 每指标 3 个月滚动变化最大段(独立重算)与引擎候选逐项比对",
+ "rows": [
+  {
+   "block": "⑥",
+   "id": "T1-CPI 候选窗 2026-02→2026-05 与独立重算最大段一致",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI(3 个月滚动差; 窗端点发布纪律过滤)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 独立重算最大段(含并列) [('2026-02', '2026-05')]; 引擎 2026-02→2026-05"
+  },
+  {
+   "block": "⑥",
+   "id": "T2-CPI 候选 value_before",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI[2026-02]",
+   "kind": "point",
+   "computed": 2.434004,
+   "claim": 2.434,
+   "match": true,
+   "detail": "直算 2.434 → 取 4 位 2.434; 报告 2.434; "
+  },
+  {
+   "block": "⑥",
+   "id": "T3-CPI 候选 value_after",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI[2026-05]",
+   "kind": "point",
+   "computed": 4.166615,
+   "claim": 4.1666,
+   "match": true,
+   "detail": "直算 4.16661 → 取 4 位 4.1666; 报告 4.1666; "
+  },
+  {
+   "block": "⑥",
+   "id": "T4-CPI 候选 delta(=四位小数端点之差, 引擎面口径)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI[2026-02..2026-05]",
+   "kind": "point",
+   "computed": 1.7326,
+   "claim": 1.7326,
+   "match": true,
+   "detail": "直算 1.7326 → 取 4 位 1.7326; 报告 1.7326; 未取端点直差 1.732611"
+  },
+  {
+   "block": "⑥",
+   "id": "T1-CORE_CPI 候选窗 2026-05→2026-08 与独立重算最大段一致",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI(3 个月滚动差; 窗端点发布纪律过滤)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 独立重算最大段(含并列) [('2026-05', '2026-08')]; 引擎 2026-05→2026-08"
+  },
+  {
+   "block": "⑥",
+   "id": "T2-CORE_CPI 候选 value_before",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI[2026-05]",
+   "kind": "point",
+   "computed": 2.822942,
+   "claim": 2.8229,
+   "match": true,
+   "detail": "直算 2.82294 → 取 4 位 2.8229; 报告 2.8229; "
+  },
+  {
+   "block": "⑥",
+   "id": "T3-CORE_CPI 候选 value_after",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI[2026-08]",
+   "kind": "point",
+   "computed": 2.446163,
+   "claim": 2.4462,
+   "match": true,
+   "detail": "直算 2.44616 → 取 4 位 2.4462; 报告 2.4462; "
+  },
+  {
+   "block": "⑥",
+   "id": "T4-CORE_CPI 候选 delta(=四位小数端点之差, 引擎面口径)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI[2026-05..2026-08]",
+   "kind": "point",
+   "computed": -0.3767,
+   "claim": -0.3767,
+   "match": true,
+   "detail": "直算 -0.3767 → 取 4 位 -0.3767; 报告 -0.3767; 未取端点直差 -0.376779"
+  },
+  {
+   "block": "⑥",
+   "id": "T1-CORE_PCE 候选窗 2025-11→2026-02 与独立重算最大段一致",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE(3 个月滚动差; 窗端点发布纪律过滤)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 独立重算最大段(含并列) [('2025-11', '2026-02')]; 引擎 2025-11→2026-02"
+  },
+  {
+   "block": "⑥",
+   "id": "T2-CORE_PCE 候选 value_before",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE[2025-11]",
+   "kind": "point",
+   "computed": 2.721209,
+   "claim": 2.7212,
+   "match": true,
+   "detail": "直算 2.72121 → 取 4 位 2.7212; 报告 2.7212; "
+  },
+  {
+   "block": "⑥",
+   "id": "T3-CORE_PCE 候选 value_after",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE[2026-02]",
+   "kind": "point",
+   "computed": 2.959153,
+   "claim": 2.9592,
+   "match": true,
+   "detail": "直算 2.95915 → 取 4 位 2.9592; 报告 2.9592; "
+  },
+  {
+   "block": "⑥",
+   "id": "T4-CORE_PCE 候选 delta(=四位小数端点之差, 引擎面口径)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE[2025-11..2026-02]",
+   "kind": "point",
+   "computed": 0.238,
+   "claim": 0.238,
+   "match": true,
+   "detail": "直算 0.238 → 取 4 位 0.238; 报告 0.238; 未取端点直差 0.237944"
+  },
+  {
+   "block": "⑥",
+   "id": "T1-INDPRO 候选窗 2025-11→2026-02 与独立重算最大段一致",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO(3 个月滚动差; 窗端点发布纪律过滤)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 独立重算最大段(含并列) [('2025-11', '2026-02')]; 引擎 2025-11→2026-02"
+  },
+  {
+   "block": "⑥",
+   "id": "T2-INDPRO 候选 value_before",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2025-11]",
+   "kind": "point",
+   "computed": 1.754312,
+   "claim": 1.7543,
+   "match": true,
+   "detail": "直算 1.75431 → 取 4 位 1.7543; 报告 1.7543; "
+  },
+  {
+   "block": "⑥",
+   "id": "T3-INDPRO 候选 value_after",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2026-02]",
+   "kind": "point",
+   "computed": 0.797236,
+   "claim": 0.7972,
+   "match": true,
+   "detail": "直算 0.797236 → 取 4 位 0.7972; 报告 0.7972; "
+  },
+  {
+   "block": "⑥",
+   "id": "T4-INDPRO 候选 delta(=四位小数端点之差, 引擎面口径)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2025-11..2026-02]",
+   "kind": "point",
+   "computed": -0.9571,
+   "claim": -0.9571,
+   "match": true,
+   "detail": "直算 -0.9571 → 取 4 位 -0.9571; 报告 -0.9571; 未取端点直差 -0.957076"
+  },
+  {
+   "block": "⑥",
+   "id": "T1-UNEMPLOYMENT 候选窗 2026-05→2026-08 与独立重算最大段一致",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT(3 个月滚动差; 窗端点发布纪律过滤)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 独立重算最大段(含并列) [('2026-04', '2026-07'), ('2026-05', '2026-08')]; 引擎 2026-05→2026-08; 并列 2 窗, 引擎取较近窗(并列裁决, 非错)"
+  },
+  {
+   "block": "⑥",
+   "id": "T2-UNEMPLOYMENT 候选 value_before",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-05]",
+   "kind": "point",
+   "computed": 4.3,
+   "claim": 4.3,
+   "match": true,
+   "detail": "直算 4.3 → 取 4 位 4.3; 报告 4.3; "
+  },
+  {
+   "block": "⑥",
+   "id": "T3-UNEMPLOYMENT 候选 value_after",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-08]",
+   "kind": "point",
+   "computed": 4.1,
+   "claim": 4.1,
+   "match": true,
+   "detail": "直算 4.1 → 取 4 位 4.1; 报告 4.1; "
+  },
+  {
+   "block": "⑥",
+   "id": "T4-UNEMPLOYMENT 候选 delta(=四位小数端点之差, 引擎面口径)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-05..2026-08]",
+   "kind": "point",
+   "computed": -0.2,
+   "claim": -0.2,
+   "match": true,
+   "detail": "直算 -0.2 → 取 4 位 -0.2; 报告 -0.2; 未取端点直差 -0.200000"
+  },
+  {
+   "block": "⑥",
+   "id": "T1-EA_HICP_YOY 候选窗 2026-02→2026-05 与独立重算最大段一致",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY(3 个月滚动差; 窗端点发布纪律过滤)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 独立重算最大段(含并列) [('2026-01', '2026-04'), ('2026-02', '2026-05')]; 引擎 2026-02→2026-05; 并列 2 窗, 引擎取较近窗(并列裁决, 非错)"
+  },
+  {
+   "block": "⑥",
+   "id": "T2-EA_HICP_YOY 候选 value_before",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-02]",
+   "kind": "point",
+   "computed": 1.9,
+   "claim": 1.9,
+   "match": true,
+   "detail": "直算 1.9 → 取 4 位 1.9; 报告 1.9; "
+  },
+  {
+   "block": "⑥",
+   "id": "T3-EA_HICP_YOY 候选 value_after",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-05]",
+   "kind": "point",
+   "computed": 3.2,
+   "claim": 3.2,
+   "match": true,
+   "detail": "直算 3.2 → 取 4 位 3.2; 报告 3.2; "
+  },
+  {
+   "block": "⑥",
+   "id": "T4-EA_HICP_YOY 候选 delta(=四位小数端点之差, 引擎面口径)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-02..2026-05]",
+   "kind": "point",
+   "computed": 1.3,
+   "claim": 1.3,
+   "match": true,
+   "detail": "直算 1.3 → 取 4 位 1.3; 报告 1.3; 未取端点直差 1.300000"
+  },
+  {
+   "block": "⑥",
+   "id": "T1-JP_POLICY_RATE 候选窗 2026-04→2026-07 与独立重算最大段一致",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE(3 个月滚动差; 窗端点发布纪律过滤)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 独立重算最大段(含并列) [('2026-04', '2026-07')]; 引擎 2026-04→2026-07"
+  },
+  {
+   "block": "⑥",
+   "id": "T2-JP_POLICY_RATE 候选 value_before",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-04]",
+   "kind": "point",
+   "computed": 0.727,
+   "claim": 0.727,
+   "match": true,
+   "detail": "直算 0.727 → 取 4 位 0.727; 报告 0.727; "
+  },
+  {
+   "block": "⑥",
+   "id": "T3-JP_POLICY_RATE 候选 value_after",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-07]",
+   "kind": "point",
+   "computed": 0.978,
+   "claim": 0.978,
+   "match": true,
+   "detail": "直算 0.978 → 取 4 位 0.978; 报告 0.978; "
+  },
+  {
+   "block": "⑥",
+   "id": "T4-JP_POLICY_RATE 候选 delta(=四位小数端点之差, 引擎面口径)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.JP_POLICY_RATE[2026-04..2026-07]",
+   "kind": "point",
+   "computed": 0.251,
+   "claim": 0.251,
+   "match": true,
+   "detail": "直算 0.251 → 取 4 位 0.251; 报告 0.251; 未取端点直差 0.251000"
+  },
+  {
+   "block": "⑥",
+   "id": "T5-引擎候选池条数=7(与受审稿「候选池7」一致)",
+   "source": "report.json:research_plan.turning_candidates.candidates",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 条数 7"
+  },
+  {
+   "block": "⑥",
+   "id": "T6-候选池按 |delta| 降序 = CPI 1.7326 > EA_HICP_YOY 1.3 > INDPRO 0.9571 > CORE_CPI 0.3767 > JP_POLICY_RATE 0.251 > CORE_PCE 0.238 > UNEMPLOYMENT 0.2",
+   "source": "report.json:research_plan.turning_candidates.candidates[*].delta",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑥",
+   "id": "T7-受审稿 top3 所述「CPI 2.434→4.1666 为候选池内最大单段变动」",
+   "source": "report.json:research_plan.turning_candidates.candidates",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑥",
+   "id": "T8-受审稿「INDPRO 为增长维候选池内最大的三个月变化」",
+   "source": "report.json:research_plan.turning_candidates.candidates[dimension=growth]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑥",
+   "id": "T9-top_n_expected=3 且转折表 3 项(与受审稿「top3」/三转折一致)",
+   "source": "report.json:research_plan.turning_candidates.top_n_expected; agent_judgment.json:reader_map.turnings",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑥",
+   "id": "T10-转折表三项指标(CPI/INDPRO/JP_POLICY_RATE)均在候选池内且分属通胀/增长/政策三维(不同事件)",
+   "source": "agent_judgment.json:reader_map.turnings[*].metric_id; report.json:…candidates[*].dimension",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  }
+ ]
+}

@@ -1,0 +1,67 @@
+== A
+  root_overlay/config/release_calendar.json    e44fd2aa5ced0310 e44fd2aa5ced0310 same
+  root_overlay/config/metric_registry.json     fa396d22175a4814 fa396d22175a4814 same
+  evidence_index.json                          b46d997b3b6a1935 b46d997b3b6a1935 same
+  views_digest.json                            e71a18c2e81904ed e71a18c2e81904ed same
+  run.question (report.json)                   409eef0c8cec2aa0 409eef0c8cec2aa0 same
+  [report-stage product, not counted]  question_verbatim.txt    old=True new=True
+  [report-stage product, not counted]  MAP_REPORT.md            old=True new=True
+  [report-stage product, not counted]  FULL_REPORT.md           old=True new=True
+  research_snapshot_20261123.json              2d650f1128cdd356 2d650f1128cdd356 same
+  CODE_VERSION old: 8f9055d6e556 new: 36499bb78a18
+== AUG
+  root_overlay/config/release_calendar.json    e44fd2aa5ced0310 e44fd2aa5ced0310 same
+  root_overlay/config/metric_registry.json     fa396d22175a4814 fa396d22175a4814 same
+  evidence_index.json                          08acd6426ba3d4e2 08acd6426ba3d4e2 same
+  views_digest.json                            e71a18c2e81904ed e71a18c2e81904ed same
+  run.question (report.json)                   0b9b17ac7421095c 0b9b17ac7421095c same
+  [report-stage product, not counted]  question_verbatim.txt    old=False new=False
+  [report-stage product, not counted]  MAP_REPORT.md            old=False new=False
+  [report-stage product, not counted]  FULL_REPORT.md           old=False new=False
+  research_snapshot_20261121.json              fb1992a5396e033c fb1992a5396e033c same
+  CODE_VERSION old: 8f9055d6e556 new: 36499bb78a18
+== B
+  root_overlay/config/release_calendar.json    e44fd2aa5ced0310 e44fd2aa5ced0310 same
+  root_overlay/config/metric_registry.json     fa396d22175a4814 fa396d22175a4814 same
+  evidence_index.json                          3c397575b9c73112 3c397575b9c73112 same
+  views_digest.json                            e71a18c2e81904ed e71a18c2e81904ed same
+  run.question (report.json)                   7e8821bd0bf9cb29 7e8821bd0bf9cb29 same
+  [report-stage product, not counted]  question_verbatim.txt    old=True new=True
+  [report-stage product, not counted]  MAP_REPORT.md            old=True new=True
+  [report-stage product, not counted]  FULL_REPORT.md           old=True new=True
+  research_snapshot_20261123.json              2d650f1128cdd356 2d650f1128cdd356 same
+  CODE_VERSION old: 8f9055d6e556 new: 36499bb78a18
+== C4
+  root_overlay/config/release_calendar.json    e44fd2aa5ced0310 e44fd2aa5ced0310 same
+  root_overlay/config/metric_registry.json     fa396d22175a4814 fa396d22175a4814 same
+  evidence_index.json                          37dd6407534bacbf 37dd6407534bacbf same
+  views_digest.json                            e71a18c2e81904ed e71a18c2e81904ed same
+  run.question (report.json)                   c8b0cb7685e67cee c8b0cb7685e67cee same
+  [report-stage product, not counted]  question_verbatim.txt    old=True new=False
+  [report-stage product, not counted]  MAP_REPORT.md            old=True new=False
+  [report-stage product, not counted]  FULL_REPORT.md           old=True new=False
+  research_snapshot_20261123.json              2de337533ef5fbac 2de337533ef5fbac same
+  CODE_VERSION old: 8f9055d6e556 new: 36499bb78a18
+== N30
+  root_overlay/config/release_calendar.json    e44fd2aa5ced0310 e44fd2aa5ced0310 same
+  root_overlay/config/metric_registry.json     fa396d22175a4814 fa396d22175a4814 same
+  evidence_index.json                          66ea74f1e4478c93 66ea74f1e4478c93 same
+  views_digest.json                            e71a18c2e81904ed e71a18c2e81904ed same
+  run.question (report.json)                   df5cf86710641114 df5cf86710641114 same
+  [report-stage product, not counted]  question_verbatim.txt    old=True new=False
+  [report-stage product, not counted]  MAP_REPORT.md            old=True new=False
+  [report-stage product, not counted]  FULL_REPORT.md           old=True new=False
+  research_snapshot_20261123.json              2d650f1128cdd356 2d650f1128cdd356 same
+  CODE_VERSION old: 8f9055d6e556 new: 36499bb78a18
+== T3
+  root_overlay/config/release_calendar.json    e44fd2aa5ced0310 e44fd2aa5ced0310 same
+  root_overlay/config/metric_registry.json     fa396d22175a4814 fa396d22175a4814 same
+  evidence_index.json                          66ea74f1e4478c93 66ea74f1e4478c93 same
+  views_digest.json                            e71a18c2e81904ed e71a18c2e81904ed same
+  run.question (report.json)                   6461e445095713ba 6461e445095713ba same
+  [report-stage product, not counted]  question_verbatim.txt    old=True new=False
+  [report-stage product, not counted]  MAP_REPORT.md            old=True new=False
+  [report-stage product, not counted]  FULL_REPORT.md           old=True new=False
+  research_snapshot_20261123.json              2d650f1128cdd356 2d650f1128cdd356 same
+  CODE_VERSION old: 8f9055d6e556 new: 36499bb78a18
+frozen-input files differing: 0

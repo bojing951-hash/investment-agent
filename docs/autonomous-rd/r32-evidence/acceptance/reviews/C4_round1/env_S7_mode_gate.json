@@ -1,0 +1,15 @@
+{
+ "step": "S7_mode_gate",
+ "executed": true,
+ "ok": true,
+ "gate": {
+  "descriptive": "available",
+  "event_study": "blocked: 无发布日, 不得按发布日对齐/不得声称事件研究",
+  "realtime_info_set": "available(现役快照即当前时点信息集;跨日vintage=1个[20261123];同日_vN修订不构成跨日vintage)",
+  "realtime_vintage_dates": [
+   "20261123"
+  ]
+ },
+ "gate_source": "S5_compare:data.alignment.research_mode_gate",
+ "note": null
+}

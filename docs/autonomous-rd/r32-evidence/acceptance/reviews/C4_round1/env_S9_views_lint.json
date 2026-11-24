@@ -1,0 +1,30 @@
+{
+ "step": "S9_views_lint",
+ "argv": [
+  "views",
+  "lint"
+ ],
+ "executed": true,
+ "ok": true,
+ "exit_code": 0,
+ "semantic_ok": true,
+ "note": null,
+ "duration_ms": 100,
+ "envelope": {
+  "ok": true,
+  "capability": "views",
+  "engine_root": "/private/tmp/r32-accept/final6-degraded",
+  "snapshot_id": null,
+  "target_date": null,
+  "research_as_of": null,
+  "gate_a": null,
+  "data": {
+   "schema_version": "1.1",
+   "n_compliant": 0,
+   "n_quarantined": 0,
+   "n_files": 0,
+   "quarantined": []
+  },
+  "warnings": []
+ }
+}

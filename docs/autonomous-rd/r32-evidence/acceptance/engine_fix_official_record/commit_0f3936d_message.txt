@@ -1,0 +1,29 @@
+0f3936dd7eb74c557a2350e400d58e10a09c5139
+2026-11-24 03:23:26 +0800
+Audit-R32 真跑修复: 官方记录面可推性读格级键(规划器写锚级),序列+惯例回退在真管线恒空→T3 原问误判缺官方记录草稿
+
+正式入口验收真跑(T3 原问,19638e1)复现: 引擎判 blocked_class=
+map_official_target_missing(草稿,正式归档将拒)——缺口注记称欧元区
+「序列面决议/生效日不可推」,而同一计划点值格里 EA 政策格「最新一期」
+锚上 policy_dates 明明带决议 2026-09-10/生效 2026-09-16。
+
+根因: point_values 把 policy_dates 写在锚上(v['policy_dates']),
+official_policy_record_face 的可推性回退读的是格级键 c.get(
+'policy_dates')=真管线恒空→「序列+惯例可推」整段失效(R28 门夹具把键
+写在格级才通过;R32 门 §B3b 夹具同形,注释「真管线里可推」与实现不符)。
+
+修复: 先读锚级(真管线形状),格级键仅作旧夹具形状兼容;判定口径不变
+(当期 ok 锚的决议日与生效日均可推=可推)。
+
+门(tests/test_audit_r32_gate.py §B3):
+- §B3b 夹具改真管线形状(锚级键);
+- §B3b4 锚级判可推/旧格级键兼容/当期锚非 ok 不算可推/决议生效缺一不算;
+- §B3b3 真管线回归: T3 原问×提交的 11 月冻结快照离线真计划点值格
+  直取判定→零缺口(格级键缺席、锚级双日在场);
+- §B3b5 真管线对照: 抽去锚级 policy_dates→EA 缺口+blocked_class=
+  map_official_target_missing;原样→零缺口+None。
+修复前本节 20/23(§B3b/§B3b3/§B3b5 红),修复后 23/23;
+R28 门 37/37、R31 门 43/43、R32 门 70/70 零回归。
+
+Co-Authored-By: Claude Code <noreply@anthropic.com>
+

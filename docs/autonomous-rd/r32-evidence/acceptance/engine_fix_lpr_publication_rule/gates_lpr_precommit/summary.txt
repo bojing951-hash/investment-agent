@@ -1,0 +1,17 @@
+audit_r32_gate.py rc=0 === R32 门: 90/90 ===
+audit_r31_gate.py rc=0 === R31 门: 43/43 ===
+audit_r19_gate.py rc=0 Audit-R19 判定: 35 PASS / 0 FAIL
+audit_r29_gate.py rc=0 Audit-R29 门: 43 PASS / 0 FAIL (共 43 判据)
+audit_r20_gate.py rc=0 Audit-R20 判定: 30 PASS / 0 FAIL
+audit_r21_gate.py rc=0 Audit-R21 判定: 50 PASS / 0 FAIL
+audit_r22_gate.py rc=0 == R22 门: 36/36 PASS ==
+audit_r25_gate.py rc=0 判定: 55 PASS / 0 FAIL
+audit_r26_gate.py rc=0 判定: 46 PASS / 0 FAIL
+audit_r27_gate.py rc=0 Audit-R27 门: 35 PASS / 0 FAIL (共 35 判据)
+audit_r28_gate.py rc=0 ==== Audit-R28 gate: 37/37 PASS ====
+audit_r30_gate.py rc=0 Audit-R30 门: 37 PASS / 0 FAIL (共 37 判据)
+audit_r23_gate.py rc=0 Audit-R23 门: 51 PASS / 0 FAIL (共 51 判据)
+audit_r24_gate.py rc=0 Audit-R24 门: 74 PASS / 0 FAIL (共 74 判据)
+audit_r17_gate.py rc=0 Audit-R17 判定: 56 PASS / 0 FAIL
+audit_r18_gate.py rc=0 Audit-R18 判定: 40 PASS / 0 FAIL
+mw_v1.py rc=0 

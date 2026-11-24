@@ -1,0 +1,366 @@
+# cmp_runs
+# old: /tmp/r32-accept/final6-degraded/output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了
+# new: /tmp/r32-accept/final8-degraded/output/research_runs/20261124T062451Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了
+# old run 20261123T235101Z git_head 36499bb78a18 | new run 20261124T062451Z git_head 24141c01a73d
+## report.json/research_plan | leaves compared 1327 | identical 1327 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/evidence_index | leaves compared 207 | identical 207 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 430 | identical 316 | real diff 4 | path/run-id only 0 | only-old 110 | only-new 0
+   REAL DIFF (4):
+     /L3_AI推断层/note
+        old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+        new: "零模型管线: 本层(矛盾综合/推断)须编排层 Agent 补作,attribution=ai_inferred——本管线绝不代写。补作纪律: 四层标注(事实/推断/假设/尚未验证)+并列竞争性解释(Skill 纪律4/第9步);机制链每环标 E1(引擎直接可验证)/E2(部分支持,缺环明写【假设】)/E3(纯叙事,须给证伪指标)(纪律15)"
+     /L3_AI推断层/produced
+        old: true
+        new: false
+     /L4_条件情景层/note
+        old: "Agent(编排层)研判落位,attribution=ai_inferred;纪律结构经机器校验(validate_judgment 全绿);内容原文未改写,判断质量归 Agent 与独立审计"
+        new: "条件推演五行(纪律16: 情景[明写假设非预测]/资产方向判断[方向+置信层级]/敏感变量[1-2 个引擎指标]/证伪指标[可观测阈值]/触发条件[可观测条件+时限];单一情景不得单独呈现,至少并列基准与反例)归编排层 Agent;不冒充预测——本管线绝不代写"
+     /L4_条件情景层/produced
+        old: true
+        new: false
+   only-old (110):
+     /L3_AI推断层/attribution
+        old: "ai_inferred"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-POLICY-DIVERGENCE]/competing_explanations[0]
+        old: "【假设】若美日收紧是对同一全球冲击(能源价格、通胀预期)的同向反应，中国维持不变源于自身通胀读数结构(中国CPI低位)，则政策分化属同一事件的不同幅度，后续美日应继续同步。能源价格变量未获对质: 三个月窗内原油期货截至 10 月底上升、11 月回落——WTI_F 87.06(2026-08-21)→104.12(2026-10-30，+19.60%)→82.02(2026-11-23 盘中快照，较三个月前锚 -5.79%、较 10-30 回落 21.23%)，BRENT_F 94.39→117.64(+24.63%)→88.19(-6.57%，较 10-30 回落 25.03%)；月度现货均
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-POLICY-DIVERGENCE]/competing_explanations[1]
+        old: "【假设】若美日收紧各自独立(美国由国内通胀读数触发、日本属持续正常化节奏)，而中国不变是对国内需求偏弱的响应，则三地后续路径将按各自数据演变，同步只是巧合。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-POLICY-DIVERGENCE]/evidence_refs[0]
+        old: "DFEDTARU@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-POLICY-DIVERGENCE]/evidence_refs[1]
+        old: "DFF@2026-11-19"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-POLICY-DIVERGENCE]/evidence_refs[2]
+        old: "JP_POLICY_RATE@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-POLICY-DIVERGENCE]/evidence_refs[3]
+        old: "CN_LPR_1Y@2026-11-20"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-POLICY-DIVERGENCE]/id
+        old: "C1-POLICY-DIVERGENCE"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C1-POLICY-DIVERGENCE]/statement
+        old: "政策维是可比口径下三地中方向最清晰的分化： 美国与日本同向收紧、中国在可比口径上未变。美国联邦基金目标区间上限(引擎序列 DFEDTARU)三个月前锚为三点七五、最新为四，上限上调二十五；引擎政策事件簇记 2026-09-16 决议、2026-09-17 生效(决议日系引擎按生效日前一日推定)。近一年事件簇先降后升(2025-12-10 决议、2025-12-11 生效，下调二十五)，净变动为零。有效联邦基金利率(DFF)三个月前锚前值 3.63(观测 2026-08-22)。DFF 最新一期为 3.88(观测 2026-11-19，发布 2026-11-20，引擎推定规则，非日历实录)。日
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-INFLATION-DIVERGENCE]/competing_explanations[0]
+        old: "【假设】若日本通胀上行主要源于能源与食品等进口成本传导，则后续读数应随基数消退而回落，日本央行无需再加快收紧。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-INFLATION-DIVERGENCE]/competing_explanations[1]
+        old: "【假设】若日本通胀上行已扩展至服务价格与工资传导(内生化)，则读数应持续偏高，央行延续台阶式收紧；中国 PPI 高位若属上游价格传导，则将在数月内向 CPI 传导或挤压下游利润。本证据面无通胀分项数据，上述两解释不可区分。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-INFLATION-DIVERGENCE]/evidence_refs[0]
+        old: "JP_CPI_YOY@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-INFLATION-DIVERGENCE]/evidence_refs[1]
+        old: "CPI@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-INFLATION-DIVERGENCE]/evidence_refs[2]
+        old: "CORE_CPI@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-INFLATION-DIVERGENCE]/evidence_refs[3]
+        old: "CORE_PCE@2026-09-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-INFLATION-DIVERGENCE]/evidence_refs[4]
+        old: "CN_CPI_YOY@2026-10-31"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-INFLATION-DIVERGENCE]/evidence_refs[5]
+        old: "CN_PPI_YOY@2026-10-31"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-INFLATION-DIVERGENCE]/id
+        old: "C2-INFLATION-DIVERGENCE"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C2-INFLATION-DIVERGENCE]/statement
+        old: "通胀维： 三个月对照窗内三地读数方向同向(均高于三个月前)，分化体现在水平，即日本回升至百分之二点四四、美国最近有效同比在三点七以上、中国CPI低位而PPI高位。日本全国消费者物价同比(引擎序列 JP_CPI_YOY)三个月前锚为百分之一点九七(观测 2026-07)，最新为百分之二点四四(观测 2026-10，发布 2026-11-20，引擎推定规则，非日历实录)。东京都同比(引擎序列 JP_CPI_TOKYO_YOY)由百分之一点八五升至百分之二点七三(三个月前锚观测 2026-07；最新观测 2026-10，发布 2026-10-30，引擎推定规则并含官方实测锚，非日历实录；该序列不在
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-GROWTH-LIMITED]/competing_explanations[0]
+        old: "【假设】若美国工业生产同比回升代表制造业周期回暖，而中国 PMI 在荣枯线下方反映出口与地产拖累，则增长维将出现美中分化并逐步传导至通胀与政策。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-GROWTH-LIMITED]/competing_explanations[1]
+        old: "【假设】若两者主要反映季节性与单月波动(美国 GDP 同比微降、失业率持平、中国 PMI 边际变化很小)，则增长面应视为大体延续，本期主导变化仍在政策维与通胀维。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-GROWTH-LIMITED]/evidence_refs[0]
+        old: "US_REAL_GDP@2026-07-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-GROWTH-LIMITED]/evidence_refs[1]
+        old: "UNEMPLOYMENT@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-GROWTH-LIMITED]/evidence_refs[2]
+        old: "INDPRO@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-GROWTH-LIMITED]/evidence_refs[3]
+        old: "CN_PMI_MFG@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-GROWTH-LIMITED]/id
+        old: "C3-GROWTH-LIMITED"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C3-GROWTH-LIMITED]/statement
+        old: "增长维： 可判证据显示各经济体以状态延续为主，经济体之间仅有小幅方向差异(美国 GDP 同比小幅回落、日本回升、美国工业生产同比上升)，幅度小且指标间不一致。美国实际 GDP(US_REAL_GDP)最新一期为 24611.077(十亿美元，季观测 2026-07，发布 2026-10-29，引擎推定规则并含官方实测锚，非日历实录)。美国 GDP 同比百分之二点零七，低于三个月前锚所在季的百分之二点一九。失业率(UNEMPLOYMENT)三个月前锚前值 4.1(观测 2026-07-01)。UNEMPLOYMENT 最新一期为 4.1(观测 2026-10，发布 2026-11-05，引擎推
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C4-EVIDENCE-BOUNDARY]/competing_explanations[0]
+        old: "【假设】若市场跌幅差反映宏观预期的分化(美日股指深跌对应政策收紧与增长放缓的预期差)，则后续宏观数据应与跌幅排序同向。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C4-EVIDENCE-BOUNDARY]/competing_explanations[1]
+        old: "【假设】若跌幅差主要来自估值与仓位的前期差异(拥挤度、涨幅回吐)，则宏观面并未同步分化，跌幅差将收敛，资产面信号不可外推为宏观分化。"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C4-EVIDENCE-BOUNDARY]/evidence_refs[0]
+        old: "DAX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C4-EVIDENCE-BOUNDARY]/evidence_refs[1]
+        old: "SPX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C4-EVIDENCE-BOUNDARY]/evidence_refs[2]
+        old: "NIKKEI225@2026-11-20"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C4-EVIDENCE-BOUNDARY]/evidence_refs[3]
+        old: "SHCOMP@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C4-EVIDENCE-BOUNDARY]/evidence_refs[4]
+        old: "VIX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C4-EVIDENCE-BOUNDARY]/id
+        old: "C4-EVIDENCE-BOUNDARY"
+        new: "<absent>"
+     /L3_AI推断层/content/contradictions[C4-EVIDENCE-BOUNDARY]/statement
+        old: "证据边界(对应问题第三问)： 欧元区增长、通胀、政策三维序列在本证据面全部缺席(检索范围=快照 series_store+注册表采集档通道)，涉及欧元区的横向分化均证据不足。欧元区资产面在场(DAX 最新一期为 25209.45(观测 2026-11-23，盘中快照、非收盘价))，但资产价格是预期与定价的混合，不替代宏观基本面。市场面(独立证据层)： 引擎近一月窗(2026-10-23→2026-11-23；NIKKEI225 止于 2026-11-20 收盘)SPX -5.51%、NIKKEI225 -9.98%、SHCOMP -4.11%、DAX +0.11%、VIX +38.87%，该
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/id
+        old: "M1-POLICY-RATES-ASSETS"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[0]/evidence_level
+        old: "E1"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[0]/evidence_refs[0]
+        old: "DFEDTARU@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[0]/evidence_refs[1]
+        old: "DFF@2026-11-19"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[0]/evidence_refs[2]
+        old: "JP_POLICY_RATE@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[0]/evidence_refs[3]
+        old: "CN_LPR_1Y@2026-11-20"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[0]/step
+        old: 1
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[0]/text
+        old: "观察: 美国联邦基金目标区间上限(DFEDTARU)2026-09-16 决议 +25bp(3.75→4，2026-09-17 生效；决议日系引擎按生效日前一日推定)，有效联邦基金利率(DFF)3.63(2026-08-22)→3.88(2026-11-19)；日本无担保隔夜拆借利率月均(JP_POLICY_RATE)0.978(2026-07-01)→1.227(2026-10-01)，三个月窗内台阶 2026-08 0.977、2026-09 1.043、2026-10 1.227，净 +25bp(月均口径，非宣布目标)；发布日历实录日本央行 2026-09-18 决议、2026-09-
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[1]/evidence_level
+        old: "E2"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[1]/evidence_refs[0]
+        old: "TIPS_10Y@2026-11-19"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[1]/evidence_refs[1]
+        old: "BEI_10Y@2026-11-20"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[1]/evidence_refs[2]
+        old: "UST_10Y@2026-11-19"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[1]/missing_link_note
+        old: "本引擎无政策冲击的高频识别序列(事件研究被 research_mode_gate 阻断)，政策→利率的因果环为【假设】；可核环节仅利率分解恒等式(E1)。"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[1]/step
+        old: 2
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[1]/text
+        old: "传导【假设】: 政策分化→长端利率的实际利率/通胀补偿分解。十年期美债名义利率 5.04%(2026-11-19)，近一月共同交易日窗(2026-10-20→2026-11-19)名义 -8bp=实际利率(TIPS_10Y)+11bp+盈亏平衡(BEI_10Y)-19bp；12 个月窗(2025-11-19→2026-11-19)名义 +91bp=实际 +102bp+盈亏平衡 -11bp(两窗恒等残差均为 0)。若美日收紧由通胀压力驱动，应见盈亏平衡走高；两个窗口盈亏平衡均回落，实际利率在单月窗为唯一上行分量、在 12 个月窗为主导分量，更接近「实际利率+风险厌恶」组合，通胀预期渠道为【假设
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[2]/evidence_level
+        old: "E2"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[2]/evidence_refs[0]
+        old: "SPX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[2]/evidence_refs[1]
+        old: "NIKKEI225@2026-11-20"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[2]/evidence_refs[2]
+        old: "SHCOMP@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[2]/evidence_refs[3]
+        old: "DAX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[2]/evidence_refs[4]
+        old: "VIX@2026-11-23"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[2]/missing_link_note
+        old: "资产价格是预期与定价的混合(多因子驱动)，与政策分化的当期一致性无法在引擎面单一归因，该环归【假设】层；区分指标=VIX；盘中快照与收盘两种口径并列披露。"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[2]/step
+        old: 3
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/links[2]/text
+        old: "资产面观察与对照【假设】: 引擎近一月窗(2026-10-23→2026-11-23，止于盘中快照)SPX -5.51%、NIKKEI225 -9.98%(止于 2026-11-20 收盘)、SHCOMP -4.11%、DAX +0.11%、VIX +38.87%(19.45→27.01)；同日收盘口径(2026-10-23→2026-11-20): 标普500指数 -9.36%、日经225 -9.98%、上证综指 -4.25%、DAX -1.50%、VIX +84.52%(19.45→35.89)。收盘口径下美日股指跌幅相近且深于中国与欧洲；引擎窗含 11-23 盘中反弹(SPX 较 11
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M1-POLICY-RATES-ASSETS]/title
+        old: "政策分化(美日收紧、中国可比口径未变)→ 长端利率分解 → 风险资产"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/id
+        old: "M2-CN-PPI-CPI-SCISSORS"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[0]/evidence_level
+        old: "E1"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[0]/evidence_refs[0]
+        old: "CN_PPI_YOY@2026-10-31"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[0]/evidence_refs[1]
+        old: "CN_CPI_YOY@2026-10-31"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[0]/evidence_refs[2]
+        old: "CN_LPR_1Y@2026-11-20"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[0]/step
+        old: 1
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[0]/text
+        old: "观察: 中国 PPI 同比(CN_PPI_YOY)3.5(2026-07-01)→5.7(2026-10-01)，CPI 同比(CN_CPI_YOY)0.5(2026-07-01)→0.7(2026-10-01)，两序列两期读数发布 2026-08-09→2026-11-09(引擎推定规则，非日历实录)；一年期 LPR(CN_LPR_1Y)3→3 未变；制造业 PMI(CN_PMI_MFG)49.2→49.3 在荣枯线下方。"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[1]/evidence_level
+        old: "E2"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[1]/evidence_refs[0]
+        old: "CN_PPI_YOY@2026-10-31"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[1]/evidence_refs[1]
+        old: "CN_CPI_YOY@2026-10-31"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[1]/evidence_refs[2]
+        old: "CN_PMI_MFG@2026-10-01"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[1]/missing_link_note
+        old: "本引擎无中国工业企业利润/上下游价格传导的识别序列，该环为【假设】，缺环待采；区分指标=CN_CPI_YOY 相对 CN_PPI_YOY: 若至 2027-02-23 前 CN_CPI_YOY 随 PPI 同向上行(剪刀差收窄)，传导分支增强；若 PPI 回落而 CPI 仍低位，挤压分支随前提消退；当前剪刀差(2026-07 至 2026-10)由 3.0 扩至 5.0 个百分点，尚无传导迹象。"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[1]/step
+        old: 2
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/links[1]/text
+        old: "传导【假设】: 若 PPI 高位属上游价格传导而下游需求偏弱(PMI 在荣枯线下方)，则「PPI 高、CPI 低」挤压下游利润，政策倾向维持不变而非收紧；若 PPI 高位向 CPI 传导，则政策空间收窄。可核环节仅剪刀差读数本身，传导环为【假设】。"
+        new: "<absent>"
+     /L3_AI推断层/content/mechanism_chains[M2-CN-PPI-CPI-SCISSORS]/title
+        old: "中国 PPI 高位 / CPI 低位 → 利润与政策空间"
+        new: "<absent>"
+     /L4_条件情景层/attribution
+        old: "ai_inferred"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/id
+        old: "SCN-A-POLICY-DIVERGENCE-EXTENDS"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/confidence_tier
+        old: "有相关证据"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/direction
+        old: "若实际利率高位与波动中枢抬升延续(近一月共同交易日窗 2026-10-20→2026-11-19 实际利率(TIPS_10Y)+11bp、引擎月窗 VIX +38.87%、DXY +2.23%)，风险资产承压且美元偏强(对日元走强: 同窗 USDJPY 156.494→159.347 为 +1.82%；对人民币并未走强: 同窗 USDCNY 6.6779→6.6542 为 -0.35%)。"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/evidence_refs[0]
+        old: "DXY@2026-11-23"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/evidence_refs[1]
+        old: "USDJPY@2026-11-23"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/evidence_refs[2]
+        old: "USDCNY@2026-11-23"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/evidence_refs[3]
+        old: "TIPS_10Y@2026-11-19"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/asset_direction/evidence_refs[4]
+        old: "VIX@2026-11-23"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/falsification/metric_id
+        old: "DFEDTARU"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/falsification/secondary_metric_ids[0]
+        old: "JP_POLICY_RATE"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/falsification/secondary_metric_ids[1]
+        old: "CN_LPR_1Y"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/falsification/threshold
+        old: "若至 2027-02-28 触发条件未同时满足(DFEDTARU 上限未达 4.25，或 JP_POLICY_RATE 月均低于 1.28，或 CN_LPR_1Y 不再为 3)，政策分化延续情景被证伪"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/scenario
+        old: "【假设·非预测】政策分化延续并加深: 至 2027-02，美国 DFEDTARU 上限再上调至少一次(≥4.25)，日本 JP_POLICY_RATE 月均不低于 1.28，中国 CN_LPR_1Y 维持 3 不变；美日与中国之间的政策方向分化延续。两情景互补而不穷尽: 美日不再加码而中国未变的平台态，以及美国转向降息，均不属任一情景。"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/sensitive_variables[0]
+        old: "DFEDTARU"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/sensitive_variables[1]
+        old: "JP_POLICY_RATE"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/trigger/condition
+        old: "至 2027-02-28 DFEDTARU 上限 ≥4.25 且 JP_POLICY_RATE 月均 ≥1.28(以期限前已发布的最新月均为准)，同时 CN_LPR_1Y 仍为 3(证伪条件为本条件的补集)"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-A-POLICY-DIVERGENCE-EXTENDS]/rows/trigger/deadline
+        old: "2027-02-28"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/id
+        old: "SCN-B-POLICY-CONVERGES"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/asset_direction/confidence_tier
+        old: "有相关证据"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/asset_direction/direction
+        old: "风险资产自深跌后修复、VIX 自高位回落、美元指数(DXY)回吐月窗涨幅(引擎月窗 DXY +2.23% 的反向)；该方向与近一月观察(美日股指下跌、VIX 上行)相反，属并列反例情景。"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/asset_direction/evidence_refs[0]
+        old: "USDJPY@2026-11-23"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/asset_direction/evidence_refs[1]
+        old: "USDCNY@2026-11-23"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/asset_direction/evidence_refs[2]
+        old: "SPX@2026-11-23"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/asset_direction/evidence_refs[3]
+        old: "DXY@2026-11-23"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/falsification/metric_id
+        old: "CN_LPR_1Y"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/falsification/secondary_metric_ids[0]
+        old: "DFEDTARU"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/falsification/secondary_metric_ids[1]
+        old: "JP_POLICY_RATE"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/falsification/threshold
+        old: "若至 2027-02-28 触发条件未同时满足(CN_LPR_1Y 未报 2.90 或以下，或其下调时 DFEDTARU 上限高于 4 或 JP_POLICY_RATE 月均不低于 1.28)，政策收敛情景被证伪"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/scenario
+        old: "【假设·非预测】政策分化收敛: 至 2027-02，美日不再加码(DFEDTARU 上限不再高于 4、JP_POLICY_RATE 月均低于 1.28)，中国转向宽松(CN_LPR_1Y 下调至 2.90 或以下)；政策方向分化收敛。美国转向降息(上限回落至 3.75 以下)不属于本情景的收敛形态；美日不再加码而中国未变的平台态不属任一情景，两情景互补而不穷尽。"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/sensitive_variables[0]
+        old: "CN_LPR_1Y"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/sensitive_variables[1]
+        old: "DFEDTARU"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/trigger/condition
+        old: "CN_LPR_1Y 报 2.90 或以下(下调)且 DFEDTARU 上限 ≤4，同时 JP_POLICY_RATE 月均低于 1.28(与延续情景的 ≥1.28 互补；月均同以期限前已发布的最新值为准)"
+        new: "<absent>"
+     /L4_条件情景层/content/scenarios[SCN-B-POLICY-CONVERGES]/rows/trigger/deadline
+        old: "2027-02-28"
+        new: "<absent>"
+## report.json/run.evidence_gate | leaves compared 814 | identical 814 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 740 | identical 740 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+   tree-state (install-tree standard-update ledger, not research evidence): ['[3]/data/last_run/…']
+## report.json/steps[*].envelope | leaves compared 160118 | identical 160060 | real diff 0 | path/run-id only 58 | only-old 0 | only-new 0
+   path/run-id-only sample: ['[10]/engine_root', '[11]/engine_root', '[12]/engine_root']
+# report.json totals: real diff 4 | only-old 110 | only-new 0
+## evidence_index.json | leaves compared 207 | identical 207 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 271 | identical 268 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+   path/run-id-only sample: ['/read_first[0]', '/read_first[1]', '/read_first[2]']
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261123.json'] | new ['research_snapshot_20261123.json']
+   research_snapshot_20261123.json sha256 old 2de337533ef5fbac new 2de337533ef5fbac equal True

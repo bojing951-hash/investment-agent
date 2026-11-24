@@ -1,0 +1,553 @@
+### ex-post month-end tables (judgment history_periods[*].ex_post)
+  anchor 2025-03 base obs: {'DFEDTARU': ('2025-03-31', 4.5), 'UNEMPLOYMENT': ('2025-03-01', 4.2), 'CPI': ('2025-03-01', 319.785), 'INDPRO': ('2025-03-01', 101.0404), 'SPX': ('2025-03-31', 5611.8501), 'NIKKEI225': ('2025-03-31', 35617.56), 'DAX': ('2025-03-31', 22163.4902), 'SHCOMP': ('2025-03-31', 3335.7462), 'GOLD_F': ('2025-03-31', 3122.8), 'DXY': ('2025-03-31', 104.21), 'UST_10Y': ('2025-03-31', 4.23)}
+   2025-03 3m target month                              mine=2025-06                  claim=2025-06              OK
+   2025-03 3m DFEDTARU                                  mine=0.0                      claim=0.0                  OK
+   2025-03 3m DFEDTARU obs dates                        mine=('2025-03-31', '2025-06-30')   (info)
+   2025-03 3m UNEMPLOYMENT                              mine=-0.1                     claim=-0.1                 OK
+   2025-03 3m UNEMPLOYMENT obs dates                    mine=('2025-03-01', '2025-06-01')   (info)
+   2025-03 3m CPI                                       mine=0.52                     claim=0.52                 OK
+   2025-03 3m CPI obs dates                             mine=('2025-03-01', '2025-06-01')   (info)
+   2025-03 3m INDPRO                                    mine=0.43                     claim=0.43                 OK
+   2025-03 3m INDPRO obs dates                          mine=('2025-03-01', '2025-06-01')   (info)
+   2025-03 3m SPX                                       mine=10.57                    claim=10.57                OK
+   2025-03 3m SPX obs dates                             mine=('2025-03-31', '2025-06-30')   (info)
+   2025-03 3m NIKKEI225                                 mine=13.67                    claim=13.67                OK
+   2025-03 3m NIKKEI225 obs dates                       mine=('2025-03-31', '2025-06-30')   (info)
+   2025-03 3m DAX                                       mine=7.88                     claim=7.88                 OK
+   2025-03 3m DAX obs dates                             mine=('2025-03-31', '2025-06-30')   (info)
+   2025-03 3m SHCOMP                                    mine=3.26                     claim=3.26                 OK
+   2025-03 3m SHCOMP obs dates                          mine=('2025-03-31', '2025-06-30')   (info)
+   2025-03 3m GOLD_F                                    mine=5.92                     claim=5.92                 OK
+   2025-03 3m GOLD_F obs dates                          mine=('2025-03-31', '2025-06-30')   (info)
+   2025-03 3m DXY                                       mine=-7.03                    claim=-7.03                OK
+   2025-03 3m DXY obs dates                             mine=('2025-03-31', '2025-06-30')   (info)
+   2025-03 3m UST_10Y                                   mine=0.01                     claim=0.01                 OK
+   2025-03 3m UST_10Y obs dates                         mine=('2025-03-31', '2025-06-30')   (info)
+   2025-03 6m target month                              mine=2025-09                  claim=2025-09              OK
+   2025-03 6m DFEDTARU                                  mine=-0.25                    claim=-0.25                OK
+   2025-03 6m DFEDTARU obs dates                        mine=('2025-03-31', '2025-09-30')   (info)
+   2025-03 6m UNEMPLOYMENT                              mine=0.2                      claim=0.2                  OK
+   2025-03 6m UNEMPLOYMENT obs dates                    mine=('2025-03-01', '2025-09-01')   (info)
+   2025-03 6m CPI                                       mine=1.39                     claim=1.39                 OK
+   2025-03 6m CPI obs dates                             mine=('2025-03-01', '2025-09-01')   (info)
+   2025-03 6m INDPRO                                    mine=0.62                     claim=0.62                 OK
+   2025-03 6m INDPRO obs dates                          mine=('2025-03-01', '2025-09-01')   (info)
+   2025-03 6m SPX                                       mine=19.18                    claim=19.18                OK
+   2025-03 6m SPX obs dates                             mine=('2025-03-31', '2025-09-30')   (info)
+   2025-03 6m NIKKEI225                                 mine=26.15                    claim=26.15                OK
+   2025-03 6m NIKKEI225 obs dates                       mine=('2025-03-31', '2025-09-30')   (info)
+   2025-03 6m DAX                                       mine=7.75                     claim=7.75                 OK
+   2025-03 6m DAX obs dates                             mine=('2025-03-31', '2025-09-30')   (info)
+   2025-03 6m SHCOMP                                    mine=16.4                     claim=16.4                 OK
+   2025-03 6m SHCOMP obs dates                          mine=('2025-03-31', '2025-09-30')   (info)
+   2025-03 6m GOLD_F                                    mine=24.03                    claim=24.03                OK
+   2025-03 6m GOLD_F obs dates                          mine=('2025-03-31', '2025-09-30')   (info)
+   2025-03 6m DXY                                       mine=-6.18                    claim=-6.18                OK
+   2025-03 6m DXY obs dates                             mine=('2025-03-31', '2025-09-30')   (info)
+   2025-03 6m UST_10Y                                   mine=-0.07                    claim=-0.07                OK
+   2025-03 6m UST_10Y obs dates                         mine=('2025-03-31', '2025-09-30')   (info)
+   2025-03 12m target month                             mine=2026-03                  claim=2026-03              OK
+   2025-03 12m DFEDTARU                                 mine=-0.75                    claim=-0.75                OK
+   2025-03 12m DFEDTARU obs dates                       mine=('2025-03-31', '2026-03-31')   (info)
+   2025-03 12m UNEMPLOYMENT                             mine=0.1                      claim=0.1                  OK
+   2025-03 12m UNEMPLOYMENT obs dates                   mine=('2025-03-01', '2026-03-01')   (info)
+   2025-03 12m CPI                                      mine=3.29                     claim=3.29                 OK
+   2025-03 12m CPI obs dates                            mine=('2025-03-01', '2026-03-01')   (info)
+   2025-03 12m INDPRO                                   mine=0.69                     claim=0.69                 OK
+   2025-03 12m INDPRO obs dates                         mine=('2025-03-01', '2026-03-01')   (info)
+   2025-03 12m SPX                                      mine=16.33                    claim=16.33                OK
+   2025-03 12m SPX obs dates                            mine=('2025-03-31', '2026-03-31')   (info)
+   2025-03 12m NIKKEI225                                mine=43.37                    claim=43.37                OK
+   2025-03 12m NIKKEI225 obs dates                      mine=('2025-03-31', '2026-03-31')   (info)
+   2025-03 12m DAX                                      mine=2.33                     claim=2.33                 OK
+   2025-03 12m DAX obs dates                            mine=('2025-03-31', '2026-03-31')   (info)
+   2025-03 12m SHCOMP                                   mine=16.67                    claim=16.67                OK
+   2025-03 12m SHCOMP obs dates                         mine=('2025-03-31', '2026-03-31')   (info)
+   2025-03 12m GOLD_F                                   mine=48.83                    claim=48.83                OK
+   2025-03 12m GOLD_F obs dates                         mine=('2025-03-31', '2026-03-31')   (info)
+   2025-03 12m DXY                                      mine=-4.08                    claim=-4.08                OK
+   2025-03 12m DXY obs dates                            mine=('2025-03-31', '2026-03-31')   (info)
+   2025-03 12m UST_10Y                                  mine=0.07                     claim=0.07                 OK
+   2025-03 12m UST_10Y obs dates                        mine=('2025-03-31', '2026-03-31')   (info)
+  anchor 2022-06 base obs: {'DFEDTARU': ('2022-06-30', 1.75), 'UNEMPLOYMENT': ('2022-06-01', 3.6), 'CPI': ('2022-06-01', 294.957), 'INDPRO': ('2022-06-01', 101.018), 'SPX': ('2022-06-30', 3785.3799), 'NIKKEI225': ('2022-06-30', 26393.04), 'DAX': ('2022-06-30', 12783.7695), 'SHCOMP': ('2022-06-30', 3398.6161), 'GOLD_F': ('2022-06-30', 1807.3), 'DXY': ('2022-06-30', 104.69), 'UST_10Y': ('2022-06-30', 2.98)}
+   2022-06 3m target month                              mine=2022-09                  claim=2022-09              OK
+   2022-06 3m DFEDTARU                                  mine=1.5                      claim=1.5                  OK
+   2022-06 3m DFEDTARU obs dates                        mine=('2022-06-30', '2022-09-30')   (info)
+   2022-06 3m UNEMPLOYMENT                              mine=-0.1                     claim=-0.1                 OK
+   2022-06 3m UNEMPLOYMENT obs dates                    mine=('2022-06-01', '2022-09-01')   (info)
+   2022-06 3m CPI                                       mine=0.47                     claim=0.47                 OK
+   2022-06 3m CPI obs dates                             mine=('2022-06-01', '2022-09-01')   (info)
+   2022-06 3m INDPRO                                    mine=0.27                     claim=0.27                 OK
+   2022-06 3m INDPRO obs dates                          mine=('2022-06-01', '2022-09-01')   (info)
+   2022-06 3m SPX                                       mine=-5.28                    claim=-5.28                OK
+   2022-06 3m SPX obs dates                             mine=('2022-06-30', '2022-09-30')   (info)
+   2022-06 3m NIKKEI225                                 mine=-1.73                    claim=-1.73                OK
+   2022-06 3m NIKKEI225 obs dates                       mine=('2022-06-30', '2022-09-30')   (info)
+   2022-06 3m DAX                                       mine=-5.24                    claim=-5.24                OK
+   2022-06 3m DAX obs dates                             mine=('2022-06-30', '2022-09-30')   (info)
+   2022-06 3m SHCOMP                                    mine=-11.01                   claim=-11.01               OK
+   2022-06 3m SHCOMP obs dates                          mine=('2022-06-30', '2022-09-30')   (info)
+   2022-06 3m GOLD_F                                    mine=-7.49                    claim=-7.49                OK
+   2022-06 3m GOLD_F obs dates                          mine=('2022-06-30', '2022-09-30')   (info)
+   2022-06 3m DXY                                       mine=7.1                      claim=7.1                  OK
+   2022-06 3m DXY obs dates                             mine=('2022-06-30', '2022-09-30')   (info)
+   2022-06 3m UST_10Y                                   mine=0.85                     claim=0.85                 OK
+   2022-06 3m UST_10Y obs dates                         mine=('2022-06-30', '2022-09-30')   (info)
+   2022-06 6m target month                              mine=2022-12                  claim=2022-12              OK
+   2022-06 6m DFEDTARU                                  mine=2.75                     claim=2.75                 OK
+   2022-06 6m DFEDTARU obs dates                        mine=('2022-06-30', '2022-12-31')   (info)
+   2022-06 6m UNEMPLOYMENT                              mine=-0.1                     claim=-0.1                 OK
+   2022-06 6m UNEMPLOYMENT obs dates                    mine=('2022-06-01', '2022-12-01')   (info)
+   2022-06 6m CPI                                       mine=1.31                     claim=1.31                 OK
+   2022-06 6m CPI obs dates                             mine=('2022-06-01', '2022-12-01')   (info)
+   2022-06 6m INDPRO                                    mine=-1.24                    claim=-1.24                OK
+   2022-06 6m INDPRO obs dates                          mine=('2022-06-01', '2022-12-01')   (info)
+   2022-06 6m SPX                                       mine=1.43                     claim=1.43                 OK
+   2022-06 6m SPX obs dates                             mine=('2022-06-30', '2022-12-30')   (info)
+   2022-06 6m NIKKEI225                                 mine=-1.13                    claim=-1.13                OK
+   2022-06 6m NIKKEI225 obs dates                       mine=('2022-06-30', '2022-12-30')   (info)
+   2022-06 6m DAX                                       mine=8.92                     claim=8.92                 OK
+   2022-06 6m DAX obs dates                             mine=('2022-06-30', '2022-12-30')   (info)
+   2022-06 6m SHCOMP                                    mine=-9.1                     claim=-9.1                 OK
+   2022-06 6m SHCOMP obs dates                          mine=('2022-06-30', '2022-12-30')   (info)
+   2022-06 6m GOLD_F                                    mine=1.05                     claim=1.05                 OK
+   2022-06 6m GOLD_F obs dates                          mine=('2022-06-30', '2022-12-30')   (info)
+   2022-06 6m DXY                                       mine=-1.12                    claim=-1.12                OK
+   2022-06 6m DXY obs dates                             mine=('2022-06-30', '2022-12-30')   (info)
+   2022-06 6m UST_10Y                                   mine=0.9                      claim=0.9                  OK
+   2022-06 6m UST_10Y obs dates                         mine=('2022-06-30', '2022-12-30')   (info)
+   2022-06 12m target month                             mine=2023-06                  claim=2023-06              OK
+   2022-06 12m DFEDTARU                                 mine=3.5                      claim=3.5                  OK
+   2022-06 12m DFEDTARU obs dates                       mine=('2022-06-30', '2023-06-30')   (info)
+   2022-06 12m UNEMPLOYMENT                             mine=0.0                      claim=0.0                  OK
+   2022-06 12m UNEMPLOYMENT obs dates                   mine=('2022-06-01', '2023-06-01')   (info)
+   2022-06 12m CPI                                      mine=3.07                     claim=3.07                 OK
+   2022-06 12m CPI obs dates                            mine=('2022-06-01', '2023-06-01')   (info)
+   2022-06 12m INDPRO                                   mine=-0.89                    claim=-0.89                OK
+   2022-06 12m INDPRO obs dates                         mine=('2022-06-01', '2023-06-01')   (info)
+   2022-06 12m SPX                                      mine=17.57                    claim=17.57                OK
+   2022-06 12m SPX obs dates                            mine=('2022-06-30', '2023-06-30')   (info)
+   2022-06 12m NIKKEI225                                mine=25.75                    claim=25.75                OK
+   2022-06 12m NIKKEI225 obs dates                      mine=('2022-06-30', '2023-06-30')   (info)
+   2022-06 12m DAX                                      mine=26.32                    claim=26.32                OK
+   2022-06 12m DAX obs dates                            mine=('2022-06-30', '2023-06-30')   (info)
+   2022-06 12m SHCOMP                                   mine=-5.78                    claim=-5.78                OK
+   2022-06 12m SHCOMP obs dates                         mine=('2022-06-30', '2023-06-30')   (info)
+   2022-06 12m GOLD_F                                   mine=6.76                     claim=6.76                 OK
+   2022-06 12m GOLD_F obs dates                         mine=('2022-06-30', '2023-06-30')   (info)
+   2022-06 12m DXY                                      mine=-1.7                     claim=-1.7                 OK
+   2022-06 12m DXY obs dates                            mine=('2022-06-30', '2023-06-30')   (info)
+   2022-06 12m UST_10Y                                  mine=0.83                     claim=0.83                 OK
+   2022-06 12m UST_10Y obs dates                        mine=('2022-06-30', '2023-06-30')   (info)
+  anchor 2023-10 base obs: {'DFEDTARU': ('2023-10-31', 5.5), 'UNEMPLOYMENT': ('2023-10-01', 3.9), 'CPI': ('2023-10-01', 307.696), 'INDPRO': ('2023-10-01', 100.4689), 'SPX': ('2023-10-31', 4193.7998), 'NIKKEI225': ('2023-10-31', 30858.85), 'DAX': ('2023-10-31', 14810.3398), 'SHCOMP': ('2023-10-31', 3018.7706), 'GOLD_F': ('2023-10-31', 1994.3), 'DXY': ('2023-10-31', 106.66), 'UST_10Y': ('2023-10-31', 4.88)}
+   2023-10 3m target month                              mine=2024-01                  claim=2024-01              OK
+   2023-10 3m DFEDTARU                                  mine=0.0                      claim=0.0                  OK
+   2023-10 3m DFEDTARU obs dates                        mine=('2023-10-31', '2024-01-31')   (info)
+   2023-10 3m UNEMPLOYMENT                              mine=-0.2                     claim=-0.2                 OK
+   2023-10 3m UNEMPLOYMENT obs dates                    mine=('2023-10-01', '2024-01-01')   (info)
+   2023-10 3m CPI                                       mine=0.65                     claim=0.65                 OK
+   2023-10 3m CPI obs dates                             mine=('2023-10-01', '2024-01-01')   (info)
+   2023-10 3m INDPRO                                    mine=-1.24                    claim=-1.24                OK
+   2023-10 3m INDPRO obs dates                          mine=('2023-10-01', '2024-01-01')   (info)
+   2023-10 3m SPX                                       mine=15.54                    claim=15.54                OK
+   2023-10 3m SPX obs dates                             mine=('2023-10-31', '2024-01-31')   (info)
+   2023-10 3m NIKKEI225                                 mine=17.59                    claim=17.59                OK
+   2023-10 3m NIKKEI225 obs dates                       mine=('2023-10-31', '2024-01-31')   (info)
+   2023-10 3m DAX                                       mine=14.13                    claim=14.13                OK
+   2023-10 3m DAX obs dates                             mine=('2023-10-31', '2024-01-31')   (info)
+   2023-10 3m SHCOMP                                    mine=-7.63                    claim=-7.63                OK
+   2023-10 3m SHCOMP obs dates                          mine=('2023-10-31', '2024-01-31')   (info)
+   2023-10 3m GOLD_F                                    mine=2.71                     claim=2.71                 OK
+   2023-10 3m GOLD_F obs dates                          mine=('2023-10-31', '2024-01-31')   (info)
+   2023-10 3m DXY                                       mine=-3.18                    claim=-3.18                OK
+   2023-10 3m DXY obs dates                             mine=('2023-10-31', '2024-01-31')   (info)
+   2023-10 3m UST_10Y                                   mine=-0.89                    claim=-0.89                OK
+   2023-10 3m UST_10Y obs dates                         mine=('2023-10-31', '2024-01-31')   (info)
+   2023-10 6m target month                              mine=2024-04                  claim=2024-04              OK
+   2023-10 6m DFEDTARU                                  mine=0.0                      claim=0.0                  OK
+   2023-10 6m DFEDTARU obs dates                        mine=('2023-10-31', '2024-04-30')   (info)
+   2023-10 6m UNEMPLOYMENT                              mine=0.0                      claim=0.0                  OK
+   2023-10 6m UNEMPLOYMENT obs dates                    mine=('2023-10-01', '2024-04-01')   (info)
+   2023-10 6m CPI                                       mine=1.73                     claim=1.73                 OK
+   2023-10 6m CPI obs dates                             mine=('2023-10-01', '2024-04-01')   (info)
+   2023-10 6m INDPRO                                    mine=-0.22                    claim=-0.22                OK
+   2023-10 6m INDPRO obs dates                          mine=('2023-10-01', '2024-04-01')   (info)
+   2023-10 6m SPX                                       mine=20.07                    claim=20.07                OK
+   2023-10 6m SPX obs dates                             mine=('2023-10-31', '2024-04-30')   (info)
+   2023-10 6m NIKKEI225                                 mine=24.46                    claim=24.46                OK
+   2023-10 6m NIKKEI225 obs dates                       mine=('2023-10-31', '2024-04-30')   (info)
+   2023-10 6m DAX                                       mine=21.08                    claim=21.08                OK
+   2023-10 6m DAX obs dates                             mine=('2023-10-31', '2024-04-30')   (info)
+   2023-10 6m SHCOMP                                    mine=2.85                     claim=2.85                 OK
+   2023-10 6m SHCOMP obs dates                          mine=('2023-10-31', '2024-04-30')   (info)
+   2023-10 6m GOLD_F                                    mine=15.47                    claim=15.47                OK
+   2023-10 6m GOLD_F obs dates                          mine=('2023-10-31', '2024-04-30')   (info)
+   2023-10 6m DXY                                       mine=-0.41                    claim=-0.41                OK
+   2023-10 6m DXY obs dates                             mine=('2023-10-31', '2024-04-30')   (info)
+   2023-10 6m UST_10Y                                   mine=-0.19                    claim=-0.19                OK
+   2023-10 6m UST_10Y obs dates                         mine=('2023-10-31', '2024-04-30')   (info)
+   2023-10 12m target month                             mine=2024-10                  claim=2024-10              OK
+   2023-10 12m DFEDTARU                                 mine=-0.5                     claim=-0.5                 OK
+   2023-10 12m DFEDTARU obs dates                       mine=('2023-10-31', '2024-10-31')   (info)
+   2023-10 12m UNEMPLOYMENT                             mine=0.2                      claim=0.2                  OK
+   2023-10 12m UNEMPLOYMENT obs dates                   mine=('2023-10-01', '2024-10-01')   (info)
+   2023-10 12m CPI                                      mine=2.58                     claim=2.58                 OK
+   2023-10 12m CPI obs dates                            mine=('2023-10-01', '2024-10-01')   (info)
+   2023-10 12m INDPRO                                   mine=-0.99                    claim=-0.99                OK
+   2023-10 12m INDPRO obs dates                         mine=('2023-10-01', '2024-10-01')   (info)
+   2023-10 12m SPX                                      mine=36.04                    claim=36.04                OK
+   2023-10 12m SPX obs dates                            mine=('2023-10-31', '2024-10-31')   (info)
+   2023-10 12m NIKKEI225                                mine=26.65                    claim=26.65                OK
+   2023-10 12m NIKKEI225 obs dates                      mine=('2023-10-31', '2024-10-31')   (info)
+   2023-10 12m DAX                                      mine=28.81                    claim=28.81                OK
+   2023-10 12m DAX obs dates                            mine=('2023-10-31', '2024-10-31')   (info)
+   2023-10 12m SHCOMP                                   mine=8.65                     claim=8.65                 OK
+   2023-10 12m SHCOMP obs dates                         mine=('2023-10-31', '2024-10-31')   (info)
+   2023-10 12m GOLD_F                                   mine=37.86                    claim=37.86                OK
+   2023-10 12m GOLD_F obs dates                         mine=('2023-10-31', '2024-10-31')   (info)
+   2023-10 12m DXY                                      mine=-2.51                    claim=-2.51                OK
+   2023-10 12m DXY obs dates                            mine=('2023-10-31', '2024-10-31')   (info)
+   2023-10 12m UST_10Y                                  mine=-0.6                     claim=-0.6                 OK
+   2023-10 12m UST_10Y obs dates                        mine=('2023-10-31', '2024-10-31')   (info)
+### scenario direction quotes (same tables)
+   2022-06 3m SPX                                       mine=-5.28                    claim=-5.28                OK
+   2022-06 3m GOLD_F                                    mine=-7.49                    claim=-7.49                OK
+   2022-06 3m DXY                                       mine=7.1                      claim=7.1                  OK
+   2022-06 12m SPX (+17.57)                             mine=17.57                    claim=17.57                OK
+   2025-03 12m GOLD_F                                   mine=48.83                    claim=48.83                OK
+   2025-03 12m DXY                                      mine=-4.08                    claim=-4.08                OK
+   2025-03 12m SPX                                      mine=16.33                    claim=16.33                OK
+### S6-derived history facts (distance / pct / dims)
+   2025-03 distance 4dp                                 mine=0.7272                   claim=0.7272               OK
+   2025-03 pct 2dp                                      mine=0.0                      claim=0.0                  OK
+   2025-03 vol share pct                                mine=42.1                     claim=42.1                 OK
+   2025-03 rates share pct                              mine=40.7                     claim=40.7                 OK
+   2025-03 inflation share pct                          mine=10.5                     claim=10.5                 OK
+   2025-03 valuation share pct                          mine=6.7                      claim=6.7                  OK
+   2022-06 distance 4dp                                 mine=0.7918                   claim=0.7918               OK
+   2022-06 pct 2dp                                      mine=1.3699                   claim=1.37                 OK
+   2023-10 distance 4dp                                 mine=1.0542                   claim=1.0542               OK
+   2023-10 pct 2dp                                      mine=30.137                   claim=30.14                OK
+### sync-face: quoted latest-revised values
+   2025-03 EA_HICP_YOY 2025-02                          mine=2.3                      claim=2.3                  OK
+   2025-03 JP_CPI_YOY 2025-02                           mine=3.66                     claim=3.66                 OK
+   2025-03 CN_PPI_YOY 2025-02                           mine=-2.2                     claim=-2.2                 OK
+   2025-03 CN_CPI_YOY 2025-02                           mine=-0.7                     claim=-0.7                 OK
+   2022-06 EA_HICP_YOY 2022-05                          mine=8.1                      claim=8.1                  OK
+   2022-06 JP_CPI_YOY 2022-05                           mine=2.46                     claim=2.46                 OK
+   2022-06 CN_PPI_YOY 2022-05                           mine=6.4                      claim=6.4                  OK
+   2022-06 CN_CPI_YOY 2022-05                           mine=2.1                      claim=2.1                  OK
+   2023-10 EA_HICP_YOY 2023-10                          mine=2.9                      claim=2.9                  OK
+   2023-10 JP_CPI_YOY 2023-09                           mine=3.05                     claim=3.05                 OK
+   2023-10 CN_PPI_YOY 2023-09                           mine=-2.5                     claim=-2.5                 OK
+   2023-10 CN_CPI_YOY 2023-09                           mine=0.0                      claim=0.0                  OK
+### sync-face recompute (visibility = publication date <= month end; rules from planner RELEASE_RULES)
+  -- segment 2025-03 (anchor-3 = 2024-12)
+   2025-03 US/growth anchor-3 obs date                  mine=2024-07-01               claim=2024-07-01           OK
+   2025-03 US/growth anchor-3 value                     mine=2.9479                   claim=2.9479               OK
+   2025-03 US/growth anchor-3 pub date                  mine=2024-10-29               claim=2024-10-29           OK
+   2025-03 US/growth cutoff obs date                    mine=2024-10-01               claim=2024-10-01           OK
+   2025-03 US/growth cutoff value                       mine=2.6419                   claim=2.6419               OK
+   2025-03 US/growth cutoff pub date                    mine=2025-01-29               claim=2025-01-29           OK
+   2025-03 US/growth change                             mine=-0.306   (info)
+   2025-03 US/inflation anchor-3 obs date               mine=2024-11-01               claim=2024-11-01           OK
+   2025-03 US/inflation anchor-3 value                  mine=2.7195                   claim=2.7195               OK
+   2025-03 US/inflation anchor-3 pub date               mine=2024-12-13               claim=2024-12-13           OK
+   2025-03 US/inflation cutoff obs date                 mine=2025-02-01               claim=2025-02-01           OK
+   2025-03 US/inflation cutoff value                    mine=2.8016                   claim=2.8016               OK
+   2025-03 US/inflation cutoff pub date                 mine=2025-03-13               claim=2025-03-13           OK
+   2025-03 US/inflation change                          mine=0.0821   (info)
+   2025-03 US/policy anchor-3 obs date                  mine=2024-12-31               claim=2024-12-31           OK
+   2025-03 US/policy anchor-3 value                     mine=4.5                      claim=4.5                  OK
+   2025-03 US/policy anchor-3 pub date                  mine=2024-12-31               claim=2024-12-31           OK
+   2025-03 US/policy cutoff obs date                    mine=2025-03-31               claim=2025-03-31           OK
+   2025-03 US/policy cutoff value                       mine=4.5                      claim=4.5                  OK
+   2025-03 US/policy cutoff pub date                    mine=2025-03-31               claim=2025-03-31           OK
+   2025-03 US/policy change                             mine=0.0   (info)
+   2025-03 CN/growth anchor-3 obs date                  mine=2024-12-01               claim=2024-12-01           OK
+   2025-03 CN/growth anchor-3 value                     mine=50.1                     claim=50.1                 OK
+   2025-03 CN/growth anchor-3 pub date                  mine=2024-12-30               claim=2024-12-30           OK
+   2025-03 CN/growth cutoff obs date                    mine=2025-03-01               claim=2025-03-01           OK
+   2025-03 CN/growth cutoff value                       mine=50.5                     claim=50.5                 OK
+   2025-03 CN/growth cutoff pub date                    mine=2025-03-30               claim=2025-03-30           OK
+   2025-03 CN/growth change                             mine=0.4   (info)
+   2025-03 CN/inflation anchor-3 obs date               mine=2024-11-01               claim=2024-11-01           OK
+   2025-03 CN/inflation anchor-3 value                  mine=0.2                      claim=0.2                  OK
+   2025-03 CN/inflation anchor-3 pub date               mine=2024-12-09               claim=2024-12-09           OK
+   2025-03 CN/inflation cutoff obs date                 mine=2025-02-01               claim=2025-02-01           OK
+   2025-03 CN/inflation cutoff value                    mine=-0.7                     claim=-0.7                 OK
+   2025-03 CN/inflation cutoff pub date                 mine=2025-03-09               claim=2025-03-09           OK
+   2025-03 CN/inflation change                          mine=-0.9   (info)
+   2025-03 CN/policy anchor-3 obs date                  mine=2024-12-20               claim=2024-12-20           OK
+   2025-03 CN/policy anchor-3 value                     mine=3.1                      claim=3.1                  OK
+   2025-03 CN/policy anchor-3 pub date                  mine=2024-12-20               claim=2024-12-20           OK
+   2025-03 CN/policy cutoff obs date                    mine=2025-03-20               claim=2025-03-20           OK
+   2025-03 CN/policy cutoff value                       mine=3.1                      claim=3.1                  OK
+   2025-03 CN/policy cutoff pub date                    mine=2025-03-20               claim=2025-03-20           OK
+   2025-03 CN/policy change                             mine=0.0   (info)
+   2025-03 EA/growth anchor-3 obs date                  mine=2024-07-01               claim=2024-07-01           OK
+   2025-03 EA/growth anchor-3 value                     mine=1.31                     claim=1.31                 OK
+   2025-03 EA/growth anchor-3 pub date                  mine=2024-11-04               claim=2024-11-04           OK
+   2025-03 EA/growth cutoff obs date                    mine=2024-10-01               claim=2024-10-01           OK
+   2025-03 EA/growth cutoff value                       mine=1.56                     claim=1.56                 OK
+   2025-03 EA/growth cutoff pub date                    mine=2025-02-04               claim=2025-02-04           OK
+   2025-03 EA/growth change                             mine=0.25   (info)
+   2025-03 EA/inflation anchor-3 obs date               mine=2024-12-01               claim=2024-12-01           OK
+   2025-03 EA/inflation anchor-3 value                  mine=2.4                      claim=2.4                  OK
+   2025-03 EA/inflation anchor-3 pub date               mine=2024-12-31               claim=2024-12-31           OK
+   2025-03 EA/inflation cutoff obs date                 mine=2025-02-01               claim=2025-02-01           OK
+   2025-03 EA/inflation cutoff value                    mine=2.3                      claim=2.3                  OK
+   2025-03 EA/inflation cutoff pub date                 mine=2025-02-28               claim=2025-02-28           OK
+   2025-03 EA/inflation change                          mine=-0.1   (info)
+   2025-03 EA/policy anchor-3 obs date                  mine=2024-12-18               claim=2024-12-18           OK
+   2025-03 EA/policy anchor-3 value                     mine=3.15                     claim=3.15                 OK
+   2025-03 EA/policy anchor-3 pub date                  mine=2024-12-18               claim=2024-12-18           OK
+   2025-03 EA/policy cutoff obs date                    mine=2025-03-12               claim=2025-03-12           OK
+   2025-03 EA/policy cutoff value                       mine=2.65                     claim=2.65                 OK
+   2025-03 EA/policy cutoff pub date                    mine=2025-03-12               claim=2025-03-12           OK
+   2025-03 EA/policy change                             mine=-0.5   (info)
+   2025-03 JP/growth anchor-3 obs date                  mine=2024-07-01               claim=2024-07-01           OK
+   2025-03 JP/growth anchor-3 value                     mine=1.11                     claim=1.11                 OK
+   2025-03 JP/growth anchor-3 pub date                  mine=2024-11-14               claim=2024-11-14           OK
+   2025-03 JP/growth cutoff obs date                    mine=2024-10-01               claim=2024-10-01           OK
+   2025-03 JP/growth cutoff value                       mine=1.01                     claim=1.01                 OK
+   2025-03 JP/growth cutoff pub date                    mine=2025-02-14               claim=2025-02-14           OK
+   2025-03 JP/growth change                             mine=-0.1   (info)
+   2025-03 JP/inflation anchor-3 obs date               mine=2024-11-01               claim=2024-11-01           OK
+   2025-03 JP/inflation anchor-3 value                  mine=2.92                     claim=2.92                 OK
+   2025-03 JP/inflation anchor-3 pub date               mine=2024-12-20               claim=2024-12-20           OK
+   2025-03 JP/inflation cutoff obs date                 mine=2025-02-01               claim=2025-02-01           OK
+   2025-03 JP/inflation cutoff value                    mine=3.66                     claim=3.66                 OK
+   2025-03 JP/inflation cutoff pub date                 mine=2025-03-20               claim=2025-03-20           OK
+   2025-03 JP/inflation change                          mine=0.74   (info)
+   2025-03 JP/policy anchor-3 obs date                  mine=2024-11-01               claim=2024-11-01           OK
+   2025-03 JP/policy anchor-3 value                     mine=0.227                    claim=0.227                OK
+   2025-03 JP/policy anchor-3 pub date                  mine=2024-12-05               claim=2024-12-05           OK
+   2025-03 JP/policy cutoff obs date                    mine=2025-02-01               claim=2025-02-01           OK
+   2025-03 JP/policy cutoff value                       mine=0.478                    claim=0.478                OK
+   2025-03 JP/policy cutoff pub date                    mine=2025-03-05               claim=2025-03-05           OK
+   2025-03 JP/policy change                             mine=0.251   (info)
+   2025-03 US direction                                 mine={'growth': -1, 'inflation': 1, 'policy': 0}   (info)
+   2025-03 label CN/growth                              mine=分化                       claim=分化                   OK
+   2025-03 label CN/inflation                           mine=分化                       claim=分化                   OK
+   2025-03 label CN/policy                              mine=同步                       claim=同步                   OK
+   2025-03 label EA/growth                              mine=分化                       claim=分化                   OK
+   2025-03 label EA/inflation                           mine=分化                       claim=分化                   OK
+   2025-03 label EA/policy                              mine=分化                       claim=分化                   OK
+   2025-03 label JP/growth                              mine=同步                       claim=同步                   OK
+   2025-03 label JP/inflation                           mine=同步                       claim=同步                   OK
+   2025-03 label JP/policy                              mine=分化                       claim=分化                   OK
+   2025-03 number of synchronized cells (of 9)          mine=3                        claim=3                    OK
+  -- segment 2022-06 (anchor-3 = 2022-03)
+   2022-06 US/growth anchor-3 obs date                  mine=2021-10-01               claim=2021-10-01           OK
+   2022-06 US/growth anchor-3 value                     mine=5.8182                   claim=5.8182               OK
+   2022-06 US/growth anchor-3 pub date                  mine=2022-01-29               claim=2022-01-29           OK
+   2022-06 US/growth cutoff obs date                    mine=2022-01-01               claim=2022-01-01           OK
+   2022-06 US/growth cutoff value                       mine=3.9754                   claim=3.9754               OK
+   2022-06 US/growth cutoff pub date                    mine=2022-04-29               claim=2022-04-29           OK
+   2022-06 US/growth change                             mine=-1.8428   (info)
+   2022-06 US/inflation anchor-3 obs date               mine=2022-02-01               claim=2022-02-01           OK
+   2022-06 US/inflation anchor-3 value                  mine=7.9373                   claim=7.9373               OK
+   2022-06 US/inflation anchor-3 pub date               mine=2022-03-13               claim=2022-03-13           OK
+   2022-06 US/inflation cutoff obs date                 mine=2022-05-01               claim=2022-05-01           OK
+   2022-06 US/inflation cutoff value                    mine=8.5382                   claim=8.5382               OK
+   2022-06 US/inflation cutoff pub date                 mine=2022-06-13               claim=2022-06-13           OK
+   2022-06 US/inflation change                          mine=0.6009   (info)
+   2022-06 US/policy anchor-3 obs date                  mine=2022-03-31               claim=2022-03-31           OK
+   2022-06 US/policy anchor-3 value                     mine=0.5                      claim=0.5                  OK
+   2022-06 US/policy anchor-3 pub date                  mine=2022-03-31               claim=2022-03-31           OK
+   2022-06 US/policy cutoff obs date                    mine=2022-06-30               claim=2022-06-30           OK
+   2022-06 US/policy cutoff value                       mine=1.75                     claim=1.75                 OK
+   2022-06 US/policy cutoff pub date                    mine=2022-06-30               claim=2022-06-30           OK
+   2022-06 US/policy change                             mine=1.25   (info)
+   2022-06 CN/growth anchor-3 obs date                  mine=2022-03-01               claim=2022-03-01           OK
+   2022-06 CN/growth anchor-3 value                     mine=49.5                     claim=49.5                 OK
+   2022-06 CN/growth anchor-3 pub date                  mine=2022-03-30               claim=2022-03-30           OK
+   2022-06 CN/growth cutoff obs date                    mine=2022-06-01               claim=2022-06-01           OK
+   2022-06 CN/growth cutoff value                       mine=50.2                     claim=50.2                 OK
+   2022-06 CN/growth cutoff pub date                    mine=2022-06-29               claim=2022-06-29           OK
+   2022-06 CN/growth change                             mine=0.7   (info)
+   2022-06 CN/inflation anchor-3 obs date               mine=2022-02-01               claim=2022-02-01           OK
+   2022-06 CN/inflation anchor-3 value                  mine=0.9                      claim=0.9                  OK
+   2022-06 CN/inflation anchor-3 pub date               mine=2022-03-09               claim=2022-03-09           OK
+   2022-06 CN/inflation cutoff obs date                 mine=2022-05-01               claim=2022-05-01           OK
+   2022-06 CN/inflation cutoff value                    mine=2.1                      claim=2.1                  OK
+   2022-06 CN/inflation cutoff pub date                 mine=2022-06-09               claim=2022-06-09           OK
+   2022-06 CN/inflation change                          mine=1.2   (info)
+   2022-06 CN/policy anchor-3 obs date                  mine=2022-03-21               claim=2022-03-21           OK
+   2022-06 CN/policy anchor-3 value                     mine=3.7                      claim=3.7                  OK
+   2022-06 CN/policy anchor-3 pub date                  mine=2022-03-20               claim=2022-03-20           OK
+   2022-06 CN/policy cutoff obs date                    mine=2022-06-20               claim=2022-06-20           OK
+   2022-06 CN/policy cutoff value                       mine=3.7                      claim=3.7                  OK
+   2022-06 CN/policy cutoff pub date                    mine=2022-06-20               claim=2022-06-19           <<< MISMATCH
+   2022-06 CN/policy change                             mine=0.0   (info)
+   2022-06 EA/growth anchor-3 obs date                  mine=2021-10-01               claim=2021-10-01           OK
+   2022-06 EA/growth anchor-3 value                     mine=5.68                     claim=5.68                 OK
+   2022-06 EA/growth anchor-3 pub date                  mine=2022-02-04               claim=2022-02-04           OK
+   2022-06 EA/growth cutoff obs date                    mine=2022-01-01               claim=2022-01-01           OK
+   2022-06 EA/growth cutoff value                       mine=5.58                     claim=5.58                 OK
+   2022-06 EA/growth cutoff pub date                    mine=2022-05-05               claim=2022-05-05           OK
+   2022-06 EA/growth change                             mine=-0.1   (info)
+   2022-06 EA/inflation anchor-3 obs date               mine=2022-03-01               claim=2022-03-01           OK
+   2022-06 EA/inflation anchor-3 value                  mine=7.4                      claim=7.4                  OK
+   2022-06 EA/inflation anchor-3 pub date               mine=2022-03-31               claim=2022-03-31           OK
+   2022-06 EA/inflation cutoff obs date                 mine=2022-05-01               claim=2022-05-01           OK
+   2022-06 EA/inflation cutoff value                    mine=8.1                      claim=8.1                  OK
+   2022-06 EA/inflation cutoff pub date                 mine=2022-05-31               claim=2022-05-31           OK
+   2022-06 EA/inflation change                          mine=0.7   (info)
+   2022-06 EA/policy anchor-3 obs date                  mine=2019-09-18               claim=2019-09-18           OK
+   2022-06 EA/policy anchor-3 value                     mine=0.0                      claim=0                    OK
+   2022-06 EA/policy anchor-3 pub date                  mine=2019-09-18               claim=2019-09-18           OK
+   2022-06 EA/policy cutoff obs date                    mine=2019-09-18               claim=2019-09-18           OK
+   2022-06 EA/policy cutoff value                       mine=0.0                      claim=0                    OK
+   2022-06 EA/policy cutoff pub date                    mine=2019-09-18               claim=2019-09-18           OK
+   2022-06 EA/policy change                             mine=0.0   (info)
+   2022-06 JP/growth anchor-3 obs date                  mine=2021-10-01               claim=2021-10-01           OK
+   2022-06 JP/growth anchor-3 value                     mine=2.8                      claim=2.8                  OK
+   2022-06 JP/growth anchor-3 pub date                  mine=2022-02-14               claim=2022-02-14           OK
+   2022-06 JP/growth cutoff obs date                    mine=2022-01-01               claim=2022-01-01           OK
+   2022-06 JP/growth cutoff value                       mine=1.15                     claim=1.15                 OK
+   2022-06 JP/growth cutoff pub date                    mine=2022-05-15               claim=2022-05-15           OK
+   2022-06 JP/growth change                             mine=-1.65   (info)
+   2022-06 JP/inflation anchor-3 obs date               mine=2022-02-01               claim=2022-02-01           OK
+   2022-06 JP/inflation anchor-3 value                  mine=0.95                     claim=0.95                 OK
+   2022-06 JP/inflation anchor-3 pub date               mine=2022-03-20               claim=2022-03-20           OK
+   2022-06 JP/inflation cutoff obs date                 mine=2022-05-01               claim=2022-05-01           OK
+   2022-06 JP/inflation cutoff value                    mine=2.46                     claim=2.46                 OK
+   2022-06 JP/inflation cutoff pub date                 mine=2022-06-20               claim=2022-06-20           OK
+   2022-06 JP/inflation change                          mine=1.51   (info)
+   2022-06 JP/policy anchor-3 obs date                  mine=2022-02-01               claim=2022-02-01           OK
+   2022-06 JP/policy anchor-3 value                     mine=-0.018                   claim=-0.018               OK
+   2022-06 JP/policy anchor-3 pub date                  mine=2022-03-05               claim=2022-03-05           OK
+   2022-06 JP/policy cutoff obs date                    mine=2022-05-01               claim=2022-05-01           OK
+   2022-06 JP/policy cutoff value                       mine=-0.018                   claim=-0.018               OK
+   2022-06 JP/policy cutoff pub date                    mine=2022-06-05               claim=2022-06-05           OK
+   2022-06 JP/policy change                             mine=0.0   (info)
+   2022-06 US direction                                 mine={'growth': -1, 'inflation': 1, 'policy': 1}   (info)
+   2022-06 label CN/growth                              mine=分化                       claim=分化                   OK
+   2022-06 label CN/inflation                           mine=同步                       claim=同步                   OK
+   2022-06 label CN/policy                              mine=分化                       claim=分化                   OK
+   2022-06 label EA/growth                              mine=同步                       claim=同步                   OK
+   2022-06 label EA/inflation                           mine=同步                       claim=同步                   OK
+   2022-06 label EA/policy                              mine=分化                       claim=分化                   OK
+   2022-06 label JP/growth                              mine=同步                       claim=同步                   OK
+   2022-06 label JP/inflation                           mine=同步                       claim=同步                   OK
+   2022-06 label JP/policy                              mine=分化                       claim=分化                   OK
+   2022-06 number of synchronized cells (of 9)          mine=5                        claim=5                    OK
+  -- segment 2023-10 (anchor-3 = 2023-07)
+   2023-10 US/growth anchor-3 obs date                  mine=2023-04-01               claim=2023-04-01           OK
+   2023-10 US/growth anchor-3 value                     mine=2.736                    claim=2.736                OK
+   2023-10 US/growth anchor-3 pub date                  mine=2023-07-29               claim=2023-07-29           OK
+   2023-10 US/growth cutoff obs date                    mine=2023-07-01               claim=2023-07-01           OK
+   2023-10 US/growth cutoff value                       mine=3.1839                   claim=3.1839               OK
+   2023-10 US/growth cutoff pub date                    mine=2023-10-29               claim=2023-10-29           OK
+   2023-10 US/growth change                             mine=0.4479   (info)
+   2023-10 US/inflation anchor-3 obs date               mine=2023-06-01               claim=2023-06-01           OK
+   2023-10 US/inflation anchor-3 value                  mine=3.0706                   claim=3.0706               OK
+   2023-10 US/inflation anchor-3 pub date               mine=2023-07-13               claim=2023-07-13           OK
+   2023-10 US/inflation cutoff obs date                 mine=2023-09-01               claim=2023-09-01           OK
+   2023-10 US/inflation cutoff value                    mine=3.6872                   claim=3.6872               OK
+   2023-10 US/inflation cutoff pub date                 mine=2023-10-13               claim=2023-10-13           OK
+   2023-10 US/inflation change                          mine=0.6166   (info)
+   2023-10 US/policy anchor-3 obs date                  mine=2023-07-31               claim=2023-07-31           OK
+   2023-10 US/policy anchor-3 value                     mine=5.5                      claim=5.5                  OK
+   2023-10 US/policy anchor-3 pub date                  mine=2023-07-31               claim=2023-07-31           OK
+   2023-10 US/policy cutoff obs date                    mine=2023-10-31               claim=2023-10-31           OK
+   2023-10 US/policy cutoff value                       mine=5.5                      claim=5.5                  OK
+   2023-10 US/policy cutoff pub date                    mine=2023-10-31               claim=2023-10-31           OK
+   2023-10 US/policy change                             mine=0.0   (info)
+   2023-10 CN/growth anchor-3 obs date                  mine=2023-07-01               claim=2023-07-01           OK
+   2023-10 CN/growth anchor-3 value                     mine=49.3                     claim=49.3                 OK
+   2023-10 CN/growth anchor-3 pub date                  mine=2023-07-30               claim=2023-07-30           OK
+   2023-10 CN/growth cutoff obs date                    mine=2023-10-01               claim=2023-10-01           OK
+   2023-10 CN/growth cutoff value                       mine=49.5                     claim=49.5                 OK
+   2023-10 CN/growth cutoff pub date                    mine=2023-10-30               claim=2023-10-30           OK
+   2023-10 CN/growth change                             mine=0.2   (info)
+   2023-10 CN/inflation anchor-3 obs date               mine=2023-06-01               claim=2023-06-01           OK
+   2023-10 CN/inflation anchor-3 value                  mine=0.0                      claim=0                    OK
+   2023-10 CN/inflation anchor-3 pub date               mine=2023-07-09               claim=2023-07-09           OK
+   2023-10 CN/inflation cutoff obs date                 mine=2023-09-01               claim=2023-09-01           OK
+   2023-10 CN/inflation cutoff value                    mine=0.0                      claim=0                    OK
+   2023-10 CN/inflation cutoff pub date                 mine=2023-10-09               claim=2023-10-09           OK
+   2023-10 CN/inflation change                          mine=0.0   (info)
+   2023-10 CN/policy anchor-3 obs date                  mine=2023-07-20               claim=2023-07-20           OK
+   2023-10 CN/policy anchor-3 value                     mine=3.55                     claim=3.55                 OK
+   2023-10 CN/policy anchor-3 pub date                  mine=2023-07-20               claim=2023-07-20           OK
+   2023-10 CN/policy cutoff obs date                    mine=2023-10-20               claim=2023-10-20           OK
+   2023-10 CN/policy cutoff value                       mine=3.45                     claim=3.45                 OK
+   2023-10 CN/policy cutoff pub date                    mine=2023-10-20               claim=2023-10-20           OK
+   2023-10 CN/policy change                             mine=-0.1   (info)
+   2023-10 EA/growth anchor-3 obs date                  mine=2023-01-01               claim=2023-01-01           OK
+   2023-10 EA/growth anchor-3 value                     mine=1.22                     claim=1.22                 OK
+   2023-10 EA/growth anchor-3 pub date                  mine=2023-05-05               claim=2023-05-05           OK
+   2023-10 EA/growth cutoff obs date                    mine=2023-04-01               claim=2023-04-01           OK
+   2023-10 EA/growth cutoff value                       mine=0.48                     claim=0.48                 OK
+   2023-10 EA/growth cutoff pub date                    mine=2023-08-04               claim=2023-08-04           OK
+   2023-10 EA/growth change                             mine=-0.74   (info)
+   2023-10 EA/inflation anchor-3 obs date               mine=2023-07-01               claim=2023-07-01           OK
+   2023-10 EA/inflation anchor-3 value                  mine=5.3                      claim=5.3                  OK
+   2023-10 EA/inflation anchor-3 pub date               mine=2023-07-31               claim=2023-07-31           OK
+   2023-10 EA/inflation cutoff obs date                 mine=2023-10-01               claim=2023-10-01           OK
+   2023-10 EA/inflation cutoff value                    mine=2.9                      claim=2.9                  OK
+   2023-10 EA/inflation cutoff pub date                 mine=2023-10-31               claim=2023-10-31           OK
+   2023-10 EA/inflation change                          mine=-2.4   (info)
+   2023-10 EA/policy anchor-3 obs date                  mine=2023-06-21               claim=2023-06-21           OK
+   2023-10 EA/policy anchor-3 value                     mine=4.0                      claim=4                    OK
+   2023-10 EA/policy anchor-3 pub date                  mine=2023-06-21               claim=2023-06-21           OK
+   2023-10 EA/policy cutoff obs date                    mine=2023-09-20               claim=2023-09-20           OK
+   2023-10 EA/policy cutoff value                       mine=4.5                      claim=4.5                  OK
+   2023-10 EA/policy cutoff pub date                    mine=2023-09-20               claim=2023-09-20           OK
+   2023-10 EA/policy change                             mine=0.5   (info)
+   2023-10 JP/growth anchor-3 obs date                  mine=2023-01-01               claim=2023-01-01           OK
+   2023-10 JP/growth anchor-3 value                     mine=2.06                     claim=2.06                 OK
+   2023-10 JP/growth anchor-3 pub date                  mine=2023-05-15               claim=2023-05-15           OK
+   2023-10 JP/growth cutoff obs date                    mine=2023-04-01               claim=2023-04-01           OK
+   2023-10 JP/growth cutoff value                       mine=1.17                     claim=1.17                 OK
+   2023-10 JP/growth cutoff pub date                    mine=2023-08-14               claim=2023-08-14           OK
+   2023-10 JP/growth change                             mine=-0.89   (info)
+   2023-10 JP/inflation anchor-3 obs date               mine=2023-06-01               claim=2023-06-01           OK
+   2023-10 JP/inflation anchor-3 value                  mine=3.3                      claim=3.3                  OK
+   2023-10 JP/inflation anchor-3 pub date               mine=2023-07-20               claim=2023-07-20           OK
+   2023-10 JP/inflation cutoff obs date                 mine=2023-09-01               claim=2023-09-01           OK
+   2023-10 JP/inflation cutoff value                    mine=3.05                     claim=3.05                 OK
+   2023-10 JP/inflation cutoff pub date                 mine=2023-10-20               claim=2023-10-20           OK
+   2023-10 JP/inflation change                          mine=-0.25   (info)
+   2023-10 JP/policy anchor-3 obs date                  mine=2023-06-01               claim=2023-06-01           OK
+   2023-10 JP/policy anchor-3 value                     mine=-0.066                   claim=-0.066               OK
+   2023-10 JP/policy anchor-3 pub date                  mine=2023-07-05               claim=2023-07-05           OK
+   2023-10 JP/policy cutoff obs date                    mine=2023-09-01               claim=2023-09-01           OK
+   2023-10 JP/policy cutoff value                       mine=-0.054                   claim=-0.054               OK
+   2023-10 JP/policy cutoff pub date                    mine=2023-10-05               claim=2023-10-05           OK
+   2023-10 JP/policy change                             mine=0.012   (info)
+   2023-10 US direction                                 mine={'growth': 1, 'inflation': 1, 'policy': 0}   (info)
+   2023-10 label CN/growth                              mine=同步                       claim=同步                   OK
+   2023-10 label CN/inflation                           mine=分化                       claim=分化                   OK
+   2023-10 label CN/policy                              mine=分化                       claim=分化                   OK
+   2023-10 label EA/growth                              mine=分化                       claim=分化                   OK
+   2023-10 label EA/inflation                           mine=分化                       claim=分化                   OK
+   2023-10 label EA/policy                              mine=分化                       claim=分化                   OK
+   2023-10 label JP/growth                              mine=分化                       claim=分化                   OK
+   2023-10 label JP/inflation                           mine=分化                       claim=分化                   OK
+   2023-10 label JP/policy                              mine=分化                       claim=分化                   OK
+   2023-10 number of synchronized cells (of 9)          mine=1                        claim=1                    OK
+### misc: JP policy path facts quoted in turnings[2]
+   JP_POLICY_RATE 2025-11 = 0.478                       mine=0.478                    claim=0.478                OK
+   JP_POLICY_RATE 2025-12 = 0.557                       mine=0.557                    claim=0.557                OK
+   JP_POLICY_RATE 2026-10 = 1.227                       mine=1.227                    claim=1.227                OK
+   net 2025-11 -> 2026-10 (bp)                          mine=75                       claim=75                   OK
+   net 2025-12 -> 2026-10 (bp)                          mine=67                       claim=67                   OK
+   JP CPI 2026-07 = 1.97                                mine=1.97                     claim=1.97                 OK
+   JP CPI 2026-10 = 2.44                                mine=2.44                     claim=2.44                 OK
+   JP CPI 2026-03 = 1.46                                mine=1.46                     claim=1.46                 OK
+   JP CPI 2026-04 = 1.38                                mine=1.38                     claim=1.38                 OK
+   CN overnight 1.25 @ 2026-11-23                       mine=1.25                     claim=1.25                 OK
+   CN overnight latest                                  mine=('2026-11-23', 1.25)     claim=('2026-11-23', 1.25) OK
+   CN_POLICY_OVERNIGHT first obs: [('2026-11-02', 1.25), ('2026-11-03', 1.25)]
+   CN_OMO_7D last obs                                   mine=('2026-10-30', 1.4)      claim=('2026-10-30', 1.4)  OK
+   lag days CN_OMO_7D                                   mine=24                       claim=24                   OK
+   CN_OMO_7D 2026 obs (first 3, last 3): [('2025-11-14', 1.4), ('2025-12-08', 1.4), ('2025-12-09', 1.4)] [('2026-10-28', 1.4), ('2026-10-29', 1.4), ('2026-10-30', 1.4)]
+   CN_LPR_1Y last obs                                   mine=('2026-11-20', 3.0)      claim=('2026-11-20', 3.0)  OK
+   ECB series last obs: 2026-09-16 2026-09-16
+====================================================================================================
+POINTS=397 MISMATCHES=1
+MISMATCH: 2022-06 CN/policy cutoff pub date mine=2022-06-20 claim=2022-06-19

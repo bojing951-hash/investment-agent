@@ -1,0 +1,11 @@
+whole     pre 46b61bd4d4c9ec5a (31165 chars) | delivered b41da606d88eff27 (31162 chars) | same=False
+content   pre 9422eb842505f46d (298 lines) | delivered bd516559de30576f (298 lines)
+content lines differing: 1
+  L9
+    - - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,独立语义审查待裁)
+    + - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,经独立语义审查)
+sidecar anchor == sha256(delivered file): True
+review tail lines: ['- **零段类比**——检索范围与原因: 历史类比取零段(契约允许 0..3 段，如实写明)。检索范围=引擎六维状态类比面(锚月 2026-11，12 个月特征窗，美国序列锚定)∪快照 series_store。引擎类比能力本轮已执行并成功: 扫描 1871 个候选月，有效候选 74 个，因特征不足剔除 1785 个、同簇去重剔除 12 个，TOP-5 独立簇代表为 2025-03、2022-06、2023-10、2021-02、2020-01(引擎排序依据=缺席特征数优先、其后距离，名次非纯距离序)。引擎研究模式门: 描述性对齐可用、事件研究被阻断(存在无发布日特征指标，不得按发布日对齐)。席位不列历史段的原因: ①类比面的特征与事后窗全部为美国序列(事后表现为 DXY、GOLD_F、SPX、UST_10Y 四项)，不含中国、日本、欧元区状态，无法刻画「经济体之间的分化」；②锚点月有 12 项特征缺席(历史长度不足 36 个月——HY_IG_gap_d12m、HY_OAS_d12m；序列止于锚点前两个月(发布时点晚于锚点)——CORE_CPI_yoy、CPI_yoy、GDP_yoy、SPX_PE_TTM_level；月度指标在锚点月无观测(序列止于锚点前一月，发布时点晚于锚点)——FED_FUNDS_d12m、FED_FUNDS_level、INDPRO_yoy、NFP_3m_chg、RSAFS_yoy、UNEMPLOYMENT_level)，维度覆盖率(取值 0 至 1)为增长 0.17、通胀 0.33、利率 0.75、信用 0.50、波动 1.00、估值 0.50，以首位候选为例各维对距离的贡献份额(%)为 volatility 42.13、rates 40.66、inflation 10.54、valuation 6.67、credit 0.00、growth 0.00，增长与信用维几乎不参与，类比主要由市场维度决定；③本证据面为降级安装面，欧元区三维序列缺席，四地同步/背离的历史对照无从成立。不以美国单经济体状态类比冒充四地分化类比，亦不以未逐项核验的事后结果充数。事后结果≠当时可知(特征为最新修订口径的描述性对齐)；相似≠因果≠预测。', '- 席位已裁: UPHELD(裁决链 1 档)']
+「独立语义审查待裁」 pre 1 / delivered 0 ; 「待裁」 total pre 2 / delivered 0 ; 「席位已裁」 pre 0 / delivered 1
+verdict record 20261124/VERDICT-20261123T235101Z-01.json sha256 16d682d9da71c5e1297980d196fbd54e775b3b91a88bec467fd3998bcdc59dcd identical_in_post_fix_tree=True
+verdict records for run 20261123T235101Z: 1

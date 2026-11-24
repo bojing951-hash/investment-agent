@@ -1,0 +1,43 @@
+step index 61 name None keys ['argv', 'duration_ms', 'envelope', 'executed', 'exit_code', 'note', 'ok', 'semantic_ok', 'step']
+data keys: ['argv', 'duration_ms', 'envelope', 'executed', 'exit_code', 'note', 'ok', 'semantic_ok', 'step']
+state_vector dims: ['credit', 'growth', 'inflation', 'rates', 'valuation', 'volatility']
+== credit keys ['coverage', 'features']
+   HY_OAS_level               value=3.52                   w_norm=None
+   HY_IG_gap_level            value=2.58                   w_norm=None
+   -> coverage by count = 2/2 = 1.00 ; by weight = 0.00
+   [coverage] 0.5
+== growth keys ['coverage', 'features']
+   ICSA_4w_avg                value=197750.0               w_norm=None
+   -> coverage by count = 1/1 = 1.00 ; by weight = 0.00
+   [coverage] 0.1667
+== inflation keys ['coverage', 'features']
+   BEI_10Y_level              value=2.15                   w_norm=None
+   -> coverage by count = 1/1 = 1.00 ; by weight = 0.00
+   [coverage] 0.3333
+== rates keys ['coverage', 'features']
+   UST_10Y_level              value=5.04                   w_norm=None
+   UST_10Y_d12m               value=1.0200000000000005     w_norm=None
+   TIPS_10Y_level             value=2.88                   w_norm=None
+   TIPS_10Y_d12m              value=1.0899999999999999     w_norm=None
+   CURVE_2S10S_level          value=0.29                   w_norm=None
+   CURVE_2S10S_d12m           value=-0.26000000000000006   w_norm=None
+   -> coverage by count = 6/6 = 1.00 ; by weight = 0.00
+   [coverage] 0.75
+== valuation keys ['coverage', 'features']
+   SPX_CAPE_level             value=39.37447698728812      w_norm=None
+   -> coverage by count = 1/1 = 1.00 ; by weight = 0.00
+   [coverage] 0.5
+== volatility keys ['coverage', 'features']
+   VIX_level                  value=27.01                  w_norm=None
+   SPX_rv21                   value=0.2973222702651734     w_norm=None
+   -> coverage by count = 2/2 = 1.00 ; by weight = 0.00
+   [coverage] 1.0
+[data.argv] ["analog"]
+[data.duration_ms] 3336
+[data.envelope] {"ok": true, "capability": "analog", "engine_root": "/private/tmp/r32-accept/final5", "snapshot_id": "research_snapshot_20261123", "target_date": "20261123", "research_as_of": "2026-11-23", "gate_a": "DEGRADED", "data": {"anchor_month": "2026-11", "feature_window_months": 12, "state_vector": {"growth": {"features": {"ICSA_4w_avg": {"value": 197750.0, "z": -0.3206747602320721, "hist_n": 120}}, "coverage": 0.1667}, "inflation": {"features": {"BEI_10Y_level": {"value": 2.15, "z": 0.0834601860258888
+[data.executed] true
+[data.exit_code] 0
+[data.note] null
+[data.ok] true
+[data.semantic_ok] true
+[data.step] "S6_analog"

@@ -1,0 +1,99 @@
+=== TURNINGS ===
+--- turnings[0] keys: ['before_date', 'date', 'first_mover', 'follow_or_diverge', 'metric_id', 'narrative', 'value_after', 'value_before']
+[0].date = 2026-05
+[0].metric_id = CPI
+[0].before_date = 2026-02
+[0].value_before = 2.434
+[0].value_after = 4.1666
+[0].first_mover = 美国 headline CPI 同比在 2026-02→2026-05 由 2.434 升至 4.1666(引擎同比空间),为候选池内最大单段变动。
+[0].follow_or_diverge = 欧元区 EA_HICP_YOY 同月(2026-05)同步由 1.9 升至 3.2(引擎同比空间),美欧通胀同月抬升、月频证据先后未定(同维度同窗,计为同一轮事件,不另列一行);其后欧元区读数 2026-06 回落至 2.8，2026-07 为 2.9、2026-10 为 4.0(越过 2026-05 的 3.2);日本端属政策利率维度,未在通胀维同步。
+[0].narrative = 美国通胀转折: 三个月上行 1.7326 个百分点;同窗核心口径亦同向上行(2026-02→2026-05 同比自 2.4725 升至 2.8229，涨幅小于 headline)。候选池另载核心口径转折 CORE_CPI@2026-08(2026-05→2026-08 同比自 2.8229 回落至 2.4462，其后 2026-09 回升至 2.5658)，该段晚于 headline 上行段，不构成「headline 上行段由非核心分项主导」的证据【假设: 引擎无分项构成数据，不可归因到具体成分】。欧元区 HICP 同比同窗上行 1.3 个百分点(2026-02→2026-05 由 1.9 升至 3.2)，并延续为欧元区当前环境的主导变化(2026-10 达 4.0)。
+--- turnings[1] keys: ['before_date', 'date', 'first_mover', 'follow_or_diverge', 'metric_id', 'narrative', 'value_after', 'value_before']
+[1].date = 2026-02
+[1].metric_id = INDPRO
+[1].before_date = 2025-11
+[1].value_before = 1.7543
+[1].value_after = 0.7972
+[1].first_mover = 美国工业生产同比在 2025-11→2026-02 由 1.7543 降至 0.7972(引擎同比空间,三个月变动 -0.9571),为增长维候选池内最大的三个月变化;同一窗口美国失业率由 4.5 降至 4.4(2026-02),就业端未同向走弱。
+[1].follow_or_diverge = 欧元区端: 本问证据面无欧元区工业生产序列(缺该项,增长维月频证据对欧元区不可判);欧元区实际 GDP 同比为季频且按降级口径引用,引擎点值面读数仅微幅变动(数值见走位对照),不足以判定跟进或背离。
+[1].narrative = 美国工业生产同比回落: 三个月下降 0.9571 个百分点,2026-03 见底后回升,至 2026-10 为 2.15(见走位对照);窗口(2025-11→2026-02)止于通胀转折窗(2026-02→2026-05)的起点月份,两窗仅在该月相接。
+--- turnings[2] keys: ['before_date', 'date', 'first_mover', 'follow_or_diverge', 'metric_id', 'narrative', 'value_after', 'value_before']
+[2].date = 2026-07
+[2].metric_id = JP_POLICY_RATE
+[2].before_date = 2026-04
+[2].value_before = 0.727
+[2].value_after = 0.978
+[2].first_mover = 日本政策利率通道: 无担保隔夜拆借月均 2026-04 0.727→2026-07 0.978(经 2026-06 0.841 过渡),为 2026 年内第三个上行月均台阶(此前: 2026-01 +17bp、2026-06 +11bp)。
+[2].follow_or_diverge = 本问计划指标面未纳入美欧政策利率序列(政策事件簇为空;发布日历政策条目仅 2 条、均为日本央行实录),跨国跟进/背离在政策维度依本问证据不可判(快照序列库内另有、未纳入本问证据索引的同月变动: 美联储目标区间上限 3.75→4.00 于 2026-09-17、欧央行存款便利利率 2.25→2.50 于 2026-09-16,与日本央行 2026-09-18 决议(2026-09-24 生效)同月,不作为本档证据);美国端本问仅见会议纪要条目: FOMC 2026年10月会议纪要 2026-11-18 发布,纪要发布≠决议日;月频月均证据的台阶时点与决议日的先后未定。
+[2].narrative = 日本政策利率台阶: 该通道此后续升(2026-09 1.043(+7bp)、2026-10 1.227(+18bp)),发布日历实录最近一次政策决议为 2026-09-18(2026-09-24 生效),与月均台阶相容。
+=== SCENARIOS ===
+--- scenarios[0]
+{
+"id": "S1-INFL-STICKY",
+"rows": {
+"scenario": "【假设·非预测】美欧通胀延续当前抬升动能: 至 2027-01 发布(即至 2026-12 观测月;2027-01 观测月的规则发布日 2027-02-16 晚于期限 2027-02-15),EA_HICP_YOY 同比维持 3.5% 以上(证伪线为 3.0%,3.0% 至 3.5% 之间为缓冲带),美国 CORE_PCE 同比维持 3.0% 以上,美欧政策面维持紧缩偏向【假设·美欧政策利率不在本问证据面】(日本月均中枢不低于当前台阶)。",
+"asset_direction": {
+"direction": "在此假设下,实际利率与无风险利率中枢承压上行,利率敏感资产(高估值成长股、黄金)相对走弱,美元指数相对非美货币偏强;此为方向性推演,非幅度预测",
+"confidence_tier": "有相关证据",
+"evidence_refs": [
+"TIPS_10Y@2026-11-19",
+"BEI_10Y@2026-11-20",
+"SPX@2026-11-23"
+]
+},
+"sensitive_variables": [
+"EA_HICP_YOY",
+"CORE_PCE"
+],
+"falsification": {
+"metric_id": "EA_HICP_YOY",
+"threshold": "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比(对应 2026-11、2026-12 观测月,规则发布日 2026-12-16、2027-01-16,均不晚于期限 2027-02-15)连续两个月低于 3.0%(情景陈述的界为 3.5%,3.0% 至 3.5% 之间为缓冲带——情景陈述在该带内不成立但未达证伪线),通胀粘性假设被证伪",
+"secondary_metric_ids": [
+"CORE_PCE"
+]
+},
+"trigger": {
+"condition": "2026-12 或 2027-01 发布的 EA_HICP_YOY 同比 ≥4.2% 且 CORE_PCE 同比 ≥3.2%,同时 TIPS_10Y 高于 3.0%",
+"deadline": "2027-02-15"
+}
+}
+}
+--- scenarios[1]
+{
+"id": "S2-INFL-FADE",
+"rows": {
+"scenario": "【假设·非预测】当前美欧通胀抬升以一次性因素(能源基数、汇率进口传导)为主: 至 2027-01 发布(即至 2026-12 观测月),EA_HICP_YOY 同比回落至 3.0% 以下(触发线为 3.4%,3.0% 至 3.4% 之间为缓冲带),美国 CORE_PCE 同比回落至 2.8% 以下,市场重新定价宽松。",
+"asset_direction": {
+"direction": "在此假设下,通胀补偿与实际利率双双回落,风险资产修复、黄金重新走强、美元走弱;该方向与近一月观察(共同交易日窗 2026-10-20→2026-11-19 实际利率 +11bp 而风险资产回落)相反,属并列反例情景",
+"confidence_tier": "纯逻辑推理",
+"evidence_refs": [
+"BEI_10Y@2026-11-20",
+"SPX@2026-11-23"
+]
+},
+"sensitive_variables": [
+"EA_HICP_YOY",
+"CORE_PCE"
+],
+"falsification": {
+"metric_id": "EA_HICP_YOY",
+"threshold": "若 2026-12 与 2027-01 两月发布的 EA_HICP_YOY 同比均不低于 4.0%(情景陈述的界为 3.0%,3.0% 至 4.0% 之间为缓冲带——在该带内既未触发也未证伪),一次性因素假设被证伪",
+"secondary_metric_ids": [
+"CORE_PCE"
+]
+},
+"trigger": {
+"condition": "EA_HICP_YOY 同比连续两个月回落且最新值 ≤3.4%(至情景陈述的界 3.0% 之间为缓冲带),同时 BEI_10Y 低于 2.0%",
+"deadline": "2027-02-15"
+}
+}
+}
+=== POOL ===
+basis=过去12个月(研究截止日)内 3 个月滚动变化绝对值最大者;增长/通胀/政策三维全部进入候选池(每指标一候选,窗端点已按发布纪律过滤);确定性计算,仅作候选——三个转折的取舍与谁先变判断归 Agent 席 reader_map(三转折须为不同事件,同一转折不得重复计数) top_n_expected=3
+{"from_ym": "2026-02", "to_ym": "2026-05", "from_date": "2026-02-01", "to_date": "2026-05-01", "value_before": 2.434, "value_after": 4.1666, "delta": 1.7326, "region": "US", "dimension": "inflation", "metric_id": "CPI", "display_name": "CPI物价指数(SA)", "unit": "同比%(派生于水平序列,严格同基期)"}
+{"from_ym": "2026-02", "to_ym": "2026-05", "from_date": "2026-02-01", "to_date": "2026-05-01", "value_before": 1.9, "value_after": 3.2, "delta": 1.3, "region": "EA", "dimension": "inflation", "metric_id": "EA_HICP_YOY", "display_name": "欧元区HICP同比", "unit": "percent"}
+{"from_ym": "2025-11", "to_ym": "2026-02", "from_date": "2025-11-01", "to_date": "2026-02-01", "value_before": 1.7543, "value_after": 0.7972, "delta": -0.9571, "region": "US", "dimension": "growth", "metric_id": "INDPRO", "display_name": "工业生产指数(SA)", "unit": "同比%(派生于水平序列,严格同基期)"}
+{"from_ym": "2026-05", "to_ym": "2026-08", "from_date": "2026-05-01", "to_date": "2026-08-01", "value_before": 2.8229, "value_after": 2.4462, "delta": -0.3767, "region": "US", "dimension": "inflation", "metric_id": "CORE_CPI", "display_name": "核心CPI(SA,剔除食品能源)", "unit": "同比%(派生于水平序列,严格同基期)"}
+{"from_ym": "2026-04", "to_ym": "2026-07", "from_date": "2026-04-01", "to_date": "2026-07-01", "value_before": 0.727, "value_after": 0.978, "delta": 0.251, "region": "JP", "dimension": "policy", "metric_id": "JP_POLICY_RATE", "display_name": "日本无担保隔夜拆借利率(月均)", "unit": "percent"}
+{"from_ym": "2025-11", "to_ym": "2026-02", "from_date": "2025-11-01", "to_date": "2026-02-01", "value_before": 2.7212, "value_after": 2.9592, "delta": 0.238, "region": "US", "dimension": "inflation", "metric_id": "CORE_PCE", "display_name": "核心PCE(SA)", "unit": "同比%(派生于水平序列,严格同基期)"}
+{"from_ym": "2026-05", "to_ym": "2026-08", "from_date": "2026-05-01", "to_date": "2026-08-01", "value_before": 4.3, "value_after": 4.1, "delta": -0.2, "region": "US", "dimension": "growth", "metric_id": "UNEMPLOYMENT", "display_name": "失业率(U-3)", "unit": "percent"}

@@ -1,0 +1,54 @@
+# cmp_runs
+# old: /tmp/r32-accept/final4-aug/output/research_runs/20261123T193622Z_以_2026_08_21_为研究时点_日本和欧元区最近六个月的通胀与政策环境
+# new: /tmp/r32-accept/final5-aug/output/research_runs/20261123T213507Z_以_2026_08_21_为研究时点_日本和欧元区最近六个月的通胀与政策环境
+# old run 20261123T193622Z git_head 0f3936dd7eb7 | new run 20261123T213507Z git_head 8f9055d6e556
+## report.json/research_plan | leaves compared 578 | identical 568 | real diff 7 | path/run-id only 0 | only-old 0 | only-new 3
+   REAL DIFF (7):
+     /point_values/cells[ECB_DFR]/policy_window_path/net_bp
+        old: 0
+        new: 25
+     /point_values/cells[ECB_DFR]/policy_window_path/note
+        old: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+        new: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=变动点之和=窗启时在值→窗末观测之差(bp);窗启时在值=窗内首观测的前值(其观测日可在窗启之前,该值在窗启时仍在生效;窗内首观测即序列首观测时取其自身)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+     /point_values/cells[ECB_DFR]/policy_window_path/window_start_value
+        old: 2.25
+        new: 2.0
+     /point_values/cells[ECB_MRO]/policy_window_path/net_bp
+        old: 0
+        new: 25
+     /point_values/cells[ECB_MRO]/policy_window_path/note
+        old: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+        new: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=变动点之和=窗启时在值→窗末观测之差(bp);窗启时在值=窗内首观测的前值(其观测日可在窗启之前,该值在窗启时仍在生效;窗内首观测即序列首观测时取其自身)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+     /point_values/cells[ECB_MRO]/policy_window_path/window_start_value
+        old: 2.4
+        new: 2.15
+     /point_values/cells[JP_POLICY_RATE]/policy_window_path/note
+        old: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+        new: "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=变动点之和=窗启时在值→窗末观测之差(bp);窗启时在值=窗内首观测的前值(其观测日可在窗启之前,该值在窗启时仍在生效;窗内首观测即序列首观测时取其自身)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+   only-new (3):
+     /point_values/cells[ECB_DFR]/policy_window_path/window_start_observation
+        old: "<absent>"
+        new: "2025-06-11"
+     /point_values/cells[ECB_MRO]/policy_window_path/window_start_observation
+        old: "<absent>"
+        new: "2025-06-11"
+     /point_values/cells[JP_POLICY_RATE]/policy_window_path/window_start_observation
+        old: "<absent>"
+        new: "2025-08-01"
+## report.json/evidence_index | leaves compared 165 | identical 165 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 229 | identical 229 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.evidence_gate | leaves compared 996 | identical 996 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 214 | identical 214 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+   tree-state (install-tree standard-update ledger, not research evidence): ['[3]/data/last_run/…']
+## report.json/steps[*].envelope | leaves compared 118509 | identical 118468 | real diff 0 | path/run-id only 41 | only-old 0 | only-new 0
+   path/run-id-only sample: ['[10]/engine_root', '[11]/engine_root', '[12]/engine_root']
+# report.json totals: real diff 7 | only-old 0 | only-new 3
+## evidence_index.json | leaves compared 165 | identical 165 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 213 | identical 210 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+   path/run-id-only sample: ['/read_first[0]', '/read_first[1]', '/read_first[2]']
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261121.json'] | new ['research_snapshot_20261121.json']
+   research_snapshot_20261121.json sha256 old fb1992a5396e033c new fb1992a5396e033c equal True

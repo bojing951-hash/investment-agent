@@ -1,0 +1,176 @@
+{
+ "block": "⑩",
+ "title": "总判断/走位/对质表与引擎面的一致性",
+ "rows": [
+  {
+   "block": "⑩",
+   "id": "K1-agent_declaration「点值格(9格)」",
+   "source": "report.json:research_plan.point_values.cells",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 格数 9"
+  },
+  {
+   "block": "⑩",
+   "id": "K2-agent_declaration「证据索引(63行)」",
+   "source": "evidence_index.json",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 行数 63"
+  },
+  {
+   "block": "⑩",
+   "id": "K3-走位 anchor_echo 全部取值/观测月与点值格逐项一致",
+   "source": "agent_judgment.json:reader_map.regions[*].anchor_echo; report.json:…point_values.cells",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 条数 18; 不一致 []"
+  },
+  {
+   "block": "⑩",
+   "id": "K4-rates_decomposition 回贴=引擎三利率分解(-8/+11/-19, 窗 2026-10-20→2026-11-19)",
+   "source": "agent_judgment.json:reader_map.rates_decomposition; report.json:research_plan.us_rates_trio",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑩",
+   "id": "K5-asset_returns_echo 五行=引擎资产月窗(SPX/NIKKEI225/GOLD_F/DXY/VIX)",
+   "source": "agent_judgment.json:reader_map.asset_returns_echo; report.json:research_plan.asset_moves.rows",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑩",
+   "id": "K6-对质表裁定序列=[支持竞争解释, 尚不能区分, 支持主解释] 与 quality_gate_notes「支持主解释×1/支持竞争解释×1/尚不能区分×1」一致",
+   "source": "agent_judgment.json:reader_map.transmission[*].links[*].face_off_verdict",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; ['支持竞争解释', '尚不能区分', '支持主解释']"
+  },
+  {
+   "block": "⑩",
+   "id": "K7-机制链三环证据分级=[E1,E2,E2] 与 quality_gate_notes「E1/E2/E2」一致",
+   "source": "agent_judgment.json:l3.mechanism_chains[0].links[*].evidence_level",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑩",
+   "id": "K8-「L3 三条矛盾陈述各并列 2 种解释」",
+   "source": "agent_judgment.json:l3.contradictions[*].competing_explanations",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑩",
+   "id": "K9-链1 裁定「支持竞争解释」: 主解释预期 BEI_10Y 走高/高位, 竞争预期走低/持平; 在场三窗 BEI_10Y 均回落 → 与裁定方向一致",
+   "source": "agent_judgment.json:reader_map.transmission[0].links[0]; series_store.BEI_10Y(⑤-A18: -19/-14/-11bp)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑩",
+   "id": "K10-链3 裁定「支持主解释」: 主解释预期 TIPS_10Y 上行与 SPX 走弱同现, 竞争预期 TIPS_10Y 走低; 在场 TIPS_10Y +22bp、SPX -5.51% → 与裁定方向一致",
+   "source": "agent_judgment.json:reader_map.transmission[0].links[2]; series_store.TIPS_10Y/SPX(⑤-A20/⑤-B3)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑩",
+   "id": "K11-链2 两解释在 TIPS_10Y 上预期方向不分立而裁定「尚不能区分」(未冒充支持任一侧)",
+   "source": "agent_judgment.json:reader_map.transmission[0].links[1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑩",
+   "id": "K12-总判断「距上次调整…(日历核验覆盖止于 2026-10-30,其后至截止日的 24 天引擎日历无条目)」: 2026-11-23−2026-10-30=24 天",
+   "source": "root_overlay/config/release_calendar.json:entries[RC-JP-BOJ-MAINT-2026-10].decision_date",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 24 天"
+  },
+  {
+   "block": "⑩",
+   "id": "K13-走位 US「中间 2026-09 为 4.2」",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-09-01]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑩",
+   "id": "K14-走位 EA「三个月上行 1.1 个百分点」(HICP 2.9→4.0)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json.EA_HICP_YOY[2026-07-01, 2026-10-01]",
+   "kind": "point",
+   "computed": 1.1,
+   "claim": 1.1,
+   "match": true,
+   "detail": "直算 1.1 → 取 2 位 1.1; 报告 1.1; "
+  },
+  {
+   "block": "⑩",
+   "id": "K14b-「为两地通胀面最大变化」: EA +1.1 大于美国 headline/核心 CPI/核心 PCE 同窗三个月变动",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json.EA_HICP_YOY/CPI/CORE_CPI/CORE_PCE(同比, 两锚同窗)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; EA 1.1000 > US headline 0.4134 / 核心 0.0993 / 核心PCE 0.0799"
+  },
+  {
+   "block": "⑩",
+   "id": "K14c-走位 US CPI 同比三个月变动(3.3→3.72; 受审稿未写差值, 留档)",
+   "source": "直算差值 0.4134; 仅作 K14b 比较基准",
+   "kind": "probe",
+   "computed": "root_overlay/data/daily/research_snapshot_20261123.json.CPI[2026-07, 2026-09 同比]",
+   "claim": 0.4134,
+   "match": null,
+   "detail": "探针(不计点): "
+  },
+  {
+   "block": "⑩",
+   "id": "K15-总判断「通胀…欧元区幅度更大」在 headline/核心/核心PCE 三口径同向(三个月变动 EA 均最大)",
+   "source": "同 K14b",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; EA headline 变动 > 美国三种口径各自的变动"
+  }
+ ]
+}

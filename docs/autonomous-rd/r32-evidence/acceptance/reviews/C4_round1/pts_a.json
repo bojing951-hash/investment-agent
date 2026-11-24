@@ -1,0 +1,1012 @@
+[
+{
+"id": "P01",
+"face": "snapshot.series_store",
+"key": "DFEDTARU@<=2026-08-23 (obs 2026-08-23)",
+"calc": 3.75,
+"calc_str": "3.75",
+"report": 3.75,
+"ok": true,
+"note": ""
+},
+{
+"id": "P02",
+"face": "snapshot.series_store",
+"key": "DFEDTARU anchor obs date",
+"calc": "2026-08-23",
+"calc_str": "2026-08-23",
+"report": "2026-08-23",
+"ok": true,
+"note": ""
+},
+{
+"id": "P03",
+"face": "snapshot.series_store",
+"key": "DFEDTARU@<=2026-11-23 (obs 2026-11-23)",
+"calc": 4.0,
+"calc_str": "4.00",
+"report": 4.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "P04",
+"face": "snapshot.series_store",
+"key": "DFEDTARU latest obs date",
+"calc": "2026-11-23",
+"calc_str": "2026-11-23",
+"report": "2026-11-23",
+"ok": true,
+"note": ""
+},
+{
+"id": "P05",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 上限变动(bp)=(b-a)*100",
+"calc": 25.0,
+"calc_str": "25",
+"report": 25,
+"ok": true,
+"note": ""
+},
+{
+"id": "P06",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 窗内变动点1 日期(生效)",
+"calc": "2026-09-17",
+"calc_str": "2026-09-17",
+"report": "2026-09-17",
+"ok": true,
+"note": ""
+},
+{
+"id": "P07",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 变动点1 from",
+"calc": 3.75,
+"calc_str": "3.75",
+"report": 3.75,
+"ok": true,
+"note": ""
+},
+{
+"id": "P08",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 变动点1 to",
+"calc": 4.0,
+"calc_str": "4.00",
+"report": 4.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "P09",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 变动点1 幅度(bp)",
+"calc": 25.0,
+"calc_str": "25",
+"report": 25,
+"ok": true,
+"note": ""
+},
+{
+"id": "P10",
+"face": "snapshot.series_store",
+"key": "决议日=生效日前一日",
+"calc": "2026-09-16",
+"calc_str": "2026-09-16",
+"report": "2026-09-16",
+"ok": true,
+"note": ""
+},
+{
+"id": "P11",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 窗内变动点0 日期(生效)",
+"calc": "2025-12-11",
+"calc_str": "2025-12-11",
+"report": "2025-12-11",
+"ok": true,
+"note": ""
+},
+{
+"id": "P12",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 变动点0 from",
+"calc": 4.0,
+"calc_str": "4.00",
+"report": 4.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "P13",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 变动点0 to",
+"calc": 3.75,
+"calc_str": "3.75",
+"report": 3.75,
+"ok": true,
+"note": ""
+},
+{
+"id": "P14",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 变动点0 幅度(bp)",
+"calc": -25.0,
+"calc_str": "-25",
+"report": -25,
+"ok": true,
+"note": ""
+},
+{
+"id": "P15",
+"face": "snapshot.series_store",
+"key": "决议日=生效日前一日",
+"calc": "2025-12-10",
+"calc_str": "2025-12-10",
+"report": "2025-12-10",
+"ok": true,
+"note": ""
+},
+{
+"id": "P16",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 近一年窗变动点数=2",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "[('2025-12-11', '2025-12-10', 4.0, 3.75), ('2026-09-17', '2026-09-16', 3.75, 4.0)]"
+},
+{
+"id": "P17",
+"face": "snapshot.series_store",
+"key": "DFEDTARU 近一年净变动(bp)",
+"calc": 0.0,
+"calc_str": "0",
+"report": 0,
+"ok": true,
+"note": ""
+},
+{
+"id": "P18",
+"face": "snapshot.series_store",
+"key": "DFF 三个月前锚 obs(发布=观测日+1 ≤ 2026-08-23 的最后观测)",
+"calc": "2026-08-22",
+"calc_str": "2026-08-22",
+"report": "2026-08-22",
+"ok": true,
+"note": ""
+},
+{
+"id": "P19",
+"face": "snapshot.series_store",
+"key": "DFF@2026-08-22",
+"calc": 3.63,
+"calc_str": "3.63",
+"report": 3.63,
+"ok": true,
+"note": ""
+},
+{
+"id": "P20",
+"face": "snapshot.series_store",
+"key": "DFF 最新 obs(发布=观测日+1 ≤ 2026-11-23 的最后观测)",
+"calc": "2026-11-19",
+"calc_str": "2026-11-19",
+"report": "2026-11-19",
+"ok": true,
+"note": ""
+},
+{
+"id": "P21",
+"face": "snapshot.series_store",
+"key": "DFF@2026-11-19",
+"calc": 3.88,
+"calc_str": "3.88",
+"report": 3.88,
+"ok": true,
+"note": ""
+},
+{
+"id": "P22",
+"face": "snapshot.series_store",
+"key": "DFF@2026-09-16",
+"calc": 3.63,
+"calc_str": "3.63",
+"report": 3.63,
+"ok": true,
+"note": ""
+},
+{
+"id": "P23",
+"face": "snapshot.series_store",
+"key": "DFF@2026-09-17",
+"calc": 3.88,
+"calc_str": "3.88",
+"report": 3.88,
+"ok": true,
+"note": ""
+},
+{
+"id": "P24",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE@2025-11",
+"calc": 0.478,
+"calc_str": "0.478",
+"report": 0.478,
+"ok": true,
+"note": ""
+},
+{
+"id": "P25",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE@2025-12",
+"calc": 0.557,
+"calc_str": "0.557",
+"report": 0.557,
+"ok": true,
+"note": ""
+},
+{
+"id": "P26",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE@2026-04",
+"calc": 0.727,
+"calc_str": "0.727",
+"report": 0.727,
+"ok": true,
+"note": ""
+},
+{
+"id": "P27",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE@2026-07",
+"calc": 0.978,
+"calc_str": "0.978",
+"report": 0.978,
+"ok": true,
+"note": ""
+},
+{
+"id": "P28",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE@2026-08",
+"calc": 0.977,
+"calc_str": "0.977",
+"report": 0.977,
+"ok": true,
+"note": ""
+},
+{
+"id": "P29",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE@2026-09",
+"calc": 1.043,
+"calc_str": "1.043",
+"report": 1.043,
+"ok": true,
+"note": ""
+},
+{
+"id": "P30",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE@2026-10",
+"calc": 1.227,
+"calc_str": "1.227",
+"report": 1.227,
+"ok": true,
+"note": ""
+},
+{
+"id": "P31",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE 三个月净变动(bp)=(10月-7月)*100",
+"calc": 24.900000000000013,
+"calc_str": "25",
+"report": 25,
+"ok": true,
+"note": ""
+},
+{
+"id": "P32",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE 近12个月净变动(bp)",
+"calc": 74.9,
+"calc_str": "75",
+"report": 75,
+"ok": true,
+"note": ""
+},
+{
+"id": "P33",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE 自窗内首观测起算(bp)",
+"calc": 67.0,
+"calc_str": "67",
+"report": 67,
+"ok": true,
+"note": ""
+},
+{
+"id": "P34",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE 12月窗变动点=6 个且幅度=[8,17,11,14,7,18]",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "[('2025-12-01', 8), ('2026-01-01', 17), ('2026-06-01', 11), ('2026-07-01', 14), ('2026-09-01', 7), ('2026-10-01', 18)]"
+},
+{
+"id": "P35",
+"face": "snapshot.series_store",
+"key": "JP_POLICY_RATE 2026-07 - 2026-04 (pp)",
+"calc": 0.251,
+"calc_str": "0.251",
+"report": 0.251,
+"ok": true,
+"note": ""
+},
+{
+"id": "P36",
+"face": "calendar.entries[*]",
+"key": "存在日本央行 2026-09 目标条目 (决议 2026-09-18)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "ids=['RC-JP-BOJ-TARGET-2026-09', 'RC-JP-BOJ-MAINT-2026-10']"
+},
+{
+"id": "P37",
+"face": "calendar.entries[*]",
+"key": "生效 2026-09-24",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P38",
+"face": "calendar.entries[*]",
+"key": "目标水平 1.25",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P39",
+"face": "calendar.entries[*]",
+"key": "2026-10-30 维持条目",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "ids=['RC-JP-BOJ-MAINT-2026-10']"
+},
+{
+"id": "P40",
+"face": "calendar.entries[*]",
+"key": "维持条目无生效日",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P41",
+"face": "datetime",
+"key": "2026-09-16 星期",
+"calc": "Wednesday",
+"calc_str": "Wednesday",
+"report": "Wednesday",
+"ok": true,
+"note": ""
+},
+{
+"id": "P42",
+"face": "datetime",
+"key": "2026-09-18 星期",
+"calc": "Friday",
+"calc_str": "Friday",
+"report": "Friday",
+"ok": true,
+"note": ""
+},
+{
+"id": "P43",
+"face": "datetime",
+"key": "两决议同一 ISO 周",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P44",
+"face": "datetime",
+"key": "两决议相隔天数",
+"calc": 2.0,
+"calc_str": "2",
+"report": 2,
+"ok": true,
+"note": ""
+},
+{
+"id": "P45",
+"face": "snapshot.series_store",
+"key": "CN_LPR_1Y 锚 obs",
+"calc": "2026-08-20",
+"calc_str": "2026-08-20",
+"report": "2026-08-20",
+"ok": true,
+"note": ""
+},
+{
+"id": "P46",
+"face": "snapshot.series_store",
+"key": "CN_LPR_1Y@2026-08-20",
+"calc": 3.0,
+"calc_str": "3.00",
+"report": 3.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "P47",
+"face": "snapshot.series_store",
+"key": "CN_LPR_1Y 最新 obs",
+"calc": "2026-11-20",
+"calc_str": "2026-11-20",
+"report": "2026-11-20",
+"ok": true,
+"note": ""
+},
+{
+"id": "P48",
+"face": "snapshot.series_store",
+"key": "CN_LPR_1Y@2026-11-20",
+"calc": 3.0,
+"calc_str": "3.00",
+"report": 3.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "P49",
+"face": "snapshot.series_store",
+"key": "CN_LPR_1Y 序列末观测",
+"calc": "2026-11-20",
+"calc_str": "2026-11-20",
+"report": "2026-11-20",
+"ok": true,
+"note": ""
+},
+{
+"id": "P50",
+"face": "snapshot.series_store",
+"key": "CN_LPR_1Y 2026-08-20..2026-11-20 全部观测均为 3.0 (n=4)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P51",
+"face": "calendar.entries[RC-CN-LPR-2026M11]",
+"key": "日期 2026-11-20 / 09:00",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "{\"entry_id\": \"RC-CN-LPR-2026M11\", \"basis\": \"user_directive\", \"metric_id\": \"CN_LPR_1Y\", \"obs_from\": \"2026-11-01\", \"obs_to\": \"2026-11-30\", \"not_published_as_of\": \"2026-11-19\", \"first_publish_on_or_after\": \"2026-11-20\", \"time\": \"09:00\", \"official\": true, \"note\": \"2026-11 观测月中国 LPR(1年期): 2026-11-20 09:0"
+},
+{
+"id": "P52",
+"face": "calendar.entries",
+"key": "无 2026-08 LPR 实录条目(锚发布日属官方惯例)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "['RC-CN-LPR-2025M11', 'RC-CN-LPR-2026M11']"
+},
+{
+"id": "P53",
+"face": "snapshot.series_store",
+"key": "CN_OMO_7D 锚 obs",
+"calc": "2026-08-21",
+"calc_str": "2026-08-21",
+"report": "2026-08-21",
+"ok": true,
+"note": ""
+},
+{
+"id": "P54",
+"face": "snapshot.series_store",
+"key": "CN_OMO_7D@2026-08-21",
+"calc": 1.4,
+"calc_str": "1.40",
+"report": 1.4,
+"ok": true,
+"note": ""
+},
+{
+"id": "P55",
+"face": "snapshot.series_store",
+"key": "CN_OMO_7D 末观测",
+"calc": "2026-10-30",
+"calc_str": "2026-10-30",
+"report": "2026-10-30",
+"ok": true,
+"note": ""
+},
+{
+"id": "P56",
+"face": "snapshot.series_store",
+"key": "CN_OMO_7D@2026-10-30",
+"calc": 1.4,
+"calc_str": "1.40",
+"report": 1.4,
+"ok": true,
+"note": ""
+},
+{
+"id": "P57",
+"face": "snapshot.series_store",
+"key": "CN_OMO_7D 末观测滞后天数(=2026-11-23-末观测)",
+"calc": 24.0,
+"calc_str": "24",
+"report": 24,
+"ok": true,
+"note": ""
+},
+{
+"id": "P58",
+"face": "snapshot.series_store",
+"key": "CN_OMO_7D 2026-08-21 之后全部观测=1.4 (n=34)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P59",
+"face": "snapshot.series_store",
+"key": "CN_POLICY_OVERNIGHT 首观测",
+"calc": "2026-11-02",
+"calc_str": "2026-11-02",
+"report": "2026-11-02",
+"ok": true,
+"note": ""
+},
+{
+"id": "P60",
+"face": "snapshot.series_store",
+"key": "CN_POLICY_OVERNIGHT 末观测",
+"calc": "2026-11-23",
+"calc_str": "2026-11-23",
+"report": "2026-11-23",
+"ok": true,
+"note": ""
+},
+{
+"id": "P61",
+"face": "snapshot.series_store",
+"key": "CN_POLICY_OVERNIGHT@末观测",
+"calc": 1.25,
+"calc_str": "1.25",
+"report": 1.25,
+"ok": true,
+"note": ""
+},
+{
+"id": "P62",
+"face": "snapshot.series_store",
+"key": "CN_POLICY_OVERNIGHT 在 2026-08-23 前无观测",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "n=16"
+},
+{
+"id": "P63",
+"face": "snapshot.series_store",
+"key": "series_store 无 EA_REAL_GDP_YOY",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P64",
+"face": "snapshot.series_store",
+"key": "series_store 无 EA_HICP_YOY",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P65",
+"face": "snapshot.series_store",
+"key": "series_store 无 ECB_MRO",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P66",
+"face": "snapshot.series_store",
+"key": "series_store 无 ECB_DFR",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P67",
+"face": "snapshot.series_store",
+"key": "series_store 无 BUND_10Y",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P68",
+"face": "snapshot.series_store",
+"key": "series_store 无 BUND_2Y",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P69",
+"face": "snapshot.series_store",
+"key": "series_store 无 JP_POLICY_TARGET",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P70",
+"face": "registry.metrics[*].metric_id",
+"key": "注册表无 JP_POLICY_TARGET",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "P71",
+"face": "calendar.entries[*].id/kind",
+"key": "冻结日历无美国政策条目、无 FOMC 纪要条目(条目 id 仅 2025SHUTDOWN 数据发布/EA-HICP/JP-BOJ/CN-LPR)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "ids=['RC-2025SHUTDOWN-CPI-SEP', 'RC-2025SHUTDOWN-CORECPI-SEP', 'RC-2025SHUTDOWN-UNEMP-SEP', 'RC-2025SHUTDOWN-UNEMP-NOV', 'RC-2025SHUTDOWN-GDP-Q3', 'RC-2025SHUTDOWN-PCE-OCTNOV', 'RC-EA-HICP-2021M05', 'RC-EA-HICP-2022M06', 'RC-2025SHUTDOWN-INDPRO-SEP', 'RC-EA-HICP-2025M03', 'RC-2025SHUTDOWN-CPI-NOV', 'RC-2025SHUTDOWN-PCE-SEP', 'RC-2025SHUTDOWN-INDPRO-OCTNOV', 'RC-2025SHUTDOWN-REST-CONSERVATIVE', 'RC-JP-BOJ-TARGET-2026-09', 'RC-JP-BOJ-MAINT-2026-10', 'RC-CN-LPR-2025M11', 'RC-CN-LPR-2026M11'] kinds=['None', 'policy_decision', 'policy_maintenance']"
+},
+{
+"id": "P72",
+"face": "report.json research_plan.policy_doc_facts",
+"key": "FOMC-MINUTES-2026-10 发布 2026-11-18, basis=user_directive",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "E01",
+"face": "snapshot.series_store",
+"key": "WTI_F 锚 obs",
+"calc": "2026-08-21",
+"calc_str": "2026-08-21",
+"report": "2026-08-21",
+"ok": true,
+"note": ""
+},
+{
+"id": "E02",
+"face": "snapshot.series_store",
+"key": "WTI_F@2026-08-21",
+"calc": 87.059998,
+"calc_str": "87.06",
+"report": 87.06,
+"ok": true,
+"note": ""
+},
+{
+"id": "E03",
+"face": "snapshot.series_store",
+"key": "WTI_F@2026-10-30",
+"calc": 104.120003,
+"calc_str": "104.12",
+"report": 104.12,
+"ok": true,
+"note": ""
+},
+{
+"id": "E04",
+"face": "snapshot.series_store",
+"key": "WTI_F 10-30 vs 锚 %",
+"calc": 19.595687332774816,
+"calc_str": "19.60",
+"report": 19.6,
+"ok": true,
+"note": ""
+},
+{
+"id": "E05",
+"face": "snapshot.series_store",
+"key": "WTI_F@2026-11-23",
+"calc": 82.019997,
+"calc_str": "82.02",
+"report": 82.02,
+"ok": true,
+"note": ""
+},
+{
+"id": "E06",
+"face": "snapshot.series_store",
+"key": "WTI_F 11-23 vs 锚 %",
+"calc": -5.78911223958446,
+"calc_str": "-5.79",
+"report": -5.79,
+"ok": true,
+"note": ""
+},
+{
+"id": "E07",
+"face": "snapshot.series_store",
+"key": "WTI_F 11-23 vs 10-30 %",
+"calc": -21.225514179057402,
+"calc_str": "-21.23",
+"report": -21.23,
+"ok": true,
+"note": ""
+},
+{
+"id": "E08",
+"face": "snapshot.series_store",
+"key": "BRENT_F 锚 obs 2026-08-21",
+"calc": 94.389999,
+"calc_str": "94.39",
+"report": 94.39,
+"ok": true,
+"note": ""
+},
+{
+"id": "E09",
+"face": "snapshot.series_store",
+"key": "BRENT_F@2026-10-30",
+"calc": 117.639999,
+"calc_str": "117.64",
+"report": 117.64,
+"ok": true,
+"note": ""
+},
+{
+"id": "E10",
+"face": "snapshot.series_store",
+"key": "BRENT_F 10-30 vs 锚 %",
+"calc": 24.63184685487707,
+"calc_str": "24.63",
+"report": 24.63,
+"ok": true,
+"note": ""
+},
+{
+"id": "E11",
+"face": "snapshot.series_store",
+"key": "BRENT_F@2026-11-23",
+"calc": 88.190002,
+"calc_str": "88.19",
+"report": 88.19,
+"ok": true,
+"note": ""
+},
+{
+"id": "E12",
+"face": "snapshot.series_store",
+"key": "BRENT_F 11-23 vs 锚 %",
+"calc": -6.5684893163310605,
+"calc_str": "-6.57",
+"report": -6.57,
+"ok": true,
+"note": ""
+},
+{
+"id": "E13",
+"face": "snapshot.series_store",
+"key": "BRENT_F 11-23 vs 10-30 %",
+"calc": -25.03399970277116,
+"calc_str": "-25.03",
+"report": -25.03,
+"ok": true,
+"note": ""
+},
+{
+"id": "E14",
+"face": "snapshot.series_store",
+"key": "WTI_SPOT_M@2026-08",
+"calc": 83.9,
+"calc_str": "83.9",
+"report": 83.9,
+"ok": true,
+"note": ""
+},
+{
+"id": "E15",
+"face": "snapshot.series_store",
+"key": "WTI_SPOT_M@2026-10",
+"calc": 102.07,
+"calc_str": "102.07",
+"report": 102.07,
+"ok": true,
+"note": ""
+},
+{
+"id": "E16",
+"face": "snapshot.series_store",
+"key": "WTI_SPOT_M 10月 vs 8月 %",
+"calc": 21.65673420738974,
+"calc_str": "21.66",
+"report": 21.66,
+"ok": true,
+"note": ""
+},
+{
+"id": "E17",
+"face": "snapshot.series_store",
+"key": "WTI_F 2026-08 自然月均值",
+"calc": 82.45238099999999,
+"calc_str": "82.45",
+"report": 82.45,
+"ok": true,
+"note": ""
+},
+{
+"id": "E18",
+"face": "snapshot.series_store",
+"key": "WTI_F 2026-10 自然月均值",
+"calc": 96.94181863636366,
+"calc_str": "96.94",
+"report": 96.94,
+"ok": true,
+"note": ""
+},
+{
+"id": "E19",
+"face": "snapshot.series_store",
+"key": "WTI_F@2026-09-16",
+"calc": 102.43,
+"calc_str": "102.43",
+"report": 102.43,
+"ok": true,
+"note": ""
+},
+{
+"id": "E20",
+"face": "snapshot.series_store",
+"key": "WTI_F 09-16 vs 锚 %",
+"calc": 17.65449385836193,
+"calc_str": "17.65",
+"report": 17.65,
+"ok": true,
+"note": ""
+},
+{
+"id": "E21",
+"face": "snapshot.series_store",
+"key": "WTI_F@2026-09-18",
+"calc": 100.300003,
+"calc_str": "100.30",
+"report": 100.3,
+"ok": true,
+"note": ""
+},
+{
+"id": "E22",
+"face": "snapshot.series_store",
+"key": "WTI_F 09-18 vs 锚 %",
+"calc": 15.20790868844266,
+"calc_str": "15.21",
+"report": 15.21,
+"ok": true,
+"note": ""
+},
+{
+"id": "E23",
+"face": "snapshot.series_store",
+"key": "WTI_F 2026-09-01..2026-10-31 全部观测 > 锚 87.06 (n=43, min=88.28)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "E24",
+"face": "snapshot.series_store",
+"key": "WTI_F 11-02 起首个跌破锚的观测日",
+"calc": "2026-11-09",
+"calc_str": "2026-11-09",
+"report": "2026-11-09",
+"ok": true,
+"note": ""
+},
+{
+"id": "E25",
+"face": "snapshot.series_store",
+"key": "WTI_F 2026-11-09..11-23 全部 < 锚(受审稿『11-09 起再度跌破该锚』的字面持续性; 实测 11 个观测中 9 个低于锚, 11-12=88.74、11-13=88.56 回到锚上方)",
+"calc": false,
+"calc_str": "False",
+"report": true,
+"ok": false,
+"note": ""
+},
+{
+"id": "E29",
+"face": "snapshot.series_store",
+"key": "WTI_F 2026-09-01..2026-10-31 观测全部 > 锚(受审稿『期货 9 月初至 10 月底的观测全部高于三个月前锚』)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "观测数 43, 最低 88.28"
+},
+{
+"id": "E26",
+"face": "snapshot.series_store",
+"key": "WTI_F 2026-11-02..11-06(跌破前) 全部 > 锚",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "[('2026-11-02', 96.459999), ('2026-11-03', 96.089996), ('2026-11-04', 88.120003), ('2026-11-05', 90.519997), ('2026-11-06', 90.830002)]"
+},
+{
+"id": "E27",
+"face": "snapshot.series_store",
+"key": "WTI_F 8 月底(锚后至 8-31)有短暂低于锚的观测",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": "[('2026-08-24', 85.010002), ('2026-08-25', 82.360001), ('2026-08-26', 82.230003), ('2026-08-27', 83.529999), ('2026-08-28', 83.400002), ('2026-08-31', 85.760002)]"
+},
+{
+"id": "E28",
+"face": "snapshot.series_store",
+"key": "WTI_SPOT_M 末观测月",
+"calc": "2026-10",
+"calc_str": "2026-10",
+"report": "2026-10",
+"ok": true,
+"note": ""
+}
+]

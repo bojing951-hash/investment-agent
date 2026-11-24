@@ -1,0 +1,3141 @@
+cutoff: 2026-11-23
+point_anchors: [{"kind": "point", "label": "3个月前", "as_of": "2026-08-23", "months_before": 3}, {"kind": "point", "label": "最新一期", "as_of": "2026-11-23", "months_before": 0, "explicit_period": "2026-11"}]
+as_of_declared: {
+ "as_of": "2026-11-23",
+ "basis": null,
+ "snapshot_target_date": "2026-11-23",
+ "differs_from_snapshot": false,
+ "requested_as_of": null,
+ "clamped_to_coverage": false,
+ "coverage_date": "2026-11-23",
+ "requested_month_end": null,
+ "actual_coverage_date": null,
+ "bare_year_month": "2026年11月",
+ "upstream_pin": false,
+ "error": null,
+ "note": "问句含裸年月 2026年11月 但相对回看约束非单一(不按时点化合并,R31 既档口径)——研究截止日=快照版本日 2026-11-23(不晚于该年月;该月末完整结果须待数据覆盖后重跑)"
+}
+dimension_gaps: [
+ {
+  "region": "JP",
+  "dimension": "policy",
+  "metric_id": "JP_POLICY_TARGET",
+  "gap": "registry_absent",
+  "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"
+ }
+]
+metrics: ["US_REAL_GDP", "UNEMPLOYMENT", "INDPRO", "CPI", "CORE_CPI", "CORE_PCE", "DFEDTARU", "DFF", "EA_REAL_GDP_YOY", "EA_HICP_YOY", "ECB_MRO", "ECB_DFR", "CN_PMI_MFG", "CN_CPI_YOY", "CN_PPI_YOY", "CN_POLICY_OVERNIGHT", "CN_OMO_7D", "CN_LPR_1Y", "JP_REAL_GDP_YOY", "JP_CPI_YOY", "JP_CPI_TOKYO_YOY", "JP_POLICY_RATE"]
+context_metrics: ["UST_10Y", "TIPS_10Y", "BEI_10Y"]
+regions: {"US": {"label": "美国", "dimensions": {"growth": [{"metric_id": "US_REAL_GDP", "display_name": "美国实际GDP(SAAR)", "face_note": "实际GDP(季频水平)", "frequency": "quarterly", "unit": "billion_usd", "vintage_semantics": "事后回顾(最新修订值,非当时首发值)", "policy_face": null}, {"metric_id": "UNEMPLOYMENT", "display_name": "失业率(U-3)", "face_note": "失业率(月频)", "frequency": "monthly", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": null}, {"metric_id": "INDPRO", "display_name": "工业生产指数(SA)", "face_note": "工业生产指数(月频水平)", "frequency": "monthly", "unit": "index_point_2017", "vintage_semantics": "as_collected(采集时点值)", "policy_face": null}], "inflation": [{"metric_id": "CPI", "display_name": "CPI物价指数(SA)", "face_note": "CPI(月频水平,同比派生)", "frequency": "monthly", "unit": "index_point_1982_84", "vintage_semantics": "as_collected(采集时点值)", "policy_face": null}, {"metric_id": "CORE_CPI", "display_name": "核心CPI(SA,剔除食品能源)", "face_note": "核心CPI(月频水平,同比派生)", "frequency": "monthly", "unit": "index_point_1982_84", "vintage_semantics": "as_collected(采集时点值)", "policy_face": null}, {"metric_id": "CORE_PCE", "display_name": "核心PCE(SA)", "face_note": "核心PCE(月频水平,同比派生)", "frequency": "monthly", "unit": "index_point_2017", "vintage_semantics": "as_collected(采集时点值)", "policy_face": null}], "policy": [{"metric_id": "DFEDTARU", "display_name": "联邦基金目标区间上限", "face_note": "联邦基金目标区间上限(政策目标口径)", "frequency": "daily", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": {"face": "政策目标(宣布值)", "market_seat_label": "FOMC目标区间上限", "decision": "决议日=生效日前一日(两日会议次日公布;序列值变更日=生效日)——2026-09 决议 09-16、生效 09-17", "effective": "生效日=观测日(目标区间自生效日起按新值执行;2022-07 决议 07-27→生效 07-28,七月末上限 2.50)", "decision_kind": "prev_day", "stat_window": null, "market_pair": "DFF", "market_note": "市场观测=配对 DFF(有效联邦基金利率)同窗观测日(生效日 DFF 同日跳变可核: 2026-09-17 3.63→3.88)"}}, {"metric_id": "DFF", "display_name": "有效联邦基金利率(日频)", "face_note": "有效联邦基金利率(日频市场利率)", "frequency": "daily", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": {"face": "隔夜市场均值(有效利率)", "market_seat_label": "NY Fed有效联邦基金利率", "decision": null, "effective": "观测日=交易日次日发布", "stat_window": "日", "market_self": true, "market_note": "市场观测日=本序列观测日(自即市场均值口径;生效日跳变与目标变更同日可核)"}}]}}, "EA": {"label": "欧元区", "dimensions": {"growth": [{"metric_id": "EA_REAL_GDP_YOY", "display_name": "欧元区实际GDP同比", "face_note": "实际GDP同比(季频,FRED最新修订值→事后回顾口径)", "frequency": "quarterly", "unit": "percent", "vintage_semantics": "事后回顾(最新修订值,非当时首发值)", "policy_face": null}], "inflation": [{"metric_id": "EA_HICP_YOY", "display_name": "欧元区HICP同比", "face_note": "HICP同比(月频)", "frequency": "monthly", "unit": "percent", "vintage_semantics": "事后回顾(最新修订值,非当时首发值)", "policy_face": null}], "policy": [{"metric_id": "ECB_MRO", "display_name": "欧央行主要再融资利率", "face_note": "欧央行主要再融资利率(政策目标口径)", "frequency": "daily", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": {"face": "政策目标(宣布值)", "market_seat_label": "ECB主要再融资利率", "decision": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16", "effective": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)", "decision_kind": "prev_thursday", "stat_window": null}}, {"metric_id": "ECB_DFR", "display_name": "欧央行存款便利利率", "face_note": "欧央行存款便利利率(操作下限口径)", "frequency": "daily", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": {"face": "政策目标(宣布值·操作下限)", "market_seat_label": "ECB存款便利利率", "decision": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16", "effective": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)", "decision_kind": "prev_thursday", "stat_window": null}}]}}, "CN": {"label": "中国", "dimensions": {"growth": [{"metric_id": "CN_PMI_MFG", "display_name": "制造业PMI", "face_note": "制造业PMI(月频)", "frequency": "monthly", "unit": "index_point", "vintage_semantics": "as_collected(采集时点值)", "policy_face": null}], "inflation": [{"metric_id": "CN_CPI_YOY", "display_name": "居民消费价格指数(CPI)同比", "face_note": "CPI同比(月频)", "frequency": "monthly", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": null}, {"metric_id": "CN_PPI_YOY", "display_name": "工业生产者出厂价格指数(PPI)同比", "face_note": "PPI同比(月频,价格维)", "frequency": "monthly", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": null}], "policy": [{"metric_id": "CN_POLICY_OVERNIGHT", "display_name": "央行隔夜逆回购利率(政策利率锚)", "face_note": "隔夜逆回购利率(操作目标口径——2026-11-02 换锚后的政策利率锚)", "frequency": "daily", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": {"face": "操作目标(隔夜·2026-11-02起新锚)", "market_seat_label": "央行隔夜逆回购中标利率", "decision": "决议日=公告日=观测日(交易日09:20披露)", "effective": "生效日=操作日当日", "decision_kind": "obs_day", "stat_window": null, "market_note": "隔夜市场利率(DR001类)未入库,市场观测日如实缺席"}}, {"metric_id": "CN_OMO_7D", "display_name": "央行7天期逆回购利率", "face_note": "7天逆回购利率(七天工具口径——换锚前为操作目标,2026-11-02 起单列)", "frequency": "daily", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": {"face": "七天工具(操作利率)", "market_seat_label": "央行7天逆回购中标利率", "decision": "决议日=公告日=观测日(交易日09:20披露)", "effective": "生效日=操作日当日", "decision_kind": "obs_day", "stat_window": null, "market_note": "七天工具口径单列(2026-11-02 换锚前为操作目标锚)"}}, {"metric_id": "CN_LPR_1Y", "display_name": "贷款市场报价利率(LPR)1年期", "face_note": "LPR 1年期(报价基准,单列)", "frequency": "monthly", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": {"face": "贷款报价(报价基准)", "market_seat_label": "LPR 1年期报价", "decision": "公布日=观测日(每月20日09:00,节假日顺延——Audit-R29 任务3: 官方发布时刻统一 09:00,与 release_calendar time=09:00 同口径)", "effective": "生效日=公布日", "decision_kind": "obs_day", "stat_window": null, "market_note": "报价基准与政策操作目标分列"}}]}}, "JP": {"label": "日本", "dimensions": {"growth": [{"metric_id": "JP_REAL_GDP_YOY", "display_name": "日本实际GDP同比", "face_note": "实际GDP同比(季频,FRED最新修订值→事后回顾口径)", "frequency": "quarterly", "unit": "percent", "vintage_semantics": "事后回顾(最新修订值,非当时首发值)", "policy_face": null}], "inflation": [{"metric_id": "JP_CPI_YOY", "display_name": "全国CPI同比(日本)", "face_note": "全国CPI同比(月频,官方主口径)", "frequency": "monthly", "unit": "percent", "vintage_semantics": "事后回顾(最新修订值,非当时首发值)", "policy_face": null}, {"metric_id": "JP_CPI_TOKYO_YOY", "display_name": "东京都CPI同比", "face_note": "东京都CPI同比(月频,速报先行口径;2025基单档→2026-01起)", "frequency": "monthly", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": null}], "policy": [{"metric_id": "JP_POLICY_RATE", "display_name": "日本无担保隔夜拆借利率(月均)", "face_note": "无担保隔夜拆借利率(月均口径——月均≠政策目标宣布值,任务3四分注记)", "frequency": "monthly", "unit": "percent", "vintage_semantics": "as_collected(采集时点值)", "policy_face": {"face": "隔夜市场均值(月均)", "market_seat_label": "无担保隔夜拆借月均", "decision": null, "effective": null, "stat_window": "月"}}]}}}
+cells type=list n=18
+---- cell 0
+{
+ "region": "US",
+ "dimension": "growth",
+ "metric_id": "US_REAL_GDP",
+ "display_name": "美国实际GDP(SAAR)",
+ "unit": "billion_usd",
+ "face_note": "实际GDP(季频水平)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-04-01",
+   "publication_date": "2026-07-29",
+   "publication_rule": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+   "publication_basis": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+   "vintage": "事后回顾(最新修订值,非当时首发值)",
+   "value": 24408.011,
+   "period_end": "2026-06-30",
+   "derived_yoy_pct": 2.19,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "ok"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-10-29",
+   "publication_rule": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+   "publication_basis": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+   "vintage": "事后回顾(最新修订值,非当时首发值)",
+   "value": 24611.077,
+   "period_end": "2026-09-30",
+   "derived_yoy_pct": 2.07,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "ok"
+  }
+ },
+ "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+ "policy_face": null
+}
+---- cell 1
+{
+ "region": "US",
+ "dimension": "growth",
+ "metric_id": "UNEMPLOYMENT",
+ "display_name": "失业率(U-3)",
+ "unit": "percent",
+ "face_note": "失业率(月频)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-08-05",
+   "publication_rule": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+   "publication_basis": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 4.1,
+   "period_end": "2026-07-31"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-01",
+   "publication_date": "2026-11-05",
+   "publication_rule": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+   "publication_basis": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 4.1,
+   "period_end": "2026-10-31"
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": null
+}
+---- cell 2
+{
+ "region": "US",
+ "dimension": "growth",
+ "metric_id": "INDPRO",
+ "display_name": "工业生产指数(SA)",
+ "unit": "index_point_2017",
+ "face_note": "工业生产指数(月频水平)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-08-15",
+   "publication_rule": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+   "publication_basis": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 103.1675,
+   "period_end": "2026-07-31",
+   "derived_yoy_pct": 1.25,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "ok"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-01",
+   "publication_date": "2026-11-15",
+   "publication_rule": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+   "publication_basis": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 103.3954,
+   "period_end": "2026-10-31",
+   "derived_yoy_pct": 2.15,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "ok"
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": null
+}
+---- cell 3
+{
+ "region": "US",
+ "dimension": "inflation",
+ "metric_id": "CPI",
+ "display_name": "CPI物价指数(SA)",
+ "unit": "index_point_1982_84",
+ "face_note": "CPI(月频水平,同比派生)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-08-13",
+   "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+   "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 332.813,
+   "period_end": "2026-07-31",
+   "derived_yoy_pct": 3.3,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "ok"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-01",
+   "publication_date": "2026-11-13",
+   "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+   "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 337.476,
+   "period_end": "2026-10-31",
+   "derived_yoy_pct": null,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "no_same_period_base",
+   "yoy_note": "同比不可得: 缺2025-10基期观测(月度同比只配去年同月/季度只配去年同季,不以最近前值代基期)",
+   "latest_valid_yoy": {
+    "observation_date": "2026-09-01",
+    "yoy_pct": 3.72
+   }
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": null
+}
+---- cell 4
+{
+ "region": "US",
+ "dimension": "inflation",
+ "metric_id": "CORE_CPI",
+ "display_name": "核心CPI(SA,剔除食品能源)",
+ "unit": "index_point_1982_84",
+ "face_note": "核心CPI(月频水平,同比派生)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-08-13",
+   "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+   "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 336.789,
+   "period_end": "2026-07-31",
+   "derived_yoy_pct": 2.47,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "ok"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-01",
+   "publication_date": "2026-11-13",
+   "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+   "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 339.9,
+   "period_end": "2026-10-31",
+   "derived_yoy_pct": null,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "no_same_period_base",
+   "yoy_note": "同比不可得: 缺2025-10基期观测(月度同比只配去年同月/季度只配去年同季,不以最近前值代基期)",
+   "latest_valid_yoy": {
+    "observation_date": "2026-09-01",
+    "yoy_pct": 2.57
+   }
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": null
+}
+---- cell 5
+{
+ "region": "US",
+ "dimension": "inflation",
+ "metric_id": "CORE_PCE",
+ "display_name": "核心PCE(SA)",
+ "unit": "index_point_2017",
+ "face_note": "核心PCE(月频水平,同比派生)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-06-01",
+   "publication_date": "2026-07-30",
+   "publication_rule": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+   "publication_basis": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 129.969,
+   "period_end": "2026-06-30",
+   "derived_yoy_pct": 3.04,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "ok"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-09-01",
+   "publication_date": "2026-10-30",
+   "publication_rule": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+   "publication_basis": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 130.902,
+   "period_end": "2026-09-30",
+   "derived_yoy_pct": 3.12,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "ok"
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": null
+}
+---- cell 6
+{
+ "region": "US",
+ "dimension": "policy",
+ "metric_id": "DFEDTARU",
+ "display_name": "联邦基金目标区间上限",
+ "unit": "percent",
+ "face_note": "联邦基金目标区间上限(政策目标口径)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-08-23",
+   "publication_date": "2026-08-23",
+   "publication_rule": "FOMC 目标区间决议日当日公布",
+   "publication_basis": "FOMC 目标区间决议日当日公布",
+   "vintage": "as_collected(采集时点值)",
+   "value": 3.75,
+   "policy_dates": {
+    "face": "政策目标(宣布值)",
+    "market_seat_label": "FOMC目标区间上限",
+    "decision_note": "决议日=生效日前一日(两日会议次日公布;序列值变更日=生效日)——2026-09 决议 09-16、生效 09-17;当前值由该决议设定——观测日2026-08-23为序列打印日非变更日",
+    "effective_note": "生效日=观测日(目标区间自生效日起按新值执行;2022-07 决议 07-27→生效 07-28,七月末上限 2.50)",
+    "market_note": "市场观测=配对 DFF(有效联邦基金利率)同窗观测日(生效日 DFF 同日跳变可核: 2026-09-17 3.63→3.88)",
+    "decision": "2025-12-10",
+    "effective": "2025-12-11",
+    "market_observation": "2026-08-23",
+    "stat_window_end": null
+   }
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-11-23",
+   "publication_date": "2026-11-23",
+   "publication_rule": "FOMC 目标区间决议日当日公布",
+   "publication_basis": "FOMC 目标区间决议日当日公布",
+   "vintage": "as_collected(采集时点值)",
+   "value": 4.0,
+   "policy_confirm_date": "2026-11-23",
+   "freshness_basis": "policy_confirmation",
+   "policy_dates": {
+    "face": "政策目标(宣布值)",
+    "market_seat_label": "FOMC目标区间上限",
+    "decision_note": "决议日=生效日前一日(两日会议次日公布;序列值变更日=生效日)——2026-09 决议 09-16、生效 09-17;当前值由该决议设定——观测日2026-11-23为序列打印日非变更日",
+    "effective_note": "生效日=观测日(目标区间自生效日起按新值执行;2022-07 决议 07-27→生效 07-28,七月末上限 2.50)",
+    "market_note": "市场观测=配对 DFF(有效联邦基金利率)同窗观测日(生效日 DFF 同日跳变可核: 2026-09-17 3.63→3.88)",
+    "decision": "2026-09-16",
+    "effective": "2026-09-17",
+    "market_observation": "2026-11-19",
+    "stat_window_end": null
+   }
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": {
+  "face": "政策目标(宣布值)",
+  "market_seat_label": "FOMC目标区间上限",
+  "decision": "决议日=生效日前一日(两日会议次日公布;序列值变更日=生效日)——2026-09 决议 09-16、生效 09-17",
+  "effective": "生效日=观测日(目标区间自生效日起按新值执行;2022-07 决议 07-27→生效 07-28,七月末上限 2.50)",
+  "decision_kind": "prev_day",
+  "stat_window": null,
+  "market_pair": "DFF",
+  "market_note": "市场观测=配对 DFF(有效联邦基金利率)同窗观测日(生效日 DFF 同日跳变可核: 2026-09-17 3.63→3.88)"
+ },
+ "policy_window_path": {
+  "window": [
+   "2025-11-23",
+   "2026-11-23"
+  ],
+  "events": [
+   {
+    "date": "2025-12-11",
+    "from": 4.0,
+    "to": 3.75,
+    "delta_bp": -25,
+    "decision_date": "2025-12-10"
+   },
+   {
+    "date": "2026-09-17",
+    "from": 3.75,
+    "to": 4.0,
+    "delta_bp": 25,
+    "decision_date": "2026-09-16"
+   }
+  ],
+  "window_start_value": 4.0,
+  "window_end_value": 4.0,
+  "net_bp": 0,
+  "note": "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+ }
+}
+---- cell 7
+{
+ "region": "US",
+ "dimension": "policy",
+ "metric_id": "DFF",
+ "display_name": "有效联邦基金利率(日频)",
+ "unit": "percent",
+ "face_note": "有效联邦基金利率(日频市场利率)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-08-22",
+   "publication_date": "2026-08-23",
+   "publication_rule": "NY Fed 有效联邦基金利率次日发布(+1天,推定)",
+   "publication_basis": "NY Fed 有效联邦基金利率次日发布(+1天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 3.63,
+   "policy_dates": {
+    "face": "隔夜市场均值(有效利率)",
+    "market_seat_label": "NY Fed有效联邦基金利率",
+    "decision_note": null,
+    "effective_note": "观测日=交易日次日发布",
+    "market_note": "市场观测日=本序列观测日(自即市场均值口径;生效日跳变与目标变更同日可核)",
+    "decision": null,
+    "effective": "2026-08-22",
+    "market_observation": "2026-08-22",
+    "stat_window_end": "2026-08-22"
+   }
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-11-19",
+   "publication_date": "2026-11-20",
+   "publication_rule": "NY Fed 有效联邦基金利率次日发布(+1天,推定)",
+   "publication_basis": "NY Fed 有效联邦基金利率次日发布(+1天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 3.88,
+   "policy_dates": {
+    "face": "隔夜市场均值(有效利率)",
+    "market_seat_label": "NY Fed有效联邦基金利率",
+    "decision_note": null,
+    "effective_note": "观测日=交易日次日发布",
+    "market_note": "市场观测日=本序列观测日(自即市场均值口径;生效日跳变与目标变更同日可核)",
+    "decision": null,
+    "effective": "2026-11-19",
+    "market_observation": "2026-11-19",
+    "stat_window_end": "2026-11-19"
+   }
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": {
+  "face": "隔夜市场均值(有效利率)",
+  "market_seat_label": "NY Fed有效联邦基金利率",
+  "decision": null,
+  "effective": "观测日=交易日次日发布",
+  "stat_window": "日",
+  "market_self": true,
+  "market_note": "市场观测日=本序列观测日(自即市场均值口径;生效日跳变与目标变更同日可核)"
+ },
+ "policy_window_path": {
+  "window": [
+   "2025-11-23",
+   "2026-11-23"
+  ],
+  "events": [
+   {
+    "date": "2025-11-28",
+    "from": 3.88,
+    "to": 3.89,
+    "delta_bp": 1
+   },
+   {
+    "date": "2025-12-11",
+    "from": 3.89,
+    "to": 3.64,
+    "delta_bp": -25
+   },
+   {
+    "date": "2026-05-07",
+    "from": 3.64,
+    "to": 3.63,
+    "delta_bp": -1
+   },
+   {
+    "date": "2026-05-19",
+    "from": 3.63,
+    "to": 3.62,
+    "delta_bp": -1
+   },
+   {
+    "date": "2026-06-15",
+    "from": 3.62,
+    "to": 3.63,
+    "delta_bp": 1
+   },
+   {
+    "date": "2026-07-08",
+    "from": 3.63,
+    "to": 3.62,
+    "delta_bp": -1
+   },
+   {
+    "date": "2026-07-14",
+    "from": 3.62,
+    "to": 3.63,
+    "delta_bp": 1
+   },
+   {
+    "date": "2026-09-17",
+    "from": 3.63,
+    "to": 3.88,
+    "delta_bp": 25
+   }
+  ],
+  "window_start_value": 3.88,
+  "window_end_value": 3.88,
+  "net_bp": 0,
+  "note": "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+ }
+}
+---- cell 8
+{
+ "region": "CN",
+ "dimension": "growth",
+ "metric_id": "CN_PMI_MFG",
+ "display_name": "制造业PMI",
+ "unit": "index_point",
+ "face_note": "制造业PMI(月频)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-07-30",
+   "publication_rule": "国家统计局当月月末发布(月末−1天,推定)",
+   "publication_basis": "国家统计局当月月末发布(月末−1天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 49.2,
+   "period_end": "2026-07-31",
+   "derived_yoy_pct": -0.2,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "ok"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-01",
+   "publication_date": "2026-10-30",
+   "publication_rule": "国家统计局当月月末发布(月末−1天,推定)",
+   "publication_basis": "国家统计局当月月末发布(月末−1天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 49.3,
+   "period_end": "2026-10-31",
+   "derived_yoy_pct": 0.61,
+   "value_kind": "level(同比须用 derived_yoy_pct)",
+   "yoy_status": "ok"
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": null
+}
+---- cell 9
+{
+ "region": "CN",
+ "dimension": "inflation",
+ "metric_id": "CN_CPI_YOY",
+ "display_name": "居民消费价格指数(CPI)同比",
+ "unit": "percent",
+ "face_note": "CPI同比(月频)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-08-09",
+   "publication_rule": "国家统计局次月9日前后发布(月末+9天,推定)",
+   "publication_basis": "国家统计局次月9日前后发布(月末+9天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 0.5,
+   "period_end": "2026-07-31"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-01",
+   "publication_date": "2026-11-09",
+   "publication_rule": "国家统计局次月9日前后发布(月末+9天,推定)",
+   "publication_basis": "国家统计局次月9日前后发布(月末+9天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 0.7,
+   "period_end": "2026-10-31"
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": null
+}
+---- cell 10
+{
+ "region": "CN",
+ "dimension": "inflation",
+ "metric_id": "CN_PPI_YOY",
+ "display_name": "工业生产者出厂价格指数(PPI)同比",
+ "unit": "percent",
+ "face_note": "PPI同比(月频,价格维)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-08-09",
+   "publication_rule": "国家统计局次月9日前后发布(月末+9天,推定)",
+   "publication_basis": "国家统计局次月9日前后发布(月末+9天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 3.5,
+   "period_end": "2026-07-31"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-01",
+   "publication_date": "2026-11-09",
+   "publication_rule": "国家统计局次月9日前后发布(月末+9天,推定)",
+   "publication_basis": "国家统计局次月9日前后发布(月末+9天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 5.7,
+   "period_end": "2026-10-31"
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": null
+}
+---- cell 11
+{
+ "region": "CN",
+ "dimension": "policy",
+ "metric_id": "CN_POLICY_OVERNIGHT",
+ "display_name": "央行隔夜逆回购利率(政策利率锚)",
+ "unit": "percent",
+ "face_note": "隔夜逆回购利率(操作目标口径——2026-11-02 换锚后的政策利率锚)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "no_published_observation_on_or_before_anchor",
+   "as_of": "2026-08-23",
+   "note": "锚日前无「已发布」观测(发布日=日历实录条目优先+推定规则兜底)"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-11-23",
+   "publication_date": "2026-11-23",
+   "publication_rule": "央行操作室交易日09:20披露交易公告(当日可见;2026-11-02换锚后隔夜行)",
+   "publication_basis": "央行操作室交易日09:20披露交易公告(当日可见;2026-11-02换锚后隔夜行)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 1.25,
+   "policy_dates": {
+    "face": "操作目标(隔夜·2026-11-02起新锚)",
+    "market_seat_label": "央行隔夜逆回购中标利率",
+    "decision_note": "决议日=公告日=观测日(交易日09:20披露)",
+    "effective_note": "生效日=操作日当日",
+    "market_note": "隔夜市场利率(DR001类)未入库,市场观测日如实缺席",
+    "decision": "2026-11-23",
+    "effective": "2026-11-23",
+    "market_observation": null,
+    "stat_window_end": null
+   }
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": {
+  "face": "操作目标(隔夜·2026-11-02起新锚)",
+  "market_seat_label": "央行隔夜逆回购中标利率",
+  "decision": "决议日=公告日=观测日(交易日09:20披露)",
+  "effective": "生效日=操作日当日",
+  "decision_kind": "obs_day",
+  "stat_window": null,
+  "market_note": "隔夜市场利率(DR001类)未入库,市场观测日如实缺席"
+ },
+ "policy_window_path": {
+  "window": [
+   "2025-11-23",
+   "2026-11-23"
+  ],
+  "events": [],
+  "window_start_value": 1.25,
+  "window_end_value": 1.25,
+  "net_bp": 0,
+  "note": "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+ }
+}
+---- cell 12
+{
+ "region": "CN",
+ "dimension": "policy",
+ "metric_id": "CN_OMO_7D",
+ "display_name": "央行7天期逆回购利率",
+ "unit": "percent",
+ "face_note": "7天逆回购利率(七天工具口径——换锚前为操作目标,2026-11-02 起单列)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-08-21",
+   "publication_date": "2026-08-21",
+   "publication_rule": "央行操作室交易日09:20披露交易公告(当日可见)",
+   "publication_basis": "央行操作室交易日09:20披露交易公告(当日可见)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 1.4,
+   "policy_dates": {
+    "face": "七天工具(操作利率)",
+    "market_seat_label": "央行7天逆回购中标利率",
+    "decision_note": "决议日=公告日=观测日(交易日09:20披露)",
+    "effective_note": "生效日=操作日当日",
+    "market_note": "七天工具口径单列(2026-11-02 换锚前为操作目标锚)",
+    "decision": "2026-08-21",
+    "effective": "2026-08-21",
+    "market_observation": null,
+    "stat_window_end": null
+   }
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-30",
+   "publication_date": "2026-10-30",
+   "publication_rule": "央行操作室交易日09:20披露交易公告(当日可见)",
+   "publication_basis": "央行操作室交易日09:20披露交易公告(当日可见)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 1.4,
+   "freshness": "stale",
+   "freshness_lag_days": 24,
+   "freshness_window_days": 10,
+   "freshness_period_end": "2026-10-30",
+   "freshness_period_lag_days": 24,
+   "freshness_note": "按发布频率识别为过期(daily频): 末观测2026-10-30滞后24天>10天窗口(统计期末2026-10-30后24天>10天已批准窗口)——最新一期=过期数据,如实显示末观测日,不当当期",
+   "policy_dates": {
+    "face": "七天工具(操作利率)",
+    "market_seat_label": "央行7天逆回购中标利率",
+    "decision_note": "决议日=公告日=观测日(交易日09:20披露)",
+    "effective_note": "生效日=操作日当日",
+    "market_note": "七天工具口径单列(2026-11-02 换锚前为操作目标锚)",
+    "decision": "2026-10-30",
+    "effective": "2026-10-30",
+    "market_observation": null,
+    "stat_window_end": null
+   }
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": {
+  "face": "七天工具(操作利率)",
+  "market_seat_label": "央行7天逆回购中标利率",
+  "decision": "决议日=公告日=观测日(交易日09:20披露)",
+  "effective": "生效日=操作日当日",
+  "decision_kind": "obs_day",
+  "stat_window": null,
+  "market_note": "七天工具口径单列(2026-11-02 换锚前为操作目标锚)"
+ },
+ "policy_window_path": {
+  "window": [
+   "2025-11-23",
+   "2026-11-23"
+  ],
+  "events": [],
+  "window_start_value": 1.4,
+  "window_end_value": 1.4,
+  "net_bp": 0,
+  "note": "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+ }
+}
+---- cell 13
+{
+ "region": "CN",
+ "dimension": "policy",
+ "metric_id": "CN_LPR_1Y",
+ "display_name": "贷款市场报价利率(LPR)1年期",
+ "unit": "percent",
+ "face_note": "LPR 1年期(报价基准,单列)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-08-20",
+   "publication_date": "2026-08-20",
+   "publication_rule": "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)",
+   "publication_basis": "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 3.0,
+   "period_end": "2026-08-31",
+   "policy_dates": {
+    "face": "贷款报价(报价基准)",
+    "market_seat_label": "LPR 1年期报价",
+    "decision_note": "公布日=观测日(每月20日09:00,节假日顺延——Audit-R29 任务3: 官方发布时刻统一 09:00,与 release_calendar time=09:00 同口径)",
+    "effective_note": "生效日=公布日",
+    "market_note": "报价基准与政策操作目标分列",
+    "decision": "2026-08-20",
+    "effective": "2026-08-20",
+    "market_observation": null,
+    "stat_window_end": null
+   }
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-11-20",
+   "publication_date": "2026-11-20",
+   "publication_rule": "calendar:RC-CN-LPR-2026M11(user_directive)",
+   "publication_basis": "calendar:RC-CN-LPR-2026M11(user_directive)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 3.0,
+   "period_end": "2026-11-30",
+   "policy_dates": {
+    "face": "贷款报价(报价基准)",
+    "market_seat_label": "LPR 1年期报价",
+    "decision_note": "公布日=观测日(每月20日09:00,节假日顺延——Audit-R29 任务3: 官方发布时刻统一 09:00,与 release_calendar time=09:00 同口径)",
+    "effective_note": "生效日=公布日",
+    "market_note": "报价基准与政策操作目标分列",
+    "decision": "2026-11-20",
+    "effective": "2026-11-20",
+    "market_observation": null,
+    "stat_window_end": null
+   }
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": {
+  "face": "贷款报价(报价基准)",
+  "market_seat_label": "LPR 1年期报价",
+  "decision": "公布日=观测日(每月20日09:00,节假日顺延——Audit-R29 任务3: 官方发布时刻统一 09:00,与 release_calendar time=09:00 同口径)",
+  "effective": "生效日=公布日",
+  "decision_kind": "obs_day",
+  "stat_window": null,
+  "market_note": "报价基准与政策操作目标分列"
+ },
+ "policy_window_path": {
+  "window": [
+   "2025-11-23",
+   "2026-11-23"
+  ],
+  "events": [],
+  "window_start_value": 3.0,
+  "window_end_value": 3.0,
+  "net_bp": 0,
+  "note": "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+ }
+}
+---- cell 14
+{
+ "region": "JP",
+ "dimension": "growth",
+ "metric_id": "JP_REAL_GDP_YOY",
+ "display_name": "日本实际GDP同比",
+ "unit": "percent",
+ "face_note": "实际GDP同比(季频,FRED最新修订值→事后回顾口径)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-04-01",
+   "publication_date": "2026-08-14",
+   "publication_rule": "内閣府GDP速报季末+45天(推定;FRED最新修订值→事后回顾)",
+   "publication_basis": "内閣府GDP速报季末+45天(推定;FRED最新修订值→事后回顾)",
+   "vintage": "事后回顾(最新修订值,非当时首发值)",
+   "value": 0.8,
+   "period_end": "2026-06-30"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-11-14",
+   "publication_rule": "内閣府GDP速报季末+45天(推定;FRED最新修订值→事后回顾)",
+   "publication_basis": "内閣府GDP速报季末+45天(推定;FRED最新修订值→事后回顾)",
+   "vintage": "事后回顾(最新修订值,非当时首发值)",
+   "value": 1.16,
+   "period_end": "2026-09-30"
+  }
+ },
+ "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+ "policy_face": null
+}
+---- cell 15
+{
+ "region": "JP",
+ "dimension": "inflation",
+ "metric_id": "JP_CPI_YOY",
+ "display_name": "全国CPI同比(日本)",
+ "unit": "percent",
+ "face_note": "全国CPI同比(月频,官方主口径)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-08-20",
+   "publication_rule": "总务省全国CPI次月中旬发布(月末+20天,推定)",
+   "publication_basis": "总务省全国CPI次月中旬发布(月末+20天,推定)",
+   "vintage": "事后回顾(最新修订值,非当时首发值)",
+   "value": 1.97,
+   "period_end": "2026-07-31"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-01",
+   "publication_date": "2026-11-20",
+   "publication_rule": "总务省全国CPI次月中旬发布(月末+20天,推定)",
+   "publication_basis": "总务省全国CPI次月中旬发布(月末+20天,推定)",
+   "vintage": "事后回顾(最新修订值,非当时首发值)",
+   "value": 2.44,
+   "period_end": "2026-10-31"
+  }
+ },
+ "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+ "policy_face": null
+}
+---- cell 16
+{
+ "region": "JP",
+ "dimension": "inflation",
+ "metric_id": "JP_CPI_TOKYO_YOY",
+ "display_name": "东京都CPI同比",
+ "unit": "percent",
+ "face_note": "东京都CPI同比(月频,速报先行口径;2025基单档→2026-01起)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-07-30",
+   "publication_rule": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)",
+   "publication_basis": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 1.85,
+   "period_end": "2026-07-31"
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-01",
+   "publication_date": "2026-10-30",
+   "publication_rule": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)",
+   "publication_basis": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 2.73,
+   "period_end": "2026-10-31"
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": null
+}
+---- cell 17
+{
+ "region": "JP",
+ "dimension": "policy",
+ "metric_id": "JP_POLICY_RATE",
+ "display_name": "日本无担保隔夜拆借利率(月均)",
+ "unit": "percent",
+ "face_note": "无担保隔夜拆借利率(月均口径——月均≠政策目标宣布值,任务3四分注记)",
+ "source": "研究快照 series_store",
+ "anchors": {
+  "3个月前": {
+   "status": "ok",
+   "as_of": "2026-08-23",
+   "observation_date": "2026-07-01",
+   "publication_date": "2026-08-05",
+   "publication_rule": "BOJ 月均次月初公布(月末+5天,推定)",
+   "publication_basis": "BOJ 月均次月初公布(月末+5天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 0.978,
+   "period_end": "2026-07-31",
+   "policy_dates": {
+    "face": "隔夜市场均值(月均)",
+    "market_seat_label": "无担保隔夜拆借月均",
+    "decision_note": null,
+    "effective_note": null,
+    "market_note": null,
+    "decision": null,
+    "effective": null,
+    "market_observation": null,
+    "stat_window_end": "2026-07-31"
+   }
+  },
+  "最新一期": {
+   "status": "ok",
+   "as_of": "2026-11-23",
+   "observation_date": "2026-10-01",
+   "publication_date": "2026-11-05",
+   "publication_rule": "BOJ 月均次月初公布(月末+5天,推定)",
+   "publication_basis": "BOJ 月均次月初公布(月末+5天,推定)",
+   "vintage": "as_collected(采集时点值)",
+   "value": 1.227,
+   "period_end": "2026-10-31",
+   "policy_dates": {
+    "face": "隔夜市场均值(月均)",
+    "market_seat_label": "无担保隔夜拆借月均",
+    "decision_note": null,
+    "effective_note": null,
+    "market_note": null,
+    "decision": null,
+    "effective": null,
+    "market_observation": null,
+    "stat_window_end": "2026-10-31"
+   }
+  }
+ },
+ "vintage_semantics": "as_collected(采集时点值)",
+ "policy_face": {
+  "face": "隔夜市场均值(月均)",
+  "market_seat_label": "无担保隔夜拆借月均",
+  "decision": null,
+  "effective": null,
+  "stat_window": "月"
+ },
+ "policy_window_path": {
+  "window": [
+   "2025-11-23",
+   "2026-11-23"
+  ],
+  "events": [
+   {
+    "date": "2025-12-01",
+    "from": 0.478,
+    "to": 0.557,
+    "delta_bp": 8
+   },
+   {
+    "date": "2026-01-01",
+    "from": 0.557,
+    "to": 0.728,
+    "delta_bp": 17
+   },
+   {
+    "date": "2026-06-01",
+    "from": 0.727,
+    "to": 0.841,
+    "delta_bp": 11
+   },
+   {
+    "date": "2026-07-01",
+    "from": 0.841,
+    "to": 0.978,
+    "delta_bp": 14
+   },
+   {
+    "date": "2026-09-01",
+    "from": 0.977,
+    "to": 1.043,
+    "delta_bp": 7
+   },
+   {
+    "date": "2026-10-01",
+    "from": 1.043,
+    "to": 1.227,
+    "delta_bp": 18
+   }
+  ],
+  "window_start_value": 0.557,
+  "window_end_value": 1.227,
+  "net_bp": 67,
+  "note": "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+ }
+}
+absent: [
+ {
+  "region": "EA",
+  "dimension": "growth",
+  "metric_id": "EA_REAL_GDP_YOY",
+  "display_name": "欧元区实际GDP同比",
+  "gap": "series_absent",
+  "note": "欧元区实际GDP同比 历史序列不可得(检索范围=快照 series_store+注册表 history_source 采集档通道)——三时点对照该行以「数据不可得」呈现,禁以现值冒充锚值"
+ },
+ {
+  "region": "EA",
+  "dimension": "inflation",
+  "metric_id": "EA_HICP_YOY",
+  "display_name": "欧元区HICP同比",
+  "gap": "series_absent",
+  "note": "欧元区HICP同比 历史序列不可得(检索范围=快照 series_store+注册表 history_source 采集档通道)——三时点对照该行以「数据不可得」呈现,禁以现值冒充锚值"
+ },
+ {
+  "region": "EA",
+  "dimension": "policy",
+  "metric_id": "ECB_MRO",
+  "display_name": "欧央行主要再融资利率",
+  "gap": "series_absent",
+  "note": "欧央行主要再融资利率 历史序列不可得(检索范围=快照 series_store+注册表 history_source 采集档通道)——三时点对照该行以「数据不可得」呈现,禁以现值冒充锚值"
+ },
+ {
+  "region": "EA",
+  "dimension": "policy",
+  "metric_id": "ECB_DFR",
+  "display_name": "欧央行存款便利利率",
+  "gap": "series_absent",
+  "note": "欧央行存款便利利率 历史序列不可得(检索范围=快照 series_store+注册表 history_source 采集档通道)——三时点对照该行以「数据不可得」呈现,禁以现值冒充锚值"
+ }
+]
+run.evidence_gate: {
+ "discipline": "r32",
+ "as_of": "2026-11-23",
+ "source_snapshot_id": "research_snapshot_20261123",
+ "source_target_date": "2026-11-23",
+ "historical_view": false,
+ "publication_basis": "snapshot_presence",
+ "rules": [
+  "①观测日≤as_of",
+  "②发布日≤as_of(历史截止: 日历实录优先/RELEASE_RULES 推定)",
+  "③值版本: as-of 快照版本优先;无则注册表未声明修订=值不随版本变(可引用);声明最新修订口径=观测须已过首个修订周期(首发日+1发布周期≤as_of),否则当时数据版本不可得逐点剔除"
+ ],
+ "vintage": {
+  "basis": "snapshot_vintage",
+  "vintage_snapshot": null,
+  "vintage_snapshot_id": null,
+  "vintage_error": null,
+  "revised_series": [],
+  "excluded_series": []
+ },
+ "counts": {
+  "facts_kept": 102,
+  "facts_rebuilt": 0,
+  "facts_dropped": 0,
+  "facts_excluded_version": 0,
+  "series_observations_dropped": 0,
+  "series_observations_version_unavailable": 0,
+  "series_excluded": 0,
+  "series_n": 88
+ },
+ "series": {
+  "SPX": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "NDX": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "RUT": {
+   "n_in": 2512,
+   "n_kept": 2512,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-20",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "NVDA": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "AAPL": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "MSFT": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "TLT": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "HYG": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "DXY": {
+   "n_in": 2515,
+   "n_kept": 2515,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "EURUSD": {
+   "n_in": 2601,
+   "n_kept": 2601,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "GOLD_F": {
+   "n_in": 2515,
+   "n_kept": 2515,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "SILVER_F": {
+   "n_in": 2514,
+   "n_kept": 2514,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "WTI_F": {
+   "n_in": 2515,
+   "n_kept": 2515,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "BRENT_F": {
+   "n_in": 2516,
+   "n_kept": 2516,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "EEM": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "BTC": {
+   "n_in": 3652,
+   "n_kept": 3652,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-22",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "VIX": {
+   "n_in": 2515,
+   "n_kept": 2515,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "EZU": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "FEZ": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "EWU": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "EWG": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "DAX": {
+   "n_in": 2538,
+   "n_kept": 2538,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CAC40": {
+   "n_in": 2559,
+   "n_kept": 2559,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "EWJ": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "INDA": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "FXI": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "GBPUSD": {
+   "n_in": 2601,
+   "n_kept": 2601,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "USDJPY": {
+   "n_in": 2601,
+   "n_kept": 2601,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "USDCNY": {
+   "n_in": 2600,
+   "n_kept": 2600,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "IEF": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "SHY": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "LQD": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "GLD": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "USO": {
+   "n_in": 2513,
+   "n_kept": 2513,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "SHCOMP": {
+   "n_in": 2428,
+   "n_kept": 2428,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "SZCI": {
+   "n_in": 2428,
+   "n_kept": 2428,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CHINEXT": {
+   "n_in": 2428,
+   "n_kept": 2428,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "HSI": {
+   "n_in": 320,
+   "n_kept": 320,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "HSCEI": {
+   "n_in": 320,
+   "n_kept": 320,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "NIKKEI225": {
+   "n_in": 2520,
+   "n_kept": 2520,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-20",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "JP_POLICY_RATE": {
+   "n_in": 496,
+   "n_kept": 496,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "SPX_CAPE": {
+   "n_in": 1751,
+   "n_kept": 1751,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "SPX_PE_TTM": {
+   "n_in": 1869,
+   "n_kept": 1869,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-09-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "SPX_EPS": {
+   "n_in": 1869,
+   "n_kept": 1869,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-09-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CN_CPI_YOY": {
+   "n_in": 226,
+   "n_kept": 226,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CN_PPI_YOY": {
+   "n_in": 250,
+   "n_kept": 250,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CN_LPR_1Y": {
+   "n_in": 1540,
+   "n_kept": 1540,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-20",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CN_OMO_7D": {
+   "n_in": 201,
+   "n_kept": 201,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-30",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CN_POLICY_OVERNIGHT": {
+   "n_in": 16,
+   "n_kept": 16,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "JP_CPI_YOY": {
+   "n_in": 70,
+   "n_kept": 70,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "JP_CPI_TOKYO_YOY": {
+   "n_in": 10,
+   "n_kept": 10,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "JP_REAL_GDP_YOY": {
+   "n_in": 127,
+   "n_kept": 127,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-07-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "HY_OAS": {
+   "n_in": 786,
+   "n_kept": 786,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "BB_OAS": {
+   "n_in": 786,
+   "n_kept": 786,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "B_OAS": {
+   "n_in": 786,
+   "n_kept": 786,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CCC_OAS": {
+   "n_in": 786,
+   "n_kept": 786,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "IG_OAS": {
+   "n_in": 785,
+   "n_kept": 785,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "UST_2Y": {
+   "n_in": 2497,
+   "n_kept": 2497,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "UST_10Y": {
+   "n_in": 2497,
+   "n_kept": 2497,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "UST_30Y": {
+   "n_in": 2497,
+   "n_kept": 2497,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "TIPS_5Y": {
+   "n_in": 2497,
+   "n_kept": 2497,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "TIPS_10Y": {
+   "n_in": 2497,
+   "n_kept": 2497,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "BEI_5Y": {
+   "n_in": 2498,
+   "n_kept": 2498,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-20",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "BEI_10Y": {
+   "n_in": 2498,
+   "n_kept": 2498,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-20",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CURVE_2S10S": {
+   "n_in": 2498,
+   "n_kept": 2498,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-20",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "FED_FUNDS": {
+   "n_in": 120,
+   "n_kept": 120,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CPI": {
+   "n_in": 119,
+   "n_kept": 119,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CORE_PCE": {
+   "n_in": 119,
+   "n_kept": 119,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-09-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "UNEMPLOYMENT": {
+   "n_in": 119,
+   "n_kept": 119,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "NFP": {
+   "n_in": 120,
+   "n_kept": 120,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CORE_CPI": {
+   "n_in": 119,
+   "n_kept": 119,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "AHE": {
+   "n_in": 120,
+   "n_kept": 120,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "ICSA": {
+   "n_in": 521,
+   "n_kept": 521,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-14",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "WTI_SPOT_M": {
+   "n_in": 120,
+   "n_kept": 120,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "UST_5Y": {
+   "n_in": 2497,
+   "n_kept": 2497,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "UMCSENT": {
+   "n_in": 120,
+   "n_kept": 120,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "RSAFS": {
+   "n_in": 120,
+   "n_kept": 120,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "INDPRO": {
+   "n_in": 120,
+   "n_kept": 120,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "JTSJOL": {
+   "n_in": 119,
+   "n_kept": 119,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-09-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "US_REAL_GDP": {
+   "n_in": 40,
+   "n_kept": 40,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-07-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "SOFR": {
+   "n_in": 2157,
+   "n_kept": 2157,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-20",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "WALCL": {
+   "n_in": 522,
+   "n_kept": 522,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-18",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "DFF": {
+   "n_in": 3649,
+   "n_kept": 3649,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-19",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "M2SL": {
+   "n_in": 119,
+   "n_kept": 119,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-09-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "DFEDTARU": {
+   "n_in": 3653,
+   "n_kept": 3653,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "DFEDTARL": {
+   "n_in": 3653,
+   "n_kept": 3653,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-11-23",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CN_PMI_MFG": {
+   "n_in": 226,
+   "n_kept": 226,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  },
+  "CN_NEW_LOANS": {
+   "n_in": 226,
+   "n_kept": 226,
+   "n_late_observation": 0,
+   "n_late_publication": 0,
+   "n_version_unavailable": 0,
+   "first_dropped": null,
+   "last_eligible": "2026-10-01",
+   "vintage": "snapshot_vintage",
+   "excluded": false
+  }
+ },
+ "note": "截止视图=快照版本日(as_of=target_date): 快照在场即当时可得,证据面与源快照一致(只剔晚观测)"
+}
+run.data_requirements: {
+ "frozen_at": "plan(采集前冻结;分类与规格不随采集结果改判)",
+ "items": [
+  {
+   "metric_id": "US_REAL_GDP",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 260,
+     "tolerance_days": {
+      "start": 95,
+      "end": 130
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       95,
+       130
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 260,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "quarterly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 40,
+     "first": "2016-10-01",
+     "last": "2026-07-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 4,
+    "min_observations_basis": "问题未限定范围→quarterly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: US_REAL_GDP(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+95天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-130天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量40不替代窗口归属)(问题未限定范围→quarterly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "UNEMPLOYMENT",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 119,
+     "first": "2016-11-01",
+     "last": "2026-10-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: UNEMPLOYMENT(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量119不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "INDPRO",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 120,
+     "first": "2016-11-01",
+     "last": "2026-10-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: INDPRO(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量120不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "CPI",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 119,
+     "first": "2016-11-01",
+     "last": "2026-10-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: CPI(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量119不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "CORE_CPI",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 119,
+     "first": "2016-11-01",
+     "last": "2026-10-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: CORE_CPI(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量119不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "CORE_PCE",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 119,
+     "first": "2016-11-01",
+     "last": "2026-09-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: CORE_PCE(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量119不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "DFEDTARU",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 23,
+     "first_in_window": "2026-11-01",
+     "last_in_window": "2026-11-23",
+     "expected_in_window": 21,
+     "n_floor_in_window": 10,
+     "max_adjacent_gap_days": 1,
+     "max_gap_limit_days": 30,
+     "tolerance_days": {
+      "start": 14,
+      "end": 10
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       14,
+       10
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 30,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "daily",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 3653,
+     "first": "2016-11-23",
+     "last": "2026-11-23",
+     "n_in_window": 23,
+     "first_in_window": "2026-11-01",
+     "last_in_window": "2026-11-23"
+    },
+    "min_observations": 60,
+    "min_observations_basis": "问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "satisfied",
+   "outcome_basis": "任务窗2026-11-01..2026-11-30跨窗满足: 窗内有效去重 n=23(日历期望21×50%下界10;边界容差 起+14天/止-10天;最大间距1天≤30天;总量 n=3653;问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "DFF",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 19,
+     "first_in_window": "2026-11-01",
+     "last_in_window": "2026-11-19",
+     "expected_in_window": 21,
+     "n_floor_in_window": 10,
+     "max_adjacent_gap_days": 1,
+     "max_gap_limit_days": 30,
+     "tolerance_days": {
+      "start": 14,
+      "end": 10
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       14,
+       10
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 30,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "daily",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 3649,
+     "first": "2016-11-23",
+     "last": "2026-11-19",
+     "n_in_window": 19,
+     "first_in_window": "2026-11-01",
+     "last_in_window": "2026-11-19"
+    },
+    "min_observations": 60,
+    "min_observations_basis": "问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: DFF(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内末观测2026-11-19早于窗止-10天容忍(发布滞后外缺口)(问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "EA_REAL_GDP_YOY",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "allowed_gap": {
+      "tolerance_days": [
+       95,
+       130
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 260,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "quarterly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": null,
+     "first": null,
+     "last": null,
+     "n_in_window": null,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 4,
+    "min_observations_basis": "问题未限定范围→quarterly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: EA_REAL_GDP_YOY(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30窗口成员不可核验(快照无序列且 S4 信封无实际 dates——不得凭 first/last 裁剪或总量冒充窗内观测;源=研究快照 series_store)"
+  },
+  {
+   "metric_id": "EA_HICP_YOY",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": null,
+     "first": null,
+     "last": null,
+     "n_in_window": null,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: EA_HICP_YOY(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30窗口成员不可核验(快照无序列且 S4 信封无实际 dates——不得凭 first/last 裁剪或总量冒充窗内观测;源=研究快照 series_store)"
+  },
+  {
+   "metric_id": "ECB_MRO",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "allowed_gap": {
+      "tolerance_days": [
+       14,
+       10
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 30,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "daily",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": null,
+     "first": null,
+     "last": null,
+     "n_in_window": null,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 60,
+    "min_observations_basis": "问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: ECB_MRO(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30窗口成员不可核验(快照无序列且 S4 信封无实际 dates——不得凭 first/last 裁剪或总量冒充窗内观测;源=研究快照 series_store)"
+  },
+  {
+   "metric_id": "ECB_DFR",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "allowed_gap": {
+      "tolerance_days": [
+       14,
+       10
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 30,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "daily",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": null,
+     "first": null,
+     "last": null,
+     "n_in_window": null,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 60,
+    "min_observations_basis": "问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: ECB_DFR(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30窗口成员不可核验(快照无序列且 S4 信封无实际 dates——不得凭 first/last 裁剪或总量冒充窗内观测;源=研究快照 series_store)"
+  },
+  {
+   "metric_id": "CN_PMI_MFG",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 226,
+     "first": "2008-01-01",
+     "last": "2026-10-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)",
+    "collection_status": {
+     "mode": "fresh",
+     "last_success_at": "2026-11-23T14:51:00Z"
+    }
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: CN_PMI_MFG(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量226不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "CN_CPI_YOY",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 226,
+     "first": "2008-01-01",
+     "last": "2026-10-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: CN_CPI_YOY(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量226不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "CN_PPI_YOY",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 250,
+     "first": "2006-01-01",
+     "last": "2026-10-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: CN_PPI_YOY(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量250不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "CN_POLICY_OVERNIGHT",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 16,
+     "first_in_window": "2026-11-02",
+     "last_in_window": "2026-11-23",
+     "expected_in_window": 21,
+     "n_floor_in_window": 10,
+     "max_adjacent_gap_days": 3,
+     "max_gap_limit_days": 30,
+     "tolerance_days": {
+      "start": 14,
+      "end": 10
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       14,
+       10
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 30,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "daily",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 16,
+     "first": "2026-11-02",
+     "last": "2026-11-23",
+     "n_in_window": 16,
+     "first_in_window": "2026-11-02",
+     "last_in_window": "2026-11-23"
+    },
+    "min_observations": 60,
+    "min_observations_basis": "问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "satisfied",
+   "outcome_basis": "任务窗2026-11-01..2026-11-30跨窗满足: 窗内有效去重 n=16(日历期望21×50%下界10;边界容差 起+14天/止-10天;最大间距3天≤30天;总量 n=16;问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "CN_OMO_7D",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 21,
+     "n_floor_in_window": 10,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 30,
+     "tolerance_days": {
+      "start": 14,
+      "end": 10
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       14,
+       10
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 30,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "daily",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 201,
+     "first": "2025-10-09",
+     "last": "2026-10-30",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 60,
+    "min_observations_basis": "问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: CN_OMO_7D(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+14天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-10天容忍(发布滞后外缺口);窗内有效观测 n=0<10(日历期望21×半额;总量201不替代窗口归属)(问题未限定范围→daily频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "CN_LPR_1Y",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 1,
+     "first_in_window": "2026-11-20",
+     "last_in_window": "2026-11-20",
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 1540,
+     "first": "2013-10-25",
+     "last": "2026-11-20",
+     "n_in_window": 1,
+     "first_in_window": "2026-11-20",
+     "last_in_window": "2026-11-20"
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "satisfied",
+   "outcome_basis": "任务窗2026-11-01..2026-11-30跨窗满足: 窗内有效去重 n=1(日历期望1×50%下界1;边界容差 起+62天/止-75天;最大间距None天≤130天;总量 n=1540;问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "JP_REAL_GDP_YOY",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 260,
+     "tolerance_days": {
+      "start": 95,
+      "end": 130
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       95,
+       130
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 260,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "quarterly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 127,
+     "first": "1995-01-01",
+     "last": "2026-07-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 4,
+    "min_observations_basis": "问题未限定范围→quarterly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: JP_REAL_GDP_YOY(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+95天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-130天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量127不替代窗口归属)(问题未限定范围→quarterly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "JP_CPI_YOY",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 70,
+     "first": "2021-01-01",
+     "last": "2026-10-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: JP_CPI_YOY(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量70不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "JP_CPI_TOKYO_YOY",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 10,
+     "first": "2026-01-01",
+     "last": "2026-10-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: JP_CPI_TOKYO_YOY(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量10不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  },
+  {
+   "metric_id": "JP_POLICY_RATE",
+   "tier": "planned",
+   "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)",
+   "spec": {
+    "form": "series",
+    "window": {
+     "start": "2026-11-01",
+     "end": "2026-11-30",
+     "kind": "explicit",
+     "as_of": "2026-11-23",
+     "basis": "问题明确日期区间 2026年11月(词面边界)",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null,
+     "expected_in_window": 1,
+     "n_floor_in_window": 1,
+     "max_adjacent_gap_days": null,
+     "max_gap_limit_days": 130,
+     "tolerance_days": {
+      "start": 62,
+      "end": 75
+     },
+     "allowed_gap": {
+      "tolerance_days": [
+       62,
+       75
+      ],
+      "n_fraction_floor": 0.5,
+      "max_adjacent_gap_days": 130,
+      "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"
+     }
+    },
+    "frequency": "monthly",
+    "quality": "snapshot 序列(OK 行)",
+    "coverage_observed": {
+     "n": 496,
+     "first": "1985-07-01",
+     "last": "2026-10-01",
+     "n_in_window": 0,
+     "first_in_window": null,
+     "last_in_window": null
+    },
+    "min_observations": 12,
+    "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"
+   },
+   "outcome": "insufficient_coverage",
+   "outcome_basis": "缺什么: JP_POLICY_RATE(任务窗2026-11-01..2026-11-30)——任务窗窗口成员/覆盖不满足;任务窗2026-11-01..2026-11-30未满足: 窗内首观测缺席晚于窗起+62天容忍(历史未覆盖任务窗起点);窗内末观测缺席早于窗止-75天容忍(发布滞后外缺口);窗内有效观测 n=0<1(日历期望1×半额;总量496不替代窗口归属)(问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"
+  }
+ ],
+ "optional_face": {
+  "tier": "optional",
+  "scope": "S3 上下文指标/L2 机构观点/经济体概览",
+  "note": "可选缺席=降级披露,不构成任务目标缺口;必要缺席/覆盖不足=任务目标缺口,attach 默认阻塞(显式越过须随档)"
+ }
+}
+notes: [
+ "地图计划指标缺数(披露不阻断;缺数格=「数据不可得」+检索范围+影响): US_REAL_GDP、UNEMPLOYMENT、INDPRO、CPI、CORE_CPI、CORE_PCE、DFF、EA_REAL_GDP_YOY、EA_HICP_YOY、ECB_MRO、ECB_DFR、CN_PMI_MFG、CN_CPI_YOY、CN_PPI_YOY、CN_OMO_7D、JP_REAL_GDP_YOY、JP_CPI_YOY、JP_CPI_TOKYO_YOY、JP_POLICY_RATE"
+]

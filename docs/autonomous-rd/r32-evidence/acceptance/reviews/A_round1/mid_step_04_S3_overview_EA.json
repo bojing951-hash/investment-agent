@@ -1,0 +1,618 @@
+{
+ "ok": true,
+ "capability": "overview",
+ "engine_root": "/private/tmp/r32-accept/final6",
+ "snapshot_id": "research_snapshot_20261123",
+ "target_date": "20261123",
+ "research_as_of": "2026-11-23",
+ "gate_a": "DEGRADED",
+ "data": {
+  "economies": {
+   "EA": {
+    "label": "欧元区",
+    "n_metrics": 12,
+    "n_missing": 3,
+    "metrics": [
+     {
+      "metric_id": "EURUSD",
+      "display_name": "欧元兑美元",
+      "unit": "usd_per_eur",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "fx_rate",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "global",
+       "economy": "EA"
+      },
+      "calc": "即期汇率(上涨=欧元升值/美元贬值)",
+      "unit_subfamily": "fx",
+      "value": 1.09,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.2735,
+        "basis_date": "2026-11-20",
+        "basis_value": 1.096972,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -2.1738,
+        "basis_date": "2026-10-30",
+        "basis_value": 1.118281,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -6.8745,
+        "basis_date": "2025-12-31",
+        "basis_value": 1.174729,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 232,
+        "expected_sessions": 234,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "EZU",
+      "display_name": "iShares欧元区ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "欧元区股市指数",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "EA"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 63.3,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 2.4935,
+        "basis_date": "2026-11-20",
+        "basis_value": 61.759998,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -2.8545,
+        "basis_date": "2026-10-30",
+        "basis_value": 65.160004,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 0.5215,
+        "basis_date": "2025-12-31",
+        "basis_value": 62.971626,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "FEZ",
+      "display_name": "SPDR欧元区ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "欧元区STOXX50",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "EA"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 62.93,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 2.4919,
+        "basis_date": "2026-11-20",
+        "basis_value": 61.400002,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -3.2293,
+        "basis_date": "2026-10-30",
+        "basis_value": 65.029999,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -0.3765,
+        "basis_date": "2025-12-31",
+        "basis_value": 63.167824,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "EWG",
+      "display_name": "iShares德国ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "德国DAX",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "EA"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 39.97,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 2.0424,
+        "basis_date": "2026-11-20",
+        "basis_value": 39.169998,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -4.5606,
+        "basis_date": "2026-10-30",
+        "basis_value": 41.880001,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -4.0665,
+        "basis_date": "2025-12-31",
+        "basis_value": 41.664261,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "ECB_DFR",
+      "display_name": "欧央行存款便利利率",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "policy_rate",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "EA"
+      },
+      "calc": "ECB Data Portal 系列 FM.B.U2.EUR.4F.KR.DFR.LEV(存款便利利率 fixed rate,日频),管委会决议变更即时生效",
+      "value": 2.5,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-09-16",
+      "quality_status": "DEGRADED",
+      "issues": [
+       {
+        "category": "frequency",
+        "severity": "DEGRADED",
+        "message": "ECB_DFR观测日滞后68天(>10天有效窗,daily频;未发布或采集失败,不得当作最新一期)"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "ea_market_collector",
+       "file": "ea_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "ECB_MRO",
+      "display_name": "欧央行主要再融资利率",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "policy_rate",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "EA"
+      },
+      "calc": "ECB Data Portal 系列 FM.B.U2.EUR.4F.KR.MRR_FR.LEV(主要再融资操作固定利率,日频),管委会决议变更即时生效",
+      "value": 2.65,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-09-16",
+      "quality_status": "DEGRADED",
+      "issues": [
+       {
+        "category": "frequency",
+        "severity": "DEGRADED",
+        "message": "ECB_MRO观测日滞后68天(>10天有效窗,daily频;未发布或采集失败,不得当作最新一期)"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "ea_market_collector",
+       "file": "ea_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "BUND_10Y",
+      "display_name": "10年期德国国债收益率",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "rates_yield",
+      "identity": {
+       "instrument": "index_rate_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "EA"
+      },
+      "calc": "Bundesbank BBK01/WU3146(德国国债收益率曲线残存期限 9-10 年档,日频,公开债券市场收益率)",
+      "value": null,
+      "presence": "missing",
+      "absence_reason": "子源缺席(ea档记录:BBK_WU3146=READ_FAIL——源端不可得/未采,非采集遗漏)",
+      "observation_date": null,
+      "quality_status": "MISSING",
+      "source": "ea_market_collector",
+      "changes": []
+     },
+     {
+      "metric_id": "BUND_2Y",
+      "display_name": "2年期德国国债收益率",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "rates_yield",
+      "identity": {
+       "instrument": "index_rate_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "EA"
+      },
+      "calc": "Bundesbank BBK01/WU3141(德国国债收益率曲线残存期限 1-2 年档候选键,运行时核口径,不符则数据档诚实缺席)",
+      "value": null,
+      "presence": "missing",
+      "absence_reason": "子源缺席(ea档记录:BBK_WU3141=READ_FAIL——源端不可得/未采,非采集遗漏)",
+      "observation_date": null,
+      "quality_status": "MISSING",
+      "source": "ea_market_collector",
+      "changes": []
+     },
+     {
+      "metric_id": "EA_HICP_YOY",
+      "display_name": "欧元区HICP同比",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "monthly",
+      "asset_class": "macro_index",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "EA"
+      },
+      "calc": "ECB Data Portal 系列 HICP.M.U2.N.000000.4D0.ANR(欧元区HICP年度变化率,未季调,月频,1997+);R20 源切换: 原 ICP 数据集 2026-02-04 起停用(旧口径止于2025-12),官方替代流程键 HICP/ECB_ICP3 结构,全历史重拉衔接,重叠期(1997-01..2025-12)两源逐月一致,后续修订随全量重拉自动生效",
+      "value": 4.0,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-10-01",
+      "quality_status": "WARN",
+      "issues": [
+       {
+        "category": "release",
+        "severity": "WARN",
+        "message": "EA_HICP_YOY发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定"
+       }
+      ],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "ea_market_collector",
+       "file": "ea_20261123.json"
+      },
+      "changes": []
+     },
+     {
+      "metric_id": "DAX",
+      "display_name": "德国DAX指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "EA"
+      },
+      "calc": "德国DAX指数(40成份,收盘点位);经global通道Yahoo ^GDAXI日线(auto_adjust复权口径,指数无除息影响)——数据批1#8(2026-11-10)从PENDING预注册转正;官方发布=XETRA,Yahoo为免费转引源",
+      "value": 25209.45,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 1.6396,
+        "basis_date": "2026-11-20",
+        "basis_value": 24802.779297,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -2.3579,
+        "basis_date": "2026-10-30",
+        "basis_value": 25818.210938,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 2.936,
+        "basis_date": "2025-12-30",
+        "basis_value": 24490.410156,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 229,
+        "expected_sessions": 234,
+        "formula": "(2026-11-23值/2025-12-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "CAC40",
+      "display_name": "法国CAC40指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "EA"
+      },
+      "calc": "法国CAC 40指数(收盘点位);经global通道Yahoo ^FCHI日线(auto_adjust复权口径,指数无除息影响)——数据批1#8(2026-11-10)从PENDING预注册转正;官方发布=Euronext Paris,Yahoo为免费转引源",
+      "value": 8022.62,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:53:47+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 1.1967,
+        "basis_date": "2026-11-20",
+        "basis_value": 7927.75,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": 0.6676,
+        "basis_date": "2026-10-30",
+        "basis_value": 7969.419922,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -1.5569,
+        "basis_date": "2025-12-31",
+        "basis_value": 8149.5,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 229,
+        "expected_sessions": 233,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "EA_REAL_GDP_YOY",
+      "display_name": "欧元区实际GDP同比",
+      "unit": "percent",
+      "unit_family": "rate",
+      "frequency": "quarterly",
+      "asset_class": "macro_index",
+      "identity": {
+       "instrument": "macro_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "EA"
+      },
+      "calc": "欧元区实际GDP同比;ea_market_collector 取 FRED CLVMEURSCAB1GQEA19(链式成交量,2019价,季调,1995+),严格同季去年比(_quarterly_yoy),2020-01..2026-07 共123季;FRED 口径=最新修订值→研究层须标事后回顾",
+      "value": null,
+      "presence": "missing",
+      "absence_reason": "来源文件在场且子源FRED_EA_GDP取数成功而指标缺席(采集遗漏——采集器已取到而事实未生成)",
+      "observation_date": null,
+      "quality_status": "MISSING",
+      "source": "ea_market_collector",
+      "changes": []
+     }
+    ],
+    "observation_span": {
+     "earliest": "2026-09-16",
+     "latest": "2026-11-23"
+    }
+   }
+  },
+  "supported_hint": "当前支持的完整研究问题类型(基于本地快照事实作答):\n  1) 美日政策利率差(触发词: 政策利率差)\n  2) 美日10年期国债收益率差(触发词: 10年期/十年期…收益率差;附美端2s10s)\n  3) 美元兑日元水平与近期走势(触发词: 美元兑日元/USDJPY/日元汇率)\n  4) 美国政策利率水平(触发词: 联邦基金/美联储利率/美国政策利率)\n  支持附加: as_of 日期限定 / 单经济体问题转概览。\n交易、持仓、收益承诺、个股买卖等投资建议类问题属于越界(out_of_scope),本系统为研究工具,不提供投资建议。"
+ },
+ "warnings": []
+}

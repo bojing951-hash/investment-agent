@@ -1,0 +1,412 @@
+{
+ "block": "③",
+ "title": "同比口径/基期/年内高低/美欧水平对比史",
+ "rows": [
+  {
+   "block": "③",
+   "id": "C-CPI 同比 2026-02",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI (2026-02/2025-02-1)",
+   "computed": 2.434004,
+   "claim": 2.434,
+   "match": true,
+   "detail": "直算 2.434 → 取 3 位 2.434; 报告 2.434; "
+  },
+  {
+   "block": "③",
+   "id": "C-CPI 同比 2026-05",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI (2026-05/2025-05-1)",
+   "computed": 4.166615,
+   "claim": 4.1666,
+   "match": true,
+   "detail": "直算 4.16661 → 取 4 位 4.1666; 报告 4.1666; "
+  },
+  {
+   "block": "③",
+   "id": "C-CPI 同比 2026-09",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI (2026-09/2025-09-1)",
+   "computed": 3.717251,
+   "claim": 3.72,
+   "match": true,
+   "detail": "直算 3.71725 → 取 2 位 3.72; 报告 3.72; "
+  },
+  {
+   "block": "③",
+   "id": "C-CPI 同比 2026-07",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI (2026-07/2025-07-1)",
+   "computed": 3.303856,
+   "claim": 3.3,
+   "match": true,
+   "detail": "直算 3.30386 → 取 1 位 3.3; 报告 3.3; "
+  },
+  {
+   "block": "③",
+   "id": "C-CORE_CPI 同比 2026-02",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI (2026-02/2025-02-1)",
+   "computed": 2.472462,
+   "claim": 2.4725,
+   "match": true,
+   "detail": "直算 2.47246 → 取 4 位 2.4725; 报告 2.4725; "
+  },
+  {
+   "block": "③",
+   "id": "C-CORE_CPI 同比 2026-05",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI (2026-05/2025-05-1)",
+   "computed": 2.822942,
+   "claim": 2.8229,
+   "match": true,
+   "detail": "直算 2.82294 → 取 4 位 2.8229; 报告 2.8229; "
+  },
+  {
+   "block": "③",
+   "id": "C-CORE_CPI 同比 2026-08",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI (2026-08/2025-08-1)",
+   "computed": 2.446163,
+   "claim": 2.4462,
+   "match": true,
+   "detail": "直算 2.44616 → 取 4 位 2.4462; 报告 2.4462; "
+  },
+  {
+   "block": "③",
+   "id": "C-CORE_CPI 同比 2026-09",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI (2026-09/2025-09-1)",
+   "computed": 2.565841,
+   "claim": 2.5658,
+   "match": true,
+   "detail": "直算 2.56584 → 取 4 位 2.5658; 报告 2.5658; "
+  },
+  {
+   "block": "③",
+   "id": "C-CORE_CPI 同比 2026-07",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI (2026-07/2025-07-1)",
+   "computed": 2.466518,
+   "claim": 2.47,
+   "match": true,
+   "detail": "直算 2.46652 → 取 2 位 2.47; 报告 2.47; "
+  },
+  {
+   "block": "③",
+   "id": "C-CORE_CPI 同比 2026-09",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_CPI (2026-09/2025-09-1)",
+   "computed": 2.565841,
+   "claim": 2.57,
+   "match": true,
+   "detail": "直算 2.56584 → 取 2 位 2.57; 报告 2.57; "
+  },
+  {
+   "block": "③",
+   "id": "C-CORE_PCE 同比 2026-06",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE (2026-06/2025-06-1)",
+   "computed": 3.041234,
+   "claim": 3.04,
+   "match": true,
+   "detail": "直算 3.04123 → 取 2 位 3.04; 报告 3.04; "
+  },
+  {
+   "block": "③",
+   "id": "C-CORE_PCE 同比 2026-09",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE (2026-09/2025-09-1)",
+   "computed": 3.12116,
+   "claim": 3.12,
+   "match": true,
+   "detail": "直算 3.12116 → 取 2 位 3.12; 报告 3.12; "
+  },
+  {
+   "block": "③",
+   "id": "C-INDPRO 同比 2025-11",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO (2025-11/2024-11-1)",
+   "computed": 1.754312,
+   "claim": 1.7543,
+   "match": true,
+   "detail": "直算 1.75431 → 取 4 位 1.7543; 报告 1.7543; "
+  },
+  {
+   "block": "③",
+   "id": "C-INDPRO 同比 2026-02",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO (2026-02/2025-02-1)",
+   "computed": 0.797236,
+   "claim": 0.7972,
+   "match": true,
+   "detail": "直算 0.797236 → 取 4 位 0.7972; 报告 0.7972; "
+  },
+  {
+   "block": "③",
+   "id": "C-INDPRO 同比 2026-07",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO (2026-07/2025-07-1)",
+   "computed": 1.249828,
+   "claim": 1.25,
+   "match": true,
+   "detail": "直算 1.24983 → 取 2 位 1.25; 报告 1.25; "
+  },
+  {
+   "block": "③",
+   "id": "C-INDPRO 同比 2026-10",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO (2026-10/2025-10-1)",
+   "computed": 2.149685,
+   "claim": 2.15,
+   "match": true,
+   "detail": "直算 2.14968 → 取 2 位 2.15; 报告 2.15; "
+  },
+  {
+   "block": "③",
+   "id": "C-US_REAL_GDP 同比 2026-04",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.US_REAL_GDP (2026-04/2025-04-1)",
+   "computed": 2.191575,
+   "claim": 2.19,
+   "match": true,
+   "detail": "直算 2.19157 → 取 2 位 2.19; 报告 2.19; "
+  },
+  {
+   "block": "③",
+   "id": "C-US_REAL_GDP 同比 2026-07",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.US_REAL_GDP (2026-07/2025-07-1)",
+   "computed": 2.065739,
+   "claim": 2.07,
+   "match": true,
+   "detail": "直算 2.06574 → 取 2 位 2.07; 报告 2.07; "
+  },
+  {
+   "block": "③",
+   "id": "C-CPI 同比 2026 年内高点月=2026-05(约 4.17)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CPI",
+   "computed": [
+    4.166614684049641,
+    "2026-05"
+   ],
+   "claim": [
+    "2026-05",
+    4.17
+   ],
+   "match": true,
+   "detail": "逐月同比=[('2026-01', 2.3912), ('2026-02', 2.434), ('2026-03', 3.286), ('2026-04', 3.7792), ('2026-05', 4.1666), ('2026-06', 3.4635), ('2026-07', 3.3039), ('2026-08', 3.353), ('2026-09', 3.7173), ('2026-10', None)]"
+  },
+  {
+   "block": "③",
+   "id": "C-美欧可比同月: 2026-09 为 2023-09 以来首个 EA>US 月份",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY + CPI(同比派生)",
+   "computed": {
+    "2026-09": [
+     3.8,
+     3.7173
+    ],
+    "max EA>US month before 2026-09": "2023-09",
+    "months 2023-10..2026-08 with EA>US": []
+   },
+   "claim": "2023-09 以来首个; 2026-09 EA 略高",
+   "match": true,
+   "detail": "2026-09 EA=3.8 US同比=3.7173; 2026-10 EA可比但US缺基期; EA>US 月份总数=16"
+  },
+  {
+   "block": "③",
+   "id": "C-2022-07..2023-09 EA 持续高于 US(逐月)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY + CPI",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "n=15 段内最低差=0.437"
+  },
+  {
+   "block": "③",
+   "id": "C-2025-01..2026-08 逐月 EA<=US(可比月)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY + CPI",
+   "computed": [],
+   "claim": [],
+   "match": true,
+   "detail": "可比月数=19; EA>US 的月份=[]"
+  },
+  {
+   "block": "③",
+   "id": "C-EA_HICP_YOY 2026-02",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-02]",
+   "computed": 1.9,
+   "claim": 1.9,
+   "match": true,
+   "detail": "直算 1.9 → 取 1 位 1.9; 报告 1.9; "
+  },
+  {
+   "block": "③",
+   "id": "C-EA_HICP_YOY 2026-05",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-05]",
+   "computed": 3.2,
+   "claim": 3.2,
+   "match": true,
+   "detail": "直算 3.2 → 取 1 位 3.2; 报告 3.2; "
+  },
+  {
+   "block": "③",
+   "id": "C-EA_HICP_YOY 2026-06",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-06]",
+   "computed": 2.8,
+   "claim": 2.8,
+   "match": true,
+   "detail": "直算 2.8 → 取 1 位 2.8; 报告 2.8; "
+  },
+  {
+   "block": "③",
+   "id": "C-EA_HICP_YOY 2026-07",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-07]",
+   "computed": 2.9,
+   "claim": 2.9,
+   "match": true,
+   "detail": "直算 2.9 → 取 1 位 2.9; 报告 2.9; "
+  },
+  {
+   "block": "③",
+   "id": "C-EA_HICP_YOY 2026-10",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-10]",
+   "computed": 4.0,
+   "claim": 4.0,
+   "match": true,
+   "detail": "直算 4 → 取 1 位 4.0; 报告 4.0; "
+  },
+  {
+   "block": "③",
+   "id": "C-EA_HICP 2026-10=年内新高",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY",
+   "computed": [
+    "2026-10",
+    4.0
+   ],
+   "claim": [
+    "2026-10",
+    4.0
+   ],
+   "match": true,
+   "detail": "逐月=[('2026-01', 1.7), ('2026-02', 1.9), ('2026-03', 2.6), ('2026-04', 3.0), ('2026-05', 3.2), ('2026-06', 2.8), ('2026-07', 2.9), ('2026-08', 3.2), ('2026-09', 3.8), ('2026-10', 4.0)]"
+  },
+  {
+   "block": "③",
+   "id": "C-HICP 三个月上行幅度(pp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-10]-[2026-07]",
+   "computed": 1.1,
+   "claim": 1.1,
+   "match": true,
+   "detail": "直算 1.1 → 取 1 位 1.1; 报告 1.1; "
+  },
+  {
+   "block": "③",
+   "id": "C-INDPRO 2026-10 环比(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2026-10]/[2026-09]-1",
+   "computed": -0.43372,
+   "claim": -0.43,
+   "match": true,
+   "detail": "直算 -0.43372 → 取 2 位 -0.43; 报告 -0.43; "
+  },
+  {
+   "block": "③",
+   "id": "C-INDPRO 2025-07→2025-10 基数变化(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2025-10]/[2025-07]-1",
+   "computed": -0.661962,
+   "claim": -0.66,
+   "match": true,
+   "detail": "直算 -0.661962 → 取 2 位 -0.66; 报告 -0.66; "
+  },
+  {
+   "block": "③",
+   "id": "C-INDPRO 水平 2026-07→2026-10 变化(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO[2026-10]/[2026-07]-1",
+   "computed": 0.220903,
+   "claim": 0.22,
+   "match": true,
+   "detail": "直算 0.220903 → 取 2 位 0.22; 报告 0.22; "
+  },
+  {
+   "block": "③",
+   "id": "C-INDPRO 同比三个月变动(pp)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.INDPRO 同比 2026-10 − 2026-07",
+   "computed": 0.899856,
+   "claim": 0.9,
+   "match": true,
+   "detail": "直算 0.899856 → 取 2 位 0.9; 报告 0.9; 报告写 1.25→2.15(差 0.90)"
+  },
+  {
+   "block": "③",
+   "id": "C-UNEMPLOYMENT 2026-07",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-07]",
+   "computed": 4.1,
+   "claim": 4.1,
+   "match": true,
+   "detail": "直算 4.1 → 取 1 位 4.1; 报告 4.1; "
+  },
+  {
+   "block": "③",
+   "id": "C-UNEMPLOYMENT 2026-09",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-09]",
+   "computed": 4.2,
+   "claim": 4.2,
+   "match": true,
+   "detail": "直算 4.2 → 取 1 位 4.2; 报告 4.2; "
+  },
+  {
+   "block": "③",
+   "id": "C-UNEMPLOYMENT 2026-10",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-10]",
+   "computed": 4.1,
+   "claim": 4.1,
+   "match": true,
+   "detail": "直算 4.1 → 取 1 位 4.1; 报告 4.1; "
+  },
+  {
+   "block": "③",
+   "id": "C-UNEMPLOYMENT 2026-08",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-08]",
+   "computed": 4.1,
+   "claim": 4.1,
+   "match": true,
+   "detail": "直算 4.1 → 取 1 位 4.1; 报告 4.1; "
+  },
+  {
+   "block": "③",
+   "id": "C-UNEMPLOYMENT 2025-11",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2025-11]",
+   "computed": 4.5,
+   "claim": 4.5,
+   "match": true,
+   "detail": "直算 4.5 → 取 1 位 4.5; 报告 4.5; "
+  },
+  {
+   "block": "③",
+   "id": "C-UNEMPLOYMENT 2026-02",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-02]",
+   "computed": 4.4,
+   "claim": 4.4,
+   "match": true,
+   "detail": "直算 4.4 → 取 1 位 4.4; 报告 4.4; "
+  },
+  {
+   "block": "③",
+   "id": "C-UNEMPLOYMENT 2026-05",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UNEMPLOYMENT[2026-05]",
+   "computed": 4.3,
+   "claim": 4.3,
+   "match": true,
+   "detail": "直算 4.3 → 取 1 位 4.3; 报告 4.3; "
+  },
+  {
+   "block": "③",
+   "id": "C-US_REAL_GDP 2026-04 水平",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.US_REAL_GDP[2026-04]",
+   "computed": 24408.011,
+   "claim": 24408.011,
+   "match": true,
+   "detail": "直算 24408 → 取 3 位 24408.011; 报告 24408.011; "
+  },
+  {
+   "block": "③",
+   "id": "C-EA_REAL_GDP_YOY 2026-04",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_REAL_GDP_YOY[2026-04]",
+   "computed": 1.19,
+   "claim": 1.19,
+   "match": true,
+   "detail": "直算 1.19 → 取 2 位 1.19; 报告 1.19; "
+  },
+  {
+   "block": "③",
+   "id": "C-EA_REAL_GDP_YOY 2026-07",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_REAL_GDP_YOY[2026-07]",
+   "computed": 1.28,
+   "claim": 1.28,
+   "match": true,
+   "detail": "直算 1.28 → 取 2 位 1.28; 报告 1.28; "
+  }
+ ]
+}

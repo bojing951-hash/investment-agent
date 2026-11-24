@@ -1,0 +1,5 @@
+$.semantic_review = {"required": true, "reasons": ["l3_qualitative_inference", "l4_conditional_scenarios"], "seat_invoked": false, "verdict": null, "archive": null, "fresh": null, "verdicts_n": 0, "prior_verdicts": [], "record_health": {}, "error": null}
+AJ top keys = ['schema_version', 'agent_declaration', 'l3', 'l4', 'reader_map', 'quality_gate_notes']
+agent_declaration = {"attribution": "ai_inferred", "produced_by": "Agent 研究席(操作者会话经正式入口 ia_cli research-one 代持席位, 降级面开放问句 20261123T193254Z, 2026-11-23)", "basis": "读本轮 AGENT_SEAT_ENVELOPE 工单、证据索引(69行)、点值格(18格,另4格序列缺席)、转折候选面(候选池9、取3)、美国三利率分解、资产月窗、类比面、工单冻结发布日历(v1.5.0)政策事件实录后独立研判;日本央行官方目标水平按发布日历事件(决议日/生效日)与研究截止日(2026-11-23)独立复算;引擎只供确定性证据,判断内容 100% 归 Agent。"}
+AJ.semantic_review = null
+AJ keys containing review/verdict = []

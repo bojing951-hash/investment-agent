@@ -1625,7 +1625,15 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
         _as_of = _qd
     _reg_by_id = registry or {}
     req_items = []
+    # Audit-R33 任务3: 原问直答型问句——判据取自分面逐格(通胀同比行:
+    # 最新读数+去年同月基期;政策行: 序列行在场+时效),不走序列数量窗
+    _fam_blk = ((map_plan or {}).get('policy_question')
+                if (map_plan or {}).get('question_kind') == 'policy_question'
+                else None)
     for _mid in metrics:
+        if _fam_blk is not None:
+            req_items.append(_family_requirement_item(_mid, _fam_blk))
+            continue
         _n_series = 0
         _ser_src = '研究快照 series_store'
         _freq, _first, _last = None, None, None
@@ -2022,6 +2030,82 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
     return req_items
 
 
+def _family_requirement_item(mid, block):
+    """Audit-R33 任务3: 原问直答型计划指标的数据需求条目(可测)。
+
+    判据取自分面逐格——通胀同比行: 最新读数与去年同月基期(各 1 观测;
+    基期缺=insufficient_coverage);政策行: 序列行在场且时效新鲜(陈旧=
+    stale_for_task;时效不可核=insufficient_coverage)。tier=planned
+    (缺数=缺数格披露不阻断,与地图计划指标同级;逐项缺口点名于分面块)。"""
+    y_rows = [r for r in ((block.get('inflation_yoy') or {}).get('rows') or [])
+              if r.get('metric_id') == mid]
+    s_rows = [s for t in ((block.get('policy_targets') or {}).get('rows') or [])
+              for s in (t.get('series_rows') or [])
+              if s.get('metric_id') == mid]
+    _vb = ((block.get('version_binding') or {}).get('series') or {}).get(mid) \
+        or {}
+    outcome, basis, n_min = 'missing', '', 1
+    spec = {'form': 'point', 'window': 'latest_visible',
+            'quality': 'snapshot 序列(截止视图;事实表/序列/派生值同一版本)',
+            'coverage_observed': {
+                k: v for k, v in (('n', _vb.get('n_kept')),
+                                  ('last', _vb.get('last_eligible')),
+                                  ('first', _vb.get('first_eligible')))
+                if v is not None}}
+    if y_rows:
+        r = y_rows[0]
+        n_min = 2
+        spec['window'] = 'latest_visible+same_month_last_year'
+        _b = r.get('base') or {}
+        outcome = {'ok': 'satisfied', 'base_missing': 'insufficient_coverage',
+                   'missing': 'missing'}.get(r.get('status'), 'missing')
+        _fr = r.get('freshness')
+        if outcome == 'satisfied' and _fr and _fr != 'FRESH':
+            outcome = 'stale_for_task'
+        basis = (f"原问直答面(通胀同比 {r.get('label')}): 最新读数 "
+                 f"{r.get('observation_month') or '—'}="
+                 f"{r.get('value') if r.get('value') is not None else '—'}"
+                 f"(发布 {r.get('publish_date') or '—'},"
+                 f"{r.get('publish_basis_text') or '—'});基期 "
+                 f"{_b.get('observation_month') or '—'}="
+                 f"{_b.get('value') if _b.get('value') is not None else '—'}"
+                 f"(发布 {_b.get('publish_date') or '—'});"
+                 + (r.get('note') or ''))
+    elif s_rows:
+        s = s_rows[0]
+        _fr = s.get('freshness')
+        if s.get('status') != 'ok':
+            outcome = 'missing'
+        else:
+            outcome = {'FRESH': 'satisfied',
+                       'STALE': 'stale_for_task'}.get(_fr, 'insufficient_coverage')
+        basis = (f"原问直答面(政策序列 {s.get('display_name') or mid}): "
+                 f"观测 {s.get('observation_date') or '—'}="
+                 f"{s.get('value') if s.get('value') is not None else '—'}"
+                 f"(发布 {s.get('publish_date') or '—'},"
+                 f"{s.get('publish_basis_text') or '—'});时效 "
+                 f"{_fr or '不可核'}")
+    else:
+        basis = f'原问直答面: 计划指标 {mid} 无对应分面行'
+    spec.update(min_observations=n_min,
+                min_observations_basis=(
+                    '原问直答面: 最新读数+去年同月基期(各 1 观测)'
+                    if n_min == 2 else '原问直答面: 最新读数(1 观测)'))
+    if outcome != 'satisfied':
+        _lack = {
+            'insufficient_coverage': (
+                '去年同月基期读数(同比基期)缺席——与去年同月的比较不可判'
+                if (y_rows and y_rows[0].get('status') == 'base_missing')
+                else '最新读数/时效不可核'),
+            'stale_for_task': '满足任务时效的新鲜读数',
+            'missing': '截止视图内序列/事实行缺席'}.get(outcome, outcome)
+        basis = f'缺什么: {mid}——{_lack};' + basis
+    return {'metric_id': mid, 'tier': 'planned',
+            'basis': ('原问直答研究计划(引擎按地区×分面选定;缺数=如实'
+                      '缺数格披露于 research_plan.policy_question+读者报告)'),
+            'spec': spec, 'outcome': outcome, 'outcome_basis': basis}
+
+
 def _pin_frozen_inputs(wd, root):
     """Audit-R31 任务2: 三输入钉死(快照/注册表/日历)于第一次取数前。
 
@@ -2074,7 +2158,7 @@ def _pin_frozen_inputs(wd, root):
 
 
 def _resolve_evidence_asof(question, root, reg_by_id, metric_ids,
-                           coverage_iso):
+                           coverage_iso, ent=None):
     """Audit-R32 任务1: 运行级研究截止日(统一证据口径)解析。
 
     → (as_of_iso|None, info|None):
@@ -2092,6 +2176,22 @@ def _resolve_evidence_asof(question, root, reg_by_id, metric_ids,
     info = {'coverage_date': coverage_iso,
             'requested_as_of': req, 'requested_basis': basis,
             'clamped_to_coverage': False}
+    # Audit-R33 任务3: 原问直答型问句——问句的研究年月是研究范围
+    # (「2026年11月,…最近六个月,…去年同月」多相对约束不成单一回看
+    # 窗,不按时点化合并): 研究截止日=该年月末;月末晚于快照实际覆盖
+    # 日→夹到覆盖日如实披露;快照已越过该月(12 月快照重跑)仍取原问
+    # 月份范围(不吃研究月之后才发布的数据)。显式时点标记/单一相对
+    # 窗时点化(R31 口径)仍优先。
+    _yme = None
+    if ent is not None:
+        import policy_question as _pq_a
+        import research_map_planner as _rmp_a
+        if _rmp_a.question_kind(question, ent) == 'policy_question':
+            _yme = _pq_a.research_month_end(question)
+    if _yme:
+        info.update(scoped_to_question_month=True,
+                     question_month=_yme[:7],
+                     requested_month_end=_yme)
     if req and req > coverage_iso:
         _rm = req if basis and '裸年月' in basis else None
         info.update(clamped_to_coverage=True,
@@ -2117,6 +2217,36 @@ def _resolve_evidence_asof(question, root, reg_by_id, metric_ids,
     if req:
         info['note'] = '问句声明研究时点 %s' % req
         return req, info
+    if _yme:
+        if _yme > coverage_iso:
+            info.update(
+                clamped_to_coverage=True,
+                requested_as_of=_yme,
+                requested_basis=(
+                    f'问句研究年月 {_yme[:7]}(原问直答型)按月末时点化为'
+                    f'请求研究时点 {_yme}(晚于快照实际覆盖日 '
+                    f'{coverage_iso})→研究截止日取实际覆盖日 '
+                    f'{coverage_iso}'),
+                actual_coverage_date=coverage_iso,
+                note=(f'原问研究年月 {_yme[:7]} 的月末 {_yme} 晚于快照'
+                      f'实际覆盖日 {coverage_iso}(月末未到/数据未到)'
+                      '——研究截止日取实际覆盖日,交付为截至实际日期'
+                      '的结果(非该月完整结果;该月末完整结果须待数据'
+                      '覆盖后重跑)'))
+            return coverage_iso, info
+        info['note'] = (f'原问研究年月 {_yme[:7]}→研究截止日取该月末 '
+                         f'{_yme}(≤快照实际覆盖日 {coverage_iso}: '
+                         '原问的月范围优先于快照版本日,研究月之后才'
+                         '发布的数据不入证据)')
+        # 12 月快照重跑 11 月原问: 口径文字随 as_of_declared.basis 入两份
+        # 报告页眉(与夹紧形同一披露位;请求时点=该月末=研究截止日)
+        info.update(
+            requested_as_of=_yme,
+            requested_basis=(
+                f'原问研究年月 {_yme[:7]}(原问直答型)→研究截止日取该月末 '
+                f'{_yme}(早于快照版本日 {coverage_iso}: 原问的月范围优先于'
+                '快照版本日,研究月之后才发布的数据不入证据)'))
+        return _yme, info
     # 裸年月在场但相对约束非单一(「2026年11月…最近六个月…去年同月」)
     # =R31 既档不按时点化合并;如实点名(截止日=快照版本日,不晚于该月)
     _bare = sorted({m.group(0).strip() for m in
@@ -2188,7 +2318,7 @@ def run_research(question, root=None, archive=False, out_dir=None,
                 _ent0 = map_entities(question, _reg0)
                 _asof, _asof_info = _resolve_evidence_asof(
                     question, root, _reg0.get('by_id') or {},
-                    list(_ent0['metrics']), _cov)
+                    list(_ent0['metrics']), _cov, ent=_ent0)
             except Exception as _e:            # 解析失败如实入档,不静默
                 _asof, _asof_info = None, {
                     'error': f'{type(_e).__name__}: {_e}'}
@@ -2228,7 +2358,11 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
     # Audit-R32 任务1: 研究截止日=运行级证据口径(包装层解析,IA_EVIDENCE_
     # ASOF 在场;截止视图快照 target_date 即该日)——与取数入口同一口径。
     _eg_asof = _eg.evidence_asof()
-    if rmp.detect_map_question(question, ent):
+    # Audit-R33 任务3: 计划块按问句族别入场——'map'(五面契约不变)|
+    # 'policy_question'(原问直答型: 同一请求集合与网格,另建分面块)
+    _kind = rmp.question_kind(question, ent)
+    _fam = _kind == 'policy_question'
+    if _kind is not None:
         _snap0, _snap0_note = wd.latest_snapshot(root)
         _cutoff = ((_snap0 or {}).get('target_date') or '')[:4] + '-' + \
             ((_snap0 or {}).get('target_date') or '')[4:6] + '-' + \
@@ -2280,6 +2414,10 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
                     'actual_coverage_date': _asof_info.get(
                         'actual_coverage_date'),
                     'bare_year_month': _asof_info.get('bare_year_month'),
+                    # Audit-R33 任务3: 族问句研究年月→截止日(月末/夹紧)
+                    'scoped_to_question_month': bool(
+                        _asof_info.get('scoped_to_question_month')),
+                    'question_month': _asof_info.get('question_month'),
                     'upstream_pin': bool(_asof_info.get('upstream_pin')),
                     'error': _asof_info.get('error'),
                     'note': _asof_info.get('note')}
@@ -2295,15 +2433,19 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
             research_plan['point_values'] = rmp.point_values(
                 research_plan, _snap0, root,
                 carry_policy_start=bool(_eg_asof))
-            research_plan['turning_candidates'] = rmp.turning_candidates(
-                research_plan, _snap0, root)
+            if not _fam:
+                research_plan['turning_candidates'] = rmp.turning_candidates(
+                    research_plan, _snap0, root)
             # Audit-R20 任务3: 读者正文复算面——三利率共同交易日分解与
             # 关键资产月度变化(含计算窗口两端实测日),正文数字=同一份
             # 可复算事实,渲染零新增生成。
-            research_plan['us_rates_trio'] = rmp.us_rates_trio_face(
-                _snap0, root, cutoff=_cutoff)
-            research_plan['asset_moves'] = rmp.asset_move_face(
-                _snap0, root, cutoff=_cutoff)
+            if not _fam:
+                # Audit-R33 任务3: 纯族问句不建三利率/资产月窗(问什么取
+                # 什么;地图问句不变)
+                research_plan['us_rates_trio'] = rmp.us_rates_trio_face(
+                    _snap0, root, cutoff=_cutoff)
+                research_plan['asset_moves'] = rmp.asset_move_face(
+                    _snap0, root, cutoff=_cutoff)
             # Audit-R22 任务2: 政策事件跨国簇(同一事件合并计数,决议→生效
             # 分记)+政策文档事实(FOMC 纪要发布日)——从政策行一年窗路径
             # 确定性派生,渲染与契约同读。
@@ -2315,6 +2457,14 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
             research_plan['policy_doc_facts'], research_plan[
                 'policy_doc_withheld'] = rmp.policy_doc_facts_visible(
                     _eg_asof)
+            if _fam:
+                # Audit-R33 任务3: 原问直答分面块(政策目标/已决议待生效/
+                # 通胀同比;官方记录优先,序列+惯例派生如实标注;版本绑定随
+                # 行)——与点值面同读同一份截止视图快照
+                import policy_question as _pq_o
+                research_plan['policy_question'] = _pq_o.build_faces(
+                    research_plan, _snap0, root, as_of=_cutoff,
+                    point_values=research_plan.get('point_values'))
         _merged = list(ent['metrics']) + [
             m for m in research_plan['metrics']
             if m not in ent['metrics']]
@@ -2356,10 +2506,11 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
         # asset_moves.absent 同源探测为准(缺席者不硬跑失败子进程)。
         _am_absent = set((research_plan.get('asset_moves') or {})
                          .get('absent') or [])
-        hist_metrics += [
-            m for m in (((research_plan.get('point_values') or {})
-                         .get('asset_universe')) or [])
-            if m not in hist_metrics and m not in _am_absent]
+        if not _fam:
+            hist_metrics += [
+                m for m in (((research_plan.get('point_values') or {})
+                             .get('asset_universe')) or [])
+                if m not in hist_metrics and m not in _am_absent]
     else:
         hist_metrics = ent['metrics'][:4]
     if len(ent['metrics']) > 4 and research_plan is None:
@@ -2385,21 +2536,42 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
             'S4_history', '问题未命中指标——零实体映射时如实跳过(不造数)'))
 
     # ── S5 对齐自配对(≥2 命中才可比) ────────────────────────────────
-    if len(hist_metrics) >= 2:
+    # Audit-R33 任务3: 命中前 2 中有序列缺席(地图计划 point_values 同源
+    # 探明)时不再硬跑必败子进程——顺延取注册表序下两个在场指标(仍=确定性
+    # 注册表序,非问题重点序);在场不足 2 个则如实跳过(镜像 S4 缺席口径;
+    # 缺数格披露于 point_values.absent+MAP_REPORT,不造数)。
+    _avail = [m for m in hist_metrics if m not in _absent_series]
+    _cmp_pair = _avail[:2]
+    if len(_cmp_pair) == 2:
         steps.append(run_step('S5_compare',
                               ['compare', '--metrics',
-                               ','.join(hist_metrics[:2])], ia_timeout))
+                               ','.join(_cmp_pair)], ia_timeout))
         # R2.1 MINOR-2(E席审计): compare 仅取命中前 2(注册表序,确定性;
         # 非问题重点序)——如实披露,不静默截断
-        if len(hist_metrics) > 2:
+        if _cmp_pair != hist_metrics[:2]:
+            _absent_hit = [m for m in hist_metrics if m in _absent_series]
+            _rest = [m for m in _avail if m not in _cmp_pair]
+            steps[-1]['note'] = (
+                f"命中 {len(hist_metrics)} 个指标,其中 "
+                f"{','.join(_absent_hit)} 序列缺席——compare 顺延取注册表序"
+                f"下两个在场指标({','.join(_cmp_pair)});"
+                + (f"其余在场 {','.join(_rest)} 以 L1 事实行呈现,如需对比另行单跑"
+                   if _rest else "无其余在场指标"))
+        elif len(hist_metrics) > 2:
             steps[-1]['note'] = (f"命中 {len(hist_metrics)} 个指标,"
                                  f"compare 仅取注册表序前 2("
                                  f"{','.join(hist_metrics[:2])});"
                                  f"其余 {','.join(hist_metrics[2:])} "
                                  f"以 L1 事实行呈现,如需对比另行单跑")
-    else:
+    elif len(hist_metrics) < 2:
         steps.append(skipped_step(
             'S5_compare', '命中指标不足 2 个,无可对齐自配对(如实跳过)'))
+    else:
+        steps.append(skipped_step(
+            'S5_compare', '命中 %d 个指标中在场不足 2 个(序列缺席: %s)'
+            '——无可对齐自配对(如实跳过)' % (
+                len(hist_metrics),
+                ','.join(m for m in hist_metrics if m in _absent_series))))
 
     # ── S6 历史相似结构(analog;短历史诚实拒答透传) ─────────────────
     steps.append(run_step('S6_analog', ['analog'], ia_timeout))
@@ -2444,15 +2616,21 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
     # R17: 单指标问句(命中<2→S5 无可比对、S6 常诚实拒答)模式门不适用
     # ——诚实豁免不编造 gate,run_ok 不因门缺席翻 False(镜像 S6 豁免;
     # 多指标问句无可比对门仍红: 可比性在任务范围内,门缺席=如实失败)。
-    _s7_na = gate is None and len(hist_metrics) < 2
+    # Audit-R33 任务3: 在场命中指标<2(单指标,或多命中但其余序列缺席)=
+    # 无可比对——同口径诚实豁免,run_ok 不因门缺席翻 False。
+    _s7_na = gate is None and len(_avail) < 2
+    _s7_note = None
+    if _s7_na:
+        _s7_note = ('单指标问句无可比对——模式门不适用,如实豁免不编造 gate(R17)'
+                    if len(hist_metrics) < 2 else
+                    '在场命中指标不足 2 个(其余序列缺席)无可比对——模式门'
+                    '不适用,如实豁免不编造 gate(Audit-R33 任务3)')
     steps.append({'step': 'S7_mode_gate', 'executed': True, 'ok': gate is not None,
                   'gate': gate, 'gate_source': gate_src,
                   **({'honest_refusal': True} if _s7_na else {}),
-                  'note': gate_note or
-                  ('单指标问句无可比对——模式门不适用,如实豁免不编造 gate(R17)'
-                   if _s7_na else
-                   (None if gate else 'compare/analog 信封未含 gate'
-                           '(本轮无可比对/被拒答)——如实缺席,不编造'))})
+                  'note': gate_note or _s7_note or
+                  (None if gate else 'compare/analog 信封未含 gate'
+                          '(本轮无可比对/被拒答)——如实缺席,不编造')})
 
     # ── S8 接地问答(ia_cli research;archive 开关在此一次性落档) ────
     qa_argv = ['research', '--question', question]
@@ -2568,8 +2746,13 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
                     and i['outcome'] in ('missing', 'insufficient_coverage',
                                          'stale_for_task')]
     if _planned_gap:
-        notes.append('地图计划指标缺数(披露不阻断;缺数格=「数据不可得」'
-                     '+检索范围+影响): ' + '、'.join(_planned_gap))
+        _pq_kind0 = (research_plan or {}).get('question_kind')
+        notes.append(
+            ('原问直答计划指标缺数(披露不阻断;缺数格=「数据不可得」'
+             '+缺口逐项点名): '
+             if _pq_kind0 == 'policy_question' else
+             '地图计划指标缺数(披露不阻断;缺数格=「数据不可得」'
+             '+检索范围+影响): ') + '、'.join(_planned_gap))
     # R7-02: 陈旧必要数据单独点名(采集状态贯通判定;旧数据冒充当前
     # 研究可用=阻断交付,非普通覆盖缺口)
     _stale_mids = [i['metric_id'] for i in _req_items
@@ -2638,6 +2821,15 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
     # 被引数字无可锚行。S3_changes 信封 by_asset_class 全量在场指标入索引
     # (kind=s3_envelope),按 metric_id 与 L1 去重;缺席/缺值行不收。
     evidence_index.extend(_s3_envelope_rows(steps, l1_rows))
+    # Audit-R33 任务3: 原问直答分面引用行入索引(官方政策记录/计划序列
+    # 点;与既有行按 ref 去重)——判断件证据引用可解析、可核
+    _pq_blk = ((research_plan or {}).get('policy_question')
+               if (research_plan or {}).get('question_kind')
+               == 'policy_question' else None)
+    if _pq_blk is not None:
+        import policy_question as _pq_i
+        evidence_index.extend(_pq_i.evidence_rows(
+            _pq_blk, {r['ref'] for r in evidence_index}))
     missing_ref = [r['metric_id'] for r in l1_rows if not r['source']['id']]
     selfcheck = {'n_evidence_rows': len(evidence_index),
                  'n_rows_missing_ref': len(missing_ref),
@@ -3106,6 +3298,13 @@ def _render_md(r):
                          f"快照实际覆盖日 {_ad.get('actual_coverage_date')}"
                          f"(请求时点未到/数据未到)——研究截止日=实际覆盖日,"
                          f"交付为截至实际日期的结果(非请求时点的完整结果)")
+    elif (_ad.get('scoped_to_question_month') and _ad.get('as_of')
+          and not _ad.get('clamped_to_coverage')):
+        # 原问研究年月月末早于快照版本日(12 月快照重跑 11 月原问)
+        lines.append(f"- 原问研究年月 {_ad.get('question_month')}→研究截止日"
+                     f"取该月末 {_ad.get('requested_month_end')}(早于快照"
+                     f"版本日 {_ad.get('snapshot_target_date')}: 原问的月范围"
+                     "优先于快照版本日,研究月之后才发布的数据不入证据)")
     elif (_ad.get('bare_year_month') and _ad.get('as_of')
           and isinstance(_eg, dict) and _eg.get('as_of')):
         lines.append(f"- 问句含裸年月 {_ad.get('bare_year_month')} 但相对"

@@ -513,13 +513,19 @@ def _pol_state_window_ok(text, p, st_i, endi, tok, ev, bound):
     return False
 
 
-def _judgment_text_segments(judgment):
-    """判断文档内全部自然语言段(逐条带定位),POL-EFF 子串代理消费。"""
+def _judgment_text_segments(judgment, identifiers=frozenset()):
+    """判断文档内全部自然语言段(逐条带定位),POL-EFF 子串代理消费。
+
+    Audit-R33 任务3: identifiers=本报告证据索引引用集合——逐字等于
+    其中一项的字符串是证据标识符而非叙述(REF 规则已逐条解析),不
+    入叙述段: 日历实录行标识符内嵌决议日(…@2026-09-18),按叙述
+    整段扫描会把「引用官方实录」误报成「提及决议日未配生效日」。
+    其余字符串(含不解析的悬空引用,由 REF 规则拒)照扫,零放宽。"""
     segs = []
 
     def _walk(node, where):
         if isinstance(node, str):
-            if node.strip():
+            if node.strip() and node not in identifiers:
                 segs.append((where, node))
         elif isinstance(node, dict):
             for k, v in node.items():
@@ -773,7 +779,7 @@ def validate_judgment(judgment, evidence_refs, metric_ids,
                 _asof = datetime.fromisoformat(as_of[:10]).date().isoformat()
             except ValueError:
                 _asof = None
-        for where, text in _judgment_text_segments(judgment):
+        for where, text in _judgment_text_segments(judgment, ev):
             if not any(w in text for w in _POL_EFF_WORDS):
                 continue
             bound = _pol_bound_events(text, policy_events)
@@ -1806,7 +1812,10 @@ BLOCKING_BLOCKED_CLASSES = frozenset(
      'map_core_dimension_missing', 'map_anchor_coverage_insufficient',
      'map_core_dimension_stale', 'map_current_period_missing',
      'map_current_period_unverified', 'map_current_period_stale_mix',
-     'map_official_target_missing'})
+     'map_official_target_missing',
+     # Audit-R33 任务3: 原问直答型(被问分量全缺=草稿交付;分面块缺席)
+     'policy_question_face_missing',
+     'policy_question_faces_missing'})
 
 
 def _step_failure_is_refusal(step):
@@ -1866,6 +1875,13 @@ def blocked_class_of(report, calendar_path=None):
                              决议/维持实录条目、序列面决议/生效日亦
                              不可推(R28 任务2)——现值无官方口径可依,
                              不以市场序列值冒充宣布目标。
+    原问直答型(question_kind=policy_question,Audit-R33 任务3)分面类:
+      map_required_face_missing 判定缺总判断/结构化回声(必需面缺席);
+      policy_question_face_missing 被问及的分量无证据可答(政策目标
+                             缺证/通胀读数全缺)——交付草稿,正式归档
+                             拒绝(判定与渲染共源 policy_question.
+                             blocked_class);
+      policy_question_faces_missing 分面块缺席/损坏。
     calendar_path=None 时政策实录面读模块默认日历(生产口径);显式
     传路径=测试注入缝(空日历=缺实录反例),生产调用不传。
     「存在最新单点」不构成历史分析需求满足(Audit-R4 条目5)——
@@ -1895,7 +1911,22 @@ def blocked_class_of(report, calendar_path=None):
         # 转折×3/历史)缺席=读者交付件残缺——与必要数据缺口同级阻断
         # (faces 摘要在 attach 成功时随档;缺席=未 attach 或无面)
         _rp = report.get('research_plan') or {}
-        if _rp.get('map_question'):
+        if _rp.get('question_kind') == 'policy_question':
+            # Audit-R33 任务3: 原问直答型——回声面缺席=必需面缺席;引擎
+            # 分面缺口走 policy_question.blocked_class(判定与渲染共源);
+            # 全绿时 run_ok 尾段与地图同口径(健康→None;诚实源缺席类
+            # run_ok=False→落进程类旗标面)。
+            _f = ((report.get('agent_judgment') or {})
+                  .get('reader_map_faces')) or {}
+            if not _f.get('complete'):
+                return 'map_required_face_missing'
+            import policy_question as _pq_bc
+            _pqc = _pq_bc.blocked_class(_rp.get('policy_question'))
+            if _pqc:
+                return _pqc
+            if report.get('run_ok') is not False:
+                return None
+        elif _rp.get('map_question'):
             _f = ((report.get('agent_judgment') or {})
                   .get('reader_map_faces')) or {}
             if not _f.get('complete'):
@@ -1982,6 +2013,29 @@ def _reader_map_faces_summary(judgment, report):
     时 blocked_class_of 判 map_required_face_missing(必需图表面缺席与
     必要数据缺口同级阻断)。"""
     plan = report.get('research_plan') or {}
+    if plan.get('question_kind') == 'policy_question':
+        # Audit-R33 任务3: 原问直答型粗检——总判断+结构化回声在场
+        # (逐位核对归 judgment_contract._policy_question_checks)
+        _rm = (judgment or {}).get('reader_map') or {}
+        _echo = (_rm.get('policy_question')
+                 if isinstance(_rm, dict) else None)
+        _head = bool(isinstance(_rm, dict)
+                      and str(_rm.get('headline_conclusion') or '').strip())
+        _has = isinstance(_echo, dict)
+        return {
+            'complete': bool(_head and _has),
+            'question_kind': 'policy_question',
+            'headline': _head,
+            'echo_present': _has,
+            'official_targets_n': (len(_echo.get('official_targets') or [])
+                                   if _has else 0),
+            'pending_decisions_n': (len(_echo.get('pending_decisions')
+                                     or []) if _has else 0),
+            'inflation_yoy_n': (len(_echo.get('inflation_yoy') or [])
+                                if _has else 0),
+            'gaps_echoed_n': (len(_echo.get('gaps_echoed') or [])
+                              if _has else 0),
+        }
     if not plan.get('map_question'):
         return None
     rm = (judgment or {}).get('reader_map') or {}

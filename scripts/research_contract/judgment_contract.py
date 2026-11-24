@@ -74,6 +74,41 @@ def build_face(report):
         f = dict(r)
         f['fact_id'] = fid
         facts.append(f)
+    # Audit-R33 任务3: 原问直答分面行入面——官方目标水平事实(日历
+    # 实录口径)+通胀去年同月基期事实(追加在最新读数之后: 按指标取
+    # 事实仍先得最新读数)。旧档无分面块=零新增行。
+    _pq = ((report.get('research_plan') or {}).get('policy_question')
+           or {})
+    if isinstance(_pq, dict) and _pq.get('schema') == 'r33-policy-question':
+        _s3_ids2 = {f['fact_id'] for f in facts}
+        for _r in ((_pq.get('policy_targets') or {}).get('rows') or []):
+            _mid = _r.get('official_metric_id')
+            if (_r.get('status') == 'official_record'
+                    and _r.get('target') is not None and _mid
+                    and _r.get('effective_date')):
+                _fid = f"{_mid}@{_r.get('effective_date')}"
+                if _fid not in _s3_ids2:
+                    facts.append({
+                        'metric_id': _mid, 'value': _r.get('target'),
+                        'observation_date': _r.get('effective_date'),
+                        'fact_id': _fid, 'unit': 'percent',
+                        'source': 'policy_question',
+                        'policy_decision_date': _r.get('decision_date')})
+                    _s3_ids2.add(_fid)
+        for _r in ((_pq.get('inflation_yoy') or {}).get('rows') or []):
+            _b = _r.get('base') or {}
+            if (_b.get('value') is not None
+                    and _b.get('observation_date') and _r.get('metric_id')):
+                _fid = f"{_r.get('metric_id')}@{_b.get('observation_date')}"
+                if _fid not in _s3_ids2:
+                    facts.append({
+                        'metric_id': _r.get('metric_id'),
+                        'value': _b.get('value'),
+                        'observation_date': _b.get('observation_date'),
+                        'fact_id': _fid, 'unit': 'percent',
+                        'source': 'policy_question',
+                        'role': 'same_month_last_year_base'})
+                    _s3_ids2.add(_fid)
     series = {}
     for st in report.get('steps') or []:
         nm = st.get('step') or ''
@@ -346,6 +381,11 @@ def _class_b(text, face):
 
 # ── 类C: 六查(规则+证据读取,零模型) ────────────────────────────────
 
+# 实据类证据行(Audit-R33 任务3: 原问直答面的 policy_record/
+# plan_series_point 两类与 snapshot_fact 同等对待;旧档无此两类=零变化)
+_FACT_REF_KINDS = ('snapshot_fact', 'policy_record', 'plan_series_point')
+
+
 def _six_checks(judgment, face):
     out = []
     # 可观测集=面内事实∪序列∪索引实据(报告自身证据声明亦算可观测;
@@ -354,7 +394,7 @@ def _six_checks(judgment, face):
                   | set((face.get('series_store') or {}).keys())
                   | {(e.get('metric_id') or '')
                      for e in face.get('evidence_index') or []
-                     if e.get('kind') == 'snapshot_fact'})
+                     if e.get('kind') in _FACT_REF_KINDS})
     observable.discard('')
     facts = observable
     index = {e.get('ref'): e for e in face.get('evidence_index') or []}
@@ -374,7 +414,7 @@ def _six_checks(judgment, face):
         # 1 relevant: 引用可解析+至少一实据(或纯逻辑推理档显式披露)
         unresolved = [r for r in refs if r not in index]
         snap_refs = [r for r in refs
-                     if (index.get(r) or {}).get('kind') == 'snapshot_fact']
+                     if (index.get(r) or {}).get('kind') in _FACT_REF_KINDS]
         if unresolved:
             add(cid, 'relevant', 'NOT_VERIFIED',
                 f'引用不在 evidence_index: {unresolved[:3]}')
@@ -394,6 +434,13 @@ def _six_checks(judgment, face):
                 if mid not in facts:
                     bad.append(f'{r}:指标不在证据面')
                 elif mid not in stmt and mid not in (con.get('basis') or ''):
+                    disclosed.append(f'{r} 未在文本展开')
+            elif e.get('kind') in ('policy_record', 'plan_series_point'):
+                # Audit-R33 任务3: 原问直答面的引擎证据行(日历实录/计划
+                # 序列点)自身即实据面——可解析即算;被引未展开=披露
+                mid = e.get('metric_id')
+                if mid and mid not in stmt and mid not in \
+                        (con.get('basis') or ''):
                     disclosed.append(f'{r} 未在文本展开')
             elif e.get('kind') == 'vp_sidecar':
                 vid = (e.get('ref') or '').replace('VP-', '')
@@ -637,6 +684,9 @@ def _map_checks(judgment, face, report):
     明确指定指标遗漏——结构缺席或数值与引擎确定性面相左都在此拦;
     空正文/缺图表=NOT_VERIFIED(修档再提),数值相左=CONTRADICTED。"""
     plan = (report or {}).get('research_plan') or {}
+    if plan.get('question_kind') == 'policy_question':
+        # Audit-R33 任务3: 原问直答型问句走分面回声契约(五面契约不适用)
+        return _policy_question_checks(judgment, face, report, plan)
     if not plan.get('map_question'):
         return []
     out = []
@@ -1778,6 +1828,402 @@ def _map_checks(judgment, face, report):
         if rm.get('turnings'):
             ok('reader_map.cross_face_consistency.turning_source',
                f'转折表 {len(rm["turnings"])} 项指标与计划/候选面同源')
+    return out
+
+
+# ── Audit-R33 任务3: 原问直答型问句 reader_map 分面回声契约 ─────────────
+
+_PQ_SCHEMA = 'r33-policy-question'
+# 地图五面(及补充面)键——原问直答型判定不得写(两族契约互斥)
+_PQ_FIVE_FACE_KEYS = ('regions', 'transmission', 'turnings',
+                      'turning_supplement', 'history_periods',
+                      'history_zero_case_note', 'asset_returns_echo',
+                      'rates_decomposition')
+# 自由文字数字: 阿拉伯数字(字母/下划线/小数点紧随其前者不算: L3/E1/v1.0)
+_PQ_NUM_TOKEN = re.compile(r'(?<![A-Za-z_0-9.])\d+(?:\.\d+)?')
+_PQ_CN_DIGITS = {'零': 0, '〇': 0, '一': 1, '二': 2, '两': 2, '三': 3,
+                 '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
+_PQ_CN_DECIMAL = re.compile(r'[零〇一二两三四五六七八九]点[零〇一二三四五六七八九]+')
+_PQ_CN_PERCENT = re.compile(r'百分之[一二两三四五六七八九十]+(?!\s*点)')
+_PQ_CN_INT_UNIT = re.compile(
+    r'[一二两三四五六七八九十]+(?=\s*(?:个基点|个百分点|个月|天))')
+_PQ_CN_YEAR = re.compile(r'[零〇一二三四五六七八九]{4}\s*年')
+# 值单位后缀: 紧随其后的数字按值核(不得借日期年/月/日分量放行)
+_PQ_VALUE_SUFFIX = re.compile(r'\s*(?:[bB][pP]|个百分点|pp|基点|%)')
+
+
+def _pq_cn_int(s):
+    """中文整数(十/百合成;「十五」=15、「二十四」=24、「一百零五」=105)。"""
+    total, cur = 0, 0
+    for c in s.replace('〇', '零').replace('两', '二'):
+        if c == '十':
+            total += (cur or 1) * 10
+            cur = 0
+        elif c == '百':
+            total += (cur or 1) * 100
+            cur = 0
+        else:
+            cur = _PQ_CN_DIGITS.get(c, 0)
+    return total + cur
+
+
+def _pq_cn_number(s):
+    if '点' in s:
+        a, _, b = s.partition('点')
+        frac = ''.join(str(_PQ_CN_DIGITS.get(c, 0)) for c in b)
+        return float('%d.%s' % (_pq_cn_int(a) if a else 0, frac))
+    return float(_pq_cn_int(s))
+
+
+def _pq_engine_numbers(blk):
+    """引擎分面块内全部数值(含绝对值形)+日期的年/月/日分量。"""
+    nums, dates = set(), set()
+
+    def add_num(v):
+        if isinstance(v, bool) or not isinstance(v, (int, float)) \
+                or v != v or abs(v) > 1e15:
+            return
+        nums.add(float(v))
+        nums.add(abs(float(v)))
+
+    def walk(o):
+        if isinstance(o, dict):
+            for v in o.values():
+                walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v)
+        elif isinstance(o, (int, float)):
+            add_num(o)
+        elif isinstance(o, str):
+            m = re.match(r'^(\d{4})-(\d{2})-(\d{2})$', o[:10])
+            if m:
+                dates.update((m.group(1), m.group(2), m.group(3),
+                              str(int(m.group(2))), str(int(m.group(3)))))
+
+    walk(blk)
+    return nums, dates
+
+
+def _pq_num_in(x, nums):
+    return x is not None and any(abs(x - n) < 1e-9 for n in nums)
+
+
+def _pq_unbound_tokens(text, nums, dates):
+    """自由文字里与引擎面不对应的数字(阿拉伯数字/中文小数/百分之X/带量词
+    中文整数);年份(四位中文数字+年)不算。空串=无。"""
+    if text is None or not str(text).strip():
+        return []
+    t = _PQ_CN_YEAR.sub('', str(text))
+    out = []
+    for m in _PQ_NUM_TOKEN.finditer(t):
+        tok = m.group(0)
+        if tok in dates and not _PQ_VALUE_SUFFIX.match(t, m.end()):
+            continue        # 日期分量(年/月/日);带值单位者按值核
+        try:
+            x = float(tok)
+        except ValueError:
+            x = None
+        if not _pq_num_in(x, nums):
+            out.append(tok)
+    for m in _PQ_CN_DECIMAL.finditer(t):
+        if not _pq_num_in(_pq_cn_number(m.group(0)), nums):
+            out.append(m.group(0))
+    # 带量词整数扫描前掩掉已识别的中文小数段——否则「零点五五个百分
+    # 点」的尾「五五个百分点」会被整数规则再吃一次(55≠引擎面,误报)
+    t = _PQ_CN_DECIMAL.sub(lambda m: '·' * len(m.group(0)), t)
+    for m in _PQ_CN_PERCENT.finditer(t):
+        if not _pq_num_in(_pq_cn_number(m.group(0)[3:]), nums):
+            out.append(m.group(0))
+    for m in _PQ_CN_INT_UNIT.finditer(t):
+        if not _pq_num_in(_pq_cn_number(m.group(0)), nums):
+            out.append(m.group(0))
+    return out
+
+
+def _policy_question_checks(judgment, face, report, plan):
+    """原问直答型判定的 reader_map 结构化回声契约(确定性逐位核对)。
+
+    回声(reader_map.policy_question)须逐字回声引擎面
+    research_plan.policy_question: 值/日期/状态/答案逐位一致——相左=
+    CONTRADICTED;缺席/多出/引用不可解析=NOT_VERIFIED;回声自由文字
+    (总判断/注记)里的数字须与引擎面数字对应(否则 NOT_VERIFIED);
+    地图五面键不得出现。L3/L4 仍走既有客观事实/统计结论/六查。"""
+    out = []
+
+    def ok(item, note):
+        out.append({'item': item, 'claim_type': 'reader_map',
+                    'status': 'VERIFIED', 'note': note, 'evidence_refs': []})
+
+    def bad(item, note, contra=False):
+        out.append({'item': item, 'claim_type': 'reader_map',
+                    'status': 'CONTRADICTED' if contra else 'NOT_VERIFIED',
+                    'note': note, 'evidence_refs': []})
+
+    rm = (judgment or {}).get('reader_map')
+    if not isinstance(rm, dict):
+        bad('reader_map', '原问直答型判定须含 reader_map 顶层对象'
+            '(一句总判断+结构化回声)')
+        return out
+    head = str(rm.get('headline_conclusion') or '').strip()
+    if head:
+        ok('reader_map.headline_conclusion', '非空')
+    else:
+        bad('reader_map.headline_conclusion', '一句总判断为空或 None')
+    stray = [k for k in _PQ_FIVE_FACE_KEYS if k in rm]
+    if stray:
+        bad('reader_map', '原问直答型判定不得写地图五面键'
+            f'(分面契约不核五面): {stray}')
+    blk = plan.get('policy_question')
+    if not isinstance(blk, dict) or blk.get('schema') != _PQ_SCHEMA:
+        bad('research_plan.policy_question',
+            '引擎分面块缺席/损坏——无可回声面')
+        return out
+    echo = rm.get('policy_question')
+    if not isinstance(echo, dict):
+        bad('reader_map.policy_question',
+            '结构化回声缺席(须逐字回声引擎面 research_plan.policy_question)')
+        return out
+    index = {e.get('ref'): e for e in (report.get('evidence_index') or [])}
+    qt = blk.get('question_time') or {}
+    nums, dates = _pq_engine_numbers(blk)
+
+    def field(item, seat_row, eng_row, key, ekey=None, numeric=False):
+        """回声字段(key=回声键,ekey=引擎键,缺省同名): 引擎无值→回声
+        须同空(给出=虚构 CONTRADICTED);引擎有值→回声缺席/None=
+        NOT_VERIFIED,不等=CONTRADICTED,相等=VERIFIED。"""
+        ev = eng_row.get(ekey or key)
+        sv = seat_row.get(key)
+        if ev is None:
+            if sv is None:
+                ok(item, '空=空')
+            else:
+                bad(item, f'引擎面无值而回声给出 {sv!r}(虚构)', contra=True)
+            return
+        if sv is None:
+            bad(item, f'回声缺字段/为空(引擎 {ev!r})')
+            return
+        if numeric:
+            try:
+                same = abs(float(sv) - float(ev)) < 1e-9
+            except (TypeError, ValueError):
+                same = False
+        else:
+            same = (sv == ev)
+        if same:
+            ok(item, f'{sv!r} 一致')
+        else:
+            bad(item, f'回声 {sv!r} ≠ 引擎面 {ev!r}', contra=True)
+
+    def refs_check(item, sr, er):
+        refs = sr.get('evidence_refs')
+        if (not isinstance(refs, list)
+                or not all(isinstance(x, str) for x in refs)):
+            bad(item + '.evidence_refs', '引用缺席/非字符串数组')
+            return
+        if not (er.get('evidence_refs') or []):
+            # 引擎行无实据(读数/目标/实录缺席=数据不可得): 回声须为空
+            # 引用——引擎行无实据而回声给出引用=无中生有
+            if refs:
+                bad(item + '.evidence_refs',
+                    '引擎行无实据而回声给出引用(虚构)', contra=True)
+            else:
+                ok(item + '.evidence_refs',
+                   '引擎行无实据(数据不可得),回声空引用一致')
+            return
+        if not refs:
+            bad(item + '.evidence_refs', '引用缺席/非字符串数组')
+            return
+        unres = [x for x in refs if x not in index]
+        if unres:
+            bad(item + '.evidence_refs',
+                f'引用不可解析(不在 evidence_index): {unres[:3]}')
+            return
+        er_refs = set(er.get('evidence_refs') or [])
+        if er_refs and not (set(refs) & er_refs):
+            bad(item + '.evidence_refs',
+                '回声引用未落在该行引擎实据上(须含 '
+                f'{sorted(er_refs)[:3]} 之一)')
+            return
+        ok(item + '.evidence_refs', f'{len(refs)} 引用可解析且落在引擎行')
+
+    def keyed(rows, keyfn, name):
+        if not isinstance(rows, list):
+            bad(name, '须为数组')
+            return None
+        m = {}
+        for r in rows:
+            if not isinstance(r, dict):
+                bad(name, '条目须为对象')
+                return None
+            k = keyfn(r)
+            if k in m:
+                bad(f'{name}[{k}]', '重复条目')
+            m[k] = r
+        return m
+
+    def cover(name, eng, got):
+        missing = sorted(str(x) for x in set(eng) - set(got))
+        extra = sorted(str(x) for x in set(got) - set(eng))
+        if missing or extra:
+            bad(name, f'回声不齐: 缺 {missing}; 多出 {extra}')
+            return False
+        ok(name, f'{len(eng)} 行齐')
+        return True
+
+    # research_time
+    rt = echo.get('research_time')
+    if not isinstance(rt, dict):
+        bad('reader_map.policy_question.research_time',
+            'research_time 缺席(须回声 {as_of, research_month})')
+    else:
+        field('reader_map.policy_question.research_time.as_of',
+              rt, {'as_of': blk.get('as_of')}, 'as_of')
+        field('reader_map.policy_question.research_time.research_month',
+              rt, {'research_month': qt.get('research_month')},
+              'research_month')
+
+    # official_targets
+    eng = {r.get('region'): r
+           for r in ((blk.get('policy_targets') or {}).get('rows') or [])
+           if isinstance(r, dict)}
+    gm = keyed(echo.get('official_targets'), lambda r: r.get('region'),
+               'reader_map.policy_question.official_targets')
+    if gm is not None and cover(
+            'reader_map.policy_question.official_targets', eng, gm):
+        for reg, er in eng.items():
+            sr = gm.get(reg)
+            if sr is None:
+                continue
+            it = f'reader_map.policy_question.official_targets[{reg}]'
+            field(it + '.status', sr, er, 'status')
+            field(it + '.target', sr, er, 'target', numeric=True)
+            for k in ('decision_date', 'effective_date', 'first_publish'):
+                field(it + '.' + k, sr, er, k)
+            refs_check(it, sr, er)
+
+    # pending_decisions
+    eng = {r.get('region'): r
+           for r in ((blk.get('pending_decisions') or {}).get('rows') or [])
+           if isinstance(r, dict)}
+    gm = keyed(echo.get('pending_decisions'), lambda r: r.get('region'),
+               'reader_map.policy_question.pending_decisions')
+    if gm is not None and cover(
+            'reader_map.policy_question.pending_decisions', eng, gm):
+        for reg, er in eng.items():
+            sr = gm.get(reg)
+            if sr is None:
+                continue
+            it = f'reader_map.policy_question.pending_decisions[{reg}]'
+            field(it + '.answer', sr, er, 'answer')
+            field(it + '.confirmed_through', sr, er, 'confirmed_through')
+            refs_check(it, sr, er)
+            try:
+                ep = sorted(
+                    (float(p.get('target_value'))
+                     if p.get('target_value') is not None else None,
+                     str(p.get('decision_date')), str(p.get('effective_on')))
+                    for p in (er.get('pending_at_as_of') or [])
+                    if isinstance(p, dict))
+            except (TypeError, ValueError):
+                ep = None
+            sp = sr.get('pending')
+            if ep is None or not isinstance(sp, list) or \
+                    any(not isinstance(x, dict) for x in sp):
+                bad(it + '.pending', 'pending 须为数组(条目为对象)')
+                continue
+            try:
+                st = sorted(
+                    (float(x.get('target')) if x.get('target') is not None
+                     else None, str(x.get('decision_date')),
+                     str(x.get('effective_date'))) for x in sp)
+            except (TypeError, ValueError):
+                bad(it + '.pending', 'pending 条目字段不可解析')
+                continue
+            fab = [x for x in st if x not in ep]
+            drop = [x for x in ep if x not in st]
+            if fab:
+                bad(it + '.pending',
+                    f'回声给出引擎面没有的待生效决定(虚构): {fab}',
+                    contra=True)
+            if drop:
+                bad(it + '.pending', f'回声漏掉引擎面待生效决定: {drop}')
+            if not fab and not drop:
+                ok(it + '.pending', f'{len(ep)} 条逐条一致')
+
+    # inflation_yoy
+    eng = {(r.get('region'), r.get('metric_id')): r
+           for r in ((blk.get('inflation_yoy') or {}).get('rows') or [])
+           if isinstance(r, dict)}
+    gm = keyed(echo.get('inflation_yoy'),
+               lambda r: (r.get('region'), r.get('metric_id')),
+               'reader_map.policy_question.inflation_yoy')
+    if gm is not None and cover(
+            'reader_map.policy_question.inflation_yoy', eng, gm):
+        for (reg, mid), er in eng.items():
+            sr = gm.get((reg, mid))
+            if sr is None:
+                continue
+            it = f'reader_map.policy_question.inflation_yoy[{reg}:{mid}]'
+            field(it + '.status', sr, er, 'status')
+            field(it + '.value', sr, er, 'value', numeric=True)
+            field(it + '.observation_month', sr, er, 'observation_month')
+            field(it + '.publish_date', sr, er, 'publish_date')
+            field(it + '.base_value', sr, (er.get('base') or {}),
+                  'base_value', 'value', numeric=True)
+            field(it + '.delta_pp', sr, er, 'delta_pp', numeric=True)
+            refs_check(it, sr, er)
+
+    # gaps_echoed(多重集相等)
+    from collections import Counter as _Ctr
+    eg = _Ctr((g.get('code'), g.get('region'), g.get('metric_id'))
+              for g in (blk.get('gaps') or []) if isinstance(g, dict))
+    sg = echo.get('gaps_echoed')
+    if not isinstance(sg, list) or any(not isinstance(x, dict) for x in sg):
+        bad('reader_map.policy_question.gaps_echoed',
+            '须为数组(条目 {code, region, metric_id})')
+    else:
+        sc = _Ctr((x.get('code'), x.get('region'), x.get('metric_id'))
+                  for x in sg)
+        if sc == eg:
+            ok('reader_map.policy_question.gaps_echoed',
+               f'{sum(eg.values())} 条逐条一致')
+        else:
+            bad('reader_map.policy_question.gaps_echoed',
+                f'缺口回声不一致: 缺 {sorted(map(str, (eg - sc).elements()))};'
+                f' 多出 {sorted(map(str, (sc - eg).elements()))}')
+
+    # 自由文字数字绑定(总判断/注记/评论)
+    texts = [('reader_map.headline_conclusion', rm.get('headline_conclusion'))]
+    cm = echo.get('comments')
+    for i, c in enumerate(cm if isinstance(cm, list) else [cm]):
+        texts.append((f'reader_map.policy_question.comments[{i}]', c))
+    for face_name in ('official_targets', 'pending_decisions', 'inflation_yoy'):
+        for i, r in enumerate(echo.get(face_name) or []):
+            if isinstance(r, dict):
+                texts.append((f'reader_map.policy_question.{face_name}'
+                              f'[{i}].note', r.get('note')))
+    # L3 叙述数字绑定(矛盾陈述正文+机制链各环正文): 与回声自由文字
+    # 同口径——本族指标多不在通用文本检查器的静态别名表,L3 叙述数值
+    # 此前零核验;席位自设阈值属 L4,不在本查。竞争性解释为假设叙述,
+    # 不核。
+    l3 = (judgment or {}).get('l3') or {}
+    for c in l3.get('contradictions') or []:
+        if isinstance(c, dict):
+            texts.append((f"l3.{c.get('id')}.statement",
+                          c.get('statement')))
+    for ch in l3.get('mechanism_chains') or []:
+        for i, lk in enumerate((ch or {}).get('links') or []):
+            texts.append((f"l3.{(ch or {}).get('id')}.links[{i}].text",
+                          (lk or {}).get('text')))
+    for item, text in texts:
+        if item.endswith('headline_conclusion') and not head:
+            continue        # 已按空判
+        un = _pq_unbound_tokens(text, nums, dates)
+        if un:
+            bad(item, f'自由文字数字与引擎面不对应: {un[:6]}')
+        elif text is not None and str(text).strip():
+            ok(item, '数字均与引擎面对应')
     return out
 
 

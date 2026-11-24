@@ -1136,6 +1136,19 @@ def detect_map_question(question, ent):
     return len(ecos) >= 2 and len(dims) >= 2 and any(w in q for w in MAP_SHAPE_WORDS)
 
 
+def question_kind(question, ent):
+    """Audit-R33 任务3: 问句族别——'map'(地图形状判据成立: 读者报告五面
+    契约不变)|'policy_question'(原问直答型: 族判据成立而形状判据不成立,
+    走分面契约)|None(既有口径)。计划块/数据需求/工单/判定契约/渲染同读
+    计划内 question_kind(旧档无此键=地图口径,零漂移)。"""
+    if detect_map_question(question, ent):
+        return 'map'
+    import policy_question as _pq
+    if _pq.detect_policy_question(question, ent):
+        return 'policy_question'
+    return None
+
+
 def parse_question_windows(question, cutoff_iso):
     """问句时间窗(Audit-R30 任务3): 「过去/近/最近 N 个月」→窗列表。
 
@@ -1274,6 +1287,13 @@ def _clause_region_dimension_requests(question, ecos):
         if 'policy' not in seg_dims and any(
                 w in seg for w in _POLICY_DIM_EXTRA):
             seg_dims.append('policy')
+        # Audit-R33 任务3: 指示词句段绑定——「两地通胀同比…」句段有
+        # 维度词形而无地区名(地区只在别的句段点名): 绑定到问句点名的
+        # 全部经济体,不再整段丢失(原问的通胀子问基线复现为零请求)。
+        if seg_dims and not seg_ecos:
+            import policy_question as _pq_d
+            if any(w in seg for w in _pq_d.DEICTIC_WORDS):
+                seg_ecos = list(ecos)
         if not seg_dims and seg_ecos:
             # Audit-R29 任务2: 隐含比较维度展开(环境/分化型问句→全维族;
             # 与 detect_map_question 同一展开函数,检测/计划共源)
@@ -1298,6 +1318,11 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
             if e in REGION_DIMENSION_METRICS]
     # Audit-R30 任务3: 裸「政策」与「货币政策」同值 policy——保序去重,
     # 词形并列命中不产生重复维(下游 regions/dimensions/网格按维消费)。
+    # Audit-R33 任务3: 问句族别(地图/原问直答型)——同一请求集合与网格,
+    # 族问句另附时间分量(研究年月/回看窗口/同比基期分记)
+    import policy_question as _pq_p
+    _kind = question_kind(question, ent)
+    _fam = _kind == 'policy_question'
     dims = []
     for _w, _d in DIMENSION_WORDS:
         if _w in (question or '') and _d not in dims:
@@ -1330,6 +1355,14 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         for mid, mnote in REGION_DIMENSION_METRICS[eco].get(dim, []):
             m = reg_by_id.get(mid)
             if m is None:
+                # Audit-R33 任务3: 原问直答型的官方目标口径格——缺口只指
+                # 宣布值口径的序列面;目标水平本身由发布日历实录回答(政策
+                # 目标面),注记写明去处,免得读成「日本政策目标不可得」
+                _fam_note = (
+                    ';原问直答型: 本缺口仅指宣布值口径的序列面格——官方目标'
+                    '水平由发布日历实录回答(见「政策目标」面),不由序列格推断'
+                    if (_fam and mid in _OFFICIAL_TARGET_METRICS.values())
+                    else '')
                 gaps.append({'region': eco, 'dimension': dim,
                              'metric_id': mid,
                              'gap': 'registry_absent',
@@ -1341,7 +1374,7 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
                                      f'{_REGION_LABEL[eco]}'
                                      f'{_DIM_LABEL[dim]}环境该口径三时点'
                                      f'对照不可判,不以相邻口径冒充),'
-                                     f'不虚构'})
+                                     f'不虚构' + _fam_note})
                 continue
             cells.append({'metric_id': mid,
                           'display_name': m.get('display_name'),
@@ -1367,16 +1400,25 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         regions[eco]['dimensions'][dim] = cells
     plan = {
         'map_question': True,
+        # Audit-R33 任务3: 问句族别随计划落档(消费方按此分流;旧档无
+        # 此键=地图口径)
+        'question_kind': _kind,
         # Audit-R25 任务3: 原问逐字入计划——plan/工单/报告/归档同一份原文
         # (后续任何摘写只在 question_summary,不回写本键);MAP 头与
         # ARCHIVE_MANIFEST 同源引用,验收=逐字节比对 run.question。
         'question_verbatim': question,
         'question_summary': (
-            '内部摘要(非原文): 地区%s×维度%s@%s,三时点对照+转折+传导+'
-            '历史类比;仅供检索/日志,交付与验收以 question_verbatim 为准'
-            % ('/'.join(sorted(regions)),
-               '、'.join(sorted({d for _e, d in _requests}) or dims),
-               cutoff_iso)),
+            ('内部摘要(非原文): 原问直答型——地区%s×维度%s@%s;政策目标/'
+             '已决议待生效/通胀同比分面;仅供检索/日志,交付与验收以 '
+             'question_verbatim 为准'
+             % ('/'.join(sorted(regions)),
+                '、'.join(sorted({d for _e, d in _requests}) or dims),
+                cutoff_iso)) if _fam else
+            ('内部摘要(非原文): 地区%s×维度%s@%s,三时点对照+转折+传导+'
+             '历史类比;仅供检索/日志,交付与验收以 question_verbatim 为准'
+             % ('/'.join(sorted(regions)),
+                '、'.join(sorted({d for _e, d in _requests}) or dims),
+                cutoff_iso))),
         # Audit-R29 任务2: 维度来源披露——显式词形 / 隐含全维族展开 /
         # 句段零命中回退全域全维,三态随计划落档(读者可核网格为何如此)。
         'dimension_source': (
@@ -1402,8 +1444,14 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         'regions': regions,
         'dimensions': dims,
         'metrics': metrics,
-        'context_metrics': [m for m in US_RATES_TRIO],
+        # Audit-R33 任务3: 原问直答型问句不挂美债三利率上下文指标
+        # (问什么取什么;地图问句不变)
+        'context_metrics': ([] if _fam else [m for m in US_RATES_TRIO]),
         'point_anchors': parse_point_anchors(question, cutoff_iso),
+        # Audit-R33 任务3: 原问直答型的时间分量分记(研究年月→研究
+        # 截止日;回看窗口→政策/待生效;同比基期→通胀)
+        'question_time': (_pq_p.parse_question_time(question, cutoff_iso)
+                          if _fam else None),
         # Audit-R30 任务3: 问句时间窗(「过去/近/最近 N 个月」)随计划
         # 落档——窗起入点锚对照(window_start 标记)+窗端=当期锚;
         # 数据需求窗由 _question_window 同词形解析(relative_months,
@@ -2720,21 +2768,12 @@ def _anchor_caliber_line(point_anchors):
             '——两类时间含义不同,分记不混同')
 
 
-def render_map_report(rj, judgment_doc, review_state=None, root=None):
-    """MAP_REPORT.md 正文(读者可直读可核查: 关键数字附来源/单位/实际观测日)。
-
-    装配面=report.json research_plan(共享计划+点值+转折候选)+Agent 席
-    judgment.reader_map 原文;零生成——总判断/走位/传导叙述/转折判断/历史段
-    全部来自 reader_map(attach 契约已验非空+数值经 judgment_contract 回贴
-    核对),引擎只排表与落来源。
-
-    Audit-R22 任务4: root 在场时按运行快照(snapshot_id 定位,不跨快照
-    取数)确定性渲染——首页三件(总判断/四地三时点表/证据最充分传导速览)、
-    主解释vs竞争解释对质表、历史类比逐窗经济×资产并列面。快照不在场=
-    该面如实缺席注记,不虚构。"""
+def _report_header(rj, review_state=None, root=None,
+                   title='# 全球宏观经济变化地图(读者报告)'):
+    """读者报告页眉(问题/研究截止日/研究时点口径/证据口径/数据门/
+    对照时点/分工)——Audit-R33 任务3 自 render_map_report 原样抽出,
+    地图报告与原问直答报告共用。返回 (lines, 运行快照|None, 快照注记|None)。"""
     rp = rj.get('research_plan') or {}
-    rm = (judgment_doc or {}).get('reader_map') or {}
-    pv = rp.get('point_values') or {}
     run = rj.get('run') or {}
     # 运行快照(报告段按 snapshot_id 定位;缺席→历史并列面如实缺席)
     _snap_r = None
@@ -2753,7 +2792,7 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         else:
             _snap_note = (f'运行快照文件不在场({_sid or "snapshot_id缺席"}'
                           '——历史并列面不跨快照取数,如实缺席)')
-    lines = ['# 全球宏观经济变化地图(读者报告)', '']
+    lines = [title, '']
     lines.append(f"- 问题: {run.get('question')}")
     lines.append(f"- 研究截止日: {rp.get('cutoff')} | 快照: "
                  f"{(rj.get('layers', {}).get('L1_事实层', {}) or {}).get('snapshot_id')}"
@@ -2850,6 +2889,76 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                  '判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,'
                  + _div_tail)
     lines.append('')
+    return lines, _snap_r, _snap_note
+
+
+def _report_tail(rj, review_state=None):
+    """读者报告页尾(随包重放面+语义审查面+渲染纪律)——Audit-R33 任务3
+    自 render_map_report 原样抽出,地图报告与原问直答报告共用。"""
+    lines = []
+    # ── Audit-R27 任务4: 随包重放面(完整运行 SHA/原问/裁决链/地图摘要/
+    #    一条可执行重放命令)——确定性装配在场事实,零新增生成。 ──
+    _run27 = (rj.get('run') or {}) if isinstance(rj, dict) else {}
+    _sha27 = str(_run27.get('git_head') or '')
+    lines += ['## 重放(随包可执行)', '',
+              '- 完整运行 SHA: `%s`(来源 %s;CODE_VERSION.json 印章'
+              '可核)' % (_sha27 or '(未记录)',
+                         _run27.get('git_head_source') or '—'),
+              '- 原问: 本目录 `question_verbatim.txt`(report 段落盘,'
+              '字节=run.question)',
+              '- 裁决链: `audit/semantic_review/<实录日期>/` 下本 runts '
+              '裁决档——REVISE→UPHELD 时**两条记录都在链**(各绑当时 '
+              'map_report_sha256),逐档可核',
+              '- 地图摘要: 旁挂 `MAP_REPORT.sha256`(本文件 sha256 锚)',
+              '- 重放命令(在交付树根执行;产物落新 run 目录,不改本档):',
+              '',
+              '```',
+              'python3 ia_cli.py research-one --stage auto '
+              '--question-file <本运行档目录>/question_verbatim.txt',
+              '```',
+              '']
+
+    # 语义审查面
+    lines += ['## 语义审查', '']
+    if review_state:
+        if review_state.get('verdict'):
+            lines.append(f"- 席位已裁: {review_state.get('verdict')}"
+                         f"(裁决链 {review_state.get('verdicts_n')} 档)")
+        else:
+            lines.append('- 独立席位待裁(review required)')
+    else:
+        lines.append('- 独立席位待裁')
+    lines.append('')
+    lines.append('---')
+    lines.append('渲染纪律: 本件只装配在场事实(引擎确定性面)与 Agent 席判断原文,'
+                 '零新增生成;数值与判断的核对面=attach 契约(judgment_contract '
+                 'reader_map 数值回贴)+独立语义审查席。')
+    return lines
+
+
+def render_map_report(rj, judgment_doc, review_state=None, root=None):
+    """MAP_REPORT.md 正文(读者可直读可核查: 关键数字附来源/单位/实际观测日)。
+
+    装配面=report.json research_plan(共享计划+点值+转折候选)+Agent 席
+    judgment.reader_map 原文;零生成——总判断/走位/传导叙述/转折判断/历史段
+    全部来自 reader_map(attach 契约已验非空+数值经 judgment_contract 回贴
+    核对),引擎只排表与落来源。
+
+    Audit-R22 任务4: root 在场时按运行快照(snapshot_id 定位,不跨快照
+    取数)确定性渲染——首页三件(总判断/四地三时点表/证据最充分传导速览)、
+    主解释vs竞争解释对质表、历史类比逐窗经济×资产并列面。快照不在场=
+    该面如实缺席注记,不虚构。"""
+    rp = rj.get('research_plan') or {}
+    if rp.get('question_kind') == 'policy_question':
+        # Audit-R33 任务3: 原问直答型问句走专用读者报告(report 段与
+        # replay 段同一渲染入口=同一份正文)
+        import policy_question as _pq_r
+        return _pq_r.render_policy_question_report(
+            rj, judgment_doc, review_state=review_state, root=root)
+    rm = (judgment_doc or {}).get('reader_map') or {}
+    pv = rp.get('point_values') or {}
+    run = rj.get('run') or {}
+    lines, _snap_r, _snap_note = _report_header(rj, review_state, root)
     # ── Audit-R26 验收: 数据面缺口三类 → 首页明确标草稿(渲染/阻断共源) ──
     _planned0 = {
         (_eco, _dim)
@@ -3829,41 +3938,5 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                 lines.append('')
         lines.append('')
 
-    # ── Audit-R27 任务4: 随包重放面(完整运行 SHA/原问/裁决链/地图摘要/
-    #    一条可执行重放命令)——确定性装配在场事实,零新增生成。 ──
-    _run27 = (rj.get('run') or {}) if isinstance(rj, dict) else {}
-    _sha27 = str(_run27.get('git_head') or '')
-    lines += ['## 重放(随包可执行)', '',
-              '- 完整运行 SHA: `%s`(来源 %s;CODE_VERSION.json 印章'
-              '可核)' % (_sha27 or '(未记录)',
-                         _run27.get('git_head_source') or '—'),
-              '- 原问: 本目录 `question_verbatim.txt`(report 段落盘,'
-              '字节=run.question)',
-              '- 裁决链: `audit/semantic_review/<实录日期>/` 下本 runts '
-              '裁决档——REVISE→UPHELD 时**两条记录都在链**(各绑当时 '
-              'map_report_sha256),逐档可核',
-              '- 地图摘要: 旁挂 `MAP_REPORT.sha256`(本文件 sha256 锚)',
-              '- 重放命令(在交付树根执行;产物落新 run 目录,不改本档):',
-              '',
-              '```',
-              'python3 ia_cli.py research-one --stage auto '
-              '--question-file <本运行档目录>/question_verbatim.txt',
-              '```',
-              '']
-
-    # 语义审查面
-    lines += ['## 语义审查', '']
-    if review_state:
-        if review_state.get('verdict'):
-            lines.append(f"- 席位已裁: {review_state.get('verdict')}"
-                         f"(裁决链 {review_state.get('verdicts_n')} 档)")
-        else:
-            lines.append('- 独立席位待裁(review required)')
-    else:
-        lines.append('- 独立席位待裁')
-    lines.append('')
-    lines.append('---')
-    lines.append('渲染纪律: 本件只装配在场事实(引擎确定性面)与 Agent 席判断原文,'
-                 '零新增生成;数值与判断的核对面=attach 契约(judgment_contract '
-                 'reader_map 数值回贴)+独立语义审查席。')
+    lines += _report_tail(rj, review_state)
     return '\n'.join(lines) + '\n'

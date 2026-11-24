@@ -42,6 +42,7 @@ import evidence_gate as eg                       # noqa: E402
 import release_calendar as rc                    # noqa: E402
 import research_map_planner as rmp                # noqa: E402
 import workbench_data as wd                       # noqa: E402
+import policy_question as pq                    # noqa: E402
 
 TMPG = tempfile.mkdtemp(prefix='r33gate_')
 _t2_mids = {m['metric_id'] for m in (wd.load_registry(ROOT).get('metrics')
@@ -94,6 +95,13 @@ def _code_tree(tag):
     run_weekly.py/scripts 不含 __pycache__;env_config.py 仅当工作副本与提交
     版逐字节一致才复制——不接受含凭证副本)。→ (tree, env_config_copied)"""
     t, _ = _mk_tree(tag)
+    return t, _add_code(t)
+
+
+def _add_code(t):
+    """代码副本入树(ia_cli.py/run_weekly.py/scripts 不含 __pycache__;
+    env_config.py 仅当工作副本与提交版逐字节一致才复制——不接受含凭证
+    副本)。→ env_config_copied"""
     for fn in ('ia_cli.py', 'run_weekly.py'):
         shutil.copy2(os.path.join(ROOT, fn), os.path.join(t, fn))
     shutil.copytree(os.path.join(ROOT, 'scripts'), os.path.join(t, 'scripts'),
@@ -106,7 +114,7 @@ def _code_tree(tag):
     if same:
         shutil.copy2(os.path.join(ROOT, 'env_config.py'),
                      os.path.join(t, 'env_config.py'))
-    return t, same
+    return same
 
 
 def _vintage(tree, ymd, drop_series=(), drop_facts=(), add_facts=(),
@@ -213,6 +221,56 @@ def _offline_plan(tag, question, vintage=None):
 
 
 FIX_R33 = os.path.join(HERE, 'fixtures_r33')
+T3_TEXT = open(T3_VERBATIM, encoding='utf-8').read()
+
+
+def _family_tree(tag, snapshot, calendar=None, code=False):
+    """族题迷你树: config 副本+族题夹具快照(tests/fixtures_r33;版本日由夹具
+    定);日历可换族题夹具日历(真实日历+合成日银决议);code=True 另入代码
+    副本(可跑正式 CLI)。→ (tree, 快照路径)。"""
+    t = os.path.join(TMPG, 'fam_' + tag)
+    shutil.copytree(os.path.join(ROOT, 'config'), os.path.join(t, 'config'))
+    os.makedirs(os.path.join(t, 'data', 'daily'), exist_ok=True)
+    with open(os.path.join(FIX_R33, snapshot), encoding='utf-8') as f:
+        snap = json.load(f)
+    p = os.path.join(t, 'data', 'daily',
+                     '%s.json' % snap['snapshot_id'])
+    with open(p, 'w', encoding='utf-8') as f:
+        json.dump(snap, f, ensure_ascii=False)
+    for fn in ('ea_20261105.json', 'japan_20261105.json', 'jp_20261105.json'):
+        s = os.path.join(ROOT, 'data', 'daily', fn)
+        if os.path.isfile(s):
+            shutil.copy2(s, os.path.join(t, 'data', 'daily', fn))
+    if calendar:
+        shutil.copy2(os.path.join(FIX_R33, calendar),
+                     os.path.join(t, 'config', 'release_calendar.json'))
+    if code:
+        _add_code(t)
+    return t, p
+
+
+def _plan_on(tree, question):
+    """既有树上的离线 plan(S 步=替身信封;取数/证据口径/L1/索引/计划走真
+    代码)。→ rep"""
+    import research_orchestrator as ro
+    orig = ro.run_step
+    ro.run_step = _fake_step_ok
+    try:
+        return ro.run_research(question, root=tree,
+                               out_dir=os.path.join(tree, 'out'))
+    finally:
+        ro.run_step = orig
+
+
+def _pol_codes_j(jud, rep, cal, as_of):
+    """整份判定档的政策纪律码(证据引用面取自 rep 的证据索引)。"""
+    res = aj.validate_judgment(
+        copy.deepcopy(jud),
+        {e.get('ref') for e in (rep.get('evidence_index') or [])
+         if e.get('ref')},
+        _t2_mids, policy_events=aj.collect_policy_events(cal), as_of=as_of)
+    return res['passed'], [v['code'] for v in res['violations']
+                           if v['code'].startswith('POL')], res
 
 
 def _cli(argv, env=None, cwd=ROOT):
@@ -1115,6 +1173,49 @@ def sec_t2b():
           and got['early'][3] is False
           and got['win'][0] is False and got['win'][1] == ['POL-EFF-DATE']
           and got['win'][3] is False, json.dumps(got, ensure_ascii=False))
+    # e. 真实席位文本(席位装配脚本×12 月夹具): 整档零政策违规;单点扰动拒收
+    t2, _p = _family_tree('t2b_dec', 'family_snapshot_20261215.json',
+                          'family_calendar_dec.json')
+    rep2 = _plan_on(t2, T3_TEXT)
+    rd2 = rep2.get('report_dir')
+    out_j = os.path.join(TMPG, 'seat_t2b_judgment.json')
+    r = subprocess.run(
+        [sys.executable, os.path.join(ROOT, 'scripts', 'seat_tools',
+                                      'make_family_judgment.py'), t2,
+         os.path.join(rd2, 'report.json'), os.path.join(TMPG, 'seat_t2b_x.json'),
+         out_j], capture_output=True, text=True, timeout=900)
+    with open(out_j, encoding='utf-8') as f:
+        jud = json.load(f)
+    with open(os.path.join(rd2, 'report.json'), encoding='utf-8') as f:
+        rep2 = json.load(f)
+    c1 = jud['l3']['contradictions'][0]['statement']
+    ok0, p0, _res = _pol_codes_j(jud, rep2, os.path.join(
+        t2, 'config', 'release_calendar.json'), '2026-11-30')
+    a1 = '2026-12-04 生效(目标百分之一点五)'
+    a2 = ('窗内(2026-05-30..2026-11-30)该决议已生效;截至研究截止日有一项'
+          '已决议未生效条目: 2026-11-27 决议、2026-12-04 生效(目标百分之一点五)')
+    a3 = '窗内(2026-05-30..2026-11-30)该决议已生效'
+    pert = {}
+    for key, old, new in (
+            ('eff_date', a1, a1.replace('2026-12-04', '2026-11-28')),
+            ('pending_as_done', a2, '截至研究截止日,2026-11-27 决议、2026-12-04 '
+                                    '生效的调整已经实施(目标百分之一点五)'),
+            ('event_dated', a3, '窗内(2026-05-30..2026-11-30)2026-11-27 决议已生效')):
+        j2 = copy.deepcopy(jud)
+        assert old in c1
+        j2['l3']['contradictions'][0]['statement'] = c1.replace(old, new)
+        pert[key] = _pol_codes_j(j2, rep2, os.path.join(
+            t2, 'config', 'release_calendar.json'), '2026-11-30')[1]
+    check('§T2b-e 真实席位文本(装配脚本×12 月夹具,as_of=2026-11-30): 整档'
+          '零政策违规;单点扰动→生效日改写 POL-EFF-DATE/待生效写成已实施 '
+          'EARLY-CLAIM/带事件日期的提前生效 EARLY-CLAIM',
+          r.returncode == 0 and ok0 and p0 == []
+          and 'POL-EFF-DATE' in pert['eff_date']
+          and 'POL-EFF-EARLY-CLAIM' in pert['pending_as_done']
+          and pert['event_dated'] == ['POL-EFF-EARLY-CLAIM'],
+          f'rc={r.returncode} ok0={ok0} p0={p0} '
+          f'pert={json.dumps(pert, ensure_ascii=False)}')
+
 
 
 # ══ 任务1 更正: 旧工单重渲染零漂移 ═══════════════════════════════════════
@@ -1188,6 +1289,1000 @@ def sec_t1_h():
           '**政策文档事实(公告/纪要发布日)**' in new)
 
 
+
+# ══ 任务3: 真正的原问(逐字件经 --question-file) ══════════════════════════
+# 基线 f053afe 正式 CLI 复现(证据包 r33-evidence/t3-baseline): 原问回执
+# ok=true/rc=0 而研究计划为空(12 月夹具=0 证据行;真实 11-23 快照=泛宏观
+# 总览「问题未词面命中任何指标」)——零事实/缺计划不报缺口。本节核候选:
+# 族别与时间分量分记/三面逐行/12 月快照仍守原问 11 月范围/缺口显式回传/
+# 席位回声契约/真实步骤正式链。夹具=tests/fixtures_r33(11-23 真实快照的
+# 日本/欧元区/美国/中国子集+12 月构造快照;日历=真实日历+合成日银决议)。
+T3_MAP_Q = os.path.join(R31_ACC, 'questions', 'question_T3.txt')
+T3_JP_ONLY = ('2026年11月，日本的央行当前官方政策目标利率处于什么水平？'
+              '最近六个月有无已决议但尚未生效的调整？')
+T3_INFL_ONLY = ('2026年11月，日本和欧元区的通胀同比最新读数相比去年同月如何？'
+                '请给出具体数据和各数据的公布时间。')
+T3_US_CN = T3_TEXT.replace('日本和欧元区', '美国和中国')
+FAM_11 = 'family_snapshot_20261123.json'
+FAM_DEC = 'family_snapshot_20261215.json'
+FAM_CAL_DEC = 'family_calendar_dec.json'
+
+
+def _jq(path):
+    with open(path, encoding='utf-8') as f:
+        return json.load(f)
+
+
+def _kind(q):
+    """问句族别(与编排同一实体抽取入口)。"""
+    import research_orchestrator as ro
+    return rmp.question_kind(q, ro.map_entities(q, wd.load_registry(ROOT)))
+
+
+def _blk(rep):
+    return (rep.get('research_plan') or {}).get('policy_question') or {}
+
+
+def _row(rows, **kw):
+    return next(r for r in rows if all(r.get(k) == v for k, v in kw.items()))
+
+
+def _codes(blk):
+    """分面缺口三元组(排序;None 转字符串免比较崩溃)。"""
+    return sorted((g.get('code'), str(g.get('region')), str(g.get('metric_id')))
+                  for g in blk.get('gaps') or [])
+
+
+def _seat(t, rd, out_j, tool=None):
+    """席位装配脚本(席位侧脚本;引擎不调用)→ (returncode, judgment|None,
+    尾行文本)。判定档写入成功才读取。"""
+    if os.path.exists(out_j):
+        os.remove(out_j)
+    tool = tool or os.path.join(ROOT, 'scripts', 'seat_tools',
+                                'make_family_judgment.py')
+    r = subprocess.run(
+        [sys.executable, tool, t, os.path.join(rd, 'report.json'),
+         out_j + '.unused', out_j], capture_output=True, text=True, timeout=900)
+    jud = _jq(out_j) if os.path.isfile(out_j) else None
+    lines = [x for x in (r.stdout + r.stderr).strip().splitlines()
+             if x.strip() and not x.startswith('HEADLINE')]
+    return r.returncode, jud, ' | '.join(x[:160] for x in lines[-3:])
+
+
+def _drop_metrics(p, mids):
+    """夹具快照内删指定指标的序列与事实行(构造「该口径缺席」)。"""
+    s = _jq(p)
+    for m in mids:
+        (s.get('series_store') or {}).pop(m, None)
+    s['facts'] = [x for x in s.get('facts') or []
+                  if x.get('metric_id') not in mids]
+    with open(p, 'w', encoding='utf-8') as f:
+        json.dump(s, f, ensure_ascii=False)
+
+
+def _t3_gaps_codes(status_gaps):
+    return status_gaps[0], [g['code'] for g in status_gaps[1]]
+
+
+def sec_t3_a():
+    print('═══ 任务3: 真正的原问 ═══')
+    print('§T3-a 族别判别与时间分量分记(研究年月/回看窗口/同比基期)')
+    check('§T3-a0 原问逐字件 sha256 在册(253 字节;R31 首次为空的那一问)',
+          hashlib.sha256(T3_TEXT.encode('utf-8')).hexdigest() == T3_SHA
+          and len(T3_TEXT.encode('utf-8')) == 253,
+          len(T3_TEXT.encode('utf-8')))
+    comp = pq.asked_components(T3_TEXT)
+    check('§T3-a1 原问=原问直答型(policy_question);三分量全被问及;研究年月 '
+          '2026-11/月末 2026-11-30',
+          _kind(T3_TEXT) == 'policy_question'
+          and comp == {'policy_targets': True, 'pending_decisions': True,
+                       'inflation_yoy': True}
+          and pq.research_month(T3_TEXT) == (2026, 11)
+          and pq.research_month_end(T3_TEXT) == '2026-11-30',
+          f'{_kind(T3_TEXT)} {comp}')
+    qt = pq.parse_question_time(T3_TEXT, '2026-11-30')
+    qt2 = pq.parse_question_time(T3_TEXT, '2026-11-23')
+    check('§T3-a2 时间分量分别解析: 研究年月→研究截止日(月末 11-30);回看窗'
+          '「最近六个月」→2026-05-30..2026-11-30(截止日取 11-23 则窗随之);'
+          '同比基期「去年同月」;三分量作用面分记',
+          qt['research_month'] == '2026-11'
+          and qt['research_month_end'] == '2026-11-30'
+          and qt['lookback_window'] == {'months': 6, 'from': '2026-05-30',
+                                        'to': '2026-11-30',
+                                        'source': '最近六个月'}
+          and qt2['lookback_window']['from'] == '2026-05-23'
+          and qt2['lookback_window']['to'] == '2026-11-23'
+          and qt['yoy_base'] == {'kind': 'same_month_last_year',
+                                 'source': '去年同月'}
+          and qt['applies_to'] == {
+              'research_month': ['evidence_as_of'],
+              'lookback_window': ['policy_targets', 'pending_decisions'],
+              'yoy_base': ['inflation_yoy']},
+          json.dumps(qt, ensure_ascii=False))
+    with open(T3_MAP_Q, encoding='utf-8') as f:
+        q_map = f.read()
+    kinds = {k: _kind(q) for k, q in (
+        ('map_rephrased', q_map), ('map_t1', Q_T1), ('jp_only', T3_JP_ONLY),
+        ('infl_only', T3_INFL_ONLY), ('us_cn', T3_US_CN))}
+    ci = pq.asked_components(T3_INFL_ONLY)
+    check('§T3-a3 判别边界: R32 改写件(带「通胀与政策环境」形状词)=地图(五面'
+          '契约不变);任务1/2 验收问句=地图;单经济体=不入族(既有口径);只问'
+          '通胀同比的两地句/美中句=原问直答型(只问通胀=仅通胀分量被问及)',
+          kinds == {'map_rephrased': 'map', 'map_t1': 'map', 'jp_only': None,
+                    'infl_only': 'policy_question',
+                    'us_cn': 'policy_question'}
+          and ci == {'policy_targets': False, 'pending_decisions': False,
+                     'inflation_yoy': True},
+          f'{kinds} {ci}')
+    rpm = _plan_on(_family_tree('t3a_map', FAM_11)[0], q_map)
+    rpm_plan = rpm.get('research_plan') or {}
+    check('§T3-a4 地图问句零回归: R32 改写件计划=地图(question_kind=map,带地图'
+          '问句标记),不带原问直答分面块',
+          rpm_plan.get('question_kind') == 'map'
+          and bool(rpm_plan.get('map_question'))
+          and not rpm_plan.get('policy_question'),
+          f"{rpm_plan.get('question_kind')} map={bool(rpm_plan.get('map_question'))}")
+
+
+def sec_t3_b():
+    print('§T3-b 三面逐行(11-23 夹具快照+真实发布日历;离线计划)')
+    t, _p = _family_tree('t3b', FAM_11)
+    rep = _plan_on(t, T3_TEXT)
+    rp = rep.get('research_plan') or {}
+    blk = _blk(rep)
+    ad = rp.get('as_of_declared') or {}
+    vb = blk.get('version_binding') or {}
+    check('§T3-b0 计划: 族别 policy_question+原问逐字入档+分面块(官方记录源=树内'
+          '日历);研究截止=快照实际覆盖日 2026-11-23(请求月末 11-30 晚于覆盖日'
+          '→夹紧并如实声明,非静默改判)',
+          rp.get('question_kind') == 'policy_question'
+          and rp.get('question_verbatim') == T3_TEXT
+          and blk.get('schema') == pq.SCHEMA
+          and blk.get('as_of') == '2026-11-23'
+          and (blk.get('question_time') or {}).get('lookback_window', {})
+          .get('from') == '2026-05-23'
+          and ad.get('clamped_to_coverage') is True
+          and ad.get('requested_as_of') == '2026-11-30'
+          and ad.get('scoped_to_question_month') is True
+          and str(vb.get('official_record_source') or '').startswith(
+              'config/release_calendar.json'),
+          f"as_of={blk.get('as_of')} basis={ad.get('basis')}")
+    if not blk:
+        return
+    tgt = blk['policy_targets']['rows']
+    pen = blk['pending_decisions']['rows']
+    infl = blk['inflation_yoy']['rows']
+    jp_t, ea_t = _row(tgt, region='JP'), _row(tgt, region='EA')
+    check('§T3-b1 政策目标面: 日本=日历实录 1.25(2026-09-18 决议并公布/09-24 生效/'
+          '10-30 确认维持);欧元区=序列+惯例推定(MRO 2.65、DFR 2.5,09-16 生效;决议日'
+          '系惯例回推;非官方公布值);行序=问句点名序(日本在前)',
+          [r['region'] for r in tgt] == ['JP', 'EA']
+          and jp_t.get('status') == 'official_record'
+          and jp_t.get('target') == 1.25
+          and (jp_t.get('decision_date'), jp_t.get('effective_date'),
+               jp_t.get('first_publish'), jp_t.get('last_maintenance'))
+          == ('2026-09-18', '2026-09-24', '2026-09-18', '2026-10-30')
+          and jp_t.get('decision_basis') == 'calendar_record'
+          and [(x['entry_id'], x['kind']) for x in jp_t.get('records') or []]
+          == [('RC-JP-BOJ-TARGET-2026-09', 'policy_decision'),
+              ('RC-JP-BOJ-MAINT-2026-10', 'policy_maintenance')]
+          and ea_t.get('status') == 'series_convention_derived'
+          and ea_t.get('target') == 2.65
+          and (ea_t.get('decision_date'), ea_t.get('effective_date'))
+          == ('2026-09-10', '2026-09-16')
+          and ea_t.get('decision_basis') == 'convention:prev_thursday'
+          and ea_t.get('official_entry_id') is None
+          and sorted((x['metric_id'], x['value'])
+                     for x in ea_t.get('series_rows') or [])
+          == [('ECB_DFR', 2.5), ('ECB_MRO', 2.65)],
+          f"{jp_t.get('status')} {ea_t.get('status')}")
+    jp_p, ea_p = _row(pen, region='JP'), _row(pen, region='EA')
+    chg = sorted((c['metric_id'], c['date'], c['from'], c['to'], c['delta_bp'])
+                 for c in ea_p.get('in_window_changes') or [])
+    check('§T3-b2 待生效面(窗 2026-05-23..2026-11-23): 日本=官方实录路径,无待生效'
+          '(最近实录 10-30,其后 24 天未确认;未收录≠未发生);窗内已生效决议 1 项+'
+          '确认维持 1 项;欧元区=不可核验(无官方实录),窗内序列已生效变动 4 项'
+          '(各 +25bp)',
+          [r['region'] for r in pen] == ['JP', 'EA']
+          and jp_p.get('answer') == 'none_pending'
+          and jp_p.get('status') == 'official_record'
+          and jp_p.get('pending_at_as_of') == []
+          and jp_p.get('confirmed_through') == '2026-10-30'
+          and jp_p.get('unconfirmed_days') == 24
+          and [d['entry_id'] for d in jp_p.get('in_window_decisions') or []]
+          == ['RC-JP-BOJ-TARGET-2026-09']
+          and [d['entry_id'] for d in jp_p.get('in_window_maintenance') or []]
+          == ['RC-JP-BOJ-MAINT-2026-10']
+          and ea_p.get('answer') == 'unverifiable'
+          and ea_p.get('status') == 'series_convention_unverifiable'
+          and ea_p.get('pending_at_as_of') is None
+          and chg == [('ECB_DFR', '2026-06-17', 2.0, 2.25, 25),
+                      ('ECB_DFR', '2026-09-16', 2.25, 2.5, 25),
+                      ('ECB_MRO', '2026-06-17', 2.15, 2.4, 25),
+                      ('ECB_MRO', '2026-09-16', 2.4, 2.65, 25)],
+          f"{jp_p.get('answer')}/{ea_p.get('answer')} chg={len(chg)}")
+    y0, y1, y2 = infl
+    check('§T3-b3 通胀同比面: 日本全国 CPI 2.44(2026-10 观测,公布 11-20)较去年同月 '
+          '2.99 低 0.55pp;东京都 2.73(公布 10-30)去年同月基期不在序列→比较不可判'
+          '(不以邻近月冒充);欧元区 HICP 4.0(公布 11-16)较去年同月 2.1 高 1.9pp;'
+          '公布日=规则推定并逐项标缺口',
+          [r['metric_id'] for r in infl]
+          == ['JP_CPI_YOY', 'JP_CPI_TOKYO_YOY', 'EA_HICP_YOY']
+          and (y0['status'], y0['value'], y0['observation_month'],
+               y0['publish_date'], y0['base']['value'], y0['delta_pp'],
+               y0['direction'])
+          == ('ok', 2.44, '2026-10', '2026-11-20', 2.99, -0.55, 'lower')
+          and (y1['status'], y1['value'], y1['observation_month'],
+               y1['publish_date'], y1['base']['value'], y1['delta_pp'])
+          == ('base_missing', 2.73, '2026-10', '2026-10-30', None, None)
+          and (y2['status'], y2['value'], y2['observation_month'],
+               y2['publish_date'], y2['base']['value'], y2['delta_pp'],
+               y2['direction'])
+          == ('ok', 4.0, '2026-10', '2026-11-16', 2.1, 1.9, 'higher')
+          and all(r['publish_basis'] == 'rule_estimated'
+                  and (r.get('base') or {}).get('kind')
+                  == 'same_month_last_year' for r in infl),
+          f'{[(r["metric_id"], r["status"], r["value"]) for r in infl]}')
+    check('§T3-b4 缺口逐项点名(6 项,披露级;不以相邻口径冒充): 公布日规则推定×3/'
+          '东京去年同月基期缺失/欧元区官方实录缺失/待生效不可核验',
+          _codes(blk) == sorted([
+              ('publication_date_estimated', 'JP', 'JP_CPI_YOY'),
+              ('inflation_base_missing', 'JP', 'JP_CPI_TOKYO_YOY'),
+              ('publication_date_estimated', 'JP', 'JP_CPI_TOKYO_YOY'),
+              ('official_record_missing', 'EA', 'ECB_MRO'),
+              ('pending_unverified', 'EA', 'ECB_MRO'),
+              ('publication_date_estimated', 'EA', 'EA_HICP_YOY')])
+          and pq.blocked_class(blk) is None
+          and (blk.get('summary') or {}).get('blocked_class') is None,
+          _codes(blk))
+    idx = {str(e.get('ref')) for e in rep.get('evidence_index') or []}
+    check('§T3-b5 证据索引: 政策实录行(决议/确认维持)+同比基期序列点+东京读数入'
+          '索引(席位可引用);版本绑定=研究截止日当日冻结快照(快照值口径)',
+          {'POLICY:RC-JP-BOJ-TARGET-2026-09@2026-09-18',
+           'POLICY:RC-JP-BOJ-MAINT-2026-10@2026-10-30',
+           'JP_CPI_YOY@2025-10-01', 'EA_HICP_YOY@2025-10-01',
+           'JP_CPI_TOKYO_YOY@2026-10-01', 'ECB_MRO@2026-09-16',
+           'ECB_DFR@2026-09-16'} <= idx
+          and vb.get('historical_view') is False
+          and (vb.get('value_version') or {}).get('basis') == 'snapshot_vintage'
+          and (vb.get('series') or {}).get('JP_CPI_YOY', {}).get('n_kept') == 70
+          and (vb.get('series') or {}).get('ECB_MRO', {}).get('n_kept') == 48,
+          sorted(idx))
+    gap_note = next((g.get('note') for g in rp.get('dimension_gaps') or []
+                     if g.get('metric_id') == 'JP_POLICY_TARGET'), '')
+    md = open(os.path.join(rep.get('report_dir') or '', 'report.md'),
+              encoding='utf-8').read()
+    check('§T3-b6 工单: 宣布值口径序列格缺口照列(检索范围+影响照写)并写明去处——'
+          '官方目标水平由日历实录回答,不读成「日本政策目标不可得」',
+          'registry_absent' in {g.get('gap')
+                                for g in rp.get('dimension_gaps') or []}
+          and '检索范围' in gap_note and '影响' in gap_note
+          and '原问直答型: 本缺口仅指宣布值口径的序列面格' in gap_note
+          and gap_note in md,
+          gap_note[-80:])
+
+
+def sec_t3_c():
+    print('§T3-c 12 月快照重跑仍守原问 11 月范围;截止后回填不入面;缺历史版本标缺证')
+    base = _jq(os.path.join(FIX_R33, FAM_DEC))
+    t, _p = _family_tree('t3c', FAM_DEC, FAM_CAL_DEC)
+    rep = _plan_on(t, T3_TEXT)
+    rp = rep.get('research_plan') or {}
+    blk = _blk(rep)
+    ad = rp.get('as_of_declared') or {}
+    vb = blk.get('version_binding') or {}
+    check('§T3-c0 研究截止日=原问研究月末 2026-11-30(早于快照版本日 2026-12-15: '
+          '原问月范围优先于快照版本日;与快照不一致如实声明),不随快照漂到 12 月',
+          blk.get('as_of') == '2026-11-30'
+          and ad.get('scoped_to_question_month') is True
+          and ad.get('clamped_to_coverage') is False
+          and ad.get('differs_from_snapshot') is True
+          and ad.get('snapshot_target_date') == '2026-12-15'
+          and (blk.get('question_time') or {}).get('lookback_window')
+          == {'months': 6, 'from': '2026-05-30', 'to': '2026-11-30',
+              'source': '最近六个月'}
+          and vb.get('source_target_date') == '2026-12-15',
+          f"as_of={blk.get('as_of')} {ad.get('note')}")
+    if not blk:
+        return
+    jp_p = _row(blk['pending_decisions']['rows'], region='JP')
+    jp_t = _row(blk['policy_targets']['rows'], region='JP')
+    pend = jp_p.get('pending_at_as_of') or []
+    check('§T3-c1 截止日后才生效的已决议调整=待生效(合成日银决议 11-27 决议并公布/'
+          '12-04 生效,目标 1.5);现行目标仍 1.25(待生效不改现行水平);窗内已生效'
+          '决议仍只列 09-18 一项(12 月才生效的决议不得列为已生效)',
+          jp_p.get('answer') == 'pending'
+          and [(x['entry_id'], x['first_publish'], x['effective_on'],
+                x['target_value']) for x in pend]
+          == [('RC-JP-BOJ-TARGET-2026-11', '2026-11-27', '2026-12-04', 1.5)]
+          and jp_t.get('target') == 1.25
+          and jp_t.get('effective_date') == '2026-09-24'
+          and [d['entry_id'] for d in jp_p.get('in_window_decisions') or []]
+          == ['RC-JP-BOJ-TARGET-2026-09'],
+          f"{jp_p.get('answer')} n={len(pend)}")
+    ser = vb.get('series') or {}
+    fd = (ser.get('JP_POLICY_RATE') or {}).get('first_dropped') or {}
+    yy = {r['metric_id']: r for r in blk['inflation_yoy']['rows']}
+    check('§T3-c2 截止后回填不入面: 11 月观测、12 月才公布的日本政策利率月均/全国 CPI '
+          '被剔(逐序列计数+首剔行);11-29 已公布的东京 11 月读数入面',
+          (ser.get('JP_POLICY_RATE') or {}).get('n_in') == 497
+          and (ser.get('JP_POLICY_RATE') or {}).get('n_kept') == 496
+          and (ser.get('JP_POLICY_RATE') or {}).get('n_late_publication') == 1
+          and fd.get('date') == '2026-11-01'
+          and fd.get('reason') == 'late_publication'
+          and fd.get('publish') == '2026-12-05'
+          and (ser.get('JP_CPI_YOY') or {}).get('n_in') == 71
+          and (ser.get('JP_CPI_YOY') or {}).get('n_kept') == 70
+          and (yy['JP_CPI_YOY']['observation_month'],
+               yy['JP_CPI_YOY']['value']) == ('2026-10', 2.44)
+          and (yy['JP_CPI_TOKYO_YOY']['observation_month'],
+               yy['JP_CPI_TOKYO_YOY']['value'],
+               yy['JP_CPI_TOKYO_YOY']['publish_date'])
+          == ('2026-11', 2.6, '2026-11-29'),
+          {m: (x.get('n_in'), x.get('n_kept')) for m, x in ser.items()})
+    check('§T3-c3 缺历史版本标缺证: 无 2026-11-30 当日冻结快照→顶层一行+声明修订口径'
+          '序列(日本全国 CPI/欧元区 HICP)逐条 historical_version_missing;值版本=较晚'
+          '快照的截止视图(声明修订口径的序列=最新修订值,非当时首发值)',
+          [c for c in _codes(blk) if c[0] == 'historical_version_missing']
+          == [('historical_version_missing', 'EA', 'EA_HICP_YOY'),
+              ('historical_version_missing', 'JP', 'JP_CPI_YOY'),
+              ('historical_version_missing', 'None', 'None')]
+          and len(_codes(blk)) == 9
+          and vb.get('historical_view') is True
+          and (vb.get('value_version') or {}).get('basis')
+          == 'no_asof_vintage_snapshot'
+          and (vb.get('value_version') or {}).get('revised_series')
+          == ['EA_HICP_YOY', 'JP_CPI_YOY']
+          and all('最新修订值' in yy[m]['vintage']
+                  and '非当时首发值' in yy[m]['vintage']
+                  for m in ('JP_CPI_YOY', 'EA_HICP_YOY')),
+          (vb.get('value_version') or {}).get('basis'))
+    # 截止日后才公布的决议不可见
+    cp = os.path.join(t, 'config', 'release_calendar.json')
+    cal = _jq(cp)
+    hit = 0
+    for e in cal['entries']:
+        if e.get('entry_id') == 'RC-JP-BOJ-TARGET-2026-11':
+            hit += 1
+            e.update(decision_date='2026-12-01', obs_from='2026-12-01',
+                     not_published_as_of='2026-11-30',
+                     first_publish_on_or_after='2026-12-01',
+                     effective_on='2026-12-09')
+    with open(cp, 'w', encoding='utf-8') as f:
+        json.dump(cal, f, ensure_ascii=False)
+    jp_p2 = _row(_blk(_plan_on(t, T3_TEXT))['pending_decisions']['rows'],
+                 region='JP')
+    check('§T3-c4 决议在研究截止日之后才公布→不可见(待生效=无,确认覆盖至 10-30;'
+          '不得把后来公布的决议写进当时结论)',
+          hit == 1
+          and jp_p2.get('answer') == 'none_pending'
+          and jp_p2.get('pending_at_as_of') == []
+          and jp_p2.get('confirmed_through') == '2026-10-30'
+          and jp_p2.get('unconfirmed_days') == 31,
+          f"{jp_p2.get('answer')} {jp_p2.get('confirmed_through')}")
+    # 有 as-of 版本快照→绑定当日版本,缺证行消失
+    t2, _p2 = _family_tree('t3c_v', FAM_DEC, FAM_CAL_DEC)
+    _vintage(t2, '20261130', base=base)
+    blk3 = _blk(_plan_on(t2, T3_TEXT))
+    vb3 = blk3.get('version_binding') or {}
+    jp_p3 = _row(blk3['pending_decisions']['rows'], region='JP')
+    check('§T3-c5 数据树有研究截止日当日冻结快照→事实/序列/派生值绑定该版本(值版本='
+          'as-of 版本快照;晚公布观测已不在该版本内),缺历史版本行不再出现;政策实录'
+          '仍走日历(待生效决议照列)',
+          not [c for c in _codes(blk3)
+               if c[0] == 'historical_version_missing']
+          and (vb3.get('value_version') or {}).get('basis') == 'as_of_vintage'
+          and (vb3.get('value_version') or {}).get('vintage_snapshot_id')
+          == 'FIXTURE_research_snapshot_20261130'
+          and (vb3.get('series') or {}).get('JP_POLICY_RATE', {})
+          .get('n_kept') == 496
+          and (vb3.get('series') or {}).get('JP_CPI_YOY', {}).get('n_kept')
+          == 70
+          and jp_p3.get('answer') == 'pending',
+          (vb3.get('value_version') or {}).get('basis'))
+
+
+def sec_t3_d():
+    print('§T3-d 零事实/缺必要计划/被问分量无证据→缺口显式回传(plan 段)')
+    import ia_cli
+    got = {}
+    # 零事实: 快照序列与事实行全空,日历亦无实录可引
+    t, p = _family_tree('t3d_zero', FAM_11)
+    s = _jq(p)
+    s['series_store'], s['facts'] = {}, []
+    with open(p, 'w', encoding='utf-8') as f:
+        json.dump(s, f, ensure_ascii=False)
+    with open(os.path.join(t, 'config', 'release_calendar.json'), 'w',
+              encoding='utf-8') as f:
+        json.dump({'version': 'fixture', 'entries': []}, f)
+    rep0 = _plan_on(t, T3_TEXT)
+    got['zero'] = _t3_gaps_codes(ia_cli._r1_plan_gaps(rep0))
+    got['plan_missing'] = _t3_gaps_codes(ia_cli._r1_plan_gaps(
+        {'evidence_index': [], 'research_plan': None, 'steps': []}))
+    rep_x = dict(rep0, research_plan=dict(
+        rep0.get('research_plan') or {}, policy_question=None))
+    got['faces'] = _t3_gaps_codes(ia_cli._r1_plan_gaps(rep_x))
+    check('§T3-d1 零事实→plan_status=gap: zero_facts(hard);无研究计划且零指标→'
+          'plan_missing(hard);分面块缺席/损坏→policy_question_faces_missing(hard)'
+          '(基线: 同形零事实问句回执 ok=true/rc=0 且不报缺口)',
+          got['zero'][0] == 'gap' and got['zero'][1][0] == 'zero_facts'
+          and got['plan_missing'] == (
+              'gap', ['zero_facts', 'plan_missing'])
+          and got['faces'][0] == 'gap'
+          and 'policy_question_faces_missing' in got['faces'][1],
+          json.dumps(got, ensure_ascii=False))
+    # 被问分量无证据(通胀读数全缺;日本目标仍有日历实录)→草稿级缺口显式回传
+    t2, p2 = _family_tree('t3d_face', FAM_11)
+    _drop_metrics(p2, ('JP_CPI_YOY', 'JP_CPI_TOKYO_YOY', 'EA_HICP_YOY'))
+    rep2 = _plan_on(t2, T3_TEXT)
+    blk2 = _blk(rep2)
+    st2, gaps2 = ia_cli._r1_plan_gaps(rep2)
+    check('§T3-d2 被问及的分量无证据可答(三地通胀序列缺席→读数全缺;政策目标仍有'
+          '日历实录)→缺口显式回传(policy_question_face_missing,草稿级: 只能交付草稿,'
+          '正式归档拒绝);逐行 inflation_reading_missing',
+          st2 == 'ok'
+          and [g['code'] for g in gaps2] == ['policy_question_face_missing']
+          and gaps2[0]['severity'] == 'draft'
+          and pq.blocked_class(blk2) == 'policy_question_face_missing'
+          and all(r['status'] == 'missing' and r['value'] is None
+                  for r in blk2['inflation_yoy']['rows'])
+          and ('inflation_reading_missing', 'JP', 'JP_CPI_YOY') in _codes(blk2),
+          f"st={st2} {[g['code'] for g in gaps2]}")
+    # 政策目标缺证(欧元区政策序列缺席,无日历实录)→同属草稿级
+    t3, p3 = _family_tree('t3d_pol', FAM_11)
+    _drop_metrics(p3, ('ECB_MRO', 'ECB_DFR'))
+    rep3 = _plan_on(t3, T3_TEXT)
+    blk3 = _blk(rep3)
+    rc3, jud3, tail3 = _seat(t3, rep3.get('report_dir'),
+                             os.path.join(TMPG, 't3d_pol_judgment.json'))
+    check('§T3-d3 政策目标缺证(欧元区政策序列缺席且无官方实录)→草稿级缺口+'
+          'policy_target_missing/policy_series_missing;席位装配脚本仍可出草稿判定'
+          '(交付草稿,归档层拒)',
+          pq.blocked_class(blk3) == 'policy_question_face_missing'
+          and _t3_gaps_codes(ia_cli._r1_plan_gaps(rep3)) == (
+              'ok', ['policy_question_face_missing'])
+          and _row(blk3['policy_targets']['rows'], region='EA').get('status')
+          == 'missing'
+          and {('policy_target_missing', 'EA', 'ECB_MRO'),
+               ('policy_series_missing', 'EA', 'ECB_MRO')} <= set(_codes(blk3))
+          and rc3 == 0 and bool(jud3),
+          f'rc={rc3} {tail3[:160]}')
+    # 全缺时席位装配脚本失败关闭(不落判定档)
+    rc_x, jud_x, tail_x = _seat(t2, rep2.get('report_dir'),
+                                os.path.join(TMPG, 't3d_face_judgment.json'))
+    check('§T3-d4 通胀读数全缺: 席位装配脚本失败关闭(不落判定档;须席位另写)',
+          rc_x != 0 and jud_x is None
+          and not os.path.exists(os.path.join(TMPG, 't3d_face_judgment.json')),
+          tail_x[:200])
+
+
+def sec_t3_e():
+    print('§T3-e 席位回声契约(11-23 视图;离线计划+席位装配脚本)')
+    from research_contract import judgment_contract as jc
+    t, _p = _family_tree('t3e', FAM_11)
+    rep = _plan_on(t, T3_TEXT)
+    jp = os.path.join(TMPG, 't3e_judgment.json')
+    rc, jud, tail = _seat(t, rep.get('report_dir'), jp)
+    ok0, p0, res = _pol_codes_j(jud or {}, rep, os.path.join(
+        t, 'config', 'release_calendar.json'), '2026-11-23')
+    con = jc.verify_judgment(jud, rep) if jud else {}
+    fam = con.get('map_checks') or []
+    check('§T3-e0 席位装配脚本: 纪律通过+契约 VERIFIED(分面核对≥60)+整档零政策'
+          '违规;回声与引擎面逐位一致(研究时点/官方目标/待生效/通胀同比/缺口回声)',
+          rc == 0 and res['passed'] and p0 == []
+          and con.get('verdict') == 'VERIFIED' and len(fam) >= 60
+          and (con.get('stats') or {}).get('unbound') == 0
+          and (jud['reader_map']['policy_question'].get('research_time')
+               == {'as_of': '2026-11-23', 'research_month': '2026-11'})
+          and [(r['region'], r['status'], r['target'])
+               for r in jud['reader_map']['policy_question']['official_targets']]
+          == [(r['region'], r['status'], r['target'])
+              for r in _blk(rep)['policy_targets']['rows']]
+          and [(r['region'], r['answer'])
+               for r in jud['reader_map']['policy_question']['pending_decisions']]
+          == [(r['region'], r['answer'])
+              for r in _blk(rep)['pending_decisions']['rows']]
+          and [(r['metric_id'], r['value'], r['base_value'], r['delta_pp'])
+               for r in jud['reader_map']['policy_question']['inflation_yoy']]
+          == [(r['metric_id'], r['value'], r['base']['value'], r['delta_pp'])
+              for r in _blk(rep)['inflation_yoy']['rows']]
+          and sorted((g['code'], str(g['region']), str(g['metric_id']))
+                     for g in jud['reader_map']['policy_question']['gaps_echoed'])
+          == _codes(_blk(rep)),
+          f'rc={rc} con={con.get("verdict")} fam={len(fam)} {tail[:160]}')
+    if not jud:
+        return
+
+    def _bad_items(j):
+        c = jc.verify_judgment(j, rep)
+        return (c['verdict'],
+                {x['item']: x['status'] for x in c['map_checks']
+                 if x['status'] != 'VERIFIED'})
+    j1 = copy.deepcopy(jud)
+    j1['reader_map']['policy_question']['inflation_yoy'][0]['value'] = 2.45
+    j2 = copy.deepcopy(jud)
+    j2['reader_map']['policy_question']['pending_decisions'][0]['pending'] = [
+        {'region': 'JP', 'target': 1.5, 'decision_date': '2026-11-20',
+         'effective_date': '2026-12-04'}]
+    j3 = copy.deepcopy(jud)
+    j3['reader_map']['policy_question']['gaps_echoed'] = [
+        g for g in j3['reader_map']['policy_question']['gaps_echoed']
+        if g.get('code') != 'inflation_base_missing']
+    v1, b1 = _bad_items(j1)
+    v2, b2 = _bad_items(j2)
+    v3, b3 = _bad_items(j3)
+    it_v = ('reader_map.policy_question.inflation_yoy'
+            '[JP:JP_CPI_YOY].value')
+    it_p = 'reader_map.policy_question.pending_decisions[JP].pending'
+    check('§T3-e1 回声契约反例(纯函数): 回声值扰动(2.44→2.45)=CONTRADICTED;虚构待生效'
+          '决定=CONTRADICTED;漏回声一条缺口=NOT_VERIFIED',
+          v1 == 'CONTRADICTED' and b1.get(it_v) == 'CONTRADICTED'
+          and v2 == 'CONTRADICTED' and b2.get(it_p) == 'CONTRADICTED'
+          and v3 == 'NOT_VERIFIED'
+          and b3.get('reader_map.policy_question.gaps_echoed')
+          == 'NOT_VERIFIED',
+          json.dumps([v1, b1, v2, b2, v3, b3], ensure_ascii=False))
+
+
+def sec_t3_f():
+    print('§T3-f 席位装配脚本守卫与单行情景')
+    # a. 问句点名经济体非日本/欧元区(夹具无美中政策序列)→守卫,不落判定档
+    t_us, _p = _family_tree('t3f_us', FAM_11)
+    rep_us = _plan_on(t_us, T3_US_CN)
+    jp_us = os.path.join(TMPG, 't3f_us_judgment.json')
+    rc_us, jud_us, tail_us = _seat(t_us, rep_us.get('report_dir'), jp_us)
+    check('§T3-f1 守卫: 问句点名经济体非日本/欧元区(夹具无美中政策序列)→席位装配'
+          '脚本拒出(rc≠0,不落判定档);计划层照常出分面块',
+          rc_us != 0 and jud_us is None
+          and not os.path.exists(jp_us)
+          and _blk(rep_us).get('schema') == pq.SCHEMA
+          and [r['region'] for r in _blk(rep_us)['policy_targets']['rows']]
+          == ['US', 'CN'],
+          tail_us[:200])
+    # b. 报告件分面块 as_of 缺失→守卫
+    t2, _p2 = _family_tree('t3f_asof', FAM_11)
+    rep2 = _plan_on(t2, T3_TEXT)
+    rj_x = os.path.join(TMPG, 't3f_asof_report.json')
+    rj = _jq(os.path.join(rep2.get('report_dir') or '', 'report.json'))
+    rj['research_plan']['policy_question']['as_of'] = None
+    with open(rj_x, 'w', encoding='utf-8') as f:
+        json.dump(rj, f, ensure_ascii=False)
+    jp_x = os.path.join(TMPG, 't3f_asof_judgment.json')
+    r = subprocess.run(
+        [sys.executable, os.path.join(ROOT, 'scripts', 'seat_tools',
+                                      'make_family_judgment.py'), t2, rj_x,
+         jp_x + '.unused', jp_x], capture_output=True, text=True, timeout=900)
+    check('§T3-f2 守卫: 分面块研究截止日缺失→席位装配脚本拒出(rc≠0,不落判定档)',
+          r.returncode != 0 and not os.path.exists(jp_x),
+          (r.stdout + r.stderr).strip()[-200:])
+    # c. 单行情景: 日本全国 CPI 序列缺席→通胀面只剩可判一行,情景不带次级指标
+    t3, p3 = _family_tree('t3f_single', FAM_11)
+    _drop_metrics(p3, ('JP_CPI_YOY',))
+    rep3 = _plan_on(t3, T3_TEXT)
+    jp3 = os.path.join(TMPG, 't3f_single_judgment.json')
+    rc3, jud3, tail3 = _seat(t3, rep3.get('report_dir'), jp3)
+    sc = ((jud3 or {}).get('l4') or {}).get('scenarios') or []
+    check('§T3-f3 单行情景: 日本全国 CPI 序列缺席(东京基期不可判)→通胀面可判行仅'
+          '欧元区 HICP 一行,席位装配脚本照出判定,情景不带次级指标',
+          rc3 == 0 and bool(jud3) and len(sc) >= 2
+          and all('secondary_metric_ids' not in x for x in sc)
+          and [r['status'] for r in _blk(rep3)['inflation_yoy']['rows']]
+          == ['missing', 'base_missing', 'ok'],
+          f'rc={rc3} n={len(sc)} {tail3[:160]}')
+
+
+def sec_t3_g():
+    print('§T3-g 正式 CLI 链(真实步骤;--question-file 逐字件)')
+    if os.environ.get('IA_R33_GATE_SKIP_CLI') == '1':
+        print('  (IA_R33_GATE_SKIP_CLI=1: 正式 CLI 段跳过)')
+        return
+    qf = os.path.join(TMPG, 'q_t3.txt')
+    with open(qf, 'w', encoding='utf-8') as fh:
+        fh.write(T3_TEXT)
+
+    def one(tag, snapshot, calendar=None):
+        return _family_tree(tag, snapshot, calendar, code=True)[0]
+
+    # ── g1. 11-23 视图: plan → 席位装配脚本 → attach(拒收/接收)→ report → archive
+    t = one('t3g_11', FAM_11)
+    cal = os.path.join(t, 'config', 'release_calendar.json')
+    rc_p, d_p = _cli(['research-one', '--stage', 'plan', '--question-file',
+                      qf, '--engine-root', t], cwd=t)
+    dd = d_p.get('data') or {}
+    rd = dd.get('report_dir') or ''
+    rj = _jq(os.path.join(rd, 'report.json')) if os.path.isfile(
+        os.path.join(rd, 'report.json')) else {}
+    env = _jq(os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')) if os.path.isfile(
+        os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')) else {}
+    steps = rj.get('steps') or []
+    bad_steps = [s['step'] for s in steps
+                 if not s.get('executed') or (s.get('ok') is False
+                                              and not s.get('honest_refusal'))]
+    check('§T3-g1 正式 CLI plan(真实步骤;逐字件): rc=0/ok=true/run_ok=true/plan_status='
+          'ok/plan_gaps=[](基线=空计划不报缺口);步骤全部执行(失败步仅诚实拒答);席位'
+          '信封 question=逐字件字节、question_kind=policy_question',
+          rc_p == 0 and d_p.get('ok') is True and dd.get('run_ok') is True
+          and dd.get('plan_status') == 'ok' and dd.get('plan_gaps') == []
+          and rd.startswith(t) and len(steps) >= 10 and not bad_steps
+          and env.get('question') == T3_TEXT
+          and env.get('question_kind') == 'policy_question'
+          and (rj.get('research_plan') or {}).get('question_kind')
+          == 'policy_question'
+          and bool((rj.get('research_plan') or {}).get('policy_question')),
+          f"rc={rc_p} ok={d_p.get('ok')} steps={len(steps)} bad={bad_steps} "
+          f"next={str(dd.get('next'))[:120]}")
+    if not rd:
+        return
+    jp = os.path.join(TMPG, 't3g_judgment.json')
+    rc_s, jud, tail_s = _seat(
+        t, rd, jp, tool=os.path.join(t, 'scripts', 'seat_tools',
+                                     'make_family_judgment.py'))
+    jp_bad = os.path.join(TMPG, 't3g_judgment_pert.json')
+    j_bad = copy.deepcopy(jud) if jud else None
+    if j_bad:
+        j_bad['reader_map']['policy_question']['inflation_yoy'][0]['value'] = 2.45
+        with open(jp_bad, 'w', encoding='utf-8') as fh:
+            json.dump(j_bad, fh, ensure_ascii=False)
+    rc_b, d_b = _cli(['research-one', '--stage', 'attach', '--question-file',
+                      qf, '--report-dir', rd, '--judgment', jp_bad,
+                      '--engine-root', t], cwd=t)
+    db = d_b.get('data') or {}
+    rjb = _jq(os.path.join(rd, 'report.json'))
+    cvb = ((rjb.get('agent_judgment') or {}).get('contract_verification') or {})
+    it_v = ('reader_map.policy_question.inflation_yoy[JP:JP_CPI_YOY].value')
+    st_b = {x['item']: x['status'] for x in cvb.get('map_checks') or []}
+    check('§T3-g2 正式 CLI attach 拒收回声扰动(日本全国 CPI 2.44→2.45): rc=0(冻结'
+          '契约 R18 §D: 拒收读信封不读 rc)/ok=False/attached=False/violations 点名;'
+          'L3/L4 不落位(produced=False);契约=CONTRADICTED 且点名该格',
+          rc_s == 0 and bool(jud) and rc_b == 0 and d_b.get('ok') is False
+          and db.get('attached') is False
+          and cvb.get('verdict') == 'CONTRADICTED'
+          and st_b.get(it_v) == 'CONTRADICTED'
+          and (rjb.get('layers') or {}).get('L3_AI推断层', {}).get('produced')
+          is False
+          and not os.path.exists(os.path.join(rd, 'agent_judgment.json')),
+          f"seat rc={rc_s} {tail_s[:120]} | attach rc={rc_b} "
+          f"cv={cvb.get('verdict')} {str(d_b.get('error'))[:160]}")
+    rc_a, d_a = _cli(['research-one', '--stage', 'attach', '--question-file',
+                      qf, '--report-dir', rd, '--judgment', jp,
+                      '--engine-root', t], cwd=t)
+    da = d_a.get('data') or {}
+    rja = _jq(os.path.join(rd, 'report.json'))
+    check('§T3-g3 正式 CLI attach 接收正确回声(拒收后同目录重提): rc=0/attached='
+          'True/违规=[];判定档副本落位且=席位件;L3/L4 落位;整档分类=None',
+          rc_a == 0 and d_a.get('ok') is True and da.get('attached') is True
+          and da.get('violations') == []
+          and os.path.isfile(os.path.join(rd, 'agent_judgment.json'))
+          and _jq(os.path.join(rd, 'agent_judgment.json')) == jud
+          and (rja.get('layers') or {}).get('L3_AI推断层', {}).get('produced')
+          is True
+          and aj.blocked_class_of(rja, calendar_path=cal) is None,
+          f"rc={rc_a} attached={da.get('attached')} viol={da.get('violations')}")
+    rc_r, d_r = _cli(['research-one', '--stage', 'report', '--question-file',
+                      qf, '--report-dir', rd, '--engine-root', t], cwd=t)
+    dr = d_r.get('data') or {}
+    mdp = os.path.join(rd, 'MAP_REPORT.md')
+    md = open(mdp, encoding='utf-8').read() if os.path.isfile(mdp) else ''
+    rjr = _jq(os.path.join(rd, 'report.json'))
+    sha_ok = False
+    sp = os.path.join(rd, 'MAP_REPORT.sha256')
+    if os.path.isfile(sp):
+        with open(sp, encoding='utf-8') as fh:
+            sha_ok = hashlib.sha256(md.encode('utf-8')).hexdigest() \
+                in fh.read()
+    vbf = open(os.path.join(rd, 'question_verbatim.txt'), 'rb').read() if \
+        os.path.isfile(os.path.join(rd, 'question_verbatim.txt')) else b''
+    check('§T3-g4 正式 CLI report(独立审查待裁): rc=1/generated=true/deliverable='
+          'false;读者报告=三面表格+时间分量+缺口+版本绑定+席位原文;页眉数据门行'
+          '写明「当日采集面」并附本问指标两面对照(东京 CPI 当日采集缺席而序列面有'
+          '读数/欧央行两利率降级);原问逐字随包;摘要锚在册',
+          rc_r == 1 and dr.get('generated') is True
+          and dr.get('deliverable') is False
+          and '## 政策目标' in md and '## 已决议但尚未生效的调整' in md
+          and '## 通胀同比' in md and '## 缺口' in md
+          and '## 版本绑定' in md
+          and '## 研究时点与问句时间分量(分别解析)' in md
+          and '## Agent 席判断' in md
+          and '| 日本 |' in md and '| 1.25 | 2026-09-18 | 2026-09-24 |'
+          in md and '| 2.44 |' in md and '| 2.73 |' in md
+          and '采集面缺席/降级的当日事实不入证据面;本问改取序列面读数的指标见'
+          '下行两面对照' in md
+          and '  - 本问指标两面对照(Gate A=当日采集面;三面取快照序列面 '
+          'series_store,同指标两面状态可不同): ' in md
+          and 'JP_CPI_TOKYO_YOY 当日采集面缺席' in md
+          and 'ECB_MRO 当日采集面降级' in md
+          and '缺席/降级数据不得进入研究结论' not in md
+          and rjr['run']['question'] == T3_TEXT
+          and vbf == T3_TEXT.encode('utf-8')
+          and sha_ok,
+          f"rc={rc_r} len={len(md)} sha={sha_ok}")
+    arc = os.path.join(TMPG, 't3g_arc')
+    rc_arc, d_arc = _cli(['research-one', '--stage', 'archive',
+                          '--question-file', qf, '--report-dir', rd,
+                          '--archive-dir', arc, '--engine-root', t], cwd=t)
+    check('§T3-g5 正式归档(独立审查缺席)拒绝: rc≠0/ok=False,隔离归档目录无新件',
+          rc_arc != 0 and d_arc.get('ok') is False
+          and (not os.path.exists(arc) or not os.listdir(arc)),
+          f"rc={rc_arc} "
+          f"{json.dumps(d_arc.get('data') or d_arc.get('error'), ensure_ascii=False)[:240]}")
+
+    # ── g6. 12 月安装树正式 plan: 仍守原问 11 月范围
+    t6 = one('t3g_dec', FAM_DEC, FAM_CAL_DEC)
+    rc6, d6 = _cli(['research-one', '--stage', 'plan', '--question-file',
+                    qf, '--engine-root', t6], cwd=t6)
+    dd6 = d6.get('data') or {}
+    rd6 = dd6.get('report_dir') or ''
+    rj6 = _jq(os.path.join(rd6, 'report.json')) if os.path.isfile(
+        os.path.join(rd6, 'report.json')) else {}
+    rp6 = rj6.get('research_plan') or {}
+    check('§T3-g6 12 月安装树正式 plan(真实步骤): 研究截止日仍=原问研究月末 '
+          '2026-11-30(run.evidence_asof;快照版本日 2026-12-15);待生效面列 12-04 '
+          '生效的决议;rc=0/plan_status=ok',
+          rc6 == 0 and d6.get('ok') is True
+          and (rj6.get('run') or {}).get('evidence_asof') == '2026-11-30'
+          and dd6.get('plan_status') == 'ok'
+          and (rp6.get('as_of_declared') or {})
+          .get('scoped_to_question_month') is True
+          and (rp6.get('policy_question') or {}).get('as_of') == '2026-11-30'
+          and _row((rp6.get('policy_question') or {}).get(
+              'pending_decisions', {}).get('rows') or [],
+              region='JP').get('answer') == 'pending',
+          f"rc={rc6} asof={(rj6.get('run') or {}).get('evidence_asof')} "
+          f"{str(dd6.get('plan_gaps'))[:160]}")
+
+    # ── g7. 零事实安装树: plan 段 rc=1/ok=False,缺口点名
+    t7 = one('t3g_zero', FAM_11)
+    p7 = os.path.join(t7, 'data', 'daily',
+                      '%s.json' % _jq(os.path.join(FIX_R33, FAM_11))
+                      ['snapshot_id'])
+    s7 = _jq(p7)
+    s7['series_store'], s7['facts'] = {}, []
+    with open(p7, 'w', encoding='utf-8') as f:
+        json.dump(s7, f, ensure_ascii=False)
+    with open(os.path.join(t7, 'config', 'release_calendar.json'), 'w',
+              encoding='utf-8') as f:
+        json.dump({'version': 'fixture', 'entries': []}, f)
+    rc7, d7 = _cli(['research-one', '--stage', 'plan', '--question-file',
+                    qf, '--engine-root', t7], cwd=t7)
+    dd7 = d7.get('data') or {}
+    gaps7 = dd7.get('plan_gaps') or []
+    check('§T3-g7 零事实安装树正式 plan: rc=1/ok=False/plan_status=gap,plan_gaps 首项='
+          'zero_facts(基线同形回执 ok=true/rc=0);next 点名缺口',
+          rc7 == 1 and d7.get('ok') is False
+          and dd7.get('plan_status') == 'gap'
+          and gaps7 and gaps7[0]['code'] == 'zero_facts'
+          and '零事实' in str(dd7.get('next')),
+          f"rc={rc7} ok={d7.get('ok')} {json.dumps(gaps7, ensure_ascii=False)[:200]}")
+
+    # ── g8. 草稿级安装树(欧元区政策序列缺席): plan 草稿缺口 → 席位草稿判定
+    #      → attach → report(待裁 rc=1;合成裁决落档后=草稿交付 draft_delivered
+    #      =true,分段 report 的 rc 随正式交付=false 仍为 1)→ 正式归档拒绝。
+    #      合成裁决仅门内夹具(隔离树,非正式验收)。
+    t8 = one('t3g_draft', FAM_11)
+    cal8 = os.path.join(t8, 'config', 'release_calendar.json')
+    p8 = os.path.join(t8, 'data', 'daily',
+                      '%s.json' % _jq(os.path.join(FIX_R33, FAM_11))
+                      ['snapshot_id'])
+    _drop_metrics(p8, ('ECB_MRO', 'ECB_DFR'))
+    rc8, d8 = _cli(['research-one', '--stage', 'plan', '--question-file',
+                    qf, '--engine-root', t8], cwd=t8)
+    dd8 = d8.get('data') or {}
+    rd8 = dd8.get('report_dir') or ''
+    rj8 = _jq(os.path.join(rd8, 'report.json')) if os.path.isfile(
+        os.path.join(rd8, 'report.json')) else {}
+    s_cmp = next((x for x in rj8.get('steps') or []
+                  if x.get('step') == 'S5_compare'), {})
+    gaps8 = dd8.get('plan_gaps') or []
+    check('§T3-g8a 草稿级安装树 plan(真实步骤;欧元区两利率序列缺席): plan_gaps='
+          '[policy_question_face_missing(草稿级)];命中前 2 序列缺席时 compare '
+          '顺延取在场指标、不再硬跑必败步骤(run_ok=true;此前 S5 必败→run_ok='
+          'false→attach 须 --allow-failed-run 才可续)',
+          rc8 == 0 and d8.get('ok') is True
+          and [g['code'] for g in gaps8] == ['policy_question_face_missing']
+          and gaps8[0].get('severity') == 'draft'
+          and dd8.get('run_ok') is True and rj8.get('run_ok') is True
+          and s_cmp.get('executed') is True and s_cmp.get('ok') is True
+          and '序列缺席' in str(s_cmp.get('note'))
+          and '顺延' in str(s_cmp.get('note'))
+          and '草稿级' in str(dd8.get('next')),
+          f"rc={rc8} run_ok={dd8.get('run_ok')} gaps={json.dumps(gaps8, ensure_ascii=False)[:160]} "
+          f"compare note={str(s_cmp.get('note'))[:160]}")
+    jp8 = os.path.join(TMPG, 't3g_draft_judgment.json')
+    rc_s8, jud8, tail8 = _seat(
+        t8, rd8, jp8, tool=os.path.join(t8, 'scripts', 'seat_tools',
+                                        'make_family_judgment.py'))
+    rc_a8, d_a8 = _cli(['research-one', '--stage', 'attach', '--question-file',
+                        qf, '--report-dir', rd8, '--judgment', jp8,
+                        '--engine-root', t8], cwd=t8)
+    rc_r8, d_r8 = _cli(['research-one', '--stage', 'report', '--question-file',
+                        qf, '--report-dir', rd8, '--engine-root', t8], cwd=t8)
+    dr8 = d_r8.get('data') or {}
+    # 合成裁决(仅门内夹具: 隔离树,非正式验收)——走与真实席位同一落档接口
+    vp8 = aj.record_semantic_verdict(
+        t8, rd8, 'UPHELD', 'R33-SYNTHETIC-ISOLATED-TEST',
+        notes='门内夹具合成裁决(隔离树;仅验草稿交付路径,非正式验收)')
+    rc_r8b, d_r8b = _cli(['research-one', '--stage', 'report', '--question-file',
+                          qf, '--report-dir', rd8, '--engine-root', t8], cwd=t8)
+    dr8b = d_r8b.get('data') or {}
+    arc8 = os.path.join(TMPG, 't3g_arc_draft')
+    rc_x8, d_x8 = _cli(['research-one', '--stage', 'archive',
+                        '--question-file', qf, '--report-dir', rd8,
+                        '--archive-dir', arc8, '--engine-root', t8], cwd=t8)
+    rj8b = _jq(os.path.join(rd8, 'report.json'))
+    check('§T3-g8b 草稿链: 席位装配脚本出草稿判定(欧元区目标=缺证);attach '
+          '接收;report 待裁(rc=1,blocked_class=policy_question_face_missing);'
+          '合成裁决(仅门内夹具)落档后=草稿交付(draft_delivered=true,'
+          'draft_blocked_class 同名;分段 report 的 rc 随正式交付=false 仍为 1),'
+          '正式交付 deliverable 仍 false;正式归档拒绝(rc≠0,隔离归档目录无新件)',
+          rc_s8 == 0 and bool(jud8)
+          and _row(jud8['reader_map']['policy_question']['official_targets'],
+                   region='EA').get('status') == 'missing'
+          and rc_a8 == 0 and (d_a8.get('data') or {}).get('attached') is True
+          and rc_r8 == 1 and dr8.get('deliverable') is False
+          and dr8.get('draft_delivered') is False
+          and dr8.get('blocked_class') == 'policy_question_face_missing'
+          and os.path.isfile(vp8)
+          and rc_r8b == 1 and d_r8b.get('ok') is False
+          and dr8b.get('deliverable') is False
+          and dr8b.get('draft_delivered') is True
+          and dr8b.get('draft_blocked_class') == 'policy_question_face_missing'
+          and aj.blocked_class_of(rj8b, calendar_path=cal8)
+          == 'policy_question_face_missing'
+          and rc_x8 != 0 and d_x8.get('ok') is False
+          and (not os.path.exists(arc8) or not os.listdir(arc8)),
+          f"seat={rc_s8} attach={rc_a8}/{(d_a8.get('data') or {}).get('attached')} "
+          f"pre-review rc={rc_r8} bc={dr8.get('blocked_class')} | post rc={rc_r8b} "
+          f"ok={d_r8b.get('ok')} draft={dr8b.get('draft_delivered')} "
+          f"{dr8b.get('draft_blocked_class')} dlv={dr8b.get('deliverable')} | "
+          f"archive={rc_x8} {json.dumps(d_x8.get('data') or d_x8.get('error'), ensure_ascii=False)[:200]}")
+
+    # ── g9. auto 段与冻结契约对账(R18 §D / R1-F09 §B / R2 条目6——任务3 首版
+    #      「缺口即拦」全量电池三红后的收口):
+    #      ① 零事实树 auto 无 judgment → [plan, plan_gap, pause]: 缺口点名
+    #        (error=plan_gap),同时保留 Agent Native 暂停点条目与 judgment 指令面;
+    #      ② 携无效 judgment → 正式 attach 拒收留痕(attach ok=False),不进 report;
+    #      ③ 缺口工单携 judgment 竟落位(门内以替身 attach 核模拟「校验未拦」)
+    #        → 不推进到 report + 落 PLAN_GAP_HOLD.json;此后已落位续链无 judgment
+    #        同拦(正式 CLI);
+    #      ④ 已落位 run(无保持标记)续链不重新裁计划缺口——事后口径变化不作废
+    #        在案裁决绑定(R2 条目6 续链契约)。
+    rc9, d9 = _cli(['research-one', '--stage', 'auto', '--question-file', qf,
+                    '--engine-root', t7], cwd=t7)
+    dd9 = d9.get('data') or {}
+    ch9 = dd9.get('chain') or []
+    st9 = [c.get('stage') for c in ch9]
+    pa9 = next((c for c in ch9 if c.get('stage') == 'pause'), {})
+    er9 = d9.get('error') or {}
+    check('§T3-g9① 零事实树 auto(无 judgment): rc=1/[plan, plan_gap, pause]/error='
+          'plan_gap(zero_facts);暂停点条目在(note 含「暂停点」+「计划缺口」)、'
+          'next 含 judgment 与缺口(R1-F09 §B1 契约保持)',
+          rc9 == 1 and d9.get('ok') is False
+          and st9 == ['plan', 'plan_gap', 'pause']
+          and er9.get('kind') == 'plan_gap' and er9.get('message') == 'zero_facts'
+          and '暂停点' in str(pa9.get('note'))
+          and '计划缺口' in str(pa9.get('note'))
+          and 'judgment' in str(dd9.get('next'))
+          and '计划缺口' in str(dd9.get('next')),
+          f"rc={rc9} stages={st9} err={json.dumps(er9, ensure_ascii=False)[:160]} "
+          f"next={str(dd9.get('next'))[:160]}")
+    jp_bad9 = os.path.join(TMPG, 't3g_judgment_bad9.json')
+    with open(jp_bad9, 'w', encoding='utf-8') as fh:
+        json.dump({'l3': {}, 'l4': {}}, fh, ensure_ascii=False)
+    rc9b, d9b = _cli(['research-one', '--stage', 'auto', '--question-file', qf,
+                      '--engine-root', t7, '--judgment', jp_bad9], cwd=t7)
+    ch9b = (d9b.get('data') or {}).get('chain') or []
+    st9b = [c.get('stage') for c in ch9b]
+    att9b = next((c for c in ch9b if c.get('stage') == 'attach'), {})
+    check('§T3-g9② 零事实树 auto 携无效 judgment: rc=1;attach 条目 ok=False'
+          '(正式拒收留痕,R1-F09 §B2 契约保持)+plan_gap 条目;无 report 条目;'
+          'error=plan_gap',
+          rc9b == 1 and 'attach' in st9b and att9b.get('ok') is False
+          and 'plan_gap' in st9b and 'report' not in st9b
+          and (d9b.get('error') or {}).get('kind') == 'plan_gap',
+          f"rc={rc9b} stages={st9b} attach={json.dumps(att9b, ensure_ascii=False)[:200]} "
+          f"err={json.dumps(d9b.get('error'), ensure_ascii=False)[:160]}")
+    rd7 = (ch9[0].get('report_dir') if ch9 else '') or dd7.get('report_dir') or ''
+    rc9c, st9c, held9c, _capt = None, [], None, ''
+    hold9 = os.path.join(rd7, 'PLAN_GAP_HOLD.json')
+    if rd7 and os.path.isdir(rd7):
+        sys.path.insert(0, ROOT)
+        try:
+            import ia_cli as _ic
+        except Exception as _e:                     # noqa: BLE001
+            _ic = None
+            rc9c = 'import_failed: %s' % _e
+        if _ic is not None:
+            jp_any = os.path.join(TMPG, 't3g_judgment_any9.json')
+            with open(jp_any, 'w', encoding='utf-8') as fh:
+                json.dump({'l3': {'stub': 1}, 'l4': {'stub': 1}}, fh,
+                          ensure_ascii=False)
+            _orig = _ic._r1_attach_core
+            _ic._r1_attach_core = lambda _a, _e: (
+                {'attached': True, 'blocked': False, 'report_dir': rd7,
+                 'validation': {'passed': True, 'violations': []}}, None)
+            _out, sys.stdout = sys.stdout, io.StringIO()
+            try:
+                _ic.main(['research-one', '--stage', 'auto', '--question-file',
+                          qf, '--report-dir', rd7, '--judgment', jp_any,
+                          '--engine-root', t7])
+            except SystemExit as _e:
+                rc9c = _e.code
+            finally:
+                _capt = sys.stdout.getvalue()
+                sys.stdout = _out
+                _ic._r1_attach_core = _orig
+            try:
+                _o9c = json.loads(_capt)
+            except ValueError:
+                _o9c = {}
+            st9c = [c.get('stage') for c in ((_o9c.get('data') or {})
+                                             .get('chain') or [])]
+            _pg9c = next((c for c in ((_o9c.get('data') or {}).get('chain') or [])
+                          if c.get('stage') == 'plan_gap'), {})
+            held9c = _pg9c.get('held')
+    check('§T3-g9③ 缺口工单携 judgment 竟落位(替身 attach 核,门内夹具): rc=1/'
+          '[plan(resumed), attach, plan_gap(held=true)]/无 report 条目;run 目录落 '
+          'PLAN_GAP_HOLD.json',
+          rc9c == 1 and st9c == ['plan', 'attach', 'plan_gap']
+          and held9c is True and os.path.isfile(hold9),
+          f"rc={rc9c} stages={st9c} held={held9c} hold_file="
+          f"{os.path.isfile(hold9) if rd7 else 'n/a'} {_capt[-200:] if rd7 else ''}")
+    rc9d, d9d, st9d = None, {}, []
+    if os.path.isfile(hold9):
+        rj7p = os.path.join(rd7, 'report.json')
+        rj7 = _jq(rj7p)
+        _ly7 = rj7.setdefault('layers', {})
+        for _k in ('L3_AI推断层', 'L4_条件情景层'):
+            _ly7[_k] = dict(_ly7.get(_k) or {}, produced=True)
+        rj7['agent_judgment'] = dict(rj7.get('agent_judgment') or {},
+                                     attached=True)
+        with open(rj7p, 'w', encoding='utf-8') as fh:
+            json.dump(rj7, fh, ensure_ascii=False)
+        rc9d, d9d = _cli(['research-one', '--stage', 'auto', '--report-dir',
+                          rd7, '--engine-root', t7], cwd=t7)
+        st9d = [c.get('stage') for c in ((d9d.get('data') or {}).get('chain')
+                                         or [])]
+    check('§T3-g9④ 保持标记在案的已落位续链(无 judgment,正式 CLI;门内夹具把 '
+          'run 标为已落位): rc=1/[plan(resumed), plan_gap(held=true)]/无 attach/'
+          'report 条目;error=plan_gap',
+          rc9d == 1 and st9d == ['plan', 'plan_gap']
+          and (d9d.get('error') or {}).get('kind') == 'plan_gap'
+          and ((d9d.get('data') or {}).get('chain') or [{}])[0]
+          .get('resumed') is True
+          and next((c for c in (d9d.get('data') or {}).get('chain')
+                    if c.get('stage') == 'plan_gap'), {}).get('held') is True,
+          f"rc={rc9d} stages={st9d} err={json.dumps(d9d.get('error'), ensure_ascii=False)[:160]}")
+    # ④ 已落位 run(无保持标记)续链: 事后出现计划缺口也不重新裁——attach 跳过
+    rdp = os.path.join(rd, 'report.json')
+    rjd = _jq(rdp)
+    _already = bool((rjd.get('layers') or {}).get('L3_AI推断层', {}).get('produced')
+                    and (rjd.get('layers') or {}).get('L4_条件情景层', {})
+                    .get('produced')
+                    and (rjd.get('agent_judgment') or {}).get('attached'))
+    _n_before = len(rjd.get('evidence_index') or [])
+    rjd['evidence_index'] = [
+        r for r in (rjd.get('evidence_index') or []) if (r or {}).get('kind')
+        not in ('snapshot_fact', 's3_envelope', 'policy_record',
+                'plan_series_point')]
+    with open(rdp, 'w', encoding='utf-8') as fh:
+        json.dump(rjd, fh, ensure_ascii=False)
+    rc9e, d9e = _cli(['research-one', '--stage', 'auto', '--question-file', qf,
+                      '--report-dir', rd, '--engine-root', t], cwd=t)
+    ch9e = (d9e.get('data') or {}).get('chain') or []
+    st9e = [c.get('stage') for c in ch9e]
+    att9e = next((c for c in ch9e if c.get('stage') == 'attach'), {})
+    check('§T3-g9⑤ 已落位 run(g3 接收,无保持标记)事后出现零事实缺口: 续链不'
+          '重新裁计划缺口——无 plan_gap 条目、attach 跳过(skipped=true)、plan '
+          'resumed=true(R2 条目6 续链契约: 在案裁决绑定不因事后口径变化作废;前置 '
+          '条件=run 已落位且缺口已成立)',
+          _already and _n_before > len(rjd['evidence_index'])
+          and 'plan_gap' not in st9e
+          and att9e.get('skipped') is True
+          and ch9e and ch9e[0].get('resumed') is True,
+          f"already={_already} facts {_n_before}→{len(rjd['evidence_index'])} "
+          f"rc={rc9e} stages={st9e} err={json.dumps(d9e.get('error'), ensure_ascii=False)[:160]}")
+
+
 def main():
     print('Audit-R33 门 (HEAD %s)' % WORKTREE_HEAD[:12])
     try:
@@ -1201,6 +2296,13 @@ def main():
         sec_t1_f()
         sec_t1_g()
         sec_t1_h()
+        sec_t3_a()
+        sec_t3_b()
+        sec_t3_c()
+        sec_t3_d()
+        sec_t3_e()
+        sec_t3_f()
+        sec_t3_g()
     finally:
         n_ok = sum(1 for x in RESULTS if x)
         n = len(RESULTS)

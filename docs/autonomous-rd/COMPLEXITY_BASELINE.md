@@ -1,28 +1,31 @@
 # COMPLEXITY_BASELINE — 复杂度基线(章程§四.4,只测不瘦)
 
-> **R32 重登(2026-11-23)**: 上次登记(R26)后 Audit-R27~R31 验收波次累积未登记
-> (93f/60969L→93f/63340L,+2371 行,+3.9%,未触发 5% 门)+Audit-R32 正式使用
-> 收尾(93f/63340L→94f/64680L,+1 文件/+1340 行): R32 证据截止规则取数入口
-> (新增模块 `scripts/evidence_gate.py`——取数入口统一截止与证据资格,S3–S8/
-> L1/证据索引/研究席/契约/报告/归档共用;非新增框架)+同比/政策核验+交付链
-> 冻结件校验+跨指标问题重定级/金双载体同窗前提,均为既有文件的验收工单
-> 扩展;测试面同步扩(210f/94917L→216f/99261L,r27-r32 门)。
-
-- 生产面: 94 py 文件 / 64680 行 / 1714 函数
-- 测试面: 216 py 文件 / 99261 行
+> **R33 重登(2026-11-25)**: 上次登记(R32)后 Audit-R33 任务1~3(94f/64680L→
+> 96f/68632L,+2 文件/+3952 行,+6.1%,越 5% 门故登记): 任务1 历史证据口径
+> 统一(`scripts/evidence_gate.py` 取数入口: 官方发布日期优先+事实/序列/派生值
+> 绑同一冻结版本;`scripts/workbench_data.py` 采集档通道同口径)+任务2 政策时态
+> (`scripts/agent_judgment.py`/`scripts/research_contract/judgment_contract.py`:
+> 政策事件×断言时点×实施状态逐分句核验)+任务3 原问直答(新增模块
+> `scripts/policy_question.py`: 研究年月/回看窗口/同比基期分别解析与分面块装配,
+> S5–S8/席位装配/契约核验/attach 门共用;席位装配脚本
+> `scripts/seat_tools/make_family_judgment.py`;`scripts/research_map_planner.py`/
+> `scripts/research_orchestrator.py`/`ia_cli.py` 工单面扩展;非新增框架);测试面
+> 同步扩(216f/99261L→217f/102734L,r33 门+夹具)。
+- 生产面: 96 py 文件 / 68632 行 / 1825 函数
+- 测试面: 217 py 文件 / 102734 行
 
 ## 最大 10 文件(生产面)
 
 | 文件 | 行数 |
 |---|---|
-| scripts/research_map_planner.py | 3697 |
-| ia_cli.py | 3216 |
-| scripts/research_orchestrator.py | 3187 |
+| scripts/research_map_planner.py | 3943 |
+| ia_cli.py | 3559 |
+| scripts/research_orchestrator.py | 3510 |
+| scripts/agent_judgment.py | 2385 |
 | scripts/research_provenance.py | 2274 |
+| scripts/research_contract/judgment_contract.py | 2235 |
 | scripts/research_contract/text_consistency.py | 2036 |
 | scripts/china_market_collector.py | 2016 |
-| scripts/agent_judgment.py | 1957 |
-| scripts/research_contract/judgment_contract.py | 1789 |
 | scripts/historical_coverage_audit.py | 1693 |
 | scripts/report_generator.py | 1621 |
 

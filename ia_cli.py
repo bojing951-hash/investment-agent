@@ -1418,6 +1418,103 @@ def cmd_research_attach(args):
 
 
 
+# Audit-R33 任务3: 工单产出说明基串(地图/原问直答两族共用;族别追加见下)
+_R1_PLAN_PRODUCE_BASE = (
+    'judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/'
+    'E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件)')
+_R1_PLAN_PRODUCE_FAMILY = (
+    ' + reader_map(原问直答型问句: headline_conclusion 一句总判断 + '
+    'policy_question 结构化回声{research_time{as_of,research_month}, '
+    'official_targets[{region,status,target,decision_date,effective_date,'
+    'first_publish,evidence_refs,note?}], pending_decisions[{region,answer,'
+    'confirmed_through,pending[{target,decision_date,effective_date}],'
+    'evidence_refs,note?}], inflation_yoy[{region,metric_id,status,value,'
+    'observation_month,publish_date,base_value,delta_pp,evidence_refs,'
+    'note?}], gaps_echoed[{code,region,metric_id}], comments?}——逐字回声'
+    '引擎面 research_plan.policy_question: 值/日期/状态/答案逐位一致,'
+    '相左=CONTRADICTED;缺席/多出/引用不可解析=NOT_VERIFIED;自由文字里的'
+    '数字须与引擎面数字对应;数据不可得的格明写「数据不可得」+缺口;不得'
+    '写五面键(各地区环境走位/传导图/三个转折/历史段/读者对质表))')
+
+
+def _r1_family_contract(rp):
+    """Audit-R33 任务3: 原问直答型工单的 reader_map 契约说明。"""
+    blk = rp.get('policy_question') or {}
+    return {
+        'spec': ('judgment 顶层 reader_map 对象: headline_conclusion(一句总判断)'
+                 ' + policy_question 结构化回声{research_time, official_targets[],'
+                 ' pending_decisions[], inflation_yoy[], gaps_echoed[]}——逐字回声'
+                 '引擎面 research_plan.policy_question(值/日期/状态/答案逐位'
+                 '一致,相左=CONTRADICTED;缺席/多出/引用不可解析=NOT_VERIFIED;'
+                 '不得写五面键)。核对实现见 scripts/research_contract/'
+                 'judgment_contract.py _policy_question_checks'),
+        'engine_faces': {
+            'question_time': rp.get('question_time'),
+            'policy_question': blk,
+            'point_values_cells': len(
+                (rp.get('point_values') or {}).get('cells') or []),
+            'point_values_absent': [
+                a.get('metric_id')
+                for a in (rp.get('point_values') or {}).get('absent') or []],
+            'publication_discipline': ('面内值=发布日≤研究截止日的最新观测;'
+                                       '公布日优先取日历实录(calendar:),否则'
+                                       '规则推定并标「推定」(缺口面逐项点名)'),
+            'as_of_declared': rp.get('as_of_declared'),
+            'dimension_gaps': rp.get('dimension_gaps')},
+        'discipline': [
+            '回声值/日期/状态须与引擎面逐位一致(不可虚构、不以相邻口径冒充)',
+            '数据不可得的格须明写「数据不可得」+缺口(回声 gaps_echoed)',
+            '官方记录优先: 目标水平取日历实录;序列+惯例推定须标非官方',
+            '总判断条件式非预测;「已决议待生效」以官方记录为准,'
+            '序列只能给出已生效变动(待生效面不可核验须如实写)',
+            '研究年月/回看窗口/同比基期分别对账(同比差=同比读数之差,'
+            '单位百分点)']}
+
+
+def _r1_plan_gaps(rep):
+    """Audit-R33 任务3: 计划缺口显式化 → (plan_status, gaps)。
+
+    hard: zero_facts(证据索引零事实行: L1/快照事实/S3 信封/政策记录/计划
+    序列点均缺席)|plan_missing(无研究计划且确定性面零指标)|原问直答分面块
+    缺席。此类 run 本无法 attach(零证据/缺面必拒)——plan 段即 ok=False、
+    rc=1、next 点名缺口,不再以 ok=True+零指标计划放行。"""
+    gaps = []
+    rep = rep if isinstance(rep, dict) else {}
+    rp = rep.get('research_plan')
+    ent = next((s.get('deterministic_face') for s in rep.get('steps') or []
+                if s.get('step') == 'S1_decompose'), None) or {}
+    n_fact = sum(
+        1 for r in rep.get('evidence_index') or []
+        if (r or {}).get('kind') in (
+            'snapshot_fact', 's3_envelope', 'policy_record',
+            'plan_series_point'))
+    if not n_fact:
+        gaps.append({
+            'code': 'zero_facts', 'severity': 'hard',
+            'detail': ('证据索引零事实行(L1/快照事实/S3 信封/政策记录/计划'
+                       '序列点均缺席)——无可核证据,研究计划不可执行')})
+    if rp is None and not (ent.get('metrics') or []):
+        gaps.append({
+            'code': 'plan_missing', 'severity': 'hard',
+            'detail': ('无研究计划且确定性面零指标(问句未命中在册经济体/'
+                       '维度/指标)——缺必要计划')})
+    if isinstance(rp, dict) and rp.get('question_kind') == 'policy_question':
+        import policy_question as _pq_g
+        _bc = _pq_g.blocked_class(rp.get('policy_question'))
+        if _bc == 'policy_question_faces_missing':
+            gaps.append({
+                'code': _bc, 'severity': 'hard',
+                'detail': '原问直答分面块缺席/损坏(%s)' % _pq_g._blocked_text(_bc)})
+        elif _bc == 'policy_question_face_missing':
+            # 被问及的分量无证据可答: 计划可执行但只能交付草稿(正式归档
+            # 拒绝)——非 hard,但缺口显式回传,不以 plan_gaps=[] 放行
+            gaps.append({
+                'code': _bc, 'severity': 'draft',
+                'detail': '原问直答: %s——只能交付草稿(正式归档拒绝)'
+                          % _pq_g._blocked_text(_bc)})
+    return ('gap' if any(g['severity'] == 'hard' for g in gaps) else 'ok'), gaps
+
+
 def _r1_plan_core(args, engine_root):
     """plan 段核心(Audit-R1 F09 抽取): research-run 证据面+工单/索引/摘编落盘。
 
@@ -1468,8 +1565,7 @@ def _r1_plan_core(args, engine_root):
             'scripts/agent_judgment.py   # judgment schema v1.1 模块 docstring',
             '.agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)',
         ],
-        'produce': 'judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/'
-                   'E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件)',
+        'produce': _R1_PLAN_PRODUCE_BASE,
         'then': ['ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>',
                  'ia_cli.py research-one --stage report --report-dir <rd>'],
         'discipline': ['L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造',
@@ -1592,6 +1688,16 @@ def _r1_plan_core(args, engine_root):
                            '排序主张须写「先后未定」;传导链区分指标将随'
                            '引擎当前面观测(最新值+近30日变化)渲染'],
         }
+        if _rp.get('question_kind') == 'policy_question':
+            # Audit-R33 任务3: 原问直答型工单——族别随工单落档,产出规格=
+            # 基串+结构化回声(上面地图五面规格不适用,整体覆盖)
+            work_order['question_kind'] = 'policy_question'
+            work_order['role'] = ('Agent Native 研究席(原问直答型: L3 推断+'
+                                  'L4 条件情景真产出+reader_map 总判断与'
+                                  '结构化回声)')
+            work_order['produce'] = (_R1_PLAN_PRODUCE_BASE
+                                     + _R1_PLAN_PRODUCE_FAMILY)
+            work_order['reader_map_contract'] = _r1_family_contract(_rp)
         with open(envelope_path, 'w', encoding='utf-8') as f:
             json.dump(work_order, f, ensure_ascii=False, indent=2)
     return rep, rd, None
@@ -1977,7 +2083,10 @@ def _r1_report_core_pinned(args, engine_root, pins):
             'map_current_period_missing',
             'map_current_period_unverified',
             'map_current_period_stale_mix',
-            'map_official_target_missing'):
+            'map_official_target_missing',
+            # Audit-R33 任务3: 原问直答型被问分量全缺=草稿交付(缺数格如实
+            # 标注;正式归档仍阻断)
+            'policy_question_face_missing'):
         draft_delivered = (machine_verified and review_ok and copies_consistent)
         if draft_delivered:
             warnings.append(
@@ -3002,16 +3111,53 @@ def cmd_research_one(args):
             (_ly.get('L3_AI推断层') or {}).get('produced')
             and (_ly.get('L4_条件情景层') or {}).get('produced')
             and (rj.get('agent_judgment') or {}).get('attached'))
+        _pstatus, _pgaps = _r1_plan_gaps(rj)
+        # Audit-R33 任务3: 计划缺口(hard)=零事实/缺必要计划/分面块缺席——
+        # 显式点名、链不推进到 report/archive,不以「待裁暂停」口径放行。
+        # 拦的对象是**尚未落位**的 run: 已 attach 的续链不重新裁计划缺口
+        # (在案裁决的摘要绑定不因事后口径变化作废——R2 条目6 续链契约);
+        # 例外=缺口工单携 judgment 落位时落下的保持标记(见下),续链照拦。
+        _hold = os.path.isfile(os.path.join(rd, 'PLAN_GAP_HOLD.json'))
+        _gap = bool(_pstatus == 'gap' and (not already or _hold))
+        _gcode = _pgaps[0]['code'] if _pgaps else None
+        _gdet = _pgaps[0]['detail'] if _pgaps else ''
+
+        def _gap_row(held, note):
+            return {'stage': 'plan_gap', 'ok': False, 'held': bool(held),
+                    'plan_status': _pstatus, 'plan_gaps': _pgaps,
+                    'note': note}
+
+        if _gap and already and not getattr(args, 'judgment', None):
+            # 已落位+保持标记在案+无新 judgment: 不推进(already 不豁免)
+            chain.append(_gap_row(
+                True, '计划缺口(保持标记在案)——已落位亦不推进到 report/'
+                      'archive(缺口口径先于落位结果;补齐后重跑 plan 生成新 run)'))
+            emit(envelope('research-one', False,
+                          {'stage': 'auto', 'chain': chain},
+                          error=('plan_gap', _gcode, _gdet)), exit_code=1)
+            return
         if not getattr(args, 'judgment', None) and not already:
+            if _gap:
+                chain.append(_gap_row(
+                    False, '计划缺口——链不推进到 report/archive(补齐授权'
+                           '范围内数据/修正问句后重跑)'))
             chain.append({'stage': 'pause', 'ok': None,
-                          'note': 'judgment 缺席——Agent Native 暂停点: '
-                                  'Agent 席按工单真产 L3/L4 后携 --judgment '
-                                  '以 --report-dir 续链 auto'})
+                          'note': (
+                              '计划缺口(%s)在案——席位不应对缺口工单产 '
+                              'L3/L4;补齐授权范围内数据/修正问句后重跑。'
+                              % _gcode if _gap else '')
+                          + 'judgment 缺席——Agent Native 暂停点: '
+                            'Agent 席按工单真产 L3/L4 后携 --judgment '
+                            '以 --report-dir 续链 auto'})
             emit(envelope('research-one', False, {
                 'stage': 'auto', 'chain': chain,
-                'next': 'Agent 席按 AGENT_SEAT_ENVELOPE.json 真产 judgment → '
-                        '--stage auto --report-dir <rd> --judgment <path> '
-                        '续链(不重新 plan)'}, None), exit_code=1)
+                'next': (('计划缺口: %s(补齐授权范围内数据/修正问句后'
+                          '重跑);补齐后 ' % _gdet) if _gap else '')
+                        + 'Agent 席按 AGENT_SEAT_ENVELOPE.json 真产 judgment → '
+                          '--stage auto --report-dir <rd> --judgment <path> '
+                          '续链(不重新 plan)'},
+                error=(('plan_gap', _gcode, _gdet) if _gap else None)),
+                 exit_code=1)
             return
         if getattr(args, 'judgment', None) or not already:
             args.report_dir = rd
@@ -3022,16 +3168,46 @@ def cmd_research_one(args):
                               'blocked': (res or {}).get('blocked'),
                               'violations': ((res or {}).get('validation')
                                              or {}).get('violations')})
+                if _gap:
+                    chain.append(_gap_row(
+                        _hold, '计划缺口在案——正式 attach 拒收,链不推进到 '
+                               'report/archive(补齐授权范围内数据/修正问句后'
+                               '重跑)'))
                 emit(envelope('research-one', False,
                               {'stage': 'auto', 'chain': chain},
-                              error=err or ('attach_blocked',
-                                            str((res or {}).get('blocked')),
-                                            None)),
+                              error=(('plan_gap', _gcode, _gdet) if _gap
+                                     else err or (
+                                         'attach_blocked',
+                                         str((res or {}).get('blocked')),
+                                         None))),
                      exit_code=1)
                 return
             chain.append({'stage': 'attach', 'ok': True,
                           'validation_passed': (res.get('validation') or
                                                 {}).get('passed')})
+            if _gap:
+                # 缺口工单携 judgment 竟落位(attach 校验未拦)——缺口口径先于
+                # 落位结果: 不推进到 report;落保持标记,此后无 judgment 续链
+                # 同样拦(already 不再豁免),补齐后重跑 plan 生成新 run。
+                from datetime import datetime as _dt_g
+                try:
+                    with open(os.path.join(rd, 'PLAN_GAP_HOLD.json'), 'w',
+                              encoding='utf-8') as _fh:
+                        json.dump({'code': _gcode, 'detail': _gdet,
+                                   'plan_status': _pstatus,
+                                   'recorded_at': _dt_g.now().astimezone()
+                                   .isoformat(timespec='seconds')}, _fh,
+                                  ensure_ascii=False, indent=2)
+                except OSError:
+                    pass
+                chain.append(_gap_row(
+                    True, '缺口工单携 judgment 落位——链不推进到 report/'
+                          'archive(缺口口径先于落位结果;补齐后重跑 plan '
+                          '生成新 run)'))
+                emit(envelope('research-one', False,
+                              {'stage': 'auto', 'chain': chain},
+                              error=('plan_gap', _gcode, _gdet)), exit_code=1)
+                return
         else:
             chain.append({'stage': 'attach', 'ok': True, 'skipped': True,
                           'note': '已落位且无新 judgment——不重挂'
@@ -3090,12 +3266,25 @@ def cmd_research_one(args):
             emit(envelope('research-one', False, {'stage': 'plan'}, error=err),
                  exit_code=1)
             return
-        emit(envelope('research-one', bool(rep.get('run_ok')), {
+        # Audit-R33 任务3: 计划缺口显式化——零事实/缺必要计划=plan_status=
+        # gap,ok=False、rc=1、next 点名缺口(不再以 ok=True+零指标计划放行)
+        _pstatus, _pgaps = _r1_plan_gaps(rep)
+        _pok = bool(rep.get('run_ok')) and _pstatus == 'ok'
+        _draft = [g for g in _pgaps if g.get('severity') == 'draft']
+        _next = ('计划缺口: ' + _pgaps[0]['detail']
+                 + '(补齐授权范围内数据/修正问句后重跑)'
+                 if _pstatus == 'gap' else
+                 'Agent 席按 AGENT_SEAT_ENVELOPE.json 真产 L3/L4 → attach 段'
+                 + (';计划缺口(草稿级): ' + _draft[0]['detail']
+                    if _draft else ''))
+        emit(envelope('research-one', _pok, {
             'stage': 'plan', 'report_dir': rd, 'run_ok': rep.get('run_ok'),
+            'plan_status': _pstatus, 'plan_gaps': _pgaps,
             'agent_seat_envelope': os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json'),
             'L3_produced': rep['layers']['L3_AI推断层']['produced'],
             'L4_produced': rep['layers']['L4_条件情景层']['produced'],
-            'next': 'Agent 席按 AGENT_SEAT_ENVELOPE.json 真产 L3/L4 → attach 段'}))
+            'next': _next}),
+             exit_code=(1 if _pstatus == 'gap' else 0))
         return
 
     if stage == 'attach':
@@ -3104,6 +3293,12 @@ def cmd_research_one(args):
             emit(envelope('research-one', False, {'stage': 'attach'}, error=err),
                  exit_code=1)
             return
+        # 退出码口径(冻结契约: R18 §D / R1-F09 §B2 / R2 条目6): rc=命令是否
+        # 执行,拒收=rc 0 + ok False + attached False + violations(落位与否读
+        # 信封 data.attached,不读 rc);rc≠0 只留命令级失败。Audit-R33 任务3
+        # 曾把拒收改成 rc=1,全量电池证实破坏在案契约(脚本链以
+        # rc==0 且 attached False 认拒收)——已回滚,拒收理由照常落
+        # data.violations / data.blocked。
         emit(envelope('research-one', bool(res.get('attached')), {
             'stage': 'attach', 'report_dir': res.get('report_dir'),
             'attached': res.get('attached'),

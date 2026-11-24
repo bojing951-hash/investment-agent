@@ -2033,20 +2033,34 @@ def _r1_report_core_pinned(args, engine_root, pins):
                        and sr.get('fresh') is True and not sr.get('error'))
         _content_split = '\n## 语义审查'
         _cur_content24 = _new_content24 = None
+        _cur_map_text24 = None
         if _disk_sha is not None:
             try:
                 with open(map_md_path, encoding='utf-8') as _mf:
-                    _cur_content24 = hashlib.sha256(
-                        _mf.read().split(_content_split)[0]
-                        .encode('utf-8')).hexdigest()
+                    _cur_map_text24 = _mf.read()
+                _cur_content24 = hashlib.sha256(
+                    _cur_map_text24.split(_content_split)[0]
+                    .encode('utf-8')).hexdigest()
             except (OSError, ValueError):
                 _cur_content24 = None
         _new_content24 = hashlib.sha256(
             map_text.split(_content_split)[0].encode('utf-8')).hexdigest()
+        # ── Audit-R32 正式验收(裁决后交付状态面): 在场地图与当前装配仅差
+        # 「分工」行尾审查状态短语(裁决落档前渲染=待裁)时不属渲染器漂移
+        # ——照常重写翻新状态面(受审内容段除该短语外逐字节不变,裁决绑定
+        # 按状态面等价仍有效)。基线: 冻结分支恒触发,已裁交付件首页与
+        # 审查尾仍写「待裁」。正文差异照旧冻结+披露。 ──
+        _status_only24 = (_approved24 and _cur_content24 is not None
+                          and _cur_content24 != _new_content24
+                          and not getattr(args, 'new_map_version', False)
+                          and aj.map_content_state_equivalent(
+                              _cur_map_text24, map_text))
         _frozen24 = (_approved24 and _cur_content24 is not None
                      and _cur_content24 != _new_content24
+                     and not _status_only24
                      and not getattr(args, 'new_map_version', False))
         map_drift24 = False
+        map_status_refreshed24 = False
         if _prev_sha and _disk_sha and _disk_sha != _prev_sha:
             copies_consistent = False
             copies_note = (copies_note or '') + \
@@ -2066,6 +2080,8 @@ def _r1_report_core_pinned(args, engine_root, pins):
                                                     _new_content24[:16]))
             _map18_path = map_md_path
         else:
+            if _status_only24:
+                map_status_refreshed24 = True
             with open(map_md_path, 'w', encoding='utf-8') as f:
                 f.write(map_text)
             with open(map_sha_path, 'w', encoding='utf-8') as f:
@@ -2112,6 +2128,9 @@ def _r1_report_core_pinned(args, engine_root, pins):
     if _rp18.get('map_question'):
         data['map_report'] = _map18_path
         data['map_renderer_drift'] = map_drift24
+        # Audit-R32 正式验收: 本轮重写仅翻新审查状态面(内容段除状态
+        # 短语外逐字节不变)——随回执/归档清单可核
+        data['map_status_refreshed'] = map_status_refreshed24
         data['map_version'] = (rj.get('research_plan') or {}).get(
             'map_version') or 1
     return deliverable, data, warnings
@@ -2342,12 +2361,22 @@ def _r1_archive_core_pinned(args, engine_root, pins):
         # 无地图绑定=历史面如实注记不追溯(manifest 留档)。
         map_bound24 = (latest_doc or {}).get('map_report_sha256')
         map_arc_sha24 = aj.map_report_content_sha(dest)
+        # Audit-R32 正式验收: 归档地图与裁决绑定仅差「分工」行尾审查状态
+        # 短语(report 段裁决落档后翻新状态面)=同一受审版本——放行并随
+        # 清单注记 map_binding_status_equivalent(归档件属性: 与本轮是否
+        # 翻新无关——冻结分支下归档先前已翻新的件同样成立);其余不符照旧
+        # 拒绝。
+        map_binding_equiv = False
         if (rj.get('research_plan') or {}).get('map_question'):
             if map_bound24 and map_arc_sha24 != map_bound24:
-                raise ValueError('地图内容段与裁决绑定不符: archive=%s '
-                                 'bound=%s(归档非受审定稿)' %
-                                 ((map_arc_sha24 or '缺席')[:16],
-                                  map_bound24[:16]))
+                if aj.map_binding_matches(aj._read_map_text(dest),
+                                          map_bound24):
+                    map_binding_equiv = True
+                else:
+                    raise ValueError('地图内容段与裁决绑定不符: archive=%s '
+                                     'bound=%s(归档非受审定稿)' %
+                                     ((map_arc_sha24 or '缺席')[:16],
+                                      map_bound24[:16]))
         # ── Audit-R29 任务4: 源摘要匹配终裁──冻结输入集合摘要终裁必须
         # 在档且==归档聚合(席位信封→终裁→归档→重放同算同核;终裁未绑
         # =席位没吃到冻结面输入,交付链不完整,拒绝)。实雷正道修(同
@@ -2396,6 +2425,14 @@ def _r1_archive_core_pinned(args, engine_root, pins):
                            '裁决链唯一名逐档哈希+predecessor 链关系已核'
                            ';地图面: 归档内容段==裁决绑定已核/Audit-R24 '
                            '任务1)'}
+        if map_binding_equiv:
+            # Audit-R32 正式验收: 归档件内容段与裁决绑定仅差状态短语的
+            # 归档加注(其余归档清单字节不变)
+            manifest['map_binding_status_equivalent'] = True
+            manifest['correlation'] = manifest['correlation'].replace(
+                '归档内容段==裁决绑定已核/Audit-R24 任务1)',
+                '归档内容段==裁决绑定(仅差审查状态短语=状态面等价)已核'
+                '/Audit-R32 正式验收)')
         # Audit-R32 任务1/3: 研究截止日与证据口径块随清单落档(重放/回读
         # 同读;旧档无 run.evidence_gate=不加键,清单字节不变)
         _eg_man = (rj.get('run') or {}).get('evidence_gate')
@@ -2616,6 +2653,7 @@ def _r1_replay_core(args, engine_root):
                         % (vf, pred))
     _chk('verdict_chain_hashes', not vbad, '链档异常=%s' % (vbad or '无'))
     latest_doc, bind_bad = None, []
+    _bind_note = False
     if chain:
         # vchain 落 manifest 时已按写入序排序(archive 段),链尾=最新
         latest_e = chain[-1]
@@ -2628,10 +2666,25 @@ def _r1_replay_core(args, engine_root):
         if map_q:
             map_sha_now = aj.map_report_content_sha(pkg)
             bound = latest_doc.get('map_report_sha256')
-            if bound and map_sha_now != bound:
+            # Audit-R32 正式验收: 包内地图与裁决绑定仅差「分工」行尾审查
+            # 状态短语时,须清单已声明 map_binding_status_equivalent——
+            # 声明与实际互核(不同而未声明=异常;已声明而不等价或无差异=
+            # 异常)
+            _declared = bool(manifest.get('map_binding_status_equivalent'))
+            _state_eq = bool(
+                bound and map_sha_now != bound
+                and aj.map_binding_matches(aj._read_map_text(pkg), bound))
+            if bound and map_sha_now != bound and not (
+                    _declared and _state_eq):
                 bind_bad.append('地图内容段=%s ≠ 裁决绑定=%s'
                                 % ((map_sha_now or '缺席')[:16],
                                    bound[:16]))
+            if _declared and not _state_eq:
+                bind_bad.append('map_binding_status_equivalent 声明与实际'
+                                '不符(内容段=%s 绑定=%s)'
+                                % ((map_sha_now or '缺席')[:16],
+                                   str(bound)[:16]))
+            _bind_note = _state_eq
             if map_sha_now != manifest.get('map_content_sha256'):
                 bind_bad.append('地图内容段=%s ≠ manifest.map_content_sha256'
                                 '=%s' % ((map_sha_now or '缺席')[:16],
@@ -2647,7 +2700,10 @@ def _r1_replay_core(args, engine_root):
                                    str(manifest.get(
                                        'frozen_inputs_sha256'))[:16]))
     _chk('verdict_binding_threeway', not bind_bad,
-         '绑定异常=%s' % (bind_bad or '无(run=归档=裁决锚三面一致)'))
+         '绑定异常=%s' % (bind_bad or (
+             '无(run=归档=裁决锚三面一致%s)' % (
+                 ';地图内容段与裁决绑定仅差审查状态短语,清单已声明'
+                 if _bind_note else ''))))
 
     # ── 门④: 代码版本+确定性重渲逐字节核对 ──
     # 代码身份=**本次重放进程实际运行的代码树**(ia_cli 所在 ROOT,非

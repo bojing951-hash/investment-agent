@@ -13,6 +13,9 @@ metric_series),S3–S8 子进程/L1/证据索引/研究席/契约/报告/归档�
 注册表/日历(overlay 缺件/篡改=拒绝;引擎本地日历被换不影响判定与
 重渲);冻结初始化中途失败=清理后下一工单选新快照。
 任务4 T3 原问经 --question-file 原样输入(地图问句+官方目标地区=欧日)。
+正式验收发现(§L) 裁决后交付状态面: 在场地图与当前装配仅差「分工」行
+审查状态短语=状态面等价(裁决绑定有效)→翻新状态面而非冻结;正文差异
+照旧冻结/过期/拒绝。
 """
 import contextlib
 import hashlib
@@ -1808,6 +1811,264 @@ def sec_k():
           f'cal={ {k: (v[0], (v[1] or "")[:40]) for k, v in cal.items()} }')
 
 
+# ═══ §L 裁决后交付状态面(正式验收发现: 已裁交付件仍写「待裁」) ═══
+def _status_line(text):
+    for ln in text.split('\n'):
+        if ln.startswith('- 分工: '):
+            return ln
+    return ''
+
+
+def _body_edit(text):
+    """受审正文改一字: 审查节之前、分工行之外的最后一个非空行尾加空格。"""
+    seg, split, tail = text.partition('\n## 语义审查')
+    lines = seg.split('\n')
+    idx = [i for i, ln in enumerate(lines)
+           if ln.strip() and not ln.startswith('- 分工: ')]
+    lines[idx[-1]] += ' '
+    return '\n'.join(lines) + split + tail
+
+
+# 包装器: 以当前代码跑 research-one, 但渲染器在审查节前多出一行正文
+# (=「代码已前进」的真漂移模拟;受审输入不变)
+_DRIFT_CLI = r'''
+import sys
+sys.path.insert(0, __ROOT__)
+import ia_cli
+import research_map_planner as rmp
+_orig = rmp.render_map_report
+
+
+def _drift(*a, **k):
+    head, sep, tail = _orig(*a, **k).partition('\n## 语义审查')
+    return head + '\n\n(渲染器前进: 本行为当前代码新增)\n' + sep + tail
+
+
+rmp.render_map_report = _drift
+sys.argv = ['ia_cli.py'] + sys.argv[1:]
+sys.exit(ia_cli.main())
+'''
+
+
+def sec_l():
+    """正式验收发现(工单 T3/A 在 36499bb 裁决 UPHELD 后归档): report 段
+    「渲染器漂移」冻结分支恒触发——分工行尾审查状态短语随裁决在场与否
+    翻转(Audit-R32 真跑修复引入)而位于内容段之内,已裁内容段≠当前装配
+    →受审正文按原字节交付→首页仍写「独立语义审查待裁」、审查尾仍写
+    「独立席位待裁」。修复: 在场地图与当前装配仅差该短语=状态面等价
+    (裁决绑定有效)→照常重写翻新状态面;裁决新鲜判定/归档核对/重放
+    核对同口径;正文差异照旧冻结(真漂移)/过期(改版)/拒绝(单改)。"""
+    print('═══ §L 裁决后交付状态面: 仅差审查状态短语=状态面等价 ═══')
+    rd, _src = fresh_pkg_rd('ps', 'session_NEW30')
+    # 夹具同 §C4(复本报告补 r32 证据口径: r32 报告头按裁决在场与否渲染)
+    _p = os.path.join(rd, 'report.json')
+    _rj = json.load(open(_p, encoding='utf-8'))
+    _rj['run']['evidence_gate'] = {
+        'discipline': 'r32', 'as_of': '2026-11-22',
+        'source_snapshot_id': 'research_snapshot_20261122_v2',
+        'source_target_date': '2026-11-22', 'historical_view': False,
+        'counts': {'facts_kept': 105, 'facts_rebuilt': 0,
+                   'facts_dropped': 0, 'facts_excluded_version': 0,
+                   'series_observations_dropped': 0,
+                   'series_observations_version_unavailable': 0,
+                   'series_excluded': 0, 'series_n': 90},
+        'series': {}}
+    _rj['run']['evidence_asof'] = '2026-11-22'
+    with open(_p, 'w', encoding='utf-8') as f:
+        json.dump(_rj, f, ensure_ascii=False, indent=2, default=str)
+    rewrite_head(rd, WORKTREE_HEAD)
+    T = build_tree('ps')
+    mpath = os.path.join(rd, 'MAP_REPORT.md')
+    rc0, d0 = cli('report', rd, T)
+    dd0 = d0.get('data') or {}
+    t0 = open(mpath, encoding='utf-8').read()
+    check('§L1 前置: 裁决缺席 report rc≠0,当前装配落盘——分工行尾'
+          '「独立语义审查待裁)」+审查尾「独立席位待裁」',
+          rc0 != 0 and dd0.get('deliverable') is False
+          and _status_line(t0).endswith('独立语义审查待裁)')
+          and '- 独立席位待裁' in t0,
+          f"rc0={rc0} div={_status_line(t0)[-24:]!r}")
+    sha0 = aj.map_report_content_sha(rd)
+    vp = aj.record_semantic_verdict(T, rd, 'UPHELD',
+                                    reviewer='r32gate-status席',
+                                    notes='R32 正式验收: 裁决后交付状态面')
+    vd = json.load(open(vp, encoding='utf-8'))
+    rc1, d1 = cli('report', rd, T)
+    dd1 = d1.get('data') or {}
+    t1 = open(mpath, encoding='utf-8').read()
+    w1 = [str(w) for w in (d1.get('warnings') or [])]
+    anchor1 = open(os.path.join(rd, 'MAP_REPORT.sha256'),
+                   encoding='utf-8').read().split(' ', 1)[0]
+    s0, s1 = t0.split('\n## 语义审查')[0], t1.split('\n## 语义审查')[0]
+    dlines = [(a, b) for a, b in zip(s0.split('\n'), s1.split('\n'))
+              if a != b]
+    check('§L2 裁决 UPHELD 后 report: rc=0 可交付;分工行尾'
+          '「经独立语义审查)」+审查尾「席位已裁: UPHELD(裁决链 1 档)」;'
+          '全文无「待裁」;无「渲染器漂移」警告(renderer_drift=False,'
+          'status_refreshed=True)',
+          rc1 == 0 and dd1.get('deliverable') is True
+          and _status_line(t1).endswith('经独立语义审查)')
+          and '- 席位已裁: UPHELD(裁决链 1 档)' in t1
+          and '待裁' not in t1
+          and dd1.get('map_renderer_drift') is False
+          and dd1.get('map_status_refreshed') is True
+          and not any('渲染器漂移' in w for w in w1),
+          f"rc1={rc1} deliv={dd1.get('deliverable')} "
+          f"drift={dd1.get('map_renderer_drift')} "
+          f"refresh={dd1.get('map_status_refreshed')} "
+          f"pending={t1.count('待裁')} w={[x[:50] for x in w1]}")
+    sha1 = aj.map_report_content_sha(rd)
+    check('§L3 受审内容未被改写: 裁决前后内容段逐行对比恰 1 行不同'
+          '(=分工行状态短语),其余逐字节相同;旁挂锚=新全文 sha256;裁决'
+          '仍新鲜(fresh=True);裁决档绑定=受审时(待裁形)内容段摘要',
+          len(s0.split('\n')) == len(s1.split('\n'))
+          and len(dlines) == 1 and dlines[0][0].startswith('- 分工: ')
+          and anchor1 == hashlib.sha256(t1.encode('utf-8')).hexdigest()
+          and (dd1.get('review') or {}).get('fresh') is True
+          and vd.get('map_report_sha256') == sha0
+          and sha1 == hashlib.sha256(s1.encode('utf-8')).hexdigest()
+          and sha1 != sha0,
+          f'dlines={len(dlines)} fresh={(dd1.get("review") or {}).get("fresh")}')
+    b1 = open(mpath, 'rb').read()
+    rc1b, d1b = cli('report', rd, T)
+    dd1b = d1b.get('data') or {}
+    check('§L4 重复 report 幂等: rc=0,字节不变,不再记状态面翻新',
+          rc1b == 0 and open(mpath, 'rb').read() == b1
+          and dd1b.get('map_status_refreshed') is False
+          and dd1b.get('deliverable') is True,
+          f"rc={rc1b} refresh={dd1b.get('map_status_refreshed')}")
+    arc = os.path.join(TMPG, 'arc_ps')
+    rc2, d2 = cli('archive', rd, T, arc=arc)
+    man_p = os.path.join(arc, 'ARCHIVE_MANIFEST.json')
+    man = json.load(open(man_p, encoding='utf-8')) if os.path.isfile(
+        man_p) else {}
+    check('§L5 归档: rc=0;清单 map_binding_status_equivalent=true/'
+          'map_renderer_drift=false;归档件==运行目录件;'
+          'map_report_sha256=裁决档绑定,map_content_sha256=归档内容段'
+          '原字节摘要(待裁形/已裁形两摘要并存,清单注明状态面等价)',
+          rc2 == 0 and man.get('map_binding_status_equivalent') is True
+          and man.get('map_renderer_drift') is False
+          and open(os.path.join(arc, 'MAP_REPORT.md'), 'rb').read() == b1
+          and man.get('map_report_sha256') == sha0
+          and man.get('map_content_sha256') == aj.map_report_content_sha(arc)
+          and man.get('map_content_sha256') == sha1
+          and '状态面等价' in str(man.get('correlation')),
+          f"rc2={rc2} equiv={man.get('map_binding_status_equivalent')} "
+          f"drift={man.get('map_renderer_drift')}")
+    rc3, d3 = replay(arc, T, out=os.path.join(TMPG, 'rp_ps'))
+    dd3 = d3.get('data') or {}
+    ck3 = {c.get('check'): c.get('ok') for c in (dd3.get('checks') or [])
+           if c.get('check')}
+    check('§L6 重放: rc=0(绑定三方核对按状态面等价通过;当前代码重渲'
+          '与归档件逐字节相等)',
+          rc3 == 0 and ck3.get('verdict_binding_threeway') is True
+          and ck3.get('map_fullfile_anchor') is True
+          and dd3.get('render_mode') == 'byte_equal',
+          f"rc3={rc3} mode={dd3.get('render_mode')} "
+          f"failed={dd3.get('failed_checks')}")
+    # ── 反例 a: 裁决后单改正文(旁挂锚未动) ──
+    rda = os.path.join(TMPG, 'rd_ps_tamper')
+    shutil.copytree(rd, rda)
+    ta = _body_edit(t1)
+    with open(os.path.join(rda, 'MAP_REPORT.md'), 'w', encoding='utf-8') as f:
+        f.write(ta)
+    rca, da = cli('report', rda, T)
+    dda = da.get('data') or {}
+    check('§L7a 裁决后单改正文(旁挂锚未动): 拒绝交付且不重写(保全'
+          '证据);警告点名旁挂锚不符;不记状态面翻新',
+          rca != 0 and dda.get('deliverable') is False
+          and any('旁挂锚' in str(w) for w in (da.get('warnings') or []))
+          and open(os.path.join(rda, 'MAP_REPORT.md'),
+                   encoding='utf-8').read() == ta
+          and dda.get('map_status_refreshed') is False,
+          f"rc={rca} deliv={dda.get('deliverable')}")
+    # ── 反例 b: 正文改版+重锚(冒充受审定稿) ──
+    rdb = os.path.join(TMPG, 'rd_ps_reanchor')
+    shutil.copytree(rd, rdb)
+    with open(os.path.join(rdb, 'MAP_REPORT.md'), 'w', encoding='utf-8') as f:
+        f.write(ta)
+    with open(os.path.join(rdb, 'MAP_REPORT.sha256'), 'w',
+              encoding='utf-8') as f:
+        f.write(hashlib.sha256(ta.encode('utf-8')).hexdigest()
+                + '  MAP_REPORT.md\n')
+    rcb, db = cli('report', rdb, T)
+    ddb = db.get('data') or {}
+    rcb2, db2 = cli('report', rdb, T)
+    check('§L7b 正文改版+重锚: 裁决过期(fresh=False)→本轮拒绝交付、不记'
+          '状态面翻新;改版件被当前装配重渲覆盖(改版不得洗白);下一轮'
+          '恢复可交付',
+          rcb != 0 and ddb.get('deliverable') is False
+          and (ddb.get('review') or {}).get('fresh') is False
+          and ddb.get('map_status_refreshed') is False
+          and open(os.path.join(rdb, 'MAP_REPORT.md'),
+                   encoding='utf-8').read() == t1
+          and rcb2 == 0 and (db2.get('data') or {}).get('deliverable')
+          is True,
+          f"rc={rcb} fresh={(ddb.get('review') or {}).get('fresh')} "
+          f"rc2={rcb2}")
+    # ── 反例 c: 渲染器真漂移(正文变)照旧冻结 ──
+    wrap = os.path.join(TMPG, 'drift_cli.py')
+    with open(wrap, 'w', encoding='utf-8') as f:
+        f.write(_DRIFT_CLI.replace('__ROOT__', repr(ROOT)))
+
+    def _drift_cli(stage, arc=None):
+        cmd = [sys.executable, wrap, 'research-one', '--stage', stage,
+               '--report-dir', rd, '--engine-root', T]
+        if arc:
+            cmd += ['--archive-dir', arc]
+        r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True,
+                           timeout=900)
+        try:
+            return r.returncode, json.loads(r.stdout)
+        except Exception:                       # noqa: BLE001
+            return r.returncode, {'raw': (r.stdout + r.stderr)[-400:]}
+
+    rcd, dd = _drift_cli('report')
+    ddd = dd.get('data') or {}
+    arcd = os.path.join(TMPG, 'arc_ps_drift')
+    rc4, _d4 = _drift_cli('archive', arc=arcd)
+    mand_p = os.path.join(arcd, 'ARCHIVE_MANIFEST.json')
+    mand = json.load(open(mand_p, encoding='utf-8')) if os.path.isfile(
+        mand_p) else {}
+    rc5, d5 = replay(arcd, T, out=os.path.join(TMPG, 'rp_ps_drift'))
+    check('§L7c 渲染器真漂移(包装器令当前代码在正文多出一行): 冻结分支'
+          '照旧——report rc=0+「渲染器漂移」披露+受审字节不改写'
+          '(map_renderer_drift=True,不记状态面翻新);归档 rc=0 清单 '
+          'drift=true+状态面等价注记(先前已翻新的受审件);重放 rc=0',
+          rcd == 0 and any('渲染器漂移' in str(w)
+                           for w in (dd.get('warnings') or []))
+          and open(mpath, 'rb').read() == b1
+          and ddd.get('map_renderer_drift') is True
+          and ddd.get('map_status_refreshed') is False
+          and rc4 == 0 and mand.get('map_renderer_drift') is True
+          and mand.get('map_binding_status_equivalent') is True
+          and open(os.path.join(arcd, 'MAP_REPORT.md'), 'rb').read() == b1
+          and rc5 == 0 and (d5.get('data') or {}).get('render_mode') \
+          == 'byte_equal',
+          f"rc={rcd} drift={ddd.get('map_renderer_drift')} "
+          f"rc4={rc4} drift_m={mand.get('map_renderer_drift')} "
+          f"rc5={rc5} mode={(d5.get('data') or {}).get('render_mode')}")
+    # ── 判定函数(单元面) ──
+    other = next(ln for ln in s1.split('\n')
+                 if ln.strip() and not ln.startswith('- 分工: '))
+    x1 = s1.replace(other, other + ',独立语义审查待裁)', 1)
+    x2 = s1.replace(other, other + ',经独立语义审查)', 1)
+    tb2 = _body_edit(t1)
+    check('§L8 判定函数: 状态面等价只认「分工」行尾短语——裁决前后全文'
+          '等价=True;正文改一字=False;状态短语出现在其他行不算状态面;'
+          '绑定匹配=原字节/已裁形/待裁形三口径之一',
+          aj.map_content_state_equivalent(t0, t1) is True
+          and aj.map_content_state_equivalent(t1, tb2) is False
+          and aj.map_content_state_equivalent(x1, x2) is False
+          and aj.map_binding_matches(t1, sha0) is True
+          and aj.map_binding_matches(t0, sha1) is True
+          and aj.map_binding_matches(tb2, sha0) is False
+          and aj.map_binding_matches(t1, None) is False
+          and aj.map_binding_matches(x1, aj._sha256_text(x1)) is True,
+          f"eq01={aj.map_content_state_equivalent(t0, t1)} "
+          f"eq_x={aj.map_content_state_equivalent(x1, x2)}")
+
+
 def main():
     print('Audit-R32 门 (HEAD %s)' % WORKTREE_HEAD[:12])
     try:
@@ -1819,6 +2080,7 @@ def main():
         sec_i()
         sec_j()
         sec_k()
+        sec_l()
     finally:
         n_ok = sum(1 for x in RESULTS if x)
         n = len(RESULTS)

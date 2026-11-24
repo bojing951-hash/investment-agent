@@ -1,0 +1,10 @@
+=== R32 从提交重下 R31 入库包重放 2026-11-24 17:55:03 sha=f46fdcb39dfc0442feb15f3f6b308716a2389252 session=session_B2_formal ===
+clone: ok (attempt 1, 17:55:09)
+[1] downloaded HEAD=f46fdcb39dfc0442feb15f3f6b308716a2389252 (expect f46fdcb39dfc0442feb15f3f6b308716a2389252)
+[2] manifest check: /tmp/r32-accept/redl/f46fdcb/r31_session_B2_formal/src/docs/autonomous-rd/r31-evidence/acceptance/session_B2_formal
+manifest run_ts=20261122T125710Z run_code_git_head=ca916cdca7b749282e498d8c8f0eac8bf43b7372 verdict=UPHELD verdicts_n=1 frozen_inputs_sha256=73d74da047725875
+bound files checked=14 mismatches/missing=0 | files outside the manifest: 2 ['archive_receipt.json', 'seat_B2.log']
+manifest run_code_git_head=ca916cdca7b749282e498d8c8f0eac8bf43b7372
+[3] blob identity (cloned commit; audit baseline 72dab1c)
+error: RPC failed; curl 28 Failed to connect to github.com port 443 after 75001 ms: Couldn't connect to server
+fatal: expected flush after ref listing

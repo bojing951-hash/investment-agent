@@ -341,6 +341,8 @@ def section_wave0():
     for f in ['ci_runs_branch_r32.txt', 'ci_jobs_all_stamps.txt', 'ci_jobs_45248512128.txt', 'ci_45270339721_jobs.txt',
               'ci_jobs_45291551484.txt', 'ci_jobs_45330060557.txt', 'ci_jobs_45337815174.txt',
               'ci_jobs_45348011655.txt', 'ci_jobs_45351387852.txt',
+              # CI of the docs-only evidence commit f46fdcb (replay receipts follow in the receipt commit)
+              'ci_jobs_45369284776.txt',
               'phase6_postcommit_Z.txt', 'phase6_postcommit_W.txt']:
         maybe_copy(f, os.path.join(EV, 'wave0_r32'))
     inst = os.path.join(EV, 'wave0_r32', 'clean_install_update_entry')
@@ -849,7 +851,7 @@ OPERATOR_TOOLS = ['fold_x.sh', 'fold_y.sh', 'fold_y2.sh', 'seatlib_r32.py', 'dry
                   'run_gates.sh', 'run_gate_sec.py', 'run_sec_j.py',
                   'entry_smoke.sh', 'entry_smoke_y.sh', 'entry_smoke_w.sh', 'entry_smoke_v.sh',
                   'doctor_y.sh', 'doctor_w.sh', 'doctor_v.sh', 'mk_receipt.py', 'mk_receipt6.py', 'mk_receipt8.py',
-                  'mk_receipt9.py',
+                  'mk_receipt9.py', 'gen_docs9.py',
                   'z_deliver.sh', 'w_deliver.sh', 'v_deliver.sh', 'z_replay.sh', 'w_replay.sh', 'v_replay.sh',
                   'w_stage.sh', 'v_stage.sh', 'zdry.sh', 'zmapdiff.py', 'zsumm.py', 'carry_yz.py']
 
@@ -921,7 +923,7 @@ def section_replays():
                 for dp, dns, fns in os.walk(p):
                     dns[:] = [x for x in dns if x != 'src']       # never descend into the clone
                     for fn in sorted(fns):
-                        if fn == 'console.log' or fn.endswith('_ls_tree.z') \
+                        if fn == 'console.log' or fn.startswith('console_attempt') or fn.endswith('_ls_tree.z') \
                                 or re.match(r'r\d[b]?\.json$|^r_(final|old|run|other|override|final_override)\.json$', fn) \
                                 or (fn == 'REPLAY_REPORT.md' and os.path.basename(dp) in ('out_override', 'out0_override')):
                             if fn.endswith('_ls_tree.z'):
@@ -931,7 +933,7 @@ def section_replays():
                             else:
                                 copy_text(os.path.join(dp, fn), os.path.join(dst, os.path.relpath(os.path.join(dp, fn), p)))
                             n += 1
-            elif re.match(r'r3[12]w?_all_\d+T\d+\.log$', sub):
+            elif re.match(r'r3[12][vw]?_(all|rerun)_\d+T\d+\.log$', sub):
                 copy_text(p, os.path.join(d, sub))
                 n += 1
     print('replay receipt files', n)

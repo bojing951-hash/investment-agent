@@ -1,0 +1,10 @@
+=== redl_r32v_all start 2026-11-24 17:52:56 sha=f46fdcb39dfc0442feb15f3f6b308716a2389252
+--- session=session_A_formal tag=A start 17:52:56
+--- session=session_A_formal tag=A end rc=1 17:53:07
+--- session=session_T3_formal tag=T3 start 17:53:07
+--- session=session_T3_formal tag=T3 end rc=1 17:53:18
+--- session=session_NEW30 tag=N30 start 17:53:18
+--- session=session_NEW30 tag=N30 end rc=1 17:53:29
+--- session=session_B_formal tag=B start 17:53:29
+--- session=session_B_formal tag=B end rc=1 17:53:42
+=== redl_r32v_all end 2026-11-24 17:53:42

@@ -26,6 +26,16 @@ D="$ROOT/r31_$SESSION"
 ENGINE=/tmp/r32-accept/redl/engine_$SHA7
 mkdir -p "$D"
 cd "$D"
+
+fetch_sha() {  # fetch_sha <sha> <label>: fetch one commit (depth 1) with retries; the public host times out at times
+  local sha="$1" label="$2" i
+  for i in 1 2 3 4 5; do
+    if git -C src fetch -q --depth 1 origin "$sha" 2> "fetch_$label.err"; then return 0; fi
+    echo "fetch of the $label ($sha) attempt $i failed: $(tail -1 "fetch_$label.err" | cut -c1-160)" | tee -a console.log
+    [ "$i" -lt 5 ] && sleep 20
+  done
+  return 1
+}
 echo "=== R32 从提交重下 R31 入库包重放 $(date '+%F %T') sha=$SHA session=$SESSION ===" | tee console.log
 if [ ! -d src/.git ]; then
   zsh "$S/redl_clone.sh" "$D" || exit 4
@@ -42,7 +52,7 @@ RSHA=$(python3 -I "$S/manifest_head.py" "$PKG")
 echo "manifest run_code_git_head=$RSHA" | tee -a console.log
 echo "[3] blob identity (cloned commit; audit baseline 72dab1c)" | tee -a console.log
 git -C src -c core.quotepath=false ls-tree -r -z HEAD -- "$REL" > head_ls_tree.z
-git -C src fetch -q --depth 1 origin "$BASE" 2> fetch_base.err || { echo "baseline fetch failed"; tail -3 fetch_base.err | tee -a console.log; }
+fetch_sha "$BASE" baseline || { echo "baseline fetch failed (blob identity against the audit baseline cannot be checked)"; }
 git -C src -c core.quotepath=false ls-tree -r -z "$BASE" -- "$REL" > base_ls_tree.z
 python3 -I "$S/pkg_blob_check.py" "$PKG" "$REL" head_ls_tree.z base_ls_tree.z | tee -a console.log || echo "pkg_blob_check rc=${pipestatus[1]} (non-zero)" | tee -a console.log
 zsh "$S/redl_engine.sh" "$ENGINE" "$D/src" "$SHA" 2>&1 | tee -a console.log
@@ -56,7 +66,7 @@ echo "rc=$RCF" | tee -a ../console.log
 python3 -I "$S/rsum.py" r_final.json r_final.err | tee -a ../console.log || true
 cd "$D"
 [ "${#RSHA}" -eq 40 ] || { echo "manifest has no 40-hex run_code_git_head — stop before [5]" | tee -a console.log; exit 8; }
-git -C src fetch -q --depth 1 origin "$RSHA" 2> fetch_runsha.err || { echo "fetch of run sha failed"; tail -3 fetch_runsha.err | tee -a console.log; exit 9; }
+fetch_sha "$RSHA" run_sha || { echo "fetch of run sha failed"; exit 9; }
 OLD=/tmp/r32-accept/redl/engine_${RSHA:0:7}
 zsh "$S/redl_engine.sh" "$OLD" "$D/src" "$RSHA" 2>&1 | tee -a console.log
 if [ "$SESSION" = "session_NEW30" ]; then

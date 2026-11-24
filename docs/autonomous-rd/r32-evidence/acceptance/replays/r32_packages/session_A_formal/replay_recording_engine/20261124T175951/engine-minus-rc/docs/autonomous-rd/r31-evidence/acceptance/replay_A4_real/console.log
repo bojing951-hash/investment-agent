@@ -1,0 +1,36 @@
+=== R31 实包重放验收 2026-11-22 21:33:00 tag=A4 engine=/tmp/r31-accept/install ===
+pkg=/private/tmp/r31-accept/install/research_archive/20261122T120924Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最
+--- [0] 严格面(无旗标) ---
+rc=0
+ok= True | mode= byte_equal | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+--- [1] 更换本地日历→重放不变 ---
+rc=0
+ok= True | mode= byte_equal | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+map bytes: IDENTICAL
+--- [1b] 独立引擎目录移去本地日历 RC-EA-HICP-2022M06 → 仍 rc=0+逐字节(R31 任务2: 重放绑包内冻结日历,引擎本地日历现状零影响) ---
+entries: 18 → 17 (RC-EA-HICP-2022M06 removed)
+rc=0
+ok= True | mode= byte_equal | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+map bytes: IDENTICAL
+--- [2] 重复重放: 新目录+原包不动 ---
+rc=0
+ok= True | mode= byte_equal | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+package: UNTOUCHED
+map bytes: IDENTICAL
+--- [3] 缺冻结件→拒 ---
+rc=1 (期望≠0)
+ok= False | mode= byte_equal | failed= ['frozen_inputs_present', 'frozen_inputs_digests']
+frozen/binding: {'frozen_inputs_present': False, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+--- [4] 篡改冻结件一字节→拒 ---
+rc=1 (期望≠0)
+ok= False | mode= byte_equal | failed= ['frozen_inputs_digests']
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+--- [5] manifest 冒冻摘要单侧改写→拒 ---
+rc=1 (期望≠0)
+ok= False | mode= byte_equal | failed= ['frozen_inputs_digests', 'frozen_inputs_match_report']
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': False, 'verdict_binding_threeway': True}
+=== R31 实包重放验收毕 tag=A4 ===

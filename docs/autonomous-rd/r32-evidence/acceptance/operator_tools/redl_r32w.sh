@@ -45,8 +45,9 @@ python3 -I "$S/pkg_blob_check.py" "$PKG" "$REL" head_ls_tree.z | tee -a console.
 [ "${#ASHA}" -eq 40 ] || { echo "not a two-stamp package (no archive_code_git_head) — use redl_replay.sh; stop" | tee -a console.log; exit 8; }
 git -C src fetch -q --depth 1 origin "$ASHA" 2> fetch_arch.err || { echo "fetch of the archiving stamp failed"; tail -3 fetch_arch.err | tee -a console.log; exit 9; }
 echo "--- code identity of the downloaded final commit vs the archiving stamp (expected: docs only)" | tee -a console.log
-git -C src -c core.quotepath=false diff --stat "$ASHA" "$SHA" | tee -a console.log | tail -4 | cut -c1-160
-NODOCS=$(git -C src -c core.quotepath=false diff --name-only "$ASHA" "$SHA" | grep -v '^docs/' | wc -l | tr -d ' ')
+git -C src -c core.quotepath=false diff --shortstat "$ASHA" "$SHA" | tee -a console.log
+# awk, not grep -v: under `set -e` + pipefail a grep that selects nothing would abort the script here
+NODOCS=$(git -C src -c core.quotepath=false diff --name-only "$ASHA" "$SHA" | awk '!/^docs\//{n++} END{print n+0}')
 echo "changed paths outside docs/: $NODOCS" | tee -a console.log
 zsh "$S/redl_engine.sh" "$ENGINE" "$D/src" "$SHA" 2>&1 | tee -a console.log
 mkdir -p replay_final_engine; cd replay_final_engine

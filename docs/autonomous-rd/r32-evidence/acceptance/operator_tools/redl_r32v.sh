@@ -33,6 +33,16 @@ D="$ROOT/r32v_$SESSION"
 ENGINE=/tmp/r32-accept/redl/engine_$SHA7
 mkdir -p "$D"
 cd "$D"
+
+fetch_sha() {  # fetch_sha <sha> <label>: fetch one commit (depth 1) with retries; the public host times out at times
+  local sha="$1" label="$2" i
+  for i in 1 2 3 4 5; do
+    if git -C src fetch -q --depth 1 origin "$sha" 2> "fetch_$label.err"; then return 0; fi
+    echo "fetch of the $label ($sha) attempt $i failed: $(tail -1 "fetch_$label.err" | cut -c1-160)" | tee -a console.log
+    [ "$i" -lt 5 ] && sleep 20
+  done
+  return 1
+}
 echo "=== R32 从最终提交重下重放(交付包: 运行=执行印章, 归档印章翻新状态面或同渲染) $(date '+%F %T') sha=$SHA session=$SESSION ===" | tee console.log
 if [ ! -d src/.git ]; then
   zsh "$S/redl_clone.sh" "$D" || exit 4
@@ -59,11 +69,12 @@ echo "package kind=$KIND map_binding_status_equivalent=$EQ → recording code = 
 echo "--- blob identity (cloned commit)" | tee -a console.log
 git -C src -c core.quotepath=false ls-tree -r -z HEAD -- "$REL" > head_ls_tree.z
 python3 -I "$S/pkg_blob_check.py" "$PKG" "$REL" head_ls_tree.z | tee -a console.log || echo "pkg_blob_check rc=${pipestatus[1]} (non-zero)" | tee -a console.log
-git -C src fetch -q --depth 1 origin "$ASHA" 2> fetch_arch.err || { echo "fetch of the archiving stamp failed"; tail -3 fetch_arch.err | tee -a console.log; exit 9; }
-git -C src fetch -q --depth 1 origin "$RSHA" 2> fetch_run.err || { echo "fetch of the run stamp failed"; tail -3 fetch_run.err | tee -a console.log; exit 9; }
+fetch_sha "$ASHA" archiving_stamp || { echo "fetch of the archiving stamp failed"; exit 9; }
+fetch_sha "$RSHA" run_stamp || { echo "fetch of the run stamp failed"; exit 9; }
 echo "--- code identity of the downloaded final commit vs the archiving stamp (expected: docs only)" | tee -a console.log
-git -C src -c core.quotepath=false diff --stat "$ASHA" "$SHA" | tee -a console.log | tail -4 | cut -c1-160
-NODOCS=$(git -C src -c core.quotepath=false diff --name-only "$ASHA" "$SHA" | grep -v '^docs/' | wc -l | tr -d ' ')
+git -C src -c core.quotepath=false diff --shortstat "$ASHA" "$SHA" | tee -a console.log
+# awk, not grep -v: under `set -e` + pipefail a grep that selects nothing would abort the script here
+NODOCS=$(git -C src -c core.quotepath=false diff --name-only "$ASHA" "$SHA" | awk '!/^docs\//{n++} END{print n+0}')
 echo "changed paths outside docs/: $NODOCS" | tee -a console.log
 zsh "$S/redl_engine.sh" "$ENGINE" "$D/src" "$SHA" 2>&1 | tee -a console.log
 mkdir -p replay_final_engine; cd replay_final_engine

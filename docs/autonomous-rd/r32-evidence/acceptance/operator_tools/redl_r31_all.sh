@@ -1,8 +1,9 @@
 #!/bin/zsh
 # redl_r31_all.sh <commit_sha> — run redl_r31.sh for the three R31 archive packages in sequence
-# (A4/B2 = UPHELD single verdict; NEW30 = REVISE→UPHELD chain whose stored verdict file names
-# lack the manifest's date prefix → refusal expected). session_T3b_formal is an evidence copy
-# of a run directory, not an archive package (no ARCHIVE_MANIFEST.json) → not replayable, not listed.
+# (A4/B2 = single UPHELD verdict; NEW30 = REVISE→UPHELD two-verdict chain). All three take the same
+# path: manifest check, blob identity, strict replay on the cloned commit's engine (expected: version
+# gate), six steps on the recording-code engine. session_T3b_formal is an evidence copy of a run
+# directory, not an archive package (no ARCHIVE_MANIFEST.json) → not replayable, not listed.
 # Master log: /tmp/r32-accept/redl/<sha7>/r31_all_<ts>.log
 SHA="$1"
 SHA7=$(echo "$SHA" | cut -c1-7)

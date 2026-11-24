@@ -213,6 +213,11 @@ def maybe_copy(name, dst_dir, base=OUT):
         print('missing', name)
 
 
+def _one_line(path):
+    """Stripped first line of a one-line file, or '' when the file does not exist."""
+    return open(path, encoding='utf-8').read().strip() if os.path.isfile(path) else ''
+
+
 def scan(root, label):
     """Key scan (LIVE data keys must occur in no file) + vendor-word and private-root counts. Vendor words
     are never printed: only the file and the word length. Returns True when the pack is clean."""
@@ -851,7 +856,7 @@ OPERATOR_TOOLS = ['fold_x.sh', 'fold_y.sh', 'fold_y2.sh', 'seatlib_r32.py', 'dry
                   'run_gates.sh', 'run_gate_sec.py', 'run_sec_j.py',
                   'entry_smoke.sh', 'entry_smoke_y.sh', 'entry_smoke_w.sh', 'entry_smoke_v.sh',
                   'doctor_y.sh', 'doctor_w.sh', 'doctor_v.sh', 'mk_receipt.py', 'mk_receipt6.py', 'mk_receipt8.py',
-                  'mk_receipt9.py', 'gen_docs9.py',
+                  'mk_receipt9.py', 'gen_docs9.py', 'fix_dryrun_new30.sh',
                   'z_deliver.sh', 'w_deliver.sh', 'v_deliver.sh', 'z_replay.sh', 'w_replay.sh', 'v_replay.sh',
                   'w_stage.sh', 'v_stage.sh', 'zdry.sh', 'zmapdiff.py', 'zsumm.py', 'carry_yz.py']
 
@@ -890,14 +895,70 @@ def section_folds():
     scan(t, 'operator_tools')
 
 
+def section_correction():
+    """Task-3 correction commit (the two verdict files of the R31 NEW30 archive copy renamed back to the
+    manifest names; gate §C0/§C0a/§C0b/§C0c; docs) and the receipt commit that follows it: dry-run log,
+    gate logs on the working tree and on the committed tree, CI job listings, battery and post-commit
+    receipts. The re-download replays are collected by section_replays (replayed commit = the correction
+    commit)."""
+    d = os.path.join(EV, 'wave0_r32', 'task3_correction')
+    n = 0
+    p = os.path.join(OUT, 'fix_dryrun_new30.log')
+    if os.path.isfile(p):
+        copy_text(p, os.path.join(d, 'fix_dryrun_new30.log'))
+        n += 1
+    gw = os.path.join(OUT, 'fix_new30', 'gates_worktree')
+    if os.path.isdir(gw):
+        for fn in sorted(os.listdir(gw)):
+            copy_text(os.path.join(gw, fn), os.path.join(d, 'gates_worktree', fn))
+            n += 1
+    cd = os.path.join(OUT, 'correction')
+    if os.path.isdir(cd):
+        for fn in sorted(os.listdir(cd)):
+            if os.path.isfile(os.path.join(cd, fn)):
+                copy_text(os.path.join(cd, fn), os.path.join(d, fn))
+                n += 1
+    print('correction logs', n)
+    scan(d, 'task3_correction')
+    # CI job listings: the receipt commit before the correction (its CI ran after it was pushed) and the
+    # correction commit itself (run id in out/ci_run_C.txt)
+    maybe_copy('ci_jobs_45373759295.txt', os.path.join(EV, 'wave0_r32'))
+    rid = _one_line(os.path.join(OUT, 'ci_run_C.txt'))
+    if rid:
+        maybe_copy('ci_jobs_%s.txt' % rid, os.path.join(EV, 'wave0_r32'))
+    # gate logs of the battery run on the committed correction tree (raw battery logs stay outside the repo)
+    if os.path.isdir(os.path.join(OUT, 'battery_C')):
+        c7 = (_one_line(os.path.join(OUT, 'correction_sha.txt')) or 'C')[:7]
+        for gate in ('r32', 'r28', 'r31'):
+            gp = os.path.join(OUT, 'battery_C', 'test_audit_%s_gate.py.log' % gate)
+            if os.path.isfile(gp):
+                copy_text(gp, os.path.join(d, 'gate_%s_correction_%s.log' % (gate, c7)))
+            else:
+                print('missing', gp)
+        battery_receipt('C', '更正提交 %s 提交后运行(干净工作树,无并行引擎进程)。' % c7)
+    pc = os.path.join(EV, 'wave0_r32', 'post_commit')
+    src = os.path.join(OUT, 'post_commit_correction')
+    m = 0
+    if os.path.isdir(src):
+        for fn in sorted(os.listdir(src)):
+            if os.path.isfile(os.path.join(src, fn)):
+                copy_text(os.path.join(src, fn), os.path.join(pc, fn))
+                m += 1
+    print('post-commit logs (correction)', m)
+    scan(pc, 'post_commit')
+
+
 def section_replays():
     """Re-download-replay receipts at the final pushed commit (added after the evidence commit):
     per session console.log + replay envelopes + tree listings, per the work area
     /tmp/r32-accept/redl/<sha7>/ (sha read from out/replays_final_sha.txt). No renders, no clone.
     R32 two-stamp packages live under r32v_<session>/ (final-commit engine; recording-code engine six steps;
     other-stamp engine; status-equivalent override on the final-commit engine; same-render override); R31
-    packages under r31_<session>/. The superseded 24141c0
-    generation used the prefix r32w_ (no such replays were run)."""
+    packages under r31_<session>/ (NEW30: six steps on the engine at the package's recorded run sha, plus
+    the comparison with the original archive package; the final-commit engine refuses it at gate 4 only).
+    The generation replayed at f46fdcb was moved to replays/superseded_f46fdcb/ when the R31 NEW30 copy
+    was corrected (its verdict files had been stored under names without the date prefix). The superseded
+    24141c0 generation used the prefix r32w_ (no such replays were run)."""
     d = os.path.join(EV, 'replays')
     sha_file = os.path.join(OUT, 'replays_final_sha.txt')
     n = 0
@@ -984,7 +1045,7 @@ SECTIONS = {'reset': section_reset, 'wave0': section_wave0, 'engine_fix': sectio
             'superseded': section_superseded, 'cross_stamp': section_cross_stamp,
             'redactions': section_redactions, 'scan': lambda: scan(EV, 'all'),
             'reviews': section_reviews, 'folds': section_folds, 'replays': section_replays,
-            'post_commit': section_post_commit}
+            'post_commit': section_post_commit, 'correction': section_correction}
 for _t in SESSION_NAME:
     SECTIONS['session_' + _t] = (lambda t: (lambda: section_session(t)))(_t)
     SECTIONS['redelivery_' + _t] = (lambda t: (lambda: section_redelivery(t)))(_t)

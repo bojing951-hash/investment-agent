@@ -18,6 +18,10 @@ metric_series),S3–S8 子进程/L1/证据索引/研究席/契约/报告/归档�
 照旧冻结/过期/拒绝。裁决后再交付包(运行=执行印章、交付字节=归档印章)
 清单落档归档代码 SHA(仅异印章时加键);重放门④对已声明状态面等价的
 再交付包认归档代码为录制代码,第三印章照旧拒(显式越过=披露)。
+任务3 更正(§C0/§C0a/§C0b/§C0c): R31 入库 NEW30 包(含 REVISE→UPHELD 链)的两份
+裁决件曾被证据包装包时改存为无日目录前缀的名(字节不变)——按清单解包即缺档。
+更正=仅改名回清单所记名;更正前形态的拒绝在门内复现,更正后按清单解包零不符,
+七个入库归档包同口径核对。
 """
 import contextlib
 import hashlib
@@ -216,17 +220,14 @@ def rewrite_head(rd, head):
 
 def _seed_verdicts(T, session):
     """包内裁决链按 ARCHIVE_MANIFEST.source_rel 落引擎树(重渲/报告读)。
-    源件优先取 manifest.file;R31 入库包裁决件名缺日目录前缀时按
-    basename 回落(内容哈希不变,仅文件名——见 §C0 基线发现)。"""
+    源件=包内清单所记名(manifest.file),不在场即报错——不按文件名回落
+    (R31 NEW30 入库包裁决件改名的更正见 §C0)。"""
     man = json.load(open(os.path.join(R31_ACC, session,
                                       'ARCHIVE_MANIFEST.json'),
                          encoding='utf-8'))
     for e in man.get('verdict_chain') or []:
         rel = e.get('source_rel') or ''
         src = os.path.join(R31_ACC, session, e['file'])
-        if not os.path.isfile(src):
-            src = os.path.join(R31_ACC, session, 'verdicts',
-                               os.path.basename(e['file']).split('__', 1)[-1])
         dst = os.path.join(T, rel)
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copy2(src, dst)
@@ -877,19 +878,81 @@ def sec_b():
 
 
 # ═══ §C 任务3: 冻结-裁决-交付链 ═══
+# R31 入库 NEW30 包(含 REVISE→UPHELD 链)两份裁决件的 git blob sha1。清单所记名=
+# verdicts/20261123__VERDICT-*.json;更正提交之前入库副本按无日目录前缀的名存放
+# (R31 证据包装包时改存,字节不变),按清单解包即缺档——§C0 复现、§C0b 更正后。
+FORMER_NEW30_BLOBS = ('7d6e537c35ce7c661040b1489ea85e666a2a0b8f',
+                      '9877ee57dbbce1d828d132033d03af6af44293ff')
+R32_ACC = os.path.join(ROOT, 'docs', 'autonomous-rd', 'r32-evidence',
+                       'acceptance')
+
+
+def _git_blob_sha1(path):
+    data = open(path, 'rb').read()
+    h = hashlib.sha1()
+    h.update(b'blob %d\0' % len(data))
+    h.update(data)
+    return h.hexdigest()
+
+
+def _manifest_state(pkg):
+    """按 ARCHIVE_MANIFEST 原样解包的只读核对: 清单绑定件(十件套/裁决链/冻结三件)
+    逐件在场且 sha16 相符。返回(清单, 不符项, 裁决链, 清单之外的文件)。"""
+    m = json.load(open(os.path.join(pkg, 'ARCHIVE_MANIFEST.json'),
+                       encoding='utf-8'))
+
+    def _sha16(p):
+        if not os.path.isfile(p):
+            return None
+        return hashlib.sha256(open(p, 'rb').read()).hexdigest()[:16]
+
+    bad, bound = [], set()
+    for rel, want in sorted((m.get('copies_sha16') or {}).items()):
+        bound.add(rel)
+        if _sha16(os.path.join(pkg, rel)) != want:
+            bad.append(rel)
+    chain = m.get('verdict_chain') or []
+    for v in chain:
+        bound.add(v['file'])
+        if _sha16(os.path.join(pkg, v['file'])) != str(v['sha256'])[:16]:
+            bad.append(v['file'])
+    for rel, want in sorted((m.get('frozen_inputs') or {}).items()):
+        bound.add(os.path.join('root_overlay', rel))
+        if _sha16(os.path.join(pkg, 'root_overlay', rel)) != want:
+            bad.append(rel)
+    side = []
+    for dp, _dns, fns in os.walk(pkg):
+        for fn in fns:
+            rel = os.path.relpath(os.path.join(dp, fn), pkg)
+            if rel not in bound and rel != 'ARCHIVE_MANIFEST.json':
+                side.append(rel)
+    return m, bad, chain, sorted(side)
+
+
 def sec_c():
     print('═══ §C 任务3: 冻结/裁决/交付链共用本工单冻结输入 ═══')
-    # C0 基线发现(不可变证据,源包保持原字节): R31 入库 NEW30 包裁决件
-    # 名缺日目录前缀(verdicts/VERDICT-*.json≠manifest.file
-    # verdicts/20261123__VERDICT-*.json,内容哈希同值)→重放门①缺档拒
-    pk0 = os.path.join(TMPG, 'pkg_r31_new30')
+    # C0 复现前提: 在临时目录内重建更正前的入库形态——两份裁决件改回无日目录
+    # 前缀的名,字节不动(与原始归档包比对: 16 件逐字节相同,仅此 2 件换名)
+    pk0 = os.path.join(TMPG, 'pkg_r31_new30_former')
     shutil.copytree(os.path.join(R31_ACC, 'session_NEW30'), pk0)
-    rc0, d0 = replay(pk0, ROOT, out=os.path.join(TMPG, 'rp_r31_new30'))
+    vd0 = os.path.join(pk0, 'verdicts')
+    moved = []
+    for fn in sorted(os.listdir(vd0)):
+        dst = os.path.join(vd0, fn.split('__', 1)[-1])
+        shutil.move(os.path.join(vd0, fn), dst)
+        moved.append(dst)
+    check('§C0 复现前提: 重建的更正前形态=两份裁决件按无日目录前缀名存放'
+          '(VERDICT-20261122T145134Z-01/-02.json),git blob 即更正前入库对象',
+          [os.path.basename(p) for p in moved] == [
+              'VERDICT-20261122T145134Z-01.json', 'VERDICT-20261122T145134Z-02.json']
+          and tuple(_git_blob_sha1(p) for p in moved) == FORMER_NEW30_BLOBS,
+          'blobs=%s' % [_git_blob_sha1(p)[:8] for p in moved])
+    rc0, d0 = replay(pk0, ROOT, out=os.path.join(TMPG, 'rp_r31_new30_former'))
     ck0 = {c.get('check'): c.get('ok') for c in
            ((d0.get('data') or {}).get('checks') or []) if c.get('check')}
     det0 = {c.get('check'): str(c.get('detail')) for c in
             ((d0.get('data') or {}).get('checks') or []) if c.get('check')}
-    check('§C0 基线: 入库 R31 NEW30 包按清单原样解包→重放拒绝(rc=1: '
+    check('§C0a 复现: 更正前形态的 R31 NEW30 包按清单原样解包→重放拒绝(rc=1: '
           'completeness_files 裁决链缺档 2+verdict_chain_hashes 缺席),'
           '其余门(冻结件/运行 SHA/内容摘要)全绿——缺件必须拒绝',
           rc0 != 0 and ck0.get('completeness_files') is False
@@ -900,6 +963,55 @@ def sec_c():
           and ck0.get('content_digest_match') is True
           and ck0.get('verdict_binding_threeway') is False,
           f"rc={rc0} failed={[k for k, v in ck0.items() if v is False]}")
+    # C0b 更正后: 入库副本按清单所记名存放(同两件 blob,仅改名)→按清单解包零不符;
+    # 本引擎重放只剩版本门拒(包绑定运行 SHA=ca916cd),完整性/裁决链哈希/终裁绑定
+    # 与冻结三查/内容摘要全绿。录制代码引擎(ca916cd)上的严格重放与六步=从提交
+    # 重新下载的实包重放回执(replays/,仓外引擎,门内不可得)
+    pk1 = os.path.join(TMPG, 'pkg_r31_new30')
+    shutil.copytree(os.path.join(R31_ACC, 'session_NEW30'), pk1)
+    man1, bad1, chain1, _side1 = _manifest_state(pk1)
+    rc1, d1 = replay(pk1, ROOT, out=os.path.join(TMPG, 'rp_r31_new30'))
+    ck1 = {c.get('check'): c.get('ok') for c in
+           ((d1.get('data') or {}).get('checks') or []) if c.get('check')}
+    check('§C0b 更正后: 入库 R31 NEW30 包裁决件名=清单所记名(同两件 blob,仅改名;'
+          'REVISE→UPHELD 两档链齐)→按清单原样解包零不符→本引擎重放仅版本门拒'
+          '(blocked=code_version_mismatch;包绑定运行 SHA=ca916cd),完整性/裁决链哈希/'
+          '终裁绑定/冻结三查/内容摘要全绿',
+          bad1 == []
+          and [v.get('overall') for v in chain1] == ['REVISE', 'UPHELD']
+          and [v.get('revision') for v in chain1] == [1, 2]
+          and chain1[1].get('predecessor') == chain1[0].get('source_rel')
+          and man1.get('verdicts_n') == 2
+          and tuple(_git_blob_sha1(os.path.join(pk1, v['file']))
+                    for v in chain1) == FORMER_NEW30_BLOBS
+          and rc1 != 0
+          and (d1.get('data') or {}).get('blocked') == 'code_version_mismatch'
+          and bool(ck1) and all(v is True for v in ck1.values())
+          and ck1.get('completeness_files') is True
+          and ck1.get('verdict_chain_hashes') is True
+          and ck1.get('verdict_binding_threeway') is True,
+          f"bad={bad1} rc={rc1} blocked={(d1.get('data') or {}).get('blocked')} "
+          f"not_true={[k for k, v in ck1.items() if v is not True]}")
+    # C0c 七个入库归档包(R31 三包+R32 四包)全部按清单原样解包零不符
+    pk7 = {}
+    for fam, base, sess in (
+            ('r31', R31_ACC, ('session_A4_formal', 'session_B2_formal', 'session_NEW30')),
+            ('r32', R32_ACC, ('session_A_formal', 'session_B_formal', 'session_T3_formal',
+                              'session_NEW30'))):
+        for s in sess:
+            pk7[fam + '/' + s] = _manifest_state(os.path.join(base, s))
+    check('§C0c 七个入库归档包(R31 A4/B2/NEW30+R32 A/B/T3/NEW30)按清单原样解包: 清单'
+          '绑定件逐件在场且 sha16 相符(零不符),裁决链末裁 UPHELD,R31 NEW30 与 R32 B '
+          '为 REVISE→UPHELD 两档链',
+          all(not bad for _m, bad, _c, _s in pk7.values())
+          and all(chain and chain[-1].get('overall') == 'UPHELD'
+                  and len(chain) == m.get('verdicts_n')
+                  for m, _b, chain, _s in pk7.values())
+          and {k: len(v[2]) for k, v in pk7.items()} == {
+              'r31/session_A4_formal': 1, 'r31/session_B2_formal': 1, 'r31/session_NEW30': 2,
+              'r32/session_A_formal': 1, 'r32/session_B_formal': 2,
+              'r32/session_T3_formal': 1, 'r32/session_NEW30': 1},
+          'state(不符/裁决档/清单外)=%s' % {k: [len(v[1]), len(v[2]), len(v[3])] for k, v in pk7.items()})
     # C1 工单钉死: 提交的 R31 正式包(NEW30: REVISE→UPHELD 链;旧档无
     # evidence_gate=as_of 不钉,重渲逐字节沿用旧口径)
     rd, src = fresh_pkg_rd('pins', 'session_NEW30')

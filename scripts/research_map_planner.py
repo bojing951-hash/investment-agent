@@ -197,6 +197,20 @@ def policy_doc_visible(doc_id, as_of):
     return None   # 未登记文件: 无事实面,如实 None(调用方按无据处理)
 
 
+def policy_doc_facts_visible(as_of):
+    """Audit-R33 任务1: 政策文档事实面同样按发布日期过滤——published_on
+    ≤研究时点(证据口径)者入场;晚于研究时点的文档不入面,列扣留清单
+    (点名「研究时点后发布,未纳入」)。→ (可见列表, 扣留列表)。
+    as_of 为空=原语义(全量入场,扣留空表)。"""
+    if not as_of:
+        return list(POLICY_DOC_FACTS), []
+    vis = [dict(d) for d in POLICY_DOC_FACTS if d['published_on'] <= as_of]
+    held = [{'doc_id': d['doc_id'], 'title': d['title'],
+             'kind': d.get('kind'), 'published_on': d['published_on']}
+            for d in POLICY_DOC_FACTS if d['published_on'] > as_of]
+    return vis, held
+
+
 # ── Audit-R22 任务2: 同一事件的跨国信号合并 ───────────────────────────────
 # 政策变动事件(决议日+幅度)按决议日跨地区聚簇(±CLUSTER_DAYS 日内=同一
 # 全球政策事件);簇内逐国分记决议/生效日,月频证据只能说明同步时如实
@@ -3137,6 +3151,27 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
 
     # 政策四分面(R21 任务2: 政策目标/贷款报价/隔夜市场均值分开标明;
     # 决议日/生效日/市场观测日/统计窗口终点四日期分记)
+    def _policy_doc_lines():
+        """政策文档两清单(可见=研究时点前发布;扣留=研究时点后发布,
+        Audit-R33 任务1 按发布日期过滤)。旧档无扣留键=仅原可见表。"""
+        out = []
+        pdf = rp.get('policy_doc_facts') or []
+        if pdf:
+            out += ['**政策文档事实(公告/纪要发布日)**', '',
+                    '| 文档 | 发布日 | 口径 |', '|---|---|---|']
+            for d in pdf:
+                out.append(f"| {d.get('title')}({d.get('doc_id')}) | "
+                           f"{d.get('published_on')} | {d.get('basis')}: "
+                           f"{str(d.get('note') or '')[:80]} |")
+            out.append('')
+        pdw = rp.get('policy_doc_withheld') or []
+        if pdw:
+            out += ['**政策文档(按发布日期过滤,未纳入)**: 下列文档在研究'
+                    '时点后发布,不得作为研究时点的证据——'
+                    + ';'.join(f"{d.get('title')}({d.get('published_on')}"
+                               " 发布)" for d in pdw), '']
+        return out
+
     pol_rows = [c for c in rows if c.get('policy_face')]
     if pol_rows:
         lines += ['## 政策口径四分面(目标/报价/市场均值分列;四日期分记)', '']
@@ -3293,16 +3328,12 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                     f" | {ev_txt} | "
                     f"{'是' if cl.get('same_event_cross_country') else '否'} |")
             lines.append('')
-        pdf = rp.get('policy_doc_facts') or []
-        if pdf:
-            lines += ['**政策文档事实(公告/纪要发布日)**', '',
-                      '| 文档 | 发布日 | 口径 |', '|---|---|---|']
-            for d in pdf:
-                lines.append(f"| {d.get('title')}({d.get('doc_id')}) | "
-                             f"{d.get('published_on')} | {d.get('basis')}: "
-                             f"{str(d.get('note') or '')[:80]} |")
-            lines.append('')
+        lines += _policy_doc_lines()
         lines.append('')
+    else:
+        # Audit-R33 任务1: 政策面整段缺席时政策文档两清单仍如实列出(不因
+        # 分支静默;旧档无 policy_doc_withheld 键=零新增行)
+        lines += _policy_doc_lines()
 
     # 美债三利率共同交易日分解(任务3复算面;R21 任务4: 年度判断=同窗年度
     # 分解打头,月度另列;两窗任一历史不足即显示历史不足不出数)

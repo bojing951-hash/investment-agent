@@ -788,21 +788,34 @@ def metric_series(metric_id, snapshot=None, root=None):
     if prefix is None:
         return None, (f"该指标来源({m.get('source')})为单点观测,无历史序列——"
                       '工作台历史页暂不支持')
-    files = sorted(glob.glob(os.path.join(root or ROOT, 'data', 'daily', f'{prefix}*.json')))
-    if not files:
+    files_all = sorted(glob.glob(os.path.join(root or ROOT, 'data', 'daily', f'{prefix}*.json')))
+    if not files_all:
         return None, f'本地无 {prefix}* 采集档——请先运行 python3 run_weekly.py'
+    files = files_all
     # Audit-R32 任务1 规则③: 注册表声明最新修订口径的序列在研究截止下
     # 只取采集日 ≤ 截止的采集档(采集日=版本日);无→版本不可得,不取更晚
     # 版本冒充当时值
     _vc = not _eg.is_revised(m)
-    if _eg.evidence_asof() and not _vc:
-        files, _dropped_ymd = _eg.collection_vintage_files(files, _eg.evidence_asof())
+    _asof = _eg.evidence_asof()
+    _vb = None
+    if _asof:
+        # Audit-R33 任务1(统一历史证据口径): 研究截止下采集档通道**全部**
+        # 序列绑定当时可得的冻结版本=采集日 ≤截止的最新采集档;数据树无
+        # ≤截止的采集档: 声明修订口径=版本不可得(拒);其余=取最新采集档
+        # 但逐序列标 historical_version_missing(缺历史版本明确标缺证——
+        # 截止后的观测逐点剔除,值不得表述为当时冻结版)
+        files, _dropped_ymd = _eg.collection_vintage_files(files_all, _asof)
         if not files:
-            return None, ('数据版本不可得: 注册表声明最新修订口径'
-                          '(release_semantics=latest_vintage),最新采集档 '
-                          f'{_dropped_ymd} 晚于研究截止 {_eg.evidence_asof()}'
-                          '——当时所见值不可得,不取最新修订值冒充')
-        _vc = True
+            if not _vc:
+                return None, ('数据版本不可得: 注册表声明最新修订口径'
+                              '(release_semantics=latest_vintage),最新采集档 '
+                              f'{_dropped_ymd} 晚于研究截止 {_asof}'
+                              '——当时所见值不可得,不取最新修订值冒充')
+            files = files_all
+            _vb = 'historical_version_missing'
+        else:
+            _vb = 'collector_file_le_asof'
+            _vc = True
     ymd = os.path.basename(files[-1])[len(prefix):len(prefix) + 8]
     import research_history_query as rhq
     try:
@@ -823,6 +836,11 @@ def metric_series(metric_id, snapshot=None, root=None):
            'source': f"采集档 {os.path.basename(res.get('source', {}).get('file', files[-1]))}"}
     if res.get('collection_status'):
         out['collection_status'] = res['collection_status']
+    if _vb:
+        # Audit-R33 任务1: 采集档通道版本绑定标记(随序列面披露)
+        out['evidence_gate'] = {
+            'version_status': _vb, 'value_source_file': os.path.basename(
+                res.get('source', {}).get('file', files[-1]))}
     return _eg.apply_to_series((out, None), metric_id, m.get('frequency'),
                                meta=m, version_confirmed=_vc)
 

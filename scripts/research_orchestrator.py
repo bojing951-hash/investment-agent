@@ -1389,6 +1389,31 @@ def _entity_spans(question, reg_by_id, metric_ids):
     return spans
 
 
+# Audit-R33 任务1: 事实/索引行版本绑定标记→读者短标签(完整口径见证据
+# 口径段的缺口行)
+_EG_VERSION_LABELS = {
+    'historical_version_missing': '缺历史版本',
+    'as_of_vintage': 'as-of冻结版本',
+    'snapshot_vintage': '快照版本',
+    'latest_revision_only': '最新修订版',
+    'not_declared_revised': '值不随版本变',
+    'not_in_as_of_vintage': '不在as-of冻结版本内',
+}
+
+
+def _eg_version_label(status):
+    return _EG_VERSION_LABELS.get(str(status), str(status))
+
+
+def _eg_prelim_suffix(mark):
+    """Audit-R33 任务1(快报与终值): 值取自所绑冻结版本且为快报/初值
+    (终值日在研究时点之后)→读者可见后缀;无标记=空串(旧档渲染不变)。"""
+    if not isinstance(mark, dict) or \
+            mark.get('value_version') != 'flash_or_preliminary':
+        return ''
+    return f"·快报/初值(终值 {mark.get('final_publish_on')} 发布)"
+
+
 def _fact_rows(snap, metric_ids):
     """L1 行: 快照事实直取(逐行 fact_id 证据;不猜不补)。
 
@@ -1399,11 +1424,23 @@ def _fact_rows(snap, metric_ids):
     for f in snap.get('facts') or []:
         if f.get('metric_id') not in metric_ids:
             continue
-        rows.append({'metric_id': f.get('metric_id'),
-                     'value': f.get('value'), 'unit': f.get('unit'),
-                     'observation_date': f.get('observation_date'),
-                     'quality_status': f.get('quality_status'),
-                     'source': {'kind': 'snapshot_fact', 'id': f.get('fact_id')}})
+        row = {'metric_id': f.get('metric_id'),
+               'value': f.get('value'), 'unit': f.get('unit'),
+               'observation_date': f.get('observation_date'),
+               'quality_status': f.get('quality_status'),
+               'source': {'kind': 'snapshot_fact', 'id': f.get('fact_id')}}
+        _fg = f.get('evidence_gate') if isinstance(f.get('evidence_gate'),
+                                                    dict) else None
+        if _fg:
+            # Audit-R33 任务1: 事实的版本绑定/缺口标记随行(重建@截止/所绑
+            # 版本/缺历史版本)——读者与判定席逐行可核;无标记的旧事实不加键
+            row['evidence_gate'] = {k: _fg[k] for k in (
+                'rebuilt_at_as_of', 'vintage', 'version_status',
+                'value_source_snapshot_id', 'value_source_target_date',
+                # 快报与终值: 所绑冻结版本内为快报/初值时随行标注
+                'value_version', 'final_publish_on')
+                if k in _fg}
+        rows.append(row)
     return rows
 
 
@@ -2272,7 +2309,12 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
             # 确定性派生,渲染与契约同读。
             research_plan['policy_event_clusters'] = rmp.policy_clusters_from_plan(
                 research_plan)
-            research_plan['policy_doc_facts'] = rmp.POLICY_DOC_FACTS
+            # Audit-R33 任务1: 政策文档同样按发布日期过滤——研究时点(证据
+            # 口径)后发布的纪要/公告不入面,列扣留清单点名;无证据口径=原
+            # 语义(全量),旧工单渲染不变。
+            research_plan['policy_doc_facts'], research_plan[
+                'policy_doc_withheld'] = rmp.policy_doc_facts_visible(
+                    _eg_asof)
         _merged = list(ent['metrics']) + [
             m for m in research_plan['metrics']
             if m not in ent['metrics']]
@@ -2575,9 +2617,18 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
     # 证据索引: 每个数字行必须有 fact_id/view_id 级来源
     evidence_index = []
     for r in l1_rows:
-        evidence_index.append({'ref': r['source']['id'],
-                               'kind': r['source']['kind'],
-                               'metric_id': r['metric_id']})
+        _ei = {'ref': r['source']['id'],
+               'kind': r['source']['kind'],
+               'metric_id': r['metric_id']}
+        if (r.get('evidence_gate') or {}).get('version_status'):
+            # Audit-R33 任务1: 版本绑定/缺口标记入索引(旧档行无此键)
+            _ei['version_status'] = r['evidence_gate']['version_status']
+            if r['evidence_gate'].get('value_version'):
+                # Audit-R33 任务1: 快报/初值标记入索引(终值日随行)
+                _ei['value_version'] = r['evidence_gate']['value_version']
+                _ei['final_publish_on'] = r['evidence_gate'].get(
+                    'final_publish_on')
+        evidence_index.append(_ei)
     for r in (vpf.get('rows') or []):
         evidence_index.append({'ref': r['source']['id'],
                                'kind': r['source']['kind'],
@@ -3010,6 +3061,35 @@ def _render_md(r):
         if _v.get('vintage_snapshot'):
             lines.append(f"  - as-of 版本快照: {_v.get('vintage_snapshot')}"
                          f"({_v.get('vintage_snapshot_id')})")
+        # Audit-R33 任务1: 冻结版本绑定与缺口(缺历史版本/截止后回填/已发布
+        # 未入所绑版本/采集档晚于截止)——gaps 键在场才渲染(旧档无此键)
+        for _g in _eg.get('gaps') or []:
+            if not isinstance(_g, dict):
+                continue
+            _lst = list(_g.get('series') or [])
+            lines.append(f"  - 缺口[{_g.get('gap')}]: {_g.get('detail')}"
+                         + ((f";{len(_lst)} 项: " + '、'.join(_lst[:12])
+                             + ('…' if len(_lst) > 12 else ''))
+                            if _lst else ''))
+        _fv = _c.get('facts_rebuilt_from_vintage_series')
+        if _fv:
+            lines.append(f"  - 旧快照有序列但缺事实行: {_fv} 项事实自所绑 "
+                         f"as-of 版本的序列重建(不取较晚版本的事实值)")
+        _fn = _c.get('facts_not_in_vintage')
+        if _fn:
+            lines.append(f"  - 事实不在所绑 as-of 版本内(较晚版本才有的"
+                         f"事实行,不可绑定): {_fn} 项")
+        # Audit-R33 任务1: 政策文档按发布日期过滤——可见/扣留两清单读者版
+        # 可见(键在场才渲染;旧档不变)
+        _rpd = _rp if isinstance(_rp, dict) else {}
+        _pdf = _rpd.get('policy_doc_facts')
+        _pdw = _rpd.get('policy_doc_withheld')
+        if _pdf is not None or _pdw is not None:
+            lines.append(
+                "  - 政策文档(按发布日期过滤): 可见 %d 份" % len(_pdf or [])
+                + (";未纳入(研究时点后发布,不得作为研究时点证据): "
+                   + ';'.join(f"{d.get('title')}({d.get('published_on')} 发布)"
+                              for d in _pdw) if _pdw else ''))
     # 时点口径两行同样只在 r32 证据口径在场时渲染(旧档 as_of_declared
     # 无 clamped_to_coverage 键,但 elif 分支会命中旧地图档→逐字节漂移)。
     _ad = ((_rp or {}).get('as_of_declared') or {})
@@ -3074,10 +3154,17 @@ def _render_md(r):
         # R23 审计 MINOR-5: 质量状态随行渲染(此前只在 json 面,
         # md 读者看不到 DEGRADED 披露)
         q = row.get('quality_status')
+        _rg = row.get('evidence_gate') or {}
         lines.append(f"- {row['metric_id']} = {row['value']} {row['unit'] or ''}"
                      f" @{row['observation_date']}"
                      + (f" [质量:{q}]" if q else '')
-                     + f" [来源:{row['source']['kind']}:{row['source']['id']}]")
+                     + f" [来源:{row['source']['kind']}:{row['source']['id']}]"
+                     # Audit-R33 任务1: 版本绑定/缺口标记(旧档行无此键)
+                     + (' [口径:重建@截止]' if _rg.get('rebuilt_at_as_of')
+                        else '')
+                     + (f" [版本:{_eg_version_label(_rg.get('version_status'))}]"
+                        if _rg.get('version_status') else '')
+                     + _eg_prelim_suffix(_rg))
     vpf = L['L2_机构观点层']['views']
     lines.append(f"\n### L2 机构观点层 "
                  f"available={vpf.get('available')}"
@@ -3189,7 +3276,10 @@ def _render_md(r):
     for e in r['evidence_index']:
         lines.append(f"- {e['kind']}:{e['ref']}"
                      + (f" → {e['metric_id']}" if e.get('metric_id') else '')
-                     + (f" [{e['view_label']}]" if e.get('view_label') else ''))
+                     + (f" [{e['view_label']}]" if e.get('view_label') else '')
+                     + (f" [版本:{_eg_version_label(e.get('version_status'))}]"
+                        if e.get('version_status') else '')
+                     + _eg_prelim_suffix(e))
     if r['notes']:
         lines += ['', '## 注记', ''] + [f"- {n}" for n in r['notes']]
     lines.append('')

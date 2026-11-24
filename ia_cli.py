@@ -1656,6 +1656,7 @@ def _r1_report_core_pinned(args, engine_root, pins):
     # Audit-R32 任务1: 研究截止日与证据口径一行(与 report.md 读者面同源;
     # 旧档无 run.evidence_gate=不渲染,归档字节不变)
     _eg_hdr = run_meta.get('evidence_gate') or {}
+    from research_orchestrator import _eg_version_label, _eg_prelim_suffix
     if isinstance(_eg_hdr, dict) and _eg_hdr.get('as_of'):
         _c_hdr = _eg_hdr.get('counts') or {}
         lines.append(
@@ -1669,14 +1670,42 @@ def _r1_report_core_pinned(args, engine_root, pins):
             + (' | 历史截止(晚观测/晚发布/当时不可得版本不入证据面)'
                if _eg_hdr.get('historical_view')
                else ' | 快照版本日口径(截止日=快照版本日)'))
+        # Audit-R33 任务1: 冻结版本绑定与缺口(缺历史版本/截止后回填/已发布
+        # 未入所绑版本/采集档晚于截止)——gaps 键在场才渲染(旧档无此键)
+        for _g in _eg_hdr.get('gaps') or []:
+            if not isinstance(_g, dict):
+                continue
+            _lst = list(_g.get('series') or [])
+            lines.append(
+                f"  - 缺口[{_g.get('gap')}]: {_g.get('detail')}"
+                + ((f";{len(_lst)} 项: " + '、'.join(_lst[:12])
+                    + ('…' if len(_lst) > 12 else '')) if _lst else ''))
+        # Audit-R33 任务1: 政策文档按发布日期过滤(与 report.md 同源;键在场
+        # 才渲染,旧档归档字节不变)
+        _rp_hdr = rj.get('research_plan') if isinstance(
+            rj.get('research_plan'), dict) else {}
+        _pdf, _pdw = (_rp_hdr.get('policy_doc_facts'),
+                      _rp_hdr.get('policy_doc_withheld'))
+        if _pdf is not None or _pdw is not None:
+            lines.append(
+                "  - 政策文档(按发布日期过滤): 可见 %d 份" % len(_pdf or [])
+                + (";未纳入(研究时点后发布,不得作为研究时点证据): "
+                   + ';'.join(f"{d.get('title')}({d.get('published_on')} 发布)"
+                              for d in _pdw) if _pdw else ''))
     lines += ['', '## L1 事实层(引擎确定性产出)', '',
              '| 指标 | 值 | 单位 | 观测日 | 质量 | 证据 ref |',
              '|---|---|---|---|---|---|']
     for r in l1_rows:
         src = r.get('source') or {}
+        _rg = r.get('evidence_gate') or {}
         lines.append(f"| {r.get('metric_id')} | {r.get('value')} | "
                      f"{r.get('unit')} | {r.get('observation_date')} | "
-                     f"{r.get('quality_status')} | {src.get('id')} |")
+                     f"{r.get('quality_status')} | {src.get('id')}"
+                     # Audit-R33 任务1: 版本绑定/缺口标记(旧档行无此键)
+                     + (' [重建@截止]' if _rg.get('rebuilt_at_as_of') else '')
+                     + (f" [{_eg_version_label(_rg.get('version_status'))}]"
+                        if _rg.get('version_status') else '')
+                     + _eg_prelim_suffix(_rg) + " |")
     lines += ['', '## L2 机构观点层(VP sidecar 验证面+views 库摘编)', '',
               f"- available={vpf.get('available')} n={vpf.get('n')} "
               f"隔离={vpf.get('n_bad_quarantined')}",

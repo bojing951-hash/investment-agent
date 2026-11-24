@@ -2157,6 +2157,12 @@ def _r1_archive_core(args, engine_root):
             '归档拒绝: ' + _msg]
 
 
+def _sha_eq_tol(a, b):
+    """SHA 比对前缀容忍(印章可能短 SHA,git 恒全 40 位)。"""
+    return bool(a and b and (a == b or (len(a) >= 7 and len(b) >= 7
+                                        and (a.startswith(b) or b.startswith(a)))))
+
+
 def _r1_archive_core_pinned(args, engine_root, pins):
     """Audit-R2 条目6: 最终归档=受审版本的完整自包含交付包。
 
@@ -2433,6 +2439,20 @@ def _r1_archive_core_pinned(args, engine_root, pins):
                 '归档内容段==裁决绑定已核/Audit-R24 任务1)',
                 '归档内容段==裁决绑定(仅差审查状态短语=状态面等价)已核'
                 '/Audit-R32 正式验收)')
+        # Audit-R32 正式验收: 裁决后再交付包(运行=执行印章、交付字节=归档
+        # 印章,如状态面翻新)随清单落档归档代码 SHA——仅当归档代码≠运行
+        # SHA 时加键(同印章归档清单字节不变);重放门④对已声明状态面
+        # 等价的再交付包认归档代码为录制代码(见重放段)
+        try:
+            _arc_head = ro._git_state(ROOT)[0]
+        except Exception:       # noqa: BLE001 印章不可得=不加键
+            _arc_head = None
+        if _arc_head and not _sha_eq_tol(_arc_head,
+                                         manifest['run_code_git_head']):
+            manifest['archive_code_git_head'] = _arc_head
+            manifest['correlation'] += (
+                ';归档代码=%s≠运行代码=%s(裁决后再交付/Audit-R32 正式验收)'
+                % (_arc_head[:12], str(manifest['run_code_git_head'])[:12]))
         # Audit-R32 任务1/3: 研究截止日与证据口径块随清单落档(重放/回读
         # 同读;旧档无 run.evidence_gate=不加键,清单字节不变)
         _eg_man = (rj.get('run') or {}).get('evidence_gate')
@@ -2482,7 +2502,9 @@ def _r1_replay_core(args, engine_root):
     ④ 确定性重渲: 以包内冻结输入(report.json+agent_judgment.json+审查
        状态面)按**当前代码**重渲 MAP_REPORT.md,与归档字节逐字节比对。
        代码版本须==manifest.run_code_git_head(逐字节核对只对录制代码
-       有意义;--allow-code-mismatch 显式越过并降级为披露)。manifest
+       有意义;--allow-code-mismatch 显式越过并降级为披露;Audit-R32
+       正式验收: 清单已声明状态面等价且携 archive_code_git_head 的
+       裁决后再交付包,当前代码==归档代码亦成立)。manifest
        未声明渲染器漂移(map_renderer_drift=false)时必须逐字节相等;
        声明漂移的包按 R24 纪律以受审冻结字节为准,重渲差异如实披露
        不判负(受审定稿权威)。
@@ -2712,11 +2734,18 @@ def _r1_replay_core(args, engine_root):
     # ROOT 即代码树时 run_root=code_tree 同级命中,印章为终级)。
     # SHA 比对前缀容忍(印章可能短 SHA,git 恒全 40 位)。
     cur_head, _cur_src, _cur_dirty = ro._git_state(ROOT)
-    _sha_eq = lambda a, b: bool(           # noqa: E731 前缀容忍比对
-        a and b and (a == b or (len(a) >= 7 and len(b) >= 7
-                                and (a.startswith(b) or b.startswith(a)))))
+    _sha_eq = _sha_eq_tol
     code_match = _sha_eq(cur_head, head_mf)
-    if not code_match and not getattr(args, 'allow_code_mismatch', False):
+    # Audit-R32 正式验收: 裁决后再交付包(运行 SHA=执行印章;交付字节=归档
+    # 印章所产,清单 map_binding_status_equivalent+archive_code_git_head 已
+    # 声明)——当前代码==归档代码时同为"录制代码"(逐字节核对的对象正是
+    # 归档代码所产交付字节);其余异版照旧拒。
+    _arc_head = manifest.get('archive_code_git_head')
+    _redeliv = bool(not code_match and _arc_head
+                    and manifest.get('map_binding_status_equivalent')
+                    and _sha_eq(cur_head, _arc_head))
+    if not code_match and not _redeliv \
+            and not getattr(args, 'allow_code_mismatch', False):
         return False, {'stage': 'replay', 'package': pkg,
                        'blocked': 'code_version_mismatch',
                        'checks': checks,
@@ -2728,10 +2757,13 @@ def _r1_replay_core(args, engine_root):
             ['重放拒绝: 代码版本不符——当前=%s 包=%s(Audit-R28 任务4 门④)'
              % (cur_head or '(git 不可用)', head_mf or '缺席')]
     _chk('code_version_match',
-         code_match or getattr(args, 'allow_code_mismatch', False),
+         code_match or _redeliv
+         or getattr(args, 'allow_code_mismatch', False),
          '当前=%s 包=%s%s' % (cur_head or '(git 不可用)', head_mf or '缺席',
                               '' if code_match
-                              else '(--allow-code-mismatch 披露越过)'))
+                              else ('(当前=归档代码 %s: 裁决后再交付包,清单已'
+                                    '声明)' % _arc_head if _redeliv
+                                    else '(--allow-code-mismatch 披露越过)')))
     render_mode = 'not_map_question'
     if map_q:
         aj_doc = _load_json_arc(
@@ -2815,6 +2847,10 @@ def _r1_replay_core(args, engine_root):
         'render_mode': render_mode, 'checks': checks, 'ok': ok,
         'command': ('python3 ia_cli.py research-one --stage replay '
                     '--package %s' % pkg)}
+    if _arc_head:
+        # Audit-R32 正式验收: 裁决后再交付包随重放报告落档归档代码 SHA
+        # (旧档无此键=重放报告字节不变)
+        replay_doc['package_archive_head'] = _arc_head
     aj._atomic_write_text(
         os.path.join(out_dir, 'REPLAY_REPORT.json'),
         json.dumps(replay_doc, ensure_ascii=False, indent=2, default=str))
@@ -2826,6 +2862,9 @@ def _r1_replay_core(args, engine_root):
              '- 裁决: %s(链 %s 档)' % (manifest.get('verdict'),
                                           manifest.get('verdicts_n')),
              '- 重渲模式: %s' % render_mode, '', '## 检查明细', '']
+    if _arc_head:
+        lines[4:4] = ['- 归档代码 SHA: `%s`(裁决后再交付包: 运行=执行印章、'
+                      '交付字节=归档印章;清单已声明状态面等价)' % _arc_head]
     for c in checks:
         lines.append('- [%s] %s%s' % ('PASS' if c['ok'] else 'FAIL',
                                       c['check'],

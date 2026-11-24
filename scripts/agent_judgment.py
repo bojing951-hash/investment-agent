@@ -483,6 +483,36 @@ def _pol_tense_violation(text, ev, t_assert, events):
     return None
 
 
+# Audit-R33 任务3(任务2补充): 完成态状态断言「(A..T)…已生效」的区间端识别
+_POL_RANGE_END_PRE = re.compile(r'(?:\.\.|…|~|～|—|–|--|至|到)\s*$')
+_POL_RANGE_END_POST = re.compile(r'\s{0,3}[)）内以止末期]')
+
+
+def _pol_state_window_ok(text, p, st_i, endi, tok, ev, bound):
+    """「生效」前带「已/已经」、其绑定日期词元是区间端 T(前紧邻区间连接词、
+    后紧邻收口字)、T 又不是本事件的决议日/生效日,且段内另提了同实体、在 T
+    当日已生效的决定→该句是与实录相符的状态断言,不是「本事件于 T 生效」。
+    (指代「该决议」无法确定性消解: 带事件日期的提前生效断言另由时态模型
+    拦截,不走本豁免。)"""
+    if not (text[p - 1:p] == '已' or text[p - 2:p] == '已经'):
+        return False
+    if tok in (ev.get('decision_date'), ev.get('effective_on')):
+        return False
+    if not (_POL_RANGE_END_PRE.search(text[max(0, st_i - 6):st_i])
+            and _POL_RANGE_END_POST.match(text, endi)):
+        return False
+    for e2 in bound:
+        if e2 is ev or e2.get('entity') != ev.get('entity'):
+            continue
+        eff2 = str(e2.get('effective_on') or '')
+        if not eff2 or eff2 > tok:
+            continue
+        if (any(f in text for f in _date_word_forms(e2['decision_date']))
+                or any(f in text for f in _date_word_forms(eff2))):
+            return True
+    return False
+
+
 def _judgment_text_segments(judgment):
     """判断文档内全部自然语言段(逐条带定位),POL-EFF 子串代理消费。"""
     segs = []
@@ -833,6 +863,11 @@ def validate_judgment(judgment, evidence_refs, metric_ids,
                     iso, mm, dd, st_i, endi = _toks[_gi]
                     tok = iso or '%s-%02d-%02d' % (_ddec[:4], mm, dd)
                     if tok == _deff or tok == _ddec and _deff == _ddec:
+                        continue
+                    # Audit-R33 任务3(任务2补充): 「(A..T)…已生效」状态断言
+                    # 不读成本事件于 T 提前生效(见 _pol_state_window_ok)
+                    if _pol_state_window_ok(text, _p, st_i, endi, tok, ev,
+                                            bound):
                         continue
                     if tok == _ddec:
                         _spec.append(

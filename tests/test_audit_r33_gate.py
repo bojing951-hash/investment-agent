@@ -212,6 +212,9 @@ def _offline_plan(tag, question, vintage=None):
     return t, rep, md, seen
 
 
+FIX_R33 = os.path.join(HERE, 'fixtures_r33')
+
+
 def _cli(argv, env=None, cwd=ROOT):
     e = dict(os.environ)
     e.update(env or {})
@@ -1021,6 +1024,98 @@ def sec_t2():
           n_arc >= 14 and not arc_bad, f'n={n_arc} bad={arc_bad[:4]}')
 
 
+# ══ 任务2补充: 完成态状态断言「(A..T)…已生效」不误拒 ════════════════════════
+# 12 月快照重跑 11 月原问(待生效决议在场)的真实席位文本被 R32 成对纪律误拒:
+# 「窗内(2026-05-30..2026-11-30)该决议已生效」的完成态「已生效」被读成「本
+# 事件于 11-30 生效」。修: 完成态+绑定日期词元是区间端+同实体在端点日已生效
+# 的另一决定在段内被提及→按状态断言放行;其余形态(非完成态/非区间端/带事
+# 件日期的提前生效断言/端点=本事件决议日)照旧拦截。
+F_T2B = ('日本: 发布日历实录载 2026-09-18 决议、2026-09-24 生效,'
+         '官方政策目标利率1.25%(2026-10-30 确认维持);')
+P_T2B = (';截至研究截止日有一项已决议未生效条目: 2026-11-27 决议、'
+         '2026-12-04 生效(目标1.5%)')
+
+
+def sec_t2b():
+    print('═══ 任务2补充: 完成态状态断言「(A..T)…已生效」不误拒 ═══')
+    cal = os.path.join(FIX_R33, 'family_calendar_dec.json')
+    ev = aj.collect_policy_events(cal)
+    real = aj.collect_policy_events(
+        os.path.join(ROOT, 'config', 'release_calendar.json'))
+    ids = sorted({(e['entry_id'], e.get('decision_date'),
+                   e.get('effective_on')) for e in ev if e.get('entity') == 'JP'})
+    check('§T2b-0 夹具日历=真实日历+合成日银决议(2026-11-27 决议并公布/'
+          '2026-12-04 生效,非真实决议);真实日历无该条',
+          ids == [('RC-JP-BOJ-TARGET-2026-09', '2026-09-18', '2026-09-24'),
+                  ('RC-JP-BOJ-TARGET-2026-11', '2026-11-27', '2026-12-04')]
+          and all(e['entry_id'] != 'RC-JP-BOJ-TARGET-2026-11' for e in real),
+          ids)
+    # a. 正句(完成态状态断言;区间端连接词两形)零政策违规
+    w1 = _pol_codes(F_T2B + '窗内(2026-05-30..2026-11-30)该决议已生效'
+                    + P_T2B, '2026-11-30', ev)
+    w2 = _pol_codes(F_T2B + '回看窗口 2026-05-30 至 2026-11-30 内已经生效'
+                    + P_T2B, '2026-11-30', ev)
+    check('§T2b-a 正句「窗内(A..T)该决议已生效」/「A 至 T 内已经生效」'
+          '(待生效决议同段提及)→零政策违规(修前误拒 POL-EFF-DATE)',
+          w1 == [] and w2 == [], f'w1={w1} w2={w2}')
+    # b. 误句照旧拦截
+    w3 = _pol_codes(F_T2B + '窗内(2026-05-30..2026-11-30)2026-11-27 决议已生效'
+                    '(目标1.5%)', '2026-11-30', ev)
+    w4 = _pol_codes('日本央行 2026-09-18 决议、2026-09-24 生效;窗内(2026-09-01..'
+                    '2026-09-20)该决议已生效', '2026-09-20', ev)
+    w5 = _pol_codes('日本央行 2026-09-18 决议、2026-09-24 生效;窗内(2026-09-01..'
+                    '2026-09-18)该决议已生效', '2026-09-20', ev)
+    w6 = _pol_codes(F_T2B + '窗内(2026-05-30..2026-11-30)生效的决议共两项'
+                    + P_T2B, '2026-11-30', ev)
+    w7 = _pol_codes(F_T2B + '截至 2026-11-30 该决议已生效' + P_T2B,
+                    '2026-11-30', ev)
+    check('§T2b-b 误句照旧拦截: 带事件日期的提前生效(POL-EFF-EARLY-CLAIM)/'
+          '窗端早于生效日且无同实体已生效决定(POL-EFF-DATE)/窗端=决议日'
+          '(EARLY-CLAIM)/非完成态「生效的决议」(POL-EFF-DATE)/非区间端'
+          '「截至 T 该决议已生效」(POL-EFF-DATE,保守)',
+          w3 == ['POL-EFF-EARLY-CLAIM'] and w4 == ['POL-EFF-DATE']
+          and w5 and w5[0] == 'POL-EFF-EARLY-CLAIM' and w6 == ['POL-EFF-DATE']
+          and w7 == ['POL-EFF-DATE'],
+          f'w3={w3} w4={w4} w5={w5} w6={w6} w7={w7}')
+    # c. 前瞻表述零违规;用户令误句形(真实日期)拒收
+    w8 = _pol_codes(F_T2B + '窗内(2026-05-30..2026-11-30)2026-12-04 起生效'
+                    + P_T2B, '2026-11-30', ev)
+    w9 = _pol_codes('日本央行 2026-09-18 决议、2026-09-24 生效;截至 2026-11-30,'
+                    '2026-11-27 决议、2026-12-04 生效的调整已经实施',
+                    '2026-11-30', ev)
+    check('§T2b-c 「T 起生效」前瞻表述零违规;「截至 11-30,11-27 决议、12-04 '
+          '生效的调整已经实施」→POL-EFF-EARLY-CLAIM',
+          w8 == [] and w9 == ['POL-EFF-EARLY-CLAIM'], f'w8={w8} w9={w9}')
+    # d. 正式 attach(合成运行目录,日历换夹具): 正句接收/误句拒收
+    w1c = (F_T2B + '窗内(2026-05-30..2026-11-30)该决议已生效' + P_T2B
+           ).replace('1.25%', '百分之一点二五').replace('1.5%', '百分之一点五')
+    got = {}
+    for key, stmt in (('ok', w1c), ('early', F_T2B + '窗内(2026-05-30..'
+                                    '2026-11-30)2026-11-27 决议已生效(目标1.5%)'),
+                      ('win', '日本央行 2026-09-18 决议、2026-09-24 生效;窗内'
+                              '(2026-09-01..2026-09-20)该决议已生效')):
+        asof = '2026-09-20' if key == 'win' else '2026-11-30'
+        t, rd, jp = _t2_synth_run('t2b_' + key, asof, stmt)
+        shutil.copy2(cal, os.path.join(t, 'config', 'release_calendar.json'))
+        r = aj.attach_judgment(rd, jp, root=t)
+        rep = _t2_attach_res(rd)
+        got[key] = (r.get('attached'),
+                    [v['code'] for v in ((rep.get('agent_judgment') or {})
+                                         .get('validation') or {}).get('violations') or []],
+                    ((rep.get('agent_judgment') or {})
+                     .get('contract_verification') or {}).get('verdict'),
+                    os.path.isfile(os.path.join(rd, 'agent_judgment.json')))
+    check('§T2b-d 正式 attach(attach_judgment,日历含待生效决议): 正句接收'
+          '(attached=True+契约 VERIFIED+判定档副本);两误句拒收(attached='
+          'False+EARLY-CLAIM/POL-EFF-DATE+无副本)',
+          got['ok'][0] is True and got['ok'][1] == []
+          and got['ok'][2] == 'VERIFIED' and got['ok'][3] is True
+          and got['early'][0] is False
+          and got['early'][1] == ['POL-EFF-EARLY-CLAIM']
+          and got['early'][3] is False
+          and got['win'][0] is False and got['win'][1] == ['POL-EFF-DATE']
+          and got['win'][3] is False, json.dumps(got, ensure_ascii=False))
+
 
 # ══ 任务1 更正: 旧工单重渲染零漂移 ═══════════════════════════════════════
 # 入库运行档的读者报告(已裁/待裁两形)按现行代码重渲染,哈希须与清单逐项
@@ -1097,6 +1192,7 @@ def main():
     print('Audit-R33 门 (HEAD %s)' % WORKTREE_HEAD[:12])
     try:
         sec_t2()
+        sec_t2b()
         sec_t1_a()
         sec_t1_b()
         sec_t1_c()

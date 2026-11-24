@@ -9,12 +9,17 @@
 =逐事实 historical_version_missing+顶层缺口;快报与终值=声明修订口径序列在
 首发→终值窗口内无冻结版本=当时数据版本不可得,有冻结版本=当时冻结的快报值并
 随行标注;采集档通道同口径;政策文档按发布日期过滤。
+任务2 政策时态: 事件 × 断言时点(段内显式「截至 X」优先于研究截止日)×
+实施状态逐分句核验;R31/R32 规则按原文照旧;正式 attach 拒收「截至 9 月
+20 日，9 月 24 日生效的加息已经实施」、接收「…尚未生效」;官方目标缺证
+的草稿处理不变;入库归档判定档(r30–r32 共 14 份)重验零新增违规。
 夹具说明: 冻结快照=提交的 R31 B2 overlay 原件(真实);as-of 版本夹具=由该快照
 按官方发布日截接的**构造版本**(snapshot_id 前缀 FIXTURE_,fixture_note 随行),
 非真实历史快照——只用于核验绑定规则,不作为任何交付的证据。
 """
 import contextlib
 import copy
+import glob
 import hashlib
 import io
 import json
@@ -32,12 +37,15 @@ sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(ROOT, 'scripts'))
 sys.path.insert(0, os.path.join(ROOT, 'scripts', 'research_contract'))
 
+import agent_judgment as aj                    # noqa: E402
 import evidence_gate as eg                       # noqa: E402
 import release_calendar as rc                    # noqa: E402
 import research_map_planner as rmp                # noqa: E402
 import workbench_data as wd                       # noqa: E402
 
 TMPG = tempfile.mkdtemp(prefix='r33gate_')
+_t2_mids = {m['metric_id'] for m in (wd.load_registry(ROOT).get('metrics')
+                                       or []) if m.get('metric_id')}
 RESULTS = []
 R31_ACC = os.path.join(ROOT, 'docs', 'autonomous-rd', 'r31-evidence',
                        'acceptance')
@@ -626,9 +634,398 @@ def sec_t1_g():
           json.dumps(faces.get('point_anchors'), ensure_ascii=False))
 
 
+# ═══ 任务2: 政策时态(政策事件 × 断言时点 × 实施状态) ═══
+SENT_A = '截至 9 月 20 日，9 月 24 日生效的加息已经实施'
+SENT_B = '截至 9 月 20 日，9 月 24 日生效的加息尚未生效'
+_POL_Q = ('对比角度换一个：2026年11月，美国与欧元区的增长和通胀环境相比'
+          '3个月前各有什么变化？日本央行政策利率处于什么水平，距离上次调整'
+          '过了多久？')
+
+
+def _mk_judgment(text):
+    return {'schema_version': '1.1',
+            'agent_declaration': {'attribution': 'ai_inferred'},
+            'l3': {'contradictions': [
+                {'id': 'C1', 'statement': text,
+                 'competing_explanations': [
+                     {'id': 'E1', 'text': 'a', 'evidence_refs': ['r1']},
+                     {'id': 'E2', 'text': 'b', 'evidence_refs': ['r1']}],
+                 'evidence_refs': ['r1']}]},
+            'l4': {'scenarios': []}, 'reader_map': {}}
+
+
+def _pol_codes(text, as_of, events):
+    res = aj.validate_judgment(_mk_judgment(text), {'r1'},
+                               {'JP_POLICY_TARGET'},
+                               policy_events=events, as_of=as_of)
+    return [v['code'] for v in res['violations']
+            if v['code'].startswith('POL')]
+
+
+def _t2_valid_judgment(mid_a, mid_b, statement):
+    """合规判定档母本(与 R36 attach 套件同构): 结构纪律与契约验证全过,
+    只换首条陈述——隔离出政策时态单条规则。"""
+    return {
+        'schema_version': '1.1',
+        'agent_declaration': {'attribution': 'ai_inferred',
+                              'note': '门夹具'},
+        'l3': {
+            'contradictions': [{
+                'id': 'CON-1', 'statement': statement,
+                'basis': '基于证据索引的推断',
+                'competing_explanations': ['解释一(基准)', '解释二(反例)'],
+                'evidence_refs': ['FACT_A@2026-09-20',
+                                  'VP-VIEW-20260920-001']}],
+            'mechanism_chains': [{
+                'id': 'MECH-1', 'name': '合成链',
+                'links': [
+                    {'step': 1, 'text': 'E1 环(引擎可验证)',
+                     'evidence_level': 'E1',
+                     'evidence_refs': ['FACT_A@2026-09-20']},
+                    {'step': 3, 'text': 'E3 环(纯叙事)',
+                     'evidence_level': 'E3',
+                     'falsification_metric': mid_a}]}]},
+        'l4': {'scenarios': [
+            {'id': 'SCN-A', 'role': '基准', 'rows': {
+                'scenario': '情景A(假设非预测): 合成基准情景',
+                'asset_direction': {'direction': '上行',
+                                    'confidence_tier': '有相关证据',
+                                    'text': '合成方向判断',
+                                    'evidence_refs': ['FACT_A@2026-09-20']},
+                'sensitive_variables': [mid_a],
+                'falsification': {'metric_id': mid_b,
+                                  'threshold': '突破合成阈值 4.5'},
+                'trigger': {'condition': '合成可观测条件',
+                            'deadline': '2027-06-30'}}},
+            {'id': 'SCN-B', 'role': '反例', 'rows': {
+                'scenario': '情景B(假设非预测): 合成反例情景',
+                'asset_direction': {'direction': '区间',
+                                    'confidence_tier': '纯逻辑推理',
+                                    'text': '合成反例方向',
+                                    'evidence_refs': []},
+                'sensitive_variables': [mid_b],
+                'falsification': {'metric_id': mid_a,
+                                  'threshold': '跌破合成阈值 2.5'},
+                'trigger': {'condition': '合成反例条件',
+                            'deadline': '2027-06-30'}}}]},
+        'reader_map': {}}
+
+
+def _t2_synth_run(tag, as_of, statement):
+    """合成运行目录(report.json+report.md+判定档);root=带日历/注册表的
+    最小树。返回 (tree, run_dir, judgment_path)。"""
+    import research_orchestrator as ro
+    t, _ = _mk_tree(tag)
+    mids = sorted({m['metric_id'] for m in (wd.load_registry(ROOT).get('metrics')
+                                            or []) if m.get('metric_id')})
+    a, b = mids[0], mids[1]
+    rep = {
+        'schema_version': '2.0', 'pipeline_version': ro.PIPELINE_VERSION,
+        'run': {'question': '合成问题', 'ts_utc': '20260920T000000Z',
+                'archive_requested': False, 'git_head': None,
+                'evidence_asof': as_of},
+        'steps': [], 'fanout': {'requested': False},
+        'layers': {
+            'L1_事实层': {'available': True, 'snapshot_id': 'SYNTH',
+                          'target_date': '2026-09-20', 'n_facts_total': 2,
+                          'rows': [], 'note': None},
+            'L2_机构观点层': {'views': {'available': True, 'n': 1,
+                                        'rows': [{'view_id': 'VIEW-20260920-001',
+                                                  'view_label': 'SUPPORTING'}],
+                                        'n_bad_quarantined': 0}, 'note': '合成'},
+            'L3_AI推断层': {'produced': False, 'note': '零模型管线: 不代写'},
+            'L4_条件情景层': {'produced': False, 'note': '零模型管线: 不代写'}},
+        'evidence_index': [
+            {'ref': 'FACT_A@2026-09-20', 'kind': 'snapshot_fact',
+             'metric_id': a},
+            {'ref': 'FACT_B@2026-09-20', 'kind': 'snapshot_fact',
+             'metric_id': b},
+            {'ref': 'VP-VIEW-20260920-001', 'kind': 'vp_sidecar',
+             'view_label': '合成观点'}],
+        'notes': [], 'run_ok': True}
+    rd = os.path.join(TMPG, 'run_' + tag)
+    os.makedirs(rd)
+    with open(os.path.join(rd, 'report.json'), 'w', encoding='utf-8') as f:
+        json.dump(rep, f, ensure_ascii=False, indent=2)
+    with open(os.path.join(rd, 'report.md'), 'w', encoding='utf-8') as f:
+        f.write(ro._render_md(rep))
+    jp = os.path.join(rd, 'judgment.json')
+    with open(jp, 'w', encoding='utf-8') as f:
+        json.dump(_t2_valid_judgment(a, b, statement), f, ensure_ascii=False,
+                  indent=2)
+    return t, rd, jp
+
+
+def _t2_attach_res(rd):
+    with open(os.path.join(rd, 'report.json'), encoding='utf-8') as f:
+        return json.load(f)
+
+
+def sec_t2():
+    print('═══ 任务2: 政策时态(事件 × 断言时点 × 实施状态) ═══')
+    events = aj.collect_policy_events(os.path.join(
+        ROOT, 'config', 'release_calendar.json'))
+    ev_jp = [e for e in events
+             if e['entry_id'] == 'RC-JP-BOJ-TARGET-2026-09']
+    check('§T2-0 事件面: JP 2026-09-18 决议(公告 09-18)/09-24 生效/目标 1.25',
+          len(ev_jp) == 1 and ev_jp[0]['first_publish'] == '2026-09-18'
+          and ev_jp[0]['effective_on'] == '2026-09-24',
+          f'{ev_jp}')
+    # a. 误句(用户点名的反例): 带空格/不带空格/显式全日期/无 as_of/晚 as_of
+    a1 = _pol_codes(SENT_A, '2026-09-20', events)
+    a2 = _pol_codes('截至9月20日，9月24日生效的加息已经实施', '2026-09-20',
+                    events)
+    a3 = _pol_codes('截至 2026 年 9 月 20 日，日本央行 9 月 24 日生效的加息'
+                    '已经实施', None, events)
+    a4 = _pol_codes(SENT_A, '2026-11-23', events)
+    a5 = _pol_codes('截止2026-09-20: 20260924 生效的加息已落地', '2026-09-20',
+                    events)
+    a6 = _pol_codes('日本央行9月18日决议,9月24日生效,目前利率已升至1.25%',
+                    '2026-09-20', events)
+    check('§T2-a 误句「截至 9 月 20 日，9 月 24 日生效的加息已经实施」→'
+          'POL-EFF-EARLY-CLAIM 恰一条: 空格日期/紧凑日期/无 as_of(年取决议年)/'
+          '运行级截止日晚于生效日(段内显式时点优先)/冒号+紧凑日期形;'
+          '整段现行口径(c6)仍由逐分句模型产出',
+          a1 == ['POL-EFF-EARLY-CLAIM'] and a2 == ['POL-EFF-EARLY-CLAIM']
+          and a3 == ['POL-EFF-EARLY-CLAIM'] and a4 == ['POL-EFF-EARLY-CLAIM']
+          and a5 == ['POL-EFF-EARLY-CLAIM']
+          and a6 == ['POL-EFF-EARLY-CLAIM'],
+          f'{a1} {a2} {a3} {a4} {a5} {a6}')
+    b1 = _pol_codes('截至 9 月 20 日尚未生效', '2026-09-20', events)
+    b2 = _pol_codes(SENT_B, '2026-09-20', events)
+    b3 = _pol_codes(SENT_B, '2026-11-23', events)
+    b4 = _pol_codes(SENT_B, None, events)
+    # 置于决议陈述内的正句(基线第二缺陷: R32 生效日绑定把「9月20日尚未
+    # 生效」读成 9 月 20 日生效→POL-EFF-DATE 误拒正确表述)
+    b5 = _pol_codes('日本央行9月18日决议加息;时态核对: 截至9月20日尚未'
+                   '生效，9月24日生效', '2026-11-23', events)
+    b6 = _pol_codes('日本央行 9 月 18 日决议加息至 1.25%，截至 9 月 20 日'
+                   '尚未生效，9 月 24 日生效', '2026-09-20', events)
+    check('§T2-b 正句「截至 9 月 20 日尚未生效」→零违规: 单句/as_of 在'
+          '生效前/生效后/缺席;置于日银决议陈述内(带空格与不带空格)同判'
+          '零违规(未然形的「生效」不是生效日标签)',
+          b1 == [] and b2 == [] and b3 == [] and b4 == []
+          and b5 == [] and b6 == [],
+          f'{b1} {b2} {b3} {b4} {b5} {b6}')
+    # c. 生效后仍写待生效 / 公告前以既成事实提及
+    c1 = _pol_codes('9月24日生效的加息尚未生效', '2026-09-26', events)
+    c2 = _pol_codes('9月24日生效的加息尚未生效', '2026-09-20', events)
+    c3 = _pol_codes('日本央行9月18日决议加息;公布时该决议尚未生效,'
+                    '9月24日生效', '2026-11-23', events)
+    c4 = _pol_codes('日本央行9月18日决议加息,9月24日生效,不存在待生效问题',
+                    '2026-11-23', events)
+    c5 = _pol_codes('日本央行9月18日决议,9月24日生效;截至9月20日尚未生效',
+                    '2026-11-23', events)
+    check('§T2-c 生效后仍写尚未生效→POL-EFF-LATE-PENDING;生效前同一句零违规;'
+          '历史叙述(公布时)/否定语境(不存在待生效问题)/段内显式更早时点豁免',
+          c1 == ['POL-EFF-LATE-PENDING'] and c2 == [] and c3 == []
+          and c4 == [] and c5 == [],
+          f'{c1} {c2} {c3} {c4} {c5}')
+    d1 = _pol_codes('日本央行9月18日决议加息至1.25%，9月24日生效',
+                    '2026-09-10', events)
+    d2 = _pol_codes('市场预期日本央行9月18日可能加息至1.25%', '2026-09-10',
+                    events)
+    d3 = _pol_codes('日本央行将于9月18日公布利率决议', '2026-09-10', events)
+    d4 = _pol_codes('日本央行9月18日召开货币政策会议', '2026-09-10', events)
+    check('§T2-d 断言时点早于公告日而以既成事实提及决议→'
+          'POL-EFF-DECISION-NOT-YET-KNOWN(恰一条,R31/R32 规则不再跳过);'
+          '预期/将然/会议日程口径零违规',
+          d1 == ['POL-EFF-DECISION-NOT-YET-KNOWN'] and d2 == [] and d3 == []
+          and d4 == [], f'{d1} {d2} {d3} {d4}')
+    # e. 不写日期的实施断言
+    e1 = _pol_codes('截至9月20日，日本央行加息已经实施', '2026-09-20', events)
+    e2 = _pol_codes('截至9月20日，日本央行加息已经实施', '2026-11-23', events)
+    e3 = _pol_codes('日本央行加息已经实施', '2026-09-20', events)
+    e4 = _pol_codes('日本央行加息已经实施', '2026-09-25', events)
+    e5 = _pol_codes('截至9月20日，日本央行9月18日决议,9月24日生效;'
+                    '美联储7月降息已实施', '2026-09-20', events)
+    check('§T2-e 不写日期的已实施断言(断言时点=该实体唯一待生效决议)→'
+          'POL-EFF-EARLY-CLAIM;生效后零违规;别家实体的已实施分句不误判',
+          e1 == ['POL-EFF-EARLY-CLAIM'] and e2 == ['POL-EFF-EARLY-CLAIM']
+          and e3 == ['POL-EFF-EARLY-CLAIM'] and e4 == [] and e5 == [],
+          f'{e1} {e2} {e3} {e4} {e5}')
+    # f. 正确的前瞻/条件表述不误判
+    f1 = _pol_codes('日本央行9月18日决议,9月24日生效后利率升至1.25%',
+                    '2026-09-20', events)
+    f2 = _pol_codes('截至9月20日，日本央行9月18日决议加息25bp，目前利率仍为'
+                    '0.75%，9月24日生效后升至1.25%', '2026-09-20', events)
+    f3 = _pol_codes('日本央行9月18日决议,9月24日生效;目前数据完整',
+                    '2026-09-20', events)
+    f4 = _pol_codes('日本央行9月24日生效的加息目前适用', '2026-09-20',
+                    events)
+    f5 = _pol_codes('截至 9 月 20 日，美联储 9 月 24 日生效的降息已经实施',
+                    '2026-09-20', events)
+    f6 = _pol_codes('截至9月20日，日本央行当前政策利率为1.25%', '2026-11-23',
+                    events)
+    check('§T2-f 前瞻/条件表述(「X生效后」)/同段无关「目前」零违规;'
+          '「X生效的加息目前适用」=提前生效断言;实体不绑照旧;'
+          '段内显式时点早于生效日的无日期当前值→POL-EFF-PENDING-AS-CURRENT',
+          f1 == [] and f2 == [] and f3 == []
+          and f4 == ['POL-EFF-EARLY-CLAIM'] and f5 == []
+          and f6 == ['POL-EFF-PENDING-AS-CURRENT'],
+          f'{f1} {f2} {f3} {f4} {f5} {f6}')
+    # g. R32 既判用例逐条不变(回归锁)
+    g = {
+        'c1': (_pol_codes('日本央行2026年9月18日决议将政策利率上调至1.25%,'
+                          '自决议次日起生效', '2026-09-20', events),
+               ['POL-EFF-REL']),
+        'c3': (_pol_codes('日本央行2026年9月18日决议上调政策利率至1.25%,'
+                          '将于2026年9月24日生效(截至研究时点尚未生效)',
+                          '2026-09-20', events), []),
+        'c4': (_pol_codes('日本央行当前政策利率为1.25%', '2026-09-20',
+                          events), ['POL-EFF-PENDING-AS-CURRENT']),
+        'c5': (_pol_codes('日本央行当前政策利率为1.25%', '2026-09-25',
+                          events), []),
+        'c7': (_pol_codes('日本央行9月18日决议,9月24日生效,目前利率已升至'
+                          '1.25%', '2026-09-25', events), []),
+        'c11': (_pol_codes('日本央行9月18日决议加息至1.25%', '2026-09-20',
+                           events), ['POL-EFF']),
+        'c12': (_pol_codes('日本央行2026年9月18日决议(生效2026年9月24日),'
+                           '政策利率升至1.25%', '2026-09-25', events), []),
+        'c15': (_pol_codes('发布日历实录载政策决议2026-09-18(生效2026-09-24,'
+                           '目标水平约1.25%)', '2026-09-25', events), []),
+        'c16': (_pol_codes('日本央行2026年9月18日决议生效2026年9月22日',
+                           '2026-09-25', events), ['POL-EFF-DATE']),
+        'c18': (_pol_codes('日本央行9月18日决议生效', '2026-09-25', events),
+                ['POL-EFF-DATE']),
+        'c8': (_pol_codes('美联储9月18日决议降息25bp,随后美债收益率下行',
+                          '2026-09-20', events), []),
+    }
+    bad = {k: v for k, v in g.items() if v[0] != v[1]}
+    check('§T2-g R32 既判用例(c1/c3/c4/c5/c7/c11/c12/c15/c16/c18/c8)逐条'
+          '同判(成对纪律/生效日核对/相对生效/待生效值写成当前值/实体绑定)',
+          not bad, json.dumps(bad, ensure_ascii=False))
+    # h. 正式 attach(进程内入口,合成运行目录,真实日历与注册表)
+    t_a, rd_a, jp_a = _t2_synth_run('t2_a', '2026-09-20', SENT_A)
+    r_a = aj.attach_judgment(rd_a, jp_a, root=t_a)
+    rep_a = _t2_attach_res(rd_a)
+    va = [v['code'] for v in ((rep_a.get('agent_judgment') or {})
+                              .get('validation') or {}).get('violations')
+          or []]
+    t_b, rd_b, jp_b = _t2_synth_run('t2_b', '2026-09-20', SENT_B)
+    r_b = aj.attach_judgment(rd_b, jp_b, root=t_b)
+    rep_b = _t2_attach_res(rd_b)
+    t_c, rd_c, jp_c = _t2_synth_run('t2_c', '2026-09-20', '合成陈述(不含政策)')
+    r_c = aj.attach_judgment(rd_c, jp_c, root=t_c)
+    check('§T2-h 正式 attach(attach_judgment,as_of=2026-09-20): 误句拒收'
+          '(attached=False+POL-EFF-EARLY-CLAIM+L3/L4 produced=False+无判定档'
+          '副本);正句接收(attached=True+契约 VERIFIED+L3/L4 produced=True);'
+          '不含政策的对照句接收',
+          (r_a.get('attached') is False and va == ['POL-EFF-EARLY-CLAIM']
+           and not os.path.isfile(os.path.join(rd_a, 'agent_judgment.json'))
+           and rep_a['layers']['L3_AI推断层'].get('produced') is False
+           and rep_a['layers']['L4_条件情景层'].get('produced') is False)
+          and (r_b.get('attached') is True
+               and ((rep_b.get('agent_judgment') or {})
+                    .get('contract_verification') or {}).get('verdict')
+               == 'VERIFIED'
+               and rep_b['layers']['L3_AI推断层'].get('produced') is True
+               and os.path.isfile(os.path.join(rd_b, 'agent_judgment.json')))
+          and r_c.get('attached') is True,
+          f"A attached={r_a.get('attached')} codes={va} "
+          f"B attached={r_b.get('attached')} contract="
+          f"{((rep_b.get('agent_judgment') or {}).get('contract_verification') or {}).get('verdict')} "
+          f"ctrl={r_c.get('attached')}")
+    # i. 正式 CLI 入口(research-one --stage attach)
+    ct, same = _code_tree('t2_cli')
+    rc_a, d_a = _cli(['research-one', '--stage', 'attach',
+                      '--report-dir', rd_a, '--judgment', jp_a,
+                      '--engine-root', ct], cwd=ct)
+    rc_b, d_b = _cli(['research-one', '--stage', 'attach',
+                      '--report-dir', rd_b, '--judgment', jp_b,
+                      '--engine-root', ct], cwd=ct)
+    check('§T2-i 正式 CLI(research-one --stage attach --engine-root 注入): '
+          '误句 ok=False attached=False violations=[POL-EFF-EARLY-CLAIM];'
+          '正句 attached=True validation_passed=True',
+          d_a.get('ok') is False and (d_a.get('data') or {}).get('attached')
+          is False and [v['code'] for v in (d_a.get('data') or {})
+                        .get('violations') or []]
+          == ['POL-EFF-EARLY-CLAIM']
+          and d_b.get('ok') is True and (d_b.get('data') or {}).get('attached')
+          is True and (d_b.get('data') or {}).get('validation_passed') is True,
+          f"rc={rc_a}/{rc_b} A={json.dumps(d_a, ensure_ascii=False)[:300]} "
+          f"B_ok={d_b.get('ok')}")
+    # j. 官方目标缺证的草稿处理不变(R28 任务2 口径)
+    cal_empty = os.path.join(TMPG, 'cal_empty_t2.json')
+    with open(cal_empty, 'w', encoding='utf-8') as f:
+        json.dump({'version': 'fixture', 'entries': []}, f)
+    pv_jp = {'cells': [
+        {'region': 'JP', 'dimension': 'policy', 'metric_id': 'JP_POLICY_RATE',
+         'anchors': {'最新一期': {'status': 'ok', 'freshness': None}}}]}
+    face_g = rmp.official_policy_record_face(
+        pv_jp, {('JP', 'policy')}, '2026-11-21', question=_POL_Q,
+        calendar_path=cal_empty)
+    face_ok = rmp.official_policy_record_face(
+        pv_jp, {('JP', 'policy')}, '2026-11-21', question=_POL_Q,
+        calendar_path=os.path.join(t_a, 'config', 'release_calendar.json'))
+    rep_d = {'run_ok': True,
+             'layers': {'L1_事实层': {'rows': [{'x': 1}]}},
+             'run': {'question': _POL_Q, 'data_requirements': {'items': []}},
+             'steps': [],
+             'agent_judgment': {'reader_map_faces': {'complete': True}},
+             'research_plan': {'map_question': True, 'cutoff': '2026-11-21',
+                               'point_anchors': [
+                                   {'label': '最新一期', 'months_before': 0}],
+                               'regions': {'JP': {'dimensions': {
+                                   'policy': [{}]}}},
+                               'point_values': pv_jp}}
+    bc_g = aj.blocked_class_of(rep_d, calendar_path=cal_empty)
+    bc_ok = aj.blocked_class_of(
+        rep_d, calendar_path=os.path.join(t_a, 'config',
+                                          'release_calendar.json'))
+    check('§T2-j 官方目标缺证的草稿处理保留: 点名日银目标×日历无实录→'
+          'gaps 点名 JP/JP_POLICY_TARGET+blocked_class=map_official_target_'
+          'missing(阻断交付类,归档拒绝);有实录→零缺口+None',
+          bool(face_g.get('gaps'))
+          and (face_g.get('gaps') or [{}])[0].get('metric_id')
+          == 'JP_POLICY_TARGET'
+          and '不以市场序列值冒充' in str((face_g.get('gaps') or [{}])[0]
+                                           .get('note'))
+          and not face_ok.get('gaps')
+          and bc_g == 'map_official_target_missing'
+          and 'map_official_target_missing' in aj.BLOCKING_BLOCKED_CLASSES
+          and bc_ok is None,
+          f'bc_g={bc_g} bc_ok={bc_ok} gaps={face_g.get("gaps")}')
+    # k. 入库归档判定档重验(真实文本,r30–r32): 零政策违规、结论不变
+    n_arc = 0
+    arc_bad = []
+    for d in sorted(glob.glob(os.path.join(ROOT, 'docs', 'autonomous-rd',
+                                           'r3[0-2]-evidence', '**',
+                                           'agent_judgment.json'),
+                              recursive=True)):
+        rp = os.path.join(os.path.dirname(d), 'report.json')
+        if not os.path.isfile(rp):
+            continue
+        with open(rp, encoding='utf-8') as f:
+            rep = json.load(f)
+        with open(d, encoding='utf-8') as f:
+            jud = json.load(f)
+        cal = os.path.join(os.path.dirname(d), 'root_overlay', 'config',
+                           'release_calendar.json')
+        cal = cal if os.path.isfile(cal) else os.path.join(
+            ROOT, 'config', 'release_calendar.json')
+        as_of = ((rep.get('run') or {}).get('evidence_asof')
+                 or (rep.get('research_plan') or {}).get('cutoff'))
+        res = aj.validate_judgment(
+            jud, {e.get('ref') for e in rep.get('evidence_index') or []
+                  if e.get('ref')}, _t2_mids, policy_events=aj.collect_policy_events(cal),
+            as_of=as_of if isinstance(as_of, str) else None)
+        n_arc += 1
+        pol = [v['code'] for v in res['violations']
+               if v['code'].startswith('POL')]
+        if pol or not res['passed']:
+            arc_bad.append((os.path.relpath(os.path.dirname(d), ROOT), pol,
+                            [v['code'] for v in res['violations']][:5]))
+    check('§T2-k 入库归档判定档重验(r30–r32 正式/降级/换问会话): 逐份零'
+          '政策违规且整档照旧通过(新时态模型对真实已接收文本零新增拦截)',
+          n_arc >= 14 and not arc_bad, f'n={n_arc} bad={arc_bad[:4]}')
+
+
+
 def main():
     print('Audit-R33 门 (HEAD %s)' % WORKTREE_HEAD[:12])
     try:
+        sec_t2()
         sec_t1_a()
         sec_t1_b()
         sec_t1_c()

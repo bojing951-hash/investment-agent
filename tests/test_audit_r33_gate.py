@@ -16,6 +16,8 @@
 夹具说明: 冻结快照=提交的 R31 B2 overlay 原件(真实);as-of 版本夹具=由该快照
 按官方发布日截接的**构造版本**(snapshot_id 前缀 FIXTURE_,fixture_note 随行),
 非真实历史快照——只用于核验绑定规则,不作为任何交付的证据。
+任务3 真正的原问: 原问直答族(政策目标/待生效/通胀同比)判别;研究年月/回看窗口/同比基期分别解析;三面逐行+缺口逐项点名+版本绑定;12 月快照重跑守原问月范围;零事实/缺计划/缺证据→缺口显式回传(plan 段与 auto 段);席位装配脚本与回声契约;正式 CLI 链。族题夹具快照=真实 11-23 快照的族题子集与「12 月快照」合成件(夹具说明随行),不作为任何交付的证据。
+任务4 冷启动: 来源备注不计入指标覆盖(日档守卫判定用观测图: 备注/状态/披露区闭集,真实退化仍拦截);流水线台账与 update 回执逐步骤时长/返回码/失败原因,守卫分流行单列;A股港股采集器时间预算(默认 800 秒)+A 股断点续采(同交易日窗且当日 bar 已定型才续,全部阶段完成后清除)+核心阶段截断不写主日档(exit 1)+随档 collection_status。守卫夹具=2026-11-24 真实守卫对的裁剪版(原件 sha256 记于夹具 _fixture)。
 """
 import contextlib
 import copy
@@ -2283,6 +2285,906 @@ def sec_t3_g():
           f"rc={rc9e} stages={st9e} err={json.dumps(d9e.get('error'), ensure_ascii=False)[:160]}")
 
 
+# ══ 任务4: 冷启动 ════════════════════════════════════════════════════
+# 守卫夹具=2026-11-24 真实守卫对的裁剪版(tests/fixtures_r33/china_pair_{old,new}_
+# 20261124.json;原件 sha256 记于夹具 _fixture): 规范位=备用源档(三指数估值+via/
+# note 来源注记),候选=完整版(四指数估值含上证指数,无注记)。基线把 via/note
+# 计为指标身份→完整候选被判「指标身份丢失 2 项」转存 superseded/,规范位留
+# 缺上证指数估值一档(回执见 r33-evidence T4_GUARD_BASELINE_f053_repro.txt)。
+T4_OLD = os.path.join(HERE, 'fixtures_r33', 'china_pair_old_20261124.json')
+T4_NEW = os.path.join(HERE, 'fixtures_r33', 'china_pair_new_20261124.json')
+T4_SHA = {'old': 'cb91bd126b5cc5736b0b0f35e32a92b0aa8904d7aeb511145f953a9816b6d8aa',
+          'new': 'f2b1957fb0fd13d6ef77e4cdf50289f700b29d62eb960c6bd424ce23ffeeaa76'}
+_T4_N11 = '11/15 宏观体制评分卡(消费快照)'
+
+
+def _t4_pair():
+    with open(T4_OLD, encoding='utf-8') as fh:
+        old = json.load(fh)
+    with open(T4_NEW, encoding='utf-8') as fh:
+        new = json.load(fh)
+    return old, new
+
+
+def _t4_bytes(obj):
+    return json.dumps(obj, ensure_ascii=False, indent=2).encode('utf-8')
+
+
+def _t4_json(path):
+    with open(path, encoding='utf-8') as fh:
+        return json.load(fh)
+
+
+def _t4_sup(dd):
+    sd = os.path.join(dd, 'superseded')
+    if not os.path.isdir(sd):
+        return []
+    return sorted(f for f in os.listdir(sd)
+                  if f.endswith('.json') and not f.startswith('.'))
+
+
+def _t4_guard(tag, seq):
+    """空采集目录上依次写 seq 各载荷(china/20261124)→ ([(status, note, path)],
+    规范位路径,采集目录)。"""
+    import research_provenance as rp
+    dd = os.path.join(TMPG, 't4_' + tag, 'data', 'daily')
+    os.makedirs(dd)
+    out = [(st, note, p) for p, st, note in (
+        rp.daily_face_guard_write(dd, 'china', '20261124', p) for p in seq)]
+    return out, os.path.join(dd, 'china_20261124.json'), dd
+
+
+def _t4_degraded(tag, base, mut):
+    """规范位=base,再写 mut(base 的变体)→ (退化转存且规范位不动?, 注记)。"""
+    cand = copy.deepcopy(base)
+    mut(cand)
+    res, canon, dd = _t4_guard(tag, [base, cand])
+    st, note, p = res[1]
+    div = _t4_sup(dd)
+    return (st == 'degraded_diverted'
+            and open(canon, 'rb').read() == _t4_bytes(base)
+            and p != canon and len(div) == 1
+            and _t4_json(os.path.join(dd, 'superseded', div[0])) == cand), note
+
+
+def _t4_remarks(c):
+    c['valuation']['via'] = 'akshare_legu'
+    c['valuation']['note'] = '乐咕上证主板平均市盈率(近似口径)'
+    return c
+
+
+def _t4_tree_files():
+    """被测树文件快照({相对路径: (大小, mtime_ns)};不含 .git/__pycache__)。"""
+    out = {}
+    for dp, dns, fns in os.walk(ROOT):
+        dns[:] = [d for d in dns if d not in ('.git', '__pycache__')]
+        for fn in fns:
+            p = os.path.join(dp, fn)
+            try:
+                stt = os.lstat(p)
+            except OSError:
+                continue
+            out[os.path.relpath(p, ROOT)] = (stt.st_size, stt.st_mtime_ns)
+    return out
+
+
+
+def sec_t4_a():
+    print('§T4-a 真实守卫对(2026-11-24,裁剪夹具): 完整新版换入主日档')
+    import research_provenance as rp
+    old, new = _t4_pair()
+    check('§T4-a0 夹具=真实守卫对裁剪版(原件 sha256 随行): 旧=三指数估值+via/note'
+          ' 来源注记(备用源档),新=四指数估值含上证指数(完整候选)',
+          old['_fixture']['source_file_sha256'] == T4_SHA['old']
+          and new['_fixture']['source_file_sha256'] == T4_SHA['new']
+          and sorted(old['valuation']) == ['000300.SH', '000852.SH', '000905.SH',
+                                           'date', 'note', 'pe', 'via']
+          and sorted(new['valuation']) == ['000001.SH', '000300.SH', '000852.SH',
+                                           '000905.SH', 'date', 'pe']
+          and new['valuation']['000001.SH']['pe_ttm'] == 15.71)
+    res, canon, dd = _t4_guard('a', [old, new])
+    check('§T4-a1 旧档首写 first → 完整候选 overwritten_preserved(零退化注记),'
+          '落位=规范位 china_20261124.json(非转存)',
+          res[0][0] == 'first' and res[1][0] == 'overwritten_preserved'
+          and res[1][1] == '' and res[1][2] == canon, res)
+    check('§T4-a2 规范位字节=完整候选序列化;旧档副本入 superseded/(内容=旧载荷)',
+          open(canon, 'rb').read() == _t4_bytes(new)
+          and len(_t4_sup(dd)) == 1
+          and _t4_json(os.path.join(dd, 'superseded', _t4_sup(dd)[0])) == old)
+    oi, ni = rp.daily_face_observation_map(old), rp.daily_face_observation_map(new)
+    li, ln = rp.daily_face_identity_map(old), rp.daily_face_identity_map(new)
+    check('§T4-a3 全叶身份图(诊断用)对: 丢 via/note 两身份、增 valuation.000001;'
+          '判定用观测图零丢失(仅增 valuation.000001)——来源备注不计入指标覆盖',
+          sorted(set(li) - set(ln)) == [('valuation', 'note'), ('valuation', 'via')]
+          and set(ln) - set(li) == {('valuation', '000001')}
+          and not (set(oi) - set(ni))
+          and set(ni) - set(oi) == {('valuation', '000001')}
+          and all(len(i) >= 2 for i in ni)
+          and not ({('valuation', 'via'), ('valuation', 'note')} & set(ni)),
+          (sorted(set(oi) - set(ni)), sorted(set(ni) - set(oi))))
+
+
+def sec_t4_b():
+    print('§T4-b 真实退化仍被拦截(规范位=完整版)')
+    _o, new = _t4_pair()
+
+    def drop_index(c):
+        del c['valuation']['000905.SH']
+    ok, note = _t4_degraded('b_idx', new, drop_index)
+    check('§T4-b1 删一项指数估值(中证500)→ degraded_diverted「指标身份丢失 1 项'
+          '(valuation.000905)」;规范位不动,候选留 superseded/',
+          ok and note.startswith('指标身份丢失 1 项(valuation.000905)'), note)
+
+    def trunc(c):
+        s = c['a_share_indices']['000300.SH']['series']
+        s['dates'], s['values'] = s['dates'][:-2], s['values'][:-2]
+    ok, note = _t4_degraded('b_trunc', new, trunc)
+    check('§T4-b2 沪深300历史序列尾部截断(同身份)→「有效观测叶子缩水」',
+          ok and note.startswith('有效观测叶子缩水 1 项(a_share_indices.000300:'), note)
+
+    def nulls(c):
+        c['macro']['cpi_yoy']['value'] = None
+        c['series']['CN_CPI_YOY']['values'] = [None] * len(
+            c['series']['CN_CPI_YOY']['values'])
+    ok, note = _t4_degraded('b_null', new, nulls)
+    check('§T4-b3 观测值置 null(CPI 同比点值+CPI 全史序列)→「有效观测叶子缩水 2 项」',
+          ok and note.startswith('有效观测叶子缩水 2 项(macro.cpi_yoy:2→1,'
+                                 'series.CN_CPI_YOY:'), note)
+
+    def back(c):
+        c['hk_indices']['^HSI']['series']['dates'] = [
+            '2026-11-%02d' % d for d in (3, 4, 5, 6, 7)]
+    ok, note = _t4_degraded('b_back', new, back)
+    hz = new['hk_indices']['^HSI']['series']['dates'][-1]
+    check('§T4-b4 条数不变但最新有效观测日回退(恒指 %s→2026-11-07)→'
+          '「最新有效观测回退 1 项」' % hz,
+          ok and ('最新有效观测回退 1 项(hk_indices.^HSI:%s→2026-11-07' % hz) in note, note)
+
+    def drop_macro(c):
+        del c['macro']
+    ok, note = _t4_degraded('b_cmacro', new, drop_macro)
+    check('§T4-b5 删整个 CN 宏观面容器→「指标身份丢失 7 项(macro.…」',
+          ok and note.startswith('指标身份丢失 7 项(macro.'), note)
+
+
+def sec_t4_c():
+    print('§T4-c 来源备注/元数据/披露区不参与升降级判定(两个方向)')
+    _o, new = _t4_pair()
+
+    def meta(c):
+        c['timestamp'] = '2026-11-24 23:59:59'
+        c['collection_status'] = {'budget': {'limit_sec': 800.0},
+                                  'stages': {'x': {'status': 'ok'}}}
+        c['sources'] = {'a': 'http://x'}
+        c['sources_status'] = {'a': 'EXACT'}
+        c['alerts'] = ['源失败']
+        c['source_version'] = {'v': '2'}
+        c['cn_history'] = {'mode': 'carry_forward'}
+        return c
+    res, canon, dd = _t4_guard('c1', [new, _t4_remarks(copy.deepcopy(new))])
+    check('§T4-c1 仅增来源注记(valuation.via/note)→ overwritten_preserved',
+          res[1][0] == 'overwritten_preserved' and res[1][1] == ''
+          and open(canon, 'rb').read() == _t4_bytes(_t4_remarks(copy.deepcopy(new))),
+          res)
+    res, canon, dd = _t4_guard('c2', [_t4_remarks(copy.deepcopy(new)), new])
+    check('§T4-c2 仅减来源注记(真实对形态: 备用源档在规范位,完整版无注记)→ '
+          'overwritten_preserved,规范位=无注记完整版',
+          res[1][0] == 'overwritten_preserved' and res[1][1] == ''
+          and open(canon, 'rb').read() == _t4_bytes(new), res)
+    res, canon, dd = _t4_guard('c3', [new, meta(copy.deepcopy(new))])
+    check('§T4-c3 仅改文件级元数据/披露区(timestamp/collection_status/sources/'
+          'sources_status/alerts/source_version/cn_history)→ overwritten_preserved',
+          res[1][0] == 'overwritten_preserved' and res[1][1] == ''
+          and open(canon, 'rb').read() == _t4_bytes(meta(copy.deepcopy(new))), res)
+    res, canon, dd = _t4_guard('c4', [meta(copy.deepcopy(new)), new])
+    check('§T4-c4 披露区整段消失(续存 3 键→全无的实测雷形态)同上不判降级',
+          res[1][0] == 'overwritten_preserved' and res[1][1] == ''
+          and open(canon, 'rb').read() == _t4_bytes(new), res)
+
+
+def sec_t4_d():
+    print('§T4-d 备注不掩盖观测蒸发;未登记的备注样键仍按观测叶计(闭集=可审计)')
+    _o, new = _t4_pair()
+
+    def d1(c):
+        _t4_remarks(c)
+        c['valuation']['pe'] = None
+    ok, note = _t4_degraded('d1', new, d1)
+    check('§T4-d1 注记在场但 valuation.pe 置 null→「有效观测叶子缩水 1 项'
+          '(valuation.pe:1→0)」', ok and note.startswith(
+              '有效观测叶子缩水 1 项(valuation.pe:1→0;'), note)
+
+    def d2(c):
+        c['valuation']['000300.SH']['pe_ttm'] = None
+    ok, note = _t4_degraded('d2', new, d2)
+    check('§T4-d2 指数估值一项数值置 null→缩水(valuation.000300:5→4)',
+          ok and note.startswith('有效观测叶子缩水 1 项(valuation.000300:5→4;'), note)
+
+    def d3(c):
+        c['valuation']['000300.SH'] = {'name': '沪深300'}
+    ok, note = _t4_degraded('d3', new, d3)
+    check('§T4-d3 指数估值容器只剩标注文字(name)→观测叶归零=身份丢失'
+          '「指标身份丢失 1 项(valuation.000300)」',
+          ok and note.startswith('指标身份丢失 1 项(valuation.000300)'), note)
+
+    def d4(c):
+        c['valuation']['comment'] = 'x'
+        return c
+    res, canon, dd = _t4_guard('d4', [new, d4(copy.deepcopy(new)), new])
+    check('§T4-d4 未登记备注样键 valuation.comment 仍计观测叶: 增=overwritten_'
+          'preserved;随后撤回=degraded_diverted「指标身份丢失 1 项(valuation.comment)」',
+          res[1][0] == 'overwritten_preserved'
+          and res[2][0] == 'degraded_diverted'
+          and res[2][1].startswith('指标身份丢失 1 项(valuation.comment)')
+          and open(canon, 'rb').read() == _t4_bytes(d4(copy.deepcopy(new))), res)
+
+
+def sec_t4_e():
+    print('§T4-e 备注键闭集与判定用观测图口径')
+    import research_provenance as rp
+    check('§T4-e1 备注键闭集登记(via/note/source/sources/status/url/scope/name/'
+          'label…);披露区键=cn_history/alerts/sources/sources_status/source_version/'
+          'collection_status',
+          {'via', 'note', 'source', 'sources', 'status', 'url', 'name', 'label',
+           'scope'} <= set(rp._REMARK_LEAF_KEYS)
+          and set(rp._GUARD_STATUS_KEYS) == {
+              'cn_history', 'alerts', 'sources', 'sources_status',
+              'source_version', 'collection_status'})
+    payload = {'timestamp': 'x', 'version': '2.1',
+               'data': {'CPI': {'value': 1.0, 'note': 'n',
+                                'dates': ['2026-01-01'], 'values': [None]}},
+               'ah_premium': None}
+    check('§T4-e2 观测图: None 叶计身份在场、有效观测 0;顶层标量(含 None 顶层键)'
+          '不计;备注叶不计;全叶身份图仍含备注叶与顶层键(诊断用,保留)',
+          rp.daily_face_observation_map(payload) == {('data', 'CPI'): 2}
+          and rp.daily_face_identity_map(payload) == {
+              ('timestamp',): 1, ('version',): 1, ('data', 'CPI'): 3,
+              ('ah_premium',): 0}
+          and rp.daily_face_valid_obs_horizon(payload) == {},
+          (rp.daily_face_observation_map(payload),
+           rp.daily_face_identity_map(payload)))
+
+
+def sec_t4_f():
+    print('§T4-f 流水线台账: 失败步骤/时长/原因(真 run_pipeline + 替身脚本)')
+    import run_weekly as rw
+    sd = os.path.join(TMPG, 't4f', 'scripts')
+    os.makedirs(sd)
+
+    def _w(name, body):
+        with open(os.path.join(sd, name), 'w', encoding='utf-8') as fh:
+            fh.write(body)
+    _w('ok.py', 'import time\ntime.sleep(0.3)\n')
+    _w('slow.py', 'import time\ntime.sleep(30)\n')
+    _w('exit3.py', 'import sys\nsys.exit(3)\n')
+    _w('sig.py', 'import os, signal, time\n'
+                 'os.kill(os.getpid(), signal.SIGTERM)\ntime.sleep(30)\n')
+    steps = [('s1', 'ok.py', False), ('s2', 'slow.py', True),
+             ('s3', 'exit3.py', False), ('s4', 'sig.py', False),
+             ('s5', 'missing.py', False), ('s6', 'ok.py', True, ['slow.py'])]
+    orig = rw.run_step
+    rw.run_step = lambda n, s, timeout=900, script_dir=None, extra_args=None: orig(
+        n, s, timeout=1, script_dir=script_dir, extra_args=extra_args)
+    try:
+        with contextlib.redirect_stdout(io.StringIO()):
+            res = rw.run_pipeline(steps, script_dir=sd)
+    finally:
+        rw.run_step = orig
+    m = res.meta
+    check('§T4-f1 results.meta 逐步骤 {duration_sec, exit_code, fail_reason}: 成功=0/'
+          'None;超时=timeout+timeout_sec;非零退出=nonzero_exit;被信号终止=signal:15;'
+          '脚本缺席=script_missing;依赖跳过=dependency_skipped',
+          0.3 <= m['s1']['duration_sec'] < 5 and m['s1']['exit_code'] == 0
+          and m['s1']['fail_reason'] is None
+          and m['s2']['fail_reason'] == 'timeout' and m['s2']['timeout_sec'] == 1
+          and m['s2']['exit_code'] is None and 1 <= m['s2']['duration_sec'] < 5
+          and m['s3']['exit_code'] == 3 and m['s3']['fail_reason'] == 'nonzero_exit'
+          and m['s4']['exit_code'] == -15 and m['s4']['fail_reason'] == 'signal:15'
+          and m['s5'] == {'duration_sec': 0.0, 'exit_code': None,
+                          'fail_reason': 'script_missing'}
+          and m['s6'] == {'duration_sec': 0.0, 'exit_code': None,
+                          'fail_reason': 'dependency_skipped'}
+          and res.skips.get('s6', '').startswith('依赖未成功'), m)
+
+    proj = os.path.join(TMPG, 't4f', 'proj')
+    os.makedirs(proj)
+    n1, n2, n4 = ('1/15 全球市场数据采集', '2/15 A股港股数据采集', '4/15 新闻采集与分析')
+    fake = rw.PipelineResults([(n1, True, True), (n2, False, True),
+                               (n4, False, False), (_T4_N11, False, True)])
+    fake.meta = {n1: {'duration_sec': 12.0, 'exit_code': 0, 'fail_reason': None},
+                 n2: {'duration_sec': 900.3, 'exit_code': None,
+                      'fail_reason': 'timeout', 'timeout_sec': 900}}
+    fake.skips = {_T4_N11: '依赖未成功 → A股港股数据采集(失败)'}
+    _orig_rp, _orig_pd = rw.run_pipeline, rw.PROJECT_DIR
+    rw.run_pipeline = lambda steps, *a, **k: fake
+    rw.PROJECT_DIR = proj
+    out, rc = io.StringIO(), None
+    try:
+        with contextlib.redirect_stdout(out):
+            try:
+                rw.main([])
+            except SystemExit as e:
+                rc = e.code
+    finally:
+        rw.run_pipeline, rw.PROJECT_DIR = _orig_rp, _orig_pd
+    led_files = glob.glob(os.path.join(proj, 'logs', 'pipeline_run_*.json'))
+    led = _t4_json(led_files[0]) if led_files else {}
+    rows = {r['name']: r for r in led.get('steps') or []}
+    check('§T4-f2 main([]) 台账 steps 每行带 duration_sec/exit_code/fail_reason'
+          '(未上报=如实 unreported;依赖跳过=dependency_skipped;超时行带 timeout_sec);'
+          '顶层 failed_steps 列全部未成功行;关键步骤失败→exit 1;汇总打印原因+时长',
+          len(led_files) == 1 and rc == 1
+          and rows[n1]['duration_sec'] == 12.0 and rows[n1]['fail_reason'] is None
+          and rows[n2]['fail_reason'] == 'timeout' and rows[n2]['timeout_sec'] == 900
+          and rows[n4]['fail_reason'] == 'unreported'
+          and rows[n4]['duration_sec'] is None
+          and rows[_T4_N11]['fail_reason'] == 'dependency_skipped'
+          and [r['name'] for r in led.get('failed_steps') or []] == [n2, n4, _T4_N11]
+          and isinstance(led.get('duration_sec'), (int, float))
+          and '失败原因 超时(上限 900 秒)' in out.getvalue()
+          and '失败原因 未上报(步骤替身/旧实现未记录原因)' in out.getvalue(),
+          (rc, led.get('failed_steps')))
+
+
+def sec_t4_g():
+    print('§T4-g update 回执: 失败步骤/时长/原因/守卫分流(真 cmd_update → '
+          '子进程真 run_weekly.main + 替身脚本)')
+    import ia_cli as ic
+
+    def _run(tag, shim_body, files=None, ledger=None):
+        tr = os.path.join(TMPG, 't4g_' + tag)
+        os.makedirs(tr)
+        with open(os.path.join(tr, 'run_weekly.py'), 'w', encoding='utf-8') as fh:
+            fh.write(shim_body)
+        for name, body in (files or {}).items():
+            p = os.path.join(tr, name)
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with open(p, 'w', encoding='utf-8') as fh:
+                fh.write(body)
+        if ledger:
+            os.makedirs(os.path.join(tr, 'logs'))
+            with open(os.path.join(tr, 'logs', ledger[0]), 'w',
+                      encoding='utf-8') as fh:
+                json.dump(ledger[1], fh, ensure_ascii=False)
+        _orig = ic.ROOT
+        ic.ROOT = tr
+        out, rc = io.StringIO(), None
+        try:
+            with contextlib.redirect_stdout(out), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                try:
+                    ic.cmd_update(ic.build_parser().parse_args(['update', '--yes']))
+                except SystemExit as e:
+                    rc = e.code
+        finally:
+            ic.ROOT = _orig
+        return rc, json.loads(out.getvalue()), tr
+
+    fs = {'fake_scripts/global_market_collector.py': 'import time\ntime.sleep(1.2)\n',
+          'fake_scripts/china_market_collector.py': 'import time\ntime.sleep(30)\n',
+          'fake_scripts/macro_collector.py': 'import sys\nsys.exit(3)\n'}
+    guard_line = ('⛔ 守卫: 未覆盖完整档 → superseded/china_20261124_x.json '
+                  '(指标身份丢失 1 项)')
+    shim = ('import os, sys\n'
+            'sys.path.insert(0, %r)\n'
+            'import run_weekly as rw\n'
+            'here = os.path.dirname(os.path.abspath(__file__))\n'
+            'rw.PROJECT_DIR = here\n'
+            'sd = os.path.join(here, "fake_scripts")\n'
+            '_orig = rw.run_step\n'
+            'rw.run_step = lambda n, s, timeout=900, script_dir=None, '
+            'extra_args=None: _orig(\n'
+            '    n, s, timeout=1, script_dir=sd, extra_args=extra_args)\n'
+            'print(%r)\n'
+            'print("filler " * 400)\n'
+            'rw.main([])\n' % (ROOT, guard_line))
+    rc, env, tr = _run('g1', shim, fs)
+    d = env.get('data') or {}
+    rows = {r['name']: r for r in d.get('steps') or []}
+    n2, n3 = '2/15 A股港股数据采集', '3/15 宏观数据采集'
+    failed_names = [r['name'] for r in d.get('failed_steps') or []]
+    check('§T4-g1 关键步骤超时/非零退出/缺席→rc=1 透传、ok=False;回执 steps 15 行逐行带 '
+          'duration_sec/exit_code/fail_reason(A股港股=timeout+timeout_sec;宏观=nonzero_exit+'
+          '返回码 3;依赖步骤=dependency_skipped);failed_steps=全部未成功行;duration_sec 在场',
+          rc == 1 and env.get('ok') is False and d.get('exit_code') == 1
+          and len(d.get('steps') or []) == 15
+          and rows[n2]['ok'] is False and rows[n2]['fail_reason'] == 'timeout'
+          and rows[n2]['duration_sec'] >= 1
+          and rows[n2].get('timeout_sec') == 1 and rows[n2].get('exit_code') is None
+          and rows[n3]['fail_reason'] == 'nonzero_exit'
+          and rows[n3].get('exit_code') == 3 and 'timeout_sec' not in rows[n3]
+          and all('exit_code' in r for r in d['steps'])
+          and rows[_T4_N11]['skipped'] is True
+          and rows[_T4_N11]['fail_reason'] == 'dependency_skipped'
+          and n2 in failed_names and len(failed_names) == sum(
+              1 for r in d['steps'] if not r['ok'])
+          and isinstance(d.get('duration_sec'), (int, float))
+          and d.get('duration_sec') >= 2,
+          (rc, d.get('exit_code'), failed_names, rows.get(n2)))
+    check('§T4-g2 守卫分流行单列 guard_diversions: 失败多时该行既被后续输出滚出 '
+          'output_tail、也排不进 critical_tail 末 10 行(旧回执里彻底不可见),单列后'
+          '仍可见;ledger_file 认领本次台账;无快照→snapshot_id None',
+          d.get('guard_diversions') == [guard_line]
+          and guard_line not in (d.get('critical_tail') or [])
+          and guard_line not in (d.get('output_tail') or [])
+          and bool(re.fullmatch(r'pipeline_run_\d{8}\.json',
+                                str(d.get('ledger_file'))))
+          and os.path.isfile(os.path.join(tr, 'logs', str(d.get('ledger_file'))))
+          and d.get('snapshot_id') is None and 'steps_note' not in d,
+          (d.get('guard_diversions'), d.get('ledger_file'),
+           d.get('critical_tail'), d.get('output_tail')[-3:],
+           d.get('snapshot_id'), 'steps_note' in d))
+    rc, env, tr = _run('g2', 'print("done")\n')
+    d = env.get('data') or {}
+    check('§T4-g3 无台账→rc=0、ok=True、steps_note=no_readable_ledger(不编造 steps)',
+          rc == 0 and env.get('ok') is True and 'steps' not in d
+          and 'failed_steps' not in d and 'no_readable_ledger' in str(
+              d.get('steps_note')), (rc, d.get('steps_note')))
+    from datetime import datetime as _dt, timedelta as _td
+    y = (_dt.now() - _td(days=1)).strftime('%Y%m%d')
+    rc, env, tr = _run('g3', 'print("done")\n', ledger=(
+        'pipeline_run_%s.json' % y,
+        {'run_at': (_dt.now() - _td(days=1)).isoformat(timespec='seconds'),
+         'steps': [{'name': 'x', 'ok': True}]}))
+    d = env.get('data') or {}
+    check('§T4-g4 只有更早的台账→steps_note=ledger_predates_this_run(不拿旧台账'
+          '冒充本次)',
+          rc == 0 and 'steps' not in d and 'ledger_predates_this_run' in str(
+              d.get('steps_note')), (rc, d.get('steps_note')))
+    okrow = {'name': '1/15 全球市场数据采集', 'ok': True, 'critical': True,
+             'skipped': False, 'skip_reason': None, 'duration_sec': 3.5,
+             'exit_code': 0, 'fail_reason': None}
+    trow = {'name': '2/15 A股港股数据采集', 'ok': False, 'critical': True,
+            'skipped': False, 'skip_reason': None, 'duration_sec': 900.0,
+            'exit_code': None, 'fail_reason': 'timeout', 'timeout_sec': 900}
+    shim_ok = ('import json, os\n'
+               'from datetime import datetime\n'
+               't0 = datetime.now()\n'
+               'here = os.path.dirname(os.path.abspath(__file__))\n'
+               'os.makedirs(os.path.join(here, "logs"))\n'
+               'rows = json.loads(%r)\n'
+               'blob = {"run_at": t0.isoformat(timespec="seconds"), '
+               '"duration_sec": 903.5, "steps": rows, "success_count": 1, '
+               '"failed_steps": [rows[1]], "snapshot_id": "research_snapshot_x", '
+               '"gate_a": "PASS"}\n'
+               'json.dump(blob, open(os.path.join(here, "logs", '
+               '"pipeline_run_%%s.json" %% t0.strftime("%%Y%%m%%d")), "w"))\n'
+               'print("all ok")\n' % json.dumps([okrow, trow], ensure_ascii=False))
+    rc, env, tr = _run('g4', shim_ok)
+    d = env.get('data') or {}
+    check('§T4-g5 台账行原样进回执(含 exit_code;超时行带 timeout_sec)、failed_steps=台账'
+          '未成功行、snapshot_id/gate_a 随台账带出(替身脚本自报成功→rc=0/ok=True)',
+          rc == 0 and env.get('ok') is True and d.get('steps') == [okrow, trow]
+          and d.get('failed_steps') == [trow] and d.get('duration_sec') == 903.5
+          and d.get('snapshot_id') == 'research_snapshot_x'
+          and d.get('gate_a') == 'PASS' and d.get('guard_diversions') == [],
+          (rc, d.get('steps') == [okrow, trow], d.get('failed_steps'),
+           d.get('duration_sec'), d.get('snapshot_id'), d.get('gate_a'),
+           d.get('guard_diversions'), env.get('ok'), d.get('steps'), okrow, trow))
+
+
+def sec_t4_h():
+    os.environ.setdefault('HK_HISTORY_FILE',
+                          os.path.join(TMPG, 'hk_index_history.json'))
+    print('§T4-h A股港股采集器: 时间预算/断点续采/核心截断(离线,取网函数替身)')
+    import types
+    import china_market_collector as cmc
+    import pandas as pd
+    before = _t4_tree_files()
+    T = os.path.join(TMPG, 't4h')
+    os.makedirs(T)
+    for k in ('PROJECT_DIR', 'DATA_DIR', 'TUSHARE_MONTHLY_CACHE_DIR'):
+        setattr(cmc, k, T)
+    cmc.ASHARE_CHECKPOINT_PATH = os.path.join(T, 'ckpt.json')
+    cmc.PBC_OMO_CACHE_DIR = os.path.join(T, 'pboc')
+    saved, calls = [], []
+    cmc.get_trade_dates = lambda: ('20261124', '20261114', '20260101')
+    cmc.cn_index_history_period = lambda: '10y'
+    cmc.cn_window_start = lambda p: '20161124'
+    cmc.save_data = lambda d: saved.append(d) or 'saved'
+    real_mono, budget0 = time.monotonic, cmc.CN_COLLECTOR_BUDGET_SECONDS
+    curl0, parse0 = cmc._curl_get, cmc._pboc_omo_parse_announcement
+    em0, ak_mod = cmc._em_series_rows, sys.modules.get('akshare')
+    fms0 = cmc.fetch_macro_series      # 真函数(阶段替身安装前留存)
+    clock = {'t': 0.0}
+    codes = list(cmc.A_SHARE_INDICES)
+
+    def df_small():
+        return pd.DataFrame({'trade_date': ['20261120', '20261123', '20261124'],
+                             'close': [100.0, 101.0, 102.0],
+                             'pct_chg': [0.5, 1.0, 1.0], 'vol': [1.0, 1.0, 1.0],
+                             'amount': [1.0, 1.0, 1.0]})
+
+    def stub_others(fn=None):
+        for name, v in (('fetch_hk_indices', {'HSI': {'x': 1}}),
+                        ('fetch_southbound', {'sb': 1}), ('fetch_margin', {'mg': 1}),
+                        ('fetch_valuation', {'pe': 1}), ('fetch_turnover', {'to': 1}),
+                        ('fetch_ah_premium', {'ah': 1}), ('fetch_macro', {'m': 1}),
+                        ('fetch_macro_series', {'s': 1})):
+            setattr(cmc, name, (lambda vv, nm: lambda *a, **k: (
+                fn(nm) if fn else None) or vv)(v, name))
+
+    def run_main():
+        buf, code = io.StringIO(), None
+        with contextlib.redirect_stdout(buf):
+            try:
+                cmc.main()
+            except SystemExit as e:
+                code = e.code
+        return code, buf.getvalue()
+
+    def fake_clock(t0):
+        clock['t'] = t0
+        time.monotonic = lambda: clock['t']
+
+    try:
+        b_off = cmc.CollectionBudget(limit_sec=0)
+        check('§T4-h0 预算默认 800 秒(<900 步骤上限);限流间隔 61 秒不变;阶段表=旧主程序'
+              ' 1..9 顺序,核心=A股/港股;预算关闭: remaining/deadline=None、看门狗不武装;'
+              '断点不带超龄常量(可续性改按同日+当日 bar 定型判定)',
+              cmc._budget_from_env('') == 800.0 and cmc._budget_from_env('abc') == 800.0
+              and cmc._budget_from_env('inf') == 800.0
+              and cmc._budget_from_env(' 12.5 ') == 12.5
+              and cmc.INDEX_DAILY_MIN_INTERVAL_SECONDS == 61
+              and not hasattr(cmc, 'ASHARE_CHECKPOINT_TTL_SECONDS')
+              and [s[0] for s in cmc._STAGES] == [
+                  'a_share_indices', 'hk_indices', 'southbound', 'margin', 'valuation',
+                  'turnover', 'ah_premium', 'macro', 'series']
+              and [s[0] for s in cmc._STAGES if s[2]] == ['a_share_indices', 'hk_indices']
+              and b_off.remaining() is None and b_off.deadline is None
+              and b_off.exhausted() is False and cmc._arm_watchdog(b_off) is False)
+        cmc.CN_COLLECTOR_BUDGET_SECONDS = 0.0
+
+        def idx_fast(**kw):
+            calls.append(kw.get('ts_code'))
+            return df_small()
+        cmc._index_daily = idx_fast
+        stub_others()
+        code, o = run_main()
+        cs = saved[-1].get('collection_status') if saved else {}
+        check('§T4-h1 预算关闭=旧行为: 无退出码、整档一次写出、九阶段全 ok、六指数六次'
+              '调用、不写断点;collection_status 随档(limit 0/exhausted false)',
+              code is None and len(saved) == 1 and calls == codes
+              and all(v['status'] == 'ok' for v in cs.get('stages', {}).values())
+              and cs.get('budget', {}).get('limit_sec') == 0.0
+              and cs.get('core_cut_by_budget') is False
+              and not os.path.exists(cmc.ASHARE_CHECKPOINT_PATH)
+              and all(cmc._stage_call(n, b_off) is getattr(cmc, {
+                  'southbound': 'fetch_southbound', 'margin': 'fetch_margin',
+                  'valuation': 'fetch_valuation', 'turnover': 'fetch_turnover',
+                  'ah_premium': 'fetch_ah_premium', 'macro': 'fetch_macro'}[n])
+                  for n in ('southbound', 'margin', 'valuation', 'turnover',
+                            'ah_premium', 'macro')),
+              (code, len(saved), calls, json.dumps(cs, ensure_ascii=False)[:300]))
+
+        def idx_slow(**kw):
+            calls.append(kw.get('ts_code'))
+            time.sleep(0.2 if len(calls) <= 2 else 10.0)
+            return df_small()
+        cmc.CN_COLLECTOR_BUDGET_SECONDS = 7.0
+        cmc._index_daily = idx_slow
+        saved.clear()
+        calls.clear()
+        t_real = time.time()
+        code, o = run_main()
+        secs = time.time() - t_real
+        logs = os.path.join(T, 'logs')
+        diag = (sorted(f for f in os.listdir(logs) if f.startswith('china_partial_'))
+                if os.path.isdir(logs) else [])
+        ck = (_t4_json(cmc.ASHARE_CHECKPOINT_PATH)
+              if os.path.exists(cmc.ASHARE_CHECKPOINT_PATH) else {})
+        st = (_t4_json(os.path.join(logs, diag[0]))['collection_status']['stages']
+              if diag else {})
+        check('§T4-h2 核心阶段(A股)被看门狗截断: exit 1、不写主日档、诊断性部分面写 '
+              'logs/china_partial_*.json(a_share=cut_by_budget、其后=skipped_budget)、'
+              '看门狗已解除、未被 10 秒慢调用拖住',
+              code == 1 and not saved and len(diag) == 1 and secs < 9.5
+              and cmc._BUDGET_TIMER['armed'] is False
+              and st.get('a_share_indices', {}).get('status') == 'cut_by_budget'
+              and all(v['status'] == 'skipped_budget' for k, v in st.items()
+                      if k != 'a_share_indices'),
+              (code, len(saved), diag, secs, st))
+        check('§T4-h3 断点: 已取到的 2 个指数在断点里(第 3 个被中断不在),逐指数带取数'
+              '时刻;输出含「不写主日档」与续采提示',
+              list(ck.get('items') or {}) == codes[:2]
+              and sorted(ck.get('fetched_at') or {}) == sorted(codes[:2])
+              and '不写主日档' in o and '续采' in o,
+              (list(ck.get('items') or {}), list(ck.get('fetched_at') or {}), o[-200:]))
+        ck2_fa = dict(ck.get('fetched_at') or {})
+
+        # ── A 股断点可续规则(固定时刻,不依赖真实钟;口径=EM 取值行截止 16:10 HKT) ──
+        import datetime as _dtm
+        hkt = _dtm.timezone(_dtm.timedelta(hours=8))
+
+        def ts(y, m, d, hh, mm, ss=0):
+            return _dtm.datetime(y, m, d, hh, mm, ss, tzinfo=hkt).timestamp()
+
+        ts_intra, ts_pre, ts_close = (ts(2026, 11, 24, 14, 0), ts(2026, 11, 24, 16, 9, 59),
+                                      ts(2026, 11, 24, 16, 10))
+        ts_after, ts_late = ts(2026, 11, 24, 17, 0), ts(2026, 11, 25, 9, 0)
+
+        def it(last='2026-11-24'):
+            return {'name': 'x', 'close': 1.0, 'date': last.replace('-', ''),
+                    'series': {'dates': ['2026-11-20', last], 'values': [1.0, 1.0]},
+                    'via': 'tushare'}
+
+        def put(items, fetched, end='20261124', win='20161124'):
+            obj = {'end_date': end, 'window_start': win, 'saved_at': ts_after,
+                   'items': items}
+            if fetched is not None:
+                obj['fetched_at'] = fetched
+            with open(cmc.ASHARE_CHECKPOINT_PATH, 'w', encoding='utf-8') as fh:
+                json.dump(obj, fh)
+
+        c0, c1, c2 = codes[0], codes[1], codes[2]
+        check('§T4-h4a 当日 bar 定型口径=EM 取值行截止(16:10 HKT): 收盘前/16:09:59→未定型,'
+              '16:10:00/之后→定型;取数时刻不可读→未定型',
+              cmc._ashare_bar_settled('20261124', ts_intra) is False
+              and cmc._ashare_bar_settled('20261124', ts_pre) is False
+              and cmc._ashare_bar_settled('20261124', ts_close) is True
+              and cmc._ashare_bar_settled('20261124', ts_after) is True
+              and cmc._ashare_bar_settled('20261124', ts_late) is True
+              and cmc._ashare_bar_settled('20261124', None) is False
+              and cmc._ashare_bar_settled('20261124', 'abc') is False
+              and cmc._ashare_bar_settled('20261124', float('nan')) is False,
+              [(x, cmc._ashare_bar_settled('20261124', x)) for x in
+               (ts_intra, ts_pre, ts_close, ts_after, ts_late, None)])
+        put({c0: it(), c1: it('2026-11-23'), c2: it()}, {c0: ts_intra, c1: ts_intra,
+                                                        c2: ts_close})
+        mixed = cmc._ashare_checkpoint_load('20261124', '20161124')
+        check('§T4-h4b 逐指数判定: 收盘前取到的当日 bar(c0)不续;当日尚无 bar(c1,末根 11-23)'
+              '可续;16:10 后取到的当日 bar(c2)可续——同一次读里混判',
+              sorted(mixed) == sorted([c1, c2]), sorted(mixed))
+        put({c0: it()}, None)
+        oldfmt = cmc._ashare_checkpoint_load('20261124', '20161124')
+        put({c0: it(), c1: it()}, {c0: ts_after})
+        miss_one = cmc._ashare_checkpoint_load('20261124', '20161124')
+        put({c0: it(), '999999.SH': it()}, {c0: ts_after, '999999.SH': ts_after})
+        unlisted = cmc._ashare_checkpoint_load('20261124', '20161124')
+        put({c0: it()}, {c0: 'nan'}, win='20200101')
+        win_mismatch = cmc._ashare_checkpoint_load('20261124', '20161124')
+        put({c0: it()}, {c0: ts_after})
+        next_day = cmc._ashare_checkpoint_load('20261125', '20161124')
+        same_day_late = cmc._ashare_checkpoint_load('20261124', '20161124',
+                                                    now_ts=ts_late + 86400 * 7)
+        put({c0: it()}, {c0: ts_after})
+        with open(cmc.ASHARE_CHECKPOINT_PATH, 'w', encoding='utf-8') as fh:
+            fh.write('{bad')
+        badf = cmc._ashare_checkpoint_load('20261124', '20161124')
+        check('§T4-h4c 不可续情形: 旧格式断点(无取数时刻)/缺取数时刻/清单外指数/窗口不一致/'
+              '换日/坏档→{};同日数小时后再跑仍可续(不再受 1 小时超龄限制)',
+              oldfmt == {} and sorted(miss_one) == [c0] and sorted(unlisted) == [c0]
+              and win_mismatch == {} and next_day == {} and badf == {}
+              and sorted(same_day_late) == [c0],
+              (oldfmt, sorted(miss_one), sorted(unlisted), win_mismatch, next_day,
+               badf, sorted(same_day_late)))
+
+        # ── 真流程: 截断(h2)留下的断点 → 续采 ──
+        put({}, {})
+        with open(cmc.ASHARE_CHECKPOINT_PATH, 'w', encoding='utf-8') as fh:
+            json.dump({'end_date': '20261124', 'window_start': '20161124',
+                       'saved_at': ck2_fa[codes[0]], 'items': ck['items'],
+                       'fetched_at': ck2_fa}, fh)
+        cmc.CN_COLLECTOR_BUDGET_SECONDS = 60.0
+        cmc._index_daily = idx_fast
+        calls.clear()
+        with contextlib.redirect_stdout(io.StringIO()):
+            res4 = cmc.fetch_a_share_indices(
+                checkpoint='ckpt', budget=cmc.CollectionBudget(limit_sec=60))
+        resumed = list(cmc._STAGE_STATUS['a_share_indices']['resumed'])
+        ck4 = _t4_json(cmc.ASHARE_CHECKPOINT_PATH)
+        check('§T4-h4d 看门狗截断留下的断点(2 指数)续采: 已断点 2 个指数不再取网(仅余 4 次'
+              '调用)、结果=六指数清单序、断点更新为全六指数且逐指数取数时刻在场'
+              '(续来的 2 个保留原取数时刻)',
+              calls == codes[2:] and list(res4) == codes and resumed == sorted(codes[:2])
+              and list(ck4['items']) == codes and sorted(ck4['fetched_at']) == sorted(codes)
+              and ck4['fetched_at'][codes[0]] == ck2_fa[codes[0]]
+              and ck4['fetched_at'][codes[1]] == ck2_fa[codes[1]]
+              and ck4['fetched_at'][codes[2]] > ck4['fetched_at'][codes[1]],
+              (calls, resumed, list(ck4.get('items') or {}),
+               sorted(ck4.get('fetched_at') or {})))
+        with open(cmc.ASHARE_CHECKPOINT_PATH, 'w', encoding='utf-8') as fh:
+            fh.write('{bad')
+        calls.clear()
+        with contextlib.redirect_stdout(io.StringIO()):
+            res5 = cmc.fetch_a_share_indices(
+                checkpoint='ckpt', budget=cmc.CollectionBudget(limit_sec=0.001))
+        check('§T4-h5 预算已耗尽的逐指数协作式检查(无可续断点): 零取网、cut_by_budget=true、'
+              '结果空',
+              calls == [] and res5 == {}
+              and cmc._STAGE_STATUS['a_share_indices']['cut_by_budget'] is True,
+              (calls, res5))
+
+        # ── 断点清除规则: 只用于恢复(全部阶段完成→清;仍有阶段未完整执行→留) ──
+        put({c: it() for c in codes}, {c: ts_after for c in codes})
+        stub_others()
+        saved.clear()
+        calls.clear()
+        code, o = run_main()
+        csx = saved[-1].get('collection_status') if saved else {}
+        check('§T4-h5b 经 main() 续采(六指数全取自断点,零取网)+全部阶段完成→清断点;'
+              '随档 a_share_checkpoint.resumed 列六指数',
+              code is None and len(saved) == 1 and calls == []
+              and csx.get('a_share_checkpoint', {}).get('resumed') == sorted(codes)
+              and not os.path.exists(cmc.ASHARE_CHECKPOINT_PATH)
+              and '断点保留' not in o,
+              (code, calls, csx.get('a_share_checkpoint'),
+               os.path.exists(cmc.ASHARE_CHECKPOINT_PATH), o[-160:]))
+
+        def hook_margin(name):
+            if name == 'fetch_margin':
+                clock['t'] += 300.0
+        put({c: it() for c in codes}, {c: ts_after for c in codes})
+        stub_others(hook_margin)
+        cmc.CN_COLLECTOR_BUDGET_SECONDS = 250.0
+        fake_clock(100.0)
+        saved.clear()
+        try:
+            code, o = run_main()
+        finally:
+            time.monotonic = real_mono
+        csy = saved[-1].get('collection_status') if saved else {}
+        check('§T4-h5c 仍有阶段被预算跳过(主日档照写、exit 无): 断点保留并提示'
+              '「A股断点保留」——下次运行续采后腾出预算',
+              code is None and len(saved) == 1
+              and csy.get('stages', {}).get('valuation', {}).get('status') == 'skipped_budget'
+              and os.path.exists(cmc.ASHARE_CHECKPOINT_PATH) and 'A股断点保留' in o,
+              (code, json.dumps(csy.get('stages'), ensure_ascii=False)[:200],
+               os.path.exists(cmc.ASHARE_CHECKPOINT_PATH), o[-160:]))
+        cmc.CN_COLLECTOR_BUDGET_SECONDS = 60.0
+        stub_others()
+        # ── 央行公告走查: 协作式预算(假时钟;回看窗放大到不随运行日期变化) ──
+        net = []
+        links = ['202611%02d%09d' % (1 + i, 10000 + i) for i in range(12)]
+        list_html = ''.join(
+            '<a href="/zhengcehuobisi/125207/125213/125431/125475/%s/index.html">x</a>'
+            % c for c in links)
+
+        def curl_fake(url, max_time='30'):
+            if ('zhengcehuobisi/125207/125213/125431/125475/index.html' in url
+                    or '17081-' in url):
+                return (list_html if ('index.html' in url and '17081-' not in url)
+                        else '').encode('utf-8')
+            clock['t'] += 100.0            # 每取一篇公告「耗时」100 秒
+            return b'<html>ann</html>'
+
+        def curl_count(url, max_time='30'):
+            net.append(url)
+            return curl_fake(url, max_time)
+        os.makedirs(cmc.PBC_OMO_CACHE_DIR)
+        for c in sorted(links, reverse=True)[:2]:       # 最新 2 篇已在缓存
+            with open(os.path.join(cmc.PBC_OMO_CACHE_DIR, c + '.html'), 'w',
+                      encoding='utf-8') as fh:
+                fh.write('cached')
+        cmc._curl_get = curl_count
+        cmc._pboc_omo_parse_announcement = lambda h: {'7天': 1.5, '隔夜': 1.4}
+        fake_clock(1000.0)
+        net.clear()
+        with contextlib.redirect_stdout(io.StringIO()):
+            omo1 = cmc._pboc_omo_walk(back_days=400000, deadline=clock['t'] + 20.0)
+        s1 = dict(cmc._OMO_WALK_STATUS)
+        check('§T4-h6 走查预算将尽: 已缓存公告不论预算一律处理(cache_hits=2);未缓存'
+              '新→旧取 1 篇后止(status=partial/stop_reason=budget/stopped_at 在场/'
+              'pending_left=9);列表页照常翻(首页+空次页止)',
+              s1.get('status') == 'partial' and s1.get('stop_reason') == 'budget'
+              and s1.get('cache_hits') == 2 and s1.get('fetched') == 1
+              and s1.get('processed') == 3 and s1.get('pending_left') == 9
+              and bool(s1.get('stopped_at')) and s1.get('links_in_window') == 12
+              and s1.get('pages') == 2 and len(omo1['7天']) == 3, s1)
+        net.clear()
+        fake_clock(5000.0)
+        with contextlib.redirect_stdout(io.StringIO()):
+            omo2 = cmc._pboc_omo_walk(back_days=400000)
+        s2 = dict(cmc._OMO_WALK_STATUS)
+        check('§T4-h7 无预算=旧行为: 全 12 篇处理(status=complete);已缓存的 3 篇'
+              '不取网(fetched=9)',
+              s2.get('status') == 'complete' and s2.get('stop_reason') is None
+              and s2.get('processed') == 12 and s2.get('fetched') == 9
+              and len(omo2['7天']) == 12, s2)
+        net.clear()
+        fake_clock(777.0)
+        with contextlib.redirect_stdout(io.StringIO()):
+            cmc._pboc_omo_walk(back_days=400000, deadline=clock['t'] + 3.0)
+        s3 = dict(cmc._OMO_WALK_STATUS)
+        check('§T4-h8 预算进门即不足(余 3 秒<15 秒单次取网储备): 列表页都不取'
+              '(pages=0)、零取网、partial/budget',
+              s3.get('pages') == 0 and net == [] and s3.get('status') == 'partial'
+              and s3.get('stop_reason') == 'budget', (s3, net[:3]))
+        cmc._em_series_rows = lambda url, fld: None
+        sys.modules['akshare'] = types.SimpleNamespace(
+            macro_china_lpr=lambda: pd.DataFrame())
+        try:
+            net.clear()
+            fake_clock(777.0)
+            with contextlib.redirect_stdout(io.StringIO()):
+                ser = fms0(
+                    budget=cmc.CollectionBudget(limit_sec=3))
+        finally:
+            cmc._em_series_rows = em0
+            if ak_mod is None:
+                sys.modules.pop('akshare', None)
+            else:
+                sys.modules['akshare'] = ak_mod
+        check('§T4-h9 宏观全史阶段带预算: 公告走查按预算截止时刻协作式停止(OMO/CN_POLICY_'
+              'OVERNIGHT 缺席、状态 partial/budget、零取网);其余端点照常',
+              ser == {} and dict(cmc._OMO_WALK_STATUS).get('stop_reason') == 'budget'
+              and net == [], (list(ser), dict(cmc._OMO_WALK_STATUS), net[:3]))
+
+        # ── 阶段间协作式停止(假时钟) ───────────────────────────────────────
+        def run_stages(limit, hook=None):
+            fake_clock(100.0)
+            b = cmc.CollectionBudget(limit_sec=limit)
+            ad = {}
+            with contextlib.redirect_stdout(io.StringIO()):
+                stg, cut = cmc._collect_stages(ad, b)
+            return ad, stg, cut
+
+        def hook_margin(name):
+            if name == 'fetch_margin':
+                clock['t'] += 300.0
+        stub_others(hook_margin)
+        ad9, stg9, cut9 = run_stages(250.0)
+        check('§T4-h10 非核心阶段(两融)耗尽预算→其后阶段 skipped_budget、核心阶段未被截断'
+              '(cut=False→写主日档口径)',
+              cut9 is False and stg9['margin']['status'] == 'ok'
+              and all(stg9[k]['status'] == 'skipped_budget'
+                      for k in ('valuation', 'turnover', 'ah_premium', 'macro', 'series'))
+              and 'valuation' not in ad9 and 'margin' in ad9,
+              json.dumps(stg9, ensure_ascii=False)[:300])
+
+        def hook_ashare(name):
+            if name == '_ashare_checkpoint_load':
+                clock['t'] += 56.0           # A股阶段「耗时」56 秒
+        stub_others()
+        cmc._index_daily = idx_fast
+        calls.clear()
+        load0 = cmc._ashare_checkpoint_load
+        cmc._ashare_checkpoint_load = lambda e, w, now_ts=None: (
+            hook_ashare('_ashare_checkpoint_load') or {})
+        try:
+            ad10, stg10, cut10 = run_stages(60.0)
+        finally:
+            cmc._ashare_checkpoint_load = load0
+        check('§T4-h11 核心阶段因预算未执行(港股 skipped_budget)同样不得写主日档'
+              '(cut=True);A股阶段内逐指数协作式截断=零取网',
+              cut10 is True and stg10['a_share_indices']['status'] == 'ok'
+              and stg10['hk_indices']['status'] == 'skipped_budget'
+              and calls == [] and ad10.get('a_share_indices') == {}
+              and cmc._STAGE_STATUS['a_share_indices']['cut_by_budget'] is True,
+              (cut10, calls, json.dumps(stg10, ensure_ascii=False)[:200]))
+
+        def boom():
+            raise RuntimeError('source exploded')
+        stub_others()
+        cmc.fetch_margin = boom
+        fake_clock(100.0)
+        raised = None
+        try:
+            try:
+                with contextlib.redirect_stdout(io.StringIO()):
+                    cmc._collect_stages({}, cmc.CollectionBudget(limit_sec=50.0))
+            except RuntimeError as e:
+                raised = str(e)
+        finally:
+            time.monotonic = real_mono
+        check('§T4-h12 非预算异常照旧外泄(不吞;脚本崩=失败,与旧主程序同口径)',
+              raised == 'source exploded', raised)
+    finally:
+        time.monotonic = real_mono
+        cmc._curl_get, cmc._pboc_omo_parse_announcement = curl0, parse0
+        cmc._em_series_rows = em0
+        if ak_mod is None:
+            sys.modules.pop('akshare', None)
+        else:
+            sys.modules['akshare'] = ak_mod
+        cmc.CN_COLLECTOR_BUDGET_SECONDS = budget0
+        cmc._disarm_watchdog()
+    after = _t4_tree_files()
+    check('§T4-h13 离线冒烟零落盘: 被测树文件清单与 mtime 前后一致(部分面/断点/缓存'
+          '全在临时目录)',
+          after == before, (sorted(set(after) - set(before))[:5],
+                            sorted(set(before) - set(after))[:5]))
+
 def main():
     print('Audit-R33 门 (HEAD %s)' % WORKTREE_HEAD[:12])
     try:
@@ -2303,6 +3205,14 @@ def main():
         sec_t3_e()
         sec_t3_f()
         sec_t3_g()
+        sec_t4_a()
+        sec_t4_b()
+        sec_t4_c()
+        sec_t4_d()
+        sec_t4_e()
+        sec_t4_f()
+        sec_t4_g()
+        sec_t4_h()
     finally:
         n_ok = sum(1 for x in RESULTS if x)
         n = len(RESULTS)

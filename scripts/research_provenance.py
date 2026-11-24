@@ -287,7 +287,10 @@ def _identity_of(path):
 
 
 def daily_face_identity_map(obj):
-    """Audit-R26 任务1: 指标身份→**有效观测**叶子数(降级判定主维度)。
+    """Audit-R26 任务1: 指标身份→**有效观测**叶子数(全叶身份图)。
+
+    Audit-R33 任务4起降级判定改用 daily_face_observation_map(来源备注
+    不计入指标覆盖);本函数保留=含备注叶的全叶身份图(诊断/对账用)。
 
     「按指标身份和有效观测判断降级」:
     - 身份=载荷内前两段路径(采集档的 metric 容器节点,如 macro 档的
@@ -313,6 +316,46 @@ def daily_face_identity_map(obj):
         else:
             ident = _identity_of(prefix)
             if ident:
+                out.setdefault(ident, 0)
+                if node is not None:
+                    out[ident] += 1
+
+    walk(obj, '')
+    return out
+
+
+def daily_face_observation_map(obj):
+    """Audit-R33 任务4: 判定用身份图——{identity: 有效观测叶数},只计观测叶。
+
+    与 daily_face_identity_map 同一身份规则(前两段路径;None 叶计身份
+    在场、有效观测 0;空容器不计),差异=**来源备注不计入指标覆盖**:
+    - 备注键(_REMARK_LEAF_KEYS)下的叶子整体不计——只带备注的「身份」
+      (如备用源档的 valuation.via/valuation.note、turnover.scope)不是
+      指标,其增删不构成升降级;备注仍留在文件里(披露不动),只是不进
+      降级判定;
+    - 顶层标量(timestamp/date/fetched_at/version 等文件级元数据)自成
+      单段身份,不是指标,不计。
+    顶层披露区(_GUARD_STATUS_KEYS)由调用方经 _judgment_view 先行剔除。
+    观测叶上的三判据(身份丢失/有效观测缩水/时点回退)口径不变: 只带
+    备注的身份其观测叶归零仍按缩水判降级(备注不掩盖观测蒸发)。"""
+    out = {}
+
+    def walk(node, prefix):
+        if isinstance(node, dict):
+            if not node:
+                return
+            for k, v in node.items():
+                if k in _REMARK_LEAF_KEYS:
+                    continue
+                walk(v, f'{prefix}.{k}' if prefix else f'.{k}')
+        elif isinstance(node, list):
+            if not node:
+                return
+            for v in node:
+                walk(v, prefix + '[]')
+        else:
+            ident = _identity_of(prefix)
+            if ident and len(ident) >= 2:
                 out.setdefault(ident, 0)
                 if node is not None:
                     out[ident] += 1
@@ -417,7 +460,26 @@ def _guard_lock(data_dir, fname):
 # cn_history=R6/R7 carry_forward 续存披露(mode/coverage 键数随 fresh/
 # carry_forward 形态天然不同),观测序列本体在 data 区逐位不变时
 # 不得因披露区键数变化判降级(实测雷: fresh 5叶/续存3叶曾触发误转存)。
-_GUARD_STATUS_KEYS = ('cn_history',)
+# Audit-R33 任务4: 披露区扩至来源登记/状态/告警(sources/sources_status/
+# alerts: japan/jp/ea/shiller 四通道采集档的来源 URL·注记·EXACT/READ_FAIL
+# 状态与告警文本)、source_version(Shiller 下载溯源)与 collection_status
+# (采集器预算与阶段时长披露)——同属来源备注,不是指标覆盖。
+_GUARD_STATUS_KEYS = ('cn_history', 'alerts', 'sources', 'sources_status',
+                      'source_version', 'collection_status')
+
+# Audit-R33 任务4: 备注叶键名(闭集)——来源/状态注记与无测量值的标注文字,
+# 不计入指标覆盖。实测雷(Audit-R32 终章附带发现;R33 基线 f053afe 用树内
+# 守卫函数复现): 备用源档的 valuation.via / valuation.note 两个来源注记键被
+# 计为指标身份,四项指数估值齐全的完整候选因缺这两键被判「指标身份丢失
+# 2 项(valuation.note,valuation.via)」转存 superseded/,规范位留下的是缺
+# 上证指数估值一项的备用源档。新增备注键须登记于此(闭集=可审计;未登
+# 记者仍按观测叶计)。
+_REMARK_LEAF_KEYS = frozenset((
+    # 来源/状态注记
+    'via', 'source', 'sources', 'source_note', 'history_note', 'basis_note',
+    'note', 'url', 'retrieved_at', 'retrieved_at_utc', 'status',
+    # 标注文字(无测量值)
+    'name', 'label', 'index_name', 'scope', 'interpretation', 'signal'))
 
 
 def _judgment_view(payload):
@@ -451,7 +513,12 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
       「旧档已移走、新档未换入」空窗),旧合格数据始终可读。
     - **同日并发互斥**: 读旧-判定-转存-替换全程 per-文件 flock
       (superseded/.lock.<fname>);原子替换保证读者任意时刻见到的都是
-      完整旧档或完整新档,旧合格数据并发窗口始终可读。"""
+      完整旧档或完整新档,旧合格数据并发窗口始终可读。
+    Audit-R33 任务4(来源备注不计入指标覆盖):
+    - 判定用 daily_face_observation_map: 备注叶与顶层元数据不进身份图
+      ——完整新版不因缺备用源档的来源注记键(via/note)被误判降级而弃
+      (Audit-R32 终章附带发现的根修);观测叶的身份丢失/缩水/时点回退
+      三判据不变,真实退化仍拦截。"""
     rule = SOURCE_FILE_RULES.get(channel)
     if rule is None:
         raise ValueError(f'unknown channel: {channel!r}')
@@ -462,7 +529,7 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
     path = os.path.join(data_dir, fname)
     forced = os.environ.get('IA_DAILY_ALLOW_OVERWRITE', '') == '1'
     _want_cov = daily_face_coverage(payload)
-    _want_ids = daily_face_identity_map(_judgment_view(payload))
+    _want_ids = daily_face_observation_map(_judgment_view(payload))
     _want_hz = daily_face_valid_obs_horizon(_judgment_view(payload))
 
     def _stage_candidate(dst):
@@ -478,7 +545,7 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
             with open(tmp, encoding='utf-8') as f:
                 cand = json.load(f)
             if (daily_face_coverage(cand) != _want_cov
-                    or daily_face_identity_map(
+                    or daily_face_observation_map(
                         _judgment_view(cand)) != _want_ids
                     or daily_face_valid_obs_horizon(
                         _judgment_view(cand)) != _want_hz):
@@ -535,7 +602,7 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
         try:
             with open(path, encoding='utf-8') as f:
                 old = json.load(f)
-            old_ids = daily_face_identity_map(_judgment_view(old))
+            old_ids = daily_face_observation_map(_judgment_view(old))
             old_paths_n = len(daily_face_coverage(old)[0])
         except (OSError, ValueError):
             old_unreadable = True   # 旧档不可读→无法证明退化,按可覆盖处理(仍保留)

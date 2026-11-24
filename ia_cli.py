@@ -81,7 +81,10 @@ ARCHIVE_DOUBLE_NEST = 'research_archive/query_history'  # research_archive._coll
 AGENT_ROUTING_HINT = ('自由研究问题请组合使用 history(列出可用指标)/'
                       'compare(单位感知对齐)/overview/changes,由你的 Agent 组织研究')
 # P0-1: update 结果信封的关键行筛(⛔/❌/Traceback/ERROR/失败/错误,大小写兼顾)
-_CRITICAL_LINE_RE = re.compile(r'⛔|❌|Traceback|ERROR|失败|错误', re.IGNORECASE)
+# Audit-R33 任务4: 日档守卫分流行「未覆盖完整档」同列关键行(旧: 只混在
+# 40 行 output_tail 里,被后续步骤输出滚掉即不可见)
+_CRITICAL_LINE_RE = re.compile(
+    r'⛔|❌|Traceback|ERROR|失败|错误|未覆盖完整档', re.IGNORECASE)
 
 
 # ══ 输出信封 ═════════════════════════════════════════════════════════
@@ -323,7 +326,11 @@ def cmd_doctor(args):
             with open(ledgers[-1], encoding='utf-8') as fh:
                 led = json.load(fh)
             critical = [{'step': s.get('name'), 'ok': s.get('ok'),
-                         'skipped': s.get('skipped'), 'skip_reason': s.get('skip_reason')}
+                         'skipped': s.get('skipped'), 'skip_reason': s.get('skip_reason'),
+                         'duration_sec': s.get('duration_sec'),
+                         'exit_code': s.get('exit_code'),
+                         'fail_reason': s.get('fail_reason'),
+                         **({'timeout_sec': s['timeout_sec']} if 'timeout_sec' in s else {})}
                         for s in led.get('steps', []) if s.get('critical')]
             data['last_run'] = {
                 'available': True, 'ledger_file': os.path.basename(ledgers[-1]),
@@ -341,6 +348,31 @@ def cmd_doctor(args):
                      'project_install_present': os.path.isdir(proj),
                      'note': 'source=.agents/skills/(随仓库); 项目级副本=.claude/skills/(install_skill.py 生成)'}
     emit(envelope('doctor', True, data))
+
+
+def _pipeline_ledger_since(t_launch, root=None, tolerance_sec=2.0):
+    """Audit-R33 任务4(update 回执带失败步骤/时长/原因): 认领**本次运行**写出的
+    流水线台账——logs/pipeline_run_*.json 中 run_at 最新、且不早于本次启动
+    时刻−容差的那份(台账 run_at=流水线起始时刻)。返回 (台账 dict|None,
+    不可用原因|None, 文件名|None);台账缺失/不可解析/早于本次运行一律回
+    None+原因(不拿旧台账冒充本次,不影响退出码透传)。"""
+    from datetime import datetime, timedelta
+    root = root or ROOT
+    best, best_at, best_name = None, None, None
+    for p in sorted(glob.glob(os.path.join(root, 'logs', 'pipeline_run_*.json'))):
+        try:
+            with open(p, encoding='utf-8') as fh:
+                led = json.load(fh)
+            at = datetime.fromisoformat(str(led.get('run_at')))
+        except (OSError, ValueError, TypeError):
+            continue
+        if best_at is None or at >= best_at:
+            best, best_at, best_name = led, at, os.path.basename(p)
+    if best is None:
+        return None, 'no_readable_ledger', None
+    if best_at < t_launch - timedelta(seconds=tolerance_sec):
+        return None, 'ledger_predates_this_run', None
+    return best, None, best_name
 
 
 def cmd_update(args):
@@ -363,6 +395,9 @@ def cmd_update(args):
     # JSON 对象」)。开始提示走 stderr(人读进度,机器不解析)。
     print(f'开始运行 run_weekly.py(引擎根 {ROOT}),完成后输出结果摘要(透传退出码)',
           file=sys.stderr)
+    # Audit-R33 任务4: 记启动时刻,运行后据此认领本次运行的流水线台账
+    from datetime import datetime as _dt
+    t_launch = _dt.now()
     try:
         # errors='replace': 子进程输出非 UTF-8 字节时以替换符入 tail,
         # 不让 UnicodeDecodeError 裸崩吞掉结果信封与退出码(2026-11-09 复现缺陷)
@@ -377,12 +412,37 @@ def cmd_update(args):
     # 关键行单独留底(大小写兼顾),保证 ⛃/❌/Traceback/ERROR/失败/错误 仍可见。
     # P0-4: 三条 tail 全部过 redact()——采集器异常文本常内嵌含密钥的完整 URL
     critical_tail = [l for l in lines if _CRITICAL_LINE_RE.search(l)][-10:]
-    payload = envelope('update', proc.returncode == 0, {
+    # Audit-R33 任务4(失败步骤/时长/原因): ① 日档守卫「未覆盖完整档」分流行
+    # 单列(旧: 仅混在 40 行 output_tail 里,被后续步骤输出滚掉即不可见);
+    # ② 认领本次运行的流水线台账,逐步骤时长/失败原因入回执;台账不可用
+    # 时如实写 steps_note(不拿旧台账冒充本次)。
+    guard_diversions = [redact(l) for l in lines if '未覆盖完整档' in l]
+    ledger, ledger_note, ledger_file = _pipeline_ledger_since(t_launch)
+    data = {
         'exit_code': proc.returncode,
         'exit_semantics': '0=全部关键步骤成功(非关键可降级); 1=任一关键步骤失败或被跳过',
         'output_tail': [redact(l) for l in lines[-40:]],
         'critical_tail': [redact(l) for l in critical_tail],
-        'stderr_tail': [redact(l) for l in (proc.stderr or '').strip().splitlines()[-10:]]})
+        'stderr_tail': [redact(l) for l in (proc.stderr or '').strip().splitlines()[-10:]],
+        'guard_diversions': guard_diversions,
+        'ledger_file': ledger_file}
+    if ledger is None:
+        data['steps_note'] = (f'本次运行无可用流水线台账({ledger_note}): '
+                              '逐步骤时长/失败原因不可得')
+    else:
+        data['steps'] = [
+            {'name': s.get('name'), 'ok': s.get('ok'), 'critical': s.get('critical'),
+             'skipped': s.get('skipped'), 'skip_reason': s.get('skip_reason'),
+             'duration_sec': s.get('duration_sec'),
+             'exit_code': s.get('exit_code'),
+             'fail_reason': s.get('fail_reason'),
+             **({'timeout_sec': s['timeout_sec']} if 'timeout_sec' in s else {})}
+            for s in (ledger.get('steps') or [])]
+        data['failed_steps'] = ledger.get('failed_steps')
+        data['duration_sec'] = ledger.get('duration_sec')
+        data['snapshot_id'] = ledger.get('snapshot_id')
+        data['gate_a'] = ledger.get('gate_a')
+    payload = envelope('update', proc.returncode == 0, data)
     emit(payload, exit_code=proc.returncode)
 
 

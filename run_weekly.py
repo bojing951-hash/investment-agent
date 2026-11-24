@@ -14,6 +14,15 @@ CLI(P0-2链路修复, 2026-11-09):
   --allow-revision        同日重跑允许修订快照(转发 snapshot_builder,生成_vN原版保留;
                           不带此参数时同日重跑被不可变保护拒绝,step9 exit 3 → 流水线 exit 1)
   --revision-reason TEXT  修订原因(随 --allow-revision 转发写入快照 revision_reason)
+
+Audit-R33 任务4(2026-11-25,失败步骤/时长/原因可追溯):
+- 冷启动无缓存复现(R32 基线 f053afe,2026-11-24 21:43 本机): 步骤2 A股港股
+  采集 ≈710 秒(步骤上限 900 秒),余量不足;旧台账对失败步骤只有 ok=false——
+  无时长、无原因,无法区分超时/非零退出/脚本缺席/依赖跳过;
+- 台账 steps 每行增 duration_sec/exit_code/fail_reason
+  (script_missing|timeout|nonzero_exit|signal:N|dependency_skipped|unreported),
+  顶层增 failed_steps;汇总打印失败原因与时长。run_step 签名与布尔返回不变
+  (既有测试替身依赖该形状,未上报原因的步骤如实标 unreported,不编造)。
 """
 
 import argparse
@@ -21,10 +30,17 @@ import subprocess
 import sys
 import os
 import json
+import time
 from datetime import datetime
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_DIR = os.path.join(PROJECT_DIR, 'scripts')
+
+# Audit-R33 任务4: 逐步骤执行记录{步骤名: {duration_sec, exit_code, fail_reason
+# [, timeout_sec]}}。run_step 签名与布尔返回不变(既有测试替身依赖该形状),
+# 时长/退出码/失败原因经本表带出: run_pipeline 起始清空,结束挂到 results.meta;
+# 依赖跳过行记 dependency_skipped。
+STEP_META = {}
 
 def run_step(step_name, script_name, timeout=900, script_dir=None, extra_args=None):
     """运行一个步骤(默认15分钟超时,防止网络挂死堵住launchd——见a_stock_tracker 2026-10-01事故)。
@@ -39,8 +55,11 @@ def run_step(step_name, script_name, timeout=900, script_dir=None, extra_args=No
 
     if not os.path.exists(script_path):
         print(f"❌ 脚本不存在: {script_path}")
+        STEP_META[step_name] = {'duration_sec': 0.0, 'exit_code': None,
+                                'fail_reason': 'script_missing'}
         return False
 
+    _t0 = time.monotonic()
     try:
         result = subprocess.run(
             [sys.executable, script_path] + list(extra_args or []),
@@ -49,8 +68,19 @@ def run_step(step_name, script_name, timeout=900, script_dir=None, extra_args=No
             timeout=timeout
         )
     except subprocess.TimeoutExpired:
-        print(f"⏰ {step_name} 超时({timeout}秒),已终止,继续下一步")
+        _sec = round(time.monotonic() - _t0, 1)
+        print(f"⏰ {step_name} 超时({timeout}秒,已运行{_sec}秒),已终止,继续下一步")
+        STEP_META[step_name] = {'duration_sec': _sec, 'exit_code': None,
+                                'fail_reason': 'timeout', 'timeout_sec': timeout}
         return False
+
+    # Audit-R33 任务4: 失败原因分类——timeout / nonzero_exit / signal:N(负返回码)
+    _meta = {'duration_sec': round(time.monotonic() - _t0, 1),
+             'exit_code': result.returncode,
+             'fail_reason': (None if result.returncode == 0 else
+                             f'signal:{-result.returncode}'
+                             if result.returncode < 0 else 'nonzero_exit')}
+    STEP_META[step_name] = _meta
 
     if result.returncode != 0:
         print(f"⚠️  {step_name} 可能有问题 (返回码: {result.returncode})")
@@ -82,6 +112,7 @@ def run_pipeline(steps, script_dir=None, extra_args_by_script=None):
       (缺省 None=全部零参,既有行为不变)。
     """
     results = PipelineResults()
+    STEP_META.clear()   # Audit-R33 任务4: 逐次运行隔离(模块级表)
     # 脚本名 → 步骤显示名(依赖公示用);脚本名 → 是否成功(依赖判定用)
     name_by_script = {s[1]: s[0] for s in steps if len(s) >= 2}
     ok_scripts = set()
@@ -100,6 +131,8 @@ def run_pipeline(steps, script_dir=None, extra_args_by_script=None):
                 reason = f"依赖未成功 → {why}"
                 print(f"\n⏭️  SKIPPED {step_name}: {reason}")
                 results.skips[step_name] = reason
+                STEP_META[step_name] = {'duration_sec': 0.0, 'exit_code': None,
+                                        'fail_reason': 'dependency_skipped'}
                 results.append((step_name, False, critical))
                 continue
         # P0-2 兼容: 仅在确有附加参数时才传 extra_args——零参路径保持旧调用
@@ -113,7 +146,24 @@ def run_pipeline(steps, script_dir=None, extra_args_by_script=None):
         results.append((step_name, success, critical))
         if success:
             ok_scripts.add(script_name)
+    results.meta = dict(STEP_META)   # Audit-R33 任务4
     return results
+
+
+def _fail_reason_text(row):
+    """Audit-R33 任务4: 台账行 → 人读失败原因(未上报如实写未上报)。"""
+    why = row.get('fail_reason')
+    if why == 'timeout':
+        return f"超时(上限 {row.get('timeout_sec')} 秒)"
+    if why == 'nonzero_exit':
+        return f"非零退出(返回码 {row.get('exit_code')})"
+    if why == 'script_missing':
+        return '脚本不存在'
+    if why and str(why).startswith('signal:'):
+        return f"被信号终止({why.split(':', 1)[1]})"
+    if why == 'unreported':
+        return '未上报(步骤替身/旧实现未记录原因)'
+    return str(why)
 
 def main(argv=None):
     """argv=None → 真实 sys.argv(CLI);显式传参(如 [])→与宿主 argv 无关
@@ -235,6 +285,30 @@ def main(argv=None):
     print(f"\n  结果: {success_count}/{len(steps)} 步骤成功")
     print(f"  总耗时: {duration:.1f} 秒")
 
+    # Audit-R33 任务4: 逐步骤时长/失败原因入台账并公示(未成功且非依赖跳过的
+    # 步骤逐条打印原因+时长;未上报原因的不编造,如实标 unreported)
+    step_meta = getattr(results, 'meta', {}) or {}
+    step_rows = []
+    for n, s, c in results:
+        m = dict(step_meta.get(n) or {})
+        row = {'name': n, 'ok': bool(s), 'critical': bool(c),
+               'skipped': n in skips,
+               'skip_reason': (skips or {}).get(n),
+               'duration_sec': m.get('duration_sec'),
+               'exit_code': m.get('exit_code'),
+               'fail_reason': m.get('fail_reason')}
+        if not s and not row['fail_reason']:
+            row['fail_reason'] = ('dependency_skipped' if n in skips
+                                  else 'unreported')
+        if 'timeout_sec' in m:
+            row['timeout_sec'] = m['timeout_sec']
+        step_rows.append(row)
+    failed_steps = [r for r in step_rows if not r['ok']]
+    for r in failed_steps:
+        if not r['skipped']:
+            print(f"     ↳ {r['name']}: 时长 {r['duration_sec']} 秒, "
+                  f"失败原因 {_fail_reason_text(r)}")
+
     # IA-P0-1(AC-11)+FIX-08(IA-DEF-008): 流水线运行台账——步骤状态/失败与SKIPPED
     # 原因/**所使用的研究快照身份(版本+摘要+Gate A)**/是否允许正式报告与回写。
     # 台账为诊断记录: 写入失败仅告警,不改变退出码判定,也不得据此把失败静默记成功。
@@ -279,11 +353,9 @@ def main(argv=None):
             'run_at': start_time.isoformat(timespec='seconds'),
             'run_date': start_time.strftime('%Y-%m-%d'),
             'duration_sec': round(duration, 1),
-            'steps': [{'name': n, 'ok': bool(s), 'critical': bool(c),
-                       'skipped': n in skips,
-                       'skip_reason': (skips or {}).get(n)}
-                      for n, s, c in results],
+            'steps': step_rows,
             'success_count': success_count,
+            'failed_steps': failed_steps,
             **ledger_provenance,
         }, ensure_ascii=False, indent=1)
         _tmp = log_path + '.tmp'

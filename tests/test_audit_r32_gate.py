@@ -2178,8 +2178,10 @@ def sec_l():
           f"rc10={rc10}")
     # ── §L9e–§L9g 两印章同渲染包: 裁决已在场时渲染(状态面未翻新),清单携
     #    archive_code_git_head 而无 map_binding_status_equivalent(正式验收
-    #    第三处: 换问 B 工单包=运行印章渲染时裁决已在场,归档印章代码重放
-    #    自己归档的包被门④误拒) ──
+    #    第三处: 换问 B 工单包=运行印章渲染时裁决已在场;交付字节全由运行
+    #    印章代码所产→录制代码=运行印章代码,归档印章代码照旧拒——归档≠
+    #    录制,否则任一旧运行目录经新代码归档即可绕过版本门(与 R28 门
+    #    §D6a 同规;37691b7 放开门④后 R28 门 §D6a/§D6b/§D7a 转红即其反证) ──
     vp2 = aj.record_semantic_verdict(T, rd, 'UPHELD',
                                      reviewer='r32gate-status席',
                                      notes='R32 正式验收: 裁决在场时的再裁决')
@@ -2214,22 +2216,39 @@ def sec_l():
 
     rc13, d13 = _rp4(ARC2, 'rp_ps_same_render_arc')
     dd13 = d13.get('data') or {}
-    rp13 = _jload(os.path.join(TMPG, 'rp_ps_same_render_arc',
-                               'REPLAY_REPORT.json'))
-    check('§L9f 归档印章代码严格重放同渲染包: rc=0——门④认清单声明的归档代码'
-          '为录制代码,不以状态面是否翻新为条件(交付字节正是归档代码所产);'
-          '其余检查全过+逐字节相等;重放报告落档 package_archive_head',
-          rc13 == 0 and _ck(d13, 'code_version_match').get('ok') is True
-          and '归档代码' in str(_ck(d13, 'code_version_match').get('detail'))
-          and dd13.get('render_mode') == 'byte_equal'
-          and all(c.get('ok') for c in (dd13.get('checks') or []))
-          and rp13.get('package_archive_head') == ARC2,
+    check('§L9f 归档印章代码严格重放同渲染包: 拒(rc=1+code_version_mismatch,'
+          '不落输出目录)——归档≠录制: 交付字节即执行印章渲染,录制代码=运行'
+          '印章代码;拒绝注记点明清单另记的归档代码与「须以运行印章代码重放」',
+          rc13 != 0 and dd13.get('blocked') == 'code_version_mismatch'
+          and 'replay_out' not in dd13
+          and not os.path.exists(os.path.join(TMPG, 'rp_ps_same_render_arc'))
+          and '须以运行印章代码严格重放' in str(dd13.get('note'))
+          and ARC2 in str(dd13.get('note')),
           f"rc13={rc13} blocked={dd13.get('blocked')} "
-          f"c={str(_ck(d13, 'code_version_match').get('detail'))[:80]}")
+          f"note={str(dd13.get('note'))[-84:]}")
+    rc13b, d13b = _rp4(ARC2, 'rp_ps_same_render_arc_override',
+                       extra=['--allow-code-mismatch'])
+    dd13b = d13b.get('data') or {}
+    rp13b = _jload(os.path.join(TMPG, 'rp_ps_same_render_arc_override',
+                                'REPLAY_REPORT.json'))
+    md13b = open(os.path.join(TMPG, 'rp_ps_same_render_arc_override',
+                              'REPLAY_REPORT.md'), encoding='utf-8').read()
+    check('§L9f2 显式越过(--allow-code-mismatch): 归档印章代码放行=披露(检查'
+          '明细点名越过;重放报告注记写明异版代码越过版本门、不写「清单已声明'
+          '状态面等价」)+逐字节相等;重放报告落档 package_archive_head',
+          rc13b == 0
+          and '披露越过' in str(_ck(d13b, 'code_version_match').get('detail'))
+          and dd13b.get('render_mode') == 'byte_equal'
+          and all(c.get('ok') for c in (dd13b.get('checks') or []))
+          and rp13b.get('package_archive_head') == ARC2
+          and '--allow-code-mismatch' in md13b
+          and '清单已声明状态面等价' not in md13b,
+          f"rc13b={rc13b} mode={dd13b.get('render_mode')} "
+          f"c={str(_ck(d13b, 'code_version_match').get('detail'))[-56:]}")
     rc14, d14 = replay(arc4, T, out=os.path.join(TMPG, 'rp_ps_same_render_run'))
     rc15, d15 = _rp4(ARC3, 'rp_ps_same_render_third')
-    check('§L9g 运行印章代码严格重放同一包: rc=0(同渲染包运行印章/归档印章'
-          '两版代码均可严格重放);第三印章照旧拒(code_version_mismatch)',
+    check('§L9g 运行印章代码严格重放同一包: rc=0+逐字节相等(录制代码);第三'
+          '印章照旧拒(code_version_mismatch)',
           rc14 == 0 and (d14.get('data') or {}).get('render_mode') == 'byte_equal'
           and rc15 != 0
           and (d15.get('data') or {}).get('blocked') == 'code_version_mismatch',

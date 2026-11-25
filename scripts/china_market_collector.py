@@ -208,8 +208,9 @@ def _fetch_index_em(code, name):
     进入): 返回与 tushare 路径同 schema 的 item + 新增键 via('em_kline'
     东财直连/'em_kline_proxy'东财系统代理/'tx_ifzq'腾讯浅窗/'akshare_em'
     包装末路);取值行=date≤_em_max_date() 最后一行(在途行禁用);四路皆
-    失败/无完结行→None(该指数如实缺失)。单位披露: EM amount 单位=元
-    (tushare 千元),volume 语义=成交量;腾讯路无 amount(None 如实缺席)。
+    失败/无完结行→None(该指数如实缺失)。单位披露: amount=千元(与 tushare
+    主路同单位;东财原始=元,此处÷1000——R33 任务4修订 r4 前为元,两路不同
+    单位),volume 语义=成交量;腾讯路无 amount(None 如实缺席)。
     R20: 东财端点当日间歇断连→四路阶梯;腾讯浅窗 ≈16 个月在 item 注明。"""
     rows = _em_klines_direct(code)
     via = 'em_kline'
@@ -269,7 +270,8 @@ def _fetch_index_em(code, name):
         'week_chg': week_chg,
         'ytd_chg': ytd_chg,
         'volume': last_vol,                                   # 单位: 股
-        'amount': last_amt,                                   # 单位: 元;腾讯路 None
+        # 单位: 千元(与 tushare 主路同单位;东财原始=元,÷1000;腾讯路 None)
+        'amount': None if last_amt is None else round(last_amt / 1000.0, 3),
         'date': last_d.replace('-', ''),                      # →YYYYMMDD,同tushare规格
         'series': {'dates': dates, 'values': closes},
         'via': via,
@@ -608,11 +610,16 @@ def fetch_a_share_indices(checkpoint=None, budget=None):
                     _ashare_checkpoint_save(end_date, window_start, results, fetched_at)
                 wc = item.get('week_chg')
                 tag = f" (周{wc:+.2f}%)" if wc is not None else ""
-                print(f"  ✅ {name}: {item['close']}{tag} [东财回落 akshare_em]")
+                print(f"  ✅ {name}: {item['close']}{tag} [东财回落 {item.get('via')}]")
+                # R33 任务4修订 r4(NIT-6): 回落来源以 via 为准并进阶段 notes
+                print(f"  ⚠️ {name}({code}): tushare 主路异常({type(e).__name__}),"
+                      f"本指数取自回落源 {item.get('via')}")
 
     if checkpoint is not None:
         # 断点续采后恢复清单序(结果键序与清单一致,与旧路径同形)
         results = {c: results[c] for c in A_SHARE_INDICES if c in results}
+        _STAGE_STATUS['a_share_indices'].update(
+            _ashare_resume_notes(results, fetched_at, end_date))
     return results
 
 def _hk_metrics_from_daily(dates, closes):
@@ -774,6 +781,11 @@ def fetch_hk_indices(checkpoint=None):
         tag = f" (周{wc:+.2f}%)" if wc is not None else ""
         print(f"  ✅ {name}: {r['close']}{tag} @{r.get('date')} "
               f"[{src}; n={len(r['series']['dates'])}]")
+        # R33 任务4修订 r4(审查席 MINOR-9): 浅窗如实标注(⚠️ 行进阶段 notes;项带 note)
+        _n = len(r['series']['dates'])
+        if _n < target:
+            r['note'] = f'序列深度 {_n}/目标 {target}(浅窗,如实;深窗回补未得)'
+            print(f"  ⚠️ {name}: 序列深度 {_n}/目标 {target}(浅窗,如实)")
         if checkpoint is not None and hist_dirty:
             _save_hk_history(hist)     # Audit-R33 任务4: 逐 ticker 断点
             hist_dirty = False
@@ -883,6 +895,113 @@ def fetch_southbound():
     print("  ↪️ 南向主路失败/空,转东财EM回落(akshare)")
     return _fetch_southbound_em()
 
+def _margin_pair_exchange(fin, rq):
+    """R33 任务4修订 r4(审查席 MINOR-1): 备源两所读数**量纲对齐**与配对(纯函数)。
+    实测(2026-11-26): 上交所 stock_margin_sse 读数为元、深交所 stock_margin_szse
+    页面读数为亿元——旧码直接相加,合计≈只剩沪市口径(主路同日读数的 52%),且无
+    任何提示(Gate A 事实仍 PASS)。规则: 两所同项读数须为有限正数(深所为列时
+    逐行数值化后求和);一项不足另一项 1/100 → 判为亿元口径×1e8;折算后两所比值
+    须落在 [0.05, 20] 内,否则量纲无法确认→None(不配对=如实缺席,不以单所半
+    合计冒充两所口径)。fin/rq=(上交所值, 深交所列或值)。返回 (融资余额元,
+    融券余额元, 是否发生折算) 或 None。"""
+    import math
+
+    def _num(v):
+        if isinstance(v, (pd.Series, list, tuple)):
+            return float(sum(float(x) for x in v))
+        return float(v)
+
+    out, scaled = [], False
+    for sse_v, sz_v in (fin, rq):
+        try:
+            a, b = _num(sse_v), _num(sz_v)
+        except (TypeError, ValueError):
+            return None
+        if not (math.isfinite(a) and math.isfinite(b)) or a <= 0 or b <= 0:
+            return None
+        if b < a / 100.0:
+            b *= 1e8
+            scaled = True
+        if not 0.05 <= b / a <= 20.0:
+            return None
+        out.append(a + b)
+    return out[0], out[1], scaled
+
+
+_MARGIN_BACKUP_MAX_DEV = 0.10          # 备源读数相对最近在档读数的最大容忍偏离
+_MARGIN_BACKUP_LOOKBACK_DAYS = 20      # 对账回看窗(自然日)
+
+
+def _prev_margin_reading(ymd):
+    """R33 任务4修订 r4: 备源读数对账用——data/daily 里 ymd 之前
+    _MARGIN_BACKUP_LOOKBACK_DAYS 天内最近一份带 margin.balance 的规范 china 档
+    → (date, balance 亿元) 或 None(只读;至多回看 3 份;坏档/无读数跳过)。"""
+    try:
+        d0 = datetime.strptime(str(ymd), '%Y%m%d')
+    except (TypeError, ValueError):
+        return None
+    lo = (d0 - timedelta(days=_MARGIN_BACKUP_LOOKBACK_DAYS)).strftime('%Y%m%d')
+    folder = os.path.join(PROJECT_DIR, 'data', 'daily')
+    try:
+        names = sorted((n for n in os.listdir(folder)
+                        if re.fullmatch(r'china_\d{8}\.json', n)
+                        and lo <= n[6:14] < str(ymd)), reverse=True)[:3]
+    except OSError:
+        return None
+    for n in names:
+        try:
+            with open(os.path.join(folder, n), encoding='utf-8') as f:
+                mg = (json.load(f) or {}).get('margin') or {}
+            bal = float(mg.get('balance'))
+        except (OSError, ValueError, TypeError):
+            continue
+        if bal == bal and bal > 0:
+            return (mg.get('date'), bal)
+    return None
+
+
+def _margin_exchanges(df):
+    """R33 任务4修订 r4: 主路返回表的交易所集合(去重排序;exchange_id 列)。
+    无该列/非表→None(结构不可判,不据此拒绝)。"""
+    try:
+        cols = list(df.columns)
+    except AttributeError:
+        return None
+    if 'exchange_id' not in cols:
+        return None
+    return sorted({str(x).strip() for x in df['exchange_id'].tolist()
+                   if str(x).strip()})
+
+
+def _margin_dev_tol(prev_date, date):
+    """对账容忍度: _MARGIN_BACKUP_MAX_DEV 起步,前后两次读数日间隔每多 1 个自然日
+    加 3 个百分点,上限 30%(间隔长=真实变动空间大;半合计偏离≈−50% 远超任何档)。"""
+    try:
+        gap = (datetime.strptime(str(date), '%Y%m%d')
+               - datetime.strptime(str(prev_date), '%Y%m%d')).days
+    except (TypeError, ValueError):
+        return _MARGIN_BACKUP_MAX_DEV
+    return min(0.30, max(_MARGIN_BACKUP_MAX_DEV, 0.03 * max(gap, 0)))
+
+
+def _margin_check_reading(result, reject):
+    """R33 任务4修订 r4(审查席 MINOR-1): 读数与最近在档读数对账 → 采用(result)
+    或不采用(None)。无在档读数→采用(冷启动无对账基准,如实)。偏离超容忍度时:
+    reject=True(备源——两所口径由页面拼装,无交易所表可核)→不采用(如实缺席);
+    reject=False(主路——交易所数结构校验已过)→仍采用并打 ⚠️ 请复核。"""
+    prev = _prev_margin_reading(result['date'])
+    if prev is None:
+        return result
+    dev = abs(result['balance'] / prev[1] - 1.0)
+    tol = _margin_dev_tol(prev[0], result['date'])
+    if dev > tol:
+        print(f"  ⚠️ 融资融券读数相对最近在档读数偏离 {dev:.1%}(容忍度 {tol:.0%}): "
+              f"{result['balance']} vs {prev[1]} 亿元(在档读数日 {prev[0]})"
+              + (",不采用(如实缺席)" if reject else ",交易所齐备仍采用(请复核)"))
+        return None if reject else result
+    return result
+
+
 def _fetch_margin_em():
     """G-P1-11 融资融券备源(IA-P1-WP-E, 2026-11-06): tushare 主路不可用→东财
     akshare 两所 margin(上交所 stock_margin_sse+深交所 stock_margin_szse)
@@ -891,7 +1010,8 @@ def _fetch_margin_em():
     +via='akshare_em' 恰一新增键(诚实源标签,禁冒充 tushare);单所数据缺席/
     配对窗内无共同日→None(如实缺席不填0,不以单所半合计冒充两所口径)。
     SSE 完结行按 _em_max_date() 截止择新,至多 3 候选日逐一配对(深交所单日
-    查询,调用有界)。"""
+    查询,调用有界)。R33 任务4修订 r4: 两所读数先经 _margin_pair_exchange
+    量纲对齐(实测深所页面=亿元、上交所=元),量纲不相称→不配对。"""
     import akshare as ak
     try:
         with _no_proxy():
@@ -918,8 +1038,18 @@ def _fetch_margin_em():
             if len(sse_rows) == 0:
                 continue
             sse_row = sse_rows.iloc[-1]
-            rzye = float(sse_row['融资余额']) + float(szse['融资余额'].sum())
-            rqye = float(sse_row['融券余量金额']) + float(szse['融券余额'].sum())
+            # R33 任务4修订 r4: 两所读数先量纲对齐(实测深所页面=亿元、上交所=元)
+            pair = _margin_pair_exchange(
+                (sse_row.get('融资余额'), szse.get('融资余额')),
+                (sse_row.get('融券余量金额'), szse.get('融券余额')))
+            if pair is None:
+                print(f"  ⚠️ 融资融券备源@{ymd}: 两所读数量纲不相称/列缺失/非有限值,"
+                      f"不配对(不以单所半合计冒充两所口径)")
+                continue
+            rzye, rqye, scaled = pair
+            if scaled:
+                print("  ⚠️ 融资融券备源: 深交所读数为亿元口径,已×1e8 折算为元后与"
+                      "上交所合计(两所读数量纲不同,直接相加会只剩沪市口径)")
             result = {
                 'date': ymd,
                 'rzye': round(rzye, 2),
@@ -947,6 +1077,13 @@ def fetch_margin():
             date = (datetime.now() - timedelta(days=days_back)).strftime('%Y%m%d')
             df = _pro().margin(trade_date=date)
             if df is not None and len(df) > 0:
+                # R33 任务4修订 r4: 主路表只含单所→非全市场口径(LIVE 只读实测:
+                # 2026-11-22/23 两个读数=仅沪市半合计,却以全市场口径入档),不采用
+                _ex = _margin_exchanges(df)
+                if _ex is not None and len(_ex) < 2:
+                    print(f"  ⚠️ 融资融券@{date}: 主路只含 {len(_ex)} 个交易所"
+                          f"({','.join(_ex)}),非全市场口径,不采用(试更早交易日)")
+                    continue
                 # 汇总所有交易所
                 total_rzye = df['rzye'].sum()  # 融资余额
                 total_rqye = df['rqye'].sum()  # 融券余额
@@ -965,6 +1102,7 @@ def fetch_margin():
                     'balance': round((float(total_rzye) + float(total_rqye)) / 1e8, 2),
                 }
                 print(f"  ✅ 融资余额: {result['rzye_billion']:.2f} 亿元 ({date})")
+                _margin_check_reading(result, reject=False)
                 return result
         except Exception as e:
             # IA-DATA-W3(AC-01b): 原裸 except:continue 吞异常(R008 U-1 根因)→
@@ -976,7 +1114,14 @@ def fetch_margin():
     # 东财 akshare 两所备源(_fetch_margin_em);备源亦不可用→None(当日该节
     # 键缺席,不填0,§三(c) L81 纪律)。
     print("  ↪️ 融资融券主路不可用,转东财 akshare 备源")
-    return _fetch_margin_em()
+    backup = _fetch_margin_em()
+    if backup is None:
+        return None
+    # R33 任务4修订 r4(审查席 MINOR-1): 备源读数入档必须留痕(⚠️ 行→随档 notes),
+    # 并与最近在档读数对账(_margin_check_reading)——偏离超容忍度不采用(如实缺席)。
+    print(f"  ⚠️ 融资融券取自备源 {backup.get('via')}(两所口径,与主路汇总口径可有"
+          f"少量差异): balance={backup['balance']} 亿元 ({backup['date']})")
+    return _margin_check_reading(backup, reject=True)
 
 def _pe_value(row):
     """PE 取值双形态兼容(IA-DATA-W3 AC-01c): 扁平 pe 键(旧产物/部分载荷形态)
@@ -1532,11 +1677,13 @@ def _ashare_bar_settled(end_date, fetched_ts):
         return False
 
 
-def _ashare_checkpoint_usable(obj, end_date, window_start):
+def _ashare_checkpoint_usable(obj, end_date, window_start, now_ts=None):
     """断点里可续的指数集合: ①断点窗与本次一致(同交易日窗 end_date+同历史
     窗口,即仅同日可续)②指数在清单内③有取数时刻④该项最后一根 bar 已定型
     (最后一根 bar 不是 end_date 当日=休市日/当日尚无 bar;或是当日 bar 但取数
-    时刻已达当日完结口径)。旧格式断点(无取数时刻)一律不续。"""
+    时刻已达当日完结口径)⑤取数时刻不在未来(R33 任务4修订 r4: 超出
+    _ASHARE_FETCH_FUTURE_TOL=时钟异常不可信,不续;now_ts=判定用「现在」时刻,
+    缺省读真实钟)。旧格式断点(无取数时刻)一律不续。"""
     if not (obj and obj.get('end_date') == end_date
             and obj.get('window_start') == window_start
             and isinstance(obj.get('items'), dict)):
@@ -1553,6 +1700,9 @@ def _ashare_checkpoint_usable(obj, end_date, window_start):
             continue
         if fetched != fetched or fetched in (float('inf'), float('-inf')):
             continue
+        now_ts = time.time() if now_ts is None else now_ts
+        if fetched > now_ts + _ASHARE_FETCH_FUTURE_TOL:
+            continue
         series = item.get('series')
         dates = series.get('dates') if isinstance(series, dict) else None
         last_bar = str(dates[-1]).replace('-', '') if dates else ''
@@ -1564,13 +1714,77 @@ def _ashare_checkpoint_usable(obj, end_date, window_start):
 
 def _ashare_checkpoint_load(end_date, window_start, now_ts=None):
     """读 A 股断点里可续的指数 → {code: item}(缺档/坏档/窗不一致/未定型→{}:
-    不续,不报错,不取网)。now_ts 仅为旧签名兼容,不参与判定。"""
+    不续,不报错,不取网)。now_ts=判定用的「现在」时刻(Unix 秒;缺省读真实
+    钟,仅用于取数时刻合理性判定——R33 任务4修订 r4)。"""
     obj = _ashare_checkpoint_read()
     if not obj:
         return {}
-    usable = _ashare_checkpoint_usable(obj, end_date, window_start)
+    usable = _ashare_checkpoint_usable(obj, end_date, window_start, now_ts=now_ts)
     # 清单序返回(断点内顺序不定,结果与旧路径同形)
     return {c: obj['items'][c] for c in A_SHARE_INDICES if c in usable}
+
+
+_ASHARE_FETCH_FUTURE_TOL = 300     # 取数时刻容许的时钟误差(秒);超出=取数时刻在未来
+
+
+def _resume_last_bar(results):
+    """R33 任务4修订 r4: 续采注记用的各项末根日期 {code: YYYYMMDD}(纯函数)。
+    逐项取 series.dates[-1] 再归一;该项非字典/dates 非列表或为空→''(不虚构)。"""
+    out = {}
+    for c, item in results.items():
+        if not isinstance(item, dict):
+            continue
+        series = item.get('series')
+        dates = series.get('dates') if isinstance(series, dict) else None
+        if not isinstance(dates, list) or not dates:
+            out[c] = ''
+            continue
+        out[c] = str(dates[-1]).replace('-', '')[:8]
+    return out
+
+
+def _ashare_resume_notes(results, fetched_at, end_date):
+    """R33 任务4修订 r4(审查席 MINOR-3): 续采项注记(纯装配,不取网)。续采=沿用
+    断点里已取到的项、不重取;两项事实如实随档披露并打印 ⚠️ 行(进阶段 notes):
+    ① stale_resumed=末根早于本批最新末根的续采项;② preclose_resumed=取数时刻
+    早于 end_date 当日完结口径(16:10 HKT)且末根≠end_date 的续采项(收盘后再跑
+    仍沿用,可能缺当日 bar——标准入口不重取,如实标注)。另带 resumed_items=
+    {code: {via, last_bar, fetched_hkt}}。无续采项→{}(随档状态节形状不变)。"""
+    resumed = [c for c in (_STAGE_STATUS.get('a_share_indices') or {}).get('resumed') or []
+               if isinstance(results.get(c), dict)]
+    if not resumed:
+        return {}
+    last = _resume_last_bar(results)
+    batch_last = max((d for d in last.values() if d), default='')
+    hkt = timezone(timedelta(hours=8))
+    items, stale, preclose = {}, [], []
+    for c in resumed:
+        try:
+            fa = float((fetched_at or {}).get(c))
+        except (TypeError, ValueError):
+            fa = None
+        ok_ts = fa is not None and fa == fa and abs(fa) != float('inf')
+        fetched_hkt = (datetime.fromtimestamp(fa, hkt).strftime('%Y-%m-%d %H:%M:%S HKT')
+                       if ok_ts else None)
+        items[c] = {'via': results[c].get('via'), 'last_bar': results[c].get('date'),
+                    'fetched_hkt': fetched_hkt}
+        if batch_last and last.get(c) and last[c] < batch_last:
+            stale.append(c)
+        if (ok_ts and last.get(c) and last[c] != str(end_date)
+                and not _ashare_bar_settled(end_date, fa)):
+            preclose.append(c)
+    for c in stale:
+        print(f"  ⚠️ 断点续采项 {A_SHARE_INDICES[c]}({c}): 末根 {last[c]} 早于本批最新"
+              f"末根 {batch_last}(沿用断点,未重取)")
+    for c in preclose:
+        print(f"  ⚠️ 断点续采项 {A_SHARE_INDICES[c]}({c}): 取数于当日完结口径之前"
+              f"({items[c]['fetched_hkt']}),末根 {last[c]}≠{end_date}(沿用断点,未重取)")
+    out = {'resumed_items': items}
+    if stale:
+        out['stale_resumed'] = sorted(stale)
+    if preclose:
+        out['preclose_resumed'] = sorted(preclose)
+    return out
 
 
 def _ashare_checkpoint_save(end_date, window_start, items, fetched_at=None):
@@ -2354,12 +2568,31 @@ def _stage_row(name, got, sec):
     row = {'sec': sec, 'items': items}
     if name in _STAGE_EXPECTED:
         row['expected'] = _STAGE_EXPECTED[name]()
+    _resumed = (_STAGE_STATUS.get('a_share_indices') or {}).get('resumed_items') \
+        if name == 'a_share_indices' else None
+    if _resumed:
+        row['resumed'] = _resumed     # R33 任务4修订 r4: 续采项(来源/末根/取数时刻)
     if (name == 'a_share_indices'
             and (_STAGE_STATUS.get('a_share_indices') or {}).get('cut_by_budget')):
         row['status'] = 'cut_by_budget'
     else:
         row['status'] = 'ok' if items else 'empty'
     return row
+
+
+def _a_share_checkpoint_status(ash, stages):
+    """A 股断点状态节(纯装配): resumed/cut_by_budget 两键恒在。R33 任务4修订 r4:
+    ①看门狗在本阶段内触发时 cut_by_budget 同样为 True(旧: 仅协作式检查路径置位,
+    看门狗路径的阶段行已是 cut_by_budget 而此处仍为 false);②续采项注记字段
+    (stale_resumed/preclose_resumed,见 _ashare_resume_notes)有则带入。"""
+    out = {'resumed': list(ash.get('resumed') or []),
+           'cut_by_budget': bool(ash.get('cut_by_budget'))}
+    if (stages.get('a_share_indices') or {}).get('status') == 'cut_by_budget':
+        out['cut_by_budget'] = True
+    for k in ('stale_resumed', 'preclose_resumed'):
+        if ash.get(k):
+            out[k] = list(ash[k])
+    return out
 
 
 def _collect_stages(all_data, budget):
@@ -2398,6 +2631,11 @@ def _collect_stages(all_data, budget):
                 core_cut = True
             row = {'sec': round(time.monotonic() - t_s, 1),
                    'items': None, 'status': 'cut_by_budget'}
+            if name == 'a_share_indices':
+                # R33 任务4修订 r4(NIT-1): 看门狗中断时已落断点的指数数随行披露
+                # (items=函数未返回不可得;断点=下次续采的进度)
+                row['checkpointed'] = len(
+                    (_ashare_checkpoint_read() or {}).get('items') or {})
             cut_here = True
         else:
             row, cut_here = None, False
@@ -2436,8 +2674,7 @@ def _collection_status(budget, stages, core_cut):
                    'exhausted': bool(budget.exhausted(0.0))},
         'stages': stages,
         'core_cut_by_budget': bool(core_cut or ash.get('cut_by_budget')),
-        'a_share_checkpoint': {'resumed': list(ash.get('resumed') or []),
-                               'cut_by_budget': bool(ash.get('cut_by_budget'))},
+        'a_share_checkpoint': _a_share_checkpoint_status(ash, stages),
         'omo_walk': (walk if walk and 'series' in stages
                      and stages['series']['status'] != 'skipped_budget' else None),
     }

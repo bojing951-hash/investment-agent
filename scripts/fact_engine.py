@@ -426,7 +426,8 @@ def normalize_china(data, as_of, source_file="china_*.json"):
             sub=sub, calc=calc)
     mg = data.get('margin') or {}
     if mg.get('balance') is not None:
-        add("MARGIN_BAL", mg.get('balance'), mg.get('date'))
+        # R33 任务4修订 r4(审查席 MINOR-1): 备源读数的来源标签进事实来源
+        add("MARGIN_BAL", mg.get('balance'), mg.get('date'), sub=mg.get('via'))
     val = data.get('valuation') or {}
     if val.get('pe') is not None:
         add("SH_PE", val.get('pe'), val.get('date'))

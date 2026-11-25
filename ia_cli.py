@@ -316,6 +316,12 @@ def cmd_doctor(args):
         files = sorted(glob.glob(os.path.join(daily, f'{prefix}*.json')))
         data['data_freshness'][prefix.rstrip('_')] = (
             os.path.basename(files[-1]) if files else None)
+    if snap:
+        # R33 任务4修订 r4(审查席 MINOR-5): 快照所绑采集档现状(只读披露)
+        import research_provenance as _rp
+        data['snapshot']['binding'] = {
+            k: v.get('status')
+            for k, v in _rp.snapshot_binding_status(daily, snap).items()}
     ledgers = sorted(glob.glob(os.path.join(ROOT, 'logs', 'pipeline_run_*.json')))
     if not ledgers:
         data['last_run'] = {
@@ -387,6 +393,87 @@ def _tail_public(tail):
             for k, v in tail.items()}
 
 
+def _code_git_head(root=None):
+    """R33 任务4修订 r4(审查席 MINOR-6): 代码版本(CODE_VERSION.json 的 git_head;
+    缺档/坏档→None)。update 回执与流水线台账同带此字段——回执自证出自哪一版
+    代码,不必再靠旁证倒推。"""
+    try:
+        with open(os.path.join(root or ROOT, 'CODE_VERSION.json'), encoding='utf-8') as fh:
+            head = json.load(fh).get('git_head')
+    except (OSError, ValueError, AttributeError):
+        return None
+    return head if isinstance(head, str) and head else None
+
+
+def _snapshot_binding(ledger, root=None):
+    """R33 任务4修订 r4(审查席 MINOR-5): 本次运行所用快照↔采集档绑定现状(只读)。
+    台账 snapshot_file 可读→逐通道比对(research_provenance.snapshot_binding_status):
+    same=规范档即快照所绑版本;superseded_copy=规范档已被同日再采替换、所绑旧版
+    在 superseded/;missing=所绑版本不在场。台账无 snapshot_file/文件不可读→
+    {'status': 'unavailable'}(不拿别的快照冒充本次所用)。"""
+    root = root or ROOT
+    sf = ledger.get('snapshot_file') if isinstance(ledger, dict) else None
+    path = (os.path.join(root, 'data', 'daily', sf)
+            if isinstance(sf, str) and sf and os.path.basename(sf) == sf else None)
+    if path is None or not os.path.isfile(path):
+        return {'status': 'unavailable', 'note': '台账无 snapshot_file 或该文件不可读'}
+    try:
+        with open(path, encoding='utf-8') as fh:
+            snap = json.load(fh)
+        import research_provenance as rp
+        chan = rp.snapshot_binding_status(os.path.join(root, 'data', 'daily'), snap)
+    except (OSError, ValueError, ImportError) as exc:
+        return {'status': 'unavailable', 'note': f'{type(exc).__name__}'}
+    return {'status': 'ok', 'snapshot_file': sf,
+            'channels': {k: v.get('status') for k, v in chan.items()},
+            'replaced_after_build': sorted(
+                k for k, v in chan.items() if v.get('status') == 'superseded_copy')}
+
+
+def _collection_summary(t_launch, root=None):
+    """R33 任务4修订 r4(审查席 MINOR-4): 本次运行写出的 china 采集档(主日档或
+    logs/china_partial_*.json 诊断性部分面)里的采集状态摘要——空项阶段/预算截断
+    阶段/断点/逐阶段原因行(notes 每行截 160 字、至多 6 行)。只认本次启动之后落盘
+    的文件(不拿旧档冒充本次);无→{'status': 'not_written'};有档无状态节→
+    {'status': 'written', 'file': …, 'note': …}。"""
+    root = root or ROOT
+    cands = []
+    for folder, pat in ((os.path.join(root, 'data', 'daily'), r'china_\d{8}\.json'),
+                        (os.path.join(root, 'logs'),
+                         r'china_partial_\d{8}T\d{6}\.json')):
+        try:
+            cands += [os.path.join(folder, n) for n in os.listdir(folder)
+                      if re.fullmatch(pat, n)
+                      and os.path.getmtime(os.path.join(folder, n))
+                      >= t_launch.timestamp() - 2.0]
+        except OSError:
+            continue
+    if not cands:
+        return {'status': 'not_written'}
+    path = max(cands, key=os.path.getmtime)
+    out = {'status': 'written', 'file': os.path.relpath(path, root)}
+    try:
+        with open(path, encoding='utf-8') as fh:
+            cs = (json.load(fh) or {}).get('collection_status') or {}
+    except (OSError, ValueError, AttributeError) as exc:
+        return dict(out, note=f'档不可读({type(exc).__name__})')
+    stages = cs.get('stages') if isinstance(cs, dict) else None
+    if not isinstance(stages, dict):
+        return dict(out, note='档内无 collection_status.stages(旧版采集器产物)')
+    return dict(out,
+                core_cut_by_budget=bool(cs.get('core_cut_by_budget')),
+                budget=cs.get('budget'),
+                empty_stages=sorted(k for k, v in stages.items()
+                                    if isinstance(v, dict) and v.get('status') == 'empty'),
+                cut_stages=sorted(k for k, v in stages.items()
+                                  if isinstance(v, dict) and v.get('status') in (
+                                      'cut_by_budget', 'skipped_budget')),
+                a_share_checkpoint=cs.get('a_share_checkpoint'),
+                stage_notes={k: [redact(str(x))[:160] for x in (v.get('notes') or [])[:6]]
+                             for k, v in stages.items()
+                             if isinstance(v, dict) and v.get('notes')})
+
+
 def cmd_update(args):
     if not args.yes:
         emit(envelope('update', False,
@@ -423,7 +510,11 @@ def cmd_update(args):
     # critical_tail: 40 行 output_tail 会滚掉早先的根因行(如步骤9的⛔拒写),
     # 关键行单独留底(大小写兼顾),保证 ⛃/❌/Traceback/ERROR/失败/错误 仍可见。
     # P0-4: 三条 tail 全部过 redact()——采集器异常文本常内嵌含密钥的完整 URL
-    critical_tail = [l for l in lines if _CRITICAL_LINE_RE.search(l)][-10:]
+    # R33 任务4修订 r4(审查席 MINOR-4): 「依赖未成功」的跳过/连带复述行不占
+    # 关键行窗口(失败路径上 10 行里 7 行是同一根因的复述,采集器自己的原因行
+    # 反被挤掉);步骤自身的失败行(❌ 步骤 / ↳ 失败原因)照常保留。
+    critical_tail = [l for l in lines
+                     if _CRITICAL_LINE_RE.search(l) and '依赖未成功' not in l][-10:]
     # Audit-R33 任务4(失败步骤/时长/原因): ① 日档守卫「未覆盖完整档」分流行
     # 单列(旧: 仅混在 40 行 output_tail 里,被后续步骤输出滚掉即不可见);
     # ② 认领本次运行的流水线台账,逐步骤时长/失败原因入回执;台账不可用
@@ -463,7 +554,25 @@ def cmd_update(args):
         data['duration_sec'] = ledger.get('duration_sec')
         data['snapshot_id'] = ledger.get('snapshot_id')
         data['gate_a'] = ledger.get('gate_a')
+        data['snapshot_binding'] = _snapshot_binding(ledger)
+    # R33 任务4修订 r4: 采集状态摘要/代码版本/快照不可变提示(软增字段)
+    data['collection'] = _collection_summary(t_launch)
+    data['code_git_head'] = _code_git_head()
+    _imm = [l for l in lines if '快照已存在且不可变' in l]
+    if _imm:
+        data['snapshot_note'] = {
+            'kind': 'snapshot_exists_immutable',
+            'message': redact(_imm[-1]),
+            'hint': ('标准入口不重建同日已有快照: 本次采集数据已落盘(见 collection,'
+                     '采集档与既有快照的绑定见 snapshot_binding),当日研究面仍以'
+                     '既有快照为准;如需以本次数据重建当日快照,使用 update --yes '
+                     '--allow-revision --revision-reason <原因>(修订版快照)')}
     payload = envelope('update', proc.returncode == 0, data)
+    if data.get('snapshot_id'):
+        # R33 任务4修订 r4(审查席 MINOR-5): 信封顶层 snapshot_id/gate_a 与其他
+        # 能力同一约定(=本次运行所用快照);此前仅 data 内有、顶层恒 null
+        payload['snapshot_id'] = data['snapshot_id']
+        payload['gate_a'] = data.get('gate_a')
     emit(payload, exit_code=proc.returncode)
 
 

@@ -324,6 +324,51 @@ def daily_face_identity_map(obj):
     return out
 
 
+def _is_series_node(v):
+    """带 dates+values 两个列表的字典=观测序列本体(按**类型**识别,与键名无关)。"""
+    return (isinstance(v, dict) and isinstance(v.get('dates'), list)
+            and isinstance(v.get('values'), list))
+
+
+def _is_annotation_leaf(node, key):
+    """注记型字符串叶(单位/频率/定义/代码/标签一类键名下的 str 值)不是观测。"""
+    return isinstance(node, str) and key in _ANNOTATION_STRING_KEYS
+
+
+def _walk_observation_leaves(obj, leaf):
+    """判定用身份图的共用遍历(对每个标量叶以 (值, 键名) 调用 leaf 一次,返回
+    是否计入)。规则:
+    - 身份=路径前两段(同 _identity_of);单段身份(文件级元数据)不计;
+    - 备注键(_REMARK_LEAF_KEYS)下的子树不计,**除非**子树是序列字典——
+      R33 任务4修订 r4: 观测序列挂在备注键名下(如 series.note={dates,values})
+      按类型仍计入,与键名无关(与 daily_face_valid_obs_horizon 同视图);
+    - 空容器不计;None 叶计身份在场、有效观测 0。"""
+    out = {}
+
+    def walk(node, prefix, key):
+        if isinstance(node, dict):
+            if not node:
+                return
+            for k, v in node.items():
+                if k in _REMARK_LEAF_KEYS and not _is_series_node(v):
+                    continue
+                walk(v, f'{prefix}.{k}' if prefix else f'.{k}', k)
+        elif isinstance(node, list):
+            if not node:
+                return
+            for v in node:
+                walk(v, prefix + '[]', key)
+        else:
+            ident = _identity_of(prefix)
+            if ident and len(ident) >= 2:
+                out.setdefault(ident, 0)
+                if leaf(node, key):
+                    out[ident] += 1
+
+    walk(obj, '', None)
+    return out
+
+
 def daily_face_observation_map(obj):
     """Audit-R33 任务4: 判定用身份图——{identity: 有效观测叶数},只计观测叶。
 
@@ -336,32 +381,24 @@ def daily_face_observation_map(obj):
     - 顶层标量(timestamp/date/fetched_at/version 等文件级元数据)自成
       单段身份,不是指标,不计。
     顶层披露区(_GUARD_STATUS_KEYS)由调用方经 _judgment_view 先行剔除。
-    观测叶上的三判据(身份丢失/有效观测缩水/时点回退)口径不变: 只带
-    备注的身份其观测叶归零仍按缩水判降级(备注不掩盖观测蒸发)。"""
-    out = {}
+    R33 任务4修订 r4(审查席 MINOR-2)两处补强(遍历见 _walk_observation_leaves):
+    (a) 序列字典按类型计——观测挂在备注键名下不再因键名被跳过;
+    (c) 注记型字符串叶(_ANNOTATION_STRING_KEYS)不计——其增删不构成升降级。
+    观测叶上的三判据(身份丢失/有效观测缩水/时点回退)口径不变。"""
+    return _walk_observation_leaves(
+        obj, lambda node, key: node is not None and not _is_annotation_leaf(node, key))
 
-    def walk(node, prefix):
-        if isinstance(node, dict):
-            if not node:
-                return
-            for k, v in node.items():
-                if k in _REMARK_LEAF_KEYS:
-                    continue
-                walk(v, f'{prefix}.{k}' if prefix else f'.{k}')
-        elif isinstance(node, list):
-            if not node:
-                return
-            for v in node:
-                walk(v, prefix + '[]')
-        else:
-            ident = _identity_of(prefix)
-            if ident and len(ident) >= 2:
-                out.setdefault(ident, 0)
-                if node is not None:
-                    out[ident] += 1
 
-    walk(obj, '')
-    return out
+def daily_face_numeric_observation_map(obj):
+    """Audit-R33 任务4修订 r4: {identity: 数值观测叶数}——与判定用身份图同一
+    遍历/同一身份规则,只计数值叶(int/float,非 bool、非 NaN/Inf)。用途: 同身份
+    数值叶缩水(数值改成字符串占位、再以未登记的字符串叶补位——有效观测计数
+    不变)仍按降级转存(审查席 MINOR-2 计数补位变体)。"""
+    def _num(node, key):
+        return (isinstance(node, (int, float)) and not isinstance(node, bool)
+                and node == node and node not in (float('inf'), float('-inf')))
+
+    return _walk_observation_leaves(obj, _num)
 
 
 def daily_face_valid_obs_horizon(obj):
@@ -481,6 +518,13 @@ _REMARK_LEAF_KEYS = frozenset((
     # 标注文字(无测量值)
     'name', 'label', 'index_name', 'scope', 'interpretation', 'signal'))
 
+# Audit-R33 任务4修订 r4(审查席 MINOR-2c): 注记型字符串叶键名(闭集)——单位/频率/
+# 定义/代码/标签一类键名下的 str 值不是观测,其增删不得触发升降级。仅当值直接
+# 为 str 时跳过;同键名下的列表/数值照常按观测计;新增注记键名须登记于此。
+_ANNOTATION_STRING_KEYS = frozenset((
+    'unit', 'frequency', 'definition', 'freq', 'direction', 'month',
+    'ticker', 'asset_id', 'vs_50d'))
+
 
 def _judgment_view(payload):
     """降级判定视图: 剔除状态/披露区后的观测载荷(非dict原样返回)。"""
@@ -518,7 +562,10 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
     - 判定用 daily_face_observation_map: 备注叶与顶层元数据不进身份图
       ——完整新版不因缺备用源档的来源注记键(via/note)被误判降级而弃
       (Audit-R32 终章附带发现的根修);观测叶的身份丢失/缩水/时点回退
-      三判据不变,真实退化仍拦截。"""
+      三判据不变,真实退化仍拦截。
+    R33 任务4修订 r4(审查席 MINOR-2): 按类型识别观测——序列字典挂在备注
+    键名下仍计;注记型字符串叶(unit/frequency/…)不计;同身份数值观测叶
+    缩水(数值→字符串补位)按降级转存(daily_face_numeric_observation_map)。"""
     rule = SOURCE_FILE_RULES.get(channel)
     if rule is None:
         raise ValueError(f'unknown channel: {channel!r}')
@@ -531,6 +578,7 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
     _want_cov = daily_face_coverage(payload)
     _want_ids = daily_face_observation_map(_judgment_view(payload))
     _want_hz = daily_face_valid_obs_horizon(_judgment_view(payload))
+    _want_num = daily_face_numeric_observation_map(_judgment_view(payload))
 
     def _stage_candidate(dst):
         # Audit-R26 任务1: 候选tmp全生命周期前半——进程唯一 tmp 名(同日
@@ -548,7 +596,9 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
                     or daily_face_observation_map(
                         _judgment_view(cand)) != _want_ids
                     or daily_face_valid_obs_horizon(
-                        _judgment_view(cand)) != _want_hz):
+                        _judgment_view(cand)) != _want_hz
+                    or daily_face_numeric_observation_map(
+                        _judgment_view(cand)) != _want_num):
                 raise IOError(
                     f'候选文件校验不符(写盘中断/序列化损坏): {tmp}——'
                     f'拒绝换入,规范档不动')
@@ -636,20 +686,36 @@ def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
                 note = (f'有效观测叶子缩水 {len(_shrunk)} 项({_d}'
                         f'{"…" if len(_shrunk) > 6 else ""};null≠有效观测)')
             else:
-                # Audit-R27 任务3: 同计数时点回退——最新有效观测日后移
-                # (尾部截断后旧叶补位)按降级转存,「条数相同」不掩回退。
-                _hz_old = daily_face_valid_obs_horizon(_judgment_view(old))
-                _back = sorted(
-                    i for i in set(_hz_old) & set(_want_hz)
-                    if _want_hz[i] < _hz_old[i])
-                if _back:
+                # R33 任务4修订 r4(审查席 MINOR-2b): 数值观测叶缩水——数值改成
+                # 字符串占位、再以未登记的字符串叶补位时有效观测计数不变,此处
+                # 按数值叶另计(「数值→注记」不掩观测蒸发)。
+                _num_old = daily_face_numeric_observation_map(_judgment_view(old))
+                _num_shrunk = sorted(
+                    i for i in set(_num_old) & set(_want_num)
+                    if _want_num[i] < _num_old[i])
+                if _num_shrunk:
                     degraded = True
-                    _b = ','.join(
-                        f"{'.'.join(i)}:{_hz_old[i]}→{_want_hz[i]}"
-                        for i in _back[:6])
-                    note = (f'最新有效观测回退 {len(_back)} 项({_b}'
-                            f'{"…" if len(_back) > 6 else ""};'
-                            f'同计数不掩时点回退)')
+                    _d = ','.join(
+                        f"{'.'.join(i)}:{_num_old[i]}→{_want_num[i]}"
+                        for i in _num_shrunk[:6])
+                    note = (f'数值观测叶子缩水 {len(_num_shrunk)} 项({_d}'
+                            f'{"…" if len(_num_shrunk) > 6 else ""};'
+                            f'数值→字符串/注记叶补位不掩盖)')
+                else:
+                    # Audit-R27 任务3: 同计数时点回退——最新有效观测日后移
+                    # (尾部截断后旧叶补位)按降级转存,「条数相同」不掩回退。
+                    _hz_old = daily_face_valid_obs_horizon(_judgment_view(old))
+                    _back = sorted(
+                        i for i in set(_hz_old) & set(_want_hz)
+                        if _want_hz[i] < _hz_old[i])
+                    if _back:
+                        degraded = True
+                        _b = ','.join(
+                            f"{'.'.join(i)}:{_hz_old[i]}→{_want_hz[i]}"
+                            for i in _back[:6])
+                        note = (f'最新有效观测回退 {len(_back)} 项({_b}'
+                                f'{"…" if len(_back) > 6 else ""};'
+                                f'同计数不掩时点回退)')
         if degraded:
             sup = _superseded_slot(data_dir, fname[:-5])
             _commit(_stage_candidate(sup), sup)
@@ -1943,6 +2009,58 @@ def select_snapshot(ymd, daily_dir):
     ver = max(snap_by_ver)
     snap, path = snap_by_ver[ver]
     return snap, path
+
+
+def _sha256_file(path):
+    """文件实际字节 sha256(不存在/不可读→None)。"""
+    try:
+        with open(path, 'rb') as fh:
+            return hashlib.sha256(fh.read()).hexdigest()
+    except OSError:
+        return None
+
+
+def snapshot_binding_status(data_dir, snapshot):
+    """Audit-R33 任务4修订 r4(审查席 MINOR-5): 快照↔采集档绑定现状(只读)。
+
+    快照 sources_status 记的是**构建时点**各通道档案的 sha256。同日再采会把
+    规范档换成新版、旧版转存 superseded/,快照里的记录不随之变化——带采集目录
+    重算 Gate A 时这类通道计为「来源文件内容与构建时摘要不一致」(FIX7-05 内容
+    绑定,既有口径不变)。本函数只做披露: 返回 {channel: {'status','file',
+    'bound_copy'}},status ∈ same(规范档即快照所绑版本)/superseded_copy(规范档
+    已换,快照所绑版本在 superseded/ 槽位)/missing(采集目录与 superseded/ 均
+    无快照所绑版本)/unrecorded(快照未记 sha256 或文件名)。snapshot 非 dict→{}。"""
+    if not isinstance(snapshot, dict):
+        return {}
+    ss = snapshot.get('sources_status')
+    sup_names = None
+    out = {}
+    for ch, rec in (ss.items() if isinstance(ss, dict) else []):
+        rec = rec if isinstance(rec, dict) else {}
+        sha, fname = rec.get('sha256'), rec.get('file')
+        row = {'status': 'unrecorded', 'file': fname, 'bound_copy': None}
+        if (isinstance(sha, str) and re.fullmatch(r'[0-9a-f]{64}', sha)
+                and isinstance(fname, str) and os.path.basename(fname) == fname
+                and fname.endswith('.json')):
+            if _sha256_file(os.path.join(data_dir, fname)) == sha:
+                row['status'] = 'same'
+            else:
+                row['status'] = 'missing'
+                if sup_names is None:
+                    try:
+                        sup_names = sorted(os.listdir(
+                            os.path.join(data_dir, _SUPERSEDED_DIRNAME)), reverse=True)
+                    except OSError:
+                        sup_names = []
+                stem = fname[:-5] + '_'
+                for n in sup_names:
+                    if n.startswith(stem) and n.endswith('.json') and (
+                            _sha256_file(os.path.join(data_dir, _SUPERSEDED_DIRNAME, n))
+                            == sha):
+                        row.update(status='superseded_copy', bound_copy=n)
+                        break
+        out[ch] = row
+    return out
 
 
 def digest_snapshot(snapshot):

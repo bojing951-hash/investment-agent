@@ -462,6 +462,13 @@ def main(argv=None):
         and _step_ok('宏观体制评分卡(消费快照)')
         and _step_ok('数据汇总打包') and _step_ok('数据校验与锚点生成'))
     ledger_provenance['allow_state_writeback'] = ledger_provenance['allow_formal_report']
+    # R33 任务4修订 r4(审查席 MINOR-6): 台账带代码版本(CODE_VERSION.json git_head;
+    # 缺档→None)——与 update 回执 data.code_git_head 同值
+    try:
+        with open(os.path.join(PROJECT_DIR, 'CODE_VERSION.json'), encoding='utf-8') as _cf:
+            ledger_provenance['code_git_head'] = json.load(_cf).get('git_head')
+    except (OSError, ValueError, AttributeError):
+        ledger_provenance['code_git_head'] = None
     try:
         log_dir = os.path.join(PROJECT_DIR, 'logs')
         os.makedirs(log_dir, exist_ok=True)

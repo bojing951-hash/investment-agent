@@ -1721,7 +1721,7 @@ def sec_t2_n():
 def sec_t2_o():
     print('═══ 任务2修订 r5: 句首标签前缀(标签 12+对照 4)+系词/设定形将来(7)+'
           '12 月合成日历(4)+生效日写错与决议日写成生效日(13)+成对在场的'
-          '决定内容续写(10) ═══')
+          '决定内容续写(10);修订 r6 起原已披露局限例 M10 不再放行 ═══')
     with open(os.path.join(FIX_R33, 't2_r5_cases.json'), encoding='utf-8') as f:
         doc = json.load(f)
     cases = doc['cases']
@@ -1781,10 +1781,10 @@ def sec_t2_o():
     res = _run(cases)
     bad = _bad(res)
     check('§T2-o-1 50 例逐例符合预注册判定(函数入口): 接收 22 例零政策违规;'
-          '拒收 28 例命中预注册码;失守=已披露局限例且仅此一例(M10: 公告前、'
-          '带非官方日期的既成句——日历只登记在办决议,无从区分写错日期与另'
-          '一次决议)',
-          bad == known == ['M10'], 'bad=%s' % bad)
+          '拒收 28 例命中预注册码;修订 r6 起零失守——原已披露局限例 M10(公告'
+          '前、带非官方日期的既成句;修订 r5 时放行)也按预注册拒收,命中 '
+          'POL-EFF-DECISION-NOT-YET-KNOWN(见 §T2-o-8)',
+          bad == [], 'bad=%s' % bad)
     # 标签形 ≡ 无标签形: 同一句去掉标签前缀,政策类违规码逐一相同
     eq_bad = []
     for c in grp['L']:
@@ -1841,12 +1841,12 @@ def sec_t2_o():
     check('§T2-o-4 变异自检: 关掉标签剥离→标签组新失守 ≥ 6 例(既成误句放行+'
           '正句误拒)且对照/系词/12 月/生效日/续写组零波及;把系词·设定形还原为'
           '修订前词表→系词组与 12 月系词例新失守 ≥ 5 例且其余组零波及;恢复后'
-          '回到基线(仅局限例)',
+          '回到基线(修订 r6 起零失守)',
           len(mut['label_off']) >= 6
           and all(x.startswith('L') for x in mut['label_off'])
           and len(mut['copula_off']) >= 5
           and all(x.startswith(('F', 'D')) for x in mut['copula_off'])
-          and after == known,
+          and after == [],
           'label_off=%s copula_off=%s after=%s'
           % (mut['label_off'], mut['copula_off'], after))
     # 上一候选审查席的两条灰区探针(预注册在 r4 夹具,不改): 修订 r5 下的结果
@@ -1899,19 +1899,21 @@ def sec_t2_o():
           '§B2c 用例②原句 M01、段内未提官方日期的 M04-M06)=恰 POL-EFF-DATE '
           '一条;日期正确的既成句(M07/M08)与决议日被写成生效日的完成态句'
           '(M11-M13,含 12 月合成日历)=恰早声称一条;决议前的预期句(M09)='
-          '零违规;M01 详情写「正文生效日 2026-09-22 与官方实录不符」而非'
-          '「断言时点」措辞;变异一=关掉日期先报→M01/M02 变早声称、M04-M06 '
-          '放行(新失守恰此 5 例);变异二=把「决议日写成生效日」也算实质命中'
-          '→M11-M13 变日期违规(新失守恰此 3 例);其余组零波及;恢复后回基线',
+          '零违规;M01 详情以日期规格起头「正文生效日 2026-09-22 与官方实录'
+          '不符」,不含「断言时点」措辞(修订 r6: 时态模型的发现另附于同条详情'
+          '「;同段时态发现: …」之后);变异一=关掉日期先报→M01/M02 变早声称、'
+          'M04-M06 放行(新失守恰此 5 例);变异二=把「决议日写成生效日」也算'
+          '实质命中→M11-M13 变日期违规(新失守恰此 3 例);其余组零波及;恢复后'
+          '回基线(零失守)',
           not m_bad
           and res['M01'] == res['M04'] == ['POL-EFF-DATE']
           and all(res[c['id']] == ['POL-EFF-EARLY-CLAIM']
                   for c in grp['M'][10:])
-          and '2026-09-22' in det1 and '官方' in det1
-          and '断言时点' not in det1
+          and det1.startswith('正文生效日 2026-09-22 与官方实录不符')
+          and ';同段时态发现: 断言时点 2026-09-20' in det1
           and mm_off == ['M01', 'M02', 'M04', 'M05', 'M06']
           and wide_off == ['M11', 'M12', 'M13']
-          and _bad(_run(cases)) == known,
+          and _bad(_run(cases)) == [],
           'm_bad=%s det1=%s mm_off=%s wide_off=%s'
           % (m_bad, det1[:60], mm_off, wide_off))
     # 成对在场的决定内容续写: 逐码一致;变异=让「句内写出官方生效日」认不出
@@ -1925,26 +1927,277 @@ def sec_t2_o():
     finally:
         aj._POL_EFF_VERBS, aj._POL_DATE_START_RE = keep_es
     check('§T2-o-7 成对在场的决定内容续写(N 组 10 例)逐码一致: 决议日+官方'
-          '生效日成对的水平句(N01-N05,含冻结 R32 门 §B2d2 同形 N02)=零违规;'
+          '生效日成对的水平句(N01-N05,含冻结 R32 门 §B2d2 同句 N02)=零违规;'
           '带现行时间词(N06=§B2f 同句/N07)、既成口径分句(N08)、缺生效日'
           '(N09)、显式断言时点(N10)=恰早声称一条;变异=让「句内写出官方生效'
-          '日」认不出→N01-N05 新失守恰此 5 例,其余组零波及;恢复后回基线',
+          '日」认不出→N01-N05 新失守恰此 5 例,其余组零波及;恢复后回基线'
+          '(修订 r6 起零失守)',
           not n_bad
           and all(res[c['id']] == [] for c in grp['N'][:5])
           and all(res[c['id']] == ['POL-EFF-EARLY-CLAIM']
                   for c in grp['N'][5:])
           and es_off == ['N01', 'N02', 'N03', 'N04', 'N05']
-          and _bad(_run(cases)) == known,
+          and _bad(_run(cases)) == [],
           'n_bad=%s es_off=%s' % (n_bad, es_off))
-    # 已披露局限的边界: 同一句在公告日(9-18)及之后=拒收 POL-EFF-DATE
+    # 已披露局限的边界(修订 r6 据实修订): 同一句在公告日之前(9-17)、公告日
+    # (9-18)及之后均为拒收
     m10 = byid['M10']['text']
     lim = {d: _pol_codes(m10, d, cal['real'][0])
            for d in ('2026-09-17', '2026-09-18', '2026-09-20')}
-    check('§T2-o-8 已披露局限的边界: M10 句在公告日之前(9-17)=放行(局限所在),'
-          '公告日(9-18)起=拒收 POL-EFF-DATE——局限只在公告前窗口,公告后写错'
-          '生效日一律拒收',
-          lim == {'2026-09-17': [], '2026-09-18': ['POL-EFF-DATE'],
-                  '2026-09-20': ['POL-EFF-DATE']}, 'lim=%s' % lim)
+    check('§T2-o-8 已披露局限的边界(修订 r6 据实修订,夹具预注册不改): M10 句'
+          '「…9 月 22 日生效的加息已经实施」在公告日之前(9-17)=拒收 '
+          'POL-EFF-DECISION-NOT-YET-KNOWN(修订 r5 时为已披露的放行局限: 公告'
+          '前不带事件日期的既成句不绑本事件;修订 r6 加公告前 45 天回看窗后,窗'
+          '内的既成句读作在说这一次决议——当时无从得知),公告日(9-18)起=拒收 '
+          'POL-EFF-DATE(写错生效日);r5 夹具对该句的预注册(拒收、二码任一、'
+          'known_limit 标记)原样保留,局限关闭在此登记',
+          known == ['M10'] and byid['M10'].get('known_limit') is True
+          and lim == {'2026-09-17': ['POL-EFF-DECISION-NOT-YET-KNOWN'],
+                      '2026-09-18': ['POL-EFF-DATE'],
+                      '2026-09-20': ['POL-EFF-DATE']},
+          'lim=%s' % lim)
+
+
+def sec_t2_p():
+    print('═══ 任务2修订 r6: 分句内局部时点·状语形(45)+事件参照时点(17)+公告前'
+          '不带事件日期的既成句(28)+预期口径让路(16)+写错生效日的非紧邻形(27)+'
+          '对照(21)+审查席失守探针原句(26) ═══')
+    with open(os.path.join(FIX_R33, 't2_r6_cases.json'), encoding='utf-8') as f:
+        doc = json.load(f)
+    cases = doc['cases']
+    cal = {k: (aj.collect_policy_events(os.path.join(ROOT, v['calendar'])),
+               v['as_of']) for k, v in doc['cals'].items()}
+
+    def _asof(c):
+        return c.get('as_of', cal[c['cal']][1])
+
+    def _run(cs):
+        return {c['id']: _pol_codes(c['text'], _asof(c), cal[c['cal']][0])
+                for c in cs}
+
+    def _ok(c, pol):
+        # 完全相等(接收=零政策违规);同一违规码重复报出同样算失守
+        return set(pol) == set(c['codes']) and len(pol) == len(set(pol))
+
+    def _bad(res):
+        return sorted(c['id'] for c in cases if not _ok(c, res[c['id']]))
+
+    def _det(c):
+        v = aj.validate_judgment(_mk_judgment(c['text']), {'r1'},
+                                 {'JP_POLICY_TARGET'},
+                                 policy_events=cal[c['cal']][0],
+                                 as_of=_asof(c))
+        return v, ''.join(x.get('detail') or '' for x in v['violations']
+                          if str(x['code']).startswith('POL'))
+
+    grp, byid = {}, {}
+    for c in cases:
+        grp.setdefault(c['group'], []).append(c)
+        byid[c['id']] = c
+    paired = [c for c in cases if c.get('pair')]
+    dec_ids = [c['id'] for c in cases if c['cal'] != 'real']
+    check('§T2-p-0 夹具结构: 180 例=X 局部时点·状语形 45/Y 事件参照 17/P 公告前'
+          '不带事件日期的既成句 28/E 预期口径让路 16/W 写错生效日的非紧邻形 27/'
+          'C 对照 21/R 审查席失守探针原句 26;接收 80/拒收 100;成对 74 例两两互指'
+          '且判定相反;除 P16/W24/W25/C21 走 12 月合成日历外均走真实日历(仅一条'
+          '日银决议);无已披露局限;判定按违规码集合完全相等(夹具自述 exact)',
+          len(cases) == 180
+          and [len(grp[k]) for k in 'XYPEWCR'] == [45, 17, 28, 16, 27, 21, 26]
+          and sum(1 for c in cases if c['verdict'] == 'ACCEPT') == 80
+          and sum(1 for c in cases if c['verdict'] == 'REJECT') == 100
+          and len(paired) == 74
+          and all(byid[c['pair']].get('pair') == c['id']
+                  and byid[c['pair']]['verdict'] != c['verdict']
+                  for c in paired)
+          and dec_ids == ['P16', 'W24', 'W25', 'C21']
+          and doc.get('exact') is True
+          and doc.get('known_limitation') == []
+          and len([e for e in cal['real'][0]
+                   if e.get('entity') == 'JP']) == 1,
+          'n=%d groups=%s paired=%d dec=%s'
+          % (len(cases), {k: len(v) for k, v in grp.items()}, len(paired),
+             dec_ids))
+    res = _run(cases)
+    bad = _bad(res)
+    check('§T2-p-1 180 例逐例符合预注册判定(函数入口 validate_judgment): 接收 80 '
+          '例零政策违规;拒收 100 例政策违规码集合恰等于预注册(含绑定 S6 的审查席 '
+          '26 条失守探针原句逐条符合其预注册判定)',
+          bad == [], 'bad=%s' % bad)
+    # 订单原句(合规判定档母本: 结构纪律全过,只换首条陈述——隔离出政策时态规则)
+    def _shell(text):
+        jud = _t2_valid_judgment('JP_POLICY_TARGET', 'JP_POLICY_TARGET', text)
+        for sc in jud['l4']['scenarios']:
+            sc['rows']['asset_direction']['evidence_refs'] = ['r1']
+        for ln in jud['l3']['mechanism_chains'][0]['links']:
+            if ln.get('evidence_refs'):
+                ln['evidence_refs'] = ['r1']
+        jud['l3']['contradictions'] = [
+            {'id': 'C1', 'statement': text, 'basis': '基于证据索引的推断',
+             'competing_explanations': ['解释一(基准)', '解释二(反例)'],
+             'evidence_refs': ['r1']}]
+        return aj.validate_judgment(jud, {'r1'}, {'JP_POLICY_TARGET'},
+                                    policy_events=cal['real'][0],
+                                    as_of=cal['real'][1])
+
+    wrong = '截至 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。'
+    right = '截至 9 月 20 日，日本央行 9 月 24 日生效的加息尚未生效。'
+    vw, vr = _shell(wrong), _shell(right)
+    dw = ''.join(x.get('detail') or '' for x in vw['violations']
+                 if str(x['code']).startswith('POL'))
+    check('§T2-p-2 订单原句(真实日历、研究截止日 2026-11-23、合规判定档): 「截至 '
+          '9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。」=不通过,违规恰 '
+          'POL-EFF-EARLY-CLAIM 一条,详情写「断言时点 2026-09-20(来源: 同句前文'
+          '句内「截至 9月20日」)早于 … 决议生效日 2026-09-24」;「截至 9 月 20 '
+          '日，日本央行 9 月 24 日生效的加息尚未生效。」=通过,零违规',
+          vw.get('passed') is False
+          and [x['code'] for x in vw['violations']] == ['POL-EFF-EARLY-CLAIM']
+          and '断言时点 2026-09-20(来源: 同句前文句内「截至 9月20日」)' in dw
+          and '决议生效日 2026-09-24' in dw
+          and vr.get('passed') is True and vr['violations'] == [],
+          'wrong=%s right=%s det=%s'
+          % ([x['code'] for x in vw['violations']][:3],
+             [x['code'] for x in vr['violations']][:2], dw[:90]))
+    # 断言时点来源详情
+    src_bad, day_bad = [], []
+    for c in cases:
+        for r in aj._pol_time_clauses(aj._pol_norm_text(c['text']), _asof(c),
+                                      '2026-09-18', '2026-09-24'):
+            if '日日' in (r.get('mark') or ''):
+                day_bad.append(c['id'])
+        if c['verdict'] != 'REJECT':
+            continue
+        _, det = _det(c)
+        if c['group'] in 'XYP' and set(c['codes']) <= {
+                'POL-EFF-EARLY-CLAIM', 'POL-EFF-LATE-PENDING',
+                'POL-EFF-DECISION-NOT-YET-KNOWN'} and not (
+                    '断言时点 ' in det and '来源: ' in det):
+            src_bad.append((c['id'], 'no-source'))
+        if (c['group'] == 'X' and 'POL-EFF-EARLY-CLAIM' in c['codes']
+                and c['id'] not in ('X13', 'X36', 'X37')
+                and '来源: 分句内「' not in det):
+            src_bad.append((c['id'], 'not-clause-local'))
+        if c['group'] == 'Y' and '来源: 事件参照「' not in det:
+            src_bad.append((c['id'], 'not-event-ref'))
+    tcs = aj._pol_time_clauses(aj._pol_norm_text(byid['X15']['text']),
+                               cal['real'][1], '2026-09-18', '2026-09-24')
+    t13 = aj._pol_time_clauses(aj._pol_norm_text(byid['X13']['text']),
+                               cal['real'][1], '2026-09-18', '2026-09-24')
+    check('§T2-p-3 断言时点来源详情: 局部时点/事件参照/公告前既成句各组拒收句的'
+          '违规详情均写明断言时点与来源;局部时点句来源=「分句内「…」」(带介词的'
+          '句首独立日期分句 X13: 陈述分句继承句首时点,来源=「同句前文句首'
+          '「在 9月20日」」),事件参照句=「事件参照「…」」;任何时点标记不出现'
+          '叠字「日日」(不吞掉后面的「日本」: X15 标记=「在 9月20日」,置「□」'
+          '后分句仍含实体词「日本央行」)',
+          not src_bad and not day_bad
+          and '来源: 同句前文句首「在 9月20日」' in _det(byid['X13'])[1]
+          and any(r['mark'] == '在 9月20日' and '日本央行' in r['masked']
+                  for r in tcs)
+          and any(r['kind'] == 'lead' and r['mark'] == '在 9月20日'
+                  for r in t13),
+          'src=%s day=%s marks=%s/%s'
+          % (src_bad, day_bad, [r['mark'] for r in tcs],
+             [r['mark'] for r in t13]))
+    # 同句两个时点并存
+    d23, d25, d27 = (_det(byid[k])[1] for k in ('X23', 'X25', 'X27'))
+    check('§T2-p-4 同句两个时点并存: 详情同时写明分句时点与同句前文时点'
+          '(「分句内「…」(同句前文另有句内「…」…)」);既成/现行口径按较早时点'
+          '核验(X23/X25 断言时点=2026-09-20→早声称),未然口径按分句自己的时点'
+          '核验(X27 断言时点=2026-10-08→生效后仍写未然)',
+          all('同句前文另有句内「' in x for x in (d23, d25, d27))
+          and '断言时点 2026-09-20' in d23 and '断言时点 2026-09-20' in d25
+          and '断言时点 2026-10-08' in d27
+          and '分句内「在 9月20日」' in d25,
+          'd23=%s d25=%s d27=%s' % (d23[:70], d25[:70], d27[:70]))
+    # 变异自检
+    keep = (aj._pol_marks_in, aj._pol_pre_horizon, aj._pol_late_date_ok,
+            aj._pol_time_clauses, aj._pol_expctx_spans)
+    mut = {}
+    try:
+        aj._pol_marks_in = lambda c, eff=None: [
+            mk for mk in keep[0](c, eff) if mk[2] not in ('ladv', 'ref')]
+        mut['adv_off'] = _bad(_run(cases))
+        aj._pol_marks_in = keep[0]
+        aj._pol_pre_horizon = lambda t, dec: False
+        mut['horizon_off'] = _bad(_run(cases))
+        aj._pol_pre_horizon = keep[1]
+        aj._pol_late_date_ok = lambda *a, **k: False
+        mut['late_off'] = _bad(_run(cases))
+        aj._pol_late_date_ok = keep[2]
+
+        def _no_alt(ntext, fb, dec, eff=None):
+            return [{k: v for k, v in r.items() if k != 'alt'}
+                    for r in keep[3](ntext, fb, dec, eff)]
+        aj._pol_time_clauses = _no_alt
+        mut['alt_off'] = _bad(_run(cases))
+        aj._pol_time_clauses = keep[3]
+        aj._pol_expctx_spans = lambda ntext, keep_cur=True: set()
+        mut['expctx_off'] = _bad(_run(cases))
+        aj._pol_expctx_spans = lambda ntext, keep_cur=True: keep[4](ntext)
+        mut['hedge_off'] = _bad(_run(cases))
+    finally:
+        (aj._pol_marks_in, aj._pol_pre_horizon, aj._pol_late_date_ok,
+         aj._pol_time_clauses, aj._pol_expctx_spans) = keep
+    after = _bad(_run(cases))
+    pin_adv = ['C10', 'C18', 'K01', 'K02', 'K03', 'K05', 'K06', 'K07', 'K08',
+               'K09', 'K10', 'K11', 'K12', 'K13', 'P08', 'P09', 'P11', 'P23',
+               'P24', 'P27', 'P28', 'X01', 'X02', 'X03', 'X04', 'X05', 'X06',
+               'X07', 'X08', 'X09', 'X10', 'X11', 'X12', 'X15', 'X16', 'X17',
+               'X19', 'X25', 'X26', 'X27', 'X29', 'X30', 'X31', 'X38', 'X39',
+               'X41', 'X44', 'X45', 'Y01', 'Y03', 'Y04', 'Y05', 'Y08', 'Y09',
+               'Y10', 'Y12', 'Y13', 'Y16']
+    pin_hz = ['K14', 'K15', 'K16', 'K17', 'K18', 'P01', 'P03', 'P04', 'P05',
+              'P06', 'P07', 'P08', 'P12', 'P17', 'P21', 'P23', 'P24', 'P25',
+              'P27']
+    pin_late = ['K19', 'K20', 'K21', 'K22', 'K23', 'K24', 'K25', 'K26', 'W01',
+                'W03', 'W04', 'W06', 'W08', 'W10', 'W19', 'W20', 'W21', 'W22',
+                'W23', 'W25']
+    pin_exp = ['E01', 'E04', 'E07', 'E09', 'E11', 'E12', 'E13', 'P13', 'P26']
+    check('§T2-p-5 变异自检(新失守清单逐例钉定): 关掉状语形/事件参照时点标记→'
+          '58 例(局部时点 27/事件参照 10/公告前既成句 7/审查席探针 12/对照 2),'
+          '预期口径与写错生效日两组零波及;关掉公告前回看窗→19 例(公告前既成句 '
+          '14+审查席探针 5),其余组零波及;关掉写错生效日的非紧邻形规则→20 例'
+          '(写错生效日 12+审查席探针 8),其余组零波及;关掉同句两个时点并存→'
+          'X29 新失守恰此 1 例(断言时点 9-20 与局部时点 9-26 并存,既成口径须按'
+          '较早时点核验);关掉预期口径让路→9 例全是误拒(预期口径 7+P13/P26);'
+          '关掉对冲句排除→E02/E05 新失守恰此 2 例(待生效值写成当前值被放行);'
+          '恢复后回基线(零失守)',
+          mut['adv_off'] == pin_adv
+          and mut['horizon_off'] == pin_hz
+          and mut['late_off'] == pin_late
+          and mut['alt_off'] == ['X29']
+          and mut['expctx_off'] == pin_exp
+          and mut['hedge_off'] == ['E02', 'E05']
+          and after == [],
+          'adv_off=%d %s horizon_off=%d late_off=%d alt_off=%s '
+          'expctx_off=%d %s hedge_off=%s after=%s'
+          % (len(mut['adv_off']), mut['adv_off'][:12], len(mut['horizon_off']),
+             len(mut['late_off']), mut['alt_off'], len(mut['expctx_off']),
+             mut['expctx_off'][:14], mut['hedge_off'], after))
+    # 日期完整性: 事件日期标签不读作局部时点;ISO 日期不得被截成更早的日期;
+    # 写错生效日的规格不重复报出
+    iso = aj._pol_norm_text('2026-09-24 生效的加息已经实施。')
+    lab = aj._pol_time_clauses(aj._pol_norm_text('2026-09-24日已经实施。'),
+                               '2026-11-30', '2026-09-18', '2026-09-24')
+    cut = aj._pol_time_clauses(aj._pol_norm_text('2026-09-24日已经实施。'),
+                               '2026-11-30', '2026-11-27', '2026-12-04')
+    w25 = res['W25']
+    check('§T2-p-6 日期完整性: 「2026-09-24 生效的加息已经实施」的日期是事件日期'
+          '标签,不读作局部时点(无状语形标记,亦不置「□」);「2026-09-24日已经'
+          '实施」在日期恰为官方生效日时同样只当事件日期标签(局部时点表无分句内'
+          '标记);换一件在办决议核验时其局部时点=2026-09-24(不得截成 09-02);'
+          '12 月合成日历上写错生效日的 W25 只报 POL-EFF-DATE 一条(同段的 9 月'
+          '决议不重复认领同一日期)',
+          not [mk for mk in aj._pol_marks_in(iso) if mk[2] == 'ladv']
+          and not [r for r in aj._pol_time_clauses(iso, '2026-11-30',
+                                                  '2026-09-18', '2026-12-04')
+                   if r['kind'] in ('ladv', 'ref')]
+          and not [r for r in lab if r['kind'] in ('ladv', 'ref')]
+          and [r['t'] for r in cut if r['kind'] == 'ladv'] == ['2026-09-24']
+          and w25 == ['POL-EFF-DATE'],
+          'iso=%s lab=%s cut=%s w25=%s'
+          % ([mk[2] for mk in aj._pol_marks_in(iso)],
+             [(r['kind'], r['t']) for r in lab],
+             [(r['kind'], r['t']) for r in cut], w25))
 
 
 # ══ 任务2补充 r2: 契约门拒收理由随回执 ════════════════════════════════════
@@ -7429,6 +7682,7 @@ def main():
         sec_t2_m()
         sec_t2_n()
         sec_t2_o()
+        sec_t2_p()
         sec_t1_a()
         sec_t1_b()
         sec_t1_c()

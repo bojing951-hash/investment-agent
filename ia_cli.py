@@ -1531,6 +1531,93 @@ def _r1_family_contract(rp):
             '单位百分点)']}
 
 
+def _r1_gap_contract(rp, blk):
+    """Audit-R33 任务5: 问到预期差工单的 reader_map.expectations_gap 契约说明
+    (回声字段+席位判定规则+引擎面计数;逐行数据在 report.json
+    research_plan.expectations_gap.rows)。核对实现见 scripts/research_contract/
+    judgment_contract.py _expectations_gap_checks。"""
+    import expectations_gap as _eg_gc
+    _sm = (blk or {}).get('summary') or {}
+    _rows = (blk or {}).get('rows') or []
+    _cand = [r.get('row_id') for r in _rows if r.get('candidate')]
+    _rr = [r.get('row_id') for r in _rows
+           if r.get('status') == 'reading_required']
+    _gaps = (blk or {}).get('gaps') or []
+    # Audit-R33 任务5: 未到期最早到期日取自引擎面(不写死: 观点库/研究截止日
+    # 变化即随动);引擎无未到期项时不带括注。
+    _ny = (((blk or {}).get('ex_post') or {}).get('not_yet_testable')
+           if isinstance(blk, dict) else None) or {}
+    _ny_txt = ('(最早到期 %s)' % _ny.get('earliest_horizon_end')
+               if isinstance(_ny, dict) and _ny.get('earliest_horizon_end') else '')
+    return {
+        'spec': ('judgment 顶层 reader_map.expectations_gap 对象: '
+                 'as_of(回声) + n_views_visible/n_rows/comparable_n/'
+                 'engine_candidate_n(回声引擎 summary 同名计数) + '
+                 'engine_candidates_echoed[row_id…](与引擎候选行集合相等) + '
+                 'gaps_echoed[{code,region,metric_id}…](与引擎缺口逐项对应,'
+                 '不多不少) + seat_summary(非空) + supported_gaps['
+                 '{row_id,verdict(supported|not_a_gap),reading,'
+                 'reading_attribution(institution_stated|ai_inferred),'
+                 'competing_explanation(须含「假设」),reason,'
+                 'falsification_conditions[{condition,attribution'
+                 '(institution_stated|ai_inferred|engine_rule),source_ref?}],'
+                 'evidence_refs[str…]}] + key_unknowns[str…](引擎缺口>0 时'
+                 '必填非空) + comments[str…](可选) + window_echo{months,'
+                 'start,end}(问句指定证伪窗口时必回声,与引擎面逐位一致)'),
+        'engine_faces': {
+            'block_present': bool(blk),
+            'as_of': blk.get('as_of') if blk else None,
+            'regions': blk.get('regions') if blk else None,
+            'region_source': blk.get('region_source') if blk else None,
+            'falsification_window': blk.get('falsification_window') if blk else None,
+            'window_testability': (
+                {k: ((blk.get('window_testability') or {}).get(k)
+                     if blk else None)
+                 for k in ('rows_in_window', 'n_rows_after_window',
+                           'earliest_after_window', 'engine_rules_in_window',
+                           'engine_rules_after_window',
+                           'n_view_library_conditions')}
+                if isinstance((blk or {}).get('falsification_window'), dict)
+                else None),
+            'n_views_visible': _sm.get('n_views_visible'),
+            'n_views_withheld': _sm.get('n_views_withheld'),
+            'n_rows': _sm.get('n_rows'),
+            'comparable_n': _sm.get('comparable_n'),
+            'candidate_n': _sm.get('candidate_n'),
+            'reading_required_n': _sm.get('reading_required_n'),
+            'engine_candidate_rows': _cand,
+            'reading_required_rows': _rr,
+            'gaps': [{k: g.get(k) for k in ('code', 'region', 'metric_id',
+                                             'severity', 'n_rows')}
+                     for g in _gaps],
+            'pricing': ({k: (blk.get('pricing') or {}).get(k)
+                         for k in ('metric_id', 'instrument', 'status',
+                                   'source_snapshot_id', 'source_target_date',
+                                   'last_month', 'full_months_ahead')}
+                        if blk else None),
+            'ex_post': ((blk.get('ex_post') or {}).get('not_yet_testable')
+                        if blk else None),
+            'metrics_used': (blk.get('metrics_used') if blk else None)},
+        'discipline': [
+            '引擎候选行(candidate)与 reading_required 行逐行必裁: 缺=NOT_VERIFIED;'
+            '行号不存在=CONTRADICTED(虚构)',
+            'verdict=supported 只可用于引擎候选行或 reading_required 行;'
+            '对一致行(consistent/ex_post_consistent)判 supported=CONTRADICTED',
+            'reading_required 行: reading_attribution=ai_inferred 且解读含'
+            '「席位推导」;竞争解释须含「假设」;supported 须给≥1 条证伪条件',
+            'institution_stated 解读/证伪条件须引用该行观点库原文(连续≥8字);'
+            'ai_inferred 证伪条件须含阿拉伯数字+在册可观测指标 id+YYYY-MM-DD 日期',
+            'engine_rule 证伪条件的 source_ref 须是库内引擎规则池条目并引用其原文',
+            'evidence_refs 须可在证据索引解析且与该引擎行的证据引用相交',
+            '自由文字里的数字须与引擎面(report.json research_plan 全文)数字对应;'
+            '证据不足的预期差不得写成 supported(如实写缺口与关键未知)',
+            'AC3 到期预测保持 PARTIAL: 未到期%s的预测只能写「尚不可检验」,'
+            '不得写成事后已验证' % _ny_txt,
+            '问句指定证伪窗口(未来半年等)时: window_echo 回声(月数/起/止)'
+            '+ 总述须说明窗内到期可核项与窗外不判定项(引擎面 '
+            'engine_faces.window_testability)']}
+
+
 def _r1_plan_gaps(rep):
     """Audit-R33 任务3: 计划缺口显式化 → (plan_status, gaps)。
 
@@ -1547,7 +1634,9 @@ def _r1_plan_gaps(rep):
         1 for r in rep.get('evidence_index') or []
         if (r or {}).get('kind') in (
             'snapshot_fact', 's3_envelope', 'policy_record',
-            'plan_series_point'))
+            'plan_series_point',
+            # Audit-R33 任务5: 同期限市场定价行(序列派生,可复算)
+            'market_pricing'))
     if not n_fact:
         gaps.append({
             'code': 'zero_facts', 'severity': 'hard',
@@ -1572,6 +1661,24 @@ def _r1_plan_gaps(rep):
                 'code': _bc, 'severity': 'draft',
                 'detail': '原问直答: %s——只能交付草稿(正式归档拒绝)'
                           % _pq_g._blocked_text(_bc)})
+    # Audit-R33 任务5: 问到预期差——对照块缺席=hard(问到却无对照面,预期差
+    # 研究不可执行);观点库缺席/无可对账行=draft(计划可执行但只能交付草稿,
+    # 正式归档拒绝)——缺口显式回传,不以 plan_gaps=[] 放行
+    if isinstance(rp, dict):
+        import expectations_gap as _eg_pg
+        _eg_bc = _eg_pg.plan_blocked_class(rp)
+        if _eg_bc == _eg_pg.BLOCK_MISSING:
+            gaps.append({
+                'code': _eg_bc, 'severity': 'hard',
+                'detail': '预期差对照块缺席(问句问到预期差但研究计划未生成'
+                          '机构观点×同期限市场定价×事实对照块)——无对照面,'
+                          '预期差研究不可执行(补齐运行快照后重跑)'})
+        elif _eg_bc:
+            gaps.append({
+                'code': _eg_bc, 'severity': 'draft',
+                'detail': '预期差: %s——只能交付草稿(正式归档拒绝)'
+                          % _eg_pg.draft_banner(_eg_bc).replace(
+                              '> ⚠ **草稿(非正式)**: ', '').rstrip('。')})
     return ('gap' if any(g['severity'] == 'hard' for g in gaps) else 'ok'), gaps
 
 
@@ -1748,6 +1855,21 @@ def _r1_plan_core(args, engine_root):
                            '排序主张须写「先后未定」;传导链区分指标将随'
                            '引擎当前面观测(最新值+近30日变化)渲染'],
         }
+        if isinstance(_rp.get('expectations_gap'), dict) and \
+                _rp['expectations_gap'].get('asked'):
+            # Audit-R33 任务5: 问到预期差——五面照常 + 追加预期差对照
+            # (席位对引擎候选行/须席位推导行逐行裁决;回声契约随工单落档)
+            import expectations_gap as _eg_wo
+            _eg_blk = _eg_wo.plan_block(_rp)
+            work_order['expectations_gap'] = _r1_gap_contract(_rp, _eg_blk)
+            work_order['produce'] += (
+                ' + reader_map.expectations_gap(预期差: 席位总述 + 逐行判定'
+                '[引擎数值候选行与须席位推导行逐行必裁: supported/not_a_gap'
+                '+席位解读+竞争解释(含「假设」)+证伪条件(数字+可观测指标+'
+                '日期)+理由+证据引用]+缺口逐项回声+关键未知+证伪窗口回声'
+                '(问句指定窗口时)——Audit-R33: '
+                '预期差须有证据支持;证据不足如实写缺口,不得写成 supported;'
+                '未到期预测只写「尚不可检验」)')
         if _rp.get('question_kind') == 'policy_question':
             # Audit-R33 任务3: 原问直答型工单——族别随工单落档,产出规格=
             # 基串+结构化回声(上面地图五面规格不适用,整体覆盖)
@@ -2146,7 +2268,11 @@ def _r1_report_core_pinned(args, engine_root, pins):
             'map_official_target_missing',
             # Audit-R33 任务3: 原问直答型被问分量全缺=草稿交付(缺数格如实
             # 标注;正式归档仍阻断)
-            'policy_question_face_missing'):
+            'policy_question_face_missing',
+            # Audit-R33 任务5: 预期差——观点库缺席/无可对账行=草稿交付
+            # (机构观点对照不可做,如实写缺口;正式归档仍阻断)
+            'expectations_gap_views_absent',
+            'expectations_gap_no_comparables'):
         draft_delivered = (machine_verified and review_ok and copies_consistent)
         if draft_delivered:
             warnings.append(

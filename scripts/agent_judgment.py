@@ -1815,7 +1815,12 @@ BLOCKING_BLOCKED_CLASSES = frozenset(
      'map_official_target_missing',
      # Audit-R33 任务3: 原问直答型(被问分量全缺=草稿交付;分面块缺席)
      'policy_question_face_missing',
-     'policy_question_faces_missing'})
+     'policy_question_faces_missing',
+     # Audit-R33 任务5: 预期差——计划块缺席(硬);观点库缺席/无可对账行
+     # (草稿级,plan 段缺口显式回传;交付/归档同源引用)
+     'expectations_gap_block_missing',
+     'expectations_gap_views_absent',
+     'expectations_gap_no_comparables'})
 
 
 def _step_failure_is_refusal(step):
@@ -1994,6 +1999,13 @@ def blocked_class_of(report, calendar_path=None):
                 calendar_path=calendar_path)
             if _opr_g.get('gaps'):
                 return 'map_official_target_missing'
+            # Audit-R33 任务5: 问到预期差——块缺席(硬)/观点库缺席/
+            # 无可对账行(草稿级);判定与渲染共源
+            # (expectations_gap.plan_blocked_class,草稿横幅同源)。
+            import expectations_gap as _eg_bc
+            _eg_cls = _eg_bc.plan_blocked_class(report.get('research_plan') or {})
+            if _eg_cls:
+                return _eg_cls
         # 地图内容类全绿: run_ok 健康→无缺口;run_ok=False(诚实源缺席
         # 类)→落进程类旗标面(optional/critical),不放空手 None。
         if report.get('run_ok') is not False:
@@ -2049,7 +2061,7 @@ def _reader_map_faces_summary(judgment, report):
     history_ok = (1 <= history_n <= 3
                   or (history_n == 0 and str(
                       rm.get('history_zero_case_note') or '').strip()))
-    return {
+    out = {
         'complete': bool(
             str(rm.get('headline_conclusion') or '').strip()
             and regions_ok
@@ -2062,6 +2074,13 @@ def _reader_map_faces_summary(judgment, report):
         'turnings_n': turnings_n,
         'history_n': history_n,
     }
+    # Audit-R33 任务5: 问到预期差才落回声面在场键(契约细查在
+    # judgment_contract._expectations_gap_checks)
+    _eg_plan = (report.get('research_plan') or {}).get('expectations_gap')
+    if isinstance(_eg_plan, dict) and _eg_plan.get('asked'):
+        out['expectations_gap_echo'] = isinstance(
+            rm.get('expectations_gap'), dict)
+    return out
 
 
 class WorkOrderPinsError(ValueError):

@@ -18,6 +18,8 @@
 非真实历史快照——只用于核验绑定规则,不作为任何交付的证据。
 任务3 真正的原问: 原问直答族(政策目标/待生效/通胀同比)判别;研究年月/回看窗口/同比基期分别解析;三面逐行+缺口逐项点名+版本绑定;12 月快照重跑守原问月范围;零事实/缺计划/缺证据→缺口显式回传(plan 段与 auto 段);席位装配脚本与回声契约;正式 CLI 链。族题夹具快照=真实 11-23 快照的族题子集与「12 月快照」合成件(夹具说明随行),不作为任何交付的证据。
 任务4 冷启动: 来源备注不计入指标覆盖(日档守卫判定用观测图: 备注/状态/披露区闭集,真实退化仍拦截);流水线台账与 update 回执逐步骤时长/返回码/失败原因,守卫分流行单列;A股港股采集器时间预算(默认 800 秒)+A 股断点续采(同交易日窗且当日 bar 已定型才续,全部阶段完成后清除)+核心阶段截断不写主日档(exit 1)+随档 collection_status。守卫夹具=2026-11-24 真实守卫对的裁剪版(原件 sha256 记于夹具 _fixture)。
+任务5 预期差研究: 问句判别(「预期差」词形,或「机构观点」×「市场定价」并列)→单型研究计划(地图五面+预期差对照块: 机构观点库×同期限市场定价×事实逐行确定性对照,候选≠结论)+席位回声契约(候选行与须推导行逐行裁决;与引擎确定性面相左/虚构行号/假托机构原话=CONTRADICTED;自由文字数字须与引擎面对应);证伪窗口自研究截止日起算;问句研究年月=时点标记(不是序列观测窗);对照面用到的指标并入取数分级(来源随行;旧调用面不变);干净安装无观点库=草稿级缺口(转正办法随行),无运行快照=硬缺口(不再崩溃)。夹具说明: 观点库=tests/fixtures_r33/views 下 5 份**合成**文档(全部虚构机构与表述;1 份发布日晚于研究截止日=扣留,1 份违反 schema=隔离),定价曲线=提交的冻结快照 fed_futures_curve;门内不含任何真实机构观点内容。
+任务5修订(独立席首轮 REVISE 后的闭环): 同期限定价参照(到期日当月或之前最后一个有读数的合约月)随行并入证据索引;对质观测窗=同窗首尾读数(月末口径;可取同比空间),引擎当前面只作窗后信息列出、不用于裁决;结构化对质=两侧预期按冻结序列复算,判断与复算不一致=CONTRADICTED;三项均为软契约(字段在场才核),旧档与无该字段工单零变化;席位工具只服务其预设的真实工单,门内只按函数级对照其纯函数面(不执行其模块级取数)。
 """
 import contextlib
 import copy
@@ -3185,6 +3187,2148 @@ def sec_t4_h():
           after == before, (sorted(set(after) - set(before))[:5],
                             sorted(set(before) - set(after))[:5]))
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ══ 任务5: 预期差研究接入正式入口 ════════════════════════════════════════
+# 观点库夹具=tests/fixtures_r33/views(5 份合成文档: 全部虚构机构、虚构表述;
+# 其中 1 份发布日晚于研究截止日=整篇不入对照,1 份违反 schema=装载即隔离)。
+# 定价曲线=提交的冻结快照 fed_futures_curve。门内核: 问句判别/证伪窗口/地区/
+# 点位解析(纯函数)→市场定价面与对照规则(门内独立复算)→对照块(逐行状态+
+# 选定行独立复算/缺口/分歧/证伪池/事后表现/窗口可检性/冻结输入)→席位回声
+# 契约(合格回声+反例矩阵)→引擎集成(离线 plan)→正式 CLI 链(真实步骤)。
+# 覆盖边界: 门内无「attach 接收→report 可交付→归档」的正例(该型判定须完整
+# 五面,见既有地图契约);预期差契约正例在函数级核验,真实全链由验收工单证明。
+Q_T5 = ('2026年11月，美国、中国、日本和欧元区的宏观环境下，市场定价和机构观点'
+        '之间有哪些预期差？未来半年什么会证伪？')
+Q_T5_NOSHAPE = '未来半年市场定价和机构观点之间有哪些预期差？'
+Q_PLAIN = ('美国、中国、欧元区、日本在最新一期分别处于什么增长、通胀和货币政策'
+           '环境？过去三个月各有什么变化？')
+VIEWS_FIX = os.path.join(FIX_R33, 'views')
+T5_ASOF = '2026-11-22'
+T5_METRICS_USED = ['FED_FUNDS', 'DFF', 'SPX', 'UST_10Y', 'JP_POLICY_RATE',
+                   'ECB_DFR', 'EA_REAL_GDP_YOY', 'SPX_EPS', 'UNEMPLOYMENT']
+T5_FROZEN = ['config/release_calendar.json', 'config/metric_registry.json',
+             'data/daily/research_snapshot_20261122_v2.json',
+             'config/forecast_target_map.json',
+             'data/institutions/views/VIEW-20260905-001.json',
+             'data/institutions/views/VIEW-20260915-002.json',
+             'data/institutions/views/VIEW-20261120-003.json']
+T5_CANDS = ['VIEW-20260915-002#f2', 'VIEW-20260915-002#f13',
+            'VIEW-20261120-003#f1']
+T5_READING = 'VIEW-20261120-003#f3'
+T5_SUMMARY = {'n_views_visible': 3, 'n_views_withheld': 1, 'n_rows': 26,
+              'n_out_of_scope': 0, 'comparable_n': 15, 'path_n': 7,
+              'consistent_n': 3, 'inconsistent_n': 3, 'candidate_n': 3,
+              'ex_post_consistent_n': 2, 'ex_post_missed_n': 3,
+              'reading_required_n': 1, 'context_only_n': 3, 'unmapped_n': 2,
+              'series_absent_n': 0, 'stale_fact_n': 1, 'gaps': 12,
+              'blocked_class': None}
+T5_STATUS = {
+    'VIEW-20260905-001#f1': 'not_comparable', 'VIEW-20260905-001#f2': 'ex_post_missed',
+    'VIEW-20260905-001#f3': 'ex_post_missed', 'VIEW-20260905-001#f4': 'library_inferred',
+    'VIEW-20260905-001#f5': 'no_longer_current', 'VIEW-20260905-001#f6': 'ex_post_consistent',
+    'VIEW-20260905-001#f7': 'ex_post_consistent', 'VIEW-20260915-002#f1': 'consistent',
+    'VIEW-20260915-002#f2': 'inconsistent', 'VIEW-20260915-002#f3': 'consistent',
+    'VIEW-20260915-002#f4': 'unparseable_horizon', 'VIEW-20260915-002#f5': 'unverifiable',
+    'VIEW-20260915-002#f6': 'not_comparable', 'VIEW-20260915-002#f7': 'context_only',
+    'VIEW-20260915-002#f8': 'consistent_stale_fact', 'VIEW-20260915-002#f9': 'fact_mismatch',
+    'VIEW-20260915-002#f10': 'unmapped', 'VIEW-20260915-002#f11': 'context_only',
+    'VIEW-20260915-002#f12': 'not_comparable', 'VIEW-20260915-002#f13': 'inconsistent',
+    'VIEW-20260915-002#f14': 'context_only', 'VIEW-20260915-002#f15': 'unmapped',
+    'VIEW-20261120-003#f1': 'inconsistent', 'VIEW-20261120-003#f2': 'ex_post_missed',
+    'VIEW-20261120-003#f3': 'reading_required', 'VIEW-20261120-003#f4': 'consistent'}
+
+
+def _xg():
+    import expectations_gap
+    return expectations_gap
+
+
+def _t5_tree(tag, views='all', code=False):
+    """预期差迷你树: config 副本+提交的冻结快照+合成观点库夹具(views='clean'
+    去掉违反 schema 的那一份使 views lint 步通过;None=不放观点库);code=True
+    另入代码副本。→ (tree, 快照路径)"""
+    t, snap = _code_tree(tag) if code else _mk_tree(tag)
+    if views:
+        dst = os.path.join(t, 'data', 'institutions', 'views')
+        shutil.copytree(VIEWS_FIX, dst)
+        if views == 'clean':
+            os.remove(os.path.join(dst, 'VIEW-20261010-005.json'))
+    return t, snap
+
+
+def _t5_block(t, snap_path, q=Q_T5, regions=('US', 'CN', 'EA', 'JP'),
+              as_of=T5_ASOF, snap=None):
+    """对照块(门内直调引擎;计划面=问句逐字+地区+问句证伪窗口)。"""
+    xg = _xg()
+    win = xg.parse_falsification_window(q, as_of)
+    plan = {'question_verbatim': q, 'regions': list(regions),
+            'region_source': 'question_named', 'expectations_gap': {'asked': True}}
+    if win:
+        plan['expectations_gap']['falsification_window'] = win
+    sd = snap if snap is not None else _jq(snap_path)
+    return xg.build_block(plan, sd, t, as_of, question=q,
+                          reg_by_id=wd.load_registry(t)['by_id'])
+
+
+def _t5_obs(sd, mid, on=None):
+    """门内独立读数: 序列 mid 截至 on(含)的最新非空观测 → (日期, 值)|None。"""
+    s = (sd.get('series_store') or {}).get(mid) or {}
+    best = None
+    for d, v in zip(s.get('dates') or [], s.get('values') or []):
+        d = str(d)[:10]
+        if v is None or (on and d > on):
+            continue
+        if best is None or d > best[0]:
+            best = (d, v)
+    return best
+
+
+def _t5_curve(sd):
+    """门内独立读曲线: 合约月名「YYYY年M月」→ 隐含月均利率;无法定月的行。"""
+    curve, skipped = {}, []
+    for row in sd.get('fed_futures_curve') or []:
+        m = re.match(r'^\s*(\d{4})年(\d{1,2})月', str(row.get('name') or ''))
+        rate = row.get('implied_avg_rate')
+        if m and isinstance(rate, (int, float)) and rate == rate:
+            curve['%s-%02d' % (m.group(1), int(m.group(2)))] = rate
+        else:
+            skipped.append(row.get('ticker'))
+    return curve, skipped
+
+
+def _t5_ids(items):
+    return [x['row_id'] if isinstance(x, dict) else x for x in items or []]
+
+
+def _t5_gap_codes(gaps):
+    return [g if isinstance(g, str) else g.get('code') for g in gaps or []]
+
+
+def _t5_days(ym):
+    import calendar
+    return calendar.monthrange(int(ym[:4]), int(ym[5:]))[1]
+
+
+def _t5_prev(ym):
+    y, m = int(ym[:4]), int(ym[5:])
+    return '%04d-%02d' % (y - (m == 1), 12 if m == 1 else m - 1)
+
+
+def _t5_step(chg, ym, v):
+    """路径单步对照(门内独立算): 上月市场变动为基,本月整月走完 v bp;
+    月内只走 v/天数。→ (下界, 上界, 在界内, 越界幅度 bp)。"""
+    p, days, b = chg[_t5_prev(ym)], _t5_days(ym), chg[ym]
+    lo, hi = ((p + v / days, p + v) if v >= 0 else (p + v, p + v / days))
+    inb = (lo - 1.0) <= b <= (hi + 1.0)
+    return (round(lo, 2), round(hi, 2), inb,
+            0.0 if inb else round(lo - b if b < lo else b - hi, 2))
+
+
+def _t5_count(chg, ym, n, sign, qual):
+    """次数型对照(门内独立算): n 次=累计 n×25bp;至少=下界,至多=上界,
+    约=半步带宽。→ (下界, 上界, 一致, 越界幅度 bp)。"""
+    low = round((n - 1) * 25.0 + 25.0 / _t5_days(ym) - 1.0, 2)
+    bb = round(chg[ym] * (1 if sign > 0 else -1), 2)
+    if qual == 'at_most':
+        hi, ok = round(n * 25.0 + 1.0, 2), bb <= round(n * 25.0 + 1.0, 2)
+        return None, hi, ok, round(max(0.0, bb - hi), 2)
+    if qual == 'at_least':
+        ok = bb >= low
+        return low, None, ok, round(max(0.0, low - bb), 2)
+    hi = round(n * 25.0 + 12.5 + 1.0, 2)
+    ok = low <= bb <= hi
+    return low, hi, ok, round(0.0 if ok else max(low - bb, bb - hi), 2)
+
+
+def _t5_hgap(chg, month, cum, lo_c, hi_c):
+    """路径终点对照(门内独立算): 机构最后一步之后的首个整月合约,市场累计
+    −机构累计;幅度≥半步(12.5bp)且方向不被次数限定词封死才算预期差。
+    → (合约月, 差 bp, 成立, 方向)。"""
+    fulls = [m for m in sorted(chg) if m + '-01' > T5_ASOF]
+    nm = next((m for m in fulls if m > month), None)
+    if not nm:
+        return None
+    g = round(chg[nm] - cum, 2)
+    d = ('market_above_institution' if g > 0 else
+         'market_below_institution' if g < 0 else None)
+    if abs(g) >= 12.5 and d:
+        if (d == 'market_above_institution' and hi_c) or \
+                (d == 'market_below_institution' and lo_c):
+            return nm, g, True, d
+        return nm, g, False, d + '(至多/至少型声明,该方向不构成预期差)'
+    return nm, g, False, None          # 不足半步: 引擎不标方向
+
+
+def _t5_echo(blk, rr_supported=False, **over):
+    """门内手搭的**合格回声**(仅函数级契约测试;非真实研判;数字只用引擎面
+    已有的)。"""
+    sm = blk['summary']
+    cands = sorted(r['row_id'] for r in blk['rows'] if r.get('candidate') is True)
+
+    def entry(rid, verdict):
+        r = _row(blk['rows'], row_id=rid)
+        e = {'row_id': rid, 'verdict': verdict,
+             'reading': '门夹具席位推导(非真实研判): 该行机构路径与同期限市场定价相左。',
+             'reading_attribution': 'ai_inferred',
+             'competing_explanation': '门夹具竞争解释【假设】: 机构点位代表少数观点,市场定价已吸收更可能的路径。',
+             'reason': '门夹具理由(非真实研判): 引擎确定性面对照为不一致。',
+             'falsification_conditions': [{
+                 'condition': '若 FED_FUNDS 在 2027-04-30 之前较截止日累计上行不足 12.5bp',
+                 'attribution': 'ai_inferred'}],
+             'evidence_refs': [rid]}
+        if verdict == 'not_a_gap':
+            e['falsification_conditions'] = None
+        return e
+
+    sup = [entry(c, 'supported') for c in cands]
+    for r in blk['rows']:
+        if r.get('status') == 'reading_required':
+            sup.append(entry(r['row_id'], 'supported' if rr_supported
+                             else 'not_a_gap'))
+    echo = {'as_of': blk['as_of'], 'n_views_visible': sm['n_views_visible'],
+            'n_rows': sm['n_rows'], 'comparable_n': sm['comparable_n'],
+            'engine_candidate_n': sm['candidate_n'],
+            'engine_candidates_echoed': cands,
+            'gaps_echoed': [{'code': g.get('code'), 'region': g.get('region'),
+                             'metric_id': g.get('metric_id')}
+                            for g in blk.get('gaps') or []],
+            'seat_summary': '门夹具席位总述(非真实研判): 引擎候选行逐行判定成立。',
+            'supported_gaps': sup,
+            'key_unknowns': ['门夹具关键未知: 目标区间上下限序列缺席,当前水平点位不可核。']}
+    if isinstance(blk.get('falsification_window'), dict):
+        echo['window_echo'] = {k: blk['falsification_window'][k]
+                               for k in ('months', 'start', 'end')}
+    echo.update(over)
+    return echo
+
+
+def _t5_skel(echo=None):
+    """门夹具骨架判定(非真实研判): 只满足结构项(schema/归因/L3≥1/L4≥2),
+    reader_map 只带预期差回声(地图五面缺席=既有五面契约照旧报缺)。"""
+    rm = {'headline_conclusion': '门夹具骨架(非真实研判)。'}
+    if echo is not None:
+        rm['expectations_gap'] = echo
+    return {
+        'schema_version': '1.1',
+        'agent_declaration': {
+            'attribution': 'ai_inferred',
+            'agent': '门夹具骨架(非真实研判;只验契约项与拒收路径)'},
+        'l3': {'contradictions': [{
+            'id': 'T5-FIX-C1',
+            'statement': '门夹具陈述(非真实研判): 以引擎对照面为准。',
+            'competing_explanations': ['门夹具解释甲(假设)', '门夹具解释乙(尚未验证)'],
+            'evidence_refs': ['VIEW-20260915-002#f1']}],
+            'mechanism_chains': []},
+        'l4': {'scenarios': [
+            {'id': 'T5-FIX-S1', 'role': '门夹具情景甲(假设)',
+             'rows': {'scenario': '门夹具情景甲(假设)。'}},
+            {'id': 'T5-FIX-S2', 'role': '门夹具情景乙(假设)',
+             'rows': {'scenario': '门夹具情景乙(假设)。'}}]},
+        'quality_gate_notes': ['门夹具(非真实研判)。'],
+        'reader_map': rm}
+
+
+def sec_t5_a():
+    print('§T5-a 问句判别/证伪窗口/地区/点位解析(纯函数;门内独立期望)')
+    xg = _xg()
+    import research_orchestrator as ro
+    a = xg.asked(Q_T5)
+    check('§T5-a1 问句判别: 「预期差」词形=问到;「机构观点」×「市场定价」并列='
+          '问到;普通问句/原问零触发',
+          a == {'gap': True, 'views': True, 'pricing': True}
+          and xg.asked('机构观点与市场定价差在哪？')
+          == {'gap': False, 'views': True, 'pricing': True}
+          and xg.asked('有哪些预期差？')
+          == {'gap': True, 'views': False, 'pricing': False}
+          and not xg.is_asked('机构观点如何？')
+          and not xg.is_asked('市场预期如何？')
+          and not xg.is_asked(T3_TEXT) and not xg.is_asked(Q_T1)
+          and not xg.is_asked(''),
+          json.dumps(a, ensure_ascii=False))
+    cases = [('未来半年什么会证伪？', 6, '2027-05-22'),
+             ('未来六个月', 6, '2027-05-22'), ('接下来 3 个月', 3, '2027-02-22'),
+             ('未来一年半', 18, '2028-05-22'),
+             ('未来十二个月', 12, '2027-11-22'),
+             ('未来 6 个月', 6, '2027-05-22'), ('今后两个月', 2, '2027-01-22'),
+             ('未来两个季度', 6, '2027-05-22'),
+             ('未来一个季度', 3, '2027-02-22'),
+             ('未来2个季度', 6, '2027-05-22'),
+             ('未来两季度', 6, '2027-05-22'),
+             ('未来 3 个季度', 9, '2027-08-22')]
+    got = {q: xg.parse_falsification_window(q, T5_ASOF) for q, _n, _e in cases}
+    bad = {q: got[q] for q, n, e in cases
+           if not (isinstance(got[q], dict) and got[q].get('months') == n
+                   and got[q].get('start') == T5_ASOF and got[q].get('end') == e
+                   and got[q].get('source') and got[q]['source'] in q)}
+    check('§T5-a2 证伪窗口: 窗=研究截止日起 N 月(半年/六个月/N 个月/一年半/'
+          '十二个月/季度=N×3 个月;中文与阿拉伯数字、带不带「个」同解;'
+          'source 为问句子串)', not bad, bad)
+    none_q = ['过去半年', '过去两个季度', '未来半个月', '未来三个月半', '什么会证伪', '']
+    check('§T5-a3 窗口未指明/不支持词形(回看/半个月/三个月半)=None,不臆造',
+          all(xg.parse_falsification_window(q, T5_ASOF) is None for q in none_q),
+          [q for q in none_q
+           if xg.parse_falsification_window(q, T5_ASOF) is not None])
+    check('§T5-a4 月末钳制: 2026-08-31+6 月=2027-02-28;2027-01-31+1 月=2027-02-28',
+          (xg.parse_falsification_window('未来半年', '2026-08-31') or {})
+          .get('end') == '2027-02-28'
+          and (xg.parse_falsification_window('未来一个月', '2027-01-31') or {})
+          .get('end') == '2027-02-28')
+    rcases = [(Q_T5, ['US', 'CN', 'EA', 'JP'], 'question_named'),
+              ('日本和欧元区有哪些预期差？', ['EA', 'JP'], 'question_named'),
+              ('美国的机构观点和市场定价有何预期差？', ['US'], 'question_named'),
+              ('日本央行和欧央行路径上有哪些预期差？', ['EA', 'JP'],
+               'question_named'),
+              (Q_T5_NOSHAPE, ['US', 'CN', 'EA', 'JP'], 'default_all_registered'),
+              ('全球预期差?', ['US', 'CN', 'EA', 'JP'], 'default_all_registered'),
+              ('有哪些预期差？', ['US', 'CN', 'EA', 'JP'],
+               'default_all_registered')]
+    reg = wd.load_registry(ROOT)
+    rbad = []
+    for q, exp, src in rcases:
+        g = xg.plan_regions(q, ro.map_entities(q, reg))
+        if [list(g[0]), g[1]] != [exp, src]:
+            rbad.append((q[:16], g))
+    check('§T5-a5 地区: 问句点名经济体/央行→按问句;无点名→四地全注册'
+          '(来源如实标注 default_all_registered)', not rbad, rbad)
+    pcases = [('2026年9月加息 25bp', 'change_bp', {'value': 25.0}),
+              ('降息 15bp', 'change_bp', {'value': -15.0}),
+              ('2027年6月前至少加息2次', 'hike_count',
+               {'count': 2, 'sign': 1, 'qualifier': 'at_least'}),
+              ('至多加息1次', 'hike_count',
+               {'count': 1, 'sign': 1, 'qualifier': 'at_most'}),
+              ('约加息2次', 'hike_count',
+               {'count': 2, 'sign': 1, 'qualifier': 'about'}),
+              ('加息两次', 'hike_count',
+               {'count': 2, 'sign': 1, 'qualifier': 'exact'}),
+              ('2026年+25%', 'growth_pct', {'value': 25.0}),
+              ('-0.5%', 'growth_pct', {'value': -0.5}),
+              ('3.75%–4.00%', 'level_range',
+               {'lo': 3.75, 'hi': 4.0, 'unit': 'percent'}),
+              ('4.25%', 'level', {'value': 4.25, 'unit': 'percent'}),
+              ('7500', 'level', {'value': 7500.0, 'unit': None}),
+              ('2026年 2.1%，2027年 2.3%', 'multi', {'values': [2.1, 2.3]}),
+              ('维持数据依赖立场', 'text', {'value': None}),
+              ('2027年3月前加息约2次', 'text', {'value': None})]
+    pbad = []
+    for txt, kind, exp in pcases:
+        p = xg.parse_point(txt)
+        if not (isinstance(p, dict) and p.get('kind') == kind
+                and all(p.get(k) == v for k, v in exp.items())):
+            pbad.append((txt, p))
+    check('§T5-a6 点位解析: 幅度型(bp,升为正降为负)/次数型(至少/至多/约/'
+          '中文数字)/增速型/区间型/水平型/多年多值=文字型;量词在动词后的'
+          '「加息约2次」引擎不解读=文字型(已披露限制)', not pbad, pbad)
+    ent = ro.map_entities(Q_T5, reg)
+    ent2 = ro.map_entities(Q_T5_NOSHAPE, reg)
+    check('§T5-a7 问句族别: 预期差问句(含无地图词形者)=map;普通地图问句维持',
+          rmp.question_kind(Q_T5, ent) == 'map'
+          and rmp.question_kind(Q_T5_NOSHAPE, ent2) == 'map'
+          and rmp.detect_map_question(Q_T5, ent) is True
+          and rmp.detect_map_question(Q_T5_NOSHAPE, ent2) is False
+          and _kind(Q_PLAIN) == 'map'
+          and _kind('美国未来一年增长通胀如何') is None)
+    tm = xg.load_target_map(ROOT)
+    check('§T5-a8 目标→指标映射: 规范表命中的照旧;补充映射(政策路径基线/'
+          '目标区间/日银政策利率/标普目标)带 r33_supplement 来源;未映射=None',
+          xg.resolve_metric('美国失业率', tm)
+          == ('UNEMPLOYMENT', 'canonical:config/forecast_target_map.json')
+          and xg.resolve_metric('fed_policy_path_baseline', tm)[0] == 'FED_FUNDS'
+          and xg.resolve_metric('fed_funds_target_range', tm)[0] == 'DFEDTARU'
+          and xg.resolve_metric('BOJ_policy_rate', tm)[0] == 'JP_POLICY_RATE'
+          and xg.resolve_metric('SPX_12m_target', tm) == ('SPX', 'r33_supplement')
+          and xg.resolve_metric('中国贷款市场报价利率', tm) == (None, None)
+          and xg.resolve_metric('全球增长前景', tm) == (None, None))
+    check('§T5-a9 到期日: 目标名内嵌月份可解;文档期限 Nm=发布日+N 月;其余 None',
+          xg._date_from_target('US_10y_yield_endSep2026') == '2026-09-30'
+          and xg._date_from_target('SPX_12m_target') is None
+          and xg.view_horizon_end({'publish_date': '2026-09-15',
+                                   'view_horizon': '12m'}) == '2027-09-15'
+          and xg.view_horizon_end({'publish_date': '2026-11-20',
+                                   'view_horizon': '6m'}) == '2027-05-20'
+          and xg.view_horizon_end({'publish_date': '2026-11-20',
+                                   'view_horizon': 'other'}) is None)
+
+
+def sec_t5_b():
+    print('§T5-b 市场定价面与对照规则(门内独立复算)')
+    xg = _xg()
+    t, snap = _t5_tree('t5b')
+    sd = _jq(snap)
+    reg = wd.load_registry(t)['by_id']
+    curve, skipped = _t5_curve(sd)
+    dff = _t5_obs(sd, 'DFF', T5_ASOF)
+    chg = {ym: round((r - dff[1]) * 100.0, 2) for ym, r in curve.items()}
+    fb = xg.Facts(sd, t, T5_ASOF, reg)
+    face = xg.build_pricing(fb, sd, t, T5_ASOF)
+    rows = {r['month']: r for r in face['rows']}
+    fulls = [m for m in sorted(curve) if m + '-01' > T5_ASOF]
+    check('§T5-b1 市场定价面(运行快照,版本日≤截止日): 10 合约月逐点=快照曲线'
+          '(门内独立读),变动 bp=隐含−截止日有效利率(DFF@2026-11-19 3.88);'
+          '非合约月行跳过并记因;整月在前=次月起;无目标区间=无中点基线',
+          len(curve) == 10 and face['status'] == 'present'
+          and face['basis'] == 'run_snapshot'
+          and face['source_target_date'] == T5_ASOF
+          and face['baseline']['evidence_ref'] == 'DFF@2026-11-19'
+          and face['baseline']['value'] == dff[1] == 3.88
+          and sorted(rows) == sorted(curve)
+          and all(rows[m]['implied_avg_rate'] == curve[m]
+                  and rows[m]['change_bp'] == chg[m] for m in curve)
+          and [s['reason'] for s in face['skipped_rows']]
+          == ['no_contract_month'] * len(skipped) and len(skipped) == 1
+          and face['full_months_ahead'] == fulls and len(fulls) == 9
+          and face['last_month'] == '2027-08' and face['midpoint'] is None
+          and not face['gaps'],
+          f"n={len(rows)} skipped={skipped} fulls={len(fulls)}")
+    scases = [('2026-12', 25), ('2027-03', 25), ('2027-03', -25),
+              ('2027-01', -300), ('2027-01', 100), ('2027-02', 5),
+              ('2027-02', 1)]
+    sbad = []
+    for ym, v in scases:
+        g = xg.compare_path_step(face, ym, v)
+        lo, hi, inb, dist = _t5_step(chg, ym, v)
+        if not (g['in_bound'] is inb and g['distance_bp'] == dist
+                and g['market_change_bp'] == chg[ym]
+                and g['market_prev_change_bp'] == chg[_t5_prev(ym)]
+                and g['bases_checked'] == 1
+                and (not inb or (g['bound_lo'] == lo and g['bound_hi'] == hi))):
+            sbad.append((ym, v, g, (lo, hi, inb, dist)))
+    check('§T5-b2 路径单步对照(门内独立算): 升/降/大幅/小幅逐例一致;曲线外'
+          '合约月=无基线可核(in_bound None)',
+          not sbad
+          and xg.compare_path_step(face, '2027-10', 25)['bases_checked'] == 0
+          and xg.compare_path_step(face, '2027-10', 25)['in_bound'] is None,
+          sbad)
+    ccases = [('2027-06', 2, 1, 'at_least'), ('2027-06', 1, 1, 'at_most'),
+              ('2027-03', 2, 1, 'about'), ('2027-06', 4, 1, 'at_least'),
+              ('2027-01', 1, -1, 'at_least')]
+    cbad = []
+    for ym, n, sign, qual in ccases:
+        g = xg.compare_hike_count(face, ym, n, sign, qual)
+        lo, hi, ok, dist = _t5_count(chg, ym, n, sign, qual)
+        if not (g['consistent'] is ok and g['distance_bp'] == dist
+                and g['bound_lo'] == lo and g['bound_hi'] == hi
+                and g['market_change_bp'] == chg[ym]
+                and g['market_hike_equivalents']
+                == round(chg[ym] * sign / 25.0, 2)):
+            cbad.append((ym, n, sign, qual, g, (lo, hi, ok, dist)))
+    check('§T5-b3 次数型对照(门内独立算): 至少 N 次=下界/至多 N 次=上界/'
+          '约 N 次=半步带宽;降息方向按符号取反;「至少加息 4 次」对市场 '
+          '56bp 越界 18.83bp', not cbad
+          and xg.compare_hike_count(face, '2027-06', 4, 1, 'at_least')
+          ['distance_bp'] == 18.83, cbad)
+    hcases = [('2027-03', 25, True, True), ('2026-12', 25, True, True),
+              ('2027-03', 75, True, True), ('2027-06', 25, False, True)]
+    hbad = []
+    for month, cum, lo_c, hi_c in hcases:
+        g = xg._horizon_gap(face, month, cum, lo_c, hi_c)
+        exp = _t5_hgap(chg, month, cum, lo_c, hi_c)
+        if not (g['assessable'] is True and g['month'] == exp[0]
+                and g['gap_bp'] == exp[1] and g['material'] is exp[2]
+                and g['direction'] == exp[3]
+                and g['evidence_ref'] == 'FEDFUNDS_FUT:' + g['ticker']):
+            hbad.append((month, cum, g, exp))
+    check('§T5-b4 路径终点对照(门内独立算): 机构末步之后首个整月合约;幅度≥'
+          '半步 12.5bp 才成立;「至多加息」行市场高于机构不构成预期差(方向'
+          '标注);曲线尽头之后=不可评估', not hbad
+          and _t5_hgap(chg, '2027-03', 25, True, True)
+          == ('2027-04', 23.5, True, 'market_above_institution')
+          and _t5_hgap(chg, '2027-03', 75, True, True)
+          == ('2027-04', -26.5, True, 'market_below_institution')
+          and xg._horizon_gap(face, '2027-08', 25, True, True)['assessable']
+          is False, hbad)
+    f_old = xg.build_pricing(fb, sd, t, '2025-11-15')
+    v = copy.deepcopy(sd)
+    v['snapshot_id'] = 'FIXTURE_t5_vintage_20261115'
+    v['target_date'] = '2026-11-15'
+    v['fixture_note'] = 'Audit-R33 门夹具: 定价版本回退用构造件(非真实)'
+    v['fed_futures_curve'] = [{'ticker': 'FIXTURE_ZQZ26', 'name': '2026年12月',
+                               'implied_avg_rate': 4.0, 'price': 95.0}]
+    vp = os.path.join(t, 'data', 'daily', 'FIXTURE_t5_vintage_20261115.json')
+    with open(vp, 'w', encoding='utf-8') as fh:
+        json.dump(v, fh, ensure_ascii=False)
+    rs = copy.deepcopy(sd)
+    rs['target_date'] = '2026-12-01'
+    rs['evidence_gate'] = {'vintage': {'vintage_snapshot': vp}}
+    f_v = xg.build_pricing(xg.Facts(rs, t, T5_ASOF, reg), rs, t, T5_ASOF)
+    v2 = copy.deepcopy(v)
+    v2['target_date'] = '2026-12-10'
+    with open(vp, 'w', encoding='utf-8') as fh:
+        json.dump(v2, fh, ensure_ascii=False)
+    f_v2 = xg.build_pricing(xg.Facts(rs, t, T5_ASOF, reg), rs, t, T5_ASOF)
+    check('§T5-b5 定价面版本绑定: 研究时点早于运行快照版本日→不借用今日曲线'
+          '(缺席+pricing_absent_at_cutoff);运行快照晚于截止日→回退 as-of '
+          '版本快照(来源如实标注);版本日亦晚于截止日→缺席',
+          f_old['status'] == 'absent'
+          and _t5_gap_codes(f_old['gaps']) == ['pricing_absent_at_cutoff']
+          and f_v['status'] == 'present'
+          and f_v['basis'] == 'as_of_vintage_snapshot'
+          and f_v['source_snapshot_id'] == 'FIXTURE_t5_vintage_20261115'
+          and f_v['source_target_date'] == '2026-11-15'
+          and [(r['month'], r['implied_avg_rate'], r['change_bp'])
+               for r in f_v['rows']] == [('2026-12', 4.0, 12.0)]
+          and f_v2['status'] == 'absent'
+          and _t5_gap_codes(f_v2['gaps']) == ['pricing_absent_at_cutoff'],
+          f"old={f_old['status']} {f_old['gaps']} v={f_v['basis']} "
+          f"{f_v['rows'][:1]} v2={f_v2['status']} {f_v2['gaps']}")
+    ff = _t5_obs(sd, 'FED_FUNDS', T5_ASOF)
+    at = fb.at('FED_FUNDS')
+    at_d = fb.at('DFF')
+    un = _t5_obs(sd, 'UNEMPLOYMENT', '2026-10-31')
+    near = xg.fact_near(fb, 'UNEMPLOYMENT', '2026-10-31', 'monthly')
+    import datetime as _dt
+    age = (_dt.date(2026, 11, 22)
+           - _dt.date.fromisoformat(ff[0])).days
+    check('§T5-b6 事实读数: 序列≤截止日最新观测(门内独立读)附证据引用/发布'
+          '口径/龄期;月频龄期 52 天>45=陈旧;序列缺席=missing;定点邻近读数'
+          '带容差与距离;远端到期日=陈旧',
+          at['value'] == ff[1] == 3.88 and at['observation_date'] == ff[0]
+          == '2026-10-01' and at['evidence_ref'] == 'FED_FUNDS@2026-10-01'
+          and at['age_days'] == age and at['stale'] is True
+          and at['stale_after_days'] == 45
+          and at_d['observation_date'] == '2026-11-19' and at_d['age_days'] == 3
+          and 'stale' not in at_d
+          and fb.at('DFEDTARU')['status'] == 'missing'
+          and near['status'] == 'ok' and near['value'] == un[1] == 4.1
+          and near['distance_days'] == -30 and near['tolerance_days'] == 45
+          and xg.fact_near(fb, 'FED_FUNDS', '2027-06-30', 'monthly')['status']
+          == 'fact_stale_at_horizon'
+          and xg.fact_near(fb, 'DFEDTARU', T5_ASOF, 'daily')['status']
+          == 'missing',
+          f"at={at['value']}@{at['observation_date']} age={at['age_days']} "
+          f"near={near}")
+    m_d = {'unit': 'percent', 'frequency': 'daily'}
+    m_m = {'unit': 'percent', 'frequency': 'monthly'}
+    m_i = {'unit': 'index_point', 'frequency': 'daily'}
+    spx = _t5_obs(sd, 'SPX', '2026-09-30')
+    check('§T5-b7 水平容差: 利率日频 0.02/非日频 0.05 个百分点;其余=读数×0.5%;'
+          '事实缺席=unverifiable;频率族陈旧阈值',
+          xg._level_verdict(2.5, {'value': 2.5}, m_d)['verdict'] == 'matches'
+          and xg._level_verdict(2.5, {'value': 2.5}, m_d)['tolerance'] == 0.02
+          and xg._level_verdict(2.56, {'value': 2.5}, m_d)['verdict']
+          == 'differs'
+          and xg._level_verdict(2.54, {'value': 2.5}, m_m)['verdict']
+          == 'matches'
+          and xg._level_verdict(2.56, {'value': 2.5}, m_m)['verdict']
+          == 'differs'
+          and xg._level_verdict(7680.0, {'value': spx[1]}, m_i)['tolerance']
+          == round(abs(spx[1]) * 0.005, 6) == 38.2577
+          and xg._level_verdict(7680.0, {'value': spx[1]}, m_i)['verdict']
+          == 'matches'
+          and xg._level_verdict(7690.0, {'value': spx[1]}, m_i)['verdict']
+          == 'differs'
+          and xg._level_verdict(4.0, None, m_d)['verdict'] == 'unverifiable'
+          and [xg._stale_after(f) for f in
+               ('daily', 'weekly', 'monthly', 'quarterly', None)]
+          == [10, 14, 45, 100, 45],
+          f"{spx} {xg._level_verdict(7680.0, {'value': spx[1]}, m_i)}")
+
+
+def sec_t5_c():
+    print('§T5-c 预期差对照块(合成观点库夹具×提交的冻结快照;虚构机构)')
+    xg = _xg()
+    t, snap = _t5_tree('t5c')
+    sd = _jq(snap)
+    blk = _t5_block(t, snap)
+    rows = {r['row_id']: r for r in blk['rows']}
+    curve, _sk = _t5_curve(sd)
+    dff = _t5_obs(sd, 'DFF', T5_ASOF)
+    chg = {ym: round((r - dff[1]) * 100.0, 2) for ym, r in curve.items()}
+    check('§T5-c1 对照块: 单型块(问句逐字/截止日/四地/证伪窗口)+汇总'
+          '(可见 3 扣留 1/26 行/可对账 15/候选 3/须推导 1/缺口 12/无阻断)',
+          blk['schema'] == xg.SCHEMA and blk['asked'] is True
+          and blk['question_verbatim'] == Q_T5 and blk['as_of'] == T5_ASOF
+          and blk['regions'] == ['US', 'CN', 'EA', 'JP']
+          and blk['region_source'] == 'question_named'
+          and blk['falsification_window']
+          == {'months': 6, 'start': T5_ASOF, 'end': '2027-05-22',
+              'source': '未来半年'}
+          and blk['summary'] == T5_SUMMARY,
+          json.dumps(blk['summary'], ensure_ascii=False))
+    man = {}
+    for fn in sorted(os.listdir(VIEWS_FIX)):
+        with open(os.path.join(VIEWS_FIX, fn), 'rb') as fh:
+            man['data/institutions/views/' + fn] = hashlib.sha256(
+                fh.read()).hexdigest()
+    vw = blk['views']
+    check('§T5-c2 观点库装载: 5 件=合规 4+隔离 1(违反 schema);发布日晚于'
+          '截止日的整篇扣留并记因;清单 sha256=门内独立算',
+          vw['status'] == 'present' and vw['n_files'] == 5
+          and vw['n_compliant'] == 4 and vw['n_quarantined'] == 1
+          and vw['quarantined'][0]['view_id'] == 'VIEW-20261010-005'
+          and vw['manifest'] == man
+          and [(w['view_id'], w['publish_date'], w['reason'])
+               for w in blk['withheld_after_cutoff']]
+          == [('VIEW-20261201-004', '2026-12-01', 'publish_after_cutoff')]
+          and not any('VIEW-20261201-004' in r['view_id']
+                      or 'VIEW-20261010-005' in r['view_id']
+                      for r in blk['rows']),
+          json.dumps(vw['quarantined'], ensure_ascii=False))
+    check('§T5-c3 逐行状态(26 行): 到期点位=事后表现/一致·不一致·次数型/'
+          '当前水平型对事实/未映射/文字型=须席位推导/背景',
+          {k: r['status'] for k, r in rows.items()} == T5_STATUS
+          and sorted(r['row_id'] for r in blk['rows'] if r.get('candidate')
+                     is True) == sorted(T5_CANDS)
+          and [k for k, r in rows.items() if r['status'] == 'reading_required']
+          == [T5_READING]
+          and all(r.get('candidate_reason') for r in blk['rows']
+                  if r.get('candidate') is True),
+          {k: r['status'] for k, r in rows.items()
+           if T5_STATUS.get(k) != r['status']})
+    r = rows['VIEW-20260915-002#f1']
+    st = r['comparison']['step']
+    hg = r['comparison']['horizon_gap']
+    lo, hi, inb, _d = _t5_step(chg, '2026-12', 25)
+    check('§T5-c4 路径行独立复算·一致: 2026-12 加息 25bp 对 2026-12 合约'
+          '(上月市场变动 0→界 [0.81,25] 含 16);终点 2027-01 市场−机构 −1.0'
+          '不足半步=非候选',
+          st['in_bound'] is True and st['bound_lo'] == lo == 0.81
+          and st['bound_hi'] == hi == 25.0 and st['market_change_bp'] == 16.0
+          and hg['month'] == '2027-01' and hg['gap_bp'] == -1.0
+          and hg['material'] is False and r['cum_inst_bp'] == 25.0
+          and r['status'] == 'consistent' and r['candidate'] is False
+          and r['comparable_kind'] == 'path_vs_pricing',
+          f"{st} {hg}")
+    r = rows['VIEW-20260915-002#f2']
+    st = r['comparison']['step']
+    hg = r['comparison']['horizon_gap']
+    lo, hi, inb, _d = _t5_step(chg, '2027-03', 50)
+    check('§T5-c5 路径行独立复算·候选: 2027-03 加息 50bp 单步在界'
+          '([38.11,86.5] 含 42);累计 75 对终点 2027-04 市场 48.5=−26.5bp≥'
+          '半步=预期差候选(市场低于机构)',
+          st['in_bound'] is True and st['bound_lo'] == lo == 38.11
+          and st['bound_hi'] == hi == 86.5 and hg['month'] == '2027-04'
+          and hg['gap_bp'] == -26.5 and hg['material'] is True
+          and hg['direction'] == 'market_below_institution'
+          and r['cum_inst_bp'] == 75.0 and r['status'] == 'inconsistent'
+          and r['candidate'] is True, f"{st} {hg}")
+    r = rows['VIEW-20261120-003#f1']
+    st = r['comparison']['step']
+    hg = r['comparison']['horizon_gap']
+    lo, hi, inb, dist = _t5_step(chg, '2027-01', -25)
+    check('§T5-c6 路径行独立复算·候选(降息方向): 2027-01 降息 25bp 对市场 '
+          '+24 越界 8.81bp;终点 2027-02 市场 36.5−(−25)=+61.5=候选(市场高于'
+          '机构)',
+          st['in_bound'] is False and st['distance_bp'] == dist == 8.81
+          and st['bound_lo'] is None and hg['month'] == '2027-02'
+          and hg['gap_bp'] == 61.5 and hg['material'] is True
+          and hg['direction'] == 'market_above_institution'
+          and r['cum_inst_bp'] == -25.0 and r['candidate'] is True
+          and r['direction'] == 'down', f"{st} {hg}")
+    r = rows['VIEW-20260915-002#f13']
+    cc = r['comparison']['count_check']
+    hg = r['comparison']['horizon_gap']
+    lo, hi, ok, dist = _t5_count(chg, '2027-06', 1, 1, 'at_most')
+    check('§T5-c7 次数行独立复算·候选: 「2027 年 6 月前至多加息 1 次」上界 '
+          '26bp,市场 56bp 越界 30bp;终点 2027-07 差 32.5bp(至多型:市场高于'
+          '机构方向成立)',
+          cc['consistent'] is False and cc['distance_bp'] == dist == 30.0
+          and cc['bound_hi'] == hi == 26.0 and cc['bound_lo'] == lo
+          and hg['gap_bp'] == 32.5 and hg['material'] is True
+          and r['cum_inst_bp'] == 25.0 and r['candidate'] is True,
+          f"{cc} {hg}")
+    r = rows['VIEW-20260915-002#f3']
+    cc = r['comparison']['count_check']
+    hg = r['comparison']['horizon_gap']
+    lo, hi, ok, dist = _t5_count(chg, '2027-06', 2, 1, 'at_least')
+    check('§T5-c8 次数行独立复算·一致: 「至少加息 2 次」下界 24.83≤市场 56;'
+          '终点 2027-07 差 7.5bp 不足半步',
+          cc['consistent'] is True and cc['bound_lo'] == lo == 24.83
+          and cc['bound_hi'] is None and cc['market_hike_equivalents'] == 2.24
+          and hg['month'] == '2027-07' and hg['gap_bp'] == 7.5
+          and hg['material'] is False and r['status'] == 'consistent',
+          f"{cc} {hg}")
+    r = rows['VIEW-20260905-001#f1']
+    check('§T5-c9 路径行·到期月不在曲线内(2026-09): 单步无基线;终点 2026-12 '
+          '差 −9.0 不足半步=不可对照(不判)',
+          r['comparison']['step']['bases_checked'] == 0
+          and r['comparison']['horizon_gap']['gap_bp'] == -9.0
+          and r['comparison']['horizon_gap']['material'] is False
+          and r['status'] == 'not_comparable' and r['candidate'] is None,
+          f"{r['comparison']}")
+    ex = {x['row_id']: x for k in ('forecast_claims', 'realized_data_claims')
+          for x in blk['ex_post'][k]['rows']}
+    spx = _t5_obs(sd, 'SPX', '2026-09-30')
+    ust = _t5_obs(sd, 'UST_10Y', '2026-09-30')
+    unr = _t5_obs(sd, 'UNEMPLOYMENT', '2026-10-31')
+    check('§T5-c10 事后表现(已到期点位对到期日事实;门内独立读): 标普 7000 vs '
+          '7651.54=未中;7650=命中;十年美债 4.2 vs 5.29=未中;5.29=命中;'
+          '失业率 4.0 vs 4.1=未中(容差 0.05)',
+          ex['VIEW-20260905-001#f2']['fact_value'] == spx[1]
+          and ex['VIEW-20260905-001#f2']['verdict'] == 'ex_post_missed'
+          and ex['VIEW-20260905-001#f6']['verdict'] == 'ex_post_consistent'
+          and ex['VIEW-20260905-001#f3']['fact_value'] == ust[1]
+          and ex['VIEW-20260905-001#f3']['verdict'] == 'ex_post_missed'
+          and ex['VIEW-20260905-001#f7']['verdict'] == 'ex_post_consistent'
+          and ex['VIEW-20261120-003#f2']['fact_value'] == unr[1]
+          and ex['VIEW-20261120-003#f2']['verdict'] == 'ex_post_missed'
+          and rows['VIEW-20261120-003#f2']['comparison']['at_horizon']
+          ['tolerance'] == 0.05
+          and 'SPX@2026-09-30' in rows['VIEW-20260905-001#f2']['evidence_refs']
+          and rows['VIEW-20260905-001#f3']['statement_kind'] != 'forecast',
+          f"forecast={blk['ex_post']['forecast_claims']['n']} "
+          f"realized={blk['ex_post']['realized_data_claims']['n']}")
+    check('§T5-c11 事后表现声明=PARTIAL: 未到期 12 条(最早到期 2026-12-31)'
+          '不判定,随行写明到期后按事实更新',
+          blk['ex_post']['forecast_claims']['n'] == 3
+          and blk['ex_post']['forecast_claims']['missed'] == 2
+          and blk['ex_post']['realized_data_claims']['n'] == 2
+          and blk['ex_post']['not_yet_testable']
+          == {'n': 12, 'earliest_horizon_end': '2026-12-31'}
+          and 'PARTIAL' in blk['ex_post']['note']
+          and '未到期不做判定' in blk['ex_post']['note'])
+    dfr = _t5_obs(sd, 'ECB_DFR', T5_ASOF)
+    spx_c = _t5_obs(sd, 'SPX', T5_ASOF)
+    spx_p = _t5_obs(sd, 'SPX', '2026-09-05')
+    r = rows['VIEW-20260915-002#f8']
+    check('§T5-c12 当前水平型对事实: 存款便利利率 2.50% 对序列读数 2.5'
+          '(观测 2026-09-16,距截止日 67 天=陈旧读数→一致(陈旧));2.00%=与'
+          '事实不符;「当前」标普 6900 对截止日读数(容差 0.5%)=一致;发布日'
+          '已不符的 7718=已过时',
+          r['facts']['at_cutoff']['value'] == dfr[1]
+          and r['facts']['at_cutoff']['observation_date'] == '2026-09-16'
+          and r['status'] == 'consistent_stale_fact'
+          and rows['VIEW-20260915-002#f9']['status'] == 'fact_mismatch'
+          and rows['VIEW-20261120-003#f4']['facts']['at_cutoff']['value']
+          == spx_c[1] and rows['VIEW-20261120-003#f4']['status'] == 'consistent'
+          and rows['VIEW-20260905-001#f5']['facts']['at_publish']['value']
+          == spx_p[1]
+          and rows['VIEW-20260905-001#f5']['status'] == 'no_longer_current',
+          f"dfr={dfr} r8={r['status']} spx_c={spx_c} spx_p={spx_p}")
+    r = rows['VIEW-20260915-002#f5']
+    check('§T5-c13 不可对账行如实标注: 目标区间上下限序列缺席=不可核;期限'
+          '「中期」=不可解析;无地区/未映射目标=未映射;库内 ai_inferred 行'
+          '=库内推导;无同期限定价的日银路径=不可对照',
+          r['status'] == 'unverifiable'
+          and r['facts']['at_cutoff']['upper']['status'] == 'missing'
+          and r['comparison']['lower_metric_id'] == 'DFEDTARL'
+          and rows['VIEW-20260915-002#f4']['status'] == 'unparseable_horizon'
+          and rows['VIEW-20260915-002#f10']['status'] == 'unmapped'
+          and rows['VIEW-20260915-002#f10']['region'] == 'CN'
+          and rows['VIEW-20260915-002#f15']['status'] == 'unmapped'
+          and rows['VIEW-20260915-002#f15']['region'] is None
+          and rows['VIEW-20260905-001#f4']['status'] == 'library_inferred'
+          and rows['VIEW-20260915-002#f6']['status'] == 'not_comparable',
+          f"f5={r['status']} f4={rows['VIEW-20260915-002#f4']['status']}")
+    from collections import Counter as _Ctr
+    codes = _Ctr(g['code'] for g in blk['gaps'])
+    check('§T5-c14 缺口逐项点名(12 项,均带说明): 期限不可解析 1/目标区间'
+          '序列缺席+陈旧 2/日银定价缺席 1/存款便利利率陈旧读数 1/未映射 2'
+          '(按地区聚合,无地区行单列)/非数值点位 1/四地政策利率与两指标无'
+          '同期限定价 5',
+          codes == _Ctr({'horizon_unparseable': 1, 'series_absent:DFEDTARU': 1,
+                         'fact_stale_at_cutoff:DFEDTARU': 1,
+                         'pricing_absent:JP_POLICY_RATE': 1,
+                         'fact_stale_at_cutoff:ECB_DFR': 1, 'target_unmapped': 2,
+                         'pricing_absent:EA_REAL_GDP_YOY': 1,
+                         'pricing_absent:SPX_EPS': 1, 'point_non_numeric': 1,
+                         'pricing_absent:CN_LPR_1Y': 1,
+                         'pricing_absent:ECB_DFR': 1})
+          and all(g.get('severity') == 'disclosed' and g.get('note')
+                  for g in blk['gaps'])
+          and sorted(str(g['region']) for g in blk['gaps']
+                     if g['code'] == 'target_unmapped') == ['CN', 'None'],
+          dict(codes))
+    dis = {d['metric_id']: d for d in blk['disagreements']}
+    pool = {p['id']: p for p in blk['falsification_pool']}
+    check('§T5-c15 机构间分歧(只列幅度不裁对错)+证伪条件池(库内原文 1/'
+          '引擎规则 6;目标区间缺席=无事后核验规则)+假设池 1+风险池 1',
+          set(dis) == {'FED_FUNDS', 'SPX'}
+          and dis['FED_FUNDS']['n_rows'] == 9 and len(dis['FED_FUNDS']
+                                                        ['institutions']) == 3
+          and dis['FED_FUNDS']['numeric_spread_bp'] == 125.0
+          and dis['SPX']['n_rows'] == 5
+          and pool['VIEW-20260905-001/c1']['source'] == 'view_library'
+          and sorted(p['id'] for p in pool.values()
+                     if p['source'] == 'engine_rule')
+          == sorted(['VIEW-20260905-001#f1/market', 'VIEW-20260915-002#f1/market',
+                     'VIEW-20260915-002#f2/market', 'VIEW-20260915-002#f3/market',
+                     'VIEW-20260915-002#f13/market',
+                     'VIEW-20261120-003#f1/market'])
+          and pool['VIEW-20260915-002#f2/market']['observable']
+          == 'FEDFUNDS_FUT:ZQJ27.CBT'
+          and pool['VIEW-20260915-002#f2/market']['thresholds_bp']
+          == {'above': 87.5, 'below': 62.5}
+          and len(blk['assumption_pool']) == 1
+          and blk['assumption_pool'][0]['attribution'] == 'ai_inferred'
+          and len(blk['risk_pool']) == 1,
+          f"pool={sorted(pool)}")
+    wt = blk['window_testability']
+    check('§T5-c16 证伪窗口可检性: 窗内到期 7 行(可检验 4)/窗外 5 行(最早 '
+          '2027-06-30)/引擎规则窗内 4 窗外 2/库内证伪条件 1(不带观察日)',
+          len(wt['rows_in_window']) == 7
+          and sum(1 for x in wt['rows_in_window'] if x['testable']) == 4
+          and wt['n_rows_after_window'] == 5
+          and wt['earliest_after_window'] == '2027-06-30'
+          and len(wt['engine_rules_in_window']) == 4
+          and len(wt['engine_rules_after_window']) == 2
+          and wt['n_view_library_conditions'] == 1
+          and all(x['horizon_end'] <= '2027-05-22'
+                  for x in wt['rows_in_window']),
+          f"{len(wt['rows_in_window'])}/{wt['n_rows_after_window']}")
+    fi = blk['frozen_inputs']
+    tm_sha = hashlib.sha256(open(os.path.join(
+        ROOT, 'config', 'forecast_target_map.json'), 'rb').read()).hexdigest()
+    check('§T5-c17 冻结输入: 只含可见的 3 份观点文档(sha256 前 16 位=门内'
+          '独立算)+目标映射表;扣留/隔离世件不在内',
+          fi == {'data/institutions/views/VIEW-20260905-001.json': man[
+              'data/institutions/views/VIEW-20260905-001.json'][:16],
+              'data/institutions/views/VIEW-20260915-002.json': man[
+                  'data/institutions/views/VIEW-20260915-002.json'][:16],
+              'data/institutions/views/VIEW-20261120-003.json': man[
+                  'data/institutions/views/VIEW-20261120-003.json'][:16],
+              'config/forecast_target_map.json': tm_sha[:16]},
+          fi)
+    check('§T5-c18 版本绑定与用到的指标: 截止日/源快照/定价源=运行快照/'
+          '观点库在场;对照用到的 9 个在册指标随行;缺席指标点名',
+          blk['version_binding'] == {
+              'as_of': T5_ASOF, 'source_snapshot_id': 'research_snapshot_20261122_v2',
+              'source_target_date': T5_ASOF, 'historical_view': False,
+              'value_version': None, 'pricing_source': 'run_snapshot',
+              'pricing_source_snapshot_id': 'research_snapshot_20261122_v2',
+              'views_dir': 'data/institutions/views', 'views_status': 'present',
+              'target_map': 'config/forecast_target_map.json'}
+          and blk['metrics_used'] == ['FED_FUNDS', 'DFF', 'SPX', 'UST_10Y',
+                                      'JP_POLICY_RATE', 'ECB_DFR',
+                                      'EA_REAL_GDP_YOY', 'SPX_EPS',
+                                      'UNEMPLOYMENT']
+          and blk['metrics_absent'] == ['DFEDTARU', 'DFEDTARL'],
+          f"{blk['metrics_used']} {blk['metrics_absent']}")
+    b1 = _t5_block(t, snap, regions=['US'])
+    b2 = _t5_block(t, snap, regions=['US', 'EA'])
+    b3 = _t5_block(t, snap, regions=['JP'])
+    check('§T5-c19 地区范围: 只对账问句范围内地区(范围外行逐行列出不计);'
+          '无地区行仅在≥2 地时纳入;单地无可对账行=草稿级阻断',
+          b1['summary']['n_rows'] == 19 and b1['summary']['n_out_of_scope'] == 7
+          and 'VIEW-20260915-002#f15' in _t5_ids(b1['out_of_scope_rows'])
+          and b2['summary']['n_rows'] == 23
+          and b2['summary']['n_out_of_scope'] == 3
+          and b2['summary']['unmapped_n'] == 1
+          and b3['summary']['n_rows'] == 2
+          and b3['summary']['blocked_class'] == xg.NO_COMPARABLES
+          and all(r['region'] in ['US', 'EA'] or r['region'] is None
+                  for r in b2['rows']),
+          f"{b1['summary']['n_rows']}/{b2['summary']['n_rows']}/"
+          f"{b3['summary']['n_rows']} {b3['summary']['blocked_class']}")
+    import datetime as _dt_mod
+    sd2 = copy.deepcopy(sd)
+    for mid, val in (('DFEDTARU', 4.0), ('DFEDTARL', 3.75)):
+        d0 = _dt_mod.date(2026, 7, 1)
+        sd2['series_store'][mid] = {
+            'dates': [(d0 + _dt_mod.timedelta(days=i)).isoformat()
+                      for i in range(142)],
+            'values': [val] * 142}
+    b4 = _t5_block(t, snap, snap=sd2)
+    r4 = {r['row_id']: r for r in b4['rows']}['VIEW-20260915-002#f5']
+    pol = [p for p in b4['falsification_pool'] if '/policy' in p['id']]
+    check('§T5-c20 目标区间上下限序列在场时(门内内存快照补入): 区间行转为'
+          '一致(上下限逐项对事实);定价面出现目标区间中点基线;每个路径/次数'
+          '行多一条事后核验规则(观测=上限序列@到期月末);相关缺口消失',
+          r4['status'] == 'consistent'
+          and r4['comparison']['at_publish']['upper']['fact_value'] == 4.0
+          and b4['pricing']['midpoint']['value'] == 3.875
+          and len(pol) == 7
+          and pol[0]['observable'].startswith('DFEDTARU@')
+          and 'pass_min_pct' in pol[0]
+          and not [g for g in b4['gaps'] if 'DFEDTARU' in g['code']]
+          and b4['summary']['gaps'] == 10
+          and b4['summary']['candidate_n'] == 3
+          and b4['metrics_absent'] == [],
+          f"{r4['status']} pol={len(pol)} gaps={b4['summary']['gaps']}")
+    b5 = _t5_block(t, snap, as_of='2026-10-01')
+    check('§T5-c21 历史研究时点(2026-10-01): 其后才发布的观点整篇扣留(2);'
+          '今日定价曲线不借用(缺席+记因);到期事实只取当时可得读数',
+          b5['summary']['n_views_visible'] == 2
+          and sorted(w['view_id'] for w in b5['withheld_after_cutoff'])
+          == ['VIEW-20261120-003', 'VIEW-20261201-004']
+          and b5['pricing']['status'] == 'absent'
+          and _t5_gap_codes(b5['gaps'])[0] == 'pricing_absent_at_cutoff'
+          and b5['version_binding']['as_of'] == '2026-10-01'
+          and b5['summary']['candidate_n'] == 0
+          and b5['summary']['blocked_class'] is None,
+          f"{b5['summary']} {[g['code'] for g in b5['gaps']][:3]}")
+    bn = xg.plan_block({'expectations_gap': None})
+    bv = xg.build_block({'question_verbatim': Q_T5, 'regions': ['US'],
+                         'region_source': 'question_named',
+                         'expectations_gap': {'asked': True}}, sd,
+                        os.path.join(t, 'noviews'), T5_ASOF, question=Q_T5,
+                        reg_by_id=wd.load_registry(t)['by_id'])
+    check('§T5-c22 分级: 对照块缺席=硬缺口;观点库不在场=草稿;无可对账行='
+          '草稿;草稿横幅逐类点名',
+          bn is None and xg.blocked_class(bn) == xg.BLOCK_MISSING
+          and xg.plan_blocked_class({}) is None
+          and xg.plan_blocked_class({'expectations_gap': {'asked': True}})
+          == xg.BLOCK_MISSING
+          and bv['views']['status'] == 'absent'
+          and xg.blocked_class(bv) == xg.VIEWS_ABSENT
+          and xg.plan_blocked_class({'expectations_gap': bv})
+          == xg.VIEWS_ABSENT
+          and xg.blocked_class(b3) == xg.NO_COMPARABLES
+          and xg.blocked_class(blk) is None
+          and '预期差对照块缺席' in xg.draft_banner(xg.BLOCK_MISSING)
+          and '机构观点库不在场' in xg.draft_banner(xg.VIEWS_ABSENT)
+          and '预期差对照无可对账行' in xg.draft_banner(xg.NO_COMPARABLES)
+          and '只交草稿' in xg.draft_banner(xg.VIEWS_ABSENT)
+          and '正式归档对草稿拒绝' in xg.draft_banner(xg.NO_COMPARABLES),
+          f"{bv['views']} ")
+    fro = xg.merge_frozen_inputs({}, blk, t,
+                                 snapshot_rel='data/daily/x.json',
+                                 snapshot_sha='abcd1234567890ab')
+    err = ''
+    try:
+        xg.merge_frozen_inputs({}, dict(blk, frozen_inputs=dict(
+            fi, **{'data/institutions/views/VIEW-20260905-001.json': '0' * 16})), t)
+    except RuntimeError as e:
+        err = str(e)
+    fro_none = xg.merge_frozen_inputs(
+        {'a/b.json': 'keep'}, dict(blk, frozen_inputs={'a/b.json': None}), t)
+    er = xg.evidence_rows(blk)
+    kinds = _Ctr((e['kind'], e['role']) for e in er)
+    text1 = '\n'.join(xg.render_gap_sections(blk, {}))
+    text2 = '\n'.join(xg.render_gap_sections(copy.deepcopy(blk), {}))
+    check('§T5-c23 冻结输入并入(摘要与文件不符=报错不静默;空值跳过;快照随'
+          '并入)/证据索引行(文档 3+预测 26+定价 9+序列读数点 12,角色='
+          'expectations_gap)/对照块渲染确定性且含虚构机构名与状态',
+          fro.get('data/institutions/views/VIEW-20260905-001.json')
+          == fi['data/institutions/views/VIEW-20260905-001.json']
+          and fro.get('data/daily/x.json') == 'abcd1234567890ab'
+          and err.startswith('expectations_gap_frozen_input_changed')
+          and fro_none == {'a/b.json': 'keep'} and len(er) == 50
+          and kinds == _Ctr({('institution_forecast', 'expectations_gap'): 26,
+                             ('market_pricing', 'expectations_gap'): 9,
+                             ('plan_series_point', 'expectations_gap'): 12,
+                             ('institution_view', 'expectations_gap'): 3})
+          and len({e['ref'] for e in er}) == 50
+          and text1 == text2
+          and all(s in text1 for s in (
+              '## 预期差对照(机构观点 × 同期限市场定价 × 事实)',
+              '南山宏观(虚构机构)', '### 市场定价面(同期限)',
+              '### 逐行对照', '### 机构间分歧', '### 事后表现',
+              '### 证伪窗口(问句「未来半年」: 研究截止日 2026-11-22 → '
+              '窗末 2027-05-22)', '### 缺口(逐项点名;缺证=缺证,不以推断补)'))
+          and bool(xg.gate_note([], blk, sd)),
+          f"err={err[:60]} kinds={dict(kinds)} len={len(text1)}")
+
+
+def sec_t5_d():
+    print('§T5-d 席位预期差回声契约(函数级;合格回声+反例矩阵)')
+    import judgment_contract as jc
+    xg = _xg()
+    t, snap = _t5_tree('t5d')
+    blk = _t5_block(t, snap)
+    plan = {'expectations_gap': blk, 'metrics': list(blk['metrics_used']),
+            'context_metrics': []}
+    rep = {'evidence_index': xg.evidence_rows(blk)}
+
+    def run(jud, pl=plan, b=blk):
+        return jc._expectations_gap_checks(
+            jud, None, {'evidence_index': xg.evidence_rows(b)}, pl)
+
+    def st(items, suffix):
+        hit = [x for x in items if x['item'].endswith(suffix)]
+        return (hit[-1]['status'], hit[-1]['note']) if hit else (None, '')
+
+    def mut(fn):
+        j = {'reader_map': {'expectations_gap': _t5_echo(blk)}}
+        fn(j['reader_map']['expectations_gap'], j)
+        return j
+
+    c0 = mut(lambda e, j: None)
+    it_all = run(c0)
+    bad_v = [x for x in it_all if x['status'] != 'VERIFIED']
+    it_b = run({'reader_map': {'expectations_gap': _t5_echo(blk, rr_supported=True)}})
+    check('§T5-d1 合格回声(门夹具;非真实研判)全项 VERIFIED: 回声计数/候选'
+          '清单/缺口清单/窗口/逐行判定(候选 3 行 supported,须推导行 '
+          'not_a_gap 或 supported 两种写法)/关键未知/自由文字数字均对应',
+          not bad_v and len(it_all) >= 40
+          and all(x['status'] == 'VERIFIED' for x in it_b)
+          and st(it_all, '.supported_gaps')[0] == 'VERIFIED',
+          f"{[(x['item'][-46:], x['note'][:60]) for x in bad_v][:4]}")
+    view_of = lambda rid: _row(blk['rows'], row_id=rid)['view_id']     # noqa: E731
+    core = lambda vid: next(                                     # noqa: E731
+        s['text'] for s in blk['view_statements']
+        if s['view_id'] == vid and s['kind'] == 'core_view')
+    pc = next(p for p in blk['falsification_pool'] if p['source'] == 'view_library')
+    pm = next(p for p in blk['falsification_pool']
+              if p['id'] == 'VIEW-20260915-002#f2/market')['condition']
+    NEG = [
+        ('回声缺席', lambda e, j: j['reader_map'].pop('expectations_gap'),
+         'reader_map.expectations_gap', 'NOT_VERIFIED', '缺席'),
+        ('as_of 相左', lambda e, j: e.update(as_of='2026-11-21'),
+         '.as_of', 'CONTRADICTED', '≠'),
+        ('行数相左', lambda e, j: e.update(n_rows=25), '.n_rows',
+         'CONTRADICTED', '≠'),
+        ('回声缺字段', lambda e, j: e.pop('n_views_visible'),
+         '.n_views_visible', 'NOT_VERIFIED', '回声缺字段'),
+        ('候选漏一行', lambda e, j: e.update(
+            engine_candidates_echoed=e['engine_candidates_echoed'][:-1]),
+         '.engine_candidates_echoed', 'NOT_VERIFIED', '缺'),
+        ('候选多出虚构行', lambda e, j: e.update(
+            engine_candidates_echoed=e['engine_candidates_echoed']
+            + ['VIEW-20990101-001#f1']),
+         '.engine_candidates_echoed', 'CONTRADICTED', '多出'),
+        ('缺口回声不全', lambda e, j: e.update(gaps_echoed=e['gaps_echoed'][:-1]),
+         '.gaps_echoed', 'NOT_VERIFIED', '缺'),
+        ('窗口未回声', lambda e, j: e.pop('window_echo'),
+         '.window_echo', 'NOT_VERIFIED', '须回声窗口'),
+        ('总述为空', lambda e, j: e.update(seat_summary=''),
+         '.seat_summary', 'NOT_VERIFIED', '缺席'),
+        ('总述数字无对应', lambda e, j: e.update(seat_summary='门夹具总述: 幅度 9876.5bp。'),
+         '.seat_summary', 'NOT_VERIFIED', '不对应'),
+        ('判定行号虚构', lambda e, j: e['supported_gaps'][0].update(
+            row_id='VIEW-20260915-002#f99'),
+         '.supported_gaps[0].row_id', 'CONTRADICTED', '虚构行'),
+        ('判定重复', lambda e, j: e['supported_gaps'].append(
+            copy.deepcopy(e['supported_gaps'][0])),
+         '.supported_gaps[4].row_id', 'NOT_VERIFIED', '重复'),
+        ('须推导行漏判', lambda e, j: e['supported_gaps'].pop(),
+         '.supported_gaps', 'NOT_VERIFIED', '未逐行判定'),
+        ('verdict 非法', lambda e, j: e['supported_gaps'][0].update(verdict='maybe'),
+         '.supported_gaps[0].verdict', 'NOT_VERIFIED', "须为 'supported'"),
+        ('一致行判成立', lambda e, j: e['supported_gaps'].__setitem__(
+            0, dict(e['supported_gaps'][0], row_id='VIEW-20260915-002#f1')),
+         '.supported_gaps[0].verdict', 'CONTRADICTED', '相左'),
+        ('不可对照行判成立', lambda e, j: e['supported_gaps'].__setitem__(
+            0, dict(e['supported_gaps'][0], row_id='VIEW-20260905-001#f1')),
+         '.supported_gaps[0].verdict', 'NOT_VERIFIED', '无事实/同期限'),
+        ('成立而无证伪条件', lambda e, j: e['supported_gaps'][0].update(
+            falsification_conditions=[]),
+         '.supported_gaps[0].falsification_conditions', 'NOT_VERIFIED', '≥1 条'),
+        ('竞争解释无假设标注', lambda e, j: e['supported_gaps'][0].update(
+            competing_explanation='门夹具竞争解释: 机构点位代表少数观点。'),
+         '.supported_gaps[0].competing_explanation', 'NOT_VERIFIED', '假设'),
+        ('假托机构原话', lambda e, j: e['supported_gaps'][0].update(
+            reading_attribution='institution_stated',
+            reading='门夹具: 这句不是该观点文档里的原话。'),
+         '.supported_gaps[0].reading', 'CONTRADICTED', '假托机构原话'),
+        ('机构原话逐字引用', lambda e, j: e['supported_gaps'][0].update(
+            reading_attribution='institution_stated',
+            reading=core(view_of(e['supported_gaps'][0]['row_id']))),
+         '.supported_gaps[0].reading', 'VERIFIED', '机构原话'),
+        ('须推导行标机构原话', lambda e, j: e['supported_gaps'][3].update(
+            reading_attribution='institution_stated',
+            reading=core(view_of(e['supported_gaps'][3]['row_id']))),
+         '.supported_gaps[3].reading', 'NOT_VERIFIED', '席位推导'),
+        ('条件无数字', lambda e, j: e['supported_gaps'][0].update(
+            falsification_conditions=[{
+                'condition': '若 FED_FUNDS 在 2027-04-30 之前较截止日累计上行不足半步',
+                'attribution': 'ai_inferred'}]),
+         '.supported_gaps[0].falsification_conditions[0]', 'NOT_VERIFIED', '数字阈值'),
+        ('条件无日期', lambda e, j: e['supported_gaps'][0].update(
+            falsification_conditions=[{
+                'condition': '若 FED_FUNDS 较截止日累计上行不足 12.5bp',
+                'attribution': 'ai_inferred'}]),
+         '.supported_gaps[0].falsification_conditions[0]', 'NOT_VERIFIED', '日期'),
+        ('条件无可观测量', lambda e, j: e['supported_gaps'][0].update(
+            falsification_conditions=[{
+                'condition': '若 政策利率 在 2027-04-30 之前累计上行不足 12.5bp',
+                'attribution': 'ai_inferred'}]),
+         '.supported_gaps[0].falsification_conditions[0]', 'NOT_VERIFIED', '可观测量'),
+        ('机构条件须引池条目', lambda e, j: e['supported_gaps'][0].update(
+            falsification_conditions=[{'condition': pc['condition'],
+                                       'attribution': 'institution_stated'}]),
+         '.supported_gaps[0].falsification_conditions[0].source_ref',
+         'NOT_VERIFIED', 'source_ref'),
+        ('机构条件非逐字', lambda e, j: e['supported_gaps'][0].update(
+            falsification_conditions=[{
+                'condition': '门夹具: 这不是机构原文的证伪条件文本。',
+                'attribution': 'institution_stated', 'source_ref': pc['id']}]),
+         '.supported_gaps[0].falsification_conditions[0].condition',
+         'CONTRADICTED', '逐字引自'),
+        ('机构条件逐字引池条目', lambda e, j: e['supported_gaps'][0].update(
+            falsification_conditions=[{'condition': pc['condition'],
+                                       'attribution': 'institution_stated',
+                                       'source_ref': pc['id']}]),
+         '.supported_gaps[0].falsification_conditions[0]', 'VERIFIED', '逐字引用'),
+        ('引擎规则逐字引用', lambda e, j: e['supported_gaps'][0].update(
+            falsification_conditions=[{'condition': pm, 'attribution': 'engine_rule',
+                                       'source_ref': 'VIEW-20260915-002#f2/market'}]),
+         '.supported_gaps[0].falsification_conditions[0]', 'VERIFIED', '逐字引用'),
+        ('引擎规则池条目标成机构', lambda e, j: e['supported_gaps'][0].update(
+            falsification_conditions=[{'condition': pm, 'attribution': 'institution_stated',
+                                       'source_ref': 'VIEW-20260915-002#f2/market'}]),
+         '.supported_gaps[0].falsification_conditions[0].source_ref',
+         'NOT_VERIFIED', 'source_ref'),
+        ('引用不可解析', lambda e, j: e['supported_gaps'][0].update(
+            evidence_refs=['NO_SUCH_REF']),
+         '.supported_gaps[0].evidence_refs', 'NOT_VERIFIED', '不可解析'),
+        ('引用未落在该行', lambda e, j: e['supported_gaps'][0].update(
+            evidence_refs=['VIEW-20260905-001#f2']),
+         '.supported_gaps[0].evidence_refs', 'NOT_VERIFIED', '未落在'),
+        ('关键未知为空', lambda e, j: e.update(key_unknowns=[]),
+         '.key_unknowns', 'NOT_VERIFIED', '为空'),
+        ('注记数字无对应', lambda e, j: e.update(comments=['注记: 9876.5']),
+         '.comments[0]', 'NOT_VERIFIED', '不对应'),
+    ]
+    nbad = []
+    for name, fn, suffix, want, note in NEG:
+        j = mut(fn)
+        s, n = st(run(j), suffix)
+        if s != want or note not in n:
+            nbad.append((name, s, n[:80]))
+    check('§T5-d2 反例矩阵(%d 项): 与引擎确定性面相左/虚构行号/假托机构原话/'
+          '非逐字引用=CONTRADICTED;缺席/不全/漏判/条件缺数字·日期·观测量/'
+          '引用不可解析/数字无对应=NOT_VERIFIED;逐字引用(机构原文/引擎规则)='
+          'VERIFIED' % len(NEG), not nbad, nbad)
+    e2 = _t5_echo(blk, seat_summary='门夹具总述: 候选阈值 12.5bp。')
+    j2 = {'reader_map': {'expectations_gap': e2}}
+    qn = xg.parse_falsification_window('市场定价和机构观点之间有哪些预期差？',
+                                       T5_ASOF)
+    b_nw = _t5_block(t, snap, q='市场定价和机构观点之间有哪些预期差？')
+    pl_nw = {'expectations_gap': b_nw, 'metrics': list(b_nw['metrics_used']),
+             'context_metrics': []}
+    j_nw = {'reader_map': {'expectations_gap': _t5_echo(b_nw, window_echo={
+        'months': 6, 'start': T5_ASOF, 'end': '2027-05-22'})}}
+    it_nw = run(j_nw, pl_nw, b_nw)
+    it_bl = run({'reader_map': {'expectations_gap': _t5_echo(blk)}},
+                {'expectations_gap': None}, blk)
+    it_rm = run({'reader_map': []})
+    check('§T5-d3 边界: 引擎面数字(12.5bp)在自由文字里=对应;问句未指定窗口'
+          '而席位回声窗口=虚构(CONTRADICTED);对照块缺席/reader_map 非对象='
+          'NOT_VERIFIED',
+          qn is None and b_nw.get('falsification_window') is None
+          and st(run(j2), '.seat_summary')[0] == 'VERIFIED'
+          and st(it_nw, '.window_echo')[0] == 'CONTRADICTED'
+          and '虚构' in st(it_nw, '.window_echo')[1]
+          and it_bl[0]['item'] == 'research_plan.expectations_gap'
+          and it_bl[0]['status'] == 'NOT_VERIFIED'
+          and it_rm[0]['item'] == 'reader_map'
+          and it_rm[0]['status'] == 'NOT_VERIFIED',
+          f"{st(it_nw, '.window_echo')} {it_bl[0]['item']} {it_rm[0]['item']}")
+
+
+def sec_t5_e():
+    print('§T5-e 引擎集成(离线 plan: 单型计划/取数分级/研究年月/冻结输入/证据索引)')
+    xg = _xg()
+    import inspect
+    import research_orchestrator as ro
+    t, snap = _t5_tree('t5e')
+    rep = _plan_on(t, Q_T5)
+    rp = rep.get('research_plan') or {}
+    blk = xg.plan_block(rp) or {}
+    ad = rp.get('as_of_declared') or {}
+    check('§T5-e1 研究计划=单型(kind=map)+对照块: 问句逐字/截止日=快照覆盖日/'
+          '四地/证伪窗口/汇总同 §T5-c1;不生成原问直答块',
+          rp.get('question_kind') == 'map' and rp.get('question_verbatim') == Q_T5
+          and rp.get('cutoff') == T5_ASOF == blk.get('as_of')
+          and 'policy_question' not in rp and blk.get('asked') is True
+          and blk.get('summary') == T5_SUMMARY
+          and blk.get('falsification_window', {}).get('end') == '2027-05-22'
+          and blk.get('region_source') == 'plan_regions'
+          and blk.get('metrics_used') == T5_METRICS_USED,
+          f"{rp.get('question_kind')} {blk.get('summary', {}).get('n_rows')}")
+    check('§T5-e2 研究时点与范围分别解析: 问句研究年月 2026-11 按月末请求'
+          '(2026-11-30)→钳制到快照实际覆盖日 2026-11-22 并随行说明;该年月='
+          '研究时点标记(scoped_to_question_month),非序列观测窗',
+          ad.get('requested_as_of') == '2026-11-30'
+          and ad.get('clamped_to_coverage') is True
+          and ad.get('as_of') == ad.get('coverage_date') == T5_ASOF
+          and ad.get('scoped_to_question_month') is True
+          and ad.get('question_month') == '2026-11'
+          and '实际覆盖日' in (ad.get('note') or ''),
+          f"{ad.get('requested_as_of')} {ad.get('as_of')}")
+    pa = rp.get('point_anchors') or []
+    xo = rp.get('ex_post_offsets') or []
+    check('§T5-e3 问句无历史时点词形→默认三时点锚(12 个月前/3 个月前/最新一期)'
+          '与事后偏移(3/6/12 月),来源标注 expectations_gap;无显式维度词形→'
+          '全维族(来源标注)',
+          [a['label'] for a in pa]
+          == ['12个月前', '3个月前', '最新一期']
+          and [a['months_before'] for a in pa] == [12, 3, 0]
+          and [a['as_of'] for a in pa]
+          == ['2025-11-22', '2026-08-22', T5_ASOF]
+          and all(a.get('default_three_point') == 'expectations_gap'
+                  for a in pa[:2])
+          and [o['months'] for o in xo] == [3, 6, 12]
+          and all(o.get('default_three_point') == 'expectations_gap' for o in xo)
+          and rp.get('dimension_source', '').startswith('implicit_macro_environment(')
+          and sorted(rp.get('regions') or {}) == ['CN', 'EA', 'JP', 'US'],
+          f"{[a['label'] for a in pa]} {[o['months'] for o in xo]}")
+    items = ((rep.get('run') or {}).get('data_requirements') or {}).get('items') or []
+    by = {i['metric_id']: i for i in items}
+    eg_only = sorted(set(blk.get('metrics_used') or []) - set(rp.get('metrics') or []))
+    m_q = ro._mask_research_month(Q_T5, '2026-11')
+    check('§T5-e4 取数分级: 预期差对照面用到而计划未选的指标并入取数'
+          '(planned,来源=对照面指标;陈旧由对照面逐行披露);计划指标来源不变;',
+          eg_only == ['FED_FUNDS', 'SPX', 'SPX_EPS', 'UST_10Y']
+          and all(by.get(m, {}).get('tier') == 'planned'
+                  and (by[m].get('basis') or '').startswith('预期差对照面指标')
+                  for m in eg_only)
+          and by['SPX_EPS'].get('outcome') == 'stale_for_task'
+          and all((by[m].get('basis') or '').startswith('地图研究计划')
+                  for m in rp.get('metrics') or [])
+          and m_q == Q_T5.replace('2026年11月', '□' * 8)
+          and ro._mask_research_month(Q_T5, '2026-10') is None
+          and ro._mask_research_month('2026年11月到2027年3月有哪些预期差？', '2026-11')
+          is None,
+          f"eg_only={eg_only} spx_eps={by.get('SPX_EPS', {}).get('outcome')}")
+    reg = wd.load_registry(t)
+    l1 = ((rep.get('layers') or {}).get('L1_事实层') or {}).get('rows') or []
+    mets = list(rp.get('metrics') or []) + eg_only
+    sd = _jq(snap)
+    old = ro._evaluate_data_requirements(
+        mets, rep.get('steps') or [], sd, l1, question=Q_T5,
+        registry=reg['by_id'], map_plan=rp, lexical_metrics=None)
+    new = ro._evaluate_data_requirements(
+        mets, rep.get('steps') or [], sd, l1, question=Q_T5,
+        registry=reg['by_id'], map_plan=rp, lexical_metrics=set())
+    check('§T5-e5 旧调用面零变化: 不传词面命中集(lexical_metrics=None)时'
+          '对照面指标不按新来源分级;传入时按新来源分级(入参可选)',
+          inspect.signature(ro._evaluate_data_requirements).parameters[
+              'lexical_metrics'].default is None
+          and not [(i['metric_id'], i.get('basis')) for i in old
+                   if (i.get('basis') or '').startswith('预期差对照面指标')]
+          and all(i.get('tier') == 'planned'
+                  and (i.get('basis') or '').startswith('预期差对照面指标')
+                  for i in new if i['metric_id'] in eg_only),
+          f"old={[(i['metric_id'], i.get('tier')) for i in old if i['metric_id'] in eg_only]}")
+    fi = (rep.get('run') or {}).get('frozen_inputs') or {}
+    sha_ok = all(
+        hashlib.sha256(open(os.path.join(t, rel), 'rb').read()).hexdigest()[:16]
+        == v for rel, v in fi.items() if os.path.isfile(os.path.join(t, rel)))
+    idx = [e for e in rep.get('evidence_index') or []
+           if e.get('role') == 'expectations_gap']
+    from collections import Counter as _Ctr2
+    rep3 = _plan_on(t, Q_PLAIN)
+    rp3 = rep3.get('research_plan') or {}
+    check('§T5-e6 冻结输入(含 3 份可见观点文档+目标映射表+快照+日历+注册表;'
+          '摘要=门内独立算)与证据索引(对照面 42 行: 预测 26/定价 9/序列点 4/'
+          '文档 3)随计划落位;扣留件不在内',
+          set(fi) == set(T5_FROZEN) and sha_ok
+          and _Ctr2(e.get('kind') for e in idx)
+          == _Ctr2({'institution_forecast': 26, 'market_pricing': 9,
+                    'plan_series_point': 4, 'institution_view': 3})
+          and len({e.get('ref') for e in idx}) == 42,
+          f"{sorted(fi)} {dict(_Ctr2(e.get('kind') for e in idx))}")
+    check('§T5-e7 非预期差问句零变化: 普通地图问句无对照块/无对照面证据行/'
+          '观点文档不入冻结输入/锚点无该来源标注/维度来源照旧',
+          'expectations_gap' not in rp3
+          and not [e for e in rep3.get('evidence_index') or []
+                   if e.get('role') == 'expectations_gap']
+          and not [k for k in (rep3.get('run') or {}).get('frozen_inputs') or {}
+                   if 'institutions/views' in k]
+          and not any(a.get('default_three_point') for a in
+                      rp3.get('point_anchors') or [])
+          and rp3.get('dimension_source') == 'explicit_words'
+          and rp3.get('question_kind') == 'map')
+    rep2 = _plan_on(t, Q_T5_NOSHAPE)
+    rp2 = rep2.get('research_plan') or {}
+    b2 = xg.plan_block(rp2) or {}
+    check('§T5-e8 无地图词形的预期差问句同样成单型计划: 问句未点名→四地'
+          '(地区取自研究计划)/全维族(来源标注预期差问句)/研究年月未声明则'
+          '不标范围',
+          rp2.get('question_kind') == 'map'
+          and rp2.get('dimension_source', '').startswith('implicit_expectations_gap(')
+          and b2.get('region_source') == 'plan_regions'
+          and sorted(b2.get('regions') or []) == ['CN', 'EA', 'JP', 'US']
+          and sorted(rp2.get('regions') or []) == ['CN', 'EA', 'JP', 'US']
+          and (rp2.get('as_of_declared') or {}).get('scoped_to_question_month')
+          is not True
+          and b2.get('falsification_window', {}).get('months') == 6,
+          f"{rp2.get('dimension_source', '')[:30]} {b2.get('region_source')}")
+
+
+def sec_t5_f():
+    print('§T5-f 正式 CLI 链(真实步骤;合成观点库夹具)')
+    if os.environ.get('IA_R33_GATE_SKIP_CLI') == '1':
+        print('  ⏭ 跳过(IA_R33_GATE_SKIP_CLI=1)')
+        return
+    xg = _xg()
+    import ia_cli as ic
+    qf = os.path.join(TMPG, 'q_t5.txt')
+    with open(qf, 'w', encoding='utf-8') as fh:
+        fh.write(Q_T5 + '\n')
+    t, _ = _t5_tree('t5f', views='clean', code=True)
+    rc, d = _cli(['research-one', '--stage', 'plan', '--question-file', qf,
+                  '--engine-root', t], cwd=t)
+    dd = d.get('data') or {}
+    rd = dd.get('report_dir') or ''
+    rj = _jq(os.path.join(rd, 'report.json')) if os.path.isfile(
+        os.path.join(rd, 'report.json')) else {}
+    env = _jq(os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')) if os.path.isfile(
+        os.path.join(rd, 'AGENT_SEAT_ENVELOPE.json')) else {}
+    rp = rj.get('research_plan') or {}
+    blk = rp.get('expectations_gap') or {}
+    steps = rj.get('steps') or []
+    failed = [s['step'] for s in steps if s.get('ok') is False]
+    skipped = {s['step']: (s.get('skipped_reason') or '') for s in steps
+               if not s.get('executed')}
+    check('§T5-f1 正式 CLI plan(真实步骤): rc=0/ok/run_ok/plan_status=ok/'
+          'plan_gaps=[];研究计划=单型带对照块(26 行/候选 3/窗口至 2027-05-22);'
+          '问句逐字;步骤无失败(对照面补充指标 DFEDTARU 快照缺席→其历史步'
+          '如实跳过并写明原因,仅此一步未执行)',
+          rc == 0 and d.get('ok') is True and dd.get('run_ok') is True
+          and dd.get('plan_status') == 'ok' and dd.get('plan_gaps') == []
+          and rd.startswith(t) and steps and not failed
+          and set(skipped) == {'S4_history_DFEDTARU'}
+          and '历史序列缺席' in skipped['S4_history_DFEDTARU']
+          and rp.get('question_kind') == 'map'
+          and rp.get('question_verbatim') == Q_T5
+          and 'policy_question' not in rp
+          and (blk.get('summary') or {}).get('n_rows') == 26
+          and (blk.get('summary') or {}).get('candidate_n') == 3
+          and (blk.get('falsification_window') or {}).get('end') == '2027-05-22',
+          f"rc={rc} ok={d.get('ok')} steps={len(steps)} failed={failed} "
+          f"skip={sorted(skipped)} "
+          f"{str(dd.get('plan_gaps'))[:160]}")
+    if not rd:
+        return
+    egc = env.get('expectations_gap') or {}
+    ef = egc.get('engine_faces') or {}
+    disc = egc.get('discipline') or []
+    fi_run = (rj.get('run') or {}).get('frozen_inputs') or {}
+    check('§T5-f2 席位工单(AGENT_SEAT_ENVELOPE): expectations_gap=spec/engine_'
+          'faces/discipline;面=块在场/截止日/四地/窗口/可见 3 扣留 1/26 行/'
+          '可对账 15/候选行号/须推导行/缺口 12/美国定价在场/未到期 12;纪律 '
+          '含算得的「未到期(最早到期 2026-12-31)」;冻结输入含 3 份可见文档',
+          env.get('question', '').strip() == Q_T5
+          and set(egc) == {'spec', 'engine_faces', 'discipline'}
+          and ef.get('block_present') is True and ef.get('as_of') == T5_ASOF
+          and ef.get('regions') == ['US', 'CN', 'EA', 'JP']
+          and ef.get('falsification_window') == {
+              'months': 6, 'start': T5_ASOF, 'end': '2027-05-22', 'source': '未来半年'}
+          and ef.get('n_views_visible') == 3 and ef.get('n_views_withheld') == 1
+          and ef.get('n_rows') == 26 and ef.get('comparable_n') == 15
+          and ef.get('engine_candidate_rows') == T5_CANDS
+          and ef.get('reading_required_rows') == [T5_READING]
+          and len(ef.get('gaps') or []) == 12
+          and (ef.get('pricing') or {}).get('status') == 'present'
+          and ef.get('ex_post') == {'n': 12, 'earliest_horizon_end': '2026-12-31'}
+          and isinstance(disc, list) and len(disc) == 9
+          and any(x.startswith('AC3 到期预测保持 PARTIAL: 未到期(最早到期 '
+                               '2026-12-31)') for x in disc)
+          and 'reader_map.expectations_gap' in json.dumps(env.get('produce'), ensure_ascii=False)
+          and set(fi_run) == set(T5_FROZEN)
+          and 'VIEW-20261201-004' not in json.dumps(env.get('frozen_inputs')),
+          f"keys={sorted(egc)} disc={len(disc)} "
+          f"{[x[:44] for x in disc if x.startswith('AC3')]}")
+    c0 = ic._r1_gap_contract(rp, None)
+    b2 = copy.deepcopy(blk)
+    b2['ex_post']['not_yet_testable']['earliest_horizon_end'] = '2027-03-31'
+    c2 = ic._r1_gap_contract(rp, b2)
+    b3 = copy.deepcopy(blk)
+    b3['ex_post']['not_yet_testable'] = {}
+    c3 = ic._r1_gap_contract(rp, b3)
+    check('§T5-f3 工单契约函数: 对照块缺席(无快照)不再崩溃——面=块不在场/'
+          '窗口可检性 None;「最早到期」取自引擎面(改期随之;无则不写)',
+          isinstance(c0, dict) and set(c0) == {'spec', 'engine_faces', 'discipline'}
+          and c0['engine_faces'].get('block_present') is False
+          and c0['engine_faces'].get('window_testability') is None
+          and any('未到期(最早到期 2027-03-31)' in x for x in c2['discipline'])
+          and not any('2026-12-31' in x for x in c2['discipline'])
+          and not any('最早到期' in x for x in c3['discipline'])
+          and any(x.startswith('AC3 到期预测保持 PARTIAL: 未到期的预测')
+                  for x in c3['discipline']))
+    def attach(name, jud):
+        jp = os.path.join(TMPG, name)
+        with open(jp, 'w', encoding='utf-8') as fh:
+            json.dump(jud, fh, ensure_ascii=False)
+        r, dd_ = _cli(['research-one', '--stage', 'attach', '--question-file',
+                       qf, '--report-dir', rd, '--judgment', jp,
+                       '--engine-root', t], cwd=t)
+        rj_ = _jq(os.path.join(rd, 'report.json'))
+        cv = ((rj_.get('agent_judgment') or {}).get('contract_verification') or {})
+        sts = {x['item']: (x['status'], x['note']) for x in cv.get('map_checks') or []}
+        return (r, dd_, cv.get('verdict'), sts,
+                os.path.exists(os.path.join(rd, 'agent_judgment.json')),
+                [v.get('code') for v in (dd_.get('data') or {}).get('violations') or []])
+    r1, d1, v1, s1, f1, codes1 = attach('t5f_j1.json', _t5_skel())
+    rj1 = _jq(os.path.join(rd, 'report.json'))
+    check('§T5-f4 正式 CLI attach 拒收「缺预期差判断」(schema/归因/L3≥1/'
+          'L4≥2 结构项齐备的骨架;情景五面内容缺席照旧报缺): rc=0/ok=False/'
+          'attached=False/validation_passed=False;结构违规(schema/归因/'
+          '情景复数)为零;契约项 reader_map.expectations_gap=NOT_VERIFIED '
+          '点名缺席;report.json 的 agent_judgment.attached=False;判定档不落位',
+          r1 == 0 and d1.get('ok') is False
+          and (d1.get('data') or {}).get('attached') is False
+          and (d1.get('data') or {}).get('validation_passed') is False
+          and not (set(codes1) & {'SCHEMA', 'ATTR', 'SCN-PLURAL'})
+          and s1.get('reader_map.expectations_gap', ('', ''))[0] == 'NOT_VERIFIED'
+          and '缺席' in s1.get('reader_map.expectations_gap', ('', ''))[1]
+          and (rj1.get('agent_judgment') or {}).get('attached') is False
+          and not f1,
+          f"rc={r1} cv={v1} codes={codes1[:6]} "
+          f"{str(s1.get('reader_map.expectations_gap'))[:120]}")
+    eb = _t5_echo(blk)
+    eb['supported_gaps'][0]['row_id'] = 'VIEW-20260915-002#f99'
+    r2, d2, v2, s2, f2, _c2 = attach('t5f_j2.json', _t5_skel(eb))
+    check('§T5-f5 正式 CLI attach 拒收「虚构判定行」: 回声字段逐项 VERIFIED 而'
+          '该行号=CONTRADICTED(虚构行);整档=CONTRADICTED;判定档不落位',
+          r2 == 0 and d2.get('ok') is False
+          and (d2.get('data') or {}).get('attached') is False
+          and v2 == 'CONTRADICTED' and not f2
+          and s2.get('reader_map.expectations_gap.supported_gaps[0].row_id',
+                     ('', ''))[0] == 'CONTRADICTED'
+          and s2.get('reader_map.expectations_gap.engine_candidates_echoed',
+                     ('', ''))[0] == 'VERIFIED'
+          and s2.get('reader_map.expectations_gap.n_rows', ('', ''))[0]
+          == 'VERIFIED',
+          f"cv={v2} {str(s2.get('reader_map.expectations_gap.supported_gaps[0].row_id'))[:120]}")
+    r3, d3 = _cli(['research-one', '--stage', 'report', '--question-file', qf,
+                   '--report-dir', rd, '--engine-root', t], cwd=t)
+    dr = d3.get('data') or {}
+    check('§T5-f6 正式 CLI report(席位判断未落位): rc=1/ok=False/generated='
+          'true/L3、L4 未产出/deliverable=false,阻断类=地图必需面缺席'
+          '(先于预期差草稿类)',
+          r3 == 1 and d3.get('ok') is False and dr.get('generated') is True
+          and dr.get('L3_produced') is False and dr.get('L4_produced') is False
+          and dr.get('deliverable') is False
+          and dr.get('blocked_class') == 'map_required_face_missing',
+          f"rc={r3} bc={dr.get('blocked_class')}")
+    mdp = os.path.join(rd, 'MAP_REPORT.md')
+    md = open(mdp, encoding='utf-8').read() if os.path.isfile(mdp) else ''
+    sha_ok = False
+    sp = os.path.join(rd, 'MAP_REPORT.sha256')
+    if os.path.isfile(sp):
+        with open(sp, encoding='utf-8') as fh:
+            sha_ok = hashlib.sha256(md.encode('utf-8')).hexdigest() in fh.read()
+    check('§T5-f7 读者报告(report 段): 四地三时点/政策四分面/传导/转折/'
+          '历史类比+预期差对照七小节(虚构机构名与逐行状态)+事后表现 '
+          'PARTIAL+缺口;席位段写明未裁;语义审查段在;sha256 随附一致',
+          all(s in md for s in (
+              '## 四地三时点环境对照', '## 政策口径四分面', '## 证据最充分的传导机制',
+              '## 过去一年的三个转折', '## 历史上结构最像的时期',
+              '## 预期差对照(机构观点 × 同期限市场定价 × 事实)',
+              '### 市场定价面(同期限)', '### 逐行对照',
+              '### 机构间分歧', '### 事后表现(到期点位对事实;未到期不判定)',
+              '### 证伪窗口(问句「未来半年」: 研究截止日 2026-11-22 → '
+              '窗末 2027-05-22)', '### 缺口(逐项点名;缺证=缺证,不以推断补)',
+              '## Agent 席判断(预期差;席位原文,数值与引擎面对账后方可落位)',
+              '南山宏观(虚构机构)', '事后未兑现', 'PARTIAL',
+              '席位未提交预期差判断——引擎候选 3 条、须席位推导 1 行悬而未裁',
+              '### 证伪条件、关键假设与风险(机构原文优先;库内推导与引擎规则分列)',
+              '## 语义审查'))
+          and sha_ok, f"len={len(md)} sha={sha_ok}")
+    arc = os.path.join(TMPG, 't5f_arc')
+    r4, d4 = _cli(['research-one', '--stage', 'archive', '--question-file', qf,
+                   '--report-dir', rd, '--archive-dir', arc,
+                   '--engine-root', t], cwd=t)
+    check('§T5-f8 正式归档拒绝(不可交付): rc≠0/ok=False/blocked=not_'
+          'deliverable;隔离归档目录无新件',
+          r4 != 0 and d4.get('ok') is False
+          and (d4.get('data') or {}).get('blocked') == 'not_deliverable'
+          and (not os.path.exists(arc) or not os.listdir(arc)),
+          f"rc={r4} {json.dumps(d4.get('data') or d4.get('error'), ensure_ascii=False)[:200]}")
+    t7, _ = _t5_tree('t5f_nov', views=None, code=True)
+    r7, d7 = _cli(['research-one', '--stage', 'plan', '--question-file', qf,
+                   '--engine-root', t7], cwd=t7)
+    dd7 = d7.get('data') or {}
+    rd7 = dd7.get('report_dir') or ''
+    rj7 = _jq(os.path.join(rd7, 'report.json')) if os.path.isfile(
+        os.path.join(rd7, 'report.json')) else {}
+    b7 = xg.plan_block(rj7.get('research_plan') or {}) or {}
+    r7a, d7a = _cli(['research-one', '--stage', 'report', '--question-file',
+                     qf, '--report-dir', rd7, '--engine-root', t7], cwd=t7)
+    md7 = ''
+    p7 = os.path.join(rd7, 'MAP_REPORT.md')
+    if os.path.isfile(p7):
+        md7 = open(p7, encoding='utf-8').read()
+    r7b, d7b = _cli(['research-one', '--stage', 'archive', '--question-file',
+                     qf, '--report-dir', rd7, '--archive-dir',
+                     os.path.join(TMPG, 't5f_arc7'), '--engine-root', t7], cwd=t7)
+    check('§T5-f9 干净安装无观点库: plan rc=0 但回执草稿级缺口 '
+          'expectations_gap_views_absent(点名机构观点库不在场与转正办法);'
+          '对照块 views=absent(0 行);report 段照出读者报告(首部草稿横幅);'
+          '正式归档拒绝且不建目录',
+          r7 == 0 and d7.get('ok') is True
+          and [(g.get('code'), g.get('severity')) for g in dd7.get('plan_gaps') or []]
+          == [('expectations_gap_views_absent', 'draft')]
+          and dd7.get('plan_status') == 'ok'
+          and b7.get('views', {}).get('status') == 'absent'
+          and xg.blocked_class(b7) == xg.VIEWS_ABSENT
+          and r7a == 1 and d7a.get('ok') is False
+          and (d7a.get('data') or {}).get('generated') is True
+          and '机构观点库不在场' in md7[:2000] and '只交草稿' in md7[:2000]
+          and '## 预期差对照(机构观点 × 同期限市场定价 × 事实)' in md7
+          and r7b != 0 and d7b.get('ok') is False
+          and (d7b.get('data') or {}).get('blocked') == 'not_deliverable'
+          and not os.path.exists(os.path.join(TMPG, 't5f_arc7')),
+          f"rc={r7} {str(dd7.get('plan_gaps'))[:200]} md={len(md7)}")
+    t8, _ = _t5_tree('t5f_nosnap', views='clean', code=True)
+    snap8 = os.path.join(t8, 'data', 'daily', SNAP_LATER)
+    if os.path.exists(snap8):
+        os.rename(snap8, snap8 + '.off')
+    e8 = dict(os.environ)
+    pr8 = subprocess.run(
+        [sys.executable, 'ia_cli.py', 'research-one', '--stage', 'plan',
+         '--question-file', qf, '--engine-root', t8], cwd=t8,
+        capture_output=True, text=True, timeout=900, env=e8)
+    try:
+        d8 = json.loads(pr8.stdout)
+    except ValueError:
+        d8 = {'raw': ((pr8.stdout or '') + (pr8.stderr or ''))[-400:]}
+    dd8 = d8.get('data') or {}
+    check('§T5-f10 无运行快照的安装树: plan rc=1/ok=False/plan_status=gap;缺口='
+          '零事实+预期差对照块缺席(均硬缺口);无未处理异常(基线此处为 '
+          'AttributeError 崩溃)',
+          pr8.returncode == 1 and d8.get('ok') is False
+          and dd8.get('plan_status') == 'gap'
+          and [(g.get('code'), g.get('severity')) for g in dd8.get('plan_gaps') or []]
+          == [('zero_facts', 'hard'), ('expectations_gap_block_missing', 'hard')]
+          and 'Traceback' not in (pr8.stderr or '')
+          and 'raw' not in d8,
+          f"rc={pr8.returncode} {str(dd8.get('plan_gaps'))[:200]} "
+          f"err={(pr8.stderr or '')[-200:]}")
+    t9, _ = _t5_tree('t5f_q', views='all', code=True)
+    r9, d9 = _cli(['research-one', '--stage', 'plan', '--question-file', qf,
+                   '--engine-root', t9], cwd=t9)
+    dd9 = d9.get('data') or {}
+    rd9 = dd9.get('report_dir') or ''
+    rj9 = _jq(os.path.join(rd9, 'report.json')) if os.path.isfile(
+        os.path.join(rd9, 'report.json')) else {}
+    b9 = xg.plan_block(rj9.get('research_plan') or {}) or {}
+    lint = [s for s in rj9.get('steps') or [] if s.get('step') == 'S9_views_lint']
+    v9 = b9.get('views') or {}
+    check('§T5-f11 观点库含违规件: 既有 views lint 步响亮失败(exit 1→'
+          'ok=False/run_ok=False,plan_status 仍 ok、缺口空);对照块照建'
+          '(5 份/合规 4/隔离 1 点名文件;26 行、扣留 1 不变)——隔离件不入'
+          '对照,库卫生须先修(未因预期差接线而吞错)',
+          r9 == 0 and d9.get('ok') is False and dd9.get('run_ok') is False
+          and dd9.get('plan_status') == 'ok' and dd9.get('plan_gaps') == []
+          and [s['step'] for s in rj9.get('steps') or [] if s.get('ok') is False]
+          == ['S9_views_lint']
+          and len(lint) == 1 and lint[0].get('ok') is False
+          and lint[0].get('exit_code') == 1
+          and v9.get('status') == 'present' and v9.get('n_files') == 5
+          and v9.get('n_compliant') == 4 and v9.get('n_quarantined') == 1
+          and [q.get('view_id') for q in v9.get('quarantined') or []]
+          == ['VIEW-20261010-005']
+          and (b9.get('summary') or {}).get('n_rows') == 26
+          and (b9.get('summary') or {}).get('n_views_withheld') == 1,
+          f"rc={r9} ok={d9.get('ok')} run_ok={dd9.get('run_ok')} "
+          f"{[(s.get('step'), s.get('exit_code')) for s in rj9.get('steps') or [] if s.get('ok') is False]}")
+
+
+def _t5_next(ym):
+    y, m = int(ym[:4]), int(ym[5:])
+    return '%04d-%02d' % (y + (m == 12), 1 if m == 12 else m + 1)
+
+
+def _t5_shift(ym, n):
+    y, m = int(ym[:4]), int(ym[5:])
+    t = y * 12 + (m - 1) + n
+    return '%04d-%02d' % (t // 12, t % 12 + 1)
+
+
+def _t5_months(f, t_):
+    out, ym = [], f
+    while ym <= t_:
+        out.append(ym)
+        ym = _t5_next(ym)
+    return out
+
+
+def _t5_steps_with_series(sd, reg, mids, steps=()):
+    """门内搭 S4 步骤面: 序列取自冻结快照、单位取注册表(与真实 S4 信封同形),
+    替换同名替身步(离线计划的替身信封不带序列)。"""
+    out = [s for s in steps or []
+           if not (str(s.get('step') or '').startswith('S4_history_')
+                   and str(s.get('step'))[11:] in mids)]
+    for mid in mids:
+        s = (sd.get('series_store') or {}).get(mid) or {}
+        out.append({'step': 'S4_history_' + mid, 'ok': True, 'envelope': {
+            'ok': True, 'data': {'series': {
+                'metric_id': mid, 'dates': list(s.get('dates') or []),
+                'values': list(s.get('values') or []),
+                'unit': (reg.get(mid) or {}).get('unit')}}}})
+    return out
+
+
+def _t5_syn_step(mid, dates, values, unit):
+    return {'step': 'S4_history_' + mid, 'ok': True, 'envelope': {
+        'ok': True, 'data': {'series': {
+            'metric_id': mid, 'dates': list(dates), 'values': list(values),
+            'unit': unit}}}}
+
+
+def _t5_seat_helpers():
+    """席位工具纯函数面: 只取常量 D 与白名单函数定义(源码 ast 抽取后执行),
+    不执行模块级守卫/取数——席位工具只服务其预设的真实工单,门内不跑整份。"""
+    import ast
+    src = open(os.path.join(ROOT, 'scripts', 'seat_tools',
+                            'make_expectations_gap_judgment.py'),
+               encoding='utf-8').read()
+    want = {'fmt', 'f2', '_cn_int', 'cn_num', 'cn_amt', 'ym_shift',
+            'steps_of', 'horizon_row', 'month_last'}
+    body = [n for n in ast.parse(src).body if (
+        isinstance(n, ast.FunctionDef) and n.name in want) or (
+        isinstance(n, ast.Assign)
+        and any(isinstance(tg, ast.Name) and tg.id == 'D' for tg in n.targets))]
+    import bisect
+    ns = {'bisect': bisect}
+    exec(compile(ast.Module(body=body, type_ignores=[]), 'seat_helpers',
+                 'exec'), ns)
+    return ns
+
+
+def sec_t5_g():
+    print('§T5-g 任务5修订: 同期限定价参照/对质观测窗/结构化对质'
+          '(软契约;旧档与无该字段工单零变化)')
+    xg = _xg()
+    import research_map_planner as rmp
+    import judgment_contract as jc
+    t, snap = _t5_tree('t5g')
+    sd = _jq(snap)
+    reg = wd.load_registry(t)['by_id']
+    rep = _plan_on(t, Q_T5)
+    rp = rep.get('research_plan') or {}
+    blk = rp.get('expectations_gap') or {}
+    pr = blk['pricing']
+    prow = pr['rows']
+    curve, _sk = _t5_curve(sd)
+    dff = _t5_obs(sd, 'DFF', T5_ASOF)
+    chg = {ym: round((r - dff[1]) * 100.0, 2) for ym, r in curve.items()}
+
+    def exp_month(hz):
+        h = str(hz or '')
+        if re.fullmatch(r'\d{8}', h):
+            h = '%s-%s-%s' % (h[:4], h[4:6], h[6:])
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', h):
+            return None
+        c = [ym for ym in sorted(curve) if ym + '-01' <= h]
+        return c[-1] if c else None
+    pbad = []
+    for hz in ('2026-10-31', '2026-11-01', '2026-11-30', '2026-12-01',
+               '2026-12-15', '2027-01-31', '2027-03-31', '2027-05-15',
+               '2027-08-01', '2027-08-31', '2027-09-01', '2027-12-31',
+               '20270331', '2026-11', '中期', '', None):
+        g_ = xg._pricing_reference(pr, hz)
+        e_ = exp_month(hz)
+        if e_ is None:
+            if g_ is not None:
+                pbad.append((hz, g_))
+        elif not (g_ and g_.get('month') == e_
+                  and g_.get('change_bp') == chg[e_]
+                  and g_.get('basis')
+                  == 'last_contract_month_on_or_before_horizon'
+                  and g_.get('evidence_ref')
+                  == 'FEDFUNDS_FUT:' + str(g_.get('ticker'))):
+            pbad.append((hz, e_, g_ and g_.get('month')))
+    p_abs = dict(pr, status='absent')
+    p_gap = dict(pr, rows=[dict(r, change_bp=None) if r['month'] == '2027-03'
+                    else r for r in prow])
+    check('§T5-g1 同期限定价参照(引擎确定性;门内独立读曲线): 文字/多值型点位的'
+          '到期日当月或之前最后一个有读数的合约月;曲线起点之前/期限不可解析/'
+          '定价缺席=None;无读数的合约月跳过',
+          not pbad and xg._pricing_reference(p_abs, '2027-03-31') is None
+          and xg._pricing_reference(pr, None) is None
+          and (xg._pricing_reference(p_gap, '2027-03-31') or {}).get('month')
+          == '2027-02'
+          and (xg._pricing_reference(p_gap, '2027-03-31') or {}).get(
+              'change_bp') == chg['2027-02'],
+          pbad)
+    rows = blk['rows']
+    r3 = _row(rows, row_id=T5_READING)
+    pref3 = xg._pricing_reference(pr, r3.get('horizon_end'))
+    idx = {e.get('ref'): e for e in xg.evidence_rows(blk)}
+    doc = _jq(os.path.join(VIEWS_FIX, 'VIEW-20261120-003.json'))
+    fb = xg.Facts(sd, t, T5_ASOF, reg)
+    tm = xg.load_target_map(t)
+
+    def brow(f, n):
+        gp_ = []
+        return xg._build_row(doc, f, n, fb, pr, T5_ASOF, reg, tm, gp_, 0.0)
+    b_far = brow({'value_or_direction': '2029年3.0%、2030年2.8%',
+                  'target': 'fed_policy_path_baseline', 'horizon': '2030-12',
+                  'attribution': 'institution_stated'}, 90)
+    b_mid = brow({'value_or_direction': '2027年3.0%、2028年2.8%',
+                  'target': 'fed_policy_path_baseline', 'horizon': '2027-05',
+                  'attribution': 'institution_stated'}, 91)
+    b_non = brow({'value_or_direction': '2027年1.5%、2028年1.4%',
+                  'target': '欧元区GDP增长', 'horizon': '2028-12',
+                  'attribution': 'institution_stated'}, 92)
+    check('§T5-g2 参照随行落位(对照块;合成夹具行): 须推导的文字型行(路径指标,'
+          '到期 2027-03-31)带 pricing_reference=2027-03 合约(变动=门内独立算)'
+          '且其定价引用并入该行证据并进证据索引(market_pricing);其余 25 行'
+          '为 None;多值型行同规则(曲线尽头之后=最后一个合约月;非路径指标='
+          'None)',
+          r3.get('status') == 'reading_required'
+          and r3.get('metric_id') == 'FED_FUNDS'
+          and r3.get('horizon_end') == '2027-03-31'
+          and r3.get('pricing_reference') == pref3
+          and pref3.get('month') == '2027-03'
+          and pref3.get('change_bp') == chg['2027-03']
+          and r3.get('evidence_refs', [None])[-1] == 'FEDFUNDS_FUT:ZQH27.CBT'
+          and (idx.get('FEDFUNDS_FUT:ZQH27.CBT') or {}).get('kind')
+          == 'market_pricing'
+          and sum(1 for r in rows
+                  if r.get('pricing_reference') is not None) == 1
+          and b_far.get('status') == 'reading_required'
+          and (b_far.get('pricing_reference') or {}).get('month') == '2027-08'
+          and b_mid.get('status') == 'reading_required'
+          and (b_mid.get('pricing_reference') or {}).get('month') == '2027-05'
+          and b_non.get('status') == 'reading_required'
+          and b_non.get('metric_id') == 'EA_REAL_GDP_YOY'
+          and b_non.get('pricing_reference') is None,
+          f"r3={r3.get('status')} {pref3 and pref3.get('month')} "
+          f"far={(b_far.get('pricing_reference') or {}).get('month')} "
+          f"mid={(b_mid.get('pricing_reference') or {}).get('month')} "
+          f"non={b_non.get('status')}/{b_non.get('metric_id')}")
+    # ── 对质观测窗: 同窗首尾读数(月末口径;门内独立读) ──
+    mids = ('DFF', 'SPX', 'CPI', 'UNEMPLOYMENT', 'UST_10Y')
+    rj = copy.deepcopy(rep)
+    rj['steps'] = _t5_steps_with_series(sd, reg, mids, rep.get('steps') or [])
+    cut = rp.get('cutoff')
+
+    def mlast(mid, ym):
+        d, v = _t5_obs(sd, mid, ym + '-31')
+        return (d, v) if d and d[:7] == ym else (None, None)
+
+    def yoy_pt(mid, ym):
+        d, v = mlast(mid, ym)
+        base = mlast(mid, _t5_shift(ym, -12))[1]
+        return (d, round((float(v) / float(base) - 1.0) * 100.0, 4))
+
+    def exp_win(mid, f, t_, yoy=False, pts=None, pct_level=None):
+        """门内独立拼同窗读数文字: 各月最新有效读数(门内按月末日独立取)。"""
+        pts = pts or [(yoy_pt if yoy else mlast)(mid, ym)
+                      for ym in _t5_months(f, t_)]
+        v0, v1 = pts[0][1], pts[-1][1]
+        path = ('%.2f→…→%.2f(%d 期)' % (v0, v1, len(pts)) if len(pts) > 8
+                else '%.2f@%s→%s%.2f@%s' % (
+                    v0, pts[0][0], ''.join('%.2f→' % v for _d, v in pts[1:-1]),
+                    v1, pts[-1][0]))
+        u = pct_level if pct_level is not None else (
+            (reg.get(mid) or {}).get('unit') == 'percent')
+        if yoy:
+            c_ = '首尾 %+.2fpp' % (round(v1 - v0, 2) + 0.0)
+        elif u:
+            c_ = '首尾 %+gbp' % round((v1 - v0) * 100)
+        else:
+            c_ = '首尾 %+.2f%%' % (round((v1 / v0 - 1.0) * 100, 2) + 0.0)
+        return '同窗观测(%s→%s,%s口径): %s,%s%s' % (
+            f, t_, '同比月末' if yoy else '月末', path, c_,
+            ';终点月未满,取截止日前最新观测' if cut and t_ == cut[:7]
+            else '')
+    exp_dff = exp_win('DFF', '2026-08', '2026-10')
+    exp_cpi = exp_win('CPI', '2026-02', '2026-10')
+    exp_yoy = exp_win('CPI', '2026-05', '2026-09', yoy=True)
+    exp_spx = exp_win('SPX', '2026-09', '2026-11')
+    a, c = mlast('DFF', '2026-08'), mlast('DFF', '2026-10')
+    ypts = [yoy_pt('CPI', ym) for ym in _t5_months('2026-05', '2026-09')]
+    got = {
+        'dff': rmp._window_obs_text(rj, 'DFF',
+                                    {'from': '2026-08', 'to': '2026-10'}, cut),
+        'cpi': rmp._window_obs_text(rj, 'CPI',
+                                    {'from': '2026-02', 'to': '2026-10'}, cut),
+        'yoy': rmp._window_obs_text(rj, 'CPI', {'from': '2026-05',
+                                                'to': '2026-09', 'yoy': True},
+                                    cut),
+        'spx': rmp._window_obs_text(rj, 'SPX',
+                                    {'from': '2026-09', 'to': '2026-11'}, cut),
+        'dd': rmp._window_obs_text(rj, 'DFF', {'from': '2026-08-01',
+                                               'to': '2026-10-31'}, cut)}
+    # 合成序列(非真实数据): 月末 null/零基期/起月缺观测/非数值
+    rj2 = copy.deepcopy(rj)
+    rj2['steps'] += [
+        _t5_syn_step('SYN_NULL', ['2026-08-03', '2026-08-28', '2026-08-31',
+                                  '2026-09-01', '2026-10-01'],
+                     [1.0, 3.0, None, 5.0, 7.0], 'index_point_2010'),
+        _t5_syn_step('SYN_ZERO', ['2026-08-03', '2026-09-01', '2026-10-01'],
+                     [0.0, 1.0, 2.0], 'index_point_2010'),
+        _t5_syn_step('SYN_GAP', ['2026-08-03', '2026-10-01', '2026-11-02'],
+                     [1.0, 2.0, 3.0], 'index_point_2010'),
+        _t5_syn_step('SYN_NAN', ['2026-08-03', '2026-09-01', '2026-10-01'],
+                     [1.0, float('nan'), 'nan'], 'index_point_2010')]
+    syn_txt = {
+        'null': rmp._window_obs_text(rj2, 'SYN_NULL',
+                                     {'from': '2026-08', 'to': '2026-10'}, cut),
+        'zero': rmp._window_obs_text(rj2, 'SYN_ZERO',
+                                     {'from': '2026-08', 'to': '2026-10'}, cut),
+        'gap': rmp._window_obs_text(rj2, 'SYN_GAP',
+                                    {'from': '2026-09', 'to': '2026-11'}, cut),
+        'nan': rmp._window_obs_text(rj2, 'SYN_NAN',
+                                    {'from': '2026-08', 'to': '2026-10'}, cut)}
+    w_none = [rmp._window_obs_text(rj, m, w, cut) for m, w in (
+        ('DFF', {'from': '2026-10', 'to': '2026-08'}),      # 起点晚于终点
+        ('DFF', {'from': '2026-8', 'to': '2026-10'}),       # 月形非法
+        ('DFF', {'from': '2026-08'}),                       # 缺终点
+        ('DFF', {'from': '2026-08', 'to': '2026-13'}),      # 非法月份
+        ('DFF', {'from': '2026-08', 'to': '2026-10', 'yoy': True}),  # 非水平序列
+        ('CPI', {'from': '2026-05', 'to': '2026-11'}),      # 终月无观测
+        ('NOPE_X', {'from': '2026-08', 'to': '2026-10'}),   # 序列缺席
+        ('DFF', {'from': '2026-08', 'to': '2026-08'}),      # 窗内仅一期
+        ('DFF', '2026-08→2026-10'),                         # 非对象
+        ('DFF', None))]
+    why = {}
+    for k_, (m_, w_) in {'shape': ('DFF', {'from': '2026-8', 'to': '2026-10'}),
+                         'absent': ('NOPE_X', {'from': '2026-08',
+                                               'to': '2026-10'}),
+                         'short': ('CPI', {'from': '2026-05', 'to': '2026-11'}),
+                         'yoylvl': ('DFF', {'from': '2026-08', 'to': '2026-10',
+                                            'yoy': True}),
+                         'gap': ('SYN_GAP', {'from': '2026-09', 'to': '2026-11'}),
+                         'nan': ('SYN_NAN', {'from': '2026-08', 'to': '2026-10'}),
+                         'zero': ('SYN_ZERO', {'from': '2026-08',
+                                               'to': '2026-10'})}.items():
+        rjx = rj2 if m_.startswith('SYN_') else rj
+        why[k_] = rmp._window_obs(rjx, m_, w_, cut)[1]
+    check('§T5-g3 对质观测窗同窗读数(_window_obs): 各月最新有效读数(月末口径;'
+          '月末 null 不作读数)+首尾变化(百分比水平=bp/指数=相对%/同比空间=pp,'
+          '与门内独立读逐字相同);YYYY-MM-DD 形同 YYYY-MM;多于八期只给首尾与期数;'
+          '终点月=截止日所在月随行注明;窗形非法/序列缺席/不足两期/起止月无观测'
+          '(窗不得静默缩短)/非水平序列声明同比/非数值或首期为零不可算=None 且'
+          '给出具体原因(渲染如实回落,不编数)',
+          got == {'dff': exp_dff, 'cpi': exp_cpi, 'yoy': exp_yoy,
+                  'spx': exp_spx, 'dd': exp_dff}
+          and syn_txt['null'] == exp_win(
+              'SYN_NULL', '2026-08', '2026-10', pct_level=False,
+              pts=[('2026-08-28', 3.0), ('2026-09-01', 5.0), ('2026-10-01', 7.0)])
+          and syn_txt['gap'] is None and syn_txt['zero'] is None
+          and syn_txt['nan'] is None
+          and w_none == [None] * 10
+          and why['shape'] == '观测窗起止须为 YYYY-MM 或 YYYY-MM-DD'
+          and why['absent'] == '区分指标 NOPE_X 的序列不在证据面——观测窗无从复算'
+          and why['short'] == ('观测窗 2026-05→2026-11 的起止月无有效月末观测'
+                               '(可复算的仅 2026-05→2026-10)——须按实际可复算的'
+                               '窗声明')
+          and '不适用于 DFF' in why['yoylvl']
+          and '起止月无有效月末观测(可复算的仅 2026-10→2026-11)' in why['gap']
+          and '不足两期有效观测(得 1)' in why['nan']
+          and '首期读数为零' in why['zero'],
+          {'got': {k: (v[:60] if v else v) for k, v in got.items()},
+           'syn': {k: (v[:50] if v else v) for k, v in syn_txt.items()},
+           'none': w_none, 'why': why})
+    dobs = rmp._distinguishing_obs(rj, cut, 'DFF')
+    dobs_spx = rmp._distinguishing_obs(rj, cut, 'SPX')
+    dobs_ust = rmp._distinguishing_obs(rj, cut, 'UST_10Y')
+    cell_w = rmp._face_off_obs_cell(
+        rj, cut, {'observation_window': {'from': '2026-08', 'to': '2026-10'}},
+        'DFF', dobs)
+    cell_nov = rmp._face_off_obs_cell(
+        rj, cut, {'observation_window': {'from': '2026-10', 'to': '2026-11'}},
+        'DFF', dobs)
+    cell_bad = rmp._face_off_obs_cell(
+        rj, cut, {'observation_window': {'from': 'x'}}, 'DFF', dobs)
+    cell_bad0 = rmp._face_off_obs_cell(
+        rj, cut, {'observation_window': {'from': '2026-08', 'to': '2026-10'}},
+        'NOPE_X', None)
+    leg_same = all(rmp._face_off_obs_cell(rj, cut, lk, dm, d) is d for lk, dm, d in (
+        ({}, 'DFF', dobs), ({'face_off_check': {}}, 'SPX', dobs_spx),
+        ({}, 'NOPE_X', None), ({'observation_window': 'x'}, 'DFF', dobs)))
+    FB = '——如实回落;'
+    # ── 渲染: 对质表/传导图(合成判定;非真实研判) ──
+    base = {'observed_fact': '门夹具观察事实甲(合成)',
+            'causal_hypothesis': '门夹具因果假设(合成)',
+            'competing_explanation': '门夹具竞争解释(合成)',
+            'distinguishing_metric': 'DFF',
+            'main_predicts': '门夹具主解释预期(合成)',
+            'competing_predicts': '门夹具竞争解释预期(合成)',
+            'face_off_verdict': '尚不能区分'}
+    lkA = dict(base, observation_window={'from': '2026-08', 'to': '2026-10'})
+    lkB = dict(base, distinguishing_metric='SPX',
+               observed_fact='门夹具观察事实乙(合成)')
+    lkC = {k: v for k, v in base.items() if k in (
+        'observed_fact', 'causal_hypothesis', 'distinguishing_metric')}
+    lkC.update(observed_fact='门夹具观察事实丙(合成)',
+               distinguishing_metric='NOPE_X')
+    lkD = dict(base, distinguishing_metric='UST_10Y',
+               observed_fact='门夹具观察事实丁(合成)')
+    for _k in ('main_predicts', 'competing_predicts'):
+        lkD.pop(_k)
+
+    def jd(links_a, links_b=()):
+        return {'reader_map': {
+            'headline_conclusion': '门夹具总判断(合成;非真实研判)。',
+            'regions': [{'region': r, 'from_to': '门夹具走位(合成)。'}
+                        for r in ('US', 'CN', 'EA', 'JP')],
+            'transmission': [{'chain_name': '门夹具传导链甲(合成)',
+                              'links': list(links_a)},
+                             {'chain_name': '门夹具传导链乙(合成)',
+                              'links': list(links_b)}],
+            'turnings': [], 'history_periods': []}}
+    md = rmp.render_map_report(rj, jd([lkA, lkC], [lkB, lkD]), None, root=t)
+    rowA = ('| DFF | 门夹具主解释预期(合成) | 门夹具竞争解释预期(合成) | %s | '
+            '尚不能区分 |' % cell_w)
+    rowB = ('| SPX | 门夹具主解释预期(合成) | 门夹具竞争解释预期(合成) | %s | '
+            '尚不能区分 |' % dobs_spx)
+    rowD = ('| UST_10Y | (预期未写明——如实缺席) | (预期未写明——如实缺席) | '
+            '%s | 尚不能区分 |' % dobs_ust)
+    md0 = rmp.render_map_report(rj, jd([lkB, lkD], [lkC]), None, root=t)
+    md1 = rmp.render_map_report(rj, jd([dict(lkA, observation_window={
+        'from': '2026-10', 'to': '2026-11'})], [lkB]), None, root=t)
+    md2 = rmp.render_map_report(rj, jd([dict(lkA, observation_window={
+        'from': 'x'})], [lkB]), None, root=t)
+    tbl = md1.split('## 主解释 vs 竞争解释(对质表)')[1].split('\n## ')[0]
+    check('§T5-g4 对质表/传导图渲染: 带观测窗的行=同窗读数在前、引擎当前面只在'
+          '含窗后观测时以「窗后信息(不用于裁决)」附后(窗终月=引擎面所在月则'
+          '不附);窗不可复算=给出具体原因后回落;注脚仅在有害观测窗的行时出现'
+          '一次;窗为非对象=旧格式原样;无该字段的行=旧格式逐字不变(格=引擎'
+          '当前面原对象;门内独立拼行)',
+          cell_w == '(' + exp_dff + ';窗后信息(不用于裁决) ' + dobs[1:-1] + ')'
+          and cell_nov == '(' + rmp._window_obs_text(
+              rj, 'DFF', {'from': '2026-10', 'to': '2026-11'}, cut) + ')'
+          and '窗后信息' not in cell_nov
+          and cell_bad == ('(同窗观测: 观测窗起止须为 YYYY-MM 或 YYYY-MM-DD'
+                           + FB + dobs + ')')
+          and cell_bad0 == ('(同窗观测: 区分指标 NOPE_X 的序列不在证据面——'
+                            '观测窗无从复算' + FB + '引擎面无观测)')
+          and leg_same
+          and all(x in md for x in (
+              '## 主解释 vs 竞争解释(对质表)', rowA, rowB, rowD,
+              '   - 能区分解释的指标: DFF (' + exp_dff + ') ' + dobs,
+              '   - 能区分解释的指标: NOPE_X'
+              '(引擎面无该序列观测——如实缺席)'))
+          and md.count('> 对质观测窗: ') == 1
+          and all(x in md0 for x in (rowB, rowD))
+          and '同窗观测' not in md0 and '对质观测窗' not in md0
+          and md1.count('> 对质观测窗: ') == 1
+          and ('| %s | 尚不能区分 |' % cell_nov) in tbl
+          and '窗后信息(不用于裁决)' not in tbl
+          and ('| %s | 尚不能区分 |' % cell_bad) in md2
+          and md2.count('> 对质观测窗: ') == 1,
+          f"cell_w=…{cell_w[-75:]} nov_tail={cell_nov[-40:]} "
+          f"rows={[x[:24] for x in (rowA, rowB, rowD) if x not in md]} "
+          f"tbl_nov={('| %s | 尚不能区分 |' % cell_nov) in tbl}")
+    # ── 契约(函数级;软契约: 字段在场才核) ──
+    face = jc.build_face(rj)
+    face2 = jc.build_face(rj2)
+
+    def st(items, suffix):
+        hit = [x for x in items if x['item'].endswith(suffix)]
+        return (hit[-1]['status'], hit[-1]['note']) if hit else (None, '')
+
+    def run(link, fc=None):
+        j = {'reader_map': {'transmission': [{'links': [link]}]}}
+        out = jc._map_checks(j, fc or face, rj)
+        return [x for x in out if x['item'].endswith((
+            '.observation_window', '.face_off_check', '.face_off_check.main',
+            '.face_off_check.competing', '.face_off_verdict'))]
+    W = {'from': '2026-08', 'to': '2026-10'}
+    wchg = round((c[1] - a[1]) * 100.0, 6)            # 门内独立算: +25bp
+    OPS = {'>=': lambda p, q: p >= q, '>': lambda p, q: p > q,
+           '<=': lambda p, q: p <= q, '<': lambda p, q: p < q,
+           '==': lambda p, q: abs(p - q) < 1e-9,
+           '!=': lambda p, q: abs(p - q) >= 1e-9}
+
+    def fck(m_op, m_v, c_op, c_v, unit='bp'):
+        return {'main': {'op': m_op, 'value': m_v, 'unit': unit},
+                'competing': {'op': c_op, 'value': c_v, 'unit': unit}}
+
+    def exp_verdict(chg_, f_):
+        m_ok = OPS[f_['main']['op']](round(chg_, 6), f_['main']['value'])
+        c_ok = OPS[f_['competing']['op']](round(chg_, 6),
+                                         f_['competing']['value'])
+        return ('尚不能区分' if m_ok == c_ok else
+                '支持主解释' if m_ok else '支持竞争解释')
+    neg = [
+        ('旧档形态(无观测窗/无结构化对质)=零新增项', dict(base), '.observation_window',
+         None, ''),
+        ('观测窗无竞争解释', {k: v for k, v in dict(base, observation_window=W).items()
+                          if k != 'competing_explanation'},
+         '.observation_window', 'NOT_VERIFIED', '须配竞争解释'),
+        ('窗终月晚于研究截止月(合成窗后观测)', dict(
+            base, distinguishing_metric='SYN_GAP',
+            observation_window={'from': '2026-10', 'to': '2026-12'}),
+         '.observation_window', 'NOT_VERIFIED', '晚于研究截止月 2026-11'),
+        ('序列缺席', dict(base, distinguishing_metric='NOPE_X',
+                        observation_window=W),
+         '.observation_window', 'NOT_VERIFIED', '不在证据面'),
+        ('窗内不足两期', dict(base, observation_window={'from': '2026-08',
+                                                    'to': '2026-08'}),
+         '.observation_window', 'NOT_VERIFIED', '不足两期'),
+        ('非数值读数不计', dict(base, distinguishing_metric='SYN_NAN',
+                              observation_window=W),
+         '.observation_window', 'NOT_VERIFIED', '不足两期有效观测(得 1)'),
+        ('窗形非法', dict(base, observation_window={'from': '2026-8',
+                                                 'to': '2026-10'}),
+         '.observation_window', 'NOT_VERIFIED', '须为 YYYY-MM'),
+        ('起点晚于终点', dict(base, observation_window={'from': '2026-10',
+                                                    'to': '2026-08'}),
+         '.observation_window', 'NOT_VERIFIED', '起点晚于终点'),
+        ('窗非对象', dict(base, observation_window='x'),
+         '.observation_window', 'NOT_VERIFIED', '须为对象'),
+        ('窗起止月无观测(月频;不得静默缩短)', dict(
+            base, distinguishing_metric='CPI',
+            observation_window={'from': '2026-05', 'to': '2026-11'}),
+         '.observation_window', 'NOT_VERIFIED', '起止月无有效月末观测'),
+        ('同比空间用于非水平序列', dict(base, observation_window={
+            'from': '2026-08', 'to': '2026-10', 'yoy': True}),
+         '.observation_window', 'NOT_VERIFIED', '不适用于 DFF'),
+        ('结构化对质缺观测窗', dict(base, face_off_check=fck('>=', 12.5, '<', 12.5)),
+         '.face_off_check', 'NOT_VERIFIED', '须带可复算的 observation_window'),
+        ('结构化对质缺一侧', dict(base, observation_window=W,
+                                face_off_check={'main': {'op': '>=', 'value': 12.5,
+                                                         'unit': 'bp'}}),
+         '.face_off_check', 'NOT_VERIFIED', '须含 main 与 competing'),
+        ('算子非法', dict(base, observation_window=W,
+                        face_off_check=fck('≈', 12.5, '<', 12.5)),
+         '.face_off_check.main', 'NOT_VERIFIED', 'op:'),
+        ('单位非法', dict(base, observation_window=W,
+                        face_off_check=fck('>=', 12.5, '<', 12.5, 'xx')),
+         '.face_off_check.main', 'NOT_VERIFIED', 'pct/bp/pp'),
+        ('阈值非数值', dict(base, observation_window=W,
+                          face_off_check=fck('>=', '12.5', '<', 12.5)),
+         '.face_off_check.main', 'NOT_VERIFIED', '数值'),
+        ('阈值为布尔', dict(base, observation_window=W,
+                          face_off_check=fck('>=', True, '<', 12.5)),
+         '.face_off_check.main', 'NOT_VERIFIED', '数值'),
+    ]
+    nbad = []
+    for name, link, suffix, want, note in neg:
+        fc_run = face2 if 'SYN_' in str(link.get('distinguishing_metric')) \
+            else face
+        s, n = st(run(link, fc_run), suffix)
+        if s != want or note not in n:
+            nbad.append((name, s, n[:60]))
+    check('§T5-g5 契约反例(软契约;函数级): 旧档形态零新增项;观测窗无竞争解释/'
+          '窗终月晚于截止月/序列缺席/不足两期/非数值不计/窗形非法/窗非对象/'
+          '起止月无观测/非水平序列声明同比=NOT_VERIFIED;结构化对质缺观测窗/'
+          '缺一侧/算子·单位·阈值非法=NOT_VERIFIED',
+          not nbad, nbad)
+    pos = [
+        ('仅观测窗', dict(base, observation_window=W), 'VERIFIED',
+         '窗 2026-08→2026-10 内 3 期月末观测(3.63→3.88)'),
+        ('仅同比观测窗', dict(base, distinguishing_metric='CPI',
+                            observation_window={'from': '2026-05', 'to': '2026-09',
+                                                'yoy': True}), 'VERIFIED',
+         '窗 2026-05→2026-09 内 5 期月末观测(%s→%s;同比空间)'
+         % ('%g' % ypts[0][1], '%g' % ypts[-1][1])),
+        ('窗终月=截止月(含)', dict(base, observation_window={'from': '2026-10',
+                                                        'to': '2026-11'}),
+         'VERIFIED', '窗 2026-10→2026-11 内 2 期月末观测(3.88→3.88)'),
+        ('窗终月早于截止月', dict(base, observation_window={'from': '2026-07',
+                                                       'to': '2026-09'}),
+         'VERIFIED', '窗 2026-07→2026-09 内 3 期'),
+        ('YYYY-MM-DD 形窗', dict(base, observation_window={
+            'from': '2026-08-01', 'to': '2026-10-31'}), 'VERIFIED',
+         '窗 2026-08→2026-10 内 3 期'),
+        ('零基期观测窗本身可复算', dict(base, distinguishing_metric='SYN_ZERO',
+                                  observation_window=W), 'VERIFIED',
+         '窗 2026-08→2026-10 内 3 期月末观测(0→2)'),
+        ('月末 null 不作读数(取当月最新有效)', dict(
+            base, distinguishing_metric='SYN_NULL', observation_window=W),
+         'VERIFIED', '窗 2026-08→2026-10 内 3 期月末观测(3→7)'),
+    ]
+    pbad2 = []
+    for name, link, want, note in pos:
+        fc_run = face2 if 'SYN_' in str(link.get('distinguishing_metric')) \
+            else face
+        s, n = st(run(link, fc_run), '.observation_window')
+        if s != want or note not in n:
+            pbad2.append((name, s, n[:70]))
+    # 结构化对质: 两侧预期按冻结序列复算后与判断对账
+    vcases = [
+        ('主成立/竞争不成立→支持主解释', fck('>=', 12.5, '<', 12.5), wchg,
+         '支持主解释', 'VERIFIED', ''),
+        ('同上但判断写尚不能区分=相左', fck('>=', 12.5, '<', 12.5), wchg,
+         '尚不能区分', 'CONTRADICTED', '对质判断与结构化复算不一致'),
+        ('同上但判断写支持竞争解释=相左', fck('>=', 12.5, '<', 12.5), wchg,
+         '支持竞争解释', 'CONTRADICTED', '对质判断与结构化复算不一致'),
+        ('两侧均成立→尚不能区分', fck('>=', 0, '<=', 100), wchg,
+         '尚不能区分', 'VERIFIED', ''),
+        ('两侧均不成立→尚不能区分', fck('<', 0, '>', 100), wchg,
+         '尚不能区分', 'VERIFIED', ''),
+        ('主不成立/竞争成立→支持竞争解释', fck('<', 0, '>=', 0), wchg,
+         '支持竞争解释', 'VERIFIED', ''),
+        ('相对幅口径 pct', fck('>', round(wchg / 400.0, 4), '<',
+                              round(wchg / 400.0, 4), 'pct'),
+         round((c[1] / a[1] - 1.0) * 100.0, 6), '支持主解释', 'VERIFIED', ''),
+        ('百分点口径 pp', fck('<=', 0, '>', 0, 'pp'), round(c[1] - a[1], 6),
+         '支持竞争解释', 'VERIFIED', ''),
+        ('同比空间 pp', fck('<=', 0, '>', 0, 'pp'),
+         round(ypts[-1][1] - ypts[0][1], 6), '支持主解释', 'VERIFIED', ''),
+        ('零基期: pp 口径可复算', fck('<=', 0, '>', 0, 'pp'), 2.0,
+         '支持竞争解释', 'VERIFIED', 'SYN_ZERO'),
+        ('零基期: pct 口径不可复算', fck('>', 0, '<', 0, 'pct'), None,
+         '', 'NOT_VERIFIED', 'SYN_ZERO'),
+        ('判断为空', fck('>=', 12.5, '<', 12.5), wchg, '', 'CONTRADICTED', ''),
+    ]
+    vbad = []
+    for name, f_, chg_, verdict, want, note in vcases:
+        link = dict(base, observation_window=W, face_off_check=f_,
+                    face_off_verdict=verdict)
+        fc_run = face
+        if name == '同比空间 pp':
+            link['distinguishing_metric'] = 'CPI'
+            link['observation_window'] = {'from': '2026-05', 'to': '2026-09',
+                                          'yoy': True}
+        elif note == 'SYN_ZERO':
+            link['distinguishing_metric'] = 'SYN_ZERO'
+            fc_run = face2
+        its = run(link, fc_run)
+        if chg_ is None:
+            s, n = st(its, '.face_off_check.main')
+            if not (s == 'NOT_VERIFIED' and '不可复算' in n):
+                vbad.append((name, s, n[:60]))
+            continue
+        ev = exp_verdict(chg_, f_)
+        if '相左' in name or name == '判断为空':
+            s, n = st(its, '.face_off_verdict')
+            if not (s == 'CONTRADICTED' and '→应为 ' + ev in n):
+                vbad.append((name, s, n[:70]))
+            continue
+        s2, n2 = st(its, '.face_off_check')
+        if not (s2 == 'VERIFIED' and n2.endswith('→' + ev)
+                and ('观测 %+.2f%s' % (chg_, f_['main']['unit'])) in n2):
+            vbad.append((name, s2, n2[:80]))
+    check('§T5-g6 契约正例: 观测窗 VERIFIED(窗与期数随行;同比空间/终月=截止月/'
+          'YYYY-MM-DD 形/零基期/月末 null 均合法);结构化对质两侧预期按冻结序列'
+          '复算(门内独立算 bp/pct/pp/同比空间),判断与复算一致=VERIFIED;应为'
+          '另态而声明他态或留空=CONTRADICTED;零基期 pct 口径=NOT_VERIFIED',
+          not pbad2 and not vbad, pbad2 + vbad)
+    # ── 席位工具纯函数面(与引擎同规则) ──
+    ns = _t5_seat_helpers()
+    hz = ns['horizon_row']
+    stp = ns['steps_of']
+    agree = all(
+        (lambda g_, s_: (g_ is None and s_ is None) or (
+            g_ is not None and s_ is not None
+            and g_.get('month') == s_.get('month')))(
+            xg._pricing_reference(pr, h),
+            hz(h, prow, xg._pricing_reference(pr, h)))
+        for h in ('2026-10-31', '2026-11-01', '2026-11-30', '2026-12-15',
+                  '2027-03-31', '2027-05-15', '2027-08-31', '2027-09-01'))
+    ns['store'] = face2['series_store']
+    seat_mlast = [ns['month_last'](m, ym) for m, ym in (
+        ('DFF', '2026-08'), ('DFF', '2026-10'), ('CPI', '2026-09'), ('SPX', '2026-11'))]
+    check('§T5-g7 席位工具纯函数面(ast 抽取;不跑整份): 到期同期限参照与引擎'
+          '_pricing_reference 同规则(逐到期日同月);无读数合约月跳过;折合整步'
+          '数向上取整;中文数字/口语两;年月平移;月末读数=窗内各月最新有效读数'
+          '(与引擎同窗首尾逐值相同)',
+          agree and hz('2027-03-31', prow)['month'] == '2027-03'
+          and hz('2027-10-06', prow)['month'] == '2027-08'
+          and hz('2026-10-31', prow) is None
+          and hz('2027-03-31', prow, {'month': '2027-05'})['month'] == '2027-05'
+          and hz('2027-03-31', prow, {'month': '2099-01'}) is None
+          and hz('2027-03-31', p_gap['rows'])['month'] == '2027-02'
+          and [stp(v, 25.0) for v in (0.0, 12.5, 25.0, 50.0, 56.5, 58.0, 69.0)]
+          == [0, 1, 1, 2, 3, 3, 3]
+          and [ns['cn_num'](v) for v in (2, 6.0, 12.5, 25.0, 56.5, 69.0, 1.25)]
+          == ['二', '六', '十二点五', '二十五', '五十六点五', '六十九', '一点二五']
+          and ns['cn_amt'](2) == '两' and ns['cn_amt'](6.0) == '六'
+          and ns['ym_shift']('2026-11', 6) == '2027-05'
+          and ns['ym_shift']('2027-01', -1) == '2026-12'
+          and ns['fmt'](4.0) == '4' and ns['fmt'](295.5184) == '295.5184'
+          and seat_mlast == [mlast('DFF', '2026-08'), mlast('DFF', '2026-10'),
+                             mlast('CPI', '2026-09'), mlast('SPX', '2026-11')]
+          and ns['month_last']('SYN_NULL', '2026-08') == ('2026-08-28', 3.0),
+          f"agree={agree} seat={seat_mlast}")
+
+
+def sec_t5():
+    print('═══ 任务5: 预期差研究接入正式入口 ═══')
+    sec_t5_a()
+    sec_t5_b()
+    sec_t5_c()
+    sec_t5_d()
+    sec_t5_e()
+    sec_t5_f()
+    sec_t5_g()
+
+
 def main():
     print('Audit-R33 门 (HEAD %s)' % WORKTREE_HEAD[:12])
     try:
@@ -3213,6 +5357,7 @@ def main():
         sec_t4_f()
         sec_t4_g()
         sec_t4_h()
+        sec_t5()
     finally:
         n_ok = sum(1 for x in RESULTS if x)
         n = len(RESULTS)

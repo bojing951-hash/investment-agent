@@ -677,6 +677,112 @@ def _rmp_fallback_month_last(dates, values):
         seen[str(dd)[:7]] = vv
     return [(ym, ym + '-01', v) for ym, v in sorted(seen.items())]
 
+
+# Audit-R33 任务5(修订): 对质观测窗与结构化复算——传导环可选字段
+# observation_window{from,to:'YYYY-MM'[,yoy]} / face_off_check{main,competing:
+# {op,value,unit}}。裁决所依据的观测须与预测同窗;两解释预期按冻结序列复算
+# 后与 face_off_verdict 对账(同时成立或同时不成立=尚不能区分)。
+_FO_OPS = {
+    '>=': lambda a, b: a >= b, '>': lambda a, b: a > b,
+    '<=': lambda a, b: a <= b, '<': lambda a, b: a < b,
+    '==': lambda a, b: abs(a - b) < 1e-9, '!=': lambda a, b: abs(a - b) >= 1e-9}
+
+
+def _fo_window_points(win, dm, face):
+    """对质观测窗内的月末观测点 [(ym, date, value)] 与失败原因 → (pts, why)。
+
+    规则唯一出处=research_map_planner._face_off_window_points(对质表渲染
+    _window_obs 同调): 契约与读者面不得各算一套。"""
+    ser = (face.get('series_store') or {}).get(dm) or {}
+    try:
+        import research_map_planner as _rmp
+    except ImportError:
+        return None, 'research_map_planner 不可导入——观测窗无从复算'
+    return _rmp._face_off_window_points(
+        ser.get('dates') or [], ser.get('values') or [], ser.get('unit'),
+        win, dm)
+
+
+def _fo_change(pts, unit):
+    """观测窗首尾变化: pct=相对幅(%);bp=百分比水平差的基点;pp=百分点差。"""
+    v0, v1 = float(pts[0][2]), float(pts[-1][2])
+    if unit == 'pct':
+        return (v1 / v0 - 1.0) * 100.0 if v0 else None
+    if unit == 'bp':
+        return (v1 - v0) * 100.0
+    if unit == 'pp':
+        return v1 - v0
+    return None
+
+
+def _fo_face_off_checks(lk, lid, dm, face, plan, ok, bad):
+    win, fck = lk.get('observation_window'), lk.get('face_off_check')
+    if win is None and fck is None:
+        return
+    if not str(lk.get('competing_explanation') or '').strip():
+        bad(f'{lid}.observation_window', '对质观测窗/结构化复算须配竞争解释')
+        return
+    cutoff = str(plan.get('cutoff') or '')[:7]
+    pts, why = None, None
+    if win is not None:
+        wto = str(win.get('to') or '')[:7] if isinstance(win, dict) else ''
+        if cutoff and re.fullmatch(r'\d{4}-\d{2}', wto) and wto > cutoff:
+            # 先于取数: 截止日之后的观测不得进裁决(读者面 _window_obs 同序)
+            bad(f'{lid}.observation_window',
+                f'观测窗终点 {wto} 晚于研究截止月 '
+                f'{cutoff}——不得用截止日之后的观测裁决')
+        else:
+            pts, why = _fo_window_points(win, dm, face)
+            if pts is None:
+                bad(f'{lid}.observation_window', why)
+            else:
+                ok(f'{lid}.observation_window',
+                   f"窗 {pts[0][0]}→{pts[-1][0]} 内 {len(pts)} 期月末观测"
+                   f"({pts[0][2]:g}→{pts[-1][2]:g}"
+                   f"{';同比空间' if win.get('yoy') else ''})")
+    if fck is None:
+        return
+    if not isinstance(fck, dict) or not isinstance(fck.get('main'), dict) \
+            or not isinstance(fck.get('competing'), dict):
+        bad(f'{lid}.face_off_check', '结构化对质须含 main 与 competing 两侧预期')
+        return
+    if pts is None:
+        bad(f'{lid}.face_off_check',
+            '结构化对质须带可复算的 observation_window' + (f'({why})' if why else ''))
+        return
+    sides = {}
+    for side, lbl in (('main', '主解释'), ('competing', '竞争解释')):
+        p = fck[side]
+        op, val, unit = str(p.get('op') or ''), p.get('value'), str(p.get('unit') or '')
+        if (op not in _FO_OPS or not isinstance(val, (int, float))
+                or isinstance(val, bool) or unit not in ('pct', 'bp', 'pp')):
+            bad(f'{lid}.face_off_check.{side}',
+                f'{lbl}预期须为 {{op: >=/>/<=/</==/!=, value: 数值, '
+                'unit: pct/bp/pp}')
+            return
+        chg = _fo_change(pts, unit)
+        if chg is None:
+            bad(f'{lid}.face_off_check.{side}',
+                f'{lbl}预期按 {unit} 口径不可复算(基期为零或缺席)')
+            return
+        sides[side] = (op, float(val), unit, chg,
+                       bool(_FO_OPS[op](round(chg, 6), float(val))))
+    m_ok, c_ok = sides['main'][4], sides['competing'][4]
+    expected = ('尚不能区分' if m_ok == c_ok else
+                '支持主解释' if m_ok else '支持竞争解释')
+    detail = ';'.join(
+        f"{lbl}预期 {op} {val:g}{unit}→观测 {chg:+.2f}{unit} "
+        f"{'成立' if ok_ else '不成立'}"
+        for (op, val, unit, chg, ok_), lbl in zip(
+            (sides['main'], sides['competing']), ('主解释', '竞争解释')))
+    fv = str(lk.get('face_off_verdict') or '').strip()
+    if fv != expected:
+        bad(f'{lid}.face_off_verdict',
+            f'对质判断与结构化复算不一致: {detail}→应为 {expected}'
+            f'(声明 {fv or "空"})', contra=True)
+    else:
+        ok(f'{lid}.face_off_check', f'{detail}→{expected}')
+
 def _map_checks(judgment, face, report):
     """地图问句判定须含完整 reader_map;数值须与引擎序列回贴一致。
 
@@ -762,6 +868,9 @@ def _map_checks(judgment, face, report):
                     bad(f'{lid}.face_off_verdict',
                         f'对质判断三态闭集外({fv!r})——须为 支持主解释/'
                         '支持竞争解释/尚不能区分 之一')
+            # Audit-R33 任务5(修订;软契约): 对质观测窗与结构化复算——
+            # 字段在场才核(同窗观测复算+预期成立性+与判断对账),旧档不判错。
+            _fo_face_off_checks(lk, lid, dm, face, plan, ok, bad)
     turnings = rm.get('turnings') or []
     if len(turnings) != 3:
         bad('reader_map.turnings', f'三个转折须恰为 3(得 {len(turnings)})')
@@ -1828,6 +1937,10 @@ def _map_checks(judgment, face, report):
         if rm.get('turnings'):
             ok('reader_map.cross_face_consistency.turning_source',
                f'转折表 {len(rm["turnings"])} 项指标与计划/候选面同源')
+    # Audit-R33 任务5: 问到预期差——席位预期差判断回声契约(五面契约之后)
+    _eg_p = plan.get('expectations_gap')
+    if isinstance(_eg_p, dict) and _eg_p.get('asked'):
+        out.extend(_expectations_gap_checks(judgment, face, report, plan))
     return out
 
 
@@ -2225,6 +2338,365 @@ def _policy_question_checks(judgment, face, report, plan):
         elif text is not None and str(text).strip():
             ok(item, '数字均与引擎面对应')
     return out
+
+
+# ── Audit-R33 任务5: 预期差判断回声契约(地图五面契约之后追加) ────────────
+
+_EG_SCHEMA = 'r33-expectations-gap'
+_EG_DATE_TOKEN = re.compile(r'\b\d{4}-\d{2}-\d{2}\b')
+# 时间词形(日期/年月/年份)里的数字不是阈值——核验数字阈值前先剔除
+_EG_TIME_TOKEN = re.compile(
+    r'\b\d{4}-\d{2}(?:-\d{2})?\b|(?<![\d.])(?:19|20)\d{2}(?![\d.])\s*年')
+_EG_QUOTE_MIN = 8
+
+
+def _eg_grams(text, n=_EG_QUOTE_MIN):
+    t = re.sub(r'\s+', '', str(text or ''))
+    return {t[i:i + n] for i in range(0, max(0, len(t) - n + 1))}
+
+
+def _eg_quotes(quote, source):
+    """quote 是否逐字引自 source(≥8 字连续原文;空白不计)。"""
+    return bool(_eg_grams(quote) & _eg_grams(source)) or (
+        len(re.sub(r'\s+', '', str(source or ''))) < _EG_QUOTE_MIN
+        and str(source or '').strip()
+        and re.sub(r'\s+', '', str(source)) in re.sub(r'\s+', '', str(quote)))
+
+
+def _expectations_gap_checks(judgment, face, report, plan):
+    """问到预期差的问句: 席位预期差判断(reader_map.expectations_gap)的
+    结构化回声契约(确定性逐位核对)。
+
+    回声(as_of/可见文档数/行数/可对账数/引擎候选清单/缺口清单)须与引擎面
+    research_plan.expectations_gap 逐位一致;席位判定须逐行覆盖引擎候选与
+    须席位推导行(supported|not_a_gap+解读与归因+竞争解释【假设】+证伪
+    条件)。与引擎确定性面相左/虚构行号/假托机构原话=CONTRADICTED;缺席/
+    引用不可解析/自由文字数字无引擎面对应=NOT_VERIFIED。地图五面契约照旧。"""
+    out = []
+
+    def ok(item, note):
+        out.append({'item': item, 'claim_type': 'reader_map',
+                    'status': 'VERIFIED', 'note': note, 'evidence_refs': []})
+
+    def bad(item, note, contra=False):
+        out.append({'item': item, 'claim_type': 'reader_map',
+                    'status': 'CONTRADICTED' if contra else 'NOT_VERIFIED',
+                    'note': note, 'evidence_refs': []})
+
+    rm = (judgment or {}).get('reader_map')
+    if not isinstance(rm, dict):
+        bad('reader_map', '预期差判定须含 reader_map 顶层对象(五面+预期差)')
+        return out
+    blk = plan.get('expectations_gap')
+    if not isinstance(blk, dict) or blk.get('schema') != _EG_SCHEMA:
+        bad('research_plan.expectations_gap',
+            '引擎预期差对照块缺席/损坏——无可回声面')
+        return out
+    echo = rm.get('expectations_gap')
+    if not isinstance(echo, dict):
+        bad('reader_map.expectations_gap',
+            '席位预期差判断缺席(问到预期差: 须回声引擎面并逐候选行给出判定)')
+        return out
+    index = {e.get('ref'): e for e in (report.get('evidence_index') or [])}
+    sm = blk.get('summary') or {}
+    rows = [r for r in (blk.get('rows') or []) if isinstance(r, dict)]
+    by_id = {}
+    for r in rows:
+        by_id.setdefault(r.get('row_id'), r)
+    pool = {p.get('id'): p for p in (blk.get('falsification_pool') or [])
+            if isinstance(p, dict) and p.get('id')}
+    stmts = {}
+    for st in (blk.get('view_statements') or []):
+        if isinstance(st, dict):
+            stmts.setdefault(st.get('view_id'), []).append(st.get('text'))
+    # 数字绑定面: 对照块+研究计划(点值面/转折候选/定价曲线均在册)
+    nums, dates = _pq_engine_numbers(plan)
+    # 可观测量: 对照面指标+规则池观测量+计划指标/上下文指标
+    obs = ({r.get('metric_id') for r in rows}
+           | {str((p.get('observable') or '')).split('@')[0] for p in pool.values()}
+           | set(plan.get('metrics') or [])
+           | set(plan.get('context_metrics') or []))
+    obs.discard(None)
+    obs.discard('')
+
+    def field(item, seat, eng, key, ekey=None, numeric=False):
+        ev = eng.get(ekey or key)
+        sv = seat.get(key)
+        if ev is None:
+            if sv is None:
+                ok(item, '空=空')
+            else:
+                bad(item, f'引擎面无值而回声给出 {sv!r}(虚构)', contra=True)
+            return
+        if sv is None:
+            bad(item, f'回声缺字段/为空(引擎 {ev!r})')
+            return
+        if numeric:
+            try:
+                same = abs(float(sv) - float(ev)) < 1e-9
+            except (TypeError, ValueError):
+                same = False
+        else:
+            same = (sv == ev)
+        if same:
+            ok(item, f'{sv!r} 一致')
+        else:
+            bad(item, f'回声 {sv!r} ≠ 引擎面 {ev!r}', contra=True)
+
+    # ── 回声 ──
+    it0 = 'reader_map.expectations_gap'
+    field(it0 + '.as_of', echo, {'as_of': blk.get('as_of')}, 'as_of')
+    for key, ekey in (('n_views_visible', 'n_views_visible'),
+                      ('n_rows', 'n_rows'), ('comparable_n', 'comparable_n'),
+                      ('engine_candidate_n', 'candidate_n')):
+        field(it0 + '.' + key, echo, sm, key, ekey=ekey, numeric=True)
+    cands = sorted(str(r.get('row_id')) for r in rows if r.get('candidate') is True)
+    ec = echo.get('engine_candidates_echoed')
+    if not isinstance(ec, list) or any(not isinstance(x, str) for x in ec):
+        bad(it0 + '.engine_candidates_echoed', '须为字符串数组(引擎候选行号)')
+    else:
+        extra = sorted(set(ec) - set(cands))
+        drop = sorted(set(cands) - set(ec))
+        if not extra and not drop:
+            ok(it0 + '.engine_candidates_echoed', f'{len(cands)} 行逐条一致')
+        else:
+            bad(it0 + '.engine_candidates_echoed',
+                f'候选清单回声不一致: 缺 {drop}; 多出 {extra}',
+                contra=any(x not in by_id for x in extra))
+    from collections import Counter as _Ctr
+    eg_ = _Ctr((g.get('code'), g.get('region'), g.get('metric_id'))
+               for g in (blk.get('gaps') or []) if isinstance(g, dict))
+    sg = echo.get('gaps_echoed')
+    if not isinstance(sg, list) or any(not isinstance(x, dict) for x in sg):
+        bad(it0 + '.gaps_echoed', '须为数组(条目 {code, region, metric_id})')
+    else:
+        sc = _Ctr((x.get('code'), x.get('region'), x.get('metric_id'))
+                  for x in sg)
+        if sc == eg_:
+            ok(it0 + '.gaps_echoed', f'{sum(eg_.values())} 条逐条一致')
+        else:
+            bad(it0 + '.gaps_echoed',
+                f'缺口回声不一致: 缺 {sorted(map(str, (eg_ - sc).elements()))};'
+                f' 多出 {sorted(map(str, (sc - eg_).elements()))}')
+    ss = echo.get('seat_summary')
+    if isinstance(ss, str) and ss.strip():
+        ok(it0 + '.seat_summary', '非空')
+    else:
+        bad(it0 + '.seat_summary',
+            '席位总述缺席/为空(问到预期差: 须直接回答「有哪些预期差」)')
+
+    # ── 证伪窗口回声(问句指定窗口时必回声;未指定而回声=虚构) ──
+    win = blk.get('falsification_window')
+    we = echo.get('window_echo')
+    if isinstance(win, dict):
+        if not isinstance(we, dict):
+            bad(it0 + '.window_echo',
+               '问句指定证伪窗口(%s → %s)——席位须回声窗口(月数/起/止)'
+               % (win.get('start'), win.get('end')))
+        else:
+            for key in ('months', 'start', 'end'):
+                field(it0 + '.window_echo.' + key, we, win, key)
+    elif we is not None:
+        bad(it0 + '.window_echo',
+            '引擎面无证伪窗口而席位回声给出 %r(虚构)' % (we,), contra=True)
+
+    # ── 席位判定逐行 ──
+    must = sorted(set(cands) | {
+        str(r.get('row_id')) for r in rows if r.get('status') == 'reading_required'})
+    sup = echo.get('supported_gaps')
+    if not isinstance(sup, list):
+        bad(it0 + '.supported_gaps', '须为数组(逐行席位判定)')
+        sup = []
+    seen, texts = {}, [(it0 + '.seat_summary', ss)]
+    for i, g in enumerate(sup):
+        it = f'{it0}.supported_gaps[{i}]'
+        if not isinstance(g, dict):
+            bad(it, '条目须为对象')
+            continue
+        rid = g.get('row_id')
+        if not isinstance(rid, str) or rid not in by_id:
+            bad(it + '.row_id', f'行号不在引擎对照面({rid!r})——虚构行',
+                contra=True)
+            continue
+        if rid in seen:
+            bad(it + '.row_id', f'重复判定(首次见 [{seen[rid]}])')
+            continue
+        seen[rid] = i
+        eng = by_id[rid]
+        verdict, est = g.get('verdict'), eng.get('status')
+        if verdict not in ('supported', 'not_a_gap'):
+            bad(it + '.verdict',
+                "须为 'supported'(预期差成立)或 'not_a_gap'(判非预期差)")
+        elif verdict == 'supported':
+            if eng.get('candidate') is True:
+                ok(it + '.verdict', '引擎候选行——席位判预期差成立')
+            elif est == 'reading_required':
+                ok(it + '.verdict', '文字/多值点位行——席位推导判预期差成立')
+            elif est in ('consistent', 'consistent_stale_fact',
+                         'ex_post_consistent'):
+                bad(it + '.verdict',
+                    f'引擎面对照为「{_eg_status_cn(est)}」——席位判预期差'
+                    '成立与引擎确定性面相左', contra=True)
+            else:
+                bad(it + '.verdict',
+                    f'该行引擎状态为「{_eg_status_cn(est)}」——无事实/同期限'
+                    '定价可对账,预期差成立无证据支撑(应判 not_a_gap 并写缺口)')
+        else:
+            ok(it + '.verdict', '席位判非预期差')
+        reading, ra = g.get('reading'), g.get('reading_attribution')
+        if not isinstance(reading, str) or not reading.strip():
+            bad(it + '.reading', '席位解读缺席/为空')
+        elif ra not in ('institution_stated', 'ai_inferred'):
+            bad(it + '.reading_attribution',
+                "须为 'institution_stated' 或 'ai_inferred'")
+        elif (est == 'reading_required'
+              and not (ra == 'ai_inferred' and '席位推导' in reading)):
+            bad(it + '.reading',
+                '文字/多值点位行引擎不解读——解读须 ai_inferred 且正文含'
+                '「席位推导」')
+        elif ra == 'institution_stated':
+            if any(_eg_quotes(reading, q) for q in stmts.get(eng.get('view_id')) or []):
+                ok(it + '.reading', f'机构原话(逐字引自 {eng.get("view_id")})')
+            else:
+                bad(it + '.reading',
+                    f'标「机构原话」但未逐字引自该观点文档({eng.get("view_id")})'
+                    f'的机构表述(≥{_EG_QUOTE_MIN} 字)——假托机构原话', contra=True)
+        else:
+            ok(it + '.reading', '席位推导')
+        ce = g.get('competing_explanation')
+        if not isinstance(ce, str) or not ce.strip():
+            bad(it + '.competing_explanation',
+                '竞争解释缺席(预期差判定须并列竞争性解释)')
+        elif '假设' not in ce:
+            bad(it + '.competing_explanation',
+                '竞争解释须明写其【假设】(四层标注: 事实/推断/假设/尚未验证)')
+        else:
+            ok(it + '.competing_explanation', '并列竞争性解释(含假设)')
+        reason = g.get('reason')
+        if isinstance(reason, str) and reason.strip():
+            ok(it + '.reason', '非空')
+        else:
+            bad(it + '.reason', '判定理由缺席/为空')
+        fcs = g.get('falsification_conditions')
+        if fcs is None and verdict == 'not_a_gap':
+            fcs = []
+        if not isinstance(fcs, list):
+            bad(it + '.falsification_conditions', '须为数组')
+            fcs = []
+        elif verdict == 'supported' and not fcs:
+            bad(it + '.falsification_conditions',
+                '支持的预期差须给出 ≥1 条证伪条件(可观测指标+数字阈值+日期)')
+        for j, c in enumerate(fcs):
+            cit = it + f'.falsification_conditions[{j}]'
+            if not isinstance(c, dict):
+                bad(cit, '条目须为对象')
+                continue
+            cond, ca = c.get('condition'), c.get('attribution')
+            if not isinstance(cond, str) or not cond.strip():
+                bad(cit + '.condition', '条件文本缺席/为空')
+                continue
+            if ca == 'ai_inferred':
+                if not _PQ_NUM_TOKEN.search(_EG_TIME_TOKEN.sub(' ', cond)):
+                    bad(cit, '席位自设证伪条件须含数字阈值(日期/年份之外)')
+                elif not _EG_DATE_TOKEN.search(cond):
+                    bad(cit, '席位自设证伪条件须含观察截止日期(YYYY-MM-DD)')
+                else:
+                    hit = [m for m in obs
+                           if re.search(r'(?<![A-Za-z0-9_])' + re.escape(str(m))
+                                        + r'(?![A-Za-z0-9_])', cond)]
+                    if not hit:
+                        bad(cit, '席位自设证伪条件须含可观测量(在册指标 id): '
+                            f'{cond[:40]}')
+                    else:
+                        ok(cit, f'可观测({sorted(hit)[:2]})+数字阈值+日期')
+            elif ca in ('institution_stated', 'engine_rule'):
+                p = pool.get(c.get('source_ref'))
+                want = 'view_library' if ca == 'institution_stated' else 'engine_rule'
+                if not p or p.get('source') != want or (
+                        ca == 'institution_stated'
+                        and p.get('attribution') != 'institution_stated'):
+                    bad(cit + '.source_ref',
+                        f'标「{"机构原话" if ca == "institution_stated" else "引擎规则"}」'
+                        '须 source_ref 指向证伪条件池内对应来源条目(pool id)')
+                elif not _eg_quotes(cond, p.get('condition')):
+                    bad(cit + '.condition',
+                        '条件须逐字引自所引'
+                        f'{"机构原文" if ca == "institution_stated" else "引擎规则"}'
+                        f'(≥{_EG_QUOTE_MIN} 字)', contra=True)
+                else:
+                    ok(cit, f'{c.get("source_ref")} 逐字引用')
+            else:
+                bad(cit + '.attribution',
+                    "须为 'institution_stated' / 'ai_inferred' / 'engine_rule'")
+        refs = g.get('evidence_refs')
+        if (not isinstance(refs, list)
+                or not all(isinstance(x, str) for x in refs) or not refs):
+            bad(it + '.evidence_refs', '引用缺席/非字符串数组')
+        else:
+            unres = [x for x in refs if x not in index]
+            er_refs = set(eng.get('evidence_refs') or [])
+            if unres:
+                bad(it + '.evidence_refs',
+                    f'引用不可解析(不在 evidence_index): {unres[:3]}')
+            elif er_refs and not (set(refs) & er_refs):
+                bad(it + '.evidence_refs',
+                    f'引用未落在该行引擎实据上(须含 {sorted(er_refs)[:3]} 之一)')
+            else:
+                ok(it + '.evidence_refs', f'{len(refs)} 引用可解析且落在引擎行')
+        if isinstance(reading, str) and ra == 'ai_inferred':
+            texts.append((it + '.reading', reading))
+        texts.append((it + '.reason', reason))
+    drop = [x for x in must if x not in seen]
+    if drop:
+        bad(it0 + '.supported_gaps',
+            f'引擎候选/须席位推导行未逐行判定(缺 {drop})')
+    elif must:
+        ok(it0 + '.supported_gaps', f'{len(must)} 行逐行已判')
+    ku = echo.get('key_unknowns')
+    if not isinstance(ku, list) or any(not isinstance(x, str) for x in ku):
+        bad(it0 + '.key_unknowns', '须为字符串数组')
+    elif not ku and (sm.get('gaps') or 0) > 0:
+        bad(it0 + '.key_unknowns',
+            f'关键未知为空——引擎对照面有 {sm.get("gaps")} 项缺口,'
+            '席位须写明哪些未知影响预期差判断')
+    else:
+        ok(it0 + '.key_unknowns', f'{len(ku)} 条')
+        texts += [(f'{it0}.key_unknowns[{i}]', x) for i, x in enumerate(ku)]
+    cm = echo.get('comments')
+    if cm is None:
+        cm = []
+    if not isinstance(cm, list) or any(not isinstance(x, str) for x in cm):
+        bad(it0 + '.comments', '须为字符串数组')
+    else:
+        texts += [(f'{it0}.comments[{i}]', x) for i, x in enumerate(cm)]
+
+    # ── 自由文字数字绑定 ──
+    for item, text in texts:
+        if item.endswith('seat_summary') and not (
+                isinstance(text, str) and text.strip()):
+            continue        # 已按空判
+        un = _pq_unbound_tokens(text, nums, dates)
+        if un:
+            bad(item, f'自由文字数字与引擎面不对应: {un[:6]}')
+        elif isinstance(text, str) and text.strip():
+            ok(item, '数字均与引擎面对应')
+    return out
+
+
+_EG_STATUS_CN = {
+    'consistent': '一致', 'inconsistent': '不一致(引擎候选)',
+    'consistent_stale_fact': '一致(陈旧读数)', 'no_longer_current': '已过时',
+    'fact_mismatch': '与事实不符', 'unverifiable': '不可核',
+    'context_only': '只列背景', 'reading_required': '须席位推导',
+    'series_absent': '序列缺席', 'unmapped': '未映射',
+    'ex_post_consistent': '事后一致', 'ex_post_missed': '事后未兑现',
+    'not_comparable': '不可对照'}
+
+
+def _eg_status_cn(status):
+    return _EG_STATUS_CN.get(str(status), str(status))
+
+
 
 
 def _ym_shift(ym, n):

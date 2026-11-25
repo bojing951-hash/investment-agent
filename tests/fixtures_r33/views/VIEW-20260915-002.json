@@ -1,0 +1,132 @@
+{
+ "schema_version": "1.1",
+ "view_id": "VIEW-20260915-002",
+ "institution": {
+  "name": "南山宏观(虚构机构)",
+  "type": "asset_manager",
+  "department": "宏观策略部(虚构)"
+ },
+ "authors": [
+  "门夹具(虚构作者)"
+ ],
+ "report_title": "虚构观点档 B: 四地政策路径对照(门夹具)",
+ "source_url": "https://example.invalid/fixtures/VIEW-20260915-002",
+ "source_type": "official_summary_page",
+ "publish_date": "2026-09-15",
+ "fetch_date": "2026-09-16",
+ "access_level": "public_summary",
+ "view_horizon": "12m",
+ "subjects": [
+  "US_rates",
+  "JP_macro",
+  "EA_macro",
+  "CN_macro"
+ ],
+ "core_views": [
+  {
+   "statement": "虚构核心观点: 联储到 2027 年年中累计加息 75bp(门夹具)",
+   "attribution": "institution_stated",
+   "basis": "paraphrase"
+  }
+ ],
+ "forecasts": [
+  {
+   "target": "fed_policy_path_baseline",
+   "value_or_direction": "2026年12月加息 25bp",
+   "horizon": "2026-12",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "fed_policy_path_baseline",
+   "value_or_direction": "2027年3月加息 50bp",
+   "horizon": "2027-03",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "fed_policy_path_baseline",
+   "value_or_direction": "2027年6月前至少加息2次",
+   "horizon": "2027-06",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "Fed_further_hike_outlook",
+   "value_or_direction": "维持数据依赖立场,不预设路径",
+   "horizon": "中期",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "fed_funds_target_range",
+   "value_or_direction": "3.75%–4.00%",
+   "horizon": "当前",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "BOJ_policy_rate",
+   "value_or_direction": "2027年3月前加息 15bp",
+   "horizon": "2027-03",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "BOJ_policy_rate",
+   "value_or_direction": "1.5%",
+   "horizon": "2027-03",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "ECB_deposit_facility_rate",
+   "value_or_direction": "2.50%",
+   "horizon": "当前",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "ECB_deposit_facility_rate",
+   "value_or_direction": "2.00%",
+   "horizon": "当前",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "中国贷款市场报价利率",
+   "value_or_direction": "3.0%",
+   "horizon": "当前",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "欧元区GDP增长",
+   "value_or_direction": "+1.2%",
+   "horizon": "2026",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "fed_policy_path_baseline",
+   "value_or_direction": "2027年9月加息 25bp",
+   "horizon": "2027-09",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "fed_policy_path_baseline",
+   "value_or_direction": "2027年6月前至多加息1次",
+   "horizon": "2027-06",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "标普500盈利增长",
+   "value_or_direction": "+15%",
+   "horizon": "2027",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "全球增长前景",
+   "value_or_direction": "4.0%",
+   "horizon": "2027",
+   "attribution": "institution_stated"
+  }
+ ],
+ "key_assumptions": [],
+ "evidence_cited": [],
+ "mechanism_steps": [],
+ "risk_factors": [],
+ "falsification_conditions": [],
+ "revisions": [],
+ "completeness_notes": "Audit-R33 任务5 门夹具: 全部内容为虚构,不含真实机构表述",
+ "copyright_note": "合成夹具,无版权内容"
+}

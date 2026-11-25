@@ -1523,8 +1523,29 @@ def _snap_as_of_date(snap):
     return None
 
 
+def _mask_research_month(question, ym):
+    """Audit-R33 任务5: 研究年月词形→等长掩码('□'),字符偏移不变(研究对象
+    区间照用)。仅当问句只含这一个日期词形且恰为研究年月才掩;定位不到/
+    规范化改变长度/另含日期词形(区间表达等)→None(不掩,维持原判)。"""
+    if not question or not ym:
+        return None
+    qn = _norm_question(question)
+    if len(qn) != len(question):
+        return None
+    toks = [(m.start(), m.end(), m.group(0))
+            for m in _QDATE_TOKEN_RE.finditer(qn)]
+    if len(toks) != 1:
+        return None
+    s, e, raw = toks[0]
+    iso = _norm_qdate(raw, 'start')
+    if not iso or str(iso)[:7] != ym:
+        return None
+    return question[:s] + '\u25a1' * (e - s) + question[e:]
+
+
 def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
-                                question=None, registry=None, map_plan=None):
+                                question=None, registry=None, map_plan=None,
+                                lexical_metrics=None):
     """Audit-R4 条目5 + Audit-R5 条目2 + Audit-R6 条目2(抽函数可测)。
 
     判据序: 快照 series_store 序列 → **本管线 S4 history 步已探测的信封**
@@ -1568,6 +1589,18 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
     # Audit-R18: 地图问句——计划指标 tier=planned(缺数=披露不阻断,分级
     # 见条目 basis);点锚/事后偏移词形入窗口解析覆盖集(非残缺数量)。
     _planned_mids = set((map_plan or {}).get('metrics') or [])
+    # Audit-R33 任务5: 预期差对照面用到的在册指标(引擎按对照需要选定并入
+    # 取数/证据面)=planned——缺席/陈旧由对照面逐行披露;问句词面命中者
+    # 仍为必要(lexical_metrics=词面命中集;未传=维持旧口径)。
+    _eg_req = ((map_plan or {}).get('expectations_gap')
+               if isinstance(map_plan, dict) else None)
+    _lex_mids = (set(lexical_metrics)
+                 if lexical_metrics is not None else None)
+    _eg_planned = ({m for m in (_eg_req.get('metrics_used') or [])
+                    if m not in _lex_mids}
+                   if _lex_mids is not None and isinstance(_eg_req, dict)
+                   and _eg_req.get('schema') == 'r33-expectations-gap'
+                   else set())
     _map_spans = (map_plan or {}).get('consumed_time_spans') or ()
     _range_years = _question_range_years(question, _espans)
     if not isinstance(_range_years, (int, float)) \
@@ -1576,7 +1609,19 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
         # (不影响阻断: _qw 同源 unparseable 已拦);R11 P1: 小数年限
         # (1.5)为合法数量,min_obs 按折算整数月推
         _range_years = None
-    _qw = _question_window(question, _espans,
+    # Audit-R33 任务5: 计划已把问句研究年月声明为研究范围(as_of_declared.
+    # scoped_to_question_month: 原问直答型/预期差问句)——该年月是研究时点
+    # 标记而非序列观测窗(R10-02「时点≠窗口边界」同一纪律): 范围解析前
+    # 等长掩码剔出,其余范围词形照常约束(不因日期在场丢失,也不因日期
+    # 在场多出一个月窗);研究截止日仍取证据口径截止日。单月词面窗对月频
+    # 指标恒不可满足(起+62 天容忍晚于止-75 天容忍)。另含日期词形(区间
+    # 表达)不掩,维持原判;非该类计划零变化。
+    _ad_sc = (map_plan or {}).get('as_of_declared') or {}
+    _q_win = question
+    if isinstance(_ad_sc, dict) and _ad_sc.get('scoped_to_question_month'):
+        _q_win = _mask_research_month(
+            question, str(_ad_sc.get('question_month') or '')) or question
+    _qw = _question_window(_q_win, _espans,
                            map_time_spans=_map_spans)  # R7-01: 显式区间优先
     _as_of = _snap_as_of_date(snap)
     # R10 P1③: 问题声明研究时点(「以X为研究时点」)优先于快照
@@ -1998,13 +2043,19 @@ def _evaluate_data_requirements(metrics, steps, snap, l1_rows,
                       + (f'(任务窗{_win_desc})' if _win_desc else '')
                       + f'——{_lack};' + _basis)
         req_items.append({'metric_id': _mid,
-                          'tier': ('planned' if _mid in _planned_mids
+                          'tier': ('planned' if (_mid in _planned_mids
+                                                   or _mid in _eg_planned)
                                    else 'required'),
                           'basis': ('地图研究计划(引擎按地区×维度选定;'
                                     '序列缺席/覆盖不足=如实缺数格披露于'
                                     'research_plan.point_values+MAP_REPORT,'
                                     '与词面命中的任务目标缺口分级)'
                                     if _mid in _planned_mids else
+                                    '预期差对照面指标(引擎按对照需要'
+                                    '选定并入取数/证据面;缺席/陈旧='
+                                    '对照面逐行披露于 research_plan.'
+                                    'expectations_gap.gaps)'
+                                    if _mid in _eg_planned else
                                     '问题词面命中(任务目标)'),
                           'spec': {'form': 'series',
                                    'window': (_spec_win if _spec_win else
@@ -2157,6 +2208,13 @@ def _pin_frozen_inputs(wd, root):
     return set_keys, tmpdir, snap_td
 
 
+def _eg_asked(question):
+    """Audit-R33 任务5: 问句是否问到预期差(expectations_gap.is_asked;已归档
+    问句无触发词=恒 False,零漂移)。"""
+    import expectations_gap as _eg_q
+    return bool(_eg_q.is_asked(question))
+
+
 def _resolve_evidence_asof(question, root, reg_by_id, metric_ids,
                            coverage_iso, ent=None):
     """Audit-R32 任务1: 运行级研究截止日(统一证据口径)解析。
@@ -2183,11 +2241,18 @@ def _resolve_evidence_asof(question, root, reg_by_id, metric_ids,
     # 月份范围(不吃研究月之后才发布的数据)。显式时点标记/单一相对
     # 窗时点化(R31 口径)仍优先。
     _yme = None
+    _yme_lab = '原问直答型'
     if ent is not None:
         import policy_question as _pq_a
         import research_map_planner as _rmp_a
         if _rmp_a.question_kind(question, ent) == 'policy_question':
             _yme = _pq_a.research_month_end(question)
+        elif (_rmp_a.detect_map_question(question, ent)
+              and _eg_asked(question)):
+            # Audit-R33 任务5: 预期差问句的研究年月同为研究范围(12 月快照
+            # 重跑 11 月问句仍守 11 月范围;显式时点标记/单一相对窗仍优先)
+            _yme = _pq_a.research_month_end(question)
+            _yme_lab = '预期差问句'
     if _yme:
         info.update(scoped_to_question_month=True,
                      question_month=_yme[:7],
@@ -2223,7 +2288,7 @@ def _resolve_evidence_asof(question, root, reg_by_id, metric_ids,
                 clamped_to_coverage=True,
                 requested_as_of=_yme,
                 requested_basis=(
-                    f'问句研究年月 {_yme[:7]}(原问直答型)按月末时点化为'
+                    f'问句研究年月 {_yme[:7]}({_yme_lab})按月末时点化为'
                     f'请求研究时点 {_yme}(晚于快照实际覆盖日 '
                     f'{coverage_iso})→研究截止日取实际覆盖日 '
                     f'{coverage_iso}'),
@@ -2243,7 +2308,7 @@ def _resolve_evidence_asof(question, root, reg_by_id, metric_ids,
         info.update(
             requested_as_of=_yme,
             requested_basis=(
-                f'原问研究年月 {_yme[:7]}(原问直答型)→研究截止日取该月末 '
+                f'原问研究年月 {_yme[:7]}({_yme_lab})→研究截止日取该月末 '
                 f'{_yme}(早于快照版本日 {coverage_iso}: 原问的月范围优先于'
                 '快照版本日,研究月之后才发布的数据不入证据)'))
         return _yme, info
@@ -2348,6 +2413,7 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
     # ── S1 拆问题(确定性面) ─────────────────────────────────────────
     reg = wd.load_registry(root)
     ent = map_entities(question, reg)
+    _lex_metrics = list(ent['metrics'])   # Audit-R33 任务5: 问句词面命中集
     # Audit-R18: 地图问句(多地区×多维度)零词面命中=metrics 空、降级经济体
     # 概览但 run_ok=True——答非所问面被当正例放行。检测命中→共享研究计划
     # (取数/报告/验收同一份): 地区×维度指标+缺口、三个对照时点(日历点锚)
@@ -2465,11 +2531,39 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
                 research_plan['policy_question'] = _pq_o.build_faces(
                     research_plan, _snap0, root, as_of=_cutoff,
                     point_values=research_plan.get('point_values'))
+            # Audit-R33 任务5: 预期差对照块(问到预期差;机构观点×同期限市场
+            # 定价×事实,零模型确定性面)——与点值面同读同一份截止视图快照;
+            # 观点库=引擎根 data/institutions/views(缺席=草稿级缺口如实列);
+            # 无快照=块缺席(计划段按硬缺口回传)
+            if ((research_plan.get('expectations_gap') or {})
+                    .get('asked')):
+                import expectations_gap as _eg_o
+                _g_rel = (os.path.relpath(_snap0_note, root)
+                          if isinstance(_snap0_note, str)
+                          and os.path.isfile(_snap0_note) else None)
+                research_plan['expectations_gap'] = _eg_o.build_block(
+                    research_plan, _snap0, root, as_of=_cutoff,
+                    question=question, snapshot_rel=_g_rel,
+                    reg_by_id=reg.get('by_id') or {})
         _merged = list(ent['metrics']) + [
             m for m in research_plan['metrics']
             if m not in ent['metrics']]
-        ent = dict(ent, metrics=_merged, note=None,
-                   research_plan=research_plan)
+        # Audit-R33 任务5: 对照面用到的在册指标并入取数/证据面;对照面地区
+        # 并入经济体枚举(S3 概览面同范围)——问什么取什么
+        _eg_plan = ((research_plan.get('expectations_gap') or {})
+                    if research_plan is not None else {})
+        _eg_blk0 = (_eg_plan if isinstance(_eg_plan, dict)
+                    and _eg_plan.get('schema') == 'r33-expectations-gap'
+                    else None)
+        if _eg_blk0 is not None:
+            _merged += [m for m in (_eg_blk0.get('metrics_used') or [])
+                        if m not in _merged]
+        ent = dict(
+            ent, metrics=_merged, note=None, research_plan=research_plan,
+            economies=list(dict.fromkeys(
+                list(ent.get('economies') or [])
+                + [e for e in ((_eg_blk0 or {}).get('regions') or [])
+                   if e in rmp.REGION_DIMENSION_METRICS])))
     steps.append({'step': 'S1_decompose', 'executed': True, 'ok': True,
                   'deterministic_face': ent,
                   'agent_face_note': '自然语言深拆/主要矛盾综合=编排层 Agent;'
@@ -2719,7 +2813,8 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
     # 评据: L1 行 / 快照 series_store 序列在场(S4 history 数据源)。
     _req_items = _evaluate_data_requirements(
         ent['metrics'], steps, snap, l1_rows, question=question,
-        registry=reg.get('by_id'), map_plan=research_plan)
+        registry=reg.get('by_id'), map_plan=research_plan,
+        lexical_metrics=_lex_metrics)
     data_requirements = {
         'frozen_at': 'plan(采集前冻结;分类与规格不随采集结果改判)',
         'items': _req_items,
@@ -2830,6 +2925,14 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
         import policy_question as _pq_i
         evidence_index.extend(_pq_i.evidence_rows(
             _pq_blk, {r['ref'] for r in evidence_index}))
+    # Audit-R33 任务5: 预期差对照引用行入索引(观点库文档/库内预测行/市场
+    # 定价/序列读数点;与既有行按 ref 去重)——席位判断的证据引用可解析可核
+    if isinstance((research_plan or {}).get('expectations_gap'), dict):
+        import expectations_gap as _eg_ix
+        _eg_ib = _eg_ix.plan_block(research_plan)
+        if _eg_ib is not None:
+            evidence_index.extend(_eg_ix.evidence_rows(
+                _eg_ib, {r['ref'] for r in evidence_index}))
     missing_ref = [r['metric_id'] for r in l1_rows if not r['source']['id']]
     selfcheck = {'n_evidence_rows': len(evidence_index),
                  'n_rows_missing_ref': len(missing_ref),
@@ -2894,6 +2997,20 @@ def _run_research_body(question, root=None, archive=False, out_dir=None,
             if os.path.isfile(_vp_):
                 _frozen_inputs[os.path.relpath(_vp_, root)] = hashlib.sha256(
                     open(_vp_, 'rb').read()).hexdigest()[:16]
+        # Audit-R33 任务5: 对照面读过的观点库文件(可见文档)与规范目标映射
+        # 并入冻结输入——随包 root_overlay 走;运行期间盘面与块内清单摘要
+        # 不一致=对照面已变,响亮失败
+        if isinstance(research_plan.get('expectations_gap'), dict):
+            import expectations_gap as _eg_fz
+            _eg_fb = _eg_fz.plan_block(research_plan)
+            if _eg_fb is not None:
+                _srel = (os.path.relpath(snap_note, root)
+                         if (snap is not None
+                             and isinstance(snap_note, str)
+                             and os.path.isfile(snap_note)) else None)
+                _frozen_inputs = _eg_fz.merge_frozen_inputs(
+                    _frozen_inputs, _eg_fb, root, _srel,
+                    _frozen_inputs.get(_srel) if _srel else None)
         if not _frozen_inputs:
             _frozen_inputs = None
     # Audit-R32 任务1: 证据口径块随 run 落档(截止日/来源快照/规则/剔除计数/

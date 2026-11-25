@@ -25,6 +25,7 @@ report 段做数值回贴核对(引擎点值 vs 判断叙述中的数字)。"""
 
 import bisect
 import json
+import math
 import os
 import re
 
@@ -1143,6 +1144,12 @@ def question_kind(question, ent):
     计划内 question_kind(旧档无此键=地图口径,零漂移)。"""
     if detect_map_question(question, ent):
         return 'map'
+    import expectations_gap as _eg_k
+    if _eg_k.is_asked(question):
+        # Audit-R33 任务5: 问到预期差=一律地图口径(五面契约不变,报告追加
+        # 预期差对照节;形状判据不成立时地区=问句点名/否则四地全登记、
+        # 维度=显式否则全维族,见 plan_map)。已归档问句无触发词(零漂移)。
+        return 'map'
     import policy_question as _pq
     if _pq.detect_policy_question(question, ent):
         return 'policy_question'
@@ -1333,6 +1340,53 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
     _requests = _clause_region_dimension_requests(question, ecos)
     if not _requests:
         _requests = [(e, d) for e in ecos for d in dims]
+    # Audit-R33 任务5: 问到预期差而形状判据不成立——地区=问句点名(名称/
+    # 简称/央行别名;无点名=四地全登记,披露来源)、维度=显式词形否则全维族,
+    # 请求=全域全维(五面契约照旧);计划键 expectations_gap 先落 asked 标记,
+    # 编排器以对照块整体覆盖。
+    import expectations_gap as _eg
+    _gap_asked = _eg.is_asked(question)
+    _gap = None
+    _gap_default_dims = False
+    if _gap_asked:
+        _shape = detect_map_question(question, ent)
+        _g_ecos, _g_rsrc = _eg.plan_regions(question, ent)
+        if not _shape:
+            ecos = list(_g_ecos)
+            if not dims:
+                dims = list(_IMPLICIT_DIM_ALL)
+                _gap_default_dims = True
+            _requests = (_clause_region_dimension_requests(question, ecos)
+                         or [(e, d) for e in ecos for d in dims])
+        _gap = {'asked': True, 'discipline': 'r33', 'map_shape': _shape,
+                'regions': list(_g_ecos), 'region_source': _g_rsrc,
+                'falsification_window': _eg.parse_falsification_window(
+                    question, cutoff_iso)}
+    # Audit-R33 任务5: 问到预期差而问句未自带历史时点(无「N个月前」/历史
+    # 年月/时间窗词形)——对照点锚取默认三时点(12个月前/3个月前/最新一期,
+    # 相对研究截止日)、事后偏移取默认 3/6/12 月: 预期差报告须有四地
+    # 三时点+转折/传导/历史类比的随后表现;问句自带时点词形时不补。
+    _gap_anchors = parse_point_anchors(question, cutoff_iso)
+    _gap_expo = parse_ex_post_offsets(question)
+    if _gap_asked and not any(a['months_before'] > 0 for a in _gap_anchors):
+        _gap_anchors = [
+            {'kind': 'point', 'label': '12个月前',
+             'as_of': _shift_months(cutoff_iso, 12), 'months_before': 12,
+             'default_three_point': 'expectations_gap'},
+            {'kind': 'point', 'label': '3个月前',
+             'as_of': _shift_months(cutoff_iso, 3), 'months_before': 3,
+             'default_three_point': 'expectations_gap'}] + _gap_anchors
+        if not any(a['months_before'] == 0 for a in _gap_anchors):
+            _gap_anchors.append(
+                {'kind': 'point', 'label': '最新一期',
+                 'as_of': cutoff_iso, 'months_before': 0,
+                 'default_three_point': 'expectations_gap'})
+        if not _gap_expo:
+            _gap_expo = [
+                {'kind': 'ex_post', 'months': n,
+                 'anchored_on': '事件日(转折/历史类比基准)向前后移',
+                 'default_three_point': 'expectations_gap'}
+                for n in (3, 6, 12)]
     # Audit-R29 任务2: 隐含展开是否实际触发(句段含经济体+环境/分化线索+
     # 零显式维度)——dimension_source 披露用,与句段请求同一判据
     _implicit_fired = False
@@ -1422,6 +1476,9 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         # Audit-R29 任务2: 维度来源披露——显式词形 / 隐含全维族展开 /
         # 句段零命中回退全域全维,三态随计划落档(读者可核网格为何如此)。
         'dimension_source': (
+            'implicit_expectations_gap(预期差问句无显式维度词形,取全维族 '
+            '增长+通胀+货币政策;证据不足维度由缺口面逐项标注)'
+            if _gap_default_dims else
             'implicit_macro_environment(问句无显式维度词形,按环境/分化'
             '线索展开全维族 增长+通胀+货币政策;证据不足维度由缺口面'
             '逐项标注)' if _implicit_fired else
@@ -1447,7 +1504,7 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         # Audit-R33 任务3: 原问直答型问句不挂美债三利率上下文指标
         # (问什么取什么;地图问句不变)
         'context_metrics': ([] if _fam else [m for m in US_RATES_TRIO]),
-        'point_anchors': parse_point_anchors(question, cutoff_iso),
+        'point_anchors': _gap_anchors,
         # Audit-R33 任务3: 原问直答型的时间分量分记(研究年月→研究
         # 截止日;回看窗口→政策/待生效;同比基期→通胀)
         'question_time': (_pq_p.parse_question_time(question, cutoff_iso)
@@ -1459,7 +1516,7 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         'question_window': (
             {'windows': parse_question_windows(question, cutoff_iso)}
             if parse_question_windows(question, cutoff_iso) else None),
-        'ex_post_offsets': parse_ex_post_offsets(question),
+        'ex_post_offsets': _gap_expo,
         'anchor_semantics_note': '「N个月前」=日历点锚(研究截止日−N月);'
                                  '「事件发生后N个月」=事后偏移锚(事件日+N月) '
                                  '——两类分记,前者用于三时点对照,后者用于'
@@ -1468,6 +1525,9 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         'cutoff': cutoff_iso,
         'consumed_time_spans': consumed_time_spans(question),
     }
+    if _gap is not None:
+        # Audit-R33 任务5: 未问到=None 不落键(旧口径计划字节不变)
+        plan['expectations_gap'] = _gap
     return plan
 
 
@@ -2735,6 +2795,138 @@ def _distinguishing_obs(rj, cutoff, metric_id):
     return f"(引擎当前面: {dates[k1]}={v1:g})"
 
 
+def _finite_obs(v):
+    return (isinstance(v, (int, float)) and not isinstance(v, bool)
+            and math.isfinite(v))
+
+
+def _month_last_valid(dates, values):
+    """各月月末最新有效观测 [(ym, date, value)](无有效观测的月不出)——与席位
+    读数 month_last 同口径。"""
+    seen = {}
+    for d, v in zip(dates or [], values or []):
+        if _finite_obs(v):
+            seen[str(d)[:7]] = (d, v)
+    return [(ym, seen[ym][0], seen[ym][1]) for ym in sorted(seen)]
+
+
+def _face_off_window_points(dates, values, unit, win, dm=''):
+    """对质观测窗内的月末观测点 [(ym, date, value)] 与失败原因 → (pts, why)。
+
+    Audit-R33 任务5(修订): 对质表渲染、attach 契约复算两处共用这一条规则
+    (席位读数 month_last 同口径)。窗形须为 {from,to:'YYYY-MM'['-DD'],yoy};
+    yoy=水平(指数/总量)序列转同比空间(与转折探测同算法),非水平序列不做
+    同比;取窗内各月月末最新有效观测(有限数值);窗内不足两期、或起止月
+    本身无有效观测(窗不得被静默缩短)→(None, 原因)。"""
+    if not isinstance(win, dict):
+        return None, 'observation_window 须为对象'
+    f, t = str(win.get('from') or ''), str(win.get('to') or '')
+    if not (re.fullmatch(r'\d{4}-\d{2}(-\d{2})?', f)
+            and re.fullmatch(r'\d{4}-\d{2}(-\d{2})?', t)):
+        return None, '观测窗起止须为 YYYY-MM 或 YYYY-MM-DD'
+    f, t = f[:7], t[:7]
+    if f > t:
+        return None, '观测窗起点晚于终点'
+    if not dates:
+        return None, f'区分指标 {dm} 的序列不在证据面——观测窗无从复算'
+    yoy = bool(win.get('yoy'))
+    if yoy:
+        if not _is_level_unit(unit):
+            return None, (f'同比空间不适用于 {dm}(单位 {unit or "未注明"} 非'
+                          '水平序列)——观测窗按水平口径声明')
+        try:
+            mon = _monthly_series_for_turning(dates, values, unit)
+        except Exception:
+            return None, '同比派生不可用——观测窗按同比空间无从复算'
+    else:
+        mon = _month_last_valid(dates, values)
+    pts = [(ym, d, v) for ym, d, v in mon if f <= ym <= t]
+    if len(pts) < 2:
+        return None, f'观测窗 {f}→{t} 内 {dm} 不足两期有效观测(得 {len(pts)})'
+    if pts[0][0] != f or pts[-1][0] != t:
+        return None, (f'观测窗 {f}→{t} 的起止月无有效月末观测(可复算的仅 '
+                      f'{pts[0][0]}→{pts[-1][0]})——须按实际可复算的窗声明')
+    return pts, None
+
+
+def _window_obs(rj, metric_id, win, cutoff):
+    """对质观测窗内的同窗观测 → (文字, None) 或 (None, 失败原因)。
+
+    Audit-R33 任务5(修订): 判定档传导环可选字段 observation_window=
+    {from,to:'YYYY-MM'['-DD'],yoy:bool}: 预期写「同窗」时,裁决依据须取同一
+    窗口的首尾读数(月末口径;yoy=水平序列转同比空间,与转折探测同算法),
+    截止日附近的近30日面属窗后信息、不得用于裁决。规则唯一出处=
+    _face_off_window_points(attach 契约复算同用);不可复算=如实给原因,
+    不编数。旧档无此字段=字节不变。"""
+    if not isinstance(win, dict):
+        return None, 'observation_window 须为对象'
+    m = re.search(r'[A-Z][A-Z0-9_]{1,20}', str(metric_id or ''))
+    if not m:
+        return None, '区分指标缺失——观测窗无从复算'
+    ser = _series_from_report(rj, m.group(0)) or {}
+    pts, why = _face_off_window_points(
+        ser.get('dates') or [], ser.get('values') or [], ser.get('unit'),
+        win, m.group(0))
+    if pts is None:
+        return None, why
+    f, t, yoy = pts[0][0], pts[-1][0], bool(win.get('yoy'))
+    # 窗终月晚于研究截止日所在月: 截止日之后的观测不得进裁决(与契约同序)
+    if cutoff and t > str(cutoff)[:7]:
+        return None, (f'观测窗终点 {t} 晚于研究截止日 {str(cutoff)[:10]}'
+                      '——不得用截止日之后的观测裁决')
+    v0, v1 = float(pts[0][2]), float(pts[-1][2])
+    _unit = str(ser.get('unit') or '')
+    _pct_level = (not yoy and ('%' in _unit or 'percent' in _unit.lower()
+                               or str(ser.get('unit_family') or '')
+                               == 'rate'))
+    if yoy:
+        chg = '首尾 %+.2fpp' % (round(v1 - v0, 2) + 0.0)
+    elif _pct_level:
+        chg = '首尾 %+gbp' % round((v1 - v0) * 100)
+    elif not v0:
+        return None, '同窗首期读数为零——相对变化不可复算(须改用可复算口径)'
+    else:
+        chg = '首尾 %+.2f%%' % (round((v1 / v0 - 1.0) * 100, 2) + 0.0)
+
+    def _n(v):
+        return '%.2f' % (round(float(v), 2) + 0.0)
+
+    if len(pts) > 8:
+        path = '%s→…→%s(%d 期)' % (_n(v0), _n(v1), len(pts))
+    else:
+        path = '%s@%s→%s%s@%s' % (
+            _n(v0), pts[0][1], ''.join(_n(v) + '→' for _ym, _d, v in pts[1:-1]),
+            _n(v1), pts[-1][1])
+    # 终点月未满(=截止日所在月): 该「月末」实为截止日前最新观测,随行注明
+    _open = (';终点月未满,取截止日前最新观测' if cutoff and t == cutoff[:7]
+             else '')
+    return ('同窗观测(%s→%s,%s口径): %s,%s%s' % (
+        f, t, '同比月末' if yoy else '月末', path, chg, _open), None)
+
+
+def _window_obs_text(rj, metric_id, win, cutoff):
+    """_window_obs 的文字面(不可复算=None)。"""
+    return _window_obs(rj, metric_id, win, cutoff)[0]
+
+
+def _face_off_obs_cell(rj, cutoff, lk, dm, dobs):
+    """对质表/传导图「已有观测」格: 带 observation_window 时=同窗观测在前,
+    引擎当前面只在含窗后观测时以「窗后信息(不用于裁决)」附后;窗不可复算=
+    给出原因后回落到引擎当前面;无该字段=旧输出(引擎当前面)原样。"""
+    ow = lk.get('observation_window')
+    if not isinstance(ow, dict):
+        return dobs
+    wtxt, why = _window_obs(rj, dm, ow, cutoff)
+    if not wtxt:
+        return ('(同窗观测: ' + str(why or '窗形非法、序列缺席或窗内不足两期')
+                + '——如实回落;' + (dobs or '引擎面无观测') + ')')
+    post = ''
+    m = re.search(r'引擎当前面: (\d{4}-\d{2})', str(dobs or ''))
+    if m and m.group(1) > str(ow.get('to') or '')[:7] and dobs:
+        post = ';窗后信息(不用于裁决) ' + str(dobs)[1:-1]
+    return '(' + wtxt + post + ')'
+
+
 _ANCHOR_CALIBER_STD = ('- 口径: 三个对照时点=日历点锚(截止日−12月/−3月/最新一期);'
                        '「随后3、6、12个月」=事件后偏移(转折/类比基准日+N月)'
                        '——两类时间含义不同,分记不混同')
@@ -2959,6 +3151,24 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
     pv = rp.get('point_values') or {}
     run = rj.get('run') or {}
     lines, _snap_r, _snap_note = _report_header(rj, review_state, root)
+    # ── Audit-R33 任务5: 预期差对照(问到预期差的问句)——页眉数据门行两面
+    #    对照注记 + 缺口分级草稿横幅(渲染/阻断共源: expectations_gap.
+    #    plan_blocked_class);追加节在页尾之前 ──
+    _eg_asked = False
+    if isinstance(rp.get('expectations_gap'), dict):
+        import expectations_gap as _eg_rr
+        _eg_asked = _eg_rr.plan_asked(rp)
+        _eg_blk = _eg_rr.plan_block(rp)
+        if _eg_blk is not None:
+            _rep, _extra = _eg_rr.gate_note(lines, _eg_blk, _snap_r)
+            _gi = next((i for i, _x in enumerate(lines) if _x.startswith(
+                '- 数据门(Gate A,源快照采集面)')), None)
+            if _rep is not None and _gi is not None:
+                lines[_gi] = _rep
+                lines[_gi + 1:_gi + 1] = _extra
+        if _eg_rr.plan_blocked_class(rp):
+            lines.append(_eg_rr.draft_banner(_eg_rr.plan_blocked_class(rp)))
+            lines.append('')
     # ── Audit-R26 验收: 数据面缺口三类 → 首页明确标草稿(渲染/阻断共源) ──
     _planned0 = {
         (_eco, _dim)
@@ -3509,6 +3719,7 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
 
     # 传导图(文字)
     lines += ['## 证据最充分的传导机制(有文字的传导图)', '']
+    _cut = str(rp.get('cutoff') or '')
     for ch in rm.get('transmission') or []:
         lines.append(f"### {ch.get('chain_name') or ch.get('name') or '传导链'}")
         links = ch.get('links') or []
@@ -3518,10 +3729,15 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
             lines.append(f"   - 因果假设: {lk.get('causal_hypothesis')}")
             lines.append(f"   - 竞争解释: {lk.get('competing_explanation')}")
             dm = lk.get('distinguishing_metric')
-            dobs = _distinguishing_obs(rj, str(rp.get('cutoff') or ''), dm)
+            dobs = _distinguishing_obs(rj, _cut, dm)
+            _ow = lk.get('observation_window')
+            wtxt = (_window_obs_text(rj, dm, _ow, _cut)
+                    if isinstance(_ow, dict) else None)
             lines.append(f"   - 能区分解释的指标: {dm}"
-                         + (f" {dobs}" if dobs else
-                            '(引擎面无该序列观测——如实缺席)'))
+                         + ((f" ({wtxt})" if wtxt else '')
+                            + (f" {dobs}" if dobs else (
+                                '' if wtxt
+                                else '(引擎面无该序列观测——如实缺席)'))))
         lines.append('')
 
     # ── Audit-R22 任务4: 主解释 vs 竞争解释对质表(同一指标的不同预期/
@@ -3532,13 +3748,14 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
             if not lk.get('competing_explanation'):
                 continue                      # 无竞争解释=非对质面
             dm = lk.get('distinguishing_metric')
-            dobs = _distinguishing_obs(rj, str(rp.get('cutoff') or ''), dm)
+            dobs = _distinguishing_obs(rj, _cut, dm)
             mp_, cp_ = lk.get('main_predicts'), lk.get('competing_predicts')
-            if mp_ and cp_ and dobs:
+            if mp_ and cp_ and (dobs or isinstance(lk.get('observation_window'), dict)):
                 verdict = lk.get('face_off_verdict') or '尚不能区分'
             else:
                 verdict = '尚不能区分'
-            _fo_rows.append((dm, mp_, cp_, dobs, verdict))
+            _fo_rows.append((dm, mp_, cp_,
+                             _face_off_obs_cell(rj, _cut, lk, dm, dobs), verdict))
     if _fo_rows:
         lines += ['## 主解释 vs 竞争解释(对质表)', '',
                   '| 区分指标 | 主解释预期 | 竞争解释预期 | 已有观测'
@@ -3552,6 +3769,12 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
         lines.append('> 判断口径: 预期分立(两解释对同一指标给出不同预期)'
                      '且引擎面观测在场才可裁;观测缺席或预期未分立='
                      '**尚不能区分**(诚实缺省,不以单侧证据裁)。')
+        if any(isinstance(lk.get('observation_window'), dict)
+               for _ch in rm.get('transmission') or []
+               for lk in _ch.get('links') or []):
+            lines.append('> 对质观测窗: 标注了观测窗的行,「已有观测」取同窗首尾'
+                         '读数(月末口径;水平序列可取同比空间);截止日附近的近30日面'
+                         '只作窗后信息列出,不用于裁决。')
         lines.append('')
 
     # 情景面(任务3: 两个情景的触发与失效方向分别展示——L4 结构面渲染)
@@ -3938,5 +4161,9 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
                 lines.append('')
         lines.append('')
 
+    if _eg_asked:
+        # Audit-R33 任务5: 预期差对照节(引擎确定性面+席位原文;纯 report.json
+        # 装配,不读观点库/快照——重放=纯函数;块缺席=缺席注记)
+        lines += _eg_rr.render_gap_sections(_eg_blk, rm)
     lines += _report_tail(rj, review_state)
     return '\n'.join(lines) + '\n'

@@ -1561,8 +1561,8 @@ def sec_t2_n():
     n_rej = sum(1 for c in cases if c['verdict'] == 'REJECT')
     n_gray = sum(1 for c in cases if c['gray'])
     n_leg = sum(1 for c in selfc if c.get('legacy'))
-    check('§T2-n-0 夹具结构: 审查席 83 例(接收 36/拒收 47;灰区 21 不计入'
-          '失守)+自对抗 38 例(接收 19/拒收 19;修订前既有保守规则 3 例)+两事件'
+    check('§T2-n-0 夹具结构: 审查席 83 例(接收 36/拒收 47;灰区 21 例照'
+          '预注册判定核对)+自对抗 38 例(接收 19/拒收 19;修订前既有保守规则 3 例)+两事件'
           '日历 12 例(接收 6/拒收 6);底稿 FAM/MAP/MAPc0 各留一个落位空位;探针句'
           '在受检陈述内;已披露局限恰为例 P20;真实日历仅一条日银决议且无 '
           'direction 字段',
@@ -1591,9 +1591,11 @@ def sec_t2_n():
                 byc[k] = byc.get(k, 0) + 1
     check('§T2-n-1 审查席 83 探针逐例符合预注册判定(整档走函数入口): 接收 36 例'
           '=通过且零政策违规;拒收 47 例=不通过且政策违规码属于预注册码集;失守='
-          '已披露局限例且仅此一例(P20 动作词未然句: 日历无方向字段且无前件,'
-          '无从判方向)',
-          bad == sorted(doc['known_limitation']) == ['P20'],
+          '已披露局限例(P20 动作词未然句: 日历无方向字段且无前件,无从判方向)'
+          '+上一候选审查席灰区探针 G02(标签前缀的句首日期既成误句;预注册接收='
+          '按当时规程取法的结果,修订 r5 起拒收早声称——预注册不改,改判核对见 '
+          '§T2-o-5),且仅此两例',
+          bad == ['G02'] + sorted(doc['known_limitation']),
           'bad=%s codes=%s' % (bad, byc))
     rs = _txt(selfc, ev['real'])
     bad_s = sorted(c['id'] for c in selfc if not _t2_r4_ok(c, rs[c['id']]))
@@ -1688,6 +1690,261 @@ def sec_t2_n():
           and pol20 == ['POL-EFF-LATE-PENDING'] and r20.get('passed') is False,
           'hit=%d dir=%s pol=%s' % (
               len(hit), [e.get('direction') for e in ev_dir], pol20))
+
+
+# ══ 任务2修订 r5: 句首标签前缀 + 系词/设定形将来 + 生效日写错由日期规则 ═══════
+# 先报 + 成对在场的决定内容续写 ════════════════════════════════════════════
+# 修订 r5 的四项(前三项之外的第四项见下):
+# (1) 操作者在上一候选(S5)上复探独立审查席的两条灰区句时发现: 修订 r4 的
+#     「句首独立日期分句=断言时点」只在日期分句位于整句最前时触发;前面有
+#     「时态核对: 」一类标签即不触发,按运行级截止日判——既成误句被放行、
+#     同形正句被误拒。r5: 句首分句先剥离短标签(汉字/字母/括号,≤12 字,不含
+#     数字,不含日期字段词)再认独立日期;标签形与无标签形逐句等价。
+# (2) 系词/设定形将来「将为/将是/将定在/将设在」按未然形(与「将升至」同
+#     待遇);「为」现行形不变。
+# (3) S5 干净克隆电池: 冻结 R32 门 110/111——§B2c 用例②(日期齐全但写错生效
+#     日)的违规码由 POL-EFF-DATE 变成早声称(修订 r4 的在办事件归属让时态
+#     模型先命中并顶替日期规则)。r5: 正文写出的生效日与官方实录不符时由
+#     日期规则先报;段内未提官方日期的写错生效日句(此前两条规则都不管)同样
+#     核对——断言时点不早于公告日才核。第四批(第三批的门段核对发现任务2族
+#     四项转红)把「实质命中」收窄为正文写出的生效日与官方实录不符两类规格:
+#     「正文把决议日写成生效日」不顶替时态模型——「X 日决议已生效」是完成态
+#     提前声称,早声称才是与句义相符的码(修订 r3 独立审查 MAJOR-6 的原则)。
+# (4) r5 开发中探测决定叙述句时发现(修订前即接收,修订 r4 起误拒):
+#     「X 日决议，Y 日生效，政策利率升至 x」被按「现行口径写目标值」拒收。
+#     r5: 运行级断言时点下、同句前文以决议日提及本事件、句内写出官方生效日、
+#     水平分句不带现行时间词→按决定内容叙述;既成口径分句与带现行时间词的
+#     水平句照旧拒收。
+# 本段=自对抗夹具+等价性+来源详情+变异自检+上一候选灰区探针的改判核对。
+
+
+def sec_t2_o():
+    print('═══ 任务2修订 r5: 句首标签前缀(标签 12+对照 4)+系词/设定形将来(7)+'
+          '12 月合成日历(4)+生效日写错与决议日写成生效日(13)+成对在场的'
+          '决定内容续写(10) ═══')
+    with open(os.path.join(FIX_R33, 't2_r5_cases.json'), encoding='utf-8') as f:
+        doc = json.load(f)
+    cases = doc['cases']
+    cal = {k: (aj.collect_policy_events(os.path.join(ROOT, v['calendar'])),
+               v['as_of']) for k, v in doc['cals'].items()}
+    known = sorted(doc.get('known_limitation') or [])
+
+    def _asof(c):
+        return c.get('as_of', cal[c['cal']][1])
+
+    def _run(cs):
+        return {c['id']: _pol_codes(c['text'], _asof(c), cal[c['cal']][0])
+                for c in cs}
+
+    def _ok(c, pol):
+        return pol == [] if c['verdict'] == 'ACCEPT' else bool(
+            set(c['codes']) & set(pol))
+
+    def _bad(res):
+        return sorted(c['id'] for c in cases if not _ok(c, res[c['id']]))
+
+    grp, byid = {}, {}
+    for c in cases:
+        grp.setdefault(c['group'], []).append(c)
+        byid[c['id']] = c
+    paired = [c for c in cases if c.get('pair')]
+    n_dec = [e for e in cal['dec'][0]
+             if e.get('decision_date') == '2026-11-27'
+             and e.get('effective_on') == '2026-12-04']
+    check('§T2-o-0 夹具结构: 50 例=L 标签前缀 12(成对 5 组+单项 2)/K 对照 4/'
+          'F 系词·设定形将来 7/D 12 月合成日历 4/M 生效日写错 13/N 成对在场的'
+          '决定内容续写 10;接收 22/拒收 28;成对 22 例两两互指且判定相反或'
+          '违规码不同;L/K/F/N 与 M 组除 M12 外走真实日历(仅一条日银决议)、'
+          'D 与 M12 走 12 月合成日历(含 11-27 决议/12-04 生效);已披露局限恰为'
+          '例 M10',
+          len(cases) == 27 + 23
+          and [len(grp[k]) for k in 'LKFD'] == [12, 4, 7, 4]
+          and [len(grp[k]) for k in 'MN'] == [13, 10]
+          and sum(1 for c in cases if c['verdict'] == 'ACCEPT') == 22
+          and sum(1 for c in cases if c['verdict'] == 'REJECT') == 28
+          and len(paired) == 22
+          and all(byid[c['pair']].get('pair') == c['id']
+                  and (byid[c['pair']]['verdict'] != c['verdict']
+                       or byid[c['pair']]['codes'] != c['codes'])
+                  for c in paired)
+          and all(c['cal'] == 'real' for g in 'LKFN' for c in grp[g])
+          and [c['id'] for c in grp['M'] if c['cal'] != 'real'] == ['M12']
+          and all(c['cal'] == 'dec' for c in grp['D'])
+          and len([e for e in cal['real'][0]
+                   if e.get('entity') == 'JP']) == 1
+          and len(n_dec) == 1
+          and known == ['M10']
+          and [c['id'] for c in cases if c.get('known_limit')] == ['M10'],
+          'n=%d groups=%s paired=%d dec_event=%d known=%s'
+          % (len(cases), {k: len(v) for k, v in grp.items()}, len(paired),
+             len(n_dec), known))
+    res = _run(cases)
+    bad = _bad(res)
+    check('§T2-o-1 50 例逐例符合预注册判定(函数入口): 接收 22 例零政策违规;'
+          '拒收 28 例命中预注册码;失守=已披露局限例且仅此一例(M10: 公告前、'
+          '带非官方日期的既成句——日历只登记在办决议,无从区分写错日期与另'
+          '一次决议)',
+          bad == known == ['M10'], 'bad=%s' % bad)
+    # 标签形 ≡ 无标签形: 同一句去掉标签前缀,政策类违规码逐一相同
+    eq_bad = []
+    for c in grp['L']:
+        m = aj._POL_LEAD_LABEL_RE.match(c['text'])
+        if not m:
+            eq_bad.append((c['id'], 'no-label'))
+            continue
+        stripped = c['text'][m.end():]
+        if _pol_codes(stripped, cal['real'][1], cal['real'][0]) != res[c['id']]:
+            eq_bad.append((c['id'], 'codes-differ'))
+    check('§T2-o-2 标签等价: 标签组 12 例逐句去掉标签前缀后,政策类违规码与带'
+          '标签时相同(「标签: D，S」≡「D，S」)',
+          not eq_bad and len(grp['L']) == 12, 'bad=%s' % eq_bad)
+    lead_date = {'L01': '2026-09-20', 'L03': '2026-09-20', 'L05': '2026-09-20',
+                 'L07': '2026-09-17', 'L09': '2026-09-25', 'L12': '2026-09-20'}
+    det_bad = []
+    for cid, iso in lead_date.items():
+        v = aj.validate_judgment(_mk_judgment(byid[cid]['text']), {'r1'},
+                                 {'JP_POLICY_TARGET'},
+                                 policy_events=cal['real'][0],
+                                 as_of=cal['real'][1])
+        det = ''.join(x.get('detail') or '' for x in v['violations']
+                      if str(x['code']).startswith('POL'))
+        if not ('断言时点 %s' % iso in det and '句首「' in det):
+            det_bad.append((cid, det[:80]))
+    check('§T2-o-3 来源详情: 标签组 6 条拒收句的违规详情写明断言时点及其来源'
+          '=句首日期(「断言时点 2026-09-20(来源: …句首「…」)」),不写成正文给出'
+          '的生效日',
+          not det_bad, 'bad=%s' % det_bad)
+    # 变异自检: 关掉标签剥离 / 把系词·设定形还原为修订前的词表
+    keep = (aj._pol_lead_body, aj._POL_PEND_RE, aj._POL_PEND_FUT_RE,
+            aj._POL_PENDING_MARKS)
+    mut = {}
+    try:
+        aj._pol_lead_body = lambda c: c
+        mut['label_off'] = [x for x in _bad(_run(cases))
+                             if x not in known]
+        aj._pol_lead_body = keep[0]
+        aj._POL_PEND_RE = re.compile(
+            r'将(?:处于|维持|保持|留在|位于|升至|降至|上调|下调|加息|降息|调整'
+            r'|生效|于|自)|有待|仍?待(?:观察|定|公布|决议|落地|实施|生效)')
+        aj._POL_PEND_FUT_RE = re.compile(
+            r'将(?:会|要)?(?:处于|维持|保持|留在|位于|升至|降至|上调|下调|加息'
+            r'|降息|调整|生效|于|自)')
+        aj._POL_PENDING_MARKS = tuple(
+            m for m in keep[3]
+            if m not in ('将为', '将是', '将定在', '将设在'))
+        mut['copula_off'] = [x for x in _bad(_run(cases))
+                              if x not in known]
+    finally:
+        (aj._pol_lead_body, aj._POL_PEND_RE, aj._POL_PEND_FUT_RE,
+         aj._POL_PENDING_MARKS) = keep
+    after = _bad(_run(cases))
+    check('§T2-o-4 变异自检: 关掉标签剥离→标签组新失守 ≥ 6 例(既成误句放行+'
+          '正句误拒)且对照/系词/12 月/生效日/续写组零波及;把系词·设定形还原为'
+          '修订前词表→系词组与 12 月系词例新失守 ≥ 5 例且其余组零波及;恢复后'
+          '回到基线(仅局限例)',
+          len(mut['label_off']) >= 6
+          and all(x.startswith('L') for x in mut['label_off'])
+          and len(mut['copula_off']) >= 5
+          and all(x.startswith(('F', 'D')) for x in mut['copula_off'])
+          and after == known,
+          'label_off=%s copula_off=%s after=%s'
+          % (mut['label_off'], mut['copula_off'], after))
+    # 上一候选审查席的两条灰区探针(预注册在 r4 夹具,不改): 修订 r5 下的结果
+    with open(os.path.join(FIX_R33, 't2_r4_cases.json'), encoding='utf-8') as f:
+        doc4 = json.load(f)
+    g = {c['id']: c for c in doc4['cases'] if c['id'] in ('G01', 'G02')}
+    rg = {k: _t2_probe_run(doc4, g[k], {k2: v[0] for k2, v in cal.items()},
+                        {'real': '2026-11-23',
+                                               'dec': '2026-11-30'})
+          for k in g}
+    pg = {k: [v['code'] for v in rg[k]['violations']
+              if str(v['code']).startswith('POL')] for k in g}
+    check('§T2-o-5 上一候选审查席灰区探针(预注册不改): G01 叙述将来句=接收'
+          '(修订 r4 已修);G02「标签+句首日期的既成误句」由按规程取法的接收改为'
+          '拒收 POL-EFF-EARLY-CLAIM(修订 r5)——r4 夹具的失守清单相应为 G02+P20',
+          pg.get('G01') == [] and rg['G01'].get('passed') is True
+          and pg.get('G02') == ['POL-EFF-EARLY-CLAIM']
+          and rg['G02'].get('passed') is False,
+          'G01=%s G02=%s' % (pg.get('G01'), pg.get('G02')))
+    # 生效日写错: 逐码一致 + 详情写「正文生效日≠官方实录」;变异=关掉日期先报
+    m_bad = [c['id'] for c in grp['M']
+             if c['id'] not in known and res[c['id']] != c['codes']]
+    v1 = aj.validate_judgment(_mk_judgment(byid['M01']['text']), {'r1'},
+                              {'JP_POLICY_TARGET'},
+                              policy_events=cal['real'][0],
+                              as_of=byid['M01']['as_of'])
+    det1 = ''.join(x.get('detail') or '' for x in v1['violations']
+                   if str(x['code']).startswith('POL'))
+    keep_mm = aj._pol_date_mismatch
+    try:
+        aj._pol_date_mismatch = lambda *a, **k: []
+        mm_off = [x for x in _bad(_run(cases)) if x not in known]
+    finally:
+        aj._pol_date_mismatch = keep_mm
+    # 第四批: 「决议日被写成生效日」的规格不顶替时态模型——变异=连这一类
+    # 也算实质命中(第三批的口径)→M11-M13 由早声称变日期违规
+    def _wide(text, ev, bound, as_of=None, t_assert=None):
+        pub = str(ev.get('first_publish') or ev.get('decision_date') or '')
+        if as_of and pub and pub > as_of:
+            return []
+        return [d for d in aj._pol_date_specs(aj._pol_norm_text(text), ev,
+                                             bound, as_of)
+                if '为断言时点' not in d]
+    try:
+        aj._pol_date_mismatch = _wide
+        wide_off = [x for x in _bad(_run(cases)) if x not in known]
+    finally:
+        aj._pol_date_mismatch = keep_mm
+    check('§T2-o-6 生效日写错(M 组 13 例)逐码一致: 写错生效日(含冻结 R32 门 '
+          '§B2c 用例②原句 M01、段内未提官方日期的 M04-M06)=恰 POL-EFF-DATE '
+          '一条;日期正确的既成句(M07/M08)与决议日被写成生效日的完成态句'
+          '(M11-M13,含 12 月合成日历)=恰早声称一条;决议前的预期句(M09)='
+          '零违规;M01 详情写「正文生效日 2026-09-22 与官方实录不符」而非'
+          '「断言时点」措辞;变异一=关掉日期先报→M01/M02 变早声称、M04-M06 '
+          '放行(新失守恰此 5 例);变异二=把「决议日写成生效日」也算实质命中'
+          '→M11-M13 变日期违规(新失守恰此 3 例);其余组零波及;恢复后回基线',
+          not m_bad
+          and res['M01'] == res['M04'] == ['POL-EFF-DATE']
+          and all(res[c['id']] == ['POL-EFF-EARLY-CLAIM']
+                  for c in grp['M'][10:])
+          and '2026-09-22' in det1 and '官方' in det1
+          and '断言时点' not in det1
+          and mm_off == ['M01', 'M02', 'M04', 'M05', 'M06']
+          and wide_off == ['M11', 'M12', 'M13']
+          and _bad(_run(cases)) == known,
+          'm_bad=%s det1=%s mm_off=%s wide_off=%s'
+          % (m_bad, det1[:60], mm_off, wide_off))
+    # 成对在场的决定内容续写: 逐码一致;变异=让「句内写出官方生效日」认不出
+    n_bad = [c['id'] for c in grp['N']
+             if c['id'] not in known and res[c['id']] != c['codes']]
+    keep_es = (aj._POL_EFF_VERBS, aj._POL_DATE_START_RE)
+    try:
+        aj._POL_EFF_VERBS = ()
+        aj._POL_DATE_START_RE = re.compile(r'(?!x)x')
+        es_off = [x for x in _bad(_run(cases)) if x not in known]
+    finally:
+        aj._POL_EFF_VERBS, aj._POL_DATE_START_RE = keep_es
+    check('§T2-o-7 成对在场的决定内容续写(N 组 10 例)逐码一致: 决议日+官方'
+          '生效日成对的水平句(N01-N05,含冻结 R32 门 §B2d2 同形 N02)=零违规;'
+          '带现行时间词(N06=§B2f 同句/N07)、既成口径分句(N08)、缺生效日'
+          '(N09)、显式断言时点(N10)=恰早声称一条;变异=让「句内写出官方生效'
+          '日」认不出→N01-N05 新失守恰此 5 例,其余组零波及;恢复后回基线',
+          not n_bad
+          and all(res[c['id']] == [] for c in grp['N'][:5])
+          and all(res[c['id']] == ['POL-EFF-EARLY-CLAIM']
+                  for c in grp['N'][5:])
+          and es_off == ['N01', 'N02', 'N03', 'N04', 'N05']
+          and _bad(_run(cases)) == known,
+          'n_bad=%s es_off=%s' % (n_bad, es_off))
+    # 已披露局限的边界: 同一句在公告日(9-18)及之后=拒收 POL-EFF-DATE
+    m10 = byid['M10']['text']
+    lim = {d: _pol_codes(m10, d, cal['real'][0])
+           for d in ('2026-09-17', '2026-09-18', '2026-09-20')}
+    check('§T2-o-8 已披露局限的边界: M10 句在公告日之前(9-17)=放行(局限所在),'
+          '公告日(9-18)起=拒收 POL-EFF-DATE——局限只在公告前窗口,公告后写错'
+          '生效日一律拒收',
+          lim == {'2026-09-17': [], '2026-09-18': ['POL-EFF-DATE'],
+                  '2026-09-20': ['POL-EFF-DATE']}, 'lim=%s' % lim)
 
 
 # ══ 任务2补充 r2: 契约门拒收理由随回执 ════════════════════════════════════
@@ -7171,6 +7428,7 @@ def main():
         sec_t2_l()
         sec_t2_m()
         sec_t2_n()
+        sec_t2_o()
         sec_t1_a()
         sec_t1_b()
         sec_t1_c()

@@ -12,7 +12,8 @@ Audit-R33 任务5: 问句问到「预期差」的地图型工单(五面地图+�
     回贴引擎;L4 情景阈值为席位自设。
 守卫: 只装配「美/中/欧/日四地+问到预期差」且须席位推导行集合与本脚本
 预设一致的工单;引擎报出预期差候选、定价缺席或证据配置改变时拒绝装配,
-须席位另写判定档。
+须席位另写判定档。定价曲线形态守卫(pricing_path_rising): 判定档引用到的最后
+合约月之前须为累计上调路径,相邻月回落容一个最小变动价位(报价噪声)。
 写出前自检: 纪律校验 + 契约验证,不绿不写。"""
 import bisect
 import datetime
@@ -83,6 +84,7 @@ ANALOG_DIM_CN = {'growth': '增长', 'inflation': '通胀', 'rates': '利率',
 FEAT_SFX = {'d12m': ' 12月变化', 'level': ' 水平', '4w_avg': ' 4周均值',
             'rv21': ' 21日已实现波动'}
 D = '零一二三四五六七八九'
+PRICING_TICK_BP = 0.5   # 30天期联邦基金利率期货最小变动价位(价格 0.005=利率 0.5bp)
 
 # ── 守卫: 本脚本只覆盖证据配置与预设一致的工单 ──────────────────────
 if not (plan.get('map_question') and blk.get('asked') is True
@@ -120,9 +122,10 @@ prow = pr.get('rows') or []
 if (pr.get('status') != 'present' or pr.get('metric_id') != 'FED_FUNDS'
         or len(prow) < 6
         or not all(isinstance(x.get('change_bp'), (int, float))
-                   and x['change_bp'] >= 0 for x in prow)
-        or not float(prow[-1]['change_bp']) > float(prow[0]['change_bp'])):
-    refuse('联邦基金利率期货定价缺席或曲线非累计上调')
+                   and not isinstance(x.get('change_bp'), bool)
+                   and x['change_bp'] == x['change_bp'] for x in prow)):
+    refuse('联邦基金利率期货定价缺席')
+# 曲线形态(累计上调路径)守卫在判定档引用到的合约月确定之后: pricing_path_rising
 for rid in STALE_ROWS:
     r = rows.get(rid) or {}
     if not (r.get('status') == 'consistent_stale_fact' and (
@@ -229,6 +232,34 @@ def horizon_row(h_end, pricing_rows, pref=None):
                  and isinstance(x.get('change_bp'), (int, float))]
         row = cands[-1] if cands else None
     return row
+
+
+def pricing_path_rising(pr, upto=None, tick_bp=PRICING_TICK_BP):
+    """定价曲线是否为本判定档所述的「累计上调」路径(席位守卫;纯函数)。
+    在场/FED_FUNDS/≥6 行/逐行累计变动为数值;只取 upto('YYYY-MM';None=全部)及其
+    之前的合约月——判定档只引用这些月份;相邻两月回落不超过一个最小变动价位
+    (报价噪声);取到的末月高于首月且超出噪声界。→ (ok, 原因)。"""
+    pr = pr or {}
+    prow = pr.get('rows') or []
+    if (pr.get('status') != 'present' or pr.get('metric_id') != 'FED_FUNDS'
+            or len(prow) < 6):
+        return False, 'absent'
+    vals = []
+    for x in prow:
+        if upto is not None and str(x.get('month')) > str(upto):
+            break
+        v = x.get('change_bp')
+        if isinstance(v, bool) or not isinstance(v, (int, float)) or v != v:
+            return False, 'non_numeric'
+        vals.append(float(v))
+    if len(vals) < 2:
+        return False, 'absent'
+    for a, b in zip(vals, vals[1:]):
+        if b < a - tick_bp:
+            return False, 'not_cumulative'
+    if not vals[-1] > vals[0] or not vals[-1] > tick_bp:
+        return False, 'flat_or_falling'
+    return True, 'ok'
 
 
 def month_last(mid, ym):
@@ -1575,6 +1606,14 @@ win_m = fw['end'][:7] if _nxt.month != _end_d.month else \
 win_p = p_by_month.get(win_m)
 if not (win_p and win_p.get('change_bp') is not None):
     refuse('窗口内最后一个完整合约月缺定价读数(须席位另写判据)')
+# 定价曲线形态守卫(r12): 判定档引用到的最后合约月(编号路径到期月/期限月、
+# 同期限参照月、证伪窗口末个完整合约月)及其之前须为累计上调路径;相邻月回落容
+# 一个最小变动价位(报价噪声——2026-11-25 盘中演习面首月 −0.25bp、末两月 −0.5bp
+# 曾被「逐行≥0」旧守卫误拒);引用月之后的月份判定档不引用,不核。
+_pp_ok, _pp_why = pricing_path_rising(
+    pr, upto=max(str(m) for m in (step_m, hor_m, hz_m, win_m) if m))
+if not _pp_ok:
+    refuse('同期限期货定价曲线非累计上调路径(%s)' % _pp_why)
 # 窗内阈值同期限参照的离散化: 月均隐含有效利率读数对定价步长折合加息次数
 _wp_n = steps_of(win_p.get('change_bp'), step_bp)
 hz_end = str(pimco.get('horizon_end') or '')

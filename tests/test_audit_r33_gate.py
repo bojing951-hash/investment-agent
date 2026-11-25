@@ -3148,8 +3148,9 @@ def sec_t4_h():
         finally:
             cmc._ashare_checkpoint_load = load0
         check('§T4-h11 核心阶段因预算未执行(港股 skipped_budget)同样不得写主日档'
-              '(cut=True);A股阶段内逐指数协作式截断=零取网',
-              cut10 is True and stg10['a_share_indices']['status'] == 'ok'
+              '(cut=True);A股阶段内逐指数协作式截断=零取网、阶段状态=cut_by_budget'
+              '(修订 r2 更正: 原记 ok)',
+              cut10 is True and stg10['a_share_indices']['status'] == 'cut_by_budget'
               and stg10['hk_indices']['status'] == 'skipped_budget'
               and calls == [] and ad10.get('a_share_indices') == {}
               and cmc._STAGE_STATUS['a_share_indices']['cut_by_budget'] is True,
@@ -3439,6 +3440,225 @@ def _t5_skel(echo=None):
              'rows': {'scenario': '门夹具情景乙(假设)。'}}]},
         'quality_gate_notes': ['门夹具(非真实研判)。'],
         'reader_map': rm}
+
+
+def sec_t4_i():
+    print('§T4-i 阶段行如实状态(修订 r2;2026-11-25 续采演习: 成交额各源失败曾被记为 '
+          'ok/items 0 且无原因)')
+    import china_market_collector as cmc
+    before = _t4_tree_files()
+    T = os.path.join(TMPG, 't4i')
+    os.makedirs(T)
+    names = ('PROJECT_DIR', 'DATA_DIR', 'TUSHARE_MONTHLY_CACHE_DIR',
+             'ASHARE_CHECKPOINT_PATH', 'PBC_OMO_CACHE_DIR',
+             'CN_COLLECTOR_BUDGET_SECONDS', 'save_data', 'get_trade_dates',
+             'a_share_indices', 'hk_indices', 'southbound', 'margin',
+             'valuation', 'turnover', 'ah_premium', 'macro', 'series',
+             'fetch_a_share_indices', 'fetch_hk_indices', 'fetch_southbound',
+             'fetch_margin', 'fetch_valuation', 'fetch_turnover',
+             'fetch_ah_premium', 'fetch_macro', 'fetch_macro_series',
+             '_ashare_checkpoint_clear', '_STAGE_STATUS')
+    keep = {k: getattr(cmc, k, None) for k in names}
+    keep_status = dict(cmc._STAGE_STATUS)
+    real_out = sys.stdout
+    try:
+        for k in ('PROJECT_DIR', 'DATA_DIR', 'TUSHARE_MONTHLY_CACHE_DIR'):
+            setattr(cmc, k, T)
+        cmc.ASHARE_CHECKPOINT_PATH = os.path.join(T, 'ckpt.json')
+        cmc.PBC_OMO_CACHE_DIR = os.path.join(T, 'pboc')
+        cmc.CN_COLLECTOR_BUDGET_SECONDS = 0.0
+        cmc.get_trade_dates = lambda: ('20261124', '20261114', '20260101')
+        codes = list(cmc.A_SHARE_INDICES)
+        ticks = list(cmc.HK_INDICES)
+
+        def stub(val, prints=(), raise_=None):
+            def f(*a, **k):
+                for p in prints:
+                    print(p)
+                if raise_ is not None:
+                    raise raise_
+                return val() if callable(val) else val
+            return f
+
+        def install(**over):
+            base = {'fetch_a_share_indices': {c: {'x': 1} for c in codes},
+                    'fetch_hk_indices': {t: {'x': 1} for t in ticks},
+                    'fetch_southbound': {'sb': 1}, 'fetch_margin': {'mg': 1},
+                    'fetch_valuation': {'pe': 1}, 'fetch_turnover': {'to': 1},
+                    'fetch_ah_premium': {'ah': 1}, 'fetch_macro': {'m': 1},
+                    'fetch_macro_series': {'s': 1}}
+            base.update(over)
+            for n, v in base.items():
+                setattr(cmc, n, v if callable(v) else stub(v))
+
+        def run(limit=0.0):
+            ad, buf = {}, io.StringIO()
+            cmc._STAGE_STATUS.clear()
+            err = None
+            with contextlib.redirect_stdout(buf):
+                out0 = sys.stdout
+                try:
+                    stg, cut = cmc._collect_stages(
+                        ad, cmc.CollectionBudget(limit_sec=limit))
+                except Exception as e:      # noqa: BLE001 — 断言外泄类型
+                    stg, cut, err = None, None, e
+                restored_inside = sys.stdout is out0
+            return ad, stg, cut, buf.getvalue(), err, restored_inside
+
+        # ── i1 续采演习复刻: 成交额两路来源失败(打印警示行后返回 None) ──
+        w1 = "  ⚠️ Tushare成交额失败: HTTPConnectionPool(host='127.0.0.1', port=7890): Read timed out. (read timeout=30)"
+        w2 = "  ⚠️ 东财成交额回落失败: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))"
+        install()
+        cmc.fetch_turnover = stub(None, prints=[w1, w2])
+        ad1, stg1, cut1, o1, err1, rin1 = run()
+        row1 = stg1['turnover']
+        check('§T4-i1 阶段函数正常返回但零项(成交额两路来源失败)→ 阶段行 status=empty、'
+              'items=0、notes=阶段内两条警示行(原文);stdout 原样透传(两行各出现一次);'
+              '核心截断=False;其余阶段 ok',
+              err1 is None and cut1 is False
+              and row1['status'] == 'empty' and row1['items'] == 0
+              and row1['notes'] == [w1.strip(), w2.strip()]
+              and o1.count(w1) == 1 and o1.count(w2) == 1
+              and ad1.get('turnover') is None
+              and all(stg1[n]['status'] == 'ok' for n in (
+                  'a_share_indices', 'hk_indices', 'southbound', 'margin',
+                  'valuation', 'ah_premium', 'macro', 'series')),
+              (err1, json.dumps(stg1, ensure_ascii=False)[:420]))
+
+        # ── i2 静默零项 / 回落成功带原因 / 行数与长度上限 ──
+        install()
+        cmc.fetch_margin = stub({})
+        cmc.fetch_valuation = stub({'pe': 1}, prints=[
+            "  ❌ 沪深300估值: ReadTimeout: x", "  ✅ 沪深300估值 [乐咕回落]: PE=12.3"])
+        cmc.fetch_ah_premium = stub({'ah': 1}, prints=[
+            "  ❌ 第%d项失败 %s" % (i, "y" * 400) for i in range(12)])
+        ad2, stg2, cut2, o2, err2, rin2 = run()
+        check('§T4-i2 静默零项(两融返回空)→ empty 且 notes=[](空列表也是如实记录);'
+              '回落成功的阶段(估值: ❌ 后 ✅[乐咕回落])仍 ok 但 notes 记下失败原因;'
+              '警示行至多 8 行、每行截 300 字;✅/⏱️ 等非警示行不入 notes',
+              err2 is None and stg2['margin']['status'] == 'empty'
+              and stg2['margin']['notes'] == []
+              and stg2['valuation']['status'] == 'ok'
+              and stg2['valuation']['notes'] == ["❌ 沪深300估值: ReadTimeout: x"]
+              and stg2['ah_premium']['status'] == 'ok'
+              and len(stg2['ah_premium']['notes']) == 8
+              and all(len(x) <= 300 for x in stg2['ah_premium']['notes'])
+              and 'notes' not in stg2['southbound']
+              and 'notes' not in stg2['a_share_indices'],
+              json.dumps({k: stg2.get(k) for k in (
+                  'margin', 'valuation', 'ah_premium', 'southbound')},
+                  ensure_ascii=False)[:420])
+
+        # ── i3 expected(固定清单阶段) ──
+        install(fetch_hk_indices={ticks[0]: {'x': 1}})
+        ad3, stg3, cut3, o3, err3, rin3 = run()
+        check('§T4-i3 expected=应取项数(仅 A股/港股指数两项有固定清单的阶段): A股 '
+              '%d、港股 %d;港股只取到 1 项→ items=1 < expected、仍 ok(缺项由下游 '
+              'Gate A 按核心指标缺口处置,不改口径);其余阶段无 expected 键'
+              % (len(codes), len(ticks)),
+              err3 is None
+              and stg3['a_share_indices']['expected'] == len(codes)
+              and stg3['a_share_indices']['items'] == len(codes)
+              and stg3['hk_indices']['expected'] == len(ticks)
+              and stg3['hk_indices']['items'] == 1
+              and stg3['hk_indices']['status'] == 'ok'
+              and all('expected' not in stg3[n] for n in (
+                  'southbound', 'margin', 'valuation', 'turnover', 'ah_premium',
+                  'macro', 'series')),
+              json.dumps([stg3['a_share_indices'], stg3['hk_indices']]))
+
+        # ── i4 A股逐指数协作式截断(函数正常返回、状态表已标 cut_by_budget) ──
+        install()
+        cmc.fetch_a_share_indices = stub(
+            lambda: cmc._STAGE_STATUS.update(
+                {'a_share_indices': {'resumed': [], 'cut_by_budget': True}})
+            or {})
+        ad4, stg4, cut4, o4, err4, rin4 = run(limit=60.0)
+        install()
+        cmc.fetch_a_share_indices = stub({})
+        ad4b, stg4b, cut4b, o4b, err4b, rin4b = run(limit=60.0)
+        check('§T4-i4 A股逐指数协作式截断(函数正常返回、零取网)→ 阶段状态=cut_by_budget'
+              '(修订 r2 更正: 原记 ok);状态表未标时同样返回空→ empty',
+              err4 is None and stg4['a_share_indices']['status'] == 'cut_by_budget'
+              and stg4['a_share_indices']['items'] == 0
+              and err4b is None and stg4b['a_share_indices']['status'] == 'empty',
+              json.dumps([stg4['a_share_indices'], stg4b['a_share_indices']]))
+
+        # ── i5 看门狗截断行带截断前的警示行;异常外泄时 stdout 复位 ──
+        install(fetch_turnover=stub(None, prints=["  ❌ 成交额取网超时"],
+                                    raise_=cmc.BudgetExceeded('watchdog')))
+        ad5, stg5, cut5, o5, err5, rin5 = run()
+        boom = RuntimeError('source exploded')
+        install(fetch_margin=stub(None, prints=["  ❌ 两融: x"], raise_=boom))
+        ad5b, stg5b, cut5b, o5b, err5b, rin5b = run()
+        check('§T4-i5 看门狗截断行(cut_by_budget)带截断前打印的警示行;阶段抛非预算'
+              '异常照旧外泄且 sys.stdout 复位为进入阶段前的对象;两次运行后 stdout '
+              '均为重定向目标本身(捕获器不残留)',
+              err5 is None and cut5 is False
+              and stg5['turnover']['status'] == 'cut_by_budget'
+              and stg5['turnover']['notes'] == ["❌ 成交额取网超时"]
+              and err5b is boom and rin5 and rin5b,
+              (err5, json.dumps(stg5 and stg5.get('turnover')),
+               type(err5b).__name__, rin5, rin5b))
+
+        # ── i6 捕获器单元: 跨 write 的半行、透传保真、属性转发 ──
+        orig = io.StringIO()
+        tap = cmc._StageTap(orig)
+        n1 = tap.write('  ⚠️ 半行')
+        n2 = tap.write(' 继续\n普通行 ✅\n')
+        tap.write('  ❌ 尾行无换行')
+        tap.close()
+        check('§T4-i6 _StageTap: 跨多次 write 的同一行拼成一条;无换行的尾行在 close '
+              '入账;透传字节保真;write 返回值为原流返回值;flush/属性转发给原流',
+              n1 == len('  ⚠️ 半行') and n2 == len(' 继续\n普通行 ✅\n')
+              and orig.getvalue() == '  ⚠️ 半行 继续\n普通行 ✅\n  ❌ 尾行无换行'
+              and tap.lines == ['⚠️ 半行 继续', '❌ 尾行无换行']
+              and tap.isatty() is orig.isatty() and tap.flush() is None
+              and tap.writable() is True,
+              (tap.lines, orig.getvalue()))
+
+        # ── i7 经 main(): 零项阶段不阻止清断点;汇总另出一行;退出码不变 ──
+        saved, cleared = [], []
+        install(fetch_turnover=stub(None, prints=[w1, w2]))
+        cmc._STAGE_STATUS.clear()
+        cmc.save_data = lambda d: saved.append(d) or 'saved'
+        cmc._ashare_checkpoint_clear = lambda: cleared.append(1)
+        with open(cmc.ASHARE_CHECKPOINT_PATH, 'w', encoding='utf-8') as fh:
+            fh.write('{}')
+        buf, code = io.StringIO(), None
+        with contextlib.redirect_stdout(buf):
+            try:
+                cmc.main()
+            except SystemExit as e:
+                code = e.code
+        o = buf.getvalue()
+        cs = saved[-1].get('collection_status') if saved else {}
+        check('§T4-i7 经 main(): 成交额零项→ 主日档照写(该键缺席)、退出码不变(无 '
+              'exit)、阶段行 empty+notes、汇总出现「零项阶段 … 成交额」且不出现'
+              '「时间预算」行;零项不阻止清断点(断点清除规则只看预算状态)',
+              code is None and len(saved) == 1
+              and saved[0].get('turnover') is None
+              and cs.get('stages', {}).get('turnover', {}).get('status') == 'empty'
+              and cs.get('stages', {}).get('turnover', {}).get('notes')
+              == [w1.strip(), w2.strip()]
+              and cs.get('core_cut_by_budget') is False
+              and '零项阶段: 1 个(成交额)' in o and '时间预算:' not in o
+              and 'A股断点保留' not in o and cleared == [1],
+              (code, len(saved), json.dumps(cs.get('stages', {}).get('turnover'),
+                                            ensure_ascii=False)[:300], o[-260:]))
+    finally:
+        for k, v in keep.items():
+            setattr(cmc, k, v)
+        cmc._STAGE_STATUS.clear()
+        cmc._STAGE_STATUS.update(keep_status)
+        sys.stdout = real_out
+    after = _t4_tree_files()
+    check('§T4-i8 离线检查零落盘: 被测树文件清单与 mtime 前后一致;采集器模块状态'
+          '(路径/替身/状态表)全部复原',
+          after == before and dict(cmc._STAGE_STATUS) == keep_status
+          and cmc.ASHARE_CHECKPOINT_PATH == keep['ASHARE_CHECKPOINT_PATH'],
+          (sorted(set(after) - set(before))[:5],
+           sorted(set(before) - set(after))[:5]))
 
 
 def sec_t5_a():
@@ -4761,11 +4981,12 @@ def _t5_seat_helpers():
                             'make_expectations_gap_judgment.py'),
                encoding='utf-8').read()
     want = {'fmt', 'f2', '_cn_int', 'cn_num', 'cn_amt', 'ym_shift',
-            'steps_of', 'horizon_row', 'month_last'}
+            'steps_of', 'horizon_row', 'month_last', 'pricing_path_rising'}
     body = [n for n in ast.parse(src).body if (
         isinstance(n, ast.FunctionDef) and n.name in want) or (
         isinstance(n, ast.Assign)
-        and any(isinstance(tg, ast.Name) and tg.id == 'D' for tg in n.targets))]
+        and any(isinstance(tg, ast.Name)
+                and tg.id in ('D', 'PRICING_TICK_BP') for tg in n.targets))]
     import bisect
     ns = {'bisect': bisect}
     exec(compile(ast.Module(body=body, type_ignores=[]), 'seat_helpers',
@@ -5318,6 +5539,89 @@ def sec_t5_g():
           f"agree={agree} seat={seat_mlast}")
 
 
+def sec_t5_h():
+    print('§T5-h 席位工具定价曲线形态守卫(报价噪声容一个最小变动价位;只核判定档'
+          '引用到的最后合约月之前;2026-11-25 盘中演习面误拒更正)')
+    ns = _t5_seat_helpers()
+    ppr = ns['pricing_path_rising']
+    tick = ns['PRICING_TICK_BP']
+    M10 = ['2026-11', '2026-12', '2027-01', '2027-02', '2027-03', '2027-04',
+           '2027-05', '2027-06', '2027-07', '2027-08']
+
+    def curve(vals, months=M10, status='present'):
+        return {'status': status, 'metric_id': 'FED_FUNDS', 'rows': [
+            {'ticker': 'ZQ%d.CBT' % i, 'month': m, 'change_bp': v,
+             'implied_avg_rate': round(3.88 + v / 100.0, 4)}
+            for i, (m, v) in enumerate(zip(months, vals))]}
+    # 2026-11-25 盘中程序演习面(标准 update --yes 后的真实期货报价;首月=当月未走完
+    # 合约): 旧内联规则(逐行≥0 且末>首)判否→席位工具误拒
+    rh = [-0.25, 18.0, 27.0, 41.0, 48.0, 56.0, 61.5, 65.5, 68.0, 67.5]
+    c_rh = curve(rh)
+    old_rule = all(x >= 0 for x in rh) and rh[-1] > rh[0]
+    got = {
+        'rh_all': ppr(c_rh), 'rh_upto': ppr(c_rh, upto='2027-03'),
+        'mid_dip': ppr(curve([0.0, 18.0, 27.0, 24.0, 48.0, 56.0])),
+        'mid_dip_tick': ppr(curve([0.0, 18.0, 27.0, 26.5, 48.0, 56.0])),
+        'flat': ppr(curve([0.0] * 10)),
+        'noise_rise': ppr(curve([-0.25, 0.0, 0.25, 0.0, 0.25, -0.25, 0.0,
+                                 0.25, 0.0, 0.25])),
+        'falling': ppr(curve([30.0, 28.0, 24.0, 18.0, 10.0, 4.0, 1.0, 0.5,
+                              0.25, 0.0])),
+        'nan': ppr(curve([0.0, 18.0, float('nan'), 27.0, 41.0, 48.0])),
+        'bool': ppr(curve([0.0, True, 27.0, 41.0, 48.0, 56.0])),
+        'absent': ppr({'status': 'absent', 'rows': []}),
+        'short': ppr(curve([0.0, 18.0])),
+        'absent_all': ppr(None),
+        'tail_dip_upto': ppr(curve([0.0, 18.0, 27.0, 41.0, 48.0, 56.0, 61.5,
+                                    65.5, 68.0, 65.0]), upto='2027-05'),
+        'tail_dip_all': ppr(curve([0.0, 18.0, 27.0, 41.0, 48.0, 56.0, 61.5,
+                                   65.5, 68.0, 65.0])),
+        'upto_early': ppr(c_rh, upto='2026-11'),
+    }
+    check('§T5-h1 席位工具 pricing_path_rising(纯函数面): 2026-11-25 演习面(首月 '
+          '−0.25bp/末两月 −0.5bp)判为累计上调路径(旧内联规则判否=误拒);中段真实'
+          '回落(3bp)=not_cumulative、回落恰一个最小变动价位=通过;平坦/噪声内升降='
+          'flat_or_falling;下行路径=拒;非数值(True/NaN)=non_numeric;缺席/行数不足='
+          'absent',
+          got['rh_all'] == (True, 'ok') and got['rh_upto'] == (True, 'ok')
+          and old_rule is False
+          and got['mid_dip'] == (False, 'not_cumulative')
+          and got['mid_dip_tick'] == (True, 'ok')
+          and got['flat'] == (False, 'flat_or_falling')
+          and got['noise_rise'] == (False, 'flat_or_falling')
+          and got['falling'][0] is False
+          and got['nan'] == (False, 'non_numeric')
+          and got['bool'] == (False, 'non_numeric')
+          and got['absent'] == (False, 'absent')
+          and got['short'] == (False, 'absent')
+          and got['absent_all'] == (False, 'absent'),
+          json.dumps(got, ensure_ascii=False))
+    check('§T5-h2 只核判定档引用到的最后合约月之前: 末段(引用月之后)回落 3bp 的曲线'
+          '在 upto=2027-05 下通过、全曲线(upto=None)下 not_cumulative;upto 早于第二个'
+          '月=absent(无可判期数)',
+          got['tail_dip_upto'] == (True, 'ok')
+          and got['tail_dip_all'] == (False, 'not_cumulative')
+          and got['upto_early'] == (False, 'absent'),
+          json.dumps([got['tail_dip_upto'], got['tail_dip_all'],
+                      got['upto_early']], ensure_ascii=False))
+    src = open(os.path.join(ROOT, 'scripts', 'seat_tools',
+                            'make_expectations_gap_judgment.py'),
+               encoding='utf-8').read()
+    i_def = src.index('def pricing_path_rising(')
+    m_call = re.search(r'(?m)^[^\n]*\b_pp_ok, _pp_why = pricing_path_rising\(\s*pr,\s*upto=', src)
+    i_write = src.index('json.dump(judgment, open(jp_out')
+    check('§T5-h3 静态锁: 旧内联条件(逐行 change_bp≥0 且末>首)退场,顶部只留结构性'
+          '检查;形态守卫以引用月末月(upto=编号路径到期月/期限月、同期限参照月、证伪'
+          '窗口末个完整合约月的最大者)调用,位于写出判定档之前;函数定义先于调用;'
+          '最小变动价位常量=0.5bp',
+          "x['change_bp'] >= 0 for x in prow" not in src
+          and "refuse('联邦基金利率期货定价缺席')" in src
+          and bool(m_call) and i_def < m_call.start() < i_write
+          and 'step_m, hor_m, hz_m, win_m)' in src[m_call.start():m_call.start() + 260]
+          and tick == 0.5,
+          'def=%d call=%s write=%d' % (i_def, m_call and m_call.start(), i_write))
+
+
 def sec_t5():
     print('═══ 任务5: 预期差研究接入正式入口 ═══')
     sec_t5_a()
@@ -5327,6 +5631,7 @@ def sec_t5():
     sec_t5_e()
     sec_t5_f()
     sec_t5_g()
+    sec_t5_h()
 
 
 def main():
@@ -5357,6 +5662,7 @@ def main():
         sec_t4_f()
         sec_t4_g()
         sec_t4_h()
+        sec_t4_i()
         sec_t5()
     finally:
         n_ok = sum(1 for x in RESULTS if x)

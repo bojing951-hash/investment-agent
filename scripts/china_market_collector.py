@@ -1415,6 +1415,10 @@ _OMO_BACKFILL_DAYS = int(os.environ.get('CN_OMO_HISTORY_DAYS') or 500)
 #   当日采集;下游按「采集失败」既有口径处置),诊断性部分面写 logs/,退出码 1;
 #   其后阶段(南向/两融/估值/成交额/AH溢价/宏观)被截断 → 写主日档并随档披露
 #   collection_status,退出码 0(与既有「非核心端点失败=该键缺席」同口径)。
+# - 阶段行如实状态(Audit-R33 任务4修订 r2): 阶段函数正常返回后 ok=取得≥1 项、
+#   empty=零项(各源失败或当日无数据;该键缺席,退出码不变;原因见 notes——阶段内
+#   打印的 ⚠️/❌ 警示行,经阶段级透传捕获器记录,stdout 原样写出);A 股逐指数协作式
+#   截断(函数正常返回但已标 cut_by_budget)=cut_by_budget。
 # - 预算≤0 或平台无 SIGALRM → 预算关闭/看门狗关闭,行为同旧实现。
 def _budget_from_env(raw, default=800.0):
     """env 预算秒数解析: 空/非数/非有限 → 默认(不因配置笔误让采集崩)。"""
@@ -2296,13 +2300,76 @@ def _count_items(got):
     return 1 if got else 0
 
 
+_BUDGET_STATUSES = ('cut_by_budget', 'skipped_budget')
+_STAGE_EXPECTED = {'a_share_indices': lambda: len(A_SHARE_INDICES),
+                   'hk_indices': lambda: len(HK_INDICES)}
+_NOTE_MARKS = ('⚠️', '❌')       # 阶段内警示行标记(来源失败/回落)
+_NOTE_MAX_LINES, _NOTE_MAX_CHARS = 8, 300
+
+
+class _StageTap:
+    """阶段级 stdout 透传捕获: 写入原样转给原流,同时记下阶段内打印的警示行
+    (⚠️/❌;每行截 300 字,至多 8 行)——只为随档阶段行披露「零项/回落」的原因,
+    不改变任何输出。其余属性(isatty/encoding/…)一律转给原流。"""
+
+    def __init__(self, orig):
+        self._orig = orig
+        self._buf = ''
+        self.lines = []
+
+    def write(self, s):
+        n = self._orig.write(s)
+        self._buf += s
+        while '\n' in self._buf:
+            line, self._buf = self._buf.split('\n', 1)
+            self._feed(line)
+        return n
+
+    def flush(self):
+        self._orig.flush()
+
+    def __getattr__(self, name):
+        return getattr(self._orig, name)
+
+    def _feed(self, line):
+        t = line.strip()
+        if (any(m in t for m in _NOTE_MARKS)
+                and len(self.lines) < _NOTE_MAX_LINES):
+            self.lines.append(t[:_NOTE_MAX_CHARS])
+
+    def close(self):
+        if self._buf.strip():
+            self._feed(self._buf)
+        self._buf = ''
+
+
+def _stage_row(name, got, sec):
+    """阶段函数正常返回后的随档阶段行(纯装配;不发打印)。
+    status: ok=取得≥1 项;empty=零项(各源失败或当日无数据——该键缺席,与既有
+    「非核心端点失败=该键缺席」同口径,不改变退出码;原因见 notes);A 股逐指数
+    协作式截断(函数正常返回但 _STAGE_STATUS 已标 cut_by_budget)=cut_by_budget。
+    expected=应取项数(仅 A股/港股指数两项有固定清单的阶段)。notes 由调用方按
+    捕获结果追加(无警示行不写该键)。"""
+    items = _count_items(got)
+    row = {'sec': sec, 'items': items}
+    if name in _STAGE_EXPECTED:
+        row['expected'] = _STAGE_EXPECTED[name]()
+    if (name == 'a_share_indices'
+            and (_STAGE_STATUS.get('a_share_indices') or {}).get('cut_by_budget')):
+        row['status'] = 'cut_by_budget'
+    else:
+        row['status'] = 'ok' if items else 'empty'
+    return row
+
+
 def _collect_stages(all_data, budget):
     """按阶段表顺序采集,逐阶段记 {sec, items, status}。
 
-    status ∈ ok / cut_by_budget(看门狗在本阶段内触发)/ skipped_budget(预算
-    已耗尽,本阶段未执行)。返回 (stages, 核心阶段被截断?——含核心阶段因
-    预算未执行的情形)。非预算异常照旧
-    外泄(脚本崩=失败,不吞;与旧主程序同口径)。"""
+    status ∈ ok(取得≥1 项)/ empty(零项;原因见 notes)/ cut_by_budget(看门狗在
+    本阶段内触发,或 A 股逐指数协作式截断)/ skipped_budget(预算已耗尽,本阶段
+    未执行)。返回 (stages, 核心阶段被截断?——含核心阶段因预算未执行的情形)。
+    阶段内打印的 ⚠️/❌ 警示行经 _StageTap 透传捕获为 notes(stdout 原样写出);
+    非预算异常照旧外泄(脚本崩=失败,不吞;与旧主程序同口径)。"""
     stages = {}
     stopped = False
     core_cut = False
@@ -2321,21 +2388,39 @@ def _collect_stages(all_data, budget):
         if name == 'series':
             _OMO_WALK_STATUS.clear()     # 本阶段走查状态从头记
         t_s = time.monotonic()
+        tap = _StageTap(sys.stdout)
+        sys.stdout = tap
         try:
             got = _stage_call(name, budget)()
         except BudgetExceeded:
             stopped = True
             if core:
                 core_cut = True
-            stages[name] = {'sec': round(time.monotonic() - t_s, 1),
-                            'items': None, 'status': 'cut_by_budget'}
+            row = {'sec': round(time.monotonic() - t_s, 1),
+                   'items': None, 'status': 'cut_by_budget'}
+            cut_here = True
+        else:
+            row, cut_here = None, False
+        finally:
+            sys.stdout = tap._orig      # 异常外泄/截断同样复位
+            tap.close()
+        if cut_here:
+            stages[name] = row
+            _append_notes(stages, name, tap)
             print(f"⏹️  {label}: 时间预算耗尽,本阶段中断"
                   f"(已取到的进度在断点/缓存,下次运行续采)")
             continue
-        stages[name] = {'sec': round(time.monotonic() - t_s, 1),
-                        'items': _count_items(got), 'status': 'ok'}
+        stages[name] = _stage_row(name, got, round(time.monotonic() - t_s, 1))
+        _append_notes(stages, name, tap)
         all_data[name] = got
     return stages, core_cut
+
+
+def _append_notes(stages, name, tap):
+    """把阶段内捕获到的警示行挂到阶段行(零项阶段恒挂——空列表也是如实记录;
+    其余仅有警示行时挂)。"""
+    if tap.lines or stages[name].get('status') == 'empty':
+        stages[name]['notes'] = list(tap.lines)
 
 
 def _collection_status(budget, stages, core_cut):
@@ -2404,7 +2489,7 @@ def main():
 
     # Audit-R33 任务4: 全部阶段完成→清 A 股断点(断点只用于恢复;同日再跑=
     # 重新取网,与旧行为同形);仍有阶段未完整执行→保留,下次运行续采后腾出预算。
-    if all(st.get('status') == 'ok' for st in stages.values()):
+    if not any(st.get('status') in _BUDGET_STATUSES for st in stages.values()):
         _ashare_checkpoint_clear()
     else:
         print("♻️ A股断点保留(仍有阶段未完整执行): 下次运行续采")
@@ -2423,10 +2508,15 @@ def main():
     print(f"  成交额:   {'✅' if all_data.get('turnover') else '❌'}")
     print(f"  AH溢价:   {'✅' if all_data.get('ah_premium') else '❌'}")
     print(f"  CN宏观:   {len(all_data.get('macro') or {})} 项")
-    cut = [n for n, st in stages.items() if st['status'] != 'ok']
+    cut = [n for n, st in stages.items() if st['status'] in _BUDGET_STATUSES]
     if cut:
         print(f"\n⚠️ 时间预算: {len(cut)} 个阶段未完整执行({', '.join(cut)}),"
               f"详见随档 collection_status;下次运行续采")
+    empty = [lbl for n, lbl, _core in _STAGES
+             if stages[n]['status'] == 'empty']
+    if empty:
+        print(f"\n⚠️ 零项阶段: {len(empty)} 个({', '.join(empty)})——该键缺席"
+              f"(各源失败或当日无数据),原因见随档 collection_status.stages.*.notes")
     print("\n🎉 采集完成！")
 
 

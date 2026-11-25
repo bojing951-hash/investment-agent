@@ -783,6 +783,100 @@ def _fo_face_off_checks(lk, lid, dm, face, plan, ok, bad):
     else:
         ok(f'{lid}.face_off_check', f'{detail}→{expected}')
 
+# 修订 r14(独立审查 MINOR-1): 多窗结构化对质(软字段 face_off_checks)——同一
+# 区分环在近1个月窗/12个月窗分别复算,各窗裁决一致才给方向。
+def _fo_face_off_multi_checks(lk, lid, dm, face, plan, ok, bad):
+    """修订 r14(独立审查 MINOR-1): 多窗结构化对质——传导环可选字段
+    face_off_checks=[{observation_window, main:{指标:{op,value,unit}},
+    competing:{…}}, …]: 同一区分环在多个窗口(近1个月窗/12个月窗)分别复算;
+    单窗内某侧全部条件成立=该窗支持该侧,两解释同时成立或同时不成立=该窗
+    尚不能区分;各窗裁决一致=该侧,不一致=尚不能区分;与 face_off_verdict
+    对账。软契约: 字段不在场不判错(旧档零漂移)。"""
+    items = lk.get('face_off_checks')
+    if items is None:
+        return
+    if not isinstance(items, list) or not items:
+        bad(f'{lid}.face_off_checks', '多窗对质须为非空列表')
+        return
+    if not str(lk.get('competing_explanation') or '').strip():
+        bad(f'{lid}.face_off_checks', '多窗结构化对质须配竞争解释')
+        return
+    cutoff = str(plan.get('cutoff') or '')[:7]
+    verdicts, details, spans = [], [], []
+    for wi, it in enumerate(items):
+        iid = f'{lid}.face_off_checks[{wi}]'
+        if not isinstance(it, dict) or not isinstance(
+                it.get('observation_window'), dict):
+            bad(iid, '多窗对质每项须带 observation_window')
+            return
+        win = it['observation_window']
+        wto = str(win.get('to') or '')[:7]
+        if cutoff and re.fullmatch(r'\d{4}-\d{2}', wto) and wto > cutoff:
+            bad(iid, f'观测窗终点 {wto} 晚于研究截止月 {cutoff}'
+                      '——不得用截止日之后的观测裁决')
+            return
+        sides, seg = {}, []
+        for side, lbl in (('main', '主解释'), ('competing', '竞争解释')):
+            conds = it.get(side)
+            if not isinstance(conds, dict) or not conds:
+                bad(f'{iid}.{side}',
+                    f'{lbl}预期须为非空对象「指标: {{op, value, unit}}」')
+                return
+            holds_all, parts = True, []
+            for mid, c in conds.items():
+                m = re.fullmatch(r'[A-Z][A-Z0-9_]{1,30}', str(mid))
+                if not m:
+                    bad(f'{iid}.{side}', f'指标编号非法({mid!r})')
+                    return
+                if (not isinstance(c, dict)
+                        or str(c.get('op') or '') not in _FO_OPS
+                        or not isinstance(c.get('value'), (int, float))
+                        or isinstance(c.get('value'), bool)
+                        or str(c.get('unit') or '')
+                        not in ('pct', 'bp', 'pp')):
+                    bad(f'{iid}.{side}.{m.group(0)}',
+                        '条件须为 {op: >=/>/<=/</==/!=, value: 数值, '
+                        'unit: pct/bp/pp}')
+                    return
+                if m.group(0) not in (face.get('series_store') or {}):
+                    bad(f'{iid}.{side}.{m.group(0)}',
+                        f'指标 {m.group(0)} 序列不在证据面——同窗观测'
+                        '无从复算', contra=True)
+                    return
+                pts, why = _fo_window_points(win, m.group(0), face)
+                if pts is None:
+                    bad(f'{iid}.observation_window', f'{m.group(0)}: {why}')
+                    return
+                chg = _fo_change(pts, str(c.get('unit')))
+                if chg is None:
+                    bad(f'{iid}.{side}.{m.group(0)}',
+                        f'按 {c.get("unit")} 口径不可复算(基期为零或缺席)')
+                    return
+                holds = bool(_FO_OPS[c['op']](round(chg, 6),
+                                              float(c['value'])))
+                holds_all = holds_all and holds
+                parts.append(f'{m.group(0)} {c["op"]} {c["value"]:g}'
+                             f'{c["unit"]}→观测 {chg:+.2f}{c["unit"]}'
+                             f'{"成立" if holds else "不成立"}')
+                spans.append(f'{pts[0][0]}→{pts[-1][0]}({len(pts)} 期)')
+            sides[side] = holds_all
+            seg.append(f'{lbl}(' + '且'.join(parts) + ')')
+        v = ('尚不能区分' if sides['main'] == sides['competing'] else
+             '支持主解释' if sides['main'] else '支持竞争解释')
+        verdicts.append(v)
+        details.append(f'窗 {spans[-1]}: ' + ';'.join(seg) + f'→{v}')
+    expected = (verdicts[0] if all(x == verdicts[0] for x in verdicts)
+                else '尚不能区分')
+    fv = str(lk.get('face_off_verdict') or '').strip()
+    detail = ' / '.join(details)
+    if fv != expected:
+        bad(f'{lid}.face_off_verdict',
+            f'对质判断与多窗结构化复算不一致: {detail}→应为 {expected}'
+            f'(声明 {fv or "空"})', contra=True)
+    else:
+        ok(f'{lid}.face_off_checks', f'{detail}→{expected}')
+
+
 def _map_checks(judgment, face, report):
     """地图问句判定须含完整 reader_map;数值须与引擎序列回贴一致。
 
@@ -871,6 +965,7 @@ def _map_checks(judgment, face, report):
             # Audit-R33 任务5(修订;软契约): 对质观测窗与结构化复算——
             # 字段在场才核(同窗观测复算+预期成立性+与判断对账),旧档不判错。
             _fo_face_off_checks(lk, lid, dm, face, plan, ok, bad)
+            _fo_face_off_multi_checks(lk, lid, dm, face, plan, ok, bad)
     turnings = rm.get('turnings') or []
     if len(turnings) != 3:
         bad('reader_map.turnings', f'三个转折须恰为 3(得 {len(turnings)})')

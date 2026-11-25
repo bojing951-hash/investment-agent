@@ -2909,10 +2909,42 @@ def _window_obs_text(rj, metric_id, win, cutoff):
     return _window_obs(rj, metric_id, win, cutoff)[0]
 
 
+def _face_off_multi_obs(rj, cutoff, lk, dobs):
+    """多窗对质的同窗观测文字(修订 r14;软字段 face_off_checks)→ 各窗文字
+    以「 | 」相连,或 None(字段不在场=调用方走旧输出,旧档字节不变)。各窗、
+    各指标的文字规则同 _window_obs;某项不可复算=给出原因后回落到引擎当前面。
+    渲染规则只此一处: 对质表「已有观测」格与传导图「能区分解释的指标」行共用。"""
+    items = lk.get('face_off_checks')
+    if not isinstance(items, list):
+        return None
+    parts = []
+    for wi, it in enumerate(items):
+        ow = (it.get('observation_window')
+              if isinstance(it, dict) else None)
+        mids = []
+        for side in ('main', 'competing'):
+            conds = it.get(side) if isinstance(it, dict) else None
+            for mid in (conds if isinstance(conds, dict) else {}):
+                if str(mid) not in mids:
+                    mids.append(str(mid))
+        cells = []
+        for mid in mids:
+            wtxt, why = _window_obs(rj, mid, ow, cutoff)
+            cells.append('%s %s' % (mid, wtxt or (
+                '同窗观测不可复算——' + str(why or '窗形非法或序列缺席')
+                + ';如实回落;' + (dobs or '引擎面无观测'))))
+        _cn = '一二三四五六七八九十'[wi] if wi < 10 else str(wi + 1)
+        parts.append('[窗%s] %s' % (_cn, '; '.join(cells)))
+    return ' | '.join(parts) if parts else None
+
+
 def _face_off_obs_cell(rj, cutoff, lk, dm, dobs):
     """对质表/传导图「已有观测」格: 带 observation_window 时=同窗观测在前,
     引擎当前面只在含窗后观测时以「窗后信息(不用于裁决)」附后;窗不可复算=
     给出原因后回落到引擎当前面;无该字段=旧输出(引擎当前面)原样。"""
+    multi = _face_off_multi_obs(rj, cutoff, lk, dobs)
+    if multi is not None:
+        return '(多窗: ' + multi + ')'
     ow = lk.get('observation_window')
     if not isinstance(ow, dict):
         return dobs
@@ -3733,11 +3765,14 @@ def render_map_report(rj, judgment_doc, review_state=None, root=None):
             _ow = lk.get('observation_window')
             wtxt = (_window_obs_text(rj, dm, _ow, _cut)
                     if isinstance(_ow, dict) else None)
+            _mw = _face_off_multi_obs(rj, _cut, lk, dobs)
             lines.append(f"   - 能区分解释的指标: {dm}"
                          + ((f" ({wtxt})" if wtxt else '')
                             + (f" {dobs}" if dobs else (
                                 '' if wtxt
                                 else '(引擎面无该序列观测——如实缺席)'))))
+            if _mw:
+                lines.append(f"   - 多窗对质观测(各窗分别复算): {_mw}")
         lines.append('')
 
     # ── Audit-R22 任务4: 主解释 vs 竞争解释对质表(同一指标的不同预期/

@@ -25,6 +25,7 @@ attach 回执 blocked/violations 均空(理由只在 report.json)→ 返回值�
 任务4修订 r3(终印章验收 run A2 抓到): 步骤自己打印的原因行不进台账/回执(只有 nonzero_exit+返回码,原因行被后续步骤滚出末 40 行)→ run_step 边界改为「透传不变+各流留末 6 个非空行(每行≤240 字)」,未成功步骤(超时/非零退出/被信号终止)把脱敏后的尾部写入 output_tail(台账行、update 回执 steps/failed_steps、doctor critical_steps 同形;成功/缺席/依赖跳过行与旧台账无此键);脱敏器不可导入=失败关闭(留注);孙进程持有管道不挂起。§T4-f/g 的旧判定(含 §T4-g5 行相等)原样保留。
 任务5 预期差研究: 问句判别(「预期差」词形,或「机构观点」×「市场定价」并列)→单型研究计划(地图五面+预期差对照块: 机构观点库×同期限市场定价×事实逐行确定性对照,候选≠结论)+席位回声契约(候选行与须推导行逐行裁决;与引擎确定性面相左/虚构行号/假托机构原话=CONTRADICTED;自由文字数字须与引擎面对应);证伪窗口自研究截止日起算;问句研究年月=时点标记(不是序列观测窗);对照面用到的指标并入取数分级(来源随行;旧调用面不变);干净安装无观点库=草稿级缺口(转正办法随行),无运行快照=硬缺口(不再崩溃)。夹具说明: 观点库=tests/fixtures_r33/views 下 5 份**合成**文档(全部虚构机构与表述;1 份发布日晚于研究截止日=扣留,1 份违反 schema=隔离),定价曲线=提交的冻结快照 fed_futures_curve;门内不含任何真实机构观点内容。
 任务5修订(独立席首轮 REVISE 后的闭环): 同期限定价参照(到期日当月或之前最后一个有读数的合约月)随行并入证据索引;对质观测窗=同窗首尾读数(月末口径;可取同比空间),引擎当前面只作窗后信息列出、不用于裁决;结构化对质=两侧预期按冻结序列复算,判断与复算不一致=CONTRADICTED;三项均为软契约(字段在场才核),旧档与无该字段工单零变化;席位工具只服务其预设的真实工单,门内只按函数级对照其纯函数面(不执行其模块级取数)。
+任务5修订 r14(独立席终审 REVISE 后的闭环): 多窗结构化对质(软字段 face_off_checks,同一区分环在近1个月窗/12个月窗分别复算,各窗一致才给方向;字段不在场=旧档零漂移);席位工具定价曲线形态守卫改按此前运行峰值计、噪声界=半个定价步长且不小于一个最小变动价位(盘中演习面与日终真实面两处误拒更正);机构间分歧段在不可折算为基点时写明口径(旧数值幅度输出逐字不变);席位工具文字修订(证伪条件随行观测日、年度/近月两窗分量各自成句、已实现数据表述未映射行行号入质量门注记)以静态锁对照。
 """
 import contextlib
 import copy
@@ -1097,6 +1098,8 @@ def sec_t2():
 # 事件于 11-30 生效」。修: 完成态+绑定日期词元是区间端+同实体在端点日已生效
 # 的另一决定在段内被提及→按状态断言放行;其余形态(非完成态/非区间端/带事
 # 件日期的提前生效断言/端点=本事件决议日)照旧拦截。
+# 修订 r3: 「该决议」归段内前文(可跨句)最近以日期提及的候选事件;区间端=
+# 断言时点(早于生效日而写已生效=EARLY-CLAIM,见任务2修订 r3 节)。
 F_T2B = ('日本: 发布日历实录载 2026-09-18 决议、2026-09-24 生效,'
          '官方政策目标利率1.25%(2026-10-30 确认维持);')
 P_T2B = (';截至研究截止日有一项已决议未生效条目: 2026-11-27 决议、'
@@ -1136,13 +1139,19 @@ def sec_t2b():
                     + P_T2B, '2026-11-30', ev)
     w7 = _pol_codes(F_T2B + '截至 2026-11-30 该决议已生效' + P_T2B,
                     '2026-11-30', ev)
+    # 修订 r3(审查 MAJOR-6/指代归属): w4 区间端=断言时点、早于生效日→
+    # EARLY-CLAIM(旧期望 POL-EFF-DATE=按「正文生效日」拒收,码与句义不符);
+    # w7「该决议」归同句前文以日期提及的 2026-09-18 决议,断言时点不早于其
+    # 生效日→接收(旧期望 POL-EFF-DATE,保守=指代歧义即拒;现指代归最近提及
+    # 者,其后才出现的决定不夺走指代)
     check('§T2b-b 误句照旧拦截: 带事件日期的提前生效(POL-EFF-EARLY-CLAIM)/'
-          '窗端早于生效日且无同实体已生效决定(POL-EFF-DATE)/窗端=决议日'
-          '(EARLY-CLAIM)/非完成态「生效的决议」(POL-EFF-DATE)/非区间端'
-          '「截至 T 该决议已生效」(POL-EFF-DATE,保守)',
-          w3 == ['POL-EFF-EARLY-CLAIM'] and w4 == ['POL-EFF-DATE']
+          '窗端早于生效日且无同实体已生效决定(区间端=断言时点→'
+          'EARLY-CLAIM)/窗端=决议日(EARLY-CLAIM)/非完成态「生效的决议」'
+          '(POL-EFF-DATE)/「截至 T 该决议已生效」指代同句前文的 2026-09-18 '
+          '决议(已生效)→接收',
+          w3 == ['POL-EFF-EARLY-CLAIM'] and w4 == ['POL-EFF-EARLY-CLAIM']
           and w5 and w5[0] == 'POL-EFF-EARLY-CLAIM' and w6 == ['POL-EFF-DATE']
-          and w7 == ['POL-EFF-DATE'],
+          and w7 == [],
           f'w3={w3} w4={w4} w5={w5} w6={w6} w7={w7}')
     # c. 前瞻表述零违规;用户令误句形(真实日期)拒收
     w8 = _pol_codes(F_T2B + '窗内(2026-05-30..2026-11-30)2026-12-04 起生效'
@@ -1174,13 +1183,15 @@ def sec_t2b():
                     os.path.isfile(os.path.join(rd, 'agent_judgment.json')))
     check('§T2b-d 正式 attach(attach_judgment,日历含待生效决议): 正句接收'
           '(attached=True+契约 VERIFIED+判定档副本);两误句拒收(attached='
-          'False+EARLY-CLAIM/POL-EFF-DATE+无副本)',
+          'False+EARLY-CLAIM×2[修订 r3: 区间端早声称句由 POL-EFF-DATE 改为 '
+          'EARLY-CLAIM]+无副本)',
           got['ok'][0] is True and got['ok'][1] == []
           and got['ok'][2] == 'VERIFIED' and got['ok'][3] is True
           and got['early'][0] is False
           and got['early'][1] == ['POL-EFF-EARLY-CLAIM']
           and got['early'][3] is False
-          and got['win'][0] is False and got['win'][1] == ['POL-EFF-DATE']
+          and got['win'][0] is False
+          and got['win'][1] == ['POL-EFF-EARLY-CLAIM']
           and got['win'][3] is False, json.dumps(got, ensure_ascii=False))
     # e. 真实席位文本(席位装配脚本×12 月夹具): 整档零政策违规;单点扰动拒收
     t2, _p = _family_tree('t2b_dec', 'family_snapshot_20261215.json',
@@ -1224,6 +1235,278 @@ def sec_t2b():
           and pert['event_dated'] == ['POL-EFF-EARLY-CLAIM'],
           f'rc={r.returncode} ok0={ok0} p0={p0} '
           f'pert={json.dumps(pert, ensure_ascii=False)}')
+
+
+# ══ 任务2修订 r3: 逐分句时态模型(独立审查 6 MAJOR 修订) ══════════════════════
+# S2 受审(独立审查席 REVISE: 6 MAJOR/4 MINOR/3 NIT)。根因=断言时点与完成态分句
+# 取句级/段级口径: 完成态分句不与事件日期、断言时点同分句时漏核(MAJOR-1);裸
+# 「落地/生效」与「加息至+中数词」不在完成态词形表(MAJOR-2);区间端未当断言
+# 时点(MAJOR-3);带空格中文日期对日期规则不可见(MAJOR-4);「已生效仍写未生效」
+# 被段级完成态豁免整段放行(MAJOR-5);区间端早声称句被旧日期规则按「正文生效日」
+# 拒收——码与句义不符(MAJOR-6)。修: 归一文本→句→分句(括注内逗号不分句)→逐
+# 分句断言时点(自带标记/继承同句前文/运行级截止日)→逐分句旗标→按 事件×断言
+# 时点×实施状态 出码;指代「该决议」归段内前文(可跨句)最近以日期提及的候选
+# 事件;日期规则读归一文本,区间端/句内断言时点处「生效」的归属由时态模型定;
+# 挂接回执与运行目录记代码版本(MINOR-4)。审查席 87 条预注册探针入仓为离线
+# 夹具(tests/fixtures_r33/t2_probe_cases.json: 探针落位处的 l3 陈述全文+底稿
+# 其余陈述+日历种类+预注册判定);全副本回放与「仅陈述列表」夹具逐例同码(87/87,
+# 见证据包)。期望变更如实记于 §T2b-b(w4/w7)与 §T2b-d(win)。
+
+
+def _t2_core_of(sent):
+    """探针句核心(去掉「(原句不改: …)」一类标注括注)。"""
+    for pre in ('(原句不改: ', '(插入句: ', '(替换: '):
+        if sent.startswith(pre) and sent.endswith(')'):
+            return sent[len(pre):-1]
+    return sent
+
+
+def _t2_probe_run(doc, c, ev, asof):
+    """把探针陈述放回底稿陈述列表后整档走函数入口 validate_judgment
+    (底稿 FAM=12 月夹具日历;ISO/MAP=真实日历)。"""
+    cal = 'dec' if c['base'] == 'FAM' else 'real'
+    events, as_of = ev[cal], asof[cal]
+    stmts = list(doc['bases'][c['base']])
+    stmts[c['at']] = c['stmt']
+    # 外壳=合规判定档母本(结构纪律全过);证据面=单一引用 r1
+    mid = 'JP_POLICY_TARGET'
+    jud = _t2_valid_judgment(mid, mid, stmts[0])
+    for sc in jud['l4']['scenarios']:
+        sc['rows']['asset_direction']['evidence_refs'] = ['r1']
+    for ln in jud['l3']['mechanism_chains'][0]['links']:
+        if ln.get('evidence_refs'):
+            ln['evidence_refs'] = ['r1']
+    jud['l3']['contradictions'] = [
+        {'id': 'C%d' % (i + 1), 'statement': s, 'basis': '基于证据索引的推断',
+         'competing_explanations': ['解释一(基准)', '解释二(反例)'],
+         'evidence_refs': ['r1']} for i, s in enumerate(stmts)]
+    return aj.validate_judgment(jud, {'r1'}, {mid},
+                                policy_events=events, as_of=as_of)
+
+
+def sec_t2_l():
+    print('═══ 任务2修订 r3: 逐分句时态模型(审查席 87 探针离线回归) ═══')
+    with open(os.path.join(FIX_R33, 't2_probe_cases.json'),
+              encoding='utf-8') as f:
+        doc = json.load(f)
+    cases = doc['cases']
+    ev = {'real': aj.collect_policy_events(os.path.join(
+              ROOT, 'config', 'release_calendar.json')),
+          'dec': aj.collect_policy_events(os.path.join(
+              FIX_R33, 'family_calendar_dec.json'))}
+    asof = {'real': '2026-11-23', 'dec': '2026-11-30'}
+    n_acc = sum(1 for c in cases if c['verdict'] == 'ACCEPT')
+    n_rej = sum(1 for c in cases if c['verdict'] == 'REJECT')
+    check('§T2-l-0 夹具结构: 87 例(接收 29/拒收 58);底稿 FAM/ISO/MAP 各留一个'
+          '探针落位空位;探针句在受检陈述内;真实日历仅一条日银决议、12 月夹具'
+          '日历两条',
+          len(cases) == 87 and n_acc == 29 and n_rej == 58
+          and set(doc['bases']) == {'FAM', 'ISO', 'MAP'}
+          and all(sum(1 for s in b if s is None) == 1
+                  for b in doc['bases'].values())
+          and all(_t2_core_of(c['sentence']) in c['stmt'] for c in cases)
+          and len([e for e in ev['real'] if e.get('entity') == 'JP']) == 1
+          and len([e for e in ev['dec'] if e.get('entity') == 'JP']) == 2,
+          f'n={len(cases)} acc={n_acc} rej={n_rej}')
+    res = {c['id']: _t2_probe_run(doc, c, ev, asof)
+           for c in cases}
+
+    def _ok(c, r):
+        pol = [v['code'] for v in r['violations']
+               if str(v['code']).startswith('POL')]
+        if c['verdict'] == 'ACCEPT':
+            return r.get('passed') is True and pol == []
+        return (r.get('passed') is False
+                and any(x in c['codes'] for x in pol))
+
+    bad = [c['id'] for c in cases if not _ok(c, res[c['id']])]
+    check('§T2-l-1 审查席 87 探针逐例符合预注册判定: 接收 29 例=通过且零政策'
+          '违规;拒收 58 例=不通过且政策违规码属于预注册码集(修订前引擎: 早声称'
+          '误句 7 句被接收、区间端早声称句码不符等,见审查裁决摘要)',
+          not bad, f'bad={bad[:8]}')
+    wtxt = [(pid, v['code'], v.get('detail') or '')
+            for pid in ('MAP_W11', 'MAP_W20', 'FAM_FW01', 'FAM_FW05')
+            for v in res[pid]['violations']
+            if str(v['code']).startswith('POL')]
+    check('§T2-l-2 区间端早声称句(MAP_W11/MAP_W20/FAM_FW01/FAM_FW05): 违规码='
+          'POL-EFF-EARLY-CLAIM,detail 写明「区间端 … 为断言时点」且不写「正文生效'
+          '日」(审查 MAJOR-6: 旧日期规则按「正文生效日」拒收,码与句义不符)',
+          len(wtxt) == 4
+          and all(cd == 'POL-EFF-EARLY-CLAIM' for _, cd, _ in wtxt)
+          and all('区间端' in d and '为断言时点' in d and '正文生效日' not in d
+                  for _, _, d in wtxt),
+          f'{[(p, c) for p, c, _ in wtxt]}')
+    tb = [(pid, v.get('detail') or '') for pid, r in res.items()
+          for v in r['violations']
+          if v['code'] in ('POL-EFF-EARLY-CLAIM', 'POL-EFF-LATE-PENDING',
+                           'POL-EFF-DECISION-NOT-YET-KNOWN')]
+    miss = [p for p, d in tb
+            if ('(来源: ' not in d and '为断言时点(「' not in d)]
+    check('§T2-l-3 时点类违规(EARLY-CLAIM/LATE-PENDING/DECISION-NOT-YET-KNOWN)'
+          '的 detail 一律注明断言时点来源(「来源: 句内/区间端/分句内/同句前文/'
+          '运行级截止日」;区间端早声称句直接写「区间端 T 为断言时点(「标记」)」)'
+          '(审查 MINOR-2)',
+          bool(tb) and not miss, f'n={len(tb)} missing={miss[:6]}')
+    # 指代「该决议」: 归段内前文(可跨句)最近以日期提及的候选事件(两事件夹具)
+    anov = '日本: 发布日历实录载 2026-11-27 决议、2026-12-04 生效(目标1.5%)'
+    asep = '日本: 发布日历实录载 2026-09-18 决议、2026-09-24 生效'
+    va = {
+        'same_sent_last_is_pending': (
+            asep + ';' + anov + ';截至 2026-11-30 该决议已生效',
+            ['POL-EFF-EARLY-CLAIM']),
+        'same_sent_last_is_effective': (
+            anov + ';' + asep + ';截至 2026-11-30 该决议已生效', []),
+        'cross_sent_early': (
+            anov + '。截至 2026-11-30 该决议已经实施。',
+            ['POL-EFF-EARLY-CLAIM']),
+        'cross_sent_true_pending': (
+            anov + '。截至 2026-11-30 该决议尚未生效。', []),
+        'cross_sent_late': (
+            asep + '。截至 2026-11-30 该决议尚未生效。',
+            ['POL-EFF-LATE-PENDING']),
+        'cross_sent_true_effective': (
+            asep + '。截至 2026-11-30 该决议已经生效。', []),
+    }
+    vgot = {k: _pol_codes(s, '2026-11-30', ev['dec']) for k, (s, _) in va.items()}
+    check('§T2-l-4 指代「该决议」归段内前文(可跨句)最近以日期提及的候选事件: '
+          '同句/跨句·指待生效决议而写已生效→EARLY-CLAIM;指已生效决议而写已生效→'
+          '接收;指待生效决议写尚未生效→接收;指已生效决议仍写尚未生效→'
+          'LATE-PENDING',
+          vgot == {k: x for k, (_, x) in va.items()},
+          json.dumps(vgot, ensure_ascii=False))
+    vpar = _pol_codes(F_T2B + '已决议待生效的调整(目标1.5%,2026-12-04 生效)如期生效'
+                      + P_T2B, '2026-11-30', ev['dec'])
+    check('§T2-l-5 括注内逗号不分句: 「已决议待生效的调整(目标x,日期 生效)如期'
+          '生效」→零政策违规(未然口径;拆成两分句会把「日期 生效)如期生效」误判'
+          '为提前生效)', vpar == [], f'{vpar}')
+    # MINOR-4: 挂接回执与运行目录记代码版本(函数入口: 代码树 git;CLI: 印章三级链)
+    import research_orchestrator as ro
+    st_ok = '日本央行 2026-09-18 决议、2026-09-24 生效;截至 2026-09-30 该加息已经生效。'
+    st_bad = '日本央行 2026-09-18 决议、2026-09-24 生效;截至 2026-09-20 该加息已经实施。'
+    t, rd, jp = _t2_synth_run('t2l_ok', '2026-09-30', st_ok)
+    t2, rd2, jp2 = _t2_synth_run('t2l_bad', '2026-09-20', st_bad)
+    r_ok = aj.attach_judgment(rd, jp, root=t)
+    r_bad = aj.attach_judgment(rd2, jp2, root=t2)
+    exp = ro._git_state(t)
+    _isgit = os.path.exists(os.path.join(ROOT, '.git'))
+    head = (subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT,
+                           capture_output=True, text=True,
+                           timeout=30).stdout.strip() if _isgit else None)
+    meta = (_t2_attach_res(rd).get('agent_judgment') or {})
+    check('§T2-l-6 挂接步骤记代码版本(审查 MINOR-4): attach_judgment 返回值(成功/'
+          '纪律拒收两路)与运行目录 agent_judgment 元数据带 code_git_head/'
+          'code_git_head_source/code_git_diff_sha256,取值=取码 helper 对运行树的'
+          '结果;代码树为 git 库时=其 HEAD(source=code_tree)',
+          r_ok.get('attached') is True and r_bad.get('attached') is False
+          and (r_ok.get('code_git_head'), r_ok.get('code_git_head_source'),
+               r_ok.get('code_git_diff_sha256')) == exp
+          and (r_bad.get('code_git_head'), r_bad.get('code_git_head_source'),
+               r_bad.get('code_git_diff_sha256')) == exp
+          and (meta.get('code_git_head'), meta.get('code_git_head_source'),
+               meta.get('code_git_diff_sha256')) == exp
+          and (not _isgit or (exp[0] == head and exp[1] == 'code_tree')),
+          f'exp={(exp[0][:12] if exp[0] else None, exp[1])} isgit={_isgit} '
+          f'r_ok={(r_ok.get("attached"))} r_bad={(r_bad.get("attached"))}')
+    ct, _ = _code_tree('t2l_cli')
+    _stamp = 'a' * 40                       # 合成印章(仅测试三级链第三级)
+    with open(os.path.join(ct, 'CODE_VERSION.json'), 'w',
+              encoding='utf-8') as f:
+        json.dump({'git_head': _stamp, 'git_diff_sha256': 'b' * 64,
+                   'stamped_at': '2026-11-25T00:00:00+08:00'}, f)
+    rc1, d1 = _cli(['research-one', '--stage', 'attach', '--report-dir', rd,
+                    '--judgment', jp, '--engine-root', ct], cwd=ct)
+    rc2, d2 = _cli(['research-one', '--stage', 'attach', '--report-dir', rd2,
+                    '--judgment', jp2, '--engine-root', ct], cwd=ct)
+    rc3, d3 = _cli(['research-attach', '--report-dir', rd2,
+                    '--judgment', jp2], cwd=ct)
+    rc4, d4 = _cli(['research-one', '--stage', 'auto', '--report-dir', rd2,
+                    '--judgment', jp2, '--engine-root', ct], cwd=ct)
+    a1, a2, a3 = (d.get('data') or {} for d in (d1, d2, d3))
+    ch4 = [c for c in ((d4.get('data') or {}).get('chain') or [])
+           if c.get('stage') == 'attach']
+    _pair = lambda a: (a.get('code_git_head'), a.get('code_git_head_source'))  # noqa: E731
+    check('§T2-l-7 回执带代码版本: research-one attach(成功/纪律拒收)、旧入口 '
+          'research-attach、auto 链 attach 失败行均带 code_git_head+'
+          'code_git_head_source;代码副本树无 git 时取根目录印章(source='
+          'code_version_stamp)',
+          rc1 == 0 and d1.get('ok') is True and _pair(a1) == (_stamp, 'code_version_stamp')
+          and rc2 == 0 and d2.get('ok') is False and _pair(a2) == (_stamp, 'code_version_stamp')
+          and rc3 == 1 and d3.get('ok') is False and _pair(a3) == (_stamp, 'code_version_stamp')
+          and rc4 == 1 and len(ch4) == 1 and ch4[0].get('ok') is False
+          and _pair(ch4[0]) == (_stamp, 'code_version_stamp'),
+          f'rc={rc1}/{rc2}/{rc3}/{rc4} pairs={_pair(a1)}/{_pair(a2)}/{_pair(a3)}'
+          f'/{[_pair(c) for c in ch4]}')
+    # 变异自检: 关掉时态模型/日期规则,夹具必须报出(防夹具空转)
+    _orig = (aj._pol_tense_violation, aj._pol_date_specs)
+    mut = {}
+    try:
+        aj._pol_tense_violation = lambda *a, **k: None
+        mut['tense_off'] = [c['id'] for c in cases
+                            if not _ok(c, _t2_probe_run(doc, c, ev, asof))]
+        aj._pol_tense_violation, aj._pol_date_specs = _orig[0], lambda *a, **k: []
+        mut['date_off'] = [c['id'] for c in cases
+                           if not _ok(c, _t2_probe_run(doc, c, ev, asof))]
+    finally:
+        aj._pol_tense_violation, aj._pol_date_specs = _orig
+    check('§T2-l-8 变异自检: 关掉时态模型→拒收探针失守 ≥ 30 例;关掉日期'
+          '规则→失守 ≥ 8 例;恢复后 87 例复绿',
+          len(mut['tense_off']) >= 30 and len(mut['date_off']) >= 8
+          and all(_ok(c, _t2_probe_run(doc, c, ev, asof))
+                  for c in cases),
+          f'tense_off={len(mut["tense_off"])} date_off={len(mut["date_off"])}')
+
+
+# ══ 任务2修订 r3 收尾: 顶层定义无重名死副本 ════════════════════════════════════
+# 提交前复核发现 scripts/agent_judgment.py 内 4 个时态模型辅助函数各带 3–8 份死副本
+# (拼接块逐次前置追加所致;Python 只绑定末次定义——全门、全电池、复杂度基线全绿
+# 也看不出)。此段对全部入库生产模块做静态检查;变异自检 = 内存中给该模块末尾追加
+# 一份其末次顶层函数(重名)→ 必须报出,原文件必须零报出。
+
+
+def _t2_dup_defs(src):
+    import ast
+    names = [n.name for n in ast.parse(src).body
+             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))]
+    return sorted({x for x in names if names.count(x) > 1})
+
+
+def _t2_prod_modules():
+    """入库生产模块: 仓库根 *.py + scripts/**/*.py(不含 tests/ docs/ 与 .venv)。有 .git 时
+    以 git ls-files 为准(git archive 导出的安装树无 .git → 按同一范围走目录)。"""
+    if os.path.exists(os.path.join(ROOT, '.git')):
+        out = subprocess.run(['git', 'ls-files', '*.py'], cwd=ROOT, capture_output=True,
+                             text=True, env=dict(os.environ, GIT_OPTIONAL_LOCKS='0')).stdout
+        return sorted(p for p in out.split('\n')
+                      if p and not p.startswith(('tests/', 'docs/')) and
+                      os.path.exists(os.path.join(ROOT, p)))
+    mods = [f for f in sorted(os.listdir(ROOT)) if f.endswith('.py')]
+    for dp, dns, fns in os.walk(os.path.join(ROOT, 'scripts')):
+        dns[:] = [d for d in dns if not d.startswith('.')]
+        mods += [os.path.relpath(os.path.join(dp, f), ROOT)
+                 for f in sorted(fns) if f.endswith('.py')]
+    return mods
+
+
+def sec_t2_m():
+    print('═══ 任务2修订 r3 收尾: 顶层定义无重名死副本 ═══')
+    mods = _t2_prod_modules()
+    dups = {}
+    for p in mods:
+        try:
+            dups[p] = _t2_dup_defs(io.open(os.path.join(ROOT, p), encoding='utf-8').read())
+        except SyntaxError:
+            dups[p] = ['<unparsable>']
+    bad = {p: d for p, d in dups.items() if d}
+    check('§T2-m-1 入库生产模块(根与 scripts/,不含 tests/ docs/)顶层 def/class 无重名: '
+          '%d 个模块' % len(mods), len(mods) >= 90 and not bad, bad)
+    p = 'scripts/agent_judgment.py'
+    src = io.open(os.path.join(ROOT, p), encoding='utf-8').read()
+    import ast
+    last = [n for n in ast.parse(src).body if isinstance(n, ast.FunctionDef)][-1]
+    mut = src.rstrip('\n') + '\n\n\n' + ast.get_source_segment(src, last) + '\n'
+    m = _t2_dup_defs(mut)
+    check('§T2-m-2 变异自检: 追加一份末次顶层函数的重名副本(%s)→ 报出且只报出它;'
+          '原文件零报出' % last.name, m == [last.name] and not _t2_dup_defs(src), m)
 
 
 # ══ 任务2补充 r2: 契约门拒收理由随回执 ════════════════════════════════════
@@ -5372,7 +5655,8 @@ def _t5_syn_step(mid, dates, values, unit):
 
 
 def _t5_seat_helpers():
-    """席位工具纯函数面: 只取常量 D / PRICING_TICK_BP / _COMP_NAME / _HYP / _HZ_TXT
+    """席位工具纯函数面: 只取常量 D / PRICING_TICK_BP / PRICING_STEP_BP /
+    _COMP_NAME / _HYP / _HZ_TXT
     与白名单函数定义(源码 ast 抽取后执行),不执行模块级守卫/取数——席位工具只
     服务其预设的真实工单,门内不跑整份。"""
     import ast
@@ -5387,8 +5671,9 @@ def _t5_seat_helpers():
         isinstance(n, ast.FunctionDef) and n.name in want) or (
         isinstance(n, ast.Assign)
         and any(isinstance(tg, ast.Name)
-                and tg.id in ('D', 'PRICING_TICK_BP', '_COMP_NAME', '_HYP',
-                              '_HZ_TXT') for tg in n.targets))]
+                and tg.id in ('D', 'PRICING_TICK_BP', 'PRICING_STEP_BP',
+                              '_COMP_NAME', '_HYP', '_HZ_TXT')
+                for tg in n.targets))]
     import bisect
     ns = {'bisect': bisect}
     exec(compile(ast.Module(body=body, type_ignores=[]), 'seat_helpers',
@@ -5945,11 +6230,14 @@ def sec_t5_g():
 
 
 def sec_t5_h():
-    print('§T5-h 席位工具定价曲线形态守卫(报价噪声容一个最小变动价位;只核判定档'
-          '引用到的最后合约月之前;2026-11-25 盘中演习面误拒更正)')
+    print('§T5-h 席位工具定价曲线形态守卫(报价噪声容半个定价步长且不小于一个最小'
+          '变动价位,按此前运行峰值计;只核判定档引用到的最后合约月之前;2026-11-25 '
+          '盘中演习面误拒与同日日终真实面末月回落 1bp 误拒两处更正)')
     ns = _t5_seat_helpers()
     ppr = ns['pricing_path_rising']
     tick = ns['PRICING_TICK_BP']
+    step = ns['PRICING_STEP_BP']
+    band = max(tick, step / 2.0)
     M10 = ['2026-11', '2026-12', '2027-01', '2027-02', '2027-03', '2027-04',
            '2027-05', '2027-06', '2027-07', '2027-08']
 
@@ -5963,6 +6251,10 @@ def sec_t5_h():
     rh = [-0.25, 18.0, 27.0, 41.0, 48.0, 56.0, 61.5, 65.5, 68.0, 67.5]
     c_rh = curve(rh)
     old_rule = all(x >= 0 for x in rh) and rh[-1] > rh[0]
+    # 2026-11-25 日终真实面(同日第二次采集): 末月较此前峰值回落 1bp——r12 的
+    # 「相邻月只容一个最小变动价位(0.5bp)」口径误拒→修订 r14 改按运行峰值计、
+    # 噪声界=半个定价步长(12.5bp)且不小于一个最小变动价位
+    s3 = [0.0, 17.0, 26.5, 39.5, 46.5, 54.0, 58.5, 62.5, 64.5, 63.5]
     got = {
         'rh_all': ppr(c_rh), 'rh_upto': ppr(c_rh, upto='2027-03'),
         'mid_dip': ppr(curve([0.0, 18.0, 27.0, 24.0, 48.0, 56.0])),
@@ -5982,15 +6274,30 @@ def sec_t5_h():
         'tail_dip_all': ppr(curve([0.0, 18.0, 27.0, 41.0, 48.0, 56.0, 61.5,
                                    65.5, 68.0, 65.0])),
         'upto_early': ppr(c_rh, upto='2026-11'),
+        's3_face': ppr(curve(s3)),
+        's3_upto': ppr(curve(s3), upto='2027-07'),
+        'bleed': ppr(curve([0.0, 30.0, 27.0, 24.0, 20.0, 16.0])),
+        'deep_dip': ppr(curve([0.0, 30.0, 15.0, 48.0, 56.0, 60.0])),
+        'edge_dip': ppr(curve([0.0, 30.0, 17.5, 48.0, 56.0, 60.0])),
+        'edge_dip_over': ppr(curve([0.0, 30.0, 17.4, 48.0, 56.0, 60.0])),
+        'tail_deep_all': ppr(curve([0.0, 18.0, 27.0, 41.0, 48.0, 56.0, 61.5,
+                                    65.5, 68.0, 55.0])),
+        'rise_half_step': ppr(curve([0.0, 2.0, 4.0, 6.0, 8.0, 12.5])),
+        'rise_over_half': ppr(curve([0.0, 2.0, 4.0, 6.0, 8.0, 13.0])),
+        'band_custom': ppr(curve([0.0, 30.0, 20.0, 48.0, 50.0, 52.0]),
+                           band_bp=5.0),
+        'tick_band': ppr(curve([0.0, 30.0, 20.0, 48.0, 50.0, 52.0]),
+                         tick_bp=30.0),
     }
     check('§T5-h1 席位工具 pricing_path_rising(纯函数面): 2026-11-25 演习面(首月 '
-          '−0.25bp/末两月 −0.5bp)判为累计上调路径(旧内联规则判否=误拒);中段真实'
-          '回落(3bp)=not_cumulative、回落恰一个最小变动价位=通过;平坦/噪声内升降='
-          'flat_or_falling;下行路径=拒;非数值(True/NaN)=non_numeric;缺席/行数不足='
-          'absent',
+          '−0.25bp/末两月 −0.5bp)与日终真实面(末月回落 1bp)判为累计上调路径(旧内联'
+          '规则判否=误拒);中段回落 3bp 与恰一个最小变动价位=噪声内通过;平坦/噪声内'
+          '升降=flat_or_falling;下行路径=拒;非数值(True/NaN)=non_numeric;缺席/行数'
+          '不足=absent',
           got['rh_all'] == (True, 'ok') and got['rh_upto'] == (True, 'ok')
+          and got['s3_face'] == (True, 'ok') and got['s3_upto'] == (True, 'ok')
           and old_rule is False
-          and got['mid_dip'] == (False, 'not_cumulative')
+          and got['mid_dip'] == (True, 'ok')
           and got['mid_dip_tick'] == (True, 'ok')
           and got['flat'] == (False, 'flat_or_falling')
           and got['noise_rise'] == (False, 'flat_or_falling')
@@ -6002,13 +6309,32 @@ def sec_t5_h():
           and got['absent_all'] == (False, 'absent'),
           json.dumps(got, ensure_ascii=False))
     check('§T5-h2 只核判定档引用到的最后合约月之前: 末段(引用月之后)回落 3bp 的曲线'
-          '在 upto=2027-05 下通过、全曲线(upto=None)下 not_cumulative;upto 早于第二个'
-          '月=absent(无可判期数)',
+          '在 upto=2027-05 下与全曲线下均通过(噪声内);末段回落 13bp(超过噪声界)只在'
+          '全曲线下 not_cumulative;upto 早于第二个月=absent(无可判期数)',
           got['tail_dip_upto'] == (True, 'ok')
-          and got['tail_dip_all'] == (False, 'not_cumulative')
+          and got['tail_dip_all'] == (True, 'ok')
+          and got['tail_deep_all'] == (False, 'not_cumulative')
           and got['upto_early'] == (False, 'absent'),
           json.dumps([got['tail_dip_upto'], got['tail_dip_all'],
-                      got['upto_early']], ensure_ascii=False))
+                      got['tail_deep_all'], got['upto_early']],
+                     ensure_ascii=False))
+    edge = [
+        ('单月跌破此前峰值 4bp 后继续下滑(累计 14bp)=不是累计上调', 'bleed',
+         (False, 'not_cumulative')),
+        ('单月深回落 15bp=not_cumulative', 'deep_dip', (False, 'not_cumulative')),
+        ('单月回落恰等于噪声界 12.5bp=通过(运行峰值 30→17.5)', 'edge_dip',
+         (True, 'ok')),
+        ('单月回落超过噪声界 0.1bp=not_cumulative', 'edge_dip_over',
+         (False, 'not_cumulative')),
+        ('首尾净上行恰等于噪声界 12.5bp=flat_or_falling', 'rise_half_step',
+         (False, 'flat_or_falling')),
+        ('首尾净上行超过噪声界 0.5bp=通过', 'rise_over_half', (True, 'ok')),
+        ('band_bp=5 时回落 10bp=not_cumulative', 'band_custom',
+         (False, 'not_cumulative')),
+        ('tick_bp=30 时噪声界取 30(不小于最小变动价位)=通过', 'tick_band',
+         (True, 'ok')),
+    ]
+    ebad = [(n, got[k]) for n, k, w in edge if got[k] != w]
     src = open(os.path.join(ROOT, 'scripts', 'seat_tools',
                             'make_expectations_gap_judgment.py'),
                encoding='utf-8').read()
@@ -6018,13 +6344,19 @@ def sec_t5_h():
     check('§T5-h3 静态锁: 旧内联条件(逐行 change_bp≥0 且末>首)退场,顶部只留结构性'
           '检查;形态守卫以引用月末月(upto=编号路径到期月/期限月、同期限参照月、证伪'
           '窗口末个完整合约月的最大者)调用,位于写出判定档之前;函数定义先于调用;'
-          '最小变动价位常量=0.5bp',
+          '最小变动价位常量=0.5bp、定价步长常量=25bp、噪声界=两者较大者(12.5bp);'
+          '回落按此前运行峰值判',
           "x['change_bp'] >= 0 for x in prow" not in src
           and "refuse('联邦基金利率期货定价缺席')" in src
           and bool(m_call) and i_def < m_call.start() < i_write
           and 'step_m, hor_m, hz_m, win_m)' in src[m_call.start():m_call.start() + 260]
-          and tick == 0.5,
+          and tick == 0.5 and step == 25.0 and band == 12.5
+          and 'PRICING_STEP_BP = 25.0' in src
+          and 'band = max(float(tick_bp), PRICING_STEP_BP / 2.0' in src
+          and 'if v < peak - band:' in src
+          and 'if not vals[-1] - vals[0] > band:' in src,
           'def=%d call=%s write=%d' % (i_def, m_call and m_call.start(), i_write))
+    check('§T5-h4 噪声界边界(修订 r14): %d 例' % len(edge), not ebad, ebad)
 
 
 def sec_t5_i():
@@ -6158,6 +6490,379 @@ def sec_t5_i():
           '见证据包预审目录与报告。')
 
 
+def sec_t5_j():
+    print('§T5-j 任务5修订 r14(独立席终审 REVISE 后的闭环): 多窗结构化对质'
+          '(软字段 face_off_checks;旧档零漂移)/机构间分歧幅度段渲染/席位工具'
+          '文字修订静态锁')
+    xg = _xg()
+    import research_map_planner as rmp
+    import judgment_contract as jc
+    t, snap = _t5_tree('t5j')
+    sd = _jq(snap)
+    reg = wd.load_registry(t)['by_id']
+    rep = _plan_on(t, Q_T5)
+    rp = rep.get('research_plan') or {}
+    rj = copy.deepcopy(rep)
+    rj['steps'] = _t5_steps_with_series(sd, reg, ('DFF', 'SPX'),
+                                        rep.get('steps') or [])
+    rj2 = copy.deepcopy(rj)
+    rj2['steps'] = rj2['steps'] + [_t5_syn_step(      # 合成序列(非真实数据)
+        'SYN_ZERO', ['2026-08-03', '2026-09-01', '2026-10-01'],
+        [0.0, 1.0, 2.0], 'index_point_2010')]
+    face = jc.build_face(rj)
+    face2 = jc.build_face(rj2)
+    cut = rp.get('cutoff')
+    WA = {'from': '2026-08', 'to': '2026-10'}
+    WB = {'from': '2026-10', 'to': '2026-11'}
+    OPS = {'>=': lambda p, q: p >= q, '>': lambda p, q: p > q,
+           '<=': lambda p, q: p <= q, '<': lambda p, q: p < q,
+           '==': lambda p, q: abs(p - q) < 1e-9,
+           '!=': lambda p, q: abs(p - q) >= 1e-9}
+
+    def mlast(mid, ym):
+        d, v = _t5_obs(sd, mid, ym + '-31')
+        return (d, v) if d and d[:7] == ym else (None, None)
+
+    def exp_note(items):
+        """门内独立拼多窗复算注记(月末口径;逐月独立取读数)→ (注记, 总裁决)"""
+        det, vs = [], []
+        for it_ in items:
+            w = it_['observation_window']
+            segs, spans, holds = [], [], {}
+            for side, lbl in (('main', '主解释'), ('competing', '竞争解释')):
+                parts, h = [], True
+                for mid, cc in it_[side].items():
+                    pts = [(ym, p) for ym in _t5_months(w['from'], w['to'])
+                           for p in (mlast(mid, ym),) if p[0]]
+                    v0, v1 = pts[0][1][1], pts[-1][1][1]
+                    u = cc['unit']
+                    q = (round((v1 - v0) * 100.0, 6) if u == 'bp'
+                         else round(v1 - v0, 6) if u == 'pp'
+                         else round((v1 / v0 - 1.0) * 100.0, 6))
+                    ok_ = OPS[cc['op']](q, float(cc['value']))
+                    h = h and ok_
+                    parts.append('%s %s %g%s→观测 %+.2f%s%s' % (
+                        mid, cc['op'], cc['value'], u, q, u,
+                        '成立' if ok_ else '不成立'))
+                    spans.append('%s→%s(%d 期)' % (pts[0][0], pts[-1][0],
+                                                   len(pts)))
+                holds[side] = h
+                segs.append('%s(%s)' % (lbl, '且'.join(parts)))
+            vs.append('尚不能区分' if holds['main'] == holds['competing']
+                      else '支持主解释' if holds['main'] else '支持竞争解释')
+            det.append('窗 %s: %s→%s' % (spans[-1], ';'.join(segs), vs[-1]))
+        exp = (vs[0] if all(x == vs[0] for x in vs) else '尚不能区分')
+        return ' / '.join(det) + '→' + exp, exp
+
+    def it(win, main, comp):
+        return {'observation_window': dict(win), 'main': dict(main),
+                'competing': dict(comp)}
+
+    def c(op, value, unit='bp'):
+        return {'op': op, 'value': value, 'unit': unit}
+
+    M_UP, M_DN = {'DFF': c('>=', 12.5)}, {'DFF': c('<', 12.5)}
+    TWO = [it(WA, M_UP, M_DN), it(WB, M_UP, M_DN)]
+    SAME = [it(WA, M_UP, M_DN), it(WA, M_UP, M_DN)]
+    BOTH = [it(WA, {'DFF': c('>=', 0)}, {'DFF': c('>=', -100)}),
+            it(WB, {'DFF': c('>=', 0)}, {'DFF': c('>=', -100)})]
+    AND_T = [it(WA, {'DFF': c('>=', 12.5), 'SPX': c('>', -1000000, 'pct')}, M_DN)]
+    AND_F = [it(WA, {'DFF': c('>=', 12.5), 'SPX': c('<', -1000000, 'pct')}, M_DN)]
+    base = {'observed_fact': '门夹具观察事实甲(合成)',
+            'causal_hypothesis': '门夹具因果假设(合成)',
+            'competing_explanation': '门夹具竞争解释(合成)',
+            'distinguishing_metric': 'DFF',
+            'main_predicts': '门夹具主解释预期(合成)',
+            'competing_predicts': '门夹具竞争解释预期(合成)',
+            'face_off_verdict': '尚不能区分'}
+
+    def run(link, fc=None):
+        j = {'reader_map': {'transmission': [{'links': [link]}]}}
+        out = jc._map_checks(j, fc or face, rj2 if fc else rj)
+        return [x for x in out if '.face_off_checks' in x['item']
+                or x['item'].endswith('.face_off_verdict')]
+
+    pos = [
+        ('两窗分别支持两侧→尚不能区分(声明一致)', dict(base, face_off_checks=TWO)),
+        ('同上而声明「支持主解释」=CONTRADICTED',
+         dict(base, face_off_verdict='支持主解释', face_off_checks=TWO)),
+        ('两窗同向支持主解释(声明一致)',
+         dict(base, face_off_verdict='支持主解释', face_off_checks=SAME)),
+        ('两窗同向而声明「尚不能区分」=CONTRADICTED',
+         dict(base, face_off_checks=SAME)),
+        ('两侧条件同时成立→尚不能区分', dict(base, face_off_checks=BOTH)),
+        ('多指标取且: 第二条件恒真(声明一致)',
+         dict(base, face_off_verdict='支持主解释', face_off_checks=AND_T)),
+        ('多指标取且: 第二条件不成立→主解释不成立→两侧均不成立(声明相左)',
+         dict(base, face_off_verdict='支持主解释', face_off_checks=AND_F)),
+        ('同上声明「尚不能区分」=VERIFIED',
+         dict(base, face_off_checks=AND_F)),
+        ('百分点口径',
+         dict(base, face_off_checks=[it(
+             WA, {'DFF': c('>=', 0.2, 'pp')}, {'DFF': c('>=', 0.2, 'pp')})])),
+        ('百分比口径(声明一致)',
+         dict(base, face_off_verdict='支持主解释', face_off_checks=[
+             it(WA, {'DFF': c('>=', 5, 'pct')}, {'DFF': c('<', 5, 'pct')})])),
+        ('指数序列近 1 个月窗支持竞争解释(声明一致)',
+         dict(base, face_off_verdict='支持竞争解释', face_off_checks=[
+             it(WB, {'SPX': c('<', -1000000, 'pct')},
+              {'SPX': c('>', -1000000, 'pct')})])),
+        ('判断缺席=与复算不一致(声明空)',
+         {k: v for k, v in dict(base, face_off_checks=[it(WA, M_UP, M_DN)]).items()
+          if k != 'face_off_verdict'}),
+    ]
+    pbad = []
+    for name, link in pos:
+        want, exp = exp_note(link['face_off_checks'])
+        got_ = run(link)
+        hit = [x for x in got_ if x['item'].endswith('.face_off_checks')]
+        miss = [x for x in got_ if x['item'].endswith('.face_off_verdict')
+                and x['status'] == 'CONTRADICTED']
+        if link.get('face_off_verdict') == exp:
+            okk = (len(hit) == 1 and hit[0]['status'] == 'VERIFIED'
+                   and hit[0]['note'] == want and not miss
+                   and all(x['status'] == 'VERIFIED' for x in got_))
+        else:
+            okk = (len(miss) == 1
+                   and miss[0]['note'] == (
+                       '对质判断与多窗结构化复算不一致: '
+                       + want[:-(len(exp) + 1)] + '→应为 ' + exp
+                       + '(声明 %s)' % (link.get('face_off_verdict') or '空'))
+                   and not hit)
+        if not okk:
+            pbad.append((name, [(x['status'], x['item'][-28:], x['note'][:60])
+                                for x in got_], exp))
+    neg = [
+        ('空列表', dict(base, face_off_checks=[]), '.face_off_checks',
+         'NOT_VERIFIED', '须为非空列表'),
+        ('非列表', dict(base, face_off_checks='x'), '.face_off_checks',
+         'NOT_VERIFIED', '须为非空列表'),
+        ('项非对象', dict(base, face_off_checks=['x']), '.face_off_checks[0]',
+         'NOT_VERIFIED', '须带 observation_window'),
+        ('项缺观测窗', dict(base, face_off_checks=[{'main': M_UP,
+                                                 'competing': M_DN}]),
+         '.face_off_checks[0]', 'NOT_VERIFIED', '须带 observation_window'),
+        ('未配竞争解释', dict(base, face_off_checks=[it(WA, M_UP, M_DN)]),
+         '.face_off_checks', 'NOT_VERIFIED', '须配竞争解释'),
+        ('窗终月晚于研究截止月', dict(base, face_off_checks=[it(
+            {'from': '2026-10', 'to': '2026-12'}, M_UP, M_DN)]),
+         '.face_off_checks[0]', 'NOT_VERIFIED', '晚于研究截止月'),
+        ('序列缺席', dict(base, face_off_checks=[it(
+            WA, {'NOPE_X': c('>=', 12.5)}, M_DN)]),
+         '.face_off_checks[0].main.NOPE_X', 'CONTRADICTED', '不在证据面'),
+        ('指标编号非法', dict(base, face_off_checks=[it(
+            WA, {'dff': c('>=', 12.5)}, M_DN)]),
+         '.face_off_checks[0].main', 'NOT_VERIFIED', '指标编号非法'),
+        ('主解释侧为空', dict(base, face_off_checks=[it(WA, {}, M_DN)]),
+         '.face_off_checks[0].main', 'NOT_VERIFIED', '须为非空对象'),
+        ('竞争解释侧缺席', dict(base, face_off_checks=[
+            {'observation_window': dict(WA), 'main': M_UP}]),
+         '.face_off_checks[0].competing', 'NOT_VERIFIED', '须为非空对象'),
+        ('算子非法', dict(base, face_off_checks=[it(
+            WA, {'DFF': c('≈', 12.5)}, M_DN)]),
+         '.face_off_checks[0].main.DFF', 'NOT_VERIFIED', 'op:'),
+        ('单位非法', dict(base, face_off_checks=[it(
+            WA, {'DFF': c('>=', 12.5, 'xx')}, M_DN)]),
+         '.face_off_checks[0].main.DFF', 'NOT_VERIFIED', 'pct/bp/pp'),
+        ('阈值非数值', dict(base, face_off_checks=[it(
+            WA, {'DFF': c('>=', '12.5')}, M_DN)]),
+         '.face_off_checks[0].main.DFF', 'NOT_VERIFIED', '数值'),
+        ('阈值为布尔', dict(base, face_off_checks=[it(
+            WA, {'DFF': c('>=', True)}, M_DN)]),
+         '.face_off_checks[0].main.DFF', 'NOT_VERIFIED', '数值'),
+        ('窗内不足两期', dict(base, face_off_checks=[it(
+            {'from': '2026-08', 'to': '2026-08'}, M_UP, M_DN)]),
+         '.face_off_checks[0].observation_window', 'NOT_VERIFIED', '不足两期'),
+        ('窗形非法', dict(base, face_off_checks=[it(
+            {'from': '2026-8', 'to': '2026-10'}, M_UP, M_DN)]),
+         '.face_off_checks[0].observation_window', 'NOT_VERIFIED', 'YYYY-MM'),
+        ('首期为零不可算(合成序列)', dict(
+            base, face_off_checks=[it(WA, {'SYN_ZERO': c('>=', 1, 'pct')},
+                                      {'SYN_ZERO': c('<', 1, 'pct')})]),
+         '.face_off_checks[0].main.SYN_ZERO', 'NOT_VERIFIED', '不可复算'),
+    ]
+    nbad = []
+    for i, (name, link, suf, st_, frag) in enumerate(neg):
+        link = dict(link)
+        if frag == '须配竞争解释':
+            link.pop('competing_explanation', None)      # 该例=未配竞争解释
+        got_ = run(link, face2 if 'SYN_' in str(link.get('face_off_checks')) else None)
+        hit = [x for x in got_ if x['item'].endswith(suf)]
+        if not (len(hit) == 1 and hit[0]['status'] == st_ and frag in hit[0]['note']):
+            nbad.append((name, [(x['status'], x['item'][-34:], x['note'][:50])
+                                for x in got_]))
+    check('§T5-j1 多窗结构化对质(契约函数级;冻结快照真序列;门内独立逐月取读数'
+          '逐字拼注记): %d 例——同一区分环各窗分别复算,单窗内一侧全部条件成立=该窗'
+          '支持该侧(多指标取且),两解释同成立/同不成立=该窗尚不能区分,各窗一致=该侧、'
+          '不一致=尚不能区分;声明与复算一致=VERIFIED(注记与门内独立拼逐字相同),'
+          '不一致=CONTRADICTED;门内独立算: DFF 2026-08→2026-10 为 %s bp、'
+          '2026-10→2026-11 为 %s bp' % (
+              len(pos), round((mlast('DFF', '2026-10')[1]
+                               - mlast('DFF', '2026-08')[1]) * 100.0, 2),
+              round((mlast('DFF', '2026-11')[1] - mlast('DFF', '2026-10')[1])
+                    * 100.0, 2)),
+          not pbad, pbad)
+    check('§T5-j2 多窗对质反例(字段在场才核): %d 例全部拦下并给具体原因(窗晚于'
+          '截止月/序列不在证据面/编号·算子·单位·阈值非法/侧为空/窗不可复算/未配'
+          '竞争解释/空列表)' % len(neg), not nbad, nbad)
+    # ── 旧档零漂移(软字段: 不在场=None=不判、不渲染) ──
+    leg_w = dict(base, observation_window=WA)
+    o0 = jc._map_checks({'reader_map': {'transmission': [{'links': [dict(base)]}]}},
+                        face, rj)
+    o1 = jc._map_checks({'reader_map': {'transmission': [{'links': [leg_w]}]}},
+                        face, rj)
+    o2 = jc._map_checks({'reader_map': {'transmission': [{'links': [
+        dict(leg_w, face_off_checks=None)]}]}}, face, rj)
+    dobs = rmp._distinguishing_obs(rj, cut, 'DFF')
+    cell_1 = rmp._face_off_obs_cell(rj, cut, leg_w, 'DFF', dobs)
+    cell_0 = rmp._face_off_obs_cell(rj, cut, dict(base), 'DFF', dobs)
+    cell_n = rmp._face_off_obs_cell(rj, cut, dict(leg_w, face_off_checks=None),
+                                    'DFF', dobs)
+    m_none = [rmp._face_off_multi_obs(rj, cut, lk_, dobs) for lk_ in (
+        {}, dict(base), dict(leg_w, face_off_checks=None),
+        dict(leg_w, face_off_checks=[]), dict(leg_w, face_off_checks='x'))]
+
+    def jd(links_a, links_b=()):
+        return {'reader_map': {
+            'headline_conclusion': '门夹具总判断(合成;非真实研判)。',
+            'regions': [{'region': r, 'from_to': '门夹具走位(合成)。'}
+                        for r in ('US', 'CN', 'EA', 'JP')],
+            'transmission': [{'chain_name': '门夹具传导链甲(合成)',
+                              'links': list(links_a)},
+                             {'chain_name': '门夹具传导链乙(合成)',
+                              'links': list(links_b)}],
+            'turnings': [], 'history_periods': []}}
+
+    lk_m = dict(base, face_off_checks=TWO)
+    lk_s = dict(base, observation_window=WA,
+                face_off_checks=[it(WA, M_UP, M_DN)])
+    md_m = rmp.render_map_report(rj, jd([lk_m]), None, root=t)
+    md_s = rmp.render_map_report(rj, jd([lk_s]), None, root=t)
+    md_l = rmp.render_map_report(rj, jd([leg_w], [dict(base)]), None, root=t)
+    w1 = rmp._window_obs_text(rj, 'DFF', WA, cut)
+    w2 = rmp._window_obs_text(rj, 'DFF', WB, cut)
+    inner = '[窗一] DFF %s | [窗二] DFF %s' % (w1, w2)
+    multi = '(多窗: ' + inner + ')'
+    multi1 = '(多窗: [窗一] DFF %s)' % w1
+    row_m = ('| DFF | 门夹具主解释预期(合成) | 门夹具竞争解释预期(合成) | %s | '
+             '尚不能区分 |' % multi)
+    line_m = '   - 多窗对质观测(各窗分别复算): ' + inner
+    tbl = md_m.split('## 主解释 vs 竞争解释(对质表)')[1].split('\n## ')[0]
+    check('§T5-j3 渲染(多窗对质): 对质表「已有观测」格=「(多窗: [窗一] … | [窗二] '
+          '…)」(各窗文字=旧同窗读数规则,门内独立调用逐字相同);传导图「能区分解释的'
+          '指标」行下另起一行「多窗对质观测(各窗分别复算)」;带单窗观测窗又带多窗的'
+          '环取多窗;旧格式(无字段)的渲染不含「多窗」',
+          row_m in tbl and line_m in md_m
+          and md_m.count('多窗对质观测(各窗分别复算): ') == 1
+          and ('| %s | 尚不能区分 |' % multi1) in md_s.split(
+              '## 主解释 vs 竞争解释(对质表)')[1].split('\n## ')[0]
+          and '多窗' not in md_l and '多窗' not in cell_1,
+          f"row={row_m in tbl} line={line_m in md_m} "
+          f"single={('| %s | 尚不能区分 |' % multi) in md_s} "
+          f"tail={multi[-70:]}")
+    check('§T5-j4 旧档零漂移(软字段): 无字段与字段=None 的契约产出逐项相同(含带单窗'
+          '观测窗的环);旧环零「多窗」项;渲染函数对无字段/None/空列表/非列表返回 '
+          'None(调用方走旧输出),单窗观测窗的格与无观测窗的格不因新函数改变',
+          o1 == o2 and not [x for x in o0 + o1 if '.face_off_checks' in x['item']]
+          and cell_1 == cell_n and cell_0 is dobs and m_none == [None] * 5
+          and '多窗' not in md_l,
+          f"o_eq={o1 == o2} cell_eq={cell_1 == cell_n} "
+          f"m={m_none} cell0={cell_0 is dobs}")
+    # ── 机构间分歧段渲染(引擎;旧数值幅度逐字不变) ──
+    sp = [
+        ('数值幅度+说明', {'numeric_spread_bp': 25.0, 'spread_note': '说明甲(合成)'},
+         '%s bp——%s' % (xg._cell(25.0), xg._cell('说明甲(合成)'))),
+        ('数值幅度、说明缺席=旧输出逐字不变(含旧短横尾)',
+         {'numeric_spread_bp': 25.0, 'spread_note': None},
+         '%s bp——%s' % (xg._cell(25.0), xg._cell(None))),
+        ('不可折算为基点、说明缺席', {'numeric_spread_bp': None, 'spread_note': None},
+         '不可折算为基点(口径不同或不可比)'),
+        ('不可折算为基点、带说明', {'numeric_spread_bp': None, 'spread_note': '说明乙(合成)'},
+         '不可折算为基点(口径不同或不可比)——说明乙(合成)'),
+        ('说明为短横=不加尾', {'numeric_spread_bp': None, 'spread_note': '—'},
+         '不可折算为基点(口径不同或不可比)'),
+        ('布尔不作数值', {'numeric_spread_bp': True, 'spread_note': None},
+         '不可折算为基点(口径不同或不可比)'),
+    ]
+    spbad = [(n, xg._spread_txt(d), w) for n, d, w in sp if xg._spread_txt(d) != w]
+    check('§T5-j5 机构间分歧段(_spread_txt;修订 r14 NIT): 可折算为基点=旧格式逐字'
+          '不变;不可折算(点位对增速等口径不同或不可比)=写明口径,说明缺席不再输出'
+          '连续短横;布尔不作数值: %d 例' % len(sp), not spbad, spbad)
+    # ── 静态锁 ──
+    rd_ = lambda *a: open(os.path.join(ROOT, *a), encoding='utf-8').read()
+    ssrc = rd_('scripts', 'seat_tools', 'make_expectations_gap_judgment.py')
+    esrc = rd_('scripts', 'expectations_gap.py')
+    csrc = rd_('scripts', 'research_contract', 'judgment_contract.py')
+    rsrc = rd_('scripts', 'research_map_planner.py')
+    on = [
+        ('多窗对质字段入判定档', "'face_off_checks'", 1),
+        ('环一证伪: 截至日/可得读数观测日随行',
+         '在 %s 或之前较截止日可得读数(%s 观测 %s)累计上调达到或超过 ', 1),
+        ('环四期限推迟逻辑推演: 截止月随行', "'deadline': _e1_dl", 1),
+        ('环四期限推迟逻辑推演: 不作幅度主张', '纯逻辑推演,未作幅度主张', 2),
+        ('环四期限推迟逻辑推演: 推至截止月后三个月', 'ym_shift(as_of[:7], 3)', 1),
+        ('转折: 十二个月窗内其他地区政策事件随行(含早于转折窗起点者)',
+         '近十二个月窗内其他地区政策事件(含早于本转折窗起点者,日期随行): ', 1),
+        ('东京 CPI 缺席披露', '_gap_mids', 2),
+        ('已实现数据表述未映射行: 评论只写行数', '行号见质量门注记;原表述', 1),
+        ('已实现数据表述未映射行: 行号入质量门注记', '行号在此点名,不入数值绑定', 1),
+        ('已实现数据表述未映射行: 行号只在注记里展开',
+         "str(r.get('row_id')) for r in _rd_unm)", 1),
+        ('历史类比同步性: 不带花括号',
+         "sync = ('%s: 截至%s已发布数据显示,%s。' % (", 1),
+        ('历史类比样本注记: 单前缀', "note = ('检索范围=%s 个有效候选", 1),
+        ('证伪条件(环二)', '同样未映射、未对账', 1),
+        ('对质环甲竞争解释阈值(两窗各不少于五个基点)',
+         '各不少于五个基点,阈值为席位自设', 1),
+        ('对质环甲解释乙', '通胀预期回落快于名义收益率', 1),
+        ('证伪条件(环三)', '差距应明显收窄', 1),
+        ('年度窗分量函数', 'def _yr(txt):', 1),
+        ('年度/近月两窗分量各自成句', '两窗各自变动较大的分量', 1),
+        ('年度/近月两窗分量各自成句(长期窗)', '长期窗为%s,', 1),
+        ('年度/近月两窗分量各自成句(近月窗)', '近1个月窗为%s)', 1),
+        ('标题利率句改年度窗(「一年前」锚)', '12个月窗变动以%s分量为最大(近1个月窗分解见美债三利率分解节);', 1),
+        ('标题利率句改年度窗(取十二个月窗分解)', 'tri12, biggest_component(c12),', 1),
+        ('情景乙: 窗内只核路径前段', '窗口内只能核路径前段', 1),
+        ('情景乙: 窗外最后完整合约月定价', '证伪窗口(%s→%s)之外,窗内最后一个完整合约月(%s)的定价为路径', 1),
+        ('情景甲: 证伪=同口径同期限后差距不收窄', '换到同一口径与同一期限后差距仍不收窄(或随', 1),
+    ]
+    off = [
+        ('情景乙旧通过线表述', '规则池通过线'),
+        ('转折旧同步性标题', '同期其他地区政策事件'),
+        ('历史类比样本注记旧双前缀', '样本注记: '),
+        ('历史类比同步性旧花括号', '{%s}: '),
+        ('标题旧近月分量句', '近月变动以%s分量为最大'),
+        ('解释乙旧表述', 'BEI_10Y 主导性走低而 TIPS_10Y 转平'),
+        ('解释乙旧变量', 'real_up_long'),
+        ('环四旧固定截止日', "'deadline': '2027-02-28'"),
+    ]
+    obad = [(n, ssrc.count(p), w) for n, p, w in on if ssrc.count(p) != w]
+    fbad = [(n, ssrc.count(p)) for n, p in off if p in ssrc]
+    check('§T5-j6 席位工具修订静态锁(独立席终审 1 MAJOR/3 MINOR/18 NIT 的闭环;门内'
+          '不跑整份装配): 已改表述 %d 处在场、旧表述 %d 处退场;契约多窗函数定义先于'
+          '调用且在单窗对质之后调用;渲染多窗函数定义一处、调用两处(对质表格+传导图'
+          '行);引擎分歧段模板改为经 _spread_txt' % (len(on), len(off)),
+          not obad and not fbad
+          and csrc.index('def _fo_face_off_checks(')
+          < csrc.index('def _fo_face_off_multi_checks(') < csrc.index('def _map_checks(')
+          and csrc.count('_fo_face_off_multi_checks(lk, lid, dm, face, plan, ok, bad)') == 2
+          and csrc.count('_fo_face_off_checks(lk, lid, dm, face, plan, ok, bad)\n'
+                         '            _fo_face_off_multi_checks(') == 1
+          and rsrc.count('def _face_off_multi_obs(') == 1
+          and rsrc.count('_face_off_multi_obs(') == 3
+          and "return '(多窗: ' + multi + ')'" in rsrc
+          and rsrc.index('def _face_off_multi_obs(')
+          < rsrc.index('def _face_off_obs_cell(')
+          and '多窗对质观测(各窗分别复算): ' in rsrc
+          and esrc.count('def _spread_txt(') == 1
+          and "d.get('n_rows'), _spread_txt(d))" in esrc
+          and "d.get('n_rows'), _cell(d.get('numeric_spread_bp'))," not in esrc,
+          f"on={obad} off={fbad}")
+    print('§T5-j 说明: 修订后的席位工具整份装配不在门内跑(工具只服务其预设的真实'
+          '工单,含机构观点内容);装配在仓外真实数据面上经工具自检、契约全量核验与'
+          '隔离沙箱正式 attach/报告级渲染核验,见证据包与报告。')
+
+
 def sec_t5():
     print('═══ 任务5: 预期差研究接入正式入口 ═══')
     sec_t5_a()
@@ -6169,6 +6874,7 @@ def sec_t5():
     sec_t5_g()
     sec_t5_h()
     sec_t5_i()
+    sec_t5_j()
 
 
 def main():
@@ -6177,6 +6883,8 @@ def main():
         sec_t2()
         sec_t2b()
         sec_t2_k()
+        sec_t2_l()
+        sec_t2_m()
         sec_t1_a()
         sec_t1_b()
         sec_t1_c()

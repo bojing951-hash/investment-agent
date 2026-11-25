@@ -1928,6 +1928,18 @@ def _cell(v):
     return t.replace('|', '\\|').replace('\n', ' ').strip() or '—'
 
 
+def _spread_txt(d):
+    """机构间分歧的数值幅度段(修订 r14,独立审查 NIT-4): 可折算为基点时与
+    旧渲染逐字相同(「X bp——说明」);不可折算为基点(点位对增速等口径不同)
+    时写明口径,说明缺席时不再输出「———」。"""
+    v = d.get('numeric_spread_bp')
+    note = _cell(d.get('spread_note'))
+    if isinstance(v, (int, float)) and not isinstance(v, bool):
+        return '%s bp——%s' % (_cell(v), note)
+    return '不可折算为基点(口径不同或不可比)' + (
+        '' if note in ('—', '-', '') else '——' + note)
+
+
 def _signed(v, nd=2):
     if isinstance(v, bool) or not isinstance(v, (int, float)):
         return '—'
@@ -2090,10 +2102,9 @@ def render_gap_sections(block, rm):
         lines.append('(问句范围内无同指标多机构行)')
     for d in dis:
         lines += [
-            '- **%s**(%s 家机构 %s 行;数值幅度 %s bp——%s):' % (
+            '- **%s**(%s 家机构 %s 行;数值幅度 %s):' % (
                 _cell(d.get('metric_id')), len(d.get('institutions') or []),
-                d.get('n_rows'), _cell(d.get('numeric_spread_bp')),
-                _cell(d.get('spread_note')))]
+                d.get('n_rows'), _spread_txt(d))]
         for x in d.get('rows') or []:
             lines.append('  - %s %s「%s」(发布 %s;到期 %s;引擎 %s)' % (
                 _cell(x.get('row_id')), _cell(x.get('institution')),

@@ -1492,6 +1492,8 @@ def cmd_research_attach(args):
             'layers_summary': res.get('layers_summary'),
             'blocked': res.get('blocked'),
             'run_ok_at_attach': res.get('run_ok_at_attach'),
+            'code_git_head': res.get('code_git_head'),
+            'code_git_head_source': res.get('code_git_head_source'),
             'validation': {'passed': val.get('passed'),
                            'n_violations': len(val.get('violations') or []),
                            'violations': val.get('violations'),
@@ -3386,6 +3388,9 @@ def cmd_research_one(args):
                               'blocked': (res or {}).get('blocked'),
                               'violations': ((res or {}).get('validation')
                                              or {}).get('violations'),
+                              'code_git_head': (res or {}).get('code_git_head'),
+                              'code_git_head_source': (res or {}).get(
+                                  'code_git_head_source'),
                               **_attach_receipt_extra(res)})
                 if _gap:
                     chain.append(_gap_row(
@@ -3403,7 +3408,10 @@ def cmd_research_one(args):
                 return
             chain.append({'stage': 'attach', 'ok': True,
                           'validation_passed': (res.get('validation') or
-                                                {}).get('passed')})
+                                                {}).get('passed'),
+                          'code_git_head': res.get('code_git_head'),
+                          'code_git_head_source': res.get(
+                              'code_git_head_source')})
             if _gap:
                 # 缺口工单携 judgment 竟落位(attach 校验未拦)——缺口口径先于
                 # 落位结果: 不推进到 report;落保持标记,此后无 judgment 续链
@@ -3523,7 +3531,10 @@ def cmd_research_one(args):
                 'blocked': res.get('blocked'),
                 'blocked_class': res.get('blocked_class'),
                 'validation_passed': (res.get('validation') or {}).get('passed'),
-                'violations': (res.get('validation') or {}).get('violations')}
+                'violations': (res.get('validation') or {}).get('violations'),
+                # Audit-R33 任务2 MINOR-4: 挂接步骤的代码版本随回执
+                'code_git_head': res.get('code_git_head'),
+                'code_git_head_source': res.get('code_git_head_source')}
         # Audit-R33 任务2补充: 契约门拒收(blocked=contract_<裁决>)时回执带
         # 理由(block_note+contract 摘要)——此前该路回执 blocked/violations 均空
         data.update(_attach_receipt_extra(res))

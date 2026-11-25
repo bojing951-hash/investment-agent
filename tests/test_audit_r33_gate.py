@@ -13,11 +13,16 @@
 实施状态逐分句核验;R31/R32 规则按原文照旧;正式 attach 拒收「截至 9 月
 20 日，9 月 24 日生效的加息已经实施」、接收「…尚未生效」;官方目标缺证
 的草稿处理不变;入库归档判定档(r30–r32 共 14 份)重验零新增违规。
+任务2补充 r2(最终候选验收 T2 变体 B2/B5 抓到): 纪律绿而契约未全绿的拒收,
+attach 回执 blocked/violations 均空(理由只在 report.json)→ 返回值与两路回执
+带 blocked=contract_<裁决>+block_note+contract 摘要(零判断原文);其余回执
+键形与 rc 口径不变。
 夹具说明: 冻结快照=提交的 R31 B2 overlay 原件(真实);as-of 版本夹具=由该快照
 按官方发布日截接的**构造版本**(snapshot_id 前缀 FIXTURE_,fixture_note 随行),
 非真实历史快照——只用于核验绑定规则,不作为任何交付的证据。
 任务3 真正的原问: 原问直答族(政策目标/待生效/通胀同比)判别;研究年月/回看窗口/同比基期分别解析;三面逐行+缺口逐项点名+版本绑定;12 月快照重跑守原问月范围;零事实/缺计划/缺证据→缺口显式回传(plan 段与 auto 段);席位装配脚本与回声契约;正式 CLI 链。族题夹具快照=真实 11-23 快照的族题子集与「12 月快照」合成件(夹具说明随行),不作为任何交付的证据。
 任务4 冷启动: 来源备注不计入指标覆盖(日档守卫判定用观测图: 备注/状态/披露区闭集,真实退化仍拦截);流水线台账与 update 回执逐步骤时长/返回码/失败原因,守卫分流行单列;A股港股采集器时间预算(默认 800 秒)+A 股断点续采(同交易日窗且当日 bar 已定型才续,全部阶段完成后清除)+核心阶段截断不写主日档(exit 1)+随档 collection_status。守卫夹具=2026-11-24 真实守卫对的裁剪版(原件 sha256 记于夹具 _fixture)。
+任务4修订 r3(终印章验收 run A2 抓到): 步骤自己打印的原因行不进台账/回执(只有 nonzero_exit+返回码,原因行被后续步骤滚出末 40 行)→ run_step 边界改为「透传不变+各流留末 6 个非空行(每行≤240 字)」,未成功步骤(超时/非零退出/被信号终止)把脱敏后的尾部写入 output_tail(台账行、update 回执 steps/failed_steps、doctor critical_steps 同形;成功/缺席/依赖跳过行与旧台账无此键);脱敏器不可导入=失败关闭(留注);孙进程持有管道不挂起。§T4-f/g 的旧判定(含 §T4-g5 行相等)原样保留。
 任务5 预期差研究: 问句判别(「预期差」词形,或「机构观点」×「市场定价」并列)→单型研究计划(地图五面+预期差对照块: 机构观点库×同期限市场定价×事实逐行确定性对照,候选≠结论)+席位回声契约(候选行与须推导行逐行裁决;与引擎确定性面相左/虚构行号/假托机构原话=CONTRADICTED;自由文字数字须与引擎面对应);证伪窗口自研究截止日起算;问句研究年月=时点标记(不是序列观测窗);对照面用到的指标并入取数分级(来源随行;旧调用面不变);干净安装无观点库=草稿级缺口(转正办法随行),无运行快照=硬缺口(不再崩溃)。夹具说明: 观点库=tests/fixtures_r33/views 下 5 份**合成**文档(全部虚构机构与表述;1 份发布日晚于研究截止日=扣留,1 份违反 schema=隔离),定价曲线=提交的冻结快照 fed_futures_curve;门内不含任何真实机构观点内容。
 任务5修订(独立席首轮 REVISE 后的闭环): 同期限定价参照(到期日当月或之前最后一个有读数的合约月)随行并入证据索引;对质观测窗=同窗首尾读数(月末口径;可取同比空间),引擎当前面只作窗后信息列出、不用于裁决;结构化对质=两侧预期按冻结序列复算,判断与复算不一致=CONTRADICTED;三项均为软契约(字段在场才核),旧档与无该字段工单零变化;席位工具只服务其预设的真实工单,门内只按函数级对照其纯函数面(不执行其模块级取数)。
 """
@@ -1220,6 +1225,137 @@ def sec_t2b():
           f'rc={r.returncode} ok0={ok0} p0={p0} '
           f'pert={json.dumps(pert, ensure_ascii=False)}')
 
+
+# ══ 任务2补充 r2: 契约门拒收理由随回执 ════════════════════════════════════
+# 最终候选验收(T2 变体 B2/B5: 正句+目标 1.25%)暴露: 纪律绿、契约未全绿的
+# 拒收,attach 回执 blocked/violations 均空,理由只在 report.json(回执无理由
+# =不可复核)。修: attach_judgment 返回值与 research-one / research-attach
+# 两路回执(auto 链 attach 行同)带 blocked=contract_<裁决>+block_note+
+# contract{verdict,stats[,error]}(零判断原文);成功/纪律拒收/门槛拒收三路
+# 回执键形不变;rc 口径不变(research-one 拒收 rc=0=冻结契约,
+# research-attach 拒收 rc=1)。
+
+
+def sec_t2_k():
+    print('═══ 任务2补充 r2: 契约门拒收理由随回执 ═══')
+    cal = os.path.join(FIX_R33, 'family_calendar_dec.json')
+    stmt_ok = (F_T2B + '窗内(2026-05-30..2026-11-30)该决议已生效' + P_T2B
+               ).replace('1.25%', '百分之一点二五').replace('1.5%', '百分之一点五')
+    # 契约门拒收档: 同句保留未绑定数字 1.25%(合成证据面无对应序列)
+    stmt_cg = (F_T2B + '窗内(2026-05-30..2026-11-30)该决议已生效' + P_T2B
+               ).replace('1.5%', '百分之一点五')
+    stmt_d = (F_T2B + '窗内(2026-05-30..2026-11-30)2026-11-27 决议已生效'
+              '(目标1.5%)').replace('1.25%', '百分之一点二五').replace(
+                  '1.5%', '百分之一点五')
+    got = {}
+    for key, stmt in (('ok', stmt_ok), ('cg', stmt_cg), ('d', stmt_d)):
+        t, rd, jp = _t2_synth_run('t2k_' + key, '2026-11-30', stmt)
+        shutil.copy2(cal, os.path.join(t, 'config', 'release_calendar.json'))
+        got[key] = (aj.attach_judgment(rd, jp, root=t), _t2_attach_res(rd),
+                    t, rd, jp)
+    r_ok, rep_ok, _t, rd_ok, jp_ok = got['ok']
+    r_cg, rep_cg, _t, rd_cg, jp_cg = got['cg']
+    r_d, rep_d, _t, rd_d, jp_d = got['d']
+    cs = r_cg.get('contract_summary') or {}
+    _new = {'blocked', 'block_note', 'contract_summary'}
+    check('§T2-k1 attach_judgment 返回值: 契约门拒收(正句+未绑定数字)='
+          'attached False+纪律 passed True+blocked=contract_not_verified+'
+          'block_note+contract_summary{verdict:NOT_VERIFIED,stats.unbound≥1}'
+          '(键⊂{verdict,stats,error},零判断原文)+无判定档副本+与 report.json '
+          'agent_judgment.blocked 同值;成功/纪律拒收两路返回值无新增键',
+          r_cg.get('attached') is False
+          and (r_cg.get('validation') or {}).get('passed') is True
+          and r_cg.get('blocked') == 'contract_not_verified'
+          and isinstance(r_cg.get('block_note'), str) and bool(r_cg['block_note'])
+          and cs.get('verdict') == 'NOT_VERIFIED'
+          and (cs.get('stats') or {}).get('unbound', 0) >= 1
+          and set(cs) <= {'verdict', 'stats', 'error'}
+          and '窗内' not in json.dumps(cs, ensure_ascii=False)
+          and not os.path.isfile(os.path.join(rd_cg, 'agent_judgment.json'))
+          and (rep_cg.get('agent_judgment') or {}).get('blocked')
+          == r_cg.get('blocked')
+          and r_ok.get('attached') is True and not (_new & set(r_ok))
+          and r_d.get('attached') is False and not (_new & set(r_d))
+          and bool((r_d.get('validation') or {}).get('violations')),
+          json.dumps({k: {x: v for x, v in got[k][0].items()
+                          if x not in ('validation', 'contract_verification')}
+                      for k in got}, ensure_ascii=False, default=str)[:700])
+    # 正式 CLI(research-one --stage attach)与旧入口(research-attach)回执
+    ct, _ = _code_tree('t2k_cli')
+    shutil.copy2(cal, os.path.join(ct, 'config', 'release_calendar.json'))
+    rc1, d1 = _cli(['research-one', '--stage', 'attach', '--report-dir', rd_cg,
+                    '--judgment', jp_cg, '--engine-root', ct], cwd=ct)
+    rc2, d2 = _cli(['research-one', '--stage', 'attach', '--report-dir', rd_ok,
+                    '--judgment', jp_ok, '--engine-root', ct], cwd=ct)
+    rc3, d3 = _cli(['research-one', '--stage', 'attach', '--report-dir', rd_d,
+                    '--judgment', jp_d, '--engine-root', ct], cwd=ct)
+    a1, a2, a3 = d1.get('data') or {}, d2.get('data') or {}, d3.get('data') or {}
+    _newc = {'block_note', 'contract'}
+    check('§T2-k2 正式 CLI(research-one --stage attach)回执: 契约门拒收=rc 0'
+          '+ok False+attached False+blocked=contract_not_verified+block_note+'
+          'contract{verdict,stats}(无判断原文)+validation_passed True+'
+          'violations [];成功回执与纪律拒收回执键形不变(无 block_note/contract)',
+          rc1 == 0 and d1.get('ok') is False and a1.get('attached') is False
+          and a1.get('blocked') == 'contract_not_verified'
+          and isinstance(a1.get('block_note'), str) and bool(a1['block_note'])
+          and (a1.get('contract') or {}).get('verdict') == 'NOT_VERIFIED'
+          and isinstance((a1.get('contract') or {}).get('stats'), dict)
+          and set(a1.get('contract') or {}) <= {'verdict', 'stats', 'error'}
+          and '窗内' not in json.dumps(a1, ensure_ascii=False)
+          and a1.get('validation_passed') is True and a1.get('violations') == []
+          and rc2 == 0 and d2.get('ok') is True and a2.get('attached') is True
+          and a2.get('blocked') is None and not (_newc & set(a2))
+          and rc3 == 0 and d3.get('ok') is False and a3.get('attached') is False
+          and not (_newc & set(a3))
+          and [v['code'] for v in a3.get('violations') or []]
+          == ['POL-EFF-EARLY-CLAIM'],
+          f'rc={rc1}/{rc2}/{rc3} '
+          f'A={json.dumps(a1, ensure_ascii=False, default=str)[:420]} '
+          f'B_keys={sorted(a2)} C_keys={sorted(a3)}')
+    rc4, d4 = _cli(['research-attach', '--report-dir', rd_cg,
+                    '--judgment', jp_cg], cwd=ct)
+    rc5, d5 = _cli(['research-attach', '--report-dir', rd_ok,
+                    '--judgment', jp_ok], cwd=ct)
+    a4, a5 = d4.get('data') or {}, d5.get('data') or {}
+    check('§T2-k3 旧入口 research-attach 回执: 契约门拒收=rc 1+attached False+'
+          'blocked=contract_not_verified+block_note+contract;成功回执键形不变',
+          rc4 == 1 and d4.get('ok') is False and a4.get('attached') is False
+          and a4.get('blocked') == 'contract_not_verified'
+          and isinstance(a4.get('block_note'), str) and bool(a4['block_note'])
+          and (a4.get('contract') or {}).get('verdict') == 'NOT_VERIFIED'
+          and set(a4.get('contract') or {}) <= {'verdict', 'stats', 'error'}
+          and rc5 == 0 and a5.get('attached') is True
+          and not (_newc & set(a5)),
+          f'rc={rc4}/{rc5} A_keys={sorted(a4)} B_keys={sorted(a5)}')
+    # 门槛拒收(run_ok=False)优先: 理由仍只有 run_ok_false,不另立契约理由
+    t4, rd4, jp4 = _t2_synth_run('t2k_gate', '2026-11-30', stmt_cg)
+    rep4 = _t2_attach_res(rd4)
+    rep4['run_ok'] = False
+    with open(os.path.join(rd4, 'report.json'), 'w', encoding='utf-8') as f:
+        json.dump(rep4, f, ensure_ascii=False, indent=2)
+    r4 = aj.attach_judgment(rd4, jp4, root=t4)
+    rc6, d6 = _cli(['research-one', '--stage', 'attach', '--report-dir', rd4,
+                    '--judgment', jp4, '--engine-root', ct], cwd=ct)
+    a6 = d6.get('data') or {}
+    check('§T2-k4 门槛拒收(run_ok=False)优先且键形不变: blocked=run_ok_false、'
+          '无 block_note/contract_summary(契约门不另立理由);CLI 回执同',
+          r4.get('attached') is False and r4.get('blocked') == 'run_ok_false'
+          and not ({'block_note', 'contract_summary'} & set(r4))
+          and rc6 == 0 and d6.get('ok') is False
+          and a6.get('blocked') == 'run_ok_false'
+          and not (_newc & set(a6)),
+          f'r4_keys={sorted(r4)} rc6={rc6} a6_keys={sorted(a6)}')
+    import ia_cli as ic
+    check('§T2-k5 回执附加键助手: 仅 blocked=contract_* 时附键;None/run_ok_false/'
+          '空值返回空 dict(成功/纪律/门槛回执不变)',
+          ic._attach_receipt_extra(
+              {'blocked': 'contract_not_verified', 'block_note': 'n',
+               'contract_summary': {'verdict': 'NOT_VERIFIED'}})
+          == {'block_note': 'n', 'contract': {'verdict': 'NOT_VERIFIED'}}
+          and ic._attach_receipt_extra({'blocked': None}) == {}
+          and ic._attach_receipt_extra({'blocked': 'run_ok_false'}) == {}
+          and ic._attach_receipt_extra(None) == {}
+          and ic._attach_receipt_extra({}) == {}, '')
 
 
 # ══ 任务1 更正: 旧工单重渲染零漂移 ═══════════════════════════════════════
@@ -3661,6 +3797,268 @@ def sec_t4_i():
            sorted(set(before) - set(after))[:5]))
 
 
+def sec_t4_j():
+    print('§T4-j 任务4 修订 r3: 未成功步骤自己的输出尾入台账与回执(真 run_step / '
+          '真 cmd_update / 真 cmd_doctor + 替身脚本)')
+    import run_weekly as rw
+    import ia_cli as ic
+    sd = os.path.join(TMPG, 't4j', 'scripts')
+    os.makedirs(sd)
+
+    def _w(name, body):
+        with open(os.path.join(sd, name), 'w', encoding='utf-8') as fh:
+            fh.write(body)
+    why = '原因: 同日快照不可变(需要 --allow-revision)'
+    secret = 'SKt4jQ9x8L7p6V5b4N3m2C1z0'          # 替身密钥(非真实)
+    raw_url = 'url https://h/p?api_key=' + secret
+    red_url = 'url https://h/p?api_key=***REDACTED***'
+    slow_line = 'slow start reason: waiting for rate limit'
+    _w('ok.py', 'import time\nprint("ok line")\ntime.sleep(0.2)\n')
+    _w('exit3.py', 'import os, sys\n'
+                   'print("stdout progress 1")\n'
+                   'print("UNBUF=%%s" %% os.environ.get("PYTHONUNBUFFERED"))\n'
+                   'sys.stderr.write(%r + "\\n")\n'
+                   'sys.stderr.write(%r + "\\n")\n'
+                   'sys.exit(3)\n' % (why, raw_url))
+    _w('slow.py', 'import time\nprint(%r)\ntime.sleep(30)\n' % slow_line)
+    _w('grand.py', 'import subprocess, sys, time\n'
+                   'subprocess.Popen(["sleep", "20"])\n'
+                   'print("parent exiting rc=2")\n'
+                   'sys.stdout.flush()\n'
+                   'time.sleep(0.2)\n'
+                   'sys.exit(2)\n')
+    _w('flood.py', 'import sys\n'
+                   'for i in range(40):\n'
+                   '    print("line %02d" % i)\n'
+                   '    print("")\n'
+                   'print("L" * 600 + " END")\n'
+                   'print("last line")\n'
+                   'sys.exit(4)\n')
+    _w('sig.py', 'import os, signal, time\n'
+                 'os.kill(os.getpid(), signal.SIGTERM)\ntime.sleep(30)\n')
+
+    rw.STEP_META.clear()
+    cap_out, cap_err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(cap_out), contextlib.redirect_stderr(cap_err):
+        r_ok = rw.run_step('s1', 'ok.py', timeout=5, script_dir=sd)
+        r_x3 = rw.run_step('s3', 'exit3.py', timeout=5, script_dir=sd)
+        t_g = time.monotonic()
+        r_gr = rw.run_step('s7', 'grand.py', timeout=30, script_dir=sd)
+        g_sec = time.monotonic() - t_g
+        r_fl = rw.run_step('s8', 'flood.py', timeout=5, script_dir=sd)
+        r_sg = rw.run_step('s4', 'sig.py', timeout=5, script_dir=sd)
+        t_s = time.monotonic()
+        r_slow = rw.run_step('s2', 'slow.py', timeout=1, script_dir=sd)
+        slow_sec = time.monotonic() - t_s
+    m = rw.STEP_META
+    check('§T4-j1 真 run_step: 成功步骤无 output_tail 键;非零退出步骤带自己的原因行'
+          '(stderr 尾);被信号终止的步骤带(可为空的)尾;返回码/原因分类不变',
+          r_ok is True and 'output_tail' not in m['s1'] and m['s1']['exit_code'] == 0
+          and r_x3 is False and m['s3']['exit_code'] == 3
+          and m['s3']['fail_reason'] == 'nonzero_exit'
+          and m['s3']['output_tail']['stderr'][0] == why
+          and m['s3']['output_tail']['stdout'][0] == 'stdout progress 1'
+          and r_sg is False and m['s4']['exit_code'] == -15
+          and m['s4']['fail_reason'] == 'signal:15'
+          and m['s4']['output_tail'] == {'stdout': [], 'stderr': []},
+          {k: m.get(k) for k in ('s1', 's3', 's4')})
+    check('§T4-j2 超时步骤: 被终止前已打印的行仍在尾(子进程不缓冲);孙进程继承并'
+          '持有管道(本步 2 秒内退出、孙进程 20 秒)时 run_step 不挂起',
+          r_slow is False and m['s2']['fail_reason'] == 'timeout'
+          and m['s2']['timeout_sec'] == 1 and m['s2']['exit_code'] is None
+          and m['s2']['output_tail']['stdout'] == [slow_line] and 1 <= slow_sec < 5
+          and r_gr is False and g_sec < 8 and m['s7']['exit_code'] == 2
+          and m['s7']['fail_reason'] == 'nonzero_exit'
+          and m['s7']['output_tail']['stdout'] == ['parent exiting rc=2']
+          and 'UNBUF=1' in m['s3']['output_tail']['stdout'],
+          (slow_sec, g_sec, m.get('s2'), m.get('s7')))
+    check('§T4-j3 入台账的尾已脱敏(含密钥的 URL→***REDACTED***,密钥字面不在台账'
+          '数据内);透传到原输出流的内容不变(与 capture_output=False 同)',
+          secret not in json.dumps(m, ensure_ascii=False)
+          and m['s3']['output_tail']['stderr'][1] == red_url
+          and raw_url in cap_err.getvalue() and why in cap_err.getvalue()
+          and 'ok line' in cap_out.getvalue(),
+          m.get('s3'))
+    t = m['s8']['output_tail']['stdout']
+    check('§T4-j4 尾部规模: 每流至多 6 个非空行、每行至多 240 字(空行不计,超长行截断)',
+          m['s8']['exit_code'] == 4
+          and t == ['line 36', 'line 37', 'line 38', 'line 39', 'L' * 240, 'last line']
+          and m['s8']['output_tail']['stderr'] == [],
+          t)
+    _missing = object()
+    _saved = sys.modules.get('redact_secrets', _missing)
+    sys.modules['redact_secrets'] = None                # 让导入失败(脱敏器不可用)
+    try:
+        withheld = rw._tail_redacted({'stdout': ['x'], 'stderr': []})
+    finally:
+        if _saved is _missing:
+            sys.modules.pop('redact_secrets', None)
+        else:
+            sys.modules['redact_secrets'] = _saved
+    check('§T4-j5 汇总行与失败关闭: _tail_lines 每流末 3 行(非尾→[]);脱敏器不可导入'
+          '时整段不写(留注,不带出未脱敏尾部),恢复后正常',
+          rw._tail_lines({'stdout': ['o1', 'o2'], 'stderr': ['e1', 'e2', 'e3', 'e4']})
+          == ['stderr| e2', 'stderr| e3', 'stderr| e4', 'stdout| o1', 'stdout| o2']
+          and rw._tail_lines(None) == []
+          and withheld == {'note': 'tail_withheld: redaction unavailable'}
+          and rw._tail_lines(withheld)
+          == ['输出尾未留: tail_withheld: redaction unavailable']
+          and rw._tail_redacted({'stdout': ['x'], 'stderr': []})
+          == {'stdout': ['x'], 'stderr': []},
+          (withheld, rw._tail_redacted({'stdout': ['x'], 'stderr': []})))
+
+    proj = os.path.join(TMPG, 't4j', 'proj')
+    os.makedirs(proj)
+    n1, n2, n4 = ('1/15 全球市场数据采集', '2/15 A股港股数据采集', '4/15 新闻采集与分析')
+    tail_n2 = {'stdout': [], 'stderr': [why, red_url]}
+    fake = rw.PipelineResults([(n1, True, True), (n2, False, True), (n4, False, False)])
+    fake.meta = {n1: {'duration_sec': 12.0, 'exit_code': 0, 'fail_reason': None,
+                      'output_tail': {'stdout': ['成功步骤的尾不得入台账']}},
+                 n2: {'duration_sec': 0.7, 'exit_code': 3, 'fail_reason': 'nonzero_exit',
+                      'output_tail': tail_n2},
+                 n4: {'duration_sec': 1.0, 'exit_code': 1, 'fail_reason': None}}
+    _orig_rp, _orig_pd = rw.run_pipeline, rw.PROJECT_DIR
+    rw.run_pipeline = lambda steps, *a, **k: fake
+    rw.PROJECT_DIR = proj
+    out, rc = io.StringIO(), None
+    try:
+        with contextlib.redirect_stdout(out):
+            try:
+                rw.main([])
+            except SystemExit as e:
+                rc = e.code
+    finally:
+        rw.run_pipeline, rw.PROJECT_DIR = _orig_rp, _orig_pd
+    led_files = glob.glob(os.path.join(proj, 'logs', 'pipeline_run_*.json'))
+    led = _t4_json(led_files[0]) if led_files else {}
+    rows = {r['name']: r for r in led.get('steps') or []}
+    failed = led.get('failed_steps') or []
+    text = ''
+    if led_files:
+        with open(led_files[0], encoding='utf-8') as fh:
+            text = fh.read()
+    check('§T4-j6 台账: 未成功行的 output_tail 随行入 steps 与 failed_steps;成功行'
+          '(即使替身 meta 带)与未上报行不写;汇总逐步打印尾行(每流末 3 行)',
+          len(led_files) == 1 and rc == 1
+          and rows[n2].get('output_tail') == tail_n2
+          and 'output_tail' not in rows[n1] and 'output_tail' not in rows[n4]
+          and rows[n4]['fail_reason'] == 'unreported'
+          and [r['name'] for r in failed] == [n2, n4]
+          and failed[0].get('output_tail') == tail_n2
+          and '成功步骤的尾不得入台账' not in text
+          and ('stderr| ' + why) in out.getvalue()
+          and ('stderr| ' + red_url) in out.getvalue(),
+          (rc, failed, out.getvalue()[-300:]))
+
+    def _run(tag, shim_body, files=None, ledger=None):
+        tr = os.path.join(TMPG, 't4j_' + tag)
+        os.makedirs(tr)
+        with open(os.path.join(tr, 'run_weekly.py'), 'w', encoding='utf-8') as fh:
+            fh.write(shim_body)
+        for name, body in (files or {}).items():
+            p = os.path.join(tr, name)
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with open(p, 'w', encoding='utf-8') as fh:
+                fh.write(body)
+        if ledger:
+            os.makedirs(os.path.join(tr, 'logs'))
+            with open(os.path.join(tr, 'logs', ledger[0]), 'w',
+                      encoding='utf-8') as fh:
+                json.dump(ledger[1], fh, ensure_ascii=False)
+        _orig = ic.ROOT
+        ic.ROOT = tr
+        out, rc = io.StringIO(), None
+        try:
+            with contextlib.redirect_stdout(out), \
+                    contextlib.redirect_stderr(io.StringIO()):
+                try:
+                    ic.cmd_update(ic.build_parser().parse_args(['update', '--yes']))
+                except SystemExit as e:
+                    rc = e.code
+        finally:
+            ic.ROOT = _orig
+        return rc, json.loads(out.getvalue()), tr
+
+    from datetime import datetime as _dt
+    okrow = {'name': '1/15 全球市场数据采集', 'ok': True, 'critical': True,
+             'skipped': False, 'skip_reason': None, 'duration_sec': 3.5,
+             'exit_code': 0, 'fail_reason': None}
+    trow = {'name': '10/15 研究快照构建(Gate A)', 'ok': False, 'critical': True,
+            'skipped': False, 'skip_reason': None, 'duration_sec': 0.7,
+            'exit_code': 3, 'fail_reason': 'nonzero_exit',
+            'output_tail': {'stdout': [], 'stderr': [why, raw_url]}}
+    trow_pub = dict(trow, output_tail={'stdout': [], 'stderr': [why, red_url]})
+    shim = ('import json, os\n'
+            'from datetime import datetime\n'
+            't0 = datetime.now()\n'
+            'here = os.path.dirname(os.path.abspath(__file__))\n'
+            'os.makedirs(os.path.join(here, "logs"))\n'
+            'rows = json.loads(%r)\n'
+            'blob = {"run_at": t0.isoformat(timespec="seconds"), '
+            '"duration_sec": 903.5, "steps": rows, "success_count": 1, '
+            '"failed_steps": [rows[1]], "snapshot_id": None, "gate_a": None}\n'
+            'json.dump(blob, open(os.path.join(here, "logs", '
+            '"pipeline_run_%%s.json" %% t0.strftime("%%Y%%m%%d")), "w"))\n'
+            'print("all ok")\n' % json.dumps([okrow, trow], ensure_ascii=False))
+    rc, env, tr = _run('upd', shim)
+    d = env.get('data') or {}
+    check('§T4-j7 update 回执: 台账行的 output_tail 随 steps/failed_steps 行带出并再过'
+          '一次脱敏(密钥字面不在信封内);无该键的行形状不变(§T4-g5 的相等判定同受保护)',
+          rc == 0 and d.get('steps') == [okrow, trow_pub]
+          and d.get('failed_steps') == [trow_pub]
+          and 'output_tail' not in d['steps'][0]
+          and secret not in json.dumps(env, ensure_ascii=False),
+          (rc, d.get('steps'), d.get('failed_steps')))
+    led_blob = {'run_at': _dt.now().isoformat(timespec='seconds'),
+                'steps': [okrow, trow], 'failed_steps': [trow], 'success_count': 1}
+    rc, env, tr = _run('doc', 'print("done")\n', ledger=(
+        'pipeline_run_%s.json' % _dt.now().strftime('%Y%m%d'), led_blob))
+    _orig = ic.ROOT
+    env_before = dict(os.environ)
+    dout, drc = io.StringIO(), None
+    try:
+        ic.ROOT = tr
+        with contextlib.redirect_stdout(dout), contextlib.redirect_stderr(io.StringIO()):
+            try:
+                ic.cmd_doctor(ic.build_parser().parse_args(['doctor']))
+            except SystemExit as e:
+                drc = e.code
+    finally:
+        ic.ROOT = _orig
+        for k in list(os.environ):
+            if k not in env_before:
+                os.environ.pop(k, None)
+        os.environ.update(env_before)
+    lr = ((json.loads(dout.getvalue()).get('data') or {}).get('last_run') or {})
+    cs = lr.get('critical_steps') or []
+    check('§T4-j8 doctor 的 last_run.critical_steps: 未成功关键行的 output_tail 带出'
+          '(已脱敏),成功行无此键',
+          drc == 0 and len(cs) == 2 and 'output_tail' not in cs[0]
+          and cs[1].get('output_tail') == trow_pub['output_tail']
+          and secret not in dout.getvalue(),
+          (drc, cs))
+
+    _orig_popen = rw.subprocess.Popen
+
+    def _boom(*a, **k):
+        raise OSError('spawn boom (emfile)')
+    rw.subprocess.Popen = _boom
+    out_sp = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(out_sp):
+            r_sp = rw.run_step('s9', 'ok.py', timeout=5, script_dir=sd)
+    finally:
+        rw.subprocess.Popen = _orig_popen
+    sp = m['s9']
+    check('§T4-j9 进程起不来(OSError): 旧实现整轮裸崩无台账;现在该步记 spawn_failed+'
+          '系统错误文本(已脱敏)入 output_tail、返回 False、汇总原因可读',
+          r_sp is False and sp['exit_code'] is None and sp['fail_reason'] == 'spawn_failed'
+          and sp['output_tail']['stderr'] == ['OSError: spawn boom (emfile)']
+          and rw._fail_reason_text(sp).startswith('无法启动步骤进程')
+          and '无法启动' in out_sp.getvalue(),
+          (sp, out_sp.getvalue()[-120:]))
+
+
 def sec_t5_a():
     print('§T5-a 问句判别/证伪窗口/地区/点位解析(纯函数;门内独立期望)')
     xg = _xg()
@@ -5778,6 +6176,7 @@ def main():
     try:
         sec_t2()
         sec_t2b()
+        sec_t2_k()
         sec_t1_a()
         sec_t1_b()
         sec_t1_c()
@@ -5802,6 +6201,7 @@ def main():
         sec_t4_g()
         sec_t4_h()
         sec_t4_i()
+        sec_t4_j()
         sec_t5()
     finally:
         n_ok = sum(1 for x in RESULTS if x)

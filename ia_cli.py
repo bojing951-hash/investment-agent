@@ -330,7 +330,9 @@ def cmd_doctor(args):
                          'duration_sec': s.get('duration_sec'),
                          'exit_code': s.get('exit_code'),
                          'fail_reason': s.get('fail_reason'),
-                         **({'timeout_sec': s['timeout_sec']} if 'timeout_sec' in s else {})}
+                         **({'timeout_sec': s['timeout_sec']} if 'timeout_sec' in s else {}),
+                         **({'output_tail': _tail_public(s['output_tail'])}
+                            if isinstance(s.get('output_tail'), dict) else {})}
                         for s in led.get('steps', []) if s.get('critical')]
             data['last_run'] = {
                 'available': True, 'ledger_file': os.path.basename(ledgers[-1]),
@@ -373,6 +375,16 @@ def _pipeline_ledger_since(t_launch, root=None, tolerance_sec=2.0):
     if best_at < t_launch - timedelta(seconds=tolerance_sec):
         return None, 'ledger_predates_this_run', None
     return best, None, best_name
+
+
+def _tail_public(tail):
+    """修订 r3: 台账行 output_tail(未成功步骤自己的输出尾,run_weekly 已脱敏)入回执
+    前再过一次 redact()——回执/诊断内全部文本统一消毒。形状 {stdout:[…], stderr:[…]}
+    或 {note: …}(脱敏器不可用时 run_weekly 的留注);其他形状返回 None(不写入)。"""
+    if not isinstance(tail, dict):
+        return None
+    return {k: ([redact(str(x)) for x in v] if isinstance(v, list) else redact(str(v)))
+            for k, v in tail.items()}
 
 
 def cmd_update(args):
@@ -430,15 +442,24 @@ def cmd_update(args):
         data['steps_note'] = (f'本次运行无可用流水线台账({ledger_note}): '
                               '逐步骤时长/失败原因不可得')
     else:
+        # 修订 r3: 未成功步骤自己的输出尾(原因行)随行带出——只有台账行确有该键才写,
+        # 成功/跳过行与旧台账的行形状不变。
         data['steps'] = [
             {'name': s.get('name'), 'ok': s.get('ok'), 'critical': s.get('critical'),
              'skipped': s.get('skipped'), 'skip_reason': s.get('skip_reason'),
              'duration_sec': s.get('duration_sec'),
              'exit_code': s.get('exit_code'),
              'fail_reason': s.get('fail_reason'),
-             **({'timeout_sec': s['timeout_sec']} if 'timeout_sec' in s else {})}
+             **({'timeout_sec': s['timeout_sec']} if 'timeout_sec' in s else {}),
+             **({'output_tail': _tail_public(s['output_tail'])}
+                if isinstance(s.get('output_tail'), dict) else {})}
             for s in (ledger.get('steps') or [])]
-        data['failed_steps'] = ledger.get('failed_steps')
+        failed = ledger.get('failed_steps')
+        if isinstance(failed, list):
+            failed = [dict(r, output_tail=_tail_public(r['output_tail']))
+                      if isinstance(r, dict) and isinstance(r.get('output_tail'), dict)
+                      else r for r in failed]
+        data['failed_steps'] = failed
         data['duration_sec'] = ledger.get('duration_sec')
         data['snapshot_id'] = ledger.get('snapshot_id')
         data['gate_a'] = ledger.get('gate_a')
@@ -1440,6 +1461,16 @@ def cmd_research_run(args):
     emit(envelope('research-run', bool(rep.get('run_ok')), data, warns))
 
 
+def _attach_receipt_extra(res):
+    """Audit-R33 任务2补充: 契约门拒收理由随回执——纪律绿而契约未全绿
+    (res.blocked=contract_<裁决>)时附 block_note+contract{verdict,stats[,error]}
+    (零判断原文);其余情况返回 {}(成功/纪律拒收/门槛拒收回执键形不变)。"""
+    if str((res or {}).get('blocked') or '').startswith('contract_'):
+        return {'block_note': res.get('block_note'),
+                'contract': res.get('contract_summary')}
+    return {}
+
+
 def cmd_research_attach(args):
     """Agent Native L3/L4 落位(R23 阶段四/AC6): judgment 纪律机器校验+合并。
 
@@ -1473,6 +1504,7 @@ def cmd_research_attach(args):
         warns.append('research-run run_ok=False——判断默认不得落在失败证据面'
                      '上;确属诚实拒答类失败且证据面可用时,显式 '
                      '--allow-failed-run 越过(随档可审计)')
+    data.update(_attach_receipt_extra(res))
     emit(envelope('research-attach', bool(res.get('attached')), data, warns),
          exit_code=0 if res.get('attached') else 1)
 
@@ -3353,7 +3385,8 @@ def cmd_research_one(args):
                               'error': list(err) if err else 'attached=false',
                               'blocked': (res or {}).get('blocked'),
                               'violations': ((res or {}).get('validation')
-                                             or {}).get('violations')})
+                                             or {}).get('violations'),
+                              **_attach_receipt_extra(res)})
                 if _gap:
                     chain.append(_gap_row(
                         _hold, '计划缺口在案——正式 attach 拒收,链不推进到 '
@@ -3485,13 +3518,16 @@ def cmd_research_one(args):
         # 曾把拒收改成 rc=1,全量电池证实破坏在案契约(脚本链以
         # rc==0 且 attached False 认拒收)——已回滚,拒收理由照常落
         # data.violations / data.blocked。
-        emit(envelope('research-one', bool(res.get('attached')), {
-            'stage': 'attach', 'report_dir': res.get('report_dir'),
-            'attached': res.get('attached'),
-            'blocked': res.get('blocked'),
-            'blocked_class': res.get('blocked_class'),
-            'validation_passed': (res.get('validation') or {}).get('passed'),
-            'violations': (res.get('validation') or {}).get('violations')}))
+        data = {'stage': 'attach', 'report_dir': res.get('report_dir'),
+                'attached': res.get('attached'),
+                'blocked': res.get('blocked'),
+                'blocked_class': res.get('blocked_class'),
+                'validation_passed': (res.get('validation') or {}).get('passed'),
+                'violations': (res.get('validation') or {}).get('violations')}
+        # Audit-R33 任务2补充: 契约门拒收(blocked=contract_<裁决>)时回执带
+        # 理由(block_note+contract 摘要)——此前该路回执 blocked/violations 均空
+        data.update(_attach_receipt_extra(res))
+        emit(envelope('research-one', bool(res.get('attached')), data))
         return
 
     if stage == 'report':

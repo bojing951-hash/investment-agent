@@ -2371,8 +2371,18 @@ def _attach_judgment_pinned(report_dir, judgment_path, root,
             '判定档与证据面契约验证未全绿(客观事实相左/未全证)——'
             '修档再提;详见 contract_verification')
     _write_report(report_dir, report, rj_path)
+    # Audit-R33 任务2补充: 契约门拒收理由随返回值——纪律绿而契约未全绿时
+    # blocked=contract_<verdict>+block_note+contract_summary(裁决与计数,零判断
+    # 原文)进返回值,CLI 回执据此可读(此前只落 report.json,回执 blocked 为空
+    # 且 violations 为空=拒收无理由)。成功/纪律拒收两路返回值键形不变。
     return {'report_dir': report_dir,
             'attached': bool(res['passed'] and contract_ok),
+            **({'blocked': report['agent_judgment']['blocked'],
+                'block_note': report['agent_judgment'].get('block_note'),
+                'contract_summary': {
+                    k: contract[k] for k in ('verdict', 'stats', 'error')
+                    if contract.get(k) is not None}}
+               if res['passed'] and not contract_ok else {}),
             'validation': res,
             'contract_verification': contract,
             'semantic_review': report['semantic_review'],

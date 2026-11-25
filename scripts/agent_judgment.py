@@ -102,7 +102,9 @@ def collect_policy_events(calendar_path=None):
     Audit-R32 任务2 补: entity(实体=决议归属经济体,由 metric_id 映射,
     供正文实体绑定——美联储段落不因日银决议日同日而误判)、target_value
     (宣布目标水平,供「待生效值写成当前值」判定)、first_publish(公告
-    可见日,供研究时点前的决议不参与判定)。
+    可见日,供研究时点前的决议不参与判定)。Audit-R33 任务2修订 r4
+    补: direction(条目可选的方向字段,up/down/hike/cut/raise/lower,
+    缺省 None——供方向可定的「尚未加息」类动作词未然句判定)。
 
     显式路径缺席=直接空面(不触发 _load 的缺席告警 print——该告警走
     stdout 会污染 ia_cli JSON 单流信封,夹具树无日历时 attach 段信封
@@ -127,6 +129,7 @@ def collect_policy_events(calendar_path=None):
                                                 if isinstance(tv, (int, float))
                                                 else None),
                                'entry_id': e.get('entry_id'),
+                               'direction': e.get('direction'),
                                'first_publish': str(
                                    e.get('first_publish_on_or_after')
                                    or e.get('decision_date'))[:10]})
@@ -237,6 +240,153 @@ def _pol_value_in_text(value, text):
     return False
 
 
+_POL_CN_DIGIT = {'零': 0, '〇': 0, '一': 1, '二': 2, '两': 2, '三': 3, '四': 4,
+                 '五': 5, '六': 6, '七': 7, '八': 8, '九': 9}
+_POL_CN_NUM_RE = re.compile(
+    r'百分之[零〇一二两三四五六七八九十]{1,4}(?:点[零〇一二两三四五六七八九]{1,4})?'
+    r'|[零〇一二两三四五六七八九]点[零〇一二两三四五六七八九]{1,4}')
+
+
+def _pol_cn2num(s):
+    """中数词 → 数值(修订 r4;写法超出「X点YZ / 十 / 百分之…」= None):
+    「一点二五」→ 1.25,「百分之十二点五」→ 12.5,「二十」→ 20。"""
+    ip, _, fp = s.partition('点')
+    val = 0.0
+    if ip:
+        if '十' in ip:
+            a, _, b = ip.partition('十')
+            if ((a and a not in _POL_CN_DIGIT)
+                    or (b and b != '零' and b not in _POL_CN_DIGIT)):
+                return None
+            val = (_POL_CN_DIGIT[a] if a else 1) * 10 + (
+                _POL_CN_DIGIT[b] if b and b != '零' else 0)
+        elif len(ip) == 1 and ip in _POL_CN_DIGIT:
+            val = _POL_CN_DIGIT[ip]
+        else:
+            return None
+    if fp:
+        if any(ch not in _POL_CN_DIGIT for ch in fp):
+            return None
+        for i, ch in enumerate(fp):
+            val += _POL_CN_DIGIT[ch] * 10.0 ** (-(i + 1))
+    elif not ip:
+        return None
+    return round(val, 6)
+
+
+def _pol_cn_values(text):
+    """正文里的中数词数值集合(目标水平比对用;「百分点」「一点」等不成数)。"""
+    out = set()
+    for m in _POL_CN_NUM_RE.finditer(text or ''):
+        v = _pol_cn2num(m.group(0).replace('百分之', ''))
+        if v is not None:
+            out.add(v)
+    return out
+
+
+_POL_VAL_CTX_PRE = re.compile(
+    r'(?:不低于|不高于|不超过|不少于|至少|至多|高于|低于|超过|不足)(?:约|大约)?\s*$')
+_POL_VAL_CTX_POST = ('以下', '以上', '以内', '之外', '下方', '上方')
+
+
+def _pol_value_spans(value, text):
+    """宣布目标水平在正文以独立数字出现的跨度(与 _pol_value_in_text 同形)。"""
+    forms = set()
+    for fmt in ('%g', '%.2f', '%.3f'):
+        s = fmt % value
+        forms.add(s)
+        if s.endswith('.00'):
+            forms.add(s[:-3])
+        elif s.endswith('0') and '.' in s:
+            forms.add(s[:-1])
+    out = []
+    for s in forms:
+        for m in re.finditer(r'(?<![\d.])' + re.escape(s) + r'(?![\d])',
+                             text or ''):
+            out.append((m.start(), m.end()))
+    return out
+
+
+def _pol_level_val(ctext, tvf):
+    """目标值以「水平」口径出现(修订 r4): 阿拉伯数字或中数词,且不带比较
+    语境(「1.25% 以下」「不低于 1.25%」说的不是水平本身)。"""
+    if tvf is None:
+        return False
+    spans = _pol_value_spans(tvf, ctext)
+    spans += [(m.start(), m.end()) for m in _POL_CN_NUM_RE.finditer(ctext)
+              if _pol_cn2num(m.group(0).replace('百分之', ''))
+              == round(tvf, 6)]
+    for a, b in spans:
+        pre = ctext[max(0, a - 6):a]
+        post = ctext[b:].lstrip('%％ ')
+        if (post[:2] in _POL_VAL_CTX_POST
+                or _POL_VAL_CTX_PRE.search(pre)):
+            continue
+        return True
+    return False
+
+
+_POL_LEVEL_NONCOMPL_RE = re.compile(
+    r'(?:决议|决定|宣布|公布|出炉)(?:将|把)?$'
+    r'|(?:将|拟|计划|预期|预计|料|有望|或将|或于|若|如果|一旦|是否|可能|须|需'
+    r'|应|要)$')
+
+
+def _pol_level_stmt(ctext):
+    """政策利率名词+系词的「水平陈述」(修订 r4): 名词紧前是「决议/决定/宣布
+    (将/把)」「将/拟/若…」非完成词的(「决议将政策利率上调至 x」「若政策利率
+    为 x」)说的是决定内容或条件,不算现行口径;「决议的目标利率为 x」仍按
+    水平陈述核验(断言时点早于生效日而无未然标注=拒收)。"""
+    for m in _POL_LEVEL_RE.finditer(ctext):
+        if not _POL_LEVEL_NONCOMPL_RE.search(ctext[:m.start()]):
+            return True
+    return False
+
+
+def _pol_pend_marks(ctext):
+    """分句内的谓述性未然标记 [(起点, 止, 是否否定型)](修订 r4): 「尚未/未/
+    待/即将+生效类动词」与「将…」词形;后接「的」(定语「待生效的决定」)或
+    「面/项」(数据面名「待生效面」)的不算;否定型还须是谓述(后接句读、助词
+    或连词),「未生效调整」「未生效前」一类题名/时间状语不算;「将于 X 公布/
+    召开」日程形不算。"""
+    out = []
+    for neg, rx in ((True, _POL_PEND_NEG_RE), (False, _POL_PEND_FUT_RE)):
+        for m in rx.finditer(ctext):
+            if not neg and _POL_SCHED_VERB_RE.match(ctext, m.end()):
+                continue          # 日程/公布的将来形: 「将于 18 日公布决议」
+            after = ctext[m.end():m.end() + 1]
+            if after in ('的', '面', '项'):
+                continue          # 定语/数据面名: 「待生效的决定」「待生效面」
+            if neg and after and after not in _POL_PRED_AFTER:
+                continue          # 题名/时间状语: 「未生效调整」「未生效前」
+            out.append((m.start(), m.end(), neg))
+    return out
+
+
+def _pol_dir(ev, cands):
+    """事件方向 'up' / 'down' / None(修订 r4): 日历条目带 direction 字段则
+    用之;否则与同指标、决议更早的最近一件带目标值的事件比较目标水平;
+    无从比较 = None(日历无方向字段且无前件——动作词未然句「尚未加息」不判)。"""
+    d = str(ev.get('direction') or '').strip().lower()
+    if d in ('up', 'down', 'hike', 'cut', 'raise', 'lower'):
+        return 'down' if d in ('down', 'cut', 'lower') else 'up'
+    try:
+        tv = float(ev.get('target_value'))
+    except (TypeError, ValueError):
+        return None
+    prev = [e for e in cands
+            if e is not ev and e.get('metric_id') == ev.get('metric_id')
+            and e.get('target_value') is not None and ev.get('decision_date')
+            and str(e.get('decision_date')) < str(ev['decision_date'])]
+    if not prev:
+        return None
+    try:
+        pv = float(max(prev, key=_pol_ev_key).get('target_value'))
+    except (TypeError, ValueError):
+        return None
+    return 'up' if tv > pv else ('down' if tv < pv else None)
+
+
 _POL_EFF_WORDS = ('利率', '政策', '加息', '降息', '目标', 'LPR', 'BOJ',
                   '日银', '欧央行', '欧洲央行', '美联储', '央行', '决议',
                   'policy', 'rate')
@@ -276,6 +426,10 @@ def _date_word_forms(iso):
 # 分句与同段的事件日期/断言时点合并理解;裸「落地/生效」与「加息至+中数词」
 # 计入完成态;区间端=断言时点;生效后分支不再因同段另有完成态词形整段放行;
 # 违规详情注明断言时点来源(MINOR-2);段级旗标只作消歧辅助(MINOR-3)。
+# 修订 r4(独立审查六 MAJOR=六条误收,均因状态断言不带事件日期而放行):
+# 归属加「断言时点的在办事件」一路;既成句形/实施状态未然/目标水平
+# (含中数词)三种状态各自成规则;句首独立日期分句=断言时点;区间整体
+# 置「□」。详见 _pol_rel 及各旗标注记。
 _POL_IMPL_MARKS = ('已经实施', '已实施', '已经执行', '已执行', '已经落地',
                    '已落地', '已经生效', '已生效', '已开始实施',
                    '已经开始实施', '已开始执行', '已经开始执行',
@@ -338,6 +492,66 @@ _POL_RAISE_TO_RE = re.compile(r'(?:加息|降息|上调|下调|调整|收紧|宽
 _POL_NONCOMPL_PRE = ('决议', '决定', '宣布', '将', '拟', '计划', '预期',
                      '预计', '或', '料', '有望', '若', '如果', '一旦', '是否',
                      '可能', '可', '须', '需', '应', '要', '并')
+
+
+# 修订 r4(独立审查六条 MAJOR 均为误收——状态断言不带事件日期时整段放行):
+#   归属: 无事件日期的状态断言(既成/未然/目标水平)按「断言时点的在办事件」
+#         归属(_pol_rel): 分句指向别的时间/别的事件→不绑;池内(同实体)在办
+#         事件须恰为本事件(公告前=其后将公告的最早一件且无待生效者;公告后
+#         生效前=t 时待生效者;生效后=t 时已知的最新一件);
+#   既成句形: 「已决议/已决定/已宣布」「决议加息」「公布…决议」=公告前既成
+#         事实(「决议后」类叙述参照豁免);
+#   未然: 实施状态词形(尚未/未/待/即将+生效类动词、将然形;方向可定时的
+#         「尚未加息」)才算把已生效的决定写成待生效——宽口径「尚未」只作
+#         豁免;叙述性将来(「X 日决议加息,将于 Y 日生效」)豁免;
+#   目标水平: 政策利率名词+系词+目标值(阿拉伯数字或中数词)=现行口径;
+#   时点: 句首独立日期分句=断言时点;区间「A 至 T」整体置「□」(起点日期
+#         不再留作分句内日期词元——此前带区间的既成句因此不绑定)。
+_POL_DEC_DONE_RE = re.compile(
+    r'(?:已经|已)(?:决议|决定)'
+    r'|(?:决议|决定|宣布|公布|发布|出炉|出台|通过|敲定|批准)(?:了)?(?:的)?'
+    r'(?:加息|降息|升息|减息|上调|下调|维持利率|利率决议|政策决议|决议|决定'
+    r'|政策调整)')   # 「已发布数据」「已通过测试」一类非决议宾语不算
+_POL_POST_REF_MARKS = ('决议后', '决定后', '公布后', '发布后', '宣布后',
+                       '出炉后', '出台后', '通过后', '决议以来', '公布以来',
+                       '宣布以来', '决议之前', '公布之前', '宣布之前', '审议前')
+_POL_PEND_NEG_RE = re.compile(
+    r'(?:尚未|仍未|暂未|还未|还没有|还没|并未|不曾|尚没|(?<!从)未(?!来)|没)'
+    r'[^，,。;；]{0,5}?(?:生效|落地|实施|执行|实行|施行|到位|付诸实施|付诸执行)'
+    r'|(?:待|即将)(?:生效|落地|实施|执行|施行)')
+_POL_PEND_FUT_RE = re.compile(
+    r'将(?:会|要)?(?:处于|维持|保持|留在|位于|升至|降至|上调|下调|加息|降息'
+    r'|调整|生效|于|自)')
+# 「将于 X 公布/召开…」=日程/公布的将来形,不是实施状态未然(公告前合法,
+# 生效后也不是把已生效的决定写成待生效)
+_POL_SCHED_VERB_RE = re.compile(
+    r'[^，,。;；]{0,14}?(?:公布|发布|宣布|出炉|召开|举行|审议|议息|会议|揭晓)')
+# 否定型未然的「生效/落地…」须是谓述(后接句读、助词或连词),后接名词的
+# 「未生效调整」「待生效决定」「未生效前」是定语/题名,不算
+_POL_PRED_AFTER = frozenset('，,。；;！!？?、了过并且而或就才即也仍)）】」』”—')
+_POL_PEND_SUBJ_GUARD = ('传导', '影响', '效果', '作用', '效应')   # 说的不是决定本身
+# 未然标记的主语须是紧邻的决定/动作名词(中间至多两个副词,不得隔连词/系词)——
+# 「待生效面」「待生效为空」「…水平与待生效…」一类数据面名、并列不算
+_POL_PEND_SUBJ_RE = re.compile(
+    r'(?:加息|降息|升息|减息|上调|下调|调整|收紧|宽松|决议|决定|政策目标利率'
+    r'|政策利率|目标利率|政策目标|利率决定)[^，,。;；与和及、或是为有无的]{0,2}$')
+_POL_ACT_PEND_RE = re.compile(
+    r'(?:尚未|仍未|暂未|还未|还没有|还没|并未|不曾|尚没)[^，,。;；]{0,3}?'
+    r'(加息|降息|升息|减息|上调|下调|收紧|宽松)(?![至到])')
+_POL_ACT_DIR = {'加息': 'up', '升息': 'up', '上调': 'up', '收紧': 'up',
+                '降息': 'down', '减息': 'down', '下调': 'down', '宽松': 'down'}
+_POL_LEVEL_RE = re.compile(
+    r'(?:政策目标利率|政策利率|目标利率|利率目标|政策目标|基准利率|官方利率)'
+    r'[^，,。;；]{0,10}?(?:为|是|处于|维持在|维持于|维持|位于|保持在|保持|留在'
+    r'|设在|定在|报|立于|等于|达到|来到|站上|升至|上调至|下调至|降至|调至|落在)')
+_POL_AFTER_REF_MARKS = ('生效后', '落地后', '实施后', '执行后', '之后', '以后',
+                        '其后', '随后', '届时', '此前')
+_POL_OTHER_EV_RE = re.compile(
+    r'下一次|新一轮|下一轮|后续|随后|此后|再次|另一次|再度|进一步|第二次|下一期'
+    r'|明年初|明年|下一年|年底前|年末前|未来|稍后|晚些')
+_POL_YM_RE = re.compile(r'(?<![\d年])(?:([12]\d{3})年)?(\d{1,2})月(?![\d日])')
+_POL_YEAR_RE = re.compile(r'(?<!\d)([12]\d{3})年(?!\d)')
+_POL_LEAD_DATE_RE = re.compile(_POL_ONE_DATE + r'日?')   # 句首独立日期分句
 
 
 def _pol_norm_text(text):
@@ -450,7 +664,8 @@ def _pol_fold_date(iso, mm, dd, fb, dec, delta=0):
     return (d + timedelta(days=delta) if delta else d).isoformat()
 
 
-_POL_TIME_LABEL = {'asof': '句内', 'win': '区间端', 'local': '分句内'}
+_POL_TIME_LABEL = {'asof': '句内', 'win': '区间端', 'local': '分句内',
+                   'lead': '句首'}
 _POL_OPEN, _POL_CLOSE = '(([【〔[', '))】〕]'
 _POL_SEP = frozenset('，,。；;！!？?\n')
 
@@ -477,14 +692,15 @@ def _pol_clause_spans(s):
 def _pol_marks_in(c):
     """分句文本 c 内的时点标记 → [(起, 止, kind, 标记原文, (iso|None, 月, 日),
     偏移日)],按起点排序;重叠标记起点靠前者优先、同起点长者优先(「截至 X」
-    吞并其内的局部形);区间端只取终点 T 的时间值。"""
+    吞并其内的局部形);区间端只取终点 T 的时间值(修订 r4: 标记跨度=
+    区间整体,起点日期一并置「□」——否则带区间的既成句不绑定)。"""
     marks = []
     for m in _POL_ASOF_RE.finditer(c):
         if any(g for g in m.groups()):
             marks.append((m.start(), m.end(), 'asof', m.group(0),
                           _pol_grp_date(m, 1), 0))
     for m in _POL_WIN_RE.finditer(c):
-        marks.append((m.start(9), m.end(9), 'win', m.group(0),
+        marks.append((m.start(), m.end(), 'win', m.group(0),
                       _pol_grp_date(m, 9), 0))
     for m in _POL_LOCAL_RE.finditer(c):
         if any(m.group(i) is not None for i in range(1, 9)):
@@ -512,19 +728,35 @@ def _pol_time_clauses(ntext, fb, dec):
     辖域=句(句末标点「。！!?？换行」为界,不跨句): 分句内的时点标记——
     显式「截至/截止/断言时点 X」、区间端「(A..T)」的 T、局部时点「在 X 时 /
     X 时 / X 以前」——取该分句最后一个;无标记的分句继承同句前文分句的
-    时点;整句无标记=运行级截止日(kind='run',无截止日则 t=None)。
+    时点;整句无标记=运行级截止日(kind='run',无截止日则 t=None);
+    句首的独立日期分句(「9 月 20 日，…」)=该句的断言时点(kind='lead',
+    修订 r4)。
     masked=时点标记跨度置「□」后的分句文本(下标不变),供分句旗标与
-    日期绑定使用(时点日期不得被读成事件日期/生效日)。"""
+    日期绑定使用(时点日期不得被读成事件日期/生效日);gov=区间起点日期
+    的止位(紧随其后 14 字内的完成态词形仍按被区间支配处理,交日期规则
+    核对——修订 r4)。"""
     out = []
     for si, sm in enumerate(_POL_SENT_RE.finditer(ntext or '')):
         ss, se = sm.span()
         cur = None
-        for a, b in _pol_clause_spans(ntext[ss:se]):
+        for ai, (a, b) in enumerate(_pol_clause_spans(ntext[ss:se])):
             s, e = ss + a, ss + b
             c = ntext[s:e]
             masked = list(c)
             own_time = None
             own = _pol_marks_in(c)
+            if not own and ai == 0:
+                m0 = _POL_LEAD_DATE_RE.fullmatch(c)
+                if m0:
+                    g = _pol_grp_date(m0, 1)
+                    if _pol_fold_date(g[0], g[1], g[2], fb, dec, 0):
+                        own = [(0, len(c), 'lead', c, g, 0)]
+            gov = []
+            for mw in _POL_WIN_RE.finditer(c):
+                if any(mk[2] == 'win' and mk[0] == mw.start()
+                       for mk in own):
+                    gov.append(mw.end(3 if mw.group(1) else
+                                      6 if mw.group(4) else 8))
             for mk in own:
                 for i in range(mk[0], mk[1]):
                     masked[i] = '□'
@@ -536,7 +768,7 @@ def _pol_time_clauses(ntext, fb, dec):
                                                mtxt[:40]), kind, mtxt[:40])
             rec = {'sent': si, 's': s, 'e': e, 'text': c,
                    'masked': ''.join(masked), 't': None, 'src': '',
-                   'kind': '', 'mark': ''}
+                   'kind': '', 'mark': '', 'gov': gov}
             if own_time:
                 cur = own_time
                 rec.update(t=cur[0], src=cur[1], kind=cur[2], mark=cur[3])
@@ -570,13 +802,14 @@ def _pol_first_time_src(text, fb=None):
     return '运行级截止日'
 
 
-def _pol_impl_kind(ctext, toks):
+def _pol_impl_kind(ctext, toks, gov=()):
     """分句完成态类型: 'mark'=完成态词形/「已于 X 生效」; 'bare'=既成用法
     的裸「落地/生效/实施/执行」(不支配日期词元); 'raise'=「加息至+目标值」
     既成表述(前 8 字无「决议/决定/宣布/将…」等非完成词); 其余=None(未然形
     「尚未生效/将生效」、标签前置「生效日/生效于 X」、「X生效后/前」、相对
     生效形「自决议次日起生效」、被日期词元支配的「9月24日生效」——后者交
-    决议-生效日期规则核对)。"""
+    决议-生效日期规则核对;修订 r4: 区间整体置「□」后,紧随区间起点
+    日期 14 字内的词形仍按被区间支配处理——gov=起点止位)。"""
     if any(w in ctext for w in _POL_IMPL_MARKS) or _POL_DONE_AT_RE.search(ctext):
         return 'mark'
     cands = []
@@ -598,6 +831,11 @@ def _pol_impl_kind(ctext, toks):
             if endi <= p and p <= endi + 14:
                 tok_end = endi
                 break
+        if tok_end is None:
+            for g in reversed(gov):   # 区间起点(修订前留作分句内词元)
+                if g <= p and p <= g + 14:
+                    tok_end = g
+                    break
         # 本词之前 14 字内无日期词元,或最近的日期词元已被更早的一个完成态
         # 词支配(「9月24日生效的加息落地」: 生效绑日期,落地=裸既成用法)
         unbound = tok_end is None or any(
@@ -621,9 +859,16 @@ def _pol_tok_is(t, d):
         (t[1], t[2]) == (int(d[5:7]), int(d[8:10])))
 
 
-def _pol_clause_flags(ctext, ev):
+def _pol_clause_flags(ctext, ev, cands=None, gov=()):
     """分句状态旗标(事件日期/目标值/完成态/未然/现行/预期/指代;输入=
-    时点标记已置「□」的分句文本——时点日期不得被读成事件日期)。"""
+    时点标记已置「□」的分句文本——时点日期不得被读成事件日期;gov=区间
+    起点日期在分句内的止位)。
+
+    修订 r4: tv 兼认中数词目标值;pend_status=把决定写成未实施的词形(尚未/
+    未/待/即将+生效类动词、将然形、方向可定时的「尚未加息」)——宽口径 pend
+    只作豁免;dec=「已决议/决议加息/公布…决议」既成句形;level=政策利率名词
+    +系词;other_time/other_ev=指向别的时间或别的事件;after_ref=「生效后」
+    类条件参照;post_ref=「决议后」类叙述参照。"""
     dec = str(ev.get('decision_date') or '')
     eff = str(ev.get('effective_on') or '')
     toks = _pol_date_tokens(ctext)
@@ -632,19 +877,61 @@ def _pol_clause_flags(ctext, ev):
     own_w = _POL_ENTITY_WORDS.get(ent, ()) if ent else ()
     other_w = tuple(w for k, ws in _POL_ENTITY_WORDS.items()
                     if k != ent for w in ws)
+    try:
+        tvf = float(tv) if tv is not None else None
+    except (TypeError, ValueError):
+        tvf = None
+    act = _POL_ACT_PEND_RE.search(ctext)
+    pm = _pol_pend_marks(ctext)
+    ev_hit = any(_pol_tok_is(t, dec) or _pol_tok_is(t, eff) for t in toks)
+    ev_year, ev_months = dec[:4], set()
+    if dec and eff:
+        try:
+            ev_months = {int(dec[5:7]), int(eff[5:7])}
+        except ValueError:
+            ev_months = set()
+    other_time = any((y and y != ev_year) or int(mo) not in ev_months
+                     for y, mo in _POL_YM_RE.findall(ctext))
     return {
         'text': ctext[:60],
         'toks': toks,
         'dated': bool(toks),
-        'ev_dated': any(_pol_tok_is(t, dec) or _pol_tok_is(t, eff)
-                        for t in toks),
+        'ev_dated': ev_hit,
         'other_dated': any(not _pol_tok_is(t, dec) and not _pol_tok_is(t, eff)
                            for t in toks),
-        'tv': tv is not None and _pol_value_in_text(tv, ctext),
-        'impl': _pol_impl_kind(ctext, toks),
+        'tv': (tvf is not None
+               and (_pol_value_in_text(tv, ctext)
+                    or any(abs(v - tvf) < 1e-6
+                           for v in _pol_cn_values(ctext)))),
+        'impl': _pol_impl_kind(ctext, toks, gov),
         'pend': ((any(w in ctext for w in _POL_NOT_YET_MARKS)
                   or bool(_POL_PEND_RE.search(ctext)))
                  and not _POL_NOT_YET_NEG.search(ctext)),
+        'pend_neg': (any(x[2] for x in pm)
+                     and not _POL_NOT_YET_NEG.search(ctext)),
+        'pend_status': (((pm
+                          and (any(_POL_PEND_SUBJ_RE.search(ctext[:x[0]])
+                                  for x in pm)
+                               or ev_hit
+                               or bool(_POL_ANAPHOR_RE.search(ctext)))
+                          and not any(w in ctext
+                                      for w in _POL_PEND_SUBJ_GUARD))
+                         or (bool(act)
+                             and _pol_dir(ev, cands or [])
+                             == _POL_ACT_DIR.get(act.group(1))))
+                        and not _POL_NOT_YET_NEG.search(ctext)),
+        'dec': bool(_POL_DEC_DONE_RE.search(ctext)),
+        'dec_dated': any(_pol_tok_is(t, dec) for t in toks),
+        'level': _pol_level_stmt(ctext),
+        'level_val': (_pol_level_stmt(ctext)
+                      and _pol_level_val(ctext, tvf)),
+        'tva': (tvf is not None and _pol_value_in_text(tv, ctext)),
+        'other_time': (other_time
+                       or any(m.group(1) != ev_year
+                              for m in _POL_YEAR_RE.finditer(ctext))),
+        'other_ev': bool(_POL_OTHER_EV_RE.search(ctext)),
+        'after_ref': any(w in ctext for w in _POL_AFTER_REF_MARKS),
+        'post_ref': any(w in ctext for w in _POL_POST_REF_MARKS),
         'expect': any(w in ctext for w in _POL_EXPECT_MARKS),
         'past': any(w in ctext for w in _POL_PAST_CTX_MARKS),
         'pol': any(w in ctext for w in _POL_POL_CHANGE_WORDS),
@@ -687,7 +974,7 @@ def _pol_model(nt, ev, as_of, events, bound=None):
     by_sent = {}
     for tc in tcs:
         by_sent.setdefault(tc['sent'], []).append(
-            (tc, _pol_clause_flags(tc['masked'], ev)))
+            (tc, _pol_clause_flags(tc['masked'], ev, cands, tc.get('gov'))))
     # 指代的先行词可在同段前一句(「…12-04 生效。截至 11-30 该决议已经实施」)
     last_named = None
     for si in sorted(by_sent):
@@ -733,28 +1020,107 @@ def _pol_anaph(c, ev, cands, pend_c, t):
             and max(cands, key=_pol_ev_key) is ev)
 
 
+def _pol_pool(c, ev, cands):
+    """状态断言分句的候选事件池(修订 r4): 分句提了别家实体而未提本实体→空;
+    提本实体→同实体事件;未提实体→段内候选全集。"""
+    if c['other_ent'] and not c['own_ent']:
+        return []
+    if c['own_ent']:
+        ent = ev.get('entity')
+        return [e for e in cands if e.get('entity') == ent]
+    return list(cands)
+
+
+def _pol_foreign(c):
+    """分句指向别的时间(事件月分/年份之外的月分、年份)或别的事件(下一次/
+    后续…)——无事件日期的状态断言不归属本事件。"""
+    return bool(c['other_dated'] or c['other_time'] or c['other_ev'])
+
+
+def _pol_other_named(c, ev, cands, fl):
+    """同句另有分句以日期提及别的候选事件,或段内前文最近以日期提及的不是
+    本事件——无事件日期的状态分句不归本事件(指代归那个被提及的事件)。"""
+    if c.get('last_named') not in (None, ev):
+        return True
+    return any(f is not c
+               and any(e is not ev and _pol_ev_named(f, e) for e in cands)
+               for f in fl)
+
+
+def _pol_rel(c, tc, ev, cands, fl):
+    """无事件日期、无指代的状态断言分句是否归属事件 ev(修订 r4): 分句不指向
+    别的时间/别的事件,同句/段内前文未以日期提及别的事件;池=按分句实体缩过
+    的候选;池内实体不唯一且分句未提实体→不绑;按断言时点 t 取「在办」事件,
+    须恰为本事件——
+    t<公告日: 公告日晚于 t 的最早一件,且池内无 t 时待生效者;
+    公告日≤t<生效日: t 时待生效者恰为本事件(另有当时已生效的决定时,只有
+    写本事件目标水平且与已生效最新一件不同的陈述才归属——其余指代不明);
+    t≥生效日: t 时已知的最新一件。"""
+    t = tc['t']
+    if not t or _pol_foreign(c) or _pol_other_named(c, ev, cands, fl):
+        return False
+    pool = _pol_pool(c, ev, cands)
+    if (not pool or (not c['own_ent']
+                     and len({e.get('entity') for e in pool}) > 1)):
+        return False
+    key = _pol_ev_key
+    if t < key(ev)[0]:
+        up = [e for e in pool if key(e)[0] > t]
+        return (bool(up) and min(up, key=key) is ev
+                and not any(key(e)[0] <= t < key(e)[1] for e in pool))
+    known = [e for e in pool if key(e)[0] <= t]
+    if t < key(ev)[1]:
+        pend = [e for e in known if t < key(e)[1]]
+        if not (len(pend) == 1 and pend[0] is ev):
+            return False
+        eff_o = [e for e in known if e is not ev and key(e)[1] <= t]
+        if not eff_o or not c['level_val']:
+            return not eff_o
+        try:
+            return (abs(float(max(eff_o, key=key).get('target_value'))
+                        - float(ev.get('target_value'))) > 1e-9)
+        except (TypeError, ValueError):
+            return True
+    return bool(known) and max(known, key=key) is ev
+
+
+def _pol_narrated(c, fl, ci):
+    """叙述性将来(修订 r4): 本分句带事件生效日、为将然形(非「尚未/待/即将」
+    未然),且同句前文分句以「决议加息」既成句形写本事件并带决议日——「X 日
+    决议加息,将于 Y 日生效」是对决定的叙述,不是把已生效的决定写成待生效。"""
+    if not c['ev_dated'] or c['pend_neg'] or not c['pend_status']:
+        return False
+    return any(f['dec'] and f['dec_dated'] for f in fl[:ci])
+
+
 def _pol_early_bind(c, tc, ev, cands, by_sent):
     """公告后、生效前: 分句的既成口径断言是否指向事件 ev(事件日期在场/
-    指代归属/无日期分句且断言时点待生效的候选唯一=本事件)。"""
+    指代归属/无日期分句且断言时点待生效的候选唯一=本事件——修订 r4: 候选
+    池按分句实体缩过,指向别的时间/别的事件的无日期分句不绑)。"""
     t = tc['t']
-    pend_c = _pol_pend_c(cands, t)
+    pool = _pol_pool(c, ev, cands)
+    pend_c = _pol_pend_c(pool, t)
     fl = [x for _, x in by_sent.get(tc['sent'], [])]
     ev_pending_named = any(f['pend'] and f['ev_dated'] for f in fl)
-    undated = (not c['dated'] and not c['other_ent']
+    undated = (not c['dated'] and not c['other_ent'] and not _pol_foreign(c)
                and len(pend_c) == 1 and pend_c[0] is ev
                and not any(e is not ev and _pol_ev_key(e)[1] <= t
-                           for e in cands)
+                           for e in pool)
                and not ev_pending_named)
-    return c['ev_dated'] or _pol_anaph(c, ev, cands, pend_c, t) or undated
+    return (c['ev_dated'] or _pol_anaph(c, ev, cands, _pol_pend_c(cands, t), t)
+            or undated)
 
 
 def _pol_tense_violation(text, ev, as_of, events, bound=None):
     """政策时态核验(事件 × 断言时点 × 实施状态)→ (code, detail) | None。
     辖域=句(句末标点「。！!?？换行」为界); 断言时点逐分句取(分句内标记,
     无则继承同句前文,再无则运行级截止日——见 _pol_time_clauses),同句多个
-    断言时点各自生效; 详情注明断言时点的来源。"""
-    dec = str(ev.get('decision_date') or '')
-    eff = str(ev.get('effective_on') or '')
+    断言时点各自生效; 详情注明断言时点的来源。
+
+    修订 r4: 状态断言的归属=事件日期/指代/在办事件(_pol_rel)三路之一;
+    目标水平陈述与中数词目标值按现行口径核验;公告前「已决议」既成句形、
+    生效后实施状态未然句(含方向可定的动作词)拦截;叙述性将来豁免。"""
+    dec = str(ev.get('decision_date') or ''); eff = str(ev.get('effective_on') or '')
     if not (dec and eff):
         return None
     nt = _pol_norm_text(text)
@@ -763,66 +1129,94 @@ def _pol_tense_violation(text, ev, as_of, events, bound=None):
         return None
     pub = str(ev.get('first_publish') or dec)
     ent = ev.get('entity')
-    own = bool(ent) and any(
-        w in nt for w in _POL_ENTITY_WORDS.get(ent, ()))
-    name = '%s 决议(%s 公布,%s 生效)' % (ev.get('metric_id'), pub, eff)
-    # 段内(任一句)以日期提及本事件: 现行口径写目标值的分句只须自带本实体
-    # ——段内完全不提事件日期时留给 POL-EFF-PENDING-AS-CURRENT(无日期分支)
+    own = bool(ent) and any(w in nt for w in _POL_ENTITY_WORDS.get(ent, ()))
+    name = '%s(%s 公布,%s 生效)' % (ev.get('metric_id'), pub, eff)
     seg_ev = any(c['ev_dated'] for cls in by_sent.values() for _, c in cls)
+    # R32 既判「当前值」形(段内无事件日期词形、无任何待生效/将然标注,本实体
+    # 词,段首断言时点早于生效日): 违规码留给 R32 既判规则(PENDING-AS-CURRENT),
+    # R32 裁决不变
+    _r32_t = _pol_assert_time(text, as_of, events, ev)
+    r32_txt = (own and _r32_t is not None and _r32_t < eff
+               and not any(m in text or m in nt for m in _POL_PENDING_MARKS)
+               and not any(f in text or f in nt
+                           for d in (dec, eff) for f in _date_word_forms(d))
+               and any(w in text for w in _POL_EFF_WORDS))
     for si in sorted(by_sent):
         cls = by_sent[si]
         fl = [c for _, c in cls]
         sent_ev = any(c['ev_dated'] for c in fl)
-        for tc, c in cls:
+        for ci, (tc, c) in enumerate(cls):
             t = tc['t']
             if not t:
                 continue
+            named = (c['ev_dated']
+                     or _pol_anaph(c, ev, cands, _pol_pend_c(cands, t), t))
+            rel = ((not named) and not _pol_foreign(c)
+                   and _pol_rel(c, tc, ev, cands, fl))
+            # 决定内容续写(「X 日决议，政策利率升至 x」)且无显式断言时点=说的
+            # 是决定,不是现行口径
+            decided = (tc['kind'] == 'run'
+                       and any(f['dec'] and f['dec_dated'] for f in fl[:ci]))
+            # 现行口径(现行词形,或政策利率名词+系词)写事件目标值/事件日期;
+            # 无事件日期的水平陈述须归属(指代/在办事件),且目标值不带比较语境
+            cur_level = (not c['pend'] and not c['expect'] and not c['after_ref']
+                         and (((c['tv'] or c['ev_dated']) and c['cur']
+                               and (c['ev_dated'] or sent_ev
+                                    or (seg_ev and c['own_ent'])))
+                              or (c['level_val']
+                                  and not (r32_txt and c['cur'] and c['tva'])
+                                  and not decided
+                                  and (c['ev_dated'] or sent_ev
+                                       or (seg_ev and c['own_ent'])
+                                       or named or rel))))
+            early_cur = ('POL-EFF-EARLY-CLAIM',
+                         '断言时点 %s(来源: %s)早于 %s 决议生效日 %s,正文以'
+                         '现行/已生效口径写目标值「%s」而无未然标注——断言时点'
+                         '尚未生效' % (t, tc['src'], name, eff, tc['text'][:60]))
             if t < pub:
-                # 公告前: 以既成事实提及决议=事后信息(预期/将然口径豁免)
-                if (c['ev_dated'] and not c['expect'] and not c['pend']
-                        and not c['past'] and not c['meeting']
-                        and (c['pol'] or c['impl'] or c['tv'])):
+                known_form = (c['ev_dated'] and not c['expect'] and not c['pend']
+                              and not c['past'] and not c['meeting']
+                              and (c['pol'] or c['impl'] or c['tv']))
+                dec_form = (c['dec'] and not c['ev_dated'] and (named or rel)
+                            and not c['post_ref'] and not c['expect']
+                            and not c['pend'] and not c['past']
+                            and not c['meeting'])
+                pend_form = (c['ev_dated'] and c['pend_status']
+                             and not c['expect'] and not c['past']
+                             and not c['meeting'] and not c['post_ref'])
+                if known_form or dec_form or pend_form:
                     return ('POL-EFF-DECISION-NOT-YET-KNOWN',
-                            '断言时点 %s(来源: %s)早于 %s 决议公告日 %s,正文'
-                            '以既成事实提及「%s」——当时无从得知,须以预期/'
-                            '定价口径书写或标明事后信息'
+                            '断言时点 %s(来源: %s)早于 %s 决议公告日 %s,正文以'
+                            '既成事实提及「%s」——当时无从得知,须以预期/定价'
+                            '口径书写或标明事后信息'
                             % (t, tc['src'], name, pub, tc['text'][:60]))
+                if cur_level and not c['ev_dated']:
+                    return early_cur       # 公告前即以现行口径写目标水平
                 continue
-            pend_c = _pol_pend_c(cands, t)
             if t >= eff:
-                # 生效后: 事件分句仍写尚未生效/待生效(历史叙述·预期口径豁免)
-                if (c['pend'] and not c['expect'] and not c['past']
-                        and (c['ev_dated']
-                             or _pol_anaph(c, ev, cands, pend_c, t)
-                             or (c['tv'] and own))):
+                if (c['pend_status'] and not c['expect'] and not c['past']
+                        and (named or (c['tv'] and own) or rel)
+                        and not _pol_narrated(c, fl, ci)):
                     return ('POL-EFF-LATE-PENDING',
-                            '断言时点 %s(来源: %s)不早于 %s 决议生效日 %s,'
-                            '正文仍写「%s」——该决议在断言时点已经生效,不得'
-                            '写成待生效'
+                            '断言时点 %s(来源: %s)不早于 %s 决议生效日 %s,正文'
+                            '仍写「%s」——该决议在断言时点已经生效,不得写成'
+                            '待生效'
                             % (t, tc['src'], name, eff, tc['text'][:60]))
                 continue
-            # 公告后、生效前: 写已实施 / 现行口径写目标值=提前生效断言
             if (c['impl'] and not c['pend'] and not c['expect']
                     and _pol_early_bind(c, tc, ev, cands, by_sent)):
                 if tc['kind'] == 'win':
-                    lead = ('区间端 %s 为断言时点(「%s」),早于 %s 决议官方'
-                            '生效日 %s——正文以已实施口径写「%s」而无未然'
-                            '标注: 断言时点尚未生效(该日期是回看区间的端点,'
-                            '不是正文写出的生效日)'
+                    lead = ('区间端 %s 为断言时点(「%s」),早于 %s 决议官方生效日'
+                            ' %s——正文以已实施口径写「%s」而无未然标注: 断言时点'
+                            '尚未生效(该日期是回看区间的端点,不是正文写出的生效日)'
                             % (t, tc['mark'], name, eff, tc['text'][:60]))
                 else:
-                    lead = ('断言时点 %s(来源: %s)早于 %s 决议生效日 %s,正文'
-                            '以已实施口径写「%s」而无未然标注——断言时点尚未'
-                            '生效' % (t, tc['src'], name, eff, tc['text'][:60]))
+                    lead = ('断言时点 %s(来源: %s)早于 %s 决议生效日 %s,正文以'
+                            '已实施口径写「%s」而无未然标注——断言时点尚未生效'
+                            % (t, tc['src'], name, eff, tc['text'][:60]))
                 return ('POL-EFF-EARLY-CLAIM', lead)
-            if ((c['tv'] or c['ev_dated']) and c['cur'] and not c['pend']
-                    and not c['expect']
-                    and (c['ev_dated'] or sent_ev
-                         or (seg_ev and c['own_ent']))):
-                return ('POL-EFF-EARLY-CLAIM',
-                        '断言时点 %s(来源: %s)早于 %s 决议生效日 %s,正文以'
-                        '现行/已生效口径写目标值「%s」而无未然标注——断言时点'
-                        '尚未生效' % (t, tc['src'], name, eff, tc['text'][:60]))
+            if cur_level:
+                return early_cur
     return None
 
 

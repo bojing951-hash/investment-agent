@@ -1509,6 +1509,187 @@ def sec_t2_m():
           '原文件零报出' % last.name, m == [last.name] and not _t2_dup_defs(src), m)
 
 
+# ══ 任务2修订 r4: 状态断言不带事件日期的归属(审查席 83 探针+自对抗) ════════
+# 绑定上一候选的独立审查复算 137 点、6 处不符,全部为误收;共同根因=状态断言
+# (既成/未然/目标水平)不带事件日期时整段放行: 区间起点日期留作分句内词元
+# (带区间的既成句不绑定);生效后未然句只认带事件日期/指代/阿拉伯数字+本实体;
+# 公告前「已决议」既成句形无日期不拦;目标水平陈述无「当前」词形或写中数词
+# 不拦。修订 r4: 归属加「断言时点的在办事件」一路(_pol_rel),三种状态各自
+# 成规则,句首独立日期分句=断言时点,区间整体置「□」,日历可选 direction 字段
+# 透传(事件面)。本段=审查席探针离线回归+自对抗+两事件日历+变异自检+局限
+# 例的出路。预注册判定不改(局限例 P20 的预注册拒收保留,不计入失守)。
+
+
+def _t2_r4_ok(c, r):
+    """夹具判定: ACCEPT=整档通过且零政策违规;REJECT=不通过且政策违规码属于
+    预注册码集(r=validate_judgment 结果;单句探针给 {'codes': [...]} 简形)。"""
+    if 'violations' in r:
+        ok_all = r.get('passed')
+        pol = [v['code'] for v in r['violations']
+               if str(v['code']).startswith('POL')]
+    else:
+        ok_all, pol = (c['verdict'] == 'ACCEPT'), r['codes']
+    if c['verdict'] == 'ACCEPT':
+        return ok_all is True and pol == []
+    return ok_all is not True and bool(set(c['codes']) & set(pol))
+
+
+def sec_t2_n():
+    print('═══ 任务2修订 r4: 状态断言不带事件日期的归属(审查席 83+自对抗 38+'
+          '两事件 12) ═══')
+    with open(os.path.join(FIX_R33, 't2_r4_cases.json'), encoding='utf-8') as f:
+        doc = json.load(f)
+    cases, selfc, decc = doc['cases'], doc['self'], doc['dec']
+    real_cal = os.path.join(ROOT, 'config', 'release_calendar.json')
+    ev = {'real': aj.collect_policy_events(real_cal),
+          'dec': aj.collect_policy_events(os.path.join(
+              FIX_R33, 'family_calendar_dec.json'))}
+    asof = {'real': '2026-11-23', 'dec': '2026-11-30'}
+
+    def _rev():
+        return {c['id']: _t2_probe_run(doc, c, ev, asof) for c in cases}
+
+    def _bad(res):
+        return sorted(c['id'] for c in cases
+                      if not _t2_r4_ok(c, res[c['id']]))
+
+    def _txt(cs, events):
+        return {c['id']: {'codes': _pol_codes(c['text'], c['as_of'], events)}
+                for c in cs}
+
+    n_acc = sum(1 for c in cases if c['verdict'] == 'ACCEPT')
+    n_rej = sum(1 for c in cases if c['verdict'] == 'REJECT')
+    n_gray = sum(1 for c in cases if c['gray'])
+    n_leg = sum(1 for c in selfc if c.get('legacy'))
+    check('§T2-n-0 夹具结构: 审查席 83 例(接收 36/拒收 47;灰区 21 不计入'
+          '失守)+自对抗 38 例(接收 19/拒收 19;修订前既有保守规则 3 例)+两事件'
+          '日历 12 例(接收 6/拒收 6);底稿 FAM/MAP/MAPc0 各留一个落位空位;探针句'
+          '在受检陈述内;已披露局限恰为例 P20;真实日历仅一条日银决议且无 '
+          'direction 字段',
+          len(cases) == 83 and n_acc == 36 and n_rej == 47 and n_gray == 21
+          and set(doc['bases']) == {'FAM', 'MAP', 'MAPc0'}
+          and all(sum(1 for s in b if s is None) == 1
+                  for b in doc['bases'].values())
+          and all(c['sentence'] in c['stmt'] for c in cases)
+          and len(selfc) == 38
+          and sum(1 for c in selfc if c['verdict'] == 'ACCEPT') == 19
+          and n_leg == 3
+          and len(decc) == 12
+          and sum(1 for c in decc if c['verdict'] == 'ACCEPT') == 6
+          and sorted(doc['known_limitation']) == ['P20']
+          and len([e for e in ev['real'] if e.get('entity') == 'JP']) == 1
+          and all(e.get('direction') is None for e in ev['real']),
+          'n=%d acc=%d rej=%d gray=%d self=%d legacy=%d dec=%d'
+          % (len(cases), n_acc, n_rej, n_gray, len(selfc), n_leg, len(decc)))
+    res = _rev()
+    bad = _bad(res)
+    byc = {}
+    for c in cases:
+        for v in res[c['id']]['violations']:
+            k = str(v['code'])
+            if k.startswith('POL'):
+                byc[k] = byc.get(k, 0) + 1
+    check('§T2-n-1 审查席 83 探针逐例符合预注册判定(整档走函数入口): 接收 36 例'
+          '=通过且零政策违规;拒收 47 例=不通过且政策违规码属于预注册码集;失守='
+          '已披露局限例且仅此一例(P20 动作词未然句: 日历无方向字段且无前件,'
+          '无从判方向)',
+          bad == sorted(doc['known_limitation']) == ['P20'],
+          'bad=%s codes=%s' % (bad, byc))
+    rs = _txt(selfc, ev['real'])
+    bad_s = sorted(c['id'] for c in selfc if not _t2_r4_ok(c, rs[c['id']]))
+    check('§T2-n-2 自对抗 38 例: 接收 19 例零政策违规;拒收 19 例命中预注册码'
+          '(含修订前既有的保守规则 3 例: 决议-生效成对纪律/待生效值写成当前值'
+          '照旧拒收——修订不放宽旧规则)',
+          not bad_s and n_leg == 3
+          and all(rs[c['id']]['codes'] for c in selfc if c.get('legacy')),
+          'bad=%s legacy=%s' % (bad_s, [(c['id'], rs[c['id']]['codes'])
+                                        for c in selfc if c.get('legacy')]))
+    rd = _txt(decc, ev['dec'])
+    bad_d = sorted(c['id'] for c in decc if not _t2_r4_ok(c, rd[c['id']]))
+    check('§T2-n-3 两事件日历 12 例(合成日银决议 2026-11-27 决议/2026-12-04 '
+          '生效叠在已生效的真实决议之上): 接收 6 例零政策违规;拒收 6 例命中'
+          '预注册码(无事件日期的状态断言归属到断言时点的在办事件)',
+          not bad_d, 'bad=%s' % bad_d)
+    # 四类根因代表句(区间既成/生效后未然/公告前既成/中数词目标水平)+工单原句
+    rep = [('A', '回看窗口 2026-09-01 至 2026-09-20 内，日本央行加息已经实施。',
+            'POL-EFF-EARLY-CLAIM', '区间端 2026-09-20'),
+           ('B', '截至 10 月 30 日，日本央行加息尚未生效。',
+            'POL-EFF-LATE-PENDING', ''),
+           ('C', '截至 9 月 17 日，日本央行已决议加息。',
+            'POL-EFF-DECISION-NOT-YET-KNOWN', ''),
+           ('D', '截至 9 月 20 日，日本央行官方政策目标利率为百分之一点二五。',
+            'POL-EFF-EARLY-CLAIM', ''),
+           ('工单拒收句', '截至 9 月 20 日，9 月 24 日生效的加息已经实施。',
+            'POL-EFF-EARLY-CLAIM', ''),
+           ('工单接收句', '截至 9 月 20 日，9 月 24 日生效的加息尚未生效。',
+            '', '')]
+    rep_res = []
+    for tag, txt, code, sub in rep:
+        v = aj.validate_judgment(
+            _mk_judgment(txt), {'r1'}, {'JP_POLICY_TARGET'},
+            policy_events=ev['real'], as_of='2026-11-23')
+        pol = [x['code'] for x in v['violations']
+               if str(x['code']).startswith('POL')]
+        det = ''.join(x.get('detail') or '' for x in v['violations'])
+        rep_res.append((tag, pol, v.get('passed'), sub in det))
+    check('§T2-n-4 四类误收根因代表句(函数入口): 带回看区间的既成句→早声称'
+          '(断言时点=区间端 2026-09-20);生效后「尚未生效」→把已生效决定写成'
+          '待生效;公告前「已决议加息」→当时无从得知;中数词目标水平(百分之一'
+          '点二五)→早声称;工单拒收句→早声称;工单接收句→零政策违规(最小判定档外壳,只看政策类违规码)',
+          [x[1] for x in rep_res] == [[r[2]] for r in rep[:5]] + [[]]
+          and rep_res[0][3],
+          'got=%s win_detail=%s' % ([(x[0], x[1]) for x in rep_res],
+                                    rep_res[0][3]))
+    # 变异自检: 关掉归属一路/实施状态未然/叙述豁免,夹具必须报出(防空转)
+    keep = (aj._pol_rel, aj._pol_clause_flags, aj._pol_narrated)
+    extra = {}
+    try:
+        aj._pol_rel = lambda *a, **k: False
+        extra['rel_off'] = [x for x in _bad(_rev()) if x not in bad]
+        aj._pol_rel = keep[0]
+
+        def _nostatus(ctext, e, cands=None, gov=()):
+            return dict(keep[1](ctext, e, cands, gov), pend_status=False)
+        aj._pol_clause_flags = _nostatus
+        extra['status_off'] = [x for x in _bad(_rev()) if x not in bad]
+        aj._pol_clause_flags = keep[1]
+        aj._pol_narrated = lambda *a, **k: False
+        extra['narr_off'] = [x for x in _bad(_rev()) if x not in bad]
+    finally:
+        aj._pol_rel, aj._pol_clause_flags, aj._pol_narrated = keep
+    check('§T2-n-5 变异自检: 关掉「在办事件」归属一路→新失守 ≥ 6 例;关掉实施'
+          '状态未然(把决定写成未实施)→新失守 ≥ 7 例;关掉叙述性将来豁免→新'
+          '失守 ≥ 1 例(误拦);恢复后回到基线(仅局限例)',
+          len(extra['rel_off']) >= 6 and len(extra['status_off']) >= 7
+          and len(extra['narr_off']) >= 1 and _bad(_rev()) == bad,
+          'rel_off=%d status_off=%d narr_off=%d' % (
+              len(extra['rel_off']), len(extra['status_off']),
+              len(extra['narr_off'])))
+    # 局限例的出路: 日历条目补 direction 字段(副本;真实日历未改)
+    with open(real_cal, encoding='utf-8') as f:
+        cal = json.load(f)
+    hit = [e for e in cal['entries']
+           if e.get('entry_id') == 'RC-JP-BOJ-TARGET-2026-09']
+    for e in hit:
+        e['direction'] = 'hike'
+    cp = os.path.join(TMPG, 'release_calendar_dir.json')
+    with open(cp, 'w', encoding='utf-8') as f:
+        json.dump(cal, f, ensure_ascii=False)
+    ev_dir = aj.collect_policy_events(cp)
+    c20 = [c for c in cases if c['id'] == 'P20'][0]
+    r20 = _t2_probe_run(doc, c20, {'real': ev_dir, 'dec': ev['dec']}, asof)
+    pol20 = [v['code'] for v in r20['violations']
+             if str(v['code']).startswith('POL')]
+    check('§T2-n-6 局限例的出路: 日历条目(副本)补 direction 字段→事件面透传,'
+          'P20「截至 10 月 30 日，日本央行尚未加息。」由放行转为拒收 '
+          'POL-EFF-LATE-PENDING;真实日历未改(该字段的补录=用户裁定项)',
+          len(hit) == 1
+          and [e.get('direction') for e in ev_dir] == ['hike']
+          and pol20 == ['POL-EFF-LATE-PENDING'] and r20.get('passed') is False,
+          'hit=%d dir=%s pol=%s' % (
+              len(hit), [e.get('direction') for e in ev_dir], pol20))
+
+
 # ══ 任务2补充 r2: 契约门拒收理由随回执 ════════════════════════════════════
 # 最终候选验收(T2 变体 B2/B5: 正句+目标 1.25%)暴露: 纪律绿、契约未全绿的
 # 拒收,attach 回执 blocked/violations 均空,理由只在 report.json(回执无理由
@@ -6863,6 +7044,109 @@ def sec_t5_j():
           '隔离沙箱正式 attach/报告级渲染核验,见证据包与报告。')
 
 
+# ══ 任务5修订 r15: 事实端对点位的触及状态(数据更新后正式链不再中断) ═════════
+# 最终候选统一验收的网络链实测(上一候选): 真实 update 之后美国实际 GDP 同比
+# (年度修订)最新读数由点位之下改到点位之上,席位工具在「最新两期已不低于点位
+# 即拒绝装配」处退出——正式链在席位一步中断、无判定档。修订 r15: 触及状态
+# (未触发/首次触及/已成立)由纯函数按读数确定,推导、理由、证伪条件尾句与席位
+# 摘要随状态如实写明;裁决口径不变(该行无同期限市场定价工具=非预期差);
+# 前一季读数不可得才拒绝装配。未触发时各文字与修订前逐字相同(冻结数据零
+# 漂移在仓外比对: 修订前后工具对同一冻结运行目录的判定档除写出时间外逐字
+# 相同)。修订后的席位工具整份装配不在门内跑(同 §T5-j 说明)。
+
+
+def _t5_r15_status_texts(state):
+    """从席位工具源码抽取三态文字赋值语句(只依赖 _gdp_state)并在给定状态下
+    执行 → dict;源码赋值语句不齐=None。"""
+    import ast
+    src = open(os.path.join(ROOT, 'scripts', 'seat_tools',
+                            'make_expectations_gap_judgment.py'),
+               encoding='utf-8').read()
+    want = ('_gdp_fact', '_gdp_state_txt', '_gdp_reason', '_gdp_sum')
+    body = [n for n in ast.parse(src).body
+            if isinstance(n, ast.Assign) and len(n.targets) == 1
+            and isinstance(n.targets[0], ast.Name)
+            and n.targets[0].id in want]
+    if [n.targets[0].id for n in body] != list(want):
+        return None
+    ns = {'_gdp_state': state}
+    exec(compile(ast.Module(body=body, type_ignores=[]), 'seat_r15', 'exec'), ns)
+    return {k: ns[k] for k in want}
+
+
+def sec_t5_k():
+    print('§T5-k 任务5修订 r15: 事实端对点位的触及状态(纯函数+三态文字)')
+    ns = _t5_seat_helpers()
+    import ast
+    src = open(os.path.join(ROOT, 'scripts', 'seat_tools',
+                            'make_expectations_gap_judgment.py'),
+               encoding='utf-8').read()
+    fn = [n for n in ast.parse(src).body
+          if isinstance(n, ast.FunctionDef) and n.name == 'gdp_point_state']
+    if len(fn) == 1:
+        exec(compile(ast.Module(body=fn, type_ignores=[]), 'seat_r15', 'exec'),
+             ns)
+    gp = ns.get('gdp_point_state')
+    Q = ['2025-04', '2026-04', '2026-07']     # 锚观测月: 三个月前=最新前一季度
+    NQ = ['2025-03', '2026-03', '2026-07']    # 锚不相隔一个季度
+    got = {
+        'below': gp([3.0, 2.1, 2.19], 2.2, Q) if gp else None,
+        'first': gp([3.0, 2.1, 2.29], 2.2, Q) if gp else None,
+        'both': gp([3.0, 2.3, 2.29], 2.2, Q) if gp else None,
+        'nq_path': (gp([3.0, 2.1, 2.29], 2.2, NQ, {'2026-04': 2.3})
+                    if gp else None),
+        'nq_none': gp([3.0, 2.1, 2.29], 2.2, NQ) if gp else None,
+        'nq_below': gp([3.0, 2.1, 2.19], 2.2, NQ) if gp else None,
+        'edge': gp([3.0, 2.2, 2.2], 2.2, Q) if gp else None}
+    check('§T5-k-1 gdp_point_state(纯函数): 最新一期低于点位→未触发(0);最新一期'
+          '不低于、前一季低于→首次触及(1);连续两期不低于→已成立(2);恰等于点位'
+          '=不低于;锚不相隔一个季度时前一季读数取同比月路径(路径缺该月=None='
+          '调用方拒绝装配);未触发时不依赖前一季读数',
+          got == {'below': (0, 2.1), 'first': (1, 2.1), 'both': (2, 2.3),
+                  'nq_path': (2, 2.3), 'nq_none': (None, None),
+                  'nq_below': (0, 2.1), 'edge': (2, 2.2)}, 'got=%s' % (got,))
+    t0 = _t5_r15_status_texts(0)
+    t1 = _t5_r15_status_texts(1)
+    t2 = _t5_r15_status_texts(2)
+    check('§T5-k-2 三态文字: 未触发时推导结论/证伪条件尾句/判非预期差理由/摘要'
+          '附注与修订前逐字相同(该行在冻结数据上的判定档零漂移);首次触及与'
+          '已成立时四段文字各自写明触及/证伪,理由写明『机构对市场』的预期差'
+          '无从建立,摘要附注以「;事实端」起',
+          t0 == {'_gdp_fact': '与『增速放缓』的方向判断不矛盾',
+                 '_gdp_state_txt': '未触发',
+                 '_gdp_reason': '增长预测无同期限市场定价工具;与事实面方向不矛盾。',
+                 '_gdp_sum': ''}
+          and t1 is not None and t2 is not None
+          and all(t1[k] and t2[k] for k in t0)
+          and '首季相悖' in t1['_gdp_fact'] and '尚未成立' in t1['_gdp_state_txt']
+          and '已在事实端被证伪' in t2['_gdp_fact']
+          and '已成立' in t2['_gdp_state_txt']
+          and all('『机构对市场』的预期差无从建立' in t[k]
+                  for t in (t1, t2) for k in ('_gdp_reason',))
+          and all(t['_gdp_sum'].startswith(';事实端') for t in (t1, t2)),
+          't1=%s' % {k: (v[:24] if v else v) for k, v in (t1 or {}).items()})
+    import judgment_contract as jc
+    texts = [v for t in (t0, t1, t2) if t for v in t.values()]
+    un = {tx[:16]: jc._pq_unbound_tokens(tx, set(), set()) for tx in texts}
+    check('§T5-k-3 三态文字不引入数字(契约自由文字数字绑定在空数池下零未绑定:'
+          '期数写「两个季度/首季/前一季」,不写阿拉伯数字与带量词中文整数)',
+          len(texts) == 12 and not any(un.values()),
+          'un=%s' % {k: v for k, v in un.items() if v})
+    check('§T5-k-4 静态锁: 「最新两期已不低于点位即拒绝装配」退场;触及状态经 '
+          'gdp_point_state 装配;推导结论/证伪条件尾句/理由/摘要附注四段随状态;'
+          '前一季读数不可得才拒绝装配;三时点读数仍各带观测日',
+          '最新两期同比已不低于点位' not in src
+          and '最新两期已不低于点位即拒绝装配' not in src
+          and '_gdp_state, _gdp_prev = gdp_point_state(' in src
+          and '        _gdp_fact))' in src
+          and '             _gdp_txt, _gdp_state_txt)),' in src
+          and "'reason': _gdp_reason," in src
+          and '美国增长预测,无同期限定价%s)' in src
+          and "refuse('最新一期同比已不低于点位且前一季读数不可得" in src
+          and "anchor(_gdp_c, lbl).get('observation_date')" in src
+          and src.count('_gdp_state is None') == 1)
+
+
 def sec_t5():
     print('═══ 任务5: 预期差研究接入正式入口 ═══')
     sec_t5_a()
@@ -6875,6 +7159,7 @@ def sec_t5():
     sec_t5_h()
     sec_t5_i()
     sec_t5_j()
+    sec_t5_k()
 
 
 def main():
@@ -6885,6 +7170,7 @@ def main():
         sec_t2_k()
         sec_t2_l()
         sec_t2_m()
+        sec_t2_n()
         sec_t1_a()
         sec_t1_b()
         sec_t1_c()

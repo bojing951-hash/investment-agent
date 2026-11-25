@@ -2116,9 +2116,31 @@ pimco_cond = [
              fmt(pr.get('material_gap_bp')), fmt(_wp_thr - step_bp),
              cn_amt(_wp_n - 1))),
      'observable': 'DFEDTARU'}]
+
+def gdp_point_state(vals, hi, yms, path=None):
+    """事实端对年度增速点位的触及状态(纯函数,修订 r15)→ (状态, 前一季读数)。
+
+    vals=三时点同比读数(12 个月前/3 个月前/最新一期;引擎面派生同比原值),
+    yms=对应观测月,hi=点位。状态: 0=未触发(最新一期低于点位);1=首次触及
+    (最新一期不低于点位、前一季低于点位——证伪条件要求连续两个季度,尚未
+    成立);2=已成立(最新一期与前一季读数连续不低于点位)。前一季读数:
+    「3 个月前」锚恰为最新观测月之前一个季度时取锚读数,否则取同比月路径
+    (path={观测月: 读数})上该月读数;不可得=None(调用方拒绝装配——连续性
+    无从判定)。"""
+    if vals[-1] < hi:
+        return 0, vals[-2]
+    ym_prev = ym_shift(yms[-1], -3)
+    prev = (vals[-2] if yms[-2] == ym_prev
+            else (path or {}).get(ym_prev))
+    if prev is None:
+        return None, None
+    return (2 if prev >= hi else 1), prev
+
+
 # Audit-R33 任务5修订(独立预审 m): 三时点同比读数逐期列出(引擎面派生同比
 # 原值),证伪条件写明期数、到期日在窗口外与窗内可核验期数(季度节奏为席位
-# 推断,冻结发布日历未收录其发布日);最新两期已不低于点位即拒绝装配。
+# 推断,冻结发布日历未收录其发布日);事实端对点位的触及状态按读数如实
+# 装配(修订 r15,见 gdp_point_state)。
 _gdp_vals = [yoy_of(cell_by_id('US_REAL_GDP'), lbl) for lbl in LABELS]
 if None in _gdp_vals:
     refuse('美国实际 GDP 三时点同比不可比(须席位另写)')
@@ -2142,8 +2164,45 @@ elif all(_gdp_mid[i] >= _gdp_mid[i + 1] for i in range(len(_gdp_mid) - 1)):
     _gdp_mid_txt = ''
 else:
     _gdp_mid_txt = '(锚点之间的季度读数有反复)'
-if _gdp_vals[-1] >= oecd_hi or _gdp_vals[-2] >= oecd_hi:
-    refuse('最新两期同比已不低于点位——判据须席位另写')
+# 修订 r15(最终候选统一验收;上一候选网络链实测): 数据更新后最新一期同比不低于
+# 点位(年度修订把最新读数改到点位之上)时,原实现拒绝装配(席位工具退出、无判定
+# 档),正式链在席位一步中断。改为按事实端读数分三种状态如实装配;裁决口径不因
+# 触及而改变(该行无同期限市场定价工具,『机构对市场』的预期差无从建立=非预期
+# 差),事实端相悖/证伪在推导、理由与摘要中写明;前一季读数不可得=拒绝装配。
+# 文字不引入引擎面以外的数字(契约自由文字数字绑定)。
+_gdp_ym = [str(anchor(_gdp_c, lbl).get('observation_date') or '')[:7]
+           for lbl in LABELS]
+_gdp_state, _gdp_prev = gdp_point_state(
+    _gdp_vals, oecd_hi, _gdp_ym,
+    {ym: v for ym, _d, v in mon_series('US_REAL_GDP', yoy=True)
+     if isinstance(v, (int, float))})
+if _gdp_state is None:
+    refuse('最新一期同比已不低于点位且前一季读数不可得(锚点观测月 %s/%s)——'
+           '连续性须席位另写' % (_gdp_ym[-2], _gdp_ym[-1]))
+_gdp_fact = (
+    '与『增速放缓』的方向判断不矛盾' if _gdp_state == 0 else
+    '最新一期读数已不低于该点位——事实端对该行『增速放缓』的方向判断由不矛盾'
+    '转为首季相悖(证伪条件要求连续两个季度不低于,现已触及首季、尚未成立)'
+    if _gdp_state == 1 else
+    '最新一期与前一季读数连续不低于该点位——该行『增速放缓』路径已在事实端'
+    '被证伪(机构对事实一端;证伪条件已成立)')
+_gdp_state_txt = (
+    '未触发' if _gdp_state == 0 else
+    '已触及首季(最新一期不低于该点位;证伪条件要求连续两个季度,尚未成立)'
+    if _gdp_state == 1 else
+    '已成立(最新一期与前一季读数连续不低于该点位)')
+_gdp_reason = (
+    '增长预测无同期限市场定价工具;与事实面方向不矛盾。' if _gdp_state == 0 else
+    '增长预测无同期限市场定价工具;事实面最新一期已触及证伪条件的首季(连续两个'
+    '季度尚未成立),『机构对市场』的预期差无从建立。'
+    if _gdp_state == 1 else
+    '增长预测无同期限市场定价工具;『增速放缓』路径已在事实端被证伪(证伪条件'
+    '已成立),『机构对市场』的预期差无从建立。')
+_gdp_sum = (
+    '' if _gdp_state == 0 else
+    ';事实端: 该行最新一期同比已不低于点位,证伪条件触及首季、尚未成立'
+    if _gdp_state == 1 else
+    ';事实端: 该行『增速放缓』路径已被证伪(最新一期与前一季同比连续不低于点位)')
 
 
 def _q_label(y, q):
@@ -2166,11 +2225,12 @@ oecd_reading = (
     '席位推导: 该行为年度增速点位(原文『%s』),定价面只覆盖联邦基金利率,'
     '增长预测无同期限市场定价工具——『机构对市场』的预期差无从建立;对'
     '事实一端,引擎事实面的美国实际 GDP 最新读数为 %s(水平值,观测 %s),'
-    '三时点同比读数 %s%s,与『增速放缓』的方向判断不矛盾。故按契约口径记为'
+    '三时点同比读数 %s%s,%s。故按契约口径记为'
     '非预期差并写明缺口: 『无从对照』不等于『不存在』。' % (
         oecd.get('value_raw'), fmt(oecd_at.get('value')),
         oecd_at.get('observation_date'), _gdp_txt,
-        (',三锚点间逐期走低' + _gdp_mid_txt) if _gdp_down else ''))
+        (',三锚点间逐期走低' + _gdp_mid_txt) if _gdp_down else '',
+        _gdp_fact))
 oecd_cond = [
     {'attribution': 'ai_inferred',
      'condition': (
@@ -2180,10 +2240,10 @@ oecd_cond = [
          '幅度主张),则『%s』的放缓路径被证伪;'
          '该点位到期日 %s 在证伪窗口之外,窗口内至多可核验 %s 两期读数'
          '(季度节奏为席位推断,冻结发布日历未收录其发布日);当前三时点同比'
-         '读数 %s,未触发' % (
+         '读数 %s,%s' % (
              as_of, fmt(oecd_hi), oecd.get('value_raw'), oecd.get('horizon_end'),
              ' 与 '.join(_q_in) if len(_q_in) == 2 else '、'.join(_q_in) or '无',
-             _gdp_txt)),
+             _gdp_txt, _gdp_state_txt)),
      'observable': 'US_REAL_GDP'}]
 supported_gaps = [
     {'row_id': 'VIEW-20261110-003#f2', 'verdict': 'supported',
@@ -2202,7 +2262,7 @@ supported_gaps = [
      'competing_explanation': (
          '【假设】该增速点位显著低于市场隐含的增长路径,则『机构低于市场』的'
          '预期差可能存在,但本轮定价面未入库利率以外的工具,无法检验。'),
-     'reason': '增长预测无同期限市场定价工具;与事实面方向不矛盾。',
+     'reason': _gdp_reason,
      'falsification_conditions': oecd_cond,
      'evidence_refs': [x for x in (oecd.get('evidence_refs') or []) if x]}]
 # 修订 r13(第二轮第 10/13 项): 问句逐字引用;可见文件数旁写明其中有对照行的
@@ -2217,7 +2277,7 @@ seat_summary = (
     '对账 %s 行,其中引擎判为预期差候选 %s 行、须席位推导 %s 行。席位推导'
     '后: 有证据支持的预期差 %d 项(PIMCO『%s』——政策方向与市场相同、幅度'
     '更低且不可量化,单一机构、表述含糊,属弱证据);判非预期差 %d 项'
-    '(OECD 美国增长预测,无同期限定价);有编号的加息路径与同期限期货定价'
+    '(OECD 美国增长预测,无同期限定价%s);有编号的加息路径与同期限期货定价'
     '之差最大仅 %sbp,不足半个定价步长(%sbp);欧央行与日本央行政策利率表述'
     '与截止日可得读数一致,但对账读数陈旧源于序列形态(日本央行有冻结日历'
     '维持记录;欧元区其后有无新决议本轮冻结证据未知);定价面只入库美国联邦'
@@ -2231,6 +2291,7 @@ seat_summary = (
        fmt(sm.get('n_rows')),
        fmt(sm.get('comparable_n')), fmt(sm.get('candidate_n')),
        fmt(sm.get('reading_required_n')), n_sup, pimco.get('value_raw'), n_ng,
+       _gdp_sum,
        fmt(g_max), fmt(pr.get('material_gap_bp')), fmt(sm.get('n_rows')),
        fmt(sm.get('unmapped_n')),
        fw.get('source'), fw.get('start'), fw.get('end'), n_in, n_test, hz_end,

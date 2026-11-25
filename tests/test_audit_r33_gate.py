@@ -4974,19 +4974,23 @@ def _t5_syn_step(mid, dates, values, unit):
 
 
 def _t5_seat_helpers():
-    """席位工具纯函数面: 只取常量 D 与白名单函数定义(源码 ast 抽取后执行),
-    不执行模块级守卫/取数——席位工具只服务其预设的真实工单,门内不跑整份。"""
+    """席位工具纯函数面: 只取常量 D / PRICING_TICK_BP / _COMP_NAME / _HYP / _HZ_TXT
+    与白名单函数定义(源码 ast 抽取后执行),不执行模块级守卫/取数——席位工具只
+    服务其预设的真实工单,门内不跑整份。"""
     import ast
     src = open(os.path.join(ROOT, 'scripts', 'seat_tools',
                             'make_expectations_gap_judgment.py'),
                encoding='utf-8').read()
     want = {'fmt', 'f2', '_cn_int', 'cn_num', 'cn_amt', 'ym_shift',
-            'steps_of', 'horizon_row', 'month_last', 'pricing_path_rising'}
+            'step_band', 'seg_start_ym', 'comp_txt', 'win_agree_txt',
+            '_af_val', '_seg_dir_ok', '_hyp_count', '_hyp_txt', 'horizon_row',
+            'month_last', 'pricing_path_rising'}
     body = [n for n in ast.parse(src).body if (
         isinstance(n, ast.FunctionDef) and n.name in want) or (
         isinstance(n, ast.Assign)
         and any(isinstance(tg, ast.Name)
-                and tg.id in ('D', 'PRICING_TICK_BP') for tg in n.targets))]
+                and tg.id in ('D', 'PRICING_TICK_BP', '_COMP_NAME', '_HYP',
+                              '_HZ_TXT') for tg in n.targets))]
     import bisect
     ns = {'bisect': bisect}
     exec(compile(ast.Module(body=body, type_ignores=[]), 'seat_helpers',
@@ -5503,7 +5507,7 @@ def sec_t5_g():
     # ── 席位工具纯函数面(与引擎同规则) ──
     ns = _t5_seat_helpers()
     hz = ns['horizon_row']
-    stp = ns['steps_of']
+    stp = ns['step_band']
     agree = all(
         (lambda g_, s_: (g_ is None and s_ is None) or (
             g_ is not None and s_ is not None
@@ -5516,8 +5520,9 @@ def sec_t5_g():
     seat_mlast = [ns['month_last'](m, ym) for m, ym in (
         ('DFF', '2026-08'), ('DFF', '2026-10'), ('CPI', '2026-09'), ('SPX', '2026-11'))]
     check('§T5-g7 席位工具纯函数面(ast 抽取;不跑整份): 到期同期限参照与引擎'
-          '_pricing_reference 同规则(逐到期日同月);无读数合约月跳过;折合整步'
-          '数向上取整;中文数字/口语两;年月平移;月末读数=窗内各月最新有效读数'
+          '_pricing_reference 同规则(逐到期日同月);无读数合约月跳过;隐含幅度'
+          '就近折合到步长整数倍(半步归下一步);中文数字/口语两;年月平移;月末读数'
+          '=窗内各月最新有效读数'
           '(与引擎同窗首尾逐值相同)',
           agree and hz('2027-03-31', prow)['month'] == '2027-03'
           and hz('2027-10-06', prow)['month'] == '2027-08'
@@ -5525,8 +5530,10 @@ def sec_t5_g():
           and hz('2027-03-31', prow, {'month': '2027-05'})['month'] == '2027-05'
           and hz('2027-03-31', prow, {'month': '2099-01'}) is None
           and hz('2027-03-31', p_gap['rows'])['month'] == '2027-02'
-          and [stp(v, 25.0) for v in (0.0, 12.5, 25.0, 50.0, 56.5, 58.0, 69.0)]
-          == [0, 1, 1, 2, 3, 3, 3]
+          and [(t_, n_) for t_, n_, _d in (stp(v, 25.0) for v in (
+              0.0, 12.4, 12.5, 24.9, 25.0, 37.5, 50.0, 56.5, 58.0, 62.5, 69.0))]
+          == [(0, 0), (0, 0), (25, 1), (25, 1), (25, 1), (50, 2), (50, 2),
+              (50, 2), (50, 2), (75, 3), (75, 3)]
           and [ns['cn_num'](v) for v in (2, 6.0, 12.5, 25.0, 56.5, 69.0, 1.25)]
           == ['二', '六', '十二点五', '二十五', '五十六点五', '六十九', '一点二五']
           and ns['cn_amt'](2) == '两' and ns['cn_amt'](6.0) == '六'
@@ -5622,6 +5629,137 @@ def sec_t5_h():
           'def=%d call=%s write=%d' % (i_def, m_call and m_call.start(), i_write))
 
 
+def sec_t5_i():
+    print('§T5-i 席位工具修订 r13(独立预审第二轮折入: 读数月标签/阈值就近折合/'
+          '相似证据三段全列;门内只核纯函数与静态锁,整份装配留仓外在真实数据面核)')
+    ns = _t5_seat_helpers()
+    sb = ns['step_band']
+    ss = ns['seg_start_ym']
+    _d = ['2025-10-01', '2025-11-01', '2025-12-01', '2026-01-01', None]
+    _v = [0.21, 0.478, 0.557, 0.728, None]
+    got_band = [sb(69.0, 25.0), sb(56.5, 25.0), sb(12.5, 25.0), sb(2.0, 25.0),
+                sb(75.0, 25.0)]
+    got_seg = [ss(_d, _v, '2025-12', 0.478), ss(_d, _v, '2026-01', 0.557),
+               ss(_d, _v, '2025-11', 0.21), ss(_d, _v, '2025-12', 0.9),
+               ss(_d, _v, '2025-10', 0.21), ss(_d, _v, '2025-12', 0.728)]
+    check('§T5-i1 step_band: 就近折合(69→75/三次/差 6;56.5→50/两次/差 6.5;半步 12.5'
+          '→25/一次;不足半步 2→0 次;恰为步长整数倍→自身)',
+          got_band == [(75.0, 3, 6.0), (50.0, 2, 6.5), (25.0, 1, 12.5),
+                       (0.0, 0, 2.0), (75.0, 3, 0.0)],
+          repr(got_band))
+    check('§T5-i2 seg_start_ym: 段首变动点之前最后一个与段首值相等的观测所在月'
+          '(2025-12/0.478→2025-11;2026-01/0.557→2025-12;2025-11/0.21→2025-10;'
+          '值不在序列/段首之前无观测/等于段首变动点当月或更晚的观测→None;'
+          '空值跳过)',
+          got_seg == ['2025-11', '2025-12', '2025-10', None, None, None],
+          repr(got_seg))
+    src = open(os.path.join(ROOT, 'scripts', 'seat_tools',
+                            'make_expectations_gap_judgment.py'),
+               encoding='utf-8').read()
+    flat = re.sub(r'\s+', ' ', src)
+    locks = [
+        ('阈值两处均用 step_band(向上取整的 steps_of 退场)',
+         '_hz_thr, _hz_n, _hz_d = step_band(hz_bp, step_bp)' in src
+         and "_wp_thr, _wp_n, _wp_d = step_band(win_p.get('change_bp'), "
+         "step_bp)" in src and 'def steps_of(' not in src
+         and 'steps_of(' not in src),
+        ('起点月由冻结序列查得并须等于段首变动点前月(不符拒绝)',
+         "seg_start_ym(_ds, _vs, _g['from_ym'], _g['v0'])" in src
+         and "if _st != ym_shift(_g['from_ym'], -1):" in src
+         and "'start_ym': _st, 'n': _g['n']," in src),
+        ('月均段两处措辞均为「平台到平台上行段: 起点月 月均 A→终点月 月均 B(+Nbp,'
+         '经 … 个相邻月变动点)」',
+         src.count('月均序列平台到平台上行段') == 1
+         and src.count('平台到平台上行段(月均序列)') == 1
+         and "cell_name(e.get('metric_id')), e['start_ym']," in src
+         and "fmt(e.get('from')), e['to_ym'], fmt(e.get('to'))," in src
+         and '月均序列上行段 %s→%s(+%dbp' not in src),
+        ('三段全列;三段全部同向才记「有历史相似证据」;标引擎事后表现口径',
+         'aligned = all(_dirs)' in src
+         and "有历史相似证据' if aligned else '纯逻辑推理'" in src
+         and '(引擎事后表现口径,非月末口径;按「段×资产」计,' in src
+         and '相似检索第 %s 名 %s 段事后 3 个月(SPX' not in src),
+        ('证伪条件就近折合并写互补的另一半;阈值步数与隐含幅度之差均写入',
+         '就近折合' in src and 'cn_amt(_wp_n - 1)' in src
+         and "fmt(_wp_thr - step_bp)" in src
+         and '折合等于或超过%s次加息' not in src),
+        ('E-C1 引用含中国政策三指标与四个资产指标',
+         "'HY_OAS', 'CN_LPR_1Y', 'CN_OMO_7D', 'CN_POLICY_OVERNIGHT', 'NIKKEI225', "
+         "'GOLD_F', 'DXY', 'VIX')}" in flat),
+        ('问句逐字引用(改写后加引号的旧句退场);可见文件数旁写有对照行的份数',
+         "blk.get('question_verbatim')" in src and 'n_views_rows' in src
+         and '问句问的是『市场定价和机构观点之间有哪些预期差' not in src),
+        ('G-C3: 推算增速标出处;中国增长预测逐口径并列;全球增长未映射行按年并列',
+         '非机构原文给出的增速' in src and '期限不一' not in src
+         and '_unmapped_growth_txt' in src),
+        ('质量说明: 覆盖状态中文;「N段」无空格;期货引用去重',
+         "_COV_CN = {'present': '已入库', 'absent': '未入库'}" in src
+         and "'%d 段(%s)'" not in src and 'list(dict.fromkeys(' in src),
+        ('情景前提区分假设与事实;三时点读数带观测日',
+         '假设读数在转折窗后继续上行' in src and '三锚点间逐期走低' in src
+         and "anchor(_gdp_c, lbl).get('observation_date')" in src),
+        ('E-C1 利率分句并列近 1 个月窗;分量写文字不写指标编号'
+         '(同子句别名重复出现时断言域只遮罩首次,编号内数字会被当读数)',
+         ";近1个月窗(%s→%s)UST_10Y " in src
+         and 'comp_txt(c12), comp_txt(c1),' in src
+         and '两窗各自变动较大的分量为 %s 与 %s' not in src),
+    ]
+    bad = [name for name, ok in locks if not ok]
+    check('§T5-i3 静态锁(席位工具源码): %d 项' % len(locks), not bad,
+          '; '.join(bad))
+    ct = ns['comp_txt']
+    got_ct = [ct({'TIPS_10Y': 30.0, 'BEI_10Y': -19.0}),
+              ct({'TIPS_10Y': -11.0, 'BEI_10Y': 19.0}),
+              ct({'TIPS_10Y': 11.0, 'BEI_10Y': -11.0}),
+              ct({'TIPS_10Y': None, 'BEI_10Y': None}), ct({})]
+    wa = ns['win_agree_txt']
+    # 用例一=真实数据面形态(3 个月窗: 名义与 TIPS 上行、盈亏平衡下行;近 1 个月窗:
+    # 名义与盈亏平衡下行、TIPS 上行)→ TIPS 与盈亏平衡两窗同向,名义不同向
+    got_wa = [wa({'UST_10Y': 40.0, 'TIPS_10Y': 30.0, 'BEI_10Y': -10.0},
+                 {'UST_10Y': -8.0, 'TIPS_10Y': 11.0, 'BEI_10Y': -19.0}),
+              wa({'UST_10Y': 1.0, 'TIPS_10Y': 1.0, 'BEI_10Y': -1.0},
+                 {'UST_10Y': 2.0, 'TIPS_10Y': 0.5, 'BEI_10Y': -0.5}),
+              wa({}, {})]
+    _AL = __import__('research_contract.text_consistency', fromlist=['x'])
+    check('§T5-i4 comp_txt/win_agree_txt: 变动较大的分量与两窗方向均写文字'
+          '(TIPS 实际收益率/盈亏平衡通胀率/名义收益率);幅度相同与全零/缺值各如实写;'
+          '返回文字不命中任何指标别名',
+          got_ct == ['TIPS 实际收益率', '盈亏平衡通胀率', '两者变动幅度相同',
+                     '两者变动均为零', '两者变动均为零']
+          and got_wa == ['两窗同向者: TIPS 实际收益率、盈亏平衡通胀率;不同向者: 名义收益率',
+                         '三者两窗同向', '三者两窗同向']
+          and not any(_AL._find_alias(x) for x in got_ct + got_wa),
+          repr((got_ct, got_wa)))
+    sd_ = ns['_seg_dir_ok']
+    hc_ = ns['_hyp_count']
+    ht_ = ns['_hyp_txt']
+    segs = [
+        {'aftermath': {'SPX': {'3m': 10.15, '6m': 18.74},
+                       'GOLD_F': {'3m': 5.14, '6m': 23.12},
+                       'DXY': {'3m': -7.08, '6m': -6.22}}},
+        {'aftermath': {'SPX': {'3m': -6.27, '6m': 0.37},
+                       'GOLD_F': {'3m': -7.19, '6m': 1.37},
+                       'DXY': {'3m': 6.64, '6m': -1.54}}},
+        {'aftermath': {'SPX': {'3m': 14.34, '6m': 18.83},
+                       'GOLD_F': {'3m': 3.06, '6m': 15.87},
+                       'DXY': {'3m': -3.38, '6m': -0.62}}},
+    ]
+    check('§T5-i5 相似证据计数(段×资产): 事后 3 个月同向 3/相反 6、事后 6 个月'
+          '同向 0/相反 9;只有第二段三个资产全同向;读数缺席与零值计入缺席',
+          [sd_(x) for x in segs] == [False, True, False]
+          and sd_({'aftermath': {'SPX': {'3m': None}}}) is None
+          and hc_(segs, '3m') == (3, 6, 0) and hc_(segs, '6m') == (0, 9, 0)
+          and hc_(segs[:1] + [{'aftermath': {}}], '6m') == (0, 3, 3)
+          and hc_([{'aftermath': {'SPX': {'3m': 0}}}], '3m') == (0, 0, 3)
+          and ht_(segs, '6m') == '事后 6 个月与方向假设同向零段、相反九段'
+          and ht_(segs[:1] + [{'aftermath': {}}], '6m')
+          == '事后 6 个月与方向假设同向零段、相反三段(另有三段读数缺席或为零)',
+          repr((hc_(segs, '3m'), hc_(segs, '6m'), ht_(segs, '6m'))))
+    print('§T5-i 说明: 席位工具整份装配不在门内跑(工具只服务其预设的真实工单,含'
+          '机构观点内容);修订后的装配在仓外真实数据面上逐句比对与正式 attach 核验,'
+          '见证据包预审目录与报告。')
+
+
 def sec_t5():
     print('═══ 任务5: 预期差研究接入正式入口 ═══')
     sec_t5_a()
@@ -5632,6 +5770,7 @@ def sec_t5():
     sec_t5_f()
     sec_t5_g()
     sec_t5_h()
+    sec_t5_i()
 
 
 def main():

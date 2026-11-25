@@ -1,7 +1,7 @@
 # COMPLEXITY_BASELINE — 复杂度基线(章程§四.4,只测不瘦)
 
-- 生产面: 98 py 文件 / 74653 行 / 2008 函数
-- 测试面: 217 py 文件 / 106095 行
+- 生产面: 98 py 文件 / 74868 行 / 2018 函数
+- 测试面: 217 py 文件 / 106234 行
 
 ## 最大 10 文件(生产面)
 
@@ -15,7 +15,7 @@
 | scripts/agent_judgment.py | 2404 |
 | scripts/research_provenance.py | 2341 |
 | scripts/expectations_gap.py | 2285 |
-| scripts/seat_tools/make_expectations_gap_judgment.py | 2067 |
+| scripts/seat_tools/make_expectations_gap_judgment.py | 2282 |
 | scripts/research_contract/text_consistency.py | 2036 |
 
 ## 增长控制

@@ -214,9 +214,24 @@ def ym_shift(ym, n):
     return '%04d-%02d' % (t // 12, t % 12 + 1)
 
 
-def steps_of(bp, step_bp):
-    """定价读数折合整步数(向上取整): 69bp@25bp→3;12.5bp@25bp→1。"""
-    return int(-(-float(bp) // float(step_bp)))
+def step_band(bp, step_bp):
+    """月均隐含累计幅度按定价步长就近折合(修订 r13): 与步长整数倍相差不足
+    半步即视为该步数——与席位「同期限定价差不足半个定价步长=一致」同一标准;
+    恰在半步归下一步。→ (阈值bp, 加息次数, 与隐含幅度之差bp):
+    69bp@25bp→(75,3,6);56.5bp@25bp→(50,2,6.5);12.5bp@25bp→(25,1,12.5)。"""
+    n = int(round(float(bp) / float(step_bp) + 1e-9))
+    thr = n * float(step_bp)
+    return thr, n, abs(float(bp) - thr)
+
+
+def seg_start_ym(dates, values, from_ym, v0):
+    """月均序列上行段的起点月(修订 r13): 段首变动点(%s-01)之前最后一个与段首
+    值相等的观测所在月;找不到→None(调用点拒绝装配)。"""
+    for d, v in reversed(list(zip(dates or [], values or []))):
+        if (str(d) < '%s-01' % from_ym and isinstance(v, (int, float))
+                and not isinstance(v, bool) and abs(float(v) - float(v0)) < 1e-9):
+            return str(d)[:7]
+    return None
 
 
 def horizon_row(h_end, pricing_rows, pref=None):
@@ -504,10 +519,20 @@ for _mid in ('JP_POLICY_RATE', 'CN_POLICY_OVERNIGHT', 'CN_LPR_1Y',
         continue
     _reg = next((c.get('region') for c in cells
                  if c.get('metric_id') == _mid), None)
+    # 修订 r13(独立预审第二轮第 1 项): 段的起点月=段首变动点之前最后一个与段首值
+    # 相等的观测所在月(由冻结序列查得,且须恰为段首变动点的前一月,否则拒绝装配);
+    # cp=段内各变动点月。旧标签「2025-12→2026-01 0.478→0.728」把变动点月当成读数月
+    # (0.478 实为 2025-11 月均),读者按标签相减只得 17bp。
+    _vs = (store.get(_mid) or {}).get('values') or []
     for _g in rise_segments(_mid):
+        _st = seg_start_ym(_ds, _vs, _g['from_ym'], _g['v0'])
+        if _st != ym_shift(_g['from_ym'], -1):
+            refuse('月均序列上行段起点月与段首变动点前月不一致(须席位另写)')
         monthly_events.append({
             'region': _reg, 'metric_id': _mid, 'monthly_segment': True,
             'from_ym': _g['from_ym'], 'to_ym': _g['to_ym'],
+            'start_ym': _st, 'n': _g['n'],
+            'cp': [ym_shift(_g['from_ym'], i) for i in range(_g['n'])],
             'from': _g['v0'], 'to': _g['v1'], 'delta_bp': _g['bp'],
             'date': '%s-01' % _g['from_ym'], 'effective_date': None})
 events_all = events + monthly_events
@@ -515,12 +540,14 @@ events_all = events + monthly_events
 
 def ev_txt(e):
     if e.get('monthly_segment'):
-        return ('%s→%s %s %s 月均序列上行段 %s→%s(+%dbp;月均口径,无单一'
-                '生效日)' % (
-                    e['from_ym'], e['to_ym'],
+        # 修订 r13: 读数月标签与所列数值对齐(起点月=段首变动点前一月)
+        return ('%s %s 月均序列平台到平台上行段: %s 月均 %s→%s 月均 %s(+%dbp,'
+                '经 %s %s个相邻月变动点;月均口径,无单一生效日)' % (
                     REG_TXT.get(e.get('region'), e.get('region')),
-                    cell_name(e.get('metric_id')), fmt(e.get('from')),
-                    fmt(e.get('to')), int(e.get('delta_bp') or 0)))
+                    cell_name(e.get('metric_id')), e['start_ym'],
+                    fmt(e.get('from')), e['to_ym'], fmt(e.get('to')),
+                    int(e.get('delta_bp') or 0), '、'.join(e['cp']),
+                    cn_amt(e['n'])))
     return '%s %s %s %s→%s(%+d bp;生效 %s)' % (
         e.get('date'), REG_TXT.get(e.get('region'), e.get('region')),
         cell_name(e.get('metric_id')), fmt(e.get('from')), fmt(e.get('to')),
@@ -1034,17 +1061,20 @@ for e in jp_seg:
         _jp_nocal += 1
 _jp_cal_s = (';'.join(_jp_cal) or '冻结日历无对应决议记录')
 if _jp_nocal and _jp_cal:
-    _jp_cal_s += ';其余%s段无冻结日历决议记录' % cn_num(_jp_nocal)
+    _jp_cal_s += ';其余%s段无冻结日历决议记录' % cn_amt(_jp_nocal)
 _jp_bp_s = (('各 %dbp' % _jp_bp[0]) if len(_jp_bp) == 1
             else ('分别 %s' % '、'.join('%dbp' % b for b in _jp_bp)))
 pol_ev = '、'.join(
     [chg_txt('DFEDTARU', 'US', e) for e in sorted(us_up + us_dn, key=lambda x: str(x.get('date')))]
     + [chg_txt('ECB_DFR', 'EA', e) for e in sorted(ea_up + ea_dn, key=lambda x: str(x.get('date')))]
-    + ['%s→%s 日本 %s 月均序列上行段 %s→%s(+%dbp;%s)' % (
-        e['from_ym'], e['to_ym'], cell_name('JP_POLICY_RATE'),
-        fmt(e.get('from')), fmt(e.get('to')), int(e['delta_bp']),
-        '、'.join(cal_dec_txt('JP', e['to_ym'])
-                  or cal_dec_txt('JP', e['from_ym'])) or '无冻结日历决议记录')
+    # 修订 r13(第二轮第 1 项): 读数月与数值对齐(见 monthly_events 处注记)
+    + ['日本 %s 平台到平台上行段(月均序列): %s 月均 %s→%s 月均 %s(+%dbp,经 '
+       '%s %s个相邻月变动点;%s)' % (
+           cell_name('JP_POLICY_RATE'), e['start_ym'],
+           fmt(e.get('from')), e['to_ym'], fmt(e.get('to')),
+           int(e['delta_bp']), '、'.join(e['cp']), cn_amt(e['n']),
+           '、'.join(cal_dec_txt('JP', e['to_ym'])
+                     or cal_dec_txt('JP', e['from_ym'])) or '无冻结日历决议记录')
        for e in jp_seg]) + (
     ';口径: 美国与欧元区为序列变动点(=生效日),决议日按惯例回推'
     '(美联储=生效前一日,欧央行=决议后首个周三,仅周三生效时);日本月均'
@@ -1089,7 +1119,7 @@ hyp2 = (
     % (_n_up, len(ea_up), _up_txt('EA', 'ECB_DFR', ea_up, ea_dn),
        len(us_up), _up_txt('US', 'DFEDTARU', us_up, us_dn), len(jp_seg),
        _jp_rise, _jp_bp_s, _jp_net, _jp_cal_s,
-       ('%d 段(%s)' % (len(_before), '、'.join(
+       ('%s段(%s)' % (cn_num(len(_before)), '、'.join(
            '%s 至 %s' % (e['from_ym'], e['to_ym']) for e in _before)))
        if _before else '无一段', len(_after), c0['to_ym']))
 # 窗终月=该序列截至研究截止日的最后一个有观测月(月频序列的最新一期早于
@@ -1268,8 +1298,13 @@ hl_env = '、'.join([trend('核心PCE同比', 'CORE_PCE'), trend('欧元区HICP�
 hl_pol = ';'.join([
     pol_phrase('联邦基金目标区间上限', 'DFEDTARU'),
     pol_phrase('存款便利利率', 'ECB_DFR'), pol_phrase('日本政策利率(月均)', 'JP_POLICY_RATE')])
+# 修订 r13(独立预审第二轮第 10 项): 问句逐字引用(旧文为改写后仍加引号)
+q_verbatim = str(blk.get('question_verbatim')
+                 or (rep.get('run') or {}).get('question') or '').strip()
+if not q_verbatim:
+    refuse('问句原文缺席(首句须逐字引用)')
 headline = (
-    '问句问的是『市场定价和机构观点之间有哪些预期差、未来什么会证伪』。'
+    '问句原文: 『%s』。'
     '席位研判: 有证据支持的预期差 %d 项,均为文字型表述的席位推导(PIMCO『%s』'
     '——政策方向与市场相同、幅度更低且不可量化,弱证据);有编号的机构加息'
     '路径与同期限期货定价一致(同期限定价差不足半个定价步长);%s;定价面'
@@ -1278,8 +1313,8 @@ headline = (
     '利率: %s,近月变动以%s分量为最大;近1个月资产: %s。证伪窗口: %s→%s'
     '(问句『%s』),窗内到期 %d 行、'
     '可检验 %d 行。' % (
-        n_sup, pimco.get('value_raw'), pol_stale, hl_env, hl_pol, tri1,
-        biggest_component(),
+        q_verbatim, n_sup, pimco.get('value_raw'), pol_stale, hl_env, hl_pol,
+        tri1, biggest_component(),
         '、'.join(mv_txt(m) for m in ('SPX', 'NIKKEI225', 'GOLD_F', 'DXY', 'VIX')
                   if mv(m)),
         fw.get('start'), fw.get('end'), fw.get('source'), n_in, n_test))
@@ -1310,13 +1345,17 @@ if not (hz_row and _hz_end0 and hz_low
     refuse('PIMCO 表述到期日与定价曲线/证伪窗口关系改变(须席位另写判据)')
 hz_m = str(hz_row.get('month'))
 hz_bp = float(hz_row.get('change_bp'))
-_hz_n = steps_of(hz_bp, step_bp)
+_hz_thr, _hz_n, _hz_d = step_band(hz_bp, step_bp)
+if _hz_n < 1 or abs(float(pr.get('material_gap_bp')) - step_bp / 2) > 1e-9:
+    refuse('同期限隐含幅度不足一步,或实质缺口线非半个定价步长'
+           '(阈值离散化须席位另写)')
 hz_ref = (hz_row.get('evidence_ref')
           if hz_row.get('evidence_ref') in idx_ref else None)
 gc1 = (
     '美国政策路径: 有编号的机构加息路径与同期限期货定价一致——UBS 的『%s』'
-    '『%s』与 MSIM 的『%s』,对到期终点月的期货定价差最大仅%s个基点,均不足'
-    '半个定价步长(%s个基点;期货为月均口径,基线=截止日有效利率)。'
+    '『%s』与 MSIM 的『%s』,对各自对照合约月 %s、%s、%s 的期货定价差'
+    '分别为%s、%s、%s个基点,最大仅%s个基点,均不足半个定价步长(%s个基点;期货'
+    '为月均口径,基线=截止日有效利率)。'
     '联邦基金利率上共%s家机构的表述与市场对照,其中唯一的幅度性分歧来自 '
     'PIMCO 的『%s』——文字型表述、未给幅度,引擎不解读(席位推导见预期差面): '
     '席位读作『不必加到期货曲线隐含的那么多』,政策方向与市场相同(均为上调)、'
@@ -1325,6 +1364,8 @@ gc1 = (
     '解释(见竞争解释),当前证据不足以在它们之间裁决——区分依赖 %s 与 %s '
     '合约在后续会议后的重定价。证据面最新水平(引擎回贴): DFF 水平为 %s。'
     % (r_u1.get('value_raw'), r_u2.get('value_raw'), r_m1.get('value_raw'),
+       hg(r_u1).get('month'), hg(r_u2).get('month'), hg(r_m1).get('month'),
+       cn_amt(g1), cn_amt(g2), cn_amt(g_m1),
        cn_amt(g_max), cn_num(pr.get('material_gap_bp')), cn_num(n_inst),
        pimco.get('value_raw'), cn_num(hz_bp), step_m, hor_m,
        fmt(l1['DFF'].get('value'))))
@@ -1412,31 +1453,98 @@ def _same_basis_txt(mid, year, pct_style):
                              lo, '百分之' + hi)
     else:
         body = '%s对%s' % (lo, hi)
-    return '(同为 %s 年口径: %s,相差约%s个百分点)' % (
-        year, body, cn_num(round(max(vals) - min(vals), 1)))
+    # 修订 r13(第二轮第 6 项): 标「约」者=点位目标括注的推算增速(分析师估值,
+    # 非机构原文给出的增速),在此写明出处
+    return '同为 %s 年度口径: %s,相差约%s个百分点%s' % (
+        year, body, cn_num(round(max(vals) - min(vals), 1)),
+        ';标『约』者为由点位目标与基数推算的分析师估值,非机构原文给出的增速'
+        if pct_style and any(a for _v, a in vs) else '')
 
 
-_eps_years = sorted(y for y, v in _year_vals('SPX_EPS').items() if len(v) >= 2)
-_eps_sb = _same_basis_txt('SPX_EPS', _eps_years[0], True) if _eps_years else ''
-_cn_sb = _same_basis_txt('CN_REAL_GDP_YOY', as_of[:4], False)
+# 修订 r13(独立预审第二轮第 6/7 项): 中国增长预测逐口径并列(不只取截止年);
+# 另列未映射的全球增长预测行(引擎对照面 status=unmapped、目标为全球实际 GDP 增速):
+# 两家机构同年各一行时按原文数值并列(中文数字);这些行无同期限定价。
+
+
+def _basis_clause(mid, pct_style):
+    """同一口径并列括注: 各年度子句以分号相连、外层一对括号;不足两行的年度不列。"""
+    yv = _year_vals(mid)
+    inner = [_same_basis_txt(mid, y, pct_style) for y in sorted(yv)
+             if len(yv[y]) >= 2]
+    return '(' + ';'.join(inner) + ')' if any(inner) else ''
+
+
+_eps_sb = _basis_clause('SPX_EPS', True)
+_cn_sb = _basis_clause('CN_REAL_GDP_YOY', False)
+
+
+def _unmapped_growth_txt():
+    by_year = {}
+    for r in rows_all:
+        if r.get('status') != 'unmapped' or not re.search(
+                r'global_real_GDP_growth|全球GDP增长', str(r.get('target') or ''),
+                re.I):
+            continue
+        raw = str(r.get('value_raw') or '')
+        my = re.search(r'(20\d\d)', str(r.get('target') or '') + raw)
+        mv = re.search(r'([+-]?\d+(?:\.\d+)?)\s*%', raw)
+        if my and mv:
+            by_year.setdefault(my.group(1), []).append(
+                (float(mv.group(1)), str(r.get('institution') or '')))
+    parts = []
+    for y in sorted(by_year):
+        vs = sorted({v for v, _i in by_year[y]})
+        if len(vs) == 2 and len({i for _v, i in by_year[y]}) >= 2:
+            parts.append('%s 年口径: %s对%s,相差%s个百分点' % (
+                y, cn_num(vs[0]), cn_num(vs[1]),
+                cn_num(round(vs[1] - vs[0], 1))))
+    return (';另: 全球增长预测上亦有机构间分歧(%s;行未映射到在册指标,无同期限'
+            '定价)' % ';'.join(parts)) if parts else ''
+
+
 gc3 = (
-    '机构间分歧的不可对账面: 盈利预测上%s表述形式相异(点位对增速)、期限'
-    '不一%s;中国增长预测上%s不一%s,中国实际 GDP 同比序列本轮缺席——这些是'
-    '『机构之间』的分歧,不是『机构与市场之间』可量化的预期差(未建立对照='
-    '明确缺口)%s。对『分歧为真实』至少有两种数据同样容纳的解释(见竞争'
-    '解释),当前证据不足以在它们之间裁决。证据面最新水平(末观测已陈旧): %s。'
+    '机构间分歧的不可对账面: 盈利预测上%s表述形式相异(点位对增速)%s;中国增长'
+    '预测上%s不一%s,中国实际 GDP 同比序列本轮缺席%s——这些是『机构之间』的'
+    '分歧,不是『机构与市场之间』可量化的预期差(未建立对照=明确缺口)。对『分歧'
+    '为真实』至少有两种数据同样容纳的解释(见竞争解释),当前证据不足以在它们'
+    '之间裁决。证据面最新水平(末观测已陈旧): %s。'
     % ('与'.join(short_inst(x) for x in d_eps.get('institutions') or []),
-       _eps_sb,
+       (',换到同一口径后差距仍在%s' % _eps_sb) if _eps_sb else '',
        '与'.join(short_inst(x) for x in d_cn.get('institutions') or []),
-       _cn_sb,
-       ';同一口径下仍有差距(见括注),口径差不足以完全解释'
-       if (_eps_sb and _cn_sb) else '',
+       _cn_sb, _unmapped_growth_txt(),
        level_txt('SPX_EPS')
        or 'SPX_EPS 水平为 %s' % fmt(l1['SPX_EPS'].get('value'))))
 
 
 def sgn(v):
     return '上行' if v > 0 else ('走低' if v < 0 else '持平')
+
+
+_COMP_NAME = {'UST_10Y': '名义收益率', 'TIPS_10Y': 'TIPS 实际收益率',
+              'BEI_10Y': '盈亏平衡通胀率'}
+
+
+def comp_txt(chg):
+    """UST_10Y 两分量(TIPS 实际收益率/盈亏平衡通胀率)在窗内变动较大的一个
+    (修订 r13)。写文字不写指标编号: 同一子句内别名重复出现时,断言域只遮罩
+    首次出现,编号内的数字(如 10Y 的 10)会被当成读数并与事实比对。"""
+    a = abs(float(chg.get('TIPS_10Y') or 0))
+    b = abs(float(chg.get('BEI_10Y') or 0))
+    if abs(a - b) < 1e-9:
+        return '两者变动幅度相同' if a >= 1e-9 else '两者变动均为零'
+    return _COMP_NAME['TIPS_10Y'] if a > b else _COMP_NAME['BEI_10Y']
+
+
+def win_agree_txt(c12, c1):
+    """3 个月窗与近 1 个月窗三个利率分量方向是否相同(修订 r13)。全部同向
+    →「三者两窗同向」;否则「两窗同向者: …;不同向者: …」(文字,不写编号)。"""
+    same = [k for k in _COMP_NAME
+            if (float(c12.get(k) or 0) > 0) == (float(c1.get(k) or 0) > 0)]
+    if len(same) == len(_COMP_NAME):
+        return '三者两窗同向'
+    return '两窗同向者: %s;不同向者: %s' % (
+        '、'.join(_COMP_NAME[k] for k in _COMP_NAME if k in same) or '无',
+        '、'.join(_COMP_NAME[k] for k in _COMP_NAME if k not in same) or '无')
 
 
 DOWN = [m for m in ('SPX', 'NIKKEI225', 'GOLD_F') if mv(m) and mv(m)['chg_pct'] < 0]
@@ -1482,8 +1590,9 @@ if not (region_flat('CN') and all(cell_by_id(m) for m in CN_POLICY_MIDS)
 ec1 = (
     '环境面共动: 四地三时点走位(12个月前→3个月前→最新一期)显示——通胀: '
     '%s、%s、%s、%s;政策: %s;%s;%s;中国%s,可比者未跟进收紧;利率: 长期窗'
-    '(%s→%s)UST_10Y %s、TIPS_10Y %s而 BEI_10Y %s;资产: 近1个月%s走低而%s'
-    '走高。证据面水平(引擎回贴): %s。对『这一共动由'
+    '(%s→%s)UST_10Y %s、TIPS_10Y %s而 BEI_10Y %s;近1个月窗(%s→%s)UST_10Y '
+    '%s、TIPS_10Y %s而 BEI_10Y %s(%s;两窗各自变动较大的分量: 近1个月窗为%s,'
+    '3个月窗为%s);资产: 近1个月%s走低而%s走高。证据面水平(引擎回贴): %s。对『这一共动由'
     '通胀再加速→政策再收紧主导』至少有两种数据同样容纳的解释(见竞争解释),'
     '当前证据不足以在它们之间裁决。'
     % (trend('核心PCE同比', 'CORE_PCE').replace('去年同月', '一年前'),
@@ -1496,6 +1605,10 @@ ec1 = (
        cn_pol_txt,
        w12.get('from'), w12.get('to'), sgn(float(c12.get('UST_10Y') or 0)),
        sgn(float(c12.get('TIPS_10Y') or 0)), sgn(float(c12.get('BEI_10Y') or 0)),
+       w1.get('from'), w1.get('to'),
+       sgn(float(c1.get('UST_10Y') or 0)), sgn(float(c1.get('TIPS_10Y') or 0)),
+       sgn(float(c1.get('BEI_10Y') or 0)),
+       win_agree_txt(c12, c1), comp_txt(c12), comp_txt(c1),
        '、'.join(DOWN) or '无', '、'.join(UP) or '无',
        '、'.join(x for x in (level_txt('UST_10Y'), level_txt('TIPS_10Y'),
                              level_txt('BEI_10Y'), level_txt('SPX'),
@@ -1513,7 +1626,9 @@ contras = [
          '并不代表独立信息相互印证——若成立,机构预测在会议前的修正应'
          '滞后于曲线变动【尚未验证】',
          '解释C(期限溢价/分布均值): 期货月均隐含幅度含分布均值与技术性'
-         '因素,机构点位指最可能路径,两者一致只是口径巧合【假设】'],
+         '因素,机构点位指最可能路径,两者一致只是口径巧合【假设】——若成立,'
+         '把期货月均读数换成决议日前后时点读数后,与机构路径的差应扩大到超出'
+         '半个定价步长【尚未验证】'],
      'evidence_refs': [x for x in (
          'VIEW-20261111-004#f1', 'VIEW-20261111-004#f2', 'VIEW-20261111-006#f1',
          'VIEW-20261110-003#f2', ref_for('DFF'), ref_for('DFEDTARU'),
@@ -1524,7 +1639,9 @@ contras = [
          '观测,不是采集缺口——若成立,下一变动日前读数保持不变(日本一侧'
          '与冻结日历维持实录相符)【尚未验证】',
          '解释B(真实一致): 日本央行维持会议之后至截止日、欧元区末次变动'
-         '之后至截止日确无新决议,表述与现值一致是真实的一致【假设】',
+         '之后至截止日确无新决议,表述与现值一致是真实的一致【假设】——若'
+         '成立,其后入库的冻结日历与序列在截止日之前不再出现新的变动点'
+         '【尚未验证】',
          '解释C(未入库决议): 欧元区在其央行维持表述之后另有决议而冻结'
          '日历与序列均未入库——若成立,更新后读数将与表述出现差异(日本'
          '一侧该解释已被维持实录否定)【尚未验证】'],
@@ -1550,9 +1667,13 @@ contras = [
          '解释B(增长担忧): 风险资产走低主要由增长预期下修驱动,利率变化'
          '是结果而非原因——若成立,BEI_10Y 主导性走低而 TIPS_10Y 转平'
          '【假设】'],
-     'evidence_refs': refs('CORE_PCE', 'EA_HICP_YOY', 'CN_PPI_YOY', 'JP_CPI_YOY',
-                           'DFEDTARU', 'ECB_DFR', 'JP_POLICY_RATE', 'UST_10Y',
-                           'TIPS_10Y', 'BEI_10Y', 'SPX', 'HY_OAS')}]
+     # 修订 r13(独立预审第二轮第 4 项): 中国政策三指标与四个资产指标的读数
+     # 原已写入陈述,此处补齐对应引用
+     'evidence_refs': refs(
+         'CORE_PCE', 'EA_HICP_YOY', 'CN_PPI_YOY', 'JP_CPI_YOY', 'DFEDTARU',
+         'ECB_DFR', 'JP_POLICY_RATE', 'UST_10Y', 'TIPS_10Y', 'BEI_10Y', 'SPX',
+         'HY_OAS', 'CN_LPR_1Y', 'CN_OMO_7D', 'CN_POLICY_OVERNIGHT', 'NIKKEI225',
+         'GOLD_F', 'DXY', 'VIX')}]
 cpi_c = next((c for c in picked if c['metric_id'] == 'CPI'), None)
 chain_links = [
     {'step': 1, 'text': (
@@ -1614,8 +1735,12 @@ _pp_ok, _pp_why = pricing_path_rising(
     pr, upto=max(str(m) for m in (step_m, hor_m, hz_m, win_m) if m))
 if not _pp_ok:
     refuse('同期限期货定价曲线非累计上调路径(%s)' % _pp_why)
-# 窗内阈值同期限参照的离散化: 月均隐含有效利率读数对定价步长折合加息次数
-_wp_n = steps_of(win_p.get('change_bp'), step_bp)
+# 窗内阈值同期限参照的离散化(修订 r13,第二轮第 5 项): 就近折合到定价步长整数
+# 倍,与席位「同期限定价差不足半个定价步长=一致」同一标准——隐含 56.5bp 对两次
+# 加息 50bp 须判为「已达到」,不再落在两条证伪条件之间。
+_wp_thr, _wp_n, _wp_d = step_band(win_p.get('change_bp'), step_bp)
+if _wp_n < 1:
+    refuse('窗口内最后一个完整合约月的隐含幅度不足一步(阈值离散化须席位另写)')
 hz_end = str(pimco.get('horizon_end') or '')
 if not (hz_end and win_p and str(last_m) < hz_end[:7]):
     refuse('PIMCO 表述到期日与定价曲线关系改变(须席位另写判据)')
@@ -1659,33 +1784,85 @@ scen = [
         'sensitive_variables': ['DFEDTARU', 'FED_FUNDS'],
         'falsification': {
             'metric_id': 'DFEDTARU',
-            'threshold': 'DFEDTARU 在 %s 之前较 %s 的 %s 累计上调不少于 %sbp'
-                         '(达到期货曲线对 %s 合约月均隐含的累计幅度;目标区间'
-                         '上限按 %sbp 步长变动,折合等于或超过%s次加息;阈值为'
-                         '期货月均隐含有效利率口径)=本情景证伪' % (
-                             hz_end, as_of, fmt(base_u), fmt(hz_bp), hz_m,
-                             fmt(step_bp), cn_num(_hz_n)),
+            'threshold': 'DFEDTARU 在 %s 之前较 %s 的 %s 累计上调达到或超过 '
+                         '%sbp(折合%s次加息;期货曲线对 %s 合约月均隐含 %sbp,'
+                         '按 %sbp 步长就近折合,相差 %sbp,不足半个步长 %sbp;目标'
+                         '区间上限按步长变动,实际路径只能落在步长整数倍上;阈值'
+                         '为期货月均隐含有效利率口径)=本情景证伪' % (
+                             hz_end, as_of, fmt(base_u), fmt(_hz_thr),
+                             cn_amt(_hz_n), hz_m, fmt(hz_bp), fmt(step_bp),
+                             fmt(_hz_d), fmt(pr.get('material_gap_bp'))),
             'secondary_metric_ids': ['FED_FUNDS']},
         'trigger': {
             'condition': '每次美联储决议后的 DFEDTARU 最新读数',
             'deadline': hz_end}}},
 ]
-t2 = top[1] if len(top) > 1 else {}
-af2 = (t2.get('aftermath') or {})
-try:
-    spx3 = float(((af2.get('SPX') or {}).get('3m')))
-    gold3 = float(((af2.get('GOLD_F') or {}).get('3m')))
-    dxy3 = float(((af2.get('DXY') or {}).get('3m')))
-except (TypeError, ValueError):
-    spx3 = gold3 = dxy3 = None
-aligned = (spx3 is not None and spx3 < 0 and gold3 < 0 and dxy3 > 0)
+# 修订 r13(独立预审第二轮第 2 项): 风险情景方向的历史相似证据须三段全列——
+# 旧文只引第 2 名段(唯一同向者),第 1、3 名段事后方向相反,层级「有历史相似证据」
+# 言过其实。三段事后 3 个月全部同向才记「有历史相似证据」,否则「纯逻辑推理」并
+# 如实写明同向/相反段数与事后 6 个月的方向(问句期限为半年)。数值为引擎事后表现
+# 口径(候选月后 N 个月窗内最后观测相对窗首观测的变动,非月末口径)。
+top3 = top[:3]
+_HYP = (('SPX', -1), ('GOLD_F', -1), ('DXY', 1))   # 风险情景的方向假设: 股指与 GOLD_F 承压、DXY 偏强
+_HZ_TXT = {'1m': '1 个月', '3m': '3 个月', '6m': '6 个月', '12m': '12 个月'}
+
+
+def _af_val(t, mid, hz):
+    """相似段事后表现读数(引擎口径);缺席或非数值→None。"""
+    try:
+        return float((((t.get('aftermath') or {}).get(mid) or {}).get(hz)))
+    except (TypeError, ValueError):
+        return None
+
+
+def _seg_dir_ok(t):
+    """相似段事后 3 个月三个资产是否全部与方向假设同向;任一读数缺席→None。"""
+    v = [_af_val(t, mid, '3m') for mid, _w in _HYP]
+    if any(x is None for x in v):
+        return None
+    return all((x > 0) == (w > 0) for x, (_m, w) in zip(v, _HYP))
+
+
+def _seg_af_txt(t):
+    return '第 %s 名 %s 段(SPX %+.2f%%、GOLD_F %+.2f%%、DXY %+.2f%%)' % tuple(
+        [t.get('rank'), t.get('candidate_month')]
+        + [_af_val(t, mid, '3m') for mid, _w in _HYP])
+
+
+def _hyp_count(segs, hz):
+    """各段×三个资产中,事后读数与方向假设同向/相反/缺席或为零的个数。"""
+    same = opp = miss = 0
+    for t in segs:
+        for mid, want in _HYP:
+            x = _af_val(t, mid, hz)
+            if x is None or x == 0:
+                miss += 1
+            elif (x > 0) == (want > 0):
+                same += 1
+            else:
+                opp += 1
+    return same, opp, miss
+
+
+def _hyp_txt(segs, hz):
+    same, opp, miss = _hyp_count(segs, hz)
+    return '事后 %s与方向假设同向%s段、相反%s段%s' % (
+        _HZ_TXT[hz], cn_amt(same), cn_amt(opp),
+        '' if not miss else '(另有%s段读数缺席或为零)' % cn_amt(miss))
+
+
+_dirs = [_seg_dir_ok(t) for t in top3]
+if any(d is None for d in _dirs):
+    refuse('相似检索前三段事后 3 个月读数缺席(情景方向措辞须席位另写)')
+aligned = all(_dirs)            # 三段全部同向才算「有历史相似证据」
 cpi_thr = fmt(cpi_c.get('value_before')) if cpi_c else '3'
-e1_dir = ('在此假设下,股指与 GOLD_F 承压、DXY 偏强' + (
-    ';该方向与相似检索第 %s 名 %s 段事后 3 个月(SPX %+.2f%%、GOLD_F '
-    '%+.2f%%、DXY %+.2f%%)方向一致,但历史相似≠因果【假设】' % (
-        t2.get('rank'), t2.get('candidate_month'), spx3, gold3, dxy3)
-    if aligned else ';相似检索各段事后方向并不一致,无历史同构支持,'
-    '纯逻辑推演') + '。')
+e1_dir = (
+    '在此假设下,股指与 GOLD_F 承压、DXY 偏强(纯逻辑推演);历史相似证据'
+    + ('三段事后 3 个月方向均与假设一致: ' if aligned else '方向不一: ')
+    + '、'.join(_seg_af_txt(t) for t in top3)
+    + '(引擎事后表现口径,非月末口径;按「段×资产」计,'
+    + _hyp_txt(top3, '3m') + ';' + _hyp_txt(top3, '6m')
+    + '——问句期限为半年,对应后者)。历史相似≠因果【假设】')
 # Audit-R33 任务5修订(独立预审 m): 情景前提旁写当前读数与转折窗终点/其后
 # 低点的关系(月频同比路径,与转折探测同算法;关系改变即拒绝装配)。
 _cp_ym = [(ym, d, v) for ym, d, v in mon_series('CPI', yoy=True)
@@ -1700,9 +1877,10 @@ if not (_cpi_first and _cpi_last and _cpi_low
 scen.append({
     'id': 'SCN-E1', 'role': '风险情景', 'rows': {
         'scenario': (
-            '假设通胀再加速延续(同窗转折后读数续升;当前美国 CPI 同比 %s@%s,'
-            '低于转折窗终点读数 %s@%s、高于其后低点 %s@%s),则政策再收紧与'
-            '风险资产承压的情景成立。' % (
+            # 修订 r13(第二轮第 14 项): 假设内容与事实读数分开写
+            '假设通胀再加速延续(假设读数在转折窗后继续上行;事实是当前美国 '
+            'CPI 同比 %s@%s 低于转折窗终点读数 %s@%s、高于其后低点 %s@%s),'
+            '则政策再收紧与风险资产承压的情景成立。' % (
                 fmt(_cpi_last[2]), _cpi_last[1], fmt(_cpi_first[2]),
                 _cpi_first[1], fmt(_cpi_low[2]), _cpi_low[1])),
         'asset_direction': {
@@ -1736,12 +1914,13 @@ if not oecd_vals:
 oecd_hi = max(oecd_vals)
 oecd_lo = min(oecd_vals)
 u2_cum = float(r_u2.get('cum_inst_bp') or 0)
-pimco_refs = [x for x in (
-    'VIEW-20261110-003#f2',
-    ((pimco.get('facts') or {}).get('at_cutoff') or {}).get('evidence_ref'),
-    hg(r_u1).get('evidence_ref'), hg(r_u2).get('evidence_ref'),
-    (pr.get('baseline') or {}).get('evidence_ref'), hz_ref,
-    _pzref.get('evidence_ref')) if x and x in idx_ref]
+pimco_refs = list(dict.fromkeys(     # 修订 r13(第二轮第 11 项(2)): 去重
+    x for x in (
+        'VIEW-20261110-003#f2',
+        ((pimco.get('facts') or {}).get('at_cutoff') or {}).get('evidence_ref'),
+        hg(r_u1).get('evidence_ref'), hg(r_u2).get('evidence_ref'),
+        (pr.get('baseline') or {}).get('evidence_ref'), hz_ref,
+        _pzref.get('evidence_ref')) if x and x in idx_ref))
 oecd_at = (oecd.get('facts') or {}).get('at_cutoff') or {}
 pimco_reading = (
     '席位推导: 『%s』读作——到表述到期日 %s(按期限上界;下界 %s),联邦基金'
@@ -1754,22 +1933,29 @@ pimco_reading = (
 pimco_cond = [
     {'attribution': 'ai_inferred',
      'condition': (
+         # 修订 r13(第二轮第 5 项): 阈值就近折合到步长整数倍
          '若 %s 或之前 DFEDTARU 最新读数较 %s 的 %s 累计上调达到或超过 '
-         '%sbp(即期货曲线对 %s 合约月均隐含的累计幅度;目标区间上限按 %sbp '
-         '步长变动,折合等于或超过%s次加息;阈值为期货月均隐含有效利率口径,'
+         '%sbp(折合%s次加息;期货曲线对 %s 合约月均隐含 %sbp,按 %sbp 步长'
+         '就近折合,相差 %sbp,不足半个步长 %sbp;目标区间上限按步长变动,'
+         '实际路径只能落在步长整数倍上;阈值为期货月均隐含有效利率口径,'
          '出处快照期货曲线),则『无需完全兑现市场定价的加息』被证伪' % (
-             hz_end, as_of, fmt(base_u), fmt(hz_bp), hz_m, fmt(step_bp),
-             cn_num(_hz_n))),
+             hz_end, as_of, fmt(base_u), fmt(_hz_thr), cn_amt(_hz_n), hz_m,
+             fmt(hz_bp), fmt(step_bp), fmt(_hz_d),
+             fmt(pr.get('material_gap_bp')))),
      'observable': 'DFEDTARU'},
     {'attribution': 'ai_inferred',
      'condition': (
-         '若 %s 时 DFEDTARU 读数较 %s 的 %s 累计上调已达到 %sbp(即期货曲线'
-         '对窗口内最后一个完整合约月 %s 月均隐含的累计幅度;目标区间上限按 '
-         '%sbp 步长变动,折合等于或超过%s次加息;阈值为期货月均隐含有效利率'
+         '若 %s 时 DFEDTARU 读数较 %s 的 %s 累计上调已达到 %sbp 或以上'
+         '(折合%s次加息;期货曲线对窗口内最后一个完整合约月 %s 月均隐含 %sbp,'
+         '按 %sbp 步长就近折合,相差 %sbp,不足半个步长 %sbp;目标区间上限按'
+         '步长变动,实际路径只能落在步长整数倍上;阈值为期货月均隐含有效利率'
          '口径,出处快照期货曲线),则『无需完全兑现市场定价的加息』在证伪窗口内'
-         '未获路径前段支持——预期差未显现' % (
-             fw['end'], as_of, fmt(base_u), fmt(win_p.get('change_bp')), win_m,
-             fmt(step_bp), cn_num(_wp_n))),
+         '未获路径前段支持——预期差未显现;若届时累计上调为 %sbp 或以下(至多'
+         '%s次加息),则该表述获得路径前段支持' % (
+             fw['end'], as_of, fmt(base_u), fmt(_wp_thr), cn_amt(_wp_n), win_m,
+             fmt(win_p.get('change_bp')), fmt(step_bp), fmt(_wp_d),
+             fmt(pr.get('material_gap_bp')), fmt(_wp_thr - step_bp),
+             cn_amt(_wp_n - 1))),
      'observable': 'DFEDTARU'}]
 # Audit-R33 任务5修订(独立预审 m): 三时点同比读数逐期列出(引擎面派生同比
 # 原值),证伪条件写明期数、到期日在窗口外与窗内可核验期数(季度节奏为席位
@@ -1777,8 +1963,26 @@ pimco_cond = [
 _gdp_vals = [yoy_of(cell_by_id('US_REAL_GDP'), lbl) for lbl in LABELS]
 if None in _gdp_vals:
     refuse('美国实际 GDP 三时点同比不可比(须席位另写)')
-_gdp_txt = '、'.join(fmt(v) for v in _gdp_vals)
+# 修订 r13(独立预审第二轮第 9 项): 三时点读数各带观测日;「逐期走低」限定为
+# 三锚点之间,并按引擎月频同比路径如实写明锚点之间的季度读数是否有反复。
+_gdp_c = cell_by_id('US_REAL_GDP')
+_gdp_txt = '、'.join(
+    '%s@%s' % (fmt(v), str(anchor(_gdp_c, lbl).get('observation_date') or ''))
+    for v, lbl in zip(_gdp_vals, LABELS))
+if any(not re.search(r'\d{4}-\d{2}-\d{2}$', x) for x in _gdp_txt.split('、')):
+    refuse('美国实际 GDP 三时点锚缺观测日(须席位另写)')
 _gdp_down = all(_gdp_vals[i] > _gdp_vals[i + 1] for i in range(2))
+_gdp_ym0 = str(anchor(_gdp_c, LABELS[0]).get('observation_date'))[:7]
+_gdp_ym2 = str(anchor(_gdp_c, LABELS[2]).get('observation_date'))[:7]
+_gdp_mid = [v for ym, _d, v in mon_series('US_REAL_GDP', yoy=True)
+            if isinstance(v, (int, float))
+            and _gdp_ym0 <= ym <= _gdp_ym2]
+if len(_gdp_mid) < 3:
+    _gdp_mid_txt = '(锚点之间的季度读数未逐一核对)'
+elif all(_gdp_mid[i] >= _gdp_mid[i + 1] for i in range(len(_gdp_mid) - 1)):
+    _gdp_mid_txt = ''
+else:
+    _gdp_mid_txt = '(锚点之间的季度读数有反复)'
 if _gdp_vals[-1] >= oecd_hi or _gdp_vals[-2] >= oecd_hi:
     refuse('最新两期同比已不低于点位——判据须席位另写')
 
@@ -1807,7 +2011,7 @@ oecd_reading = (
     '非预期差并写明缺口: 『无从对照』不等于『不存在』。' % (
         oecd.get('value_raw'), fmt(oecd_at.get('value')),
         oecd_at.get('observation_date'), _gdp_txt,
-        ',逐期走低' if _gdp_down else ''))
+        (',三锚点间逐期走低' + _gdp_mid_txt) if _gdp_down else ''))
 oecd_cond = [
     {'attribution': 'ai_inferred',
      'condition': (
@@ -1840,9 +2044,15 @@ supported_gaps = [
      'reason': '增长预测无同期限市场定价工具;与事实面方向不矛盾。',
      'falsification_conditions': oecd_cond,
      'evidence_refs': [x for x in (oecd.get('evidence_refs') or []) if x]}]
+# 修订 r13(第二轮第 10/13 项): 问句逐字引用;可见文件数旁写明其中有对照行的
+# 份数(其余可见文件没有对照行)
+n_views_rows = len({r.get('view_id') for r in rows_all if r.get('view_id')})
+if not 0 < n_views_rows <= int(sm.get('n_views_visible') or 0):
+    refuse('有对照行的观点文件数与可见数关系改变(须席位另写)')
 seat_summary = (
-    '问句问的是『市场定价和机构观点之间有哪些预期差、未来什么会证伪』。'
-    '引擎对照面: %s 份机构观点可见、%s 行对照,可与同期限市场定价或事实'
+    '问句原文: 『%s』。'
+    '引擎对照面: %s 份机构观点可见(其中 %s 份有对照行)、%s 行对照,可与同期限'
+    '市场定价或事实'
     '对账 %s 行,其中引擎判为预期差候选 %s 行、须席位推导 %s 行。席位推导'
     '后: 有证据支持的预期差 %d 项(PIMCO『%s』——政策方向与市场相同、幅度'
     '更低且不可量化,单一机构、表述含糊,属弱证据);判非预期差 %d 项'
@@ -1856,7 +2066,8 @@ seat_summary = (
     '其中可检验 %d 行;PIMCO 表述的到期日按期限上界取 %s(期限下界 %s 在'
     '窗口内),上界在窗口之外,窗口内只能核其路径前段;窗口后到期 %s 行'
     '(最早 %s)。到期预测核验保持 PARTIAL。'
-    % (fmt(sm.get('n_views_visible')), fmt(sm.get('n_rows')),
+    % (q_verbatim, fmt(sm.get('n_views_visible')), fmt(n_views_rows),
+       fmt(sm.get('n_rows')),
        fmt(sm.get('comparable_n')), fmt(sm.get('candidate_n')),
        fmt(sm.get('reading_required_n')), n_sup, pimco.get('value_raw'), n_ng,
        fmt(g_max), fmt(pr.get('material_gap_bp')), fmt(sm.get('n_rows')),
@@ -1906,8 +2117,12 @@ echo = {
 # (政策记录计数 _n_dec/_n_maint、截止日当日读数 _cut_rows、资产月窗端点
 #  敏感性 _flip、已到期未核验行 _mat_unv 在上方工单段计算,此处只引用。)
 cov = blk.get('pricing_coverage') or {}
-cov_txt = '、'.join('%s %s' % (REG_TXT.get(k, k), (v or {}).get('status'))
-                    for k, v in cov.items()) or '无'
+# 修订 r13(第二轮第 11 项(4)): 覆盖状态写中文
+_COV_CN = {'present': '已入库', 'absent': '未入库'}
+cov_txt = '、'.join(
+    '%s %s' % (REG_TXT.get(k, k),
+               _COV_CN.get((v or {}).get('status'), (v or {}).get('status')))
+    for k, v in cov.items()) or '无'
 gate_txt = next((str((s.get('envelope') or {}).get('gate_a'))
                  for s in rep.get('steps') or []
                  if isinstance(s.get('envelope'), dict)

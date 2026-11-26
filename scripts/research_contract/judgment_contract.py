@@ -715,6 +715,37 @@ def _fo_change(pts, unit):
     return None
 
 
+def _fo_window_publication(pts, dm, face, plan):
+    """窗内各期月末观测在研究截止日之前是否均已发布(修订 r16,绑定 S6 的任务5
+    审查第一项)——月频/季频序列按引擎发布纪律(发布日历实录优先、发布规则推定
+    兜底)逐期判定;有在截止日之后才发布的期=返回违规说明,否则 None。软契约:
+    计划无标记 window_publication_discipline(旧档)、序列非月频/季频、发布日
+    不可判定=不判(门=在场即可得,证据门的口径不在此改)。日频序列观测日即可
+    得日,不判。"""
+    if not str(plan.get('window_publication_discipline') or ''):
+        return None
+    cutoff = str(plan.get('cutoff') or '')[:10]
+    if not cutoff or not pts:
+        return None
+    ser = (face.get('series_store') or {}).get(dm) or {}
+    if str(ser.get('frequency') or '') not in ('monthly', 'quarterly'):
+        return None
+    try:
+        import research_map_planner as _rmp
+    except ImportError:
+        return None
+    late = []
+    for _ym, _d, _v in pts:
+        pub, _basis = _rmp._visible_publish(dm, ser.get('frequency'),
+                                            str(_d)[:10])
+        if pub and pub > cutoff:
+            late.append(f'{_ym}(发布 {pub})')
+    if late:
+        return (f'窗内各期须为研究截止日 {cutoff} 之前已发布的观测——'
+                f'{dm} 的 {"、".join(late)} 在截止日之后才发布,不得用于裁决')
+    return None
+
+
 def _fo_face_off_checks(lk, lid, dm, face, plan, ok, bad):
     win, fck = lk.get('observation_window'), lk.get('face_off_check')
     if win is None and fck is None:
@@ -736,10 +767,17 @@ def _fo_face_off_checks(lk, lid, dm, face, plan, ok, bad):
             if pts is None:
                 bad(f'{lid}.observation_window', why)
             else:
-                ok(f'{lid}.observation_window',
-                   f"窗 {pts[0][0]}→{pts[-1][0]} 内 {len(pts)} 期月末观测"
-                   f"({pts[0][2]:g}→{pts[-1][2]:g}"
-                   f"{';同比空间' if win.get('yoy') else ''})")
+                # 修订 r16(绑定 S6 的任务5 审查第一项): 窗内各期须为研究截止日
+                # 之前已发布的观测(软契约: 计划带发布纪律标记才核;旧档不判)
+                _wp = _fo_window_publication(pts, dm, face, plan)
+                if _wp:
+                    bad(f'{lid}.observation_window', _wp)
+                    pts, why = None, _wp      # 窗已被拒: 不再按该窗复算结构化对质
+                else:
+                    ok(f'{lid}.observation_window',
+                       f"窗 {pts[0][0]}→{pts[-1][0]} 内 {len(pts)} 期月末观测"
+                       f"({pts[0][2]:g}→{pts[-1][2]:g}"
+                       f"{';同比空间' if win.get('yoy') else ''})")
     if fck is None:
         return
     if not isinstance(fck, dict) or not isinstance(fck.get('main'), dict) \
@@ -846,6 +884,10 @@ def _fo_face_off_multi_checks(lk, lid, dm, face, plan, ok, bad):
                 pts, why = _fo_window_points(win, m.group(0), face)
                 if pts is None:
                     bad(f'{iid}.observation_window', f'{m.group(0)}: {why}')
+                    return
+                _wp = _fo_window_publication(pts, m.group(0), face, plan)
+                if _wp:
+                    bad(f'{iid}.observation_window', f'{m.group(0)}: {_wp}')
                     return
                 chg = _fo_change(pts, str(c.get('unit')))
                 if chg is None:

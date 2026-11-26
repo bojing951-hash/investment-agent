@@ -1496,6 +1496,10 @@ def plan_map(question, ent, reg_by_id, cutoff_iso):
         # 因果证据一致性契约(日期次序主张自洽+跨面不矛盾/传导链区分
         # 指标引擎绑定/转折表指标同源)自本标记起生效;旧档无标记不追溯。
         'cross_face_consistency': 'r25',
+        # Audit-R33 任务5修订 r16: 新代码面标记——对质观测窗发布纪律契约(窗内
+        # 各期须为研究截止日之前已发布的观测)自本标记起生效;旧档无标记不追溯
+        # (原文复放必须通过),新运行计划必带。
+        'window_publication_discipline': 'r33',
         'shared_by': '取数(plan 指标并入 S4/数据需求面)/报告(MAP_REPORT '
                      '对照表与数值回贴)/验收(同一份 plan 判据)——不手填指标代码',
         'regions': regions,

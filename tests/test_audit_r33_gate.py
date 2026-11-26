@@ -27,6 +27,7 @@ attach 回执 blocked/violations 均空(理由只在 report.json)→ 返回值�
 任务5 预期差研究: 问句判别(「预期差」词形,或「机构观点」×「市场定价」并列)→单型研究计划(地图五面+预期差对照块: 机构观点库×同期限市场定价×事实逐行确定性对照,候选≠结论)+席位回声契约(候选行与须推导行逐行裁决;与引擎确定性面相左/虚构行号/假托机构原话=CONTRADICTED;自由文字数字须与引擎面对应);证伪窗口自研究截止日起算;问句研究年月=时点标记(不是序列观测窗);对照面用到的指标并入取数分级(来源随行;旧调用面不变);干净安装无观点库=草稿级缺口(转正办法随行),无运行快照=硬缺口(不再崩溃)。夹具说明: 观点库=tests/fixtures_r33/views 下 5 份**合成**文档(全部虚构机构与表述;1 份发布日晚于研究截止日=扣留,1 份违反 schema=隔离),定价曲线=提交的冻结快照 fed_futures_curve;门内不含任何真实机构观点内容。
 任务5修订(独立席首轮 REVISE 后的闭环): 同期限定价参照(到期日当月或之前最后一个有读数的合约月)随行并入证据索引;对质观测窗=同窗首尾读数(月末口径;可取同比空间),引擎当前面只作窗后信息列出、不用于裁决;结构化对质=两侧预期按冻结序列复算,判断与复算不一致=CONTRADICTED;三项均为软契约(字段在场才核),旧档与无该字段工单零变化;席位工具只服务其预设的真实工单,门内只按函数级对照其纯函数面(不执行其模块级取数)。
 任务5修订 r14(独立席终审 REVISE 后的闭环): 多窗结构化对质(软字段 face_off_checks,同一区分环在近1个月窗/12个月窗分别复算,各窗一致才给方向;字段不在场=旧档零漂移);席位工具定价曲线形态守卫改按此前运行峰值计、噪声界=半个定价步长且不小于一个最小变动价位(盘中演习面与日终真实面两处误拒更正);机构间分歧段在不可折算为基点时写明口径(旧数值幅度输出逐字不变);席位工具文字修订(证伪条件随行观测日、年度/近月两窗分量各自成句、已实现数据表述未映射行行号入质量门注记)以静态锁对照。
+任务5修订 r16(绑定 S6 的任务5独立审查第一轮 REVISE 后的闭环): ①席位研判档取数走引擎同一发布纪律出口(发布日历实录优先、发布规则推定兜底;只对月频/季频指标判,发布日不可判定=不判): 研究截止日之后才公布的一期不再进对质观测窗、窗后路径、同窗变化与证据引用;地图计划带 window_publication_discipline 标记,契约新增软检查 _fo_window_publication(旧档不追溯);证据门与事实表的口径不在此改(留用户裁定)。②补选转折的缺数成因改由引擎面按各指标拼装(不再对所有缺数指标套同一句)。③全球/G20 通胀预测未映射行计数=完整词元匹配、不计已实现数据表述。④同一口径并列的两个数按陈述点名的机构顺序归位。⑤E-C1 竞争解释「若成立」条件在已走完两窗内已成立时写明成立状态。⑥G-C3 陈述所列各行逐行绑定引用(带观点行行号)。⑦OECD 证伪条件自「截止日前最新一期」起算,与「已触及首季」状态句对齐。未折入: 区分指标选择(审查 NIT,留待下一候选)。门段 §T5-l 共 14 项;修订 r16 新增文字不含「早于/晚于」(跨面先后次序检查的触发词);夹具全为合成数值与虚构机构。
 """
 import contextlib
 import copy
@@ -8403,6 +8404,877 @@ def sec_t4_q():
           (sorted(set(after) - set(before))[:5], sorted(set(before) - set(after))[:5]))
 
 
+# ══ 任务5修订 r16(绑定 S6 的任务5独立审查第一轮 REVISE 七项) ════════════════
+# 审查意见: ①窗后核心PCE同比路径、对质观测窗终点与证据引用取到研究截止日之后
+# 才公布的一期 ②补选转折的缺数成因对所有缺数指标套同一句 ③全球/G20 通胀预测
+# 未映射行按子串计数多计一行已实现数据表述 ④同一口径并列的两个数按数值升序
+# 排列,与陈述点名顺序相反时写到相反的机构名下 ⑤E-C1 两解释「若成立」条件在
+# 已走完两窗内均已成立而未写明 ⑥G-C3 陈述所列各行未逐行绑定引用 ⑦OECD 证伪
+# 条件起算点与「已触及首季」状态句相左。
+# 修订: 席位工具取数走引擎同一发布纪律出口(rmp._visible_publish: 发布日历
+# 实录优先、发布规则推定兜底;发布日不可判定=不判,与引擎点值面同一行);契约
+# 新增软检查 _fo_window_publication(计划带 window_publication_discipline
+# 标记才核;旧档不追溯)。证据门与事实表的口径不在此改(三种可得性口径并存=
+# 留用户裁定)。夹具: 序列面/证据索引/数据需求面/观点行均为合成数值与虚构
+# 机构(不含任何真实机构观点内容);发布日由引擎发布规则对在册指标推定(日历
+# 无实录时)。修订后的席位工具整份装配不在门内跑(同 §T5-j 说明);真实输入的
+# 修订前后逐字段比对在仓外留档。
+_T5L_SEAT_FNS = (
+    '_vis_pub', '_is_unpublished', '_published_periods', 'last_pub_obs',
+    '_late_txt', 'ref_for', '_gap_cause', '_pair_order', '_same_basis_txt',
+    '_basis_rows', '_is_global_inflation_row', '_unmapped_growth_txt',
+    '_fo_chg', '_ec1_status', 'short_inst', '_year_vals')
+
+
+def _t5l_seat_ns(extra, fns=_T5L_SEAT_FNS):
+    """席位工具 r16 纯函数面(源码 ast 抽取后执行;模块级守卫/取数不执行),
+    配合给定桩 → 私有命名空间;函数定义不齐=None。"""
+    import ast
+    src = open(os.path.join(ROOT, 'scripts', 'seat_tools',
+                            'make_expectations_gap_judgment.py'),
+               encoding='utf-8').read()
+    body = [n for n in ast.parse(src).body if (
+        isinstance(n, ast.FunctionDef) and n.name in fns) or (
+        isinstance(n, ast.Assign) and len(n.targets) == 1
+        and isinstance(n.targets[0], ast.Name)
+        and n.targets[0].id in ('_PUB_FREQS', '_UNPUB_REFS'))]
+    names = [n.name for n in body if isinstance(n, ast.FunctionDef)]
+    if sorted(names) != sorted(fns):
+        return None
+    ns = dict(extra)
+    exec(compile(ast.Module(body=body, type_ignores=[]), 'seat_r16', 'exec'),
+         ns)
+    return ns
+
+
+def _t5l_refuse(msg):
+    raise SystemExit('make_expectations_gap_judgment: %s ——须席位另写判定档'
+                     % msg)
+
+
+def _t5l_exit(fn, *a):
+    """fn(*a) 以拒绝装配退出 → 退出说明;未退出=None。"""
+    try:
+        fn(*a)
+    except SystemExit as e:
+        return str(e)
+    return None
+
+
+def _t5l_face():
+    """合成序列面(虚构数值): 月频水平序列 CORE_PCE(2024-10→2026-10)、季频
+    US_REAL_GDP(至 2026-07)、日频 DFF。"""
+    ds, vs = [], []
+    y, m, v = 2024, 10, 300.0
+    while (y, m) <= (2026, 10):
+        ds.append('%04d-%02d-01' % (y, m))
+        vs.append(round(v, 4))
+        v += 1.0
+        m += 1
+        if m == 13:
+            y, m = y + 1, 1
+    return {'series_store': {
+        'CORE_PCE': {'metric_id': 'CORE_PCE', 'frequency': 'monthly',
+                     'unit': 'index_point_2017', 'dates': ds, 'values': vs},
+        'US_REAL_GDP': {'metric_id': 'US_REAL_GDP', 'frequency': 'quarterly',
+                        'unit': 'billion_usd',
+                        'dates': ['2025-07-01', '2025-10-01', '2026-01-01',
+                                  '2026-04-01', '2026-07-01'],
+                        'values': [30000.0, 30500.0, 31000.0, 31500.0,
+                                   32000.0]},
+        'DFF': {'metric_id': 'DFF', 'frequency': 'daily', 'unit': 'percent',
+                'dates': ['2026-10-30', '2026-11-23', '2026-11-24'],
+                'values': [4.33, 4.33, 4.33]}}}
+
+
+def sec_t5_l():
+    print('§T5-l 任务5修订 r16: 证据引用/窗标签/最新读数的发布纪律(软契约)'
+          '+陈述—数字—机构对位(合成夹具;真实输入比对仓外留档)')
+    import ast
+    import datetime
+    import importlib.util as _ilu
+    import judgment_contract as jc_shared
+    ssrc = open(os.path.join(ROOT, 'scripts', 'seat_tools',
+                             'make_expectations_gap_judgment.py'),
+                encoding='utf-8').read()
+    csrc = open(os.path.join(ROOT, 'scripts', 'research_contract',
+                             'judgment_contract.py'),
+                encoding='utf-8').read()
+    rsrc = open(os.path.join(ROOT, 'scripts', 'research_map_planner.py'),
+                encoding='utf-8').read()
+
+    # ── l1 静态锁(席位工具) ──
+    once = [
+        "_PUB_FREQS = ('monthly', 'quarterly')",
+        '_UNPUB_REFS = []',
+        'def _vis_pub(mid, obs_date):',
+        'def _is_unpublished(mid, obs_date):',
+        'def _published_periods(mid, rows_):',
+        'def last_pub_obs(mid):',
+        'def _late_txt(late):',
+        'def _gap_cause(mid):',
+        'def _pair_order(mid, vs):',
+        'def _basis_rows(mid):',
+        'def _is_global_inflation_row(r):',
+        'def _fo_chg(win, mid):',
+        'def _ec1_status(side):',
+        'return rmp._visible_publish(mid, fr, str(obs_date)[:10])',
+        '_cp_pub, _cp_late, _cp_pub_of = _published_periods(',
+        "% _gap_cause(c.get('metric_id'))",
+        "(d_l, v_l), _tl = last_pub_obs(c['metric_id'])",
+        "and not _is_unpublished('CPI', d)]",
+        "refuse('日本政策利率最新读数在研究截止日之后才发布(欧日现值句)')",
+        "who = (str(r.get('institution') or ''), str(r.get('row_id') or ''))",
+        'o1, o2 = _pair_order(mid, vs)',
+        "'【假设】' + _ec1_status('A'),",
+        "'被动上行)【假设】' + _ec1_status('B')],",
+        "['VIEW-20261111-002#f3'] + _gc3_rows",
+        "refuse('G-C3 所列行不在证据索引(%s)' % _rid)",
+        "_basis_rows('SPX_EPS') + _basis_rows('CN_REAL_GDP_YOY') + _ug_rows",
+        "'条件文字里的通过线按两位小数显示,以本值为准)及以上。'",
+        '_oecd_lead = (',
+        "'若自截止日前最新一期(观测 %s,同比 %s)起连续两个季度 US_REAL_GDP 同比'",
+        "';最新一期已计入首个季度,再有一期读数不低于该点位即成立'",
+        '_oecd_lead +',
+        "'SPX_EPS 水平事实缺席(最新观测在研究截止日之后才发布)'",
+        '       _cn_sb, _ug_txt,',
+        '_ug_txt, _ug_rows = _unmapped_growth_txt()',
+        'return out, list(dict.fromkeys(grow_rows + [',
+        'if _UNPUB_REFS else',
+        "        _mat_reason),\n"
+        "        # 修订 r16(绑定 S6 的任务5 审查第一项): 证据引用发布纪律随档披露\n"
+        "        (('证据引用发布纪律",
+        "'观测(发布日历实录优先、引擎发布规则推定兜底)。')],\n"
+        "    'reader_map': {",
+    ]
+    old = [
+        "_cp = [(ym, v) for ym, _d, v in mon_series('CORE_PCE', yoy=True)",
+        ';本指标在本轮被引擎列为地图计划指标缺数(截止日前最近月份读数',
+        "d_l, v_l = last_obs(c['metric_id'])",
+        "'被动上行)【假设】'],",
+        '"cn_num(n_inf))\n    return out\n"',
+    ]
+    check('§T5-l-1 静态锁(席位工具): 发布纪律五件(月频/季频才判、走引擎发布出口)'
+          '+缺数成因按引擎面拼装+「最新」=截止日前已发布的最新观测+核心PCE同比'
+          '路径逐期按发布纪律拆分+证据引用不取截止日之后才发布的事实行+并列数字'
+          '按陈述点名顺序且恰两行否则拒绝装配+行号随文字返回+欧日现值句/SPX_EPS'
+          '备位文字守卫+E-C1 两解释成立状态+G-C3 逐行绑定+证伪条件自最新一期起算'
+          '+发布纪律注记列质量门注记末位;旧写法全部退场;发布纪律判据同形'
+          '(未发布=发布日在场且晚于研究截止日)',
+          all(ssrc.count(x) == 1 for x in once)
+          and all(x not in ssrc for x in old)
+          and ssrc.count('pub and pub > as_of') == 3
+          and ssrc.count('bool(pub) and pub > as_of') == 1
+          and ssrc.count('_gap_mids = set(re.findall(') == 1,
+          [(x[:40], ssrc.count(x)) for x in once if ssrc.count(x) != 1]
+          + [(x[:40], '在场') for x in old if x in ssrc]
+          + [('pub and pub > as_of', ssrc.count('pub and pub > as_of')),
+             ('bool(pub) and pub > as_of',
+              ssrc.count('bool(pub) and pub > as_of'))])
+
+    # ── l2 静态锁(契约/计划标记) ──
+    once_c = [
+        'def _fo_window_publication(pts, dm, face, plan):',
+        '_wp = _fo_window_publication(pts, dm, face, plan)',
+        '_wp = _fo_window_publication(pts, m.group(0), face, plan)',
+        "if not str(plan.get('window_publication_discipline') or ''):",
+        'if pub and pub > cutoff:',
+        'pts, why = None, _wp',
+    ]
+    i_a = rsrc.index("'asof_discipline': 'r23',")
+    i_t = rsrc.index("'turning_supplement_discipline': 'r24',")
+    i_x = rsrc.index("'cross_face_consistency': 'r25',")
+    i_w = rsrc.index("'window_publication_discipline': 'r33',")
+    i_s = rsrc.index("'shared_by'", i_w)
+    check('§T5-l-2 静态锁(契约/计划标记): _fo_window_publication 定义一次、调用'
+          '两处(单窗/多窗对质各一);窗被拒后单窗结构化对质不再按该窗复算;既有'
+          '对质调用面与定义次序不变;计划标记 window_publication_discipline=r33 '
+          '一次、列在三个既有标记之后 shared_by 之前',
+          all(csrc.count(x) == 1 for x in once_c)
+          and csrc.count('_fo_window_publication(') == 3
+          and csrc.count(
+              '_fo_face_off_multi_checks(lk, lid, dm, face, plan, ok, bad)') == 2
+          and csrc.count(
+              '_fo_face_off_checks(lk, lid, dm, face, plan, ok, bad)\n'
+              '            _fo_face_off_multi_checks(') == 1
+          and (csrc.index('def _fo_window_publication(')
+               < csrc.index('def _fo_face_off_checks(')
+               < csrc.index('def _fo_face_off_multi_checks(')
+               < csrc.index('def _map_checks('))
+          and rsrc.count("'window_publication_discipline': 'r33',") == 1
+          and i_a < i_t < i_x < i_w < i_s and i_s - i_w < 400
+          and rsrc.count('window_publication_discipline') == 1
+          and csrc.count('window_publication_discipline') == 2,
+          [(x[:44], csrc.count(x)) for x in once_c
+           if csrc.count(x) != 1]
+          + [('调用计数', csrc.count('_fo_window_publication(')),
+             ('r33 标记', rsrc.count("'window_publication_discipline': 'r33',"))])
+
+    # ── l3/l4/l5 契约(同一源文件新装载的私有副本) ──
+    _spec = _ilu.spec_from_file_location(
+        'judgment_contract_r16',
+        os.path.join(ROOT, 'scripts', 'research_contract',
+                     'judgment_contract.py'))
+    jc = _ilu.module_from_spec(_spec)
+    sys.modules['judgment_contract_r16'] = jc
+    _spec.loader.exec_module(jc)
+    face = _t5l_face()
+    P_ON = {'window_publication_discipline': 'r33', 'cutoff': '2026-11-26'}
+    P_OFF = {'cutoff': '2026-11-26'}
+    W_ALL = {'from': '2026-05', 'to': '2026-10', 'yoy': True}
+    W_PUB = {'from': '2026-05', 'to': '2026-09', 'yoy': True}
+    pts_all, _wa = jc._fo_window_points(W_ALL, 'CORE_PCE', face)
+    pts_pub, _wp_ = jc._fo_window_points(W_PUB, 'CORE_PCE', face)
+    pts_q, _wq = jc._fo_window_points({'from': '2026-01', 'to': '2026-07'},
+                                      'US_REAL_GDP', face)
+    pts_d, _wd = jc._fo_window_points({'from': '2026-10', 'to': '2026-11'},
+                                      'DFF', face)
+    MSG1 = ('窗内各期须为研究截止日 2026-11-26 之前已发布的观测——CORE_PCE 的 '
+            '2026-10(发布 2026-11-30) 在截止日之后才发布,不得用于裁决')
+    MSG2 = ('窗内各期须为研究截止日 2026-10-15 之前已发布的观测——CORE_PCE 的 '
+            '2026-09(发布 2026-10-30)、2026-10(发布 2026-11-30) '
+            '在截止日之后才发布,不得用于裁决')
+    MSGQ = ('窗内各期须为研究截止日 2026-10-28 之前已发布的观测——'
+            'US_REAL_GDP 的 2026-07(发布 2026-10-29) '
+            '在截止日之后才发布,不得用于裁决')
+    f_wp = jc._fo_window_publication
+    keep_vp = rmp._visible_publish
+    try:
+        rmp._visible_publish = lambda mid, fr, od: (None, 'unavailable')
+        undet = f_wp(pts_all, 'CORE_PCE', face, P_ON)
+    finally:
+        rmp._visible_publish = keep_vp
+    got = {
+        'off': f_wp(pts_all, 'CORE_PCE', face, P_OFF),
+        'on_pub': f_wp(pts_pub, 'CORE_PCE', face, P_ON),
+        'on_late': f_wp(pts_all, 'CORE_PCE', face, P_ON),
+        'on_day_of': f_wp(pts_all, 'CORE_PCE', face, {
+            'window_publication_discipline': 'r33', 'cutoff': '2026-11-30'}),
+        'on_day_before': f_wp(pts_all, 'CORE_PCE', face, {
+            'window_publication_discipline': 'r33', 'cutoff': '2026-11-29'}),
+        'on_two_late': f_wp(pts_all, 'CORE_PCE', face, {
+            'window_publication_discipline': 'r33', 'cutoff': '2026-10-15'}),
+        'on_daily': f_wp(pts_d, 'DFF', face, P_ON),
+        'on_q_late': f_wp(pts_q, 'US_REAL_GDP', face, {
+            'window_publication_discipline': 'r33', 'cutoff': '2026-10-28'}),
+        'on_q_day_of': f_wp(pts_q, 'US_REAL_GDP', face, {
+            'window_publication_discipline': 'r33', 'cutoff': '2026-10-29'}),
+        'on_no_pts': f_wp([], 'CORE_PCE', face, P_ON),
+        'on_no_cutoff': f_wp(pts_all, 'CORE_PCE', face, {
+            'window_publication_discipline': 'r33'}),
+        'undeterminable': undet,
+    }
+    check('§T5-l-3 契约 _fo_window_publication(软契约;合成序列面+真实发布规则): '
+          '计划无标记=不判;窗内各期截止日前已发布=None;含截止日之后才发布的一期='
+          '写明指标/期/发布日的违规说明(多期按时间序列全);发布日当天=已发布'
+          '(边界 pub>截止日);日频=不判;季频同判;窗空/截止日空=None;发布日不可'
+          '判定=不判(与引擎点值面同一行);桩用后复原',
+          (pts_all is not None and len(pts_all) == 6
+           and pts_pub is not None and len(pts_pub) == 5
+           and pts_q is not None and len(pts_q) == 3 and pts_d is not None
+           and [p[0] for p in pts_all] == [
+               '2026-05', '2026-06', '2026-07', '2026-08', '2026-09',
+               '2026-10']
+           and got == {
+               'off': None, 'on_pub': None, 'on_late': MSG1,
+               'on_day_of': None,
+               'on_day_before': MSG1.replace('2026-11-26', '2026-11-29'),
+               'on_two_late': MSG2, 'on_daily': None, 'on_q_late': MSGQ,
+               'on_q_day_of': None, 'on_no_pts': None, 'on_no_cutoff': None,
+               'undeterminable': None}
+           and rmp._visible_publish is keep_vp),
+          'pts=%s/%s/%s/%s p0=%s restored=%s got=%s' % (
+              pts_all and len(pts_all), pts_pub and len(pts_pub),
+              pts_q and len(pts_q), pts_d and len(pts_d),
+              [p[0] for p in pts_all] if pts_all else None,
+              rmp._visible_publish is keep_vp, got))
+
+    def _rec():
+        o, b = [], []
+        return o, b, (lambda k, m: o.append((k, m))), (
+            lambda k, m, **kw: b.append((k, m)))
+
+    L1, K1 = 'TR1.links[1]', 'TR1.links[1].observation_window'
+    o1, b1, ok1, bad1 = _rec()
+    jc._fo_face_off_checks({'observation_window': W_ALL,
+                            'competing_explanation': '合成竞争解释'}, L1,
+                            'CORE_PCE', face, P_ON, ok1, bad1)
+    o2, b2, ok2, bad2 = _rec()
+    jc._fo_face_off_checks({'observation_window': W_ALL,
+                            'competing_explanation': '合成竞争解释'}, L1,
+                            'CORE_PCE', face, P_OFF, ok2, bad2)
+    o3, b3, ok3, bad3 = _rec()
+    jc._fo_face_off_checks({'observation_window': W_PUB,
+                            'competing_explanation': '合成竞争解释'}, L1,
+                            'CORE_PCE', face, P_ON, ok3, bad3)
+    o4, b4, ok4, bad4 = _rec()
+    jc._fo_face_off_checks({'observation_window': dict(W_ALL, to='2026-12'),
+                            'competing_explanation': '合成竞争解释'}, L1,
+                            'CORE_PCE', face, P_ON, ok4, bad4)
+    fck = {'main': {'op': '>=', 'value': 0, 'unit': 'pp'},
+           'competing': {'op': '<', 'value': 0, 'unit': 'pp'}}
+    o5, b5, ok5, bad5 = _rec()
+    jc._fo_face_off_checks({'observation_window': W_ALL, 'face_off_check': fck,
+                            'competing_explanation': '合成竞争解释',
+                            'face_off_verdict': '支持竞争解释'}, L1,
+                            'CORE_PCE', face, P_ON, ok5, bad5)
+    o6, b6, ok6, bad6 = _rec()
+    jc._fo_face_off_checks({'observation_window': W_PUB, 'face_off_check': fck,
+                            'competing_explanation': '合成竞争解释',
+                            'face_off_verdict': '支持竞争解释'}, L1,
+                            'CORE_PCE', face, P_ON, ok6, bad6)
+    legacy = '窗 2026-05→2026-10 内 6 期月末观测(%s→%s;同比空间)' % (
+        '%g' % pts_all[0][2], '%g' % pts_all[-1][2])
+    legacy_pub = '窗 2026-05→2026-09 内 5 期月末观测(%s→%s;同比空间)' % (
+        '%g' % pts_pub[0][2], '%g' % pts_pub[-1][2])
+    chg_pub = jc._fo_change(pts_pub, 'pp')
+    check('§T5-l-4 契约单窗对质接入: 带标记+窗含未发布期=记违规(说明同 l3)且'
+          '不再按该窗复算结构化对质(记「须带可复算的观测窗」);无标记=旧判据旧'
+          '文字逐字不变;窗收到已发布各期+带标记=通过;窗终点晚于截止月=既有纪律'
+          '先判(文字不变);已发布窗的结构化对质照常复算',
+          b1 == [(K1, MSG1)] and o1 == []
+          and b2 == [] and len(o2) == 1 and o2[0] == (K1, legacy)
+          and b3 == [] and len(o3) == 1 and o3[0] == (K1, legacy_pub)
+          and b4 == [(K1, '观测窗终点 2026-12 晚于研究截止月 2026-11'
+                      '——不得用截止日之后的观测裁决')] and o4 == []
+          and o5 == [] and b5 == [
+              (K1, MSG1),
+              (L1 + '.face_off_check',
+               '结构化对质须带可复算的 observation_window(' + MSG1 + ')')]
+          and b6 == [] and [k for k, _m in o6] == [
+              K1, L1 + '.face_off_check']
+          and o6[1][1] == (
+              '主解释预期 >= 0pp→观测 %+.2fpp 不成立;竞争解释预期 < 0pp→观测 '
+              '%+.2fpp 成立→支持竞争解释' % (chg_pub, chg_pub)),
+          'o1=%s b1=%s o2=%s b2=%s o3=%s b3=%s o4=%s b4=%s o5=%s b5=%s '
+          'b6=%s o6=%s chg=%r' % (o1, b1, o2, b2, o3, b3, o4, b4, o5, b5,
+                                b6, o6, chg_pub))
+
+    def _runm(lk, plan):
+        o, b, ok_, bad_ = _rec()
+        jc._fo_face_off_multi_checks(lk, L1, 'CORE_PCE', face, plan, ok_, bad_)
+        return o, b
+
+    def _lk(win):
+        return {'face_off_checks': [
+                    {'observation_window': win,
+                     'main': {'CORE_PCE': {'op': '>=', 'value': 0, 'unit': 'pp'}},
+                     'competing': {'CORE_PCE': {'op': '<', 'value': 0,
+                                                'unit': 'pp'}}}],
+                'competing_explanation': '合成竞争解释',
+                'face_off_verdict': '支持竞争解释'}
+
+    m1, mb1 = _runm(_lk(W_ALL), P_ON)
+    m2, mb2 = _runm(_lk(W_PUB), P_ON)
+    m3, mb3 = _runm(_lk(W_ALL), P_OFF)
+    check('§T5-l-5 契约多窗对质接入: 带标记+窗含未发布期=记违规后即返回'
+          '(写明指标;不另出复算行);已发布窗+带标记=照常复算;无标记=旧判据旧'
+          '文字逐字不变',
+          m1 == [] and mb1 == [(L1 + '.face_off_checks[0].observation_window',
+                                'CORE_PCE: ' + MSG1)]
+          and mb2 == [] and len(m2) == 1 and m2[0][0] == L1 + '.face_off_checks'
+          and m2[0][1].startswith('窗 2026-05→2026-09(5 期): 主解释(CORE_PCE '
+                                  '>= 0pp→观测 %+.2fpp不成立);竞争解释('
+                                  % chg_pub)
+          and m2[0][1].endswith('→支持竞争解释')
+          and mb3 == [] and len(m3) == 1
+          and m3[0][1].startswith('窗 2026-05→2026-10(6 期): 主解释(CORE_PCE '
+                                  '>= 0pp→观测 %+.2fpp不成立);竞争解释('
+                                  % jc._fo_change(pts_all, 'pp'))
+          and m3[0][1].endswith('→支持竞争解释'),
+          'm1=%s mb1=%s m2=%s mb2=%s m3=%s mb3=%s' % (m1, mb1, m2, mb2, m3, mb3))
+
+    # ── l6 真实计划带标记(地图题/族题各一) ──
+    t5t, _s5 = _t5_tree('t5l_marker')
+    rp5 = _plan_on(t5t, Q_T5).get('research_plan') or {}
+    t3t, _p3 = _family_tree('t5l_fam', FAM_11)
+    rp3 = _plan_on(t3t, T3_TEXT).get('research_plan') or {}
+    markers = {k: (rp5.get(k), rp3.get(k)) for k in (
+        'asof_discipline', 'turning_supplement_discipline',
+        'cross_face_consistency', 'window_publication_discipline')}
+    check('§T5-l-6 真实计划带发布纪律标记: 地图题(预期差原问)与族题(原问族)'
+          '的研究计划均带 window_publication_discipline=r33,三个既有标记照旧,'
+          '截止日在场',
+          markers == {'asof_discipline': ('r23', 'r23'),
+                      'turning_supplement_discipline': ('r24', 'r24'),
+                      'cross_face_consistency': ('r25', 'r25'),
+                      'window_publication_discipline': ('r33', 'r33')}
+          and bool(rp5.get('cutoff')) and bool(rp3.get('cutoff')),
+          'markers=%s cutoff=%s/%s' % (markers, rp5.get('cutoff'),
+                                       rp3.get('cutoff')))
+
+    # ── l7…l13 席位工具纯函数面(合成桩) ──
+    base = _t5_seat_helpers()
+    LABELS = ('12个月前', '3个月前', '最新一期')
+    JP = 'JP_CPI_TOKYO_YOY'
+
+    def _last_obs(st):
+        def f(mid):
+            ser = st.get(mid) or {}
+            for d, v in zip(reversed(ser.get('dates') or []),
+                            reversed(ser.get('values') or [])):
+                if v is not None:
+                    return d, v
+            return None, None
+        return f
+
+    def _mk(st, as_of='2026-11-26', extra=None):
+        e = {'re': re, 'rmp': rmp, 'jc': jc, 'store': st, 'as_of': as_of,
+             'last_obs': _last_obs(st), 'refuse': _t5l_refuse,
+             'fmt': base['fmt'], 'cn_num': base['cn_num'], 'LABELS': LABELS,
+             'rows_all': [], 'run': {}, 'rep': {}, 'dis': {}}
+        e.update(extra or {})
+        return _t5l_seat_ns(e)
+
+    sst = {
+        'CORE_PCE': {'frequency': 'monthly', 'unit': 'index_point_2017',
+                     'dates': ['2026-05-01', '2026-06-01', '2026-07-01',
+                               '2026-08-01', '2026-09-01', '2026-10-01'],
+                     'values': [316.0, 320.0, 324.0, 328.0, 332.0, 336.0]},
+        JP: {'frequency': 'monthly', 'unit': 'percent',
+             'dates': ['2026-08-01', '2026-09-01', '2026-10-01'],
+             'values': [2.3, 1.85, 2.73]},
+        'DFF': {'frequency': 'daily', 'unit': 'percent',
+                'dates': ['2026-11-24', '2026-11-25'], 'values': [4.33, 4.33]},
+        'SYN_W': {'frequency': 'weekly', 'unit': 'percent',
+                  'dates': ['2026-11-20'], 'values': [1.0]}}
+    ns = _mk(sst)
+    if ns is None:
+        check('§T5-l-7 席位工具 r16 纯函数面可按白名单抽取', False,
+              '函数定义不齐')
+        return
+    ns30 = _mk(sst, as_of='2026-11-30')
+    ns29 = _mk(sst, as_of='2026-11-29')
+    ns1015 = _mk(sst, as_of='2026-10-15')
+    only_oct = {JP: dict(sst[JP], dates=['2026-10-01'], values=[2.73])}
+    basis = ns['_vis_pub']('CORE_PCE', '2026-10-01')
+    rows6 = [(d[:7], d, v) for d, v in zip(sst['CORE_PCE']['dates'],
+                                           sst['CORE_PCE']['values'])]
+    exp_pub = {'2026-05': '2026-06-30', '2026-06': '2026-07-30',
+               '2026-07': '2026-08-30', '2026-08': '2026-09-30',
+               '2026-09': '2026-10-30', '2026-10': '2026-11-30'}
+    g7 = {
+        'pub': basis,
+        'unpub_core_oct': ns['_is_unpublished']('CORE_PCE', '2026-10-01'),
+        'pub_core_sep': ns['_is_unpublished']('CORE_PCE', '2026-09-01'),
+        'pub_jp_oct': ns['_is_unpublished'](JP, '2026-10-01'),
+        'daily': ns['_is_unpublished']('DFF', '2026-11-25'),
+        'weekly': ns['_is_unpublished']('SYN_W', '2026-11-20'),
+        'no_obs': ns['_is_unpublished']('CORE_PCE', None),
+        'day_of': ns30['_is_unpublished']('CORE_PCE', '2026-10-01'),
+        'day_before': ns29['_is_unpublished']('CORE_PCE', '2026-10-01'),
+        'periods': ns['_published_periods']('CORE_PCE', rows6),
+        'last_core': ns['last_pub_obs']('CORE_PCE'),
+        'last_core_1015': ns1015['last_pub_obs']('CORE_PCE'),
+        'last_jp': ns['last_pub_obs'](JP),
+        'last_daily': ns['last_pub_obs']('DFF'),
+        'all_late': _mk(only_oct, as_of='2026-10-15')['last_pub_obs'](JP),
+        'late_empty': ns['_late_txt']([]),
+        'late_rule': ns['_late_txt']([('2026-10', '2026-11-30', 'r(推定)')]),
+        'late_cal': ns['_late_txt'](
+            [('2026-09', '2026-10-30', 'calendar:RC-SYN-001(实录)')]),
+        'late_two': ns['_late_txt'](
+            [('2026-09', '2026-10-30', 'r(推定)'),
+             ('2026-10', '2026-11-30', 'r(推定)')]),
+        'vis_daily': ns['_vis_pub']('DFF', '2026-11-25'),
+    }
+    ok_p, late_p, pub_of = g7['periods']
+    exp_periods = (ok_p == [('2026-05', 316.0), ('2026-06', 320.0),
+                            ('2026-07', 324.0), ('2026-08', 328.0),
+                            ('2026-09', 332.0)]
+                   and late_p == [('2026-10', 336.0)]
+                   and {ym: p for ym, (p, _b) in pub_of.items()} == exp_pub
+                   and all(pub_of[ym][1] for ym in exp_pub)
+                   and len(pub_of) == 6)
+    check('§T5-l-7 席位发布纪律五件(合成桩+真实发布规则): 月频核心PCE同比 '
+          '2026-10 期按发布规则次月末+30 天=2026-11-30,研究截止日 2026-11-26 '
+          '尚未发布、当日(11-30)即已发布;已发布各期/日频/周频/无观测日=不判;'
+          '逐期拆分=已发布五期+未发布一期+各期发布日;最新已发布观测自后向前'
+          '跳过未发布期并回传被跳过的各期(早于截止日的研究时点回传两期);'
+          '日频=last_obs 原样;各期均未发布=((None, None), 各期);披露句: 无='
+          '空串,单期/多期/日历实录三种写法',
+          g7['pub'][0] == '2026-11-30' and g7['pub'][1]
+          and not str(g7['pub'][1]).startswith('calendar:')
+          and g7['unpub_core_oct'] is True and g7['pub_core_sep'] is False
+          and g7['pub_jp_oct'] is False and g7['daily'] is False
+          and g7['weekly'] is False and g7['no_obs'] is False
+          and g7['day_of'] is False and g7['day_before'] is True
+          and exp_periods
+          and g7['last_core'] == (
+              ('2026-09-01', 332.0),
+              [('2026-10', '2026-11-30', g7['pub'][1])])
+          and g7['last_core_1015'] == (
+              ('2026-08-01', 328.0),
+              [('2026-09', '2026-10-30', g7['pub'][1]),
+               ('2026-10', '2026-11-30', g7['pub'][1])])
+          and g7['last_jp'] == (('2026-10-01', 2.73), [])
+          and g7['last_daily'] == (('2026-11-25', 4.33), [])
+          and g7['all_late'][0] == (None, None)
+          and [x[0] for x in g7['all_late'][1]] == ['2026-10']
+          and g7['late_empty'] == ''
+          and g7['late_rule'] == ('(序列内 2026-10 一期按引擎发布规则推定于 '
+                                  '2026-11-30 发布,在研究截止日之后,不引用)')
+          and g7['late_cal'] == ('(序列内 2026-09 一期按发布日历实录于 '
+                                 '2026-10-30 发布,在研究截止日之后,不引用)')
+          and g7['late_two'] == ('(序列内 2026-09、2026-10 一期按引擎发布规则'
+                                 '推定于 2026-10-30、2026-11-30 发布,在研究截止日'
+                                 '之后,不引用)')
+          and g7['vis_daily'] == (None, '非月频/季频序列'),
+          'g7=%s' % (g7,))
+
+    rep_i = {'evidence_index': [
+        {'kind': 'snapshot_fact', 'ref': 'CORE_PCE@2026-10-01'},
+        {'kind': 'snapshot_fact', 'ref': JP + '@2026-10-01'},
+        {'kind': 'snapshot_fact', 'ref': 'DFF@2026-11-25'},
+        {'kind': 'institution_forecast', 'ref': 'VIEW-20990101-001#f1'}]}
+    nsa = _mk(sst, extra={'rep': rep_i})
+    nsb = _mk(sst, extra={'rep': rep_i})
+    nsc = _mk(sst, as_of='2026-11-30', extra={'rep': rep_i})
+    g8 = {
+        'core': nsa['ref_for']('CORE_PCE'), 'core_again': nsa['ref_for']('CORE_PCE'),
+        'unpub': [u[:3] for u in nsa['_UNPUB_REFS']],
+        'unpub_basis_ok': (len(nsa['_UNPUB_REFS']) == 1
+                           and bool(nsa['_UNPUB_REFS'][0][3])
+                           and not str(nsa['_UNPUB_REFS'][0][3]).startswith(
+                               'calendar:')),
+        'jp': nsa['ref_for'](JP), 'daily': nsa['ref_for']('DFF'),
+        'none': nsa['ref_for']('SYN_NONE'),
+        'unpub_unchanged': len(nsa['_UNPUB_REFS']),
+        'core_day_of': nsc['ref_for']('CORE_PCE'),
+        'unpub_day_of': nsc['_UNPUB_REFS'],
+        'lists_independent': nsa['_UNPUB_REFS'] is not nsb['_UNPUB_REFS'],
+        'other_index': nsb['ref_for']('CORE_PCE'),
+    }
+    check('§T5-l-8 席位证据引用: 月频指标最新观测事实行在截止日之后才发布=不引'
+          '(记入披露清单,同一引用重复调用只记一次;其他指标与日频事实行照常可引;'
+          '证据索引无该指标=None 且不记);发布日当天=可引且清单为空;各命名空间'
+          '清单独立',
+          g8 == {
+              'core': None, 'core_again': None,
+              'unpub': [('CORE_PCE', 'CORE_PCE@2026-10-01', '2026-11-30')],
+              'unpub_basis_ok': True, 'jp': JP + '@2026-10-01',
+              'daily': 'DFF@2026-11-25', 'none': None, 'unpub_unchanged': 1,
+              'core_day_of': 'CORE_PCE@2026-10-01', 'unpub_day_of': [],
+              'lists_independent': True, 'other_index': None},
+          'g8=%s' % (g8,))
+
+    def _run_item(mid, n=10, n_min=12, outcome='insufficient_coverage'):
+        return {'data_requirements': {'items': [
+            {'metric_id': mid, 'outcome': outcome,
+             'spec': {'coverage_observed': {'n': n},
+                      'min_observations': n_min}}]}}
+
+    def _anchor(cell, lbl):
+        return ((cell or {}).get('anchors') or {}).get(lbl) or {
+            'status': 'missing'}
+
+    def _mkc(st, as_of='2026-11-26', run=None, cell=None):
+        return _mk(st, as_of=as_of, extra={
+            'run': run if run is not None else _run_item(JP),
+            'cell_by_id': (lambda mid: cell if mid == JP else None),
+            'anchor': _anchor})
+
+    A_OK = {'status': 'ok'}
+    A_MISS = {'status': 'no_published_observation_on_or_before_anchor'}
+    cell_a = {'anchors': {LABELS[0]: A_MISS, LABELS[1]: A_OK, LABELS[2]: A_OK}}
+    cell_all = {'anchors': {lbl: A_OK for lbl in LABELS}}
+    cell_two = {'anchors': {LABELS[0]: A_MISS, LABELS[1]: A_MISS,
+                            LABELS[2]: A_OK}}
+    T9 = '历史序列仅十期、低于任务最低覆盖十二期;截止日前最新读数 2026-10 的 ' \
+         '2.73 已于 2026-10-30 发布;点值面缺席的是 12个月前 锚点读数'
+    g9 = {
+        'main': _mkc(sst, cell=cell_a)['_gap_cause'](JP),
+        'all': _mkc(sst, cell=cell_all)['_gap_cause'](JP),
+        'none': _mkc(sst)['_gap_cause'](JP),
+        'two': _mkc(sst, cell=cell_two)['_gap_cause'](JP),
+        'earlier': _mkc(sst, as_of='2026-10-15',
+                        cell=cell_a)['_gap_cause'](JP),
+        'weekly': _mkc(sst, run=_run_item('SYN_W'))['_gap_cause']('SYN_W'),
+        'outcome': _t5l_exit(_mkc(sst, run=_run_item(
+            JP, outcome='ok'))['_gap_cause'], JP),
+        'no_item': _t5l_exit(_mkc(sst, run={'data_requirements': {'items': []}})
+                             ['_gap_cause'], JP),
+        'n_float': _t5l_exit(_mkc(sst, run=_run_item(JP, n=10.0))['_gap_cause'],
+                             JP),
+        'no_min': _t5l_exit(_mkc(sst, run=_run_item(JP, n_min=None))
+                            ['_gap_cause'], JP),
+        'all_late': _t5l_exit(
+            _mkc(only_oct, as_of='2026-10-15')['_gap_cause'], JP),
+    }
+    check('§T5-l-9 席位补选转折缺数成因(修订第二项;各段取自引擎面): 期数与最低'
+          '覆盖+截止日前最新已发布读数及其发布日+点值面缺席的锚点(逐项点名/三'
+          '锚齐全/无该指标格);研究时点早于最新一期发布日=取更早一期并随句披露'
+          '被跳过的一期;非月频/季频=写最新读数、不写发布日;缺数成因不是「历史'
+          '序列覆盖不足」/无该指标项/期数或最低覆盖非整数/各期均未发布=拒绝装配',
+          g9 == {
+              'main': T9,
+              'all': T9.replace('缺席的是 12个月前 锚点读数', '三时点锚齐全'),
+              'none': T9.replace('缺席的是 12个月前 锚点读数', '无该指标格'),
+              'two': T9.replace('缺席的是 12个月前 锚点读数',
+                                '缺席的是 12个月前、3个月前 锚点读数'),
+              'earlier': ('历史序列仅十期、低于任务最低覆盖十二期;截止日前最新'
+                          '读数 2026-09 的 1.85 已于 2026-09-29 发布(序列内 '
+                          '2026-10 一期按引擎发布规则推定于 2026-10-30 发布,在'
+                          '研究截止日之后,不引用);点值面缺席的是 12个月前 锚点'
+                          '读数'),
+              'weekly': ('历史序列仅十期、低于任务最低覆盖十二期;截止日前最新'
+                         '读数为 2026-11 的 1;点值面无该指标格'),
+              'outcome': 'make_expectations_gap_judgment: 补选转折 '
+                         + JP + ' 的缺数成因不是「历史序列覆盖不足」'
+                         ' ——须席位另写判定档',
+              'no_item': 'make_expectations_gap_judgment: 补选转折 '
+                         + JP + ' 的缺数成因不是「历史序列覆盖不足」'
+                         ' ——须席位另写判定档',
+              'n_float': 'make_expectations_gap_judgment: 补选转折 '
+                         + JP + ' 的缺数成因不是「历史序列覆盖不足」'
+                         ' ——须席位另写判定档',
+              'no_min': 'make_expectations_gap_judgment: 补选转折 '
+                        + JP + ' 的缺数成因不是「历史序列覆盖不足」'
+                        ' ——须席位另写判定档',
+              'all_late': 'make_expectations_gap_judgment: 补选转折 '
+                          + JP + ' 截止日前无已发布的最新读数 ——须席位另写判定档'},
+          'g9=%s' % (g9,))
+
+    # ── l10 同一口径并列: 陈述点名顺序 + 恰两行 ──
+    R1, R2 = 'VIEW-20990101-001#f1', 'VIEW-20990101-002#f1'
+    yv_rows = [
+        {'metric_id': 'SYN_MID', 'institution': '机构一', 'row_id': R1,
+         'point': {'raw': '2026年4.3%，2027年11%'}, 'value_raw': ''},
+        {'metric_id': 'SYN_MID', 'institution': '机构二', 'row_id': R2,
+         'point': {'raw': '2026年4.2%，2027年14%'}, 'value_raw': ''},
+        {'metric_id': 'OTHER', 'institution': '机构一', 'row_id': 'X',
+         'point': {'raw': '2026年9%'}, 'value_raw': ''}]
+    dis_a = {'SYN_MID': {'institutions': ['机构一', '机构二']}}
+    dis_b = {'SYN_MID': {'institutions': ['机构二', '机构一']}}
+    n10 = _mk(sst, extra={'rows_all': yv_rows, 'dis': dis_a})
+    n10b = _mk(sst, extra={'rows_all': yv_rows, 'dis': dis_b})
+    n10c = _mk(sst, extra={'rows_all': yv_rows, 'dis': dis_a})
+    n10c['_year_vals'] = lambda mid: (
+        {'2027': [(11.0, True, '机构一', R1), (14.0, False, '机构二', R2)]}
+        if mid == 'SYN_MID' else {})
+    n10d = _mk(sst, extra={'rows_all': yv_rows, 'dis': dis_a})
+    n10d['_year_vals'] = lambda mid: (
+        {'2026': [(4.2, False, '机构一', R1), (4.5, False, '机构二', R2),
+                  (4.3, False, '机构三', 'X3')]} if mid == 'SYN_MID' else {})
+    n10e = _mk(sst, extra={'rows_all': yv_rows, 'dis': {'SYN_MID': {
+        'institutions': ['机构一']}}})
+    yv = n10['_year_vals']('SYN_MID')
+    g10 = {
+        'yv': yv,
+        'a': n10['_same_basis_txt']('SYN_MID', '2026', False),
+        'b': n10b['_same_basis_txt']('SYN_MID', '2026', False),
+        'pct': n10['_same_basis_txt']('SYN_MID', '2027', True),
+        'approx': n10c['_same_basis_txt']('SYN_MID', '2027', True),
+        'three': n10d['_same_basis_txt']('SYN_MID', '2026', False),
+        'empty': n10['_same_basis_txt']('SYN_MID', '2030', False),
+        'rows': n10['_basis_rows']('SYN_MID'),
+        'rows_three': n10d['_basis_rows']('SYN_MID'),
+        'three_rows': _t5l_exit(n10d['_pair_order'], 'SYN_MID',
+                                [(4.2, False, '机构一', R1),
+                                 (4.5, False, '机构二', R2),
+                                 (4.3, False, '机构三', 'X3')]),
+        'same_inst': _t5l_exit(n10['_pair_order'], 'SYN_MID', [
+            (4.3, False, '机构一', R1), (4.2, False, '机构一 ', R2)]),
+        'unknown_inst': _t5l_exit(n10['_pair_order'], 'SYN_MID', [
+            (4.3, False, '机构一', R1), (4.2, False, '机构三', R2)]),
+        'single_inst_listed': _t5l_exit(n10e['_pair_order'], 'SYN_MID', [
+            (4.3, False, '机构一', R1), (4.2, False, '机构二', R2)]),
+    }
+    PFX = 'make_expectations_gap_judgment: '
+    sfx = ' ——须席位另写判定档'
+    check('§T5-l-10 席位同一口径并列(修订第四/六项): 行点位随带机构与行号(四元'
+          '组);恰两行=按陈述点名该指标两家机构的顺序归位(点名次序互换→两个数'
+          '互换,数值不按大小重排);约数标注与出处句不变;三行以上=旧写法(数值'
+          '首尾)逐字不变;不足两行=空串;所列各行行号返回(恰两行的年度);非恰两行'
+          '/同一机构两行/机构不在点名内/点名只一家=拒绝装配',
+          yv == {'2026': [(4.3, False, '机构一', R1),
+                          (4.2, False, '机构二', R2)],
+                 '2027': [(11.0, False, '机构一', R1),
+                          (14.0, False, '机构二', R2)]}
+          and g10['a'] == ('同为 2026 年度口径: 四点三对四点二,'
+                           '相差约零点一个百分点')
+          and g10['b'] == ('同为 2026 年度口径: 四点二对四点三,'
+                           '相差约零点一个百分点')
+          and g10['pct'] == ('同为 2027 年度口径: 百分之十一对百分之十四,'
+                             '相差约三个百分点')
+          and g10['approx'] == (
+              '同为 2027 年度口径: 约百分之十一对百分之十四,相差约三个百分点'
+              ';标『约』者为由点位目标与基数推算的分析师估值,非机构原文给出的'
+              '增速')
+          and g10['three'] == ('同为 2026 年度口径: 四点二对四点五,'
+                               '相差约零点三个百分点')
+          and g10['empty'] == '' and g10['rows'] == sorted([R1, R2])
+          and g10['rows_three'] == []
+          and g10['three_rows'] == PFX + '同一口径并列不是恰两行(SYN_MID)' + sfx
+          and g10['same_inst'] == PFX + '同一口径并列出现同一机构的两行(SYN_MID)' + sfx
+          and g10['unknown_inst'] == PFX + '同一口径并列的行机构与分歧面点名对不上(SYN_MID)' + sfx
+          and g10['single_inst_listed'] == PFX + '同一口径并列的行机构与分歧面点名对不上(SYN_MID)' + sfx,
+          'g10=%s' % ({k: v for k, v in g10.items() if k != 'yv'},))
+
+    # ── l11 全球/G20 通胀未映射行 ──
+    urows = [
+        {'status': 'unmapped', 'target': 'global_real_GDP_growth (2026)',
+         'value_raw': '2.9%', 'institution': '机构一', 'row_id': 'U1'},
+        {'status': 'unmapped', 'target': 'global_real_GDP_growth (2026)',
+         'value_raw': '3.1%', 'institution': '机构二', 'row_id': 'U2'},
+        {'status': 'unmapped', 'target': 'global_real_GDP_growth (2027)',
+         'value_raw': '3.0%', 'institution': '机构一', 'row_id': 'U3'},
+        {'status': 'unmapped', 'target': 'global_real_GDP_growth (2027)',
+         'value_raw': '3.4%', 'institution': '机构二', 'row_id': 'U4'},
+        {'status': 'unmapped', 'target': 'G20 CPI inflation (2026)',
+         'value_raw': '3.0%', 'institution': '机构一', 'row_id': 'U5'},
+        {'status': 'unmapped', 'target': 'US_PCE_inflation_Aug2026',
+         'value_raw': '2.6%', 'institution': '机构二', 'row_id': 'U6',
+         'statement_kind': 'realized_data_claim'},
+        {'status': 'mapped', 'target': 'global CPI inflation',
+         'value_raw': '2.0%', 'institution': '机构一', 'row_id': 'U7'}]
+    n11 = _mk(sst, extra={'rows_all': urows})
+    tx11, rows11 = n11['_unmapped_growth_txt']()
+    flags = [n11['_is_global_inflation_row'](r) for r in urows]
+    legacy_n = sum(
+        1 for r in urows if r.get('status') == 'unmapped'
+        and re.search(r'inflation|通胀', str(r.get('target') or ''), re.I)
+        and re.search(r'global|G20|全球', str(r.get('target') or ''), re.I))
+    check('§T5-l-11 席位全球/G20 通胀未映射行(修订第三项): 计数按完整词元匹配'
+          '(目标名内嵌「…Aug2026」的已实现数据表述行不再计入;已映射行不计)——'
+          '旧子串判据在同一组合成行上多数一行;文字与行号一并返回(全球增长两'
+          '年度各行+通胀行)',
+          flags == [False, False, False, False, True, False, False]
+          and legacy_n == 2
+          and tx11 == (';另: 全球增长预测上亦有机构间分歧(2026 年口径: '
+                       '二点九对三点一,相差零点二个百分点;2027 年口径: '
+                       '三对三点四,相差零点四个百分点;行未映射到在册指标,'
+                       '无同期限定价);全球通胀预测另有一行机构表述(口径与期限'
+                       '见引擎渲染面),同样未映射、未对账')
+          and rows11 == ['U1', 'U2', 'U3', 'U4', 'U5'],
+          'flags=%s legacy=%s tx=%s rows=%s' % (flags, legacy_n, tx11, rows11))
+
+    # ── l12 同窗变化复算 + E-C1 成立状态 ──
+    d0, dend = datetime.date(2025, 10, 1), datetime.date(2026, 11, 24)
+
+    def _tips(upto):
+        dd, vv, cur = [], [], d0
+        while cur <= upto:
+            if cur.weekday() < 5:
+                dd.append(cur.isoformat())
+                if cur >= datetime.date(2026, 11, 1):
+                    vv.append(4.29)
+                elif cur >= datetime.date(2026, 10, 30):
+                    vv.append(4.10)
+                else:
+                    vv.append(3.30)
+            cur += datetime.timedelta(days=1)
+        return {'frequency': 'daily', 'unit': 'percent', 'dates': dd,
+                'values': vv}
+
+    n12 = _mk({'TIPS_10Y': _tips(dend)})
+    n12s = _mk({'TIPS_10Y': _tips(datetime.date(2026, 10, 30))})
+    w1 = {'from': '2026-10-23', 'to': '2026-11-24'}
+    w12 = {'from': '2025-11-24', 'to': '2026-11-24'}
+    g12c = {
+        'w1': n12['_fo_chg'](w1, 'TIPS_10Y'),
+        'w12': n12['_fo_chg'](w12, 'TIPS_10Y'),
+        'short': _t5l_exit(n12s['_fo_chg'], w1, 'TIPS_10Y'),
+    }
+    REAL = {('w1', 'TIPS_10Y'): 19.0, ('w1', 'BEI_10Y'): -22.0,
+            ('w1', 'UST_10Y'): -3.0, ('w12', 'TIPS_10Y'): 100.0,
+            ('w12', 'BEI_10Y'): -11.0, ('w12', 'UST_10Y'): 89.0}
+    ALL_A = ('(该「若成立」条件在已走完的两窗内已全部成立——已走完窗口内的共动'
+             '不区分两解释;区分力在条件于后续读数是否继续成立)')
+    A_NAME = {0: 'TIPS 实际收益率近1个月窗上行',
+              1: 'TIPS 实际收益率12个月窗上行',
+              2: '名义收益率12个月窗上行',
+              3: '12个月窗盈亏平衡分量的贡献小于实际分量'}
+    B_NAME = {0: '盈亏平衡通胀率近1个月窗走低',
+              1: '盈亏平衡通胀率12个月窗走低', 2: '名义收益率近1个月窗走低'}
+
+    def _st(side, over):
+        table = dict(REAL)
+        table.update(over)
+        nsx = _mk(sst, extra={'R3_TIPS_BP': 5.0, 'w1': {'from': 'w1'},
+                              'w12': {'from': 'w12'}})
+        nsx['_fo_chg'] = lambda win, mid: table[(win['from'], mid)]
+        return nsx['_ec1_status'](side)
+
+    got12 = {
+        'A_real': _st('A', {}), 'B_real': _st('B', {}),
+        'A_b12': _st('A', {('w12', 'BEI_10Y'): 100.0}),
+        'A_t12': _st('A', {('w12', 'TIPS_10Y'): 4.9}),
+        'A_edge': _st('A', {('w1', 'TIPS_10Y'): 5.0}),
+        'B_b1': _st('B', {('w1', 'BEI_10Y'): -4.9}),
+        'B_edge': _st('B', {('w1', 'BEI_10Y'): -5.0}),
+        'B_n1': _st('B', {('w1', 'UST_10Y'): 0.0}),
+    }
+    check('§T5-l-12 席位同窗变化复算与 E-C1 成立状态(修订第五项): _fo_chg 走'
+          '引擎同窗月末观测点(近1个月窗 +19bp/12个月窗 +99bp;窗起点月无观测='
+          '拒绝装配);两解释「若成立」条件按引擎两窗同窗首尾变化逐条核、阈值即'
+          '原条件所写(恰等于阈值=成立),全部成立=写明已走完窗口内的共动不区分'
+          '两解释(不写数字),未全部成立=逐条点名;真实输入两窗读数下两解释均'
+          '全部成立',
+          g12c == {
+              'w1': 19.0, 'w12': 99.0,
+              'short': PFX + '利率环多窗对质的同窗观测不可复算(TIPS_10Y: '
+                       '观测窗 2026-10→2026-11 内 TIPS_10Y 不足两期有效观测'
+                       '(得 1))' + sfx}
+          and got12 == {
+              'A_real': ALL_A, 'B_real': ALL_A,
+              'A_b12': ('(该「若成立」条件在已走完的两窗内尚未全部成立——'
+                        '未成立: ' + A_NAME[3] + ')'),
+              'A_t12': ('(该「若成立」条件在已走完的两窗内尚未全部成立——'
+                        '未成立: ' + A_NAME[1] + ')'),
+              'A_edge': ALL_A, 'B_edge': ALL_A,
+              'B_b1': ('(该「若成立」条件在已走完的两窗内尚未全部成立——'
+                       '未成立: ' + B_NAME[0] + ')'),
+              'B_n1': ('(该「若成立」条件在已走完的两窗内尚未全部成立——'
+                       '未成立: ' + B_NAME[2] + ')')},
+          'g12c=%s got12=%s' % (g12c, got12))
+
+    # ── l13 证伪条件起算点 ──
+    tree_ = ast.parse(ssrc)
+    oe = [n for n in tree_.body if isinstance(n, ast.Assign)
+          and len(n.targets) == 1 and isinstance(n.targets[0], ast.Name)
+          and n.targets[0].id == '_oecd_lead']
+    lead = {}
+    if len(oe) == 1:
+        for st_ in (0, 1, 2):
+            nsx = {'_gdp_state': st_, 'as_of': '2026-11-26', 'LABELS': LABELS,
+                   'fmt': base['fmt'], 'oecd_hi': 2.2, '_gdp_vals': [3.0, 2.1, 2.29],
+                   '_gdp_c': {},
+                   'anchor': (lambda c, lbl: {'observation_date': {
+                       LABELS[0]: '2025-07-01', LABELS[1]: '2026-04-01',
+                       LABELS[2]: '2026-07-01'}[lbl]})}
+            exec(compile(ast.Module(body=oe, type_ignores=[]), 'seat_r16l',
+                         'exec'), nsx)
+            lead[st_] = nsx.get('_oecd_lead')
+    check('§T5-l-13 席位证伪条件起算点(修订第七项): 事实端已触及首季=自「截止日'
+          '前最新一期」起算(带观测月与同比读数;最新一期计入首个季度);未触发/'
+          '已成立=原写法(截止日之后公布起算)逐字不变',
+          len(oe) == 1 and lead == {
+              0: '若 2026-11-26 之后公布的 US_REAL_GDP 同比读数(美国实际 GDP)'
+                 '连续两个季度不低于 2.2',
+              1: '若自截止日前最新一期(观测 2026-07-01,同比 2.29)起连续两个季度 '
+                 'US_REAL_GDP 同比读数(美国实际 GDP)均不低于 2.2',
+              2: '若 2026-11-26 之后公布的 US_REAL_GDP 同比读数(美国实际 GDP)'
+                 '连续两个季度不低于 2.2'},
+          'lead=%s' % (lead,))
+
+    # ── l14 新增文字不含跨面先后次序触发词 ──
+    consts = [x.value for x in ast.walk(ast.parse(ssrc))
+              if isinstance(x, ast.Constant) and isinstance(x.value, str)]
+    consts_c = [x.value for x in ast.walk(ast.parse(csrc))
+                if isinstance(x, ast.Constant) and isinstance(x.value, str)]
+    keys = ('在研究截止日之后', '若成立」条件', '已计入首个季度',
+            '不作证据引用', '按两位小数显示,以本值为准')
+    new_s = [c for c in consts if any(k in c for k in keys)]
+    new_c = [c for c in consts_c if '在截止日之后才发布' in c
+             or '之前已发布的观测' in c]
+    check('§T5-l-14 修订 r16 新增文字不含「早于/晚于」(跨面先后次序检查的触发'
+          '词形;披露一律写「在研究截止日之后」),席位工具与契约两侧',
+          len(new_s) >= 8 and len(new_c) >= 2
+          and not any(('早于' in c or '晚于' in c) for c in new_s + new_c),
+          'n=%d/%d bad=%s' % (
+              len(new_s), len(new_c),
+              [c[:30] for c in new_s + new_c if '早于' in c or '晚于' in c]))
 def sec_t5():
     print('═══ 任务5: 预期差研究接入正式入口 ═══')
     sec_t5_a()
@@ -8416,6 +9288,7 @@ def sec_t5():
     sec_t5_i()
     sec_t5_j()
     sec_t5_k()
+    sec_t5_l()
 
 
 def main():

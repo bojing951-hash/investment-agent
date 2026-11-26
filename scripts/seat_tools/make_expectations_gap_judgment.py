@@ -360,11 +360,86 @@ def level_txt(mid):
     return out + ')'
 
 
+# ── 修订 r16(绑定 S6 的任务5 审查第一项): 发布纪律 ─────────────────────
+# 「在序列里」不等于「研究截止日之前已发布」: 月频/季频序列的最新一期常在次月才
+# 公布,此前窗标签、证据引用与「最新读数」各按「在场即可得」取数,截止日之后才
+# 公布的一期被当成当时可得的证据写进裁决。发布日走引擎同一出口
+# rmp._visible_publish(发布日历实录优先、发布规则推定兜底),可见判据与引擎
+# 点值面同一行(发布日不可判定=不判可见);序列频率取序列面自身(不传频率会落到
+# 月频默认规则)。只约束席位研判档的取数;证据门(在场即可得)与事实表的口径不
+# 在此改。日频/周频序列不判(观测日即可得日)。
+_PUB_FREQS = ('monthly', 'quarterly')
+_UNPUB_REFS = []      # 截止日之后才发布、未作引用的事实行 [(指标, 引用, 发布日, 依据)]
+
+
+def _vis_pub(mid, obs_date):
+    """(发布日|None, 依据)——月频/季频序列的观测发布纪律;其余频率不判。"""
+    fr = str((store.get(mid) or {}).get('frequency') or '')
+    if fr not in _PUB_FREQS or not obs_date:
+        return None, '非月频/季频序列'
+    return rmp._visible_publish(mid, fr, str(obs_date)[:10])
+
+
+def _is_unpublished(mid, obs_date):
+    """月频/季频序列的该期观测在研究截止日之后才发布=True;已发布/不判/
+    发布日不可判定=False(与引擎点值面同一可见判据)。"""
+    pub, _basis = _vis_pub(mid, obs_date)
+    return bool(pub) and pub > as_of
+
+
+def _published_periods(mid, rows_):
+    """月序列 [(ym, date, value)] 按研究截止日前是否已发布拆成
+    (已发布 [(ym, value)], 未发布 [(ym, value)], {ym: (发布日, 依据)})。"""
+    ok_, late, pub_of = [], [], {}
+    for ym, d, v in rows_:
+        pub, basis = _vis_pub(mid, d)
+        pub_of[ym] = (pub, basis)
+        (late if pub and pub > as_of else ok_).append((ym, v))
+    return ok_, late, pub_of
+
+
+def last_pub_obs(mid):
+    """截止日前已发布的最新观测 ((date, value), 被跳过的各期 [(期, 发布日, 依据)]):
+    月频/季频序列自后向前跳过截止日之后才发布的各期;其余频率=last_obs。"""
+    if str((store.get(mid) or {}).get('frequency') or '') not in _PUB_FREQS:
+        return last_obs(mid), []
+    ser = store.get(mid) or {}
+    late = []
+    for d, v in zip(reversed(ser.get('dates') or []),
+                    reversed(ser.get('values') or [])):
+        if v is None:
+            continue
+        pub, basis = _vis_pub(mid, d)
+        if pub and pub > as_of:
+            late.append((str(d)[:7], pub, basis))
+            continue
+        return (d, v), list(reversed(late))
+    return (None, None), list(reversed(late))
+
+
+def _late_txt(late):
+    """被跳过的各期披露句(无则空串);late=[(期, 发布日, 依据)]。"""
+    if not late:
+        return ''
+    return ('(序列内 %s 一期按%s于 %s 发布,在研究截止日之后,不引用)' % (
+        '、'.join(y for y, _p, _b in late),
+        '发布日历实录' if all(str(b).startswith('calendar:')
+                              for _y, _p, b in late)
+        else '引擎发布规则推定', '、'.join(p for _y, p, _b in late)))
+
+
 def ref_for(mid):
-    """证据索引内该指标的首个快照事实引用。"""
+    """证据索引内该指标的首个快照事实引用。修订 r16: 月频/季频指标的事实行
+    =最新观测,该期按发布纪律在研究截止日之后才发布者不引(截止日之后才公布的
+    信息不作当时证据,该期读数不进裁决);记入 _UNPUB_REFS 供质量门注记披露。"""
     for e in rep.get('evidence_index') or []:
         if e.get('kind') == 'snapshot_fact' and str(
                 e.get('ref') or '').startswith(mid + '@'):
+            pub, basis = _vis_pub(mid, str(e['ref']).split('@', 1)[1])
+            if pub and pub > as_of:
+                if not any(u[1] == e['ref'] for u in _UNPUB_REFS):
+                    _UNPUB_REFS.append((mid, e['ref'], pub, basis))
+                return None
             return e['ref']
     return None
 
@@ -666,17 +741,22 @@ for c in picked:
             fmt(c.get('value_after')), from_ym, to_ym, n_cand, k_all, to_ym,
             o_txt))
     d_to, v_to = month_last(c['metric_id'], to_ym)
-    d_l, v_l = last_obs(c['metric_id'])
+    # 修订 r16(发布纪律): 「最新」=截止日前已发布的最新观测;序列内截止日之后
+    # 才发布的各期不引用,随句披露
+    (d_l, v_l), _tl = last_pub_obs(c['metric_id'])
+    if d_l is None:
+        refuse('转折指标 %s 截止日前无已发布观测' % c['metric_id'])
     if is_level(c['metric_id']):
         after = (
-            '本指标转折月之后的读数(水平口径): %s %s 月末 %s → 最新 %s@%s'
+            '本指标转折月之后的读数(水平口径): %s %s 月末 %s → 最新 %s@%s%s'
             '(同比口径: 转折月 %s → 最新一期锚 %s)' % (
                 level_name(c['metric_id']), to_ym, fmt(v_to), fmt(v_l), d_l,
+                _late_txt(_tl),
                 fmt(c.get('value_after')),
                 fmt(yoy_of(cell_by_id(c['metric_id']), LABELS[2]))))
     else:
-        after = ('本指标转折月之后的读数: %s %s 月末 %s → 最新 %s@%s' % (
-            cand_full(c), to_ym, fmt(v_to), fmt(v_l), d_l))
+        after = ('本指标转折月之后的读数: %s %s 月末 %s → 最新 %s@%s%s' % (
+            cand_full(c), to_ym, fmt(v_to), fmt(v_l), d_l, _late_txt(_tl)))
     follow = '跟进/背离: %s;%s月频分辨率下同窗先后未定。' % (
         after, pol_ctx(c.get('region')))
     turnings.append({
@@ -690,10 +770,50 @@ for c in picked:
 _eps, picks = rmp.turning_merge_and_picks(turnings, cands)
 turning_supplement = []
 # 修订 r14(独立审查 NIT-18): 引擎列为「地图计划指标缺数」的指标被补选为转折时
-# 如实披露(截止日前最近月份读数缺席——采集缺口而非序列形态)
+# 如实披露。修订 r16(绑定 S6 的任务5 审查第二项): 缺数成因不再对所有缺数指标
+# 套用同一句——改由引擎面拼装(数据需求面的期数与最低覆盖/序列面截止日前最新
+# 已发布读数及其发布纪律/点值面缺席的锚点),配置改变=拒绝装配。
 _gap_mids = set(re.findall(
     r'[A-Z][A-Z0-9_]{2,}', ' '.join(str(n) for n in rep.get('notes') or []
                                    if '缺数' in str(n))))
+
+
+def _gap_cause(mid):
+    """补选转折的缺数成因(各段取自引擎面,不手填;修订 r16)。"""
+    it = next((x for x in ((run.get('data_requirements') or {}).get('items')
+                           or []) if isinstance(x, dict)
+               and x.get('metric_id') == mid), None)
+    sp = (it or {}).get('spec') or {}
+    cov = sp.get('coverage_observed') or {}
+    n, n_min = cov.get('n'), sp.get('min_observations')
+    if not (it and it.get('outcome') == 'insufficient_coverage'
+            and isinstance(n, int) and not isinstance(n, bool)
+            and isinstance(n_min, int) and not isinstance(n_min, bool)
+            and n < n_min):
+        refuse('补选转折 %s 的缺数成因不是「历史序列覆盖不足」' % mid)
+    (d_l, v_l), late = last_pub_obs(mid)
+    if not (d_l and str(d_l)[:10] <= as_of and isinstance(v_l, (int, float))):
+        refuse('补选转折 %s 截止日前无已发布的最新读数' % mid)
+    cell = cell_by_id(mid)
+    if cell:
+        miss = [lbl for lbl in LABELS
+                if anchor(cell, lbl).get('status') != 'ok']
+        tail = ('缺席的是 %s 锚点读数' % '、'.join(miss) if miss
+                else '三时点锚齐全')
+    else:
+        tail = '无该指标格'
+    out = '历史序列仅%s期、低于任务最低覆盖%s期' % (cn_num(n), cn_num(n_min))
+    pub, _basis = _vis_pub(mid, d_l)
+    if pub:
+        out += ';截止日前最新读数 %s 的 %s 已于 %s 发布' % (
+            str(d_l)[:7], fmt(v_l), pub)
+    else:
+        out += ';截止日前最新读数为 %s 的 %s' % (str(d_l)[:7], fmt(v_l))
+    out += _late_txt(late)
+    out += ';点值面%s' % tail
+    return out
+
+
 for c in picks:
     c_from, c_to = str(c.get('from_ym')), str(c.get('to_ym'))
     p_to = max(str(p['to_ym']) for p in picked)
@@ -728,8 +848,8 @@ for c in picks:
             '位置关系只按候选窗起止月记述。'),
         'evidence_gap': (
             '缺更高频读数与跨国同步证据,无法分辨先后'
-            + (';本指标在本轮被引擎列为地图计划指标缺数(截止日前最近月份读数'
-               '缺席——采集缺口而非序列形态),以其候选窗读数补位须打折'
+            + (';本指标在本轮被引擎列为地图计划指标缺数(%s),以其候选窗读数'
+               '补位须打折' % _gap_cause(c.get('metric_id'))
                if c.get('metric_id') in _gap_mids else ''))})
 
 # ── 面四: 历史类比(引擎相似检索前三段) ──────────────────────────────
@@ -1144,15 +1264,24 @@ hyp2 = (
        ('%s段(%s)' % (cn_num(len(_before)), '、'.join(
            '%s 至 %s' % (e['from_ym'], e['to_ym']) for e in _before)))
        if _before else '无一段', len(_after), c0['to_ym']))
-# 窗终月=该序列截至研究截止日的最后一个有观测月(月频序列的最新一期早于
-# 截止日所在月): 窗标签不得写到尚无观测的月份(引擎按可复算的窗核验)
-_cp = [(ym, v) for ym, _d, v in mon_series('CORE_PCE', yoy=True)
-       if c0['to_ym'] <= ym <= as_of[:7] and isinstance(v, (int, float))]
+# 窗终月=该序列截至研究截止日已发布的最后一个观测月(修订 r16,绑定 S6 的任务5
+# 审查第一项: 原实现取「有观测的最后一月」,把截止日之后才公布的一期——点值面
+# 同一指标最新一期锚的下一期——当成当时可得的读数写进窗标签与裁决;现按发布
+# 纪律取数,截止日之后才发布的各期只点名期号与发布日,不引用读数)。窗标签不得
+# 写到尚无已发布观测的月份(引擎按可复算的窗核验)。
+_cp_pub, _cp_late, _cp_pub_of = _published_periods(
+    'CORE_PCE', [(ym, d, v) for ym, d, v in mon_series('CORE_PCE', yoy=True)
+                 if c0['to_ym'] <= ym <= as_of[:7]
+                 and isinstance(v, (int, float))])
+_cp = [(ym, v) for ym, v in _cp_pub]
 if not _cp:
-    refuse('核心PCE同比在通胀回升窗之后无可用观测(观测窗无从声明)')
+    refuse('核心PCE同比在通胀回升窗之后无截止日前已发布的观测(观测窗无从声明)')
 win2 = {'from': c0['to_ym'], 'to': _cp[-1][0], 'yoy': True}
 core_path = (rmp._window_obs_text(rep, 'CORE_PCE', win2, as_of)
              or '同窗观测不可复算')
+if _cp_late:
+    core_path += _late_txt([(ym, _cp_pub_of[ym][0], _cp_pub_of[ym][1])
+                            for ym, _v in _cp_late])
 if len(_cp) < 3 or not (-0.1 < round(_cp[-1][1] - _cp[0][1], 6) < 0.1):
     refuse('窗后核心PCE同比路径与「两解释预期未分立」不符(须席位另写)')
 # 修订 r14(独立审查 MINOR-1): 利率环「尚不能区分」须可复算——近1个月窗与
@@ -1481,6 +1610,9 @@ stale_dates = sorted({str(((rows[x].get('facts') or {}).get('at_cutoff') or {})
 _ecb_obs = [str(e.get('date')) for e in sorted(
     policy_path('ECB_DFR').get('events') or [], key=lambda x: str(x.get('date')))]
 _jp_l1 = l1['JP_POLICY_RATE']
+# 修订 r16(发布纪律): 月均序列的最新读数在截止日之后才发布=现值句无从写起
+if _is_unpublished('JP_POLICY_RATE', _jp_l1.get('observation_date')):
+    refuse('日本政策利率最新读数在研究截止日之后才发布(欧日现值句)')
 _jp_maint_rec = [e for e in cal_maint if rec_region(e) == 'JP']
 _ea_row = rows['VIEW-20261110-005#f1']
 _ea_pub = str(_ea_row.get('publish_date') or '')
@@ -1520,9 +1652,11 @@ d_eps, d_cn = dis['SPX_EPS'], dis['CN_REAL_GDP_YOY']
 
 
 def _year_vals(mid):
-    """行点位按年份取值 {年: [(数值, 是否约数)]}: 多值行按原文「YYYY年X%」
-    配对;增速等非水平点位行与百分比水平行按到期年;指数点位行原文括注的
-    增速记在到期年(标约数)。只用于同一口径(年度增速)的并列。"""
+    """行点位按年份取值 {年: [(数值, 是否约数, 机构, 行号)]}: 多值行按原文
+    「YYYY年X%」配对;增速等非水平点位行与百分比水平行按到期年;指数点位行原文
+    括注的增速记在到期年(标约数)。只用于同一口径(年度增速)的并列。修订 r16
+    (绑定 S6 的任务5 审查第四/六项): 随带机构与行号——并列的两个数按陈述点名
+    该指标两家机构的顺序归位,所列各行逐行绑定引用。"""
     out = {}
     for r in rows_all:
         if r.get('metric_id') != mid:
@@ -1530,11 +1664,12 @@ def _year_vals(mid):
         pt = r.get('point') or {}
         raw = str(pt.get('raw') or r.get('value_raw') or '')
         yr = str(r.get('horizon_end') or '')[:4]
+        who = (str(r.get('institution') or ''), str(r.get('row_id') or ''))
         pairs = re.findall(r'(\d{4})\s*年\s*[^\d%,，]{0,6}?[+]?\s*(\d+(?:\.\d+)?)\s*%',
                            raw)
         if len(pairs) > 1:
             for y, x in pairs:
-                out.setdefault(y, []).append((float(x), False))
+                out.setdefault(y, []).append((float(x), False) + who)
             continue
         if not yr:
             continue
@@ -1542,32 +1677,65 @@ def _year_vals(mid):
                 pt.get('kind') != 'level'
                 or str(pt.get('unit') or r.get('metric_unit') or '')
                 .startswith('percent')):
-            out.setdefault(yr, []).append((float(pt['value']), False))
+            out.setdefault(yr, []).append((float(pt['value']), False) + who)
             continue
         m = re.search(r'约\s*([+-]?\d+(?:\.\d+)?)\s*%', raw)
         if m:
-            out.setdefault(yr, []).append((float(m.group(1)), True))
+            out.setdefault(yr, []).append((float(m.group(1)), True) + who)
     return out
 
 
+def _pair_order(mid, vs):
+    """同一口径并列的两个数在句中的先后(修订 r16,绑定 S6 的任务5 审查第四项:
+    原实现按数值升序排列,数值大小与陈述点名顺序相反时两个数被写到相反的机构
+    名下)。次序=陈述点名该指标两家机构的顺序;须恰两行、分属这两家不同机构,
+    否则拒绝装配。"""
+    if len(vs) != 2:
+        refuse('同一口径并列不是恰两行(%s)' % mid)
+    order = [short_inst(x) for x in (dis.get(mid) or {}).get('institutions')
+             or []]
+    pos = []
+    for v in vs:
+        k = short_inst(v[2])
+        idx = [i for i, o in enumerate(order) if o == k]
+        if len(idx) != 1:
+            refuse('同一口径并列的行机构与分歧面点名对不上(%s)' % mid)
+        pos.append(idx[0])
+    if pos[0] == pos[1]:
+        refuse('同一口径并列出现同一机构的两行(%s)' % mid)
+    return sorted(range(2), key=lambda i: pos[i])
+
+
 def _same_basis_txt(mid, year, pct_style):
-    """同一口径(该年度增速)的并列数字(中文数字);不足两行时返回空串。"""
+    """同一口径(该年度增速)的并列数字(中文数字;修订 r16: 恰两行时按陈述点名
+    顺序,三行以上仍按数值升序取首尾);不足两行时返回空串。"""
     vs = _year_vals(mid).get(year) or []
     if len(vs) < 2:
         return ''
-    vals = [v for v, _a in vs]
-    lo, hi = cn_num(min(vals)), cn_num(max(vals))
-    if pct_style:
-        body = '%s%s对%s' % ('约百分之' if any(a for _v, a in vs) else '百分之',
-                             lo, '百分之' + hi)
+    if len(vs) == 2:
+        o1, o2 = _pair_order(mid, vs)
+        (v1, a1), (v2, a2) = vs[o1][:2], vs[o2][:2]
     else:
-        body = '%s对%s' % (lo, hi)
+        v1, v2 = min(v for v, *_r in vs), max(v for v, *_r in vs)
+        a1 = a2 = any(a for _v, a, *_r in vs)
+        a2 = False
+    if pct_style:
+        body = '%s%s对%s' % ('约百分之' if (a1 or a2) else '百分之',
+                             cn_num(v1), '百分之' + cn_num(v2))
+    else:
+        body = '%s对%s' % (cn_num(v1), cn_num(v2))
     # 修订 r13(第二轮第 6 项): 标「约」者=点位目标括注的推算增速(分析师估值,
     # 非机构原文给出的增速),在此写明出处
     return '同为 %s 年度口径: %s,相差约%s个百分点%s' % (
-        year, body, cn_num(round(max(vals) - min(vals), 1)),
+        year, body, cn_num(round(abs(v2 - v1), 1)),
         ';标『约』者为由点位目标与基数推算的分析师估值,非机构原文给出的增速'
-        if pct_style and any(a for _v, a in vs) else '')
+        if pct_style and (a1 or a2) else '')
+
+
+def _basis_rows(mid):
+    """同一口径并列所列各行的行号(修订 r16: 逐行绑定引用)。"""
+    yv = _year_vals(mid)
+    return sorted({vs[3] for y in yv if len(yv[y]) == 2 for vs in yv[y]})
 
 
 # 修订 r13(独立预审第二轮第 6/7 项): 中国增长预测逐口径并列(不只取截止年);
@@ -1587,6 +1755,19 @@ _eps_sb = _basis_clause('SPX_EPS', True)
 _cn_sb = _basis_clause('CN_REAL_GDP_YOY', False)
 
 
+def _is_global_inflation_row(r):
+    """全球/G20 口径通胀预测的未映射行(修订 r16,绑定 S6 的任务5 审查第三项)。
+    计数按完整词元匹配——原实现对目标字段做子串匹配,已实现数据表述行的目标名
+    「…Aug2026」含「g20」被误计;且只计机构预测表述,不计已实现数据表述。"""
+    tgt = str(r.get('target') or '')
+    return bool(
+        r.get('status') == 'unmapped'
+        and r.get('statement_kind') != 'realized_data_claim'
+        and re.search(r'inflation|通胀', tgt, re.I)
+        and re.search(r'(?<![A-Za-z0-9])(?:global|G20)(?![0-9])|全球', tgt,
+                      re.I))
+
+
 def _unmapped_growth_txt():
     by_year = {}
     for r in rows_all:
@@ -1599,29 +1780,32 @@ def _unmapped_growth_txt():
         mv = re.search(r'([+-]?\d+(?:\.\d+)?)\s*%', raw)
         if my and mv:
             by_year.setdefault(my.group(1), []).append(
-                (float(mv.group(1)), str(r.get('institution') or '')))
-    parts = []
+                (float(mv.group(1)), str(r.get('institution') or ''),
+                 str(r.get('row_id') or '')))
+    parts, grow_rows = [], []
     for y in sorted(by_year):
-        vs = sorted({v for v, _i in by_year[y]})
-        if len(vs) == 2 and len({i for _v, i in by_year[y]}) >= 2:
+        vs = sorted({v for v, _i, _r in by_year[y]})
+        if len(vs) == 2 and len({i for _v, i, _r in by_year[y]}) >= 2:
             parts.append('%s 年口径: %s对%s,相差%s个百分点' % (
                 y, cn_num(vs[0]), cn_num(vs[1]),
                 cn_num(round(vs[1] - vs[0], 1))))
+            grow_rows += [_r for _v, _i, _r in by_year[y]]
     # 修订 r14(独立审查 NIT-10): 全球/G20 口径的通胀预测行同样未映射,一并
     # 如实点名(口径互异,不折算为机构间幅度)
-    n_inf = sum(1 for r in rows_all if r.get('status') == 'unmapped'
-                and re.search(r'inflation|通胀', str(r.get('target') or ''),
-                              re.I)
-                and re.search(r'global|G20|全球',
-                              str(r.get('target') or ''), re.I))
+    inf_rows = [r for r in rows_all if _is_global_inflation_row(r)]
+    n_inf = len(inf_rows)
     out = (';另: 全球增长预测上亦有机构间分歧(%s;行未映射到在册指标,无同期限'
            '定价)' % ';'.join(parts)) if parts else ''
     if n_inf:
         out += (';全球通胀预测另有%s行机构表述(口径与期限见引擎渲染面),'
                 '同样未映射、未对账' % cn_num(n_inf))
-    return out
+    # 修订 r16(绑定 S6 的任务5 审查第六项): 陈述点到的未映射行随文字返回行号,
+    # 供 G-C3 证据引用逐行绑定
+    return out, list(dict.fromkeys(grow_rows + [
+        str(r.get('row_id') or '') for r in inf_rows]))
 
 
+_ug_txt, _ug_rows = _unmapped_growth_txt()
 gc3 = (
     '机构间分歧的不可对账面: 盈利预测上%s表述形式相异(点位对增速)%s;中国增长'
     '预测上%s不一%s,中国实际 GDP 同比序列本轮缺席%s——这些是『机构之间』的'
@@ -1631,9 +1815,12 @@ gc3 = (
     % ('与'.join(short_inst(x) for x in d_eps.get('institutions') or []),
        (',换到同一口径后差距仍在%s' % _eps_sb) if _eps_sb else '',
        '与'.join(short_inst(x) for x in d_cn.get('institutions') or []),
-       _cn_sb, _unmapped_growth_txt(),
+       _cn_sb, _ug_txt,
        level_txt('SPX_EPS')
-       or 'SPX_EPS 水平为 %s' % fmt(l1['SPX_EPS'].get('value'))))
+       or ('SPX_EPS 水平为 %s' % fmt(l1['SPX_EPS'].get('value'))
+           if not _is_unpublished('SPX_EPS',
+                                  l1['SPX_EPS'].get('observation_date'))
+           else 'SPX_EPS 水平事实缺席(最新观测在研究截止日之后才发布)')))
 
 
 def sgn(v):
@@ -1736,6 +1923,53 @@ ec1 = (
                  if x) or '水平事实缺席'))
 if not DOWN or not UP:
     refuse('近1个月资产方向与预设叙述不符(须席位另写)')
+
+
+def _fo_chg(win, mid):
+    """窗内月末首尾变化(bp;与 _fo_holds 同算法),不可复算=拒绝装配。"""
+    ser = store.get(mid) or {}
+    pts, why = rmp._face_off_window_points(
+        ser.get('dates') or [], ser.get('values') or [], ser.get('unit'),
+        win, mid)
+    if pts is None:
+        refuse('利率环多窗对质的同窗观测不可复算(%s: %s)' % (mid, why))
+    chg = jc._fo_change(pts, 'bp')
+    if chg is None:
+        refuse('利率环多窗对质的同窗变化不可复算(%s)' % mid)
+    return round(chg, 6)
+
+
+def _ec1_status(side):
+    """竞争解释「若成立」条件在已走完两窗内的成立状态(修订 r16,绑定 S6 的任务5
+    审查第五项: 两解释的区分条件若在已走完的近1个月窗与12个月窗内都已成立,
+    已走完窗口内的共动就不区分两解释——如实写明;区分力在条件于后续读数是否
+    继续成立)。成立性按引擎两窗同窗首尾变化复算(与传导图利率环同一算法),
+    阈值即原条件所写;只写成立与否,不写数字。"""
+    t1, t12 = _fo_chg(w1, 'TIPS_10Y'), _fo_chg(w12, 'TIPS_10Y')
+    b1, b12 = _fo_chg(w1, 'BEI_10Y'), _fo_chg(w12, 'BEI_10Y')
+    n1, n12 = _fo_chg(w1, 'UST_10Y'), _fo_chg(w12, 'UST_10Y')
+    if side == 'A':
+        met = [t1 >= R3_TIPS_BP, t12 >= R3_TIPS_BP, n12 > 0.0, b12 < t12]
+        names = ['TIPS 实际收益率近1个月窗上行', 'TIPS 实际收益率12个月窗上行',
+                 '名义收益率12个月窗上行',
+                 '12个月窗盈亏平衡分量的贡献小于实际分量']
+    else:
+        met = [b1 <= -R3_TIPS_BP, b12 <= -R3_TIPS_BP, n1 < 0.0]
+        names = ['盈亏平衡通胀率近1个月窗走低', '盈亏平衡通胀率12个月窗走低',
+                 '名义收益率近1个月窗走低']
+    if all(met):
+        return ('(该「若成立」条件在已走完的两窗内已全部成立——已走完窗口内的'
+                '共动不区分两解释;区分力在条件于后续读数是否继续成立)')
+    return ('(该「若成立」条件在已走完的两窗内尚未全部成立——未成立: %s)'
+            % '、'.join(nm for nm, m_ in zip(names, met) if not m_))
+
+
+# 修订 r16(绑定 S6 的任务5 审查第六项): G-C3 陈述所列机构间分歧各行逐行绑定
+_gc3_rows = list(dict.fromkeys(
+    _basis_rows('SPX_EPS') + _basis_rows('CN_REAL_GDP_YOY') + _ug_rows))
+for _rid in _gc3_rows:
+    if _rid not in idx_ref:
+        refuse('G-C3 所列行不在证据索引(%s)' % _rid)
 contras = [
     {'id': 'G-C1', 'statement': gc1,
      'competing_explanations': [
@@ -1777,20 +2011,21 @@ contras = [
          '解释B(真实分歧): 机构对增长与盈利前景确有不同判断,口径差不足'
          '以解释差距——若成立,换到同一口径与同一期限后差距仍不收窄(或随'
          '数据发布扩大)【尚未验证】'],
-     'evidence_refs': [x for x in (
-         'VIEW-20261111-002#f3', ref_for('SPX_EPS'), ref_for('US_REAL_GDP'))
-         if x]},
+     # 修订 r16(绑定 S6 的任务5 审查第六项): 陈述所列机构间分歧各行逐行绑定
+     'evidence_refs': [x for x in dict.fromkeys(
+         ['VIEW-20261111-002#f3'] + _gc3_rows
+         + [ref_for('SPX_EPS'), ref_for('US_REAL_GDP')]) if x]},
     {'id': 'E-C1', 'statement': ec1,
      'competing_explanations': [
          '解释A(通胀再加速→政策再收紧): 通胀回升迫使央行收紧,名义利率'
          '上行由实际利率主导,高实际利率压制风险资产——若成立,TIPS_10Y '
          '在近1个月窗与12个月窗均上行(各不少于五个基点,阈值为席位自设)'
          '且12个月窗名义收益率上行(盈亏平衡分量的贡献小于实际分量)'
-         '【假设】',
+         '【假设】' + _ec1_status('A'),
          '解释B(增长担忧): 风险资产走低主要由增长预期下修驱动,利率变化'
          '是结果而非原因——若成立,BEI_10Y 在两窗均走低(各不少于五个基点)'
          '且近1个月窗名义收益率走低(通胀预期回落快于名义收益率,实际收益率'
-         '被动上行)【假设】'],
+         '被动上行)【假设】' + _ec1_status('B')],
      # 修订 r13(独立预审第二轮第 4 项): 中国政策三指标与四个资产指标的读数
      # 原已写入陈述,此处补齐对应引用
      'evidence_refs': refs(
@@ -1889,7 +2124,8 @@ scen = [
     {'id': 'SCN-G1', 'role': '定价情景', 'rows': {
         'scenario': (
             '假设期货定价路径兑现: 首个编号路径到期月(%s)会议加息落地,'
-            '目标区间上限升至 %s(编号路径的政策通过线,规则池给出)及以上。'
+            '目标区间上限升至 %s(编号路径的政策通过线,规则池给出;规则池'
+            '条件文字里的通过线按两位小数显示,以本值为准)及以上。'
             % (step_m, fmt(pass_min))),
         'asset_direction': {
             'direction': '在此假设下,实际利率维持高位,久期与高估值资产承压、'
@@ -2011,7 +2247,8 @@ e1_dir = (
 # Audit-R33 任务5修订(独立预审 m): 情景前提旁写当前读数与转折窗终点/其后
 # 低点的关系(月频同比路径,与转折探测同算法;关系改变即拒绝装配)。
 _cp_ym = [(ym, d, v) for ym, d, v in mon_series('CPI', yoy=True)
-          if isinstance(v, (int, float)) and ym >= c0['to_ym']]
+          if isinstance(v, (int, float)) and ym >= c0['to_ym']
+          and not _is_unpublished('CPI', d)]      # 修订 r16: 发布纪律
 _cpi_first = _cp_ym[0] if _cp_ym else None
 _cpi_last = _cp_ym[-1] if _cp_ym else None
 _cpi_low = min(_cp_ym[1:], key=lambda x: x[2]) if len(_cp_ym) > 1 else None
@@ -2231,17 +2468,32 @@ oecd_reading = (
         oecd_at.get('observation_date'), _gdp_txt,
         (',三锚点间逐期走低' + _gdp_mid_txt) if _gdp_down else '',
         _gdp_fact))
+# 修订 r16(绑定 S6 的任务5 审查第七项): 事实端已触及首季时,证伪条件自「截止日
+# 前最新一期」起算——连续两个季度的第一个季度就是已公布的最新一期(原写「截止日
+# 之后公布」起算,与同一判定档「已触及首季」的状态句相左);未触发/已成立时
+# 措辞不变。文字不引入引擎面以外的数字。
+_oecd_lead = (
+    '若自截止日前最新一期(观测 %s,同比 %s)起连续两个季度 US_REAL_GDP 同比'
+    '读数(美国实际 GDP)均不低于 %s' % (
+        str(anchor(_gdp_c, LABELS[2]).get('observation_date') or ''),
+        fmt(_gdp_vals[2]), fmt(oecd_hi))
+    if _gdp_state == 1 else
+    '若 %s 之后公布的 US_REAL_GDP 同比读数(美国实际 GDP)连续两个季度'
+    '不低于 %s' % (as_of, fmt(oecd_hi)))
 oecd_cond = [
     {'attribution': 'ai_inferred',
      'condition': (
-         '若 %s 之后公布的 US_REAL_GDP 同比读数(美国实际 GDP)连续两个季度'
-         '不低于 %s(原文所列较高的年度增速点位;年度点位用作单季读数的门槛'
+         _oecd_lead +
+         '(原文所列较高的年度增速点位;年度点位用作单季读数的门槛'
          '为席位近似——年度增速与单季同比口径不同,此处只核方向性突破,不作'
-         '幅度主张),则『%s』的放缓路径被证伪;'
+         '幅度主张),则『%s』的放缓路径被证伪%s;'
          '该点位到期日 %s 在证伪窗口之外,窗口内至多可核验 %s 两期读数'
          '(季度节奏为席位推断,冻结发布日历未收录其发布日);当前三时点同比'
          '读数 %s,%s' % (
-             as_of, fmt(oecd_hi), oecd.get('value_raw'), oecd.get('horizon_end'),
+             oecd.get('value_raw'),
+             ';最新一期已计入首个季度,再有一期读数不低于该点位即成立'
+             if _gdp_state == 1 else '',
+             oecd.get('horizon_end'),
              ' 与 '.join(_q_in) if len(_q_in) == 2 else '、'.join(_q_in) or '无',
              _gdp_txt, _gdp_state_txt)),
      'observable': 'US_REAL_GDP'}]
@@ -2443,7 +2695,19 @@ judgment = {
            fmt(wt.get('n_rows_after_window')),
            cn_num(len(_mat_unv)) + '行',
            '、'.join(str(r.get('row_id')) for r in _mat_unv) or '无',
-           _mat_reason)],
+           _mat_reason),
+        # 修订 r16(绑定 S6 的任务5 审查第一项): 证据引用发布纪律随档披露
+        (('证据引用发布纪律: 月频/季频指标的最新观测事实行,按发布纪律在研究'
+          '截止日之后才发布者不作证据引用——本轮%s项: %s;该期读数不进裁决,'
+          '序列内截止日之前已发布的各期照常可复算。')
+         % (cn_num(len(_UNPUB_REFS)),
+            '、'.join('%s 的 %s(%s于 %s 发布)' % (
+                m, r_, '发布日历实录' if str(b_).startswith('calendar:')
+                else '引擎发布规则推定', p_)
+                      for m, r_, p_, b_ in _UNPUB_REFS))
+         if _UNPUB_REFS else
+         '证据引用发布纪律: 月频/季频指标的事实引用均为研究截止日之前已发布的'
+         '观测(发布日历实录优先、引擎发布规则推定兜底)。')],
     'reader_map': {
         'headline_conclusion': headline,
         'regions': regions, 'transmission': transmission,

@@ -1,0 +1,20 @@
+═══ §L 裁决后交付状态面: 仅差审查状态短语=状态面等价 ═══
+  ✅ §L1 前置: 裁决缺席 report rc≠0,当前装配落盘——分工行尾「独立语义审查待裁)」+审查尾「独立席位待裁」 — rc0=1 div='on=ai_inferred,独立语义审查待裁)'
+  ✅ §L2 裁决 UPHELD 后 report: rc=0 可交付;分工行尾「经独立语义审查)」+审查尾「席位已裁: UPHELD(裁决链 1 档)」;全文无「待裁」;无「渲染器漂移」警告(renderer_drift=False,status_refreshed=True) — rc1=0 deliv=True drift=False refresh=True pending=0 w=[]
+  ✅ §L3 受审内容未被改写: 裁决前后内容段逐行对比恰 1 行不同(=分工行状态短语),其余逐字节相同;旁挂锚=新全文 sha256;裁决仍新鲜(fresh=True);裁决档绑定=受审时(待裁形)内容段摘要 — dlines=1 fresh=True
+  ✅ §L4 重复 report 幂等: rc=0,字节不变,不再记状态面翻新 — rc=0 refresh=False
+  ✅ §L5 归档: rc=0;清单 map_binding_status_equivalent=true/map_renderer_drift=false;归档件==运行目录件;map_report_sha256=裁决档绑定,map_content_sha256=归档内容段原字节摘要(待裁形/已裁形两摘要并存,清单注明状态面等价) — rc2=0 equiv=True drift=False
+  ✅ §L6 重放: rc=0(绑定三方核对按状态面等价通过;当前代码重渲与归档件逐字节相等) — rc3=0 mode=byte_equal failed=[]
+  ✅ §L7a 裁决后单改正文(旁挂锚未动): 拒绝交付且不重写(保全证据);警告点名旁挂锚不符;不记状态面翻新 — rc=1 deliv=False
+  ✅ §L7b 正文改版+重锚: 裁决过期(fresh=False)→本轮拒绝交付、不记状态面翻新;改版件被当前装配重渲覆盖(改版不得洗白);下一轮恢复可交付 — rc=1 fresh=False rc2=0
+  ✅ §L7c 渲染器真漂移(包装器令当前代码在正文多出一行): 冻结分支照旧——report rc=0+「渲染器漂移」披露+受审字节不改写(map_renderer_drift=True,不记状态面翻新);归档 rc=0 清单 drift=true+状态面等价注记(先前已翻新的受审件);重放 rc=0 — rc=0 drift=True rc4=0 drift_m=True rc5=0 mode=byte_equal
+  ✅ §L8 判定函数: 状态面等价只认「分工」行尾短语——裁决前后全文等价=True;正文改一字=False;状态短语出现在其他行不算状态面;绑定匹配=原字节/已裁形/待裁形三口径之一 — eq01=True eq_x=False
+  ✅ §L9a 归档代码落档: 同印章归档清单无 archive_code_git_head 键(清单字节不变);另印章下归档 rc=0——清单 archive_code_git_head=归档印章,run_code_git_head=运行印章,correlation 点名「裁决后再交付」;包内地图==运行目录件 — rc6=0 arc_head=aaaaaaaaaaaa same_stamp_key=False
+  ✅ §L9b 归档印章代码严格重放: rc=0——门④按「当前=归档代码(裁决后再交付包,清单已声明)」通过,其余检查全过+逐字节相等;重放报告落档 package_archive_head 与「归档代码 SHA」行 — rc7=0 c7=当前=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 包=24141c01a73daa44e56e380320f46bb0f7 mode=byte_equal
+  ✅ §L9c 运行印章代码严格重放同一包: rc=0(当前==运行 SHA 的经典口径照旧成立,逐字节相等) — rc8=0 mode=byte_equal
+  ✅ §L9d 第三印章代码严格重放: 拒(code_version_mismatch);--allow-code-mismatch: 放行并披露越过 — rc9=1 blocked=code_version_mismatch rc10=0
+  ✅ §L9e 同渲染两印章包: 裁决在场时的再裁决绑定=已裁形内容段摘要;report 不记状态面翻新;另印章归档 rc=0——清单携 archive_code_git_head(=归档印章)而无 map_binding_status_equivalent;裁决链 2 档 — rc11=0 refresh=False rc12=0 arc_head=aaaaaaaaaaaa equiv_key=False n=2
+  ❌ §L9f 归档印章代码严格重放同渲染包: rc=0——门④认清单声明的归档代码为录制代码,不以状态面是否翻新为条件(交付字节正是归档代码所产);其余检查全过+逐字节相等;重放报告落档 package_archive_head — rc13=1 blocked=code_version_mismatch c=None
+  ✅ §L9g 运行印章代码严格重放同一包: rc=0(同渲染包运行印章/归档印章两版代码均可严格重放);第三印章照旧拒(code_version_mismatch) — rc14=0 rc15=1
+=== test_audit_r32_gate sec_l: 16/17 ===
+rc=1

@@ -276,8 +276,11 @@ print("=" * 64)
 reg = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),
                      encoding='utf-8'))
 by = {m['metric_id']: m for m in reg['metrics']}
-check("版本=2.8.5(R25 DFF history_source;曾升2.8.4 R12 japan source_key补接/2.8.3 R11注记细化/2.8.2 R6-D1换源/2.8.0 数据批1)", reg['version'] == '2.8.5', reg['version'])
-check("指标数=110(数据批1: +SPX_EPS/M2SL)", len(reg['metrics']) == 110,
+# R20: 注册表升版 v2.8.6(四地地图数据面补齐,2026-11-19),R25 history_source 事实仍在册
+check("版本=2.8.6(R20 四地补齐;曾升2.8.5 R25 DFF history_source/2.8.4 R12 japan source_key补接/2.8.3 R11注记细化/2.8.2 R6-D1换源/2.8.0 数据批1)", reg['version'] == '2.8.7', reg['version'])
+# R20: +JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 三指标
+check("指标数=114(R21 +CN_POLICY_OVERNIGHT 换锚新锚)",  # R21: 113→114
+      len(reg['metrics']) == 114,
       len(reg['metrics']))
 g = by.get('US_REAL_GDP') or {}
 check("US_REAL_GDP 字段逐项",
@@ -303,7 +306,8 @@ check("FREQUENCY_VALUES 含 quarterly", 'quarterly' in rsem.FREQUENCY_VALUES)
 import freshness_policy as fpol  # noqa: E402
 import fact_engine  # noqa: E402
 check("fact_engine.load_registry 通过(freshness quarterly 合法)",
-      len(fact_engine.load_registry(force=True)['metrics']) == 110)  # 数据批1 +2
+      # R20: 注册表 110→113(JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY)
+      len(fact_engine.load_registry(force=True)['metrics']) == 114)  # 数据批1 +2;R20 +3
 check("billion_usd 入价格类单位族(变化=百分比口径)",
       'billion_usd' in fact_engine.PRICE_LIKE_UNITS)
 

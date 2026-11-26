@@ -1,0 +1,144 @@
+{
+ "ok": true,
+ "capability": "doctor",
+ "engine_root": "/private/tmp/r32-accept/final6",
+ "snapshot_id": null,
+ "target_date": null,
+ "research_as_of": null,
+ "gate_a": null,
+ "data": {
+  "python": "3.9.6",
+  "platform": "darwin",
+  "env": {
+   "MODEL_API_KEY": {
+    "configured": false,
+    "purpose": "可选模型 API Key(通用;AI 解释/周报生成/新闻模型摘要共用,Agent Native 默认无需,不配仅影响 AI 解释/周报叙事层/新闻模型摘要)"
+   },
+   "MODEL_BASE_URL": {
+    "configured": false,
+    "purpose": "可选模型端点(任意 OpenAI 兼容服务;填你的服务地址)"
+   },
+   "MODEL_NAME": {
+    "configured": false,
+    "purpose": "可选模型名(填你的模型服务模型名)"
+   },
+   "IA_NEWS_MODEL_SUMMARY": {
+    "configured": false,
+    "purpose": "新闻模型摘要显式开关(Charter7-7: 默认关闭;须 =1 且 MODEL_* 三参齐才调用付费模型摘要;不设/非1→新闻走确定性标题回退,MODEL_* 三参齐也不再自动调用)"
+   },
+   "FRED_API_KEY": {
+    "configured": false,
+    "purpose": "美联储/FRED 数据(强烈推荐,缺失则 28 个序列采集失败→Gate A FAIL)"
+   },
+   "TUSHARE_TOKEN": {
+    "configured": false,
+    "purpose": "中国市场数据(可选)"
+   },
+   "FINNHUB_API_KEY": {
+    "configured": false,
+    "purpose": "市场数据补充(可选)"
+   },
+   "YF_PROXY": {
+    "configured": false,
+    "purpose": "yfinance 代理(可选)"
+   }
+  },
+  "model_key_note": "未配置模型 API(可选): 解释层(AI 周报解释/研究 AI 解释)不可用,系统自动走确定性分支(数据观察周报/确定性标题/如实提示)。\n配置方法: 在项目根 .env 写入 MODEL_API_KEY/MODEL_BASE_URL/MODEL_NAME 三项(任意 OpenAI 兼容端点,模板见 .env.example),或运行前逐项 export。\n可选通用模型 API(任意 OpenAI 兼容端点);Agent Native 模式(默认)不需要模型 Key;数据采集与本地研究查询也不需要。\n(注意: 密钥只从环境变量与项目根 .env 读取,请勿写入代码或提交到git)",
+  "snapshot": {
+   "available": true,
+   "note": null,
+   "target_date": "20261123",
+   "gate_a": "DEGRADED",
+   "missing": [
+    "BUND_10Y",
+    "BUND_2Y",
+    "CN_OMO_7D",
+    "CN_POLICY_OVERNIGHT",
+    "EA_REAL_GDP_YOY",
+    "JP_CPI_TOKYO_YOY",
+    "JP_REAL_GDP_YOY"
+   ],
+   "degraded": [
+    "CN_SF_FLOW",
+    "ECB_DFR",
+    "ECB_MRO",
+    "JTSJOL",
+    "M2SL",
+    "SPX_EPS",
+    "SPX_PE_TTM",
+    "US_REAL_GDP"
+   ],
+   "sources_status": {
+    "global": {
+     "status": "EXACT",
+     "file": "global_20261123.json",
+     "file_date": "20261123",
+     "sha256": "64d76ec934f659c2686964ccac164331f8da046a3cc211d4a8f9ec7e1e935524"
+    },
+    "macro": {
+     "status": "EXACT",
+     "file": "macro_20261123.json",
+     "file_date": "20261123",
+     "sha256": "edbf6e09a88fe18940c4d75c55a611486c67283347da5cb547b9be2b17ddeaf1"
+    },
+    "china": {
+     "status": "EXACT",
+     "file": "china_20261123.json",
+     "file_date": "20261123",
+     "sha256": "d0510c1410fd304b6c64af2165a161b69fb34bcb16dc71e3c5e8d03dd4627edb"
+    },
+    "rate_economy": {
+     "status": "EXACT",
+     "file": "rate_economy_20261123.json",
+     "file_date": "20261123",
+     "sha256": "2a217144d4b43566e788b4863d90a9d2408d5a10b0b9b5f053c8ca5b602c3a39"
+    },
+    "japan": {
+     "status": "EXACT",
+     "file": "japan_20261123.json",
+     "file_date": "20261123",
+     "sha256": "7512389faf4844df14f85002661cb882b5fe4b323fe83b3d108df9f93297e8c0"
+    },
+    "jp": {
+     "status": "EXACT",
+     "file": "jp_20261123.json",
+     "file_date": "20261123",
+     "sha256": "55f773b3a1b92afd2b3dfe8dc875158a11a4f6457c4c05154a20cd3d68a748bb"
+    },
+    "ea": {
+     "status": "EXACT",
+     "file": "ea_20261123.json",
+     "file_date": "20261123",
+     "sha256": "a328ef47748bc9882688b9ffb4b7c05eca3222ecca476925eb89e7af6ffcf800"
+    },
+    "shiller": {
+     "status": "EXACT",
+     "file": "shiller_20261123.json",
+     "file_date": "20261123",
+     "sha256": "b1b95bfce181afe95586dc905ac67a8057f4d3ccbaedf4575aa18116d108e822"
+    }
+   },
+   "sources_status_note": "上表为快照生成时点记录的采集档校验状态;磁盘当前实际在场文件以 data_freshness 为准(两者可能不一致,如文件事后被移动)"
+  },
+  "data_freshness": {
+   "global": "global_20261123.json",
+   "macro": "macro_20261123.json",
+   "china": "china_20261123.json",
+   "rate_economy": "rate_economy_20261123.json",
+   "japan": "japan_20261123.json",
+   "jp": "jp_20261123.json",
+   "ea": "ea_20261123.json",
+   "research_snapshot": "research_snapshot_20261123.json"
+  },
+  "last_run": {
+   "available": false,
+   "note": "无流水线台账(当日未运行采集,或台账写入失败——台账写失败不影响采集本身退出码)"
+  },
+  "skill": {
+   "source_present": true,
+   "project_install_present": true,
+   "note": "source=.agents/skills/(随仓库); 项目级副本=.claude/skills/(install_skill.py 生成)"
+  }
+ },
+ "warnings": []
+}

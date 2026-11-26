@@ -1,0 +1,166 @@
+{
+ "block": "⑫",
+ "title": "研究截止时点与各金融中心本地时间(盘中快照标注的时间依据)",
+ "rows": [
+  {
+   "block": "⑫",
+   "id": "Z0-快照 research_as_of=2026-11-23T22:53:47+08:00(与受审稿所写一致)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:research_as_of",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 直读 2026-11-23T22:53:47+08:00"
+  },
+  {
+   "block": "⑫",
+   "id": "Z1-截止时点 纽约 本地时间",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:research_as_of; IANA 时区库 America/New_York",
+   "kind": "point",
+   "computed": "09:53",
+   "claim": "09:53",
+   "match": true,
+   "detail": "America/New_York 本地 2026-11-23 09:53:47; 受审稿 09:53"
+  },
+  {
+   "block": "⑫",
+   "id": "Z1-截止时点 法兰克福 本地时间",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:research_as_of; IANA 时区库 Europe/Berlin",
+   "kind": "point",
+   "computed": "15:53",
+   "claim": "15:53",
+   "match": true,
+   "detail": "Europe/Berlin 本地 2026-11-23 15:53:47; 受审稿 15:53"
+  },
+  {
+   "block": "⑫",
+   "id": "Z1-截止时点 东京 本地时间",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:research_as_of; IANA 时区库 Asia/Tokyo",
+   "kind": "point",
+   "computed": "23:53",
+   "claim": "23:53",
+   "match": true,
+   "detail": "Asia/Tokyo 本地 2026-11-23 23:53:47; 受审稿 23:53"
+  },
+  {
+   "block": "⑫",
+   "id": "Z1-截止时点 上海 本地时间",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:research_as_of; IANA 时区库 Asia/Shanghai",
+   "kind": "point",
+   "computed": "22:53",
+   "claim": "22:53",
+   "match": true,
+   "detail": "Asia/Shanghai 本地 2026-11-23 22:53:47; 受审稿 22:53"
+  },
+  {
+   "block": "⑫",
+   "id": "Z2-截止时点纽约 09:30–16:00 常规交易时段进行中(美股盘中)",
+   "source": "research_as_of → America/New_York",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 纽约 09:53"
+  },
+  {
+   "block": "⑫",
+   "id": "Z3-截止时点法兰克福 09:00–17:30 常规交易时段进行中(德法股指盘中)",
+   "source": "research_as_of → Europe/Berlin",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 法兰克福 15:53"
+  },
+  {
+   "block": "⑫",
+   "id": "Z4-「NIKKEI225 止于 2026-11-20 收盘」: 序列末观测日=2026-11-20(周五)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.NIKKEI225.dates[-1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 末观测 2026-11-20"
+  },
+  {
+   "block": "⑫",
+   "id": "Z5-SPX 序列末观测日=2026-11-23(截止日当日值, 受审稿标注为盘中快照)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX.dates[-1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 末观测 2026-11-23"
+  },
+  {
+   "block": "⑫",
+   "id": "Z5-VIX 序列末观测日=2026-11-23(截止日当日值, 受审稿标注为盘中快照)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX.dates[-1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 末观测 2026-11-23"
+  },
+  {
+   "block": "⑫",
+   "id": "Z5-GOLD_F 序列末观测日=2026-11-23(截止日当日值, 受审稿标注为盘中快照)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.GOLD_F.dates[-1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 末观测 2026-11-23"
+  },
+  {
+   "block": "⑫",
+   "id": "Z5-DXY 序列末观测日=2026-11-23(截止日当日值, 受审稿标注为盘中快照)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.DXY.dates[-1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 末观测 2026-11-23"
+  },
+  {
+   "block": "⑫",
+   "id": "Z5-USDJPY 序列末观测日=2026-11-23(截止日当日值, 受审稿标注为盘中快照)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY.dates[-1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 末观测 2026-11-23"
+  },
+  {
+   "block": "⑫",
+   "id": "Z5-EURUSD 序列末观测日=2026-11-23(截止日当日值, 受审稿标注为盘中快照)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EURUSD.dates[-1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 末观测 2026-11-23"
+  },
+  {
+   "block": "⑫",
+   "id": "Z5-BRENT_F 序列末观测日=2026-11-23(截止日当日值, 受审稿标注为盘中快照)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F.dates[-1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 末观测 2026-11-23"
+  },
+  {
+   "block": "⑫",
+   "id": "Z6-全库 92 条序列无晚于截止日 2026-11-23 的观测(无事后信息混入)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store[*].dates[-1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 晚于截止日的序列 []; 序列数 92"
+  }
+ ]
+}

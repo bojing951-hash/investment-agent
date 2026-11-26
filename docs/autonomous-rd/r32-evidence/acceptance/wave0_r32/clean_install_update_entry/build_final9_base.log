@@ -1,0 +1,7 @@
+=== build base tree @ cf33de3a9942578b71cecb45077b7a505d8fca01  dest=/tmp/r32-accept/final9  2026-11-24 15:57:47 +0800
+pip rc=0
+模型API(三参配齐): False | FRED: True | TUSHARE: True
+snapshot(=final3) sha256=2d650f1128cdd356d5bc86256d1ed1b9dcb7c7306ddc71c79fac3f4fe60efd2f
+final3 snapshot    sha256=2d650f1128cdd356d5bc86256d1ed1b9dcb7c7306ddc71c79fac3f4fe60efd2f
+data files: final3=330 tree=330
+=== base tree ready: 2034 files (excl. .venv); .env present? no; CODE_VERSION git_head=cf33de3a9942578b71cecb45077b7a505d8fca01

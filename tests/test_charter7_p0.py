@@ -387,8 +387,8 @@ snap6 = {'snapshot_id': 'research_snapshot_20260125',
          'target_date': '20260125', 'sources_status': SS}
 open(os.path.join(td, 'research_snapshot_20260125.json'), 'w',
      encoding='utf-8').write(json.dumps(snap6, ensure_ascii=False))
-check("研究引用集=快照声明来源档(恰1个)",
-      drt.research_referenced_files(td) == {'macro_20260120.json'})
+check("研究引用集=快照声明来源档(恰1个,扫描零异常)",
+      drt.research_referenced_files(td) == ({'macro_20260120.json'}, []))
 notes0 = []
 probs0 = rp.sources_status_problems(SS, target_ymd='20260125', data_dir=td,
                                     trusted_root=root6, notes=notes0)

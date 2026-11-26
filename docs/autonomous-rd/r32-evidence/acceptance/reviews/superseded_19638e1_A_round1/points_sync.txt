@@ -1,0 +1,72 @@
+OK|sync 2025-03 US growth label|computed=下行|reported=下行|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 US growth direction|computed=-0.306|reported=None|src=series_store + seat visibility rule|note=engine: US growth 下行
+OK|sync 2025-03 US inflation label|computed=上行|reported=上行|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 US inflation direction|computed=0.08211|reported=None|src=series_store + seat visibility rule|note=engine: US inflation 上行
+OK|sync 2025-03 US policy label|computed=持平|reported=持平|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 US policy direction|computed=0|reported=None|src=series_store + seat visibility rule|note=engine: US policy 持平
+OK|sync 2025-03 CN growth label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 CN growth direction|computed=0.4|reported=None|src=series_store + seat visibility rule|note=engine: CN growth 分化
+OK|sync 2025-03 CN inflation label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 CN inflation direction|computed=-0.9|reported=None|src=series_store + seat visibility rule|note=engine: CN inflation 分化
+OK|sync 2025-03 CN policy label|computed=同步|reported=同步|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 CN policy direction|computed=0|reported=None|src=series_store + seat visibility rule|note=engine: CN policy 同步
+OK|sync 2025-03 EA growth label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 EA growth direction|computed=0.25|reported=None|src=series_store + seat visibility rule|note=engine: EA growth 分化
+OK|sync 2025-03 EA inflation label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 EA inflation direction|computed=-0.1|reported=None|src=series_store + seat visibility rule|note=engine: EA inflation 分化
+OK|sync 2025-03 EA policy label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 EA policy direction|computed=-0.5|reported=None|src=series_store + seat visibility rule|note=engine: EA policy 分化
+OK|sync 2025-03 JP growth label|computed=同步|reported=同步|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 JP growth direction|computed=-0.1|reported=None|src=series_store + seat visibility rule|note=engine: JP growth 同步
+OK|sync 2025-03 JP inflation label|computed=同步|reported=同步|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 JP inflation direction|computed=0.74|reported=None|src=series_store + seat visibility rule|note=engine: JP inflation 同步
+OK|sync 2025-03 JP policy label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2025-03 JP policy direction|computed=0.251|reported=None|src=series_store + seat visibility rule|note=engine: JP policy 分化
+OK|sync 2022-06 US growth label|computed=下行|reported=下行|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 US growth direction|computed=-1.843|reported=None|src=series_store + seat visibility rule|note=engine: US growth 下行
+OK|sync 2022-06 US inflation label|computed=上行|reported=上行|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 US inflation direction|computed=0.6009|reported=None|src=series_store + seat visibility rule|note=engine: US inflation 上行
+OK|sync 2022-06 US policy label|computed=上行|reported=上行|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 US policy direction|computed=1.25|reported=None|src=series_store + seat visibility rule|note=engine: US policy 上行
+OK|sync 2022-06 CN growth label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 CN growth direction|computed=0.7|reported=None|src=series_store + seat visibility rule|note=engine: CN growth 分化
+OK|sync 2022-06 CN inflation label|computed=同步|reported=同步|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 CN inflation direction|computed=1.2|reported=None|src=series_store + seat visibility rule|note=engine: CN inflation 同步
+OK|sync 2022-06 CN policy label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 CN policy direction|computed=0|reported=None|src=series_store + seat visibility rule|note=engine: CN policy 分化
+OK|sync 2022-06 EA growth label|computed=同步|reported=同步|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 EA growth direction|computed=-0.1|reported=None|src=series_store + seat visibility rule|note=engine: EA growth 同步
+OK|sync 2022-06 EA inflation label|computed=同步|reported=同步|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 EA inflation direction|computed=0.7|reported=None|src=series_store + seat visibility rule|note=engine: EA inflation 同步
+OK|sync 2022-06 EA policy label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 EA policy direction|computed=0|reported=None|src=series_store + seat visibility rule|note=engine: EA policy 分化
+OK|sync 2022-06 JP growth label|computed=同步|reported=同步|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 JP growth direction|computed=-1.65|reported=None|src=series_store + seat visibility rule|note=engine: JP growth 同步
+OK|sync 2022-06 JP inflation label|computed=同步|reported=同步|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 JP inflation direction|computed=1.51|reported=None|src=series_store + seat visibility rule|note=engine: JP inflation 同步
+OK|sync 2022-06 JP policy label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2022-06 JP policy direction|computed=0|reported=None|src=series_store + seat visibility rule|note=engine: JP policy 分化
+OK|sync 2023-10 US growth label|computed=上行|reported=上行|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 US growth direction|computed=0.4479|reported=None|src=series_store + seat visibility rule|note=engine: US growth 上行
+OK|sync 2023-10 US inflation label|computed=上行|reported=上行|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 US inflation direction|computed=0.6166|reported=None|src=series_store + seat visibility rule|note=engine: US inflation 上行
+OK|sync 2023-10 US policy label|computed=持平|reported=持平|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 US policy direction|computed=0|reported=None|src=series_store + seat visibility rule|note=engine: US policy 持平
+OK|sync 2023-10 CN growth label|computed=同步|reported=同步|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 CN growth direction|computed=0.2|reported=None|src=series_store + seat visibility rule|note=engine: CN growth 同步
+OK|sync 2023-10 CN inflation label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 CN inflation direction|computed=0|reported=None|src=series_store + seat visibility rule|note=engine: CN inflation 分化
+OK|sync 2023-10 CN policy label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 CN policy direction|computed=-0.1|reported=None|src=series_store + seat visibility rule|note=engine: CN policy 分化
+OK|sync 2023-10 EA growth label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 EA growth direction|computed=-0.74|reported=None|src=series_store + seat visibility rule|note=engine: EA growth 分化
+OK|sync 2023-10 EA inflation label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 EA inflation direction|computed=-2.4|reported=None|src=series_store + seat visibility rule|note=engine: EA inflation 分化
+OK|sync 2023-10 EA policy label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 EA policy direction|computed=0.5|reported=None|src=series_store + seat visibility rule|note=engine: EA policy 分化
+OK|sync 2023-10 JP growth label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 JP growth direction|computed=-0.89|reported=None|src=series_store + seat visibility rule|note=engine: JP growth 分化
+OK|sync 2023-10 JP inflation label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 JP inflation direction|computed=-0.25|reported=None|src=series_store + seat visibility rule|note=engine: JP inflation 分化
+OK|sync 2023-10 JP policy label|computed=分化|reported=分化|src=series_store + seat visibility rule|note=engine face label
+OK|sync 2023-10 JP policy direction|computed=0.012|reported=None|src=series_store + seat visibility rule|note=engine: JP policy 分化

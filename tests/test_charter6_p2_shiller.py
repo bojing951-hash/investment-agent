@@ -385,11 +385,15 @@ print("\n[8] 注册表锁(v2.8.0)与语义校验")
 regj = json.load(open(os.path.join(ROOT, 'config', 'metric_registry.json'),
                       encoding='utf-8'))
 ms = regj['metrics']
-check("版本 v2.8.5(R25 DFF history_source;曾升2.8.4 R12 japan source_key补接/2.8.3 R11注记细化/2.8.2 R6-D1换源/2.8.0 数据批1)",
-      regj.get('version') == '2.8.5')
-check("110项(数据批1 +SPX_EPS/M2SL)", len(ms) == 110, str(len(ms)))
+# R20: 注册表升版 v2.8.6(四地地图数据面补齐,2026-11-19),R25 history_source 事实仍在册
+check("版本 v2.8.6(R20 四地补齐;曾升2.8.5 R25 DFF history_source/2.8.4 R12 japan source_key补接/2.8.3 R11注记细化/2.8.2 R6-D1换源/2.8.0 数据批1)",
+      regj.get('version') == '2.8.7')
+# R20: +JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY 三指标
+check("114项(R21 +CN_POLICY_OVERNIGHT 换锚新锚)",  # R21: 113→114
+      len(ms) == 114, str(len(ms)))
 active = [m for m in ms if m.get('status') == 'active']
-check("活跃108项(数据批1 +2)", len(active) == 108, str(len(active)))
+# R20: active 108→111(新增三指标均 active);R21: 111→112(隔夜锚 active)
+check("活跃112项(数据批1 +2;R20 +3;R21 +1)", len(active) == 112, str(len(active)))
 us = [m for m in active if m.get('economy') == 'US']
 check("US 活跃55项(SPX_PB=unavailable不计入;数据批1 +SPX_EPS/M2SL)",
       len(us) == 55, str(len(us)))
@@ -430,10 +434,14 @@ check("_SOURCE_TO_INPUT 映射 shiller_collector→shiller",
 sys.path.insert(0, os.path.join(ROOT, 'tests'))
 from helpers import baseline_locks as bl  # noqa: E402
 va = bl.vintage_additions(fe.load_registry())
-check("vintage_additions=29(含新4项+P2-3两项+数据批1 SPX_EPS/M2SL;"
-      "unavailable同属时点后新增)",
-      len(va) == 29 and {'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB', 'US_REAL_GDP',
-                         'SOFR', 'WALCL', 'SPX_EPS', 'M2SL'} <= va,
+# R20: vintage 29→32(+JP_CPI_YOY/EA_REAL_GDP_YOY/JP_REAL_GDP_YOY)
+# R21: 32→33(+CN_POLICY_OVERNIGHT 换锚新锚)
+check("vintage_additions=33(含新4项+P2-3两项+数据批1 SPX_EPS/M2SL;"
+      "R20 四地补齐+3;R21 换锚+1;unavailable同属时点后新增)",
+      len(va) == 33 and {'SPX_CAPE', 'SPX_PE_TTM', 'SPX_PB', 'US_REAL_GDP',
+                         'SOFR', 'WALCL', 'SPX_EPS', 'M2SL',
+                         'JP_CPI_YOY', 'EA_REAL_GDP_YOY',
+                         'JP_REAL_GDP_YOY', 'CN_POLICY_OVERNIGHT'} <= va,
       str(sorted(va)))
 
 print("\n" + "=" * 64)

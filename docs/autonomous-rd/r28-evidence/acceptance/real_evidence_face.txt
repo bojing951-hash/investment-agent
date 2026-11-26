@@ -1,0 +1,4 @@
+# R28 真实证据面快照(验收树 @59de8c1, 2026-11-21)
+- views_library: n_views=0 n_quarantined=0 n_files=0(机构观点库不在产品仓数据面→观点级到期样本如实 NOT_VERIFIED,首验窗 2026-12)
+- BOJ 官方记录 @2026-11-21: target=1.25 decision=2026-09-18 effective=2026-09-24 maintenance=2026-10-30 last_confirmed_on=2026-10-30(确认维持更新核验截止) days=调整58/决议64/维持22(距上次调整按生效日)
+- CN LPR publish_instant(2026-11-20)=09:00

@@ -1,0 +1,136 @@
+{
+ "block": "⑦",
+ "title": "机制链缺环注记/注册表/证据索引事实",
+ "rows": [
+  {
+   "block": "⑦",
+   "id": "J1-「快照事实面仅有 2026-11-19 点值 JGB 2/5/10 年 1.853/2.235/2.87」",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:facts[JGB2Y/JGB5Y/JGB10Y]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; JGB2Y=1.853@2026-11-19; JGB5Y=2.235@2026-11-19; JGB10Y=2.87@2026-11-19"
+  },
+  {
+   "block": "⑦",
+   "id": "J2-「序列库无历史」: series_store 无 JGB 序列",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store(键)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; JGB 键 []"
+  },
+  {
+   "block": "⑦",
+   "id": "J3-「未入证据索引」: 证据索引无 JGB 条目",
+   "source": "evidence_index.json[*].ref",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 证据索引行数 63"
+  },
+  {
+   "block": "⑦",
+   "id": "J4-注册表 economy=JP 面含 JGB2Y/5Y/10Y(在册)但快照无序列 →「序列库无历史」表述准确",
+   "source": "root_overlay/config/metric_registry.json:economy=JP",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; JP 面 ['EWJ', 'JGB10Y', 'JGB2Y', 'JGB5Y', 'JP_CPI_TOKYO_YOY', 'JP_CPI_YOY', 'JP_POLICY_RATE', 'JP_REAL_GDP_YOY', 'NIKKEI225', 'USDJPY']"
+  },
+  {
+   "block": "⑦",
+   "id": "J5-「本引擎无日本套息持仓…序列」: series_store 无套息持仓类序列",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store(键)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 键名扫描 CARRY/FX_POS/CFTC/POSITION"
+  },
+  {
+   "block": "⑦",
+   "id": "J6-「无日美利差序列」: series_store 无利差/spread 类日美序列",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store(键)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; []"
+  },
+  {
+   "block": "⑦",
+   "id": "J7-「美联储目标区间上限…欧央行存款便利利率…未纳入本问证据索引」: DFEDTARU/ECB_DFR 不在证据索引",
+   "source": "evidence_index.json[*].ref",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; DFEDTARU/ECB_DFR 在 series_store 而不在证据索引"
+  },
+  {
+   "block": "⑦",
+   "id": "J8-「本问计划指标面未纳入美欧政策利率序列」: plan.metrics 无 DFEDTARU/ECB_DFR",
+   "source": "report.json:research_plan.metrics",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; ['US_REAL_GDP', 'UNEMPLOYMENT', 'INDPRO', 'CPI', 'CORE_CPI', 'CORE_PCE', 'EA_REAL_GDP_YOY', 'EA_HICP_YOY', 'JP_POLICY_RATE']"
+  },
+  {
+   "block": "⑦",
+   "id": "J9-「政策事件簇为空」",
+   "source": "report.json:research_plan.policy_event_clusters.clusters",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑦",
+   "id": "J10-「发布日历政策条目仅 2 条、均为日本央行实录」",
+   "source": "root_overlay/config/release_calendar.json:entries[*].decision_date/metric_id",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 带决议日条目 [('RC-JP-BOJ-TARGET-2026-09', '2026-09-18'), ('RC-JP-BOJ-MAINT-2026-10', '2026-10-30')]; 日历共 18 条"
+  },
+  {
+   "block": "⑦",
+   "id": "J11-「发布日历政策条目仅 2 条」条数",
+   "source": "root_overlay/config/release_calendar.json:entries[*].decision_date",
+   "kind": "point",
+   "computed": 2,
+   "claim": 2,
+   "match": true,
+   "detail": "直算 2 → 取 0 位 2; 报告 2; "
+  },
+  {
+   "block": "⑦",
+   "id": "J12-「证据索引 63 行」行数",
+   "source": "evidence_index.json",
+   "kind": "point",
+   "computed": 63,
+   "claim": 63,
+   "match": true,
+   "detail": "直算 63 → 取 0 位 63; 报告 63; "
+  },
+  {
+   "block": "⑦",
+   "id": "J13-「本问计划指标面」9 个指标",
+   "source": "report.json:research_plan.metrics",
+   "kind": "point",
+   "computed": 9,
+   "claim": 9,
+   "match": true,
+   "detail": "直算 9 → 取 0 位 9; 报告 9; "
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+=== R32 从提交重下 R31 入库包重放 2026-11-24 19:42:15 sha=12edab84aeebc7f765b9a06ddc382ef0c0efa39e session=session_A4_formal ===
+clone: ok (attempt 1, 19:42:21)
+[1] downloaded HEAD=12edab84aeebc7f765b9a06ddc382ef0c0efa39e (expect 12edab84aeebc7f765b9a06ddc382ef0c0efa39e)
+[2] manifest check: /tmp/r32-accept/redl/12edab8/r31_session_A4_formal/src/docs/autonomous-rd/r31-evidence/acceptance/session_A4_formal
+manifest run_ts=20261122T120924Z run_code_git_head=ca916cdca7b749282e498d8c8f0eac8bf43b7372 verdict=UPHELD verdicts_n=1 frozen_inputs_sha256=30e219e39cbdc1fe
+bound files checked=14 mismatches/missing=0 | files outside the manifest: 2 ['archive_receipt.json', 'seat_A4.log']
+manifest run_code_git_head=ca916cdca7b749282e498d8c8f0eac8bf43b7372
+[3] blob identity (cloned commit; audit baseline 72dab1c)
+fetch of the baseline (72dab1c0bc4a050613ba5ca3ca57051ae8475484) attempt 1 failed: fatal: unable to access 'https://github.com/bojing951-hash/investment-agent.git/': Failed to connect to github.com port 443 after 75003 ms: Couldn't connect to 
+fetch of the baseline (72dab1c0bc4a050613ba5ca3ca57051ae8475484) attempt 2 failed: fatal: expected 'acknowledgments'
+fetch of the baseline (72dab1c0bc4a050613ba5ca3ca57051ae8475484) attempt 3 failed: fatal: unable to access 'https://github.com/bojing951-hash/investment-agent.git/': Failed to connect to github.com port 443 after 75067 ms: Couldn't connect to 
+fetch of the baseline (72dab1c0bc4a050613ba5ca3ca57051ae8475484) attempt 4 failed: fatal: expected flush after ref listing

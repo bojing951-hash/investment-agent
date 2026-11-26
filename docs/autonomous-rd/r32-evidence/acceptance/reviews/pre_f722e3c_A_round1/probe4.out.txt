@@ -1,0 +1,125 @@
+==================== S2_doctor ====================
+argv=["doctor"]
+exit_code=0 semantic_ok=True note=null
+gate_a=null
+warnings=[]
+  data: dict(8) keys=['python', 'platform', 'env', 'model_key_note', 'snapshot', 'data_freshness', 'last_run', 'skill']
+    python: '3.9.6'
+    platform: 'darwin'
+    env: dict(8) keys=['MODEL_API_KEY', 'MODEL_BASE_URL', 'MODEL_NAME', 'IA_NEWS_MODEL_SUMMARY', 'FRED_API_KEY', 'TUSHARE_TOKEN', 'FINNHUB_API_KEY', 'YF_PROXY']
+    model_key_note: '未配置模型 API(可选): 解释层(AI 周报解释/研究 AI 解释)不可用,系统自动走确定性分支(数据观察周报/确定性标题/如实提示)。\n配置方法: 在项目根 .env 写入 MODEL_API_KEY/MODEL_BASE_URL/MODEL_NAME 三项(任意 OpenAI 兼容端点,模板见 .env.e
+    snapshot: dict(8) keys=['available', 'note', 'target_date', 'gate_a', 'missing', 'degraded', 'sources_status', 'sources_status_note']
+    data_freshness: dict(8) keys=['global', 'macro', 'china', 'rate_economy', 'japan', 'jp', 'ea', 'research_snapshot']
+    last_run: dict(9) keys=['available', 'ledger_file', 'run_at', 'success_count', 'critical_steps_all_ok', 'gate_a', 'snapshot_id', 'allow_formal_report', 'critical_steps']
+    skill: dict(3) keys=['source_present', 'project_install_present', 'note']
+==================== S3_overview_US ====================
+argv=["overview", "--economy", "US"]
+exit_code=0 semantic_ok=True note=null
+gate_a="DEGRADED"
+warnings=[]
+  data: dict(2) keys=['economies', 'supported_hint']
+    economies: dict(1) keys=['US']
+    supported_hint: '当前支持的完整研究问题类型(基于本地快照事实作答):\n  1) 美日政策利率差(触发词: 政策利率差)\n  2) 美日10年期国债收益率差(触发词: 10年期/十年期…收益率差;附美端2s10s)\n  3) 美元兑日元水平与近期走势(触发词: 美元兑日元/USDJPY/日元汇率)\n  4) 美国政策利率水平(
+==================== S3_changes ====================
+argv=["changes"]
+exit_code=0 semantic_ok=True note=null
+gate_a="DEGRADED"
+warnings=[]
+  data: dict(4) keys=['n_metrics', 'n_missing', 'by_asset_class', 'window_note']
+    n_metrics: 46
+    n_missing: 0
+    by_asset_class: dict(12) keys=['equity_index', 'volatility_index', 'single_stock', 'bond_etf', 'fx_index', 'fx_rate', 'commodity_futures', 'spot_commodity_etf', 'commodity_futures_etf', 'country_etf_proxy', 'crypto', 'credit_spread']
+    window_note: '周/月/年内变化各自的窗口语义见每条 changes[].window_semantics(如"ISO周之前最后观测为基准"),非"最近7天"'
+==================== S4_history_CPI ====================
+argv=["history", "--metric", "CPI"]
+exit_code=0 semantic_ok=True note=null
+gate_a="DEGRADED"
+warnings=[]
+  data: dict(1) keys=['series']
+    series: dict(13) keys=['metric_id', 'label', 'unit', 'unit_family', 'frequency', 'identity', 'calc', 'n', 'first', 'last', 'dates', 'values', 'source']
+==================== S4_history_JP_POLICY_RATE ====================
+argv=["history", "--metric", "JP_POLICY_RATE"]
+exit_code=0 semantic_ok=True note=null
+gate_a="DEGRADED"
+warnings=[]
+  data: dict(1) keys=['series']
+    series: dict(13) keys=['metric_id', 'label', 'unit', 'unit_family', 'frequency', 'identity', 'calc', 'n', 'first', 'last', 'dates', 'values', 'source']
+==================== S5_compare ====================
+argv=["compare", "--metrics", "US_REAL_GDP,UNEMPLOYMENT"]
+exit_code=0 semantic_ok=True note="命中 52 个指标,compare 仅取注册表序前 2(US_REAL_GDP,UNEMPLOYMENT);其余 INDPRO,CPI,CORE_CPI,CORE_PCE,DFEDTARU,DFF,CN_PMI_MFG,CN_CPI_YOY,CN_PPI_YOY,CN_POLICY_OVERNIGHT,CN_OMO_7D,CN_LPR_1Y,EA_REAL_GDP_YOY,EA_HICP_YOY,ECB_MRO,ECB_DFR,JP_REAL_GDP_YOY,JP_CPI_YOY,JP_CPI_TOKYO_YOY,JP_POLICY_RATE,UST_10Y,TIPS_10Y,BEI_10Y,UST_2Y,UST_5Y,UST_30Y,TIPS_5Y,BEI_5Y,CURVE_2S10S,SPX,NDX,RUT,DAX,CAC40,NIKKEI225,HSI,SHCOMP,DXY,EURUSD,USDJPY,USDCNY,GOLD_F,SILVER_F,BRENT_F,HY_OAS,IG_OAS,BB_OAS,B_OAS,CCC_OAS,VIX 以 L1 事实行呈现,如需对比另行单跑
+gate_a="DEGRADED"
+warnings=["mixed_frequency: 两侧频率不同(quarterly vs monthly),已默认按自然月网格聚合对齐(alignment.mode=month_grid,聚合方式见 alignment.note 与该侧 sides[].aggregation)", "date_gap(月网格): 共同观测窗内最大间隔 6 个月(缺失月份),相关序列存在断点", "两侧最新观测日相差 92 天(2026-07-01 vs 2026-10-01)——日频指标错位>3天,末端对比须注明各自观测日"]
+  data: dict(8) keys=['mode', 'sides', 'alignment', 'pearson_returns', 'change_basis', 'n_change_pairs', 'dropped_null', 'zero_base_dropped']
+    mode: 'metrics'
+    sides: list(2)
+    alignment: dict(10) keys=['mode', 'n_common_observations', 'n_level_observations', 'n_change_pairs', 'common_first', 'common_last', 'a_dropped', 'b_dropped', 'research_mode_gate', 'note']
+    pearson_returns: -0.8935653981522128
+    change_basis: dict(2) keys=['a', 'b']
+    n_change_pairs: 37
+    dropped_null: 0
+    zero_base_dropped: 0
+==================== S6_analog ====================
+argv=["analog"]
+exit_code=0 semantic_ok=True note=null
+gate_a="DEGRADED"
+warnings=["候选侧维度缺席: 信用(credit)在全部有效候选上无有效特征,不进入任何距离——未覆盖维度可能是共同驱动(缺变量),相似性解释力受限", "2023-10: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(波动 contribution_share=0.62)", "2021-02: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.77)", "2020-01: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.73)", "锚点维度 增长(growth) 覆盖率 0.17(<0.5), 该维特征部分弃用", "锚点维度 通胀(inflation) 覆盖率 0.33(<0.5), 该维特征部分弃用"]
+  data: dict(13) keys=['anchor_month', 'feature_window_months', 'state_vector', 'normalization', 'weights', 'feature_set', 'candidates', 'sort_basis', 'top', 'dispersion', 'research_mode_gate', 'disclosure', 'features_dropped_at_anchor']
+    anchor_month: '2026-11'
+    feature_window_months: 12
+    state_vector: dict(6) keys=['growth', 'inflation', 'rates', 'credit', 'volatility', 'valuation']
+    normalization: dict(3) keys=['method', 'min_history_months', 'min_observations_note']
+    weights: dict(6) keys=['growth', 'inflation', 'rates', 'credit', 'volatility', 'valuation']
+    feature_set: dict(4) keys=['basis', 'features', 'n_features', 'wsum']
+    candidates: dict(6) keys=['scanned', 'valid', 'dropped_overlap', 'dropped_insufficient', 'n_independent_clusters_topN', 'cluster_dedup']
+    sort_basis: '(n_missing, distance, month) — 缺席特征多者降位,名次非纯距离序,比较相似度请以 distance 字段为准'
+    top: list(5)
+    dispersion: dict(3) keys=['topN_aftermath_sign_agreement', 'basis', 'n_independent_clusters']
+    research_mode_gate: dict(4) keys=['descriptive', 'event_study', 'realtime_info_set', 'note']
+    disclosure: list(3)
+    features_dropped_at_anchor: dict(12) keys=['UNEMPLOYMENT_level', 'NFP_3m_chg', 'INDPRO_yoy', 'RSAFS_yoy', 'GDP_yoy', 'CORE_CPI_yoy', 'CPI_yoy', 'FED_FUNDS_level', 'FED_FUNDS_d12m', 'HY_OAS_d12m', 'HY_IG_gap_d12m', 'SPX_PE_TTM_level']
+==================== S8_grounded_qa ====================
+argv=["research", "--question", "给我一份全球宏观经济变化地图。美国、中国、欧元区、日本在12个月前、3个月前和最新一期，分别处于什么增长、通胀和货币政策环境？过去一年最重要的三个转折是什么，谁先变，谁跟进或背离？证据最充分的传导机制是什么，还有什么解释，哪个指标能区分它们？历史上哪些时期结构最像，当时其他经济体是否同步，随后3、6、12个月经济和主要资产实际怎么走？"]
+exit_code=0 semantic_ok=False note=null
+gate_a="DEGRADED"
+warnings=[]
+  data: dict(5) keys=['status', 'answer_text', 'values', 'unresolved', 'supported_hint']
+    status: 'unmapped'
+    answer_text: '该问题不在当前支持的研究问题类型内。\n当前支持的完整研究问题类型(基于本地快照事实作答):\n  1) 美日政策利率差(触发词: 政策利率差)\n  2) 美日10年期国债收益率差(触发词: 10年期/十年期…收益率差;附美端2s10s)\n  3) 美元兑日元水平与近期走势(触发词: 美元兑日元/USDJPY/日
+    values: dict(0) keys=[]
+    unresolved: list(0)
+    supported_hint: '当前支持的完整研究问题类型(基于本地快照事实作答):\n  1) 美日政策利率差(触发词: 政策利率差)\n  2) 美日10年期国债收益率差(触发词: 10年期/十年期…收益率差;附美端2s10s)\n  3) 美元兑日元水平与近期走势(触发词: 美元兑日元/USDJPY/日元汇率)\n  4) 美国政策利率水平(
+==================== S9_views_lint ====================
+argv=["views", "lint"]
+exit_code=0 semantic_ok=True note=null
+gate_a=null
+warnings=[]
+  data: dict(5) keys=['schema_version', 'n_compliant', 'n_quarantined', 'n_files', 'quarantined']
+    schema_version: '1.1'
+    n_compliant: 0
+    n_quarantined: 0
+    n_files: 0
+    quarantined: list(0)
+==================== contract_verification ====================
+keys=['version', 'verdicts', 'six_checks', 'map_checks', 'unresolved_unbound', 'verdict', 'stats']
+version: "jc-v1.0-phase4"
+six_checks: [{"item": "C1", "check": "relevant", "status": "VERIFIED", "note": "17 实据引用"}, {"item": "C1", "check": "supports", "status": "VERIFIED", "note": "引用逐项对得上"}, {"item": "C1", "check": "competing", "status": "VERIFIED", "note": "3 并列解释(阈值≥2)"}, {"item": "C1", "check": "opposing", "status": "VERIFIED", "note": "无未消化的相反证据"}, {"item": "C2", "check": "relevant", "status": "VERIFIED", "note": "4 实据引用"}, {"item": "C2", "check": "supports", "status": "VERIFIED", "note": "引用逐项对得上; 披露: UST_10Y@2026-11-19 未在文本展开"}, {"item": "C2", "check": "competing", "status": "VERIFIED", "note": "2 并列解释(阈值≥2)"}, {"item": "C2", "check": "opposing", "status": "VERIFIED", "note": "未讨论的被引指标(披露): ['UST_10Y']"}, {"item": "C3", "check": "relevant", "status": "VERIFIED", "note": "4 实据引用"}, {"item": "C3", "check": "supports", 
+map_checks: [{"item": "reader_map.headline_conclusion", "claim_type": "reader_map", "status": "VERIFIED", "note": "非空", "evidence_refs": []}, {"item": "reader_map.regions", "claim_type": "reader_map", "status": "VERIFIED", "note": "4 地齐", "evidence_refs": []}, {"item": "reader_map.turning_supplement", "claim_type": "reader_map", "status": "VERIFIED", "note": "补选转折 JP_CPI_TOKYO_YOY@2026-09 已交还判断席(first_mover=东京都CPI同比自1.6升至2.69(2026-)", "evidence_refs": []}, {"item": "reader_map.cross_face_consistency.date_order", "claim_type": "reader_map", "status": "VERIFIED", "note": "日期次序主张一致: 2025-11<2026-02(早于,1 处)", "evidence_refs": []}, {"item": "reader_map.cross_face_consistency.chain_evidence", "claim_type": "reader_map", "status": "VERIFIED", "note": "传导链[TR1] 区分指标绑定 3/3 环", "evidence_refs": []}, {"item": "r
+unresolved_unbound: []
+verdict: "VERIFIED"
+stats: {"checks": 14, "contradicted": 0, "verified": 14, "unbound": 0, "six_fail": 0, "map_fail": 0, "n_contradictions": 3}
+n verdicts=14
+[(('VERIFIED', 'level'), 14)]
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["UST_10Y"], "family": "level", "token": "5.04", "metric": "UST_10Y", "value": 5.04, "expected": 5.04, "status": "VERIFIED", "note": "recompute:Fact 直读 UST_10Y@2026-11-19=5.04"}
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["TIPS_10Y"], "family": "level", "token": "2.88", "metric": "TIPS_10Y", "value": 2.88, "expected": 2.88, "status": "VERIFIED", "note": "recompute:Fact 直读 TIPS_10Y@2026-11-19=2.88"}
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["BEI_10Y"], "family": "level", "token": "2.15", "metric": "BEI_10Y", "value": 2.15, "expected": 2.15, "status": "VERIFIED", "note": "recompute:Fact 直读 BEI_10Y@2026-11-20=2.15"}
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["VIX"], "family": "level", "token": "30.24", "metric": "VIX", "value": 30.24, "expected": 30.24, "status": "VERIFIED", "note": "recompute:Fact 直读 VIX@2026-11-23=30.24"}
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["HY_OAS"], "family": "level", "token": "3.52", "metric": "HY_OAS", "value": 3.52, "expected": 3.52, "status": "VERIFIED", "note": "recompute:Fact 直读 HY_OAS@2026-11-19=3.52"}
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["USDJPY"], "family": "level", "token": "158.96", "metric": "USDJPY", "value": 158.96, "expected": 158.96, "status": "VERIFIED", "note": "recompute:Fact 直读 USDJPY@2026-11-23=158.96"}
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["DFF"], "family": "level", "token": "3.88", "metric": "DFF", "value": 3.88, "expected": 3.88, "status": "VERIFIED", "note": "recompute:Fact 直读 DFF@2026-11-19=3.88"}
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["JP_POLICY_RATE"], "family": "level", "token": "1.227", "metric": "JP_POLICY_RATE", "value": 1.227, "expected": 1.227, "status": "VERIFIED", "note": "recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227"}
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CN_PPI_YOY"], "family": "level", "token": "5.7", "metric": "CN_PPI_YOY", "value": 5.7, "expected": 5.7, "status": "VERIFIED", "note": "recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7"}
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CN_CPI_YOY"], "family": "level", "token": "0.7", "metric": "CN_CPI_YOY", "value": 0.7, "expected": 0.7, "status": "VERIFIED", "note": "recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7"}
+{"item": "C1.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CN_PMI_MFG"], "family": "level", "token": "49.3", "metric": "CN_PMI_MFG", "value": 49.3, "expected": 49.3, "status": "VERIFIED", "note": "recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3"}
+{"item": "C3.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CN_PPI_YOY"], "family": "level", "token": "5.7", "metric": "CN_PPI_YOY", "value": 5.7, "expected": 5.7, "status": "VERIFIED", "note": "recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7"}
+{"item": "C3.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CN_CPI_YOY"], "family": "level", "token": "0.7", "metric": "CN_CPI_YOY", "value": 0.7, "expected": 0.7, "status": "VERIFIED", "note": "recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7"}
+{"item": "C3.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CN_PMI_MFG"], "family": "level", "token": "49.3", "metric": "CN_PMI_MFG", "value": 49.3, "expected": 49.3, "status": "VERIFIED", "note": "recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3"}

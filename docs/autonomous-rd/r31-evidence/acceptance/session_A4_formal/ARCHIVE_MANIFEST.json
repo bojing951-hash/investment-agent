@@ -1,0 +1,49 @@
+{
+  "stage": "archive",
+  "run_ts": "20261122T120924Z",
+  "question": "给我一份全球宏观经济变化地图。美国、中国、欧元区、日本在12个月前、3个月前和最新一期，分别处于什么增长、通胀和货币政策环境？过去一年最重要的三个转折是什么，谁先变，谁跟进或背离？证据最充分的传导机制是什么，还有什么解释，哪个指标能区分它们？历史上哪些时期结构最像，当时其他经济体是否同步，随后3、6、12个月经济和主要资产实际怎么走？",
+  "archived_at": "20261122T125330Z",
+  "content_sha256": "73f2dd4fa532a9c62bc2da63a35df7f0630a70556b53c3763ba193d22d93eb9a",
+  "run_code_git_head": "ca916cdca7b749282e498d8c8f0eac8bf43b7372",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 1,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261122__VERDICT-20261122T120924Z-01.json",
+      "source_rel": "audit/semantic_review/20261122/VERDICT-20261122T120924Z-01.json",
+      "overall": "UPHELD",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261122T125005Z",
+      "sha256": "e3be66c9c7dabb6d"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "36def3a777075cf9",
+    "report.md": "5febdee5e9f8e62b",
+    "FULL_REPORT.md": "c9112e20723a4b79",
+    "agent_judgment.json": "78a62a70837d628c",
+    "views_digest.json": "e71a18c2e81904ed",
+    "evidence_index.json": "6dadffa8cba17a71",
+    "AGENT_SEAT_ENVELOPE.json": "c47fd319a30a3c56",
+    "MAP_REPORT.md": "811b161d05f3206b",
+    "MAP_REPORT.sha256": "8f20fb04a01e8b54",
+    "question_verbatim.txt": "409eef0c8cec2aa0"
+  },
+  "frozen_inputs": {
+    "config/metric_registry.json": "fa396d22175a4814",
+    "config/release_calendar.json": "e44fd2aa5ced0310",
+    "data/daily/research_snapshot_20261122.json": "eabee6b470a8e959"
+  },
+  "frozen_inputs_sha256": "30e219e39cbdc1fe8d633628d0503b9c33a01df7ec81f54deb30cc76e4622dfd",
+  "record_health": {},
+  "source_report_dir": "output/research_runs/20261122T120924Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最",
+  "map_report_sha256": "f7f0f6d425d589b439be8ad63d5fa00d6a65b0fda14dd71f47e49572aa47db8a",
+  "map_content_sha256": "f7f0f6d425d589b439be8ad63d5fa00d6a65b0fda14dd71f47e49572aa47db8a",
+  "map_legacy_no_binding": false,
+  "map_renderer_drift": false,
+  "map_version": 1,
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定已核/Audit-R24 任务1)"
+}

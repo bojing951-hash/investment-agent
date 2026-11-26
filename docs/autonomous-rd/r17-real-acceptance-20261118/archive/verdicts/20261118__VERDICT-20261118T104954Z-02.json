@@ -1,0 +1,17 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "R17-REAL-SEMANTIC-REVIEW",
+  "notes": "复验通过: 三项必修逐项落实(①CON-1/结论/量化注月内路径如实化——两度单周跳升逾30%(W45+32.03%/W47+31.92%)、W46单周-24.73%全程回撤、低点16.61@11-04低于窗起18.44,「连续多周跳升」全文清零,脱敏论改「此前两次周跳升(W42/W45)」且「未随次数升级、无一逾20bp」更稳健; ②事件后四周双口径披露——部分窗-8bp计入与完整窗20次/-12bp/4正并列、方向一致如实; ③历史对照③周归位——+109.3%/+98bp挂止于2025-04-04冲击周、HY当周收4.45、4.61系次周一峰值),另长期历史极紧区间已加点上qualify;修订仅动五块(三必修+两qualify),新增数字全部与本人独立复算一致(W42+34.70/W45+32.03/W46-24.73/W47+31.92、2025-W14 VIX21.65→45.31/HY3.47→4.45),经济学结论与证伪阈值未改,attach校验0violations契约VERIFIED。",
+  "run_ts": "20261118T104954Z",
+  "content_sha256": "cbadce95c40ca6b3266dd30b8311097db206f80b67767df3294875d79921798f",
+  "audited_at": "2026-11-18",
+  "recorded_at": "20261118T121050Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261118/VERDICT-20261118T104954Z-01.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

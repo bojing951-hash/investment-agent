@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "independent-semantic-review-r31",
+  "notes": "修订后复审: 必修-1 已如实修毕——M1-DIVERGE-TRANSMIT 环1 新句约 0.93-1.67 个百分点在全部 5 处副本(agent_judgment.json l3.mechanism_chains[0].links[0].text / judgment_agent_v1.json 同字段 / report.json 内嵌 L3 / report.md M1 环1 / FULL_REPORT.md L3 环1)逐字一致,旧值 1.3-1.9 六文件零残留;冻结快照 series_store 直查逐月差 1.67/1.13/0.93/1.22/1.64/1.56,区间 [0.93,1.67] 逐位吻合且两端点各有对应月份(05 月 1.67 / 07 月 0.93),持续高于成立(6/6 月差为正),句内自引 12 个月度值逐位正确。本轮独立复算约 130+ 数字点全部通过: 12 逐月序列值+去年同月基期 2025-10=2.1/2.99+六个月前锚 2026-04=3.0/1.38+东京序列 5 值及起点 2026-01+ECB 两序列末三点(两次+25bp)+BOJ 月均一年窗 6 台阶(+8/+17/+11/+14/+7/+18)净+67bp(窗首 2025-12-01=0.557)+八资产月窗 from/to/chg_pct/chg_abs 独立复算+三利率年窗 +91=+102-11 与月窗 -8=+11-19 恒等残差 0+期末 5.04/2.88/2.16+gate_a 缺席 7 项/降级 8 项(含 ECB 两序列)+发布日历 v1.5.0 两条 BOJ 实录(1.25,09-18 决议/09-24 生效/10-30 维持)+FOMC 纪要 2026-11-18(policy_doc_facts 通道 user_directive)+距研究截止 75/67/73/31 天手工日历核+pearson 0.264016(n=45)按引擎披露月网格口径逐位复现+EURUSD/VIX 近30日 -1.91%/+84.81%+发布日推定规则六日自洽(EA+16/JP全国+20/东京+25/BOJ+5)+MAP_REPORT.sha256 与实际文件一致+两 judgment 文件 canonical 相等。无新引入问题: 修订后渲染链完整(attach validation violations=0,attach_history=2),决议前可见性叙事与日期一致(2026-04 读数 05-16 发布先于 06-11 决议;东京 09 月读数 10-25 发布晚于 BOJ 09-18 决议且如实注记不构成决议前可见信息),次月末生效事件均带生效日未写成当时已发生。纪律面(E1/E2 分级/缺数格如实/口径分记/推定标注/【尚未验证】/竞争解释并列/证伪阈值含数字与时限/决议生效分记/同比基期=去年同月)全部合规。NIT 遗留 3 条不阻交付: ①reader_map.turnings[2].narrative(未进渲染面)水平差约 1.3-1.6 为混合口径(全国 09/10 差 1.64/1.56、东京 1.11/1.27),建议后续注明口径;②近30日标签=window_months=1 引擎命名(实窗 21 日历日);③EA 月末+16 天推定规则与两条历史实录(07-19/06-17)的校准提示。",
+  "run_ts": "20261122T145134Z",
+  "content_sha256": "15c3dd6e5776e48f221b9ea6bb5f9c03038919d03dbbe79f780ce8e7ff85aa41",
+  "audited_at": "2026-11-23",
+  "recorded_at": "20261122T184423Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261123/VERDICT-20261122T145134Z-01.json",
+  "map_report_sha256": "a6cc6761a4c95845cc83d7d0443510d4e662262ed2d48467f675fe119fd800dc",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "73d74da0477258752a9f0aee74aaab848722ff50bb56ee39ba394c600cbcd00d"
+}

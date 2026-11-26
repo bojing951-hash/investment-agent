@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "semantic-review-r28",
+  "notes": "复审通过: 两情景触发已改为各自前提同向的观测确认, 与证伪行方向相反且互为对侧, 倒置消除; A数值抽查一致, B缺数如实, C分层与E1E2E3齐备, D样本注记齐, E月频先后未定与决议日先后有据, G三档同源一致。",
+  "run_ts": "20261121T063746Z",
+  "content_sha256": "d232f3bfb3eb0e7299a8200e29a0e914ad60b720de3091b77af8b25db326bb3f",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T065954Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261121/VERDICT-20261121T063746Z-01.json",
+  "map_report_sha256": "0f9304d8262af8b9c034221dd44d878bf9eb87f54f82928bd26b3d4e2b3b680e",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

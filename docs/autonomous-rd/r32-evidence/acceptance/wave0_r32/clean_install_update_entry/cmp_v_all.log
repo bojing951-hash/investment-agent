@@ -1,0 +1,23 @@
+cmp V A rc=0 | 1 sections with real diffs | new run 20261124T081200Z
+cmp V B rc=0 | 1 sections with real diffs | new run 20261124T081255Z
+cmp V T3 rc=0 | 1 sections with real diffs | new run 20261124T081326Z
+cmp V N30 rc=0 | 1 sections with real diffs | new run 20261124T081422Z
+cmp V C4 rc=0 | 1 sections with real diffs | new run 20261124T081158Z
+cmp V AUG rc=0 | 0 sections with real diffs | new run 20261124T080605Z
+# cmp_V_summary — stamp Y 36499bb -> stamp V cf33de3a9942578b71cecb45077b7a505d8fca01, from cmp_V_<tag>.txt (cmp_runs.py)
+# "engine" = every section except the L3/L4 AI layers; "judgment" = report.json/layers leaves under the AI layers
+# (Y runs carry the attached, reviewed judgments; the V re-plan runs are plan-only)
+== A | old run 20261123T235103Z git_head 36499bb78a18 | new run 20261124T081200Z git_head cf33de3a9942
+   report.json/layers         real diff 119 = judgment 119 + engine 0
+== B | old run 20261123T235121Z git_head 36499bb78a18 | new run 20261124T081255Z git_head cf33de3a9942
+   report.json/layers         real diff 72 = judgment 72 + engine 0
+== T3 | old run 20261123T235139Z git_head 36499bb78a18 | new run 20261124T081326Z git_head cf33de3a9942
+   report.json/layers         real diff 79 = judgment 79 + engine 0
+== N30 | old run 20261123T235157Z git_head 36499bb78a18 | new run 20261124T081422Z git_head cf33de3a9942
+   report.json/layers         real diff 80 = judgment 80 + engine 0
+== C4 | old run 20261123T235101Z git_head 36499bb78a18 | new run 20261124T081158Z git_head cf33de3a9942
+   report.json/layers         real diff 114 = judgment 114 + engine 0
+== AUG | old run 20261123T235136Z git_head 36499bb78a18 | new run 20261124T080605Z git_head cf33de3a9942
+   no real difference in any section
+engine-face leaf differences outside the AI layers, all work orders: 0
+done 2026-11-24 16:15:40

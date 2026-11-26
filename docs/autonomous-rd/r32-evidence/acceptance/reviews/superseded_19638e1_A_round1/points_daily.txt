@@ -1,0 +1,133 @@
+OK|12m trio common day 2025-11-19 has UST_10Y|computed=4.13|reported=present|src=series_store UST_10Y@2025-11-19|note=
+OK|12m trio common day 2026-11-19 has UST_10Y|computed=5.04|reported=present|src=series_store UST_10Y@2026-11-19|note=
+OK|12m trio common day 2025-11-19 has TIPS_10Y|computed=1.86|reported=present|src=series_store TIPS_10Y@2025-11-19|note=
+OK|12m trio common day 2026-11-19 has TIPS_10Y|computed=2.88|reported=present|src=series_store TIPS_10Y@2026-11-19|note=
+OK|12m trio common day 2025-11-19 has BEI_10Y|computed=2.27|reported=present|src=series_store BEI_10Y@2025-11-19|note=
+OK|12m trio common day 2026-11-19 has BEI_10Y|computed=2.16|reported=present|src=series_store BEI_10Y@2026-11-19|note=
+OK|12m UST_10Y change (bp)|computed=91.0|reported=91|src=series_store (UST_10Y 2025-11-19→2026-11-19)*100|note=
+OK|12m TIPS_10Y change (bp)|computed=102.0|reported=102|src=series_store (TIPS_10Y 2025-11-19→2026-11-19)*100|note=
+OK|12m BEI_10Y change (bp)|computed=-11.0|reported=-11|src=series_store (BEI_10Y 2025-11-19→2026-11-19)*100|note=
+OK|12m trio residual change (bp)|computed=0.0|reported=0|src=series_store identity residual change*100|note=恒等残差0
+OK|1m common days trio common day 2026-10-20 has UST_10Y|computed=5.12|reported=present|src=series_store UST_10Y@2026-10-20|note=
+OK|1m common days trio common day 2026-11-19 has UST_10Y|computed=5.04|reported=present|src=series_store UST_10Y@2026-11-19|note=
+OK|1m common days trio common day 2026-10-20 has TIPS_10Y|computed=2.77|reported=present|src=series_store TIPS_10Y@2026-10-20|note=
+OK|1m common days trio common day 2026-11-19 has TIPS_10Y|computed=2.88|reported=present|src=series_store TIPS_10Y@2026-11-19|note=
+OK|1m common days trio common day 2026-10-20 has BEI_10Y|computed=2.35|reported=present|src=series_store BEI_10Y@2026-10-20|note=
+OK|1m common days trio common day 2026-11-19 has BEI_10Y|computed=2.16|reported=present|src=series_store BEI_10Y@2026-11-19|note=
+OK|1m common days UST_10Y change (bp)|computed=-8.0|reported=-8.0|src=series_store (UST_10Y 2026-10-20→2026-11-19)*100|note=
+OK|1m common days TIPS_10Y change (bp)|computed=11.0|reported=11.0|src=series_store (TIPS_10Y 2026-10-20→2026-11-19)*100|note=
+OK|1m common days BEI_10Y change (bp)|computed=-19.0|reported=-19.0|src=series_store (BEI_10Y 2026-10-20→2026-11-19)*100|note=
+OK|1m common days trio residual change (bp)|computed=0.0|reported=0|src=series_store identity residual change*100|note=恒等残差0
+OK|UST_10Y level 2026-11-19|computed=5.04|reported=5.04|src=series_store UST_10Y@2026-11-19|note=M1 link3
+OK|TIPS_10Y level 2026-11-19|computed=2.88|reported=2.88|src=series_store TIPS_10Y@2026-11-19|note=M1 link3
+OK|BEI_10Y level 2026-11-19|computed=2.16|reported=2.16|src=series_store BEI_10Y@2026-11-19|note=M1 link3
+OK|BEI_10Y level 2026-11-20|computed=2.15|reported=2.15|src=series_store BEI_10Y@2026-11-20|note=latest
+OK|BEI_10Y 2026-02-27|computed=2.25|reported=2.25|src=series_store BEI_10Y@2026-02-27|note=TR1 link2
+OK|BEI_10Y 2026-05-04|computed=2.5|reported=2.50|src=series_store BEI_10Y@2026-05-04|note=TR1 link2
+OK|BEI_10Y 2026-06-10|computed=2.34|reported=2.34|src=series_store BEI_10Y@2026-06-10|note=TR1 link2
+OK|BEI_10Y 2026-10-23|computed=2.34|reported=2.34|src=series_store BEI_10Y@2026-10-23|note=TR1 link2
+OK|BEI_10Y range after 2026-06-17|computed=2.15..2.40|reported=2.15..2.40|src=series_store BEI_10Y min..max|note=
+OK|BEI_10Y 2026-10-23→2026-11-20 calendar days|computed=28|reported=28|src=dates|note=
+OK|rates_decomposition.nominal_bp|computed=-8.0|reported=-8.0|src=series_store recompute|note=judgment field
+OK|rates_decomposition.real_bp|computed=11.0|reported=11.0|src=series_store recompute|note=judgment field
+OK|rates_decomposition.bei_bp|computed=-19.0|reported=-19.0|src=series_store recompute|note=judgment field
+OK|rates_decomposition window|computed=2026-10-20..2026-11-19|reported=2026-10-20..2026-11-19|src=judgment field|note=
+OK|asset SPX 2026-10-23→2026-11-23|computed=-5.5069|reported=-5.51|src=series_store SPX 2026-10-23→2026-11-23|note=asset_returns_echo
+OK|asset SHCOMP 2026-10-23→2026-11-23|computed=-4.1059|reported=-4.11|src=series_store SHCOMP 2026-10-23→2026-11-23|note=asset_returns_echo
+OK|asset DAX 2026-10-23→2026-11-23|computed=0.1104|reported=0.11|src=series_store DAX 2026-10-23→2026-11-23|note=asset_returns_echo
+OK|asset NIKKEI225 2026-10-23→2026-11-20|computed=-9.9796|reported=-9.98|src=series_store NIKKEI225 2026-10-23→2026-11-20|note=asset_returns_echo
+OK|asset VIX 2026-10-23→2026-11-23|computed=38.8689|reported=38.87|src=series_store VIX 2026-10-23→2026-11-23|note=asset_returns_echo
+OK|asset DXY 2026-10-23→2026-11-23|computed=2.2287|reported=2.23|src=series_store DXY 2026-10-23→2026-11-23|note=asset_returns_echo
+OK|asset GOLD_F 2026-10-23→2026-11-23|computed=-8.0516|reported=-8.05|src=series_store GOLD_F 2026-10-23→2026-11-23|note=asset_returns_echo
+OK|asset UST_10Y 2026-10-23→2026-11-19|computed=0.8|reported=0.8|src=series_store UST_10Y 2026-10-23→2026-11-19|note=asset_returns_echo
+OK|close basis SPX 2026-10-23→2026-11-20|computed=-9.3562|reported=-9.36|src=series_store SPX 2026-10-23→2026-11-20|note=TR1 link3 close basis
+OK|close basis DAX 2026-10-23→2026-11-20|computed=-1.5046|reported=-1.50|src=series_store DAX 2026-10-23→2026-11-20|note=TR1 link3 close basis
+OK|close basis CAC40 2026-10-23→2026-11-20|computed=1.8622|reported=1.86|src=series_store CAC40 2026-10-23→2026-11-20|note=TR1 link3 close basis
+OK|close basis NIKKEI225 2026-10-23→2026-11-20|computed=-9.9796|reported=-9.98|src=series_store NIKKEI225 2026-10-23→2026-11-20|note=TR1 link3 close basis
+OK|close basis VIX 2026-10-23→2026-11-20|computed=84.5244|reported=84.52|src=series_store VIX 2026-10-23→2026-11-20|note=TR1 link3 close basis
+OK|VIX 2026-10-23|computed=19.45|reported=19.45|src=series_store VIX@2026-10-23|note=
+OK|VIX 2026-11-23|computed=27.01|reported=27.01|src=series_store VIX@2026-11-23|note=
+OK|C1 level UST_10Y|computed=5.04|reported=5.04|src=series_store UST_10Y latest 2026-11-19|note=latest level at cutoff
+OK|C1 level TIPS_10Y|computed=2.88|reported=2.88|src=series_store TIPS_10Y latest 2026-11-19|note=latest level at cutoff
+OK|C1 level BEI_10Y|computed=2.15|reported=2.15|src=series_store BEI_10Y latest 2026-11-20|note=latest level at cutoff
+OK|C1 level VIX|computed=27.01|reported=27.01|src=series_store VIX latest 2026-11-23|note=latest level at cutoff
+OK|C1 level USDJPY|computed=159.347|reported=159.35|src=series_store USDJPY latest 2026-11-23|note=latest level at cutoff
+OK|C1 level DFF|computed=3.88|reported=3.88|src=series_store DFF latest 2026-11-19|note=latest level at cutoff
+OK|C1 level JP_POLICY_RATE|computed=1.227|reported=1.227|src=series_store JP_POLICY_RATE latest 2026-10-01|note=latest level at cutoff
+OK|C1 level CN_PPI_YOY|computed=5.7|reported=5.7|src=series_store CN_PPI_YOY latest 2026-10-01|note=latest level at cutoff
+OK|C1 level CN_CPI_YOY|computed=0.7|reported=0.7|src=series_store CN_CPI_YOY latest 2026-10-01|note=latest level at cutoff
+OK|C1 level CN_PMI_MFG|computed=49.3|reported=49.3|src=series_store CN_PMI_MFG latest 2026-10-01|note=latest level at cutoff
+OK|C1 level HY_OAS|computed=3.52|reported=3.52|src=series_store HY_OAS@2026-11-19|note=
+OK|M1 link4 SPX near 1m|computed=-5.5069|reported=-5.51|src=series_store SPX 2026-10-23→2026-11-23|note=SPX/VIX 2026-10-23→2026-11-23
+OK|M1 link4 NIKKEI225 near 1m|computed=-9.9796|reported=-9.98|src=series_store NIKKEI225 2026-10-23→2026-11-20|note=SPX/VIX 2026-10-23→2026-11-23
+OK|M1 link4 GOLD_F near 1m|computed=-8.0516|reported=-8.05|src=series_store GOLD_F 2026-10-23→2026-11-23|note=SPX/VIX 2026-10-23→2026-11-23
+OK|M1 link4 DXY near 1m|computed=2.2287|reported=2.23|src=series_store DXY 2026-10-23→2026-11-23|note=SPX/VIX 2026-10-23→2026-11-23
+OK|HY_OAS series high date|computed=2025-04-07|reported=2025-04-07|src=series_store HY_OAS argmax|note=
+OK|HY_OAS series high|computed=4.61|reported=4.61|src=series_store HY_OAS@2025-04-07|note=
+OK|HY_OAS first date (自 2023-11-21 起)|computed=2023-11-21|reported=2023-11-21|src=series_store HY_OAS first date|note=
+OK|HY_OAS percentile of current value|computed=91.9847|reported=92|src=series_store HY_OAS share of history <= current *100|note=约第 92 百分位
+OK|HY_OAS last earlier date with value >= current|computed=2025-05-09|reported=2025-05-09|src=series_store HY_OAS|note=为 2025-05-09 以来最高
+OK|HY_OAS 1w change vs 2026-11-13 (pp)|computed=0.29|reported=0.29|src=series_store HY_OAS 2026-11-19 - 2026-11-13|note=
+OK|HY_OAS strict 7d change (pp)|computed=0.32|reported=0.32|src=series_store HY_OAS 2026-11-19 - 2026-11-12|note=
+OK|HY_OAS 12m change (pp)|computed=0.35|reported=0.35|src=series_store HY_OAS 2026-11-19 - 2025-11-19|note=
+OK|BRENT_F month-end 2026-02|computed=72.48|reported=72.48|src=series_store BRENT_F@2026-02-27|note=TR1 link1
+OK|BRENT_F month-end 2026-03|computed=118.35|reported=118.35|src=series_store BRENT_F@2026-03-31|note=TR1 link1
+OK|BRENT_F month-end 2026-05|computed=92.05|reported=92.05|src=series_store BRENT_F@2026-05-29|note=TR1 link1
+OK|BRENT_F first-last 2026-02→2026-05|computed=27.0006|reported=27.00|src=series_store BRENT_F month-ends|note=首尾 +27.00%
+OK|BRENT_F level 2026-11-23|computed=88.19|reported=88.19|src=series_store BRENT_F@2026-11-23|note=
+OK|BRENT_F MTD|computed=-25.034|reported=-25.03|src=series_store BRENT_F 2026-10-30→2026-11-23|note=当月至今
+OK|BRENT_F engine near-30-day|computed=-24.4431|reported=-24.44|src=series_store BRENT_F 2026-10-23→2026-11-23|note=engine face quoted
+OK|USDJPY 2026-11-23|computed=159.347|reported=159.347|src=series_store USDJPY@2026-11-23|note=
+OK|USDJPY 2026-10-23|computed=156.494|reported=156.494|src=series_store USDJPY@2026-10-23|note=
+OK|USDJPY near-30-day|computed=1.8231|reported=1.82|src=series_store USDJPY 2026-10-23→2026-11-23|note=TR2
+OK|USDCNY@2026-11-23 present|computed=6.6542|reported=present|src=series_store USDCNY|note=C3 ref
+OK|DFEDTARU@12m|computed=4.0|reported=4.0|src=series_store DFEDTARU latest 2025-11-23|note=
+OK|DFEDTARU@3m|computed=3.75|reported=3.75|src=series_store DFEDTARU latest 2026-08-23|note=
+OK|DFEDTARU@now|computed=4.0|reported=4.0|src=series_store DFEDTARU latest 2026-11-23|note=
+OK|DFF@12m|computed=3.88|reported=3.88|src=series_store DFF latest 2025-11-22|note=
+OK|DFF@3m|computed=3.63|reported=3.63|src=series_store DFF latest 2026-08-22|note=
+OK|DFF@now|computed=3.88|reported=3.88|src=series_store DFF latest 2026-11-19|note=
+OK|ECB_DFR@12m|computed=2.0|reported=2.0|src=series_store ECB_DFR latest 2025-06-11|note=
+OK|ECB_DFR@3m|computed=2.25|reported=2.25|src=series_store ECB_DFR latest 2026-06-17|note=
+OK|ECB_DFR@now|computed=2.5|reported=2.5|src=series_store ECB_DFR latest 2026-09-16|note=
+OK|ECB_MRO@12m|computed=2.15|reported=2.15|src=series_store ECB_MRO latest 2025-06-11|note=
+OK|ECB_MRO@3m|computed=2.4|reported=2.4|src=series_store ECB_MRO latest 2026-06-17|note=
+OK|ECB_MRO@now|computed=2.65|reported=2.65|src=series_store ECB_MRO latest 2026-09-16|note=
+OK|CN_LPR_1Y@12m|computed=3.0|reported=3.0|src=series_store CN_LPR_1Y latest 2025-11-20|note=
+OK|CN_LPR_1Y@3m|computed=3.0|reported=3.0|src=series_store CN_LPR_1Y latest 2026-08-20|note=
+OK|CN_LPR_1Y@now|computed=3.0|reported=3.0|src=series_store CN_LPR_1Y latest 2026-11-20|note=
+OK|CN_OMO_7D@12m|computed=1.4|reported=1.4|src=series_store CN_OMO_7D latest 2025-11-14|note=
+OK|CN_OMO_7D@3m|computed=1.4|reported=1.4|src=series_store CN_OMO_7D latest 2026-08-21|note=
+OK|CN_OMO_7D@now|computed=1.4|reported=1.4|src=series_store CN_OMO_7D latest 2026-10-30|note=
+OK|DFEDTARU anchor observation dates|computed=2025-11-23|2026-08-23|2026-11-23|reported=2025-11-23|2026-08-23|2026-11-23|src=series_store DFEDTARU latest<=anchor|note=
+OK|DFF anchor observation dates|computed=2025-11-22|2026-08-22|2026-11-19|reported=2025-11-22|2026-08-22|2026-11-19|src=series_store DFF latest<=anchor|note=
+OK|ECB_DFR anchor observation dates|computed=2025-06-11|2026-06-17|2026-09-16|reported=2025-06-11|2026-06-17|2026-09-16|src=series_store ECB_DFR latest<=anchor|note=
+OK|ECB_MRO anchor observation dates|computed=2025-06-11|2026-06-17|2026-09-16|reported=2025-06-11|2026-06-17|2026-09-16|src=series_store ECB_MRO latest<=anchor|note=
+OK|CN_LPR_1Y anchor observation dates|computed=2025-11-20|2026-08-20|2026-11-20|reported=2025-11-20|2026-08-20|2026-11-20|src=series_store CN_LPR_1Y latest<=anchor|note=
+OK|CN_OMO_7D anchor observation dates|computed=2025-11-14|2026-08-21|2026-10-30|reported=2025-11-14|2026-08-21|2026-10-30|src=series_store CN_OMO_7D latest<=anchor|note=
+OK|DFEDTARU changes in window|computed=2025-12-11:4→3.75 2026-09-17:3.75→4|reported=2025-12-11:4→3.75 2026-09-17:3.75→4|src=series_store DFEDTARU|note=Fed effective dates
+OK|DFF changes >=20bp in window|computed=2025-12-11:3.89→3.64 2026-09-17:3.63→3.88|reported=2025-12-11:3.89→3.64 2026-09-17:3.63→3.88|src=series_store DFF|note=
+OK|ECB_DFR changes since 2025-06|computed=2026-06-17:2→2.25 2026-09-16:2.25→2.5|reported=2026-06-17:2→2.25 2026-09-16:2.25→2.5|src=series_store ECB_DFR|note=
+OK|ECB_MRO changes since 2025-06|computed=2026-06-17:2.15→2.4 2026-09-16:2.4→2.65|reported=2026-06-17:2.15→2.4 2026-09-16:2.4→2.65|src=series_store ECB_MRO|note=
+OK|ECB series end date|computed=2026-09-16/2026-09-16|reported=2026-09-16|src=series_store ECB_MRO/ECB_DFR last date|note=
+OK|ECB series lag days|computed=68|reported=68|src=2026-11-23 - last obs|note=
+OK|CN_LPR_1Y no change in window|computed=|reported=none|src=series_store CN_LPR_1Y|note=
+OK|CN_OMO_7D no change in window|computed=|reported=none|src=series_store CN_OMO_7D|note=
+OK|CN_OMO_7D last observation lag (days)|computed=24|reported=24|src=2026-11-23 - last obs|note=滞后24天
+OK|last observation date SPX|computed=2026-11-23|reported=2026-11-23|src=series_store SPX last date|note=basis note for cutoff-day observations
+OK|last observation date DAX|computed=2026-11-23|reported=2026-11-23|src=series_store DAX last date|note=basis note for cutoff-day observations
+OK|last observation date CAC40|computed=2026-11-23|reported=2026-11-23|src=series_store CAC40 last date|note=basis note for cutoff-day observations
+OK|last observation date VIX|computed=2026-11-23|reported=2026-11-23|src=series_store VIX last date|note=basis note for cutoff-day observations
+OK|last observation date GOLD_F|computed=2026-11-23|reported=2026-11-23|src=series_store GOLD_F last date|note=basis note for cutoff-day observations
+OK|last observation date DXY|computed=2026-11-23|reported=2026-11-23|src=series_store DXY last date|note=basis note for cutoff-day observations
+OK|last observation date BRENT_F|computed=2026-11-23|reported=2026-11-23|src=series_store BRENT_F last date|note=basis note for cutoff-day observations
+OK|last observation date USDJPY|computed=2026-11-23|reported=2026-11-23|src=series_store USDJPY last date|note=basis note for cutoff-day observations
+OK|last observation date SHCOMP|computed=2026-11-23|reported=2026-11-23|src=series_store SHCOMP last date|note=basis note for cutoff-day observations
+OK|last observation date NIKKEI225|computed=2026-11-20|reported=2026-11-20|src=series_store NIKKEI225 last date|note=basis note for cutoff-day observations
+OK|last observation date UST_10Y|computed=2026-11-19|reported=2026-11-19|src=series_store UST_10Y last date|note=basis note for cutoff-day observations
+OK|last observation date TIPS_10Y|computed=2026-11-19|reported=2026-11-19|src=series_store TIPS_10Y last date|note=basis note for cutoff-day observations
+OK|last observation date BEI_10Y|computed=2026-11-20|reported=2026-11-20|src=series_store BEI_10Y last date|note=basis note for cutoff-day observations
+OK|last observation date HY_OAS|computed=2026-11-19|reported=2026-11-19|src=series_store HY_OAS last date|note=basis note for cutoff-day observations
+OK|last observation date DFF|computed=2026-11-19|reported=2026-11-19|src=series_store DFF last date|note=basis note for cutoff-day observations
+OK|last observation date DFEDTARU|computed=2026-11-23|reported=2026-11-23|src=series_store DFEDTARU last date|note=basis note for cutoff-day observations
+OK|last observation date CN_POLICY_OVERNIGHT|computed=2026-11-23|reported=2026-11-23|src=series_store CN_POLICY_OVERNIGHT last date|note=basis note for cutoff-day observations

@@ -1,0 +1,69 @@
+diff --git a/tests/test_audit_r32_gate.py b/tests/test_audit_r32_gate.py
+index bfdb392..ba1ab91 100644
+--- a/tests/test_audit_r32_gate.py
++++ b/tests/test_audit_r32_gate.py
+@@ -2176,6 +2176,64 @@ def sec_l():
+           and '披露越过' in str(_ck(d10, 'code_version_match').get('detail')),
+           f"rc9={rc9} blocked={(d9.get('data') or {}).get('blocked')} "
+           f"rc10={rc10}")
++    # ── §L9e–§L9g 两印章同渲染包: 裁决已在场时渲染(状态面未翻新),清单携
++    #    archive_code_git_head 而无 map_binding_status_equivalent(正式验收
++    #    第三处: 换问 B 工单包=运行印章渲染时裁决已在场,归档印章代码重放
++    #    自己归档的包被门④误拒) ──
++    vp2 = aj.record_semantic_verdict(T, rd, 'UPHELD',
++                                     reviewer='r32gate-status席',
++                                     notes='R32 正式验收: 裁决在场时的再裁决')
++    vd2 = _jload(vp2)
++    rc11, d11 = cli('report', rd, T)
++    dd11 = d11.get('data') or {}
++    arc4 = os.path.join(TMPG, 'arc_ps_same_render')
++    rc12, _d12 = _head_cli(ARC2, ['research-one', '--stage', 'archive',
++                                  '--report-dir', rd, '--engine-root', T,
++                                  '--archive-dir', arc4])
++    man4 = _jload(os.path.join(arc4, 'ARCHIVE_MANIFEST.json'))
++    check('§L9e 同渲染两印章包: 裁决在场时的再裁决绑定=已裁形内容段摘要;'
++          'report 不记状态面翻新;另印章归档 rc=0——清单携 archive_code_git_head'
++          '(=归档印章)而无 map_binding_status_equivalent;裁决链 2 档',
++          vd2.get('map_report_sha256') == sha1
++          and rc11 == 0 and dd11.get('map_status_refreshed') is False
++          and rc12 == 0
++          and man4.get('archive_code_git_head') == ARC2
++          and man4.get('run_code_git_head') == WORKTREE_HEAD
++          and 'map_binding_status_equivalent' not in man4
++          and man4.get('verdicts_n') == 2
++          and '裁决后再交付' in str(man4.get('correlation')),
++          f"rc11={rc11} refresh={dd11.get('map_status_refreshed')} "
++          f"rc12={rc12} arc_head={str(man4.get('archive_code_git_head'))[:12]} "
++          f"equiv_key={'map_binding_status_equivalent' in man4} "
++          f"n={man4.get('verdicts_n')}")
++
++    def _rp4(head, out, extra=None):
++        argv = ['research-one', '--stage', 'replay', '--package', arc4,
++                '--engine-root', T, '--replay-out', os.path.join(TMPG, out)]
++        return _head_cli(head, argv + (extra or []))
++
++    rc13, d13 = _rp4(ARC2, 'rp_ps_same_render_arc')
++    dd13 = d13.get('data') or {}
++    rp13 = _jload(os.path.join(TMPG, 'rp_ps_same_render_arc',
++                               'REPLAY_REPORT.json'))
++    check('§L9f 归档印章代码严格重放同渲染包: rc=0——门④认清单声明的归档代码'
++          '为录制代码,不以状态面是否翻新为条件(交付字节正是归档代码所产);'
++          '其余检查全过+逐字节相等;重放报告落档 package_archive_head',
++          rc13 == 0 and _ck(d13, 'code_version_match').get('ok') is True
++          and '归档代码' in str(_ck(d13, 'code_version_match').get('detail'))
++          and dd13.get('render_mode') == 'byte_equal'
++          and all(c.get('ok') for c in (dd13.get('checks') or []))
++          and rp13.get('package_archive_head') == ARC2,
++          f"rc13={rc13} blocked={dd13.get('blocked')} "
++          f"c={str(_ck(d13, 'code_version_match').get('detail'))[:80]}")
++    rc14, d14 = replay(arc4, T, out=os.path.join(TMPG, 'rp_ps_same_render_run'))
++    rc15, d15 = _rp4(ARC3, 'rp_ps_same_render_third')
++    check('§L9g 运行印章代码严格重放同一包: rc=0(同渲染包运行印章/归档印章'
++          '两版代码均可严格重放);第三印章照旧拒(code_version_mismatch)',
++          rc14 == 0 and (d14.get('data') or {}).get('render_mode') == 'byte_equal'
++          and rc15 != 0
++          and (d15.get('data') or {}).get('blocked') == 'code_version_mismatch',
++          f"rc14={rc14} rc15={rc15}")
+ 
+ 
+ def main():

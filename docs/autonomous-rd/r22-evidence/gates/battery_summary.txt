@@ -1,0 +1,3 @@
+R22 电池(195 件直跑): 193 绿 + 2 红(均环境类):
+RED(1): tests/test_arch_reform_phase6.py — ?? docs/autonomous-rd/r22-evidence/ 未跟踪(已知类,docs 提交后复验)
+RED(1): tests/test_p0_baseline_lock_equivalence.py — worktree 序列环境类,独立复跑 31/31 绿(rc=0)

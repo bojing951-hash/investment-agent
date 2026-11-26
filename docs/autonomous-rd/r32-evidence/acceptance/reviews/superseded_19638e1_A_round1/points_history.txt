@@ -1,0 +1,296 @@
+OK|history periods count|computed=3|reported=3 (top-3)|src=judgment reader_map.history_periods|note=
+OK|2025-03 candidate month = engine rank 1|computed=2025-03|reported=2025-03|src=report.json steps[61].data.top[0].candidate_month|note=
+OK|2025-03 distance|computed=0.7272|reported=0.7272|src=report.json top[0].distance|note=judgment period_label
+OK|2025-03 distance percentile|computed=0.0|reported=0.0|src=report.json top[0].distance_percentile|note=judgment period_label
+OK|2025-03 valid candidates|computed=74|reported=74|src=report.json candidates.valid|note=
+OK|2025-03 contribution 波动 (%)|computed=42.1281|reported=42.1|src=report.json top[0].dims.volatility.contribution_share*100|note=
+OK|2025-03 contribution 利率 (%)|computed=40.66|reported=40.7|src=report.json top[0].dims.rates.contribution_share*100|note=
+OK|2025-03 contribution 通胀 (%)|computed=10.5401|reported=10.5|src=report.json top[0].dims.inflation.contribution_share*100|note=
+OK|2025-03 contribution 估值 (%)|computed=6.6684|reported=6.7|src=report.json top[0].dims.valuation.contribution_share*100|note=
+OK|2025-03 contributions sum to 100|computed=100.0|reported=100.0|src=judgment similarity text|note=shares renormalised to accounted dims
+OK|2025-03 gap magnitude CURVE_2S10S 12月变化|computed=1.5106|reported=1.51|src=report.json top[0].features_detail.CURVE_2S10S_d12m.gap (abs)|note=
+OK|2025-03 gap direction CURVE_2S10S 12月变化|computed=-|reported=-|src=engine gap sign|note=
+OK|2025-03 gap magnitude TIPS_10Y 12月变化|computed=1.2987|reported=1.30|src=report.json top[0].features_detail.TIPS_10Y_d12m.gap (abs)|note=
+OK|2025-03 gap direction TIPS_10Y 12月变化|computed=+|reported=+|src=engine gap sign|note=
+OK|2025-03 gap magnitude UST_10Y 12月变化|computed=1.0681|reported=1.07|src=report.json top[0].features_detail.UST_10Y_d12m.gap (abs)|note=
+OK|2025-03 gap direction UST_10Y 12月变化|computed=+|reported=+|src=engine gap sign|note=
+OK|2025-03 all |gap|>1 features listed|computed=CURVE_2S10S_d12m TIPS_10Y_d12m UST_10Y_d12m|reported=CURVE_2S10S_d12m TIPS_10Y_d12m UST_10Y_d12m|src=report.json top[0].features_detail|note=
+OK|2025-03 missing feature HY_IG_gap_level disclosed|computed=hist_17<36|reported=True|src=report.json top[0].missing_features|note=
+OK|2025-03 missing feature HY_OAS_level disclosed|computed=hist_17<36|reported=True|src=report.json top[0].missing_features|note=
+OK|2025-03 match window = 12 months ending at candidate month|computed=2024-04..2025-03|reported=2024-04..2025-03|src=report.json feature_window_months x top[0].candidate_month|note=cluster members 20: 2024-04..2025-11
+OK|2025-03 3m start month|computed=2025-03|reported=2025-03|src=judgment ex_post label|note=
+OK|2025-03 3m end month|computed=2025-06|reported=2025-06|src=judgment ex_post label|note=
+OK|2025-03 3m DFEDTARU (pp)|computed=0.0|reported=+0.00|src=series_store DFEDTARU 2025-03-31→2025-06-30|note=
+OK|2025-03 3m UNEMPLOYMENT (pp)|computed=-0.1|reported=-0.10|src=series_store UNEMPLOYMENT 2025-03-01→2025-06-01|note=
+OK|2025-03 3m CPI (%)|computed=0.516|reported=+0.52|src=series_store CPI 2025-03-01→2025-06-01|note=
+OK|2025-03 3m INDPRO (%)|computed=0.4336|reported=+0.43|src=series_store INDPRO 2025-03-01→2025-06-01|note=
+OK|2025-03 3m SPX (%)|computed=10.5687|reported=+10.57|src=series_store SPX 2025-03-31→2025-06-30|note=
+OK|2025-03 3m NIKKEI225 (%)|computed=13.6726|reported=+13.67|src=series_store NIKKEI225 2025-03-31→2025-06-30|note=
+OK|2025-03 3m DAX (%)|computed=7.8784|reported=+7.88|src=series_store DAX 2025-03-31→2025-06-30|note=
+OK|2025-03 3m SHCOMP (%)|computed=3.258|reported=+3.26|src=series_store SHCOMP 2025-03-31→2025-06-30|note=
+OK|2025-03 3m GOLD_F (%)|computed=5.921|reported=+5.92|src=series_store GOLD_F 2025-03-31→2025-06-30|note=
+OK|2025-03 3m DXY (%)|computed=-7.0339|reported=-7.03|src=series_store DXY 2025-03-31→2025-06-30|note=
+OK|2025-03 3m UST_10Y (pp)|computed=0.01|reported=+0.01|src=series_store UST_10Y 2025-03-31→2025-06-30|note=
+OK|2025-03 6m start month|computed=2025-03|reported=2025-03|src=judgment ex_post label|note=
+OK|2025-03 6m end month|computed=2025-09|reported=2025-09|src=judgment ex_post label|note=
+OK|2025-03 6m DFEDTARU (pp)|computed=-0.25|reported=-0.25|src=series_store DFEDTARU 2025-03-31→2025-09-30|note=
+OK|2025-03 6m UNEMPLOYMENT (pp)|computed=0.2|reported=+0.20|src=series_store UNEMPLOYMENT 2025-03-01→2025-09-01|note=
+OK|2025-03 6m CPI (%)|computed=1.3947|reported=+1.39|src=series_store CPI 2025-03-01→2025-09-01|note=
+OK|2025-03 6m INDPRO (%)|computed=0.6211|reported=+0.62|src=series_store INDPRO 2025-03-01→2025-09-01|note=
+OK|2025-03 6m SPX (%)|computed=19.1846|reported=+19.18|src=series_store SPX 2025-03-31→2025-09-30|note=
+OK|2025-03 6m NIKKEI225 (%)|computed=26.153|reported=+26.15|src=series_store NIKKEI225 2025-03-31→2025-09-30|note=
+OK|2025-03 6m DAX (%)|computed=7.748|reported=+7.75|src=series_store DAX 2025-03-31→2025-09-30|note=
+OK|2025-03 6m SHCOMP (%)|computed=16.3991|reported=+16.40|src=series_store SHCOMP 2025-03-31→2025-09-30|note=
+OK|2025-03 6m GOLD_F (%)|computed=24.0297|reported=+24.03|src=series_store GOLD_F 2025-03-31→2025-09-30|note=
+OK|2025-03 6m DXY (%)|computed=-6.1798|reported=-6.18|src=series_store DXY 2025-03-31→2025-09-30|note=
+OK|2025-03 6m UST_10Y (pp)|computed=-0.07|reported=-0.07|src=series_store UST_10Y 2025-03-31→2025-09-30|note=
+OK|2025-03 12m start month|computed=2025-03|reported=2025-03|src=judgment ex_post label|note=
+OK|2025-03 12m end month|computed=2026-03|reported=2026-03|src=judgment ex_post label|note=
+OK|2025-03 12m DFEDTARU (pp)|computed=-0.75|reported=-0.75|src=series_store DFEDTARU 2025-03-31→2026-03-31|note=
+OK|2025-03 12m UNEMPLOYMENT (pp)|computed=0.1|reported=+0.10|src=series_store UNEMPLOYMENT 2025-03-01→2026-03-01|note=
+OK|2025-03 12m CPI (%)|computed=3.286|reported=+3.29|src=series_store CPI 2025-03-01→2026-03-01|note=
+OK|2025-03 12m INDPRO (%)|computed=0.6861|reported=+0.69|src=series_store INDPRO 2025-03-01→2026-03-01|note=
+OK|2025-03 12m SPX (%)|computed=16.3345|reported=+16.33|src=series_store SPX 2025-03-31→2026-03-31|note=
+OK|2025-03 12m NIKKEI225 (%)|computed=43.3667|reported=+43.37|src=series_store NIKKEI225 2025-03-31→2026-03-31|note=
+OK|2025-03 12m DAX (%)|computed=2.3306|reported=+2.33|src=series_store DAX 2025-03-31→2026-03-31|note=
+OK|2025-03 12m SHCOMP (%)|computed=16.6714|reported=+16.67|src=series_store SHCOMP 2025-03-31→2026-03-31|note=
+OK|2025-03 12m GOLD_F (%)|computed=48.828|reported=+48.83|src=series_store GOLD_F 2025-03-31→2026-03-31|note=
+OK|2025-03 12m DXY (%)|computed=-4.0783|reported=-4.08|src=series_store DXY 2025-03-31→2026-03-31|note=
+OK|2025-03 12m UST_10Y (pp)|computed=0.07|reported=+0.07|src=series_store UST_10Y 2025-03-31→2026-03-31|note=
+OK|2025-03 engine aftermath SPX 1m|computed=-1.136321|reported=-1.136321|src=series_store SPX 2025-04-01→2025-04-30|note=engine face
+OK|2025-03 engine aftermath SPX 3m|computed=10.152197|reported=10.152197|src=series_store SPX 2025-04-01→2025-06-30|note=engine face
+OK|2025-03 engine aftermath SPX 6m|computed=18.735613|reported=18.735613|src=series_store SPX 2025-04-01→2025-09-30|note=engine face
+OK|2025-03 engine aftermath SPX 12m|computed=15.896309|reported=15.896309|src=series_store SPX 2025-04-01→2026-03-31|note=engine face
+OK|2025-03 engine aftermath UST_10Y 1m|computed=0.0|reported=0.0|src=series_store UST_10Y 2025-04-01→2025-04-30|note=engine face
+OK|2025-03 engine aftermath UST_10Y 3m|computed=0.07|reported=0.07|src=series_store UST_10Y 2025-04-01→2025-06-30|note=engine face
+OK|2025-03 engine aftermath UST_10Y 6m|computed=-0.01|reported=-0.01|src=series_store UST_10Y 2025-04-01→2025-09-30|note=engine face
+OK|2025-03 engine aftermath UST_10Y 12m|computed=0.13|reported=0.13|src=series_store UST_10Y 2025-04-01→2026-03-31|note=engine face
+OK|2025-03 engine aftermath DXY 1m|computed=-4.594284|reported=-4.594284|src=series_store DXY 2025-04-01→2025-04-30|note=engine face
+OK|2025-03 engine aftermath DXY 3m|computed=-7.078462|reported=-7.078462|src=series_store DXY 2025-04-01→2025-06-30|note=engine face
+OK|2025-03 engine aftermath DXY 6m|computed=-6.224827|reported=-6.224827|src=series_store DXY 2025-04-01→2025-09-30|note=engine face
+OK|2025-03 engine aftermath DXY 12m|computed=-4.124307|reported=-4.124307|src=series_store DXY 2025-04-01→2026-03-31|note=engine face
+OK|2025-03 engine aftermath GOLD_F 1m|computed=5.502228|reported=5.502228|src=series_store GOLD_F 2025-04-01→2025-04-30|note=engine face
+OK|2025-03 engine aftermath GOLD_F 3m|computed=5.139859|reported=5.139859|src=series_store GOLD_F 2025-04-01→2025-06-30|note=engine face
+OK|2025-03 engine aftermath GOLD_F 6m|computed=23.115065|reported=23.115065|src=series_store GOLD_F 2025-04-01→2025-09-30|note=engine face
+OK|2025-03 engine aftermath GOLD_F 12m|computed=47.730454|reported=47.730454|src=series_store GOLD_F 2025-04-01→2026-03-31|note=engine face
+OK|2025-03 known-at-time EA_HICP_YOY 2025-02|computed=2.3|reported=2.3|src=series_store EA_HICP_YOY@2025-02|note=
+OK|2025-03 latest visible EA_HICP_YOY at 2025-03-31|computed=2025-02|reported=2025-02|src=series_store + seat rule = 2025-02-01 (pub 2025-02-28)|note=
+OK|2025-03 known-at-time JP_CPI_YOY 2025-02|computed=3.66|reported=3.66|src=series_store JP_CPI_YOY@2025-02|note=
+OK|2025-03 latest visible JP_CPI_YOY at 2025-03-31|computed=2025-02|reported=2025-02|src=series_store + seat rule = 2025-02-01 (pub 2025-03-20)|note=
+OK|2025-03 known-at-time CN_PPI_YOY 2025-02|computed=-2.2|reported=-2.2|src=series_store CN_PPI_YOY@2025-02|note=
+OK|2025-03 latest visible CN_PPI_YOY at 2025-03-31|computed=2025-02|reported=2025-02|src=series_store + seat rule = 2025-02-01 (pub 2025-03-09)|note=
+OK|2025-03 known-at-time CN_CPI_YOY 2025-02|computed=-0.7|reported=-0.7|src=series_store CN_CPI_YOY@2025-02|note=
+OK|2025-03 latest visible CN_CPI_YOY at 2025-03-31|computed=2025-02|reported=2025-02|src=series_store + seat rule = 2025-02-01 (pub 2025-03-09)|note=
+OK|2025-03 sync labels present|computed=中国分化、欧元区分化、日本同步|reported=present|src=judgment other_regions_sync|note=
+OK|2025-03 coverage growth|computed=0.1667|reported=0.17|src=report.json state_vector.growth.coverage|note=
+OK|2025-03 coverage inflation|computed=0.3333|reported=0.33|src=report.json state_vector.inflation.coverage|note=
+OK|2025-03 coverage credit|computed=0.5|reported=0.5|src=report.json state_vector.credit.coverage|note=
+OK|2022-06 candidate month = engine rank 2|computed=2022-06|reported=2022-06|src=report.json steps[61].data.top[1].candidate_month|note=
+OK|2022-06 distance|computed=0.7918|reported=0.7918|src=report.json top[1].distance|note=judgment period_label
+OK|2022-06 distance percentile|computed=1.3699|reported=1.37|src=report.json top[1].distance_percentile|note=judgment period_label
+OK|2022-06 contribution 利率 (%)|computed=51.9314|reported=51.9|src=report.json top[1].dims.rates.contribution_share*100|note=
+OK|2022-06 contribution 估值 (%)|computed=33.6303|reported=33.6|src=report.json top[1].dims.valuation.contribution_share*100|note=
+OK|2022-06 contribution 通胀 (%)|computed=11.4111|reported=11.4|src=report.json top[1].dims.inflation.contribution_share*100|note=
+OK|2022-06 contribution 波动 (%)|computed=2.9815|reported=3.0|src=report.json top[1].dims.volatility.contribution_share*100|note=
+OK|2022-06 contributions sum to 100|computed=99.9|reported=100.0|src=judgment similarity text|note=shares renormalised to accounted dims
+OK|2022-06 gap magnitude TIPS_10Y 12月变化|computed=1.7437|reported=1.74|src=report.json top[1].features_detail.TIPS_10Y_d12m.gap (abs)|note=
+OK|2022-06 gap direction TIPS_10Y 12月变化|computed=-|reported=-|src=engine gap sign|note=
+OK|2022-06 gap magnitude CURVE_2S10S 12月变化|computed=1.4304|reported=1.43|src=report.json top[1].features_detail.CURVE_2S10S_d12m.gap (abs)|note=
+OK|2022-06 gap direction CURVE_2S10S 12月变化|computed=+|reported=+|src=engine gap sign|note=
+OK|2022-06 gap magnitude CURVE_2S10S水平|computed=1.2478|reported=1.25|src=report.json top[1].features_detail.CURVE_2S10S_level.gap (abs)|note=
+OK|2022-06 gap direction CURVE_2S10S水平|computed=+|reported=+|src=engine gap sign|note=
+OK|2022-06 gap magnitude SPX CAPE|computed=1.1707|reported=1.17|src=report.json top[1].features_detail.SPX_CAPE_level.gap (abs)|note=
+OK|2022-06 gap direction SPX CAPE|computed=+|reported=+|src=engine gap sign|note=
+OK|2022-06 all |gap|>1 features listed|computed=CURVE_2S10S_d12m CURVE_2S10S_level SPX_CAPE_level TIPS_10Y_d12m|reported=CURVE_2S10S_d12m CURVE_2S10S_level SPX_CAPE_level TIPS_10Y_d12m|src=report.json top[1].features_detail|note=
+OK|2022-06 missing feature HY_IG_gap_level disclosed|computed=no_value_at_candidate_month|reported=True|src=report.json top[1].missing_features|note=
+OK|2022-06 missing feature HY_OAS_level disclosed|computed=no_value_at_candidate_month|reported=True|src=report.json top[1].missing_features|note=
+OK|2022-06 match window = 12 months ending at candidate month|computed=2021-07..2022-06|reported=2021-07..2022-06|src=report.json feature_window_months x top[1].candidate_month|note=cluster members 23: 2021-07..2023-05
+OK|2022-06 3m start month|computed=2022-06|reported=2022-06|src=judgment ex_post label|note=
+OK|2022-06 3m end month|computed=2022-09|reported=2022-09|src=judgment ex_post label|note=
+OK|2022-06 3m DFEDTARU (pp)|computed=1.5|reported=+1.50|src=series_store DFEDTARU 2022-06-30→2022-09-30|note=
+OK|2022-06 3m UNEMPLOYMENT (pp)|computed=-0.1|reported=-0.10|src=series_store UNEMPLOYMENT 2022-06-01→2022-09-01|note=
+OK|2022-06 3m CPI (%)|computed=0.4719|reported=+0.47|src=series_store CPI 2022-06-01→2022-09-01|note=
+OK|2022-06 3m INDPRO (%)|computed=0.271|reported=+0.27|src=series_store INDPRO 2022-06-01→2022-09-01|note=
+OK|2022-06 3m SPX (%)|computed=-5.2771|reported=-5.28|src=series_store SPX 2022-06-30→2022-09-30|note=
+OK|2022-06 3m NIKKEI225 (%)|computed=-1.7271|reported=-1.73|src=series_store NIKKEI225 2022-06-30→2022-09-30|note=
+OK|2022-06 3m DAX (%)|computed=-5.2364|reported=-5.24|src=series_store DAX 2022-06-30→2022-09-30|note=
+OK|2022-06 3m SHCOMP (%)|computed=-11.0111|reported=-11.01|src=series_store SHCOMP 2022-06-30→2022-09-30|note=
+OK|2022-06 3m GOLD_F (%)|computed=-7.4863|reported=-7.49|src=series_store GOLD_F 2022-06-30→2022-09-30|note=
+OK|2022-06 3m DXY (%)|computed=7.0971|reported=+7.10|src=series_store DXY 2022-06-30→2022-09-30|note=
+OK|2022-06 3m UST_10Y (pp)|computed=0.85|reported=+0.85|src=series_store UST_10Y 2022-06-30→2022-09-30|note=
+OK|2022-06 6m start month|computed=2022-06|reported=2022-06|src=judgment ex_post label|note=
+OK|2022-06 6m end month|computed=2022-12|reported=2022-12|src=judgment ex_post label|note=
+OK|2022-06 6m DFEDTARU (pp)|computed=2.75|reported=+2.75|src=series_store DFEDTARU 2022-06-30→2022-12-31|note=
+OK|2022-06 6m UNEMPLOYMENT (pp)|computed=-0.1|reported=-0.10|src=series_store UNEMPLOYMENT 2022-06-01→2022-12-01|note=
+OK|2022-06 6m CPI (%)|computed=1.3138|reported=+1.31|src=series_store CPI 2022-06-01→2022-12-01|note=
+OK|2022-06 6m INDPRO (%)|computed=-1.239|reported=-1.24|src=series_store INDPRO 2022-06-01→2022-12-01|note=
+OK|2022-06 6m SPX (%)|computed=1.4297|reported=+1.43|src=series_store SPX 2022-06-30→2022-12-30|note=
+OK|2022-06 6m NIKKEI225 (%)|computed=-1.1311|reported=-1.13|src=series_store NIKKEI225 2022-06-30→2022-12-30|note=
+OK|2022-06 6m DAX (%)|computed=8.9162|reported=+8.92|src=series_store DAX 2022-06-30→2022-12-30|note=
+OK|2022-06 6m SHCOMP (%)|computed=-9.1025|reported=-9.10|src=series_store SHCOMP 2022-06-30→2022-12-30|note=
+OK|2022-06 6m GOLD_F (%)|computed=1.0458|reported=+1.05|src=series_store GOLD_F 2022-06-30→2022-12-30|note=
+OK|2022-06 6m DXY (%)|computed=-1.1176|reported=-1.12|src=series_store DXY 2022-06-30→2022-12-30|note=
+OK|2022-06 6m UST_10Y (pp)|computed=0.9|reported=+0.90|src=series_store UST_10Y 2022-06-30→2022-12-30|note=
+OK|2022-06 12m start month|computed=2022-06|reported=2022-06|src=judgment ex_post label|note=
+OK|2022-06 12m end month|computed=2023-06|reported=2023-06|src=judgment ex_post label|note=
+OK|2022-06 12m DFEDTARU (pp)|computed=3.5|reported=+3.50|src=series_store DFEDTARU 2022-06-30→2023-06-30|note=
+OK|2022-06 12m UNEMPLOYMENT (pp)|computed=0.0|reported=+0.00|src=series_store UNEMPLOYMENT 2022-06-01→2023-06-01|note=
+OK|2022-06 12m CPI (%)|computed=3.0706|reported=+3.07|src=series_store CPI 2022-06-01→2023-06-01|note=
+OK|2022-06 12m INDPRO (%)|computed=-0.8893|reported=-0.89|src=series_store INDPRO 2022-06-01→2023-06-01|note=
+OK|2022-06 12m SPX (%)|computed=17.5676|reported=+17.57|src=series_store SPX 2022-06-30→2023-06-30|note=
+OK|2022-06 12m NIKKEI225 (%)|computed=25.7492|reported=+25.75|src=series_store NIKKEI225 2022-06-30→2023-06-30|note=
+OK|2022-06 12m DAX (%)|computed=26.3156|reported=+26.32|src=series_store DAX 2022-06-30→2023-06-30|note=
+OK|2022-06 12m SHCOMP (%)|computed=-5.7833|reported=-5.78|src=series_store SHCOMP 2022-06-30→2023-06-30|note=
+OK|2022-06 12m GOLD_F (%)|computed=6.7559|reported=+6.76|src=series_store GOLD_F 2022-06-30→2023-06-30|note=
+OK|2022-06 12m DXY (%)|computed=-1.7003|reported=-1.70|src=series_store DXY 2022-06-30→2023-06-30|note=
+OK|2022-06 12m UST_10Y (pp)|computed=0.83|reported=+0.83|src=series_store UST_10Y 2022-06-30→2023-06-30|note=
+OK|2022-06 engine aftermath SPX 1m|computed=7.972121|reported=7.972121|src=series_store SPX 2022-07-01→2022-07-29|note=engine face
+OK|2022-06 engine aftermath SPX 3m|computed=-6.266386|reported=-6.266386|src=series_store SPX 2022-07-01→2022-09-30|note=engine face
+OK|2022-06 engine aftermath SPX 6m|computed=0.370424|reported=0.370424|src=series_store SPX 2022-07-01→2022-12-30|note=engine face
+OK|2022-06 engine aftermath SPX 12m|computed=16.339761|reported=16.339761|src=series_store SPX 2022-07-01→2023-06-30|note=engine face
+OK|2022-06 engine aftermath UST_10Y 1m|computed=-0.21|reported=-0.21|src=series_store UST_10Y 2022-07-01→2022-07-29|note=engine face
+OK|2022-06 engine aftermath UST_10Y 3m|computed=0.95|reported=0.95|src=series_store UST_10Y 2022-07-01→2022-09-30|note=engine face
+OK|2022-06 engine aftermath UST_10Y 6m|computed=1.0|reported=1.0|src=series_store UST_10Y 2022-07-01→2022-12-30|note=engine face
+OK|2022-06 engine aftermath UST_10Y 12m|computed=0.93|reported=0.93|src=series_store UST_10Y 2022-07-01→2023-06-30|note=engine face
+OK|2022-06 engine aftermath DXY 1m|computed=0.722849|reported=0.722849|src=series_store DXY 2022-07-01→2022-07-29|note=engine face
+OK|2022-06 engine aftermath DXY 3m|computed=6.638771|reported=6.638771|src=series_store DXY 2022-07-01→2022-09-30|note=engine face
+OK|2022-06 engine aftermath DXY 6m|computed=-1.540805|reported=-1.540805|src=series_store DXY 2022-07-01→2022-12-30|note=engine face
+OK|2022-06 engine aftermath DXY 12m|computed=-2.120977|reported=-2.120977|src=series_store DXY 2022-07-01→2023-06-30|note=engine face
+OK|2022-06 engine aftermath GOLD_F 1m|computed=-2.142658|reported=-2.142658|src=series_store GOLD_F 2022-07-01→2022-07-29|note=engine face
+OK|2022-06 engine aftermath GOLD_F 3m|computed=-7.188454|reported=-7.188454|src=series_store GOLD_F 2022-07-01→2022-09-30|note=engine face
+OK|2022-06 engine aftermath GOLD_F 6m|computed=1.371077|reported=1.371077|src=series_store GOLD_F 2022-07-01→2022-12-30|note=engine face
+OK|2022-06 engine aftermath GOLD_F 12m|computed=7.099641|reported=7.099641|src=series_store GOLD_F 2022-07-01→2023-06-30|note=engine face
+OK|2022-06 known-at-time EA_HICP_YOY 2022-05|computed=8.1|reported=8.1|src=series_store EA_HICP_YOY@2022-05|note=
+OK|2022-06 latest visible EA_HICP_YOY at 2022-06-30|computed=2022-05|reported=2022-05|src=series_store + seat rule = 2022-05-01 (pub 2022-05-31)|note=
+OK|2022-06 known-at-time JP_CPI_YOY 2022-05|computed=2.46|reported=2.46|src=series_store JP_CPI_YOY@2022-05|note=
+OK|2022-06 latest visible JP_CPI_YOY at 2022-06-30|computed=2022-05|reported=2022-05|src=series_store + seat rule = 2022-05-01 (pub 2022-06-20)|note=
+OK|2022-06 known-at-time CN_PPI_YOY 2022-05|computed=6.4|reported=6.4|src=series_store CN_PPI_YOY@2022-05|note=
+OK|2022-06 latest visible CN_PPI_YOY at 2022-06-30|computed=2022-05|reported=2022-05|src=series_store + seat rule = 2022-05-01 (pub 2022-06-09)|note=
+OK|2022-06 known-at-time CN_CPI_YOY 2022-05|computed=2.1|reported=2.1|src=series_store CN_CPI_YOY@2022-05|note=
+OK|2022-06 latest visible CN_CPI_YOY at 2022-06-30|computed=2022-05|reported=2022-05|src=series_store + seat rule = 2022-05-01 (pub 2022-06-09)|note=
+OK|2022-06 sync labels present|computed=中国同步、欧元区同步、日本同步|reported=present|src=judgment other_regions_sync|note=
+OK|2022-06 coverage growth|computed=0.1667|reported=0.17|src=report.json state_vector.growth.coverage|note=
+OK|2022-06 coverage inflation|computed=0.3333|reported=0.33|src=report.json state_vector.inflation.coverage|note=
+OK|2022-06 coverage credit|computed=0.5|reported=0.5|src=report.json state_vector.credit.coverage|note=
+OK|2023-10 candidate month = engine rank 3|computed=2023-10|reported=2023-10|src=report.json steps[61].data.top[2].candidate_month|note=
+OK|2023-10 distance|computed=1.0542|reported=1.0542|src=report.json top[2].distance|note=judgment period_label
+OK|2023-10 distance percentile|computed=30.137|reported=30.14|src=report.json top[2].distance_percentile|note=judgment period_label
+OK|2023-10 contribution 波动 (%)|computed=60.1008|reported=60.1|src=report.json top[2].dims.volatility.contribution_share*100|note=
+OK|2023-10 contribution 估值 (%)|computed=21.199|reported=21.2|src=report.json top[2].dims.valuation.contribution_share*100|note=
+OK|2023-10 contribution 利率 (%)|computed=10.9852|reported=11.0|src=report.json top[2].dims.rates.contribution_share*100|note=
+OK|2023-10 contribution 通胀 (%)|computed=7.7093|reported=7.7|src=report.json top[2].dims.inflation.contribution_share*100|note=
+OK|2023-10 contributions sum to 100|computed=100.0|reported=100.0|src=judgment similarity text|note=shares renormalised to accounted dims
+OK|2023-10 gap magnitude SPX 21日已实现波动|computed=1.5664|reported=1.57|src=report.json top[2].features_detail.SPX_rv21.gap (abs)|note=
+OK|2023-10 gap direction SPX 21日已实现波动|computed=+|reported=+|src=engine gap sign|note=
+OK|2023-10 gap magnitude VIX水平|computed=1.3739|reported=1.37|src=report.json top[2].features_detail.VIX_level.gap (abs)|note=
+OK|2023-10 gap direction VIX水平|computed=+|reported=+|src=engine gap sign|note=
+OK|2023-10 gap magnitude SPX CAPE|computed=1.2374|reported=1.24|src=report.json top[2].features_detail.SPX_CAPE_level.gap (abs)|note=
+OK|2023-10 gap direction SPX CAPE|computed=+|reported=+|src=engine gap sign|note=
+OK|2023-10 gap magnitude CURVE_2S10S 12月变化|computed=1.0065|reported=1.01|src=report.json top[2].features_detail.CURVE_2S10S_d12m.gap (abs)|note=
+OK|2023-10 gap direction CURVE_2S10S 12月变化|computed=-|reported=-|src=engine gap sign|note=
+OK|2023-10 all |gap|>1 features listed|computed=CURVE_2S10S_d12m SPX_CAPE_level SPX_rv21 VIX_level|reported=CURVE_2S10S_d12m SPX_CAPE_level SPX_rv21 VIX_level|src=report.json top[2].features_detail|note=
+OK|2023-10 missing feature HY_IG_gap_level disclosed|computed=no_value_at_candidate_month|reported=True|src=report.json top[2].missing_features|note=
+OK|2023-10 missing feature HY_OAS_level disclosed|computed=no_value_at_candidate_month|reported=True|src=report.json top[2].missing_features|note=
+OK|2023-10 match window = 12 months ending at candidate month|computed=2022-11..2023-10|reported=2022-11..2023-10|src=report.json feature_window_months x top[2].candidate_month|note=cluster members 10: 2023-06..2024-03
+OK|2023-10 3m start month|computed=2023-10|reported=2023-10|src=judgment ex_post label|note=
+OK|2023-10 3m end month|computed=2024-01|reported=2024-01|src=judgment ex_post label|note=
+OK|2023-10 3m DFEDTARU (pp)|computed=0.0|reported=+0.00|src=series_store DFEDTARU 2023-10-31→2024-01-31|note=
+OK|2023-10 3m UNEMPLOYMENT (pp)|computed=-0.2|reported=-0.20|src=series_store UNEMPLOYMENT 2023-10-01→2024-01-01|note=
+OK|2023-10 3m CPI (%)|computed=0.6506|reported=+0.65|src=series_store CPI 2023-10-01→2024-01-01|note=
+OK|2023-10 3m INDPRO (%)|computed=-1.2408|reported=-1.24|src=series_store INDPRO 2023-10-01→2024-01-01|note=
+OK|2023-10 3m SPX (%)|computed=15.5432|reported=+15.54|src=series_store SPX 2023-10-31→2024-01-31|note=
+OK|2023-10 3m NIKKEI225 (%)|computed=17.5893|reported=+17.59|src=series_store NIKKEI225 2023-10-31→2024-01-31|note=
+OK|2023-10 3m DAX (%)|computed=14.1349|reported=+14.13|src=series_store DAX 2023-10-31→2024-01-31|note=
+OK|2023-10 3m SHCOMP (%)|computed=-7.6264|reported=-7.63|src=series_store SHCOMP 2023-10-31→2024-01-31|note=
+OK|2023-10 3m GOLD_F (%)|computed=2.7127|reported=+2.71|src=series_store GOLD_F 2023-10-31→2024-01-31|note=
+OK|2023-10 3m DXY (%)|computed=-3.1783|reported=-3.18|src=series_store DXY 2023-10-31→2024-01-31|note=
+OK|2023-10 3m UST_10Y (pp)|computed=-0.89|reported=-0.89|src=series_store UST_10Y 2023-10-31→2024-01-31|note=
+OK|2023-10 6m start month|computed=2023-10|reported=2023-10|src=judgment ex_post label|note=
+OK|2023-10 6m end month|computed=2024-04|reported=2024-04|src=judgment ex_post label|note=
+OK|2023-10 6m DFEDTARU (pp)|computed=0.0|reported=+0.00|src=series_store DFEDTARU 2023-10-31→2024-04-30|note=
+OK|2023-10 6m UNEMPLOYMENT (pp)|computed=0.0|reported=+0.00|src=series_store UNEMPLOYMENT 2023-10-01→2024-04-01|note=
+OK|2023-10 6m CPI (%)|computed=1.7313|reported=+1.73|src=series_store CPI 2023-10-01→2024-04-01|note=
+OK|2023-10 6m INDPRO (%)|computed=-0.2244|reported=-0.22|src=series_store INDPRO 2023-10-01→2024-04-01|note=
+OK|2023-10 6m SPX (%)|computed=20.0746|reported=+20.07|src=series_store SPX 2023-10-31→2024-04-30|note=
+OK|2023-10 6m NIKKEI225 (%)|computed=24.4559|reported=+24.46|src=series_store NIKKEI225 2023-10-31→2024-04-30|note=
+OK|2023-10 6m DAX (%)|computed=21.0787|reported=+21.08|src=series_store DAX 2023-10-31→2024-04-30|note=
+OK|2023-10 6m SHCOMP (%)|computed=2.8506|reported=+2.85|src=series_store SHCOMP 2023-10-31→2024-04-30|note=
+OK|2023-10 6m GOLD_F (%)|computed=15.4741|reported=+15.47|src=series_store GOLD_F 2023-10-31→2024-04-30|note=
+OK|2023-10 6m DXY (%)|computed=-0.4125|reported=-0.41|src=series_store DXY 2023-10-31→2024-04-30|note=
+OK|2023-10 6m UST_10Y (pp)|computed=-0.19|reported=-0.19|src=series_store UST_10Y 2023-10-31→2024-04-30|note=
+OK|2023-10 12m start month|computed=2023-10|reported=2023-10|src=judgment ex_post label|note=
+OK|2023-10 12m end month|computed=2024-10|reported=2024-10|src=judgment ex_post label|note=
+OK|2023-10 12m DFEDTARU (pp)|computed=-0.5|reported=-0.50|src=series_store DFEDTARU 2023-10-31→2024-10-31|note=
+OK|2023-10 12m UNEMPLOYMENT (pp)|computed=0.2|reported=+0.20|src=series_store UNEMPLOYMENT 2023-10-01→2024-10-01|note=
+OK|2023-10 12m CPI (%)|computed=2.5788|reported=+2.58|src=series_store CPI 2023-10-01→2024-10-01|note=
+OK|2023-10 12m INDPRO (%)|computed=-0.9947|reported=-0.99|src=series_store INDPRO 2023-10-01→2024-10-01|note=
+OK|2023-10 12m SPX (%)|computed=36.0449|reported=+36.04|src=series_store SPX 2023-10-31→2024-10-31|note=
+OK|2023-10 12m NIKKEI225 (%)|computed=26.6452|reported=+26.65|src=series_store NIKKEI225 2023-10-31→2024-10-31|note=
+OK|2023-10 12m DAX (%)|computed=28.8123|reported=+28.81|src=series_store DAX 2023-10-31→2024-10-31|note=
+OK|2023-10 12m SHCOMP (%)|computed=8.6477|reported=+8.65|src=series_store SHCOMP 2023-10-31→2024-10-31|note=
+OK|2023-10 12m GOLD_F (%)|computed=37.8579|reported=+37.86|src=series_store GOLD_F 2023-10-31→2024-10-31|note=
+OK|2023-10 12m DXY (%)|computed=-2.5127|reported=-2.51|src=series_store DXY 2023-10-31→2024-10-31|note=
+OK|2023-10 12m UST_10Y (pp)|computed=-0.6|reported=-0.60|src=series_store UST_10Y 2023-10-31→2024-10-31|note=
+OK|2023-10 engine aftermath SPX 1m|computed=7.785532|reported=7.785532|src=series_store SPX 2023-11-01→2023-11-30|note=engine face
+OK|2023-10 engine aftermath SPX 3m|computed=14.34191|reported=14.34191|src=series_store SPX 2023-11-01→2024-01-31|note=engine face
+OK|2023-10 engine aftermath SPX 6m|computed=18.82625|reported=18.82625|src=series_store SPX 2023-11-01→2024-04-30|note=engine face
+OK|2023-10 engine aftermath SPX 12m|computed=34.630459|reported=34.630459|src=series_store SPX 2023-11-01→2024-10-31|note=engine face
+OK|2023-10 engine aftermath UST_10Y 1m|computed=-0.4|reported=-0.4|src=series_store UST_10Y 2023-11-01→2023-11-30|note=engine face
+OK|2023-10 engine aftermath UST_10Y 3m|computed=-0.78|reported=-0.78|src=series_store UST_10Y 2023-11-01→2024-01-31|note=engine face
+OK|2023-10 engine aftermath UST_10Y 6m|computed=-0.08|reported=-0.08|src=series_store UST_10Y 2023-11-01→2024-04-30|note=engine face
+OK|2023-10 engine aftermath UST_10Y 12m|computed=-0.49|reported=-0.49|src=series_store UST_10Y 2023-11-01→2024-10-31|note=engine face
+OK|2023-10 engine aftermath DXY 1m|computed=-3.162422|reported=-3.162422|src=series_store DXY 2023-11-01→2023-11-30|note=engine face
+OK|2023-10 engine aftermath DXY 3m|computed=-3.37762|reported=-3.37762|src=series_store DXY 2023-11-01→2024-01-31|note=engine face
+OK|2023-10 engine aftermath DXY 6m|computed=-0.617511|reported=-0.617511|src=series_store DXY 2023-11-01→2024-04-30|note=engine face
+OK|2023-10 engine aftermath DXY 12m|computed=-2.713318|reported=-2.713318|src=series_store DXY 2023-11-01→2024-10-31|note=engine face
+OK|2023-10 engine aftermath GOLD_F 1m|computed=2.545911|reported=2.545911|src=series_store GOLD_F 2023-11-01→2023-11-30|note=engine face
+OK|2023-10 engine aftermath GOLD_F 3m|computed=3.064146|reported=3.064146|src=series_store GOLD_F 2023-11-01→2024-01-31|note=engine face
+OK|2023-10 engine aftermath GOLD_F 6m|computed=15.869177|reported=15.869177|src=series_store GOLD_F 2023-11-01→2024-04-30|note=engine face
+OK|2023-10 engine aftermath GOLD_F 12m|computed=38.329562|reported=38.329562|src=series_store GOLD_F 2023-11-01→2024-10-31|note=engine face
+OK|2023-10 known-at-time EA_HICP_YOY 2023-10|computed=2.9|reported=2.9|src=series_store EA_HICP_YOY@2023-10|note=
+OK|2023-10 latest visible EA_HICP_YOY at 2023-10-31|computed=2023-10|reported=2023-10|src=series_store + seat rule = 2023-10-01 (pub 2023-10-31)|note=
+OK|2023-10 known-at-time JP_CPI_YOY 2023-09|computed=3.05|reported=3.05|src=series_store JP_CPI_YOY@2023-09|note=
+OK|2023-10 latest visible JP_CPI_YOY at 2023-10-31|computed=2023-09|reported=2023-09|src=series_store + seat rule = 2023-09-01 (pub 2023-10-20)|note=
+OK|2023-10 known-at-time CN_PPI_YOY 2023-09|computed=-2.5|reported=-2.5|src=series_store CN_PPI_YOY@2023-09|note=
+OK|2023-10 latest visible CN_PPI_YOY at 2023-10-31|computed=2023-09|reported=2023-09|src=series_store + seat rule = 2023-09-01 (pub 2023-10-09)|note=
+OK|2023-10 known-at-time CN_CPI_YOY 2023-09|computed=0.0|reported=0.0|src=series_store CN_CPI_YOY@2023-09|note=
+OK|2023-10 latest visible CN_CPI_YOY at 2023-10-31|computed=2023-09|reported=2023-09|src=series_store + seat rule = 2023-09-01 (pub 2023-10-09)|note=
+OK|2023-10 sync labels present|computed=中国分化、欧元区分化、日本分化|reported=present|src=judgment other_regions_sync|note=
+OK|2023-10 coverage growth|computed=0.1667|reported=0.17|src=report.json state_vector.growth.coverage|note=
+OK|2023-10 coverage inflation|computed=0.3333|reported=0.33|src=report.json state_vector.inflation.coverage|note=
+OK|2023-10 coverage credit|computed=0.5|reported=0.5|src=report.json state_vector.credit.coverage|note=
+OK|C2 2025-03 3m DXY negative|computed=-7.03|reported=<0|src=judgment ex_post 3m|note=
+OK|C2 2025-03 3m GOLD_F positive|computed=5.92|reported=>0|src=judgment ex_post 3m|note=
+OK|C2 2022-06 3m equities all negative|computed=SPX-5.28 NIKKEI225-1.73 DAX-5.24 SHCOMP-11.01|reported=all negative|src=judgment ex_post 3m|note=
+OK|C2 2022-06 12m equities positive except SHCOMP|computed=SPX+17.57 NIKKEI225+25.75 DAX+26.32 SHCOMP-5.78|reported=SHCOMP<0, others>0|src=judgment ex_post 12m|note=
+OK|C2 2023-10 3m DXY negative|computed=-3.18|reported=<0|src=judgment ex_post 3m|note=
+OK|C2 2023-10 3m GOLD_F positive|computed=2.71|reported=>0|src=judgment ex_post 3m|note=
+OK|C2 2023-10 3m SHCOMP negative (exception)|computed=-7.63|reported=<0|src=judgment ex_post 3m|note=
+OK|sign agreement SPX 1m|computed=0.6|reported=0.6|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement SPX 3m|computed=0.6|reported=0.6|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement SPX 3m between 0.6 and 0.8 (C2 claim)|computed=0.6|reported=0.6..0.8|src=recompute|note=
+OK|sign agreement SPX 6m|computed=1.0|reported=1.0|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement SPX 6m = 1.0 (C2 claim)|computed=1.0|reported=1.0|src=recompute|note=
+OK|sign agreement SPX 12m|computed=1.0|reported=1.0|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement SPX 12m = 1.0 (C2 claim)|computed=1.0|reported=1.0|src=recompute|note=
+OK|sign agreement UST_10Y 1m|computed=0.8|reported=0.8|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement UST_10Y 1m between 0.6 and 0.8 (C2 claim)|computed=0.8|reported=0.6..0.8|src=recompute|note=
+OK|sign agreement UST_10Y 3m|computed=0.6|reported=0.6|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement UST_10Y 3m between 0.6 and 0.8 (C2 claim)|computed=0.6|reported=0.6..0.8|src=recompute|note=
+OK|sign agreement UST_10Y 6m|computed=0.8|reported=0.8|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement UST_10Y 6m between 0.6 and 0.8 (C2 claim)|computed=0.8|reported=0.6..0.8|src=recompute|note=
+OK|sign agreement UST_10Y 12m|computed=0.6|reported=0.6|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement UST_10Y 12m between 0.6 and 0.8 (C2 claim)|computed=0.6|reported=0.6..0.8|src=recompute|note=
+OK|sign agreement DXY 1m|computed=0.6|reported=0.6|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement DXY 3m|computed=0.6|reported=0.6|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement DXY 6m|computed=0.8|reported=0.8|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement DXY 12m|computed=0.8|reported=0.8|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement GOLD_F 1m|computed=0.6|reported=0.6|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement GOLD_F 3m|computed=0.8|reported=0.8|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement GOLD_F 3m between 0.6 and 0.8 (C2 claim)|computed=0.8|reported=0.6..0.8|src=recompute|note=
+OK|sign agreement GOLD_F 6m|computed=1.0|reported=1.0|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement GOLD_F 6m = 1.0 (C2 claim)|computed=1.0|reported=1.0|src=recompute|note=
+OK|sign agreement GOLD_F 12m|computed=1.0|reported=1.0|src=series_store recompute over 5 cluster representatives|note=engine dispersion face
+OK|sign agreement GOLD_F 12m = 1.0 (C2 claim)|computed=1.0|reported=1.0|src=recompute|note=
+OK|candidates scanned/valid/dropped|computed=1871/74/12/1785|reported=1871/74/12/1785|src=report.json candidates|note=
+OK|n independent clusters|computed=5|reported=5|src=report.json candidates.n_independent_clusters_topN|note=TOP-5独立簇

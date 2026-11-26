@@ -361,12 +361,14 @@ def calculate_rate_expectations(futures, current_rate):
     return expectations
 
 def save_results(futures, current_rate, real_economy, expectations):
-    """保存结果"""
+    """保存结果(Audit-R25 任务1: 同日降级重采集经 daily_face_guard_write
+    守卫——序列丢失面转存 superseded/,不覆盖同日完整可重放面;.md 摘要
+    恒随最新采集重写,不承担重放职责)"""
+    import research_provenance as rp
     today = datetime.now().strftime('%Y%m%d')
     output_dir = os.path.join(ROOT_DIR, 'data', 'daily')
-    os.makedirs(output_dir, exist_ok=True)
 
-    # JSON
+    # JSON(守卫写)
     result = {
         'date': today,
         'fed_funds_futures': futures,
@@ -376,10 +378,13 @@ def save_results(futures, current_rate, real_economy, expectations):
         'generated_at': datetime.now().isoformat()
     }
 
-    json_path = os.path.join(output_dir, f'rate_economy_{today}.json')
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
-    print(f"\n💾 JSON已保存: {json_path} ({os.path.getsize(json_path)} bytes)")
+    json_path, status, note = rp.daily_face_guard_write(
+        output_dir, 'rate_economy', today, result, indent=2)
+    if status == 'degraded_diverted':
+        print(f"\n⚠️ 同日降级面({note})未覆盖完整档,JSON转存: {json_path}"
+              f"(MD 摘要仍按最新采集重写,不承担重放职责)")
+    else:
+        print(f"\n💾 JSON已保存: {json_path} ({os.path.getsize(json_path)} bytes)")
 
     # Markdown摘要
     md_lines = [

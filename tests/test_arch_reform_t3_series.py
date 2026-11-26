@@ -112,7 +112,9 @@ def _full_items():
     }
 
 
-EXPECT_A = {'HY_OAS', 'CURVE_2S10S', 'UST_10Y', 'DFF', 'WTI_SPOT_M'}
+# R9-01 统一有效观测规则: 等长破坏不再整段拒绝——短侧配对(前 5 对)
+# +登记入档;SOFR(dates6/values5)入 store 为 5 有效观测。
+EXPECT_A = {'HY_OAS', 'CURVE_2S10S', 'UST_10Y', 'DFF', 'WTI_SPOT_M', 'SOFR'}
 
 
 class TestAMergeUnit(unittest.TestCase):
@@ -146,7 +148,9 @@ class TestAMergeUnit(unittest.TestCase):
     def test_a3_shape_invalid_skipped(self):
         store = {}
         sb.merge_macro_series(store, _macro_raw(_full_items()))
-        check('A3 等长破坏(SOFR dates6/values5)诚实跳过', 'SOFR' not in store)
+        check('A3 等长破坏(SOFR dates6/values5)→ 短侧配对入档 5 有效'
+              '(R9-01 统一规则,不整段拒绝)',
+              store.get('SOFR') == {'dates': D6[:5], 'values': [4.3] * 5})
         check('A3 空序列(ICSA)诚实跳过', 'ICSA' not in store)
         check('A3 series 非对象(TIPS_5Y)诚实跳过', 'TIPS_5Y' not in store)
 
@@ -165,9 +169,9 @@ class TestAMergeUnit(unittest.TestCase):
         check('A5 history_note 随序列入平节(HY_OAS 逐字)',
               notes.get('HY_OAS') == NOTE_HY)
         check('A5 无注记键不入平节(CURVE_2S10S/UST_10Y/DFF/WTI_SPOT_M)',
-              set(notes) == {'HY_OAS'}, f"got={sorted(notes)}")
-        check('A5 形态不合规序列的注记不入平节(防孤儿: SOFR)',
-              'SOFR' not in notes)
+              set(notes) == {'HY_OAS', 'SOFR'}, f"got={sorted(notes)}")
+        check('A5 短侧配对入档序列的注记随入平节(R9-01: 序列入档'
+              '注记不孤儿,SOFR)', notes.get('SOFR') is not None)
 
     def test_a6_no_macro_channel(self):
         store = {'SPX': {'dates': ['2026-11-13'], 'values': [7659.44]}}

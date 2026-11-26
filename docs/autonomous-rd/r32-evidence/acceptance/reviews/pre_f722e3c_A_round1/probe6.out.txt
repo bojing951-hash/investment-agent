@@ -1,0 +1,91 @@
+=== calendar top keys ===
+['version', 'created', 'updated', 'spec', 'batches', 'entries']
+version: type=str len=5
+created: type=str len=10
+updated: type=str len=10
+spec: type=str len=1932
+batches: type=list len=6
+entries: type=list len=18
+entries n=18
+entry keys: {'entry_id': 18, 'basis': 18, 'metric_id': 16, 'batch_id': 7, 'obs_from': 18, 'obs_to': 18, 'not_published_as_of': 13, 'first_publish_on_or_after': 18, 'note': 18, 'source': 11, 'final_publish_on': 3, 'metric_ids': 2, 'kind': 2, 'decision_date': 2, 'effective_on': 1, 'target_value': 2, 'time': 2, 'official': 2}
+batches n=6
+
+=== registry top keys ===
+['version', 'created', 'spec', 'field_semantics', 'notes', 'metrics']
+metrics type=list len=114
+{
+ "metric_id": "SPX",
+ "display_name": "标普500指数",
+ "source": "global_market_collector",
+ "source_symbol": "^GSPC",
+ "asset_class": "equity_index",
+ "frequency": "daily",
+ "observation_period_kind": "trading_day",
+ "release_date_available": true,
+ "unit": "index_point",
+ "calendar": "us_equity",
+ "economy": "US",
+ "economy_rule": "P8:calendar=us_equity",
+ "market_seat": "onshore_local",
+ "criticality": "core",
+ "status": "active",
+ "identity": {
+  "instrument": "index",
+  "adjustment": "none"
+ },
+ "value_type": "level",
+ "calc": "指数官方收盘点位(未复权,非ETF;SPY为独立指标)",
+ "validation": {
+  "range": [
+   1000,
+   30000
+  ],
+  "max_week_pct_move": 25
+ },
+ "freshness": {
+  "max_calendar_lag_days": 5
+ }
+}
+ids: None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None None
+--- registry JP_POLICY_TARGET: ABSENT
+--- registry JP_POLICY_RATE: ABSENT
+--- registry CN_POLICY_OVERNIGHT: ABSENT
+--- registry CN_OMO_7D: ABSENT
+
+=== report.json top keys ===
+['schema_version', 'pipeline_version', 'run', 'steps', 'fanout', 'layers', 'evidence_index', 'notes', 'run_ok', 'research_plan', 'semantic_review', 'agent_judgment']
+schema_version: 2.0
+pipeline_version: 2.0
+run: dict len=11
+steps: list len=67
+fanout: dict len=1
+layers: dict len=4
+evidence_index: list len=72
+notes: list len=1
+run_ok: True
+research_plan: dict len=26
+semantic_review: dict len=10
+agent_judgment: dict len=9
+gate_a: null
+quality_flags: null
+noncore_missing: null
+steps n=67
+step keys: ['step', 'executed', 'ok', 'deterministic_face', 'agent_face_note']
+envelope keys: []
+gate_a non-null steps: [(None, False, None), (None, False, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, True, None), (None, False, None), (None, True, None), (None, False, None), (None, False, None), (None, False, None)]
+
+=== agent_judgment keys ===
+['schema_version', 'agent_declaration', 'l3', 'l4', 'reader_map']
+schema_version: 1.1
+agent_declaration: dict keys=['attribution', 'produced_by', 'basis']
+l3: dict keys=['contradictions', 'mechanism_chains']
+l4: dict keys=['scenarios']
+reader_map: dict keys=['headline_conclusion', 'regions', 'transmission', 'turnings', 'history_periods', 'rates_decomposition', 'asset_returns_echo', 'turning_supplement']
+reader_map.headline_conclusion: 过去12个月全球宏观主线=通胀再加速与政策再收紧并行: 美欧中通胀在2026-02至2026-05同窗共振回升(月频分辨率下先后未定),其后欧央行两度加息(决议2026-06-11生效2026-06-17、决议2026-09-10生效2026-09-16)、美联储决议2026-09-16生效2026-09-17回补此前降息(有效联邦基金利率回到3.88)、日本持续正常化(日本央行决议2026-09
+reader_map.regions: list len=4
+reader_map.transmission: list len=2
+reader_map.turnings: list len=3
+reader_map.history_periods: list len=3
+reader_map.rates_decomposition: dict keys=['window_from', 'window_to', 'nominal_bp', 'real_bp', 'bei_bp']
+reader_map.asset_returns_echo: list len=8
+reader_map.turning_supplement: list len=1

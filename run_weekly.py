@@ -14,17 +14,139 @@ CLI(P0-2链路修复, 2026-11-09):
   --allow-revision        同日重跑允许修订快照(转发 snapshot_builder,生成_vN原版保留;
                           不带此参数时同日重跑被不可变保护拒绝,step9 exit 3 → 流水线 exit 1)
   --revision-reason TEXT  修订原因(随 --allow-revision 转发写入快照 revision_reason)
+
+Audit-R33 任务4(2026-11-25,失败步骤/时长/原因可追溯):
+- 冷启动无缓存复现(R32 基线 f053afe,2026-11-24 21:43 本机): 步骤2 A股港股
+  采集 ≈710 秒(步骤上限 900 秒),余量不足;旧台账对失败步骤只有 ok=false——
+  无时长、无原因,无法区分超时/非零退出/脚本缺席/依赖跳过;
+- 台账 steps 每行增 duration_sec/exit_code/fail_reason
+  (script_missing|timeout|nonzero_exit|signal:N|dependency_skipped|unreported),
+  顶层增 failed_steps;汇总打印失败原因与时长。run_step 签名与布尔返回不变
+  (既有测试替身依赖该形状,未上报原因的步骤如实标 unreported,不编造)。
+- 修订 r3(同日,终印章验收 run A2 抓到): 步骤自己打印的原因行仍不进台账——
+  同日第二次标准 update 的快照步骤返回 3(不可变规则),台账只有 nonzero_exit+
+  返回码,原因行只在该步自己的输出里,被后续步骤滚出 update 回执的末 40 行。
+  现在: 步骤输出仍逐行透传到原来的流,同时各流留末 TAIL_LINES 个非空行,未成功
+  的步骤(超时/非零退出/被信号终止)把脱敏后的尾部写入 output_tail(台账行与
+  update 回执同形);成功/缺席/依赖跳过的步骤不写。孙进程持有管道时不挂起;
+  进程起不来(OSError)=spawn_failed(旧实现整轮裸崩、无台账)。
 """
 
 import argparse
+import codecs
 import subprocess
 import sys
 import os
 import json
+import threading
+import time
+from collections import deque
 from datetime import datetime
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_DIR = os.path.join(PROJECT_DIR, 'scripts')
+
+# Audit-R33 任务4: 逐步骤执行记录{步骤名: {duration_sec, exit_code, fail_reason
+# [, timeout_sec][, output_tail]}}。run_step 签名与布尔返回不变(既有测试替身
+# 依赖该形状),时长/退出码/失败原因经本表带出: run_pipeline 起始清空,结束挂到
+# results.meta;依赖跳过行记 dependency_skipped。
+STEP_META = {}
+
+# 修订 r3: 失败步骤输出尾的规模上限(每流行数上限防台账膨胀;每流末几行足够
+# 看到步骤自己的原因行——步骤脚本的原因行都打印在退出前)
+TAIL_LINES = 6
+TAIL_CHARS = 240
+_TAIL_READ = 65536          # 单次读取上限: 无换行的超长输出不整体入内存
+_PUMP_JOIN_SEC = 1.0        # 子进程退出后读线程合计至多再等这么久(孙进程持管道时无 EOF)
+
+
+def _pump(src, dst, tail, pending):
+    """读线程: 把子进程一个流的输出逐段透传到目标流(内容不变),并留末几行非空
+    文本到 tail。pending[0] = 尚未见到换行的残行。写入目标失效时只排空不写。"""
+    dec = codecs.getincrementaldecoder('utf-8')('replace')
+    try:
+        while True:
+            chunk = src.readline(_TAIL_READ)
+            if not chunk:
+                break
+            text = dec.decode(chunk)
+            if dst is not None:
+                try:
+                    dst.write(text)
+                    dst.flush()
+                except Exception:
+                    dst = None           # 目标流已关闭: 继续排空管道,不再写
+            *lines, pending[0] = (pending[0] + text).split('\n')
+            if len(pending[0]) > 4 * TAIL_CHARS:
+                pending[0] = pending[0][-2 * TAIL_CHARS:]
+            for ln in lines:
+                if ln.strip():
+                    tail.append(ln.strip()[:TAIL_CHARS])
+        pending[0] += dec.decode(b'', True)
+        if pending[0].strip():
+            tail.append(pending[0].strip()[:TAIL_CHARS])
+    except Exception:
+        pass
+    finally:
+        try:
+            src.close()
+        except Exception:
+            pass
+
+
+def _run_with_tail(cmd, timeout, cwd):
+    """运行子进程,返回 (returncode|None=超时, {流: [末几行]}, 是否超时)。
+    超时=终止子进程(与 subprocess.run(timeout=) 同),已透传的输出保留在尾部。"""
+    env = dict(os.environ)
+    env.setdefault('PYTHONUNBUFFERED', '1')    # 被终止前已打印的行不留在子进程缓冲里
+    proc = subprocess.Popen(cmd, cwd=cwd, env=env, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    tail = {'stdout': deque(maxlen=TAIL_LINES), 'stderr': deque(maxlen=TAIL_LINES)}
+    threads = []
+    for name, dst in (('stdout', sys.stdout), ('stderr', sys.stderr)):
+        threads.append(threading.Thread(
+            target=_pump, args=(getattr(proc, name), dst, tail[name], ['']),
+            daemon=True))
+    for th in threads:
+        th.start()
+    timed_out = False
+    try:
+        proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        proc.kill()
+        proc.wait()
+    deadline = time.monotonic() + _PUMP_JOIN_SEC      # 两流合计至多等这么久
+    for th in threads:
+        th.join(timeout=max(0.0, deadline - time.monotonic()))
+    return (None if timed_out else proc.returncode,
+            {k: list(v) for k, v in tail.items()}, timed_out)
+
+
+def _tail_redacted(tail):
+    """输出尾脱敏后才入台账(步骤异常文本常内嵌含密钥的完整 URL,同 ia_cli P0-4);
+    脱敏器不可导入时整段不写(失败关闭),如实留注。"""
+    if SCRIPTS_DIR not in sys.path:
+        sys.path.insert(0, SCRIPTS_DIR)
+    try:
+        from redact_secrets import redact
+    except Exception:
+        return {'note': 'tail_withheld: redaction unavailable'}
+    return {k: [redact(ln) for ln in v] for k, v in tail.items()}
+
+
+def _tail_lines(tail, per_stream=3):
+    """台账行 output_tail → 汇总打印行(每流末 per_stream 行)。"""
+    if not isinstance(tail, dict):
+        return []
+    if 'note' in tail:
+        return ['输出尾未留: ' + str(tail['note'])]
+    out = []
+    for stream in ('stderr', 'stdout'):
+        for ln in (tail.get(stream) or [])[-per_stream:]:
+            out.append(f'{stream}| {ln}')
+    return out
+
 
 def run_step(step_name, script_name, timeout=900, script_dir=None, extra_args=None):
     """运行一个步骤(默认15分钟超时,防止网络挂死堵住launchd——见a_stock_tracker 2026-10-01事故)。
@@ -39,21 +161,41 @@ def run_step(step_name, script_name, timeout=900, script_dir=None, extra_args=No
 
     if not os.path.exists(script_path):
         print(f"❌ 脚本不存在: {script_path}")
+        STEP_META[step_name] = {'duration_sec': 0.0, 'exit_code': None,
+                                'fail_reason': 'script_missing'}
         return False
 
+    _t0 = time.monotonic()
     try:
-        result = subprocess.run(
-            [sys.executable, script_path] + list(extra_args or []),
-            cwd=PROJECT_DIR,
-            capture_output=False,
-            timeout=timeout
-        )
-    except subprocess.TimeoutExpired:
-        print(f"⏰ {step_name} 超时({timeout}秒),已终止,继续下一步")
+        rc, tail, timed_out = _run_with_tail(
+            [sys.executable, script_path] + list(extra_args or []), timeout, PROJECT_DIR)
+    except OSError as e:       # 进程起不来(句柄耗尽等): 旧实现在此整轮裸崩、无台账
+        print(f"❌ {step_name} 无法启动: {e}")
+        STEP_META[step_name] = {
+            'duration_sec': round(time.monotonic() - _t0, 1), 'exit_code': None,
+            'fail_reason': 'spawn_failed',
+            'output_tail': _tail_redacted({'stdout': [],
+                                           'stderr': [f'{type(e).__name__}: {e}']})}
+        return False
+    _sec = round(time.monotonic() - _t0, 1)
+    if timed_out:
+        print(f"⏰ {step_name} 超时({timeout}秒,已运行{_sec}秒),已终止,继续下一步")
+        STEP_META[step_name] = {'duration_sec': _sec, 'exit_code': None,
+                                'fail_reason': 'timeout', 'timeout_sec': timeout,
+                                'output_tail': _tail_redacted(tail)}
         return False
 
-    if result.returncode != 0:
-        print(f"⚠️  {step_name} 可能有问题 (返回码: {result.returncode})")
+    # Audit-R33 任务4: 失败原因分类——timeout / nonzero_exit / signal:N(负返回码)
+    _meta = {'duration_sec': _sec,
+             'exit_code': rc,
+             'fail_reason': (None if rc == 0 else
+                             f'signal:{-rc}' if rc < 0 else 'nonzero_exit')}
+    if rc != 0:
+        _meta['output_tail'] = _tail_redacted(tail)     # 修订 r3: 只带未成功步骤
+    STEP_META[step_name] = _meta
+
+    if rc != 0:
+        print(f"⚠️  {step_name} 可能有问题 (返回码: {rc})")
         return False
 
     print(f"✅ {step_name} 完成")
@@ -82,6 +224,7 @@ def run_pipeline(steps, script_dir=None, extra_args_by_script=None):
       (缺省 None=全部零参,既有行为不变)。
     """
     results = PipelineResults()
+    STEP_META.clear()   # Audit-R33 任务4: 逐次运行隔离(模块级表)
     # 脚本名 → 步骤显示名(依赖公示用);脚本名 → 是否成功(依赖判定用)
     name_by_script = {s[1]: s[0] for s in steps if len(s) >= 2}
     ok_scripts = set()
@@ -100,6 +243,8 @@ def run_pipeline(steps, script_dir=None, extra_args_by_script=None):
                 reason = f"依赖未成功 → {why}"
                 print(f"\n⏭️  SKIPPED {step_name}: {reason}")
                 results.skips[step_name] = reason
+                STEP_META[step_name] = {'duration_sec': 0.0, 'exit_code': None,
+                                        'fail_reason': 'dependency_skipped'}
                 results.append((step_name, False, critical))
                 continue
         # P0-2 兼容: 仅在确有附加参数时才传 extra_args——零参路径保持旧调用
@@ -113,7 +258,26 @@ def run_pipeline(steps, script_dir=None, extra_args_by_script=None):
         results.append((step_name, success, critical))
         if success:
             ok_scripts.add(script_name)
+    results.meta = dict(STEP_META)   # Audit-R33 任务4
     return results
+
+
+def _fail_reason_text(row):
+    """Audit-R33 任务4: 台账行 → 人读失败原因(未上报如实写未上报)。"""
+    why = row.get('fail_reason')
+    if why == 'timeout':
+        return f"超时(上限 {row.get('timeout_sec')} 秒)"
+    if why == 'nonzero_exit':
+        return f"非零退出(返回码 {row.get('exit_code')})"
+    if why == 'script_missing':
+        return '脚本不存在'
+    if why == 'spawn_failed':
+        return '无法启动步骤进程(系统错误文本见 output_tail)'
+    if why and str(why).startswith('signal:'):
+        return f"被信号终止({why.split(':', 1)[1]})"
+    if why == 'unreported':
+        return '未上报(步骤替身/旧实现未记录原因)'
+    return str(why)
 
 def main(argv=None):
     """argv=None → 真实 sys.argv(CLI);显式传参(如 [])→与宿主 argv 无关
@@ -235,6 +399,34 @@ def main(argv=None):
     print(f"\n  结果: {success_count}/{len(steps)} 步骤成功")
     print(f"  总耗时: {duration:.1f} 秒")
 
+    # Audit-R33 任务4: 逐步骤时长/失败原因入台账并公示(未成功且非依赖跳过的
+    # 步骤逐条打印原因+时长;未上报原因的不编造,如实标 unreported)
+    step_meta = getattr(results, 'meta', {}) or {}
+    step_rows = []
+    for n, s, c in results:
+        m = dict(step_meta.get(n) or {})
+        row = {'name': n, 'ok': bool(s), 'critical': bool(c),
+               'skipped': n in skips,
+               'skip_reason': (skips or {}).get(n),
+               'duration_sec': m.get('duration_sec'),
+               'exit_code': m.get('exit_code'),
+               'fail_reason': m.get('fail_reason')}
+        if not s and not row['fail_reason']:
+            row['fail_reason'] = ('dependency_skipped' if n in skips
+                                  else 'unreported')
+        if 'timeout_sec' in m:
+            row['timeout_sec'] = m['timeout_sec']
+        if not s and m.get('output_tail') is not None:
+            row['output_tail'] = m['output_tail']      # 修订 r3: 未成功步骤自己的输出尾(已脱敏)
+        step_rows.append(row)
+    failed_steps = [r for r in step_rows if not r['ok']]
+    for r in failed_steps:
+        if not r['skipped']:
+            print(f"     ↳ {r['name']}: 时长 {r['duration_sec']} 秒, "
+                  f"失败原因 {_fail_reason_text(r)}")
+            for ln in _tail_lines(r.get('output_tail')):
+                print(f"          {ln}")
+
     # IA-P0-1(AC-11)+FIX-08(IA-DEF-008): 流水线运行台账——步骤状态/失败与SKIPPED
     # 原因/**所使用的研究快照身份(版本+摘要+Gate A)**/是否允许正式报告与回写。
     # 台账为诊断记录: 写入失败仅告警,不改变退出码判定,也不得据此把失败静默记成功。
@@ -270,6 +462,13 @@ def main(argv=None):
         and _step_ok('宏观体制评分卡(消费快照)')
         and _step_ok('数据汇总打包') and _step_ok('数据校验与锚点生成'))
     ledger_provenance['allow_state_writeback'] = ledger_provenance['allow_formal_report']
+    # R33 任务4修订 r4(审查席 MINOR-6): 台账带代码版本(CODE_VERSION.json git_head;
+    # 缺档→None)——与 update 回执 data.code_git_head 同值
+    try:
+        with open(os.path.join(PROJECT_DIR, 'CODE_VERSION.json'), encoding='utf-8') as _cf:
+            ledger_provenance['code_git_head'] = json.load(_cf).get('git_head')
+    except (OSError, ValueError, AttributeError):
+        ledger_provenance['code_git_head'] = None
     try:
         log_dir = os.path.join(PROJECT_DIR, 'logs')
         os.makedirs(log_dir, exist_ok=True)
@@ -279,11 +478,9 @@ def main(argv=None):
             'run_at': start_time.isoformat(timespec='seconds'),
             'run_date': start_time.strftime('%Y-%m-%d'),
             'duration_sec': round(duration, 1),
-            'steps': [{'name': n, 'ok': bool(s), 'critical': bool(c),
-                       'skipped': n in skips,
-                       'skip_reason': (skips or {}).get(n)}
-                      for n, s, c in results],
+            'steps': step_rows,
             'success_count': success_count,
+            'failed_steps': failed_steps,
             **ledger_provenance,
         }, ensure_ascii=False, indent=1)
         _tmp = log_path + '.tmp'

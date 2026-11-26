@@ -1,0 +1,55 @@
+===== A | old /tmp/r32-accept/final3 20261123T145753Z_给我一 | new final5 20261123T213303Z_给我一
+   git_head old 19638e1487e1e5729b9645ce621c3435d0635d08 | new 8f9055d6e556700b08f28a3abeff284cf0c8d71f
+   question identical True | cutoff old 2026-11-23 new 2026-11-23
+   frozen files: identical 5 | differing 0 | only-old 0 | only-new 0
+      same  root_overlay/config/metric_registry.json  fa396d22175a4814
+      same  root_overlay/config/release_calendar.json  e44fd2aa5ced0310
+      same  root_overlay/data/daily/research_snapshot_20261123.json  2d650f1128cdd356
+      same  evidence_index.json  b46d997b3b6a1935
+      same  views_digest.json  e71a18c2e81904ed
+   evidence_index.json json-equal True (old 6840 bytes / new 6840 bytes)
+   views_digest.json json-equal True (old 56 bytes / new 56 bytes)
+===== B | old /tmp/r32-accept/final4 20261123T193157Z_对比角 | new final5 20261123T213320Z_对比角
+   git_head old 0f3936dd7eb74c557a2350e400d58e10a09c5139 | new 8f9055d6e556700b08f28a3abeff284cf0c8d71f
+   question identical True | cutoff old 2026-11-23 new 2026-11-23
+   frozen files: identical 5 | differing 0 | only-old 0 | only-new 0
+      same  root_overlay/config/metric_registry.json  fa396d22175a4814
+      same  root_overlay/config/release_calendar.json  e44fd2aa5ced0310
+      same  root_overlay/data/daily/research_snapshot_20261123.json  2d650f1128cdd356
+      same  evidence_index.json  3c397575b9c73112
+      same  views_digest.json  e71a18c2e81904ed
+   evidence_index.json json-equal True (old 5936 bytes / new 5936 bytes)
+   views_digest.json json-equal True (old 56 bytes / new 56 bytes)
+===== T3 | old /tmp/r32-accept/final4 20261123T193215Z_202 | new final5 20261123T213336Z_202
+   git_head old 0f3936dd7eb74c557a2350e400d58e10a09c5139 | new 8f9055d6e556700b08f28a3abeff284cf0c8d71f
+   question identical True | cutoff old 2026-11-23 new 2026-11-23
+   frozen files: identical 5 | differing 0 | only-old 0 | only-new 0
+      same  root_overlay/config/metric_registry.json  fa396d22175a4814
+      same  root_overlay/config/release_calendar.json  e44fd2aa5ced0310
+      same  root_overlay/data/daily/research_snapshot_20261123.json  2d650f1128cdd356
+      same  evidence_index.json  66ea74f1e4478c93
+      same  views_digest.json  e71a18c2e81904ed
+   evidence_index.json json-equal True (old 5636 bytes / new 5636 bytes)
+   views_digest.json json-equal True (old 56 bytes / new 56 bytes)
+===== N30 | old /tmp/r32-accept/final4 20261123T193232Z_202 | new final5 20261123T213353Z_202
+   git_head old 0f3936dd7eb74c557a2350e400d58e10a09c5139 | new 8f9055d6e556700b08f28a3abeff284cf0c8d71f
+   question identical True | cutoff old 2026-11-23 new 2026-11-23
+   frozen files: identical 5 | differing 0 | only-old 0 | only-new 0
+      same  root_overlay/config/metric_registry.json  fa396d22175a4814
+      same  root_overlay/config/release_calendar.json  e44fd2aa5ced0310
+      same  root_overlay/data/daily/research_snapshot_20261123.json  2d650f1128cdd356
+      same  evidence_index.json  66ea74f1e4478c93
+      same  views_digest.json  e71a18c2e81904ed
+   evidence_index.json json-equal True (old 5636 bytes / new 5636 bytes)
+   views_digest.json json-equal True (old 56 bytes / new 56 bytes)
+===== C4 | old /tmp/r32-accept/final4-degraded 20261123T193254Z_202 | new final5-degraded 20261123T213414Z_202
+   git_head old 0f3936dd7eb74c557a2350e400d58e10a09c5139 | new 8f9055d6e556700b08f28a3abeff284cf0c8d71f
+   question identical True | cutoff old 2026-11-23 new 2026-11-23
+   frozen files: identical 5 | differing 0 | only-old 0 | only-new 0
+      same  root_overlay/config/metric_registry.json  fa396d22175a4814
+      same  root_overlay/config/release_calendar.json  e44fd2aa5ced0310
+      same  root_overlay/data/daily/research_snapshot_20261123.json  2de337533ef5fbac
+      same  evidence_index.json  37dd6407534bacbf
+      same  views_digest.json  e71a18c2e81904ed
+   evidence_index.json json-equal True (old 6538 bytes / new 6538 bytes)
+   views_digest.json json-equal True (old 56 bytes / new 56 bytes)

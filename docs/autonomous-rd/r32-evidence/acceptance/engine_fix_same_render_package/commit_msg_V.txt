@@ -1,0 +1,18 @@
+Audit-R32 正式验收修复: 同渲染两印章包的重放版本门认归档代码(不以状态面翻新为条件)
+
+正式验收发现(24141c0 下对 36499bb 运行的换问 B 工单再交付): B 的地图在执行
+印章渲染时裁决已在场(第一轮 REVISE 已绑定),归档印章再交付时状态短语不变
+(同渲染包),清单携 archive_code_git_head 而无 map_binding_status_equivalent——
+归档印章代码严格重放自己归档的包被门④拒 code_version_mismatch;执行印章代码
+反而 rc=0 逐字节相等(与 A、T3 两印章包方向相反)。
+
+修复(渲染未改;归档清单字节不变):
+- replay 段: 门④对清单携 archive_code_git_head 的裁决后再交付包,当前代码==
+  归档代码即视为录制代码,不再以 map_binding_status_equivalent 为条件(逐字节
+  核对与裁决绑定核对照旧把关);第三印章照旧拒;重放报告「归档代码 SHA」行
+  仅在该包已声明状态面等价时写出该注记(状态面等价包报告字节不变)
+- test_audit_r32_gate §L9e–§L9g(3 判): 24141c0 复现 §L9f 红(归档印章代码 rc=1
+  code_version_mismatch)→修复后全绿;运行印章代码严格重放同渲染包照旧成立;
+  第三印章照旧拒
+
+Co-Authored-By: Claude Code <noreply@anthropic.com>

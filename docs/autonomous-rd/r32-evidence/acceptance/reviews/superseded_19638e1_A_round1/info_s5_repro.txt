@@ -1,0 +1,10 @@
+common observation months (GDP quarter-start months that are also unemployment observations): 38 (2017-01-01..2026-07-01)
+variant A: GDP level pct change x UNEMPLOYMENT pp change between consecutive common months: pearson=-0.8935653982 n=37
+variant B: GDP yoy (vs same quarter a year earlier) x UNEMPLOYMENT pp change: pearson=-0.4441 n=35
+engine face: pearson_returns=-0.8935653981522128 n_change_pairs=37 change_basis="a=pct,b=pp"
+face pearson_returns = [-0.8935653981522128]
+face n_change_pairs = [37, 37]
+face change_basis = [{"a": "pct", "b": "pp"}]
+face n_common_observations = [38]
+face mode = ["metrics", "month_grid"]
+reproduced = True (|diff| < 1e-9)

@@ -1,0 +1,64 @@
+== redl/12edab8/r31_session_A4_formal/console.log
+downloaded head == expected: True
+manifest: bound files checked=14 mismatches/missing=0 | files outside the manifest: 2 ['archive_receipt.json', 'seat_A4.log']
+blob: cloned commit: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: audit baseline: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+--- [4] strict replay on the final-commit engine (record doors)
+   rc=1 | ok= False | blocked= code_version_mismatch | render_mode= None | failed= None | checks_true=13 not_true=[]
+--- [5] six steps on the engine at the package's recorded run sha ca916cdca7b749282e498d8c8f0eac8bf43b7372 (work root /tmp/r32-accept/redl/12edab8/r31_session_A4_formal/r
+   step: --- [0] 严格面(无旗标) ---
+   step: --- [1] 更换本地日历→重放不变 ---
+   step: --- [1b] 独立引擎目录移去本地日历 RC-EA-HICP-2022M06 → 仍 rc=0+逐字节(R31 任务2: 重放绑包内冻结
+   step: --- [2] 重复重放: 新目录+原包不动 ---
+   step: --- [3] 缺冻结件→拒 ---
+   step: --- [4] 篡改冻结件一字节→拒 ---
+   step: --- [5] manifest 冒冻摘要单侧改写→拒 ---
+post: package after replays: 17 files; manifest sha256 e13deef78a69c4e5
+blob: cloned commit: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: audit baseline: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+steps rc: 0/0/0/0/1/1/1  (n=7)
+== redl/12edab8/r31_session_NEW30/console.log
+downloaded head == expected: True
+manifest: bound files checked=15 mismatches/missing=0 | files outside the manifest: 8 ['README.md', 'REVIEW_REVISE_REQUIRED.md', 'archive_receipt.json', 'judgment_agent_v1.json', 'seat_NEW30.log', 'seat_NEW30FX.log']
+original package comparison: original package files=16 byte-identical=16 different/missing=0
+blob: cloned commit: package files=24 tree files=24 | blob-identical (same path)=24 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: audit baseline: package files=24 tree files=24 | blob-identical (same path)=22 | renamed, same blob=2 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+--- [4] strict replay on the final-commit engine (record doors)
+   rc=1 | ok= False | blocked= code_version_mismatch | render_mode= None | failed= None | checks_true=13 not_true=[]
+--- [5] six steps on the engine at the package's recorded run sha ca916cdca7b749282e498d8c8f0eac8bf43b7372 (work root /tmp/r32-accept/redl/12edab8/r31_session_NEW30/repla
+   step: --- [0] 严格面(无旗标) ---
+   step: --- [1] 更换本地日历→重放不变 ---
+   step: --- [1b] 独立引擎目录移去本地日历 RC-EA-HICP-2022M06 → 仍 rc=0+逐字节(R31 任务2: 重放绑包内冻结
+   step: --- [2] 重复重放: 新目录+原包不动 ---
+   step: --- [3] 缺冻结件→拒 ---
+   step: --- [4] 篡改冻结件一字节→拒 ---
+   step: --- [5] manifest 冒冻摘要单侧改写→拒 ---
+post: package after replays: 24 files; manifest sha256 7af69cd81a4871b1
+blob: cloned commit: package files=24 tree files=24 | blob-identical (same path)=24 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: audit baseline: package files=24 tree files=24 | blob-identical (same path)=22 | renamed, same blob=2 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+steps rc: 0/0/0/0/1/1/1  (n=7)
+== redl/12edab8/r31_session_B2_formal/console.log
+downloaded head == expected: True
+manifest: bound files checked=14 mismatches/missing=0 | files outside the manifest: 2 ['archive_receipt.json', 'seat_B2.log']
+blob: cloned commit: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: audit baseline: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+--- [4] strict replay on the final-commit engine (record doors)
+   rc=1 | ok= False | blocked= code_version_mismatch | render_mode= None | failed= None | checks_true=13 not_true=[]
+--- [5] six steps on the engine at the package's recorded run sha ca916cdca7b749282e498d8c8f0eac8bf43b7372 (work root /tmp/r32-accept/redl/12edab8/r31_session_B2_formal/r
+   step: --- [0] 严格面(无旗标) ---
+   step: --- [1] 更换本地日历→重放不变 ---
+   step: --- [1b] 独立引擎目录移去本地日历 RC-EA-HICP-2022M06 → 仍 rc=0+逐字节(R31 任务2: 重放绑包内冻结
+   step: --- [2] 重复重放: 新目录+原包不动 ---
+   step: --- [3] 缺冻结件→拒 ---
+   step: --- [4] 篡改冻结件一字节→拒 ---
+   step: --- [5] manifest 冒冻摘要单侧改写→拒 ---
+post: package after replays: 17 files; manifest sha256 04c9a68d06f47f61
+blob: cloned commit: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: audit baseline: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+steps rc: 0/0/0/0/1/1/1  (n=7)

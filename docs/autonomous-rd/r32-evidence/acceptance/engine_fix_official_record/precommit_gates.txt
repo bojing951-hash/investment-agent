@@ -1,0 +1,32 @@
+##### test_audit_r28_gate
+═══ §A 任务1: 默认入口纪律(SKILL.md 问句路由) ═══
+═══ §B 任务2: 政策实录三态+官方时刻+按生效日 ═══
+═══ §B 集成: 混合/缺实录→草稿交付+归档拒绝(真实管线) ═══
+═══ §C 任务3: 地区×维度同步面+相对日期双规则 ═══
+═══ §D 任务4: 离线重放四门(逐字节/重复/缺件/篡改/漂移/版本) ═══
+
+==== Audit-R28 gate: 37/37 PASS ====
+=== test_audit_r28_gate main: 37/37 ===
+##### test_audit_r31_gate
+═══ §A 任务2: 三输入钉死(快照/日历/注册表)+异常安全释放 ═══
+═══ §B 任务1: 研究截止日与回看窗统一 ═══
+═══ §C 任务3: 关键证据校验 ═══
+
+=== R31 门: 43/43 ===
+##### test_audit_r32_gate
+Audit-R32 门 (HEAD 19638e1487e1)
+═══ §A 任务1: 统一研究截止日和证据资格 ═══
+═══ §B 任务2: 历史同比与政策核验 ═══
+═══ §C 任务3: 冻结/裁决/交付链共用本工单冻结输入 ═══
+═══ §D 任务4: T3 原问 --question-file 原样输入 ═══
+═══ §H 真跑实中: 快照质量声明一致性(跨指标重定级+金双载体同窗前提) ═══
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_tw2_wm99/tree_gold_unlike/out/research_snapshot_20261123.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_tw2_wm99/tree_gold_unlike/out/anchors_20261123.json (2个)
+   Gate A: FAIL | 事实 2 | 质量 {'PASS': 2, 'DEGRADED': 0, 'FAIL': 0} | core缺失 31 | 非核心缺失 77项(AAPL,AHE,BB_OAS,BEI_10Y,BEI_5Y)…
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_tw2_wm99/tree_gold_like/out/research_snapshot_20261123.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r32gate_tw2_wm99/tree_gold_like/out/anchors_20261123.json (2个)
+   Gate A: FAIL | 事实 2 | 质量 {'PASS': 1, 'DEGRADED': 1, 'FAIL': 0} | core缺失 31 | 非核心缺失 77项(AAPL,AHE,BB_OAS,BEI_10Y,BEI_5Y)…
+═══ §I 真跑实中②: 东京CPI发布节奏推定规则(官方实录校正) ═══
+=== R32 门: 70/70 ===
+=== test_audit_r32_gate main: 70/70 ===
+done

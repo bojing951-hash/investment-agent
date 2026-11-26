@@ -1,0 +1,52 @@
+{
+  "stage": "archive",
+  "run_ts": "20261116T222254Z",
+  "question": "美国盈亏平衡通胀预期(BEI_10Y)上行阶段,黄金(GOLD_F)与美元指数(DXY)的相对表现: 通胀预期变化如何影响金价与美元的传统跷跷板关系",
+  "archived_at": "20261117T040416Z",
+  "content_sha256": "07b990952111f709da8662cc2bc87132a293974a40f186fca610adf2f7d12156",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 3,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261117__VERDICT-20261116T222254Z-01.json",
+      "source_rel": "audit/semantic_review/20261117/VERDICT-20261116T222254Z-01.json",
+      "overall": "UPHELD",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261116T230548Z",
+      "sha256": "252057d984f2a63c"
+    },
+    {
+      "file": "verdicts/20261117__VERDICT-20261116T222254Z-02.json",
+      "source_rel": "audit/semantic_review/20261117/VERDICT-20261116T222254Z-02.json",
+      "overall": "REVISE",
+      "revision": 2,
+      "predecessor": "audit/semantic_review/20261117/VERDICT-20261116T222254Z-01.json",
+      "recorded_at": "20261117T040033Z",
+      "sha256": "652049fbd02ec1ed"
+    },
+    {
+      "file": "verdicts/20261117__VERDICT-20261116T222254Z-03.json",
+      "source_rel": "audit/semantic_review/20261117/VERDICT-20261116T222254Z-03.json",
+      "overall": "UPHELD",
+      "revision": 3,
+      "predecessor": "audit/semantic_review/20261117/VERDICT-20261116T222254Z-02.json",
+      "recorded_at": "20261117T040403Z",
+      "sha256": "c4ec7424b3709b77"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "397de580a0a242d4",
+    "report.md": "110e4c00d0c64f0a",
+    "FULL_REPORT.md": "fc95d85eece30dc9",
+    "agent_judgment.json": "6249408a2d1e7a67",
+    "views_digest.json": "281eb2c3c8210c32",
+    "evidence_index.json": "54e75076df8be069",
+    "AGENT_SEAT_ENVELOPE.json": "be691ba53a180b20"
+  },
+  "record_health": {},
+  "source_report_dir": "/tmp/audit_r4/E2E/20261116T222254Z_美国盈亏平衡通胀预期_BEI_10Y_上行阶段_黄金_GOLD_F_与美元指数_",
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核)"
+}

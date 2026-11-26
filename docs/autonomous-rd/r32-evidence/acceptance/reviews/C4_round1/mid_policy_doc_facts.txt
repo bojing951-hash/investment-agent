@@ -1,0 +1,12 @@
+[
+ {
+  "doc_id": "FOMC-MINUTES-2026-10",
+  "kind": "minutes",
+  "title": "FOMC 2026年10月会议纪要",
+  "meeting_month": "2026-10",
+  "published_on": "2026-11-18",
+  "basis": "user_directive",
+  "note": "10月会议纪要 2026-11-18 发布(纪要发布≠决议日;引用纪要叙事自 11-18 起可见,决议数值仍以决议日公布为准)",
+  "source": "Audit-R22 验收指令(2026-11-19)"
+ }
+]

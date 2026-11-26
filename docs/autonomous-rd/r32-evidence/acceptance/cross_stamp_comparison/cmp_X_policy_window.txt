@@ -1,0 +1,58 @@
+== A
+   ECB_DFR                net_bp                     old 25                     new 50
+   ECB_DFR                window_start_value         old 2.25                   new 2.0
+   ECB_MRO                net_bp                     old 25                     new 50
+   ECB_MRO                window_start_value         old 2.4                    new 2.15
+   JP_POLICY_RATE         net_bp                     old 67                     new 75
+   JP_POLICY_RATE         window_start_value         old 0.557                  new 0.478
+   CN_LPR_1Y              window_start_observation   old "<absent>"             new "2025-11-20"
+   CN_OMO_7D              window_start_observation   old "<absent>"             new "2025-11-14"
+   CN_POLICY_OVERNIGHT    window_start_observation   old "<absent>"             new "2026-11-02"
+   DFEDTARU               window_start_observation   old "<absent>"             new "2025-11-22"
+   DFF                    window_start_observation   old "<absent>"             new "2025-11-22"
+   ECB_DFR                window_start_observation   old "<absent>"             new "2025-06-11"
+   ECB_MRO                window_start_observation   old "<absent>"             new "2025-06-11"
+   JP_POLICY_RATE         window_start_observation   old "<absent>"             new "2025-11-01"
+== B
+   JP_POLICY_RATE         net_bp                     old 67                     new 75
+   JP_POLICY_RATE         window_start_value         old 0.557                  new 0.478
+   JP_POLICY_RATE         window_start_observation   old "<absent>"             new "2025-11-01"
+== T3
+   ECB_DFR                net_bp                     old 25                     new 50
+   ECB_DFR                window_start_value         old 2.25                   new 2.0
+   ECB_MRO                net_bp                     old 25                     new 50
+   ECB_MRO                window_start_value         old 2.4                    new 2.15
+   JP_POLICY_RATE         net_bp                     old 67                     new 75
+   JP_POLICY_RATE         window_start_value         old 0.557                  new 0.478
+   ECB_DFR                window_start_observation   old "<absent>"             new "2025-06-11"
+   ECB_MRO                window_start_observation   old "<absent>"             new "2025-06-11"
+   JP_POLICY_RATE         window_start_observation   old "<absent>"             new "2025-11-01"
+== N30
+   ECB_DFR                net_bp                     old 25                     new 50
+   ECB_DFR                window_start_value         old 2.25                   new 2.0
+   ECB_MRO                net_bp                     old 25                     new 50
+   ECB_MRO                window_start_value         old 2.4                    new 2.15
+   JP_POLICY_RATE         net_bp                     old 67                     new 75
+   JP_POLICY_RATE         window_start_value         old 0.557                  new 0.478
+   ECB_DFR                window_start_observation   old "<absent>"             new "2025-06-11"
+   ECB_MRO                window_start_observation   old "<absent>"             new "2025-06-11"
+   JP_POLICY_RATE         window_start_observation   old "<absent>"             new "2025-11-01"
+   basis old: old: "裸年月 2026年11月 按月末时点化为研究截止日 2026-11-30,与单一相对回看窗合并(一个截止日+一个回看窗;真冲突组合仍拒绝)"
+   basis new: new: "裸年月 2026年11月 按月末时点化为请求研究时点 2026-11-30(晚于快照实际覆盖日 2026-11-23)→研究截止日取实际覆盖日 2026-11-23,与单一相对回看窗合并(一个截止日+一个回看窗;真冲突组合仍拒绝)"
+== C4
+   JP_POLICY_RATE         net_bp                     old 67                     new 75
+   JP_POLICY_RATE         window_start_value         old 0.557                  new 0.478
+   CN_LPR_1Y              window_start_observation   old "<absent>"             new "2025-11-20"
+   CN_OMO_7D              window_start_observation   old "<absent>"             new "2025-11-14"
+   CN_POLICY_OVERNIGHT    window_start_observation   old "<absent>"             new "2026-11-02"
+   DFEDTARU               window_start_observation   old "<absent>"             new "2025-11-22"
+   DFF                    window_start_observation   old "<absent>"             new "2025-11-22"
+   JP_POLICY_RATE         window_start_observation   old "<absent>"             new "2025-11-01"
+== AUG
+   ECB_DFR                net_bp                     old 0                      new 25
+   ECB_DFR                window_start_value         old 2.25                   new 2.0
+   ECB_MRO                net_bp                     old 0                      new 25
+   ECB_MRO                window_start_value         old 2.4                    new 2.15
+   ECB_DFR                window_start_observation   old "<absent>"             new "2025-06-11"
+   ECB_MRO                window_start_observation   old "<absent>"             new "2025-06-11"
+   JP_POLICY_RATE         window_start_observation   old "<absent>"             new "2025-08-01"

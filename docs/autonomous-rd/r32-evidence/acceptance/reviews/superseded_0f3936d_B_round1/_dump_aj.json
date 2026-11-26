@@ -1,0 +1,312 @@
+{
+ "attached": true,
+ "attached_at": "20261123T202010Z",
+ "judgment_file": "judgment4b_B.json",
+ "schema_version": "1.1",
+ "validation": {
+  "passed": true,
+  "violations": [],
+  "n_contradictions": 3,
+  "n_mechanism_chains": 1,
+  "n_scenarios": 2
+ },
+ "contract_verification": {
+  "version": "jc-v1.0-phase4",
+  "verdicts": [
+   {
+    "item": "C1-INFL-SYNC.statement",
+    "claim_type": "objective_fact",
+    "unit": "",
+    "evidence_refs": [
+     "CPI"
+    ],
+    "family": "level",
+    "token": "337.476",
+    "metric": "CPI",
+    "value": 337.476,
+    "expected": 337.476,
+    "status": "VERIFIED",
+    "note": "recompute:Fact 直读 CPI@2026-10-01=337.476"
+   },
+   {
+    "item": "C1-INFL-SYNC.statement",
+    "claim_type": "objective_fact",
+    "unit": "",
+    "evidence_refs": [
+     "CORE_CPI"
+    ],
+    "family": "level",
+    "token": "339.9",
+    "metric": "CORE_CPI",
+    "value": 339.9,
+    "expected": 339.9,
+    "status": "VERIFIED",
+    "note": "recompute:Fact 直读 CORE_CPI@2026-10-01=339.9"
+   },
+   {
+    "item": "C1-INFL-SYNC.statement",
+    "claim_type": "objective_fact",
+    "unit": "",
+    "evidence_refs": [
+     "CORE_PCE"
+    ],
+    "family": "level",
+    "token": "130.902",
+    "metric": "CORE_PCE",
+    "value": 130.902,
+    "expected": 130.902,
+    "status": "STALE",
+    "note": "recompute:Fact 直读 CORE_PCE@2026-09-01=130.902"
+   },
+   {
+    "item": "C1-INFL-SYNC.statement",
+    "claim_type": "objective_fact",
+    "unit": "",
+    "evidence_refs": [
+     "BEI_10Y"
+    ],
+    "family": "level",
+    "token": "2.15",
+    "metric": "BEI_10Y",
+    "value": 2.15,
+    "expected": 2.15,
+    "status": "VERIFIED",
+    "note": "recompute:Fact 直读 BEI_10Y@2026-11-20=2.15"
+   },
+   {
+    "item": "C2-GROWTH-STABLE.statement",
+    "claim_type": "objective_fact",
+    "unit": "",
+    "evidence_refs": [
+     "US_REAL_GDP"
+    ],
+    "family": "level",
+    "token": "24611.077",
+    "metric": "US_REAL_GDP",
+    "value": 24611.077,
+    "expected": 24611.077,
+    "status": "STALE",
+    "note": "recompute:Fact 直读 US_REAL_GDP@2026-07-01=24611.077"
+   },
+   {
+    "item": "C2-GROWTH-STABLE.statement",
+    "claim_type": "objective_fact",
+    "unit": "",
+    "evidence_refs": [
+     "UNEMPLOYMENT"
+    ],
+    "family": "level",
+    "token": "4.1",
+    "metric": "UNEMPLOYMENT",
+    "value": 4.1,
+    "expected": 4.1,
+    "status": "VERIFIED",
+    "note": "recompute:Fact 直读 UNEMPLOYMENT@2026-10-01=4.1"
+   },
+   {
+    "item": "C2-GROWTH-STABLE.statement",
+    "claim_type": "objective_fact",
+    "unit": "",
+    "evidence_refs": [
+     "INDPRO"
+    ],
+    "family": "level",
+    "token": "103.3954",
+    "metric": "INDPRO",
+    "value": 103.3954,
+    "expected": 103.3954,
+    "status": "VERIFIED",
+    "note": "recompute:Fact 直读 INDPRO@2026-10-01=103.3954"
+   },
+   {
+    "item": "C3-JP-POLICY.statement",
+    "claim_type": "objective_fact",
+    "unit": "",
+    "evidence_refs": [
+     "JP_POLICY_RATE"
+    ],
+    "family": "level",
+    "token": "1.227%",
+    "metric": "JP_POLICY_RATE",
+    "value": 1.227,
+    "expected": 1.227,
+    "status": "VERIFIED",
+    "note": "recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227"
+   },
+   {
+    "item": "C3-JP-POLICY.statement",
+    "claim_type": "objective_fact",
+    "unit": "",
+    "evidence_refs": [
+     "USDJPY"
+    ],
+    "family": "level",
+    "token": "159.35",
+    "metric": "USDJPY",
+    "value": 159.35,
+    "expected": 159.35,
+    "status": "VERIFIED",
+    "note": "recompute:Fact 直读 USDJPY@2026-11-23=159.35"
+   }
+  ],
+  "six_checks": [
+   {
+    "item": "C1-INFL-SYNC",
+    "check": "relevant",
+    "status": "VERIFIED",
+    "note": "5 实据引用"
+   },
+   {
+    "item": "C1-INFL-SYNC",
+    "check": "supports",
+    "status": "VERIFIED",
+    "note": "引用逐项对得上"
+   },
+   {
+    "item": "C1-INFL-SYNC",
+    "check": "competing",
+    "status": "VERIFIED",
+    "note": "2 并列解释(阈值≥2)"
+   },
+   {
+    "item": "C1-INFL-SYNC",
+    "check": "opposing",
+    "status": "VERIFIED",
+    "note": "无未消化的相反证据"
+   },
+   {
+    "item": "C2-GROWTH-STABLE",
+    "check": "relevant",
+    "status": "VERIFIED",
+    "note": "3 实据引用"
+   },
+   {
+    "item": "C2-GROWTH-STABLE",
+    "check": "supports",
+    "status": "VERIFIED",
+    "note": "引用逐项对得上"
+   },
+   {
+    "item": "C2-GROWTH-STABLE",
+    "check": "competing",
+    "status": "VERIFIED",
+    "note": "2 并列解释(阈值≥2)"
+   },
+   {
+    "item": "C2-GROWTH-STABLE",
+    "check": "opposing",
+    "status": "VERIFIED",
+    "note": "无未消化的相反证据"
+   },
+   {
+    "item": "C3-JP-POLICY",
+    "check": "relevant",
+    "status": "VERIFIED",
+    "note": "2 实据引用"
+   },
+   {
+    "item": "C3-JP-POLICY",
+    "check": "supports",
+    "status": "VERIFIED",
+    "note": "引用逐项对得上"
+   },
+   {
+    "item": "C3-JP-POLICY",
+    "check": "competing",
+    "status": "VERIFIED",
+    "note": "2 并列解释(阈值≥2)"
+   },
+   {
+    "item": "C3-JP-POLICY",
+    "check": "opposing",
+    "status": "VERIFIED",
+    "note": "无未消化的相反证据"
+   },
+   {
+    "item": "S1-INFL-STICKY",
+    "check": "overreach",
+    "status": "VERIFIED",
+    "note": "tier=有相关证据 条件式✓"
+   },
+   {
+    "item": "S1-INFL-STICKY",
+    "check": "falsifiable",
+    "status": "VERIFIED",
+    "note": "指标+阈值形态✓"
+   },
+   {
+    "item": "S2-INFL-FADE",
+    "check": "overreach",
+    "status": "VERIFIED",
+    "note": "tier=纯逻辑推理 条件式✓"
+   },
+   {
+    "item": "S2-INFL-FADE",
+    "check": "falsifiable",
+    "status": "VERIFIED",
+    "note": "指标+阈值形态✓"
+   }
+  ],
+  "map_checks": [
+   {
+    "item": "reader_map.headline_conclusion",
+    "claim_type": "reader_map",
+    "status": "VERIFIED",
+    "note": "非空",
+    "evidence_refs": []
+   },
+   {
+    "item": "reader_map.regions",
+    "claim_type": "reader_map",
+    "status": "VERIFIED",
+    "note": "3 地齐",
+    "evidence_refs": []
+   },
+   {
+    "item": "reader_map.cross_face_consistency.chain_evidence",
+    "claim_type": "reader_map",
+    "status": "VERIFIED",
+    "note": "传导链[CH-INFL-RATES-RISKOFF] 区分指标绑定 3/3 环",
+    "evidence_refs": []
+   },
+   {
+    "item": "reader_map.cross_face_consistency.turning_source",
+    "claim_type": "reader_map",
+    "status": "VERIFIED",
+    "note": "转折表 3 项指标与计划/候选面同源",
+    "evidence_refs": []
+   }
+  ],
+  "unresolved_unbound": [],
+  "verdict": "VERIFIED",
+  "stats": {
+   "checks": 9,
+   "contradicted": 0,
+   "verified": 7,
+   "unbound": 0,
+   "six_fail": 0,
+   "map_fail": 0,
+   "n_contradictions": 3
+  }
+ },
+ "run_ok_at_attach": true,
+ "allow_failed_run": false,
+ "attach_history": [
+  {
+   "attached": true,
+   "attached_at": "20261123T194058Z",
+   "judgment_file": "judgment4_B.json",
+   "schema_version": "1.1",
+   "validation_passed": true,
+   "contract_verdict": "VERIFIED"
+  }
+ ],
+ "reader_map_faces": {
+  "complete": true,
+  "headline": true,
+  "regions_ok": true,
+  "transmission_chains": 1,
+  "turnings_n": 3,
+  "history_n": 0
+ }
+}

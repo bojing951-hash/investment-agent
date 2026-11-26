@@ -1,0 +1,51 @@
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_b4_ra6_l/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_b4_ra6_l/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_b4_ra6_l/data/daily/anchors_20261117.json (119个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 21, 'DEGRADED': 7, 'FAIL': 0} | core缺失 16 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+── 构建完整面引擎根+正式 CLI plan……
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_6lfzbiov/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_6lfzbiov/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_6lfzbiov/data/daily/anchors_20261117.json (119个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 21, 'DEGRADED': 7, 'FAIL': 0} | core缺失 16 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+═══ §A 注册面+发布日历实录(离线纯函数) ═══
+  ✅ §A P1 修复: 注册表四地新指标在列(全国CPI/GDP同比/OMO/LPR) — []
+  ✅ §A 事后回顾声明: FRED 最新修订族 release_semantics 含标记 — [('EA_REAL_GDP_YOY', 'Eurostat季度GDP flash约季后30-45天发布(精确发布日经FRED不可得→按观测季+滞后窗口保守标注);FRED系列为最新修订口径,历史回看=事后回顾(revision_semantics=latest_vintage_asof_collected)'), ('JP_REAL_GDP_YOY', '内閣府季度GDP速报约季后40-50天发布(精确发布日经FRED不可得→按观测季+滞后窗口保守标注);FRED系列为最新修订口径,历史回看=事后回顾(revision_semantics=latest_vintage_asof_collected)')]
+  ✅ §A DFEDTARU/L 历史通道=macro_collector(区间上下限序列可溯)
+  ✅ §A 日历实录: 停摆期 Q3 GDP 首发日=2025-12-23(user_directive) — {'first_publish': '2025-12-23', 'not_published_as_of': '2025-12-22', 'entry_id': 'RC-2025SHUTDOWN-GDP-Q3', 'basis': 'user_directive', 'note': '2025Q3 实际GDP(观测季 2025-07-01..09-30,常规 advance 应 2025-10-29 发布)因停摆延误;验收指令实录: 2025-11-18/11-19 时点只见二季度 GDP,三季度自 2025-12-23 起可见(R20 初版整批 11-19 口径按实录改精确日)', 'batch_id': None, 'time': None, 'official': None}
+  ✅ §A 日历实录: 9 月失业率首发 2025-11-20;8 月无条目走规则 — {'first_publish': '2025-11-20', 'not_published_as_of': '2025-11-19', 'entry_id': 'RC-2025SHUTDOWN-UNEMP-SEP', 'basis': 'user_directive', 'note': '2025-09 观测月失业率(常规发布 2025-10-06)因停摆延误;验收指令实录: 2025-11-18/11-19 时点只见八月失业率 4.3,九月值自 2025-11-20 起可见', 'batch_id': None, 'time': None, 'official': None}/None
+  ✅ §A _visible_publish 日历优先: Q3→12-23+basis 带条目号 — 2025-12-23|calendar:RC-2025SHUTDOWN-GDP-Q3(user_directive)
+  ✅ §A _visible_publish 规则兜底: 8 月→09-05+推定规则文本随格 — 2025-09-05|BLS 就业形势报告次月首周发布(月末+5天,推定)
+═══ §B 计划面: 12组×3锚+回归锚+格五要素(P1/P2) ═══
+  ✅ §B 回归锚①: 截止 2026-11-18 的 12个月前(2025-11-18)美国 GDP 只可见 Q2(2025-04-01)——Q3 停摆未发布 — {"status": "ok", "as_of": "2025-11-18", "observation_date": "2025-04-01", "publication_date": "2025-07-29", "publication_rule": "B
+  ✅ §B 回归锚②: 12个月前失业率=8月 4.3(9月停摆首发 11-19 被排除) — {"status": "ok", "as_of": "2025-11-18", "observation_date": "2025-08-01", "publication_date": "2025-09-05", "publication_rule": "B
+  ✅ §B 12组×3锚全 ok(36 时点格无一缺组) — []|[('CN', 'growth'), ('CN', 'inflation'), ('CN', 'policy'), ('EA', 'growth'), ('EA', 'inflation'), ('EA', 'policy'), ('JP', 'growth'), ('JP', 'inflation'), ('JP', 'policy'), ('US', 'growth'), ('US', 'inflation'), ('US', 'policy')]
+  ✅ §B 每格五要素齐: 数值/单位/观察期/实际发布日期(+依据)/来源 — []
+  ✅ §B 政策三日期: DFEDTARU 合成面无值变更→决议/生效不可推(如实缺席不虚构),统计窗口如实缺席 — {"face": "政策目标(宣布值)", "market_seat_label": "FOMC目标区间上限", "decision_note": "决议日=生效日前一日(两日会议次日公布;序列值变更日=生效日)——2026-09 决议 09-16、生效 09-17;当前值自序列在场期无变更实录(或观测日非变更日且无可
+  ✅ §B 口径分列: JP 隔夜市场均值无决议日+统计窗口月末(区别于目标口径) — {'face': '隔夜市场均值(月均)', 'market_seat_label': '无担保隔夜拆借月均', 'decision_note': None, 'effective_note': None, 'market_note': None, 'decision': None, 'effective': None, 'market_observation': None, 'stat_window_end': '2026-10-31'}
+  ✅ §B 事后回顾: 注册声明最新修订族的行带标记,采集时点族无 — 事后回顾(最新修订值,非当时首发值)
+  ✅ §B CN PMI 事实: 2026-05=50.0 与 2026-09=50.1(引擎序列可复算) — 05=50.0 09=50.1
+═══ §B2 引擎三面: 三利率共同交易日+关键资产月窗(P3) ═══
+  ✅ §B2 三利率分解面 ok: 共同交易日窗+三分量+恒等式残差<0.5bp — {"status": "ok", "kind": "共同交易日三利率分解", "window": {"from": "2026-10-14", "to": "2026-11-13", "calendar_days_between": 30}, "levels_at_to": {"UST_10Y": 5.15, "TIPS_10Y": 2.
+  ✅ §B2 VIX 月涨幅带计算窗口,与纯函数同窗复算逐位一致 — 19.43% {'from': '2026-10-16', 'to': '2026-11-13'} vs 19.43%
+═══ §C 判定契约三类回贴反例(attach 正式 CLI) ═══
+  ✅ §C 反例(编造回报) → 回贴对账 CONTRADICTED+attach 拒绝 — 回报与引擎不符(声明 99.0% vs 同窗复算 -0.91%)——编造回报数字
+  ✅ §C 反例(正文月份错误) → 回贴对账 CONTRADICTED+attach 拒绝 — 锚值与引擎不符(声明 4.4 vs 引擎 4.3)
+  ✅ §C 反例(提前引用未发布) → 回贴对账 CONTRADICTED+attach 拒绝 — 锚格不存在或锚前不可见(JP_CPI_TOKYO_YOY@12个月前)——不可虚构不在引擎点值面的锚值(提前引用未发布数据反例的拦截位)
+═══ §D 渲染面: 四新节+日历阻断格+零段类比注记(P2/P3) ═══
+  ✅ §D 政策口径四分面节(目标/报价/市场均值+三日期列)
+  ✅ §D 美债三利率分解节(共同交易日复算+恒等式)
+  ✅ §D 关键资产月度变化节(含计算窗口,VIX 在列)
+  ✅ §D 情景节分列触发与失效方向(SCN-A/SCN-B 各自可读)
+  ✅ §D 零段类比: 检索范围与原因注记在读者面
+  ✅ §D 停摆阻断格如实渲染(最早可见日期对读者可见)
+═══ §E 端到端: 正例交付归档+负例D 组级缺数=草稿不归档(P4) ═══
+  ✅ §E 正例: report 可交付+正式归档 1 份(完整面) — rc=0 dlv=True n=1
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r20sparse_wpe46o17/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r20sparse_wpe46o17/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r20sparse_wpe46o17/data/daily/anchors_20261117.json (119个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 21, 'DEGRADED': 7, 'FAIL': 0} | core缺失 16 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+  ✅ §E 负例D: EA/JP 组缺数 → 分类=核心维度缺失+不交付 — bc=map_core_dimension_missing
+  ✅ §E 负例D: 正式归档拒绝(草稿不混入正式库) — rc=1 blocked=not_deliverable n=0
+  ✅ §E 组级分类器: 剥 EA/JP 格 → map_core_dimension_missing — map_core_dimension_missing
+
+Audit-R20 判定: 30 PASS / 0 FAIL

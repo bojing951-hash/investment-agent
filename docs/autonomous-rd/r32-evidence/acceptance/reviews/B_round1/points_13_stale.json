@@ -1,0 +1,133 @@
+{
+ "block": "⑬",
+ "title": "契约验证非 VERIFIED 项(STALE)的判断档披露",
+ "rows": [
+  {
+   "block": "⑬",
+   "id": "E1-契约 verdicts 中非 VERIFIED 项恰为 CORE_PCE 与 US_REAL_GDP 两处 STALE",
+   "source": "report.json:agent_judgment.contract_verification.verdicts",
+   "computed": [
+    [
+     "C1-INFL-SYNC.statement",
+     "CORE_PCE",
+     "130.902",
+     "STALE",
+     "recompute:Fact 直读 CORE_PCE@2026-09-01=130.902"
+    ],
+    [
+     "C2-GROWTH-STABLE.statement",
+     "US_REAL_GDP",
+     "24611.077",
+     "STALE",
+     "recompute:Fact 直读 US_REAL_GDP@2026-07-01=24611.077"
+    ]
+   ],
+   "claim": "CORE_PCE 130.902 / US_REAL_GDP 24611.077 两处 STALE",
+   "match": true,
+   "detail": "全部 verdicts=9; 非 VERIFIED=[('C1-INFL-SYNC.statement', 'CORE_PCE', '130.902', 'STALE', 'recompute:Fact 直读 CORE_PCE@2026-09-01=130.902'), ('C2-GROWTH-STABLE.statement', 'US_REAL_GDP', '24611.077', 'STALE', 'recompute:Fact 直读 US_REAL_GDP@2026-07-01=24611.077')]"
+  },
+  {
+   "block": "⑬",
+   "id": "E1-契约 STALE 项数值一致(value==expected)",
+   "source": "report.json:agent_judgment.contract_verification.verdicts",
+   "computed": [
+    [
+     "CORE_PCE",
+     130.902,
+     130.902
+    ],
+    [
+     "US_REAL_GDP",
+     24611.077,
+     24611.077
+    ]
+   ],
+   "claim": true,
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "⑬",
+   "id": "E1-CORE_PCE 观测 2026-09-01 距截止日 83 天",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE.dates[-1] ; research_as_of",
+   "computed": 83,
+   "claim": 83,
+   "match": true,
+   "detail": "日历日直算"
+  },
+  {
+   "block": "⑬",
+   "id": "E1-US_REAL_GDP 观测 2026-07-01 距截止日 145 天",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.US_REAL_GDP.dates[-1]",
+   "computed": 145,
+   "claim": 145,
+   "match": true,
+   "detail": "日历日直算"
+  },
+  {
+   "block": "⑬",
+   "id": "E1-注册表最大日历滞后: CORE_PCE=60 / US_REAL_GDP=120 / EA_REAL_GDP_YOY=120",
+   "source": "root_overlay/config/metric_registry.json:metrics[*].freshness.max_calendar_lag_days",
+   "computed": {
+    "CORE_PCE": 60,
+    "US_REAL_GDP": 120,
+    "EA_REAL_GDP_YOY": 120
+   },
+   "claim": {
+    "CORE_PCE": 60,
+    "US_REAL_GDP": 120,
+    "EA_REAL_GDP_YOY": 120
+   },
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "⑬",
+   "id": "E1-CORE_PCE 倍数 83/60(报告 1.4)",
+   "source": "83 天 / 注册表 60 天",
+   "computed": 1.383333,
+   "claim": 1.4,
+   "match": true,
+   "detail": "直算 1.38333 → 取 1 位 1.4; 报告 1.4; "
+  },
+  {
+   "block": "⑬",
+   "id": "E1-US_REAL_GDP 倍数 145/120(报告 1.2)",
+   "source": "145 天 / 注册表 120 天",
+   "computed": 1.208333,
+   "claim": 1.2,
+   "match": true,
+   "detail": "直算 1.20833 → 取 1 位 1.2; 报告 1.2; "
+  },
+  {
+   "block": "⑬",
+   "id": "E1-STALE 项均为该序列截止日前最新已发布观测",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE/US_REAL_GDP.dates",
+   "computed": [
+    "2026-09-01",
+    "2026-07-01"
+   ],
+   "claim": [
+    "2026-09-01",
+    "2026-07-01"
+   ],
+   "match": true,
+   "detail": "直读"
+  },
+  {
+   "block": "⑬",
+   "id": "E1-EA_REAL_GDP_YOY 最新观测 2026-07-01 距截止日 145 天(与 US_REAL_GDP 同龄同倍数)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_REAL_GDP_YOY.dates[-1]",
+   "computed": [
+    145,
+    120
+   ],
+   "claim": [
+    145,
+    120
+   ],
+   "match": true,
+   "detail": "直算; 序列存量观测数=123"
+  }
+ ]
+}

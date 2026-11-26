@@ -1,0 +1,195 @@
+strings=302  dates=284  uncovered dates=9  uncovered numeric tokens=19
+  DATE 2025-11-19 | .mechanism_chains[0].links[1].text …盈亏平衡(BEI_10Y)-19bp；12 个月窗(2025-11-19→2026-11-19)名义 +91bp=实…
+  DATE 2026-07-01 | $.l3.contradictions[1].statement …CN_CPI_YOY 三个月前锚前值 0.5(观测 2026-07-01)。CN_CPI_YOY 最新一期为 0.7…
+  DATE 2026-08-01 | $.quality_gate_notes[7] … 2026-05→2026-08(通胀维，窗口终点 2026-08-01 略早于三个月前锚，与①窗口相邻、方向相反)…
+  DATE 2026-09-01 | contradictions[1].evidence_refs[3] …CORE_PCE@2026-09-01…
+  DATE 2026-09-18 | $.l3.contradictions[0].statement …擎推定规则，非日历实录)。发布日历实录： 日本央行 2026-09-18 决议、2026-09-24 生效(宣布目标…
+  DATE 2026-09-24 | $.l3.contradictions[0].statement …布日历实录： 日本央行 2026-09-18 决议、2026-09-24 生效(宣布目标水平约一点二五)，2026-…
+  DATE 2026-10-20 | .mechanism_chains[0].links[1].text …04%(2026-11-19)，近一月共同交易日窗(2026-10-20→2026-11-19)名义 -8bp=实际…
+  DATE 2026-10-23 | $.l3.contradictions[3].statement …代宏观基本面。市场面(独立证据层)： 引擎近一月窗(2026-10-23→2026-11-23；NIKKEI225 …
+  DATE 2026-11-18 | $.quality_gate_notes[2] …事实面载有 FOMC 2026年10月会议纪要条目(2026-11-18 发布，引擎所记依据为工单指令，纪要发布≠决…
+  NUM -4 (11) | $.l3.contradictions[2].statement …列 JP_REAL_GDP_YOY)由 2026-04 的百分之零点八零升至 2026-0…
+  NUM 18 (1) | $.agent_declaration.basis …VELOPE 工单、证据索引(69行)、点值格(18格,另4格序列缺席)、转折候选面(候…
+  NUM 36 (1) | .reader_map.history_zero_case_note …」；②锚点月有 12 项特征缺席(历史长度不足 36 个月——HY_IG_gap_d12…
+  NUM 40 (3) | smission[0].links[2].observed_fact … -4.25%、DAX -1.50%、法国CAC40 +1.86%、VIX +84.52…
+  NUM 0.1 (1) | $.quality_gate_notes[2] …5=1.28；CN_LPR_1Y 3.0 下调 0.10=2.90)，在截止日均未满足。延续…
+  NUM 1.1 (1) | $.schema_version …1.1…
+  NUM 100 (1) | $.agent_declaration.basis …日( )独立复算;引擎只供确定性证据,判断内容 100% 归 Agent。…
+  NUM 225 (15) | $.l3.contradictions[3].statement …立证据层)： 引擎近一月窗( → ；NIKKEI225 止于   收盘)SPX -5.51…
+  NUM 500 (6) | $.l3.contradictions[3].statement …非收盘价)。同日收盘口径( → )近一月： 标普500指数下跌百分之九点三六、日经225下…
+  NUM 0.05 (1) | $.quality_gate_notes[2] …CY_RATE 月均 1.227 上取整分位加 0.05=1.28；CN_LPR_1Y 3.…
+  NUM -2026 (1) | $.reader_map.regions[2].from_to …)→3.0( ，发布日历实录 RC-CN-LPR-2026M11，公布时刻 09:00；三个月…
+  NUM 19.45 (5) | .mechanism_chains[0].links[2].text …、DAX +0.11%、VIX +38.87%(19.45→27.01)；同日收盘口径( → …
+  NUM 21.23 (2) | tions[0].competing_explanations[0] …三个月前锚 -5.79%、较 10-30 回落 21.23%)，BRENT_F 94.39→1…
+  NUM 25.03 (2) | tions[0].competing_explanations[0] …88.19(-6.57%，较 10-30 回落 25.03%)；月度现货均价 WTI_SPOT…
+  NUM 27.01 (2) | .mechanism_chains[0].links[2].text …0.11%、VIX +38.87%(19.45→27.01)；同日收盘口径( → ): 标普5…
+  NUM 0.3767 (1) | reader_map.turnings[2].first_mover … 2026-08 的 2.4462(三个月回落 0.3767 个百分点)，其后 2026-09 …
+  NUM 0.9571 (1) | .turning_supplement[0].first_mover … 2026-02 的 0.7972(三个月回落 0.9571 个百分点)；其后最新一期同比 2.…
+  NUM 235101 (1) | $.agent_declaration.produced_by … 代持席位, 降级面开放问句 20261123T235101Z,  )…
+  NUM 20261123 (2) | $.agent_declaration.produced_by …earch-one 代持席位, 降级面开放问句 20261123T235101Z,  )…
+
+===== 未重读段落全文 =====
+
+## agent_declaration
+{
+ "attribution": "ai_inferred",
+ "produced_by": "Agent 研究席(操作者会话经正式入口 ia_cli research-one 代持席位, 降级面开放问句 20261123T235101Z, 2026-11-23)",
+ "basis": "读本轮 AGENT_SEAT_ENVELOPE 工单、证据索引(69行)、点值格(18格,另4格序列缺席)、转折候选面(候选池9、取3)、美国三利率分解、资产月窗、类比面、工单冻结发布日历(v1.5.0)政策事件实录后独立研判;日本央行官方目标水平按发布日历事件(决议日/生效日)与研究截止日(2026-11-23)独立复算;引擎只供确定性证据,判断内容 100% 归 Agent。"
+}
+
+## quality_gate_notes[1]
+对质面: 传导面 三 环均给出主/竞争两侧对同一区分指标的不同预期，判断=尚不能区分 ×3(前两环方向与主解释一致但归因未定，逐环两侧相容观测与裁定保留见传导面正文)。L3 四 条矛盾陈述各并列 二 种解释，L4 二 个情景各给出可观测触发条件与失效阈值。
+
+## quality_gate_notes[3]
+数据面: Gate A=DEGRADED——核心缺口 0 项、非核心缺口 十 项(BUND_10Y、BUND_2Y、CN_OMO_7D、CN_POLICY_OVERNIGHT、EA_HICP_YOY、EA_REAL_GDP_YOY、ECB_DFR、ECB_MRO、JP_CPI_TOKYO_YOY、JP_REAL_GDP_YOY)、非核心降级 六 项(CN_SF_FLOW、JTSJOL、M2SL、SPX_EPS、SPX_PE_TTM、US_REAL_GDP)，质量计数 PASS 72 / DEGRADED 7 / FAIL 0。缺口明细(引擎注记): 来源文件缺失(ea:MISSING)——BUND_10Y、BUND_2Y、EA_HICP_YOY、EA_REAL_GDP_YOY、ECB_DFR、ECB_MRO；来源文件在场而指标缺席(采集遗漏或子源缺席——注册表未登记该指标子源状态键,不可区分)——CN_OMO_7D、CN_POLICY_OVERNIGHT；来源文件在场而指标缺席(采集遗漏或子源缺席——档内无该指标子源状态记录,不可区分)——JP_CPI_TOKYO_YOY；来源文件在场且子源FRED_JP_GDP取数成功而指标缺席(采集遗漏——采集器已取到而事实未生成)——JP_REAL_GDP_YOY。本证据面为干净安装后的降级面(未接入历史补全流程)，欧元区增长、通胀、政策三维序列全部缺席。美国 CPI 与核心CPI 2026-10 同比因缺上年同月基期观测不可得，另列最近有效同比(2026-09)。七天逆回购利率末次已发布观测 2026-10-30 被引擎注记为过期(末观测滞后 24 天，超出 10 天发布频率窗口)。引擎数值核对对核心PCE 最新水平(观测 2026-09-01)与美国实际 GDP 最新水平(观测 2026-07-01)标注 STALE(数值直读一致；观测期相对截止日的滞后超过发布节奏阈值，须披露、不阻断)。证据索引共 69 条，全部取自本工单冻结快照 research_snapshot_20261123。
+
+## quality_gate_notes[5]
+同比基期纪律: 历史同比统一按去年同月/同季基期: 美国 CPI 与核心CPI 最新月(2026-10)缺 2025-10 基期观测，同比标为不可得并以最近有效同比(2026-09)替代披露，不以其他基期冒充；转折候选池内水平序列的同比派生于水平序列(严格同基期)。候选池其余 六 项的窗口终点均早于三个月前锚(2026-08-23)，属对照窗之前的转折。
+
+## quality_gate_notes[6]
+政策口径披露: ①「中国未变」仅就一年期 LPR(3.0→3.0)与七天逆回购利率(1.4→1.4，末次观测已过期)两个可比口径成立；隔夜利率为 2026-11-02 换锚后的操作目标锚，序列自 2026-11-02 起，三个月前锚无已发布观测，不纳入对照。②日本官方目标水平 1.25 仅见于冻结发布日历实录，宣布目标序列不在引擎注册表；在册序列 JP_POLICY_RATE 为无担保隔夜拆借月均口径，非目标宣布值；三个月窗(月均 2026-07→2026-10)净 +25bp。近 12 个月净变动为 +75bp(窗启时在值 2025-11 月均 0.478→窗末观测 2026-10 月均 1.227，即窗内六个变动点之和，与引擎『政策一年窗路径』面板同口径)；仅自窗内首观测(2025-12 月均 0.557)起算为 +67bp，属另一口径、仅作另列。③美国近一年事件簇先降后升(2025-12-10 决议 -25bp、2026-09-16 决议 +25bp)，净 0；三个月窗内为收紧 +25bp。
+
+## quality_gate_notes[9]
+本档定性: 降级安装面的开放问句研判(草稿，非可交付正式研究)——欧元区三维序列缺席，四地横向分化只在美、中、日三地与市场面上可判；引擎交付门以核心维度缺数判为不可交付，正式归档应被拒绝，该项拒绝为验收必测项。判断内容归 Agent 研究席，引擎只供确定性证据。
+
+## reader_map keys: ['headline_conclusion', 'regions', 'transmission', 'turnings', 'turning_supplement', 'history_periods', 'history_zero_case_note', 'rates_decomposition', 'asset_returns_echo']
+
+## reader_map.turning_supplement
+[
+ {
+  "metric_id": "INDPRO",
+  "to_ym": "2026-02",
+  "first_mover": "美国工业生产指数同比(INDPRO)2025-11 的 1.7543 回落至 2026-02 的 0.7972(三个月回落 0.9571 个百分点)；其后最新一期同比 2.15(2026-10)高于三个月前锚的 1.25(2026-07)。",
+  "follow_or_diverge": "相邻窗对照: 美国 headline CPI 同比在紧接其后的窗口(2026-02→2026-05)由 2.434 升至 4.1666，与工业生产回落方向相反(增长与通胀背离)；中国制造业PMI同比在同一后续窗口(2026-02→2026-05)由 -2.3904 升至 1.0101(PMI 水平 49.0→50.0，荣枯线附近)；日本缺月频增长指标(JP_REAL_GDP_YOY 仅季频且不在本轮证据索引)，欧元区增长序列缺席，两地跟进或背离无从判断。",
+  "resolution_note": "月频序列只能分辨到月:美国工业生产回落窗(2025-11→2026-02)与候选池内美国 CPI、中国制造业PMI的上行窗(2026-02→2026-05)仅在 2026-02 交界，属相邻而非同窗，月频分辨率下无法判断谁先谁后(先后未定)。",
+  "evidence_gap": "缺日本月频增长指标与欧元区增长序列的证据(日本仅季频 GDP 同比且不在本轮证据索引，欧元区实际 GDP 同比序列缺席)，跨经济体跟进/背离证据不足。"
+ }
+]
+
+## reader_map.history_zero_case_note
+历史类比取零段(契约允许 0..3 段，如实写明)。检索范围=引擎六维状态类比面(锚月 2026-11，12 个月特征窗，美国序列锚定)∪快照 series_store。引擎类比能力本轮已执行并成功: 扫描 1871 个候选月，有效候选 74 个，因特征不足剔除 1785 个、同簇去重剔除 12 个，TOP-5 独立簇代表为 2025-03、2022-06、2023-10、2021-02、2020-01(引擎排序依据=缺席特征数优先、其后距离，名次非纯距离序)。引擎研究模式门: 描述性对齐可用、事件研究被阻断(存在无发布日特征指标，不得按发布日对齐)。席位不列历史段的原因: ①类比面的特征与事后窗全部为美国序列(事后表现为 DXY、GOLD_F、SPX、UST_10Y 四项)，不含中国、日本、欧元区状态，无法刻画「经济体之间的分化」；②锚点月有 12 项特征缺席(历史长度不足 36 个月——HY_IG_gap_d12m、HY_OAS_d12m；序列止于锚点前两个月(发布时点晚于锚点)——CORE_CPI_yoy、CPI_yoy、GDP_yoy、SPX_PE_TTM_level；月度指标在锚点月无观测(序列止于锚点前一月，发布时点晚于锚点)——FED_FUNDS_d12m、FED_FUNDS_level、INDPRO_yoy、NFP_3m_chg、RSAFS_yoy、UNEMPLOYMENT_level)，维度覆盖率(取值 0 至 1)为增长 0.17、通胀 0.33、利率 0.75、信用 0.50、波动 1.00、估值 0.50，以首位候选为例各维对距离的贡献份额(%)为 volatility 42.13、rates 40.66、inflation 10.54、valuation 6.67、credit 0.00、growth 0.00，增长与信用维几乎不参与，类比主要由市场维度决定；③本证据面为降级安装面，欧元区三维序列缺席，四地同步/背离的历史对照无从成立。不以美国单经济体状态类比冒充四地分化类比，亦不以未逐项核验的事后结果充数。事后结果≠当时可知(特征为最新修订口径的描述性对齐)；相似≠因果≠预测。
+
+## reader_map.rates_decomposition
+{
+ "window_from": "2026-10-20",
+ "window_to": "2026-11-19",
+ "nominal_bp": -8.0,
+ "real_bp": 11.0,
+ "bei_bp": -19.0
+}
+
+## reader_map.asset_returns_echo
+[
+ {
+  "metric_id": "SPX",
+  "window_months": 1,
+  "chg_pct": -5.51,
+  "window": {
+   "from": "2026-10-23",
+   "to": "2026-11-23"
+  }
+ },
+ {
+  "metric_id": "NIKKEI225",
+  "window_months": 1,
+  "chg_pct": -9.98,
+  "window": {
+   "from": "2026-10-23",
+   "to": "2026-11-20"
+  }
+ },
+ {
+  "metric_id": "SHCOMP",
+  "window_months": 1,
+  "chg_pct": -4.11,
+  "window": {
+   "from": "2026-10-23",
+   "to": "2026-11-23"
+  }
+ },
+ {
+  "metric_id": "DAX",
+  "window_months": 1,
+  "chg_pct": 0.11,
+  "window": {
+   "from": "2026-10-23",
+   "to": "2026-11-23"
+  }
+ },
+ {
+  "metric_id": "VIX",
+  "window_months": 1,
+  "chg_pct": 38.87,
+  "window": {
+   "from": "2026-10-23",
+   "to": "2026-11-23"
+  }
+ },
+ {
+  "metric_id": "DXY",
+  "window_months": 1,
+  "chg_pct": 2.23,
+  "window": {
+   "from": "2026-10-23",
+   "to": "2026-11-23"
+  }
+ }
+]
+
+## l4.scenarios[0] (除 scenario/asset_direction.direction)
+{
+ "id": "SCN-A-POLICY-DIVERGENCE-EXTENDS",
+ "rows": {
+  "scenario": "【假设·非预测】政策分化延续并加深: 至 2027-02，美国 DFEDTARU 上限再上调至少一次(≥4.25)，日本 JP_POLICY_RATE 月均不低于 1.28，中国 CN_LPR_1Y 维持 3 不变；美日与中国之间的政策方向分化延续。两情景互补而不穷尽: 美日不再加码而中国未变的平台态，以及美国转向降息，均不属任一情景。",
+  "sensitive_variables": [
+   "DFEDTARU",
+   "JP_POLICY_RATE"
+  ],
+  "falsification": {
+   "metric_id": "DFEDTARU",
+   "threshold": "若至 2027-02-28 触发条件未同时满足(DFEDTARU 上限未达 4.25，或 JP_POLICY_RATE 月均低于 1.28，或 CN_LPR_1Y 不再为 3)，政策分化延续情景被证伪",
+   "secondary_metric_ids": [
+    "JP_POLICY_RATE",
+    "CN_LPR_1Y"
+   ]
+  },
+  "trigger": {
+   "condition": "至 2027-02-28 DFEDTARU 上限 ≥4.25 且 JP_POLICY_RATE 月均 ≥1.28(以期限前已发布的最新月均为准)，同时 CN_LPR_1Y 仍为 3(证伪条件为本条件的补集)",
+   "deadline": "2027-02-28"
+  }
+ }
+}
+   asset_direction keys: {'direction': '…', 'confidence_tier': '有相关证据', 'evidence_refs': ['DXY@2026-11-23', 'USDJPY@2026-11-23', 'USDCNY@2026-11-23', 'TIPS_10Y@2026-11-19', 'VIX@2026-11-23']}
+
+## l4.scenarios[1] (除 scenario/asset_direction.direction)
+{
+ "id": "SCN-B-POLICY-CONVERGES",
+ "rows": {
+  "scenario": "【假设·非预测】政策分化收敛: 至 2027-02，美日不再加码(DFEDTARU 上限不再高于 4、JP_POLICY_RATE 月均低于 1.28)，中国转向宽松(CN_LPR_1Y 下调至 2.90 或以下)；政策方向分化收敛。美国转向降息(上限回落至 3.75 以下)不属于本情景的收敛形态；美日不再加码而中国未变的平台态不属任一情景，两情景互补而不穷尽。",
+  "sensitive_variables": [
+   "CN_LPR_1Y",
+   "DFEDTARU"
+  ],
+  "falsification": {
+   "metric_id": "CN_LPR_1Y",
+   "threshold": "若至 2027-02-28 触发条件未同时满足(CN_LPR_1Y 未报 2.90 或以下，或其下调时 DFEDTARU 上限高于 4 或 JP_POLICY_RATE 月均不低于 1.28)，政策收敛情景被证伪",
+   "secondary_metric_ids": [
+    "DFEDTARU",
+    "JP_POLICY_RATE"
+   ]
+  },
+  "trigger": {
+   "condition": "CN_LPR_1Y 报 2.90 或以下(下调)且 DFEDTARU 上限 ≤4，同时 JP_POLICY_RATE 月均低于 1.28(与延续情景的 ≥1.28 互补；月均同以期限前已发布的最新值为准)",
+   "deadline": "2027-02-28"
+  }
+ }
+}
+   asset_direction keys: {'direction': '…', 'confidence_tier': '有相关证据', 'evidence_refs': ['USDJPY@2026-11-23', 'USDCNY@2026-11-23', 'SPX@2026-11-23', 'DXY@2026-11-23']}
+
+## l4 keys: ['scenarios'] | l3 keys: ['contradictions', 'mechanism_chains']
+
+===== X18-X20 =====
+X18 | 27.01 | 27.01 | True | 
+X19 | True | true | True | {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-10-30", "publication_date": "2026-10-30", "publication_rule": "央行操作室交易日09:20披露交易公告(当日可见)", "publication_basis": "央行操作室交易日09:20披露交易公告(当日可见)", "vintage": "as_collected(采集时点值)", "value": 1.4, "fres
+X20 | True | true | True | ue;ICSA 仅发布日 true、观测期=周历不登记);依据=各条目release_semantics手写注记,不从frequency推断", "v2.8.7(2026-11-19,Audit-R21 任务2): +CN_POLICY_OVERNIGHT(央行隔夜逆回购利率,2026-11-02 换锚后的操作目标口径;113→114 条目,active 111→112);CN_OMO_7D 注记补 R21 根修(操作量为零日无成交利率不产观测,23 个 0.0 伪影根除)与换锚口径(七天工具单列);发布日历 v1.1.0 同批(R21 权威日期)"],
+FINAL points=400 mismatches=1 ['E25']

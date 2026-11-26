@@ -1,0 +1,324 @@
+{
+ "recompute_points": 228,
+ "recompute_mismatches": 0,
+ "mismatch_details": [],
+ "ctx_points": [
+  {
+   "id": 31,
+   "cat": "③同比对照",
+   "src": "JP latest − JP 6m anchor",
+   "computed": 1.06,
+   "report": 1.06,
+   "note": "JP 1.38→2.44 = +1.06pp (\"约一个百分点\")"
+  },
+  {
+   "id": 59,
+   "cat": "④政策面",
+   "src": "release_calendar JP_POLICY_TARGET entries (count)",
+   "computed": 2,
+   "report": 2,
+   "note": "calendar also holds 3 EA_HICP_YOY historical entries (2021M05/2022M06/2025M03) not covering the window"
+  },
+  {
+   "id": 68,
+   "cat": "④政策面",
+   "src": "like-for-like 2026-09-24 (BOJ 生效) − 2026-09-16 (ECB 生效)",
+   "computed": 8,
+   "report": "(未述; 同口径=8天)",
+   "note": "ctx: same-kind distance is 8 days; judgment text gives both BOJ dates so ordering is unaffected"
+  },
+  {
+   "id": 142,
+   "cat": "⑬窗·逐月路径/转折",
+   "src": "JP_CPI_YOY 2025-01→2026-02 monotonic non-increasing?",
+   "computed": false,
+   "report": "「持续回落」(隐含单调)",
+   "note": "ctx: upticks strictly inside the decline (2025-01→2026-02) at ['2025-09', '2025-10']"
+  },
+  {
+   "id": 151,
+   "cat": "⑬窗·逐月路径/转折",
+   "src": "monthly obs strictly inside window 2026-05-23..2026-11-23 (EA/JP/Tokyo/JP_POLICY_RATE)",
+   "computed": [
+    5,
+    5,
+    5,
+    5
+   ],
+   "report": "6 值(2026-05..2026-10)称「窗内」(观测日在窗内=5)",
+   "note": "ctx/NIT: by observation date 2026-05-01 lies before window start 2026-05-23 (only its presumed publication 06-05..06-20 falls inside); engine n_in_window=5 (2026-06..2026-10); 月份已在括号内写明,无数值影响"
+  },
+  {
+   "id": 178,
+   "cat": "⑨情景",
+   "src": "S1 trigger level-conditions at cutoff (EA≥4.0 / gap≥1.5 / VIX close>30) on latest available readings",
+   "computed": [
+    true,
+    true,
+    true
+   ],
+   "report": "trigger binds to 2026-11/2026-12 readings (unpublished at cutoff)",
+   "note": "ctx: all three level conditions already hold on 2026-10 readings + 2026-11-20 close; the trigger is formally tied to unpublished 2026-11/2026-12 readings → still 待验证, but a no-change path would fire it (persistence scenario by design)"
+  },
+  {
+   "id": 184,
+   "cat": "⑨情景",
+   "src": "S2: which scenario components appear in trigger / falsification",
+   "computed": {
+    "scenario_components": [
+     "EA<3.0",
+     "JP<2.0",
+     "gap≤1.0"
+    ],
+    "trigger_has": [
+     "低于 3.0%",
+     "低于 2.0%"
+    ],
+    "falsification_has": [
+     "3.5%"
+    ]
+   },
+   "report": "S1: 三分量在证伪阈值中齐全",
+   "note": "ctx/MINOR: S2 证伪阈值只覆盖 EA 分量(两月均≥3.5%);日本<2.0% 与水平差≤1.0pp 两分量既不在触发条件(仅 EA<3.0% 且 JP<2.0%;无水平差)也无对应证伪——与 S1 不对称"
+  },
+  {
+   "id": 190,
+   "cat": "⑪诚实缺席",
+   "src": "series_store[EA/JP_REAL_GDP_YOY] last obs / value / n",
+   "computed": {
+    "EA_REAL_GDP_YOY": [
+     "2026-07-01",
+     1.28,
+     123
+    ],
+    "JP_REAL_GDP_YOY": [
+     "2026-07-01",
+     1.16,
+     127
+    ]
+   },
+   "report": "序列在场(至 2026-07-01)",
+   "note": "ctx: series ARE present in series_store (facts absent / Gate A noncore_missing) — gap is at fact level, not series level"
+  },
+  {
+   "id": 220,
+   "cat": "⑩对质表/标注",
+   "src": "step4 inline label: literal 【假设】 in step-4 text?",
+   "computed": false,
+   "report": "否(标签在 missing_link_note 与对质表因果/竞争解释行)",
+   "note": "step-4 text is an observation block whose attribution sentence has no inline label; the E2 tag + missing_link_note 「归因环节为【假设】」 carry it"
+  },
+  {
+   "id": 224,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "VIX 2026-11-04 close → 2026-11-05 close → 2026-11-11 close",
+   "computed": [
+    16.610001,
+    28.18,
+    69.66,
+    17.49,
+    -37.93
+   ],
+   "report": "(判断档未披露)",
+   "note": "in-window earlier spike and fast full reversal (close-based), relevant to competing explanation's 快速回落"
+  },
+  {
+   "id": 225,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "presumed inflation release days inside the VIX jump window: VIX day change on 2026-11-16 (EA_HICP 2026-10, me+16) / 2026-11-20 (JP_CPI 2026-10, me+20)",
+   "computed": [
+    18.7,
+    26.2
+   ],
+   "report": "(判断档只量到决议日 2026-10-30/生效日 2026-09-16,未检验读数发布日)",
+   "note": "ctx/MINOR: 两个最大单日跳升日与两条推定通胀发布日重合;跨地区复核见下一行"
+  },
+  {
+   "id": 226,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "cross-region check on release days: close-to-close 2026-11-13→2026-11-20 and day changes on 11-16 / 11-20",
+   "computed": {
+    "window_11-13_to_11-20": {
+     "SPX": -8.61,
+     "DAX": -7.28,
+     "CAC40": -5.27,
+     "NIKKEI225": -7.7
+    },
+    "day_11-16_/_11-20": {
+     "SPX": [
+      -1.92,
+      -3.7
+     ],
+     "DAX": [
+      -0.57,
+      -2.6
+     ],
+     "CAC40": [
+      -0.2,
+      -1.89
+     ],
+     "NIKKEI225": [
+      -2.42,
+      -5.06
+     ],
+     "EURUSD": [
+      -0.23,
+      -0.02
+     ],
+     "USDJPY": [
+      -0.06,
+      0.2
+     ]
+    }
+   },
+   "report": "读数发布主因?(未述)",
+   "note": "ctx: 跳升窗内四地股指跌幅均不大于美股(SPX 最深);发布日当日同日收盘跨时区不同步(东京<欧洲<纽约),不构成地区特异性证据→结论不变"
+  },
+  {
+   "id": 227,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "SPX / NIKKEI225 2026-11-04 → 2026-11-05",
+   "computed": [
+    -4.36,
+    -1.79
+   ],
+   "report": "(判断档未披露)",
+   "note": "earlier in-window risk-off episode"
+  },
+  {
+   "id": 228,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "release_calendar EA_HICP_YOY entries (obs month, first_publish, final)",
+   "computed": [
+    [
+     "2021-05",
+     "2021-06-01",
+     "2021-06-17"
+    ],
+    [
+     "2022-06",
+     "2022-07-01",
+     "2022-07-19"
+    ],
+    [
+     "2025-03",
+     "2025-04-01",
+     "2025-04-16"
+    ]
+   ],
+   "report": "日历实录仅覆盖日本政策目标两条",
+   "note": "two-tier (flash/final) 实录 exists for EA_HICP_YOY, outside the window"
+  },
+  {
+   "id": 229,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "MAP_REPORT header line: 研究时点口径 … 研究截止日",
+   "computed": true,
+   "report": "2026-11-23 (elsewhere in header)",
+   "note": "engine template line says cutoff 2026-11-30 while lines 4/6 say 2026-11-23"
+  },
+  {
+   "id": 240,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "engine cell vintages per metric (事后回顾 vs as_collected)",
+   "computed": {
+    "EA_HICP_YOY": [
+     "事后回顾(最新修订值,非当时首发值)"
+    ],
+    "ECB_MRO": [
+     "as_collected(采集时点值)"
+    ],
+    "ECB_DFR": [
+     "as_collected(采集时点值)"
+    ],
+    "JP_CPI_YOY": [
+     "事后回顾(最新修订值,非当时首发值)"
+    ],
+    "JP_CPI_TOKYO_YOY": [
+     "as_collected(采集时点值)"
+    ],
+    "JP_POLICY_RATE": [
+     "as_collected(采集时点值)"
+    ]
+   },
+   "report": "C3④「月度数值为事后回顾口径」(全称)",
+   "note": "ctx/NIT: 仅 EA_HICP_YOY、JP_CPI_YOY 标「事后回顾」;东京 CPI 与月均拆借利率为 as_collected(采集时点值)——④的全称表述偏宽(偏保守方向)"
+  },
+  {
+   "id": 241,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "facts[JP_CPI_YOY@2026-10-01].calc 抽验句",
+   "computed": "抽验一致(2026-09=2.16 vs 官方2.1)",
+   "report": "(判断档未述两位小数为采集端由指数水平直算)",
+   "note": "ctx/NIT: 序列值为采集端由物价指数水平直算的两位小数,官方公布为一位小数;判断档以两位小数陈述并写「约」,方向不受影响"
+  },
+  {
+   "id": 242,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "implied EURJPY = EURUSD×USDJPY (2026-10-23 → 2026-11-20)",
+   "computed": [
+    175.609,
+    175.194,
+    -0.24
+   ],
+   "report": "(判断档称 EURJPY 交叉盘不在证据面、不可直接检验)",
+   "note": "ctx: 交叉盘可由证据面两条序列相乘推出(窗内约 −0.2%%,量级很小);判断档「不可直接检验」偏保守,不改变「支持竞争解释」的倾向"
+  },
+  {
+   "id": 243,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "momentum (Δ to 2026-10) by alternative start month [EA, JP]",
+   "computed": {
+    "2026-04": [
+     1.0,
+     1.06
+    ],
+    "2026-05": [
+     0.8,
+     0.91
+    ],
+    "2026-06": [
+     1.2,
+     0.77
+    ],
+    "2026-07": [
+     1.1,
+     0.47
+    ]
+   },
+   "report": "C1「窗内动量不分化」(锚=2026-04 期: +1.0 / +1.06)",
+   "note": "ctx/反方攻击: 「动量相近」依赖起点取 2026-04 期;自 2026-06 起算为 +1.2 / +0.77、自 2026-07 为 +1.1 / +0.47(欧元区更快),自 2026-05 为 +0.8 / +0.91(日本更快)——陈述已限定锚点,不构成错误,结论对起点敏感"
+  },
+  {
+   "id": 244,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "level gap by ECB rate chosen: DFR 2.5−1.25 / MRO 2.65−1.25",
+   "computed": [
+    1.25,
+    1.4
+   ],
+   "report": "C2 用 DFR→约 1.25pp;step3/环2 用 MRO 2.65 vs 1.25",
+   "note": "ctx/NIT: 两处水平差所用欧央行利率不同(均已写明利率名),量级差 0.15pp,不改变「欧元区高于日本」的方向"
+  },
+  {
+   "id": 245,
+   "cat": "反方攻击·上下文(不计入)",
+   "src": "judgment long text blocks rendered verbatim (MAP / FULL / neither)",
+   "computed": {
+    "MAP": 24,
+    "FULL": 17,
+    "neither": [
+     ".reader_map.transmission[0].links[0].verdict_note",
+     ".reader_map.transmission[0].links[1].verdict_note",
+     ".reader_map.transmission[0].links[2].verdict_note",
+     ".reader_map.turnings[0].narrative",
+     ".reader_map.turnings[1].narrative",
+     ".reader_map.turnings[2].narrative"
+    ]
+   },
+   "report": "渲染文字与判断档逐字一致",
+   "note": "ctx(范围外观察): 渲染出的判断文字均逐字一致;未渲染=三条 verdict_note 与三条 turnings.narrative(对质理由与逐月叙述未进读者面)"
+  }
+ ],
+ "snip_miss": []
+}

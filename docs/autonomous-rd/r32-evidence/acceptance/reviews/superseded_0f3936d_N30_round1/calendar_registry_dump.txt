@@ -1,0 +1,517 @@
+=== calendar meta ===
+version = 1.5.0
+created = 2026-11-19
+updated = 2026-11-21
+spec = Audit-R20 任务2 建立(Audit-R21 权威日期修订;Audit-R22 发布批次模型): 发布日历=版本化事实文件。条目优先于 research_map_planner.RELEASE_RULES 推定规则——历史对照(vintage)只允许用「当时已发布」的数据,推定规则给不出停摆/延误这类逐事件事实。basis=user_directive=验收指令实录;basis=convention=由同一已证事件按公开时间线推广(推广范围随条目披露)。条目语义: 命中(metric_id+obs_date∈[obs_from,obs_to])→最早可见日=first_publish_on_or_after(实际首发日未逐条实录的以已证最晚补发日为保守可见界,如实注记,fail-closed)。v1.2.0: 按官方发布批次关联指标×观测期×首发日×来源×数据版本——batches 节=一次官方发布事件(同批多指标/一次补发两月),条目经 batch_id 挂批;核心CPI 与 CPI 同批(BLS 同一份新闻稿)、十一月失业率 2025-12-16、十月与十一月核心 PCE 一次补发两月(2026-01-22)。修改本文件须经独立审计席复核(与 metric_registry 同级的事实面)。 v1.3.0(Audit-R24 任务2 历史信息截止校正): ①EA_HICP 两级发布逐期实录——快报实际首发日按 Eurostat 官方新闻稿编号实录(2021-05 观测月快报=2021-06-01[2-01062021-AP],终值=2021-06-17[2-17062021-AP];2022-06 观测月快报=2022-07-01[2-01072022-AP],终值=2022-07-19[2-19072022-AP])——快报非「月末推定」恒等式,月末截止日当天快报未出即不可知;②INDPRO 2025-09 观测月 G.17 官方改期实录=2025-12-03(Fed G.17 页公告,常规应 2025-10-17 前后),优先于 REST-CONSERVATIVE 保守界;③条目新增 final_publish_on 字段(EA 快报/终值两级分记,终值日随档);④同名命中多条目时取 obs_from 最晚(最特定)条目——精确实录优先于区间保守。 v1.4.0(Audit-R25 任务2 官方发布记录四项实录): ①EA_HICP 2025-03观测月快报2025-04-01[2-01042025-AP]/终值2025-04-16[2-16042025-AP](两级同比均2.2%);②2025年11月CPI改期实录=2025-12-18(原定12-10,标题CPI+核心CPI同批);③2025年9月个人收支报告(核心PCE)=2025-12-05(BEA 25-46,原定10-30,优先于REST保守界);④G.17 2025年10月与11月工业生产一次补发=2025-12-23(官方公告2025-12-03,两观测月同日可见)。发布纪律查询约定贯通: 月/季频观测日统一月首口径查日历(_visible_publish 与 _aof_first_pub 同约定)。 v1.5.0(Audit-R28 任务2 政策记录+官方发布时刻): ①政策记录条目——kind=policy_decision(决议: decision_date/effective_on/target_value=官方宣布目标水平;first_publish_on_or_after=公告可见日)与 kind=policy_maintenance(确认维持: decision_date/target_value;不改变序列值,但刷新核验覆盖截止——确认维持也更新核验日期);时间语义判定(距上次调整=as_of−生效日,按生效日;核验锚=max(观测,确认维持))在 freshness_policy.policy_decision_state,不重复实现。②发布时刻字段 time=HH:MM(官方实录,如中国 LPR 每月20日 09:00)+official=true 旗标——仅读者面显示『日期 时刻(官方实录)』,可见性/先后比较仍用日期字段。条目基准: R28 验收指令实录(2026-11-21 复测基线: 日本央行目标约1.25%、2026-09-18 决议、09-24 生效、10-30 维持;LPR 2026-11-20 09:00)。验收日期与数值只作为测试与复测基准,官方记录面以本文件版本化事实为准。
+
+=== calendar.batches ===
+{"batch_id": "BLS-CPI-2025M09-REL", "agency": "BLS", "release": "2025年9月CPI新闻稿(标题CPI与核心CPI同批)", "published_on": "2025-10-24", "metrics": ["CPI", "CORE_CPI"], "obs_months": ["2025-09"], "backfill_months": 1, "note": "同批多指标: 同一份发布稿同时给出标题CPI与核心CPI——两指标该观测月首发日相同(2025-10-24),可见性须整批一致"}
+{"batch_id": "BLS-EMPSIT-2025M11-REL", "agency": "BLS", "release": "2025年11月就业形势报告", "published_on": "2025-12-16", "metrics": ["UNEMPLOYMENT", "NFP", "AHE"], "obs_months": ["2025-11"], "backfill_months": 1, "basis_note": "失业率首发 2025-12-16=验收指令实录(user_directive);NFP/AHE 同稿发布=同批惯例推广(convention,随格披露)"}
+{"batch_id": "BEA-PCE-2026M01-REL", "agency": "BEA", "release": "个人收支报告(2025年10月与11月PCE一次补发)", "published_on": "2026-01-22", "metrics": ["CORE_PCE"], "obs_months": ["2025-10", "2025-11"], "backfill_months": 2, "note": "一次补发两月: 停摆积压的2025-10与2025-11两观测月核心PCE在同一份报告发布——两月最早可见日同为2026-01-22"}
+{"batch_id": "BLS-CPI-2025M11-REL", "agency": "BLS", "release": "2025年11月CPI新闻稿(标题CPI与核心CPI同批)", "published_on": "2025-12-18", "metrics": ["CPI", "CORE_CPI"], "obs_months": ["2025-11"], "backfill_months": 1, "note": "改期实录: 原定2025-12-10发布改期至2025-12-18(停摆后追赶日程);同批多指标=标题CPI与核心CPI同一份新闻稿,可见性整批一致"}
+{"batch_id": "BEA-PCE-2025M09-REL", "agency": "BEA", "release": "个人收支报告(2025年9月)", "published_on": "2025-12-05", "metrics": ["CORE_PCE"], "obs_months": ["2025-09"], "backfill_months": 1, "note": "停摆改期实录: 原定2025-10-30发布,实际2025-12-05 10:00 a.m. EST发布(BEA 25-46);当期核心PCE物价指数同比2.8%"}
+{"batch_id": "FRB-G17-2025M10-11-REL", "agency": "FRB", "release": "G.17工业生产(2025年10月与11月一次补发)", "published_on": "2025-12-23", "metrics": ["INDPRO"], "obs_months": ["2025-10", "2025-11"], "backfill_months": 2, "note": "一次补发两月: G.17官方公告(2025-12-03)——10月与11月工业生产合并于2025-12-23发布;两观测月最早可见日同为2025-12-23"}
+
+=== calendar.entries (all) ===
+{"entry_id": "RC-2025SHUTDOWN-CPI-SEP", "basis": "user_directive", "metric_id": "CPI", "batch_id": "BLS-CPI-2025M09-REL", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "not_published_as_of": "2025-10-23", "first_publish_on_or_after": "2025-10-24", "note": "2025-09 观测月 CPI(常规发布 2025-10-15)因 2025 年联邦政府停摆(2025-10-01..11-12)延误至 2025-10-24 发布;验收指令实录: 2025-11-18 与 11-19 时点均应允许该月 CPI(已于 10-24 发布)", "source": "Audit-R21 验收指令(2026-11-19)"}
+{"entry_id": "RC-2025SHUTDOWN-CORECPI-SEP", "basis": "user_directive", "metric_id": "CORE_CPI", "batch_id": "BLS-CPI-2025M09-REL", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "not_published_as_of": "2025-10-23", "first_publish_on_or_after": "2025-10-24", "note": "2025-09 观测月核心CPI与标题CPI同一份BLS新闻稿同批发布(同批=同首发日);验收指令实录: 九月核心CPI自 2025-10-24 可见(10-23 不可见)", "source": "Audit-R22 验收指令(2026-11-19)"}
+{"entry_id": "RC-2025SHUTDOWN-UNEMP-SEP", "basis": "user_directive", "metric_id": "UNEMPLOYMENT", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "not_published_as_of": "2025-11-19", "first_publish_on_or_after": "2025-11-20", "note": "2025-09 观测月失业率(常规发布 2025-10-06)因停摆延误;验收指令实录: 2025-11-18/11-19 时点只见八月失业率 4.3,九月值自 2025-11-20 起可见", "source": "Audit-R21 验收指令(2026-11-19)"}
+{"entry_id": "RC-2025SHUTDOWN-UNEMP-NOV", "basis": "user_directive", "metric_id": "UNEMPLOYMENT", "batch_id": "BLS-EMPSIT-2025M11-REL", "obs_from": "2025-11-01", "obs_to": "2025-11-01", "not_published_as_of": "2025-12-15", "first_publish_on_or_after": "2025-12-16", "note": "2025-11 观测月失业率(常规发布 2025-12-05 前后)因停摆后节奏延误;验收指令实录: 十一月失业率自 2025-12-16 可见(12-15 不可见)。注: 2025-10 观测月失业率无实录条目→保守界条目覆盖(先例倒挂如实注记,不虚构)", "source": "Audit-R22 验收指令(2026-11-19)"}
+{"entry_id": "RC-2025SHUTDOWN-GDP-Q3", "basis": "user_directive", "metric_id": "US_REAL_GDP", "obs_from": "2025-07-01", "obs_to": "2025-07-01", "not_published_as_of": "2025-12-22", "first_publish_on_or_after": "2025-12-23", "note": "2025Q3 实际GDP(观测季 2025-07-01..09-30,常规 advance 应 2025-10-29 发布)因停摆延误;验收指令实录: 2025-11-18/11-19 时点只见二季度 GDP,三季度自 2025-12-23 起可见(R20 初版整批 11-19 口径按实录改精确日)", "source": "Audit-R21 验收指令(2026-11-19)"}
+{"entry_id": "RC-2025SHUTDOWN-PCE-OCTNOV", "basis": "user_directive", "metric_id": "CORE_PCE", "batch_id": "BEA-PCE-2026M01-REL", "obs_from": "2025-10-01", "obs_to": "2025-11-01", "not_published_as_of": "2026-01-21", "first_publish_on_or_after": "2026-01-22", "note": "2025-10 与 2025-11 两观测月核心PCE(常规应分别于 2025-11-21/12-19 前后发布)因停摆积压,在 2026-01-22 同一份BEA个人收支报告一次补发两月;验收指令实录: 十月与十一月核心PCE均自 2026-01-22 可见(01-21 不可见)", "source": "Audit-R22 验收指令(2026-11-19)"}
+{"entry_id": "RC-EA-HICP-2021M05", "basis": "user_directive", "metric_id": "EA_HICP_YOY", "obs_from": "2021-05-01", "obs_to": "2021-05-01", "not_published_as_of": "2021-05-31", "first_publish_on_or_after": "2021-06-01", "final_publish_on": "2021-06-17", "note": "2021-05 观测月欧元区HICP: 快报 2021-06-01 发布(Eurostat 2-01062021-AP,快报值 2.0%),终值 2021-06-17 发布(2-17062021-AP,确认 2.0%)——官方新闻稿编号实录;月末截止(05-31)当天快报未出,不可知"}
+{"entry_id": "RC-EA-HICP-2022M06", "basis": "user_directive", "metric_id": "EA_HICP_YOY", "obs_from": "2022-06-01", "obs_to": "2022-06-01", "not_published_as_of": "2022-06-30", "first_publish_on_or_after": "2022-07-01", "final_publish_on": "2022-07-19", "note": "2022-06 观测月欧元区HICP: 快报 2022-07-01 发布(Eurostat 2-01072022-AP,快报值 8.6%),终值 2022-07-19 发布(2-19072022-AP,确认 8.6%)——官方新闻稿编号实录;月末截止(06-30)当天快报未出,不可知"}
+{"entry_id": "RC-2025SHUTDOWN-INDPRO-SEP", "basis": "user_directive", "metric_id": "INDPRO", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "not_published_as_of": "2025-12-02", "first_publish_on_or_after": "2025-12-03", "note": "2025-09 观测月工业生产指数(G.17): 常规应 2025-10-17 前后发布,因 2025-10-01 起联邦停摆,Fed 官方改期公告实录=2025-12-03 09:15 发布——优先于 REST-CONSERVATIVE 保守界(2026-01-22)"}
+{"entry_id": "RC-EA-HICP-2025M03", "basis": "user_directive", "metric_id": "EA_HICP_YOY", "obs_from": "2025-03-01", "obs_to": "2025-03-01", "first_publish_on_or_after": "2025-04-01", "final_publish_on": "2025-04-16", "note": "逐期官方实录: 2025-03观测月HICP快报2025-04-01(Eurostat 2-01042025-AP)/终值2025-04-16(Eurostat 2-16042025-AP),两级同比均为2.2%"}
+{"entry_id": "RC-2025SHUTDOWN-CPI-NOV", "basis": "user_directive", "metric_ids": ["CPI", "CORE_CPI"], "batch_id": "BLS-CPI-2025M11-REL", "obs_from": "2025-11-01", "obs_to": "2025-11-01", "first_publish_on_or_after": "2025-12-18", "note": "BLS改期实录: 2025年11月CPI原定2025-12-10发布,改期至2025-12-18"}
+{"entry_id": "RC-2025SHUTDOWN-PCE-SEP", "basis": "user_directive", "metric_id": "CORE_PCE", "batch_id": "BEA-PCE-2025M09-REL", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "first_publish_on_or_after": "2025-12-05", "note": "BEA停摆追赶实录: 2025年9月个人收支报告原定2025-10-30,实际2025-12-05发布(BEA 25-46);优先于REST-CONSERVATIVE保守界2026-01-22"}
+{"entry_id": "RC-2025SHUTDOWN-INDPRO-OCTNOV", "basis": "user_directive", "metric_id": "INDPRO", "batch_id": "FRB-G17-2025M10-11-REL", "obs_from": "2025-10-01", "obs_to": "2025-11-01", "first_publish_on_or_after": "2025-12-23", "note": "G.17官方公告(2025-12-03): 2025年10月与11月工业生产合并一次发布于2025-12-23——两观测月同日可见"}
+{"entry_id": "RC-2025SHUTDOWN-REST-CONSERVATIVE", "basis": "convention", "metric_ids": ["CPI", "CORE_CPI", "CORE_PCE", "UNEMPLOYMENT", "NFP", "AHE", "INDPRO"], "obs_from": "2025-09-01", "obs_to": "2025-10-31", "not_published_as_of": "2025-11-19", "first_publish_on_or_after": "2026-01-22", "note": "2025-09/2025-10 观测月联邦统计中未逐条实录首发的系列(九月CPI/九月核心CPI/九月失业率/Q3GDP/十月与十一月PCE/十一月失业率 七项 user_directive 条目优先命中,不在本条范围): 实际首发日未逐条实录,取已证最晚补发日 2026-01-22 为保守可见界——介于其间的真实首发不虚构,fail-closed 方向如实注记", "source": "Audit-R21: 由停摆事件实录日期按公开时间线推广;推广范围=本条 metric_ids×2025-09/10 观测月,减去七项已实录条目"}
+{"entry_id": "RC-JP-BOJ-TARGET-2026-09", "kind": "policy_decision", "basis": "user_directive", "metric_id": "JP_POLICY_TARGET", "obs_from": "2026-09-18", "obs_to": "2099-12-31", "decision_date": "2026-09-18", "effective_on": "2026-09-24", "target_value": 1.25, "not_published_as_of": "2026-09-17", "first_publish_on_or_after": "2026-09-18", "note": "日本央行政策目标利率(宣布值口径)2026-09-18 决议、2026-09-24 生效,目标水平约1.25%——R28 验收指令实录(2026-11-21 复测基线);距上次调整按生效日计算", "source": "Audit-R28 验收指令(2026-11-21)"}
+{"entry_id": "RC-JP-BOJ-MAINT-2026-10", "kind": "policy_maintenance", "basis": "user_directive", "metric_id": "JP_POLICY_TARGET", "obs_from": "2026-10-30", "obs_to": "2099-12-31", "decision_date": "2026-10-30", "target_value": 1.25, "not_published_as_of": "2026-10-29", "first_publish_on_or_after": "2026-10-30", "note": "日本央行 2026-10-30 会议确认维持政策目标利率约1.25%不变——确认维持不改变目标水平,但更新核验覆盖截止(R28 任务2: 确认维持也更新核验日期)", "source": "Audit-R28 验收指令(2026-11-21)"}
+{"entry_id": "RC-CN-LPR-2025M11", "basis": "convention", "metric_id": "CN_LPR_1Y", "obs_from": "2025-11-01", "obs_to": "2025-11-30", "first_publish_on_or_after": "2025-11-20", "time": "09:00", "official": true, "note": "2025-11 观测月中国 LPR(1年期): 2025-11-20 09:00(北京时间)官方发布——LPR 各表统一读官方发布时间(每月20日 09:00 官方实录;时刻仅读者面显示,可见性比较仍用日期)", "source": "Audit-R30 验收指令(2025-11 与 2026-11 两期官方日期+09:00 统一;2025-11 观测=在库真实序列,发布日按官方节奏每月20日)"}
+{"entry_id": "RC-CN-LPR-2026M11", "basis": "user_directive", "metric_id": "CN_LPR_1Y", "obs_from": "2026-11-01", "obs_to": "2026-11-30", "not_published_as_of": "2026-11-19", "first_publish_on_or_after": "2026-11-20", "time": "09:00", "official": true, "note": "2026-11 观测月中国 LPR(1年期): 2026-11-20 09:00(北京时间)官方发布——LPR 各表统一读官方发布时间(每月20日 09:00 官方实录;时刻仅读者面显示,可见性比较仍用日期)", "source": "Audit-R28 验收指令(2026-11-21 复测 2026-11-20 09:00)"}
+
+=== registry: count 114 ===
+has JP_POLICY_TARGET: False
+economy=JP metrics: ['EWJ', 'JGB10Y', 'JGB2Y', 'JGB5Y', 'JP_CPI_TOKYO_YOY', 'JP_CPI_YOY', 'JP_POLICY_RATE', 'JP_REAL_GDP_YOY', 'NIKKEI225', 'USDJPY']
+economy=EA metrics: ['BUND_10Y', 'BUND_2Y', 'CAC40', 'DAX', 'EA_HICP_YOY', 'EA_REAL_GDP_YOY', 'ECB_DFR', 'ECB_MRO', 'EURUSD', 'EWG', 'EZU', 'FEZ']
+
+=== registry entries (relevant) ===
+{
+ "metric_id": "DXY",
+ "display_name": "美元指数",
+ "source": "global_market_collector",
+ "source_symbol": "DX-Y.NYB",
+ "asset_class": "fx_index",
+ "frequency": "daily",
+ "observation_period_kind": "trading_day",
+ "release_date_available": true,
+ "unit": "index_point",
+ "calendar": "fx",
+ "economy": "GLOBAL",
+ "economy_rule": "P5:fx leg other",
+ "market_seat": "global",
+ "criticality": "core",
+ "status": "active",
+ "identity": {
+  "instrument": "index",
+  "adjustment": "none"
+ },
+ "value_type": "level",
+ "calc": "ICE美元指数期货结算近似",
+ "validation": {
+  "range": [
+   70,
+   130
+  ],
+  "max_week_pct_move": 8
+ },
+ "freshness": {
+  "max_calendar_lag_days": 5
+ }
+}
+{
+ "metric_id": "EURUSD",
+ "display_name": "欧元兑美元",
+ "source": "global_market_collector",
+ "source_symbol": "EURUSD=X",
+ "asset_class": "fx_rate",
+ "frequency": "daily",
+ "observation_period_kind": "trading_day",
+ "release_date_available": true,
+ "unit": "usd_per_eur",
+ "calendar": "fx",
+ "economy": "EA",
+ "economy_rule": "P5:fx leg EURUSD=X",
+ "market_seat": "global",
+ "criticality": "important",
+ "status": "active",
+ "value_type": "level",
+ "calc": "即期汇率(上涨=欧元升值/美元贬值)",
+ "validation": {
+  "range": [
+   0.7,
+   1.7
+  ],
+  "max_week_pct_move": 8
+ },
+ "freshness": {
+  "max_calendar_lag_days": 5
+ }
+}
+{
+ "metric_id": "USDJPY",
+ "display_name": "美元兑日元",
+ "source": "global_market_collector",
+ "source_symbol": "JPY=X",
+ "asset_class": "fx_rate",
+ "frequency": "daily",
+ "observation_period_kind": "trading_day",
+ "release_date_available": true,
+ "unit": "jpy_per_usd",
+ "calendar": "fx",
+ "economy": "JP",
+ "economy_rule": "P5:fx leg JPY=X",
+ "market_seat": "global",
+ "criticality": "important",
+ "status": "active",
+ "value_type": "level",
+ "calc": "即期汇率(上涨=美元升值;与EURUSD方向语义相反,表述须注意)",
+ "validation": {
+  "range": [
+   60,
+   250
+  ],
+  "max_week_pct_move": 10
+ },
+ "freshness": {
+  "max_calendar_lag_days": 5
+ }
+}
+{
+ "metric_id": "UST_10Y",
+ "display_name": "10年期美债收益率",
+ "source": "macro_collector",
+ "source_symbol": "DGS10",
+ "asset_class": "rates_yield",
+ "frequency": "daily",
+ "observation_period_kind": "trading_day",
+ "release_date_available": true,
+ "unit": "percent",
+ "calendar": "us_rates",
+ "economy": "US",
+ "economy_rule": "P3:calendar=us_rates",
+ "market_seat": "onshore_local",
+ "criticality": "core",
+ "status": "active",
+ "identity": {
+  "instrument": "index_rate_series",
+  "adjustment": "none"
+ },
+ "value_type": "yield_or_spread_level",
+ "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+ "validation": {
+  "range": [
+   0,
+   15
+  ],
+  "max_week_abs_move": 1.0
+ },
+ "freshness": {
+  "max_calendar_lag_days": 7
+ },
+ "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+}
+{
+ "metric_id": "TIPS_10Y",
+ "display_name": "10年期TIPS实际收益率",
+ "source": "macro_collector",
+ "source_symbol": "DFII10",
+ "asset_class": "real_rate",
+ "frequency": "daily",
+ "observation_period_kind": "trading_day",
+ "release_date_available": true,
+ "unit": "percent",
+ "calendar": "us_rates",
+ "economy": "US",
+ "economy_rule": "P3:calendar=us_rates",
+ "market_seat": "onshore_local",
+ "criticality": "core",
+ "status": "active",
+ "identity": {
+  "instrument": "index_rate_series",
+  "adjustment": "none"
+ },
+ "value_type": "yield_or_spread_level",
+ "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+ "validation": {
+  "range": [
+   -2,
+   6
+  ],
+  "max_week_abs_move": 1.0
+ },
+ "freshness": {
+  "max_calendar_lag_days": 7
+ },
+ "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+}
+{
+ "metric_id": "BEI_10Y",
+ "display_name": "10年期盈亏平衡通胀",
+ "source": "macro_collector",
+ "source_symbol": "T10YIE",
+ "asset_class": "inflation_expectation",
+ "frequency": "daily",
+ "observation_period_kind": "trading_day",
+ "release_date_available": true,
+ "unit": "percent",
+ "calendar": "us_rates",
+ "economy": "US",
+ "economy_rule": "P3:calendar=us_rates",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "index_rate_series",
+  "adjustment": "none"
+ },
+ "value_type": "yield_or_spread_level",
+ "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+ "validation": {
+  "range": [
+   0,
+   6
+  ],
+  "max_week_abs_move": 1.0
+ },
+ "freshness": {
+  "max_calendar_lag_days": 7
+ },
+ "release_semantics": "FRED发布时点不可得,按观测日保守处理(观测日≤研究截止即视为可用;发布晚于观测日的风险见快照披露)"
+}
+{
+ "metric_id": "JP_POLICY_RATE",
+ "display_name": "日本无担保隔夜拆借利率(月均)",
+ "source": "japan_rate_collector",
+ "source_symbol": "IRSTCI01JPM156N",
+ "source_key": "FRED_POLICY",
+ "asset_class": "policy_rate",
+ "frequency": "monthly",
+ "observation_period_kind": "calendar_month",
+ "release_date_available": false,
+ "unit": "percent",
+ "calendar": "japan",
+ "economy": "JP",
+ "economy_rule": "P9:calendar=japan",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none"
+ },
+ "value_type": "monthly_avg_rate",
+ "calc": "FRED系列IRSTCI01JPM156N最新观测(日本无担保隔夜拆借利率月均,OECD/BOJ口径;政策利率operative信号,与BOJ决议目标值口径不同,决议值变更时点见release_semantics)",
+ "validation": {
+  "range": [
+   -0.5,
+   2
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 60,
+  "note": "月频:观测日=统计期(月),发布滞后4-6周属正常,未发布≠数据缺失"
+ },
+ "release_semantics": "FRED月频系列发布日不可得;BOJ决议目标值经金融政策决定会议公布(无固定时刻),本指标为月均 operative 利率而非决议值,按观测月+滞后窗口保守标注"
+}
+{
+ "metric_id": "JP_CPI_TOKYO_YOY",
+ "display_name": "东京都CPI同比",
+ "source": "jp_market_collector",
+ "source_symbol": "stat.go.jp tmi2025aa.csv(2020基 tmi 文件404,基期缺口如实)",
+ "source_key": "JP_CPI_TOKYO",
+ "asset_class": "macro_index",
+ "frequency": "monthly",
+ "observation_period_kind": "calendar_month",
+ "release_date_available": false,
+ "unit": "percent",
+ "calendar": "japan",
+ "economy": "JP",
+ "economy_rule": "P9:calendar=japan",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none"
+ },
+ "value_type": "level",
+ "calc": "总务省统计局东京都区部CPI(含生鲜食品综合)同比;jp_market_collector fetch_statgo_cpi_yoy 走 stat.go.jp CSV(cp932),2025基 tmi2025aa 有文件、2020基 tmi2020aa 404→基期内同月同比仅2026-01..2026-10 十个月(统计窗口短,如实注记),后续统计局补挂 2020 基东京档后自动延长",
+ "validation": {
+  "range": [
+   -2,
+   15
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 60,
+  "note": "月频:观测日=统计期(月),未发布≠数据缺失"
+ },
+ "release_semantics": "日本总务省统计局每月下旬发布当月东京都区部速报值;R20 已接线(2025基单档),观察窗短于全国口径系源端基期文件缺席,非采集缺口"
+}
+{
+ "metric_id": "ECB_DFR",
+ "display_name": "欧央行存款便利利率",
+ "source": "ea_market_collector",
+ "source_symbol": "FM.B.U2.EUR.4F.KR.DFR.LEV",
+ "source_key": "ECB_FM_DFR",
+ "asset_class": "policy_rate",
+ "frequency": "daily",
+ "observation_period_kind": "calendar_day",
+ "release_date_available": true,
+ "unit": "percent",
+ "calendar": "ea",
+ "economy": "EA",
+ "economy_rule": "P10:calendar=ea",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none"
+ },
+ "value_type": "level",
+ "calc": "ECB Data Portal 系列 FM.B.U2.EUR.4F.KR.DFR.LEV(存款便利利率 fixed rate,日频),管委会决议变更即时生效",
+ "validation": {
+  "range": [
+   -1,
+   15
+  ],
+  "max_week_abs_move": 1.0
+ },
+ "freshness": {
+  "max_calendar_lag_days": 10,
+  "decision_dated": true,
+  "decision_dated_note": "Audit-R26 任务2: 决策驱动政策目标序列——观测日=政策最后确认/变更日;无更晚已证实决议不作过期(利率长期不变≠数据停更),有已证实更晚决议而未反映=确证过期"
+ },
+ "release_semantics": "ECB管委会金融政策决议公布后生效并当日更新系列(决议时点约 14:15 CET 新闻会);按观测日保守处理"
+}
+{
+ "metric_id": "ECB_MRO",
+ "display_name": "欧央行主要再融资利率",
+ "source": "ea_market_collector",
+ "source_symbol": "FM.B.U2.EUR.4F.KR.MRR_FR.LEV",
+ "source_key": "ECB_FM_MRO",
+ "asset_class": "policy_rate",
+ "frequency": "daily",
+ "observation_period_kind": "calendar_day",
+ "release_date_available": true,
+ "unit": "percent",
+ "calendar": "ea",
+ "economy": "EA",
+ "economy_rule": "P10:calendar=ea",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none"
+ },
+ "value_type": "level",
+ "calc": "ECB Data Portal 系列 FM.B.U2.EUR.4F.KR.MRR_FR.LEV(主要再融资操作固定利率,日频),管委会决议变更即时生效",
+ "validation": {
+  "range": [
+   -1,
+   15
+  ],
+  "max_week_abs_move": 1.0
+ },
+ "freshness": {
+  "max_calendar_lag_days": 10,
+  "decision_dated": true,
+  "decision_dated_note": "Audit-R26 任务2: 决策驱动政策目标序列——观测日=政策最后确认/变更日;无更晚已证实决议不作过期(利率长期不变≠数据停更),有已证实更晚决议而未反映=确证过期"
+ },
+ "release_semantics": "ECB管委会金融政策决议公布后生效并当日更新系列(决议时点约 14:15 CET 新闻会);按观测日保守处理"
+}
+{
+ "metric_id": "EA_HICP_YOY",
+ "display_name": "欧元区HICP同比",
+ "source": "ea_market_collector",
+ "source_symbol": "HICP.M.U2.N.000000.4D0.ANR",
+ "source_key": "ECB_HICP",
+ "asset_class": "macro_index",
+ "frequency": "monthly",
+ "observation_period_kind": "calendar_month",
+ "release_date_available": false,
+ "unit": "percent",
+ "calendar": "ea",
+ "economy": "EA",
+ "economy_rule": "P10:calendar=ea",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none"
+ },
+ "value_type": "level",
+ "calc": "ECB Data Portal 系列 HICP.M.U2.N.000000.4D0.ANR(欧元区HICP年度变化率,未季调,月频,1997+);R20 源切换: 原 ICP 数据集 2026-02-04 起停用(旧口径止于2025-12),官方替代流程键 HICP/ECB_ICP3 结构,全历史重拉衔接,重叠期(1997-01..2025-12)两源逐月一致,后续修订随全量重拉自动生效",
+ "validation": {
+  "range": [
+   -2,
+   15
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 60,
+  "note": "月频:观测日=统计期(月),发布滞后约2周-1月属正常,未发布≠数据缺失"
+ },
+ "release_semantics": "Eurostat月度HICP(次月中旬终值);R20 注意: HICP流程对近月含回溯修订(2025-12 值1.9→2.0),按观测月+滞后窗口保守标注,revision_semantics=latest_vintage_asof_collected"
+}
+{
+ "metric_id": "JP_CPI_YOY",
+ "display_name": "全国CPI同比(日本)",
+ "source": "jp_market_collector",
+ "source_symbol": "stat.go.jp zmi2025aa.csv+zmi2020aa.csv(双基期拼接)",
+ "source_key": "STATGO_CPI",
+ "asset_class": "macro_index",
+ "frequency": "monthly",
+ "observation_period_kind": "calendar_month",
+ "release_date_available": false,
+ "unit": "percent",
+ "calendar": "japan",
+ "economy": "JP",
+ "economy_rule": "P9:calendar=japan",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none"
+ },
+ "value_type": "level",
+ "calc": "日本全国消费者物价指数(综合同比,含生鲜食品);jp_market_collector fetch_statgo_cpi_yoy 取 stat.go.jp zmi2025aa(2025基)+zmi2020aa(2020基)双档水平值,各自基期内做严格同月同比后拼接(新基优先,重叠差>0.10pp 告警),覆盖2021-01..2026-09;与官方公布值抽验一致(2026-09=2.16 vs 官方2.1)",
+ "validation": {
+  "range": [
+   -2,
+   15
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 60,
+  "note": "月频:观测日=统计期(月),总务省中旬发布上月值,未发布≠数据缺失"
+ },
+ "release_semantics": "日本总务省统计局每月中旬(通常周五)发布上月全国CPI;基期切换年(2025基)拼接处两基口径差以拼接告警阈值守卫;revision_semantics=latest_vintage_asof_collected"
+}
+{
+ "metric_id": "EA_REAL_GDP_YOY",
+ "display_name": "欧元区实际GDP同比",
+ "source": "ea_market_collector",
+ "source_symbol": "CLVMEURSCAB1GQEA19",
+ "source_key": "FRED_EA_GDP",
+ "asset_class": "macro_index",
+ "frequency": "quarterly",
+ "release_date_available": false,
+ "unit": "percent",
+ "calendar": "ea",
+ "economy": "EA",
+ "economy_rule": "P10:calendar=ea",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none",
+  "seasonal_adjustment": "SA(季调)"
+ },
+ "value_type": "level",
+ "calc": "欧元区实际GDP同比;ea_market_collector 取 FRED CLVMEURSCAB1GQEA19(链式成交量,2019价,季调,1995+),严格同季去年比(_quarterly_yoy),2020-01..2026-07 共123季;FRED 口径=最新修订值→研究层须标事后回顾",
+ "validation": {
+  "range": [
+   -12,
+   12
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 120,
+  "note": "季频:观测日=统计季(以季首日表示);flash估计约季后30-45天,未发布≠数据缺失"
+ },
+ "release_semantics": "Eurostat季度GDP flash约季后30-45天发布(精确发布日经FRED不可得→按观测季+滞后窗口保守标注);FRED系列为最新修订口径,历史回看=事后回顾(revision_semantics=latest_vintage_asof_collected)"
+}
+{
+ "metric_id": "JP_REAL_GDP_YOY",
+ "display_name": "日本实际GDP同比",
+ "source": "jp_market_collector",
+ "source_symbol": "JPNRGDPEXP",
+ "source_key": "FRED_JP_GDP",
+ "asset_class": "macro_index",
+ "frequency": "quarterly",
+ "release_date_available": false,
+ "unit": "percent",
+ "calendar": "japan",
+ "economy": "JP",
+ "economy_rule": "P9:calendar=japan",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none",
+  "seasonal_adjustment": "SA(季调)"
+ },
+ "value_type": "level",
+ "calc": "日本实际GDP同比;jp_market_collector 取 FRED JPNRGDPEXP(实际支出法GDP,2015价,季调,1994+),严格同季去年比(_quarterly_yoy),2000-01..2026-07 共127季;FRED 口径=最新修订值→研究层须标事后回顾",
+ "validation": {
+  "range": [
+   -12,
+   12
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 120,
+  "note": "季频:观测日=统计季(以季首日表示);速报约季后45天,未发布≠数据缺失"
+ },
+ "release_semantics": "内閣府季度GDP速报约季后40-50天发布(精确发布日经FRED不可得→按观测季+滞后窗口保守标注);FRED系列为最新修订口径,历史回看=事后回顾(revision_semantics=latest_vintage_asof_collected)"
+}

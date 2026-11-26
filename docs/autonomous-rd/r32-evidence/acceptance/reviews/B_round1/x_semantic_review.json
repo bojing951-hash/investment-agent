@@ -1,0 +1,15 @@
+{
+ "required": true,
+ "reasons": [
+  "l3_qualitative_inference",
+  "l4_conditional_scenarios"
+ ],
+ "seat_invoked": false,
+ "verdict": null,
+ "archive": null,
+ "fresh": null,
+ "verdicts_n": 0,
+ "prior_verdicts": [],
+ "record_health": {},
+ "error": null
+}

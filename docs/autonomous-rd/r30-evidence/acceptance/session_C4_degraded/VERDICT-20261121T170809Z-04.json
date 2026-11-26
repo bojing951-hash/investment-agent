@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "semantic-audit-seat",
+  "notes": "终审 UPHELD(修订闭环完成): 三审单点(并项行「。;」拼接)已闭合——MAP_REPORT 全文及全角/反序/逗号变体均 0 处, 并项行两列由 agent_judgment turnings[0]+『;』+turnings[1] 可逐字节重构(渲染保真零丢失), 剥句号为纯文本操作、数值与判断文字零变动; 历史必修五项抽核全在最终渲染面闭合(并项说明入转折表第三行/SCN-B结果面机制面分轨/USDCNY中性陈述/东京都CPI发布日注记/BRENT-20.69%限定); 「先后未定」纪律性双现保留, turnings 三项全字段非空, sha256 与 MAP_REPORT.sha256 相符。裁决链: 一审REVISE(5必修)→二审REVISE(剩③)→三审REVISE(剩单点标点)→四审UPHELD; 反方攻击两次(变体扫描/渲染保真重构)均未命中。",
+  "run_ts": "20261121T170809Z",
+  "content_sha256": "b8f795990af90de59787464ba9265584d7b6da6698d44aa41e06ddb5d6d72cd7",
+  "audited_at": "2026-11-22",
+  "recorded_at": "20261121T181641Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 4,
+  "predecessor": "audit/semantic_review/20261122/VERDICT-20261121T170809Z-03.json",
+  "map_report_sha256": "fd7146d08154b442af60f584f073c803d9c09f9b6aa2df9b7e41e3cd437205bb",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "482c9991d6ce255d03d37c260cfd2dd4988bdbe53f8b7117021205530af99d8e"
+}

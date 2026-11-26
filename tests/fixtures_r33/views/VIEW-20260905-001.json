@@ -1,0 +1,98 @@
+{
+ "schema_version": "1.1",
+ "view_id": "VIEW-20260905-001",
+ "institution": {
+  "name": "北岸研究(虚构机构)",
+  "type": "investment_bank",
+  "department": "宏观研究部(虚构)"
+ },
+ "authors": [
+  "门夹具(虚构作者)"
+ ],
+ "report_title": "虚构观点档 A: 美国利率与美股展望(门夹具)",
+ "source_url": "https://example.invalid/fixtures/VIEW-20260905-001",
+ "source_type": "official_summary_page",
+ "publish_date": "2026-09-05",
+ "fetch_date": "2026-09-06",
+ "access_level": "public_summary",
+ "view_horizon": "12m",
+ "subjects": [
+  "US_rates",
+  "equities"
+ ],
+ "core_views": [
+  {
+   "statement": "虚构核心观点: 联储在 2026 年内再加息一次后转向(门夹具)",
+   "attribution": "institution_stated",
+   "basis": "paraphrase"
+  }
+ ],
+ "forecasts": [
+  {
+   "target": "fed_policy_path_baseline",
+   "value_or_direction": "2026年9月加息 25bp",
+   "horizon": "2026-09",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "SPX_12m_target",
+   "value_or_direction": "7000",
+   "horizon": "2026-09",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "US_10y_yield_endSep2026",
+   "value_or_direction": "4.20%",
+   "horizon": "已实现数据",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "SPX_12m_target",
+   "value_or_direction": "7500",
+   "horizon": "2027-09",
+   "attribution": "ai_inferred"
+  },
+  {
+   "target": "SPX_12m_target",
+   "value_or_direction": "7718",
+   "horizon": "当前",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "SPX_12m_target",
+   "value_or_direction": "7650",
+   "horizon": "2026-09",
+   "attribution": "institution_stated"
+  },
+  {
+   "target": "US_10y_yield_endSep2026",
+   "value_or_direction": "5.29%",
+   "horizon": "已实现数据",
+   "attribution": "institution_stated"
+  }
+ ],
+ "key_assumptions": [
+  {
+   "statement": "虚构假设: 美国通胀在 2026 年内回落到 2.5% 附近",
+   "attribution": "ai_inferred",
+   "basis": "derived"
+  }
+ ],
+ "evidence_cited": [],
+ "mechanism_steps": [],
+ "risk_factors": [
+  {
+   "statement": "虚构风险: 若政策利率再度上调,估值承压",
+   "attribution": "institution_stated"
+  }
+ ],
+ "falsification_conditions": [
+  {
+   "condition": "虚构证伪条件: 若 2026 年末标普 500 收盘高于 7500 点,则本观点被证伪",
+   "attribution": "institution_stated"
+  }
+ ],
+ "revisions": [],
+ "completeness_notes": "Audit-R33 任务5 门夹具: 全部内容为虚构,不含真实机构表述",
+ "copyright_note": "合成夹具,无版权内容"
+}

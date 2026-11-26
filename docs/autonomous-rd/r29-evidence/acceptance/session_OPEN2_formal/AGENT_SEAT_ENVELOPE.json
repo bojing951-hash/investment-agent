@@ -1,0 +1,381 @@
+{
+  "role": "Agent Native 研究席(L3 推断+L4 条件情景真产出)",
+  "question": "2026年11月,美、欧、中、日四地的宏观环境相比三个月前,哪些经济体之间出现了明显分化?分化主要体现在哪些维度?请给出具体数据和各数据的公布时间,并说明哪些维度证据不足以下结论。",
+  "report_dir": "/private/tmp/r29-accept/install-open/output/research_runs/20261121T125157Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了",
+  "evidence_index_rows": 64,
+  "read_first": [
+    "/private/tmp/r29-accept/install-open/output/research_runs/20261121T125157Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/report.json",
+    "/private/tmp/r29-accept/install-open/output/research_runs/20261121T125157Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/evidence_index.json",
+    "/private/tmp/r29-accept/install-open/output/research_runs/20261121T125157Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/views_digest.json   # L2 机构观点富内容(原文摘编)",
+    "scripts/agent_judgment.py   # judgment schema v1.1 模块 docstring",
+    ".agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)"
+  ],
+  "produce": "judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件) + reader_map(地图问句五面: 一句总判断/各地区环境走位/传导图逐环四件套[观察事实/因果假设/竞争解释/区分指标]/三个转折[日期/指标/前后值/谁先变/跟进或背离]/历史段0..3[年月/相似点/关键差异/其他经济体是否同步/随后3、6、12个月实际+样本注记])——Audit-R19: 传导须连到资产指标;三转折为不同事件(不同指标-月,至少跨两维度);历史段须带结构化anchor_ym/match_window/judgment_cutoff_ym/aftermath_obs_months(事后窗=锚月+N 月,事后观测不得落回匹配期内);Audit-R20: 走位叙述含数字须按地区回贴 anchor_echo[{anchor,metric_id,value,observation_month](与引擎点值面逐位一致);三利率分解回贴 rates_decomposition{window_from,window_to,nominal_bp,real_bp,bei_bp}(共同交易日面);叙述含回报/涨跌主张须回贴 asset_returns_echo[{metric_id,window_months,chg_pct,window{from,to}}];零段历史类比合法但须 history_zero_case_note(检索范围+原因);Audit-R21: 历史段须给 us_analog 布尔+sample_note 样本注记(样本独立性/与当前窗重叠/修订口径);ex_post 正文资产数字(METRIC ±N.NN%/pp)会被同窗月末口径复算(锚月末→锚+N月月末,相左=CONTRADICTED);走位正文 YYYY-MM 月份须落在引擎面月份集(2030-07 类虚构月份=CONTRADICTED);排序主张(率先/领先/最早…)比对的两个指标变动落在同一观测月时必须写明「先后未定」(月频证据只能支持同步);L4 两情景的触发与失效方向将随读者报告展示(结构面沿既有 l4.scenarios 契约)",
+  "then": [
+    "ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>",
+    "ia_cli.py research-one --stage report --report-dir <rd>"
+  ],
+  "discipline": [
+    "L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造",
+    "禁改 report.json 的 produced 字段(attach 校验器唯一写者)",
+    "研究质量十二问逐问答(章程§七)"
+  ],
+  "frozen_inputs": {
+    "config/release_calendar.json": "0e95323fa9543b9e",
+    "config/metric_registry.json": "fa396d22175a4814",
+    "data/daily/research_snapshot_20261121.json": "d6d7e1aa48e82e74"
+  },
+  "frozen_inputs_sha256": "45666c8279f5ca92f1ee80e0d07559ebdf11b86f36e6820f72b395a3d9a3570a",
+  "reader_map_contract": {
+    "spec": "judgment 顶层 reader_map 对象;字段结构与数值回贴核对见 scripts/research_contract/judgment_contract.py _map_checks(转折前后值按引擎序列月末口径复算,相左=CONTRADICTED;空正文/缺面=NOT_VERIFIED;Audit-R19 四阻断:错用同比基期/提前引用未发布数据/同一转折重复/历史结果落在匹配期内)。Audit-R22: ①走位正文「观测 YYYY-MM→YYYY-MM(→YYYY-MM)」串须是同地区某点值格锚观测序(12个月前→3个月前→最新一期)的保序子序列——锚前不可见的观测(停摆延误月)不得入锚序叙述;②ex_post 正文中文别名面同受同窗复算(标普500指数/美债十年期/美元指数…+上涨/下跌方向词+个百分点/%;方向说反或数值相左=CONTRADICTED,pp 容差 0.06);③传导环竞争解释在场时宜填 main_predicts/competing_predicts(主/竞争解释对同一区分指标的不同预期)+face_off_verdict(∈支持主解释/支持竞争解释/尚不能区分——证据不足必须如实写尚不能区分,预期分立且引擎面观测在场才可裁)",
+    "engine_faces": {
+      "point_anchors": [
+        {
+          "kind": "point",
+          "label": "3个月前",
+          "as_of": "2026-08-21",
+          "months_before": 3
+        },
+        {
+          "kind": "point",
+          "label": "最新一期",
+          "as_of": "2026-11-21",
+          "months_before": 0,
+          "explicit_period": "2026-11"
+        }
+      ],
+      "ex_post_offsets": [],
+      "point_values_cells": 22,
+      "point_values_absent": [],
+      "publication_discipline": "锚格值=发布日≤锚日的最新观测;publication_date/publication_basis 随格——R20 起日历实录条目(config/release_calendar.json,如 2025 停摆延误)优先于推定规则,读者可核",
+      "yoy_discipline": "月度同比只配去年同月/季度只配去年同季;缺基期格 derived_yoy_pct=null+yoy_status=no_same_period_base+latest_valid_yoy(最近有效同比及月份)",
+      "asset_universe": [
+        "UST_2Y",
+        "UST_5Y",
+        "UST_10Y",
+        "BEI_10Y",
+        "CURVE_2S10S",
+        "SPX",
+        "NDX",
+        "RUT",
+        "DAX",
+        "CAC40",
+        "NIKKEI225",
+        "HSI",
+        "SHCOMP",
+        "DXY",
+        "EURUSD",
+        "USDJPY",
+        "USDCNY",
+        "GOLD_F",
+        "SILVER_F",
+        "BRENT_F",
+        "HY_OAS",
+        "IG_OAS",
+        "BB_OAS",
+        "B_OAS",
+        "CCC_OAS",
+        "VIX"
+      ],
+      "us_rates_trio": {
+        "status": "absent",
+        "note": "TIPS_10Y 序列不可得——三利率共同交易日复算缺席(检索范围=快照 series_store 采集档通道)"
+      },
+      "asset_moves": {
+        "status": "ok",
+        "window_months": 1,
+        "window_rule": "≤2026-11-21 最新观测 vs 最近于2026-10-21 的观测(界日无观测取最近邻;两端实际观测日随行披露)",
+        "rows": [
+          {
+            "metric_id": "SPX",
+            "window": {
+              "from": "2026-10-21",
+              "to": "2026-11-20"
+            },
+            "from_value": 7757.169922,
+            "to_value": 6910.390137,
+            "chg_pct": -10.92,
+            "chg_abs": -846.7798
+          },
+          {
+            "metric_id": "SHCOMP",
+            "window": {
+              "from": "2026-10-21",
+              "to": "2026-11-20"
+            },
+            "from_value": 3713.03,
+            "to_value": 3533.79,
+            "chg_pct": -4.83,
+            "chg_abs": -179.24
+          },
+          {
+            "metric_id": "DAX",
+            "window": {
+              "from": "2026-10-21",
+              "to": "2026-11-20"
+            },
+            "from_value": 25645.039062,
+            "to_value": 24802.779297,
+            "chg_pct": -3.28,
+            "chg_abs": -842.2598
+          },
+          {
+            "metric_id": "NIKKEI225",
+            "window": {
+              "from": "2026-10-21",
+              "to": "2026-11-20"
+            },
+            "from_value": 64621.24,
+            "to_value": 56436.65,
+            "chg_pct": -12.67,
+            "chg_abs": -8184.59
+          },
+          {
+            "metric_id": "VIX",
+            "window": {
+              "from": "2026-10-21",
+              "to": "2026-11-20"
+            },
+            "from_value": 16.68,
+            "to_value": 35.889999,
+            "chg_pct": 115.17,
+            "chg_abs": 19.21
+          },
+          {
+            "metric_id": "DXY",
+            "window": {
+              "from": "2026-10-21",
+              "to": "2026-11-20"
+            },
+            "from_value": 101.779999,
+            "to_value": 103.809998,
+            "chg_pct": 1.99,
+            "chg_abs": 2.03
+          },
+          {
+            "metric_id": "GOLD_F",
+            "window": {
+              "from": "2026-10-21",
+              "to": "2026-11-20"
+            },
+            "from_value": 4150.0,
+            "to_value": 3515.399902,
+            "chg_pct": -15.29,
+            "chg_abs": -634.6001
+          },
+          {
+            "metric_id": "UST_10Y",
+            "window": {
+              "from": "2026-10-21",
+              "to": "2026-11-19"
+            },
+            "from_value": 5.13,
+            "to_value": 5.04,
+            "chg_pct": -1.75,
+            "chg_abs": -0.09
+          }
+        ],
+        "absent": []
+      },
+      "turning_candidates_top9": [
+        {
+          "metric_id": "CN_PPI_YOY",
+          "from_ym": "2026-02",
+          "to_ym": "2026-05",
+          "value_before": -0.9,
+          "value_after": 3.9,
+          "delta": 4.8,
+          "dimension": "inflation"
+        },
+        {
+          "metric_id": "CN_PMI_MFG",
+          "from_ym": "2026-02",
+          "to_ym": "2026-05",
+          "value_before": -2.3904,
+          "value_after": 1.0101,
+          "delta": 3.4005,
+          "dimension": "growth"
+        },
+        {
+          "metric_id": "CPI",
+          "from_ym": "2026-02",
+          "to_ym": "2026-05",
+          "value_before": 2.434,
+          "value_after": 4.1666,
+          "delta": 1.7326,
+          "dimension": "inflation"
+        },
+        {
+          "metric_id": "JP_CPI_YOY",
+          "from_ym": "2025-11",
+          "to_ym": "2026-02",
+          "value_before": 2.9,
+          "value_after": 1.27,
+          "delta": -1.63,
+          "dimension": "inflation"
+        },
+        {
+          "metric_id": "EA_HICP_YOY",
+          "from_ym": "2026-02",
+          "to_ym": "2026-05",
+          "value_before": 1.9,
+          "value_after": 3.2,
+          "delta": 1.3,
+          "dimension": "inflation"
+        },
+        {
+          "metric_id": "JP_CPI_TOKYO_YOY",
+          "from_ym": "2026-06",
+          "to_ym": "2026-09",
+          "value_before": 1.6,
+          "value_after": 2.69,
+          "delta": 1.09,
+          "dimension": "inflation"
+        },
+        {
+          "metric_id": "CN_CPI_YOY",
+          "from_ym": "2026-01",
+          "to_ym": "2026-04",
+          "value_before": 0.2,
+          "value_after": 1.2,
+          "delta": 1.0,
+          "dimension": "inflation"
+        },
+        {
+          "metric_id": "INDPRO",
+          "from_ym": "2025-11",
+          "to_ym": "2026-02",
+          "value_before": 1.7543,
+          "value_after": 0.7972,
+          "delta": -0.9571,
+          "dimension": "growth"
+        },
+        {
+          "metric_id": "CORE_CPI",
+          "from_ym": "2026-05",
+          "to_ym": "2026-08",
+          "value_before": 2.8229,
+          "value_after": 2.4462,
+          "delta": -0.3767,
+          "dimension": "inflation"
+        }
+      ],
+      "policy_event_clusters": {
+        "basis": "同一事件的跨国信号合并: 各政策行一年窗路径事件按决议日跨地区聚簇(±7 日)——同簇=同一全球政策事件,三个转折中计一个事件;逐国决议日/生效日分记(决议→生效惯例: Fed=次日,ECB=决议后首个周三,PBOC=宣布即时)。月频证据只能说明同步时,先后未定。",
+        "clusters": [
+          {
+            "cluster_id": "POLCLUSTER-01",
+            "date_from": "2025-12-10",
+            "date_to": "2025-12-10",
+            "regions": [
+              "US"
+            ],
+            "events": [
+              {
+                "region": "US",
+                "metric_id": "DFEDTARU",
+                "display_name": "联邦基金目标区间上限",
+                "date": "2025-12-10",
+                "effective_date": "2025-12-11",
+                "delta_bp": -25,
+                "from": 4.0,
+                "to": 3.75,
+                "decision_to_effective_days": 1
+              }
+            ],
+            "same_event_cross_country": false,
+            "note": "单地区事件(不跨国产合并)"
+          },
+          {
+            "cluster_id": "POLCLUSTER-02",
+            "date_from": "2026-06-11",
+            "date_to": "2026-06-11",
+            "regions": [
+              "EA"
+            ],
+            "events": [
+              {
+                "region": "EA",
+                "metric_id": "ECB_DFR",
+                "display_name": "欧央行存款便利利率",
+                "date": "2026-06-11",
+                "effective_date": "2026-06-17",
+                "delta_bp": 25,
+                "from": 2.0,
+                "to": 2.25,
+                "decision_to_effective_days": 6
+              }
+            ],
+            "same_event_cross_country": false,
+            "note": "单地区事件(不跨国产合并)"
+          },
+          {
+            "cluster_id": "POLCLUSTER-03",
+            "date_from": "2026-09-10",
+            "date_to": "2026-09-16",
+            "regions": [
+              "EA",
+              "US"
+            ],
+            "events": [
+              {
+                "region": "EA",
+                "metric_id": "ECB_DFR",
+                "display_name": "欧央行存款便利利率",
+                "date": "2026-09-10",
+                "effective_date": "2026-09-16",
+                "delta_bp": 25,
+                "from": 2.25,
+                "to": 2.5,
+                "decision_to_effective_days": 6
+              },
+              {
+                "region": "US",
+                "metric_id": "DFEDTARU",
+                "display_name": "联邦基金目标区间上限",
+                "date": "2026-09-16",
+                "effective_date": "2026-09-17",
+                "delta_bp": 25,
+                "from": 3.75,
+                "to": 4.0,
+                "decision_to_effective_days": 1
+              }
+            ],
+            "same_event_cross_country": true,
+            "note": "跨国决议日落在±7日窗内——按同一全球政策事件合并计数(逐国决议/生效日分记);月频证据只能说明同步时,先后未定"
+          }
+        ]
+      },
+      "policy_doc_facts": [
+        {
+          "doc_id": "FOMC-MINUTES-2026-10",
+          "kind": "minutes",
+          "title": "FOMC 2026年10月会议纪要",
+          "meeting_month": "2026-10",
+          "published_on": "2026-11-18",
+          "basis": "user_directive",
+          "note": "10月会议纪要 2026-11-18 发布(纪要发布≠决议日;引用纪要叙事自 11-18 起可见,决议数值仍以决议日公布为准)",
+          "source": "Audit-R22 验收指令(2026-11-19)"
+        }
+      ],
+      "dimension_gaps": [
+        {
+          "region": "JP",
+          "dimension": "policy",
+          "metric_id": "JP_POLICY_TARGET",
+          "gap": "registry_absent",
+          "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"
+        }
+      ]
+    },
+    "discipline": [
+      "锚值与转折数值须与引擎面一致(不可虚构)",
+      "数据不可得的格须明写「数据不可得」+检索范围",
+      "总判断条件式非预测;历史段=事后陈述非预测",
+      "同比只可用引擎 ok 基期格的 derived_yoy_pct(缺基期=不可得,可另列最近有效同比及月份)",
+      "锚值/转折只可用发布日≤锚日(研究截止日)的观测",
+      "R20 回贴纪律: 走位数字→anchor_echo(值+观测月逐位对账,错月=CONTRADICTED);利率分解→rates_decomposition(共同交易日同窗);回报数字→asset_returns_echo(同窗复算+窗口两端日);情景≥2 个各写触发与失效方向;引用引擎事后回顾序列(最新修订值)的数字不得表述为当时首发值",
+      "R21 纪律: 历史段 us_analog+sample_note 必填;ex_post 资产数字同窗复算(锚月末→锚+N月月末);正文月份须在引擎面月份集内;同月变动的两指标排序主张须写「先后未定」;传导链区分指标将随引擎当前面观测(最新值+近30日变化)渲染"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "indep-semantic-review-20261122",
+  "notes": "复裁(修订版 judgment v4→agent_judgment.json, attach 20261122T144318Z, contract VERIFIED): 必修项两处均已修复且与序列逐位一致。① EA 轨迹: 走位段/reader_map EA from_to 改为「升至 2026-05 的 3.2,2026-06 一度回落至 2.8,此后再升、2026-10 达 4.0 续创本轮新高」,转折2叙事改「此后总体续升(2026-06 一度回落至 2.8;2026-10 达 4.0 创本轮新高)」——2026-06=2.8 与序列一致,单调性副词已除。② JP 轨迹: M1环1改「此后总体回升至 2026-10 的 2.44(2026-04 一度微降至 1.38)」,走位段与转折1叙事同步改——2026-03=1.46→2026-04=1.38 单月回落已如实标注。NIT-2 已顺带收紧: verdict_note 现写明两次决议前可见读数(2026-04=3.0、2026-07=2.9)均高于 2026-02 的 1.9 且 9 月决议前可见读数低于 5 月峰值 3.2,四值与序列一致。重渲一致性: MAP_REPORT.md 走位两段与 FULL_REPORT.md M1环1均与 agent_judgment.json(与 judgment_agent_v4.json 字节同一)逐字一致,全文无残留「未回落/连续回升」;MAP_REPORT.sha256(09dd2e6288eee84e…)与文件实测一致;v3→v4 差异仅限上述六字段,无新引入错值;引擎面复核(point_values 六锚 4.0/2.44/2.65/2.5/1.227/2.69、政策簇、资产窗、L1)维持首裁通过值;attach validation passed+contract VERIFIED(contradicted=0)。NIT-1(快照 series_store 含东京CPI 2026-10-01=2.73 与推定发布日口径的引擎层张力)维持引擎侧登记建议,不阻塞。首裁通过面(25+数值抽查/决议生效日期分记/2025-10 同观测月基期/五项口径披露/研究纪律六项/已决议未生效结论)在修订版上全部复验通过。",
+  "run_ts": "20261122T141156Z",
+  "content_sha256": "da33b83589abcce8b4ca3f35ae9349ecc9761f8e1f5d93df5726a06feaf46127",
+  "audited_at": "2026-11-22",
+  "recorded_at": "20261122T144651Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261122/VERDICT-20261122T141156Z-01.json",
+  "map_report_sha256": "3a8bdcab1716335cbea7bd4b60f65b5a32e3b5cdeb49da8882892ccacb25c04a",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "73d74da0477258752a9f0aee74aaab848722ff50bb56ee39ba394c600cbcd00d"
+}

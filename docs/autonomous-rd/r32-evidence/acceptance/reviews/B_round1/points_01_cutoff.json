@@ -1,0 +1,321 @@
+{
+ "block": "①",
+ "title": "研究截止日与观测/发布纪律",
+ "rows": [
+  {
+   "block": "①",
+   "id": "A1-研究截止日=快照 research_as_of 日期",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:research_as_of",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; research_as_of=2026-11-23T22:53:47+08:00"
+  },
+  {
+   "block": "①",
+   "id": "A1-研究截止日=快照 target_date",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:target_date",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; target_date=20261123"
+  },
+  {
+   "block": "①",
+   "id": "A1-快照 series_store 无晚于截止日的观测",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store[*].dates",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 晚于截止日的序列={}"
+  },
+  {
+   "block": "①",
+   "id": "A1-SPX 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX.dates",
+   "computed": "2026-11-23",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-23 值 7203.850098(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-VIX 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX.dates",
+   "computed": "2026-11-23",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-23 值 27.01(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-GOLD_F 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.GOLD_F.dates",
+   "computed": "2026-11-23",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-23 值 3685.199951(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-DXY 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.DXY.dates",
+   "computed": "2026-11-23",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-23 值 104.079002(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-EURUSD 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EURUSD.dates",
+   "computed": "2026-11-23",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-23 值 1.093972(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-USDJPY 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.USDJPY.dates",
+   "computed": "2026-11-23",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-23 值 159.347(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-BRENT_F 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F.dates",
+   "computed": "2026-11-23",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-23 值 88.190002(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-NIKKEI225 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.NIKKEI225.dates",
+   "computed": "2026-11-20",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-20 值 56436.65(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-UST_10Y 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.UST_10Y.dates",
+   "computed": "2026-11-19",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-19 值 5.04(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-TIPS_10Y 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y.dates",
+   "computed": "2026-11-19",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-19 值 2.88(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-BEI_10Y 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y.dates",
+   "computed": "2026-11-20",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-20 值 2.15(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-DFEDTARU 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.DFEDTARU.dates",
+   "computed": "2026-11-23",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-11-23 值 4.0(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A1-ECB_DFR 截止日前最新观测日",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.ECB_DFR.dates",
+   "computed": "2026-09-16",
+   "claim": "≤2026-11-23",
+   "match": true,
+   "detail": "最新观测 2026-09-16 值 2.5(≤截止日=True)"
+  },
+  {
+   "block": "①",
+   "id": "A2-US_REAL_GDP@2026-04-01 推定发布日",
+   "source": "规则=期末(2026-06-30)+29天",
+   "computed": "2026-07-29",
+   "claim": "2026-07-29",
+   "match": true,
+   "detail": "期末+29天=2026-07-29; 引擎/读者面=2026-07-29; ≤锚日(2026-08-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-US_REAL_GDP@2026-07-01 推定发布日",
+   "source": "规则=期末(2026-09-30)+29天",
+   "computed": "2026-10-29",
+   "claim": "2026-10-29",
+   "match": true,
+   "detail": "期末+29天=2026-10-29; 引擎/读者面=2026-10-29; ≤锚日(2026-11-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-UNEMPLOYMENT@2026-07-01 推定发布日",
+   "source": "规则=期末(2026-07-31)+5天",
+   "computed": "2026-08-05",
+   "claim": "2026-08-05",
+   "match": true,
+   "detail": "期末+5天=2026-08-05; 引擎/读者面=2026-08-05; ≤锚日(2026-08-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-UNEMPLOYMENT@2026-10-01 推定发布日",
+   "source": "规则=期末(2026-10-31)+5天",
+   "computed": "2026-11-05",
+   "claim": "2026-11-05",
+   "match": true,
+   "detail": "期末+5天=2026-11-05; 引擎/读者面=2026-11-05; ≤锚日(2026-11-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-INDPRO@2026-07-01 推定发布日",
+   "source": "规则=期末(2026-07-31)+15天",
+   "computed": "2026-08-15",
+   "claim": "2026-08-15",
+   "match": true,
+   "detail": "期末+15天=2026-08-15; 引擎/读者面=2026-08-15; ≤锚日(2026-08-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-INDPRO@2026-10-01 推定发布日",
+   "source": "规则=期末(2026-10-31)+15天",
+   "computed": "2026-11-15",
+   "claim": "2026-11-15",
+   "match": true,
+   "detail": "期末+15天=2026-11-15; 引擎/读者面=2026-11-15; ≤锚日(2026-11-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-CPI@2026-07-01 推定发布日",
+   "source": "规则=期末(2026-07-31)+13天",
+   "computed": "2026-08-13",
+   "claim": "2026-08-13",
+   "match": true,
+   "detail": "期末+13天=2026-08-13; 引擎/读者面=2026-08-13; ≤锚日(2026-08-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-CPI@2026-10-01 推定发布日",
+   "source": "规则=期末(2026-10-31)+13天",
+   "computed": "2026-11-13",
+   "claim": "2026-11-13",
+   "match": true,
+   "detail": "期末+13天=2026-11-13; 引擎/读者面=2026-11-13; ≤锚日(2026-11-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-CORE_CPI@2026-10-01 推定发布日",
+   "source": "规则=期末(2026-10-31)+13天",
+   "computed": "2026-11-13",
+   "claim": "2026-11-13",
+   "match": true,
+   "detail": "期末+13天=2026-11-13; 引擎/读者面=2026-11-13; ≤锚日(2026-11-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-CORE_PCE@2026-06-01 推定发布日",
+   "source": "规则=期末(2026-06-30)+30天",
+   "computed": "2026-07-30",
+   "claim": "2026-07-30",
+   "match": true,
+   "detail": "期末+30天=2026-07-30; 引擎/读者面=2026-07-30; ≤锚日(2026-08-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-CORE_PCE@2026-09-01 推定发布日",
+   "source": "规则=期末(2026-09-30)+30天",
+   "computed": "2026-10-30",
+   "claim": "2026-10-30",
+   "match": true,
+   "detail": "期末+30天=2026-10-30; 引擎/读者面=2026-10-30; ≤锚日(2026-11-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-EA_REAL_GDP_YOY@2026-04-01 推定发布日",
+   "source": "规则=期末(2026-06-30)+35天",
+   "computed": "2026-08-04",
+   "claim": "2026-08-04",
+   "match": true,
+   "detail": "期末+35天=2026-08-04; 引擎/读者面=2026-08-04; ≤锚日(2026-08-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-EA_REAL_GDP_YOY@2026-07-01 推定发布日",
+   "source": "规则=期末(2026-09-30)+35天",
+   "computed": "2026-11-04",
+   "claim": "2026-11-04",
+   "match": true,
+   "detail": "期末+35天=2026-11-04; 引擎/读者面=2026-11-04; ≤锚日(2026-11-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-EA_HICP_YOY@2026-07-01 推定发布日",
+   "source": "规则=期末(2026-07-31)+16天",
+   "computed": "2026-08-16",
+   "claim": "2026-08-16",
+   "match": true,
+   "detail": "期末+16天=2026-08-16; 引擎/读者面=2026-08-16; ≤锚日(2026-08-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-EA_HICP_YOY@2026-10-01 推定发布日",
+   "source": "规则=期末(2026-10-31)+16天",
+   "computed": "2026-11-16",
+   "claim": "2026-11-16",
+   "match": true,
+   "detail": "期末+16天=2026-11-16; 引擎/读者面=2026-11-16; ≤锚日(2026-11-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-JP_POLICY_RATE@2026-07-01 推定发布日",
+   "source": "规则=期末(2026-07-31)+5天",
+   "computed": "2026-08-05",
+   "claim": "2026-08-05",
+   "match": true,
+   "detail": "期末+5天=2026-08-05; 引擎/读者面=2026-08-05; ≤锚日(2026-08-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-JP_POLICY_RATE@2026-10-01 推定发布日",
+   "source": "规则=期末(2026-10-31)+5天",
+   "computed": "2026-11-05",
+   "claim": "2026-11-05",
+   "match": true,
+   "detail": "期末+5天=2026-11-05; 引擎/读者面=2026-11-05; ≤锚日(2026-11-23)=True"
+  },
+  {
+   "block": "①",
+   "id": "A2-CORE_PCE@2026-07 推定发布日晚于 3 个月前锚日(故锚=2026-06)",
+   "source": "规则=期末(2026-07-31)+30天",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "推定发布日 2026-08-30 > 锚日 2026-08-23"
+  },
+  {
+   "block": "①",
+   "id": "A2-US_REAL_GDP@2026-07 推定发布日晚于 3 个月前锚日(故锚=2026-04)",
+   "source": "规则=期末(2026-09-30)+29天",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "推定发布日 2026-10-29 > 锚日 2026-08-23"
+  }
+ ]
+}

@@ -1,0 +1,106 @@
+{
+ "seat": "semantic-audit-seat",
+ "overall": "UPHELD",
+ "reviewer": "zero-context-vix-r22",
+ "notes": "Audit-R22 独立 VIX 工单复测零上下文席(15 项位级复算全一致,3 NIT 不改判): 窗口规则复算: 界日 2026-10-18 为周日,所有序列该日无观测,最近邻=2026-10-19(距 1 天,优于 2026-10-16 的 2 天);终点=≤2026-11-18 最新实际观测(VIX/SPX 等至 11-17,HY_OAS/DAX/UST_10Y 至 11-16),两端均为窗内真实观测,无以截距/派生值冒充起点。agent_judgment 与 FULL_REPORT 全部客观数字可溯源至引擎面或其直接算术;方向(涨/跌)全部正确;与 attach 契约机检(contract_verification verdict=VERIFIED)无矛盾。三条 NIT 级观察(不改裁决): (1)机器对 +0.05pp 标 INSUFFICIENT_EVIDENCE(spread_ambiguous 族,披露不判错),本席独立复算确认该数正确;(2)contract_verif",
+ "run_ts": "20261119T153931Z",
+ "content_sha256": "caa54ebd81dada52863ba7f5561b7a554cfba36995bfce82f18e61af65d61c2c",
+ "audited_at": "2026-11-19",
+ "recorded_at": "20261119T154542Z",
+ "format_version": 2,
+ "digest_algorithm": "digest_v3",
+ "revision": 1,
+ "items": [
+  {
+   "item": "L1 fact VIX=25.46 @2026-11-17",
+   "engine_recompute": "series_store.VIX 最新观测≤2026-11-18 = 2026-11-17 值 25.459999 → 4位小数 25.4600",
+   "text_value": "25.46",
+   "match": true
+  },
+  {
+   "item": "L1 fact HY_OAS=3.34 @2026-11-16",
+   "engine_recompute": "series_store.HY_OAS 最新观测 = 2026-11-16 值 3.34(该序列无 11-17/11-18 观测)",
+   "text_value": "3.34",
+   "match": true
+  },
+  {
+   "item": "资产月窗 SPX",
+   "engine_recompute": "窗 2026-10-19..2026-11-17,7690.72998→7340.529785,-4.5535%(-350.2002)",
+   "text_value": "窗 2026-10-19..2026-11-17,7690.72998→7340.529785,-4.55%(-350.2)",
+   "match": true
+  },
+  {
+   "item": "资产月窗 SHCOMP",
+   "engine_recompute": "窗 2026-10-19..2026-11-17,3730.92→3584.5794,-3.9224%(-146.3406)",
+   "text_value": "同窗,-3.92%(-146.341)",
+   "match": true
+  },
+  {
+   "item": "资产月窗 DAX",
+   "engine_recompute": "窗 2026-10-19..2026-11-16,25319.769531→26598.640625,+5.0509%(+1278.8711)",
+   "text_value": "同窗,+5.05%(+1278.87)",
+   "match": true
+  },
+  {
+   "item": "资产月窗 NIKKEI225",
+   "engine_recompute": "窗 2026-10-19..2026-11-17,64916.7→58860.43,-9.3293%(-6056.2700)",
+   "text_value": "同窗,-9.33%(-6056.27)",
+   "match": true
+  },
+  {
+   "item": "资产月窗 VIX",
+   "engine_recompute": "窗 2026-10-19..2026-11-17,18.440001→25.459999,+38.0694%(+7.0200)",
+   "text_value": "同窗,+38.07%(+7.02)",
+   "match": true
+  },
+  {
+   "item": "资产月窗 DXY",
+   "engine_recompute": "窗 2026-10-19..2026-11-17,101.980003→103.561996,+1.5513%(+1.5820)",
+   "text_value": "同窗,+1.55%(+1.582)",
+   "match": true
+  },
+  {
+   "item": "资产月窗 GOLD_F",
+   "engine_recompute": "窗 2026-10-19..2026-11-17,4160.100098→3851.899902,-7.4085%(-308.2002)",
+   "text_value": "同窗,-7.41%(-308.2)",
+   "match": true
+  },
+  {
+   "item": "资产月窗 UST_10Y",
+   "engine_recompute": "窗 2026-10-19..2026-11-16,5.15→5.12,-0.5825%(-0.0300)",
+   "text_value": "同窗,-0.58%(-0.03)",
+   "match": true
+  },
+  {
+   "item": "资产月窗 HY_OAS",
+   "engine_recompute": "窗 2026-10-19..2026-11-16,3.29→3.34,+1.5198%(+0.0500)",
+   "text_value": "同窗,+1.52%(+0.05)",
+   "match": true
+  },
+  {
+   "item": "CONTRA-1/MECH-1 断言数字(VIX +38.07%、HY_OAS +0.05pp、SPX −4.55%)",
+   "engine_recompute": "与引擎资产月窗面逐位一致(38.0694/0.0500/-4.5535,显示精度同位);窗口两端日期与披露一致",
+   "text_value": "+38.07% / +0.05pp / −4.55%",
+   "match": true
+  },
+  {
+   "item": "SCN-A/SCN-B 证伪阈值算术",
+   "engine_recompute": "3.50−3.34=0.16pp=16bp ✓;3.75−3.34=0.41pp=41bp>40bp ✓;2026-11-16+2 月=2027-01-16 ✓",
+   "text_value": "16bp / >40bp / 2027-01-16",
+   "match": true
+  },
+  {
+   "item": "日度相关 VIX×HY_OAS pearson=0.5493(n=751,2023-11-20..2026-11-16)",
+   "engine_recompute": "从 series_store 原始序列独立重算: 共同观测 752 个,日收益×日变化对 751 对,r=0.5493,窗 2023-11-20..2026-11-16,逐位一致",
+   "text_value": "0.5493(n=751 对)",
+   "match": true
+  },
+  {
+   "item": "历史相似结构表(距离/分位/贡献维)",
+   "engine_recompute": "来自 report.json steps/8 引擎确定性 envelope(如 2025-03 distance=0.586681,rates 贡献 0.663404→66.3%),非 Agent 手写数字",
+   "text_value": "0.586681 / 66.3% 等",
+   "match": true
+  }
+ ],
+ "prose_ref": "verdicts/PROSE-R22VIX-01.md"
+}

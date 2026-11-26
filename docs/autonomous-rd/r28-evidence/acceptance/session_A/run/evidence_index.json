@@ -1,0 +1,37 @@
+[
+  {
+    "ref": "HSI@2026-11-19",
+    "kind": "snapshot_fact",
+    "metric_id": "HSI"
+  },
+  {
+    "ref": "NIKKEI225@2026-11-19",
+    "kind": "snapshot_fact",
+    "metric_id": "NIKKEI225"
+  },
+  {
+    "ref": "ECB_DFR@2026-09-16",
+    "kind": "snapshot_fact",
+    "metric_id": "ECB_DFR"
+  },
+  {
+    "ref": "ECB_MRO@2026-09-16",
+    "kind": "snapshot_fact",
+    "metric_id": "ECB_MRO"
+  },
+  {
+    "ref": "EA_HICP_YOY@2025-12-01",
+    "kind": "snapshot_fact",
+    "metric_id": "EA_HICP_YOY"
+  },
+  {
+    "ref": "JP_POLICY_RATE@2026-10-01",
+    "kind": "snapshot_fact",
+    "metric_id": "JP_POLICY_RATE"
+  },
+  {
+    "ref": "HSCEI@2026-11-19",
+    "kind": "s3_envelope",
+    "metric_id": "HSCEI"
+  }
+]

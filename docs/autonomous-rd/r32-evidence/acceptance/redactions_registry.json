@@ -1,0 +1,67 @@
+{
+ "docs/autonomous-rd/r32-evidence/acceptance/builder_folds/fold_A3.py": {
+  "replaced": {
+   "阶梯": 1
+  },
+  "src_sha256": "7063ed7bf0d6f8c9bb09f090596f008fde76fe4905db25955941bb242a89e293"
+ },
+ "docs/autonomous-rd/r32-evidence/acceptance/builder_folds/fold_A5.py": {
+  "replaced": {
+   "〖厂商名〗": 2,
+   "阶梯": 2
+  },
+  "src_sha256": "d24d507abb02318eddb14ec14273e55211f57e1035bc82c273a55ee906382174"
+ },
+ "docs/autonomous-rd/r32-evidence/acceptance/builder_folds/fold_X_A.txt": {
+  "replaced": {
+   "阶梯": 1
+  },
+  "src_sha256": "cf7bc354a9c50a90f181d4091fd8ba77a40e79274b61254416f983b38ad13bcb"
+ },
+ "docs/autonomous-rd/r32-evidence/acceptance/operator_tools/ev_collect5.py": {
+  "replaced": {
+   "〖厂商名〗": 6,
+   "阶梯": 1
+  },
+  "src_sha256": "1cab79b637d9208a638c621857d7d5d80638ce99d48655e3c46996e121118dca"
+ },
+ "docs/autonomous-rd/r32-evidence/acceptance/operator_tools/ev_collect6.py": {
+  "replaced": {
+   "〖厂商名〗": 6,
+   "阶梯": 1
+  },
+  "src_sha256": "98bd1a7fc10fc7aa0ec0e851b98b358a94d4a0c20e424132ecced81b8d2dd7af"
+ },
+ "docs/autonomous-rd/r32-evidence/acceptance/operator_tools/ev_collect8.py": {
+  "replaced": {
+   "〖厂商名〗": 6,
+   "阶梯": 1
+  },
+  "src_sha256": "a279e56383fd12ec27f2b1d1d071a4f0270a569716f12e6ab2f7194e3f45c67f"
+ },
+ "docs/autonomous-rd/r32-evidence/acceptance/operator_tools/seat_scan.py": {
+  "replaced": {
+   "〖厂商名〗": 6,
+   "阶梯": 1
+  },
+  "src_sha256": "38245065ca24e235620a491815726b239f91f87c2f09bc9bc029b26fb9894f05"
+ },
+ "docs/autonomous-rd/r32-evidence/acceptance/reviews/superseded_19638e1_A_round1/info_render_check.txt": {
+  "replaced": {
+   "阶梯": 1
+  },
+  "src_sha256": "2de800a1abf80aeb6abd8776696098e832913078bae8d0bd564ab9f17b43b87d"
+ },
+ "docs/autonomous-rd/r32-evidence/acceptance/reviews/superseded_19638e1_A_round1/judgment_notes_dump.txt": {
+  "replaced": {
+   "阶梯": 1
+  },
+  "src_sha256": "7afccaaf126977eec04dcc5663306a5cea149dac0c7dfd30e28104550f68d89a"
+ },
+ "docs/autonomous-rd/r32-evidence/acceptance/reviews/superseded_19638e1_A_round1/judgment_text.txt": {
+  "replaced": {
+   "阶梯": 1
+  },
+  "src_sha256": "8da2364b3287f2c6f5a5d04bab3312d3b95bd4a5c4ba2007f5a976475d4fdd5e"
+ }
+}

@@ -41,8 +41,16 @@ COUNT_UNITS = {'persons', 'persons_thousands'}
 # ══ 注册表 ════════════════════════════════════════════════════════
 
 def load_registry(path=None, force=False):
-    """加载并校验指标注册表(唯一身份源)。"""
+    """加载并校验指标注册表(唯一身份源)。
+
+    Audit-R31 任务2: IA_REGISTRY_PIN 运行级钉死——钉死在场且未显式传
+    path 时读冻结副本(orchestrator 入口字节冻结;子命令子进程 env 继承
+    同一份);显式路径优先于钉死,缓存语义与既有口径一致(最近一次
+    load 覆盖默认缓存=调用方可依赖的污染-恢复契约,p02_w2 原样)。"""
     global _REGISTRY_CACHE
+    _pin = os.environ.get('IA_REGISTRY_PIN')
+    if path is None and _pin:
+        path = _pin
     if _REGISTRY_CACHE is not None and not force and path is None:
         return _REGISTRY_CACHE
     p = path or REGISTRY_PATH
@@ -164,6 +172,33 @@ def compute_period_returns(dates, values, unit, calendar, as_of=None):
     # m1/m3/m6/m12: 日历月锚定(m12=同比基准)
     for n, key in ((1, "m1"), (3, "m3"), (6, "m6"), (12, "m12")):
         target = tc.months_before(date.fromisoformat(end_d), n)
+        if n == 12:
+            # Audit-R31 任务3: m12=同比基期——必须去年**同月**(与地图面
+            # R19 严格口径对齐): 13 个月前等更早观测不得冒充同比,同月
+            # 无观测=缺基期如实标注(最近可得基期披露),消费面按缺证
+            # 处理。同月内优先取≤锚日最后观测(既有数值零变化);该月
+            # 仅有晚于锚日的观测(月末戳月频序列)仍=同月基期。
+            _tm = target.isoformat()[:7]
+            _same_le = [i for i in range(end_i + 1)
+                        if ds[i][:7] == _tm and ds[i] <= target.isoformat()]
+            _same = _same_le or [i for i in range(end_i + 1)
+                                 if ds[i][:7] == _tm]
+            if _same:
+                i = _same[-1]
+                emit(key, i, ds[i], vs[i],
+                     f"end−12自然月(去年同月{_tm})锚定,同比基期=该月观测"
+                     + ("(≤锚日最后观测)" if _same is _same_le
+                        else "(该月晚于锚日观测,仍=去年同月基期)"))
+            else:
+                _c0 = [i for i in range(end_i + 1)
+                       if ds[i] <= target.isoformat()]
+                _nb = ds[_c0[-1]][:7] if _c0 else None
+                out[key] = {
+                    "available": False,
+                    "reason": ("缺基期: 去年同月(%s)无观测%s——同比基期须"
+                               "同月,不以更早观测冒充(13 个月前≠同比)"
+                               % (_tm, f",最近可得基期={_nb}" if _nb else ""))}
+            continue
         # ≤target 的最后观测(含当日)
         cands = [i for i in range(end_i + 1) if ds[i] <= target.isoformat()]
         if cands:
@@ -391,7 +426,8 @@ def normalize_china(data, as_of, source_file="china_*.json"):
             sub=sub, calc=calc)
     mg = data.get('margin') or {}
     if mg.get('balance') is not None:
-        add("MARGIN_BAL", mg.get('balance'), mg.get('date'))
+        # R33 任务4修订 r4(审查席 MINOR-1): 备源读数的来源标签进事实来源
+        add("MARGIN_BAL", mg.get('balance'), mg.get('date'), sub=mg.get('via'))
     val = data.get('valuation') or {}
     if val.get('pe') is not None:
         add("SH_PE", val.get('pe'), val.get('date'))
@@ -843,6 +879,17 @@ def cross_metric_checks(facts):
     by_id = {f.get('metric_id'): f for f in facts if isinstance(f, dict) and f.get('metric_id')}
     recon = []
 
+    def attach(fact, msg):
+        """跨指标问题附于事实后**就地重定级**(Audit-R32,2026-11-23): 声明状态
+        须恒等于 grade_issues(issues)(research_provenance.fact_issues_problems
+        同一口径)。原实现只追加issue不重定级——已定级PASS的事实带着DEGRADED
+        问题出门,Gate A重算判"声明与依据矛盾"→整份快照非法(status=None,
+        干净安装真跑 2026-11-23 实中: 金期货盘中bar与ETF收盘周窗口不同向)。"""
+        had = isinstance(fact.get('issues'), list)
+        fact.setdefault('issues', []).append({"category": "cross-metric", "severity": "DEGRADED", "message": msg})
+        if had or not fact.get('quality_status'):
+            fact['quality_status'] = grade_issues(fact['issues'])
+
     def check_pair(a, b, fn, label, tol=None):
         fa, fb = by_id.get(a), by_id.get(b)
         if not fa or not fb:
@@ -853,7 +900,7 @@ def cross_metric_checks(facts):
         ok, detail = fn(va, vb)
         if not ok:
             msg = f"{label}: {a}={va} vs {b}={vb} ({detail})"
-            (fa.setdefault('issues', []).append({"category": "cross-metric", "severity": "DEGRADED", "message": msg}))
+            attach(fa, msg)
             recon.append({"type": "cross-metric", "check": label, "result": "violation", "detail": msg})
 
     check_pair("DFEDTARL", "DFEDTARU", lambda lo, hi: (lo <= hi, "下限>上限"), "目标区间次序")
@@ -865,24 +912,38 @@ def cross_metric_checks(facts):
     # 在统一收益口径的周变化上(derived.week.pct_change,期前收盘基准);同源双
     # 观测周方向相反=口径/数据异常,DEGRADED披露不判错;任一周变化不可得=不
     # 伪造结论,如实登记 insufficient。
+    # Audit-R32(2026-11-23): 同窗前提——两载体的周变化须锚同一基准日(期前
+    # 最后观测)才可比。期货有夜盘/盘中bar而ETF只到上一收盘时(如北京时区周一
+    # 白天: GOLD_F观测日=当周盘中,GLD=上周五),两个"周"是不同窗口,方向相反
+    # 不是数据异常证据——登记 insufficient(写明两基准日),不附issue。
     gf, ge = by_id.get("GOLD_F"), by_id.get("GLD")
     if gf and ge:
         wg = (gf.get('derived') or {}).get('week') or {}
         we = (ge.get('derived') or {}).get('week') or {}
         pg, pe = wg.get('pct_change'), we.get('pct_change')
-        if isinstance(pg, (int, float)) and isinstance(pe, (int, float)) \
+        bg = wg.get('basis_date') or gf.get('observation_date')
+        be = we.get('basis_date') or ge.get('observation_date')
+        # 周变化须为有限数值: nan/inf 不是可比的收益(旧实现 nan×x<0 恒False,
+        # 把"GLD周+nan%"登记成"周方向一致"——t6 夹具实录)
+        def _num(x):
+            return isinstance(x, (int, float)) and not isinstance(x, bool) \
+                and x == x and abs(x) != float('inf')
+        if _num(pg) and _num(pe) \
            and wg.get('available') is not False and we.get('available') is not False:
-            if pg * pe < 0:
+            if bg != be:
+                recon.append({"type": "cross-metric", "check": "黄金双载体方向",
+                              "result": "insufficient",
+                              "detail": f"双载体周窗口不可比(周基准GOLD_F {bg} vs GLD {be}: 观测日不同,两个周变化不是同一窗口),不比对方向不伪造结论"})
+            elif pg * pe < 0:
                 msg = (f"黄金双载体方向: GOLD_F周{pg:+.2f}% vs GLD周{pe:+.2f}%"
                        "(同源双观测周方向相反,口径/数据异常须复核)")
-                gf.setdefault('issues', []).append(
-                    {"category": "cross-metric", "severity": "DEGRADED", "message": msg})
+                attach(gf, msg)
                 recon.append({"type": "cross-metric", "check": "黄金双载体方向",
                               "result": "violation", "detail": msg})
             else:
                 recon.append({"type": "cross-metric", "check": "黄金双载体方向",
                               "result": "consistent",
-                              "detail": f"周方向一致(GOLD_F{pg:+.2f}%/GLD{pe:+.2f}%)"})
+                              "detail": f"周方向一致(GOLD_F{pg:+.2f}%/GLD{pe:+.2f}%,周基准{bg})"})
         else:
             recon.append({"type": "cross-metric", "check": "黄金双载体方向",
                           "result": "insufficient",

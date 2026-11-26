@@ -1,0 +1,253 @@
+{
+  "date": "20261120",
+  "fed_funds_futures": [
+    {
+      "ticker": "ZQ=F",
+      "label": "近月(活跃月)",
+      "price": 95.84,
+      "implied_rate_pct": 4.16,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    },
+    {
+      "ticker": "ZQX26.CBT",
+      "label": "2026年11月",
+      "price": 96.1175,
+      "implied_rate_pct": 3.8825,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    },
+    {
+      "ticker": "ZQZ26.CBT",
+      "label": "2026年12月",
+      "price": 95.935,
+      "implied_rate_pct": 4.065,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    },
+    {
+      "ticker": "ZQF27.CBT",
+      "label": "2027年01月",
+      "price": 95.84,
+      "implied_rate_pct": 4.16,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    },
+    {
+      "ticker": "ZQG27.CBT",
+      "label": "2027年02月",
+      "price": 95.69,
+      "implied_rate_pct": 4.31,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    },
+    {
+      "ticker": "ZQH27.CBT",
+      "label": "2027年03月",
+      "price": 95.62,
+      "implied_rate_pct": 4.38,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    },
+    {
+      "ticker": "ZQJ27.CBT",
+      "label": "2027年04月",
+      "price": 95.53,
+      "implied_rate_pct": 4.47,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    },
+    {
+      "ticker": "ZQK27.CBT",
+      "label": "2027年05月",
+      "price": 95.475,
+      "implied_rate_pct": 4.525,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    },
+    {
+      "ticker": "ZQM27.CBT",
+      "label": "2027年06月",
+      "price": 95.42,
+      "implied_rate_pct": 4.58,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    },
+    {
+      "ticker": "ZQN27.CBT",
+      "label": "2027年07月",
+      "price": 95.39,
+      "implied_rate_pct": 4.61,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    },
+    {
+      "ticker": "ZQQ27.CBT",
+      "label": "2027年08月",
+      "price": 95.375,
+      "implied_rate_pct": 4.625,
+      "date": "2026-11-19",
+      "source": "yfinance"
+    }
+  ],
+  "current_rates": {
+    "FEDFUNDS": {
+      "name": "联邦基金有效利率(月)",
+      "value": 3.88,
+      "date": "2026-10-01"
+    },
+    "DFF": {
+      "name": "联邦基金有效利率(日)",
+      "value": 3.88,
+      "date": "2026-11-18"
+    },
+    "DFEDTARU": {
+      "name": "联邦基金目标上限",
+      "value": 4.0,
+      "date": "2026-11-19"
+    },
+    "DFEDTARL": {
+      "name": "联邦基金目标下限",
+      "value": 3.75,
+      "date": "2026-11-19"
+    }
+  },
+  "real_economy": {
+    "UMCSENT": {
+      "name": "密歇根消费者信心",
+      "value": 48.1,
+      "date": "2026-09-01",
+      "prev_value": 51.7,
+      "change": -3.6,
+      "change_period": "2026-08-01→2026-09-01",
+      "unit": "index",
+      "freq": "Monthly"
+    },
+    "RSAFS": {
+      "name": "零售销售(十亿美元)",
+      "value": 748220.0,
+      "date": "2026-10-01",
+      "prev_value": 746637.0,
+      "change": 1583.0,
+      "change_period": "2026-09-01→2026-10-01",
+      "unit": "billions",
+      "freq": "Monthly"
+    },
+    "PAYEMS": {
+      "name": "非农就业(千人)",
+      "value": 159293.0,
+      "date": "2026-10-01",
+      "prev_value": 159128.0,
+      "change": 165.0,
+      "change_period": "2026-09-01→2026-10-01",
+      "unit": "thousands",
+      "freq": "Monthly"
+    },
+    "INDPRO": {
+      "name": "工业生产指数",
+      "value": 103.3954,
+      "date": "2026-10-01",
+      "prev_value": 103.8458,
+      "change": -0.45,
+      "change_period": "2026-09-01→2026-10-01",
+      "unit": "index",
+      "freq": "Monthly"
+    },
+    "UNRATE": {
+      "name": "失业率",
+      "value": 4.1,
+      "date": "2026-10-01",
+      "prev_value": 4.2,
+      "change": -0.1,
+      "change_period": "2026-09-01→2026-10-01",
+      "unit": "pct",
+      "freq": "Monthly"
+    },
+    "JTSJOL": {
+      "name": "职位空缺(千个)",
+      "value": 7523.0,
+      "date": "2026-09-01",
+      "prev_value": 7190.0,
+      "change": 333.0,
+      "change_period": "2026-08-01→2026-09-01",
+      "unit": "thousands",
+      "freq": "Monthly"
+    }
+  },
+  "rate_expectations": {
+    "current_target_range": "3.75% - 4.00%",
+    "current_effective_rate": 3.88,
+    "target_midpoint": 3.875,
+    "forward_rates": [
+      {
+        "month": "近月(活跃月)",
+        "implied_avg_rate": 4.16,
+        "diff_from_current": 0.28,
+        "direction": "隐含高于当前"
+      },
+      {
+        "month": "2026年11月",
+        "implied_avg_rate": 3.8825,
+        "diff_from_current": 0.0025,
+        "direction": "与当前相当"
+      },
+      {
+        "month": "2026年12月",
+        "implied_avg_rate": 4.065,
+        "diff_from_current": 0.185,
+        "direction": "隐含高于当前"
+      },
+      {
+        "month": "2027年01月",
+        "implied_avg_rate": 4.16,
+        "diff_from_current": 0.28,
+        "direction": "隐含高于当前"
+      },
+      {
+        "month": "2027年02月",
+        "implied_avg_rate": 4.31,
+        "diff_from_current": 0.43,
+        "direction": "隐含高于当前"
+      },
+      {
+        "month": "2027年03月",
+        "implied_avg_rate": 4.38,
+        "diff_from_current": 0.5,
+        "direction": "隐含高于当前"
+      },
+      {
+        "month": "2027年04月",
+        "implied_avg_rate": 4.47,
+        "diff_from_current": 0.59,
+        "direction": "隐含高于当前"
+      },
+      {
+        "month": "2027年05月",
+        "implied_avg_rate": 4.525,
+        "diff_from_current": 0.645,
+        "direction": "隐含高于当前"
+      },
+      {
+        "month": "2027年06月",
+        "implied_avg_rate": 4.58,
+        "diff_from_current": 0.7,
+        "direction": "隐含高于当前"
+      },
+      {
+        "month": "2027年07月",
+        "implied_avg_rate": 4.61,
+        "diff_from_current": 0.73,
+        "direction": "隐含高于当前"
+      },
+      {
+        "month": "2027年08月",
+        "implied_avg_rate": 4.625,
+        "diff_from_current": 0.745,
+        "direction": "隐含高于当前"
+      }
+    ],
+    "basis_note": "期货隐含=合约日历月月均有效利率(100-价格);对比基准为当前时点利率;月均口径vs时点口径,不得换算为降息/加息次数",
+    "market_view": "远月隐含显著高于当前(月均口径)"
+  },
+  "generated_at": "2026-11-20T07:12:45.425694"
+}

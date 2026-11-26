@@ -1,0 +1,45 @@
+Audit-R30 门: 快照钉死/时点/自然问窗
+
+═══ §A 任务1: 快照钉死+_v2 不串号+raw 注入 alerts ═══
+  ✅ §A1 raw 注入零 UnboundLocalError: yoy 三季+alerts 列表在位 — yoy=[('2026-01-01', 10.0), ('2026-04-01', 8.33), ('2026-07-01', -3.85)] alerts=[]
+  ✅ §A1b raw 注入形态不符: (None, 告警)如实在,不抛异常 — y=None a=['fred形态不符(缺observation_date表头)']
+  ✅ §A2 旧工单全程原版: 钉死后同日 _v2 落盘,再解析仍=原版 — n2=/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r30gate_gu6rqr0l/r30pin_cpwv_9yw/data/daily/research_snapshot_20261121.json
+  ✅ §A3 新工单能选新版: 无钉死的新解析选 _v2(revision 感知) — r3=/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r30gate_gu6rqr0l/r30pin_cpwv_9yw/data/daily/research_snapshot_20261121_v2.json
+  ✅ §A5 子命令子进程继承钉死: env 携带→子进程读原版 — r5=/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r30gate_gu6rqr0l/r30pin_cpwv_9yw/data/daily/research_snapshot_20261121.json
+  ✅ §A4 钉死文件移除=fail-closed: 拒绝静默回退文件系统解析 — n4=IA_SNAPSHOT_PIN 钉死快照已不存在(/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r30gate_gu6rqr0l/r30pin_cpwv_9yw/data/daily/research_snapshot_20261121.json)——拒绝静默回退到文件系统解析,如实报错
+  ✅ §A6 旧工单运行级钉死: 首步已置位且=原版,S3 落 _v2 后尾步仍原版,返回后环境复原 — n_steps=13 all_v1=True
+═══ §B 任务2: as-of 政策面+次月末+LPR+2022-03 真实历史 ═══
+  ✅ §B1 BOJ @2026-09-19: 目标=None 待生效=1.25@09-24 距调整=None 维持=None — {"official_target": null, "pending_target": 1.25, "pending_effective_on": "2026-09-24", "days_since_adjustment": null, "last_maintenance": null}
+  ✅ §B1 BOJ @2026-09-20: 目标=None 待生效=1.25@09-24 距调整=None 维持=None — {"official_target": null, "pending_target": 1.25, "pending_effective_on": "2026-09-24", "days_since_adjustment": null, "last_maintenance": null}
+  ✅ §B1 BOJ @2026-09-23: 目标=None 待生效=1.25@09-24 距调整=None 维持=None — {"official_target": null, "pending_target": 1.25, "pending_effective_on": "2026-09-24", "days_since_adjustment": null, "last_maintenance": null}
+  ✅ §B1 BOJ @2026-09-24: 目标=1.25 待生效=None@09-24 距调整=0 维持=None — {"official_target": 1.25, "pending_target": null, "pending_effective_on": null, "days_since_adjustment": 0, "last_maintenance": null}
+  ✅ §B1 BOJ @2026-10-30: 目标=1.25 待生效=None@09-24 距调整=36 维持=2026-10-30 — {"official_target": 1.25, "pending_target": null, "pending_effective_on": null, "days_since_adjustment": 36, "last_maintenance": "2026-10-30"}
+  ✅ §B1 BOJ @2026-11-21: 目标=1.25 待生效=None@09-24 距调整=58 维持=2026-10-30 — {"official_target": 1.25, "pending_target": null, "pending_effective_on": null, "days_since_adjustment": 58, "last_maintenance": "2026-10-30"}
+  ✅ §B1b days_since_adjustment 恒≥0(82 日逐日,负数面消除) — bad=[]
+  ✅ §B2 BOJ@2026-09-20 旧目标可核实+新目标待生效: 官方目标=0.75(前决议已生效)/pending 1.25@2026-09-24 — {"official_target": 0.75, "pending_target": 1.25, "pending_effective_on": "2026-09-24", "days_since_adjustment": 204}
+  ✅ §B2b 次月末生效窗内(01-15 决/02-28 效,@02-10): 无已生效新决议+0.75 待生效(不提前切换) — 0.75
+  ✅ §B2c 次月末生效日切换: @02-28 目标=0.75/距调整=0
+  ✅ §B3 LPR 2025-11-20 与 2026-11-20 双期在档且 time=09:00 — ids=['RC-CN-LPR-2025M11', 'RC-CN-LPR-2026M11']
+  ✅ §B4 夹具出处: 真实采集快照只读提取(非合成),provenance 在档
+  ✅ §B4a 2022-03 锚截止端(真实值): 只见 2022-02 观测(0.9),3 月观测 04-09 发布不泄漏 — r1=(0.9, '2022-02-01', '2022-03-09') why=None
+  ✅ §B4b 锚−3月端按自己的可知截止(真实值): 只见 2021-11 观测(2.3)——共用判断截止的旧口径会给 2021-12(1.5)=发布面后视 — r0=(2.3, '2021-11-01', '2021-12-09') why=None
+  ✅ §B4c 同步面两端各按可知截止(真实值): prior=2021-11(2.3)/cutoff=2022-02(0.9),不并轨 — row={'prior_obs': '2021-11-01', 'prior_value': 2.3, 'cutoff_obs': '2022-02-01', 'cutoff_value': 0.9}
+  ✅ §B5 真实水平序列同比缺基期=缺证(2020-07 基期不在场→no_visible_base,不编同比) — why=no_visible_base
+  ✅ §B6 同一期重复观测注明: 双锚同落 2025-11 观测→逐锚注明"无新增观测"(同一读数不当两时点独立证据) — 与3个月前为同一观测(2025-11-01),无新增观测
+═══ §C 任务3: 自然问窗(12 组+政策维+时间窗落实) ═══
+  ✅ §C1 T3 问句判地图问句(分化形+三维+四地)
+  ✅ §C2 12 组计划含政策维(4 地区×3 维) — n=12
+  ✅ §C3 dimension_source=explicit_words(显式点名三维)
+  ✅ §C4 时间窗落实: 窗起锚(3个月前,window_start)+当期锚 — [{'kind': 'point', 'label': '3个月前', 'as_of': '2026-08-21', 'months_before': 3, 'window_start': '问句时间窗窗起(过去三个月)'}, {'kind': 'point', 'label': '最新一期', 'as_of': '2026-11-21', 'months_before': 0}]
+  ✅ §C5 question_window 披露: months=3/from=2026-08-21/to=2026-11-21/词形在档 — {'windows': [{'months': 3, 'from': '2026-08-21', 'to': '2026-11-21', 'source': '过去三个月'}]}
+  ✅ §C6 数据需求窗同源: _question_window=relative_months 3(窗不被当点语义消费)
+  ✅ §C7 窗变体「近六个月的通胀与增长分化」→months=6 — [{'months': 6, 'from': '2026-05-21', 'to': '2026-11-21', 'source': '近六个月'}]
+  ✅ §C7 窗变体「最近12个月政策与通胀怎么样」→months=12 — [{'months': 12, 'from': '2025-11-21', 'to': '2026-11-21', 'source': '最近12个月'}]
+  ✅ §C7 窗变体「过去 3 个月增长如何」→months=3 — [{'months': 3, 'from': '2026-08-21', 'to': '2026-11-21', 'source': '过去 3 个月'}]
+  ✅ §C7b 负例: 「最近有什么变化」无数量不成窗;「过去半年」非数字词形不虚构
+  ✅ §C8 窗起与显式点锚并存: months={3,12},window_start 只标窗起(3个月前) — [{'kind': 'point', 'label': '12个月前', 'as_of': '2025-11-21', 'months_before': 12}, {'kind': 'point', 'label': '3个月前', 'as_of': '2026-08-21', 'months_before': 3, 'window_start': '问句时间窗窗起(过去三个月)'}, {'kind': 'point', 'label': '最新一期', 'as_of': '2026-11-21', 'months_before': 0}]
+  ✅ §C9 OPEN2 回归不变: 判形=True/组数=12/隐含来源/锚=R29 基线(相比三个月前)/零窗面 — n=12 anchors=['3个月前', '最新一期']
+  ✅ §C9 NEW2 回归不变: 判形=True/组数=6/隐含来源/锚=R29 基线(相比三个月前)/零窗面 — n=6 anchors=['3个月前', '最新一期']
+
+════════════════════════════════════════════════════════════
+Audit-R30 门: 37 PASS / 0 FAIL (共 37 判据)

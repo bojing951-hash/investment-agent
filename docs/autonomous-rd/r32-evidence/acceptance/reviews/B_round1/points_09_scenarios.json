@@ -1,0 +1,246 @@
+{
+ "block": "⑨",
+ "title": "情景: 规则发布日/期限/触发与证伪阈值对截止日读数的相容性",
+ "rows": [
+  {
+   "block": "⑨",
+   "id": "S0-截止日前已发布 EA_HICP_YOY 最新观测月",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY; 规则月末+16天",
+   "kind": "point",
+   "computed": 202610,
+   "claim": 202610,
+   "match": true,
+   "detail": "直算 202610 → 取 0 位 202610; 报告 202610; "
+  },
+  {
+   "block": "⑨",
+   "id": "S0b-EA_HICP_YOY 最新值",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-10-01]",
+   "kind": "point",
+   "computed": 4.0,
+   "claim": 4.0,
+   "match": true,
+   "detail": "直算 4 → 取 2 位 4.0; 报告 4.0; "
+  },
+  {
+   "block": "⑨",
+   "id": "S0c-截止日前已发布 CORE_PCE 同比最新值",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.CORE_PCE[2026-09-01 同比]",
+   "kind": "point",
+   "computed": 3.12116,
+   "claim": 3.12,
+   "match": true,
+   "detail": "直算 3.12116 → 取 2 位 3.12; 报告 3.12; "
+  },
+  {
+   "block": "⑨",
+   "id": "S0d-TIPS_10Y 最新值",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y[≤2026-11-23]",
+   "kind": "point",
+   "computed": 2.88,
+   "claim": 2.88,
+   "match": true,
+   "detail": "直算 2.88 → 取 2 位 2.88; 报告 2.88; "
+  },
+  {
+   "block": "⑨",
+   "id": "S0e-BEI_10Y 最新值",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BEI_10Y[≤2026-11-23]",
+   "kind": "point",
+   "computed": 2.15,
+   "claim": 2.15,
+   "match": true,
+   "detail": "直算 2.15 → 取 2 位 2.15; 报告 2.15; "
+  },
+  {
+   "block": "⑨",
+   "id": "S1-EA_HICP_YOY 观测月 2026-11 的规则发布日",
+   "source": "report.json:research_plan.point_values.cells[EA_HICP_YOY].anchors.最新一期.publication_rule(月末+16天,推定)",
+   "kind": "point",
+   "computed": "2026-12-16",
+   "claim": "2026-12-16",
+   "match": true,
+   "detail": "2026-11 月末+16天 = 2026-12-16; 受审稿 2026-12-16"
+  },
+  {
+   "block": "⑨",
+   "id": "S1-EA_HICP_YOY 观测月 2026-12 的规则发布日",
+   "source": "report.json:research_plan.point_values.cells[EA_HICP_YOY].anchors.最新一期.publication_rule(月末+16天,推定)",
+   "kind": "point",
+   "computed": "2027-01-16",
+   "claim": "2027-01-16",
+   "match": true,
+   "detail": "2026-12 月末+16天 = 2027-01-16; 受审稿 2027-01-16"
+  },
+  {
+   "block": "⑨",
+   "id": "S1-EA_HICP_YOY 观测月 2027-01 的规则发布日",
+   "source": "report.json:research_plan.point_values.cells[EA_HICP_YOY].anchors.最新一期.publication_rule(月末+16天,推定)",
+   "kind": "point",
+   "computed": "2027-02-16",
+   "claim": "2027-02-16",
+   "match": true,
+   "detail": "2027-01 月末+16天 = 2027-02-16; 受审稿 2027-02-16"
+  },
+  {
+   "block": "⑨",
+   "id": "S2-「2027-01 观测月的规则发布日 2027-02-16 晚于期限 2027-02-15」",
+   "source": "agent_judgment.json:l4.scenarios[S1].rows.scenario; 规则月末+16天",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 2027-02-16 > 2027-02-15"
+  },
+  {
+   "block": "⑨",
+   "id": "S3-「规则发布日 2026-12-16、2027-01-16,均不晚于期限 2027-02-15」",
+   "source": "agent_judgment.json:l4.scenarios[S1].rows.falsification.threshold",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑨",
+   "id": "S4-两情景期限均为 2027-02-15",
+   "source": "agent_judgment.json:l4.scenarios[*].rows.trigger.deadline",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑨",
+   "id": "S5-S1 触发条件(EA≥4.2% 且 CORE_PCE≥3.2% 且 TIPS_10Y>3.0%)在截止日读数下未触发",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY/CORE_PCE/TIPS_10Y",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; EA 4.0 / CORE_PCE 3.1211596029620203 / TIPS 2.88"
+  },
+  {
+   "block": "⑨",
+   "id": "S6-S2 触发条件(EA≤3.4% 且 BEI_10Y<2.0%)在截止日读数下未触发",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY/BEI_10Y",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; EA 4.0 / BEI 2.15"
+  },
+  {
+   "block": "⑨",
+   "id": "S7-S1 证伪线(连续两月 <3.0%)在截止日读数下未触发(最新 4.0≥3.0)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-10-01]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑨",
+   "id": "S8-S2 证伪所需的 2026-11/2026-12 观测月在截止日已发布数(前瞻条件, 截止日尚不可判=相容)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY; 规则月末+16天",
+   "kind": "point",
+   "computed": 0,
+   "claim": 0,
+   "match": true,
+   "detail": "直算 0 → 取 0 位 0; 报告 0; 发布日 ['2026-12-16', '2027-01-16'] 均晚于截止日"
+  },
+  {
+   "block": "⑨",
+   "id": "S9-S1 情景陈述界(EA≥3.5%、CORE_PCE≥3.0%)与截止日读数相容",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.EA_HICP_YOY/CORE_PCE",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; S1=延续假设; 当前读数在界内"
+  },
+  {
+   "block": "⑨",
+   "id": "S10-两情景在区分指标 EA_HICP_YOY 上的预言方向相反(S1≥3.5% 对 S2<3.0%)",
+   "source": "agent_judgment.json:l4.scenarios[*].rows.scenario",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑨",
+   "id": "S11-S1 证伪线 3.0% 在陈述与证伪两处一致; 缓冲带 3.0–3.5%",
+   "source": "agent_judgment.json:l4.scenarios[S1]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑨",
+   "id": "S12-S2 触发线 3.4%/证伪线 4.0%/陈述界 3.0% 在三处一致",
+   "source": "agent_judgment.json:l4.scenarios[S2]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑨",
+   "id": "S13-两情景缓冲带互不重叠地定义了「既未触发也未证伪」区间(S1: 3.0–3.5; S2: 3.0–4.0)",
+   "source": "agent_judgment.json:l4.scenarios[*].rows.falsification.threshold",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑨",
+   "id": "S14-情景点名的区分/敏感指标(EA_HICP_YOY/CORE_PCE/TIPS_10Y/BEI_10Y/JP_POLICY_RATE/SPX)均在冻结 series_store 在场",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; []"
+  },
+  {
+   "block": "⑨",
+   "id": "S15-S2 所述「与近一月观察(实际利率 +11bp 而风险资产回落)相反」: S2 方向为实际利率回落/风险资产修复, 与观察相反",
+   "source": "agent_judgment.json:l4.scenarios[S2].rows.asset_direction.direction; series_store.TIPS_10Y(+11bp)/SPX(回落)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑨",
+   "id": "S16-S1/S2 资产方向预言相反(利率敏感资产: 走弱 对 修复; 美元: 偏强 对 走弱)",
+   "source": "agent_judgment.json:l4.scenarios[*].rows.asset_direction.direction",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑨",
+   "id": "S17-引擎契约 six_checks: 两情景 overreach/falsifiable 均 VERIFIED",
+   "source": "x_agent_judgment_meta.json:contract_verification.six_checks[item=S1/S2]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  }
+ ]
+}

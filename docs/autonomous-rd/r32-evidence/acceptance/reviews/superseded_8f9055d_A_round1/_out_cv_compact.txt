@@ -1,0 +1,59 @@
+validation: {"passed": true, "violations": [], "n_contradictions": 3, "n_mechanism_chains": 2, "n_scenarios": 2}
+version = "jc-v1.0-phase4"
+unresolved_unbound = []
+verdict = "VERIFIED"
+stats = {"checks": 14, "contradicted": 0, "verified": 14, "unbound": 0, "six_fail": 0, "map_fail": 0, "n_contradictions": 3}
+
+== verdicts (14)
+C1.statement | objective_fact | tok=5.04 | UST_10Y | val=5.04 | exp=5.04 | VERIFIED | refs=UST_10Y | recompute:Fact 直读 UST_10Y@2026-11-19=5.04
+C1.statement | objective_fact | tok=2.88 | TIPS_10Y | val=2.88 | exp=2.88 | VERIFIED | refs=TIPS_10Y | recompute:Fact 直读 TIPS_10Y@2026-11-19=2.88
+C1.statement | objective_fact | tok=2.15 | BEI_10Y | val=2.15 | exp=2.15 | VERIFIED | refs=BEI_10Y | recompute:Fact 直读 BEI_10Y@2026-11-20=2.15
+C1.statement | objective_fact | tok=27.01 | VIX | val=27.01 | exp=27.01 | VERIFIED | refs=VIX | recompute:Fact 直读 VIX@2026-11-23=27.01
+C1.statement | objective_fact | tok=3.52 | HY_OAS | val=3.52 | exp=3.52 | VERIFIED | refs=HY_OAS | recompute:Fact 直读 HY_OAS@2026-11-19=3.52
+C1.statement | objective_fact | tok=159.35 | USDJPY | val=159.35 | exp=159.35 | VERIFIED | refs=USDJPY | recompute:Fact 直读 USDJPY@2026-11-23=159.35
+C1.statement | objective_fact | tok=3.88 | DFF | val=3.88 | exp=3.88 | VERIFIED | refs=DFF | recompute:Fact 直读 DFF@2026-11-19=3.88
+C1.statement | objective_fact | tok=1.227 | JP_POLICY_RATE | val=1.227 | exp=1.227 | VERIFIED | refs=JP_POLICY_RATE | recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227
+C1.statement | objective_fact | tok=5.7 | CN_PPI_YOY | val=5.7 | exp=5.7 | VERIFIED | refs=CN_PPI_YOY | recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7
+C1.statement | objective_fact | tok=0.7 | CN_CPI_YOY | val=0.7 | exp=0.7 | VERIFIED | refs=CN_CPI_YOY | recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7
+C1.statement | objective_fact | tok=49.3 | CN_PMI_MFG | val=49.3 | exp=49.3 | VERIFIED | refs=CN_PMI_MFG | recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3
+C3.statement | objective_fact | tok=5.7 | CN_PPI_YOY | val=5.7 | exp=5.7 | VERIFIED | refs=CN_PPI_YOY | recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7
+C3.statement | objective_fact | tok=0.7 | CN_CPI_YOY | val=0.7 | exp=0.7 | VERIFIED | refs=CN_CPI_YOY | recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7
+C3.statement | objective_fact | tok=49.3 | CN_PMI_MFG | val=49.3 | exp=49.3 | VERIFIED | refs=CN_PMI_MFG | recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3
+
+== six_checks
+{"item": "C1", "check": "relevant", "status": "VERIFIED", "note": "17 实据引用"}
+{"item": "C1", "check": "supports", "status": "VERIFIED", "note": "引用逐项对得上"}
+{"item": "C1", "check": "competing", "status": "VERIFIED", "note": "3 并列解释(阈值≥2)"}
+{"item": "C1", "check": "opposing", "status": "VERIFIED", "note": "无未消化的相反证据"}
+{"item": "C2", "check": "relevant", "status": "VERIFIED", "note": "4 实据引用"}
+{"item": "C2", "check": "supports", "status": "VERIFIED", "note": "引用逐项对得上"}
+{"item": "C2", "check": "competing", "status": "VERIFIED", "note": "2 并列解释(阈值≥2)"}
+{"item": "C2", "check": "opposing", "status": "VERIFIED", "note": "无未消化的相反证据"}
+{"item": "C3", "check": "relevant", "status": "VERIFIED", "note": "4 实据引用"}
+{"item": "C3", "check": "supports", "status": "VERIFIED", "note": "引用逐项对得上; 披露: USDCNY@2026-11-23 未在文本展开"}
+{"item": "C3", "check": "competing", "status": "VERIFIED", "note": "3 并列解释(阈值≥2)"}
+{"item": "C3", "check": "opposing", "status": "VERIFIED", "note": "未讨论的被引指标(披露): ['USDCNY']"}
+{"item": "SCN1", "check": "overreach", "status": "VERIFIED", "note": "tier=有历史相似证据 条件式✓"}
+{"item": "SCN1", "check": "falsifiable", "status": "VERIFIED", "note": "指标+阈值形态✓"}
+{"item": "SCN2", "check": "overreach", "status": "VERIFIED", "note": "tier=有历史相似证据 条件式✓"}
+{"item": "SCN2", "check": "falsifiable", "status": "VERIFIED", "note": "指标+阈值形态✓"}
+
+== map_checks
+{"item": "reader_map.headline_conclusion", "claim_type": "reader_map", "status": "VERIFIED", "note": "非空", "evidence_refs": []}
+{"item": "reader_map.regions", "claim_type": "reader_map", "status": "VERIFIED", "note": "4 地齐", "evidence_refs": []}
+{"item": "reader_map.turning_supplement", "claim_type": "reader_map", "status": "VERIFIED", "note": "补选转折 JP_CPI_TOKYO_YOY@2026-09 已交还判断席(first_mover=东京都CPI同比自1.6升至2.69(2026-)", "evidence_refs": []}
+{"item": "reader_map.cross_face_consistency.date_order", "claim_type": "reader_map", "status": "VERIFIED", "note": "日期次序主张一致: 2025-11<2026-02(早于,1 处)", "evidence_refs": []}
+{"item": "reader_map.cross_face_consistency.chain_evidence", "claim_type": "reader_map", "status": "VERIFIED", "note": "传导链[TR1] 区分指标绑定 3/3 环", "evidence_refs": []}
+{"item": "reader_map.cross_face_consistency.chain_evidence", "claim_type": "reader_map", "status": "VERIFIED", "note": "传导链[TR2] 区分指标绑定 1/1 环", "evidence_refs": []}
+{"item": "reader_map.cross_face_consistency.turning_source", "claim_type": "reader_map", "status": "VERIFIED", "note": "转折表 3 项指标与计划/候选面同源", "evidence_refs": []}
+
+== reader_map_faces keys
+complete :: true
+headline :: true
+regions_ok :: true
+transmission_chains :: 2
+turnings_n :: 3
+history_n :: 3
+
+== semantic_review
+{"required": true, "reasons": ["l3_qualitative_inference", "l4_conditional_scenarios"], "seat_invoked": false, "verdict": null, "archive": null, "fresh": null, "verdicts_n": 0, "prior_verdicts": [], "record_health": {}, "error": null}

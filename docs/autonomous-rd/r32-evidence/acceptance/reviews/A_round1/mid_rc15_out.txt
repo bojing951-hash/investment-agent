@@ -1,0 +1,2 @@
+C1 levels [('UST_10Y', '5.04'), ('TIPS_10Y', '2.88'), ('BEI_10Y', '2.15'), ('VIX', '27.01'), ('HY_OAS', '3.52'), ('USDJPY', '159.35'), ('DFF', '3.88'), ('JP_POLICY_RATE', '1.227'), ('CN_PPI_YOY', '5.7'), ('CN_CPI_YOY', '0.7'), ('CN_PMI_MFG', '49.3')]
+tally (933, 0, {})

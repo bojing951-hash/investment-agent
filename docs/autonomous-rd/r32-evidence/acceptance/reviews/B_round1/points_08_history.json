@@ -1,0 +1,36 @@
+{
+ "block": "⑧",
+ "title": "历史类比: 零段呈现(不以事后冒充预测)",
+ "rows": [
+  {
+   "block": "⑧",
+   "id": "H1-reader_map.history_periods 为空数组",
+   "source": "agent_judgment.json:reader_map.history_periods",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑧",
+   "id": "H2-history_zero_case_note 非空且写明「事后结果≠当时可知」「相似≠因果≠预测」",
+   "source": "agent_judgment.json:reader_map.history_zero_case_note",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑧",
+   "id": "H3-引擎 analog 候选面在场(S6_analog 执行 ok, top 候选月非空)且受审稿全文未引用任何候选月",
+   "source": "report.json:steps[S6_analog].ok/.envelope.data.top[*].candidate_month; agent_judgment.json(全文)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; analog top 候选月 ['2020-01', '2021-02', '2022-06', '2023-10', '2025-03']"
+  }
+ ]
+}

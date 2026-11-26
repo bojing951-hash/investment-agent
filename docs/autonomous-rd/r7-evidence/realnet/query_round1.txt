@@ -1,0 +1,7 @@
+# 第一轮后 ia_cli history 信封采集状态(2026-11-17T10:58:29Z 轮)
+# 注: 第一轮宏档 sha=37edb169c41873cf…,已被同日第二轮(11:00:04Z)按
+# 同文件名覆写(同日重跑语义,R6 §C 先例);本文件为轮后即时捕获的信封
+# 摘要,非事后重放——full 面以 round1.log + 下述字段对勘。
+CN_PMI_MFG n= 226 first= 2008-01-01 last= 2026-10-01
+collection_status= {"mode": "fresh", "last_success_at": "2026-11-17T10:58:29Z", "last_observation_period": "2026-10-01", "source_sha256": "37edb169c41873cfc8036df8a60f46651c65f9e56633165d9b0f8e37d38b7e41", "file": "macro_20261117.json", "coverage": {"n": 226, "first": "2008-01-01", "last": "2026-10-01"}}
+warnings= []

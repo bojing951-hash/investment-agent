@@ -1,0 +1,519 @@
+
+===== STEP S5_compare =====
+  step = "S5_compare"
+  argv = ["compare", "--metrics", "EA_HICP_YOY,ECB_MRO"]
+  executed = true
+  ok = true
+  exit_code = 0
+  semantic_ok = true
+  note = "命中 36 个指标,compare 仅取注册表序前 2(EA_HICP_YOY,ECB_MRO);其余 ECB_DFR,JP_CPI_YOY,JP_CPI_TOKYO_YOY,JP_POLICY_RATE,UST_10Y,TIPS_10Y,BEI_10Y,UST_2Y,UST_5Y,UST_30Y,TIPS_5Y,BEI_5Y,CURVE_2S10S,SPX,NDX,RUT,DAX,CAC40,NIKKEI225,HSI,SHCOMP,DXY,EURUSD,USDJPY,USDCNY,GOLD_F,SILVER_F,BRENT_F,HY_OAS,IG_OAS,BB_OAS,B_OAS,CCC_OAS,VIX 以 L1 事实行呈现,如需对比另行单跑"
+  duration_ms = 295
+  warnings = ["mixed_frequency: 两侧频率不同(monthly vs daily),已默认按自然月网格聚合对齐(alignment.mode=month_grid,聚合方式见 alignment.note 与该侧 sides[].aggregation)", "date_gap(月网格): 共同观测窗内最大间隔 100 个月(缺失月份),相关序列存在断点", "两侧最新观测日相差 15 天(2026-10-01 vs 2026-09-16)——日频指标错位>3天,末端对比须注明各自观测日"]
+  data = {"mode": "metrics", "sides": [{"metric_id": "EA_HICP_YOY", "label": "欧元区HICP同比", "unit": "percent", "unit_family": "rate", "frequency": "monthly", "identity": {"instrument": "macro_series", "is_proxy": false, "proxy_of": null, "adjustment": "none", "market_seat": "onshore_local", "economy": "EA"}, "calc": "ECB Data Portal 系列 HICP.M.U2.N.000000.4D0.ANR(欧元区HICP年度变化率,未季调,月频,1997+);R20 源切换: 原 ICP 数据集 2026-02-04 起停用(旧口径止于2025-12),官方替代流程键 HICP/ECB_ICP3 结构,全历史重拉衔接,重叠期(1997-01..2025-12)两源逐月一致,后续修订随全量重拉自动生效", "n": 358, "first": "1997-01-01", "last": "2026-10-01", "source": "研究快照 series_store", "quality_status": "WARN", "release_note": "Eurostat月度HICP(次月中旬终值);R20 注意: HICP流程对近月含回溯修订(2025-12 值1.9→2.0),按观测月+滞后窗口保守标注,revision_semantics=latest_vintage_asof_collected", "time_semantics": {"observation_period_kind": "calendar_month", "release_date_available": false}, "interval_change_common_window": {"basis_date": "1998-12-01", "basis_value": 0.8, "end_date": "2026-09-01", "end_value": 3.8, "n_sessions_between": 333, "pp_change": 3.0, "bp_change": 300.0, "formula": "2026-09-01值−1998-12-01值(百分点;1pp=100bp)"}}, {"metric_id": "ECB_MRO", "label": "欧央行主要再融资利率", "unit": "percent", "unit_family": "rate", "frequency": "daily", "identity": {"instrument": "macro_series", "is_proxy": false, "proxy_of": null, "adjustment": "none", "market_seat": "onshore_local", "economy": "EA"}, "calc": "ECB Data Portal 系列 FM.B.U2.EUR.4F.KR.MRR_FR.LEV(主要再融资操作固定利率,日频),管委会决议变更即时生效", "n": 48, "first": "1999-01-01", "last": "2026-09-16", "source": "研究快照 series_store", "quality_status": "DEGRADED", "release_note": "ECB管委会金融政策决议公布后生效并当日更新系列(决议时点约 14:15 CET 新闻会);按观测日保守处理", "time_semantics": {"observation_period_kind": "calendar_day", "release_date_available": true}, "aggregation": "month_grid: 自然月网格,代表=期内末值(rhq.align_to_month,mixed_frequency 对齐)", "interval_change_common_window": {"available": false, "reason": "start(1999-01-01)之前无基准观测"}}], "alignment": {"mode": "month_grid", "n_common_observations": 46, "n_level_observations": 46, "n_change_pairs": 45, "common_first": "1999-01", "common_last": "2026-09", "a_dropped": 312, "b_dropped": 0, "research_mode_gate": {"descriptive": "available", "event_study": "blocked: 无发布日, 不得按发布日对齐/不得声称事件研究", "realtime_info_set": "available(现役快照即当前时点信息集;跨日vintage=1个[20261123];同日_vN修订不构成跨日vintage)", "realtime_vintage_dates": ["20261123"]}, "note": "水平窗=共同观测日数;变化窗=相邻观测对数(少一个会话,如实并列);data.n_change_pairs=剔除 null/零基丢弃后实际参与相关的对数;不做异常值处理(原始值直算);本对为 mixed_frequency(低频侧=月频): 高频侧已聚合到自然月网格(代表=期内末值,align_to_month),按月键(YYYY-MM)内交,n_*=共同月份数;a_dropped/b_dropped=各自未进入共同窗的观测数(月键口径=月数)"}, "pearson_returns": 0.2640161538864357, "change_basis": {"a": "pp", "b": "pp"}, "n_change_pairs": 45, "dropped_null": 0, "zero_base_dropped": 0}
+
+===== STEP S6_analog =====
+  step = "S6_analog"
+  argv = ["analog"]
+  executed = true
+  ok = true
+  exit_code = 0
+  semantic_ok = true
+  note = null
+  duration_ms = 3434
+  warnings = ["候选侧维度缺席: 信用(credit)在全部有效候选上无有效特征,不进入任何距离——未覆盖维度可能是共同驱动(缺变量),相似性解释力受限", "2023-10: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(波动 contribution_share=0.60)", "2021-02: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.72)", "2020-01: 相似性由单一维度主导, 跨维度结构印证弱, 巧合可能性高(利率 contribution_share=0.68)", "锚点维度 增长(growth) 覆盖率 0.17(<0.5), 该维特征部分弃用", "锚点维度 通胀(inflation) 覆盖率 0.33(<0.5), 该维特征部分弃用"]
+  data keys = ['anchor_month', 'feature_window_months', 'state_vector', 'normalization', 'weights', 'feature_set', 'candidates', 'sort_basis', 'top', 'dispersion', 'research_mode_gate', 'disclosure', 'features_dropped_at_anchor']
+  data.anchor_month = "2026-11"
+  data.feature_window_months = 12
+  data.normalization = {"method": "expanding z (t≤各自锚点月末; μ/σ=含当期历史均值/总体标准差σ)", "min_history_months": 36, "min_observations_note": "36 个月史按网格自然步长折算观测数: 月网格 36 点/季网格 12 点(步长=相邻网格键月差中位数;36 个季观测=9 年系旧实现误设,Charter7-4b 已修)"}
+  data.weights = {"growth": 0.166667, "inflation": 0.166667, "rates": 0.166667, "credit": 0.166667, "volatility": 0.166667, "valuation": 0.166667}
+  data.feature_set = {"basis": "anchor_admitted(统一特征集: 距离特征面由锚点侧准入结果唯一决定,Charter7-2)", "features": ["BEI_10Y_level", "CURVE_2S10S_d12m", "CURVE_2S10S_level", "HY_IG_gap_level", "HY_OAS_level", "ICSA_4w_avg", "SPX_CAPE_level", "SPX_rv21", "TIPS_10Y_d12m", "TIPS_10Y_level", "UST_10Y_d12m", "UST_10Y_level", "VIX_level"], "n_features": 13, "wsum": 0.541667}
+  data.candidates = {"scanned": 1871, "valid": 74, "dropped_overlap": 12, "dropped_insufficient": 1785, "n_independent_clusters_topN": 5, "cluster_dedup": "TOP-N 簇去重: 候选月相差<12 个月=同簇(事后窗重叠),每簇仅保留排序最优代表;准入/距离/分位计算不变"}
+  data.sort_basis = "(n_missing, distance, month) — 缺席特征多者降位,名次非纯距离序,比较相似度请以 distance 字段为准"
+  data.top = [{"rank": 1, "candidate_month": "2025-03", "distance": 0.727212, "n_missing": 2, "distance_percentile": 0.0, "dims": {"growth": {"contribution_share": 3.4e-05, "z_gap": 0.004224}, "inflation": {"contribution_share": 0.105401, "z_gap": 0.236093}, "rates": {"contribution_share": 0.4066, "z_gap": 0.463709}, "credit": {"contribution_share": 0.0, "z_gap": 0.0}, "volatility": {"contribution_share": 0.421281, "z_gap": 0.472006}, "valuation": {"contribution_share": 0.066684, "z_gap": 0.18779}}, "features_detail": {"ICSA_4w_avg": {"anchor_z": -0.3206747602320721, "cand_z": -0.3020230889701957, "gap": -0.01865167126187639, "w_norm": 0.051282}, "BEI_10Y_level": {"anchor_z": 0.08346018602588887, "cand_z": 0.8206599251487385, "gap": -0.7371997391228496, "w_norm": 0.102564}, "UST_10Y_level": {"anchor_z": 1.66637547864167, "cand_z": 1.3594455456251195, "gap": 0.30692993301655047, "w_norm": 0.038462}, "UST_10Y_d12m": {"anchor_z": 0.8349448096688624, "cand_z": -0.2331730957826982, "gap": 1.0681179054515606, "w_norm": 0.038462}, "TIPS_10Y_level": {"anchor_z": 1.8718474704157886, "cand_z": 1.2671133088371382, "gap": 0.6047341615786503, "w_norm": 0.038462}, "TIPS_10Y_d12m": {"anchor_z": 1.0416374106158215, "cand_z": -0.25709396765896325, "gap": 1.2987313782747847, "w_norm": 0.038462}, "CURVE_2S10S_level": {"anchor_z": -0.08886508395812924, "cand_z": 0.05654879041421886, "gap": -0.1454138743723481, "w_norm": 0.038462}, "CURVE_2S10S_d12m": {"anchor_z": -0.2940401880574893, "cand_z": 1.2165998325765528, "gap": -1.510640020634042, "w_norm": 0.038462}, "VIX_level": {"anchor_z": 1.197861037490781, "cand_z": 0.46055064877570784, "gap": 0.7373103887150732, "w_norm": 0.153846}, "SPX_rv21": {"anchor_z": 1.463619804756194, "cand_z": 0.5125655049382721, "gap": 0.9510542998179218, "w_norm": 0.153846}, "SPX_CAPE_level": {"anchor_z": 2.8169497441414015, "cand_z": 2.338177348496841, "gap": 0.4787723956445604, "w_norm": 0.153846}}, "norm_wsum": 0.541667, "accounted_wsum": 0.458333, "missing_features": {"HY_IG_gap_level": "hist_17<36", "HY_OAS_level": "hist_17<36"}, "missing_wsum": 0.083333, "cluster_members": ["2024-04", "2024-05", "2024-06", "2024-07", "2024-08", "2024-09", "2024-10", "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11"], "aftermath": {"label": "事后(起点=候选锚点月之后首个观测(次月首日起),终点=候选月+N 月内(该月末日界)最后观测,非预测,不参与相似度;逐窗实际起止观测日随 {资产}_window 随行,可自行复算)", "unavailable_horizons": {"SPX": [], "UST_10Y": [],
+  data.dispersion = {"topN_aftermath_sign_agreement": {"SPX_1m": 0.6, "SPX_3m": 0.6, "SPX_6m": 1.0, "SPX_12m": 1.0, "UST_10Y_1m": 0.8, "UST_10Y_3m": 0.6, "UST_10Y_6m": 0.8, "UST_10Y_12m": 0.6, "DXY_1m": 0.6, "DXY_3m": 0.6, "DXY_6m": 0.8, "DXY_12m": 0.8, "GOLD_F_1m": 0.6, "GOLD_F_3m": 0.8, "GOLD_F_6m": 1.0, "GOLD_F_12m": 1.0}, "basis": "TOP-N 独立簇代表(候选月相差<12个月=同簇只计代表)", "n_independent_clusters": 5}
+  data.research_mode_gate = {"descriptive": "available", "event_study": "blocked: 存在无发布日特征指标(月度宏观发布日不可得), 不得按发布日对齐/不得声称事件研究", "realtime_info_set": "available(查询起点月窗内存在跨日vintage快照:20261123;可经select_snapshot点时取版)", "note": "当时市场所见状态可能与修订后档案值不同"}
+  data.disclosure = ["相似≠因果, 更非预测: TOP-N 是历史状态距离最近的时期, 当时之后的演变只是历史记录", "特征为最新修订口径的描述性对齐, 不代表当时市场信息集(research_mode_gate)", "距离分位=该候选在全部有效候选中的相对位置, 不是概率"]
+  data.features_dropped_at_anchor = {"UNEMPLOYMENT_level": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "NFP_3m_chg": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "INDPRO_yoy": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "RSAFS_yoy": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "GDP_yoy": "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)", "CORE_CPI_yoy": "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)", "CPI_yoy": "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)", "FED_FUNDS_level": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "FED_FUNDS_d12m": "release_lag(序列止于2026-10,锚点月2026-11无观测——月度发布滞后一个月,如实缺席不以前值/插值冒充)", "HY_OAS_d12m": "hist_25<36点(=36个月史按网格步长折算)", "HY_IG_gap_d12m": "hist_25<36点(=36个月史按网格步长折算)", "SPX_PE_TTM_level": "no_value_at_anchor(序列止于2026-09,距锚点2026-11差2个月——发布滞后/序列未及,如实缺席)"}
+
+===== STEP S7_mode_gate =====
+  step = "S7_mode_gate"
+  executed = true
+  ok = true
+  gate = {"descriptive": "available", "event_study": "blocked: 无发布日, 不得按发布日对齐/不得声称事件研究", "realtime_info_set": "available(现役快照即当前时点信息集;跨日vintage=1个[20261123];同日_vN修订不构成跨日vintage)", "realtime_vintage_dates": ["20261123"]}
+  gate_source = "S5_compare:data.alignment.research_mode_gate"
+  note = null
+  step = "S7_mode_gate"
+  executed = true
+  ok = true
+  gate = {"descriptive": "available", "event_study": "blocked: 无发布日, 不得按发布日对齐/不得声称事件研究", "realtime_info_set": "available(现役快照即当前时点信息集;跨日vintage=1个[20261123];同日_vN修订不构成跨日vintage)", "realtime_vintage_dates": ["20261123"]}
+  gate_source = "S5_compare:data.alignment.research_mode_gate"
+  note = null
+
+===== STEP S8_grounded_qa =====
+  step = "S8_grounded_qa"
+  argv = ["research", "--question", "2026年11月,日本和欧元区最近六个月的通胀与政策环境有什么不同?哪些方面分化,哪些证据不足?请给出具体数据和各数据的公布时间。"]
+  executed = true
+  ok = true
+  exit_code = 0
+  semantic_ok = false
+  note = null
+  duration_ms = 296
+  warnings = []
+  data = {"status": "unmapped", "answer_text": "该问题不在当前支持的研究问题类型内。\n当前支持的完整研究问题类型(基于本地快照事实作答):\n  1) 美日政策利率差(触发词: 政策利率差)\n  2) 美日10年期国债收益率差(触发词: 10年期/十年期…收益率差;附美端2s10s)\n  3) 美元兑日元水平与近期走势(触发词: 美元兑日元/USDJPY/日元汇率)\n  4) 美国政策利率水平(触发词: 联邦基金/美联储利率/美国政策利率)\n  支持附加: as_of 日期限定 / 单经济体问题转概览。\n交易、持仓、收益承诺、个股买卖等投资建议类问题属于越界(out_of_scope),本系统为研究工具,不提供投资建议。\n自由研究问题请组合使用 history(列出可用指标)/compare(单位感知对齐)/overview/changes,由你的 Agent 组织研究", "values": {}, "unresolved": [], "supported_hint": "当前支持的完整研究问题类型(基于本地快照事实作答):\n  1) 美日政策利率差(触发词: 政策利率差)\n  2) 美日10年期国债收益率差(触发词: 10年期/十年期…收益率差;附美端2s10s)\n  3) 美元兑日元水平与近期走势(触发词: 美元兑日元/USDJPY/日元汇率)\n  4) 美国政策利率水平(触发词: 联邦基金/美联储利率/美国政策利率)\n  支持附加: as_of 日期限定 / 单经济体问题转概览。\n交易、持仓、收益承诺、个股买卖等投资建议类问题属于越界(out_of_scope),本系统为研究工具,不提供投资建议。"}
+
+===== STEP S10_selfcheck =====
+  step = "S10_selfcheck"
+  executed = true
+  ok = true
+  n_views_quarantined = 0
+  selfcheck = {"n_evidence_rows": 60, "n_rows_missing_ref": 0, "ok": true}
+  note = null
+  step = "S10_selfcheck"
+  executed = true
+  ok = true
+  n_views_quarantined = 0
+  selfcheck = {"n_evidence_rows": 60, "n_rows_missing_ref": 0, "ok": true}
+  note = null
+
+===== STEP S11_archive =====
+  step = "S11_archive"
+  executed = true
+  ok = true
+  archive_requested = false
+  archived_query_id = null
+  note = "默认关(--archive 显式开启;Skill 第 11 步=用户认可后)"
+  step = "S11_archive"
+  executed = true
+  ok = true
+  archive_requested = false
+  archived_query_id = null
+  note = "默认关(--archive 显式开启;Skill 第 11 步=用户认可后)"
+
+===== evidence_index.json =====
+list len 60
+    {"ref": "SPX@2026-11-23", "kind": "snapshot_fact", "metric_id": "SPX"}
+    {"ref": "NDX@2026-11-23", "kind": "snapshot_fact", "metric_id": "NDX"}
+    {"ref": "RUT@2026-11-20", "kind": "snapshot_fact", "metric_id": "RUT"}
+    {"ref": "DXY@2026-11-23", "kind": "snapshot_fact", "metric_id": "DXY"}
+    {"ref": "EURUSD@2026-11-23", "kind": "snapshot_fact", "metric_id": "EURUSD"}
+    {"ref": "GOLD_F@2026-11-23", "kind": "snapshot_fact", "metric_id": "GOLD_F"}
+    {"ref": "SILVER_F@2026-11-23", "kind": "snapshot_fact", "metric_id": "SILVER_F"}
+    {"ref": "BRENT_F@2026-11-23", "kind": "snapshot_fact", "metric_id": "BRENT_F"}
+    {"ref": "VIX@2026-11-23", "kind": "snapshot_fact", "metric_id": "VIX"}
+    {"ref": "DAX@2026-11-23", "kind": "snapshot_fact", "metric_id": "DAX"}
+    {"ref": "CAC40@2026-11-23", "kind": "snapshot_fact", "metric_id": "CAC40"}
+    {"ref": "USDJPY@2026-11-23", "kind": "snapshot_fact", "metric_id": "USDJPY"}
+    {"ref": "USDCNY@2026-11-23", "kind": "snapshot_fact", "metric_id": "USDCNY"}
+    {"ref": "HY_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "HY_OAS"}
+    {"ref": "BB_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "BB_OAS"}
+    {"ref": "B_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "B_OAS"}
+    {"ref": "CCC_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "CCC_OAS"}
+    {"ref": "IG_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "IG_OAS"}
+    {"ref": "UST_2Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "UST_2Y"}
+    {"ref": "UST_10Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "UST_10Y"}
+    {"ref": "UST_30Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "UST_30Y"}
+    {"ref": "TIPS_5Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "TIPS_5Y"}
+    {"ref": "TIPS_10Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "TIPS_10Y"}
+    {"ref": "BEI_5Y@2026-11-20", "kind": "snapshot_fact", "metric_id": "BEI_5Y"}
+    {"ref": "BEI_10Y@2026-11-20", "kind": "snapshot_fact", "metric_id": "BEI_10Y"}
+    {"ref": "CURVE_2S10S@2026-11-20", "kind": "snapshot_fact", "metric_id": "CURVE_2S10S"}
+    {"ref": "UST_5Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "UST_5Y"}
+    {"ref": "SHCOMP@2026-11-23", "kind": "snapshot_fact", "metric_id": "SHCOMP"}
+    {"ref": "HSI@2026-11-23", "kind": "snapshot_fact", "metric_id": "HSI"}
+    {"ref": "NIKKEI225@2026-11-20", "kind": "snapshot_fact", "metric_id": "NIKKEI225"}
+    {"ref": "JP_CPI_YOY@2026-10-01", "kind": "snapshot_fact", "metric_id": "JP_CPI_YOY"}
+    {"ref": "ECB_DFR@2026-09-16", "kind": "snapshot_fact", "metric_id": "ECB_DFR"}
+    {"ref": "ECB_MRO@2026-09-16", "kind": "snapshot_fact", "metric_id": "ECB_MRO"}
+    {"ref": "EA_HICP_YOY@2026-10-01", "kind": "snapshot_fact", "metric_id": "EA_HICP_YOY"}
+    {"ref": "JP_POLICY_RATE@2026-10-01", "kind": "snapshot_fact", "metric_id": "JP_POLICY_RATE"}
+    {"ref": "SZCI@2026-11-23", "kind": "s3_envelope", "metric_id": "SZCI"}
+    {"ref": "CHINEXT@2026-11-23", "kind": "s3_envelope", "metric_id": "CHINEXT"}
+    {"ref": "HSCEI@2026-11-23", "kind": "s3_envelope", "metric_id": "HSCEI"}
+    {"ref": "NVDA@2026-11-23", "kind": "s3_envelope", "metric_id": "NVDA"}
+    {"ref": "AAPL@2026-11-23", "kind": "s3_envelope", "metric_id": "AAPL"}
+    {"ref": "MSFT@2026-11-23", "kind": "s3_envelope", "metric_id": "MSFT"}
+    {"ref": "TLT@2026-11-23", "kind": "s3_envelope", "metric_id": "TLT"}
+    {"ref": "IEF@2026-11-23", "kind": "s3_envelope", "metric_id": "IEF"}
+    {"ref": "SHY@2026-11-23", "kind": "s3_envelope", "metric_id": "SHY"}
+    {"ref": "HYG@2026-11-23", "kind": "s3_envelope", "metric_id": "HYG"}
+    {"ref": "LQD@2026-11-23", "kind": "s3_envelope", "metric_id": "LQD"}
+    {"ref": "GBPUSD@2026-11-23", "kind": "s3_envelope", "metric_id": "GBPUSD"}
+    {"ref": "WTI_F@2026-11-23", "kind": "s3_envelope", "metric_id": "WTI_F"}
+    {"ref": "GLD@2026-11-23", "kind": "s3_envelope", "metric_id": "GLD"}
+    {"ref": "USO@2026-11-23", "kind": "s3_envelope", "metric_id": "USO"}
+    {"ref": "EEM@2026-11-23", "kind": "s3_envelope", "metric_id": "EEM"}
+    {"ref": "EZU@2026-11-23", "kind": "s3_envelope", "metric_id": "EZU"}
+    {"ref": "FEZ@2026-11-23", "kind": "s3_envelope", "metric_id": "FEZ"}
+    {"ref": "EWU@2026-11-23", "kind": "s3_envelope", "metric_id": "EWU"}
+    {"ref": "EWG@2026-11-23", "kind": "s3_envelope", "metric_id": "EWG"}
+    {"ref": "EWJ@2026-11-23", "kind": "s3_envelope", "metric_id": "EWJ"}
+    {"ref": "INDA@2026-11-23", "kind": "s3_envelope", "metric_id": "INDA"}
+    {"ref": "FXI@2026-11-23", "kind": "s3_envelope", "metric_id": "FXI"}
+    {"ref": "BTC@2026-11-22", "kind": "s3_envelope", "metric_id": "BTC"}
+    {"ref": "HY_IG_DIFF@2026-11-19", "kind": "s3_envelope", "metric_id": "HY_IG_DIFF"}
+
+===== views_digest.json =====
+{"n": 0, "note": "views 库在场", "views": []}
+
+===== AGENT_SEAT_ENVELOPE.json =====
+{
+ "role": "Agent Native 研究席(L3 推断+L4 条件情景真产出)",
+ "question": "2026年11月,日本和欧元区最近六个月的通胀与政策环境有什么不同?哪些方面分化,哪些证据不足?请给出具体数据和各数据的公布时间。",
+ "report_dir": "/private/tmp/r32-accept/final4/output/research_runs/20261123T193232Z_2026年11月_日本和欧元区最近六个月的通胀与政策环境有什么不同_哪些方面分化",
+ "evidence_index_rows": 60,
+ "read_first": [
+  "/private/tmp/r32-accept/final4/output/research_runs/20261123T193232Z_2026年11月_日本和欧元区最近六个月的通胀与政策环境有什么不同_哪些方面分化/report.json",
+  "/private/tmp/r32-accept/final4/output/research_runs/20261123T193232Z_2026年11月_日本和欧元区最近六个月的通胀与政策环境有什么不同_哪些方面分化/evidence_index.json",
+  "/private/tmp/r32-accept/final4/output/research_runs/20261123T193232Z_2026年11月_日本和欧元区最近六个月的通胀与政策环境有什么不同_哪些方面分化/views_digest.json   # L2 机构观点富内容(原文摘编)",
+  "scripts/agent_judgment.py   # judgment schema v1.1 模块 docstring",
+  ".agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)"
+ ],
+ "produce": "judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件) + reader_map(地图问句五面: 一句总判断/各地区环境走位/传导图逐环四件套[观察事实/因果假设/竞争解释/区分指标]/三个转折[日期/指标/前后值/谁先变/跟进或背离]/历史段0..3[年月/相似点/关键差异/其他经济体是否同步/随后3、6、12个月实际+样本注记])——Audit-R19: 传导须连到资产指标;三转折为不同事件(不同指标-月,至少跨两维度);历史段须带结构化anchor_ym/match_window/judgment_cutoff_ym/aftermath_obs_months(事后窗=锚月+N 月,事后观测不得落回匹配期内);Audit-R20: 走位叙述含数字须按地区回贴 anchor_echo[{anchor,metric_id,value,observation_month](与引擎点值面逐位一致);三利率分解回贴 rates_decomposition{window_from,window_to,nominal_bp,real_bp,bei_bp}(共同交易日面);叙述含回报/涨跌主张须回贴 asset_returns_echo[{metric_id,window_months,chg_pct,window{from,to}}];零段历史类比合法但须 history_zero_case_note(检索范围+原因);Audit-R21: 历史段须给 us_analog 布尔+sample_note 样本注记(样本独立性/与当前窗重叠/修订口径);ex_post 正文资产数字(METRIC ±N.NN%/pp)会被同窗月末口径复算(锚月末→锚+N月月末,相左=CONTRADICTED);走位正文 YYYY-MM 月份须落在引擎面月份集(2030-07 类虚构月份=CONTRADICTED);排序主张(率先/领先/最早…)比对的两个指标变动落在同一观测月时必须写明「先后未定」(月频证据只能支持同步);L4 两情景的触发与失效方向将随读者报告展示(结构面沿既有 l4.scenarios 契约)",
+ "then": [
+  "ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>",
+  "ia_cli.py research-one --stage report --report-dir <rd>"
+ ],
+ "discipline": [
+  "L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造",
+  "禁改 report.json 的 produced 字段(attach 校验器唯一写者)",
+  "研究质量十二问逐问答(章程§七)"
+ ],
+ "frozen_inputs": {
+  "config/release_calendar.json": "e44fd2aa5ced0310",
+  "config/metric_registry.json": "fa396d22175a4814",
+  "data/daily/research_snapshot_20261123.json": "2d650f1128cdd356"
+ },
+ "frozen_inputs_sha256": "a67fced54f2be76a212eb2c022f3477f3694188588a2e4b96ca34e433dbb0beb",
+ "reader_map_contract": {
+  "spec": "judgment 顶层 reader_map 对象;字段结构与数值回贴核对见 scripts/research_contract/judgment_contract.py _map_checks(转折前后值按引擎序列月末口径复算,相左=CONTRADICTED;空正文/缺面=NOT_VERIFIED;Audit-R19 四阻断:错用同比基期/提前引用未发布数据/同一转折重复/历史结果落在匹配期内)。Audit-R22: ①走位正文「观测 YYYY-MM→YYYY-MM(→YYYY-MM)」串须是同地区某点值格锚观测序(12个月前→3个月前→最新一期)的保序子序列——锚前不可见的观测(停摆延误月)不得入锚序叙述;②ex_post 正文中文别名面同受同窗复算(标普500指数/美债十年期/美元指数…+上涨/下跌方向词+个百分点/%;方向说反或数值相左=CONTRADICTED,pp 容差 0.06);③传导环竞争解释在场时宜填 main_predicts/competing_predicts(主/竞争解释对同一区分指标的不同预期)+face_off_verdict(∈支持主解释/支持竞争解释/尚不能区分——证据不足必须如实写尚不能区分,预期分立且引擎面观测在场才可裁)",
+  "engine_faces": {
+   "point_anchors": [
+    {
+     "kind": "point",
+     "label": "6个月前",
+     "as_of": "2026-05-23",
+     "months_before": 6,
+     "window_start": "问句时间窗窗起(最近六个月)"
+    },
+    {
+     "kind": "point",
+     "label": "最新一期",
+     "as_of": "2026-11-23",
+     "months_before": 0,
+     "explicit_period": "2026-11"
+    }
+   ],
+   "ex_post_offsets": [],
+   "point_values_cells": 6,
+   "point_values_absent": [],
+   "publication_discipline": "锚格值=发布日≤锚日的最新观测;publication_date/publication_basis 随格——R20 起日历实录条目(config/release_calendar.json,如 2025 停摆延误)优先于推定规则,读者可核",
+   "yoy_discipline": "月度同比只配去年同月/季度只配去年同季;缺基期格 derived_yoy_pct=null+yoy_status=no_same_period_base+latest_valid_yoy(最近有效同比及月份)",
+   "asset_universe": [
+    "UST_2Y",
+    "UST_5Y",
+    "UST_10Y",
+    "UST_30Y",
+    "TIPS_5Y",
+    "TIPS_10Y",
+    "BEI_5Y",
+    "BEI_10Y",
+    "CURVE_2S10S",
+    "SPX",
+    "NDX",
+    "RUT",
+    "DAX",
+    "CAC40",
+    "NIKKEI225",
+    "HSI",
+    "SHCOMP",
+    "DXY",
+    "EURUSD",
+    "USDJPY",
+    "USDCNY",
+    "GOLD_F",
+    "SILVER_F",
+    "BRENT_F",
+    "HY_OAS",
+    "IG_OAS",
+    "BB_OAS",
+    "B_OAS",
+    "CCC_OAS",
+    "VIX"
+   ],
+   "us_rates_trio": {
+    "status": "ok",
+    "kind": "共同交易日三利率分解",
+    "window": {
+     "from": "2026-10-20",
+     "to": "2026-11-19",
+     "calendar_days_between": 30
+    },
+    "levels_at_to": {
+     "UST_10Y": 5.04,
+     "TIPS_10Y": 2.88,
+     "BEI_10Y": 2.16
+    },
+    "chg_bp": {
+     "UST_10Y": -8.0,
+     "TIPS_10Y": 11.0,
+     "BEI_10Y": -19.0
+    },
+    "decomposition": "十年期名义 Δ-8bp = 实际 Δ+11bp + 盈亏平衡 Δ-19bp",
+    "identity_residual_bp": 0.0,
+    "identity_note": "名义=实际+盈亏平衡 的恒等残差(同日同窗;非零=源端口径差,逐位披露不吸收)",
+    "recent_common_days": [
+     "2026-11-05",
+     "2026-11-06",
+     "2026-11-09",
+     "2026-11-10",
+     "2026-11-12",
+     "2026-11-13",
+     "2026-11-16",
+     "2026-11-17",
+     "2026-11-18",
+     "2026-11-19"
+    ],
+    "window_12m": {
+     "from": "2025-11-19",
+     "to": "2026-11-19",
+     "calendar_days_between": 365
+    },
+    "chg_bp_12m": {
+     "UST_10Y": 91.0,
+     "TIPS_10Y": 102.0,
+     "BEI_10Y": -11.0
+    },
+    "decomposition_12m": "十年期名义 Δ+91bp = 实际 Δ+102bp + 盈亏平衡 Δ-11bp",
+    "identity_residual_bp_12m": 0.0
+   },
+   "asset_moves": {
+    "status": "ok",
+    "window_months": 1,
+    "window_rule": "≤2026-11-23 最新观测 vs 最近于2026-10-23 的观测(界日无观测取最近邻;两端实际观测日随行披露)",
+    "rows": [
+     {
+      "metric_id": "SPX",
+      "window": {
+       "from": "2026-10-23",
+       "to": "2026-11-23"
+      },
+      "from_value": 7623.680176,
+      "to_value": 7203.850098,
+      "chg_pct": -5.51,
+      "chg_abs": -419.8301
+     },
+     {
+      "metric_id": "SHCOMP",
+      "window": {
+       "from": "2026-10-23",
+       "to": "2026-11-23"
+      },
+      "from_value": 3690.4753,
+      "to_value": 3538.948,
+      "chg_pct": -4.11,
+      "chg_abs": -151.5273
+     },
+     {
+      "metric_id": "DAX",
+      "window": {
+       "from": "2026-10-23",
+       "to": "2026-11-23"
+      },
+      "from_value": 25181.650391,
+      "to_value": 25209.449219,
+      "chg_pct": 0.11,
+      "chg_abs": 27.7988
+     },
+     {
+      "metric_id": "NIKKEI225",
+      "window": {
+       "from": "2026-10-23",
+       "to": "2026-11-20"
+      },
+      "from_value": 62693.16,
+      "to_value": 56436.65,
+      "chg_pct": -9.98,
+      "chg_abs": -6256.51
+     },
+     {
+      "metric_id": "VIX",
+      "window": {
+       "from": "2026-10-23",
+       "to": "2026-11-23"
+      },
+      "from_value": 19.450001,
+      "to_value": 27.01,
+      "chg_pct": 38.87,
+      "chg_abs": 7.56
+     },
+     {
+      "metric_id": "DXY",
+      "window": {
+       "from": "2026-10-23",
+       "to": "2026-11-23"
+      },
+      "from_value": 101.809998,
+      "to_value": 104.079002,
+      "chg_pct": 2.23,
+      "chg_abs": 2.269
+     },
+     {
+      "metric_id": "GOLD_F",
+      "window": {
+       "from": "2026-10-23",
+       "to": "2026-11-23"
+      },
+      "from_value": 4007.899902,
+      "to_value": 3685.199951,
+      "chg_pct": -8.05,
+      "chg_abs": -322.7
+     },
+     {
+      "metric_id": "UST_10Y",
+      "window": {
+       "from": "2026-10-23",
+       "to": "2026-11-19"
+      },
+      "from_value": 5.0,
+      "to_value": 5.04,
+      "chg_pct": 0.8,
+      "chg_abs": 0.04
+     }
+    ],
+    "absent": []
+   },
+   "turning_candidates_top9": [
+    {
+     "metric_id": "JP_CPI_YOY",
+     "from_ym": "2025-11",
+     "to_ym": "2026-02",
+     "value_before": 2.9,
+     "value_after": 1.27,
+     "delta": -1.63,
+     "dimension": "inflation"
+    },
+    {
+     "metric_id": "EA_HICP_YOY",
+     "from_ym": "2026-02",
+     "to_ym": "2026-05",
+     "value_before": 1.9,
+     "value_after": 3.2,
+     "delta": 1.3,
+     "dimension": "inflation"
+    },
+    {
+     "metric_id": "JP_CPI_TOKYO_YOY",
+     "from_ym": "2026-06",
+     "to_ym": "2026-09",
+     "value_before": 1.6,
+     "value_after": 2.69,
+     "delta": 1.09,
+     "dimension": "inflation"
+    },
+    {
+     "metric_id": "JP_POLICY_RATE",
+     "from_ym": "2026-04",
+     "to_ym": "2026-07",
+     "value_before": 0.727,
+     "value_after": 0.978,
+     "delta": 0.251,
+     "dimension": "policy"
+    }
+   ],
+   "policy_event_clusters": {
+    "basis": "同一事件的跨国信号合并: 各政策行一年窗路径事件按决议日跨地区聚簇(±7 日)——同簇=同一全球政策事件,三个转折中计一个事件;逐国决议日/生效日分记(决议→生效惯例: Fed=次日,ECB=决议后首个周三,PBOC=宣布即时)。月频证据只能说明同步时,先后未定。",
+    "clusters": [
+     {
+      "cluster_id": "POLCLUSTER-01",
+      "date_from": "2026-06-11",
+      "date_to": "2026-06-11",
+      "regions": [
+       "EA"
+      ],
+      "events": [
+       {
+        "region": "EA",
+        "metric_id": "ECB_DFR",
+        "display_name": "欧央行存款便利利率",
+        "date": "2026-06-11",
+        "effective_date": "2026-06-17",
+        "delta_bp": 25,
+        "from": 2.0,
+        "to": 2.25,
+        "decision_to_effective_days": 6
+       }
+      ],
+      "same_event_cross_country": false,
+      "note": "单地区事件(不跨国产合并)"
+     },
+     {
+      "cluster_id": "POLCLUSTER-02",
+      "date_from": "2026-09-10",
+      "date_to": "2026-09-10",
+      "regions": [
+       "EA"
+      ],
+      "events": [
+       {
+        "region": "EA",
+        "metric_id": "ECB_DFR",
+        "display_name": "欧央行存款便利利率",
+        "date": "2026-09-10",
+        "effective_date": "2026-09-16",
+        "delta_bp": 25,
+        "from": 2.25,
+        "to": 2.5,
+        "decision_to_effective_days": 6
+       }
+      ],
+      "same_event_cross_country": false,
+      "note": "单地区事件(不跨国产合并)"
+     }
+    ]
+   },
+   "policy_doc_facts": [
+    {
+     "doc_id": "FOMC-MINUTES-2026-10",
+     "kind": "minutes",
+     "title": "FOMC 2026年10月会议纪要",
+     "meeting_month": "2026-10",
+     "published_on": "2026-11-18",
+     "basis": "user_directive",
+     "note": "10月会议纪要 2026-11-18 发布(纪要发布≠决议日;引用纪要叙事自 11-18 起可见,决议数值仍以决议日公布为准)",
+     "source": "Audit-R22 验收指令(2026-11-19)"
+    }
+   ],
+   "dimension_gaps": [
+    {
+     "region": "JP",
+     "dimension": "policy",
+     "metric_id": "JP_POLICY_TARGET",
+     "gap": "registry_absent",
+     "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"
+    }
+   ]
+  },
+  "discipline": [
+   "锚值与转折数值须与引擎面一致(不可虚构)",
+   "数据不可得的格须明写「数据不可得」+检索范围",
+   "总判断条件式非预测;历史段=事后陈述非预测",
+   "同比只可用引擎 ok 基期格的 derived_yoy_pct(缺基期=不可得,可另列最近有效同比及月份)",
+   "锚值/转折只可用发布日≤锚日(研究截止日)的观测",
+   "R20 回贴纪律: 走位数字→anchor_echo(值+观测月逐位对账,错月=CONTRADICTED);利率分解→rates_decomposition(共同交易日同窗);回报数字→asset_returns_echo(同窗复算+窗口两端日);情景≥2 个各写触发与失效方向;引用引擎事后回顾序列(最新修订值)的数字不得表述为当时首发值",
+   "R21 纪律: 历史段 us_analog+sample_note 必填;ex_post 资产数字同窗复算(锚月末→锚+N月月末);正文月份须在引擎面月份集内;同月变动的两指标排序主张须写「先后未定」;传导链区分指标将随引擎当前面观测(最新值+近30日变化)渲染"
+  ]
+ }
+}
+
+===== report.json run block =====
+run.question = "2026年11月,日本和欧元区最近六个月的通胀与政策环境有什么不同?哪些方面分化,哪些证据不足?请给出具体数据和各数据的公布时间。"
+run.ts_utc = "20261123T193232Z"
+run.archive_requested = false
+run.git_head = "0f3936dd7eb74c557a2350e400d58e10a09c5139"
+run.git_head_source = "code_version_stamp"
+run.git_diff_sha256 = null
+run.evidence_asof = "2026-11-23"
+run.evidence_gate = {"discipline": "r32", "as_of": "2026-11-23", "source_snapshot_id": "research_snapshot_20261123", "source_target_date": "2026-11-23", "historical_view": false, "publication_basis": "snapshot_presence", "rules": ["①观测日≤as_of", "②发布日≤as_of(历史截止: 日历实录优先/RELEASE_RULES 推定)", "③值版本: as-of 快照版本优先;无则注册表未声明修订=值不随版本变(可引用);声明最新修订口径=观测须已过首个修订周期(首发日+1发布周期≤as_of),否则当时数据版本不可得逐点剔除"], "vintage": {"basis": "snapshot_vintage", "vintage_snapshot": null, "vintage_snapshot_id": null, "vintage_error": null, "revised_series": [], "excluded_series": []}, "counts": {"facts_kept": 105, "facts_rebuilt": 0, "facts_dropped": 0, "facts_excluded_version": 0, "series_observations_dropped": 0, "series_observations_version_unavailable": 0, "series_excluded": 0, "series_n": 92}, "series": {"SPX": {"n_in": 2513, "n_kept": 2513, "n_late_observation": 0, "n_late_publication": 0, "n_version_unavailable": 0, "first_dropped": null, "last_eligible": "2026-11-23", "vintage": "snapshot_vintage", "excluded": false}, "NDX": {"n_in": 2513, "n_kept": 2513, "n_late_observation": 0, "n_late_publication": 0, "n_version_unavailable": 0, "first_dropped": null, "last_eligible": "2026-11-23", "vintage": "snapshot_vintage", "excluded": false}, "RUT": {"n_in": 2512, "n_kept": 2512, "n_late_observation": 0, "n_late_publication": 0, "n_version_unavailable": 0, "first_dropped": null, "last_eligible": "2026-11-20", "vintage": "snapshot_vintage", "excluded": false}, "NVDA": {"n_in": 2513, "n_kept": 2513, "n_late_observation": 0, "n_late_p
+run.degradation_policy = {"critical_zero_evidence": "L1 事实行=0(引擎崩溃/全量采集失败)→拒收判断,--allow-failed-run 亦不放行", "required_data_missing": "运行前声明的必要指标(问题词面命中)采集缺席→任务目标缺口,默认阻塞;显式 --allow-failed-run 才放行,落位记 degraded(缺口随档,不得事后改判可选)", "optional_data_missing": "L1 事实面在场、失败步=诚实拒答类(源端缺席 no_series)→须显式 --allow-failed-run,落位记 degraded"}
+run.data_requirements = {"frozen_at": "plan(采集前冻结;分类与规格不随采集结果改判)", "items": [{"metric_id": "EA_HICP_YOY", "tier": "planned", "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)", "spec": {"form": "series", "window": {"start": "2026-05-23", "end": "2026-11-23", "as_of": "2026-11-23", "kind": "relative_months", "basis": "研究时点 2026-11-23 倒推 6 个自然月(2026-05-23..2026-11-23)", "n_in_window": 5, "first_in_window": "2026-06-01", "last_in_window": "2026-10-01", "expected_in_window": 7, "n_floor_in_window": 4, "max_adjacent_gap_days": 31, "max_gap_limit_days": 130, "tolerance_days": {"start": 62, "end": 75}, "allowed_gap": {"tolerance_days": [62, 75], "n_fraction_floor": 0.5, "max_adjacent_gap_days": 130, "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"}}, "frequency": "monthly", "quality": "snapshot 序列(OK 行)", "coverage_observed": {"n": 358, "first": "1997-01-01", "last": "2026-10-01", "n_in_window": 5, "first_in_window": "2026-06-01", "last_in_window": "2026-10-01"}, "min_observations": 12, "min_observations_basis": "问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代)"}, "outcome": "satisfied", "outcome_basis": "任务窗2026-05-23..2026-11-23跨窗满足: 窗内有效去重 n=5(日历期望7×50%下界4;边界容差 起+62天/止-75天;最大间距31天≤130天;总量 n=358;问题未限定范围→monthly频率族兜底下界(任务范围不得用统一观测数替代);判定面=快照 series_store 实际 dates/values)"}, {"metric_id": "ECB_MRO", "tier": "planned", "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)", "spec": {"form": "series", "window": {"st
+run.frozen_inputs = {"config/release_calendar.json": "e44fd2aa5ced0310", "config/metric_registry.json": "fa396d22175a4814", "data/daily/research_snapshot_20261123.json": "2d650f1128cdd356"}

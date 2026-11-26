@@ -1,0 +1,100 @@
+[1] series_store ids matching government-yield patterns: []
+[1] registry ids matching government-yield patterns: ['BUND_10Y', 'BUND_2Y', 'JGB10Y', 'JGB2Y', 'JGB5Y']
+[1] registry ids with economy JP/EA (display_name):
+      EURUSD | 欧元兑美元 | economy= EA | status= active | criticality= important
+      USDJPY | 美元兑日元 | economy= JP | status= active | criticality= important
+      EZU | iShares欧元区ETF | economy= EA | status= active | criticality= important
+      FEZ | SPDR欧元区ETF | economy= EA | status= active | criticality= important
+      EWG | iShares德国ETF | economy= EA | status= active | criticality= important
+      EWJ | iShares日本ETF | economy= JP | status= active | criticality= important
+      JP_POLICY_RATE | 日本无担保隔夜拆借利率(月均) | economy= JP | status= active | criticality= important
+      JGB2Y | 2年期日债收益率 | economy= JP | status= active | criticality= important
+      JGB5Y | 5年期日债收益率 | economy= JP | status= active | criticality= important
+      JGB10Y | 10年期日债收益率 | economy= JP | status= active | criticality= important
+      JP_CPI_TOKYO_YOY | 东京都CPI同比 | economy= JP | status= active | criticality= important
+      NIKKEI225 | 日经225指数 | economy= JP | status= active | criticality= important
+      ECB_DFR | 欧央行存款便利利率 | economy= EA | status= active | criticality= important
+      ECB_MRO | 欧央行主要再融资利率 | economy= EA | status= active | criticality= important
+      BUND_10Y | 10年期德国国债收益率 | economy= EA | status= active | criticality= important
+      BUND_2Y | 2年期德国国债收益率 | economy= EA | status= active | criticality= important
+      EA_HICP_YOY | 欧元区HICP同比 | economy= EA | status= active | criticality= important
+      DAX | 德国DAX指数 | economy= EA | status= active | criticality= important
+      CAC40 | 法国CAC40指数 | economy= EA | status= active | criticality= important
+      JP_CPI_YOY | 全国CPI同比(日本) | economy= JP | status= active | criticality= important
+      EA_REAL_GDP_YOY | 欧元区实际GDP同比 | economy= EA | status= active | criticality= important
+      JP_REAL_GDP_YOY | 日本实际GDP同比 | economy= JP | status= active | criticality= important
+[1] gate_a.noncore_missing = ["BUND_10Y", "BUND_2Y", "CN_OMO_7D", "CN_POLICY_OVERNIGHT", "EA_REAL_GDP_YOY", "JP_CPI_TOKYO_YOY", "JP_REAL_GDP_YOY"]
+[1] gate_a.noncore_degraded = ["CN_SF_FLOW", "ECB_DFR", "ECB_MRO", "JTSJOL", "M2SL", "SPX_EPS", "SPX_PE_TTM", "US_REAL_GDP"]
+[1] gate_a.status = "DEGRADED"
+[1] gate_a.note = "缺失/失败数据已披露,不得进入研究结论;单个资产缺失不阻断其余研究;非核心FAIL按降级披露(注册表criticality为权威)"
+[1] gate_a.noncore_missing_detail.BUND_10Y = "子源缺席(ea档记录:BBK_WU3146=READ_FAIL——源端不可得/未采,非采集遗漏)"
+[1] gate_a.noncore_missing_detail.BUND_2Y = "子源缺席(ea档记录:BBK_WU3141=READ_FAIL——源端不可得/未采,非采集遗漏)"
+[1] gate_a.noncore_missing_detail.JP_CPI_TOKYO_YOY = "来源文件在场而指标缺席(采集遗漏或子源缺席——档内无该指标子源状态记录,不可区分)"
+[1] gate_a.noncore_missing_detail.EA_REAL_GDP_YOY = "来源文件在场且子源FRED_EA_GDP取数成功而指标缺席(采集遗漏——采集器已取到而事实未生成)"
+[1] gate_a.noncore_missing_detail.JP_REAL_GDP_YOY = "来源文件在场且子源FRED_JP_GDP取数成功而指标缺席(采集遗漏——采集器已取到而事实未生成)"
+[1] BUND_10Y/BUND_2Y in series_store: False False
+[2] JP_CPI_YOY 2024-10..2025-03: [('2024-10-01', 2.25), ('2024-11-01', 2.92), ('2024-12-01', 3.62), ('2025-01-01', 4.03), ('2025-02-01', 3.66), ('2025-03-01', 3.62)]
+[2] JP_CPI_YOY series max: ('2023-01-01', 4.31) | first/last obs: 2021-01-01 2026-10-01 | n= 70
+[2] JP_CPI_YOY 2025-01..2025-12: [('2025-01-01', 4.03), ('2025-02-01', 3.66), ('2025-03-01', 3.62), ('2025-04-01', 3.56), ('2025-05-01', 3.49), ('2025-06-01', 3.27), ('2025-07-01', 3.1), ('2025-08-01', 2.72), ('2025-09-01', 2.91), ('2025-10-01', 2.99), ('2025-11-01', 2.9), ('2025-12-01', 2.13)]
+[3] release_calendar version/updated: 1.5.0 2026-11-21 | n_entries= 18
+[3] entries by metric_id: {'CPI': 1, 'CORE_CPI': 1, 'UNEMPLOYMENT': 2, 'US_REAL_GDP': 1, 'CORE_PCE': 2, 'EA_HICP_YOY': 3, 'INDPRO': 2, 'None': 2, 'JP_POLICY_TARGET': 2, 'CN_LPR_1Y': 2}
+      RC-2025SHUTDOWN-CPI-SEP | CPI | basis= user_directive | kind= None | obs= 2025-09-01 | decision= None | effective= None | pub= None
+      RC-2025SHUTDOWN-CORECPI-SEP | CORE_CPI | basis= user_directive | kind= None | obs= 2025-09-01 | decision= None | effective= None | pub= None
+      RC-2025SHUTDOWN-UNEMP-SEP | UNEMPLOYMENT | basis= user_directive | kind= None | obs= 2025-09-01 | decision= None | effective= None | pub= None
+      RC-2025SHUTDOWN-UNEMP-NOV | UNEMPLOYMENT | basis= user_directive | kind= None | obs= 2025-11-01 | decision= None | effective= None | pub= None
+      RC-2025SHUTDOWN-GDP-Q3 | US_REAL_GDP | basis= user_directive | kind= None | obs= 2025-07-01 | decision= None | effective= None | pub= None
+      RC-2025SHUTDOWN-PCE-OCTNOV | CORE_PCE | basis= user_directive | kind= None | obs= 2025-10-01 | decision= None | effective= None | pub= None
+      RC-EA-HICP-2021M05 | EA_HICP_YOY | basis= user_directive | kind= None | obs= 2021-05-01 | decision= None | effective= None | pub= None
+          full: {"entry_id": "RC-EA-HICP-2021M05", "basis": "user_directive", "metric_id": "EA_HICP_YOY", "obs_from": "2021-05-01", "obs_to": "2021-05-01", "not_published_as_of": "2021-05-31", "first_publish_on_or_after": "2021-06-01", "final_publish_on": "2021-06-17", "note": "2021-05 观测月欧元区HICP: 快报 2021-06-01 发布(Eurostat 2-01062021-AP,快报值 2.0%),终值 2021-06-17 发布(2-17062021-AP,确认 2.0%)——官方新闻稿编号实录;月末截止(05-31)当天快报未出,不可知"}
+      RC-EA-HICP-2022M06 | EA_HICP_YOY | basis= user_directive | kind= None | obs= 2022-06-01 | decision= None | effective= None | pub= None
+          full: {"entry_id": "RC-EA-HICP-2022M06", "basis": "user_directive", "metric_id": "EA_HICP_YOY", "obs_from": "2022-06-01", "obs_to": "2022-06-01", "not_published_as_of": "2022-06-30", "first_publish_on_or_after": "2022-07-01", "final_publish_on": "2022-07-19", "note": "2022-06 观测月欧元区HICP: 快报 2022-07-01 发布(Eurostat 2-01072022-AP,快报值 8.6%),终值 2022-07-19 发布(2-19072022-AP,确认 8.6%)——官方新闻稿编号实录;月末截止(06-30)当天快报未出,不可知"}
+      RC-2025SHUTDOWN-INDPRO-SEP | INDPRO | basis= user_directive | kind= None | obs= 2025-09-01 | decision= None | effective= None | pub= None
+      RC-EA-HICP-2025M03 | EA_HICP_YOY | basis= user_directive | kind= None | obs= 2025-03-01 | decision= None | effective= None | pub= None
+          full: {"entry_id": "RC-EA-HICP-2025M03", "basis": "user_directive", "metric_id": "EA_HICP_YOY", "obs_from": "2025-03-01", "obs_to": "2025-03-01", "first_publish_on_or_after": "2025-04-01", "final_publish_on": "2025-04-16", "note": "逐期官方实录: 2025-03观测月HICP快报2025-04-01(Eurostat 2-01042025-AP)/终值2025-04-16(Eurostat 2-16042025-AP),两级同比均为2.2%"}
+      RC-2025SHUTDOWN-CPI-NOV | None | basis= user_directive | kind= None | obs= 2025-11-01 | decision= None | effective= None | pub= None
+      RC-2025SHUTDOWN-PCE-SEP | CORE_PCE | basis= user_directive | kind= None | obs= 2025-09-01 | decision= None | effective= None | pub= None
+      RC-2025SHUTDOWN-INDPRO-OCTNOV | INDPRO | basis= user_directive | kind= None | obs= 2025-10-01 | decision= None | effective= None | pub= None
+      RC-2025SHUTDOWN-REST-CONSERVATIVE | None | basis= convention | kind= None | obs= 2025-09-01 | decision= None | effective= None | pub= None
+      RC-JP-BOJ-TARGET-2026-09 | JP_POLICY_TARGET | basis= user_directive | kind= policy_decision | obs= 2026-09-18 | decision= 2026-09-18 | effective= None | pub= None
+          full: {"entry_id": "RC-JP-BOJ-TARGET-2026-09", "kind": "policy_decision", "basis": "user_directive", "metric_id": "JP_POLICY_TARGET", "obs_from": "2026-09-18", "obs_to": "2099-12-31", "decision_date": "2026-09-18", "effective_on": "2026-09-24", "target_value": 1.25, "not_published_as_of": "2026-09-17", "first_publish_on_or_after": "2026-09-18", "note": "日本央行政策目标利率(宣布值口径)2026-09-18 决议、2026-09-24 生效,目标水平约1.25%——R28 验收指令实录(2026-11-21 复测基线);距上次调整按生效日计算", "source": "Audit-R28 验收指令(2026-11-21)"}
+      RC-JP-BOJ-MAINT-2026-10 | JP_POLICY_TARGET | basis= user_directive | kind= policy_maintenance | obs= 2026-10-30 | decision= 2026-10-30 | effective= None | pub= None
+          full: {"entry_id": "RC-JP-BOJ-MAINT-2026-10", "kind": "policy_maintenance", "basis": "user_directive", "metric_id": "JP_POLICY_TARGET", "obs_from": "2026-10-30", "obs_to": "2099-12-31", "decision_date": "2026-10-30", "target_value": 1.25, "not_published_as_of": "2026-10-29", "first_publish_on_or_after": "2026-10-30", "note": "日本央行 2026-10-30 会议确认维持政策目标利率约1.25%不变——确认维持不改变目标水平,但更新核验覆盖截止(R28 任务2: 确认维持也更新核验日期)", "source": "Audit-R28 验收指令(2026-11-21)"}
+      RC-CN-LPR-2025M11 | CN_LPR_1Y | basis= convention | kind= None | obs= 2025-11-01 | decision= None | effective= None | pub= None
+      RC-CN-LPR-2026M11 | CN_LPR_1Y | basis= user_directive | kind= None | obs= 2026-11-01 | decision= None | effective= None | pub= None
+[4] JP_POLICY_RATE month-to-month changes after 2025-11 (date, from, to, bp, bp_rounded_int):
+      ('2025-12-01', 0.478, 0.557, 7.9, 8)
+      ('2026-01-01', 0.557, 0.728, 17.1, 17)
+      ('2026-04-01', 0.728, 0.727, -0.1, 0)
+      ('2026-06-01', 0.727, 0.841, 11.4, 11)
+      ('2026-07-01', 0.841, 0.978, 13.7, 14)
+      ('2026-08-01', 0.978, 0.977, -0.1, 0)
+      ('2026-09-01', 0.977, 1.043, 6.6, 7)
+      ('2026-10-01', 1.043, 1.227, 18.4, 18)
+[4] sum of bp (all points): 74.9 | sum of int-bp non-zero points: 75 | n non-zero at int bp: 6
+[5] VIX daily % 2026-10-23..2026-11-23: [('2026-10-26', -5.45), ('2026-10-27', -4.73), ('2026-10-28', -3.48), ('2026-10-29', 1.71), ('2026-10-30', 12.91), ('2026-11-02', 8.91), ('2026-11-03', -1.51), ('2026-11-04', -20.26), ('2026-11-05', 69.66), ('2026-11-06', -9.01), ('2026-11-09', -22.31), ('2026-11-10', -2.31), ('2026-11-11', -10.12), ('2026-11-12', 6.92), ('2026-11-13', 3.21), ('2026-11-16', 18.7), ('2026-11-17', 11.13), ('2026-11-18', -3.53), ('2026-11-19', 15.8), ('2026-11-20', 26.2), ('2026-11-23', -24.74)]
+[5] top-3 by size: [('2026-11-05', 69.66), ('2026-11-20', 26.2), ('2026-11-16', 18.7)]
+[5] VIX trading days 2026-11-05 -> 2026-11-11: ['2026-11-06', '2026-11-09', '2026-11-10', '2026-11-11']
+[6] point cell ECB_MRO {"6个月前": {"status": "ok", "as_of": "2026-05-23", "observation_date": "2025-06-11", "publication_date": "2025-06-11", "publication_rule": "ECB 决议日当日公布(变更日观测)", "publication_basis": "ECB 决议日当日公布(变更日观测)", "vintage": "as_collected(采集时点值)", "value": 2.15, "policy_dates": {"face": "政策目标(宣布值)", "market_seat_label": "ECB主要再融资利率", "decision_note": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16", "effective_note": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)", "market_note": null, "decision": "2025-06-05", "effective": "2025-06-11", "market_observation": null, "stat_window_end": null}}, "最新一期": {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-09-16", "publication_date": "2026-0
+[6] point cell ECB_DFR {"6个月前": {"status": "ok", "as_of": "2026-05-23", "observation_date": "2025-06-11", "publication_date": "2025-06-11", "publication_rule": "ECB 决议日当日公布(变更日观测)", "publication_basis": "ECB 决议日当日公布(变更日观测)", "vintage": "as_collected(采集时点值)", "value": 2.0, "policy_dates": {"face": "政策目标(宣布值·操作下限)", "market_seat_label": "ECB存款便利利率", "decision_note": "决议日=生效日前的上一个周四(管委会决议;序列值变更日=生效日=决议后首个周三)——2026-09 决议 09-10、生效 09-16", "effective_note": "生效日=观测日(ECB惯例: 变更自决议后首个周三生效)", "market_note": null, "decision": "2025-06-05", "effective": "2025-06-11", "market_observation": null, "stat_window_end": null}}, "最新一期": {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-09-16", "publication_date": "202
+[6] run.data_requirements outcome: None | keys: ['frozen_at', 'items', 'optional_face']
+[6] data_requirements item: {"metric_id": "ECB_MRO", "tier": "planned", "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)", "spec": {"form": "series", "window": {"start": "2026-05-23", "end": "2026-11-23", "as_of": "2026-11-23", "kind": "relative_months", "basis": "研究时点 2026-11-23 倒推 6 个自然月(2026-05-23..2026-11-23)", "n_in_window": 2, "first_in_window": "2026-06-17", "last_in_window": "2026-09-16", "expected_in_window": 131, "n_floor_in_window": 66, "max_adjacent_gap_days": 91, "max_gap_limit_days": 30, "tolerance_days": {"start": 14, "end": 10}, "allowed_gap": {"tolerance_days": [14, 10], "n_fraction_floor": 0.5, "max_adjacent_gap_days": 30, "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"}}, "frequency": "daily", "quality": "snapshot 序列(OK 行)", "coverage_observed": {"n": 48, "first": "1999-01-01", "last": "2026-09-16", "n_in_window": 2, "first_in_window": "
+[6] data_requirements item: {"metric_id": "ECB_DFR", "tier": "planned", "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)", "spec": {"form": "series", "window": {"start": "2026-05-23", "end": "2026-11-23", "as_of": "2026-11-23", "kind": "relative_months", "basis": "研究时点 2026-11-23 倒推 6 个自然月(2026-05-23..2026-11-23)", "n_in_window": 2, "first_in_window": "2026-06-17", "last_in_window": "2026-09-16", "expected_in_window": 131, "n_floor_in_window": 66, "max_adjacent_gap_days": 91, "max_gap_limit_days": 30, "tolerance_days": {"start": 14, "end": 10}, "allowed_gap": {"tolerance_days": [14, 10], "n_fraction_floor": 0.5, "max_adjacent_gap_days": 30, "basis": "频率族容差(日频节假日簇/月频发布滞后)+窗内半额有效观测下界+相邻断档上限(R7-01)"}}, "frequency": "daily", "quality": "snapshot 序列(OK 行)", "coverage_observed": {"n": 69, "first": "1999-01-01", "last": "2026-09-16", "n_in_window": 2, "first_in_window": "
+[6] dimension_gaps: [{"region": "JP", "dimension": "policy", "metric_id": "JP_POLICY_TARGET", "gap": "registry_absent", "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"}]
+[6] research_plan.point_values summary keys: ['cells', 'absent', 'asset_universe']
+[7] MAP line 5 : - 研究时点口径: 裸年月 2026年11月 按月末时点化为请求研究时点 2026-11-30(晚于快照实际覆盖日 2026-11-23)→研究截止日取实际覆盖日 2026-11-23,与单一相对回看窗合并(一个截止日+一个回看窗;真冲突组合仍拒绝)——本报告全部窗口/锚点/政策面绑定研究截止日 2026-11-23(数据=当时已发布面,后来发布的数据不回填)
+[7] MAP line 6 : - 请求月末/实际覆盖日: 请求 2026-11-30 | 快照实际覆盖 2026-11-23 | 研究截止日=2026-11-23——月末未到/数据未到,本报告=截至实际日期的结果(非请求月末的完整结果)
+[7] MAP line 8 : - 数据门(Gate A,源快照采集面): DEGRADED——核心缺口 无 | 核心失败 无 | 非核心失败 无 | 非核心缺席 BUND_10Y、BUND_2Y、CN_OMO_7D、CN_POLICY_OVERNIGHT、EA_REAL_GDP_YOY、JP_CPI_TOKYO_YOY、JP_REAL_GDP_YOY | 非核心降级 CN_SF_FLOW、ECB_DFR、ECB_MRO、JTSJOL、M2SL、SPX_EPS、SPX_PE_TTM、US_REAL_GDP——缺席/降级数据不得进入研究结论;逐指标注记见快照 gate_a.noncore_missing_detail,信封步状态见步骤台账
+[7] MAP line 10 : - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,独立语义审查待裁)
+[7] MAP line 14 : 2026 年 11 月回看最近六个月(窗起 2026-05-23 至研究截止 2026-11-23;问句请求月末 2026-11-30 未到,研究截止取实际覆盖日 2026-11-23,交付为截至该日的结果、非请求月末的完整结果),日本与欧元区通胀与政策环境呈「方向同、水平分化、证据面不对称」: 两地通胀均上行、政策均收紧,但最新读数(同为 2026-10 期)欧元区 HICP 同比 4.0%(观测 2026-10,发布 2026-11-16,推定规则)高于日本全国 CPI 同比 2.44%(观测 2026-10,发布 2026-11-20,推定规则),且同比对照方向相反——欧元区高于去年同月(2025-10 为 2.1),日本低于去年同月(2025-10 为 2.99);政策面欧央行两次同幅上调(2026-06-17 生效、2026-09-16 生效;决议日 2026-06-11、2026-09-10 为引擎按惯例回推【推断】
+[7] MAP line 18 : ## 四地三时点环境对照
+[7] MAP line 29 : > 按时点统计覆盖(组级——同一时点多个指标不能替代另一个时点,逐锚分开计数): 6个月前=4/4组ok;最新一期=4/4组ok。
+[7] MAP line 31 : > 缺数格说明(检索范围+影响):
+[7] MAP line 34 : ## 逐组覆盖与实际数据来源
+[7] MAP line 45 : > 口径: 覆盖=三锚格状态(ok/⚠过期=确证过期仍如实显示末观测/⚠未核验=无更晚已证实决议且间隔超决策周期上限,现值有效性无法核验/不可得/停摆延误=日历实录证实的延误);统计期末=月频观测月末/季频观测季季末(发布滞后自期末起算);发布日期=日历实录优先+推定规则兜底(括注基准);来源=注册表权威采集器。
+[7] MAP line 66 : > 注: 决议日≠生效日时两日分记(Fed 事后次日生效: 2026-09 决议 09-16→生效 09-17;2025-12 决议 12-10→生效 12-11;2022-07 决议 07-27→生效 07-28,七月末上限 2.50;ECB 决议后首个周三生效: 2026-09 决议 09-10→生效 09-16;PBOC 逆回购中标价公布即时生效;BoJ 决议日只认实录表(BOJ_DECISION_HISTORY: 2024-03 决议 03-19→生效 03-21,表外生效日如实「决议日不可推」))。序列值变更日=生效日,决议日由央行公告惯例自生效日回推(DFEDTARU/DFEDTARL/DFF 一族;ECB_MRO/ECB_DFR 观测日全为周三=生效日)。「—」=该口径无此日期(如隔夜市场月均无决议日),如实缺席不以别日冒充;LPR 为报价基准(每月20日公布)与政策操作目标分列。市场观测日=配对市场序列(决议序列
+[7] MAP line 70 : | 地区 | 官方目标 | 待生效 | 最近决议日 | 生效日 | 最近确认维持 | 核验覆盖截止 | 距上次调整(按生效日) | 距决议 | 距维持 | 溯源 |
+[7] MAP line 74 : > 注: 距上次调整**按生效日**计算(目标水平自生效日起实际执行;决议日是公告面,两日分记)。确认维持不改变目标水平,但刷新核验覆盖截止(R28 任务2: 确认维持也更新核验日期)。**待生效**(Audit-R30 任务2): 研究时点早于生效日的已公告决议——当前官方目标仍为旧值(无已生效决议在档则如实空缺),新目标自生效日起才入「官方目标」列(09-24 切换口径)。官方记录与四分面序列值互核: 记录目标与序列现值冲突时以缺口/过期纪律另判,不以任一面静默覆盖。
+[7] MAP line 124 : 政策环境: 最近六个月两次同幅上调——欧央行主要再融资利率(政策目标口径)由6个月前锚(观测 2025-06-11)的 2.15% 升至最新一期锚(观测 2026-09-16)的 2.65%,欧央行存款便利利率(操作下限口径)由 2.0% 升至 2.5%;两次变更(2026-06-17 生效、2026-09-16 生效,各 +25bp;决议日 2026-06-11、2026-09-10 为引擎按『生效日前上一个周四』惯例回推【推断】,发布面=序列变更日),均已生效;序列止于 2026-09-16(距截止 68 天,Gate A 列 degraded),其后决议面不可见【尚未验证】。通胀环境: HICP 同比由6个月前锚(观测月 2026-04,发布 2026-05-16,引擎推定规则、非日历实录)的 3.0% 升至最新一期锚(观测月 2026-10,发布 2026-11-16,引擎推定规则、非日历实录)的 4.0%;窗内月度路径
+[7] MAP line 218 : ## 语义审查
+[7] MAP line 220 : - 独立席位待裁(review required)
+[7] MAP line 223 : 渲染纪律: 本件只装配在场事实(引擎确定性面)与 Agent 席判断原文,零新增生成;数值与判断的核对面=attach 契约(judgment_contract reader_map 数值回贴)+独立语义审查席。

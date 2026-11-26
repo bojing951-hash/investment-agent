@@ -1,0 +1,2413 @@
+{
+ "part": "B",
+ "n": 154,
+ "n_ok": 154,
+ "n_mismatch": 0,
+ "rows": [
+  {
+   "id": "G001",
+   "cat": "⑦",
+   "where": "M1-1 欧元区 2026-02",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-02]",
+   "computed": 1.9,
+   "reported": 1.9,
+   "lit": "2026-02 的 1.9",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G002",
+   "cat": "⑦",
+   "where": "M1-1 欧元区 2026-05",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-05]",
+   "computed": 3.2,
+   "reported": 3.2,
+   "lit": "升至 2026-05 的 3.2",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G003",
+   "cat": "⑦",
+   "where": "M1-1 欧元区 2026-06",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-06]",
+   "computed": 2.8,
+   "reported": 2.8,
+   "lit": "2026-06 一度回落至 2.8",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G004",
+   "cat": "⑦",
+   "where": "M1-1 欧元区 2026-10",
+   "src": "research_snapshot_20261123.json:series_store.EA_HICP_YOY[2026-10]",
+   "computed": 4.0,
+   "reported": 4.0,
+   "lit": "2026-10 达 4.0",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G005",
+   "cat": "⑦",
+   "where": "M1-1 日本 2025-01",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2025-01]",
+   "computed": 4.03,
+   "reported": 4.03,
+   "lit": "自 2025-01 高点 4.03 回落",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G006",
+   "cat": "⑦",
+   "where": "M1-1『高点』用词",
+   "src": "JP_CPI_YOY 2025-01 是否局部峰值 / 是否为其前 12 个月最高",
+   "computed": [
+    true,
+    4.03
+   ],
+   "reported": [
+    true,
+    4.03
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "全序列最高为 4.31@2023-01-01(更早年),『2025-01 高点』=局部高点/近一年高点,读法成立",
+   "sev": ""
+  },
+  {
+   "id": "G007",
+   "cat": "⑦",
+   "where": "M1-1 日本 2025-07",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2025-07]",
+   "computed": 3.1,
+   "reported": 3.1,
+   "lit": "经 2025-07 的 3.1",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G008",
+   "cat": "⑦",
+   "where": "M1-1 日本 2025-09",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2025-09]",
+   "computed": 2.91,
+   "reported": 2.91,
+   "lit": "两度小幅回升至 2.91、2.99",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G009",
+   "cat": "⑦",
+   "where": "M1-1 日本 2025-10",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2025-10]",
+   "computed": 2.99,
+   "reported": 2.99,
+   "lit": "两度小幅回升至 2.91、2.99",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G010",
+   "cat": "⑦",
+   "where": "M1-1 日本 2026-02",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-02]",
+   "computed": 1.27,
+   "reported": 1.27,
+   "lit": "至 2026-02 的 1.27",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G011",
+   "cat": "⑦",
+   "where": "M1-1 日本 2026-10",
+   "src": "research_snapshot_20261123.json:series_store.JP_CPI_YOY[2026-10]",
+   "computed": 2.44,
+   "reported": 2.44,
+   "lit": "总体回升至 2026-10 的 2.44",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G012",
+   "cat": "⑦",
+   "where": "M1-1『两度小幅回升』",
+   "src": "JP_CPI_YOY 2025-01..2026-02 月环比上升次数",
+   "computed": 2,
+   "reported": 2,
+   "lit": "非逐月单调,2025-09、2025-10 两度小幅回升",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G013",
+   "cat": "⑦",
+   "where": "M1-1『总体回升』用词",
+   "src": "JP_CPI_YOY 2026-02..2026-10 月环比下降次数 / 末值>首值",
+   "computed": [
+    1,
+    true
+   ],
+   "reported": [
+    ">=1(非逐月)",
+    true
+   ],
+   "lit": "此后总体回升至 2026-10 的 2.44",
+   "lit_found": true,
+   "ok": true,
+   "note": "2026-04 一处回落(1.46→1.38),故用『总体』而非逐月",
+   "sev": ""
+  },
+  {
+   "id": "G014",
+   "cat": "⑦",
+   "where": "M1-2 欧央行两次变更幅度",
+   "src": "ECB_MRO 窗内两次变更 (bp)",
+   "computed": [
+    25,
+    25
+   ],
+   "reported": [
+    25,
+    25
+   ],
+   "lit": "ECB 两次变更各 25bp",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G015",
+   "cat": "⑦",
+   "where": "M1-2 2026-06-17 变更前后",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO/ECB_DFR 变更点 2026-06-17 (from,to)",
+   "computed": [
+    [
+     2.15,
+     2.4
+    ],
+    [
+     2.0,
+     2.25
+    ]
+   ],
+   "reported": [
+    [
+     2.15,
+     2.4
+    ],
+    [
+     2.0,
+     2.25
+    ]
+   ],
+   "lit": "2026-06-17 生效,MRO 2.15→2.4、DFR 2.0→2.25",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G016",
+   "cat": "⑦",
+   "where": "M1-2 2026-09-16 变更前后",
+   "src": "research_snapshot_20261123.json:series_store.ECB_MRO/ECB_DFR 变更点 2026-09-16 (from,to)",
+   "computed": [
+    [
+     2.4,
+     2.65
+    ],
+    [
+     2.25,
+     2.5
+    ]
+   ],
+   "reported": [
+    [
+     2.4,
+     2.65
+    ],
+    [
+     2.25,
+     2.5
+    ]
+   ],
+   "lit": "2026-09-16 生效,MRO 2.4→2.65、DFR 2.25→2.5",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G017",
+   "cat": "⑦",
+   "where": "M1-2 推断标注",
+   "src": "冻结日历 ECB 实录条数 / 决议日须标【推断】",
+   "computed": [
+    0,
+    true
+   ],
+   "reported": [
+    0,
+    true
+   ],
+   "lit": "冻结发布日历无 ECB 实录",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G018",
+   "cat": "⑦",
+   "where": "M1-2 其余台阶无实录",
+   "src": "JP_POLICY_RATE 窗内 6 个变动点中,前 45 天内有日历 JP_POLICY_TARGET 决议实录者",
+   "computed": [
+    "2026-10-01"
+   ],
+   "reported": [
+    "2026-10-01"
+   ],
+   "lit": "其余月均台阶在发布日历无对应实录,不作相容性判断",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G019",
+   "cat": "⑦",
+   "where": "机制链证据分级",
+   "src": "l3.mechanism_chains[0].links[*].evidence_level",
+   "computed": [
+    "E1",
+    "E1",
+    "E2",
+    "E2"
+   ],
+   "reported": [
+    "E1",
+    "E1",
+    "E2",
+    "E2"
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G020",
+   "cat": "⑦",
+   "where": "E2 环假设标注",
+   "src": "links[2].text 以『传导【假设】』起始 / links[3].text 归因含【假设·归因】",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G021",
+   "cat": "⑦",
+   "where": "E1 环事实位措辞",
+   "src": "links[0..1].text 不含『【假设】』",
+   "computed": [
+    false,
+    false
+   ],
+   "reported": [
+    false,
+    false
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "E1 环只含【事实】与【推断】标注,推断(决议日回推)逐处标明",
+   "sev": ""
+  },
+  {
+   "id": "G022",
+   "cat": "⑦",
+   "where": "M1-3 EURUSD 窗起",
+   "src": "research_snapshot_20261123.json:series_store.EURUSD[2026-10-23]",
+   "computed": 1.122146,
+   "reported": 1.1221,
+   "lit": "EURUSD 由 1.1221 降至 1.0970(-2.24%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G023",
+   "cat": "⑦",
+   "where": "M1-3 EURUSD 11-20 收盘",
+   "src": "research_snapshot_20261123.json:series_store.EURUSD[2026-11-20]",
+   "computed": 1.096972,
+   "reported": 1.097,
+   "lit": "EURUSD 由 1.1221 降至 1.0970(-2.24%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G024",
+   "cat": "⑦",
+   "where": "M1-3 EURUSD 月窗变动",
+   "src": "EURUSD 2026-10-23→2026-11-20",
+   "computed": -2.24,
+   "reported": -2.24,
+   "lit": "EURUSD 由 1.1221 降至 1.0970(-2.24%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G025",
+   "cat": "⑦",
+   "where": "M1-3 USDJPY 窗起",
+   "src": "research_snapshot_20261123.json:series_store.USDJPY[2026-10-23]",
+   "computed": 156.494003,
+   "reported": 156.494,
+   "lit": "USDJPY 由 156.494 升至 159.707(+2.05%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G026",
+   "cat": "⑦",
+   "where": "M1-3 USDJPY 11-20 收盘",
+   "src": "research_snapshot_20261123.json:series_store.USDJPY[2026-11-20]",
+   "computed": 159.707001,
+   "reported": 159.707,
+   "lit": "USDJPY 由 156.494 升至 159.707(+2.05%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G027",
+   "cat": "⑦",
+   "where": "M1-3 USDJPY 月窗变动",
+   "src": "USDJPY 2026-10-23→2026-11-20",
+   "computed": 2.05,
+   "reported": 2.05,
+   "lit": "USDJPY 由 156.494 升至 159.707(+2.05%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G028",
+   "cat": "⑦",
+   "where": "M1-3 DXY 窗起",
+   "src": "research_snapshot_20261123.json:series_store.DXY[2026-10-23]",
+   "computed": 101.809998,
+   "reported": 101.81,
+   "lit": "DXY 由 101.81 升至 103.81(+1.96%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G029",
+   "cat": "⑦",
+   "where": "M1-3 DXY 11-20 收盘",
+   "src": "research_snapshot_20261123.json:series_store.DXY[2026-11-20]",
+   "computed": 103.809998,
+   "reported": 103.81,
+   "lit": "DXY 由 101.81 升至 103.81(+1.96%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G030",
+   "cat": "⑦",
+   "where": "M1-3 DXY 月窗变动",
+   "src": "DXY 2026-10-23→2026-11-20",
+   "computed": 1.96,
+   "reported": 1.96,
+   "lit": "DXY 由 101.81 升至 103.81(+1.96%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G031",
+   "cat": "⑦",
+   "where": "M1-3 EURUSD 11-23 盘中",
+   "src": "research_snapshot_20261123.json:series_store.EURUSD[2026-11-23]",
+   "computed": 1.093972,
+   "reported": 1.094,
+   "lit": "EURUSD 1.0940(-2.51%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G032",
+   "cat": "⑦",
+   "where": "M1-3 EURUSD 至截止变动",
+   "src": "EURUSD 2026-10-23→2026-11-23",
+   "computed": -2.51,
+   "reported": -2.51,
+   "lit": "EURUSD 1.0940(-2.51%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G033",
+   "cat": "⑦",
+   "where": "M1-3 USDJPY 11-23 盘中",
+   "src": "research_snapshot_20261123.json:series_store.USDJPY[2026-11-23]",
+   "computed": 159.347,
+   "reported": 159.347,
+   "lit": "USDJPY 159.347(+1.82%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G034",
+   "cat": "⑦",
+   "where": "M1-3 USDJPY 至截止变动",
+   "src": "USDJPY 2026-10-23→2026-11-23",
+   "computed": 1.82,
+   "reported": 1.82,
+   "lit": "USDJPY 159.347(+1.82%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G035",
+   "cat": "⑦",
+   "where": "M1-3 DXY 11-23 盘中",
+   "src": "research_snapshot_20261123.json:series_store.DXY[2026-11-23]",
+   "computed": 104.079002,
+   "reported": 104.079,
+   "lit": "DXY 104.079(+2.23%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G036",
+   "cat": "⑦",
+   "where": "M1-3 DXY 至截止变动",
+   "src": "DXY 2026-10-23→2026-11-23",
+   "computed": 2.23,
+   "reported": 2.23,
+   "lit": "DXY 104.079(+2.23%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G037",
+   "cat": "⑦",
+   "where": "M1-3 EURJPY 合成 10-23",
+   "src": "EURUSD×USDJPY @2026-10-23 (1.1221×156.4940=175.60912)",
+   "computed": 175.61,
+   "reported": 175.61,
+   "lit": "2026-10-23 收盘 175.61",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G038",
+   "cat": "⑦",
+   "where": "M1-3 EURJPY 合成 11-20",
+   "src": "EURUSD×USDJPY @2026-11-20 (175.1941)",
+   "computed": 175.19,
+   "reported": 175.19,
+   "lit": "2026-11-20 收盘 175.19(-0.24%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G039",
+   "cat": "⑦",
+   "where": "M1-3 EURJPY 合成月窗变动",
+   "src": "合成交叉盘 2026-10-23→2026-11-20 (全精度)",
+   "computed": -0.24,
+   "reported": -0.24,
+   "lit": "2026-11-20 收盘 175.19(-0.24%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G040",
+   "cat": "⑦",
+   "where": "M1-3 EURJPY 合成 11-23",
+   "src": "EURUSD×USDJPY @2026-11-23 (174.32116)",
+   "computed": 174.32,
+   "reported": 174.32,
+   "lit": "至 2026-11-23 盘中 174.32(较 10-23 -0.73%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G041",
+   "cat": "⑦",
+   "where": "M1-3 EURJPY 至截止变动",
+   "src": "合成交叉盘 2026-10-23→2026-11-23 (全精度 -0.7334%)",
+   "computed": -0.73,
+   "reported": -0.73,
+   "lit": "至 2026-11-23 盘中 174.32(较 10-23 -0.73%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G042",
+   "cat": "⑦",
+   "where": "M1-3 EURJPY 至截止变动(展示值路径)",
+   "src": "174.32/175.61−1",
+   "computed": -0.73,
+   "reported": -0.73,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "两条舍入路径(全精度/展示值)结果相同",
+   "sev": ""
+  },
+  {
+   "id": "G043",
+   "cat": "⑦",
+   "where": "M1-3 交叉盘缺席",
+   "src": "series_store 含 EURJPY 键",
+   "computed": [],
+   "reported": [],
+   "lit": "EURJPY 交叉盘不在证据面",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G044",
+   "cat": "⑦",
+   "where": "M1-4 同日收盘口径窗端点",
+   "src": "SPX/NIKKEI225/DAX/CAC40/VIX 在 2026-10-23 与 2026-11-20 均有观测",
+   "computed": true,
+   "reported": true,
+   "lit": "近一月同日收盘口径(窗起 2026-10-23 收盘→2026-11-20 收盘)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G045",
+   "cat": "⑦",
+   "where": "M1-4 SPX",
+   "src": "SPX 2026-10-23→2026-11-20 (7623.68→6910.39)",
+   "computed": -9.36,
+   "reported": -9.36,
+   "lit": "SPX 下跌 9.36%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G046",
+   "cat": "⑦",
+   "where": "M1-4 NIKKEI225",
+   "src": "NIKKEI225 2026-10-23→2026-11-20 (62693.16→56436.65)",
+   "computed": -9.98,
+   "reported": -9.98,
+   "lit": "NIKKEI225 下跌 9.98%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G047",
+   "cat": "⑦",
+   "where": "M1-4 DAX",
+   "src": "DAX 2026-10-23→2026-11-20 (25181.65→24802.78)",
+   "computed": -1.5,
+   "reported": -1.5,
+   "lit": "DAX 下跌 1.50%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G048",
+   "cat": "⑦",
+   "where": "M1-4 CAC40",
+   "src": "CAC40 2026-10-23→2026-11-20 (7782.82→7927.75)",
+   "computed": 1.86,
+   "reported": 1.86,
+   "lit": "CAC40 上涨 1.86%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G049",
+   "cat": "⑦",
+   "where": "M1-4 VIX 窗起",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-10-23]",
+   "computed": 19.450001,
+   "reported": 19.45,
+   "lit": "VIX 由 19.45 升至 35.89(+84.5%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G050",
+   "cat": "⑦",
+   "where": "M1-4 VIX 11-20 收盘",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-20]",
+   "computed": 35.889999,
+   "reported": 35.89,
+   "lit": "VIX 由 19.45 升至 35.89(+84.5%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G051",
+   "cat": "⑦",
+   "where": "M1-4 VIX 月窗幅度",
+   "src": "VIX 2026-10-23→2026-11-20",
+   "computed": 84.5,
+   "reported": 84.5,
+   "lit": "VIX 由 19.45 升至 35.89(+84.5%)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G052",
+   "cat": "⑦",
+   "where": "M1-4 VIX 末六日路径",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-13]",
+   "computed": 19.299999,
+   "reported": 19.3,
+   "lit": "11-13 19.30→11-16 22.91→11-17 25.46→11-18 24.56→11-19 28.44→11-20 35.89",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G053",
+   "cat": "⑦",
+   "where": "M1-4 VIX 末六日路径",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-16]",
+   "computed": 22.91,
+   "reported": 22.91,
+   "lit": "11-13 19.30→11-16 22.91→11-17 25.46→11-18 24.56→11-19 28.44→11-20 35.89",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G054",
+   "cat": "⑦",
+   "where": "M1-4 VIX 末六日路径",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-17]",
+   "computed": 25.459999,
+   "reported": 25.46,
+   "lit": "11-13 19.30→11-16 22.91→11-17 25.46→11-18 24.56→11-19 28.44→11-20 35.89",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G055",
+   "cat": "⑦",
+   "where": "M1-4 VIX 末六日路径",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-18]",
+   "computed": 24.559999,
+   "reported": 24.56,
+   "lit": "11-13 19.30→11-16 22.91→11-17 25.46→11-18 24.56→11-19 28.44→11-20 35.89",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G056",
+   "cat": "⑦",
+   "where": "M1-4 VIX 末六日路径",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-19]",
+   "computed": 28.440001,
+   "reported": 28.44,
+   "lit": "11-13 19.30→11-16 22.91→11-17 25.46→11-18 24.56→11-19 28.44→11-20 35.89",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G057",
+   "cat": "⑦",
+   "where": "M1-4 VIX 末六日路径",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-20]",
+   "computed": 35.889999,
+   "reported": 35.89,
+   "lit": "11-13 19.30→11-16 22.91→11-17 25.46→11-18 24.56→11-19 28.44→11-20 35.89",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G058",
+   "cat": "⑦",
+   "where": "M1-4『末六个交易日』",
+   "src": "VIX 序列 ≤2026-11-20 的最后六个观测日",
+   "computed": [
+    "2026-11-13",
+    "2026-11-16",
+    "2026-11-17",
+    "2026-11-18",
+    "2026-11-19",
+    "2026-11-20"
+   ],
+   "reported": [
+    "2026-11-13",
+    "2026-11-16",
+    "2026-11-17",
+    "2026-11-18",
+    "2026-11-19",
+    "2026-11-20"
+   ],
+   "lit": "末六个交易日收盘路径",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G059",
+   "cat": "⑦",
+   "where": "M1-4『末五个交易日』",
+   "src": "VIX 序列 2026-11-13 之后 ≤2026-11-20 的观测日数",
+   "computed": 5,
+   "reported": 5,
+   "lit": "跳升集中于末五个交易日(2026-11-13→2026-11-20,19.30→35.89)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G060",
+   "cat": "⑦",
+   "where": "M1-4 引擎回贴 SPX",
+   "src": "research_snapshot_20261123.json:series_store.SPX[2026-11-23]",
+   "computed": 7203.850098,
+   "reported": 7203.85,
+   "lit": "SPX -5.51%(7203.85,盘中)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G061",
+   "cat": "⑦",
+   "where": "M1-4 引擎回贴 DAX",
+   "src": "research_snapshot_20261123.json:series_store.DAX[2026-11-23]",
+   "computed": 25209.449219,
+   "reported": 25209.45,
+   "lit": "DAX +0.11%(25209.45,盘中)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G062",
+   "cat": "⑦",
+   "where": "M1-4 引擎回贴 NIKKEI225",
+   "src": "research_snapshot_20261123.json:series_store.NIKKEI225[2026-11-20]",
+   "computed": 56436.65,
+   "reported": 56436.65,
+   "lit": "NIKKEI225 -9.98%(56436.65,2026-11-20 收盘)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G063",
+   "cat": "⑦",
+   "where": "M1-4 引擎回贴 VIX",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-23]",
+   "computed": 27.01,
+   "reported": 27.01,
+   "lit": "VIX +38.87%(27.01,盘中",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G064",
+   "cat": "⑦",
+   "where": "M1-4 先例 VIX 11-04",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-04]",
+   "computed": 16.610001,
+   "reported": 16.61,
+   "lit": "2026-11-04→11-05 VIX 收盘 16.61→28.18(+69.66%),至 11-11 回落至 17.49(四个交易日,较 11-05 -37.93%),同期 SPX 11-05 -4.36%,下一交易日 NIKKEI225 11-06 -5.96%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G065",
+   "cat": "⑦",
+   "where": "M1-4 先例 VIX 11-05",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-05]",
+   "computed": 28.18,
+   "reported": 28.18,
+   "lit": "2026-11-04→11-05 VIX 收盘 16.61→28.18(+69.66%),至 11-11 回落至 17.49(四个交易日,较 11-05 -37.93%),同期 SPX 11-05 -4.36%,下一交易日 NIKKEI225 11-06 -5.96%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G066",
+   "cat": "⑦",
+   "where": "M1-4 先例 VIX 单日",
+   "src": "VIX 2026-11-04→2026-11-05",
+   "computed": 69.66,
+   "reported": 69.66,
+   "lit": "2026-11-04→11-05 VIX 收盘 16.61→28.18(+69.66%),至 11-11 回落至 17.49(四个交易日,较 11-05 -37.93%),同期 SPX 11-05 -4.36%,下一交易日 NIKKEI225 11-06 -5.96%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G067",
+   "cat": "⑦",
+   "where": "M1-4 先例 VIX 11-11",
+   "src": "research_snapshot_20261123.json:series_store.VIX[2026-11-11]",
+   "computed": 17.49,
+   "reported": 17.49,
+   "lit": "2026-11-04→11-05 VIX 收盘 16.61→28.18(+69.66%),至 11-11 回落至 17.49(四个交易日,较 11-05 -37.93%),同期 SPX 11-05 -4.36%,下一交易日 NIKKEI225 11-06 -5.96%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G068",
+   "cat": "⑦",
+   "where": "M1-4 先例『四个交易日』",
+   "src": "VIX 2026-11-05 之后至 2026-11-11 的观测日",
+   "computed": 4,
+   "reported": 4,
+   "lit": "2026-11-04→11-05 VIX 收盘 16.61→28.18(+69.66%),至 11-11 回落至 17.49(四个交易日,较 11-05 -37.93%),同期 SPX 11-05 -4.36%,下一交易日 NIKKEI225 11-06 -5.96%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G069",
+   "cat": "⑦",
+   "where": "M1-4 先例 VIX 回落",
+   "src": "VIX 2026-11-05→2026-11-11",
+   "computed": -37.93,
+   "reported": -37.93,
+   "lit": "2026-11-04→11-05 VIX 收盘 16.61→28.18(+69.66%),至 11-11 回落至 17.49(四个交易日,较 11-05 -37.93%),同期 SPX 11-05 -4.36%,下一交易日 NIKKEI225 11-06 -5.96%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G070",
+   "cat": "⑦",
+   "where": "M1-4 先例 SPX 11-05",
+   "src": "SPX 2026-11-04→2026-11-05 (-4.3557%)",
+   "computed": -4.36,
+   "reported": -4.36,
+   "lit": "2026-11-04→11-05 VIX 收盘 16.61→28.18(+69.66%),至 11-11 回落至 17.49(四个交易日,较 11-05 -37.93%),同期 SPX 11-05 -4.36%,下一交易日 NIKKEI225 11-06 -5.96%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G071",
+   "cat": "⑦",
+   "where": "M1-4 先例 NIKKEI 11-06",
+   "src": "NIKKEI225 2026-11-05→2026-11-06",
+   "computed": -5.96,
+   "reported": -5.96,
+   "lit": "2026-11-04→11-05 VIX 收盘 16.61→28.18(+69.66%),至 11-11 回落至 17.49(四个交易日,较 11-05 -37.93%),同期 SPX 11-05 -4.36%,下一交易日 NIKKEI225 11-06 -5.96%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G072",
+   "cat": "⑦",
+   "where": "M1-4『下一交易日』",
+   "src": "NIKKEI225 2026-11-05 之后的下一观测日",
+   "computed": "2026-11-06",
+   "reported": "2026-11-06",
+   "lit": "下一交易日 NIKKEI225 11-06",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G073",
+   "cat": "⑦",
+   "where": "M1-4 发布日 VIX 11-16",
+   "src": "VIX 2026-11-13→2026-11-16 (18.7047%)",
+   "computed": 18.7,
+   "reported": 18.7,
+   "lit": "2026-11-16、2026-11-20,当日 VIX +18.70%/+26.20%,为窗内两个最大单日跳升日",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G074",
+   "cat": "⑦",
+   "where": "M1-4 发布日 VIX 11-20",
+   "src": "VIX 2026-11-19→2026-11-20 (26.1955%)",
+   "computed": 26.2,
+   "reported": 26.2,
+   "lit": "2026-11-16、2026-11-20,当日 VIX +18.70%/+26.20%,为窗内两个最大单日跳升日",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G075",
+   "cat": "⑦",
+   "where": "M1-4『窗内两个最大单日跳升日』",
+   "src": "跳升窗(2026-11-16..2026-11-20)单日涨幅前二",
+   "computed": [
+    "2026-11-16",
+    "2026-11-20"
+   ],
+   "reported": [
+    "2026-11-16",
+    "2026-11-20"
+   ],
+   "lit": "2026-11-16、2026-11-20,当日 VIX +18.70%/+26.20%,为窗内两个最大单日跳升日",
+   "lit_found": true,
+   "ok": true,
+   "note": "窗=跳升窗; 若取近一月窗则 2026-11-05(+69.66%)最大,原文『跳升窗内』限定成立",
+   "sev": ""
+  },
+  {
+   "id": "G076",
+   "cat": "⑦",
+   "where": "M1-4/对质环3 跳升窗股指",
+   "src": "SPX 2026-11-13→2026-11-20 (-8.6129%)",
+   "computed": -8.61,
+   "reported": -8.61,
+   "lit": "2026-11-13→2026-11-20: SPX -8.61%、NIKKEI225 -7.70%、DAX -7.28%、CAC40 -5.27%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G077",
+   "cat": "⑦",
+   "where": "M1-4/对质环3 跳升窗股指",
+   "src": "NIKKEI225 2026-11-13→2026-11-20 (-7.6963%)",
+   "computed": -7.7,
+   "reported": -7.7,
+   "lit": "2026-11-13→2026-11-20: SPX -8.61%、NIKKEI225 -7.70%、DAX -7.28%、CAC40 -5.27%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G078",
+   "cat": "⑦",
+   "where": "M1-4/对质环3 跳升窗股指",
+   "src": "DAX 2026-11-13→2026-11-20 (-7.2792%)",
+   "computed": -7.28,
+   "reported": -7.28,
+   "lit": "2026-11-13→2026-11-20: SPX -8.61%、NIKKEI225 -7.70%、DAX -7.28%、CAC40 -5.27%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G079",
+   "cat": "⑦",
+   "where": "M1-4/对质环3 跳升窗股指",
+   "src": "CAC40 2026-11-13→2026-11-20 (-5.2714%)",
+   "computed": -5.27,
+   "reported": -5.27,
+   "lit": "2026-11-13→2026-11-20: SPX -8.61%、NIKKEI225 -7.70%、DAX -7.28%、CAC40 -5.27%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G080",
+   "cat": "⑦",
+   "where": "M1-4『四地股指跌幅均不深于美股』",
+   "src": "跳升窗跌幅比较",
+   "computed": true,
+   "reported": true,
+   "lit": "但窗内四地股指跌幅均不深于美股",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G081",
+   "cat": "⑦",
+   "where": "M1-4 发布日汇市单日变动上限",
+   "src": "EURUSD/USDJPY 2026-11-16 与 2026-11-20 单日变动绝对值最大 (0.2293%)",
+   "computed": true,
+   "reported": true,
+   "lit": "两日欧元、日元对美元单日变动幅度不超过 0.23%",
+   "lit_found": true,
+   "ok": true,
+   "note": "逐项: EURUSD@2026-11-16 0.2293%, EURUSD@2026-11-20 0.0209%, USDJPY@2026-11-16 0.0594%, USDJPY@2026-11-20 0.2045%",
+   "sev": ""
+  },
+  {
+   "id": "G082",
+   "cat": "⑦",
+   "where": "M1-4 FOMC 纪要",
+   "src": "research_plan.policy_doc_facts FOMC-MINUTES-2026-10.published_on",
+   "computed": [
+    "2026-11-18"
+   ],
+   "reported": [
+    "2026-11-18"
+   ],
+   "lit": "FOMC 2026年10月会议纪要 2026-11-18 发布",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G083",
+   "cat": "⑦",
+   "where": "对质环3 距最近政策日",
+   "src": "2026-11-13 − 2026-10-30 (天)",
+   "computed": 14,
+   "reported": 14,
+   "lit": "距最近政策日 2026-10-30(BOJ 维持决议,无变更)14 天、距 ECB 最近生效日 2026-09-16 58 天",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G084",
+   "cat": "⑦",
+   "where": "对质环3 距 ECB 最近生效日(起点)",
+   "src": "2026-11-13 − 2026-09-16 (天)",
+   "computed": 58,
+   "reported": 58,
+   "lit": "距最近政策日 2026-10-30(BOJ 维持决议,无变更)14 天、距 ECB 最近生效日 2026-09-16 58 天",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G085",
+   "cat": "⑦",
+   "where": "对质环3 距最近政策日(终点)",
+   "src": "2026-11-20 − 2026-10-30 (天)",
+   "computed": 21,
+   "reported": 21,
+   "lit": "至跳升终点 2026-11-20 为 21 天、65 天",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G086",
+   "cat": "⑦",
+   "where": "对质环3 距 ECB 最近生效日(终点)",
+   "src": "2026-11-20 − 2026-09-16 (天)",
+   "computed": 65,
+   "reported": 65,
+   "lit": "至跳升终点 2026-11-20 为 21 天、65 天",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G087",
+   "cat": "⑦",
+   "where": "对质环3 纪要发布后 VIX",
+   "src": "VIX 2026-11-18/11-19/11-20 收盘",
+   "computed": [
+    24.56,
+    28.44,
+    35.89
+   ],
+   "reported": [
+    24.56,
+    28.44,
+    35.89
+   ],
+   "lit": "发布当日及其后两个交易日 VIX 收盘 24.56、28.44、35.89",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G088",
+   "cat": "⑦",
+   "where": "对质环1 决议日前可见(2026-06-11)",
+   "src": "EA_HICP_YOY 推定规则(月末+16天): 发布日≤2026-06-11 的最新观测月",
+   "computed": [
+    "2026-04",
+    3.0
+   ],
+   "reported": [
+    "2026-04",
+    3.0
+   ],
+   "lit": "决议日(回推 2026-06-11)前可见 2026-04=3.0",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G089",
+   "cat": "⑦",
+   "where": "对质环1 生效日前可见(2026-06-17)",
+   "src": "同上 发布日≤2026-06-17",
+   "computed": [
+    "2026-05",
+    3.2
+   ],
+   "reported": [
+    "2026-05",
+    3.2
+   ],
+   "lit": "生效日前可见 2026-05=3.2",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G090",
+   "cat": "⑦",
+   "where": "对质环1 决议日前可见(2026-09-10)",
+   "src": "同上 发布日≤2026-09-10",
+   "computed": [
+    "2026-07",
+    2.9
+   ],
+   "reported": [
+    "2026-07",
+    2.9
+   ],
+   "lit": "决议日(回推 2026-09-10)前可见 2026-07=2.9",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G091",
+   "cat": "⑦",
+   "where": "对质环1 生效日前可见(2026-09-16)",
+   "src": "同上 发布日≤2026-09-16",
+   "computed": [
+    "2026-08",
+    3.2
+   ],
+   "reported": [
+    "2026-08",
+    3.2
+   ],
+   "lit": "生效日前可见 2026-08=3.2",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G092",
+   "cat": "⑦",
+   "where": "对质环1 发布日=生效日同日",
+   "src": "EA_HICP_YOY 2026-08 观测月推定发布日",
+   "computed": "2026-09-16",
+   "reported": "2026-09-16",
+   "lit": "发布日 2026-09-16 与生效日同日,先后时刻不可分",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G093",
+   "cat": "⑦",
+   "where": "对质环1 日历两档形态(第一次)",
+   "src": "快报=次月首日: ≤2026-06-11 可见最新观测月",
+   "computed": [
+    "2026-05",
+    3.2
+   ],
+   "reported": [
+    "2026-05",
+    3.2
+   ],
+   "lit": "两次变更决议日前可见读数为 2026-05 的 3.2 与 2026-08 的 3.2",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G094",
+   "cat": "⑦",
+   "where": "对质环1 日历两档形态(第二次)",
+   "src": "快报=次月首日: ≤2026-09-10 可见最新观测月",
+   "computed": [
+    "2026-08",
+    3.2
+   ],
+   "reported": [
+    "2026-08",
+    3.2
+   ],
+   "lit": "两次变更决议日前可见读数为 2026-05 的 3.2 与 2026-08 的 3.2",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G095",
+   "cat": "⑦",
+   "where": "对质环1『变更前读数均高于 2026-02 的 1.9』",
+   "src": "四个变更前可见读数 vs EA_HICP_YOY[2026-02]=1.9",
+   "computed": true,
+   "reported": true,
+   "lit": "两次变更前读数均高于 2026-02 的 1.9",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G096",
+   "cat": "⑦",
+   "where": "对质环1 维持天数",
+   "src": "2025-06-11 → 2026-06-17 (天)",
+   "computed": 371,
+   "reported": 371,
+   "lit": "维持 2.15/2.0 共 371 天",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G097",
+   "cat": "⑦",
+   "where": "对质环1 维持期无变更",
+   "src": "ECB_MRO/ECB_DFR 在 (2025-06-11, 2026-06-17) 内变更点",
+   "computed": [],
+   "reported": [],
+   "lit": "维持 2.15/2.0 共 371 天",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G098",
+   "cat": "⑦",
+   "where": "对质环1 维持期读数",
+   "src": "EA_HICP_YOY 2026-01 / 2026-04",
+   "computed": [
+    1.7,
+    3.0
+   ],
+   "reported": [
+    1.7,
+    3.0
+   ],
+   "lit": "其间读数已由 2026-01 的 1.7 升至 2026-04 的 3.0 而未触发变更",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G099",
+   "cat": "⑦",
+   "where": "对质环1『2.9 低于 2026-05 峰值 3.2』",
+   "src": "决议日前可见读数 2.9 vs 2026-05=3.2 且 2026-05 为局部峰值(3.0/3.2/2.8)",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": "决议日前可见读数 2.9 低于 2026-05 峰值 3.2",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G100",
+   "cat": "⑦",
+   "where": "对质环1 样本数",
+   "src": "ECB_MRO 近十二月窗内变更次数",
+   "computed": 2,
+   "reported": 2,
+   "lit": "读数驱动与程序驱动均与观测相容,n=2",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "G101",
+   "cat": "⑦",
+   "where": "对质环2 窗内无政策变动点",
+   "src": "ECB/Fed 序列变更点、JP_POLICY_RATE 变动点、日央行决议实录 落在 [2026-10-23, 2026-11-23]",
+   "computed": [],
+   "reported": [],
+   "lit": "窗内三地均无政策利率变动点",
+   "lit_found": true,
+   "ok": true,
+   "note": "日央行 2026-10-30 为维持决议(kind=policy_maintenance),不构成变动点",
+   "sev": ""
+  },
+  {
+   "id": "G102",
+   "cat": "⑦",
+   "where": "对质环1 区分指标在场",
+   "src": "区分指标 EA_HICP_YOY 在 series_store / 证据索引",
+   "computed": [
+    true,
+    [
+     "EA_HICP_YOY@2026-10-01"
+    ]
+   ],
+   "reported": [
+    true,
+    [
+     "EA_HICP_YOY@2026-10-01"
+    ]
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "区分指标须在场且两解释预期方向不同(见 PROSE 六查)",
+   "sev": ""
+  },
+  {
+   "id": "G103",
+   "cat": "⑦",
+   "where": "对质环2 区分指标在场",
+   "src": "区分指标 EURUSD 在 series_store / 证据索引",
+   "computed": [
+    true,
+    [
+     "EURUSD@2026-11-23"
+    ]
+   ],
+   "reported": [
+    true,
+    [
+     "EURUSD@2026-11-23"
+    ]
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "区分指标须在场且两解释预期方向不同(见 PROSE 六查)",
+   "sev": ""
+  },
+  {
+   "id": "G104",
+   "cat": "⑦",
+   "where": "对质环3 区分指标在场",
+   "src": "区分指标 VIX 在 series_store / 证据索引",
+   "computed": [
+    true,
+    [
+     "VIX@2026-11-23"
+    ]
+   ],
+   "reported": [
+    true,
+    [
+     "VIX@2026-11-23"
+    ]
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "区分指标须在场且两解释预期方向不同(见 PROSE 六查)",
+   "sev": ""
+  },
+  {
+   "id": "H001",
+   "cat": "⑧",
+   "where": "类比 扫描数",
+   "src": "report.json:steps[S6_analog].envelope.data.candidates.scanned",
+   "computed": 1871,
+   "reported": 1871,
+   "lit": "扫描 1871 个候选月",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "H002",
+   "cat": "⑧",
+   "where": "类比 有效数",
+   "src": "candidates.valid",
+   "computed": 74,
+   "reported": 74,
+   "lit": "有效 74",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "H003",
+   "cat": "⑧",
+   "where": "类比 TOP1 候选月",
+   "src": "envelope.data.top[0].candidate_month",
+   "computed": "2025-03",
+   "reported": "2025-03",
+   "lit": "TOP1 候选月 2025-03",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "H004",
+   "cat": "⑧",
+   "where": "类比 TOP1 距离",
+   "src": "envelope.data.top[0].distance",
+   "computed": 0.727,
+   "reported": 0.727,
+   "lit": "距离 0.727",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "H005",
+   "cat": "⑧",
+   "where": "历史类比段数",
+   "src": "reader_map.history_periods",
+   "computed": 0,
+   "reported": 0,
+   "lit": "历史类比 0 段(契约允许 0..3 段,零段如实写明)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "H006",
+   "cat": "⑧",
+   "where": "类比能力已执行",
+   "src": "steps[S6_analog].ok / executed",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": "S6_analog: 扫描",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "H007",
+   "cat": "⑧",
+   "where": "零段类比=不引事后结果",
+   "src": "agent_judgment.json 中出现候选月『2025-03』的字段路径",
+   "computed": [
+    ".reader_map.history_zero_case_note"
+   ],
+   "reported": [
+    ".reader_map.history_zero_case_note"
+   ],
+   "lit": "不以未核验的事后结果充数",
+   "lit_found": true,
+   "ok": true,
+   "note": "候选月仅出现于零段注记,无任何『随后 N 个月结果』数字",
+   "sev": ""
+  },
+  {
+   "id": "I001",
+   "cat": "⑨",
+   "where": "S1 时限晚于入档",
+   "src": "2026-12 观测月按推定规则发布日 EA=2027-01-16 / JP=2027-01-20 vs deadline",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": "2027-01 入档,早于时限 2027-02-15",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I002",
+   "cat": "⑨",
+   "where": "S2 时限",
+   "src": "同上 vs S2 deadline",
+   "computed": "2027-02-15",
+   "reported": "2027-02-15",
+   "lit": "2027-01 入档,早于时限 2027-02-15",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I003",
+   "cat": "⑨",
+   "where": "S1 证伪指标可观测",
+   "src": "falsification.metric_id 在注册表与证据索引",
+   "computed": [
+    true,
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true,
+    true
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I005",
+   "cat": "⑨",
+   "where": "S1 次证伪指标可观测",
+   "src": "falsification.secondary_metric_ids 在注册表",
+   "computed": [
+    true
+   ],
+   "reported": [
+    true
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I004",
+   "cat": "⑨",
+   "where": "S2 证伪指标可观测",
+   "src": "falsification.metric_id 在注册表与证据索引",
+   "computed": [
+    true,
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true,
+    true
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I006",
+   "cat": "⑨",
+   "where": "S2 次证伪指标可观测",
+   "src": "falsification.secondary_metric_ids 在注册表",
+   "computed": [
+    true
+   ],
+   "reported": [
+    true
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I007",
+   "cat": "⑨",
+   "where": "触发用 VIX 可观测",
+   "src": "VIX 在 series_store / 证据索引",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": "收盘高于 30",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I008",
+   "cat": "⑨",
+   "where": "情景尚未被截止日数据判定",
+   "src": "两序列在快照内的最后观测月(2026-11/2026-12 读数截止日尚未发布)",
+   "computed": [
+    "2026-10",
+    "2026-10"
+   ],
+   "reported": [
+    "2026-10",
+    "2026-10"
+   ],
+   "lit": "观测月 2026-11 与 2026-12",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I009",
+   "cat": "⑨",
+   "where": "阈值与截止日读数相容",
+   "src": "截止日读数 EA=4.0(触发≥4.0/证伪<3.5) JP=2.44(≥2.0/<2.0) VIX 11-20 收盘=35.889999(>30/<25)",
+   "computed": [
+    true,
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true,
+    true
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "截止日读数落在两情景之间(未决),两情景方向互补",
+   "sev": ""
+  },
+  {
+   "id": "I010",
+   "cat": "⑨",
+   "where": "两情景方向互补",
+   "src": "S1『维持 3.5% 以上/维持 2.0% 以上』 vs S2『回落至 3.0% 以下/回落至 2.0% 以下』",
+   "computed": [
+    true,
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true,
+    true
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I011",
+   "cat": "⑨",
+   "where": "S2 中间区间如实",
+   "src": "S2 证伪阈值 3.5 与触发阈值 3.0 之间既不触发也不证伪",
+   "computed": true,
+   "reported": true,
+   "lit": "3.0%–3.5% 区间不触发亦不证伪",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I012",
+   "cat": "⑨",
+   "where": "政策分量不可数值核验的披露",
+   "src": "冻结日历 ECB 实录条数 vs 情景披露",
+   "computed": 0,
+   "reported": 0,
+   "lit": "冻结日历对欧央行零条实录,欧央行分量须待日历补录后方可核验",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I013",
+   "cat": "⑨",
+   "where": "S1 证据引用可解析",
+   "src": "asset_direction.evidence_refs ⊂ 证据索引",
+   "computed": [],
+   "reported": [],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "refs=NIKKEI225@2026-11-20,VIX@2026-11-23",
+   "sev": ""
+  },
+  {
+   "id": "I014",
+   "cat": "⑨",
+   "where": "S2 证据引用可解析",
+   "src": "asset_direction.evidence_refs ⊂ 证据索引",
+   "computed": [],
+   "reported": [],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "refs=VIX@2026-11-23,NIKKEI225@2026-11-20",
+   "sev": ""
+  },
+  {
+   "id": "I015",
+   "cat": "⑨",
+   "where": "S1 日本目标现值",
+   "src": "日历 RC-JP-BOJ-TARGET-2026-09.target_value vs 情景『目标现约 1.25%』",
+   "computed": [
+    1.25
+   ],
+   "reported": [
+    1.25
+   ],
+   "lit": "目标现约 1.25%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I016",
+   "cat": "⑨",
+   "where": "S2 日本目标现值",
+   "src": "同上 vs S2『BOJ 维持目标约 1.25% 不变』",
+   "computed": [
+    1.25
+   ],
+   "reported": [
+    1.25
+   ],
+   "lit": "BOJ 维持目标约 1.25% 不变",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "I017",
+   "cat": "⑨",
+   "where": "S2 资产方向所引近一月观察",
+   "src": "SPX/NIKKEI225/DAX/CAC40 2026-10-23→2026-11-20",
+   "computed": [
+    -9.36,
+    -9.98,
+    -1.5,
+    1.86
+   ],
+   "reported": [
+    -9.36,
+    -9.98,
+    -1.5,
+    1.86
+   ],
+   "lit": "SPX 下跌 9.36%、NIKKEI225 下跌 9.98%、DAX 下跌 1.50%、CAC40 上涨 1.86%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J001",
+   "cat": "⑩",
+   "where": "总判断方向相反",
+   "src": "日本同比下降 / 欧元区同比上升",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": "方向相反",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J002",
+   "cat": "⑩",
+   "where": "对质裁定取值",
+   "src": "transmission.links[*].face_off_verdict",
+   "computed": [
+    "尚不能区分"
+   ],
+   "reported": [
+    "尚不能区分"
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J003",
+   "cat": "⑩",
+   "where": "对质裁定计数",
+   "src": "『尚不能区分』环数",
+   "computed": 3,
+   "reported": 3,
+   "lit": "尚不能区分 3",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J004",
+   "cat": "⑩",
+   "where": "L3 引用条数",
+   "src": "contradictions[*].evidence_refs + mechanism_chains[*].links[*].evidence_refs",
+   "computed": 20,
+   "reported": 20,
+   "lit": "共 20 条 snapshot_fact 引用",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J005",
+   "cat": "⑩",
+   "where": "L3 引用全部解析",
+   "src": "L3 引用不在证据索引者",
+   "computed": [],
+   "reported": [],
+   "lit": "零悬空引用",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J006",
+   "cat": "⑩",
+   "where": "L3 引用类型",
+   "src": "L3 引用在证据索引中的 kind 集合",
+   "computed": [
+    "snapshot_fact"
+   ],
+   "reported": [
+    "snapshot_fact"
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J007",
+   "cat": "⑩",
+   "where": "L4 引用全部解析",
+   "src": "L4 evidence_refs 不在证据索引者",
+   "computed": [],
+   "reported": [],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "L4 引用 4 条",
+   "sev": ""
+  },
+  {
+   "id": "J008",
+   "cat": "⑩",
+   "where": "证据索引行数",
+   "src": "report.json:evidence_index 行数",
+   "computed": 60,
+   "reported": 60,
+   "lit": "证据索引(60行)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J009",
+   "cat": "⑩",
+   "where": "证据索引构成",
+   "src": "kind 计数",
+   "computed": {
+    "s3_envelope": 25,
+    "snapshot_fact": 35
+   },
+   "reported": {
+    "snapshot_fact": 35,
+    "s3_envelope": 25
+   },
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J010",
+   "cat": "⑩",
+   "where": "点值格数",
+   "src": "research_plan.point_values.cells",
+   "computed": 6,
+   "reported": 6,
+   "lit": "点值格(6格)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J011",
+   "cat": "⑩",
+   "where": "日历版本",
+   "src": "release_calendar.json version / updated",
+   "computed": [
+    "v1.5.0",
+    "2026-11-21"
+   ],
+   "reported": [
+    "v1.5.0",
+    "2026-11-21"
+   ],
+   "lit": "发布日历(v1.5.0,2026-11-21 更新)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J012",
+   "cat": "⑩",
+   "where": "总判断与 C2 政策水平一致",
+   "src": "ECB_MRO/ECB_DFR 现行水平与日历 BOJ 目标; 总判断(阿拉伯数字)与 C2(中文数字)两处字面",
+   "computed": [
+    2.65,
+    2.5,
+    1.25
+   ],
+   "reported": [
+    2.65,
+    2.5,
+    1.25
+   ],
+   "lit": "欧央行主要再融资利率 2.65%/存款便利利率 2.5%",
+   "lit_found": true,
+   "ok": true,
+   "note": "C2 字面: 『二点六五』『2.5%』『一点二五』; 总判断字面: 『2.65%』『2.5%』『1.25%』",
+   "sev": ""
+  },
+  {
+   "id": "J013",
+   "cat": "⑩",
+   "where": "读者报告 欧央行生效日滞后",
+   "src": "cutoff − 2026-09-16 = 68 天; MAP_REPORT 政策表",
+   "computed": true,
+   "reported": true,
+   "lit": "2026-09-16(距研究截止68天)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J014",
+   "cat": "⑩",
+   "where": "渲染一致性: 总判断+三条矛盾陈述",
+   "src": "agent_judgment.json 总判断+三条矛盾陈述 共 4 段原文(去空白)在 MAP/FULL/report 三件中的出现情况",
+   "computed": {
+    "in_MAP": 1,
+    "in_FULL": 3,
+    "in_report": 3,
+    "not_rendered_anywhere": []
+   },
+   "reported": {
+    "not_rendered_anywhere": []
+   },
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "逐字在场(去空白): MAP 1/4、FULL 3/4、report 3/4;三件均缺席 0 段",
+   "sev": ""
+  },
+  {
+   "id": "J015",
+   "cat": "⑩",
+   "where": "渲染一致性: 机制链四环",
+   "src": "agent_judgment.json 机制链四环 共 4 段原文(去空白)在 MAP/FULL/report 三件中的出现情况",
+   "computed": {
+    "in_MAP": 0,
+    "in_FULL": 4,
+    "in_report": 4,
+    "not_rendered_anywhere": []
+   },
+   "reported": {
+    "not_rendered_anywhere": []
+   },
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "逐字在场(去空白): MAP 0/4、FULL 4/4、report 4/4;三件均缺席 0 段",
+   "sev": ""
+  },
+  {
+   "id": "J016",
+   "cat": "⑩",
+   "where": "渲染一致性: 两地走位",
+   "src": "agent_judgment.json 两地走位 共 2 段原文(去空白)在 MAP/FULL/report 三件中的出现情况",
+   "computed": {
+    "in_MAP": 2,
+    "in_FULL": 0,
+    "in_report": 0,
+    "not_rendered_anywhere": []
+   },
+   "reported": {
+    "not_rendered_anywhere": []
+   },
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "逐字在场(去空白): MAP 2/2、FULL 0/2、report 0/2;三件均缺席 0 段",
+   "sev": ""
+  },
+  {
+   "id": "J017",
+   "cat": "⑩",
+   "where": "渲染一致性: 传导对质三环(结构字段)",
+   "src": "agent_judgment.json 传导对质三环(结构字段) 共 18 段原文(去空白)在 MAP/FULL/report 三件中的出现情况",
+   "computed": {
+    "in_MAP": 18,
+    "in_FULL": 4,
+    "in_report": 4,
+    "not_rendered_anywhere": []
+   },
+   "reported": {
+    "not_rendered_anywhere": []
+   },
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "逐字在场(去空白): MAP 18/18、FULL 4/18、report 4/18;三件均缺席 0 段",
+   "sev": ""
+  },
+  {
+   "id": "J017X",
+   "cat": "⑩",
+   "where": "渲染一致性: 传导对质三环(verdict_note 裁定理由)",
+   "src": "agent_judgment.json 传导对质三环(verdict_note 裁定理由) 共 3 段原文(去空白)在 MAP/FULL/report 三件中的出现情况",
+   "computed": {
+    "in_MAP": 0,
+    "in_FULL": 0,
+    "in_report": 0,
+    "not_rendered_anywhere": [
+     "TL1.verdict_note",
+     "TL2.verdict_note",
+     "TL3.verdict_note"
+    ]
+   },
+   "reported": "渲染面: 上述字段在三件报告中均缺席",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "逐字在场(去空白): MAP 0/3、FULL 0/3、report 0/3;三件均缺席 3 段",
+   "sev": "SCOPE-OUT"
+  },
+  {
+   "id": "J018",
+   "cat": "⑩",
+   "where": "渲染一致性: 三转折(谁先变/跟进背离)",
+   "src": "agent_judgment.json 三转折(谁先变/跟进背离) 共 6 段原文(去空白)在 MAP/FULL/report 三件中的出现情况",
+   "computed": {
+    "in_MAP": 6,
+    "in_FULL": 0,
+    "in_report": 0,
+    "not_rendered_anywhere": []
+   },
+   "reported": {
+    "not_rendered_anywhere": []
+   },
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "逐字在场(去空白): MAP 6/6、FULL 0/6、report 0/6;三件均缺席 0 段",
+   "sev": ""
+  },
+  {
+   "id": "J018X",
+   "cat": "⑩",
+   "where": "渲染一致性: 三转折(narrative 叙述)",
+   "src": "agent_judgment.json 三转折(narrative 叙述) 共 3 段原文(去空白)在 MAP/FULL/report 三件中的出现情况",
+   "computed": {
+    "in_MAP": 0,
+    "in_FULL": 0,
+    "in_report": 0,
+    "not_rendered_anywhere": [
+     "T1.narrative",
+     "T2.narrative",
+     "T3.narrative"
+    ]
+   },
+   "reported": "渲染面: 上述字段在三件报告中均缺席",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "逐字在场(去空白): MAP 0/3、FULL 0/3、report 0/3;三件均缺席 3 段",
+   "sev": "SCOPE-OUT"
+  },
+  {
+   "id": "J019",
+   "cat": "⑩",
+   "where": "渲染一致性: 两情景",
+   "src": "agent_judgment.json 两情景 共 8 段原文(去空白)在 MAP/FULL/report 三件中的出现情况",
+   "computed": {
+    "in_MAP": 6,
+    "in_FULL": 8,
+    "in_report": 8,
+    "not_rendered_anywhere": []
+   },
+   "reported": {
+    "not_rendered_anywhere": []
+   },
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "逐字在场(去空白): MAP 6/8、FULL 8/8、report 8/8;三件均缺席 0 段",
+   "sev": ""
+  },
+  {
+   "id": "J020",
+   "cat": "⑩",
+   "where": "渲染一致性: 质量门注记六条",
+   "src": "agent_judgment.json 质量门注记六条 共 6 段原文(去空白)在 MAP/FULL/report 三件中的出现情况",
+   "computed": {
+    "in_MAP": 0,
+    "in_FULL": 0,
+    "in_report": 0,
+    "not_rendered_anywhere": [
+     "QN0",
+     "QN1",
+     "QN2",
+     "QN3",
+     "QN4",
+     "QN5"
+    ]
+   },
+   "reported": "渲染面: 上述字段在三件报告中均缺席",
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "逐字在场(去空白): MAP 0/6、FULL 0/6、report 0/6;三件均缺席 6 段",
+   "sev": "SCOPE-OUT"
+  },
+  {
+   "id": "J021",
+   "cat": "⑩",
+   "where": "渲染一致性: 历史类比零段注记",
+   "src": "agent_judgment.json 历史类比零段注记 共 1 段原文(去空白)在 MAP/FULL/report 三件中的出现情况",
+   "computed": {
+    "in_MAP": 1,
+    "in_FULL": 0,
+    "in_report": 0,
+    "not_rendered_anywhere": []
+   },
+   "reported": {
+    "not_rendered_anywhere": []
+   },
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "逐字在场(去空白): MAP 1/1、FULL 0/1、report 0/1;三件均缺席 0 段",
+   "sev": ""
+  },
+  {
+   "id": "J022",
+   "cat": "⑩",
+   "where": "读者报告总判断逐字",
+   "src": "MAP_REPORT.md 含总判断原文(去空白)",
+   "computed": true,
+   "reported": true,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J023",
+   "cat": "⑩",
+   "where": "C2 截止日盘中水平",
+   "src": "USDJPY/SPX/VIX @2026-11-23",
+   "computed": [
+    159.35,
+    7203.85,
+    27.01
+   ],
+   "reported": [
+    159.35,
+    7203.85,
+    27.01
+   ],
+   "lit": "USDJPY 水平为 159.35、SPX 水平为 7203.85、VIX 水平为 27.01",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "J024",
+   "cat": "⑩",
+   "where": "C2 盘中口径",
+   "src": "三序列 2026-11-23 为快照日观测(非 11-20 收盘)",
+   "computed": true,
+   "reported": true,
+   "lit": "均为 2026-11-23 盘中快照、非收盘价",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  }
+ ]
+}

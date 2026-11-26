@@ -1,0 +1,319 @@
+point_values keys: ['cells', 'absent', 'asset_universe']
+### US growth US_REAL_GDP | 美国实际GDP(SAAR) | vintage: 事后回顾(最新修订值,非当时首发值)
+    3个月前 {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-04-01", "publication_date": "2026-07-29", "publication_rule": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)", "publication_basis": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)", "vintage": "事后回顾(最新修订值,非当时首发值)", "value": 24408.011, "period_end": "2026-06-30", "derived_yoy_pct": 2.19, "value_kind": "level(同比须用 derived_yoy_pct)", "yoy_status": "ok"}
+    最新一期 {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-07-01", "publication_date": "2026-10-29", "publication_rule": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)", "publication_basis": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)", "vintage": "事后回顾(最新修订值,非当时首发值)", "value": 24611.077, "period_end": "2026-09-30", "derived_yoy_pct": 2.07, "value_kind": "level(同比须用 derived_yoy_pct)", "yoy_status": "ok"}
+### US growth UNEMPLOYMENT | 失业率(U-3) | vintage: as_collected(采集时点值)
+    3个月前 {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-07-01", "publication_date": "2026-08-05", "publication_rule": "BLS 就业形势报告次月首周发布(月末+5天,推定)", "publication_basis": "BLS 就业形势报告次月首周发布(月末+5天,推定)", "vintage": "as_collected(采集时点值)", "value": 4.1, "period_end": "2026-07-31"}
+    最新一期 {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-10-01", "publication_date": "2026-11-05", "publication_rule": "BLS 就业形势报告次月首周发布(月末+5天,推定)", "publication_basis": "BLS 就业形势报告次月首周发布(月末+5天,推定)", "vintage": "as_collected(采集时点值)", "value": 4.1, "period_end": "2026-10-31"}
+### US growth INDPRO | 工业生产指数(SA) | vintage: as_collected(采集时点值)
+    3个月前 {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-07-01", "publication_date": "2026-08-15", "publication_rule": "G.17 工业生产次月中旬发布(月末+15天,推定)", "publication_basis": "G.17 工业生产次月中旬发布(月末+15天,推定)", "vintage": "as_collected(采集时点值)", "value": 103.1675, "period_end": "2026-07-31", "derived_yoy_pct": 1.25, "value_kind": "level(同比须用 derived_yoy_pct)", "yoy_status": "ok"}
+    最新一期 {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-10-01", "publication_date": "2026-11-15", "publication_rule": "G.17 工业生产次月中旬发布(月末+15天,推定)", "publication_basis": "G.17 工业生产次月中旬发布(月末+15天,推定)", "vintage": "as_collected(采集时点值)", "value": 103.3954, "period_end": "2026-10-31", "derived_yoy_pct": 2.15, "value_kind": "level(同比须用 derived_yoy_pct)", "yoy_status": "ok"}
+### US inflation CPI | CPI物价指数(SA) | vintage: as_collected(采集时点值)
+    3个月前 {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-07-01", "publication_date": "2026-08-13", "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)", "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)", "vintage": "as_collected(采集时点值)", "value": 332.813, "period_end": "2026-07-31", "derived_yoy_pct": 3.3, "value_kind": "level(同比须用 derived_yoy_pct)", "yoy_status": "ok"}
+    最新一期 {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-10-01", "publication_date": "2026-11-13", "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)", "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)", "vintage": "as_collected(采集时点值)", "value": 337.476, "period_end": "2026-10-31", "derived_yoy_pct": null, "value_kind": "level(同比须用 derived_yoy_pct)", "yoy_status": "no_same_period_base", "yoy_note": "同比不可得: 缺2025-10基期观测(月度同比只配去年同月/季度只配去年同季,不以最近前值代基期)", "latest_valid_yoy": {"observation_date": "2026-09-01", "yoy_pct": 3.72}}
+### US inflation CORE_CPI | 核心CPI(SA,剔除食品能源) | vintage: as_collected(采集时点值)
+    3个月前 {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-07-01", "publication_date": "2026-08-13", "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)", "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)", "vintage": "as_collected(采集时点值)", "value": 336.789, "period_end": "2026-07-31", "derived_yoy_pct": 2.47, "value_kind": "level(同比须用 derived_yoy_pct)", "yoy_status": "ok"}
+    最新一期 {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-10-01", "publication_date": "2026-11-13", "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)", "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)", "vintage": "as_collected(采集时点值)", "value": 339.9, "period_end": "2026-10-31", "derived_yoy_pct": null, "value_kind": "level(同比须用 derived_yoy_pct)", "yoy_status": "no_same_period_base", "yoy_note": "同比不可得: 缺2025-10基期观测(月度同比只配去年同月/季度只配去年同季,不以最近前值代基期)", "latest_valid_yoy": {"observation_date": "2026-09-01", "yoy_pct": 2.57}}
+### US inflation CORE_PCE | 核心PCE(SA) | vintage: as_collected(采集时点值)
+    3个月前 {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-06-01", "publication_date": "2026-07-30", "publication_rule": "BEA 个人收支报告次月末发布(月末+30天,推定)", "publication_basis": "BEA 个人收支报告次月末发布(月末+30天,推定)", "vintage": "as_collected(采集时点值)", "value": 129.969, "period_end": "2026-06-30", "derived_yoy_pct": 3.04, "value_kind": "level(同比须用 derived_yoy_pct)", "yoy_status": "ok"}
+    最新一期 {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-09-01", "publication_date": "2026-10-30", "publication_rule": "BEA 个人收支报告次月末发布(月末+30天,推定)", "publication_basis": "BEA 个人收支报告次月末发布(月末+30天,推定)", "vintage": "as_collected(采集时点值)", "value": 130.902, "period_end": "2026-09-30", "derived_yoy_pct": 3.12, "value_kind": "level(同比须用 derived_yoy_pct)", "yoy_status": "ok"}
+### EA growth EA_REAL_GDP_YOY | 欧元区实际GDP同比 | vintage: 事后回顾(最新修订值,非当时首发值)
+    3个月前 {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-04-01", "publication_date": "2026-08-04", "publication_rule": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)", "publication_basis": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)", "vintage": "事后回顾(最新修订值,非当时首发值)", "value": 1.19, "period_end": "2026-06-30"}
+    最新一期 {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-07-01", "publication_date": "2026-11-04", "publication_rule": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)", "publication_basis": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)", "vintage": "事后回顾(最新修订值,非当时首发值)", "value": 1.28, "period_end": "2026-09-30"}
+### EA inflation EA_HICP_YOY | 欧元区HICP同比 | vintage: 事后回顾(最新修订值,非当时首发值)
+    3个月前 {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-07-01", "publication_date": "2026-08-16", "publication_rule": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)", "publication_basis": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)", "vintage": "事后回顾(最新修订值,非当时首发值)", "value": 2.9, "period_end": "2026-07-31"}
+    最新一期 {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-10-01", "publication_date": "2026-11-16", "publication_rule": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)", "publication_basis": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)", "vintage": "事后回顾(最新修订值,非当时首发值)", "value": 4.0, "period_end": "2026-10-31"}
+### JP policy JP_POLICY_RATE | 日本无担保隔夜拆借利率(月均) | vintage: as_collected(采集时点值)
+    3个月前 {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-07-01", "publication_date": "2026-08-05", "publication_rule": "BOJ 月均次月初公布(月末+5天,推定)", "publication_basis": "BOJ 月均次月初公布(月末+5天,推定)", "vintage": "as_collected(采集时点值)", "value": 0.978, "period_end": "2026-07-31", "policy_dates": {"face": "隔夜市场均值(月均)", "market_seat_label": "无担保隔夜拆借月均", "decision_note": null, "effective_note": null, "market_note": null, "decision": null, "effective": null, "market_observation": null, "stat_window_end": "2026-07-31"}}
+    最新一期 {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-10-01", "publication_date": "2026-11-05", "publication_rule": "BOJ 月均次月初公布(月末+5天,推定)", "publication_basis": "BOJ 月均次月初公布(月末+5天,推定)", "vintage": "as_collected(采集时点值)", "value": 1.227, "period_end": "2026-10-31", "policy_dates": {"face": "隔夜市场均值(月均)", "market_seat_label": "无担保隔夜拆借月均", "decision_note": null, "effective_note": null, "market_note": null, "decision": null, "effective": null, "market_observation": null, "stat_window_end": "2026-10-31"}}
+absent = []
+asset_universe = ["UST_2Y", "UST_5Y", "UST_10Y", "UST_30Y", "TIPS_5Y", "TIPS_10Y", "BEI_5Y", "BEI_10Y", "CURVE_2S10S", "SPX", "NDX", "RUT", "DAX", "CAC40", "NIKKEI225", "HSI", "SHCOMP", "DXY", "EURUSD", "USDJPY", "USDCNY", "GOLD_F", "SILVER_F", "BRENT_F", "HY_OAS", "IG_OAS", "BB_OAS", "B_OAS", "CCC_OAS", "VIX"]
+== agent_judgment (report.json) keys == ['attached', 'attached_at', 'judgment_file', 'schema_version', 'validation', 'contract_verification', 'run_ok_at_attach', 'allow_failed_run', 'reader_map_faces']
+  attached: true
+  attached_at: "20261123T224005Z"
+  judgment_file: "judgment5_B.json"
+  schema_version: "1.1"
+  validation: {"passed": true, "violations": [], "n_contradictions": 3, "n_mechanism_chains": 1, "n_scenarios": 2}
+  run_ok_at_attach: true
+  allow_failed_run: false
+  reader_map_faces: {"complete": true, "headline": true, "regions_ok": true, "transmission_chains": 1, "turnings_n": 3, "history_n": 0}
+== contract_verification ==
+{
+ "version": "jc-v1.0-phase4",
+ "verdicts": [
+  {
+   "item": "C1-INFL-SYNC.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CPI"
+   ],
+   "family": "level",
+   "token": "337.476",
+   "metric": "CPI",
+   "value": 337.476,
+   "expected": 337.476,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CPI@2026-10-01=337.476"
+  },
+  {
+   "item": "C1-INFL-SYNC.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CORE_CPI"
+   ],
+   "family": "level",
+   "token": "339.9",
+   "metric": "CORE_CPI",
+   "value": 339.9,
+   "expected": 339.9,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 CORE_CPI@2026-10-01=339.9"
+  },
+  {
+   "item": "C1-INFL-SYNC.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "CORE_PCE"
+   ],
+   "family": "level",
+   "token": "130.902",
+   "metric": "CORE_PCE",
+   "value": 130.902,
+   "expected": 130.902,
+   "status": "STALE",
+   "note": "recompute:Fact 直读 CORE_PCE@2026-09-01=130.902"
+  },
+  {
+   "item": "C1-INFL-SYNC.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "BEI_10Y"
+   ],
+   "family": "level",
+   "token": "2.15",
+   "metric": "BEI_10Y",
+   "value": 2.15,
+   "expected": 2.15,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 BEI_10Y@2026-11-20=2.15"
+  },
+  {
+   "item": "C2-GROWTH-STABLE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "US_REAL_GDP"
+   ],
+   "family": "level",
+   "token": "24611.077",
+   "metric": "US_REAL_GDP",
+   "value": 24611.077,
+   "expected": 24611.077,
+   "status": "STALE",
+   "note": "recompute:Fact 直读 US_REAL_GDP@2026-07-01=24611.077"
+  },
+  {
+   "item": "C2-GROWTH-STABLE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "UNEMPLOYMENT"
+   ],
+   "family": "level",
+   "token": "4.1",
+   "metric": "UNEMPLOYMENT",
+   "value": 4.1,
+   "expected": 4.1,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 UNEMPLOYMENT@2026-10-01=4.1"
+  },
+  {
+   "item": "C2-GROWTH-STABLE.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "INDPRO"
+   ],
+   "family": "level",
+   "token": "103.3954",
+   "metric": "INDPRO",
+   "value": 103.3954,
+   "expected": 103.3954,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 INDPRO@2026-10-01=103.3954"
+  },
+  {
+   "item": "C3-JP-POLICY.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "JP_POLICY_RATE"
+   ],
+   "family": "level",
+   "token": "1.227%",
+   "metric": "JP_POLICY_RATE",
+   "value": 1.227,
+   "expected": 1.227,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227"
+  },
+  {
+   "item": "C3-JP-POLICY.statement",
+   "claim_type": "objective_fact",
+   "unit": "",
+   "evidence_refs": [
+    "USDJPY"
+   ],
+   "family": "level",
+   "token": "159.35",
+   "metric": "USDJPY",
+   "value": 159.35,
+   "expected": 159.35,
+   "status": "VERIFIED",
+   "note": "recompute:Fact 直读 USDJPY@2026-11-23=159.35"
+  }
+ ],
+ "six_checks": [
+  {
+   "item": "C1-INFL-SYNC",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "5 实据引用"
+  },
+  {
+   "item": "C1-INFL-SYNC",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C1-INFL-SYNC",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C1-INFL-SYNC",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "C2-GROWTH-STABLE",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "3 实据引用"
+  },
+  {
+   "item": "C2-GROWTH-STABLE",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C2-GROWTH-STABLE",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C2-GROWTH-STABLE",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "C3-JP-POLICY",
+   "check": "relevant",
+   "status": "VERIFIED",
+   "note": "2 实据引用"
+  },
+  {
+   "item": "C3-JP-POLICY",
+   "check": "supports",
+   "status": "VERIFIED",
+   "note": "引用逐项对得上"
+  },
+  {
+   "item": "C3-JP-POLICY",
+   "check": "competing",
+   "status": "VERIFIED",
+   "note": "2 并列解释(阈值≥2)"
+  },
+  {
+   "item": "C3-JP-POLICY",
+   "check": "opposing",
+   "status": "VERIFIED",
+   "note": "无未消化的相反证据"
+  },
+  {
+   "item": "S1-INFL-STICKY",
+   "check": "overreach",
+   "status": "VERIFIED",
+   "note": "tier=有相关证据 条件式✓"
+  },
+  {
+   "item": "S1-INFL-STICKY",
+   "check": "falsifiable",
+   "status": "VERIFIED",
+   "note": "指标+阈值形态✓"
+  },
+  {
+   "item": "S2-INFL-FADE",
+   "check": "overreach",
+   "status": "VERIFIED",
+   "note": "tier=纯逻辑推理 条件式✓"
+  },
+  {
+   "item": "S2-INFL-FADE",
+   "check": "falsifiable",
+   "status": "VERIFIED",
+   "note": "指标+阈值形态✓"
+  }
+ ],
+ "map_checks": [
+  {
+   "item": "reader_map.headline_conclusion",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "非空",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.regions",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "3 地齐",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.chain_evidence",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "传导链[CH-INFL-RATES-RISKOFF] 区分指标绑定 3/3 环",
+   "evidence_refs": []
+  },
+  {
+   "item": "reader_map.cross_face_consistency.turning_source",
+   "claim_type": "reader_map",
+   "status": "VERIFIED",
+   "note": "转折表 3 项指标与计划/候选面同源",
+   "evidence_refs": []
+  }
+ ],
+ "unresolved_unbound": [],
+ "verdict": "VERIFIED",
+ "stats": {
+  "checks": 9,
+  "contradicted": 0,
+  "verified": 7,
+  "unbound": 0,
+  "six_fail": 0,
+  "map_fail": 0,
+  "n_contradictions": 3
+ }
+}

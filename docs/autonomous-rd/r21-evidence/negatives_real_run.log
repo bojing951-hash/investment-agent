@@ -1,0 +1,11 @@
+归档基线 n=1
+  ✅ ① attach 拒绝(attached=false+契约 CONTRADICTED) — verdict=CONTRADICTED 首违=事后窗数字与引擎不符: SPX +99.00% vs 锚月2022-06末→2022-09末复算 -5.28%(2022-06-30=3785.379883→2022-09-30=3585.620117)——编造事后回报
+  ✅ ① report 不可交付
+  ✅ ① 归档拒绝+零增量
+  ✅ ② attach 拒绝(attached=false+契约拦截) — verdict=CONTRADICTED
+  ✅ ② report 不可交付(阻塞即退出非零,fail-closed) — rc=1 deliverable=False blocked=map_required_face_missing
+  ✅ ② 归档拒绝+零增量
+  ✅ ③ 锚覆盖不足阻断(map_anchor_coverage_insufficient) — |map_anchor_coverage_insufficient|"not_deliverable"
+  ✅ ③ 归档拒绝+零增量
+
+Audit-R21 真实工单三反例: 8/8 PASS(归档增量=0)

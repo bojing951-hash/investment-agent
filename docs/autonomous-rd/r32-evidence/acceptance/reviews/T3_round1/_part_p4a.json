@@ -1,0 +1,882 @@
+{
+ "rows": [
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "EA_HICP_YOY 2026-02 的 1.9 升至 2026-05 的 3.2",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-02-01/@2026-05-01",
+   "computed": [
+    1.9,
+    3.2
+   ],
+   "claimed": [
+    1.9,
+    3.2
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "(2026-06 一度回落至 2.8)",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-06-01",
+   "computed": 2.8,
+   "claimed": 2.8,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "2026-10 达 4.0",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-10-01",
+   "computed": 4.0,
+   "claimed": 4.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "JP_CPI_YOY 自 2025-01 的局部高点 4.03 回落",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2025-01-01",
+   "computed": 4.03,
+   "claimed": 4.03,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "此后至最新观测月未再越过",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY 2025-02..2026-10 最大值及其是否 <4.03",
+   "computed": [
+    3.66,
+    true
+   ],
+   "claimed": [
+    3.66,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "全序列最高为 2023-01 的 4.31",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY 全序列最大值(月,值)",
+   "computed": [
+    "2023-01",
+    4.31
+   ],
+   "claimed": [
+    "2023-01",
+    4.31
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "2025-09、2025-10 两度小幅回升至 2.91、2.99",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2025-09-01/@2025-10-01",
+   "computed": [
+    2.91,
+    2.99
+   ],
+   "claimed": [
+    2.91,
+    2.99
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "非逐月单调",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY 2025-01..2026-02 环比上升的月份",
+   "computed": [
+    "2025-09",
+    "2025-10"
+   ],
+   "claimed": [
+    "2025-09",
+    "2025-10"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "经 2025-07 的 3.1 至 2026-02 的 1.27",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2025-07-01/@2026-02-01",
+   "computed": [
+    3.1,
+    1.27
+   ],
+   "claimed": [
+    3.1,
+    1.27
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "此后总体回升至 2026-10 的 2.44",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2026-10-01(及是否高于 2026-02)",
+   "computed": [
+    2.44,
+    true
+   ],
+   "claimed": [
+    2.44,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step1",
+   "needle": "JP_CPI_YOY 为注册表 2025基/2020基 拼接 同月同比(新基优先,重叠差>0.10pp 告警)",
+   "found": true,
+   "src": "metric_registry metrics[JP_CPI_YOY].calc",
+   "computed": [
+    true,
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step2",
+   "needle": "ECB 两次变更各 25bp: 2026-06-17 生效,MRO 2.15→2.4、DFR 2.0→2.25",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO/ECB_DFR 2026-06-17 变更前→变更后",
+   "computed": [
+    2.15,
+    2.4,
+    2.0,
+    2.25
+   ],
+   "claimed": [
+    2.15,
+    2.4,
+    2.0,
+    2.25
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step2",
+   "needle": "2026-09-16 生效,MRO 2.4→2.65、DFR 2.25→2.5",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO/ECB_DFR 2026-09-16 变更前→变更后",
+   "computed": [
+    2.4,
+    2.65,
+    2.25,
+    2.5
+   ],
+   "claimed": [
+    2.4,
+    2.65,
+    2.25,
+    2.5
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step2",
+   "needle": "冻结发布日历无 ECB 实录,发布面=序列变更日",
+   "found": true,
+   "src": "release_calendar 含 ECB 条目数; 两序列末观测日=末变更日",
+   "computed": [
+    0,
+    true,
+    true
+   ],
+   "claimed": [
+    0,
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step2",
+   "needle": "BOJ 2026-09-18 决议(2026-09-24 生效)目标约 1.25%(发布日历实录)",
+   "found": true,
+   "src": "release_calendar entries[RC-JP-BOJ-TARGET-2026-09].decision_date/effective_on/target_value",
+   "computed": [
+    "2026-09-18",
+    "2026-09-24",
+    1.25
+   ],
+   "claimed": [
+    "2026-09-18",
+    "2026-09-24",
+    1.25
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step2",
+   "needle": "2026-10-30 会议确认维持",
+   "found": true,
+   "src": "release_calendar entries[RC-JP-BOJ-MAINT-2026-10].decision_date",
+   "computed": [
+    "2026-10-30"
+   ],
+   "claimed": [
+    "2026-10-30"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step2",
+   "needle": "JP_POLICY_RATE 2026-09→2026-10 的台阶(1.043→1.227)",
+   "found": true,
+   "src": "快照 series_store.JP_POLICY_RATE@2026-09-01/@2026-10-01",
+   "computed": [
+    1.043,
+    1.227
+   ],
+   "claimed": [
+    1.043,
+    1.227
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step2",
+   "needle": "其余月均台阶在发布日历无对应实录",
+   "found": true,
+   "src": "近 12 个月 JP_POLICY_RATE 月均变动点数(整数 bp 非零;严格不等比较另含两次 -0.1bp 舍入伪变动) vs 日历中改变目标的 JP 条目数",
+   "computed": [
+    6,
+    1
+   ],
+   "claimed": [
+    6,
+    1
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "MRO 2.65% vs BOJ 目标约 1.25%",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO@2026-09-16; 日历 target_value",
+   "computed": [
+    2.65,
+    1.25
+   ],
+   "claimed": [
+    2.65,
+    1.25
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "联邦基金目标区间 3.75%–4.00%,DFEDTARL/DFEDTARU 2026-11-23 观测",
+   "found": true,
+   "src": "快照 series_store.DFEDTARL/DFEDTARU 截至 2026-11-23 最后观测(日,值)",
+   "computed": [
+    [
+     "2026-11-23",
+     3.75
+    ],
+    [
+     "2026-11-23",
+     4.0
+    ]
+   ],
+   "claimed": [
+    [
+     "2026-11-23",
+     3.75
+    ],
+    [
+     "2026-11-23",
+     4.0
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "不在本轮证据索引",
+   "found": true,
+   "src": "report.json evidence_index 中 DFEDTARL/DFEDTARU 行数",
+   "computed": 0,
+   "claimed": 0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "UST_10Y 最新 5.04%",
+   "found": true,
+   "src": "快照 series_store.UST_10Y 截至 2026-11-23 最后观测(值;观测日见注)",
+   "computed": 5.04,
+   "claimed": 5.04,
+   "ok": true,
+   "note": "观测日 2026-11-19"
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "2026-10-23 收盘 175.61→2026-11-20 收盘 175.19(-0.24%)",
+   "found": true,
+   "src": "快照 series_store.EURUSD×USDJPY 同日相乘 @2026-10-23/@2026-11-20 及涨跌幅%",
+   "computed": [
+    175.609119,
+    175.194108,
+    -0.236327
+   ],
+   "claimed": [
+    175.61,
+    175.19,
+    -0.24
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "至 2026-11-23 盘中 174.32(较 10-23 -0.73%)",
+   "found": true,
+   "src": "快照 series_store.EURUSD×USDJPY @2026-11-23 及较 10-23 涨跌幅%",
+   "computed": [
+    174.321156,
+    -0.733426
+   ],
+   "claimed": [
+    174.32,
+    -0.73
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "合成交叉盘由 184.80 降至 175.19(-5.20%;腿: EURUSD -5.61%、USDJPY +0.43%)",
+   "found": true,
+   "src": "快照 series_store.EURUSD/USDJPY@2026-05-22→@2026-11-20(合成交叉盘起止与涨跌幅%,两腿涨跌幅%)",
+   "computed": [
+    184.797209,
+    175.194108,
+    -5.196561,
+    -5.605555,
+    0.433282
+   ],
+   "claimed": [
+    184.8,
+    175.19,
+    -5.2,
+    -5.61,
+    0.43
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "减日本政策利率 2026-05 月均 0.727% 得 1.423 个百分点",
+   "found": true,
+   "src": "MRO 2.15(2026-06-17 变更前) − JP_POLICY_RATE@2026-05",
+   "computed": [
+    0.727,
+    1.423
+   ],
+   "claimed": [
+    0.727,
+    1.423
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "减 2026-10 月均 1.227% 得 1.423 个百分点",
+   "found": true,
+   "src": "MRO 2.65 − JP_POLICY_RATE@2026-10",
+   "computed": 1.423,
+   "claimed": 1.423,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "欧央行两度上调合计 0.5 个百分点、日本政策利率月均亦抬升 0.5 个百分点",
+   "found": true,
+   "src": "MRO 窗内变更点变动之和; JP_POLICY_RATE@2026-10 − @2026-04",
+   "computed": [
+    0.5,
+    0.5
+   ],
+   "claimed": [
+    0.5,
+    0.5
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "EURUSD 由 1.1221 降至 1.0970(-2.24%)、USDJPY 由 156.494 升至 159.707(+2.05%)、DXY 由 101.81 升至 103.81(+1.96%)",
+   "found": true,
+   "src": "快照 series_store.EURUSD/USDJPY/DXY@2026-10-23→@2026-11-20(起,止,涨跌幅%)",
+   "computed": [
+    1.122146,
+    1.096972,
+    -2.24338,
+    156.494003,
+    159.707001,
+    2.053113,
+    101.809998,
+    103.809998,
+    1.964444
+   ],
+   "claimed": [
+    1.1221,
+    1.097,
+    -2.24,
+    156.494,
+    159.707,
+    2.05,
+    101.81,
+    103.81,
+    1.96
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step3",
+   "needle": "EURUSD 1.0940(-2.51%)、USDJPY 159.347(+1.82%)、DXY 104.079(+2.23%)",
+   "found": true,
+   "src": "快照 series_store.EURUSD/USDJPY/DXY@2026-10-23→@2026-11-23(起,止,涨跌幅%)",
+   "computed": [
+    1.122146,
+    1.093972,
+    -2.510725,
+    156.494003,
+    159.347,
+    1.823071,
+    101.809998,
+    104.079002,
+    2.228665
+   ],
+   "claimed": [
+    1.1221,
+    1.094,
+    -2.51,
+    156.494,
+    159.347,
+    1.82,
+    101.81,
+    104.079,
+    2.23
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "SPX 下跌 9.36%、NIKKEI225 下跌 9.98%、DAX 下跌 1.50%、CAC40 上涨 1.86%",
+   "found": true,
+   "src": "快照 series_store.SPX/NIKKEI225/DAX/CAC40@2026-10-23→@2026-11-20 涨跌幅%",
+   "computed": [
+    -9.356243,
+    -9.979574,
+    -1.504552,
+    1.862181
+   ],
+   "claimed": [
+    -9.36,
+    -9.98,
+    -1.5,
+    1.86
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "VIX 由 19.45 升至 35.89(+84.5%)",
+   "found": true,
+   "src": "快照 series_store.VIX@2026-10-23/@2026-11-20",
+   "computed": [
+    19.450001,
+    35.889999,
+    84.524407
+   ],
+   "claimed": [
+    19.45,
+    35.89,
+    84.5
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "11-13 19.30→11-16 22.91→11-17 25.46→11-18 24.56→11-19 28.44→11-20 35.89",
+   "found": true,
+   "src": "快照 series_store.VIX@2026-11-13..2026-11-20",
+   "computed": [
+    19.299999,
+    22.91,
+    25.459999,
+    24.559999,
+    28.440001,
+    35.889999
+   ],
+   "claimed": [
+    19.3,
+    22.91,
+    25.46,
+    24.56,
+    28.44,
+    35.89
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "末六个交易日收盘路径",
+   "found": true,
+   "src": "快照 series_store.VIX 截至 2026-11-20 的最后 6 个观测日",
+   "computed": [
+    "2026-11-13",
+    "2026-11-16",
+    "2026-11-17",
+    "2026-11-18",
+    "2026-11-19",
+    "2026-11-20"
+   ],
+   "claimed": [
+    "2026-11-13",
+    "2026-11-16",
+    "2026-11-17",
+    "2026-11-18",
+    "2026-11-19",
+    "2026-11-20"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "SPX -5.51%(7203.85,盘中)、DAX +0.11%(25209.45,盘中)、NIKKEI225 -9.98%(56436.65,2026-11-20 收盘)、VIX +38.87%(27.01,盘中",
+   "found": true,
+   "src": "快照 series_store.SPX/DAX/NIKKEI225/VIX@2026-10-23→截至截止日最后观测(涨跌幅%,末值,观测日)",
+   "computed": [
+    -5.506921,
+    7203.85,
+    "2026-11-23",
+    0.110393,
+    25209.45,
+    "2026-11-23",
+    -9.979574,
+    56436.65,
+    "2026-11-20",
+    38.868887,
+    27.01,
+    "2026-11-23"
+   ],
+   "claimed": [
+    -5.51,
+    7203.85,
+    "2026-11-23",
+    0.11,
+    25209.45,
+    "2026-11-23",
+    -9.98,
+    56436.65,
+    "2026-11-20",
+    38.87,
+    27.01,
+    "2026-11-23"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "较 2026-11-20 收盘 -24.7%",
+   "found": true,
+   "src": "快照 series_store.VIX@2026-11-23 对 @2026-11-20 涨跌幅%",
+   "computed": -24.742266,
+   "claimed": -24.7,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "2026-11-04→11-05 VIX 收盘 16.61→28.18(+69.66%)",
+   "found": true,
+   "src": "快照 series_store.VIX@2026-11-04/@2026-11-05",
+   "computed": [
+    16.610001,
+    28.18,
+    69.656823
+   ],
+   "claimed": [
+    16.61,
+    28.18,
+    69.66
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "至 11-11 回落至 17.49(四个交易日,较 11-05 -37.93%)",
+   "found": true,
+   "src": "快照 series_store.VIX@2026-11-11; 2026-11-05 之后至 11-11 观测数; 较 11-05 涨跌幅%",
+   "computed": [
+    17.49,
+    4,
+    -37.934705
+   ],
+   "claimed": [
+    17.49,
+    4,
+    -37.93
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "同期 SPX 11-05 -4.36%,下一交易日 NIKKEI225 11-06 -5.96%",
+   "found": true,
+   "src": "快照 series_store.SPX@2026-11-04→11-05; NIKKEI225@2026-11-05→11-06",
+   "computed": [
+    -4.35566,
+    -5.964727
+   ],
+   "claimed": [
+    -4.36,
+    -5.96
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "当日 VIX +18.70%/+26.20%,为窗内两个最大单日跳升日",
+   "found": true,
+   "src": "快照 series_store.VIX 2026-11-16/11-20 单日涨跌幅%; 窗内单日涨幅前二",
+   "computed": [
+    18.704669,
+    26.195491,
+    [
+     "2026-11-20",
+     "2026-11-16"
+    ]
+   ],
+   "claimed": [
+    18.7,
+    26.2,
+    [
+     "2026-11-20",
+     "2026-11-16"
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "2026-11-13→2026-11-20: SPX -8.61%、NIKKEI225 -7.70%、DAX -7.28%、CAC40 -5.27%",
+   "found": true,
+   "src": "快照 series_store.四股指@2026-11-13→@2026-11-20 涨跌幅%",
+   "computed": [
+    -8.612909,
+    -7.696302,
+    -7.279154,
+    -5.271417
+   ],
+   "claimed": [
+    -8.61,
+    -7.7,
+    -7.28,
+    -5.27
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "两日欧元、日元对美元单日变动幅度不超过 0.23%",
+   "found": true,
+   "src": "快照 series_store.EURUSD/USDJPY 2026-11-16 与 11-20 单日涨跌幅%的最大绝对值≤0.235",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": "四值%=[-0.2293, -0.0209, -0.0594, 0.2045]"
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "单日看 2026-11-20 NIKKEI225 -5.06% 深于 SPX -3.70%",
+   "found": true,
+   "src": "快照 series_store.NIKKEI225/SPX@2026-11-20 单日涨跌幅%",
+   "computed": [
+    -5.059467,
+    -3.699083
+   ],
+   "claimed": [
+    -5.06,
+    -3.7
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "为窗内四地最大单日跌幅",
+   "found": true,
+   "src": "快照 series_store.四股指 11-13..11-20 单日涨跌幅最小值(指标,日)",
+   "computed": [
+    "NIKKEI225",
+    "2026-11-20"
+   ],
+   "claimed": [
+    "NIKKEI225",
+    "2026-11-20"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链",
+   "where": "M1.step4",
+   "needle": "FOMC 2026年10月会议纪要 2026-11-18 发布",
+   "found": true,
+   "src": "report.json research_plan.policy_doc_facts[0].{title,published_on}",
+   "computed": [
+    "FOMC 2026年10月会议纪要",
+    "2026-11-18"
+   ],
+   "claimed": [
+    "FOMC 2026年10月会议纪要",
+    "2026-11-18"
+   ],
+   "ok": true,
+   "note": ""
+  }
+ ],
+ "errors": [],
+ "F": {
+  "jpr_strict_n": 8,
+  "fed_target": [
+   [
+    "2026-11-23",
+    3.75
+   ],
+   [
+    "2026-11-23",
+    4.0
+   ]
+  ],
+  "legs": [
+   [
+    "2026-05-22",
+    1.162115,
+    159.018005
+   ],
+   [
+    "2026-10-23",
+    1.122146,
+    156.494003
+   ],
+   [
+    "2026-11-20",
+    1.096972,
+    159.707001
+   ],
+   [
+    "2026-11-23",
+    1.093972,
+    159.347
+   ]
+  ],
+  "vix_daily": {
+   "2026-11-16": 18.7047,
+   "2026-11-17": 11.1305,
+   "2026-11-18": -3.535,
+   "2026-11-19": 15.7981,
+   "2026-11-20": 26.1955
+  }
+ }
+}

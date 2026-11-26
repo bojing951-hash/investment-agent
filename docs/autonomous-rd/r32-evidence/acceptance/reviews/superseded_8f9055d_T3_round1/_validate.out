@@ -1,0 +1,5 @@
+VERDICT: verdict=UPHELD points=396 mismatches=0 items=16 (MAJOR 0 / MINOR 7 / NIT 9) attacks=14 must_fix=0 bytes=20426
+PROSE bytes=117867 lines=787
+matcher self-test: 32 patterns x 2 placements, clean probe
+scanned 64 files; sensitive-string hits in seat scripts/outputs: 0
+VALIDATION PASS

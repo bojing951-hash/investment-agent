@@ -1,0 +1,21 @@
+=== R32 Task-3 correction dry run 2026-11-24 19:19:39 ===
+[1] committed copy (HEAD b7ff06b) -> scratch, then rename only
+files: committed=24 corrected=24 original=16
+[2] corrected copy vs the original archive package (every original file must be byte-identical)
+original files: identical=16 different=0 missing=0
+[3] rename-only proof against the committed copy: every committed file is present with the same bytes
+committed files: identical=24 different=0 missing=0 (of which renamed=2)
+sha16 of the two verdict files (corrected names):
+  323a98989be4ce6b pkg/verdicts/20261123__VERDICT-20261122T145134Z-01.json
+  69fb3bc9c1d9dd60 pkg/verdicts/20261123__VERDICT-20261122T145134Z-02.json
+[4] manifest check (bound files present with the bound digest)
+manifest run_ts=20261122T145134Z run_code_git_head=ca916cdca7b749282e498d8c8f0eac8bf43b7372 verdict=UPHELD verdicts_n=2 frozen_inputs_sha256=73d74da047725875
+bound files checked=15 mismatches/missing=0 | files outside the manifest: 8 ['README.md', 'REVIEW_REVISE_REQUIRED.md', 'archive_receipt.json', 'judgment_agent_v1.json', 'seat_NEW30.log', 'seat_NEW30FX.log']
+verify_manifest rc=0
+[5] strict replay on the engine at the package's recorded run sha (ca916cd)
+rc=0
+ok= True | blocked= None | render_mode= byte_equal | failed= []
+checks: {'manifest_present_parseable': True, 'completeness_files': True, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': True, 'verdict_binding_threeway': True, 'code_version_match': True, 'deterministic_rerender': True, 'package_untouched_postwrite': True}
+note: 
+MAP_REPLAY_RENDER.md REPLAY_REPORT.json REPLAY_REPORT.md 
+=== dry run end 2026-11-24 19:19:39 ===

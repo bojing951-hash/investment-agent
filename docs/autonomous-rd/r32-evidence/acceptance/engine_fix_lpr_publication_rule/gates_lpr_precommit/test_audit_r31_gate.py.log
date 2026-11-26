@@ -1,0 +1,48 @@
+═══ §A 任务2: 三输入钉死(快照/日历/注册表)+异常安全释放 ═══
+  ✅ §A1 运行中三钉死在位(快照/日历/注册表),返回后全部释放 — seen={'cal': True, 'reg': True, 'snap': True}
+  ✅ §A1b 冻结临时副本收尾清理(无泄漏目录) — leftover=[]
+  ✅ §A2 运行中改本地日历/注册表: frozen_inputs 摘要仍=入口字节(日历+注册表双件) — fi_cal=e44fd2aa5ced0310 want=e44fd2aa5ced0310 fi_reg=fa396d22175a4814 want=fa396d22175a4814
+  ✅ §A2b root_overlay 归档副本=入口字节(本地修改未入档)
+  ✅ §A2c 哨兵确认: 本地文件确实被改(区分力证据)
+  ✅ §A3 异常路径三钉死释放(异常如实上抛,环境无残留)
+  ✅ §A3b 异常释放后同进程新工单选 _v2(revision 感知) — got=/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r31gate_o0spa2fw/r31tree_gw2sq8xj/data/daily/research_snapshot_20261121_v2.json want=/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r31gate_o0spa2fw/r31tree_gw2sq8xj/data/daily/research_snapshot_20261121_v2.json
+  ✅ §A4 日历钉死缺席=fail-closed(release_calendar._load 拒静默)
+  ✅ §A4b resolver 无钉死=原语义(本地路径),钉死=优先于传参
+  ✅ §A5 fact_engine 钉死=冻结副本面;显式路径优先+缓存语义不破坏 — frozen读=True 显式优先=True 污染后回冻结=True 缓存=末次load=True
+  ✅ §A6 政策面读冻结副本(冻结独有条目可见,本地不串) — frozen=0.5 local=None
+═══ §B 任务1: 研究截止日与回看窗统一 ═══
+  ✅ §B1 裸年月+单一相对窗→月末时点+相对窗(NEW30 问句) — iso=2026-11-30 kind=relative_months months=6 as_of=2026-11-30
+  ✅ §B2 显式时点标记贯穿(以X为研究时点) — iso=2026-08-21 kind=relative_months as_of=2026-08-21
+  ✅ §B3 真冲突仍拒: 双裸年月 — iso=None kind=unparseable reason=区间倒置: 首词 2026年11月(2026-11-01) 晚于 末词 2026
+  ✅ §B3 真冲突仍拒: 双时点标记 — iso=None kind=unparseable reason=研究时点冲突: 2026-08-21/2026-09-21(不得自行择一)
+  ✅ §B3 真冲突仍拒: 双相对窗 — iso=None kind=unparseable reason=问题声明多个时间范围约束(过去3个月·过去6个月·2026年11月),单窗口接口
+  ✅ §B3 真冲突仍拒: 裸年月+自然年 — iso=2026-11-30 kind=unparseable reason=区间倒置: 首词 2026年11月(2026-11-01) 晚于 末词 2025
+  ✅ §B3 真冲突仍拒: 全日期+相对 — iso=None kind=unparseable reason=问题声明多个时间范围约束(过去6个月·2026-08-21),单窗口接口无法表达
+  ✅ §B3 真冲突仍拒: 显式区间+相对 — iso=None kind=unparseable reason=问题声明多个时间范围约束(过去6个月·2026年1月..2026年6月),单窗口
+  ✅ §B4a 裸年月单独=显式月窗(R12 零回归) — start=2026-03-01 end=2026-03-31
+  ✅ §B4b 相比三个月前=点锚短语非相对窗(显式月窗原样) — start=2026-11-01 end=2026-11-30
+  ✅ §B4c 纯相对窗无声明时点=快照口径原样(无 as_of) — kind=relative_months months=3 as_of=None
+  ✅ §B5a 声明时点贯穿计划(cutoff+窗口 2025-09-21..2026-03-21) — cutoff=2026-03-21 from=2025-09-21 to=2026-03-21
+  ✅ §B5b 点锚观测全≤声明时点(发布可知面) — obs=['2025-08-01', '2026-02-01']
+  ✅ §B5c 后来发布不入历史研究(3月观测+10/11月观测均未消费;最新可见=2026-02) — latest=2026-02-01
+  ✅ §B6 三利率共同日面绑定时点(to≤cutoff;无 cutoff=序列最新) — cut_to=2026-06-30 free_to=2026-08-29
+═══ §C 任务3: 关键证据校验 ═══
+  ✅ §C1a 同月观测在场→同比基期=去年同月(≤锚日最后观测) — basis=2025-03-14 win=end−12自然月(去年同月2025-03)锚定,同比基期=该月观测(≤锚日最后观测)
+  ✅ §C1b 去年同月无观测(13 个月前)→缺基期如实标注 — reason=缺基期: 去年同月(2025-03)无观测,最近可得基期=2025-02——同比基期须同月,不以更早观测冒充(13 个月
+  ✅ §C1c 月末戳月频(该月晚于锚日观测)仍=去年同月基期 — basis=2025-03-31 win=end−12自然月(去年同月2025-03)锚定,同比基期=该月观测(该月晚于锚日观测,仍=去年同月基期)
+  ✅ §C1d m1/m3/m6 宽松口径零回归(缺三月仍取最近可得) — basis=2025-02-27
+  ✅ §C2 决议日单独在场(CN 形) — violations=1
+  ✅ §C2 决议日+待生效标注 — violations=0
+  ✅ §C2 决议日+生效日成对 — violations=0
+  ✅ §C2 决议日 ISO 形单独 — violations=1
+  ✅ §C2 决议日斜杠形单独 — violations=1
+  ✅ §C2 无政策词日期 — violations=0
+  ✅ §C2 政策词无日期 — violations=0
+  ✅ §C2b policy_events 缺席=规则关闭(既有调用方零回归)
+  ✅ §C3a 仅有待生效公告→当前官方目标缺证明标 — missing=True pending=0.5
+  ✅ §C3b 未点名官方目标(只问环境)→不触发缺证标注(R28 口径原样) — keys=[]
+  ✅ §C3c 生效日后→官方目标在场(待生效值升格,不缺证) — target=0.5
+  ✅ §C3d 渲染面缺证文案在场(缺证(仅有待生效公告))
+  ✅ §C4 m12 缺基期原因如实透传(economy_comparison key_fact) — reason=缺基期: 去年同月(2025-03)无观测,最近可得基期=2025-02——同比基期须同月
+
+=== R31 门: 43/43 ===

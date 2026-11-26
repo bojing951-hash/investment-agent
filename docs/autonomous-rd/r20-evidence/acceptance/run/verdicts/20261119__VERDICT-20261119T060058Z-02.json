@@ -1,0 +1,17 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "R20独立语义审查席",
+  "notes": "复裁UPHELD: 四必修全改毕并逐位复算①INDPRO低点改2026-03=0.6861(三月窗终点0.7972注明非最终低点,2026-04起回升;序列1.163→0.9735→0.7972→0.6861→1.4327→2.1497吻合);②CN PMI改荣枯线上下反复(2025-12/03/04/05/06/09=50.1/50.4/50.3/50.0/50.3/50.1逐位对,三锚格49.0/49.2/49.3<50);③BEI分挂2.21@2026-11-17窗末日+2.19@2026-11-18窗后最新观测;④note改窗内共同交易日22个+recent_common_days系最近清单澄清。回归抽查零漂移: 50锚值(含9事件日序列)+三利率分解+8资产回报+事后窗样本全同;修订文本无新增越位。",
+  "run_ts": "20261119T060058Z",
+  "content_sha256": "5b1d1fddef8de97fc390f69f03aa769a61503211f9ae2fca8e3425587de4c3c2",
+  "audited_at": "2026-11-19",
+  "recorded_at": "20261119T064645Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261119/VERDICT-20261119T060058Z-01.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

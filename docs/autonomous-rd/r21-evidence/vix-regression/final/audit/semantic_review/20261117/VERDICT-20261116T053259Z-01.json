@@ -1,0 +1,22 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "SEMANTIC-AUDIT-SEAT",
+  "notes": "Audit-R1 修订闭环终审(独立席python3只读复算,C档全部断言独立重算,证据索引与概览信封逐项对照): C档 VERIFIED——上一轮发现全部忠实落地,保护项未破坏,全量数值逐位复算吻合,零新增缺陷。残留三项既有NIT列出不阻断。",
+  "run_ts": "20261116T053259Z",
+  "content_sha256": "52c1a26904bb689d88757dd31cfb4b224f77e00e9f87fbfc8e8a679b4c1e2ec2",
+  "audited_at": "2026-11-17",
+  "recorded_at": "20261116T221520Z",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261116/VERDICT-20261116T053259Z-01.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "rebind": {
+    "from_algorithm": "digest_v1(judgment+report.md)",
+    "to_algorithm": "digest_v3(report.json+judgment+views_digest)",
+    "verified_old_match": true,
+    "predecessor_archive": "audit/semantic_review/20261116/VERDICT-20261116T053259Z-01.json",
+    "note": "Audit-R4 R4-06: 摘要口径 v2→v3 迁移重绑(纳入 views_digest 渲染输入); 旧锚在当前内容上复算一致=实际交付内容未改变的机器证据, 非复审。"
+  }
+}

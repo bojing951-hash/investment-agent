@@ -1,0 +1,104 @@
+=== agent_judgment.json
+$.schema_version = "1.1"
+$.agent_declaration {dict 3}
+$.agent_declaration.attribution = "ai_inferred"
+$.agent_declaration.produced_by = "Agent 研究席(操作者会话经正式入口 ia_cli research-one 代持席位, 降级面开放问句 20261123T193254Z, 2026-11-23)"
+$.agent_declaration.basis = "读本轮 AGENT_SEAT_ENVELOPE 工单、证据索引(69行)、点值格(18格,另4格序列缺席)、转折候选面(候选池9、取3)、美国三利率分解、资产月窗、类比面、工单冻..
+$.l3 {dict 2}
+$.l3.contradictions [list 4] first=dict
+$.l3.contradictions[0].id = "C1-POLICY-DIVERGENCE"
+$.l3.contradictions[0].statement = "政策维是四地中方向最清晰的分化： 美国与日本同向收紧、中国在可比口径上未变。美国联邦基金目标区间上限(引擎序列 DFEDTARU)三个月前锚为三点七五、最新为四，上限上调二十五；..
+$.l3.contradictions[0].evidence_refs [list 4] first=str
+$.l3.contradictions[0].competing_explanations [list 2] first=str
+$.l3.mechanism_chains [list 2] first=dict
+$.l3.mechanism_chains[0].id = "M1-POLICY-RATES-ASSETS"
+$.l3.mechanism_chains[0].title = "政策分化(美日收紧、中国可比口径未变)→ 长端利率分解 → 风险资产"
+$.l3.mechanism_chains[0].links [list 3] first=dict
+$.l3.mechanism_chains[0].links[0].step = 1
+$.l3.mechanism_chains[0].links[0].evidence_level = "E1"
+$.l3.mechanism_chains[0].links[0].evidence_refs [list 4] first=str
+$.l3.mechanism_chains[0].links[0].text = "观察: 美国联邦基金目标区间上限(DFEDTARU)2026-09-16 决议 +25bp(3.75→4，2026-09-17 生效；决议日系引擎按生效日前一日推定)，有效联邦基..
+$.l4 {dict 1}
+$.l4.scenarios [list 2] first=dict
+$.l4.scenarios[0].id = "SCN-A-POLICY-DIVERGENCE-EXTENDS"
+$.l4.scenarios[0].rows {dict 5}
+$.l4.scenarios[0].rows.scenario = "【假设·非预测】政策分化延续并加深: 至 2027-02，美国 DFEDTARU 上限再上调至少一次(≥4.25)，日本 JP_POLICY_RATE 月均不低于 1.28，中国..
+$.l4.scenarios[0].rows.asset_direction {dict 3}
+$.l4.scenarios[0].rows.asset_direction.direction = "若实际利率高位与波动中枢抬升延续(近一月共同交易日窗 2026-10-20→2026-11-19 实际利率(TIPS_10Y)+11bp、引擎月窗 VIX +38.87%、DXY..
+$.l4.scenarios[0].rows.asset_direction.confidence_tier = "有相关证据"
+$.l4.scenarios[0].rows.asset_direction.evidence_refs [list 3] first=str
+$.l4.scenarios[0].rows.sensitive_variables [list 2] first=str
+$.l4.scenarios[0].rows.falsification {dict 3}
+$.l4.scenarios[0].rows.falsification.metric_id = "DFEDTARU"
+$.l4.scenarios[0].rows.falsification.threshold = "若 2027-02-28 前 DFEDTARU 上限回落至 3.75 以下 或 JP_POLICY_RATE 月均回落至 1.17 以下，政策分化延续情景被证伪"
+$.l4.scenarios[0].rows.falsification.secondary_metric_ids [list 2] first=str
+$.l4.scenarios[0].rows.trigger {dict 2}
+$.l4.scenarios[0].rows.trigger.condition = "下次美联储决议后 DFEDTARU 上限 ≥4.25 且 日本月均 JP_POLICY_RATE ≥1.28，同时 CN_LPR_1Y 仍为 3"
+$.l4.scenarios[0].rows.trigger.deadline = "2027-02-28"
+$.reader_map {dict 9}
+$.reader_map.headline_conclusion = "过去三个月，四地宏观环境的分化最清晰地体现在政策维： 美国联邦基金目标区间上限由 3.75 升至 4.0(2026-09-16 决议、2026-09-17 生效，决议日系引擎推定..
+$.reader_map.regions [list 4] first=dict
+$.reader_map.regions[0].region = "US"
+$.reader_map.regions[0].from_to = "增长环境大体延续： 实际 GDP 同比 2026Q2 为 2.19%、2026Q3 为 2.07%(季观测 2026-04→2026-07；GDP 水平 24408.011→24..
+$.reader_map.regions[0].anchor_echo [list 16] first=dict
+$.reader_map.regions[0].anchor_echo[0].anchor = "3个月前"
+$.reader_map.regions[0].anchor_echo[0].metric_id = "US_REAL_GDP"
+$.reader_map.regions[0].anchor_echo[0].value = 24408.011
+$.reader_map.regions[0].anchor_echo[0].observation_month = "2026-04"
+$.reader_map.transmission [list 1] first=dict
+$.reader_map.transmission[0].chain_id = "CH-POLICY-RATES-ASSETS"
+$.reader_map.transmission[0].title = "政策分化 → 长端利率分解 → 风险资产"
+$.reader_map.transmission[0].links [list 3] first=dict
+$.reader_map.transmission[0].links[0].observed_fact = "政策面： 美国联邦基金目标区间上限 2026-09-16 决议上调 +25bp(3.75→4.0，2026-09-17 生效，引擎事件簇)，日本无担保隔夜拆借利率月均 2026-..
+$.reader_map.transmission[0].links[0].causal_hypothesis = "【假设】主解释(实际利率渠道)： 美日收紧而中国未变 → 长端利率的实际利率分量与风险溢价上行 → 风险资产承压；通胀预期(盈亏平衡)不是长端利率的主导分量。"
+$.reader_map.transmission[0].links[0].competing_explanation = "【假设】竞争解释(通胀预期与仓位渠道)： 近一月长端利率与风险资产的变动主要由通胀预期回落、估值与仓位调整驱动，与三个月内的政策分化无直接因果；若政策收紧源于通胀压力，应见盈亏平..
+$.reader_map.transmission[0].links[0].distinguishing_metric = "TIPS_10Y"
+$.reader_map.transmission[0].links[0].main_predicts = "TIPS_10Y 在政策收紧窗内上行(近一月与 12 个月窗变动均为正)，且为名义利率变动的上行分量。"
+$.reader_map.transmission[0].links[0].competing_predicts = "TIPS_10Y 不随政策分化系统性上行(近一月或 12 个月窗为零或负)，名义利率变动由盈亏平衡主导。"
+$.reader_map.transmission[0].links[0].face_off_verdict = "支持主解释"
+$.reader_map.transmission[0].links[0].verdict_note = "两窗 TIPS_10Y 均为上行分量(+11bp、+102bp)，12 个月窗主导名义 +91bp，合主解释；单月窗名义 -8bp、盈亏平衡降幅大于实际上行幅度，单月窗不足以单独..
+$.reader_map.turnings [list 3] first=dict
+$.reader_map.turnings[0].date = "2026-07"
+$.reader_map.turnings[0].metric_id = "JP_POLICY_RATE"
+$.reader_map.turnings[0].before_date = "2026-04"
+$.reader_map.turnings[0].value_before = 0.727
+$.reader_map.turnings[0].value_after = 0.978
+$.reader_map.turnings[0].first_mover = "日本无担保隔夜拆借利率(月均口径，JP_POLICY_RATE)2026-04 的 0.727 升至 2026-07 的 0.978(三个月上行 0.251 个百分点)，是其后持..
+$.reader_map.turnings[0].follow_or_diverge = "其后台阶: 2026-08 0.977、2026-09 1.043、2026-10 1.227(发布日历实录 2026-09-18 决议、2026-09-24 生效；2026-1..
+$.reader_map.turnings[0].narrative = "政策维转折: 日本政策利率月均自 2026-04 的 0.727 升至 2026-07 的 0.978，是候选池内唯一的政策维候选；窗口终点(2026-07)早于三个月前锚(20..
+$.reader_map.turning_supplement [list 1] first=dict
+$.reader_map.turning_supplement[0].metric_id = "INDPRO"
+$.reader_map.turning_supplement[0].to_ym = "2026-02"
+$.reader_map.turning_supplement[0].first_mover = "美国工业生产指数同比(INDPRO)2025-11 的 1.7543 回落至 2026-02 的 0.7972(三个月回落 0.9571 个百分点)；其后最新一期同比 2.15(..
+$.reader_map.turning_supplement[0].follow_or_diverge = "相邻窗对照: 美国 headline CPI 同比在紧接其后的窗口(2026-02→2026-05)由 2.434 升至 4.1666，与工业生产回落方向相反(增长与通胀背离)；..
+$.reader_map.turning_supplement[0].resolution_note = "月频序列只能分辨到月:美国工业生产回落窗(2025-11→2026-02)与候选池内美国 CPI、中国制造业PMI的上行窗(2026-02→2026-05)仅在 2026-02 ..
+$.reader_map.turning_supplement[0].evidence_gap = "缺日本月频增长指标与欧元区增长序列的证据(日本仅季频 GDP 同比且不在本轮证据索引，欧元区实际 GDP 同比序列缺席)，跨经济体跟进/背离证据不足。"
+$.reader_map.history_periods [list 0] first=-
+$.reader_map.history_zero_case_note = "历史类比取零段(契约允许 0..3 段，如实写明)。检索范围=引擎六维状态类比面(锚月 2026-11，12 个月特征窗，美国序列锚定)∪快照 series_store。引擎类比..
+$.reader_map.rates_decomposition {dict 5}
+$.reader_map.rates_decomposition.window_from = "2026-10-20"
+$.reader_map.rates_decomposition.window_to = "2026-11-19"
+$.reader_map.rates_decomposition.nominal_bp = -8.0
+$.reader_map.rates_decomposition.real_bp = 11.0
+$.reader_map.rates_decomposition.bei_bp = -19.0
+$.reader_map.asset_returns_echo [list 6] first=dict
+$.reader_map.asset_returns_echo[0].metric_id = "SPX"
+$.reader_map.asset_returns_echo[0].window_months = 1
+$.reader_map.asset_returns_echo[0].chg_pct = -5.51
+$.reader_map.asset_returns_echo[0].window {dict 2}
+$.reader_map.asset_returns_echo[0].window.from = "2026-10-23"
+$.reader_map.asset_returns_echo[0].window.to = "2026-11-23"
+$.quality_gate_notes [list 10] first=str
+=== report.json top keys: ['agent_judgment', 'evidence_index', 'fanout', 'layers', 'notes', 'pipeline_version', 'research_plan', 'run', 'run_ok', 'schema_version', 'semantic_review', 'steps']
+  agent_judgment {dict 9} keys=['allow_failed_run', 'attached', 'attached_at', 'contract_verification', 'judgment_file', 'reader_map_faces', 'run_ok_at_attach', 'schema_version', 'validation']
+  evidence_index [list 69]
+  fanout {dict 1} keys=['requested']
+  layers {dict 4} keys=['L1_事实层', 'L2_机构观点层', 'L3_AI推断层', 'L4_条件情景层']
+  notes [list 1]
+  pipeline_version = "2.0"
+  research_plan {dict 26} keys=['anchor_semantics_note', 'as_of_declared', 'asof_discipline', 'asset_moves', 'consumed_time_spans', 'context_metrics', 'cross_face_consistency', 'cutoff', 'dimension_gaps', 'dimension_source', 'dimensions', 'ex_post_offsets', 'map_question', 'metrics', 'point_anchors', 'point_values', 'policy_doc_facts', 'policy_event_clusters', 'question_summary', 'question_verbatim', 'question_window', 'regions', 'shared_by', 'turning_candidates', 'turning_supplement_discipline', 'us_rates_trio']
+  run {dict 11} keys=['archive_requested', 'data_requirements', 'degradation_policy', 'evidence_asof', 'evidence_gate', 'frozen_inputs', 'git_diff_sha256', 'git_head', 'git_head_source', 'question', 'ts_utc']
+  run_ok = true
+  schema_version = "2.0"
+  semantic_review {dict 10} keys=['archive', 'error', 'fresh', 'prior_verdicts', 'reasons', 'record_health', 'required', 'seat_invoked', 'verdict', 'verdicts_n']
+  steps [list 66]

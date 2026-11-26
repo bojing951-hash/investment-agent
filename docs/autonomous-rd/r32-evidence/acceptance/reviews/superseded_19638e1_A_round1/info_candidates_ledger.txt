@@ -1,0 +1,24 @@
+cutoff=2026-11-23 candidates=9 basis=过去12个月(研究截止日)内 3 个月滚动变化绝对值最大者;增长/通胀/政策三维全部进入候选池(每指标一候选,窗端点已按发布纪律过滤);确定性计算,仅作候选——三个转折的取舍与谁先变判断归 Agent 席 reader_map(三转折须为不同事件,同一转折不得重复计数)
+reader-report candidate table rows parsed: 9
+candidate[0] CN_PPI_YOY 2026-02..2026-05 before=-0.9 after=3.9 delta=4.8 | seat n_month=12 best=('2026-02', '2026-05', (-0.9, 3.9), 4.8)
+candidate[1] CN_PMI_MFG 2026-02..2026-05 before=-2.3904 after=1.0101 delta=3.4005 | seat n_month=12 best=('2026-02', '2026-05', (-2.390438247011961, 1.0101010101010166), 3.4005392571129778)
+candidate[2] CPI 2026-02..2026-05 before=2.434 after=4.1666 delta=1.7326 | seat n_month=11 best=('2026-02', '2026-05', (2.4340041103732224, 4.166614684049641), 1.7326105736764186)
+candidate[3] JP_CPI_YOY 2025-11..2026-02 before=2.9 after=1.27 delta=-1.63 | seat n_month=12 best=('2025-11', '2026-02', (2.9, 1.27), -1.63)
+candidate[4] EA_HICP_YOY 2026-02..2026-05 before=1.9 after=3.2 delta=1.3 | seat n_month=12 best=('2026-02', '2026-05', (1.9, 3.2), 1.3000000000000003)
+candidate[5] JP_CPI_TOKYO_YOY 2026-06..2026-09 before=1.6 after=2.69 delta=1.09 | seat n_month=10 best=('2026-06', '2026-09', (1.6, 2.69), 1.0899999999999999)
+candidate[6] CN_CPI_YOY 2026-01..2026-04 before=0.2 after=1.2 delta=1.0 | seat n_month=12 best=('2026-01', '2026-04', (0.2, 1.2), 1.0)
+candidate[7] INDPRO 2025-11..2026-02 before=1.7543 after=0.7972 delta=-0.9571 | seat n_month=12 best=('2025-11', '2026-02', (1.7543117556713783, 0.7972359848188892), -0.9570757708524891)
+candidate[8] CORE_CPI 2026-05..2026-08 before=2.8229 after=2.4462 delta=-0.3767 | seat n_month=11 best=('2026-05', '2026-08', (2.8229420636110225, 2.4461631786472537), -0.37677888496376877)
+-- seat same-rule scan of policy-dimension series (informational only, not in ledger):
+  JP_POLICY_RATE: n_month=12 best=('2026-04', '2026-07', (0.727, 0.978), 0.251)
+  DFEDTARU: n_month=13 best=('2025-11', '2026-02', (4.0, 3.75), -0.25)
+  DFF: n_month=13 best=('2025-11', '2026-02', (3.89, 3.64), -0.25)
+  ECB_DFR: n_month=2 best=None
+  ECB_MRO: n_month=2 best=None
+  CN_LPR_1Y: n_month=13 best=('2025-11', '2026-02', (3.0, 3.0), 0.0)
+  CN_OMO_7D: n_month=12 best=('2025-11', '2026-02', (1.4, 1.4), 0.0)
+  CN_POLICY_OVERNIGHT: n_month=1 best=None
+appended 40 rows; ledger now rows=992 counted=950 ok=949 mismatch=1 info=42
+  MISMATCH {"section": "monthly", "id": "candidate[8] CORE_CPI delta", "src": "series_store CORE_CPI 同比%(水平序列)或观测值 后值−前值", "computed": -0.3768, "reported": "-0.3767", "ok": false, "note": "报告值=读者报告候选表 Δ;引擎面 delta=-0.3767"}
+sections: {'anchors': 275, 'monthly': 187, 'daily': 133, 'history': 293, 'sync': 45, 'misc': 17}
+info by section: {'history': 3, 'sync': 36, 'misc': 3}

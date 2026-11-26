@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "independent-zero-context-seat-r29",
+  "notes": "修订复核(第二轮,前档MINOR-1/2/3逐项独立复算): (1)加息计数框定已修复——headline/M2链1/EA走位/T1链1均改为锚日内一次加息生效(六月加息生效于锚日2026-08-21之前)口径;grep全报告(agent_judgment.json+MAP_REPORT.md+report.md+FULL_REPORT.md)已零命中两度/连续两次加息/同窗发生;新日期表述与policy_event_clusters逐位一致(ECB 09-10决议/09-16生效2.25→2.50;Fed 09-16决议/09-17生效3.75→4.00;六月加息06-11决议/06-17生效2.0→2.25早于锚日;七日窗并项正确)。 (2)INDPRO已如实写2026-02降至0.7972、序列同比低点在2026-03、自四月起回升至2.15——序列亲核2026-03=0.6861(确为低点)、2026-04=1.4327(回升起点)、2026-10=2.1497。 (3)CN_PPI已写净趋势上行至5.7、其间2026-07曾回落至3.5——序列亲核2026-07=3.5(与锚面该格一致)。 回归抽样(修订触碰节其余数字+未触碰锚格): EA走位全部数字(GDP 1.19/1.28公布08-04与11-04;HICP 2.9→4.0公布08-16与11-16;DFR 2.25→2.50生效观测06-17与09-16;MRO 2.40→2.65;DAX -5.10% 26136.56→24802.78)复算一致;T1链1三事件与簇面一致;转折表-0.9/3.9/5.7/1.7543/0.7972/2.15/2.9/1.27/2.44全对;另抽8个未触碰锚格(JP GDP 0.8/1.16;JP_POLICY_RATE 0.978/1.227;CN_LPR 3.0/3.0;CN_POLICY_OVERNIGHT 3个月前无已发布观测/最新1.25;UNEMPLOYMENT 4.1/4.1;DFEDTARU 3.75/4.0;ECB_MRO 2.4/2.65;EA_HICP 2.9/4.0)与再生成report.json引擎面逐位一致,22格/簇面/asset_moves面均未变,asset_returns_echo 7/7与ex_post 9/9数值同前轮复算结果;新引月份2026-03/2026-04/2026-07均在引擎月份集;修订attach校验violations=0、contract VERIFIED;交付面MAP_REPORT.sha256与文件亲核一致(17630694...)。残留NIT(不阻断): T2链1仍留同期欧央行连续加息字样——无计数无三个月窗归属,作2026年路径刻画引擎为真,可接受。零MAJOR(无数值相左/无编造/无纪律破坏)→UPHELD",
+  "run_ts": "20261121T125157Z",
+  "content_sha256": "b42a39eef49e96bd606553ba5a76798b737e4e859a892bcbe8e428e6a3cba8f2",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T131352Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261121/VERDICT-20261121T125157Z-01.json",
+  "map_report_sha256": "59a25f0f28e574fa32a03b84329835609283229db3becebb831e077c73bf37be",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "45666c8279f5ca92f1ee80e0d07559ebdf11b86f36e6820f72b395a3d9a3570a"
+}

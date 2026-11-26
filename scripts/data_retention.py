@@ -50,32 +50,56 @@ DEFAULT_KEEP_DAYS = 90
 
 
 def research_referenced_files(daily_dir):
-    """Charter7-6: data/daily 内研究快照声明为来源的采集档文件名集合。
+    """Charter7-6: 研究快照声明为来源的采集档文件名集合 + 扫描异常清单。
 
     扫描 research_snapshot_*.json 的 sources_status 各通道 file 字段
-    (EXACT/FALLBACK 声明);解析失败/异常结构→该快照的贡献为空(fail-safe:
-    保护集宁少勿滥不会误删声明档——声明档解析失败时其 file 不进保护集,
-    但这类文件本身属研究层语法失败场景,由快照校验层处理,不在保留策略
-    职责内)。"""
-    refs = set()
+    (EXACT/FALLBACK 声明)。返回 (refs, problems):
+      refs     = 文件名集合(**结构可证明**快照的声明并集);
+      problems = [{'snapshot','error'}] —— 读取失败/JSON 损坏/非对象
+                 结构的快照逐份登记(Audit-R11 P1③: 「无法判断引用」
+                 必须与「没有引用」区分上报,由保留策略据此停止永久
+                 删除)。
+    Audit-R12 P1②: 来源**结构完整性**校验复用权威实现
+    research_provenance.sources_status_problems(纯结构口径,不传
+    data_dir——实体存在/摘要重算属验证流职权,清理扫描只判「声明
+    是否可证明」): 顶层缺失/非对象、通道对象变字符串、状态词非法、
+    EXACT/FALLBACK 缺 file、日历年形态等结构损坏逐份登记为扫描异常
+    ——声明不可证明=引用集不可信=无法判断引用,同样停止永久删除。
+    合法 MISSING({'status':'MISSING'})是可证明结构,不构成异常。"""
+    import research_provenance as _rp   # 局部引入: 保持模块独立可导入
+    refs, problems = set(), []
     try:
         names = os.listdir(daily_dir)
-    except OSError:
-        return refs
+    except OSError as e:
+        return refs, [{'snapshot': '<listdir>', 'error': repr(e)}]
     for name in names:
         if not (name.startswith('research_snapshot_') and name.endswith('.json')):
             continue
         try:
             with open(os.path.join(daily_dir, name), encoding='utf-8') as fh:
                 snap = json.load(fh)
-        except (OSError, ValueError):
+        except (OSError, ValueError) as e:
+            problems.append({'snapshot': name, 'error': repr(e)})
             continue
-        for _ch, st in (snap.get('sources_status') or {}).items():
-            if isinstance(st, dict):
-                f = st.get('file')
-                if isinstance(f, str) and f:
-                    refs.add(os.path.basename(f))
-    return refs
+        if not isinstance(snap, dict):
+            problems.append({'snapshot': name,
+                             'error': f'非对象结构: {type(snap).__name__}'})
+            continue
+        # R12 P1②: 复用权威结构校验(顶层/通道对象/状态词/来源文件字段)
+        _tgt = snap.get('target_date')
+        _tgt = str(_tgt) if _tgt is not None else ''
+        _tgt = _tgt if (len(_tgt) >= 8 and _tgt[:8].isdigit()) else None
+        for _pr in _rp.sources_status_problems(snap.get('sources_status'),
+                                               target_ymd=_tgt):
+            problems.append({'snapshot': name, 'error': _pr})
+        _ss = snap.get('sources_status')
+        if isinstance(_ss, dict):
+            for _ch, st in _ss.items():
+                if isinstance(st, dict):
+                    f = st.get('file')
+                    if isinstance(f, str) and f:
+                        refs.add(os.path.basename(f))
+    return refs, problems
 
 
 def prune_daily_archives(daily_dir, keep_days=DEFAULT_KEEP_DAYS, now=None,
@@ -98,12 +122,16 @@ def prune_daily_archives(daily_dir, keep_days=DEFAULT_KEEP_DAYS, now=None,
         'deleted': [],
         'untouched': [],
         'protected_archived': [],   # Charter7-6: 研究引用保护档(不删,改归档)
+        'deletion_skipped': [],     # R11-P1③: 引用扫描不完整时禁删降级档
+        'scan_problems': [],        # R11-P1③: 快照读取/解析异常逐份登记
         'archive_dir': os.path.join(daily_dir, ARCHIVE_DIRNAME),
     }
     if not os.path.isdir(daily_dir):
         return report
-    referenced = research_referenced_files(daily_dir)
+    referenced, scan_problems = research_referenced_files(daily_dir)
     report['research_referenced'] = len(referenced)
+    report['scan_problems'] = scan_problems
+    scan_ok = not scan_problems
     cutoff_date = cutoff.date()
     old_by_month = {}  # (prefix, ext, YYYYMM) -> [(ymd, filename)]
     for name in sorted(os.listdir(daily_dir)):
@@ -145,6 +173,13 @@ def prune_daily_archives(daily_dir, keep_days=DEFAULT_KEEP_DAYS, now=None,
                 report['protected_archived'].append(name)
                 if not dry_run:
                     _gzip_into_archive(name)
+            elif not scan_ok:
+                # R11-P1③: 引用扫描不完整(快照损坏/读取失败)→ 无法判断
+                # 引用 ≠ 没有引用——禁止永久删除,降级为保留全部原始字节的
+                # gzip 归档(与月度代表同一字节保全机制)。
+                report['deletion_skipped'].append(name)
+                if not dry_run:
+                    _gzip_into_archive(name)
             else:
                 report['deleted'].append(name)
                 if not dry_run:
@@ -182,6 +217,13 @@ def main(argv=None):
     print(f"  月度代表{verb}: {len(rep['archived'])} 份 → {rep['archive_dir']}")
     print(f"  旧档{verb2}: {len(rep['deleted'])} 份")
     print(f"  非采集族不动: {len(rep['untouched'])} 份")
+    if rep.get('scan_problems'):
+        print(f"  ⚠️  引用扫描异常 {len(rep['scan_problems'])} 处"
+              f"(无法判断引用≠没有引用,永久删除已全部停止):")
+        for p in rep['scan_problems']:
+            print(f"    - {p['snapshot']}: {p['error']}")
+        print(f"  跳过删除降级归档: {len(rep.get('deletion_skipped', []))} 份"
+              f"(原始字节经 gzip 完整保全)")
     for name in rep['archived']:
         print(f"    📦 {name}.gz")
     for name in rep['deleted']:

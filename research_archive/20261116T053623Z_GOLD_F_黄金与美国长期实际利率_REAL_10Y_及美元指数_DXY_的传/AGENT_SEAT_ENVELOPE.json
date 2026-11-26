@@ -1,0 +1,23 @@
+{
+  "role": "Agent Native 研究席(L3 推断+L4 条件情景真产出)",
+  "question": "GOLD_F 黄金与美国长期实际利率 REAL_10Y 及美元指数 DXY 的传统反向关系近年是否结构性弱化: 滚动窗口相关与分状态检验(VIX 恐慌时段与普通时段), 对用 UST_10Y 利率与美元信号解释黄金走势框架的含义",
+  "report_dir": "/tmp/phase4_blind/20261116T053623Z_GOLD_F_黄金与美国长期实际利率_REAL_10Y_及美元指数_DXY_的传",
+  "evidence_index_rows": 64,
+  "read_first": [
+    "/tmp/phase4_blind/20261116T053623Z_GOLD_F_黄金与美国长期实际利率_REAL_10Y_及美元指数_DXY_的传/report.json",
+    "/tmp/phase4_blind/20261116T053623Z_GOLD_F_黄金与美国长期实际利率_REAL_10Y_及美元指数_DXY_的传/evidence_index.json",
+    "/tmp/phase4_blind/20261116T053623Z_GOLD_F_黄金与美国长期实际利率_REAL_10Y_及美元指数_DXY_的传/views_digest.json   # L2 机构观点富内容(原文摘编)",
+    "scripts/agent_judgment.py   # judgment schema v1.1 模块 docstring",
+    ".agents/skills/global-macro-research/SKILL.md   # 十步工作流(纪律 15-17)"
+  ],
+  "produce": "judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件)",
+  "then": [
+    "ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>",
+    "ia_cli.py research-one --stage report --report-dir <rd>"
+  ],
+  "discipline": [
+    "L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造",
+    "禁改 report.json 的 produced 字段(attach 校验器唯一写者)",
+    "研究质量十二问逐问答(章程§七)"
+  ]
+}

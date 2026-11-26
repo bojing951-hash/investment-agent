@@ -1,0 +1,108 @@
+== redl/12edab8/r32v_session_A_formal/console.log
+downloaded head == expected: True
+manifest: bound files checked=14 mismatches/missing=0 | files outside the manifest: 0 []
+package kind=status-equivalent map_binding_status_equivalent=1 → recording code = archiving stamp cf33de3; the other stamp = run 36499bb
+blob: cloned commit: package files=15 tree files=15 | blob-identical (same path)=15 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+diffstat vs archiving stamp: 2382 files changed, 2821476 insertions(+), 11 deletions(-)
+changed paths outside docs/: 1
+--- [3] strict replay on the final-commit engine (doors recorded)
+   rc=1 | ok= False | blocked= code_version_mismatch | render_mode= None | failed= None | checks_true=13 not_true=[]
+--- [3b] status-equivalent package: final-commit engine + --allow-code-mismatch (disclosed override; the final commit adds docs only on top of the archiving stamp = recor
+   rc=0 | ok= True | blocked= None | render_mode= byte_equal | failed= [] | checks_true=16 not_true=[]
+--- [4] six steps on the recording-code engine (archiving stamp cf33de3a9942578b71cecb45077b7a505d8fca01; work root /tmp/r32-accept/redl/12edab8/r32v_session_A_formal/rep
+   step: --- [0] 严格面(无旗标) ---
+   step: --- [1] 更换本地日历→重放不变 ---
+   step: --- [1b] 独立引擎目录移去本地日历 RC-EA-HICP-2022M06 → 仍 rc=0+逐字节(R31 任务2: 重放绑包内冻结
+   step: --- [2] 重复重放: 新目录+原包不动 ---
+   step: --- [3] 缺冻结件→拒 ---
+   step: --- [4] 篡改冻结件一字节→拒 ---
+   step: --- [5] manifest 冒冻摘要单侧改写→拒 ---
+--- [5] strict replay on the other-stamp engine (run stamp 36499bb78a18dea1ff2b027074088b0ba404c3b8; one strict attempt; doors recorded)
+   rc=1 | ok= False | blocked= None | render_mode= byte_equal | failed= ['verdict_binding_threeway'] | checks_true=15 not_true=['verdict_binding_threeway']
+post: package after replays: 15 files; manifest sha256 b4cabd75ffde9db2
+--- [6] post-replay blob identity (source package untouched by the replays)
+blob: cloned commit: package files=15 tree files=15 | blob-identical (same path)=15 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+steps rc: 0/0/0/0/1/1/1  (n=7)
+== redl/12edab8/r32v_session_T3_formal/console.log
+downloaded head == expected: True
+manifest: bound files checked=14 mismatches/missing=0 | files outside the manifest: 0 []
+package kind=status-equivalent map_binding_status_equivalent=1 → recording code = archiving stamp cf33de3; the other stamp = run 36499bb
+blob: cloned commit: package files=15 tree files=15 | blob-identical (same path)=15 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+diffstat vs archiving stamp: 2382 files changed, 2821476 insertions(+), 11 deletions(-)
+changed paths outside docs/: 1
+--- [3] strict replay on the final-commit engine (doors recorded)
+   rc=1 | ok= False | blocked= code_version_mismatch | render_mode= None | failed= None | checks_true=13 not_true=[]
+--- [3b] status-equivalent package: final-commit engine + --allow-code-mismatch (disclosed override; the final commit adds docs only on top of the archiving stamp = recor
+   rc=0 | ok= True | blocked= None | render_mode= byte_equal | failed= [] | checks_true=16 not_true=[]
+--- [4] six steps on the recording-code engine (archiving stamp cf33de3a9942578b71cecb45077b7a505d8fca01; work root /tmp/r32-accept/redl/12edab8/r32v_session_T3_formal/re
+   step: --- [0] 严格面(无旗标) ---
+   step: --- [1] 更换本地日历→重放不变 ---
+   step: --- [1b] 独立引擎目录移去本地日历 RC-EA-HICP-2022M06 → 仍 rc=0+逐字节(R31 任务2: 重放绑包内冻结
+   step: --- [2] 重复重放: 新目录+原包不动 ---
+   step: --- [3] 缺冻结件→拒 ---
+   step: --- [4] 篡改冻结件一字节→拒 ---
+   step: --- [5] manifest 冒冻摘要单侧改写→拒 ---
+--- [5] strict replay on the other-stamp engine (run stamp 36499bb78a18dea1ff2b027074088b0ba404c3b8; one strict attempt; doors recorded)
+   rc=1 | ok= False | blocked= None | render_mode= byte_equal | failed= ['verdict_binding_threeway'] | checks_true=15 not_true=['verdict_binding_threeway']
+post: package after replays: 15 files; manifest sha256 99d3f364badc8fa7
+--- [6] post-replay blob identity (source package untouched by the replays)
+blob: cloned commit: package files=15 tree files=15 | blob-identical (same path)=15 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+steps rc: 0/0/0/0/1/1/1  (n=7)
+== redl/12edab8/r32v_session_NEW30/console.log
+downloaded head == expected: True
+manifest: bound files checked=14 mismatches/missing=0 | files outside the manifest: 0 []
+package kind=status-equivalent map_binding_status_equivalent=1 → recording code = archiving stamp cf33de3; the other stamp = run 36499bb
+blob: cloned commit: package files=15 tree files=15 | blob-identical (same path)=15 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+diffstat vs archiving stamp: 2382 files changed, 2821476 insertions(+), 11 deletions(-)
+changed paths outside docs/: 1
+--- [3] strict replay on the final-commit engine (doors recorded)
+   rc=1 | ok= False | blocked= code_version_mismatch | render_mode= None | failed= None | checks_true=13 not_true=[]
+--- [3b] status-equivalent package: final-commit engine + --allow-code-mismatch (disclosed override; the final commit adds docs only on top of the archiving stamp = recor
+   rc=0 | ok= True | blocked= None | render_mode= byte_equal | failed= [] | checks_true=16 not_true=[]
+--- [4] six steps on the recording-code engine (archiving stamp cf33de3a9942578b71cecb45077b7a505d8fca01; work root /tmp/r32-accept/redl/12edab8/r32v_session_NEW30/replay
+   step: --- [0] 严格面(无旗标) ---
+   step: --- [1] 更换本地日历→重放不变 ---
+   step: --- [1b] 独立引擎目录移去本地日历 RC-EA-HICP-2022M06 → 仍 rc=0+逐字节(R31 任务2: 重放绑包内冻结
+   step: --- [2] 重复重放: 新目录+原包不动 ---
+   step: --- [3] 缺冻结件→拒 ---
+   step: --- [4] 篡改冻结件一字节→拒 ---
+   step: --- [5] manifest 冒冻摘要单侧改写→拒 ---
+--- [5] strict replay on the other-stamp engine (run stamp 36499bb78a18dea1ff2b027074088b0ba404c3b8; one strict attempt; doors recorded)
+   rc=1 | ok= False | blocked= None | render_mode= byte_equal | failed= ['verdict_binding_threeway'] | checks_true=15 not_true=['verdict_binding_threeway']
+post: package after replays: 15 files; manifest sha256 2f248cef9370096f
+--- [6] post-replay blob identity (source package untouched by the replays)
+blob: cloned commit: package files=15 tree files=15 | blob-identical (same path)=15 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+steps rc: 0/0/0/0/1/1/1  (n=7)
+== redl/12edab8/r32v_session_B_formal/console.log
+downloaded head == expected: True
+manifest: bound files checked=15 mismatches/missing=0 | files outside the manifest: 0 []
+package kind=same-render map_binding_status_equivalent=0 → recording code = run stamp 36499bb; the other stamp = archiving cf33de3
+blob: cloned commit: package files=16 tree files=16 | blob-identical (same path)=16 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+diffstat vs archiving stamp: 2382 files changed, 2821476 insertions(+), 11 deletions(-)
+changed paths outside docs/: 1
+--- [3] strict replay on the final-commit engine (doors recorded)
+   rc=1 | ok= False | blocked= code_version_mismatch | render_mode= None | failed= None | checks_true=13 not_true=[]
+--- [4] six steps on the recording-code engine (run stamp 36499bb78a18dea1ff2b027074088b0ba404c3b8; work root /tmp/r32-accept/redl/12edab8/r32v_session_B_formal/replay_re
+   step: --- [0] 严格面(无旗标) ---
+   step: --- [1] 更换本地日历→重放不变 ---
+   step: --- [1b] 独立引擎目录移去本地日历 RC-EA-HICP-2022M06 → 仍 rc=0+逐字节(R31 任务2: 重放绑包内冻结
+   step: --- [2] 重复重放: 新目录+原包不动 ---
+   step: --- [3] 缺冻结件→拒 ---
+   step: --- [4] 篡改冻结件一字节→拒 ---
+   step: --- [5] manifest 冒冻摘要单侧改写→拒 ---
+--- [5] strict replay on the other-stamp engine (archiving stamp cf33de3a9942578b71cecb45077b7a505d8fca01; one strict attempt; doors recorded)
+   rc=1 | ok= False | blocked= code_version_mismatch | render_mode= None | failed= None | checks_true=13 not_true=[]
+--- [5b] same-render package: archiving-stamp engine + --allow-code-mismatch (disclosed override, not the recording code)
+   rc=0 | ok= True | blocked= None | render_mode= byte_equal | failed= [] | checks_true=16 not_true=[]
+post: package after replays: 16 files; manifest sha256 07dd7a1a8bacb6f3
+--- [6] post-replay blob identity (source package untouched by the replays)
+blob: cloned commit: package files=16 tree files=16 | blob-identical (same path)=16 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+blob: RESULT: all package files blob-identical to the listings given
+steps rc: 0/0/0/0/1/1/1  (n=7)

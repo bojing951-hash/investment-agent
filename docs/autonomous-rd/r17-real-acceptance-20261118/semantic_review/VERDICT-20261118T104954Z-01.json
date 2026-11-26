@@ -1,0 +1,17 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "REVISE",
+  "reviewer": "R17-REAL-SEMANTIC-REVIEW",
+  "notes": "复算面: 全部关键数字自series_store独立复算一致、零编造(月窗+38.07%/+0.05pp/CCC持平、周口径全族、21次事件研究、分位、相关系数、S6与期货曲线转录);必修三项: ①CON-1「VIX连续多周跳升」被周/日路径证伪(W46单周-24.7%全程回撤、月内低点16.61低于窗起值18.44,应改「月内两度单周跳升逾30%、其间全程回撤」)②事件后四周统计(中位-10bp/21次4次为正)含未披露的2026-W45事件2周部分窗,完整窗口径为-12bp/20次4次为正、方向不变③historical_comparison③将+109.3%/+98bp误挂2025-04-07峰值日(冲击周止于04-04、HY当周收4.45,4.61系次周一);核心结论与全部证伪阈值不被证伪,修订后可复验。",
+  "run_ts": "20261118T104954Z",
+  "content_sha256": "15770bbff0c6415d1908e949045b3fde6d018a7505fd13639e8a764ec148c026",
+  "audited_at": "2026-11-18",
+  "recorded_at": "20261118T120145Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

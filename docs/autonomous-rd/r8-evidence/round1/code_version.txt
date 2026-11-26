@@ -1,0 +1,5 @@
+git_head: d3c3dc0aa351f4496522e5bee57a9c12f1ef5593
+git_status_porcelain: (empty=clean)git_ls_files_s_sha256: c8796677ada38aaa1c139ffeece19506fc99202e45dc9f3e83dabea1c251de25
+_git_state(head,label,fingerprint): ('d3c3dc0aa351f4496522e5bee57a9c12f1ef5593', 'run_root', 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855')
+checkout: git worktree(固定提交干净检出,detached @ d3c3dc0aa351f4496522e5bee57a9c12f1ef5593)
+note: 指纹含未跟踪源码(R8-03);本轮执行树 status 为空=零未提交修改

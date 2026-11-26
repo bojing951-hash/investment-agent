@@ -1,0 +1,42 @@
+=== R32 从提交重下 R31 入库包重放 2026-11-24 17:56:57 sha=f46fdcb39dfc0442feb15f3f6b308716a2389252 session=session_NEW30 ===
+clone: ok (attempt 1, 17:57:03)
+[1] downloaded HEAD=f46fdcb39dfc0442feb15f3f6b308716a2389252 (expect f46fdcb39dfc0442feb15f3f6b308716a2389252)
+[2] manifest check: /tmp/r32-accept/redl/f46fdcb/r31_session_NEW30/src/docs/autonomous-rd/r31-evidence/acceptance/session_NEW30
+manifest run_ts=20261122T145134Z run_code_git_head=ca916cdca7b749282e498d8c8f0eac8bf43b7372 verdict=UPHELD verdicts_n=2 frozen_inputs_sha256=73d74da047725875
+bound files checked=15 mismatches/missing=2 | files outside the manifest: 10 ['README.md', 'REVIEW_REVISE_REQUIRED.md', 'archive_receipt.json', 'judgment_agent_v1.json', 'seat_NEW30.log', 'seat_NEW30FX.log']
+  MISMATCH verdict verdicts/20261123__VERDICT-20261122T145134Z-01.json: None != 323a98989be4ce6b
+  MISMATCH verdict verdicts/20261123__VERDICT-20261122T145134Z-02.json: None != 69fb3bc9c1d9dd60
+verify_manifest rc=1 (non-zero)
+manifest run_code_git_head=ca916cdca7b749282e498d8c8f0eac8bf43b7372
+[3] blob identity (cloned commit; audit baseline 72dab1c)
+package dir: /tmp/r32-accept/redl/f46fdcb/r31_session_NEW30/src/docs/autonomous-rd/r31-evidence/acceptance/session_NEW30
+prefix: docs/autonomous-rd/r31-evidence/acceptance/session_NEW30
+cloned commit: package files=24 tree files=24 | blob-identical=24 | differing=0 | only-in-package=0 | only-in-tree=0
+audit baseline: package files=24 tree files=24 | blob-identical=24 | differing=0 | only-in-package=0 | only-in-tree=0
+RESULT: all package files blob-identical to both listings
+engine reused: /tmp/r32-accept/redl/engine_f46fdcb (git archive f46fdcb39dfc0442feb15f3f6b308716a2389252)
+--- [4] strict replay on the final-commit engine (record doors)
+rc=1
+ok= False | blocked= code_version_mismatch | render_mode= None | failed= None
+checks: {'manifest_present_parseable': True, 'completeness_files': False, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': False, 'verdict_binding_threeway': False}
+   FAILED completeness_files | 缺件=无 裁决链缺档=['verdicts/20261123__VERDICT-20261122T145134Z-01.json', 'verdicts/20261123__VERDICT-20261122T145134Z-02.json']
+   FAILED verdict_chain_hashes | 链档异常=['verdicts/20261123__VERDICT-20261122T145134Z-01.json: manifest=323a98989be4ce6b actual=缺席', 'verdicts/20261123__VERDICT-20261122T145134Z-02.json: manifest=69fb3bc9c1d9dd60 actual=缺席']
+   FAILED verdict_binding_threeway | 绑定异常=['最新裁决 content_sha256=None ≠ manifest=15c3dd6e5776e48f', '终裁冻结输入摘要=缺席 ≠ manifest=73d74da047725875']
+note: 当前代码 HEAD=f46fdcb39dfc0442feb15f3f6b308716a2389252 ≠ 包记录运行 SHA=ca916cdca7b749282e498d8c8f0eac8bf43b7372——逐字节核对只对录制代码有意义;确要以异版代码重放须 --allow-code-mismatch(降级为披露)
+engine reused: /tmp/r32-accept/redl/engine_ca916cd (git archive ca916cdca7b749282e498d8c8f0eac8bf43b7372)
+--- [5] strict replay on the engine at the package's recorded run sha (NEW30: one strict attempt)
+rc=1
+ok= False | blocked= None | render_mode= byte_equal | failed= ['completeness_files', 'verdict_chain_hashes', 'verdict_binding_threeway']
+checks: {'manifest_present_parseable': True, 'completeness_files': False, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': False, 'verdict_binding_threeway': False, 'code_version_match': True, 'deterministic_rerender': True, 'package_untouched_postwrite': True}
+   FAILED completeness_files | 缺件=无 裁决链缺档=['verdicts/20261123__VERDICT-20261122T145134Z-01.json', 'verdicts/20261123__VERDICT-20261122T145134Z-02.json']
+   FAILED verdict_chain_hashes | 链档异常=['verdicts/20261123__VERDICT-20261122T145134Z-01.json: manifest=323a98989be4ce6b actual=缺席', 'verdicts/20261123__VERDICT-20261122T145134Z-02.json: manifest=69fb3bc9c1d9dd60 actual=缺席']
+   FAILED verdict_binding_threeway | 绑定异常=['最新裁决 content_sha256=None ≠ manifest=15c3dd6e5776e48f', '终裁冻结输入摘要=缺席 ≠ manifest=73d74da047725875']
+note: 
+package after replays: 24 files; manifest sha256 7af69cd81a4871b1
+--- post-replay blob identity (source package untouched by the replays)
+package dir: /tmp/r32-accept/redl/f46fdcb/r31_session_NEW30/src/docs/autonomous-rd/r31-evidence/acceptance/session_NEW30
+prefix: docs/autonomous-rd/r31-evidence/acceptance/session_NEW30
+cloned commit: package files=24 tree files=24 | blob-identical=24 | differing=0 | only-in-package=0 | only-in-tree=0
+audit baseline: package files=24 tree files=24 | blob-identical=24 | differing=0 | only-in-package=0 | only-in-tree=0
+RESULT: all package files blob-identical to both listings
+=== 毕 2026-11-24 17:57:08 session=session_NEW30 ===

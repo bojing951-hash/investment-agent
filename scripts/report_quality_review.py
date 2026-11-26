@@ -37,6 +37,7 @@ prediction_review_report/review_statistics/hypothesis_warnings/window_bounds。
 先登记后实现,运行后禁回改)。
 """
 import json
+import math
 import os
 import re
 import sys
@@ -377,7 +378,12 @@ def evaluate_coverage(reports_data, core_ids):
                     "total_core": len(core_ids),
                     "coverage": len(covered) / len(core_ids)})
     n = len(per)
-    mean_cov = (sum(p["coverage"] for p in per) / n) if n else None
+    # 数值规范登记(WP-P3-D/Audit-R4 §三.2): 浮点聚合用 math.fsum
+    # (正确舍入,CPython 3.2-3.12 跨版稳定)——3.12 起 sum() 对浮点改
+    # Neumaier 补偿求和(gh-100425),3.11- 直加:同一数据跨版本末位
+    # 分叉(0.5833333333333333 vs ...34),黄金值/固定摘要随之漂移。
+    # fsum=唯一口径,黄金档按此重算(登记值,非换预期值求绿)。
+    mean_cov = (math.fsum(p["coverage"] for p in per) / n) if n else None
     t_min = THRESHOLDS["coverage.mean_core_coverage_min"]
     status = "NO_DATA" if n == 0 else (
         "ATTENTION" if mean_cov < t_min else "OK")

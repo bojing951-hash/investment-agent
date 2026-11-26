@@ -103,7 +103,10 @@ def key_fact(facts, economy):
     if spec['inflation_field'] == 'derived_m12_pct':
         d12 = ((inf or {}).get('derived') or {}).get('m12') or {}
         iv = _num(d12.get('pct_change')) if d12.get('available') is not False else None
-        reason = None if iv is not None else f"引擎无{spec['inflation_yoy']} m12 pct 派生"
+        # Audit-R31 任务3: m12 缺基期(去年同月无观测)如实透传引擎原因,
+        # 不以笼统「无派生」掩盖缺基期口径。
+        reason = None if iv is not None else (
+            d12.get('reason') or f"引擎无{spec['inflation_yoy']} m12 pct 派生")
     else:
         iv = _num((inf or {}).get('value'))
         reason = None if iv is not None else f"快照无{spec['inflation_yoy']}有效事实"

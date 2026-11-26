@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "独立语义审查席-零上下文",
+  "notes": "复裁UPHELD。必修1(MAJOR)已修复:CON-3/日本段/一句总判断以官方实录层为主答(目标1.25、决议2026-09-18、生效09-24、10-30确认维持、距生效58天/距决议64天/距维持22天),月均1.227降为印证层且两层层级分记(09-24落9月观测格、9月均1.043部分反映、残余=日常波动,月均不冒充目标);「决议日缺席/只能给区间/约3-7周」表述全撤(MAP全文grep零残留);最新一段由实录裁明单次调整、更早两段如实标推断。必修2(MINOR)已修复:2022-06段改为当时可知8.1在前、8.6标「快报事后值」。数值复核:官方面经policy_decision_state重算一致,再生成report.json引擎面(点值/路径/三利率/资产窗/转折候选)零漂移,attach violations=0。残留:无。",
+  "run_ts": "20261121T074345Z",
+  "content_sha256": "bbaae4503481f009c90f4f3a5b1866f7975b1dc44f4e3ff3ddad9093b69d93c2",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T081107Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261121/VERDICT-20261121T074345Z-01.json",
+  "map_report_sha256": "f74840aac064ba894f632505fec4f968f9d27103a3b128f4023f2ed017a3a4cd",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

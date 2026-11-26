@@ -1,0 +1,68 @@
+=== 面重采(本树采集器) 2026-11-20 21:05:42 ===
+--- china_market_collector 第1轮 21:05:42 ---
+  AH溢价:   ✅
+  CN宏观:   6 项
+
+🎉 采集完成！
+  缺: CN_PMI_MFG
+⚠️ china 仍缺必需序列,重试
+--- china_market_collector 第2轮 21:21:23 ---
+  AH溢价:   ✅
+  CN宏观:   4 项
+
+🎉 采集完成！
+  缺: CN_PMI_MFG
+⚠️ china 仍缺必需序列,重试
+--- china_market_collector 第3轮 21:31:44 ---
+  AH溢价:   ✅
+  CN宏观:   5 项
+
+🎉 采集完成！
+  缺: CN_PMI_MFG
+⚠️ china 仍缺必需序列,重试
+❌ china 三轮后仍缺
+--- ea_market_collector 第1轮 21:40:01 ---
+[ea_market_collector] ⚠️ BBK_WU3141源获取失败:RemoteDisconnected:Remote end closed connection without response
+[ea_market_collector] ⚠️ BBK_WU3141源获取失败→BUND_2Y缺席(如实,不伪造)
+[ea_market_collector] ⚠️ DAX/CAC40诚实缺席:指数口径源不在白名单五域(xetra/euronext),yfinance不入依赖面→prices 节键不出现
+[ea_market_collector] ✅ 写出 /private/tmp/r70/r26-accept/install/data/daily/ea_20261120.json (3系列)
+  EA_HICP_YOY: n=358 last=2026-10-01
+  EA_REAL_GDP_YOY: n=123 last=2026-07-01
+✅ ea 必需序列齐备
+--- japan_rate_collector 第1轮 21:41:03 ---
+[japan_rate_collector] run_date=20261120 series=['JGB10Y', 'JGB2Y', 'JGB5Y', 'JP_POLICY_RATE'] observations={'JGB2Y': '2026-11-19', 'JGB5Y': '2026-11-19', 'JGB10Y': '2026-11-19', 'JP_POLICY_RATE': '2026-10-01'}
+[japan_rate_collector] ✅ 写出 /private/tmp/r70/r26-accept/install/data/daily/japan_20261120.json (4系列)
+  JP_POLICY_RATE: n=496 last=2026-10-01
+✅ japan 必需序列齐备
+--- jp_market_collector 第1轮 21:41:07 ---
+[jp_market_collector] run_date=20261120 sections=['policy_rates', 'jgb', 'inflation', 'prices', 'series'] observations={'JGB_10Y': '2026-11-19', 'JGB_2Y': '2026-11-19', 'BOJ_POLICY_RATE': '2026-10-01', 'NIKKEI225': '2026-11-20', 'JP_CPI_YOY': '2026-10-01', 'JP_CPI_TOKYO_YOY': '2026-10-01', 'JP_REAL_GDP_YOY': '2026-07-01'}
+[jp_market_collector] ⚠️ 全国CPI 双基期同比差超0.10pp(2026-10: 2020基=2.33 2025基=2.44,取2025基)
+[jp_market_collector] ⚠️ statgo CPI(東京都区部CPI,2020基)获取失败:HTTPError:HTTP Error 404: Not Found
+[jp_market_collector] ✅ 写出 /private/tmp/r70/r26-accept/install/data/daily/jp_20261120.json (8系列)
+  JP_CPI_YOY: n=70 last=2026-10-01
+  JP_CPI_TOKYO_YOY: n=10 last=2026-10-01
+  JP_REAL_GDP_YOY: n=127 last=2026-07-01
+✅ jp 必需序列齐备
+collect rc=1
+=== 快照重建(本树 snapshot_builder) 21:41:34 ===
+  ⚠️ A股代码000905.SH(中证500)未入注册表,跳过(不造事实)
+  ⚠️ A股代码000852.SH(中证1000)未入注册表,跳过(不造事实)
+✅ 快照: /private/tmp/r70/r26-accept/install/data/daily/research_snapshot_20261120.json
+   MD:   /private/tmp/r70/r26-accept/install/data/daily/research_snapshot_20261120.md
+   锚点: /private/tmp/r70/r26-accept/install/data/daily/anchors_20261120.json (203个)
+   Gate A: DEGRADED | 事实 105 | 质量 {'PASS': 72, 'DEGRADED': 10, 'FAIL': 0} | core缺失 0 | 非核心缺失 7项(BUND_10Y,BUND_2Y,CN_OMO_7D,CN_POLICY_OVERNIGHT,EA_REAL_GDP_YOY)…
+=== 适配器自检(此前缺席序列须可解析) 21:41:35 ===
+❌ CN_CPI_YOY         该指标无历史序列: 指标 CN_CPI_YOY 来源 'china_market_collector' 无登记接入点(本包支持 macro_collector/global_mar
+❌ CN_PPI_YOY         该指标无历史序列: 指标 CN_PPI_YOY 来源 'china_market_collector' 无登记接入点(本包支持 macro_collector/global_mar
+❌ CN_LPR_1Y          该指标无历史序列: 指标 CN_LPR_1Y 来源 'china_market_collector' 无登记接入点(本包支持 macro_collector/global_mark
+❌ CN_PMI_MFG         序列为空
+✅ EA_HICP_YOY        n=  358 last=2026-10-01
+✅ EA_REAL_GDP_YOY    n=  123 last=2026-07-01
+✅ JP_CPI_YOY         n=   70 last=2026-10-01
+✅ JP_CPI_TOKYO_YOY   n=   10 last=2026-10-01
+✅ JP_REAL_GDP_YOY    n=  127 last=2026-07-01
+✅ JP_POLICY_RATE     n=  496 last=2026-10-01
+SNAPSHOT series_store n = 83
+ADAPTER_CHECK rc=1
+
+[exited with code 0]

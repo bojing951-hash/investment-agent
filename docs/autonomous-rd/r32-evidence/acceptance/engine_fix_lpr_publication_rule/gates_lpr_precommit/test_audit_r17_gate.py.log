@@ -1,0 +1,79 @@
+§A 映射(共用名并列/只比较/空格)
+  ✅ §A G1 省写共用名 → 三期限全映射+六月窗 — mets=['UST_2Y', 'UST_10Y', 'UST_30Y'] months=6
+  ✅ §A G1 写全品种名 → 三期限全映射+六月窗 — mets=['UST_2Y', 'UST_10Y', 'UST_30Y'] months=6
+  ✅ §A G1 调换顺序 → 三期限全映射+六月窗 — mets=['UST_2Y', 'UST_10Y', 'UST_30Y'] months=6
+  ✅ §A G2 无空格 → 只比较限定 [10Y,30Y]+两年窗(空格不改变含义) — mets=['UST_10Y', 'UST_30Y'] years=2
+  ✅ §A G2 中空格 → 只比较限定 [10Y,30Y]+两年窗(空格不改变含义) — mets=['UST_10Y', 'UST_30Y'] years=2
+  ✅ §A G2 双空格 → 只比较限定 [10Y,30Y]+两年窗(空格不改变含义) — mets=['UST_10Y', 'UST_30Y'] years=2
+  ✅ §A 抑制锚「过去 2年美债收益…」→ 不凭空映射+2年窗 — mets=[] years=2
+  ✅ §A 抑制锚「过去  2年美债收…」→ 不凭空映射+2年窗 — mets=[] years=2
+  ✅ §A 抑制锚「过去10年美债收益…」→ 不凭空映射+10年窗 — mets=[] years=10
+  ✅ §A 抑制锚「近2年美债收益率怎…」→ 不凭空映射+2年窗 — mets=[] years=2
+  ✅ §A 抑制锚「最近30年美债收益…」→ 不凭空映射+30年窗 — mets=[] years=30
+  ✅ §A 裸「2年美债收益率」→ 映射 UST_2Y(无前缀=期限读法) — mets=['UST_2Y']
+  ✅ §A 并列不跨产品 → 首段随「国债」断裂,只映射 UST_10Y — mets=['UST_10Y']
+  ✅ §A 只比较全后置 → 限定不落空,两期限都在必需集 — mets=['UST_2Y', 'UST_10Y']
+  ✅ §A 仅比较形 → [10Y]+三年窗 — mets=['UST_10Y'] years=3
+§B 复合尾部(完整处理所有明确时间分量)
+  ✅ §B G3 另加三天 → 无法完整解析(不缩短范围,提示改写) — kind=unparseable reason=时间数量 '过去十八个月另加三天' 无法完整解析(不缩短范围)
+  ✅ §B G3 外加三天 → 无法完整解析(不缩短范围,提示改写) — kind=unparseable reason=时间数量 '过去十八个月外加三天' 无法完整解析(不缩短范围)
+  ✅ §B G3 加三天 → 无法完整解析(不缩短范围,提示改写) — kind=unparseable reason=时间数量 '过去十八个月加三天' 无法完整解析(不缩短范围)
+  ✅ §B 净十八月 → 18 月窗正常解析 — months=18
+§C 正式 plan(冻结根×案变异,每次更换输入重建快照)
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_8icaz7ii/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_8icaz7ii/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_8icaz7ii/data/daily/anchors_20261117.json (117个)
+   Gate A: FAIL | 事实 35 | 质量 {'PASS': 19, 'DEGRADED': 7, 'FAIL': 0} | core缺失 18 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_3vg8q12w/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_3vg8q12w/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_3vg8q12w/data/daily/anchors_20261117.json (114个)
+   Gate A: FAIL | 事实 34 | 质量 {'PASS': 18, 'DEGRADED': 7, 'FAIL': 0} | core缺失 19 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_t1axcar9/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_t1axcar9/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_t1axcar9/data/daily/anchors_20261117.json (113个)
+   Gate A: FAIL | 事实 33 | 质量 {'PASS': 17, 'DEGRADED': 7, 'FAIL': 0} | core缺失 20 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_jojosxgr/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_jojosxgr/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r17gate_jojosxgr/data/daily/anchors_20261117.json (117个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 19, 'DEGRADED': 7, 'FAIL': 0} | core缺失 18 | 非核心缺失 57项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+  ✅ §C G1 省写共用名 → 三项各 124 窗内观测+窗日期逐位 — mets=['UST_2Y', 'UST_10Y', 'UST_30Y'] n=[('UST_2Y', 124, 'satisfied'), ('UST_10Y', 124, 'satisfied'), ('UST_30Y', 124, 'satisfied')] run_ok=True
+  ✅ §C G1 移除2年 → 仍列该项+要求窗原样+缺数阻断+写明缺什么 — mets=['UST_2Y', 'UST_10Y', 'UST_30Y'] ob=缺什么: UST_2Y(任务窗2026-05-17..2026-11-17)——任务窗窗口成员/覆盖不满足;任务窗202
+  ✅ §C G2 无空格 → 只要求 [10Y,30Y]+两年窗+各 497 观测 — mets=['UST_10Y', 'UST_30Y'] n=[('UST_10Y', 497), ('UST_30Y', 497)]
+  ✅ §C G2 中空格 plan 同判 → 必需集/窗口与无空格一致 — mets=['UST_10Y', 'UST_30Y']
+  ✅ §C G2 移除10年 → 指定期限缺数阻断+写明缺什么(2Y 不在必需集) — mets=['UST_10Y', 'UST_30Y'] ob=缺什么: UST_10Y(任务窗2024-11-17..2026-11-17)——任务窗窗口成员/覆盖不满足;任务窗20
+  ✅ §C G2 移除无关2年 → 必需集不含 2Y+两指定期限满足(应交付) — mets=['UST_10Y', 'UST_30Y'] outcomes={'UST_10Y': 'satisfied', 'UST_30Y': 'satisfied'} run_ok=True
+  ✅ §C G3 另加三天 → 无法完整解析+提示改写(计划保留该项) — outcome=insufficient_coverage basis=问题指定了时间范围但无法解析: 时间数量 '过去十八个月另加三天' 无法完整解析(不缩短范围);数量须为完整数字/中文数
+  ✅ §C 单指标 PMI(正常入口) → S7 豁免+run_ok True+17 点满足 — mets=['CN_PMI_MFG'] run_ok=True s7ok=False s7hr=True n=17 outcome=satisfied
+§D 交付面(attach→report→archive)
+  ✅ §D G1full → report rc=0 交付+归档 1 份 — attach=0 report=0 dlv=True archive=0 manifests=1
+  ✅ §D G2full → report rc=0 交付+归档 1 份 — attach=0 report=0 dlv=True archive=0 manifests=1
+  ✅ §D G2no2y → report rc=0 交付+归档 1 份 — attach=0 report=0 dlv=True archive=0 manifests=1
+  ✅ §D G3plain18 → report rc=0 交付+归档 1 份 — attach=0 report=0 dlv=True archive=0 manifests=1
+  ✅ §D PMIsingle → report rc=0 交付+归档 1 份 — attach=0 report=0 dlv=True archive=0 manifests=1
+  ✅ §D G1no2y → report/archive 非零+零归档 — attach=0 report=1 dlv=False archive=1 manifests=0
+  ✅ §D G3lj → report/archive 非零+零归档 — attach=0 report=1 dlv=False archive=1 manifests=0
+§E 参数化回归电池(锚保全)
+  ✅ §E 逆回购7天简称 → 指标集+窗口逐位 — mets=['CN_OMO_7D'] months=6
+  ✅ §E 逆回购七天中文 → 指标集+窗口逐位 — mets=['CN_OMO_7D'] months=6
+  ✅ §E 逆回购全形 → 指标集+窗口逐位 — mets=['CN_OMO_7D'] months=6
+  ✅ §E 十年期美债非近十年 → 指标集+窗口逐位 — mets=['UST_10Y'] months=6
+  ✅ §E 数值绑定2年 → 指标集+窗口逐位 — mets=['UST_2Y'] months=6
+  ✅ §E 数值绑定30年 → 指标集+窗口逐位 — mets=['UST_30Y'] months=6
+  ✅ §E 一年半制造业PMI → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] months=18
+  ✅ §E 一年半发生了 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] months=18
+  ✅ §E 三年半导体 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] years=3
+  ✅ §E 三年半 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] months=42
+  ✅ §E 半年报独立拒绝 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] kind=unparseable
+  ✅ §E 半年度独立拒绝 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] kind=unparseable
+  ✅ §E 半年正形保全 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] months=6
+  ✅ §E 另加三天拒绝 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] kind=unparseable
+  ✅ §E 外加三天拒绝 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] kind=unparseable
+  ✅ §E 零三个工作日拒绝 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] kind=unparseable
+  ✅ §E 裸六个月未限定 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] kind=None
+  ✅ §E 近7天无产品尾 → 指标集+窗口逐位 — mets=[] kind=unparseable
+  ✅ §E 2026年内既档 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] kind=unparseable
+  ✅ §E 十二个月整体 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] months=12
+  ✅ §E 廿一个月 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] months=21
+  ✅ §E 工作日期护栏 → 指标集+窗口逐位 — mets=['CN_PMI_MFG'] years=3
+
+Audit-R17 判定: 56 PASS / 0 FAIL

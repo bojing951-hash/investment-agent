@@ -31,11 +31,35 @@
   HY_OAS×UST_10Y 相关渠道缺(S5 本运行仅 SPX×UST_10Y)/分层领先滞后与违约率
   序列缺/17 份 VP 全 INSUFFICIENT_EVIDENCE(库龄,首验窗 2026-12)
 
+## Audit-R1 修订记录(2026-11-16,第一轮外部审计修复)
+
+- **v3(终版 sha256 前 16 位 `0d929aeed32873b4`,旧版 `1b4c0ed8c0f367ac`)**:
+  依第一轮语义复审 5 发现(SEM-01~05)+F06 内容更正:
+  - SEM-01[MAJOR]: CON-1 旧句「利率上行的大部分窗口利差不升反收」与证据面
+    复算不符,作废并换为披露计数(日度同向 87/反向 101、利率上行日 52 收/
+    49 阔/7 平、周度 10 收对 13 阔,中文数字形);
+  - SEM-02[MINOR]: SCN-A 阈值/trigger 统一固定基准 3.34pp@2026-11-09+连续
+    5 日>3.84,弃单月窗(缓升路径不等价);
+  - SEM-03[MINOR]: SPX 腿证伪委托 MECH-1 环3(UST_10Y>5.31 且 SPX<6848.67);
+  - SEM-04[NIT]: 标签改「证伪条件未触发(从未激活)」与前提缺席分档;
+  - SEM-05[NIT]: SCN-B 前提变体三分档;
+  - CON-3 走阔幅度排序重写(F06: 无权重不可算贡献份额,只排序不称份额)。
+  - 标记形制映射: 契约扫描字段内用无数字标记「复审更正/复审披露」
+    (数字形 Audit-R1 F0x 会被 token 化误绑,契约门 11:05Z 一次 CONTRADICTED
+    即此因,改中文数字形+无数字标记后放行);未扫描字段保留 Audit-R1 F0x。
+- **修订闭环终审**: 独立席(a-closure-seat)全量只读复算——五项必修全落地、
+  CON-3 F06 更正未破坏、零新增 MAJOR/MINOR,残留 1 NIT(RES-01: MECH-2 环3
+  单月窗双形,既有文案不阻断)。**裁定 UPHELD**(R32 章程词表;原席报告词=VERIFIED,同义),裁决档
+  `audit/semantic_review/20261116/VERDICT-20261116T045959Z-01.json`(fresh=True)。
+- **四态终态**: generated ✓ / machine_verified ✓ / review=UPHELD(fresh) /
+  **deliverable=True**;FULL_REPORT.md 已换 F09 完整装配版(L3/L4 全文内联
+  +证据索引+四态节)。
+
 ## 工件
 
 入库(本目录): FULL_REPORT.md / report.md / judgment_mvp.json /
 AGENT_SEAT_ENVELOPE.json / BIGFILES.sha256
-大件(运行目录,sha256 在档): report.json(754KB)/views_digest.json(84KB)/
+大件(**已入库** evidence_pack/=终态刷新,Audit-R1 F05 迁移;旧快照 c8988cce→f9b1bcb9 见本档修订记录;原运行目录 /tmp/mvp_run4/20261116T045959Z_*): report.json(754KB)/views_digest.json(84KB)/
 evidence_index.json/agent_judgment.json
 运行目录: /tmp/mvp_run4/20261116T045959Z_UST_10Y_十年期美债利率上行的宏观传导_对_HY_OAS_高收益债利差与_
 (tmp 会被系统清理;大件以 sha256 为凭,如需原件由 Phase 4 后续任务

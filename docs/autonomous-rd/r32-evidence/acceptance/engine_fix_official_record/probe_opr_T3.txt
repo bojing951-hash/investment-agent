@@ -1,0 +1,60 @@
+frozen_inputs: {"config/release_calendar.json": "e44fd2aa5ced0310", "config/metric_registry.json": "fa396d22175a4814", "data/daily/research_snapshot_20261123.json": "2d650f1128cdd356"}
+calendar rel=config/release_calendar.json exists=True
+planned pairs: [('EA', 'inflation'), ('EA', 'policy'), ('JP', 'inflation'), ('JP', 'policy')]
+question_official_target_regions: ['EA', 'JP']
+face.required_regions: ['EA', 'JP']
+face.rows: [
+ {
+  "region": "JP",
+  "metric_id": "JP_POLICY_TARGET",
+  "label": "日本",
+  "official_target": 1.25,
+  "pending_adjustments": null,
+  "pending_target": null,
+  "pending_effective_on": null,
+  "decision": "2026-09-18",
+  "effective": "2026-09-24",
+  "last_maintenance": "2026-10-30",
+  "confirmed_through": "2026-10-30",
+  "days_since_adjustment": 60,
+  "days_since_decision": 66,
+  "days_since_maintenance": 24,
+  "records": [
+   {
+    "entry_id": "RC-JP-BOJ-TARGET-2026-09",
+    "kind": "policy_decision",
+    "basis": "user_directive",
+    "first_publish": "2026-09-18",
+    "decision_date": "2026-09-18",
+    "effective_on": "2026-09-24",
+    "target_value": 1.25,
+    "note": "日本央行政策目标利率(宣布值口径)2026-09-18 决议、2026-09-24 生效,目标水平约1.25%——R28 验收指令实录(2026-11-21 复测基线);距上次调整按生效日计算"
+   },
+   {
+    "entry_id": "RC-JP-BOJ-MAINT-2026-10",
+    "kind": "policy_maintenance",
+    "basis": "user_directive",
+    "first_publish": "2026-10-30",
+    "decision_date": "2026-10-30",
+    "effective_on": null,
+    "target_value": 1.25,
+    "note": "日本央行 2026-10-30 会议确认维持政策目标利率约1.25%不变——确认维持不改变目标水平,但更新核验覆盖截止(R28 任务2: 确认维持也更新核验日期)"
+   }
+  ]
+ }
+]
+face.gaps: [
+ {
+  "region": "EA",
+  "metric_id": "ECB_MRO",
+  "label": "欧元区",
+  "note": "欧元区官方政策目标(ECB_MRO)无官方记录(日历无 policy_decision/policy_maintenance 条目)且序列面决议/生效日不可推——问句指定官方目标时现值无官方口径可依,不以市场序列值冒充宣布目标;补录官方决议实录后重跑转正(Audit-R28 任务2)"
+ }
+]
+CELL EA ECB_MRO latest.status=ok policy_dates=null
+CELL EA ECB_DFR latest.status=ok policy_dates=null
+CELL JP JP_POLICY_RATE latest.status=ok policy_dates=null
+STATE US DFEDTARU present=False official_target=None pending_target=None last_decision=None last_effective=None maint=None n_records=0
+STATE EA ECB_MRO present=False official_target=None pending_target=None last_decision=None last_effective=None maint=None n_records=0
+STATE JP JP_POLICY_TARGET present=True official_target=1.25 pending_target=None last_decision=2026-09-18 last_effective=2026-09-24 maint=2026-10-30 n_records=2
+STATE CN CN_LPR_1Y present=False official_target=None pending_target=None last_decision=None last_effective=None maint=None n_records=0

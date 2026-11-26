@@ -1,0 +1,4 @@
+BATTERY-R30: PASS=202 SOFT5=0 FAIL=1
+FAILED: tests/test_arch_reform_phase6.py(rc=1)
+
+[exited with code 0]

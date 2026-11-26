@@ -1,0 +1,85 @@
+# cmp_Y_condensed — engine-face comparison X (8f9055d) -> Y (36499bb) per work order (from cmp_Y_<tag>.txt)
+== A | # old run 20261123T213303Z git_head 8f9055d6e556 | new run 20261123T235103Z git_head 36499bb78a18
+## report.json/research_plan | leaves compared 1797 | identical 1795 | real diff 2 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/evidence_index | leaves compared 216 | identical 216 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 456 | identical 450 | real diff 6 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.evidence_gate | leaves compared 850 | identical 850 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 802 | identical 802 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/steps[*].envelope | leaves compared 162081 | identical 162018 | real diff 0 | path/run-id only 63 | only-old 0 | only-new 0
+## evidence_index.json | leaves compared 216 | identical 216 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 304 | identical 301 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261123.json'] | new ['research_snapshot_20261123.json']
+== B | # old run 20261123T213320Z git_head 8f9055d6e556 | new run 20261123T235121Z git_head 36499bb78a18
+## report.json/research_plan | leaves compared 673 | identical 673 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/evidence_index | leaves compared 189 | identical 189 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 346 | identical 334 | real diff 11 | path/run-id only 0 | only-old 0 | only-new 1
+## report.json/run.evidence_gate | leaves compared 850 | identical 850 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 319 | identical 319 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/steps[*].envelope | leaves compared 140340 | identical 140292 | real diff 0 | path/run-id only 48 | only-old 0 | only-new 0
+## evidence_index.json | leaves compared 189 | identical 189 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 223 | identical 220 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261123.json'] | new ['research_snapshot_20261123.json']
+== T3 | # old run 20261123T213336Z git_head 8f9055d6e556 | new run 20261123T235139Z git_head 36499bb78a18
+## report.json/research_plan | leaves compared 616 | identical 616 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/evidence_index | leaves compared 180 | identical 180 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 332 | identical 324 | real diff 8 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.evidence_gate | leaves compared 850 | identical 850 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 154 | identical 154 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/steps[*].envelope | leaves compared 136540 | identical 136496 | real diff 0 | path/run-id only 44 | only-old 0 | only-new 0
+## evidence_index.json | leaves compared 180 | identical 180 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 233 | identical 230 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261123.json'] | new ['research_snapshot_20261123.json']
+== N30 | # old run 20261123T213353Z git_head 8f9055d6e556 | new run 20261123T235157Z git_head 36499bb78a18
+## report.json/research_plan | leaves compared 616 | identical 616 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/evidence_index | leaves compared 180 | identical 180 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 333 | identical 253 | real diff 4 | path/run-id only 0 | only-old 76 | only-new 0
+## report.json/run.evidence_gate | leaves compared 850 | identical 850 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 214 | identical 214 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/steps[*].envelope | leaves compared 136539 | identical 136495 | real diff 0 | path/run-id only 44 | only-old 0 | only-new 0
+## evidence_index.json | leaves compared 180 | identical 180 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 233 | identical 230 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261123.json'] | new ['research_snapshot_20261123.json']
+== C4 | # old run 20261123T213414Z git_head 8f9055d6e556 | new run 20261123T235101Z git_head 36499bb78a18
+## report.json/research_plan | leaves compared 1327 | identical 1325 | real diff 2 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/evidence_index | leaves compared 207 | identical 207 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 430 | identical 420 | real diff 8 | path/run-id only 0 | only-old 0 | only-new 2
+## report.json/run.evidence_gate | leaves compared 814 | identical 814 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 740 | identical 740 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/steps[*].envelope | leaves compared 160118 | identical 160060 | real diff 0 | path/run-id only 58 | only-old 0 | only-new 0
+## evidence_index.json | leaves compared 207 | identical 207 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 271 | identical 268 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261123.json'] | new ['research_snapshot_20261123.json']
+== AUG | # old run 20261123T213507Z git_head 8f9055d6e556 | new run 20261123T235136Z git_head 36499bb78a18
+## report.json/research_plan | leaves compared 578 | identical 578 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/evidence_index | leaves compared 165 | identical 165 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 229 | identical 229 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.evidence_gate | leaves compared 996 | identical 996 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 214 | identical 214 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/steps[*].envelope | leaves compared 118509 | identical 118468 | real diff 0 | path/run-id only 41 | only-old 0 | only-new 0
+## evidence_index.json | leaves compared 165 | identical 165 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 213 | identical 210 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261121.json'] | new ['research_snapshot_20261121.json']

@@ -1,0 +1,297 @@
+[
+  {
+    "ref": "SPX@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "SPX"
+  },
+  {
+    "ref": "NDX@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "NDX"
+  },
+  {
+    "ref": "RUT@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "RUT"
+  },
+  {
+    "ref": "DXY@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "DXY"
+  },
+  {
+    "ref": "EURUSD@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "EURUSD"
+  },
+  {
+    "ref": "GOLD_F@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "GOLD_F"
+  },
+  {
+    "ref": "SILVER_F@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "SILVER_F"
+  },
+  {
+    "ref": "BRENT_F@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "BRENT_F"
+  },
+  {
+    "ref": "VIX@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "VIX"
+  },
+  {
+    "ref": "DAX@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "DAX"
+  },
+  {
+    "ref": "CAC40@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "CAC40"
+  },
+  {
+    "ref": "USDJPY@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "USDJPY"
+  },
+  {
+    "ref": "USDCNY@2026-11-21",
+    "kind": "snapshot_fact",
+    "metric_id": "USDCNY"
+  },
+  {
+    "ref": "HY_OAS@2026-11-19",
+    "kind": "snapshot_fact",
+    "metric_id": "HY_OAS"
+  },
+  {
+    "ref": "BB_OAS@2026-11-19",
+    "kind": "snapshot_fact",
+    "metric_id": "BB_OAS"
+  },
+  {
+    "ref": "B_OAS@2026-11-19",
+    "kind": "snapshot_fact",
+    "metric_id": "B_OAS"
+  },
+  {
+    "ref": "CCC_OAS@2026-11-19",
+    "kind": "snapshot_fact",
+    "metric_id": "CCC_OAS"
+  },
+  {
+    "ref": "IG_OAS@2026-11-19",
+    "kind": "snapshot_fact",
+    "metric_id": "IG_OAS"
+  },
+  {
+    "ref": "UST_2Y@2026-11-19",
+    "kind": "snapshot_fact",
+    "metric_id": "UST_2Y"
+  },
+  {
+    "ref": "UST_10Y@2026-11-19",
+    "kind": "snapshot_fact",
+    "metric_id": "UST_10Y"
+  },
+  {
+    "ref": "BEI_10Y@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "BEI_10Y"
+  },
+  {
+    "ref": "CURVE_2S10S@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "CURVE_2S10S"
+  },
+  {
+    "ref": "CPI@2026-10-01",
+    "kind": "snapshot_fact",
+    "metric_id": "CPI"
+  },
+  {
+    "ref": "CORE_PCE@2026-09-01",
+    "kind": "snapshot_fact",
+    "metric_id": "CORE_PCE"
+  },
+  {
+    "ref": "UNEMPLOYMENT@2026-10-01",
+    "kind": "snapshot_fact",
+    "metric_id": "UNEMPLOYMENT"
+  },
+  {
+    "ref": "CORE_CPI@2026-10-01",
+    "kind": "snapshot_fact",
+    "metric_id": "CORE_CPI"
+  },
+  {
+    "ref": "UST_5Y@2026-11-19",
+    "kind": "snapshot_fact",
+    "metric_id": "UST_5Y"
+  },
+  {
+    "ref": "INDPRO@2026-10-01",
+    "kind": "snapshot_fact",
+    "metric_id": "INDPRO"
+  },
+  {
+    "ref": "US_REAL_GDP@2026-07-01",
+    "kind": "snapshot_fact",
+    "metric_id": "US_REAL_GDP"
+  },
+  {
+    "ref": "SHCOMP@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "SHCOMP"
+  },
+  {
+    "ref": "HSI@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "HSI"
+  },
+  {
+    "ref": "NIKKEI225@2026-11-20",
+    "kind": "snapshot_fact",
+    "metric_id": "NIKKEI225"
+  },
+  {
+    "ref": "JP_CPI_YOY@2026-10-01",
+    "kind": "snapshot_fact",
+    "metric_id": "JP_CPI_YOY"
+  },
+  {
+    "ref": "JP_POLICY_RATE@2026-10-01",
+    "kind": "snapshot_fact",
+    "metric_id": "JP_POLICY_RATE"
+  },
+  {
+    "ref": "SZCI@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "SZCI"
+  },
+  {
+    "ref": "CHINEXT@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "CHINEXT"
+  },
+  {
+    "ref": "HSCEI@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "HSCEI"
+  },
+  {
+    "ref": "NVDA@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "NVDA"
+  },
+  {
+    "ref": "AAPL@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "AAPL"
+  },
+  {
+    "ref": "MSFT@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "MSFT"
+  },
+  {
+    "ref": "TLT@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "TLT"
+  },
+  {
+    "ref": "IEF@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "IEF"
+  },
+  {
+    "ref": "SHY@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "SHY"
+  },
+  {
+    "ref": "HYG@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "HYG"
+  },
+  {
+    "ref": "LQD@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "LQD"
+  },
+  {
+    "ref": "GBPUSD@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "GBPUSD"
+  },
+  {
+    "ref": "WTI_F@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "WTI_F"
+  },
+  {
+    "ref": "GLD@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "GLD"
+  },
+  {
+    "ref": "USO@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "USO"
+  },
+  {
+    "ref": "EEM@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "EEM"
+  },
+  {
+    "ref": "EZU@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "EZU"
+  },
+  {
+    "ref": "FEZ@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "FEZ"
+  },
+  {
+    "ref": "EWU@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "EWU"
+  },
+  {
+    "ref": "EWG@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "EWG"
+  },
+  {
+    "ref": "EWJ@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "EWJ"
+  },
+  {
+    "ref": "INDA@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "INDA"
+  },
+  {
+    "ref": "FXI@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "FXI"
+  },
+  {
+    "ref": "BTC@2026-11-20",
+    "kind": "s3_envelope",
+    "metric_id": "BTC"
+  },
+  {
+    "ref": "HY_IG_DIFF@2026-11-19",
+    "kind": "s3_envelope",
+    "metric_id": "HY_IG_DIFF"
+  }
+]

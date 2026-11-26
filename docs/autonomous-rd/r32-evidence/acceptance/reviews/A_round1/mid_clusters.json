@@ -1,0 +1,86 @@
+{
+ "basis": "同一事件的跨国信号合并: 各政策行一年窗路径事件按决议日跨地区聚簇(±7 日)——同簇=同一全球政策事件,三个转折中计一个事件;逐国决议日/生效日分记(决议→生效惯例: Fed=次日,ECB=决议后首个周三,PBOC=宣布即时)。月频证据只能说明同步时,先后未定。",
+ "clusters": [
+  {
+   "cluster_id": "POLCLUSTER-01",
+   "date_from": "2025-12-10",
+   "date_to": "2025-12-10",
+   "regions": [
+    "US"
+   ],
+   "events": [
+    {
+     "region": "US",
+     "metric_id": "DFEDTARU",
+     "display_name": "联邦基金目标区间上限",
+     "date": "2025-12-10",
+     "effective_date": "2025-12-11",
+     "delta_bp": -25,
+     "from": 4.0,
+     "to": 3.75,
+     "decision_to_effective_days": 1
+    }
+   ],
+   "same_event_cross_country": false,
+   "note": "单地区事件(不跨国产合并)"
+  },
+  {
+   "cluster_id": "POLCLUSTER-02",
+   "date_from": "2026-06-11",
+   "date_to": "2026-06-11",
+   "regions": [
+    "EA"
+   ],
+   "events": [
+    {
+     "region": "EA",
+     "metric_id": "ECB_DFR",
+     "display_name": "欧央行存款便利利率",
+     "date": "2026-06-11",
+     "effective_date": "2026-06-17",
+     "delta_bp": 25,
+     "from": 2.0,
+     "to": 2.25,
+     "decision_to_effective_days": 6
+    }
+   ],
+   "same_event_cross_country": false,
+   "note": "单地区事件(不跨国产合并)"
+  },
+  {
+   "cluster_id": "POLCLUSTER-03",
+   "date_from": "2026-09-10",
+   "date_to": "2026-09-16",
+   "regions": [
+    "EA",
+    "US"
+   ],
+   "events": [
+    {
+     "region": "EA",
+     "metric_id": "ECB_DFR",
+     "display_name": "欧央行存款便利利率",
+     "date": "2026-09-10",
+     "effective_date": "2026-09-16",
+     "delta_bp": 25,
+     "from": 2.25,
+     "to": 2.5,
+     "decision_to_effective_days": 6
+    },
+    {
+     "region": "US",
+     "metric_id": "DFEDTARU",
+     "display_name": "联邦基金目标区间上限",
+     "date": "2026-09-16",
+     "effective_date": "2026-09-17",
+     "delta_bp": 25,
+     "from": 3.75,
+     "to": 4.0,
+     "decision_to_effective_days": 1
+    }
+   ],
+   "same_event_cross_country": true,
+   "note": "跨国决议日落在±7日窗内——按同一全球政策事件合并计数(逐国决议/生效日分记);月频证据只能说明同步时,先后未定"
+  }
+ ]
+}

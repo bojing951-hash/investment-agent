@@ -1,0 +1,22 @@
+== sha256 (run root_overlay vs install tree)
+2d650f1128cdd356 /tmp/r32-accept/final5/output/research_runs/20261123T213320Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/root_overlay/data/daily/research_snapshot_20261123.json
+2d650f1128cdd356 /tmp/r32-accept/final5/data/daily/research_snapshot_20261123.json
+e44fd2aa5ced0310 /tmp/r32-accept/final5/output/research_runs/20261123T213320Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/root_overlay/config/release_calendar.json
+e44fd2aa5ced0310 /tmp/r32-accept/final5/config/release_calendar.json
+fa396d22175a4814 /tmp/r32-accept/final5/output/research_runs/20261123T213320Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/root_overlay/config/metric_registry.json
+fa396d22175a4814 /tmp/r32-accept/final5/config/metric_registry.json
+== report.run keys: ['archive_requested', 'data_requirements', 'degradation_policy', 'evidence_asof', 'evidence_gate', 'frozen_inputs', 'git_diff_sha256', 'git_head', 'git_head_source', 'question', 'ts_utc']
+   git_head = "8f9055d6e556700b08f28a3abeff284cf0c8d71f"
+   ts_utc = "20261123T213320Z"
+   frozen_inputs = {"config/release_calendar.json": "e44fd2aa5ced0310", "config/metric_registry.json": "fa396d22175a4814", "data/daily/research_snapshot_20261123.json": "2d650f1128cdd356"}
+== CODE_VERSION.json: {"git_head": "8f9055d6e556700b08f28a3abeff284cf0c8d71f", "git_diff_sha256": null, "stamped_at": "2026-11-24T05:30:45+08:00"}
+== report.agent_judgment keys: ['allow_failed_run', 'attached', 'attached_at', 'contract_verification', 'judgment_file', 'reader_map_faces', 'run_ok_at_attach', 'schema_version', 'validation']
+   attached = true
+   attached_at = "20261123T224005Z"
+   judgment_file = "judgment5_B.json"
+   schema_version = "1.1"
+   validation = {"passed": true, "violations": [], "n_contradictions": 3, "n_mechanism_chains": 1, "n_scenarios": 2}
+   run_ok_at_attach = true
+   allow_failed_run = false
+   reader_map_faces = {"complete": true, "headline": true, "regions_ok": true, "transmission_chains": 1, "turnings_n": 3, "history_n": 0}
+cv.version: jc-v1.0-phase4 | overall: VERIFIED

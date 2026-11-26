@@ -1,0 +1,5 @@
+common month keys n=38 first=2017-01 last=2026-07
+seat: n_change_pairs=37 pearson(GDP pct chg, UNEMP pp chg)=-0.8935653982
+engine: n_level=38 n_change_pairs=37 pearson_returns=-0.8935653981522128 change_basis={'a': 'pct', 'b': 'pp'} common=2017-01..2026-07 a_dropped=2 b_dropped=81
+gaps > 1 quarter in common keys: [('2025-07', '2026-01')]
+rendered in reader report? checked separately by grep

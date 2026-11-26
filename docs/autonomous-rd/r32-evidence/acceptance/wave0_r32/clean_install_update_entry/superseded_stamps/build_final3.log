@@ -1,0 +1,4 @@
+pip rc=0
+模型API(三参配齐): False | FRED: True | TUSHARE: True | FINNHUB: True
+tree=/tmp/r32-accept/final3 sha=19638e1487e1e5729b9645ce621c3435d0635d08 stamped_at=2026-11-23T22:35:59+0800
+build_final rc=0

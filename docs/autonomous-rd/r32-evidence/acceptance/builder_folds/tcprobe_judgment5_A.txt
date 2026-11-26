@@ -1,0 +1,43 @@
+== C1 class_b consumed set() n_b 0
+ [0] aliases=['REAL_10Y', 'CPI', 'CORE_PCE', 'CN_PPI_YOY', 'CN_PMI_MFG', 'DFF', 'ECB_DFR', 'JP_POLICY_RATE', 'UST_10Y', 'TIPS_10Y', 'BEI_10Y', 'SPX', 'NIKKEI225', 'GOLD_F', 'DXY', 'VIX'] tokens=[]
+      主线综合: 过去12个月(至2026-11-23)四地证据面呈现『通胀再加速→政策再收紧→实际利率上行→风险资产收缩』的同向共动(其中资产收缩一腿属于近月窗口的事实，全年窗口内股指并未下行，窗口对照披露见机制链资产环)——CPI 与 CORE_PCE 同比较一年前走高(2026-05 见顶后回落、未再越过高点)、EA_HICP_YOY 升至本轮最高、CN_PPI_YOY 自负转正并续创本轮新高、CN_PMI_MFG 于 2025-12 及 2026-03、
+ [1] aliases=[] tokens=[]
+      该共动格局成立
+ [2] aliases=[] tokens=[]
+      但对『谁驱动谁』至少有三种数据同样容纳的解释(见竞争解释)
+ [3] aliases=[] tokens=[]
+      当前证据不足以在它们之间裁决(其中解释C 的套息平仓一腿在同窗未获区分指标面支持，见传导面竞争链
+ [4] aliases=['BEI_10Y', 'TIPS_10Y', 'HY_OAS', 'USDJPY'] tokens=[]
+      其技术面一腿不可检验)——区分依赖 BEI_10Y 与 TIPS_10Y 的分解走向、HY_OAS 与 USDJPY 的后续观测(传导面对质三件见 reader_map.transmission)
+ [5] aliases=['UST_10Y', 'TIPS_10Y', 'BEI_10Y', 'VIX', 'HY_OAS', 'USDJPY', 'DFF', 'JP_POLICY_RATE', 'CN_PPI_YOY', 'CN_CPI_YOY', 'CN_PMI_MFG'] tokens=[('5.04', 'plain'), ('2.88', 'plain'), ('2.15', 'plain'), ('27.01', 'plain'), ('3.52', 'plain'), ('159.35', 'plain'), ('3.88', 'plain'), ('1.227', 'plain'), ('5.7', 'plain'), ('0.7', 'plain'), ('49.3', 'plain')]
+      证据面最新水平(引擎回贴,观测日至2026-11-23): UST_10Y 水平为 5.04、TIPS_10Y 水平为 2.88、BEI_10Y 水平为 2.15、VIX 水平为 27.01、HY_OAS 水平为 3.52、USDJPY 水平为 159.35、DFF 水平为 3.88、JP_POLICY_RATE 水平为 1.227、CN_PPI_YOY 水平为 5.7、CN_CPI_YOY 水平为 0.7、CN_PMI_MFG 水平为 49.3
+ [6] aliases=['VIX', 'USDJPY'] tokens=[]
+      其中 VIX 与 USDJPY 为 2026-11-23 盘中快照(非收盘价)
+ [7] aliases=[] tokens=[]
+      数据面披露: 本轮 Gate A 判 DEGRADED——核心缺口零项、非核心缺口七项、非核心降级八项，缺口指标中有五项在序列库内仍有存量观测并被本档按存量观测引用(属采集步骤降级口径，逐项见质量注记)
+== C2 class_b consumed set() n_b 0
+ [0] aliases=['DAX', 'SHCOMP', 'SPX', 'NIKKEI225', 'SHCOMP'] tokens=[]
+      历史相似段的证据冲突: 三个最相似候选(2025-03、2022-06、2023-10)的事后路径分歧明显——2022-06段股指三个月窗普遍收缩(DAX、SHCOMP、SPX、NIKKEI225 均为负)而十二个月窗除 SHCOMP 外转正
+ [1] aliases=['GOLD_F', 'SHCOMP', 'DXY'] tokens=[]
+      2025-03、2023-10段风险资产与 GOLD_F 多数窗走强(2023-10段上证指数三个月窗为负，属例外)而 DXY 走弱
+ [2] aliases=['GOLD_F', 'SPX', 'DXY', 'GOLD_F', 'SPX', 'UST_10Y'] tokens=[]
+      TOP-N事后符号一致率: GOLD_F 与 SPX 六个月与十二个月窗符号一致(一致率面仅含 DXY、GOLD_F、SPX、UST_10Y 四类)
+ [3] aliases=[] tokens=[]
+      其余各窗零点六至零点八
+ [4] aliases=[] tokens=[]
+      据此『当前状态可外推某一段事后路径』的主张不成立: 历史段只作结构对照与情景校准,不作预测(相似≠因果≠预测,分歧出现=结论降级为描述性)
+ [5] aliases=[] tokens=[]
+      所附四项引用为四项资产的当前水平锚点(供对照，不承载历史段数字)
+ [6] aliases=[] tokens=[]
+      历史段事后数字取自相似检索面事后块，按自然月末口径，事后结果≠预测
+== C3 class_b consumed set() n_b 0
+ [0] aliases=['CN_PPI_YOY', 'CN_LPR_1Y'] tokens=[('7天', 'day')]
+      中国政策与美欧日方向的背离未被解释定案: CN_PPI_YOY 自深负值区间升至本轮高点(四大经济体最大价格摆动)而 CN_LPR_1Y 与 7天逆回购利率窗内持平、政策利率锚于2026-11-02切换为隔夜利率工具后新锚持平于其首个观测水平,即生产价格大幅上行而政策利率未上调
+ [1] aliases=[] tokens=[]
+      引擎面无中国利率预期序列
+ [2] aliases=['CN_NEW_LOANS'] tokens=[]
+      信贷/内需侧仅有 CN_NEW_LOANS(月频，最新观测月 2026-10)等少量事实，不足以在三种解释间裁决,三种解释不可区分,标注【尚未验证】
+ [3] aliases=['CN_PPI_YOY', 'CN_CPI_YOY', 'CN_PMI_MFG'] tokens=[('5.7', 'plain'), ('0.7', 'plain'), ('49.3', 'plain')]
+      (最新读数: CN_PPI_YOY 为 5.7、CN_CPI_YOY 为 0.7、CN_PMI_MFG 为 49.3
+ [4] aliases=[] tokens=[]
+      观测月均为 2026-10)

@@ -1,0 +1,74 @@
+/Users/cast/AI内容/venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_a6podkj8/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_a6podkj8/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_a6podkj8/data/daily/anchors_20261117.json (122个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 21, 'DEGRADED': 7, 'FAIL': 0} | core缺失 16 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+── 构建完整面引擎根+正式 CLI plan……
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_o8r9av56/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_o8r9av56/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_o8r9av56/data/daily/anchors_20261117.json (122个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 21, 'DEGRADED': 7, 'FAIL': 0} | core缺失 16 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+═══ §A 发布可见性逐项实录(公告前一天/当天;纯函数) ═══
+  ✅ §A 九月CPI 实录条目: 首发 2025-10-24(user_directive) — {'first_publish': '2025-10-24', 'not_published_as_of': '2025-10-23', 'entry_id': 'RC-2025SHUTDOWN-CPI-SEP', 'basis': 'user_directive', 'note': '2025-09 观测月 CPI(常规发布 2025-10-15)因 2025 年联邦政府停摆(2025-10-01..11-12)延误至 2025-10-24 发布;验收指令实录: 2025-11-18 与 11-19 时点均应允许该月 CPI(已于 10-24 发布)', 'batch_id': 'BLS-CPI-2025M09-REL'}
+  ✅ §A 九月CPI: 10-23 前不可见/10-24 当天可见 — CPI@2025-09-01: pub=2025-10-24 basis=calendar:RC-2025SHUTDOWN-CPI-SEP(user_directive;batch=BLS-CPI-2025M09-REL)
+  ✅ §A 九月失业率: 11-19 前不可见/11-20 当天可见 — UNEMPLOYMENT@2025-09-01: pub=2025-11-20 basis=calendar:RC-2025SHUTDOWN-UNEMP-SEP(user_directive)
+  ✅ §A Q3 GDP: 12-22 前不可见/12-23 当天可见 — US_REAL_GDP@2025-07-01: pub=2025-12-23 basis=calendar:RC-2025SHUTDOWN-GDP-Q3(user_directive)
+  ✅ §A 十月PCE: 2026-01-21 前不可见/01-22 当天可见 — CORE_PCE@2025-10-01: pub=2026-01-22 basis=calendar:RC-2025SHUTDOWN-PCE-OCTNOV(user_directive;batch=BEA-PCE-2026M01-REL)
+  ✅ §A 八月失业率无实录条目→规则推定(09-05) — 2025-09-05|BLS 就业形势报告次月首周发布(月末+5天,推定)
+  ✅ §A 十月CPI 未逐条实录→保守界条目 2026-01-22(convention) — {'first_publish': '2026-01-22', 'not_published_as_of': '2025-11-19', 'entry_id': 'RC-2025SHUTDOWN-REST-CONSERVATIVE', 'basis': 'convention', 'note': '2025-09/2025-10 观测月联邦统计中未逐条实录首发的系列(九月CPI/九月核心CPI/九月失业率/Q3GDP/十月与十一月PCE/十一月失业率 七项 user_directive 条目优先命中,不在本条范围): 实际首发日未逐条实录,取已证最晚补发日 2026-01-22 为保守可见界——介于其间的真实首发不虚构,fail-closed 方向如实注记', 'batch_id': None}
+═══ §B 锚级双时点(2025-11-18 与 11-19 同面;正式计划) ═══
+  ✅ §B 11-18 12个月前: 美国只见 Q2 GDP(obs 2025-04-01) — {"status": "ok", "as_of": "2025-11-18", "observation_date": "2025-04-01", "publication_date": "2025-07-29", "p
+  ✅ §B 11-18 12个月前: 失业率=八月 4.3(九月 11-20 才可见) — {"status": "ok", "as_of": "2025-11-18", "observation_date": "2025-08-01", "publication_date": "2025-09-05", "p
+  ✅ §B 11-18 12个月前: 九月CPI 已于 10-24 发布→允许引用 — {"status": "ok", "as_of": "2025-11-18", "observation_date": "2025-09-01", "publication_date": "2025-10-24", "p
+  ✅ §B 11-19 12个月前: 美国只见 Q2 GDP(obs 2025-04-01) — {"status": "ok", "as_of": "2025-11-19", "observation_date": "2025-04-01", "publication_date": "2025-07-29", "p
+  ✅ §B 11-19 12个月前: 失业率=八月 4.3(九月 11-20 才可见) — {"status": "ok", "as_of": "2025-11-19", "observation_date": "2025-08-01", "publication_date": "2025-09-05", "p
+  ✅ §B 11-19 12个月前: 九月CPI 已于 10-24 发布→允许引用 — {"status": "ok", "as_of": "2025-11-19", "observation_date": "2025-09-01", "publication_date": "2025-10-24", "p
+  ✅ §B 11-19 全格发布纪律: ok 锚发布日≤锚日(无一例外)
+═══ §C 中国政策换锚(解析级根修;离线) ═══
+  ✅ §C 利率格解析: 纯数值/带%收,量纲格与零值拒收
+  ✅ §C 零操作日(期限|投标量|中标量 形): 七天利率=None(无成交利率留空,不产 0.0 伪影) — {'7天': None, '隔夜': None}
+  ✅ §C 换锚后公告(隔夜行在场): 隔夜=1.25/七天=1.40(空格变体剥离) — {'7天': 1.4, '隔夜': 1.25}
+  ✅ §C 注册表 v2.8.7: CN_POLICY_OVERNIGHT 在册 active/daily/percent — 2.8.7|active
+  ✅ §C CN_OMO_7D 口径注记: 换锚单列+零值根修在档
+═══ §D 政策四日期+一年窗路径(纯函数/合成序列) ═══
+  ✅ §D DFEDTARU 四日期: 决议=09-16/生效=09-17(值变更日)/市场观测=11-17(DFF 配对)/统计窗口终点=None;打印日≠变更日注记在档 — {"face": "政策目标(宣布值)", "market_seat_label": "FOMC目标区间上限", "decision_note": "决议日=生效日前一日(两日会议次日公布;序列值变更日=生效日)——2026-09 决议 09-16、生效 09-17;当前值由该决议设定——观测日2026-11-18为序
+  ✅ §D DFEDTARU 无变更上下文: 决议/生效不可推=如实缺席(不虚构) — {"face": "政策目标(宣布值)", "market_seat_label": "FOMC目标区间上限", "decision_note": "决议日=生效日前一日(两日会议次日公布;序列值变更日=生效日)——2026-09 决议 0
+  ✅ §D DFF(市场均值): 市场观测=自身观测日/无决议日/统计窗=当日 — {"face": "隔夜市场均值(有效利率)", "market_seat_label": "NY Fed有效联邦基金利率", "decision_note": null, "effective_note": "观测日=交易日次日发布", "market_note": "市场观测日=本序列观测日(自
+  ✅ §D CN_POLICY_OVERNIGHT 政策面在册(换锚新锚口径)
+  ✅ §D RELEASE_RULES 携带隔夜锚(当日可见)
+  ✅ §D 一年窗路径: 先降 25bp(12-11)再升 25bp(09-17),净变动=0 — 0|[('2025-12-11', -25), ('2026-09-17', 25)]
+  ✅ §D 窗内首观测的变动: 前值在窗启前一格仍入路径(不漏首场降息) — 25|[('2025-12-11', -25), ('2026-09-17', 25)]
+═══ §E 三利率窗: 只剩两个相邻共同交易日→历史不足 ═══
+  ✅ §E 两相邻日: status=insufficient_history+月度年度均不出数 — {"status": "insufficient_history", "kind": "共同交易日三利率分解", "window": {"from": "2026-11-18", "to": "2026-11-19", "calendar_days_between": 1}, "levels_at_to": {"UST
+═══ §F 契约三阻断+历史样本前提(端到端 attach 复核) ═══
+  ✅ §F 正例: 契约过(零 CONTRADICTED) — rc=0 contra=[]
+  ✅ §F 反例①: 只改 ex_post 正文 SPX +99.00% → CONTRADICTED(引擎同窗复算不符) — reader_map.history_periods[0].ex_post.3m
+  ✅ §F 正向对照: 同窗复算值入文→ex_post 零拦截
+  ✅ §F 反例②: 美国正文观测月改 2030-07(校验字段原样)→CONTRADICTED — reader_map.regions[US].prose_month
+  ✅ §F 月频同步时序: 同月两指标排序主张未写先后未定→CONTRADICTED — reader_map.turnings[0].ordering_resolution
+  ✅ §F 正向对照: 写明先后未定→零时序拦截
+  ✅ §F 历史样本前提: 缺 sample_note/us_analog → NOT_VERIFIED — ['reader_map.history_periods[0].sample_note', 'reader_map.history_periods[0].us_analog']
+═══ §G 锚覆盖组级阻断(blocked_class_of 单元) ═══
+  ✅ §G map_anchor_coverage_insufficient 入阻断类目
+  ✅ §G 仅剩最新单点(两历史锚空无实据)→锚覆盖不足 — map_anchor_coverage_insufficient
+  ✅ §G 空锚带日历实录依据(停摆延误)→放行(诚实缺口) — None
+  ✅ §G 整组零 ok → 仍走 map_core_dimension_missing(R20 类目不变)
+═══ §H 渲染: 读者面新节(正式 report 段产物) ═══
+  ✅ §H 报告段 rc=0 — {"stage": "report", "full_report": "/var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r19gate_ma2ucwf4/plan_r21a/20261119T173523Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最/FULL_REPORT.md", "L3_produced"
+  ✅ §H 政策四分面表含市场观测日列
+  ✅ §H 政策一年窗路径行(净变动 bp)在场
+  ✅ §H 历史段: 美国类比标签+样本注记+当时同步性与随后结果分列
+  ✅ §H 传导链区分指标附引擎当前面观测(或如实缺席)
+  ✅ §H 三利率分解: 年度窗(年度判断同窗)打头+月度另列
+
+[I] 资产月窗契约基(非地图问句;滚动窗 vs 周/MTD 派生窗并行)
+  ✅ §I +38.07% 带窗口两端日→资产月窗基 VERIFIED — [{"item": "C-I.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["VIX"], "family": "change/week", "token": "+38.07%", "metric": "VIX", "
+  ✅ §I chg_abs 基(+7.02 带窗口)→VERIFIED — [{"item": "C-I.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["VIX"], "family": "level", "token": "+7.02 ", "metric": "VIX", "value":
+  ✅ §I 数字无窗口→不采信(仍按派生窗 CONTRADICTED) — CONTRADICTED
+  ✅ §I 窗口在场但数值串写(+99.00%)→CONTRADICTED — CONTRADICTED
+  ✅ §I 方向说反(−38.07%)→CONTRADICTED(带符号比对) — CONTRADICTED
+  ✅ §I 面缺席→回退派生窗 CONTRADICTED(并行基不越位) — CONTRADICTED
+
+Audit-R21 判定: 50 PASS / 0 FAIL
+exit=0

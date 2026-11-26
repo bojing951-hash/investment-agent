@@ -1,0 +1,17 @@
+tree= /tmp/r32-accept/baseline
+[unlike-window] GOLD_F declared=PASS recomputed=DEGRADED issues_sev=['DEGRADED']
+[unlike-window] recon: violation | 黄金双载体方向: GOLD_F周+2.80% vs GLD周-9.17%(同源双观测周方向相反,口径/数据异常须复核)
+[unlike-window] fact_issues_problems: ["GOLD_F=quality_status='PASS'与issues重算'DEGRADED'不一致(声明与质量依据矛盾,不得靠改状态掩盖严重问题)"]
+[like-window  ] GOLD_F declared=PASS recomputed=DEGRADED issues_sev=['DEGRADED']
+[like-window  ] recon: violation | 黄金双载体方向: GOLD_F周+2.80% vs GLD周-9.17%(同源双观测周方向相反,口径/数据异常须复核)
+[like-window  ] fact_issues_problems: ["GOLD_F=quality_status='PASS'与issues重算'DEGRADED'不一致(声明与质量依据矛盾,不得靠改状态掩盖严重问题)"]
+[check_pair   ] DFEDTARL declared=PASS recomputed=DEGRADED problems=["DFEDTARL=quality_status='PASS'与issues重算'DEGRADED'不一致(声明与质量依据矛盾,不得靠改状态掩盖严重问题)"]
+⛔ [FIX7信任边界] 采集目录不在可信项目根之内:/tmp/r32-accept/install/data/daily(可信根=/private/tmp/r32-accept/baseline)——未经批准的外部/越界路径不得作为正式采集来源;realpath落点在根内不自动授信(FIX8-02);未经批准的外部入口链接不因指向项目根取得可信身份(FIX9-01/IA-F8-DEF-001),亦不因代码经其导入而取得可信身份(FIX10-01/IA-F9-DEF-001)
+⛔ [FIX7信任边界] 采集目录不可信,不读取其任何文件(全部按缺源处理): /tmp/r32-accept/install/data/daily
+✅ 快照: /tmp/r32-accept/repro/gold_dual/base_out/research_snapshot_20261123.json
+   MD:   /tmp/r32-accept/repro/gold_dual/base_out/research_snapshot_20261123.md
+   锚点: /tmp/r32-accept/repro/gold_dual/base_out/anchors_20261123.json (0个)
+   Gate A: None | 事实 0 | 质量 {'PASS': 0, 'DEGRADED': 0, 'FAIL': 0} | core缺失 32
+[real] gate_a.status=None
+[real] illegal_quality=['采集目录不在可信项目根之内:/tmp/r32-accept/install/data/daily(可信根=/private/tmp/r32-accept/baseline)——未经批准的外部/越界路径不得作为正式采集来源;realpath落点在根内不自动授信(FIX8-02);未经批准的外部入口链接不因指向项目根取得可信身份(FIX9-01/IA-F8-DEF-001),亦不因代码经其导入而取得可信身份(FIX10-01/IA-F9-DEF-001)']
+[real] core_fail=[] noncore_degraded=[]

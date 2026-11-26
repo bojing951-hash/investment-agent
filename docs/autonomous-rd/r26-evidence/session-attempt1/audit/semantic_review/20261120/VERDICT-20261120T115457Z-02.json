@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "semantic-audit-seat",
+  "notes": "复裁(前档REVISE五必修): 五处修订逐项核验全部到位且三件(agent_judgment/MAP_REPORT/FULL_REPORT)同步——①headline迫使→相继发生(因果未裁,见传导对质表) ②turnings[0]触发句删,日本改判非跟进/独立先行通道(月均口径2025-10 0.477→2025-12 0.557经引擎history逐点核实,早于2026-02美国通胀拐点成立) ③CON-3/M2环3改变化量口径+方向依据+水平机制不可验,传导链断裂已删 ④CON-2改美日中股市回调(欧元区股指逆势上行) ⑤CN改通胀与增长环境背离(政策取向数据不可得,不称政策背离)。迫使仅存于transmission因果假设标签下(合法形态)。未发现新引入必修问题;两条非阻断cosmetic注记: turnings[0]对质表明判尚不能区分措辞略拗口、headline自2025-12起独立加速正常化之加速宜读作全年节奏(12月单月仅+8bp,JP段已附精确值)。总评UPHELD,修订闭环完成。",
+  "run_ts": "20261120T115457Z",
+  "content_sha256": "47fd39e2b1f2db222effc89ae7ee9ff49609bb4d32134446dec97c8fdccf8d36",
+  "audited_at": "2026-11-20",
+  "recorded_at": "20261120T123013Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261120/VERDICT-20261120T115457Z-01.json",
+  "map_report_sha256": "1b76b495bc188e509b7e4cdfb4e12d3ad0cd49033b5bd3fcc1fd43dcc6b48162",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

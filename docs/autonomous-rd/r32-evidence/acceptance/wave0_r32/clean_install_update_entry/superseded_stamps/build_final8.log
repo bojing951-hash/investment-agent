@@ -1,0 +1,24 @@
+=== build base tree @ 24141c01a73daa44e56e380320f46bb0f7cbd723  dest=/tmp/r32-accept/final8  2026-11-24 14:05:22 +0800
+pip rc=0
+模型API(三参配齐): False | FRED: True | TUSHARE: True
+snapshot(=final3) sha256=2d650f1128cdd356d5bc86256d1ed1b9dcb7c7306ddc71c79fac3f4fe60efd2f
+final3 snapshot    sha256=2d650f1128cdd356d5bc86256d1ed1b9dcb7c7306ddc71c79fac3f4fe60efd2f
+data files: final3=330 tree=330
+=== base tree ready: 2034 files (excl. .venv); .env present? no; CODE_VERSION git_head=24141c01a73daa44e56e380320f46bb0f7cbd723
+=== build degraded tree @ 24141c01a73daa44e56e380320f46bb0f7cbd723  dest=/tmp/r32-accept/final8-degraded  2026-11-24 14:06:14 +0800
+pip rc=0
+模型API(三参配齐): False | FRED: True | TUSHARE: True
+degraded data == final3-degraded/data
+snapshot research_snapshot_20261123 | series n=88 | research_as_of 2026-11-23T22:58:11+08:00 | EA series with data: 0 []
+=== degraded tree ready: 1726 files (excl. .venv); .env present? no; CODE_VERSION git_head=24141c01a73daa44e56e380320f46bb0f7cbd723
+=== build aug tree @ 24141c01a73daa44e56e380320f46bb0f7cbd723  dest=/tmp/r32-accept/final8-aug  2026-11-24 14:07:06 +0800
+pip rc=0
+模型API(三参配齐): False | FRED: True | TUSHARE: True
+snapshot research_snapshot_20261121 | n_series=88 | research_as_of 2026-11-21T22:45:53+08:00 | sha256=fb1992a5396e033c
+question_aug sha256=c48431d65cd0b27834b662ebf211f7f4c6e79b9406d5905bb7d98703d88e13cb
+macro face sha256=edbf6e09a88fe18940c4d75c55a611486c67283347da5cb547b9be2b17ddeaf1
+=== aug tree ready: 1709 files (excl. .venv); .env present? no; CODE_VERSION git_head=24141c01a73daa44e56e380320f46bb0f7cbd723
+=== build entry tree @ 24141c01a73daa44e56e380320f46bb0f7cbd723  dest=/tmp/r32-accept/final8-entry  2026-11-24 14:07:58 +0800
+pip rc=0
+模型API(三参配齐): False | FRED: True | TUSHARE: True
+=== entry tree ready: 1707 files (excl. .venv); .env present? no; CODE_VERSION git_head=24141c01a73daa44e56e380320f46bb0f7cbd723

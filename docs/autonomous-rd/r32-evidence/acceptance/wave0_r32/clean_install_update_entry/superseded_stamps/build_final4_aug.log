@@ -1,0 +1,10 @@
+=== build aug tree @ 0f3936dd7eb74c557a2350e400d58e10a09c5139  dest=/tmp/r32-accept/final4-aug  2026-11-24 03:27:16 +0800
+pip rc=0
+模型API(三参配齐): False | FRED: True | TUSHARE: True
+  File "<string>", line 3
+    print(len((d.get('series_store') or {}))
+                                            ^
+SyntaxError: unexpected EOF while parsing
+snapshot research_snapshot_20261121 | n_series= | sha256=fb1992a5396e033c
+question_aug sha256=c48431d65cd0b27834b662ebf211f7f4c6e79b9406d5905bb7d98703d88e13cb
+=== aug tree ready: 1708 files (excl. .venv); .env present? no; CODE_VERSION git_head=0f3936dd7eb74c557a2350e400d58e10a09c5139

@@ -1,0 +1,337 @@
+=== agent_judgment (minus content) 
+attached = true
+attached_at = "20261123T194100Z"
+judgment_file = "judgment4_C4.json"
+schema_version = "1.1"
+validation = {"passed": true, "violations": [], "n_contradictions": 4, "n_mechanism_chains": 2, "n_scenarios": 2}
+run_ok_at_attach = true
+allow_failed_run = false
+reader_map_faces = {"complete": true, "headline": true, "regions_ok": true, "transmission_chains": 1, "turnings_n": 3, "history_n": 0}
+=== contract_verification keys: ['version', 'verdicts', 'six_checks', 'map_checks', 'unresolved_unbound', 'verdict', 'stats']
+version=jc-v1.0-phase4 verdict=VERIFIED
+stats={"checks": 17, "contradicted": 0, "verified": 15, "unbound": 0, "six_fail": 0, "map_fail": 0, "n_contradictions": 4}
+unresolved_unbound=[]
+six_checks=[
+ {
+  "item": "C1-POLICY-DIVERGENCE",
+  "check": "relevant",
+  "status": "VERIFIED",
+  "note": "4 实据引用"
+ },
+ {
+  "item": "C1-POLICY-DIVERGENCE",
+  "check": "supports",
+  "status": "VERIFIED",
+  "note": "引用逐项对得上"
+ },
+ {
+  "item": "C1-POLICY-DIVERGENCE",
+  "check": "competing",
+  "status": "VERIFIED",
+  "note": "2 并列解释(阈值≥2)"
+ },
+ {
+  "item": "C1-POLICY-DIVERGENCE",
+  "check": "opposing",
+  "status": "VERIFIED",
+  "note": "无未消化的相反证据"
+ },
+ {
+  "item": "C2-INFLATION-DIVERGENCE",
+  "check": "relevant",
+  "status": "VERIFIED",
+  "note": "6 实据引用"
+ },
+ {
+  "item": "C2-INFLATION-DIVERGENCE",
+  "check": "supports",
+  "status": "VERIFIED",
+  "note": "引用逐项对得上"
+ },
+ {
+  "item": "C2-INFLATION-DIVERGENCE",
+  "check": "competing",
+  "status": "VERIFIED",
+  "note": "2 并列解释(阈值≥2)"
+ },
+ {
+  "item": "C2-INFLATION-DIVERGENCE",
+  "check": "opposing",
+  "status": "VERIFIED",
+  "note": "无未消化的相反证据"
+ },
+ {
+  "item": "C3-GROWTH-LIMITED",
+  "check": "relevant",
+  "status": "VERIFIED",
+  "note": "4 实据引用"
+ },
+ {
+  "item": "C3-GROWTH-LIMITED",
+  "check": "supports",
+  "status": "VERIFIED",
+  "note": "引用逐项对得上"
+ },
+ {
+  "item": "C3-GROWTH-LIMITED",
+  "check": "competing",
+  "status": "VERIFIED",
+  "note": "2 并列解释(阈值≥2)"
+ },
+ {
+  "item": "C3-GROWTH-LIMITED",
+  "check": "opposing",
+  "status": "VERIFIED",
+  "note": "无未消化的相反证据"
+ },
+ {
+  "item": "C4-EVIDENCE-BOUNDARY",
+  "check": "relevant",
+  "status": "VERIFIED",
+  "note": "5 实据引用"
+ },
+ {
+  "item": "C4-EVIDENCE-BOUNDARY",
+  "check": "supports",
+  "status": "VERIFIED",
+  "note": "引用逐项对得上"
+ },
+ {
+  "item": "C4-EVIDENCE-BOUNDARY",
+  "check": "competing",
+  "status": "VERIFIED",
+  "note": "2 并列解释(阈值≥2)"
+ },
+ {
+  "item": "C4-EVIDENCE-BOUNDARY",
+  "check": "opposing",
+  "status": "VERIFIED",
+  "note": "无未消化的相反证据"
+ },
+ {
+  "item": "SCN-A-POLICY-DIVERGENCE-EXTENDS",
+  "check": "overreach",
+  "status": "VERIFIED",
+  "note": "tier=有相关证据 条件式✓"
+ },
+ {
+  "item": "SCN-A-POLICY-DIVERGENCE-EXTENDS",
+  "check": "falsifiable",
+  "status": "VERIFIED",
+  "note": "指标+阈值形态✓"
+ },
+ {
+  "item": "SCN-B-POLICY-CONVERGES",
+  "check": "overreach",
+  "status": "VERIFIED",
+  "note": "tier=有相关证据 条件式✓"
+ },
+ {
+  "item": "SCN-B-POLICY-CONVERGES",
+  "check": "falsifiable",
+  "status": "VERIFIED",
+  "note": "指标+阈值形态✓"
+ }
+]
+map_checks=[
+ {
+  "item": "reader_map.headline_conclusion",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "非空",
+  "evidence_refs": []
+ },
+ {
+  "item": "reader_map.regions",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "4 地齐",
+  "evidence_refs": []
+ },
+ {
+  "item": "reader_map.turning_supplement",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "补选转折 INDPRO@2026-02 已交还判断席(first_mover=美国工业生产指数同比(INDPRO)2025-1)",
+  "evidence_refs": []
+ },
+ {
+  "item": "reader_map.cross_face_consistency.date_order",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "日期次序主张一致: 2026-09-16<2026-09-18(早于,1 处)",
+  "evidence_refs": []
+ },
+ {
+  "item": "reader_map.cross_face_consistency.date_order",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "日期次序主张一致: 2026-07<2026-08-23(早于,1 处)",
+  "evidence_refs": []
+ },
+ {
+  "item": "reader_map.cross_face_consistency.chain_evidence",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "传导链[CH-POLICY-RATES-ASSETS] 区分指标绑定 3/3 环",
+  "evidence_refs": []
+ },
+ {
+  "item": "reader_map.cross_face_consistency.turning_source",
+  "claim_type": "reader_map",
+  "status": "VERIFIED",
+  "note": "转折表 3 项指标与计划/候选面同源",
+  "evidence_refs": []
+ }
+]
+=== verdicts type=list len=17
+V 0 = {"item": "C1-POLICY-DIVERGENCE.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["DFF"], "family": "level", "token": "3.88", "metric": "DFF", "value": 3.88, "expected": 3.88, "status": "VERIFIED", "note": "recompute:Fact 直读 DFF@2026-11-19=3.88"}
+V 1 = {"item": "C1-POLICY-DIVERGENCE.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["JP_POLICY_RATE"], "family": "level", "token": "1.227", "metric": "JP_POLICY_RATE", "value": 1.227, "expected": 1.227, "status": "VERIFIED", "note": "recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227"}
+V 2 = {"item": "C1-POLICY-DIVERGENCE.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CN_LPR_1Y"], "family": "level", "token": "3", "metric": "CN_LPR_1Y", "value": 3.0, "expected": 3.0, "status": "VERIFIED", "note": "recompute:Fact 直读 CN_LPR_1Y@2026-11-20=3.0"}
+V 3 = {"item": "C2-INFLATION-DIVERGENCE.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CPI"], "family": "level", "token": "337.476", "metric": "CPI", "value": 337.476, "expected": 337.476, "status": "VERIFIED", "note": "recompute:Fact 直读 CPI@2026-10-01=337.476"}
+V 4 = {"item": "C2-INFLATION-DIVERGENCE.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CORE_CPI"], "family": "level", "token": "339.9", "metric": "CORE_CPI", "value": 339.9, "expected": 339.9, "status": "VERIFIED", "note": "recompute:Fact 直读 CORE_CPI@2026-10-01=339.9"}
+V 5 = {"item": "C2-INFLATION-DIVERGENCE.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CORE_PCE"], "family": "level", "token": "130.902", "metric": "CORE_PCE", "value": 130.902, "expected": 130.902, "status": "STALE", "note": "recompute:Fact 直读 CORE_PCE@2026-09-01=130.902"}
+V 6 = {"item": "C2-INFLATION-DIVERGENCE.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CN_CPI_YOY"], "family": "level", "token": "0.7", "metric": "CN_CPI_YOY", "value": 0.7, "expected": 0.7, "status": "VERIFIED", "note": "recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7"}
+V 7 = {"item": "C2-INFLATION-DIVERGENCE.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CN_PPI_YOY"], "family": "level", "token": "5.7", "metric": "CN_PPI_YOY", "value": 5.7, "expected": 5.7, "status": "VERIFIED", "note": "recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7"}
+V 8 = {"item": "C3-GROWTH-LIMITED.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["US_REAL_GDP"], "family": "level", "token": "24611.077", "metric": "US_REAL_GDP", "value": 24611.077, "expected": 24611.077, "status": "STALE", "note": "recompute:Fact 直读 US_REAL_GDP@2026-07-01=24611.077"}
+V 9 = {"item": "C3-GROWTH-LIMITED.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["UNEMPLOYMENT"], "family": "level", "token": "4.1", "metric": "UNEMPLOYMENT", "value": 4.1, "expected": 4.1, "status": "VERIFIED", "note": "recompute:Fact 直读 UNEMPLOYMENT@2026-10-01=4.1"}
+V 10 = {"item": "C3-GROWTH-LIMITED.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["INDPRO"], "family": "level", "token": "103.3954", "metric": "INDPRO", "value": 103.3954, "expected": 103.3954, "status": "VERIFIED", "note": "recompute:Fact 直读 INDPRO@2026-10-01=103.3954"}
+V 11 = {"item": "C3-GROWTH-LIMITED.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["CN_PMI_MFG"], "family": "level", "token": "49.3", "metric": "CN_PMI_MFG", "value": 49.3, "expected": 49.3, "status": "VERIFIED", "note": "recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3"}
+V 12 = {"item": "C4-EVIDENCE-BOUNDARY.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["DAX"], "family": "level", "token": "25209.45", "metric": "DAX", "value": 25209.45, "expected": 25209.45, "status": "VERIFIED", "note": "recompute:Fact 直读 DAX@2026-11-23=25209.45"}
+V 13 = {"item": "C4-EVIDENCE-BOUNDARY.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["SPX"], "family": "change/week", "token": "-5.51%", "metric": "SPX", "value": -5.51, "expected": 4.2466, "status": "VERIFIED", "note": "资产月窗基复算: chg_pct=-5.51(窗口 2026-10-23→2026-11-23,两端实测日同现正文——数字+窗口耦合可核;与周/MTD 派生窗并行基,R21 任务4)"}
+V 14 = {"item": "C4-EVIDENCE-BOUNDARY.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["SHCOMP"], "family": "change/week", "token": "-4.11%", "metric": "SHCOMP", "value": -4.11, "expected": 0.1459, "status": "VERIFIED", "note": "资产月窗基复算: chg_pct=-4.11(窗口 2026-10-23→2026-11-23,两端实测日同现正文——数字+窗口耦合可核;与周/MTD 派生窗并行基,R21 任务4)"}
+V 15 = {"item": "C4-EVIDENCE-BOUNDARY.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["DAX"], "family": "change/week", "token": "+0.11%", "metric": "DAX", "value": 0.11, "expected": 1.6396, "status": "VERIFIED", "note": "资产月窗基复算: chg_pct=0.11(窗口 2026-10-23→2026-11-23,两端实测日同现正文——数字+窗口耦合可核;与周/MTD 派生窗并行基,R21 任务4)"}
+V 16 = {"item": "C4-EVIDENCE-BOUNDARY.statement", "claim_type": "objective_fact", "unit": "", "evidence_refs": ["VIX"], "family": "change/week", "token": "+38.87%", "metric": "VIX", "value": 38.87, "expected": -24.7423, "status": "VERIFIED", "note": "资产月窗基复算: chg_pct=38.87(窗口 2026-10-23→2026-11-23,两端实测日同现正文——数字+窗口耦合可核;与周/MTD 派生窗并行基,R21 任务4)"}
+=== notes
+地图计划指标缺数(披露不阻断;缺数格=「数据不可得」+检索范围+影响): US_REAL_GDP、UNEMPLOYMENT、INDPRO、CPI、CORE_CPI、CORE_PCE、DFF、EA_REAL_GDP_YOY、EA_HICP_YOY、ECB_MRO、ECB_DFR、CN_PMI_MFG、CN_CPI_YOY、CN_PPI_YOY、CN_OMO_7D、JP_REAL_GDP_YOY、JP_CPI_YOY、JP_CPI_TOKYO_YOY、JP_POLICY_RATE
+=== steps
+step[0] S1_decompose | keys=['step', 'executed', 'ok', 'deterministic_face', 'agent_face_note'] | envelope_keys=NoneType
+step[1] S2_doctor | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[2] S3_overview_US | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[3] S3_overview_EA | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[4] S3_overview_CN | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[5] S3_overview_JP | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[6] S3_changes | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[7] S4_history_US_REAL_GDP | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[8] S4_history_UNEMPLOYMENT | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[9] S4_history_INDPRO | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[10] S4_history_CPI | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[11] S4_history_CORE_CPI | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[12] S4_history_CORE_PCE | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[13] S4_history_DFEDTARU | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[14] S4_history_DFF | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[15] S4_history_EA_REAL_GDP_YOY | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'skipped_reason', 'envelope'] | envelope_keys=NoneType
+step[16] S4_history_EA_HICP_YOY | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'skipped_reason', 'envelope'] | envelope_keys=NoneType
+step[17] S4_history_ECB_MRO | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'skipped_reason', 'envelope'] | envelope_keys=NoneType
+step[18] S4_history_ECB_DFR | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'skipped_reason', 'envelope'] | envelope_keys=NoneType
+step[19] S4_history_CN_PMI_MFG | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[20] S4_history_CN_CPI_YOY | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[21] S4_history_CN_PPI_YOY | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[22] S4_history_CN_POLICY_OVERNIGHT | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[23] S4_history_CN_OMO_7D | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[24] S4_history_CN_LPR_1Y | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[25] S4_history_JP_REAL_GDP_YOY | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[26] S4_history_JP_CPI_YOY | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[27] S4_history_JP_CPI_TOKYO_YOY | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[28] S4_history_JP_POLICY_RATE | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[29] S4_history_UST_10Y | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[30] S4_history_TIPS_10Y | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[31] S4_history_BEI_10Y | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[32] S4_history_UST_2Y | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[33] S4_history_UST_5Y | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[34] S4_history_UST_30Y | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[35] S4_history_TIPS_5Y | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[36] S4_history_BEI_5Y | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[37] S4_history_CURVE_2S10S | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[38] S4_history_SPX | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[39] S4_history_NDX | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[40] S4_history_RUT | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[41] S4_history_DAX | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[42] S4_history_CAC40 | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[43] S4_history_NIKKEI225 | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[44] S4_history_HSI | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[45] S4_history_SHCOMP | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[46] S4_history_DXY | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[47] S4_history_EURUSD | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[48] S4_history_USDJPY | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[49] S4_history_USDCNY | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[50] S4_history_GOLD_F | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[51] S4_history_SILVER_F | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[52] S4_history_BRENT_F | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[53] S4_history_HY_OAS | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[54] S4_history_IG_OAS | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[55] S4_history_BB_OAS | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[56] S4_history_B_OAS | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[57] S4_history_CCC_OAS | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[58] S4_history_VIX | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[59] S5_compare | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[60] S6_analog | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[61] S7_mode_gate | keys=['step', 'executed', 'ok', 'gate', 'gate_source', 'note'] | envelope_keys=NoneType
+step[62] S8_grounded_qa | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[63] S9_views_lint | keys=['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope'] | envelope_keys=['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+step[64] S10_selfcheck | keys=['step', 'executed', 'ok', 'n_views_quarantined', 'selfcheck', 'note'] | envelope_keys=NoneType
+step[65] S11_archive | keys=['step', 'executed', 'ok', 'archive_requested', 'archived_query_id', 'note'] | envelope_keys=NoneType
+=== L1 rows
+{"metric_id": "SPX", "value": 7203.85, "unit": "index_point", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "SPX@2026-11-23"}}
+{"metric_id": "NDX", "value": 26672.85, "unit": "index_point", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "NDX@2026-11-23"}}
+{"metric_id": "RUT", "value": 2581.79, "unit": "index_point", "observation_date": "2026-11-20", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "RUT@2026-11-20"}}
+{"metric_id": "DXY", "value": 104.08, "unit": "index_point", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "DXY@2026-11-23"}}
+{"metric_id": "EURUSD", "value": 1.09, "unit": "usd_per_eur", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "EURUSD@2026-11-23"}}
+{"metric_id": "GOLD_F", "value": 3685.2, "unit": "usd_per_oz", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "GOLD_F@2026-11-23"}}
+{"metric_id": "SILVER_F", "value": 43.88, "unit": "usd_per_oz", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "SILVER_F@2026-11-23"}}
+{"metric_id": "BRENT_F", "value": 88.19, "unit": "usd_per_barrel", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "BRENT_F@2026-11-23"}}
+{"metric_id": "VIX", "value": 27.01, "unit": "index_point", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "VIX@2026-11-23"}}
+{"metric_id": "DAX", "value": 25209.45, "unit": "index_point", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "DAX@2026-11-23"}}
+{"metric_id": "CAC40", "value": 8022.62, "unit": "index_point", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "CAC40@2026-11-23"}}
+{"metric_id": "USDJPY", "value": 159.35, "unit": "jpy_per_usd", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "USDJPY@2026-11-23"}}
+{"metric_id": "USDCNY", "value": 6.65, "unit": "cny_per_usd", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "USDCNY@2026-11-23"}}
+{"metric_id": "HY_OAS", "value": 3.52, "unit": "percentage_point", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "HY_OAS@2026-11-19"}}
+{"metric_id": "BB_OAS", "value": 2.1, "unit": "percentage_point", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "BB_OAS@2026-11-19"}}
+{"metric_id": "B_OAS", "value": 3.8, "unit": "percentage_point", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "B_OAS@2026-11-19"}}
+{"metric_id": "CCC_OAS", "value": 13.61, "unit": "percentage_point", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "CCC_OAS@2026-11-19"}}
+{"metric_id": "IG_OAS", "value": 0.94, "unit": "percentage_point", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "IG_OAS@2026-11-19"}}
+{"metric_id": "UST_2Y", "value": 4.76, "unit": "percent", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "UST_2Y@2026-11-19"}}
+{"metric_id": "UST_10Y", "value": 5.04, "unit": "percent", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "UST_10Y@2026-11-19"}}
+{"metric_id": "UST_30Y", "value": 5.4, "unit": "percent", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "UST_30Y@2026-11-19"}}
+{"metric_id": "TIPS_5Y", "value": 2.64, "unit": "percent", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "TIPS_5Y@2026-11-19"}}
+{"metric_id": "TIPS_10Y", "value": 2.88, "unit": "percent", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "TIPS_10Y@2026-11-19"}}
+{"metric_id": "BEI_5Y", "value": 2.18, "unit": "percent", "observation_date": "2026-11-20", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "BEI_5Y@2026-11-20"}}
+{"metric_id": "BEI_10Y", "value": 2.15, "unit": "percent", "observation_date": "2026-11-20", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "BEI_10Y@2026-11-20"}}
+{"metric_id": "CURVE_2S10S", "value": 0.29, "unit": "percentage_point", "observation_date": "2026-11-20", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "CURVE_2S10S@2026-11-20"}}
+{"metric_id": "CPI", "value": 337.476, "unit": "index_point_1982_84", "observation_date": "2026-10-01", "quality_status": "WARN", "source": {"kind": "snapshot_fact", "id": "CPI@2026-10-01"}}
+{"metric_id": "CORE_PCE", "value": 130.902, "unit": "index_point_2017", "observation_date": "2026-09-01", "quality_status": "DEGRADED", "source": {"kind": "snapshot_fact", "id": "CORE_PCE@2026-09-01"}}
+{"metric_id": "UNEMPLOYMENT", "value": 4.1, "unit": "percent", "observation_date": "2026-10-01", "quality_status": "WARN", "source": {"kind": "snapshot_fact", "id": "UNEMPLOYMENT@2026-10-01"}}
+{"metric_id": "CORE_CPI", "value": 339.9, "unit": "index_point_1982_84", "observation_date": "2026-10-01", "quality_status": "WARN", "source": {"kind": "snapshot_fact", "id": "CORE_CPI@2026-10-01"}}
+{"metric_id": "UST_5Y", "value": 4.86, "unit": "percent", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "UST_5Y@2026-11-19"}}
+{"metric_id": "INDPRO", "value": 103.3954, "unit": "index_point_2017", "observation_date": "2026-10-01", "quality_status": "WARN", "source": {"kind": "snapshot_fact", "id": "INDPRO@2026-10-01"}}
+{"metric_id": "US_REAL_GDP", "value": 24611.077, "unit": "billion_usd", "observation_date": "2026-07-01", "quality_status": "DEGRADED", "source": {"kind": "snapshot_fact", "id": "US_REAL_GDP@2026-07-01"}}
+{"metric_id": "SHCOMP", "value": 3538.948, "unit": "index_point", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "SHCOMP@2026-11-23"}}
+{"metric_id": "HSI", "value": 22383.74, "unit": "index_point", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "HSI@2026-11-23"}}
+{"metric_id": "CN_LPR_1Y", "value": 3.0, "unit": "percent", "observation_date": "2026-11-20", "quality_status": "WARN", "source": {"kind": "snapshot_fact", "id": "CN_LPR_1Y@2026-11-20"}}
+{"metric_id": "CN_CPI_YOY", "value": 0.7, "unit": "percent", "observation_date": "2026-10-31", "quality_status": "WARN", "source": {"kind": "snapshot_fact", "id": "CN_CPI_YOY@2026-10-31"}}
+{"metric_id": "CN_PPI_YOY", "value": 5.7, "unit": "percent", "observation_date": "2026-10-31", "quality_status": "WARN", "source": {"kind": "snapshot_fact", "id": "CN_PPI_YOY@2026-10-31"}}
+{"metric_id": "CN_PMI_MFG", "value": 49.3, "unit": "index_point", "observation_date": "2026-10-01", "quality_status": "WARN", "source": {"kind": "snapshot_fact", "id": "CN_PMI_MFG@2026-10-01"}}
+{"metric_id": "DFF", "value": 3.88, "unit": "percent", "observation_date": "2026-11-19", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "DFF@2026-11-19"}}
+{"metric_id": "DFEDTARU", "value": 4.0, "unit": "percent", "observation_date": "2026-11-23", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "DFEDTARU@2026-11-23"}}
+{"metric_id": "NIKKEI225", "value": 56436.65, "unit": "index_point", "observation_date": "2026-11-20", "quality_status": "PASS", "source": {"kind": "snapshot_fact", "id": "NIKKEI225@2026-11-20"}}
+{"metric_id": "JP_CPI_YOY", "value": 2.44, "unit": "percent", "observation_date": "2026-10-01", "quality_status": "WARN", "source": {"kind": "snapshot_fact", "id": "JP_CPI_YOY@2026-10-01"}}
+{"metric_id": "JP_POLICY_RATE", "value": 1.227, "unit": "percent", "observation_date": "2026-10-01", "quality_status": "WARN", "source": {"kind": "snapshot_fact", "id": "JP_POLICY_RATE@2026-10-01"}}
+L1 note=None
+=== semantic_review
+{
+ "required": true,
+ "reasons": [
+  "l3_qualitative_inference",
+  "l4_conditional_scenarios"
+ ],
+ "seat_invoked": false,
+ "verdict": null,
+ "archive": null,
+ "fresh": null,
+ "verdicts_n": 0,
+ "prior_verdicts": [],
+ "record_health": {},
+ "error": null
+}
+=== run.degradation_policy
+{"critical_zero_evidence": "L1 事实行=0(引擎崩溃/全量采集失败)→拒收判断,--allow-failed-run 亦不放行", "required_data_missing": "运行前声明的必要指标(问题词面命中)采集缺席→任务目标缺口,默认阻塞;显式 --allow-failed-run 才放行,落位记 degraded(缺口随档,不得事后改判可选)", "optional_data_missing": "L1 事实面在场、失败步=诚实拒答类(源端缺席 no_series)→须显式 --allow-failed-run,落位记 degraded"}

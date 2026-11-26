@@ -1,0 +1,10 @@
+usage: ia_cli.py research-one [-h] [--question QUESTION]
+                              [--question-file QUESTION_FILE]
+                              [--stage {plan,attach,report,auto,archive,replay}]
+                              [--report-dir REPORT_DIR] [--judgment JUDGMENT]
+                              [--out-dir OUT_DIR] [--archive-dir ARCHIVE_DIR]
+                              [--engine-root ENGINE_ROOT] [--allow-failed-run]
+                              [--new-map-version] [--archive]
+                              [--package PACKAGE] [--replay-out REPLAY_OUT]
+                              [--allow-code-mismatch]
+ia_cli.py research-one: error: argument --stage: invalid choice: 'doctor' (choose from 'plan', 'attach', 'report', 'auto', 'archive', 'replay')

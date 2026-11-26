@@ -1,0 +1,70 @@
+question: 给我一份全球宏观经济变化地图。美国、中国、欧元区、日本在12个月前、3个月前和最新一期，分别处于什么增长、通胀和货币政策环境？过去一年最重要的三个转折是什么，谁先变，谁跟进或背离？证据最充分的传导机制是什么，还有什么解释，哪个指标能区分它们？历史上哪些时期结构最像，当时其他经济体是否同步，随后3、6、12个月经济和主要资产实际怎么走？
+role = "Agent Native 研究席(L3 推断+L4 条件情景真产出)"
+question = "给我一份全球宏观经济变化地图。美国、中国、欧元区、日本在12个月前、3个月前和最新一期，分别处于什么增长、通胀和货币政策环境？过去一年最重要的三个转折是什么，谁先变，谁跟进或背离？证据最充分的传导机制是什么，还有什么解释，哪个指标能区分它们？历史上哪些时期结构最像，当时其他经济体是否同步，随后3、6、12个月经济和主要资产实际怎么走？"
+report_dir = "/private/tmp/r32-accept/final5/output/research_runs/20261123T213303Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最"
+evidence_index_rows = 72
+read_first (list 5)
+produce = "judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件) + reader_map(地图问句五面: 一句总判断/各地区环境走位/传导图逐环四件套[观察事实/因果假设/竞争解释/区分指标]/三个转折[日期/指标/前后值/谁先变/跟进或背离]/历史段0..3[年月/相似点/关键差异/其他经济体是否同步/随后3、6、12个月实际+样本注记])——Audit-R19: 传导须连到资产指标;三转折为不同事件(不同指标-月,至少跨两维度)
+then (list 2)
+discipline (list 3)
+frozen_inputs (dict 3)
+  config/release_calendar.json = "e44fd2aa5ced0310"
+  config/metric_registry.json = "fa396d22175a4814"
+  data/daily/research_snapshot_20261123.json = "2d650f1128cdd356"
+frozen_inputs_sha256 = "a67fced54f2be76a212eb2c022f3477f3694188588a2e4b96ca34e433dbb0beb"
+reader_map_contract (dict 3)
+  spec = "judgment 顶层 reader_map 对象;字段结构与数值回贴核对见 scripts/research_contract/judgment_contract.py _map_checks(转折前后值按引擎序列月末口径复算,相左=CONTRADICTED;空正文/缺面=NOT_VERIFIED;Audit-R19 四阻断:错用同比基期/提前引用未发布数据/同一转折重复/历史结果落在匹配期内)。Audit-R22: ①走位正文「观测 YYYY-MM→YYYY-MM(→YYYY-MM)」串须是同地区某点值格锚观
+  engine_faces (dict 13)
+    point_anchors (list 3)
+    ex_post_offsets (list 3)
+    point_values_cells = 22
+    point_values_absent (list 0)
+    publication_discipline = "锚格值=发布日≤锚日的最新观测;publication_date/publication_basis 随格——R20 起日历实录条目(config/release_calendar.json,如 2025 停摆延误)优先于推定规则,读者可核"
+    yoy_discipline = "月度同比只配去年同月/季度只配去年同季;缺基期格 derived_yoy_pct=null+yoy_status=no_same_period_base+latest_valid_yoy(最近有效同比及月份)"
+    asset_universe (list 30)
+    us_rates_trio (dict 13)
+      status = "ok"
+      kind = "共同交易日三利率分解"
+      window = {"from": "2026-10-20", "to": "2026-11-19", "calendar_days_between": 30}
+      levels_at_to = {"UST_10Y": 5.04, "TIPS_10Y": 2.88, "BEI_10Y": 2.16}
+      chg_bp = {"UST_10Y": -8.0, "TIPS_10Y": 11.0, "BEI_10Y": -19.0}
+      decomposition = "十年期名义 Δ-8bp = 实际 Δ+11bp + 盈亏平衡 Δ-19bp"
+      identity_residual_bp = 0.0
+      identity_note = "名义=实际+盈亏平衡 的恒等残差(同日同窗;非零=源端口径差,逐位披露不吸收)"
+      recent_common_days = ["2026-11-05", "2026-11-06", "2026-11-09", "2026-11-10", "2026-11-12", "2026-11-13", "2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19"]
+      window_12m = {"from": "2025-11-19", "to": "2026-11-19", "calendar_days_between": 365}
+      chg_bp_12m = {"UST_10Y": 91.0, "TIPS_10Y": 102.0, "BEI_10Y": -11.0}
+      decomposition_12m = "十年期名义 Δ+91bp = 实际 Δ+102bp + 盈亏平衡 Δ-11bp"
+      identity_residual_bp_12m = 0.0
+    asset_moves (dict 5)
+      status = "ok"
+      window_months = 1
+      window_rule = "≤2026-11-23 最新观测 vs 最近于2026-10-23 的观测(界日无观测取最近邻;两端实际观测日随行披露)"
+      rows = [{"metric_id": "SPX", "window": {"from": "2026-10-23", "to": "2026-11-23"}, "from_value": 7623.680176, "to_value": 7203.850098, "chg_pct": -5.51, "chg_abs": -419.8301}, {"metric_id": "SHCOMP", "window": {"from": "2026-10-23", "to": "2026-11-23"}, "from_value":
+      absent = []
+    turning_candidates_top9 (list 9)
+    policy_event_clusters (dict 2)
+      basis = "同一事件的跨国信号合并: 各政策行一年窗路径事件按决议日跨地区聚簇(±7 日)——同簇=同一全球政策事件,三个转折中计一个事件;逐国决议日/生效日分记(决议→生效惯例: Fed=次日,ECB=决议后首个周三,PBOC=宣布即时)。月频证据只能说明同步时,先后未定。"
+      clusters = [{"cluster_id": "POLCLUSTER-01", "date_from": "2025-12-10", "date_to": "2025-12-10", "regions": ["US"], "events": [{"region": "US", "metric_id": "DFEDTARU", "display_name": "联邦基金目标区间上限", "date": "2025-12-10", "effective_date": "2025-12-11", "delta_bp": -25, "f
+    policy_doc_facts (list 1)
+    dimension_gaps (list 1)
+  discipline (list 7)
+## judgment top-level presence
+   l3 True
+   l4 True
+   reader_map True
+   quality_gate_notes True
+   agent_declaration True
+   schema_version True
+  reader_map keys: ['asset_returns_echo', 'headline_conclusion', 'history_periods', 'rates_decomposition', 'regions', 'transmission', 'turning_supplement', 'turnings']
+    asset_returns_echo: list len=8
+    headline_conclusion: str len=529
+    history_periods: list len=3
+    rates_decomposition: dict len=5
+    regions: list len=4
+    transmission: list len=2
+    turning_supplement: list len=1
+    turnings: list len=3
+  regions ids: ['US', 'CN', 'EA', 'JP']
+  l3 keys: ['contradictions', 'mechanism_chains'] n contradictions 3 n chains 2
+  l4 scenarios: ['SCN1', 'SCN2']

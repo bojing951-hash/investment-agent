@@ -1,0 +1,3192 @@
+{
+ "step": "S3_changes",
+ "argv": [
+  "changes"
+ ],
+ "executed": true,
+ "ok": true,
+ "exit_code": 0,
+ "semantic_ok": true,
+ "note": null,
+ "duration_ms": 380,
+ "envelope": {
+  "ok": true,
+  "capability": "changes",
+  "engine_root": "/private/tmp/r32-accept/final6-degraded",
+  "snapshot_id": "research_snapshot_20261123",
+  "target_date": "20261123",
+  "research_as_of": "2026-11-23",
+  "gate_a": "DEGRADED",
+  "data": {
+   "n_metrics": 46,
+   "n_missing": 0,
+   "by_asset_class": {
+    "equity_index": [
+     {
+      "metric_id": "SPX",
+      "display_name": "标普500指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "指数官方收盘点位(未复权,非ETF;SPY为独立指标)",
+      "value": 7203.85,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 4.2466,
+        "basis_date": "2026-11-20",
+        "basis_value": 6910.390137,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -4.9633,
+        "basis_date": "2026-10-30",
+        "basis_value": 7580.069824,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 5.2348,
+        "basis_date": "2025-12-31",
+        "basis_value": 6845.5,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "NDX",
+      "display_name": "纳斯达克100指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "指数收盘点位",
+      "value": 26672.85,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 6.5679,
+        "basis_date": "2026-11-20",
+        "basis_value": 25028.980469,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -6.0314,
+        "basis_date": "2026-10-30",
+        "basis_value": 28384.849609,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 5.6357,
+        "basis_date": "2025-12-31",
+        "basis_value": 25249.849609,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "RUT",
+      "display_name": "罗素2000指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "指数收盘点位",
+      "value": 2581.79,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-20",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -7.479,
+        "basis_date": "2026-11-13",
+        "basis_value": 2790.48999,
+        "end_date": "2026-11-20",
+        "window_semantics": "ISO周(2026-11-16起)之前最后观测为基准",
+        "sessions_in_window": 5,
+        "expected_sessions": 6,
+        "formula": "(2026-11-20值/2026-11-13值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -8.1815,
+        "basis_date": "2026-10-30",
+        "basis_value": 2811.840088,
+        "end_date": "2026-11-20",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 15,
+        "expected_sessions": 16,
+        "formula": "(2026-11-20值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 4.0243,
+        "basis_date": "2025-12-31",
+        "basis_value": 2481.909912,
+        "end_date": "2026-11-20",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 224,
+        "expected_sessions": 225,
+        "formula": "(2026-11-20值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "SHCOMP",
+      "display_name": "上证指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "指数收盘点位",
+      "value": 3538.948,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 0.1459,
+        "basis_date": "2026-11-20",
+        "basis_value": 3533.7929,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -1.669,
+        "basis_date": "2026-10-30",
+        "basis_value": 3599.0166,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -10.8317,
+        "basis_date": "2025-12-31",
+        "basis_value": 3968.8401,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 214,
+        "expected_sessions": 216,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "SZCI",
+      "display_name": "深证成指",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "指数收盘点位",
+      "value": 10454.3695,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 1.9303,
+        "basis_date": "2026-11-20",
+        "basis_value": 10256.3885,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -3.5021,
+        "basis_date": "2026-10-30",
+        "basis_value": 10833.7839,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -22.7035,
+        "basis_date": "2025-12-31",
+        "basis_value": 13525.0228,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 214,
+        "expected_sessions": 216,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "CHINEXT",
+      "display_name": "创业板指",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "CN"
+      },
+      "calc": "指数收盘点位",
+      "value": 2280.2043,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 3.0774,
+        "basis_date": "2026-11-20",
+        "basis_value": 2212.1274,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -5.528,
+        "basis_date": "2026-10-30",
+        "basis_value": 2413.6291,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -28.8142,
+        "basis_date": "2025-12-31",
+        "basis_value": 3203.1717,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 214,
+        "expected_sessions": 216,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "HSI",
+      "display_name": "恒生指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "HK"
+      },
+      "calc": "恒指收盘(腾讯日K主通道/yfinance备用)",
+      "value": 22383.74,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.1207,
+        "basis_date": "2026-11-20",
+        "basis_value": 22410.8,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -3.9094,
+        "basis_date": "2026-10-30",
+        "basis_value": 23294.42,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -12.6677,
+        "basis_date": "2025-12-31",
+        "basis_value": 25630.54,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 220,
+        "expected_sessions": 233,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "HSCEI",
+      "display_name": "恒生中国企业指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "HK"
+      },
+      "calc": "国企指数收盘",
+      "value": 7527.98,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "china_market_collector",
+       "file": "china_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.3493,
+        "basis_date": "2026-11-20",
+        "basis_value": 7554.37,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -4.2512,
+        "basis_date": "2026-10-30",
+        "basis_value": 7862.22,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -15.5458,
+        "basis_date": "2025-12-31",
+        "basis_value": 8913.68,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 220,
+        "expected_sessions": 233,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "NIKKEI225",
+      "display_name": "日经225指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "JP"
+      },
+      "calc": "FRED系列NIKKEI225(Nikkei Inc. 口径)东京收盘点位(日经225价格指数,未复权)",
+      "value": 56436.65,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-20",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "jp_market_collector",
+       "file": "jp_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -7.6963,
+        "basis_date": "2026-11-13",
+        "basis_value": 61142.35,
+        "end_date": "2026-11-20",
+        "window_semantics": "ISO周(2026-11-16起)之前最后观测为基准",
+        "sessions_in_window": 5,
+        "expected_sessions": 6,
+        "formula": "(2026-11-20值/2026-11-13值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -10.8286,
+        "basis_date": "2026-10-30",
+        "basis_value": 63290.11,
+        "end_date": "2026-11-20",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 14,
+        "expected_sessions": 16,
+        "formula": "(2026-11-20值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 12.1121,
+        "basis_date": "2025-12-30",
+        "basis_value": 50339.48,
+        "end_date": "2026-11-20",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 215,
+        "expected_sessions": 233,
+        "formula": "(2026-11-20值/2025-12-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "DAX",
+      "display_name": "德国DAX指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "EA"
+      },
+      "calc": "德国DAX指数(40成份,收盘点位);经global通道Yahoo ^GDAXI日线(auto_adjust复权口径,指数无除息影响)——数据批1#8(2026-11-10)从PENDING预注册转正;官方发布=XETRA,Yahoo为免费转引源",
+      "value": 25209.45,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 1.6396,
+        "basis_date": "2026-11-20",
+        "basis_value": 24802.779297,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -2.3579,
+        "basis_date": "2026-10-30",
+        "basis_value": 25818.210938,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 2.936,
+        "basis_date": "2025-12-30",
+        "basis_value": 24490.410156,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 229,
+        "expected_sessions": 234,
+        "formula": "(2026-11-23值/2025-12-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "CAC40",
+      "display_name": "法国CAC40指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "equity_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "EA"
+      },
+      "calc": "法国CAC 40指数(收盘点位);经global通道Yahoo ^FCHI日线(auto_adjust复权口径,指数无除息影响)——数据批1#8(2026-11-10)从PENDING预注册转正;官方发布=Euronext Paris,Yahoo为免费转引源",
+      "value": 8022.62,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 1.1967,
+        "basis_date": "2026-11-20",
+        "basis_value": 7927.75,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": 0.6676,
+        "basis_date": "2026-10-30",
+        "basis_value": 7969.419922,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -1.5569,
+        "basis_date": "2025-12-31",
+        "basis_value": 8149.5,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 229,
+        "expected_sessions": 233,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "volatility_index": [
+     {
+      "metric_id": "VIX",
+      "display_name": "CBOE波动率指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "volatility_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "VIX指数收盘(年化波动率预期,非价格)",
+      "value": 27.01,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -24.7423,
+        "basis_date": "2026-11-20",
+        "basis_value": 35.889999,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": 39.0834,
+        "basis_date": "2026-10-30",
+        "basis_value": 19.42,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 80.6689,
+        "basis_date": "2025-12-31",
+        "basis_value": 14.95,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 227,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "single_stock": [
+     {
+      "metric_id": "NVDA",
+      "display_name": "英伟达",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "single_stock",
+      "identity": {
+       "instrument": "single_stock",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "auto_adjust复权收盘价(含分红再投资,近似全收益;与交易所裸价有差异)",
+      "value": 161.43,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 28.5987,
+        "basis_date": "2026-11-20",
+        "basis_value": 125.529999,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -21.1151,
+        "basis_date": "2026-10-30",
+        "basis_value": 204.639999,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -13.2398,
+        "basis_date": "2025-12-31",
+        "basis_value": 186.064606,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "AAPL",
+      "display_name": "苹果",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "single_stock",
+      "identity": {
+       "instrument": "single_stock",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "auto_adjust复权收盘价(含分红再投资,近似全收益;与交易所裸价有差异)",
+      "value": 345.71,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 0.921,
+        "basis_date": "2026-11-20",
+        "basis_value": 342.559998,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": 0.391,
+        "basis_date": "2026-10-30",
+        "basis_value": 344.368347,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 27.6096,
+        "basis_date": "2025-12-31",
+        "basis_value": 270.916168,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "MSFT",
+      "display_name": "微软",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "single_stock",
+      "identity": {
+       "instrument": "single_stock",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "auto_adjust复权收盘价(含分红再投资,近似全收益;与交易所裸价有差异)",
+      "value": 503.39,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 3.8951,
+        "basis_date": "2026-11-20",
+        "basis_value": 484.519989,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -3.3617,
+        "basis_date": "2026-10-30",
+        "basis_value": 520.903687,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 4.9511,
+        "basis_date": "2025-12-31",
+        "basis_value": 479.644653,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "bond_etf": [
+     {
+      "metric_id": "TLT",
+      "display_name": "20+年美国国债ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "bond_etf",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "ETF复权收盘价",
+      "value": 81.23,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.2713,
+        "basis_date": "2026-11-20",
+        "basis_value": 81.449997,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -0.3288,
+        "basis_date": "2026-10-30",
+        "basis_value": 81.496994,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -3.148,
+        "basis_date": "2025-12-31",
+        "basis_value": 83.869209,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "IEF",
+      "display_name": "7-10年美国国债ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "bond_etf",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "ETF复权收盘价",
+      "value": 91.39,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.2837,
+        "basis_date": "2026-11-20",
+        "basis_value": 91.650002,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -0.0645,
+        "basis_date": "2026-10-30",
+        "basis_value": 91.448997,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -1.7456,
+        "basis_date": "2025-12-31",
+        "basis_value": 93.013611,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "SHY",
+      "display_name": "1-3年美国国债ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "bond_etf",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "ETF复权收盘价",
+      "value": 81.51,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.1164,
+        "basis_date": "2026-11-20",
+        "basis_value": 81.610001,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": 0.0847,
+        "basis_date": "2026-10-30",
+        "basis_value": 81.445999,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 1.3856,
+        "basis_date": "2025-12-31",
+        "basis_value": 80.400948,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "HYG",
+      "display_name": "iBoxx高收益债ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "bond_etf",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "ETF复权收盘价",
+      "value": 76.62,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 0.3799,
+        "basis_date": "2026-11-20",
+        "basis_value": 76.330002,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -0.531,
+        "basis_date": "2026-10-30",
+        "basis_value": 77.028999,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -0.1452,
+        "basis_date": "2025-12-31",
+        "basis_value": 76.731453,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "LQD",
+      "display_name": "投资级公司债ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "bond_etf",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "auto_adjust(分红复权,近似全收益,非交易所裸价)",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "ETF复权收盘价",
+      "value": 103.73,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 0.0386,
+        "basis_date": "2026-11-20",
+        "basis_value": 103.690002,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -0.1348,
+        "basis_date": "2026-10-30",
+        "basis_value": 103.869995,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -2.1094,
+        "basis_date": "2025-12-31",
+        "basis_value": 105.96524,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "fx_index": [
+     {
+      "metric_id": "DXY",
+      "display_name": "美元指数",
+      "unit": "index_point",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "fx_index",
+      "identity": {
+       "instrument": "index",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "global",
+       "economy": "GLOBAL"
+      },
+      "calc": "ICE美元指数期货结算近似",
+      "unit_subfamily": "fx",
+      "value": 104.08,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 0.2591,
+        "basis_date": "2026-11-20",
+        "basis_value": 103.809998,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": 2.1584,
+        "basis_date": "2026-10-30",
+        "basis_value": 101.879997,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 5.9005,
+        "basis_date": "2025-12-31",
+        "basis_value": 98.279999,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 234,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "fx_rate": [
+     {
+      "metric_id": "EURUSD",
+      "display_name": "欧元兑美元",
+      "unit": "usd_per_eur",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "fx_rate",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "global",
+       "economy": "EA"
+      },
+      "calc": "即期汇率(上涨=欧元升值/美元贬值)",
+      "unit_subfamily": "fx",
+      "value": 1.09,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.2735,
+        "basis_date": "2026-11-20",
+        "basis_value": 1.096972,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -2.1738,
+        "basis_date": "2026-10-30",
+        "basis_value": 1.118281,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -6.8745,
+        "basis_date": "2025-12-31",
+        "basis_value": 1.174729,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 232,
+        "expected_sessions": 234,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "GBPUSD",
+      "display_name": "英镑兑美元",
+      "unit": "usd_per_gbp",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "fx_rate",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "global",
+       "economy": "GLOBAL"
+      },
+      "calc": "即期汇率",
+      "unit_subfamily": "fx",
+      "value": 1.31,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.1424,
+        "basis_date": "2026-11-20",
+        "basis_value": 1.308644,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -2.3234,
+        "basis_date": "2026-10-30",
+        "basis_value": 1.337864,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -2.9657,
+        "basis_date": "2025-12-31",
+        "basis_value": 1.34672,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 232,
+        "expected_sessions": 234,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "USDJPY",
+      "display_name": "美元兑日元",
+      "unit": "jpy_per_usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "fx_rate",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "global",
+       "economy": "JP"
+      },
+      "calc": "即期汇率(上涨=美元升值;与EURUSD方向语义相反,表述须注意)",
+      "unit_subfamily": "fx",
+      "value": 159.35,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.2254,
+        "basis_date": "2026-11-20",
+        "basis_value": 159.707001,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": 0.9778,
+        "basis_date": "2026-10-30",
+        "basis_value": 157.804001,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 1.8758,
+        "basis_date": "2025-12-31",
+        "basis_value": 156.412994,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 232,
+        "expected_sessions": 234,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "USDCNY",
+      "display_name": "美元兑人民币",
+      "unit": "cny_per_usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "fx_rate",
+      "identity": {
+       "instrument": null,
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": null,
+       "market_seat": "global",
+       "economy": "CN"
+      },
+      "calc": "即期汇率(上涨=人民币贬值)",
+      "unit_subfamily": "fx",
+      "value": 6.65,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -0.1845,
+        "basis_date": "2026-11-20",
+        "basis_value": 6.6665,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -0.1021,
+        "basis_date": "2026-10-30",
+        "basis_value": 6.661,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -4.887,
+        "basis_date": "2025-12-31",
+        "basis_value": 6.9961,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 232,
+        "expected_sessions": 234,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "commodity_futures": [
+     {
+      "metric_id": "GOLD_F",
+      "display_name": "COMEX黄金期货(主力连续)",
+      "unit": "usd_per_oz",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "commodity_futures",
+      "identity": {
+       "instrument": "futures_front_continuous",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none(主力连续,含展期跳空可能)",
+       "market_seat": "global",
+       "economy": "GLOBAL"
+      },
+      "calc": "主力合约连续收盘(期货价格,非现货金价;伦敦金现为另一口径)",
+      "value": 3685.2,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 4.8302,
+        "basis_date": "2026-11-20",
+        "basis_value": 3515.399902,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -5.481,
+        "basis_date": "2026-10-30",
+        "basis_value": 3898.899902,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -15.1091,
+        "basis_date": "2025-12-31",
+        "basis_value": 4341.100098,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "SILVER_F",
+      "display_name": "COMEX白银期货(主力连续)",
+      "unit": "usd_per_oz",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "commodity_futures",
+      "identity": {
+       "instrument": "futures_front_continuous",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none(主力连续,含展期跳空可能)",
+       "market_seat": "global",
+       "economy": "GLOBAL"
+      },
+      "calc": "主力合约连续收盘(期货非现货)",
+      "value": 43.88,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 6.9209,
+        "basis_date": "2026-11-20",
+        "basis_value": 41.035,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -10.6361,
+        "basis_date": "2026-10-30",
+        "basis_value": 49.097,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -37.4412,
+        "basis_date": "2025-12-31",
+        "basis_value": 70.134003,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "WTI_F",
+      "display_name": "NYMEX WTI原油期货(主力连续)",
+      "unit": "usd_per_barrel",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "commodity_futures",
+      "identity": {
+       "instrument": "futures_front_continuous",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none(主力连续,含展期跳空可能)",
+       "market_seat": "global",
+       "economy": "GLOBAL"
+      },
+      "calc": "主力合约连续收盘(期货非现货;与FRED WTISPLC月度现货为两个指标)",
+      "value": 82.02,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -2.3339,
+        "basis_date": "2026-11-20",
+        "basis_value": 83.980003,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -21.2255,
+        "basis_date": "2026-10-30",
+        "basis_value": 104.120003,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 42.8422,
+        "basis_date": "2025-12-31",
+        "basis_value": 57.419998,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "BRENT_F",
+      "display_name": "ICE布伦特原油期货(主力连续)",
+      "unit": "usd_per_barrel",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "commodity_futures",
+      "identity": {
+       "instrument": "futures_front_continuous",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none(主力连续,含展期跳空可能)",
+       "market_seat": "global",
+       "economy": "GLOBAL"
+      },
+      "calc": "主力合约连续收盘",
+      "value": 88.19,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -4.7316,
+        "basis_date": "2026-11-20",
+        "basis_value": 92.57,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -25.034,
+        "basis_date": "2026-10-30",
+        "basis_value": 117.639999,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 44.9302,
+        "basis_date": "2025-12-31",
+        "basis_value": 60.849998,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "spot_commodity_etf": [
+     {
+      "metric_id": "GLD",
+      "display_name": "SPDR黄金ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "spot_commodity_etf",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "黄金现货价格(经由ETF持有成本跟踪)",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "onshore_local",
+       "economy": "GLOBAL"
+      },
+      "calc": "ETF复权收盘",
+      "value": 336.12,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 4.1038,
+        "basis_date": "2026-11-20",
+        "basis_value": 322.869995,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -5.5259,
+        "basis_date": "2026-10-30",
+        "basis_value": 355.779999,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -15.1876,
+        "basis_date": "2025-12-31",
+        "basis_value": 396.309998,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "commodity_futures_etf": [
+     {
+      "metric_id": "USO",
+      "display_name": "美国原油ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "commodity_futures_etf",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "WTI期货近期合约(含展期损耗,长期偏离油价)",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "onshore_local",
+       "economy": "GLOBAL"
+      },
+      "calc": "ETF复权收盘",
+      "value": 136.08,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -2.5424,
+        "basis_date": "2026-11-20",
+        "basis_value": 139.630005,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -19.3982,
+        "basis_date": "2026-10-30",
+        "basis_value": 168.830002,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 96.7611,
+        "basis_date": "2025-12-31",
+        "basis_value": 69.160004,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "country_etf_proxy": [
+     {
+      "metric_id": "EEM",
+      "display_name": "iShares新兴市场ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "MSCI新兴市场指数",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "GLOBAL"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 58.23,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 8.1538,
+        "basis_date": "2026-11-20",
+        "basis_value": 53.84,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -4.6035,
+        "basis_date": "2026-10-30",
+        "basis_value": 61.040001,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 6.9871,
+        "basis_date": "2025-12-31",
+        "basis_value": 54.427101,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "EZU",
+      "display_name": "iShares欧元区ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "欧元区股市指数",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "EA"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 63.3,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 2.4935,
+        "basis_date": "2026-11-20",
+        "basis_value": 61.759998,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -2.8545,
+        "basis_date": "2026-10-30",
+        "basis_value": 65.160004,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 0.5215,
+        "basis_date": "2025-12-31",
+        "basis_value": 62.971626,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "FEZ",
+      "display_name": "SPDR欧元区ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "欧元区STOXX50",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "EA"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 62.93,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 2.4919,
+        "basis_date": "2026-11-20",
+        "basis_value": 61.400002,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -3.2293,
+        "basis_date": "2026-10-30",
+        "basis_value": 65.029999,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -0.3765,
+        "basis_date": "2025-12-31",
+        "basis_value": 63.167824,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "EWU",
+      "display_name": "iShares英国ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "英国股市指数",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "GLOBAL"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 45.31,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 1.274,
+        "basis_date": "2026-11-20",
+        "basis_value": 44.740002,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -5.2687,
+        "basis_date": "2026-10-30",
+        "basis_value": 47.830002,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 4.4999,
+        "basis_date": "2025-12-31",
+        "basis_value": 43.35891,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "EWG",
+      "display_name": "iShares德国ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "德国DAX",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "EA"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 39.97,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 2.0424,
+        "basis_date": "2026-11-20",
+        "basis_value": 39.169998,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -4.5606,
+        "basis_date": "2026-10-30",
+        "basis_value": 41.880001,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -4.0665,
+        "basis_date": "2025-12-31",
+        "basis_value": 41.664261,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "EWJ",
+      "display_name": "iShares日本ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "日本股市指数",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "JP"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 86.99,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 4.267,
+        "basis_date": "2026-11-20",
+        "basis_value": 83.43,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -6.3718,
+        "basis_date": "2026-10-30",
+        "basis_value": 92.910004,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": 8.3263,
+        "basis_date": "2025-12-31",
+        "basis_value": 80.30368,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "INDA",
+      "display_name": "iShares印度ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "印度Nifty50",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "GLOBAL"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 51.82,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -2.0416,
+        "basis_date": "2026-11-20",
+        "basis_value": 52.900002,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": 8.5918,
+        "basis_date": "2026-10-30",
+        "basis_value": 47.720001,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -4.1258,
+        "basis_date": "2025-12-31",
+        "basis_value": 54.049999,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     },
+     {
+      "metric_id": "FXI",
+      "display_name": "iShares中国大盘ETF",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "country_etf_proxy",
+      "identity": {
+       "instrument": "etf",
+       "is_proxy": true,
+       "proxy_of": "中国大盘股(成分含港股上市中资股,非A股指数)",
+       "adjustment": "auto_adjust(分红复权)",
+       "market_seat": "offshore_proxy",
+       "economy": "CN"
+      },
+      "calc": "ETF复权收盘(以美元计价,含汇率影响;本地股指为另一口径)",
+      "value": 31.59,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-23",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": 1.1687,
+        "basis_date": "2026-11-20",
+        "basis_value": 31.23,
+        "end_date": "2026-11-23",
+        "window_semantics": "ISO周(2026-11-23起)之前最后观测为基准",
+        "sessions_in_window": 1,
+        "expected_sessions": 2,
+        "formula": "(2026-11-23值/2026-11-20值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -4.4891,
+        "basis_date": "2026-10-30",
+        "basis_value": 33.080002,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 16,
+        "expected_sessions": 17,
+        "formula": "(2026-11-23值/2026-10-30值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -16.8654,
+        "basis_date": "2025-12-31",
+        "basis_value": 38.004642,
+        "end_date": "2026-11-23",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 225,
+        "expected_sessions": 226,
+        "formula": "(2026-11-23值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "crypto": [
+     {
+      "metric_id": "BTC",
+      "display_name": "比特币(美元)",
+      "unit": "usd",
+      "unit_family": "price",
+      "frequency": "daily",
+      "asset_class": "crypto",
+      "identity": {
+       "instrument": "spot_crypto",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "global",
+       "economy": "GLOBAL"
+      },
+      "calc": "BTC-USD现货指数(7×24,自然日观测)",
+      "value": 61161.91,
+      "presence": "present",
+      "value_type": "level",
+      "observation_date": "2026-11-22",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "global_market_collector",
+       "file": "global_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pct",
+        "value": -6.3443,
+        "basis_date": "2026-11-15",
+        "basis_value": 65305.0625,
+        "end_date": "2026-11-22",
+        "window_semantics": "ISO周(2026-11-16起)之前最后观测为基准",
+        "sessions_in_window": 7,
+        "expected_sessions": 8,
+        "formula": "(2026-11-22值/2026-11-15值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pct",
+        "value": -21.0149,
+        "basis_date": "2026-10-31",
+        "basis_value": 77434.75,
+        "end_date": "2026-11-22",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 22,
+        "expected_sessions": 23,
+        "formula": "(2026-11-22值/2026-10-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pct",
+        "value": -30.1077,
+        "basis_date": "2025-12-31",
+        "basis_value": 87508.828125,
+        "end_date": "2026-11-22",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 326,
+        "expected_sessions": 327,
+        "formula": "(2026-11-22值/2025-12-31值−1)×100",
+        "return_semantics": "价格收益(采集器复权口径,见注册表adjustment)"
+       }
+      ]
+     }
+    ],
+    "credit_spread": [
+     {
+      "metric_id": "HY_OAS",
+      "display_name": "高收益债OAS利差",
+      "unit": "percentage_point",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "credit_spread",
+      "identity": {
+       "instrument": "index_rate_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+      "value": 3.52,
+      "presence": "present",
+      "value_type": "yield_or_spread_level",
+      "observation_date": "2026-11-19",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "macro_collector",
+       "file": "macro_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pp",
+        "value": 0.29,
+        "basis_date": "2026-11-13",
+        "basis_value": 3.23,
+        "end_date": "2026-11-19",
+        "window_semantics": "ISO周(2026-11-16起)之前最后观测为基准",
+        "sessions_in_window": 4,
+        "expected_sessions": 5,
+        "formula": "2026-11-19值−2026-11-13值(百分点;1pp=100bp)",
+        "bp_equivalent": 29.0
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pp",
+        "value": 0.08,
+        "basis_date": "2026-10-30",
+        "basis_value": 3.44,
+        "end_date": "2026-11-19",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 14,
+        "expected_sessions": 15,
+        "formula": "2026-11-19值−2026-10-30值(百分点;1pp=100bp)",
+        "bp_equivalent": 8.0
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pp",
+        "value": 0.71,
+        "basis_date": "2025-12-31",
+        "basis_value": 2.81,
+        "end_date": "2026-11-19",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 233,
+        "expected_sessions": 224,
+        "formula": "2026-11-19值−2025-12-31值(百分点;1pp=100bp)",
+        "bp_equivalent": 71.0
+       }
+      ]
+     },
+     {
+      "metric_id": "BB_OAS",
+      "display_name": "BB级OAS利差",
+      "unit": "percentage_point",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "credit_spread",
+      "identity": {
+       "instrument": "index_rate_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+      "value": 2.1,
+      "presence": "present",
+      "value_type": "yield_or_spread_level",
+      "observation_date": "2026-11-19",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "macro_collector",
+       "file": "macro_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pp",
+        "value": 0.24,
+        "basis_date": "2026-11-13",
+        "basis_value": 1.86,
+        "end_date": "2026-11-19",
+        "window_semantics": "ISO周(2026-11-16起)之前最后观测为基准",
+        "sessions_in_window": 4,
+        "expected_sessions": 5,
+        "formula": "2026-11-19值−2026-11-13值(百分点;1pp=100bp)",
+        "bp_equivalent": 24.0
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pp",
+        "value": 0.01,
+        "basis_date": "2026-10-30",
+        "basis_value": 2.09,
+        "end_date": "2026-11-19",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 14,
+        "expected_sessions": 15,
+        "formula": "2026-11-19值−2026-10-30值(百分点;1pp=100bp)",
+        "bp_equivalent": 1.0
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pp",
+        "value": 0.41,
+        "basis_date": "2025-12-31",
+        "basis_value": 1.69,
+        "end_date": "2026-11-19",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 233,
+        "expected_sessions": 224,
+        "formula": "2026-11-19值−2025-12-31值(百分点;1pp=100bp)",
+        "bp_equivalent": 41.0
+       }
+      ]
+     },
+     {
+      "metric_id": "B_OAS",
+      "display_name": "B级OAS利差",
+      "unit": "percentage_point",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "credit_spread",
+      "identity": {
+       "instrument": "index_rate_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+      "value": 3.8,
+      "presence": "present",
+      "value_type": "yield_or_spread_level",
+      "observation_date": "2026-11-19",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "macro_collector",
+       "file": "macro_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pp",
+        "value": 0.36,
+        "basis_date": "2026-11-13",
+        "basis_value": 3.44,
+        "end_date": "2026-11-19",
+        "window_semantics": "ISO周(2026-11-16起)之前最后观测为基准",
+        "sessions_in_window": 4,
+        "expected_sessions": 5,
+        "formula": "2026-11-19值−2026-11-13值(百分点;1pp=100bp)",
+        "bp_equivalent": 36.0
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pp",
+        "value": 0.2,
+        "basis_date": "2026-10-30",
+        "basis_value": 3.6,
+        "end_date": "2026-11-19",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 14,
+        "expected_sessions": 15,
+        "formula": "2026-11-19值−2026-10-30值(百分点;1pp=100bp)",
+        "bp_equivalent": 20.0
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pp",
+        "value": 0.79,
+        "basis_date": "2025-12-31",
+        "basis_value": 3.01,
+        "end_date": "2026-11-19",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 233,
+        "expected_sessions": 224,
+        "formula": "2026-11-19值−2025-12-31值(百分点;1pp=100bp)",
+        "bp_equivalent": 79.0
+       }
+      ]
+     },
+     {
+      "metric_id": "CCC_OAS",
+      "display_name": "CCC级OAS利差",
+      "unit": "percentage_point",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "credit_spread",
+      "identity": {
+       "instrument": "index_rate_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+      "value": 13.61,
+      "presence": "present",
+      "value_type": "yield_or_spread_level",
+      "observation_date": "2026-11-19",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "macro_collector",
+       "file": "macro_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pp",
+        "value": 0.45,
+        "basis_date": "2026-11-13",
+        "basis_value": 13.16,
+        "end_date": "2026-11-19",
+        "window_semantics": "ISO周(2026-11-16起)之前最后观测为基准",
+        "sessions_in_window": 4,
+        "expected_sessions": 5,
+        "formula": "2026-11-19值−2026-11-13值(百分点;1pp=100bp)",
+        "bp_equivalent": 45.0
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pp",
+        "value": 0.34,
+        "basis_date": "2026-10-30",
+        "basis_value": 13.27,
+        "end_date": "2026-11-19",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 14,
+        "expected_sessions": 15,
+        "formula": "2026-11-19值−2026-10-30值(百分点;1pp=100bp)",
+        "bp_equivalent": 34.0
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pp",
+        "value": 4.76,
+        "basis_date": "2025-12-31",
+        "basis_value": 8.85,
+        "end_date": "2026-11-19",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 233,
+        "expected_sessions": 224,
+        "formula": "2026-11-19值−2025-12-31值(百分点;1pp=100bp)",
+        "bp_equivalent": 476.0
+       }
+      ]
+     },
+     {
+      "metric_id": "IG_OAS",
+      "display_name": "投资级OAS利差",
+      "unit": "percentage_point",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "credit_spread",
+      "identity": {
+       "instrument": "index_rate_series",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "FRED系列最新观测(日历日发布,非交易日无新观测)",
+      "value": 0.94,
+      "presence": "present",
+      "value_type": "yield_or_spread_level",
+      "observation_date": "2026-11-19",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "macro_collector",
+       "file": "macro_20261123.json"
+      },
+      "changes": [
+       {
+        "window": "week",
+        "change_unit": "pp",
+        "value": 0.05,
+        "basis_date": "2026-11-13",
+        "basis_value": 0.89,
+        "end_date": "2026-11-19",
+        "window_semantics": "ISO周(2026-11-16起)之前最后观测为基准",
+        "sessions_in_window": 4,
+        "expected_sessions": 5,
+        "formula": "2026-11-19值−2026-11-13值(百分点;1pp=100bp)",
+        "bp_equivalent": 5.0
+       },
+       {
+        "window": "mtd",
+        "change_unit": "pp",
+        "value": 0.0,
+        "basis_date": "2026-10-30",
+        "basis_value": 0.94,
+        "end_date": "2026-11-19",
+        "window_semantics": "前一日历月(2026-10)最后观测为基准",
+        "sessions_in_window": 14,
+        "expected_sessions": 15,
+        "formula": "2026-11-19值−2026-10-30值(百分点;1pp=100bp)",
+        "bp_equivalent": 0.0
+       },
+       {
+        "window": "ytd",
+        "change_unit": "pp",
+        "value": 0.15,
+        "basis_date": "2025-12-31",
+        "basis_value": 0.79,
+        "end_date": "2026-11-19",
+        "window_semantics": "前一年度(2025)最后观测为基准",
+        "sessions_in_window": 233,
+        "expected_sessions": 224,
+        "formula": "2026-11-19值−2025-12-31值(百分点;1pp=100bp)",
+        "bp_equivalent": 15.0
+       }
+      ]
+     },
+     {
+      "metric_id": "HY_IG_DIFF",
+      "display_name": "高收益−投资级利差差",
+      "unit": "percentage_point",
+      "unit_family": "rate",
+      "frequency": "daily",
+      "asset_class": "credit_spread",
+      "identity": {
+       "instrument": "derived",
+       "is_proxy": false,
+       "proxy_of": null,
+       "adjustment": "none",
+       "market_seat": "onshore_local",
+       "economy": "US"
+      },
+      "calc": "HY_OAS − IG_OAS(评级档间利差差,百分点)",
+      "value": 2.58,
+      "presence": "present",
+      "value_type": "derived_spread",
+      "observation_date": "2026-11-19",
+      "quality_status": "PASS",
+      "issues": [],
+      "as_of": "2026-11-23T22:58:11+08:00",
+      "source": {
+       "collector": "fact_engine",
+       "file": "derived"
+      },
+      "changes": []
+     }
+    ]
+   },
+   "window_note": "周/月/年内变化各自的窗口语义见每条 changes[].window_semantics(如\"ISO周之前最后观测为基准\"),非\"最近7天\""
+  },
+  "warnings": []
+ }
+}

@@ -103,25 +103,31 @@ print("\n[1] 注册表(source_key 可选字段;锁随升 v2.8.4/R11 7条+japan 4
 REG_PATH = os.path.join(ROOT, 'config', 'metric_registry.json')
 with open(REG_PATH, encoding='utf-8') as f:
     REG = json.load(f)
-check("版本 v2.8.5(R25 DFF history_source;R11 落位时 2.8.3,R12 曾升 2.8.4)", REG['version'] == '2.8.5',
+# R20: 注册表升版 v2.8.6(四地补齐);R11/R12 source_key 事实仍在册
+check("版本 v2.8.6(R20 四地补齐;R25 DFF history_source;R11 落位时 2.8.3,R12 曾升 2.8.4)", REG['version'] == '2.8.7',
       REG['version'])
 SKEY_EXPECT = {
     'ECB_DFR': 'ECB_FM_DFR', 'ECB_MRO': 'ECB_FM_MRO',
     'BUND_10Y': 'BBK_WU3146', 'BUND_2Y': 'BBK_WU3141',
-    'EA_HICP_YOY': 'ECB_ICP_HICP',
+    'EA_HICP_YOY': 'ECB_HICP',
     'JP_CPI_TOKYO_YOY': 'JP_CPI_TOKYO', 'NIKKEI225': 'FRED_NIKKEI225',
     'JP_POLICY_RATE': 'FRED_POLICY',
-    'JGB2Y': 'MOF_JGBCME', 'JGB5Y': 'MOF_JGBCME', 'JGB10Y': 'MOF_JGBCME'}
+    'JGB2Y': 'MOF_JGBCME', 'JGB5Y': 'MOF_JGBCME', 'JGB10Y': 'MOF_JGBCME',
+    # R20: 四地补齐新增三键 + EA_HICP_YOY 源切官方替代流程(旧 ECB_ICP_HICP 停用)
+    'JP_CPI_YOY': 'STATGO_CPI', 'EA_REAL_GDP_YOY': 'FRED_EA_GDP',
+    'JP_REAL_GDP_YOY': 'FRED_JP_GDP'}
 got = {m['metric_id']: m.get('source_key') for m in REG['metrics']
        if m.get('source_key')}
-check("source_key 11 条精确值(与 ea/jp/japan 采集器档内 sources_status 键一致)",
+# R20: 11→14 条(R20 +3;EA_HICP_YOY 换键)
+check("source_key 14 条精确值(与 ea/jp/japan 采集器档内 sources_status 键一致)",
       got == SKEY_EXPECT, got)
 check("field_semantics 含 source_key 定义",
       isinstance(REG.get('field_semantics', {}).get('source_key'), str)
       and '子源' in REG['field_semantics']['source_key'])
-check("指标集零变动: 110 条/108 active",
-      len(REG['metrics']) == 110
-      and sum(1 for m in REG['metrics'] if m.get('status') == 'active') == 108)
+# R20: 110→113/108→111(R20 四地补齐 +3,均 active)
+check("指标集零变动: 114 条/112 active(R21 +1)",  # R21: 113→114/111→112
+      len(REG['metrics']) == 114
+      and sum(1 for m in REG['metrics'] if m.get('status') == 'active') == 112)
 probs = rsem.validate_registry(REG)
 check("registry_semantics 校验零问题(source_key 新字段不破坏封闭词汇校验)",
       not probs, str(probs)[:120])

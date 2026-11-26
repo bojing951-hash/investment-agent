@@ -1,0 +1,326 @@
+{
+ "block": "⑤",
+ "title": "资产月窗(2026-10-23 → 最新)与收盘口径对照",
+ "rows": [
+  {
+   "block": "⑤",
+   "id": "B1-SPX 窗启值 2026-10-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX[2026-10-23]",
+   "kind": "point",
+   "computed": 7623.680176,
+   "claim": 7623.68,
+   "match": true,
+   "detail": "直算 7623.68 → 取 2 位 7623.68; 报告 7623.68; "
+  },
+  {
+   "block": "⑤",
+   "id": "B2-SPX 窗末值 2026-11-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX[2026-11-23]",
+   "kind": "point",
+   "computed": 7203.850098,
+   "claim": 7203.85,
+   "match": true,
+   "detail": "直算 7203.85 → 取 2 位 7203.85; 报告 7203.85; "
+  },
+  {
+   "block": "⑤",
+   "id": "B3-SPX 近一月变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX[2026-10-23..2026-11-23]",
+   "kind": "point",
+   "computed": -5.506921,
+   "claim": -5.51,
+   "match": true,
+   "detail": "直算 -5.50692 → 取 2 位 -5.51; 报告 -5.51; "
+  },
+  {
+   "block": "⑤",
+   "id": "B4-SPX 序列末观测=2026-11-23(截止日前最后观测)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; ≤2026-11-23 最后观测 2026-11-23"
+  },
+  {
+   "block": "⑤",
+   "id": "B1-NIKKEI225 窗启值 2026-10-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.NIKKEI225[2026-10-23]",
+   "kind": "point",
+   "computed": 62693.16,
+   "claim": 62693.16,
+   "match": true,
+   "detail": "直算 62693.2 → 取 2 位 62693.16; 报告 62693.16; "
+  },
+  {
+   "block": "⑤",
+   "id": "B2-NIKKEI225 窗末值 2026-11-20",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.NIKKEI225[2026-11-20]",
+   "kind": "point",
+   "computed": 56436.65,
+   "claim": 56436.65,
+   "match": true,
+   "detail": "直算 56436.7 → 取 2 位 56436.65; 报告 56436.65; "
+  },
+  {
+   "block": "⑤",
+   "id": "B3-NIKKEI225 近一月变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.NIKKEI225[2026-10-23..2026-11-20]",
+   "kind": "point",
+   "computed": -9.979574,
+   "claim": -9.98,
+   "match": true,
+   "detail": "直算 -9.97957 → 取 2 位 -9.98; 报告 -9.98; "
+  },
+  {
+   "block": "⑤",
+   "id": "B4-NIKKEI225 序列末观测=2026-11-20(截止日前最后观测)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.NIKKEI225",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; ≤2026-11-23 最后观测 2026-11-20"
+  },
+  {
+   "block": "⑤",
+   "id": "B1-GOLD_F 窗启值 2026-10-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.GOLD_F[2026-10-23]",
+   "kind": "point",
+   "computed": 4007.899902,
+   "claim": 4007.9,
+   "match": true,
+   "detail": "直算 4007.9 → 取 2 位 4007.9; 报告 4007.9; "
+  },
+  {
+   "block": "⑤",
+   "id": "B2-GOLD_F 窗末值 2026-11-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.GOLD_F[2026-11-23]",
+   "kind": "point",
+   "computed": 3685.199951,
+   "claim": 3685.2,
+   "match": true,
+   "detail": "直算 3685.2 → 取 2 位 3685.2; 报告 3685.2; "
+  },
+  {
+   "block": "⑤",
+   "id": "B3-GOLD_F 近一月变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.GOLD_F[2026-10-23..2026-11-23]",
+   "kind": "point",
+   "computed": -8.051597,
+   "claim": -8.05,
+   "match": true,
+   "detail": "直算 -8.0516 → 取 2 位 -8.05; 报告 -8.05; "
+  },
+  {
+   "block": "⑤",
+   "id": "B4-GOLD_F 序列末观测=2026-11-23(截止日前最后观测)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.GOLD_F",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; ≤2026-11-23 最后观测 2026-11-23"
+  },
+  {
+   "block": "⑤",
+   "id": "B1-DXY 窗启值 2026-10-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.DXY[2026-10-23]",
+   "kind": "point",
+   "computed": 101.809998,
+   "claim": 101.81,
+   "match": true,
+   "detail": "直算 101.81 → 取 2 位 101.81; 报告 101.81; "
+  },
+  {
+   "block": "⑤",
+   "id": "B2-DXY 窗末值 2026-11-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.DXY[2026-11-23]",
+   "kind": "point",
+   "computed": 104.079002,
+   "claim": 104.079,
+   "match": true,
+   "detail": "直算 104.079 → 取 2 位 104.08; 报告 104.079; "
+  },
+  {
+   "block": "⑤",
+   "id": "B3-DXY 近一月变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.DXY[2026-10-23..2026-11-23]",
+   "kind": "point",
+   "computed": 2.228665,
+   "claim": 2.23,
+   "match": true,
+   "detail": "直算 2.22867 → 取 2 位 2.23; 报告 2.23; "
+  },
+  {
+   "block": "⑤",
+   "id": "B4-DXY 序列末观测=2026-11-23(截止日前最后观测)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.DXY",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; ≤2026-11-23 最后观测 2026-11-23"
+  },
+  {
+   "block": "⑤",
+   "id": "B1-VIX 窗启值 2026-10-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX[2026-10-23]",
+   "kind": "point",
+   "computed": 19.450001,
+   "claim": 19.45,
+   "match": true,
+   "detail": "直算 19.45 → 取 2 位 19.45; 报告 19.45; "
+  },
+  {
+   "block": "⑤",
+   "id": "B2-VIX 窗末值 2026-11-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX[2026-11-23]",
+   "kind": "point",
+   "computed": 27.01,
+   "claim": 27.01,
+   "match": true,
+   "detail": "直算 27.01 → 取 2 位 27.01; 报告 27.01; "
+  },
+  {
+   "block": "⑤",
+   "id": "B3-VIX 近一月变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX[2026-10-23..2026-11-23]",
+   "kind": "point",
+   "computed": 38.868887,
+   "claim": 38.87,
+   "match": true,
+   "detail": "直算 38.8689 → 取 2 位 38.87; 报告 38.87; "
+  },
+  {
+   "block": "⑤",
+   "id": "B4-VIX 序列末观测=2026-11-23(截止日前最后观测)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; ≤2026-11-23 最后观测 2026-11-23"
+  },
+  {
+   "block": "⑤",
+   "id": "B5-SPX 共同交易日窗 2026-10-23→2026-11-19 变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX[2026-10-23, 2026-11-19]",
+   "kind": "point",
+   "computed": -5.874461,
+   "claim": -5.87,
+   "match": true,
+   "detail": "直算 -5.87446 → 取 2 位 -5.87; 报告 -5.87; "
+  },
+  {
+   "block": "⑤",
+   "id": "B6-同日收盘口径 SPX 2026-10-23→2026-11-20 变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX[2026-10-23, 2026-11-20]",
+   "kind": "point",
+   "computed": -9.356243,
+   "claim": -9.36,
+   "match": true,
+   "detail": "直算 -9.35624 → 取 2 位 -9.36; 报告 -9.36; "
+  },
+  {
+   "block": "⑤",
+   "id": "B7-同日收盘口径 VIX 2026-10-23→2026-11-20 变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX[2026-10-23, 2026-11-20]",
+   "kind": "point",
+   "computed": 84.524407,
+   "claim": 84.52,
+   "match": true,
+   "detail": "直算 84.5244 → 取 2 位 84.52; 报告 84.52; "
+  },
+  {
+   "block": "⑤",
+   "id": "B8-三个月收盘口径 SPX 2026-08-19→2026-11-20 变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX[2026-08-19, 2026-11-20]",
+   "kind": "point",
+   "computed": -10.347586,
+   "claim": -10.35,
+   "match": true,
+   "detail": "直算 -10.3476 → 取 2 位 -10.35; 报告 -10.35; "
+  },
+  {
+   "block": "⑤",
+   "id": "B9-三个月收盘口径 VIX 2026-08-19→2026-11-20 变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX[2026-08-19, 2026-11-20]",
+   "kind": "point",
+   "computed": 141.034244,
+   "claim": 141.03,
+   "match": true,
+   "detail": "直算 141.034 → 取 2 位 141.03; 报告 141.03; "
+  },
+  {
+   "block": "⑤",
+   "id": "B10-三个月收盘口径 VIX 窗启 2026-08-19",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX[2026-08-19]",
+   "kind": "point",
+   "computed": 14.89,
+   "claim": 14.89,
+   "match": true,
+   "detail": "直算 14.89 → 取 2 位 14.89; 报告 14.89; "
+  },
+  {
+   "block": "⑤",
+   "id": "B11-三个月收盘口径 VIX 窗末 2026-11-20",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX[2026-11-20]",
+   "kind": "point",
+   "computed": 35.889999,
+   "claim": 35.89,
+   "match": true,
+   "detail": "直算 35.89 → 取 2 位 35.89; 报告 35.89; "
+  },
+  {
+   "block": "⑤",
+   "id": "B12-VIX 窗启 2026-10-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX[2026-10-23]",
+   "kind": "point",
+   "computed": 19.450001,
+   "claim": 19.45,
+   "match": true,
+   "detail": "直算 19.45 → 取 2 位 19.45; 报告 19.45; "
+  },
+  {
+   "block": "⑤",
+   "id": "B13-VIX 窗末 2026-11-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.VIX[2026-11-23]",
+   "kind": "point",
+   "computed": 27.01,
+   "claim": 27.01,
+   "match": true,
+   "detail": "直算 27.01 → 取 2 位 27.01; 报告 27.01; "
+  },
+  {
+   "block": "⑤",
+   "id": "B14-「同窗 TIPS_10Y +53bp(三个月收盘口径, 利率序列止于 2026-11-19)」",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.TIPS_10Y[2026-08-19, 2026-11-19]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑤",
+   "id": "B15-股金同跌、美元与波动率齐升(近一月窗)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX/GOLD_F/DXY/VIX/NIKKEI225",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; SPX/NIKKEI225/GOLD_F 负、DXY/VIX 正"
+  },
+  {
+   "block": "⑤",
+   "id": "B16-S2 所述「共同交易日窗 2026-10-20→2026-11-19 实际利率 +11bp 而风险资产回落」",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.SPX[2026-10-20, 2026-11-19]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; SPX 7712.569824→7175.830078 (-6.96%)"
+  }
+ ]
+}

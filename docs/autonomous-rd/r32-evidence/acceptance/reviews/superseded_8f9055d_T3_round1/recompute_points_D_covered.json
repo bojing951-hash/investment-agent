@@ -1,0 +1,364 @@
+{
+ "already_covered": [
+  {
+   "metric": "EA_HICP_YOY",
+   "month": "2025-11",
+   "value": 2.1,
+   "row": "F015"
+  },
+  {
+   "metric": "EA_HICP_YOY",
+   "month": "2026-01",
+   "value": 1.7,
+   "row": "C015"
+  },
+  {
+   "metric": "EA_HICP_YOY",
+   "month": "2026-02",
+   "value": 1.9,
+   "row": "F006"
+  },
+  {
+   "metric": "EA_HICP_YOY",
+   "month": "2026-04",
+   "value": 3.0,
+   "row": "B001"
+  },
+  {
+   "metric": "EA_HICP_YOY",
+   "month": "2026-05",
+   "value": 3.2,
+   "row": "F007"
+  },
+  {
+   "metric": "EA_HICP_YOY",
+   "month": "2026-06",
+   "value": 2.8,
+   "row": "F028"
+  },
+  {
+   "metric": "EA_HICP_YOY",
+   "month": "2026-07",
+   "value": 2.9,
+   "row": "F029"
+  },
+  {
+   "metric": "EA_HICP_YOY",
+   "month": "2026-08",
+   "value": 3.2,
+   "row": "F030"
+  },
+  {
+   "metric": "EA_HICP_YOY",
+   "month": "2026-09",
+   "value": 3.8,
+   "row": "F031"
+  },
+  {
+   "metric": "EA_HICP_YOY",
+   "month": "2026-10",
+   "value": 4.0,
+   "row": "B004"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2025-01",
+   "value": 4.03,
+   "row": "G005"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2025-07",
+   "value": 3.1,
+   "row": "G007"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2025-09",
+   "value": 2.91,
+   "row": "G008"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2025-10",
+   "value": 2.99,
+   "row": "C001"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2025-11",
+   "value": 2.9,
+   "row": "F002"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2026-02",
+   "value": 1.27,
+   "row": "C016"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2026-03",
+   "value": 1.46,
+   "row": "F019"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2026-04",
+   "value": 1.38,
+   "row": "B019"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2026-05",
+   "value": 1.53,
+   "row": "F021"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2026-06",
+   "value": 1.67,
+   "row": "F022"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2026-07",
+   "value": 1.97,
+   "row": "F023"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2026-08",
+   "value": 1.98,
+   "row": "F024"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2026-09",
+   "value": 2.16,
+   "row": "F025"
+  },
+  {
+   "metric": "JP_CPI_YOY",
+   "month": "2026-10",
+   "value": 2.44,
+   "row": "B022"
+  },
+  {
+   "metric": "JP_CPI_TOKYO_YOY",
+   "month": "2026-04",
+   "value": 1.42,
+   "row": "B025"
+  },
+  {
+   "metric": "JP_CPI_TOKYO_YOY",
+   "month": "2026-10",
+   "value": 2.73,
+   "row": "B028"
+  },
+  {
+   "metric": "JP_POLICY_RATE",
+   "month": "2025-11",
+   "value": 0.478,
+   "row": "D040"
+  },
+  {
+   "metric": "JP_POLICY_RATE",
+   "month": "2026-01",
+   "value": 0.728,
+   "row": "F027"
+  },
+  {
+   "metric": "JP_POLICY_RATE",
+   "month": "2026-04",
+   "value": 0.727,
+   "row": "B031"
+  },
+  {
+   "metric": "JP_POLICY_RATE",
+   "month": "2026-06",
+   "value": 0.841,
+   "row": "F035"
+  },
+  {
+   "metric": "JP_POLICY_RATE",
+   "month": "2026-07",
+   "value": 0.978,
+   "row": "F011"
+  },
+  {
+   "metric": "JP_POLICY_RATE",
+   "month": "2026-08",
+   "value": 0.977,
+   "row": "F036"
+  },
+  {
+   "metric": "JP_POLICY_RATE",
+   "month": "2026-09",
+   "value": 1.043,
+   "row": "D038"
+  },
+  {
+   "metric": "JP_POLICY_RATE",
+   "month": "2026-10",
+   "value": 1.227,
+   "row": "B034"
+  },
+  {
+   "metric": "ECB_MRO",
+   "date": "2026-09-16",
+   "value": 2.65,
+   "row": "D002"
+  },
+  {
+   "metric": "ECB_DFR",
+   "date": "2026-09-16",
+   "value": 2.5,
+   "row": "D003"
+  },
+  {
+   "metric": "USDJPY",
+   "date": "2026-11-23",
+   "value": 159.347,
+   "row": "J023"
+  },
+  {
+   "metric": "SPX",
+   "date": "2026-11-23",
+   "value": 7203.850098,
+   "row": "G060"
+  },
+  {
+   "metric": "VIX",
+   "date": "2026-11-23",
+   "value": 27.01,
+   "row": "G063"
+  },
+  {
+   "metric": "UST_10Y",
+   "date": "2026-11-19",
+   "value": 5.04,
+   "row": "E016"
+  },
+  {
+   "metric": "EURUSD",
+   "date": "2026-10-23",
+   "value": 1.122146,
+   "row": "G022"
+  },
+  {
+   "metric": "EURUSD",
+   "date": "2026-11-20",
+   "value": 1.096972,
+   "row": "G023"
+  },
+  {
+   "metric": "USDJPY",
+   "date": "2026-10-23",
+   "value": 156.494003,
+   "row": "G025"
+  },
+  {
+   "metric": "USDJPY",
+   "date": "2026-11-20",
+   "value": 159.707001,
+   "row": "G026"
+  },
+  {
+   "metric": "DXY",
+   "date": "2026-10-23",
+   "value": 101.809998,
+   "row": "G028"
+  },
+  {
+   "metric": "DXY",
+   "date": "2026-11-20",
+   "value": 103.809998,
+   "row": "G029"
+  },
+  {
+   "metric": "DXY",
+   "date": "2026-11-23",
+   "value": 104.079002,
+   "row": "G035"
+  },
+  {
+   "metric": "EURUSD",
+   "date": "2026-11-23",
+   "value": 1.093972,
+   "row": "G031"
+  },
+  {
+   "metric": "USDJPY",
+   "date": "2026-11-23",
+   "value": 159.347,
+   "row": "G033"
+  },
+  {
+   "metric": "NIKKEI225",
+   "date": "2026-11-20",
+   "value": 56436.65,
+   "row": "G062"
+  },
+  {
+   "metric": "DAX",
+   "date": "2026-11-23",
+   "value": 25209.449219,
+   "row": "G061"
+  },
+  {
+   "metric": "VIX",
+   "date": "2026-11-13",
+   "value": 19.299999,
+   "row": "G052"
+  },
+  {
+   "metric": "VIX",
+   "date": "2026-11-16",
+   "value": 22.91,
+   "row": "G053"
+  },
+  {
+   "metric": "VIX",
+   "date": "2026-11-17",
+   "value": 25.459999,
+   "row": "G054"
+  },
+  {
+   "metric": "VIX",
+   "date": "2026-11-18",
+   "value": 24.559999,
+   "row": "G055"
+  },
+  {
+   "metric": "VIX",
+   "date": "2026-11-19",
+   "value": 28.440001,
+   "row": "G056"
+  },
+  {
+   "metric": "VIX",
+   "date": "2026-11-20",
+   "value": 35.889999,
+   "row": "G050"
+  },
+  {
+   "metric": "VIX",
+   "date": "2026-11-04",
+   "value": 16.610001,
+   "row": "G064"
+  },
+  {
+   "metric": "VIX",
+   "date": "2026-11-05",
+   "value": 28.18,
+   "row": "G065"
+  },
+  {
+   "metric": "VIX",
+   "date": "2026-11-11",
+   "value": 17.49,
+   "row": "G067"
+  }
+ ]
+}

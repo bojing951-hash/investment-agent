@@ -1,0 +1,468 @@
+{
+ "cells": [
+  {
+   "region": "US",
+   "dimension": "growth",
+   "metric_id": "US_REAL_GDP",
+   "display_name": "美国实际GDP(SAAR)",
+   "unit": "billion_usd",
+   "face_note": "实际GDP(季频水平)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-04-01",
+     "publication_date": "2026-07-29",
+     "publication_rule": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+     "publication_basis": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 24408.011,
+     "period_end": "2026-06-30",
+     "derived_yoy_pct": 2.19,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-10-29",
+     "publication_rule": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+     "publication_basis": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 24611.077,
+     "period_end": "2026-09-30",
+     "derived_yoy_pct": 2.07,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    }
+   },
+   "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+   "policy_face": null
+  },
+  {
+   "region": "US",
+   "dimension": "growth",
+   "metric_id": "UNEMPLOYMENT",
+   "display_name": "失业率(U-3)",
+   "unit": "percent",
+   "face_note": "失业率(月频)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-05",
+     "publication_rule": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+     "publication_basis": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 4.1,
+     "period_end": "2026-07-31"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-05",
+     "publication_rule": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+     "publication_basis": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 4.1,
+     "period_end": "2026-10-31"
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "US",
+   "dimension": "growth",
+   "metric_id": "INDPRO",
+   "display_name": "工业生产指数(SA)",
+   "unit": "index_point_2017",
+   "face_note": "工业生产指数(月频水平)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-15",
+     "publication_rule": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+     "publication_basis": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 103.1675,
+     "period_end": "2026-07-31",
+     "derived_yoy_pct": 1.25,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-15",
+     "publication_rule": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+     "publication_basis": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 103.3954,
+     "period_end": "2026-10-31",
+     "derived_yoy_pct": 2.15,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "US",
+   "dimension": "inflation",
+   "metric_id": "CPI",
+   "display_name": "CPI物价指数(SA)",
+   "unit": "index_point_1982_84",
+   "face_note": "CPI(月频水平,同比派生)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-13",
+     "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 332.813,
+     "period_end": "2026-07-31",
+     "derived_yoy_pct": 3.3,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-13",
+     "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 337.476,
+     "period_end": "2026-10-31",
+     "derived_yoy_pct": null,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "no_same_period_base",
+     "yoy_note": "同比不可得: 缺2025-10基期观测(月度同比只配去年同月/季度只配去年同季,不以最近前值代基期)",
+     "latest_valid_yoy": {
+      "observation_date": "2026-09-01",
+      "yoy_pct": 3.72
+     }
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "US",
+   "dimension": "inflation",
+   "metric_id": "CORE_CPI",
+   "display_name": "核心CPI(SA,剔除食品能源)",
+   "unit": "index_point_1982_84",
+   "face_note": "核心CPI(月频水平,同比派生)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-13",
+     "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 336.789,
+     "period_end": "2026-07-31",
+     "derived_yoy_pct": 2.47,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-13",
+     "publication_rule": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "publication_basis": "BLS CPI 次月中旬发布(月末+13天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 339.9,
+     "period_end": "2026-10-31",
+     "derived_yoy_pct": null,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "no_same_period_base",
+     "yoy_note": "同比不可得: 缺2025-10基期观测(月度同比只配去年同月/季度只配去年同季,不以最近前值代基期)",
+     "latest_valid_yoy": {
+      "observation_date": "2026-09-01",
+      "yoy_pct": 2.57
+     }
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "US",
+   "dimension": "inflation",
+   "metric_id": "CORE_PCE",
+   "display_name": "核心PCE(SA)",
+   "unit": "index_point_2017",
+   "face_note": "核心PCE(月频水平,同比派生)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-06-01",
+     "publication_date": "2026-07-30",
+     "publication_rule": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+     "publication_basis": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 129.969,
+     "period_end": "2026-06-30",
+     "derived_yoy_pct": 3.04,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-09-01",
+     "publication_date": "2026-10-30",
+     "publication_rule": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+     "publication_basis": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 130.902,
+     "period_end": "2026-09-30",
+     "derived_yoy_pct": 3.12,
+     "value_kind": "level(同比须用 derived_yoy_pct)",
+     "yoy_status": "ok"
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": null
+  },
+  {
+   "region": "EA",
+   "dimension": "growth",
+   "metric_id": "EA_REAL_GDP_YOY",
+   "display_name": "欧元区实际GDP同比",
+   "unit": "percent",
+   "face_note": "实际GDP同比(季频,FRED最新修订值→事后回顾口径)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-04-01",
+     "publication_date": "2026-08-04",
+     "publication_rule": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)",
+     "publication_basis": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 1.19,
+     "period_end": "2026-06-30"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-11-04",
+     "publication_rule": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)",
+     "publication_basis": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 1.28,
+     "period_end": "2026-09-30"
+    }
+   },
+   "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+   "policy_face": null
+  },
+  {
+   "region": "EA",
+   "dimension": "inflation",
+   "metric_id": "EA_HICP_YOY",
+   "display_name": "欧元区HICP同比",
+   "unit": "percent",
+   "face_note": "HICP同比(月频)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-16",
+     "publication_rule": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)",
+     "publication_basis": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 2.9,
+     "period_end": "2026-07-31"
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-16",
+     "publication_rule": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)",
+     "publication_basis": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)",
+     "vintage": "事后回顾(最新修订值,非当时首发值)",
+     "value": 4.0,
+     "period_end": "2026-10-31"
+    }
+   },
+   "vintage_semantics": "事后回顾(最新修订值,非当时首发值)",
+   "policy_face": null
+  },
+  {
+   "region": "JP",
+   "dimension": "policy",
+   "metric_id": "JP_POLICY_RATE",
+   "display_name": "日本无担保隔夜拆借利率(月均)",
+   "unit": "percent",
+   "face_note": "无担保隔夜拆借利率(月均口径——月均≠政策目标宣布值,任务3四分注记)",
+   "source": "研究快照 series_store",
+   "anchors": {
+    "3个月前": {
+     "status": "ok",
+     "as_of": "2026-08-23",
+     "observation_date": "2026-07-01",
+     "publication_date": "2026-08-05",
+     "publication_rule": "BOJ 月均次月初公布(月末+5天,推定)",
+     "publication_basis": "BOJ 月均次月初公布(月末+5天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 0.978,
+     "period_end": "2026-07-31",
+     "policy_dates": {
+      "face": "隔夜市场均值(月均)",
+      "market_seat_label": "无担保隔夜拆借月均",
+      "decision_note": null,
+      "effective_note": null,
+      "market_note": null,
+      "decision": null,
+      "effective": null,
+      "market_observation": null,
+      "stat_window_end": "2026-07-31"
+     }
+    },
+    "最新一期": {
+     "status": "ok",
+     "as_of": "2026-11-23",
+     "observation_date": "2026-10-01",
+     "publication_date": "2026-11-05",
+     "publication_rule": "BOJ 月均次月初公布(月末+5天,推定)",
+     "publication_basis": "BOJ 月均次月初公布(月末+5天,推定)",
+     "vintage": "as_collected(采集时点值)",
+     "value": 1.227,
+     "period_end": "2026-10-31",
+     "policy_dates": {
+      "face": "隔夜市场均值(月均)",
+      "market_seat_label": "无担保隔夜拆借月均",
+      "decision_note": null,
+      "effective_note": null,
+      "market_note": null,
+      "decision": null,
+      "effective": null,
+      "market_observation": null,
+      "stat_window_end": "2026-10-31"
+     }
+    }
+   },
+   "vintage_semantics": "as_collected(采集时点值)",
+   "policy_face": {
+    "face": "隔夜市场均值(月均)",
+    "market_seat_label": "无担保隔夜拆借月均",
+    "decision": null,
+    "effective": null,
+    "stat_window": "月"
+   },
+   "policy_window_path": {
+    "window": [
+     "2025-11-23",
+     "2026-11-23"
+    ],
+    "events": [
+     {
+      "date": "2025-12-01",
+      "from": 0.478,
+      "to": 0.557,
+      "delta_bp": 8
+     },
+     {
+      "date": "2026-01-01",
+      "from": 0.557,
+      "to": 0.728,
+      "delta_bp": 17
+     },
+     {
+      "date": "2026-06-01",
+      "from": 0.727,
+      "to": 0.841,
+      "delta_bp": 11
+     },
+     {
+      "date": "2026-07-01",
+      "from": 0.841,
+      "to": 0.978,
+      "delta_bp": 14
+     },
+     {
+      "date": "2026-09-01",
+      "from": 0.977,
+      "to": 1.043,
+      "delta_bp": 7
+     },
+     {
+      "date": "2026-10-01",
+      "from": 1.043,
+      "to": 1.227,
+      "delta_bp": 18
+     }
+    ],
+    "window_start_value": 0.557,
+    "window_end_value": 1.227,
+    "net_bp": 67,
+    "note": "窗=[研究截止−12个月,研究截止](_shift_months 正参=回看,与 ex_post_windows 反向同源);events=窗内观测对其前值的变动点(date=序列值变更日=生效日,decision_date=决议日;前值可在窗启前一格);net_bp=窗首尾观测差(bp)。政策路径月频证据只能支持同步时,先后未定须在正文如实写明;决议日/生效日/市场观测日/统计窗口终点分列见 policy_dates。"
+   }
+  }
+ ],
+ "absent": [],
+ "asset_universe": [
+  "UST_2Y",
+  "UST_5Y",
+  "UST_10Y",
+  "UST_30Y",
+  "TIPS_5Y",
+  "TIPS_10Y",
+  "BEI_5Y",
+  "BEI_10Y",
+  "CURVE_2S10S",
+  "SPX",
+  "NDX",
+  "RUT",
+  "DAX",
+  "CAC40",
+  "NIKKEI225",
+  "HSI",
+  "SHCOMP",
+  "DXY",
+  "EURUSD",
+  "USDJPY",
+  "USDCNY",
+  "GOLD_F",
+  "SILVER_F",
+  "BRENT_F",
+  "HY_OAS",
+  "IG_OAS",
+  "BB_OAS",
+  "B_OAS",
+  "CCC_OAS",
+  "VIX"
+ ]
+}

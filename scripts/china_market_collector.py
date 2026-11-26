@@ -3,6 +3,8 @@ A股/港股数据采集模块 v2.1
 数据源：Tushare（A股主力）+ 腾讯ifzq直连（港股主通道）+ yfinance（港股备用）+ 新浪直连（AH溢价主通道）
 2026-10-17修复：恒指/国企yfinance连续4日429限流、东财push2在当前网络直连/代理双双被断
 （SSLError/ProxyError）→ 境内源一律直连不走系统代理，境外源(yfinance)保持走代理。
+Audit-R33 任务4(2026-11-25): 采集时间预算+断点续采+随档 collection_status
+(见「采集时间预算」节);指数清单/接口/参数/备源回落/61 秒限流间隔零变化。
 """
 
 import os
@@ -126,62 +128,158 @@ def _em_last_settled(df):
     return dstr, df.iloc[idx]
 
 
-def _fetch_index_em(code, name):
-    """F1 指数回落(东财,仅 tushare 异常时经 fetch_a_share_indices 进入):
-    返回与 tushare 路径同 schema 的 item + 恰一新增键 via='akshare_em';
-    取值行=date≤_em_max_date() 最后一行(在途行禁用);东财失败/无完结行
-    →None(该指数如实缺失)。单位披露: EM amount 单位=元(tushare 千元),
-    volume 语义=成交量;经 _no_proxy 禁代理直连。"""
+def _em_klines_direct(code, use_system_proxy=False):
+    """东财公开 kline 端点直连(push2his;R20 2026-11-19 实测):
+    akshare 包装层断连(RemoteDisconnected)期间的**同源等价**路径——同一
+    端点同一字段。直连与系统代理两会话各试一轮(当日实测: 出口 IP 被
+    端点间歇性断连,两会话命中其一即返回)。返回 [(date, close, volume,
+    amount)] 升序完结行(date≤_em_max_date());失败→[]。"""
+    em = EM_MAP.get(code)
+    if not em:
+        return []
+    secid = ('1.' if em.startswith('sh') else '0.') + em[2:]
+    sess = requests.Session() if use_system_proxy else _direct_session()
     try:
-        import akshare as ak
-        with _no_proxy():
-            df = ak.stock_zh_index_daily_em(symbol=EM_MAP[code])
-        settled = _em_settled_pairs(df)
-        if not settled:
-            print(f"  ⚠️ {name}({code}) 东财回落无完结行(date≤{_em_max_date()})")
+        r = sess.get(
+            'https://push2his.eastmoney.com/api/qt/stock/kline/get',
+            params={'secid': secid,
+                    'fields1': 'f1,f2,f3,f4,f5,f6',
+                    'fields2': 'f51,f52,f53,f54,f55,f56,f57,f58',
+                    'klt': '101', 'fqt': '0',
+                    'beg': '19900101', 'end': '20500101'},
+            timeout=20, headers={'User-Agent': 'Mozilla/5.0'})
+        klines = ((r.json().get('data') or {}).get('klines')) or []
+    except Exception:
+        return []
+    mx, out = _em_max_date(), []
+    for row in klines:
+        p = str(row).split(',')
+        if len(p) < 7 or p[0] > mx:      # f51日期,f53收盘,f56量,f57额
+            continue
+        try:
+            out.append((p[0], float(p[2]), float(p[5]), float(p[6])))
+        except ValueError:
+            continue
+    return out
+
+
+# 腾讯 ifzq 日K代码(A股指数;R20 2026-11-19 验证: 收盘与东财逐位一致,
+# 2026-11-18 上证 3587.83 两源同值)
+TX_INDEX_MAP = {
+    '000001.SH': 'sh000001',
+    '399001.SZ': 'sz399001',
+    '399006.SZ': 'sz399006',
+    '000300.SH': 'sh000300',
+    '000905.SH': 'sh000905',
+    '000852.SH': 'sh000852',
+}
+
+
+def _tx_klines(code):
+    """腾讯 ifzq fqkline 日K(A股指数第三路;R20 2026-11-19 增):
+    [date,open,close,high,low,volume]——无 amount 列(该路 amount=None,
+    如实缺席不造数)。count=320(≈16 个月浅窗;大 count 触发腾讯 WAF,
+    港股先例「深窗回补不可得,如实浅窗」);完结行 date≤_em_max_date()。
+    返回 [(date, close, volume, None)]。"""
+    tx = TX_INDEX_MAP.get(code)
+    if not tx:
+        return []
+    try:
+        r = _direct_session().get(
+            'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get',
+            params={'param': f'{tx},day,,,320,qfq'}, timeout=20)
+        d = ((r.json().get('data') or {}).get(tx)) or {}
+        bars = d.get('qfqday') or d.get('day') or []
+    except Exception:
+        return []
+    mx, out = _em_max_date(), []
+    for b in bars:
+        if not isinstance(b, (list, tuple)) or len(b) < 6 or str(b[0]) > mx:
+            continue
+        try:
+            out.append((str(b[0]), float(b[2]), float(b[5]), None))
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _fetch_index_em(code, name):
+    """F1 指数回落(东财/腾讯,仅 tushare 异常时经 fetch_a_share_indices
+    进入): 返回与 tushare 路径同 schema 的 item + 新增键 via('em_kline'
+    东财直连/'em_kline_proxy'东财系统代理/'tx_ifzq'腾讯浅窗/'akshare_em'
+    包装末路);取值行=date≤_em_max_date() 最后一行(在途行禁用);四路皆
+    失败/无完结行→None(该指数如实缺失)。单位披露: amount=千元(与 tushare
+    主路同单位;东财原始=元,此处÷1000——R33 任务4修订 r4 前为元,两路不同
+    单位),volume 语义=成交量;腾讯路无 amount(None 如实缺席)。
+    R20: 东财端点当日间歇断连→四路阶梯;腾讯浅窗 ≈16 个月在 item 注明。"""
+    rows = _em_klines_direct(code)
+    via = 'em_kline'
+    if not rows:
+        rows = _em_klines_direct(code, use_system_proxy=True)
+        via = 'em_kline_proxy'
+    if not rows:
+        rows = _tx_klines(code)
+        via = 'tx_ifzq'
+    if not rows:
+        try:
+            import akshare as ak
+            with _no_proxy():
+                df = ak.stock_zh_index_daily_em(symbol=EM_MAP[code])
+            settled = _em_settled_pairs(df)
+            rows = [(d, float(df.iloc[i]['close']),
+                     float(df.iloc[i].get('volume', 0) or 0),
+                     float(df.iloc[i].get('amount', 0) or 0))
+                    for d, i in settled]
+            via = 'akshare_em'
+        except Exception as e:
+            print(f"  ⚠️ {name}({code}) 东财回落失败: {e}")
             return None
-        # 数据批1(#10): 与 tushare 主路同窗语义——series=窗口起点起全序列
-        # (EM 端点本就返回全史,按 cn_window_start 过滤);周变化规则不变;
-        # YTD 基准=窗内**当年**首个收盘(非窗口首根)。
-        win_start = cn_window_start(cn_index_history_period()).replace('-', '')
-        win = [p for p in settled if p[0].replace('-', '') >= win_start]
-        year = win[-1][0][:4]
-        dates = [d for d, _ in win]
-        closes = [float(df.iloc[i]['close']) for _, i in win]
-        close = closes[-1]
-        # 周变化与 tushare 路径同规则(倒数第5收盘;不足5根对比首根)
-        week_chg = None
-        if len(closes) >= 5:
-            prev_close = closes[-5]
-            week_chg = round((close - prev_close) / prev_close * 100, 2)
-        elif len(closes) >= 2:
-            prev_close = closes[0]
-            week_chg = round((close - prev_close) / prev_close * 100, 2)
-        # YTD 基准=窗内当年首个收盘(纯函数 _ytd_base_close,同 tushare 主路)
-        ytd_chg = None
-        base = _ytd_base_close(dates, closes, dates[-1].replace('-', ''))
-        if base:
-            ytd_chg = round((close - base) / base * 100, 2)
-        # 东财无 pct_chg 列 → 由前一完结收盘推得(EM同列自洽,非跨源拼接)
-        pct_chg = 0.0
-        if len(closes) >= 2 and closes[-2] > 0:
-            pct_chg = round((close - closes[-2]) / closes[-2] * 100, 2)
-        last_d, last_row = _em_last_settled(df)
-        return {
-            'name': name,
-            'close': close,
-            'pct_chg': pct_chg,
-            'week_chg': week_chg,
-            'ytd_chg': ytd_chg,
-            'volume': float(last_row.get('volume', 0) or 0),
-            'amount': float(last_row.get('amount', 0) or 0),   # 单位: 元
-            'date': last_d.replace('-', ''),                    # →YYYYMMDD,同tushare规格
-            'series': {'dates': dates, 'values': closes},
-            'via': 'akshare_em',
-        }
-    except Exception as e:
-        print(f"  ⚠️ {name}({code}) 东财回落失败: {e}")
+    if not rows:
+        print(f"  ⚠️ {name}({code}) 东财回落无完结行(date≤{_em_max_date()})")
         return None
+    # 数据批1(#10): 与 tushare 主路同窗语义——series=窗口起点起全序列
+    # (EM 端点本就返回全史,按 cn_window_start 过滤);周变化规则不变;
+    # YTD 基准=窗内**当年**首个收盘(非窗口首根)。
+    win_start = cn_window_start(cn_index_history_period()).replace('-', '')
+    win = [p for p in rows if p[0].replace('-', '') >= win_start]
+    dates = [d for d, *_ in win]
+    closes = [c for _, c, _, _ in win]
+    close = closes[-1]
+    # 周变化与 tushare 路径同规则(倒数第5收盘;不足5根对比首根)
+    week_chg = None
+    if len(closes) >= 5:
+        prev_close = closes[-5]
+        week_chg = round((close - prev_close) / prev_close * 100, 2)
+    elif len(closes) >= 2:
+        prev_close = closes[0]
+        week_chg = round((close - prev_close) / prev_close * 100, 2)
+    # YTD 基准=窗内当年首个收盘(纯函数 _ytd_base_close,同 tushare 主路)
+    ytd_chg = None
+    base = _ytd_base_close(dates, closes, dates[-1].replace('-', ''))
+    if base:
+        ytd_chg = round((close - base) / base * 100, 2)
+    # 东财无 pct_chg 列 → 由前一完结收盘推得(EM同列自洽,非跨源拼接)
+    pct_chg = 0.0
+    if len(closes) >= 2 and closes[-2] > 0:
+        pct_chg = round((close - closes[-2]) / closes[-2] * 100, 2)
+    last_d, _lc, last_vol, last_amt = win[-1]
+    item = {
+        'name': name,
+        'close': close,
+        'pct_chg': pct_chg,
+        'week_chg': week_chg,
+        'ytd_chg': ytd_chg,
+        'volume': last_vol,                                   # 单位: 股
+        # 单位: 千元(与 tushare 主路同单位;东财原始=元,÷1000;腾讯路 None)
+        'amount': None if last_amt is None else round(last_amt / 1000.0, 3),
+        'date': last_d.replace('-', ''),                      # →YYYYMMDD,同tushare规格
+        'series': {'dates': dates, 'values': closes},
+        'via': via,
+    }
+    if via == 'tx_ifzq':
+        item['note'] = ('腾讯 ifzq 浅窗(≈16 个月,深窗回补不可得,如实浅窗;'
+                        '收盘与东财逐位交叉一致;该路无成交额列)')
+    return item
 
 # 港股（主通道腾讯直连，yfinance备用）
 HK_INDICES = {
@@ -419,16 +517,40 @@ def _ytd_base_close(trade_dates, closes, last_date_yyyymmdd):
     return float(closes[0]) if closes else None
 
 
-def fetch_a_share_indices():
-    """采集A股指数数据"""
+def fetch_a_share_indices(checkpoint=None, budget=None):
+    """采集A股指数数据
+
+    Audit-R33 任务4: checkpoint=None/budget=None → 旧行为(逐指数限流取网,
+    结果仅随整档写出);checkpoint 给出时逐指数写断点并续采(同交易日窗、
+    同历史窗口、当日 bar 已定型——已取到的指数不重复限流等待),budget 给出时逐
+    指数开始前做协作式预算检查(耗尽→停止并标记,不丢已取到的指数)。
+    阶段状态见 _STAGE_STATUS['a_share_indices']。"""
     print("\n📈 采集A股指数...")
     end_date, start_week, start_year = get_trade_dates()
     period = cn_index_history_period()
     window_start = cn_window_start(period)
     print(f"  历史窗口: {period}(start={window_start};CN_INDEX_HISTORY_PERIOD 可覆盖)")
     results = {}
+    fetched_at = {}          # {code: 取数时刻 Unix 秒}(断点可续性判定用)
+    _STAGE_STATUS['a_share_indices'] = {'resumed': [], 'cut_by_budget': False}
+    if checkpoint is not None:
+        results.update(_ashare_checkpoint_load(end_date, window_start))
+        obj0 = _ashare_checkpoint_read()
+        if obj0 and results:
+            fetched_at.update({c: obj0['fetched_at'][c] for c in results})
+        _STAGE_STATUS['a_share_indices']['resumed'] = sorted(results)
+        if results:
+            print(f"  ♻️ 断点续采: {len(results)} 个指数取自运行日内断点"
+                  f"({','.join(sorted(results))}),不重复取网")
 
     for code, name in A_SHARE_INDICES.items():
+        if code in results:
+            continue
+        if budget is not None and budget.exhausted():
+            _STAGE_STATUS['a_share_indices']['cut_by_budget'] = True
+            print(f"  ⏹️ {name}({code}): 时间预算耗尽,本指数未采"
+                  f"(下次运行自断点续采)")
+            continue
         try:
             # 数据批1(#10): 单次拉取 window_start 起全序列(原=年初至今),
             # 附加原始series供事实引擎统一口径计算(周/MTD/YTD=期前收盘基准)
@@ -472,6 +594,9 @@ def fetch_a_share_indices():
                 'series': {'dates': dates, 'values': closes},
                 'via': 'tushare',
             }
+            if checkpoint is not None:
+                fetched_at[code] = time.time()
+                _ashare_checkpoint_save(end_date, window_start, results, fetched_at)
             print(f"  ✅ {name}: {close} (周{week_chg:+.2f}%)" if week_chg else f"  ✅ {name}: {close}")
 
         except Exception as e:
@@ -480,10 +605,21 @@ def fetch_a_share_indices():
             item = _fetch_index_em(code, name)
             if item is not None:
                 results[code] = item
+                if checkpoint is not None:
+                    fetched_at[code] = time.time()
+                    _ashare_checkpoint_save(end_date, window_start, results, fetched_at)
                 wc = item.get('week_chg')
                 tag = f" (周{wc:+.2f}%)" if wc is not None else ""
-                print(f"  ✅ {name}: {item['close']}{tag} [东财回落 akshare_em]")
+                print(f"  ✅ {name}: {item['close']}{tag} [东财回落 {item.get('via')}]")
+                # R33 任务4修订 r4(NIT-6): 回落来源以 via 为准并进阶段 notes
+                print(f"  ⚠️ {name}({code}): tushare 主路异常({type(e).__name__}),"
+                      f"本指数取自回落源 {item.get('via')}")
 
+    if checkpoint is not None:
+        # 断点续采后恢复清单序(结果键序与清单一致,与旧路径同形)
+        results = {c: results[c] for c in A_SHARE_INDICES if c in results}
+        _STAGE_STATUS['a_share_indices'].update(
+            _ashare_resume_notes(results, fetched_at, end_date))
     return results
 
 def _hk_metrics_from_daily(dates, closes):
@@ -574,13 +710,16 @@ def _fetch_hk_yfinance(ticker, name, retries=1):
         print(f"  ⚠️ {name} yfinance失败({type(last_err).__name__}: {str(last_err)[:70]})")
     return None
 
-def fetch_hk_indices():
+def fetch_hk_indices(checkpoint=None):
     """采集港股指数: 腾讯小窗增量(主) → 持久化全窗(新鲜兜底) → yfinance 深窗(按需回补)
 
     HK增量修复(2026-11-14): 日常仅向腾讯请求 hk_daily_bars()(320) 小窗,
     与本地持久化 hk_index_history.json 增量合并后全窗直通;yfinance 从每日
     全量降为"持久化缺失/陈旧/深度不足"时的按需回补(治 Yahoo 限流+WAF 拦截
-    双面)。三路皆无→None(Gate A 兜底)。"""
+    双面)。三路皆无→None(Gate A 兜底)。
+
+    Audit-R33 任务4: checkpoint=None → 旧行为;给出时逐 ticker 落盘持久化
+    (深窗回补结果不因后续时间预算中断而丢失,下次运行续采)。"""
     print("\n📈 采集港股指数...")
     results = {}
     hist = _load_hk_history()
@@ -642,6 +781,14 @@ def fetch_hk_indices():
         tag = f" (周{wc:+.2f}%)" if wc is not None else ""
         print(f"  ✅ {name}: {r['close']}{tag} @{r.get('date')} "
               f"[{src}; n={len(r['series']['dates'])}]")
+        # R33 任务4修订 r4(审查席 MINOR-9): 浅窗如实标注(⚠️ 行进阶段 notes;项带 note)
+        _n = len(r['series']['dates'])
+        if _n < target:
+            r['note'] = f'序列深度 {_n}/目标 {target}(浅窗,如实;深窗回补未得)'
+            print(f"  ⚠️ {name}: 序列深度 {_n}/目标 {target}(浅窗,如实)")
+        if checkpoint is not None and hist_dirty:
+            _save_hk_history(hist)     # Audit-R33 任务4: 逐 ticker 断点
+            hist_dirty = False
 
     if hist_dirty:
         _save_hk_history(hist)
@@ -748,6 +895,113 @@ def fetch_southbound():
     print("  ↪️ 南向主路失败/空,转东财EM回落(akshare)")
     return _fetch_southbound_em()
 
+def _margin_pair_exchange(fin, rq):
+    """R33 任务4修订 r4(审查席 MINOR-1): 备源两所读数**量纲对齐**与配对(纯函数)。
+    实测(2026-11-26): 上交所 stock_margin_sse 读数为元、深交所 stock_margin_szse
+    页面读数为亿元——旧码直接相加,合计≈只剩沪市口径(主路同日读数的 52%),且无
+    任何提示(Gate A 事实仍 PASS)。规则: 两所同项读数须为有限正数(深所为列时
+    逐行数值化后求和);一项不足另一项 1/100 → 判为亿元口径×1e8;折算后两所比值
+    须落在 [0.05, 20] 内,否则量纲无法确认→None(不配对=如实缺席,不以单所半
+    合计冒充两所口径)。fin/rq=(上交所值, 深交所列或值)。返回 (融资余额元,
+    融券余额元, 是否发生折算) 或 None。"""
+    import math
+
+    def _num(v):
+        if isinstance(v, (pd.Series, list, tuple)):
+            return float(sum(float(x) for x in v))
+        return float(v)
+
+    out, scaled = [], False
+    for sse_v, sz_v in (fin, rq):
+        try:
+            a, b = _num(sse_v), _num(sz_v)
+        except (TypeError, ValueError):
+            return None
+        if not (math.isfinite(a) and math.isfinite(b)) or a <= 0 or b <= 0:
+            return None
+        if b < a / 100.0:
+            b *= 1e8
+            scaled = True
+        if not 0.05 <= b / a <= 20.0:
+            return None
+        out.append(a + b)
+    return out[0], out[1], scaled
+
+
+_MARGIN_BACKUP_MAX_DEV = 0.10          # 备源读数相对最近在档读数的最大容忍偏离
+_MARGIN_BACKUP_LOOKBACK_DAYS = 20      # 对账回看窗(自然日)
+
+
+def _prev_margin_reading(ymd):
+    """R33 任务4修订 r4: 备源读数对账用——data/daily 里 ymd 之前
+    _MARGIN_BACKUP_LOOKBACK_DAYS 天内最近一份带 margin.balance 的规范 china 档
+    → (date, balance 亿元) 或 None(只读;至多回看 3 份;坏档/无读数跳过)。"""
+    try:
+        d0 = datetime.strptime(str(ymd), '%Y%m%d')
+    except (TypeError, ValueError):
+        return None
+    lo = (d0 - timedelta(days=_MARGIN_BACKUP_LOOKBACK_DAYS)).strftime('%Y%m%d')
+    folder = os.path.join(PROJECT_DIR, 'data', 'daily')
+    try:
+        names = sorted((n for n in os.listdir(folder)
+                        if re.fullmatch(r'china_\d{8}\.json', n)
+                        and lo <= n[6:14] < str(ymd)), reverse=True)[:3]
+    except OSError:
+        return None
+    for n in names:
+        try:
+            with open(os.path.join(folder, n), encoding='utf-8') as f:
+                mg = (json.load(f) or {}).get('margin') or {}
+            bal = float(mg.get('balance'))
+        except (OSError, ValueError, TypeError):
+            continue
+        if bal == bal and bal > 0:
+            return (mg.get('date'), bal)
+    return None
+
+
+def _margin_exchanges(df):
+    """R33 任务4修订 r4: 主路返回表的交易所集合(去重排序;exchange_id 列)。
+    无该列/非表→None(结构不可判,不据此拒绝)。"""
+    try:
+        cols = list(df.columns)
+    except AttributeError:
+        return None
+    if 'exchange_id' not in cols:
+        return None
+    return sorted({str(x).strip() for x in df['exchange_id'].tolist()
+                   if str(x).strip()})
+
+
+def _margin_dev_tol(prev_date, date):
+    """对账容忍度: _MARGIN_BACKUP_MAX_DEV 起步,前后两次读数日间隔每多 1 个自然日
+    加 3 个百分点,上限 30%(间隔长=真实变动空间大;半合计偏离≈−50% 远超任何档)。"""
+    try:
+        gap = (datetime.strptime(str(date), '%Y%m%d')
+               - datetime.strptime(str(prev_date), '%Y%m%d')).days
+    except (TypeError, ValueError):
+        return _MARGIN_BACKUP_MAX_DEV
+    return min(0.30, max(_MARGIN_BACKUP_MAX_DEV, 0.03 * max(gap, 0)))
+
+
+def _margin_check_reading(result, reject):
+    """R33 任务4修订 r4(审查席 MINOR-1): 读数与最近在档读数对账 → 采用(result)
+    或不采用(None)。无在档读数→采用(冷启动无对账基准,如实)。偏离超容忍度时:
+    reject=True(备源——两所口径由页面拼装,无交易所表可核)→不采用(如实缺席);
+    reject=False(主路——交易所数结构校验已过)→仍采用并打 ⚠️ 请复核。"""
+    prev = _prev_margin_reading(result['date'])
+    if prev is None:
+        return result
+    dev = abs(result['balance'] / prev[1] - 1.0)
+    tol = _margin_dev_tol(prev[0], result['date'])
+    if dev > tol:
+        print(f"  ⚠️ 融资融券读数相对最近在档读数偏离 {dev:.1%}(容忍度 {tol:.0%}): "
+              f"{result['balance']} vs {prev[1]} 亿元(在档读数日 {prev[0]})"
+              + (",不采用(如实缺席)" if reject else ",交易所齐备仍采用(请复核)"))
+        return None if reject else result
+    return result
+
+
 def _fetch_margin_em():
     """G-P1-11 融资融券备源(IA-P1-WP-E, 2026-11-06): tushare 主路不可用→东财
     akshare 两所 margin(上交所 stock_margin_sse+深交所 stock_margin_szse)
@@ -756,7 +1010,8 @@ def _fetch_margin_em():
     +via='akshare_em' 恰一新增键(诚实源标签,禁冒充 tushare);单所数据缺席/
     配对窗内无共同日→None(如实缺席不填0,不以单所半合计冒充两所口径)。
     SSE 完结行按 _em_max_date() 截止择新,至多 3 候选日逐一配对(深交所单日
-    查询,调用有界)。"""
+    查询,调用有界)。R33 任务4修订 r4: 两所读数先经 _margin_pair_exchange
+    量纲对齐(实测深所页面=亿元、上交所=元),量纲不相称→不配对。"""
     import akshare as ak
     try:
         with _no_proxy():
@@ -783,8 +1038,18 @@ def _fetch_margin_em():
             if len(sse_rows) == 0:
                 continue
             sse_row = sse_rows.iloc[-1]
-            rzye = float(sse_row['融资余额']) + float(szse['融资余额'].sum())
-            rqye = float(sse_row['融券余量金额']) + float(szse['融券余额'].sum())
+            # R33 任务4修订 r4: 两所读数先量纲对齐(实测深所页面=亿元、上交所=元)
+            pair = _margin_pair_exchange(
+                (sse_row.get('融资余额'), szse.get('融资余额')),
+                (sse_row.get('融券余量金额'), szse.get('融券余额')))
+            if pair is None:
+                print(f"  ⚠️ 融资融券备源@{ymd}: 两所读数量纲不相称/列缺失/非有限值,"
+                      f"不配对(不以单所半合计冒充两所口径)")
+                continue
+            rzye, rqye, scaled = pair
+            if scaled:
+                print("  ⚠️ 融资融券备源: 深交所读数为亿元口径,已×1e8 折算为元后与"
+                      "上交所合计(两所读数量纲不同,直接相加会只剩沪市口径)")
             result = {
                 'date': ymd,
                 'rzye': round(rzye, 2),
@@ -812,6 +1077,13 @@ def fetch_margin():
             date = (datetime.now() - timedelta(days=days_back)).strftime('%Y%m%d')
             df = _pro().margin(trade_date=date)
             if df is not None and len(df) > 0:
+                # R33 任务4修订 r4: 主路表只含单所→非全市场口径(LIVE 只读实测:
+                # 2026-11-22/23 两个读数=仅沪市半合计,却以全市场口径入档),不采用
+                _ex = _margin_exchanges(df)
+                if _ex is not None and len(_ex) < 2:
+                    print(f"  ⚠️ 融资融券@{date}: 主路只含 {len(_ex)} 个交易所"
+                          f"({','.join(_ex)}),非全市场口径,不采用(试更早交易日)")
+                    continue
                 # 汇总所有交易所
                 total_rzye = df['rzye'].sum()  # 融资余额
                 total_rqye = df['rqye'].sum()  # 融券余额
@@ -830,6 +1102,7 @@ def fetch_margin():
                     'balance': round((float(total_rzye) + float(total_rqye)) / 1e8, 2),
                 }
                 print(f"  ✅ 融资余额: {result['rzye_billion']:.2f} 亿元 ({date})")
+                _margin_check_reading(result, reject=False)
                 return result
         except Exception as e:
             # IA-DATA-W3(AC-01b): 原裸 except:continue 吞异常(R008 U-1 根因)→
@@ -841,7 +1114,14 @@ def fetch_margin():
     # 东财 akshare 两所备源(_fetch_margin_em);备源亦不可用→None(当日该节
     # 键缺席,不填0,§三(c) L81 纪律)。
     print("  ↪️ 融资融券主路不可用,转东财 akshare 备源")
-    return _fetch_margin_em()
+    backup = _fetch_margin_em()
+    if backup is None:
+        return None
+    # R33 任务4修订 r4(审查席 MINOR-1): 备源读数入档必须留痕(⚠️ 行→随档 notes),
+    # 并与最近在档读数对账(_margin_check_reading)——偏离超容忍度不采用(如实缺席)。
+    print(f"  ⚠️ 融资融券取自备源 {backup.get('via')}(两所口径,与主路汇总口径可有"
+          f"少量差异): balance={backup['balance']} 亿元 ({backup['date']})")
+    return _margin_check_reading(backup, reject=True)
 
 def _pe_value(row):
     """PE 取值双形态兼容(IA-DATA-W3 AC-01c): 扁平 pe 键(旧产物/部分载荷形态)
@@ -1160,8 +1440,8 @@ def _tushare_monthly_last(df, col):
             fv = float(v)
         except (TypeError, ValueError):
             continue
-        if fv != fv:                      # NaN→如实跳行
-            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
+            continue                     # R8-01: 非有限值(NaN/±Inf)不入采集史
         ym = (m.group(1), m.group(2))
         if best is None or ym > (best[0], best[1]):
             best = (m.group(1), m.group(2), fv)
@@ -1230,6 +1510,596 @@ def _cache_save_rows(path, df, now_ts):
 
 MOFCOM_SHRZGM_URL = 'https://data.mofcom.gov.cn/datamofcom/front/gnmy/shrzgmQuery'
 
+# ══ Audit-R20(2026-11-19): CN 宏观全史序列(EM 直连 + PBOC 公告走查) ════════
+# 12组36格四地地图问句正式使用: CN_CPI_YOY/CN_PPI_YOY/CN_LPR_1Y/CN_OMO_7D
+# 需要历史序列(旧 fetch_macro 只出当期点值)。源:
+#  - 东方财富 datacenter API(keyless;与 akshare macro_china_* 同源端点
+#    家族,R9 mofcom curl 直取同款先例): RPT_ECONOMY_CPI.NATIONAL_SAME /
+#    RPT_ECONOMY_PPI.BASE_SAME = 全国同比(%)。实测 2026-11-19: CPI 226 月
+#    (2007-10..2026-10,2026-10=0.7 与 tushare 点值一致),PPI 250 月
+#    (2006-01..2026-10,2026-10=5.7 一致)。
+#  - PBOC 公开市场业务交易公告页(www.pbc.gov.cn,官方免费;urllib 直连
+#    502→curl 子进程直取同 R9 先例): 列表页/17081-N.html 翻页,逐公告解析
+#    表格 期限/操作利率 行,7天行→中标利率。公告逐日缓存
+#    data/cache/pboc_omo/ 防生产每日重走全史(首回填后日增量≈1 页)。
+#  - LPR: akshare macro_china_lpr 全量 df(与点值通道同端点,只加全史面)。
+EM_CPI_URL = ('https://datacenter-web.eastmoney.com/api/data/v1/get'
+              '?reportName=RPT_ECONOMY_CPI&columns=ALL&pageSize=500'
+              '&pageNumber=1&sortColumns=REPORT_DATE&sortTypes=-1')
+EM_PPI_URL = ('https://datacenter-web.eastmoney.com/api/data/v1/get'
+              '?reportName=RPT_ECONOMY_PPI&columns=ALL&pageSize=500'
+              '&pageNumber=1&sortColumns=REPORT_DATE&sortTypes=-1')
+PBC_OMO_LIST_URL = ('http://www.pbc.gov.cn/zhengcehuobisi/125207/125213/'
+                    '125431/125475/index.html')
+PBC_OMO_PAGE_URL = ('http://www.pbc.gov.cn/zhengcehuobisi/125207/125213/'
+                    '125431/125475/17081-{page}.html')
+PBC_OMO_CACHE_DIR = os.path.join(DATA_DIR, 'cache', 'pboc_omo')
+# 走查回看窗(自然日): 覆盖地图问句 12 个月前锚+缓冲;env 可覆盖
+# (生产若嫌重可调小——公告缓存使增量日耗≈当日 1 公告)。
+_OMO_BACKFILL_DAYS = int(os.environ.get('CN_OMO_HISTORY_DAYS') or 500)
+
+
+# ============ 采集时间预算(Audit-R33 任务4,2026-11-25) =====================
+# 冷启动无缓存复现(R32 基线 f053afe,2026-11-24 21:43 本机): 步骤2 ≈710 秒
+# (步骤上限 900 秒;A 股 6 指数×61 秒限流间隔≈305 秒+港股首跑深窗回补+央行
+# 公告走查 291 篇≈111 秒),余量≈190 秒;旧实现只在整个采集结束后写一次档,
+# 步骤超时被杀=**整档丢失**,且 A 股进度无断点——源端迟缓时每次冷跑都从零
+# 重来,核心采集可能永远完不成。
+# 修法(登记冻结):
+# - 本采集器自带时间预算: 默认 800 秒,env CN_COLLECTOR_BUDGET_SECONDS 可覆盖;
+#   须低于 run_weekly 步骤上限 900 秒(留解释器启动/导入与被中断的 curl 子进程
+#   收尾余量;≥880 视为配置不当,启动时告警)。
+# - 到期处置依次: ① 阶段间/逐项协作式停止(未开始阶段=skipped_budget;A 股逐
+#   指数、公告走查逐公告——已取到的不丢);② 看门狗(SIGALRM)兜底——卡在无
+#   超时的网络调用里也按时返回;③ 断点: A 股逐指数进度写
+#   data/cache/china_a_share_ckpt.json(同交易日窗、同历史窗口,且该项当日
+#   bar 已定型才可续——收盘前取到的当日 bar 不续;已取到的指数不重复限流
+#   等待;全部阶段完成后清除),港股全窗与央行公告沿用既有持久化
+#   (data/daily/hk_index_history.json、data/cache/pboc_omo/),下次运行接着采。
+# - 核心阶段(A股/港股指数)被截断 → 不写主日档(明知不完整的核心面不得充当
+#   当日采集;下游按「采集失败」既有口径处置),诊断性部分面写 logs/,退出码 1;
+#   其后阶段(南向/两融/估值/成交额/AH溢价/宏观)被截断 → 写主日档并随档披露
+#   collection_status,退出码 0(与既有「非核心端点失败=该键缺席」同口径)。
+# - 阶段行如实状态(Audit-R33 任务4修订 r2): 阶段函数正常返回后 ok=取得≥1 项、
+#   empty=零项(各源失败或当日无数据;该键缺席,退出码不变;原因见 notes——阶段内
+#   打印的 ⚠️/❌ 警示行,经阶段级透传捕获器记录,stdout 原样写出);A 股逐指数协作式
+#   截断(函数正常返回但已标 cut_by_budget)=cut_by_budget。
+# - 预算≤0 或平台无 SIGALRM → 预算关闭/看门狗关闭,行为同旧实现。
+def _budget_from_env(raw, default=800.0):
+    """env 预算秒数解析: 空/非数/非有限 → 默认(不因配置笔误让采集崩)。"""
+    try:
+        v = float(str(raw).strip())
+    except (TypeError, ValueError):
+        return default
+    return v if v == v and v not in (float('inf'), float('-inf')) else default
+
+
+CN_COLLECTOR_BUDGET_SECONDS = _budget_from_env(
+    os.environ.get('CN_COLLECTOR_BUDGET_SECONDS'))
+_CN_STAGE_RESERVE_SECONDS = 5.0          # 阶段开始/逐指数开始前至少剩余的秒数
+_CN_OMO_FETCH_RESERVE_SECONDS = 15.0     # 公告走查单次取网前至少剩余的秒数
+# A 股断点只用于恢复(不作同日再跑的缓存): 可续=同交易日窗+同历史窗口+逐指数有
+# 取数时刻+该项最后一根 bar 已定型(沿用 EM 取值行截止口径 _em_max_date 16:10 HKT:
+# 收盘前取到的当日 bar 未定型,不续);旧格式断点(无取数时刻)不续;全部阶段完成后清除。
+ASHARE_CHECKPOINT_PATH = os.path.join(DATA_DIR, 'cache', 'china_a_share_ckpt.json')
+_STAGE_STATUS = {}        # 阶段内断点/截断状态(函数返回值契约不变,状态走此表)
+_OMO_WALK_STATUS = {}     # 央行公告走查状态(随 collection_status 披露)
+
+
+class BudgetExceeded(BaseException):
+    """时间预算耗尽(看门狗/协作式检查抛出)。继承 BaseException: 采集函数内
+    大量 `except Exception` 端点容错分支不得吞掉它之后继续取网。"""
+
+
+class CollectionBudget:
+    """采集时间预算(单调钟): limit_sec≤0 → 关闭(remaining 恒为 None=不限)。"""
+
+    def __init__(self, limit_sec=None):
+        self.limit_sec = (CN_COLLECTOR_BUDGET_SECONDS if limit_sec is None
+                          else float(limit_sec or 0))
+        self.t0 = time.monotonic()
+
+    def elapsed(self):
+        return time.monotonic() - self.t0
+
+    def remaining(self):
+        if self.limit_sec <= 0:
+            return None
+        return self.limit_sec - self.elapsed()
+
+    @property
+    def deadline(self):
+        """协作式截止时刻(单调钟;预算关闭→None)。"""
+        return self.t0 + self.limit_sec if self.limit_sec > 0 else None
+
+    def exhausted(self, reserve=_CN_STAGE_RESERVE_SECONDS):
+        """协作式检查: 预算开启且剩余<reserve → True。"""
+        rem = self.remaining()
+        return rem is not None and rem < reserve
+
+
+_BUDGET_TIMER = {'armed': False}
+
+
+def _arm_watchdog(budget):
+    """看门狗: 预算开启且平台有 SIGALRM → 定时器到期在主线程抛 BudgetExceeded
+    (只在本脚本主线程调用;不可用=静默跳过,协作式检查仍在)。返回是否已武装。"""
+    import signal
+    _BUDGET_TIMER['armed'] = False
+    rem = budget.remaining()
+    if rem is None or not hasattr(signal, 'SIGALRM') or rem <= 0:
+        return False
+
+    def _on_alarm(signum, frame):
+        raise BudgetExceeded('time budget exhausted (%.0fs)' % budget.limit_sec)
+
+    try:
+        signal.signal(signal.SIGALRM, _on_alarm)
+        signal.setitimer(signal.ITIMER_REAL, rem)
+    except (ValueError, OSError, AttributeError):
+        return False
+    _BUDGET_TIMER['armed'] = True
+    return True
+
+
+def _disarm_watchdog():
+    """解除看门狗(保存/退出前必须调用,避免写入途中被预算打断)。"""
+    import signal
+    if not _BUDGET_TIMER['armed']:
+        return
+    try:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+    except (ValueError, OSError, AttributeError):
+        pass
+    _BUDGET_TIMER['armed'] = False
+
+
+def _ashare_checkpoint_read():
+    """读 A 股断点原件(缺档/坏档→None;不报错、不取网)。"""
+    try:
+        with open(ASHARE_CHECKPOINT_PATH, 'r', encoding='utf-8') as f:
+            obj = json.load(f)
+        return obj if isinstance(obj, dict) else None
+    except Exception:
+        return None
+
+
+def _ashare_bar_settled(end_date, fetched_ts):
+    """取数时刻 fetched_ts(Unix 秒)下,end_date(YYYYMMDD)当日 bar 是否已定型:
+    沿用 EM 取值行截止口径(_em_max_date: 时刻≥16:10 HKT→当日已完结)——截止日
+    ≥end_date 即定型;时刻不可读→False(不续)。"""
+    hkt = timezone(timedelta(hours=8))
+    try:
+        cut = _em_max_date(datetime.fromtimestamp(float(fetched_ts), hkt))
+        return cut >= '%s-%s-%s' % (str(end_date)[:4], str(end_date)[4:6],
+                                    str(end_date)[6:8])
+    except (TypeError, ValueError, OverflowError, OSError):
+        return False
+
+
+def _ashare_checkpoint_usable(obj, end_date, window_start, now_ts=None):
+    """断点里可续的指数集合: ①断点窗与本次一致(同交易日窗 end_date+同历史
+    窗口,即仅同日可续)②指数在清单内③有取数时刻④该项最后一根 bar 已定型
+    (最后一根 bar 不是 end_date 当日=休市日/当日尚无 bar;或是当日 bar 但取数
+    时刻已达当日完结口径)⑤取数时刻不在未来(R33 任务4修订 r4: 超出
+    _ASHARE_FETCH_FUTURE_TOL=时钟异常不可信,不续;now_ts=判定用「现在」时刻,
+    缺省读真实钟)。旧格式断点(无取数时刻)一律不续。"""
+    if not (obj and obj.get('end_date') == end_date
+            and obj.get('window_start') == window_start
+            and isinstance(obj.get('items'), dict)):
+        return set()
+    fetched_all = obj.get('fetched_at')
+    fetched_all = fetched_all if isinstance(fetched_all, dict) else {}
+    out = set()
+    for code, item in obj['items'].items():
+        if code not in A_SHARE_INDICES or not isinstance(item, dict):
+            continue
+        try:
+            fetched = float(fetched_all.get(code))
+        except (TypeError, ValueError):
+            continue
+        if fetched != fetched or fetched in (float('inf'), float('-inf')):
+            continue
+        now_ts = time.time() if now_ts is None else now_ts
+        if fetched > now_ts + _ASHARE_FETCH_FUTURE_TOL:
+            continue
+        series = item.get('series')
+        dates = series.get('dates') if isinstance(series, dict) else None
+        last_bar = str(dates[-1]).replace('-', '') if dates else ''
+        if last_bar == str(end_date) and not _ashare_bar_settled(end_date, fetched):
+            continue
+        out.add(code)
+    return out
+
+
+def _ashare_checkpoint_load(end_date, window_start, now_ts=None):
+    """读 A 股断点里可续的指数 → {code: item}(缺档/坏档/窗不一致/未定型→{}:
+    不续,不报错,不取网)。now_ts=判定用的「现在」时刻(Unix 秒;缺省读真实
+    钟,仅用于取数时刻合理性判定——R33 任务4修订 r4)。"""
+    obj = _ashare_checkpoint_read()
+    if not obj:
+        return {}
+    usable = _ashare_checkpoint_usable(obj, end_date, window_start, now_ts=now_ts)
+    # 清单序返回(断点内顺序不定,结果与旧路径同形)
+    return {c: obj['items'][c] for c in A_SHARE_INDICES if c in usable}
+
+
+_ASHARE_FETCH_FUTURE_TOL = 300     # 取数时刻容许的时钟误差(秒);超出=取数时刻在未来
+
+
+def _resume_last_bar(results):
+    """R33 任务4修订 r4: 续采注记用的各项末根日期 {code: YYYYMMDD}(纯函数)。
+    逐项取 series.dates[-1] 再归一;该项非字典/dates 非列表或为空→''(不虚构)。"""
+    out = {}
+    for c, item in results.items():
+        if not isinstance(item, dict):
+            continue
+        series = item.get('series')
+        dates = series.get('dates') if isinstance(series, dict) else None
+        if not isinstance(dates, list) or not dates:
+            out[c] = ''
+            continue
+        out[c] = str(dates[-1]).replace('-', '')[:8]
+    return out
+
+
+def _ashare_resume_notes(results, fetched_at, end_date):
+    """R33 任务4修订 r4(审查席 MINOR-3): 续采项注记(纯装配,不取网)。续采=沿用
+    断点里已取到的项、不重取;两项事实如实随档披露并打印 ⚠️ 行(进阶段 notes):
+    ① stale_resumed=末根早于本批最新末根的续采项;② preclose_resumed=取数时刻
+    早于 end_date 当日完结口径(16:10 HKT)且末根≠end_date 的续采项(收盘后再跑
+    仍沿用,可能缺当日 bar——标准入口不重取,如实标注)。另带 resumed_items=
+    {code: {via, last_bar, fetched_hkt}}。无续采项→{}(随档状态节形状不变)。"""
+    resumed = [c for c in (_STAGE_STATUS.get('a_share_indices') or {}).get('resumed') or []
+               if isinstance(results.get(c), dict)]
+    if not resumed:
+        return {}
+    last = _resume_last_bar(results)
+    batch_last = max((d for d in last.values() if d), default='')
+    hkt = timezone(timedelta(hours=8))
+    items, stale, preclose = {}, [], []
+    for c in resumed:
+        try:
+            fa = float((fetched_at or {}).get(c))
+        except (TypeError, ValueError):
+            fa = None
+        ok_ts = fa is not None and fa == fa and abs(fa) != float('inf')
+        fetched_hkt = (datetime.fromtimestamp(fa, hkt).strftime('%Y-%m-%d %H:%M:%S HKT')
+                       if ok_ts else None)
+        items[c] = {'via': results[c].get('via'), 'last_bar': results[c].get('date'),
+                    'fetched_hkt': fetched_hkt}
+        if batch_last and last.get(c) and last[c] < batch_last:
+            stale.append(c)
+        if (ok_ts and last.get(c) and last[c] != str(end_date)
+                and not _ashare_bar_settled(end_date, fa)):
+            preclose.append(c)
+    for c in stale:
+        print(f"  ⚠️ 断点续采项 {A_SHARE_INDICES[c]}({c}): 末根 {last[c]} 早于本批最新"
+              f"末根 {batch_last}(沿用断点,未重取)")
+    for c in preclose:
+        print(f"  ⚠️ 断点续采项 {A_SHARE_INDICES[c]}({c}): 取数于当日完结口径之前"
+              f"({items[c]['fetched_hkt']}),末根 {last[c]}≠{end_date}(沿用断点,未重取)")
+    out = {'resumed_items': items}
+    if stale:
+        out['stale_resumed'] = sorted(stale)
+    if preclose:
+        out['preclose_resumed'] = sorted(preclose)
+    return out
+
+
+def _ashare_checkpoint_save(end_date, window_start, items, fetched_at=None):
+    """写 A 股断点(原子换名;任何失败=透明跳过,不影响采集主路)。
+    fetched_at={code: 取数时刻 Unix 秒}——可续性据它判定(见 _ashare_checkpoint_usable)。"""
+    try:
+        os.makedirs(os.path.dirname(ASHARE_CHECKPOINT_PATH), exist_ok=True)
+        tmp = '%s.tmp.%d' % (ASHARE_CHECKPOINT_PATH, os.getpid())
+        with open(tmp, 'w', encoding='utf-8') as f:
+            json.dump({'end_date': end_date, 'window_start': window_start,
+                       'saved_at': time.time(), 'items': items,
+                       'fetched_at': dict(fetched_at or {})}, f,
+                      ensure_ascii=False)
+        os.replace(tmp, ASHARE_CHECKPOINT_PATH)
+    except Exception:
+        pass
+
+
+def _ashare_checkpoint_clear():
+    """清 A 股断点(采集全部阶段完成后调用;断点只用于恢复)。任何失败=透明跳过。"""
+    try:
+        os.remove(ASHARE_CHECKPOINT_PATH)
+    except OSError:
+        pass
+
+
+def _curl_get(url, max_time='30'):
+    """curl 子进程 GET(R9 mofcom 先例: 本机 python ssl 栈与部分境内源
+    TLS 协商即断,curl 可通)。失败→None。"""
+    import subprocess
+    try:
+        r = subprocess.run(['curl', '-s', '-L', '--noproxy', '*', '--max-time',
+                            max_time, '-H', 'User-Agent: Mozilla/5.0', url],
+                           capture_output=True, timeout=40)
+        if r.returncode != 0 or not r.stdout:
+            return None
+        return r.stdout
+    except Exception:
+        return None
+
+
+def _em_series_rows(url, value_field):
+    """EM datacenter API → [('YYYY-MM-01', value)] 升序(纯解析+单页拉取;
+    pageSize=500>源端全量 250 行,无翻页需求;失败→None)。"""
+    raw = _curl_get(url)
+    if raw is None:
+        return None
+    try:
+        data = json.loads(raw.decode('utf-8'))
+        rows = ((data.get('result') or {}).get('data')) or []
+    except Exception:
+        return None
+    out = {}
+    for row in rows:
+        d = (row.get('REPORT_DATE') or '')[:7]
+        v = row.get(value_field)
+        if len(d) == 7 and v is not None:
+            try:
+                fv = float(v)
+            except (TypeError, ValueError):
+                continue
+            if fv == fv and fv not in (float('inf'), float('-inf')):
+                out['%s-01' % d] = fv
+    if not out:
+        return None
+    return [(k, out[k]) for k in sorted(out)]
+
+
+def _pboc_rate_cell_value(cell):
+    """利率单元格 → 数值;带量纲(亿元等)或空→None。
+
+    Audit-R21 任务2: 操作量为零的公告日,表格行形=期限|投标量|中标量
+    (无操作利率列),首量格 '0亿元' 曾被旧解析误读为利率 0.0——序列里
+    23 个零值全部来源于此。修法=利率格必须为纯数值(可带 %),含
+    量纲字样一律拒收(该期限当日无成交利率,如实无观测)。"""
+    if not cell or re.search(r'亿元|万亿', cell):
+        return None
+    m = re.fullmatch(r'([0-9]+(?:\.[0-9]+)?)%?', cell)
+    if not m:
+        return None
+    v = float(m.group(1))
+    # 政策操作利率无 0 值形态(注册表校验域 [0.1,5]):裸 '0' 量格(零操作
+    # 日无量纲变体)同样拒收,不产 0.0 观测。
+    return None if v == 0.0 else v
+
+
+def _pboc_omo_parse_announcement(html_text):
+    """单篇公告 HTML → {'7天': rate|None, '隔夜': rate|None}。
+
+    表格行形(2026-11-19 实测): 期限|操作利率|投标量|中标量,如
+    ['7天', '1. 40 %', '…亿元', '…亿元'](操作利率含空格变体→剥离后解析;
+    操作量为零日=期限|投标量|中标量,利率列缺席→该期限 None——
+    Audit-R21: 2026-08-19 等日操作量为零,当日成交利率留空,禁以 0 冒充)。
+    2026-11-02 换锚后公告含 隔夜 行(操作利率列)→ '隔夜' 键产出
+    CN_POLICY_OVERNIGHT 序列。同篇同期限多行不同率→取首见(源端无此形,
+    防御)。"""
+    rows = re.findall(r'<tr[^>]*>([\s\S]*?)</tr>', html_text or '')
+    out = {'7天': None, '隔夜': None}
+    for r in rows:
+        cells = [re.sub(r'<[^>]+>|&nbsp;|\s+', '', c)
+                 for c in re.findall(r'<t[dh][^>]*>([\s\S]*?)</t[dh]>', r)]
+        if len(cells) >= 2 and cells[0] in ('7天', '隔夜') \
+                and out.get(cells[0]) is None:
+            v = _pboc_rate_cell_value(cells[1])
+            if v is not None:
+                out[cells[0]] = v
+    return out
+
+
+def _pboc_omo_walk(back_days=None, deadline=None):
+    """PBOC 公告走查 → {'7天': [(date, rate)], '隔夜': [(date, rate)]} 升序。
+
+    列表页 index.html + 17081-N.html 翻页(每页 20 条,新→旧),取公告
+    链接(URL 17 位日期码);回看窗=公告日≥today−back_days(默认 500 自然
+    日,覆盖地图 12 个月前锚);逐公告先查本地缓存(data/cache/pboc_omo/
+    YYYYMMDD.html)命中不取网,未中→curl 取+写缓存。窗口内无该期限行的
+    公告日不产观测;操作量为零日=无成交利率(解析层拒收量纲格,
+    Audit-R21 任务2——七天序列 23 个 0.0 伪影的根修,08-19 等日利率
+    留空)。隔夜行自 2026-11-02 换锚后在场 → CN_POLICY_OVERNIGHT。
+
+    Audit-R33 任务4: deadline(单调钟时刻)给出时为协作式时间预算——取网
+    前剩余不足则停(列表页: 停止翻页;公告: 新→旧逐篇,止于当前篇,余下
+    留待下次运行——已取公告在缓存=断点),已缓存公告不论预算一律处理;
+    状态入 _OMO_WALK_STATUS(status complete/partial、stop_reason
+    budget、stopped_at、各计数)。"""
+    import datetime as _dt
+    import time as _time
+    back_days = back_days if back_days is not None else _OMO_BACKFILL_DAYS
+    today = _dt.date.today()
+    floor = (today - _dt.timedelta(days=back_days)).isoformat()
+    _t0 = _time.monotonic()
+    _OMO_WALK_STATUS.clear()
+    _OMO_WALK_STATUS.update({'status': 'running', 'stop_reason': None,
+                             'requested_from': floor})
+
+    def _out_of_time():
+        return deadline is not None and (
+            _time.monotonic() + _CN_OMO_FETCH_RESERVE_SECONDS > deadline)
+
+    links = {}
+    pages = 0
+    list_stop = False
+    for page in range(1, 40):
+        if _out_of_time():
+            list_stop = True
+            break
+        url = PBC_OMO_LIST_URL if page == 1 else PBC_OMO_PAGE_URL.format(
+            page=page)
+        html = (_curl_get(url) or b'').decode('utf-8', errors='ignore')
+        pages += 1
+        got = re.findall(
+            r'href="(/zhengcehuobisi/125207/125213/125431/125475/'
+            r'(\d{17,})/index\.html)"', html)
+        new = 0
+        for href, code in got:
+            iso = '%s-%s-%s' % (code[:4], code[4:6], code[6:8])
+            if iso >= floor and href not in links:
+                links[href] = iso
+                new += 1
+        oldest = min(links.values()) if links else None
+        if new == 0 or (oldest and oldest < floor):
+            break
+        _time.sleep(0.15)
+    out = {'7天': {}, '隔夜': {}}
+    processed = []
+
+    def _absorb(html_text, iso):
+        rates = _pboc_omo_parse_announcement(html_text)
+        for tenor, rate in rates.items():
+            if rate is not None:
+                out[tenor][iso] = rate
+        processed.append(iso)
+
+    pending = []
+    cache_hits = 0
+    for href, iso in sorted(links.items(), key=lambda x: x[1], reverse=True):
+        code = href.rstrip('/').split('/')[-2]   # …/{17位日期码}/index.html
+        cache = os.path.join(PBC_OMO_CACHE_DIR, '%s.html' % code)
+        html_text = None
+        try:
+            with open(cache, 'r', encoding='utf-8', errors='ignore') as f:
+                html_text = f.read()
+        except Exception:
+            pass
+        if html_text is None:
+            pending.append((href, iso, code))
+        else:
+            cache_hits += 1
+            _absorb(html_text, iso)
+    fetched = failed = 0
+    stop_reason = 'budget' if list_stop else None
+    stopped_at = None
+    for href, iso, code in pending:      # 新→旧;预算到期即止,余下留待下次
+        if _out_of_time():
+            stop_reason = 'budget'
+            stopped_at = iso
+            print(f"  ⏹️ 央行公告走查: 时间预算耗尽,止于 {iso}"
+                  f"(余 {len(pending) - fetched - failed} 篇待续,"
+                  f"下次运行自缓存续采)")
+            break
+        cache = os.path.join(PBC_OMO_CACHE_DIR, '%s.html' % code)
+        raw = _curl_get('http://www.pbc.gov.cn' + href)
+        if raw is None:
+            failed += 1
+            continue
+        html_text = raw.decode('utf-8', errors='ignore')
+        try:
+            os.makedirs(PBC_OMO_CACHE_DIR, exist_ok=True)
+            tmp = '%s.tmp.%d' % (cache, os.getpid())
+            with open(tmp, 'w', encoding='utf-8') as f:
+                f.write(html_text)
+            os.replace(tmp, cache)
+        except Exception:
+            pass
+        _time.sleep(0.15)
+        fetched += 1
+        _absorb(html_text, iso)
+    _OMO_WALK_STATUS.update({
+        'status': 'complete' if stop_reason is None else 'partial',
+        'stop_reason': stop_reason, 'stopped_at': stopped_at,
+        'pages': pages, 'links_in_window': len(links),
+        'cache_hits': cache_hits, 'fetched': fetched, 'fetch_failed': failed,
+        'processed': len(processed),
+        'covered_from': min(processed) if processed else None,
+        'pending_left': len(pending) - fetched - failed,
+        'sec': round(_time.monotonic() - _t0, 1)})
+    return {k: [(d, v) for d, v in sorted(vs.items())]
+            for k, vs in out.items()}
+
+def fetch_macro_series(budget=None):
+    """Audit-R20: CN 宏观四序列全史(→顶层 series 节;与点值通道并存,
+    点值权威不变)。返回 {metric_id: {'dates','values'}};逐端点容错,
+    失败→该键缺席(禁 0 填充)。
+
+    Audit-R33 任务4: budget 给出时央行公告走查按其截止时刻协作式停止
+    (状态见 _OMO_WALK_STATUS);其余端点零变化。"""
+    out = {}
+
+    rows = _em_series_rows(EM_CPI_URL, 'NATIONAL_SAME')
+    if rows:
+        out['CN_CPI_YOY'] = {'dates': [d for d, _ in rows],
+                             'values': [v for _, v in rows]}
+        print(f"  ✅ series.CN_CPI_YOY: n={len(rows)} "
+              f"({rows[0][0]}..{rows[-1][0]}, 末值 {rows[-1][1]})")
+    else:
+        print("  ⚠️ series.CN_CPI_YOY: EM 源失败/无有效行(缺席)")
+
+    rows = _em_series_rows(EM_PPI_URL, 'BASE_SAME')
+    if rows:
+        out['CN_PPI_YOY'] = {'dates': [d for d, _ in rows],
+                             'values': [v for _, v in rows]}
+        print(f"  ✅ series.CN_PPI_YOY: n={len(rows)} "
+              f"({rows[0][0]}..{rows[-1][0]}, 末值 {rows[-1][1]})")
+    else:
+        print("  ⚠️ series.CN_PPI_YOY: EM 源失败/无有效行(缺席)")
+
+    try:
+        import akshare as ak
+        with _no_proxy():
+            df = ak.macro_china_lpr()
+        lpr = []
+        for _, row in df.iterrows():
+            raw_d = str(row.get('TRADE_DATE')).strip()
+            if re.fullmatch(r'\d{8}', raw_d):      # 'YYYYMMDD' 归一防御
+                raw_d = '%s-%s-%s' % (raw_d[:4], raw_d[4:6], raw_d[6:])
+            d = _norm_date(raw_d)
+            v = row.get('LPR1Y')
+            if d is None or v is None:
+                continue
+            try:
+                fv = float(v)
+            except (TypeError, ValueError):
+                continue
+            if fv == fv and fv not in (float('inf'), float('-inf')):
+                lpr.append((d, fv))
+        lpr.sort()
+        if lpr:
+            dedup = {}
+            for d, v in lpr:
+                dedup[d] = v          # 同日多行取末(源端无此形,防御)
+            ks = sorted(dedup)
+            out['CN_LPR_1Y'] = {'dates': ks, 'values': [dedup[k] for k in ks]}
+            print(f"  ✅ series.CN_LPR_1Y: n={len(ks)} "
+                  f"({ks[0]}..{ks[-1]}, 末值 {dedup[ks[-1]]})")
+        else:
+            print("  ⚠️ series.CN_LPR_1Y: 无有效行(macro_china_lpr.LPR1Y)")
+    except Exception as e:
+        print(f"  ❌ series.CN_LPR_1Y(macro_china_lpr): "
+              f"{type(e).__name__}: {str(e)[:120]}")
+
+    omo = _pboc_omo_walk(deadline=(budget.deadline if budget is not None
+                                   else None))
+    seven = omo.get('7天') if isinstance(omo, dict) else omo
+    if seven:
+        out['CN_OMO_7D'] = {'dates': [d for d, _ in seven],
+                            'values': [v for _, v in seven]}
+        _zeros = sum(1 for _, v in seven if v == 0)
+        print(f"  ✅ series.CN_OMO_7D: n={len(seven)} "
+              f"({seven[0][0]}..{seven[-1][0]}, 末值 {seven[-1][1]}"
+              f"{', 零值=' + str(_zeros) + '(应为0——操作量为零日无成交利率,不产观测)' if _zeros else ''})")
+    else:
+        print("  ⚠️ series.CN_OMO_7D: 公告走查无 7 天行(缺席)")
+    on = omo.get('隔夜') if isinstance(omo, dict) else None
+    if on:
+        # Audit-R21 任务2: 2026-11-02 换锚——隔夜逆回购成为操作目标锚,
+        # 七天工具与 LPR 单列(registry/地图政策面同口径)。
+        out['CN_POLICY_OVERNIGHT'] = {'dates': [d for d, _ in on],
+                                      'values': [v for _, v in on]}
+        print(f"  ✅ series.CN_POLICY_OVERNIGHT: n={len(on)} "
+              f"({on[0][0]}..{on[-1][0]}, 末值 {on[-1][1]})")
+    else:
+        print("  ⚠️ series.CN_POLICY_OVERNIGHT: 公告走查无隔夜行"
+              "(2026-11-02 前形态,缺席)")
+    return out
+
 
 def _shrzgm_rows():
     """社融增量源端直取(R9,2026-11-12;商务部 mofcom POST;curl 子进程)。
@@ -1273,8 +2143,8 @@ def _shrzgm_last(rows):
             fv = float(v)
         except (TypeError, ValueError):
             continue
-        if fv != fv:
-            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
+            continue                     # R8-01: 非有限值(NaN/±Inf)不入采集史
         ym = m.group(1) + '-' + m.group(2)
         if best is None or ym > best[0]:
             best = (ym, fv)
@@ -1308,8 +2178,8 @@ def _macro_last(df, date_col, value_col):
             fv = float(v)
         except (TypeError, ValueError):
             continue
-        if fv != fv:                      # NaN(金十端点未发布行形态)→如实跳行
-            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
+            continue                     # R8-01: 非有限值(NaN/±Inf)不入采集史
         if best is None or d > best[0]:
             best = (d, fv)
     return best
@@ -1330,8 +2200,8 @@ def _macro_last_month(df, month_col, value_col):
             fv = float(v)
         except (TypeError, ValueError):
             continue
-        if fv != fv:
-            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
+            continue                     # R8-01: 非有限值(NaN/±Inf)不入采集史
         if best is None or d > best[0]:
             best = (d, fv)
     return best
@@ -1487,22 +2357,330 @@ def fetch_macro():
 
     return out
 
+
+# ── Audit-R6 条目3(R6-02): CN 月度全史正式生成器 ──────────────────────
+# 基线 dcb4b17 缺口: fetch_macro 单点通道丢弃全史(macro_china_pmi/
+# macro_china_new_financial_credit 端点本返全量行,仅取末行);历史依赖
+# macro_20261117.json 手工 cn_history_addendum 补丁,下一日 FRED 刷新档
+# 不含 CN 键→历史加载 0 行。本函数=正式入口: 全史拉取+归一(月度锚=
+# 统计期月首 YYYY-MM-01,与 R5 既有 226 月序列口径逐位一致)+口径/来源/
+# 获取时间/修订口径随档;由 macro_collector.merge_cn_history 随每档续存
+# (美国宏观刷新不遮蔽中国历史)。
+_CN_HISTORY_SPEC = [
+    # (registry_id, akshare 端点, 月份列, 值列, 单位, 定义, 源注记, 修订口径)
+    ('CN_PMI_MFG', 'macro_china_pmi', '月份', '制造业-指数', 'index_point',
+     '国家统计局制造业 PMI(制造业-指数列)',
+     'akshare macro_china_pmi(东方财富),与 fetch_macro 单点通道同源端点',
+     'PMI 不追溯修订(统计局初值即终值口径)'),
+    ('CN_NEW_LOANS', 'macro_china_new_financial_credit', '月份', '当月',
+     'cny_100m',
+     '对实体经济发放的人民币贷款当月新增(人民银行社融口径,'
+     '非全口径新增贷款——全口径对照见 registry calc 注记)',
+     'akshare macro_china_new_financial_credit(东方财富),与 fetch_macro '
+     '单点通道同源端点',
+     '贷款按央行初值,不追溯修订'),
+]
+
+
+def _macro_month_rows(df, month_col, value_col):
+    """月度宏观全史行(Audit-R6 R6-02 纯函数,零网络可注入): 月份列
+    '2026年10月'→统计期月首 'YYYY-MM-01' 锚;NaN/不可数值化/月份不可归一
+    跳行;同月多行取首见(源端无此形,防御);升序去重输出。"""
+    if df is None or len(df) == 0:
+        return []
+    rows = {}
+    for _, row in df.iterrows():
+        d = _norm_month(row.get(month_col))
+        v = row.get(value_col)
+        if d is None or v is None:
+            continue
+        try:
+            fv = float(v)
+        except (TypeError, ValueError):
+            continue
+        if fv != fv or fv in (float('inf'), float('-inf')):
+            continue                     # R8-01: 非有限值(NaN/±Inf)不入采集史
+        key = '%s-01' % d
+        if key not in rows:
+            rows[key] = fv
+    return [(k, rows[k]) for k in sorted(rows)]
+
+
+def fetch_macro_history():
+    """R6-02: CN_PMI_MFG/CN_NEW_LOANS 月度全史正式生成(采集+归一+口径)。
+
+    返回 {registry_id: item}(端点失败→该键缺席,禁 0 填充/禁造史);item 形
+    与 R5 addendum 既有消费面同构(date/value/prev/frequency/unit/definition/
+    source_note/series)并增 provenance(source/fetched_at/coverage/
+    revision_policy/generated_by)——版本与来源可追溯(验收 §4)。
+    """
+    import akshare as ak
+    out = {}
+    fetched_at = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    for (rid, api, mcol, vcol, unit, definition, source_note,
+         rev_policy) in _CN_HISTORY_SPEC:
+        try:
+            with _no_proxy():
+                df = getattr(ak, api)()
+            rows = _macro_month_rows(df, mcol, vcol)
+            if not rows:
+                print(f"  ⚠️ {rid}: 全史无有值行({api}.{vcol})")
+                continue
+            dates = [r[0] for r in rows]
+            values = [r[1] for r in rows]   # 源值直存(不预舍入): 与 R5 已核
+            # 验 226 月序列逐位一致(舍入会引入第 5 位小数起漂移,2015 段
+            # 源值自带小数;锚点核验口径=源端发布精度)
+            out[rid] = {
+                'date': dates[-1], 'value': values[-1],
+                'prev': values[-2] if len(values) > 1 else None,
+                'frequency': 'monthly', 'unit': unit,
+                'definition': definition, 'source_note': source_note,
+                'series': {'dates': dates, 'values': values},
+                'provenance': {
+                    'source': 'akshare_em(%s)' % api,
+                    'fetched_at': fetched_at,
+                    'coverage': {'n': len(dates), 'first': dates[0],
+                                 'last': dates[-1]},
+                    'revision_policy': rev_policy,
+                    'observation_anchor': '统计期月首(YYYY-MM-01)',
+                    'generated_by': 'china_market_collector.fetch_macro_history'
+                                    '(Audit-R6 R6-02 正式入口)',
+                },
+            }
+            print(f"  ✅ {rid}: 全史 n={len(dates)} "
+                  f"({dates[0]}..{dates[-1]}, 末值 {values[-1]})")
+        except Exception as e:
+            print(f"  ❌ {rid}({api}): {type(e).__name__}: {str(e)[:120]}")
+    return out
+
+
 def save_data(all_data):
-    """保存数据"""
+    """保存数据(Audit-R25 任务1: 同日降级重采集经 daily_face_guard_write
+    守卫——序列丢失面转存 superseded/,不覆盖同日完整可重放面)。"""
+    import research_provenance as rp
     date_str = datetime.now().strftime('%Y%m%d')
     daily_dir = os.path.join(DATA_DIR, 'daily')
-    os.makedirs(daily_dir, exist_ok=True)
 
-    filepath = os.path.join(daily_dir, f'china_{date_str}.json')
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(all_data, f, ensure_ascii=False, indent=2)
+    filepath, status, note = rp.daily_face_guard_write(
+        daily_dir, 'china', date_str, all_data, indent=2)
+    if status == 'degraded_diverted':
+        print(f"\n⚠️ 同日降级面({note})未覆盖完整档,转存: {filepath}")
+        return filepath
 
     size = os.path.getsize(filepath)
     print(f"\n💾 数据已保存: {filepath} ({size} 字节)")
     return filepath
 
-# ============ 主程序 ============
-if __name__ == '__main__':
+# ============ 阶段表与主程序(Audit-R33 任务4) ============================
+# 阶段顺序与旧主程序 1..9 逐步一致;核心阶段=A股/港股指数(Gate A 核心面)。
+_STAGES = (
+    ('a_share_indices', 'A股指数', True),
+    ('hk_indices', '港股指数', True),
+    ('southbound', '南向资金', False),
+    ('margin', '融资融券', False),
+    ('valuation', '指数估值', False),
+    ('turnover', '成交额', False),
+    ('ah_premium', 'AH溢价', False),
+    ('macro', 'CN宏观序列', False),
+    ('series', 'CN宏观全史序列', False),
+)
+
+
+def _stage_call(name, budget):
+    """阶段调用工厂: 仅三个阶段带新参(A股断点+预算/港股断点/宏观全史预算),
+    其余零参调用与旧主程序同形。预算关闭(≤0)→三阶段同样零参=旧行为
+    (不写断点、不逐 ticker 落盘)。"""
+    on = budget.remaining() is not None
+    if name == 'a_share_indices':
+        if not on:
+            return fetch_a_share_indices
+        return lambda: fetch_a_share_indices(checkpoint='ckpt', budget=budget)
+    if name == 'hk_indices':
+        if not on:
+            return fetch_hk_indices
+        return lambda: fetch_hk_indices(checkpoint='ckpt')
+    if name == 'series':
+        if not on:
+            return fetch_macro_series
+        return lambda: fetch_macro_series(budget=budget)
+    return {'southbound': fetch_southbound, 'margin': fetch_margin,
+            'valuation': fetch_valuation, 'turnover': fetch_turnover,
+            'ah_premium': fetch_ah_premium, 'macro': fetch_macro}[name]
+
+
+def _count_items(got):
+    if isinstance(got, dict):
+        return len(got)
+    return 1 if got else 0
+
+
+_BUDGET_STATUSES = ('cut_by_budget', 'skipped_budget')
+_STAGE_EXPECTED = {'a_share_indices': lambda: len(A_SHARE_INDICES),
+                   'hk_indices': lambda: len(HK_INDICES)}
+_NOTE_MARKS = ('⚠️', '❌')       # 阶段内警示行标记(来源失败/回落)
+_NOTE_MAX_LINES, _NOTE_MAX_CHARS = 8, 300
+
+
+class _StageTap:
+    """阶段级 stdout 透传捕获: 写入原样转给原流,同时记下阶段内打印的警示行
+    (⚠️/❌;每行截 300 字,至多 8 行)——只为随档阶段行披露「零项/回落」的原因,
+    不改变任何输出。其余属性(isatty/encoding/…)一律转给原流。"""
+
+    def __init__(self, orig):
+        self._orig = orig
+        self._buf = ''
+        self.lines = []
+
+    def write(self, s):
+        n = self._orig.write(s)
+        self._buf += s
+        while '\n' in self._buf:
+            line, self._buf = self._buf.split('\n', 1)
+            self._feed(line)
+        return n
+
+    def flush(self):
+        self._orig.flush()
+
+    def __getattr__(self, name):
+        return getattr(self._orig, name)
+
+    def _feed(self, line):
+        t = line.strip()
+        if (any(m in t for m in _NOTE_MARKS)
+                and len(self.lines) < _NOTE_MAX_LINES):
+            self.lines.append(t[:_NOTE_MAX_CHARS])
+
+    def close(self):
+        if self._buf.strip():
+            self._feed(self._buf)
+        self._buf = ''
+
+
+def _stage_row(name, got, sec):
+    """阶段函数正常返回后的随档阶段行(纯装配;不发打印)。
+    status: ok=取得≥1 项;empty=零项(各源失败或当日无数据——该键缺席,与既有
+    「非核心端点失败=该键缺席」同口径,不改变退出码;原因见 notes);A 股逐指数
+    协作式截断(函数正常返回但 _STAGE_STATUS 已标 cut_by_budget)=cut_by_budget。
+    expected=应取项数(仅 A股/港股指数两项有固定清单的阶段)。notes 由调用方按
+    捕获结果追加(无警示行不写该键)。"""
+    items = _count_items(got)
+    row = {'sec': sec, 'items': items}
+    if name in _STAGE_EXPECTED:
+        row['expected'] = _STAGE_EXPECTED[name]()
+    _resumed = (_STAGE_STATUS.get('a_share_indices') or {}).get('resumed_items') \
+        if name == 'a_share_indices' else None
+    if _resumed:
+        row['resumed'] = _resumed     # R33 任务4修订 r4: 续采项(来源/末根/取数时刻)
+    if (name == 'a_share_indices'
+            and (_STAGE_STATUS.get('a_share_indices') or {}).get('cut_by_budget')):
+        row['status'] = 'cut_by_budget'
+    else:
+        row['status'] = 'ok' if items else 'empty'
+    return row
+
+
+def _a_share_checkpoint_status(ash, stages):
+    """A 股断点状态节(纯装配): resumed/cut_by_budget 两键恒在。R33 任务4修订 r4:
+    ①看门狗在本阶段内触发时 cut_by_budget 同样为 True(旧: 仅协作式检查路径置位,
+    看门狗路径的阶段行已是 cut_by_budget 而此处仍为 false);②续采项注记字段
+    (stale_resumed/preclose_resumed,见 _ashare_resume_notes)有则带入。"""
+    out = {'resumed': list(ash.get('resumed') or []),
+           'cut_by_budget': bool(ash.get('cut_by_budget'))}
+    if (stages.get('a_share_indices') or {}).get('status') == 'cut_by_budget':
+        out['cut_by_budget'] = True
+    for k in ('stale_resumed', 'preclose_resumed'):
+        if ash.get(k):
+            out[k] = list(ash[k])
+    return out
+
+
+def _collect_stages(all_data, budget):
+    """按阶段表顺序采集,逐阶段记 {sec, items, status}。
+
+    status ∈ ok(取得≥1 项)/ empty(零项;原因见 notes)/ cut_by_budget(看门狗在
+    本阶段内触发,或 A 股逐指数协作式截断)/ skipped_budget(预算已耗尽,本阶段
+    未执行)。返回 (stages, 核心阶段被截断?——含核心阶段因预算未执行的情形)。
+    阶段内打印的 ⚠️/❌ 警示行经 _StageTap 透传捕获为 notes(stdout 原样写出);
+    非预算异常照旧外泄(脚本崩=失败,不吞;与旧主程序同口径)。"""
+    stages = {}
+    stopped = False
+    core_cut = False
+    for name, label, core in _STAGES:
+        if not stopped and budget.exhausted():
+            stopped = True
+        if stopped:
+            if core:
+                core_cut = True     # 核心阶段未执行=同样不得写主日档
+            stages[name] = {'sec': 0.0, 'items': None, 'status': 'skipped_budget'}
+            print(f"\n⏭️  {label}: 时间预算已耗尽,本阶段未执行")
+            continue
+        rem = budget.remaining()
+        print("\n⏱️  [%s] 开始(剩余预算 %s)" % (
+            label, "不限" if rem is None else "%.0f 秒" % rem))
+        if name == 'series':
+            _OMO_WALK_STATUS.clear()     # 本阶段走查状态从头记
+        t_s = time.monotonic()
+        tap = _StageTap(sys.stdout)
+        sys.stdout = tap
+        try:
+            got = _stage_call(name, budget)()
+        except BudgetExceeded:
+            stopped = True
+            if core:
+                core_cut = True
+            row = {'sec': round(time.monotonic() - t_s, 1),
+                   'items': None, 'status': 'cut_by_budget'}
+            if name == 'a_share_indices':
+                # R33 任务4修订 r4(NIT-1): 看门狗中断时已落断点的指数数随行披露
+                # (items=函数未返回不可得;断点=下次续采的进度)
+                row['checkpointed'] = len(
+                    (_ashare_checkpoint_read() or {}).get('items') or {})
+            cut_here = True
+        else:
+            row, cut_here = None, False
+        finally:
+            sys.stdout = tap._orig      # 异常外泄/截断同样复位
+            tap.close()
+        if cut_here:
+            stages[name] = row
+            _append_notes(stages, name, tap)
+            print(f"⏹️  {label}: 时间预算耗尽,本阶段中断"
+                  f"(已取到的进度在断点/缓存,下次运行续采)")
+            continue
+        stages[name] = _stage_row(name, got, round(time.monotonic() - t_s, 1))
+        _append_notes(stages, name, tap)
+        all_data[name] = got
+    return stages, core_cut
+
+
+def _append_notes(stages, name, tap):
+    """把阶段内捕获到的警示行挂到阶段行(零项阶段恒挂——空列表也是如实记录;
+    其余仅有警示行时挂)。"""
+    if tap.lines or stages[name].get('status') == 'empty':
+        stages[name]['notes'] = list(tap.lines)
+
+
+def _collection_status(budget, stages, core_cut):
+    """随档披露的采集状态节(纯装配): 预算/阶段表/A股断点/公告走查。"""
+    ash = dict(_STAGE_STATUS.get('a_share_indices') or {})
+    walk = dict(_OMO_WALK_STATUS)
+    if walk.get('status') == 'running':
+        # 走查途中被看门狗中断(函数未返回): 如实记 partial
+        walk.update({'status': 'partial', 'stop_reason': 'budget(watchdog)'})
+    return {
+        'budget': {'limit_sec': budget.limit_sec,
+                   'elapsed_sec': round(budget.elapsed(), 1),
+                   'exhausted': bool(budget.exhausted(0.0))},
+        'stages': stages,
+        'core_cut_by_budget': bool(core_cut or ash.get('cut_by_budget')),
+        'a_share_checkpoint': _a_share_checkpoint_status(ash, stages),
+        'omo_walk': (walk if walk and 'series' in stages
+                     and stages['series']['status'] != 'skipped_budget' else None),
+    }
+
+
+def main():
     print("=" * 60)
     print("📊 A股/港股数据采集 v2.1")
     print(f"🕐 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -1514,32 +2692,44 @@ if __name__ == '__main__':
         'version': '2.1',
     }
 
-    # 1. A股指数
-    all_data['a_share_indices'] = fetch_a_share_indices()
+    # Audit-R33 任务4: 采集时间预算(协作式检查+看门狗);保存前必须解除看门狗
+    budget = CollectionBudget()
+    if CN_COLLECTOR_BUDGET_SECONDS >= 880:
+        print(f"⚠️ CN_COLLECTOR_BUDGET_SECONDS={CN_COLLECTOR_BUDGET_SECONDS:.0f} "
+              f"已到流水线步骤上限(900 秒)余量: 预算起不到保护作用")
+    _arm_watchdog(budget)
+    try:
+        stages, core_cut = _collect_stages(all_data, budget)
+    finally:
+        _disarm_watchdog()
+    all_data['collection_status'] = _collection_status(budget, stages, core_cut)
 
-    # 2. 港股指数
-    all_data['hk_indices'] = fetch_hk_indices()
-
-    # 3. 南向资金
-    all_data['southbound'] = fetch_southbound()
-
-    # 4. 融资融券（新增）
-    all_data['margin'] = fetch_margin()
-
-    # 5. 指数估值（新增）
-    all_data['valuation'] = fetch_valuation()
-
-    # 6. 成交额
-    all_data['turnover'] = fetch_turnover()
-
-    # 7. AH溢价（新增）
-    all_data['ah_premium'] = fetch_ah_premium()
-
-    # 8. CN宏观序列(IA-P1-WP-E G-P1-14..18 新增)
-    all_data['macro'] = fetch_macro()
+    if all_data['collection_status']['core_cut_by_budget']:
+        # 核心阶段被预算截断: 不写主日档(明知不完整的核心面不得充当当日采集;
+        # 下游按「采集失败」既有口径处置);诊断性部分面写 logs/,退出码 1。
+        try:
+            log_dir = os.path.join(PROJECT_DIR, 'logs')
+            os.makedirs(log_dir, exist_ok=True)
+            diag = os.path.join(log_dir, 'china_partial_%s.json'
+                                % datetime.now().strftime('%Y%m%dT%H%M%S'))
+            with open(diag, 'w', encoding='utf-8') as f:
+                json.dump(all_data, f, ensure_ascii=False, indent=2)
+            where = f"诊断性部分面: {diag}"
+        except OSError as e:
+            where = f"诊断性部分面写入失败: {e}"
+        print(f"\n❌ 核心阶段(A股/港股)被时间预算截断: 不写主日档;{where}")
+        print("⚠️ 下次运行自断点续采(A股逐指数断点/港股全窗持久化)")
+        sys.exit(1)
 
     # 保存
     save_data(all_data)
+
+    # Audit-R33 任务4: 全部阶段完成→清 A 股断点(断点只用于恢复;同日再跑=
+    # 重新取网,与旧行为同形);仍有阶段未完整执行→保留,下次运行续采后腾出预算。
+    if not any(st.get('status') in _BUDGET_STATUSES for st in stages.values()):
+        _ashare_checkpoint_clear()
+    else:
+        print("♻️ A股断点保留(仍有阶段未完整执行): 下次运行续采")
 
     # 汇总
     print("\n" + "=" * 60)
@@ -1555,4 +2745,17 @@ if __name__ == '__main__':
     print(f"  成交额:   {'✅' if all_data.get('turnover') else '❌'}")
     print(f"  AH溢价:   {'✅' if all_data.get('ah_premium') else '❌'}")
     print(f"  CN宏观:   {len(all_data.get('macro') or {})} 项")
+    cut = [n for n, st in stages.items() if st['status'] in _BUDGET_STATUSES]
+    if cut:
+        print(f"\n⚠️ 时间预算: {len(cut)} 个阶段未完整执行({', '.join(cut)}),"
+              f"详见随档 collection_status;下次运行续采")
+    empty = [lbl for n, lbl, _core in _STAGES
+             if stages[n]['status'] == 'empty']
+    if empty:
+        print(f"\n⚠️ 零项阶段: {len(empty)} 个({', '.join(empty)})——该键缺席"
+              f"(各源失败或当日无数据),原因见随档 collection_status.stages.*.notes")
     print("\n🎉 采集完成！")
+
+
+if __name__ == '__main__':
+    main()

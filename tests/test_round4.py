@@ -218,8 +218,8 @@ print("\n── 7. 月频CPI观测日30天前仍新鲜(按发布周期+滞后)")
 a = {'macro.data.CPI.value': {'value': 328.4, 'obs_date': '2026-09-15', 'as_of': '2026-10-12'}}
 check("CPI(月频)30天前观测→新鲜",
       dv.is_fresh_anchor('macro.data.CPI.value', a['macro.data.CPI.value'], '2026-10-12') is True)
-a2 = {'macro.data.CPI.value': {'value': 328.4, 'obs_date': '2026-08-10', 'as_of': '2026-10-12'}}
-check("CPI观测超过月度窗口(63天)→过期",
+a2 = {'macro.data.CPI.value': {'value': 328.4, 'obs_date': '2026-07-05', 'as_of': '2026-10-12'}}
+check("CPI观测超月度窗口(统计期末07-31滞后73>60)→过期",
       dv.is_fresh_anchor('macro.data.CPI.value', a2['macro.data.CPI.value'], '2026-10-12') is False)
 a3 = {'macro.data.ICSA.value': {'value': 221000, 'obs_date': '2026-10-08', 'as_of': '2026-10-12'}}
 check("周频ICSA 4天前观测→新鲜",

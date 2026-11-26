@@ -1,0 +1,301 @@
+/attached = true
+/attached_at = "20261123T224004Z"
+/judgment_file = "judgment5_A.json"
+/schema_version = "1.1"
+/validation  {dict 5}
+/validation/passed = true
+/validation/violations  [list 0]
+/validation/n_contradictions = 3
+/validation/n_mechanism_chains = 2
+/validation/n_scenarios = 2
+/contract_verification  {dict 7}
+/contract_verification/version = "jc-v1.0-phase4"
+/contract_verification/verdicts  [list 14]
+/contract_verification/verdicts[0..13][0]/item = "C1.statement"
+/contract_verification/verdicts[0..13][0]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][0]/unit = ""
+/contract_verification/verdicts[0..13][0]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][0]/evidence_refs    e.g. "UST_10Y"
+/contract_verification/verdicts[0..13][0]/family = "level"
+/contract_verification/verdicts[0..13][0]/token = "5.04"
+/contract_verification/verdicts[0..13][0]/metric = "UST_10Y"
+/contract_verification/verdicts[0..13][0]/value = 5.04
+/contract_verification/verdicts[0..13][0]/expected = 5.04
+/contract_verification/verdicts[0..13][0]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][0]/note = "recompute:Fact 直读 UST_10Y@2026-11-19=5.04"
+/contract_verification/verdicts[0..13][1]/item = "C1.statement"
+/contract_verification/verdicts[0..13][1]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][1]/unit = ""
+/contract_verification/verdicts[0..13][1]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][1]/evidence_refs    e.g. "TIPS_10Y"
+/contract_verification/verdicts[0..13][1]/family = "level"
+/contract_verification/verdicts[0..13][1]/token = "2.88"
+/contract_verification/verdicts[0..13][1]/metric = "TIPS_10Y"
+/contract_verification/verdicts[0..13][1]/value = 2.88
+/contract_verification/verdicts[0..13][1]/expected = 2.88
+/contract_verification/verdicts[0..13][1]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][1]/note = "recompute:Fact 直读 TIPS_10Y@2026-11-19=2.88"
+/contract_verification/verdicts[0..13][2]/item = "C1.statement"
+/contract_verification/verdicts[0..13][2]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][2]/unit = ""
+/contract_verification/verdicts[0..13][2]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][2]/evidence_refs    e.g. "BEI_10Y"
+/contract_verification/verdicts[0..13][2]/family = "level"
+/contract_verification/verdicts[0..13][2]/token = "2.15"
+/contract_verification/verdicts[0..13][2]/metric = "BEI_10Y"
+/contract_verification/verdicts[0..13][2]/value = 2.15
+/contract_verification/verdicts[0..13][2]/expected = 2.15
+/contract_verification/verdicts[0..13][2]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][2]/note = "recompute:Fact 直读 BEI_10Y@2026-11-20=2.15"
+/contract_verification/verdicts[0..13][3]/item = "C1.statement"
+/contract_verification/verdicts[0..13][3]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][3]/unit = ""
+/contract_verification/verdicts[0..13][3]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][3]/evidence_refs    e.g. "VIX"
+/contract_verification/verdicts[0..13][3]/family = "level"
+/contract_verification/verdicts[0..13][3]/token = "27.01"
+/contract_verification/verdicts[0..13][3]/metric = "VIX"
+/contract_verification/verdicts[0..13][3]/value = 27.01
+/contract_verification/verdicts[0..13][3]/expected = 27.01
+/contract_verification/verdicts[0..13][3]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][3]/note = "recompute:Fact 直读 VIX@2026-11-23=27.01"
+/contract_verification/verdicts[0..13][4]/item = "C1.statement"
+/contract_verification/verdicts[0..13][4]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][4]/unit = ""
+/contract_verification/verdicts[0..13][4]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][4]/evidence_refs    e.g. "HY_OAS"
+/contract_verification/verdicts[0..13][4]/family = "level"
+/contract_verification/verdicts[0..13][4]/token = "3.52"
+/contract_verification/verdicts[0..13][4]/metric = "HY_OAS"
+/contract_verification/verdicts[0..13][4]/value = 3.52
+/contract_verification/verdicts[0..13][4]/expected = 3.52
+/contract_verification/verdicts[0..13][4]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][4]/note = "recompute:Fact 直读 HY_OAS@2026-11-19=3.52"
+/contract_verification/verdicts[0..13][5]/item = "C1.statement"
+/contract_verification/verdicts[0..13][5]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][5]/unit = ""
+/contract_verification/verdicts[0..13][5]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][5]/evidence_refs    e.g. "USDJPY"
+/contract_verification/verdicts[0..13][5]/family = "level"
+/contract_verification/verdicts[0..13][5]/token = "159.35"
+/contract_verification/verdicts[0..13][5]/metric = "USDJPY"
+/contract_verification/verdicts[0..13][5]/value = 159.35
+/contract_verification/verdicts[0..13][5]/expected = 159.35
+/contract_verification/verdicts[0..13][5]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][5]/note = "recompute:Fact 直读 USDJPY@2026-11-23=159.35"
+/contract_verification/verdicts[0..13][6]/item = "C1.statement"
+/contract_verification/verdicts[0..13][6]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][6]/unit = ""
+/contract_verification/verdicts[0..13][6]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][6]/evidence_refs    e.g. "DFF"
+/contract_verification/verdicts[0..13][6]/family = "level"
+/contract_verification/verdicts[0..13][6]/token = "3.88"
+/contract_verification/verdicts[0..13][6]/metric = "DFF"
+/contract_verification/verdicts[0..13][6]/value = 3.88
+/contract_verification/verdicts[0..13][6]/expected = 3.88
+/contract_verification/verdicts[0..13][6]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][6]/note = "recompute:Fact 直读 DFF@2026-11-19=3.88"
+/contract_verification/verdicts[0..13][7]/item = "C1.statement"
+/contract_verification/verdicts[0..13][7]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][7]/unit = ""
+/contract_verification/verdicts[0..13][7]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][7]/evidence_refs    e.g. "JP_POLICY_RATE"
+/contract_verification/verdicts[0..13][7]/family = "level"
+/contract_verification/verdicts[0..13][7]/token = "1.227"
+/contract_verification/verdicts[0..13][7]/metric = "JP_POLICY_RATE"
+/contract_verification/verdicts[0..13][7]/value = 1.227
+/contract_verification/verdicts[0..13][7]/expected = 1.227
+/contract_verification/verdicts[0..13][7]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][7]/note = "recompute:Fact 直读 JP_POLICY_RATE@2026-10-01=1.227"
+/contract_verification/verdicts[0..13][8]/item = "C1.statement"
+/contract_verification/verdicts[0..13][8]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][8]/unit = ""
+/contract_verification/verdicts[0..13][8]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][8]/evidence_refs    e.g. "CN_PPI_YOY"
+/contract_verification/verdicts[0..13][8]/family = "level"
+/contract_verification/verdicts[0..13][8]/token = "5.7"
+/contract_verification/verdicts[0..13][8]/metric = "CN_PPI_YOY"
+/contract_verification/verdicts[0..13][8]/value = 5.7
+/contract_verification/verdicts[0..13][8]/expected = 5.7
+/contract_verification/verdicts[0..13][8]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][8]/note = "recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7"
+/contract_verification/verdicts[0..13][9]/item = "C1.statement"
+/contract_verification/verdicts[0..13][9]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][9]/unit = ""
+/contract_verification/verdicts[0..13][9]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][9]/evidence_refs    e.g. "CN_CPI_YOY"
+/contract_verification/verdicts[0..13][9]/family = "level"
+/contract_verification/verdicts[0..13][9]/token = "0.7"
+/contract_verification/verdicts[0..13][9]/metric = "CN_CPI_YOY"
+/contract_verification/verdicts[0..13][9]/value = 0.7
+/contract_verification/verdicts[0..13][9]/expected = 0.7
+/contract_verification/verdicts[0..13][9]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][9]/note = "recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7"
+/contract_verification/verdicts[0..13][10]/item = "C1.statement"
+/contract_verification/verdicts[0..13][10]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][10]/unit = ""
+/contract_verification/verdicts[0..13][10]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][10]/evidence_refs    e.g. "CN_PMI_MFG"
+/contract_verification/verdicts[0..13][10]/family = "level"
+/contract_verification/verdicts[0..13][10]/token = "49.3"
+/contract_verification/verdicts[0..13][10]/metric = "CN_PMI_MFG"
+/contract_verification/verdicts[0..13][10]/value = 49.3
+/contract_verification/verdicts[0..13][10]/expected = 49.3
+/contract_verification/verdicts[0..13][10]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][10]/note = "recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3"
+/contract_verification/verdicts[0..13][11]/item = "C3.statement"
+/contract_verification/verdicts[0..13][11]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][11]/unit = ""
+/contract_verification/verdicts[0..13][11]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][11]/evidence_refs    e.g. "CN_PPI_YOY"
+/contract_verification/verdicts[0..13][11]/family = "level"
+/contract_verification/verdicts[0..13][11]/token = "5.7"
+/contract_verification/verdicts[0..13][11]/metric = "CN_PPI_YOY"
+/contract_verification/verdicts[0..13][11]/value = 5.7
+/contract_verification/verdicts[0..13][11]/expected = 5.7
+/contract_verification/verdicts[0..13][11]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][11]/note = "recompute:Fact 直读 CN_PPI_YOY@2026-10-31=5.7"
+/contract_verification/verdicts[0..13][12]/item = "C3.statement"
+/contract_verification/verdicts[0..13][12]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][12]/unit = ""
+/contract_verification/verdicts[0..13][12]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][12]/evidence_refs    e.g. "CN_CPI_YOY"
+/contract_verification/verdicts[0..13][12]/family = "level"
+/contract_verification/verdicts[0..13][12]/token = "0.7"
+/contract_verification/verdicts[0..13][12]/metric = "CN_CPI_YOY"
+/contract_verification/verdicts[0..13][12]/value = 0.7
+/contract_verification/verdicts[0..13][12]/expected = 0.7
+/contract_verification/verdicts[0..13][12]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][12]/note = "recompute:Fact 直读 CN_CPI_YOY@2026-10-31=0.7"
+/contract_verification/verdicts[0..13][13]/item = "C3.statement"
+/contract_verification/verdicts[0..13][13]/claim_type = "objective_fact"
+/contract_verification/verdicts[0..13][13]/unit = ""
+/contract_verification/verdicts[0..13][13]/evidence_refs  [list 1]
+/contract_verification/verdicts[0..13][13]/evidence_refs    e.g. "CN_PMI_MFG"
+/contract_verification/verdicts[0..13][13]/family = "level"
+/contract_verification/verdicts[0..13][13]/token = "49.3"
+/contract_verification/verdicts[0..13][13]/metric = "CN_PMI_MFG"
+/contract_verification/verdicts[0..13][13]/value = 49.3
+/contract_verification/verdicts[0..13][13]/expected = 49.3
+/contract_verification/verdicts[0..13][13]/status = "VERIFIED"
+/contract_verification/verdicts[0..13][13]/note = "recompute:Fact 直读 CN_PMI_MFG@2026-10-01=49.3"
+/contract_verification/six_checks  [list 16]
+/contract_verification/six_checks[0..15][0]/item = "C1"
+/contract_verification/six_checks[0..15][0]/check = "relevant"
+/contract_verification/six_checks[0..15][0]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][0]/note = "17 实据引用"
+/contract_verification/six_checks[0..15][1]/item = "C1"
+/contract_verification/six_checks[0..15][1]/check = "supports"
+/contract_verification/six_checks[0..15][1]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][1]/note = "引用逐项对得上"
+/contract_verification/six_checks[0..15][2]/item = "C1"
+/contract_verification/six_checks[0..15][2]/check = "competing"
+/contract_verification/six_checks[0..15][2]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][2]/note = "3 并列解释(阈值≥2)"
+/contract_verification/six_checks[0..15][3]/item = "C1"
+/contract_verification/six_checks[0..15][3]/check = "opposing"
+/contract_verification/six_checks[0..15][3]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][3]/note = "无未消化的相反证据"
+/contract_verification/six_checks[0..15][4]/item = "C2"
+/contract_verification/six_checks[0..15][4]/check = "relevant"
+/contract_verification/six_checks[0..15][4]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][4]/note = "4 实据引用"
+/contract_verification/six_checks[0..15][5]/item = "C2"
+/contract_verification/six_checks[0..15][5]/check = "supports"
+/contract_verification/six_checks[0..15][5]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][5]/note = "引用逐项对得上"
+/contract_verification/six_checks[0..15][6]/item = "C2"
+/contract_verification/six_checks[0..15][6]/check = "competing"
+/contract_verification/six_checks[0..15][6]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][6]/note = "2 并列解释(阈值≥2)"
+/contract_verification/six_checks[0..15][7]/item = "C2"
+/contract_verification/six_checks[0..15][7]/check = "opposing"
+/contract_verification/six_checks[0..15][7]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][7]/note = "无未消化的相反证据"
+/contract_verification/six_checks[0..15][8]/item = "C3"
+/contract_verification/six_checks[0..15][8]/check = "relevant"
+/contract_verification/six_checks[0..15][8]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][8]/note = "4 实据引用"
+/contract_verification/six_checks[0..15][9]/item = "C3"
+/contract_verification/six_checks[0..15][9]/check = "supports"
+/contract_verification/six_checks[0..15][9]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][9]/note = "引用逐项对得上; 披露: USDCNY@2026-11-23 未在文本展开"
+/contract_verification/six_checks[0..15][10]/item = "C3"
+/contract_verification/six_checks[0..15][10]/check = "competing"
+/contract_verification/six_checks[0..15][10]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][10]/note = "3 并列解释(阈值≥2)"
+/contract_verification/six_checks[0..15][11]/item = "C3"
+/contract_verification/six_checks[0..15][11]/check = "opposing"
+/contract_verification/six_checks[0..15][11]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][11]/note = "未讨论的被引指标(披露): ['USDCNY']"
+/contract_verification/six_checks[0..15][12]/item = "SCN1"
+/contract_verification/six_checks[0..15][12]/check = "overreach"
+/contract_verification/six_checks[0..15][12]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][12]/note = "tier=有历史相似证据 条件式✓"
+/contract_verification/six_checks[0..15][13]/item = "SCN1"
+/contract_verification/six_checks[0..15][13]/check = "falsifiable"
+/contract_verification/six_checks[0..15][13]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][13]/note = "指标+阈值形态✓"
+/contract_verification/six_checks[0..15][14]/item = "SCN2"
+/contract_verification/six_checks[0..15][14]/check = "overreach"
+/contract_verification/six_checks[0..15][14]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][14]/note = "tier=有历史相似证据 条件式✓"
+/contract_verification/six_checks[0..15][15]/item = "SCN2"
+/contract_verification/six_checks[0..15][15]/check = "falsifiable"
+/contract_verification/six_checks[0..15][15]/status = "VERIFIED"
+/contract_verification/six_checks[0..15][15]/note = "指标+阈值形态✓"
+/contract_verification/map_checks  [list 7]
+/contract_verification/map_checks[0..6][0]/item = "reader_map.headline_conclusion"
+/contract_verification/map_checks[0..6][0]/claim_type = "reader_map"
+/contract_verification/map_checks[0..6][0]/status = "VERIFIED"
+/contract_verification/map_checks[0..6][0]/note = "非空"
+/contract_verification/map_checks[0..6][0]/evidence_refs  [list 0]
+/contract_verification/map_checks[0..6][1]/item = "reader_map.regions"
+/contract_verification/map_checks[0..6][1]/claim_type = "reader_map"
+/contract_verification/map_checks[0..6][1]/status = "VERIFIED"
+/contract_verification/map_checks[0..6][1]/note = "4 地齐"
+/contract_verification/map_checks[0..6][1]/evidence_refs  [list 0]
+/contract_verification/map_checks[0..6][2]/item = "reader_map.turning_supplement"
+/contract_verification/map_checks[0..6][2]/claim_type = "reader_map"
+/contract_verification/map_checks[0..6][2]/status = "VERIFIED"
+/contract_verification/map_checks[0..6][2]/note = "补选转折 JP_CPI_TOKYO_YOY@2026-09 已交还判断席(first_mover=东京都CPI同比自1.6升至2.69(2026-)"
+/contract_verification/map_checks[0..6][2]/evidence_refs  [list 0]
+/contract_verification/map_checks[0..6][3]/item = "reader_map.cross_face_consistency.date_order"
+/contract_verification/map_checks[0..6][3]/claim_type = "reader_map"
+/contract_verification/map_checks[0..6][3]/status = "VERIFIED"
+/contract_verification/map_checks[0..6][3]/note = "日期次序主张一致: 2025-11<2026-02(早于,1 处)"
+/contract_verification/map_checks[0..6][3]/evidence_refs  [list 0]
+/contract_verification/map_checks[0..6][4]/item = "reader_map.cross_face_consistency.chain_evidence"
+/contract_verification/map_checks[0..6][4]/claim_type = "reader_map"
+/contract_verification/map_checks[0..6][4]/status = "VERIFIED"
+/contract_verification/map_checks[0..6][4]/note = "传导链[TR1] 区分指标绑定 3/3 环"
+/contract_verification/map_checks[0..6][4]/evidence_refs  [list 0]
+/contract_verification/map_checks[0..6][5]/item = "reader_map.cross_face_consistency.chain_evidence"
+/contract_verification/map_checks[0..6][5]/claim_type = "reader_map"
+/contract_verification/map_checks[0..6][5]/status = "VERIFIED"
+/contract_verification/map_checks[0..6][5]/note = "传导链[TR2] 区分指标绑定 1/1 环"
+/contract_verification/map_checks[0..6][5]/evidence_refs  [list 0]
+/contract_verification/map_checks[0..6][6]/item = "reader_map.cross_face_consistency.turning_source"
+/contract_verification/map_checks[0..6][6]/claim_type = "reader_map"
+/contract_verification/map_checks[0..6][6]/status = "VERIFIED"
+/contract_verification/map_checks[0..6][6]/note = "转折表 3 项指标与计划/候选面同源"
+/contract_verification/map_checks[0..6][6]/evidence_refs  [list 0]
+/contract_verification/unresolved_unbound  [list 0]
+/contract_verification/verdict = "VERIFIED"
+/contract_verification/stats  {dict 7}
+/contract_verification/stats/checks = 14
+/contract_verification/stats/contradicted = 0
+/contract_verification/stats/verified = 14
+/contract_verification/stats/unbound = 0
+/contract_verification/stats/six_fail = 0
+/contract_verification/stats/map_fail = 0
+/contract_verification/stats/n_contradictions = 3
+/run_ok_at_attach = true
+/allow_failed_run = false
+/reader_map_faces  {dict 6}
+/reader_map_faces/complete = true
+/reader_map_faces/headline = true
+/reader_map_faces/regions_ok = true
+/reader_map_faces/transmission_chains = 2
+/reader_map_faces/turnings_n = 3
+/reader_map_faces/history_n = 3

@@ -1,0 +1,427 @@
+{
+ "available": true,
+ "snapshot_id": "research_snapshot_20261123",
+ "target_date": "20261123",
+ "n_facts_total": 105,
+ "rows": [
+  {
+   "metric_id": "SPX",
+   "value": 7203.85,
+   "unit": "index_point",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "SPX@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "NDX",
+   "value": 26672.85,
+   "unit": "index_point",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "NDX@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "RUT",
+   "value": 2581.79,
+   "unit": "index_point",
+   "observation_date": "2026-11-20",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "RUT@2026-11-20"
+   }
+  },
+  {
+   "metric_id": "DXY",
+   "value": 104.08,
+   "unit": "index_point",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "DXY@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "EURUSD",
+   "value": 1.09,
+   "unit": "usd_per_eur",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "EURUSD@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "GOLD_F",
+   "value": 3685.2,
+   "unit": "usd_per_oz",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "GOLD_F@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "SILVER_F",
+   "value": 43.88,
+   "unit": "usd_per_oz",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "SILVER_F@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "BRENT_F",
+   "value": 88.19,
+   "unit": "usd_per_barrel",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "BRENT_F@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "VIX",
+   "value": 27.01,
+   "unit": "index_point",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "VIX@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "DAX",
+   "value": 25209.45,
+   "unit": "index_point",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "DAX@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "CAC40",
+   "value": 8022.62,
+   "unit": "index_point",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "CAC40@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "USDJPY",
+   "value": 159.35,
+   "unit": "jpy_per_usd",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "USDJPY@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "USDCNY",
+   "value": 6.65,
+   "unit": "cny_per_usd",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "USDCNY@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "HY_OAS",
+   "value": 3.52,
+   "unit": "percentage_point",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "HY_OAS@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "BB_OAS",
+   "value": 2.1,
+   "unit": "percentage_point",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "BB_OAS@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "B_OAS",
+   "value": 3.8,
+   "unit": "percentage_point",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "B_OAS@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "CCC_OAS",
+   "value": 13.61,
+   "unit": "percentage_point",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "CCC_OAS@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "IG_OAS",
+   "value": 0.94,
+   "unit": "percentage_point",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "IG_OAS@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "UST_2Y",
+   "value": 4.76,
+   "unit": "percent",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "UST_2Y@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "UST_10Y",
+   "value": 5.04,
+   "unit": "percent",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "UST_10Y@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "UST_30Y",
+   "value": 5.4,
+   "unit": "percent",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "UST_30Y@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "TIPS_5Y",
+   "value": 2.64,
+   "unit": "percent",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "TIPS_5Y@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "TIPS_10Y",
+   "value": 2.88,
+   "unit": "percent",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "TIPS_10Y@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "BEI_5Y",
+   "value": 2.18,
+   "unit": "percent",
+   "observation_date": "2026-11-20",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "BEI_5Y@2026-11-20"
+   }
+  },
+  {
+   "metric_id": "BEI_10Y",
+   "value": 2.15,
+   "unit": "percent",
+   "observation_date": "2026-11-20",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "BEI_10Y@2026-11-20"
+   }
+  },
+  {
+   "metric_id": "CURVE_2S10S",
+   "value": 0.29,
+   "unit": "percentage_point",
+   "observation_date": "2026-11-20",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "CURVE_2S10S@2026-11-20"
+   }
+  },
+  {
+   "metric_id": "CPI",
+   "value": 337.476,
+   "unit": "index_point_1982_84",
+   "observation_date": "2026-10-01",
+   "quality_status": "WARN",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "CPI@2026-10-01"
+   }
+  },
+  {
+   "metric_id": "CORE_PCE",
+   "value": 130.902,
+   "unit": "index_point_2017",
+   "observation_date": "2026-09-01",
+   "quality_status": "DEGRADED",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "CORE_PCE@2026-09-01"
+   }
+  },
+  {
+   "metric_id": "UNEMPLOYMENT",
+   "value": 4.1,
+   "unit": "percent",
+   "observation_date": "2026-10-01",
+   "quality_status": "WARN",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "UNEMPLOYMENT@2026-10-01"
+   }
+  },
+  {
+   "metric_id": "CORE_CPI",
+   "value": 339.9,
+   "unit": "index_point_1982_84",
+   "observation_date": "2026-10-01",
+   "quality_status": "WARN",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "CORE_CPI@2026-10-01"
+   }
+  },
+  {
+   "metric_id": "UST_5Y",
+   "value": 4.86,
+   "unit": "percent",
+   "observation_date": "2026-11-19",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "UST_5Y@2026-11-19"
+   }
+  },
+  {
+   "metric_id": "INDPRO",
+   "value": 103.3954,
+   "unit": "index_point_2017",
+   "observation_date": "2026-10-01",
+   "quality_status": "WARN",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "INDPRO@2026-10-01"
+   }
+  },
+  {
+   "metric_id": "US_REAL_GDP",
+   "value": 24611.077,
+   "unit": "billion_usd",
+   "observation_date": "2026-07-01",
+   "quality_status": "DEGRADED",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "US_REAL_GDP@2026-07-01"
+   }
+  },
+  {
+   "metric_id": "SHCOMP",
+   "value": 3538.948,
+   "unit": "index_point",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "SHCOMP@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "HSI",
+   "value": 22383.74,
+   "unit": "index_point",
+   "observation_date": "2026-11-23",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "HSI@2026-11-23"
+   }
+  },
+  {
+   "metric_id": "NIKKEI225",
+   "value": 56436.65,
+   "unit": "index_point",
+   "observation_date": "2026-11-20",
+   "quality_status": "PASS",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "NIKKEI225@2026-11-20"
+   }
+  },
+  {
+   "metric_id": "EA_HICP_YOY",
+   "value": 4.0,
+   "unit": "percent",
+   "observation_date": "2026-10-01",
+   "quality_status": "WARN",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "EA_HICP_YOY@2026-10-01"
+   }
+  },
+  {
+   "metric_id": "JP_POLICY_RATE",
+   "value": 1.227,
+   "unit": "percent",
+   "observation_date": "2026-10-01",
+   "quality_status": "WARN",
+   "source": {
+    "kind": "snapshot_fact",
+    "id": "JP_POLICY_RATE@2026-10-01"
+   }
+  }
+ ],
+ "note": null
+}

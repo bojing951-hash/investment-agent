@@ -1,0 +1,8 @@
+snapshot gate_a keys: core_fail core_missing illegal_quality noncore_degraded noncore_fail noncore_missing noncore_missing_detail note status
+evidence_refs total=50 unique=20
+evidence refs: resolvability check follows as one counted point over unique refs
+evidence_refs scope: l3=41 l4=9 total=50 unique=20
+S5 face check (info only): GDP yoy x UNEMP level paired by observation month: pearson=-0.5720 n=35; engine face text says -0.8936 n=37 -> quantity not reproduced, not compared
+presence markers (not counted): three anchors in judgment text: 12个月前=True 3个月前=True 最新一期=True
+presence markers (not counted): work-order elements in judgment text: 谁先变=True 历史=True 事后=True 证伪=True 竞争解释=True
+calendar metric ids with kind set (not counted): JP_POLICY_TARGET ; SCN trigger text says 决议日见发布日历实录 for Fed/ECB

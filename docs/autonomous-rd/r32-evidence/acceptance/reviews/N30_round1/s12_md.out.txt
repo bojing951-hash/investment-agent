@@ -1,0 +1,45 @@
+MAP_REPORT.md | chars 20817 | lines 223 | tokens 187 | not-found 7
+    ['1.12215', '25181.7', '3538.95', '3690.48', '56436.7', '62693.2', '0.028174']
+    方向同、水平分化、证据面不对称 1
+    尚不能区分 7
+    证据不足六项 1
+    席位待唤起 0
+    独立语义审查待裁 1
+    UPHELD 1
+    REVISE 1
+    缺席格 0
+    数据不可得 1
+    不得进入研究结论 1
+    DEGRADED 1
+    clamped 0
+    非请求月末 2
+FULL_REPORT.md | chars 15897 | lines 186 | tokens 211 | not-found 0
+    []
+    方向同、水平分化、证据面不对称 0
+    尚不能区分 1
+    证据不足六项 0
+    席位待唤起 0
+    独立语义审查待裁 0
+    UPHELD 0
+    REVISE 0
+    缺席格 0
+    数据不可得 0
+    不得进入研究结论 0
+    DEGRADED 4
+    clamped 0
+    非请求月末 0
+report.md | chars 19222 | lines 236 | tokens 193 | not-found 0
+    []
+    方向同、水平分化、证据面不对称 0
+    尚不能区分 1
+    证据不足六项 0
+    席位待唤起 1
+    独立语义审查待裁 0
+    UPHELD 0
+    REVISE 0
+    缺席格 0
+    数据不可得 2
+    不得进入研究结论 0
+    DEGRADED 5
+    clamped 0
+    非请求月末 1

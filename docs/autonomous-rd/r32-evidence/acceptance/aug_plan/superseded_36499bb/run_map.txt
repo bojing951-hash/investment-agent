@@ -1,0 +1,6 @@
+# AUG re-verification at the stamp 36499bb (read-only extract)
+
+# engine run: 20261123T235136Z_以_2026_08_21_为研究时点_日本和欧元区最近六个月的通胀与政策环境
+# git_head: 36499bb78a18dea1ff2b027074088b0ba404c3b8 | ts_utc: 20261123T235136Z | run_ok: True
+# not-ok steps: -
+# frozen inputs: {"config/release_calendar.json": "e44fd2aa5ced0310", "config/metric_registry.json": "fa396d22175a4814", "data/daily/research_snapshot_20261121.json": "fb1992a5396e033c"}

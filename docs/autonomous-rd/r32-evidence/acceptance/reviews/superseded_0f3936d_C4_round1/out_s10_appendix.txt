@@ -1,0 +1,57 @@
+=== contract verdicts
+analog top rank=1 month=2025-03 n_missing=2 Σw_norm=0.846156 missing_features={'HY_IG_gap_level': 'hist_17<36', 'HY_OAS_level': 'hist_17<36'}
+analog top rank=2 month=2022-06 n_missing=2 Σw_norm=0.846156 missing_features={'HY_IG_gap_level': 'no_value_at_candidate_month', 'HY_OAS_level': 'no_value_at_candidate_month'}
+analog top rank=3 month=2023-10 n_missing=2 Σw_norm=0.846156 missing_features={'HY_IG_gap_level': 'no_value_at_candidate_month', 'HY_OAS_level': 'no_value_at_candidate_month'}
+analog top rank=4 month=2021-02 n_missing=2 Σw_norm=0.846156 missing_features={'HY_IG_gap_level': 'no_value_at_candidate_month', 'HY_OAS_level': 'no_value_at_candidate_month'}
+analog top rank=5 month=2020-01 n_missing=5 Σw_norm=0.730770 missing_features={'CURVE_2S10S_d12m': 'hist_27<36', 'HY_IG_gap_level': 'no_value_at_candidate_month', 'HY_OAS_level': 'no_value_at_candidate_month', 'TIPS_10Y_d12m': 'hist_27<36', 'UST_10Y_d12m': 'hist_27<36'}
+analog d12m 特征: 锚值−2025-11 月末值 → {"UST_10Y_d12m": [1.0200000000000005, 1.02, ["2025-11-28", 4.02]], "TIPS_10Y_d12m": [1.0899999999999999, 1.09, ["2025-11-28", 1.79]], "CURVE_2S10S_d12m": [-0.26000000000000006, -0.26, ["2025-11-28", 0.55]]}
+analog SPX_rv21: 锚值=0.2973222702651734; 末21日对数收益标准差 样本=0.0192 总体=0.0187 (年化×√252: 0.3047 / 0.2973)
+=== 情景互补性真值表 (u=DFEDTARU 上限, j=JP 月均, l=CN_LPR_1Y)
+u=3.5 j=1.17 l=2.9 → A触发=False A证伪=True B触发=True B证伪=False
+u=3.5 j=1.17 l=3.0 → A触发=False A证伪=True B触发=False B证伪=False
+u=3.5 j=1.227 l=2.9 → A触发=False A证伪=True B触发=True B证伪=False
+u=3.5 j=1.227 l=3.0 → A触发=False A证伪=True B触发=False B证伪=False
+u=3.5 j=1.28 l=2.9 → A触发=False A证伪=True B触发=True B证伪=False
+u=3.5 j=1.28 l=3.0 → A触发=False A证伪=True B触发=False B证伪=False
+u=3.5 j=1.3 l=2.9 → A触发=False A证伪=True B触发=False B证伪=False
+u=3.5 j=1.3 l=3.0 → A触发=False A证伪=True B触发=False B证伪=False
+u=3.75 j=1.17 l=2.9 → A触发=False A证伪=False B触发=True B证伪=False
+u=3.75 j=1.17 l=3.0 → A触发=False A证伪=False B触发=False B证伪=False
+u=3.75 j=1.227 l=2.9 → A触发=False A证伪=False B触发=True B证伪=False
+u=3.75 j=1.227 l=3.0 → A触发=False A证伪=False B触发=False B证伪=False
+u=3.75 j=1.28 l=2.9 → A触发=False A证伪=False B触发=True B证伪=False
+u=3.75 j=1.28 l=3.0 → A触发=False A证伪=False B触发=False B证伪=False
+u=3.75 j=1.3 l=2.9 → A触发=False A证伪=False B触发=False B证伪=False
+u=3.75 j=1.3 l=3.0 → A触发=False A证伪=False B触发=False B证伪=False
+u=4.0 j=1.17 l=2.9 → A触发=False A证伪=False B触发=True B证伪=False
+u=4.0 j=1.17 l=3.0 → A触发=False A证伪=False B触发=False B证伪=False
+u=4.0 j=1.227 l=2.9 → A触发=False A证伪=False B触发=True B证伪=False
+u=4.0 j=1.227 l=3.0 → A触发=False A证伪=False B触发=False B证伪=False
+u=4.0 j=1.28 l=2.9 → A触发=False A证伪=False B触发=True B证伪=False
+u=4.0 j=1.28 l=3.0 → A触发=False A证伪=False B触发=False B证伪=False
+u=4.0 j=1.3 l=2.9 → A触发=False A证伪=False B触发=False B证伪=False
+u=4.0 j=1.3 l=3.0 → A触发=False A证伪=False B触发=False B证伪=False
+u=4.25 j=1.17 l=2.9 → A触发=False A证伪=False B触发=False B证伪=False
+u=4.25 j=1.17 l=3.0 → A触发=False A证伪=False B触发=False B证伪=True
+u=4.25 j=1.227 l=2.9 → A触发=False A证伪=False B触发=False B证伪=False
+u=4.25 j=1.227 l=3.0 → A触发=False A证伪=False B触发=False B证伪=True
+u=4.25 j=1.28 l=2.9 → A触发=True A证伪=False B触发=False B证伪=False
+u=4.25 j=1.28 l=3.0 → A触发=True A证伪=False B触发=False B证伪=True
+u=4.25 j=1.3 l=2.9 → A触发=True A证伪=False B触发=False B证伪=False
+u=4.25 j=1.3 l=3.0 → A触发=True A证伪=False B触发=False B证伪=True
+四类判据均不命中的状态数=12/32, 例: u=3.75 j=1.17 l=3.0; u=3.75 j=1.227 l=3.0; u=3.75 j=1.28 l=3.0; u=3.75 j=1.3 l=2.9; u=3.75 j=1.3 l=3.0; u=4.0 j=1.17 l=3.0
+=== 契约 STALE 两项: 末观测日/距截止日天数/格级 freshness = {"CORE_PCE": ["2026-09-01", 83, {"freshness": null, "freshness_lag_days": null, "freshness_window_days": null}], "US_REAL_GDP": ["2026-07-01", 145, {"freshness": null, "freshness_lag_days": null, "freshness_window_days": null}]}
+=== 判断档汉字数字数量词出现次数(逐条 L3 陈述, 契约 token 绑定只覆盖阿拉伯数字): {"C1-POLICY-DIVERGENCE": 26, "C2-INFLATION-DIVERGENCE": 34, "C3-GROWTH-LIMITED": 24, "C4-EVIDENCE-BOUNDARY": 17}
+=== 数值溯源普查: 判断档文字中的阿拉伯数字是否可溯源到引擎面/序列值/席位直算(未知项须人工复核)
+headline: 数字 20 个, 未溯源=['9.98', '9.98', '84.52']
+history_zero_case_note: 数字 24 个, 未溯源=['42.13', '40.66']
+C4-EVIDENCE-BOUNDARY.statement: 数字 10 个, 未溯源=['9.98']
+M1-POLICY-RATES-ASSETS#3: 数字 19 个, 未溯源=['9.98', '9.98', '84.52']
+turning[1].follow_or_diverge: 数字 7 个, 未溯源=['2.5658']
+turning[2].first_mover: 数字 4 个, 未溯源=['2.5658']
+turning[3].first_mover: 数字 5 个, 未溯源=['0.9571']
+turning[3].follow_or_diverge: 数字 6 个, 未溯源=['2.3904']
+link[2].observed_fact: 数字 22 个, 未溯源=['9.98', '84.52', '19.45', '35.89', '9.98', '19.45']
+link[2].verdict_note: 数字 3 个, 未溯源=['84.52']
+note[0]: 数字 30 个, 未溯源=['9.98', '84.52', '19.45', '35.89']
+数值溯源普查合计: 未溯源数字 24 个

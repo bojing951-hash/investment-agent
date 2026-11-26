@@ -1,0 +1,329 @@
+schema_version (1)
+    1.1 {1.1}
+agent_declaration.produced_by (6)
+    30 {ch-one 代持席位, NEW30 原问换轮 2026}
+    20261123 {持席位, NEW30 原问换轮 20261123T235157Z, }
+    235157 {0 原问换轮 20261123T235157Z, 2026-11}
+    2026 {261123T235157Z, 2026-11-23)}
+    11 {3T235157Z, 2026-11-23)}
+    23 {35157Z, 2026-11-23)}
+agent_declaration.written_at (8)
+    2026 {2026-11-24T11:}
+    11 {2026-11-24T11:35:}
+    24 {2026-11-24T11:35:19+}
+    11 {2026-11-24T11:35:19+08:}
+    35 {2026-11-24T11:35:19+08:00}
+    19 {026-11-24T11:35:19+08:00}
+    08 {-11-24T11:35:19+08:00}
+    00 {-24T11:35:19+08:00}
+agent_declaration.note (1)
+    100 {判断内容 100% Agent 产;}
+agent_declaration.basis (3)
+    三 {点值格(6格)、转折候选面、美国三利率分解、资产月窗、}
+    20261123 {search_snapshot_20261123)后独立研判;问句请}
+    100 {;引擎只供确定性证据,判断内容 100% 归 Agent。}
+l3.contradictions[0].id (1)
+    1 {C1-INFL-DIVE}
+l3.contradictions[0].statement (2)
+    一 {向相反,此为问句所求「分化」的第一主面。但就问句的最近}
+    1 {标缺席),点值取自快照序列面、L1 无对应事实行;去年}
+l3.contradictions[0].evidence_refs[0] (3)
+    2026 {JP_CPI_YOY@2026-10-01}
+    10 {JP_CPI_YOY@2026-10-01}
+    01 {CPI_YOY@2026-10-01}
+l3.contradictions[0].evidence_refs[1] (3)
+    2026 {EA_HICP_YOY@2026-10-01}
+    10 {A_HICP_YOY@2026-10-01}
+    01 {ICP_YOY@2026-10-01}
+l3.contradictions[0].competing_explanations[0] (1)
+    2025 {续传导、而日本读数回升主要反映 2025 年秋季高基数消退后}
+l3.contradictions[1].id (1)
+    2 {C2-POLICY-SY}
+l3.contradictions[1].statement (6)
+    一 {一五,决议日系引擎按『生效日前上一个周四』惯例自变更日}
+    四 {决议日系引擎按『生效日前上一个周四』惯例自变更日回推、}
+    一 {ICY_RATE,市场口径)最新一期为 1.227%(}
+    二 {一点二五)。节奏对照: 欧央行第二次变更 2026-0}
+    二 {不对称,此为问句所求「分化」的第二主面与「证据不足」的}
+    一 {化」的第二主面与「证据不足」的第一项。传导端与资产端证}
+l3.contradictions[1].evidence_refs[0] (3)
+    2026 {ECB_DFR@2026-09-16}
+    09 {ECB_DFR@2026-09-16}
+    16 {ECB_DFR@2026-09-16}
+l3.contradictions[1].evidence_refs[1] (3)
+    2026 {ECB_MRO@2026-09-16}
+    09 {ECB_MRO@2026-09-16}
+    16 {ECB_MRO@2026-09-16}
+l3.contradictions[1].evidence_refs[2] (3)
+    2026 {JP_POLICY_RATE@2026-10-01}
+    10 {OLICY_RATE@2026-10-01}
+    01 {CY_RATE@2026-10-01}
+l3.contradictions[1].evidence_refs[3] (3)
+    2026 {USDJPY@2026-11-23}
+    11 {USDJPY@2026-11-23}
+    23 {USDJPY@2026-11-23}
+l3.contradictions[1].evidence_refs[4] (3)
+    2026 {SPX@2026-11-23}
+    11 {SPX@2026-11-23}
+    23 {SPX@2026-11-23}
+l3.contradictions[1].evidence_refs[5] (3)
+    2026 {VIX@2026-11-23}
+    11 {VIX@2026-11-23}
+    23 {VIX@2026-11-23}
+l3.contradictions[2].id (1)
+    3 {C3-EVIDENCE-}
+l3.contradictions[2].statement (8)
+    一 {与引擎自列官方实录锚的「当月最后一个周五」形态不完全一}
+    五 {自列官方实录锚的「当月最后一个周五」形态不完全一致,可}
+    一 {的「当月最后一个周五」形态不完全一致,可见性结论不受影}
+    十 {结构对照不对称: 欧元区两年期与十年期国债收益率在册,}
+    二 {可得或未采,非采集遗漏);日本端二年、五年、十年期国债}
+    五 {未采,非采集遗漏);日本端二年、五年、十年期国债收益率}
+    十 {非采集遗漏);日本端二年、五年、十年期国债收益率事实行}
+    一 {但五条序列均不在本问证据索引,该一维无法对照(指标 i}
+l3.contradictions[2].evidence_refs[0] (3)
+    2026 {ECB_DFR@2026-09-16}
+    09 {ECB_DFR@2026-09-16}
+    16 {ECB_DFR@2026-09-16}
+l3.contradictions[2].evidence_refs[1] (3)
+    2026 {JP_POLICY_RATE@2026-10-01}
+    10 {OLICY_RATE@2026-10-01}
+    01 {CY_RATE@2026-10-01}
+l3.contradictions[2].evidence_refs[2] (3)
+    2026 {EA_HICP_YOY@2026-10-01}
+    10 {A_HICP_YOY@2026-10-01}
+    01 {ICP_YOY@2026-10-01}
+l3.mechanism_chains[0].id (1)
+    1 {M1-DIVERGE-T}
+l3.mechanism_chains[0].links[0].text (1)
+    一 {地上行(欧元区 2026-06 一度回落至 2.8,非}
+l3.mechanism_chains[0].links[0].evidence_level (1)
+    1 {E1}
+l3.mechanism_chains[0].links[0].evidence_refs[0] (3)
+    2026 {EA_HICP_YOY@2026-10-01}
+    10 {A_HICP_YOY@2026-10-01}
+    01 {ICP_YOY@2026-10-01}
+l3.mechanism_chains[0].links[0].evidence_refs[1] (3)
+    2026 {JP_CPI_YOY@2026-10-01}
+    10 {JP_CPI_YOY@2026-10-01}
+    01 {CPI_YOY@2026-10-01}
+l3.mechanism_chains[0].links[1].text (2)
+    一 {9-10 均为引擎按『生效日前上一个周四』惯例自变更日}
+    四 {0 均为引擎按『生效日前上一个周四』惯例自变更日回推【}
+l3.mechanism_chains[0].links[1].evidence_level (1)
+    1 {E1}
+l3.mechanism_chains[0].links[1].evidence_refs[0] (3)
+    2026 {ECB_DFR@2026-09-16}
+    09 {ECB_DFR@2026-09-16}
+    16 {ECB_DFR@2026-09-16}
+l3.mechanism_chains[0].links[1].evidence_refs[1] (3)
+    2026 {JP_POLICY_RATE@2026-10-01}
+    10 {OLICY_RATE@2026-10-01}
+    01 {CY_RATE@2026-10-01}
+l3.mechanism_chains[0].links[2].text (1)
+    10 {该预期未纳入美元端利率(UST_10Y 最新 5.04%}
+l3.mechanism_chains[0].links[2].evidence_level (1)
+    2 {E2}
+l3.mechanism_chains[0].links[2].evidence_refs[0] (3)
+    2026 {EURUSD@2026-11-23}
+    11 {EURUSD@2026-11-23}
+    23 {EURUSD@2026-11-23}
+l3.mechanism_chains[0].links[2].evidence_refs[1] (3)
+    2026 {USDJPY@2026-11-23}
+    11 {USDJPY@2026-11-23}
+    23 {USDJPY@2026-11-23}
+l3.mechanism_chains[0].links[2].missing_link_note (1)
+    零 {擎无政策差-汇率联动通道证据(近零渠道),该环为【假设}
+l3.mechanism_chains[0].links[3].text (10)
+    一 {资产面观察与对照: 近一月同日收盘口径(窗起}
+    225 { 下跌 9.36%、NIKKEI225 下跌 9.98%、}
+    40 {DAX 下跌 1.50%、CAC40 上涨 1.86%;}
+    225 {09.45,盘中)、NIKKEI225 -9.98%(56}
+    一 {X 11-05 -4.36%,下一交易日 NIKKEI}
+    225 {36%,下一交易日 NIKKEI225 11-06 -5.}
+    225 {PX -8.61%、NIKKEI225 -7.70%、DA}
+    40 {%、DAX -7.28%、CAC40 -5.27%),两}
+    三 {-18 发布,落在跳升窗内,属第三类候选驱动【假设·归}
+    一 {弱于美股,两点不利于紧缩主因,单一归因于两地政策不可证}
+l3.mechanism_chains[0].links[3].evidence_level (1)
+    2 {E2}
+l3.mechanism_chains[0].links[3].evidence_refs[0] (4)
+    225 {NIKKEI225@2026-11-2}
+    2026 {NIKKEI225@2026-11-20}
+    11 {NIKKEI225@2026-11-20}
+    20 {KKEI225@2026-11-20}
+l3.mechanism_chains[0].links[3].evidence_refs[1] (3)
+    2026 {DAX@2026-11-23}
+    11 {DAX@2026-11-23}
+    23 {DAX@2026-11-23}
+l3.mechanism_chains[0].links[3].evidence_refs[2] (3)
+    2026 {SPX@2026-11-23}
+    11 {SPX@2026-11-23}
+    23 {SPX@2026-11-23}
+l3.mechanism_chains[0].links[3].evidence_refs[3] (3)
+    2026 {VIX@2026-11-23}
+    11 {VIX@2026-11-23}
+    23 {VIX@2026-11-23}
+l4.scenarios[0].id (1)
+    1 {S1-DIVERGE-P}
+l4.scenarios[0].rows.scenario (2)
+    一 {3.5% 以上、ECB 再有至少一次 +25bp 上调}
+    一 {% 以上、BOJ 政策目标再上调一级(或月均中枢续升,}
+l4.scenarios[0].rows.asset_direction.evidence_refs[0] (4)
+    225 {NIKKEI225@2026-11-2}
+    2026 {NIKKEI225@2026-11-20}
+    11 {NIKKEI225@2026-11-20}
+    20 {KKEI225@2026-11-20}
+l4.scenarios[0].rows.asset_direction.evidence_refs[1] (3)
+    2026 {VIX@2026-11-23}
+    11 {VIX@2026-11-23}
+    23 {VIX@2026-11-23}
+l4.scenarios[0].rows.trigger.condition (1)
+    一 {时 VIX 在该读数入档日前最近一个交易日收盘高于 3}
+l4.scenarios[1].id (1)
+    2 {S2-CONVERGE}
+l4.scenarios[1].rows.scenario (2)
+    一 {【假设·非预测】分化收敛(一次性因素主导): 当}
+    一 {素主导): 当前欧元区通胀抬升以一次性因素(能源基数、}
+l4.scenarios[1].rows.asset_direction.evidence_refs[0] (3)
+    2026 {VIX@2026-11-23}
+    11 {VIX@2026-11-23}
+    23 {VIX@2026-11-23}
+l4.scenarios[1].rows.asset_direction.evidence_refs[1] (4)
+    225 {NIKKEI225@2026-11-2}
+    2026 {NIKKEI225@2026-11-20}
+    11 {NIKKEI225@2026-11-20}
+    20 {KKEI225@2026-11-20}
+l4.scenarios[1].rows.falsification.threshold (1)
+    一 {不低于 3.5%(未回落),「以一次性因素为主、回落至}
+l4.scenarios[1].rows.trigger.condition (1)
+    一 {时 VIX 在该读数入档日前最近一个交易日收盘低于 2}
+reader_map.headline_conclusion (2)
+    2026 {2026 年 11 月回看最}
+    六 {认维持;发布日历实录),月均口径六个月锚间由 0.72}
+reader_map.regions[0].from_to (9)
+    六 {政策环境: 最近六个月两次同幅上调——}
+    6 {主要再融资利率(政策目标口径)由6个月前锚(观测 20}
+    一 {-11)的 2.15% 升至最新一期锚(观测 2026}
+    25 {026-09-16 生效,各 +25bp;决议日 202}
+    一 {09-10 为引擎按『生效日前上一个周四』惯例回推【推}
+    四 {10 为引擎按『生效日前上一个周四』惯例回推【推断】,}
+    6 {】。通胀环境: HICP 同比由6个月前锚(观测月 2}
+    16 {-05-16,周六——引擎月末+16 天推定规则、非日历}
+    一 {实录为准)的 3.0% 升至最新一期锚(观测月 202}
+reader_map.regions[0].anchor_echo[0].anchor (1)
+    6 {6个月前}
+reader_map.regions[0].anchor_echo[1].anchor (1)
+    一 {最新一期}
+reader_map.regions[0].anchor_echo[2].anchor (1)
+    6 {6个月前}
+reader_map.regions[0].anchor_echo[3].anchor (1)
+    一 {最新一期}
+reader_map.regions[0].anchor_echo[4].anchor (1)
+    6 {6个月前}
+reader_map.regions[0].anchor_echo[5].anchor (1)
+    一 {最新一期}
+reader_map.regions[1].from_to (22)
+    6 {JP_POLICY_RATE)由6个月前锚(观测月 2}
+    一 {)的 0.727% 台阶升至最新一期锚(观测月 202}
+    六 {、非日历实录)的 1.227%(六个月锚间净 +50b}
+    12 {(六个月锚间净 +50bp;近 12 个月月均由 202}
+    1.227 {78 升至 2026-10 的 1.227,约 +75bp;引}
+    一 {227,约 +75bp;引擎政策一年窗路径同口径——窗}
+    0.478 {一年窗路径同口径——窗启时在值 0.478(2025-11 月}
+    1.227 {(2025-11 月均)→窗末 1.227(2026-10 月}
+    1.043 {6-09→2026-10 台阶(1.043→1.227)与 2}
+    1.227 {026-10 台阶(1.043→1.227)与 2026-09}
+    6 {通胀环境: 全国 CPI 同比由6个月前锚(观测月 2}
+    一 {历实录)的 1.38% 升至最新一期锚(观测月 202}
+    2.1 {6-09 为 2.16 对官方 2.1),非官方公布值直取}
+    1.27 {.99)至 2026-02 的 1.27,此后总体回升(20}
+    1.38 { 1.46→2026-04 的 1.38 有一次 0.08 }
+    一 {2026-04 的 1.38 有一次 0.08 个百分}
+    6 {0,引擎推定规则、非日历实录;由6个月前锚观测月 20}
+    一 {-04 的 1.42% 升至最新一期锚观测月 2026}
+    1 {标缺席),点值取自快照序列面、L1 无对应事实行。国债}
+    2 {债收益率(市场利率面): JGB2Y、JGB5Y、JG}
+    5 {场利率面): JGB2Y、JGB5Y、JGB10Y 当}
+    10 { JGB2Y、JGB5Y、JGB10Y 当日快照事实行在}
+reader_map.regions[1].anchor_echo[0].anchor (1)
+    6 {6个月前}
+reader_map.regions[1].anchor_echo[1].anchor (1)
+    一 {最新一期}
+reader_map.regions[1].anchor_echo[2].anchor (1)
+    6 {6个月前}
+reader_map.regions[1].anchor_echo[3].anchor (1)
+    一 {最新一期}
+reader_map.regions[1].anchor_echo[4].anchor (1)
+    6 {6个月前}
+reader_map.regions[1].anchor_echo[5].anchor (1)
+    一 {最新一期}
+reader_map.transmission[0].links[0].verdict_note (3)
+    二 {等幅路径与『按季程序』相容,且第二次变更的决议日前可见}
+    一 { 3.2,此条反向观察不成立(另一条 371 天反向观}
+    一 {27),与读数驱动相容,但样本仅一次。读数驱动与程序驱}
+reader_map.transmission[0].links[1].observed_fact (1)
+    10 {向分立未纳入美元端利率(UST_10Y 最新 5.04%}
+reader_map.transmission[0].links[1].verdict_note (3)
+    一 {2026-11-23 盘中快照)一致: 欧元与日元同对}
+    10 {擎面美元端利率高于两地(UST_10Y 最新 5.04%}
+    一 {立——尚不能区分。置信有限: 仅一个月窗、窗内三地均无}
+reader_map.transmission[0].links[2].observed_fact (5)
+    一 {近一月同日收盘口径(窗起}
+    225 { 下跌 9.36%、NIKKEI225 下跌 9.98%、}
+    40 {DAX 下跌 1.50%、CAC40 上涨 1.86%;}
+    225 {09.45,盘中)、NIKKEI225 -9.98%(56}
+    一 {其『快速回落』预期在本跳升上仅有一个盘中观测(2026}
+reader_map.transmission[0].links[2].competing_explanation (1)
+    三 {】若全球风险事件/仓位冲击主导,三地同跌与两地政策面只}
+reader_map.transmission[0].links[2].verdict_note (9)
+    40 {立(DAX -1.50%、CAC40 +1.86% vs}
+    225 {PX -8.61%、NIKKEI225 -7.70%、DA}
+    40 {%、DAX -7.28%、CAC40 -5.27%),两}
+    三 {策日历事件),落在跳升窗内,属第三类候选驱动,本对质(}
+    一 {其『快速回落』预期在本跳升上仅有一个盘中观测(2026}
+    27.01 {测(2026-11-23 快照 27.01,较 2026-11}
+    一 {-24.7%,非收盘),同窗另有一次收盘口径先例——2}
+    一 {X 11-05 -4.36%,下一交易日 NIKKEI}
+    225 {36%,下一交易日 NIKKEI225 11-06 -5.}
+reader_map.turnings[0].follow_or_diverge (1)
+    一 {变更日回推【推断】)——跟进方向一致,月频先后未定。引}
+reader_map.turnings[0].narrative (1)
+    一 { 4.0(其中 2026-06 一度回落至 2.8),}
+reader_map.turnings[1].narrative (1)
+    一 {0 1.227;发布日历实录最近一次目标调整为 202}
+reader_map.turnings[2].first_mover (1)
+    1 {sing,读数取自快照序列面、L1 无对应事实行)20}
+reader_map.turnings[2].follow_or_diverge (3)
+    一 {2026-10-30 的当月最后一个周五形态不完全一致}
+    五 {6-10-30 的当月最后一个周五形态不完全一致,可见}
+    一 {0 的当月最后一个周五形态不完全一致,可见性结论不受影}
+reader_map.turnings[2].narrative (1)
+    一 {06→2026-08 的回升方向一致(全国 2026-}
+reader_map.history_zero_case_note (7)
+    6 {analog 能力本轮已执行(S6_analog: 扫}
+    1 {1 个候选月、有效 74、TOP1 候选月 2025-}
+    3 {似检索,席位亦未对候选月的随后 3/6/12 个月结果}
+    6 {索,席位亦未对候选月的随后 3/6/12 个月结果逐项}
+    12 {席位亦未对候选月的随后 3/6/12 个月结果逐项核验,}
+    一 {验的事后结果充数;如需「两地通胀一升一降+同向收紧」的}
+    一 {事后结果充数;如需「两地通胀一升一降+同向收紧」的历史}
+reader_map.asset_returns_echo[0].metric_id (1)
+    225 {NIKKEI225}
+quality_gate_notes[2] (3)
+    一 {央行决议日——引擎按『生效日前上一个周四』惯例自序列变}
+    四 {议日——引擎按『生效日前上一个周四』惯例自序列变更日回}
+    1 {);无序列支撑环节=【假设】(M1 step3/ste}
+quality_gate_notes[3] (2)
+    1 {-12)与 VIX 收盘口径,S1 证伪阈值与前提水平}
+    零 {以决议实录核验(冻结日历对欧央行零条实录,欧央行分量须}
+quality_gate_notes[4] (4)
+    2026 {覆盖日(与窗端同值;问句裸年月 2026年11月 请求月末 }
+    六 {≠宣布值(净变动两种口径并列: 六个月锚间为一口径,近}
+    一 {变动两种口径并列: 六个月锚间为一口径,近 12 个月}
+    一 {径,近 12 个月月均与引擎政策一年窗路径为同口径——}
+quality_gate_notes[5] (4)
+    一 {编码「12个月前/3个月前/最新一期」,本问锚为「6个}
+    一 {一期」,本问锚为「6个月前/最新一期」,「观测 X→Y}
+    一 {),本档陈述层对无别名指标的数值一律用中文数字表述,带}
+    一 {路径按快照在场判可见,两面口径不一(已登记待用户裁定是}

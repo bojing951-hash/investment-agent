@@ -1,0 +1,30 @@
+job 137951563743 | gates | completed | success | started 2026-11-23T19:23:55Z | completed 2026-11-23T19:24:03Z
+    step 1 Set up job | completed | success
+    step 2 Run actions/checkout@v5 | completed | success
+    step 3 Run actions/setup-python@v6 | completed | success
+    step 4 thresholds 三方对账门 G1-G4(T2·裁定S1第4项,任一门红=CI fail) | completed | success
+    step 5 研发状态一致性门(R20·Charter10 §3.2,六项任一FAIL即红) | completed | success
+    step 6 研发进展漂移顾问(R21·Charter10 §4.3,非阻塞预警可见性) | completed | success
+    step 11 Post Run actions/setup-python@v6 | completed | success
+    step 12 Post Run actions/checkout@v5 | completed | success
+    step 13 Complete job | completed | success
+job 137951564171 | tests (3.12) | completed | success | started 2026-11-23T19:23:55Z | completed 2026-11-23T19:30:06Z
+    step 1 Set up job | completed | success
+    step 2 Run actions/checkout@v5 | completed | success
+    step 3 Run actions/setup-python@v6 | completed | success
+    step 4 安装被测模块import面所需的真实第三方依赖 | completed | success
+    step 5 运行全部离线测试套件(排除test_model_live,记录每套退出码) | completed | success
+    step 6 失败套件日志打包上传(仅失败时) | completed | skipped
+    step 11 Post Run actions/setup-python@v6 | completed | success
+    step 12 Post Run actions/checkout@v5 | completed | success
+    step 13 Complete job | completed | success
+job 137951564517 | tests (3.11) | completed | success | started 2026-11-23T19:23:55Z | completed 2026-11-23T19:30:15Z
+    step 1 Set up job | completed | success
+    step 2 Run actions/checkout@v5 | completed | success
+    step 3 Run actions/setup-python@v6 | completed | success
+    step 4 安装被测模块import面所需的真实第三方依赖 | completed | success
+    step 5 运行全部离线测试套件(排除test_model_live,记录每套退出码) | completed | success
+    step 6 失败套件日志打包上传(仅失败时) | completed | skipped
+    step 11 Post Run actions/setup-python@v6 | completed | success
+    step 12 Post Run actions/checkout@v5 | completed | success
+    step 13 Complete job | completed | success

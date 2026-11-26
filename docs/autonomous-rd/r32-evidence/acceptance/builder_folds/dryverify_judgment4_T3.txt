@@ -1,0 +1,4 @@
+as_of 2026-11-23 | validate_judgment passed True violations 0
+verify_judgment verdict VERIFIED stats {"checks": 5, "contradicted": 0, "verified": 4, "unbound": 0, "six_fail": 0, "map_fail": 0, "n_contradictions": 3}
+  V STALE | C2-POLICY-SYNC.statement | ECB_DFR | claim 2.5 | recompute:Fact 直读 ECB_DFR@2026-09-16=2.5
+rc=0

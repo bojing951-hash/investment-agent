@@ -1,0 +1,639 @@
+{
+ "rows": [
+  {
+   "cat": "⑤三利率分解",
+   "where": "reader_map.rates_decomposition",
+   "needle": null,
+   "found": true,
+   "src": "快照 series_store.UST_10Y/TIPS_10Y/BEI_10Y @2026-10-20→@2026-11-19 之差×100",
+   "computed": [
+    -8.0,
+    11.0,
+    -19.0
+   ],
+   "claimed": [
+    -8.0,
+    11.0,
+    -19.0
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤三利率分解",
+   "where": "reader_map.rates_decomposition",
+   "needle": null,
+   "found": true,
+   "src": "report.json research_plan.us_rates_trio.window.from/to",
+   "computed": [
+    "2026-10-20",
+    "2026-11-19"
+   ],
+   "claimed": [
+    "2026-10-20",
+    "2026-11-19"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤三利率分解",
+   "where": "reader_map.rates_decomposition",
+   "needle": null,
+   "found": true,
+   "src": "恒等式 名义=实际+盈亏平衡(直算)",
+   "computed": -8.0,
+   "claimed": -8.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤三利率分解",
+   "where": "reader_map.rates_decomposition",
+   "needle": null,
+   "found": true,
+   "src": "report.json us_rates_trio.chg_bp(引擎面对账)",
+   "computed": [
+    -8.0,
+    11.0,
+    -19.0
+   ],
+   "claimed": [
+    -8.0,
+    11.0,
+    -19.0
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤资产月窗",
+   "where": "reader_map.asset_returns_echo[NIKKEI225]",
+   "needle": null,
+   "found": true,
+   "src": "快照 series_store.NIKKEI225@2026-10-23→@2026-11-20 涨幅%; 起止观测日=截至窗起/截止日最后观测",
+   "computed": [
+    -9.979574,
+    "2026-10-23",
+    "2026-11-20"
+   ],
+   "claimed": [
+    -9.98,
+    "2026-10-23",
+    "2026-11-20"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤资产月窗",
+   "where": "reader_map.asset_returns_echo[NIKKEI225]",
+   "needle": null,
+   "found": true,
+   "src": "report.json research_plan.asset_moves.rows[NIKKEI225].chg_pct/window 与 window_months",
+   "computed": [
+    -9.98,
+    "2026-10-23",
+    "2026-11-20",
+    1
+   ],
+   "claimed": [
+    -9.98,
+    "2026-10-23",
+    "2026-11-20",
+    1
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤资产月窗",
+   "where": "reader_map.asset_returns_echo[DAX]",
+   "needle": null,
+   "found": true,
+   "src": "快照 series_store.DAX@2026-10-23→@2026-11-23 涨幅%; 起止观测日=截至窗起/截止日最后观测",
+   "computed": [
+    0.110393,
+    "2026-10-23",
+    "2026-11-23"
+   ],
+   "claimed": [
+    0.11,
+    "2026-10-23",
+    "2026-11-23"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤资产月窗",
+   "where": "reader_map.asset_returns_echo[DAX]",
+   "needle": null,
+   "found": true,
+   "src": "report.json research_plan.asset_moves.rows[DAX].chg_pct/window 与 window_months",
+   "computed": [
+    0.11,
+    "2026-10-23",
+    "2026-11-23",
+    1
+   ],
+   "claimed": [
+    0.11,
+    "2026-10-23",
+    "2026-11-23",
+    1
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤资产月窗",
+   "where": "reader_map.asset_returns_echo[SPX]",
+   "needle": null,
+   "found": true,
+   "src": "快照 series_store.SPX@2026-10-23→@2026-11-23 涨幅%; 起止观测日=截至窗起/截止日最后观测",
+   "computed": [
+    -5.506921,
+    "2026-10-23",
+    "2026-11-23"
+   ],
+   "claimed": [
+    -5.51,
+    "2026-10-23",
+    "2026-11-23"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤资产月窗",
+   "where": "reader_map.asset_returns_echo[SPX]",
+   "needle": null,
+   "found": true,
+   "src": "report.json research_plan.asset_moves.rows[SPX].chg_pct/window 与 window_months",
+   "computed": [
+    -5.51,
+    "2026-10-23",
+    "2026-11-23",
+    1
+   ],
+   "claimed": [
+    -5.51,
+    "2026-10-23",
+    "2026-11-23",
+    1
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤资产月窗",
+   "where": "reader_map.asset_returns_echo[VIX]",
+   "needle": null,
+   "found": true,
+   "src": "快照 series_store.VIX@2026-10-23→@2026-11-23 涨幅%; 起止观测日=截至窗起/截止日最后观测",
+   "computed": [
+    38.868887,
+    "2026-10-23",
+    "2026-11-23"
+   ],
+   "claimed": [
+    38.87,
+    "2026-10-23",
+    "2026-11-23"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑤资产月窗",
+   "where": "reader_map.asset_returns_echo[VIX]",
+   "needle": null,
+   "found": true,
+   "src": "report.json research_plan.asset_moves.rows[VIX].chg_pct/window 与 window_months",
+   "computed": [
+    38.87,
+    "2026-10-23",
+    "2026-11-23",
+    1
+   ],
+   "claimed": [
+    38.87,
+    "2026-10-23",
+    "2026-11-23",
+    1
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W1",
+   "needle": null,
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2025-11-01 与 @2026-02-01",
+   "computed": [
+    2.9,
+    1.27
+   ],
+   "claimed": [
+    2.9,
+    1.27
+   ],
+   "ok": true,
+   "note": "结构化字段 date=2026-02 before_date=2025-11 metric=JP_CPI_YOY"
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W2",
+   "needle": null,
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-02-01 与 @2026-05-01",
+   "computed": [
+    1.9,
+    3.2
+   ],
+   "claimed": [
+    1.9,
+    3.2
+   ],
+   "ok": true,
+   "note": "结构化字段 date=2026-05 before_date=2026-02 metric=EA_HICP_YOY"
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W3",
+   "needle": null,
+   "found": true,
+   "src": "快照 series_store.JP_POLICY_RATE@2026-04-01 与 @2026-07-01",
+   "computed": [
+    0.727,
+    0.978
+   ],
+   "claimed": [
+    0.727,
+    0.978
+   ],
+   "ok": true,
+   "note": "结构化字段 date=2026-07 before_date=2026-04 metric=JP_POLICY_RATE"
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W1.first_mover",
+   "needle": "2025-11→2026-02 由 2.9 降至 1.27(三个月 -1.63 个百分点",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2025-11-01/@2026-02-01 及其差",
+   "computed": [
+    2.9,
+    1.27,
+    -1.63
+   ],
+   "claimed": [
+    2.9,
+    1.27,
+    -1.63
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W1.first_mover",
+   "needle": "候选池内最大单段变动",
+   "found": true,
+   "src": "report.json turning_candidates.candidates 中 |delta| 最大者及其 metric_id/to_ym",
+   "computed": [
+    1.63,
+    [
+     "JP_CPI_YOY"
+    ],
+    [
+     "2026-02"
+    ]
+   ],
+   "claimed": [
+    1.63,
+    [
+     "JP_CPI_YOY"
+    ],
+    [
+     "2026-02"
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W1.follow_or_diverge",
+   "needle": "同期欧元区 HICP 亦下行(2025-11 2.1→2026-02 1.9)",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2025-11-01/@2026-02-01",
+   "computed": [
+    2.1,
+    1.9
+   ],
+   "claimed": [
+    2.1,
+    1.9
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W1.follow_or_diverge",
+   "needle": "两地谷底相邻(欧元区 2026-01 的 1.7、日本 2026-02 的 1.27)",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY / JP_CPI_YOY 在 2025-01..2026-10 的最小值(值,月)",
+   "computed": [
+    [
+     1.7,
+     "2026-01"
+    ],
+    [
+     1.27,
+     "2026-02"
+    ]
+   ],
+   "claimed": [
+    [
+     1.7,
+     "2026-01"
+    ],
+    [
+     1.27,
+     "2026-02"
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W1.follow_or_diverge",
+   "needle": "按引擎候选面转折日(区间终点月)则为日本(2026-02)先于欧元区(2026-05)",
+   "found": true,
+   "src": "report.json turning_candidates.candidates[].to_ym(JP_CPI_YOY / EA_HICP_YOY)",
+   "computed": [
+    [
+     "2026-02"
+    ],
+    [
+     "2026-05"
+    ]
+   ],
+   "claimed": [
+    [
+     "2026-02"
+    ],
+    [
+     "2026-05"
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W1.narrative",
+   "needle": "2026-03 1.46、2026-04 1.38、2026-05 1.53、2026-06 1.67、2026-07 1.97、2026-08 1.98、2026-09 2.16、2026-10 2.44",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2026-03..2026-10",
+   "computed": [
+    1.46,
+    1.38,
+    1.53,
+    1.67,
+    1.97,
+    1.98,
+    2.16,
+    2.44
+   ],
+   "claimed": [
+    1.46,
+    1.38,
+    1.53,
+    1.67,
+    1.97,
+    1.98,
+    2.16,
+    2.44
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W1.narrative",
+   "needle": "日本通胀谷底转折: 此后总体回升、非逐月单调",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY 2026-02→2026-10 净变动>0 且存在环比下降月",
+   "computed": [
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W1.narrative",
+   "needle": "谷底月前的 BOJ 月均台阶(2026-01 0.728)",
+   "found": true,
+   "src": "快照 series_store.JP_POLICY_RATE@2026-01-01",
+   "computed": 0.728,
+   "claimed": 0.728,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W2.first_mover",
+   "needle": "2026-02→2026-05 由 1.9 升至 3.2(三个月 +1.30 个百分点)",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-02-01/@2026-05-01 及其差",
+   "computed": [
+    1.9,
+    3.2,
+    1.3
+   ],
+   "claimed": [
+    1.9,
+    3.2,
+    1.3
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W2.follow_or_diverge",
+   "needle": "日本端同窗自谷底回升(2026-02 1.27→2026-05 1.53)",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2026-02-01/@2026-05-01",
+   "computed": [
+    1.27,
+    1.53
+   ],
+   "claimed": [
+    1.27,
+    1.53
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W2.follow_or_diverge",
+   "needle": "生效日 2026-06-17 晚于转折段终点月 2026-05",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO 值变更日 2026-06-17 与观测月 2026-05 先后",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W2.narrative",
+   "needle": "2026-06 2.8、2026-07 2.9、2026-08 3.2、2026-09 3.8、2026-10 4.0",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-06..2026-10",
+   "computed": [
+    2.8,
+    2.9,
+    3.2,
+    3.8,
+    4.0
+   ],
+   "claimed": [
+    2.8,
+    2.9,
+    3.2,
+    3.8,
+    4.0
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W3.first_mover",
+   "needle": "2026-04 0.727→2026-07 0.978(经 2026-06 0.841 过渡)",
+   "found": true,
+   "src": "快照 series_store.JP_POLICY_RATE@2026-04-01/@2026-06-01/@2026-07-01",
+   "computed": [
+    0.727,
+    0.841,
+    0.978
+   ],
+   "claimed": [
+    0.727,
+    0.841,
+    0.978
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W3.narrative",
+   "needle": "2026-08 0.977、2026-09 1.043、2026-10 1.227",
+   "found": true,
+   "src": "快照 series_store.JP_POLICY_RATE@2026-08..2026-10",
+   "computed": [
+    0.977,
+    1.043,
+    1.227
+   ],
+   "claimed": [
+    0.977,
+    1.043,
+    1.227
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑥转折判断",
+   "where": "W3.narrative",
+   "needle": "与月均台阶 2026-09→2026-10(1.043→1.227)相容",
+   "found": true,
+   "src": "JP_POLICY_RATE@2026-09-01/@2026-10-01; 日历生效日 2026-09-24 落在 9 月月内(月均口径滞后体现)",
+   "computed": [
+    1.043,
+    1.227,
+    true
+   ],
+   "claimed": [
+    1.043,
+    1.227,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  }
+ ],
+ "errors": [],
+ "F": {
+  "turning_candidates": [
+   [
+    "JP_CPI_YOY",
+    "2025-11",
+    "2026-02",
+    2.9,
+    1.27,
+    -1.63
+   ],
+   [
+    "EA_HICP_YOY",
+    "2026-02",
+    "2026-05",
+    1.9,
+    3.2,
+    1.3
+   ],
+   [
+    "JP_CPI_TOKYO_YOY",
+    "2026-06",
+    "2026-09",
+    1.6,
+    2.69,
+    1.09
+   ],
+   [
+    "JP_POLICY_RATE",
+    "2026-04",
+    "2026-07",
+    0.727,
+    0.978,
+    0.251
+   ]
+  ],
+  "argmin_12m": {
+   "EA": [
+    "2026-01",
+    1.7
+   ],
+   "JP": [
+    "2026-02",
+    1.27
+   ]
+  },
+  "argmax_12m": {
+   "EA": [
+    "2026-10",
+    4.0
+   ],
+   "JP": [
+    "2025-01",
+    4.03
+   ]
+  }
+ }
+}

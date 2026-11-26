@@ -1,0 +1,105 @@
+{
+ "points_total": 448,
+ "points_counted": 443,
+ "mismatches": 10,
+ "script_errors": 5,
+ "info_rows": 92,
+ "per_section": {
+  "A①截止日": {
+   "points": 23,
+   "ok": 23,
+   "mismatch": 0
+  },
+  "ERR": {
+   "points": 5,
+   "ok": 0,
+   "mismatch": 5
+  },
+  "B②点值锚格": {
+   "points": 71,
+   "ok": 71,
+   "mismatch": 0
+  },
+  "C③同比基期": {
+   "points": 28,
+   "ok": 26,
+   "mismatch": 2
+  },
+  "D④政策面": {
+   "points": 68,
+   "ok": 64,
+   "mismatch": 4
+  },
+  "E⑤利率分解": {
+   "points": 10,
+   "ok": 10,
+   "mismatch": 0
+  },
+  "F⑥转折与同步": {
+   "points": 69,
+   "ok": 66,
+   "mismatch": 3
+  },
+  "G⑦传导链": {
+   "points": 23,
+   "ok": 23,
+   "mismatch": 0
+  },
+  "H⑧历史类比": {
+   "points": 10,
+   "ok": 10,
+   "mismatch": 0
+  },
+  "I⑨情景": {
+   "points": 27,
+   "ok": 27,
+   "mismatch": 0
+  },
+  "J⑩一致性": {
+   "points": 18,
+   "ok": 18,
+   "mismatch": 0
+  },
+  "K⑪诚实缺席": {
+   "points": 34,
+   "ok": 34,
+   "mismatch": 0
+  },
+  "L⑫时点口径": {
+   "points": 18,
+   "ok": 18,
+   "mismatch": 0
+  },
+  "M⑬契约验证": {
+   "points": 21,
+   "ok": 21,
+   "mismatch": 0
+  },
+  "N⑭交付门缺口": {
+   "points": 9,
+   "ok": 9,
+   "mismatch": 0
+  },
+  "O窗口": {
+   "points": 14,
+   "ok": 13,
+   "mismatch": 1
+  }
+ },
+ "minimum_required": 90
+}
+ERR | ERR | secA | claim= null | computed= "TypeError(\"'<=' not supported between instances of 'tuple' and 'datetime.date'\")"
+ERR | ERR | secB | claim= null | computed= "TypeError('fromisoformat: argument must be str')"
+MISMATCH | C③同比基期 | C1 EA 去年同月值 | claim= null | computed= 2.1
+MISMATCH | C③同比基期 | C1 JP 去年同月值 | claim= null | computed= 2.99
+MISMATCH | D④政策面 | JP_POLICY_RATE 一年窗六个变动点=序列直算 | claim= [["2025-12-01", 0.478, 0.557, 8], ["2026-01-01", 0.557, 0.728, 17], ["2026-06-01", 0.727, 0.841, 11], ["2026-07-01", 0.841, 0.978, 14], ["2026-09-01", 0.977, 1.043, 7], ["2026-10-01", 1.043, 1.227, 18]] | computed= [["2025-12-01", 0.478, 0.557, 8], ["2026-01-01", 0.557, 0.728, 17], ["2026-04-01", 0.728, 0.727, 0], ["2026-06-01", 0.727, 0.841, 11], ["2026-07-01", 0.841, 0.978, 14], ["2026-08-01", 0.978, 0.977, 0], ["2026-09-01", 0.977, 1.043, 7], ["2026-10-01", 1.043, 1.227, 18]]
+MISMATCH | D④政策面 | JP_POLICY_RATE 一年窗净 +75bp=六变动点之和 | claim= null | computed= 75.0
+MISMATCH | D④政策面 | C2「自 2025-11 月均零点四七八升至 2026-10 月均一点二二七」在文 | claim= false | computed= true
+MISMATCH | D④政策面 | M1 月均台阶合计 +50bp | claim= 50.0 | computed= 50.1
+ERR | ERR | secD | claim= null | computed= "AttributeError(\"'str' object has no attribute 'strftime'\")"
+MISMATCH | F⑥转折与同步 | turnings[0] delta=候选面 delta | claim= null | computed= 1.3
+MISMATCH | F⑥转折与同步 | turnings[1] delta=候选面 delta | claim= null | computed= 0.251
+MISMATCH | F⑥转折与同步 | turnings[2] delta=候选面 delta | claim= null | computed= 1.09
+ERR | ERR | secF | claim= null | computed= "AttributeError(\"'str' object has no attribute 'strftime'\")"
+ERR | ERR | secG | claim= null | computed= "ValueError('incomplete format')"
+MISMATCH | O窗口 | 窗内逐月值 JP_CPI_TOKYO_YOY 2026-07 在文 | claim= true | computed= false

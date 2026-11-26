@@ -1,0 +1,136 @@
+diff --git a/tests/test_audit_r32_gate.py b/tests/test_audit_r32_gate.py
+index c49976a..bfdb392 100644
+--- a/tests/test_audit_r32_gate.py
++++ b/tests/test_audit_r32_gate.py
+@@ -15,7 +15,9 @@ metric_series),S3–S8 子进程/L1/证据索引/研究席/契约/报告/归档
+ 任务4 T3 原问经 --question-file 原样输入(地图问句+官方目标地区=欧日)。
+ 正式验收发现(§L) 裁决后交付状态面: 在场地图与当前装配仅差「分工」行
+ 审查状态短语=状态面等价(裁决绑定有效)→翻新状态面而非冻结;正文差异
+-照旧冻结/过期/拒绝。
++照旧冻结/过期/拒绝。裁决后再交付包(运行=执行印章、交付字节=归档印章)
++清单落档归档代码 SHA(仅异印章时加键);重放门④对已声明状态面等价的
++再交付包认归档代码为录制代码,第三印章照旧拒(显式越过=披露)。
+ """
+ import contextlib
+ import hashlib
+@@ -1849,6 +1851,20 @@ sys.argv = ['ia_cli.py'] + sys.argv[1:]
+ sys.exit(ia_cli.main())
+ '''
+ 
++# 包装器: 同一份代码,只把「当前代码 HEAD」声明为指定印章(模拟运行目录在
++# 执行印章下运行、之后在另一印章下归档/重放)
++_HEAD_CLI = r'''
++import sys
++HEAD = sys.argv[1]
++sys.path.insert(0, __ROOT__)
++import ia_cli
++import research_orchestrator as ro
++
++ro._git_state = lambda root: (HEAD, 'gate_head_wrapper', False)
++sys.argv = ['ia_cli.py'] + sys.argv[2:]
++sys.exit(ia_cli.main())
++'''
++
+ 
+ def sec_l():
+     """正式验收发现(工单 T3/A 在 36499bb 裁决 UPHELD 后归档): report 段
+@@ -2067,6 +2083,99 @@ def sec_l():
+           and aj.map_binding_matches(x1, aj._sha256_text(x1)) is True,
+           f"eq01={aj.map_content_state_equivalent(t0, t1)} "
+           f"eq_x={aj.map_content_state_equivalent(x1, x2)}")
++    # ── §L9 裁决后再交付包: 归档代码随清单落档+重放门④认归档代码 ──
++    hwrap = os.path.join(TMPG, 'head_cli.py')
++    with open(hwrap, 'w', encoding='utf-8') as f:
++        f.write(_HEAD_CLI.replace('__ROOT__', repr(ROOT)))
++
++    def _head_cli(head, argv):
++        r = subprocess.run([sys.executable, hwrap, head] + argv, cwd=ROOT,
++                           capture_output=True, text=True, timeout=900)
++        try:
++            return r.returncode, json.loads(r.stdout)
++        except Exception:                       # noqa: BLE001
++            return r.returncode, {'raw': (r.stdout + r.stderr)[-400:]}
++
++    def _ck(d, name):
++        for c in ((d.get('data') or {}).get('checks') or []):
++            if c.get('check') == name:
++                return c
++        return {}
++
++    def _jload(p):
++        try:
++            return json.load(open(p, encoding='utf-8'))
++        except Exception:                       # noqa: BLE001
++            return {}
++
++    def _read(p):
++        return open(p, encoding='utf-8').read() if os.path.isfile(p) else ''
++
++    ARC2, ARC3 = 'a' * 40, 'b' * 40            # 归档印章 / 第三印章(模拟)
++    arc2 = os.path.join(TMPG, 'arc_ps_redeliv')
++    rc6, d6 = _head_cli(ARC2, ['research-one', '--stage', 'archive',
++                               '--report-dir', rd, '--engine-root', T,
++                               '--archive-dir', arc2])
++    man2_p = os.path.join(arc2, 'ARCHIVE_MANIFEST.json')
++    man2 = json.load(open(man2_p, encoding='utf-8')) if os.path.isfile(
++        man2_p) else {}
++    check('§L9a 归档代码落档: 同印章归档清单无 archive_code_git_head 键'
++          '(清单字节不变);另印章下归档 rc=0——清单 archive_code_git_head='
++          '归档印章,run_code_git_head=运行印章,correlation 点名「裁决后再'
++          '交付」;包内地图==运行目录件',
++          'archive_code_git_head' not in man
++          and '归档代码' not in str(man.get('correlation'))
++          and rc6 == 0
++          and man2.get('archive_code_git_head') == ARC2
++          and man2.get('run_code_git_head') == WORKTREE_HEAD
++          and '裁决后再交付' in str(man2.get('correlation'))
++          and man2.get('map_binding_status_equivalent') is True
++          and open(os.path.join(arc2, 'MAP_REPORT.md'), 'rb').read() == b1,
++          f"rc6={rc6} arc_head={str(man2.get('archive_code_git_head'))[:12]} "
++          f"same_stamp_key={'archive_code_git_head' in man}")
++
++    def _rp(head, out, extra=None):
++        argv = ['research-one', '--stage', 'replay', '--package', arc2,
++                '--engine-root', T, '--replay-out', os.path.join(TMPG, out)]
++        return _head_cli(head, argv + (extra or []))
++
++    rc7, d7 = _rp(ARC2, 'rp_ps_redeliv_arc')
++    dd7 = d7.get('data') or {}
++    c7 = _ck(d7, 'code_version_match')
++    rj7 = os.path.join(TMPG, 'rp_ps_redeliv_arc')
++    rp7 = _jload(os.path.join(rj7, 'REPLAY_REPORT.json'))
++    md7 = _read(os.path.join(rj7, 'REPLAY_REPORT.md'))
++    check('§L9b 归档印章代码严格重放: rc=0——门④按「当前=归档代码(裁决后'
++          '再交付包,清单已声明)」通过,其余检查全过+逐字节相等;重放报告'
++          '落档 package_archive_head 与「归档代码 SHA」行',
++          rc7 == 0 and c7.get('ok') is True
++          and '归档代码' in str(c7.get('detail'))
++          and dd7.get('render_mode') == 'byte_equal'
++          and all(c.get('ok') for c in (dd7.get('checks') or []))
++          and rp7.get('package_archive_head') == ARC2
++          and rp7.get('replay_code_head') == ARC2
++          and rp7.get('package_run_head') == WORKTREE_HEAD
++          and '归档代码 SHA' in md7,
++          f"rc7={rc7} c7={str(c7.get('detail'))[:80]} "
++          f"mode={dd7.get('render_mode')}")
++    rc8, d8 = replay(arc2, T, out=os.path.join(TMPG, 'rp_ps_redeliv_run'))
++    dd8 = d8.get('data') or {}
++    check('§L9c 运行印章代码严格重放同一包: rc=0(当前==运行 SHA 的经典'
++          '口径照旧成立,逐字节相等)',
++          rc8 == 0 and dd8.get('render_mode') == 'byte_equal'
++          and _ck(d8, 'code_version_match').get('ok') is True,
++          f"rc8={rc8} mode={dd8.get('render_mode')}")
++    rc9, d9 = _rp(ARC3, 'rp_ps_redeliv_third')
++    rc10, d10 = _rp(ARC3, 'rp_ps_redeliv_third_allow',
++                    ['--allow-code-mismatch'])
++    check('§L9d 第三印章代码严格重放: 拒(code_version_mismatch);'
++          '--allow-code-mismatch: 放行并披露越过',
++          rc9 != 0
++          and (d9.get('data') or {}).get('blocked') == 'code_version_mismatch'
++          and rc10 == 0
++          and '披露越过' in str(_ck(d10, 'code_version_match').get('detail')),
++          f"rc9={rc9} blocked={(d9.get('data') or {}).get('blocked')} "
++          f"rc10={rc10}")
+ 
+ 
+ def main():

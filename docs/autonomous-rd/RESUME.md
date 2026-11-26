@@ -20,7 +20,79 @@
    `python3 scripts/rd_checkpoint.py --finalize ...` 机器盖章+六项门
    (检查点块/baseline 机器行勿手写;无日志行管线拒盖章=防先称毕)。
 
-## 下一步(2026-11-16 R44 并轨收口后 · 引擎轨道)
+## 下一步(2026-11-20 R67 Audit-R23 收口后 · 全轨道停等用户)
+
+> **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
+> 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
+
+**等待用户外部审计裁定**(Audit-R23 第二十三轮审计修复已收口,收口事实见 ITERATION_LOG R67 行与 AUDIT_R23_REPORT.md——活动区不载已完成任务号,R34 判例):
+
+- 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R23_REPORT.md`;本轮五任务(冻结源报告+裁决绑定/历史信息截止/正文事实校验/首页与三转折/真实一问验收)全关;修复链 d12f6ee→b316e88→收口提交(渲染器 NIT-2/NIT-4+门 §F2);一问验收 20261119T173248Z **三轮闭环 REVISE→REVISE→UPHELD**(两席累计独立复算 675 点;R2 连续性专项检出 CN_PMI 荣枯线 MAJOR=席位分离有效性的新证据)归档 bd5be016 三方一致+SHA 三处同值 b316e88 全长 40;36 核心格 27/27;VIX 工单 UPHELD Round-1 零漂移;门 51/51+回归 r18-r22 门全绿。
+- 旧 B 契约门 CONTRADICTED 面移交不变(AUDIT_R6_REPORT §七): 引擎侧 R45 修复合入 main 前两代码线行为不一致,超出审计修复轮范围。
+- 外审批后动作由用户指令定: 并轨 main / 继续整改;**未获用户确认不自动并 main、不合并 PR、不部署、不进入代码瘦身、不恢复旧研发循环**(2026-11-18 指令边界)。
+- 用户最小动作(独立于审计裁定): **main 分支保护实测未配置**(认证 API 404 亲证,AUDIT_R2_REPORT §六)——建议合并 PR #1 前启用(require PR+CI 绿);本轮未改远端权限。
+- 日历门(勿手工提前): F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
+
+## 下一步存档(2026-11-20 R66 后版·R67 收口时归档)
+**等待用户外部审计裁定**(Audit-R22 第二十二轮审计修复已收口,收口事实见 ITERATION_LOG R66 行与 AUDIT_R22_REPORT.md——活动区不载已完成任务号,R34 判例):
+
+- 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R22_REPORT.md`;本轮五任务(历史时点发布批次/政策时序分记/正文窜写拒绝+归档零增量/读者报告补全/真实一问验收)全关;修复链 1cb8a23→b45b810→状态收口;一问验收 20261119T153709Z UPHELD(Round-1,~350 点复算零 MAJOR)归档 cd3e1732 三方一致+SHA 三处同值 b45b810f;反例+正例 11/11 零归档增量;VIX 工单复测 UPHELD+R21 归档重放 VERIFIED 零漂移;门 36/0+回归 r18/r19/r20/r21 门全绿+电池 195(193 绿+2 环境类)。
+- 旧 B 契约门 CONTRADICTED 面移交不变(AUDIT_R6_REPORT §七+20261117T035814Z 注记): 引擎侧 R45 修复合入 main 前两代码线行为不一致,超出审计修复轮范围。
+- 外审批后动作由用户指令定: 并轨 main / 继续整改;**未获用户确认不自动并 main、不合并 PR、不部署、不进入代码瘦身、不恢复旧研发循环**(本轮指令边界, 2026-11-18)。
+- 用户最小动作(独立于审计裁定): **main 分支保护实测未配置**(认证 API 404 亲证,AUDIT_R2_REPORT §六)——建议合并 PR #1 前启用(require PR+CI 绿);本轮未改远端权限。
+- 日历门(勿手工提前): F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
+
+## 下一步存档(2026-11-19 R65 后版·R66 收口时归档)
+**等待用户外部审计裁定**(Audit-R21 第二十一轮审计修复已收口,收口事实见 ITERATION_LOG R65 行与 AUDIT_R21_REPORT.md——活动区不载已完成任务号,R34 判例):
+
+- 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R21_REPORT.md`;本轮五任务(历史可见性/政策与转折/正文与归档/读者文件/会话交付)全关;修复链 62c973e→138e85b→9667e8d→状态收口;一问验收 20261119T120815Z REVISE(4 MAJOR)→修订 13 处→UPHELD→归档;反例三件 8/8 零归档增量;门 49/0+回归 r18/r19/r20 门全绿+电池 192。
+
+## 下一步存档(2026-11-19 R62 后版·R65 收口时归档;R63/R64 收口未换版滞留)
+**等待用户外部审计裁定**(Audit-R18 第十八轮审计修复已收口,收口事实见下方存档节与 ITERATION_LOG R62 行——活动区不载已完成任务号, R34 判例):
+
+- 外审入口: 分支 `dev/audit-fix-r1` 尖+`docs/autonomous-rd/AUDIT_R18_REPORT.md`;本轮唯一目标(原问逐字「给我一份全球宏观经济变化地图…」一问走通: 取数/报告/验收共用一份研究计划;「3个月前」日历点与「事件后3个月」事后偏移分记;完整读者报告一句总判断+四地三时点对照+有文字的传导图+三转折按日期+关键数字带来源单位观测日+历史栏≤3段+美国类比标注+样本不足如实;逐条复核央行公告四分+同观测日三利率复算+传导逐环四件套+情景证伪一致+证据不足缩小结论;机制正文空/None、必需图表缺失、明确指标遗漏阻止交付归档+「只比较」两项都保留缺一阻止归档;固定提交→真实 Agent 重生成→复核抽查复算→归档回读 SHA-256→全量离线测试→PR 最终提交 CI)全关。五缺陷: ①原问 plan metrics=[] 答非所问误通过→detect_map_question+plan_map 共享研究计划(取数/报告/验收三段同源)②只比较前导句误删 UST_10Y(git 双跑证基线既有)→map_entities 全命中位+限定后任一命中③「12个月前/随后3、6、12个月」unparseable→点值锚/事后偏移锚分记+consumed_time_spans 透传(仅地图问句,R10-R17 保全)④reader_map 五面无契约→_map_checks+SCHEMA 拦+map_required_face_missing⑤在场 MAP_REPORT 篡改后归档重渲洗白→旁挂锚拒付不重写+合法修订重渲更新锚。产品验收(任务⑤零合成): 原问逐字全链 plan run_ok→Agent 真实判决 attach VERIFIED→独立零上下文审查 REVISE 四必修(政策事件日期系统性错误/BEI 年变化符号/CN 荣枯线/历史段无源锚)→修订闭环→复验 UPHELD(回归电池 20 项全绿)→deliverable=True→归档三处同锚+SHA 回读三方 MATCH→读者报告+裁决链三档入仓 r18-evidence/。门 40/40+既有门 r4-r17+t3+charter6 全绿+电池 189+复放四包 PASS。修复提交固定 SHA=d3dea052585d2e433d92576afe5f70b144722ddd;R19 候选=复核席残留 3 NIT(Q3/Q4 边界/「年中」标签/l3 ref 配对)+R17 移交两项(日历周表达/同义词形别名面);前轮 R1-R17 修复链沿 PR #1 各轮报告,重放入口沿 R7 包。
+
+- 旧 B 契约门 CONTRADICTED 面移交不变(AUDIT_R6_REPORT §七+20261117T035814Z 注记): 引擎侧 R45 修复合入 main 前两代码线行为不一致,超出审计修复轮范围。
+- 外审批后动作由用户指令定: 并轨 main / 继续整改;**未获用户确认不自动并 main、不合并 PR、不部署、不进入代码瘦身、不恢复旧研发循环**(本轮指令边界, 2026-11-18)。
+- 用户最小动作(独立于审计裁定): **main 分支保护实测未配置**(认证 API 404 亲证,AUDIT_R2_REPORT §六)——建议合并 PR #1 前启用(require PR+CI 绿);本轮未改远端权限。
+- 日历门(勿手工提前): F 补证轮 2026-12-05 观察钟满/六标签首验窗+金油比 2026-12 引擎自动触发(§八:算法正确性验收不等日历门)。六标签首验窗含 R26 重贴的 007/010 hyp0 NOT_YET_TESTABLE 两行(到期 2026-12-31 后窗口)。
+
+
+## 下一步存档(2026-11-18 R59 收口后版·操作者席)
+- [已毕·R59] **Audit-R15 第十五轮审计修复**(T-R59-1;用户指令独立轨道续 R58;分支 dev/audit-fix-r1,基线 4f9c75d→代码修复提交(固定 SHA=3b1b65e): half 后随白名单再扩+后缀组收编(无前缀形)+_QCONT_RE 连接词与日单位族再扩+_entity_spans 研究对象先识别(期限词形正则)+窗口/年限/月数/尾部/需求判定五入口同源传跨度;72 判据门 test_audit_r15_gate(§A10+§B7+§C6+§D13+§E21+§F18,合成裁决显式标记 role=R15-SYNTHETIC-ISOLATED-TEST)+探测 80 例 0 偏离一处真缺口(期限词形中文数量形)修复复验+十四既有门(r4-r14/t3/r42)+charter6 全绿+复放四包 PASS+复杂度基线内(同口径 +0.15%);报告=AUDIT_R15_REPORT.md;坑=half 白名单与后缀组须同改/期限词形正则三要素(数量通配+期可选+中文数量形)/隔离测试 eval 须传真实注册条目/unparseable hint 在判据面 basis/plan 钉子期望按显式元组传/zsh echo === 再犯;停等外审,不并main不合并PR不部署不开新轮)
+
+## 下一步存档(2026-11-18 R58 收口后版·操作者席)
+- [已毕·R58] **Audit-R14 第十四轮审计修复**(T-R58-1;用户指令独立轨道续 R57;分支 dev/audit-fix-r1,基线 07d83c6→代码修复提交(固定 SHA=75d34d6): _QCONT_RE 连接词扩容(再加上/加上)+单位侧三扩(个前缀推广/交易日单位/天·月期限护栏)+_QRANGE_RE half 后随白名单(行业/术语词形让位)+_QNUM_RESIDUAL_RE 月护栏带期;79 判据门 test_audit_r14_gate(§A7+§B3+§C27+§D4+§E13+§F12+§G13,合成裁决显式标记 role=R14-SYNTHETIC-ISOLATED-TEST)+探测 111 例 0 偏离一处同根因遗漏修复复验+十三既有门+charter6 全绿+复放四包 PASS+复杂度基线内(+0.24%);报告=AUDIT_R14_REPORT.md;坑=连接词交替须含无再形的加上/残缺扫描器与复合扫描器期限护栏须同步/plan 需冻结根带 research_snapshot(target_date 权威载体)/report 面须先 record_semantic_verdict(合成标签)/合成 item 须吃 plan 真实 item(指标随问题走);停等外审,不并main不合并PR不部署不开新轮)
+
+## 下一步存档(2026-11-18 R57 收口后版·操作者席)
+- [已毕·R57] **Audit-R13 第十三轮审计修复**(T-R57-1;用户指令独立轨道续 R56;分支 dev/audit-fix-r1,基线 1d39ec8→代码修复提交(固定 SHA=0fb64e4e932841f37f38f12cdbff4ce238681fe8): 单位先归一再换算(unit_n 空白/个 变体归一,半月类一致拒绝只有半+年=6)+复合尾部 _QCONT_RE(零/又/加/+ 连接的数量+时间单位=未处理数量整体拒绝;数量类含半形;日期词重叠让位日期分支;单位词界护栏月≠月份/年≠年度·份·期/日≠期·本·常/周≠期)+half 组词界半(?!年)(三年半年度=3 年)+先验证后去重+hint 改写指引;56 判据门 test_audit_r13_gate(§A4+§B4+§C19+§D4+§E7+§F15+§G5)+探测 54 例 0 偏离两同根因遗漏修复复验+十二既有门+charter6 全绿+复放四包 PASS+复杂度基线内(+0.20%);报告=AUDIT_R13_REPORT.md;坑=归档根 append-only 须每案独立 --archive-dir/probe 断言 3 偏离=2 裸形既档+1 真缺口/half 组吞半年度术语/四位年紧邻须让位日期分支;停等外审,不并main不合并PR不部署不开新轮)
+
+## 下一步存档(2026-11-18 R56 收口后版·操作者席)
+- [已毕·R56] **Audit-R12 第十二轮审计修复**(T-R56-1;用户指令独立轨道续 R55;分支 dev/audit-fix-r1,基线 f5bc514→代码修复提交(固定 SHA 见报告头): P1①统一时间要求完整性校验[_scan_range_forms 单一扫描器替代四件旧正则/迭代器=三入口同规则;_norm_question 全角→半角规范化副本偏移 1:1 原始问题不动;个可省/贪吃点残缺(1.2.3年)/零值/缺数量单位(过去年)/缺单位数量(近 20 24个月)/N个月半/小数折月非整(1.1年=13.2 不取整)全明确拒绝;_bare_date_window 裸单日期 YYYY年→自然年/年月三词形→整月/全日期四词形→当日;与相对约束并存=多范围拆分阻断;_QTIME_UNSUPPORTED_RE 补标记词+裸双字单位(过去季度/近星期),单字单位裸形不收防误伤(过去日本央行/过去天量)]/P1②来源结构不完整禁删[research_referenced_files 内联 research_provenance.sources_status_problems 纯结构口径(不传 data_dir)+target_ymd 取快照 target_date 前 8 位;结构损坏=scan_problems→R11 停删+gzip 字节保全;isinstance(ss,dict) 守卫;合法 MISSING 可证明];56 判据门 test_audit_r12_gate(§A9+§B6+§C11+§D8+§E7+§F9+§G7=六反例/性质abc/裸日期族/未支持单位族/护栏/结构八景/report+archive 双门)+十既有门(r4-r11/t3/r42)复跑绿+电池 185 件(charter6 夹具对齐后 86/86+phase6 提交后绿)+复放四包 PASS+净克隆三门绿+复杂度基线内(+0.12%);夹具对齐三处(r7-E6 单日期→None 旧口径按指令⑤废止改粒度显式窗注记/r11-§C 合成快照升权威四通道/charter6-p0 stub 快照升全 MISSING);报告=AUDIT_R12_REPORT.md;坑=spec.window 无 months 字段(R11 坑①同款)/json.dump encoding 误置/3.9 f-string 同引号嵌套/E 子集被频率族下限遮蔽反例须跑 F 全史;停等外审,不并main不合并PR不部署不开新轮)
+
+- [已毕·R55] **Audit-R11 第十一轮审计修复**(T-R55-1;用户指令独立轨道续 R54;分支 dev/audit-fix-r1,基线 0877516→代码修复提交 30770af: P1①时间约束全量收集[_q_relative_constraints 三类约束+日期重叠分派+多约束 unparseable 拆分提示+年半/小数数量/季度未支持/残余数量扫描,一年半=十八个月=1.5年=months 18 同窗,基线六反例全关]/P1②并发写入互斥[store_lock 新模块: 目录级跨进程 flock 同线程可重入+unique_tmp+fsync 原子发布;agent_judgment 配号/前序/落盘全临界区+FileExistsError 拒覆盖;research_archive archive_write_lock 事务;workbench save_to_archive 配号→落盘原子成对;6 进程并发=6 份完整裁决序号唯一 revision 成链,中断写入终档原样]/P1③引用扫描禁删[research_referenced_files (refs,problems) 逐份登记;扫描不完整→deleted 全停+deletion_skipped 降级 gzip 字节保全;main() 打印]/P2④工作台缓存[state_fingerprint 指纹键+采集成功 clear+rerun 失败仅报错;真实 streamlit 1.50.0 bare 模式直接导入 app 本体验证];29 判据门 test_audit_r11_gate(§A10+§G3+§B7+§C4+§D7)+九既有门复跑绿+电池 184 件(phase6 提交后绿)+复放四包 PASS+净克隆新门 29/0;五处夹具对齐(r4 L2/r6 C5-C7 日期敏感动态化,r7 T12 多范围语义,b4 三断言新持久化架构,复杂度基线章程§四.4 登记重锚);报告=AUDIT_R11_REPORT.md;CI 首跑 44132467404 红=门 B1 定日时区错位(判进口径)→热修三时区 29/0;停等外审,不并main不合并PR不部署不开新轮)
+
+- [已毕·R54] **Audit-R10 第十轮审计修复**(T-R54-1;用户指令独立轨道续 R53;分支 dev/audit-fix-r1,基线 c30bd7d→代码修复提交 f2e385a(数量完整词元匹配[完整run+负向后视+_cn_run_to_int整体换算+半年=6+混写残缺BAD明确拒绝]+研究时点与范围分别处理[_q_asof_mark时点标记≠窗口边界+双时点冲突阻断+问题时点优先于快照target_date且冲突披露+相对窗绑研究时点])+29判据门+八既有门复跑绿+电池183件提交树全绿+复放四包PASS;真实CN_PMI_MFG隔离副本走生产链,基线六反例全关;报告=AUDIT_R10_REPORT.md;停等外审,不并main不合并PR不部署)
+
+- [已毕·R53] **Audit-R9 第九轮审计修复**(T-R53-1;用户指令独立轨道续 R52;分支 dev/audit-fix-r1,基线 a4fb7c7→单波 74fb612 两缺口代码+33 判据门+三套夹具对齐[r4/r5 信封携带数组+合法日期,t3 等长破坏改短侧配对入档断言——语义不降]): R9-01=唯一有效观测清洗规则四路复用(快照构建/工作台/判定器/查询 loader,快照面 series_store_clean 核验披露+信封声明 n 不采信,基线八反例全阻断+交叉矩阵 2×2×8 经生产链四段);R9-02=三态固定+relative_months(研究时点倒推不用系统时间)+前年 offset-2+19 未支持词形诚实失败带提示+资产名护栏(十年期/上周期),反例 A/B 误放行关闭 report/archive 双拒,正例 11 形保留含 2021 回放;test_audit_r9_gate 33/0+电池 182 件 181 绿(phase6 提交后绿=182/182)+复放四包全 PASS(BLIND/F10/新 B 105/105/e2e-corrected;旧 B 三失配=R6 既档 CONTRADICTED 保全态);首败记录=M-mm2 尾截断错配期望修正(生产正确: 窗止容忍+staleness 据实失败);报告=docs/autonomous-rd/AUDIT_R9_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未瘦身/worktree 清单固定零新建)。
+- [已毕·R52] **Audit-R8 第八轮审计修复**(T-R52-1;用户指令独立轨道续 R51;分支 dev/audit-fix-r1,基线 25f079f→代码修复提交 d3c3dc0+证据/报告/状态收口尖): 三缺陷全关(R8-01=统一有效性规则[合法日期+有限数值]四点落位: rhq._clean_series 六键登记禁占位+ro._effective_window_obs 删 1.0 占位+cmc 五检查点非有限统一+终判链「序列面在场但有效观测 0」据实,NaN/±Inf/缺 values/长度错配/全缺失/部分缺失/重复日期/非法日期/正常数据九族真实格式文件→生产查询→report/archive 双门;R8-02=三态区分+斜杠日期词形+「去年」calendar_year 绑研究时点+「截至X」单侧终界窗起=序列首观测回填,基线三反例全阻断+ISO/近五/近十/以来/无限制/回放/去年全量七类正例保留;R8-03=固定 SHA d3c3dc0 git worktree 干净检出两轮正式实采[US 22 项+CN 226 月 rc=0,round2 fresh 非续存+source_sha256 前移]+每轮独立证据目录+round1 未被触碰+_git_state 指纹纳入未跟踪源码+CODE_VERSION 三级链保持);test_audit_r8_gate 30/0(§V 11+§W 11+§G 3+§B 2)+r7/r6/r5/r4 门全绿+电池 181 件 180 绿+phase6 册内红(提交后绿);test_p03_e2ea 旧断言按新六键契约更新(语义不降级);报告=docs/autonomous-rd/AUDIT_R8_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未瘦身/零密钥入仓[值对值扫描])。
+- [已毕·R52] **Audit-R8 第八轮审计修复**(T-R52-1;用户指令独立轨道续 R51;分支 dev/audit-fix-r1,基线 25f079f→代码修复提交 d3c3dc0+证据/报告/状态收口尖): 三缺陷全关(R8-01=统一有效性规则[合法日期+有限数值]四点落位: rhq._clean_series 六键登记禁占位+ro._effective_window_obs 删 1.0 占位+cmc 五检查点非有限统一+终判链「序列面在场但有效观测 0」据实,NaN/±Inf/缺 values/长度错配/全缺失/部分缺失/重复日期/非法日期/正常数据九族真实格式文件→生产查询→report/archive 双门;R8-02=三态区分+斜杠日期词形+「去年」calendar_year 绑研究时点+「截至X」单侧终界窗起=序列首观测回填,基线三反例全阻断+ISO/近五/近十/以来/无限制/回放/去年全量七类正例保留;R8-03=固定 SHA d3c3dc0 git worktree 干净检出两轮正式实采[US 22 项+CN 226 月 rc=0,round2 fresh 非续存+source_sha256 前移]+每轮独立证据目录+round1 未被触碰+_git_state 指纹纳入未跟踪源码+CODE_VERSION 三级链保持);test_audit_r8_gate 30/0(§V 11+§W 11+§G 3+§B 2)+r7/r6/r5/r4 门全绿+电池 181 件 180 绿+phase6 册内红(提交后绿);test_p03_e2ea 旧断言按新六键契约更新(语义不降级);报告=docs/autonomous-rd/AUDIT_R8_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未瘦身/零密钥入仓[值对值扫描])。
+
+- [已毕·R51] **Audit-R7 第七轮审计收尾修复**(T-R51-1;用户指令独立轨道续 R50;分支 dev/audit-fix-r1,基线 4e2f94c→单波 8620ea8+报告尖): 三缺口全关(R7-01=_question_window 统一解析[相对年限+四类词形+侧别缺省+显式胜相对+倒置/非法阻断]+实际观测面+频率族日历期望×半额+断档门,三反例全关;R7-02=collection_status_of 唯一口径六点贯通链+三分时点+stale_for_task 三级阻断+续用披露放行+回放不误判,九场景断言查询/报告/归档;R7-03=_git_state 三级绑定+两字段随档+真网两轮脱敏入仓 r7-evidence/+B 包 macro_input 随包+recompute 参数化 105/105+新旧 B 注记);零削弱复验四项保留;test_audit_r7_gate 37/0+r5_gate 30/0+r6_gate 25/0+全电池直跑 178 绿+1 已档设计红(phase6-D3 提交前红,提交后复跑绿)+1 SKIP;报告=docs/autonomous-rd/AUDIT_R7_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未改远端权限/未瘦身/零密钥入仓)。
+
+- [已毕·R50] **Audit-R6 第六轮审计收尾修复**(T-R50-1;用户指令独立轨道续 R49;分支 dev/audit-fix-r1,基线 dcb4b17→单波): 三缺口+任务B全关(R6-01=频率取权威注册表+任务窗真实边界+窗口归属判据+S4 重叠判定,两基线反例阻断/完整历史不误拒;R6-02=fetch_macro_history 226 月全史+merge 三态+正式接线+registry 注记,真实网络四步验收(净环境→连续→美国刷新不遮蔽→注入失败诚实续存)每步可查询带溯源;R6-03=裁决链共用校验先于 legacy 早退+逐档算法核验,两基线反例阻断;任务B=正式生成器数据全链于基线代码,v3 措辞规约修订数字零改动→attach VERIFIED→独立席 r6-b-review 105 项复算 UPHELD 零必修→归档三方一致 06624da7+重放包 cn-task-b-20261117T083954Z);无回退复验=七链 0 BAD+基线契约重跑 6/7 VERIFIED+BLIND/F10 重放 sha 一致;R5 溯源发现如实披露(engine_cn 漂移不止渲染器);test_audit_r6_gate 25/0+r5_gate 29/0+全电池直跑 178/179(唯一红=phase6-D3 提交前设计行为);报告=docs/autonomous-rd/AUDIT_R6_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未改远端权限/未瘦身)。
+
+- [已毕·R49] **Audit-R5 第五轮审计收尾修复**(T-R49-1;用户指令独立轨道续 R48;分支 dev/audit-fix-r1,基线 49fb583→波1 82b9398+波2 09e4ebb): 五项全关(摘要迁移 rebind 双通道证明门/数据门 blocked_class_of 三级重构+观测下界族推/E2E 三争点修正+独立席 REVISE→闭环 UPHELD/BLIND 勘误/裁决 format_version=2+链校验六形态/中国任务 B=CN 两指标 226 月全史接入+真实研究+独立席 99 项抽核 5 必修→REVISE→修订 18 处+源头严格化→57 项复算全 PASS→闭环 UPHELD→归档+重放包);波2 首推 CI 44023144279 红=R20 门②正道拦(收口漏 finalize,单根因)→按 §3.2 对账恢复;报告=docs/autonomous-rd/AUDIT_R5_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未改远端权限/未瘦身)。**R6 溯源更正**: 其任务B契约门结论产自漂移引擎代码,基线可复现性=NOT_VERIFIED(见 R50 行与 AUDIT_R6_REPORT §七)。
+
+- [已毕·R48] **Audit-R4 第四轮审计收尾修复**(T-R48-1;用户指令独立轨道续 R47;分支 dev/audit-fix-r1,基线 5fc5df8→修复链 2882932+1d53857→台账尖): §二六项全关(裁决 fail-closed/审查覆盖 v3/BLIND 同版重放 64 靶/跨日归档/必要可选贯通+outcome 源序修/A-C-BLIND-F10 rebind+B 如实拒答);P1 两反例基线误放行→修复面阻断;E2E 真实全链(独立席 116 项复算 UPHELD→deliverable=True→归档三方摘要全等);双口径 176/176+176 passed;报告=docs/autonomous-rd/AUDIT_R4_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未改远端权限/未瘦身)。
+
+- [已毕·R47] **Audit-R2 第二轮外部审计修复与收口**(T-R47-1;用户指令独立轨道续 R46;分支 dev/audit-fix-r1,基线 06e90c1→修复链 021092f→台账尖): §二八项全关(审查绑定/裁决序/BLIND 五数值冻结重算更正+独立新席复算 UPHELD/F10 重放包/pytest 三入口/链档反例/必要数据分级/治理边界);候选双口径 176/176+175 passed;G0-G4 分层如实终裁归用户;报告=docs/autonomous-rd/AUDIT_R2_REPORT.md;边界遵守(未并 main/未合并 PR/未部署/未改远端权限/未瘦身)。
+
+- [已毕·R46] **Audit-R1 第一轮外部审计修复与重新验收**(T-R46-1;用户指令独立轨道;分支 dev/audit-fix-r1,基线 c9d5715→冻结面 0b8b9bd): F01-F10 十项全关;F10 独立性重做三轮复议闭环终裁 UPHELD(deliverable=True);独立验收席 G0-G4 全 PASS;全量 185 件=174 套件式 867/0+11 打印式 rc=0+净克隆冒烟绿;终报告=docs/autonomous-rd/AUDIT_R1_REPORT.md(§九终七答);停于等待用户外部审计(未并 main/未推送/未部署/未瘦身/旧循环未恢复)。
+- [对账·R46] **T-R45-1 吸收**: PC 并轨对账行按自带出口条款移出台账(R46 baseline=badb4695 含 main 尖 36c1e7e;证据链=c9d5715+PRODUCT_CONVERGENCE_PHASE6_ACCEPTANCE.md;吸收注同时留 ITERATION_LOG R46 行)。
+
+## 下一步存档(2026-11-16 R44 后·引擎轨道,暂停待用户——原文保全)
+
 
 > **唯一队列入口**(Charter 10 §3.1/§3.3)。已完成任务只进「下一步存档」与 ITERATION_LOG,永不回到本节。
 > 恢复第一步: 读本节检查点块 → `git merge-base --is-ancestor <块commit> HEAD` 亲核(块 commit 以机器盖章为准,勿信任何手写 sha);不成立=状态可疑,先对账再动工。
@@ -34,7 +106,7 @@ R42(聚合器吞错)+R43(pytest 四件套,操作者)+R44(A 族碎片泄漏硬化
 - [低优先候选] HK 双通道脆弱面/china 子源失败落盘/R13 审计 2 NIT/OPEN_ISSUES 按需取用。
 
 
-<!-- RD-CHECKPOINT v1: json {"round": 44, "date": "2026-11-16 12:25 HKT", "branch": "HEAD", "commit": "28d675540980613d032dc68e95e5face4678c207", "baseline": "28d675540980613d032dc68e95e5face4678c207", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R44-1"], "next_task": "R45(引擎席): B 族评分卡分值列/表内碎片硬化首位候选(40/283 居首: 评分卡 |+2| 分值列绑行指标水平+散文总分形态)+T8-R2 ④era base_anchor_set 必填+⑥重封留出+⑦变异压力轮启封随批+MINOR-2 表内序号(0 命中)/NIT-2 未闭合注释远端吞随批+R41 审计登记 MINOR-1+NIT-3~5+GUARD_FILES 扩容(RDG-012 NIT-A)+pytest 目录口径迁移候选(R43 登记+R44 真分类基线: 60 绿+106 SystemExit:0 噪音族,判据与拆法已立,面广单独成波)+round.sh 双上限(LIVE 部署时);双席编号=席位标签制先到先取,开轮前核 ITLOG 末行防撞号;操作者席并行=Product Convergence 章程(产出停 dev/product-convergence-mvp);日历门 F=2026-12-05 勿手工提前", "next_round": 45} -->
+<!-- RD-CHECKPOINT v1: json {"round": 68, "date": "2026-11-20 11:38 HKT", "branch": "dev/audit-fix-r1", "commit": "351a0b605a2ff3dfee7e0bba74f0d4233d41f3f2", "baseline": "351a0b605a2ff3dfee7e0bba74f0d4233d41f3f2", "goal_sha": "7535a141b2339a13", "completed_ids": ["T-R68-1"], "next_task": "外部独立审计裁定(Audit-R24 停等): PR #1 审阅与合并由用户决定", "next_round": 69} -->
 ## 下一步存档(2026-11-16 R43 收口后版·操作者席)
 
 - [已毕·R43] **pytest 口径四件套收口**(T-R43-1;RDG-20261116-012 残余⑦;R42 终验暴露陈年): run_weekly.main(argv=None) 参数化(CLI 零差/revision_chain 猴补兼容)+四件五调用点显式 argv=[](裸调读 pytest argv→SystemExit(2)→台账 None→下标崩根因)+尾条件退出拆红支摘冗余 0 支+守卫 23 判(§A 伪 pytest argv 子进程/§B 源面双锚/§C 直跑保持);四件 pytest 单件 rc5=净收集零错;新发现=尾退出全库习语 60+件,目录整跑不适用(R44+ 迁移候选);分支 dev/rd-r43-pytest-argv;详见 ITERATION_LOG R43 行。

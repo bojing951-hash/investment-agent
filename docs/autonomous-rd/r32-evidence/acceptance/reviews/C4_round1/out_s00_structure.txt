@@ -1,0 +1,329 @@
+== report.json top keys ==
+  schema_version -> '2.0'
+  pipeline_version -> '2.0'
+  run -> dict ['question', 'ts_utc', 'archive_requested', 'git_head', 'git_head_source', 'git_diff_sha256', 'evidence_asof', 'evidence_gate', 'degradation_policy', 'data_requirements', 'frozen_inputs']
+  steps -> list 66
+  fanout -> dict ['requested']
+  layers -> dict ['L1_事实层', 'L2_机构观点层', 'L3_AI推断层', 'L4_条件情景层']
+  evidence_index -> list 69
+  notes -> list 1
+  run_ok -> True
+  research_plan -> dict ['map_question', 'question_verbatim', 'question_summary', 'dimension_source', 'asof_discipline', 'turning_supplement_discipline', 'cross_face_consistency', 'shared_by', 'regions', 'dimensions', 'metrics', 'context_metrics', 'point_anchors', 'question_window', 'ex_post_offsets', 'anchor_semantics_note', 'dimension_gaps', 'cutoff', 'consumed_time_spans', 'as_of_declared', 'point_values', 'turning_candidates', 'us_rates_trio', 'asset_moves', 'policy_event_clusters', 'policy_doc_facts']
+  semantic_review -> dict ['required', 'reasons', 'seat_invoked', 'verdict', 'archive', 'fresh', 'verdicts_n', 'prior_verdicts', 'record_health', 'error']
+  agent_judgment -> dict ['attached', 'attached_at', 'judgment_file', 'schema_version', 'validation', 'contract_verification', 'run_ok_at_attach', 'allow_failed_run', 'reader_map_faces']
+
+== run ==
+  question : "2026年11月,美、欧、中、日四地的宏观环境相比三个月前,哪些经济体之间出现了明显分化?分化主要体现在哪些维度?请给出具体数据和各数据的公布时间,并说明哪些维度证据不足以下结论。"
+  ts_utc : "20261123T235101Z"
+  archive_requested : false
+  git_head : "36499bb78a18dea1ff2b027074088b0ba404c3b8"
+  git_head_source : "code_version_stamp"
+  git_diff_sha256 : null
+  evidence_asof : "2026-11-23"
+  evidence_gate : {"discipline": "r32", "as_of": "2026-11-23", "source_snapshot_id": "research_snapshot_20261123", "source_target_date": "2026-11-23", "historical_view": false, "publication_basis": "snapshot_presence", "rules": ["①观测日≤as_of", "②发布日≤as_of(历史截止: 日历实录优先/RELEASE_RULES 推定)", "③值版本: as-of 快照版本优先;无则注册表未声明修订=值不随版本变(可引用);声明最新修订口径=观测须已过首个修订周期(首发日+1发布周期≤as_of),否则当时数据版本不可得逐点剔除"], "vintage": {"basis": "snapshot
+  degradation_policy : {"critical_zero_evidence": "L1 事实行=0(引擎崩溃/全量采集失败)→拒收判断,--allow-failed-run 亦不放行", "required_data_missing": "运行前声明的必要指标(问题词面命中)采集缺席→任务目标缺口,默认阻塞;显式 --allow-failed-run 才放行,落位记 degraded(缺口随档,不得事后改判可选)", "optional_data_missing": "L1 事实面在场、失败步=诚实拒答类(源端缺席 no_series)→须显式 --allow-failed-run,落位记 degraded"}
+  data_requirements : {"frozen_at": "plan(采集前冻结;分类与规格不随采集结果改判)", "items": [{"metric_id": "US_REAL_GDP", "tier": "planned", "basis": "地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于research_plan.point_values+MAP_REPORT,与词面命中的任务目标缺口分级)", "spec": {"form": "series", "window": {"start": "2026-11-01", "end": "2026-11-30", "kind": "explicit", "as_of": "2026-11-23", "basis": "问题明确日期区间 2026年11月(词面边界)", "n_in_window": 0, "first_in_window":
+  frozen_inputs : {"config/release_calendar.json": "e44fd2aa5ced0310", "config/metric_registry.json": "fa396d22175a4814", "data/daily/research_snapshot_20261123.json": "2de337533ef5fbac"}
+
+== research_plan keys ==
+  map_question : len(json)= 4  :: true
+  question_verbatim : len(json)= 92  :: "2026年11月,美、欧、中、日四地的宏观环境相比三个月前,哪些经济体之间出现了明显分化?分化主要体现在哪些维度?请给出具体数据和各数据的公布时间,并说明哪些维度证据不足以下结论。"
+  question_summary : len(json)= 116  :: "内部摘要(非原文): 地区CN/EA/JP/US×维度growth、inflation、policy@2026-11-23,三时点对照+转折+传导+历史类比;仅供检索/日志,交付与验收以 question_verbatim 为准"
+  dimension_source : len(json)= 79  :: "implicit_macro_environment(问句无显式维度词形,按环境/分化线索展开全维族 增长+通胀+货币政策;证据不足维度由缺口面逐项标注)"
+  asof_discipline : len(json)= 5  :: "r23"
+  turning_supplement_discipline : len(json)= 5  :: "r24"
+  cross_face_consistency : len(json)= 5  :: "r25"
+  shared_by : len(json)= 73  :: "取数(plan 指标并入 S4/数据需求面)/报告(MAP_REPORT 对照表与数值回贴)/验收(同一份 plan 判据)——不手填指标代码"
+  regions : len(json)= 6705  :: {"US": {"label": "美国", "dimensions": {"growth": [{"metric_id": "US_REAL_GDP", "display_name": "美国实际GDP(SAAR)", "face_note": "实际GDP(季频水平)", "frequency": "quarterly", "unit": "billion_usd", "vintage_semantics": "事后回顾(最新修订值,非当时首发值)", "policy_face": null}, {"metric_id": "UNEMPLOYMENT", "display_name": "
+  dimensions : len(json)= 2  :: []
+  metrics : len(json)= 309  :: ["US_REAL_GDP", "UNEMPLOYMENT", "INDPRO", "CPI", "CORE_CPI", "CORE_PCE", "DFEDTARU", "DFF", "EA_REAL_GDP_YOY", "EA_HICP_YOY", "ECB_MRO", "ECB_DFR", "CN_PMI_MFG", "CN_CPI_YOY", "CN_PPI_YOY", "CN_POLICY_OVERNIGHT", "CN_OMO_7D", "CN_LPR_1Y", "JP_REAL_GDP_YOY", "JP_CPI_YOY", "JP_CPI_TOKYO_YOY", "JP_POLI
+  context_metrics : len(json)= 34  :: ["UST_10Y", "TIPS_10Y", "BEI_10Y"]
+  point_anchors : len(json)= 188  :: [{"kind": "point", "label": "3个月前", "as_of": "2026-08-23", "months_before": 3}, {"kind": "point", "label": "最新一期", "as_of": "2026-11-23", "months_before": 0, "explicit_period": "2026-11"}]
+  question_window : len(json)= 4  :: null
+  ex_post_offsets : len(json)= 2  :: []
+  anchor_semantics_note : len(json)= 92  :: "「N个月前」=日历点锚(研究截止日−N月);「事件发生后N个月」=事后偏移锚(事件日+N月) ——两类分记,前者用于三时点对照,后者用于转折/历史类比的随后 3/6/12 月事后窗"
+  dimension_gaps : len(json)= 266  :: [{"region": "JP", "dimension": "policy", "metric_id": "JP_POLICY_TARGET", "gap": "registry_absent", "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"}]
+  cutoff : len(json)= 12  :: "2026-11-23"
+  consumed_time_spans : len(json)= 10  :: [[25, 29]]
+  as_of_declared : len(json)= 427  :: {"as_of": "2026-11-23", "basis": null, "snapshot_target_date": "2026-11-23", "differs_from_snapshot": false, "requested_as_of": null, "clamped_to_coverage": false, "coverage_date": "2026-11-23", "requested_month_end": null, "actual_coverage_date": null, "bare_year_month": "2026年11月", "upstream_pin":
+  point_values : len(json)= 27382  :: {"cells": [{"region": "US", "dimension": "growth", "metric_id": "US_REAL_GDP", "display_name": "美国实际GDP(SAAR)", "unit": "billion_usd", "face_note": "实际GDP(季频水平)", "source": "研究快照 series_store", "anchors": {"3个月前": {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-04-01", "publication
+  turning_candidates : len(json)= 2708  :: {"basis": "过去12个月(研究截止日)内 3 个月滚动变化绝对值最大者;增长/通胀/政策三维全部进入候选池(每指标一候选,窗端点已按发布纪律过滤);确定性计算,仅作候选——三个转折的取舍与谁先变判断归 Agent 席 reader_map(三转折须为不同事件,同一转折不得重复计数)", "candidates": [{"from_ym": "2026-02", "to_ym": "2026-05", "from_date": "2026-02-01", "to_date": "2026-05-01", "value_before": -0.9, "value_after": 3.9,
+  us_rates_trio : len(json)= 822  :: {"status": "ok", "kind": "共同交易日三利率分解", "window": {"from": "2026-10-20", "to": "2026-11-19", "calendar_days_between": 30}, "levels_at_to": {"UST_10Y": 5.04, "TIPS_10Y": 2.88, "BEI_10Y": 2.16}, "chg_bp": {"UST_10Y": -8.0, "TIPS_10Y": 11.0, "BEI_10Y": -19.0}, "decomposition": "十年期名义 Δ-8bp = 实际 Δ+11bp +
+  asset_moves : len(json)= 1441  :: {"status": "ok", "window_months": 1, "window_rule": "≤2026-11-23 最新观测 vs 最近于2026-10-23 的观测(界日无观测取最近邻;两端实际观测日随行披露)", "rows": [{"metric_id": "SPX", "window": {"from": "2026-10-23", "to": "2026-11-23"}, "from_value": 7623.680176, "to_value": 7203.850098, "chg_pct": -5.51, "chg_abs": -419.8301}, {"metri
+  policy_event_clusters : len(json)= 914  :: {"basis": "同一事件的跨国信号合并: 各政策行一年窗路径事件按决议日跨地区聚簇(±7 日)——同簇=同一全球政策事件,三个转折中计一个事件;逐国决议日/生效日分记(决议→生效惯例: Fed=次日,ECB=决议后首个周三,PBOC=宣布即时)。月频证据只能说明同步时,先后未定。", "clusters": [{"cluster_id": "POLCLUSTER-01", "date_from": "2025-12-10", "date_to": "2025-12-10", "regions": ["US"], "events": [{"region": "US", "metric_id
+  policy_doc_facts : len(json)= 285  :: [{"doc_id": "FOMC-MINUTES-2026-10", "kind": "minutes", "title": "FOMC 2026年10月会议纪要", "meeting_month": "2026-10", "published_on": "2026-11-18", "basis": "user_directive", "note": "10月会议纪要 2026-11-18 发布(纪要发布≠决议日;引用纪要叙事自 11-18 起可见,决议数值仍以决议日公布为准)", "source": "Audit-R22 验收指令(2026-11-19)"}]
+
+== layers keys ==
+  ['L1_事实层', 'L2_机构观点层', 'L3_AI推断层', 'L4_条件情景层']
+   L1_事实层 -> ['available', 'snapshot_id', 'target_date', 'n_facts_total', 'rows', 'note']
+   L2_机构观点层 -> ['views', 'note']
+   L3_AI推断层 -> ['produced', 'note', 'attribution', 'content']
+   L4_条件情景层 -> ['produced', 'note', 'attribution', 'content']
+
+== steps ==
+  [0] S1_decompose | keys: ['step', 'executed', 'ok', 'deterministic_face', 'agent_face_note']
+  [1] S2_doctor | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [2] S3_overview_US | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [3] S3_overview_EA | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [4] S3_overview_CN | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [5] S3_overview_JP | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [6] S3_changes | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [7] S4_history_US_REAL_GDP | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [8] S4_history_UNEMPLOYMENT | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [9] S4_history_INDPRO | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [10] S4_history_CPI | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [11] S4_history_CORE_CPI | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [12] S4_history_CORE_PCE | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [13] S4_history_DFEDTARU | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [14] S4_history_DFF | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [15] S4_history_EA_REAL_GDP_YOY | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'skipped_reason', 'envelope']
+  [16] S4_history_EA_HICP_YOY | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'skipped_reason', 'envelope']
+  [17] S4_history_ECB_MRO | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'skipped_reason', 'envelope']
+  [18] S4_history_ECB_DFR | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'skipped_reason', 'envelope']
+  [19] S4_history_CN_PMI_MFG | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [20] S4_history_CN_CPI_YOY | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [21] S4_history_CN_PPI_YOY | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [22] S4_history_CN_POLICY_OVERNIGHT | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [23] S4_history_CN_OMO_7D | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [24] S4_history_CN_LPR_1Y | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [25] S4_history_JP_REAL_GDP_YOY | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [26] S4_history_JP_CPI_YOY | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [27] S4_history_JP_CPI_TOKYO_YOY | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [28] S4_history_JP_POLICY_RATE | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [29] S4_history_UST_10Y | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [30] S4_history_TIPS_10Y | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [31] S4_history_BEI_10Y | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [32] S4_history_UST_2Y | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [33] S4_history_UST_5Y | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [34] S4_history_UST_30Y | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [35] S4_history_TIPS_5Y | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [36] S4_history_BEI_5Y | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [37] S4_history_CURVE_2S10S | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [38] S4_history_SPX | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [39] S4_history_NDX | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [40] S4_history_RUT | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [41] S4_history_DAX | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [42] S4_history_CAC40 | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [43] S4_history_NIKKEI225 | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [44] S4_history_HSI | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [45] S4_history_SHCOMP | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [46] S4_history_DXY | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [47] S4_history_EURUSD | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [48] S4_history_USDJPY | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [49] S4_history_USDCNY | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [50] S4_history_GOLD_F | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [51] S4_history_SILVER_F | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [52] S4_history_BRENT_F | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [53] S4_history_HY_OAS | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [54] S4_history_IG_OAS | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [55] S4_history_BB_OAS | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [56] S4_history_B_OAS | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [57] S4_history_CCC_OAS | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [58] S4_history_VIX | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [59] S5_compare | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [60] S6_analog | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [61] S7_mode_gate | keys: ['step', 'executed', 'ok', 'gate', 'gate_source', 'note']
+  [62] S8_grounded_qa | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [63] S9_views_lint | keys: ['step', 'argv', 'executed', 'ok', 'exit_code', 'semantic_ok', 'note', 'duration_ms', 'envelope']
+       envelope keys: ['ok', 'capability', 'engine_root', 'snapshot_id', 'target_date', 'research_as_of', 'gate_a', 'data', 'warnings']
+  [64] S10_selfcheck | keys: ['step', 'executed', 'ok', 'n_views_quarantined', 'selfcheck', 'note']
+  [65] S11_archive | keys: ['step', 'executed', 'ok', 'archive_requested', 'archived_query_id', 'note']
+
+== snapshot top keys ==
+  snapshot_id -> 'research_snapshot_20261123'
+  research_as_of -> '2026-11-23T22:58:11+08:00'
+  target_date -> '20261123'
+  timezone -> 'Asia/Shanghai'
+  sources_status -> dict ['global', 'macro', 'china', 'rate_economy', 'japan', 'jp', 'ea', 'shiller']
+  fed_futures_curve -> list 11
+  facts -> list 102
+  reconciliation -> list 12
+  quality -> dict ['overall', 'missing_core', 'counts']
+  gate_a -> dict ['status', 'core_missing', 'core_fail', 'noncore_fail', 'noncore_missing', 'note', 'noncore_missing_detail', 'noncore_degraded', 'illegal_quality']
+  notes -> list 2
+  series_store -> dict ['SPX', 'NDX', 'RUT', 'NVDA', 'AAPL', 'MSFT', 'TLT', 'HYG', 'DXY', 'EURUSD', 'GOLD_F', 'SILVER_F', 'WTI_F', 'BRENT_F', 'EEM', 'BTC', 'VIX', 'EZU', 'FEZ', 'EWU', 'EWG', 'DAX', 'CAC40', 'EWJ', 'INDA', 'FXI', 'GBPUSD', 'USDJPY', 'USDCNY', 'IEF']
+  series_store_notes -> dict ['HY_OAS', 'BB_OAS', 'B_OAS', 'CCC_OAS', 'IG_OAS', 'SOFR']
+  series_provenance -> dict ['CN_PMI_MFG', 'CN_NEW_LOANS']
+  series_store_clean -> dict ['HY_OAS', 'BB_OAS', 'B_OAS', 'CCC_OAS', 'IG_OAS', 'UST_2Y', 'UST_10Y', 'UST_30Y', 'TIPS_5Y', 'TIPS_10Y', 'BEI_5Y', 'BEI_10Y', 'CURVE_2S10S', 'FED_FUNDS', 'CPI', 'CORE_PCE', 'UNEMPLOYMENT', 'NFP', 'CORE_CPI', 'AHE', 'ICSA', 'WTI_SPOT_M', 'UST_5Y', 'UMCSENT', 'RSAFS', 'INDPRO', 'JTSJOL', 'US_REAL_GDP', 'SOFR', 'WALCL']
+
+== series_store: n= 88
+   AAPL keys: ['dates', 'values'] | n_dates= 2513
+   AHE keys: ['dates', 'values'] | n_dates= 120
+   BB_OAS keys: ['dates', 'values'] | n_dates= 786
+   BEI_10Y keys: ['dates', 'values'] | n_dates= 2498
+   BEI_5Y keys: ['dates', 'values'] | n_dates= 2498
+   BRENT_F keys: ['dates', 'values'] | n_dates= 2516
+   BTC keys: ['dates', 'values'] | n_dates= 3652
+   B_OAS keys: ['dates', 'values'] | n_dates= 786
+   CAC40 keys: ['dates', 'values'] | n_dates= 2559
+   CCC_OAS keys: ['dates', 'values'] | n_dates= 786
+   CHINEXT keys: ['dates', 'values'] | n_dates= 2428
+   CN_CPI_YOY keys: ['dates', 'values'] | n_dates= 226
+   CN_LPR_1Y keys: ['dates', 'values'] | n_dates= 1540
+   CN_NEW_LOANS keys: ['dates', 'values'] | n_dates= 226
+   CN_OMO_7D keys: ['dates', 'values'] | n_dates= 201
+   CN_PMI_MFG keys: ['dates', 'values'] | n_dates= 226
+   CN_POLICY_OVERNIGHT keys: ['dates', 'values'] | n_dates= 16
+   CN_PPI_YOY keys: ['dates', 'values'] | n_dates= 250
+   CORE_CPI keys: ['dates', 'values'] | n_dates= 119
+   CORE_PCE keys: ['dates', 'values'] | n_dates= 119
+   CPI keys: ['dates', 'values'] | n_dates= 119
+   CURVE_2S10S keys: ['dates', 'values'] | n_dates= 2498
+   DAX keys: ['dates', 'values'] | n_dates= 2538
+   DFEDTARL keys: ['dates', 'values'] | n_dates= 3653
+   DFEDTARU keys: ['dates', 'values'] | n_dates= 3653
+   DFF keys: ['dates', 'values'] | n_dates= 3649
+   DXY keys: ['dates', 'values'] | n_dates= 2515
+   EEM keys: ['dates', 'values'] | n_dates= 2513
+   EURUSD keys: ['dates', 'values'] | n_dates= 2601
+   EWG keys: ['dates', 'values'] | n_dates= 2513
+   EWJ keys: ['dates', 'values'] | n_dates= 2513
+   EWU keys: ['dates', 'values'] | n_dates= 2513
+   EZU keys: ['dates', 'values'] | n_dates= 2513
+   FED_FUNDS keys: ['dates', 'values'] | n_dates= 120
+   FEZ keys: ['dates', 'values'] | n_dates= 2513
+   FXI keys: ['dates', 'values'] | n_dates= 2513
+   GBPUSD keys: ['dates', 'values'] | n_dates= 2601
+   GLD keys: ['dates', 'values'] | n_dates= 2513
+   GOLD_F keys: ['dates', 'values'] | n_dates= 2515
+   HSCEI keys: ['dates', 'values'] | n_dates= 320
+   HSI keys: ['dates', 'values'] | n_dates= 320
+   HYG keys: ['dates', 'values'] | n_dates= 2513
+   HY_OAS keys: ['dates', 'values'] | n_dates= 786
+   ICSA keys: ['dates', 'values'] | n_dates= 521
+   IEF keys: ['dates', 'values'] | n_dates= 2513
+   IG_OAS keys: ['dates', 'values'] | n_dates= 785
+   INDA keys: ['dates', 'values'] | n_dates= 2513
+   INDPRO keys: ['dates', 'values'] | n_dates= 120
+   JP_CPI_TOKYO_YOY keys: ['dates', 'values'] | n_dates= 10
+   JP_CPI_YOY keys: ['dates', 'values'] | n_dates= 70
+   JP_POLICY_RATE keys: ['dates', 'values'] | n_dates= 496
+   JP_REAL_GDP_YOY keys: ['dates', 'values'] | n_dates= 127
+   JTSJOL keys: ['dates', 'values'] | n_dates= 119
+   LQD keys: ['dates', 'values'] | n_dates= 2513
+   M2SL keys: ['dates', 'values'] | n_dates= 119
+   MSFT keys: ['dates', 'values'] | n_dates= 2513
+   NDX keys: ['dates', 'values'] | n_dates= 2513
+   NFP keys: ['dates', 'values'] | n_dates= 120
+   NIKKEI225 keys: ['dates', 'values'] | n_dates= 2520
+   NVDA keys: ['dates', 'values'] | n_dates= 2513
+   RSAFS keys: ['dates', 'values'] | n_dates= 120
+   RUT keys: ['dates', 'values'] | n_dates= 2512
+   SHCOMP keys: ['dates', 'values'] | n_dates= 2428
+   SHY keys: ['dates', 'values'] | n_dates= 2513
+   SILVER_F keys: ['dates', 'values'] | n_dates= 2514
+   SOFR keys: ['dates', 'values'] | n_dates= 2157
+   SPX keys: ['dates', 'values'] | n_dates= 2513
+   SPX_CAPE keys: ['dates', 'values'] | n_dates= 1751
+   SPX_EPS keys: ['dates', 'values'] | n_dates= 1869
+   SPX_PE_TTM keys: ['dates', 'values'] | n_dates= 1869
+   SZCI keys: ['dates', 'values'] | n_dates= 2428
+   TIPS_10Y keys: ['dates', 'values'] | n_dates= 2497
+   TIPS_5Y keys: ['dates', 'values'] | n_dates= 2497
+   TLT keys: ['dates', 'values'] | n_dates= 2513
+   UMCSENT keys: ['dates', 'values'] | n_dates= 120
+   UNEMPLOYMENT keys: ['dates', 'values'] | n_dates= 119
+   USDCNY keys: ['dates', 'values'] | n_dates= 2600
+   USDJPY keys: ['dates', 'values'] | n_dates= 2601
+   USO keys: ['dates', 'values'] | n_dates= 2513
+   UST_10Y keys: ['dates', 'values'] | n_dates= 2497
+   UST_2Y keys: ['dates', 'values'] | n_dates= 2497
+   UST_30Y keys: ['dates', 'values'] | n_dates= 2497
+   UST_5Y keys: ['dates', 'values'] | n_dates= 2497
+   US_REAL_GDP keys: ['dates', 'values'] | n_dates= 40
+   VIX keys: ['dates', 'values'] | n_dates= 2515
+   WALCL keys: ['dates', 'values'] | n_dates= 522
+   WTI_F keys: ['dates', 'values'] | n_dates= 2515
+   WTI_SPOT_M keys: ['dates', 'values'] | n_dates= 120
+
+== release_calendar top ==
+  version -> '1.5.0'
+  created -> '2026-11-19'
+  updated -> '2026-11-21'
+  spec -> 'Audit-R20 任务2 建立(Audit-R21 权威日期修订;Audit-R22 发布批次模型): 发布日历=版本化事实文件。条目优先于 research_map_planner.RELEASE_RULES 推定规则——历史对照(vintage)只允许用「当时已发布」的数据,推定规则给不出停摆/延误这类逐事件事实。basis=user_directive=验收指令实录;basis=conv
+  batches -> list 6
+  entries -> list 18
+
+== registry top ==
+  version -> '2.8.7'
+  created -> '2026-10-17'
+  spec -> '第七轮金融事实引擎重构 §3.1 指标注册表 — 每指标唯一身份定义'
+  field_semantics -> dict 10
+  notes -> list 16
+  metrics -> list 114
+
+== evidence_index ==
+[{"ref": "SPX@2026-11-23", "kind": "snapshot_fact", "metric_id": "SPX"}, {"ref": "NDX@2026-11-23", "kind": "snapshot_fact", "metric_id": "NDX"}, {"ref": "RUT@2026-11-20", "kind": "snapshot_fact", "metric_id": "RUT"}, {"ref": "DXY@2026-11-23", "kind": "snapshot_fact", "metric_id": "DXY"}, {"ref": "EURUSD@2026-11-23", "kind": "snapshot_fact", "metric_id": "EURUSD"}, {"ref": "GOLD_F@2026-11-23", "kind": "snapshot_fact", "metric_id": "GOLD_F"}, {"ref": "SILVER_F@2026-11-23", "kind": "snapshot_fact", "metric_id": "SILVER_F"}, {"ref": "BRENT_F@2026-11-23", "kind": "snapshot_fact", "metric_id": "BRENT_F"}, {"ref": "VIX@2026-11-23", "kind": "snapshot_fact", "metric_id": "VIX"}, {"ref": "DAX@2026-11-23", "kind": "snapshot_fact", "metric_id": "DAX"}, {"ref": "CAC40@2026-11-23", "kind": "snapshot_fact", "metric_id": "CAC40"}, {"ref": "USDJPY@2026-11-23", "kind": "snapshot_fact", "metric_id": "USDJPY"}, {"ref": "USDCNY@2026-11-23", "kind": "snapshot_fact", "metric_id": "USDCNY"}, {"ref": "HY_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "HY_OAS"}, {"ref": "BB_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "BB_OAS"}, {"ref": "B_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "B_OAS"}, {"ref": "CCC_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "CCC_OAS"}, {"ref": "IG_OAS@2026-11-19", "kind": "snapshot_fact", "metric_id": "IG_OAS"}, {"ref": "UST_2Y@2026-11-19", "kind": "snapshot_fact", "metric_id": "UST_2Y"}, {"ref": "UST_10Y@2026-11-19", "kind": "snapshot_f
+
+== views_digest ==
+{"n": 0, "note": "views 库在场", "views": []}
+
+== AGENT_SEAT_ENVELOPE top ==
+  role : len= 36 :: "Agent Native 研究席(L3 推断+L4 条件情景真产出)"
+  question : len= 92 :: "2026年11月,美、欧、中、日四地的宏观环境相比三个月前,哪些经济体之间出现了明显分化?分化主要体现在哪些维度?请给出具体数据和各数据的公布时间,并说明哪些维度证据不足以下结论。"
+  report_dir : len= 120 :: "/private/tmp/r32-accept/final6-degraded/output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了"
+  evidence_index_rows : len= 2 :: 69
+  read_first : len= 573 :: ["/private/tmp/r32-accept/final6-degraded/output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/report.json", "/private/tmp/r32-accept/final6-degraded/output/research_runs/20261123T235101Z_2026年11月_美_欧_中_日四地的宏观环境相比三个月前_哪些经济体之间出现了/evidence_index.json", "/private/tmp/r32-accep
+  produce : len= 953 :: "judgment JSON(schema v1.0;含结论/竞争性解释/反对证据处理/E1-E2-E3 证据分级/五行情景含证伪阈值与触发条件) + reader_map(地图问句五面: 一句总判断/各地区环境走位/传导图逐环四件套[观察事实/因果假设/竞争解释/区分指标]/三个转折[日期/指标/前后值/谁先变/跟进或背离]/历史段0..3[年月/相似点/关键差异/其他经济体是否同步/随后3、6、12个月实际+样本注记])——Audit-R19: 传导须连到资产指标;三转折为不同事件(不同指标-月,至少跨两维度);历史段须带结构化anchor_ym/match_window/judgment
+  then : len= 136 :: ["ia_cli.py research-one --stage attach --report-dir <rd> --judgment <path>", "ia_cli.py research-one --stage report --report-dir <rd>"]
+  discipline : len= 103 :: ["L3/L4 必须真产出: 引用证据行号,答不出=明确披露禁编造", "禁改 report.json 的 produced 字段(attach 校验器唯一写者)", "研究质量十二问逐问答(章程§七)"]
+  frozen_inputs : len= 169 :: {"config/release_calendar.json": "e44fd2aa5ced0310", "config/metric_registry.json": "fa396d22175a4814", "data/daily/research_snapshot_20261123.json": "2de337533ef5fbac"}
+  frozen_inputs_sha256 : len= 66 :: "725dacf98259025f5a3e4acb40e3b9494cd6f15c382fa1574e4de5078a178958"
+  reader_map_contract : len= 7250 :: {"spec": "judgment 顶层 reader_map 对象;字段结构与数值回贴核对见 scripts/research_contract/judgment_contract.py _map_checks(转折前后值按引擎序列月末口径复算,相左=CONTRADICTED;空正文/缺面=NOT_VERIFIED;Audit-R19 四阻断:错用同比基期/提前引用未发布数据/同一转折重复/历史结果落在匹配期内)。Audit-R22: ①走位正文「观测 YYYY-MM→YYYY-MM(→YYYY-MM)」串须是同地区某点值格锚观测序(12个月前→3个月前→最新一期)的保序子序列——锚前不可

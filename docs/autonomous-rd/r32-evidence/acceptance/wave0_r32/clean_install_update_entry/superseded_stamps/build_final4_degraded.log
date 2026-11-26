@@ -1,0 +1,20 @@
+=== build degraded tree @ 0f3936dd7eb74c557a2350e400d58e10a09c5139  dest=/tmp/r32-accept/final4-degraded  2026-11-24 03:28:22 +0800
+pip rc=0
+模型API(三参配齐): False | FRED: True | TUSHARE: True
+snapshot(=final3) sha256=2d650f1128cdd356d5bc86256d1ed1b9dcb7c7306ddc71c79fac3f4fe60efd2f
+final3 snapshot    sha256=2d650f1128cdd356d5bc86256d1ed1b9dcb7c7306ddc71c79fac3f4fe60efd2f
+data files: final3=330 tree=330
+✅ 快照: /private/tmp/r32-accept/final4-degraded/data/daily/research_snapshot_20261124.json
+   MD:   /private/tmp/r32-accept/final4-degraded/data/daily/research_snapshot_20261124.md
+   锚点: /private/tmp/r32-accept/final4-degraded/data/daily/anchors_20261124.json (200个)
+   Gate A: DEGRADED | 事实 102 | 质量 {'PASS': 72, 'DEGRADED': 7, 'FAIL': 0} | core缺失 0 | 非核心缺失 10项(BUND_10Y,BUND_2Y,CN_OMO_7D,CN_POLICY_OVERNIGHT,EA_HICP_YOY)…
+snapshot research_snapshot_20261124.json | series n= 88 | EA series with data: 0 []
+=== degraded tree ready: 2027 files (excl. .venv); .env present? no; CODE_VERSION git_head=0f3936dd7eb74c557a2350e400d58e10a09c5139
+--- alignment 2026-11-24 03:29:42 +0800: in-tree rebuild at 0f3936d demonstrated above (snapshot named by rebuild day); base aligned to final3-degraded/data to keep cutoff 2026-11-23
+degraded data == final3-degraded/data (identical)
+22
+anchors_20261123.json
+anchors_20261123.meta.json
+ea_20261105.json
+research_snapshot_20261123.json
+research_snapshot_20261123.md

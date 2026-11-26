@@ -1,0 +1,147 @@
+OK|US GDP level 2025-04|computed=23884.563|reported=23884.563|src=series_store US_REAL_GDP@2025-04|note=from_to narrative
+OK|US GDP level 2026-04|computed=24408.011|reported=24408.011|src=series_store US_REAL_GDP@2026-04|note=from_to narrative
+OK|US GDP level 2026-07|computed=24611.077|reported=24611.077|src=series_store US_REAL_GDP@2026-07|note=from_to narrative
+OK|US GDP yoy 2025-04|computed=2.4206|reported=2.42|src=series_store US_REAL_GDP 2025-04 vs 2024-04|note=from_to narrative
+OK|US GDP yoy 2026-04|computed=2.1916|reported=2.19|src=series_store US_REAL_GDP 2026-04 vs 2025-04|note=from_to narrative
+OK|US GDP yoy 2026-07|computed=2.0657|reported=2.07|src=series_store US_REAL_GDP 2026-07 vs 2025-07|note=from_to narrative
+OK|UNEMP 2025-09|computed=4.4|reported=4.4|src=series_store UNEMPLOYMENT@2025-09|note=from_to narrative
+OK|UNEMP 2026-07|computed=4.1|reported=4.1|src=series_store UNEMPLOYMENT@2026-07|note=from_to narrative
+OK|UNEMP 2026-10|computed=4.1|reported=4.1|src=series_store UNEMPLOYMENT@2026-10|note=from_to narrative
+OK|INDPRO level 2025-08|computed=101.6247|reported=101.6247|src=series_store INDPRO@2025-08|note=from_to narrative
+OK|INDPRO level 2026-07|computed=103.1675|reported=103.1675|src=series_store INDPRO@2026-07|note=from_to narrative
+OK|INDPRO level 2026-10|computed=103.3954|reported=103.3954|src=series_store INDPRO@2026-10|note=from_to narrative
+OK|INDPRO yoy 2025-08|computed=1.1887|reported=1.19|src=series_store INDPRO 2025-08 vs 2024-08|note=from_to narrative
+OK|INDPRO yoy 2026-07|computed=1.2498|reported=1.25|src=series_store INDPRO 2026-07 vs 2025-07|note=from_to narrative
+OK|INDPRO yoy 2026-10|computed=2.1497|reported=2.15|src=series_store INDPRO 2026-10 vs 2025-10|note=from_to narrative
+OK|CPI level 2025-09|computed=324.245|reported=324.245|src=series_store CPI@2025-09|note=from_to narrative
+OK|CPI level 2026-07|computed=332.813|reported=332.813|src=series_store CPI@2026-07|note=from_to narrative
+OK|CPI level 2026-10|computed=337.476|reported=337.476|src=series_store CPI@2026-10|note=from_to narrative
+OK|CPI yoy 2025-09|computed=3.0226|reported=3.02|src=series_store CPI 2025-09 vs 2024-09|note=from_to narrative
+OK|CPI yoy 2026-07|computed=3.3039|reported=3.30|src=series_store CPI 2026-07 vs 2025-07|note=from_to narrative
+OK|CPI yoy 2026-10|computed=None|reported=None|src=series_store CPI 2026-10 vs 2025-10|note=from_to narrative | null handling
+OK|CORE_PCE level 2025-08|computed=126.646|reported=126.646|src=series_store CORE_PCE@2025-08|note=from_to narrative
+OK|CORE_PCE level 2026-06|computed=129.969|reported=129.969|src=series_store CORE_PCE@2026-06|note=from_to narrative
+OK|CORE_PCE level 2026-09|computed=130.902|reported=130.902|src=series_store CORE_PCE@2026-09|note=from_to narrative
+OK|CORE_PCE yoy 2025-08|computed=2.8513|reported=2.85|src=series_store CORE_PCE 2025-08 vs 2024-08|note=from_to narrative
+OK|CORE_PCE yoy 2026-06|computed=3.0412|reported=3.04|src=series_store CORE_PCE 2026-06 vs 2025-06|note=from_to narrative
+OK|CORE_PCE yoy 2026-09|computed=3.1212|reported=3.12|src=series_store CORE_PCE 2026-09 vs 2025-09|note=from_to narrative
+OK|EA GDP yoy 2025-07|computed=1.11|reported=1.11|src=series_store EA_REAL_GDP_YOY@2025-07|note=from_to narrative
+OK|EA GDP yoy 2026-04|computed=1.19|reported=1.19|src=series_store EA_REAL_GDP_YOY@2026-04|note=from_to narrative
+OK|EA GDP yoy 2026-07|computed=1.28|reported=1.28|src=series_store EA_REAL_GDP_YOY@2026-07|note=from_to narrative
+OK|EA HICP 2025-10|computed=2.1|reported=2.1|src=series_store EA_HICP_YOY@2025-10|note=from_to narrative
+OK|EA HICP 2026-07|computed=2.9|reported=2.9|src=series_store EA_HICP_YOY@2026-07|note=from_to narrative
+OK|EA HICP 2026-10|computed=4.0|reported=4.0|src=series_store EA_HICP_YOY@2026-10|note=from_to narrative
+OK|JP GDP yoy 2025-07|computed=0.63|reported=0.63|src=series_store JP_REAL_GDP_YOY@2025-07|note=from_to narrative
+OK|JP GDP yoy 2026-04|computed=0.8|reported=0.80|src=series_store JP_REAL_GDP_YOY@2026-04|note=from_to narrative
+OK|JP GDP yoy 2026-07|computed=1.16|reported=1.16|src=series_store JP_REAL_GDP_YOY@2026-07|note=from_to narrative
+OK|JP CPI yoy 2025-10|computed=2.99|reported=2.99|src=series_store JP_CPI_YOY@2025-10|note=from_to narrative
+OK|JP CPI yoy 2026-07|computed=1.97|reported=1.97|src=series_store JP_CPI_YOY@2026-07|note=from_to narrative
+OK|JP CPI yoy 2026-10|computed=2.44|reported=2.44|src=series_store JP_CPI_YOY@2026-10|note=from_to narrative
+OK|Tokyo CPI yoy 2026-07|computed=1.85|reported=1.85|src=series_store JP_CPI_TOKYO_YOY@2026-07|note=from_to narrative
+OK|Tokyo CPI yoy 2026-10|computed=2.73|reported=2.73|src=series_store JP_CPI_TOKYO_YOY@2026-10|note=from_to narrative
+OK|JP policy rate 2025-10|computed=0.477|reported=0.477|src=series_store JP_POLICY_RATE@2025-10|note=from_to narrative
+OK|JP policy rate 2026-07|computed=0.978|reported=0.978|src=series_store JP_POLICY_RATE@2026-07|note=from_to narrative
+OK|JP policy rate 2026-10|computed=1.227|reported=1.227|src=series_store JP_POLICY_RATE@2026-10|note=from_to narrative
+OK|CN PPI yoy 2025-10|computed=-2.1|reported=-2.1|src=series_store CN_PPI_YOY@2025-10|note=from_to narrative
+OK|CN PPI yoy 2026-07|computed=3.5|reported=3.5|src=series_store CN_PPI_YOY@2026-07|note=from_to narrative
+OK|CN PPI yoy 2026-10|computed=5.7|reported=5.7|src=series_store CN_PPI_YOY@2026-10|note=from_to narrative
+OK|CN CPI yoy 2025-10|computed=0.2|reported=0.2|src=series_store CN_CPI_YOY@2025-10|note=from_to narrative
+OK|CN CPI yoy 2026-07|computed=0.5|reported=0.5|src=series_store CN_CPI_YOY@2026-07|note=from_to narrative
+OK|CN CPI yoy 2026-10|computed=0.7|reported=0.7|src=series_store CN_CPI_YOY@2026-10|note=from_to narrative
+OK|CN PMI 2025-10|computed=49.0|reported=49.0|src=series_store CN_PMI_MFG@2025-10|note=from_to narrative
+OK|CN PMI 2026-07|computed=49.2|reported=49.2|src=series_store CN_PMI_MFG@2026-07|note=from_to narrative
+OK|CN PMI 2026-10|computed=49.3|reported=49.3|src=series_store CN_PMI_MFG@2026-10|note=from_to narrative
+OK|CPI yoy 2026-02|computed=2.434|reported=2.434|src=series_store CPI yoy(2026-02)|note=turnings/TR1 link2
+OK|CPI yoy 2026-04|computed=3.7792|reported=3.78|src=series_store CPI yoy(2026-04)|note=turnings/TR1 link2
+OK|CPI yoy 2026-05|computed=4.1666|reported=4.1666|src=series_store CPI yoy(2026-05)|note=turnings/TR1 link2
+OK|CPI yoy 2026-07|computed=3.3039|reported=3.30|src=series_store CPI yoy(2026-07)|note=turnings/TR1 link2
+OK|CPI yoy 2026-08|computed=3.353|reported=3.35|src=series_store CPI yoy(2026-08)|note=turnings/TR1 link2
+OK|CPI yoy 2026-09|computed=3.7173|reported=3.72|src=series_store CPI yoy(2026-09)|note=turnings/TR1 link2
+OK|CPI yoy 2026-10 absent (base 2025-10 missing)|computed=None|reported=absent|src=series_store CPI 2025-10|note=
+OK|CPI yoy peak 2026-05 rounded 4.17|computed=4.17|reported=4.17|src=series_store CPI yoy(2026-05)|note=
+OK|CPI yoy peak month (valid yoy)|computed=2026-05|reported=2026-05|src=series_store CPI yoy argmax 2025-11..2026-09|note=2026-05 见顶
+OK|CPI yoy low month|computed=2026-01|reported=2026-01|src=series_store CPI yoy argmin 2025-11..2026-10|note=低点均在 2026-01
+OK|CPI yoy after peak never exceeds peak|computed=True|reported=True|src=series_store CPI yoy max 2026-06..2026-09 = 3.7173 (peak 2026-05)|note=未再越过高点
+OK|CORE_CPI yoy 2026-02|computed=2.4725|reported=2.47|src=series_store CORE_CPI yoy(2026-02)|note=TR1 link1 / candidate face / latest valid yoy
+OK|CORE_CPI yoy 2026-05|computed=2.8229|reported=2.8229|src=series_store CORE_CPI yoy(2026-05)|note=TR1 link1 / candidate face / latest valid yoy
+OK|CORE_CPI yoy 2026-08|computed=2.4462|reported=2.4462|src=series_store CORE_CPI yoy(2026-08)|note=TR1 link1 / candidate face / latest valid yoy
+OK|CORE_CPI yoy 2026-09|computed=2.5658|reported=2.57|src=series_store CORE_CPI yoy(2026-09)|note=TR1 link1 / candidate face / latest valid yoy
+OK|CORE_CPI yoy 2026-05 rounded|computed=2.8229|reported=2.82|src=series_store CORE_CPI yoy(2026-05)|note=
+OK|CORE_PCE yoy 2026-05|computed=3.1617|reported=3.16|src=series_store CORE_PCE yoy(2026-05)|note=
+OK|CORE_PCE yoy 2026-07|computed=2.9953|reported=3.00|src=series_store CORE_PCE yoy(2026-07)|note=
+OK|CORE_PCE yoy 2026-09|computed=3.1212|reported=3.12|src=series_store CORE_PCE yoy(2026-09)|note=
+OK|CORE_PCE yoy peak month|computed=2026-05|reported=2026-05|src=series_store CORE_PCE yoy argmax 2025-11..2026-09|note=月度同比自2026-05高点3.16回落
+OK|CORE_PCE yoy after peak never exceeds peak|computed=True|reported=True|src=series_store max 2026-06..2026-09 = 3.1212 (peak 2026-05)|note=未再越过高点
+OK|CORE_PCE latest obs month = 2026-09|computed=2026-09|reported=2026-09|src=series_store CORE_PCE dates|note=
+OK|CORE_PCE 2026-10 not visible at cutoff|computed=absent|reported=>2026-11-23|src=series_store + seat rule|note=
+OK|INDPRO yoy 2025-11|computed=1.7543|reported=1.7543|src=series_store INDPRO yoy(2025-11)|note=turnings[1]
+OK|INDPRO yoy 2026-02|computed=0.7972|reported=0.7972|src=series_store INDPRO yoy(2026-02)|note=turnings[1]
+OK|INDPRO yoy halved (ratio < 0.5)|computed=0.4544|reported=<0.5|src=series_store INDPRO yoy ratio 2026-02/2025-11|note=折半
+OK|EA_HICP_YOY 2026-01|computed=1.7|reported=1.7|src=series_store EA_HICP_YOY@2026-01|note=
+OK|EA_HICP_YOY 2026-02|computed=1.9|reported=1.9|src=series_store EA_HICP_YOY@2026-02|note=
+OK|EA_HICP_YOY 2026-05|computed=3.2|reported=3.2|src=series_store EA_HICP_YOY@2026-05|note=
+OK|EA_HICP_YOY 2026-06|computed=2.8|reported=2.8|src=series_store EA_HICP_YOY@2026-06|note=
+OK|EA HICP low month|computed=2026-01|reported=2026-01|src=series_store EA_HICP_YOY argmin 2025-11..2026-10|note=自2026-01低点1.7
+OK|EA HICP high month (本轮最高)|computed=2026-10|reported=2026-10|src=series_store EA_HICP_YOY argmax 2025-11..2026-10|note=升至本轮最高
+OK|EA HICP 连续上行 2026-01..2026-05|computed=True|reported=True|src=series_store EA_HICP_YOY monotonic up|note=
+OK|EA HICP 2026-03起加速 (inc03>inc02)|computed=0.70 vs 0.20|reported=inc03>inc02|src=series_store EA_HICP_YOY increments|note=
+OK|EA HICP 再度上行 2026-07..2026-10|computed=True|reported=True|src=series_store EA_HICP_YOY monotonic up|note=自2026-07再度上行
+OK|EA HICP 2026-08至10加速 (each increment > 2026-07 increment)|computed=0.10 0.30 0.60 0.20|reported=d08,d09,d10 > d07|src=series_store EA_HICP_YOY increments 07..10|note=note: 2026-10 increment smaller than 2026-09
+OK|EA HICP latest visible obs at cutoff = 2026-10|computed=('2026-10-01', '2026-10-31')|reported=2026-10|src=series_store + seat rule|note=
+OK|CN_PPI_YOY 2026-02|computed=-0.9|reported=-0.9|src=series_store CN_PPI_YOY@2026-02|note=TR1 link1 / turning[0]
+OK|CN_PPI_YOY 2026-05|computed=3.9|reported=3.9|src=series_store CN_PPI_YOY@2026-05|note=TR1 link1 / turning[0]
+OK|CN PPI low month (window)|computed=2025-11|reported=2025-11|src=series_store CN_PPI_YOY argmin 2025-11..2026-10|note=中国 PPI 低点在 2025-11
+OK|CN PPI 连升 2025-11..2026-05|computed=True|reported=True|src=series_store CN_PPI_YOY monotonic up|note=此后连升 (to resonance-window end)
+OK|CN PPI latest = window high|computed=2026-10|reported=2026-10|src=series_store CN_PPI_YOY argmax 2025-11..2026-10|note=续创本轮新高
+OK|CN PPI rising every month 2026-07..2026-10|computed=[3.5, 3.8, 5.0, 5.7]|reported=strictly increasing|src=series_store CN_PPI_YOY|note=续创本轮新高 / 2026-07回落至3.5后升至5.7
+OK|CN PPI largest 12m swing among four regions|computed=7.80 vs max 1.90|reported=largest|src=series_store 12m change: CN PPI vs CPI/EA/JP/CN CPI|note=四地最大价格摆动
+OK|CN_CPI_YOY 2026-01|computed=0.2|reported=0.2|src=series_store CN_CPI_YOY@2026-01|note=candidate face
+OK|CN_CPI_YOY 2026-04|computed=1.2|reported=1.2|src=series_store CN_CPI_YOY@2026-04|note=candidate face
+OK|CN PMI months above 50|computed=2025-12=50.1 2026-03=50.4 2026-04=50.3 2026-06=50.3 2026-09=50.1|reported=2025-12=50.1 2026-03=50.4 2026-04=50.3 2026-06=50.3 2026-09=50.1|src=series_store CN_PMI_MFG 2025-11..2026-10|note=
+OK|CN PMI 2026-05 = 50.0|computed=50.0|reported=50.0|src=series_store CN_PMI_MFG@2026-05|note=
+OK|CN PMI other months within 49.0..49.8|computed=49.0..49.8|reported=49.0..49.8|src=series_store CN_PMI_MFG min/max of others|note=n=6
+OK|CN PMI yoy percent 2025-10|computed=-2.1956|reported=-2.2|src=series_store CN_PMI_MFG 2025-10 vs 2024-10 (pct change)|note=同比口径 -2.2→-0.2→+0.61; pp difference = -1.10
+OK|CN PMI yoy percent 2026-07|computed=-0.2028|reported=-0.2|src=series_store CN_PMI_MFG 2026-07 vs 2025-07 (pct change)|note=同比口径 -2.2→-0.2→+0.61; pp difference = -0.10
+OK|CN PMI yoy percent 2026-10|computed=0.6122|reported=0.61|src=series_store CN_PMI_MFG 2026-10 vs 2025-10 (pct change)|note=同比口径 -2.2→-0.2→+0.61; pp difference = 0.30
+OK|JP_CPI_YOY 2025-11|computed=2.9|reported=2.9|src=series_store JP_CPI_YOY@2025-11|note=turnings[2]
+OK|JP_CPI_YOY 2025-12|computed=2.13|reported=2.13|src=series_store JP_CPI_YOY@2025-12|note=turnings[2]
+OK|JP_CPI_YOY 2026-01|computed=1.51|reported=1.51|src=series_store JP_CPI_YOY@2026-01|note=turnings[2]
+OK|JP_CPI_YOY 2026-02|computed=1.27|reported=1.27|src=series_store JP_CPI_YOY@2026-02|note=turnings[2]
+OK|JP_CPI_YOY 2026-03|computed=1.46|reported=1.46|src=series_store JP_CPI_YOY@2026-03|note=turnings[2]
+OK|JP_CPI_YOY 2026-04|computed=1.38|reported=1.38|src=series_store JP_CPI_YOY@2026-04|note=turnings[2]
+OK|JP_CPI_YOY 2025-01|computed=4.03|reported=4.03|src=series_store JP_CPI_YOY@2025-01|note=自 2025-01 高点 4.03
+OK|JP CPI low = 2026-02 since 2025-01|computed=2026-02|reported=2026-02|src=series_store JP_CPI_YOY argmin 2025-01..2026-02|note=
+OK|JP CPI rebound 2025-09|computed=2.91 vs 2.72|reported=up|src=series_store JP_CPI_YOY 2025-09 vs 2025-08|note=其间 2025-09、2025-10 小幅回升
+OK|JP CPI rebound 2025-10|computed=2.99 vs 2.91|reported=up|src=series_store JP_CPI_YOY 2025-10 vs 2025-09|note=
+OK|JP CPI 持续回升自 2026-05 起 (monotonic up to 2026-10)|computed=True|reported=True|src=series_store JP_CPI_YOY monotonic up|note=
+OK|JP CPI first uptick month after trough = 2026-03|computed=1.46 vs 1.27|reported=up|src=series_store JP_CPI_YOY 2026-03 vs 2026-02|note=全国口径的回升起点(2026-03)
+OK|JP_CPI_TOKYO_YOY 2026-06|computed=1.6|reported=1.6|src=series_store JP_CPI_TOKYO_YOY@2026-06|note=turning supplement
+OK|JP_CPI_TOKYO_YOY 2026-08|computed=1.9|reported=1.9|src=series_store JP_CPI_TOKYO_YOY@2026-08|note=turning supplement
+OK|JP_CPI_TOKYO_YOY 2026-09|computed=2.69|reported=2.69|src=series_store JP_CPI_TOKYO_YOY@2026-09|note=turning supplement
+OK|Tokyo CPI rising every month 2026-06..2026-10|computed=[1.6, 1.85, 1.9, 2.69, 2.73]|reported=strictly increasing|src=series_store JP_CPI_TOKYO_YOY|note=东京口径的上行起点(2026-06)
+OK|JP_POLICY_RATE 2025-11|computed=0.478|reported=0.478|src=series_store JP_POLICY_RATE@2025-11|note=
+OK|JP_POLICY_RATE 2025-12|computed=0.557|reported=0.557|src=series_store JP_POLICY_RATE@2025-12|note=
+OK|JP policy net change from 2025-11 (bp)|computed=74.9|reported=75|src=series_store (2026-10 - 2025-11)*100|note=净 +75 个基点
+OK|JP policy net change from 2025-12 (bp)|computed=67.0|reported=67|src=series_store (2026-10 - 2025-12)*100|note=自 2025-12 起 +67bp
+OK|JP policy step 2025-12 (bp)|computed=7.9|reported=8|src=series_store (2025-12 - 2025-11)*100|note=
+OK|JP policy step 2026-01 (bp)|computed=17.1|reported=17|src=series_store (2026-01 - 2025-12)*100|note=
+OK|JP policy step 2026-06 (bp)|computed=11.4|reported=11|src=series_store (2026-06 - 2026-05)*100|note=
+OK|JP policy step 2026-07 (bp)|computed=13.7|reported=14|src=series_store (2026-07 - 2026-06)*100|note=
+OK|JP policy step 2026-09 (bp)|computed=6.6|reported=7|src=series_store (2026-09 - 2026-08)*100|note=
+OK|JP policy step 2026-10 (bp)|computed=18.4|reported=18|src=series_store (2026-10 - 2026-09)*100|note=
+OK|JP policy small rounding changes only in 2026-04 and 2026-08|computed=2026-04:-0.10bp 2026-08:-0.10bp|reported=2026-04 and 2026-08|src=series_store JP_POLICY_RATE month steps|note=各约零点一个基点的舍入变动
+OK|JP policy no decline >= 0.5bp in window|computed=|reported=none|src=series_store JP_POLICY_RATE month steps|note=窗内未回撤
+OK|JP policy first in-window hike >= 1bp|computed=2025-12|reported=2025-12|src=series_store JP_POLICY_RATE steps 2025-11..2026-10|note=日本月均利率上行自2025-12已开始 (window start 2025-11-23)
+OK|CPI yoy latest visible before 2026-06-11 = 2026-04|computed=3.7792|reported=3.78|src=series_store CPI latest visible (seat rule) = 2026-04-01 pub 2026-05-13|note=obs month 2026-04
+OK|CPI obs month visible before 2026-06-11|computed=2026-04|reported=2026-04|src=series_store + seat rule|note=
+OK|CPI yoy latest visible before 2026-09-10 = 2026-07|computed=3.3039|reported=3.30|src=series_store CPI latest visible (seat rule) = 2026-07-01 pub 2026-08-13|note=obs month 2026-07
+OK|CPI obs month visible before 2026-09-10|computed=2026-07|reported=2026-07|src=series_store + seat rule|note=
+OK|CPI yoy latest visible before 2026-09-16 = 2026-08|computed=3.353|reported=3.35|src=series_store CPI latest visible (seat rule) = 2026-08-01 pub 2026-09-13|note=obs month 2026-08
+OK|CPI obs month visible before 2026-09-16|computed=2026-08|reported=2026-08|src=series_store + seat rule|note=
+OK|CPI yoy latest visible before 2026-09-18 = 2026-08|computed=3.353|reported=3.35|src=series_store CPI latest visible (seat rule) = 2026-08-01 pub 2026-09-13|note=obs month 2026-08
+OK|CPI obs month visible before 2026-09-18|computed=2026-08|reported=2026-08|src=series_store + seat rule|note=
+OK|CPI 2026-09 obs published after 2026-09-18|computed=2026-10-13|reported=>2026-09-18|src=series_store + seat rule|note=决议后发布的 2026-09 观测
+OK|CPI 2025-11 base present for 2026-11 yoy|computed=325.063|reported=present|src=series_store CPI@2025-11|note=2026-11 起同比不受缺基期影响
+OK|CPI yoy at cutoff not below 2.5 / 3.5 (SCN thresholds compatible)|computed=3.7172508442689933|reported=>=3.5|src=series_store CPI yoy 2026-09|note=
+OK|CORE_PCE yoy at cutoff not below 2.8|computed=3.1211596029620203|reported=>=2.8|src=series_store CORE_PCE yoy 2026-09|note=
+OK|CN_NEW_LOANS latest obs month|computed=2026-10|reported=2026-10|src=series_store CN_NEW_LOANS|note=C3

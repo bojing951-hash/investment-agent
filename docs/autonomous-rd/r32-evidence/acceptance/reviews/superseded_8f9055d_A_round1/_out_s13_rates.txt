@@ -1,0 +1,208 @@
+### C1 levels
+   UST_10Y latest                                             mine=('2026-11-19', 5.04)       claim=('2026-11-19', 5.04)   OK
+   TIPS_10Y latest                                            mine=('2026-11-19', 2.88)       claim=('2026-11-19', 2.88)   OK
+   BEI_10Y latest                                             mine=('2026-11-20', 2.15)       claim=('2026-11-20', 2.15)   OK
+   VIX latest                                                 mine=('2026-11-23', 27.01)      claim=('2026-11-23', 27.01)  OK
+   HY_OAS latest                                              mine=('2026-11-19', 3.52)       claim=('2026-11-19', 3.52)   OK
+   USDJPY latest (rounded 2dp)                                mine=('2026-11-23', 159.35)     claim=('2026-11-23', 159.35) OK
+   DFF latest                                                 mine=('2026-11-19', 3.88)       claim=('2026-11-19', 3.88)   OK
+   JP_POLICY_RATE latest                                      mine=('2026-10-01', 1.227)      claim=('2026-10-01', 1.227)  OK
+   CN_PPI_YOY latest value (label in judgment = obs month-end) mine=5.7                        claim=5.7                    OK
+   CN_PPI_YOY latest series date vs judgment label            mine=2026-10-01                 claim=2026-10-31             <<< MISMATCH
+   CN_CPI_YOY latest value (label in judgment = obs month-end) mine=0.7                        claim=0.7                    OK
+   CN_CPI_YOY latest series date vs judgment label            mine=2026-10-01                 claim=2026-10-31             <<< MISMATCH
+   CN_PMI_MFG latest                                          mine=('2026-10-01', 49.3)       claim=('2026-10-01', 49.3)   OK
+### identity nominal = real + breakeven (same day)
+   2025-11-19 UST=4.13 TIPS=1.86 BEI=2.27 residual=-0.0
+   2026-08-19 UST=4.65 TIPS=2.35 BEI=2.3 residual=0.0
+   2026-10-20 UST=5.12 TIPS=2.77 BEI=2.35 residual=0.0
+   2026-10-23 UST=5.0 TIPS=2.66 BEI=2.34 residual=0.0
+   2026-11-19 UST=5.04 TIPS=2.88 BEI=2.16 residual=0.0
+   2026-11-20 UST=None TIPS=None BEI=2.15 residual=None
+### 12m decomposition 2025-11-19 -> 2026-11-19 (common trading day)
+   12m UST_10Y chg bp                                         mine=91                         claim=91                     OK
+   12m TIPS_10Y chg bp                                        mine=102                        claim=102                    OK
+   12m BEI_10Y chg bp                                         mine=-11                        claim=-11                    OK
+   12m residual bp                                            mine=0.0                        claim=0.0                    OK
+   12m window endpoints (UST)                                 mine=('2025-11-19', '2026-11-19') claim=('2025-11-19', '2026-11-19') OK
+   levels: UST ('2025-11-19', 4.13)->('2026-11-19', 5.04) TIPS ('2025-11-19', 1.86)->('2026-11-19', 2.88) BEI ('2025-11-19', 2.27)->('2026-11-19', 2.16)
+   BEI_10Y 12m 2.27 -> 2.16                                   mine=(2.27, 2.16)               claim=(2.27, 2.16)           OK
+### 1m common-day 2026-10-20 -> 2026-11-19
+   1m UST_10Y chg bp                                          mine=-8                         claim=-8                     OK
+   1m TIPS_10Y chg bp                                         mine=11                         claim=11                     OK
+   1m BEI_10Y chg bp                                          mine=-19                        claim=-19                    OK
+   1m residual bp                                             mine=0.0                        claim=0.0                    OK
+   levels: UST ('2026-10-20', 5.12)->('2026-11-19', 5.04) TIPS ('2026-10-20', 2.77)->('2026-11-19', 2.88) BEI ('2026-10-20', 2.35)->('2026-11-19', 2.16)
+### 3m common-day 2026-08-19 -> 2026-11-19
+   3m TIPS_10Y chg bp                                         mine=53                         claim=53                     OK
+### BEI_10Y path
+   BEI_10Y 2026-02-27 = 2.25                                  mine=2.25                       claim=2.25                   OK
+   BEI_10Y 2026-05-04 = 2.50                                  mine=2.5                        claim=2.5                    OK
+   BEI_10Y 2026-06-10 = 2.34                                  mine=2.34                       claim=2.34                   OK
+   BEI_10Y 2026-10-23 = 2.34                                  mine=2.34                       claim=2.34                   OK
+   BEI_10Y range from 2026-06-17: min                         mine=2.15                       claim=2.15                   OK
+   BEI_10Y range from 2026-06-17: max                         mine=2.4                        claim=2.4                    OK
+   n obs in range=108 first=('2026-06-17', 2.26) last=('2026-11-20', 2.15)
+   calendar days 2026-10-23 -> 2026-11-20                     mine=28                         claim=28                     OK
+   last BEI_10Y obs below 1.8                                 mine=('2020-11-30', 1.77)       claim=('2020-11-30', 1.77)   OK
+   BEI_10Y first obs date (informational)                     mine=2016-11-23                 claim=2016-11-23             OK
+   judgment: 1.77 is 35bp below latest 2.15 (arithmetic)      mine=38                         claim=35                     <<< MISMATCH
+   BEI_10Y 2026-11-13..2026-11-20: [('2026-11-13', 2.24), ('2026-11-16', 2.2), ('2026-11-17', 2.21), ('2026-11-18', 2.19), ('2026-11-19', 2.16), ('2026-11-20', 2.15)]
+### asset 1-month windows (base = obs nearest to 2026-10-23; end = latest <= 2026-11-23)
+   SPX        base ('2026-10-23', 7623.680176) end ('2026-11-23', 7203.850098)
+   SPX base value                                             mine=7623.68                    claim=7623.68                OK
+   SPX end value                                              mine=7203.85                    claim=7203.85                OK
+   SPX end date                                               mine=2026-11-23                 claim=2026-11-23             OK
+   SPX chg pct                                                mine=-5.51                      claim=-5.51                  OK
+   SHCOMP     base ('2026-10-23', 3690.4753) end ('2026-11-23', 3538.948)
+   SHCOMP base value                                          mine=3690.48                    claim=3690.48                OK
+   SHCOMP end value                                           mine=3538.95                    claim=3538.95                OK
+   SHCOMP end date                                            mine=2026-11-23                 claim=2026-11-23             OK
+   SHCOMP chg pct                                             mine=-4.11                      claim=-4.11                  OK
+   DAX        base ('2026-10-23', 25181.650391) end ('2026-11-23', 25209.449219)
+   DAX base value                                             mine=25181.65                   claim=25181.65               OK
+   DAX end value                                              mine=25209.45                   claim=25209.45               OK
+   DAX end date                                               mine=2026-11-23                 claim=2026-11-23             OK
+   DAX chg pct                                                mine=0.11                       claim=0.11                   OK
+   NIKKEI225  base ('2026-10-23', 62693.16) end ('2026-11-20', 56436.65)
+   NIKKEI225 base value                                       mine=62693.16                   claim=62693.16               OK
+   NIKKEI225 end value                                        mine=56436.65                   claim=56436.65               OK
+   NIKKEI225 end date                                         mine=2026-11-20                 claim=2026-11-20             OK
+   NIKKEI225 chg pct                                          mine=-9.98                      claim=-9.98                  OK
+   VIX        base ('2026-10-23', 19.450001) end ('2026-11-23', 27.01)
+   VIX base value                                             mine=19.45                      claim=19.45                  OK
+   VIX end value                                              mine=27.01                      claim=27.01                  OK
+   VIX end date                                               mine=2026-11-23                 claim=2026-11-23             OK
+   VIX chg pct                                                mine=38.87                      claim=38.87                  OK
+   DXY        base ('2026-10-23', 101.809998) end ('2026-11-23', 104.079002)
+   DXY base value                                             mine=101.81                     claim=101.81                 OK
+   DXY end value                                              mine=104.08                     claim=104.079                OK
+   DXY end date                                               mine=2026-11-23                 claim=2026-11-23             OK
+   DXY chg pct                                                mine=2.23                       claim=2.23                   OK
+   GOLD_F     base ('2026-10-23', 4007.899902) end ('2026-11-23', 3685.199951)
+   GOLD_F base value                                          mine=4007.9                     claim=4007.9                 OK
+   GOLD_F end value                                           mine=3685.2                     claim=3685.2                 OK
+   GOLD_F end date                                            mine=2026-11-23                 claim=2026-11-23             OK
+   GOLD_F chg pct                                             mine=-8.05                      claim=-8.05                  OK
+   UST_10Y    base ('2026-10-23', 5.0) end ('2026-11-19', 5.04)
+   UST_10Y base value                                         mine=5.0                        claim=5.0                    OK
+   UST_10Y end value                                          mine=5.04                       claim=5.04                   OK
+   UST_10Y end date                                           mine=2026-11-19                 claim=2026-11-19             OK
+   UST_10Y chg pct                                            mine=0.8                        claim=0.8                    OK
+   CAC40 in series_store                                      mine=True                       claim=True                   OK
+   CAC40 base/end: ('2026-10-23', 7782.819824) ('2026-11-23', 8022.620117) ('2026-11-20', 7927.75)
+### same-day close 2026-10-23 -> 2026-11-20
+   SPX        ('2026-10-23', 7623.680176) -> ('2026-11-20', 6910.390137)
+   SPX base date (10-23 or prior)                             mine=2026-10-23                 claim=2026-10-23             OK
+   SPX 10-23 -> 11-20 pct                                     mine=-9.36                      claim=-9.36                  OK
+   DAX        ('2026-10-23', 25181.650391) -> ('2026-11-20', 24802.779297)
+   DAX base date (10-23 or prior)                             mine=2026-10-23                 claim=2026-10-23             OK
+   DAX 10-23 -> 11-20 pct                                     mine=-1.5                       claim=-1.5                   OK
+   CAC40      ('2026-10-23', 7782.819824) -> ('2026-11-20', 7927.75)
+   CAC40 base date (10-23 or prior)                           mine=2026-10-23                 claim=2026-10-23             OK
+   CAC40 10-23 -> 11-20 pct                                   mine=1.86                       claim=1.86                   OK
+   NIKKEI225  ('2026-10-23', 62693.16) -> ('2026-11-20', 56436.65)
+   NIKKEI225 base date (10-23 or prior)                       mine=2026-10-23                 claim=2026-10-23             OK
+   NIKKEI225 10-23 -> 11-20 pct                               mine=-9.98                      claim=-9.98                  OK
+   VIX        ('2026-10-23', 19.450001) -> ('2026-11-20', 35.889999)
+   VIX base date (10-23 or prior)                             mine=2026-10-23                 claim=2026-10-23             OK
+   VIX 10-23 -> 11-20 pct                                     mine=84.52                      claim=84.52                  OK
+### common-day SPX vs TIPS
+   12m SPX pct (2025-11-19 -> 2026-11-19)                     mine=8.03                       claim=8.03                   OK
+      obs dates 2025-11-19 -> 2026-11-19
+   12m NIKKEI225 pct (2025-11-19 -> 2026-11-19)               mine=22.47                      claim=22.47                  OK
+      obs dates 2025-11-19 -> 2026-11-19
+   12m DAX pct (2025-11-19 -> 2026-11-19)                     mine=9.93                       claim=9.93                   OK
+      obs dates 2025-11-19 -> 2026-11-19
+   1m SPX pct (2026-10-20 -> 2026-11-19)                      mine=-6.96                      claim=-6.96                  OK
+   3m SPX pct (2026-08-19 -> 2026-11-19)                      mine=-6.9                       claim=-6.9                   OK
+### BRENT_F
+   BRENT_F month-end 2026-02                                  mine=('2026-02-27', 72.48)      claim=('2026-02-27', 72.48)  OK
+      obs ('2026-02-27', 72.480003)
+   BRENT_F month-end 2026-03                                  mine=('2026-03-31', 118.35)     claim=('2026-03-31', 118.35) OK
+      obs ('2026-03-31', 118.349998)
+   BRENT_F month-end 2026-05                                  mine=('2026-05-29', 92.05)      claim=('2026-05-29', 92.05)  OK
+      obs ('2026-05-29', 92.050003)
+   BRENT_F month-end 2026-06                                  mine=('2026-06-30', 72.92)      claim=('2026-06-30', 72.92)  OK
+      obs ('2026-06-30', 72.919998)
+   BRENT_F first-last 02->05 pct                              mine=27.0                       claim=27.0                   OK
+   BRENT_F latest                                             mine=('2026-11-23', 88.19)      claim=('2026-11-23', 88.19)  OK
+   BRENT_F 2026-10-23                                         mine=116.720001                 claim=116.72                 OK
+   BRENT_F 2026-10 month-end obs: ('2026-10-30', 117.639999)
+   BRENT_F MTD pct (from 2026-10 month-end)                   mine=-25.03                     claim=-25.03                 OK
+   last obs before November: ('2026-10-30', 117.639999)  -> MTD -25.03
+### HY_OAS
+   HY_OAS first obs                                           mine=('2023-11-21', 3.95)       claim=('2023-11-21', 3.95)   OK
+   HY_OAS series max                                          mine=('2025-04-07', 4.61)       claim=('2025-04-07', 4.61)   OK
+   n=786  share<=x=91.98  share<x=91.60  (midrank=91.79)  share>=x=8.40
+   HY_OAS percentile (mid-rank, all history to date)          mine=92                         claim=92                     OK
+   HY_OAS percentile (share<=x)                               mine=92                         claim=92                     OK
+   no obs >= 3.52 between 2025-05-10 and latest               mine=[]                         claim=[]                     OK
+   previous obs >= 3.52: ('2025-05-09', 3.53)
+   last obs >= 3.52 before latest = 2025-05-09                mine=2025-05-09                 claim=2025-05-09             OK
+   HY_OAS ISO-week base 2026-11-13                            mine=('2026-11-13', 3.23)       claim=('2026-11-13', 3.23)   OK
+   HY_OAS 1-week chg (pp)                                     mine=0.29                       claim=0.29                   OK
+   strict 7d base obs: ('2026-11-12', 3.2)
+   HY_OAS strict 7-day chg (pp)                               mine=0.32                       claim=0.32                   OK
+   HY_OAS 12m ago obs                                         mine=('2025-11-19', 3.17)       claim=('2025-11-19', 3.17)   OK
+   HY_OAS 12m chg (pp)                                        mine=0.35                       claim=0.35                   OK
+   weekday of 2026-11-13: Fri ; of 2026-11-19: Thu
+### FX
+   USDCNY 2025-11-19                                          mine=7.1075                     claim=7.1075                 OK
+   USDCNY 2026-11-19                                          mine=6.6676                     claim=6.6676                 OK
+   USDCNY chg pct (full precision)                            mine=-6.19                      claim=-6.19                  OK
+   USDJPY 2026-10-23                                          mine=156.494003                 claim=156.49                 OK
+   USDJPY 2026-11-23                                          mine=159.347                    claim=159.35                 OK
+   USDJPY 1m pct (full precision)                             mine=1.82                       claim=1.82                   OK
+### USDJPY / SPX daily co-movement, base 2026-10-23, days 2026-10-26..2026-11-23 on common dates
+   SPX obs in range: 22 ; USDJPY obs in range: 22 ; bases ('2026-10-23', 7623.680176) ('2026-10-23', 156.494003)
+   common dates (21): ['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29', '2026-10-30', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05', '2026-11-06', '2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13', '2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-23']
+   number of common trading days                              mine=21                         claim=21                     OK
+   corr of daily pct changes                                  mine=0.19                       claim=0.19                   OK
+   SPX down days                                              mine=12                         claim=12                     OK
+   SPX up days                                                mine=9                          claim=9                      OK
+   USDJPY down on SPX-down days                               mine=9                          claim=9                      OK
+   USDJPY up on SPX-down days                                 mine=3                          claim=3                      OK
+   USDJPY up on SPX-up days                                   mine=7                          claim=7                      OK
+   USDJPY down on SPX-up days                                 mine=2                          claim=2                      OK
+   USDJPY compound on SPX-down days                           mine=0.16                       claim=0.16                   OK
+   USDJPY compound on SPX-up days                             mine=1.66                       claim=1.66                   OK
+   four largest SPX daily drops (dates)                       mine=['2026-11-05', '2026-11-20', '2026-11-19', '2026-11-16'] claim=['2026-11-05', '2026-11-20', '2026-11-19', '2026-11-16'] OK
+   USDJPY pct on those days                                   mine=[-0.07, 0.2, -0.08, -0.06] claim=[-0.07, 0.2, -0.08, -0.06] OK
+      2026-10-26 SPX +0.70%  USDJPY +0.21%
+      2026-10-27 SPX +0.60%  USDJPY +0.45%
+      2026-10-28 SPX +0.28%  USDJPY +0.30%
+      2026-10-29 SPX -0.30%  USDJPY -0.10%
+      2026-10-30 SPX -1.82%  USDJPY -0.02%
+      2026-11-02 SPX -0.51%  USDJPY -0.08%
+      2026-11-03 SPX +0.36%  USDJPY +0.15%
+      2026-11-04 SPX +1.58%  USDJPY +0.35%
+      2026-11-05 SPX -4.36%  USDJPY -0.07%
+      2026-11-06 SPX +0.31%  USDJPY -0.54%
+      2026-11-09 SPX +2.35%  USDJPY +0.50%
+      2026-11-10 SPX -0.38%  USDJPY -0.20%
+      2026-11-11 SPX +1.31%  USDJPY +0.46%
+      2026-11-12 SPX -0.35%  USDJPY +0.65%
+      2026-11-13 SPX -0.40%  USDJPY +0.09%
+      2026-11-16 SPX -1.92%  USDJPY -0.06%
+      2026-11-17 SPX -1.03%  USDJPY -0.16%
+      2026-11-18 SPX -0.23%  USDJPY -0.01%
+      2026-11-19 SPX -2.02%  USDJPY -0.08%
+      2026-11-20 SPX -3.70%  USDJPY +0.20%
+      2026-11-23 SPX +4.25%  USDJPY -0.23%
+### JP CPI path and CN PMI window
+   JP_CPI_YOY 2025-01..2026-02: [('2025-01-01', 4.03), ('2025-02-01', 3.66), ('2025-03-01', 3.62), ('2025-04-01', 3.56), ('2025-05-01', 3.49), ('2025-06-01', 3.27), ('2025-07-01', 3.1), ('2025-08-01', 2.72), ('2025-09-01', 2.91), ('2025-10-01', 2.99), ('2025-11-01', 2.9), ('2025-12-01', 2.13), ('2026-01-01', 1.51), ('2026-02-01', 1.27)]
+   JP CPI 2025-01 = 4.03                                      mine=4.03                       claim=4.03                   OK
+   JP CPI max over 2025-01..2026-02 is 2025-01                mine=2025-01                    claim=2025-01                OK
+   months of uptick between 2025-02 and 2026-02               mine=['2025-09', '2025-10']     claim=['2025-09', '2025-10'] OK
+   CN_PMI_MFG 2025-10..2026-10: [('2025-10-01', 49.0), ('2025-11-01', 49.2), ('2025-12-01', 50.1), ('2026-01-01', 49.3), ('2026-02-01', 49.0), ('2026-03-01', 50.4), ('2026-04-01', 50.3), ('2026-05-01', 50.0), ('2026-06-01', 50.3), ('2026-07-01', 49.2), ('2026-08-01', 49.8), ('2026-09-01', 50.1), ('2026-10-01', 49.3)]
+   CN PMI months >50 in window                                mine=['2025-12', '2026-03', '2026-04', '2026-06', '2026-09'] claim=['2025-12', '2026-03', '2026-04', '2026-06', '2026-09'] OK
+   CN PMI months ==50 in window                               mine=['2026-05']                claim=['2026-05']            OK
+   CN PMI remaining months range                              mine=(49.0, 49.8)               claim=(49.0, 49.8)           OK
+   CN_PPI_YOY / CN_CPI_YOY last obs dates: ('2026-10-01', 5.7) ('2026-10-01', 0.7)  CN_PMI: ('2026-10-01', 49.3)
+   EA_HICP window: [('2025-10-01', 2.1), ('2025-11-01', 2.1), ('2025-12-01', 2.0), ('2026-01-01', 1.7), ('2026-02-01', 1.9), ('2026-03-01', 2.6), ('2026-04-01', 3.0), ('2026-05-01', 3.2), ('2026-06-01', 2.8), ('2026-07-01', 2.9), ('2026-08-01', 3.2), ('2026-09-01', 3.8), ('2026-10-01', 4.0)]
+====================================================================================================
+POINTS=125 MISMATCHES=3
+MISMATCH: CN_PPI_YOY latest series date vs judgment label mine=2026-10-01 claim=2026-10-31
+MISMATCH: CN_CPI_YOY latest series date vs judgment label mine=2026-10-01 claim=2026-10-31
+MISMATCH: judgment: 1.77 is 35bp below latest 2.15 (arithmetic) mine=38 claim=35

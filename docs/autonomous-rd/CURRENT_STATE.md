@@ -4,8 +4,181 @@
 > 引擎运转面(LIVE/轮次/合同)不在本档——见 `~/agent-loop/STATE.md` 顶部速览。
 > 更新纪律: 每完成一个重要研发阶段必须更新本档(进度/测试与审计结果/分支与 Commit/下一步)。
 
-## 权威快照: 2026-11-16 R44 A 族碎片泄漏硬化(T-R44-1;引擎波次,原自编号 R43 并轨重编号,撞号注记见 ITERATION_LOG R44 行)
-> baseline=28d675540980613d032dc68e95e5face4678c207 (机器行: rd_checkpoint.py 维护,勿手改)
+## 权威快照: 2026-11-20 R67 Audit-R23 第二十三轮审计修复(T-R67-1;独立轨道续 R66)
+> baseline=351a0b605a2ff3dfee7e0bba74f0d4233d41f3f2(Audit-R22 CI 回填尖);代码修复固定 SHA=b316e88(冻结源报告/历史信息截止/正文事实校验/首页转折);受审面=固定审核过的报告+历史信息截止+正文事实校验+首页与三转折+真实一问验收
+
+- **基线**: dev/audit-fix-r1 = d12f6ee→b316e88(修复固定 SHA)→收口提交(渲染器 NIT-2/NIT-4+门 §F2+报告+证据+状态);PR #1 覆盖推送;main 未动。
+- **真实进度**: 五任务全关——①冻结源渲染(历史段=report.json 冻结信封优先+快照兜底+双缺如实缺席;三例逐字节一致含同名快照篡改例;裁决↔内容段摘要绑定+重挂锚攻击自愈语义)②当时可知面(_aof_first_pub 月首口径修=门探针抓出实录条目被保守界遮蔽真缺陷;九组首布翻转逐验;泄漏面门控 asof_discipline=r23)③契约三查(quarter_token/headline bp 常开+as_of_leak 门控;GDP Q2→Q3 与 +97→−97bp 双窜写拦+同义正例过)④首页速览整句+下降16bp 表述+同轮并项+引擎补选+缺少两期注记+尚不能区分⑤一问验收 20261119T173248Z 三轮闭环 REVISE→REVISE→UPHELD(675 点累计独立复算)。
+- **产品验收(真实工单)**: 判断席/审查席双零上下文,操作席只记裁决;R1 REVISE(SCN-A 日期-数值 MAJOR)→R2 REVISE(修订全 PASS+连续性专项新检出 CN_PMI 荣枯线 MAJOR=审查席自曝 R1 漏检)→R3 UPHELD(131 点零错配,对质行重判经独立重推);归档 bd5be016 三方一致+SHA 三处同值 b316e88 全长 40;36 核心格 27/27(R23 recheck);VIX 工单 UPHELD Round-1 零漂移(+38.07% 逐位)。
+- **验收**: test_audit_r23_gate 51/51(§A-§G+§F2 收口 NIT);回归 r18 40/0+r19 35/0+r20 30/0+r21 50/0+r22 36/36;电池见 CI 回填;证据包 docs/autonomous-rd/r23-evidence/(gates+acceptance 九件套+三轮裁决链+vix-regression+recheck R23 版);报告=docs/autonomous-rd/AUDIT_R23_REPORT.md。
+- **下一步**: 等待用户外部审计裁定(dev/audit-fix-r1 尖+AUDIT_R23_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。R68 候选=R3 残留(EA 深谷披露/JP GDP 副词/对质行回贴)+check15 bp 池泛化+R66/R64/R63 移交项。
+
+### [历史快照·R66 视角,已被上方权威快照取代]
+> baseline=b45b810f92e3a44a4c40064e67910a948ebbb36d(Audit-R21 CI 回填尖);代码修复固定 SHA=b45b810(发布批次/政策时序/中文窜写拦截/读者对质面);受审面=历史时点发布批次+政策时序分记+正文窜写拒绝+读者报告补全+真实一问验收
+
+- **基线**: dev/audit-fix-r1 = 1cb8a23→b45b810(修复固定 SHA)→状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 五任务全关——①release_calendar v1.2.0 batches 数组(同批多指标/一次补发两月 backfill=2)+前一天/当天逐项实测(九月核心 CPI 2025-10-24/十一月失业率 12-16/十月+十一月核心 PCE 2026-01-22)+六族锚可见性+修订口径注记与批号对账②打印日≠变更日根修+决议/生效惯例分记(Fed 次日×3 例含 2022-07 2.50 核准/ECB 前周四/PBOC 即时)+净零路径+跨国簇±7 日同事件(月频=同步先后未定)+FOMC 纪要 11-18 可见③中文别名面 13 别名+pp 容差 0.06+观测月串锚序保序子序列④首页三件+主 vs 竞争对质表(尚不能区分诚实缺省)+逐窗并列面 9 列+ex_post 窗口方向修(锚+N)⑤一问验收 20261119T153709Z UPHELD Round-1 归档(cd3e1732 三方一致;SHA 三处同值 b45b810f)。
+- **产品验收(真实工单)**: 零上下文判断席只收 run.question 原文一次(与 R21 逐字节一致),attach 三轮终 VERIFIED;独立审查席~350 点复算 UPHELD(1 MINOR+2 NIT 在档);36 核心格全覆盖 63 ok+3 诚实缺席(recheck 23/23);VIX 工单复测 UPHELD(15 项位级,+38.07% 逐位复现);R21 归档重放 VERIFIED 零漂移。
+- **反例拦截**: 真实工单三窜写+同义正例 11/11——①标普+99.00%②美债+0.35pp③GDP 观测串 2025-07 全 CONTRADICTED 不可交付+归档拒绝;④中文同义表述 VERIFIED 不误伤;归档增量=0。
+- **验收**: test_audit_r22_gate 36/0(§A-§G);回归 r18 门 40/0+r19 门 35/0+r20 门 30/0+r21 门 49/0;电池 195 件 193 绿+2 红(均环境类,docs 提交后复验/worktree 序列独立复跑绿);证据包 docs/autonomous-rd/r22-evidence/(gates+acceptance 九件套+vix-regression+反例 harness);报告=docs/autonomous-rd/AUDIT_R22_REPORT.md;CI 见报告尾回填。
+- **下一步**: 等待用户外部审计裁定(dev/audit-fix-r1 尖+AUDIT_R22_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。R67 候选=政策净变动基点口径统一+R64/R63 移交项。
+
+
+### [历史快照·R65 视角,已被上方权威快照取代]
+> baseline=9667e8df0be26513be6eb85d1041711f4f130d16(Audit-R20 CI 回填尖);代码修复固定 SHA=138e85b(任务 1-4 主体 28 文件)→9667e8d(任务 4 追补资产月窗契约基 4 文件);受审面=地图正式使用验收五任务(历史可见性/政策与转折/正文与归档/读者文件/会话交付)
+
+- **基线**: dev/audit-fix-r1 = 62c973e→138e85b→9667e8d→状态收口;PR #1 覆盖推送;main 未动。(注: R64 收口未旋转本档快照——R63 快照滞留至本轮一并更正,checkpoint/日志链无断。)
+- **真实进度**: 五任务全关——①发布实录日历(user_directive/convention 分级)+锚值按观察期×官方发布日取当时可见版本(11-18/11-19 12 个月前面=Q2 GDP+八月失业率 4.3+九月 CPI 已发布允许;九月失业率 11-20/Q3 GDP 12-23/十月 PCE 2026-01-22 可见;仅修订值标 Δ事后回顾)②CN_OMO_7D 201 观测 23 零值根修+隔夜锚 CN_POLICY_OVERNIGHT 在册(换锚后隔夜展示,七天/LPR 单列)+Fed 先降 25bp 再升 25bp 净 0+四日期分列+月频同步须写先后未定③单源可复算事实+map_anchor_coverage_insufficient 阻断+两相邻交易日 insufficient_history④年度判断同窗年度美债分解打头+历史段美国类比+样本注记+同步/事后分列+传导区分指标+普通问句资产月窗契约基(数字+窗口耦合,带符号比对)。
+- **产品验收(真实工单)**: VIX 工单正式入口全链(9667e8d 隔离树): 契约 VERIFIED(VIX +38.07%/SPX -4.55 资产月窗基)→独立席位级复算→UPHELD→deliverable(FULL_REPORT 正文可读 +38.07% 与 2026-10-19 至 11-17)→归档 b9ee2ab4。一问验收(/tmp/r21_accept=9667e8d 干净面,零同题归档零预填判断,全新 headless 会话只收原问一次+程序性规程): 20261119T120815Z,attach 三轮契约迭代终 VERIFIED,零共享上下文审查 REVISE(4 MAJOR+5 MINOR+4 NIT)→修订 13 处→UPHELD→归档九件套三方一致(5916b8dc);MAP_REPORT 五项逐检过;36 核心格全覆盖(63 ok+3 诚实缺席)。
+- **反例拦截**: 真实工单三反例 8/8(①ex_post 正文串写 +99.00%→契约 CONTRADICTED「编造事后回报」②观测月 2030-07→CONTRADICTED+map_required_face_missing③JP 增长仅最新季度→锚覆盖不足),归档增量=0。
+- **验收**: test_audit_r21_gate 49/0(§A-§I);回归 r18 门 40/0+r19 门 35/0+r20 门 30/0;电池 192 绿(phase6 D3=未提交工作面预期红,docs 提交后复验);证据包 docs/autonomous-rd/r21-evidence/(gates+vix-regression+acceptance 九件套+裁决链+反例 harness);报告=docs/autonomous-rd/AUDIT_R21_REPORT.md;CI 见报告尾回填。
+- **下一步**: 等待用户外部审计裁定(dev/audit-fix-r1 尖+AUDIT_R21_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R63 视角,已被上方权威快照取代]
+> baseline=abba4d1a70a3b6b5e9a0731c63654244500c79a1(Audit-R18 CI 回填尖);代码修复固定 SHA=e6f77e11c2fc4858d1ba5c8f6dab063cba9a084f(受审面=地图问句同比基期/发布纪律/三维转折/历史类比结构面+四阻断器+读者版量化显示)
+
+- **基线**: dev/audit-fix-r1 = 2178b2d→代码修复提交(六文件+1003 行+35 判据门 test_audit_r19_gate)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 六缺陷全关(D1-D8)——①同比基期错配→月度同比只配去年同月+缺基期标不可得+最近有效同比另列;②提前引用未发布→RELEASE_RULES 发布日推定+锚值发布日≤锚日;③转折候选扩增长维(三维全入池);④历史类比结构化 anchor_ym/match_window/judgment_cutoff_ym/aftermath_obs_months+锚月+N月唯一算术源;⑤契约四阻断器(错用基期/提前引用/转折重复/事后落匹配期=CONTRADICTED)+维度覆盖+传导须达资产;⑥读者版渲染 S6+S5 量化段;另 CN PPI 归价格维+JP 市场利率与目标分别列示+ASSET_UNIVERSE 30。
+- **产品验收(真实运行零合成)**: 引擎树=仓码@SHA+LIVE 通道副本+CN 226 月冻结包注入;快照 80 序列/Gate A DEGRADED(4 非核心缺席)/事实 104 核心缺 0;plan 8 转折候选跨三维;Agent 席判决(机制链 3 环每环竞争解释+区分指标+两情景证伪阈值+reader_map 四问五面)attach 四轮契约迭代后 VERIFIED;**独立零上下文语义审查三轮 REVISE(5 必修: 2 MAJOR)→REVISE(1)→UPHELD(裁决链 3 档)**——2 MAJOR=候选窗值串写进转折窗(CORE_CPI)+证伪基线月标错(CORE_PCE),数值各自真实错在窗口归属=席位存在理由第三证;report deliverable=True;archive content_sha256=8ea0485d…=UPHELD 档绑定+SHA-256 回读三方 MATCH;读者报告四问落位(对照表/转折表/传导四件套/历史类比);证据包 docs/autonomous-rd/r19-evidence/;新会话零上下文验收=只输入原问自行发现归档并抽查复算(见 AUDIT_R19_REPORT §七)。
+- **验收**: test_audit_r19_gate 35/35(§A-§H 含四阻断器正反例/读者版量化段/交付归档门);r18 门夹具升级全绿;电池 191/192→提交后 phase6 29 PASS/0 FAIL=有效 192/192;四复放包(BLIND/F10/cn-task-b/e2e-corrected)PASS;报告=docs/autonomous-rd/AUDIT_R19_REPORT.md;CI 见报告尾回填。
+- **下一步**: 等待用户外部审计裁定(dev/audit-fix-r1 尖+AUDIT_R19_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。R20 候选: 渲染器标签回显重复+attach 幂等时间戳不刷新+R17 移交两项(日历周表达/同义词形别名面)。
+
+### [历史快照·R62 视角,已被上方权威快照取代]
+> baseline=d3dea052585d2e433d92576afe5f70b144722ddd(Audit-R17 CI 回填尖);代码修复固定 SHA=d3dea052585d2e433d92576afe5f70b144722ddd(受审面=地图问句共享研究计划+读者报告五面契约+防篡改锚)
+
+- **基线**: dev/audit-fix-r1 = 57bcb66→代码修复提交(五文件+新模块 research_map_planner+40 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 五缺陷全关——①原问(四地×三维度×三时点)plan metrics=[]降级「经济体概览」仍 run_ok 可交付归档=答非所问误通过 → `detect_map_question` 严格触发(≥2 经济体∩{US,CN,EA,JP}+≥2 维度词+形状词)+`plan_map` 地区×维度→注册表指标 18 项(planned 分级)+三利率上下文;②「只比较 10 年期…和 30 年期…」前导句把 UST_10Y 首次命中位锚在限定词前被误删(git 双跑证=基线既有)→ map_entities 全命中位记录+限定后任一命中判;③「12个月前」「随后3、6、12个月」残缺数量扫描 unparseable → 点值锚(kind=point, cutoff−N月)与事后偏移锚(kind=ex_post, 事件日+N月)分记+`consumed_time_spans` 透传(仅地图问句,R10-R17 语义保全);④reader_map 五面无契约 → `_map_checks`(headline/regions 走位/传导逐环四件套+区分指标∈计划∪证据面/转折恰 3 且数值回贴引擎月末口径/历史 1..3 段含 ex_post 3/6/12 非空)+机制环正文空/None=SCHEMA 拦+BLOCKING 新类 map_required_face_missing;⑤在场 MAP_REPORT 篡改后归档内部重跑 report 重渲洗白 → 旁挂锚 MAP_REPORT.sha256(磁盘≠锚=单改拒付**不重写**保全证据,归档重跑同拒;文件未动装配变=合法修订重渲更新锚——REVISE 闭环不误伤)。
+- **产品验收(任务⑤真实运行,零合成)**: 原问逐字 plan run_ok(research_plan 18 计划指标+点值 12 格+缺数 7 格如实+转折候选 5);Agent 席真实判决(l3 CON-1+MECH-1 三环 E1/E2/E3+l4 SCN-A/B 证伪阈值带数字+reader_map 五面)attach 首提 2 SCHEMA 纪律修正后 attached=True/契约 VERIFIED;**独立零上下文语义审查: 首审 REVISE 四必修(政策事件日期系统性错误/BEI 年变化符号/CN 荣枯线表述/历史段无源锚)→修订闭环→复验 UPHELD(四必修逐日对值+回归电池 20 项全绿,残留 3 NIT 措辞层记下轮候选)**;report deliverable=True;归档 content_sha256 三处同锚+SHA-256 回读三方 MATCH;读者报告+裁决链三档入仓 docs/autonomous-rd/r18-evidence/。
+- **验收**: test_audit_r18_gate 40/40(§A 识别计划/§B 窗口/§C 正式 plan 冻结根/§D 契约反例×10/§E 交付归档门含篡改拒付+删除恢复+不洗白);既有门 r4-r17+t3+charter6 复跑全绿;电池 189 绿+phase6 提交前预期红(190 件口径);复放四包 PASS;报告=docs/autonomous-rd/AUDIT_R18_REPORT.md;CI 见报告尾回填。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R18_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。R19 候选(复核席残留+本轮注记): ①Q3/Q4 边界措辞(75bp 跨 Q3+Q4)②「年中」作背离期标签偏松③l3 step1 ref 配对装饰性残留④日历周表达(本周/上周,R17 移交)⑤同义词形别名面(高收益债利差等,R17 移交)。
+
+### [历史快照·R61 视角,已被上方权威快照取代]
+> baseline=d59713d903930489b59a40faeee9557277c91f65(Audit-R16 CI 回填尖);代码修复固定 SHA=d59713d903930489b59a40faeee9557277c91f65(受审面=共享解析逻辑七修+单指标豁免)
+
+- **基线**: dev/audit-fix-r1 = 264dc14→代码修复提交(并列共用名绑定/只比较限定/空格不变义/另加连接词/缺什么注记/S7 单指标豁免/半年位年复合词界+56 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 唯一目标全关——①`_metric_tenor_map_patterns` 并列中段 数量+单位+?期 允许: 同一共用名绑定到每个期限(「2年期和10年期美债收益率各变了多少」→UST_2Y+UST_10Y);并列段不得含产品词=「2年期国债和10年期美债收益率」不跨产品错绑。②map_entities 位置化重构: 字面命中位置(q.find)与期限映射位置(`_metric_tenor_map_positions`,_norm_question 全角数字翻译保 q/qn 同坐标)统一入表;「只/仅比较」限定=取限定词之后位置的非空子集(三空格变体同 [UST_10Y,UST_30Y],无关 UST_2Y 不再入必需集;移除无关 2Y 仍交付,移除任一指定期限拒绝)。③范围前缀抑制从 lookbehind 移到 `_metric_tenor_map_positions` 匹配时判定——「过去 2年」「过去  2年」等空格变体同抑制(研究时长与债券期限各自识别,空格不改变含义)。④`_QCONT_RE` 连接词 [再又外]→[再又外另]: 「十八个月另加三天」复合尾部拦截(完整处理所有明确的时间分量,超出口径提示改写);基线漏过=18 月照付。⑤`_evaluate_data_requirements` 缺失项 outcome_basis 前缀「缺什么: <指标>(任务窗<起>..<止>)——<缺法>;」(缺失项保留在计划中并写明缺什么)。⑥S7_mode_gate: gate 缺席且历史指标<2(单指标问句无可比对)=honest_refusal=True 豁免(镜像 S6;R16 门 §D G2 判据同步翻正)——单指标 PMI 正常入口全链交付的前提。⑦独立「半年」位年复合词界: num=半+unit=年 且匹配末端后随 报/度/刊 → BAD(「过去半年报/半年度/半年刊」基线误折 6 月——本轮 §E 电池新暴露的既有缺陷,与 N年半 后缀黑名单同口径)。
+- **三组验收(冻结面 2026-11-17,正式 plan/attach/report/archive 逐案退出码)**: 美债并列三形(省写/写全/调序)全 [UST_2Y,UST_10Y,UST_30Y]+窗 2026-05-17..2026-11-17+三项各 124 窗内观测+原始值复算 2Y +81bp(4.07→4.88)/10Y +54bp(4.61→5.15)/30Y +33bp(5.14→5.47)+三链 rc=0 归档各 1 份;逐条移除任一序列 plan 仍列该项+缺什么注记+insufficient_coverage 阻断+零归档。只比较三空格形同 [UST_10Y,UST_30Y]+窗 2024-11-17..2026-11-17+各 497 观测+三链 rc=0;移除无关 UST_2Y 仍交付(必需集不含 2Y);移除 UST_10Y 或 UST_30Y 拒绝。另加/外加/加三天三形全拒(unparseable+提示改写+缺什么注记,S7 honest_refusal,零归档);净十八月窗 2025-05-17..2026-11-17 n=373 交付。单指标 PMI「过去一年半制造业PMI有什么变化？」全链交付(S7 豁免+18 月窗 n=17 satisfied+rc=0 归档 1 份;CN 输入面补全=china_*.json 事实权威通道,注册表 source 门)。
+- **产品验收**: (a) 单指标 PMI 前置检查查清——①S7_mode_gate compare/analog 门对单指标问句不适用(已修=honest_refusal 豁免,不编造 gate);②critical_zero_evidence(L1=0)检查本身适用且正确,PMI 命中系冻结输入面缺 china_*.json(事实权威=china_market_collector,序列走 history_source)——补全输入面后全链交付,非代码缺陷。(b) 独立验收者(零上下文出题席)出题「本周VIX飙升而高收益债利差几乎未动,信用市场是否对股市风险过于自满?」→ 真实 Agent 席(真实快照 20261118 隔离副本,引擎根零写入)plan rc=0+judgment(schema 1.1,3 矛盾×3 竞争解释+3 机制链 E1/E2/E3+3 情景,0 violations,契约 VERIFIED)+attach rc=0;原问句 report rc=1(deliverable=False,blocked=required_data_missing)+archive rc=1+零归档——「本周」未支持词形按设计阻断+改写提示+缺什么注记(R17 契约真实链成立);验收者按引擎提示发修正问句「近一个月VIX飙升而高收益债OAS利差几乎未动,信用市场是否对股市风险过于自满?」→ 全链收口(详见 AUDIT_R17_REPORT §产品验收)。发现两缺口登记 R18 候选: ①日历周表达(本周/上周)未支持;②常用中文同义词形(高收益债利差/投机级利差)不在注册表别名面(必需集只含 VIX=答非所问风险类)。
+- **验收**: test_audit_r17_gate 56/0(§A 映射+抑制锚/§B 复合尾部/§C 正式 plan 七案/§D 七链正反例/§E 参数化回归电池 23 锚;合成裁决显式标记 role=R17-SYNTHETIC-ISOLATED-TEST+judgment 顶层 synthetic:true);报告=docs/autonomous-rd/AUDIT_R17_REPORT.md;反例复现=/tmp/r17_repro.py(五冻结根×17 案+每次输入更换重建快照+正式四阶段逐案退出码,基线/修复双档=/tmp/r17_rows_baseline.json+/tmp/r17_rows_fixed.json);电池 190 件如实计数(189 绿+phase6 提交前预期红,提交树全绿由 CI 复核)+既有门 r4-r16/t3+charter6(p0/p1/p2/p4)复跑全绿+复放四包(BLIND sha feaa1536 逐字节+64/64·F10 sha 6e5fcf4a 逐字节·新B recompute 105/105·e2e 三争点全中)PASS+复杂度基线内(生产 85f/51303L 同口径 +0.16%;research_orchestrator.py 2381→2464 +83 全为本轮修复);CI 见报告尾回填。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R17_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R60 视角,已被上方权威快照取代]
+
+> baseline=83c86c909a51ca396046cb3d21add1914b6204cb…(代码修复固定 SHA;受审基线=fe54e0a 即 Audit-R15 CI 回填尖;受审面=本轮期限映射+完整短语时间解析)
+
+- **基线**: dev/audit-fix-r1 = fe54e0a→代码修复提交(期限值绑定映射+半词黑名单+外加连接词+49 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 唯一目标全关(plan 完整记录用户要求的每个指标和研究窗口;report/archive 同一份判定;金融期限按品种、数值和单位匹配;时间解析覆盖完整短语,消除对审计原句和「半」后单字白名单的依赖;必需指标缺数或明确时长无法完整解析都阻止交付)——①map_entities 增值绑定期限映射 _metric_tenor_map_patterns(display_name 期限词形→数量固定为原数值阿拉伯/中文等价形,期可选,产品词尾锚定;与 _metric_tenor_forms 通配跨度分工: 豁免数量通配/映射数量绑定;范围前缀(过去/近/最近)紧邻数量=抑制映射,「过去10年美债收益率」=十年窗不凭空命中 UST_10Y);基线「2年美债收益率」(无期)不映射 UST_2Y——三品种比较只答两种,完整根 rc=0 交付+归档=答非所问面被放行,移除 2Y 序列与完整根不可区分。②_QRANGE_RE half 组改词黑名单 半(?!年|导体|衰[期变]|年度|年报|成品|场|岛|球|径)——黑名单词外全部放行;基线「一年半制造业PMI」「一年半发生了」后随 制/发 不在旧单字白名单=窗缩 12 月,12 点根两形 satisfied 误放行(数据不足靠缩窗通过)。③_QCONT_RE 连接词 [再又]→[再又外];基线「十八个月外加三天」外不在连接词集=复合尾部漏过 18 月照付。修复后三组验收: 美债四形(原句/2年期/顺序/附ID)全映射 [UST_2Y,UST_10Y,UST_30Y]+同 2026-05-17..2026-11-17 六月窗+三项各 124 窗内观测+正式全链(attach 判决落位→report rc=0 交付→archive rc=0 归档 1 份);移除任一序列 plan 仍列该项+要求窗原样+缺数(insufficient_coverage)阻断+零归档;一年半三形同 18 月窗 2025-05-17..2026-11-17(226 点根 17 点 satisfied,12 点根三形全拒不缩窗;单指标 S7_mode_gate 无可比对=既有前置检查影响,整项状态在档+正式判定带入隔离夹具验证交付面);三年半导体 36 月/三年半 42 月/半衰期·半年度·半成品·半年报·逆回购简称族·十年期美债≠近十年·裸六个月·近7天·2026年内·工作日期·十二个月·廿一个月锚全数保全;外加三天/加三天/又加上/零三天/零三个工作日/交易日/零一季度复合族全拒(提示改写),净十八月正常交付。
+- **验收**: test_audit_r16_gate 49/0(§A 期限映射 7+§B 一年半 10+§C 连接词 9+§D 正式 plan 5+§E 交付面 5+§F 参数化回归电池 13;合成裁决显式标记 role=R16-SYNTHETIC-ISOLATED-TEST+judgment 顶层 synthetic:true);报告=docs/autonomous-rd/AUDIT_R16_REPORT.md;反例复现=/tmp/r16_repro.py(六冻结根×案变异+每次输入更换重建快照+正式 plan/attach/report/archive 逐案退出码,基线 15 案三组缺陷→修复后全对)+/tmp/r16_probe.py(33 例变体探测 0 偏离)+/tmp/r16_rows_baseline.json+/tmp/r16_rows_fixed.json 双档在案;电池如实计数(提交树全绿由 CI 复核)+十二既有门(r4-r15/t3)+charter6(p0/p1/p2/p4)复跑全绿+复放四包(BLIND sha feaa1536 逐字节+64/64/F10 sha 6e5fcf4a 逐字节/新B 105/105/e2e 三争点全中)PASS+复杂度基线内(生产 85f/51220L vs 51163L 同口径 +0.11%;research_orchestrator.py 2324→2381 +57);worktree 清单全程固定;CI 见报告尾回填。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R16_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R59 视角,已被上方权威快照取代]
+
+> baseline=3b1b65e3a5f28f88859555b71e524a0c6a55875a…(代码修复固定 SHA;受审基线=4f9c75d 即 Audit-R14 CI 回填尖;受审面=本轮时间范围与研究对象的边界)
+
+- **基线**: dev/audit-fix-r1 = 4f9c75d→代码修复提交(half 白名单再扩+后缀组收编+复合尾部连接词/日单位再扩+实体跨度先识别+72 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 唯一目标全关(先识别完整时长/指标期限/研究对象再算起止日期;plan/报告/归档同一份窗口判定;未处理额外时长或歧义=改写提示+阻断交付;只有确实未指定才 max_available)——①_QRANGE_RE half 后随白名单再扩(里|期|间|当|中)+后缀组收编 期间|之中|当中|里(无前缀形也构成约束: 一年半期间 无过去=18 月非未限定);基线「过去一年半里/期间」half 不命中=窗缩 1 年,12 点根按缩窗 satisfied 放行(数据不足靠缩短窗口通过)。②_QCONT_RE 连接词再扩((?:[再又]\s*)?加上?)+日单位族扩容((?:交易|工作|营业|自然)\s*日(?!期|本|常);基线「十八个月零三个工作日」「又加上三天」按十八月放行。③研究对象先识别: _entity_spans(已映射指标 id/display_name 字面+期限词形正则_metric_tenor_forms——数量通配 _NUM_RUN+期可选+中文数量形,指标 id 括注=权威锚故零外溢),复合尾部候选与残缺扫描让位实体区间(同日期让位口径);基线「7天逆回购利率(CN_OMO_7D)」(无期无的)误作复合尾部=unparseable 时间解析错误。④窗口/年限/月数/相对约束/尾部五入口(_question_window/_question_range_years/months/_q_relative_constraints/_q_relative_tail)+_evaluate_data_requirements 全链同源传跨度。修复后: G1 三形双根同 18 月窗 2025-05-17..2026-11-17(12 点根 insufficient_coverage rc=1/1 零归档不缩窗;226 点根同窗 satisfied 可交付可归档);三年半导体=3 年/三年半=42 月保留;G2 复合族 unparseable+rc=1/1+零归档(充足数据不放行),合法十八个月通过;G3 四形(7天期/的7天期/7天/的7天)同命中 CN_OMO_7D+同 2026-05-17..2026-11-17 六月窗+缺历史=insufficient_coverage 数据不足如实拒绝(窗口已解析非时间错误零造数)。
+- **验收**: test_audit_r15_gate 72/0(§A G1 双根 10+§B G2 拒绝族 7+§C G3 四形+真复合 6+§D 保留 13+§E 参数化等价 21+§F 正式 plan 三钉+阻断 10+交付 4+合成标记 1;合成裁决显式标记 role=R15-SYNTHETIC-ISOLATED-TEST+judgment 顶层 synthetic:true);报告=docs/autonomous-rd/AUDIT_R15_REPORT.md;反例复现=/tmp/r15_repro.py(冻结双根 12 点/226 点+research_snapshot_20261117+正式 plan/report/archive 逐案退出码,基线六缺陷→修复后 16 案全对)+/tmp/r15_probe.py(80 例变体探测 0 偏离,一处真缺口=期限词形正则首版只匹配阿拉伯字面,中文七天形修复复验);电池 188 件如实计数(提交树全绿由 CI 复核)+十四既有门(r4-r14/t3/r42)+charter6 复跑全绿+复放四包(BLIND sha feaa1536 逐字节+64/64/F10 sha 6e5fcf4a 逐字节/新B 105/105/e2e 三争点全中)PASS+复杂度基线内(生产 85f/51163L vs 51108L 同口径 +0.15%);worktree 清单全程固定 6;CI 见报告尾回填。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R15_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R58 视角,已被上方权威快照取代]
+
+
+- **基线**: dev/audit-fix-r1 = 07d83c6→代码修复提交(连接词/单位/half 白名单/残缺护栏+79 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 唯一目标全关(准确区分研究时长、复合时长后半段、行业或金融指标名称;明确指定时间完整处理;歧义/超范围=改写提示+阻断交付;确实未指定才 max_available;plan/报告/归档同一份窗口判定)——①_QCONT_RE 连接词扩容((?:再\s*)?加上?|[零又加+]: 再加上/加上形;基线「十八个月加上三天」「再加三天」按十八月放行)②单位侧三扩(「个」前缀推广到星期/季度/交易日/日=零一个星期;「交易日」单位=零三个交易日;期限后缀护栏 天(?!期)/月(?!份|期)=7天期/1个月期=指标期限词形不作复合时长——G3 期限不能改变窗口也不误报时间解析错误)③_QRANGE_RE half 后随白名单(半(?!年)(?=[^一-鿿]|的之以之到至内来左右和与及跟零又加时|$): 后随其它汉字=「半」开头行业/术语词形归行业名——「过去三年半导体需求」=三年窗不再误折 42 月,±的 同窗;一年半零三天/三年半年度 保持既档)④_QNUM_RESIDUAL_RE 月护栏同步带期(探测发现的同根因遗漏)。六形 G1 基线放行(rc=0/0 已归档)→修复后 unparseable+rc=1/1+零归档(冻结 226 点充足十八月数据不放行);G2 行业名±的(5 行业 10 形)同 2023-11-17..2026-11-17 三年窗+三年半 42 月正例保留可交付可归档;G3 期限±的(5 期限 10 形)同 2026-05-17..2026-11-17 六月窗+map_entities 命中 CN_OMO_7D+缺数如实(insufficient_coverage 数据缺席族,窗口已解析,非时间解析错误,零造数);plan/report/archive 全走 run_research→_question_window→_evaluate_data_requirements 单源(§G 正式 plan 两钉子+report/archive 双门验证)。
+- **验收**: test_audit_r14_gate 79/0(§A7+§B3+§C27+§D4+§E13+§F12+§G13;合成裁决显式标记 role=R14-SYNTHETIC-ISOLATED-TEST+judgment 顶层 synthetic:true);报告=docs/autonomous-rd/AUDIT_R14_REPORT.md;反例复现=/tmp/r14_repro.py(冻结 226 点+research_snapshot_20261117+正式 plan/report/archive 逐案退出码,基线六缺陷→修复后全关)+/tmp/r14_probe.py(111 例变体探测 0 偏离,一处同根因遗漏修复复验);电池 187 件如实计数(提交树全绿由 CI 复核)+十三既有门(r4-r13/t3/r42)+charter6 复跑全绿+复放四包(BLIND/F10/新B 105/105/e2e)PASS+复杂度基线内(+0.24%);worktree 清单全程固定 6;CI 见报告尾回填。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R14_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R57 视角,已被上方权威快照取代]
+> baseline=0fb64e4e932841f37f38f12cdbff4ce238681fe8…(代码修复固定 SHA;受审基线=1d39ec8 即 Audit-R12 CI 回填尖;受审面=本轮时间范围完整准确核验)
+
+- **基线**: dev/audit-fix-r1 = 1d39ec8→代码修复提交(单位归一+复合尾部+56 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 唯一目标全关(明确指定范围=只能按完整准确范围核验;无法准确表达=改写/拆分提示+阻断正式 report/archive;只有确实未指定才 max_available)——①单位先归一再换算: unit_n 归一(月/个月/个 月 空白变体)后比较,半月类(半月/半个月/半 个 月/0.5个月/0.5月)一致拒绝,只有半+年=6、N年半=N×12+6(基线「过去半个月」unit=='个月' 逃过半月检查误折六月放行);②复合尾部 _QCONT_RE: 约束词形之后紧邻(可经零/又/加/+连接)的数量+时间单位=短语内未处理数量/单位,整体拒绝不截断(十八个月零三天/18个月3天/半年零一周/两年零三个月/六个月又三天/3个月+3天/半年以内半年);数量类含半形;与日期词重叠让位日期分支(近五年 2022年1月至…=显式区间走多范围拆分);单位词界护栏(月≠月份/年≠年度·份·期/日≠期·本·常/周≠期)防「六个月半年度报告」术语误伤;③half 组词界半(?!年): 「三年半年度数据」=3 年不再误折 42 月,N个月半/半年半仍 BAD;④先验证每个范围再等价判断/去重: _q_relative_constraints 逐词形任一 BAD 即返(先于 sorted(set) 去重),六个月和近半月=拒/六个月和近半年=等价合一单六月窗;⑤unparseable hint 补复合量改写指引,多范围仍拆分提示;原始问题保留(解析用规范化副本)。三反例基线 rc=0/0 放行→修复后 report rc=1+deliverable=False+blocked_class=required_data_missing+archive rc=1+零归档;等价对(半年=六个月/一年半=十八个月,各 6 形)同窗可交付可归档。
+- **验收**: test_audit_r13_gate 56/0(§A4+§B4+§C19+§D4+§E7+§F15+§G5);报告=docs/autonomous-rd/AUDIT_R13_REPORT.md;反例复现=/tmp/r13_repro.py(冻结 226 点+正式入口,基线 3 例 BASELINE-BUG→0)+/tmp/r13_probe.py(54 例变体探测 0 偏离,两同根因遗漏修复复验);电池 186 件如实计数(提交树全绿由 CI 复核)+十二既有门(r4-r12/t3/r42)+charter6 复跑全绿+复放四包(BLIND/F10/新B 105/105/e2e)PASS+复杂度基线内(生产 +0.20%);worktree 清单全程固定 6;CI 见报告尾回填。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R13_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R56 视角,已被上方权威快照取代]
+> baseline=333e18575695bdee16f65da9bdd395db1e1358a0…(代码修复固定 SHA;受审基线=f5bc514 即 Audit-R11 CI 回填尖;受审面=本轮两项 P1)
+
+- **基线**: dev/audit-fix-r1 = f5bc514→代码修复提交(两项 P1+56 判据门+三处夹具对齐)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 两项 P1 全关——①统一时间要求完整性校验: _scan_range_forms 单一范围词形扫描器(三入口同规则,数量转换唯一路径)+_norm_question 全角规范化副本(原始问题不动)+「个」可省+贪吃点残缺/零值/N个月半/小数折月非整(1.1年=13.2 不取整)明确拒绝+_bare_date_window 裸单日期粒度成窗(明确研究年份纳入要求)+多范围一律拆分阻断+裸双字未支持单位补口(过去季度/近星期;单字单位裸形防误伤);基线 8 反例全关,等价性十八月=十八个月=一年半=1.5年=全角同窗。②来源结构不完整禁删: research_referenced_files 复用权威 sources_status_problems(纯结构口径+target_ymd)逐份校验,结构损坏=停删+gzip 字节保全,合法 MISSING 不报异常;追加 8 变体探测(6 停删+2 合法清理)。
+- **验收**: test_audit_r12_gate 56/0(§A9+§B6+§C11+§D8+§E7+§F9+§G7);报告=docs/autonomous-rd/AUDIT_R12_REPORT.md;反例复现=/tmp/r12_repro_t.py+/tmp/r12_repro_s.py(基线 8+5 例 BASELINE-BUG→0);电池 185 件(charter6 夹具对齐后复跑 86/86+phase6 册内提交后绿=全绿口径)+十既有门(r4/r5/r6/r7/r8/r9/r10/r11/t3/r42)复跑绿+复放四包(BLIND/F10/新B 105/105/e2e)PASS+净克隆三门绿+复杂度基线内(生产 +0.12%);worktree 清单全程固定 6;CI 见报告尾回填。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R12_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R55 视角,已被上方权威快照取代]
+> baseline=30770afb4fa8609b3e533cb35845c05787595e94…(代码修复固定 SHA;受审基线=0877516 即 Audit-R10 CI 回填尖;受审面=本轮四项)
+
+- **基线**: dev/audit-fix-r1 = 0877516→代码修复提交 30770af(四项修复+29 判据门+五处夹具对齐+复杂度基线登记重锚)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 四项全关——①P1 时间约束完整处理: _q_relative_constraints 全量收集(多约束=unparseable+拆分提示,R7 显式区间优先废止)+年半/小数数量/季度未支持/残余数量扫描,一年半=十八个月=1.5年同窗 months=18,基线六反例全关;②P1 并发写入: store_lock(目录级跨进程 flock 可重入+独立临时名+fsync 原子发布),裁决/查询/工作台归档配号→落盘原子化,6 进程=6 份完整记录,中断不留撕裂终档;③P1 引用扫描禁删: (refs,problems) 二元返回+扫描不完整永久删除全停降级 gzip 字节保全;④P2 工作台缓存: state_fingerprint 指纹键+采集成功 clear+rerun,同进程读到新快照(真实 streamlit 1.50.0 运行时验证)。
+- **验收**: test_audit_r11_gate 29/0(§A10+§G3+§B7+§C4+§D7);报告=docs/autonomous-rd/AUDIT_R11_REPORT.md;反例复现=/tmp/r11_repro_p{1,2,3,4}.py(基线 6+3+1+2 例 BASELINE-BUG→0);电池 184 件 183 绿+phase6 提交后复跑绿(184/184 口径)+九既有门(r4/r5/r6/r7/r8/r9/r10/t3/r42)复跑绿+复放四包(BLIND/F10/新B 105/105/e2e-corrected)PASS+净克隆新门 29/0;worktree 清单全程固定 6;CI 首跑 44132467404 红=门 B1 定日时区错位(判进口径,生产无误),热修后三时区 29/0,终跑见 AUDIT_R11_REPORT 尾部回填。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R11_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R54 视角,已被上方权威快照取代]
+> baseline=f2e385acc7df524ac5e0af801c628fea6d78e539…(代码修复固定 SHA;受审基线=c30bd7d 即 Audit-R9 CI 回填尖;受审面=本轮 P1 时间范围处理)
+
+- **基线**: dev/audit-fix-r1 = c30bd7d→代码修复提交 f2e385a(数量完整词元匹配+研究时点与范围分别处理+29 判据门)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: P1 全关——①数量完整词元匹配: _RANGE_YEARS/MONTHS_RE 数量取完整 run(含廿卅)+run 前数量字符负向后视(「十二个月」不截断为 2)+前缀/单位间容空格(「近 6 个月」)+_cn_run_to_int 整体换算(混写/连写年/四位阿拉伯→BAD 哨兵=明确拒绝不缩短范围)+「半年」=6;②时点与范围分别处理: _q_asof_mark 时点标记词形≠窗口边界(范围词不因日期在场丢失)+双时点冲突阻断+问题时点优先于快照 target_date(冲突 basis 披露)+相对窗绑研究时点非系统时间。基线六反例(四误交付 max_available+十二个月内截断 months=2 误交付+正例窗失真)全关。
+- **验收**: test_audit_r10_gate 29/0(§V7+§C5+§A5+§B3+§G4+§P5);报告=docs/autonomous-rd/AUDIT_R10_REPORT.md;反例复现=/tmp/r10_repro.py(基线 6 例 BASELINE-BUG→0);电池 183 件提交树全绿(phase6 提交后复验)+八既有门(r4/r5/r6/r7/r8/r9/t3/r42)复跑绿+复放四包(BLIND/F10/新B 105/105/e2e-corrected)PASS;R8-03 实采证据原样保留;worktree 清单全程固定 6。
+- **下一步**: 等待用户外部独立审计(dev/audit-fix-r1 尖+AUDIT_R10_REPORT.md);不并 main、不合并 PR、不部署、不开新轮。
+
+### [历史快照·R53 视角,已被上方权威快照取代]
+> (R53 Audit-R9 视角留档;受审面=R9-01/02;修复提交=固定 SHA 74fb612)
+> baseline=74fb612844bc8d6c788061c78d17c814f348ec29 (Audit-R8 CI 回填尖=本轮受审基线;受审面=R9-01/02;修复提交=固定 SHA 74fb612)
+
+- **基线**: dev/audit-fix-r1 = a4fb7c7→单波 74fb612(两缺口代码+33 判据门+三套夹具对齐)→报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 两缺口全关——①R9-01 有效观测规则覆盖全部数据路径: rhq.effective_series 公共入口=唯一清洗规则四路复用(快照构建 merge_series_sections/merge_macro_series 入 store 前清洗+series_store_clean 核验披露节;工作台 metric_series 快照分支 n=0 诚实拒答+series_clean 披露+series_capable_metrics 统计取有效;判定器快照直读与 S4 信封面吃数组经同一清洗,声明 n/first/last 不采信,dates 为 list 含空=面在场有效 0 据实,dates 缺席=不可核验);基线八反例(快照五状态+信封声明 n)全阻断;交叉矩阵 2 路径×2 范围×8 状态参数化经生产链四段。②R9-02 三态固定(未指定唯一允许 max_available/已解析/无法解析阻断),意图识别与解析分离: relative_months 新词形(研究时点倒推 N 自然月,不用系统当前)+「前年」offset -2+19 个未支持时间词形 unparseable 带提示诚实失败+资产名护栏(十年期/上周期不误配);反例 A(前年 12 月数据)→窗 2024 阻断、反例 B(过去六个月 168 点)→窗内 1 阻断,report/archive 双拒;正例 11 形全保留(含前年全量 2024 窗 12/过去六个月全量窗内 5/2021 回放)。③零回退: 复放四包全 PASS(BLIND/F10/新 B 105/105/e2e-corrected;旧 B 三失配=R6 既档 CONTRADICTED 保全态)+r4~r8 门全绿+电池 182 件 181 绿(phase6 提交后绿)。
+- **验收**: test_audit_r9_gate 33/0(§M 19+§Y 7+§G 4+§S 3);报告=docs/autonomous-rd/AUDIT_R9_REPORT.md;反例复现=/tmp/r9_repro.py(基线 8/8 BASELINE-BUG→修复后全闭);终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R9_REPORT.md;重放入口 BLIND/F10/e2e-corrected/cn-task-b×2);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R52 视角,已被上方权威快照取代]
+> baseline=d3c3dc0aa351f4496522e5bee57a9c12f1ef5593 (Audit-R7 终笔尖=本轮受审基线;受审面=R8-01/02/03;修复提交=固定 SHA d3c3dc0)
+
+- **基线**: dev/audit-fix-r1 = 25f079f→代码修复提交 d3c3dc0(三缺陷+30 判据门)→干净检出两轮实采+证据包/报告/状态收口;PR #1 覆盖推送;main 未动。
+- **真实进度**: 三缺陷全关——①R8-01 统一有效性规则(合法日期+有限数值=有效观测)四点落位(rhq._clean_series 六键登记禁占位/ro._effective_window_obs 删 1.0 占位/cmc 五检查点非有限统一/终判链「序列面在场但有效观测 0」据实),NaN/±Inf/缺 values/长度错配/全缺失/部分缺失/重复日期/非法日期九族真实格式文件→查询→report/archive 双门贯通;②R8-02 三态区分+斜杠词形+「去年」calendar_year 绑研究时点+「截至X」单侧终界窗起=序列首观测回填,基线三反例(斜杠退化 max_available 交付/去年误放行/截至X 必然拒)全关,七类既有正例全保留;③R8-03 外审最简可验证流程落实: 固定 SHA d3c3dc0 干净 git worktree(status 空)两轮正式实采(US 22 项+CN 226 月 rc=0,round2 fresh 非续存+last_success_at 前移+source_sha256 前移=CN 不被美刷新遮蔽),每轮独立证据目录 r8-evidence/round{1,2}(命令/时戳/代码版本/脱敏日志/原始输入[round2=round1 输出 951d7b51]/信封全长哈希),round1 未被 round2 触碰(重算对勘一致),_git_state 指纹纳入未跟踪源码(B1 三态判据+两轮实测干净态指纹);④零回退=r7/r6/r5/r4 门全绿+电池 181 件 180 绿+phase6 册内红(提交后绿)。
+- **验收**: test_audit_r8_gate 30/0(§V 11+§W 11+§G 3+§B 2);报告=docs/autonomous-rd/AUDIT_R8_REPORT.md(CI 终笔回填);证据=docs/autonomous-rd/r8-evidence/round{1,2};终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R8_REPORT.md;证据入口 r8-evidence/两轮;重放入口沿 R7 包 BLIND/F10/e2e/B);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R51 视角,已被上方权威快照取代]
+> baseline=8620ea8b81e4827a1adb37b92042befaab575811 (Audit-R6 终笔尖=本轮受审基线;受审面=R7 三缺口 R7-01/02/03)
+
+- **基线**: dev/audit-fix-r1 = 4e2f94c→单波 8620ea8(三缺口代码+新套件+证据包+注记+报告+状态收口);PR #1 覆盖推送;main 未动。
+- **真实进度**: 三缺口全关——①R7-01 任务时间窗口=统一解析入口(相对年限+四类日期词形+侧别缺省+以来/截至+显式胜相对;倒置/非法=不可核验阻断,不落 max_available)+窗内有效观测取实际 dates/values(快照面/S4 信封面同判定,无 dates=阻断)+频率族日历期望×半额替代 252×年数+窗内逐对最大间距断档门;三反例全关(近五年 PMI 窗内实 1 阻断/近十年 BEI 2499 点 satisfied/明确区间 2026 冒充窗内 0 阻断)。②R7-02 采集状态贯通=collection_status_of 唯一口径六点链(loader→snapshot series_provenance→workbench→ia_cli 信封→_freshness_vs_task→blocked_class_of),文件写入/最后成功采集/统计期三分,新 outcome stale_for_task 三级阻断(report/archive 拒),合法续用披露放行,历史回放按回放窗止不误判;九场景全链断言查询/报告/归档面。③R7-03=_git_state 三级版本绑定+run.git_head_source/git_diff_sha256 随档(引擎代码副本不再 null);两轮真网脱敏入仓 r7-evidence/(US 22 项+CN 226 月×2 fresh,11:00:04Z 连续+美刷新不遮蔽,key 零落盘);新 B macro_input 随包 sha be1f7680;recompute_r6b 参数化净检出 105/105 核心段 162 行一致;新旧 B append-only 注记(旧 B CONTRADICTED 3/9=NOT_VERIFIED 处置+新链替代;新 B null 根因+输入侧锚定)。④零削弱复验=R6-03 裁决链/身份算法篡改前驱自指阻断/required 阻断+optional 降级/B 与 E2E 统计/研究归档能力全保留。
+- **验收**: test_audit_r7_gate 37/0(§E 9+§T 13+§G 4+§F 11)+r5_gate 30/0+r6_gate 25/0;全电池直跑 178 绿+1 已档设计红(phase6-D3 提交前红,提交后复跑绿)+1 SKIP;报告=docs/autonomous-rd/AUDIT_R7_REPORT.md;终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R7_REPORT.md;证据入口 r7-evidence/+B 包 macro_input/复算重放+两注记;重放入口 BLIND+F10+e2e-corrected+cn-task-b×2);旧 B CONTRADICTED 面移交不变(引擎侧 R45 合入 main 前);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R50 视角,已被上方权威快照取代]
+> baseline=dcb4b17931f0dea5412e6032730248b4daac62f1 (Audit-R5 终笔尖=本轮受审基线;受审面=R6 三缺口 R6-01/02/03)
+
+- **基线**: dev/audit-fix-r1 = dcb4b17→单波(三缺口代码+套件+任务B 全链+归档+报告+状态收口);PR #1 覆盖推送;main 未动。
+- **真实进度**: 三缺口+任务B全关——①R6-01 窗口覆盖=频率取权威注册表+任务窗 as_of−N×365.25+频率族容差+窗内有效观测按窗口归属+S4 信封重叠判定(序列早于窗起=覆盖不误拒)+未知频率不可核验即阻断+report/archive 同判据;②R6-02 中国历史正式采集=fetch_macro_history 226 月全史(数值逐位=与 R5 已核序列一致,provenance 随档)+merge_cn_history 三态(fresh/carry_forward 保真/absent 零补造)+正式接线+registry 注记;真实网络四步验收全过(净环境→连续二次→美国刷新不遮蔽→注入失败诚实续存),每步可查询带溯源;③R6-03 裁决链共用校验=词表/run_ts/digest 三查先于 legacy 早退+逐档算法核验,两基线反例均阻断,旧链合法形照常;④任务B=正式生成器数据全链于审计基线代码(研究重放逐字节一致)→v3 措辞规约修订(数字零改动)→attach VERIFIED→独立席 105 项复算全吻合 UPHELD→归档三方一致(20261117T083954Z,06624da7);⑤无回退复验=七链 0 BAD+基线契约重跑 6/7 VERIFIED+BLIND/F10 重放 sha 一致;⑥R5 溯源发现=engine_cn 漂移不止渲染器(含未合并 R45 席位 contract 改动),中国B旧链存储契约结论基线重跑 CONTRADICTED=NOT_VERIFIED 如实披露,新链在基线代码关闭缝隙(§七)。
+- **验收**: test_audit_r6_gate 25/0+test_audit_r5_gate 29/0;全电池直跑 178/179(唯一红=phase6-D3 提交前红=设计行为);报告=docs/autonomous-rd/AUDIT_R6_REPORT.md;终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R6_REPORT.md 七件交付;BLIND/F10/e2e/cn-task-b×2 重放入口);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R49 视角,已被上方权威快照取代]
+> baseline=09e4ebbb93064ec7df0dcc259a1d5827bdc59f97 (Audit-R4 终笔尖=本轮受审基线;受审面终止说明见其提交)
+
+- **基线**: dev/audit-fix-r1 = 49fb583→波1 82b9398(条目1/2/4 代码+E2E 修正链+BLIND 勘误,CI 44014788431 绿)→波2 09e4ebb(条目5 研究审查链+归档+重放包+收尾报告);PR #1 覆盖推送;main 未动。
+- **真实进度**: 五项全关——①摘要迁移绕过=record_semantic_verdict rebind 面 _rebind_trusted_proofs(manifest verdict_chain sha16+最早 git blob 双通道可信未变证明,不可证明=ValueError 拒)②数据门误放行=blocked_class_of 三级重构(critical_zero_evidence/required_data_missing 不论 run_ok 先判+critical_step_failure 新阻断级+必要观测下界按范围×频率族推导入规格)③新 E2E 三争点修正(r²≈0.114/se 0.686/0.259/段终点 2022-05-25)四副本同步→独立复审席 REVISE(rev2)→修→闭环 UPHELD(rev3)③.9 BLIND 勘误(-0.557 进位错误注记)④裁决格式链校验(format_version=2+digest_algorithm 显式+predecessor 严格前一档+legacy 锚=降级攻击指纹)⑤中国任务 B=CN_PMI_MFG/CN_NEW_LOANS 226 月全史接入(R25 history_source 机制,锚点核验+口径如实注记)→真实研究→契约门规约修订 VERIFIED→独立席 99 项=96+5 必修→REVISE(rev1)→必要修订 18 处+相位块源头严格化→操作者席 57 项全 PASS→同一席闭环 UPHELD(rev2)→归档三方一致+重放包。
+- **验收**: 波1 CI 44014788431 绿(gates+3.11+3.12);波2 首推 CI 44023144279 三 job 红=R20 门②正道拦截(日志 R49 越过检查点块 round 48——波2 收口漏 finalize,单根因三面:gates/tests×2+phase6 D1/D4 包装同检)→按 Charter10 §3.2 对账恢复(finalize 盖章)后复验;报告=docs/autonomous-rd/AUDIT_R5_REPORT.md;终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R5_REPORT.md 七件交付;BLIND/E2E/B 三重放入口);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R48 视角,已被上方权威快照取代]
+> baseline=1d538577a353643a994fda366c46d187f8e9275f (Audit-R2 收口尖=本轮受审基线;docs-only 台账提交在其上,测试面不变)
+
+- **基线**: dev/audit-fix-r1 = 2882932→1d53857(修复链两笔)→台账/报告 docs 尖;PR #1 覆盖推送;main 未动。
+- **真实进度**: §二六项全关——①裁决损坏/缺字段 fail-closed(corrupt_latest 不回退旧 UPHELD,J1-J9)②content_digest v3(+views_digest)审查覆盖实际渲染输入(K1-K4)③BLIND 同版重放包(七序列原始切片+一条命令+独立复算 64/64)④跨日归档全局唯一名+manifest 链(L1-L4;四归档 10/10 全验)⑤必要/可选三级贯通+outcome 判定源序修(M1-M5+N1-N6;B 三面=旗标非万能放行)⑥A/C/BLIND/F10 rebind 机械迁移(旧锚复算一致=内容未变证明)+四任务 deliverable=True,B 必要缺口如实拒答。
+- **验收**: 双口径=直跑 176/176 绿+pytest 176 passed/0 failed;P1 两反例基线(worktree@5fc5df8)误放行→修复面阻断;E2E 真实全链(自然语言问题→plan→判断[契约修订环 VERIFIED 6/0/0]→attach→独立席 116 项复算[113 吻合/3 容忍/0 失配]→UPHELD→deliverable=True→归档三方摘要 78bb07e0 全等);报告=docs/autonomous-rd/AUDIT_R4_REPORT.md;终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+AUDIT_R4_REPORT.md;BLIND 重放入口 blind_replay.sh);main 分支保护未配置=治理发现维持;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R47 视角,已被上方权威快照取代]
+> baseline=c382827659af21ead594a216ea1a29baac8d8bfb (Audit-R2 修复链;docs-only 台账提交在其上,测试面不变)
+
+- **基线**: dev/audit-fix-r1 = 021092f(基点 06e90c1=Audit-R1 冻结尖+CI 报告提交);PR #1 覆盖推送;main 未动。
+- **真实进度**: §二八项全关——①content_digest v2 审查绑定+copies_consistent 同版门+当前运行态优先②裁决内容序+corrupt/duplicate fail-closed+席位词表守卫③BLIND NEW-2/NEW-3 五数值冻结重算更正+独立新席复算 UPHELD(-02)+deliverable=True④F10 重放包(原始输入切片+可配数据根+一条命令逐字节 PASS)⑤pytest 三入口⑥链档反例 12/0⑦plan 冻结 data_requirements+三级 blocked_class⑧main 保护未配置如实登记+Gate B 输入三件套。
+- **验收**: 候选双口径直跑 176/176 rc=0+pytest 175 passed/0 failed;F02 33/0+gate_b 27/0+F09 20/0+席位 10/0+phase6 29/0(净树);G0-G4 分层如实不引用既有声明,终裁=用户外部审计。
+- **下一步**: 等待用户外部审计(dev/audit-fix-r1 尖+docs/autonomous-rd/AUDIT_R2_REPORT.md);main 分支保护未配置=治理发现,建议合并前启用;引擎 R 队列维持暂停;日历门 F=2026-12-05。
+
+### [历史快照·R44 视角·引擎轨道,已被上方权威快照取代]
+> baseline=badb4695bfa3e5b2e02a13fb920bcfeaff34fad5 (机器行: rd_checkpoint.py 维护,勿手改)
 
 - **基线**: main = 64a482c(R42 尾补重盖章);本轮=`dev/rd-r43-fragment-hardening`(基点 64a482c;开班门①红=main 已并 R41+R42→基面迁移,门 7/7)。
 - **真实进度**: **RDG-20261116-013 收口(R41 定性 A 族治面+RDG-012 残余⑦随批)**。①检查面预处理 `_checkface_preprocess`(check_text 入口): HTML 注释(生成头/校验头,DOTALL)剥离+报告头元数据行(`# 投资周报…`/`生成时间：…`)置换+独立行可解析 JSON 对象(provenance)置换;未闭合注释/坏 JSON 行保守保留。②遮罩表补四行: art_ 引用ID/论点·预测#N 序号/紧凑 ISO 日期窗 \d{8}–\d{8}/子句首列表序号(点后须空白=小数反误杀)。③月-日模式日组必选,根治「11月3.8775%」吞「11月3」出碎片「8775%」/「2027年5月4.33%」出「33%」。④随批⑦: run_weekly.main(argv=None) 显式传参,四件套(e2e_frozen14/e2e_orig14/p01_fix1/p01_fix2)main([]),pytest 收集口径毒 argv 导入 IMPORT-OK 4/4+负证 SystemExit(2) 亲证。**独立审计四维**: 维度1 初判 FAIL(MAJOR-1=日组必选自产「N月D-D日」裸日号新泄漏)→当场追修(_DATE_RE 日形态扩 D[–—-]D日+§C C4a-c;真实面 283 维持语料 0 命中如实)→其余三维 PASS(removed 逐类抽 5 项回 LIVE 原文全实/added 全 verbatim 零织造/契约面 render 模式不经预处理)→**终判可并入**。**如实更正**: R41 表列 A=154 系簇级主导族归因 token 上界,逐 token 可治面实=50 removed+7 升格;JSON 独立行规则本语料移除 0(V2 全部 20 条 JSON 在块注释内)仍为独立形态防线。
@@ -135,7 +308,6 @@
 
 | ID | 状态 | Git证据 | 说明 |
 |---|---|---|---|
-| T-R45-1 | 进行中 | c9d57155a1625bdc16a7edf4922afc610a95d83a | 产品收敛对账(操作者席·Charter 10 §3.2): Product Convergence Phase0-6 经用户两件审批(2026-11-16)并 main=c9d5715;证据=docs/autonomous-rd/PRODUCT_CONVERGENCE_PHASE6_ACCEPTANCE.md(G0-G4 矩阵)+phase4 四任务工件;带外 7 代码件经本行入证据链对账,待 R45 检查点吸收后随引擎收口移日志 |
 
 
 ### [历史快照·R26 视角,已被上方权威快照取代]

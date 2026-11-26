@@ -197,10 +197,11 @@ check("C1 当月观测未发布: C问新鲜(lag9≤60)+release-limit WARN(引擎
 v2 = fp.assess('CPI', '2026-09-01', '2026-10-20')
 check("C2 已发布的上一期(观测上月,lag49): 新鲜且无release-limit",
       v2['fresh'] is True and v2['status'] == 'FRESH')
-v3 = fp.assess('CPI', lag_days(75), AS_OF)
-check("C3 长期未更新(lag75>60): STALE+DEGRADED披露(引擎同判)",
+v3 = fp.assess('CPI', lag_days(95), AS_OF)
+check("C3 长期未更新(滞后95天>60天窗,统计期末口径: obs 07-21/期末07-31/期末滞后85>60): "
+      "STALE+DEGRADED披露(引擎同判)",
       v3['fresh'] is False and v3['status'] == 'STALE'
-      and len(fact_freq_issues('CPI', 310.0, lag_days(75), 'macro_collector')[0]) == 1)
+      and len(fact_freq_issues('CPI', 310.0, lag_days(95), 'macro_collector')[0]) == 1)
 v4 = fp.assess('CPI', lag_days(130), AS_OF)
 check("C4 连缺多期(lag130): STALE(不因更旧而变其他级别)", v4['status'] == 'STALE' and v4['fresh'] is False)
 v5 = fp.assess('CPI', '2026-09-01', '2026-10-10', release_date='2026-10-09')
@@ -218,19 +219,26 @@ print("\n[D] 三路一致: fp.assess ↔ validate_fact ↔ is_fresh_anchor")
 D_CASES = [  # (metric, anchor_key, value, collector, 正常lag, 过期lag)
     ('BTC', 'global_market.data.BTC.close', 108000.0, 'global_market_collector', 1, 4),
     ('SPX', 'global_market.data.SPX.close', 7659.44, 'global_market_collector', 4, 6),
-    ('CPI', 'macro.data.CPI.value', 310.0, 'macro_collector', 45, 65),
-    ('CORE_PCE', 'macro.data.CORE_PCE.value', 118.5, 'macro_collector', 45, 65),
+    # R26 任务2: 月频过期位自统计期末起算——lag65(obs 08-20/期末08-31/
+    # 期末滞后54≤60)不再过期,须滞后到上一统计期末之后(lag95→期末07-31滞后85>60)
+    ('CPI', 'macro.data.CPI.value', 310.0, 'macro_collector', 45, 95),
+    ('CORE_PCE', 'macro.data.CORE_PCE.value', 118.5, 'macro_collector', 45, 95),
     ('ICSA', 'macro.data.ICSA.value', 221000.0, 'macro_collector', 16, 18),
     ('DFF', 'rate_economy.current_rates.DFF.value', 4.33, 'rate_expectations', 9, 12),
-    # W2-FIX1-04: DFEDTARU/L窗口45→10(用户第三轮批复),正常/过期lag随之改
-    # 9/12(原44/47按已废止的45天窗设定)
-    ('DFEDTARU', 'rate_economy.current_rates.DFEDTARU.value', 4.5, 'rate_expectations', 9, 12),
-    ('DFEDTARL', 'rate_economy.current_rates.DFEDTARL.value', 4.25, 'rate_expectations', 9, 12),
+    # W2-FIX1-04: DFEDTARU/L窗口45→10(用户第三轮批复),正常lag=9;
+    # R26 任务2: 决策驱动序列(decision_dated)无时间过期位——无更晚已证实
+    # 决议不因间隔判过期(lag_bad=None),过期位由confirmed_later_decision
+    # 驱动(D3单独验),三路(facto/dv)无日历上下文同判FRESH=一致
+    ('DFEDTARU', 'rate_economy.current_rates.DFEDTARU.value', 4.5, 'rate_expectations', 9, None),
+    ('DFEDTARL', 'rate_economy.current_rates.DFEDTARL.value', 4.25, 'rate_expectations', 9, None),
     ('SH_PE', 'china.valuation.pe', 16.4, 'china_collector', 9, 12),
     ('UST_10Y', 'macro.data.UST_10Y.value', 4.28, 'macro_collector', 6, 8)]
 mismatch = []
 for mid, akey, val, col, lag_ok, lag_bad in D_CASES:
-    for lag, want_fresh in ((lag_ok, True), (lag_bad, False)):
+    # R26: 决策驱动行(lag_bad=None)无时间过期位,只验正常位三路一致;
+    # 时间过期不存在,确证过期位在D3以confirmed_later_decision单独验
+    for lag, want_fresh in (((lag_ok, True),) if lag_bad is None
+                            else ((lag_ok, True), (lag_bad, False))):
         obs = lag_days(lag)
         v = fp.assess(mid, obs, AS_OF)['fresh']
         iss, f_ = fact_freq_issues(mid, val, obs, col)
@@ -238,14 +246,19 @@ for mid, akey, val, col, lag_ok, lag_bad in D_CASES:
         b = dv.is_fresh_anchor(akey, {'obs_date': obs}, AS_OF)
         if not (v == a_clean == b == want_fresh):
             mismatch.append((mid, lag, v, a_clean, b, want_fresh))
-check("D1 10项指标×正常+过期: 三路判定完全一致且符合批准窗口",
+check("D1 10项指标×正常(+时间过期): 三路判定完全一致且符合批准窗口"
+      "(R26: 月/季频自统计期末起算,决策驱动序列无时间过期位)",
       not mismatch, str(mismatch[:4]))
 check("D2 BTC按批准2天窗(lag3即过期,非旧7天)",
       fp.assess('BTC', lag_days(3), AS_OF)['fresh'] is False
       and fp.assess('BTC', lag_days(2), AS_OF)['fresh'] is True)
-check("D3 DFEDTARU按10天(W2-FIX1第三轮批复45→10;旧Gate B月度45误频/旧引擎7误紧→现日频10)",
+check("D3 DFEDTARU按10天窗+政策确认口径(R26任务2: W2-FIX1批复45→10之上,"
+      "决议驱动序列无更晚已证实决议不因时长过期;有证实更晚决议才STALE)",
       fp.assess('DFEDTARU', lag_days(9), AS_OF)['fresh'] is True
-      and fp.assess('DFEDTARU', lag_days(44), AS_OF)['fresh'] is False
+      and fp.assess('DFEDTARU', lag_days(44), AS_OF)['fresh'] is True
+      and fp.assess_observation_freshness(
+          'DFEDTARU', lag_days(44), AS_OF,
+          confirmed_later_decision=lag_days(30))['fresh'] is False
       and dv.metric_frequency('rate_economy.current_rates.DFEDTARU.value')[:2] == ('daily', 10))
 check("D4 rate_economy.current_rates.DFF.value不得自动月度(W2-DEF-002)",
       dv.metric_frequency('rate_economy.current_rates.DFF.value')[0] == 'daily')

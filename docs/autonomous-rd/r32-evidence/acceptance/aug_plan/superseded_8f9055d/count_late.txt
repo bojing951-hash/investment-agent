@@ -1,0 +1,7 @@
+== /tmp/r32-accept/final5-aug/output/research_runs/20261123T213507Z_以_2026_08_21_为研究时点_日本和欧元区最近六个月的通胀与政策环境/report.json
+   run.git_head=8f9055d6e556700b08f28a3abeff284cf0c8d71f source=code_version_stamp
+   cutoff=2026-08-21 as_of_declared=2026-08-21 effective=2026-08-21
+   L1 rows: total=31 late(>cutoff)=0
+   evidence_index: total=55 late(>cutoff)=0 nodate=0
+   late by kind: {}
+   late evidence refs: []

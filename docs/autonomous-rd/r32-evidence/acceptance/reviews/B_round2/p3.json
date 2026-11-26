@@ -1,0 +1,1198 @@
+{
+ "points": [
+  {
+   "id": "B'01",
+   "cat": "B' 发布纪律",
+   "where": "US_REAL_GDP「3个月前」观测 2026-04-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-06-30 + 29天 (规则=BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定); 注册表频率=quarterly)",
+   "computed": "2026-07-29",
+   "reported": "2026-07-29",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'02",
+   "cat": "B' 发布纪律",
+   "where": "US_REAL_GDP「3个月前」= 锚日 2026-08-23 当日或之前最新已发布观测",
+   "key": "发布纪律: 锚观测发布日 ≤ 锚日 且 下一观测发布日 > 锚日",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "下一观测 2026-07-01 发布日 2026-10-29"
+  },
+  {
+   "id": "B'03",
+   "cat": "B' 发布纪律",
+   "where": "US_REAL_GDP「最新一期」观测 2026-07-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-09-30 + 29天 (规则=BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定); 注册表频率=quarterly)",
+   "computed": "2026-10-29",
+   "reported": "2026-10-29",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'04",
+   "cat": "B' 发布纪律",
+   "where": "US_REAL_GDP「最新一期」= 截止日前最新已发布观测",
+   "key": "发布纪律: 发布日 ≤ 锚日 且 序列内其后无观测",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'05",
+   "cat": "B' 发布纪律",
+   "where": "UNEMPLOYMENT「3个月前」观测 2026-07-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-07-31 + 5天 (规则=BLS 就业形势报告次月首周发布(月末+5天,推定); 注册表频率=monthly)",
+   "computed": "2026-08-05",
+   "reported": "2026-08-05",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'06",
+   "cat": "B' 发布纪律",
+   "where": "UNEMPLOYMENT「3个月前」= 锚日 2026-08-23 当日或之前最新已发布观测",
+   "key": "发布纪律: 锚观测发布日 ≤ 锚日 且 下一观测发布日 > 锚日",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "下一观测 2026-08-01 发布日 2026-09-05"
+  },
+  {
+   "id": "B'07",
+   "cat": "B' 发布纪律",
+   "where": "UNEMPLOYMENT「最新一期」观测 2026-10-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-10-31 + 5天 (规则=BLS 就业形势报告次月首周发布(月末+5天,推定); 注册表频率=monthly)",
+   "computed": "2026-11-05",
+   "reported": "2026-11-05",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'08",
+   "cat": "B' 发布纪律",
+   "where": "UNEMPLOYMENT「最新一期」= 截止日前最新已发布观测",
+   "key": "发布纪律: 发布日 ≤ 锚日 且 序列内其后无观测",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'09",
+   "cat": "B' 发布纪律",
+   "where": "INDPRO「3个月前」观测 2026-07-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-07-31 + 15天 (规则=G.17 工业生产次月中旬发布(月末+15天,推定); 注册表频率=monthly)",
+   "computed": "2026-08-15",
+   "reported": "2026-08-15",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'10",
+   "cat": "B' 发布纪律",
+   "where": "INDPRO「3个月前」= 锚日 2026-08-23 当日或之前最新已发布观测",
+   "key": "发布纪律: 锚观测发布日 ≤ 锚日 且 下一观测发布日 > 锚日",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "下一观测 2026-08-01 发布日 2026-09-15"
+  },
+  {
+   "id": "B'11",
+   "cat": "B' 发布纪律",
+   "where": "INDPRO「最新一期」观测 2026-10-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-10-31 + 15天 (规则=G.17 工业生产次月中旬发布(月末+15天,推定); 注册表频率=monthly)",
+   "computed": "2026-11-15",
+   "reported": "2026-11-15",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'12",
+   "cat": "B' 发布纪律",
+   "where": "INDPRO「最新一期」= 截止日前最新已发布观测",
+   "key": "发布纪律: 发布日 ≤ 锚日 且 序列内其后无观测",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'13",
+   "cat": "B' 发布纪律",
+   "where": "CPI「3个月前」观测 2026-07-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-07-31 + 13天 (规则=BLS CPI 次月中旬发布(月末+13天,推定); 注册表频率=monthly)",
+   "computed": "2026-08-13",
+   "reported": "2026-08-13",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'14",
+   "cat": "B' 发布纪律",
+   "where": "CPI「3个月前」= 锚日 2026-08-23 当日或之前最新已发布观测",
+   "key": "发布纪律: 锚观测发布日 ≤ 锚日 且 下一观测发布日 > 锚日",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "下一观测 2026-08-01 发布日 2026-09-13"
+  },
+  {
+   "id": "B'15",
+   "cat": "B' 发布纪律",
+   "where": "CPI「最新一期」观测 2026-10-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-10-31 + 13天 (规则=BLS CPI 次月中旬发布(月末+13天,推定); 注册表频率=monthly)",
+   "computed": "2026-11-13",
+   "reported": "2026-11-13",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'16",
+   "cat": "B' 发布纪律",
+   "where": "CPI「最新一期」= 截止日前最新已发布观测",
+   "key": "发布纪律: 发布日 ≤ 锚日 且 序列内其后无观测",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'17",
+   "cat": "B' 发布纪律",
+   "where": "CORE_CPI「3个月前」观测 2026-07-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-07-31 + 13天 (规则=BLS CPI 次月中旬发布(月末+13天,推定); 注册表频率=monthly)",
+   "computed": "2026-08-13",
+   "reported": "2026-08-13",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'18",
+   "cat": "B' 发布纪律",
+   "where": "CORE_CPI「3个月前」= 锚日 2026-08-23 当日或之前最新已发布观测",
+   "key": "发布纪律: 锚观测发布日 ≤ 锚日 且 下一观测发布日 > 锚日",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "下一观测 2026-08-01 发布日 2026-09-13"
+  },
+  {
+   "id": "B'19",
+   "cat": "B' 发布纪律",
+   "where": "CORE_CPI「最新一期」观测 2026-10-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-10-31 + 13天 (规则=BLS CPI 次月中旬发布(月末+13天,推定); 注册表频率=monthly)",
+   "computed": "2026-11-13",
+   "reported": "2026-11-13",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'20",
+   "cat": "B' 发布纪律",
+   "where": "CORE_CPI「最新一期」= 截止日前最新已发布观测",
+   "key": "发布纪律: 发布日 ≤ 锚日 且 序列内其后无观测",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'21",
+   "cat": "B' 发布纪律",
+   "where": "CORE_PCE「3个月前」观测 2026-06-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-06-30 + 30天 (规则=BEA 个人收支报告次月末发布(月末+30天,推定); 注册表频率=monthly)",
+   "computed": "2026-07-30",
+   "reported": "2026-07-30",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'22",
+   "cat": "B' 发布纪律",
+   "where": "CORE_PCE「3个月前」= 锚日 2026-08-23 当日或之前最新已发布观测",
+   "key": "发布纪律: 锚观测发布日 ≤ 锚日 且 下一观测发布日 > 锚日",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "下一观测 2026-07-01 发布日 2026-08-30"
+  },
+  {
+   "id": "B'23",
+   "cat": "B' 发布纪律",
+   "where": "CORE_PCE「最新一期」观测 2026-09-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-09-30 + 30天 (规则=BEA 个人收支报告次月末发布(月末+30天,推定); 注册表频率=monthly)",
+   "computed": "2026-10-30",
+   "reported": "2026-10-30",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'24",
+   "cat": "B' 发布纪律",
+   "where": "CORE_PCE「最新一期」= 截止日前最新已发布观测",
+   "key": "发布纪律: 发布日 ≤ 锚日 且 序列内其后无观测",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'25",
+   "cat": "B' 发布纪律",
+   "where": "EA_REAL_GDP_YOY「3个月前」观测 2026-04-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-06-30 + 35天 (规则=Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾); 注册表频率=quarterly)",
+   "computed": "2026-08-04",
+   "reported": "2026-08-04",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'26",
+   "cat": "B' 发布纪律",
+   "where": "EA_REAL_GDP_YOY「3个月前」= 锚日 2026-08-23 当日或之前最新已发布观测",
+   "key": "发布纪律: 锚观测发布日 ≤ 锚日 且 下一观测发布日 > 锚日",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "下一观测 2026-07-01 发布日 2026-11-04"
+  },
+  {
+   "id": "B'27",
+   "cat": "B' 发布纪律",
+   "where": "EA_REAL_GDP_YOY「最新一期」观测 2026-07-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-09-30 + 35天 (规则=Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾); 注册表频率=quarterly)",
+   "computed": "2026-11-04",
+   "reported": "2026-11-04",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'28",
+   "cat": "B' 发布纪律",
+   "where": "EA_REAL_GDP_YOY「最新一期」= 截止日前最新已发布观测",
+   "key": "发布纪律: 发布日 ≤ 锚日 且 序列内其后无观测",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'29",
+   "cat": "B' 发布纪律",
+   "where": "EA_HICP_YOY「3个月前」观测 2026-07-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-07-31 + 16天 (规则=Eurostat HICP 终值次月中旬发布(月末+16天,推定); 注册表频率=monthly)",
+   "computed": "2026-08-16",
+   "reported": "2026-08-16",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'30",
+   "cat": "B' 发布纪律",
+   "where": "EA_HICP_YOY「3个月前」= 锚日 2026-08-23 当日或之前最新已发布观测",
+   "key": "发布纪律: 锚观测发布日 ≤ 锚日 且 下一观测发布日 > 锚日",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "下一观测 2026-08-01 发布日 2026-09-16"
+  },
+  {
+   "id": "B'31",
+   "cat": "B' 发布纪律",
+   "where": "EA_HICP_YOY「最新一期」观测 2026-10-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-10-31 + 16天 (规则=Eurostat HICP 终值次月中旬发布(月末+16天,推定); 注册表频率=monthly)",
+   "computed": "2026-11-16",
+   "reported": "2026-11-16",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'32",
+   "cat": "B' 发布纪律",
+   "where": "EA_HICP_YOY「最新一期」= 截止日前最新已发布观测",
+   "key": "发布纪律: 发布日 ≤ 锚日 且 序列内其后无观测",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'33",
+   "cat": "B' 发布纪律",
+   "where": "JP_POLICY_RATE「3个月前」观测 2026-07-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-07-31 + 5天 (规则=BOJ 月均次月初公布(月末+5天,推定); 注册表频率=monthly)",
+   "computed": "2026-08-05",
+   "reported": "2026-08-05",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'34",
+   "cat": "B' 发布纪律",
+   "where": "JP_POLICY_RATE「3个月前」= 锚日 2026-08-23 当日或之前最新已发布观测",
+   "key": "发布纪律: 锚观测发布日 ≤ 锚日 且 下一观测发布日 > 锚日",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "下一观测 2026-08-01 发布日 2026-09-05"
+  },
+  {
+   "id": "B'35",
+   "cat": "B' 发布纪律",
+   "where": "JP_POLICY_RATE「最新一期」观测 2026-10-01 的规则发布日(引擎面 publication_date)",
+   "key": "期间末 2026-10-31 + 5天 (规则=BOJ 月均次月初公布(月末+5天,推定); 注册表频率=monthly)",
+   "computed": "2026-11-05",
+   "reported": "2026-11-05",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'36",
+   "cat": "B' 发布纪律",
+   "where": "JP_POLICY_RATE「最新一期」= 截止日前最新已发布观测",
+   "key": "发布纪律: 发布日 ≤ 锚日 且 序列内其后无观测",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'37",
+   "cat": "B' 发布纪律",
+   "where": "C2 competing「观测月 2026-11、2026-12 …自 2026-12-15、2027-01-15 可见」(INDPRO 月末+15)",
+   "key": "2026-11-30 + 15天",
+   "computed": "2026-12-15",
+   "reported": "2026-12-15",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'38",
+   "cat": "B' 发布纪律",
+   "where": "同上(2026-12 观测月)",
+   "key": "2026-12-31 + 15天",
+   "computed": "2027-01-15",
+   "reported": "2027-01-15",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'39",
+   "cat": "B' 发布纪律",
+   "where": "传导环1「发布日 2026-10-13」= CPI 2026-09 观测规则发布日",
+   "key": "2026-09-30 + 13天",
+   "computed": "2026-10-13",
+   "reported": "2026-10-13",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'40",
+   "cat": "B' 发布纪律",
+   "where": "「2026-10-16」= EA_HICP_YOY 2026-09 观测规则发布日",
+   "key": "2026-09-30 + 16天",
+   "computed": "2026-10-16",
+   "reported": "2026-10-16",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'41",
+   "cat": "B' 发布纪律",
+   "where": "「2026-10-30」= CORE_PCE 2026-09 观测规则发布日",
+   "key": "2026-09-30 + 30天",
+   "computed": "2026-10-30",
+   "reported": "2026-10-30",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'42",
+   "cat": "B' 发布纪律",
+   "where": "「2026-11-13」= CPI 2026-10 观测规则发布日",
+   "key": "2026-10-31 + 13天",
+   "computed": "2026-11-13",
+   "reported": "2026-11-13",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'43",
+   "cat": "B' 发布纪律",
+   "where": "「2026-11-16」= EA_HICP_YOY 2026-10 观测规则发布日",
+   "key": "2026-10-31 + 16天",
+   "computed": "2026-11-16",
+   "reported": "2026-11-16",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'44",
+   "cat": "B' 发布纪律",
+   "where": "五日期均不晚于截止日 2026-11-23(截止日前已发布)",
+   "key": "max(五发布日) ≤ 2026-11-23",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'45",
+   "cat": "B' 发布纪律",
+   "where": "US from_to「冻结日历保守界条目以 2026-01-22 为该月(2025-10)联邦统计的可见界」",
+   "key": "release_calendar RC-2025SHUTDOWN-REST-CONSERVATIVE.first_publish_on_or_after",
+   "computed": "2026-01-22",
+   "reported": "2026-01-22",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'46",
+   "cat": "B' 发布纪律",
+   "where": "同上(条目覆盖 CPI/CORE_CPI/CORE_PCE 且观测窗含 2025-10)",
+   "key": "条目 metrics 与 observation_window 文本",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "B'47",
+   "cat": "B' 发布纪律",
+   "where": "quality_gate_notes[2]「冻结发布日历 v1.5.0」",
+   "key": "release_calendar.version",
+   "computed": "v1.5.0",
+   "reported": "v1.5.0",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H01",
+   "cat": "H 诚实缺席与门面",
+   "where": "quality_gate_notes[3]「Gate A=DEGRADED」",
+   "key": "snapshot.gate_a.status",
+   "computed": "DEGRADED",
+   "reported": "DEGRADED",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H02",
+   "cat": "H 诚实缺席与门面",
+   "where": "「核心缺口 零 项」",
+   "key": "len(snapshot.gate_a.core_missing)",
+   "computed": 0,
+   "reported": 0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H03",
+   "cat": "H 诚实缺席与门面",
+   "where": "「非核心缺口 七 项(BUND_10Y、BUND_2Y、CN_OMO_7D、CN_POLICY_OVERNIGHT、EA_REAL_GDP_YOY、JP_CPI_TOKYO_YOY、JP_REAL_GDP_YOY)」",
+   "key": "snapshot.gate_a.noncore_missing",
+   "computed": "BUND_10Y,BUND_2Y,CN_OMO_7D,CN_POLICY_OVERNIGHT,EA_REAL_GDP_YOY,JP_CPI_TOKYO_YOY,JP_REAL_GDP_YOY",
+   "reported": "BUND_10Y,BUND_2Y,CN_OMO_7D,CN_POLICY_OVERNIGHT,EA_REAL_GDP_YOY,JP_CPI_TOKYO_YOY,JP_REAL_GDP_YOY",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H04",
+   "cat": "H 诚实缺席与门面",
+   "where": "「非核心降级 八 项(CN_SF_FLOW、ECB_DFR、ECB_MRO、JTSJOL、M2SL、SPX_EPS、SPX_PE_TTM、US_REAL_GDP)」",
+   "key": "snapshot.gate_a.noncore_degraded",
+   "computed": "CN_SF_FLOW,ECB_DFR,ECB_MRO,JTSJOL,M2SL,SPX_EPS,SPX_PE_TTM,US_REAL_GDP",
+   "reported": "CN_SF_FLOW,ECB_DFR,ECB_MRO,JTSJOL,M2SL,SPX_EPS,SPX_PE_TTM,US_REAL_GDP",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H05",
+   "cat": "H 诚实缺席与门面",
+   "where": "US from_to「该序列(CORE_PCE)不在 Gate A 缺口或降级名单」",
+   "key": "snapshot.gate_a 各名单",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H06",
+   "cat": "H 诚实缺席与门面",
+   "where": "US from_to「Gate A 列于非核心降级名单」(US_REAL_GDP)",
+   "key": "snapshot.gate_a.noncore_degraded",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H07",
+   "cat": "H 诚实缺席与门面",
+   "where": "quality_gate_notes[3]「本档引用的非核心缺口指标 一 项(EA_REAL_GDP_YOY)」",
+   "key": "计划指标 ∩ noncore_missing",
+   "computed": "EA_REAL_GDP_YOY",
+   "reported": "EA_REAL_GDP_YOY",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H08",
+   "cat": "H 诚实缺席与门面",
+   "where": "「在序列库内有存量观测(最新观测 2026-07-01，距截止日 145 天)」",
+   "key": "series_store.EA_REAL_GDP_YOY.dates[-1]",
+   "computed": "2026-07-01",
+   "reported": "2026-07-01",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H09",
+   "cat": "H 诚实缺席与门面",
+   "where": "US from_to「最新观测 2026-07-01 距截止日 145 天」",
+   "key": "2026-11-23 − 2026-07-01",
+   "computed": 145,
+   "reported": 145,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H10",
+   "cat": "H 诚实缺席与门面",
+   "where": "US from_to「超过注册表最大日历滞后 120 天」",
+   "key": "metric_registry.US_REAL_GDP.freshness.max_calendar_lag_days",
+   "computed": 120,
+   "reported": 120,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H11",
+   "cat": "H 诚实缺席与门面",
+   "where": "quality_gate_notes[3]「为注册表最大日历滞后 120 天的 1.2 倍」",
+   "key": "145 ÷ 120",
+   "computed": 1.208333,
+   "reported": 1.2,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H12",
+   "cat": "H 诚实缺席与门面",
+   "where": "US from_to「最新观测 2026-09-01 距截止日 83 天」",
+   "key": "2026-11-23 − 2026-09-01",
+   "computed": 83,
+   "reported": 83,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H13",
+   "cat": "H 诚实缺席与门面",
+   "where": "「超过注册表最大日历滞后 60 天」",
+   "key": "metric_registry.CORE_PCE.freshness.max_calendar_lag_days",
+   "computed": 60,
+   "reported": 60,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H14",
+   "cat": "H 诚实缺席与门面",
+   "where": "quality_gate_notes[3]「60 天的 1.4 倍」",
+   "key": "83 ÷ 60",
+   "computed": 1.383333,
+   "reported": 1.4,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H15",
+   "cat": "H 诚实缺席与门面",
+   "where": "quality_gate_notes[3]「EA_REAL_GDP_YOY …与 US_REAL_GDP 同龄同倍数」",
+   "key": "两序列最新观测日相同且注册表滞后上限相同",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H16",
+   "cat": "H 诚实缺席与门面",
+   "where": "quality_gate_notes[3]「任务窗口(2026-11-01..2026-11-30)内 9 个计划指标的观测数均为 0」",
+   "key": "series_store 各计划指标 2026-11 观测数",
+   "computed": "US_REAL_GDP=0,UNEMPLOYMENT=0,INDPRO=0,CPI=0,CORE_CPI=0,CORE_PCE=0,EA_REAL_GDP_YOY=0,EA_HICP_YOY=0,JP_POLICY_RATE=0",
+   "reported": "US_REAL_GDP=0,UNEMPLOYMENT=0,INDPRO=0,CPI=0,CORE_CPI=0,CORE_PCE=0,EA_REAL_GDP_YOY=0,EA_HICP_YOY=0,JP_POLICY_RATE=0",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H17",
+   "cat": "H 诚实缺席与门面",
+   "where": "quality_gate_notes[3]「证据引用共 20 条」",
+   "key": "agent_judgment evidence_refs 总数",
+   "computed": 20,
+   "reported": 20,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H18",
+   "cat": "H 诚实缺席与门面",
+   "where": "「(矛盾陈述 11、机制链 4、情景唯一指标 5」",
+   "key": "三面引用数",
+   "computed": "11/4/5",
+   "reported": "11/4/5",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H19",
+   "cat": "H 诚实缺席与门面",
+   "where": "「三面去重后为 14 条不同引用」",
+   "key": "去重引用数",
+   "computed": 14,
+   "reported": 14,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H20",
+   "cat": "H 诚实缺席与门面",
+   "where": "「全部解析到本轮冻结快照 … 的证据索引」",
+   "key": "evidence_index(63 行) 包含全部去重引用",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "缺=[]"
+  },
+  {
+   "id": "H21",
+   "cat": "H 诚实缺席与门面",
+   "where": "agent_declaration「证据索引(63行)」",
+   "key": "len(report.evidence_index)",
+   "computed": 63,
+   "reported": 63,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H22",
+   "cat": "H 诚实缺席与门面",
+   "where": "agent_declaration「点值格(9格)」",
+   "key": "len(research_plan.point_values.cells)",
+   "computed": 9,
+   "reported": 9,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H23",
+   "cat": "H 诚实缺席与门面",
+   "where": "agent_declaration「候选池7、top3」(候选池)",
+   "key": "len(research_plan.turning_candidates.candidates)",
+   "computed": 7,
+   "reported": 7,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H24",
+   "cat": "H 诚实缺席与门面",
+   "where": "同上(top3)",
+   "key": "turning_candidates.top_n_expected",
+   "computed": 3,
+   "reported": 3,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H25",
+   "cat": "H 诚实缺席与门面",
+   "where": "turnings[0]「候选池内最大单段变动」(CPI 1.7326)",
+   "key": "候选池 |delta| 最大者",
+   "computed": "CPI@1.7326",
+   "reported": "CPI@1.7326",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H26",
+   "cat": "H 诚实缺席与门面",
+   "where": "turnings[1]「增长维候选池内最大的三个月变化」",
+   "key": "growth 维 |delta| 最大者",
+   "computed": "INDPRO",
+   "reported": "INDPRO",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H27 CPI@2026-05",
+   "cat": "H 诚实缺席与门面",
+   "where": "候选池端点值(引擎同比空间)直算",
+   "key": "series_store.CPI 2026-02-01→2026-05-01",
+   "computed": "2.4340→4.1666",
+   "reported": "2.4340→4.1666",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H27 EA_HICP_YOY@2026-05",
+   "cat": "H 诚实缺席与门面",
+   "where": "候选池端点值(引擎同比空间)直算",
+   "key": "series_store.EA_HICP_YOY 2026-02-01→2026-05-01",
+   "computed": "1.9000→3.2000",
+   "reported": "1.9000→3.2000",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H27 INDPRO@2026-02",
+   "cat": "H 诚实缺席与门面",
+   "where": "候选池端点值(引擎同比空间)直算",
+   "key": "series_store.INDPRO 2025-11-01→2026-02-01",
+   "computed": "1.7543→0.7972",
+   "reported": "1.7543→0.7972",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H27 CORE_CPI@2026-08",
+   "cat": "H 诚实缺席与门面",
+   "where": "候选池端点值(引擎同比空间)直算",
+   "key": "series_store.CORE_CPI 2026-05-01→2026-08-01",
+   "computed": "2.8229→2.4462",
+   "reported": "2.8229→2.4462",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H27 JP_POLICY_RATE@2026-07",
+   "cat": "H 诚实缺席与门面",
+   "where": "候选池端点值(引擎同比空间)直算",
+   "key": "series_store.JP_POLICY_RATE 2026-04-01→2026-07-01",
+   "computed": "0.7270→0.9780",
+   "reported": "0.7270→0.9780",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H27 CORE_PCE@2026-02",
+   "cat": "H 诚实缺席与门面",
+   "where": "候选池端点值(引擎同比空间)直算",
+   "key": "series_store.CORE_PCE 2025-11-01→2026-02-01",
+   "computed": "2.7212→2.9592",
+   "reported": "2.7212→2.9592",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H27 UNEMPLOYMENT@2026-08",
+   "cat": "H 诚实缺席与门面",
+   "where": "候选池端点值(引擎同比空间)直算",
+   "key": "series_store.UNEMPLOYMENT 2026-05-01→2026-08-01",
+   "computed": "4.3000→4.1000",
+   "reported": "4.3000→4.1000",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H28",
+   "cat": "H 诚实缺席与门面",
+   "where": "quality_gate_notes[3]「引擎契约对两处引用标注 STALE」",
+   "key": "report.agent_judgment.contract_verification.verdicts[status=STALE]",
+   "computed": 2,
+   "reported": 2,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H29",
+   "cat": "H 诚实缺席与门面",
+   "where": "「CORE_PCE(观测 2026-09-01…」「US_REAL_GDP(观测 2026-07-01…」",
+   "key": "STALE 项指标",
+   "computed": "CORE_PCE,US_REAL_GDP",
+   "reported": "CORE_PCE,US_REAL_GDP",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H30",
+   "cat": "H 诚实缺席与门面",
+   "where": "STALE 项数值与期望一致(「数值一致、观测滞后超过注册表节奏」)",
+   "key": "STALE 项 value == expected",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H31",
+   "cat": "H 诚实缺席与门面",
+   "where": "契约裁定总数与整体裁定",
+   "key": "stats.checks / verdict",
+   "computed": "9/VERIFIED",
+   "reported": "9/VERIFIED",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H32",
+   "cat": "H 诚实缺席与门面",
+   "where": "JP from_to「JP_POLICY_TARGET 注册表不可得」",
+   "key": "research_plan.dimension_gaps",
+   "computed": "JP_POLICY_TARGET:registry_absent",
+   "reported": "JP_POLICY_TARGET:registry_absent",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H33",
+   "cat": "H 诚实缺席与门面",
+   "where": "turnings[2]「政策事件簇为空」",
+   "key": "research_plan.policy_event_clusters.clusters",
+   "computed": 0,
+   "reported": 0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H34",
+   "cat": "H 诚实缺席与门面",
+   "where": "turnings[2]「FOMC 2026年10月会议纪要 2026-11-18 发布」",
+   "key": "research_plan.policy_doc_facts",
+   "computed": "FOMC-MINUTES-2026-10:2026-11-18",
+   "reported": "FOMC-MINUTES-2026-10:2026-11-18",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H35",
+   "cat": "H 诚实缺席与门面",
+   "where": "quality_gate_notes[3]「11 月完整结果须待数据覆盖后重跑」之前提: 截止日 2026-11-23 早于 11 月观测月终了",
+   "key": "日历: 2026-11-30 > 2026-11-23",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H36",
+   "cat": "H 诚实缺席与门面",
+   "where": "reader_map.rates_decomposition 窗口",
+   "key": "research_plan.us_rates_trio.window",
+   "computed": "2026-10-20→2026-11-19",
+   "reported": "2026-10-20→2026-11-19",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H37",
+   "cat": "H 诚实缺席与门面",
+   "where": "rates_decomposition nominal_bp",
+   "key": "us_rates_trio.chg_bp.UST_10Y",
+   "computed": -8.0,
+   "reported": -8.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H38",
+   "cat": "H 诚实缺席与门面",
+   "where": "real_bp",
+   "key": "us_rates_trio.chg_bp.TIPS_10Y",
+   "computed": 11.0,
+   "reported": 11.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H39",
+   "cat": "H 诚实缺席与门面",
+   "where": "bei_bp",
+   "key": "us_rates_trio.chg_bp.BEI_10Y",
+   "computed": -19.0,
+   "reported": -19.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H40",
+   "cat": "H 诚实缺席与门面",
+   "where": "引擎 12 个月窗 +91/+102/−11 与受审稿一致",
+   "key": "us_rates_trio.chg_bp_12m",
+   "computed": "91,102,-11",
+   "reported": "91,102,-11",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H41 SPX",
+   "cat": "H 诚实缺席与门面",
+   "where": "asset_returns_echo 与引擎资产月窗一致(SPX)",
+   "key": "research_plan.asset_moves.rows[SPX]",
+   "computed": "-5.51|2026-10-23→2026-11-23",
+   "reported": "-5.51|2026-10-23→2026-11-23",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H41 NIKKEI225",
+   "cat": "H 诚实缺席与门面",
+   "where": "asset_returns_echo 与引擎资产月窗一致(NIKKEI225)",
+   "key": "research_plan.asset_moves.rows[NIKKEI225]",
+   "computed": "-9.98|2026-10-23→2026-11-20",
+   "reported": "-9.98|2026-10-23→2026-11-20",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H41 GOLD_F",
+   "cat": "H 诚实缺席与门面",
+   "where": "asset_returns_echo 与引擎资产月窗一致(GOLD_F)",
+   "key": "research_plan.asset_moves.rows[GOLD_F]",
+   "computed": "-8.05|2026-10-23→2026-11-23",
+   "reported": "-8.05|2026-10-23→2026-11-23",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H41 DXY",
+   "cat": "H 诚实缺席与门面",
+   "where": "asset_returns_echo 与引擎资产月窗一致(DXY)",
+   "key": "research_plan.asset_moves.rows[DXY]",
+   "computed": "2.23|2026-10-23→2026-11-23",
+   "reported": "2.23|2026-10-23→2026-11-23",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H41 VIX",
+   "cat": "H 诚实缺席与门面",
+   "where": "asset_returns_echo 与引擎资产月窗一致(VIX)",
+   "key": "research_plan.asset_moves.rows[VIX]",
+   "computed": "38.87|2026-10-23→2026-11-23",
+   "reported": "38.87|2026-10-23→2026-11-23",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H42",
+   "cat": "H 诚实缺席与门面",
+   "where": "asset_moves 引擎面端点值与 series_store 一致(8 行)",
+   "key": "asset_moves.rows from/to_value",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H43",
+   "cat": "H 诚实缺席与门面",
+   "where": "point_anchors 两锚日",
+   "key": "research_plan.point_anchors",
+   "computed": "3个月前:2026-08-23,最新一期:2026-11-23",
+   "reported": "3个月前:2026-08-23,最新一期:2026-11-23",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "H44",
+   "cat": "H 诚实缺席与门面",
+   "where": "3 个月前锚 = 截止日 − 3 个月",
+   "key": "2026-11-23 − 3 月",
+   "computed": "2026-08-23",
+   "reported": "2026-08-23",
+   "ok": true,
+   "note": ""
+  }
+ ],
+ "extra": {
+  "rules_days": {
+   "US_REAL_GDP": 29,
+   "UNEMPLOYMENT": 5,
+   "INDPRO": 15,
+   "CPI": 13,
+   "CORE_CPI": 13,
+   "CORE_PCE": 30,
+   "EA_REAL_GDP_YOY": 35,
+   "EA_HICP_YOY": 16,
+   "JP_POLICY_RATE": 5
+  },
+  "pv_rules": {
+   "US_REAL_GDP": "BEA GDP 初值季末+29天发布(2026Q3=2026-10-29 实测锚定)",
+   "UNEMPLOYMENT": "BLS 就业形势报告次月首周发布(月末+5天,推定)",
+   "INDPRO": "G.17 工业生产次月中旬发布(月末+15天,推定)",
+   "CPI": "BLS CPI 次月中旬发布(月末+13天,推定)",
+   "CORE_CPI": "BLS CPI 次月中旬发布(月末+13天,推定)",
+   "CORE_PCE": "BEA 个人收支报告次月末发布(月末+30天,推定)",
+   "EA_REAL_GDP_YOY": "Eurostat GDP flash 季末+35天(推定;FRED最新修订值→事后回顾)",
+   "EA_HICP_YOY": "Eurostat HICP 终值次月中旬发布(月末+16天,推定)",
+   "JP_POLICY_RATE": "BOJ 月均次月初公布(月末+5天,推定)"
+  },
+  "cal_entries_compact": [
+   {
+    "entry_id": "RC-2025SHUTDOWN-CPI-SEP",
+    "obs_from": "2025-09-01",
+    "obs_to": "2025-09-01",
+    "first_publish_on_or_after": "2025-10-24",
+    "source": "Audit-R21 验收指令(2026-11-19)"
+   },
+   {
+    "entry_id": "RC-2025SHUTDOWN-CORECPI-SEP",
+    "obs_from": "2025-09-01",
+    "obs_to": "2025-09-01",
+    "first_publish_on_or_after": "2025-10-24",
+    "source": "Audit-R22 验收指令(2026-11-19)"
+   },
+   {
+    "entry_id": "RC-2025SHUTDOWN-UNEMP-SEP",
+    "obs_from": "2025-09-01",
+    "obs_to": "2025-09-01",
+    "first_publish_on_or_after": "2025-11-20",
+    "source": "Audit-R21 验收指令(2026-11-19)"
+   },
+   {
+    "entry_id": "RC-2025SHUTDOWN-UNEMP-NOV",
+    "obs_from": "2025-11-01",
+    "obs_to": "2025-11-01",
+    "first_publish_on_or_after": "2025-12-16",
+    "source": "Audit-R22 验收指令(2026-11-19)"
+   },
+   {
+    "entry_id": "RC-2025SHUTDOWN-GDP-Q3",
+    "obs_from": "2025-07-01",
+    "obs_to": "2025-07-01",
+    "first_publish_on_or_after": "2025-12-23",
+    "source": "Audit-R21 验收指令(2026-11-19)"
+   },
+   {
+    "entry_id": "RC-2025SHUTDOWN-PCE-OCTNOV",
+    "obs_from": "2025-10-01",
+    "obs_to": "2025-11-01",
+    "first_publish_on_or_after": "2026-01-22",
+    "source": "Audit-R22 验收指令(2026-11-19)"
+   },
+   {
+    "entry_id": "RC-EA-HICP-2021M05",
+    "obs_from": "2021-05-01",
+    "obs_to": "2021-05-01",
+    "first_publish_on_or_after": "2021-06-01"
+   },
+   {
+    "entry_id": "RC-EA-HICP-2022M06",
+    "obs_from": "2022-06-01",
+    "obs_to": "2022-06-01",
+    "first_publish_on_or_after": "2022-07-01"
+   },
+   {
+    "entry_id": "RC-2025SHUTDOWN-INDPRO-SEP",
+    "obs_from": "2025-09-01",
+    "obs_to": "2025-09-01",
+    "first_publish_on_or_after": "2025-12-03"
+   },
+   {
+    "entry_id": "RC-EA-HICP-2025M03",
+    "obs_from": "2025-03-01",
+    "obs_to": "2025-03-01",
+    "first_publish_on_or_after": "2025-04-01"
+   },
+   {
+    "entry_id": "RC-2025SHUTDOWN-CPI-NOV",
+    "metric_ids": [
+     "CPI",
+     "CORE_CPI"
+    ],
+    "obs_from": "2025-11-01",
+    "obs_to": "2025-11-01",
+    "first_publish_on_or_after": "2025-12-18"
+   },
+   {
+    "entry_id": "RC-2025SHUTDOWN-PCE-SEP",
+    "obs_from": "2025-09-01",
+    "obs_to": "2025-09-01",
+    "first_publish_on_or_after": "2025-12-05"
+   },
+   {
+    "entry_id": "RC-2025SHUTDOWN-INDPRO-OCTNOV",
+    "obs_from": "2025-10-01",
+    "obs_to": "2025-11-01",
+    "first_publish_on_or_after": "2025-12-23"
+   },
+   {
+    "entry_id": "RC-2025SHUTDOWN-REST-CONSERVATIVE",
+    "metric_ids": [
+     "CPI",
+     "CORE_CPI",
+     "CORE_PCE",
+     "UNEMPLOYMENT",
+     "NFP",
+     "AHE",
+     "INDPRO"
+    ],
+    "obs_from": "2025-09-01",
+    "obs_to": "2025-10-31",
+    "first_publish_on_or_after": "2026-01-22",
+    "source": "Audit-R21: 由停摆事件实录日期按公开时间线推广;推广范围=本条 metric_ids×2025-09/10 观测月,减去七项已实录条目"
+   },
+   {
+    "entry_id": "RC-JP-BOJ-TARGET-2026-09",
+    "kind": "policy_decision",
+    "obs_from": "2026-09-18",
+    "obs_to": "2099-12-31",
+    "decision_date": "2026-09-18",
+    "effective_on": "2026-09-24",
+    "target_value": 1.25,
+    "first_publish_on_or_after": "2026-09-18",
+    "source": "Audit-R28 验收指令(2026-11-21)"
+   },
+   {
+    "entry_id": "RC-JP-BOJ-MAINT-2026-10",
+    "kind": "policy_maintenance",
+    "obs_from": "2026-10-30",
+    "obs_to": "2099-12-31",
+    "decision_date": "2026-10-30",
+    "target_value": 1.25,
+    "first_publish_on_or_after": "2026-10-30",
+    "source": "Audit-R28 验收指令(2026-11-21)"
+   },
+   {
+    "entry_id": "RC-CN-LPR-2025M11",
+    "obs_from": "2025-11-01",
+    "obs_to": "2025-11-30",
+    "first_publish_on_or_after": "2025-11-20",
+    "source": "Audit-R30 验收指令(2025-11 与 2026-11 两期官方日期+09:00 统一;2025-11 观测=在库真实序列,发布日按官方节奏每月20日)"
+   },
+   {
+    "entry_id": "RC-CN-LPR-2026M11",
+    "obs_from": "2026-11-01",
+    "obs_to": "2026-11-30",
+    "first_publish_on_or_after": "2026-11-20",
+    "source": "Audit-R28 验收指令(2026-11-21 复测 2026-11-20 09:00)"
+   }
+  ],
+  "cal_conservative": {
+   "entry_id": "RC-2025SHUTDOWN-REST-CONSERVATIVE",
+   "basis": "convention",
+   "metric_ids": [
+    "CPI",
+    "CORE_CPI",
+    "CORE_PCE",
+    "UNEMPLOYMENT",
+    "NFP",
+    "AHE",
+    "INDPRO"
+   ],
+   "obs_from": "2025-09-01",
+   "obs_to": "2025-10-31",
+   "not_published_as_of": "2025-11-19",
+   "first_publish_on_or_after": "2026-01-22",
+   "note": "2025-09/2025-10 观测月联邦统计中未逐条实录首发的系列(九月CPI/九月核心CPI/九月失业率/Q3GDP/十月与十一月PCE/十一月失业率 七项 user_directive 条目优先命中,不在本条范围): 实际首发日未逐条实录,取已证最晚补发日 2026-01-22 为保守可见界——介于其间的真实首发不虚构,fail-closed 方向如实注记",
+   "source": "Audit-R21: 由停摆事件实录日期按公开时间线推广;推广范围=本条 metric_ids×2025-09/10 观测月,减去七项已实录条目"
+  }
+ }
+}

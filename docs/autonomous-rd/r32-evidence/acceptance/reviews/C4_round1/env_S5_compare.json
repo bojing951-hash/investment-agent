@@ -1,0 +1,132 @@
+{
+ "step": "S5_compare",
+ "argv": [
+  "compare",
+  "--metrics",
+  "US_REAL_GDP,UNEMPLOYMENT"
+ ],
+ "executed": true,
+ "ok": true,
+ "exit_code": 0,
+ "semantic_ok": true,
+ "note": "命中 52 个指标,compare 仅取注册表序前 2(US_REAL_GDP,UNEMPLOYMENT);其余 INDPRO,CPI,CORE_CPI,CORE_PCE,DFEDTARU,DFF,EA_REAL_GDP_YOY,EA_HICP_YOY,ECB_MRO,ECB_DFR,CN_PMI_MFG,CN_CPI_YOY,CN_PPI_YOY,CN_POLICY_OVERNIGHT,CN_OMO_7D,CN_LPR_1Y,JP_REAL_GDP_YOY,JP_CPI_YOY,JP_CPI_TOKYO_YOY,JP_POLICY_RATE,UST_10Y,TIPS_10Y,BEI_10Y,UST_2Y,UST_5Y,UST_30Y,TIPS_5Y,BEI_5Y,CURVE_2S10S,SPX,NDX,RUT,DAX,CAC40,NIKKEI225,HSI,SHCOMP,DXY,EURUSD,USDJPY,USDCNY,GOLD_F,SILVER_F,BRENT_F,HY_OAS,IG_OAS,BB_OAS,B_OAS,CCC_OAS,VIX 以 L1 事实行呈现,如需对比另行单跑",
+ "duration_ms": 409,
+ "envelope": {
+  "ok": true,
+  "capability": "compare",
+  "engine_root": "/private/tmp/r32-accept/final6-degraded",
+  "snapshot_id": "research_snapshot_20261123",
+  "target_date": "20261123",
+  "research_as_of": "2026-11-23",
+  "gate_a": "DEGRADED",
+  "data": {
+   "mode": "metrics",
+   "sides": [
+    {
+     "metric_id": "US_REAL_GDP",
+     "label": "美国实际GDP(SAAR)",
+     "unit": "billion_usd",
+     "unit_family": "price",
+     "frequency": "quarterly",
+     "identity": {
+      "instrument": "macro_series",
+      "is_proxy": false,
+      "proxy_of": null,
+      "adjustment": "none",
+      "market_seat": "onshore_local",
+      "economy": "US"
+     },
+     "calc": "美国实际GDP水平(FRED GDPC1,2017年链式美元,十亿,季调年化SAAR,1947+);QoQ/YoY由序列变化机制派生",
+     "n": 40,
+     "first": "2016-10-01",
+     "last": "2026-07-01",
+     "source": "研究快照 series_store",
+     "quality_status": "DEGRADED",
+     "release_note": "BEA季度advance估计约季后25-30天发布(精确发布日经FRED API不可得→按观测季+已知滞后窗口保守标注);后续修订随全量重拉自动生效(revision_semantics=latest_vintage_asof_collected)",
+     "time_semantics": {
+      "observation_period_kind": null,
+      "release_date_available": false
+     },
+     "aggregation": "month_grid: 自然月网格,代表=期内末值(rhq.align_to_month,mixed_frequency 对齐)",
+     "interval_change_common_window": {
+      "basis_date": "2016-10-01",
+      "basis_value": 19304.352,
+      "end_date": "2026-07-01",
+      "end_value": 24611.077,
+      "n_sessions_between": 39,
+      "pct_change": 27.4898,
+      "formula": "(2026-07-01值/2016-10-01值−1)×100"
+     }
+    },
+    {
+     "metric_id": "UNEMPLOYMENT",
+     "label": "失业率(U-3)",
+     "unit": "percent",
+     "unit_family": "rate",
+     "frequency": "monthly",
+     "identity": {
+      "instrument": "macro_series",
+      "is_proxy": false,
+      "proxy_of": null,
+      "adjustment": "none",
+      "market_seat": "onshore_local",
+      "economy": "US"
+     },
+     "calc": "月度失业率(家庭调查);变化以百分点表述,禁止表述为百分比变化",
+     "n": 119,
+     "first": "2016-11-01",
+     "last": "2026-10-01",
+     "source": "研究快照 series_store",
+     "quality_status": "WARN",
+     "release_note": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,失业率与非农同批(观测月次月第一个周五)发布,滞后约4-5周属正常节奏,不算缺数",
+     "time_semantics": {
+      "observation_period_kind": "calendar_month",
+      "release_date_available": false
+     },
+     "interval_change_common_window": {
+      "basis_date": "2016-12-01",
+      "basis_value": 4.7,
+      "end_date": "2026-07-01",
+      "end_value": 4.1,
+      "n_sessions_between": 114,
+      "pp_change": -0.6,
+      "bp_change": -60.0,
+      "formula": "2026-07-01值−2016-12-01值(百分点;1pp=100bp)"
+     }
+    }
+   ],
+   "alignment": {
+    "mode": "month_grid",
+    "n_common_observations": 38,
+    "n_level_observations": 38,
+    "n_change_pairs": 37,
+    "common_first": "2017-01",
+    "common_last": "2026-07",
+    "a_dropped": 2,
+    "b_dropped": 81,
+    "research_mode_gate": {
+     "descriptive": "available",
+     "event_study": "blocked: 无发布日, 不得按发布日对齐/不得声称事件研究",
+     "realtime_info_set": "available(现役快照即当前时点信息集;跨日vintage=1个[20261123];同日_vN修订不构成跨日vintage)",
+     "realtime_vintage_dates": [
+      "20261123"
+     ]
+    },
+    "note": "水平窗=共同观测日数;变化窗=相邻观测对数(少一个会话,如实并列);data.n_change_pairs=剔除 null/零基丢弃后实际参与相关的对数;不做异常值处理(原始值直算);本对为 mixed_frequency(低频侧=月频): 高频侧已聚合到自然月网格(代表=期内末值,align_to_month),按月键(YYYY-MM)内交,n_*=共同月份数;a_dropped/b_dropped=各自未进入共同窗的观测数(月键口径=月数)"
+   },
+   "pearson_returns": -0.8935653981522128,
+   "change_basis": {
+    "a": "pct",
+    "b": "pp"
+   },
+   "n_change_pairs": 37,
+   "dropped_null": 0,
+   "zero_base_dropped": 0
+  },
+  "warnings": [
+   "mixed_frequency: 两侧频率不同(quarterly vs monthly),已默认按自然月网格聚合对齐(alignment.mode=month_grid,聚合方式见 alignment.note 与该侧 sides[].aggregation)",
+   "date_gap(月网格): 共同观测窗内最大间隔 6 个月(缺失月份),相关序列存在断点",
+   "两侧最新观测日相差 92 天(2026-07-01 vs 2026-10-01)——日频指标错位>3天,末端对比须注明各自观测日"
+  ]
+ }
+}

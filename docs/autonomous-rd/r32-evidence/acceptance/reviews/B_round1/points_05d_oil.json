@@ -1,0 +1,275 @@
+{
+ "block": "⑤",
+ "title": "供给侧对账: 布伦特原油(BRENT_F)窗内读数与月均",
+ "rows": [
+  {
+   "block": "⑤",
+   "id": "D1-BRENT_F 2026-08-19",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-08-19]",
+   "kind": "point",
+   "computed": 91.620003,
+   "claim": 91.62,
+   "match": true,
+   "detail": "直算 91.62 → 取 2 位 91.62; 报告 91.62; "
+  },
+  {
+   "block": "⑤",
+   "id": "D2-BRENT_F 2026-11-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-11-23]",
+   "kind": "point",
+   "computed": 88.190002,
+   "claim": 88.19,
+   "match": true,
+   "detail": "直算 88.19 → 取 2 位 88.19; 报告 88.19; "
+  },
+  {
+   "block": "⑤",
+   "id": "D3-BRENT_F 近三个月变动(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-08-19, 2026-11-23]",
+   "kind": "point",
+   "computed": -3.743725,
+   "claim": -3.74,
+   "match": true,
+   "detail": "直算 -3.74373 → 取 2 位 -3.74; 报告 -3.74; "
+  },
+  {
+   "block": "⑤",
+   "id": "D4-BRENT_F 2026-10-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-10-23]",
+   "kind": "point",
+   "computed": 116.720001,
+   "claim": 116.72,
+   "match": true,
+   "detail": "直算 116.72 → 取 2 位 116.72; 报告 116.72; "
+  },
+  {
+   "block": "⑤",
+   "id": "D5-BRENT_F 2026-10-23 较窗启(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-08-19, 2026-10-23]",
+   "kind": "point",
+   "computed": 27.395762,
+   "claim": 27.4,
+   "match": true,
+   "detail": "直算 27.3958 → 取 2 位 27.4; 报告 27.4; "
+  },
+  {
+   "block": "⑤",
+   "id": "D6-BRENT_F 近一月变动(%)(2026-10-23→2026-11-23)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-10-23, 2026-11-23]",
+   "kind": "point",
+   "computed": -24.443111,
+   "claim": -24.44,
+   "match": true,
+   "detail": "直算 -24.4431 → 取 2 位 -24.44; 报告 -24.44; "
+  },
+  {
+   "block": "⑤",
+   "id": "D7-BRENT_F 近 12 个月变动(%)(窗启 2025-11-19, 与三利率 12 个月窗同口径)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2025-11-19, 2026-11-23]",
+   "kind": "point",
+   "computed": 38.86003,
+   "claim": 38.86,
+   "match": true,
+   "detail": "直算 38.86 → 取 2 位 38.86; 报告 38.86; 窗 63.509998→88.190002; 其他窗启候选 {'2025-11-19': 38.86, '2025-11-20': 39.14, 'le2025-11-19': ['2025-11-19', 38.86], 'le2025-11-23': ['2025-11-21', 40.97]}"
+  },
+  {
+   "block": "⑤",
+   "id": "D8-BRENT_F 窗内高点",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-08-19..2026-11-23]",
+   "kind": "point",
+   "computed": 117.639999,
+   "claim": 117.64,
+   "match": true,
+   "detail": "直算 117.64 → 取 2 位 117.64; 报告 117.64; 窗内高点日 2026-10-30"
+  },
+  {
+   "block": "⑤",
+   "id": "D9-BRENT_F 窗内高点日=2026-10-30",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-08-19..2026-11-23]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  },
+  {
+   "block": "⑤",
+   "id": "D10-BRENT_F 窗内观测数=68",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-08-19..2026-11-23]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 观测数 68"
+  },
+  {
+   "block": "⑤",
+   "id": "D11-BRENT_F 窗内不低于窗启值 91.62 的观测数=61",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-08-19..2026-11-23]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 不低于窗启 61 个"
+  },
+  {
+   "block": "⑤",
+   "id": "D12-BRENT_F 日值月均 2026-07",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-07 日值均]",
+   "kind": "point",
+   "computed": 84.512273,
+   "claim": 84.51,
+   "match": true,
+   "detail": "直算 84.5123 → 取 2 位 84.51; 报告 84.51; "
+  },
+  {
+   "block": "⑤",
+   "id": "D13-BRENT_F 日值月均 2026-09",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-09 日值均]",
+   "kind": "point",
+   "computed": 102.256666,
+   "claim": 102.26,
+   "match": true,
+   "detail": "直算 102.257 → 取 2 位 102.26; 报告 102.26; "
+  },
+  {
+   "block": "⑤",
+   "id": "D14-BRENT_F 日值月均 2026-10",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-10 日值均]",
+   "kind": "point",
+   "computed": 108.337272,
+   "claim": 108.34,
+   "match": true,
+   "detail": "直算 108.337 → 取 2 位 108.34; 报告 108.34; "
+  },
+  {
+   "block": "⑤",
+   "id": "D15-BRENT_F 日值月均 2025-10",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2025-10 日值均]",
+   "kind": "point",
+   "computed": 63.953913,
+   "claim": 63.95,
+   "match": true,
+   "detail": "直算 63.9539 → 取 2 位 63.95; 报告 63.95; "
+  },
+  {
+   "block": "⑤",
+   "id": "D16-BRENT_F 月均 2026-07→2026-09(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[月均 2026-07, 2026-09]",
+   "kind": "point",
+   "computed": 20.996232,
+   "claim": 21.0,
+   "match": true,
+   "detail": "直算 20.9962 → 取 2 位 21.0; 报告 21.0; "
+  },
+  {
+   "block": "⑤",
+   "id": "D17-BRENT_F 月均 2026-07→2026-10(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[月均 2026-07, 2026-10]",
+   "kind": "point",
+   "computed": 28.191171,
+   "claim": 28.2,
+   "match": true,
+   "detail": "直算 28.1912 → 取 1 位 28.2; 报告 28.2; "
+  },
+  {
+   "block": "⑤",
+   "id": "D18-BRENT_F 月均 2026-10 较 2025-10(%)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[月均 2025-10, 2026-10]",
+   "kind": "point",
+   "computed": 69.398974,
+   "claim": 69.4,
+   "match": true,
+   "detail": "直算 69.399 → 取 2 位 69.4; 报告 69.4; "
+  },
+  {
+   "block": "⑤",
+   "id": "D19-各发布日当日 BRENT_F 最低(字面读法 A)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[各发布日]; report.json:research_plan.point_values.cells[*].anchors.最新一期.publication_rule(月末+N天,推定)",
+   "kind": "point",
+   "computed": {
+    "最低": [
+     92.440002,
+     "2026-11-16",
+     "2026-11-16"
+    ],
+    "发布日数": 5
+   },
+   "claim": 92.44,
+   "match": true,
+   "detail": "发布日→观测日→油价: 2026-10-13→2026-10-13 105.69; 2026-10-16→2026-10-16 109.86; 2026-10-30→2026-10-30 117.64; 2026-11-13→2026-11-13 95.84; 2026-11-16→2026-11-16 92.44"
+  },
+  {
+   "block": "⑤",
+   "id": "D20-各发布日当日 BRENT_F 最高(字面读法 A)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[各发布日]",
+   "kind": "point",
+   "computed": {
+    "最高": [
+     117.639999,
+     "2026-10-30",
+     "2026-10-30"
+    ]
+   },
+   "claim": 117.64,
+   "match": true,
+   "detail": "最高 117.639999@发布日 2026-10-30"
+  },
+  {
+   "block": "⑤",
+   "id": "D21-各发布日当日 BRENT_F 全部不低于窗启值 91.62(字面读法 A)",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[各发布日]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 5 个发布日; 最低 92.440002"
+  },
+  {
+   "block": "⑤",
+   "id": "D20b-发布日跨度端点=2026-10-13 与 2026-11-16(九月/十月通胀读数, 引擎推定规则月末+N天)",
+   "source": "x_research_plan.json:research_plan.point_values.cells[*].anchors.最新一期.publication_rule(月末+N天,推定)",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; 规则天数 {'UNEMPLOYMENT': 5, 'INDPRO': 15, 'CPI': 13, 'CORE_CPI': 13, 'CORE_PCE': 30, 'EA_HICP_YOY': 16, 'JP_POLICY_RATE': 5}; 跨度 2026-10-13..2026-11-16; 全部发布日 ['2026-10-13', '2026-10-16', '2026-10-30', '2026-11-13', '2026-11-16']"
+  },
+  {
+   "block": "⑤",
+   "id": "D19p/D21p-读法 B(区间 2026-10-13..2026-11-16 内全部观测)的最低值与「均不低于」",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-10-13..2026-11-16]",
+   "kind": "probe",
+   "computed": {
+    "区间最低": [
+     91.49,
+     "2026-11-10"
+    ],
+    "区间最高": [
+     117.64,
+     "2026-10-30"
+    ],
+    "观测数": 25,
+    "低于 91.62 的观测": [
+     [
+      "2026-11-10",
+      91.49
+     ]
+    ]
+   },
+   "claim": "92.44 / 均不低于 91.62",
+   "match": null,
+   "detail": "探针(不计点): 区间读法下最低 91.49@2026-11-10 低于窗启值, 原句不成立 → 记 MINOR(歧义)"
+  },
+  {
+   "block": "⑤",
+   "id": "D22-「窗内先升至 2026-10-23 的 116.72」「窗末急跌」: 窗末值低于窗启且低于 2026-10-23",
+   "source": "root_overlay/data/daily/research_snapshot_20261123.json:series_store.BRENT_F[2026-08-19, 2026-10-23, 2026-11-23]",
+   "kind": "point",
+   "computed": true,
+   "claim": true,
+   "match": true,
+   "detail": "直算 True; 报告断言 True; "
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+judgment refs (L3+L4): 50
+unique refs: 20
+evidence_index rows: 72 (type list)
+sample row keys: ['kind', 'metric_id', 'ref']
+OK BEI_10Y@2026-11-20         store=True value=2.15 index=True cited_by=3
+CHECK CN_CPI_YOY@2026-10-31      store=False value=None index=True cited_by=1
+OK CN_LPR_1Y@2026-11-20       store=True value=3.0 index=True cited_by=1
+CHECK CN_PPI_YOY@2026-10-31      store=False value=None index=True cited_by=3
+OK CORE_PCE@2026-09-01        store=True value=130.902 index=True cited_by=2
+OK CPI@2026-10-01             store=True value=337.476 index=True cited_by=2
+OK DFF@2026-11-19             store=True value=3.88 index=True cited_by=1
+OK DXY@2026-11-23             store=True value=104.079002 index=True cited_by=5
+OK EA_HICP_YOY@2026-10-01     store=True value=4.0 index=True cited_by=2
+OK ECB_DFR@2026-09-16         store=True value=2.5 index=True cited_by=1
+OK GOLD_F@2026-11-23          store=True value=3685.199951 index=True cited_by=5
+OK HY_OAS@2026-11-19          store=True value=3.52 index=True cited_by=2
+OK JP_POLICY_RATE@2026-10-01  store=True value=1.227 index=True cited_by=2
+OK NIKKEI225@2026-11-20       store=True value=56436.65 index=True cited_by=2
+OK SPX@2026-11-23             store=True value=7203.850098 index=True cited_by=5
+OK TIPS_10Y@2026-11-19        store=True value=2.88 index=True cited_by=4
+OK USDCNY@2026-11-23          store=True value=6.6542 index=True cited_by=1
+OK USDJPY@2026-11-23          store=True value=159.347 index=True cited_by=2
+OK UST_10Y@2026-11-19         store=True value=5.04 index=True cited_by=3
+OK VIX@2026-11-23             store=True value=27.01 index=True cited_by=3
+-- non-OK: 2

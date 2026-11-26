@@ -1,0 +1,173 @@
+# CI 全史可得 n=203, first=2009-12, last=2026-10
+
+===== CL-1 / CON-2 基础事实 =====
+[OK ] PMI 2026-10: claimed=49.3 computed=49.3
+[OK ] loan 2026-10(亿): claimed=-5846.0 computed=-5846.0
+负值月 n=6: [('04', -4006.0), ('07', -5896.0), ('07', -4296.0), ('07', -808.0), ('10', -5846.0), ('10', -154.0)]
+[OK ] 负值月个数: claimed=6 computed=6
+[OK ] 负值月分布 07月: claimed=3 computed=3
+[OK ] 负值月分布 10月: claimed=2 computed=2
+[OK ] 负值月分布 04月: claimed=1 computed=1
+负值明细: [('2026-07', -5896.0), ('2026-10', -5846.0), ('2025-07', -4296.0)]
+[OK ] CI(2026-10)万亿: claimed=-3.58 computed=-3.5816
+[OK ] CI百分位%: claimed=4.9 computed=4.926108374384237 (count<=cur=10/203)
+[OK ] CI史min万亿: claimed=-5.24 computed=-5.2366
+[OK ] CI史max万亿: claimed=4.69 computed=4.6901
+
+===== CON-1 / CL-3 / MC-1 / CL-4 相位统计 =====
+PMI=50.0 持平月(窗内): ['2018-11', '2020-01', '2026-05']
+[OK ] 持平月个数: claimed=3 computed=3
+[OK ] 持平月列表: claimed=True computed=True
+[OK ] CHINEXT lo n: claimed=48 computed=48
+[OK ] CHINEXT hi n: claimed=67 computed=67
+[OK ] CHINEXT lo 月均%: claimed=2.14 computed=2.1367429040749726
+[OK ] CHINEXT lo 中位%: claimed=0.98 computed=0.9814345071087027
+[OK ] CHINEXT lo 胜率%: claimed=58 computed=58.333333333333336
+[OK ] CHINEXT hi 月均%: claimed=-0.74 computed=-0.7363100688158298
+[OK ] CHINEXT hi 中位%: claimed=-1.22 computed=-1.215502962214421
+[OK ] CHINEXT hi 胜率%: claimed=39 computed=38.80597014925373
+Welch t=1.7034 df=84.12 p=0.0922
+[OK ] Welch p: claimed=0.092 computed=0.09218040224383972
+MW U=1334.0 z=-1.5540 p=0.1202 (变体: 连续性校正 z=-1.5512 p=0.1209)
+[OK ] MW p: claimed=0.12 computed=0.12018172230796931
+[OK ] 截尾lo(去首尾各2): claimed=1.58 computed=1.5794101746473177
+[OK ] 截尾hi(去首尾各2): claimed=-0.57 computed=-0.5653622043164289
+σ ddof=1: lo=9.810 hi=7.502
+σ ddof=0: lo=9.707 hi=7.446
+[OK ] CHINEXT lo σ%: claimed=9.81 computed=9.80968316103877
+[OK ] CHINEXT hi σ%: claimed=7.5 computed=7.501722453378057
+[OK ] FXI lo σ%: claimed=8.07 computed=8.0747234141222
+[OK ] FXI hi σ%: claimed=6.2 computed=6.199712354858935
+FXI 相位 Welch t=1.1580 df=84.37 p=0.2501
+[OK ] FXI 相位 Welch p(SCN-4/MC-3用): claimed=0.25 computed=0.2501256592230745
+[OK ] FXI lo n: claimed=48 computed=48
+[OK ] FXI lo 月均%(参考R5冻结): claimed=1.45 computed=1.4451406481880589
+
+===== 极值月归属 =====
+CHINEXT 窗内最大两跌幅: ((-0.23017030681853368, '2026-10'), (-0.22998258484680179, '2026-07')), 最大涨幅: (0.3762367843022867, '2024-09')
+[OK ] 最大涨幅月: claimed=37.6 computed=37.623678430228665 (月=2024-09)
+[OK ] 最大涨幅月份: claimed=2024-09 computed=2024-09
+[OK ] 最大跌幅月1: claimed=-23.0 computed=-23.017030681853367 (月=2026-10 精确=-23.0170)
+[OK ] 最大跌幅月2: claimed=-23.0 computed=-22.99825848468018 (月=2026-07 精确=-22.9983)
+[OK ] 两最大跌幅月=2026-07/2026-10: claimed=True computed=True
+跌幅月 2026-07: 信号月=2026-06 PMI=50.3 收益月当月PMI=49.2
+跌幅月 2026-10: 信号月=2026-09 PMI=50.1 收益月当月PMI=49.3
+[OK ] 信号月2026-06 PMI: claimed=50.3 computed=50.3
+[OK ] 信号月2026-09 PMI: claimed=50.1 computed=50.1
+[OK ] 收益月2026-07 PMI<50: claimed=True computed=True
+[OK ] 收益月2026-10 PMI<50: claimed=True computed=True
++37.6%月 2024-09: 信号月=2024-08 PMI=49.1 (<50?)
+[OK ] 2024-08 PMI<50(信号相位): claimed=True computed=True
+[OK ] 2025-08 CHINEXT %: claimed=24.1 computed=24.129582234003742
+[OK ] 2019-02 CHINEXT %: claimed=25.1 computed=25.05664958560663
+
+===== CL-5 / CON-3 / MC-3 =====
+PMI vs CI 同月: r=0.2042 t=2.256 p=0.02592 n=119
+[OK ] PMI-CI r: claimed=0.204 computed=0.20418281048105527
+[OK ] PMI-CI t: claimed=2.26 computed=2.2561046401207494
+[OK ] PMI-CI p: claimed=0.026 computed=0.025921788990370905
+[OK ] PMI-CI n: claimed=119 computed=119
+CHINEXT vs FXI: r=0.3514 t=4.060 p=0.000089
+[OK ] CHN-FXI r: claimed=0.351 computed=0.35144414876351615
+[OK ] CHN-FXI t: claimed=4.06 computed=4.060471867586189
+[OK ] CHN-FXI p: claimed=0.0001 computed=8.887500837524739e-05
+[OK ] 同向比例%: claimed=67 computed=67.22689075630252 (80/119)
+[OK ] 1-r²≈88%: claimed=88 computed=88 (=87.65%)
+[OK ] 2026-07 FXI %: claimed=15.5 computed=15.54289332067109
+[OK ] 2026-07 CHINEXT %: claimed=-23.0 computed=-22.99825848468018
+[OK ] 2026-07 分化pp: claimed=38.5 computed=38.54115180535127
+
+===== CL-2 / CTR-1 相关网格(5变换×k=0..3×2资产) =====
+[OK ] 先行格数: claimed=30 computed=30
+[OK ] k=0格数: claimed=10 computed=10
+[OK ] 合计格数: claimed=40 computed=40
+先行格 n 范围: 116-118
+[OK ] 先行格 n=116-118: claimed=True computed=True
+max|r| 先行格: ('pmi', 2, 'CHINEXT') r=-0.1763 p=0.0572 n=117
+[OK ] max|r|: claimed=0.176 computed=0.17633448081549907
+[OK ] max|r|格=pmi,k2,CHINEXT: claimed=True computed=True
+[OK ] 该格 r=-0.176: claimed=-0.176 computed=-0.17633448081549907
+[OK ] 该格 p=0.057: claimed=0.057 computed=0.057197160770620446
+[OK ] 先行格p<0.05个数: claimed=0 computed=0
+  ('yoyd', 1, 'CHINEXT'): r=0.0345 t=0.372 p=0.7108 n=118
+  ('yoyd', 1, 'FXI'): r=-0.1465 t=-1.595 p=0.1135 n=118
+  ('yoyd', 2, 'CHINEXT'): r=0.0477 t=0.512 p=0.6098 n=117
+  ('yoyd', 2, 'FXI'): r=0.0150 t=0.161 p=0.8727 n=117
+  ('yoyd', 3, 'CHINEXT'): r=-0.0208 t=-0.222 p=0.8244 n=116
+  ('yoyd', 3, 'FXI'): r=0.0266 t=0.284 p=0.7769 n=116
+  ('ratio', 1, 'CHINEXT'): r=0.0571 t=0.616 p=0.5390 n=118
+  ('ratio', 1, 'FXI'): r=-0.0613 t=-0.661 p=0.5097 n=118
+  ('ratio', 2, 'CHINEXT'): r=-0.0677 t=-0.728 p=0.4684 n=117
+  ('ratio', 2, 'FXI'): r=-0.0510 t=-0.548 p=0.5851 n=117
+  ('ratio', 3, 'CHINEXT'): r=0.1712 t=1.855 p=0.0662 n=116
+  ('ratio', 3, 'FXI'): r=-0.0207 t=-0.221 p=0.8258 n=116
+  ('ci', 1, 'CHINEXT'): r=-0.0092 t=-0.099 p=0.9211 n=118
+  ('ci', 1, 'FXI'): r=-0.0948 t=-1.026 p=0.3070 n=118
+  ('ci', 2, 'CHINEXT'): r=0.0136 t=0.146 p=0.8843 n=117
+  ('ci', 2, 'FXI'): r=-0.0648 t=-0.696 p=0.4877 n=117
+  ('ci', 3, 'CHINEXT'): r=-0.0275 t=-0.294 p=0.7696 n=116
+  ('ci', 3, 'FXI'): r=-0.0844 t=-0.904 p=0.3679 n=116
+[OK ] 贷款族先行格max|t|: claimed=1.86 computed=1.855080090506676
+[OK ] ratio,k3,CHINEXT r=0.171: claimed=0.171 computed=0.1711796753948461
+[OK ] ratio,k3,CHINEXT p=0.066: claimed=0.066 computed=0.06616839804133706
+[OK ] ratio,k3,CHINEXT t=1.86: claimed=1.86 computed=1.855080090506676
+[OK ] CI先行|r|max<=0.10: claimed=True computed=True (max=0.0948)
+[OK ] CI k1 CHINEXT r: claimed=-0.009 computed=-0.009221293105016988
+[OK ] CI k1 FXI r: claimed=-0.095 computed=-0.09483941164658463
+[OK ] CI k2 CHINEXT r: claimed=0.014 computed=0.013603583432052166
+[OK ] CI k2 FXI r: claimed=-0.065 computed=-0.06478493373876167
+[OK ] CI k1/k2 全部 p>0.30: claimed=True computed=True (minp=0.307)
+
+===== CTR-1: ΔPMI k=1 CHINEXT 回归族 =====
+  NW双变量(无控制) t=4.902; NW控r(M) t=4.455 beta=0.00646 (冻结输出规格)
+n=118 OLS t=1.715 HC0 t=5.138 NW t=4.455 Pearson r=0.1573 p=0.0890 Spearman rho=0.0570 p=0.5399
+[OK ] CTR-1 classic t: claimed=1.72 computed=1.7150469072940466
+[OK ] CTR-1 HC0 t: claimed=5.14 computed=5.138118012535519
+[OK ] CTR-1 NW t: claimed=4.46 computed=4.4553037248928336
+[OK ] CTR-1 Pearson p: claimed=0.089 computed=0.08900679549552826
+[OK ] CTR-1 Spearman: claimed=0.057 computed=0.05699417976057099 (rho=0.0570 p=0.5399)
+[OK ] CTR-1 k2 翻转 r: claimed=-0.123 computed=-0.12334672171751751
+
+===== MC-2: CI符号相位 k=2 =====
+CI符号相位 k=2 CHINEXT: n+=75 n-=42 Welch p=0.9502
+[OK ] MC-2 CI相位k2 CHINEXT Welch p: claimed=0.95 computed=0.9502439368080836
+CI符号相位 k=2 FXI: n+=75 n-=42 Welch p=0.5745
+[OK ] MC-2 CI相位k2 FXI Welch p: claimed=0.574 computed=0.5744640155219569
+NW(控收益滞后) CI 系数 |t|:
+  k=1 CHINEXT: n=117 NW t(CI)=-0.033
+  k=1 FXI: n=117 NW t(CI)=-1.541
+  k=2 CHINEXT: n=117 NW t(CI)=0.158
+  k=2 FXI: n=117 NW t(CI)=-1.163
+
+===== CL-9 / CTR-3: CI<-3万亿 条件分布 =====
+CI<-3万亿月(窗内) n=15: ['2024-06', '2024-07', '2024-08', '2024-09', '2024-10', '2024-11', '2024-12', '2025-01', '2025-02', '2025-04', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10']
+其中次月收益可得 n=14
+[OK ] CI<-3万亿月数: claimed=14 computed=14 (窗内含当月共15)
+[OK ] deep CHINEXT 月均%: claimed=-1.51 computed=-1.5104866694356456
+[OK ] deep CHINEXT 中位%: claimed=-1.78 computed=-1.7806661641283195
+[OK ] deep CHINEXT 胜率%: claimed=43 computed=42.857142857142854
+[OK ] deep CHINEXT σ%: claimed=14.26 computed=14.264395106761949
+[OK ] deep FXI 月均%: claimed=3.25 computed=3.2451127894986187
+[OK ] deep FXI 中位%: claimed=1.83 computed=1.8316071813384238
+[OK ] deep FXI 胜率%: claimed=57 computed=57.142857142857146
+[OK ] deep FXI σ%: claimed=7.38 computed=7.376923882486676
+[OK ] PMI<50且CI<0 月数: claimed=24 computed=24
+[OK ] 该组 CHINEXT 月均%: claimed=2.75 computed=2.7534498887316103
+[OK ] 该组 CHINEXT 中位%: claimed=0.45 computed=0.44898611795286536
+
+===== MC-4: 贷款季节性(全史 n=226) =====
+[OK ] 贷款全史 n: claimed=226 computed=226
+[OK ] 1月均值(亿): claimed=27341 computed=27340.653849473685 (n(Jan)=19)
+[OK ] 全史月均(亿): claimed=11234 computed=11233.874888106193
+[OK ] 倍数(舍入到1位): claimed=2.4 computed=2.4
+[OK ] 2026-03 贷款(亿): claimed=31522.0 computed=31522.0
+[OK ] 2026-09 贷款(亿,事实通道): claimed=12734.0 computed=12734.0
+
+===== 锚点/其他 =====
+[OK ] CHINEXT 2026-11-11 收盘: claimed=2572.07 computed=2572.0672
+[OK ] FXI 2026-11-11 收盘: claimed=33.92 computed=33.920101
+[OK ] FXI 2026-10 月收益%(SCN无直接,参考): claimed=-2.8 computed=-2.8
+[OK ] CI 史极值月(SCN-3 -5.24万亿): claimed=-5.24 computed=-5.2366
+[OK ] 累计2026-10前十月贷款(README锚,亿): claimed=109149 computed=109149.0
+
+===== 汇总: 105/105 OK =====

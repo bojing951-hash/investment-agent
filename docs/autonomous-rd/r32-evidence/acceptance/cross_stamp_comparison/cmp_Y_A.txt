@@ -1,0 +1,48 @@
+# cmp_runs
+# old: /tmp/r32-accept/final5/output/research_runs/20261123T213303Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最
+# new: /tmp/r32-accept/final6/output/research_runs/20261123T235103Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最
+# old run 20261123T213303Z git_head 8f9055d6e556 | new run 20261123T235103Z git_head 36499bb78a18
+## report.json/research_plan | leaves compared 1797 | identical 1795 | real diff 2 | path/run-id only 0 | only-old 0 | only-new 0
+   REAL DIFF (2):
+     /point_values/cells[CN_LPR_1Y]/anchors/3个月前/publication_basis
+        old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+        new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+     /point_values/cells[CN_LPR_1Y]/anchors/3个月前/publication_rule
+        old: "LPR 每月20日09:00公布(观测日=发布日;月末−11天,节假日顺延;Audit-R29 官方时刻)"
+        new: "LPR 每月20日(遇非工作日顺延)09:00公布,观测日=发布日,当日可见(Audit-R29 官方时刻)"
+## report.json/evidence_index | leaves compared 216 | identical 216 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/layers | leaves compared 456 | identical 450 | real diff 6 | path/run-id only 0 | only-old 0 | only-new 0
+   REAL DIFF (6):
+     /L3_AI推断层/content/contradictions[C1]/competing_explanations[1]
+        old: "解释B(增长担忧): 风险资产收缩主要由增长预期下修驱动(美国工业同比一度折半、GDP 同比放缓),利率变化是结果而非原因——若成立,BEI_10Y 应主导性下行(衰退定价)而 TIPS_10Y 转平或回落;近1个月分解(实际+11bp、盈亏平衡-19bp)与该解释相容"
+        new: "解释B(增长担忧): 风险资产收缩主要由增长预期下修驱动(美国工业同比一度折半、GDP 同比放缓),利率变化是结果而非原因——若成立,BEI_10Y 应主导性下行(衰退定价)而 TIPS_10Y 转平或回落;近1个月分解(实际+11bp、盈亏平衡-19bp)与该解释的盈亏平衡一腿相容、与实际利率一腿相左, 整体仅部分相容"
+     /L3_AI推断层/content/contradictions[C1]/statement
+        old: "主线综合: 过去12个月(至2026-11-23)四地证据面呈现『通胀再加速→政策再收紧→实际利率上行→风险资产收缩』的同向共动(其中资产收缩一腿属于近月窗口的事实，全年窗口内股指并未下行，窗口对照披露见机制链资产环)——CPI 与 CORE_PCE 同比较一年前走高(2026-05 见顶后回落、未再越过高点)、EA_HICP_YOY 升至本轮最高、CN_PPI_YOY 自负转正并续创本轮新高、CN_PMI_MFG 于 2025-12 及 2026-03、2026-04、2026-06、2026-09 共五个月站上荣枯线、其余月份不高于荣枯线(2026-05 持平于五十，余在四十九点零至四十
+        new: "主线综合: 过去12个月(至2026-11-23)四地证据面呈现『通胀再加速→政策再收紧→实际利率上行→风险资产收缩』的同向共动(其中资产收缩一腿属于近月窗口的事实，全年窗口内股指并未下行，窗口对照披露见机制链资产环)——CPI 与 CORE_PCE 同比较一年前走高(2026-05 见顶后回落、未再越过高点)、EA_HICP_YOY 升至本轮最高、CN_PPI_YOY 自负转正并续创本轮新高、CN_PMI_MFG 于 2025-12 及 2026-03、2026-04、2026-06、2026-09 共五个月站上荣枯线、其余月份不高于荣枯线(2026-05 持平于五十，余在四十九点零至四十
+     /L3_AI推断层/content/contradictions[C3]/statement
+        old: "中国政策与美欧日方向的背离未被解释定案: CN_PPI_YOY 自深负值区间升至本轮高点(四大经济体最大价格摆动)而 CN_LPR_1Y 与 7天逆回购利率窗内持平、政策利率锚于2026-11-02切换为隔夜利率工具后新锚持平于其首个观测水平,即生产价格大幅上行而政策利率未上调。引擎面无中国利率预期序列;信贷/内需侧仅有 CN_NEW_LOANS(月频，最新观测月 2026-10)等少量事实，不足以在三种解释间裁决,三种解释不可区分,标注【尚未验证】。(最新读数: CN_PPI_YOY 为 5.7、CN_CPI_YOY 为 0.7、CN_PMI_MFG 为 49.3;观测月均为 2026-1
+        new: "中国政策与美欧日方向的背离未被解释定案: CN_PPI_YOY 自深负值区间升至本轮高点(四大经济体最大价格摆动)而 CN_LPR_1Y 与 7天逆回购利率窗内持平(7天逆回购末观测 2026-10-30，其后缺观测)、政策利率锚于2026-11-02切换为隔夜利率工具后新锚持平于其首个观测水平,即生产价格大幅上行而政策利率未上调。引擎面无中国利率预期序列;信贷/内需侧仅有 CN_NEW_LOANS(月频，最新观测月 2026-10)等少量事实，不足以在三种解释间裁决,三种解释不可区分,标注【尚未验证】。(最新读数: CN_PPI_YOY 为 5.7、CN_CPI_YOY 为 0.7、CN_
+     /L3_AI推断层/content/mechanism_chains[M1]/links[3]/text
+        old: "资产环【E2,缺环为假设】: 近1个月(2026-10-23→2026-11-19/20/23)SPX -5.51%、NIKKEI225 -9.98%、GOLD_F -8.05%、DXY +2.23%、VIX 19.45→27.01(其中 SPX、GOLD_F、DXY、VIX 为 2026-11-23 盘中快照、非收盘价；同日收盘口径 2026-10-23→2026-11-20 标普500指数 -9.36%、VIX +84.52%),与『实际利率上行压制长久期/无现金流资产、推升美元』的机制相容(此共动限于近窗: 共同交易日 2026-10-20→2026-11-19 TIPS_10Y +1
+        new: "资产环【E2,缺环为假设】: 近1个月(2026-10-23→2026-11-19/20/23)SPX -5.51%、NIKKEI225 -9.98%、GOLD_F -8.05%、DXY +2.23%、VIX 19.45→27.01(其中 SPX、GOLD_F、DXY、VIX 为 2026-11-23 盘中快照、非收盘价；同日收盘口径 2026-10-23→2026-11-20 标普500指数 -9.36%、VIX +84.52%),与『实际利率上行压制长久期/无现金流资产、推升美元』的机制相容(此共动限于近窗: 共同交易日 2026-10-20→2026-11-19 TIPS_10Y +1
+     /L3_AI推断层/content/mechanism_chains[M2]/links[0]/text
+        old: "【事实/E1】: JP_POLICY_RATE(无担保隔夜拆借月均)自 2025-11 月均 0.478(窗启时在值)步进升至 2026-10 月均 1.227(窗内净 +75 个基点；月度步进 +8/+17/+11/+14/+7/+18 个基点，分别落在 2025-12、2026-01、2026-06、2026-07、2026-09、2026-10，另有 2026-04 与 2026-08 各约零点一个基点的舍入变动；自 2025-12 月均 0.557 起为 +67 个基点，属另一口径),为四地中唯一在美欧通胀同窗回升(2026-02起)之前已开始上调、窗内未回撤的政策轨迹;发布日历实录
+        new: "【事实/E1】: JP_POLICY_RATE(无担保隔夜拆借月均)自 2025-11 月均 0.478(窗启时在值)步进升至 2026-10 月均 1.227(窗内净 +75 个基点；月度步进 +8/+17/+11/+14/+7/+18 个基点，分别落在 2025-12、2026-01、2026-06、2026-07、2026-09、2026-10，另有 2026-04 与 2026-08 各约零点一个基点的舍入变动；自 2025-12 月均 0.557 起为 +67 个基点，属另一口径),为四地中唯一在美欧通胀同窗回升(2026-02起)之前已开始上调、窗内未回撤的政策轨迹;发布日历实录
+     /L4_条件情景层/content/scenarios[SCN2]/rows/falsification/threshold
+        old: "BEI_10Y 跌破1.8且继续下行(阈值依据: 库内最近一次低于 1.8 为 2020-11-30 的 1.77，较最新读数 2.15(2026-11-20)低 35 个基点，作深跌确认线)——盈亏平衡通胀不回升反深跌,『一次性通胀+宽松预期修复』前提失效(深跌 BEI 指向衰退定价而非修复)"
+        new: "BEI_10Y 跌破1.8且继续下行(阈值依据: 库内最近一次低于 1.8 为 2020-11-30 的 1.77，较最新读数 2.15(2026-11-20)低 38 个基点(该读数较阈值 1.8 高 35 个基点)，作深跌确认线)——盈亏平衡通胀不回升反深跌,『一次性通胀+宽松预期修复』前提失效(深跌 BEI 指向衰退定价而非修复)"
+## report.json/run.evidence_gate | leaves compared 850 | identical 850 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.frozen_inputs | leaves compared 3 | identical 3 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## report.json/run.data_requirements | leaves compared 802 | identical 802 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+   tree-state (install-tree standard-update ledger, not research evidence): ['[3]/data/last_run/…']
+## report.json/steps[*].envelope | leaves compared 162081 | identical 162018 | real diff 0 | path/run-id only 63 | only-old 0 | only-new 0
+   path/run-id-only sample: ['[10]/engine_root', '[11]/engine_root', '[12]/engine_root']
+# report.json totals: real diff 8 | only-old 0 | only-new 0
+## evidence_index.json | leaves compared 216 | identical 216 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## AGENT_SEAT_ENVELOPE.json | leaves compared 304 | identical 301 | real diff 0 | path/run-id only 3 | only-old 0 | only-new 0
+   path/run-id-only sample: ['/read_first[0]', '/read_first[1]', '/read_first[2]']
+## views_digest.json | leaves compared 2 | identical 2 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/release_calendar.json | leaves compared 173 | identical 173 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/config/metric_registry.json | leaves compared 2754 | identical 2754 | real diff 0 | path/run-id only 0 | only-old 0 | only-new 0
+## root_overlay/data/daily: old ['research_snapshot_20261123.json'] | new ['research_snapshot_20261123.json']
+   research_snapshot_20261123.json sha256 old 2d650f1128cdd356 new 2d650f1128cdd356 equal True

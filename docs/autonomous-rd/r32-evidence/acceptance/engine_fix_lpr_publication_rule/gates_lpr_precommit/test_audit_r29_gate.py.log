@@ -1,0 +1,55 @@
+═══ §A 任务1: EA_REAL_GDP_YOY 接通(重试+入库链+常规步) ═══
+  ✅ §A1 瞬时 TLS 失败一次→重试成功(123 季链路不再被单次 SSL EOF 吞掉;重试如实入告警) — n_rows=1 calls=2 alerts=['FRED-EA-GDP源获取失败:URLError:<urlopen error EOF occurred in violation of protocol (_ssl.c:1129)>', 'FRED-EA-GDP 第 2 次尝试成功(前 1 次瞬时失败已重试)']
+  ✅ §A1b 全部尝试失败→(None,告警点名 3 次)诚实缺席 — rows=None n_alerts=4
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r29gate_1mrggzhc/eaface/data/daily/research_snapshot_20261121.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r29gate_1mrggzhc/eaface/data/daily/research_snapshot_20261121.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r29gate_1mrggzhc/eaface/data/daily/anchors_20261121.json (0个)
+   Gate A: FAIL | 事实 0 | 质量 {'PASS': 0, 'DEGRADED': 0, 'FAIL': 0} | core缺失 32 | 非核心缺失 78项(AAPL,AHE,BB_OAS,BEI_10Y,BEI_5Y)…
+  ✅ §A2 ea 面 series.EA_REAL_GDP_YOY → 快照 series_store 入库(常规更新→研究快照同一链;123 季实拉即此通道) — n=3
+  ✅ §A3 run_weekly 常规步: ea_market_collector 在更新白名单
+═══ §B 任务2: 地区简称+隐含比较维度 ═══
+  ✅ §B1 简称正例「美、欧、中、日四地」→ US/EA/CN/JP — got=['US', 'EA', 'CN', 'JP']
+  ✅ §B1 简称正例「美,欧两地」→ US/EA — got=['US', 'EA']
+  ✅ §B1 简称正例「美欧中日对比」→ US/EA/CN/JP — got=['US', 'EA', 'CN', 'JP']
+  ✅ §B1 简称正例「欧美两地的通胀」→ US/EA — got=['EA', 'US']
+  ✅ §B1 简称正例「中美两国增长对比」→ CN/US — got=['CN', 'US']
+  ✅ §B1 简称反例「其中完美日子里的数据…」→ 零命中(枚举守卫防误报) — got=[]
+  ✅ §B1 简称反例「请分析完美的中式餐饮…」→ 零命中(枚举守卫防误报) — got=[]
+  ✅ §B1 简称反例「日本央行政策利率…」→ 零命中(枚举守卫防误报) — got=[]
+  ✅ §B1 简称反例「美国与欧元区的增长…」→ 零命中(枚举守卫防误报) — got=[]
+  ✅ §B2 orchestrator 经济体识别: 开放问句(简称)→四地全中(不再漏检成默认面 US+CN) — ecos=['US', 'EA', 'CN', 'JP']
+  ✅ §B3 detect_map_question(开放问句)→True(隐含全维族+形状词「环境」)
+  ✅ §B4 句段请求: 4 地区×3 维=12 组(隐含展开,零显式维度词形) — n=12
+  ✅ §B5 plan 落档 dimension_source=implicit_macro_environment(读者可核网格为何如此) — implicit_macro_environment(问句无显式维度词形,按环境/分化线索展开全维族 增长+通胀+货币政策;证据不足维度由缺口面逐项标注)
+  ✅ §B6 未参与调试的新问(美、日+宏观基本面)同形态→识别+12→2 地区×3 维
+  ✅ §B7 近失「美国、中国、欧元区、日本的情…」→ 非地图(无形状词不误触发)
+  ✅ §B7 近失「美国12个月前和3个月前的增…」→ 非地图(无形状词不误触发)
+═══ §C 任务3: BOJ 生效日/LPR 09:00/历史两端+四回归 ═══
+  ✅ §C1 BOJ: 决议 09-18/生效 09-24/目标 1.25——距上次调整 58 天按**生效日**(非决议日 64) — adj=58 dec=64
+  ✅ §C1b 10-30 维持公告只更新确认状态(目标/生效日不动,核验截止刷新到 10-30;距维持 22 天) — mnt=2026-10-30
+  ✅ §C2 LPR 官方时刻 09:00 三处统一(注册表×2+POLICY_FACE+发布节奏表零 09:15 残留) — reg_0915=0
+  ✅ §C2b 日历 LPR 条目 time=09:00(各表同读官方时刻) — times=['09:00', '09:00']
+  ✅ §C3 2022-03 锚不泄漏: 截止 03-31 只见 2 月观测(3 月观测 04-09 发布=事后才可知,4 月更不取) — r=(1.1, '2022-02-01', '2022-03-09') why=None
+  ✅ §C4 同比缺基期=缺证(2022-05 观测的 2021-05 基期不在场→no_visible_base,不编同比) — why=no_visible_base
+  ✅ §C5 同期重复观测确定性: 同月取最晚观测日,重复调用逐位一致(不随机选值) — a=('2022-02-28', 1.4)
+  ✅ §C6 相对日期事后事实: 随后3、6、12个月=事件日锚偏移(anchored_on 事件日,与日历点锚分记)
+  ✅ §C7 两端各按可知截止: 截止端=5 月观测/锚−3月端=2 月观测(不并轨取同一值) — cutoff=(1.6, '2022-05-01', '2022-06-09') prior=(1.1, '2022-02-01', '2022-03-09')
+═══ §D 任务4: 渲染依赖随包冻结+严格重放五步 ═══
+  ✅ §D1 归档携冻结面: root_overlay/ 三件+manifest.frozen_inputs+聚合摘要==终裁绑定(源摘要匹配终裁) — gen=True rc_a=0 n=3
+  ✅ §D2 严格重放绿: 逐字节相等+冻结三查+终裁三面绑定全 ok — rc=0 mode=byte_equal bad=[]
+  ✅ §D3 更换本地日历→重放仍逐字节一致(本地现状零影响;且==包内原档) — rc=0 mode=byte_equal
+  ✅ §D4 重复重放一致+原档未被触碰(package_untouched_postwrite) — rc=0
+  ✅ §D5 缺件拒绝: frozen_inputs_present FAIL 在场+整体 rc=1 — rc=1 present=False
+  ✅ §D6 篡改冻结日历→frozen_inputs_digests FAIL+整体拒 — rc=1
+  ✅ §D7 manifest 冻结摘要单侧改写→digests/match_report 拒 — rc=1
+  ✅ §D8 裁决后单侧改写 rd/root_overlay 冻结副本→归档拒(逐件字节/摘要核验拦,不入包) — rc=1 err=冻结件与运行时摘要不符: 冻结输入摘要不符: root_overlay/config/release_calendar.json 期望 e44fd2aa5ced
+  ✅ §D8b 席位 extra 绑异摘要→ValueError 拒落档 — 席位冻结摘要与报告冻结面不符: extra=deadbeef 报告=c61f3ca5ec43cbcc (席位必须绑定本报
+═══ §E C2 实雷: 地图内容缺口先于进程旗标(合成五面) ═══
+  ✅ §E1 map+run_ok=False+核心组缺数→map_core_dimension_missing — map_core_dimension_missing
+  ✅ §E2 map+run_ok=False+内容全绿→optional_data_missing — optional_data_missing
+  ✅ §E3 map+run_ok=True+核心组缺数→map_core_dimension_missing — map_core_dimension_missing
+  ✅ §E4 非map+run_ok=False+无败步→optional_data_missing
+  ✅ §E5 非map+run_ok=False+非拒答败步→critical_step_failure — critical_step_failure
+
+════════════════════════════════════════════════════════════
+Audit-R29 门: 43 PASS / 0 FAIL (共 43 判据)

@@ -1,0 +1,100 @@
+═══ §1 归档一致性: 已审正文原字节×三序列×三快照×两工单 ═══
+  [r22_orig_direct] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r22_orig_r1a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r22_orig_r2a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r22_none_direct] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r22_none_r1a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r22_none_r2a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r22_tamper_direct] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r22_tamper_r1a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r22_tamper_r2a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r23_orig_direct] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r23_orig_r1a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r23_orig_r2a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r23_none_direct] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r23_none_r1a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r23_none_r2a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r23_tamper_direct] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r23_tamper_r1a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  [r23_tamper_r2a] rc=0 deliv=None blocked=None 审字节=True 原件=True
+  ✅ §1 A1 r22/orig 三序列一致(同放行/同拒绝同因) — [(0, None), (0, None), (0, None)]
+  ✅ §1 A2+A4 r22/orig 已审正文按原字节归档+原件保留
+  ✅ §1 A3 r22/orig legacy 无绑定如实注记(map_legacy_no_binding=true,不追溯)
+  ✅ §1 A5 r22/orig 摘要三处一致(manifest==裁决绑定)
+  ✅ §1 漂移披露 r22/orig (渲染器漂移入 manifest,受审字节不被改写)
+  ✅ §1 A1 r22/none 三序列一致(同放行/同拒绝同因) — [(0, None), (0, None), (0, None)]
+  ✅ §1 A2+A4 r22/none 已审正文按原字节归档+原件保留
+  ✅ §1 A3 r22/none legacy 无绑定如实注记(map_legacy_no_binding=true,不追溯)
+  ✅ §1 A5 r22/none 摘要三处一致(manifest==裁决绑定)
+  ✅ §1 漂移披露 r22/none (渲染器漂移入 manifest,受审字节不被改写)
+  ✅ §1 A1 r22/tamper 三序列一致(同放行/同拒绝同因) — [(0, None), (0, None), (0, None)]
+  ✅ §1 A2+A4 r22/tamper 已审正文按原字节归档+原件保留
+  ✅ §1 A3 r22/tamper legacy 无绑定如实注记(map_legacy_no_binding=true,不追溯)
+  ✅ §1 A5 r22/tamper 摘要三处一致(manifest==裁决绑定)
+  ✅ §1 漂移披露 r22/tamper (渲染器漂移入 manifest,受审字节不被改写)
+  ✅ §1 A1 r23/orig 三序列一致(同放行/同拒绝同因) — [(0, None), (0, None), (0, None)]
+  ✅ §1 A2+A4 r23/orig 已审正文按原字节归档+原件保留
+  ✅ §1 A3 r23/orig 落盘==裁决绑定(归档内容段==map_report_sha256;三快照面不进任何字节)
+  ✅ §1 A5 r23/orig 摘要三处一致(manifest==裁决绑定)
+  ✅ §1 漂移披露 r23/orig (渲染器漂移入 manifest,受审字节不被改写)
+  ✅ §1 A1 r23/none 三序列一致(同放行/同拒绝同因) — [(0, None), (0, None), (0, None)]
+  ✅ §1 A2+A4 r23/none 已审正文按原字节归档+原件保留
+  ✅ §1 A3 r23/none 落盘==裁决绑定(归档内容段==map_report_sha256;三快照面不进任何字节)
+  ✅ §1 A5 r23/none 摘要三处一致(manifest==裁决绑定)
+  ✅ §1 漂移披露 r23/none (渲染器漂移入 manifest,受审字节不被改写)
+  ✅ §1 A1 r23/tamper 三序列一致(同放行/同拒绝同因) — [(0, None), (0, None), (0, None)]
+  ✅ §1 A2+A4 r23/tamper 已审正文按原字节归档+原件保留
+  ✅ §1 A3 r23/tamper 落盘==裁决绑定(归档内容段==map_report_sha256;三快照面不进任何字节)
+  ✅ §1 A5 r23/tamper 摘要三处一致(manifest==裁决绑定)
+  ✅ §1 漂移披露 r23/tamper (渲染器漂移入 manifest,受审字节不被改写)
+  ✅ §1 新版本正道: --new-map-version 重渲+map_version=2+本轮不交付(旧裁决待复审) — ['新地图版本已渲染(map_version=2)——内容摘要已变,旧裁决过期;独立席复审落新裁决后方可交付/归档(更正或重']
+  ✅ §1 新版本正道: 旧裁决过期(fresh=False→复跑仍拒)
+  ✅ §1 新版本正道: 复审落新裁决→交付+归档(map_version=2 随档,双锚=新版本)
+═══ §2 历史信息截止: EA 两级发布实录+INDPRO 改期+事后政策事件 ═══
+  ✅ §2 EA@2021-05 官方实录: 快报2021-06-01+终值2021-06-17(basis=calendar:user_directive) — vf=2021-06-01 pub=2021-06-17 basis=calendar:RC-EA-HICP-2021M05(user_directi
+  ✅ §2 EA@2022-06 官方实录: 快报2022-07-01+终值2022-07-19(basis=calendar:user_directive) — vf=2022-07-01 pub=2022-07-19 basis=calendar:RC-EA-HICP-2022M06(user_directi
+  ✅ §2 EA 2021-05 月末截止: 快报未出→已知=2021-04(1.6),2021-05(2.0)移事后段(发布纪律=当时不可知) — [('2021-05', '2021-06-01')]
+  ✅ §2 EA_HICP_YOY@2021-05: 前一天2021-05-31不可见/当天2021-06-01可见 — pub=2021-06-01
+  ✅ §2 EA_HICP_YOY@2022-06: 前一天2022-06-30不可见/当天2022-07-01可见 — pub=2022-07-01
+  ✅ §2 INDPRO@2025-09: 前一天2025-12-02不可见/当天2025-12-03可见 — pub=2025-12-03
+  ✅ §2 CPI@2025-09: 前一天2025-10-23不可见/当天2025-10-24可见 — pub=2025-10-24
+  ✅ §2 CORE_PCE@2025-10: 前一天2026-01-21不可见/当天2026-01-22可见 — pub=2026-01-22
+  ✅ §2 CORE_PCE@2025-11: 前一天2026-01-21不可见/当天2026-01-22可见 — pub=2026-01-22
+  ✅ §2 UNEMPLOYMENT@2025-11: 前一天2025-12-15不可见/当天2025-12-16可见 — pub=2025-12-16
+  ✅ §2 INDPRO 2025-09: G.17 官方改期实录 2025-12-03 优先于 REST-CONSERVATIVE 保守界(最特定条目胜) — vf=2025-12-03 basis=calendar:RC-2025SHUTDOWN-INDPRO-SEP(user_directi
+  ✅ §2 INDPRO 2025-10: G.17 合并补发实录 2025-12-23(R25 权威日期修订: 取代旧保守界 2026-01-22——10+11 月一次补发官方公告) — vf=2025-12-23 basis=calendar:RC-2025SHUTDOWN-INDPRO-OCTNOV(user_directiv
+  ✅ §2 缺首发证据: 无条目→rule:推定随格披露(不冒充实录);规则也给不出→(None,unavailable) 不虚构 — basis=rule:推定 visible_publish_date=(None, 'unavailable')
+  ✅ §2 缺首发证据(面级): 截止月无可知观测→明确缺口(absent@2021-05 注明「截至截止月无可知观测」),不编上期;有上期则展示上期已知值(见 2021-05 两观测探针) — ['CPI(美国 CPI(指数水平))', 'CORE_PCE(美国核心PCE(指数水平))', 'INDPRO(美国工业生产(指数))', 'UNEMPLOYMENT(美国失业率)', 'US_REAL_GDP(美国实际GDP)', 'CN_PPI_YOY(中国PPI同比)', 'CN_CPI_YOY(中国CPI同比)', 'EA_HICP_YOY(欧元区HICP同比)@2021-05(截至截止月无可知观测)', 'JP_CPI_YOY(日本CPI同比)']
+  ✅ §2 四态分记: EA 行含快报日+终值日+修订口径(最新修订值族);政策事件行 kind=policy_event 与延误行分形
+  ✅ §2 2016-10 类比: 2016-12 美联储加息(0.5→0.75,观测日2016-12-15)入事后段=事后政策事件,非当时可知;2017-03 再加息同列 — [('2016-12-15', 0.5, 0.75), ('2017-03-16', 0.75, 1.0)]
+  ✅ §2 渲染: 事后段表含政策事件行(0.5→0.75(事后政策事件)) — 可知,移入事后段 | — |
+  | 美联储目标区间上限(DFEDTARU) | 2016-12 | 0.5→0.75(事后政策事件) | 2016-12-15
+═══ §3 正文数字校验: 对调拒绝+日本双单位+指数点双记法+无新观测 ═══
+  ✅ §3 基线: R22 原文在归属核下仍 VERIFIED(名义97/实际104/盈亏平衡-7 逐分量对账通过) — verdict=VERIFIED bads=[]
+  ✅ §3 反例①: 美债名义+104bp/实际+97bp 对调 → CONTRADICTED(bp_attributed: 两值都在池内,归属核逐分量对账拒绝) — [('reader_map.headline_conclusion.bp_attributed', '基点主张 +104bp 归属名义(UST_10Y)与引擎该分量不符(名义(UST_10Y)=97.0;年度窗)——分量归'), ('reader_map.headline_conclusion.bp_attributed', '基点主张 +97bp 归属实际(TIPS_10Y)与引擎该分量不符(实际(TIPS_10Y)=104.0;年度窗)——分')]
+  ✅ §3 正例②: 日本+67bp(池外序列)→ 按引擎 JGB10Y 同窗复算通过(三利率池只住美债,不在池≠错) — bads=[]
+  ✅ §3 正例③: 日本+0.67个百分点 → 精确 pp↔bp 对(×100=67bp)同窗通过(双单位等价) — bads=[]
+  ✅ §3 反例④: 日本+0.6个百分点(=60bp≠67bp) → bp_attributed 拦(双单位等价不放松数值) — ['reader_map.headline_conclusion.bp_attributed']
+  ✅ §3 正例⑤: CPI 类指数主张 +5.29 指数点(水平差)→ 引擎复算 5.289 通过(0.06 紧容差) — bads=[]
+  ✅ §3 正例⑥: 同窗 +1.98%(相对幅)→ 复算 1.98% 通过(双记法均可核) — bads=[]
+  ✅ §3 反例⑦: 指数点值误标 %(5.29%≠1.98%) → ex_post 拦(单位记法不可互换) — ['reader_map.history_periods[0].ex_post.3m']
+  ✅ §3 反例⑧: 相对幅误标指数点(1.98≠5.289) → ex_post 拦 — ['reader_map.history_periods[0].ex_post.3m']
+  ✅ §3 同观测窗: 30日窗两端取到同一观测 → 「窗口内无新观测」+最近两期实际变化另列(不以 0 变化冒充) — '(引擎当前面: 2026-10-18=49.3;近30日窗口内无新观测——最近两期 2026-09-18=49.2→2026-10-18=49.3,Δ+0.1 指数点(+0.20%))'
+  ✅ §3 同观测窗(利率族): 最近两期变化按 bp 记(Δ-16bp),不误标指数点 — '(引擎当前面: 2026-10-18=2.19;近30日窗口内无新观测——最近两期 2026-09-18=2.35→2026-10-18=2.19,Δ-16bp)'
+  ✅ §3 指数点记法(渲染): 266.614→271.903 写「+5.289 指数点(+1.98%)」——水平差不再误标 %(Δ5.289% 与 +1.98% 相混的旧缺陷) — '(引擎当前面: 2026-11-18=271.903,近30日266.614→271.903,+5.289 指数点(+1.98%))'
+═══ §4 转折补选交还判断席: 同源纯函数+契约强制+渲染面 ═══
+  ✅ §4 同源纯函数: R22 工单 并项=2 轮事件+补选=1(JP_CPI_TOKYO)——与渲染面/R23 门 §F 同判 — eps=2 picks=[('JP_CPI_TOKYO_YOY', '2026-09')]
+  ✅ §4 旧档不追溯: 无 turning_supplement_discipline 标记 → check17 零项(原文复放必须通过) — verdict=VERIFIED
+  ✅ §4 反例①: 标记在场+判断席未交还补选 → NOT_VERIFIED(turning_supplement 逐项强制) — ['引擎补选转折 JP_CPI_TOKYO_YOY@2026-09 未交还判断席——补选项须在 turning_supplement 逐项写明 谁先变/何时/从多少']
+  ✅ §4 正例②: 补选逐项写明 谁先变+跟进/背离 → VERIFIED — bads=[]
+  ✅ §4 正例③: 诚实拒答面 → 分辨率界限+缺哪项跨国证据写明即过(不编谁先变) — bads=[]
+  ✅ §4 反例④: 只写谁先变缺「跟进或背离」且无诚实注记 → 拦 — ['补选转折 JP_CPI_TOKYO_YOY@2026-09 写了谁先变但缺「跟进或背离」——哪些经济体跟进/背离须逐项给']
+  ✅ §4 渲染(旧档): 补选行如实标「判断席未述此转折」+并项口径注含交还条款(不虚构席位判断) — rows=3
+  ✅ §4 渲染(交还面): 补选行 谁先变=日本先行…/跟进或背离=欧元区未跟进…(席位供面优先,非引擎编) — ['| 2026-09(引擎补选·非判断席) | JP_CPI_TOKYO_YOY(JP/inflation,候选面 |Δ| 降序) | 1.6→2.69 | 2026-06..2026-09 | 日本先行(东京核心CPI ']
+  ✅ §4 渲染(诚实面): 分辨率+缺证据注记进表格(月频…分辨率=月/缺英国同窗通胀序列) — ['| 2026-09(引擎补选·非判断席) | JP_CPI_TOKYO_YOY(JP/inflation,候选面 |Δ| 降序) | 1.6→2.69 | 2026-06..2026-09 | —(判断席未述此转折) | —(分辨率/证据: 月频序列无法判断中']
+═══ §5 双入口: pytest 收集子进程真实执行 + CI 直跑 rc 同构 ═══
+  ✅ §5 pytest 入口: r23 门收集为 1 用例且子进程直跑真实执行(conftest.SuiteFile rc==0 判据;51 判据在 pytest 面真实跑) — rc=0 1 passed in 7.42s
+  ✅ §5 CI 入口(同构直跑): r23 门 python3 直跑 rc=0 且 51 判据逐项打点(两入口同一命令面) — rc=0 ✅数=51
+  ✅ §5 静态面: conftest 反伪绿契约在场+r23/r24 门入口均含字面sys.exit((静态查通过=收集期可判自执行;CI 直跑面 offline-tests.yml 逐件 python3 同构) — entry-ok
+
+Audit-R24 门: 74 PASS / 0 FAIL (共 74 判据)

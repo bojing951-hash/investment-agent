@@ -1,0 +1,997 @@
+{
+ "rows": [
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "HC",
+   "needle": "日本全国 CPI 同比最新读数 2.44%(观测 2026-10,发布 2026-11-20,推定规则)",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2026-10-01",
+   "computed": 2.44,
+   "claimed": 2.44,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "HC",
+   "needle": "低于去年同月(2025-10 为 2.99)",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2025-10-01",
+   "computed": 2.99,
+   "claimed": 2.99,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "HC",
+   "needle": "欧元区 HICP 同比 4.0%(观测 2026-10,推定终值发布日 2026-11-16,推定规则)",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-10-01",
+   "computed": 4.0,
+   "claimed": 4.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "HC",
+   "needle": "高于去年同月(2025-10 为 2.1)",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2025-10-01",
+   "computed": 2.1,
+   "claimed": 2.1,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "HC",
+   "needle": "较六个月前锚两地读数均上行",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY/EA_HICP_YOY 2026-10 减 2026-04 是否 >0",
+   "computed": [
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "HC",
+   "needle": "依据月均市场利率台阶 0.478→1.227",
+   "found": true,
+   "src": "快照 series_store.JP_POLICY_RATE@2025-11-01/@2026-10-01",
+   "computed": [
+    0.478,
+    1.227
+   ],
+   "claimed": [
+    0.478,
+    1.227
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "HC",
+   "needle": "日本央行政策目标约 1.25%(2026-09-18 决议、2026-09-24 生效,2026-10-30 确认维持",
+   "found": true,
+   "src": "release_calendar: target_value/decision_date/effective_on/维持条目 decision_date",
+   "computed": [
+    1.25,
+    "2026-09-18",
+    "2026-09-24",
+    "2026-10-30"
+   ],
+   "claimed": [
+    1.25,
+    "2026-09-18",
+    "2026-09-24",
+    "2026-10-30"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "HC",
+   "needle": "欧央行主要再融资利率 2.65%/存款便利利率 2.5%(2026-09-16 生效;决议日 2026-09-10",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO/ECB_DFR@2026-09-16; 独立推算其前最近周四",
+   "computed": [
+    2.65,
+    2.5,
+    "2026-09-10"
+   ],
+   "claimed": [
+    2.65,
+    2.5,
+    "2026-09-10"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "HC",
+   "needle": "最近六个月两次同幅上调",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO 窗内变更点(日,变动bp)",
+   "computed": [
+    [
+     "2026-06-17",
+     "2026-09-16"
+    ],
+    [
+     25.0,
+     25.0
+    ]
+   ],
+   "claimed": [
+    [
+     "2026-06-17",
+     "2026-09-16"
+    ],
+    [
+     25.0,
+     25.0
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "HC",
+   "needle": "惟欧央行序列止于 2026-09-16(距截止 68 天,Gate A 列 degraded)",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO 末观测日; 距截止天数; gate_a.noncore_degraded",
+   "computed": [
+    "2026-09-16",
+    68,
+    true
+   ],
+   "claimed": [
+    "2026-09-16",
+    68,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "EA",
+   "needle": "欧央行主要再融资利率(政策目标口径)由6个月前锚(观测 2025-06-11)的 2.15% 升至最新一期锚(观测 2026-09-16)的 2.65%",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO 截至 2026-05-23 / 2026-11-23 的最后观测(日,值)",
+   "computed": [
+    [
+     "2025-06-11",
+     2.15
+    ],
+    [
+     "2026-09-16",
+     2.65
+    ]
+   ],
+   "claimed": [
+    [
+     "2025-06-11",
+     2.15
+    ],
+    [
+     "2026-09-16",
+     2.65
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "EA",
+   "needle": "由 2.0% 升至 2.5%",
+   "found": true,
+   "src": "快照 series_store.ECB_DFR 截至 2026-05-23 / 2026-11-23 的最后观测值",
+   "computed": [
+    2.0,
+    2.5
+   ],
+   "claimed": [
+    2.0,
+    2.5
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "EA",
+   "needle": "两次变更(2026-06-17 生效、2026-09-16 生效,各 +25bp",
+   "found": true,
+   "src": "快照 series_store.ECB_DFR 窗内变更点(日,变动bp)",
+   "computed": [
+    [
+     "2026-06-17",
+     "2026-09-16"
+    ],
+    [
+     25.0,
+     25.0
+    ]
+   ],
+   "claimed": [
+    [
+     "2026-06-17",
+     "2026-09-16"
+    ],
+    [
+     25.0,
+     25.0
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "EA",
+   "needle": "HICP 同比由6个月前锚(观测月 2026-04)的 3.0% 至最新一期锚(观测月 2026-10)的 4.0%",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-04-01/@2026-10-01",
+   "computed": [
+    3.0,
+    4.0
+   ],
+   "claimed": [
+    3.0,
+    4.0
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "EA",
+   "needle": "相比去年同月(2025-10 为 2.1)高 1.9 个百分点",
+   "found": true,
+   "src": "EA_HICP_YOY@2026-10 减 @2025-10",
+   "computed": [
+    2.1,
+    1.9
+   ],
+   "claimed": [
+    2.1,
+    1.9
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "EA",
+   "needle": "路径: 2026-01 谷底 1.7→2026-02 1.9→2026-05 3.2→2026-06 2.8→2026-10 4.0",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-01/02/05/06/10",
+   "computed": [
+    1.7,
+    1.9,
+    3.2,
+    2.8,
+    4.0
+   ],
+   "claimed": [
+    1.7,
+    1.9,
+    3.2,
+    2.8,
+    4.0
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "EA",
+   "needle": "最新读数为近十二个月最高",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY 2025-11..2026-10 最大值及是否等于 2026-10 值",
+   "computed": [
+    4.0,
+    true
+   ],
+   "claimed": [
+    4.0,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "EA",
+   "needle": "发布 2026-11-16 为引擎推定规则下的终值日",
+   "found": true,
+   "src": "独立推算 2026-10-31+16天",
+   "computed": "2026-11-16",
+   "claimed": "2026-11-16",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "JP",
+   "needle": "发布日历实录(v1.5.0,2026-11-21 更新)政策目标利率约 1.25%",
+   "found": true,
+   "src": "release_calendar.version/updated; target_value",
+   "computed": [
+    "1.5.0",
+    "2026-11-21",
+    1.25
+   ],
+   "claimed": [
+    "1.5.0",
+    "2026-11-21",
+    1.25
+   ],
+   "ok": true,
+   "note": "日历 version 字段='1.5.0'(无 v 前缀),受审稿写作 v1.5.0=书写差异"
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "JP",
+   "needle": "由6个月前锚(观测月 2026-04)的 0.727% 台阶升至最新一期锚(观测月 2026-10)的 1.227%",
+   "found": true,
+   "src": "快照 series_store.JP_POLICY_RATE@2026-04-01/@2026-10-01",
+   "computed": [
+    0.727,
+    1.227
+   ],
+   "claimed": [
+    0.727,
+    1.227
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "JP",
+   "needle": "近 12 个月月均由 2025-11 的 0.478 升至 2026-10 的 1.227,约 +75bp",
+   "found": true,
+   "src": "快照 series_store.JP_POLICY_RATE@2025-11-01/@2026-10-01 及差×100",
+   "computed": [
+    0.478,
+    1.227,
+    75
+   ],
+   "claimed": [
+    0.478,
+    1.227,
+    75
+   ],
+   "ok": true,
+   "note": "未取整=74.9bp,受审稿『约 +75bp』(取整 bp)"
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "JP",
+   "needle": "净 +75bp=六个变动点之和,窗口 2025-11-23..2026-11-23",
+   "found": true,
+   "src": "快照 series_store.JP_POLICY_RATE 窗 (2025-11-23,2026-11-23] 变动点数与变动和(bp); 窗启时在值/窗末值",
+   "computed": [
+    6,
+    75,
+    75.1,
+    0.478,
+    1.227
+   ],
+   "claimed": [
+    6,
+    75,
+    75.1,
+    0.478,
+    1.227
+   ],
+   "ok": true,
+   "note": "逐台阶整数 bp 之和=75; 未取整和=75.1bp; 窗启在值→窗末=74.9bp(月均三位小数舍入所致,『约 +75bp』成立)"
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "JP",
+   "needle": "引擎政策一年窗路径同口径",
+   "found": true,
+   "src": "report.json point_values.cells[JP_POLICY_RATE].policy_window_path.{window,net_bp,window_start_value,window_end_value}",
+   "computed": [
+    [
+     "2025-11-23",
+     "2026-11-23"
+    ],
+    75,
+    0.478,
+    1.227
+   ],
+   "claimed": [
+    [
+     "2025-11-23",
+     "2026-11-23"
+    ],
+    75,
+    0.478,
+    1.227
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "JP",
+   "needle": "2026-09→2026-10 台阶(1.043→1.227)",
+   "found": true,
+   "src": "快照 series_store.JP_POLICY_RATE@2026-09-01/@2026-10-01",
+   "computed": [
+    1.043,
+    1.227
+   ],
+   "claimed": [
+    1.043,
+    1.227
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "JP",
+   "needle": "全国 CPI 同比由6个月前锚(观测月 2026-04)的 1.38% 升至最新一期锚(观测月 2026-10)的 2.44%",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2026-04-01/@2026-10-01",
+   "computed": [
+    1.38,
+    2.44
+   ],
+   "claimed": [
+    1.38,
+    2.44
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "JP",
+   "needle": "最新读数相比去年同月(2025-10 为 2.99)低 0.55 个百分点",
+   "found": true,
+   "src": "JP_CPI_YOY@2025-10 与 2026-10 之差(绝对值)",
+   "computed": [
+    2.99,
+    0.55
+   ],
+   "claimed": [
+    2.99,
+    0.55
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "JP",
+   "needle": "由6个月前锚观测月 2026-04 的 1.42% 升至最新一期锚观测月 2026-10 的 2.73%",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_TOKYO_YOY@2026-04-01/@2026-10-01",
+   "computed": [
+    1.42,
+    2.73
+   ],
+   "claimed": [
+    1.42,
+    2.73
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL1.observed_fact",
+   "needle": "EA_HICP_YOY 2026-02 1.9→2026-05 3.2→2026-10 4.0",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-02/05/10",
+   "computed": [
+    1.9,
+    3.2,
+    4.0
+   ],
+   "claimed": [
+    1.9,
+    3.2,
+    4.0
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL1.observed_fact",
+   "needle": "JP_CPI_YOY 2026-02 1.27→2026-10 2.44",
+   "found": true,
+   "src": "快照 series_store.JP_CPI_YOY@2026-02-01/@2026-10-01",
+   "computed": [
+    1.27,
+    2.44
+   ],
+   "claimed": [
+    1.27,
+    2.44
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL1.main_predicts",
+   "needle": "决议日(回推 2026-06-11)前可见 2026-04=3.0、生效日前可见 2026-05=3.2",
+   "found": true,
+   "src": "引擎规则(观测月末+16天)下 ≤2026-06-11 / ≤2026-06-17 已入档的最新观测月与值(读数=快照最新修订值)",
+   "computed": [
+    "2026-04",
+    3.0,
+    "2026-05",
+    3.2
+   ],
+   "claimed": [
+    "2026-04",
+    3.0,
+    "2026-05",
+    3.2
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL1.main_predicts",
+   "needle": "决议日(回推 2026-09-10)前可见 2026-07=2.9、生效日前可见 2026-08=3.2",
+   "found": true,
+   "src": "引擎规则下 ≤2026-09-10 / ≤2026-09-16 已入档的最新观测月与值",
+   "computed": [
+    "2026-07",
+    2.9,
+    "2026-08",
+    3.2
+   ],
+   "claimed": [
+    "2026-07",
+    2.9,
+    "2026-08",
+    3.2
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL1.verdict_note",
+   "needle": "发布日 2026-09-16 与生效日同日",
+   "found": true,
+   "src": "独立推算 2026-08 观测月的引擎发布日(月末+16天)",
+   "computed": "2026-09-16",
+   "claimed": "2026-09-16",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL1.verdict_note",
+   "needle": "两序列自 2025-06-11 至 2026-06-17 维持 2.15/2.0 共 371 天",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO/ECB_DFR@2025-06-11(日,值); 开区间 (2025-06-11,2026-06-17) 内变更点数; 天数差",
+   "computed": [
+    [
+     "2025-06-11",
+     2.15
+    ],
+    [
+     "2025-06-11",
+     2.0
+    ],
+    0,
+    0,
+    371
+   ],
+   "claimed": [
+    [
+     "2025-06-11",
+     2.15
+    ],
+    [
+     "2025-06-11",
+     2.0
+    ],
+    0,
+    0,
+    371
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL1.verdict_note",
+   "needle": "其间读数已由 2026-01 的 1.7 升至 2026-04 的 3.0 而未触发变更",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-01-01/@2026-04-01",
+   "computed": [
+    1.7,
+    3.0
+   ],
+   "claimed": [
+    1.7,
+    3.0
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL1.verdict_note",
+   "needle": "两次变更相隔 91 天、各 25bp",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO 两变更点间隔天数与变动bp",
+   "computed": [
+    91,
+    [
+     25.0,
+     25.0
+    ]
+   ],
+   "claimed": [
+    91,
+    [
+     25.0,
+     25.0
+    ]
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL1.verdict_note",
+   "needle": "第二次变更的决议日前可见读数 2.9 低于 2026-05 峰值 3.2",
+   "found": true,
+   "src": "快照 series_store.EA_HICP_YOY@2026-07-01/@2026-05-01",
+   "computed": [
+    2.9,
+    3.2,
+    true
+   ],
+   "claimed": [
+    2.9,
+    3.2,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL1.verdict_note",
+   "needle": "两次变更决议日前可见读数为 2026-05 的 3.2 与 2026-08 的 3.2",
+   "found": true,
+   "src": "按日历两档形态(次月首日快报) ≤2026-06-11 / ≤2026-09-10 已发布的最新观测月与值(读数=快照最新修订值)",
+   "computed": [
+    "2026-05",
+    3.2,
+    "2026-08",
+    3.2
+   ],
+   "claimed": [
+    "2026-05",
+    3.2,
+    "2026-08",
+    3.2
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL2.observed_fact",
+   "needle": "由 2026-10-23 的约 175.61 降至 2026-11-20 的约 175.19(-0.24%)、2026-11-23 盘中约 174.32(-0.73%)",
+   "found": true,
+   "src": "快照 series_store.EURUSD×USDJPY@2026-10-23/@2026-11-20/@2026-11-23",
+   "computed": [
+    175.609119,
+    175.194108,
+    -0.236327,
+    174.321156,
+    -0.733426
+   ],
+   "claimed": [
+    175.61,
+    175.19,
+    -0.24,
+    174.32,
+    -0.73
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL2.verdict_note",
+   "needle": "引擎面美元端利率高于两地",
+   "found": true,
+   "src": "快照 series_store.DFEDTARU/DFEDTARL@2026-11-23 与 MRO 2.65、BOJ 目标 1.25 的大小关系",
+   "computed": [
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL2.verdict_note",
+   "needle": "美联储 2026-09-17 生效",
+   "found": true,
+   "src": "快照 series_store.DFEDTARL/DFEDTARU 最后值变更日",
+   "computed": [
+    "2026-09-17",
+    "2026-09-17"
+   ],
+   "claimed": [
+    "2026-09-17",
+    "2026-09-17"
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL2.verdict_note",
+   "needle": "窗内三地均无政策利率变动点",
+   "found": true,
+   "src": "快照 series_store.ECB_MRO/ECB_DFR/DFEDTARL/DFEDTARU 在 (2026-10-23,2026-11-20] 的变更点数; JP_POLICY_RATE 月值 2026-10→最新",
+   "computed": [
+    0,
+    0,
+    0,
+    0,
+    true
+   ],
+   "claimed": [
+    0,
+    0,
+    0,
+    0,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL3.competing_explanation",
+   "needle": "VIX +84.5% 的单月幅度",
+   "found": true,
+   "src": "快照 series_store.VIX@2026-10-23→@2026-11-20 涨跌幅%",
+   "computed": 84.524407,
+   "claimed": 84.5,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL3.observed_fact",
+   "needle": "跳升集中于末五个交易日(2026-11-13→2026-11-20,19.30→35.89)",
+   "found": true,
+   "src": "快照 series_store.VIX 2026-11-13 之后至 11-20 的观测数; 两值",
+   "computed": [
+    5,
+    19.299999,
+    35.889999
+   ],
+   "claimed": [
+    5,
+    19.3,
+    35.89
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL3.verdict_note",
+   "needle": "DAX -1.50%、CAC40 +1.86% vs SPX -9.36%",
+   "found": true,
+   "src": "快照 series_store.DAX/CAC40/SPX@2026-10-23→@2026-11-20 涨跌幅%",
+   "computed": [
+    -1.504552,
+    1.862181,
+    -9.356243
+   ],
+   "claimed": [
+    -1.5,
+    1.86,
+    -9.36
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL3.verdict_note",
+   "needle": "日本端与美股相当(-9.98%)",
+   "found": true,
+   "src": "快照 series_store.NIKKEI225@2026-10-23→@2026-11-20 涨跌幅%",
+   "computed": -9.979574,
+   "claimed": -9.98,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL3.verdict_note",
+   "needle": "距最近政策日 2026-10-30(BOJ 维持决议,无变更)14 天、距 ECB 最近生效日 2026-09-16 58 天",
+   "found": true,
+   "src": "独立推算天数差(自 2026-11-13)",
+   "computed": [
+    14,
+    58
+   ],
+   "claimed": [
+    14,
+    58
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL3.verdict_note",
+   "needle": "至跳升终点 2026-11-20 为 21 天、65 天",
+   "found": true,
+   "src": "独立推算天数差(自 2026-11-20)",
+   "computed": [
+    21,
+    65
+   ],
+   "claimed": [
+    21,
+    65
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL3.verdict_note",
+   "needle": "发布当日及其后两个交易日 VIX 收盘 24.56、28.44、35.89",
+   "found": true,
+   "src": "快照 series_store.VIX@2026-11-18/19/20",
+   "computed": [
+    24.559999,
+    28.440001,
+    35.889999
+   ],
+   "claimed": [
+    24.56,
+    28.44,
+    35.89
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑦传导链(reader_map)",
+   "where": "TL3.verdict_note",
+   "needle": "2026-11-23 快照 27.01,较 2026-11-20 收盘 -24.7%",
+   "found": true,
+   "src": "快照 series_store.VIX@2026-11-23 与对 11-20 涨跌幅%",
+   "computed": [
+    27.01,
+    -24.742266
+   ],
+   "claimed": [
+    27.01,
+    -24.7
+   ],
+   "ok": true,
+   "note": ""
+  }
+ ],
+ "errors": [],
+ "F": {
+  "jpr_strict_vs_step": [
+   8,
+   6,
+   [
+    [
+     "2026-04-01",
+     -0.1
+    ],
+    [
+     "2026-08-01",
+     -0.1
+    ]
+   ]
+  ],
+  "fed_last_change": {
+   "DFEDTARL": [
+    "2026-09-17",
+    3.5,
+    3.75
+   ],
+   "DFEDTARU": [
+    "2026-09-17",
+    3.75,
+    4.0
+   ]
+  },
+  "policy_event_clusters": {
+   "basis": "同一事件的跨国信号合并: 各政策行一年窗路径事件按决议日跨地区聚簇(±7 日)——同簇=同一全球政策事件,三个转折中计一个事件;逐国决议日/生效日分记(决议→生效惯例: Fed=次日,ECB=决议后首个周三,PBOC=宣布即时)。月频证据只能说明同步时,先后未定。",
+   "clusters": [
+    {
+     "cluster_id": "POLCLUSTER-01",
+     "date_from": "2026-06-11",
+     "date_to": "2026-06-11",
+     "regions": [
+      "EA"
+     ],
+     "events": [
+      {
+       "region": "EA",
+       "metric_id": "ECB_DFR",
+       "display_name": "欧央行存款便利利率",
+       "date": "2026-06-11",
+       "effective_date": "2026-06-17",
+       "delta_bp": 25,
+       "from": 2.0,
+       "to": 2.25,
+       "decision_to_effective_days": 6
+      }
+     ],
+     "same_event_cross_country": false,
+     "note": "单地区事件(不跨国产合并)"
+    },
+    {
+     "cluster_id": "POLCLUSTER-02",
+     "date_from": "2026-09-10",
+     "date_to": "2026-09-10",
+     "regions": [
+      "EA"
+     ],
+     "events": [
+      {
+       "region": "EA",
+       "metric_id": "ECB_DFR",
+       "display_name": "欧央行存款便利利率",
+       "date": "2026-09-10",
+       "effective_date": "2026-09-16",
+       "delta_bp": 25,
+       "from": 2.25,
+       "to": 2.5,
+       "decision_to_effective_days": 6
+      }
+     ],
+     "same_event_cross_country": false,
+     "note": "单地区事件(不跨国产合并)"
+    }
+   ]
+  }
+ }
+}

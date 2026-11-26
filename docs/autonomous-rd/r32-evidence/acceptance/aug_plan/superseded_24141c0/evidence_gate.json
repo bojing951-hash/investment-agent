@@ -1,0 +1,1387 @@
+{
+ "run_evidence_gate": {
+  "discipline": "r32",
+  "as_of": "2026-08-21",
+  "source_snapshot_id": "research_snapshot_20261121",
+  "source_target_date": "2026-11-21",
+  "historical_view": true,
+  "publication_basis": "calendar_first_publish|release_rules",
+  "rules": [
+   "①观测日≤as_of",
+   "②发布日≤as_of(历史截止: 日历实录优先/RELEASE_RULES 推定)",
+   "③值版本: as-of 快照版本优先;无则注册表未声明修订=值不随版本变(可引用);声明最新修订口径=观测须已过首个修订周期(首发日+1发布周期≤as_of),否则当时数据版本不可得逐点剔除"
+  ],
+  "vintage": {
+   "basis": "no_asof_vintage_snapshot",
+   "vintage_snapshot": null,
+   "vintage_snapshot_id": null,
+   "vintage_error": null,
+   "revised_series": [
+    "EA_HICP_YOY",
+    "EA_REAL_GDP_YOY",
+    "JP_CPI_YOY",
+    "JP_REAL_GDP_YOY",
+    "M2SL",
+    "SPX_CAPE",
+    "SPX_EPS",
+    "SPX_PE_TTM",
+    "US_REAL_GDP"
+   ],
+   "excluded_series": [
+    "CN_POLICY_OVERNIGHT"
+   ]
+  },
+  "counts": {
+   "facts_kept": 1,
+   "facts_rebuilt": 78,
+   "facts_dropped": 13,
+   "facts_excluded_version": 0,
+   "series_observations_dropped": 3743,
+   "series_observations_version_unavailable": 3,
+   "series_excluded": 1,
+   "series_n": 88
+  },
+  "series": {
+   "SPX": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "NDX": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "RUT": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "NVDA": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "AAPL": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "MSFT": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "TLT": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "HYG": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "DXY": {
+    "n_in": 2516,
+    "n_kept": 2451,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "EURUSD": {
+    "n_in": 2602,
+    "n_kept": 2536,
+    "n_late_observation": 65,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "GOLD_F": {
+    "n_in": 2516,
+    "n_kept": 2451,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "SILVER_F": {
+    "n_in": 2515,
+    "n_kept": 2450,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "WTI_F": {
+    "n_in": 2516,
+    "n_kept": 2451,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "BRENT_F": {
+    "n_in": 2517,
+    "n_kept": 2452,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "EEM": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "BTC": {
+    "n_in": 3652,
+    "n_kept": 3560,
+    "n_late_observation": 91,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "VIX": {
+    "n_in": 2516,
+    "n_kept": 2450,
+    "n_late_observation": 65,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "EZU": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "FEZ": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "EWU": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "EWG": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "DAX": {
+    "n_in": 2539,
+    "n_kept": 2473,
+    "n_late_observation": 65,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CAC40": {
+    "n_in": 2560,
+    "n_kept": 2494,
+    "n_late_observation": 65,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "EWJ": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "INDA": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "FXI": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "GBPUSD": {
+    "n_in": 2602,
+    "n_kept": 2536,
+    "n_late_observation": 65,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "USDJPY": {
+    "n_in": 2602,
+    "n_kept": 2536,
+    "n_late_observation": 65,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "USDCNY": {
+    "n_in": 2602,
+    "n_kept": 2535,
+    "n_late_observation": 66,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "IEF": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "SHY": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "LQD": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "GLD": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "USO": {
+    "n_in": 2514,
+    "n_kept": 2449,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "SHCOMP": {
+    "n_in": 320,
+    "n_kept": 260,
+    "n_late_observation": 59,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "SZCI": {
+    "n_in": 320,
+    "n_kept": 260,
+    "n_late_observation": 59,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CHINEXT": {
+    "n_in": 320,
+    "n_kept": 260,
+    "n_late_observation": 59,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "HSI": {
+    "n_in": 2466,
+    "n_kept": 2402,
+    "n_late_observation": 63,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "HSCEI": {
+    "n_in": 2466,
+    "n_kept": 2402,
+    "n_late_observation": 63,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "NIKKEI225": {
+    "n_in": 2520,
+    "n_kept": 2459,
+    "n_late_observation": 60,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "JP_POLICY_RATE": {
+    "n_in": 496,
+    "n_kept": 493,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-05"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "ECB_DFR": {
+    "n_in": 69,
+    "n_kept": 68,
+    "n_late_observation": 1,
+    "n_late_publication": 0,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-09-16",
+     "reason": "late_observation"
+    },
+    "last_eligible": "2026-06-17",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "ECB_MRO": {
+    "n_in": 48,
+    "n_kept": 47,
+    "n_late_observation": 1,
+    "n_late_publication": 0,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-09-16",
+     "reason": "late_observation"
+    },
+    "last_eligible": "2026-06-17",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "EA_HICP_YOY": {
+    "n_in": 358,
+    "n_kept": 355,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-16"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "latest_revision_only",
+    "excluded": false
+   },
+   "EA_REAL_GDP_YOY": {
+    "n_in": 123,
+    "n_kept": 121,
+    "n_late_observation": 0,
+    "n_late_publication": 1,
+    "n_version_unavailable": 1,
+    "first_dropped": {
+     "date": "2026-04-01",
+     "reason": "data_version_unavailable",
+     "publish": "2026-08-04",
+     "version_available_on": "2026-09-04"
+    },
+    "last_eligible": "2026-01-01",
+    "vintage": "latest_revision_only",
+    "excluded": false
+   },
+   "SPX_CAPE": {
+    "n_in": 1751,
+    "n_kept": 1747,
+    "n_late_observation": 3,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "latest_revision_only",
+    "excluded": false
+   },
+   "SPX_PE_TTM": {
+    "n_in": 1869,
+    "n_kept": 1867,
+    "n_late_observation": 1,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "latest_revision_only",
+    "excluded": false
+   },
+   "SPX_EPS": {
+    "n_in": 1869,
+    "n_kept": 1867,
+    "n_late_observation": 1,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "latest_revision_only",
+    "excluded": false
+   },
+   "CN_CPI_YOY": {
+    "n_in": 226,
+    "n_kept": 223,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-09"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CN_PPI_YOY": {
+    "n_in": 250,
+    "n_kept": 247,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-09"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CN_LPR_1Y": {
+    "n_in": 1540,
+    "n_kept": 1537,
+    "n_late_observation": 3,
+    "n_late_publication": 0,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-09-20",
+     "reason": "late_observation"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CN_OMO_7D": {
+    "n_in": 201,
+    "n_kept": 168,
+    "n_late_observation": 33,
+    "n_late_publication": 0,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-24",
+     "reason": "late_observation"
+    },
+    "last_eligible": "2026-08-21",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CN_POLICY_OVERNIGHT": {
+    "n_in": 15,
+    "n_kept": 0,
+    "n_late_observation": 15,
+    "n_late_publication": 0,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-11-02",
+     "reason": "late_observation"
+    },
+    "last_eligible": null,
+    "vintage": "not_declared_revised",
+    "excluded": true
+   },
+   "JP_CPI_YOY": {
+    "n_in": 70,
+    "n_kept": 67,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "latest_revision_only",
+    "excluded": false
+   },
+   "JP_CPI_TOKYO_YOY": {
+    "n_in": 10,
+    "n_kept": 7,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-08-30"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "JP_REAL_GDP_YOY": {
+    "n_in": 127,
+    "n_kept": 125,
+    "n_late_observation": 0,
+    "n_late_publication": 1,
+    "n_version_unavailable": 1,
+    "first_dropped": {
+     "date": "2026-04-01",
+     "reason": "data_version_unavailable",
+     "publish": "2026-08-14",
+     "version_available_on": "2026-09-14"
+    },
+    "last_eligible": "2026-01-01",
+    "vintage": "latest_revision_only",
+    "excluded": false
+   },
+   "HY_OAS": {
+    "n_in": 786,
+    "n_kept": 721,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "BB_OAS": {
+    "n_in": 786,
+    "n_kept": 721,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "B_OAS": {
+    "n_in": 786,
+    "n_kept": 721,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CCC_OAS": {
+    "n_in": 786,
+    "n_kept": 721,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "IG_OAS": {
+    "n_in": 785,
+    "n_kept": 720,
+    "n_late_observation": 64,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "UST_2Y": {
+    "n_in": 2499,
+    "n_kept": 2437,
+    "n_late_observation": 61,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "UST_10Y": {
+    "n_in": 2499,
+    "n_kept": 2437,
+    "n_late_observation": 61,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "BEI_10Y": {
+    "n_in": 2500,
+    "n_kept": 2437,
+    "n_late_observation": 62,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CURVE_2S10S": {
+    "n_in": 2500,
+    "n_kept": 2437,
+    "n_late_observation": 62,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "FED_FUNDS": {
+    "n_in": 119,
+    "n_kept": 116,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CPI": {
+    "n_in": 118,
+    "n_kept": 115,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-13"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CORE_PCE": {
+    "n_in": 118,
+    "n_kept": 115,
+    "n_late_observation": 1,
+    "n_late_publication": 2,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-07-01",
+     "reason": "late_publication",
+     "publish": "2026-08-30"
+    },
+    "last_eligible": "2026-06-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "UNEMPLOYMENT": {
+    "n_in": 118,
+    "n_kept": 115,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-05"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "NFP": {
+    "n_in": 119,
+    "n_kept": 116,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CORE_CPI": {
+    "n_in": 118,
+    "n_kept": 115,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-13"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "AHE": {
+    "n_in": 119,
+    "n_kept": 116,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "ICSA": {
+    "n_in": 521,
+    "n_kept": 505,
+    "n_late_observation": 13,
+    "n_late_publication": 3,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-25",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "WTI_SPOT_M": {
+    "n_in": 119,
+    "n_kept": 116,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "UST_5Y": {
+    "n_in": 2499,
+    "n_kept": 2437,
+    "n_late_observation": 61,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "UMCSENT": {
+    "n_in": 119,
+    "n_kept": 116,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "RSAFS": {
+    "n_in": 119,
+    "n_kept": 116,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "INDPRO": {
+    "n_in": 119,
+    "n_kept": 116,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-15"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "JTSJOL": {
+    "n_in": 118,
+    "n_kept": 116,
+    "n_late_observation": 1,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "US_REAL_GDP": {
+    "n_in": 39,
+    "n_kept": 37,
+    "n_late_observation": 0,
+    "n_late_publication": 1,
+    "n_version_unavailable": 1,
+    "first_dropped": {
+     "date": "2026-04-01",
+     "reason": "data_version_unavailable",
+     "publish": "2026-07-29",
+     "version_available_on": "2026-08-29"
+    },
+    "last_eligible": "2026-01-01",
+    "vintage": "latest_revision_only",
+    "excluded": false
+   },
+   "SOFR": {
+    "n_in": 2156,
+    "n_kept": 2094,
+    "n_late_observation": 61,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "WALCL": {
+    "n_in": 522,
+    "n_kept": 506,
+    "n_late_observation": 13,
+    "n_late_publication": 3,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-05",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-29",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "DFF": {
+    "n_in": 3651,
+    "n_kept": 3560,
+    "n_late_observation": 90,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-21",
+     "reason": "late_publication",
+     "publish": "2026-08-22"
+    },
+    "last_eligible": "2026-08-20",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "M2SL": {
+    "n_in": 118,
+    "n_kept": 116,
+    "n_late_observation": 1,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "latest_revision_only",
+    "excluded": false
+   },
+   "DFEDTARU": {
+    "n_in": 3652,
+    "n_kept": 3561,
+    "n_late_observation": 91,
+    "n_late_publication": 0,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-22",
+     "reason": "late_observation"
+    },
+    "last_eligible": "2026-08-21",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "DFEDTARL": {
+    "n_in": 3652,
+    "n_kept": 3561,
+    "n_late_observation": 91,
+    "n_late_publication": 0,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-22",
+     "reason": "late_observation"
+    },
+    "last_eligible": "2026-08-21",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CN_PMI_MFG": {
+    "n_in": 226,
+    "n_kept": 223,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-08-30"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   },
+   "CN_NEW_LOANS": {
+    "n_in": 226,
+    "n_kept": 223,
+    "n_late_observation": 2,
+    "n_late_publication": 1,
+    "n_version_unavailable": 0,
+    "first_dropped": {
+     "date": "2026-08-01",
+     "reason": "late_publication",
+     "publish": "2026-09-20"
+    },
+    "last_eligible": "2026-07-01",
+    "vintage": "not_declared_revised",
+    "excluded": false
+   }
+  },
+  "note": "截止视图(历史截止): 晚观测/晚发布不入证据面;注册表声明最新修订口径的序列只引用已过首个修订周期的观测(值=最新修订版,不得表述为当时首发值),未过者=当时数据版本不可得"
+ },
+ "research_plan_cutoff": "2026-08-21",
+ "as_of_declared": {
+  "as_of": "2026-08-21",
+  "basis": "问题声明研究时点 2026-08-21(显式时点标记)",
+  "snapshot_target_date": "2026-11-21",
+  "differs_from_snapshot": true,
+  "requested_as_of": "2026-08-21",
+  "clamped_to_coverage": false,
+  "coverage_date": "2026-11-21",
+  "requested_month_end": null,
+  "actual_coverage_date": null,
+  "bare_year_month": null,
+  "upstream_pin": false,
+  "error": null,
+  "note": "问句声明研究时点 2026-08-21"
+ },
+ "frozen_inputs": {
+  "config/release_calendar.json": "e44fd2aa5ced0310",
+  "config/metric_registry.json": "fa396d22175a4814",
+  "data/daily/research_snapshot_20261121.json": "fb1992a5396e033c"
+ },
+ "git_head": "24141c01a73daa44e56e380320f46bb0f7cbd723",
+ "ts_utc": "20261124T061756Z"
+}

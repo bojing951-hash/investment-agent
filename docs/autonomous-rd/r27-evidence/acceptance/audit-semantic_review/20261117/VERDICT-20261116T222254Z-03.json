@@ -1,0 +1,20 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "r5-e2e-review-seat",
+  "notes": "Audit-R5 条目3 修订闭环复验(同一独立席,只核修处)。必修1(段终点2022-05-25+次日窗r=-0.0148注记)与必修2(t=+4.4,精确4.4489)逐字/逐位吻合本席独立复算;随修两项(油未涨日≤0口径标签/声明BRENT_F n=2515)正确;四副本一致,旧错误串全库清零,周边统计无变动。CLOSURE: UPHELD。链: rev1(修正前UPHELD,内容失配自然失效)→rev2(REVISE)→本档(闭环UPHELD)。",
+  "run_ts": "20261116T222254Z",
+  "content_sha256": "07b990952111f709da8662cc2bc87132a293974a40f186fca610adf2f7d12156",
+  "audited_at": "2026-11-17",
+  "recorded_at": "20261117T040403Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 3,
+  "predecessor": "audit/semantic_review/20261117/VERDICT-20261116T222254Z-02.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "audit_round": "R5-item3",
+  "closure_of": "REVISE rev2",
+  "recompute_script": "/tmp/sr5r3/recompute.py(独立席自写,闭环只核修处)"
+}

@@ -1,0 +1,1694 @@
+{
+ "points": [
+  {
+   "id": "AN01",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "引擎面 scanned(特征网格出现过的月份总数)",
+   "key": "本席复算 len(all_months)",
+   "computed": 1871,
+   "reported": 1871,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN02",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "引擎面 valid(有效候选月数: 不与锚点 12 个月特征窗重叠且 U 内有效维度≥4)",
+   "key": "本席复算 len(cands)",
+   "computed": 74,
+   "reported": 74,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN03",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "引擎面 dropped_overlap",
+   "key": "本席复算",
+   "computed": 12,
+   "reported": 12,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN04",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "引擎面 dropped_insufficient",
+   "key": "本席复算",
+   "computed": 1785,
+   "reported": 1785,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN05",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点准入特征集 U(13 特征)与引擎 feature_set 逐一相同",
+   "key": "本席复算 U",
+   "computed": "BEI_10Y_level,CURVE_2S10S_d12m,CURVE_2S10S_level,HY_IG_gap_level,HY_OAS_level,ICSA_4w_avg,SPX_CAPE_level,SPX_rv21,TIPS_10Y_d12m,TIPS_10Y_level,UST_10Y_d12m,UST_10Y_level,VIX_level",
+   "reported": "BEI_10Y_level,CURVE_2S10S_d12m,CURVE_2S10S_level,HY_IG_gap_level,HY_OAS_level,ICSA_4w_avg,SPX_CAPE_level,SPX_rv21,TIPS_10Y_d12m,TIPS_10Y_level,UST_10Y_d12m,UST_10Y_level,VIX_level",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN06",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "统一分母 W_U(锚点准入特征权重和)",
+   "key": "本席复算 Σ (1/6)/维内特征数",
+   "computed": 0.541667,
+   "reported": 0.541667,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN07",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点月(最新完整月)与引擎一致",
+   "key": "本席复算 m0",
+   "computed": "2026-11",
+   "reported": "2026-11",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN11",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 BEI_10Y_level 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 2.15,
+   "reported": 2.15,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN12",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 BEI_10Y_level expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": 0.08346,
+   "reported": 0.08346018602588887,
+   "ok": true,
+   "note": "hist_n 本席 121 / 引擎 121"
+  },
+  {
+   "id": "AN13",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 CURVE_2S10S_d12m 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": -0.26,
+   "reported": -0.26000000000000006,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN14",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 CURVE_2S10S_d12m expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": -0.29404,
+   "reported": -0.2940401880574893,
+   "ok": true,
+   "note": "hist_n 本席 109 / 引擎 109"
+  },
+  {
+   "id": "AN15",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 CURVE_2S10S_level 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 0.29,
+   "reported": 0.29,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN16",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 CURVE_2S10S_level expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": -0.088865,
+   "reported": -0.08886508395812924,
+   "ok": true,
+   "note": "hist_n 本席 121 / 引擎 121"
+  },
+  {
+   "id": "AN17",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 HY_IG_gap_level 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 2.58,
+   "reported": 2.58,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN18",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 HY_IG_gap_level expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": 1.563069,
+   "reported": 1.5630692832378703,
+   "ok": true,
+   "note": "hist_n 本席 37 / 引擎 37"
+  },
+  {
+   "id": "AN19",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 HY_OAS_level 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 3.52,
+   "reported": 3.52,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN20",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 HY_OAS_level expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": 1.34156,
+   "reported": 1.3415604778001688,
+   "ok": true,
+   "note": "hist_n 本席 37 / 引擎 37"
+  },
+  {
+   "id": "AN21",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 ICSA_4w_avg 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 197750.0,
+   "reported": 197750.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN22",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 ICSA_4w_avg expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": -0.320675,
+   "reported": -0.3206747602320721,
+   "ok": true,
+   "note": "hist_n 本席 120 / 引擎 120"
+  },
+  {
+   "id": "AN23",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 SPX_CAPE_level 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 39.374477,
+   "reported": 39.37447698728812,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN24",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 SPX_CAPE_level expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": 2.81695,
+   "reported": 2.8169497441414015,
+   "ok": true,
+   "note": "hist_n 本席 1751 / 引擎 1751"
+  },
+  {
+   "id": "AN25",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 SPX_rv21 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 0.297322,
+   "reported": 0.2973222702651734,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN26",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 SPX_rv21 expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": 1.46362,
+   "reported": 1.463619804756194,
+   "ok": true,
+   "note": "hist_n 本席 120 / 引擎 120"
+  },
+  {
+   "id": "AN27",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 TIPS_10Y_d12m 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 1.09,
+   "reported": 1.0899999999999999,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN28",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 TIPS_10Y_d12m expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": 1.041637,
+   "reported": 1.0416374106158215,
+   "ok": true,
+   "note": "hist_n 本席 109 / 引擎 109"
+  },
+  {
+   "id": "AN29",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 TIPS_10Y_level 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 2.88,
+   "reported": 2.88,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN30",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 TIPS_10Y_level expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": 1.871847,
+   "reported": 1.8718474704157886,
+   "ok": true,
+   "note": "hist_n 本席 121 / 引擎 121"
+  },
+  {
+   "id": "AN31",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 UST_10Y_d12m 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 1.02,
+   "reported": 1.0200000000000005,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN32",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 UST_10Y_d12m expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": 0.834945,
+   "reported": 0.8349448096688624,
+   "ok": true,
+   "note": "hist_n 本席 109 / 引擎 109"
+  },
+  {
+   "id": "AN33",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 UST_10Y_level 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 5.04,
+   "reported": 5.04,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN34",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 UST_10Y_level expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": 1.666375,
+   "reported": 1.66637547864167,
+   "ok": true,
+   "note": "hist_n 本席 121 / 引擎 121"
+  },
+  {
+   "id": "AN35",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 VIX_level 原始值",
+   "key": "series_store 月网格(月内末值/派生) @2026-11",
+   "computed": 27.01,
+   "reported": 27.01,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "AN36",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "锚点状态向量 VIX_level expanding z(史≤锚点月末, 总体σ, 含当期)",
+   "key": "本席复算 z",
+   "computed": 1.197861,
+   "reported": 1.197861037490781,
+   "ok": true,
+   "note": "hist_n 本席 121 / 引擎 121"
+  },
+  {
+   "id": "A37",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行候选月",
+   "key": "本席复算(排序=缺席数,距离,月份; <12 月同簇去重取首)",
+   "computed": "2025-03",
+   "reported": "2025-03",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A38",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行距离",
+   "key": "本席复算 D=sqrt(Σ(w/W_U)·gap²)",
+   "computed": 0.727212,
+   "reported": 0.727212,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A39",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行缺席特征数",
+   "key": "本席复算",
+   "computed": 2,
+   "reported": 2,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A40",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行距离分位",
+   "key": "本席复算 严格小于该D的候选数/(N−1)×100",
+   "computed": 0.0,
+   "reported": 0.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A41",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行簇成员数",
+   "key": "本席复算",
+   "computed": 20,
+   "reported": 20,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A42",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行 growth 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 3.4e-05,
+   "reported": 3.4e-05,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A43",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行 inflation 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.105401,
+   "reported": 0.105401,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A44",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行 rates 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.4066,
+   "reported": 0.4066,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A45",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行 credit 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.0,
+   "reported": 0.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A46",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行 volatility 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.421281,
+   "reported": 0.421281,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A47",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 1 行 valuation 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.066684,
+   "reported": 0.066684,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A51",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行候选月",
+   "key": "本席复算(排序=缺席数,距离,月份; <12 月同簇去重取首)",
+   "computed": "2022-06",
+   "reported": "2022-06",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A52",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行距离",
+   "key": "本席复算 D=sqrt(Σ(w/W_U)·gap²)",
+   "computed": 0.791806,
+   "reported": 0.791806,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A53",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行缺席特征数",
+   "key": "本席复算",
+   "computed": 2,
+   "reported": 2,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A54",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行距离分位",
+   "key": "本席复算 严格小于该D的候选数/(N−1)×100",
+   "computed": 1.369863,
+   "reported": 1.3699,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A55",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行簇成员数",
+   "key": "本席复算",
+   "computed": 23,
+   "reported": 23,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A56",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行 growth 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.000457,
+   "reported": 0.000457,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A57",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行 inflation 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.114111,
+   "reported": 0.114111,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A58",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行 rates 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.519314,
+   "reported": 0.519314,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A59",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行 credit 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.0,
+   "reported": 0.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A60",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行 volatility 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.029815,
+   "reported": 0.029815,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A61",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 2 行 valuation 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.336303,
+   "reported": 0.336303,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A65",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行候选月",
+   "key": "本席复算(排序=缺席数,距离,月份; <12 月同簇去重取首)",
+   "computed": "2023-10",
+   "reported": "2023-10",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A66",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行距离",
+   "key": "本席复算 D=sqrt(Σ(w/W_U)·gap²)",
+   "computed": 1.054168,
+   "reported": 1.054168,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A67",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行缺席特征数",
+   "key": "本席复算",
+   "computed": 2,
+   "reported": 2,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A68",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行距离分位",
+   "key": "本席复算 严格小于该D的候选数/(N−1)×100",
+   "computed": 30.136986,
+   "reported": 30.137,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A69",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行簇成员数",
+   "key": "本席复算",
+   "computed": 10,
+   "reported": 10,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A70",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行 growth 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 5.8e-05,
+   "reported": 5.8e-05,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A71",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行 inflation 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.077093,
+   "reported": 0.077093,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A72",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行 rates 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.109852,
+   "reported": 0.109852,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A73",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行 credit 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.0,
+   "reported": 0.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A74",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行 volatility 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.601008,
+   "reported": 0.601008,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A75",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 3 行 valuation 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.21199,
+   "reported": 0.21199,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A79",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行候选月",
+   "key": "本席复算(排序=缺席数,距离,月份; <12 月同簇去重取首)",
+   "computed": "2021-02",
+   "reported": "2021-02",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A80",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行距离",
+   "key": "本席复算 D=sqrt(Σ(w/W_U)·gap²)",
+   "computed": 1.284945,
+   "reported": 1.284945,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A81",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行缺席特征数",
+   "key": "本席复算",
+   "computed": 2,
+   "reported": 2,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A82",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行距离分位",
+   "key": "本席复算 严格小于该D的候选数/(N−1)×100",
+   "computed": 69.863014,
+   "reported": 69.863,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A83",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行簇成员数",
+   "key": "本席复算",
+   "computed": 16,
+   "reported": 16,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A84",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行 growth 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.012615,
+   "reported": 0.012615,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A85",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行 inflation 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.078156,
+   "reported": 0.078156,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A86",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行 rates 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.720075,
+   "reported": 0.720075,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A87",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行 credit 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.0,
+   "reported": 0.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A88",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行 volatility 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.184489,
+   "reported": 0.184489,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A89",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 4 行 valuation 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.004665,
+   "reported": 0.004665,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A93",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行候选月",
+   "key": "本席复算(排序=缺席数,距离,月份; <12 月同簇去重取首)",
+   "computed": "2020-01",
+   "reported": "2020-01",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A94",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行距离",
+   "key": "本席复算 D=sqrt(Σ(w/W_U)·gap²)",
+   "computed": 1.357685,
+   "reported": 1.357685,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A95",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行缺席特征数",
+   "key": "本席复算",
+   "computed": 5,
+   "reported": 5,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A96",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行距离分位",
+   "key": "本席复算 严格小于该D的候选数/(N−1)×100",
+   "computed": 71.232877,
+   "reported": 71.2329,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A97",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行簇成员数",
+   "key": "本席复算",
+   "computed": 5,
+   "reported": 5,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A98",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行 growth 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.006131,
+   "reported": 0.006131,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A99",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行 inflation 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.114177,
+   "reported": 0.114177,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A100",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行 rates 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.682865,
+   "reported": 0.682865,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A101",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行 credit 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.0,
+   "reported": 0.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A102",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行 volatility 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.146145,
+   "reported": 0.146145,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A103",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "相似结构表第 5 行 valuation 维贡献份额",
+   "key": "本席复算 Σ(w/W_U)gap²[维]/D²",
+   "computed": 0.050683,
+   "reported": 0.050683,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "A106",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "report.md 相似结构表第 1 行(名次|候选月|距离|距离分位) = 引擎面 S6 top[0]",
+   "key": "渲染表行 1|2025-03|0.727212|0.0",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "引擎面 1|2025-03|0.727212|0.0000; 渲染共 5 行"
+  },
+  {
+   "id": "A107",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "report.md 相似结构表第 2 行(名次|候选月|距离|距离分位) = 引擎面 S6 top[1]",
+   "key": "渲染表行 2|2022-06|0.791806|1.3699",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "引擎面 2|2022-06|0.791806|1.3699; 渲染共 5 行"
+  },
+  {
+   "id": "A108",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "report.md 相似结构表第 3 行(名次|候选月|距离|距离分位) = 引擎面 S6 top[2]",
+   "key": "渲染表行 3|2023-10|1.054168|30.137",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "引擎面 3|2023-10|1.054168|30.1370; 渲染共 5 行"
+  },
+  {
+   "id": "A109",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "report.md 相似结构表第 4 行(名次|候选月|距离|距离分位) = 引擎面 S6 top[3]",
+   "key": "渲染表行 4|2021-02|1.284945|69.863",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "引擎面 4|2021-02|1.284945|69.8630; 渲染共 5 行"
+  },
+  {
+   "id": "A110",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "report.md 相似结构表第 5 行(名次|候选月|距离|距离分位) = 引擎面 S6 top[4]",
+   "key": "渲染表行 5|2020-01|1.357685|71.2329",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "引擎面 5|2020-01|1.357685|71.2329; 渲染共 5 行"
+  },
+  {
+   "id": "A111",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "FULL_REPORT.md 相似结构表第 1 行(名次|候选月|距离|距离分位) = 引擎面 S6 top[0]",
+   "key": "渲染表行 1|2025-03|0.727212|0.0",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "引擎面 1|2025-03|0.727212|0.0000; 渲染共 5 行"
+  },
+  {
+   "id": "A112",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "FULL_REPORT.md 相似结构表第 2 行(名次|候选月|距离|距离分位) = 引擎面 S6 top[1]",
+   "key": "渲染表行 2|2022-06|0.791806|1.3699",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "引擎面 2|2022-06|0.791806|1.3699; 渲染共 5 行"
+  },
+  {
+   "id": "A113",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "FULL_REPORT.md 相似结构表第 3 行(名次|候选月|距离|距离分位) = 引擎面 S6 top[2]",
+   "key": "渲染表行 3|2023-10|1.054168|30.137",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "引擎面 3|2023-10|1.054168|30.1370; 渲染共 5 行"
+  },
+  {
+   "id": "A114",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "FULL_REPORT.md 相似结构表第 4 行(名次|候选月|距离|距离分位) = 引擎面 S6 top[3]",
+   "key": "渲染表行 4|2021-02|1.284945|69.863",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "引擎面 4|2021-02|1.284945|69.8630; 渲染共 5 行"
+  },
+  {
+   "id": "A115",
+   "cat": "AN 历史相似结构表独立复算",
+   "where": "FULL_REPORT.md 相似结构表第 5 行(名次|候选月|距离|距离分位) = 引擎面 S6 top[4]",
+   "key": "渲染表行 5|2020-01|1.357685|71.2329",
+   "computed": true,
+   "reported": true,
+   "ok": true,
+   "note": "引擎面 5|2020-01|1.357685|71.2329; 渲染共 5 行"
+  },
+  {
+   "id": "Y01",
+   "cat": "Y 记号覆盖闭合",
+   "where": "C1「为 2023-09 以来首个高于美国的可比月份」",
+   "key": "series_store EA_HICP_YOY 与 CPI 同比逐月比较: 2026-09 之前最后一个 EA>US 月",
+   "computed": "2023-09",
+   "reported": "2023-09",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y02",
+   "cat": "Y 记号覆盖闭合",
+   "where": "C1「2022-07 至 2023-09 曾持续高于美国」(连续 15 个月)",
+   "key": "2022-07..2023-09 内 EA>US 月数",
+   "computed": 15,
+   "reported": 15,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y03",
+   "cat": "Y 记号覆盖闭合",
+   "where": "C1 同句隐含: 2023-10 至 2026-08 无 EA>US 月份",
+   "key": "2023-10..2026-08 内 EA>US 月数",
+   "computed": 0,
+   "reported": 0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y04",
+   "cat": "Y 记号覆盖闭合",
+   "where": "C1「2025-10 为序列库缺采」(美国 CPI 同比基期缺席)",
+   "key": "series_store.CPI 2025-10 在场性(0=缺采)",
+   "computed": 0,
+   "reported": 0,
+   "ok": true,
+   "note": "相邻月 2025-09=324.245 2025-11=325.063"
+  },
+  {
+   "id": "Y05",
+   "cat": "Y 记号覆盖闭合",
+   "where": "核心 CPI 2026-10 同比同样缺上年同月基期",
+   "key": "series_store.CORE_CPI 2025-10 在场性(0=缺采)",
+   "computed": 0,
+   "reported": 0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y06",
+   "cat": "Y 记号覆盖闭合",
+   "where": "C3「2026-02 至 2026-05 与 2026-08 的相邻月均差均不超过 0.001」",
+   "key": "series_store.JP_POLICY_RATE 各月与前一月之差最大绝对值",
+   "computed": 0.001,
+   "reported": 0.001,
+   "ok": true,
+   "note": "逐月差=['2026-02:+0.0bp', '2026-03:+0.0bp', '2026-04:-0.1bp', '2026-05:+0.0bp', '2026-08:-0.1bp']"
+  },
+  {
+   "id": "Y07",
+   "cat": "Y 记号覆盖闭合",
+   "where": "C3「已见台阶均不小于 0.066」",
+   "key": "政策窗内正台阶最小值(bp)/100",
+   "computed": 0.066,
+   "reported": 0.066,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y08",
+   "cat": "Y 记号覆盖闭合",
+   "where": "C3 带宽「1.197 至 1.257(两位小数显示约 1.20 至 1.26)」",
+   "key": "1.227∓0.03 及两位小数",
+   "computed": "1.197/1.257→1.20/1.26",
+   "reported": "1.197/1.257→1.20/1.26",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y09",
+   "cat": "Y 记号覆盖闭合",
+   "where": "C3「本次 2026-10 月均 1.227 较目标水平 1.25 低 0.023」",
+   "key": "1.25 − series_store.JP_POLICY_RATE 2026-10",
+   "computed": 0.023,
+   "reported": 0.023,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y10",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1「12 个月窗(2025-11-19→2026-11-19)」窗启日",
+   "key": "2026-11-19 减 12 个月",
+   "computed": "2025-11-19",
+   "reported": "2025-11-19",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y11",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1 BEI_10Y 12 个月窗窗启值 2.27",
+   "key": "series_store.BEI_10Y.values[2246] (dates[2246]=2025-11-19)",
+   "computed": 2.27,
+   "reported": 2.27,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y12",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1「12 个月窗变动 -11bp」",
+   "key": "series_store.BEI_10Y 2025-11-19→2026-11-19",
+   "computed": -11.0,
+   "reported": -11.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y13",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1 BEI_10Y 三个月窗窗启值 2.30(2026-08-19)",
+   "key": "series_store.BEI_10Y.values[2433] (dates[2433]=2026-08-19)",
+   "computed": 2.3,
+   "reported": 2.3,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y14",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1 BEI_10Y 最新值 2.16(2026-11-19)",
+   "key": "series_store.BEI_10Y.values[2496] (dates[2496]=2026-11-19)",
+   "computed": 2.16,
+   "reported": 2.16,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y15",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1「三个月窗变动 -14bp」",
+   "key": "series_store.BEI_10Y 2026-08-19→2026-11-19",
+   "computed": -14.0,
+   "reported": -14.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y16",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1「更早的通胀上行段 BEI_10Y 自 2026-02-27 的 2.25」",
+   "key": "series_store.BEI_10Y.values[2313] (dates[2313]=2026-02-27)",
+   "computed": 2.25,
+   "reported": 2.25,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y17",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1「升至 2026-05-04 的 2.50」",
+   "key": "series_store.BEI_10Y.values[2359] (dates[2359]=2026-05-04)",
+   "computed": 2.5,
+   "reported": 2.5,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y18",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1 BEI_10Y 近一月窗启值 2.35(2026-10-20)",
+   "key": "series_store.BEI_10Y.values[2475] (dates[2475]=2026-10-20)",
+   "computed": 2.35,
+   "reported": 2.35,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y19",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1/C1 竞争解释「近一月共同交易日窗(2026-10-20→2026-11-19)变动 -19bp」",
+   "key": "series_store.BEI_10Y 2026-10-20→2026-11-19",
+   "computed": -19.0,
+   "reported": -19.0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y20",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1「布伦特 2026-08-19 报 91.62」",
+   "key": "series_store.BRENT_F.values[2448] (dates[2448]=2026-08-19)",
+   "computed": 91.620003,
+   "reported": 91.62,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y21",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1「先升至 2026-10-23 的 116.72」",
+   "key": "series_store.BRENT_F.values[2494] (dates[2494]=2026-10-23)",
+   "computed": 116.720001,
+   "reported": 116.72,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y22",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环1「较窗启 +27.40%」",
+   "key": "BRENT_F 2026-08-19→2026-10-23",
+   "computed": 27.395762,
+   "reported": 27.4,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y23",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环2「美国十年期名义利率 2026-11-19 报 5.04%」",
+   "key": "series_store.UST_10Y.values[2496] (dates[2496]=2026-11-19)",
+   "computed": 5.04,
+   "reported": 5.04,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y24",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环2 TIPS_10Y 近一月窗启值 2.77(2026-10-20)",
+   "key": "series_store.TIPS_10Y.values[2475] (dates[2475]=2026-10-20)",
+   "computed": 2.77,
+   "reported": 2.77,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y25",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环2 TIPS_10Y 2026-10-23 值 2.66",
+   "key": "series_store.TIPS_10Y.values[2478] (dates[2478]=2026-10-23)",
+   "computed": 2.66,
+   "reported": 2.66,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y26",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环2 TIPS_10Y 最新值 2.88(2026-11-19)",
+   "key": "series_store.TIPS_10Y.values[2496] (dates[2496]=2026-11-19)",
+   "computed": 2.88,
+   "reported": 2.88,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y27",
+   "cat": "Y 记号覆盖闭合",
+   "where": "M1 环3「USDJPY 当前报 159.35」(2026-11-23)",
+   "key": "series_store.USDJPY.values[2600] (dates[2600]=2026-11-23)",
+   "computed": 159.35,
+   "reported": 159.35,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y28",
+   "cat": "Y 记号覆盖闭合",
+   "where": "M1 环3 USDJPY 三个月窗窗启值 159.55(2026-08-19)",
+   "key": "series_store.USDJPY.values[2532] (dates[2532]=2026-08-19)",
+   "computed": 159.55,
+   "reported": 159.55,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y29",
+   "cat": "Y 记号覆盖闭合",
+   "where": "M1 环3「近一月(2026-10-23→2026-11-23)不降反升 1.82%」",
+   "key": "series_store.USDJPY 2026-10-23→2026-11-23",
+   "computed": 1.823071,
+   "reported": 1.82,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y30",
+   "cat": "Y 记号覆盖闭合",
+   "where": "M1 环3「三个月 2026-08-19→2026-11-23 为 -0.13%」",
+   "key": "series_store.USDJPY 2026-08-19→2026-11-23",
+   "computed": -0.127235,
+   "reported": -0.13,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y31",
+   "cat": "Y 记号覆盖闭合",
+   "where": "M1 环3「按 3 个月前锚 2026-08-23 的最近观测 2026-08-21 起算为 +0.29%」",
+   "key": "series_store.USDJPY ≤2026-08-23 最近观测→2026-11-23",
+   "computed": 0.292041,
+   "reported": 0.29,
+   "ok": true,
+   "note": "最近观测日 2026-08-21 值 158.882996"
+  },
+  {
+   "id": "Y32",
+   "cat": "Y 记号覆盖闭合",
+   "where": "披露③「美联储目标区间上限 3.75→4.00 于 2026-09-17」",
+   "key": "series_store.DFEDTARU 2026-09-16→2026-09-17",
+   "computed": "3.75→4",
+   "reported": "3.75→4",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y33",
+   "cat": "Y 记号覆盖闭合",
+   "where": "披露③「欧央行存款便利利率 2.25→2.50 于 2026-09-16」",
+   "key": "series_store.ECB_DFR 2026-09 内首次变动(观测日,前值→新值)",
+   "computed": "2026-09-16|2.25→2.5",
+   "reported": "2026-09-16|2.25→2.5",
+   "ok": true,
+   "note": "2026-08-01..2026-10-15 观测=[('2026-09-16', 2.5)]"
+  },
+  {
+   "id": "Y34",
+   "cat": "Y 记号覆盖闭合",
+   "where": "总判断「距上次调整按生效日 60 天、按决议日 66 天」及「其后至截止日的 24 天」",
+   "key": "日历日差(2026-11-23 减 2026-09-24 / 2026-09-18 / 2026-10-30)",
+   "computed": "60/66/24",
+   "reported": "60/66/24",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y35",
+   "cat": "Y 记号覆盖闭合",
+   "where": "C3 竞争解释「2026-09-24 生效,落在 2026-09 最后一周」",
+   "key": "2026-09-24 距 9 月末天数",
+   "computed": 6,
+   "reported": 6,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y36",
+   "cat": "Y 记号覆盖闭合",
+   "where": "turnings[0]「为候选池内最大单段变动」(CPI 2026-02→2026-05, +1.7326)",
+   "key": "候选池 |delta| 最大者",
+   "computed": 1.7326,
+   "reported": 1.7326,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y37",
+   "cat": "Y 记号覆盖闭合",
+   "where": "turnings[1]「增长维候选池内最大的三个月变化」(INDPRO -0.9571)",
+   "key": "候选池 growth 维 |delta| 最大者",
+   "computed": -0.9571,
+   "reported": -0.9571,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y38",
+   "cat": "Y 记号覆盖闭合",
+   "where": "转折行数 3 = 引擎面 top_n_expected",
+   "key": "report.json research_plan.turning_candidates.top_n_expected / len(turnings)",
+   "computed": "3/3",
+   "reported": "3/3",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y39",
+   "cat": "Y 记号覆盖闭合",
+   "where": "turnings[2]「为 2026 年内第三个上行月均台阶(此前: 2026-01 +17bp、2026-06 +11bp)」",
+   "key": "2026-01..2026-07 正台阶序",
+   "computed": "2026-01+17bp,2026-06+11bp,2026-07+14bp",
+   "reported": "2026-01+17bp,2026-06+11bp,2026-07+14bp",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y40",
+   "cat": "Y 记号覆盖闭合",
+   "where": "turnings[2]「发布日历政策条目仅 2 条、均为日本央行实录」",
+   "key": "release_calendar.json kind 含 POLICY 的条目",
+   "computed": "RC-JP-BOJ-MAINT-2026-10,RC-JP-BOJ-TARGET-2026-09",
+   "reported": "RC-JP-BOJ-MAINT-2026-10,RC-JP-BOJ-TARGET-2026-09",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y41",
+   "cat": "Y 记号覆盖闭合",
+   "where": "turnings[2]「政策事件簇为空」",
+   "key": "report.json research_plan.policy_event_clusters.clusters 长度",
+   "computed": 0,
+   "reported": 0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y42",
+   "cat": "Y 记号覆盖闭合",
+   "where": "披露「FOMC 2026年10月会议纪要 2026-11-18 发布」(引擎文档事实面)",
+   "key": "report.json research_plan.policy_doc_facts[0]",
+   "computed": "FOMC-MINUTES-2026-10|2026-11-18",
+   "reported": "FOMC-MINUTES-2026-10|2026-11-18",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y43",
+   "cat": "Y 记号覆盖闭合",
+   "where": "信息项: 总判断「日历核验覆盖止于 2026-10-30,其后至截止日的 24 天引擎日历无条目」——期内发布日历条目数 / 其中日本央行条目数",
+   "key": "release_calendar.json first_publish∈(2026-10-30,2026-11-23]",
+   "computed": "1/0",
+   "reported": "1/0",
+   "ok": true,
+   "note": "期内条目=['RC-CN-LPR-2026M11@2026-11-20']; 另有引擎文档事实 FOMC-MINUTES-2026-10(2026-11-18); 受审句字面为「无条目」"
+  },
+  {
+   "id": "Y44",
+   "cat": "Y 记号覆盖闭合",
+   "where": "传导环2「近一月共同交易日窗(2026-10-20→2026-11-19)」= 引擎面窗口",
+   "key": "report.json research_plan.us_rates_trio.window",
+   "computed": "2026-10-20→2026-11-19",
+   "reported": "2026-10-20→2026-11-19",
+   "ok": true,
+   "note": "calendar_days_between=30"
+  },
+  {
+   "id": "Y45",
+   "cat": "Y 记号覆盖闭合",
+   "where": "S1 触发指标 CORE_PCE 同比在期限 2027-02-15 内可观测(规则发布日 ≤ 期限 的观测月)",
+   "key": "CORE_PCE 月末+30天",
+   "computed": "2026-11→2026-12-30,2026-12→2027-01-30",
+   "reported": "2026-11→2026-12-30,2026-12→2027-01-30",
+   "ok": true,
+   "note": ""
+  },
+  {
+   "id": "Y46",
+   "cat": "Y 记号覆盖闭合",
+   "where": "信息项: 转折面「日本端…未在通胀维同步」——本问证据索引内日本通胀序列数 / 序列库内 JP_CPI_YOY 2026-02→2026-05 变动(pp)",
+   "key": "report.json evidence_index / series_store.JP_CPI_YOY(证据索引外)",
+   "computed": "0/+0.26",
+   "reported": "0/+0.26",
+   "ok": true,
+   "note": "证据索引 63 条; JP_CPI_YOY 月值={'2026-02': 1.27, '2026-05': 1.53, '2026-06': 1.67, '2026-07': 1.97, '2026-08': 1.98, '2026-09': 2.16, '2026-10': 2.44}"
+  }
+ ],
+ "extra": {
+  "analog_rep_dropped_at_anchor": {
+   "UNEMPLOYMENT_level": "no_value_at_anchor",
+   "NFP_3m_chg": "no_value_at_anchor",
+   "INDPRO_yoy": "no_value_at_anchor",
+   "RSAFS_yoy": "no_value_at_anchor",
+   "GDP_yoy": "no_value_at_anchor",
+   "CORE_CPI_yoy": "no_value_at_anchor",
+   "CPI_yoy": "no_value_at_anchor",
+   "FED_FUNDS_level": "no_value_at_anchor",
+   "FED_FUNDS_d12m": "no_value_at_anchor",
+   "HY_OAS_d12m": "hist_25<36",
+   "HY_IG_gap_d12m": "hist_25<36",
+   "SPX_PE_TTM_level": "no_value_at_anchor"
+  },
+  "analog_rep_sorted_head": [
+   [
+    "2025-03",
+    0.727212,
+    2,
+    0.0,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2022-06",
+    0.791806,
+    2,
+    1.37,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2022-05",
+    0.844702,
+    2,
+    2.74,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2024-12",
+    0.906631,
+    2,
+    4.11,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2025-04",
+    0.912489,
+    2,
+    5.48,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2025-05",
+    0.923456,
+    2,
+    6.85,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2025-02",
+    0.939808,
+    2,
+    8.22,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2022-01",
+    0.949676,
+    2,
+    9.59,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2025-10",
+    0.949829,
+    2,
+    10.96,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2024-10",
+    0.952439,
+    2,
+    12.33,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2022-08",
+    0.963233,
+    2,
+    13.7,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2024-08",
+    0.966201,
+    2,
+    15.07,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2025-11",
+    0.968701,
+    2,
+    16.44,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ],
+   [
+    "2025-01",
+    0.9694,
+    2,
+    17.81,
+    [
+     "HY_IG_gap_level",
+     "HY_OAS_level"
+    ]
+   ]
+  ],
+  "analog_rep_cluster_sizes": [
+   20,
+   23,
+   10,
+   16,
+   5
+  ],
+  "analog_rep_first_last_candidate": [
+   "2019-10",
+   "2025-11"
+  ],
+  "analog_top1_missing": [
+   "HY_IG_gap_level",
+   "HY_OAS_level"
+  ],
+  "analog_top2_missing": [
+   "HY_IG_gap_level",
+   "HY_OAS_level"
+  ],
+  "analog_top3_missing": [
+   "HY_IG_gap_level",
+   "HY_OAS_level"
+  ],
+  "analog_top4_missing": [
+   "HY_IG_gap_level",
+   "HY_OAS_level"
+  ],
+  "analog_top5_missing": [
+   "CURVE_2S10S_d12m",
+   "HY_IG_gap_level",
+   "HY_OAS_level",
+   "TIPS_10Y_d12m",
+   "UST_10Y_d12m"
+  ],
+  "ea_gt_us_months": [
+   "2022-07",
+   "2022-08",
+   "2022-09",
+   "2022-10",
+   "2022-11",
+   "2022-12",
+   "2023-01",
+   "2023-02",
+   "2023-03",
+   "2023-04",
+   "2023-05",
+   "2023-06",
+   "2023-07",
+   "2023-08",
+   "2023-09",
+   "2026-09"
+  ],
+  "ea_minus_us_2026_09": -332.498,
+  "bei_feb_may": {
+   "first": [
+    "2026-02-02",
+    2.35
+   ],
+   "last": [
+    "2026-05-29",
+    2.38
+   ],
+   "min": [
+    "2026-02-27",
+    2.25
+   ],
+   "max": [
+    "2026-05-04",
+    2.5
+   ],
+   "endpoint_chg_bp": 2.9999999999999805
+  },
+  "ecb_dfr_change": [
+   "2026-09-16",
+   2.25,
+   2.5
+  ],
+  "cal_entries_published_after_1030": [
+   "RC-CN-LPR-2026M11@2026-11-20"
+  ],
+  "cal_policy_entries_in_window": [],
+  "evidence_index_ids_n": 63,
+  "evidence_index_jp_inflation": [],
+  "jp_cpi_yoy_store": {
+   "2026-02": 1.27,
+   "2026-05": 1.53,
+   "2026-06": 1.67,
+   "2026-07": 1.97,
+   "2026-08": 1.98,
+   "2026-09": 2.16,
+   "2026-10": 2.44
+  }
+ }
+}

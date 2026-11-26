@@ -1,0 +1,87 @@
+== 20261123T230308Z_2026年11月_日本和欧元区的通胀与政策环境_两地央行当前官方政策目标利率各处
+  git_head       8f9055d6e556700b08f28a3abeff284cf0c8d71f | ts_utc 20261123T230308Z
+  run_ok         True | steps 48 not-ok 0
+  question       2026年11月,日本和欧元区的通胀与政策环境:两地央行当前官方政策目标利率各处于什么水平?最近六个月有无已决议但尚未生效的调整?两地通胀同比最新读数相比去年同月如何?请给出具体数据和各数据的公布时间。
+  cutoff         2026-11-24 | as_of_declared {"as_of": "2026-11-24", "basis": null, "snapshot_target_date": "2026-11-24", "differs_from_snapshot": false, "requested_as_of": null, "clamped_to_coverage": false, "coverage_date": "2026-11-24", "requested_month_end": null, "actual_coverage_date": null, "bare_year_month": "2026年11月", "upstream_pin": false, "error": null, "note": "问句含裸年月 2026年11月 但相对回看约束非单一(不按时点化合并,R31 既档口径)——研究截止日=快照版本日 2026-11-24(不晚于该年月;该月末完整结果须待数据覆盖后重跑)"}
+  frozen_inputs  {"config/release_calendar.json": "e44fd2aa5ced0310", "config/metric_registry.json": "fa396d22175a4814", "data/daily/research_snapshot_20261124.json": "0cb3c82d1a0ff8bb"}
+  evidence_gate. discipline "r32"
+  evidence_gate. historical_view false
+  evidence_gate. publication_basis "snapshot_presence"
+  evidence_gate. counts {"facts_kept": 105, "facts_rebuilt": 0, "facts_dropped": 0, "facts_excluded_version": 0, "series_observations_dropped": 0, "series_observations_version_unavailable": 0, "series_excluded": 0, "series_n": 92}
+  point_values   cells 6 anchors 12 statuses {'ok': 12} | planned-but-absent []
+  point_anchors  [{"kind": "point", "label": "6个月前", "as_of": "2026-05-24", "months_before": 6, "window_start": "问句时间窗窗起(最近六个月)"}, {"kind": "point", "label": "最新一期", "as_of": "2026-11-24", "months_before": 0, "explicit_period": "2026-11"}]
+  regions        {"EA": {"inflation": ["EA_HICP_YOY"], "policy": ["ECB_MRO", "ECB_DFR"]}, "JP": {"inflation": ["JP_CPI_YOY", "JP_CPI_TOKYO_YOY"], "policy": ["JP_POLICY_RATE"]}} | dimensions ['inflation', 'policy']
+  n metrics      6 | metric ids ["EA_HICP_YOY", "ECB_MRO", "ECB_DFR", "JP_CPI_YOY", "JP_CPI_TOKYO_YOY", "JP_POLICY_RATE"]
+  dimension_gaps [{"region": "JP", "dimension": "policy", "metric_id": "JP_POLICY_TARGET", "gap": "registry_absent", "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"}]
+  semantic_review null
+  file report.md                15515 bytes sha16 8b59b40186a72595
+  file evidence_index.json       5636 bytes sha16 f10eab58239a1d7c
+  file AGENT_SEAT_ENVELOPE.json   15693 bytes sha16 9661139f18915f6a
+  file views_digest.json           56 bytes sha16 e71a18c2e81904ed
+  evidence_index items 60 kinds {'snapshot_fact': 35, 's3_envelope': 25} | date>cutoff 0 | top keys ["<list>"]
+== 20261123T230331Z_给我一份全球宏观经济变化地图_美国_中国_欧元区_日本在12个月前_3个月前和最
+  git_head       8f9055d6e556700b08f28a3abeff284cf0c8d71f | ts_utc 20261123T230331Z
+  run_ok         True | steps 67 not-ok 0
+  question       给我一份全球宏观经济变化地图。美国、中国、欧元区、日本在12个月前、3个月前和最新一期，分别处于什么增长、通胀和货币政策环境？过去一年最重要的三个转折是什么，谁先变，谁跟进或背离？证据最充分的传导机制是什么，还有什么解释，哪个指标能区分它们？历史上哪些时期结构最像，当时其他经济体是否同步，随后3、6、12个月经济和主要资产实际怎么走？
+  cutoff         2026-11-24 | as_of_declared {"as_of": "2026-11-24", "basis": null, "snapshot_target_date": "2026-11-24", "differs_from_snapshot": false, "requested_as_of": null, "clamped_to_coverage": false, "coverage_date": "2026-11-24", "requested_month_end": null, "actual_coverage_date": null, "bare_year_month": null, "upstream_pin": false, "error": null, "note": "问句未声明研究时点——研究截止日=快照版本日 2026-11-24"}
+  frozen_inputs  {"config/release_calendar.json": "e44fd2aa5ced0310", "config/metric_registry.json": "fa396d22175a4814", "data/daily/research_snapshot_20261124.json": "0cb3c82d1a0ff8bb"}
+  evidence_gate. discipline "r32"
+  evidence_gate. historical_view false
+  evidence_gate. publication_basis "snapshot_presence"
+  evidence_gate. counts {"facts_kept": 105, "facts_rebuilt": 0, "facts_dropped": 0, "facts_excluded_version": 0, "series_observations_dropped": 0, "series_observations_version_unavailable": 0, "series_excluded": 0, "series_n": 92}
+  point_values   cells 22 anchors 66 statuses {'ok': 63, 'no_published_observation_on_or_before_anchor': 3} | planned-but-absent []
+      non-ok CN_POLICY_OVERNIGHT@12个月前: no_published_observation_on_or_before_anchor 锚日前无「已发布」观测(发布日=日历实录条目优先+推定规则兜底)
+      non-ok CN_POLICY_OVERNIGHT@3个月前: no_published_observation_on_or_before_anchor 锚日前无「已发布」观测(发布日=日历实录条目优先+推定规则兜底)
+      non-ok JP_CPI_TOKYO_YOY@12个月前: no_published_observation_on_or_before_anchor 锚日前无「已发布」观测(发布日=日历实录条目优先+推定规则兜底)
+  point_anchors  [{"kind": "point", "label": "12个月前", "as_of": "2025-11-24", "months_before": 12}, {"kind": "point", "label": "3个月前", "as_of": "2026-08-24", "months_before": 3}, {"kind": "point", "label": "最新一期", "as_of": "2026-11-24", "months_before": 0}]
+  regions        {"US": {"growth": ["US_REAL_GDP", "UNEMPLOYMENT", "INDPRO"], "inflation": ["CPI", "CORE_CPI", "CORE_PCE"], "policy": ["DFEDTARU", "DFF"]}, "CN": {"growth": ["CN_PMI_MFG"], "inflation": ["CN_CPI_YOY", "CN_PPI_YOY"], "policy": ["CN_POLICY_OVERNIGHT", "CN_OMO_7D", "CN_LPR_1Y"]}, "EA": {"growth": ["EA_REAL_GDP_YOY"], "inflation": ["EA_HICP_YOY"], "policy": ["ECB_MRO", "ECB_DFR"]}, "JP": {"growth": ["JP_REAL_GDP_YOY"], "inflation": ["JP_CPI_YOY", "JP_CPI_TOKYO_YOY"], "policy": ["JP_POLICY_RATE"]}} | dimensions ['growth', 'inflation', 'policy']
+  n metrics      22 | metric ids ["US_REAL_GDP", "UNEMPLOYMENT", "INDPRO", "CPI", "CORE_CPI", "CORE_PCE", "DFEDTARU", "DFF", "CN_PMI_MFG", "CN_CPI_YOY", "CN_PPI_YOY", "CN_POLICY_OVERNIGHT", "CN_OMO_7D", "CN_LPR_1Y", "EA_REAL_GDP_YOY", "EA_HICP_YOY", "ECB_MRO", "ECB_DFR", "JP_REAL_GDP_YOY", "JP_CPI_YOY", "JP_CPI_TOKYO_YOY", "JP_POLICY_RATE"]
+  dimension_gaps [{"region": "JP", "dimension": "policy", "metric_id": "JP_POLICY_TARGET", "gap": "registry_absent", "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"}]
+  semantic_review null
+  file report.md                19401 bytes sha16 2d71c0b7959a7f44
+  file evidence_index.json       6840 bytes sha16 f2b4c4a7d8af8936
+  file AGENT_SEAT_ENVELOPE.json   18883 bytes sha16 5436f57ccc43126c
+  file views_digest.json           56 bytes sha16 e71a18c2e81904ed
+  evidence_index items 72 kinds {'snapshot_fact': 47, 's3_envelope': 25} | date>cutoff 0 | top keys ["<list>"]
+== 20261123T230349Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什
+  git_head       8f9055d6e556700b08f28a3abeff284cf0c8d71f | ts_utc 20261123T230349Z
+  run_ok         True | steps 52 not-ok 0
+  question       对比角度换一个：2026年11月，美国与欧元区的增长和通胀环境相比3个月前各有什么变化？日本央行政策利率处于什么水平，距离上次调整过了多久？
+  cutoff         2026-11-24 | as_of_declared {"as_of": "2026-11-24", "basis": null, "snapshot_target_date": "2026-11-24", "differs_from_snapshot": false, "requested_as_of": null, "clamped_to_coverage": false, "coverage_date": "2026-11-24", "requested_month_end": null, "actual_coverage_date": null, "bare_year_month": "2026年11月", "upstream_pin": false, "error": null, "note": "问句含裸年月 2026年11月 但相对回看约束非单一(不按时点化合并,R31 既档口径)——研究截止日=快照版本日 2026-11-24(不晚于该年月;该月末完整结果须待数据覆盖后重跑)"}
+  frozen_inputs  {"config/release_calendar.json": "e44fd2aa5ced0310", "config/metric_registry.json": "fa396d22175a4814", "data/daily/research_snapshot_20261124.json": "0cb3c82d1a0ff8bb"}
+  evidence_gate. discipline "r32"
+  evidence_gate. historical_view false
+  evidence_gate. publication_basis "snapshot_presence"
+  evidence_gate. counts {"facts_kept": 105, "facts_rebuilt": 0, "facts_dropped": 0, "facts_excluded_version": 0, "series_observations_dropped": 0, "series_observations_version_unavailable": 0, "series_excluded": 0, "series_n": 92}
+  point_values   cells 9 anchors 18 statuses {'ok': 18} | planned-but-absent []
+  point_anchors  [{"kind": "point", "label": "3个月前", "as_of": "2026-08-24", "months_before": 3}, {"kind": "point", "label": "最新一期", "as_of": "2026-11-24", "months_before": 0, "explicit_period": "2026-11"}]
+  regions        {"US": {"growth": ["US_REAL_GDP", "UNEMPLOYMENT", "INDPRO"], "inflation": ["CPI", "CORE_CPI", "CORE_PCE"]}, "EA": {"growth": ["EA_REAL_GDP_YOY"], "inflation": ["EA_HICP_YOY"]}, "JP": {"policy": ["JP_POLICY_RATE"]}} | dimensions ['growth', 'inflation', 'policy']
+  n metrics      9 | metric ids ["US_REAL_GDP", "UNEMPLOYMENT", "INDPRO", "CPI", "CORE_CPI", "CORE_PCE", "EA_REAL_GDP_YOY", "EA_HICP_YOY", "JP_POLICY_RATE"]
+  dimension_gaps [{"region": "JP", "dimension": "policy", "metric_id": "JP_POLICY_TARGET", "gap": "registry_absent", "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"}]
+  semantic_review null
+  file report.md                18863 bytes sha16 c9b7ec65f6315cfe
+  file evidence_index.json       5936 bytes sha16 d1565b23948392af
+  file AGENT_SEAT_ENVELOPE.json   14777 bytes sha16 3a97a13f78932b60
+  file views_digest.json           56 bytes sha16 e71a18c2e81904ed
+  evidence_index items 63 kinds {'snapshot_fact': 38, 's3_envelope': 25} | date>cutoff 0 | top keys ["<list>"]
+== 20261123T230406Z_2026年11月_日本和欧元区最近六个月的通胀与政策环境有什么不同_哪些方面分化
+  git_head       8f9055d6e556700b08f28a3abeff284cf0c8d71f | ts_utc 20261123T230406Z
+  run_ok         True | steps 48 not-ok 0
+  question       2026年11月,日本和欧元区最近六个月的通胀与政策环境有什么不同?哪些方面分化,哪些证据不足?请给出具体数据和各数据的公布时间。
+  cutoff         2026-11-24 | as_of_declared {"as_of": "2026-11-24", "basis": "裸年月 2026年11月 按月末时点化为请求研究时点 2026-11-30(晚于快照实际覆盖日 2026-11-24)→研究截止日取实际覆盖日 2026-11-24,与单一相对回看窗合并(一个截止日+一个回看窗;真冲突组合仍拒绝)", "snapshot_target_date": "2026-11-24", "differs_from_snapshot": false, "requested_as_of": "2026-11-30", "clamped_to_coverage": true, "coverage_date": "2026-11-24", "requested_month_end": "2026-11-30", "actual_coverage_date": "2026-11-24", "bare_year_month": null, "upstream_pin": false, "error": null, "note": "问句请求的研究时点 2026-11-30 晚于快照实际覆盖日 2026-11-24(月末未到/数据未到)——研究截止…
+  frozen_inputs  {"config/release_calendar.json": "e44fd2aa5ced0310", "config/metric_registry.json": "fa396d22175a4814", "data/daily/research_snapshot_20261124.json": "0cb3c82d1a0ff8bb"}
+  evidence_gate. discipline "r32"
+  evidence_gate. historical_view false
+  evidence_gate. publication_basis "snapshot_presence"
+  evidence_gate. counts {"facts_kept": 105, "facts_rebuilt": 0, "facts_dropped": 0, "facts_excluded_version": 0, "series_observations_dropped": 0, "series_observations_version_unavailable": 0, "series_excluded": 0, "series_n": 92}
+  point_values   cells 6 anchors 12 statuses {'ok': 12} | planned-but-absent []
+  point_anchors  [{"kind": "point", "label": "6个月前", "as_of": "2026-05-24", "months_before": 6, "window_start": "问句时间窗窗起(最近六个月)"}, {"kind": "point", "label": "最新一期", "as_of": "2026-11-24", "months_before": 0, "explicit_period": "2026-11"}]
+  regions        {"EA": {"inflation": ["EA_HICP_YOY"], "policy": ["ECB_MRO", "ECB_DFR"]}, "JP": {"inflation": ["JP_CPI_YOY", "JP_CPI_TOKYO_YOY"], "policy": ["JP_POLICY_RATE"]}} | dimensions ['inflation', 'policy']
+  n metrics      6 | metric ids ["EA_HICP_YOY", "ECB_MRO", "ECB_DFR", "JP_CPI_YOY", "JP_CPI_TOKYO_YOY", "JP_POLICY_RATE"]
+  dimension_gaps [{"region": "JP", "dimension": "policy", "metric_id": "JP_POLICY_TARGET", "gap": "registry_absent", "note": "计划指标 JP_POLICY_TARGET 不在注册表(检索范围=注册表 economy=JP 面+快照 series_store+采集档通道)——JP_POLICY_TARGET 历史序列与元数据均不可得,该格以「数据不可得」呈现(影响: 日本货币政策环境该口径三时点对照不可判,不以相邻口径冒充),不虚构"}]
+  semantic_review null
+  file report.md                13800 bytes sha16 cb9cf584b2371ab7
+  file evidence_index.json       5636 bytes sha16 f10eab58239a1d7c
+  file AGENT_SEAT_ENVELOPE.json   15587 bytes sha16 f2e650ebf6c6b647
+  file views_digest.json           56 bytes sha16 e71a18c2e81904ed
+  evidence_index items 60 kinds {'snapshot_fact': 35, 's3_envelope': 25} | date>cutoff 0 | top keys ["<list>"]

@@ -1,0 +1,17 @@
+[
+ {
+  "kind": "ex_post",
+  "months": 3,
+  "anchored_on": "事件日(转折/历史类比基准)向前后移"
+ },
+ {
+  "kind": "ex_post",
+  "months": 6,
+  "anchored_on": "事件日(转折/历史类比基准)向前后移"
+ },
+ {
+  "kind": "ex_post",
+  "months": 12,
+  "anchored_on": "事件日(转折/历史类比基准)向前后移"
+ }
+]

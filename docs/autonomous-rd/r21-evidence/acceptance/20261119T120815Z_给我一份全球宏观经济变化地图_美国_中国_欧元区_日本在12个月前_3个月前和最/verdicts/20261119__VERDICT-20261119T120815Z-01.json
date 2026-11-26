@@ -1,0 +1,39 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "独立语义审查席(零共享上下文 Subagent a294628df2ad8c3d5,两轮 REVISE→UPHELD)",
+  "notes": "R21 正式研究工单独立语义审查(两轮,零共享上下文 Subagent 席,agentId a294628df2ad8c3d5,全程只读+引擎独立复算)。裁决链: 首裁 REVISE(4 MAJOR+5 MINOR+4 NIT: 近一月利率分解符号错误自相矛盾/2025-03 中国 PPI 贴错月(−2.9→应为−2.5)/以查询截距冒充序列覆盖起点压掉同步性核查/2022-06 CAPE z 误引 2.3(引擎 1.646)/人民币方向与引擎相反等)→Agent 席逐条修订 13 处→复裁 UPHELD: 13 项处置逐条核对通过,修订引入的新文本(2025-03 同步面 8 项数值/日期+6 项序列起点)全部独立复算一致,审查席并自我更正其首轮 JP_POLICY_RATE 起点查询截距伪影(真实起点 1985-07)。本档=对当前(修订后)内容的终裁;首裁 REVISE 系对修订前内容作出,其全文与复裁全文逐字存于同目录 PROSE-20261119T120815Z-01.md(裁决链证据,不参与内容绑定)。机器面: 契约校验 VERIFIED(attach 三轮迭代,曾拦截 6 处数值口径错误);本工单全程零付费 API、无 push、无 ssh、未触 LIVE。",
+  "run_ts": "20261119T120815Z",
+  "content_sha256": "5916b8dc72ff018ec80afd4bda1c17b2f85024f7b33e1e4675285585501a0103",
+  "audited_at": "2026-11-19",
+  "recorded_at": "20261119T124503Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "counterexamples_sought": [
+    "22 格三时点锚值/同比派生/政策事件日期逐位复算(对照 ia_cli history 原值)",
+    "三段历史类比 45 个事后数字按锚月末→锚+N月月末口径独立重算",
+    "资产窗 23 个数字(1m/3m/12m)以引擎序列自算对账",
+    "analog --top 5 复跑核对距离/分位/维度贡献/CAPE z/簇成员",
+    "2025-03 同步面新文本 8 项数值/日期+6 项序列起点独立复算",
+    "时序主张逐条检验月频分辨率(同月变动是否写先后未定)",
+    "方向语义检验(USDJPY/USDCNY/日元/人民币方向 vs 引擎)"
+  ],
+  "prose_ref": "audit/semantic_review/20261119/PROSE-20261119T120815Z-01.md",
+  "review_chain": [
+    {
+      "round": 1,
+      "verdict": "REVISE",
+      "against": "修订前 judgment(attach 第2稿)",
+      "findings": "4 MAJOR + 5 MINOR + 4 NIT"
+    },
+    {
+      "round": 2,
+      "verdict": "UPHELD",
+      "against": "修订后 judgment(attach 第4稿,契约 VERIFIED)",
+      "findings": "13 项处置全过,新文本复算一致,无新引入错误"
+    }
+  ],
+  "reviewer_context_note": "独立零共享上下文 Subagent(general-purpose),仅获工单原文+档案路径+引擎入口,未获 Agent 席任何推理过程"
+}

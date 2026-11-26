@@ -1,0 +1,56 @@
+§A 地图问句识别+计划
+  ✅ §A M1 原问 → 识别为地图问句(基线: 仅经济体概览) — detect=True
+  ✅ §A 近失(单经济体)「美国12个月前和3个月前的增…」→ 非地图问句(不误触发) — detect=False
+  ✅ §A 近失(无形状词且无维度词(R29 起「宏观环境」型问句=隐含全维族正判,此近失例换形))「美国、中国、欧元区、日本的情…」→ 非地图问句(不误触发) — detect=False
+  ✅ §A 近失(经济体不足(严格触发≥2交集))「日本和欧元区的货币政策地图…」→ 非地图问句(不误触发) — detect=False
+  ✅ §A M2 计划: 四地×三维+指标非空(答非所问面闭合) — regions=['CN', 'EA', 'JP', 'US'] n_metrics=22
+  ✅ §A 三时点=日历点锚分记(12月前/3月前/最新) — anchors=[('point', '2025-11-18'), ('point', '2026-08-18'), ('point', '2026-11-18')]
+  ✅ §A 「一年前」形 → 同为 12 月日历点锚 — months=[12, 3]
+  ✅ §A 「随后3、6、12个月」=事后偏移锚(kind≠point) — ex=[('ex_post', 3), ('ex_post', 6), ('ex_post', 12)]
+  ✅ §A 锚语义注记: 两类时间分记不混同 — note=「N个月前」=日历点锚(研究截止日−N月);「事件发生后N个月」=事后偏移锚(事件日+N月) ——两类分记,前者用于三时点对照,后者用于转折/历史类比的随后 3
+  ✅ §A 维度缺口如实点名(R20: EA/JP 增长已入册,缺口闭合) — gaps=1
+  ✅ §A 上下文指标含美债三利率(任务3复算面) — ctx=['UST_10Y', 'TIPS_10Y', 'BEI_10Y']
+§B 窗口(地图透传+非地图零回归)
+  ✅ §B M3 原问+计划时间词消费 → 「过去一年」窗正常解析 — kind=relative years=1
+  ✅ §B 同问无地图透传 → 残缺数量仍拒绝(R10 语义保全,仅地图放行) — kind=unparseable
+  ✅ §B 只比较问句零回归 → [10Y,30Y]+六月窗 — mets=['UST_10Y', 'UST_30Y'] months=6
+  ✅ §B 只比较问句非地图问句(不误入地图面) — detect=False
+§C 正式 plan(冻结根,原问+只比较)
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r18gate_d8oy16v_/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r18gate_d8oy16v_/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r18gate_d8oy16v_/data/daily/anchors_20261117.json (119个)
+   Gate A: FAIL | 事实 37 | 质量 {'PASS': 21, 'DEGRADED': 7, 'FAIL': 0} | core缺失 16 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+✅ 快照: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r18gate_4651rzf_/data/daily/research_snapshot_20261117.json
+   MD:   /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r18gate_4651rzf_/data/daily/research_snapshot_20261117.md
+   锚点: /var/folders/9f/db_l8h8s5tz45287qy9v7ml40000gn/T/r18gate_4651rzf_/data/daily/anchors_20261117.json (115个)
+   Gate A: FAIL | 事实 35 | 质量 {'PASS': 19, 'DEGRADED': 7, 'FAIL': 0} | core缺失 18 | 非核心缺失 59项(AAPL,BRENT_F,BUND_10Y,BUND_2Y,CAC40)…
+  ✅ §C 原问 plan → run_ok+research_plan 入档(基线 metrics=[] 已闭合) — run_ok=True regions=['CN', 'EA', 'JP', 'US']
+  ✅ §C 计划指标 planned 分级在场(缺数=披露非阻断) — planned=22 basis0=地图研究计划(引擎按地区×维度选定;序列缺席/覆盖不足=如实缺数格披露于rese
+  ✅ §C 缺数注记点名(检索范围+影响分级,run_ok 不被计划缺口阻断) — notes=['地图计划指标缺数(披露不阻断;缺数格=「数据不可得」+检索范']
+  ✅ §C 转折候选面在场+同比空间(水平序列漂移不作转折) — n=7 top=[('CN_PMI_MFG', '2026-05'), ('CPI', '2026-05'), ('INDPRO', '2026-02')]
+  ✅ §C 只比较(任务4再测) → 两期限都在必需集+满足 — mets=['UST_10Y', 'UST_30Y'] out={'UST_10Y': 'satisfied', 'UST_30Y': 'satisfied'}
+  ✅ §C 移除10年 → 明确指定指标遗漏=阻断(写明缺什么,30Y 仍要求) — out10=insufficient_coverage ob=缺什么: UST_10Y(任务窗2026-05-17..2026-11-17)——任务窗窗口成员/覆
+§D reader_map 契约(任务4反例)
+  ✅ §D 正例(五面齐+数值回贴引擎面) → attach 落位 — rc=0 attached=True
+  ✅ §D 反例(机制正文空串) → 拒落位 — attached=False viol=[{"code": "SCHEMA", "where": "l3.mechanism_chains[MECH-1.link1].text", "detail":
+  ✅ §D 反例(机制正文 None) → 拒落位 — attached=False viol=[{"code": "SCHEMA", "where": "l3.mechanism_chains[MECH-1.link1].text", "detail":
+  ✅ §D 反例(reader_map 整体缺席) → 拒落位 — attached=False verdict=NOT_VERIFIED
+  ✅ §D 反例(一句总判断为空) → 拒落位 — attached=False verdict=NOT_VERIFIED
+  ✅ §D 反例(传导环缺竞争解释字段) → 拒落位 — attached=False verdict=NOT_VERIFIED
+  ✅ §D 反例(转折仅 2 个) → 拒落位 — attached=False verdict=NOT_VERIFIED
+  ✅ §D 反例(转折 4 个) → 拒落位 — attached=False verdict=NOT_VERIFIED
+  ✅ §D 反例(历史 4 段) → 拒落位 — attached=False verdict=NOT_VERIFIED
+  ✅ §D 反例(转折后值与引擎月末口径不符) → 拒落位[CONTRADICTED] — attached=False verdict=CONTRADICTED
+  ✅ §D 反例(区分指标不在计划/证据面) → 拒落位[CONTRADICTED] — attached=False verdict=CONTRADICTED
+§E 报告/归档门
+  ✅ §E 空洞 reader_map → blocked_class=map_required_face_missing — bc=map_required_face_missing
+  ✅ §E 正例全链 → 交付+归档1份+读者报告五面俱全 — a=0 r=0 dlv=True arc=0 mx=1 secs=[]
+  ✅ §E 归档回读 SHA-256 与读者文件逐位一致 — rd=4384d67059d0 arc=4384d67059d0
+  ✅ §E 篡改 MAP_REPORT(≠旁挂锚) → 拒交付+拒归档+不洗白 — dlv=False arc=1 mx=0
+  ✅ §E 篡改恢复(删除单改文件) → 重渲交付(合法修订通道不误伤) — rc=0 dlv=True
+  ✅ §E MAP_REPORT 缺席 → 归档 blocked=map_required_face_missing — ok=False blocked=map_required_face_missing
+  ✅ §E 只比较正例 → 全链交付+归档(两项都保留才放行) — a=0 r=0 dlv=True arc=0 mx=1
+    [debug] archive 拒绝: {"stage": "archive", "blocked": "not_deliverable", "review": {"required": false, "seat_invoked": false, "verdict": null, "fresh": null, "error": null, "archive": null, "verdicts_n": 0, "prior_verdicts": [], "record_health": {}}, "deliverable": false}
+  ✅ §E 移除10年反例 → 缺任一项即阻止正式归档(零归档) — dlv=False arc=1 mx=0
+
+Audit-R18 判定: 40 PASS / 0 FAIL

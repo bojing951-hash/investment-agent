@@ -1,22 +1,22 @@
 # COMPLEXITY_BASELINE — 复杂度基线(章程§四.4,只测不瘦)
 
-- 生产面: 89 py 文件 / 51038 行 / 1451 函数
-- 测试面: 178 py 文件 / 80094 行
+- 生产面: 98 py 文件 / 74868 行 / 2018 函数
+- 测试面: 217 py 文件 / 106234 行
 
 ## 最大 10 文件(生产面)
 
 | 文件 | 行数 |
 |---|---|
+| scripts/research_map_planner.py | 4170 |
+| ia_cli.py | 3745 |
+| scripts/research_orchestrator.py | 3627 |
+| scripts/research_contract/judgment_contract.py | 2707 |
+| scripts/china_market_collector.py | 2525 |
+| scripts/agent_judgment.py | 2404 |
+| scripts/research_provenance.py | 2341 |
+| scripts/expectations_gap.py | 2285 |
+| scripts/seat_tools/make_expectations_gap_judgment.py | 2282 |
 | scripts/research_contract/text_consistency.py | 2036 |
-| scripts/research_provenance.py | 1893 |
-| scripts/historical_coverage_audit.py | 1693 |
-| scripts/report_generator.py | 1621 |
-| scripts/allocation_engine.py | 1620 |
-| scripts/china_market_collector.py | 1559 |
-| ia_cli.py | 1541 |
-| scripts/real_data_acceptance.py | 1446 |
-| scripts/data_validator.py | 1279 |
-| scripts/view_plausibility.py | 1022 |
 
 ## 增长控制
 - 新增框架/系统/重复模型: 须证明不可复用+登记成本(章程§四.4)

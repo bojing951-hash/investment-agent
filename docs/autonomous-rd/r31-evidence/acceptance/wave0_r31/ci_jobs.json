@@ -1,0 +1,305 @@
+{
+  "total_count": 3,
+  "jobs": [
+    {
+      "id": 137089197288,
+      "run_id": 44983589369,
+      "workflow_name": "offline-tests",
+      "head_branch": "dev/audit-fix-r1",
+      "run_url": "https://api.github.com/repos/bojing951-hash/investment-agent/actions/runs/44983589369",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEs_9M8AAAAf6yck6A",
+      "head_sha": "ca916cdca7b749282e498d8c8f0eac8bf43b7372",
+      "url": "https://api.github.com/repos/bojing951-hash/investment-agent/actions/jobs/137089197288",
+      "html_url": "https://github.com/bojing951-hash/investment-agent/actions/runs/44983589369/job/137089197288",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-22T04:06:44Z",
+      "started_at": "2026-11-22T04:06:46Z",
+      "completed_at": "2026-11-22T04:14:50Z",
+      "name": "tests (3.12)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-22T04:06:46Z",
+          "completed_at": "2026-11-22T04:06:47Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-22T04:06:47Z",
+          "completed_at": "2026-11-22T04:06:50Z"
+        },
+        {
+          "name": "Run actions/setup-python@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-22T04:06:50Z",
+          "completed_at": "2026-11-22T04:06:50Z"
+        },
+        {
+          "name": "安装被测模块import面所需的真实第三方依赖",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-22T04:06:50Z",
+          "completed_at": "2026-11-22T04:07:12Z"
+        },
+        {
+          "name": "运行全部离线测试套件(排除test_model_live,记录每套退出码)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-22T04:07:12Z",
+          "completed_at": "2026-11-22T04:14:48Z"
+        },
+        {
+          "name": "失败套件日志打包上传(仅失败时)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6,
+          "started_at": "2026-11-22T04:14:48Z",
+          "completed_at": "2026-11-22T04:14:48Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-22T04:14:48Z",
+          "completed_at": "2026-11-22T04:14:48Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-22T04:14:48Z",
+          "completed_at": "2026-11-22T04:14:48Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-22T04:14:48Z",
+          "completed_at": "2026-11-22T04:14:48Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/bojing951-hash/investment-agent/check-runs/137089197288",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000001096,
+      "runner_name": "GitHub Actions 1000001096",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 137089197520,
+      "run_id": 44983589369,
+      "workflow_name": "offline-tests",
+      "head_branch": "dev/audit-fix-r1",
+      "run_url": "https://api.github.com/repos/bojing951-hash/investment-agent/actions/runs/44983589369",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEs_9M8AAAAf6ycl0A",
+      "head_sha": "ca916cdca7b749282e498d8c8f0eac8bf43b7372",
+      "url": "https://api.github.com/repos/bojing951-hash/investment-agent/actions/jobs/137089197520",
+      "html_url": "https://github.com/bojing951-hash/investment-agent/actions/runs/44983589369/job/137089197520",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-22T04:06:44Z",
+      "started_at": "2026-11-22T04:06:46Z",
+      "completed_at": "2026-11-22T04:13:25Z",
+      "name": "tests (3.11)",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-22T04:06:47Z",
+          "completed_at": "2026-11-22T04:06:48Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-22T04:06:48Z",
+          "completed_at": "2026-11-22T04:06:52Z"
+        },
+        {
+          "name": "Run actions/setup-python@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-22T04:06:52Z",
+          "completed_at": "2026-11-22T04:06:52Z"
+        },
+        {
+          "name": "安装被测模块import面所需的真实第三方依赖",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-22T04:06:52Z",
+          "completed_at": "2026-11-22T04:07:10Z"
+        },
+        {
+          "name": "运行全部离线测试套件(排除test_model_live,记录每套退出码)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-22T04:07:10Z",
+          "completed_at": "2026-11-22T04:13:22Z"
+        },
+        {
+          "name": "失败套件日志打包上传(仅失败时)",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 6,
+          "started_at": "2026-11-22T04:13:22Z",
+          "completed_at": "2026-11-22T04:13:22Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-22T04:13:22Z",
+          "completed_at": "2026-11-22T04:13:22Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-22T04:13:22Z",
+          "completed_at": "2026-11-22T04:13:22Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-22T04:13:22Z",
+          "completed_at": "2026-11-22T04:13:22Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/bojing951-hash/investment-agent/check-runs/137089197520",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000001097,
+      "runner_name": "GitHub Actions 1000001097",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    },
+    {
+      "id": 137089197567,
+      "run_id": 44983589369,
+      "workflow_name": "offline-tests",
+      "head_branch": "dev/audit-fix-r1",
+      "run_url": "https://api.github.com/repos/bojing951-hash/investment-agent/actions/runs/44983589369",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVEs_9M8AAAAf6ycl_w",
+      "head_sha": "ca916cdca7b749282e498d8c8f0eac8bf43b7372",
+      "url": "https://api.github.com/repos/bojing951-hash/investment-agent/actions/jobs/137089197567",
+      "html_url": "https://github.com/bojing951-hash/investment-agent/actions/runs/44983589369/job/137089197567",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-22T04:06:44Z",
+      "started_at": "2026-11-22T04:06:46Z",
+      "completed_at": "2026-11-22T04:06:55Z",
+      "name": "gates",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-22T04:06:46Z",
+          "completed_at": "2026-11-22T04:06:47Z"
+        },
+        {
+          "name": "Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-22T04:06:47Z",
+          "completed_at": "2026-11-22T04:06:52Z"
+        },
+        {
+          "name": "Run actions/setup-python@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-22T04:06:52Z",
+          "completed_at": "2026-11-22T04:06:52Z"
+        },
+        {
+          "name": "thresholds 三方对账门 G1-G4(T2·裁定S1第4项,任一门红=CI fail)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-22T04:06:52Z",
+          "completed_at": "2026-11-22T04:06:53Z"
+        },
+        {
+          "name": "研发状态一致性门(R20·Charter10 §3.2,六项任一FAIL即红)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-22T04:06:53Z",
+          "completed_at": "2026-11-22T04:06:53Z"
+        },
+        {
+          "name": "研发进展漂移顾问(R21·Charter10 §4.3,非阻塞预警可见性)",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-22T04:06:53Z",
+          "completed_at": "2026-11-22T04:06:53Z"
+        },
+        {
+          "name": "Post Run actions/setup-python@v6",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11,
+          "started_at": "2026-11-22T04:06:53Z",
+          "completed_at": "2026-11-22T04:06:53Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v5",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12,
+          "started_at": "2026-11-22T04:06:53Z",
+          "completed_at": "2026-11-22T04:06:53Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13,
+          "started_at": "2026-11-22T04:06:53Z",
+          "completed_at": "2026-11-22T04:06:53Z"
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/bojing951-hash/investment-agent/check-runs/137089197567",
+      "labels": [
+        "ubuntu-latest"
+      ],
+      "runner_id": 1000001098,
+      "runner_name": "GitHub Actions 1000001098",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

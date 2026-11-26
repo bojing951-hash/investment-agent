@@ -1,0 +1,130 @@
+== A. BRENT_F month-end (last obs within month) ==
+BRENT_F month-end 2026-01: ('2026-01-30', 70.690002)
+BRENT_F month-end 2026-02: ('2026-02-27', 72.480003)
+BRENT_F month-end 2026-03: ('2026-03-31', 118.349998)
+BRENT_F month-end 2026-04: ('2026-04-30', 114.010002)
+BRENT_F month-end 2026-05: ('2026-05-29', 92.050003)
+BRENT_F month-end 2026-06: ('2026-06-30', 72.919998)
+BRENT_F month-end 2026-10: ('2026-10-30', 117.639999)
+BRENT_F 2026-02 -> 2026-05 first/last: 72.48 -> 92.05 = +27.00%
+BRENT_F 2026-02 -> 2026-03: +63.29% ; 2026-03 -> 2026-05: -22.22%
+BRENT_F@2026-11-23: 88.190002 ; @2026-10-31: ('2026-10-30', 117.639999) ; mtd: -25.03399970277116
+== B. CORE_CPI / CPI yoy 2026-01..2026-05 (level yoy, base = same month last year) ==
+CORE_CPI 2026-01 level=332.793 base=324.638 yoy=2.5120
+CORE_CPI 2026-02 level=333.512 base=325.465 yoy=2.4725
+CORE_CPI 2026-03 level=334.165 base=325.69 yoy=2.6022
+CORE_CPI 2026-04 level=335.423 base=326.467 yoy=2.7433
+CORE_CPI 2026-05 level=336.121 base=326.893 yoy=2.8229
+CORE_CPI 2026-06 level=336.065 base=327.658 yoy=2.5658
+CPI 2025-09 level=324.245 base=314.732 yoy=3.0225715847133294
+CPI 2025-11 level=325.063 base=316.528 yoy=2.6964439164939513
+CPI 2026-01 level=326.588 base=318.961 yoy=2.391201432150014
+CPI 2026-02 level=327.46 base=319.679 yoy=2.4340041103732224
+CPI 2026-04 level=332.407 base=320.302 yoy=3.7792458367415627
+CPI 2026-05 level=333.979 base=320.62 yoy=4.166614684049641
+CPI 2026-07 level=332.813 base=322.169 yoy=3.303856050706311
+CPI 2026-08 level=334.131 base=323.291 yoy=3.353016322755642
+CPI 2026-09 level=336.298 base=324.245 yoy=3.7172508442689933
+CPI 2026-10 level=337.476 base=None yoy=None
+CPI 2025-10 level=None base=None yoy=None
+== C. CORE_PCE yoy 2026-01..2026-10 ==
+CORE_PCE 2026-01 level=128.27 base=124.609 yoy=2.938
+CORE_PCE 2026-02 level=128.701 base=125.002 yoy=2.9592
+CORE_PCE 2026-03 level=129.03 base=125.144 yoy=3.1052
+CORE_PCE 2026-04 level=129.395 base=125.524 yoy=3.0839
+CORE_PCE 2026-05 level=129.796 base=125.818 yoy=3.1617
+CORE_PCE 2026-06 level=129.969 base=126.133 yoy=3.0412
+CORE_PCE 2026-07 level=130.148 base=126.363 yoy=2.9953
+CORE_PCE 2026-08 level=130.489 base=126.646 yoy=3.0344
+CORE_PCE 2026-09 level=130.902 base=126.94 yoy=3.1212
+CORE_PCE 2026-10 level=None base=None yoy=None
+== D. rates trio on common trading days (bp) ==
+UST_10Y 2025-11-19=4.13 2026-10-20=5.12 2026-11-19=5.04 | 12m +91bp | 1m(10-20->11-19) -8bp
+TIPS_10Y 2025-11-19=1.86 2026-10-20=2.77 2026-11-19=2.88 | 12m +102bp | 1m(10-20->11-19) +11bp
+BEI_10Y 2025-11-19=2.27 2026-10-20=2.35 2026-11-19=2.16 | 12m -11bp | 1m(10-20->11-19) -19bp
+== E. CN_CPI_YOY path 2025-10..2026-06 ==
+CN_CPI_YOY 2025-10 = 0.2
+CN_CPI_YOY 2025-11 = 0.7
+CN_CPI_YOY 2025-12 = 0.8
+CN_CPI_YOY 2026-01 = 0.2
+CN_CPI_YOY 2026-02 = 1.3
+CN_CPI_YOY 2026-03 = 1.0
+CN_CPI_YOY 2026-04 = 1.2
+CN_CPI_YOY 2026-05 = 1.2
+CN_CPI_YOY 2026-06 = 1.0
+== F. CN_PMI_MFG anchors and yoy in pp ==
+CN_PMI_MFG obs 2025-10-01 = 49.0 ; year-earlier obs 2024-10-01 = 50.1 ; diff -1.10 pp ; ratio-yoy -2.20%
+CN_PMI_MFG obs 2026-07-01 = 49.2 ; year-earlier obs 2025-07-01 = 49.3 ; diff -0.10 pp ; ratio-yoy -0.20%
+CN_PMI_MFG obs 2026-10-01 = 49.3 ; year-earlier obs 2025-10-01 = 49.0 ; diff +0.30 pp ; ratio-yoy +0.61%
+== G. INDPRO yoy 2025-10..2026-10 ==
+INDPRO 2025-10 level=101.2195 yoy=1.7593
+INDPRO 2025-11 level=101.0344 yoy=1.7543
+INDPRO 2025-12 level=101.4941 yoy=1.163
+INDPRO 2026-01 level=101.0388 yoy=0.9735
+INDPRO 2026-02 level=101.9053 yoy=0.7972
+INDPRO 2026-03 level=101.7336 yoy=0.6861
+INDPRO 2026-04 level=102.5768 yoy=1.4327
+INDPRO 2026-05 level=102.6925 yoy=1.7105
+INDPRO 2026-06 level=102.9673 yoy=1.4671
+INDPRO 2026-07 level=103.1675 yoy=1.2498
+INDPRO 2026-08 level=103.0954 yoy=1.4472
+INDPRO 2026-09 level=103.8458 yoy=2.1421
+INDPRO 2026-10 level=103.3954 yoy=2.1497
+== H. EA_HICP_YOY monthly increments 2026-01..2026-10 ==
+EA_HICP_YOY 2025-12 = 2.0 ; increment None
+EA_HICP_YOY 2026-01 = 1.7 ; increment -0.30
+EA_HICP_YOY 2026-02 = 1.9 ; increment +0.20
+EA_HICP_YOY 2026-03 = 2.6 ; increment +0.70
+EA_HICP_YOY 2026-04 = 3.0 ; increment +0.40
+EA_HICP_YOY 2026-05 = 3.2 ; increment +0.20
+EA_HICP_YOY 2026-06 = 2.8 ; increment -0.40
+EA_HICP_YOY 2026-07 = 2.9 ; increment +0.10
+EA_HICP_YOY 2026-08 = 3.2 ; increment +0.30
+EA_HICP_YOY 2026-09 = 3.8 ; increment +0.60
+EA_HICP_YOY 2026-10 = 4.0 ; increment +0.20
+== I. USDCNY ==
+USDCNY 2025-11-19 -> ('2025-11-19', 7.1075)
+USDCNY 2026-08-19 -> ('2026-08-19', 6.7426)
+USDCNY 2026-10-20 -> ('2026-10-20', 6.6909)
+USDCNY 2026-10-23 -> ('2026-10-23', 6.6779)
+USDCNY 2026-11-19 -> ('2026-11-19', 6.6676)
+USDCNY 2026-11-23 -> ('2026-11-23', 6.6542)
+== J. CN_POLICY_OVERNIGHT all observations ==
+CN_POLICY_OVERNIGHT n=16 first=('2026-11-02', 1.25) last=('2026-11-23', 1.25) distinct values=[1.25]
+== K. evidence_refs counts ==
+L3 refs=41 ; L4 refs=9 ; total=50 ; unique(L3+L4)=20 ; unique(L3)=20
+judgment text containing 41: …225 +24.46%、DAX +21.08%、SHCOMP +2.85%、GOLD_F +15.47%、DXY -0.41%、UST_10Y -0.19pp(月末口径…
+judgment text containing 41: …证据引用共 41 条…
+judgment text: 证据引用共 41 条
+== L. frozen calendar: records by authority/issuer ==
+calendar top keys: ['batches', 'created', 'entries', 'spec', 'updated', 'version'] ; n entries=18
+issuer counts: [(('source', 'Audit-R21 验收指令(2026-11-19)'), 3), (('source', 'Audit-R21: 由停摆事件实录日期按公开时间线推广;推广范围=本条 metric_ids×2025-09/10 观测月,减去七项已实录条目'), 1), (('source', 'Audit-R22 验收指令(2026-11-19)'), 3), (('source', 'Audit-R28 验收指令(2026-11-21 复测 2026-11-20 09:00)'), 1), (('source', 'Audit-R28 验收指令(2026-11-21)'), 2), (('source', 'Audit-R30 验收指令(2025-11 与 2026-11 两期官方日期+09:00 统一;2025-11 观测=在库真实序列,发布日按官方节奏每月20日)'), 1)]
+calendar entries mentioning 美联储: 0
+calendar entries mentioning Federal Reserve: 0
+calendar entries mentioning FOMC: 0
+calendar entries mentioning 欧央行: 0
+calendar entries mentioning ECB: 0
+calendar entries mentioning 日本银行: 0
+calendar entries mentioning 日本央行: 2
+calendar entries mentioning BoJ: 0
+calendar entries mentioning 中国人民银行: 0
+calendar entries mentioning PBOC: 0
+== M. anchor GDP vintage wording in judgment ==
+count of "修订" in agent_judgment.json: 5
+count of "事后回顾" in agent_judgment.json: 0
+count of "当时可知" in agent_judgment.json: 0
+count of "首发" in agent_judgment.json: 2
+engine cell US_REAL_GDP vintage_semantics=事后回顾(最新修订值,非当时首发值)
+engine cell EA_REAL_GDP_YOY vintage_semantics=事后回顾(最新修订值,非当时首发值)
+engine cell JP_REAL_GDP_YOY vintage_semantics=事后回顾(最新修订值,非当时首发值)
+== N. Tokyo CPI engine anchors (observation/publish dates) ==
+{"12个月前": {"status": "no_published_observation_on_or_before_anchor", "as_of": "2025-11-23", "note": "锚日前无「已发布」观测(发布日=日历实录条目优先+推定规则兜底)"}, "3个月前": {"status": "ok", "as_of": "2026-08-23", "observation_date": "2026-07-01", "publication_date": "2026-07-30", "publication_rule": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)", "publication_basis": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)", "vintage": "as_collected(采集时点值)", "value": 1.85, "period_end": "2026-07-31"}, "最新一期": {"status": "ok", "as_of": "2026-11-23", "observation_date": "2026-10-01", "publication_date": "2026-10-30", "publication_rule": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)", "publication_basis": "总务省东京CPI中旬速报值当月末发布(月末−1天,推定;官方实录锚 2026年10月分=2026-10-30、6月分=2026-06-26)", "vintage": "as_collected(采集时点值)", "value": 2.73, "period_end": "2026-10-31"}}
+== O. 2026-11-23 weekday / snapshot stamps ==
+2026-11-23 = Mon
+2026-11-20 = Fri
+2026-08-30 = Sun
+2026-08-31 = Mon
+2026-09-29 = Tue
+2026-06-26 = Fri
+2026-10-30 = Fri
+snapshot research_as_of = 2026-11-23T22:53:47+08:00

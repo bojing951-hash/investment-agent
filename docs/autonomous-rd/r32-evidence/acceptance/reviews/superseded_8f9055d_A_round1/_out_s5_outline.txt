@@ -1,0 +1,28 @@
+/step = "S5_compare"
+/argv  [list 3]
+/argv    e.g. "compare"
+/executed = true
+/ok = true
+/exit_code = 0
+/semantic_ok = true
+/note = "命中 52 个指标,compare 仅取注册表序前 2(US_REAL_GDP,UNEMPLOYMENT);其余 INDPRO,CPI,CORE_CPI,CORE_PCE,DFEDTARU,DFF,CN_PMI_MFG,CN_CPI_YOY,CN_PPI_YOY,CN_POLICY_OVERNIGHT,CN_OMO_7D,CN_LPR_1Y,EA_REAL_GDP_YOY,EA_HICP_YOY,ECB_MRO,ECB_DFR,JP_REAL_GDP_YOY,JP_CPI_YOY,JP_CPI_TOKYO_YOY,JP_POLICY_RATE,UST_10Y,TIPS_10Y,BEI_10Y,UST_2Y,UST_5Y,UST_30Y,TIPS_5Y,BEI_5Y,CURVE_2S10S,SPX,NDX,RUT,DAX,CAC40,NIKKEI225,HSI,SHCOMP,DXY,EURUSD,USDJPY,USDCNY,GOLD_F,SILVER_F,BRENT_F,HY_OAS,IG_OAS,BB_OAS,B_OAS,CCC_OAS,VIX 以 L1 事实行呈现,如需对比另行单跑"
+/duration_ms = 294
+/envelope  {dict 9}
+/envelope/ok = true
+/envelope/capability = "compare"
+/envelope/engine_root = "/private/tmp/r32-accept/final5"
+/envelope/snapshot_id = "research_snapshot_20261123"
+/envelope/target_date = "20261123"
+/envelope/research_as_of = "2026-11-23"
+/envelope/gate_a = "DEGRADED"
+/envelope/data  {dict 8}
+/envelope/data/mode = "metrics"
+/envelope/data/sides  [list 2]
+/envelope/data/alignment  {dict 10}
+/envelope/data/pearson_returns = -0.8935653981522128
+/envelope/data/change_basis  {dict 2}
+/envelope/data/n_change_pairs = 37
+/envelope/data/dropped_null = 0
+/envelope/data/zero_base_dropped = 0
+/envelope/warnings  [list 3]
+/envelope/warnings    e.g. "mixed_frequency: 两侧频率不同(quarterly vs monthly),已默认按自然月网格聚合对齐(alignment.mode=month_grid,聚合方式见 alignment.note 与该侧 sides[].aggregation)"

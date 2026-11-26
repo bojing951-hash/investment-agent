@@ -1,0 +1,9 @@
+whole     pre 142afb718c98d8b6 (19384 chars) | delivered b9b0916548473b2c (19384 chars) | same=False
+content   pre ffa8fbc9c0283d32 (214 lines) | delivered ffa8fbc9c0283d32 (214 lines)
+content lines differing: 0
+sidecar anchor == sha256(delivered file): True
+review tail lines: ['- 席位已裁: UPHELD(裁决链 2 档)']
+「独立语义审查待裁」 pre 0 / delivered 0 ; 「待裁」 total pre 0 / delivered 0 ; 「席位已裁」 pre 1 / delivered 1
+verdict record 20261124/VERDICT-20261123T235121Z-01.json sha256 c686f34a7761ab3c848420bb9bddb80bc3a925189ecf583b15db6ffa2302d844 identical_in_post_fix_tree=True
+verdict record 20261124/VERDICT-20261123T235121Z-02.json sha256 fc2f513b13e00b3ab5a775194e5d87c15368dad6f602997657137d865c673433 identical_in_post_fix_tree=True
+verdict records for run 20261123T235121Z: 2

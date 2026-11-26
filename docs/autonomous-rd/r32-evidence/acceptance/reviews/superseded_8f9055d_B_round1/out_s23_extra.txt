@@ -1,0 +1,45 @@
+USDJPY n=2601 first=2016-11-23 last=2026-11-23 cur=159.347
+ year 2022 n=260 min=113.785 max=150.176 last=132.916
+ year 2023 n=260 min=128.026 max=151.646 last=141.430
+ year 2024 n=262 min=140.790 max=161.621 last=156.995
+ year 2025 n=257 min=140.876 max=158.236 last=156.413
+ year 2026 n=232 min=152.453 max=163.864 last=159.347
+ full-history percentile of current: <=96.6% (n=2601), range 102.678..163.864
+SPX            n=2513 first=2016-11-23 last=2026-11-23
+VIX            n=2515 first=2016-11-23 last=2026-11-23
+GOLD_F         n=2515 first=2016-11-23 last=2026-11-23
+DXY            n=2515 first=2016-11-23 last=2026-11-23
+BRENT_F        n=2516 first=2016-11-23 last=2026-11-23
+EURUSD         n=2601 first=2016-11-23 last=2026-11-23
+NIKKEI225      n=2520 first=2016-07-27 last=2026-11-20
+BEI_10Y        n=2498 first=2016-11-23 last=2026-11-20
+TIPS_10Y       n=2497 first=2016-11-23 last=2026-11-19
+UST_10Y        n=2497 first=2016-11-23 last=2026-11-19
+JP_POLICY_RATE n=496 first=1985-07-01 last=2026-10-01
+CPI            n=119 first=2016-11-01 last=2026-10-01
+EA_HICP_YOY    n=358 first=1997-01-01 last=2026-10-01
+CPI 2025 months present: ['2025-01-01', '2025-02-01', '2025-03-01', '2025-04-01', '2025-05-01', '2025-06-01', '2025-07-01', '2025-08-01', '2025-09-01', '2025-11-01', '2025-12-01']
+CORE_CPI 2025 present: ['2025-01-01', '2025-02-01', '2025-03-01', '2025-04-01', '2025-05-01', '2025-06-01', '2025-07-01', '2025-08-01', '2025-09-01', '2025-11-01', '2025-12-01']
+UNEMPLOYMENT 2025 present: ['2025-01-01', '2025-02-01', '2025-03-01', '2025-04-01', '2025-05-01', '2025-06-01', '2025-07-01', '2025-08-01', '2025-09-01', '2025-11-01', '2025-12-01']
+INDPRO 2025-08..2026-02: [('2025-08', 101.6247), ('2025-09', 101.668), ('2025-10', 101.2195), ('2025-11', 101.0344), ('2025-12', 101.4941), ('2026-01', 101.0388), ('2026-02', 101.9053)]
+CAL {"entry_id": "RC-2025SHUTDOWN-CPI-SEP", "basis": "user_directive", "metric_id": "CPI", "batch_id": "BLS-CPI-2025M09-REL", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "not_published_as_of": "2025-10-23", "first_publish_on_or_after": "2025-10-24", "note": "2025-09 观测月 CPI(常规发布 2025-10-15)因 2025 年联邦政府停摆(2025-10-01..11-12)延误至 2025-10-24 发布;验收指令实录: 2025-11-18 与 11-19 时点均应允许该月 CPI(已于 10-24 发布)", "source": "Audit-R21 验收指令(2026-11-19)"}
+CAL {"entry_id": "RC-2025SHUTDOWN-CORECPI-SEP", "basis": "user_directive", "metric_id": "CORE_CPI", "batch_id": "BLS-CPI-2025M09-REL", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "not_published_as_of": "2025-10-23", "first_publish_on_or_after": "2025-10-24", "note": "2025-09 观测月核心CPI与标题CPI同一份BLS新闻稿同批发布(同批=同首发日);验收指令实录: 九月核心CPI自 2025-10-24 可见(10-23 不可见)", "source": "Audit-R22 验收指令(2026-11-19)"}
+CAL {"entry_id": "RC-2025SHUTDOWN-UNEMP-SEP", "basis": "user_directive", "metric_id": "UNEMPLOYMENT", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "not_published_as_of": "2025-11-19", "first_publish_on_or_after": "2025-11-20", "note": "2025-09 观测月失业率(常规发布 2025-10-06)因停摆延误;验收指令实录: 2025-11-18/11-19 时点只见八月失业率 4.3,九月值自 2025-11-20 起可见", "source": "Audit-R21 验收指令(2026-11-19)"}
+CAL {"entry_id": "RC-2025SHUTDOWN-UNEMP-NOV", "basis": "user_directive", "metric_id": "UNEMPLOYMENT", "batch_id": "BLS-EMPSIT-2025M11-REL", "obs_from": "2025-11-01", "obs_to": "2025-11-01", "not_published_as_of": "2025-12-15", "first_publish_on_or_after": "2025-12-16", "note": "2025-11 观测月失业率(常规发布 2025-12-05 前后)因停摆后节奏延误;验收指令实录: 十一月失业率自 2025-12-16 可见(12-15 不可见)。注: 2025-10 观测月失业率无实录条目→保守界条目覆盖(先例倒挂如实注记,不虚构)", "source": "Audit-R22 验收指令(2026-11-19)"}
+CAL {"entry_id": "RC-2025SHUTDOWN-GDP-Q3", "basis": "user_directive", "metric_id": "US_REAL_GDP", "obs_from": "2025-07-01", "obs_to": "2025-07-01", "not_published_as_of": "2025-12-22", "first_publish_on_or_after": "2025-12-23", "note": "2025Q3 实际GDP(观测季 2025-07-01..09-30,常规 advance 应 2025-10-29 发布)因停摆延误;验收指令实录: 2025-11-18/11-19 时点只见二季度 GDP,三季度自 2025-12-23 起可见(R20 初版整批 11-19 口径按实录改精确日)", "source": "Audit-R21 验收指令(2026-11-19)"}
+CAL {"entry_id": "RC-2025SHUTDOWN-PCE-OCTNOV", "basis": "user_directive", "metric_id": "CORE_PCE", "batch_id": "BEA-PCE-2026M01-REL", "obs_from": "2025-10-01", "obs_to": "2025-11-01", "not_published_as_of": "2026-01-21", "first_publish_on_or_after": "2026-01-22", "note": "2025-10 与 2025-11 两观测月核心PCE(常规应分别于 2025-11-21/12-19 前后发布)因停摆积压,在 2026-01-22 同一份BEA个人收支报告一次补发两月;验收指令实录: 十月与十一月核心PCE均自 2026-01-22 可见(01-21 不可见)", "source": "Audit-R22 验收指令(2026-11-19)"}
+CAL {"entry_id": "RC-2025SHUTDOWN-INDPRO-SEP", "basis": "user_directive", "metric_id": "INDPRO", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "not_published_as_of": "2025-12-02", "first_publish_on_or_after": "2025-12-03", "note": "2025-09 观测月工业生产指数(G.17): 常规应 2025-10-17 前后发布,因 2025-10-01 起联邦停摆,Fed 官方改期公告实录=2025-12-03 09:15 发布——优先于 REST-CONSERVATIVE 保守界(2026-01-22)"}
+CAL {"entry_id": "RC-2025SHUTDOWN-CPI-NOV", "basis": "user_directive", "metric_ids": ["CPI", "CORE_CPI"], "batch_id": "BLS-CPI-2025M11-REL", "obs_from": "2025-11-01", "obs_to": "2025-11-01", "first_publish_on_or_after": "2025-12-18", "note": "BLS改期实录: 2025年11月CPI原定2025-12-10发布,改期至2025-12-18"}
+CAL {"entry_id": "RC-2025SHUTDOWN-PCE-SEP", "basis": "user_directive", "metric_id": "CORE_PCE", "batch_id": "BEA-PCE-2025M09-REL", "obs_from": "2025-09-01", "obs_to": "2025-09-01", "first_publish_on_or_after": "2025-12-05", "note": "BEA停摆追赶实录: 2025年9月个人收支报告原定2025-10-30,实际2025-12-05发布(BEA 25-46);优先于REST-CONSERVATIVE保守界2026-01-22"}
+CAL {"entry_id": "RC-2025SHUTDOWN-INDPRO-OCTNOV", "basis": "user_directive", "metric_id": "INDPRO", "batch_id": "FRB-G17-2025M10-11-REL", "obs_from": "2025-10-01", "obs_to": "2025-11-01", "first_publish_on_or_after": "2025-12-23", "note": "G.17官方公告(2025-12-03): 2025年10月与11月工业生产合并一次发布于2025-12-23——两观测月同日可见"}
+CAL {"entry_id": "RC-2025SHUTDOWN-REST-CONSERVATIVE", "basis": "convention", "metric_ids": ["CPI", "CORE_CPI", "CORE_PCE", "UNEMPLOYMENT", "NFP", "AHE", "INDPRO"], "obs_from": "2025-09-01", "obs_to": "2025-10-31", "not_published_as_of": "2025-11-19", "first_publish_on_or_after": "2026-01-22", "note": "2025-09/2025-10 观测月联邦统计中未逐条实录首发的系列(九月CPI/九月核心CPI/九月失业率/Q3GDP/十月与十一月PCE/十一月失业率 七项 user_directive 条目优先命中,不在本条范围): 实际首发日未逐条实录,取已证最晚补发日 2026-01-22 为保守可见界——介于其间的真实首发不虚构,fail-closed 方向如实注记", "source": "Audit-R21: 由停摆事件实录日期按公开时间线推广;推广范围=本条 metric_ids×2025-09/10 观测月,减去七项已实录条目"}
+EVID metrics: ['AAPL', 'BB_OAS', 'BEI_10Y', 'BEI_5Y', 'BRENT_F', 'BTC', 'B_OAS', 'CAC40', 'CCC_OAS', 'CHINEXT', 'CORE_CPI', 'CORE_PCE', 'CPI', 'CURVE_2S10S', 'DAX', 'DXY', 'EA_HICP_YOY', 'EEM', 'EURUSD', 'EWG', 'EWJ', 'EWU', 'EZU', 'FEZ', 'FXI', 'GBPUSD', 'GLD', 'GOLD_F', 'HSCEI', 'HSI', 'HYG', 'HY_IG_DIFF', 'HY_OAS', 'IEF', 'IG_OAS', 'INDA', 'INDPRO', 'JP_POLICY_RATE', 'LQD', 'MSFT', 'NDX', 'NIKKEI225', 'NVDA', 'RUT', 'SHCOMP', 'SHY', 'SILVER_F', 'SPX', 'SZCI', 'TIPS_10Y', 'TIPS_5Y', 'TLT', 'UNEMPLOYMENT', 'USDCNY', 'USDJPY', 'USO', 'UST_10Y', 'UST_2Y', 'UST_30Y', 'UST_5Y', 'US_REAL_GDP', 'VIX', 'WTI_F']
+EVID sample row: {"ref": "SPX@2026-11-23", "kind": "snapshot_fact", "metric_id": "SPX"}
+CAND US inflation CPI 2026-02 2026-05 2.434 4.1666 1.7326
+CAND EA inflation EA_HICP_YOY 2026-02 2026-05 1.9 3.2 1.3
+CAND US growth INDPRO 2025-11 2026-02 1.7543 0.7972 -0.9571
+CAND US inflation CORE_CPI 2026-05 2026-08 2.8229 2.4462 -0.3767
+CAND JP policy JP_POLICY_RATE 2026-04 2026-07 0.727 0.978 0.251
+CAND US inflation CORE_PCE 2025-11 2026-02 2.7212 2.9592 0.238
+CAND US growth UNEMPLOYMENT 2026-05 2026-08 4.3 4.1 -0.2
+{"basis": "过去12个月(研究截止日)内 3 个月滚动变化绝对值最大者;增长/通胀/政策三维全部进入候选池(每指标一候选,窗端点已按发布纪律过滤);确定性计算,仅作候选——三个转折的取舍与谁先变判断归 Agent 席 reader_map(三转折须为不同事件,同一转折不得重复计数)", "top_n_expected": 3}

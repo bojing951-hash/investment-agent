@@ -1,0 +1,73 @@
+=== R32 从提交重下 R31 入库包重放 2026-11-24 20:17:48 sha=12edab84aeebc7f765b9a06ddc382ef0c0efa39e session=session_B2_formal ===
+[1] downloaded HEAD=12edab84aeebc7f765b9a06ddc382ef0c0efa39e (expect 12edab84aeebc7f765b9a06ddc382ef0c0efa39e)
+[2] manifest check: /tmp/r32-accept/redl/12edab8/r31_session_B2_formal/src/docs/autonomous-rd/r31-evidence/acceptance/session_B2_formal
+manifest run_ts=20261122T125710Z run_code_git_head=ca916cdca7b749282e498d8c8f0eac8bf43b7372 verdict=UPHELD verdicts_n=1 frozen_inputs_sha256=73d74da047725875
+bound files checked=14 mismatches/missing=0 | files outside the manifest: 2 ['archive_receipt.json', 'seat_B2.log']
+manifest run_code_git_head=ca916cdca7b749282e498d8c8f0eac8bf43b7372
+[3] blob identity (cloned commit; audit baseline 72dab1c)
+fetch of the baseline (72dab1c0bc4a050613ba5ca3ca57051ae8475484): ok over https (attempt 1)
+package dir: /tmp/r32-accept/redl/12edab8/r31_session_B2_formal/src/docs/autonomous-rd/r31-evidence/acceptance/session_B2_formal
+prefix: docs/autonomous-rd/r31-evidence/acceptance/session_B2_formal
+cloned commit: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+audit baseline: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+RESULT: all package files blob-identical to the listings given
+engine reused: /tmp/r32-accept/redl/engine_12edab8 (git archive 12edab84aeebc7f765b9a06ddc382ef0c0efa39e)
+--- [4] strict replay on the final-commit engine (record doors)
+rc=1
+ok= False | blocked= code_version_mismatch | render_mode= None | failed= None
+checks: {'manifest_present_parseable': True, 'completeness_files': True, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': True, 'verdict_binding_threeway': True}
+note: 当前代码 HEAD=12edab84aeebc7f765b9a06ddc382ef0c0efa39e ≠ 包记录运行 SHA=ca916cdca7b749282e498d8c8f0eac8bf43b7372——逐字节核对只对录制代码有意义;确要以异版代码重放须 --allow-code-mismatch(降级为披露)
+fetch of the run_sha (ca916cdca7b749282e498d8c8f0eac8bf43b7372): ok over https (attempt 1)
+engine reused: /tmp/r32-accept/redl/engine_ca916cd (git archive ca916cdca7b749282e498d8c8f0eac8bf43b7372)
+--- [5] six steps on the engine at the package's recorded run sha ca916cdca7b749282e498d8c8f0eac8bf43b7372 (work root /tmp/r32-accept/redl/12edab8/r31_session_B2_formal/replay_runsha_engine)
+=== R32 实包重放验收 2026-11-24 20:17:52 tag=REDL31-B2dl engine=/tmp/r32-accept/redl/engine_ca916cd ===
+pkg=/tmp/r32-accept/redl/12edab8/r31_session_B2_formal/src/docs/autonomous-rd/r31-evidence/acceptance/session_B2_formal
+--- [0] 严格面(无旗标) ---
+rc=0
+ok= True | mode= byte_equal | blocked= None | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+all checks: {'manifest_present_parseable': True, 'completeness_files': True, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': True, 'verdict_binding_threeway': True, 'code_version_match': True, 'deterministic_rerender': True, 'package_untouched_postwrite': True}
+--- [1] 更换本地日历→重放不变 ---
+rc=0
+ok= True | mode= byte_equal | blocked= None | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+all checks: {'manifest_present_parseable': True, 'completeness_files': True, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': True, 'verdict_binding_threeway': True, 'code_version_match': True, 'deterministic_rerender': True, 'package_untouched_postwrite': True}
+map bytes: IDENTICAL
+--- [1b] 独立引擎目录移去本地日历 RC-EA-HICP-2022M06 → 仍 rc=0+逐字节(R31 任务2: 重放绑包内冻结日历,引擎本地日历现状零影响) ---
+entries: 18 → 17 (RC-EA-HICP-2022M06 removed)
+rc=0
+ok= True | mode= byte_equal | blocked= None | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+all checks: {'manifest_present_parseable': True, 'completeness_files': True, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': True, 'verdict_binding_threeway': True, 'code_version_match': True, 'deterministic_rerender': True, 'package_untouched_postwrite': True}
+map bytes: IDENTICAL
+--- [2] 重复重放: 新目录+原包不动 ---
+rc=0
+ok= True | mode= byte_equal | blocked= None | failed= []
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+all checks: {'manifest_present_parseable': True, 'completeness_files': True, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': True, 'frozen_inputs_digests': True, 'frozen_inputs_match_report': True, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': True, 'verdict_binding_threeway': True, 'code_version_match': True, 'deterministic_rerender': True, 'package_untouched_postwrite': True}
+package: UNTOUCHED
+map bytes: IDENTICAL
+--- [3] 缺冻结件→拒 ---
+rc=1 (期望≠0)
+ok= False | mode= byte_equal | blocked= None | failed= ['frozen_inputs_present', 'frozen_inputs_digests']
+frozen/binding: {'frozen_inputs_present': False, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+all checks: {'manifest_present_parseable': True, 'completeness_files': True, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': False, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': True, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': True, 'verdict_binding_threeway': True, 'code_version_match': True, 'deterministic_rerender': True, 'package_untouched_postwrite': True}
+--- [4] 篡改冻结件一字节→拒 ---
+rc=1 (期望≠0)
+ok= False | mode= byte_equal | blocked= None | failed= ['frozen_inputs_digests']
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': True, 'verdict_binding_threeway': True}
+all checks: {'manifest_present_parseable': True, 'completeness_files': True, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': True, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': True, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': True, 'verdict_binding_threeway': True, 'code_version_match': True, 'deterministic_rerender': True, 'package_untouched_postwrite': True}
+--- [5] manifest 冒冻摘要单侧改写→拒 ---
+rc=1 (期望≠0)
+ok= False | mode= byte_equal | blocked= None | failed= ['frozen_inputs_digests', 'frozen_inputs_match_report']
+frozen/binding: {'frozen_inputs_present': True, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': False, 'verdict_binding_threeway': True}
+all checks: {'manifest_present_parseable': True, 'completeness_files': True, 'verdict_chain_nonempty': True, 'copies_sha16_match': True, 'map_fullfile_anchor': True, 'question_verbatim_bytes': True, 'frozen_inputs_present': True, 'frozen_inputs_digests': False, 'frozen_inputs_match_report': False, 'run_code_sha_crosscheck': True, 'content_digest_match': True, 'verdict_chain_hashes': True, 'verdict_binding_threeway': True, 'code_version_match': True, 'deterministic_rerender': True, 'package_untouched_postwrite': True}
+=== R32 实包重放验收毕 tag=REDL31-B2dl ===
+package after replays: 17 files; manifest sha256 04c9a68d06f47f61
+--- post-replay blob identity (source package untouched by the replays)
+package dir: /tmp/r32-accept/redl/12edab8/r31_session_B2_formal/src/docs/autonomous-rd/r31-evidence/acceptance/session_B2_formal
+prefix: docs/autonomous-rd/r31-evidence/acceptance/session_B2_formal
+cloned commit: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+audit baseline: package files=17 tree files=17 | blob-identical (same path)=17 | renamed, same blob=0 | differing=0 | only-in-package=0 | only-in-tree=0
+RESULT: all package files blob-identical to the listings given
+=== 毕 2026-11-24 20:18:02 session=session_B2_formal ===

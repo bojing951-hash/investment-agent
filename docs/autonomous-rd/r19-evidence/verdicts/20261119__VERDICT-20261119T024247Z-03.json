@@ -1,0 +1,17 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "R19-独立语义审查席",
+  "notes": "R19第三轮终验: UPHELD(两轮 REVISE 六项必修全闭)。零信任方法: 与本席留档首轮原件(/tmp/r19_audit/orig_judgment.json)全文 diff,三代版本累计变更恰 6 处文本段,与本席两轮必修清单一一对应,无任何其他改动混入;数值始终由 research_snapshot_20261118 series_store 直读复算,不采信任何中间转述。\n[必修#6 核验] reader_map.transmission[0].links[0].text 已改为「E1 环: 冲击=总体通胀再加速(核心仅部分跟随)」,与同对象 observed_fact(CORE_CPI 同窗 2.4725→2.8229 仅+0.3504pp)一致,自相矛盾消除;全档残留扫描「未跟随」「2.9592」「0.727」「2025-12)」「同比同窗 2.8229」均零命中。\n[六必修闭环台账] 1.[MAJOR]CORE_CPI 同窗窗口错标(l3+reader 两处 observed_fact)→ 已改 2.4725→2.8229(+0.3504pp,核心仅部分跟随);2.[MAJOR]CORE_PCE 月标错(2026-09=2.9592)→ 已改 3.1212(最新已发布值);3.[MINOR]2025-03 锚 6m 失业率 4.1→4.4;4.[MINOR]12m JP_POLICY_RATE 0.727→0.728;5.[MINOR]data_note 12 月事后窗止点 2025-12→2026-03;6.[MINOR]transmission 链步骤标签(核心未跟随)→(核心仅部分跟随)。修订引入的新断言均经复算成立(「幅度远小于总体」+0.35 vs +1.73;「再加速主要由总体分项驱动」=总体-核心差 −0.04pp→+1.34pp 走阔全在非核心;「最新已发布值」=序列末观测 2026-09-01 发布 2026-10-30≤截止)。\n[独立复核面] 本席对终版 agent_judgment.json 直接重跑 judgment_contract.verify_judgment: verdict=VERIFIED,six_fail=0/map_fail=0/contradicted=0;report.json 内嵌 L3 与判决档逐字一致(内容绑定实核);四 R19 阻断器(错用同比基期/提前引用未发布数据/同一转折重复/历史结果落在匹配期)经三代版本核查均未违;首轮 60+ 数值点(三转折/四地锚值/资产端四变量/两锚 3-6-12 月事后窗全资产序列/CPI 缺基期声明)全部与 series_store 复算一致。读者面 MAP_REPORT 由 report 段按本 UPHELD 后渲染(渲染器链环取 observed_fact,已预检正确文本进面)。\n[留档] 本席工作档=/tmp/r19_audit/(orig_judgment.json 三代 diff 基准、recompute*.py 复算脚本、两轮 MAP_REPORT 渲染预览);观察项(非必修,已入 revision-2 档): 重挂同文件名时 report.json attached_at/attach_history 不刷新,内容绑定以本席实核为准。裁决链: revision-1 REVISE(5 必修)→revision-2 REVISE(残留#6)→本档 revision-3 UPHELD,闭环。",
+  "run_ts": "20261119T024247Z",
+  "content_sha256": "8ea0485d6cea69227fa2497b15fd615511cb68abf79e7f4fd2bed6974db22c1f",
+  "audited_at": "2026-11-19",
+  "recorded_at": "20261119T032233Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 3,
+  "predecessor": "audit/semantic_review/20261119/VERDICT-20261119T024247Z-02.json",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

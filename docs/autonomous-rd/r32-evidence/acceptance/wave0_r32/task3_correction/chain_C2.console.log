@@ -1,0 +1,7 @@
+=== chain_C2 start 2026-11-24 19:53:13 sha=12edab84aeebc7f765b9a06ddc382ef0c0efa39e
+/tmp/r32-accept/redl/12edab8/r31_all_20261124T195313.log
+step2 r31_all rc=0 20:00:26
+battery[C] files=205 pass=205 fail=0
+step3 battery rc=0 20:13:37
+step4 phase6 rc=0 20:14:52
+=== chain_C2 end 2026-11-24 20:14:52

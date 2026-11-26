@@ -1,0 +1,26 @@
+judgment evidence refs (L3+L4): 50
+distinct refs: 20
+OK  CPI@2026-10-01             in_index=True obs=2026-10-01 value=337.476 cited_by=2
+OK  CORE_PCE@2026-09-01        in_index=True obs=2026-09-01 value=130.902 cited_by=2
+OK  EA_HICP_YOY@2026-10-01     in_index=True obs=2026-10-01 value=4.0 cited_by=2
+OK  CN_PPI_YOY@2026-10-31      in_index=True obs=2026-10-01 value=5.7 cited_by=3
+OK  DFF@2026-11-19             in_index=True obs=2026-11-19 value=3.88 cited_by=1
+OK  ECB_DFR@2026-09-16         in_index=True obs=2026-09-16 value=2.5 cited_by=1
+OK  JP_POLICY_RATE@2026-10-01  in_index=True obs=2026-10-01 value=1.227 cited_by=2
+OK  UST_10Y@2026-11-19         in_index=True obs=2026-11-19 value=5.04 cited_by=3
+OK  TIPS_10Y@2026-11-19        in_index=True obs=2026-11-19 value=2.88 cited_by=4
+OK  BEI_10Y@2026-11-20         in_index=True obs=2026-11-20 value=2.15 cited_by=3
+OK  SPX@2026-11-23             in_index=True obs=2026-11-23 value=7203.850098 cited_by=5
+OK  NIKKEI225@2026-11-20       in_index=True obs=2026-11-20 value=56436.65 cited_by=2
+OK  GOLD_F@2026-11-23          in_index=True obs=2026-11-23 value=3685.199951 cited_by=5
+OK  DXY@2026-11-23             in_index=True obs=2026-11-23 value=104.079002 cited_by=5
+OK  VIX@2026-11-23             in_index=True obs=2026-11-23 value=27.01 cited_by=3
+OK  HY_OAS@2026-11-19          in_index=True obs=2026-11-19 value=3.52 cited_by=2
+OK  USDJPY@2026-11-23          in_index=True obs=2026-11-23 value=159.347 cited_by=2
+OK  CN_CPI_YOY@2026-10-31      in_index=True obs=2026-10-01 value=0.7 cited_by=1
+OK  CN_LPR_1Y@2026-11-20       in_index=True obs=2026-11-20 value=3.0 cited_by=1
+OK  USDCNY@2026-11-23          in_index=True obs=2026-11-23 value=6.6542 cited_by=1
+exact-date resolution=18, month-label duality=2
+appended 20 rows; ledger now rows=1012 counted=970 ok=969 mismatch=1 info=42
+sections: {'anchors': 275, 'monthly': 187, 'daily': 133, 'history': 293, 'sync': 45, 'misc': 37}
+info by section: {'history': 3, 'sync': 36, 'misc': 3}

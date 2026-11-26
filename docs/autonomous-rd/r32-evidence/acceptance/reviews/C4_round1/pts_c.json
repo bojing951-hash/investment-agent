@@ -1,0 +1,1062 @@
+[
+{
+"id": "A01",
+"face": "snapshot.series_store",
+"key": "SPX@2026-10-23",
+"calc": 7623.680176,
+"calc_str": "7623.680176",
+"report": 7623.680176,
+"ok": true,
+"note": ""
+},
+{
+"id": "A02",
+"face": "snapshot.series_store",
+"key": "SPX 引擎窗终点观测日",
+"calc": "2026-11-23",
+"calc_str": "2026-11-23",
+"report": "2026-11-23",
+"ok": true,
+"note": ""
+},
+{
+"id": "A03",
+"face": "snapshot.series_store",
+"key": "SPX 引擎窗(10-23→末观测) 变动%",
+"calc": -5.506921438305623,
+"calc_str": "-5.51",
+"report": -5.51,
+"ok": true,
+"note": ""
+},
+{
+"id": "A04",
+"face": "snapshot.series_store",
+"key": "SPX 收盘窗(10-23→11-20) 变动%",
+"calc": -9.356242950032168,
+"calc_str": "-9.36",
+"report": -9.36,
+"ok": true,
+"note": ""
+},
+{
+"id": "A05",
+"face": "snapshot.series_store",
+"key": "NIKKEI225@2026-10-23",
+"calc": 62693.16,
+"calc_str": "62693.160000",
+"report": 62693.16,
+"ok": true,
+"note": ""
+},
+{
+"id": "A06",
+"face": "snapshot.series_store",
+"key": "NIKKEI225 引擎窗终点观测日",
+"calc": "2026-11-20",
+"calc_str": "2026-11-20",
+"report": "2026-11-20",
+"ok": true,
+"note": ""
+},
+{
+"id": "A07",
+"face": "snapshot.series_store",
+"key": "NIKKEI225 引擎窗(10-23→末观测) 变动%",
+"calc": -9.979573529233498,
+"calc_str": "-9.98",
+"report": -9.98,
+"ok": true,
+"note": ""
+},
+{
+"id": "A08",
+"face": "snapshot.series_store",
+"key": "NIKKEI225 收盘窗(10-23→11-20) 变动%",
+"calc": -9.979573529233498,
+"calc_str": "-9.98",
+"report": -9.98,
+"ok": true,
+"note": ""
+},
+{
+"id": "A09",
+"face": "snapshot.series_store",
+"key": "SHCOMP@2026-10-23",
+"calc": 3690.4753,
+"calc_str": "3690.475300",
+"report": 3690.4753,
+"ok": true,
+"note": ""
+},
+{
+"id": "A10",
+"face": "snapshot.series_store",
+"key": "SHCOMP 引擎窗终点观测日",
+"calc": "2026-11-23",
+"calc_str": "2026-11-23",
+"report": "2026-11-23",
+"ok": true,
+"note": ""
+},
+{
+"id": "A11",
+"face": "snapshot.series_store",
+"key": "SHCOMP 引擎窗(10-23→末观测) 变动%",
+"calc": -4.105902022972496,
+"calc_str": "-4.11",
+"report": -4.11,
+"ok": true,
+"note": ""
+},
+{
+"id": "A12",
+"face": "snapshot.series_store",
+"key": "SHCOMP 收盘窗(10-23→11-20) 变动%",
+"calc": -4.245588637322683,
+"calc_str": "-4.25",
+"report": -4.25,
+"ok": true,
+"note": ""
+},
+{
+"id": "A13",
+"face": "snapshot.series_store",
+"key": "DAX@2026-10-23",
+"calc": 25181.650391,
+"calc_str": "25181.650391",
+"report": 25181.650391,
+"ok": true,
+"note": ""
+},
+{
+"id": "A14",
+"face": "snapshot.series_store",
+"key": "DAX 引擎窗终点观测日",
+"calc": "2026-11-23",
+"calc_str": "2026-11-23",
+"report": "2026-11-23",
+"ok": true,
+"note": ""
+},
+{
+"id": "A15",
+"face": "snapshot.series_store",
+"key": "DAX 引擎窗(10-23→末观测) 变动%",
+"calc": 0.11039319333070452,
+"calc_str": "0.11",
+"report": 0.11,
+"ok": true,
+"note": ""
+},
+{
+"id": "A16",
+"face": "snapshot.series_store",
+"key": "DAX 收盘窗(10-23→11-20) 变动%",
+"calc": -1.5045522756340413,
+"calc_str": "-1.50",
+"report": -1.5,
+"ok": true,
+"note": ""
+},
+{
+"id": "A17",
+"face": "snapshot.series_store",
+"key": "VIX@2026-10-23",
+"calc": 19.450001,
+"calc_str": "19.450001",
+"report": 19.450001,
+"ok": true,
+"note": ""
+},
+{
+"id": "A18",
+"face": "snapshot.series_store",
+"key": "VIX 引擎窗终点观测日",
+"calc": "2026-11-23",
+"calc_str": "2026-11-23",
+"report": "2026-11-23",
+"ok": true,
+"note": ""
+},
+{
+"id": "A19",
+"face": "snapshot.series_store",
+"key": "VIX 引擎窗(10-23→末观测) 变动%",
+"calc": 38.86888746175386,
+"calc_str": "38.87",
+"report": 38.87,
+"ok": true,
+"note": ""
+},
+{
+"id": "A20",
+"face": "snapshot.series_store",
+"key": "VIX 收盘窗(10-23→11-20) 变动%",
+"calc": 84.52440696532612,
+"calc_str": "84.52",
+"report": 84.52,
+"ok": true,
+"note": ""
+},
+{
+"id": "A21",
+"face": "snapshot.series_store",
+"key": "NIKKEI225 序列末观测",
+"calc": "2026-11-20",
+"calc_str": "2026-11-20",
+"report": "2026-11-20",
+"ok": true,
+"note": ""
+},
+{
+"id": "A22",
+"face": "snapshot.series_store",
+"key": "NIKKEI225 在 2026-11-23 无观测",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "A23",
+"face": "snapshot.series_store",
+"key": "DAX@2026-11-23",
+"calc": 25209.449219,
+"calc_str": "25209.45",
+"report": 25209.45,
+"ok": true,
+"note": ""
+},
+{
+"id": "A24",
+"face": "snapshot.series_store",
+"key": "VIX@2026-11-20",
+"calc": 35.889999,
+"calc_str": "35.89",
+"report": 35.89,
+"ok": true,
+"note": ""
+},
+{
+"id": "A25",
+"face": "snapshot.series_store",
+"key": "SPX 11-23 vs 11-20 %",
+"calc": 4.246648238118134,
+"calc_str": "4.25",
+"report": 4.25,
+"ok": true,
+"note": ""
+},
+{
+"id": "A26",
+"face": "snapshot.series_store",
+"key": "VIX 11-23 vs 11-20 %",
+"calc": -24.742265944337305,
+"calc_str": "-24.74",
+"report": -24.74,
+"ok": true,
+"note": ""
+},
+{
+"id": "A27",
+"face": "snapshot.series_store",
+"key": "DAX 11-23 vs 11-20 %",
+"calc": 1.6396143235818172,
+"calc_str": "1.64",
+"report": 1.64,
+"ok": true,
+"note": ""
+},
+{
+"id": "A28",
+"face": "snapshot.series_store",
+"key": "CAC40 收盘窗 %",
+"calc": 1.8621807940751411,
+"calc_str": "1.86",
+"report": 1.86,
+"ok": true,
+"note": ""
+},
+{
+"id": "A29",
+"face": "snapshot.series_store",
+"key": "DXY 收盘窗 %",
+"calc": 1.9644436099488072,
+"calc_str": "1.96",
+"report": 1.96,
+"ok": true,
+"note": ""
+},
+{
+"id": "A30",
+"face": "snapshot.series_store",
+"key": "DXY 引擎窗 %",
+"calc": 2.2286652043741473,
+"calc_str": "2.23",
+"report": 2.23,
+"ok": true,
+"note": ""
+},
+{
+"id": "A31",
+"face": "snapshot.series_store",
+"key": "引擎窗 NIKKEI225 与 SPX 跌幅落差绝对值(pp)(受审稿『两者跌幅相差四点四七个百分点』)",
+"calc": 4.472652090927875,
+"calc_str": "4.47",
+"report": 4.47,
+"ok": true,
+"note": ""
+},
+{
+"id": "A32",
+"face": "snapshot.series_store",
+"key": "引擎窗 SPX 与 SHCOMP 落差(pp)",
+"calc": 1.4010194153331268,
+"calc_str": "1.40",
+"report": 1.4,
+"ok": true,
+"note": ""
+},
+{
+"id": "A33",
+"face": "snapshot.series_store",
+"key": "收盘窗 SPX 与 SHCOMP 落差(pp)",
+"calc": 5.110654312709485,
+"calc_str": "5.11",
+"report": 5.11,
+"ok": true,
+"note": "收盘口径下美日跌幅深于中国(落差>2pp)"
+},
+{
+"id": "A34",
+"face": "snapshot.series_store",
+"key": "USDJPY@2026-10-23",
+"calc": 156.494003,
+"calc_str": "156.494",
+"report": 156.494,
+"ok": true,
+"note": ""
+},
+{
+"id": "A35",
+"face": "snapshot.series_store",
+"key": "USDJPY@2026-11-23",
+"calc": 159.347,
+"calc_str": "159.347",
+"report": 159.347,
+"ok": true,
+"note": ""
+},
+{
+"id": "A36",
+"face": "snapshot.series_store",
+"key": "USDJPY 引擎窗 %",
+"calc": 1.8230711371093333,
+"calc_str": "1.82",
+"report": 1.82,
+"ok": true,
+"note": ""
+},
+{
+"id": "A37",
+"face": "snapshot.series_store",
+"key": "USDCNY@2026-10-23",
+"calc": 6.6779,
+"calc_str": "6.6779",
+"report": 6.6779,
+"ok": true,
+"note": ""
+},
+{
+"id": "A38",
+"face": "snapshot.series_store",
+"key": "USDCNY@2026-11-23",
+"calc": 6.6542,
+"calc_str": "6.6542",
+"report": 6.6542,
+"ok": true,
+"note": ""
+},
+{
+"id": "A39",
+"face": "snapshot.series_store",
+"key": "USDCNY 引擎窗 %",
+"calc": -0.3549019901466055,
+"calc_str": "-0.35",
+"report": -0.35,
+"ok": true,
+"note": ""
+},
+{
+"id": "A40",
+"face": "snapshot.series_store",
+"key": "受审稿『同窗 USDJPY 156.494→159.347』两端值=引擎月窗 2026-10-23→2026-11-23 的观测(非 10-20→11-19 共同交易日窗; 该窗为 158.523→159.381, 见 out_s05_extra.txt)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "A44",
+"face": "snapshot.series_store",
+"key": "USDJPY 在三窗(10-20→11-19 / 10-23→11-23 / 10-23→11-20)均为美元对日元走强(方向稳健)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "A45",
+"face": "snapshot.series_store",
+"key": "USDCNY 在三窗均未走强(方向稳健)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "A41",
+"face": "datetime",
+"key": "2026-11-20 星期",
+"calc": "Friday",
+"calc_str": "Friday",
+"report": "Friday",
+"ok": true,
+"note": ""
+},
+{
+"id": "A42",
+"face": "datetime",
+"key": "2026-11-23 星期",
+"calc": "Monday",
+"calc_str": "Monday",
+"report": "Monday",
+"ok": true,
+"note": ""
+},
+{
+"id": "A43",
+"face": "datetime",
+"key": "2026-08-23 星期",
+"calc": "Sunday",
+"calc_str": "Sunday",
+"report": "Sunday",
+"ok": true,
+"note": ""
+},
+{
+"id": "R_UST_10Y_1",
+"face": "snapshot.series_store",
+"key": "UST_10Y@2026-11-19",
+"calc": 5.04,
+"calc_str": "5.04",
+"report": 5.04,
+"ok": true,
+"note": ""
+},
+{
+"id": "R_TIPS_10Y_1",
+"face": "snapshot.series_store",
+"key": "TIPS_10Y@2026-11-19",
+"calc": 2.88,
+"calc_str": "2.88",
+"report": 2.88,
+"ok": true,
+"note": ""
+},
+{
+"id": "R_BEI_10Y_1",
+"face": "snapshot.series_store",
+"key": "BEI_10Y@2026-11-19",
+"calc": 2.16,
+"calc_str": "2.16",
+"report": 2.16,
+"ok": true,
+"note": ""
+},
+{
+"id": "R01",
+"face": "snapshot.series_store",
+"key": "名义=实际+盈亏平衡 @2026-11-19 残差(bp)",
+"calc": 0.0,
+"calc_str": "0.0",
+"report": 0.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "R02",
+"face": "snapshot.series_store",
+"key": "UST_10Y@2026-10-20 在场",
+"calc": "yes",
+"calc_str": "yes",
+"report": "yes",
+"ok": true,
+"note": ""
+},
+{
+"id": "R03",
+"face": "snapshot.series_store",
+"key": "TIPS_10Y@2026-10-20 在场",
+"calc": "yes",
+"calc_str": "yes",
+"report": "yes",
+"ok": true,
+"note": ""
+},
+{
+"id": "R04",
+"face": "snapshot.series_store",
+"key": "BEI_10Y@2026-10-20 在场",
+"calc": "yes",
+"calc_str": "yes",
+"report": "yes",
+"ok": true,
+"note": ""
+},
+{
+"id": "R05",
+"face": "snapshot.series_store",
+"key": "近一月窗 UST_10Y 变动(bp)",
+"calc": -8.000000000000007,
+"calc_str": "-8.0",
+"report": -8.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "R06",
+"face": "snapshot.series_store",
+"key": "近一月窗 TIPS_10Y 变动(bp)",
+"calc": 10.999999999999988,
+"calc_str": "11.0",
+"report": 11.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "R07",
+"face": "snapshot.series_store",
+"key": "近一月窗 BEI_10Y 变动(bp)",
+"calc": -18.999999999999993,
+"calc_str": "-19.0",
+"report": -19.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "R08",
+"face": "snapshot.series_store",
+"key": "近一月窗恒等残差(bp)",
+"calc": 0.0,
+"calc_str": "0.0",
+"report": 0.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "R09",
+"face": "snapshot.series_store",
+"key": "12月窗 UST_10Y 变动(bp)",
+"calc": 91.00000000000001,
+"calc_str": "91.0",
+"report": 91.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "R10",
+"face": "snapshot.series_store",
+"key": "12月窗 TIPS_10Y 变动(bp)",
+"calc": 101.99999999999999,
+"calc_str": "102.0",
+"report": 102.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "R11",
+"face": "snapshot.series_store",
+"key": "12月窗 BEI_10Y 变动(bp)",
+"calc": -10.999999999999988,
+"calc_str": "-11.0",
+"report": -11.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "R12",
+"face": "snapshot.series_store",
+"key": "12月窗恒等残差(bp)",
+"calc": 1.5987211554602254e-14,
+"calc_str": "0.0",
+"report": 0.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "R13",
+"face": "snapshot.series_store",
+"key": "BEI_10Y 序列末观测日",
+"calc": "2026-11-20",
+"calc_str": "2026-11-20",
+"report": "2026-11-20",
+"ok": true,
+"note": ""
+},
+{
+"id": "R14",
+"face": "snapshot.series_store",
+"key": "BEI_10Y@末观测",
+"calc": 2.15,
+"calc_str": "2.15",
+"report": 2.15,
+"ok": true,
+"note": ""
+},
+{
+"id": "R15",
+"face": "snapshot.series_store",
+"key": "TIPS_10Y 序列末观测日",
+"calc": "2026-11-19",
+"calc_str": "2026-11-19",
+"report": "2026-11-19",
+"ok": true,
+"note": ""
+},
+{
+"id": "R16",
+"face": "snapshot.series_store",
+"key": "UST_10Y 序列末观测日",
+"calc": "2026-11-19",
+"calc_str": "2026-11-19",
+"report": "2026-11-19",
+"ok": true,
+"note": ""
+},
+{
+"id": "R17",
+"face": "snapshot.series_store",
+"key": "UST_10Y@2026-10-23",
+"calc": 5.0,
+"calc_str": "5.00",
+"report": 5.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "R18",
+"face": "snapshot.series_store",
+"key": "近一月共同交易日窗内(10-20→11-19)DFEDTARU 无变动",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "R19",
+"face": "snapshot.series_store",
+"key": "近一月窗实际利率为名义利率的唯一上行分量",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "R20",
+"face": "snapshot.series_store",
+"key": "12月窗实际利率为主导分量(|+102|>|−11|)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "R21",
+"face": "snapshot.series_store",
+"key": "近一月窗盈亏平衡降幅(19bp)大于实际上行幅度(11bp)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "N01",
+"face": "report.json steps[S6_analog].envelope.data.candidates",
+"key": "scanned",
+"calc": 1871.0,
+"calc_str": "1871",
+"report": 1871,
+"ok": true,
+"note": ""
+},
+{
+"id": "N02",
+"face": "report.json steps[S6_analog].envelope.data.candidates",
+"key": "valid",
+"calc": 74.0,
+"calc_str": "74",
+"report": 74,
+"ok": true,
+"note": ""
+},
+{
+"id": "N03",
+"face": "report.json steps[S6_analog].envelope.data.candidates",
+"key": "dropped_insufficient",
+"calc": 1785.0,
+"calc_str": "1785",
+"report": 1785,
+"ok": true,
+"note": ""
+},
+{
+"id": "N04",
+"face": "report.json steps[S6_analog].envelope.data.candidates",
+"key": "dropped_overlap",
+"calc": 12.0,
+"calc_str": "12",
+"report": 12,
+"ok": true,
+"note": ""
+},
+{
+"id": "N05",
+"face": "report.json steps[S6_analog].envelope.data.candidates",
+"key": "valid+insufficient+overlap = scanned",
+"calc": 1871.0,
+"calc_str": "1871",
+"report": 1871,
+"ok": true,
+"note": ""
+},
+{
+"id": "N06",
+"face": "report.json steps[S6_analog].envelope.data.top[*].candidate_month",
+"key": "TOP-5 顺序",
+"calc": "2025-03,2022-06,2023-10,2021-02,2020-01",
+"calc_str": "2025-03,2022-06,2023-10,2021-02,2020-01",
+"report": "2025-03,2022-06,2023-10,2021-02,2020-01",
+"ok": true,
+"note": ""
+},
+{
+"id": "N07",
+"face": "report.json steps[S6_analog].envelope.data.sort_basis",
+"key": "排序依据=缺席特征数优先、其后距离",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "N08",
+"face": "report.json steps[S6_analog].envelope.data.state_vector.growth.coverage",
+"key": "coverage growth",
+"calc": 0.1667,
+"calc_str": "0.17",
+"report": 0.17,
+"ok": true,
+"note": ""
+},
+{
+"id": "N09",
+"face": "report.json steps[S6_analog].envelope.data.state_vector.inflation.coverage",
+"key": "coverage inflation",
+"calc": 0.3333,
+"calc_str": "0.33",
+"report": 0.33,
+"ok": true,
+"note": ""
+},
+{
+"id": "N10",
+"face": "report.json steps[S6_analog].envelope.data.state_vector.rates.coverage",
+"key": "coverage rates",
+"calc": 0.75,
+"calc_str": "0.75",
+"report": 0.75,
+"ok": true,
+"note": ""
+},
+{
+"id": "N11",
+"face": "report.json steps[S6_analog].envelope.data.state_vector.credit.coverage",
+"key": "coverage credit",
+"calc": 0.5,
+"calc_str": "0.50",
+"report": 0.5,
+"ok": true,
+"note": ""
+},
+{
+"id": "N12",
+"face": "report.json steps[S6_analog].envelope.data.state_vector.volatility.coverage",
+"key": "coverage volatility",
+"calc": 1.0,
+"calc_str": "1.00",
+"report": 1.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "N13",
+"face": "report.json steps[S6_analog].envelope.data.state_vector.valuation.coverage",
+"key": "coverage valuation",
+"calc": 0.5,
+"calc_str": "0.50",
+"report": 0.5,
+"ok": true,
+"note": ""
+},
+{
+"id": "N14",
+"face": "report.json steps[S6_analog].envelope.data.top[0].dims.volatility.contribution_share",
+"key": "首位候选贡献份额 pct volatility",
+"calc": 42.1281,
+"calc_str": "42.13",
+"report": 42.13,
+"ok": true,
+"note": ""
+},
+{
+"id": "N15",
+"face": "report.json steps[S6_analog].envelope.data.top[0].dims.rates.contribution_share",
+"key": "首位候选贡献份额 pct rates",
+"calc": 40.660000000000004,
+"calc_str": "40.66",
+"report": 40.66,
+"ok": true,
+"note": ""
+},
+{
+"id": "N16",
+"face": "report.json steps[S6_analog].envelope.data.top[0].dims.inflation.contribution_share",
+"key": "首位候选贡献份额 pct inflation",
+"calc": 10.540099999999999,
+"calc_str": "10.54",
+"report": 10.54,
+"ok": true,
+"note": ""
+},
+{
+"id": "N17",
+"face": "report.json steps[S6_analog].envelope.data.top[0].dims.valuation.contribution_share",
+"key": "首位候选贡献份额 pct valuation",
+"calc": 6.668399999999999,
+"calc_str": "6.67",
+"report": 6.67,
+"ok": true,
+"note": ""
+},
+{
+"id": "N18",
+"face": "report.json steps[S6_analog].envelope.data.top[0].dims.credit.contribution_share",
+"key": "首位候选贡献份额 pct credit",
+"calc": 0.0,
+"calc_str": "0.00",
+"report": 0.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "N19",
+"face": "report.json steps[S6_analog].envelope.data.top[0].dims.growth.contribution_share",
+"key": "首位候选贡献份额 pct growth",
+"calc": 0.0034,
+"calc_str": "0.00",
+"report": 0.0,
+"ok": true,
+"note": ""
+},
+{
+"id": "N20",
+"face": "report.json steps[S6_analog].envelope.data.features_dropped_at_anchor",
+"key": "锚点月缺席特征数",
+"calc": 12.0,
+"calc_str": "12",
+"report": 12,
+"ok": true,
+"note": ""
+},
+{
+"id": "N21",
+"face": "report.json steps[S6_analog].envelope.data.features_dropped_at_anchor",
+"key": "缺席特征名单(排序)",
+"calc": "CORE_CPI_yoy,CPI_yoy,FED_FUNDS_d12m,FED_FUNDS_level,GDP_yoy,HY_IG_gap_d12m,HY_OAS_d12m,INDPRO_yoy,NFP_3m_chg,RSAFS_yoy,SPX_PE_TTM_level,UNEMPLOYMENT_level",
+"calc_str": "CORE_CPI_yoy,CPI_yoy,FED_FUNDS_d12m,FED_FUNDS_level,GDP_yoy,HY_IG_gap_d12m,HY_OAS_d12m,INDPRO_yoy,NFP_3m_chg,RSAFS_yoy,SPX_PE_TTM_level,UNEMPLOYMENT_level",
+"report": "CORE_CPI_yoy,CPI_yoy,FED_FUNDS_d12m,FED_FUNDS_level,GDP_yoy,HY_IG_gap_d12m,HY_OAS_d12m,INDPRO_yoy,NFP_3m_chg,RSAFS_yoy,SPX_PE_TTM_level,UNEMPLOYMENT_level",
+"ok": true,
+"note": ""
+},
+{
+"id": "N22",
+"face": "report.json steps[S6_analog].envelope.data.features_dropped_at_anchor",
+"key": "HY_IG_gap_d12m/HY_OAS_d12m 属历史长度不足",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "N23",
+"face": "report.json steps[S6_analog].envelope.data.features_dropped_at_anchor",
+"key": "CORE_CPI_yoy/CPI_yoy/GDP_yoy/SPX_PE_TTM_level 属序列止于锚前两个月",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "N24",
+"face": "report.json steps[S6_analog].envelope.data.features_dropped_at_anchor",
+"key": "FED_FUNDS_*/INDPRO_yoy/NFP_3m_chg/RSAFS_yoy/UNEMPLOYMENT_level 属锚点月无观测(止于锚前一月)",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "N25",
+"face": "report.json steps[S6_analog].envelope.data.top[0].aftermath",
+"key": "事后表现四项",
+"calc": "SPX,UST_10Y,DXY,GOLD_F",
+"calc_str": "SPX,UST_10Y,DXY,GOLD_F",
+"report": "SPX,UST_10Y,DXY,GOLD_F",
+"ok": true,
+"note": ""
+},
+{
+"id": "N26",
+"face": "report.json steps[S6_analog].envelope.data.research_mode_gate",
+"key": "描述性可用/事件研究被阻断",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "N27",
+"face": "report.json steps[S6_analog].envelope.data.anchor_month",
+"key": "anchor_month",
+"calc": "2026-11",
+"calc_str": "2026-11",
+"report": "2026-11",
+"ok": true,
+"note": ""
+},
+{
+"id": "N28",
+"face": "report.json steps[S6_analog].envelope.data.feature_window_months",
+"key": "feature_window_months",
+"calc": 12.0,
+"calc_str": "12",
+"report": 12,
+"ok": true,
+"note": ""
+},
+{
+"id": "C01",
+"face": "算术",
+"key": "DFEDTARU 4.0 + 标准步长 0.25",
+"calc": 4.25,
+"calc_str": "4.25",
+"report": 4.25,
+"ok": true,
+"note": ""
+},
+{
+"id": "C02",
+"face": "算术",
+"key": "JP_POLICY_RATE 1.227 + 0.05 后上取整到分位",
+"calc": 1.28,
+"calc_str": "1.28",
+"report": 1.28,
+"ok": true,
+"note": ""
+},
+{
+"id": "C03",
+"face": "算术",
+"key": "CN_LPR_1Y 3.0 - 0.10",
+"calc": 2.9,
+"calc_str": "2.90",
+"report": 2.9,
+"ok": true,
+"note": ""
+},
+{
+"id": "C04",
+"face": "snapshot.series_store",
+"key": "截止日 DFEDTARU 4.0 未达 4.25",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "C05",
+"face": "snapshot.series_store",
+"key": "截止日 JP_POLICY_RATE 1.227 < 1.28",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "C06",
+"face": "snapshot.series_store",
+"key": "截止日 CN_LPR_1Y 3.0 > 2.90",
+"calc": true,
+"calc_str": "True",
+"report": true,
+"ok": true,
+"note": ""
+},
+{
+"id": "C07",
+"face": "datetime",
+"key": "2027-02-28 合法日期/星期",
+"calc": "Sunday",
+"calc_str": "Sunday",
+"report": "Sunday",
+"ok": true,
+"note": ""
+},
+{
+"id": "C08",
+"face": "datetime",
+"key": "研究截止 2026-11-23 + 3 个日历月(年月进位后日取 23)",
+"calc": "2027-02-23",
+"calc_str": "2027-02-23",
+"report": "2027-02-23",
+"ok": true,
+"note": ""
+},
+{
+"id": "C09",
+"face": "datetime",
+"key": "2026-11-23→2027-02-28 天数",
+"calc": 97.0,
+"calc_str": "97",
+"report": 97,
+"ok": true,
+"note": ""
+}
+]

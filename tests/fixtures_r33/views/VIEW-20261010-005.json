@@ -1,0 +1,44 @@
+{
+ "schema_version": "1.1",
+ "view_id": "VIEW-20261010-005",
+ "institution": {
+  "name": "湖滨顾问(虚构机构)",
+  "type": "other",
+  "department": "研究部(虚构)"
+ },
+ "authors": [
+  "门夹具(虚构作者)"
+ ],
+ "report_title": "虚构观点档 E: 违规件(门夹具)",
+ "source_url": "https://example.invalid/fixtures/VIEW-20261010-005",
+ "source_type": "official_summary_page",
+ "publish_date": "2026-10-10",
+ "fetch_date": "2026-10-11",
+ "access_level": "public_summary",
+ "view_horizon": "12m",
+ "subjects": [
+  "US_rates"
+ ],
+ "core_views": [
+  {
+   "statement": "虚构核心观点: 违规件,装载即隔离(门夹具)",
+   "attribution": "institution_stated",
+   "basis": "paraphrase"
+  }
+ ],
+ "forecasts": [
+  {
+   "target": "fed_policy_path_baseline",
+   "value_or_direction": "2027年3月加息 25bp",
+   "horizon": "2027-03"
+  }
+ ],
+ "key_assumptions": [],
+ "evidence_cited": [],
+ "mechanism_steps": [],
+ "risk_factors": [],
+ "falsification_conditions": [],
+ "revisions": [],
+ "completeness_notes": "Audit-R33 任务5 门夹具: 全部内容为虚构,不含真实机构表述",
+ "copyright_note": "合成夹具,无版权内容"
+}

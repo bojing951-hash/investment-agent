@@ -70,7 +70,7 @@ CORE_KEY = 'macro.data.CORE_CPI.value'
 UNE_KEY = 'macro.data.UNEMPLOYMENT.value'
 GM_KEY = 'global_market.data.CPI.close'       # §7.4强制负例: 非法来源身份
 CPI_OBS = '2026-09-01'
-STALE_OBS = '2026-08-16'                      # lag 70 > CPI窗60(§5.5反向)
+STALE_OBS = '2026-07-15'                      # lag 102>窗60(§5.5反向;R26统计期末口径: 期末07-31滞后86>60)
 TODAY = '2026-10-25'                          # 正式回写日(date-only研究截止)
 PASS_N, FAIL_N = 0, 0
 _TMPD = tempfile.mkdtemp(prefix='w2fix5-')
@@ -271,17 +271,17 @@ check("A4 FRESH+NOT_AVAILABLE(§5.4反例: obs 09-01/as_of 10-24/release 10-28/"
 # A5 §5.5反向: 观测滞后超窗 + 发布已证明早于截止 → 观测STALE,资格不可用
 q5, i5 = q_of(release='2026-09-20', obs=STALE_OBS)
 v5, r5 = v_of(i5)
-check("A5 STALE+published(§5.5反向: obs 08-15/lag70>窗60,发布09-20≤截止): "
+check("A5 STALE+published(§5.5反向: obs 07-15/lag102>窗60,发布09-20≤截止): "
       "观测STALE(fresh=False);点时OK(certified=True);资格usable=False[STALE];"
-      "verify拒('数据过期…滞后70>60')——已发布不救回过期观测",
+      "verify拒('数据过期…滞后102>60')——已发布不救回过期观测",
       q5['observation_freshness']['fresh'] is False
       and q5['observation_freshness']['status'] == 'STALE'
-      and q5['observation_freshness']['lag_days'] == 70
+      and q5['observation_freshness']['lag_days'] == 102
       and q5['point_in_time']['status'] == 'OK'
       and q5['point_in_time_certified'] is True
       and q5['evidence_eligibility']['usable'] is False
       and q5['evidence_eligibility']['status'] == 'STALE'
-      and v5 == [] and '数据过期' in r5[0][0] and '70' in r5[0][0],
+      and v5 == [] and '数据过期' in r5[0][0] and '102' in r5[0][0],
       f"obs={q5['observation_freshness']} rej={r5[0][0][:40] if r5 else None}")
 
 # A6 非法观测日(任意点时) → 拒

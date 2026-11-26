@@ -1,0 +1,11 @@
+whole     pre 6cf62be25b8e8008 (19212 chars) | delivered 56dea8f77346d464 (19209 chars) | same=False
+content   pre 2bfa6bd5fa9c3822 (217 lines) | delivered 99949f361d737e60 (217 lines)
+content lines differing: 1
+  L9
+    - - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,独立语义审查待裁)
+    + - 分工: 表格与数值=引擎确定性面(每格附实际观测日);判断文字=Agent 席 reader_map 原文(attribution=ai_inferred,经独立语义审查)
+sidecar anchor == sha256(delivered file): True
+review tail lines: ['- **零段类比**——检索范围与原因: 历史类比 0 段(契约允许 0..3 段,零段如实写明)。引擎 analog 能力本轮已执行(S6_analog: 扫描 1871 个候选月、有效 74、TOP1 候选月 2025-03 距离 0.727),并非未启用;席位未设历史类比节的原因: 本问焦点为当前官方目标水平、最近六个月已决议未生效调整与通胀同比对照,问句未要求历史相似检索,席位亦未对候选月的随后 3/6/12 个月结果逐项核验,不以未核验的事后结果充数;如需「两地通胀一升一降+同向收紧」的历史相似对照,可另行发起 analog 问句。', '- 席位已裁: UPHELD(裁决链 1 档)']
+「独立语义审查待裁」 pre 1 / delivered 0 ; 「待裁」 total pre 2 / delivered 0 ; 「席位已裁」 pre 0 / delivered 1
+verdict record 20261124/VERDICT-20261123T235139Z-01.json sha256 44c1129a7114ddb3acff57e8499a32bf8930e017d1b9fe8bfa4a23b6a36866cb identical_in_post_fix_tree=True
+verdict records for run 20261123T235139Z: 1

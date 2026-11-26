@@ -1,0 +1,1082 @@
+{
+ "part": "C",
+ "n": 54,
+ "n_ok": 52,
+ "n_mismatch": 2,
+ "rows": [
+  {
+   "id": "K001",
+   "cat": "⑪",
+   "where": "C1 东京CPI Gate A 名单",
+   "src": "snapshot.gate_a.noncore_missing",
+   "computed": true,
+   "reported": true,
+   "lit": "该序列在当日快照 Gate A 列于 noncore_missing(来源文件在场而指标缺席)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "K002",
+   "cat": "⑪",
+   "where": "C1 东京CPI 缺席注记(逐字)",
+   "src": "snapshot.gate_a.noncore_missing_detail.JP_CPI_TOKYO_YOY",
+   "computed": "来源文件在场而指标缺席",
+   "reported": "来源文件在场而指标缺席",
+   "lit": "(来源文件在场而指标缺席)",
+   "lit_found": true,
+   "ok": true,
+   "note": "快照全文: 来源文件在场而指标缺席(采集遗漏或子源缺席——档内无该指标子源状态记录,不可区分)",
+   "sev": ""
+  },
+  {
+   "id": "K003",
+   "cat": "⑪",
+   "where": "C1 东京CPI 无 L1 事实行",
+   "src": "report.layers.L1 rows metric_id",
+   "computed": false,
+   "reported": false,
+   "lit": "点值取自快照序列面、L1 无对应事实行",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "K004",
+   "cat": "⑪",
+   "where": "读者报告 Gate A 行与快照名单一致",
+   "src": "snapshot.gate_a.{status,noncore_missing,noncore_degraded}",
+   "computed": "DEGRADED",
+   "reported": "DEGRADED",
+   "lit": "数据门(Gate A,源快照采集面): DEGRADED",
+   "lit_found": true,
+   "ok": true,
+   "note": "名单 7 缺席/8 降级逐字在场于 MAP_REPORT.md 第7行",
+   "sev": ""
+  },
+  {
+   "id": "K005",
+   "cat": "⑪",
+   "where": "C1 L1 质量位 WARN/WARN",
+   "src": "report.layers.L1 rows quality_status",
+   "computed": [
+    "WARN",
+    "WARN"
+   ],
+   "reported": [
+    "WARN",
+    "WARN"
+   ],
+   "lit": "两条全国/全区最新读数 L1 quality_status 分别为 WARN 与 WARN",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "K006",
+   "cat": "⑪",
+   "where": "C1 WARN 原因=发布时间未验证",
+   "src": "snapshot.facts[*].issues",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": "引擎推定规则、非日历实录",
+   "lit_found": true,
+   "ok": true,
+   "note": "JP_CPI_YOY: release:JP_CPI_YOY发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定 | EA_HICP_YOY: release:EA_HICP_YOY发布时间未验证(RELEASE_UNKNOWN: 采集端未携带release_date)——点时可得性未认证,新鲜度仅按观测滞后窗判定",
+   "sev": ""
+  },
+  {
+   "id": "K007",
+   "cat": "⑪",
+   "where": "C3 L1 质量位 DEGRADED",
+   "src": "report.layers.L1 rows quality_status",
+   "computed": [
+    "DEGRADED",
+    "DEGRADED"
+   ],
+   "reported": [
+    "DEGRADED",
+    "DEGRADED"
+   ],
+   "lit": "L1 事实行 quality_status=DEGRADED",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "K008",
+   "cat": "⑪",
+   "where": "C3 Gate A degraded 名单",
+   "src": "snapshot.gate_a.noncore_degraded",
+   "computed": [
+    "ECB_DFR",
+    "ECB_MRO"
+   ],
+   "reported": [
+    "ECB_DFR",
+    "ECB_MRO"
+   ],
+   "lit": "当日快照 Gate A 两序列列于 degraded 名单",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "K009",
+   "cat": "⑪",
+   "where": "C3 滞后天数与快照 DEGRADED 原因一致",
+   "src": "snapshot.facts[*].issues",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": "六十八天",
+   "lit_found": true,
+   "ok": true,
+   "note": "ECB_MRO: frequency:ECB_MRO观测日滞后68天(>10天有效窗,daily频;未发布或采集失败,不得当作最新一期)",
+   "sev": ""
+  },
+  {
+   "id": "K010",
+   "cat": "⑪",
+   "where": "对质环2 交叉盘缺席(序列面+注册表)",
+   "src": "snapshot.series_store keys / registry metric_id",
+   "computed": [
+    false,
+    false
+   ],
+   "reported": [
+    false,
+    false
+   ],
+   "lit": "EURJPY 交叉盘序列不在证据面",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "K011",
+   "cat": "⑪",
+   "where": "C1 竞争解释『无分项构成序列』",
+   "src": "registry metric_id(CORE|ENERG, economy in EA/JP)",
+   "computed": [],
+   "reported": [],
+   "lit": "引擎无分项构成与基数贡献序列",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "K012",
+   "cat": "⑪",
+   "where": "C2 竞争解释『无央行表态文本序列』",
+   "src": "registry metric_id(STATE|SPEECH|TEXT|MINUTE|SENTIM|SURVEY)",
+   "computed": [],
+   "reported": [],
+   "lit": "引擎无央行表态文本序列",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "K013",
+   "cat": "⑪",
+   "where": "Q4 JP_POLICY_TARGET 注册表不可得",
+   "src": "report.research_plan.dimension_gaps / registry",
+   "computed": [
+    false,
+    [
+     "registry_absent"
+    ]
+   ],
+   "reported": [
+    false,
+    [
+     "registry_absent"
+    ]
+   ],
+   "lit": "JP_POLICY_TARGET 注册表不可得",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "K014",
+   "cat": "⑪",
+   "where": "C1 东京序列起点(注册表注记)",
+   "src": "registry JP_CPI_TOKYO_YOY.calc",
+   "computed": true,
+   "reported": true,
+   "lit": "序列自 2026-01 起",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "K015",
+   "cat": "⑪",
+   "where": "东京CPI 点值格状态(引擎面)",
+   "src": "report.research_plan.point_values.cells[JP_CPI_TOKYO_YOY].anchors[*].status",
+   "computed": [
+    "ok",
+    "ok"
+   ],
+   "reported": [
+    "degraded_or_missing",
+    "degraded_or_missing"
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": false,
+   "note": "引擎点值格对 Gate A noncore_missing 序列两锚仍标 ok,读者报告环境表该行亦标 ok(与同页第7行『缺席数据不得进入研究结论』并置);席位在 C1/QN4 按 Gate A 如实披露——引擎面口径不一,非判断偏离",
+   "sev": "SCOPE-OUT"
+  },
+  {
+   "id": "L001",
+   "cat": "⑫",
+   "where": "C2/Q4 截止日盘中水平: 7 序列当日有观测",
+   "src": "snapshot.series_store.<m> 末观测日",
+   "computed": [
+    [
+     "SPX",
+     "2026-11-23"
+    ],
+    [
+     "VIX",
+     "2026-11-23"
+    ],
+    [
+     "DAX",
+     "2026-11-23"
+    ],
+    [
+     "CAC40",
+     "2026-11-23"
+    ],
+    [
+     "EURUSD",
+     "2026-11-23"
+    ],
+    [
+     "USDJPY",
+     "2026-11-23"
+    ],
+    [
+     "DXY",
+     "2026-11-23"
+    ]
+   ],
+   "reported": [
+    [
+     "SPX",
+     "2026-11-23"
+    ],
+    [
+     "VIX",
+     "2026-11-23"
+    ],
+    [
+     "DAX",
+     "2026-11-23"
+    ],
+    [
+     "CAC40",
+     "2026-11-23"
+    ],
+    [
+     "EURUSD",
+     "2026-11-23"
+    ],
+    [
+     "USDJPY",
+     "2026-11-23"
+    ],
+    [
+     "DXY",
+     "2026-11-23"
+    ]
+   ],
+   "lit": "SPX/VIX/DAX/CAC40 的截止日值与外汇/DXY 值均为盘中快照、非收盘价",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "L002",
+   "cat": "⑫",
+   "where": "盘中佐证: 当日值落在日内低/高之间",
+   "src": "snapshot.facts[*].{low,value,high}",
+   "computed": true,
+   "reported": true,
+   "lit": "盘中快照",
+   "lit_found": true,
+   "ok": true,
+   "note": "SPX low 7181.08/value 7203.85/high 7260.17; VIX low 26.8/value 27.01/high 35.08; DAX low 24873.34/value 25209.45/high 25249.49; CAC40 low 7949.51/value 8022.62/high 8043.69; EURUSD low 1.09/value 1.09/high 1.1; USDJPY low 158.47/value 159.35/high 159.42; DXY low 103.47/value 104.08/high 104.28",
+   "sev": ""
+  },
+  {
+   "id": "L003",
+   "cat": "⑫",
+   "where": "M1-4 日经末观测日=2026-11-20",
+   "src": "snapshot.series_store.NIKKEI225 末观测日",
+   "computed": "2026-11-20",
+   "reported": "2026-11-20",
+   "lit": "56436.65,2026-11-20 收盘",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "L004",
+   "cat": "⑫",
+   "where": "盘中相容: 纽约开盘后/柏林收盘前/截止日为交易日",
+   "src": "snapshot.research_as_of 时区换算(常规交易时段 09:30-16:00 纽约、09:00-17:30 柏林)",
+   "computed": [
+    true,
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true,
+    true
+   ],
+   "lit": "纽约 09:53、柏林 15:53",
+   "lit_found": true,
+   "ok": true,
+   "note": "快照时刻 2026-11-23T22:53:47+08:00 = 纽约 09:53(Mon) / 柏林 15:53 / 东京 23:53 / 上海 22:53",
+   "sev": ""
+  },
+  {
+   "id": "L005",
+   "cat": "⑫",
+   "where": "时序: 快照时刻 < 运行起始 < 成文时刻",
+   "src": "snapshot.research_as_of / report.run.ts_utc / agent_declaration.written_at",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "as_of 2026-11-23 14:53:47+00:00 | run 2026-11-23 21:33:36+00:00 | written 2026-11-23 21:37:18+00:00 (UTC)",
+   "sev": ""
+  },
+  {
+   "id": "L006",
+   "cat": "⑫",
+   "where": "截止日当日事实 as_of 与 research_as_of 一致",
+   "src": "snapshot.facts[*].as_of",
+   "computed": [
+    "2026-11-23T22:53:47+08:00"
+   ],
+   "reported": [
+    "2026-11-23T22:53:47+08:00"
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "L007",
+   "cat": "⑫",
+   "where": "M1-3 UST_10Y 末观测日",
+   "src": "snapshot.series_store.UST_10Y 末观测日",
+   "computed": "2026-11-19",
+   "reported": "2026-11-19",
+   "lit": "UST_10Y 最新 5.04%",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "L008",
+   "cat": "⑫",
+   "where": "同日收盘口径两端为交易日且有观测",
+   "src": "snapshot.series_store 8 序列在 2026-10-23/2026-11-20 的观测",
+   "computed": true,
+   "reported": true,
+   "lit": "同日收盘口径(窗起 2026-10-23 收盘→2026-11-20 收盘)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "L009",
+   "cat": "⑫",
+   "where": "截止日与其前一交易日星期",
+   "src": "日历",
+   "computed": [
+    "Mon",
+    "Fri"
+   ],
+   "reported": [
+    "Mon",
+    "Fri"
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "11-21/11-22 为周末;快照时刻东京 23:53 已晚于当日东京场收盘,日经 11-23 观测缺席属采集滞后,席位未把 11-20 值写成截止日值",
+   "sev": ""
+  },
+  {
+   "id": "M001",
+   "cat": "⑬",
+   "where": "契约逐位核验状态",
+   "src": "agent_judgment.contract_verification.verdicts[*]",
+   "computed": [
+    [
+     "ECB_DFR",
+     "STALE"
+    ],
+    [
+     "JP_POLICY_RATE",
+     "VERIFIED"
+    ],
+    [
+     "USDJPY",
+     "VERIFIED"
+    ],
+    [
+     "SPX",
+     "VERIFIED"
+    ],
+    [
+     "VIX",
+     "VERIFIED"
+    ]
+   ],
+   "reported": [
+    [
+     "ECB_DFR",
+     "STALE"
+    ],
+    [
+     "JP_POLICY_RATE",
+     "VERIFIED"
+    ],
+    [
+     "USDJPY",
+     "VERIFIED"
+    ],
+    [
+     "SPX",
+     "VERIFIED"
+    ],
+    [
+     "VIX",
+     "VERIFIED"
+    ]
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "M002",
+   "cat": "⑬",
+   "where": "STALE 位数值=序列直读",
+   "src": "verdicts[STALE] + snapshot.series_store.ECB_DFR[2026-09-16]",
+   "computed": [
+    "2.5%",
+    2.5,
+    2.5,
+    2.5
+   ],
+   "reported": [
+    "2.5%",
+    2.5,
+    2.5,
+    2.5
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "STALE 为时效状态而非数值不符;contradicted=0",
+   "sev": ""
+  },
+  {
+   "id": "M003",
+   "cat": "⑬",
+   "where": "STALE 与 L1 DEGRADED 一一对应",
+   "src": "verdicts[*].metric × report.layers.L1 quality_status",
+   "computed": [
+    [
+     "ECB_DFR"
+    ],
+    [
+     "ECB_DFR"
+    ]
+   ],
+   "reported": [
+    [
+     "ECB_DFR"
+    ],
+    [
+     "ECB_DFR"
+    ]
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "五个受核指标中仅 ECB_DFR 在 L1 为 DEGRADED;JP_POLICY_RATE 为 WARN 仍 VERIFIED——STALE 源于时效位",
+   "sev": ""
+  },
+  {
+   "id": "M004",
+   "cat": "⑬",
+   "where": "契约总判与统计",
+   "src": "agent_judgment.contract_verification.{verdict,stats}",
+   "computed": [
+    "VERIFIED",
+    5,
+    4,
+    0,
+    0
+   ],
+   "reported": [
+    "VERIFIED",
+    5,
+    4,
+    0,
+    0
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "M005",
+   "cat": "⑬",
+   "where": "STALE 根因(ECB_DFR DEGRADED)已在判断档披露",
+   "src": "agent_judgment 全文检索",
+   "computed": [
+    false,
+    true,
+    true
+   ],
+   "reported": [
+    false,
+    true,
+    true
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "契约核验发生在成文之后,席位无从写『STALE』字样;其根因与时效风险已由 C3/QN4/总判断披露,数值经本席直读一致",
+   "sev": ""
+  },
+  {
+   "id": "N001",
+   "cat": "⑭",
+   "where": "欧央行 2026-09-16 后状态未被写成『无变化/维持』(事实位)",
+   "src": "agent_judgment 全文分句扫描(欧央行+维持类词)",
+   "computed": 0,
+   "reported": 0,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "命中 5 句均为情景假设/竞争解释/带『不可见·不可判·尚未验证』限定;事实位零命中",
+   "sev": ""
+  },
+  {
+   "id": "N002",
+   "cat": "⑭",
+   "where": "C2 无未生效决议限定于引擎记录面",
+   "src": "agent_judgment.l3.contradictions[1].statement",
+   "computed": true,
+   "reported": true,
+   "lit": "引擎记录面(注册表序列+发布日历实录)无任何已决议而尚未生效的调整",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "N003",
+   "cat": "⑭",
+   "where": "C2 其后决议面不可见【尚未验证】",
+   "src": "agent_judgment.l3.contradictions[1].statement",
+   "computed": true,
+   "reported": true,
+   "lit": "其后决议面不可见【尚未验证】",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "N004",
+   "cat": "⑭",
+   "where": "C3 结论覆盖面限定",
+   "src": "agent_judgment.l3.contradictions[2].statement",
+   "computed": true,
+   "reported": true,
+   "lit": "本报告关于欧央行无未生效决议的结论仅覆盖引擎可见面",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "N005",
+   "cat": "⑭",
+   "where": "日历零 ECB 条目 / 零待生效条目",
+   "src": "release_calendar.entries",
+   "computed": [
+    [],
+    []
+   ],
+   "reported": [
+    [],
+    []
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "日历 18 条,version 1.5.0,updated 2026-11-21",
+   "sev": ""
+  },
+  {
+   "id": "N006",
+   "cat": "⑭",
+   "where": "C2 日央行确认维持=维持决议且目标值未变",
+   "src": "release_calendar RC-JP-BOJ-MAINT-2026-10 / RC-JP-BOJ-TARGET-2026-09",
+   "computed": [
+    "policy_maintenance",
+    1.25,
+    false,
+    1.25
+   ],
+   "reported": [
+    "policy_maintenance",
+    1.25,
+    false,
+    1.25
+   ],
+   "lit": "2026-10-30 会议确认维持不变(无新调整、无生效变动)",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "N007",
+   "cat": "⑭",
+   "where": "C2 日央行『收紧』方向标注【推断】",
+   "src": "agent_judgment.l3.contradictions[1].statement",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": "实录无前值,属【推断】",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "N008",
+   "cat": "⑭",
+   "where": "总判断未把月均值写成官方目标",
+   "src": "agent_judgment.reader_map.headline_conclusion",
+   "computed": [
+    false,
+    false,
+    false
+   ],
+   "reported": [
+    false,
+    false,
+    false
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "总判断目标值仅 1.25(日历宣布值);月均 1.227 只出现在 C2/走位/机制链并带『月均口径』",
+   "sev": ""
+  },
+  {
+   "id": "N009",
+   "cat": "⑭",
+   "where": "月均≠宣布值 两处写明",
+   "src": "agent_judgment C2 / reader_map.regions[1].from_to",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": "月均口径非宣布值",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "N010",
+   "cat": "⑭",
+   "where": "日央行实录无前值字段",
+   "src": "release_calendar RC-JP-BOJ-TARGET-2026-09 字段名",
+   "computed": [],
+   "reported": [],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "实录字段: basis, decision_date, effective_on, entry_id, first_publish_on_or_after, kind, metric_id, not_published_as_of, note, obs_from, obs_to, source, target_value;无前值字段,『同向收紧』的日本端方向只能来自月均台阶(席位已标【推断】)",
+   "sev": ""
+  },
+  {
+   "id": "N011",
+   "cat": "⑭",
+   "where": "日历『约1.25%』与总判断『1.25%』",
+   "src": "release_calendar RC-JP-BOJ-TARGET-2026-09.{target_value,note}",
+   "computed": [
+    1.25,
+    true,
+    true
+   ],
+   "reported": [
+    1.25,
+    true,
+    true
+   ],
+   "lit": "日本央行政策目标 1.25%",
+   "lit_found": true,
+   "ok": true,
+   "note": "数值字段 1.25 精确;日历注记行文为『约1.25%』,总判断与走位未带『约』(见 PROSE NIT)",
+   "sev": ""
+  },
+  {
+   "id": "O001",
+   "cat": "⑮",
+   "where": "C2 日央行三日期分记",
+   "src": "release_calendar RC-JP-BOJ-*",
+   "computed": [
+    "2026-09-18",
+    "2026-09-24",
+    "2026-10-30"
+   ],
+   "reported": [
+    "2026-09-18",
+    "2026-09-24",
+    "2026-10-30"
+   ],
+   "lit": "2026-09-18 决议、2026-09-24 生效,2026-10-30 会议确认维持不变",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "O002",
+   "cat": "⑮",
+   "where": "现行有效目标: 生效日≤截止日≤obs_to,且无待生效",
+   "src": "release_calendar RC-JP-BOJ-TARGET-2026-09",
+   "computed": [
+    true,
+    true,
+    0
+   ],
+   "reported": [
+    true,
+    true,
+    0
+   ],
+   "lit": "截至研究截止 2026-11-23",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "O003",
+   "cat": "⑮",
+   "where": "欧央行现行生效水平=序列末观测",
+   "src": "snapshot.series_store.ECB_MRO/ECB_DFR 末观测",
+   "computed": [
+    [
+     "2026-09-16",
+     2.65
+    ],
+    [
+     "2026-09-16",
+     2.5
+    ]
+   ],
+   "reported": [
+    [
+     "2026-09-16",
+     2.65
+    ],
+    [
+     "2026-09-16",
+     2.5
+    ]
+   ],
+   "lit": "最新生效水平",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "O004",
+   "cat": "⑮",
+   "where": "Q5④ 两序列含非周三观测",
+   "src": "snapshot.series_store.ECB_MRO/ECB_DFR 观测日星期分布",
+   "computed": [
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true
+   ],
+   "lit": "两序列含非周三观测",
+   "lit_found": true,
+   "ok": true,
+   "note": "非周三观测数/总观测数: {\"ECB_MRO\": [9, 48], \"ECB_DFR\": [21, 69]}",
+   "sev": ""
+  },
+  {
+   "id": "O005",
+   "cat": "⑮",
+   "where": "Q5④ 引擎原句在场",
+   "src": "MAP_REPORT.md 第65行",
+   "computed": true,
+   "reported": true,
+   "lit": "引擎报告文字「观测日全为周三」",
+   "lit_found": true,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "O006",
+   "cat": "⑮",
+   "where": "Q5① 契约锚标签硬编码与本档规避",
+   "src": "tree judgment_contract.py (13) 块 / point_values cells anchors / 走位正文",
+   "computed": [
+    true,
+    [
+     "6个月前",
+     "最新一期"
+    ],
+    0
+   ],
+   "reported": [
+    true,
+    [
+     "6个月前",
+     "最新一期"
+    ],
+    0
+   ],
+   "lit": "锚标签硬编码「12个月前/3个月前/最新一期」",
+   "lit_found": true,
+   "ok": true,
+   "note": "本问只有『6个月前/最新一期』两锚,(13) 的标签循环只取到『最新一期』一月,任何 ≥2 个月的『观测 X→Y』串必不成其保序子序列;席位走位正文用『观测月 X』逐锚表述,正则零命中",
+   "sev": ""
+  },
+  {
+   "id": "O007",
+   "cat": "⑮",
+   "where": "Q5② 别名表未覆盖五指标",
+   "src": "tree text_consistency.ALIASES keys",
+   "computed": [],
+   "reported": [],
+   "lit": "静态别名表未覆盖 JP_CPI_YOY/EA_HICP_YOY/JP_CPI_TOKYO_YOY/JP_POLICY_TARGET/ECB_MRO",
+   "lit_found": true,
+   "ok": true,
+   "note": "ALIASES 共 72 键;近邻键: ['CN_CPI_YOY', 'CORE_CPI', 'CPI', 'ECB_DFR', 'JP_POLICY_RATE']",
+   "sev": ""
+  },
+  {
+   "id": "O008",
+   "cat": "⑮",
+   "where": "陈述层『无别名指标数值用中文数字』自述",
+   "src": "agent_judgment l3.contradictions[*].statement 内指标名近邻的阿拉伯小数值",
+   "computed": [
+    "存款便利利率",
+    "月均"
+   ],
+   "reported": [
+    "存款便利利率",
+    "月均"
+   ],
+   "lit": "本档陈述层对无别名指标的数值一律用中文数字表述",
+   "lit_found": true,
+   "ok": true,
+   "note": "三条矛盾陈述正文里以阿拉伯小数出现的指标值仅『存款便利利率…2.5%』(ECB_DFR)与『月均…1.227%』(JP_POLICY_RATE),二者均有别名并经契约逐位绑定;其余无别名指标(日本全国CPI/欧元区HICP/东京CPI/BOJ目标/ECB_MRO)数值均为中文数字——自述成立。竞争解释与 reader_map/机制链层用阿拉伯数字,不在『陈述层』之内",
+   "sev": ""
+  },
+  {
+   "id": "O009",
+   "cat": "⑮",
+   "where": "注册表决策驱动序列口径(两口径并列的依据)",
+   "src": "registry ECB_MRO/ECB_DFR.freshness",
+   "computed": [
+    true,
+    true,
+    true,
+    10,
+    10
+   ],
+   "reported": [
+    true,
+    true,
+    true,
+    10,
+    10
+   ],
+   "lit": "超过注册表新鲜度阈十天",
+   "lit_found": true,
+   "ok": true,
+   "note": "席位只引滞后阈口径(Gate A=degraded);注册表同处另有 decision_dated 口径(无更晚已证实决议不作过期),引擎点值格按后者判 ok——见 PROSE MINOR",
+   "sev": ""
+  },
+  {
+   "id": "O010",
+   "cat": "⑮",
+   "where": "引擎点值格对欧央行现值的状态",
+   "src": "report.research_plan.point_values.cells[ECB_*].anchors[最新一期]",
+   "computed": [
+    "ok",
+    "policy_confirmation",
+    "2026-09-16",
+    "ok"
+   ],
+   "reported": [
+    "ok",
+    "policy_confirmation",
+    "2026-09-16",
+    "ok"
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "引擎点值格未把欧央行现值标过期/未核验(与 Gate A degraded 并存)",
+   "sev": ""
+  },
+  {
+   "id": "O011",
+   "cat": "⑮",
+   "where": "同比基期=去年同月(2025-10),非相邻月",
+   "src": "agent_judgment C1 / 总判断",
+   "computed": [
+    true,
+    true,
+    true,
+    true
+   ],
+   "reported": [
+    true,
+    true,
+    true,
+    true
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "",
+   "sev": ""
+  },
+  {
+   "id": "O012",
+   "cat": "⑮",
+   "where": "读者报告官方记录面(日本行)",
+   "src": "MAP_REPORT.md 第71行 + 日历复算",
+   "computed": true,
+   "reported": true,
+   "lit": null,
+   "lit_found": null,
+   "ok": true,
+   "note": "距上次调整(按生效日)/距决议/距维持 = 60/66/24 天,待生效列『—』",
+   "sev": ""
+  },
+  {
+   "id": "O013",
+   "cat": "⑮",
+   "where": "引擎面对欧央行决议日的两种表述(范围外)",
+   "src": "registry ECB_MRO.{calc,release_semantics} vs 点值格 policy_dates / publication_rule",
+   "computed": [
+    true,
+    "2026-09-10",
+    "2026-09-16",
+    "ECB 决议日当日公布(变更日观测)"
+   ],
+   "reported": [
+    true,
+    "2026-09-10",
+    "2026-09-16",
+    "ECB 决议日当日公布(变更日观测)"
+   ],
+   "lit": null,
+   "lit_found": null,
+   "ok": false,
+   "note": "注册表写『决议变更即时生效/当日更新』,读者报告覆盖表把 2026-09-16 写作『决议日当日公布』,政策表却写决议 09-10→生效 09-16——引擎内部口径不一;席位取政策表面并把决议日标【推断】,生效日 09-16 在两种读法下不变",
+   "sev": "SCOPE-OUT"
+  },
+  {
+   "id": "O014",
+   "cat": "⑮",
+   "where": "对质环1『决议日前可见读数』的数值(修订口径注记)",
+   "src": "snapshot.series_store.EA_HICP_YOY",
+   "computed": [
+    3.2,
+    3.2
+   ],
+   "reported": [
+    3.2,
+    3.2
+   ],
+   "lit": "2026-05 的 3.2 与 2026-08 的 3.2",
+   "lit_found": true,
+   "ok": true,
+   "note": "点值格 vintage_semantics=事后回顾(最新修订值,非当时首发值),注册表注明 HICP 近月含回溯修订;判断档未并列此口径(见 PROSE MINOR)",
+   "sev": ""
+  }
+ ]
+}

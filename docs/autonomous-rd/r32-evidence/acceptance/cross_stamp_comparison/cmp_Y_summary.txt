@@ -1,0 +1,22 @@
+# cmp_Y_summary — stamp X 8f9055d -> stamp Y 36499bb, from cmp_Y_<tag>.txt (cmp_runs.py)
+# "engine" = every section except the L3/L4 AI layers; "judgment" = report.json/layers leaves under the AI layers
+# (differences there are the attached, revised judgments; N30 at Y carries no attached judgment yet)
+== A | old run 20261123T213303Z git_head 8f9055d6e556 | new run 20261123T235103Z git_head 36499bb78a18
+   report.json/research_plan  real diff 2 = judgment 0 + engine 2
+        engine: /point_values/cells[CN_LPR_1Y]/anchors/3个月前/publication_basis
+        engine: /point_values/cells[CN_LPR_1Y]/anchors/3个月前/publication_rule
+   report.json/layers         real diff 6 = judgment 6 + engine 0
+== B | old run 20261123T213320Z git_head 8f9055d6e556 | new run 20261123T235121Z git_head 36499bb78a18
+   report.json/layers         real diff 12 = judgment 12 + engine 0
+== T3 | old run 20261123T213336Z git_head 8f9055d6e556 | new run 20261123T235139Z git_head 36499bb78a18
+   report.json/layers         real diff 8 = judgment 8 + engine 0
+== N30 | old run 20261123T213353Z git_head 8f9055d6e556 | new run 20261123T235157Z git_head 36499bb78a18
+   report.json/layers         real diff 80 = judgment 80 + engine 0
+== C4 | old run 20261123T213414Z git_head 8f9055d6e556 | new run 20261123T235101Z git_head 36499bb78a18
+   report.json/research_plan  real diff 2 = judgment 0 + engine 2
+        engine: /point_values/cells[CN_LPR_1Y]/anchors/3个月前/publication_basis
+        engine: /point_values/cells[CN_LPR_1Y]/anchors/3个月前/publication_rule
+   report.json/layers         real diff 10 = judgment 10 + engine 0
+== AUG | old run 20261123T213507Z git_head 8f9055d6e556 | new run 20261123T235136Z git_head 36499bb78a18
+   no real difference in any section
+engine-face leaf differences outside the AI layers, all work orders: 4

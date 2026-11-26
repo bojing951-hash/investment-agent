@@ -1,0 +1,243 @@
+REG TOP KEYS ['version', 'created', 'spec', 'field_semantics', 'notes', 'metrics']
+REG LIST KEY metrics 114
+--- CORE_PCE
+{
+ "metric_id": "CORE_PCE",
+ "display_name": "核心PCE(SA)",
+ "source": "macro_collector",
+ "source_symbol": "PCEPILFE",
+ "asset_class": "macro_index",
+ "frequency": "monthly",
+ "observation_period_kind": "calendar_month",
+ "release_date_available": false,
+ "unit": "index_point_2017",
+ "calendar": "us_rates",
+ "economy": "US",
+ "economy_rule": "P3:calendar=us_rates",
+ "market_seat": "onshore_local",
+ "criticality": "core",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none",
+  "seasonal_adjustment": "SA(如系列本身为SA)"
+ },
+ "value_type": "level",
+ "calc": "FRED系列最新月度观测",
+ "validation": {
+  "range": [
+   90,
+   150
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 60,
+  "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+ },
+ "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+}
+--- US_REAL_GDP
+{
+ "metric_id": "US_REAL_GDP",
+ "display_name": "美国实际GDP(SAAR)",
+ "source": "macro_collector",
+ "source_symbol": "GDPC1",
+ "asset_class": "macro_index",
+ "frequency": "quarterly",
+ "release_date_available": false,
+ "unit": "billion_usd",
+ "calendar": "us_rates",
+ "economy": "US",
+ "economy_rule": "P3:calendar=us_rates",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none",
+  "seasonal_adjustment": "SA(季调,年化率SAAR)"
+ },
+ "value_type": "level",
+ "calc": "美国实际GDP水平(FRED GDPC1,2017年链式美元,十亿,季调年化SAAR,1947+);QoQ/YoY由序列变化机制派生",
+ "validation": {
+  "range": [
+   1500,
+   40000
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 120,
+  "note": "季频:观测日=统计季(以季末月表示);advance估计约季后25-30天发布,未发布≠数据缺失"
+ },
+ "release_semantics": "BEA季度advance估计约季后25-30天发布(精确发布日经FRED API不可得→按观测季+已知滞后窗口保守标注);后续修订随全量重拉自动生效(revision_semantics=latest_vintage_asof_collected)"
+}
+--- EA_HICP_YOY
+{
+ "metric_id": "EA_HICP_YOY",
+ "display_name": "欧元区HICP同比",
+ "source": "ea_market_collector",
+ "source_symbol": "HICP.M.U2.N.000000.4D0.ANR",
+ "source_key": "ECB_HICP",
+ "asset_class": "macro_index",
+ "frequency": "monthly",
+ "observation_period_kind": "calendar_month",
+ "release_date_available": false,
+ "unit": "percent",
+ "calendar": "ea",
+ "economy": "EA",
+ "economy_rule": "P10:calendar=ea",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none"
+ },
+ "value_type": "level",
+ "calc": "ECB Data Portal 系列 HICP.M.U2.N.000000.4D0.ANR(欧元区HICP年度变化率,未季调,月频,1997+);R20 源切换: 原 ICP 数据集 2026-02-04 起停用(旧口径止于2025-12),官方替代流程键 HICP/ECB_ICP3 结构,全历史重拉衔接,重叠期(1997-01..2025-12)两源逐月一致,后续修订随全量重拉自动生效",
+ "validation": {
+  "range": [
+   -2,
+   15
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 60,
+  "note": "月频:观测日=统计期(月),发布滞后约2周-1月属正常,未发布≠数据缺失"
+ },
+ "release_semantics": "Eurostat月度HICP(次月中旬终值);R20 注意: HICP流程对近月含回溯修订(2025-12 值1.9→2.0),按观测月+滞后窗口保守标注,revision_semantics=latest_vintage_asof_collected"
+}
+--- JP_POLICY_RATE
+{
+ "metric_id": "JP_POLICY_RATE",
+ "display_name": "日本无担保隔夜拆借利率(月均)",
+ "source": "japan_rate_collector",
+ "source_symbol": "IRSTCI01JPM156N",
+ "source_key": "FRED_POLICY",
+ "asset_class": "policy_rate",
+ "frequency": "monthly",
+ "observation_period_kind": "calendar_month",
+ "release_date_available": false,
+ "unit": "percent",
+ "calendar": "japan",
+ "economy": "JP",
+ "economy_rule": "P9:calendar=japan",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none"
+ },
+ "value_type": "monthly_avg_rate",
+ "calc": "FRED系列IRSTCI01JPM156N最新观测(日本无担保隔夜拆借利率月均,OECD/BOJ口径;政策利率operative信号,与BOJ决议目标值口径不同,决议值变更时点见release_semantics)",
+ "validation": {
+  "range": [
+   -0.5,
+   2
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 60,
+  "note": "月频:观测日=统计期(月),发布滞后4-6周属正常,未发布≠数据缺失"
+ },
+ "release_semantics": "FRED月频系列发布日不可得;BOJ决议目标值经金融政策决定会议公布(无固定时刻),本指标为月均 operative 利率而非决议值,按观测月+滞后窗口保守标注"
+}
+--- INDPRO
+{
+ "metric_id": "INDPRO",
+ "display_name": "工业生产指数(SA)",
+ "source": "macro_collector",
+ "source_symbol": "INDPRO",
+ "asset_class": "macro_index",
+ "frequency": "monthly",
+ "observation_period_kind": "calendar_month",
+ "release_date_available": false,
+ "unit": "index_point_2017",
+ "calendar": "us_rates",
+ "economy": "US",
+ "economy_rule": "P3:calendar=us_rates",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none",
+  "seasonal_adjustment": "SA(如系列本身为SA)"
+ },
+ "value_type": "level",
+ "calc": "工业生产指数(2017=100)",
+ "validation": {
+  "range": [
+   80,
+   120
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 60,
+  "note": "月频:观测日=统计期(月),发布滞后1-5周属正常,未发布≠数据缺失"
+ },
+ "release_semantics": "发布日不可得(FRED API不提供);快照按观测月+已知滞后窗口保守标注,9月CPI在10月发布属正常节奏,不算10月缺数"
+}
+--- EA_REAL_GDP_YOY
+{
+ "metric_id": "EA_REAL_GDP_YOY",
+ "display_name": "欧元区实际GDP同比",
+ "source": "ea_market_collector",
+ "source_symbol": "CLVMEURSCAB1GQEA19",
+ "source_key": "FRED_EA_GDP",
+ "asset_class": "macro_index",
+ "frequency": "quarterly",
+ "release_date_available": false,
+ "unit": "percent",
+ "calendar": "ea",
+ "economy": "EA",
+ "economy_rule": "P10:calendar=ea",
+ "market_seat": "onshore_local",
+ "criticality": "important",
+ "status": "active",
+ "identity": {
+  "instrument": "macro_series",
+  "adjustment": "none",
+  "seasonal_adjustment": "SA(季调)"
+ },
+ "value_type": "level",
+ "calc": "欧元区实际GDP同比;ea_market_collector 取 FRED CLVMEURSCAB1GQEA19(链式成交量,2019价,季调,1995+),严格同季去年比(_quarterly_yoy),2020-01..2026-07 共123季;FRED 口径=最新修订值→研究层须标事后回顾",
+ "validation": {
+  "range": [
+   -12,
+   12
+  ]
+ },
+ "freshness": {
+  "max_calendar_lag_days": 120,
+  "note": "季频:观测日=统计季(以季首日表示);flash估计约季后30-45天,未发布≠数据缺失"
+ },
+ "release_semantics": "Eurostat季度GDP flash约季后30-45天发布(精确发布日经FRED不可得→按观测季+滞后窗口保守标注);FRED系列为最新修订口径,历史回看=事后回顾(revision_semantics=latest_vintage_asof_collected)"
+}
+JP_POLICY_TARGET in registry: False | JGB10Y: True
+CAL TOP {'version': ('str', 5), 'created': ('str', 10), 'updated': ('str', 10), 'spec': ('str', 1932), 'batches': ('list', 6), 'entries': ('list', 18)}
+FACTS n 105 keys sample ['fact_id', 'metric_id', 'display_name', 'value', 'unit', 'value_type', 'observation_date', 'as_of', 'source', 'calculation_ref', 'calc', 'identity', 'derived', 'quality_status', 'issues', 'high', 'low']
+JGB FACT {"fact_id": "JGB2Y@2026-11-19", "metric_id": "JGB2Y", "display_name": "2年期日债收益率", "value": 1.853, "unit": "percent", "value_type": "yield_or_spread_level", "observation_date": "2026-11-19", "as_of": "2026-11-23T22:53:47+08:00", "source": {"collector": "japan_rate_collector", "file": "japan_20261123.json", "retrieved_at": null}, "calculation_ref": null, "calc": "MOF日本国债收益率曲线(jgbcme)2年期最新收盘观测(每营业日发布,非营业日无新观测)", "identity": {"instrument": "index_rate_series", "adjustment": "none"}, "quality_status": "PASS", "issues": []}
+JGB FACT {"fact_id": "JGB5Y@2026-11-19", "metric_id": "JGB5Y", "display_name": "5年期日债收益率", "value": 2.235, "unit": "percent", "value_type": "yield_or_spread_level", "observation_date": "2026-11-19", "as_of": "2026-11-23T22:53:47+08:00", "source": {"collector": "japan_rate_collector", "file": "japan_20261123.json", "retrieved_at": null}, "calculation_ref": null, "calc": "MOF日本国债收益率曲线(jgbcme)5年期最新收盘观测(每营业日发布,非营业日无新观测)", "identity": {"instrument": "index_rate_series", "adjustment": "none"}, "quality_status": "PASS", "issues": []}
+JGB FACT {"fact_id": "JGB10Y@2026-11-19", "metric_id": "JGB10Y", "display_name": "10年期日债收益率", "value": 2.87, "unit": "percent", "value_type": "yield_or_spread_level", "observation_date": "2026-11-19", "as_of": "2026-11-23T22:53:47+08:00", "source": {"collector": "japan_rate_collector", "file": "japan_20261123.json", "retrieved_at": null}, "calculation_ref": null, "calc": "MOF日本国债收益率曲线(jgbcme)10年期最新收盘观测(每营业日发布,非营业日无新观测)", "identity": {"instrument": "index_rate_series", "adjustment": "none"}, "quality_status": "PASS", "issues": []}
+GATE_A {"status": "DEGRADED", "core_missing": [], "core_fail": [], "noncore_fail": [], "noncore_missing": ["BUND_10Y", "BUND_2Y", "CN_OMO_7D", "CN_POLICY_OVERNIGHT", "EA_REAL_GDP_YOY", "JP_CPI_TOKYO_YOY", "JP_REAL_GDP_YOY"], "note": "缺失/失败数据已披露,不得进入研究结论;单个资产缺失不阻断其余研究;非核心FAIL按降级披露(注册表criticality为权威)", "noncore_missing_detail": {"JP_CPI_TOKYO_YOY": "来源文件在场而指标缺席(采集遗漏或子源缺席——档内无该指标子源状态记录,不可区分)", "BUND_10Y": "子源缺席(ea档记录:BBK_WU3146=READ_FAIL——源端不可得/未采,非采集遗漏)", "BUND_2Y": "子源缺席(ea档记录:BBK_WU3141=READ_FAIL——源端不可得/未采,非采集遗漏)", "CN_OMO_7D": "来源文件在场而指标缺席(采集遗漏或子源缺席——注册表未登记该指标子源状态键,不可区分)", "CN_POLICY_OVERNIGHT": "来源文件在场而指标缺席(采集遗漏或子源缺席——注册表未登记该指标子源状态键,不可区分)", "EA_REAL_GDP_YOY": "来源文件在场且子源FRED_EA_GDP取数成功而指标缺席(采集遗漏——采集器已取到而事实未生成)", "JP_REAL_GDP_YOY": "来源文件在场且子源FRED_JP_GDP取数成功而指标缺席(采集遗漏——采集器已取到而事实未生成)"}, "noncore_degraded": ["CN_SF_FLOW", "ECB_DFR", "ECB_MRO", "JTSJOL", "M2SL", "SPX_EPS", "SPX_PE_TTM", "US_REAL_GDP"], "illegal_quality": []}
+SNAP KEYS ['snapshot_id', 'research_as_of', 'target_date', 'timezone', 'sources_status', 'fed_futures_curve', 'facts', 'reconciliation', 'quality', 'gate_a', 'notes', 'series_store', 'series_store_notes', 'series_provenance', 'series_store_clean']
+REP TOP ['schema_version', 'pipeline_version', 'run', 'steps', 'fanout', 'layers', 'evidence_index', 'notes', 'run_ok', 'research_plan', 'semantic_review', 'agent_judgment']
+FIND us_rates_trio 2 [('steps[0].deterministic_face.research_plan.us_rates_trio', 'dict', 13), ('research_plan.us_rates_trio', 'dict', 13)]
+FIND asset_moves 2 [('steps[0].deterministic_face.research_plan.asset_moves', 'dict', 5), ('research_plan.asset_moves', 'dict', 5)]
+FIND point_values 2 [('steps[0].deterministic_face.research_plan.point_values', 'dict', 3), ('research_plan.point_values', 'dict', 3)]
+FIND turning_candidates 2 [('steps[0].deterministic_face.research_plan.turning_candidates', 'dict', 3), ('research_plan.turning_candidates', 'dict', 3)]
+FIND contract_verification 1 [('agent_judgment.contract_verification', 'dict', 7)]
+FIND evidence_index 1 [('evidence_index', 'list', 63)]
+FIND gate_a 49 [('steps[1].envelope.gate_a', 'NoneType', None), ('steps[1].envelope.data.snapshot.gate_a', 'str', 8), ('steps[2].envelope.gate_a', 'str', 8), ('steps[3].envelope.gate_a', 'str', 8), ('steps[4].envelope.gate_a', 'str', 8), ('steps[5].envelope.gate_a', 'str', 8)]
+FIND semantic_review 1 [('semantic_review', 'dict', 11)]
+FIND policy_event_clusters 2 [('steps[0].deterministic_face.research_plan.policy_event_clusters', 'dict', 2), ('research_plan.policy_event_clusters', 'dict', 2)]
+FIND policy_doc_facts 2 [('steps[0].deterministic_face.research_plan.policy_doc_facts', 'list', 1), ('research_plan.policy_doc_facts', 'list', 1)]
+FIND dimension_gaps 2 [('steps[0].deterministic_face.research_plan.dimension_gaps', 'list', 1), ('research_plan.dimension_gaps', 'list', 1)]
+FIND point_anchors 2 [('steps[0].deterministic_face.research_plan.point_anchors', 'list', 2), ('research_plan.point_anchors', 'list', 2)]
+FIND research_plan 2 [('steps[0].deterministic_face.research_plan', 'dict', 26), ('research_plan', 'dict', 26)]
+FIND git_head 1 [('run.git_head', 'str', 40)]
+FIND evidence_asof 1 [('run.evidence_asof', 'str', 10)]
+FIND history_periods 0 []
+FIND analog 0 []

@@ -1,0 +1,26 @@
+# seat output directory listing (bytes  path); files under scratch subdirectories, files > 2.5 MB and earlier drafts (*.before-*) are listed only
+     321  s15_calendar.py
+     525  s04_cal_dump.py
+     547  s03_cal_struct.py
+     617  s02_daily.py
+     654  s09b_dr_items.py
+     747  s16_run_keys.py
+     842  s01_tails.py
+    1071  s00_explore.py
+    1314  s09_gate_dr.py
+    1385  s06_report_struct.py
+    1445  s08_envelopes.py
+    1851  s05_registry.py
+    1912  s12_faces.py
+    1958  s13_jstruct.py
+    2597  s11_probe.py
+    2739  s19_validate.py
+    2896  s14_render_check.py
+    3142  s07_engine_face.py
+    3168  s18_policy_series.py
+    6157  s20_verify_literals.py
+   11060  _protocol.md
+   24864  VERDICT-round1.json
+   61292  s10_recompute.py
+   62819  s17_write_outputs.py
+   90519  PROSE-round1.md

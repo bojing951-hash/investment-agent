@@ -1,0 +1,18 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "semantic-review-r1",
+  "notes": "七项清单全核。A五面在场: 一句总判断/四地三时点走位(含各地区环境走位节)/转折表2行系同轮事件并项且有并项口径注记+候选面全量披露+判断席原转折在档,非掩盖性缺失/传导图三链逐环观察-因果假设-竞争解释-区分指标+对质表6行(对质三件齐备,含尚不能区分诚实缺省)/历史三段各含相似点-关键差异-同步面-事后3-6-12月实际+样本注记。B数值抽查20余个对L1事实行全一致: SPX6910.39@2026-11-20, VIX35.89, GOLD_F3515.4, DXY103.81, UST_10Y5.04@11-19, UST_2Y4.76, BEI_10Y2.15@11-20, CPI337.476@10-01(同比3.72@2026-09标注最近有效), CORE_PCE130.902@09-01, HY_OAS3.52(12个月+33bp), JP_POLICY_RATE1.227, ECB_DFR2.5与MRO2.65@09-16, CN_PPI-2.1→3.5→5.7, CN_CPI0.2→0.5→0.7; 三分解年度窗+91=+102-11bp与月窗-8=+11-19bp恒等式复算成立; 月窗涨跌幅(SPX-10.92/VIX+115.17/NIKKEI-12.67/DAX-3.28/SHCOMP-4.83/GOLD_F-15.29/DXY+1.99)逐项复算吻合; USDJPY 12个月+1.49%与3个月+8.41%复算吻合。C四层标注: FULL_REPORT逐环E1/E2/E3在场,MAP_REPORT因果假设/竞争解释分列+attribution=ai_inferred分工行,竞争解释全部并列无单一叙事。D历史段均标事后陈述非预测,无事后冒充预测句式,analog固定文案(相似≠因果更非预测)在FULL_REPORT与report.md在场,2025-03段重叠降权明写。E缺口全披露: EA增长/通胀三锚明写数据不可得+检索范围+禁以现值冒充(1.9@2025-12仅作存在性参考),JP_POLICY_TARGET不在注册表明写,CN隔夜前两锚不可得,CN_OMO_7D过期标注,Gate A FAIL与草稿双声明(map_core_dimension_missing/map_current_period_missing)在档。F情景S1S2并列,假设非预测/方向+置信档/敏感变量/证伪阈值/触发条件含时限齐备。G四个子问均有对应回答面无偷换。表述层小瑕疵不构成实质缺陷: 对质表一处BEI_10X应为BEI_10Y; 转折并项后正文仅2行(信息经第一行跟进列次级反向转折与候选面保留,建议后续把边界月重叠不可补选规则示例化); 情景角色列为空; 重放节runts疑为run笔误。",
+  "run_ts": "20261121T074411Z",
+  "content_sha256": "6dde792d71b8b33288e3f279113f25ace089b157e2751e01134519056594658c",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T080837Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 1,
+  "predecessor": null,
+  "map_report_sha256": "d0d6db7f531218c5e9f3ee040eabf8bf551eed3405433898f2772ea0aa6c2213",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ]
+}

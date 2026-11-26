@@ -1,0 +1,6 @@
+untraceable decimals in findings: []
+untraceable decimals in PROSE body: []
+untraceable decimals in notes: []
+written /tmp/r32-accept/review5/T3_round1/PROSE-round1.md 117867 bytes
+written /tmp/r32-accept/review5/T3_round1/VERDICT-round1.json 20426 bytes
+counts: points=396 mismatches=0 dup=72(ok 72) scope_out=5 MAJOR=0 MINOR=7 NIT=9 attacks=14

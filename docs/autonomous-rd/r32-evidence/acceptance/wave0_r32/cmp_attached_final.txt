@@ -1,0 +1,26 @@
+A | V tree run 20261123T235103Z
+   V tree attached   75687 bytes sha256 b0eb28f909c2d9e7aff8c647ca267f26db1ec7018fa69ed417505ec1e0c93342
+   Y tree attached   75687 bytes sha256 b0eb28f909c2d9e7aff8c647ca267f26db1ec7018fa69ed417505ec1e0c93342 | byte-equal to V tree: True
+   folded judgment6_A.json  75688 bytes sha256 33707b00c2b6252ef2dbcf5d29f0ad92a3cb3e20760f3afec43e20e2342ee36f
+   folded keys all equal in attached: True | attached-only keys [] | folded-only keys []
+T3 | V tree run 20261123T235139Z
+   V tree attached   41977 bytes sha256 4fd24ab3936fd100c407ca48d32bca3d1fa03428de72f51084f687b8fc548bc5
+   Y tree attached   41977 bytes sha256 4fd24ab3936fd100c407ca48d32bca3d1fa03428de72f51084f687b8fc548bc5 | byte-equal to V tree: True
+   folded judgment6_T3.json  41978 bytes sha256 c6b560a5a28aa1e905b3f51555d41256924206aac02e5c8687b621ff2abedef2
+   folded keys all equal in attached: True | attached-only keys [] | folded-only keys []
+C4 | V tree run 20261123T235101Z
+   V tree attached   59765 bytes sha256 7f9bcc62b5f1cd694c2ea08dd1d816c1dcab1e581b8f9e25ec99b45bbf227ecf
+   Y tree attached   59765 bytes sha256 7f9bcc62b5f1cd694c2ea08dd1d816c1dcab1e581b8f9e25ec99b45bbf227ecf | byte-equal to V tree: True
+   folded judgment6_C4.json  59766 bytes sha256 da7b420a7e8e94926ee7be9a5a92daf66e6054ff8b16cec9ee007002a0517e83
+   folded keys all equal in attached: True | attached-only keys [] | folded-only keys []
+N30 | V tree run 20261123T235157Z
+   V tree attached   48315 bytes sha256 b82bf46df353a65373ef9c2e62c2c32f3020e5ed08ead83c7bbe1096c8b87ddf
+   Y tree attached   48315 bytes sha256 b82bf46df353a65373ef9c2e62c2c32f3020e5ed08ead83c7bbe1096c8b87ddf | byte-equal to V tree: True
+   folded judgment6_N30.json  48316 bytes sha256 b2730885fe639384d33b24cc142c0aadc54c27590244b20419a45aec05f49a55
+   folded keys all equal in attached: True | attached-only keys [] | folded-only keys []
+B | V tree run 20261123T235121Z
+   V tree attached   40426 bytes sha256 645e92277cda14943d8df7b93dcccce1a067c1cb264c03989e9409feae2eef2b
+   Y tree attached   40426 bytes sha256 645e92277cda14943d8df7b93dcccce1a067c1cb264c03989e9409feae2eef2b | byte-equal to V tree: True
+   folded judgment7_B.json  40427 bytes sha256 0af4cb6dabeedc981640a58b45c45b7287c191f686976cd5f1060a378a0e82fa
+   folded keys all equal in attached: True | attached-only keys [] | folded-only keys []
+

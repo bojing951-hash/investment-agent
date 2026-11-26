@@ -1,0 +1,20 @@
+[
+ {
+  "kind": "point",
+  "label": "12个月前",
+  "as_of": "2025-11-23",
+  "months_before": 12
+ },
+ {
+  "kind": "point",
+  "label": "3个月前",
+  "as_of": "2026-08-23",
+  "months_before": 3
+ },
+ {
+  "kind": "point",
+  "label": "最新一期",
+  "as_of": "2026-11-23",
+  "months_before": 0
+ }
+]

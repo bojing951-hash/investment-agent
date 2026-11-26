@@ -1,0 +1,87 @@
+{
+ "points_total": 588,
+ "points_counted": 588,
+ "mismatches": 2,
+ "script_errors": 0,
+ "info_rows": 103,
+ "per_section": {
+  "A①截止日": {
+   "points": 24,
+   "ok": 24,
+   "mismatch": 0
+  },
+  "B②点值锚格": {
+   "points": 94,
+   "ok": 94,
+   "mismatch": 0
+  },
+  "C③同比基期": {
+   "points": 28,
+   "ok": 28,
+   "mismatch": 0
+  },
+  "D④政策面": {
+   "points": 90,
+   "ok": 90,
+   "mismatch": 0
+  },
+  "E⑤利率分解": {
+   "points": 10,
+   "ok": 10,
+   "mismatch": 0
+  },
+  "F⑥转折与同步": {
+   "points": 71,
+   "ok": 71,
+   "mismatch": 0
+  },
+  "G⑦传导链": {
+   "points": 119,
+   "ok": 117,
+   "mismatch": 2
+  },
+  "H⑧历史类比": {
+   "points": 10,
+   "ok": 10,
+   "mismatch": 0
+  },
+  "I⑨情景": {
+   "points": 27,
+   "ok": 27,
+   "mismatch": 0
+  },
+  "J⑩一致性": {
+   "points": 18,
+   "ok": 18,
+   "mismatch": 0
+  },
+  "K⑪诚实缺席": {
+   "points": 34,
+   "ok": 34,
+   "mismatch": 0
+  },
+  "L⑫时点口径": {
+   "points": 18,
+   "ok": 18,
+   "mismatch": 0
+  },
+  "M⑬契约验证": {
+   "points": 21,
+   "ok": 21,
+   "mismatch": 0
+  },
+  "N⑭交付门缺口": {
+   "points": 9,
+   "ok": 9,
+   "mismatch": 0
+  },
+  "O窗口": {
+   "points": 15,
+   "ok": 15,
+   "mismatch": 0
+  }
+ },
+ "minimum_required": 90
+}
+MISMATCH | G⑦传导链 | M1-step4 11-16/11-20 为跳升窗内两个最大单日跳升日 | claim= ["2026-11-16", "2026-11-20"] | computed= ["2026-11-20", "2026-11-16"]
+MISMATCH | G⑦传导链 | 同日收盘口径 2026-10-23/2026-11-20 六序列均有观测 | claim= [true, true, true, true, true, true, true, true, true, true, true, true] | computed= [true, true, true, true, true, true, true, true, true, true]

@@ -59,7 +59,9 @@ import json
 import math
 import os
 import re
+import shutil
 import sys
+import time
 from datetime import date as _date_cls
 
 import freshness_policy   # FIX1-01: 共享严格时点原语(无环: fp模块级不import rp)
@@ -220,6 +222,518 @@ def canonical_source_file(channel, file):
     except ValueError:
         return None
     return d8
+
+# ══ Audit-R25(R69)任务1: 同日重采集覆写守卫 ══════════════════════════
+# LIVE 缺陷复现(2026-11-20, R24 尝试2 记录在案): 晨间采集中途代理失效→
+# 降级面(序列丢失,china 21→16 节)仍按规范文件名落盘,覆盖同日早前完整面
+# → Gate A 重算面漂移、重放工单字节失配。守卫规则(纯采集写侧原语,
+# 不碰快照/门禁语义;前后缀权威=SOURCE_FILE_RULES 单一事实源):
+# - 规范文件不存在 → 首采直写,status='first';
+# - 已存在且新载荷覆盖**退化**(序列路径集严格缩水,或路径同构但叶子数
+#   严格减少) → 旧完整档原位不动(可重放版本保全),新降级档转存
+#   superseded/{prefix}{date}_{YYYYMMDD_HHMMSS}.json(采集版本保留,
+#   不静默丢弃),status='degraded_diverted';
+# - 已存在且覆盖不退化(扩集/等价) → 旧档先移入 superseded/(同样保留),
+#   再原子写新档,status='overwritten_preserved';
+# - IA_DAILY_ALLOW_OVERWRITE=1 → 显式豁免直写(旧档仍保留),status='forced'。
+# superseded/ 为 data/daily 子目录: resolve_inputs/data_retention 均只扫
+# data/daily 顶层,子目录档不进快照构建面,也不冒充规范来源
+# (canonical_source_file 拒绝含路径成分的文件名)。
+_SUPERSEDED_DIRNAME = 'superseded'
+
+
+def daily_face_coverage(obj):
+    """采集载荷覆盖指纹: (序列路径集, 叶子计数)——Audit-R25 任务1。
+
+    递归遍历 JSON 对象: dict 键入路径;list 以 '[]' 通配(不看下标——
+    历史长度增减不改变结构路径,防把"新增观测"误判成结构漂移)。标量叶
+    (含 None/bool)以自身路径计入集合并计数;空 dict/list 以 '{}'/'[]'
+    后缀记叶(在场证明)。值不比较——同位置数值修订(检测重算)不是
+    覆盖退化。"""
+    paths, leaves = set(), [0]
+
+    def walk(node, prefix):
+        if isinstance(node, dict):
+            if not node:
+                paths.add(prefix + '{}')
+                leaves[0] += 1
+                return
+            for k, v in node.items():
+                walk(v, f'{prefix}.{k}' if prefix else f'.{k}')
+        elif isinstance(node, list):
+            if not node:
+                paths.add(prefix + '[]')
+                leaves[0] += 1
+                return
+            for v in node:
+                walk(v, prefix + '[]')
+        else:
+            paths.add(prefix)
+            leaves[0] += 1
+
+    walk(obj, '')
+    return frozenset(paths), leaves[0]
+
+
+def _identity_of(path):
+    """Audit-R26 任务1: 路径→指标身份(前两段)。
+
+    '.data.CPI.series.values[]'→('data','CPI'),'.series.M2.values[]'→
+    ('series','M2'),'.timestamp'→('timestamp',)。键内含点(如 china 档
+    '000001.SH')的分段位置两侧一致即可比——身份只用于新旧同一 joiner
+    下的自比对,不做跨结构语义解释。单段路径=顶层登记项自成身份。"""
+    seg = path.lstrip('.').split('.')
+    return tuple(seg[:2]) if len(seg) >= 2 else (seg[0],) if seg else ()
+
+
+def daily_face_identity_map(obj):
+    """Audit-R26 任务1: 指标身份→**有效观测**叶子数(全叶身份图)。
+
+    Audit-R33 任务4起降级判定改用 daily_face_observation_map(来源备注
+    不计入指标覆盖);本函数保留=含备注叶的全叶身份图(诊断/对账用)。
+
+    「按指标身份和有效观测判断降级」:
+    - 身份=载荷内前两段路径(采集档的 metric 容器节点,如 macro 档的
+      data.CPI、ea 档的 series.ECB_FM_MRO);
+    - 有效观测叶=值非 None 的标量叶;None 叶**计身份在场、计有效观测
+      为 0**(「把 CPI 全改为 null」→键在值为 0,判「观测蒸发」而非
+      「身份丢失」——身份丢失=删掉指标容器,两者分记);
+    - 空容器('{}'/'[]' 叶)不计(空容器无观测可失、亦无占位可辨)。
+    返回 {identity: valid_leaf_count}(无路径的空载荷={})。"""
+    out = {}
+
+    def walk(node, prefix):
+        if isinstance(node, dict):
+            if not node:
+                return
+            for k, v in node.items():
+                walk(v, f'{prefix}.{k}' if prefix else f'.{k}')
+        elif isinstance(node, list):
+            if not node:
+                return
+            for v in node:
+                walk(v, prefix + '[]')
+        else:
+            ident = _identity_of(prefix)
+            if ident:
+                out.setdefault(ident, 0)
+                if node is not None:
+                    out[ident] += 1
+
+    walk(obj, '')
+    return out
+
+
+def _is_series_node(v):
+    """带 dates+values 两个列表的字典=观测序列本体(按**类型**识别,与键名无关)。"""
+    return (isinstance(v, dict) and isinstance(v.get('dates'), list)
+            and isinstance(v.get('values'), list))
+
+
+def _is_annotation_leaf(node, key):
+    """注记型字符串叶(单位/频率/定义/代码/标签一类键名下的 str 值)不是观测。"""
+    return isinstance(node, str) and key in _ANNOTATION_STRING_KEYS
+
+
+def _walk_observation_leaves(obj, leaf):
+    """判定用身份图的共用遍历(对每个标量叶以 (值, 键名) 调用 leaf 一次,返回
+    是否计入)。规则:
+    - 身份=路径前两段(同 _identity_of);单段身份(文件级元数据)不计;
+    - 备注键(_REMARK_LEAF_KEYS)下的子树不计,**除非**子树是序列字典——
+      R33 任务4修订 r4: 观测序列挂在备注键名下(如 series.note={dates,values})
+      按类型仍计入,与键名无关(与 daily_face_valid_obs_horizon 同视图);
+    - 空容器不计;None 叶计身份在场、有效观测 0。"""
+    out = {}
+
+    def walk(node, prefix, key):
+        if isinstance(node, dict):
+            if not node:
+                return
+            for k, v in node.items():
+                if k in _REMARK_LEAF_KEYS and not _is_series_node(v):
+                    continue
+                walk(v, f'{prefix}.{k}' if prefix else f'.{k}', k)
+        elif isinstance(node, list):
+            if not node:
+                return
+            for v in node:
+                walk(v, prefix + '[]', key)
+        else:
+            ident = _identity_of(prefix)
+            if ident and len(ident) >= 2:
+                out.setdefault(ident, 0)
+                if leaf(node, key):
+                    out[ident] += 1
+
+    walk(obj, '', None)
+    return out
+
+
+def daily_face_observation_map(obj):
+    """Audit-R33 任务4: 判定用身份图——{identity: 有效观测叶数},只计观测叶。
+
+    与 daily_face_identity_map 同一身份规则(前两段路径;None 叶计身份
+    在场、有效观测 0;空容器不计),差异=**来源备注不计入指标覆盖**:
+    - 备注键(_REMARK_LEAF_KEYS)下的叶子整体不计——只带备注的「身份」
+      (如备用源档的 valuation.via/valuation.note、turnover.scope)不是
+      指标,其增删不构成升降级;备注仍留在文件里(披露不动),只是不进
+      降级判定;
+    - 顶层标量(timestamp/date/fetched_at/version 等文件级元数据)自成
+      单段身份,不是指标,不计。
+    顶层披露区(_GUARD_STATUS_KEYS)由调用方经 _judgment_view 先行剔除。
+    R33 任务4修订 r4(审查席 MINOR-2)两处补强(遍历见 _walk_observation_leaves):
+    (a) 序列字典按类型计——观测挂在备注键名下不再因键名被跳过;
+    (c) 注记型字符串叶(_ANNOTATION_STRING_KEYS)不计——其增删不构成升降级。
+    观测叶上的三判据(身份丢失/有效观测缩水/时点回退)口径不变。"""
+    return _walk_observation_leaves(
+        obj, lambda node, key: node is not None and not _is_annotation_leaf(node, key))
+
+
+def daily_face_numeric_observation_map(obj):
+    """Audit-R33 任务4修订 r4: {identity: 数值观测叶数}——与判定用身份图同一
+    遍历/同一身份规则,只计数值叶(int/float,非 bool、非 NaN/Inf)。用途: 同身份
+    数值叶缩水(数值改成字符串占位、再以未登记的字符串叶补位——有效观测计数
+    不变)仍按降级转存(审查席 MINOR-2 计数补位变体)。"""
+    def _num(node, key):
+        return (isinstance(node, (int, float)) and not isinstance(node, bool)
+                and node == node and node not in (float('inf'), float('-inf')))
+
+    return _walk_observation_leaves(obj, _num)
+
+
+def daily_face_valid_obs_horizon(obj):
+    """Audit-R27 任务3: 指标身份→最新有效观测日(降级判定第二维度)。
+
+    逐 dates[]/values[] 配对扫描(与身份图同视图): 同身份**计数不变但
+    最新有效观测日回退**(尾部截断后以旧叶补位一类)不再漏判——「条数
+    相同」不掩盖「时点回退」。值 None 的配对不计;非日期形(非字符串/
+    非 YYYY-MM-DD 前缀)不计,不虚构时点。返回 {identity: 'YYYY-MM-DD'}
+    (仅含至少一个有效配对的身份)。"""
+    out = {}
+
+    def walk(node, prefix):
+        if isinstance(node, dict):
+            if not node:
+                return
+            ds, vs = node.get('dates'), node.get('values')
+            if isinstance(ds, list) and isinstance(vs, list):
+                ident = _identity_of(prefix)
+                if ident:
+                    for d, v in zip(ds, vs):
+                        if (v is None or not isinstance(d, str)
+                                or len(d) < 10 or d[4] != '-'):
+                            continue
+                        cur = out.get(ident)
+                        if cur is None or d[:10] > cur:
+                            out[ident] = d[:10]
+            for k, v in node.items():
+                walk(v, f'{prefix}.{k}' if prefix else f'.{k}')
+        elif isinstance(node, list):
+            if not node:
+                return
+            for v in node:
+                walk(v, prefix + '[]')
+
+    walk(obj, '')
+    return out
+
+
+def _superseded_slot(data_dir, stem):
+    """在 superseded/ 里为 stem(如 'china_20261120')取不碰撞的时间戳槽位。"""
+    sup_dir = os.path.join(data_dir, _SUPERSEDED_DIRNAME)
+    os.makedirs(sup_dir, exist_ok=True)
+    base = f"{stem}_{time.strftime('%Y%m%d_%H%M%S')}"
+    dst = os.path.join(sup_dir, base + '.json')
+    n = 1
+    while os.path.exists(dst):
+        dst = os.path.join(sup_dir, f'{base}_{n}.json')
+        n += 1
+    return dst
+
+
+def _copy_preserve(data_dir, fname):
+    """把即将被覆写的规范档**副本**存入 superseded/(缺席无动作)。
+
+    Audit-R26 任务1 中断窗口: 用副本不用移动——候选tmp已校验完整后才
+    复制+原子替换;任何中断点(复制中/替换前/替换后)规范档始终保持
+    完整旧档或完整新档之一可读,旧合格数据无「已移走未换入」空窗。"""
+    src = os.path.join(data_dir, fname)
+    if not os.path.exists(src):
+        return None
+    dst = _superseded_slot(data_dir, fname[:-5])
+    with open(src, 'rb') as fi, open(dst, 'xb') as fo:
+        shutil.copyfileobj(fi, fo)
+        fo.flush()
+        os.fsync(fo.fileno())
+    return dst
+
+
+def _guard_lock(data_dir, fname):
+    """Audit-R26 任务1: 同日并发守卫锁——superseded/ 内 per-规范文件 flock。
+
+    锁文件放 superseded/(采集目录 top-level 零新增 artifact;该目录对
+    resolve_inputs/data_retention 不可见)。flock 随文件描述符存活——
+    写盘中断崩溃后锁由内核自动释放,残留锁文件不阻塞后续加锁。用法:
+    with _guard_lock(data_dir, fname): ..."""
+    import contextlib
+    import fcntl
+    sup_dir = os.path.join(data_dir, _SUPERSEDED_DIRNAME)
+    os.makedirs(sup_dir, exist_ok=True)
+    lock_path = os.path.join(sup_dir, f'.lock.{fname}')
+
+    @contextlib.contextmanager
+    def _cm():
+        fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o644)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX)
+            yield
+        finally:
+            os.close(fd)   # close=解锁
+
+    return _cm()
+
+
+# Audit-R26 任务1: 采集状态/披露区(非观测面)——降级判定只看观测载荷。
+# cn_history=R6/R7 carry_forward 续存披露(mode/coverage 键数随 fresh/
+# carry_forward 形态天然不同),观测序列本体在 data 区逐位不变时
+# 不得因披露区键数变化判降级(实测雷: fresh 5叶/续存3叶曾触发误转存)。
+# Audit-R33 任务4: 披露区扩至来源登记/状态/告警(sources/sources_status/
+# alerts: japan/jp/ea/shiller 四通道采集档的来源 URL·注记·EXACT/READ_FAIL
+# 状态与告警文本)、source_version(Shiller 下载溯源)与 collection_status
+# (采集器预算与阶段时长披露)——同属来源备注,不是指标覆盖。
+_GUARD_STATUS_KEYS = ('cn_history', 'alerts', 'sources', 'sources_status',
+                      'source_version', 'collection_status')
+
+# Audit-R33 任务4: 备注叶键名(闭集)——来源/状态注记与无测量值的标注文字,
+# 不计入指标覆盖。实测雷(Audit-R32 终章附带发现;R33 基线 f053afe 用树内
+# 守卫函数复现): 备用源档的 valuation.via / valuation.note 两个来源注记键被
+# 计为指标身份,四项指数估值齐全的完整候选因缺这两键被判「指标身份丢失
+# 2 项(valuation.note,valuation.via)」转存 superseded/,规范位留下的是缺
+# 上证指数估值一项的备用源档。新增备注键须登记于此(闭集=可审计;未登
+# 记者仍按观测叶计)。
+_REMARK_LEAF_KEYS = frozenset((
+    # 来源/状态注记
+    'via', 'source', 'sources', 'source_note', 'history_note', 'basis_note',
+    'note', 'url', 'retrieved_at', 'retrieved_at_utc', 'status',
+    # 标注文字(无测量值)
+    'name', 'label', 'index_name', 'scope', 'interpretation', 'signal'))
+
+# Audit-R33 任务4修订 r4(审查席 MINOR-2c): 注记型字符串叶键名(闭集)——单位/频率/
+# 定义/代码/标签一类键名下的 str 值不是观测,其增删不得触发升降级。仅当值直接
+# 为 str 时跳过;同键名下的列表/数值照常按观测计;新增注记键名须登记于此。
+_ANNOTATION_STRING_KEYS = frozenset((
+    'unit', 'frequency', 'definition', 'freq', 'direction', 'month',
+    'ticker', 'asset_id', 'vs_50d'))
+
+
+def _judgment_view(payload):
+    """降级判定视图: 剔除状态/披露区后的观测载荷(非dict原样返回)。"""
+    if not isinstance(payload, dict) or not any(
+            k in payload for k in _GUARD_STATUS_KEYS):
+        return payload
+    return {k: v for k, v in payload.items()
+            if k not in _GUARD_STATUS_KEYS}
+
+
+def daily_face_guard_write(data_dir, channel, date8, payload, indent=2):
+    """同日重采集覆写守卫写(Audit-R25 任务1 + Audit-R26 任务1 强化)。
+
+    data_dir=采集目录(data/daily);channel∈SOURCE_FILE_RULES;date8=
+    YYYYMMDD(采集器权威日期);payload=即将落盘的载荷对象。返回
+    (path, status, note): path=实际落盘路径(退化时=superseded 槽位);
+    status∈{'first','degraded_diverted','overwritten_preserved','forced'};
+    note=退化判据摘要(非退化为空串)。
+
+    Audit-R26 任务1 三强化:
+    - **按指标身份和有效观测判降级**(旧=纯结构路径子集/叶子缩水):
+      身份(前两段路径容器)丢失——「删掉 CPI、添加别的指标」非路径
+      子集不再漏判;身份在场但有效观测(非 null 叶)缩水/归零——
+      「CPI 全改为 null」不再漏判。正常数值修订(身份/有效观测不变)
+      仍放行。
+    - **先写完整并校验候选,再原子替换**: 唯一 tmp 名+写全+fsync→回读
+      解析→覆盖指纹与身份图逐位一致→**副本保全旧档**→os.replace+
+      目录 fsync;候选不符=写盘中断/序列化损坏,fail-loud 不换入。
+      副本保全保证任意中断点规范档=完整旧档或完整新档之一(无
+      「旧档已移走、新档未换入」空窗),旧合格数据始终可读。
+    - **同日并发互斥**: 读旧-判定-转存-替换全程 per-文件 flock
+      (superseded/.lock.<fname>);原子替换保证读者任意时刻见到的都是
+      完整旧档或完整新档,旧合格数据并发窗口始终可读。
+    Audit-R33 任务4(来源备注不计入指标覆盖):
+    - 判定用 daily_face_observation_map: 备注叶与顶层元数据不进身份图
+      ——完整新版不因缺备用源档的来源注记键(via/note)被误判降级而弃
+      (Audit-R32 终章附带发现的根修);观测叶的身份丢失/缩水/时点回退
+      三判据不变,真实退化仍拦截。
+    R33 任务4修订 r4(审查席 MINOR-2): 按类型识别观测——序列字典挂在备注
+    键名下仍计;注记型字符串叶(unit/frequency/…)不计;同身份数值观测叶
+    缩水(数值→字符串补位)按降级转存(daily_face_numeric_observation_map)。"""
+    rule = SOURCE_FILE_RULES.get(channel)
+    if rule is None:
+        raise ValueError(f'unknown channel: {channel!r}')
+    if not isinstance(date8, str) or not re.fullmatch(r'\d{8}', date8):
+        raise ValueError(f'date8 not YYYYMMDD: {date8!r}')
+    os.makedirs(data_dir, exist_ok=True)
+    fname = f"{rule['prefix']}{date8}.json"
+    path = os.path.join(data_dir, fname)
+    forced = os.environ.get('IA_DAILY_ALLOW_OVERWRITE', '') == '1'
+    _want_cov = daily_face_coverage(payload)
+    _want_ids = daily_face_observation_map(_judgment_view(payload))
+    _want_hz = daily_face_valid_obs_horizon(_judgment_view(payload))
+    _want_num = daily_face_numeric_observation_map(_judgment_view(payload))
+
+    def _stage_candidate(dst):
+        # Audit-R26 任务1: 候选tmp全生命周期前半——进程唯一 tmp 名(同日
+        # 并发两写者不共 tmp 互不踩踏)+写全+fsync+回读校验;**不动规范档**。
+        # 校验不符(写盘中断/序列化损坏)=fail-loud,规范档零暴露。
+        tmp = f'{dst}.tmp.{os.getpid()}.{time.monotonic_ns()}'
+        try:
+            with open(tmp, 'w', encoding='utf-8') as f:
+                json.dump(payload, f, ensure_ascii=False, indent=indent)
+                f.flush()
+                os.fsync(f.fileno())
+            with open(tmp, encoding='utf-8') as f:
+                cand = json.load(f)
+            if (daily_face_coverage(cand) != _want_cov
+                    or daily_face_observation_map(
+                        _judgment_view(cand)) != _want_ids
+                    or daily_face_valid_obs_horizon(
+                        _judgment_view(cand)) != _want_hz
+                    or daily_face_numeric_observation_map(
+                        _judgment_view(cand)) != _want_num):
+                raise IOError(
+                    f'候选文件校验不符(写盘中断/序列化损坏): {tmp}——'
+                    f'拒绝换入,规范档不动')
+        except BaseException:
+            if os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
+            raise
+        return tmp
+
+    def _commit(tmp, dst):
+        # 后半: 原子替换+目录 fsync(替换的目录项落盘);异常/中断清 tmp。
+        try:
+            os.replace(tmp, dst)
+            try:
+                _dfd = os.open(os.path.dirname(dst) or '.', os.O_RDONLY)
+                try:
+                    os.fsync(_dfd)
+                finally:
+                    os.close(_dfd)
+            except OSError:
+                pass
+        finally:
+            if os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
+
+    if forced:
+        with _guard_lock(data_dir, fname):
+            # Audit-R27 任务3: 豁免路径首写同样入锁(查存在+提交同一临界区)
+            if not os.path.exists(path):
+                _commit(_stage_candidate(path), path)
+                return path, 'first', ''
+            _copy_preserve(data_dir, fname)
+            _commit(_stage_candidate(path), path)
+        return path, 'forced', 'IA_DAILY_ALLOW_OVERWRITE=1 豁免守卫'
+    with _guard_lock(data_dir, fname):
+        # Audit-R27 任务3: 首写「查存在」入锁——检查存在/读取/判降级/
+        # 提交同一临界区。空目录同日并发首写(完整档+缺 CPI 档,任意提交
+        # 顺序): 先到者落规范档,后到者按同一降级判据处置(缺身份/观测
+        # 缩水/时点回退=转存 superseded;身份超集且无回退=覆写),两种
+        # 顺序规范档均收敛到完整数据,不再「后到者静默胜」。
+        if not os.path.exists(path):
+            _commit(_stage_candidate(path), path)
+            return path, 'first', ''
+        old_ids, old_paths_n, old_unreadable = None, None, False
+        try:
+            with open(path, encoding='utf-8') as f:
+                old = json.load(f)
+            old_ids = daily_face_observation_map(_judgment_view(old))
+            old_paths_n = len(daily_face_coverage(old)[0])
+        except (OSError, ValueError):
+            old_unreadable = True   # 旧档不可读→无法证明退化,按可覆盖处理(仍保留)
+        note = ''
+        degraded = False
+        if old_ids is not None:
+            new_ids = _want_ids
+            # Audit-R27 任务3验收补: 占位 null 叶身份不计入「身份丢失」——
+            # 有效观测为 0 的身份不承载数据,其消失(含 null→富容器提升,
+            # 如断网空壳面 ah_premium:null → 后到富面 {close,…})非数据
+            # 损失;真实数据身份(叶数>0)被删仍判丢失。观测蒸发(>0→0)
+            # 走缩水分支不受影响。
+            _miss = sorted(
+                i for i in set(old_ids) - set(new_ids)
+                if old_ids[i] > 0)
+            _shrunk = sorted(
+                i for i in set(old_ids) & set(new_ids)
+                if new_ids[i] < old_ids[i])
+            if _miss:
+                degraded = True
+                _names = ','.join('.'.join(i) for i in _miss[:6])
+                note = (f'指标身份丢失 {len(_miss)} 项({_names}'
+                        f'{"…" if len(_miss) > 6 else ""});'
+                        f'序列路径 {old_paths_n}→{len(_want_cov[0])}'
+                        f'(丢失身份不因新增他指标补足)')
+            elif _shrunk:
+                degraded = True
+                _d = ','.join(
+                    f"{'.'.join(i)}:{old_ids[i]}→{new_ids[i]}"
+                    for i in _shrunk[:6])
+                note = (f'有效观测叶子缩水 {len(_shrunk)} 项({_d}'
+                        f'{"…" if len(_shrunk) > 6 else ""};null≠有效观测)')
+            else:
+                # R33 任务4修订 r4(审查席 MINOR-2b): 数值观测叶缩水——数值改成
+                # 字符串占位、再以未登记的字符串叶补位时有效观测计数不变,此处
+                # 按数值叶另计(「数值→注记」不掩观测蒸发)。
+                _num_old = daily_face_numeric_observation_map(_judgment_view(old))
+                _num_shrunk = sorted(
+                    i for i in set(_num_old) & set(_want_num)
+                    if _want_num[i] < _num_old[i])
+                if _num_shrunk:
+                    degraded = True
+                    _d = ','.join(
+                        f"{'.'.join(i)}:{_num_old[i]}→{_want_num[i]}"
+                        for i in _num_shrunk[:6])
+                    note = (f'数值观测叶子缩水 {len(_num_shrunk)} 项({_d}'
+                            f'{"…" if len(_num_shrunk) > 6 else ""};'
+                            f'数值→字符串/注记叶补位不掩盖)')
+                else:
+                    # Audit-R27 任务3: 同计数时点回退——最新有效观测日后移
+                    # (尾部截断后旧叶补位)按降级转存,「条数相同」不掩回退。
+                    _hz_old = daily_face_valid_obs_horizon(_judgment_view(old))
+                    _back = sorted(
+                        i for i in set(_hz_old) & set(_want_hz)
+                        if _want_hz[i] < _hz_old[i])
+                    if _back:
+                        degraded = True
+                        _b = ','.join(
+                            f"{'.'.join(i)}:{_hz_old[i]}→{_want_hz[i]}"
+                            for i in _back[:6])
+                        note = (f'最新有效观测回退 {len(_back)} 项({_b}'
+                                f'{"…" if len(_back) > 6 else ""};'
+                                f'同计数不掩时点回退)')
+        if degraded:
+            sup = _superseded_slot(data_dir, fname[:-5])
+            _commit(_stage_candidate(sup), sup)
+            return sup, 'degraded_diverted', note
+        if old_unreadable:
+            note = '旧档不可读(无法证明退化),按可覆盖处理'
+        tmp = _stage_candidate(path)
+        try:
+            _copy_preserve(data_dir, fname)
+            _commit(tmp, path)
+        except BaseException:
+            if os.path.exists(tmp):
+                try:
+                    os.remove(tmp)
+                except OSError:
+                    pass
+            raise
+    return path, 'overwritten_preserved', note
 
 # ══ FIX7-01/02(IA-F6-DEF-001): 采集目录祖先路径可信边界 ═══════════════
 # 缺陷回顾: FIX6实体核验以realpath(data_dir)为锚——若PROJECT/data本身是
@@ -1495,6 +2009,58 @@ def select_snapshot(ymd, daily_dir):
     ver = max(snap_by_ver)
     snap, path = snap_by_ver[ver]
     return snap, path
+
+
+def _sha256_file(path):
+    """文件实际字节 sha256(不存在/不可读→None)。"""
+    try:
+        with open(path, 'rb') as fh:
+            return hashlib.sha256(fh.read()).hexdigest()
+    except OSError:
+        return None
+
+
+def snapshot_binding_status(data_dir, snapshot):
+    """Audit-R33 任务4修订 r4(审查席 MINOR-5): 快照↔采集档绑定现状(只读)。
+
+    快照 sources_status 记的是**构建时点**各通道档案的 sha256。同日再采会把
+    规范档换成新版、旧版转存 superseded/,快照里的记录不随之变化——带采集目录
+    重算 Gate A 时这类通道计为「来源文件内容与构建时摘要不一致」(FIX7-05 内容
+    绑定,既有口径不变)。本函数只做披露: 返回 {channel: {'status','file',
+    'bound_copy'}},status ∈ same(规范档即快照所绑版本)/superseded_copy(规范档
+    已换,快照所绑版本在 superseded/ 槽位)/missing(采集目录与 superseded/ 均
+    无快照所绑版本)/unrecorded(快照未记 sha256 或文件名)。snapshot 非 dict→{}。"""
+    if not isinstance(snapshot, dict):
+        return {}
+    ss = snapshot.get('sources_status')
+    sup_names = None
+    out = {}
+    for ch, rec in (ss.items() if isinstance(ss, dict) else []):
+        rec = rec if isinstance(rec, dict) else {}
+        sha, fname = rec.get('sha256'), rec.get('file')
+        row = {'status': 'unrecorded', 'file': fname, 'bound_copy': None}
+        if (isinstance(sha, str) and re.fullmatch(r'[0-9a-f]{64}', sha)
+                and isinstance(fname, str) and os.path.basename(fname) == fname
+                and fname.endswith('.json')):
+            if _sha256_file(os.path.join(data_dir, fname)) == sha:
+                row['status'] = 'same'
+            else:
+                row['status'] = 'missing'
+                if sup_names is None:
+                    try:
+                        sup_names = sorted(os.listdir(
+                            os.path.join(data_dir, _SUPERSEDED_DIRNAME)), reverse=True)
+                    except OSError:
+                        sup_names = []
+                stem = fname[:-5] + '_'
+                for n in sup_names:
+                    if n.startswith(stem) and n.endswith('.json') and (
+                            _sha256_file(os.path.join(data_dir, _SUPERSEDED_DIRNAME, n))
+                            == sha):
+                        row.update(status='superseded_copy', bound_copy=n)
+                        break
+        out[ch] = row
+    return out
 
 
 def digest_snapshot(snapshot):

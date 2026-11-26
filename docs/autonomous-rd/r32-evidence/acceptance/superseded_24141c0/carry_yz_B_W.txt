@@ -1,0 +1,16 @@
+24939dfcb83e8527      14747  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/AGENT_SEAT_ENVELOPE.json
+44905966ac45e438      20044  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/FULL_REPORT.md
+142afb718c98d8b6      33481  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/MAP_REPORT.md
+49540fe403377efb         80  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/MAP_REPORT.sha256
+645e92277cda1494      40426  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/agent_judgment.json
+3c397575b9c73112       5936  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/evidence_index.json
+7e8821bd0bf9cb29        196  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/question_verbatim.txt
+3c93d4fa549d7057    4026736  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/report.json
+720874e8a838969e      29804  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/report.md
+e71a18c2e81904ed         56  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/views_digest.json
+fa396d22175a4814     125590  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/root_overlay/config/metric_registry.json
+e44fd2aa5ced0310      16009  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/root_overlay/config/release_calendar.json
+2d650f1128cdd356    5025892  output/research_runs/20261123T235121Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什/root_overlay/data/daily/research_snapshot_20261123.json
+c686f34a7761ab3c      27517  audit/semantic_review/20261124/VERDICT-20261123T235121Z-01.json
+fc2f513b13e00b3a      19901  audit/semantic_review/20261124/VERDICT-20261123T235121Z-02.json
+carried 1 run dir(s) + verdict records: files=15 bytes=9386415, all sha256 equal to source

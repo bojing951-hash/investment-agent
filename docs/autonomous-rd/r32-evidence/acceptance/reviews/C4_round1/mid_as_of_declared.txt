@@ -1,0 +1,15 @@
+{
+ "as_of": "2026-11-23",
+ "basis": null,
+ "snapshot_target_date": "2026-11-23",
+ "differs_from_snapshot": false,
+ "requested_as_of": null,
+ "clamped_to_coverage": false,
+ "coverage_date": "2026-11-23",
+ "requested_month_end": null,
+ "actual_coverage_date": null,
+ "bare_year_month": "2026年11月",
+ "upstream_pin": false,
+ "error": null,
+ "note": "问句含裸年月 2026年11月 但相对回看约束非单一(不按时点化合并,R31 既档口径)——研究截止日=快照版本日 2026-11-23(不晚于该年月;该月末完整结果须待数据覆盖后重跑)"
+}

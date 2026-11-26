@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "action": "install",
+  "source": "/private/tmp/r32-accept/final4-aug/.agents/skills/global-macro-research",
+  "results": [
+    {
+      "target": "/private/tmp/r32-accept/final4-aug/.claude/skills/global-macro-research",
+      "ok": true,
+      "verified": true,
+      "verify_problems": []
+    }
+  ]
+}

@@ -1,0 +1,536 @@
+{
+ "rows": [
+  {
+   "cat": "⑧历史类比",
+   "where": "HIST",
+   "needle": "S6_analog: 扫描 1871 个候选月、有效 74",
+   "found": true,
+   "src": "report.json steps[*].envelope(analog).data.candidates.scanned/valid",
+   "computed": [
+    1871,
+    74
+   ],
+   "claimed": [
+    1871,
+    74
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑧历史类比",
+   "where": "HIST",
+   "needle": "TOP1 候选月 2025-03 距离 0.727",
+   "found": true,
+   "src": "report.json steps[*].envelope(analog).data.top[0].{candidate_month,distance}",
+   "computed": [
+    "2025-03",
+    0.727212
+   ],
+   "claimed": [
+    "2025-03",
+    0.727
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑧历史类比",
+   "where": "HIST",
+   "needle": "历史类比 0 段",
+   "found": true,
+   "src": "agent_judgment.json reader_map.history_periods 长度",
+   "computed": 0,
+   "claimed": 0,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S1-STICKY-TIGHTEN.scenario",
+   "needle": "至 2026-12 观测月(读数按引擎发布规则于 2027-01 入档,早于时限 2027-02-15)",
+   "found": true,
+   "src": "引擎规则独立推算: 2026-12 观测月 EA_HICP_YOY 入档日(月末+16天)与 JP_CPI_YOY 入档日(月末+20天)均 < 2027-02-15",
+   "computed": [
+    "2027-01-16",
+    "2027-01-20",
+    true
+   ],
+   "claimed": [
+    "2027-01-16",
+    "2027-01-20",
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S1-STICKY-TIGHTEN.trigger",
+   "needle": "以决议实录核验(冻结日历对欧央行零条实录,欧央行分量须待日历补录后方可核验;日本端两条实录可核)",
+   "found": true,
+   "src": "release_calendar: ECB 条目数; JP_POLICY_TARGET 条目数",
+   "computed": [
+    0,
+    2
+   ],
+   "claimed": [
+    0,
+    2
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S1-STICKY-TIGHTEN.trigger",
+   "needle": "VIX",
+   "found": true,
+   "src": "VIX 日频序列在快照 series_store 在场(收盘口径可观测)",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S2-INFL-FADE.scenario",
+   "needle": "至 2026-12 观测月(读数按引擎发布规则于 2027-01 入档,早于时限 2027-02-15)",
+   "found": true,
+   "src": "引擎规则独立推算: 2026-12 观测月 EA_HICP_YOY 入档日(月末+16天)与 JP_CPI_YOY 入档日(月末+20天)均 < 2027-02-15",
+   "computed": [
+    "2027-01-16",
+    "2027-01-20",
+    true
+   ],
+   "claimed": [
+    "2027-01-16",
+    "2027-01-20",
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S2-INFL-FADE.trigger",
+   "needle": "以决议实录核验(冻结日历对欧央行零条实录,欧央行分量须待日历补录后方可核验;日本端两条实录可核)",
+   "found": true,
+   "src": "release_calendar: ECB 条目数; JP_POLICY_TARGET 条目数",
+   "computed": [
+    0,
+    2
+   ],
+   "claimed": [
+    0,
+    2
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S2-INFL-FADE.trigger",
+   "needle": "VIX",
+   "found": true,
+   "src": "VIX 日频序列在快照 series_store 在场(收盘口径可观测)",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S1-STICKY-TIGHTEN.scenario",
+   "needle": "欧元区 HICP 同比维持 3.5% 以上",
+   "found": true,
+   "src": "S1.falsification.threshold 所含证伪阈(3.5%)与前提水平一致",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S1-STICKY-TIGHTEN.scenario",
+   "needle": "日本全国 CPI 同比维持 2.0% 以上",
+   "found": true,
+   "src": "S1.trigger.condition 所含日本分量触发阈(≥2.0%)与前提一致",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S1-STICKY-TIGHTEN.trigger",
+   "needle": "EA_HICP_YOY 同比 ≥4.0%",
+   "found": true,
+   "src": "S1 触发阈与证伪阈之差(触发 4.0 − 证伪 3.5,个百分点): 3.5–4.0 区间不触发亦不证伪且 S1 文本未披露该区间",
+   "computed": 0.5,
+   "claimed": 0.5,
+   "ok": true,
+   "note": "见问题清单 MINOR-2"
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S1-STICKY-TIGHTEN.falsify",
+   "needle": "若观测月 2026-11 与 2026-12 两月欧元区 HICP 同比均低于 3.5%(前提水平)",
+   "found": true,
+   "src": "S1.falsification.threshold 是否含日本分量(JP_CPI_YOY)的数值证伪阈",
+   "computed": false,
+   "claimed": false,
+   "ok": true,
+   "note": "见问题清单 MINOR-3"
+  },
+  {
+   "cat": "⑨情景",
+   "where": "Q3",
+   "needle": "S1 证伪阈值与前提水平对齐(3.5%)",
+   "found": true,
+   "src": "S2.falsification.threshold 是否披露 3.0%–3.5% 区间",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S2-INFL-FADE.falsify",
+   "needle": "或 2026-12 观测月日本全国 CPI 同比不低于 2.0%",
+   "found": true,
+   "src": "S2.falsification.threshold 含日本分量证伪阈",
+   "computed": true,
+   "claimed": true,
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S2-INFL-FADE.asset",
+   "needle": "相反",
+   "found": true,
+   "src": "两情景资产方向文字: S1 含『承压/维持高位』且 S2 含『修复/回落』(方向互补)",
+   "computed": [
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S2-INFL-FADE.trigger",
+   "needle": "低于 25",
+   "found": true,
+   "src": "两情景 trigger.deadline 相同且证伪/触发指标均在注册表",
+   "computed": [
+    "2027-02-15",
+    "2027-02-15",
+    true
+   ],
+   "claimed": [
+    "2027-02-15",
+    "2027-02-15",
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S2-INFL-FADE.trigger",
+   "needle": "同时 VIX 在两读数均入档之日前最近一个交易日收盘低于 25",
+   "found": true,
+   "src": "截止日下未触发亦未证伪: 2026-11 观测月两地读数按引擎规则均未入档(入档日晚于截止日)",
+   "computed": [
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  },
+  {
+   "cat": "⑨情景",
+   "where": "S1-STICKY-TIGHTEN.falsify",
+   "needle": null,
+   "found": true,
+   "src": "两情景 rows 五键齐备(scenario/asset_direction/sensitive_variables/falsification/trigger)",
+   "computed": [
+    true,
+    true
+   ],
+   "claimed": [
+    true,
+    true
+   ],
+   "ok": true,
+   "note": ""
+  }
+ ],
+ "errors": [],
+ "F": {
+  "s6_top0_keys": [
+   "accounted_wsum",
+   "aftermath",
+   "candidate_month",
+   "cluster_members",
+   "dims",
+   "distance",
+   "distance_percentile",
+   "features_detail",
+   "missing_features",
+   "missing_wsum",
+   "n_missing",
+   "norm_wsum",
+   "rank"
+  ],
+  "s6_top0": {
+   "rank": 1,
+   "candidate_month": "2025-03",
+   "distance": 0.727212,
+   "n_missing": 2,
+   "distance_percentile": 0.0,
+   "dims": {
+    "growth": {
+     "contribution_share": 3.4e-05,
+     "z_gap": 0.004224
+    },
+    "inflation": {
+     "contribution_share": 0.105401,
+     "z_gap": 0.236093
+    },
+    "rates": {
+     "contribution_share": 0.4066,
+     "z_gap": 0.463709
+    },
+    "credit": {
+     "contribution_share": 0.0,
+     "z_gap": 0.0
+    },
+    "volatility": {
+     "contribution_share": 0.421281,
+     "z_gap": 0.472006
+    },
+    "valuation": {
+     "contribution_share": 0.066684,
+     "z_gap": 0.18779
+    }
+   },
+   "features_detail": {
+    "ICSA_4w_avg": {
+     "anchor_z": -0.3206747602320721,
+     "cand_z": -0.3020230889701957,
+     "gap": -0.01865167126187639,
+     "w_norm": 0.051282
+    },
+    "BEI_10Y_level": {
+     "anchor_z": 0.08346018602588887,
+     "cand_z": 0.8206599251487385,
+     "gap": -0.7371997391228496,
+     "w_norm": 0.102564
+    },
+    "UST_10Y_level": {
+     "anchor_z": 1.66637547864167,
+     "cand_z": 1.3594455456251195,
+     "gap": 0.30692993301655047,
+     "w_norm": 0.038462
+    },
+    "UST_10Y_d12m": {
+     "anchor_z": 0.8349448096688624,
+     "cand_z": -0.2331730957826982,
+     "gap": 1.0681179054515606,
+     "w_norm": 0.038462
+    },
+    "TIPS_10Y_level": {
+     "anchor_z": 1.8718474704157886,
+     "cand_z": 1.2671133088371382,
+     "gap": 0.6047341615786503,
+     "w_norm": 0.038462
+    },
+    "TIPS_10Y_d12m": {
+     "anchor_z": 1.0416374106158215,
+     "cand_z": -0.25709396765896325,
+     "gap": 1.2987313782747847,
+     "w_norm": 0.038462
+    },
+    "CURVE_2S10S_level": {
+     "anchor_z": -0.08886508395812924,
+     "cand_z": 0.05654879041421886,
+     "gap": -0.1454138743723481,
+     "w_norm": 0.038462
+    },
+    "CURVE_2S10S_d12m": {
+     "anchor_z": -0.2940401880574893,
+     "cand_z": 1.2165998325765528,
+     "gap": -1.510640020634042,
+     "w_norm": 0.038462
+    },
+    "VIX_level": {
+     "anchor_z": 1.197861037490781,
+     "cand_z": 0.46055064877570784,
+     "gap": 0.7373103887150732,
+     "w_norm": 0.153846
+    },
+    "SPX_rv21": {
+     "anchor_z": 1.463619804756194,
+     "cand_z": 0.5125655049382721,
+     "gap": 0.9510542998179218,
+     "w_norm": 0.153846
+    },
+    "SPX_CAPE_level": {
+     "anchor_z": 2.8169497441414015,
+     "cand_z": 2.338177348496841,
+     "gap": 0.4787723956445604,
+     "w_norm": 0.153846
+    }
+   },
+   "norm_wsum": 0.541667,
+   "accounted_wsum": 0.458333,
+   "missing_features": {
+    "HY_IG_gap_level": "hist_17<36",
+    "HY_OAS_level": "hist_17<36"
+   },
+   "missing_wsum": 0.083333,
+   "cluster_members": [
+    "2024-04",
+    "2024-05",
+    "2024-06",
+    "2024-07",
+    "2024-08",
+    "2024-09",
+    "2024-10",
+    "2024-11",
+    "2024-12",
+    "2025-01",
+    "2025-02",
+    "2025-03",
+    "2025-04",
+    "2025-05",
+    "2025-06",
+    "2025-07",
+    "2025-08",
+    "2025-09",
+    "2025-10",
+    "2025-11"
+   ],
+   "aftermath": {
+    "label": "事后(起点=候选锚点月之后首个观测(次月首日起),终点=候选月+N 月内(该月末日界)最后观测,非预测,不参与相似度;逐窗实际起止观测日随 {资产}_window 随行,可自行复算)",
+    "unavailable_horizons": {
+     "SPX": [],
+     "UST_10Y": [],
+     "DXY": [],
+     "GOLD_F": []
+    },
+    "SPX": {
+     "1m": -1.136321,
+     "3m": 10.152197,
+     "6m": 18.735613,
+     "12m": 15.896309
+    },
+    "SPX_window": {
+     "1m": {
+      "start": "2025-04-01",
+      "end": "2025-04-30"
+     },
+     "3m": {
+      "start": "2025-04-01",
+      "end": "2025-06-30"
+     },
+     "6m": {
+      "start": "2025-04-01",
+      "end": "2025-09-30"
+     },
+     "12m": {
+      "start": "2025-04-01",
+      "end": "2026-03-31"
+     }
+    },
+    "SPX_unit": "pct",
+    "UST_10Y": {
+     "1m": 0.0,
+     "3m": 0.07,
+     "6m": -0.01,
+     "12m": 0.13
+    },
+    "UST_10Y_window": {
+     "1m": {
+      "start": "2025-04-01",
+      "end": "2025-04-30"
+     },
+     "3m": {
+      "start": "2025-04-01",
+      "end": "2025-06-30"
+     },
+     "6m": {
+      "start": "2025-04-01",
+      "end": "2025-09-30"
+     },
+     "12m": {
+      "start": "2025-04-01",
+      "end": "2026-03-31"
+     }
+    },
+    "UST_10Y_unit": "pp",
+    "DXY": {
+     "1m": -4.594284,
+     "3m": -7.078462,
+     "6m": -6.224827,
+     "12m": -4.124307
+    },
+    "DXY_window": {
+     "1m": {
+      "start": "2025-04-01",
+      "end": "2025-04-30"
+     },
+     "3m": {
+      "start": "2025-04-01",
+      "end": "2025-06-30"
+     },
+     "6m": {
+      "start": "2025-04-01",
+      "end": "2025-09-30"
+     },
+     "12m": {
+      "start": "2025-04-01",
+      "end": "2026-03-31"
+     }
+    },
+    "DXY_unit": "pct",
+    "GOLD_F": {
+     "1m": 5.502228,
+     "3m": 5.139859,
+     "6m": 23.115065,
+     "12m": 47.730454
+    },
+    "GOLD_F_window": {
+     "1m": {
+      "start": "2025-04-01",
+      "end": "2025-04-30"
+     },
+     "3m": {
+      "start": "2025-04-01",
+      "end": "2025-06-30"
+     },
+     "6m": {
+      "start": "2025-04-01",
+      "end": "2025-09-30"
+     },
+     "12m": {
+      "start": "2025-04-01",
+      "end": "2026-03-31"
+     }
+    },
+    "GOLD_F_unit": "pct"
+   }
+  }
+ }
+}

@@ -1,0 +1,6 @@
+=== build aug tree @ 19638e1487e1e5729b9645ce621c3435d0635d08  dest=/tmp/r32-accept/final3-aug  src=/tmp/r32-accept/final3  2026-11-23 22:36:46 +0800
+pip rc=0
+snapshot research_snapshot_20261121 | n_series 88 | research_as_of 2026-11-21T22:45:53+08:00 | target 20261121 | sha256 fb1992a5396e033c
+question_aug sha256=c48431d65cd0b27834b662ebf211f7f4c6e79b9406d5905bb7d98703d88e13cb
+=== aug tree ready: 9549 files; .env present? no; CODE_VERSION git_head=19638e1487e1e5729b9645ce621c3435d0635d08
+build_aug rc=0

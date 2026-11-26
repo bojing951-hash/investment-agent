@@ -1,0 +1,11 @@
+manifest sha before: e13deef78a69c4e5
+[base] rc=0
+  top: {"ok": true}
+manifest sha after:  e13deef78a69c4e5
+manifest sha before: e13deef78a69c4e5
+[patched] rc=0
+  top: {"ok": true}
+manifest sha after:  e13deef78a69c4e5
+--- patch log
+patching file 'scripts/research_map_planner.py'
+patch rc=0

@@ -1,0 +1,49 @@
+{
+  "stage": "archive",
+  "run_ts": "20261121T151204Z",
+  "question": "对比角度换一个：2026年11月，美国与欧元区的增长和通胀环境相比3个月前各有什么变化？日本央行政策利率处于什么水平，距离上次调整过了多久？",
+  "archived_at": "20261121T181904Z",
+  "content_sha256": "1a0eb81b0c21d5637241d0e0eb4904815771b98459c7fe0a3e36d163a81b49ea",
+  "run_code_git_head": "59dcc096fff5138429105214bbd24ccd3ce003bb",
+  "digest_algorithm": "v3(canonical report.json剥离semantic_review+canonical agent_judgment.json剥离semantic_review+canonical views_digest.json) [Audit-R4 条目2]",
+  "verdict": "UPHELD",
+  "fresh": true,
+  "verdicts_n": 1,
+  "verdict_chain": [
+    {
+      "file": "verdicts/20261121__VERDICT-20261121T151204Z-01.json",
+      "source_rel": "audit/semantic_review/20261121/VERDICT-20261121T151204Z-01.json",
+      "overall": "UPHELD",
+      "revision": 1,
+      "predecessor": null,
+      "recorded_at": "20261121T153555Z",
+      "sha256": "aa1e528a19fa88ba"
+    }
+  ],
+  "copies_sha16": {
+    "report.json": "f1c6509695f2707e",
+    "report.md": "da1648b335d3ad31",
+    "FULL_REPORT.md": "8e93e81e841a0b30",
+    "agent_judgment.json": "59c789339f4c8080",
+    "views_digest.json": "e71a18c2e81904ed",
+    "evidence_index.json": "07fe30cea4c71b5f",
+    "AGENT_SEAT_ENVELOPE.json": "e19dde749000fd82",
+    "MAP_REPORT.md": "85969b25930c68d9",
+    "MAP_REPORT.sha256": "5cb05893833f6dce",
+    "question_verbatim.txt": "7e8821bd0bf9cb29"
+  },
+  "frozen_inputs": {
+    "config/metric_registry.json": "fa396d22175a4814",
+    "config/release_calendar.json": "e44fd2aa5ced0310",
+    "data/daily/research_snapshot_20261121.json": "fb1992a5396e033c"
+  },
+  "frozen_inputs_sha256": "1a3414ca6a65809c3cd86133a11f6f62e0c4b1014010d94cee89027c48243108",
+  "record_health": {},
+  "source_report_dir": "output/research_runs/20261121T151204Z_对比角度换一个_2026年11月_美国与欧元区的增长和通胀环境相比3个月前各有什",
+  "map_report_sha256": "d445781fe57cb7ebf97f349399944a365892841244fbaf19c86660f357d681c3",
+  "map_content_sha256": "d445781fe57cb7ebf97f349399944a365892841244fbaf19c86660f357d681c3",
+  "map_legacy_no_binding": false,
+  "map_renderer_drift": false,
+  "map_version": 1,
+  "correlation": "run==archive==verdict-bound(三处一致已核;裁决链唯一名逐档哈希+predecessor 链关系已核;地图面: 归档内容段==裁决绑定已核/Audit-R24 任务1)"
+}

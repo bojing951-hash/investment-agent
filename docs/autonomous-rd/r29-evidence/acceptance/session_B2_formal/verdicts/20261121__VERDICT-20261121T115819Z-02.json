@@ -1,0 +1,19 @@
+{
+  "seat": "semantic-audit-seat",
+  "overall": "UPHELD",
+  "reviewer": "semantic-audit-seat",
+  "notes": "UPHELD;必修0(四项必修全部修位)。①JP决议日级: CON-2/headline/JP走位/CH-2环1/JP转折五处均以RC实录为决议日级答案(1.25/决议2026-09-18/生效2026-09-24/按生效日58天/按决议日64天/10-30确认维持——与官方记录面及release_calendar逐值核符),月均序列降为旁证并明写两口径并存不互覆,序列通道与日历通道分记,初版被纠正如实披露;②逐月上移改累计上移(六个变动点均为向上),与快照序列复核相符;③对质表A2两侧均对BEI_10Y直接表态(温和附近不脱锚vs随预期下行),A3区分指标改HY_OAS(走阔有限vs走阔领先股指),点名指标上预期已分立;当次观测(BEI近30日-17bp/HY_OAS+12bp)单月不足以裁,尚不能区分成立;④历史段other_regions_sync改背景判断(非引擎面),删能源冲击归因,日本行缺证如实不以背景知识冒充。NOTE两条非阻断: (a)JP转折括注日历实录仅日本目标与CN LPR条目字面范围不准(另有日本维持实录与15条发布类实录条目),宜收紧为决议实录仅日本目标一条;(b)历史段关键差异本轮引擎面无政策决议数据宜限定为美欧决议实录(日本目标实录在场)。反方攻击6次均未推翻UPHELD。",
+  "run_ts": "20261121T115819Z",
+  "content_sha256": "cc56fe6175da30dde538fe362ae3ab77bd2613793866170f00611081f1271a69",
+  "audited_at": "2026-11-21",
+  "recorded_at": "20261121T122715Z",
+  "format_version": 2,
+  "digest_algorithm": "digest_v3",
+  "revision": 2,
+  "predecessor": "audit/semantic_review/20261121/VERDICT-20261121T115819Z-01.json",
+  "map_report_sha256": "7bb76471ac097b80be2289f38a2e76472e94430e17b2fa6a2a8dc913a8bfab54",
+  "counterexamples_sought": [
+    "(未记载: 席位简报须补反例面)"
+  ],
+  "frozen_inputs_sha256": "a09e4119a5fd13e55f28caf95c613675ab7373553871c427658fc406ee61089e"
+}

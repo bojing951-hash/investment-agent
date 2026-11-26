@@ -46,13 +46,20 @@ DISCLAIMER = ('本工作台是宏观**研究工具**: 所有数值来自本地�
 
 
 @st.cache_data(show_spinner=False)
-def _load_state():
+def _load_state(state_fp):
+    """R11-P2④: 缓存键=输入内容指纹(快照候选集+注册表,见
+    wd.state_fingerprint)——文件更新→键变化→自动重读新快照,
+    同一服务进程内不再返回陈旧缓存。"""
     snap, note = wd.latest_snapshot()
     registry = wd.load_registry()
     return snap, note, registry
 
 
-SNAP, SNAP_NOTE, REGISTRY = _load_state()
+def _current_state():
+    return _load_state(wd.state_fingerprint())
+
+
+SNAP, SNAP_NOTE, REGISTRY = _current_state()
 META = wd.snapshot_meta(SNAP)
 
 # ── 侧栏: 快照状态 + 导航 ────────────────────────────────────────────
@@ -96,7 +103,11 @@ def page_panorama():
                 st.code(proc.returncode and (tail + '\n[stderr]\n' + (proc.stderr or '')[-500:]) or (tail or '(无输出)'),
                         language='text')
                 if proc.returncode == 0:
-                    st.success('采集完成——刷新页面加载新快照。')
+                    # R11-P2④: 采集成功→缓存失效+立即重载(旧实现提示
+                    # 「刷新页面」但无参缓存无 TTL,重启前永远返回旧快照)
+                    _load_state.clear()
+                    st.success('采集完成——已重载新快照。')
+                    st.rerun()
                 else:
                     st.error(f'采集退出码 {proc.returncode}(见输出尾部;doctor 排查)')
             except subprocess.TimeoutExpired:

@@ -1,0 +1,56 @@
+{
+ "ok": true,
+ "capability": "history",
+ "engine_root": "/private/tmp/r32-accept/final6",
+ "snapshot_id": "research_snapshot_20261123",
+ "target_date": "20261123",
+ "research_as_of": "2026-11-23",
+ "gate_a": "DEGRADED",
+ "data": {
+  "series": {
+   "metric_id": "JP_CPI_TOKYO_YOY",
+   "label": "东京都CPI同比",
+   "unit": "percent",
+   "unit_family": "rate",
+   "frequency": "monthly",
+   "identity": {
+    "instrument": "macro_series",
+    "is_proxy": false,
+    "proxy_of": null,
+    "adjustment": "none",
+    "market_seat": "onshore_local",
+    "economy": "JP"
+   },
+   "calc": "总务省统计局东京都区部CPI(含生鲜食品综合)同比;jp_market_collector fetch_statgo_cpi_yoy 走 stat.go.jp CSV(cp932),2025基 tmi2025aa 有文件、2020基 tmi2020aa 404→基期内同月同比仅2026-01..2026-10 十个月(统计窗口短,如实注记),后续统计局补挂 2020 基东京档后自动延长",
+   "n": 10,
+   "first": "2026-01-01",
+   "last": "2026-10-01",
+   "dates": [
+    "2026-01-01",
+    "2026-02-01",
+    "2026-03-01",
+    "2026-04-01",
+    "2026-05-01",
+    "2026-06-01",
+    "2026-07-01",
+    "2026-08-01",
+    "2026-09-01",
+    "2026-10-01"
+   ],
+   "values": [
+    1.6,
+    1.62,
+    1.49,
+    1.42,
+    1.3,
+    1.6,
+    1.85,
+    1.9,
+    2.69,
+    2.73
+   ],
+   "source": "研究快照 series_store"
+  }
+ },
+ "warnings": []
+}

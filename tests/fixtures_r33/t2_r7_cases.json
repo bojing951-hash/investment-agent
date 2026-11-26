@@ -1,0 +1,1390 @@
+{
+ "_doc": "Audit-R33 任务2修订 r7 离线回归夹具(独立审查席探针原句逐字入库+25 变体矩阵句+成对孪生句): 决议名词短语作定语的日期(「9 月 18 日决议的加息已经生效」)不是「生效」的日期标签——断言时点不早于官方生效日=接收,早于=POL-EFF-EARLY-CLAIM;「决议次日即生效」相对形=POL-EFF-REL;句首「标签: 日期」分句(长标签、叠用标签、破折号、数字编号、标签前的短引导分句)=该句断言时点;把生效日写成决议日(落在决议→生效窗口之内)=POL-EFF-DATE。全部走真实日历(仅一条日银决议: 2026-09-18 决议、2026-09-24 生效),运行级截止日 2026-11-23。判定=修订 r7 后的现行行为,逐例与审查席期望相容(接收族零违规;拒收族回码在其允许集合内);P16/P17 为已知局限(审查席期望接收、现行照旧记 POL-EFF-DATE)。",
+ "cals": {
+  "real": {
+   "as_of": "2026-11-23",
+   "calendar": "config/release_calendar.json"
+  }
+ },
+ "groups": {
+  "K": "独立审查席对照句(正句;接收)",
+  "X": "独立审查席失守探针原句(拒收)",
+  "E": "独立审查席窗口形失守探针原句(拒收)",
+  "P": "决议名词短语作定语(「<决议日>决议的加息已经生效」)接收族",
+  "Q": "同一句形、断言时点早于生效日(拒收)",
+  "N": "定语名词族(宣布的/决定的/会议的/…的)+自带生效日形(接收)",
+  "G": "「标签: 日期」句首独立日期分句=断言时点(既成口径,拒收)",
+  "H": "G 的未然口径孪生句(接收)",
+  "R": "独立审查席第二轮探针原句(时点紧邻生效日/无事件日期)",
+  "V": "25 变体矩阵句(任务2验收矩阵;键 V_<矩阵键>)",
+  "S": "接收族改断言时点(早于生效日)的孪生句(拒收;成对回归)"
+ },
+ "exact": true,
+ "known_limitation": [
+  "P16",
+  "P17"
+ ],
+ "cases": [
+  {
+   "id": "K01",
+   "group": "K",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，9 月 24 日生效的加息尚未落地。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "K02",
+   "group": "K",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议加息，该决议将于 9 月 24 日生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "K03",
+   "group": "K",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "Q01"
+  },
+  {
+   "id": "K04",
+   "group": "K",
+   "cal": "real",
+   "text": "日本央行方面补充: 在 9 月 23 日，9 月 24 日生效的加息尚未执行。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "K05",
+   "group": "K",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议加息至百分之一点二五，9 月 24 日生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "K06",
+   "group": "K",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 30 日，日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "Q09"
+  },
+  {
+   "id": "K07",
+   "group": "K",
+   "cal": "real",
+   "text": "日本央行方面补充: 市场定价日本央行 9 月 18 日加息的概率上升，预期加息至百分之一点二五。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "K08",
+   "group": "K",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 18 日，日本央行已决议加息至百分之一点二五，9 月 24 日生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "K09",
+   "group": "K",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息将生效，生效日为 9 月 24 日。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "K10",
+   "group": "K",
+   "cal": "real",
+   "text": "日本央行方面补充: 窗内(2026-09-01..2026-11-23)日本央行 9 月 18 日决议、9 月 24 日生效的加息已生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "X01",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 23 日，9 月 24 日生效的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "P03"
+  },
+  {
+   "id": "X02",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，9 月 24 日生效的加息已经落地。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "V_B"
+  },
+  {
+   "id": "X03",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，9 月 24 日生效的加息已执行。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "X04",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 17 日，日本央行加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-DECISION-NOT-YET-KNOWN"
+   ]
+  },
+  {
+   "id": "X05",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 24 日生效的加息在 9 月 18 日已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "X06",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 30 日，9 月 24 日生效的加息尚未生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-LATE-PENDING"
+   ]
+  },
+  {
+   "id": "X07",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "P06"
+  },
+  {
+   "id": "X08",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 24 日生效的加息在决议后已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "X09",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 17 日，日本央行已决议加息至百分之一点二五。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-DECISION-NOT-YET-KNOWN"
+   ]
+  },
+  {
+   "id": "X10",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议加息，决议次日即生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-REL"
+   ]
+  },
+  {
+   "id": "X11",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行政策目标利率为百分之一点二五。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "note": "审查 MINOR-4: 审查席记 POL-EFF-PENDING-AS-CURRENT,现行回等价码 POL-EFF-EARLY-CLAIM(详情注明同类带现行时间词时记前者)"
+  },
+  {
+   "id": "X12",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 24 日生效的加息已于 9 月 19 日落地。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "X13",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 20 日时，9 月 24 日生效的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "X14",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 26 日生效的加息尚未生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-DATE"
+   ]
+  },
+  {
+   "id": "X15",
+   "group": "X",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 22 日生效的加息在 9 月 20 日尚未生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-DATE"
+   ]
+  },
+  {
+   "id": "E01",
+   "group": "E",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议、9 月 24 日生效的加息，窗内(2026-09-01..2026-09-20)该决议已生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "E02",
+   "group": "E",
+   "cal": "real",
+   "text": "日本央行方面补充: 窗内(2026-09-01..2026-09-20)日本央行 9 月 18 日决议、9 月 24 日生效的加息已生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "P01",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "P02",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 30 日，日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "P03",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，9 月 24 日生效的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "X01"
+  },
+  {
+   "id": "P04",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息已经实施。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "Q04"
+  },
+  {
+   "id": "P05",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息已生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "Q06"
+  },
+  {
+   "id": "P06",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "X07"
+  },
+  {
+   "id": "P07",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_P07"
+  },
+  {
+   "id": "P08",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息已经生效，生效日为 9 月 24 日。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "Q08"
+  },
+  {
+   "id": "P09",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议、9 月 24 日生效的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "P10",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日的加息决议已经生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "P11",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议加息，该加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "Q07"
+  },
+  {
+   "id": "P12",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议加息至百分之一点二五，该加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "P13",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 11 月 23 日，日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "P14",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 窗内(2026-09-01..2026-11-23)日本央行 9 月 18 日决议的加息已生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "P15",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议的加息已经实施。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_P15"
+  },
+  {
+   "id": "P16",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-DATE"
+   ],
+   "known_limit": true,
+   "note": "灰区(审查席期望接收;「<决议日>决议已生效」词义两可,现行照旧记 POL-EFF-DATE;未折叠,待用户裁定口径)"
+  },
+  {
+   "id": "P17",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议已生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-DATE"
+   ],
+   "known_limit": true,
+   "note": "灰区(审查席期望接收;「<决议日>决议已生效」词义两可,现行照旧记 POL-EFF-DATE;未折叠,待用户裁定口径)"
+  },
+  {
+   "id": "P18",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议的加息生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "Q02"
+  },
+  {
+   "id": "P19",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 23 日，日本央行 9 月 18 日决议的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "Q03"
+  },
+  {
+   "id": "P20",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息已经落地。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "Q05"
+  },
+  {
+   "id": "P21",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息已经执行。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "P22",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议、9 月 24 日生效的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "P23",
+   "group": "P",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 24 日决议的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-DATE"
+   ]
+  },
+  {
+   "id": "Q01",
+   "group": "Q",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 23 日，日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "K03"
+  },
+  {
+   "id": "Q02",
+   "group": "Q",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "P18"
+  },
+  {
+   "id": "Q03",
+   "group": "Q",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 30 日，日本央行 9 月 18 日决议的加息尚未生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-LATE-PENDING"
+   ],
+   "pair": "P19"
+  },
+  {
+   "id": "Q04",
+   "group": "Q",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "P04"
+  },
+  {
+   "id": "Q05",
+   "group": "Q",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息已经落地。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "P20"
+  },
+  {
+   "id": "Q06",
+   "group": "Q",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息已生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "P05"
+  },
+  {
+   "id": "Q07",
+   "group": "Q",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议加息，该加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "P11"
+  },
+  {
+   "id": "Q08",
+   "group": "Q",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息已经生效，生效日为 9 月 24 日。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "P08"
+  },
+  {
+   "id": "Q09",
+   "group": "Q",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 18 日，日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "K06"
+  },
+  {
+   "id": "N01",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日宣布的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N01"
+  },
+  {
+   "id": "N02",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决定的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N02"
+  },
+  {
+   "id": "N03",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日会议的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N03"
+  },
+  {
+   "id": "N04",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N04"
+  },
+  {
+   "id": "N05",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息已生效、已执行。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N05"
+  },
+  {
+   "id": "N06",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议的加息自 9 月 24 日起生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "N07",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议的加息于 9 月 24 日生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "N08",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行加息已经生效，该加息于 9 月 18 日决议。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N08"
+  },
+  {
+   "id": "N09",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息生效日为 9 月 24 日。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "N10",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议的加息已经生效，9 月 24 日起执行。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N10"
+  },
+  {
+   "id": "N11",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议加息，该加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N11"
+  },
+  {
+   "id": "N12",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，日本央行 9 月 18 日决议的加息已经生效，生效日为 9 月 24 日。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N12"
+  },
+  {
+   "id": "N13",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议，9 月 24 日生效，目前加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N13"
+  },
+  {
+   "id": "N14",
+   "group": "N",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "S_N14"
+  },
+  {
+   "id": "G01",
+   "group": "G",
+   "cal": "real",
+   "text": "时态核对: 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "G02",
+   "group": "G",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "H01"
+  },
+  {
+   "id": "G03",
+   "group": "G",
+   "cal": "real",
+   "text": "日本央行政策利率时态核对: 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "G04",
+   "group": "G",
+   "cal": "real",
+   "text": "日本央行政策利率时态核对表: 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "H02"
+  },
+  {
+   "id": "G05",
+   "group": "G",
+   "cal": "real",
+   "text": "日本央行方面补充: 时态核对: 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "H03"
+  },
+  {
+   "id": "G06",
+   "group": "G",
+   "cal": "real",
+   "text": "时态核对 2: 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "H04"
+  },
+  {
+   "id": "G07",
+   "group": "G",
+   "cal": "real",
+   "text": "时态核对——9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "H05"
+  },
+  {
+   "id": "G08",
+   "group": "G",
+   "cal": "real",
+   "text": "日本央行补充，时态核对: 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "H06"
+  },
+  {
+   "id": "G09",
+   "group": "G",
+   "cal": "real",
+   "text": "补充说明: 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "H01",
+   "group": "H",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 20 日，日本央行 9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "G02"
+  },
+  {
+   "id": "H02",
+   "group": "H",
+   "cal": "real",
+   "text": "日本央行政策利率时态核对表: 9 月 20 日，日本央行 9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "G04"
+  },
+  {
+   "id": "H03",
+   "group": "H",
+   "cal": "real",
+   "text": "日本央行方面补充: 时态核对: 9 月 20 日，日本央行 9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "G05"
+  },
+  {
+   "id": "H04",
+   "group": "H",
+   "cal": "real",
+   "text": "时态核对 2: 9 月 20 日，日本央行 9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "G06"
+  },
+  {
+   "id": "H05",
+   "group": "H",
+   "cal": "real",
+   "text": "时态核对——9 月 20 日，日本央行 9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "G07"
+  },
+  {
+   "id": "H06",
+   "group": "H",
+   "cal": "real",
+   "text": "日本央行补充，时态核对: 9 月 20 日，日本央行 9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "G08"
+  },
+  {
+   "id": "R01",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，9 月 24 日生效的加息已经执行。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "R02",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，9 月 24 日生效的加息已经落地。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "R03",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，9 月 24 日生效的加息生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "R04",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 18 日，9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "R05",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行加息将于 9 月 24 日生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "R06",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 24 日，9 月 24 日生效的加息尚未生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-LATE-PENDING"
+   ]
+  },
+  {
+   "id": "R07",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 24 日生效的加息已于 9 月 24 日落地。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "R08",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 24 日生效的加息已于 9 月 23 日落地。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "R09",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 在 9 月 24 日，9 月 24 日生效的加息已经实施。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "R10",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议、9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "R11",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议、9 月 24 日生效的加息尚未生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-LATE-PENDING"
+   ]
+  },
+  {
+   "id": "R12",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 25 日，9 月 24 日生效的加息已经实施。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "R13",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "R14",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 10 月 20 日，日本央行加息尚未实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-LATE-PENDING"
+   ]
+  },
+  {
+   "id": "R15",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 17 日，市场预期日本央行 9 月 18 日可能加息至百分之一点二五。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "R16",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 20 日，9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "R17",
+   "group": "R",
+   "cal": "real",
+   "text": "日本央行方面补充: 时态核对: 9 月 20 日，9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_A",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_B",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "pair": "X02"
+  },
+  {
+   "id": "V_A2",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 18 日决议加息至 1.25%，截至 9 月 20 日，9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_B2",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 18 日决议加息至 1.25%，截至 9 月 20 日尚未生效，9 月 24 日生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "note": "矩阵件: 契约门(未绑定数字)拒收,政策类零违规(契约面由矩阵跑台核)"
+  },
+  {
+   "id": "V_A3",
+   "group": "V",
+   "cal": "real",
+   "text": "时态核对: 截至 9 月 20 日，9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_B3",
+   "group": "V",
+   "cal": "real",
+   "text": "时态核对: 截至 9 月 20 日，9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "V_B4",
+   "group": "V",
+   "cal": "real",
+   "text": "时态核对: 截至9月20日尚未生效，9月24日生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "V_A4",
+   "group": "V",
+   "cal": "real",
+   "text": "时态核对: 截至9月20日，9月24日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_B5",
+   "group": "V",
+   "cal": "real",
+   "text": "时态核对: 日本央行 9 月 18 日决议加息至 1.25%，截至 9 月 20 日尚未生效，9 月 24 日生效。",
+   "verdict": "ACCEPT",
+   "codes": [],
+   "note": "矩阵件: 契约门(未绑定数字)拒收,政策类零违规(契约面由矩阵跑台核)"
+  },
+  {
+   "id": "V_A5",
+   "group": "V",
+   "cal": "real",
+   "text": "时态核对: 日本央行 9 月 18 日决议加息至 1.25%，截至 9 月 20 日，9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_A6",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 18 日决议加息至百分之一点二五，截至 9 月 20 日，9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_B6",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 18 日决议加息至百分之一点二五，截至 9 月 20 日尚未生效，9 月 24 日生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "V_A7",
+   "group": "V",
+   "cal": "real",
+   "text": "时态核对: 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_B7",
+   "group": "V",
+   "cal": "real",
+   "text": "时态核对: 9 月 20 日，日本央行 9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "V_A8",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，9 月 22 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-DATE"
+   ]
+  },
+  {
+   "id": "V_A9",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 24 日生效的加息在 9 月 20 日已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_B9",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 24 日生效的加息在 9 月 20 日尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "V_A10",
+   "group": "V",
+   "cal": "real",
+   "text": "时态核对: 在 9 月 20 日，日本央行 9 月 24 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_B10",
+   "group": "V",
+   "cal": "real",
+   "text": "时态核对: 在 9 月 20 日，日本央行 9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "V_A11",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 市场预期日本央行 9 月 18 日可能加息。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "V_A12",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 日本央行 9 月 18 日决议加息至百分之一点二五。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF"
+   ]
+  },
+  {
+   "id": "V_A13",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 26 日生效的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-DATE"
+   ]
+  },
+  {
+   "id": "V_B13",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 24 日生效的加息尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "V_A14",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 24 日生效的加息在决议公布时已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ]
+  },
+  {
+   "id": "V_B14",
+   "group": "V",
+   "cal": "real",
+   "text": "日本央行方面补充: 9 月 24 日生效的加息在决议公布时尚未生效。",
+   "verdict": "ACCEPT",
+   "codes": []
+  },
+  {
+   "id": "S_N01",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日宣布的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N01"
+  },
+  {
+   "id": "S_N02",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决定的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N02"
+  },
+  {
+   "id": "S_N03",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日会议的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N03"
+  },
+  {
+   "id": "S_N04",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N04"
+  },
+  {
+   "id": "S_N05",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息已生效、已执行。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N05"
+  },
+  {
+   "id": "S_N08",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行加息已经生效，该加息于 9 月 18 日决议。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N08"
+  },
+  {
+   "id": "S_N10",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息已经生效，9 月 24 日起执行。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N10"
+  },
+  {
+   "id": "S_N11",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议加息，该加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N11"
+  },
+  {
+   "id": "S_N12",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息已经生效，生效日为 9 月 24 日。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N12"
+  },
+  {
+   "id": "S_N13",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议，9 月 24 日生效，目前加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N13"
+  },
+  {
+   "id": "S_N14",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "N14"
+  },
+  {
+   "id": "S_P07",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息已经生效。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "P07"
+  },
+  {
+   "id": "S_P15",
+   "group": "S",
+   "cal": "real",
+   "text": "日本央行方面补充: 截至 9 月 20 日，日本央行 9 月 18 日决议的加息已经实施。",
+   "verdict": "REJECT",
+   "codes": [
+    "POL-EFF-EARLY-CLAIM"
+   ],
+   "pair": "P15"
+  }
+ ]
+}

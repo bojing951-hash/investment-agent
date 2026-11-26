@@ -160,7 +160,7 @@ _POL_CURRENT_MARKS = ('已生效', '已经生效', '生效后', '现行', '目�
                       '现在', '现为', '已降至', '已升至', '已上调至',
                       '已下调至', '已调整为', '处于')
 _POL_REL_EFF = (                # (正则, 隐含生效偏移日)
-    (r'(?:决议|决定|宣布|公布|公告|调整|降息|加息|上调|下调)[^,，。;；:：?？]{0,8}?(次日|翌日|第二天)生效', 1),
+    (r'(?:决议|决定|宣布|公布|公告|调整|降息|加息|上调|下调)[^,，。;；:：?？]{0,8}?(次日|翌日|第二天)(?:即|便|就)?生效', 1),   # 修订 r7: 「决议次日即生效」
     (r'(?:自|从)(?:决议|决定|宣布|公布|公告)(?:日)?(?:起)?(?:的)?(?:次日|翌日|第二天)起?生效', 1),
     (r'(?:决议|决定|宣布|公布|公告|调整|降息|加息|上调|下调)[^,，。;；:：?？]{0,8}?(即日|当天|当日|立即|即刻|即时|随即|马上)生效', 0),
     (r'(?:决议|决定|宣布|公布|公告|调整|降息|加息|上调|下调)(?:即|便|就)生效', 0),
@@ -603,8 +603,14 @@ _POL_LEAD_DATE_RE = re.compile(_POL_ONE_DATE + r'日?')   # 句首独立日期�
 # 句首标签前缀(修订 r5): 「时态核对: 」「日本央行: 」一类短标签+冒号。标签只许
 # 汉字/拉丁字母/括号/间隔号/空白(不含数字),且不得含日期字段词——「生效日期: X」
 # 的 X 是事件日期(交日期规则核对),不是断言时点
+# 修订 r7(绑定 S8 的独立审查 MAJOR-4): 标签上限 12→16 字(「日本央行政策
+# 利率时态核对表: 」13 字此前不识别→句首日期分句按运行级截止日判: 既成
+# 误句放行、同形「尚未生效」正句误拒);末尾可带 1–2 位序号(「时态核对 2: 」),
+# 分隔符另认破折号(「时态核对——」);两个标签叠用(「日本央行方面补充: 
+# 时态核对: 」)逐个剥离(见 _pol_lead_body)
 _POL_LEAD_LABEL_RE = re.compile(
-    r'[\u4e00-\u9fffA-Za-z（）()·\s]{1,12}[:：]\s*')
+    r'[\u4e00-\u9fffA-Za-z（）()·\s]{1,16}(?:\s?\d{1,2})?'
+    r'(?:[:：]|——)\s*')
 _POL_LEAD_LABEL_BAR = ('生效', '公布', '决议', '实施', '落地', '执行', '日期',
                        '宣布', '发布', '公告')
 
@@ -804,11 +810,14 @@ def _pol_marks_in(c, eff=None):
 
 
 def _pol_lead_body(c):
-    """句首分句去掉标签前缀后的文本(修订 r5;无合法标签=原文)。"""
-    m = _POL_LEAD_LABEL_RE.match(c)
-    if not m or any(w in m.group(0) for w in _POL_LEAD_LABEL_BAR):
-        return c
-    return c[m.end():]
+    """句首分句去掉标签前缀后的文本(修订 r5;无合法标签=原文)。
+    修订 r7: 叠用的标签逐个剥离,每个标签各自不得含日期字段词。"""
+    body = c
+    while True:
+        m = _POL_LEAD_LABEL_RE.match(body)
+        if not m or any(w in m.group(0) for w in _POL_LEAD_LABEL_BAR):
+            return body
+        body = body[m.end():]
 
 
 def _pol_ref_date(dec, delta=0):
@@ -818,6 +827,20 @@ def _pol_ref_date(dec, delta=0):
                 + timedelta(days=delta)).isoformat()
     except ValueError:
         return None
+
+
+def _pol_lead_in(c0):
+    """修订 r7b(审查席记录的边缘形 G08/H06): 标签前的一个短引导分句
+    (「日本央行补充，时态核对: 9 月 20 日，…」)——不含日期词元、政策词与
+    任何状态词形,长度 ≤10 字: 其后的标签+日期分句同样认作句首独立日期
+    分句(引导分句自身仍按运行级截止日)。"""
+    return (len(c0) <= 10
+            and not _pol_date_tokens(c0)
+            and not any(w in c0 for w in _POL_POL_CHANGE_WORDS)
+            and not any(w in c0 for w in _POL_IMPL_MARKS)
+            and not any(w in c0 for w in _POL_NOT_YET_MARKS)
+            and not any(w in c0 for w in _POL_CUR_CLAUSE_MARKS)
+            and not _POL_PEND_RE.search(c0))
 
 
 def _pol_time_clauses(ntext, fb, dec, eff=None):
@@ -843,14 +866,18 @@ def _pol_time_clauses(ntext, fb, dec, eff=None):
     for si, sm in enumerate(_POL_SENT_RE.finditer(ntext or '')):
         ss, se = sm.span()
         cur = None
-        for ai, (a, b) in enumerate(_pol_clause_spans(ntext[ss:se])):
+        _cls = _pol_clause_spans(ntext[ss:se])
+        for ai, (a, b) in enumerate(_cls):
             s, e = ss + a, ss + b
             c = ntext[s:e]
             masked = list(c)
             own_time, alt_t, alt_src = None, None, ''
             own = _pol_marks_in(c, eff)
             pick = [mk for mk in own if mk[2] in _POL_STRICT_KINDS] or own
-            if not own and ai == 0:
+            # 修订 r7b: 第二分句前的短引导分句不算「标签之前另有正文」
+            if not own and (ai == 0 or (
+                    ai == 1 and _pol_lead_in(
+                        ntext[ss + _cls[0][0]:ss + _cls[0][1]]))):
                 body = _pol_lead_body(c)
                 m0 = _POL_LEAD_DATE_RE.fullmatch(
                     _POL_LEAD_PRE_RE.sub('', body, count=1))
@@ -918,6 +945,23 @@ def _pol_first_time_src(text, fb=None):
     return '运行级截止日'
 
 
+# 修订 r7(绑定 S8 的独立审查 MAJOR-1/2): 「<决议日>决议的加息已经生效」一族
+# 的日期是决议名词短语的定语——「9 月 18 日决议的加息」「9 月 18 日的加息」
+# 「9 月 18 日宣布/决定/会议的加息」「9 月 18 日决议加息，该加息已经生效」
+# ——不是「生效」的日期标签。此前按「其前 14 字内最近日期词元」绑到「生效」,
+# 一律报「把决议日写成生效日」(正句被拒),或让裸「生效」不算既成用法(早声称
+# 误句的违规码与句义不符)
+_POL_ATTR_DEC_RE = re.compile(
+    r'\s*(?:(?:决议|决定|宣布|公布|公告|会议|声明)'
+    r'(?:的|加息|降息|升息|减息|上调|下调|调整|收紧|宽松)'
+    r'|的(?:加息|降息|升息|减息|上调|下调|调整|收紧|宽松|决议|决定))')
+
+
+def _pol_tok_attributive(ctext, endi):
+    """日期词元(ctext[endi:] 紧随其后)是否为决议名词短语的定语(修订 r7)。"""
+    return bool(_POL_ATTR_DEC_RE.match(ctext, endi))
+
+
 def _pol_impl_kind(ctext, toks, gov=()):
     """分句完成态类型: 'mark'=完成态词形/「已于 X 生效」; 'bare'=既成用法
     的裸「落地/生效/实施/执行」(不支配日期词元); 'raise'=「加息至+目标值」
@@ -925,7 +969,9 @@ def _pol_impl_kind(ctext, toks, gov=()):
     「尚未生效/将生效」、标签前置「生效日/生效于 X」、「X生效后/前」、相对
     生效形「自决议次日起生效」、被日期词元支配的「9月24日生效」——后者交
     决议-生效日期规则核对;修订 r4: 区间整体置「□」后,紧随区间起点
-    日期 14 字内的词形仍按被区间支配处理——gov=起点止位)。"""
+    日期 14 字内的词形仍按被区间支配处理——gov=起点止位);修订 r7: 决议名词
+    短语的定语日期(「9 月 18 日决议的加息生效」)不算支配日期词元——既成
+    用法的裸「生效」。"""
     if (any(w in ctext for w in _POL_IMPL_MARKS)
             or _POL_DONE_AT_RE.search(ctext)
             or _POL_DONE_MASK_RE.search(ctext)):
@@ -947,6 +993,8 @@ def _pol_impl_kind(ctext, toks, gov=()):
         tok_end = None
         for iso, mm, dd, st_i, endi in reversed(toks):
             if endi <= p and p <= endi + 14:
+                if _pol_tok_attributive(ctext, endi):
+                    continue     # 修订 r7: 定语日期不支配「生效」
                 tok_end = endi
                 break
         if tok_end is None:
@@ -1350,7 +1398,12 @@ def _pol_tense_violation(text, ev, as_of, events, bound=None):
             early_cur = ('POL-EFF-EARLY-CLAIM',
                          '断言时点 %s(来源: %s)早于 %s 决议生效日 %s,正文以'
                          '现行/已生效口径写目标值「%s」而无未然标注——断言时点'
-                         '尚未生效' % (t, tc['src'], name, eff, tc['text'][:60]))
+                         '尚未生效%s' % (
+                             t, tc['src'], name, eff, tc['text'][:60],
+                             # 修订 r7(审查 MINOR-4): 同类句的等价码
+                             ';同类: 段内无事件日期与待生效标注的当前值句'
+                             '(待生效值写成当前值),带现行时间词时记 '
+                             'POL-EFF-PENDING-AS-CURRENT' if r32_txt else ''))
             if t < pub:
                 known_form = (c['ev_dated'] and not c['expect'] and not c['pend']
                               and not c['past'] and not c['meeting']
@@ -1540,6 +1593,25 @@ def _pol_late_date_ok(work, tok, st_i, endi, p, ev, bound, own_ent):
     return bool(own_ent) or _pol_days(str(ev.get('effective_on') or ''), tok) <= 14
 
 
+def _pol_attr_done(nt, ev, as_of, events, bound, tense):
+    """修订 r7(绑定 S8 的独立审查 MAJOR-1): 段内的决议日词元全是决议名词
+    短语的定语、段内有既成口径分句(完成态词形/既成用法的裸「生效·落地·
+    实施·执行」,不带未然/预期标注)、且时态模型无发现(断言时点不早于官方
+    生效日,状态断言属实)——「<决议日>决议的加息已经生效」写的是已生效的
+    状态,不是漏配生效日的决议提及: 成对纪律让路。早声称仍由时态模型拦。
+    """
+    if tense:
+        return False
+    dec = str(ev.get('decision_date') or '')
+    toks = [t for t in _pol_date_tokens(nt) if _pol_tok_is(t, dec)]
+    if not toks or not all(_pol_tok_attributive(nt, t[4]) for t in toks):
+        return False
+    _, by_sent = _pol_model(nt, ev, as_of, events, bound)
+    return any(c['impl'] in ('mark', 'bare') and not c['pend']
+               and not c['expect']
+               for cls in by_sent.values() for _, c in cls)
+
+
 def _pol_date_specs(work, ev, bound, as_of=None):
     """POL-EFF-DATE 规格 → [detail](work=原文或空白归一副本)。R32 绑定逻辑
     原样: 标签前置「生效日/生效于 Y」→其后日期 Y;其余(日期前置 X生效)→
@@ -1587,6 +1659,20 @@ def _pol_date_specs(work, ev, bound, as_of=None):
             continue
         iso, mm, dd, st_i, endi = _toks[_gi]
         tok = iso or '%s-%02d-%02d' % (_ddec[:4], mm, dd)
+        if _pol_tok_attributive(work, endi):
+            # 修订 r7: 日期是决议名词短语的定语(「9 月 18 日决议的加息已经
+            # 生效」),不是「生效」的日期标签——不报「把决议日写成生效日」
+            # (断言时点早于生效日的既成句由时态模型报早声称);写成决议日的
+            # 日期落在决议→生效窗口之内(含生效日)的,是与官方实录不符的
+            # 决议日(审查 MINOR-5 的窗口内一半;更早/更晚的日期可能是日历
+            # 未登记的另一次决议,不核)。修订 r7b: 先于下一行的「恰为官方
+            # 生效日即跳过」——「9 月 24 日决议的加息已经生效」把生效日写成
+            # 了决议日
+            if _ddec < tok <= _deff:
+                spec.append(
+                    '正文把 %s 写成 %s 决议日——官方实录决议日为 %s(生效日 '
+                    '%s),不得改写' % (tok, ev['metric_id'], _ddec, _deff))
+            continue
         if tok == _deff or tok == _ddec and _deff == _ddec:
             continue
         # 「(A..T)…已生效」状态断言(同实体另一决定在 T 已生效且段内被
@@ -2064,12 +2150,19 @@ def validate_judgment(judgment, evidence_refs, metric_ids,
                           _nt_text,
                           lambda c: any(f in c
                                         for f in _date_word_forms(_ddec)),
-                          _exp_spans)):
+                          _exp_spans)
+                      and not _pol_attr_done(_nt_text, ev, _asof,
+                                             policy_events, bound, _tense)):
                     # R31 成对纪律(原口径): 决议日提及须配生效日或待生效标注
+                    # 修订 r7: 断言时点已不早于官方生效日时,详情不写「不得写成
+                    # 当时已发生」(该决议届时早已生效;拒收理由只是未配生效日)
                     bad('POL-EFF', where,
                         '提及决议日 %s(%s)但未配生效日 %s,亦无待生效标注——'
-                        '决议与生效分记,次月末才生效不得写成当时已发生'
-                        % (_ddec, ev['metric_id'], _deff))
+                        '决议与生效分记,%s'
+                        % (_ddec, ev['metric_id'], _deff,
+                           '须配生效日或待生效标注'
+                           if (_t_assert and _t_assert >= _deff)
+                           else '次月末才生效不得写成当时已发生'))
                 # POL-EFF-EARLY-CLAIM(Audit-R33 任务2 起)由上方逐分句
                 # 时态模型产出(整段现行词形代理退役: 它既漏「截至 X …
                 # 已经实施」,又把同段无关的「目前」误判为生效断言)
